@@ -127,7 +127,7 @@ rule ema_align_nobarcode:
 		bwa mem -p -t {threads} -M -R "@RG\tID:{params}\tSM:{params}" {input.genome} {input.reads}
 		"""
 
-rule sort_nobarcode_alignments:
+rule sort_nobarcode:
 	input: "ReadMapping/align/{sample}/{sample}.nobarcode.sam"
 	output: temp("ReadMapping/align/{sample}/{sample}.nobarcode.bam.tmp")
 	wildcard_constraints:
@@ -139,7 +139,7 @@ rule sort_nobarcode_alignments:
 		samtools sort -@ {threads} -O bam -l 0 -m 4G -o {output} -
 		"""    
 
-rule markduplicates_nobarcode:
+rule markduplicates:
 	input: "ReadMapping/align/{sample}/{sample}.nobarcode.bam.tmp"
 	output: "ReadMapping/align/{sample}/{sample}.nobarcode.bam"
 	wildcard_constraints:

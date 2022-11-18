@@ -3,3 +3,5 @@
 Seqs/
 ReadMapping/
 *.fasta
+*.yaml
+*.yml

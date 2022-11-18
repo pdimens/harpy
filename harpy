@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 import subprocess
-
+from os.path import exists
 import rich_click as click
 click.rich_click.SHOW_ARGUMENTS = True
 
@@ -16,38 +16,52 @@ def cli():
     pass
 
 @click.command()
-@click.argument('seq_path', default = 'SequencesRaw', type=click.Path(exists=True))
-def init(seq_path):
+@click.option('-c', '--config', default = 'config.yaml', show_default = True, type=click.Path(), help = 'Name to give configuration file')
+def init(config):
     '''Generate template configuration file\n\nSEQ_Path: Path to directory with sample sequences'''
-    pass
+    if exists(config):
+        overwrite = input(f"File \'{config}\' already exists, overwrite? (no|yes)  ")
+        if (overwrite != "yes") and (overwrite != "y"):
+            print("Please suggest a different name for the configuration file and try again")
+            quit()
+    with open(f'{config}', "w") as file:
+        file.write('# Configuration file for HARPY #\n\n')
+        file.write('# Number of barcode bins for EMA (higher is more accurate, less performant)\n')
+        file.write('EMA_bins: 500\n\n')
+        file.write('# Genome to align reads to, in FASTA format\n')
+        file.write('genome_file: genome.fasta\n\n')
+        file.write('# Directory with untrimmed sequences\n')
+        file.write('raw_seqs: RawSequences\n')
+    print('Created configuration file ' + config)
 
 @click.command()
-@click.argument('config_file', default = 'harpy.yaml', type=click.Path(exists=True))
-@click.option('-p', '--path', default = 'SequencesRaw', type=click.Path(exists=True), help = 'Path to raw sequences')
-def trim(config_file, path):
+@click.option('-c', '--config', default = 'config.yaml', show_default = True, type=click.Path(exists=True), help = 'HARPY configuration yaml file')
+@click.option('-d', '--dir', default = 'SeqRaw', show_default = True, type=click.Path(exists=True), help = 'Directory with sample sequences')
+def trim(config, dir):
     '''Remove adapters and quality trim sequences'''
     print("this is a thing!")
     #snakemake --config rawseq_path=path
 
 @click.command()
 @click.option('-c', '--config', default = 'config.yaml', show_default = True, type=click.Path(exists=True), help = 'HARPY configuration yaml file')
+@click.option('-d', '--dir', default = 'SeqTrimmed', show_default = True, type=click.Path(exists=True), help = 'Directory with sample sequences')
 @click.option('-t', '--threads', default = 4, show_default = True, type = int, help = 'Number of threads to use')
 @click.option('-b', '--bwa', is_flag=True, help="Use BWA MEM (barcode-unaware) instead of EMA.")
-def align(config, threads, bwa):
-    '''Align sample sequences to a reference genome.\n\nIf you don't have a configuration file, use \'harpy init\' to generate a generic one for you to modify.'''
+def align(config, threads, bwa, dir):
+    '''Align sample sequences to a reference genome.\n\nIf you don't have a configuration file, use \'harpy init\' to generate a generic one and modify it for your project.'''
     if bwa:
         subprocess.run(
-            ['snakemake', '--cores', f'{threads}', '--directory', '.', '--snakefile', 'rules/map-bwa.smk', '--configfile', f"{config}"]
+            ['snakemake', '--cores', f'{threads}', '--directory', '.', '--snakefile', 'rules/map-bwa.smk', '--configfile', f"{config}", '--config', f"seq_directory={dir}"]
         )
     else:
         subprocess.run(
-            ['snakemake', '--cores', f'{threads}', '--directory', '.', '--snakefile', 'rules/map-ema.smk', '--configfile', f"{config}"]
+            ['snakemake', '--cores', f'{threads}', '--directory', '.', '--snakefile', 'rules/map-ema.smk', '--configfile', f"{config}", '--config', f"seq_directory={dir}"]
         )
 
 @click.command()
 @click.argument('config_file', default = 'harpy.yaml', type=click.Path(exists=True))
 @click.option('-p', '--path', default = 'ReadMapping', type=click.Path(exists=True), help = 'Path to read alignments')
-def callvariant(config_file, read_path):
+def callvariants(config_file, read_path):
     '''Call variants from sample alignments\n\nCONFIG_FILE is the harpy configuration yaml file'''
     print("this is another thing!")
 
@@ -70,7 +84,7 @@ def phase(config_file):
 cli.add_command(init)
 cli.add_command(trim)
 cli.add_command(align)
-cli.add_command(callvariant)
+cli.add_command(callvariants)
 cli.add_command(impute)
 cli.add_command(phase)
 
