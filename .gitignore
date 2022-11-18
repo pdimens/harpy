@@ -1,2 +1,4 @@
 .snakemake/
 .vscode/
+ema/
+Seqs/
