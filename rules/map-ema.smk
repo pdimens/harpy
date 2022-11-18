@@ -34,7 +34,7 @@ rule all:
 rule index_genome:
 	input: genomefile
 	output: multiext(genomefile, ".ann", ".bwt", ".fai", ".pac", ".sa", ".amb")
-	message: "Indexing {input} prior to read mapping"
+	message: "Indexing {input}"
 	shell: 
 		"""
 		bwa index {input}
@@ -49,10 +49,10 @@ rule ema_count:
 		counts = "ReadMapping/count/{sample}.ema-ncnt"
 	wildcard_constraints:
 		sample = "[a-zA-Z0-9_-]*"
-	message: "Creating barcode whitelist for {wildcards.sample} and counting barcode frequency"
+	message: "Counting barcode frequency: {wildcards.sample}"
 	log: "ReadMapping/count/logs/{sample}.count.log"
 	params:
-		prefix = "{wildcards.sample}"
+		prefix = lambda wc: wc.get("sample")
 	threads: 1
 	shell:
 		"""
@@ -70,10 +70,10 @@ rule ema_preprocess:
 	wildcard_constraints:
 		sample = "[a-zA-Z0-9_-]*"
 	log: "ReadMapping/preproc/logs/{sample}.preproc.log"
-	message: "Preprocessing {wildcards.sample} for mapping with EMA"
+	message: "Preprocessing for EMA mapping: {wildcards.sample}"
 	threads: 2
 	params:
-		outdir = "{wildcards.sample}",
+		outdir = lambda wc: wc.get("sample"),
 		bins = nbins
 	shell:
 		"""
@@ -88,10 +88,10 @@ rule ema_align:
 	output: pipe("ReadMapping/align/{sample}/{sample}-{bin}.sam")
 	wildcard_constraints:
 		sample = "[a-zA-Z0-9_-]*"
-	message: "mapping: {wildcards.sample}-{wildcards.bin} onto {input.genome}"
+	message: "Mapping on {input.genom}: {wildcards.sample}-{wildcards.bin}"
 	threads: 2
 	params:
-		sampleID = "{wildcards.sample}"
+		sampleID = lambda wc: wc.get("sample")
 	shell:
 		"""
 		ema-h align -t {threads} -p haptag -d -i -r {input.genome} -R '@RG\tID:{params}\tSM:{params}' -s {input.readbin} 2> /dev/null
@@ -102,7 +102,7 @@ rule ema_sort:
 	output: "ReadMapping/align/{sample}/{sample}-{bin}.bam"
 	wildcard_constraints:
 		sample = "[a-zA-Z0-9_-]*"
-	message: "Sorting {wildcards.sample}-{wildcards.bin} with Samtools"
+	message: "Sorting with Samtools: {wildcards.sample}-{wildcards.bin}"
 	threads: 2
 	shell: 
 		"""
@@ -118,10 +118,10 @@ rule ema_align_nobarcode:
 		samfile = pipe("ReadMapping/align/{sample}/{sample}.nobarcode.sam")
 	wildcard_constraints:
 		sample = "[a-zA-Z0-9_-]*"
-	message: "Mapping unbarcoded {wildcards.sample} reads onto {input.genome}"
+	message: "Mapping unbarcoded reads onto {input.genome}: {wildcards.sample}"
 	threads: 2
 	params:
-		sampleID = "{wildcards.sample}"
+		sampleID = lambda wc: wc.get("sample")
 	shell:
 		"""
 		bwa mem -p -t {threads} -M -R "@RG\tID:{params}\tSM:{params}" {input.genome} {input.reads}
@@ -132,7 +132,7 @@ rule sort_nobarcode:
 	output: temp("ReadMapping/align/{sample}/{sample}.nobarcode.bam.tmp")
 	wildcard_constraints:
 		sample = "[a-zA-Z0-9_-]*"
-	message: "Sorting {wildcards.sample} unbarcoded alignments"
+	message: "Sorting unbarcoded alignments: {wildcards.sample}"
 	threads: 2
 	shell:
 		"""
@@ -144,7 +144,7 @@ rule markduplicates:
 	output: "ReadMapping/align/{sample}/{sample}.nobarcode.bam"
 	wildcard_constraints:
 		sample = "[a-zA-Z0-9_-]*"
-	message: "Marking duplicates with Sambamba for {wildcards.sample} unbarcoded alignments"
+	message: "Marking duplicates in unbarcoded alignments: {wildcards.sample} "
 	threads: 4
 	shell:
 		"""
@@ -161,7 +161,7 @@ rule merge_alignments:
 		flagstat = "ReadMapping/align/flagstat/{sample}.flagstat"
 	wildcard_constraints:
 		sample = "[a-zA-Z0-9_-]*"
-	message: "Merging all the alignments for {wildcards.sample}"
+	message: "Merging all the alignments: {wildcards.sample}"
 	threads: 10
 	shell:
 		"""
