@@ -52,7 +52,7 @@ rule ema_count:
 	message: "Counting barcode frequency: {wildcards.sample}"
 	log: "ReadMapping/count/logs/{sample}.count.log"
 	params:
-		prefix = lambda wc: wc.get("sample")
+		prefix = lambda wc: "ReadMapping/count/" + wc.get("sample")
 	threads: 1
 	shell:
 		"""
@@ -73,7 +73,7 @@ rule ema_preprocess:
 	message: "Preprocessing for EMA mapping: {wildcards.sample}"
 	threads: 2
 	params:
-		outdir = lambda wc: wc.get("sample"),
+		outdir = lambda wc: "ReadMapping/preproc/" + wc.get("sample"),
 		bins = nbins
 	shell:
 		"""
