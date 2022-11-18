@@ -1,6 +1,5 @@
 .snakemake/
 .vscode/
-ema/
 Seqs/
 ReadMapping/
 *.fasta
