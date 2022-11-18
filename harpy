@@ -37,7 +37,7 @@ def align(config, threads, bwa):
     '''Align sample sequences to a reference genome.\n\nIf you don't have a configuration file, use \'harpy init\' to generate a generic one for you to modify.'''
     if bwa:
         subprocess.run(
-            ['snakemake', '--dry-run', '--cores', f'{threads}', '--directory', '.', '--snakefile', 'rules/map-bwa.smk', '--configfile', f"{config}"]
+            ['snakemake', '--cores', f'{threads}', '--directory', '.', '--snakefile', 'rules/map-bwa.smk', '--configfile', f"{config}"]
         )
     else:
         subprocess.run(
