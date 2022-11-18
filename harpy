@@ -1,0 +1,78 @@
+#!/usr/bin/env python3
+
+import subprocess
+
+import rich_click as click
+click.rich_click.SHOW_ARGUMENTS = True
+
+@click.group()
+def cli():
+    '''
+    HARPY Haplotagging data processing pipeline.
+    \n\nThe pipeline trims reads, map sequences, calls variants, imputes genotypes, and phases haplotypes. Get started by running 'harpy init' to generate a configuration file and modify it to your needs. The workflow is:\n
+    init 🡒 trim 🡒 align 🡒 callvariant 🡒 impute 🡒 phase\n
+    Documentation: https://harpy.github.io
+    '''
+    pass
+
+@click.command()
+@click.argument('seq_path', default = 'SequencesRaw', type=click.Path(exists=True))
+def init(seq_path):
+    '''Generate template configuration file\n\nSEQ_Path: Path to directory with sample sequences'''
+    pass
+
+@click.command()
+@click.argument('config_file', default = 'harpy.yaml', type=click.Path(exists=True))
+@click.option('-p', '--path', default = 'SequencesRaw', type=click.Path(exists=True), help = 'Path to raw sequences')
+def trim(config_file, path):
+    '''Remove adapters and quality trim sequences'''
+    print("this is a thing!")
+    #snakemake --config rawseq_path=path
+
+@click.command()
+@click.option('-c', '--config', default = 'config.yaml', show_default = True, type=click.Path(exists=True), help = 'HARPY configuration yaml file')
+@click.option('-t', '--threads', default = 4, show_default = True, type = int, help = 'Number of threads to use')
+@click.option('-b', '--bwa', is_flag=True, help="Use BWA MEM (barcode-unaware) instead of EMA.")
+def align(config, threads, bwa):
+    '''Align sample sequences to a reference genome.\n\nIf you don't have a configuration file, use \'harpy init\' to generate a generic one for you to modify.'''
+    if bwa:
+        subprocess.run(
+            ['snakemake', '--dry-run', '--cores', f'{threads}', '--directory', '.', '--snakefile', 'rules/map-bwa.smk', '--configfile', f"{config}"]
+        )
+    else:
+        subprocess.run(
+            ['snakemake', '--cores', f'{threads}', '--directory', '.', '--snakefile', 'rules/map-ema.smk', '--configfile', f"{config}"]
+        )
+
+@click.command()
+@click.argument('config_file', default = 'harpy.yaml', type=click.Path(exists=True))
+@click.option('-p', '--path', default = 'ReadMapping', type=click.Path(exists=True), help = 'Path to read alignments')
+def callvariant(config_file, read_path):
+    '''Call variants from sample alignments\n\nCONFIG_FILE is the harpy configuration yaml file'''
+    print("this is another thing!")
+
+
+@click.command()
+@click.argument('config_file', default = 'harpy.yaml', type=click.Path(exists=True))
+@click.option('-p', '--path', default = 'SequencesTrimmed', type=click.Path(exists=True), help = 'Path to trimmed sequences')
+@click.option('-v', '--vcf', default = 'Variants.likelihoods.bcf', type=click.Path(exists=True), help = 'Path to VCF file')
+def impute(config_file):
+    '''Impute genotypes from genotype likelihoods\n\nCONFIG_FILE is the harpy configuration yaml file'''
+    print("this is another thing!")
+
+@click.command()
+@click.argument('config_file', default = 'harpy.yaml', type=click.Path(exists=True))
+@click.option('-v', '--vcf', default = 'Variants.imputed.bcf', type=click.Path(exists=True), help = 'Path to imputed VCF file')
+def phase(config_file):
+    '''Phase SNPs into haplotypes\n\nCONFIG_FILE is the harpy configuration yaml file'''
+    print("this is another thing!")
+
+cli.add_command(init)
+cli.add_command(trim)
+cli.add_command(align)
+cli.add_command(callvariant)
+cli.add_command(impute)
+cli.add_command(phase)
+
+if __name__ == '__main__':
+    cli()

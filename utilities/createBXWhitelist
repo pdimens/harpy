@@ -1,0 +1,12 @@
+#! /usr/bin/env bash
+
+if (file $1 | grep -q "gzip" ) ; then
+    whichgrep=zgrep
+else
+    whichgrep=grep
+fi
+
+# pull out BX:Z: tag + 12 characters after | remove the BX:Z: part | remove barcodes with 00 (unidentified) | sort the unique ones
+#$whichgrep -oP "BX:Z:.{12}" $1 | sed "s/BX:Z://g" | awk '!($4~/A00|B00|C00|D00/)' | sort -u
+
+$whichgrep -oP "BX:Z:.{12}" $1 | sed "s/BX:Z://g" | grep -v ".00" | sort -u

@@ -1,0 +1,5 @@
+EMA_bins: 50
+
+genome_file: genome.fasta
+
+seq_directory: Seqs
