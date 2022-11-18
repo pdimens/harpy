@@ -88,7 +88,7 @@ rule ema_align:
 	output: pipe("ReadMapping/align/{sample}/{sample}-{bin}.sam")
 	wildcard_constraints:
 		sample = "[a-zA-Z0-9_-]*"
-	message: "Mapping on {input.genom}: {wildcards.sample}-{wildcards.bin}"
+	message: "Mapping on {input.genome}: {wildcards.sample}-{wildcards.bin}"
 	threads: 2
 	params:
 		sampleID = lambda wc: wc.get("sample")

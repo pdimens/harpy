@@ -46,17 +46,16 @@ def trim(config, dir):
 @click.option('-c', '--config', default = 'config.yaml', show_default = True, type=click.Path(exists=True), help = 'HARPY configuration yaml file')
 @click.option('-d', '--dir', default = 'SeqTrimmed', show_default = True, type=click.Path(exists=True), help = 'Directory with sample sequences')
 @click.option('-t', '--threads', default = 4, show_default = True, type = int, help = 'Number of threads to use')
-@click.option('-b', '--bwa', is_flag=True, help="Use BWA MEM (barcode-unaware) instead of EMA.")
-def align(config, threads, bwa, dir):
+@click.option('-b', '--bwa', is_flag=True, help="Use BWA MEM (barcode-unaware) instead of EMA")
+@click.option('-r', '--resume', is_flag=True, help="Resume an incomplete run")
+def align(config, threads, bwa, dir, resume):
     '''Align sample sequences to a reference genome.\n\nIf you don't have a configuration file, use \'harpy init\' to generate a generic one and modify it for your project.'''
-    if bwa:
-        subprocess.run(
-            ['snakemake', '--rerun-incomplete', '--cores', f'{threads}', '--directory', '.', '--snakefile', 'rules/map-bwa.smk', '--configfile', f"{config}", '--config', f"seq_directory={dir}"]
-        )
-    else:
-        subprocess.run(
-            ['snakemake', '--rerun-incomplete', '--cores', f'{threads}', '--directory', '.', '--snakefile', 'rules/map-ema.smk', '--configfile', f"{config}", '--config', f"seq_directory={dir}"]
-        )
+    mapper = "ema" if not bwa else "bwa"
+    command = ['snakemake', '--cores', f'{threads}', '--directory', '.', '--snakefile', "rules/map-" + mapper + ".smk", '--configfile', f"{config}", '--config', f"seq_directory={dir}"]
+    if resume:
+        command.append('--rerun-incomplete')
+    #command.append('--dry-run')
+    subprocess.run(command)
 
 @click.command()
 @click.argument('config_file', default = 'harpy.yaml', type=click.Path(exists=True))
