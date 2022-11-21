@@ -103,7 +103,8 @@ rule ema_sort:
 	input: "ReadMapping/align/{sample}/{sample}-{bin}.sam"
 	output: "ReadMapping/align/{sample}/{sample}-{bin}.bam"
 	wildcard_constraints:
-		sample = "[a-zA-Z0-9_-]*"
+		sample = "[a-zA-Z0-9_-]*",
+		bin = "^[0-9]+$"
 	message: "Sorting with Samtools: {wildcards.sample}-{wildcards.bin}"
 	threads: 2
 	shell: 
