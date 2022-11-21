@@ -59,6 +59,7 @@ rule ema_count:
 		emaInterleave {input.forward_reads} {input.reverse_reads} | ema-h count -p -o {params} 2> {log}
 		"""
 
+#TODO 2> redirect isnt working like it should
 rule ema_preprocess:
 	input: 
 		forward_reads = seq_dir + "/{sample}" + Rsep + "1." + fqext,
@@ -77,7 +78,7 @@ rule ema_preprocess:
 		bins = nbins
 	shell:
 		"""
-		emaInterleave {input.forward_reads} {input.reverse_reads} | ema-h preproc -p -b -n {params.bins} -t {threads} -o {params.outdir} {input.emacounts} 2>&1 {log}
+		emaInterleave {input.forward_reads} {input.reverse_reads} | ema-h preproc -p -b -n {params.bins} -t {threads} -o {params.outdir} {input.emacounts} 2> {log}
 		"""
 
 rule ema_align:
