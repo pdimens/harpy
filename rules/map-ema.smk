@@ -78,7 +78,7 @@ rule ema_preprocess:
 		bins = nbins
 	shell:
 		"""
-		emaInterleave {input.forward_reads} {input.reverse_reads} | ema-h preproc -p -b -n {params.bins} -t {threads} -o {params.outdir} {input.emacounts} 2> {log}
+		emaInterleave {input.forward_reads} {input.reverse_reads} | ema-h preproc -p -b -n {params.bins} -t {threads} -o {params.outdir} {input.emacounts} 2>&1 | cat - > {log}
 		"""
 
 rule ema_align:
