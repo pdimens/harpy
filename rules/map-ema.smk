@@ -4,6 +4,7 @@ configfile: "config.yaml"
 # user specified configs
 seq_dir = config["seq_directory"]
 nbins = config["EMA_bins"]
+#bin_digits = len(str(nbins))
 genomefile = config["genome_file"]
 
 # this identifies whether .fastq.gz or .fq.gz is used as the file extension
@@ -66,7 +67,7 @@ rule ema_preprocess:
 		reverse_reads = seq_dir + "/{sample}" + Rsep + "2." + fqext,
 		emacounts = "ReadMapping/count/{sample}.ema-ncnt"
 	output: 
-		bins = temp(expand("ReadMapping/preproc/{{sample}}/ema-bin-{bin}", bin = range(nbins))),
+		bins = temp(expand("ReadMapping/preproc/{{sample}}/ema-bin-{bin}", bin = ["%03d" % i for i in range(nbins)])),
 		unbarcoded = temp("ReadMapping/preproc/{sample}/ema-nobc")
 	wildcard_constraints:
 		sample = "[a-zA-Z0-9_-]*"
@@ -156,7 +157,7 @@ rule markduplicates:
 
 rule merge_alignments:
 	input:
-		aln_barcoded = expand("ReadMapping/align/{{sample}}/{{sample}}.ema-{bin}.bam", bin = range(nbins)),
+		aln_barcoded = expand("ReadMapping/align/{{sample}}/{{sample}}.ema-{bin}.bam", bin = ["%03d" % i for i in range(nbins)]),
 		aln_nobarcode = "ReadMapping/align/{sample}/{sample}.nobarcode.bam"
 	output: 
 		bam = "ReadMapping/align/{sample}.bam",
