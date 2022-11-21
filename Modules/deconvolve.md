@@ -1,0 +1,66 @@
+---
+label: Deconvolve
+description: Resolve clashing barcodes from different molecules 
+icon: tag
+order: 10
+---
+
+# :icon-tag: Resolve clashing barcodes from different molecules
+
+===  :icon-checklist: You will need
+- paired-end reads from an Illumina sequencer in FASTQ format [!badge variant="secondary" text="gzip recommended"]
+    - **forward**: [!badge variant="success" text="_F"] [!badge variant="success" text=".F"] [!badge variant="success" text=".1"] [!badge variant="success" text="_1"] [!badge variant="success" text="_R1_001"] [!badge variant="success" text=".R1_001"] [!badge variant="success" text="_R1"] [!badge variant="success" text=".R1"] 
+    - **reverse**: [!badge variant="success" text="_R"] [!badge variant="success" text=".R"] [!badge variant="success" text=".2"] [!badge variant="success" text="_2"] [!badge variant="success" text="_R2_001"] [!badge variant="success" text=".R2_001"] [!badge variant="success" text="_R2"] [!badge variant="success" text=".R2"] 
+    - **fastq extension**: [!badge variant="success" text=".fq"] [!badge variant="success" text=".fastq"] [!badge variant="success" text=".FQ"] [!badge variant="success" text=".FASTQ"]
+===
+
+
+
+Running [!badge corners="pill" text="deconvolve"] is **optional**. In the alignment
+workflows ([!badge corners="pill" text="align bwa"](Align/bwa.md) 
+[!badge corners="pill" text="align strobe"](Align/strobe.md)), Harpy already uses a distance-based approach to
+deconvolve barcodes and assign `MI` tags (Molecular Identifier), whereas the
+[!badge corners="pill" text="align ema"](Align/ema.md) workflow has the
+deconvolution occur within the `ema` aligner itself. This workflow uses a reference-free method,
+[QuickDeconvolution](https://github.com/RolandFaure/QuickDeconvolution), which uses k-mers to look at "read clouds" (all reads with the same linked-read barcode)
+and decide which ones likely originate from different molecules. Regardless of whether you run 
+this workflow or not, [!badge corners="pill" text="harpy align"](Align/Align.md) will still perform its own deconvolution.
+
+!!!danger Won't work with EMA
+Reads with deconvolved barcodes will not work with [!badge corners="pill" text="align ema"](Align/ema.md),
+since EMA expects barcodes to have a specific, un-hyphenated format. If deconvolving, use either
+[!badge corners="pill" text="align bwa"](Align/bwa.md) or [!badge corners="pill" text="align strobe"](Align/strobe.md)
+for sequence alignment.
+!!!
+
+
+!!! Also in harpy qc
+This method of deconvolution is also available as an option in the [!badge corners="pill" text="qc"](qc.md) workflow
+!!!
+
+```bash usage
+harpy deconvolve OPTIONS... INPUTS...
+```
+
+## :icon-terminal: Running Options
+{.compact}
+| argument              | short name | type            | default | required | description                                                          |
+|:----------------------|:----------:|:----------------|:-------:|:--------:|:---------------------------------------------------------------------|
+| `INPUTS`           |            | file/directory paths  |         | **yes**  | Files or directories containing [input FASTQ files](/commonoptions.md#input-arguments)    |
+| `--density`        |  `-d`      | integer       |    3   |   | On average, $\frac{1}{2^d}$ kmers are indexed  |
+| `--dropout`        |  `-a`      | integer       |    0   |   | Minimum cloud size to deconvolve  |
+| `--kmer-length`    |  `-k`      | integer       |    21   |   | Size of k-mers to search for similarities  |
+| `--window-size`    |  `-w`      | integer       |    40   |   | Size of window guaranteed to contain at least one kmer  |
+
+## Resulting Barcodes
+After deconvolution, some barcodes may have a hyphenated suffix like `-1` or `-2` (e.g. `A01C33B41D93-1`).
+This is how deconvolution methods create unique variants of barcodes to denote that identical barcodes
+do not come from the same original molecules. QuickDeconvolution adds the `-0` suffix to barcodes it was unable
+to deconvolve.
+
+## Harpy Deconvolution Nuances
+Some of the downstream linked-read tools Harpy uses expect linked read barcodes to either look like the 16-base 10X
+variety or a standard haplotag (AxxCxxBxxDxx). Their pattern-matching would not recognize barcodes deconvoluted with
+hyphens. To remedy this, `MI` assignment in [!badge corners="pill" text="align bwa"](Align/bwa.md)
+and [!badge corners="pill" text="align strobe"](Align/strobe.md) will assign the deconvolved (hyphenated) barcode to a `DX:Z`
+tag and restore the original barcode as the `BX:Z` tag.
