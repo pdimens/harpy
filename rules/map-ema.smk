@@ -164,7 +164,7 @@ rule merge_alignments:
 		flagstat = "ReadMapping/align/flagstat/{sample}.flagstat"
 	wildcard_constraints:
 		sample = "[a-zA-Z0-9_-]*"
-	message: "Merging all the alignments: {wildcards.sample}"
+	message: "Merging alignments: {wildcards.sample}"
 	threads: 10
 	shell:
 		"""
