@@ -86,7 +86,7 @@ rule ema_align:
 		readbin = "ReadMapping/preproc/{sample}/ema-bin-{bin}",
 		genome = genomefile,
 		genome_idx = multiext(genomefile, ".ann", ".bwt", ".fai", ".pac", ".sa", ".amb")
-	output: pipe("ReadMapping/align/{sample}/{sample}-{bin}.sam")
+	output: pipe("ReadMapping/align/{sample}/{sample}.ema-{bin}.sam")
 	wildcard_constraints:
 		sample = "[a-zA-Z0-9_-]*",
 		bin = "^[0-9]+$"
@@ -97,19 +97,6 @@ rule ema_align:
 	shell:
 		"""
 		ema-h align -t {threads} -p haptag -d -i -r {input.genome} -R '@RG\tID:{params}\tSM:{params}' -s {input.readbin} 2> /dev/null
-		"""
-
-rule ema_sort:
-	input: "ReadMapping/align/{sample}/{sample}-{bin}.sam"
-	output: "ReadMapping/align/{sample}/{sample}-{bin}.bam"
-	wildcard_constraints:
-		sample = "[a-zA-Z0-9_-]*",
-		bin = "^[0-9]+$"
-	message: "Sorting with Samtools: {wildcards.sample}-{wildcards.bin}"
-	threads: 2
-	shell: 
-		"""
-		samtools sort -@ {threads} -O bam -l 0 -m 4G -o {output} -
 		"""
 
 rule ema_align_nobarcode:
@@ -128,6 +115,19 @@ rule ema_align_nobarcode:
 	shell:
 		"""
 		bwa mem -p -t {threads} -M -R "@RG\tID:{params}\tSM:{params}" {input.genome} {input.reads}
+		"""
+
+rule ema_sort:
+	input: "ReadMapping/align/{sample}/{sample}.ema-{bin}.sam"
+	output: "ReadMapping/align/{sample}/{sample}.ema-{bin}.bam"
+	wildcard_constraints:
+		sample = "[a-zA-Z0-9_-]*",
+		bin = "^[0-9]+$"
+	message: "Sorting alignments: {wildcards.sample}-{wildcards.bin}"
+	threads: 2
+	shell: 
+		"""
+		samtools sort -@ {threads} -O bam -l 0 -m 4G -o {output} -
 		"""
 
 rule sort_nobarcode:
@@ -156,7 +156,7 @@ rule markduplicates:
 
 rule merge_alignments:
 	input:
-		aln_barcoded = expand("ReadMapping/align/{{sample}}/{{sample}}-{bin}.bam", bin = range(nbins)),
+		aln_barcoded = expand("ReadMapping/align/{{sample}}/{{sample}}.ema-{bin}.bam", bin = range(nbins)),
 		aln_nobarcode = "ReadMapping/align/{sample}/{sample}.nobarcode.bam"
 	output: 
 		bam = "ReadMapping/align/{sample}.bam",
