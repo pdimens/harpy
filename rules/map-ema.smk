@@ -66,7 +66,7 @@ rule ema_preprocess:
 		reverse_reads = seq_dir + "/{sample}" + Rsep + "2." + fqext,
 		emacounts = "ReadMapping/count/{sample}.ema-ncnt"
 	output: 
-		bins = temp(expand("ReadMapping/preproc/{{sample}}/ema-bin-{bin}", bin = range(1, nbins+1))),
+		bins = temp(expand("ReadMapping/preproc/{{sample}}/ema-bin-{bin}", bin = range(nbins))),
 		unbarcoded = temp("ReadMapping/preproc/{sample}/ema-nobc")
 	wildcard_constraints:
 		sample = "[a-zA-Z0-9_-]*"
@@ -88,7 +88,8 @@ rule ema_align:
 		genome_idx = multiext(genomefile, ".ann", ".bwt", ".fai", ".pac", ".sa", ".amb")
 	output: pipe("ReadMapping/align/{sample}/{sample}-{bin}.sam")
 	wildcard_constraints:
-		sample = "[a-zA-Z0-9_-]*"
+		sample = "[a-zA-Z0-9_-]*",
+		bin = "^[0-9]+$"
 	message: "Mapping on {input.genome}: {wildcards.sample}-{wildcards.bin}"
 	threads: 2
 	params:
@@ -154,14 +155,15 @@ rule markduplicates:
 
 rule merge_alignments:
 	input:
-		aln_barcoded = expand("ReadMapping/align/{{sample}}/{{sample}}-{bin}.bam", bin = range(1, nbins + 1)),
+		aln_barcoded = expand("ReadMapping/align/{{sample}}/{{sample}}-{bin}.bam", bin = range(nbins)),
 		aln_nobarcode = "ReadMapping/align/{sample}/{sample}.nobarcode.bam"
 	output: 
 		bam = "ReadMapping/align/{sample}.bam",
 		stats = "ReadMapping/align/stats/{sample}.stats",
 		flagstat = "ReadMapping/align/flagstat/{sample}.flagstat"
 	wildcard_constraints:
-		sample = "[a-zA-Z0-9_-]*"
+		sample = "[a-zA-Z0-9_-]*",
+		bin = "^[0-9]+$"
 	message: "Merging all the alignments: {wildcards.sample}"
 	threads: 10
 	shell:
