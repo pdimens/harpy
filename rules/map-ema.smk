@@ -109,12 +109,12 @@ rule ema_align_nobarcode:
 		sample = "[a-zA-Z0-9_-]*"
 	message: "Mapping unbarcoded reads onto {input.genome}: {wildcards.sample}"
 	threads: 2
-	params:
-		sampleID = lambda wc: wc.get("sample")
 	shell:
 		"""
-		bwa mem -p -t {threads} -M -R "@RG\\tID:{params}\\tSM:{params}" {input.genome} {input.reads}
+		#bwa mem -p -t {threads} -M -R "@RG\\tID:{wildcards.sample}\\tSM:{wildcards.sample}" {input.genome} {input.reads}
 		"""
+#	params:
+#		sampleID = lambda wc: r""" """"wc.get("sample")
 
 rule ema_sort:
 	input: "ReadMapping/align/{sample}/{sample}.{emabin}.sam"
