@@ -78,7 +78,7 @@ rule ema_preprocess:
 		bins = nbins
 	shell:
 		"""
-		emaInterleave {input.forward_reads} {input.reverse_reads} | ema-h preproc -p -b -n {params.bins} -t {threads} -o {params.outdir} {input.emacounts} 2>&1 | cat - > {log}
+		emaInterleave {input.forward_reads} {input.reverse_reads} | ema-h preproc -p -n {params.bins} -t {threads} -o {params.outdir} {input.emacounts} 2>&1 | cat - > {log}
 		"""
 
 rule ema_align:
@@ -93,7 +93,7 @@ rule ema_align:
 	threads: 1
 	shell:
 		"""
-		ema-h align -t {threads} -p haptag -r {input.genome} -o {output} -R '@RG\\tID:{wildcards.sample}\\tSM:{wildcards.sample}' -s {input.readbin} 2> /dev/null
+		ema-h align -t {threads} -d -p haptag -r {input.genome} -o {output} -R "@RG\\tID:{wildcards.sample}\\tSM:{wildcards.sample}" -s {input.readbin} 2> /dev/null
 		"""
 
 rule align_nobarcode:
