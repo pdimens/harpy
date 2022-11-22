@@ -143,10 +143,10 @@ rule markduplicates:
 	wildcard_constraints:
 		sample = "[a-zA-Z0-9_-]*"
 	message: "Marking duplicates in unbarcoded alignments: {wildcards.sample} "
-	threads: 4
+	threads: 2
 	shell:
 		"""
-		sambamba markdup -t {threads} -p -l 0 {input} {output}
+		sambamba markdup -t {threads} -l 0 {input} {output}
 		"""   
 
 rule merge_alignments:
