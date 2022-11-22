@@ -89,7 +89,7 @@ rule ema_align:
 	output: pipe("ReadMapping/align/{sample}/{sample}.{bin}.sam")
 	wildcard_constraints:
 		sample = "[a-zA-Z0-9_-]*"
-	message: "Mapping on {input.genome}: {wildcards.sample}-{wildcards.bin}"
+	message: "Mapping onto {input.genome}: {wildcards.sample}-{wildcards.bin}"
 	threads: 1
 	shell:
 		"""
@@ -163,7 +163,7 @@ rule merge_alignments:
 	threads: 10
 	shell:
 		"""
-		sambamba merge -t {threads} -p {output.bam} {input}
+		sambamba merge -t {threads} {output.bam} {input}
 		samtools stats {output.bam} > {output.stats}
 		samtools flagstat {output.bam} > {output.flagstat}
 		"""
