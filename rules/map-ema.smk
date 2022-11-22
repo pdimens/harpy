@@ -98,7 +98,7 @@ rule ema_align:
 		ema-h align -t {threads} -p haptag -d -i -r {input.genome} -R '@RG\tID:{params}\tSM:{params}' -s {input.readbin} 2> /dev/null
 		"""
 
-rule ema_align_nobarcode:
+rule align_nobarcode:
 	input:
 		reads = "ReadMapping/preproc/{sample}/ema-nobc",
 		genome = genomefile,
@@ -111,7 +111,7 @@ rule ema_align_nobarcode:
 	threads: 2
 	shell:
 		"""
-		#bwa mem -p -t {threads} -M -R "@RG\\tID:{wildcards.sample}\\tSM:{wildcards.sample}" {input.genome} {input.reads}
+		bwa mem -p -t {threads} -M -R "@RG\\tID:{wildcards.sample}\\tSM:{wildcards.sample}" {input.genome} {input.reads}
 		"""
 #	params:
 #		sampleID = lambda wc: r""" """"wc.get("sample")
