@@ -60,7 +60,6 @@ rule ema_count:
 		emaInterleave {input.forward_reads} {input.reverse_reads} | ema-h count -p -o {params} 2> {log}
 		"""
 
-#TODO 2> redirect isnt working like it should
 rule ema_preprocess:
 	input: 
 		forward_reads = seq_dir + "/{sample}" + Rsep + "1." + fqext,
@@ -87,10 +86,9 @@ rule ema_align:
 		readbin = "ReadMapping/preproc/{sample}/ema-bin-{bin}",
 		genome = genomefile,
 		genome_idx = multiext(genomefile, ".ann", ".bwt", ".fai", ".pac", ".sa", ".amb")
-	output: pipe("ReadMapping/align/{sample}/{sample}.ema-{bin}.sam")
+	output: pipe("ReadMapping/align/{sample}/{sample}.{bin}.sam")
 	wildcard_constraints:
-		sample = "[a-zA-Z0-9_-]*",
-		bin = "^[0-9]+$"
+		sample = "[a-zA-Z0-9_-]*"
 	message: "Mapping on {input.genome}: {wildcards.sample}-{wildcards.bin}"
 	threads: 2
 	params:
@@ -119,12 +117,12 @@ rule ema_align_nobarcode:
 		"""
 
 rule ema_sort:
-	input: "ReadMapping/align/{sample}/{sample}.ema-{bin}.sam"
-	output: "ReadMapping/align/{sample}/{sample}.ema-{bin}.bam"
+	input: "ReadMapping/align/{sample}/{sample}.{emabin}.sam"
+	output: "ReadMapping/align/{sample}/{sample}.{emabin}.bam"
 	wildcard_constraints:
 		sample = "[a-zA-Z0-9_-]*",
-		bin = "^[0-9]+$"
-	message: "Sorting alignments: {wildcards.sample}-{wildcards.bin}"
+		emabin = "[0-9]*"
+	message: "Sorting alignments: {wildcards.sample}-{wildcards.emabin}"
 	threads: 2
 	shell: 
 		"""
@@ -157,7 +155,7 @@ rule markduplicates:
 
 rule merge_alignments:
 	input:
-		aln_barcoded = expand("ReadMapping/align/{{sample}}/{{sample}}.ema-{bin}.bam", bin = ["%03d" % i for i in range(nbins)]),
+		aln_barcoded = expand("ReadMapping/align/{{sample}}/{{sample}}.{bin}.bam", bin = ["%03d" % i for i in range(nbins)]),
 		aln_nobarcode = "ReadMapping/align/{sample}/{sample}.nobarcode.bam"
 	output: 
 		bam = "ReadMapping/align/{sample}.bam",
