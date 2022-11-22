@@ -93,7 +93,7 @@ rule ema_align:
 	threads: 1
 	shell:
 		"""
-		ema-h align -t {threads} -p haptag -d -r {input.genome} -o {output} -R '@RG\\tID:{wildcards.sample}\\tSM:{wildcards.sample}' -s {input.readbin} #2> /dev/null
+		ema-h align -t {threads} -p haptag -d -r {input.genome} -o {output} -R '@RG\\tID:{wildcards.sample}\\tSM:{wildcards.sample}' -s {input.readbin} 2> /dev/null
 		"""
 
 rule align_nobarcode:
@@ -109,7 +109,7 @@ rule align_nobarcode:
 	threads: 2
 	shell:
 		"""
-		bwa mem -p -t {threads} -M -R "@RG\\tID:{wildcards.sample}\\tSM:{wildcards.sample}" {input.genome} {input.reads} > {output}
+		bwa mem -p -t {threads} -M -R "@RG\\tID:{wildcards.sample}\\tSM:{wildcards.sample}" {input.genome} {input.reads} > {output} 2> /dev/null
 		"""
 
 rule ema_sort:
