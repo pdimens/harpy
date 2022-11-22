@@ -42,7 +42,7 @@ rule index_genome:
 		samtools faidx {input}
 		"""
 
-rule ema_count:
+rule count_beadtags:
 	input:
 		forward_reads = seq_dir + "/{sample}" + Rsep + "1." + fqext,
 		reverse_reads = seq_dir + "/{sample}" + Rsep + "2." + fqext
@@ -60,13 +60,13 @@ rule ema_count:
 		emaInterleave {input.forward_reads} {input.reverse_reads} | ema-h count -p -o {params} 2> {log}
 		"""
 
-rule ema_preprocess:
+rule preprocess_ema:
 	input: 
 		forward_reads = seq_dir + "/{sample}" + Rsep + "1." + fqext,
 		reverse_reads = seq_dir + "/{sample}" + Rsep + "2." + fqext,
 		emacounts = "ReadMapping/count/{sample}.ema-ncnt"
 	output: 
-		bins = expand("ReadMapping/preproc/{{sample}}/ema-bin-{bin}", bin = ["%03d" % i for i in range(nbins)]),
+		bins = temp(expand("ReadMapping/preproc/{{sample}}/ema-bin-{bin}", bin = ["%03d" % i for i in range(nbins)])),
 		unbarcoded = temp("ReadMapping/preproc/{sample}/ema-nobc")
 	wildcard_constraints:
 		sample = "[a-zA-Z0-9_-]*"
@@ -81,7 +81,7 @@ rule ema_preprocess:
 		emaInterleave {input.forward_reads} {input.reverse_reads} | ema-h preproc -p -n {params.bins} -t {threads} -o {params.outdir} {input.emacounts} 2>&1 | cat - > {log}
 		"""
 
-rule ema_align:
+rule align_ema:
 	input:
 		readbin = "ReadMapping/preproc/{sample}/ema-bin-{bin}",
 		genome = genomefile,
@@ -90,7 +90,7 @@ rule ema_align:
 	wildcard_constraints:
 		sample = "[a-zA-Z0-9_-]*"
 	message: "Mapping onto {input.genome}: {wildcards.sample}-{wildcards.bin}"
-	threads: 1
+	threads: 3
 	shell:
 		"""
 		ema-h align -t {threads} -d -p haptag -r {input.genome} -o {output} -R "@RG\\tID:{wildcards.sample}\\tSM:{wildcards.sample}" -s {input.readbin} 2> /dev/null
@@ -112,14 +112,14 @@ rule align_nobarcode:
 		bwa mem -p -t {threads} -M -R "@RG\\tID:{wildcards.sample}\\tSM:{wildcards.sample}" {input.genome} {input.reads} > {output} 2> /dev/null
 		"""
 
-rule ema_sort:
+rule sort_ema:
 	input: "ReadMapping/align/{sample}/{sample}.{emabin}.sam"
 	output: "ReadMapping/align/{sample}/{sample}.{emabin}.bam"
 	wildcard_constraints:
 		sample = "[a-zA-Z0-9_-]*",
 		emabin = "[0-9]*"
 	message: "Sorting alignments: {wildcards.sample}-{wildcards.emabin}"
-	threads: 2
+	threads: 1
 	shell: 
 		"""
 		samtools sort -@ {threads} -O bam -l 0 -m 4G -o {output} {input}
@@ -131,7 +131,7 @@ rule sort_nobarcode:
 	wildcard_constraints:
 		sample = "[a-zA-Z0-9_-]*"
 	message: "Sorting unbarcoded alignments: {wildcards.sample}"
-	threads: 2
+	threads: 1
 	shell:
 		"""
 		samtools sort -@ {threads} -O bam -l 0 -m 4G -o {output} {input}
@@ -140,13 +140,14 @@ rule sort_nobarcode:
 rule markduplicates:
 	input: "ReadMapping/align/{sample}/{sample}.nobarcode.bam.tmp"
 	output: "ReadMapping/align/{sample}/{sample}.nobarcode.bam"
+	log: "ReadMapping/align/log/{sample}.markdup.nobc.log"
 	wildcard_constraints:
 		sample = "[a-zA-Z0-9_-]*"
-	message: "Marking duplicates in unbarcoded alignments: {wildcards.sample} "
+	message: "Marking duplicates in unbarcoded alignments: {wildcards.sample}"
 	threads: 2
 	shell:
 		"""
-		sambamba markdup -t {threads} -l 0 {input} {output}
+		sambamba markdup -t {threads} -l 0 {input} {output} 2> {log}
 		"""   
 
 rule merge_alignments:
