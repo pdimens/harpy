@@ -66,7 +66,7 @@ rule ema_preprocess:
 		reverse_reads = seq_dir + "/{sample}" + Rsep + "2." + fqext,
 		emacounts = "ReadMapping/count/{sample}.ema-ncnt"
 	output: 
-		bins = temp(expand("ReadMapping/preproc/{{sample}}/ema-bin-{bin}", bin = ["%03d" % i for i in range(nbins)])),
+		bins = expand("ReadMapping/preproc/{{sample}}/ema-bin-{bin}", bin = ["%03d" % i for i in range(nbins)]),
 		unbarcoded = temp("ReadMapping/preproc/{sample}/ema-nobc")
 	wildcard_constraints:
 		sample = "[a-zA-Z0-9_-]*"
