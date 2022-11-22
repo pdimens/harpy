@@ -4,7 +4,6 @@ configfile: "config.yaml"
 # user specified configs
 seq_dir = config["seq_directory"]
 nbins = config["EMA_bins"]
-#bin_digits = len(str(nbins))
 genomefile = config["genome_file"]
 
 # this identifies whether .fastq.gz or .fq.gz is used as the file extension
@@ -22,15 +21,16 @@ samplenames = set([i.split('.')[0] for i in os.listdir(seq_dir) if i.endswith(fq
 
 rule all:
 	input: 
-		alignments = expand("ReadMapping/align/{sample}.bam", sample = samplenames),
-		stats = expand("ReadMapping/align/stats/{sample}.stats", sample = samplenames),
-		flagstat = expand("ReadMapping/align/flagstat/{sample}.flagstat", sample = samplenames)
+		expand("ReadMapping/align/{sample}.{ext}", sample = samplenames, ext = ["bam", "stats", "flagstat"])
+	output: 
+		stats = "ReadMapping/alignment.stats.html",
+		flagstat = "ReadMapping/alignment.flagstat.html"
 	message: "Read mapping completed! Generating alignment reports ReadMapping/alignment.stats.html and ReadMapping/alignment.flagstat.html."
-#	shell:
-#		"""
-#		multiqc ReadMapping/align/stats --force --quiet --filename ReadMapping/alignment.stats.html
-#		multiqc ReadMapping/align/flagstat --force --quiet --filename ReadMapping/alignment.flagstat.html
-#		"""
+	shell:
+		"""
+		multiqc ReadMapping/align/stats --force --quiet --filename {output.stats}
+		multiqc ReadMapping/align/flagstat --force --quiet --filename {output.flagstat}
+		"""
 
 rule index_genome:
 	input: genomefile
@@ -156,6 +156,7 @@ rule merge_alignments:
 		aln_nobarcode = "ReadMapping/align/{sample}/{sample}.nobarcode.bam"
 	output: 
 		bam = "ReadMapping/align/{sample}.bam",
+		bai = "ReadMapping/align/{sample}.bam.bai",
 		stats = "ReadMapping/align/stats/{sample}.stats",
 		flagstat = "ReadMapping/align/flagstat/{sample}.flagstat"
 	wildcard_constraints:
@@ -165,6 +166,7 @@ rule merge_alignments:
 	shell:
 		"""
 		sambamba merge -t {threads} {output.bam} {input}
+		samtools index {output.bam}
 		samtools stats {output.bam} > {output.stats}
 		samtools flagstat {output.bam} > {output.flagstat}
 		"""

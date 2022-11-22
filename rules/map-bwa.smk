@@ -19,14 +19,15 @@ samplenames = set([i.split('.')[0] for i in os.listdir(seq_dir) if i.endswith(fq
 
 rule all:
 	input: 
-		alignments = expand("ReadMapping/align/{sample}.bam", sample = samplenames),
-		stats = expand("ReadMapping/align/stats/{sample}.stats", sample = samplenames),
-		flagstat = expand("ReadMapping/align/flagstat/{sample}.flagstat", sample = samplenames)
-	message: "Read mapping completed! Generating alignment reports ReadMapping/alignment.stats.html and ReadMapping/alignment.flagstat.html."
+		expand("ReadMapping/align/{sample}.{ext}", sample = samplenames, ext = ["bam", "stats", "flagstat"])
+	output: 
+		stats = "ReadMapping/alignment.stats.html",
+		flagstat = "ReadMapping/alignment.flagstat.html"
+	message: "Read mapping completed! Generating alignment reports:\n{output.stats}\n{output.flagstat}"
 	shell:
 		"""
-		multiqc ReadMapping/align/stats --force --quiet --filename ReadMapping/alignment.stats.html
-		multiqc ReadMapping/align/flagstat --force --quiet --filename ReadMapping/alignment.flagstat.html
+		multiqc ReadMapping/align/stats --force --quiet --filename {output.stats}
+		multiqc ReadMapping/align/flagstat --force --quiet --filename {output.flagstat}
 		"""
 
 rule index_genome:
@@ -39,44 +40,42 @@ rule index_genome:
 		samtools faidx {input}
 		"""
 
-rule bwa_align:
+rule align_bwa:
 	input:
 		forward_reads = seq_dir + "/{sample}" + Rsep + "1." + fqext,
 		reverse_reads = seq_dir + "/{sample}" + Rsep + "2." + fqext,
 		genome = genomefile,
 		genome_idx = multiext(genomefile, ".ann", ".bwt", ".fai", ".pac", ".sa", ".amb")
 	output:  pipe("ReadMapping/align/{sample}.sam")
+	log: "ReadMapping/align/logs/{sample}.log"
 	wildcard_constraints:
 		sample = "[a-zA-Z0-9_-]*"
 	message: "Mapping {wildcards.sample} reads onto {input.genome} using BWA"
 	log: "ReadMapping/count/logs/{sample}.count.log"
-	params:
-		prefix = "{wildcards.sample}"
-	threads: 2
+	threads: 3
 	shell:
 		"""
-		bwa mem -p -C -t {threads} -M -R "@RG\tID:{params}\tSM:{params}" {input.genome} {input.forward_reads} {input.reverse_reads}
+		bwa mem -p -C -t {threads} -M -R "@RG\\tID:{wildcards.sample}\\tSM:{wildcards.sample}" {input.genome} {input.forward_reads} {input.reverse_reads} > {output} 2> {log}
 		"""
 
-rule bwa_sort:
+rule sort_alignments:
 	input: "ReadMapping/align/{sample}.sam"
 	output: 
-		bam = temp("ReadMapping/align/{sample}.bam.tmp"),
-		stats = "ReadMapping/align/{sample}.stats",
-		flagstat = "ReadMapping/align/{sample}.flagstat"
+		bam = temp("ReadMapping/align/{sample}.bam.tmp")
 	wildcard_constraints:
 		sample = "[a-zA-Z0-9_-]*"
 	message: "Sorting {wildcards.sample} alignments"
-	threads: 2
+	threads: 1
 	shell:
 		"""
-		samtools sort -@ {threads} -O bam -l 0 -m 4G -o {output} -
+		samtools sort -@ {threads} -O bam -l 0 -m 4G -o {output} {input}
 		"""
 
 rule mark_duplicates:
 	input: "ReadMapping/align/{sample}.bam.tmp"
 	output: 
 		bam = "ReadMapping/align/{sample}.bam",
+		bai = "ReadMapping/align/{sample}.bam.bai",
 		stats = "ReadMapping/align/stats/{sample}.stats",
 		flagstat = "ReadMapping/align/flagstat/{sample}.flagstat"
 	wildcard_constraints:
@@ -85,7 +84,7 @@ rule mark_duplicates:
 	threads: 4
 	shell:
 		"""
-		sambamba markdup -t {threads} -p -l 0 {input} {output}
+		sambamba markdup -t {threads} -l 0 {input} {output}
 		samtools index {output.bam}
 		samtools stats {output.bam} > {output.stats}
 		samtools flagstat {output.bam} > {output.flagstat}
