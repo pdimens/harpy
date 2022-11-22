@@ -91,11 +91,9 @@ rule ema_align:
 		sample = "[a-zA-Z0-9_-]*"
 	message: "Mapping on {input.genome}: {wildcards.sample}-{wildcards.bin}"
 	threads: 2
-	params:
-		sampleID = lambda wc: wc.get("sample")
 	shell:
 		"""
-		ema-h align -t {threads} -p haptag -d -i -r {input.genome} -R '@RG\\tID:{params}\\tSM:{params}' -s {input.readbin} 2> /dev/null
+		ema-h align -t {threads} -p haptag -d -r {input.genome} -R '@RG\\tID:{wildcards.sample}\\tSM:{wildcards.sample}' -s {input.readbin} 2> /dev/null
 		"""
 
 rule align_nobarcode:
@@ -113,8 +111,6 @@ rule align_nobarcode:
 		"""
 		bwa mem -p -t {threads} -M -R "@RG\\tID:{wildcards.sample}\\tSM:{wildcards.sample}" {input.genome} {input.reads}
 		"""
-#	params:
-#		sampleID = lambda wc: r""" """"wc.get("sample")
 
 rule ema_sort:
 	input: "ReadMapping/align/{sample}/{sample}.{emabin}.sam"
