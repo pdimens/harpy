@@ -90,7 +90,7 @@ rule ema_align:
 	wildcard_constraints:
 		sample = "[a-zA-Z0-9_-]*"
 	message: "Mapping on {input.genome}: {wildcards.sample}-{wildcards.bin}"
-	threads: 2
+	threads: 1
 	shell:
 		"""
 		ema-h align -t {threads} -p haptag -d -r {input.genome} -o {output} -R '@RG\\tID:{wildcards.sample}\\tSM:{wildcards.sample}' -s {input.readbin} #2> /dev/null
@@ -122,7 +122,7 @@ rule ema_sort:
 	threads: 2
 	shell: 
 		"""
-		samtools sort -@ {threads} -O bam -l 0 -m 4G -o {output} -
+		samtools sort -@ {threads} -O bam -l 0 -m 4G -o {output} {input}
 		"""
 
 rule sort_nobarcode:
@@ -134,7 +134,7 @@ rule sort_nobarcode:
 	threads: 2
 	shell:
 		"""
-		samtools sort -@ {threads} -O bam -l 0 -m 4G -o {output} -
+		samtools sort -@ {threads} -O bam -l 0 -m 4G -o {output} {input}
 		"""    
 
 rule markduplicates:
