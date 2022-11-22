@@ -95,7 +95,7 @@ rule ema_align:
 		sampleID = lambda wc: wc.get("sample")
 	shell:
 		"""
-		ema-h align -t {threads} -p haptag -d -i -r {input.genome} -R '@RG\tID:{params}\tSM:{params}' -s {input.readbin} 2> /dev/null
+		ema-h align -t {threads} -p haptag -d -i -r {input.genome} -R '@RG\\tID:{params}\\tSM:{params}' -s {input.readbin} 2> /dev/null
 		"""
 
 rule align_nobarcode:
