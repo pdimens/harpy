@@ -113,7 +113,7 @@ rule ema_align_nobarcode:
 		sampleID = lambda wc: wc.get("sample")
 	shell:
 		"""
-		bwa mem -p -t {threads} -M -R "@RG\tID:{params}\tSM:{params}" {input.genome} {input.reads}
+		bwa mem -p -t {threads} -M -R "@RG\\tID:{params}\\tSM:{params}" {input.genome} {input.reads}
 		"""
 
 rule ema_sort:
