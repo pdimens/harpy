@@ -24,8 +24,8 @@ rule all:
 		expand("ReadMapping/align/{sample}.bam", sample = samplenames),
 		expand("ReadMapping/align/{ext}/{sample}.{ext}", sample = samplenames, ext = ["stats", "flagstat"])
 	output: 
-		stats = report("ReadMapping/alignment.stats.html", category = "Summary", caption = "Samtools stats alignment metrics"),
-		flagstat = report("ReadMapping/alignment.flagstat.html", category = "Summary", caption = "Samtools flagstat alignment metrics")
+		stats = "ReadMapping/alignment.stats.html",
+		flagstat = "ReadMapping/alignment.flagstat.html"
 	message: "Read mapping completed! Generating alignment reports:\n{output.stats}\n{output.flagstat}"
 	shell:
 		"""
