@@ -54,7 +54,9 @@ def align(config, threads, bwa, dir, resume):
     command = ['snakemake', '--cores', f'{threads}', '--directory', '.', '--snakefile', "rules/map-" + mapper + ".smk", '--configfile', f"{config}", '--config', f"seq_directory={dir}"]
     if resume:
         command.append('--rerun-incomplete')
+    # debugging things
     #command.append('--dry-run')
+    #command.append("--rulegraph")
     subprocess.run(command)
 
 @click.command()

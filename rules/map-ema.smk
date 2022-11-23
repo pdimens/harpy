@@ -21,7 +21,9 @@ samplenames = set([i.split('.')[0] for i in os.listdir(seq_dir) if i.endswith(fq
 
 rule all:
 	input: 
-		expand("ReadMapping/align/{sample}.{ext}", sample = samplenames, ext = ["bam", "stats", "flagstat"])
+		expand("ReadMapping/align/{sample}.bam", sample = samplenames),
+		expand("ReadMapping/align/{ext}/{sample}.{ext}", sample = samplenames, ext = ["stats", "flagstat"])
+
 	output: 
 		stats = "ReadMapping/alignment.stats.html",
 		flagstat = "ReadMapping/alignment.flagstat.html"
@@ -140,19 +142,46 @@ rule sort_nobarcode:
 rule markduplicates:
 	input: "ReadMapping/align/{sample}/{sample}.nobarcode.bam.tmp"
 	output: "ReadMapping/align/{sample}/{sample}.nobarcode.bam"
-	log: "ReadMapping/align/log/{sample}.markdup.nobc.log"
+	log: 
+		mdlog = "ReadMapping/align/log/{sample}.markdup.nobarcode.log",
+		stats = "ReadMapping/align/log/{sample}.nobarcode.stats",
+		flagstat = "ReadMapping/align/log/{sample}.nobarcode.flagstat"
 	wildcard_constraints:
 		sample = "[a-zA-Z0-9_-]*"
 	message: "Marking duplicates in unbarcoded alignments: {wildcards.sample}"
 	threads: 2
 	shell:
 		"""
-		sambamba markdup -t {threads} -l 0 {input} {output} 2> {log}
+		sambamba markdup -t {threads} -l 0 {input} {output} 2> {log.mdlog}
+		samtools stats {output} > {log.stats}
+		samtools flagstat {output} > {log.flagstat}
 		"""   
+
+rule merge_barcoded:
+	input:
+		aln_barcoded = expand("ReadMapping/align/{{sample}}/{{sample}}.{bin}.bam", bin = ["%03d" % i for i in range(nbins)]),
+	output: 
+		bam = temp("ReadMapping/align/{sample}/{sample}.barcoded.bam"),
+		bai = temp("ReadMapping/align/{sample}/{sample}.barcoded.bam.bai")
+	log:
+		stats = "ReadMapping/align/stats/{sample}.barcoded.stats",
+		flagstat = "ReadMapping/align/flagstat/{sample}.barcoded.flagstat"
+	wildcard_constraints:
+		sample = "[a-zA-Z0-9_-]*"
+	message: "Merging barcoded alignments: {wildcards.sample}"
+	threads: 10
+	shell:
+		"""
+		sambamba merge -t {threads} {output.bam} {input}
+		samtools index {output.bam}
+		samtools stats {output.bam} > {log.stats}
+		samtools flagstat {output.bam} > {log.flagstat}
+		"""	
+
 
 rule merge_alignments:
 	input:
-		aln_barcoded = expand("ReadMapping/align/{{sample}}/{{sample}}.{bin}.bam", bin = ["%03d" % i for i in range(nbins)]),
+		aln_barcoded = "ReadMapping/align/{sample}/{sample}.barcoded.bam",
 		aln_nobarcode = "ReadMapping/align/{sample}/{sample}.nobarcode.bam"
 	output: 
 		bam = "ReadMapping/align/{sample}.bam",
@@ -161,7 +190,7 @@ rule merge_alignments:
 		flagstat = "ReadMapping/align/flagstat/{sample}.flagstat"
 	wildcard_constraints:
 		sample = "[a-zA-Z0-9_-]*"
-	message: "Merging alignments: {wildcards.sample}"
+	message: "Merging all alignments: {wildcards.sample}"
 	threads: 10
 	shell:
 		"""

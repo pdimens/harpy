@@ -1,3 +1,36 @@
 ![logo](misc/harpy.svg)
 
 Experimental Haplotagging Data Processing Pipeline
+
+#### Dependencies
+Until this pipeline gets completed and hosted on Bioconda, it will be available by cloning/downloading this repository. The dependencies can be installed into a conda environment using the provided `harpyenv.yaml`:
+```bash
+conda env create --name harpy --file harpyenv.yaml
+```
+
+#### Usage
+```
+./harpy --help
+                                                           
+ Usage: harpy [OPTIONS] COMMAND [ARGS]...                       
+                                                                
+ HARPY Haplotagging data processing pipeline.                   
+ The pipeline trims reads, map sequences, calls variants,       
+ imputes genotypes, and phases haplotypes. Get started by       
+ running 'harpy init' to generate a configuration file and      
+ modify it to your needs. The workflow is:                      
+ init 🡒 trim 🡒 align 🡒 callvariant 🡒 impute 🡒 phase             
+ Documentation: https://harpy.github.io                         
+                                                                
+╭─ Options ────────────────────────────────────────────────────╮
+│ --help      Show this message and exit.                      │
+╰──────────────────────────────────────────────────────────────╯
+╭─ Commands ───────────────────────────────────────────────────╮
+│ align          Align sample sequences to a reference genome. │
+│ callvariants   Call variants from sample alignments          │
+│ impute         Impute genotypes from genotype likelihoods    │
+│ init           Generate template configuration file          │
+│ phase          Phase SNPs into haplotypes                    │
+│ trim           Remove adapters and quality trim sequences    │
+╰──────────────────────────────────────────────────────────────╯
+```
