@@ -52,6 +52,7 @@ def align(config, threads, bwa, dir, resume):
     '''Align sample sequences to a reference genome.\n\nIf you don't have a configuration file, use \'harpy init\' to generate a generic one and modify it for your project.'''
     mapper = "ema" if not bwa else "bwa"
     command = ['snakemake', '--cores', f'{threads}', '--directory', '.', '--snakefile', "rules/map-" + mapper + ".smk", '--configfile', f"{config}", '--config', f"seq_directory={dir}"]
+    command.append('--report harpy-align.html --report-stylesheet misc/harpy.css')
     if resume:
         command.append('--rerun-incomplete')
     # debugging things

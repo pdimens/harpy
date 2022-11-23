@@ -23,11 +23,10 @@ rule all:
 	input: 
 		expand("ReadMapping/align/{sample}.bam", sample = samplenames),
 		expand("ReadMapping/align/{ext}/{sample}.{ext}", sample = samplenames, ext = ["stats", "flagstat"])
-
 	output: 
-		stats = "ReadMapping/alignment.stats.html",
-		flagstat = "ReadMapping/alignment.flagstat.html"
-	message: "Read mapping completed! Generating alignment reports ReadMapping/alignment.stats.html and ReadMapping/alignment.flagstat.html."
+		stats = report("ReadMapping/alignment.stats.html", category = "Summary", caption = "Samtools stats alignment metrics"),
+		flagstat = report("ReadMapping/alignment.flagstat.html", category = "Summary", caption = "Samtools flagstat alignment metrics")
+	message: "Read mapping completed! Generating alignment reports:\n{output.stats}\n{output.flagstat}"
 	shell:
 		"""
 		multiqc ReadMapping/align/stats --force --quiet --filename {output.stats}
@@ -144,8 +143,8 @@ rule markduplicates:
 	output: "ReadMapping/align/{sample}/{sample}.nobarcode.bam"
 	log: 
 		mdlog = "ReadMapping/align/log/{sample}.markdup.nobarcode.log",
-		stats = "ReadMapping/align/log/{sample}.nobarcode.stats",
-		flagstat = "ReadMapping/align/log/{sample}.nobarcode.flagstat"
+		stats = report("ReadMapping/align/log/{sample}.nobarcode.stats", category="{sample}", subcategory="No Barcode", labels={"Metric": "stats"}),
+		flagstat = report("ReadMapping/align/log/{sample}.nobarcode.flagstat", category="{sample}", subcategory="No Barcode", labels={"Metric": "flagstat"})
 	wildcard_constraints:
 		sample = "[a-zA-Z0-9_-]*"
 	message: "Marking duplicates in unbarcoded alignments: {wildcards.sample}"
@@ -164,8 +163,8 @@ rule merge_barcoded:
 		bam = temp("ReadMapping/align/{sample}/{sample}.barcoded.bam"),
 		bai = temp("ReadMapping/align/{sample}/{sample}.barcoded.bam.bai")
 	log:
-		stats = "ReadMapping/align/stats/{sample}.barcoded.stats",
-		flagstat = "ReadMapping/align/flagstat/{sample}.barcoded.flagstat"
+		stats = report("ReadMapping/align/stats/{sample}.barcoded.stats", category="{sample}", subcategory="Barcoded", labels={"Metric": "stats"}),
+		flagstat = report("ReadMapping/align/flagstat/{sample}.barcoded.flagstat", category="{sample}", subcategory="Barcoded", labels={"Metric": "flagstat"})
 	wildcard_constraints:
 		sample = "[a-zA-Z0-9_-]*"
 	message: "Merging barcoded alignments: {wildcards.sample}"
@@ -186,8 +185,8 @@ rule merge_alignments:
 	output: 
 		bam = "ReadMapping/align/{sample}.bam",
 		bai = "ReadMapping/align/{sample}.bam.bai",
-		stats = "ReadMapping/align/stats/{sample}.stats",
-		flagstat = "ReadMapping/align/flagstat/{sample}.flagstat"
+		stats = report("ReadMapping/align/stats/{sample}.stats", category="{sample}", subcategory="All Aligments", labels={"Metric": "stats"}),
+		flagstat = report("ReadMapping/align/flagstat/{sample}.flagstat", category="{sample}", subcategory="All Aligments", labels={"Metric": "flagstat"})
 	wildcard_constraints:
 		sample = "[a-zA-Z0-9_-]*"
 	message: "Merging all alignments: {wildcards.sample}"
