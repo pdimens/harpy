@@ -5,7 +5,7 @@ Experimental Haplotagging Data Processing Pipeline
 #### Dependencies
 Until this pipeline gets completed and hosted on Bioconda, it will be available by cloning/downloading this repository. The dependencies can be installed into a conda environment using the provided `harpyenv.yaml`:
 ```bash
-conda env create --name harpy --file harpyenv.yaml
+conda env create --name harpy --file misc/harpyenv.yaml
 ```
 
 #### Usage
@@ -20,7 +20,6 @@ conda env create --name harpy --file harpyenv.yaml
  running 'harpy init' to generate a configuration file and      
  modify it to your needs. The workflow is:                      
  init 🡒 trim 🡒 align 🡒 callvariant 🡒 impute 🡒 phase             
- Documentation: https://harpy.github.io                         
                                                                 
 ╭─ Options ────────────────────────────────────────────────────╮
 │ --help      Show this message and exit.                      │
