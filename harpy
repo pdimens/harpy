@@ -83,15 +83,6 @@ def callvariants(config, threads, dir, resume):
     subprocess.run(command)
 
 
-
-@click.command()
-@click.argument('config_file', default = 'harpy.yaml', type=click.Path(exists=True))
-@click.option('-p', '--path', default = 'ReadMapping', type=click.Path(exists=True), help = 'Path to read alignments')
-def callvariants(config_file, read_path):
-    '''Call variants from sample alignments\n\nCONFIG_FILE is the harpy configuration yaml file'''
-    print("this is another thing!")
-
-
 @click.command()
 @click.argument('config_file', default = 'harpy.yaml', type=click.Path(exists=True))
 @click.option('-p', '--path', default = 'SequencesTrimmed', type=click.Path(exists=True), help = 'Path to trimmed sequences')
