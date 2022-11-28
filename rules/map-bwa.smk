@@ -23,7 +23,7 @@ rule all:
 	output: 
 		stats = report("ReadMapping/alignment.stats.html", caption = "Samtools stats alignment metrics"),
 		flagstat = report("ReadMapping/alignment.flagstat.html", caption = "Samtools flagstat alignment metrics")
-	message: "Read mapping completed! Generating alignment reports:\n{output.stats}\n{output.flagstat}"
+	message: "Read mapping completed!\nAlignment reports:\n{output.stats}\n{output.flagstat}"
 	shell:
 		"""
 		multiqc ReadMapping/align/stats --force --quiet --filename {output.stats}

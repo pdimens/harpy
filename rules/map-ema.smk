@@ -26,7 +26,7 @@ rule all:
 	output: 
 		stats = "ReadMapping/alignment.stats.html",
 		flagstat = "ReadMapping/alignment.flagstat.html"
-	message: "Read mapping completed! Generating alignment reports:\n{output.stats}\n{output.flagstat}"
+	message: "Read mapping completed!\nAlignment reports:\n{output.stats}\n{output.flagstat}"
 	shell:
 		"""
 		multiqc ReadMapping/align/stats --force --quiet --filename {output.stats}
