@@ -67,7 +67,7 @@ rule count_beadtags:
 rule beadtag_summary:
 	input: expand("ReadMapping/count/logs/{sample}.count.log", sample = samplenames)
 	output: "ReadMapping/count/Beadtag.report"
-	message: "Creating beadtag validation report"
+	message: "Creating sample barcode validation report"
 	run:
 		import os
 		with open(output[0], "w") as outfile:
