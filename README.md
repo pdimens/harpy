@@ -12,24 +12,28 @@ conda env create --name harpy --file misc/harpyenv.yaml
 ```
 ./harpy --help
                                                            
- Usage: harpy [OPTIONS] COMMAND [ARGS]...                       
-                                                                
- HARPY Haplotagging data processing pipeline.                   
- The pipeline trims reads, map sequences, calls variants,       
- imputes genotypes, and phases haplotypes. Get started by       
- running 'harpy init' to generate a configuration file and      
- modify it to your needs. The workflow is:                      
- init 🡒 trim 🡒 align 🡒 callvariant 🡒 impute 🡒 phase             
-                                                                
-╭─ Options ────────────────────────────────────────────────────╮
-│ --help      Show this message and exit.                      │
-╰──────────────────────────────────────────────────────────────╯
-╭─ Commands ───────────────────────────────────────────────────╮
-│ align          Align sample sequences to a reference genome. │
-│ callvariants   Call variants from sample alignments          │
-│ impute         Impute genotypes from genotype likelihoods    │
-│ init           Generate template configuration file          │
-│ phase          Phase SNPs into haplotypes                    │
-│ trim           Remove adapters and quality trim sequences    │
-╰──────────────────────────────────────────────────────────────╯
+ Usage: harpy [OPTIONS] COMMAND [ARGS]...                     
+                                                              
+ HARPY Haplotagging data processing pipeline.                 
+ The pipeline trims reads, map sequences, calls variants,     
+ imputes genotypes, and phases haplotypes. Get started by     
+ running harpy init to generate a configuration file and      
+ modify it to your needs. The workflow is:                    
+                                                              
+ init 🡒 trim 🡒 align 🡒 callvariant 🡒 impute 🡒 phase           
+                                                              
+ Documentation: https://harpy.github.io                       
+                                                              
+╭─ Options ──────────────────────────────────────────────────╮
+│ --help      Show this message and exit.                    │
+╰────────────────────────────────────────────────────────────╯
+╭─ Commands ─────────────────────────────────────────────────╮
+│ align         Align sample sequences to a reference genome │
+│ callvariants  Call variants from sample alignments         │
+│ impute        Impute genotypes from genotype likelihoods   │
+│ init          Generate template configuration file         │
+│ phase         Phase SNPs into haplotypes                   │
+│ trim          Remove adapters and quality trim sequences   │
+╰────────────────────────────────────────────────────────────╯
+
 ```
