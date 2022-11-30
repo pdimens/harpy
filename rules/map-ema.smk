@@ -69,16 +69,18 @@ rule beadtag_summary:
 	output: "ReadMapping/count/Beadtag.report"
 	message: "Creating beadtag validation report"
 	run:
+		import os
 		with open(output[0], "w") as outfile:
 			outfile.write('{0!s} {1!s} {2!s} {3!s}\n'.format("Sample", "BarcodeOK", "BarcodeTotal", "PercentTotal"))
 			for i in input:
 				with open(i) as f:
+					samplename = os.path.basename(i).split(".count.log")[0]
 					bc_line = [line for line in f.read().splitlines() if 'OK barcode:' in line][0].split(" ")
 					bc_len = len(bc_line)
 					bc_ok = bc_line[bc_len - 4]
 					bc_total = bc_line[bc_len - 1]
 					bc_percent = int(bc_ok.replace(',', '')) / int(bc_total.replace(',', '')) * 100
-					outfile.write('{0!s} {1!s} {2!s} {3!s}\n'.format(wildcards.sample, bc_ok, bc_total, round(bc_percent, 2)))
+					outfile.write('{0!s} {1!s} {2!s} {3!s}\n'.format(samplename, bc_ok, bc_total, round(bc_percent, 2)))
 
 rule preprocess_ema:
 	input: 
