@@ -1,4 +1,4 @@
-![logo](misc/harpy.svg)
+![logo](docs/_media/harpy.svg)
 
 Experimental Haplotagging Data Processing Pipeline
 

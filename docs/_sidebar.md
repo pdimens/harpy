@@ -1,6 +1,6 @@
 <!-- docs/_sidebar.md -->
 
-* [Home](/)
-* [Quality Trimming](qualitytrimming.md)
-* [Mapping Reads](readmapping.md)
-* [Calling Variants](variantcalling.md)
+* [Installation](/ "HARPY haplotagging pipeline")
+* [Quality Trimming](qualitytrimming.md "HARPY - Quality Trimming")
+* [Mapping Reads](readmapping.md "HARPY - Mapping Reads")
+* [Calling Variants](variantcalling.md "HARPY - Calling Variants")
