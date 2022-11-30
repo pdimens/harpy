@@ -22,7 +22,7 @@ The version of [EMA](https://github.com/arshajii/ema) bundled in this repository
  running harpy init to generate a configuration file and      
  modify it to your needs. The workflow is:                    
                                                               
- init 🡒 trim 🡒 align 🡒 callvariant 🡒 impute 🡒 phase           
+ init 🡒 trim 🡒 align 🡒 callvariants 🡒 impute 🡒 phase           
                                                               
  Documentation: https://harpy.github.io                       
                                                               

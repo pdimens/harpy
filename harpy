@@ -18,7 +18,7 @@ def cli():
     The pipeline trims reads, map sequences, calls variants, imputes genotypes, and phases haplotypes. 
     Get started by running **harpy init** to generate a configuration file and modify it to your needs. The workflow is:
     
-    **init 🡒 trim 🡒 align 🡒 callvariant 🡒 impute 🡒 phase**
+    **init 🡒 trim 🡒 align 🡒 callvariants 🡒 impute 🡒 phase**
     
     **Documentation**: [https://harpy.github.io](https://harpy.github.io)
     """
