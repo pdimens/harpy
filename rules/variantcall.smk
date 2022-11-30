@@ -11,15 +11,16 @@ samplenames = set([i.split('.bam')[0] for i in os.listdir(seq_dir) if i.endswith
 
 #print("Samples detected: " + f"{len(samplenames)}")
 
-rule all:
-    input: "VariantCall/variants.raw.vcf"
-    message: "Variant Calling complete!"
+#rule all:
+#    input: "VariantCall/variants.raw.vcf"
+#    message: "Variant Calling complete!"
 
 
 rule merge_vcfs:
     input: expand("VariantCall/{sample}.vcf", sample = samplenames)
     output: "VariantCall/variants.raw.vcf"
     message: "Merging sample VCFs into single file: {output}"
+    default_target: True
     threads: 20
     shell:
         """

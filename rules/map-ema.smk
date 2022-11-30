@@ -19,14 +19,16 @@ samplenames = set([i.split('.')[0] for i in os.listdir(seq_dir) if i.endswith(fq
 
 #print("Samples detected: " + f"{len(samplenames)}")
 
-rule all:
+rule create_reports:
 	input: 
 		expand("ReadMapping/align/{sample}.bam", sample = samplenames),
-		expand("ReadMapping/align/{ext}/{sample}.{ext}", sample = samplenames, ext = ["stats", "flagstat"])
+		expand("ReadMapping/align/{ext}/{sample}.{ext}", sample = samplenames, ext = ["stats", "flagstat"]),
+		"ReadMapping/count/Beadtag.report"
 	output: 
 		stats = "ReadMapping/alignment.stats.html",
 		flagstat = "ReadMapping/alignment.flagstat.html"
 	message: "Read mapping completed!\nAlignment reports:\n{output.stats}\n{output.flagstat}"
+	default_target: True
 	shell:
 		"""
 		multiqc ReadMapping/align/stats --force --quiet --filename {output.stats}
@@ -48,18 +50,34 @@ rule count_beadtags:
 		forward_reads = seq_dir + "/{sample}" + Rsep + "1." + fqext,
 		reverse_reads = seq_dir + "/{sample}" + Rsep + "2." + fqext
 	output: 
-		counts = "ReadMapping/count/{sample}.ema-ncnt"
+		counts = "ReadMapping/count/{sample}.ema-ncnt",
+		logs = temp("ReadMapping/count/logs/{sample}.count.log")
 	wildcard_constraints:
 		sample = "[a-zA-Z0-9_-]*"
 	message: "Counting barcode frequency: {wildcards.sample}"
-	log: "ReadMapping/count/logs/{sample}.count.log"
 	params:
 		prefix = lambda wc: "ReadMapping/count/" + wc.get("sample")
 	threads: 1
 	shell:
 		"""
-		emaInterleave {input.forward_reads} {input.reverse_reads} | ema-h count -p -o {params} 2> {log}
+		emaInterleave {input.forward_reads} {input.reverse_reads} | ema-h count -p -o {params} 2> {output.logs}
 		"""
+
+rule beadtag_summary:
+	input: expand("ReadMapping/count/logs/{sample}.count.log", sample = samplenames)
+	output: "ReadMapping/count/Beadtag.report"
+	message: "Creating beadtag validation report"
+	run:
+		with open(output[0], "w") as outfile:
+			outfile.write('{0!s} {1!s} {2!s} {3!s}\n'.format("Sample", "BarcodeOK", "BarcodeTotal", "PercentTotal"))
+			for i in input:
+				with open(i) as f:
+					bc_line = [line for line in f.read().splitlines() if 'OK barcode:' in line][0].split(" ")
+					bc_len = len(bc_line)
+					bc_ok = bc_line[bc_len - 4]
+					bc_total = bc_line[bc_len - 1]
+					bc_percent = int(bc_ok.replace(',', '')) / int(bc_total.replace(',', '')) * 100
+					outfile.write('{0!s} {1!s} {2!s} {3!s}\n'.format(wildcards.sample, bc_ok, bc_total, round(bc_percent, 2)))
 
 rule preprocess_ema:
 	input: 
