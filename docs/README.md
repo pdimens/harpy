@@ -46,7 +46,7 @@ harpy --help
 ╰────────────────────────────────────────────────────────────╯
 ```
 
-You can likewise call any of the modules with `--help` (e.g. `harpy align`) to see their usage.
+You can likewise call any of the modules with `--help` (e.g. `harpy align --help`) to see their usage.
 ```
 harpy align --help
 
