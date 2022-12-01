@@ -1,18 +1,23 @@
-![logo](misc/harpy.svg)
+![logo](_media/harpy.svg)
 
-Experimental Haplotagging Data Processing Pipeline
+Harpy is a haplotagging data processing pipeline for Linux-based systems. It uses all the 
+magic of [Snakemake](https://snakemake.readthedocs.io/en/stable/) under the hood to handle 
+the worklfow decision-making, but as a user, you just interact with it like a normal command-line 
+program. Harpy uses both well known and niche programs to take raw haplotagging sequences and process
+them to become called SNP genotypes.
 
-## Dependencies
-Until this pipeline gets completed and hosted on Bioconda, it will be available by cloning/downloading this repository. The dependencies can be installed into a conda environment using the provided `harpyenv.yaml`:
+Harpy is modular, meaning you can use different parts of it independent from each other. Need to only align reads?
+Great! Only want to call variants? Awesome!
+
+Getting started with Harpy is as simple as installing it from conda/mamba (not implemented yet)
 ```bash
-conda env create --name harpy --file misc/harpyenv.yaml
+mamba install -c bioconda -c conda-forge harpy
 ```
-
-The version of [EMA](https://github.com/arshajii/ema) bundled in this repository (`ema-h`) is a [fork](https://github.com/EdHarry/ema/tree/haplotag) of the orignal EMA modified to work with Generation 1 haplotag beadtags (AxxCxxBxxDxx).
 
 ## Usage
+You can call `harpy` without any arguments (or with `--help`) to print the docstring to your terminal.
 ```
-./harpy --help
+harpy --help
                                                            
  Usage: harpy [OPTIONS] COMMAND [ARGS]...                     
                                                               
@@ -37,5 +42,27 @@ The version of [EMA](https://github.com/arshajii/ema) bundled in this repository
 │ phase         Phase SNPs into haplotypes                   │
 │ trim          Remove adapters and quality trim sequences   │
 ╰────────────────────────────────────────────────────────────╯
+```
 
+You can likewise call any of the modules with `--help` (e.g. `harpy align`) to see their usage.
+```
+harpy align --help
+
+ Usage: harpy align [OPTIONS]                                              
+                                                                           
+ Align sample sequences to a reference genome                              
+ If you don't have a configuration file, use harpy init to generate one    
+ and modify it for your project.                                           
+                                                                           
+╭─ Options ───────────────────────────────────────────────────────────────╮
+│ --config   -c  PATH     HARPY configuration yaml file                   │
+│                         [default: config.yaml]                          │
+│ --dir      -d  PATH     Directory with sample sequences                 │
+│                         [default: SeqTrimmed]                           │
+│ --threads  -t  INTEGER  Number of threads to use                        │
+│                         [default: 4]                                    │
+│ --bwa      -b           Use BWA MEM (ignores bardcodes) instead of EMA  │
+│ --resume   -r           Resume an incomplete run                        │
+│ --help                  Show this message and exit.                     │
+╰─────────────────────────────────────────────────────────────────────────╯
 ```
