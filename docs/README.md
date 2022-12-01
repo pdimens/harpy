@@ -47,24 +47,3 @@ harpy --help
 ```
 
 You can likewise call any of the modules with `--help` (e.g. `harpy align --help`) to see their usage.
-```
-harpy align --help
-
- Usage: harpy align [OPTIONS]                                              
-                                                                           
- Align sample sequences to a reference genome                              
- If you don't have a configuration file, use harpy init to generate one    
- and modify it for your project.                                           
-                                                                           
-╭─ Options ───────────────────────────────────────────────────────────────╮
-│ --config   -c  PATH     HARPY configuration yaml file                   │
-│                         [default: config.yaml]                          │
-│ --dir      -d  PATH     Directory with sample sequences                 │
-│                         [default: SeqTrimmed]                           │
-│ --threads  -t  INTEGER  Number of threads to use                        │
-│                         [default: 4]                                    │
-│ --bwa      -b           Use BWA MEM (ignores bardcodes) instead of EMA  │
-│ --resume   -r           Resume an incomplete run                        │
-│ --help                  Show this message and exit.                     │
-╰─────────────────────────────────────────────────────────────────────────╯
-```
