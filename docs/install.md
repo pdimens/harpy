@@ -1,6 +1,6 @@
 # Install HARPY
 
-Until this pipeline gets completed and hosted on Bioconda, it will be available by cloning/downloading this repository. The dependencies can be installed into a conda environment using the provided `harpyenv.yaml`:
+Until this pipeline gets completed and hosted on Bioconda, it will be available by cloning/downloading [the repository](https://github.com/pdimens/harpy). The dependencies can be installed into a conda environment using the provided `harpyenv.yaml`:
 ```bash
 conda env create --name harpy --file misc/harpyenv.yaml
 ```
