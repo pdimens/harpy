@@ -3,20 +3,15 @@ import os
 # user specified configs
 seq_dir = config["seq_directory"]
 genomefile = config["genome_file"]
-
-# this identifies whether .fastq.gz or .fq.gz is used as the file extension
-fastqlist = [i for i in os.listdir(seq_dir) if i.endswith('.fastq.gz')]
-fqext = "fq.gz" if not fastqlist else "fastq.gz"
-
-Rlist = [i for i in os.listdir(seq_dir) if i.endswith('.R1.' + fqext)]
-Rsep = "_R" if not Rlist else ".R"
-fullext = Rsep + "1." + fqext
-samplenames = set([i.split(fullext)[0] for i in os.listdir(seq_dir) if i.endswith(fullext)])
-
+# Received from the harpy wrapper
+Rsep = config["Rsep"]
+fqext = config["fqext"]
+samplenames = config["samplenames"]
 
 rule create_reports:
 	input: 
-		expand("ReadMapping/align/{sample}.{ext}", sample = samplenames, ext = ["bam", "stats", "flagstat"])
+		expand("ReadMapping/align/{sample}.bam", sample = samplenames),
+		expand("ReadMapping/align/{ext}/{sample}.{ext}", sample = samplenames, ext = ["stats", "flagstat"])
 	output: 
 		stats = report("ReadMapping/alignment.stats.html", caption = "Samtools stats alignment metrics"),
 		flagstat = report("ReadMapping/alignment.flagstat.html", caption = "Samtools flagstat alignment metrics")
@@ -87,5 +82,4 @@ rule mark_duplicates:
 		samtools stats {output.bam} > {output.stats}
 		samtools flagstat {output.bam} > {output.flagstat}
 		"""
- 
  
