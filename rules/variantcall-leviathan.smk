@@ -5,7 +5,7 @@ genomefile = config["genome_file"]
 samplenames = config["samplenames"] 
 
 rule merge_vcfs:
-    input: expand("VariantCall/{sample}.vcf", sample = samplenames)
+    input: expand("VariantCall/{sample}.vcf.gz", sample = samplenames)
     output: "VariantCall/variants.raw.bcf"
     log: "VariantCall/variants.raw.stats"
     message: "Merging sample VCFs into single file: {output}"
@@ -45,11 +45,14 @@ rule leviathan_variantcall:
         bai = bam_dir + "/{sample}" + ".bam.bai",
         bc_idx = "VariantCall/{sample}.bci",
         genome = genomefile
-    output: temp("VariantCall/{sample}.vcf")
+    output: 
+        vcf = temp("VariantCall/{sample}.vcf"),
+        gz = temp("VariantCall/{sample}.vcf.gz")
     log:  "VariantCall/logs/{sample}.leviathan.log"
     message: "Calling variants: {wildcards.sample}"
     threads: 50
     shell:
         """
-        LEVIATHAN -t {threads} -b {input.bam} -i {input.bc_idx} -g {input.genome} -o {output} 2> {log}     
+        LEVIATHAN -t {threads} -b {input.bam} -i {input.bc_idx} -g {input.genome} -o {output.vcf} 2> {log}
+        bgzip {output.vcf}     
         """
