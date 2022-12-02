@@ -109,7 +109,7 @@ def callvariants(config, threads, dir, resume):
         print("ERROR: No alignment files (.bam) found in " + dir)
         sys.exit(1)
 
-    command = ['snakemake', '--cores', f'{threads}', '--directory', '.', '--snakefile', "rules/variantcall.smk", '--configfile', f"{config}"]
+    command = ['snakemake', '--cores', f'{threads}', '--directory', '.', '--snakefile', "rules/variantcall-leviathan.smk", '--configfile', f"{config}"]
     if resume:
         command.append('--rerun-incomplete')
     command.append('--config')

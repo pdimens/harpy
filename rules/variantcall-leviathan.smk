@@ -13,7 +13,7 @@ rule merge_vcfs:
     threads: 20
     shell:
         """
-        bcftools merge --threads -o {output} {input}
+        bcftools merge --threads {threads} -o {output} {input}
         bcftools stats {output} > {log}
         """
 
@@ -45,7 +45,7 @@ rule leviathan_variantcall:
         bai = bam_dir + "/{sample}" + ".bam.bai",
         bc_idx = "VariantCall/{sample}.bci",
         genome = genomefile
-    output: "VariantCall/{sample}.vcf"
+    output: temp("VariantCall/{sample}.vcf")
     log:  "VariantCall/logs/{sample}.leviathan.log"
     message: "Calling variants: {wildcards.sample}"
     threads: 50
