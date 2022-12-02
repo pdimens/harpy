@@ -19,7 +19,18 @@ rule merge_vcfs:
         bcftools stats {output} > {log}
         """
 
-rule barcode_index:
+rule index_alignment:
+    input: 
+        bam = bam_dir + "/{sample}.bam",
+    output: "VariantCall/{sample}.bam.bai"
+    message: "Indexing barcodes: {wildcards.sample}"
+    threads: 1
+    shell:
+        """
+        samtools index {input}
+        """
+
+rule index_barcode:
     input: 
         bam = bam_dir + "/{sample}.bam",
         bai = bam_dir + "/{sample}.bam.bai"
