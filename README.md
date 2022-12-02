@@ -1,6 +1,6 @@
 ![logo](docs/_media/harpy.svg)
 
-[![documentation badge](https://img.shields.io/badge/docs-wiki-c0bad4?style=for-the-badge&logo=Read%20The%20Docs)](https://pdimens.github.io/HARPY/#/) 
+[![documentation badge](https://img.shields.io/badge/read%20the-documentation-c0bad4?style=for-the-badge&logo=Read%20The%20Docs)](https://pdimens.github.io/HARPY/#/) 
 
 Experimental Haplotagging Data Processing Pipeline
 
