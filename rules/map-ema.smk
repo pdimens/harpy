@@ -1,6 +1,5 @@
 import os
 
-configfile: "config.yaml"
 # user specified configs
 seq_dir = config["seq_directory"]
 nbins = config["EMA_bins"]
