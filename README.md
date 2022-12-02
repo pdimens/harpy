@@ -1,5 +1,7 @@
 ![logo](docs/_media/harpy.svg)
 
+[![documentation badge](https://img.shields.io/badge/docs-wiki-c0bad4?style=for-the-badge&logo=Read%20The%20Docs)](https://pdimens.github.io/HARPY/#/) 
+
 Experimental Haplotagging Data Processing Pipeline
 
 #### Dependencies
@@ -24,7 +26,7 @@ The version of [EMA](https://github.com/arshajii/ema) bundled in this repository
                                                               
  init 🡒 trim 🡒 align 🡒 callvariants 🡒 impute 🡒 phase           
                                                               
- Documentation: https://harpy.github.io                       
+ Documentation: https://pdimens.github.io/HARPY/#/                      
                                                               
 ╭─ Options ──────────────────────────────────────────────────╮
 │ --help      Show this message and exit.                    │

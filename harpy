@@ -22,7 +22,7 @@ def cli():
     
     **init 🡒 trim 🡒 align 🡒 callvariants 🡒 impute 🡒 phase**
     
-    **Documentation**: [https://harpy.github.io](https://harpy.github.io)
+    **Documentation**: [https://pdimens.github.io/HARPY/#/](https://pdimens.github.io/HARPY/#/)
     """
     pass
 
