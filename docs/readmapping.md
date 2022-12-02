@@ -38,7 +38,7 @@ Reads can be aligned (mapped) onto a reference genome one of two ways:
 ## Workflows
 ### EMA
 
-Due to the additional complexity, the EMA workflow is quite a bit more complicated than BWA under the hood. Reads with barcodes are aligned using EMA and reads without valid barcodes are separately mapped using BWA before merging all the alignments together again. EMA will mark duplicates within alignments, but the BWA alignments need that performed manually. Thankfully, you shouldn't need to worry about any of these details.
+Since EMA does extra things to account for barcode information, the EMA workflow is a bit more complicated under the hood. Reads with barcodes are aligned using EMA and reads without valid barcodes are separately mapped using BWA before merging all the alignments together again. EMA will mark duplicates within alignments, but the BWA alignments need duplicates marked manually using [sambamba](https://lomereiter.github.io/sambamba/). Thankfully, you shouldn't need to worry about any of these details.
 
 ```mermaid
 graph LR
@@ -47,7 +47,7 @@ graph LR
     C-->D((sort alignments))
     D-->E((merge barcoded alignments))
     E-->F((merge all alignemnts))
-    IDX(index genome)-->C
+    IDX((index genome))-->C
     IDX-->Z((BWA align unbarcoded))
     Z-->Y((sort alignments))
     Y-->X((mark duplicates))
