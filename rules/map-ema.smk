@@ -138,7 +138,7 @@ rule align_nobarcode:
 
 rule sort_ema:
 	input: "ReadMapping/align/{sample}/{sample}.{emabin}.sam"
-	output: "ReadMapping/align/{sample}/{sample}.{emabin}.bam"
+	output: temp("ReadMapping/align/{sample}/{sample}.{emabin}.bam")
 	wildcard_constraints:
 		sample = "[a-zA-Z0-9_-]*",
 		emabin = "[0-9]*"
