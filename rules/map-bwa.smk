@@ -11,8 +11,8 @@ rule create_reports:
 		expand("ReadMapping/align/{sample}.bam", sample = samplenames),
 		expand("ReadMapping/align/{ext}/{sample}.{ext}", sample = samplenames, ext = ["stats", "flagstat"])
 	output: 
-		stats = report("ReadMapping/alignment.stats.html", caption = "Samtools stats alignment metrics"),
-		flagstat = report("ReadMapping/alignment.flagstat.html", caption = "Samtools flagstat alignment metrics")
+		stats = "ReadMapping/alignment.stats.html", caption = "Samtools stats alignment metrics",
+		flagstat = "ReadMapping/alignment.flagstat.html", caption = "Samtools flagstat alignment metrics"
 	message: "Read mapping completed!\nAlignment reports:\n{output.stats}\n{output.flagstat}"
 	default_target: True
 	shell:
@@ -69,15 +69,15 @@ rule mark_duplicates:
 		bai = "ReadMapping/align/{sample}.bam.bai",
 		stats = "ReadMapping/align/stats/{sample}.stats",
 		flagstat = "ReadMapping/align/flagstat/{sample}.flagstat"
+	log: "ReadMapping/align/log/{sample}.markdup.nobarcode.log",
 	wildcard_constraints:
 		sample = "[a-zA-Z0-9_-]*"
 	message: "Marking duplicates with Sambamba for {wildcards.sample} alignments and calculating alignment stats"
 	threads: 4
 	shell:
 		"""
-		sambamba markdup -t {threads} -l 0 {input} {output}
+		sambamba markdup -t {threads} -l 0 {input} {output.bam} 2> {log}
 		samtools index {output.bam}
 		samtools stats {output.bam} > {output.stats}
 		samtools flagstat {output.bam} > {output.flagstat}
 		"""
- 
