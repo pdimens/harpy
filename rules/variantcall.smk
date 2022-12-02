@@ -20,9 +20,8 @@ rule merge_vcfs:
         """
 
 rule index_alignment:
-    input: 
-        bam = bam_dir + "/{sample}.bam",
-    output: "VariantCall/{sample}.bam.bai"
+    input: bam_dir + "/{sample}.bam"
+    output: bam_dir + "/{sample}.bam.bai"
     message: "Indexing barcodes: {wildcards.sample}"
     threads: 1
     shell:
