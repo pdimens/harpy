@@ -11,8 +11,8 @@ rule create_reports:
 		expand("ReadMapping/align/{sample}.bam", sample = samplenames),
 		expand("ReadMapping/align/{ext}/{sample}.{ext}", sample = samplenames, ext = ["stats", "flagstat"])
 	output: 
-		stats = "ReadMapping/alignment.stats.html", caption = "Samtools stats alignment metrics",
-		flagstat = "ReadMapping/alignment.flagstat.html", caption = "Samtools flagstat alignment metrics"
+		stats = "ReadMapping/alignment.stats.html",
+		flagstat = "ReadMapping/alignment.flagstat.html"
 	message: "Read mapping completed!\nAlignment reports:\n{output.stats}\n{output.flagstat}"
 	default_target: True
 	shell:
