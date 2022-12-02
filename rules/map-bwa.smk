@@ -13,7 +13,8 @@ Rsep = "_R" if not Rlist else ".R"
 fullext = Rsep + "1." + fqext
 samplenames = set([i.split(fullext)[0] for i in os.listdir(seq_dir) if i.endswith(fullext)])
 if len(samplenames) == 0 :
-	raise Exception("No alignment (.bam) files found in " + bam_dir)
+	print("ERROR: No alignment (.bam) files found in " + bam_dir)
+	sys.exit(1)
 
 rule create_reports:
 	input: 
