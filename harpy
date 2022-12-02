@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 
 import subprocess
+import os
 from os.path import exists
+import sys
 import rich_click as click
 
 click.rich_click.USE_MARKDOWN = True
@@ -63,6 +65,16 @@ def align(config, threads, bwa, dir, resume):
     
     If you don't have a configuration file, use **harpy init** to generate one and modify it for your project.
     """
+    fastqlist = [i for i in os.listdir(dir) if i.endswith('.fastq.gz')]
+    fqext = "fq.gz" if not fastqlist else "fastq.gz"
+    Rlist = [i for i in os.listdir(dir) if i.endswith('.R1.' + fqext)]
+    Rsep = "_R" if not Rlist else ".R"
+    fullext = Rsep + "1." + fqext
+    samplenames = set([i.split(fullext)[0] for i in os.listdir(dir) if i.endswith(fullext)])
+    if len(samplenames) < 1:
+        print("ERROR: No sequence files ending with the expected file extentions found in " + dir + ".\nExpected extensions:\n  _R1.fastq.gz\n  .R1.fastq.gz\n  _R1.fq.gz\n  .R1.fq.gz")
+        sys.exit(1)
+    
     mapper = "ema" if not bwa else "bwa"
     command = ['snakemake', '--cores', f'{threads}', '--directory', '.', '--snakefile', "rules/map-" + mapper + ".smk", '--configfile', f"{config}"]
     #command.append('--report')
@@ -73,6 +85,9 @@ def align(config, threads, bwa, dir, resume):
         command.append('--rerun-incomplete')
     command.append('--config')
     command.append(f"seq_directory={dir}")
+    command.append(f"fqext={fqext}")
+    command.append(f"Rsep={Rsep}")
+    command.append(f"samplenames={samplenames}")
     # debugging things
     #command.append('--dry-run')
     #command.append("--rulegraph")
