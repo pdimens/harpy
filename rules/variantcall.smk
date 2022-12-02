@@ -1,5 +1,3 @@
-import os
-
 # user specified configs
 bam_dir = config["seq_directory"]
 genomefile = config["genome_file"]

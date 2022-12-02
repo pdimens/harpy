@@ -1,5 +1,3 @@
-import os
-
 # user specified configs
 seq_dir = config["seq_directory"]
 nbins = config["EMA_bins"]
