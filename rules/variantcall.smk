@@ -13,7 +13,7 @@ rule merge_vcfs:
     threads: 20
     shell:
         """
-        bcftools merge --threads --output-type b -o {output} {input}
+        bcftools merge --threads -o {output} {input}
         bcftools stats {output} > {log}
         """
 
@@ -31,7 +31,7 @@ rule index_barcode:
     input: 
         bam = bam_dir + "/{sample}.bam",
         bai = bam_dir + "/{sample}.bam.bai"
-    output: "VariantCall/{sample}.bci"
+    output: temp("VariantCall/{sample}.bci")
     message: "Indexing barcodes: {wildcards.sample}"
     threads: 4
     shell:
@@ -46,9 +46,10 @@ rule leviathan_variantcall:
         bc_idx = "VariantCall/{sample}.bci",
         genome = genomefile
     output: "VariantCall/{sample}.vcf"
+    log:  "VariantCall/logs/{sample}.leviathan.log"
     message: "Calling variants: {wildcards.sample}"
     threads: 50
     shell:
         """
-        LEVIATHAN -t {threads} -b {input.bam} -i {input.bc_idx} -g {input.genome} -o {output}      
+        LEVIATHAN -t {threads} -b {input.bam} -i {input.bc_idx} -g {input.genome} -o {output} 2> {log}     
         """
