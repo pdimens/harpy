@@ -51,7 +51,7 @@ rule leviathan_variantcall:
     threads: 10
     shell:
         """
-        LEVIATHAN -t {threads} -b {input.bam} -i {input.bc_idx} -g {input.genome} -o {input} 2> {log}
+        LEVIATHAN -t {threads} -b {input.bam} -i {input.bc_idx} -g {input.genome} -o {output} 2> {log}
         """
 
 rule compress_vcf:
