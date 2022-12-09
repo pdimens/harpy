@@ -24,7 +24,7 @@ rule index_alignment:
     threads: 1
     shell:
         """
-        samtools index {input}
+        sambamba index {input}
         """
 
 rule index_barcode:
