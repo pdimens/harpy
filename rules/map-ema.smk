@@ -10,6 +10,7 @@ samplenames = config["samplenames"]
 rule create_reports:
 	input: 
 		expand("ReadMapping/align/{sample}.bam", sample = samplenames),
+		expand("ReadMapping/align/{sample}.bam.bai", sample = samplenames),
 		expand("ReadMapping/align/{ext}/{sample}.{ext}", sample = samplenames, ext = ["stats", "flagstat"]),
 		"ReadMapping/count/Beadtag.report"
 	output: 
@@ -167,34 +168,38 @@ rule markduplicates:
 rule merge_barcoded:
 	input:
 		aln_barcoded = expand("ReadMapping/align/{{sample}}/{{sample}}.{bin}.bam", bin = ["%03d" % i for i in range(nbins)]),
-	output: 
-		bam = temp("ReadMapping/align/{sample}/{sample}.barcoded.bam"),
-		bai = temp("ReadMapping/align/{sample}/{sample}.barcoded.bam.bai")
-	log:
-		stats = report("ReadMapping/align/stats/{sample}.barcoded.stats", category="{sample}", subcategory="Barcoded", labels={"Metric": "stats"}),
-		flagstat = report("ReadMapping/align/flagstat/{sample}.barcoded.flagstat", category="{sample}", subcategory="Barcoded", labels={"Metric": "flagstat"})
+	output: temp("ReadMapping/align/{sample}/{sample}.barcoded.bam"),
 	wildcard_constraints:
 		sample = "[a-zA-Z0-9_-]*"
 	message: "Merging barcoded alignments: {wildcards.sample}"
 	threads: 10
 	shell:
 		"""
-		sambamba merge -t {threads} {output.bam} {input}
-		samtools index {output.bam}
-		samtools stats {output.bam} > {log.stats}
-		samtools flagstat {output.bam} > {log.flagstat}
+		sambamba merge -t {threads} {output} {input}
 		"""	
 
+rule index_mergedbarcoded:
+	input: "ReadMapping/align/{sample}/{sample}.barcoded.bam"
+	output: temp("ReadMapping/align/{sample}/{sample}.barcoded.bam.bai")
+	log:
+		stats = report("ReadMapping/align/stats/{sample}.barcoded.stats", category="{sample}", subcategory="Barcoded", labels={"Metric": "stats"}),
+		flagstat = report("ReadMapping/align/flagstat/{sample}.barcoded.flagstat", category="{sample}", subcategory="Barcoded", labels={"Metric": "flagstat"})
+	wildcard_constraints:
+		sample = "[a-zA-Z0-9_-]*"
+	message: "Indexing merged barcoded alignemnts: {wildcard.samples}"
+	shell:
+		"""
+		samtools index {input}
+		samtools stats {output} > {log.stats}
+		samtools flagstat {output} > {log.flagstat}
+		"""
 
 rule merge_alignments:
 	input:
 		aln_barcoded = "ReadMapping/align/{sample}/{sample}.barcoded.bam",
 		aln_nobarcode = "ReadMapping/align/{sample}/{sample}.nobarcode.bam"
 	output: 
-		bam = "ReadMapping/align/{sample}.bam",
-		bai = "ReadMapping/align/{sample}.bam.bai",
-		stats = report("ReadMapping/align/stats/{sample}.stats", category="{sample}", subcategory="All Aligments", labels={"Metric": "stats"}),
-		flagstat = report("ReadMapping/align/flagstat/{sample}.flagstat", category="{sample}", subcategory="All Aligments", labels={"Metric": "flagstat"})
+		bam = "ReadMapping/align/{sample}.bam"
 	wildcard_constraints:
 		sample = "[a-zA-Z0-9_-]*"
 	message: "Merging all alignments: {wildcards.sample}"
@@ -202,7 +207,27 @@ rule merge_alignments:
 	shell:
 		"""
 		sambamba merge -t {threads} {output.bam} {input}
-		samtools index {output.bam}
-		samtools stats {output.bam} > {output.stats}
-		samtools flagstat {output.bam} > {output.flagstat}
+		"""
+
+rule index_alignments:
+	input: "ReadMapping/align/{sample}.bam"
+	output: "ReadMapping/align/{sample}.bam.bai"
+	message: "Indexing: {input}"
+	shell:
+		"""
+		samtools index {input}
+		"""
+
+rule alignment_stats:
+	input: 		
+		bam = "ReadMapping/align/{sample}.bam",
+		bai = "ReadMapping/align/{sample}.bam.bai"
+	output:
+		stats = report("ReadMapping/align/stats/{sample}.stats", category="{sample}", subcategory="All Aligments", labels={"Metric": "stats"}),
+		flagstat = report("ReadMapping/align/flagstat/{sample}.flagstat", category="{sample}", subcategory="All Aligments", labels={"Metric": "flagstat"})
+	message: "Calculating alignment stats: {wildcards.sample}"
+	shell:
+		"""
+		samtools stats {input.bam} > {output.stats}
+		samtools flagstat {input.bam} > {output.flagstat}
 		"""
