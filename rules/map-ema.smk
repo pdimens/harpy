@@ -214,6 +214,8 @@ rule index_alignments:
 	input: "ReadMapping/align/{sample}.bam"
 	output: "ReadMapping/align/{sample}.bam.bai"
 	message: "Indexing: {input}"
+	wildcard_constraints:
+		sample = "[a-zA-Z0-9_-]*"
 	shell:
 		"""
 		samtools index {input}
@@ -227,6 +229,8 @@ rule alignment_stats:
 		stats = report("ReadMapping/align/stats/{sample}.stats", category="{sample}", subcategory="All Aligments", labels={"Metric": "stats"}),
 		flagstat = report("ReadMapping/align/flagstat/{sample}.flagstat", category="{sample}", subcategory="All Aligments", labels={"Metric": "flagstat"})
 	message: "Calculating alignment stats: {wildcards.sample}"
+	wildcard_constraints:
+		sample = "[a-zA-Z0-9_-]*"
 	shell:
 		"""
 		samtools stats {input.bam} > {output.stats}
