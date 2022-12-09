@@ -41,18 +41,26 @@ rule index_barcode:
 
 rule leviathan_variantcall:
     input:
+    
         bam = bam_dir + "/{sample}" + ".bam",
         bai = bam_dir + "/{sample}" + ".bam.bai",
         bc_idx = "VariantCall/{sample}.bci",
         genome = genomefile
-    output: 
-        vcf = temp("VariantCall/{sample}.vcf"),
-        gz = temp("VariantCall/{sample}.vcf.gz")
+    output: temp("VariantCall/{sample}.vcf")
     log:  "VariantCall/logs/{sample}.leviathan.log"
     message: "Calling variants: {wildcards.sample}"
-    threads: 50
+    threads: 10
     shell:
         """
-        LEVIATHAN -t {threads} -b {input.bam} -i {input.bc_idx} -g {input.genome} -o {output.vcf} 2> {log}
-        bgzip {output.vcf}     
+        LEVIATHAN -t {threads} -b {input.bam} -i {input.bc_idx} -g {input.genome} -o {input} 2> {log}
+        """
+
+rule compress_vcf:
+    input: "VariantCall/{sample}.vcf"
+    output: temp("VariantCall/{sample}.vcf.gz")
+    message: "Compressing: {input}"
+    threads: 5
+    shell:        
+        """
+        bgzip --threads {threads} --reindex {input}
         """

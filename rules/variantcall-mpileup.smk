@@ -32,6 +32,7 @@ rule split_contigs:
         """
         cat $fastafile | awk '$0 ~ "^>" {name=substr($0, 2); printf name"\t1\t"} $0 !~ "^>" {printf length($0)"\t"name"\n"}'
         """
+
 rule mpileup:
     input:
         bam = bam_dir + "/{sample}" + ".bam",
