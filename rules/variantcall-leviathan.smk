@@ -41,7 +41,6 @@ rule index_barcode:
 
 rule leviathan_variantcall:
     input:
-
         bam = bam_dir + "/{sample}" + ".bam",
         bai = bam_dir + "/{sample}" + ".bam.bai",
         bc_idx = "VariantCall/{sample}.bci",
