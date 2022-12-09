@@ -197,7 +197,8 @@ rule index_mergedbarcoded:
 rule merge_alignments:
 	input:
 		aln_barcoded = "ReadMapping/align/{sample}/{sample}.barcoded.bam",
-		aln_nobarcode = "ReadMapping/align/{sample}/{sample}.nobarcode.bam"
+		aln_nobarcode = "ReadMapping/align/{sample}/{sample}.nobarcode.bam",
+		idx_barcoded = "ReadMapping/align/{sample}/{sample}.barcoded.bam.bai"
 	output: 
 		bam = "ReadMapping/align/{sample}.bam"
 	wildcard_constraints:
