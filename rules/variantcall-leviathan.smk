@@ -41,7 +41,7 @@ rule index_barcode:
 
 rule leviathan_variantcall:
     input:
-    
+
         bam = bam_dir + "/{sample}" + ".bam",
         bai = bam_dir + "/{sample}" + ".bam.bai",
         bc_idx = "VariantCall/{sample}.bci",
@@ -62,5 +62,5 @@ rule compress_vcf:
     threads: 5
     shell:        
         """
-        bgzip --threads {threads} --reindex {input}
+        bgzip --threads {threads} --stdout --reindex {input} > {output}
         """
