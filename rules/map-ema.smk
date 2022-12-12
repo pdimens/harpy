@@ -190,8 +190,8 @@ rule index_mergedbarcoded:
 	shell:
 		"""
 		sambamba index {input} {output}
-		samtools stats {output} > {log.stats}
-		samtools flagstat {output} > {log.flagstat}
+		samtools stats {input} > {log.stats}
+		samtools flagstat {input} > {log.flagstat}
 		"""
 
 rule merge_alignments:
