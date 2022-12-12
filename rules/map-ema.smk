@@ -207,7 +207,7 @@ rule merge_alignments:
 	threads: 10
 	shell:
 		"""
-		sambamba merge -t {threads} {output.bam} {input}
+		sambamba merge -t {threads} {output.bam} {input.aln_barcoded} {input.aln_nobarcode}
 		"""
 
 rule index_alignments:
