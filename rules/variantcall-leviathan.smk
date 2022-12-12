@@ -45,13 +45,15 @@ rule leviathan_variantcall:
         bai = bam_dir + "/{sample}" + ".bam.bai",
         bc_idx = "VariantCall/{sample}.bci",
         genome = genomefile
-    output: temp("VariantCall/{sample}.vcf")
-    log:  "VariantCall/logs/{sample}.leviathan.log"
+    output: vcf = temp("VariantCall/{sample}.vcf")
+    log:  
+        runlog = "VariantCall/logs/{sample}.leviathan.log",
+        candidates = "VariantCall/logs/{sample}.candidates"
     message: "Calling variants: {wildcards.sample}"
     threads: 10
     shell:
         """
-        LEVIATHAN -t {threads} -b {input.bam} -i {input.bc_idx} -g {input.genome} -o {output} 2> {log}
+        LEVIATHAN -b {input.bam} -i {input.bc_idx} -g {input.genome} -o {output} -t {threads} --candidates {log.candidates} 2> {log.runlog}
         """
 
 rule compress_vcf:
@@ -61,5 +63,5 @@ rule compress_vcf:
     threads: 5
     shell:        
         """
-        bgzip --threads {threads} --stdout --reindex {input} > {output}
+        bgzip --threads {threads} --stdout {input} > {output}
         """
