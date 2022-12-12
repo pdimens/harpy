@@ -5,7 +5,9 @@ genomefile = config["genome_file"]
 samplenames = config["samplenames"] 
 
 rule merge_vcfs:
-    input: expand("VariantCall/{sample}.vcf.gz", sample = samplenames)
+    input: 
+        bcf = expand("VariantCall/{sample}.bcf", sample = samplenames),
+        index = expand("VariantCall/{sample}.bcf.csi", sample = samplenames)
     output: "VariantCall/variants.raw.bcf"
     log: "VariantCall/variants.raw.stats"
     message: "Merging sample VCFs into single file: {output}"
@@ -13,7 +15,7 @@ rule merge_vcfs:
     threads: 20
     shell:
         """
-        bcftools merge --threads {threads} -o {output} {input}
+        bcftools merge --threads {threads} -o {output} {input.bcf}
         bcftools stats {output} > {log}
         """
 
@@ -45,23 +47,34 @@ rule leviathan_variantcall:
         bai = bam_dir + "/{sample}" + ".bam.bai",
         bc_idx = "VariantCall/{sample}.bci",
         genome = genomefile
-    output: vcf = temp("VariantCall/{sample}.vcf")
+    output: vcf = pipe("VariantCall/{sample}.vcf")
     log:  
         runlog = "VariantCall/logs/{sample}.leviathan.log",
         candidates = "VariantCall/logs/{sample}.candidates"
     message: "Calling variants: {wildcards.sample}"
-    threads: 10
+    threads: 3
     shell:
         """
         LEVIATHAN -b {input.bam} -i {input.bc_idx} -g {input.genome} -o {output} -t {threads} --candidates {log.candidates} 2> {log.runlog}
         """
 
-rule compress_vcf:
+rule vcf2bcf:
     input: "VariantCall/{sample}.vcf"
-    output: temp("VariantCall/{sample}.vcf.gz")
-    message: "Compressing: {input}"
-    threads: 5
+    output: "VariantCall/{sample}.bcf"
+    message: "Covnerting to BCF: {input}"
+    threads: 1
     shell:        
         """
-        bgzip --threads {threads} --stdout {input} > {output}
+        bcftools convert -Ob {input} | bcftools sort --output {output}
+        """
+
+rule index_bcf:
+    input: "VariantCall/{sample}.bcf"
+    output: "VariantCall/{sample}.bcf.csi"
+    log: "VariantCall/logs/{sample}.variant.stats"
+    message: "Indexing: {input}"
+    threads: 1
+    shell:
+        """
+        bcftools index --output {output} {input}
         """
