@@ -29,7 +29,7 @@ def cli():
 @click.command()
 @click.option('-c', '--config', default = 'config.yaml', show_default = True, type=click.Path(), help = 'Name to give configuration file')
 def init(config):
-    '''Generate template configuration files'''
+    '''Generate template configuration file'''
     if exists(config):
         overwrite = input(f"File \'{config}\' already exists, overwrite? (no|yes)  ")
         if (overwrite != "yes") and (overwrite != "y"):
@@ -44,6 +44,41 @@ def init(config):
         file.write('# Directory with untrimmed sequences\n')
         file.write('raw_seqs: RawSequences\n')
     print('Created configuration file ' + config)
+
+@click.command()
+@click.option('-o', '--output', default = 'samples.populations', show_default = True, type=click.Path(exists=False), help = 'Name to give output file')
+@click.option('-d', '--dir', type=click.Path(exists=True), help = 'Directory with sample reads or alignments')
+def popmap(output, dir):
+    '''Generate sample population grouping file\n\nFiles in chosen directory must end in .bam or some variant of .[fastq|fq].gz'''
+    if exists(output):
+        overwrite = input(f"File \'{output}\' already exists, overwrite? (no|yes)  ")
+        if (overwrite != "yes") and (overwrite != "y"):
+            print("Please suggest a different name for the population file and try again")
+            quit()
+    if len([i for i in os.listdir(dir) if i.endswith('.fastq.gz')]) > 0:
+        ext = '.fastq.gz'
+        Rlist = [i for i in os.listdir(dir) if i.endswith('.R1.' + ext)]
+        Rsep = "_R" if not Rlist else ".R"
+        fullext = Rsep + "1." + ext
+        samplenames = set([i.split(fullext)[0] for i in os.listdir(dir) if i.endswith(fullext)])
+    elif len([i for i in os.listdir(dir) if i.endswith('.fq.gz')]) > 0:
+        ext = 'fq.gz'
+        Rlist = [i for i in os.listdir(dir) if i.endswith('.R1.' + ext)]
+        Rsep = "_R" if not Rlist else ".R"
+        fullext = Rsep + "1." + ext
+        samplenames = set([i.split(fullext)[0] for i in os.listdir(dir) if i.endswith(fullext)])
+    elif len([i for i in os.listdir(dir) if i.endswith('.bam')]) > 0:
+        ext = 'bam' 
+        samplenames = set([i.split('.bam')[0] for i in os.listdir(dir) if i.endswith(ext)])
+    else:
+        print("ERROR: No sample files ending with the expected file extentions found in " + dir + ".\nExpected extensions:\n  _R1.fastq.gz\n  .R1.fastq.gz\n  _R1.fq.gz\n  .R1.fq.gz\n  .bam")
+        sys.exit(1)
+
+    with open(f'{output}', "w") as file:
+        for i in samplenames:
+            file.write(i + '\t1\n')
+
+    print('Created sample population grouping file ' + output + '. Please review it, as all samples have been grouped into a single population')
 
 @click.command()
 @click.option('-c', '--config', default = 'config.yaml', show_default = True, type=click.Path(exists=True), help = 'HARPY configuration yaml file')
@@ -153,6 +188,7 @@ def phase(config_file):
     print("this is another thing!")
 
 cli.add_command(init)
+cli.add_command(popmap)
 cli.add_command(trim)
 cli.add_command(align)
 cli.add_command(callvariants)

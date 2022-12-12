@@ -2,6 +2,7 @@
 .vscode/
 Seqs/
 ReadMapping/
+samples.populations
 *.fasta
 *.yaml
 *.yml
