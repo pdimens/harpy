@@ -149,7 +149,9 @@ rule sort_nobarcode:
 
 rule markduplicates:
 	input: "ReadMapping/align/{sample}/{sample}.nobarcode.bam.tmp"
-	output: "ReadMapping/align/{sample}/{sample}.nobarcode.bam"
+	output: 
+		bam = temp("ReadMapping/align/{sample}/{sample}.nobarcode.bam"),
+		bai = temp("ReadMapping/align/{sample}/{sample}.nobarcode.bam.bai")
 	log: 
 		mdlog = "ReadMapping/align/log/{sample}.markdup.nobarcode.log",
 		stats = report("ReadMapping/align/log/{sample}.nobarcode.stats", category="{sample}", subcategory="No Barcode", labels={"Metric": "stats"}),
@@ -160,9 +162,9 @@ rule markduplicates:
 	threads: 2
 	shell:
 		"""
-		sambamba markdup -t {threads} -l 0 {input} {output} 2> {log.mdlog}
-		samtools stats {output} > {log.stats}
-		samtools flagstat {output} > {log.flagstat}
+		sambamba markdup -t {threads} -l 0 {input} {output.bam} 2> {log.mdlog}
+		samtools stats {output.bam} > {log.stats}
+		samtools flagstat {output.bam} > {log.flagstat}
 		"""   
 
 rule merge_barcoded:
@@ -198,7 +200,8 @@ rule merge_alignments:
 	input:
 		aln_barcoded = "ReadMapping/align/{sample}/{sample}.barcoded.bam",
 		aln_nobarcode = "ReadMapping/align/{sample}/{sample}.nobarcode.bam",
-		idx_barcoded = "ReadMapping/align/{sample}/{sample}.barcoded.bam.bai"
+		idx_barcoded = "ReadMapping/align/{sample}/{sample}.barcoded.bam.bai",
+		idx_nobarcode = "ReadMapping/align/{sample}/{sample}.nobarcode.bam.bai"
 	output: 
 		bam = "ReadMapping/align/{sample}.bam"
 	wildcard_constraints:

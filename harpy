@@ -29,7 +29,7 @@ def cli():
 @click.command()
 @click.option('-c', '--config', default = 'config.yaml', show_default = True, type=click.Path(), help = 'Name to give configuration file')
 def init(config):
-    '''Generate template configuration file'''
+    '''Generate template configuration files'''
     if exists(config):
         overwrite = input(f"File \'{config}\' already exists, overwrite? (no|yes)  ")
         if (overwrite != "yes") and (overwrite != "y"):
