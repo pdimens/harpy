@@ -189,7 +189,7 @@ rule index_mergedbarcoded:
 	message: "Indexing merged barcoded alignemnts: {wildcards.sample}"
 	shell:
 		"""
-		sambamba index {input}
+		sambamba index {input} {output}
 		samtools stats {output} > {log.stats}
 		samtools flagstat {output} > {log.flagstat}
 		"""
@@ -218,7 +218,7 @@ rule index_alignments:
 		sample = "[a-zA-Z0-9_-]*"
 	shell:
 		"""
-		sambamba index {input}
+		sambamba index {input} {output}
 		"""
 
 rule alignment_stats:
