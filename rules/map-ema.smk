@@ -186,7 +186,7 @@ rule index_mergedbarcoded:
 		flagstat = report("ReadMapping/align/flagstat/{sample}.barcoded.flagstat", category="{sample}", subcategory="Barcoded", labels={"Metric": "flagstat"})
 	wildcard_constraints:
 		sample = "[a-zA-Z0-9_-]*"
-	message: "Indexing merged barcoded alignemnts: {wildcard.samples}"
+	message: "Indexing merged barcoded alignemnts: {wildcards.samples}"
 	shell:
 		"""
 		sambamba index {input}
