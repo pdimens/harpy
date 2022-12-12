@@ -60,7 +60,7 @@ rule leviathan_variantcall:
 
 rule vcf2bcf:
     input: "VariantCall/{sample}.vcf"
-    output: "VariantCall/{sample}.bcf"
+    output: temp("VariantCall/{sample}.bcf")
     message: "Covnerting to BCF: {input}"
     threads: 1
     shell:        
@@ -70,8 +70,7 @@ rule vcf2bcf:
 
 rule index_bcf:
     input: "VariantCall/{sample}.bcf"
-    output: "VariantCall/{sample}.bcf.csi"
-    log: "VariantCall/logs/{sample}.variant.stats"
+    output: temp("VariantCall/{sample}.bcf.csi")
     message: "Indexing: {input}"
     threads: 1
     shell:
