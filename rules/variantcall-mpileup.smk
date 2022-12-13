@@ -2,11 +2,7 @@
 bam_dir = config["seq_directory"]
 genomefile = config["genome_file"]
 popfile = config["popfile"]
-
-# Find the number of contigs in the genome fasta
 n_regions = config["n_regions"]
-
-# Received from the harpy wrapper
 samplenames = config["samplenames"] 
 
 rule merge_bcfs:
@@ -69,22 +65,8 @@ rule mpileup:
         bcftools mpileup --fasta-ref {input.genome} --regions-file {input.region} --bam-list {input.bamlist} --annotate AD --output-type b > {output}
         """
 
-if popfile != 'none':
-    rule call_genotypes:
-        input: 
-            bcf = "VariantCall/mpileup/region.{part}.mp.bcf",
-            popmap = popfile
-        output: "VariantCall/mpileup/region.{part}.bcf"
-        message: "Calling genotypes: region.{wildcard.part}"
-        wildcard_constraints:
-            part = "[0-9]*"
-        threads: 1
-        shell:
-            """
-            bcftools call --multiallelic-caller --group-samples {input.popfile} --variants-only --output-type b {input.bcf} | bcftools sort - --output {output} 
-            """
-else:
-    rule call_genotypes:
+
+rule call_genotypes:
         input: 
             bcf = "VariantCall/mpileup/region.{part}.mp.bcf"
         output: "VariantCall/mpileup/region.{part}.bcf"
@@ -92,9 +74,11 @@ else:
         wildcard_constraints:
             part = "[0-9]*"
         threads: 1
+        params: 
+            groupsamples = '' if popfile == 'none' else "--group-samples " + popfile
         shell:
             """
-            bcftools call --multiallelic-caller --variants-only --output-type b {input.bcf} | bcftools sort - --output {output} 
+            bcftools call --multiallelic-caller {params} --variants-only --output-type b {input.bcf} | bcftools sort - --output {output} 
             """
 
 rule index_bcf:
