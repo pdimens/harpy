@@ -160,14 +160,14 @@ def callvariants(config, threads, dir, populations, leviathan, resume):
             fopen = open(genomefile, "r")
         except:
             fopen = open(os.readlink(genomefile), "r")
-            while True:
-                # Get next line from file
-                line = fopen.readline(16)
-                if line.startswith('>'):
-                    n_regions += 1
-                # end of file is reached
-                if not line:
-                    break
+        while True:
+            # Get next line from file
+            line = fopen.readline(16)
+            if line.startswith('>'):
+                n_regions += 1
+            # end of file is reached
+            if not line:
+                break
         fopen.close()
         print(n_regions)
     else:
