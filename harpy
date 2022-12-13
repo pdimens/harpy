@@ -164,7 +164,7 @@ def callvariants(config, threads, dir, populations, leviathan, resume):
                 if not line:
                     break
     except:
-        with open(os.readlink(genomefile), "r") as fopen:
+        with open(os.path.abspath(os.readlink(genomefile)), "r") as fopen:
             while True:
                 # Get next line from file
                 line = fopen.readline(16)
