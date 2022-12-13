@@ -17,8 +17,8 @@ rule create_reports:
 	default_target: True
 	shell:
 		"""
-		multiqc ReadMapping/align/stats --force --quiet --filename {output.stats}
-		multiqc ReadMapping/align/flagstat --force --quiet --filename {output.flagstat}
+		multiqc ReadMapping/align/stats --force --quiet --no-data-dir --filename {output.stats} 2> /dev/null
+		multiqc ReadMapping/align/flagstat --force --quiet --no-data-dir --filename {output.flagstat} 2> /dev/null
 		"""
 
 rule index_genome:
