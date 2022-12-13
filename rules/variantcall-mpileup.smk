@@ -4,16 +4,7 @@ genomefile = config["genome_file"]
 popfile = config["popfile"]
 
 # Find the number of contigs in the genome fasta
-n_regions = 0
-with open(genomefile, "r") as fopen:
-    while True:
-        # Get next line from file
-        line = fopen.readline(16)
-        if line.startswith('>'):
-            n_regions += 1
-        # end of file is reached
-        if not line:
-            break
+n_regions = config["n_regions"]
 
 # Received from the harpy wrapper
 samplenames = config["samplenames"] 
