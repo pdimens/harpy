@@ -146,15 +146,19 @@ def callvariants(config, threads, dir, populations, leviathan, resume):
         print("ERROR: No alignment files (.bam) found in " + dir)
         sys.exit(1)
 
-    n_regions = 0
-    with open(config, "r") as conf:
-        while True:
-            line = conf.readline()
-            if line.startswith("genome_file"):
-                genomefile = line.split(":")[1].strip()
-                break
-    try:
-        with open(genomefile, "r") as fopen:
+    if not leviathan:
+        vcaller = "mpileup"
+        n_regions = 0
+        with open(config, "r") as conf:
+            while True:
+                line = conf.readline()
+                if line.startswith("genome_file"):
+                    genomefile = line.split(":")[-1].strip()
+                    break
+        try:
+            fopen = open(genomefile, "r")
+        except:
+            fopen = open(os.readlink(genomefile), "r")
             while True:
                 # Get next line from file
                 line = fopen.readline(16)
@@ -163,18 +167,9 @@ def callvariants(config, threads, dir, populations, leviathan, resume):
                 # end of file is reached
                 if not line:
                     break
-    except:
-        with open(os.path.abspath(os.readlink(genomefile)), "r") as fopen:
-            while True:
-                # Get next line from file
-                line = fopen.readline(16)
-                if line.startswith('>'):
-                    n_regions += 1
-                # end of file is reached
-                if not line:
-                    break
-    
-    vcaller = "mpileup" if not leviathan else "leviathan"
+        fopen.close()
+    else:
+        vcaller = "leviathan"
     command = ['snakemake', '--cores', f'{threads}', '--directory', '.', '--snakefile', "rules/variantcall-" + vcaller + ".smk", '--configfile', f"{config}"]
     if resume:
         command.append('--rerun-incomplete')
