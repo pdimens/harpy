@@ -153,10 +153,9 @@ def callvariants(config, threads, dir, populations, leviathan, resume):
     command.append('--config')
     command.append(f"seq_directory={dir}")
     command.append(f"samplenames={samplenames}")
+    command.append(f"popfile={populations}")
     if populations != 'none':
-        if exists(populations):
-            command.append(f"popfile={populations}")
-        else:
+        if not exists(populations):
             print("ERROR: sample populations file " + populations + " not found.")
             sys.exit(1)
     # debugging things
