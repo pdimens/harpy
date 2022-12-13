@@ -70,7 +70,7 @@ rule call_genotypes:
         input: 
             bcf = "VariantCall/mpileup/region.{part}.mp.bcf"
         output: "VariantCall/mpileup/region.{part}.bcf"
-        message: "Calling genotypes: region.{wildcard.part}"
+        message: "Calling genotypes: region.{wildcards.part}"
         wildcard_constraints:
             part = "[0-9]*"
         threads: 1
@@ -84,7 +84,7 @@ rule call_genotypes:
 rule index_bcf:
     input: "VariantCall/mpileup/region.{part}.bcf"
     output: temp("VariantCall/mpileup/region.{part}.bcf.csi")
-    message: "Indexing: region.{wildcard.part}"
+    message: "Indexing: region.{wildcards.part}"
     wildcard_constraints:
         part = "[0-9]*"
     threads: 1    
