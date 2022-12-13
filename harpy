@@ -153,15 +153,27 @@ def callvariants(config, threads, dir, populations, leviathan, resume):
             if line.startswith("genome_file"):
                 genomefile = line.split(":")[1].strip()
                 break
-    with open(genomefile, "r") as fopen:
-        while True:
-            # Get next line from file
-            line = fopen.readline(16)
-            if line.startswith('>'):
-                n_regions += 1
-            # end of file is reached
-            if not line:
-                break
+    try:
+        with open(genomefile, "r") as fopen:
+            while True:
+                # Get next line from file
+                line = fopen.readline(16)
+                if line.startswith('>'):
+                    n_regions += 1
+                # end of file is reached
+                if not line:
+                    break
+    except:
+        with open(os.readlink(genomefile), "r") as fopen:
+            while True:
+                # Get next line from file
+                line = fopen.readline(16)
+                if line.startswith('>'):
+                    n_regions += 1
+                # end of file is reached
+                if not line:
+                    break
+    
     vcaller = "mpileup" if not leviathan else "leviathan"
     command = ['snakemake', '--cores', f'{threads}', '--directory', '.', '--snakefile', "rules/variantcall-" + vcaller + ".smk", '--configfile', f"{config}"]
     if resume:
