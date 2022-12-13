@@ -1,10 +1,11 @@
+#BUG leviathan doesn't seem to output sample ID into the vcf
 # user specified configs
 bam_dir = config["seq_directory"]
 genomefile = config["genome_file"]
 # Received from the harpy wrapper
 samplenames = config["samplenames"] 
 
-rule merge_vcfs:
+rule merge_bcfs:
     input: 
         bcf = expand("VariantCall/leviathan/{sample}.bcf", sample = samplenames),
         index = expand("VariantCall/leviathan/{sample}.bcf.csi", sample = samplenames)
