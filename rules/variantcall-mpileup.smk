@@ -65,7 +65,7 @@ rule bam_list:
 
 rule mpileup:
     input:
-        bamlist = "VariantCall/mpileup/samples.list"
+        bamlist = "VariantCall/mpileup/samples.list",
         genome = genomefile,
         region = "VariantCall/mpileup/regions/region.{part}"
     output: pipe("VariantCall/mpileup/region.{part}.mp.bcf")
