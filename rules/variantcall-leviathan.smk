@@ -6,10 +6,10 @@ samplenames = config["samplenames"]
 
 rule merge_vcfs:
     input: 
-        bcf = expand("VariantCall/{sample}.bcf", sample = samplenames),
-        index = expand("VariantCall/{sample}.bcf.csi", sample = samplenames)
-    output: "VariantCall/variants.raw.bcf"
-    log: "VariantCall/variants.raw.stats"
+        bcf = expand("VariantCall/leviathan/{sample}.bcf", sample = samplenames),
+        index = expand("VariantCall/leviathan/{sample}.bcf.csi", sample = samplenames)
+    output: "VariantCall/leviathan/variants.raw.bcf"
+    log: "VariantCall/leviathan/variants.raw.stats"
     message: "Merging sample VCFs into single file: {output}"
     default_target: True
     threads: 20
@@ -33,7 +33,7 @@ rule index_barcode:
     input: 
         bam = bam_dir + "/{sample}.bam",
         bai = bam_dir + "/{sample}.bam.bai"
-    output: temp("VariantCall/{sample}.bci")
+    output: temp("VariantCall/leviathan/{sample}.bci")
     message: "Indexing barcodes: {wildcards.sample}"
     threads: 4
     shell:
@@ -45,12 +45,12 @@ rule leviathan_variantcall:
     input:
         bam = bam_dir + "/{sample}" + ".bam",
         bai = bam_dir + "/{sample}" + ".bam.bai",
-        bc_idx = "VariantCall/{sample}.bci",
+        bc_idx = "VariantCall/leviathan/{sample}.bci",
         genome = genomefile
-    output: vcf = pipe("VariantCall/{sample}.vcf")
+    output: vcf = pipe("VariantCall/leviathan/{sample}.vcf")
     log:  
-        runlog = "VariantCall/logs/{sample}.leviathan.log",
-        candidates = "VariantCall/logs/{sample}.candidates"
+        runlog = "VariantCall/leviathan/logs/{sample}.leviathan.log",
+        candidates = "VariantCall/leviathan/logs/{sample}.candidates"
     message: "Calling variants: {wildcards.sample}"
     threads: 3
     shell:
@@ -59,8 +59,8 @@ rule leviathan_variantcall:
         """
 
 rule vcf2bcf:
-    input: "VariantCall/{sample}.vcf"
-    output: temp("VariantCall/{sample}.bcf")
+    input: "VariantCall/leviathan/{sample}.vcf"
+    output: temp("VariantCall/leviathan/{sample}.bcf")
     message: "Covnerting to BCF: {input}"
     threads: 1
     shell:        
@@ -69,8 +69,8 @@ rule vcf2bcf:
         """
 
 rule index_bcf:
-    input: "VariantCall/{sample}.bcf"
-    output: temp("VariantCall/{sample}.bcf.csi")
+    input: "VariantCall/leviathan/{sample}.bcf"
+    output: temp("VariantCall/leviathan/{sample}.bcf.csi")
     message: "Indexing: {input}"
     threads: 1
     shell:
