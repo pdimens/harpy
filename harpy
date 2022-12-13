@@ -149,6 +149,8 @@ def callvariants(config, threads, dir, populations, leviathan, resume):
     if not leviathan:
         vcaller = "mpileup"
         n_regions = 0
+        # get the name of the genome file from the config file
+        # might get deprecated in favor of CLI params
         with open(config, "r") as conf:
             while True:
                 line = conf.readline()
@@ -156,6 +158,7 @@ def callvariants(config, threads, dir, populations, leviathan, resume):
                     genomefile = line.split(":")[-1].strip()
                     break
         print("Finding the number of contigs in " + genomefile, end = "...")
+        # workaround for python symlink reading
         try:
             fopen = open(genomefile, "r")
         except:

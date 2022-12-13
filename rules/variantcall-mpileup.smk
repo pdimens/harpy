@@ -36,7 +36,7 @@ rule split_contigs:
     message: "Separating {input} into regions for parallelization later"
     shell:
         """
-        awk '{{x="VariantCall/mpileup/regions/region."++i;FS="\t"}}{{print $1 FS "0" FS $2 > x;}}' {input}
+        awk '{{x="VariantCall/mpileup/regions/region."++i;FS="\t"}}{{print $1 FS "1" FS $2 > x;}}' {input}
         """
 
 rule bam_list:
