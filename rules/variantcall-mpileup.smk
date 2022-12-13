@@ -18,7 +18,7 @@ with open(genomefile, "r") as fopen:
 # Received from the harpy wrapper
 samplenames = config["samplenames"] 
 
-rule merge_vcfs:
+rule merge_bcfs:
     input: 
         bcf = expand("VariantCall/mpileup/region.{part}.bcf", part = range(1, n_regions + 1)),
         idx = expand("VariantCall/mpileup/region.{part}.bcf.csi", part = range(1, n_regions + 1))
@@ -33,7 +33,7 @@ rule merge_vcfs:
         bcftools stats {output} > {log}
         """
 
-rule index_alignment:
+rule index_alignments:
     input: bam_dir + "/{sample}.bam"
     output: bam_dir + "/{sample}.bam.bai"
     message: "Indexing barcodes: {wildcards.sample}"
@@ -78,7 +78,7 @@ rule mpileup:
         bcftools mpileup --fasta-ref {input.genome} --regions-file {input.region} --bam-list {input.bamlist} --annotate AD --output-type b > {output}
         """
 
-rule call:
+rule call_genotypes:
     input: 
         bcf = "VariantCall/mpileup/region.{part}.mp.bcf",
         popmap = popfile
