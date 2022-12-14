@@ -154,8 +154,8 @@ rule markduplicates:
 		bai = temp("ReadMapping/align/{sample}/{sample}.nobarcode.bam.bai")
 	log: 
 		mdlog = "ReadMapping/align/log/{sample}.markdup.nobarcode.log",
-		stats = report("ReadMapping/align/log/{sample}.nobarcode.stats", category="{sample}", subcategory="No Barcode", labels={"Metric": "stats"}),
-		flagstat = report("ReadMapping/align/log/{sample}.nobarcode.flagstat", category="{sample}", subcategory="No Barcode", labels={"Metric": "flagstat"})
+		stats = report("ReadMapping/align/stats/{sample}.nobarcode.stats", category="{sample}", subcategory="No Barcode", labels={"Metric": "stats"}),
+		flagstat = report("ReadMapping/align/flagstat/{sample}.nobarcode.flagstat", category="{sample}", subcategory="No Barcode", labels={"Metric": "flagstat"})
 	wildcard_constraints:
 		sample = "[a-zA-Z0-9_-]*"
 	message: "Marking duplicates in unbarcoded alignments: {wildcards.sample}"
