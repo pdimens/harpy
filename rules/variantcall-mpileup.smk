@@ -76,7 +76,7 @@ rule call_genotypes:
             part = "[0-9]*"
         threads: 1
         params: 
-            groupsamples = '' if popfile == 'none' else "--group-samples " + groupings,
+            groupsamples = '' if groupings == 'none' else "--group-samples " + groupings,
             ploidy = f"--ploidy {ploidy}"
         shell:
             """
