@@ -1,11 +1,11 @@
 # user specified configs
 bam_dir = config["seq_directory"]
 genomefile = config["genome_file"]
-popfile = config["popfile"]
+groupings = config["groupings"]
 n_regions = config["n_regions"]
 samplenames = config["samplenames"] 
 
-rule merge_bcfs:
+rule combine_bcfs:
     input: 
         bcf = expand("VariantCall/mpileup/region.{part}.bcf", part = range(1, n_regions + 1)),
         idx = expand("VariantCall/mpileup/region.{part}.bcf.csi", part = range(1, n_regions + 1))
@@ -16,7 +16,7 @@ rule merge_bcfs:
     threads: 20
     shell:
         """
-        bcftools merge --threads {threads} -o {output} {input.bcf}
+        bcftools concat --threads {threads} --output-type b --naive {input.bcf} > {output}
         bcftools stats {output} > {log}
         """
 
@@ -62,7 +62,7 @@ rule mpileup:
     threads: 1
     shell:
         """
-        bcftools mpileup --fasta-ref {input.genome} --regions-file {input.region} --bam-list {input.bamlist} --annotate AD --output-type b > {output}
+        bcftools mpileup --fasta-ref {input.genome} --regions-file {input.region} --bam-list {input.bamlist} --annotate AD --output-type b > {output} 2> /dev/null
         """
 
 
@@ -75,10 +75,10 @@ rule call_genotypes:
             part = "[0-9]*"
         threads: 1
         params: 
-            groupsamples = '' if popfile == 'none' else "--group-samples " + popfile
+            groupsamples = '' if popfile == 'none' else "--group-samples " + groupings
         shell:
             """
-            bcftools call --multiallelic-caller {params} --variants-only --output-type b {input.bcf} | bcftools sort - --output {output} 
+            bcftools call --multiallelic-caller {params} --variants-only --output-type b {input.bcf} | bcftools sort - --output {output} 2> /dev/null
             """
 
 rule index_bcf:
