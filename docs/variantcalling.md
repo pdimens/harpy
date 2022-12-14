@@ -6,12 +6,12 @@ harpy callvariants OPTIONS...
 To do so, you will need:
 - at least 4 cores/threads available
 - a configuration yaml file 
-    - created with `harpy init`
+    - create with `harpy init`
 - a genome assembly in FASTA format
 - alignment files
 - sample grouping file [optional]
     - takes the format of sample\<tab\>group
-    - this file can be created with `harpy popgroup`
+    - create with `harpy popgroup` or manually
     - if created with `harpy popmap`, all the samples will be assigned to group `1`, so make sure to edit the second column to reflect your data correctly.
     - the file looks like:
 ```
@@ -49,6 +49,9 @@ graph LR
 
 ### Leviathan
 Leviathan is an alternative variant caller that uses linked read barcode information to call variants. Harpy first uses [LRez](https://github.com/morispi/LRez) to index the barcodes in the alignments, then it calls variants for individual samples using Leviathan. All the samples then get merged into a single BCF file using [bcftools](https://samtools.github.io/bcftools/bcftools.html).
+
+!> Until it gets resolved, Leviathan doesn't seem to output sample names into the resulting variant call files.
+
 
 ```mermaid
 graph LR

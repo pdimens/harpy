@@ -6,9 +6,12 @@ harpy align OPTIONS...
 To do so, you will need:
 - at least 4 cores/threads available
 - a configuration yaml file 
-    - created with `harpy init`
+    - create with `harpy init`
 - a genome assembly in FASTA format
 - b/gzipped fastq sequence files
+    - paired-end files, with files labelled by `.R1`/`.R2` or `_R1`/`_R2` followed by `.fastq.gz` or `.fq.gz` (e.g. `.R1.fq.gz` or `_R2.fastq.gz`)
+        - **do not mix** `.R/_R` or `fastq/fq` formats
+        - stick to one of each
 
 ## Running Options
 | long name | short name | value type | default value | description|
@@ -25,7 +28,7 @@ To do so, you will need:
 - **recommended**, see bottom of page
 - leverages the BX barcode information to improve mapping
 - slower
-- creates a lot of temporary files
+- lot of temporary files
 
 Since [EMA](https://github.com/arshajii/ema) does extra things to account for barcode information, the EMA workflow is a bit more complicated under the hood. Reads with barcodes are aligned using EMA and reads without valid barcodes are separately mapped using BWA before merging all the alignments together again. EMA will mark duplicates within alignments, but the BWA alignments need duplicates marked manually using [sambamba](https://lomereiter.github.io/sambamba/). Thankfully, you shouldn't need to worry about any of these details.
 

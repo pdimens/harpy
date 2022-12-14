@@ -8,19 +8,36 @@ them to become called SNP genotypes. Most of the settings are pre-configured, an
 can modify can be configured in a pre-generated configuration file. There aren't too many, which should
 make things a little simpler. 
 
+## Modules
 Harpy is modular, meaning you can use different parts of it independent from each other. Need to only align reads?
-Great! Only want to call variants? Awesome!
+Great! Only want to call variants? Awesome! All modules are called by `harpy modulename`. For example, use `harpy align` to align reads.
+
+| Module Command | Description |
+| :---    | :----       |
+| `init`    |  Generate template configuration file required by all modules |
+| `popgroup` | Generate sample population grouping file for variant calling |
+| `trim` | Remove adapters and quality trim sequences |
+| `align` | Align sample sequences to a reference genome |
+| `callvariants` | Call variants from sample alignments |
+| `impute` | Impute genotypes from genotype likelihoods |
+| `phase` | Phase SNPs into haplotypes | 
+
+
+## Getting Started
+### Install Harpy
+!> Not yet implemented until initial development is over
 
 Getting started with Harpy is as simple as installing it from conda/mamba (not implemented yet)
 ```bash
 mamba install -c bioconda -c conda-forge harpy
 ```
 
-## Usage
-You can call `harpy` without any arguments (or with `--help`) to print the docstring to your terminal.
+### Usage
+You can call `harpy` without any arguments (or with `--help`) to print the docstring to your terminal. You can likewise call any of the modules with `--help` (e.g. `harpy align --help`) to see their usage.
+```bash
+> harpy --help
 ```
-harpy --help
-                                                           
+```                                                       
  Usage: harpy [OPTIONS] COMMAND [ARGS]...                     
                                                               
  HARPY Haplotagging data processing pipeline.                 
@@ -29,9 +46,9 @@ harpy --help
  running harpy init to generate a configuration file and      
  modify it to your needs. The workflow is:                    
                                                               
- init 🡒 trim 🡒 align 🡒 callvariants 🡒 impute 🡒 phase           
+ init 🡒 trim 🡒 align 🡒 callvariants 🡒 impute 🡒 phase          
                                                               
- Documentation: https://harpy.github.io                       
+ Documentation: https://pdimens.github.io/HARPY/#/            
                                                               
 ╭─ Options ──────────────────────────────────────────────────╮
 │ --help      Show this message and exit.                    │
@@ -42,8 +59,7 @@ harpy --help
 │ impute        Impute genotypes from genotype likelihoods   │
 │ init          Generate template configuration file         │
 │ phase         Phase SNPs into haplotypes                   │
+│ popgroup      Generate sample population grouping file     │
 │ trim          Remove adapters and quality trim sequences   │
 ╰────────────────────────────────────────────────────────────╯
 ```
-
-You can likewise call any of the modules with `--help` (e.g. `harpy align --help`) to see their usage.
