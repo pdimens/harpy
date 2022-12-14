@@ -21,7 +21,7 @@ rule combine_bcfs:
         """
         bcftools concat --threads {threads} --output-type b --naive {input.bcf} > {output.bcf} 2> /dev/null
         bcftools index --output {output.idx} {output.bcf}
-        bcftools stats {output} > {log}
+        bcftools stats {output.bcf} > {log}
         """
 
 rule index_alignments:
