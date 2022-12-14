@@ -3,6 +3,7 @@ bam_dir = config["seq_directory"]
 genomefile = config["genome_file"]
 groupings = config["groupings"]
 n_regions = config["n_regions"]
+ploidy = config["ploidy"]
 samplenames = config["samplenames"] 
 
 rule combine_bcfs:
@@ -75,7 +76,8 @@ rule call_genotypes:
             part = "[0-9]*"
         threads: 1
         params: 
-            groupsamples = '' if popfile == 'none' else "--group-samples " + groupings
+            groupsamples = '' if popfile == 'none' else "--group-samples " + groupings,
+            ploidy = f"--ploidy {ploidy}"
         shell:
             """
             bcftools call --multiallelic-caller {params} --variants-only --output-type b {input.bcf} | bcftools sort - --output {output} 2> /dev/null
