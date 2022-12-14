@@ -36,7 +36,7 @@ rule index_alignments:
 
 rule split_contigs:
     input: genomefile + ".fai"
-    output: expand("VariantCall/mpileup/regions/region.{part}", part = range(1, n_regions + 1))
+    output: temp(expand("VariantCall/mpileup/regions/region.{part}", part = range(1, n_regions + 1)))
     message: "Separating {input} into regions for parallelization later"
     shell:
         """
