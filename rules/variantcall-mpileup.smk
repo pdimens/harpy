@@ -19,7 +19,7 @@ rule combine_bcfs:
     threads: 20
     shell:
         """
-        bcftools concat --threads {threads} --output-type b --naive {input.bcf} > {output.bcf}
+        bcftools concat --threads {threads} --output-type b --naive {input.bcf} > {output.bcf} 2> /dev/null
         bcftools index --output {output.idx} {output.bcf}
         bcftools stats {output} > {log}
         """
@@ -91,7 +91,7 @@ rule index_bcf:
     message: "Indexing: region.{wildcards.part}"
     wildcard_constraints:
         part = "[0-9]*"
-    threads: 2    
+    threads: 4  
     shell:
         """
         bcftools index --threads {threads} --output {output} {input}
