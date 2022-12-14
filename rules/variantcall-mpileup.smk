@@ -4,20 +4,23 @@ genomefile = config["genome_file"]
 groupings = config["groupings"]
 n_regions = config["n_regions"]
 ploidy = config["ploidy"]
-samplenames = config["samplenames"] 
+samplenames = config["samplenames"]
 
 rule combine_bcfs:
     input: 
         bcf = expand("VariantCall/mpileup/region.{part}.bcf", part = range(1, n_regions + 1)),
         idx = expand("VariantCall/mpileup/region.{part}.bcf.csi", part = range(1, n_regions + 1))
-    output: "VariantCall/mpileup/variants.raw.bcf"
+    output: 
+        bcf = "VariantCall/mpileup/variants.raw.bcf",
+        idx = "VariantCall/mpileup/variants.raw.bcf.csi"
     log: "VariantCall/mpileup/variants.raw.stats"
     message: "Merging sample BCFs into: {output}"
     default_target: True
     threads: 20
     shell:
         """
-        bcftools concat --threads {threads} --output-type b --naive {input.bcf} > {output}
+        bcftools concat --threads {threads} --output-type b --naive {input.bcf} > {output.bcf}
+        bcftools index --output {output.idx} {output.bcf}
         bcftools stats {output} > {log}
         """
 
@@ -66,22 +69,21 @@ rule mpileup:
         bcftools mpileup --fasta-ref {input.genome} --regions-file {input.region} --bam-list {input.bamlist} --annotate AD --output-type b > {output} 2> /dev/null
         """
 
-
 rule call_genotypes:
-        input: 
-            bcf = "VariantCall/mpileup/region.{part}.mp.bcf"
-        output: "VariantCall/mpileup/region.{part}.bcf"
-        message: "Calling genotypes: region.{wildcards.part}"
-        wildcard_constraints:
-            part = "[0-9]*"
-        threads: 1
-        params: 
-            groupsamples = '' if groupings == 'none' else "--group-samples " + groupings,
-            ploidy = f"--ploidy {ploidy}"
-        shell:
-            """
-            bcftools call --multiallelic-caller {params} --variants-only --output-type b {input.bcf} | bcftools sort - --output {output} 2> /dev/null
-            """
+    input: 
+        bcf = "VariantCall/mpileup/region.{part}.mp.bcf"
+    output: temp("VariantCall/mpileup/region.{part}.bcf")
+    message: "Calling genotypes: region.{wildcards.part}"
+    wildcard_constraints:
+        part = "[0-9]*"
+    threads: 1
+    params: 
+        groupsamples = '' if groupings == 'none' else "--group-samples " + groupings,
+        ploidy = f"--ploidy {ploidy}"
+    shell:
+        """
+        bcftools call --multiallelic-caller {params} --variants-only --output-type b {input.bcf} | bcftools sort - --output {output} 2> /dev/null
+        """
 
 rule index_bcf:
     input: "VariantCall/mpileup/region.{part}.bcf"
@@ -89,8 +91,8 @@ rule index_bcf:
     message: "Indexing: region.{wildcards.part}"
     wildcard_constraints:
         part = "[0-9]*"
-    threads: 1    
+    threads: 2    
     shell:
         """
-        bcftools index --output {output} {input}
+        bcftools index --threads {threads} --output {output} {input}
         """
