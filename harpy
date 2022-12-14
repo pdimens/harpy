@@ -192,7 +192,8 @@ def callvariants(config, threads, dir, groupings, ploidy, leviathan, resume):
     # debugging things
     #command.append('--dry-run')
     #command.append("--rulegraph")
-    subprocess.run(command)
+    print(command)
+    #subprocess.run(command)
 
 
 @click.command()

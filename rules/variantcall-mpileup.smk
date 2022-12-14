@@ -47,7 +47,7 @@ rule bam_list:
     input: 
         bam = expand(bam_dir + "/{sample}.bam", sample = samplenames),
         bai = expand(bam_dir + "/{sample}.bam.bai", sample = samplenames)
-    output: "VariantCall/mpileup/samples.list"
+    output: temp("VariantCall/mpileup/samples.list")
     message: "Creating list of alignment files"
     run:
         with open(output[0], "w") as fout:
