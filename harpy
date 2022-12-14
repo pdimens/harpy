@@ -146,7 +146,10 @@ def callvariants(config, threads, dir, groupings, ploidy, leviathan, resume):
     if len(samplenames) < 1:
         print("ERROR: No alignment files (.bam) found in " + dir)
         sys.exit(1)
-
+    if groupings != 'none':
+        if not exists(groupings):
+            print("ERROR: sample populations file " + groupings + " not found.")
+            sys.exit(1)
     if not leviathan:
         vcaller = "mpileup"
         n_regions = 0
@@ -185,10 +188,6 @@ def callvariants(config, threads, dir, groupings, ploidy, leviathan, resume):
     command.append(f"groupings={groupings}")
     command.append(f"ploidy={ploidy}")
     command.append(f"n_regions={n_regions}")
-    if groupings != 'none':
-        if not exists(groupings):
-            print("ERROR: sample populations file " + groupings + " not found.")
-            sys.exit(1)
     # debugging things
     #command.append('--dry-run')
     #command.append("--rulegraph")
