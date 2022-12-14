@@ -1,44 +1,33 @@
 # Mapping Reads onto a Reference Genome
-
+You can map reads onto genome assemblies with Harpy by calling the `align` module:
 ```bash
-Usage: harpy align [OPTIONS]
-
-Align sample sequences to a reference genome                 
- If you don't have a configuration file, use harpy init to    
- generate one and modify it for your project.                 
-                                                              
-╭─ Options ──────────────────────────────────────────────────╮
-│ --config   -c  PATH     HARPY configuration yaml file      │
-│                         [default: config.yaml]             │
-│ --dir      -d  PATH     Directory with sample sequences    │
-│                         [default: SeqTrimmed]              │
-│ --threads  -t  INTEGER  Number of threads to use           │
-│                         [default: 4]                       │
-│ --bwa      -b           Use BWA MEM (ignores bardcodes)    │
-│                         instead of EMA                     │
-│ --resume   -r           Resume an incomplete run           │
-│ --help                  Show this message and exit.        │
-╰────────────────────────────────────────────────────────────╯
+harpy align OPTIONS...
 ```
+To do so, you will need:
+- at least 4 cores/threads available
+- a configuration yaml file 
+    - created with `harpy init`
+- a genome assembly in FASTA format
+- b/gzipped fastq sequence files
 
-Reads can be aligned (mapped) onto a reference genome one of two ways:
-1. [EMA](https://github.com/arshajii/ema): Barcode-aware mapping 
-    - **recommended**
-    - leverages the BX barcode information to improve mapping
-    - slower
-    - creates a lot of temporary files
-2. [BWA MEM](https://github.com/lh3/bwa): Ignores barcode information
-    - ignores barcode information (repeated for dramatic effect)
-    - might be preferred depending on experimental design
-    - faster
-    - no temporary files
-
-----
+## Running Options
+| long name | short name | value type | default value | description|
+| :---: | :----: | :---: | :---: | :--- |                                                              
+| `--config` |  `-c` | file path    | config.yaml | HARPY configuration yaml file    |             
+| `--dir`    |  `-d` | file path     | SeqTrimmed | Directory with sample sequences  |              
+| `--threads` | `-t` | integer  | 4 | Number of threads to use      |
+| `--bwa`   |   `-b` |   toggle | |  Use BWA MEM instead of EMA |
+| `--resume` |  `-r` |  toggle  | |      Resume an incomplete run      |
+| `--help`  |         |      |    | Show this message and exit.        |
 
 ## Workflows
 ### EMA
+- **recommended**, see bottom of page
+- leverages the BX barcode information to improve mapping
+- slower
+- creates a lot of temporary files
 
-Since EMA does extra things to account for barcode information, the EMA workflow is a bit more complicated under the hood. Reads with barcodes are aligned using EMA and reads without valid barcodes are separately mapped using BWA before merging all the alignments together again. EMA will mark duplicates within alignments, but the BWA alignments need duplicates marked manually using [sambamba](https://lomereiter.github.io/sambamba/). Thankfully, you shouldn't need to worry about any of these details.
+Since [EMA](https://github.com/arshajii/ema) does extra things to account for barcode information, the EMA workflow is a bit more complicated under the hood. Reads with barcodes are aligned using EMA and reads without valid barcodes are separately mapped using BWA before merging all the alignments together again. EMA will mark duplicates within alignments, but the BWA alignments need duplicates marked manually using [sambamba](https://lomereiter.github.io/sambamba/). Thankfully, you shouldn't need to worry about any of these details.
 
 ```mermaid
 graph LR
@@ -56,8 +45,12 @@ graph LR
 ----
 
 ### BWA
+- ignores barcode information
+- might be preferred depending on experimental design
+- faster
+- no temporary files
 
-The BWA workflow is substantially simpler than the EMA workflow and maps all reads against the reference genome, no muss no fuss. Duplicates are marked at the end using [sambamba](https://lomereiter.github.io/sambamba/).
+The [BWA MEM](https://github.com/lh3/bwa) workflow is substantially simpler than the EMA workflow and maps all reads against the reference genome, no muss no fuss. Duplicates are marked at the end using [sambamba](https://lomereiter.github.io/sambamba/).
 
 ```mermaid
 graph LR

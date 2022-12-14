@@ -1,36 +1,60 @@
 # Calling Variants
-
+You can call variants with Harpy by calling the `callvariants` module:
+```bash
+harpy callvariants OPTIONS... 
 ```
- Usage: harpy callvariants [OPTIONS]                          
-                                                              
- Call variants from sample alignments                         
- If you don't have a configuration file, use harpy init to    
- generate one and modify it for your project.                 
-                                                              
-╭─ Options ──────────────────────────────────────────────────╮
-│ --config   -c  PATH     HARPY configuration yaml file      │
-│                         [default: config.yaml]             │
-│ --dir      -d  PATH     Directory with sequence alignments │
-│                         [default: ReadMapping]             │
-│ --threads  -t  INTEGER  Number of threads to use           │
-│                         [default: 4]                       │
-│ --resume   -r           Resume an incomplete run           │
-│ --help                  Show this message and exit.        │
-╰────────────────────────────────────────────────────────────╯
+To do so, you will need:
+- at least 4 cores/threads available
+- a configuration yaml file 
+    - created with `harpy init`
+- a genome assembly in FASTA format
+- alignment files
+- sample grouping file [optional]
+    - takes the format of sample\<tab\>group
+    - this file can be created with `harpy popgroup`
+    - if created with `harpy popmap`, all the samples will be assigned to group `1`, so make sure to edit the second column to reflect your data correctly.
+    - the file looks like:
+```
+sample1 1
+sample2 1
+sample3 2
+sample4 1
+sample5 3
 ```
 
-## Workflow
-### Leviathan
-Leviathan does the brunt of the work during variant calling. Harpy first uses [LRez](https://github.com/morispi/LRez) to index the barcodes in the alignments, then it calls variants for individual samples using Leviathan. All the samples then get merged into a single VCF file using [bcftools](https://samtools.github.io/bcftools/bcftools.html).
+## Running Options
+| long name | short name | value type | default value | description|
+| :---: | :----: | :---: | :---: | :--- |                                                              
+| `--config`    |  `-c`  | file path   | config.yaml |  HARPY configuration yaml file          |                 
+| `--dir`       |  `-d`  | file path   |  ReadMapping/align |  Directory with sequence alignments     | 
+| `--leviathan` |  `-l`    |  toggle  | |  Call variants with Leviathan instead of bcftools |                           
+| `--groupings` |  `-g`  | file path   |  | Tab-delimited file of sample\<tab\>group |                         
+| `--ploidy`    |  `-p`  | integer | 2 | Ploidy of samples          |                          
+| `--threads`   |  `-t`  | integer | 4| Number of threads to use |                                     
+| `--resume`    |  `-r`  | toggle  | | Resume an incomplete run |               
+| `--help`        | | |    |          Show the module docstring |            
+
+## Workflows
+### bcftools mpileup
+The `mpileup` and `call` modules from [bcftools](https://samtools.github.io/bcftools/bcftools.html) (formerly from samtools) are used to call variants from alignments. This is a tried-and-true method and one of methods featured in other variant callers, such as that provided in [ANGSD](http://www.popgen.dk/angsd/index.php/Genotype_Likelihoods), which is why Harpy uses it by default. To speed things along, Harpy will parallelize `mpileup` to call variants separately on different contigs, then merge everything at the end. This would mean that a more fragmented assembly would probably run faster than a chromosome-scale one, but you're more likely to have fewer variants detected. All intermediate outputs are removed, leaving you only the raw variants file (in compressed `.bcf` format), the index of that file, and some basic stats about it.
 
 ```mermaid
 graph LR
-    A((index barcodes)) --> B((calling variants))
-    B-->C((merge sample VCFs))
-
+    A((split contigs)) --> B((bcftools mpileup))
+    B-->C((bcftools call))
+    C-->D((index BCFs))
+    D-->E((combine BCFs))
+    C-->E
 ```
 
+### Leviathan
+Leviathan is an alternative variant caller that uses linked read barcode information to call variants. Harpy first uses [LRez](https://github.com/morispi/LRez) to index the barcodes in the alignments, then it calls variants for individual samples using Leviathan. All the samples then get merged into a single BCF file using [bcftools](https://samtools.github.io/bcftools/bcftools.html).
 
-## Why Leviathan?
-Harpy uses the variant caller [LEVIATHAN](https://github.com/morispi/LEVIATHAN). What makes this variant caller special is that is is barcode-aware, making it suitable to leverage the beadtag information haplotagging provides at the variant-calling step. Here are the merits of LEVIATHAN as described in the [publication](https://www.biorxiv.org/content/10.1101/2021.03.25.437002v1):
-![LEVIATHAN Comparison table](_media/LEVIATHAN.table1.png)
+```mermaid
+graph LR
+    A((index barcodes)) --> B((leviathan))
+    B-->C((convert to BCF))
+    C-->D((index BCFs))
+    D-->E((combine BCFs))
+    C-->E
+```
