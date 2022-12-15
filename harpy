@@ -4,6 +4,7 @@ import subprocess
 import os
 from os.path import exists
 import sys
+import re
 import rich_click as click
 
 click.rich_click.USE_MARKDOWN = True
@@ -192,7 +193,7 @@ def callvariants(config, threads, dir, groupings, ploidy, leviathan, resume):
     #command.append('--dry-run')
     #command.append("--rulegraph")
     #print(" ".join(command))
-    #subprocess.run(command)
+    subprocess.run(command)
 
 
 @click.command()
@@ -205,6 +206,51 @@ def impute(config_file):
     
     If you don't have a configuration file, use **harpy init** to generate one and modify it for your project.
     """
+
+
+@click.command()
+@click.option('-i', '--input', show_default = True, type=click.Path(exists=True), help = 'fasta or vcf/bcf file')
+@click.option('-o', '--output', default = 'contigs.list', show_default = True, type=click.Path(), help = 'Name of output file')
+def findcontigs(input, output):
+    """
+    Extract the contig names from an input file.
+    
+    Use this module to generate the regions file necessary to run `harpy impute`. 
+    
+    Accepted file input formats are:
+    - fasta (.fasta | .fa)
+    - variant call format (.vcf | .vcf.gz | .bcf)
+    """
+
+    #TODO figure out subprocess piping
+    if input.lower().endswith(".fasta") or input.lower().endswith(".fa"):
+        command = ["grep", "^>", input]
+        command.append("sed 's/^>//g'")
+        command.append(">")
+        command.append(f"{output}")    
+        #try:
+        #    fopen = open(input, "r")
+        #except:
+        #    fopen = open(os.readlink(input), "r")
+        #fout = open(output, "w")
+        #while True:
+        #    # Get next line from file
+        #    line = fopen.readline()
+        #    if line.startswith('>'):
+        #        # index at 1 to remove > character
+        #        fout.write(line[1:] + "\n")
+        #    # end of file is reached
+        #    if not line:
+        #        break
+        #fopen.close()
+    elif input.lower().endswith(".bcf") or input.lower().endswith(".vcf") or input.lower().endswith(".vcf.gz"):
+        command = ["bcftools", "query", "-f", '%CHROM\\n']
+        command.append("sort")
+        command.append("uniq")
+        command.append(">")
+        command.append(f"{output}")
+
+    subprocess.run(command)
 
 @click.command()
 @click.argument('config_file', default = 'harpy.yaml', type=click.Path(exists=True))
