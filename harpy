@@ -42,23 +42,27 @@ def init(config):
         file.write('# Configuration file for HARPY #\n\n')
         file.write('# Genome file for mapping and variant calling, in FASTA format\n')
         file.write('genome_file: genome.fasta\n\n')
-        file.write('# Number of barcode bins for EMA (higher is more accurate, less performant)\n')
+        file.write('# Number of barcode bins for EMA\n')
+        file.write('  # Higher is more accurate, less performant\n')
         file.write('EMA_bins: 500\n\n')
-        file.write('## STICH Imputation Paramters ##\n')
-        file.write("#   - Parameters are project specific and you *SHOULD NOT* rely on the default values\n")
-        file.write("#   - See the docs at https://pdimens.github.io/HARPY/#/ for detailed explanations\n\n")
+        file.write('## STITCH Imputation Paramters ##\n')
+        file.write("  # Parameters are project specific\n")
+        file.write("  # *DO NOT* rely on the default values\n")
+        file.write("  # See the docs for detailed info\n")
+        file.write("  # docs: https://pdimens.github.io/HARPY/#/\n\n")
         file.write("# Imputation method to use\n")
-        file.write("#   - Options: diploid, pseudoHaploid, diploid-inbred\n")
-        file.write("method: pseudoHaploid\n")
+        file.write("  # Options: diploid, pseudoHaploid, diploid-inbred\n")
+        file.write("method: pseudoHaploid\n\n")
         file.write("# Number of founder haplotypes to use\n")
-        file.write("K: 100\n")
+        file.write("K: 100\n\n")
         file.write("# Number of founder haplotypes to average results over\n")
-        file.write("S: 5\n")
+        file.write("S: 5\n\n")
         file.write("# Use haplotag barcodes to assist imputation? (True | False)\n")
-        file.write("#   - If LD blocks are small, you may get better results without using tags\n")
-        file.write("useBarcodes: True\n")
+        file.write("  # If LD blocks are small, ignoring tags might be better\n")
+        file.write("useBarcodes: True\n\n")
         file.write("# Estimated number of generations since founding\n")
-        file.write("#   - If uncertain, estimate using 4 * Ne / K (Ne = effective population size)\n")
+        file.write("  # If uncertain, estimate using 4 * Ne / K\n")
+        file.write("  # (Ne = effective population size)\n")
         file.write("nGenerations: 500\n")
     print('Created configuration file ' + config)
 
@@ -245,7 +249,7 @@ def impute(config, dir, threads, vcf, resume):
         ncontigs = 0
         while True:
             # Get next line from file
-            line = fopen.readline(8).strip()
+            line = fopen.readline(2).strip()
             ncontigs += 1
             # end of file is reached
             if not line:
