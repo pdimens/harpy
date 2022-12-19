@@ -33,6 +33,7 @@ def init(config):
     '''Generate template configuration file'''
     if exists(config):
         overwrite = input(f"File \'{config}\' already exists, overwrite? (no|yes)  ")
+        outf = config
         if (overwrite.lower() != "yes") and (overwrite.lower() != "y"):
             outf = input("New name for the configuration file: ")
     else:
