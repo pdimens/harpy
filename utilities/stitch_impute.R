@@ -9,14 +9,10 @@ outdir <- normalizePath(dirname(snakemake@output[[1]]))
 outfile <- basename(snakemake@output[[1]])
 tempdir <- paste(outdir, ".tempdir", sep = "/")
 # model parameters 
-#modeltype <- "pseudoHaploid"
 modeltype <- snakemake@params[["model"]]
-#K <- 10
 K <- snakemake@params[["K"]]
-#S <- 1
 S <- snakemake@params[["S"]]
 bx <- toupper(snakemake@params[["useBarcodes"]])
-#nGenerations <- 100
 nGenerations <- snakemake@params[["nGenerations"]]
 nCores <- snakemake@threads
 inputBundleBlockSize <- NA
