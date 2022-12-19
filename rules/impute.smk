@@ -3,6 +3,7 @@ import re
 # user specified configs
 bam_dir = config["seq_directory"]
 contigfile = config["contignames"]
+ncontigs = config["ncontigs"]
 samplenames = config["samplenames"]
 model = config["model"]
 K = config["K"]
@@ -54,33 +55,25 @@ rule prepare_input:
         bcftools query -f '%CHROM\\t%POS\\t$REF\\t%ALT\\n' {input} > {output}
         """
 
-rule get_contigs:
-    input: variantfile + ".positions"
-    output: "Imputation/contigs.list"
-    #output: temp(expand("Imputation/regions/region.{part}", part = range(1, n_regions + 1)))
-    message: "Separating {input} into regions for STITCH parallelization"
-    shell:
-        """
-        cut -d"\\t" -f1 {input} | sort | uniq > {output}
-        """
-
 rule split_contigs:
-    input: "Imputation/contigs.list"
-    output: temp(directory("Imputation/regions"))
+    input: contigfile
+    output: temp(expand("Imputation/contigs/contig.{part}", part = range(1, ncontigs + 1)))
     message: "Splitting contig names for parallelization"
     shell:
         """
-        awk '{{x="{output}/region."++i;}}{{print $1 > x;}}' {input}
+        awk '{{x="Imputation/contigs/contig."++i;}}{{print $1 > x;}}' {input}
         """
 
+#TODO fstring might not jive
+bx = "BX" if useBarcodes.lower == "true" else "noBX"
 rule impute_genotypes:
     input:
-        bamlist = ,
-        chromosome = 
-    output: ""
+        bamlist = "Imputation/samples.list",
+        chromosome = "Imputation/conrigs/contig.{part}"
+    output: f"Imputation/{model}_K{K}_S{S}_nGen{nGenerations}/contig{part}.K{K}_S{S}_nGen{nGenerations}.{bx}.{model}.vcf"
     message: 
         """
-        Running STITCH on {input.chromosome}
+        Running STITCH on contig {wildcards.part}
         Parameters:
             model: {params.model}
             K: {params.K}
@@ -96,3 +89,37 @@ rule impute_genotypes:
         nGenerations = nGenerations
     threads: 50
     script: "utilities/stitch_impute.R"
+
+rule vcf2bcf:
+    input: f"Imputation/{model}_K{K}_S{S}_nGen{nGenerations}/contig{part}.K{K}_S{S}_nGen{nGenerations}.{bx}.{model}.vcf"
+    output: f"Imputation/{model}_K{K}_S{S}_nGen{nGenerations}/contig{part}.K{K}_S{S}_nGen{nGenerations}.{bx}.{model}.bcf"
+    message: f"Converting to BCF format: contig{part}.K{K}_S{S}_nGen{nGenerations}.{bx}.{model}.bcf"
+    shell:
+        """
+        bcftools convert -Ob {input} | bcftools sort --output {output}
+        """
+
+rule index_bcf:
+    input: "VariantCall/leviathan/{sample}.bcf"
+    output: temp("VariantCall/leviathan/{sample}.bcf.csi")
+    message: "Indexing: {input}"
+    threads: 1
+    shell:
+        """
+        bcftools index --output {output} {input}
+        """
+
+rule merge_bcfs:
+    input: 
+        bcf = expand("VariantCall/leviathan/{sample}.bcf", sample = samplenames),
+        index = expand("VariantCall/leviathan/{sample}.bcf.csi", sample = samplenames)
+    output: "VariantCall/leviathan/variants.raw.bcf"
+    log: "VariantCall/leviathan/variants.raw.stats"
+    message: "Merging sample VCFs into single file: {output}"
+    default_target: True
+    threads: 20
+    shell:
+        """
+        bcftools merge --threads {threads} -o {output} {input.bcf}
+        bcftools stats {output} > {log}
+        """
