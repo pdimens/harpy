@@ -2,8 +2,8 @@ import re
 
 # user specified configs
 bam_dir = config["seq_directory"]
+contigfile = config["contignames"]
 samplenames = config["samplenames"]
-n_regions = config["n_regions"]
 model = config["model"]
 K = config["K"]
 S = config["S"]
@@ -13,11 +13,11 @@ nGenerations = config["nGenerations"]
 variantfile = config["variant_file"]
 # Pull out the basename of the variant file
 if variantfile.lower().endswith(".vcf"):
-    variantbase = "".join(re.split(".vcf", variantfile, flags=re.IGNORECASE))
+    ext = ".vcf"
 elif variantfile.lower().endswith(".vcf.gz"):
-    variantbase = "".join(re.split(".vcf.gz", variantfile, flags=re.IGNORECASE))
+    ext = ".vcf.gz"
 elif variantfile.lower().endswith(".bcf"):
-    variantbase = "".join(re.split(".bcf", variantfile, flags=re.IGNORECASE))
+    ext = ".bcf"
 else:
     print("ERROR: Supplied variant call file (" + variantfile + ") must end in one of [.vcf | .vcf.gz | .bcf]")
     exit(1)

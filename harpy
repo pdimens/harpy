@@ -33,17 +33,32 @@ def init(config):
     '''Generate template configuration file'''
     if exists(config):
         overwrite = input(f"File \'{config}\' already exists, overwrite? (no|yes)  ")
-        if (overwrite != "yes") and (overwrite != "y"):
-            print("Please suggest a different name for the configuration file and try again")
-            quit()
-    with open(f'{config}', "w") as file:
+        if (overwrite.lower() != "yes") and (overwrite.lower() != "y"):
+            outf = input("New name for the configuration file: ")
+    else:
+        outf = config
+    with open(f'{outf}', "w") as file:
         file.write('# Configuration file for HARPY #\n\n')
+        file.write('# Genome file for mapping and variant calling, in FASTA format\n')
+        file.write('genome_file: genome.fasta\n\n')
         file.write('# Number of barcode bins for EMA (higher is more accurate, less performant)\n')
         file.write('EMA_bins: 500\n\n')
-        file.write('# Genome to align reads to, in FASTA format\n')
-        file.write('genome_file: genome.fasta\n\n')
-        file.write('# Directory with untrimmed sequences\n')
-        file.write('raw_seqs: RawSequences\n')
+        file.write('## STICH Imputation Paramters ##\n')
+        file.write("#   - Parameters are project specific and you *SHOULD NOT* rely on the default values\n")
+        file.write("#   - See the docs at https://pdimens.github.io/HARPY/#/ for detailed explanations\n\n")
+        file.write("# Imputation method to use\n")
+        file.write("#   - Options: diploid, pseudoHaploid, diploid-inbred\n")
+        file.write("method: pseudoHaploid\n")
+        file.write("# Number of founder haplotypes to use\n")
+        file.write("K: 100\n")
+        file.write("# Number of founder haplotypes to average results over\n")
+        file.write("S: 5\n")
+        file.write("# Use haplotag barcodes to assist imputation? (True | False)\n")
+        file.write("#   - If LD blocks are small, you may get better results without using tags\n")
+        file.write("useBarcodes: True\n")
+        file.write("# Estimated number of generations since founding\n")
+        file.write("#   - If uncertain, estimate using 4 * Ne / K (Ne = effective population size)\n")
+        file.write("nGenerations: 500\n")
     print('Created configuration file ' + config)
 
 @click.command()
@@ -197,61 +212,43 @@ def callvariants(config, threads, dir, groupings, ploidy, leviathan, resume):
 
 
 @click.command()
-@click.argument('config_file', default = 'harpy.yaml', type=click.Path(exists=True))
-@click.option('-p', '--path', default = 'SequencesTrimmed', type=click.Path(exists=True), help = 'Path to trimmed sequences')
-@click.option('-v', '--vcf', default = 'Variants.likelihoods.bcf', type=click.Path(exists=True), help = 'Path to VCF file')
-def impute(config_file):
+@click.option('-c', '--config', default = 'config.yaml', show_default = True, type=click.Path(exists=True), help = 'HARPY configuration yaml file')
+@click.option('-d', '--dir', default = 'ReadMapping/align', show_default = True, type=click.Path(exists=True), help = 'Directory with sequence alignments')
+@click.option('-v', '--vcf', default = 'VariantCall/variants.raw.bcf', type=click.Path(exists=True), help = 'Path to VCF file')
+@click.option('-t', '--threads', default = 4, show_default = True, type = int, help = 'Number of threads to use')
+@click.option('-r', '--resume', is_flag=True, help="Resume an incomplete run")
+def impute(config, dir, threads, vcf, resume):
     """
     Impute genotypes from genotype likelihoods
     
     If you don't have a configuration file, use **harpy init** to generate one and modify it for your project.
     """
+    samplenames = set([i.split('.bam')[0] for i in os.listdir(dir) if i.endswith(".bam")])
+    if len(samplenames) < 1:
+        print("ERROR: No alignment files (.bam) found in " + dir)
+        sys.exit(1)
+    contigfile = "Impute/" + vcf + ".contigs"
+    if not exists(contigfile):
+        print(f"Extracting contig names from {vcf}")
+        os.makedirs("Impute", exist_ok = True)
+        bcftools = subprocess.Popen(["bcftools", "query", "-f", '%CHROM\\n', f"{vcf}"], stdout = subprocess.PIPE)
+        chromsort = subprocess.Popen(["sort"], input = bcftools.stdout, stdout = subprocess.PIPE)
+        with open(contigfile, "w") as fout:
+            subprocess.run(["uniq"], input = chromsort.stdout, stdout = fout) 
+    else:
+        print("Using existing file of contig names (" + contigfile + ")")
 
-
-@click.command()
-@click.option('-i', '--input', show_default = True, type=click.Path(exists=True), help = 'fasta or vcf/bcf file')
-@click.option('-o', '--output', default = 'contigs.list', show_default = True, type=click.Path(), help = 'Name of output file')
-def findcontigs(input, output):
-    """
-    Extract the contig names from an input file.
-    
-    Use this module to generate the regions file necessary to run `harpy impute`. 
-    
-    Accepted file input formats are:
-    - fasta (.fasta | .fa)
-    - variant call format (.vcf | .vcf.gz | .bcf)
-    """
-
-    #TODO figure out subprocess piping
-    if input.lower().endswith(".fasta") or input.lower().endswith(".fa"):
-        command = ["grep", "^>", input]
-        command.append("sed 's/^>//g'")
-        command.append(">")
-        command.append(f"{output}")    
-        #try:
-        #    fopen = open(input, "r")
-        #except:
-        #    fopen = open(os.readlink(input), "r")
-        #fout = open(output, "w")
-        #while True:
-        #    # Get next line from file
-        #    line = fopen.readline()
-        #    if line.startswith('>'):
-        #        # index at 1 to remove > character
-        #        fout.write(line[1:] + "\n")
-        #    # end of file is reached
-        #    if not line:
-        #        break
-        #fopen.close()
-    elif input.lower().endswith(".bcf") or input.lower().endswith(".vcf") or input.lower().endswith(".vcf.gz"):
-        command = ["bcftools", "query", "-f", '%CHROM\\n']
-        command.append("sort")
-        command.append("uniq")
-        command.append(">")
-        command.append(f"{output}")
+    command = ['snakemake', '--cores', f'{threads}', '--directory', '.', '--snakefile', "rules/impute.smk", '--configfile', f"{config}"]
+    if resume:
+        command.append('--rerun-incomplete')
+    command.append(f"seq_directory={dir}")
+    command.append(f"samplenames={samplenames}")
+    command.append(f"variantfile={vcf}")
+    command.append(f"contignames={contigfile}")
 
     subprocess.run(command)
 
+       
 @click.command()
 @click.argument('config_file', default = 'harpy.yaml', type=click.Path(exists=True))
 @click.option('-v', '--vcf', default = 'Variants.imputed.bcf', type=click.Path(exists=True), help = 'Path to imputed VCF file')
