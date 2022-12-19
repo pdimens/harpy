@@ -12,7 +12,7 @@ To do so, you will need:
 - sample grouping file [optional]
     - takes the format of sample\<tab\>group
     - create with `harpy popgroup` or manually
-    - if created with `harpy popmap`, all the samples will be assigned to group `1`, so make sure to edit the second column to reflect your data correctly.
+    - if created with `harpy popgroup`, all the samples will be assigned to group `1`, so make sure to edit the second column to reflect your data correctly.
     - the file looks like:
 ```
 sample1 1
