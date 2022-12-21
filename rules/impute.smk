@@ -70,7 +70,7 @@ rule impute_genotypes:
     input:
         bamlist = "Imputation/samples.list",
         chromosome = "Imputation/conrigs/contig.{part}"
-    output: f"Imputation/{model}_K{K}_S{S}_nGen{nGenerations}/contig{part}.K{K}_S{S}_nGen{nGenerations}.{bx}.{model}.vcf"
+    output: "Imputation/" + model + "_K" + str(K) + "_S" + str(S) + "_nGen" + str(nGenerations) + "/contig{part}.K" + str(K) + "_S" + str(S) + "_nGen" + str(nGenerations) + "." + bx + model + ".vcf"
     message: 
         """
         Running STITCH on contig {wildcards.part}
@@ -91,17 +91,17 @@ rule impute_genotypes:
     script: "utilities/stitch_impute.R"
 
 rule vcf2bcf:
-    input: f"Imputation/{model}_K{K}_S{S}_nGen{nGenerations}/contig{part}.K{K}_S{S}_nGen{nGenerations}.{bx}.{model}.vcf"
-    output: f"Imputation/{model}_K{K}_S{S}_nGen{nGenerations}/contig{part}.K{K}_S{S}_nGen{nGenerations}.{bx}.{model}.bcf"
-    message: f"Converting to BCF format: contig{part}.K{K}_S{S}_nGen{nGenerations}.{bx}.{model}.bcf"
+    input: "Imputation/" + model + "_K" + str(K) + "_S" + str(S) + "_nGen" + str(nGenerations) + "/contig{part}.K" + str(K) + "_S" + str(S) + "_nGen" + str(nGenerations) + "." + bx + model + ".vcf"
+    output: "Imputation/" + model + "_K" + str(K) + "_S" + str(S) + "_nGen" + str(nGenerations) + "/contig{part}.K" + str(K) + "_S" + str(S) + "_nGen" + str(nGenerations) + "." + bx + model + ".bcf"
+    message: "Converting to BCF format: contig{part}" + ".K" + str(K) + "_S" + str(S) + "_nGen" + str(nGenerations) + "." + bx + "." + model
     shell:
         """
         bcftools convert -Ob {input} | bcftools sort --output {output}
         """
 
 rule index_bcf:
-    input: "VariantCall/leviathan/{sample}.bcf"
-    output: temp("VariantCall/leviathan/{sample}.bcf.csi")
+    input: "Imputation/" + model + "_K" + str(K) + "_S" + str(S) + "_nGen" + str(nGenerations) + "/contig{part}.K" + str(K) + "_S" + str(S) + "_nGen" + str(nGenerations) + "." + bx + model + ".bcf"
+    output: temp("Imputation/" + model + "_K" + str(K) + "_S" + str(S) + "_nGen" + str(nGenerations) + "/contig{part}.K" + str(K) + "_S" + str(S) + "_nGen" + str(nGenerations) + "." + bx + model + ".bcf.csi")
     message: "Indexing: {input}"
     threads: 1
     shell:
