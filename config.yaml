@@ -1,10 +1,33 @@
 # Configuration file for HARPY #
 
-# Number of barcode bins for EMA (higher is more accurate, less performant)
-EMA_bins: 500
-
-# Genome to align reads to, in FASTA format
+# Genome file for mapping and variant calling, in FASTA format
 genome_file: genome.fasta
 
-# Directory with untrimmed sequences
-raw_seqs: RawSequences
+# Number of barcode bins for EMA
+  # Higher is more accurate, less performant
+EMA_bins: 500
+
+## STITCH Imputation Paramters ##
+  # Parameters are project specific
+  # *DO NOT* rely on the default values
+  # See the docs for detailed info
+  # docs: https://pdimens.github.io/HARPY/#/
+
+# Imputation method to use
+  # Options: diploid, pseudoHaploid, diploid-inbred
+method: pseudoHaploid
+
+# Number of founder haplotypes to use
+K: 100
+
+# Number of founder haplotypes to average results over
+S: 5
+
+# Use haplotag barcodes to assist imputation? (True | False)
+  # If LD blocks are small, ignoring tags might be better
+useBarcodes: True
+
+# Estimated number of generations since founding
+  # If uncertain, estimate using 4 * Ne / K
+  # (Ne = effective population size)
+nGenerations: 500
