@@ -251,18 +251,18 @@ def impute(config, dir, threads, vcf, resume):
     else:
         print("Using existing file of contig names: " + contigfile)
 
-        print("Counting the contigs in " + os.path.basename(contigfile), end = "...")
-        fopen = open(contigfile, "r")
-        ncontigs = 0
-        while True:
-            # Get next line from file
-            line = fopen.readline(2)
-            ncontigs += 1
-            # end of file is reached
-            if not line:
-                break
-        fopen.close()
-        print(ncontigs)
+    print("Counting the contigs in " + os.path.basename(contigfile), end = "...")
+    fopen = open(contigfile, "r")
+    ncontigs = 0
+    while True:
+        # Get next line from file
+        line = fopen.readline(2).strip()
+        # end of file is reached
+        if not line:
+            break
+        ncontigs += 1
+    fopen.close()
+    print(ncontigs)
 
     command = ['snakemake', '--cores', f'{threads}', '--directory', '.', '--snakefile', "rules/impute.smk", '--configfile', f"{config}"]
     if resume:
