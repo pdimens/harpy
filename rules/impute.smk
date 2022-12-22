@@ -64,11 +64,14 @@ rule STITCH_format:
     output: "Imputation/input/" + variantbase + ".{part}.stitch"
     message: "Converting biallelic data to STITCH format: " + variantbase + ".{wildcards.part}"
     threads: 1
-    default_target: True
     shell:
         """
         bcftools query -f '%CHROM\\t%POS\\t$REF\\t%ALT\\n' {input} > {output}
         """
+
+rule testing:
+    input: expand("Imputation/input/" + variantbase + ".{part}.stitch", part = range(1, ncontigs + 1))
+    default_target: True
 
 rule impute_genotypes:
     input:
