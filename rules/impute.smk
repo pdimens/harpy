@@ -25,7 +25,7 @@ else:
     exit(1)
 
 # lazy method (in terms of effort) to remove the extension
-variantbase = split(variantfile, ext)[0]
+variantbase = variantfile.split(ext)[0]
 
 rule bam_list:
     input: 
