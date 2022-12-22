@@ -26,9 +26,7 @@ else:
     exit(1)
 
 # lazy method (in terms of effort) to remove the extension
-#variantbase = os.path.basename(variantfile).split(ext)[0]
-variantbase = re.split(os.path.basename(variantfile), ext, flags = re.IGNORECASE)[0]
-print(variantbase)
+variantbase = re.split(ext, os.path.basename(variantfile), flags = re.IGNORECASE)[0]
 
 rule bam_list:
     input: expand(bam_dir + "/{sample}.bam", sample = samplenames)
@@ -57,7 +55,7 @@ rule prepare_biallelic_snps:
     threads: 1
     shell:
         """
-        bcftools view -m2 -M2 -v snps --regions {input.contig} --output-type b {input.vcf} > {output}
+        bcftools view -m2 -M2 -v snps --regions $(cat {input.contig}) --output-type b {input.vcf} > {output}
         """
 
 rule STITCH_format:
