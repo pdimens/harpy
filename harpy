@@ -256,7 +256,7 @@ def impute(config, dir, threads, vcf, resume):
     ncontigs = 0
     while True:
         # Get next line from file
-        line = fopen.readline(2).strip()
+        line = fopen.readline(8)
         # end of file is reached
         if not line:
             break
@@ -267,6 +267,7 @@ def impute(config, dir, threads, vcf, resume):
     command = ['snakemake', '--cores', f'{threads}', '--directory', '.', '--snakefile', "rules/impute.smk", '--configfile', f"{config}"]
     if resume:
         command.append('--rerun-incomplete')
+    command.append('--config')
     command.append(f"seq_directory={dir}")
     command.append(f"samplenames={samplenames}")
     command.append(f"variantfile={vcf}")
