@@ -243,10 +243,10 @@ def impute(config, dir, threads, vcf, resume):
     contigfile = "Imputation/contigs/" + os.path.basename(vcf) + ".contigs"
     if not exists(contigfile):
         print(f"Extracting contig names from {vcf}")
-        os.makedirs("Imputation", exist_ok = True)
-        bcftools = subprocess.Popen(["bcftools", "query", "-f", '%CHROM\\n', f"{vcf}"], stdout = subprocess.PIPE)
-        chromsort = subprocess.Popen(["sort"], stdin = bcftools.stdout, stdout = subprocess.PIPE)
+        os.makedirs("Imputation/contigs", exist_ok = True)
         with open(contigfile, "w") as fout:
+            bcftools = subprocess.Popen(["bcftools", "query", "-f", '%CHROM\\n', f"{vcf}"], stdout = subprocess.PIPE)
+            chromsort = subprocess.Popen(["sort"], stdin = bcftools.stdout, stdout = subprocess.PIPE)
             subprocess.run(["uniq"], stdin = chromsort.stdout, stdout = fout)
     else:
         print("Using existing file of contig names (" + contigfile + ")")
