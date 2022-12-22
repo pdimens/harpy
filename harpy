@@ -243,7 +243,7 @@ def impute(config, dir, threads, vcf, resume):
     contigfile = "Imputation/contigs/" + vcf + ".contigs"
     if not exists(contigfile):
         print(f"Extracting contig names from {vcf}")
-        os.makedirs("Impute", exist_ok = True)
+        os.makedirs("Imputation", exist_ok = True)
         bcftools = subprocess.Popen(["bcftools", "query", "-f", '%CHROM\\n', f"{vcf}"], stdout = subprocess.PIPE)
         chromsort = subprocess.Popen(["sort"], input = bcftools.stdout, stdout = subprocess.PIPE)
         with open(contigfile, "w") as fout:
@@ -252,7 +252,6 @@ def impute(config, dir, threads, vcf, resume):
         print("Using existing file of contig names (" + contigfile + ")")
 
         print("Counting the contigs in " + contigfile, end = "...")
-        # workaround for python symlink reading
         fopen = open(contigfile, "r")
         ncontigs = 0
         while True:
@@ -264,7 +263,7 @@ def impute(config, dir, threads, vcf, resume):
                 break
         fopen.close()
         print(ncontigs)
-
+    q()
     command = ['snakemake', '--cores', f'{threads}', '--directory', '.', '--snakefile', "rules/impute.smk", '--configfile', f"{config}"]
     if resume:
         command.append('--rerun-incomplete')
