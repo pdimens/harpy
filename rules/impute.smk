@@ -8,10 +8,11 @@ samplenames = config["samplenames"]
 model = config["method"]
 K = config["K"]
 S = config["S"]
-useBarcodes = config["useBarcodes"]
+useBarcodes = config["useBarcodes"].upper()
 nGenerations = config["nGenerations"]
-#contigs = config["contig_file"]
-variantfile = config["variant_file"]
+variantfile = config["variantfile"]
+bx = "BX" if useBarcodes == "TRUE" else "noBX"
+
 # Pull out the basename of the variant file
 if variantfile.lower().endswith(".vcf"):
     ext = ".vcf"
@@ -22,6 +23,7 @@ elif variantfile.lower().endswith(".bcf"):
 else:
     print("ERROR: Supplied variant call file (" + variantfile + ") must end in one of [.vcf | .vcf.gz | .bcf]")
     exit(1)
+
 
 rule bam_list:
     input: 
@@ -64,8 +66,6 @@ rule split_contigs:
         awk '{{x="Imputation/contigs/contig."++i;}}{{print $1 > x;}}' {input}
         """
 
-#TODO fstring might not jive
-bx = "BX" if useBarcodes.lower == "true" else "noBX"
 rule impute_genotypes:
     input:
         bamlist = "Imputation/samples.list",

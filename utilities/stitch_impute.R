@@ -12,7 +12,7 @@ tempdir <- paste(outdir, ".tempdir", sep = "/")
 modeltype <- snakemake@params[["model"]]
 K <- snakemake@params[["K"]]
 S <- snakemake@params[["S"]]
-bx <- toupper(snakemake@params[["useBarcodes"]])
+bx <- snakemake@params[["useBarcodes"]] == "TRUE"
 nGenerations <- snakemake@params[["nGenerations"]]
 nCores <- snakemake@threads
 inputBundleBlockSize <- NA
