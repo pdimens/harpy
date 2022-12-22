@@ -9,7 +9,6 @@ import rich_click as click
 
 click.rich_click.USE_MARKDOWN = True
 click.rich_click.SHOW_ARGUMENTS = True
-#click.rich_click.STYLE_ERRORS_SUGGESTION = "magenta italic"
 click.rich_click.ERRORS_SUGGESTION = "Try the '--help' flag for more information."
 click.rich_click.ERRORS_EPILOGUE = "Usage information can be found in the docs [link=https://harpy.github.io]https://harpy.github.io[/link]"
 
@@ -39,32 +38,38 @@ def init(config):
     else:
         outf = config
     with open(f'{outf}', "w") as file:
-        file.write('# Configuration file for HARPY #\n\n')
-        file.write('# Genome file for mapping and variant calling, in FASTA format\n')
-        file.write('genome_file: genome.fasta\n\n')
-        file.write('# Number of barcode bins for EMA\n')
-        file.write('  # Higher is more accurate, less performant\n')
-        file.write('EMA_bins: 500\n\n')
-        file.write('## STITCH Imputation Paramters ##\n')
-        file.write("  # Parameters are project specific\n")
-        file.write("  # *DO NOT* rely on the default values\n")
-        file.write("  # See the docs for detailed info\n")
-        file.write("  # docs: https://pdimens.github.io/HARPY/#/\n\n")
-        file.write("# Imputation method to use\n")
-        file.write("  # Options: diploid, pseudoHaploid, diploid-inbred\n")
-        file.write("method: pseudoHaploid\n\n")
-        file.write("# Number of founder haplotypes to use\n")
-        file.write("K: 100\n\n")
-        file.write("# Number of founder haplotypes to average results over\n")
-        file.write("S: 5\n\n")
-        file.write("# Use haplotag barcodes to assist imputation? (True | False)\n")
-        file.write("  # If LD blocks are small, ignoring tags might be better\n")
-        file.write("useBarcodes: True\n\n")
-        file.write("# Estimated number of generations since founding\n")
-        file.write("  # If uncertain, estimate using 4 * Ne / K\n")
-        file.write("  # (Ne = effective population size)\n")
-        file.write("nGenerations: 500\n")
-    print('Created configuration file ' + config)
+        file.write(
+'''
+#-- Configuration file for HARPY --#
+
+# Genome file for mapping and variant calling, in FASTA format
+genome_file: genome.fasta
+
+##-- STITCH Imputation Paramters --##
+    # Parameters are project specific
+    # *DO NOT* rely on the default values
+    # See the docs for detailed info
+    # docs: https://pdimens.github.io/HARPY/#/
+# Imputation method to use
+    # Options: diploid, pseudoHaploid, diploid-inbred
+method: pseudoHaploid
+
+# Number of founder haplotypes to use
+K: 100
+
+# Number of founder haplotypes to average results over
+S: 5
+
+# Use haplotag barcodes to assist imputation? (True | False)
+    # If LD blocks are small, ignoring tags might be better
+useBarcodes: True
+# Estimated number of generations since founding
+    # If uncertain, estimate using 4 * Ne / K
+    # (Ne = effective population size)
+nGenerations: 500
+'''
+    )
+    print('Created configuration file ' + outf)
 
 @click.command()
 @click.option('-o', '--output', default = 'samples.populations', show_default = True, type=click.Path(exists=False), help = 'Name to give output file')
@@ -114,8 +119,9 @@ def trim(config, dir):
 @click.option('-d', '--dir', default = 'SeqTrimmed', show_default = True, type=click.Path(exists=True), help = 'Directory with sample sequences')
 @click.option('-t', '--threads', default = 4, show_default = True, type = int, help = 'Number of threads to use')
 @click.option('-b', '--bwa', is_flag=True, help="Use BWA MEM (ignores bardcodes) instead of EMA")
+@click.option('-e', '--ema-bins', default = 500, show_default = True, type = int, help="Number of barcode bins for EMA")
 @click.option('-r', '--resume', is_flag=True, help="Resume an incomplete run")
-def align(config, threads, bwa, dir, resume):
+def align(config, threads, bwa, dir, resume, ema_bins):
     """
     Align sample sequences to a reference genome
     
@@ -144,6 +150,8 @@ def align(config, threads, bwa, dir, resume):
     command.append(f"fqext={fqext}")
     command.append(f"Rsep={Rsep}")
     command.append(f"samplenames={samplenames}")
+    if not bwa:
+        command.append(f"EMA_bins={ema_bins}")
     # debugging things
     #command.append('--dry-run')
     #command.append("--rulegraph")
