@@ -24,6 +24,8 @@ else:
     print("ERROR: Supplied variant call file (" + variantfile + ") must end in one of [.vcf | .vcf.gz | .bcf]")
     exit(1)
 
+# lazy method (in terms of effort) to remove the extension
+variantbase = split(variantfile, ext)[0]
 
 rule bam_list:
     input: 
