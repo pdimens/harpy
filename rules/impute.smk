@@ -1,3 +1,4 @@
+import os
 import re
 
 # user specified configs
@@ -25,39 +26,17 @@ else:
     exit(1)
 
 # lazy method (in terms of effort) to remove the extension
-variantbase = variantfile.split(ext)[0]
+#variantbase = os.path.basename(variantfile).split(ext)[0]
+variantbase = re.split(os.path.basename(variantfile), ext, flags = re.IGNORECASE)[0]
 
 rule bam_list:
-    input: 
-        bam = expand(bam_dir + "/{sample}.bam", sample = samplenames)
+    input: expand(bam_dir + "/{sample}.bam", sample = samplenames)
     output: temp("Imputation/samples.list")
     message: "Creating list of alignment files"
     run:
         with open(output[0], "w") as fout:
             for bamfile in input.bam:
                 fout.write(bamfile + "\n")
-
-rule prepare_input:
-    input: 
-        bcf = variantfile,
-        regions = temp(expand("Impuatation/regions/region.{part}", part = range(1, ncontigs + 1)))
-    output: pipe(variantbase + ".biallelic.harpy.bcf")
-    message: "Keeping only biallelic SNPs from {input}: contig {wildcards.part}"
-    threads: 1
-    shell:
-        """
-        bcftools view -m2 -M2 -v snps --output-type b {input} > {output}
-        """
-
-rule prepare_input:
-    input: variantbase + ".biallelic.harpy.bcf"
-    output: variantfile + ".positions"
-    message: "Converting biallelic data to STITCH format"
-    threads: 1
-    shell:
-        """
-        bcftools query -f '%CHROM\\t%POS\\t$REF\\t%ALT\\n' {input} > {output}
-        """
 
 rule split_contigs:
     input: contigfile
@@ -68,9 +47,33 @@ rule split_contigs:
         awk '{{x="Imputation/contigs/contig."++i;}}{{print $1 > x;}}' {input}
         """
 
+rule prepare_biallelic_snps:
+    input: 
+        vcf = variantfile,
+        contig = "Imputation/contigs/contig.{part}"
+    output: pipe("Imputation/input/" + variantbase + ".{part}.bisnp.bcf")
+    message: "Keeping only biallelic SNPs from {input}: contig {wildcards.part}"
+    threads: 1
+    shell:
+        """
+        bcftools view -m2 -M2 -v snps -r $(cat {input.contig}) --output-type b {input.vcf} > {output}
+        """
+
+rule STITCH_format:
+    input: "Imputation/input/" + variantbase + ".{part}.bisnp.bcf"
+    output: "Imputation/input/" + variantbase + ".{part}.stitch"
+    message: "Converting biallelic data to STITCH format: " + variantbase + ".{wildcards.part}"
+    threads: 1
+    default_target: True
+    shell:
+        """
+        bcftools query -f '%CHROM\\t%POS\\t$REF\\t%ALT\\n' {input} > {output}
+        """
+
 rule impute_genotypes:
     input:
         bamlist = "Imputation/samples.list",
+        infile = "Imputation/input/" + variantbase + ".{part}.stitch"
         chromosome = "Imputation/conrigs/contig.{part}"
     output: "Imputation/" + model + "_K" + str(K) + "_S" + str(S) + "_nGen" + str(nGenerations) + "/contig{part}.K" + str(K) + "_S" + str(S) + "_nGen" + str(nGenerations) + "." + bx + model + ".vcf"
     message: 
@@ -92,36 +95,36 @@ rule impute_genotypes:
     threads: 50
     script: "utilities/stitch_impute.R"
 
-rule vcf2bcf:
-    input: "Imputation/" + model + "_K" + str(K) + "_S" + str(S) + "_nGen" + str(nGenerations) + "/contig{part}.K" + str(K) + "_S" + str(S) + "_nGen" + str(nGenerations) + "." + bx + model + ".vcf"
-    output: "Imputation/" + model + "_K" + str(K) + "_S" + str(S) + "_nGen" + str(nGenerations) + "/contig{part}.K" + str(K) + "_S" + str(S) + "_nGen" + str(nGenerations) + "." + bx + model + ".bcf"
-    message: "Converting to BCF format: contig{part}" + ".K" + str(K) + "_S" + str(S) + "_nGen" + str(nGenerations) + "." + bx + "." + model
-    shell:
-        """
-        bcftools convert -Ob {input} | bcftools sort --output {output}
-        """
-
-rule index_bcf:
-    input: "Imputation/" + model + "_K" + str(K) + "_S" + str(S) + "_nGen" + str(nGenerations) + "/contig{part}.K" + str(K) + "_S" + str(S) + "_nGen" + str(nGenerations) + "." + bx + model + ".bcf"
-    output: temp("Imputation/" + model + "_K" + str(K) + "_S" + str(S) + "_nGen" + str(nGenerations) + "/contig{part}.K" + str(K) + "_S" + str(S) + "_nGen" + str(nGenerations) + "." + bx + model + ".bcf.csi")
-    message: "Indexing: {input}"
-    threads: 1
-    shell:
-        """
-        bcftools index --output {output} {input}
-        """
-
-rule merge_bcfs:
-    input: 
-        bcf = expand("VariantCall/leviathan/{sample}.bcf", sample = samplenames),
-        index = expand("VariantCall/leviathan/{sample}.bcf.csi", sample = samplenames)
-    output: "VariantCall/leviathan/variants.raw.bcf"
-    log: "VariantCall/leviathan/variants.raw.stats"
-    message: "Merging sample VCFs into single file: {output}"
-    default_target: True
-    threads: 20
-    shell:
-        """
-        bcftools merge --threads {threads} -o {output} {input.bcf}
-        bcftools stats {output} > {log}
-        """
+#rule vcf2bcf:
+#    input: "Imputation/" + model + "_K" + str(K) + "_S" + str(S) + "_nGen" + str(nGenerations) + "/contig{part}.K" + str(K) + "_S" + str(S) + "_nGen" + str(nGenerations) + "." + bx + model + ".vcf"
+#    output: "Imputation/" + model + "_K" + str(K) + "_S" + str(S) + "_nGen" + str(nGenerations) + "/contig{part}.K" + str(K) + "_S" + str(S) + "_nGen" + str(nGenerations) + "." + bx + model + ".bcf"
+#    message: "Converting to BCF format: contig{part}" + ".K" + str(K) + "_S" + str(S) + "_nGen" + str(nGenerations) + "." + bx + "." + model
+#    shell:
+#        """
+#        bcftools convert -Ob {input} | bcftools sort --output {output}
+#        """
+#
+#rule index_bcf:
+#    input: "Imputation/" + model + "_K" + str(K) + "_S" + str(S) + "_nGen" + str(nGenerations) + "/contig{part}.K" + str(K) + "_S" + str(S) + "_nGen" + str(nGenerations) + "." + bx + model + ".bcf"
+#    output: temp("Imputation/" + model + "_K" + str(K) + "_S" + str(S) + "_nGen" + str(nGenerations) + "/contig{part}.K" + str(K) + "_S" + str(S) + "_nGen" + str(nGenerations) + "." + bx + model + ".bcf.csi")
+#    message: "Indexing: {input}"
+#    threads: 1
+#    shell:
+#        """
+#        bcftools index --output {output} {input}
+#        """
+#
+#rule merge_bcfs:
+#    input: 
+#        bcf = expand("VariantCall/leviathan/{sample}.bcf", sample = samplenames),
+#        index = expand("VariantCall/leviathan/{sample}.bcf.csi", sample = samplenames)
+#    output: "VariantCall/leviathan/variants.raw.bcf"
+#    log: "VariantCall/leviathan/variants.raw.stats"
+#    message: "Merging sample VCFs into single file: {output}"
+#    #default_target: True
+#    threads: 20
+#    shell:
+#        """
+#        bcftools merge --threads {threads} -o {output} {input.bcf}
+#        bcftools stats {output} > {log}
+#        """
