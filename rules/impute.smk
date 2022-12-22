@@ -38,7 +38,7 @@ rule bam_list:
 rule prepare_input:
     input: 
         bcf = variantfile,
-        regions = temp(expand("Impuatation/regions/region.{part}", part = range(1, n_regions + 1)))
+        regions = temp(expand("Impuatation/regions/region.{part}", part = range(1, ncontigs + 1)))
     output: pipe(variantbase + ".biallelic.harpy.bcf")
     message: "Keeping only biallelic SNPs from {input}: contig {wildcards.part}"
     threads: 1
