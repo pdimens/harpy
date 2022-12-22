@@ -240,7 +240,7 @@ def impute(config, dir, threads, vcf, resume):
     if len(samplenames) < 1:
         print("ERROR: No alignment files (.bam) found in " + dir)
         sys.exit(1)
-    contigfile = "Imputation/contigs/" + vcf + ".contigs"
+    contigfile = "Imputation/contigs/" + os.basename(vcf) + ".contigs"
     if not exists(contigfile):
         print(f"Extracting contig names from {vcf}")
         os.makedirs("Imputation", exist_ok = True)
