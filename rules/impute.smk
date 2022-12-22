@@ -8,7 +8,7 @@ samplenames = config["samplenames"]
 model = config["method"]
 K = config["K"]
 S = config["S"]
-useBarcodes = config["useBarcodes"].upper()
+useBarcodes = str(config["useBarcodes"]).upper()
 nGenerations = config["nGenerations"]
 variantfile = config["variantfile"]
 bx = "BX" if useBarcodes == "TRUE" else "noBX"
