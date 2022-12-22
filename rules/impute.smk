@@ -40,7 +40,7 @@ rule bam_list:
 
 rule split_contigs:
     input: contigfile
-    output: temp(expand("Imputation/contigs/contig.{part}", part = range(1, ncontigs + 1)))
+    output: expand("Imputation/contigs/contig.{part}", part = range(1, ncontigs + 1))
     message: "Splitting contig names for parallelization"
     shell:
         """
@@ -56,7 +56,7 @@ rule prepare_biallelic_snps:
     threads: 1
     shell:
         """
-        bcftools view -m2 -M2 -v snps -r $(cat {input.contig}) --output-type b {input.vcf} > {output}
+        bcftools view -m2 -M2 -v snps -r $(head -1 {input.contig}) --output-type b {input.vcf} > {output}
         """
 
 rule STITCH_format:
