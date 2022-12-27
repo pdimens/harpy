@@ -56,17 +56,12 @@ rule split_contigs:
         awk '{{x="Imputation/contigs/contig."++i;}}{{print $1 > x;}}' {input}
         """
 
-#TODO see if you can print file info into message
-def printcontig(num_part):
-    with open("Imputation/contigs/contig." + str(num_part), "r") as file:
-        return file.readline()
-
 rule prepare_biallelic_snps:
     input: 
         vcf = variantfile,
         contig = "Imputation/contigs/contig.{part}"
     output: pipe("Imputation/input/" + variantbase + ".{part}.bisnp.bcf")
-    message: "Keeping only biallelic SNPs from " + os.path.basename(variantfile) + ": " + printcontig("{wildcards.part}")
+    message: "Keeping only biallelic SNPs from " + os.path.basename(variantfile) + ": contig {wildcards.part}"
     threads: 1
     shell:
         """
