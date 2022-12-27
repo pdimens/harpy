@@ -5,14 +5,14 @@ suppressPackageStartupMessages(library("STITCH"))
 
 # Params pulled in from Snakemake
 bamlist <- snakemake@input[["bamlist"]]
-chr <- snakemake@input[["chromosome"]]
+chr <- readLines(snakemake@input[["chromosome"]])[1]
 posfile <- snakemake@input[["infile"]]
 outdir <- normalizePath(dirname(snakemake@output[[1]]))
 outfile <- basename(snakemake@output[[1]])
-tempdir <- paste(outdir, "tempdir", sep = "/")
-if  (!(file.exists(tempdir))) {
-    dir.create(tempdir, showWarnings = FALSE, recursive = TRUE, mode = "0777")
-}
+#tempdir <- paste(outdir, "tempdir", sep = "/")
+#if  (!(file.exists(tempdir))) {
+#    dir.create(tempdir, showWarnings = FALSE, recursive = TRUE, mode = "0777")
+#}
 # model parameters 
 modeltype <- snakemake@params[["model"]]
 K <- snakemake@params[["K"]]
@@ -38,7 +38,6 @@ STITCH(
     niterations             = 40,
     switchModelIteration    = 39,
     splitReadIterations     = NA,
-    tempdir                 = tempdir,
     outputdir               = outdir,
     output_filename         = outfile
 )
