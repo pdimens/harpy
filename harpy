@@ -251,13 +251,6 @@ def impute(config, dir, threads, vcf, resume):
     else:
         print("Using existing file of contig names: " + contigfile)
 
-    #print("Counting the contigs in " + os.path.basename(contigfile), end = "...")
-    #with open(contigfile, 'r') as fp:
-    #    for ncontigs, line in enumerate(fp):
-    #        pass
-    #ncontigs += 1
-    #print(ncontigs)
-
     command = ['snakemake', '--cores', f'{threads}', '--directory', '.', '--snakefile', "rules/impute.smk", '--configfile', f"{config}"]
     if resume:
         command.append('--rerun-incomplete')
@@ -266,7 +259,6 @@ def impute(config, dir, threads, vcf, resume):
     command.append(f"samplenames={samplenames}")
     command.append(f"variantfile={vcf}")
     command.append(f"contignames={contigfile}")
-    #command.append(f"ncontigs={ncontigs}")
     subprocess.run(command)
 
        
