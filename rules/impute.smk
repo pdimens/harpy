@@ -101,7 +101,7 @@ rule impute_genotypes:
         useBarcodes = useBarcodes,
         nGenerations = nGenerations
     threads: 50
-    script: "utilities/stitch_impute.R"
+    script: "../utilities/stitch_impute.R"
 
 
 #rule testing:
