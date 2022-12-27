@@ -22,7 +22,7 @@ inputBundleBlockSize <- NA
 
 
 # WTF is a genfile?
-sink(logfile, type = "message")
+sink(logfile)
 STITCH(
     method                  = modeltype,
     posfile                 = posfile,

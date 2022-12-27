@@ -94,6 +94,7 @@ rule impute_genotypes:
             S: {params.S}
             nGenerations: {params.nGenerations}
             BX tags: {params.useBarcodes}
+        Execution progress logged to {log}
         """
     params:
         model = model,
