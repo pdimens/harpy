@@ -70,18 +70,18 @@ rule prepare_biallelic_snps:
 
 rule STITCH_format:
     input: "Imputation/input/" + variantbase + ".{part}.bisnp.bcf"
-    output: "Imputation/input/" + variantbase + ".{part}.stitch"
+    output: "Imputation/input/" + variantbase + ".{part}"
     message: "Converting biallelic data to STITCH format: " + variantbase + ".{wildcards.part}"
     threads: 1
     shell:
         """
-        bcftools query -f '%CHROM\\t%POS\\t$REF\\t%ALT\\n' {input} > {output}
+        bcftools query -f '%CHROM\\t%POS\\t%REF\\t%ALT\\n' {input} > {output}
         """
 
 rule impute_genotypes:
     input:
         bamlist = "Imputation/samples.list",
-        infile = "Imputation/input/" + variantbase + ".{part}.stitch",
+        infile = "Imputation/input/" + variantbase + ".{part}",
         chromosome = "Imputation/contigs/contig.{part}"
     output: "Imputation/" + model + "_K" + str(K) + "_S" + str(S) + "_nGen" + str(nGenerations) + "/contig{part}/K" + str(K) + "_S" + str(S) + "_nGen" + str(nGenerations) + "." + bx + model + ".vcf.gz"
     message: 
