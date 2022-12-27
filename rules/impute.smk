@@ -44,7 +44,7 @@ rule bam_list:
     message: "Creating list of alignment files"
     run:
         with open(output[0], "w") as fout:
-            for bamfile in input.bam:
+            for bamfile in input:
                 fout.write(bamfile + "\n")
 
 rule split_contigs:
