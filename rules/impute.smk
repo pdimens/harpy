@@ -4,7 +4,7 @@ import re
 # user specified configs
 bam_dir = config["seq_directory"]
 contigfile = config["contignames"]
-ncontigs = config["ncontigs"]
+#ncontigs = config["ncontigs"]
 samplenames = config["samplenames"]
 model = config["method"]
 K = config["K"]
@@ -13,6 +13,16 @@ useBarcodes = str(config["useBarcodes"]).upper()
 nGenerations = config["nGenerations"]
 variantfile = config["variantfile"]
 bx = "BX" if useBarcodes == "TRUE" else "noBX"
+
+# determine number of contigs from the contig file
+def contigparts(contig_file):
+    with open(contig_file, 'r') as fp:
+        for ncontigs, line in enumerate(fp):
+            pass
+    ncontigs += 1
+    return ncontigs
+
+ncontigs = contigparts(contigfile)
 
 # Pull out the basename of the variant file
 if variantfile.lower().endswith(".vcf"):
@@ -46,12 +56,13 @@ rule split_contigs:
         awk '{{x="Imputation/contigs/contig."++i;}}{{print $1 > x;}}' {input}
         """
 
+#TODO see if you can print file info into message
 rule prepare_biallelic_snps:
     input: 
         vcf = variantfile,
         contig = "Imputation/contigs/contig.{part}"
     output: pipe("Imputation/input/" + variantbase + ".{part}.bisnp.bcf")
-    message: "Keeping only biallelic SNPs from " + os.path.basename(variantfile) + ": " + open(input.contig, "r").read()
+    message: "Keeping only biallelic SNPs from " + os.path.basename("{input.vcf}") + ": " + open("{input.contig}", "r").read()
     threads: 1
     shell:
         """
