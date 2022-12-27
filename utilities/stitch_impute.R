@@ -9,7 +9,10 @@ chr <- snakemake@input[["chromosome"]]
 posfile <- snakemake@input[["infile"]]
 outdir <- normalizePath(dirname(snakemake@output[[1]]))
 outfile <- basename(snakemake@output[[1]])
-tempdir <- paste(outdir, ".tempdir", sep = "/")
+tempdir <- paste(outdir, "tempdir", sep = "/")
+if !(file.exists(tempdir)) {
+    dir.create(tempdir, showWarnings = FALSE, recursive = TRUE, mode = "0777")
+}
 # model parameters 
 modeltype <- snakemake@params[["model"]]
 K <- snakemake@params[["K"]]
@@ -18,6 +21,7 @@ bx <- snakemake@params[["useBarcodes"]] == "TRUE"
 nGenerations <- snakemake@params[["nGenerations"]]
 nCores <- snakemake@threads
 inputBundleBlockSize <- NA
+
 
 # WTF is a genfile?
 STITCH(
