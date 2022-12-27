@@ -9,7 +9,7 @@ chr <- readLines(snakemake@input[["chromosome"]])[1]
 posfile <- snakemake@input[["infile"]]
 outdir <- normalizePath(dirname(snakemake@output[[1]]))
 outfile <- basename(snakemake@output[[1]])
-logfile <- snakemake@log[[1]]
+logfile <- file(snakemake@log[[1]], open = "wt")
 
 # model parameters 
 modeltype <- snakemake@params[["model"]]
@@ -22,26 +22,24 @@ inputBundleBlockSize <- NA
 
 
 # WTF is a genfile?
-#sink(logfile)
-capture.output(
-    STITCH(
-        method                  = modeltype,
-        posfile                 = posfile,
-        bamlist                 = bamlist,
-        nCores                  = nCores,
-        nGen                    = nGenerations,
-        chr                     = chr,
-        K                       = K,
-        S                       = S,
-        use_bx_tag              = bx,
-        bxTagUpperLimit         = 50000,
-        niterations             = 40,
-        switchModelIteration    = 39,
-        splitReadIterations     = NA,
-        outputdir               = outdir,
-        output_filename         = outfile
-    ),
-    file = logfile
+sink(logfile ,type = "output")
+sink(logfile, type = "message")
+STITCH(
+    method                  = modeltype,
+    posfile                 = posfile,
+    bamlist                 = bamlist,
+    nCores                  = nCores,
+    nGen                    = nGenerations,
+    chr                     = chr,
+    K                       = K,
+    S                       = S,
+    use_bx_tag              = bx,
+    bxTagUpperLimit         = 50000,
+    niterations             = 40,
+    switchModelIteration    = 39,
+    splitReadIterations     = NA,
+    outputdir               = outdir,
+    output_filename         = outfile
 )
-#sink()
-#unlink(logfile)
+sink()
+sink()
