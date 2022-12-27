@@ -57,12 +57,16 @@ rule split_contigs:
         """
 
 #TODO see if you can print file info into message
+def printcontig(wildcards):
+    with open("Imputation/contigs/contig." + str(wildcards.part), "r") as file:
+        return file.readline()
+
 rule prepare_biallelic_snps:
     input: 
         vcf = variantfile,
         contig = "Imputation/contigs/contig.{part}"
     output: pipe("Imputation/input/" + variantbase + ".{part}.bisnp.bcf")
-    message: "Keeping only biallelic SNPs from " + os.path.basename(variantfile) + ": contig {part}"
+    message: "Keeping only biallelic SNPs from " + os.path.basename(variantfile) + ": " + printcontig
     threads: 1
     shell:
         """
