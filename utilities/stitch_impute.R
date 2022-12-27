@@ -6,6 +6,7 @@ suppressPackageStartupMessages(library("STITCH"))
 # Params pulled in from Snakemake
 bamlist <- snakemake@input[["bamlist"]]
 chr <- snakemake@input[["chromosome"]]
+posfile <- snakemake@input[["infile"]]
 outdir <- normalizePath(dirname(snakemake@output[[1]]))
 outfile <- basename(snakemake@output[[1]])
 tempdir <- paste(outdir, ".tempdir", sep = "/")
