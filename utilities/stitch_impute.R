@@ -22,23 +22,26 @@ inputBundleBlockSize <- NA
 
 
 # WTF is a genfile?
-sink(logfile)
-STITCH(
-    method                  = modeltype,
-    posfile                 = posfile,
-    bamlist                 = bamlist,
-    nCores                  = nCores,
-    nGen                    = nGenerations,
-    chr                     = chr,
-    K                       = K,
-    S                       = S,
-    use_bx_tag              = bx,
-    bxTagUpperLimit         = 50000,
-    niterations             = 40,
-    switchModelIteration    = 39,
-    splitReadIterations     = NA,
-    outputdir               = outdir,
-    output_filename         = outfile
+#sink(logfile)
+capture.output(
+    STITCH(
+        method                  = modeltype,
+        posfile                 = posfile,
+        bamlist                 = bamlist,
+        nCores                  = nCores,
+        nGen                    = nGenerations,
+        chr                     = chr,
+        K                       = K,
+        S                       = S,
+        use_bx_tag              = bx,
+        bxTagUpperLimit         = 50000,
+        niterations             = 40,
+        switchModelIteration    = 39,
+        splitReadIterations     = NA,
+        outputdir               = outdir,
+        output_filename         = outfile
+    ),
+    file = logfile
 )
-sink()
-unlink(logfile)
+#sink()
+#unlink(logfile)
