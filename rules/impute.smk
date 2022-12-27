@@ -91,7 +91,7 @@ rule impute_genotypes:
             model: {params.model}
             K: {params.K}
             S: {params.S}
-            nGenerations: {params.nGerenations}
+            nGenerations: {params.nGenerations}
             BX tags: {params.useBarcodes}
         """
     params:
