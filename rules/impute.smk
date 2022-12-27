@@ -78,10 +78,6 @@ rule STITCH_format:
         bcftools query -f '%CHROM\\t%POS\\t$REF\\t%ALT\\n' {input} > {output}
         """
 
-rule testing:
-    input: expand("Imputation/input/" + variantbase + ".{part}.stitch", part = range(1, ncontigs + 1))
-    default_target: True
-
 rule impute_genotypes:
     input:
         bamlist = "Imputation/samples.list",
@@ -106,6 +102,16 @@ rule impute_genotypes:
         nGenerations = nGenerations
     threads: 50
     script: "utilities/stitch_impute.R"
+
+
+#rule testing:
+#    input: expand("Imputation/input/" + variantbase + ".{part}.stitch", part = range(1, ncontigs + 1))
+#    default_target: True
+
+rule testing:
+    input: expand("Imputation/" + model + "_K" + str(K) + "_S" + str(S) + "_nGen" + str(nGenerations) + "/contig{part}.K" + str(K) + "_S" + str(S) + "_nGen" + str(nGenerations) + "." + bx + model + ".vcf", part = range(1, ncontigs + 1))
+    default_target: True
+
 
 #rule vcf2bcf:
 #    input: "Imputation/" + model + "_K" + str(K) + "_S" + str(S) + "_nGen" + str(nGenerations) + "/contig{part}.K" + str(K) + "_S" + str(S) + "_nGen" + str(nGenerations) + "." + bx + model + ".vcf"
