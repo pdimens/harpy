@@ -83,7 +83,7 @@ rule impute_genotypes:
         bamlist = "Imputation/samples.list",
         infile = "Imputation/input/" + variantbase + ".{part}.stitch",
         chromosome = "Imputation/contigs/contig.{part}"
-    output: "Imputation/" + model + "_K" + str(K) + "_S" + str(S) + "_nGen" + str(nGenerations) + "/contig{part}.K" + str(K) + "_S" + str(S) + "_nGen" + str(nGenerations) + "." + bx + model + ".vcf"
+    output: "Imputation/" + model + "_K" + str(K) + "_S" + str(S) + "_nGen" + str(nGenerations) + "/contig{part}.K" + str(K) + "_S" + str(S) + "_nGen" + str(nGenerations) + "." + bx + model + ".vcf.gz"
     message: 
         """
         Running STITCH on contig {wildcards.part}
@@ -109,7 +109,7 @@ rule impute_genotypes:
 #    default_target: True
 
 rule testing:
-    input: expand("Imputation/" + model + "_K" + str(K) + "_S" + str(S) + "_nGen" + str(nGenerations) + "/contig{part}.K" + str(K) + "_S" + str(S) + "_nGen" + str(nGenerations) + "." + bx + model + ".vcf", part = range(1, ncontigs + 1))
+    input: expand("Imputation/" + model + "_K" + str(K) + "_S" + str(S) + "_nGen" + str(nGenerations) + "/contig{part}.K" + str(K) + "_S" + str(S) + "_nGen" + str(nGenerations) + "." + bx + model + ".vcf.gz", part = range(1, ncontigs + 1))
     default_target: True
 
 

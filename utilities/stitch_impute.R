@@ -1,6 +1,7 @@
 #!/usr/bin/env Rscript
 
-library("STITCH")
+suppressPackageStartupMessages(library("STITCH"))
+
 
 # Params pulled in from Snakemake
 bamlist <- snakemake@input[["bamlist"]]
@@ -34,7 +35,7 @@ STITCH(
     splitReadIterations     = NA,
     tempdir                 = tempdir,
     outputdir               = outdir,
-    vcf_output_name         = outfile
+    output_filename         = outfile
 )
 
 #q()
