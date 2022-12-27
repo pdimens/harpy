@@ -62,7 +62,7 @@ rule prepare_biallelic_snps:
         vcf = variantfile,
         contig = "Imputation/contigs/contig.{part}"
     output: pipe("Imputation/input/" + variantbase + ".{part}.bisnp.bcf")
-    message: "Keeping only biallelic SNPs from " + os.path.basename(input[0]) + ": " + open(input[0], "r").read()
+    message: "Keeping only biallelic SNPs from " + os.path.basename(variantfile) + ": " + open(input.contig[0], "r").read()
     threads: 1
     shell:
         """
