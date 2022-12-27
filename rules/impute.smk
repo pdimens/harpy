@@ -109,7 +109,7 @@ rule impute_genotypes:
 #    default_target: True
 
 rule testing:
-    input: expand("Imputation/" + model + "_K" + str(K) + "_S" + str(S) + "_nGen" + str(nGenerations) + "/contig{part}.K" + str(K) + "_S" + str(S) + "_nGen" + str(nGenerations) + "." + bx + model + ".vcf.gz", part = range(1, ncontigs + 1))
+    input: expand("Imputation/" + model + "_K" + str(K) + "_S" + str(S) + "_nGen" + str(nGenerations) + "/contig{part}/K" + str(K) + "_S" + str(S) + "_nGen" + str(nGenerations) + "." + bx + model + ".vcf.gz", part = range(1, ncontigs + 1))
     default_target: True
 
 
