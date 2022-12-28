@@ -12,9 +12,8 @@ make things a little simpler.
 Harpy is modular, meaning you can use different parts of it independent from each other. Need to only align reads?
 Great! Only want to call variants? Awesome! All modules are called by `harpy modulename`. For example, use `harpy align` to align reads.
 
-| Module Command | Description |
+| Module  | Description |
 | :---    | :----       |
-| `init`    |  Generate template configuration file required by all modules |
 | `popgroup` | Generate sample population grouping file for variant calling |
 | `trim` | Remove adapters and quality trim sequences |
 | `align` | Align sample sequences to a reference genome |
