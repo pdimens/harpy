@@ -1,6 +1,5 @@
-# user specified configs
 bam_dir = config["seq_directory"]
-genomefile = config["genome_file"]
+genomefile = config["genomefile"]
 groupings = config["groupings"]
 n_regions = config["n_regions"]
 ploidy = config["ploidy"]

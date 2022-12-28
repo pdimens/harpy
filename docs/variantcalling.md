@@ -5,8 +5,6 @@ harpy callvariants OPTIONS...
 ```
 To do so, you will need:
 - at least 4 cores/threads available
-- a configuration yaml file 
-    - create with `harpy init`
 - a genome assembly in FASTA format
 - alignment files
 - sample grouping file [optional]

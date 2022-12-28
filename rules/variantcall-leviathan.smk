@@ -1,8 +1,6 @@
 #BUG leviathan doesn't seem to output sample ID into the vcf
-# user specified configs
 bam_dir = config["seq_directory"]
-genomefile = config["genome_file"]
-# Received from the harpy wrapper
+genomefile = config["genomefile"]
 samplenames = config["samplenames"] 
 
 rule merge_bcfs:

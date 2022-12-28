@@ -5,8 +5,6 @@ harpy align OPTIONS...
 ```
 To do so, you will need:
 - at least 4 cores/threads available
-- a configuration yaml file 
-    - create with `harpy init`
 - a genome assembly in FASTA format
 - b/gzipped fastq sequence files
     - paired-end files, with files labelled by `.R1`/`.R2` or `_R1`/`_R2` followed by `.fastq.gz` or `.fq.gz` (e.g. `.R1.fq.gz` or `_R2.fastq.gz`)

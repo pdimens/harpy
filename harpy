@@ -17,58 +17,12 @@ def cli():
     HARPY Haplotagging data processing pipeline.
     
     The pipeline trims reads, map sequences, calls variants, imputes genotypes, and phases haplotypes. 
-    Get started by running **harpy init** to generate a configuration file and modify it to your needs. The workflow is:
     
     **init 🡒 trim 🡒 align 🡒 callvariants 🡒 impute 🡒 phase**
     
     **Documentation**: [https://pdimens.github.io/HARPY/#/](https://pdimens.github.io/HARPY/#/)
     """
     pass
-
-@click.command()
-@click.option('-c', '--config', default = 'config.yaml', show_default = True, type=click.Path(), help = 'Name to give configuration file')
-def init(config):
-    '''Generate template configuration file'''
-    if exists(config):
-        overwrite = input(f"File \'{config}\' already exists, overwrite? (no|yes)  ")
-        outf = config
-        if (overwrite.lower() != "yes") and (overwrite.lower() != "y"):
-            outf = input("New name for the configuration file: ")
-    else:
-        outf = config
-    with open(f'{outf}', "w") as file:
-        file.write(
-'''
-#-- Configuration file for HARPY --#
-
-# Genome file for mapping and variant calling, in FASTA format
-genome_file: genome.fasta
-
-##-- STITCH Imputation Paramters --##
-    # Parameters are project specific
-    # *DO NOT* rely on the default values
-    # See the docs for detailed info
-    # docs: https://pdimens.github.io/HARPY/#/
-# Imputation method to use
-    # Options: diploid, pseudoHaploid, diploid-inbred
-method: pseudoHaploid
-
-# Number of founder haplotypes to use
-K: 100
-
-# Number of founder haplotypes to average results over
-S: 5
-
-# Use haplotag barcodes to assist imputation? (True | False)
-    # If LD blocks are small, ignoring tags might be better
-useBarcodes: True
-# Estimated number of generations since founding
-    # If uncertain, estimate using 4 * Ne / K
-    # (Ne = effective population size)
-nGenerations: 500
-'''
-    )
-    print('Created configuration file ' + outf)
 
 @click.command()
 @click.option('-o', '--output', default = 'samples.populations', show_default = True, type=click.Path(exists=False), help = 'Name to give output file')
@@ -106,7 +60,6 @@ def popgroup(output, dir):
     print('Created sample population grouping file ' + output + '. Please review it, as all samples have been grouped into a single population')
 
 @click.command()
-@click.option('-c', '--config', default = 'config.yaml', show_default = True, type=click.Path(exists=True), help = 'HARPY configuration yaml file')
 @click.option('-d', '--dir', default = 'SeqRaw', show_default = True, type=click.Path(exists=True), help = 'Directory with sample sequences')
 def trim(config, dir):
     '''Remove adapters and quality trim sequences'''
@@ -114,17 +67,15 @@ def trim(config, dir):
     #snakemake --config rawseq_path=path
 
 @click.command()
-@click.option('-c', '--config', default = 'config.yaml', show_default = True, type=click.Path(exists=True), help = 'HARPY configuration yaml file')
 @click.option('-d', '--dir', default = 'SeqTrimmed', show_default = True, type=click.Path(exists=True), help = 'Directory with sample sequences')
 @click.option('-t', '--threads', default = 4, show_default = True, type = int, help = 'Number of threads to use')
 @click.option('-b', '--bwa', is_flag=True, help="Use BWA MEM (ignores bardcodes) instead of EMA")
+@click.option('-g', '--genome', type=click.Path(exists=True), help = 'Genome assembly for read mapping')
 @click.option('-e', '--ema-bins', default = 500, show_default = True, type = int, help="Number of barcode bins for EMA")
 @click.option('-r', '--resume', is_flag=True, help="Resume an incomplete run")
-def align(config, threads, bwa, dir, resume, ema_bins):
+def align(genome, threads, bwa, dir, resume, ema_bins):
     """
     Align sample sequences to a reference genome
-    
-    If you don't have a configuration file, use **harpy init** to generate one and modify it for your study.
     """
     fastqlist = [i for i in os.listdir(dir) if i.endswith('.fastq.gz')]
     fqext = "fq.gz" if not fastqlist else "fastq.gz"
@@ -149,6 +100,7 @@ def align(config, threads, bwa, dir, resume, ema_bins):
     command.append(f"fqext={fqext}")
     command.append(f"Rsep={Rsep}")
     command.append(f"samplenames={samplenames}")
+    command.append(f"genomefile={genome}")
     if not bwa:
         command.append(f"EMA_bins={ema_bins}")
     # debugging things
@@ -157,44 +109,36 @@ def align(config, threads, bwa, dir, resume, ema_bins):
     subprocess.run(command)
 
 @click.command()
-@click.option('-c', '--config', default = 'config.yaml', show_default = True, type=click.Path(exists=True), help = 'HARPY configuration yaml file')
+@click.option('-g', '--genome', type=click.Path(exists=True), help = 'Genome assembly for variant calling')
 @click.option('-d', '--dir', default = 'ReadMapping/align', show_default = True, type=click.Path(exists=True), help = 'Directory with sequence alignments')
 @click.option('-l', '--leviathan', is_flag=True, help="Call variants with Leviathan instead of bcftools")
-@click.option('-g', '--groupings', default = 'none', show_default = True, type=str, help = 'Tab-delimited file of sample<tab>group')
-@click.option('-p', '--ploidy', default = 2, show_default = True, type=int, help = 'Ploidy of samples')
+@click.option('-p', '--populations', default = 'none', show_default = True, type=str, help = 'Tab-delimited file of sample<tab>population')
+@click.option('-h', '--ploidy', default = 2, show_default = True, type=int, help = 'Ploidy of samples')
 @click.option('-t', '--threads', default = 4, show_default = True, type = int, help = 'Number of threads to use')
 @click.option('-r', '--resume', is_flag=True, help="Resume an incomplete run")
-def callvariants(config, threads, dir, groupings, ploidy, leviathan, resume):
+def callvariants(genome, threads, dir, populations, ploidy, leviathan, resume):
     """
     Call variants from sample alignments
-    
-    If you don't have a configuration file, use **harpy init** to generate one and modify it for your study. If you plan on using `--populations` (it's optional) you may use **harpy popgroup** to generate a file for it.
     """
     samplenames = set([i.split('.bam')[0] for i in os.listdir(dir) if i.endswith(".bam")])
     if len(samplenames) < 1:
         print("ERROR: No alignment files (.bam) found in " + dir)
         sys.exit(1)
-    if groupings != 'none':
-        if not exists(groupings):
-            print("ERROR: sample populations file " + groupings + " not found.")
+    if populations != 'none':
+        if not exists(populations):
+            print("ERROR: sample populations file " + populations + " not found.")
             sys.exit(1)
     if not leviathan:
         vcaller = "mpileup"
         n_regions = 0
         # get the name of the genome file from the config file
         # might get deprecated in favor of CLI params
-        with open(config, "r") as conf:
-            while True:
-                line = conf.readline()
-                if line.startswith("genome_file"):
-                    genomefile = line.split(":")[-1].strip()
-                    break
-        print("Finding the number of contigs in " + genomefile, end = "...")
+        print(f"Finding the number of contigs in {genome}", end = "...")
         # workaround for python symlink reading
         try:
-            fopen = open(genomefile, "r")
+            fopen = open(genome, "r")
         except:
-            fopen = open(os.readlink(genomefile), "r")
+            fopen = open(os.readlink(genome), "r")
         while True:
             # Get next line from file
             line = fopen.readline(16)
@@ -213,9 +157,10 @@ def callvariants(config, threads, dir, groupings, ploidy, leviathan, resume):
     command.append('--config')
     command.append(f"seq_directory={dir}")
     command.append(f"samplenames={samplenames}")
-    command.append(f"groupings={groupings}")
+    command.append(f"groupings={populations}")
     command.append(f"ploidy={ploidy}")
     command.append(f"n_regions={n_regions}")
+    command.append(f"genomefile={genome}")
     # debugging things
     #command.append('--dry-run')
     #command.append("--rulegraph")
@@ -283,11 +228,9 @@ def phase(config_file):
     """
     Phase SNPs into haplotypes
     
-    If you don't have a configuration file, use **harpy init** to generate one and modify it for your study.
     """
     print("this is another thing!")
 
-cli.add_command(init)
 cli.add_command(popgroup)
 cli.add_command(trim)
 cli.add_command(align)
@@ -297,3 +240,50 @@ cli.add_command(phase)
 
 if __name__ == '__main__':
     cli()
+
+
+
+#@click.command()
+#@click.option('-c', '--config', default = 'config.yaml', show_default = True, type=click.Path(), help = 'Name to give configuration file')
+#def init(config):
+#    '''Generate template configuration file'''
+#    if exists(config):
+#        overwrite = input(f"File \'{config}\' already exists, overwrite? (no|yes)  ")
+#        outf = config
+#        if (overwrite.lower() != "yes") and (overwrite.lower() != "y"):
+#            outf = input("New name for the configuration file: ")
+#    else:
+#        outf = config
+#    with open(f'{outf}', "w") as file:
+#        file.write(
+#'''
+##-- Configuration file for HARPY --#
+#
+## Genome file for mapping and variant calling, in FASTA format
+#genome_file: genome.fasta
+#
+###-- STITCH Imputation Paramters --##
+#    # Parameters are project specific
+#    # *DO NOT* rely on the default values
+#    # See the docs for detailed info
+#    # docs: https://pdimens.github.io/HARPY/#/
+## Imputation method to use
+#    # Options: diploid, pseudoHaploid, diploid-inbred
+#method: pseudoHaploid
+#
+## Number of founder haplotypes to use
+#K: 100
+#
+## Number of founder haplotypes to average results over
+#S: 5
+#
+## Use haplotag barcodes to assist imputation? (True | False)
+#    # If LD blocks are small, ignoring tags might be better
+#useBarcodes: True
+## Estimated number of generations since founding
+#    # If uncertain, estimate using 4 * Ne / K
+#    # (Ne = effective population size)
+#nGenerations: 500
+#'''
+#    )
+#    print('Created configuration file ' + outf)

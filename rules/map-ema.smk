@@ -1,7 +1,7 @@
 # user specified configs
 seq_dir = config["seq_directory"]
 nbins = config["EMA_bins"]
-genomefile = config["genome_file"]
+genomefile = config["genomefile"]
 # Received from the harpy wrapper
 Rsep = config["Rsep"]
 fqext = config["fqext"]

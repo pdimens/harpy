@@ -42,9 +42,7 @@ You can call `harpy` without any arguments (or with `--help`) to print the docst
                                                               
  HARPY Haplotagging data processing pipeline.                 
  The pipeline trims reads, map sequences, calls variants,     
- imputes genotypes, and phases haplotypes. Get started by     
- running harpy init to generate a configuration file and      
- modify it to your needs. The workflow is:                    
+ imputes genotypes, and phases haplotypes.                
                                                               
  init 🡒 trim 🡒 align 🡒 callvariants 🡒 impute 🡒 phase          
                                                               

@@ -20,9 +20,7 @@ The version of [EMA](https://github.com/arshajii/ema) bundled in this repository
                                                               
  HARPY Haplotagging data processing pipeline.                 
  The pipeline trims reads, map sequences, calls variants,     
- imputes genotypes, and phases haplotypes. Get started by     
- running harpy init to generate a configuration file and      
- modify it to your needs. The workflow is:                    
+ imputes genotypes, and phases haplotypes.                   
                                                               
  init 🡒 trim 🡒 align 🡒 callvariants 🡒 impute 🡒 phase           
                                                               
