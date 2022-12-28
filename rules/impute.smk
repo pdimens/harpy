@@ -1,5 +1,7 @@
 import os
 import re
+from snakemake.utils import Paramspace
+import pandas as pd
 
 # user specified configs
 bam_dir = config["seq_directory"]
@@ -13,6 +15,9 @@ useBarcodes = str(config["useBarcodes"]).upper()
 nGenerations = config["nGenerations"]
 variantfile = config["variantfile"]
 bx = "BX" if useBarcodes == "TRUE" else "noBX"
+# declare a dataframe to be a paramspace
+paramspace = Paramspace(pd.read_csv(config["paramfile"], sep="\t"), param_sep = "")
+
 
 # determine number of contigs from the contig file
 def contigparts(contig_file):
@@ -78,41 +83,58 @@ rule STITCH_format:
         bcftools query -f '%CHROM\\t%POS\\t%REF\\t%ALT\\n' {input} > {output}
         """
 
-rule impute_genotypes:
+rule impute_search:
     input:
         bamlist = "Imputation/samples.list",
         infile = "Imputation/input/" + variantbase + ".{part}",
         chromosome = "Imputation/contigs/contig.{part}"
-    output: "Imputation/" + model + "_K" + str(K) + "_S" + str(S) + "_nGen" + str(nGenerations) + "/contig{part}/K" + str(K) + "_S" + str(S) + "_nGen" + str(nGenerations) + "." + bx + model + ".vcf.gz"
-    log: "Imputation/" + model + "_K" + str(K) + "_S" + str(S) + "_nGen" + str(nGenerations) + "/contig{part}/K" + str(K) + "_S" + str(S) + "_nGen" + str(nGenerations) + "." + bx + model + ".log"
-    message: 
-        """
-        Running STITCH on contig {wildcards.part}
-        Parameters:
-            model: {params.model}
-            K: {params.K}
-            S: {params.S}
-            nGenerations: {params.nGenerations}
-            BX tags: {params.useBarcodes}
-        Execution progress logged to {log}
-        """
+    output:
+        # format a wildcard pattern like "k{k}/s{s}/ngen{ngen}"
+        # into a file path, with k, s, ngen being the columns of the data frame
+        f"Imputation/{bx}_{model}/{paramspace.wildcard_pattern}/" + "contig{part}/" + f"{paramspace.wildcard_pattern}.vcf.gz"
     params:
-        model = model,
-        K = K,
-        S = S,
-        useBarcodes = useBarcodes,
-        nGenerations = nGenerations
+        # automatically translate the wildcard values into an instance of the param space
+        # in the form of a dict (here: {"k": ..., "s": ..., "ngen": ...})
+        simulation = paramspace.instance
+    message: "Running STITCH on contig {wildcards.part}\n  model: " + model + f"\n  parameters: {paramspace.instance}"
     threads: 50
-    script: "../utilities/stitch_impute.R"
+    script: "../utilities/testparamspace.R"
 
+#rule impute_genotypes:
+#    input:
+#        bamlist = "Imputation/samples.list",
+#        infile = "Imputation/input/" + variantbase + ".{part}",
+#        chromosome = "Imputation/contigs/contig.{part}"
+#    output: "Imputation/" + model + "_K" + str(K) + "_S" + str(S) + "_nGen" + str(nGenerations) + "/contig{part}/K" + str(K) + "_S" + str(S) + "_nGen" + str(nGenerations) + "." + bx + model + ".vcf.gz"
+#    log: "Imputation/" + model + "_K" + str(K) + "_S" + str(S) + "_nGen" + str(nGenerations) + "/contig{part}/K" + str(K) + "_S" + str(S) + "_nGen" + str(nGenerations) + "." + bx + model + ".log"
+#    message: 
+#        """
+#        Running STITCH on contig {wildcards.part}
+#        Parameters:
+#            model: {params.model}
+#            K: {params.K}
+#            S: {params.S}
+#            nGenerations: {params.nGenerations}
+#            BX tags: {params.useBarcodes}
+#        Execution progress logged to {log}
+#        """
+#    params:
+#        model = model,
+#        K = K,
+#        S = S,
+#        useBarcodes = useBarcodes,
+#        nGenerations = nGenerations
+#    threads: 50
+#    script: "../utilities/stitch_impute.R"
 
-#rule testing:
-#    input: expand("Imputation/input/" + variantbase + ".{part}.stitch", part = range(1, ncontigs + 1))
-#    default_target: True
 
 rule testing:
-    input: expand("Imputation/" + model + "_K" + str(K) + "_S" + str(S) + "_nGen" + str(nGenerations) + "/contig{part}/K" + str(K) + "_S" + str(S) + "_nGen" + str(nGenerations) + "." + bx + model + ".vcf.gz", part = range(1, ncontigs + 1))
+    input: expand(f"Imputation/{bx}_{model}/{paramspace.wildcard_pattern}/" + "contig{part}/" + f"{paramspace.wildcard_pattern}.vcf.gz", part = range(1, ncontigs + 1))
     default_target: True
+
+#rule testing:
+#    input: expand("Imputation/" + model + "_K" + str(K) + "_S" + str(S) + "_nGen" + str(nGenerations) + "/contig{part}/K" + str(K) + "_S" + str(S) + "_nGen" + str(nGenerations) + "." + bx + model + ".vcf.gz", part = range(1, ncontigs + 1))
+#    default_target: True
 
 
 #rule vcf2bcf:
