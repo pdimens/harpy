@@ -12,14 +12,14 @@ outfile <- basename(snakemake@output[[1]])
 logfile <- file(snakemake@log[[1]], open = "wt")
 
 # model parameters 
-modeltype <- snakemake@params[["model"]]
-K <- snakemake@params[["K"]]
-S <- snakemake@params[["S"]]
-bx <- snakemake@params[["useBarcodes"]] == "TRUE"
-nGenerations <- snakemake@params[["nGenerations"]]
+parameters <- snakemake@params[["parameters"]]
+modeltype <- parameters$model
+K <- parameters$k
+S <- parameters$s
+bx <- toupper(parameters$useBX) %in% c("TRUE", "YES", "Y")
+nGenerations <- parameters$nGen
 nCores <- snakemake@threads
 inputBundleBlockSize <- NA
-
 
 # WTF is a genfile?
 sink(logfile ,type = "output")
