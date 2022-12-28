@@ -16,7 +16,7 @@ samplenames = config["samplenames"]
 variantfile = config["variantfile"]
 #bx = "BX" if useBarcodes == "TRUE" else "noBX"
 # declare a dataframe to be a paramspace
-paramspace = Paramspace(pd.read_csv(config["paramfile"], sep="\t"), param_sep = "")
+paramspace = Paramspace(pd.read_csv(config["paramfile"], sep="\t"))
 
 
 # determine number of contigs from the contig file
