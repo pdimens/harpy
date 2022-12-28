@@ -15,12 +15,12 @@ To do so, you will need:
 | long name | short name | value type | default value | description|
 | :---: | :----: | :---: | :---: | :--- |                  
 | `--init`  |  `-i` | toggle | | Create example parameter file and exit |                                            
-| `--dir`    |  `-d` | file path     | ReadMapping/align | Directory with sequence alignments  |              
+| `--vcf`   |   `-v` |   file path |  |  Path to VCF/BCF file |
+| `--dir`    |  `-d` | folder path     |  | Directory with sequence alignments  |              
 | `--parameters` |  `-p` | file path    | stitch.params |  STITCH parameter file (tab-delimited)  |             
-| `--vcf`   |   `-v` |   file path | VariantCall/mpileup/variants.raw.bcf |  Path to VCF/BCF file |
 | `--threads` | `-t` | integer  | 4 | Number of threads to use      |
 | `--resume` |  `-r` |  toggle  | |      Resume an incomplete run      |
-| `--help`  |         |      |    | Show this message and exit.        |
+| `--help`  |         |      |    | Show the module docstring        |
 
 
 ## Parameter file

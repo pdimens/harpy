@@ -22,12 +22,12 @@ sample5 3
 
 ## Running Options
 | long name | short name | value type | default value | description|
-| :---: | :----: | :---: | :---: | :--- |                                                              
-| `--config`    |  `-c`  | file path   | config.yaml |  HARPY configuration yaml file          |                 
-| `--dir`       |  `-d`  | file path   |  ReadMapping/align |  Directory with sequence alignments     | 
+| :---: | :----: | :---: | :---: | :--- |
+| `--genome`    | `-g` |    file path | |  Genome assembly for variant calling |                                                              
+| `--dir`       |  `-d`  | folder path   |  ReadMapping/align |  Directory with sequence alignments     | 
+| `--populations` |  `-p`  | file path   |  | Tab-delimited file of sample\<tab\>group |                         
+| `--ploidy`    |  `-x`  | integer | 2 | Ploidy of samples          |                          
 | `--leviathan` |  `-l`    |  toggle  | |  Call variants with Leviathan instead of bcftools |                           
-| `--groupings` |  `-g`  | file path   |  | Tab-delimited file of sample\<tab\>group |                         
-| `--ploidy`    |  `-p`  | integer | 2 | Ploidy of samples          |                          
 | `--threads`   |  `-t`  | integer | 4| Number of threads to use |                                     
 | `--resume`    |  `-r`  | toggle  | | Resume an incomplete run |               
 | `--help`        | | |    |          Show the module docstring |            

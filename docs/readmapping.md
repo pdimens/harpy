@@ -14,12 +14,13 @@ To do so, you will need:
 ## Running Options
 | long name | short name | value type | default value | description|
 | :---: | :----: | :---: | :---: | :--- |                                                              
-| `--config` |  `-c` | file path    | config.yaml | HARPY configuration yaml file    |             
-| `--dir`    |  `-d` | file path     | SeqTrimmed | Directory with sample sequences  |              
-| `--threads` | `-t` | integer  | 4 | Number of threads to use      |
+| `--genome` |  `-g` | file path    |  | Genome assembly for read mapping   |             
+| `--dir`    |  `-d` | folder path     |  | Directory with sample sequences  |  
+| `--ema-bins` | `-e` | integer | 500 | Number of barcode bins for EMA |            
 | `--bwa`   |   `-b` |   toggle | |  Use BWA MEM instead of EMA |
+| `--threads` | `-t` | integer  | 4 | Number of threads to use      |
 | `--resume` |  `-r` |  toggle  | |      Resume an incomplete run      |
-| `--help`  |         |      |    | Show this message and exit.        |
+| `--help`  |         |      |    | Show the module docstring        |
 
 ## Workflows
 ### EMA
