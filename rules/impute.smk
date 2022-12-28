@@ -11,10 +11,10 @@ samplenames = config["samplenames"]
 #model = config["method"]
 #K = config["K"]
 #S = config["S"]
-useBarcodes = str(config["useBarcodes"]).upper()
+#useBarcodes = str(config["useBarcodes"]).upper()
 #nGenerations = config["nGenerations"]
 variantfile = config["variantfile"]
-bx = "BX" if useBarcodes == "TRUE" else "noBX"
+#bx = "BX" if useBarcodes == "TRUE" else "noBX"
 # declare a dataframe to be a paramspace
 paramspace = Paramspace(pd.read_csv(config["paramfile"], sep="\t"), param_sep = "")
 
