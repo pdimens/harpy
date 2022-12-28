@@ -4,7 +4,6 @@ import subprocess
 import os
 from os.path import exists
 import sys
-import re
 import rich_click as click
 
 click.rich_click.USE_MARKDOWN = True
