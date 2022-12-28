@@ -92,6 +92,7 @@ rule impute_search:
         # format a wildcard pattern like "k{k}/s{s}/ngen{ngen}"
         # into a file path, with k, s, ngen being the columns of the data frame
         f"Imputation/{paramspace.wildcard_pattern}/" + "contig{part}/contig{part}.impute.vcf.gz"
+    log: f"Imputation/{paramspace.wildcard_pattern}/" + "contig{part}/contig{part}.stitch.log"
     params:
         # automatically translate the wildcard values into an instance of the param space
         # in the form of a dict (here: {"k": ..., "s": ..., "ngen": ...})
