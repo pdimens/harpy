@@ -129,8 +129,9 @@ rule impute_search:
 
 
 rule testing:
-    input: expand(f"Imputation/{paramspace.wildcard_pattern}/" + "contig{part}/contig{part}.impute.vcf.gz", part = range(1, ncontigs + 1))
+    input: expand("Imputation/{params}/contig{part}/contig{part}.impute.vcf.gz", params=paramspace.instance_patterns, part = range(1, ncontigs + 1))
     default_target: True
+    #input: expand(f"Imputation/{paramspace.wildcard_pattern}/" + "contig{part}/contig{part}.impute.vcf.gz", part = range(1, ncontigs + 1))
 
 #rule testing:
 #    input: expand("Imputation/" + model + "_K" + str(K) + "_S" + str(S) + "_nGen" + str(nGenerations) + "/contig{part}/K" + str(K) + "_S" + str(S) + "_nGen" + str(nGenerations) + "." + bx + model + ".vcf.gz", part = range(1, ncontigs + 1))
