@@ -97,7 +97,7 @@ rule impute_search:
         # automatically translate the wildcard values into an instance of the param space
         # in the form of a dict (here: {"k": ..., "s": ..., "ngen": ...})
         parameters = paramspace.instance
-    message: "Running STITCH: contig {wildcards.part}\n  Parameters: " + "{params.parameters}".split(",")
+    message: "Running STITCH: contig {wildcards.part}\n  Parameters: " + "\n".join("{params.parameters}".split(","))
     #message: "Running STITCH: contig {wildcards.part}\n  Parameters: {params}" 
     threads: 50
     script: "../utilities/testparamspace.R"
