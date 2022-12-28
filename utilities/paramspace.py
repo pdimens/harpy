@@ -1,11 +1,11 @@
 #! /usr/bin/env python3
 
-with open('params.tsv', "w") as file:
+with open('stitch.params', "w") as file:
         file.write(
 '''
-model   useBX   k   s   nGen
-pseudoHaploid   TRUE    10  5   50
-pseudoHaploid   TRUE    10  1   50
-pseudoHaploid   TRUE    15  10  100
+model\tuseBX\tk\ts\tnGen
+pseudoHaploid\tTRUE\t10\t5\t50
+pseudoHaploid\tTRUE\t10\t1\t50
+pseudoHaploid\tTRUE\t15\t10\t100
 '''
     )
