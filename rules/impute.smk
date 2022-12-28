@@ -8,11 +8,11 @@ bam_dir = config["seq_directory"]
 contigfile = config["contignames"]
 #ncontigs = config["ncontigs"]
 samplenames = config["samplenames"]
-model = config["method"]
-K = config["K"]
-S = config["S"]
+#model = config["method"]
+#K = config["K"]
+#S = config["S"]
 useBarcodes = str(config["useBarcodes"]).upper()
-nGenerations = config["nGenerations"]
+#nGenerations = config["nGenerations"]
 variantfile = config["variantfile"]
 bx = "BX" if useBarcodes == "TRUE" else "noBX"
 # declare a dataframe to be a paramspace
@@ -91,12 +91,12 @@ rule impute_search:
     output:
         # format a wildcard pattern like "k{k}/s{s}/ngen{ngen}"
         # into a file path, with k, s, ngen being the columns of the data frame
-        f"Imputation/{bx}_{model}/{paramspace.wildcard_pattern}/" + "contig{part}/" + f"{paramspace.wildcard_pattern}.vcf.gz"
+        f"Imputation/{paramspace.wildcard_pattern}/" + "contig{part}/contig{part}.impute.vcf.gz"
     params:
         # automatically translate the wildcard values into an instance of the param space
         # in the form of a dict (here: {"k": ..., "s": ..., "ngen": ...})
         simulation = paramspace.instance
-    message: "Running STITCH on contig {wildcards.part}\n  model: " + model + f"\n  parameters: {paramspace.instance}"
+    message: "Running STITCH: contig {wildcards.part}\n" + f"\n  parameters: {paramspace.instance}"
     threads: 50
     script: "../utilities/testparamspace.R"
 
@@ -129,7 +129,7 @@ rule impute_search:
 
 
 rule testing:
-    input: expand(f"Imputation/{bx}_{model}/{paramspace.wildcard_pattern}/" + "contig{part}/" + f"{paramspace.wildcard_pattern}.vcf.gz", part = range(1, ncontigs + 1))
+    input: expand(f"Imputation/{paramspace.wildcard_pattern}/" + "contig{part}/contig{part}.impute.vcf.gz", part = range(1, ncontigs + 1))
     default_target: True
 
 #rule testing:
