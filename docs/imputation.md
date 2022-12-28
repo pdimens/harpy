@@ -24,7 +24,11 @@ To do so, you will need:
 
 
 ## Parameter file
-The parameter file is required and can be created manually or with `harpy impute --init`.
+Typically, one runs STITCH multiple times, exploring how results vary with
+different model parameters. The solution Harpy uses for this is to have the user
+provide a tab-delimited dataframe file where the columns are the 5 STITCH model 
+parameters and the rows are the values for those parameters. The parameter file 
+is required and can be created manually or with `harpy impute --init`.
 If created using harpy, the resulting file includes largely meaningless values 
 that you will need to adjust for your study. The parameter must follow a particular format:
 - tab or comma delimited
@@ -57,10 +61,7 @@ pseudoHaploid   TRUE    15      10      100
 the R programming language. It has quite a few model parameters that can be tweaked, but HARPY only
 focuses on a small handful that have the largest impact on the quality of the results. Imputation is
 performed on a per-contig (or chromosome) level, so Harpy automatically iterates over the contigs
-present in the input variant call file. Typically, one runs STITCH multiple times, exploring how
-results vary with different model parameters. The solution Harpy uses for this is to have the user
-provide a tab-delimited dataframe file where the columns are the 5 STITCH model parameters and the
-rows are the values for those parameters. Using the magic of Snakemake, Harpy will automatically
+present in the input variant call file. Using the magic of Snakemake, Harpy will automatically
 iterate over these model parameters.
 
 ```mermaid
