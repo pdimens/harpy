@@ -97,48 +97,13 @@ rule impute_search:
         # automatically translate the wildcard values into an instance of the param space
         # in the form of a dict (here: {"k": ..., "s": ..., "ngen": ...})
         parameters = paramspace.instance
-    message: "Running STITCH: contig {wildcards.part}\n  Parameters: " + "\n".join("{params.parameters}".split(","))
-    #message: "Running STITCH: contig {wildcards.part}\n  Parameters: {params}" 
+    message: "Running STITCH: contig {wildcards.part}\n  Parameters:\n  " + "\n".join("{params.parameters}".split(','))
     threads: 50
     script: "../utilities/testparamspace.R"
-
-#rule impute_genotypes:
-#    input:
-#        bamlist = "Imputation/samples.list",
-#        infile = "Imputation/input/" + variantbase + ".{part}",
-#        chromosome = "Imputation/contigs/contig.{part}"
-#    output: "Imputation/" + model + "_K" + str(K) + "_S" + str(S) + "_nGen" + str(nGenerations) + "/contig{part}/K" + str(K) + "_S" + str(S) + "_nGen" + str(nGenerations) + "." + bx + model + ".vcf.gz"
-#    log: "Imputation/" + model + "_K" + str(K) + "_S" + str(S) + "_nGen" + str(nGenerations) + "/contig{part}/K" + str(K) + "_S" + str(S) + "_nGen" + str(nGenerations) + "." + bx + model + ".log"
-#    message: 
-#        """
-#        Running STITCH on contig {wildcards.part}
-#        Parameters:
-#            model: {params.model}
-#            K: {params.K}
-#            S: {params.S}
-#            nGenerations: {params.nGenerations}
-#            BX tags: {params.useBarcodes}
-#        Execution progress logged to {log}
-#        """
-#    params:
-#        model = model,
-#        K = K,
-#        S = S,
-#        useBarcodes = useBarcodes,
-#        nGenerations = nGenerations
-#    threads: 50
-#    script: "../utilities/stitch_impute.R"
-
 
 rule testing:
     input: expand("Imputation/{params}/contig{part}/contig{part}.impute.vcf.gz", params=paramspace.instance_patterns, part = range(1, ncontigs + 1))
     default_target: True
-    #input: expand(f"Imputation/{paramspace.wildcard_pattern}/" + "contig{part}/contig{part}.impute.vcf.gz", part = range(1, ncontigs + 1))
-
-#rule testing:
-#    input: expand("Imputation/" + model + "_K" + str(K) + "_S" + str(S) + "_nGen" + str(nGenerations) + "/contig{part}/K" + str(K) + "_S" + str(S) + "_nGen" + str(nGenerations) + "." + bx + model + ".vcf.gz", part = range(1, ncontigs + 1))
-#    default_target: True
-
 
 #rule vcf2bcf:
 #    input: "Imputation/" + model + "_K" + str(K) + "_S" + str(S) + "_nGen" + str(nGenerations) + "/contig{part}.K" + str(K) + "_S" + str(S) + "_nGen" + str(nGenerations) + "." + bx + model + ".vcf"
@@ -159,17 +124,17 @@ rule testing:
 #        bcftools index --output {output} {input}
 #        """
 #
-#rule merge_bcfs:
-#    input: 
-#        bcf = expand("VariantCall/leviathan/{sample}.bcf", sample = samplenames),
-#        index = expand("VariantCall/leviathan/{sample}.bcf.csi", sample = samplenames)
-#    output: "VariantCall/leviathan/variants.raw.bcf"
-#    log: "VariantCall/leviathan/variants.raw.stats"
-#    message: "Merging sample VCFs into single file: {output}"
-#    #default_target: True
-#    threads: 20
-#    shell:
-#        """
-#        bcftools merge --threads {threads} -o {output} {input.bcf}
-#        bcftools stats {output} > {log}
-#        """
+rule merge_vcfs:
+    input: 
+        vcf = expand("Imputation/{params}/contig{part}/contig{part}.impute.vcf.gz", params=paramspace.instance_patterns, part = range(1, ncontigs + 1)),
+    output: 
+        bcf = expand("Imputation/{params}/variants.imputed.bcf", params=paramspace.instance_patterns)
+    log: "Imputation/{params}/variants.imputed.stats"
+    message: "Merging sample VCFs into single file: {output}"
+    #default_target: True
+    threads: 20
+    shell:
+        """
+        bcftools merge --threads {threads} -o {output} {input}
+        bcftools stats {output} > {log}
+        """

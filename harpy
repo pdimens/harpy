@@ -124,7 +124,7 @@ def align(config, threads, bwa, dir, resume, ema_bins):
     """
     Align sample sequences to a reference genome
     
-    If you don't have a configuration file, use **harpy init** to generate one and modify it for your project.
+    If you don't have a configuration file, use **harpy init** to generate one and modify it for your study.
     """
     fastqlist = [i for i in os.listdir(dir) if i.endswith('.fastq.gz')]
     fqext = "fq.gz" if not fastqlist else "fastq.gz"
@@ -168,7 +168,7 @@ def callvariants(config, threads, dir, groupings, ploidy, leviathan, resume):
     """
     Call variants from sample alignments
     
-    If you don't have a configuration file, use **harpy init** to generate one and modify it for your project. If you plan on using `--populations` (it's optional) you may use **harpy popgroup** to generate a file for it.
+    If you don't have a configuration file, use **harpy init** to generate one and modify it for your study. If you plan on using `--populations` (it's optional) you may use **harpy popgroup** to generate a file for it.
     """
     samplenames = set([i.split('.bam')[0] for i in os.listdir(dir) if i.endswith(".bam")])
     if len(samplenames) < 1:
@@ -229,12 +229,26 @@ def callvariants(config, threads, dir, groupings, ploidy, leviathan, resume):
 @click.option('-v', '--vcf', default = 'VariantCall/mpileup/variants.raw.bcf', show_default=True, type=click.Path(exists=True), help = 'Path to BCF/VCF file')
 @click.option('-t', '--threads', default = 4, show_default = True, type = int, help = 'Number of threads to use')
 @click.option('-r', '--resume', is_flag=True, help="Resume an incomplete run")
-def impute(parameters, dir, threads, vcf, resume):
+@click.option('-i', '--init', is_flag=True, help="Create example parameter file and exit")
+def impute(parameters, dir, threads, vcf, resume, init):
     """
     Impute genotypes from genotype likelihoods
     
-    If you don't have a configuration file, use **harpy init** to generate one and modify it for your project.
+    Requires a parameter file, use **harpy impute --init** to generate one and modify it for your study.
     """
+    if init:
+        with open('stitch.params', "w") as file:
+            file.write(
+'''
+model\tuseBX\tk\ts\tnGen
+pseudoHaploid\tTRUE\t10\t5\t50
+pseudoHaploid\tTRUE\t10\t1\t50
+pseudoHaploid\tTRUE\t15\t10\t100
+'''
+            )
+        print("Created example parameter file \'stitch.params\'")
+        print("Modify the model parameters as appropriate, but DO NOT add/remove columns")
+        exit(0)
     samplenames = set([i.split('.bam')[0] for i in os.listdir(dir) if i.endswith(".bam")])
     if len(samplenames) < 1:
         print("ERROR: No alignment files (.bam) found in " + dir)
@@ -269,7 +283,7 @@ def phase(config_file):
     """
     Phase SNPs into haplotypes
     
-    If you don't have a configuration file, use **harpy init** to generate one and modify it for your project.
+    If you don't have a configuration file, use **harpy init** to generate one and modify it for your study.
     """
     print("this is another thing!")
 
