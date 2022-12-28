@@ -12,19 +12,16 @@ outfile <- basename(snakemake@output[[1]])
 logfile <- file(snakemake@log[[1]], open = "wt")
 
 # model parameters 
-snakemake@params
-snakemake@params[["simluation"]]
+parameters <- snakemake@params[["parameters"]]
+modeltype <- parameters$model
+K <- parameters$k
+S <- parameters$s
+.bx <- toupper(parameters$useBX) 
+bx <- .bx == "TRUE" || .bx == "YES" || .bx == "Y"
+nGenerations <- parameters$nGen
+nCores <- snakemake@threads
+inputBundleBlockSize <- NA
 
-
-#modeltype <- snakemake@params[["model"]]
-#K <- snakemake@params[["K"]]
-#S <- snakemake@params[["S"]]
-#bx <- snakemake@params[["useBarcodes"]] == "TRUE"
-#nGenerations <- snakemake@params[["nGenerations"]]
-#nCores <- snakemake@threads
-#inputBundleBlockSize <- NA
-
-q()
 # WTF is a genfile?
 sink(logfile ,type = "output")
 sink(logfile, type = "message")

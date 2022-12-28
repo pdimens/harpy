@@ -96,7 +96,7 @@ rule impute_search:
     params:
         # automatically translate the wildcard values into an instance of the param space
         # in the form of a dict (here: {"k": ..., "s": ..., "ngen": ...})
-        simulation = paramspace.instance
+        parameters = paramspace.instance
     message: "Running STITCH: contig {wildcards.part}\n" + f"\n  parameters: {paramspace.instance}"
     threads: 50
     script: "../utilities/testparamspace.R"
