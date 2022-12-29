@@ -17,7 +17,7 @@ Great! Only want to call variants? Awesome! All modules are called by `harpy mod
 | `popgroup` | Generate sample population grouping file for variant calling |
 | `trim` | Remove adapters and quality trim sequences |
 | `align` | Align sample sequences to a reference genome |
-| `callvariants` | Call variants from sample alignments |
+| `variants` | Call variants from sample alignments |
 | `impute` | Impute genotypes from genotype likelihoods |
 | `phase` | Phase SNPs into haplotypes | 
 
@@ -39,24 +39,23 @@ You can call `harpy` without any arguments (or with `--help`) to print the docst
 ```                                                       
  Usage: harpy [OPTIONS] COMMAND [ARGS]...                     
                                                               
- HARPY Haplotagging data processing pipeline.                 
- The pipeline trims reads, map sequences, calls variants,     
+ HARPY Haplotagging data processing pipeline.             
+ The pipeline trims reads, map sequences, calls variants, 
  imputes genotypes, and phases haplotypes.                
-                                                              
- init 🡒 trim 🡒 align 🡒 callvariants 🡒 impute 🡒 phase          
-                                                              
- Documentation: https://pdimens.github.io/HARPY/#/            
-                                                              
-╭─ Options ──────────────────────────────────────────────────╮
-│ --help      Show this message and exit.                    │
-╰────────────────────────────────────────────────────────────╯
-╭─ Commands ─────────────────────────────────────────────────╮
-│ align         Align sample sequences to a reference genome │
-│ callvariants  Call variants from sample alignments         │
-│ impute        Impute genotypes from genotype likelihoods   │
-│ init          Generate template configuration file         │
-│ phase         Phase SNPs into haplotypes                   │
-│ popgroup      Generate sample population grouping file     │
-│ trim          Remove adapters and quality trim sequences   │
-╰────────────────────────────────────────────────────────────╯
+                                                          
+ trim 🡒 align 🡒 variants 🡒 impute 🡒 phase                 
+                                                          
+ Documentation: https://pdimens.github.io/HARPY/#/        
+                                                          
+╭─ Options ──────────────────────────────────────────────╮
+│ --help      Show this message and exit.                │
+╰────────────────────────────────────────────────────────╯
+╭─ Commands ─────────────────────────────────────────────╮
+│ align     Align sample sequences to a reference genome │
+│ impute    Impute genotypes from genotype likelihoods   │
+│ phase     Phase SNPs into haplotypes                   │
+│ trim      Remove adapters and quality trim sequences   │
+│ variants  Call variants from sample alignments         │
+╰────────────────────────────────────────────────────────╯
+
 ```

@@ -1,7 +1,7 @@
 # Calling Variants
-You can call variants with Harpy by calling the `callvariants` module:
+You can call variants with Harpy by calling the `variants` module:
 ```bash
-harpy callvariants OPTIONS... 
+harpy variants OPTIONS... 
 ```
 To do so, you will need:
 - at least 4 cores/threads available
