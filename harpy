@@ -158,18 +158,6 @@ def variants(genome, threads, dir, populations, ploidy, leviathan, resume):
     #command.append("--rulegraph")
     #print(" ".join(command))
     subprocess.run(command)
-    command = ['snakemake', '--cores', f'{threads}', '--directory', '.', '--snakefile', "rules/variantcall-" + vcaller + ".smk"]
-    command.append('--report')
-    command.append('VariantCall/harpy-variants.html')
-    command.append('--config')
-    command.append(f"seq_directory={dir}")
-    command.append(f"samplenames={samplenames}")
-    command.append(f"groupings={populations}")
-    command.append(f"ploidy={ploidy}")
-    command.append(f"n_regions={n_regions}")
-    command.append(f"genomefile={genome}")
-    subprocess.run(command)
-
 
 @click.command()
 @click.option('-i', '--init', is_flag=True, help="Create example parameter file and exit")
