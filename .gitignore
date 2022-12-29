@@ -6,3 +6,4 @@ samples.populations
 *.fasta
 *.yaml
 *.yml
+genome.fasta
