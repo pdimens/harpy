@@ -126,7 +126,7 @@ rule merge_vcfs:
     threads: 20
     shell:
         """
-        bcftools merge --threads {threads} -o {output} {input}
+        bcftools merge --threads {threads} -o {output} --output-type b {input}
         bcftools stats {output} > {log}
         """
 
