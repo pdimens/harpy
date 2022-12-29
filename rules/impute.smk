@@ -93,9 +93,8 @@ rule impute_search:
     threads: 50
     script: "../utilities/testparamspace.R"
 
-rule testing:
-    input: expand("Imputation/{params}/contig{part}/contig{part}.impute.vcf.gz", params=paramspace.instance_patterns, part = range(1, ncontigs + 1))
-    default_target: True
+#rule testing:
+#    input: expand("Imputation/{params}/contig{part}/contig{part}.impute.vcf.gz", params=paramspace.instance_patterns, part = range(1, ncontigs + 1))
 
 #rule vcf2bcf:
 #    input: "Imputation/" + model + "_K" + str(K) + "_S" + str(S) + "_nGen" + str(nGenerations) + "/contig{part}.K" + str(K) + "_S" + str(S) + "_nGen" + str(nGenerations) + "." + bx + model + ".vcf"
@@ -118,11 +117,11 @@ rule testing:
 #
 rule merge_vcfs:
     input: 
-        vcf = expand("Imputation/{params}/contig{part}/contig{part}.impute.vcf.gz", params=paramspace.instance_patterns, part = range(1, ncontigs + 1)),
+        vcf = expand("Imputation/{{stitchparams}}/contig{part}/contig{part}.impute.vcf.gz", part = range(1, ncontigs + 1)),
     output: 
-        bcf = expand("Imputation/{params}/variants.imputed.bcf", params=paramspace.instance_patterns)
-    log: "Imputation/{params}/variants.imputed.stats"
-    message: "Merging sample VCFs into single file: {output}"
+        bcf = "Imputation/{stitchparams}/variants.imputed.bcf"
+    log: "Imputation/{stitchparams}/variants.imputed.stats"
+    message: "Merging VCFs: {wildcards.stitchparams}"
     #default_target: True
     threads: 20
     shell:
@@ -130,3 +129,8 @@ rule merge_vcfs:
         bcftools merge --threads {threads} -o {output} {input}
         bcftools stats {output} > {log}
         """
+
+rule all:
+    input: expand("Imputation/{stitchparams}/variants.imputed.bcf", stitchparams=paramspace.instance_patterns)
+    default_target: True
+
