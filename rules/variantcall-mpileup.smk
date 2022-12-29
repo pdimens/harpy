@@ -12,7 +12,7 @@ rule combine_bcfs:
     output: 
         bcf = "VariantCall/mpileup/variants.raw.bcf",
         idx = "VariantCall/mpileup/variants.raw.bcf.csi"
-    log: "VariantCall/mpileup/variants.raw.stats"
+    log: report("VariantCall/mpileup/variants.raw.stats")
     message: "Merging sample BCFs into: {output}"
     default_target: True
     threads: 20

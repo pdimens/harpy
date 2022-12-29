@@ -141,7 +141,8 @@ def variants(genome, threads, dir, populations, ploidy, leviathan, resume):
         vcaller = "leviathan"
     
     command = ['snakemake', '--cores', f'{threads}', '--directory', '.', '--snakefile', "rules/variantcall-" + vcaller + ".smk"]
-    
+    command.append('--report')
+    command.append('harpy-variants.html')
     if resume:
         command.append('--rerun-incomplete')
     
