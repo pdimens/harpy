@@ -136,7 +136,7 @@ def variants(genome, threads, dir, populations, ploidy, leviathan, resume):
             if not line:
                 break
         fopen.close()
-        print(n_regions + '\033[0m')
+        print(str(n_regions) + '\033[0m')
     else:
         vcaller = "leviathan"
     
