@@ -3,7 +3,7 @@ You can map reads onto genome assemblies with Harpy by calling the `align` modul
 ```bash
 harpy align OPTIONS...
 ```
-To do so, you will need:
+You will need:
 - at least 4 cores/threads available
 - a genome assembly in FASTA format
 - b/gzipped fastq sequence files

@@ -3,14 +3,14 @@ You can call variants with Harpy by calling the `variants` module:
 ```bash
 harpy variants OPTIONS... 
 ```
-To do so, you will need:
+You will need:
 - at least 4 cores/threads available
 - a genome assembly in FASTA format
 - alignment files
 - sample grouping file [optional]
     - takes the format of sample\<tab\>group
-    - create with `harpy popgroup` or manually
-    - if created with `harpy popgroup`, all the samples will be assigned to group `1`, so make sure to edit the second column to reflect your data correctly.
+    - create with `--populations create` or manually
+    - if created with `--populations create`, all the samples will be assigned to group `1`, so make sure to edit the second column to reflect your data correctly.
     - the file looks like:
 ```
 sample1 1

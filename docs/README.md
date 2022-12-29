@@ -14,7 +14,6 @@ Great! Only want to call variants? Awesome! All modules are called by `harpy mod
 
 | Module  | Description |
 | :---    | :----       |
-| `popgroup` | Generate sample population grouping file for variant calling |
 | `trim` | Remove adapters and quality trim sequences |
 | `align` | Align sample sequences to a reference genome |
 | `variants` | Call variants from sample alignments |

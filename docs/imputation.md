@@ -3,7 +3,7 @@ You can impute genotypes with Harpy by calling the `impute` module:
 ```bash
 harpy impute OPTIONS...
 ```
-To do so, you will need:
+You will need:
 - a tab-delimited parameter file 
     - create with `harpy impute --init`
     - modify the file with parameters suitable for your study
