@@ -42,4 +42,3 @@ STITCH(
     output_filename         = outfile
 )
 sink()
-sink()
