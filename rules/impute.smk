@@ -92,6 +92,8 @@ rule impute_search:
         # in the form of a dict (here: {"k": ..., "s": ..., "ngen": ...})
         parameters = paramspace.instance
     message: "Running STITCH: contig {wildcards.part}\n  Parameters:\n  " + "{params.parameters}"
+    wildcard_constraints:
+        part = "[0-9]*"
     threads: 50
     script: "../utilities/testparamspace.R"
 
@@ -107,19 +109,22 @@ rule impute_search:
 #        bcftools convert -Ob {input} | bcftools sort --output {output}
 #        """
 #
-#rule index_bcf:
-#    input: "Imputation/" + model + "_K" + str(K) + "_S" + str(S) + "_nGen" + str(nGenerations) + "/contig{part}.K" + str(K) + "_S" + str(S) + "_nGen" + str(nGenerations) + "." + bx + model + ".bcf"
-#    output: temp("Imputation/" + model + "_K" + str(K) + "_S" + str(S) + "_nGen" + str(nGenerations) + "/contig{part}.K" + str(K) + "_S" + str(S) + "_nGen" + str(nGenerations) + "." + bx + model + ".bcf.csi")
-#    message: "Indexing: {input}"
-#    threads: 1
-#    shell:
-#        """
-#        bcftools index --output {output} {input}
-#        """
-#
+rule index_bcf:
+    input: "Imputation/{stitchparams}/contig{part}/contig{part}.impute.vcf.gz"
+    output: "Imputation/{stitchparams}/contig{part}/contig{part}.impute.vcf.gz.tbi"
+    message: "Indexing: {wildcards.stitchparams}/contig{wildcards.part}"
+    threads: 1
+    wildcard_constraints:
+        part = "[0-9]*"
+    shell:
+        """
+        tabix {input}
+        """
+
 rule merge_vcfs:
     input: 
         vcf = expand("Imputation/{{stitchparams}}/contig{part}/contig{part}.impute.vcf.gz", part = range(1, ncontigs + 1)),
+        idx = expand("Imputation/{{stitchparams}}/contig{part}/contig{part}.impute.vcf.gz.tbi", part = range(1, ncontigs + 1))
     output: 
         bcf = "Imputation/{stitchparams}/variants.imputed.bcf"
     log: "Imputation/{stitchparams}/variants.imputed.stats"
@@ -128,7 +133,7 @@ rule merge_vcfs:
     threads: 20
     shell:
         """
-        bcftools merge --threads {threads} -o {output} --output-type b {input}
+        bcftools merge --threads {threads} -o {output} --output-type b {input.vcf}
         bcftools stats {output} > {log}
         """
 
