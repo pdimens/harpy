@@ -70,9 +70,11 @@ rule STITCH_format:
     output: "Imputation/input/" + variantbase + ".{part}"
     message: "Converting biallelic data to STITCH format: " + variantbase + ".{wildcards.part}"
     threads: 1
+    params: 
+        filters = "-i'QUAL>20 && DP>10'" if filtervcf else ""
     shell:
         """
-        bcftools query -f '%CHROM\\t%POS\\t%REF\\t%ALT\\n' {input} > {output}
+        bcftools query {params} -f '%CHROM\\t%POS\\t%REF\\t%ALT\\n' {input} > {output}
         """
 
 rule impute_search:

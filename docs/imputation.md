@@ -14,10 +14,11 @@ You will need:
 ## Running Options
 | long name | short name | value type | default value | description|
 | :---: | :----: | :---: | :---: | :--- |                  
-| `--init`  |  `-i` | toggle | | Create example parameter file and exit |                                            
+| `--init`  |  `-i` | toggle | | Create example parameter file and exit | 
 | `--vcf`   |   `-v` |   file path |  |  Path to VCF/BCF file |
-| `--dir`    |  `-d` | folder path     |  | Directory with sequence alignments  |              
-| `--parameters` |  `-p` | file path    | stitch.params |  STITCH parameter file (tab-delimited)  |             
+| `--dir`    |  `-d` | folder path     |  | Directory with sequence alignments  |
+| `--parameters` |  `-p` | file path    | stitch.params |  STITCH parameter file (tab-delimited)  |
+| `--filter` | `-f` | toggle |  | Filter `--vcf` file to keep SNPs with Quality>20 and Depth>10 |
 | `--threads` | `-t` | integer  | 4 | Number of threads to use      |
 | `--resume` |  `-r` |  toggle  | |      Resume an incomplete run      |
 | `--help`  |         |      |    | Show the module docstring        |
