@@ -27,7 +27,7 @@ You will need:
 - **recommended**, see bottom of page
 - leverages the BX barcode information to improve mapping
 - slower
-- lot of temporary files
+- lots of temporary files
 
 Since [EMA](https://github.com/arshajii/ema) does extra things to account for barcode information, the EMA workflow is a bit more complicated under the hood. Reads with barcodes are aligned using EMA and reads without valid barcodes are separately mapped using BWA before merging all the alignments together again. EMA will mark duplicates within alignments, but the BWA alignments need duplicates marked manually using [sambamba](https://lomereiter.github.io/sambamba/). Thankfully, you shouldn't need to worry about any of these details.
 
