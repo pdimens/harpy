@@ -71,7 +71,7 @@ rule STITCH_format:
     message: "Converting biallelic data to STITCH format: " + variantbase + ".{wildcards.part}"
     threads: 1
     params: 
-        filters = "-i'QUAL>20 && DP>10'" if filtervcf else ""
+        filters = "-i'QUAL>20 && DP>10'" if config["filtervcf"] else ""
     shell:
         """
         bcftools query {params} -f '%CHROM\\t%POS\\t%REF\\t%ALT\\n' {input} > {output}
