@@ -109,7 +109,7 @@ rule impute_search:
 #        bcftools convert -Ob {input} | bcftools sort --output {output}
 #        """
 #
-rule index_bcf:
+rule index_vcf:
     input: "Imputation/{stitchparams}/contig{part}/contig{part}.impute.vcf.gz"
     output: "Imputation/{stitchparams}/contig{part}/contig{part}.impute.vcf.gz.tbi"
     message: "Indexing: {wildcards.stitchparams}/contig{wildcards.part}"
