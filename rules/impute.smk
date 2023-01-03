@@ -115,26 +115,21 @@ rule merge_vcfs:
         vcf = expand("Imputation/{{stitchparams}}/{part}/impute.vcf.gz", part = contigs),
         idx = expand("Imputation/{{stitchparams}}/{part}/impute.vcf.gz.tbi", part = contigs)
     output: 
-        bcf = "Imputation/{stitchparams}/variants.imputed.bcf"
+        bcf = "Imputation/{stitchparams}/variants.imputed.bcf",
+        stats = "Imputation/{stitchparams}/variants.imputed.stats"
     log: 
-        stats = "Imputation/{stitchparams}/{stitchparams}.stats",
         concats = "Imputation/{stitchparams}/concat.log"
     message: "Merging VCFs: {wildcards.stitchparams}"
     threads: 20
     shell:
         """
-        bcftools concat --threads {threads} -o {output} --output-type b {input.vcf} 2> {log.concats}
-        bcftools stats {output} > {log.stats}
+        bcftools concat --threads {threads} -o {output.bcf} --output-type b {input.vcf} 2> {log.concats}
+        bcftools stats {output} > {output.stats}
         """
 
-rule reports:
-    input: expand("Imputation/{stitchparams}/variants.imputed.bcf", stitchparams=paramspace.instance_patterns)
-    output: "Imputation/report.html"
-    message: "Generating report: {output}"
-    default_target: True
-    shell:
-        """
-        multiqc Imputation/model*useBX*/*.stats --force --quiet --no-data-dir --filename {output} 2> /dev/null
-        """
-    
+rule all:
+    input: 
+        bcf = expand("Imputation/{stitchparams}/variants.imputed.bcf", stitchparams=paramspace.instance_patterns),
+        stats = expand("Imputation/{stitchparams}/{stitchparams}.stats", stitchparams=paramspace.instance_patterns)
+    default_target: True    
 
