@@ -2,7 +2,6 @@
 
 suppressPackageStartupMessages(library("STITCH"))
 
-
 # Params pulled in from Snakemake
 bamlist <- snakemake@input[["bamlist"]]
 chr <- readLines(snakemake@input[["chromosome"]])[1]
@@ -16,7 +15,8 @@ parameters <- snakemake@params[["parameters"]]
 modeltype <- parameters$model
 K <- parameters$k
 S <- parameters$s
-bx <- toupper(parameters$useBX) %in% c("TRUE", "YES", "Y")
+.bx <- toupper(parameters$useBX) 
+bx <- .bx == "TRUE" || .bx == "YES" || .bx == "Y"
 nGenerations <- parameters$nGen
 nCores <- snakemake@threads
 inputBundleBlockSize <- NA

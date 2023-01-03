@@ -19,6 +19,12 @@ def contigparts(contig_file):
     ncontigs += 1
     return ncontigs
 
+def contignames(contig_file):
+    with open(contig_file) as f:
+        lines = [line.rstrip() for line in f]
+    return lines
+
+contigs = contignames(contigfile)
 ncontigs = contigparts(contigfile)
 
 # Pull out the basename of the variant file
@@ -37,7 +43,7 @@ variantbase = re.split(ext, os.path.basename(variantfile), flags = re.IGNORECASE
 
 rule bam_list:
     input: expand(bam_dir + "/{sample}.bam", sample = samplenames)
-    output: temp("Imputation/samples.list")
+    output: temp("Imputation/input/samples.list")
     message: "Creating list of alignment files"
     run:
         with open(output[0], "w") as fout:
@@ -46,19 +52,21 @@ rule bam_list:
 
 rule split_contigs:
     input: contigfile
-    output: expand("Imputation/contigs/contig.{part}", part = range(1, ncontigs + 1))
+    output: expand("Imputation/input/contigs/{part}", part = contigs)
     message: "Splitting contig names for parallelization"
     shell:
         """
-        awk '{{x="Imputation/contigs/contig."++i;}}{{print $1 > x;}}' {input}
+        awk '{{print > "Imputation/input/contigs/"$1}}' {input}
+        #awk '{{print $1 > Imputation/input/contigs/$1;}}' {input}
+        #awk '{{x="Imputation/contigs/contig."++i;}}{{print $1 > x;}}' {input}
         """
 
 rule prepare_biallelic_snps:
     input: 
         vcf = variantfile,
-        contig = "Imputation/contigs/contig.{part}"
-    output: pipe("Imputation/input/" + variantbase + ".{part}.bisnp.bcf")
-    message: "Keeping only biallelic SNPs from " + os.path.basename(variantfile) + ": contig {wildcards.part}"
+        contig = "Imputation/input/contigs/{part}"
+    output: pipe("Imputation/input/{part}.bisnp.bcf")
+    message: "Keeping only biallelic SNPs from {wildcards.part}"
     threads: 1
     shell:
         """
@@ -66,9 +74,9 @@ rule prepare_biallelic_snps:
         """
 
 rule STITCH_format:
-    input: "Imputation/input/" + variantbase + ".{part}.bisnp.bcf"
-    output: "Imputation/input/" + variantbase + ".{part}"
-    message: "Converting biallelic data to STITCH format: " + variantbase + ".{wildcards.part}"
+    input: "Imputation/input/{part}.bisnp.bcf"
+    output: "Imputation/input/{part}.stitch"
+    message: "Converting biallelic data to STITCH format: {wildcards.part}"
     threads: 1
     params: 
         filters = "-i'QUAL>20 && DP>10'" if config["filtervcf"] else ""
@@ -79,31 +87,27 @@ rule STITCH_format:
 
 rule impute_search:
     input:
-        bamlist = "Imputation/samples.list",
-        infile = "Imputation/input/" + variantbase + ".{part}",
-        chromosome = "Imputation/contigs/contig.{part}"
+        bamlist = "Imputation/input/samples.list",
+        infile = "Imputation/input/{part}.stitch",
+        chromosome = "Imputation/contigs/{part}"
     output:
         # format a wildcard pattern like "k{k}/s{s}/ngen{ngen}"
         # into a file path, with k, s, ngen being the columns of the data frame
-        f"Imputation/{paramspace.wildcard_pattern}/" + "contig{part}/contig{part}.impute.vcf.gz"
-    log: f"Imputation/{paramspace.wildcard_pattern}/" + "contig{part}/contig{part}.stitch.log"
+        f"Imputation/{paramspace.wildcard_pattern}/" + "{part}/impute.vcf.gz"
+    log: f"Imputation/{paramspace.wildcard_pattern}/" + "{part}/stitch.log"
     params:
         # automatically translate the wildcard values into an instance of the param space
         # in the form of a dict (here: {"k": ..., "s": ..., "ngen": ...})
         parameters = paramspace.instance
-    message: "Running STITCH: contig {wildcards.part}\n  Parameters:\n  " + "{params.parameters}"
-    wildcard_constraints:
-        part = "[0-9]*"
+    message: "Running STITCH: {wildcards.part}\n  Parameters:\n  " + "{params.parameters}"
     threads: 50
-    script: "../utilities/testparamspace.R"
+    script: "../utilities/stitch_impute.R"
 
 rule index_vcf:
-    input: "Imputation/{stitchparams}/contig{part}/contig{part}.impute.vcf.gz"
-    output: "Imputation/{stitchparams}/contig{part}/contig{part}.impute.vcf.gz.tbi"
-    message: "Indexing: {wildcards.stitchparams}/contig{wildcards.part}"
+    input: "Imputation/{stitchparams}/{part}/impute.vcf.gz"
+    output: "Imputation/{stitchparams}/{part}/impute.vcf.gz.tbi"
+    message: "Indexing: {wildcards.stitchparams}/{wildcards.part}"
     threads: 1
-    wildcard_constraints:
-        part = "[0-9]*"
     shell:
         """
         tabix {input}
@@ -111,8 +115,8 @@ rule index_vcf:
 
 rule merge_vcfs:
     input: 
-        vcf = expand("Imputation/{{stitchparams}}/contig{part}/contig{part}.impute.vcf.gz", part = range(1, ncontigs + 1)),
-        idx = expand("Imputation/{{stitchparams}}/contig{part}/contig{part}.impute.vcf.gz.tbi", part = range(1, ncontigs + 1))
+        vcf = expand("Imputation/{{stitchparams}}/{part}/impute.vcf.gz", part = contigs),
+        idx = expand("Imputation/{{stitchparams}}/{part}/impute.vcf.gz.tbi", part = contigs)
     output: 
         bcf = "Imputation/{stitchparams}/variants.imputed.bcf"
     log: 
