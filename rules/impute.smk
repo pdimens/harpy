@@ -85,11 +85,11 @@ rule STITCH_format:
         bcftools query {params} -f '%CHROM\\t%POS\\t%REF\\t%ALT\\n' {input} > {output}
         """
 
-rule impute_search:
+rule impute:
     input:
         bamlist = "Imputation/input/samples.list",
         infile = "Imputation/input/{part}.stitch",
-        chromosome = "Imputation/contigs/{part}"
+        chromosome = "Imputation/input/contigs/{part}"
     output:
         # format a wildcard pattern like "k{k}/s{s}/ngen{ngen}"
         # into a file path, with k, s, ngen being the columns of the data frame
