@@ -97,18 +97,6 @@ rule impute_search:
     threads: 50
     script: "../utilities/testparamspace.R"
 
-#rule testing:
-#    input: expand("Imputation/{params}/contig{part}/contig{part}.impute.vcf.gz", params=paramspace.instance_patterns, part = range(1, ncontigs + 1))
-
-#rule vcf2bcf:
-#    input: "Imputation/" + model + "_K" + str(K) + "_S" + str(S) + "_nGen" + str(nGenerations) + "/contig{part}.K" + str(K) + "_S" + str(S) + "_nGen" + str(nGenerations) + "." + bx + model + ".vcf"
-#    output: "Imputation/" + model + "_K" + str(K) + "_S" + str(S) + "_nGen" + str(nGenerations) + "/contig{part}.K" + str(K) + "_S" + str(S) + "_nGen" + str(nGenerations) + "." + bx + model + ".bcf"
-#    message: "Converting to BCF format: contig{part}" + ".K" + str(K) + "_S" + str(S) + "_nGen" + str(nGenerations) + "." + bx + "." + model
-#    shell:
-#        """
-#        bcftools convert -Ob {input} | bcftools sort --output {output}
-#        """
-#
 rule index_vcf:
     input: "Imputation/{stitchparams}/contig{part}/contig{part}.impute.vcf.gz"
     output: "Imputation/{stitchparams}/contig{part}/contig{part}.impute.vcf.gz.tbi"
@@ -127,17 +115,25 @@ rule merge_vcfs:
         idx = expand("Imputation/{{stitchparams}}/contig{part}/contig{part}.impute.vcf.gz.tbi", part = range(1, ncontigs + 1))
     output: 
         bcf = "Imputation/{stitchparams}/variants.imputed.bcf"
-    log: "Imputation/{stitchparams}/variants.imputed.stats"
+    log: 
+        stats = "Imputation/{stitchparams}/variants.imputed.stats",
+        concats = "Imputation/{stitchparams}/concat.log"
     message: "Merging VCFs: {wildcards.stitchparams}"
-    #default_target: True
     threads: 20
     shell:
         """
-        bcftools concat --threads {threads} -o {output} --output-type b {input.vcf}
-        bcftools stats {output} > {log}
+        bcftools concat --threads {threads} -o {output} --output-type b {input.vcf} 2> {log.concats}
+        bcftools stats {output} > {log.stats}
         """
 
-rule all:
+rule reports:
     input: expand("Imputation/{stitchparams}/variants.imputed.bcf", stitchparams=paramspace.instance_patterns)
+    output: "Imputation/report.html"
+    message: "Generating report: {output}"
     default_target: True
+    shell:
+        """
+        multiqc Imputation/model*useBX*/*.stats --force --quiet --no-data-dir --filename {output} 2> /dev/null
+        """
+    
 
