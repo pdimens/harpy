@@ -1,5 +1,4 @@
 import os
-import re
 from snakemake.utils import Paramspace
 import pandas as pd
 
@@ -12,12 +11,14 @@ variantfile = config["variantfile"]
 paramspace = Paramspace(pd.read_csv(config["paramfile"], sep="\t"), param_sep = "", filename_params="*")
 
 # determine number of contigs from the contig file
-def contigparts(contig_file):
-    with open(contig_file, 'r') as fp:
-        for ncontigs, line in enumerate(fp):
-            pass
-    ncontigs += 1
-    return ncontigs
+# deprecated in favor of contig names
+#def contigparts(contig_file):
+#    with open(contig_file, 'r') as fp:
+#        for ncontigs, line in enumerate(fp):
+#            pass
+#    ncontigs += 1
+#    return ncontigs
+# ncontigs = contigparts(contigfile)
 
 def contignames(contig_file):
     with open(contig_file) as f:
@@ -25,21 +26,17 @@ def contignames(contig_file):
     return lines
 
 contigs = contignames(contigfile)
-ncontigs = contigparts(contigfile)
 
 # Pull out the basename of the variant file
 if variantfile.lower().endswith(".vcf"):
-    ext = ".vcf"
+    pass
 elif variantfile.lower().endswith(".vcf.gz"):
-    ext = ".vcf.gz"
+    pass
 elif variantfile.lower().endswith(".bcf"):
-    ext = ".bcf"
+    pass
 else:
     print("ERROR: Supplied variant call file (" + variantfile + ") must end in one of [.vcf | .vcf.gz | .bcf]")
     exit(1)
-
-# lazy method (in terms of effort) to remove the extension
-variantbase = re.split(ext, os.path.basename(variantfile), flags = re.IGNORECASE)[0]
 
 rule bam_list:
     input: expand(bam_dir + "/{sample}.bam", sample = samplenames)
@@ -120,7 +117,7 @@ rule merge_vcfs:
     output: 
         bcf = "Imputation/{stitchparams}/variants.imputed.bcf"
     log: 
-        stats = "Imputation/{stitchparams}/variants.imputed.stats",
+        stats = "Imputation/{stitchparams}/{stitchparams}.stats",
         concats = "Imputation/{stitchparams}/concat.log"
     message: "Merging VCFs: {wildcards.stitchparams}"
     threads: 20
