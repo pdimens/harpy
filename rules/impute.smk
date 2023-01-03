@@ -133,7 +133,7 @@ rule merge_vcfs:
     threads: 20
     shell:
         """
-        bcftools concat --threads {threads} -o {output} --naive --output-type b {input.vcf}
+        bcftools concat --threads {threads} -o {output} --output-type b {input.vcf}
         bcftools stats {output} > {log}
         """
 
