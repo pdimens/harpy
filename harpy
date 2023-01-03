@@ -94,6 +94,7 @@ def variants(genome, threads, dir, populations, ploidy, leviathan, resume):
     if len(samplenames) < 1:
         print("ERROR: No alignment files (.bam) found in " + dir)
         sys.exit(1)
+
     # create popgroups with --populations create
     if populations.lower() == 'create':
         fout = "samples.groups"
@@ -118,28 +119,8 @@ def variants(genome, threads, dir, populations, ploidy, leviathan, resume):
         print(f"ERROR: Must provide at least 4 threads. Threads provided: {threads}")
         exit(1)
     
-    if not leviathan:
-        vcaller = "mpileup"
-        n_regions = 0
-        print('\033[1m' + f"Finding the number of contigs in {genome}", end = "...")
-        # workaround for python symlink reading
-        try:
-            fopen = open(genome, "r")
-        except:
-            fopen = open(os.readlink(genome), "r")
-        while True:
-            # Get next line from file
-            line = fopen.readline(16)
-            if line.startswith('>'):
-                n_regions += 1
-            # end of file is reached
-            if not line:
-                break
-        fopen.close()
-        print(str(n_regions) + '\033[0m')
-    else:
-        vcaller = "leviathan"
-    
+    vcaller = "mpileup" if not leviathan else "leviathan"
+
     command = ['snakemake', '--cores', f'{threads}', '--directory', '.', '--snakefile', "rules/variantcall-" + vcaller + ".smk"]
     #command.append('--report')
     #command.append('VariantCall/harpy-variants.html')
@@ -151,7 +132,6 @@ def variants(genome, threads, dir, populations, ploidy, leviathan, resume):
     command.append(f"samplenames={samplenames}")
     command.append(f"groupings={populations}")
     command.append(f"ploidy={ploidy}")
-    command.append(f"n_regions={n_regions}")
     command.append(f"genomefile={genome}")
     # debugging things
     #command.append('--dry-run')
@@ -179,6 +159,7 @@ def impute(parameters, dir, threads, vcf, resume, init, filter):
         print("Created example parameter file \'stitch.params\'")
         print("Modify the model parameters as appropriate, but " + '\033[1m' + "DO NOT" + '\033[0m' + "add/remove columns")
         exit(0)
+    
     if threads < 2:
         print(f"ERROR: Must provide at least 2 threads. Threads provided: {threads}")
         exit(1)

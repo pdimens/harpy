@@ -1,14 +1,28 @@
+import os
+
 bam_dir = config["seq_directory"]
 genomefile = config["genomefile"]
 groupings = config["groupings"]
-n_regions = config["n_regions"]
 ploidy = config["ploidy"]
 samplenames = config["samplenames"]
 
+def contignames(infile):
+    with open(infile) as f:
+        lines = [line.rstrip().split("\t")[0] for line in f]
+    return lines
+
+if not exists(genomefile + ".fai"):
+    bn = os.path.basename(genomefile)
+    print(f"{bn}.fai not found, indexing {bn} with samtools faidx")
+    subprocess.run(["samtools","faidx", genomefile])
+
+contigs = contignames(genomefile + ".fai")
+
+
 rule combine_bcfs:
     input: 
-        bcf = expand("VariantCall/mpileup/region.{part}.bcf", part = range(1, n_regions + 1)),
-        idx = expand("VariantCall/mpileup/region.{part}.bcf.csi", part = range(1, n_regions + 1))
+        bcf = expand("VariantCall/mpileup/{part}.bcf", part = contigs),
+        idx = expand("VariantCall/mpileup/{part}.bcf.csi", part = contigs)
     output: 
         bcf = "VariantCall/mpileup/variants.raw.bcf",
         idx = "VariantCall/mpileup/variants.raw.bcf.csi"
@@ -33,13 +47,23 @@ rule index_alignments:
         sambamba index {input} {output}
         """
 
+#rule split_contigs:
+#    input: genomefile + ".fai"
+#    output: temp(expand("VariantCall/mpileup/regions/{part}", part = contigs))
+#    message: "Splitting contig names for parallelization"
+#    shell:
+#        """
+#        awk '{{print > "Imputation/input/contigs/"$1}}' {input}
+#        """
+
+
 rule split_contigs:
     input: genomefile + ".fai"
-    output: temp(expand("VariantCall/mpileup/regions/region.{part}", part = range(1, n_regions + 1)))
-    message: "Separating {input} into regions for parallelization later"
+    output: temp(expand("VariantCall/mpileup/regions/{part}", part = contigs))
+    message: "Separating {input} by contig for parallelization later"
     shell:
         """
-        awk '{{x="VariantCall/mpileup/regions/region."++i;FS="\t"}}{{print $1 FS "1" FS $2 > x;}}' {input}
+        awk '{{print $1 > "VariantCall/mpileup/regions/"$1;}}' {input}
         """
 
 rule bam_list:
@@ -57,24 +81,20 @@ rule mpileup:
     input:
         bamlist = "VariantCall/mpileup/samples.list",
         genome = genomefile,
-        region = "VariantCall/mpileup/regions/region.{part}"
-    output: pipe("VariantCall/mpileup/region.{part}.mp.bcf")
-    message: "Finding variants: region.{wildcards.part}"
-    wildcard_constraints:
-        part = "[0-9]*"
+        region = "VariantCall/mpileup/regions/{part}"
+    output: pipe("VariantCall/mpileup/{part}.mp.bcf")
+    message: "Finding variants: {wildcards.part}"
     threads: 1
     shell:
         """
-        bcftools mpileup --fasta-ref {input.genome} --regions-file {input.region} --bam-list {input.bamlist} --annotate AD --output-type b > {output} 2> /dev/null
+        bcftools mpileup --fasta-ref {input.genome} --regions $(cat {input.region}) --bam-list {input.bamlist} --annotate AD --output-type b > {output} 2> /dev/null
         """
 
 rule call_genotypes:
     input: 
-        bcf = "VariantCall/mpileup/region.{part}.mp.bcf"
-    output: temp("VariantCall/mpileup/region.{part}.bcf")
-    message: "Calling genotypes: region.{wildcards.part}"
-    wildcard_constraints:
-        part = "[0-9]*"
+        bcf = "VariantCall/mpileup/{part}.mp.bcf"
+    output: temp("VariantCall/mpileup/{part}.bcf")
+    message: "Calling genotypes: {wildcards.part}"
     threads: 1
     params: 
         groupsamples = '' if groupings == 'none' else "--group-samples " + groupings,
@@ -85,11 +105,9 @@ rule call_genotypes:
         """
 
 rule index_bcf:
-    input: "VariantCall/mpileup/region.{part}.bcf"
-    output: temp("VariantCall/mpileup/region.{part}.bcf.csi")
-    message: "Indexing: region.{wildcards.part}"
-    wildcard_constraints:
-        part = "[0-9]*"
+    input: "VariantCall/mpileup/{part}.bcf"
+    output: temp("VariantCall/mpileup/{part}.bcf.csi")
+    message: "Indexing: {wildcards.part}"
     threads: 4  
     shell:
         """
