@@ -43,6 +43,7 @@ STITCH(
 )
 sink()
 
+# Remove all the extra RData files and directories
 unlink(paste(outdir, "input", sep = "/"), recursive = TRUE)
 unlink(paste(outdir, "RData", sep = "/"), recursive = TRUE)
 debugdir <- paste(outdir, "debug", sep = "/")
