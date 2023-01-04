@@ -46,16 +46,6 @@ rule index_alignments:
         sambamba index {input} {output}
         """
 
-#rule split_contigs:
-#    input: genomefile + ".fai"
-#    output: temp(expand("VariantCall/mpileup/regions/{part}", part = contigs))
-#    message: "Splitting contig names for parallelization"
-#    shell:
-#        """
-#        awk '{{print > "Imputation/input/contigs/"$1}}' {input}
-#        """
-
-
 rule split_contigs:
     input: f"{genomefile}.fai"
     output: temp(expand("VariantCall/mpileup/regions/{part}", part = contigs))
@@ -104,9 +94,11 @@ rule call_genotypes:
 rule index_bcf:
     input: "VariantCall/mpileup/{part}.bcf"
     output: temp("VariantCall/mpileup/{part}.bcf.csi")
+    log: "VariantCall/mpileup/stats/{part}.stats"
     message: "Indexing: {wildcards.part}"
     threads: 4  
     shell:
         """
         bcftools index --threads {threads} --output {output} {input}
+        bcftools stats {input} > {log}
         """
