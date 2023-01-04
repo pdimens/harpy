@@ -68,13 +68,14 @@ rule prepare_biallelic_snps:
         bcftools view -m2 -M2 -v snps --regions {wildcards.part} --output-type b {input.vcf} > {output}
         """
 
+#TODO investigate filter option
 rule STITCH_format:
     input: "Imputation/input/{part}.bisnp.bcf"
-    output: "Imputation/input/{part}.stitch"
+    output: temp("Imputation/input/{part}.stitch")
     message: "Converting biallelic data to STITCH format: {wildcards.part}"
     threads: 1
     params: 
-        filters = "-i\'QUAL>20 && DP>10\'" if config["filtervcf"] else ""
+        filters = "-i \'QUAL>20 && DP>10\'" if config["filtervcf"] else ""
     shell:
         """
         bcftools query {params} -f '%CHROM\\t%POS\\t%REF\\t%ALT\\n' {input} > {output}
