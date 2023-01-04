@@ -102,11 +102,13 @@ rule impute:
 rule index_vcf:
     input: "Imputation/{stitchparams}/{part}/impute.vcf.gz"
     output: "Imputation/{stitchparams}/{part}/impute.vcf.gz.tbi"
+    log: "Imputation/{stitchparams}/{part}/impute.stats"
     message: "Indexing: {wildcards.stitchparams}/{wildcards.part}"
     threads: 1
     shell:
         """
         tabix {input}
+        bcftools stats {input} > {log}
         """
 
 rule merge_vcfs:
