@@ -65,7 +65,7 @@ rule prepare_biallelic_snps:
     threads: 1
     shell:
         """
-        bcftools view -m2 -M2 -v snps --regions $(cat {input.contig}) --output-type b {input.vcf} > {output}
+        bcftools view -m2 -M2 -v snps --regions {wildcards.part} --output-type b {input.vcf} > {output}
         """
 
 rule STITCH_format:
@@ -74,7 +74,7 @@ rule STITCH_format:
     message: "Converting biallelic data to STITCH format: {wildcards.part}"
     threads: 1
     params: 
-        filters = "-i'QUAL>20 && DP>10'" if config["filtervcf"] else ""
+        filters = "-i\'QUAL>20 && DP>10\'" if config["filtervcf"] else ""
     shell:
         """
         bcftools query {params} -f '%CHROM\\t%POS\\t%REF\\t%ALT\\n' {input} > {output}
