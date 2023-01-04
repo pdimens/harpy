@@ -10,16 +10,6 @@ variantfile = config["variantfile"]
 # declare a dataframe to be a paramspace
 paramspace = Paramspace(pd.read_csv(config["paramfile"], sep="\t"), param_sep = "", filename_params="*")
 
-# determine number of contigs from the contig file
-# deprecated in favor of contig names
-#def contigparts(contig_file):
-#    with open(contig_file, 'r') as fp:
-#        for ncontigs, line in enumerate(fp):
-#            pass
-#    ncontigs += 1
-#    return ncontigs
-# ncontigs = contigparts(contigfile)
-
 def contignames(contig_file):
     with open(contig_file) as f:
         lines = [line.rstrip() for line in f]
@@ -40,7 +30,7 @@ else:
 
 rule bam_list:
     input: expand(bam_dir + "/{sample}.bam", sample = samplenames)
-    output: temp("Imputation/input/samples.list")
+    output: "Imputation/samples.list"
     message: "Creating list of alignment files"
     run:
         with open(output[0], "w") as fout:
@@ -83,7 +73,7 @@ rule STITCH_format:
 
 rule impute:
     input:
-        bamlist = "Imputation/input/samples.list",
+        bamlist = "Imputation/samples.list",
         infile = "Imputation/input/{part}.stitch",
         chromosome = "Imputation/input/contigs/{part}"
     output:
@@ -100,21 +90,24 @@ rule impute:
     script: "../utilities/stitch_impute.R"
 
 rule index_vcf:
-    input: "Imputation/{stitchparams}/{part}/impute.vcf.gz"
+    input: 
+        vcf = "Imputation/{stitchparams}/{part}/impute.vcf.gz",
+        samplelist = "Imputation/samples.list"
     output: "Imputation/{stitchparams}/{part}/impute.vcf.gz.tbi"
     log: "Imputation/{stitchparams}/{part}/impute.stats"
     message: "Indexing: {wildcards.stitchparams}/{wildcards.part}"
     threads: 1
     shell:
         """
-        tabix {input}
-        bcftools stats {input} > {log}
+        tabix {input.vcf}
+        bcftools stats {input.vcf} -S {input.samplelist} > {log}
         """
 
 rule merge_vcfs:
     input: 
         vcf = expand("Imputation/{{stitchparams}}/{part}/impute.vcf.gz", part = contigs),
-        idx = expand("Imputation/{{stitchparams}}/{part}/impute.vcf.gz.tbi", part = contigs)
+        idx = expand("Imputation/{{stitchparams}}/{part}/impute.vcf.gz.tbi", part = contigs),
+        samplelist = "Imputation/samples.list"
     output: 
         bcf = "Imputation/{stitchparams}/variants.imputed.bcf",
         stats = "Imputation/{stitchparams}/variants.imputed.stats"
@@ -125,7 +118,7 @@ rule merge_vcfs:
     shell:
         """
         bcftools concat --threads {threads} -o {output.bcf} --output-type b {input.vcf} 2> {log.concats}
-        bcftools stats {output} > {output.stats}
+        bcftools stats {output} -S {input.samplelist} > {output.stats}
         """
 
 rule all:

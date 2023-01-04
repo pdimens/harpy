@@ -59,7 +59,7 @@ rule bam_list:
     input: 
         bam = expand(bam_dir + "/{sample}.bam", sample = samplenames),
         bai = expand(bam_dir + "/{sample}.bam.bai", sample = samplenames)
-    output: temp("VariantCall/mpileup/samples.list")
+    output: "VariantCall/mpileup/samples.list"
     message: "Creating list of alignment files"
     run:
         with open(output[0], "w") as fout:
@@ -92,13 +92,15 @@ rule call_genotypes:
         """
 
 rule index_bcf:
-    input: "VariantCall/mpileup/{part}.bcf"
+    input: 
+        bcf = "VariantCall/mpileup/{part}.bcf",
+        samplelist = "VariantCall/mpileup/samples.list"
     output: temp("VariantCall/mpileup/{part}.bcf.csi")
     log: "VariantCall/mpileup/stats/{part}.stats"
     message: "Indexing: {wildcards.part}"
     threads: 4  
     shell:
         """
-        bcftools index --threads {threads} --output {output} {input}
-        bcftools stats {input} > {log}
+        bcftools index --threads {threads} --output {output} {input.bcf}
+        bcftools stats {input} -S {input.samplelist} > {log}
         """
