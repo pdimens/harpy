@@ -11,7 +11,7 @@ def contignames(infile):
         lines = [line.rstrip().split("\t")[0] for line in f]
     return lines
 
-if not exists(f"{genomefile}.fai"):
+if not os.path.exists(f"{genomefile}.fai"):
     bn = os.path.basename(genomefile)
     print(f"{bn}.fai not found, indexing {bn} with samtools faidx")
     subprocess.run(["samtools","faidx", genomefile])
