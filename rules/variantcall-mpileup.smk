@@ -98,7 +98,7 @@ rule call_genotypes:
         ploidy = f"--ploidy {ploidy}"
     shell:
         """
-        bcftools call --multiallelic-caller {params} --variants-only --output-type b {input.bcf} | bcftools sort - --output {output} 2> /dev/null
+        bcftools call --multiallelic-caller {params} --variants-only --output-type b {input} | bcftools sort - --output {output} 2> /dev/null
         """
 
 rule index_bcf:
