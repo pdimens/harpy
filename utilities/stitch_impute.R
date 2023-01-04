@@ -42,3 +42,11 @@ STITCH(
     output_filename         = outfile
 )
 sink()
+
+unlink(paste(outdir, "input", sep = "/"), recursive = TRUE)
+unlink(paste(outdir, "RData", sep = "/"), recursive = TRUE)
+debugdir <- paste(outdir, "debug", sep = "/")
+# remove debug if it's empty
+if (length(list.files(debugdir)) < 1){
+    unlink(debugdir, recursive = TRUE)
+}
