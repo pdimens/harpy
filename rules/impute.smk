@@ -49,13 +49,11 @@ rule bam_list:
 
 rule split_contigs:
     input: contigfile
-    output: expand("Imputation/input/contigs/{part}", part = contigs)
+    output: temp(expand("Imputation/input/contigs/{part}", part = contigs))
     message: "Splitting contig names for parallelization"
     shell:
         """
         awk '{{print > "Imputation/input/contigs/"$1}}' {input}
-        #awk '{{print $1 > Imputation/input/contigs/$1;}}' {input}
-        #awk '{{x="Imputation/contigs/contig."++i;}}{{print $1 > x;}}' {input}
         """
 
 rule prepare_biallelic_snps:
