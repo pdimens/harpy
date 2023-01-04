@@ -128,6 +128,5 @@ rule merge_vcfs:
 rule all:
     input: 
         bcf = expand("Imputation/{stitchparams}/variants.imputed.bcf", stitchparams=paramspace.instance_patterns),
-        stats = expand("Imputation/{stitchparams}/{stitchparams}.stats", stitchparams=paramspace.instance_patterns)
+        stats = expand("Imputation/{stitchparams}/variants.imputed.stats", stitchparams=paramspace.instance_patterns)
     default_target: True    
-
