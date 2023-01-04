@@ -11,7 +11,7 @@ def contignames(infile):
         lines = [line.rstrip().split("\t")[0] for line in f]
     return lines
 
-if not exists(genomefile + ".fai"):
+if not exists(f"{genomefile}.fai"):
     bn = os.path.basename(genomefile)
     print(f"{bn}.fai not found, indexing {bn} with samtools faidx")
     subprocess.run(["samtools","faidx", genomefile])
@@ -29,7 +29,7 @@ rule combine_bcfs:
     log: report("VariantCall/mpileup/variants.raw.stats")
     message: "Merging sample BCFs into: {output}"
     default_target: True
-    threads: 20
+    threads: 50
     shell:
         """
         bcftools concat --threads {threads} --output-type b --naive {input.bcf} > {output.bcf} 2> /dev/null
@@ -41,7 +41,6 @@ rule index_alignments:
     input: bam_dir + "/{sample}.bam"
     output: bam_dir + "/{sample}.bam.bai"
     message: "Indexing barcodes: {wildcards.sample}"
-    threads: 1
     shell:
         """
         sambamba index {input} {output}
@@ -58,7 +57,7 @@ rule index_alignments:
 
 
 rule split_contigs:
-    input: genomefile + ".fai"
+    input: f"{genomefile}.fai"
     output: temp(expand("VariantCall/mpileup/regions/{part}", part = contigs))
     message: "Separating {input} by contig for parallelization later"
     shell:
@@ -84,15 +83,13 @@ rule mpileup:
         region = "VariantCall/mpileup/regions/{part}"
     output: pipe("VariantCall/mpileup/{part}.mp.bcf")
     message: "Finding variants: {wildcards.part}"
-    threads: 1
     shell:
         """
         bcftools mpileup --fasta-ref {input.genome} --regions $(cat {input.region}) --bam-list {input.bamlist} --annotate AD --output-type b > {output} 2> /dev/null
         """
 
 rule call_genotypes:
-    input: 
-        bcf = "VariantCall/mpileup/{part}.mp.bcf"
+    input: "VariantCall/mpileup/{part}.mp.bcf"
     output: temp("VariantCall/mpileup/{part}.bcf")
     message: "Calling genotypes: {wildcards.part}"
     threads: 1
