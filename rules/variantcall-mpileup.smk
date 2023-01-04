@@ -85,7 +85,7 @@ rule mpileup:
     message: "Finding variants: {wildcards.part}"
     shell:
         """
-        bcftools mpileup --fasta-ref {input.genome} --regions $(cat {input.region}) --bam-list {input.bamlist} --annotate AD --output-type b > {output} 2> /dev/null
+        bcftools mpileup --fasta-ref {input.genome} --regions {wildcards.part} --bam-list {input.bamlist} --annotate AD --output-type b > {output} 2> /dev/null
         """
 
 rule call_genotypes:
