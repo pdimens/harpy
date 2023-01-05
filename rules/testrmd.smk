@@ -1,6 +1,6 @@
 rule markdown:
     input:
-        param1 = 'hello'
+        param1 = 'hello',
         param2 = 'world!'
     output:
         'markdown.html'
