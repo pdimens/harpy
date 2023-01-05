@@ -147,7 +147,7 @@ def variants(genome, threads, dir, populations, ploidy, leviathan, resume):
 @click.option('-p', '--parameters', default = 'stitch.params', required = True, show_default = True, type=click.Path(exists=True), help = 'STITCH parameter file (tab-delimited)')
 @click.option('-t', '--threads', default = 4, show_default = True, type = int, help = 'Number of threads to use')
 @click.option('-r', '--resume', is_flag=True, help="Resume an incomplete run")
-def impute(parameters, dir, threads, vcf, resume, init, filter):
+def impute(parameters, dir, threads, vcf, resume, init):
     """
     Impute genotypes from genotype likelihoods
     
