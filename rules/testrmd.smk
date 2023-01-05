@@ -1,8 +1,8 @@
 rule markdown:
-    input:
+    params:
         param1 = 'hello',
         param2 = 'world!'
     output:
         'markdown.html'
     shell:
-        "Rscript -e \"rmarkdown::render('markdown.Rmd', params=list(param1='{input.param1}', param2='{input.param2}'))\""
+        "Rscript -e \"rmarkdown::render('markdown.Rmd', params=list(param1='{params.param1}', param2='{params.param2}'))\""
