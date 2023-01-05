@@ -107,18 +107,25 @@ rule merge_vcfs:
     input: 
         vcf = expand("Imputation/{{stitchparams}}/{part}/impute.vcf.gz", part = contigs),
         idx = expand("Imputation/{{stitchparams}}/{part}/impute.vcf.gz.tbi", part = contigs),
-        samplelist = "Imputation/samples.list"
-    output: 
-        bcf = "Imputation/{stitchparams}/variants.imputed.bcf",
-        stats = "Imputation/{stitchparams}/variants.imputed.stats"
-    log: 
-        concats = "Imputation/{stitchparams}/concat.log"
+    output: "Imputation/{stitchparams}/variants.imputed.bcf"
+    log: "Imputation/{stitchparams}/concat.log"
     message: "Merging VCFs: {wildcards.stitchparams}"
     threads: 20
     shell:
         """
-        bcftools concat --threads {threads} -o {output.bcf} --output-type b {input.vcf} 2> {log.concats}
-        bcftools stats {output} -S {input.samplelist} > {output.stats}
+        bcftools concat --threads {threads} -o {output} --output-type b {input.vcf} 2> {log}
+        """
+
+rule stats:
+    input:
+        bcf = "Imputation/{stitchparams}/variants.imputed.bcf",
+        samplelist = "Imputation/samples.list"
+    output: "Imputation/{stitchparams}/variants.imputed.stats"
+    message: "Indexing and calculating stats: {wildcards.stitchparams}/variants.imputed.bcf"
+    shell:
+        """
+        bcftools index {input.bcf}
+        bcftools stats {input.bcf} -S {input.samplelist} > {output}
         """
 
 rule all:
