@@ -10,7 +10,7 @@ output:
     theme: default
     df_print: kable
     toc: yes
-    toc_depth: 3
+    toc_depth: 2
     toc_float:
       collapsed: no
       smooth_scroll: yes
@@ -25,7 +25,8 @@ library(RColorBrewer)
 #dataL <- readLines("~/checkstats.txt")
 dataL <- readLines(snakemake@input[[1]])
 ```
-This report summarizes the file: `r snakemake@input[[1]]`
+### `r snakemake@input[[1]]`
+
 ## General Information
 This reflects the general information stored in the records of the variant call file.
 ```{r General Stats, echo = FALSE, message = FALSE, warning = FALSE}
@@ -58,7 +59,7 @@ pscplot <- ggplot(data = tidy_psc, mapping = aes(x = Count, y = Sample, color = 
   theme(panel.grid.minor = element_blank(), panel.grid.major.y = element_blank())
 
 ggplotly(pscplot)
-DT::datatable(psc, rownames = F, filter = "top", extensions = 'Buttons', options = list(dom = 'Brtip', buttons = c('csv', 'pdf')))
+DT::datatable(psc, rownames = F, filter = "top", extensions = 'Buttons', options = list(dom = 'Brtip', buttons = c('csv', 'pdf'), scrollX = TRUE))
 ```
 
 ## Locus Statistics
