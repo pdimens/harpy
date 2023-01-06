@@ -25,7 +25,7 @@ library(RColorBrewer)
 #dataL <- readLines("~/checkstats.txt")
 dataL <- readLines(snakemake@input[[1]])
 ```
-### `r snakemake@input[[1]]`
+### File: `r snakemake@input[[1]]`
 
 ## General Information
 This reflects the general information stored in the records of the variant call file.
@@ -40,7 +40,7 @@ sn[2]
 
 
 ## Individual Statistics
-These statistics correspond to the `r sn$Number[1]` samples in the variant call file.
+These statistics correspond to the `r sn$Number[1]` samples in `r snakemake@input[[1]]`.
 ```{r Individual Stats, echo=FALSE, message=FALSE, warning=FALSE, paged.print=TRUE}
 .pscL <- grepl("^PSC", dataL)
 psc <- read.table(text=dataL[.pscL])[ ,3:14]
@@ -81,7 +81,7 @@ DT::datatable(dp, rownames = F, filter = "top", extensions = 'Buttons', options 
 ```
 
 ## Insertions and Deletions
-
+Below is a distribution of insertions and deletions based on length and frequency.
 ```{r Indel Stats, echo=FALSE, message=FALSE, warning=FALSE, paged.print=TRUE}
 .iddL <- grepl("^IDD", dataL)
 idd <- read.table(text=dataL[.iddL])[ ,3:4]
