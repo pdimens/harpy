@@ -24,11 +24,12 @@ library(plotly)
 library(RColorBrewer)
 #dataL <- readLines("~/checkstats.txt")
 dataL <- readLines(snakemake@input[[1]])
+bcf <- gsub(".stats$", ".bcf", snakemake@input[[1]])
 ```
-### File: `r snakemake@input[[1]]`
+### File: `r bcf`
 
 ## General Information
-This reflects the general information stored in the records of the variant call file.
+This reflects the general information stored in the records of `r bcf`.
 ```{r General Stats, echo = FALSE, message = FALSE, warning = FALSE}
 .snL <- grepl("^SN", dataL)
 sn <- read.table(text=dataL[.snL], sep = "\t")[,3:4]
@@ -40,7 +41,7 @@ sn[2]
 
 
 ## Individual Statistics
-These statistics correspond to the `r sn$Number[1]` samples in `r snakemake@input[[1]]`.
+These statistics correspond to the `r sn$Number[1]` samples in `r bcf`.
 ```{r Individual Stats, echo=FALSE, message=FALSE, warning=FALSE, paged.print=TRUE}
 .pscL <- grepl("^PSC", dataL)
 psc <- read.table(text=dataL[.pscL])[ ,3:14]
