@@ -1,6 +1,5 @@
 ---
 title: "BCFtools Stats Report"
-subtitle: "`r paste0('file: ', snakemake@input[[1]])`"
 author:
     - "Created using HARPY"
 date: "`r format(Sys.time(), '%d %B, %Y')`"
@@ -26,6 +25,7 @@ library(RColorBrewer)
 #dataL <- readLines("~/checkstats.txt")
 dataL <- readLines(snakemake@input[[1]])
 ```
+This report summarizes the file: `r snakemake@input[[1]]`
 ## General Information
 This reflects the general information stored in the records of the variant call file.
 ```{r General Stats, echo = FALSE, message = FALSE, warning = FALSE}
