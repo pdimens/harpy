@@ -21,12 +21,12 @@ contigs = contignames(genomefile + ".fai")
 
 rule combine_bcfs:
     input: 
-        bcf = expand("VariantCall/mpileup/{part}.bcf", part = contigs),
-        idx = expand("VariantCall/mpileup/{part}.bcf.csi", part = contigs)
+        bcf = expand("Variants/mpileup/{part}.bcf", part = contigs),
+        idx = expand("Variants/mpileup/{part}.bcf.csi", part = contigs)
     output: 
-        bcf = "VariantCall/mpileup/variants.raw.bcf",
-        idx = "VariantCall/mpileup/variants.raw.bcf.csi"
-    log: report("VariantCall/mpileup/variants.raw.stats")
+        bcf = "Variants/mpileup/variants.raw.bcf",
+        idx = "Variants/mpileup/variants.raw.bcf.csi"
+    log: report("Variants/mpileup/variants.raw.stats")
     message: "Merging sample BCFs into: {output}"
     default_target: True
     threads: 50
@@ -48,18 +48,18 @@ rule index_alignments:
 
 rule split_contigs:
     input: f"{genomefile}.fai"
-    output: temp(expand("VariantCall/mpileup/regions/{part}", part = contigs))
+    output: temp(expand("Variants/mpileup/regions/{part}", part = contigs))
     message: "Separating {input} by contig for parallelization later"
     shell:
         """
-        awk '{{print $1 > "VariantCall/mpileup/regions/"$1;}}' {input}
+        awk '{{print $1 > "Variants/mpileup/regions/"$1;}}' {input}
         """
 
 rule bam_list:
     input: 
         bam = expand(bam_dir + "/{sample}.bam", sample = samplenames),
         bai = expand(bam_dir + "/{sample}.bam.bai", sample = samplenames)
-    output: "VariantCall/mpileup/samples.list"
+    output: "Variants/mpileup/samples.list"
     message: "Creating list of alignment files"
     run:
         with open(output[0], "w") as fout:
@@ -68,10 +68,10 @@ rule bam_list:
 
 rule mpileup:
     input:
-        bamlist = "VariantCall/mpileup/samples.list",
+        bamlist = "Variants/mpileup/samples.list",
         genome = genomefile,
-        region = "VariantCall/mpileup/regions/{part}"
-    output: pipe("VariantCall/mpileup/{part}.mp.bcf")
+        region = "Variants/mpileup/regions/{part}"
+    output: pipe("Variants/mpileup/{part}.mp.bcf")
     message: "Finding variants: {wildcards.part}"
     shell:
         """
@@ -79,8 +79,8 @@ rule mpileup:
         """
 
 rule call_genotypes:
-    input: "VariantCall/mpileup/{part}.mp.bcf"
-    output: temp("VariantCall/mpileup/{part}.bcf")
+    input: "Variants/mpileup/{part}.mp.bcf"
+    output: temp("Variants/mpileup/{part}.bcf")
     message: "Calling genotypes: {wildcards.part}"
     threads: 1
     params: 
@@ -93,10 +93,10 @@ rule call_genotypes:
 
 rule index_bcf:
     input: 
-        bcf = "VariantCall/mpileup/{part}.bcf",
-        samplelist = "VariantCall/mpileup/samples.list"
-    output: temp("VariantCall/mpileup/{part}.bcf.csi")
-    log: "VariantCall/mpileup/stats/{part}.stats"
+        bcf = "Variants/mpileup/{part}.bcf",
+        samplelist = "Variants/mpileup/samples.list"
+    output: temp("Variants/mpileup/{part}.bcf.csi")
+    log: "Variants/mpileup/stats/{part}.stats"
     message: "Indexing: {wildcards.part}"
     threads: 4  
     shell:
