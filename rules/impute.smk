@@ -97,10 +97,11 @@ rule index_vcf:
     log: "Imputation/{stitchparams}/{part}/impute.stats"
     message: "Indexing: {wildcards.stitchparams}/{wildcards.part}"
     threads: 1
+    params: ",".join(samplenames)
     shell:
         """
         tabix {input.vcf}
-        bcftools stats {input.vcf} -S {input.samplelist} > {log}
+        bcftools stats {input.vcf} -s {params} > {log}
         """
 
 rule merge_vcfs:
