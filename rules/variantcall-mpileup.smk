@@ -18,25 +18,6 @@ if not os.path.exists(f"{genomefile}.fai"):
 
 contigs = contignames(genomefile + ".fai")
 
-
-rule combine_bcfs:
-    input: 
-        bcf = expand("Variants/mpileup/{part}.bcf", part = contigs),
-        idx = expand("Variants/mpileup/{part}.bcf.csi", part = contigs)
-    output: 
-        bcf = "Variants/mpileup/variants.raw.bcf",
-        idx = "Variants/mpileup/variants.raw.bcf.csi"
-    log: report("Variants/mpileup/variants.raw.stats")
-    message: "Merging sample BCFs into: {output}"
-    default_target: True
-    threads: 50
-    shell:
-        """
-        bcftools concat --threads {threads} --output-type b --naive {input.bcf} > {output.bcf} 2> /dev/null
-        bcftools index --output {output.idx} {output.bcf}
-        bcftools stats {output.bcf} > {log}
-        """
-
 rule index_alignments:
     input: bam_dir + "/{sample}.bam"
     output: bam_dir + "/{sample}.bam.bai"
@@ -104,3 +85,33 @@ rule index_bcf:
         bcftools index --threads {threads} --output {output} {input.bcf}
         bcftools stats {input} -S {input.samplelist} > {log}
         """
+
+rule combine_bcfs:
+    input: 
+        bcf = expand("Variants/mpileup/{part}.bcf", part = contigs),
+        idx = expand("Variants/mpileup/{part}.bcf.csi", part = contigs)
+    output: 
+        bcf = "Variants/mpileup/variants.raw.bcf",
+        idx = "Variants/mpileup/variants.raw.bcf.csi",
+        stats = "Variants/mpileup/variants.raw.stats"
+    message: "Merging sample BCFs into: {output}"
+    threads: 50
+    shell:
+        """
+        bcftools concat --threads {threads} --output-type b --naive {input.bcf} > {output.bcf} 2> /dev/null
+        bcftools index --output {output.idx} {output.bcf}
+        bcftools stats {output.bcf} > {output.stats}
+        """
+
+rule bcfreport:
+    input: "Variants/mpileup/variants.raw.stats"
+    output: "Variants/mpileup/variants.raw.html"
+    message: "Generating bcftools report: {output}"
+    script: "../utilities/bcftoolsreport.Rmd"
+
+
+rule all:
+    input: 
+        bcf = "Variants/mpileup/variants.raw.bcf",
+        report = "Variants/mpileup/variants.raw.html"
+    default_target: True

@@ -129,8 +129,14 @@ rule stats:
         bcftools stats {input.bcf} -S {input.samplelist} > {output}
         """
 
+rule reports:
+    input: "Imputation/{stitchparams}/variants.imputed.stats"
+    output: "Imputation/{stitchparams}/variants.imputed.html"
+    message: "Generating bcftools report: {output}"
+    script: "../utilities/bcftoolsreport.Rmd"
+
 rule all:
     input: 
         bcf = expand("Imputation/{stitchparams}/variants.imputed.bcf", stitchparams=paramspace.instance_patterns),
-        stats = expand("Imputation/{stitchparams}/variants.imputed.stats", stitchparams=paramspace.instance_patterns)
+        reports = expand("Imputation/{stitchparams}/variants.imputed.html", stitchparams=paramspace.instance_patterns)
     default_target: True    
