@@ -98,6 +98,7 @@ iddplot <- ggplot(data = idd, mapping = aes(x = Length, y = Count,  color = Type
   ylab("number of sites") +
   theme_minimal()
 
-ggplotly(iddplot)
+iddplot
+#ggplotly(iddplot)
 ```
 
