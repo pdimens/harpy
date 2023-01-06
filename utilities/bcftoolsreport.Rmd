@@ -22,8 +22,8 @@ library(tidyr)
 library(DT)
 library(plotly)
 library(RColorBrewer)
-dataL <- readLines("~/checkstats.txt")
-#dataL <- readLines(snakemake@input[[1]])
+#dataL <- readLines("~/checkstats.txt")
+dataL <- readLines(snakemake@input[[1]])
 ```
 This report summarizes the file: `r snakemake@input[[1]]`
 ## General Information
