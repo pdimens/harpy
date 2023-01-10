@@ -20,11 +20,6 @@ def vcfcheck(vcf):
         print(f"ERROR: Supplied variant call file ({vcf}) must end in one of [.vcf | .vcf.gz | .bcf]")
         exit(1)
 
-def threadscheck(tmin, tprovided):
-    if tprovided < tmin:
-        print(f"ERROR: Must provide at least {tmin} threads. Threads provided: {tprovided}")
-        exit(1)
-
 def getnames(dir, ext):
     samplenames = set([i.split(ext)[0] for i in os.listdir(dir) if i.endswith(ext)])
     if len(samplenames) < 1:
@@ -37,7 +32,9 @@ def getnames(dir, ext):
 @click.group()
 def cli():
     """
-    HARPY Haplotagging data processing pipeline.
+    ## Haplotagging Research Pipeline (HARPY)
+
+    ### version: 0.1
     
     The pipeline trims reads, map sequences, calls variants, imputes genotypes, and phases haplotypes. 
     
@@ -56,29 +53,23 @@ def trim(config, dir):
 @click.command()
 @click.option('-g', '--genome', type=click.Path(exists=True), required = True, help = 'Genome assembly for read mapping')
 @click.option('-d', '--dir', required = True, type=click.Path(exists=True), help = 'Directory with sample sequences')
-@click.option('-e', '--ema-bins', default = 500, show_default = True, type = int, help="Number of barcode bins for EMA")
+@click.option('-e', '--ema-bins', default = 500, show_default = True, type = click.IntRange(1,1000), help="Number of barcode bins for EMA")
 @click.option('-b', '--bwa', is_flag=True, help="Use BWA MEM instead of EMA (ignores bardcodes)")
-@click.option('-t', '--threads', default = 4, show_default = True, type = int, help = 'Number of threads to use')
+@click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(min = 4, max_open = True), help = 'Number of threads to use')
 @click.option('-r', '--resume', is_flag=True, help="Resume an incomplete run")
 def align(genome, threads, bwa, dir, resume, ema_bins):
     """
     Align sample sequences to a reference genome
     """
-    threadscheck(4, threads)
-
     fastqlist = [i for i in os.listdir(dir) if i.endswith('.fastq.gz')]
     fqext = "fq.gz" if not fastqlist else "fastq.gz"
     Rlist = [i for i in os.listdir(dir) if i.endswith('.R1.' + fqext)]
     Rsep = "_R" if not Rlist else ".R"
     fullext = Rsep + "1." + fqext
     samplenames = getnames(dir, fullext)
-    
     mapper = "ema" if not bwa else "bwa"
     command = ['snakemake', '--cores', f'{threads}', '--directory', '.', '--snakefile', "rules/map-" + mapper + ".smk"]
-    #command.append('--report')
-    #command.append('harpy-align.html')
-    #command.append('--report-stylesheet')
-    #command.append('misc/harpy.css')
+
     if resume:
         command.append('--rerun-incomplete')
     command.append('--config')
@@ -98,9 +89,9 @@ def align(genome, threads, bwa, dir, resume, ema_bins):
 @click.option('-g', '--genome', type=click.Path(exists=True), required = True, help = 'Genome assembly for variant calling')
 @click.option('-d', '--dir', required = True, type=click.Path(exists=True), help = 'Directory with sequence alignments')
 @click.option('-p', '--populations', default = 'none', show_default = True, type=str, help = 'Tab-delimited file of sample<tab>population')
-@click.option('-x', '--ploidy', default = 2, show_default = True, type=int, help = 'Ploidy of samples')
+@click.option('-x', '--ploidy', default = 2, show_default = True, type=click.IntRange(1,12), help = 'Ploidy of samples')
 @click.option('-l', '--leviathan', is_flag=True, help="Call variants with Leviathan instead of bcftools")
-@click.option('-t', '--threads', default = 4, show_default = True, type = int, help = 'Number of threads to use')
+@click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(min = 4, max_open = True), help = 'Number of threads to use')
 @click.option('-r', '--resume', is_flag=True, help="Resume an incomplete run")
 def variants(genome, threads, dir, populations, ploidy, leviathan, resume):
     """
@@ -130,7 +121,6 @@ def variants(genome, threads, dir, populations, ploidy, leviathan, resume):
             print("ERROR: sample populations file " + populations + " not found.")
             sys.exit(1)
     
-    threadscheck(4, threads)
     vcaller = "mpileup" if not leviathan else "leviathan"
     command = ['snakemake', '--cores', f'{threads}', '--directory', '.', '--snakefile', "rules/variantcall-" + vcaller + ".smk"]
     #command.append('--report')
@@ -156,7 +146,7 @@ def variants(genome, threads, dir, populations, ploidy, leviathan, resume):
 @click.option('-v', '--vcf', required = True, type=click.Path(exists=True), help = 'Path to BCF/VCF file')
 @click.option('-d', '--dir', required = True, type=click.Path(exists=True), help = 'Directory with sequence alignments (*.bam)')
 @click.option('-p', '--parameters', default = 'stitch.params', required = True, show_default = True, type=click.Path(exists=True), help = 'STITCH parameter file (tab-delimited)')
-@click.option('-t', '--threads', default = 4, show_default = True, type = int, help = 'Number of threads to use')
+@click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(min = 4, max_open = True), help = 'Number of threads to use')
 @click.option('-r', '--resume', is_flag=True, help="Resume an incomplete run")
 def impute(parameters, dir, threads, vcf, resume, init):
     """
@@ -171,7 +161,6 @@ def impute(parameters, dir, threads, vcf, resume, init):
         print("Modify the model parameters as appropriate, but " + '\033[1m' + "DO NOT" + '\033[0m' + "add/remove columns")
         exit(0)
     
-    threadscheck(2, threads)
     vcfcheck(vcf)
     samplenames = getnames(dir, '.bam')
     
@@ -202,13 +191,14 @@ def impute(parameters, dir, threads, vcf, resume, init):
 @click.command()
 @click.option('-v', '--vcf', required = True, type=click.Path(exists=True), help = 'Path to BCF/VCF file')
 @click.option('-d', '--dir', required = True, type=click.Path(exists=True), help = 'Directory with sequence alignments (*.bam)')
-@click.option('-t', '--threads', default = 4, show_default = True, type = int, help = 'Number of threads to use')
+@click.option('-m', '--molecule-distance', default = 20000, show_default = True, type = int, help = 'Base-pair distance delineating separate molecules')
+@click.option('-p', '--prune-threshold', default = 7, show_default = True, type = click.IntRange(0,100), help = 'PHRED SCALED threshold for pruning low-confidence SNPs (larger prunes more.)')
+@click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(min = 2, max_open = True), help = 'Number of threads to use')
 @click.option('-r', '--resume', is_flag=True, help="Resume an incomplete run")
-def phase(vcf, dir, threads, resume):
+def phase(vcf, dir, threads, molecule_distance, prune_threshold, resume):
     """
     Phase SNPs into haplotypes    
     """
-    threadscheck(2, threads)
     if vcf.lower().endswith(".vcf.gz"):
         print(f"ERROR: HapCut2 does not accept .vcf.gz file format. Please convert to .vcf or .bcf")
         exit(1)
@@ -222,6 +212,7 @@ def phase(vcf, dir, threads, resume):
     command.append(f"seq_directory={dir}")
     command.append(f"samplenames={samplenames}")
     command.append(f"variantfile={vcf}")
+    command.append(f"molecule_distance={molecule_distance}")
     subprocess.run(command)
 
 

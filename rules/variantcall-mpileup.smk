@@ -31,10 +31,13 @@ rule split_contigs:
     input: f"{genomefile}.fai"
     output: temp(expand("Variants/mpileup/regions/{part}", part = contigs))
     message: "Separating {input} by contig for parallelization later"
-    shell:
-        """
-        awk '{{print $1 > "Variants/mpileup/regions/"$1;}}' {input}
-        """
+    run:
+        with open(input[0]) as f:
+            cpath = "Variants/mpileup/regions"
+            for line in f:
+                contig = line.rstrip().split("\t")[0]
+                with open(f"{cpath}/{contig}", "w") as fout:
+                    gremlin = fout.write(f"{contig}\n")
 
 rule bam_list:
     input: 

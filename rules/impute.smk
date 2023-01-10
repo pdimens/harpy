@@ -32,9 +32,10 @@ rule split_contigs:
     message: "Splitting contig names for parallelization"
     run:
         with open(input[0]) as f:
+            cpath = "Imputation/input/contigs"
             for line in f:
                 contig = line.rstrip()
-                with open(f"Imputation/input/contigs/{contig}", "w") as fout:
+                with open(f"{cpath}/{contig}", "w") as fout:
                     gremlin = fout.write(f"{contig}\n")
 
 rule prepare_biallelic_snps:

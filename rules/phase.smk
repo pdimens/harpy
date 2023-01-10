@@ -4,6 +4,7 @@ import re
 bam_dir = config["seq_directory"]
 samplenames = config["samplenames"]
 variantfile = config["variantfile"]
+molecule_distance = config["molecule_distance"]
 
 rule splitbysamplehet:
     input: 
@@ -41,7 +42,7 @@ rule extractHairs:
     shell:
         """
         extractHAIRS --10X 1 --nf 1 --bam {input.bam} --VCF {input.vcf} --out {output}
-        """    
+        """
 
 rule linkFragments:
     input: 
@@ -50,7 +51,7 @@ rule linkFragments:
         fragments = "Phasing/extractHairs/{sample}.unlinked.frags"
     output: "Phasing/linkFragments/{sample}.linked.frags"
     message: "Linking fragments: {wildcards.sample}"
-    params: d = 50000
+    params: d = molecule_distance
     shell:
         """
         LinkFragments.py  --bam {input.bam} --VCF {input.vcf} --fragments {input.fragments} --out {output} -d {params}
@@ -64,10 +65,11 @@ rule phaseBlocks:
         blocks = "Phasing/phaseBlocks/{sample}.blocks",
         vcf = "Phasing/phaseBlocks/{sample}.blocks.phased.vcf"
     message: "Creating phased haplotype blocks: {wildcards.sample}"
+    params: f"--threshold {pruning}" if pruning > 0 else "--no_prune 1" 
     threads: 1
     shell:
         """
-        HAPCUT2 --fragments {input.fragments} --vcf {input.vcf} --out {output.blocks} --nf 1 --threshold 30 --error_analysis_mode 1 --call_homozygous 1 --outvcf 1
+        HAPCUT2 --fragments {input.fragments} --vcf {input.vcf} --out {output.blocks} --nf 1 {params} --error_analysis_mode 1 --call_homozygous 1 --outvcf 1
         """
 
 rule createAnnotations:
