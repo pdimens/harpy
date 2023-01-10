@@ -31,11 +31,6 @@ rule splitbysample:
         awk '/^#/;/CHROM/ {{OFS="\\t"}}; !/^#/ &&  $10~/^0\/0/ {{$10="0|0:"substr($10,5);print $0}}; !/^#/ && $10~/^0\/1/; !/^#/ &&  $10~/^1\/1/ {{$10="1|1:"substr($10,5);print $0}}; !/^#/ {{print $0}}' > {output}
         """
 
-
-#rule names:
-#    input: expand("Phasing/input/{sample}.bcf", sample = samplenames)
-#    output: 
-
 rule extractHairs:
     input:
         vcf = "Phasing/input/{sample}.het.bcf",
@@ -60,7 +55,6 @@ rule linkFragments:
         """
         LinkFragments.py  --bam {input.bam} --VCF {input.vcf} --fragments {input.fragments} --out {output} -d {params};
         """
-
 
 rule phaseBlocks:
     input:
@@ -104,6 +98,15 @@ rule mergeAnnotations:
     message: "Merging annotations: {wildcards.sample}"
     shell:
         """
-        bcftools annotate -h add.hdr -a {input} -c CHROM,POS,FMT/GX,FMT/PS,FMT/PQ,FMT/PD -m +HAPCUT=1 |  awk '!/<ID=GX/' | sed 's/:GX:/:GT:/' | bcftools view - -o {output.bcf}; 
+        bcftools annotate -h add.hdr -a {input} -c CHROM,POS,FMT/GX,FMT/PS,FMT/PQ,FMT/PD -m +HAPCUT=1 |  awk '!/<ID=GX/' | sed 's/:GX:/:GT:/' | bcftools view - -o {output.bcf}
         bcftools index {output.bcf}
         """
+
+rule mergeSamples:
+    input:
+        bcf = expand("Phasing/output/{sample}.phased.{ext}", sample = samplenames, ext = ["bcf", "bcf.csi"])
+    output: "Phasing/output/variants.phased.bcf"
+    default_target: True
+    message: "Combinging samples into a single BCF file"
+    threads: 30
+    shell: "bcftools merge --threads {threads} --output-type b {input} > {output}"
