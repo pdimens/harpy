@@ -17,17 +17,6 @@ def contignames(contig_file):
 
 contigs = contignames(contigfile)
 
-# Pull out the basename of the variant file
-if variantfile.lower().endswith(".vcf"):
-    pass
-elif variantfile.lower().endswith(".vcf.gz"):
-    pass
-elif variantfile.lower().endswith(".bcf"):
-    pass
-else:
-    print(f"ERROR: Supplied variant call file ({variantfile}) must end in one of [.vcf | .vcf.gz | .bcf]")
-    exit(1)
-
 rule bam_list:
     input: expand(bam_dir + "/{sample}.bam", sample = samplenames)
     output: "Imputation/samples.list"
