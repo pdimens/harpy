@@ -36,7 +36,8 @@ def cli():
 
     ### version: 0.1
     
-    The pipeline trims reads, map sequences, calls variants, imputes genotypes, and phases haplotypes. 
+    The pipeline trims reads, map sequences, calls variants, imputes genotypes,
+    and phases haplotypes of Haplotagging data. 
     
     **trim 🡒 align 🡒 variants 🡒 impute 🡒 phase**
     
