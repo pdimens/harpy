@@ -25,7 +25,7 @@ elif variantfile.lower().endswith(".vcf.gz"):
 elif variantfile.lower().endswith(".bcf"):
     pass
 else:
-    print("ERROR: Supplied variant call file (" + variantfile + ") must end in one of [.vcf | .vcf.gz | .bcf]")
+    print(f"ERROR: Supplied variant call file ({variantfile}) must end in one of [.vcf | .vcf.gz | .bcf]")
     exit(1)
 
 rule bam_list:
@@ -35,16 +35,18 @@ rule bam_list:
     run:
         with open(output[0], "w") as fout:
             for bamfile in input:
-                fout.write(bamfile + "\n")
+                fout.write(f"{bamfile}\n")
 
 rule split_contigs:
     input: contigfile
     output: temp(expand("Imputation/input/contigs/{part}", part = contigs))
     message: "Splitting contig names for parallelization"
-    shell:
-        """
-        awk '{{print > "Imputation/input/contigs/"$1}}' {input}
-        """
+    run:
+        with open(input[0]) as f:
+            for line in f:
+                contig = line.rstrip()
+                with open(f"Imputation/input/contigs/{contig}", "w") as fout:
+                    gremlin = fout.write(f"{contig}\n")
 
 rule prepare_biallelic_snps:
     input: 
@@ -90,7 +92,7 @@ rule impute:
     script: "../utilities/stitch_impute.R"
 
 rule index_vcf:
-    input: 
+    input:
         vcf = "Imputation/{stitchparams}/{part}/impute.vcf.gz",
         samplelist = "Imputation/samples.list"
     output: "Imputation/{stitchparams}/{part}/impute.vcf.gz.tbi"
@@ -119,14 +121,14 @@ rule merge_vcfs:
 
 rule stats:
     input:
-        bcf = "Imputation/{stitchparams}/variants.imputed.bcf",
-        samplelist = "Imputation/samples.list"
+        bcf = "Imputation/{stitchparams}/variants.imputed.bcf"
     output: "Imputation/{stitchparams}/variants.imputed.stats"
+    params: ",".join(samplenames)
     message: "Indexing and calculating stats: {wildcards.stitchparams}/variants.imputed.bcf"
     shell:
         """
         bcftools index {input.bcf}
-        bcftools stats {input.bcf} -S {input.samplelist} > {output}
+        bcftools stats {input.bcf} -s {params} > {output}
         """
 
 rule reports:
