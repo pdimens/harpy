@@ -5,20 +5,6 @@ bam_dir = config["seq_directory"]
 samplenames = config["samplenames"]
 variantfile = config["variantfile"]
 
-# Pull out the basename of the variant file
-if variantfile.lower().endswith(".vcf"):
-    ext = ".vcf"
-elif variantfile.lower().endswith(".vcf.gz"):
-    ext = ".vcf.gz"
-elif variantfile.lower().endswith(".bcf"):
-    ext = ".bcf"
-else:
-    print("ERROR: Supplied variant call file (" + variantfile + ") must end in one of [.vcf | .vcf.gz | .bcf]")
-    exit(1)
-
-# lazy method (in terms of effort) to remove the extension
-variantbase = re.split(ext, os.path.basename(variantfile), flags = re.IGNORECASE)[0]
-
 rule splitbysamplehet:
     input: 
         vcf = variantfile,
