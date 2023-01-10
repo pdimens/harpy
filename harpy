@@ -9,7 +9,7 @@ import rich_click as click
 click.rich_click.USE_MARKDOWN = True
 click.rich_click.SHOW_ARGUMENTS = True
 click.rich_click.ERRORS_SUGGESTION = "Try the '--help' flag for more information."
-click.rich_click.ERRORS_EPILOGUE = "Usage information can be found in the docs [link=https://harpy.github.io]https://harpy.github.io[/link]"
+click.rich_click.ERRORS_EPILOGUE = "Usage information can be found in the docs [link=https://pdimens.github.io/HARPY/#/]https://pdimens.github.io/HARPY/#/[/link]"
 
 ## recurring checks and such ##
 def vcfcheck(vcf):
