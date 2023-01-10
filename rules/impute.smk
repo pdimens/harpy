@@ -39,7 +39,7 @@ rule bam_list:
 
 rule split_contigs:
     input: contigfile
-    output: temp(expand("Imputation/input/contigs/{part}", part = contigs))
+    output: expand("Imputation/input/contigs/{part}", part = contigs)
     message: "Splitting contig names for parallelization"
     run:
         with open(input[0]) as f:
@@ -63,7 +63,7 @@ rule prepare_biallelic_snps:
 #TODO investigate filter option
 rule STITCH_format:
     input: "Imputation/input/{part}.bisnp.bcf"
-    output: temp("Imputation/input/{part}.stitch")
+    output: "Imputation/input/{part}.stitch"
     message: "Converting biallelic data to STITCH format: {wildcards.part}"
     threads: 1
     params: 
