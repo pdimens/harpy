@@ -28,7 +28,7 @@ rule splitbysample:
     shell:
         """
         bcftools view -s {wildcards.sample} -i 'INFO/INFO_SCORE >= 0.2' {input.vcf} |\\
-        awk '/^#/;/CHROM/ {{OFS="\\t"}}; !/^#/ &&  $10~/^0\/0/ {{$10="0|0:"substr($10,5);print $0}}; !/^#/ && $10~/^0\/1/; !/^#/ &&  $10~/^1\/1/ {{$10="1|1:"substr($10,5);print $0}}; !/^#/ {{print $0}}' > {output}
+        awk '/^#/;/CHROM/ {{OFS="\\t"}}; !/^#/ &&  $10~/^0\\/0/ {{$10="0|0:"substr($10,5);print $0}}; !/^#/ && $10~/^0\\/1/; !/^#/ &&  $10~/^1\\/1/ {{$10="1|1:"substr($10,5);print $0}}; !/^#/ {{print $0}}' > {output}
         """
 
 rule extractHairs:
@@ -53,7 +53,7 @@ rule linkFragments:
     params: d = 50000
     shell:
         """
-        LinkFragments.py  --bam {input.bam} --VCF {input.vcf} --fragments {input.fragments} --out {output} -d {params};
+        LinkFragments.py  --bam {input.bam} --VCF {input.vcf} --fragments {input.fragments} --out {output} -d {params}
         """
 
 rule phaseBlocks:
@@ -72,20 +72,20 @@ rule phaseBlocks:
 
 rule createAnnotations:
     input: "Phasing/phaseBlocks/{sample}.blocks.phased.vcf"
-    output: "Phasing/annotations/{sample}.annot.vcf.gz"
+    output: "Phasing/annotations/{sample}.annot.bcf"
     message: "Creating annotation files: {wildcards.sample}"
     shell:
         """
-        bcftools query -f "%CHROM\\t%POS[\\t%GT\\t%PS\\t%PQ\\t%PD]\\n" {input} | bgzip -c > {output}
+        bcftools query -f "%CHROM\\t%POS[\\t%GT\\t%PS\\t%PQ\\t%PD]\\n" --output-type b {input} > {output}
         """
 
 rule indexAnnotations:
-    input: "Phasing/annotations/{sample}.annot.vcf.gz"
-    output: "Phasing/annotations/{sample}.annot.vcf.gz.tbi"
-    message: "Indexing {wildcards.sample}.annot.vcf.gz"
+    input: "Phasing/annotations/{sample}.annot.bcf"
+    output: "Phasing/annotations/{sample}.annot.bcf.csi"
+    message: "Indexing {wildcards.sample}.annot.bcf"
     shell:
         """
-        tabix -b 2 -e 2 {input}     
+        bcftools index {input}     
         """
 
 rule mergeAnnotations:
