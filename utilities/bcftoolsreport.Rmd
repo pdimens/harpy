@@ -67,18 +67,22 @@ DT::datatable(psc, rownames = F, filter = "top", extensions = 'Buttons', options
 These are per-locus statistics, which correspond to the Depth (`DP`) calculations of `bcftools stats`
 ```{r Locus Stats, echo=FALSE, message=FALSE, warning=FALSE, paged.print=TRUE}
 .dpL <- grepl("^DP", dataL)
-dp <- read.table(text=dataL[.dpL])[ ,3:7]
-names(dp) <- c("Bin", "Genotypes", "PercentGenotypes", "NumberSites", "PercentSites")
-dpplot <- ggplot(data = dp, mapping = aes(x = Bin, y = NumberSites)) +
-  geom_bar(stat = "identity", color = "indianred", fill = "indianred") +
-  scale_y_continuous(n.breaks=10) +
-  labs(title = "Depth per Site") +
-  ylab("Number of Sites") +
-  theme_minimal() +
-  theme(panel.grid.minor.y = element_blank())
+if length(.dpL) < 1{
+  cat(paste0("No DP section in", snakemake@input[[1]], " found\n")
+} else {
+  dp <- read.table(text=dataL[.dpL])[ ,3:7]
+  names(dp) <- c("Bin", "Genotypes", "PercentGenotypes", "NumberSites", "PercentSites")
+  dpplot <- ggplot(data = dp, mapping = aes(x = Bin, y = NumberSites)) +
+    geom_bar(stat = "identity", color = "indianred", fill = "indianred") +
+    scale_y_continuous(n.breaks=10) +
+    labs(title = "Depth per Site") +
+    ylab("Number of Sites") +
+    theme_minimal() +
+    theme(panel.grid.minor.y = element_blank())
 
-ggplotly(dpplot)
-DT::datatable(dp, rownames = F, filter = "top", extensions = 'Buttons', options = list(dom = 'Brtip', buttons = c('csv', 'pdf')))
+  ggplotly(dpplot)
+  DT::datatable(dp, rownames = F, filter = "top", extensions = 'Buttons', options = list(dom = 'Brtip', buttons = c('csv', 'pdf')))
+}
 ```
 
 ## Insertions and Deletions
