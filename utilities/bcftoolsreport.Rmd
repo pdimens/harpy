@@ -68,7 +68,7 @@ These are per-locus statistics, which correspond to the Depth (`DP`) calculation
 ```{r Locus Stats, echo=FALSE, message=FALSE, warning=FALSE, paged.print=TRUE}
 .dpL <- grepl("^DP", dataL)
 if(length(.dpL) < 1){
-  cat(paste0("No DP section in", snakemake@input[[1]], " found\n")
+  cat(paste0("No DP section in", snakemake@input[[1]], " found\n"))
 } else {
   dp <- read.table(text=dataL[.dpL])[ ,3:7]
   names(dp) <- c("Bin", "Genotypes", "PercentGenotypes", "NumberSites", "PercentSites")
