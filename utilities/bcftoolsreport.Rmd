@@ -89,19 +89,23 @@ if(sum(.dpL) == 0){
 Below is a distribution of insertions and deletions based on length and frequency.
 ```{r Indel Stats, echo=FALSE, message=FALSE, warning=FALSE, paged.print=TRUE}
 .iddL <- grepl("^IDD", dataL)
-idd <- read.table(text=dataL[.iddL])[ ,3:4]
-names(idd) <- c("Length", "Count")
-idd$Type <- idd$Length > 0
-idd$Type <-  gsub(TRUE, "Insertion", idd$Type)
-idd$Type <-  gsub(FALSE, "Deletion", idd$Type)
-iddplot <- ggplot(data = idd, mapping = aes(x = Length, y = Count,  color = Type)) +
-  geom_point() +
-  scale_color_manual(values=c("indianred","#56B4E9"))+
-  labs(title = "Insertion-Deletion Distribution") +
-  xlab("indel length") +
-  ylab("number of sites") +
-  theme_minimal()
+if(sum(.iddL) == 0){
+  cat(paste0("No IDD section in", snakemake@input[[1]], " found\n"))
+} else {
+  idd <- read.table(text=dataL[.iddL])[ ,3:4]
+  names(idd) <- c("Length", "Count")
+  idd$Type <- idd$Length > 0
+  idd$Type <-  gsub(TRUE, "Insertion", idd$Type)
+  idd$Type <-  gsub(FALSE, "Deletion", idd$Type)
+  iddplot <- ggplot(data = idd, mapping = aes(x = Length, y = Count,  color = Type)) +
+    geom_point() +
+    scale_color_manual(values=c("indianred","#56B4E9"))+
+    labs(title = "Insertion-Deletion Distribution") +
+    xlab("indel length") +
+    ylab("number of sites") +
+    theme_minimal()
 
-ggplotly(iddplot)
+  ggplotly(iddplot)
+}
 ```
 
