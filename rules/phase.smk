@@ -96,7 +96,10 @@ rule headerfile:
     message: "Creating additional header file"
     run:
         with open(output[0], "w") as fout:
-            _ = fout.write('##FORMAT=<ID=GX,Number=1,Type=String,Description="Haplotype">')
+            fout.write('##FORMAT=<ID=GX,Number=1,Type=String,Description="Haplotype">')
+            fout.write('##FORMAT=<ID=PS,Number=1,Type=Integer,Description="ID of Phase Set for Variant">')
+            fout.write('##FORMAT=<ID=PQ,Number=1,Type=Integer,Description="Phred QV indicating probability that this variant is incorrectly phased relative to the haplotype">')
+            fout.write('##FORMAT=<ID=PD,Number=1,Type=Integer,Description="phased Read Depth">')
 
 rule mergeAnnotations:
     input:
