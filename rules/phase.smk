@@ -38,7 +38,7 @@ rule extractHairs:
         vcf = "Phasing/input/{sample}.het.bcf",
         bam = bam_dir + "/{sample}.bam"
     output: "Phasing/extractHairs/{sample}.unlinked.frags"
-    log: "Phasing/extractHairs/{sample}.unlinked.log"
+    log: "Phasing/extractHairs/logs/{sample}.unlinked.log"
     message: "Converting to compact fragment format: {wildcards.sample}"
     threads: 1
     shell:
@@ -52,7 +52,7 @@ rule linkFragments:
         vcf = "Phasing/input/{sample}.het.bcf",
         fragments = "Phasing/extractHairs/{sample}.unlinked.frags"
     output: "Phasing/linkFragments/{sample}.linked.frags"
-    log: "Phasing/linkFragments/{sample}.linked.log"
+    log: "Phasing/linkFragments/logs/{sample}.linked.log"
     message: "Linking fragments: {wildcards.sample}"
     params: d = molecule_distance
     shell:
@@ -68,7 +68,7 @@ rule phaseBlocks:
         blocks = "Phasing/phaseBlocks/{sample}.blocks",
         vcf = "Phasing/phaseBlocks/{sample}.blocks.phased.VCF"
     message: "Creating phased haplotype blocks: {wildcards.sample}"
-    log: "Phasing/phaseBlocks/{sample}.blocks.phased.log"
+    log: "Phasing/phaseBlocks/logs/{sample}.blocks.phased.log"
     params: f"--threshold {pruning}" if pruning > 0 else "--no_prune 1" 
     threads: 1
     shell:
