@@ -78,29 +78,29 @@ rule phaseBlocks:
 
 rule createAnnotations:
     input: "Phasing/phaseBlocks/{sample}.blocks.phased.VCF"
-    output: "Phasing/annotations/{sample}.annot.bcf"
+    output: "Phasing/annotations/{sample}.annot.gz"
     message: "Creating annotation files: {wildcards.sample}"
     shell:
         """
-        bcftools query -f "%CHROM\\t%POS[\\t%GT\\t%PS\\t%PQ\\t%PD]\\n" --output-type b {input} > {output}
+        bcftools query -f "%CHROM\\t%POS[\\t%GT\\t%PS\\t%PQ\\t%PD]\\n" {input} | bgzip -c > {output}
         """
 
 rule indexAnnotations:
-    input: "Phasing/annotations/{sample}.annot.bcf"
-    output: "Phasing/annotations/{sample}.annot.bcf.csi"
-    message: "Indexing {wildcards.sample}.annot.bcf"
-    shell: "bcftools index {input}"
+    input: "Phasing/annotations/{sample}.annot.gz"
+    output: "Phasing/annotations/{sample}.annot.gz.tbi"
+    message: "Indexing {wildcards.sample}.annot.gz"
+    shell: "tabix -b 2 -e 2 {input}"
 
 rule mergeAnnotations:
     input:
-        annot = "Phasing/annotations/{sample}.annot.bcf",
-        idx = "Phasing/annotations/{sample}.annot.bcf.csi",
+        annot = "Phasing/annotations/{sample}.annot.gz",
+        idx = "Phasing/annotations/{sample}.annot.gz.tbi",
         orig = "Phasing/input/{sample}.bcf"
     output: "Phasing/output/{sample}.phased.bcf"
     message: "Merging annotations: {wildcards.sample}"
     shell:
         """
-        bcftools annotate -h add.hdr -a {input} -c CHROM,POS,FMT/GX,FMT/PS,FMT/PQ,FMT/PD -m +HAPCUT=1 |  awk '!/<ID=GX/' | sed 's/:GX:/:GT:/' | bcftools view - -o {output}
+        bcftools annotate -h add.hdr -a {input} -c CHROM,POS,FMT/GX,FMT/PS,FMT/PQ,FMT/PD -m +HAPCUT=1 |  awk '!/<ID=GX/' | sed 's/:GX:/:GT:/' | bcftools view - -Ob -o {output} 
         """
 
 rule indexAnnotations2:
