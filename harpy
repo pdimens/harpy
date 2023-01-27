@@ -213,6 +213,7 @@ def phase(vcf, dir, threads, molecule_distance, prune_threshold, resume):
     command.append(f"seq_directory={dir}")
     command.append(f"samplenames={samplenames}")
     command.append(f"variantfile={vcf}")
+    command.append(f"prune={prune_threshold}")
     command.append(f"molecule_distance={molecule_distance}")
     subprocess.run(command)
 
@@ -225,8 +226,6 @@ cli.add_command(phase)
 
 if __name__ == '__main__':
     cli()
-
-
 
 #@click.command()
 #@click.option('-c', '--config', default = 'config.yaml', show_default = True, type=click.Path(), help = 'Name to give configuration file')

@@ -4,6 +4,7 @@ import re
 bam_dir = config["seq_directory"]
 samplenames = config["samplenames"]
 variantfile = config["variantfile"]
+prune = config["prune"]
 molecule_distance = config["molecule_distance"]
 
 rule splitbysamplehet:
@@ -11,12 +12,12 @@ rule splitbysamplehet:
         vcf = variantfile,
         bam = bam_dir + "/{sample}.bam"
     output: "Phasing/input/{sample}.het.bcf"
-    message: "Extracting {wildcards.sample} from {input}"
+    message: "Extracting {wildcards.sample} from {input.vcf}"
     threads: 1
     shell:
         """
         bcftools view -s {wildcards.sample} -i 'INFO/INFO_SCORE >= 0.2' {input.vcf} |\\
-        awk '/^#/;/CHROM/ {{OFS="\\t"}}; !/^#/ && $10~/^0\/1/' > {output}
+        awk '/^#/;/CHROM/ {{OFS="\\t"}}; !/^#/ && $10~/^0\\/1/' > {output}
         """
 
 rule splitbysample:
@@ -24,7 +25,7 @@ rule splitbysample:
         vcf = variantfile,
         bam = bam_dir + "/{sample}.bam"
     output: "Phasing/input/{sample}.bcf"
-    message: "Extracting {wildcards.sample} from {input}"
+    message: "Extracting {wildcards.sample} from {input.vcf}"
     threads: 1
     shell:
         """
@@ -85,28 +86,28 @@ rule indexAnnotations:
     input: "Phasing/annotations/{sample}.annot.bcf"
     output: "Phasing/annotations/{sample}.annot.bcf.csi"
     message: "Indexing {wildcards.sample}.annot.bcf"
-    shell:
-        """
-        bcftools index {input}     
-        """
+    shell: "bcftools index {input}"
 
 rule mergeAnnotations:
     input:
-        annot = "Phasing/annotations/{sample}.annot.vcf.gz",
+        annot = "Phasing/annotations/{sample}.annot.bcf",
+        idx = "Phasing/annotations/{sample}.annot.bcf.csi",
         orig = "Phasing/input/{sample}.bcf"
-    output: 
-        bcf = "Phasing/output/{sample}.phased.bcf",
-        idx = "Phasing/output/{sample}.phased.bcf.csi"
+    output: "Phasing/output/{sample}.phased.bcf"
     message: "Merging annotations: {wildcards.sample}"
     shell:
         """
-        bcftools annotate -h add.hdr -a {input} -c CHROM,POS,FMT/GX,FMT/PS,FMT/PQ,FMT/PD -m +HAPCUT=1 |  awk '!/<ID=GX/' | sed 's/:GX:/:GT:/' | bcftools view - -o {output.bcf}
-        bcftools index {output.bcf}
+        bcftools annotate -h add.hdr -a {input} -c CHROM,POS,FMT/GX,FMT/PS,FMT/PQ,FMT/PD -m +HAPCUT=1 |  awk '!/<ID=GX/' | sed 's/:GX:/:GT:/' | bcftools view - -o {output}
         """
 
+rule indexAnnotations2:
+    input: "Phasing/output/{sample}.phased.bcf"
+    output: "Phasing/output/{sample}.phased.bcf.csi"
+    message: "Indexing annotations: {wildcards.sample}"
+    shell: "bcftools index {input}"
+
 rule mergeSamples:
-    input:
-        bcf = expand("Phasing/output/{sample}.phased.{ext}", sample = samplenames, ext = ["bcf", "bcf.csi"])
+    input: expand("Phasing/output/{sample}.phased.{ext}", sample = samplenames, ext = ["bcf", "bcf.csi"])
     output: "Phasing/output/variants.phased.bcf"
     default_target: True
     message: "Combinging samples into a single BCF file"
