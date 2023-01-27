@@ -107,24 +107,24 @@ rule mergeAnnotations:
         annot = "Phasing/annotations/{sample}.annot.gz",
         idx = "Phasing/annotations/{sample}.annot.gz.tbi",
         orig = "Phasing/input/{sample}.bcf",
-        gxheader = "Phasing/input/header.names"
-    output: "Phasing/output/{sample}.phased.bcf"
+        extraheaders = "Phasing/input/header.names"
+    output: "Phasing/annotations_merge/{sample}.phased.annot.bcf"
     message: "Merging annotations: {wildcards.sample}"
     shell:
         """
-        bcftools annotate -h {input.gxheader} -a {input.annot} {input.orig} -c CHROM,POS,FMT/GX,FMT/PS,FMT/PQ,FMT/PD -m +HAPCUT=1 |  awk '!/<ID=GX/' | sed 's/:GX:/:GT:/' | bcftools view -Ob -o {output} - 
+        bcftools annotate -h {input.extraheaders} -a {input.annot} {input.orig} -c CHROM,POS,FMT/GX,FMT/PS,FMT/PQ,FMT/PD -m +HAPCUT=1 |  awk '!/<ID=GX/' | sed 's/:GX:/:GT:/' | bcftools view -Ob -o {output} - 
         """
 
 rule indexAnnotations2:
-    input: "Phasing/output/{sample}.phased.bcf"
-    output: "Phasing/output/{sample}.phased.bcf.csi"
+    input: "Phasing/annotations_merge/{sample}.phased.annot.bcf"
+    output: "Phasing/annotations_merge/{sample}.phased.annot.bcf.csi"
     message: "Indexing annotations: {wildcards.sample}"
     shell: "bcftools index {input}"
 
 rule mergeSamples:
     input: 
-        bcf = expand("Phasing/output/{sample}.phased.bcf", sample = samplenames),
-        idx = expand("Phasing/output/{sample}.phased.bcf.csi", sample = samplenames)
+        bcf = expand("Phasing/annotations_merge/{sample}.phased.annot.bcf", sample = samplenames),
+        idx = expand("Phasing/annotations_merge/{sample}.phased.annot.bcf.csi", sample = samplenames)
     output: "Phasing/variants.phased.bcf"
     message: "Combinging samples into a single BCF file"
     threads: 30
