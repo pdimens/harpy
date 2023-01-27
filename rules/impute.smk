@@ -71,8 +71,8 @@ rule impute:
     output:
         # format a wildcard pattern like "k{k}/s{s}/ngen{ngen}"
         # into a file path, with k, s, ngen being the columns of the data frame
-        f"Imputation/{paramspace.wildcard_pattern}/" + "{part}/impute.vcf.gz"
-    log: f"Imputation/{paramspace.wildcard_pattern}/" + "{part}/stitch.log"
+        f"Imputation/{paramspace.wildcard_pattern}/contigs/" + "{part}/impute.vcf.gz"
+    log: f"Imputation/{paramspace.wildcard_pattern}/contigs/" + "{part}/stitch.log"
     params:
         # automatically translate the wildcard values into an instance of the param space
         # in the form of a dict (here: {"k": ..., "s": ..., "ngen": ...})
@@ -83,10 +83,10 @@ rule impute:
 
 rule index_vcf:
     input:
-        vcf = "Imputation/{stitchparams}/{part}/impute.vcf.gz",
+        vcf = "Imputation/{stitchparams}/contigs/{part}/impute.vcf.gz",
         samplelist = "Imputation/samples.list"
-    output: "Imputation/{stitchparams}/{part}/impute.vcf.gz.tbi"
-    log: "Imputation/{stitchparams}/{part}/impute.stats"
+    output: "Imputation/{stitchparams}/contigs/{part}/impute.vcf.gz.tbi"
+    log: "Imputation/{stitchparams}/contigs/{part}/impute.stats"
     message: "Indexing: {wildcards.stitchparams}/{wildcards.part}"
     threads: 1
     params: ",".join(samplenames)
@@ -98,8 +98,8 @@ rule index_vcf:
 
 rule merge_vcfs:
     input: 
-        vcf = expand("Imputation/{{stitchparams}}/{part}/impute.vcf.gz", part = contigs),
-        idx = expand("Imputation/{{stitchparams}}/{part}/impute.vcf.gz.tbi", part = contigs),
+        vcf = expand("Imputation/{{stitchparams}}/contigs/{part}/impute.vcf.gz", part = contigs),
+        idx = expand("Imputation/{{stitchparams}}/contigs/{part}/impute.vcf.gz.tbi", part = contigs),
     output: "Imputation/{stitchparams}/variants.imputed.bcf"
     log: "Imputation/{stitchparams}/concat.log"
     message: "Merging VCFs: {wildcards.stitchparams}"
