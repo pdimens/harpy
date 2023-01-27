@@ -57,7 +57,7 @@ rule linkFragments:
     params: d = molecule_distance
     shell:
         """
-        LinkFragments.py  --bam {input.bam} --VCF {input.vcf} --fragments {input.fragments} --out {output} -d {params} 2> {log}
+        LinkFragments.py  --bam {input.bam} --VCF {input.vcf} --fragments {input.fragments} --out {output} -d {params} > {log} 2>&1
         """
 
 rule phaseBlocks:
