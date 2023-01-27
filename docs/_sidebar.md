@@ -6,5 +6,6 @@
     * [Quality Trimming](qualitytrimming.md "HARPY - Quality Trimming")
     * [Mapping Reads](readmapping.md "HARPY - Mapping Reads")
     * [Calling Variants](variantcalling.md "HARPY - Calling Variants")
-    * [Impute Genotypes](imputation.md "HARPY - Impute Genotypes")
+    * [Impute Genotypes](imputation.md "HARPY - Imputing Genotypes")
+    * [Phase Haplotypes](phasing.md "HARPY - Phasing Haplotypes")
 * [Software](software.md "HARPY - Software")
