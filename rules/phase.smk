@@ -96,7 +96,7 @@ rule headerfile:
     message: "Creating additional header file"
     run:
         with open(output[0], "w") as fout:
-            fout.write('##INFO=<ID=HAPCUT,Number=1,Type=Integer,Description="If the haplotype was created with Hapcut2">\n')
+            fout.write('##INFO=<ID=HAPCUT,Number=1,Type=Integer,Description="The haplotype was created with Hapcut2">\n')
             fout.write('##FORMAT=<ID=GX,Number=1,Type=String,Description="Haplotype">\n')
             fout.write('##FORMAT=<ID=PS,Number=1,Type=Integer,Description="ID of Phase Set for Variant">\n')
             fout.write('##FORMAT=<ID=PQ,Number=1,Type=Integer,Description="Phred QV indicating probability that this variant is incorrectly phased relative to the haplotype">\n')
