@@ -38,11 +38,12 @@ rule extractHairs:
         vcf = "Phasing/input/{sample}.het.bcf",
         bam = bam_dir + "/{sample}.bam"
     output: "Phasing/extractHairs/{sample}.unlinked.frags"
+    log: "Phasing/extractHairs/{sample}.unlinked.log"
     message: "Converting to compact fragment format: {wildcards.sample}"
     threads: 1
     shell:
         """
-        extractHAIRS --10X 1 --nf 1 --bam {input.bam} --VCF {input.vcf} --out {output}
+        extractHAIRS --10X 1 --nf 1 --bam {input.bam} --VCF {input.vcf} --out {output} 2> {log}
         """
 
 rule linkFragments:
@@ -51,11 +52,12 @@ rule linkFragments:
         vcf = "Phasing/input/{sample}.het.bcf",
         fragments = "Phasing/extractHairs/{sample}.unlinked.frags"
     output: "Phasing/linkFragments/{sample}.linked.frags"
+    log: "Phasing/linkFragments/{sample}.linked.log"
     message: "Linking fragments: {wildcards.sample}"
     params: d = molecule_distance
     shell:
         """
-        LinkFragments.py  --bam {input.bam} --VCF {input.vcf} --fragments {input.fragments} --out {output} -d {params}
+        LinkFragments.py  --bam {input.bam} --VCF {input.vcf} --fragments {input.fragments} --out {output} -d {params} 2> {log}
         """
 
 rule phaseBlocks:
@@ -64,17 +66,18 @@ rule phaseBlocks:
         fragments = "Phasing/linkFragments/{sample}.linked.frags"
     output: 
         blocks = "Phasing/phaseBlocks/{sample}.blocks",
-        vcf = "Phasing/phaseBlocks/{sample}.blocks.phased.vcf"
+        vcf = "Phasing/phaseBlocks/{sample}.blocks.phased.VCF"
     message: "Creating phased haplotype blocks: {wildcards.sample}"
+    log: "Phasing/phaseBlocks/{sample}.blocks.phased.log"
     params: f"--threshold {pruning}" if pruning > 0 else "--no_prune 1" 
     threads: 1
     shell:
         """
-        HAPCUT2 --fragments {input.fragments} --vcf {input.vcf} --out {output.blocks} --nf 1 {params} --error_analysis_mode 1 --call_homozygous 1 --outvcf 1
+        HAPCUT2 --fragments {input.fragments} --vcf {input.vcf} --out {output.blocks} --nf 1 {params} --error_analysis_mode 1 --call_homozygous 1 --outvcf 1 2> {log}
         """
 
 rule createAnnotations:
-    input: "Phasing/phaseBlocks/{sample}.blocks.phased.vcf"
+    input: "Phasing/phaseBlocks/{sample}.blocks.phased.VCF"
     output: "Phasing/annotations/{sample}.annot.bcf"
     message: "Creating annotation files: {wildcards.sample}"
     shell:
