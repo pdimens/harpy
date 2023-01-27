@@ -100,7 +100,7 @@ rule mergeAnnotations:
     message: "Merging annotations: {wildcards.sample}"
     shell:
         """
-        bcftools annotate -h add.hdr -a {input} -c CHROM,POS,FMT/GX,FMT/PS,FMT/PQ,FMT/PD -m +HAPCUT=1 |  awk '!/<ID=GX/' | sed 's/:GX:/:GT:/' | bcftools view - -Ob -o {output} 
+        bcftools annotate -h add.hdr -a {input.annot} {input.orig} -c CHROM,POS,FMT/GX,FMT/PS,FMT/PQ,FMT/PD -m +HAPCUT=1 |  awk '!/<ID=GX/' | sed 's/:GX:/:GT:/' | bcftools view - -Ob -o {output} 
         """
 
 rule indexAnnotations2:
