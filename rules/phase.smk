@@ -96,7 +96,7 @@ rule headerfile:
     message: "Creating additional header file"
     run:
         with open(output[0], "w") as fout:
-            fout.write('##INFO=<ID=HAPCUT,Number=0,Type=Flag,Description="The haplotype was created with Hapcut2">\n')
+            fout.write('##INFO=<ID=HAPCUT,Number=1,Type=Flag,Description="The haplotype was created with Hapcut2">\n')
             fout.write('##FORMAT=<ID=GX,Number=1,Type=String,Description="Haplotype">\n')
             fout.write('##FORMAT=<ID=PS,Number=1,Type=Integer,Description="ID of Phase Set for Variant">\n')
             fout.write('##FORMAT=<ID=PQ,Number=1,Type=Integer,Description="Phred QV indicating probability that this variant is incorrectly phased relative to the haplotype">\n')
@@ -112,7 +112,7 @@ rule mergeAnnotations:
     message: "Merging annotations: {wildcards.sample}"
     shell:
         """
-        bcftools annotate -h {input.extraheaders} -a {input.annot} {input.orig} -c CHROM,POS,FMT/GX,FMT/PS,FMT/PQ,FMT/PD -m +INFO/HAPCUT=1 |  awk '!/<ID=GX/' | sed 's/:GX:/:GT:/' | bcftools view -Ob -o {output} - 
+        bcftools annotate -h {input.extraheaders} -a {input.annot} {input.orig} -c CHROM,POS,FMT/GX,FMT/PS,FMT/PQ,FMT/PD -m +HAPCUT=1 |  awk '!/<ID=GX/' | sed 's/:GX:/:GT:/' | bcftools view -Ob -o {output} - 
         """
 
 rule indexAnnotations2:
