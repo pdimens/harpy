@@ -91,17 +91,24 @@ rule indexAnnotations:
     message: "Indexing {wildcards.sample}.annot.gz"
     shell: "tabix -b 2 -e 2 {input}"
 
+rule headerfile:
+    output: "Phasing/input/header.names"
+    message: "Creating additional header file"
+    run:
+        with open(output[0], "w") as fout:
+            _ = fout.write('##FORMAT=<ID=GX,Number=1,Type=String,Description="Haplotype">')
+
 rule mergeAnnotations:
     input:
         annot = "Phasing/annotations/{sample}.annot.gz",
         idx = "Phasing/annotations/{sample}.annot.gz.tbi",
-        orig = "Phasing/input/{sample}.bcf"
+        orig = "Phasing/input/{sample}.bcf",
+        gxheader = "Phasing/input/header.names"
     output: "Phasing/output/{sample}.phased.bcf"
     message: "Merging annotations: {wildcards.sample}"
     shell:
         """
-        # -h add.hdr
-        bcftools annotate -a {input.annot} {input.orig} -c CHROM,POS,FMT/GX,FMT/PS,FMT/PQ,FMT/PD -m +HAPCUT=1 |  awk '!/<ID=GX/' | sed 's/:GX:/:GT:/' | bcftools view -Ob -o {output} - 
+        bcftools annotate -h {input.gxheader} -a {input.annot} {input.orig} -c CHROM,POS,FMT/GX,FMT/PS,FMT/PQ,FMT/PD -m +HAPCUT=1 |  awk '!/<ID=GX/' | sed 's/:GX:/:GT:/' | bcftools view -Ob -o {output} - 
         """
 
 rule indexAnnotations2:
