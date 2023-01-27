@@ -193,7 +193,7 @@ def impute(parameters, dir, threads, vcf, resume, init):
 @click.option('-v', '--vcf', required = True, type=click.Path(exists=True), help = 'Path to BCF/VCF file')
 @click.option('-d', '--dir', required = True, type=click.Path(exists=True), help = 'Directory with sequence alignments (*.bam)')
 @click.option('-m', '--molecule-distance', default = 20000, show_default = True, type = int, help = 'Base-pair distance delineating separate molecules')
-@click.option('-p', '--prune-threshold', default = 7, show_default = True, type = click.IntRange(0,100), help = 'PHRED SCALED threshold for pruning low-confidence SNPs (larger prunes more.)')
+@click.option('-p', '--prune-threshold', default = 7, show_default = True, type = click.IntRange(0,1), help = 'PHRED SCALED threshold for pruning low-confidence SNPs (larger prunes more.)')
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(min = 2, max_open = True), help = 'Number of threads to use')
 @click.option('-r', '--resume', is_flag=True, help="Resume an incomplete run")
 def phase(vcf, dir, threads, molecule_distance, prune_threshold, resume):
@@ -206,6 +206,7 @@ def phase(vcf, dir, threads, molecule_distance, prune_threshold, resume):
     else:
         vcfcheck(vcf)
     samplenames = getnames(dir, '.bam')
+    prune_threshold = prune_threshold / 100
     command = ['snakemake', '--cores', f'{threads}', '--directory', '.', '--snakefile', "rules/phase.smk"]
     if resume:
         command.append('--rerun-incomplete')
