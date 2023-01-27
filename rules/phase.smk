@@ -122,9 +122,17 @@ rule indexAnnotations2:
     shell: "bcftools index {input}"
 
 rule mergeSamples:
-    input: expand("Phasing/output/{sample}.phased.{ext}", sample = samplenames, ext = ["bcf", "bcf.csi"])
-    output: "Phasing/output/variants.phased.bcf"
-    default_target: True
+    input: 
+        bcf = expand("Phasing/output/{sample}.phased.bcf", sample = samplenames),
+        idx = expand("Phasing/output/{sample}.phased.bcf.csi", sample = samplenames)
+    output: "Phasing/variants.phased.bcf"
     message: "Combinging samples into a single BCF file"
     threads: 30
-    shell: "bcftools merge --threads {threads} --output-type b {input} > {output}"
+    shell: "bcftools merge --threads {threads} --output-type b {input.bcf} > {output}"
+
+rule indexFinal:
+    input: "Phasing/variants.phased.bcf"
+    output: "Phasing/variants.phased.bcf.csi"
+    default_target: True
+    message: "Indexing {input}"
+    shell: "bcftools index {input}"
