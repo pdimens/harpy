@@ -1,6 +1,3 @@
-import os
-import re
-
 bam_dir = config["seq_directory"]
 samplenames = config["samplenames"]
 variantfile = config["variantfile"]
