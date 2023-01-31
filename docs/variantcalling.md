@@ -34,9 +34,10 @@ sample3 2
 sample4 1
 sample5 3
 ```
+
 ## Workflows
 ### bcftools mpileup
-The `mpileup` and `call` modules from [bcftools](https://samtools.github.io/bcftools/bcftools.html) (formerly from samtools) are used to call variants from alignments. This is a tried-and-true method and one of methods featured in other variant callers, such as that provided in [ANGSD](http://www.popgen.dk/angsd/index.php/Genotype_Likelihoods), which is why Harpy uses it by default. To speed things along, Harpy will parallelize `mpileup` to call variants separately on different contigs, then merge everything at the end. This would mean that a more fragmented assembly would probably run faster than a chromosome-scale one, but you're more likely to have fewer variants detected. All intermediate outputs are removed, leaving you only the raw variants file (in compressed `.bcf` format), the index of that file, and some basic stats about it.
+The `mpileup` and `call` modules from [bcftools](https://samtools.github.io/bcftools/bcftools.html) (formerly samtools) are used to call variants from alignments. This is a tried-and-true method and one of methods featured in other variant callers, such as that provided in [ANGSD](http://www.popgen.dk/angsd/index.php/Genotype_Likelihoods), which is why Harpy uses it by default. To speed things along, Harpy will parallelize `mpileup` to call variants separately on different contigs, then merge everything at the end. This would mean that a more fragmented assembly would probably run faster than a chromosome-scale one, but you're more likely to have fewer variants detected. All intermediate outputs are removed, leaving you only the raw variants file (in compressed `.bcf` format), the index of that file, and some basic stats about it.
 
 ```mermaid
 graph LR
@@ -51,7 +52,6 @@ graph LR
 Leviathan is an alternative variant caller that uses linked read barcode information to call variants. Harpy first uses [LRez](https://github.com/morispi/LRez) to index the barcodes in the alignments, then it calls variants for individual samples using Leviathan. All the samples then get merged into a single BCF file using [bcftools](https://samtools.github.io/bcftools/bcftools.html).
 
 !> Until it gets resolved, Leviathan doesn't seem to output sample names into the resulting variant call files.
-
 
 ```mermaid
 graph LR
