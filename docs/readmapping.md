@@ -14,8 +14,8 @@ You will need:
 ## Running Options
 | argument      | short name | type        | default | required | description                             |
 |:--------------|:----------:|:------------|:-------:|:--------:|:----------------------------------------|
-| `--genome`    |    `-g`    | file path   |         |   **yes**    | Genome assembly for read mapping        |
-| `--dir`       |    `-d`    | folder path |         |   **yes**    | Directory with sample sequences         |
+| `--genome`    |    `-g`    | file path   |         | **yes**  | Genome assembly for read mapping        |
+| `--dir`       |    `-d`    | folder path |         | **yes**  | Directory with sample sequences         |
 | `--ema-bins`  |    `-e`    | integer     |   500   |    no    | Number of barcode bins for EMA          |
 | `--bwa`       |    `-b`    | toggle      |         |    no    | Use BWA MEM instead of EMA              |
 | `--threads`   |    `-t`    | integer     |    4    |    no    | Number of threads to use                |

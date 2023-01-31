@@ -12,8 +12,8 @@ You will need:
 ## Running Options
 | argument              | short name | type            | default | required | description                                               |
 |:----------------------|:----------:|:----------------|:-------:|:--------:|:----------------------------------------------------------|
-| `--vcf`               |    `-v`    | file path       |         |   **yes**    | Path to BCF/VCF file                                      |
-| `--dir`               |    `-d`    | folder path     |         |   **yes**    | Directory with sequence alignments                        |
+| `--vcf`               |    `-v`    | file path       |         | **yes**  | Path to BCF/VCF file                                      |
+| `--dir`               |    `-d`    | folder path     |         | **yes**  | Directory with sequence alignments                        |
 | `--molecule-distance` |    `-m`    | integer         |  20000  |    no    | Base-pair distance dilineating separate molecules         |
 | `--prune-threshold`   |    `-p`    | integer (0-100) |    7    |    no    | PHRED-scale (%) threshold for pruning low-confidence SNPs |
 | `--threads`           |    `-t`    | integer         |    4    |    no    | Number of threads to use                                  |
