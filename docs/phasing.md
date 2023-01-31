@@ -26,7 +26,7 @@ for running HapCut2, therefore they are directly configurable from the command. 
 refers to the base-pair distance dilineating separate molecules. Feel free to play around with this number 
 if you do not know the distance, as it's not clear how impactful this can be on the results. The pruning 
 threshold refers to a PHRED-scale value between 0-1 (a percentage) for removing low-confidence SNPs from consideration. 
-As a user, you are expected to configure this value as an integer between 0-100, which gets converted to a floating point
+With Harpy, you configure this value as an integer between 0-100, which gets converted to a floating point
 value between 0-1 internally (_i.e._ `-p 7` is equivalent to 0.07 threshold).
 
 
