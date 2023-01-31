@@ -10,15 +10,15 @@ You will need:
 - alignment files in `.bam` format
 
 ## Running Options
-| long name | short name | value type | default value | description|
-| :---: | :----: | :---: | :---: | :--- |
-| `--vcf`    | `-v` |    file path | |  Path to BCF/VCF file |                                                              
-| `--dir`       |  `-d`  | folder path   |  |  Directory with sequence alignments     | 
-| `--molecule-distance` |  `-m`  | integer  | 20000 | Base-pair distance dilineating separate molecules |                         
-| `--prune-threshold`    |  `-p`  | integer (0-100) | 7 | PHRED-scale (%) threshold for pruning low-confidence SNPs   |                          
-| `--threads`   |  `-t`  | integer | 4| Number of threads to use |                                     
-| `--snakemake` |  `-s` |  string  | |      Additional Snakemake options, in quotes    |
-| `--help`        | | |    |          Show the module docstring |            
+|       long name       | short name |   value type    | default value | description                                               |
+|:----------------------|:----------:|:----------------|:-------------:|:----------------------------------------------------------|
+|        `--vcf`        |    `-v`    |    file path    |               | Path to BCF/VCF file                                      |
+|        `--dir`        |    `-d`    |   folder path   |               | Directory with sequence alignments                        |
+| `--molecule-distance` |    `-m`    |     integer     |     20000     | Base-pair distance dilineating separate molecules         |
+|  `--prune-threshold`  |    `-p`    | integer (0-100) |       7       | PHRED-scale (%) threshold for pruning low-confidence SNPs |
+|      `--threads`      |    `-t`    |     integer     |       4       | Number of threads to use                                  |
+|     `--snakemake`     |    `-s`    |     string      |               | Additional Snakemake options, in quotes                   |
+|       `--help`        |            |                 |               | Show the module docstring                                 |      
 
 
 The molecule distance is and pruning thresholds are considered the most impactful parameters

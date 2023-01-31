@@ -12,17 +12,16 @@ You will need:
 - sequence alignments, in `.bam` format
 
 ## Running Options
-| long name | short name | value type | default value | description|
-| :---: | :----: | :---: | :---: | :--- |                  
-| `--init`  |  `-i` | toggle | | Create example parameter file and exit | 
-| `--vcf`   |   `-v` |   file path |  |  Path to VCF/BCF file |
-| `--directory`    |  `-d` | folder path     |  | Directory with sequence alignments  |
-| `--parameters` |  `-p` | file path    | stitch.params |  STITCH parameter file (tab-delimited)  |
-| `--filter` | `-f` | toggle |  | Filter `--vcf` file to keep SNPs with Quality>20 and Depth>10 |
-| `--threads` | `-t` | integer  | 4 | Number of threads to use      |
-| `--snakemake` |  `-s` |  string  | |      Additional Snakemake options, in quotes    |
-| `--help`  |         |      |    | Show the module docstring        |
-
+|   long name    | short name | value type  | default value | description                                                   |
+|:---------------|:----------:|:------------|:-------------:|:--------------------------------------------------------------|
+|    `--init`    |    `-i`    |   toggle    |               | Create example parameter file and exit                        |
+|    `--vcf`     |    `-v`    |  file path  |               | Path to VCF/BCF file                                          |
+| `--directory`  |    `-d`    | folder path |               | Directory with sequence alignments                            |
+| `--parameters` |    `-p`    |  file path  | stitch.params | STITCH parameter file (tab-delimited)                         |
+|   `--filter`   |    `-f`    |   toggle    |               | Filter `--vcf` file to keep SNPs with Quality>20 and Depth>10 |
+|  `--threads`   |    `-t`    |   integer   |       4       | Number of threads to use                                      |
+| `--snakemake`  |    `-s`    |   string    |               | Additional Snakemake options, in quotes                       |
+|    `--help`    |            |             |               | Show the module docstring                                     |
 
 ## Parameter file
 Typically, one runs STITCH multiple times, exploring how results vary with
@@ -36,26 +35,39 @@ that you will need to adjust for your study. The parameter must follow a particu
 - column order doesn't matter, but all 5 column names must be present
 - header row present with the specific column names below
     - all column names begin with a lowercase character
-| column name | value type | accepted values | description |
-| :--- | :---: | :---: | :--- |
-| model | text | pseudoHaploid, diploid, diploid-inbred | The STITCH model/method to use |
-| useBX | text/boolean | true, false, yes, no (case insensitive) | Whether to incorporate beadtag information |
-| k | integer | ≥ 1 | Number of founder haplotypes |
-| s | integer | ≥ 1 | Number of instances of the founder haplotypes to average results over |
-| nGen | integer | ≥ 1 | Estimated number of generations since founding |
-- example parameter file (tab-delimited):
+| column name |  value type  |             accepted values             | description                                                           |
+|:------------|:------------:|:---------------------------------------:|:----------------------------------------------------------------------|
+| model       |     text     | pseudoHaploid, diploid, diploid-inbred  | The STITCH model/method to use                                        |
+| useBX       | text/boolean | true, false, yes, no (case insensitive) | Whether to incorporate beadtag information                            |
+| k           |   integer    |                   ≥ 1                   | Number of founder haplotypes                                          |
+| s           |   integer    |                   ≥ 1                   | Number of instances of the founder haplotypes to average results over |
+| nGen        |   integer    |                   ≥ 1                   | Estimated number of generations since founding                        |
+
+### example file
+<!-- tabs:start -->
+
+#### **tab-delimited**
+
+This file is tab-delimited, note the column names:
+
 ```
 model   useBX   k       s       nGen
 pseudoHaploid   TRUE    10      5       50
 pseudoHaploid   TRUE    10      1       50
 pseudoHaploid   TRUE    15      10      100
 ```
-- which is interpreted as:
+
+#### **table-view**
+
+This is the table view of the tab-delimited file, shown here for clarity.
+
 | model         | useBX | k  | s  | nGen |
-|:----          |:---   |:---|:---|:---  |
+|:--------------|:------|:---|:---|:-----|
 | pseudoHaploid | TRUE  | 10 | 5  | 50   |
 | pseudoHaploid | TRUE  | 10 | 1  | 50   |
 | pseudoHaploid | TRUE  | 15 | 10 | 100  |
+
+<!-- tabs:end -->
 
 ## STITCH Workflow
 [STITCH](https://github.com/rwdavies/STITCH) is a genotype imputation software developed for use in

@@ -19,7 +19,14 @@
       loadNavbar: true,
       auto2top: true,
       logo: '/_media/harpy.svg',
-      themeColor: '#c0bad4'
+      themeColor: '#c0bad4',
+      tabs: {
+        persist    : true,      // default
+        sync       : true,      // default
+        theme      : 'material', // default
+        tabComments: true,      // default
+        tabHeadings: true       // default
+      }
     }
   </script>
   <!-- Docsify v4 -->
@@ -30,5 +37,7 @@
   <script src="//unpkg.com/mermaid/dist/mermaid.js"></script>
   <script src="//unpkg.com/docsify-mermaid@latest/dist/docsify-mermaid.js"></script>
   <script>mermaid.initialize({ startOnLoad: true });</script>
+  <!--- Tabs -->
+  <script src="https://cdn.jsdelivr.net/npm/docsify-tabs@1"></script>
 </body>
 </html>
