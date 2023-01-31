@@ -19,7 +19,7 @@ You will need:
 | `--ema-bins` | `-e` | integer | 500 | Number of barcode bins for EMA |            
 | `--bwa`   |   `-b` |   toggle | |  Use BWA MEM instead of EMA |
 | `--threads` | `-t` | integer  | 4 | Number of threads to use      |
-| `--resume` |  `-r` |  toggle  | |      Resume an incomplete run      |
+| `--snakemake` |  `-s` |  string  | |      Additional Snakemake options, in quotes    |
 | `--help`  |         |      |    | Show the module docstring        |
 
 ## Workflows

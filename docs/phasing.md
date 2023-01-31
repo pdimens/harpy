@@ -17,7 +17,7 @@ You will need:
 | `--molecule-distance` |  `-m`  | integer  | 20000 | Base-pair distance dilineating separate molecules |                         
 | `--prune-threshold`    |  `-p`  | integer (0-100) | 7 | PHRED-scale (%) threshold for pruning low-confidence SNPs   |                          
 | `--threads`   |  `-t`  | integer | 4| Number of threads to use |                                     
-| `--resume`    |  `-r`  | toggle  | | Resume an incomplete run |               
+| `--snakemake` |  `-s` |  string  | |      Additional Snakemake options, in quotes    |
 | `--help`        | | |    |          Show the module docstring |            
 
 

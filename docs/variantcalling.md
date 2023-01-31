@@ -29,7 +29,7 @@ sample5 3
 | `--ploidy`    |  `-x`  | integer | 2 | Ploidy of samples          |                          
 | `--leviathan` |  `-l`    |  toggle  | |  Call variants with Leviathan instead of bcftools |                           
 | `--threads`   |  `-t`  | integer | 4| Number of threads to use |                                     
-| `--resume`    |  `-r`  | toggle  | | Resume an incomplete run |               
+| `--snakemake` |  `-s` |  string  | |      Additional Snakemake options, in quotes    |
 | `--help`        | | |    |          Show the module docstring |            
 
 ## Workflows
