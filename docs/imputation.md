@@ -12,16 +12,16 @@ You will need:
 - sequence alignments, in `.bam` format
 
 ## Running Options
-|   long name    | short name | value type  | default value | description                                                   |
-|:---------------|:----------:|:------------|:-------------:|:--------------------------------------------------------------|
-|    `--init`    |    `-i`    |   toggle    |               | Create example parameter file and exit                        |
-|    `--vcf`     |    `-v`    |  file path  |               | Path to VCF/BCF file                                          |
-| `--directory`  |    `-d`    | folder path |               | Directory with sequence alignments                            |
-| `--parameters` |    `-p`    |  file path  | stitch.params | STITCH parameter file (tab-delimited)                         |
-|   `--filter`   |    `-f`    |   toggle    |               | Filter `--vcf` file to keep SNPs with Quality>20 and Depth>10 |
-|  `--threads`   |    `-t`    |   integer   |       4       | Number of threads to use                                      |
-| `--snakemake`  |    `-s`    |   string    |               | Additional Snakemake options, in quotes                       |
-|    `--help`    |            |             |               | Show the module docstring                                     |
+| argument       | short name | type        |    default    | required | description                                                   |
+|:---------------|:----------:|:------------|:-------------:|:--------:|:--------------------------------------------------------------|
+| `--init`       |    `-i`    | toggle      |               |          | Create example parameter file and exit                        |
+| `--vcf`        |    `-v`    | file path   |               |   **yes**    | Path to VCF/BCF file                                          |
+| `--directory`  |    `-d`    | folder path |               |   **yes**    | Directory with sequence alignments                            |
+| `--parameters` |    `-p`    | file path   | stitch.params |   **yes**    | STITCH parameter file (tab-delimited)                         |
+| `--filter`     |    `-f`    | toggle      |               |    no    | Filter `--vcf` file to keep SNPs with Quality>20 and Depth>10 |
+| `--threads`    |    `-t`    | integer     |       4       |    no    | Number of threads to use                                      |
+| `--snakemake`  |    `-s`    | string      |               |    no    | Additional Snakemake options, in quotes                       |
+| `--help`       |            |             |               |          | Show the module docstring                                     |
 
 ## Parameter file
 Typically, one runs STITCH multiple times, exploring how results vary with

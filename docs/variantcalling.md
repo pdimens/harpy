@@ -10,16 +10,16 @@ You will need:
 - sample grouping file [optional, see below]
 
 ## Running Options
-|    long name    | short name |      value type       |   default value   | description                                      |
-|:----------------|:----------:|:----------------------|:-----------------:|:-------------------------------------------------|
-|   `--genome`    |    `-g`    |       file path       |                   | Genome assembly for variant calling              |
-|     `--dir`     |    `-d`    |      folder path      | ReadMapping/align | Directory with sequence alignments               |
-| `--populations` |    `-p`    | file path or `create` |                   | Tab-delimited file of sample\<tab\>group         |
-|   `--ploidy`    |    `-x`    |        integer        |         2         | Ploidy of samples                                |
-|  `--leviathan`  |    `-l`    |        toggle         |                   | Call variants with Leviathan instead of bcftools |
-|   `--threads`   |    `-t`    |        integer        |         4         | Number of threads to use                         |
-|  `--snakemake`  |    `-s`    |        string         |                   | Additional Snakemake options, in quotes          |
-|    `--help`     |            |                       |                   | Show the module docstring                        |       
+| argument        | short name | type                  | default | required | description                                      |
+|:----------------|:----------:|:----------------------|:-------:|:--------:|:-------------------------------------------------|
+| `--genome`      |    `-g`    | file path             |         |   **yes**    | Genome assembly for variant calling              |
+| `--dir`         |    `-d`    | folder path           |         |   **yes**    | Directory with sequence alignments               |
+| `--populations` |    `-p`    | file path or `create` |         |    no    | Tab-delimited file of sample\<tab\>group         |
+| `--ploidy`      |    `-x`    | integer               |    2    |    no    | Ploidy of samples                                |
+| `--leviathan`   |    `-l`    | toggle                |         |    no    | Call variants with Leviathan instead of bcftools |
+| `--threads`     |    `-t`    | integer               |    4    |    no    | Number of threads to use                         |
+| `--snakemake`   |    `-s`    | string                |         |    no    | Additional Snakemake options, in quotes          |
+| `--help`        |            |                       |         |          | Show the module docstring                        |   
 
 ### sample grouping file
 This file is entirely optional and useful if you want variant calling to happen on a per-population level.
