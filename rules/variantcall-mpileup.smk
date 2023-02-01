@@ -76,7 +76,8 @@ rule call_genotypes:
 rule index_bcf:
     input: 
         bcf = "Variants/mpileup/{part}.bcf",
-        samplelist = "Variants/mpileup/samples.list"
+        samplelist = "Variants/mpileup/samples.list",
+        genome = genomefile
     output: temp("Variants/mpileup/{part}.bcf.csi")
     log: "Variants/mpileup/stats/{part}.stats"
     message: "Indexing: {wildcards.part}"
@@ -84,7 +85,7 @@ rule index_bcf:
     shell:
         """
         bcftools index --threads {threads} --output {output} {input.bcf}
-        bcftools stats {input} -S {input.samplelist} > {log}
+        bcftools stats -S {input.samplelist} --fasta-ref {input.genome} {input.bcf} > {log}
         """
 
 rule combine_bcfs:
