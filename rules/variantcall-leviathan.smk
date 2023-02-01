@@ -46,7 +46,7 @@ rule leviathan_variantcall:
 
 rule sort_bcf:
     input: "Variants/leviathan/{sample}.vcf"
-    output: temp("Variants/leviathan/{sample}.bcf")
+    output: "Variants/leviathan/{sample}.bcf"
     message: "Covnerting to BCF: {input}"
     threads: 1
     params: "{wildcards.sample}"
