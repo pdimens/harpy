@@ -7,9 +7,12 @@ You will need:
 - at least 4 cores/threads available
 - a genome assembly in FASTA format
 - b/gzipped fastq sequence files
-    - paired-end files, with files labelled by `.R1`/`.R2` or `_R1`/`_R2` followed by `.fastq.gz` or `.fq.gz` (e.g. `.R1.fq.gz` or `_R2.fastq.gz`)
-        - **do not mix** `.R/_R` or `fastq/fq` formats
-        - stick to one of each
+    - paired-end files
+    - file extension is either `.fastq.gz` or `.fq.gz` (do not mix)
+    - forward-reverse is noted as either `.R1.` (and `.R2.`) or `_R1.` (and `_R2.`) (do no mix)
+        - _e.g._ `samplename.R1.fq.gz` and `samplename.R2.fq.gz`
+        - _e.g._ `samplename_R1.fq.gz` and `samplename_R2.fq.gz`
+        - or the same but ending with `.fastq.gz`, but don't mix and match
 
 ## Running Options
 | argument         | short name | type        | default | required | description                                    |
