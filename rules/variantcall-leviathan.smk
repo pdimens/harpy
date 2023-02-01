@@ -1,4 +1,3 @@
-#BUG leviathan doesn't seem to output sample ID into the vcf
 bam_dir = config["seq_directory"]
 genomefile = config["genomefile"]
 samplenames = config["samplenames"] 
@@ -48,7 +47,7 @@ rule leviathan_variantcall:
 rule vcf2bcf:
     input: "Variants/leviathan/{sample}.vcf"
     output: 
-        bcf = temp("Variants/leviathan/{sample}.bcf")
+        bcf = temp("Variants/leviathan/{sample}.bcf"),
         namefile = temp(".{sample}.name")
     message: "Covnerting to BCF: {input}"
     threads: 1
