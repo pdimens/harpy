@@ -50,15 +50,14 @@ graph LR
 ```
 
 ### Leviathan
-Leviathan is an alternative variant caller that uses linked read barcode information to call variants. Harpy first uses [LRez](https://github.com/morispi/LRez) to index the barcodes in the alignments, then it calls variants for individual samples using Leviathan. All the samples then get merged into a single BCF file using [bcftools](https://samtools.github.io/bcftools/bcftools.html).
-
-!> Until it gets resolved, Leviathan doesn't seem to output sample names into the resulting variant call files.
+Leviathan is an alternative variant caller that uses linked read barcode information to call variants. 
+Harpy first uses [LRez](https://github.com/morispi/LRez) to index the barcodes in the alignments, then
+it calls variants for individual samples using Leviathan. All the samples then get merged into a single BCF file using [bcftools](https://samtools.github.io/bcftools/bcftools.html).
+Due to the nature of Structural Variant (SV) VCF files, there isn't an entirely fool-proof way of combining the variants of all the samples into a single VCF file, therefore the output will be a VCF for every sample.
 
 ```mermaid
 graph LR
     A((index barcodes)) --> B((leviathan))
     B-->C((convert to BCF))
     C-->D((index BCFs))
-    D-->E((combine BCFs))
-    C-->E
 ```
