@@ -90,7 +90,8 @@ rule index_bcf:
 rule combine_bcfs:
     input: 
         bcf = expand("Variants/mpileup/{part}.bcf", part = contigs),
-        idx = expand("Variants/mpileup/{part}.bcf.csi", part = contigs)
+        idx = expand("Variants/mpileup/{part}.bcf.csi", part = contigs),
+        genome = genomefile
     output: 
         bcf = "Variants/mpileup/variants.raw.bcf",
         idx = "Variants/mpileup/variants.raw.bcf.csi",
@@ -101,7 +102,7 @@ rule combine_bcfs:
         """
         bcftools concat --threads {threads} --output-type b --naive {input.bcf} > {output.bcf} 2> /dev/null
         bcftools index --output {output.idx} {output.bcf}
-        bcftools stats {output.bcf} > {output.stats}
+        bcftools stats --fasta-ref {input.genome} {output.bcf} > {output.stats}
         """
 
 rule bcfreport:

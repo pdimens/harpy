@@ -31,36 +31,33 @@ rule leviathan_variantcall:
         bai = bam_dir + "/{sample}" + ".bam.bai",
         bc_idx = "Variants/leviathan/lrezIndexed/{sample}.bci",
         genome = genomefile
-    output: vcf = temp("Variants/leviathan/{sample}.vcf")
+    output: vcf = pipe("Variants/leviathan/{sample}.vcf")
     log:  
         runlog = "Variants/leviathan/logs/{sample}.leviathan.log",
         candidates = "Variants/leviathan/logs/{sample}.candidates"
     message: "Calling variants: {wildcards.sample}"
     params:
         extra = extra
-    threads: 4
+    threads: 3
     shell:
         """
         LEVIATHAN -b {input.bam} -i {input.bc_idx} {params} -g {input.genome} -o {output} -t {threads} --candidates {log.candidates} 2> {log.runlog}
         """
 
-rule add_samplename:
+rule convert_bcf:
     input: "Variants/leviathan/{sample}.vcf"
-    output: 
-        bcf = temp("Variants/leviathan/{sample}.bcf"),
-        namefile = temp(".{sample}.name")
+    output: temp("Variants/leviathan/{sample}.bcf")
     message: "Covnerting to BCF: {input}"
     threads: 1
     params: "{wildcards.sample}"
     shell:        
         """
-        echo {params} > {output.namefile}
-        bcftools reheader --samples {output.namefile} {input} | bcftools sort -Ob --output {output.bcf} 2> /dev/null
+        bcftools sort -Ob --output {output} {input} 2> /dev/null
         """
 
 rule index_bcf:
     input: "Variants/leviathan/{sample}.bcf"
-    output: temp("Variants/leviathan/{sample}.bcf.csi")
+    output: "Variants/leviathan/{sample}.bcf.csi"
     message: "Indexing: {input}"
     threads: 1
     shell:
@@ -68,17 +65,22 @@ rule index_bcf:
         bcftools index --output {output} {input}
         """
 
-rule merge_bcfs:
+rule sv_stats:
     input: 
-        bcf = expand("Variants/leviathan/{sample}.bcf", sample = samplenames),
-        index = expand("Variants/leviathan/{sample}.bcf.csi", sample = samplenames)
-    output: "Variants/leviathan/variants.raw.bcf"
-    log: "Variants/leviathan/variants.raw.stats"
-    message: "Merging sample VCFs into single file: {output}"
-    default_target: True
-    threads: 20
+        bcf = "Variants/leviathan/{sample}.bcf",
+        idx = "Variants/leviathan/{sample}.bcf.csi",
+        genome = genomefile
+    output: "Variants/leviathan/stats/{sample}.sv.stats"
+    message: "Getting stats for {input.bcf}"
+    threads: 1
     shell:
         """
-        bcftools merge --threads {threads} -o {output} {input.bcf}
-        bcftools stats {output} > {log}
+        bcftools stats --fasta-ref {input.genome} {input.bcf} > {output}
         """
+
+rule all_bcfs:
+    input: 
+        bcf = expand("Variants/leviathan/{sample}.bcf", sample = samplenames),
+        index = expand("Variants/leviathan/stats/{sample}.sv.stats", sample = samplenames)
+    message: "Variant calling is complete!"
+    default_target: True
