@@ -8,7 +8,7 @@ You will need:
 - b/gzipped fastq sequence files
     - paired-end files
     - file extension is either `.fastq.gz` or `.fq.gz` (do not mix)
-    - forward-reverse is noted as either `.1.` (and `.2.`) or `.F.` (and `.R.`) (do no mix)
+    - forward-reverse is noted as either `.1.`/`.2.` **or** `.F.`/`.R.` (do no mix)
         - _e.g._ `samplename.F.fq.gz` and `samplename.R.fq.gz`
         - _e.g._ `samplename.1.fq.gz` and `samplename.2.fq.gz`
         - or the same but ending with `.fastq.gz`, but don't mix and match

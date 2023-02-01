@@ -12,6 +12,8 @@ Issues with specific tools might warrant a discussion with the authors/developer
 | click         |  [website](https://github.com/pallets/click) | |
 | conda         |  [website](https://github.com/conda) | |
 | EMA           |  [website](https://github.com/arshajii/ema) | [publication](https://www.biorxiv.org/content/early/2017/11/16/220236) |
+| fastp         |  [website](https://github.com/OpenGene/fastp) | [publication](https://doi.org/10.1093/bioinformatics/bty560)  |
+| HapCUT2       |  [website](https://github.com/vibansal/HapCUT2) | [publication](https://doi.org/10.1101/gr.213462.116) |
 | LEVIATHAN     |  [website](https://github.com/morispi/LEVIATHAN) | [publication](https://doi.org/10.1101/2021.03.25.437002) |
 | LRez          |  [website](https://github.com/morispi/LRez) | [publication](https://academic.oup.com/bioinformaticsadvances/article/1/1/vbab022/6375438?login=false)|
 | mamba         |  [website](https://github.com/mamba-org/mamba) | |
