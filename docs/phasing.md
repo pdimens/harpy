@@ -16,6 +16,7 @@ You will need:
 | `--dir`               |    `-d`    | folder path     |         | **yes**  | Directory with sequence alignments                        |
 | `--molecule-distance` |    `-m`    | integer         |  20000  |    no    | Base-pair distance dilineating separate molecules         |
 | `--prune-threshold`   |    `-p`    | integer (0-100) |    7    |    no    | PHRED-scale (%) threshold for pruning low-confidence SNPs |
+| `--extra-params`      |    `-x`    | string          |         |    no    | Additional Hapcut2 parameters, in quotes                  |
 | `--threads`           |    `-t`    | integer         |    4    |    no    | Number of threads to use                                  |
 | `--snakemake`         |    `-s`    | string          |         |    no    | Additional Snakemake options, in quotes                   |
 | `--help`              |            |                 |         |          | Show the module docstring                                 |

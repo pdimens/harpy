@@ -12,15 +12,16 @@ You will need:
         - stick to one of each
 
 ## Running Options
-| argument      | short name | type        | default | required | description                             |
-|:--------------|:----------:|:------------|:-------:|:--------:|:----------------------------------------|
-| `--genome`    |    `-g`    | file path   |         | **yes**  | Genome assembly for read mapping        |
-| `--dir`       |    `-d`    | folder path |         | **yes**  | Directory with sample sequences         |
-| `--ema-bins`  |    `-e`    | integer     |   500   |    no    | Number of barcode bins for EMA          |
-| `--bwa`       |    `-b`    | toggle      |         |    no    | Use BWA MEM instead of EMA              |
-| `--threads`   |    `-t`    | integer     |    4    |    no    | Number of threads to use                |
-| `--snakemake` |    `-s`    | string      |         |    no    | Additional Snakemake options, in quotes |
-| `--help`      |            |             |         |          | Show the module docstring               |
+| argument         | short name | type        | default | required | description                                    |
+|:-----------------|:----------:|:------------|:-------:|:--------:|:-----------------------------------------------|
+| `--genome`       |    `-g`    | file path   |         | **yes**  | Genome assembly for read mapping               |
+| `--dir`          |    `-d`    | folder path |         | **yes**  | Directory with sample sequences                |
+| `--ema-bins`     |    `-e`    | integer     |   500   |    no    | Number of barcode bins for EMA                 |
+| `--bwa`          |    `-b`    | toggle      |         |    no    | Use BWA MEM instead of EMA                     |
+| `--extra-params` |    `-x`    | string      |         |    no    | Additional EMA-align/BWA parameters, in quotes |
+| `--threads`      |    `-t`    | integer     |    4    |    no    | Number of threads to use                       |
+| `--snakemake`    |    `-s`    | string      |         |    no    | Additional Snakemake options, in quotes        |
+| `--help`         |            |             |         |          | Show the module docstring                      |
 
 ## Workflows
 ### EMA
