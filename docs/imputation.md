@@ -14,10 +14,10 @@ You will need:
 ## Running Options
 | argument       | short name | type        |    default    | required | description                                                   |
 |:---------------|:----------:|:------------|:-------------:|:--------:|:--------------------------------------------------------------|
-| `--init`       |    `-i`    | toggle      |               |          | Create example parameter file and exit                        |
 | `--vcf`        |    `-v`    | file path   |               | **yes**  | Path to VCF/BCF file                                          |
 | `--directory`  |    `-d`    | folder path |               | **yes**  | Directory with sequence alignments                            |
 | `--parameters` |    `-p`    | file path   | stitch.params | **yes**  | STITCH parameter file (tab-delimited)                         |
+| `--init`       |    `-i`    | toggle      |               |          | Create example parameter file and exit                        |
 | `--threads`    |    `-t`    | integer     |       4       |    no    | Number of threads to use                                      |
 | `--snakemake`  |    `-s`    | string      |               |    no    | Additional Snakemake options, in quotes                       |
 | `--help`       |            |             |               |          | Show the module docstring                                     |
