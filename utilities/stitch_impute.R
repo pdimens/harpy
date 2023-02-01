@@ -12,6 +12,7 @@ logfile <- file(snakemake@log[[1]], open = "wt")
 
 # model parameters 
 parameters <- snakemake@params[["parameters"]]
+#extra <- snakemake@params[["extra"]]
 modeltype <- parameters$model
 K <- parameters$k
 S <- parameters$s

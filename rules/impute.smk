@@ -7,6 +7,7 @@ bam_dir = config["seq_directory"]
 contigfile = config["contignames"]
 samplenames = config["samplenames"]
 variantfile = config["variantfile"]
+
 # declare a dataframe to be a paramspace
 paramspace = Paramspace(pd.read_csv(config["paramfile"], sep="\t"), param_sep = "", filename_params="*")
 

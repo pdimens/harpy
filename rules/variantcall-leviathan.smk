@@ -2,6 +2,7 @@
 bam_dir = config["seq_directory"]
 genomefile = config["genomefile"]
 samplenames = config["samplenames"] 
+extra = config["extra"]
 
 rule merge_bcfs:
     input: 
@@ -51,10 +52,12 @@ rule leviathan_variantcall:
         runlog = "Variants/leviathan/logs/{sample}.leviathan.log",
         candidates = "Variants/leviathan/logs/{sample}.candidates"
     message: "Calling variants: {wildcards.sample}"
+    params:
+        extra = extra
     threads: 3
     shell:
         """
-        LEVIATHAN -b {input.bam} -i {input.bc_idx} -g {input.genome} -o {output} -t {threads} --candidates {log.candidates} 2> {log.runlog}
+        LEVIATHAN -b {input.bam} -i {input.bc_idx} {params} -g {input.genome} -o {output} -t {threads} --candidates {log.candidates} 2> {log.runlog}
         """
 
 rule vcf2bcf:

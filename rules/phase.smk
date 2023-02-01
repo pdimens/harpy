@@ -3,6 +3,7 @@ samplenames = config["samplenames"]
 variantfile = config["variantfile"]
 pruning = config["prune"]
 molecule_distance = config["molecule_distance"]
+extra = config["extra"]
 
 rule splitbysamplehet:
     input: 
@@ -66,11 +67,13 @@ rule phaseBlocks:
         vcf = "Phasing/phaseBlocks/{sample}.blocks.phased.VCF"
     message: "Creating phased haplotype blocks: {wildcards.sample}"
     log: "Phasing/phaseBlocks/logs/{sample}.blocks.phased.log"
-    params: f"--threshold {pruning}" if pruning > 0 else "--no_prune 1" 
+    params: f"--threshold {pruning}" if pruning > 0 else "--no_prune 1"
+    params:
+        extra = extra
     threads: 1
     shell:
         """
-        HAPCUT2 --fragments {input.fragments} --vcf {input.vcf} --out {output.blocks} --nf 1 {params} --error_analysis_mode 1 --call_homozygous 1 --outvcf 1 2> {log}
+        HAPCUT2 --fragments {input.fragments} --vcf {input.vcf} {params} --out {output.blocks} --nf 1 {params} --error_analysis_mode 1 --call_homozygous 1 --outvcf 1 2> {log}
         """
 
 rule createAnnotations:

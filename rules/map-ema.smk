@@ -6,6 +6,7 @@ genomefile = config["genomefile"]
 Rsep = config["Rsep"]
 fqext = config["fqext"]
 samplenames = config["samplenames"]
+extra = config["extra"]
 
 rule create_reports:
 	input: 
@@ -100,10 +101,12 @@ rule align_ema:
 	wildcard_constraints:
 		sample = "[a-zA-Z0-9_-]*"
 	message: "Mapping onto {input.genome}: {wildcards.sample}-{wildcards.bin}"
+	params: 
+		extra = extra
 	threads: 3
 	shell:
 		"""
-		ema-h align -t {threads} -d -p haptag -r {input.genome} -o {output} -R "@RG\\tID:{wildcards.sample}\\tSM:{wildcards.sample}" -s {input.readbin} 2> /dev/null
+		ema-h align -t {threads} {params} -d -p haptag -r {input.genome} -o {output} -R "@RG\\tID:{wildcards.sample}\\tSM:{wildcards.sample}" -s {input.readbin} 2> /dev/null
 		"""
 
 rule align_nobarcode:

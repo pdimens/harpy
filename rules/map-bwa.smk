@@ -5,6 +5,7 @@ genomefile = config["genome_file"]
 Rsep = config["Rsep"]
 fqext = config["fqext"]
 samplenames = config["samplenames"]
+extra = config["extra"]
 
 rule create_reports:
 	input: 
@@ -42,11 +43,13 @@ rule align_bwa:
 	wildcard_constraints:
 		sample = "[a-zA-Z0-9_-]*"
 	message: "Mapping {wildcards.sample} reads onto {input.genome} using BWA"
+	params: 
+		extra = extra
 	log: "ReadMapping/count/logs/{sample}.count.log"
 	threads: 3
 	shell:
 		"""
-		bwa mem -p -C -t {threads} -M -R "@RG\\tID:{wildcards.sample}\\tSM:{wildcards.sample}" {input.genome} {input.forward_reads} {input.reverse_reads} > {output} 2> {log}
+		bwa mem -p -C -t {threads} {params} -M -R "@RG\\tID:{wildcards.sample}\\tSM:{wildcards.sample}" {input.genome} {input.forward_reads} {input.reverse_reads} > {output} 2> {log}
 		"""
 
 rule sort_alignments:
