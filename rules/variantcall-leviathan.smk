@@ -17,7 +17,7 @@ rule index_barcode:
     input: 
         bam = bam_dir + "/{sample}.bam",
         bai = bam_dir + "/{sample}.bam.bai"
-    output: temp("Variants/leviathan/{sample}.bci")
+    output: temp("Variants/leviathan/lrezIndexed/{sample}.bci")
     message: "Indexing barcodes: {wildcards.sample}"
     threads: 4
     shell:
@@ -29,7 +29,7 @@ rule leviathan_variantcall:
     input:
         bam = bam_dir + "/{sample}" + ".bam",
         bai = bam_dir + "/{sample}" + ".bam.bai",
-        bc_idx = "Variants/leviathan/{sample}.bci",
+        bc_idx = "Variants/leviathan/lrezIndexed/{sample}.bci",
         genome = genomefile
     output: vcf = pipe("Variants/leviathan/{sample}.vcf")
     log:  
@@ -55,7 +55,7 @@ rule vcf2bcf:
     shell:        
         """
         echo {params} > {output.namefile}
-        bcftools reheader --samples {output.namefile} {input} | bcftools sort -Ob --output {output.bcf}
+        bcftools reheader --samples {output.namefile} {input} | bcftools sort -Ob --output {output.bcf} 2> /dev/null
         # bcftools convert -Ob {input} | bcftools sort --output {output.bcf}
         """
 
