@@ -44,7 +44,7 @@ rule leviathan_variantcall:
         LEVIATHAN -b {input.bam} -i {input.bc_idx} {params} -g {input.genome} -o {output} -t {threads} --candidates {log.candidates} 2> {log.runlog}
         """
 
-rule vcf2bcf:
+rule add_samplename:
     input: "Variants/leviathan/{sample}.vcf"
     output: 
         bcf = temp("Variants/leviathan/{sample}.bcf"),
@@ -56,7 +56,6 @@ rule vcf2bcf:
         """
         echo {params} > {output.namefile}
         bcftools reheader --samples {output.namefile} {input} | bcftools sort -Ob --output {output.bcf} 2> /dev/null
-        # bcftools convert -Ob {input} | bcftools sort --output {output.bcf}
         """
 
 rule index_bcf:
