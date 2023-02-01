@@ -55,7 +55,7 @@ rule vcf2bcf:
     shell:        
         """
         echo {params} > {output.namefile}
-        bcftools reheader --samples {output.namefile} -Ob {input} | bcftools sort --output {output.bcf}
+        bcftools reheader --samples {output.namefile} {input} | bcftools sort -Ob --output {output.bcf}
         # bcftools convert -Ob {input} | bcftools sort --output {output.bcf}
         """
 
