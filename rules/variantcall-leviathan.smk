@@ -68,14 +68,13 @@ rule index_bcf:
 rule sv_stats:
     input: 
         bcf = "Variants/leviathan/{sample}.bcf",
-        idx = "Variants/leviathan/{sample}.bcf.csi",
-        genome = genomefile
+        idx = "Variants/leviathan/{sample}.bcf.csi"
     output: "Variants/leviathan/stats/{sample}.sv.stats"
     message: "Getting stats for {input.bcf}"
     threads: 1
     shell:
         """
-        bcftools stats --fasta-ref {input.genome} {input.bcf} > {output}
+        bcftools stats {input.bcf} > {output}
         """
 
 rule all_bcfs:
