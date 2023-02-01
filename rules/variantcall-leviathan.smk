@@ -31,14 +31,14 @@ rule leviathan_variantcall:
         bai = bam_dir + "/{sample}" + ".bam.bai",
         bc_idx = "Variants/leviathan/lrezIndexed/{sample}.bci",
         genome = genomefile
-    output: vcf = pipe("Variants/leviathan/{sample}.vcf")
+    output: vcf = temp("Variants/leviathan/{sample}.vcf")
     log:  
         runlog = "Variants/leviathan/logs/{sample}.leviathan.log",
         candidates = "Variants/leviathan/logs/{sample}.candidates"
     message: "Calling variants: {wildcards.sample}"
     params:
         extra = extra
-    threads: 3
+    threads: 4
     shell:
         """
         LEVIATHAN -b {input.bam} -i {input.bc_idx} {params} -g {input.genome} -o {output} -t {threads} --candidates {log.candidates} 2> {log.runlog}
