@@ -143,6 +143,11 @@ def variants(genome, threads, directory, populations, ploidy, leviathan, extra_p
             print("ERROR: sample populations file " + populations + " not found.")
             sys.exit(1)
     
+    if not os.path.exists(f"{genome}.fai"):
+        bn = os.path.basename(genome)
+        print(f"{bn}.fai not found, indexing {bn} with samtools faidx")
+        subprocess.run(["samtools","faidx", genome])
+
     vcaller = "mpileup" if not leviathan else "leviathan"
     command = ['snakemake', '--cores', f'{threads}', '--directory', '.', '--snakefile', "rules/variantcall-" + vcaller + ".smk"]
     if snakemake != "none":
