@@ -44,7 +44,7 @@ rule leviathan_variantcall:
         LEVIATHAN -b {input.bam} -i {input.bc_idx} {params} -g {input.genome} -o {output} -t {threads} --candidates {log.candidates} 2> {log.runlog}
         """
 
-rule convert_bcf:
+rule sort_bcf:
     input: "Variants/leviathan/{sample}.vcf"
     output: temp("Variants/leviathan/{sample}.bcf")
     message: "Covnerting to BCF: {input}"
