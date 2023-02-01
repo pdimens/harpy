@@ -4,21 +4,6 @@ genomefile = config["genomefile"]
 samplenames = config["samplenames"] 
 extra = config["extra"]
 
-rule merge_bcfs:
-    input: 
-        bcf = expand("Variants/leviathan/{sample}.bcf", sample = samplenames),
-        index = expand("Variants/leviathan/{sample}.bcf.csi", sample = samplenames)
-    output: "Variants/leviathan/variants.raw.bcf"
-    log: "Variants/leviathan/variants.raw.stats"
-    message: "Merging sample VCFs into single file: {output}"
-    default_target: True
-    threads: 20
-    shell:
-        """
-        bcftools merge --threads {threads} -o {output} {input.bcf}
-        bcftools stats {output} > {log}
-        """
-
 rule index_alignment:
     input: bam_dir + "/{sample}.bam"
     output: bam_dir + "/{sample}.bam.bai"
@@ -62,12 +47,17 @@ rule leviathan_variantcall:
 
 rule vcf2bcf:
     input: "Variants/leviathan/{sample}.vcf"
-    output: temp("Variants/leviathan/{sample}.bcf")
+    output: 
+        bcf = temp("Variants/leviathan/{sample}.bcf")
+        namefile = temp(".{sample}.name")
     message: "Covnerting to BCF: {input}"
     threads: 1
+    params: "{wildcards.sample}"
     shell:        
         """
-        bcftools convert -Ob {input} | bcftools sort --output {output}
+        echo {params} > {output.namefile}
+        bcftools reheader --samples {output.namefile} -Ob {input} | bcftools sort --output {output.bcf}
+        # bcftools convert -Ob {input} | bcftools sort --output {output.bcf}
         """
 
 rule index_bcf:
@@ -78,4 +68,19 @@ rule index_bcf:
     shell:
         """
         bcftools index --output {output} {input}
+        """
+
+rule merge_bcfs:
+    input: 
+        bcf = expand("Variants/leviathan/{sample}.bcf", sample = samplenames),
+        index = expand("Variants/leviathan/{sample}.bcf.csi", sample = samplenames)
+    output: "Variants/leviathan/variants.raw.bcf"
+    log: "Variants/leviathan/variants.raw.stats"
+    message: "Merging sample VCFs into single file: {output}"
+    default_target: True
+    threads: 20
+    shell:
+        """
+        bcftools merge --threads {threads} -o {output} {input.bcf}
+        bcftools stats {output} > {log}
         """
