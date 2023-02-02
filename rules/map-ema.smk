@@ -18,6 +18,7 @@ rule create_reports:
 		stats = "ReadMapping/alignment.stats.html",
 		flagstat = "ReadMapping/alignment.flagstat.html"
 	message: "Read mapping completed!\nAlignment reports:\n{output.stats}\n{output.flagstat}"
+	benchmark: "Benchmark/Mapping/ema/report.txt"
 	default_target: True
 	shell:
 		"""
@@ -29,6 +30,7 @@ rule index_genome:
 	input: genomefile
 	output: multiext(genomefile, ".ann", ".bwt", ".fai", ".pac", ".sa", ".amb")
 	message: "Indexing {input}"
+	benchmark: "Benchmark/Mapping/genoindex.txt"
 	shell: 
 		"""
 		bwa index {input}
@@ -45,6 +47,7 @@ rule count_beadtags:
 	wildcard_constraints:
 		sample = "[a-zA-Z0-9_-]*"
 	message: "Counting barcode frequency: {wildcards.sample}"
+	benchmark: "Benchmark/Mapping/ema/Count.txt"
 	params:
 		prefix = lambda wc: "ReadMapping/count/" + wc.get("sample")
 	threads: 1
@@ -57,6 +60,7 @@ rule beadtag_summary:
 	input: expand("ReadMapping/count/logs/{sample}.count.log", sample = samplenames)
 	output: "ReadMapping/count/Beadtag.report"
 	message: "Creating sample barcode validation report"
+	benchmark: "Benchmark/Mapping/ema/beadtagsummary.txt"
 	run:
 		import os
 		with open(output[0], "w") as outfile:
@@ -83,6 +87,7 @@ rule preprocess_ema:
 		sample = "[a-zA-Z0-9_-]*"
 	log: "ReadMapping/preproc/logs/{sample}.preproc.log"
 	message: "Preprocessing for EMA mapping: {wildcards.sample}"
+	benchmark: "Benchmark/Mapping/ema/Preproc.{sample}.txt"
 	threads: 2
 	params:
 		outdir = lambda wc: "ReadMapping/preproc/" + wc.get("sample"),
@@ -101,6 +106,7 @@ rule align_ema:
 	wildcard_constraints:
 		sample = "[a-zA-Z0-9_-]*"
 	message: "Mapping onto {input.genome}: {wildcards.sample}-{wildcards.bin}"
+	benchmark: "Benchmark/Mapping/ema/Align.{sample}.{bin}.txt"
 	params: 
 		extra = extra
 	threads: 3
@@ -116,6 +122,7 @@ rule align_nobarcode:
 		genome_idx = multiext(genomefile, ".ann", ".bwt", ".fai", ".pac", ".sa", ".amb")
 	output: 
 		samfile = pipe("ReadMapping/align/{sample}/{sample}.nobarcode.sam")
+	benchmark: "Benchmark/Mapping/ema/bwaAlign.{sample}.txt"
 	wildcard_constraints:
 		sample = "[a-zA-Z0-9_-]*"
 	message: "Mapping unbarcoded reads onto {input.genome}: {wildcards.sample}"
@@ -132,6 +139,7 @@ rule sort_ema:
 		sample = "[a-zA-Z0-9_-]*",
 		emabin = "[0-9]*"
 	message: "Sorting alignments: {wildcards.sample}-{wildcards.emabin}"
+	benchmark: "Benchmark/Mapping/ema/Sort.{sample}.{emabin}.txt"
 	threads: 1
 	shell: 
 		"""
@@ -144,6 +152,7 @@ rule sort_nobarcode:
 	wildcard_constraints:
 		sample = "[a-zA-Z0-9_-]*"
 	message: "Sorting unbarcoded alignments: {wildcards.sample}"
+	benchmark: "Benchmark/Mapping/ema/bwaSort.{sample}.txt"
 	threads: 1
 	shell:
 		"""
@@ -157,11 +166,12 @@ rule markduplicates:
 		bai = temp("ReadMapping/align/{sample}/{sample}.nobarcode.bam.bai")
 	log: 
 		mdlog = "ReadMapping/align/log/{sample}.markdup.nobarcode.log",
-		stats = report("ReadMapping/align/stats/{sample}.nobarcode.stats", category="{sample}", subcategory="No Barcode", labels={"Metric": "stats"}),
-		flagstat = report("ReadMapping/align/flagstat/{sample}.nobarcode.flagstat", category="{sample}", subcategory="No Barcode", labels={"Metric": "flagstat"})
+		stats = "ReadMapping/align/stats/{sample}.nobarcode.stats",
+		flagstat = "ReadMapping/align/flagstat/{sample}.nobarcode.flagstat"
 	wildcard_constraints:
 		sample = "[a-zA-Z0-9_-]*"
 	message: "Marking duplicates in unbarcoded alignments: {wildcards.sample}"
+	benchmark: "Benchmark/Mapping/ema/markdup.{sample}.txt"
 	threads: 2
 	shell:
 		"""
@@ -177,6 +187,7 @@ rule merge_barcoded:
 	wildcard_constraints:
 		sample = "[a-zA-Z0-9_-]*"
 	message: "Merging barcoded alignments: {wildcards.sample}"
+	benchmark: "Benchmark/Mapping/ema/merge.{sample}.txt"
 	threads: 10
 	shell:
 		"""
@@ -187,11 +198,12 @@ rule index_mergedbarcoded:
 	input: "ReadMapping/align/{sample}/{sample}.barcoded.bam"
 	output: temp("ReadMapping/align/{sample}/{sample}.barcoded.bam.bai")
 	log:
-		stats = report("ReadMapping/align/stats/{sample}.barcoded.stats", category="{sample}", subcategory="Barcoded", labels={"Metric": "stats"}),
-		flagstat = report("ReadMapping/align/flagstat/{sample}.barcoded.flagstat", category="{sample}", subcategory="Barcoded", labels={"Metric": "flagstat"})
+		stats = "ReadMapping/align/stats/{sample}.barcoded.stats",
+		flagstat = "ReadMapping/align/flagstat/{sample}.barcoded.flagstat"
 	wildcard_constraints:
 		sample = "[a-zA-Z0-9_-]*"
 	message: "Indexing merged barcoded alignemnts: {wildcards.sample}"
+	benchmark: "Benchmark/Mapping/ema/indexmerge.{sample}.txt"
 	shell:
 		"""
 		sambamba index {input} {output}
@@ -210,6 +222,7 @@ rule merge_alignments:
 	wildcard_constraints:
 		sample = "[a-zA-Z0-9_-]*"
 	message: "Merging all alignments: {wildcards.sample}"
+	benchmark: "Benchmark/Mapping/ema/mergebc_nobc.{sample}.txt"
 	threads: 10
 	shell:
 		"""
@@ -220,6 +233,7 @@ rule index_alignments:
 	input: "ReadMapping/align/{sample}.bam"
 	output: "ReadMapping/align/{sample}.bam.bai"
 	message: "Indexing: {input}"
+	benchmark: "Benchmark/Mapping/ema/IndexMerged.{sample}.txt"
 	wildcard_constraints:
 		sample = "[a-zA-Z0-9_-]*"
 	shell:
@@ -235,6 +249,7 @@ rule alignment_stats:
 		stats = report("ReadMapping/align/stats/{sample}.stats", category="{sample}", subcategory="All Aligments", labels={"Metric": "stats"}),
 		flagstat = report("ReadMapping/align/flagstat/{sample}.flagstat", category="{sample}", subcategory="All Aligments", labels={"Metric": "flagstat"})
 	message: "Calculating alignment stats: {wildcards.sample}"
+	benchmark: "Benchmark/Mapping/ema/Mergedstats.{sample}.txt"
 	wildcard_constraints:
 		sample = "[a-zA-Z0-9_-]*"
 	shell:

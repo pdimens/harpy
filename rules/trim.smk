@@ -16,6 +16,7 @@ rule trim_fastp:
         json = "Trimming/logs/json/{sample}.json",
         err = "Trimming/logs/err/{sample}.log"
     threads: 2
+	benchmark: "Benchmark/Trimming/{sample}.txt"
     wildcard_constraints: 
         sample = "[a-zA-Z0-9_-]*"
     message: "Removing adapters + quality trimming: {wildcards.sample}"
@@ -26,5 +27,6 @@ rule trim_fastp:
 
 rule reports:
     input: expand("Trimming/{sample}{ext}", sample = samplenames, ext = [".R1.fq.gz", ".R2.fq.gz"])
+	benchmark: "Benchmark/Trimming/report.txt"
     default_target: True
     shell: "multiqc Trimming/logs/"
