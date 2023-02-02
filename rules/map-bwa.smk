@@ -15,6 +15,7 @@ rule create_reports:
 		stats = "ReadMapping/alignment.stats.html",
 		flagstat = "ReadMapping/alignment.flagstat.html"
 	message: "Read mapping completed!\nAlignment reports:\n{output.stats}\n{output.flagstat}"
+	benchmark: "Benchmark/Mapping/bwa/reports.txt"
 	default_target: True
 	shell:
 		"""
@@ -26,6 +27,7 @@ rule index_genome:
 	input: genomefile
 	output: multiext(genomefile, ".ann", ".bwt", ".fai", ".pac", ".sa", ".amb")
 	message: "Indexing {input} prior to read mapping"
+	benchmark: "Benchmark/Mapping/bwa/genoindex.txt"
 	shell: 
 		"""
 		bwa index {input}
@@ -43,6 +45,7 @@ rule align_bwa:
 	wildcard_constraints:
 		sample = "[a-zA-Z0-9_-]*"
 	message: "Mapping {wildcards.sample} reads onto {input.genome} using BWA"
+	benchmark: "Benchmark/Mapping/bwa/align.{sample}.txt"
 	params: 
 		extra = extra
 	log: "ReadMapping/count/logs/{sample}.count.log"
@@ -55,10 +58,11 @@ rule align_bwa:
 rule sort_alignments:
 	input: "ReadMapping/align/{sample}.sam"
 	output: 
-		bam = temp("ReadMapping/align/{sample}.bam.tmp")
+		bam = temp("ReadMapping/align/{sample}.sort.bam")
 	wildcard_constraints:
 		sample = "[a-zA-Z0-9_-]*"
 	message: "Sorting {wildcards.sample} alignments"
+	benchmark: "Benchmark/Mapping/bwa/sort.{sample}.txt"
 	threads: 1
 	shell:
 		"""
@@ -66,21 +70,35 @@ rule sort_alignments:
 		"""
 
 rule mark_duplicates:
-	input: "ReadMapping/align/{sample}.bam.tmp"
+	input: "ReadMapping/align/{sample}.sort.bam"
 	output: 
 		bam = "ReadMapping/align/{sample}.bam",
-		bai = "ReadMapping/align/{sample}.bam.bai",
-		stats = "ReadMapping/align/stats/{sample}.stats",
-		flagstat = "ReadMapping/align/flagstat/{sample}.flagstat"
-	log: "ReadMapping/align/log/{sample}.markdup.nobarcode.log",
+		bai = "ReadMapping/align/{sample}.bam.bai"
+	log: "ReadMapping/align/log/{sample}.markdup.nobarcode.log"
 	wildcard_constraints:
 		sample = "[a-zA-Z0-9_-]*"
-	message: "Marking duplicates with Sambamba for {wildcards.sample} alignments and calculating alignment stats"
+	message: "Marking duplicates: {wildcards.sample}"
+	benchmark: "Benchmark/Mapping/bwa/markdup.{sample}.txt"
 	threads: 4
 	shell:
 		"""
 		sambamba markdup -t {threads} -l 0 {input} {output.bam} 2> {log}
 		samtools index {output.bam}
-		samtools stats {output.bam} > {output.stats}
-		samtools flagstat {output.bam} > {output.flagstat}
+		"""
+
+rule alignment_stats:
+	input:
+		bam = "ReadMapping/align/{sample}.bam",
+		bai = "ReadMapping/align/{sample}.bam.bai"
+	output: 
+		stats = "ReadMapping/align/stats/{sample}.stats",
+		flagstat = "ReadMapping/align/flagstat/{sample}.flagstat"
+	wildcard_constraints:
+		sample = "[a-zA-Z0-9_-]*"
+	message: "Calculating alignment stats: {wildcards.sample}"
+	benchmark: "Benchmark/Mapping/bwa/stats.{sample}.txt"
+	threads: 1
+		"""
+		samtools stats {input.bam} > {output.stats}
+		samtools flagstat {input.bam} > {output.flagstat}
 		"""
