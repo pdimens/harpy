@@ -12,8 +12,8 @@ rule trim_fastp:
 		fw = "Trimming/{sample}.R1.fq.gz",
 		rv = "Trimming/{sample}.R2.fq.gz"
 	log:
-		html = "Trimming/logs/{sample}.html",
-		json = "Trimming/logs/json/{sample}.json",
+		html = "Trimming/logs/html/{sample}.html",
+		json = "Trimming/logs/json/{sample}.fastp.json",
 		serr = "Trimming/logs/err/{sample}.log"
 	benchmark: "Benchmark/Trimming/{sample}.txt"
 	message: "Removing adapters + quality trimming: {wildcards.sample}"
@@ -29,4 +29,4 @@ rule reports:
 	input: expand("Trimming/{sample}{ext}", sample = samplenames, ext = [".R1.fq.gz", ".R2.fq.gz"])
 	benchmark: "Benchmark/Trimming/report.txt"
 	default_target: True
-	shell: "multiqc Trimming/logs/"
+	shell: "multiqc Trimming/logs/json -m fastp --force --quiet --no-data-dir"
