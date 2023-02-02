@@ -140,7 +140,7 @@ def variants(genome, threads, directory, populations, ploidy, leviathan, extra_p
         exit(0)
     elif populations.lower() != 'none':
         if not exists(populations):
-            print("ERROR: sample populations file " + populations + " not found.")
+            print(f"ERROR: sample populations file {populations} not found.")
             sys.exit(1)
     
     if not os.path.exists(f"{genome}.fai"):
@@ -163,25 +163,28 @@ def variants(genome, threads, directory, populations, ploidy, leviathan, extra_p
 
 #@click.option('-f', '--filter', is_flag=True, help="Filter VCF file to keep SNPs with QUAL>20 and DP>10")
 @click.command()
-@click.option('-i', '--init', is_flag=True, help="Create example parameter file and exit")
 @click.option('-v', '--vcf', required = True, type=click.Path(exists=True),metavar = "File Path", help = 'Path to BCF/VCF file')
 @click.option('-d', '--directory', required = True, type=click.Path(exists=True), metavar = "Folder Path", help = 'Directory with sequence alignments (*.bam)')
-@click.option('-p', '--parameters', default = 'stitch.params', required = True, show_default = True, type=click.Path(exists=True), metavar = "File Path", help = 'STITCH parameter file (tab-delimited)')
+@click.option('-p', '--parameters', default = 'stitch.params', required = True, show_default = True, type=str, metavar = "File Path or \'create\'", help = 'STITCH parameter file (tab-delimited)')
 #@click.option('-x', '--extra-params', default = "", show_default = False, type = str, metavar = "String", help = 'Additional STITCH parameters, in quotes')
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(min = 4, max_open = True), metavar = "Integer", help = 'Number of threads to use')
 @click.option('-s', '--snakemake', default = "none", show_default = False, type = str, metavar = "String", help = 'Additional Snakemake parameters, in quotes')
-def impute(parameters, directory, threads, vcf, init, snakemake):
+def impute(parameters, directory, threads, vcf, snakemake):
     """
     Impute genotypes from genotype likelihoods
     
     Requires a parameter file, use **harpy impute --init** to generate one and modify it for your study.
     """
-    if init:
+    if parameters == 'create':
         with open('stitch.params', "w") as file:
             file.write('model\tuseBX\tk\ts\tnGen\npseudoHaploid\tTRUE\t10\t5\t50\npseudoHaploid\tTRUE\t10\t1\t50\npseudoHaploid\tTRUE\t15\t10\t100')
         print("Created example parameter file \'stitch.params\'")
         print("Modify the model parameters as appropriate, but " + '\033[1m' + "DO NOT" + '\033[0m' + "add/remove columns")
         exit(0)
+    else:
+        if not exists(parameters):
+            print(f"ERROR: STITCH parameter file {parameters} not found.")
+            sys.exit(1)
     
     vcfcheck(vcf)
     samplenames = getnames(directory, '.bam')
