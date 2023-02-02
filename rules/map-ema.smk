@@ -47,7 +47,7 @@ rule count_beadtags:
 	wildcard_constraints:
 		sample = "[a-zA-Z0-9_-]*"
 	message: "Counting barcode frequency: {wildcards.sample}"
-	benchmark: "Benchmark/Mapping/ema/Count.txt"
+	benchmark: "Benchmark/Mapping/ema/Count.{sample}.txt"
 	params:
 		prefix = lambda wc: "ReadMapping/count/" + wc.get("sample")
 	threads: 1
