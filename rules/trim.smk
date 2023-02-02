@@ -29,4 +29,4 @@ rule reports:
 	input: expand("Trimming/{sample}{ext}", sample = samplenames, ext = [".R1.fq.gz", ".R2.fq.gz"])
 	benchmark: "Benchmark/Trimming/report.txt"
 	default_target: True
-	shell: "multiqc Trimming/logs/json -m fastp --force --quiet --no-data-dir"
+	shell: "multiqc Trimming/logs/json -m fastp --force --quiet --no-data-dir 2>/dev/null"
