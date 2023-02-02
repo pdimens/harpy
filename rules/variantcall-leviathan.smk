@@ -7,6 +7,7 @@ rule index_alignment:
     input: bam_dir + "/{sample}.bam"
     output: bam_dir + "/{sample}.bam.bai"
     message: "Indexing barcodes: {wildcards.sample}"
+    benchmark: "Benchmark/Variants/leviathan/indexbam.{sample}.txt"
     threads: 1
     shell:
         """
@@ -19,10 +20,11 @@ rule index_barcode:
         bai = bam_dir + "/{sample}.bam.bai"
     output: temp("Variants/leviathan/lrezIndexed/{sample}.bci")
     message: "Indexing barcodes: {wildcards.sample}"
+    benchmark: "Benchmark/Variants/leviathan/indexbc.{sample}.txt"
     threads: 4
     shell:
         """
-        LRez index bam -p -b {input} -o {output}
+        LRez index bam -p -b {input} -o {output} --threads {threads}
         """
 
 rule leviathan_variantcall:
@@ -36,6 +38,7 @@ rule leviathan_variantcall:
         runlog = "Variants/leviathan/logs/{sample}.leviathan.log",
         candidates = "Variants/leviathan/logs/{sample}.candidates"
     message: "Calling variants: {wildcards.sample}"
+    benchmark: "Benchmark/Variants/leviathan/variantcall.{sample}.txt"
     params:
         extra = extra
     threads: 3
@@ -47,9 +50,10 @@ rule leviathan_variantcall:
 rule sort_bcf:
     input: "Variants/leviathan/{sample}.vcf"
     output: "Variants/leviathan/{sample}.bcf"
-    message: "Covnerting to BCF: {input}"
+    message: "Covnerting to BCF: {wildcards.sample}"
     threads: 1
     params: "{wildcards.sample}"
+    benchmark: "Benchmark/Variants/leviathan/sortbcf.{sample}.txt"
     shell:        
         """
         bcftools sort -Ob --output {output} {input} 2> /dev/null
@@ -59,6 +63,7 @@ rule index_bcf:
     input: "Variants/leviathan/{sample}.bcf"
     output: "Variants/leviathan/{sample}.bcf.csi"
     message: "Indexing: {input}"
+    benchmark: "Benchmark/Variants/leviathan/indexbcf.{sample}.txt"
     threads: 1
     shell:
         """
@@ -71,6 +76,7 @@ rule sv_stats:
         idx = "Variants/leviathan/{sample}.bcf.csi"
     output: "Variants/leviathan/stats/{sample}.sv.stats"
     message: "Getting stats for {input.bcf}"
+    benchmark: "Benchmark/Variants/leviathan/stats.{sample}.txt"
     threads: 1
     shell:
         """

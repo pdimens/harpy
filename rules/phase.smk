@@ -11,6 +11,7 @@ rule splitbysamplehet:
         bam = bam_dir + "/{sample}.bam"
     output: "Phasing/input/{sample}.het.bcf"
     message: "Extracting {wildcards.sample} from {input.vcf}"
+    benchmark: "Benchmark/Phase/splithet.{sample}.txt"
     threads: 1
     shell:
         """
@@ -24,6 +25,7 @@ rule splitbysample:
         bam = bam_dir + "/{sample}.bam"
     output: "Phasing/input/{sample}.bcf"
     message: "Extracting {wildcards.sample} from {input.vcf}"
+    benchmark: "Benchmark/Phase/split.{sample}.txt"
     threads: 1
     shell:
         """
@@ -38,6 +40,7 @@ rule extractHairs:
     output: "Phasing/extractHairs/{sample}.unlinked.frags"
     log: "Phasing/extractHairs/logs/{sample}.unlinked.log"
     message: "Converting to compact fragment format: {wildcards.sample}"
+    benchmark: "Benchmark/Phase/extracthairs.{sample}.txt"
     threads: 1
     shell:
         """
@@ -52,6 +55,7 @@ rule linkFragments:
     output: "Phasing/linkFragments/{sample}.linked.frags"
     log: "Phasing/linkFragments/logs/{sample}.linked.log"
     message: "Linking fragments: {wildcards.sample}"
+    benchmark: "Benchmark/Phase/linkfrag.{sample}.txt"
     params: d = molecule_distance
     shell:
         """
@@ -66,9 +70,10 @@ rule phaseBlocks:
         blocks = "Phasing/phaseBlocks/{sample}.blocks",
         vcf = "Phasing/phaseBlocks/{sample}.blocks.phased.VCF"
     message: "Creating phased haplotype blocks: {wildcards.sample}"
+    benchmark: "Benchmark/Phase/phase.{sample}.txt"
     log: "Phasing/phaseBlocks/logs/{sample}.blocks.phased.log"
-    params: f"--threshold {pruning}" if pruning > 0 else "--no_prune 1"
-    params:
+    params: 
+        prune = f"--threshold {pruning}" if pruning > 0 else "--no_prune 1",
         extra = extra
     threads: 1
     shell:
@@ -80,6 +85,7 @@ rule createAnnotations:
     input: "Phasing/phaseBlocks/{sample}.blocks.phased.VCF"
     output: "Phasing/annotations/{sample}.annot.gz"
     message: "Creating annotation files: {wildcards.sample}"
+    benchmark: "Benchmark/Phase/createAnno.{sample}.txt"
     shell:
         """
         bcftools query -f "%CHROM\\t%POS[\\t%GT\\t%PS\\t%PQ\\t%PD]\\n" {input} | bgzip -c > {output}
@@ -89,11 +95,13 @@ rule indexAnnotations:
     input: "Phasing/annotations/{sample}.annot.gz"
     output: "Phasing/annotations/{sample}.annot.gz.tbi"
     message: "Indexing {wildcards.sample}.annot.gz"
+    benchmark: "Benchmark/Phase/indexAnno.{sample}.txt"
     shell: "tabix -b 2 -e 2 {input}"
 
 rule headerfile:
     output: "Phasing/input/header.names"
     message: "Creating additional header file"
+    benchmark: "Benchmark/Phase/headerfile.txt"
     run:
         with open(output[0], "w") as fout:
             fout.write('##INFO=<ID=HAPCUT,Number=0,Type=Flag,Description="The haplotype was created with Hapcut2">\n')
@@ -110,6 +118,7 @@ rule mergeAnnotations:
         extraheaders = "Phasing/input/header.names"
     output: "Phasing/annotations_merge/{sample}.phased.annot.bcf"
     message: "Merging annotations: {wildcards.sample}"
+    benchmark: "Benchmark/Phase/mergeAnno.{sample}.txt"
     shell:
         """
         bcftools annotate -h {input.extraheaders} -a {input.annot} {input.orig} -c CHROM,POS,FMT/GX,FMT/PS,FMT/PQ,FMT/PD -m +HAPCUT |  awk '!/<ID=GX/' | sed 's/:GX:/:GT:/' | bcftools view -Ob -o {output} - 
@@ -119,6 +128,7 @@ rule indexAnnotations2:
     input: "Phasing/annotations_merge/{sample}.phased.annot.bcf"
     output: "Phasing/annotations_merge/{sample}.phased.annot.bcf.csi"
     message: "Indexing annotations: {wildcards.sample}"
+    benchmark: "Benchmark/Phase/indexAnno.{sample}.txt"
     shell: "bcftools index {input}"
 
 rule mergeSamples:
@@ -127,12 +137,14 @@ rule mergeSamples:
         idx = expand("Phasing/annotations_merge/{sample}.phased.annot.bcf.csi", sample = samplenames)
     output: "Phasing/variants.phased.bcf"
     message: "Combinging samples into a single BCF file"
+    benchmark: "Benchmark/Phase/mergesamples.txt"
     threads: 30
     shell: "bcftools merge --threads {threads} --output-type b {input.bcf} > {output}"
 
 rule indexFinal:
     input: "Phasing/variants.phased.bcf"
     output: "Phasing/variants.phased.bcf.csi"
+    benchmark: "Benchmark/Phase/finalindex.txt"
     default_target: True
     message: "Indexing {input}"
     shell: "bcftools index {input}"

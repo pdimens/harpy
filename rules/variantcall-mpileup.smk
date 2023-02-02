@@ -18,6 +18,7 @@ rule index_alignments:
     input: bam_dir + "/{sample}.bam"
     output: bam_dir + "/{sample}.bam.bai"
     message: "Indexing barcodes: {wildcards.sample}"
+    benchmark: "Benchmark/Variants/mpileup/indexbam.{sample}.txt"
     shell:
         """
         sambamba index {input} {output}
@@ -27,6 +28,7 @@ rule split_contigs:
     input: f"{genomefile}.fai"
     output: temp(expand("Variants/mpileup/regions/{part}", part = contigs))
     message: "Separating {input} by contig for parallelization later"
+    benchmark: "Benchmark/Variants/mpileup/splitcontigs.txt"
     run:
         with open(input[0]) as f:
             cpath = "Variants/mpileup/regions"
@@ -41,6 +43,7 @@ rule bam_list:
         bai = expand(bam_dir + "/{sample}.bam.bai", sample = samplenames)
     output: "Variants/mpileup/samples.list"
     message: "Creating list of alignment files"
+    benchmark: "Benchmark/Variants/mpileup/bamlist.txt"
     run:
         with open(output[0], "w") as fout:
             for bamfile in input.bam:
@@ -53,6 +56,7 @@ rule mpileup:
         region = "Variants/mpileup/regions/{part}"
     output: pipe("Variants/mpileup/{part}.mp.bcf")
     message: "Finding variants: {wildcards.part}"
+    benchmark: "Benchmark/Variants/mpileup/mpileup.{part}.txt"
     params:
         extra = extra
     shell:
@@ -64,9 +68,10 @@ rule call_genotypes:
     input: "Variants/mpileup/{part}.mp.bcf"
     output: temp("Variants/mpileup/{part}.bcf")
     message: "Calling genotypes: {wildcards.part}"
+    benchmark: "Benchmark/Variants/mpileup/call.{part}.txt"
     threads: 1
     params: 
-        groupsamples = '' if groupings == 'none' else "--group-samples " + groupings,
+        groupsamples = '' if groupings == 'none' else f"--group-samples {groupings}",
         ploidy = f"--ploidy {ploidy}"
     shell:
         """
@@ -81,6 +86,7 @@ rule index_bcf:
     output: temp("Variants/mpileup/{part}.bcf.csi")
     log: "Variants/mpileup/stats/{part}.stats"
     message: "Indexing: {wildcards.part}"
+    benchmark: "Benchmark/Variants/mpileup/indexbcf.{part}.txt"
     threads: 4  
     shell:
         """
@@ -97,7 +103,8 @@ rule combine_bcfs:
         bcf = "Variants/mpileup/variants.raw.bcf",
         idx = "Variants/mpileup/variants.raw.bcf.csi",
         stats = "Variants/mpileup/variants.raw.stats"
-    message: "Merging sample BCFs into: {output}"
+    message: "Merging all BCFs into: {output.bcf}"
+    benchmark: "Benchmark/Variants/mpileup/merge.txt"
     threads: 50
     shell:
         """
@@ -110,6 +117,7 @@ rule bcfreport:
     input: "Variants/mpileup/variants.raw.stats"
     output: "Variants/mpileup/variants.raw.html"
     message: "Generating bcftools report: {output}"
+    benchmark: "Benchmark/Variants/mpileup/reports.txt"
     script: "../utilities/bcftoolsreport.Rmd"
 
 
