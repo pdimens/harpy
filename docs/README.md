@@ -11,18 +11,18 @@ can modify are done at the command line. There aren't too many, which should mak
 Harpy is modular, meaning you can use different parts of it independent from each other. Need to only align reads?
 Great! Only want to call variants? Awesome! All modules are called by `harpy modulename`. For example, use `harpy align` to align reads.
 
-| Module  | Description |
-| :---    | :----       |
-| `trim` | Remove adapters and quality trim sequences |
-| `align` | Align sample sequences to a reference genome |
-| `variants` | Call variants from sample alignments |
-| `impute` | Impute genotypes from genotype likelihoods |
-| `phase` | Phase SNPs into haplotypes | 
+| Module     | Description                                  |
+|:-----------|:---------------------------------------------|
+| `trim`     | Remove adapters and quality trim sequences   |
+| `align`    | Align sample sequences to a reference genome |
+| `variants` | Call variants from sample alignments         |
+| `impute`   | Impute genotypes from genotype likelihoods   |
+| `phase`    | Phase SNPs into haplotypes                   |
 
 
 ## Getting Started
 ### Install Harpy
-!> Not yet implemented until initial development is over
+!> Not yet implemented until initial development is completed
 
 Getting started with Harpy is as simple as installing it from conda/mamba (not implemented yet)
 ```bash
