@@ -27,6 +27,38 @@ def getnames(directory, ext):
         sys.exit(1)
     return samplenames
 
+# Nicer version for init
+def getnames_err(directory, ext):
+    samplenames = set([i.split(ext)[0] for i in os.listdir(directory) if i.endswith(ext)])
+    if len(samplenames) < 1:
+        raise Exception("No sample files ending with {ext} found in {directory}.")
+    return samplenames
+
+# find fastq extension types
+def fq_extension(directory):
+    ext = set()
+    rsep = set()
+    err = ""
+    for i in os.listdir(directory):
+        if i.endswith(".fastq.gz") | i.endswith(".fq.gz"):
+            sep = i.split(".")
+            fq = ".".join(sep[-2:])          
+            ext.add(fq)
+            base = i.split(f".{fq}")[0]
+            rsp = "".join(base[-2:]).lstrip('^_.-')
+            rsep.add(rsp)
+    if len(ext) < 1:
+        print(f"ERROR: No fastq.gz or fq.gz files identified in {directory}")
+        sys.exit(1)
+    if len(ext) > 1:
+        err += f"- multiple file extensions detected: {ext}.\n  - format your files so there's only one style of .fq.gz | .fastq.gz\n"
+    if len(rsep) > 2:
+        err += f"- multiple read forward/reverse styles detected: {rsep}\n  - format your files so there's only one style of .1. | .F. | .R1.\n"
+    if err != "":
+        print("ERROR:\n" + err)
+        sys.exit(1)
+    return (f"{list(ext)[0]}", sorted(rsep))
+
 
 ## the modules ##
 @click.group()
@@ -46,23 +78,110 @@ def cli():
     pass
 
 @click.command()
-@click.option('-d', '--directory', show_default = False, required = True, type=click.Path(exists=True), metavar = "Folder Path", help = 'Directory with raw sample sequences')
+@click.option('-p', '--popgroup', required = False, type=click.Path(exists=True), metavar = "Input folder Path", help = 'Create generic sample-group file using existing sample file names (fq.gz or bam)')
+@click.option('-s', '--stitch-params', type=str, metavar = "Output file name", help = 'Create template STITCH parameter file')
+@click.option('-h', '--hpc', default = "slurm", type = click.Choice(["slurm", "sge"], case_sensitive = False), help = 'Create HPC scheduling profile')
+def init(popgroup, stitch_params, hpc):
+    """
+    Create various associated/necessary files
+
+    With this command you can generate a sample grouping file (for variant calling),
+    a templace STITCH parameter file (for imputation), and a HPC profile for running
+    Harpy on a cluster. You can use any combination of options at a time. 
+    """
+    if popgroup is not None:
+        print('\033[1m' + "<><> Sampling Grouping File <><>" + '\033[0m')
+        try:
+            samplenames = getnames_err(popgroup, '.bam')
+        except:
+            try:
+                samplenames = set([i[:-2].rstrip('_.^') for i in getnames_err(popgroup, '.fastq.gz')])
+            except:
+                try:
+                    samplenames = set([i[:-2].rstrip('_.^') for i in getnames_err(popgroup, '.fq.gz')])
+                except:
+                    print(f"ERROR: No files ending in fq.gz, fastq.gz, or .bam found in {popgroup}")
+                    sys.exit(1)
+
+        print(f"Samples detected in {popgroup}: " + str(len(samplenames)))
+        fout = "samples.groups"
+        if exists("samples.groups"):
+            overwrite = input("File \'samples.groups\' already exists, overwrite (no|yes)?  ").lower()
+            if (overwrite == "no") or (overwrite == "n"):
+                fout = input("Please suggest a different name for the output file: ")
+            elif (overwrite == "yes") or (overwrite == "y"):
+                fout = "samples.groups"
+        with open(fout, "w") as file:
+            for i in samplenames:
+                file.write(i + '\t1\n') 
+        print('Created sample population grouping file: ' + fout + '\nPlease review it, as all samples have been grouped into a single population\n')
+
+    if stitch_params is not None:
+        print('\033[1m' + "<><> STITCH Parameter File <><>" + '\033[0m')
+        with open(stitch_params, "w") as file:
+            file.write('model\tuseBX\tk\ts\tnGen\npseudoHaploid\tTRUE\t10\t5\t50\npseudoHaploid\tTRUE\t10\t1\t50\npseudoHaploid\tTRUE\t15\t10\t100')
+        print(f"Created example parameter file: {stitch_params}")
+        print("Modify the model parameters as needed, but " + '\033[1m' + "DO NOT" + '\033[0m' + " add/remove columns")
+
+    if hpc.lower() == "slurm":
+        if not os.path.exists('slurm'):
+            os.makedirs('slurm')
+        with open("slurm/config.yaml", "w") as yml:
+            yml.write(
+"""cluster:
+  mkdir -p logs/{rule} &&
+  sbatch
+    --partition={resources.partition}
+    --qos={resources.qos}
+    --cpus-per-task={threads}
+    --mem={resources.mem_mb}
+    --job-name=smk-{rule}-{wildcards}
+    --output=logs/{rule}/{rule}-{wildcards}-%j.out
+default-resources:
+  - partition=<name-of-default-partition>
+  - qos=<name-of-quality-of-service>
+  - mem_mb=1000
+restart-times: 3
+max-jobs-per-second: 10
+max-status-checks-per-second: 1
+local-cores: 1
+latency-wait: 60
+jobs: 500
+keep-going: True
+rerun-incomplete: True
+printshellcmds: True
+scheduler: greedy
+use-conda: True
+"""
+                      )
+        print("Created HPC profile \'slurm/config.yaml'. Replace the \'partition\' and \'qos\' placeholders in slurm/config.yaml with options relevant to your system.")
+
+@click.command()
+@click.option('-d', '--directory', required = True, type=click.Path(exists=True), metavar = "Folder Path", help = 'Directory with raw sample sequences')
 @click.option('-l', '--max-length', default = 150, show_default = True, type=int, metavar = "Integer", help = 'Maximum length to trim sequences down to')
-@click.option('-x', '--extra-params', default = "", show_default = False, type = str, metavar = "String", help = 'Additional Fastp parameters, in quotes')
+@click.option('-x', '--extra-params', default = "", type = str, metavar = "String", help = 'Additional Fastp parameters, in quotes')
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(min = 4, max_open = True), metavar = "Integer", help = 'Number of threads to use')
-@click.option('-s', '--snakemake', default = "none", show_default = False, type = str, metavar = "String", help = 'Additional Snakemake parameters, in quotes')
+@click.option('-s', '--snakemake', type = str, metavar = "String", help = 'Additional Snakemake parameters, in quotes')
 def trim(directory, max_length, extra_params, threads, snakemake):
     """
     Remove adapters and quality trim sequences
     """
-    fastqlist = [i for i in os.listdir(directory) if i.endswith('.fastq.gz')]
-    fqext = "fq.gz" if not fastqlist else "fastq.gz"
-    Rlist = [i for i in os.listdir(directory) if i.endswith('.1.' + fqext)]
-    Rsep = [".F.", ".R."] if not Rlist else [".1.", ".2."]
-    fullext = [Rsep[0] + fqext, Rsep[1] + fqext]
-    samplenames = getnames(directory, fullext[0])
-    command = ['snakemake', '--cores', f'{threads}', '--directory', '.', '--snakefile', "rules/trim.smk"]
-    if snakemake != "none":
+    # extension guessing
+    fqext, Rsep = fq_extension(directory)
+    try:
+        fullext = [f".{Rsep[0]}.{fqext}", f".{Rsep[1]}.{fqext}"]
+        samplenames = getnames_err(directory, fullext[0])
+    except:
+        try:
+            fullext = [f"_{fqext[1][0]}.{fqext[0]}", f"_{fqext[1][1]}.{fqext[0]}"]
+            samplenames = getnames_err(directory, fullext[0])
+        except:
+            print(f"ERROR: No fastq files with acceptable names found in {directory}")
+            print("Check that the files conform to [.1. | .F.][.fastq | .fq].gz")
+            print("Read the documentation for details: https://pdimens.github.io/HARPY/#/qualitytrimming.")
+            sys.exit(1)
+    command = f'snakemake --cores {threads} --directory . --snakefile rules/trim.smk'.split()
+    if snakemake is not None:
         [command.append(i) for i in snakemake.split()]
     command.append('--config')
     command.append(f"seq_directory={directory}")
@@ -77,23 +196,31 @@ def trim(directory, max_length, extra_params, threads, snakemake):
 @click.option('-d', '--directory', required = True, type=click.Path(exists=True), metavar = "Folder Path", help = 'Directory with sample sequences')
 @click.option('-e', '--ema-bins', default = 500, show_default = True, type = click.IntRange(1,1000), metavar = "Integer", help="Number of barcode bins for EMA")
 @click.option('-b', '--bwa', is_flag=True, help="Ignore barcodes and use BWA MEM instead of EMA")
-@click.option('-x', '--extra-params', default = "", show_default = False, type = str, metavar = "String", help = 'Additional EMA-align/BWA parameters, in quotes')
+@click.option('-x', '--extra-params', default = "", type = str, metavar = "String", help = 'Additional EMA-align/BWA parameters, in quotes')
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(min = 2, max_open = True), metavar = "Integer", help = 'Number of threads to use')
-@click.option('-s', '--snakemake', default = "none", show_default = False, type = str, metavar = "String", help = 'Additional Snakemake parameters, in quotes')
+@click.option('-s', '--snakemake', type = str, metavar = "String", help = 'Additional Snakemake parameters, in quotes')
 def align(genome, threads, bwa, directory, ema_bins, extra_params, snakemake):
     """
     Align sample sequences to a reference genome
     """
-    fastqlist = [i for i in os.listdir(directory) if i.endswith('.fastq.gz')]
-    fqext = "fq.gz" if not fastqlist else "fastq.gz"
-    Rlist = [i for i in os.listdir(directory) if i.endswith('.R1.' + fqext)]
-    Rsep = "_R" if not Rlist else ".R"
-    fullext = Rsep + "1." + fqext
-    samplenames = getnames(directory, fullext)
+    # extension guessing
+    fqext, Rsep = fq_extension(directory)
+    try:
+        fullext = [f".{Rsep[0]}.{fqext}", f".{Rsep[1]}.{fqext}"]
+        samplenames = getnames_err(directory, fullext[0])
+    except:
+        try:
+            fullext = [f"_{fqext[1][0]}.{fqext[0]}", f"_{fqext[1][1]}.{fqext[0]}"]
+            samplenames = getnames_err(directory, fullext[0])
+        except:
+            print(f"ERROR: No fastq files with acceptable names found in {directory}")
+            print("Check that the files conform to [.1. | | .F. | .R1.][.fastq | .fq].gz")
+            print("Read the documentation for details: https://pdimens.github.io/HARPY/#/readmapping.")
+            sys.exit(1)
+    #samplenames = getnames(directory, fullext)
     mapper = "ema" if not bwa else "bwa"
-    command = ['snakemake', '--cores', f'{threads}', '--directory', '.', '--snakefile', "rules/map-" + mapper + ".smk"]
-
-    if snakemake != "none":
+    command = f'snakemake --cores {threads} --directory . --snakefile rules/map-{mapper}.smk'.split()
+    if snakemake is not None:
         [command.append(i) for i in snakemake.split()]
     command.append('--config')
     command.append(f"seq_directory={directory}")
@@ -101,56 +228,34 @@ def align(genome, threads, bwa, directory, ema_bins, extra_params, snakemake):
     command.append(f"Rsep={Rsep}")
     command.append(f"samplenames={samplenames}")
     command.append(f"genomefile={genome}")
+    command.append(f"EMA_bins={ema_bins}")
     command.append(f"extra={extra_params}")
-    if not bwa:
-        command.append(f"EMA_bins={ema_bins}")
     subprocess.run(command)
 
 @click.command()
 @click.option('-g', '--genome', type=click.Path(exists=True), required = True, metavar = "File Path", help = 'Genome assembly for variant calling')
 @click.option('-d', '--directory', required = True, type=click.Path(exists=True), metavar = "Folder Path", help = 'Directory with sequence alignments')
-@click.option('-p', '--populations', default = 'none', show_default = True, type=str, metavar = "File Path or \'create\'", help = 'Tab-delimited file of sample<tab>population')
+@click.option('-p', '--populations', type=click.Path(exists = True), metavar = "File Path", help = 'Tab-delimited file of sample<tab>population')
 @click.option('-x', '--ploidy', default = 2, show_default = True, type=click.IntRange(1,12), metavar = "Integer", help = 'Ploidy of samples')
 @click.option('-l', '--leviathan', is_flag=True, help="Call variants with Leviathan instead of bcftools")
-@click.option('-x', '--extra-params', default = "", show_default = False, type = str, metavar = "String", help = 'Additional mpileup/leviathan parameters, in quotes')
+@click.option('-x', '--extra-params', default = "", type = str, metavar = "String", help = 'Additional mpileup/leviathan parameters, in quotes')
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(min = 4, max_open = True), metavar = "Integer", help = 'Number of threads to use')
-@click.option('-s', '--snakemake', default = "none", show_default = False, type = str, metavar = "String", help = 'Additional Snakemake parameters, in quotes')
+@click.option('-s', '--snakemake', type = str, metavar = "String", help = 'Additional Snakemake parameters, in quotes')
 def variants(genome, threads, directory, populations, ploidy, leviathan, extra_params, snakemake):
     """
     Call variants from sample alignments
 
-    Use `--populations create` to create a simple sample grouping file (optional) from samples present in `--directory`  
+    Use `harpy init --popgroup` to create a sample grouping file (optional) from samples files  
     """
-    samplenames = getnames(directory, '.bam')
-
-    # create popgroups with --populations create
-    if populations.lower() == 'create':
-        fout = "samples.groups"
-        if exists("samples.groups"):
-            overwrite = input("File \'samples.groups\' already exists, overwrite (no|yes)?  ").lower()
-            if (overwrite == "no") or (overwrite == "n"):
-                fout = input("Please suggest a different name for the output file: ")
-            elif (overwrite == "yes") or (overwrite == "y"):
-                fout = "samples.groups"
-        print("\n" + '\033[1m' + "Samples detected in " + directory + ": " + str(len(samplenames)) + '\033[0m')
-        with open(fout, "w") as file:
-            for i in samplenames:
-                file.write(i + '\t1\n') 
-        print('Created sample population grouping file: ' + fout + '\nPlease review it, as all samples have been grouped into a single population')
-        exit(0)
-    elif populations.lower() != 'none':
-        if not exists(populations):
-            print(f"ERROR: sample populations file {populations} not found.")
-            sys.exit(1)
-    
+    samplenames = getnames_err(directory, '.bam')
     if not os.path.exists(f"{genome}.fai"):
         bn = os.path.basename(genome)
         print(f"{bn}.fai not found, indexing {bn} with samtools faidx")
         subprocess.run(["samtools","faidx", genome])
 
     vcaller = "mpileup" if not leviathan else "leviathan"
-    command = ['snakemake', '--cores', f'{threads}', '--directory', '.', '--snakefile', "rules/variantcall-" + vcaller + ".smk"]
-    if snakemake != "none":
+    command = (f'snakemake --cores {threads} --directory . --snakefile rules/variantcall-{vcaller}.smk').split()
+    if snakemake is not None:
         [command.append(i) for i in snakemake.split()]
     command.append('--config')
     command.append(f"seq_directory={directory}")
@@ -165,27 +270,16 @@ def variants(genome, threads, directory, populations, ploidy, leviathan, extra_p
 @click.command()
 @click.option('-v', '--vcf', required = True, type=click.Path(exists=True),metavar = "File Path", help = 'Path to BCF/VCF file')
 @click.option('-d', '--directory', required = True, type=click.Path(exists=True), metavar = "Folder Path", help = 'Directory with sequence alignments (*.bam)')
-@click.option('-p', '--parameters', default = 'stitch.params', required = True, show_default = True, type=str, metavar = "File Path or \'create\'", help = 'STITCH parameter file (tab-delimited)')
-#@click.option('-x', '--extra-params', default = "", show_default = False, type = str, metavar = "String", help = 'Additional STITCH parameters, in quotes')
+@click.option('-p', '--parameters', required = True, type=click.Path(exists=True), metavar = "File Path", help = 'STITCH parameter file (tab-delimited)')
+#@click.option('-x', '--extra-params', default = "", type = str, metavar = "String", help = 'Additional STITCH parameters, in quotes')
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(min = 4, max_open = True), metavar = "Integer", help = 'Number of threads to use')
-@click.option('-s', '--snakemake', default = "none", show_default = False, type = str, metavar = "String", help = 'Additional Snakemake parameters, in quotes')
+@click.option('-s', '--snakemake', type = str, metavar = "String", help = 'Additional Snakemake parameters, in quotes')
 def impute(parameters, directory, threads, vcf, snakemake):
     """
     Impute genotypes from genotype likelihoods
     
-    Requires a parameter file, use **harpy impute --init** to generate one and modify it for your study.
+    Requires a parameter file, use **harpy init --stitch-params** to generate one and modify it for your study.
     """
-    if parameters == 'create':
-        with open('stitch.params', "w") as file:
-            file.write('model\tuseBX\tk\ts\tnGen\npseudoHaploid\tTRUE\t10\t5\t50\npseudoHaploid\tTRUE\t10\t1\t50\npseudoHaploid\tTRUE\t15\t10\t100')
-        print("Created example parameter file \'stitch.params\'")
-        print("Modify the model parameters as appropriate, but " + '\033[1m' + "DO NOT" + '\033[0m' + "add/remove columns")
-        exit(0)
-    else:
-        if not exists(parameters):
-            print(f"ERROR: STITCH parameter file {parameters} not found.")
-            sys.exit(1)
-    
     vcfcheck(vcf)
     samplenames = getnames(directory, '.bam')
     
@@ -200,8 +294,8 @@ def impute(parameters, directory, threads, vcf, snakemake):
     else:
         print(f"Using existing file of contig names: {contigfile}")
 
-    command = ['snakemake', '--cores', f'{threads}', '--directory', '.', '--snakefile', "rules/impute.smk"]
-    if snakemake != "none":
+    command = f'snakemake --cores {threads} --directory . --snakefile rules/impute.smk'.split()
+    if snakemake is not None:
         [command.append(i) for i in snakemake.split()]
     command.append('--config')
     command.append(f"seq_directory={directory}")
@@ -213,16 +307,15 @@ def impute(parameters, directory, threads, vcf, snakemake):
     #command.append(f"extra={extra_params}")
     subprocess.run(command)
 
-       
 @click.command()
 @click.option('-v', '--vcf', required = True, type=click.Path(exists=True), metavar = "File Path", help = 'Path to BCF/VCF file')
 @click.option('-d', '--directory', required = True, type=click.Path(exists=True), metavar = "Folder Path", help = 'Directory with sequence alignments (*.bam)')
 @click.option('-m', '--molecule-distance', default = 20000, show_default = True, type = int, metavar = "Integer", help = 'Base-pair distance delineating separate molecules')
 @click.option('-p', '--prune-threshold', default = 7, show_default = True, type = click.IntRange(0,100), metavar = "Integer", help = 'PHRED-scale threshold (%) for pruning low-confidence SNPs (larger prunes more.)')
-@click.option('-x', '--extra-params', default = "", show_default = False, type = str, metavar = "String", help = 'Additional HapCut2 parameters, in quotes')
+@click.option('-x', '--extra-params', default = "", type = str, metavar = "String", help = 'Additional HapCut2 parameters, in quotes')
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(min = 2, max_open = True), metavar = "Integer", help = 'Number of threads to use')
-@click.option('-s', '--snakemake', default = "none", show_default = False, type = str, metavar = "String", help = 'Additional Snakemake parameters, in quotes')
-def phase(vcf, directory, threads, molecule_distance, prune_threshold, snakemake):
+@click.option('-s', '--snakemake',  type = str, metavar = "String", help = 'Additional Snakemake parameters, in quotes')
+def phase(vcf, directory, threads, molecule_distance, prune_threshold, snakemake, extra_params):
     """
     Phase SNPs into haplotypes    
     """
@@ -233,10 +326,8 @@ def phase(vcf, directory, threads, molecule_distance, prune_threshold, snakemake
         vcfcheck(vcf)
     samplenames = getnames(directory, '.bam')
     prune_threshold = prune_threshold / 100
-    command = ['snakemake', '--cores', f'{threads}', '--directory', '.', '--snakefile', "rules/phase.smk"]
-    if resume:
-        command.append('--rerun-incomplete')
-    if snakemake != "none":
+    command = f'snakemake --cores {threads} --directory . --snakefile rules/phase.smk'.split()
+    if snakemake is not None:
         [command.append(i) for i in snakemake.split()]
     command.append('--config')
     command.append(f"seq_directory={directory}")
@@ -247,7 +338,7 @@ def phase(vcf, directory, threads, molecule_distance, prune_threshold, snakemake
     command.append(f"extra={extra_params}")
     subprocess.run(command)
 
-
+cli.add_command(init)
 cli.add_command(trim)
 cli.add_command(align)
 cli.add_command(variants)

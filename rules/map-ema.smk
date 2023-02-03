@@ -2,7 +2,6 @@
 seq_dir = config["seq_directory"]
 nbins = config["EMA_bins"]
 genomefile = config["genomefile"]
-# Received from the harpy wrapper
 Rsep = config["Rsep"]
 fqext = config["fqext"]
 samplenames = config["samplenames"]
@@ -39,8 +38,8 @@ rule index_genome:
 
 rule count_beadtags:
 	input:
-		forward_reads = seq_dir + "/{sample}" + Rsep + "1." + fqext,
-		reverse_reads = seq_dir + "/{sample}" + Rsep + "2." + fqext
+		forward_reads = seq_dir + "/{sample}" + f".{Rsep[0]}.{fqext}",
+		reverse_reads = seq_dir + "/{sample}" + f".{Rsep[1]}.{fqext}"
 	output: 
 		counts = "ReadMapping/count/{sample}.ema-ncnt",
 		logs = temp("ReadMapping/count/logs/{sample}.count.log")
@@ -77,8 +76,8 @@ rule beadtag_summary:
 
 rule preprocess_ema:
 	input: 
-		forward_reads = seq_dir + "/{sample}" + Rsep + "1." + fqext,
-		reverse_reads = seq_dir + "/{sample}" + Rsep + "2." + fqext,
+		forward_reads = seq_dir + "/{sample}" + f".{Rsep[0]}.{fqext}",
+		reverse_reads = seq_dir + "/{sample}" + f".{Rsep[1]}.{fqext}",
 		emacounts = "ReadMapping/count/{sample}.ema-ncnt"
 	output: 
 		bins = temp(expand("ReadMapping/preproc/{{sample}}/ema-bin-{bin}", bin = ["%03d" % i for i in range(nbins)])),
