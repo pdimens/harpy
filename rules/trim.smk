@@ -4,7 +4,7 @@ seq_dir = config["seq_directory"]
 fqext = config["fqext"]
 samplenames = config["samplenames"]
 
-rule trim_fastp:
+rule trimFastp:
 	input:
 		fw = seq_dir + "/{sample}" + fqext[0],
 		rv = seq_dir + "/{sample}" + fqext[1]
@@ -25,12 +25,12 @@ rule trim_fastp:
 		extra = fpextra
 	shell: "fastp --trim_poly_g --cut_right --detect_adapter_for_pe {params} --thread {threads} -i {input.fw} -I {input.rv} -o {output.fw} -O {output.rv} -h {log.html} -j {output.json} 2> {log.serr}"
 
-rule reports:
+rule createReport:
 	input: expand("Trimming/logs/json/{sample}.fastp.json", sample = samplenames)
 	output: "Trimming/logs/trim.report.html"
 	shell: "multiqc Trimming/logs/json -m fastp --force --filename {output} --quiet --no-data-dir 2>/dev/null"
 
-rule trimcheck:
+rule trimCheck:
 	input: 
 		expand("Trimming/{sample}{ext}", sample = samplenames, ext = [".R1.fq.gz", ".R2.fq.gz"]),
 		"Trimming/logs/trim.report.html"
