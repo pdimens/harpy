@@ -123,11 +123,13 @@ def init(popgroup, stitch_params, hpc):
         print(f"Created example parameter file: {stitch_params}")
         print("Modify the model parameters as needed, but " + '\033[1m' + "DO NOT" + '\033[0m' + " add/remove columns")
 
-    if hpc.lower() == "slurm":
-        if not os.path.exists('slurm'):
-            os.makedirs('slurm')
-        with open("slurm/config.yaml", "w") as yml:
-            yml.write(
+    if hpc is not None:
+        print('\033[1m' + "<><> HPC Profile <><>" + '\033[0m')
+        if hpc.lower() == "slurm":
+            if not os.path.exists('slurm'):
+                os.makedirs('slurm')
+            with open("slurm/config.yaml", "w") as yml:
+                yml.write(
 """cluster:
   mkdir -p logs/{rule} &&
   sbatch
