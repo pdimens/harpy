@@ -12,23 +12,21 @@ You will need:
 - sequence alignments, in `.bam` format
 
 ## Running Options
-| argument       | short name | type                  |    default    | required | description                             |
-|:---------------|:----------:|:----------------------|:-------------:|:--------:|:----------------------------------------|
-| `--vcf`        |    `-v`    | file path             |               | **yes**  | Path to VCF/BCF file                    |
-| `--directory`  |    `-d`    | folder path           |               | **yes**  | Directory with sequence alignments      |
-| `--parameters` |    `-p`    | file path or `create` | stitch.params | **yes**  | STITCH parameter file (tab-delimited)   |
-| `--threads`    |    `-t`    | integer               |       4       |    no    | Number of threads to use                |
-| `--snakemake`  |    `-s`    | string                |               |    no    | Additional Snakemake options, in quotes |
-| `--help`       |            |                       |               |          | Show the module docstring               |
+| argument       | short name | type        |    default    | required | description                             |
+|:---------------|:----------:|:------------|:-------------:|:--------:|:----------------------------------------|
+| `--vcf`        |    `-v`    | file path   |               | **yes**  | Path to VCF/BCF file                    |
+| `--directory`  |    `-d`    | folder path |               | **yes**  | Directory with sequence alignments      |
+| `--parameters` |    `-p`    | file path   | stitch.params | **yes**  | STITCH parameter file (tab-delimited)   |
+| `--threads`    |    `-t`    | integer     |       4       |    no    | Number of threads to use                |
+| `--snakemake`  |    `-s`    | string      |               |    no    | Additional Snakemake options, in quotes |
+| `--help`       |            |             |               |          | Show the module docstring               |
 
 ## Parameter file
 Typically, one runs STITCH multiple times, exploring how results vary with
 different model parameters. The solution Harpy uses for this is to have the user
 provide a tab-delimited dataframe file where the columns are the 5 STITCH model 
 parameters and the rows are the values for those parameters. The parameter file 
-is required and can be created manually or with `harpy impute -p create -v somefile -d somedir`.
-Due to the way the `Click` CLI works, you'll need to (annoyingly) provide some kind of existing file and path for `-v` and `-d`,
-though with `-p create` it won't check that those are valid, so any existing file/folder will work.
+is required and can be created manually or with `harpy init -s <filename>`.
 If created using harpy, the resulting file includes largely meaningless values 
 that you will need to adjust for your study. The parameter must follow a particular format:
 - tab or comma delimited

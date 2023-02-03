@@ -2,6 +2,7 @@
 
 * [Home](/ "HARPY haplotagging pipeline")
 * [Installation](install.md "HARPY - Installation")
+* [Initialization](initialization.md "HARPY - Initialization")
 * **Modules**
     * [Quality Trimming](qualitytrimming.md "HARPY - Quality Trimming")
     * [Mapping Reads](readmapping.md "HARPY - Mapping Reads")
