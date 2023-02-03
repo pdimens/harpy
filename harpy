@@ -186,6 +186,7 @@ def trim(directory, max_length, extra_params, threads, snakemake):
     if snakemake is not None:
         [command.append(i) for i in snakemake.split()]
     command.append('--config')
+    directory = directory.rstrip("/^")
     command.append(f"seq_directory={directory}")
     command.append(f"fqext={fullext}")
     command.append(f"samplenames={samplenames}")
@@ -225,6 +226,7 @@ def align(genome, threads, bwa, directory, ema_bins, extra_params, snakemake):
     if snakemake is not None:
         [command.append(i) for i in snakemake.split()]
     command.append('--config')
+    directory = directory.rstrip("/^")
     command.append(f"seq_directory={directory}")
     command.append(f"fqext={fqext}")
     command.append(f"Rsep={Rsep}")
@@ -260,6 +262,7 @@ def variants(genome, threads, directory, populations, ploidy, leviathan, extra_p
     if snakemake is not None:
         [command.append(i) for i in snakemake.split()]
     command.append('--config')
+    directory = directory.rstrip("/^")
     command.append(f"seq_directory={directory}")
     command.append(f"samplenames={samplenames}")
     command.append(f"groupings={populations}")
@@ -300,6 +303,7 @@ def impute(parameters, directory, threads, vcf, snakemake):
     if snakemake is not None:
         [command.append(i) for i in snakemake.split()]
     command.append('--config')
+    directory = directory.rstrip("/^")
     command.append(f"seq_directory={directory}")
     command.append(f"samplenames={samplenames}")
     command.append(f"variantfile={vcf}")
@@ -332,6 +336,7 @@ def phase(vcf, directory, threads, molecule_distance, prune_threshold, snakemake
     if snakemake is not None:
         [command.append(i) for i in snakemake.split()]
     command.append('--config')
+    directory = directory.rstrip("/^")
     command.append(f"seq_directory={directory}")
     command.append(f"samplenames={samplenames}")
     command.append(f"variantfile={vcf}")
