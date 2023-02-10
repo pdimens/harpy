@@ -47,7 +47,7 @@ rule bam_list:
     run:
         with open(output[0], "w") as fout:
             for bamfile in input.bam:
-                fout.write(bamfile + "\n")
+                _ = fout.write(bamfile + "\n")
 
 rule mpileup:
     input:
