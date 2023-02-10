@@ -2,7 +2,7 @@ import os
 
 bam_dir = config["seq_directory"]
 genomefile = config["genomefile"]
-groupings = config["groupings"]
+groupings = config.get("groupings", None)
 ploidy = config["ploidy"]
 samplenames = config["samplenames"]
 extra = config.get("extra", "") 
@@ -56,7 +56,7 @@ rule mpileup:
         region = "Variants/mpileup/regions/{part}"
     output: pipe("Variants/mpileup/{part}.mp.bcf")
     message: "Finding variants: {wildcards.part}"
-    log: "Variants/mpileup/logs/{part}.log"
+    log: "Variants/mpileup/logs/{part}.mpileup.log"
     benchmark: "Benchmark/Variants/mpileup/mpileup.{part}.txt"
     params:
         extra = extra
@@ -70,9 +70,10 @@ rule call_genotypes:
     output: temp("Variants/mpileup/{part}.bcf")
     message: "Calling genotypes: {wildcards.part}"
     benchmark: "Benchmark/Variants/mpileup/call.{part}.txt"
+    log: "Variants/mpileup/logs/{part}.call.log"
     threads: 1
     params: 
-        groupsamples = '' if groupings == 'none' else f"--group-samples {groupings}",
+        groupsamples = '' if groupings is not None else f"--group-samples {groupings}",
         ploidy = f"--ploidy {ploidy}"
     shell:
         """
