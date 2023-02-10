@@ -71,7 +71,7 @@ rule call_genotypes:
     message: "Calling genotypes: {wildcards.part}"
     benchmark: "Benchmark/Variants/mpileup/call.{part}.txt"
     log: "Variants/mpileup/logs/{part}.call.log"
-    threads: 1
+    threads: 2
     params: 
         groupsamples = '' if groupings is not None else f"--group-samples {groupings}",
         ploidy = f"--ploidy {ploidy}"
@@ -89,7 +89,7 @@ rule index_bcf:
     log: "Variants/mpileup/stats/{part}.stats"
     message: "Indexing: {wildcards.part}"
     benchmark: "Benchmark/Variants/mpileup/indexbcf.{part}.txt"
-    threads: 4  
+    threads: 4
     shell:
         """
         bcftools index --threads {threads} --output {output} {input.bcf}

@@ -1,5 +1,5 @@
 maxlen = config["maxlen"]
-fpextra = config["extra"] if config["extra"] is not None else "" 
+extra = config.get("extra", "") 
 seq_dir = config["seq_directory"]
 fqext = config["fqext"]
 samplenames = config["samplenames"]
@@ -22,7 +22,7 @@ rule trimFastp:
 	threads: 2
 	params:
 		maxlen = f"--max_len1 {maxlen}",
-		extra = fpextra
+		extra = extra
 	shell: "fastp --trim_poly_g --cut_right --detect_adapter_for_pe {params} --thread {threads} -i {input.fw} -I {input.rv} -o {output.fw} -O {output.rv} -h {log.html} -j {output.json} 2> {log.serr}"
 
 rule createReport:
