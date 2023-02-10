@@ -14,7 +14,7 @@ You will need:
 |:-----------------|:----------:|:----------------------|:-------:|:--------:|:---------------------------------------------------|
 | `--genome`       |    `-g`    | file path             |         | **yes**  | Genome assembly for variant calling                |
 | `--dir`          |    `-d`    | folder path           |         | **yes**  | Directory with sequence alignments                 |
-| `--populations`  |    `-p`    | file path or `create` |         |    no    | Tab-delimited file of sample\<tab\>group           |
+| `--populations`  |    `-p`    | file path             |         |    no    | Tab-delimited file of sample\<tab\>group           |
 | `--ploidy`       |    `-x`    | integer               |    2    |    no    | Ploidy of samples                                  |
 | `--leviathan`    |    `-l`    | toggle                |         |    no    | Call variants with Leviathan instead of bcftools   |
 | `--extra-params` |    `-x`    | string                |         |    no    | Additional mpileup/Leviathan parameters, in quotes |
