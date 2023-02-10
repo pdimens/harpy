@@ -1,4 +1,4 @@
-# Impute Genotypes from Genotype Likelihoods
+# Impute Genotypes using Sequences
 You can impute genotypes with Harpy by calling the `impute` module:
 ```bash
 harpy impute OPTIONS...
@@ -7,7 +7,7 @@ You will need:
 - a tab-delimited parameter file 
     - create with `harpy impute --init`
     - modify the file with parameters suitable for your study
-- a variant call format file with genotype likelihoods
+- a variant call format file (_e.g._ from `mpileup` with `harpy variants ...`)
     - accepted formats: `.vcf`, `.vcf.gz`, `.bcf`
 - sequence alignments, in `.bam` format
 
@@ -21,7 +21,8 @@ You will need:
 | `--snakemake`  |    `-s`    | string      |               |    no    | Additional Snakemake options, in quotes |
 | `--help`       |            |             |               |          | Show the module docstring               |
 
-## Parameter file
+## Parameters
+### Parameter file
 Typically, one runs STITCH multiple times, exploring how results vary with
 different model parameters. The solution Harpy uses for this is to have the user
 provide a tab-delimited dataframe file where the columns are the 5 STITCH model 
@@ -33,6 +34,7 @@ that you will need to adjust for your study. The parameter must follow a particu
 - column order doesn't matter, but all 5 column names must be present
 - header row present with the specific column names below
     - all column names begin with a lowercase character
+
 | column name |  value type  |             accepted values             | description                                                           |
 |:------------|:------------:|:---------------------------------------:|:----------------------------------------------------------------------|
 | model       |     text     | pseudoHaploid, diploid, diploid-inbred  | The STITCH model/method to use                                        |
@@ -41,7 +43,7 @@ that you will need to adjust for your study. The parameter must follow a particu
 | s           |   integer    |                   ≥ 1                   | Number of instances of the founder haplotypes to average results over |
 | nGen        |   integer    |                   ≥ 1                   | Estimated number of generations since founding                        |
 
-### example file
+### example
 <!-- tabs:start -->
 
 #### **tab-delimited**
@@ -66,6 +68,44 @@ This is the table view of the tab-delimited file, shown here for clarity.
 | pseudoHaploid | TRUE  | 15 | 10 | 100  |
 
 <!-- tabs:end -->
+
+### Parameters explained
+#### model
+STITCH uses one of three "methods" reflecting different statistical and biological models: 
+- `diploid`: the best general method with the best statistical properties
+    - run time is proportional to the square of `k` and so may be slow for large, diverse populations
+- `pseudoHaploid`: uses statistical approximations that makes it less accurate than `diploid` 
+    - run time is proportional to `k` and may be suitable for large, diverse populations
+- `diploid-inbred`: assumes all samples are completely inbred and as such uses an underlying haplotype based imputation model
+    - run time is proportional to `k`
+
+Each model assumes the samples are diploid and all methods output diploid genotypes and probabilities.
+
+#### useBX
+This parameter is given as a true/false. Simulations suggest including linked-read information isn't helpful
+in species with short haploblocks (it might makes things worse). So, it's worth trying both options if you aren't
+sure about the length of haplotype blocks in your species.
+
+#### k
+The `k`parameter is the number of ancestral haplotypes in the model. Larger K allows for more accurate imputation for 
+large samples and coverages, but takes longer and accuracy may suffer with lower coverage. There's value in in trying a
+few values of `k` and assess performance using either external validation, or the distribution of quality scores 
+(_e.g._ mean / median INFO score). The best `k` gives you the best performance (accuracy, correlation or quality score distribution)
+within computational constraints, while also ensuring `k` is not too large given your sequencing coverage (_e.g._ try to ensure 
+that each ancestral haplotype gets at least a certain average \_X of coverage, like 10X, given your number of samples and average depth).
+
+
+#### s
+The `s` parameter controls the number of sets of ancestral haplotypes used and which final results are averaged over. 
+This may be useful for wild or large populations, like humans. The `s` value should affect RAM and run time in a near-linearly.
+
+#### nGen
+The `nGen` parameter controls recombination rate between the sequenced samples and the ancestral haplotypes. 
+It's probably fine to set it to $\frac{{4\times Ne}}{k}$ given some estimate of effective population size $Ne$.
+If you think your population can be reasonably approximated as having been founded some number of generations 
+ago or reduced to $2\times k$ that many generations ago, use that generation time estimate. STITCH should be fairly 
+robust to misspecifications of this parameter.
+
 
 ## STITCH Workflow
 [STITCH](https://github.com/rwdavies/STITCH) is a genotype imputation software developed for use in
