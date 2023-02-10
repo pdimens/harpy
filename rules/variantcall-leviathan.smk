@@ -1,7 +1,7 @@
 bam_dir = config["seq_directory"]
 genomefile = config["genomefile"]
 samplenames = config["samplenames"] 
-extra = config["extra"]
+extra = config["extra"] if config["extra"] is not None else "" 
 
 rule index_alignment:
     input: bam_dir + "/{sample}.bam"

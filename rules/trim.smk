@@ -1,5 +1,5 @@
 maxlen = config["maxlen"]
-fpextra = config["extra"]
+fpextra = config["extra"] if config["extra"] is not None else "" 
 seq_dir = config["seq_directory"]
 fqext = config["fqext"]
 samplenames = config["samplenames"]

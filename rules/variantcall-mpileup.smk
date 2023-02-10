@@ -5,7 +5,7 @@ genomefile = config["genomefile"]
 groupings = config["groupings"]
 ploidy = config["ploidy"]
 samplenames = config["samplenames"]
-extra = config["extra"]
+extra = config["extra"] if config["extra"] is not None else "" 
 
 def contignames(infile):
     with open(infile) as f:
@@ -56,12 +56,13 @@ rule mpileup:
         region = "Variants/mpileup/regions/{part}"
     output: pipe("Variants/mpileup/{part}.mp.bcf")
     message: "Finding variants: {wildcards.part}"
+    log: "Variants/mpileup/logs/{part}.log"
     benchmark: "Benchmark/Variants/mpileup/mpileup.{part}.txt"
     params:
         extra = extra
     shell:
         """
-        bcftools mpileup --fasta-ref {input.genome} {params} --regions {wildcards.part} --bam-list {input.bamlist} --annotate AD --output-type b > {output} 2> /dev/null
+        bcftools mpileup --fasta-ref {input.genome} {params} --regions {wildcards.part} --bam-list {input.bamlist} --annotate AD --output-type b > {output} 2> {log}
         """
 
 rule call_genotypes:

@@ -1,11 +1,9 @@
-# user specified configs
 seq_dir = config["seq_directory"]
 genomefile = config["genome_file"]
-# Received from the harpy wrapper
 Rsep = config["Rsep"]
 fqext = config["fqext"]
 samplenames = config["samplenames"]
-extra = config["extra"]
+extra = config["extra"] if config["extra"] is not None else "" 
 
 rule create_reports:
 	input: 

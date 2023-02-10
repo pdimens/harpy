@@ -5,7 +5,7 @@ genomefile = config["genomefile"]
 Rsep = config["Rsep"]
 fqext = config["fqext"]
 samplenames = config["samplenames"]
-extra = config["extra"]
+extra = config["extra"] if config["extra"] is not None else "" 
 
 rule create_reports:
 	input: 
