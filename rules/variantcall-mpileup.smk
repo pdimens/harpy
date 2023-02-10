@@ -5,7 +5,7 @@ genomefile = config["genomefile"]
 groupings = config["groupings"]
 ploidy = config["ploidy"]
 samplenames = config["samplenames"]
-extra = config["extra"] if config["extra"] is not None else "" 
+extra = config.get("extra", "") 
 
 def contignames(infile):
     with open(infile) as f:
