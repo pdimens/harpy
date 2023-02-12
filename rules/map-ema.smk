@@ -152,7 +152,7 @@ rule sort_nobarcode:
 		sample = "[a-zA-Z0-9_-]*"
 	message: "Sorting unbarcoded alignments: {wildcards.sample}"
 	benchmark: "Benchmark/Mapping/ema/bwaSort.{sample}.txt"
-	threads: 1
+	threads: 2
 	shell:
 		"""
 		samtools sort -@ {threads} -O bam -l 0 -m 4G -o {output} {input}
@@ -182,7 +182,7 @@ rule markduplicates:
 rule merge_barcoded:
 	input:
 		aln_barcoded = expand("ReadMapping/align/{{sample}}/{{sample}}.{bin}.bam", bin = ["%03d" % i for i in range(nbins)]),
-	output: temp("ReadMapping/align/{sample}/{sample}.barcoded.bam"),
+	output: temp("ReadMapping/align/{sample}/{sample}.barcoded.nosort.bam"),
 	wildcard_constraints:
 		sample = "[a-zA-Z0-9_-]*"
 	message: "Merging barcoded alignments: {wildcards.sample}"
@@ -192,6 +192,20 @@ rule merge_barcoded:
 		"""
 		sambamba merge -t {threads} {output} {input}
 		"""	
+
+rule sort_barcoded:
+	input:
+		bam = "ReadMapping/align/{sample}/{sample}.barcoded.nosort.bam",
+		genome = genomefile
+	output: "ReadMapping/align/{sample}/{sample}.barcoded.bam"
+	message: "Sorting merged barcoded alignments: {wildcards.sample}"
+	wildcard_constraints:
+		sample = "[a-zA-Z0-9_-]*"
+	threads: 2
+	shell:
+		"""
+		samtools sort -@ {threads} -O bam --reference {input.genome} -l 0 -m 4G -o {output} {input}
+		"""
 
 rule index_mergedbarcoded:
 	input: "ReadMapping/align/{sample}/{sample}.barcoded.bam"
