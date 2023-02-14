@@ -206,7 +206,7 @@ rule sort_barcoded:
 	threads: 2
 	shell:
 		"""
-		samtools sort -@ {threads} -O bam --reference {input.genome} -l 0 -m 4G -o {output} {input.bam}
+		samtools sort -@ {threads} -O bam --reference {input.genome} -l 0 -m 4G -o {output} {input.bam} 2> /dev/null
 		"""
 
 rule BEDconvert:
@@ -226,7 +226,7 @@ rule BEDconvert:
 		mv .{output.filt} {output.filt}
 		"""
 
-rule reads_per_molecule:
+rule BX_stats:
 	input: "ReadMapping/align/{sample}/{sample}.barcoded.BX.bed"
 	output:	
 		molsize = "ReadMapping/align/moleculesize/{sample}.molsize",
