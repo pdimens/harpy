@@ -40,17 +40,18 @@ graph LR
     A((count beadtags)) --> B((EMA preprocess))
     B-->C((EMA align barcoded))
     C-->D((sort alignments))
-    D-->E((merge barcoded alignments))
-    E-->F((merge all alignemnts))
+    D-->E((merge alignments))
+    E-->F((merge alignemnts))
     IDX((index genome))-->C
     IDX-->Z((BWA align unbarcoded))
     Z-->Y((sort alignments))
     Y-->X((mark duplicates))
     X-->F
-    F-->K((sort merged alignments))
+    F-->K((sort alignments))
     K-->J((alignment reports))
     K-->G((convert to BED))
-    G-->H((calculate BX stats))
+    G-->H((calculate reads per BX))
+    G-->L((calculate BX size))
     G-->I((calculate genomic coverage))
 ```
 ----
