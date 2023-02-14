@@ -12,6 +12,8 @@ rule create_reports:
 		expand("ReadMapping/align/{sample}.bam", sample = samplenames),
 		expand("ReadMapping/align/{sample}.bam.bai", sample = samplenames),
 		expand("ReadMapping/align/{ext}/{sample}.{ext}", sample = samplenames, ext = ["stats", "flagstat"]),
+		expand("ReadMapping/align/readsperbx/{sample}.readsperbx", sample = samplenames),
+		expand("ReadMapping/align/moleculesize/{sample}.molsize", sample = samplenames),
 		"ReadMapping/count/Beadtag.report"
 	output: 
 		stats = "ReadMapping/alignment.stats.html",
@@ -205,6 +207,38 @@ rule sort_barcoded:
 	shell:
 		"""
 		samtools sort -@ {threads} -O bam --reference {input.genome} -l 0 -m 4G -o {output} {input.bam}
+		"""
+
+rule BEDconvert:
+	input: "ReadMapping/align/{sample}/{sample}.barcoded.bam"
+	output: 
+		filt = "ReadMapping/align/{sample}/{sample}.barcoded.BX.bed",
+		unfilt = "ReadMapping/align/{sample}/{sample}.barcoded.BX.unfilt.bed"
+	message: "Converting to BED format: {wildcards.sample}"
+	wildcard_constraints:
+		sample = "[a-zA-Z0-9_-]*"
+	threads: 1
+	shell:
+		"""
+		utilities/writeBED.pl {input}
+		awk '!($4~/A00|B00|C00|D00/)' {output.filt} > .{output.filt}
+		mv {output.filt} {output.unfilt} 
+		mv .{output.filt} {output.filt}
+		"""
+
+rule reads_per_molecule:
+	input: "ReadMapping/align/{sample}/{sample}.barcoded.BX.bed"
+	output:	
+		molsize = "ReadMapping/align/moleculesize/{sample}.molsize",
+		readsper = "ReadMapping/align/readsperbx/{sample}.readsperbx"
+	message: "Calculating molecule size, reads per molecule: {wildcards.sample}"
+	wildcard_constraints:
+		sample = "[a-zA-Z0-9_-]*"
+	threads: 1
+	shell:
+		"""
+		cut -f10 {input} | datamash -s groupby 1 count 1 | sort -k 1 -n > {output.readsper}
+		awk '{{ print $1"\\t"$2"\\t"$3"\\t"$3-$2"\\t"$4"\\t"$10 }}' {input} | sort -k 4 -n > {output.molsize}
 		"""
 
 rule index_mergedbarcoded:
