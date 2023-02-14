@@ -160,7 +160,7 @@ rule sort_nobarcode:
 	threads: 2
 	shell:
 		"""
-		samtools sort -@ {threads} -O bam -l 0 -m 4G --reference {input.reference} -o {output} {input.sam}
+		samtools sort -@ {threads} -O bam -l 0 -m 4G --reference {input.genome} -o {output} {input.sam}
 		"""    
 
 rule markduplicates:
