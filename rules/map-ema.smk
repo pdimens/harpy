@@ -250,8 +250,8 @@ rule sort_merge:
 rule BEDconvert:
 	input: "ReadMapping/align/{sample}.bam"
 	output: 
-		filt = "ReadMapping/bedfiles/{sample}.bx.bed",
-		unfilt = "ReadMapping/bedfiles/{sample}.all.bed"
+		filt = temp("ReadMapping/bedfiles/{sample}.bx.bed"),
+		unfilt = temp("ReadMapping/bedfiles/{sample}.all.bed")
 	message: "Converting to BED format: {wildcards.sample}"
 	wildcard_constraints:
 		sample = "[a-zA-Z0-9_-]*"

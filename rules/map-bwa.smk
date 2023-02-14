@@ -8,7 +8,8 @@ extra = config.get("extra", "")
 rule create_reports:
 	input: 
 		expand("ReadMapping/align/{sample}.bam", sample = samplenames),
-		expand("ReadMapping/align/{ext}/{sample}.{ext}", sample = samplenames, ext = ["stats", "flagstat"])
+		expand("ReadMapping/align/{ext}/{sample}.{ext}", sample = samplenames, ext = ["stats", "flagstat"]),
+		expand("ReadMapping/align/coverage/{sample}.gencov", sample = samplenames)
 	output: 
 		stats = "ReadMapping/alignment.stats.html",
 		flagstat = "ReadMapping/alignment.flagstat.html"
@@ -82,6 +83,35 @@ rule mark_duplicates:
 		"""
 		sambamba markdup -t {threads} -l 0 {input} {output.bam} 2> {log}
 		samtools index {output.bam}
+		"""
+
+rule genome_coords:
+	input: genomefile + ".fai"
+	output: genomefile + ".bed"
+	message: "Creating BED file of genomic coordinates"
+	threads: 1
+	shell:
+		"""
+		awk 'BEGIN{{FS=OFS="\\t"}} {{print $1,$2}}' {input} > {output}
+		"""
+
+rule BEDconvert:
+	input: "ReadMapping/align/{sample}.bam"
+	output: temp("ReadMapping/bedfiles/{sample}.bed")
+	message: "Converting to BED format: {wildcards.sample}"
+	shell:
+		"bedtools bamtobed -i {input}"
+
+rule genome_coverage:
+	input:
+		geno = genomefile + ".bed",
+		bed = "ReadMapping/bedfiles/{sample}.bed"
+	output: 
+		"ReadMapping/align/coverage/{sample}.gencov"
+	message: "Calculating genomic coverage of alignments: {wildcards.sample}"
+	shell:
+		"""
+		bedtools genomecov -i {input.bed} -g {input.geno} > {output}
 		"""
 
 rule alignment_stats:

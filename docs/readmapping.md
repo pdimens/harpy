@@ -47,6 +47,11 @@ graph LR
     Z-->Y((sort alignments))
     Y-->X((mark duplicates))
     X-->F
+    F-->K((sort merged alignments))
+    K-->J((alignment reports))
+    K-->G((convert to BED))
+    G-->H((calculate BX stats))
+    G-->I((calculate genomic coverage))
 ```
 ----
 
@@ -63,6 +68,9 @@ graph LR
     A((index genome)) --> B((align to genome))
     B-->C((sort alignments))
     C-->D((mark duplicates))
+    D-->E((alignment reports))
+    D-->F((convert to BED))
+    F-->G((calculate genomic coverage))
 ```
 
 ## Why EMA?
