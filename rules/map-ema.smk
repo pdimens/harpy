@@ -280,7 +280,6 @@ rule BX_stats:
 		# datamash groupby 1,5 min 2 max 3 < {output.molsize} | awk '{{ print $1"\\t"$2"\\t"$4-$3 }}' > 
 		"""
 
-
 rule genome_coords:
 	input: genomefile + ".fai"
 	output: genomefile + ".bed"
