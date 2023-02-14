@@ -221,9 +221,9 @@ rule BEDconvert:
 	shell:
 		"""
 		utilities/writeBED.pl {input}
-		awk '!($4~/A00|B00|C00|D00/)' {output.filt} > .{output.filt}
+		awk '!($4~/A00|B00|C00|D00/)' {output.filt} > {output.filt}.tmp
 		mv {output.filt} {output.unfilt} 
-		mv .{output.filt} {output.filt}
+		mv {output.filt}.tmp {output.filt}
 		"""
 
 rule BX_stats:
