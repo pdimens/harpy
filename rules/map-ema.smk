@@ -12,8 +12,9 @@ rule create_reports:
 		expand("ReadMapping/align/{sample}.bam", sample = samplenames),
 		expand("ReadMapping/align/{sample}.bam.bai", sample = samplenames),
 		expand("ReadMapping/align/{ext}/{sample}.{ext}", sample = samplenames, ext = ["stats", "flagstat"]),
-		expand("ReadMapping/align/readsperbx/{sample}.readsperbx", sample = samplenames),
-		expand("ReadMapping/align/moleculesize/{sample}.molsize", sample = samplenames),
+		expand("ReadMapping/bxstats/moleculesize/{sample}.molsize", sample = samplenames),
+		expand("ReadMapping/bxstats/moleculesize/{sample}.molsize.hist", sample = samplenames),
+		expand("ReadMapping/bxstats/readsperbx/{sample}.readsperbx", sample = samplenames),
 		"ReadMapping/count/Beadtag.report"
 	output: 
 		stats = "ReadMapping/alignment.stats.html",
