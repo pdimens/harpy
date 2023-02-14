@@ -204,7 +204,7 @@ rule sort_barcoded:
 	threads: 2
 	shell:
 		"""
-		samtools sort -@ {threads} -O bam --reference {input.genome} -l 0 -m 4G -o {output} {input}
+		samtools sort -@ {threads} -O bam --reference {input.genome} -l 0 -m 4G -o {output} {input.bam}
 		"""
 
 rule index_mergedbarcoded:
