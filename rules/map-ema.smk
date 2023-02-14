@@ -187,7 +187,7 @@ rule markduplicates:
 rule merge_barcoded:
 	input:
 		aln_barcoded = expand("ReadMapping/align/{{sample}}/{{sample}}.{bin}.bam", bin = ["%03d" % i for i in range(nbins)]),
-	output: temp("ReadMapping/align/{sample}/{sample}.barcoded.nosort.bam"),
+	output: temp("ReadMapping/align/{sample}/{sample}.barcoded.bam"),
 	wildcard_constraints:
 		sample = "[a-zA-Z0-9_-]*"
 	message: "Merging barcoded alignments: {wildcards.sample}"
