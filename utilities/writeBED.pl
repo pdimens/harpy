@@ -5,7 +5,7 @@ use strict;
 my $max_distance = 50000;
 chomp($ARGV[0]);
 my $outfile = $ARGV[0];
-$outfile=~s/\.bam/.BX.bed/;
+$outfile=~s/\.bam/.BX.all.bed/;
 open(OUT, ">$outfile");
 #my $header = `samtools view $ARGV[0] -H`;
 my $last_bx = "";
