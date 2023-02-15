@@ -16,7 +16,7 @@ jobs:
           ref: docs
       - uses: retypeapp/action-build@latest
         with:
-          config: /home/runner/work/HARPY/HARPY/retype.yml
+          config: /home/runner/work/HARPY/HARPY/
       - uses: retypeapp/action-github-pages@latest
         with:
           branch: retype
