@@ -1,0 +1,22 @@
+input: .
+output: .retype
+url: pdimens.github.io/HARPY/
+meta:
+  title: " | Harpy"
+links:
+- text: Therkildsen Lab
+  link: https://www.therkildsenlab.com/
+  icon: beaker
+- text: Haplotag Home
+  link: http://fml.tuebingen.mpg.de/chan-group/haplotagging/
+  icon: ruby
+footer:
+  copyright: "&copy; Copyright {{ year }}. All rights reserved."
+branding:
+  title:                 # Your custom website title; keep it short.
+  logo: static/logo.png          # Path to a logo file.
+  logoDark: static/logo.png # Path to a logo file to use in dark mode.
+  logoAlign: right
+favicon: static/favicon.png # Path to a custom favicon, or.
+search:
+  mode: partial
