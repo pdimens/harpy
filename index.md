@@ -24,6 +24,7 @@ Great! Only want to call variants? Awesome! All modules are called by `harpy mod
 | `phase`    | Phase SNPs into haplotypes                   |
 
 
+## Using Harpy
 You can call `harpy` without any arguments (or with `--help`) to print the docstring to your terminal. You can likewise call any of the modules with `--help` (e.g. `harpy align --help`) to see their usage.
 ``` harpy --help                                                      
  Usage: harpy [OPTIONS] COMMAND [ARGS]...                     
