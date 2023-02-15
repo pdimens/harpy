@@ -1,7 +1,7 @@
 ---
 label: Variant Calling
 icon: sliders
-order: 96
+order: 4
 ---
 
 # Calling Variants

@@ -1,7 +1,7 @@
 ---
 label: Read Mapping
 icon: quote
-order: 97
+order: 5
 ---
 
 # Mapping Reads onto a Reference Genome

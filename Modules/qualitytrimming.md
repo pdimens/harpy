@@ -1,7 +1,7 @@
 ---
 label: Quality Trim
 icon: codescan-checkmark
-order: 98
+order: 6
 ---
 
 # Quality Trimming Sequence Data

@@ -1,7 +1,7 @@
 ---
 label: Phase Haplotypes
 icon: stack
-order: 94
+order: 2
 ---
 
 # Phasing Haplotypes

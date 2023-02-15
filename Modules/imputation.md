@@ -1,7 +1,7 @@
 ---
 label: Impute Genotypes
 icon: workflow
-order: 95
+order: 3
 ---
 
 # Impute Genotypes using Sequences
