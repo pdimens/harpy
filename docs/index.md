@@ -1,4 +1,8 @@
-![logo](_media/harpy.svg)
+---
+label: Home
+icon: home
+---
+![](static/logo.png)
 
 Harpy is a haplotagging data processing pipeline for Linux-based systems. It uses all the 
 magic of [Snakemake](https://snakemake.readthedocs.io/en/stable/) under the hood to handle 
@@ -20,21 +24,8 @@ Great! Only want to call variants? Awesome! All modules are called by `harpy mod
 | `phase`    | Phase SNPs into haplotypes                   |
 
 
-## Getting Started
-### Install Harpy
-!> Not yet implemented until initial development is completed
-
-Getting started with Harpy is as simple as installing it from conda/mamba (not implemented yet)
-```bash
-mamba install -c bioconda -c conda-forge harpy
-```
-
-### Usage
 You can call `harpy` without any arguments (or with `--help`) to print the docstring to your terminal. You can likewise call any of the modules with `--help` (e.g. `harpy align --help`) to see their usage.
-```bash
-> harpy --help
-```
-```                                                       
+``` harpy --help                                                      
  Usage: harpy [OPTIONS] COMMAND [ARGS]...                     
                                                               
  HARPY Haplotagging data processing pipeline.             

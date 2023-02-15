@@ -1,3 +1,9 @@
+---
+label: Impute Genotypes
+icon: workflow
+order: 95
+---
+
 # Impute Genotypes using Sequences
 You can impute genotypes with Harpy by calling the `impute` module:
 ```bash
@@ -44,21 +50,15 @@ that you will need to adjust for your study. The parameter must follow a particu
 | nGen        |   integer    |                   ≥ 1                   | Estimated number of generations since founding                        |
 
 ### example
-<!-- tabs:start -->
-
-#### **tab-delimited**
-
++++ tab-delimited
 This file is tab-delimited, note the column names:
-
-```
+``` paramaters.txt
 model   useBX   k       s       nGen
 pseudoHaploid   TRUE    10      5       50
 pseudoHaploid   TRUE    10      1       50
 pseudoHaploid   TRUE    15      10      100
 ```
-
-#### **table-view**
-
++++table-view
 This is the table view of the tab-delimited file, shown here for clarity.
 
 | model         | useBX | k  | s  | nGen |
@@ -66,8 +66,7 @@ This is the table view of the tab-delimited file, shown here for clarity.
 | pseudoHaploid | TRUE  | 10 | 5  | 50   |
 | pseudoHaploid | TRUE  | 10 | 1  | 50   |
 | pseudoHaploid | TRUE  | 15 | 10 | 100  |
-
-<!-- tabs:end -->
++++
 
 ### Parameters
 #### parameter: model
@@ -101,9 +100,9 @@ This may be useful for wild or large populations, like humans. The `s` value sho
 
 #### parameter: nGen
 The `nGen` parameter controls recombination rate between the sequenced samples and the ancestral haplotypes. 
-It's probably fine to set it to $\frac{{4\times Ne}}{k}$ given some estimate of effective population size $Ne$.
+It's probably fine to set it to $ \frac {4 \times Ne} {k} $ given some estimate of effective population size ${Ne}$ .
 If you think your population can be reasonably approximated as having been founded some number of generations 
-ago or reduced to $2\times k$ that many generations ago, use that generation time estimate. STITCH should be fairly 
+ago or reduced to $2 \times k$ that many generations ago, use that generation time estimate. STITCH should be fairly 
 robust to misspecifications of this parameter.
 
 

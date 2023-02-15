@@ -1,3 +1,9 @@
+---
+label: Quality Trim
+icon: codescan-checkmark
+order: 98
+---
+
 # Quality Trimming Sequence Data
 You can remove adapters and quality trim sequences using:
 ```bash

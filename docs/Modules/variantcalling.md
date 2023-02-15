@@ -1,3 +1,9 @@
+---
+label: Variant Calling
+icon: sliders
+order: 96
+---
+
 # Calling Variants
 You can call variants with Harpy by calling the `variants` module:
 ```bash
@@ -28,7 +34,7 @@ This file is entirely optional and useful if you want variant calling to happen 
 - create with `harpy init -p <samplefolder>` or manually
 - if created with `harpy init -p`, all the samples will be assigned to group `1`, so make sure to edit the second column to reflect your data correctly.
 - the file looks like:
-```
+``` popgroups.txt
 sample1 1
 sample2 1
 sample3 2

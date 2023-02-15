@@ -1,3 +1,9 @@
+---
+label: Phase Haplotypes
+icon: stack
+order: 94
+---
+
 # Phasing Haplotypes
 You can phase genotypes into haplotypes using:
 ```bash

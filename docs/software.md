@@ -1,3 +1,9 @@
+---
+label: Software
+icon: zap
+order: 1
+---
+
 # Software used in HARPY
 HARPY is the sum of its parts, and out of tremendous respect for the developers involved in the included software, we would like to highlight the tools directly involved in HARPY's many moving pieces.
 

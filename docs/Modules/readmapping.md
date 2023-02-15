@@ -1,3 +1,9 @@
+---
+label: Read Mapping
+icon: quote
+order: 97
+---
+
 # Mapping Reads onto a Reference Genome
 You can map reads onto genome assemblies with Harpy by calling the `align` module:
 ```bash
@@ -76,4 +82,4 @@ graph LR
 
 ## Why EMA?
 The original haplotag manuscript uses BWA to map reads, but the authors have since then recommended the use of EMA (EMerald Aligner) for most applications. EMA is barcode-aware, meaning it considers sequences with identical barcodes to have originated from the same molecule, and therefore has higher mapping accuracy than using BWA. Here's a comparison from the [EMA manuscript](https://www.biorxiv.org/content/10.1101/220236v1):
-![EMA figure 3](_media/EMA.fig3.png)
+![EMA figure 3](static/EMA.fig3.png)
