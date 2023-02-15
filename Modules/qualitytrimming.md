@@ -9,7 +9,7 @@ You can remove adapters and quality trim sequences using:
 ```bash
 harpy trim OPTIONS... 
 ```
-You will need:
+|||  :icon-checklist: You will need
 - at least 2 cores/threads available
 - b/gzipped fastq sequence files
     - paired-end files
@@ -18,6 +18,7 @@ You will need:
         - _e.g._ `samplename.F.fq.gz` and `samplename.R.fq.gz`
         - _e.g._ `samplename.1.fq.gz` and `samplename.2.fq.gz`
         - or the same but ending with `.fastq.gz`, but don't mix and match
+|||
 
 ## Running Options
 | argument         | short name | type        | default | required | description                              |
@@ -29,7 +30,7 @@ You will need:
 | `--snakemake`    |    `-s`    | string      |         |    no    | Additional Snakemake options, in quotes  |
 | `--help`         |            |             |         |          | Show the module docstring                |
 
-
+---
 ## Fastp Workflow
 [Fastp](https://github.com/OpenGene/fastp) is an ultra-fast all-in-one adapter remover, deduplicator, 
 and quality trimmer. Harpy uses it to remove adapters, low-quality bases, and trim sequences down to a particular

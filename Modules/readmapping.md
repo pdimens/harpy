@@ -9,7 +9,7 @@ You can map reads onto genome assemblies with Harpy by calling the `align` modul
 ```bash
 harpy align OPTIONS...
 ```
-You will need:
+|||  :icon-checklist: You will need
 - at least 4 cores/threads available
 - a genome assembly in FASTA format
 - b/gzipped fastq sequence files
@@ -19,6 +19,7 @@ You will need:
         - _e.g._ `samplename.R1.fq.gz` and `samplename.R2.fq.gz`
         - _e.g._ `samplename_R1.fq.gz` and `samplename_R2.fq.gz`
         - or the same but ending with `.fastq.gz`, but don't mix and match
+|||
 
 ## Running Options
 | argument         | short name | type        | default | required | description                                    |
@@ -32,12 +33,16 @@ You will need:
 | `--snakemake`    |    `-s`    | string      |         |    no    | Additional Snakemake options, in quotes        |
 | `--help`         |            |             |         |          | Show the module docstring                      |
 
+----
+
 ## Workflows
 ### EMA
+||| EMA details
 - **recommended**, see bottom of page
 - leverages the BX barcode information to improve mapping
 - slower
 - lots of temporary files
+|||
 
 Since [EMA](https://github.com/arshajii/ema) does extra things to account for barcode information, the EMA workflow is a bit more complicated under the hood. Reads with barcodes are aligned using EMA and reads without valid barcodes are separately mapped using BWA before merging all the alignments together again. EMA will mark duplicates within alignments, but the BWA alignments need duplicates marked manually using [sambamba](https://lomereiter.github.io/sambamba/). Thankfully, you shouldn't need to worry about any of these details.
 
@@ -60,13 +65,14 @@ graph LR
     G-->L((calculate BX size))
     G-->I((calculate genomic coverage))
 ```
-----
 
 ### BWA
+||| BWA details
 - ignores barcode information
 - might be preferred depending on experimental design
 - faster
 - no temporary files
+|||
 
 The [BWA MEM](https://github.com/lh3/bwa) workflow is substantially simpler than the EMA workflow and maps all reads against the reference genome, no muss no fuss. Duplicates are marked at the end using [sambamba](https://lomereiter.github.io/sambamba/).
 
@@ -82,4 +88,4 @@ graph LR
 
 ## Why EMA?
 The original haplotag manuscript uses BWA to map reads, but the authors have since then recommended the use of EMA (EMerald Aligner) for most applications. EMA is barcode-aware, meaning it considers sequences with identical barcodes to have originated from the same molecule, and therefore has higher mapping accuracy than using BWA. Here's a comparison from the [EMA manuscript](https://www.biorxiv.org/content/10.1101/220236v1):
-![EMA figure 3](static/EMA.fig3.png)
+![EMA Publication figure 3](/static/EMA.fig3.png)

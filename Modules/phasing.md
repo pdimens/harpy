@@ -9,11 +9,12 @@ You can phase genotypes into haplotypes using:
 ```bash
 harpy phase OPTIONS... 
 ```
-You will need:
+|||  :icon-checklist: You will need
 - at least 2 cores/threads available
 - a vcf/bcf file of genotypes
     - like the one produce using `harpy impute`
 - alignment files in `.bam` format
+|||
 
 ## Running Options
 | argument              | short name | type            | default | required | description                                               |
@@ -36,7 +37,7 @@ threshold refers to a PHRED-scale value between 0-1 (a percentage) for removing 
 With Harpy, you configure this value as an integer between 0-100, which gets converted to a floating point
 value between 0-1 internally (_i.e._ `-p 7` is equivalent to 0.07 threshold).
 
-
+---
 ## HapCut2 Workflow
 Phasing is performed using [HapCut2](https://github.com/vibansal/HapCUT2). Most of the tasks cannot
 be parallelized, but HapCut2 operates on a per-sample basis, so the workflow is parallelized

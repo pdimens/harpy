@@ -9,11 +9,12 @@ You can call variants with Harpy by calling the `variants` module:
 ```bash
 harpy variants OPTIONS... 
 ```
-You will need:
+|||  :icon-checklist: You will need
 - at least 4 cores/threads available
 - a genome assembly in FASTA format
 - alignment files
 - sample grouping file [optional, see below]
+|||
 
 ## Running Options
 | argument         | short name | type                  | default | required | description                                        |
@@ -41,7 +42,7 @@ sample3 2
 sample4 1
 sample5 3
 ```
-
+----
 ## Workflows
 ### bcftools mpileup
 The `mpileup` and `call` modules from [bcftools](https://samtools.github.io/bcftools/bcftools.html) (formerly samtools) 
