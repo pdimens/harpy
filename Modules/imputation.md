@@ -28,8 +28,7 @@ harpy impute OPTIONS...
 | `--snakemake`  |    `-s`    | string      |               |    no    | Additional Snakemake options, in quotes |
 | `--help`       |            |             |               |          | Show the module docstring               |
 
-## Setting Parameters
-### Parameter file
+## Parameter file
 Typically, one runs STITCH multiple times, exploring how results vary with
 different model parameters. The solution Harpy uses for this is to have the user
 provide a tab-delimited dataframe file where the columns are the 5 STITCH model 
@@ -69,9 +68,8 @@ This is the table view of the tab-delimited file, shown here for clarity.
 | pseudoHaploid | TRUE  | 15 | 10 | 100  |
 +++
 
-### Parameters
-||| Paramater: `model` - which method to use
-#### model
+### model
+||| Which method to use
 STITCH uses one of three "methods" reflecting different statistical and biological models: 
 - `diploid`: the best general method with the best statistical properties
     - run time is proportional to the square of `k` and so may be slow for large, diverse populations
@@ -82,16 +80,16 @@ STITCH uses one of three "methods" reflecting different statistical and biologic
 
 Each model assumes the samples are diploid and all methods output diploid genotypes and probabilities.
 |||
-||| Parameter: `useBX` - use BX barcodes
-#### useBX
-This parameter is given as a true/false. Simulations suggest including linked-read information isn't helpful
+### useBX
+||| Use BX barcodes
+The `useBX` parameter is given as a true/false. Simulations suggest including linked-read information isn't helpful
 in species with short haploblocks (it might makes things worse). So, it's worth trying both options if you aren't
 sure about the length of haplotype blocks in your species.
 |||
 
-||| Parameter: `k` - # ancestral haplotypes
-#### k
-The `k`parameter is the number of ancestral haplotypes in the model. Larger K allows for more accurate imputation for 
+### k
+||| Number ancestral haplotypes
+The `k` parameter is the number of ancestral haplotypes in the model. Larger K allows for more accurate imputation for 
 large samples and coverages, but takes longer and accuracy may suffer with lower coverage. There's value in in trying a
 few values of `k` and assess performance using either external validation, or the distribution of quality scores 
 (_e.g._ mean / median INFO score). The best `k` gives you the best performance (accuracy, correlation or quality score distribution)
@@ -99,14 +97,14 @@ within computational constraints, while also ensuring `k` is not too large given
 that each ancestral haplotype gets at least a certain average \_X of coverage, like 10X, given your number of samples and average depth).
 |||
 
-||| Parameter: `s` - number of ancestral haplotypes to average over
-#### s
+### s
+||| Number of ancestral haplotypes to average over
 The `s` parameter controls the number of sets of ancestral haplotypes used and which final results are averaged over. 
 This may be useful for wild or large populations, like humans. The `s` value should affect RAM and run time in a near-linearly.
 |||
 
-||| Parameter: `nGen` - recombination rate between samples
-#### nGen
+### nGen
+||| Recombination rate between samples
 The `nGen` parameter controls recombination rate between the sequenced samples and the ancestral haplotypes. 
 It's probably fine to set it to $ \frac {4 \times Ne} {k} $ given some estimate of effective population size ${Ne}$ .
 If you think your population can be reasonably approximated as having been founded some number of generations 

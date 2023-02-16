@@ -4,7 +4,7 @@ icon: log
 ---
 
 # Generate Extra Files
-While Harpy needs basic files like a reference genome and fastq sequences, some of the steps also optionally or strictly require extra files. You can create various files necessary for different modules using the `Harpy init` module:
+Some parts of Harpy (variant calling, imputation) want or need extra files. You can create various files necessary for different modules using the `Harpy init` module:
 ```bash
 harpy init OPTIONS... 
 ```
@@ -20,8 +20,10 @@ The arguments represent different sub-commands and can be run in any order or co
 | `--help`          |            |                |         |          | Show the module docstring                                                        |
 
 
-||| Sample grouping file for variant calling
-### --popgroup
+### popgroup
+||| `--popgroup`
+**Sample grouping file for variant calling**
+
 This file is entirely optional and useful if you want variant calling to happen on a per-population level using mpileup via `harpy variants -p`.
 - takes the format of sample\<tab\>group
 - all the samples will be assigned to group `1` since file names don't always provide grouping information, so make sure to edit the second column to reflect your data correctly.
@@ -35,8 +37,10 @@ sample5 3
 ```
 |||
 
-||| STITCH parameter file
-### --stitch-params
+### stitch-params
+||| `--stitch-params`
+**STITCH parameter file**
+
 Typically, one runs STITCH multiple times, exploring how results vary with
 different model parameters. The solution Harpy uses for this is to have the user
 provide a tab-delimited dataframe file where the columns are the 5 STITCH model 
@@ -45,8 +49,10 @@ easier, a template file is generated for you, just replace the values and add/re
 rows as necessary. See the [Imputation section](imputation.md) for details on these parameters.
 |||
 
-||| HPC cluster profile
-### --hpc
+### hpc
+||| `--hpc`
+**HPC cluster profile**
+
 For snakemake to work in harmony with an HPC scheduler, a "profile" needs to
 be provided that tells Snakemake how it needs to interact with the HPC scheduler
 to submit your jobs to the cluster. Using `harpy init --hpc <hpc-type>` will create

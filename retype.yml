@@ -4,6 +4,9 @@ url: pdimens.github.io/HARPY/
 meta:
   title: " | Harpy"
 links:
+- text: GitHub
+  link: https://github.com/pdimens/HARPY
+  icon: mark-github
 - text: Therkildsen Lab
   link: https://www.therkildsenlab.com/
   icon: beaker

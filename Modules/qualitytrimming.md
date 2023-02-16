@@ -1,5 +1,5 @@
 ---
-label: Quality Trim
+label: Quality Trimming
 icon: codescan-checkmark
 order: 6
 ---
