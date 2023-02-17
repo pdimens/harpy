@@ -50,7 +50,7 @@ rule leviathan_variantcall:
 rule sort_bcf:
     input: "Variants/leviathan/{sample}.vcf"
     output: "Variants/leviathan/{sample}.bcf"
-    message: "Covnerting to BCF: {wildcards.sample}"
+    message: "Sorting and converting to BCF: {wildcards.sample}"
     threads: 1
     params: "{wildcards.sample}"
     benchmark: "Benchmark/Variants/leviathan/sortbcf.{sample}.txt"
