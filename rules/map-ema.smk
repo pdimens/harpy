@@ -223,7 +223,7 @@ rule merge_alignments:
 		idx_nobarcode = "ReadMapping/align/{sample}/{sample}.nobarcode.bam.bai"
 	output: 
 		bam = temp("ReadMapping/align/{sample}.unsort.bam"),
-		bai - temp("ReadMapping/align/{sample}.unsort.bam.bai")
+		bai = temp("ReadMapping/align/{sample}.unsort.bam.bai")
 	wildcard_constraints:
 		sample = "[a-zA-Z0-9_-]*"
 	message: "Merging all alignments: {wildcards.sample}"
