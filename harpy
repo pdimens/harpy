@@ -149,8 +149,7 @@ def trim(directory, max_length, extra_params, threads, snakemake):
         except:
             print(f"ERROR: No fastq files with acceptable names found in {directory}")
             print("Check that the files conform to [.1. | .F.][.fastq | .fq].gz")
-            print("Read the documentation for details: https://pdimens.github.io/HARPY/#/qualitytrimming.")
-            sys.exit(1)
+            print("Read the documentation for details: https://pdimens.github.io/HARPY/modules/qualitytrimming/")
     command = f'snakemake --cores {threads} --directory . --snakefile rules/trim.smk'.split()
     if snakemake is not None:
         [command.append(i) for i in snakemake.split()]
@@ -188,7 +187,7 @@ def align(genome, threads, bwa, directory, ema_bins, extra_params, snakemake):
         except:
             print(f"ERROR: No fastq files with acceptable names found in {directory}")
             print("Check that the files conform to [.1. | | .F. | .R1.][.fastq | .fq].gz")
-            print("Read the documentation for details: https://pdimens.github.io/HARPY/#/readmapping.")
+            print("Read the documentation for details: https://pdimens.github.io/HARPY/modules/readmapping/")
             sys.exit(1)
     mapper = "ema" if not bwa else "bwa"
     command = f'snakemake --cores {threads} --directory . --snakefile rules/map-{mapper}.smk'.split()
@@ -297,13 +296,15 @@ def phase(vcf, directory, threads, molecule_distance, prune_threshold, snakemake
     """
     Phase SNPs into haplotypes 
     """
+    vcfcheck(vcf)
     if vcf.lower().endswith(".vcf.gz"):
-        print(f"ERROR: HapCut2 does not accept .vcf.gz file format. Please convert to .vcf or .bcf")
-        exit(1)
+        print(f"Notice: HapCut2 does not accept gzipped vcf files. Converting to bcf.")
+        variantfile = vcf[0:-7] + ".bcf"
+        subprocess.run(f"bcftools view {vcf} -Ob > {variantfile}".split())
     else:
-        vcfcheck(vcf)
+        variantfile = vcf
     samplenames = getnames(directory, '.bam')
-    prune_threshold = prune_threshold / 100
+    prune_threshold /= 100
     command = f'snakemake --cores {threads} --directory . --snakefile rules/phase.smk'.split()
     if snakemake is not None:
         [command.append(i) for i in snakemake.split()]
@@ -311,7 +312,7 @@ def phase(vcf, directory, threads, molecule_distance, prune_threshold, snakemake
     directory = directory.rstrip("/^")
     command.append(f"seq_directory={directory}")
     command.append(f"samplenames={samplenames}")
-    command.append(f"variantfile={vcf}")
+    command.append(f"variantfile={variantfile}")
     command.append(f"prune={prune_threshold}")
     command.append(f"molecule_distance={molecule_distance}")
     if extra_params is not None:
