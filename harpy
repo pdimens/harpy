@@ -9,7 +9,7 @@ import rich_click as click
 click.rich_click.USE_MARKDOWN = True
 click.rich_click.SHOW_ARGUMENTS = True
 click.rich_click.ERRORS_SUGGESTION = "Try the '--help' flag for more information."
-click.rich_click.ERRORS_EPILOGUE = "See the documentation: [link=https://pdimens.github.io/HARPY/#/]https://pdimens.github.io/HARPY/#/[/link]"
+click.rich_click.ERRORS_EPILOGUE = "See the documentation: [link=https://pdimens.github.io/HARPY/]https://pdimens.github.io/HARPY/[/link]"
 
 ## recurring checks and such ##
 def vcfcheck(vcf):
@@ -73,7 +73,7 @@ def cli():
     
     **trim 🡒 align 🡒 variants 🡒 impute 🡒 phase**
     
-    **Documentation**: [https://pdimens.github.io/HARPY/#/](https://pdimens.github.io/HARPY/#/)
+    **Documentation**: [https://pdimens.github.io/HARPY/](https://pdimens.github.io/HARPY/)
     """
     pass
 
@@ -81,7 +81,7 @@ def cli():
 @click.option('-p', '--popgroup', required = False, type=click.Path(exists=True), metavar = "Input folder Path", help = 'Create generic sample-group file using existing sample file names (fq.gz or bam)')
 @click.option('-s', '--stitch-params', type=str, metavar = "Output file name", help = 'Create template STITCH parameter file')
 @click.option('-h', '--hpc', default = "slurm", type = click.Choice(["slurm", "sge"], case_sensitive = False), help = 'Create HPC scheduling profile')
-def init(popgroup, stitch_params, hpc):
+def extra(popgroup, stitch_params, hpc):
     """
     Create various associated/necessary files
 
@@ -125,38 +125,7 @@ def init(popgroup, stitch_params, hpc):
 
     if hpc is not None:
         print('\033[1m' + "<><> HPC Profile <><>" + '\033[0m')
-        if hpc.lower() == "slurm":
-            if not os.path.exists('slurm'):
-                os.makedirs('slurm')
-            with open("slurm/config.yaml", "w") as yml:
-                yml.write(
-"""cluster:
-  mkdir -p logs/{rule} &&
-  sbatch
-    --partition={resources.partition}
-    --qos={resources.qos}
-    --cpus-per-task={threads}
-    --mem={resources.mem_mb}
-    --job-name=smk-{rule}-{wildcards}
-    --output=logs/{rule}/{rule}-{wildcards}-%j.out
-default-resources:
-  - partition=<name-of-default-partition>
-  - qos=<name-of-quality-of-service>
-  - mem_mb=1000
-restart-times: 3
-max-jobs-per-second: 10
-max-status-checks-per-second: 1
-local-cores: 1
-latency-wait: 60
-jobs: 500
-keep-going: True
-rerun-incomplete: True
-printshellcmds: True
-scheduler: greedy
-use-conda: True
-"""
-                      )
-        print("Created HPC profile \'slurm/config.yaml'. Replace the \'partition\' and \'qos\' placeholders in slurm/config.yaml with options relevant to your system.")
+        subprocess.run(["utilities/hpc_profile.py", hpc])
 
 @click.command()
 @click.option('-d', '--directory', required = True, type=click.Path(exists=True), metavar = "Folder Path", help = 'Directory with raw sample sequences')
@@ -284,9 +253,9 @@ def variants(genome, threads, directory, populations, ploidy, leviathan, extra_p
 @click.option('-s', '--snakemake', type = str, metavar = "String", help = 'Additional Snakemake parameters, in quotes')
 def impute(parameters, directory, threads, vcf, snakemake):
     """
-    Impute genotypes from genotype likelihoods
+    Impute genotypes using variants and sequences
     
-    Requires a parameter file, use **harpy init --stitch-params** to generate one and modify it for your study.
+    Requires a parameter file, use **harpy init --stitch-params** to generate one and adjust it for your study.
     """
     vcfcheck(vcf)
     samplenames = getnames(directory, '.bam')
@@ -326,7 +295,7 @@ def impute(parameters, directory, threads, vcf, snakemake):
 @click.option('-s', '--snakemake',  type = str, metavar = "String", help = 'Additional Snakemake parameters, in quotes')
 def phase(vcf, directory, threads, molecule_distance, prune_threshold, snakemake, extra_params):
     """
-    Phase SNPs into haplotypes    
+    Phase SNPs into haplotypes 
     """
     if vcf.lower().endswith(".vcf.gz"):
         print(f"ERROR: HapCut2 does not accept .vcf.gz file format. Please convert to .vcf or .bcf")
@@ -349,7 +318,7 @@ def phase(vcf, directory, threads, molecule_distance, prune_threshold, snakemake
         command.append(f"extra={extra_params}")
     subprocess.run(command)
 
-cli.add_command(init)
+cli.add_command(extra)
 cli.add_command(trim)
 cli.add_command(align)
 cli.add_command(variants)
