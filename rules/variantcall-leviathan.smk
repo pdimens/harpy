@@ -3,9 +3,18 @@ genomefile = config["genomefile"]
 samplenames = config["samplenames"] 
 extra = config.get("extra", "") 
 
-rule index_alignment:
+rule keep_validBX:
     input: bam_dir + "/{sample}.bam"
-    output: bam_dir + "/{sample}.bam.bai"
+    output: "Variants/leviathan/validBX/{sample}.bx.valid.bam"
+    message: "Keeping only alignments with valid BX barcodes: {wildcards.sample}"
+    shell:
+        """
+        utilities/filterBXBAM.py {input}
+        """
+
+rule index_alignment:
+    input: "Variants/leviathan/validBX/{sample}.bx.valid.bam"
+    output: "Variants/leviathan/validBX/{sample}.bx.valid.bam.bai"
     message: "Indexing barcodes: {wildcards.sample}"
     benchmark: "Benchmark/Variants/leviathan/indexbam.{sample}.txt"
     threads: 1
@@ -16,21 +25,21 @@ rule index_alignment:
 
 rule index_barcode:
     input: 
-        bam = bam_dir + "/{sample}.bam",
-        bai = bam_dir + "/{sample}.bam.bai"
+        bam = "Variants/leviathan/validBX/{sample}.bx.valid.bam",
+        bai = "Variants/leviathan/validBX/{sample}.bx.valid.bam.bai"
     output: temp("Variants/leviathan/lrezIndexed/{sample}.bci")
     message: "Indexing barcodes: {wildcards.sample}"
     benchmark: "Benchmark/Variants/leviathan/indexbc.{sample}.txt"
     threads: 4
     shell:
         """
-        LRez index bam -p -b {input} -o {output} --threads {threads}
+        LRez index bam -p -b {input.bam} -o {output} --threads {threads}
         """
 
 rule leviathan_variantcall:
     input:
-        bam = bam_dir + "/{sample}" + ".bam",
-        bai = bam_dir + "/{sample}" + ".bam.bai",
+        bam = "Variants/leviathan/validBX/{sample}.bx.valid.bam",
+        bai = "Variants/leviathan/validBX/{sample}.bx.valid.bam.bai",
         bc_idx = "Variants/leviathan/lrezIndexed/{sample}.bci",
         genome = genomefile
     output: vcf = pipe("Variants/leviathan/{sample}.vcf")

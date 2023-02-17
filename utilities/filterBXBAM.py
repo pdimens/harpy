@@ -4,7 +4,7 @@ import pysam
 import re
 import argparse
 
-parser = argparse.ArgumentParser(prog = 'filterBXBAM',
+parser = argparse.ArgumentParser(prog = 'filterBXBAM.py',
                     description = 'Remove alignments from a BAM file that have a least one invalid beadtag barcode.')
 parser.add_argument('i', help = "Input bam/sam file. A corresponding index file should be in the same directory.")
 args = parser.parse_args()
