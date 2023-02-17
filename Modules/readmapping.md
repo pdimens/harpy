@@ -38,7 +38,7 @@ harpy align OPTIONS...
 ## Workflows
 ### EMA
 ||| EMA details
-- **recommended**, see bottom of page
+- **recommended**, [see below](readmapping.md/#why-ema)
 - leverages the BX barcode information to improve mapping
 - slower
 - lots of temporary files

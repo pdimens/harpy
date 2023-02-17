@@ -13,7 +13,7 @@ harpy variants OPTIONS...
 - at least 4 cores/threads available
 - a genome assembly in FASTA format
 - alignment files
-- sample grouping file [optional, see below]
+- sample grouping file ([see below](variantcalling.md/#sample-grouping-file))
 |||
 
 ## Running Options
