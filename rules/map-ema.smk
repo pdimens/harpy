@@ -187,7 +187,9 @@ rule markduplicates:
 rule merge_barcoded:
 	input:
 		aln_barcoded = expand("ReadMapping/align/{{sample}}/{{sample}}.{bin}.bam", bin = ["%03d" % i for i in range(nbins)]),
-	output: temp("ReadMapping/align/{sample}/{sample}.barcoded.bam"),
+	output: 
+		bam = temp("ReadMapping/align/{sample}/{sample}.barcoded.bam"),
+		bai = temp("ReadMapping/align/{sample}/{sample}.barcoded.bam.bai")
 	wildcard_constraints:
 		sample = "[a-zA-Z0-9_-]*"
 	message: "Merging barcoded alignments: {wildcards.sample}"
@@ -198,9 +200,10 @@ rule merge_barcoded:
 		sambamba merge -t {threads} {output} {input}
 		"""
 
-rule index_mergedbarcoded:
-	input: "ReadMapping/align/{sample}/{sample}.barcoded.bam"
-	output: temp("ReadMapping/align/{sample}/{sample}.barcoded.bam.bai")
+rule mergestats:
+	input: 
+		bam = "ReadMapping/align/{sample}/{sample}.barcoded.bam",
+		bai = "ReadMapping/align/{sample}/{sample}.barcoded.bam.bai"
 	log:
 		stats = "ReadMapping/align/stats/{sample}.barcoded.stats",
 		flagstat = "ReadMapping/align/flagstat/{sample}.barcoded.flagstat"
@@ -210,9 +213,41 @@ rule index_mergedbarcoded:
 	benchmark: "Benchmark/Mapping/ema/indexmerge.{sample}.txt"
 	shell:
 		"""
-		sambamba index {input} {output}
-		samtools stats {input} > {log.stats}
-		samtools flagstat {input} > {log.flagstat}
+		samtools stats {input.bam} > {log.stats}
+		samtools flagstat {input.bam} > {log.flagstat}
+		"""
+
+rule BEDconvert:
+	input: "ReadMapping/align/{sample}/{sample}.barcoded.bam"
+	output: 
+		filt = temp("ReadMapping/bedfiles/{sample}.bx.bed"),
+		unfilt = temp("ReadMapping/bedfiles/{sample}.all.bed")
+	message: "Converting to BED format: {wildcards.sample}"
+	wildcard_constraints:
+		sample = "[a-zA-Z0-9_-]*"
+	threads: 1
+	shell:
+		"""
+		utilities/writeBED.pl {input}
+		awk '!($4~/A00|B00|C00|D00/)' {output.unfilt} > {output.filt}
+		"""
+
+rule BX_stats:
+	input: "ReadMapping/bedfiles/{sample}.bx.bed"
+	output:	
+		molsize = "ReadMapping/bxstats/moleculesize/{sample}.molsize",
+		molhist = "ReadMapping/bxstats/moleculesize/{sample}.molsize.hist",
+		readsper = "ReadMapping/bxstats/readsperbx/{sample}.readsperbx"
+	message: "Calculating molecule size, reads per molecule: {wildcards.sample}"
+	wildcard_constraints:
+		sample = "[a-zA-Z0-9_-]*"
+	threads: 1
+	shell:
+		"""
+		cut -f10 {input} | datamash -s groupby 1 count 1 | sort -k 1 -n > {output.readsper}
+		awk '{{ print $1"\\t"$2"\\t"$3"\\t"$3-$2"\\t"$4"\\t"$10 }}' {input} | sort -k 4 -n > {output.molsize}
+		cut -f4 {output.molsize} | datamash bin:1000 1 | datamash -s groupby 1 count 1 | sort -k 1 -n > {output.molhist}
+		# datamash groupby 1,5 min 2 max 3 < {output.molsize} | awk '{{ print $1"\\t"$2"\\t"$4-$3 }}' > 
 		"""
 
 rule merge_alignments:
@@ -248,39 +283,6 @@ rule sort_merge:
 		samtools sort -@ {threads} -O bam --reference {input.genome} -l 0 -m 4G -o {output} {input.bam} 2> /dev/null
 		"""
 
-rule BEDconvert:
-	input: "ReadMapping/align/{sample}.bam"
-	output: 
-		filt = temp("ReadMapping/bedfiles/{sample}.bx.bed"),
-		unfilt = temp("ReadMapping/bedfiles/{sample}.all.bed")
-	message: "Converting to BED format: {wildcards.sample}"
-	wildcard_constraints:
-		sample = "[a-zA-Z0-9_-]*"
-	threads: 1
-	shell:
-		"""
-		utilities/writeBED.pl {input} 2> /dev/null
-		awk '!($4~/A00|B00|C00|D00/)' {output.unfilt} > {output.filt}
-		"""
-
-rule BX_stats:
-	input: "ReadMapping/bedfiles/{sample}.bx.bed"
-	output:	
-		molsize = "ReadMapping/bxstats/moleculesize/{sample}.molsize",
-		molhist = "ReadMapping/bxstats/moleculesize/{sample}.molsize.hist",
-		readsper = "ReadMapping/bxstats/readsperbx/{sample}.readsperbx"
-	message: "Calculating molecule size, reads per molecule: {wildcards.sample}"
-	wildcard_constraints:
-		sample = "[a-zA-Z0-9_-]*"
-	threads: 1
-	shell:
-		"""
-		cut -f10 {input} | datamash -s groupby 1 count 1 | sort -k 1 -n > {output.readsper}
-		awk '{{ print $1"\\t"$2"\\t"$3"\\t"$3-$2"\\t"$4"\\t"$10 }}' {input} | sort -k 4 -n > {output.molsize}
-		cut -f4 {output.molsize} | datamash bin:1000 1 | datamash -s groupby 1 count 1 | sort -k 1 -n > {output.molhist}
-		# datamash groupby 1,5 min 2 max 3 < {output.molsize} | awk '{{ print $1"\\t"$2"\\t"$4-$3 }}' > 
-		"""
-
 rule genome_coords:
 	input: genomefile + ".fai"
 	output: genomefile + ".bed"
@@ -291,19 +293,27 @@ rule genome_coords:
 		awk 'BEGIN{{FS=OFS="\\t"}} {{print $1,$2}}' {input} > {output}
 		"""
 
-rule genome_coverage:
+rule bamtobed:
+	input: "ReadMapping/align/{sample}.bam"
+	output: temp("ReadMapping/bedfiles/{sample}.total.bed")
+	message: "Creating bedfile of all alignments: {wildcards.sample}"
+	benchmark: "Benchmark/Mapping/ema/fullbed.{sample}.txt"
+	shell:
+		"bedtools bamtobed {input}"
+
+rule genome_BX_coverage:
 	input:
 		geno = genomefile + ".bed",
-		unfilt = "ReadMapping/bedfiles/{sample}.all.bed",
-		filt = "ReadMapping/bedfiles/{sample}.bx.bed"
+		bx = "ReadMapping/bedfiles/{sample}.bx.bed",
+		alntot = "ReadMapping/bedfiles/{sample}.total.bed"
 	output: 
-		unfilt = "ReadMapping/align/coverage/{sample}.all.gencov",
-		filt = "ReadMapping/align/coverage/{sample}.bx.gencov"
+		bx = "ReadMapping/align/coverage/{sample}.bx.gencov",
+		alntot = "ReadMapping/align/coverage/{sample}.all.gencov"
 	message: "Calculating genomic coverage of alignments: {wildcards.sample}"
 	shell:
 		"""
-		bedtools genomecov -i {input.unfilt} -g {input.geno} > {output.unfilt}
-		bedtools genomecov -i {input.filt}   -g {input.geno} > {output.filt}
+		bedtools genomecov -i {input.bx}   -g {input.geno} > {output.bx}
+		bedtools genomecov -i {input.alntot}   -g {input.geno} > {output.alntot}
 		"""
 
 rule index_alignments:
