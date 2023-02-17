@@ -222,7 +222,8 @@ rule merge_alignments:
 		idx_barcoded = "ReadMapping/align/{sample}/{sample}.barcoded.bam.bai",
 		idx_nobarcode = "ReadMapping/align/{sample}/{sample}.nobarcode.bam.bai"
 	output: 
-		bam = temp("ReadMapping/align/{sample}.unsort.bam")
+		bam = temp("ReadMapping/align/{sample}.unsort.bam"),
+		bai - temp("ReadMapping/align/{sample}.unsort.bam.bai")
 	wildcard_constraints:
 		sample = "[a-zA-Z0-9_-]*"
 	message: "Merging all alignments: {wildcards.sample}"
@@ -258,7 +259,7 @@ rule BEDconvert:
 	threads: 1
 	shell:
 		"""
-		utilities/writeBED.pl {input}
+		utilities/writeBED.pl {input} 2> /dev/null
 		awk '!($4~/A00|B00|C00|D00/)' {output.unfilt} > {output.filt}
 		"""
 
