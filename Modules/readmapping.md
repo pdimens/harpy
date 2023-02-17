@@ -52,7 +52,8 @@ graph LR
     B-->C((EMA align barcoded))
     C-->D((sort alignments))
     D-->E((merge alignments))
-    E-->F((merge alignemnts))
+    E-->G
+    E-->F((merge alignments))
     IDX((index genome))-->C
     IDX-->Z((BWA align unbarcoded))
     Z-->Y((sort alignments))
