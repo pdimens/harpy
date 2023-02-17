@@ -13,15 +13,16 @@ can modify are done at the command line. There aren't too many, which should mak
 
 ## Modules
 Harpy is modular, meaning you can use different parts of it independent from each other. Need to only align reads?
-Great! Only want to call variants? Awesome! All modules are called by `harpy modulename`. For example, use `harpy align` to align reads.
+Great! Only want to call variants? Awesome! All modules are called by `harpy <module>`. For example, use `harpy align` to align reads.
 
-| Module     | Description                                  |
-|:-----------|:---------------------------------------------|
-| `trim`     | Remove adapters and quality trim sequences   |
-| `align`    | Align sample sequences to a reference genome |
-| `variants` | Call variants from sample alignments         |
-| `impute`   | Impute genotypes from genotype likelihoods   |
-| `phase`    | Phase SNPs into haplotypes                   |
+| Module     | Description                                   |
+|:-----------|:----------------------------------------------|
+| `extra`    | Create various associated or necessary files  |
+| `trim`     | Remove adapters and quality trim sequences    |
+| `align`    | Align sample sequences to a reference genome  |
+| `variants` | Call variants from sample alignments          |
+| `impute`   | Impute genotypes using variants and sequences |
+| `phase`    | Phase SNPs into haplotypes                    |
 
 
 ## Using Harpy
@@ -29,23 +30,25 @@ You can call `harpy` without any arguments (or with `--help`) to print the docst
 ``` harpy --help                                                      
  Usage: harpy [OPTIONS] COMMAND [ARGS]...                     
                                                               
- HARPY Haplotagging data processing pipeline.             
- The pipeline trims reads, map sequences, calls variants, 
- imputes genotypes, and phases haplotypes.                
-                                                          
- trim 🡒 align 🡒 variants 🡒 impute 🡒 phase                 
-                                                          
- Documentation: https://pdimens.github.io/HARPY/#/        
-                                                          
-╭─ Options ──────────────────────────────────────────────╮
-│ --help      Show this message and exit.                │
-╰────────────────────────────────────────────────────────╯
-╭─ Commands ─────────────────────────────────────────────╮
-│ align     Align sample sequences to a reference genome │
-│ impute    Impute genotypes from genotype likelihoods   │
-│ phase     Phase SNPs into haplotypes                   │
-│ trim      Remove adapters and quality trim sequences   │
-│ variants  Call variants from sample alignments         │
-╰────────────────────────────────────────────────────────╯
-
+               Haplotagging Research Pipeline (HARPY)               
+                            version: 0.1                            
+                                                                    
+ The pipeline trims reads, maps sequences, calls variants, imputes  
+ genotypes, and phases haplotypes of Haplotagging data.             
+                                                                    
+ trim 🡒 align 🡒 variants 🡒 impute 🡒 phase                           
+                                                                    
+ Documentation: https://pdimens.github.io/HARPY/                    
+                                                                    
+╭─ Options ────────────────────────────────────────────────────────╮
+│ --help      Show this message and exit.                          │
+╰──────────────────────────────────────────────────────────────────╯
+╭─ Commands ───────────────────────────────────────────────────────╮
+│ align     Align sample sequences to a reference genome           │
+│ extra     Create various associated/necessary files              │
+│ impute    Impute genotypes using variants and sequences          │
+│ phase     Phase SNPs into haplotypes                             │
+│ trim      Remove adapters and quality trim sequences             │
+│ variants  Call variants from sample alignments                   │
+╰──────────────────────────────────────────────────────────────────╯
 ```
