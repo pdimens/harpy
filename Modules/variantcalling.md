@@ -63,15 +63,33 @@ graph LR
 ```
 
 ### Leviathan
-Leviathan is an alternative variant caller that uses linked read barcode information to call structural variants (indels, etc.). 
+[Leviathan](https://github.com/morispi/LEVIATHAN) is an alternative variant caller that uses linked read barcode information to call structural variants (indels, etc.). 
 Harpy first uses [LRez](https://github.com/morispi/LRez) to index the barcodes in the alignments, then
 it calls variants for individual samples using Leviathan. Due to the nature of Structural Variant (SV) 
 VCF files, there isn't an entirely fool-proof way of combining the variants of all the samples into a 
-single VCF file, therefore the output will be a VCF for every sample.
+single VCF file, therefore the output will be a VCF for every sample. It's unclear what Leviathan does with invalid
+barcodes and until that gets clarified, Harpy will preprocess alignments to keep
+only alignments with a complete barcode (no `00` beadtags, [read more below](#barcode-validation)).
 
 ```mermaid
 graph LR
+    Z((keep valid BX alignments))-->A
     A((index barcodes)) --> B((leviathan))
     B-->C((convert to BCF))
     C-->D((index BCFs))
 ```
+
+!!!info 
+#### Barcode Validation
+Haplotag beadtags are stored in fastq read headers with the `BX:Z` tag, and
+this information is retained in the alignment (.bam) files. When demultiplexing,
+unresolved beadtag sections are encoded as `00`, for example the `A00` in 
+`A00C15B22D76`. The haplotag toggle in `EMA` recognizes this and considers those
+barcodes invalid. However, `Leviathan` doesn't have this behavior documented, so 
+we don't know if invalid barcodes are ignored, or if `Leviathan` (or `LRez`) 
+treats `00` as valid. If not, this would be a problem because it may be incorrectly
+associating alignments with molecules that are actually undetermined. As a 
+precaution, we only keep alignments with complete `AxxCxxBxxDxx` barcodes.
+There is an [open Issue](https://github.com/morispi/LEVIATHAN/issues/8)
+on the Leviathan repository addressing that.
+!!!
