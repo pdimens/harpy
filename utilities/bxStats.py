@@ -68,9 +68,9 @@ for read in alnfile.fetch():
 
 
 with open(outfile, "w") as fout:
-    _ = fout.write("contig\tbx\treads\tstart\tend\tlength_alignment\tlength_inferred\n")
+    _ = fout.write("contig\tbx\treads\tstart\tend\tlength_inferred\taligned_bp\n")
     for chrm in d:
         for bx in d[chrm]:
             _d = d[chrm][bx]
             inferred = str(_d["high"] - _d["low"])
-            _ = fout.write(chrm + "\t" + bx + "\t" + str(_d["n"]) + "\t" + str(_d["low"]) + "\t" + str(_d["high"]) + "\t" + str(_d["bp"]) + "\t" + inferred + "\n")
+            _ = fout.write(chrm + "\t" + bx + "\t" + str(_d["n"]) + "\t" + str(_d["low"]) + "\t" + str(_d["high"]) + "\t" + inferred + "\t" + str(_d["bp"]) + "\n")
