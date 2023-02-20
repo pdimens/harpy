@@ -21,9 +21,8 @@ library(ggplot2)
 library(magrittr)
 library(DT)
 
-#args <- commandArgs(trailingOnly = T)
-args <- "~/subset.bx.stats"
-infile <- args[1]
+# infile <- "~/subset.bx.stats"
+infile <- snakemake@input[[1]]
 bamfile <- gsub(".bx.stats", ".bam", infile)
 samplename <- gsub(".bx.stats", "", basename(infile))
 tb <- read.table(infile, header = T) %>% select(-start, -end)
