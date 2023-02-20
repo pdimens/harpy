@@ -9,7 +9,7 @@ rule keep_validBX:
     message: "Keeping only alignments with valid BX barcodes: {wildcards.sample}"
     shell:
         """
-        utilities/filterBXBAM.py {input}
+        utilities/filterBXBAM.py --valid --input {input}
         """
 
 rule index_alignment:
