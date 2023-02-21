@@ -229,6 +229,7 @@ rule BEDconvert:
 	shell:
 		"""
 		utilities/writeBED.pl {input}
+		mv ReadMapping/align/{wildcards.sample}/{wildcards.sample}.barcoded.all.bed {output.unfilt}
 		awk '!($4~/A00|B00|C00|D00/)' {output.unfilt} > {output.filt}
 		"""
 
