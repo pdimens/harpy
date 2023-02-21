@@ -197,7 +197,7 @@ rule merge_barcoded:
 	threads: 10
 	shell:
 		"""
-		sambamba merge -t {threads} {output} {input}
+		sambamba merge -t {threads} {output.bam} {input}
 		"""
 
 rule mergestats:
