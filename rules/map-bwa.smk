@@ -89,11 +89,11 @@ rule mark_duplicates:
 			subprocess.run(f"samtools collate --threads {threads} -o {params.rootname}.collate.bam {input[0]}".split())
 			subprocess.run(f"samtools fixmate -m --threads {threads}  {params.rootname}.collate.bam {params.rootname}.fixmate.bam".split())
 			os.remove(f"{params.rootname}.collate.bam")
-			subprocess.run(f"samtools sort --threads {threads} -O bam -o {params.rootname}.fixsort.bam {params.rootname}.fixmate.bam".split())
+			subprocess.run(f"samtools sort --threads {threads} -O bam -o {params.rootname}.fixsort.bam {params.rootname}.fixmate.bam 2> /dev/null".split())
 			os.remove(f"{params.rootname}.fixmate.bam")
 			subprocess.run(f"samtools markdup --threads {threads} --barcode-tag BX {params.rootname}.fixsort.bam {output.bam[0]} 2> {log[0]}".split())
 			os.remove(f"{params.rootname}.fixsort.bam")
-			subprocess.run(f"samtools index --threads {threads} {output.bam[0]} 2> /dev/null".split())
+			subprocess.run(f"sambamba index -n {threads} {output.bam[0]} 2> /dev/null".split())
 		else:
 			subprocess.run(f"sambamba markdup -t {threads} -l 0 {input[0]} {output.bam[0]} 2> {log[0]}".split())
 #
