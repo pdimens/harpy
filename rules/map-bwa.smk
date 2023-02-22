@@ -72,7 +72,7 @@ rule sort_alignments:
 
 rule mark_duplicates:
 	input: "ReadMapping/bwa/{sample}.sort.bam"
-	output: 
+	output:
 		bam = "ReadMapping/bwa/{sample}.bam",
 		bai = "ReadMapping/bwa/{sample}.bam.bai"
 	log: "ReadMapping/bwa/log/{sample}.markdup.log"
@@ -80,10 +80,17 @@ rule mark_duplicates:
 	wildcard_constraints:
 		sample = "[a-zA-Z0-9_-]*"
 	benchmark: "Benchmark/Mapping/bwa/markdup.{sample}.txt"
+	params:
+		rootname = "ReadMapping/bwa/{wildcards.sample}"
 	threads: 4
 	run:
 		if BXmarkdup:
-			subprocess.run(f"samtools markdup --threads {threads} --barcode-tag BX {input[0]} {output.bam} 2> {log[0]}".split())
+			subprocess.run(f"samtools collate --threads {threads} -o {params.rootname}.collate.bam {input[0]}".split())
+			subprocess.run(f"samtools fixmate -m --threads {threads}  {params.rootname}.collate.bam {params.rootname}.fixmate.bam".split())
+			subprocess.run(f"rm {params.rootname}.collate.bam".split())
+			subprocess.run(f"samtools markdup --threads {threads} --barcode-tag BX {params.rootname}.fixmate.bam {output.bam} 2> {log[0]}".split())
+			subprocess.run(f"rm {params.rootname}.fixmate.bam".split())
+			subprocess.run(f"samtools index {output.bam} 2> /dev/null".split())
 		else:
 			subprocess.run(f"sambamba markdup -t {threads} -l 0 {input[0]} {output.bam} 2> {log[0]}".split())
 #
