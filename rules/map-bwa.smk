@@ -44,13 +44,12 @@ rule align_bwa:
 		genome_idx = multiext(genomefile, ".ann", ".bwt", ".fai", ".pac", ".sa", ".amb")
 	output:  pipe("ReadMapping/bwa/{sample}.sam")
 	log: "ReadMapping/bwa/logs/{sample}.log"
+	message: "Mapping onto {input.genome}: {wildcards.sample}"
 	wildcard_constraints:
 		sample = "[a-zA-Z0-9_-]*"
-	message: "Mapping onto {input.genome}: {wildcards.sample}"
 	benchmark: "Benchmark/Mapping/bwa/align.{sample}.txt"
 	params: 
 		extra = extra
-	log: "ReadMapping/count/logs/{sample}.count.log"
 	threads: 3
 	shell:
 		"""
@@ -76,9 +75,9 @@ rule mark_duplicates:
 		bam = "ReadMapping/bwa/{sample}.bam",
 		bai = "ReadMapping/bwa/{sample}.bam.bai"
 	log: "ReadMapping/bwa/log/{sample}.markdup.nobarcode.log"
+	message: "Marking duplicates: {wildcards.sample}"
 	wildcard_constraints:
 		sample = "[a-zA-Z0-9_-]*"
-	message: "Marking duplicates: {wildcards.sample}"
 	benchmark: "Benchmark/Mapping/bwa/markdup.{sample}.txt"
 	threads: 4
 	run:
