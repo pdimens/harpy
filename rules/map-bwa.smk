@@ -54,7 +54,7 @@ rule align_bwa:
 	threads: 3
 	shell:
 		"""
-		bwa mem -p -C -t {threads} {params} -M -R "@RG\\tID:{wildcards.sample}\\tSM:{wildcards.sample}" {input.genome} {input.forward_reads} {input.reverse_reads} > {output} 2> {log}
+		bwa mem -C -t {threads} {params} -M -R "@RG\\tID:{wildcards.sample}\\tSM:{wildcards.sample}" {input.genome} {input.forward_reads} {input.reverse_reads} > {output} 2> {log}
 		"""
 
 rule sort_alignments:

@@ -131,7 +131,7 @@ rule align_nobarcode:
 	threads: 2
 	shell:
 		"""
-		bwa mem -p -t {threads} -C -M -R "@RG\\tID:{wildcards.sample}\\tSM:{wildcards.sample}" {input.genome} {input.reads} > {output} 2> /dev/null
+		bwa mem -t {threads} -C -M -R "@RG\\tID:{wildcards.sample}\\tSM:{wildcards.sample}" {input.genome} {input.reads} > {output} 2> /dev/null
 		"""
 
 rule sort_ema:
