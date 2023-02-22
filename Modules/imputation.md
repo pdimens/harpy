@@ -33,7 +33,7 @@ Typically, one runs STITCH multiple times, exploring how results vary with
 different model parameters. The solution Harpy uses for this is to have the user
 provide a tab-delimited dataframe file where the columns are the 5 STITCH model 
 parameters and the rows are the values for those parameters. The parameter file 
-is required and can be created manually or with `harpy init -s <filename>`.
+is required and can be created manually or with `harpy extra -s <filename>`.
 If created using harpy, the resulting file includes largely meaningless values 
 that you will need to adjust for your study. The parameter must follow a particular format:
 - tab or comma delimited

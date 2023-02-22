@@ -32,8 +32,8 @@ harpy variants OPTIONS...
 ### sample grouping file
 This file is entirely optional and useful if you want variant calling to happen on a per-population level.
 - takes the format of sample\<tab\>group
-- create with `harpy init -p <samplefolder>` or manually
-- if created with `harpy init -p`, all the samples will be assigned to group `1`, so make sure to edit the second column to reflect your data correctly.
+- create with `harpy extra -p <samplefolder>` or manually
+- if created with `harpy extra -p`, all the samples will be assigned to group `1`, so make sure to edit the second column to reflect your data correctly.
 - the file looks like:
 ``` popgroups.txt
 sample1 1

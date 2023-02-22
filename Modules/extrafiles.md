@@ -4,9 +4,9 @@ icon: log
 ---
 
 # Generate Extra Files
-Some parts of Harpy (variant calling, imputation) want or need extra files. You can create various files necessary for different modules using the `Harpy init` module:
+Some parts of Harpy (variant calling, imputation) want or need extra files. You can create various files necessary for different modules using the `harpy extra` module:
 ```bash
-harpy init OPTIONS... 
+harpy extra OPTIONS... 
 ```
 
 The arguments represent different sub-commands and can be run in any order or combination to generate the files you need.
@@ -55,7 +55,7 @@ rows as necessary. See the [Imputation section](imputation.md) for details on th
 
 For snakemake to work in harmony with an HPC scheduler, a "profile" needs to
 be provided that tells Snakemake how it needs to interact with the HPC scheduler
-to submit your jobs to the cluster. Using `harpy init --hpc <hpc-type>` will create
+to submit your jobs to the cluster. Using `harpy extra --hpc <hpc-type>` will create
 the necessary folder and profile yaml file for you to use. To use the profile, call
 the intended Harpy module with an extra ``--snakemake` argument:
 ```bash
