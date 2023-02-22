@@ -90,7 +90,7 @@ rule mark_duplicates:
 			subprocess.run(f"rm {params.rootname}.collate.bam".split())
 			subprocess.run(f"samtools markdup --threads {threads} --barcode-tag BX {params.rootname}.fixmate.bam {output.bam} 2> {log[0]}".split())
 			subprocess.run(f"rm {params.rootname}.fixmate.bam".split())
-			subprocess.run(f"samtools index {output.bam} 2> /dev/null".split())
+			subprocess.run(f"samtools index --threads {threads} {output.bam[0]} 2> /dev/null".split())
 		else:
 			subprocess.run(f"sambamba markdup -t {threads} -l 0 {input[0]} {output.bam} 2> {log[0]}".split())
 #
