@@ -75,7 +75,7 @@ rule mark_duplicates:
 	output:
 		bam = "ReadMapping/bwa/{sample}.bam",
 		bai = "ReadMapping/bwa/{sample}.bam.bai"
-	log: "ReadMapping/bwa/log/{sample}.markdup.log"
+	log: "ReadMapping/bwa/logs/{sample}.markdup.log"
 	message: f"Marking duplicates{txt}: " + "{wildcards.sample}"
 	wildcard_constraints:
 		sample = "[a-zA-Z0-9_-]*"
