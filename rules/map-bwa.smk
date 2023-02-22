@@ -1,7 +1,7 @@
 import subprocess
 
 seq_dir = config["seq_directory"]
-genomefile = config["genome_file"]
+genomefile = config["genomefile"]
 Rsep = config["Rsep"]
 fqext = config["fqext"]
 samplenames = config["samplenames"]
@@ -38,8 +38,8 @@ rule index_genome:
 
 rule align_bwa:
 	input:
-		forward_reads = seq_dir + "/{sample}" + Rsep + "1." + fqext,
-		reverse_reads = seq_dir + "/{sample}" + Rsep + "2." + fqext,
+		forward_reads = seq_dir + "/{sample}" + f".{Rsep[0]}.{fqext}",
+		reverse_reads = seq_dir + "/{sample}" + f".{Rsep[1]}.{fqext}",
 		genome = genomefile,
 		genome_idx = multiext(genomefile, ".ann", ".bwt", ".fai", ".pac", ".sa", ".amb")
 	output:  pipe("ReadMapping/bwa/{sample}.sam")
