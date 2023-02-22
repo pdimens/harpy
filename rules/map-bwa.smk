@@ -113,15 +113,15 @@ rule genome_coords:
 
 rule BEDconvert:
 	input: "ReadMapping/bwa/{sample}.bam"
-	output: temp("ReadMapping/bedfiles/{sample}.bed")
+	output: temp("ReadMapping/bwa/bedfiles/{sample}.bed")
 	message: "Converting to BED format: {wildcards.sample}"
 	shell:
-		"bedtools bamtobed -i {input}"
+		"bedtools bamtobed -i {input} > {output}"
 
 rule genome_coverage:
 	input:
 		geno = genomefile + ".bed",
-		bed = "ReadMapping/bedfiles/{sample}.bed"
+		bed = "ReadMapping/bwa/bedfiles/{sample}.bed"
 	output: 
 		"ReadMapping/bwa/coverage/{sample}.gencov"
 	message: 
