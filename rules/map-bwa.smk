@@ -82,20 +82,36 @@ rule mark_duplicates:
 		sample = "[a-zA-Z0-9_-]*"
 	benchmark: "Benchmark/Mapping/bwa/markdup.{sample}.txt"
 	params:
+		bx = BXmarkdup
 		rootname = "ReadMapping/bwa/{sample}"
 	threads: 4
-	run:
-		if BXmarkdup:
-			subprocess.run(f"samtools collate --threads {threads} -o {params.rootname}.collate.bam {input[0]}".split())
-			subprocess.run(f"samtools fixmate -m --threads {threads}  {params.rootname}.collate.bam {params.rootname}.fixmate.bam".split())
-			os.remove(f"{params.rootname}.collate.bam")
-			subprocess.run(f"samtools sort --threads {threads} -O bam {params.rootname}.fixmate.bam > {params.rootname}.fixsort.bam 2> /dev/null".split())
-			os.remove(f"{params.rootname}.fixmate.bam")
-			subprocess.run(f"samtools markdup --threads {threads} --barcode-tag BX {params.rootname}.fixsort.bam {output.bam[0]} 2> {log[0]}".split())
-			os.remove(f"{params.rootname}.fixsort.bam")
-			subprocess.run(f"sambamba index -n {threads} {output.bam[0]} 2> /dev/null".split())
-		else:
-			subprocess.run(f"sambamba markdup -t {threads} -l 0 {input[0]} {output.bam[0]} 2> {log[0]}".split())
+	shell:
+		"""
+		if [[ "{params.bx}" == "False" ]]; do
+			sambamba markdup -t {threads} -l 0 {input} {output.bam} 2> {log}
+		else
+			samtools collate --threads {threads} -o {params.rootname}.collate.bam {input}
+			samtools fixmate -m --threads {threads} {params.rootname}.collate.bam {params.rootname}.fixmate.bam
+			rm {params.rootname}.collate.bam
+			samtools sort --threads {threads} -O bam {params.rootname}.fixmate.bam > {params.rootname}.fixsort.bam 2> /dev/null
+			rm {params.rootname}.fixmate.bam
+			samtools markdup --threads {threads} --barcode-tag BX {params.rootname}.fixsort.bam {output.bam} 2> {log}
+			rm {params.rootname}.fixsort.bam
+			sambamba index -n {threads} {output.bam} 2> /dev/null
+		fi
+		"""
+#	run:
+#		if BXmarkdup:
+#			subprocess.run(f"samtools collate --threads {threads} -o {params.rootname}.collate.bam {input[0]}".split())
+#			subprocess.run(f"samtools fixmate -m --threads {threads}  {params.rootname}.collate.bam {params.rootname}.fixmate.bam".split())
+#			os.remove(f"{params.rootname}.collate.bam")
+#			subprocess.run(f"samtools sort --threads {threads} -O bam {params.rootname}.fixmate.bam > {params.rootname}.fixsort.bam 2> /dev/null".split())
+#			os.remove(f"{params.rootname}.fixmate.bam")
+#			subprocess.run(f"samtools markdup --threads {threads} --barcode-tag BX {params.rootname}.fixsort.bam {output.bam[0]} 2> {log[0]}".split())
+#			os.remove(f"{params.rootname}.fixsort.bam")
+#			subprocess.run(f"sambamba index -n {threads} {output.bam[0]} 2> /dev/null".split())
+#		else:
+#			subprocess.run(f"sambamba markdup -t {threads} -l 0 {input[0]} {output.bam[0]} 2> {log[0]}".split())
 #
 #rule genome_coords:
 #	input: genomefile + ".fai"
