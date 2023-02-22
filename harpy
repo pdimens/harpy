@@ -175,6 +175,9 @@ def trim(directory, max_length, extra_params, threads, snakemake):
 def align(genome, threads, bwa, bx_markdup, directory, ema_bins, extra_params, snakemake):
     """
     Align sample sequences to a reference genome
+
+    The default is to use the BX barcode-aware EMA aligner. You may choose to use
+    BWA MEM instead with `--bwa` and ignore the BX barcodes.
     """
     # extension guessing
     fqext, Rsep = fq_extension(directory)
