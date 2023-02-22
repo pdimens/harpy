@@ -83,9 +83,9 @@ rule mark_duplicates:
 	threads: 4
 	run:
 		if BXmarkdup:
-			subprocess.run(f"sambamba markdup -t {threads} -l 0 {input[0]} {output.bam} 2> {log[0]}".split())
-		else:
 			subprocess.run(f"samtools markdup --threads {threads} --barcode-tag BX {input[0]} {output.bam} 2> {log[0]}".split())
+		else:
+			subprocess.run(f"sambamba markdup -t {threads} -l 0 {input[0]} {output.bam} 2> {log[0]}".split())
 #
 #rule genome_coords:
 #	input: genomefile + ".fai"
