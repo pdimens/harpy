@@ -87,7 +87,7 @@ rule mark_duplicates:
 	threads: 4
 	shell:
 		"""
-		if [[ "{params.bx}" == "False" ]]; do
+		if [[ "{params.bx}" == "False" ]]; then
 			sambamba markdup -t {threads} -l 0 {input} {output.bam} 2> {log}
 		else
 			samtools collate --threads {threads} -o {params.rootname}.collate.bam {input}
