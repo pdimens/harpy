@@ -82,7 +82,7 @@ rule mark_duplicates:
 		sample = "[a-zA-Z0-9_-]*"
 	benchmark: "Benchmark/Mapping/bwa/markdup.{sample}.txt"
 	params:
-		bx = BXmarkdup
+		bx = BXmarkdup,
 		rootname = "ReadMapping/bwa/{sample}"
 	threads: 4
 	shell:
