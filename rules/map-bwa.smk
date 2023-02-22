@@ -90,14 +90,14 @@ rule mark_duplicates:
 		if [[ "{params.bx}" == "False" ]]; then
 			sambamba markdup -t {threads} -l 0 {input} {output.bam} 2> {log}
 		else
-			samtools collate --threads {threads} -o {params.rootname}.collate.bam {input}
-			samtools fixmate -m --threads {threads} {params.rootname}.collate.bam {params.rootname}.fixmate.bam
+			samtools collate --threads {threads} -o {params.rootname}.collate.bam {input} 2> {log}
+			samtools fixmate -m --threads {threads} {params.rootname}.collate.bam {params.rootname}.fixmate.bam 2>> {log}
 			rm {params.rootname}.collate.bam
-			samtools sort --threads {threads} -O bam {params.rootname}.fixmate.bam > {params.rootname}.fixsort.bam 2> /dev/null
+			samtools sort --threads {threads} -O bam {params.rootname}.fixmate.bam > {params.rootname}.fixsort.bam 2>> {log}
 			rm {params.rootname}.fixmate.bam
-			samtools markdup --threads {threads} --barcode-tag BX {params.rootname}.fixsort.bam {output.bam} 2> {log}
+			samtools markdup --threads {threads} --barcode-tag BX {params.rootname}.fixsort.bam {output.bam} 2>> {log}
 			rm {params.rootname}.fixsort.bam
-			sambamba index -n {threads} {output.bam} 2> /dev/null
+			sambamba index -n {threads} {output.bam} 2> {log}
 		fi
 		"""
 #	run:
