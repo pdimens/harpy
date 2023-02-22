@@ -19,7 +19,7 @@ rule create_reports:
 	output: 
 		stats = "ReadMapping/alignment.stats.html",
 		flagstat = "ReadMapping/alignment.flagstat.html"
-	message: "Read mapping completed!\nAlignment reports:\n{output.stats}\n{output.flagstat}"
+	message: "Read mapping completed!\nAlignment reports:\n\t{output.stats}\n\t{output.flagstat}"
 	benchmark: "Benchmark/Mapping/ema/report.txt"
 	default_target: True
 	shell:
