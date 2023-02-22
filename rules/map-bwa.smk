@@ -1,4 +1,5 @@
 import subprocess
+import os
 
 seq_dir = config["seq_directory"]
 genomefile = config["genomefile"]
@@ -87,10 +88,11 @@ rule mark_duplicates:
 		if BXmarkdup:
 			subprocess.run(f"samtools collate --threads {threads} -o {params.rootname}.collate.bam {input[0]}".split())
 			subprocess.run(f"samtools fixmate -m --threads {threads}  {params.rootname}.collate.bam {params.rootname}.fixmate.bam".split())
-			subprocess.run(f"rm {params.rootname}.collate.bam".split())
+			os.remove(f"{params.rootname}.collate.bam")
 			subprocess.run(f"samtools markdup --threads {threads} --barcode-tag BX {params.rootname}.fixmate.bam {params.rootname}.mrkdup.bam 2> {log[0]}".split())
-			subprocess.run(f"rm {params.rootname}.fixmate.bam".split())
+			os.remove(f"{params.rootname}.fixmate.bam")
 			subprocess.run(f"samtools sort --threads {threads} -O bam -l 0 -m 4G -o {output.bam[0]} {params.rootname}.mrkdup.bam".split())
+			os.remove(f"{params.rootname}.mrkdup.bam")
 			subprocess.run(f"samtools index --threads {threads} {output.bam[0]} 2> /dev/null".split())
 		else:
 			subprocess.run(f"sambamba markdup -t {threads} -l 0 {input[0]} {output.bam} 2> {log[0]}".split())
