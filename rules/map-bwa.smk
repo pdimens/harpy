@@ -101,36 +101,36 @@ rule mark_duplicates:
 #		samtools index {output.bam} 2> {log}
 #	fi
 
-#rule genome_coords:
-#	input: genomefile + ".fai"
-#	output: genomefile + ".bed"
-#	message: "Creating BED file of genomic coordinates"
-#	threads: 1
-#	shell:
-#		"""
-#		awk 'BEGIN{{FS=OFS="\\t"}} {{print $1,$2}}' {input} > {output}
-#		"""
-#
-#rule BEDconvert:
-#	input: "ReadMapping/bwa/{sample}.bam"
-#	output: temp("ReadMapping/bedfiles/{sample}.bed")
-#	message: "Converting to BED format: {wildcards.sample}"
-#	shell:
-#		"bedtools bamtobed -i {input}"
-#
-#rule genome_coverage:
-#	input:
-#		geno = genomefile + ".bed",
-#		bed = "ReadMapping/bedfiles/{sample}.bed"
-#	output: 
-#		"ReadMapping/bwa/coverage/{sample}.gencov"
-#	message: 
-#		"Calculating genomic coverage of alignments: {wildcards.sample}"
-#	shell:
-#		"""
-#		bedtools genomecov -i {input.bed} -g {input.geno} > {output}
-#		"""
-#
+rule genome_coords:
+	input: genomefile + ".fai"
+	output: genomefile + ".bed"
+	message: "Creating BED file of genomic coordinates"
+	threads: 1
+	shell:
+		"""
+		awk 'BEGIN{{FS=OFS="\\t"}} {{print $1,$2}}' {input} > {output}
+		"""
+
+rule BEDconvert:
+	input: "ReadMapping/bwa/{sample}.bam"
+	output: temp("ReadMapping/bedfiles/{sample}.bed")
+	message: "Converting to BED format: {wildcards.sample}"
+	shell:
+		"bedtools bamtobed -i {input}"
+
+rule genome_coverage:
+	input:
+		geno = genomefile + ".bed",
+		bed = "ReadMapping/bedfiles/{sample}.bed"
+	output: 
+		"ReadMapping/bwa/coverage/{sample}.gencov"
+	message: 
+		"Calculating genomic coverage of alignments: {wildcards.sample}"
+	shell:
+		"""
+		bedtools genomecov -i {input.bed} -g {input.geno} > {output}
+		"""
+
 #rule alignment_stats:
 #	input:
 #		bam = "ReadMapping/bwa/{sample}.bam",
