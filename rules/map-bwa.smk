@@ -82,14 +82,14 @@ rule mark_duplicates:
 		sample = "[a-zA-Z0-9_-]*"
 	benchmark: "Benchmark/Mapping/bwa/markdup.{sample}.txt"
 	params:
-		rootname = "ReadMapping/bwa/{wildcards.sample}"
+		rootname = "ReadMapping/bwa/{sample}"
 	threads: 4
 	run:
 		if BXmarkdup:
 			subprocess.run(f"samtools collate --threads {threads} -o {params.rootname}.collate.bam {input[0]}".split())
 			subprocess.run(f"samtools fixmate -m --threads {threads}  {params.rootname}.collate.bam {params.rootname}.fixmate.bam".split())
 			os.remove(f"{params.rootname}.collate.bam")
-			subprocess.run(f"samtools sort --threads {threads} -O bam -o {params.rootname}.fixsort.bam {params.rootname}.fixmate.bam 2> /dev/null".split())
+			subprocess.run(f"samtools sort --threads {threads} -O bam {params.rootname}.fixmate.bam > {params.rootname}.fixsort.bam 2> /dev/null".split())
 			os.remove(f"{params.rootname}.fixmate.bam")
 			subprocess.run(f"samtools markdup --threads {threads} --barcode-tag BX {params.rootname}.fixsort.bam {output.bam[0]} 2> {log[0]}".split())
 			os.remove(f"{params.rootname}.fixsort.bam")
