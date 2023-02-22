@@ -56,78 +56,79 @@ rule align_bwa:
 		bwa mem -p -C -t {threads} {params} -M -R "@RG\\tID:{wildcards.sample}\\tSM:{wildcards.sample}" {input.genome} {input.forward_reads} {input.reverse_reads} > {output} 2> {log}
 		"""
 
-rule sort_alignments:
-	input: "ReadMapping/bwa/{sample}.sam"
-	output: temp("ReadMapping/bwa/{sample}.sort.bam")
-	wildcard_constraints:
-		sample = "[a-zA-Z0-9_-]*"
-	message: "Sorting {wildcards.sample} alignments"
-	benchmark: "Benchmark/Mapping/bwa/sort.{sample}.txt"
-	threads: 1
-	shell:
-		"""
-		samtools sort --threads {threads} -O bam -l 0 -m 4G -o {output} {input}
-		"""
-
-rule mark_duplicates:
-	input: "ReadMapping/bwa/{sample}.sort.bam"
-	output: 
-		bam = "ReadMapping/bwa/{sample}.bam",
-		bai = "ReadMapping/bwa/{sample}.bam.bai"
-	log: "ReadMapping/bwa/log/{sample}.markdup.nobarcode.log"
-	message: "Marking duplicates: {wildcards.sample}"
-	wildcard_constraints:
-		sample = "[a-zA-Z0-9_-]*"
-	benchmark: "Benchmark/Mapping/bwa/markdup.{sample}.txt"
-	threads: 4
-	run:
-		if BXmarkdup:
-			subprocess.run(f"sambamba markdup -t {threads} -l 0 {input[0]} {output.bam} 2> {log[0]}".split())
-		else:
-			subprocess.run(f"samtools markdup --threads {threads} --barcode-tag BX {input[0]} {output.bam} 2> {log[0]}".split())
-
-rule genome_coords:
-	input: genomefile + ".fai"
-	output: genomefile + ".bed"
-	message: "Creating BED file of genomic coordinates"
-	threads: 1
-	shell:
-		"""
-		awk 'BEGIN{{FS=OFS="\\t"}} {{print $1,$2}}' {input} > {output}
-		"""
-
-rule BEDconvert:
-	input: "ReadMapping/bwa/{sample}.bam"
-	output: temp("ReadMapping/bedfiles/{sample}.bed")
-	message: "Converting to BED format: {wildcards.sample}"
-	shell:
-		"bedtools bamtobed -i {input}"
-
-rule genome_coverage:
-	input:
-		geno = genomefile + ".bed",
-		bed = "ReadMapping/bedfiles/{sample}.bed"
-	output: 
-		"ReadMapping/bwa/coverage/{sample}.gencov"
-	message: "Calculating genomic coverage of alignments: {wildcards.sample}"
-	shell:
-		"""
-		bedtools genomecov -i {input.bed} -g {input.geno} > {output}
-		"""
-
-rule alignment_stats:
-	input:
-		bam = "ReadMapping/bwa/{sample}.bam",
-		bai = "ReadMapping/bwa/{sample}.bam.bai"
-	output: 
-		stats = "ReadMapping/bwa/stats/{sample}.stats",
-		flagstat = "ReadMapping/bwa/flagstat/{sample}.flagstat"
-	wildcard_constraints:
-		sample = "[a-zA-Z0-9_-]*"
-	message: "Calculating alignment stats: {wildcards.sample}"
-	benchmark: "Benchmark/Mapping/bwa/stats.{sample}.txt"
-	threads: 1
-		"""
-		samtools stats {input.bam} > {output.stats}
-		samtools flagstat {input.bam} > {output.flagstat}
-		"""
+#rule sort_alignments:
+#	input: "ReadMapping/bwa/{sample}.sam"
+#	output: temp("ReadMapping/bwa/{sample}.sort.bam")
+#	wildcard_constraints:
+#		sample = "[a-zA-Z0-9_-]*"
+#	message: "Sorting {wildcards.sample} alignments"
+#	benchmark: "Benchmark/Mapping/bwa/sort.{sample}.txt"
+#	threads: 1
+#	shell:
+#		"""
+#		samtools sort --threads {threads} -O bam -l 0 -m 4G -o {output} {input}
+#		"""
+#
+#rule mark_duplicates:
+#	input: "ReadMapping/bwa/{sample}.sort.bam"
+#	output: 
+#		bam = "ReadMapping/bwa/{sample}.bam",
+#		bai = "ReadMapping/bwa/{sample}.bam.bai"
+#	log: "ReadMapping/bwa/log/{sample}.markdup.log"
+#	message: "Marking duplicates: {wildcards.sample}"
+#	wildcard_constraints:
+#		sample = "[a-zA-Z0-9_-]*"
+#	benchmark: "Benchmark/Mapping/bwa/markdup.{sample}.txt"
+#	threads: 4
+#	run:
+#		if BXmarkdup:
+#			subprocess.run(f"sambamba markdup -t {threads} -l 0 {input[0]} {output.bam} 2> {log[0]}".split())
+#		else:
+#			subprocess.run(f"samtools markdup --threads {threads} --barcode-tag BX {input[0]} {output.bam} 2> {log[0]}".split())
+#
+#rule genome_coords:
+#	input: genomefile + ".fai"
+#	output: genomefile + ".bed"
+#	message: "Creating BED file of genomic coordinates"
+#	threads: 1
+#	shell:
+#		"""
+#		awk 'BEGIN{{FS=OFS="\\t"}} {{print $1,$2}}' {input} > {output}
+#		"""
+#
+#rule BEDconvert:
+#	input: "ReadMapping/bwa/{sample}.bam"
+#	output: temp("ReadMapping/bedfiles/{sample}.bed")
+#	message: "Converting to BED format: {wildcards.sample}"
+#	shell:
+#		"bedtools bamtobed -i {input}"
+#
+#rule genome_coverage:
+#	input:
+#		geno = genomefile + ".bed",
+#		bed = "ReadMapping/bedfiles/{sample}.bed"
+#	output: 
+#		"ReadMapping/bwa/coverage/{sample}.gencov"
+#	message: 
+#		"Calculating genomic coverage of alignments: {wildcards.sample}"
+#	shell:
+#		"""
+#		bedtools genomecov -i {input.bed} -g {input.geno} > {output}
+#		"""
+#
+#rule alignment_stats:
+#	input:
+#		bam = "ReadMapping/bwa/{sample}.bam",
+#		bai = "ReadMapping/bwa/{sample}.bam.bai"
+#	output: 
+#		stats = "ReadMapping/bwa/stats/{sample}.stats",
+#		flagstat = "ReadMapping/bwa/flagstat/{sample}.flagstat"
+#	wildcard_constraints:
+#		sample = "[a-zA-Z0-9_-]*"
+#	message: "Calculating alignment stats: {wildcards.sample}"
+#	benchmark: "Benchmark/Mapping/bwa/stats.{sample}.txt"
+#	threads: 1
+#		"""
+#		samtools stats {input.bam} > {output.stats}
+#		samtools flagstat {input.bam} > {output.flagstat}
+#		"""
