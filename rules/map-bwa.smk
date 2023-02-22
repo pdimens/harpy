@@ -46,7 +46,7 @@ rule align_bwa:
 	log: "ReadMapping/bwa/logs/{sample}.log"
 	wildcard_constraints:
 		sample = "[a-zA-Z0-9_-]*"
-	message: "Mapping {wildcards.sample} reads onto {input.genome} using BWA"
+	message: "Mapping onto {input.genome}: {wildcards.sample}"
 	benchmark: "Benchmark/Mapping/bwa/align.{sample}.txt"
 	params: 
 		extra = extra
@@ -59,8 +59,7 @@ rule align_bwa:
 
 rule sort_alignments:
 	input: "ReadMapping/bwa/{sample}.sam"
-	output: 
-		bam = temp("ReadMapping/bwa/{sample}.sort.bam")
+	output: temp("ReadMapping/bwa/{sample}.sort.bam")
 	wildcard_constraints:
 		sample = "[a-zA-Z0-9_-]*"
 	message: "Sorting {wildcards.sample} alignments"
