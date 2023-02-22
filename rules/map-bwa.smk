@@ -7,6 +7,7 @@ fqext = config["fqext"]
 samplenames = config["samplenames"]
 BXmarkdup = config["BXmarkdup"]
 extra = config.get("extra", "") 
+txt = " using BX barcodes" if BXmarkdup else ""
 
 rule create_reports:
 	input: 
@@ -75,7 +76,7 @@ rule mark_duplicates:
 		bam = "ReadMapping/bwa/{sample}.bam",
 		bai = "ReadMapping/bwa/{sample}.bam.bai"
 	log: "ReadMapping/bwa/log/{sample}.markdup.log"
-	message: "Marking duplicates: {wildcards.sample}"
+	message: f"Marking duplicates{txt}: " + "{wildcards.sample}"
 	wildcard_constraints:
 		sample = "[a-zA-Z0-9_-]*"
 	benchmark: "Benchmark/Mapping/bwa/markdup.{sample}.txt"
