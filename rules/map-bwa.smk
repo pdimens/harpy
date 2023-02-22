@@ -56,35 +56,35 @@ rule align_bwa:
 		bwa mem -p -C -t {threads} {params} -M -R "@RG\\tID:{wildcards.sample}\\tSM:{wildcards.sample}" {input.genome} {input.forward_reads} {input.reverse_reads} > {output} 2> {log}
 		"""
 
-#rule sort_alignments:
-#	input: "ReadMapping/bwa/{sample}.sam"
-#	output: temp("ReadMapping/bwa/{sample}.sort.bam")
-#	wildcard_constraints:
-#		sample = "[a-zA-Z0-9_-]*"
-#	message: "Sorting {wildcards.sample} alignments"
-#	benchmark: "Benchmark/Mapping/bwa/sort.{sample}.txt"
-#	threads: 1
-#	shell:
-#		"""
-#		samtools sort --threads {threads} -O bam -l 0 -m 4G -o {output} {input}
-#		"""
-#
-#rule mark_duplicates:
-#	input: "ReadMapping/bwa/{sample}.sort.bam"
-#	output: 
-#		bam = "ReadMapping/bwa/{sample}.bam",
-#		bai = "ReadMapping/bwa/{sample}.bam.bai"
-#	log: "ReadMapping/bwa/log/{sample}.markdup.log"
-#	message: "Marking duplicates: {wildcards.sample}"
-#	wildcard_constraints:
-#		sample = "[a-zA-Z0-9_-]*"
-#	benchmark: "Benchmark/Mapping/bwa/markdup.{sample}.txt"
-#	threads: 4
-#	run:
-#		if BXmarkdup:
-#			subprocess.run(f"sambamba markdup -t {threads} -l 0 {input[0]} {output.bam} 2> {log[0]}".split())
-#		else:
-#			subprocess.run(f"samtools markdup --threads {threads} --barcode-tag BX {input[0]} {output.bam} 2> {log[0]}".split())
+rule sort_alignments:
+	input: "ReadMapping/bwa/{sample}.sam"
+	output: temp("ReadMapping/bwa/{sample}.sort.bam")
+	wildcard_constraints:
+		sample = "[a-zA-Z0-9_-]*"
+	message: "Sorting {wildcards.sample} alignments"
+	benchmark: "Benchmark/Mapping/bwa/sort.{sample}.txt"
+	threads: 1
+	shell:
+		"""
+		samtools sort --threads {threads} -O bam -l 0 -m 4G -o {output} {input}
+		"""
+
+rule mark_duplicates:
+	input: "ReadMapping/bwa/{sample}.sort.bam"
+	output: 
+		bam = "ReadMapping/bwa/{sample}.bam",
+		bai = "ReadMapping/bwa/{sample}.bam.bai"
+	log: "ReadMapping/bwa/log/{sample}.markdup.log"
+	message: "Marking duplicates: {wildcards.sample}"
+	wildcard_constraints:
+		sample = "[a-zA-Z0-9_-]*"
+	benchmark: "Benchmark/Mapping/bwa/markdup.{sample}.txt"
+	threads: 4
+	run:
+		if BXmarkdup:
+			subprocess.run(f"sambamba markdup -t {threads} -l 0 {input[0]} {output.bam} 2> {log[0]}".split())
+		else:
+			subprocess.run(f"samtools markdup --threads {threads} --barcode-tag BX {input[0]} {output.bam} 2> {log[0]}".split())
 #
 #rule genome_coords:
 #	input: genomefile + ".fai"
