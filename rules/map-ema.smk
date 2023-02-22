@@ -225,11 +225,12 @@ rule BEDconvert:
 	message: "Converting to BED format: {wildcards.sample}"
 	wildcard_constraints:
 		sample = "[a-zA-Z0-9_-]*"
+	params: "ReadMapping/align/{wildcards.sample}/{wildcards.sample}.barcoded.all.bed"
 	threads: 1
 	shell:
 		"""
 		utilities/writeBED.pl {input}
-		mv ReadMapping/align/{wildcards.sample}/{wildcards.sample}.barcoded.all.bed {output.unfilt}
+		mv {params} {output.unfilt}
 		awk '!($4~/A00|B00|C00|D00/)' {output.unfilt} > {output.filt}
 		"""
 
