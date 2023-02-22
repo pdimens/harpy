@@ -6,9 +6,9 @@ genomefile = config["genomefile"]
 Rsep = config["Rsep"]
 fqext = config["fqext"]
 samplenames = config["samplenames"]
-BXmarkdup = config["BXmarkdup"]
+#BXmarkdup = config["BXmarkdup"]
 extra = config.get("extra", "") 
-txt = " using BX barcodes" if BXmarkdup else ""
+#txt = " using BX barcodes" if BXmarkdup else ""
 
 rule create_reports:
 	input: 
@@ -77,42 +77,30 @@ rule mark_duplicates:
 		bam = "ReadMapping/bwa/{sample}.bam",
 		bai = "ReadMapping/bwa/{sample}.bam.bai"
 	log: "ReadMapping/bwa/logs/{sample}.markdup.log"
-	message: f"Marking duplicates{txt}: " + "{wildcards.sample}"
+	message: f"Marking duplicates: " + "{wildcards.sample}"
 	wildcard_constraints:
 		sample = "[a-zA-Z0-9_-]*"
 	benchmark: "Benchmark/Mapping/bwa/markdup.{sample}.txt"
 	params:
-		bx = BXmarkdup,
 		rootname = "ReadMapping/bwa/{sample}"
 	threads: 4
 	shell:
 		"""
-		if [[ "{params.bx}" == "False" ]]; then
-			sambamba markdup -t {threads} -l 0 {input} {output.bam} 2> {log}
-		else
-			samtools collate --threads {threads} -o {params.rootname}.collate.bam {input} 2> {log}
-			samtools fixmate -m --threads {threads} {params.rootname}.collate.bam {params.rootname}.fixmate.bam 2>> {log}
-			rm {params.rootname}.collate.bam
-			samtools sort --threads {threads} -O bam {params.rootname}.fixmate.bam > {params.rootname}.fixsort.bam 2>> {log}
-			rm {params.rootname}.fixmate.bam
-			samtools markdup --threads {threads} --barcode-tag BX {params.rootname}.fixsort.bam {output.bam} 2>> {log}
-			rm {params.rootname}.fixsort.bam
-			sambamba index -n {threads} {output.bam} 2> {log}
-		fi
+		sambamba markdup -t {threads} -l 0 {input} {output.bam} 2> {log}
 		"""
-#	run:
-#		if BXmarkdup:
-#			subprocess.run(f"samtools collate --threads {threads} -o {params.rootname}.collate.bam {input[0]}".split())
-#			subprocess.run(f"samtools fixmate -m --threads {threads}  {params.rootname}.collate.bam {params.rootname}.fixmate.bam".split())
-#			os.remove(f"{params.rootname}.collate.bam")
-#			subprocess.run(f"samtools sort --threads {threads} -O bam {params.rootname}.fixmate.bam > {params.rootname}.fixsort.bam 2> /dev/null".split())
-#			os.remove(f"{params.rootname}.fixmate.bam")
-#			subprocess.run(f"samtools markdup --threads {threads} --barcode-tag BX {params.rootname}.fixsort.bam {output.bam[0]} 2> {log[0]}".split())
-#			os.remove(f"{params.rootname}.fixsort.bam")
-#			subprocess.run(f"sambamba index -n {threads} {output.bam[0]} 2> /dev/null".split())
-#		else:
-#			subprocess.run(f"sambamba markdup -t {threads} -l 0 {input[0]} {output.bam[0]} 2> {log[0]}".split())
-#
+
+#	if [[ "{params.bx}" == "False" ]]; then
+#	else
+#		samtools collate -o {params.rootname}.collate.bam {input} 2> {log}
+#		samtools fixmate -m {params.rootname}.collate.bam {params.rootname}.fixmate.bam 2>> {log}
+#		rm {params.rootname}.collate.bam
+#		samtools sort -O bam {params.rootname}.fixmate.bam > {params.rootname}.fixsort.bam 2>> {log}
+#		rm {params.rootname}.fixmate.bam
+#		samtools markdup --barcode-tag BX {params.rootname}.fixsort.bam {output.bam} 2>> {log}
+#		rm {params.rootname}.fixsort.bam
+#		samtools index {output.bam} 2> {log}
+#	fi
+
 #rule genome_coords:
 #	input: genomefile + ".fai"
 #	output: genomefile + ".bed"
