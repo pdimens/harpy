@@ -42,7 +42,7 @@ rule index_genome:
 	shell: 
 		"""
 		ln -sr {input} {output.asm}
-		bwa index{output.asm}
+		bwa index {output.asm}
 		samtools faidx --fai-idx {output.asm}.fai {output.asm}
 		"""
 
@@ -131,7 +131,7 @@ rule BEDconvert:
 rule genome_coverage:
 	input:
 		geno = f"Assembly/{genomefile}.bed",
-		bed = temp("ReadMapping/bwa/bedfiles/{sample}.bed")
+		bed = "ReadMapping/bwa/bedfiles/{sample}.bed"
 	output: 
 		"ReadMapping/bwa/coverage/{sample}.gencov"
 	message: 
