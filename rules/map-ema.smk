@@ -30,16 +30,16 @@ rule create_reports:
 
 rule index_genome:
 	input: genomefile
-	output:
+	output: 
 		asm = f"Assembly/{genomefile}",
 		idx = multiext(f"Assembly/{genomefile}", ".ann", ".bwt", ".fai", ".pac", ".sa", ".amb")
 	message: "Indexing {input}"
-	benchmark: "Benchmark/Mapping/genoindex.txt"
+    log: f"Assembly/{genomefile}.idx.log"
 	shell: 
 		"""
 		ln -sr {input} {output.asm}
-		bwa index {output.asm}
-		samtools faidx --fai-idx {output.asm}.fai {output.asm}
+		bwa index {output.asm} 2> {log}
+		samtools faidx --fai-idx {output.asm}.fai {output.asm} 2>> {log}
 		"""
 
 rule count_beadtags:

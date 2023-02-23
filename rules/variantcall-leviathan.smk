@@ -41,6 +41,20 @@ rule index_barcode:
         LRez index bam -p -b {input.bam} -o {output} --threads {threads}
         """
 
+rule index_genome:
+	input: genomefile
+	output: 
+		asm = f"Assembly/{genomefile}",
+		idx = multiext(f"Assembly/{genomefile}", ".ann", ".bwt", ".fai", ".pac", ".sa", ".amb")
+	message: "Indexing {input}"
+    log: f"Assembly/{genomefile}.idx.log"
+	shell: 
+		"""
+		ln -sr {input} {output.asm}
+		bwa index {output.asm} 2> {log}
+		samtools faidx --fai-idx {output.asm}.fai {output.asm} 2>> {log}
+		"""
+
 rule leviathan_variantcall:
     input:
         bam = "Variants/leviathan/validBX/{sample}.bx.valid.bam",

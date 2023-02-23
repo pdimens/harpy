@@ -37,13 +37,13 @@ rule index_genome:
 	output: 
 		asm = f"Assembly/{genomefile}",
 		idx = multiext(f"Assembly/{genomefile}", ".ann", ".bwt", ".fai", ".pac", ".sa", ".amb")
-	message: "Indexing {input} prior to read mapping"
-	benchmark: "Benchmark/Mapping/bwa/genoindex.txt"
+	message: "Indexing {input}"
+    log: f"Assembly/{genomefile}.idx.log"
 	shell: 
 		"""
 		ln -sr {input} {output.asm}
-		bwa index {output.asm}
-		samtools faidx --fai-idx {output.asm}.fai {output.asm}
+		bwa index {output.asm} 2> {log}
+		samtools faidx --fai-idx {output.asm}.fai {output.asm} 2>> {log}
 		"""
 
 rule align_bwa:
