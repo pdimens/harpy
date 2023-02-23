@@ -38,7 +38,7 @@ rule index_genome:
 	shell: 
 		"""
 		ln -sr {input} {output.asm}
-		bwa index{output.asm}
+		bwa index {output.asm}
 		samtools faidx --fai-idx {output.asm}.fai {output.asm}
 		"""
 
