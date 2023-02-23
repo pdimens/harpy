@@ -30,13 +30,16 @@ rule create_reports:
 
 rule index_genome:
 	input: genomefile
-	output: multiext(genomefile, ".ann", ".bwt", ".fai", ".pac", ".sa", ".amb")
+	output:
+		asm = f"Assembly/{genomefile}",
+		idx = multiext(f"Assembly/{genomefile}", ".ann", ".bwt", ".fai", ".pac", ".sa", ".amb")
 	message: "Indexing {input}"
 	benchmark: "Benchmark/Mapping/genoindex.txt"
 	shell: 
 		"""
-		bwa index {input}
-		samtools faidx {input}
+		ln -sr {input} {output.asm}
+		bwa index{output.asm}
+		samtools faidx --fai-idx {output.asm}.fai {output.asm}
 		"""
 
 rule count_beadtags:
@@ -102,8 +105,8 @@ rule preprocess_ema:
 rule align_ema:
 	input:
 		readbin = "ReadMapping/ema/preproc/{sample}/ema-bin-{bin}",
-		genome = genomefile,
-		genome_idx = multiext(genomefile, ".ann", ".bwt", ".fai", ".pac", ".sa", ".amb")
+		genome = f"Assembly/{genomefile}",
+		genome_idx = multiext(f"Assembly/{genomefile}", ".ann", ".bwt", ".fai", ".pac", ".sa", ".amb")
 	output: pipe("ReadMapping/ema/{sample}/{sample}.{bin}.sam")
 	wildcard_constraints:
 		sample = "[a-zA-Z0-9_-]*"
@@ -120,8 +123,8 @@ rule align_ema:
 rule align_nobarcode:
 	input:
 		reads = "ReadMapping/ema/preproc/{sample}/ema-nobc",
-		genome = genomefile,
-		genome_idx = multiext(genomefile, ".ann", ".bwt", ".fai", ".pac", ".sa", ".amb")
+		genome = f"Assembly/{genomefile}",
+		genome_idx = multiext(f"Assembly/{genomefile}", ".ann", ".bwt", ".fai", ".pac", ".sa", ".amb")
 	output: 
 		samfile = pipe("ReadMapping/ema/{sample}/{sample}.nobarcode.sam")
 	benchmark: "Benchmark/Mapping/ema/bwaAlign.{sample}.txt"
@@ -135,7 +138,9 @@ rule align_nobarcode:
 		"""
 
 rule sort_ema:
-	input: "ReadMapping/ema/{sample}/{sample}.{emabin}.sam"
+	input: 
+		sam = "ReadMapping/ema/{sample}/{sample}.{emabin}.sam",
+		genome = "Assembly/{genomefile}"
 	output: temp("ReadMapping/ema/{sample}/{sample}.{emabin}.bam")
 	wildcard_constraints:
 		sample = "[a-zA-Z0-9_-]*",
@@ -145,13 +150,13 @@ rule sort_ema:
 	threads: 1
 	shell: 
 		"""
-		samtools sort -@ {threads} -O bam -l 0 -m 4G -o {output} {input}
+		samtools sort -@ {threads} --reference {input.genome} -O bam -l 0 -m 4G -o {output} {input.sam}
 		"""
 
 rule sort_nobarcode:
 	input: 
 		sam = "ReadMapping/ema/{sample}/{sample}.nobarcode.sam",
-		genome = genomefile
+		genome = f"Assembly/{genomefile}"
 	output: temp("ReadMapping/ema/{sample}/{sample}.nobarcode.bam.tmp")
 	wildcard_constraints:
 		sample = "[a-zA-Z0-9_-]*"
@@ -286,8 +291,8 @@ rule sort_merge:
 		"""
 
 rule genome_coords:
-	input: genomefile + ".fai"
-	output: genomefile + ".bed"
+	input: f"Assembly/{genomefile}.fai"
+	output: f"Assembly/{genomefile}.bed"
 	message: "Creating BED file of genomic coordinates"
 	threads: 1
 	shell:
@@ -301,11 +306,11 @@ rule bamtobed:
 	message: "Creating bedfile of all alignments: {wildcards.sample}"
 	benchmark: "Benchmark/Mapping/ema/fullbed.{sample}.txt"
 	shell:
-		"bedtools bamtobed {input}"
+		"bedtools bamtobed {input} > {output}"
 
 rule genome_BX_coverage:
 	input:
-		geno = genomefile + ".bed",
+		geno = f"Assembly/{genomefile}.bed",
 		bx = "ReadMapping/bedfiles/{sample}.bx.bed",
 		alntot = "ReadMapping/bedfiles/{sample}.total.bed"
 	output: 

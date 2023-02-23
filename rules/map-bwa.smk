@@ -29,21 +29,24 @@ rule create_reports:
 
 rule index_genome:
 	input: genomefile
-	output: multiext(genomefile, ".ann", ".bwt", ".fai", ".pac", ".sa", ".amb")
+	output: 
+		asm = f"Assembly/{genomefile}",
+		idx = multiext(f"Assembly/{genomefile}", ".ann", ".bwt", ".fai", ".pac", ".sa", ".amb")
 	message: "Indexing {input} prior to read mapping"
 	benchmark: "Benchmark/Mapping/bwa/genoindex.txt"
 	shell: 
 		"""
-		bwa index {input}
-		samtools faidx {input}
+		ln -sr {input} {output.asm}
+		bwa index{output.asm}
+		samtools faidx --fai-idx {output.asm}.fai {output.asm}
 		"""
 
 rule align_bwa:
 	input:
 		forward_reads = seq_dir + "/{sample}" + f".{Rsep[0]}.{fqext}",
 		reverse_reads = seq_dir + "/{sample}" + f".{Rsep[1]}.{fqext}",
-		genome = genomefile,
-		genome_idx = multiext(genomefile, ".ann", ".bwt", ".fai", ".pac", ".sa", ".amb")
+		genome = f"Assembly/{genomefile}",
+		genome_idx = multiext(f"Assembly/{genomefile}", ".ann", ".bwt", ".fai", ".pac", ".sa", ".amb")
 	output:  pipe("ReadMapping/bwa/{sample}.sam")
 	log: "ReadMapping/bwa/logs/{sample}.log"
 	message: "Mapping onto {input.genome}: {wildcards.sample}"
@@ -59,7 +62,9 @@ rule align_bwa:
 		"""
 
 rule sort_alignments:
-	input: "ReadMapping/bwa/{sample}.sam"
+	input: 
+		sam = "ReadMapping/bwa/{sample}.sam",
+		asm = f"Assembly/{genomefile}"
 	output: temp("ReadMapping/bwa/{sample}.sort.bam")
 	wildcard_constraints:
 		sample = "[a-zA-Z0-9_-]*"
@@ -68,7 +73,7 @@ rule sort_alignments:
 	threads: 1
 	shell:
 		"""
-		samtools sort --threads {threads} -O bam -l 0 -m 4G -o {output} {input}
+		samtools sort --threads {threads} --reference {input.asm} -O bam -l 0 -m 4G -o {output} {input.sam}
 		"""
 
 rule mark_duplicates:
@@ -102,8 +107,8 @@ rule mark_duplicates:
 #	fi
 
 rule genome_coords:
-	input: genomefile + ".fai"
-	output: genomefile + ".bed"
+	input: f"Assembly/{genomefile}.fai"
+	output: f"Assembly/{genomefile}.bed"
 	message: "Creating BED file of genomic coordinates"
 	threads: 1
 	shell:
@@ -120,8 +125,8 @@ rule BEDconvert:
 
 rule genome_coverage:
 	input:
-		geno = genomefile + ".bed",
-		bed = "ReadMapping/bwa/bedfiles/{sample}.bed"
+		geno = f"Assembly/{genomefile}.bed",
+		bed = temp("ReadMapping/bwa/bedfiles/{sample}.bed")
 	output: 
 		"ReadMapping/bwa/coverage/{sample}.gencov"
 	message: 
@@ -131,19 +136,19 @@ rule genome_coverage:
 		bedtools genomecov -i {input.bed} -g {input.geno} > {output}
 		"""
 
-#rule alignment_stats:
-#	input:
-#		bam = "ReadMapping/bwa/{sample}.bam",
-#		bai = "ReadMapping/bwa/{sample}.bam.bai"
-#	output: 
-#		stats = "ReadMapping/bwa/stats/{sample}.stats",
-#		flagstat = "ReadMapping/bwa/flagstat/{sample}.flagstat"
-#	wildcard_constraints:
-#		sample = "[a-zA-Z0-9_-]*"
-#	message: "Calculating alignment stats: {wildcards.sample}"
-#	benchmark: "Benchmark/Mapping/bwa/stats.{sample}.txt"
-#	threads: 1
-#		"""
-#		samtools stats {input.bam} > {output.stats}
-#		samtools flagstat {input.bam} > {output.flagstat}
-#		"""
+rule alignment_stats:
+	input:
+		bam = "ReadMapping/bwa/{sample}.bam",
+		bai = "ReadMapping/bwa/{sample}.bam.bai"
+	output: 
+		stats = "ReadMapping/bwa/stats/{sample}.stats",
+		flagstat = "ReadMapping/bwa/flagstat/{sample}.flagstat"
+	wildcard_constraints:
+		sample = "[a-zA-Z0-9_-]*"
+	message: "Calculating alignment stats: {wildcards.sample}"
+	benchmark: "Benchmark/Mapping/bwa/stats.{sample}.txt"
+	threads: 1
+		"""
+		samtools stats {input.bam} > {output.stats}
+		samtools flagstat {input.bam} > {output.flagstat}
+		"""

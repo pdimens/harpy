@@ -229,11 +229,6 @@ def variants(genome, threads, directory, populations, ploidy, leviathan, extra_p
     Use `harpy init --popgroup` to create a sample grouping file (optional) from samples files  
     """
     samplenames = getnames_err(directory, '.bam')
-    if not os.path.exists(f"{genome}.fai"):
-        bn = os.path.basename(genome)
-        print(f"{bn}.fai not found, indexing {bn} with samtools faidx")
-        subprocess.run(["samtools","faidx", genome])
-
     vcaller = "mpileup" if not leviathan else "leviathan"
     command = (f'snakemake --cores {threads} --directory . --snakefile rules/variantcall-{vcaller}.smk').split()
     if snakemake is not None:

@@ -7,12 +7,19 @@ ploidy = config["ploidy"]
 samplenames = config["samplenames"]
 extra = config.get("extra", "") 
 
-def contignames(infile):
-    with open(infile) as f:
+def faidx_contignames(infile):
+    bn = os.path.basename(infile)
+    shell("mkdir -p Assembly")
+    if not os.path.exists(f"Assembly/{bn}"):
+        shell(f"ln -sr {infile} Assembly/{bn}")
+    if not os.path.exists(f"Assembly/{bn}.fai"):
+        print(f"Assembly/{bn}.fai not found, indexing {bn} with samtools faidx")
+        subprocess.run(["samtools","faidx", "--fai-idx", f"Assembly/{bn}.fai", infile])
+    with open("Assembly/{bn}.fai") as f:
         lines = [line.rstrip().split("\t")[0] for line in f]
     return lines
 
-contigs = contignames(genomefile + ".fai")
+contigs = faidx_contignames(genomefile)
 
 rule index_alignments:
     input: bam_dir + "/{sample}.bam"
@@ -25,7 +32,7 @@ rule index_alignments:
         """
 
 rule split_contigs:
-    input: f"{genomefile}.fai"
+    input: f"Assembly/{genomefile}.fai"
     output: temp(expand("Variants/mpileup/regions/{part}", part = contigs))
     message: "Separating {input} by contig for parallelization later"
     benchmark: "Benchmark/Variants/mpileup/splitcontigs.txt"
@@ -52,7 +59,7 @@ rule bam_list:
 rule mpileup:
     input:
         bamlist = "Variants/mpileup/samples.list",
-        genome = genomefile,
+        genome = f"Assembly/{genomefile}",
         region = "Variants/mpileup/regions/{part}"
     output: pipe("Variants/mpileup/{part}.mp.bcf")
     message: "Finding variants: {wildcards.part}"
@@ -84,7 +91,7 @@ rule index_bcf:
     input: 
         bcf = "Variants/mpileup/{part}.bcf",
         samplelist = "Variants/mpileup/samples.list",
-        genome = genomefile
+        genome = f"Assembly/{genomefile}"
     output: temp("Variants/mpileup/{part}.bcf.csi")
     log: "Variants/mpileup/stats/{part}.stats"
     message: "Indexing: {wildcards.part}"
@@ -100,7 +107,7 @@ rule combine_bcfs:
     input: 
         bcf = expand("Variants/mpileup/{part}.bcf", part = contigs),
         idx = expand("Variants/mpileup/{part}.bcf.csi", part = contigs),
-        genome = genomefile
+        genome = f"Assembly/{genomefile}"
     output: 
         bcf = "Variants/mpileup/variants.raw.bcf",
         idx = "Variants/mpileup/variants.raw.bcf.csi",

@@ -3,6 +3,11 @@ genomefile = config["genomefile"]
 samplenames = config["samplenames"] 
 extra = config.get("extra", "") 
 
+bn = os.path.basename(genomefile)
+shell("mkdir -p Assembly")
+if not os.path.exists(f"Assembly/{bn}"):
+    shell(f"ln -sr {infile} Assembly/{bn}")
+
 rule keep_validBX:
     input: bam_dir + "/{sample}.bam"
     output: "Variants/leviathan/validBX/{sample}.bx.valid.bam"
@@ -41,7 +46,7 @@ rule leviathan_variantcall:
         bam = "Variants/leviathan/validBX/{sample}.bx.valid.bam",
         bai = "Variants/leviathan/validBX/{sample}.bx.valid.bam.bai",
         bc_idx = "Variants/leviathan/lrezIndexed/{sample}.bci",
-        genome = genomefile
+        genome = f"Assembly/{genomefile}"
     output: vcf = pipe("Variants/leviathan/{sample}.vcf")
     log:  
         runlog = "Variants/leviathan/logs/{sample}.leviathan.log",
