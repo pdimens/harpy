@@ -226,10 +226,12 @@ def variants(genome, threads, directory, populations, ploidy, leviathan, extra_p
     """
     Call variants from sample alignments
 
-    Use `harpy init --popgroup` to create a sample grouping file (optional) from samples files  
+    Use `harpy extra --popgroup` to create a sample grouping file (optional) from samples files  
     """
     samplenames = getnames_err(directory, '.bam')
     vcaller = "mpileup" if not leviathan else "leviathan"
+    if vcaller == "leviathan" and populations is not None:
+        vcaller = "leviathan-pop"
     command = (f'snakemake --cores {threads} --directory . --snakefile rules/variantcall-{vcaller}.smk').split()
     if snakemake is not None:
         [command.append(i) for i in snakemake.split()]
@@ -257,7 +259,7 @@ def impute(parameters, directory, threads, vcf, snakemake):
     """
     Impute genotypes using variants and sequences
     
-    Requires a parameter file, use **harpy init --stitch-params** to generate one and adjust it for your study.
+    Requires a parameter file, use **harpy extra --stitch-params** to generate one and adjust it for your study.
     """
     vcfcheck(vcf)
     samplenames = getnames(directory, '.bam')
