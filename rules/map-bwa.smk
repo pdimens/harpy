@@ -10,6 +10,11 @@ samplenames = config["samplenames"]
 extra = config.get("extra", "") 
 #txt = " using BX barcodes" if BXmarkdup else ""
 
+bn = os.path.basename(genomefile)
+shell("mkdir -p Assembly")
+if not os.path.exists(f"Assembly/{bn}"):
+    shell(f"ln -sr {infile} Assembly/{bn}")
+
 rule create_reports:
 	input: 
 		expand("ReadMapping/bwa/{sample}.bam", sample = samplenames),
@@ -148,6 +153,7 @@ rule alignment_stats:
 	message: "Calculating alignment stats: {wildcards.sample}"
 	benchmark: "Benchmark/Mapping/bwa/stats.{sample}.txt"
 	threads: 1
+	shell:
 		"""
 		samtools stats {input.bam} > {output.stats}
 		samtools flagstat {input.bam} > {output.flagstat}
