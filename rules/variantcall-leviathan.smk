@@ -6,7 +6,7 @@ extra = config.get("extra", "")
 bn = os.path.basename(genomefile)
 shell("mkdir -p Assembly")
 if not os.path.exists(f"Assembly/{bn}"):
-    shell(f"ln -sr {infile} Assembly/{bn}")
+    shell(f"ln -sr {genomefile} Assembly/{bn}")
 
 rule keep_validBX:
     input: bam_dir + "/{sample}.bam"
