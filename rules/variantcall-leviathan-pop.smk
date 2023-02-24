@@ -73,7 +73,7 @@ rule keep_validBX:
 		bam = "Variants/leviathan-pop/input/{population}.bam",
 		bai = "Variants/leviathan-pop/input/{population}.bam.bai"
 	output: "Variants/leviathan-pop/input/{population}.bx.valid.bam"
-	message: "Keeping only alignments with valid BX barcodes: {wildcards.population}"
+	message: "Keeping only alignments with valid BX barcodes: Population {wildcards.population}"
 	wildcard_constraints:
 		population = "[a-zA-Z0-9_-]*"
 	shell:
