@@ -174,7 +174,7 @@ rule sv_stats:
 	threads: 1
 	shell:
 		"""
-		echo "contig\\tposition_start\\tposition_end\\tlength\\ttype\\tn_barcodes\\tn_pairs" > {output}
+		echo -e "contig\\tposition_start\\tposition_end\\tlength\\ttype\\tn_barcodes\\tn_pairs" > {output}
 		bcftools query -f '%CHROM\\t%POS\\t%END\\t%SVLEN\\t%SVTYPE\\t%BARCODES\\t%PAIRS\\n' {input.bcf} >> {output}
 		"""
 
