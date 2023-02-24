@@ -69,7 +69,7 @@ graph LR
 to call structural variants (indels, inversions, etc.). Harpy first uses [LRez](https://github.com/morispi/LRez) to index the barcodes 
 in the alignments, then it calls variants for individual samples using Leviathan. It's unclear what Leviathan does with invalid barcodes 
 and until that gets clarified, Harpy will preprocess alignments to keep only alignments with a complete barcode (no `00` beadtags, 
-[read more below](#barcode-validation]).
+[read more below](#barcode-validation)).
 
 #### Individual-level variant calling
 Leviathan is intended to call structural variants on individual samples. Without using a population grouping file (`--populations`),
