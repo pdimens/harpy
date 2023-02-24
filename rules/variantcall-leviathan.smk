@@ -6,13 +6,13 @@ samplenames = config["samplenames"]
 extra = config.get("extra", "") 
 
 bn = os.path.basename(genomefile)
-shell("mkdir -p Assembly")
+os.makedirs("Assembly", exist_ok = True)
 if not os.path.exists(f"Assembly/{bn}"):
     shell(f"ln -sr {genomefile} Assembly/{bn}")
 
 rule keep_validBX:
     input: bam_dir + "/{sample}.bam"
-    output: "Variants/leviathan/validBX/{sample}.bx.valid.bam"
+    output: "Variants/leviathan/input/{sample}.bx.valid.bam"
     message: "Keeping only alignments with valid BX barcodes: {wildcards.sample}"
     shell:
         """
@@ -20,8 +20,8 @@ rule keep_validBX:
         """
 
 rule index_alignment:
-    input: "Variants/leviathan/validBX/{sample}.bx.valid.bam"
-    output: "Variants/leviathan/validBX/{sample}.bx.valid.bam.bai"
+    input: "Variants/leviathan/input/{sample}.bx.valid.bam"
+    output: "Variants/leviathan/input/{sample}.bx.valid.bam.bai"
     message: "Indexing barcodes: {wildcards.sample}"
     benchmark: "Benchmark/Variants/leviathan/indexbam.{sample}.txt"
     threads: 1
@@ -32,8 +32,8 @@ rule index_alignment:
 
 rule index_barcode:
     input: 
-        bam = "Variants/leviathan/validBX/{sample}.bx.valid.bam",
-        bai = "Variants/leviathan/validBX/{sample}.bx.valid.bam.bai"
+        bam = "Variants/leviathan/input/{sample}.bx.valid.bam",
+        bai = "Variants/leviathan/input/{sample}.bx.valid.bam.bai"
     output: temp("Variants/leviathan/lrezIndexed/{sample}.bci")
     message: "Indexing barcodes: {wildcards.sample}"
     benchmark: "Benchmark/Variants/leviathan/indexbc.{sample}.txt"
@@ -59,8 +59,8 @@ rule index_genome:
 
 rule leviathan_variantcall:
     input:
-        bam = "Variants/leviathan/validBX/{sample}.bx.valid.bam",
-        bai = "Variants/leviathan/validBX/{sample}.bx.valid.bam.bai",
+        bam = "Variants/leviathan/input/{sample}.bx.valid.bam",
+        bai = "Variants/leviathan/input/{sample}.bx.valid.bam.bai",
         bc_idx = "Variants/leviathan/lrezIndexed/{sample}.bci",
         genome = f"Assembly/{genomefile}"
     output: vcf = pipe("Variants/leviathan/{sample}.vcf")

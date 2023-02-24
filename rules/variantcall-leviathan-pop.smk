@@ -8,7 +8,7 @@ extra = config.get("extra", "")
 groupfile = config["groupings"]
 
 bn = os.path.basename(genomefile)
-shell("mkdir -p Assembly")
+os.makedirs("Assembly", exist_ok = True)
 if not os.path.exists(f"Assembly/{bn}"):
 	shell(f"ln -sr {genomefile} Assembly/{bn}")
 
@@ -34,24 +34,23 @@ def pop_manifest(infile, dirn, sampnames):
 	return d
 
 popdict = pop_manifest(groupfile, bam_dir, samplenames)
-#sys.tracebacklimit = 1
 populations = popdict.keys()
 
 rule bamlist:
-	output: expand("Variants/leviathan/input/{pop}.list", pop = populations)
+	output: expand("Variants/leviathan-pop/input/{pop}.list", pop = populations)
 	message: "Creating file lists for each population."
 	run:
 		for p in populations:
-			with open(f"Variants/leviathan/input/{p}.list", "w") as fout:
+			with open(f"Variants/leviathan-pop/input/{p}.list", "w") as fout:
 				bamlist = popdict[p]
 				for bamfile in bamlist:
 					_ = fout.write(bamfile + "\n")
 
-rule merge_alignments:
+rule merge_populations:
 	input: 
-		bamlist = "Variants/leviathan/input/{population}.list",
+		bamlist = "Variants/leviathan-pop/input/{population}.list",
 		bamfiles = lambda wc: expand("{sample}", sample = popdict[wc.population]) 
-	output: temp("Variants/leviathan/input/{population}.bam")
+	output: temp("Variants/leviathan-pop/input/{population}.bam")
 	message: "Merging alignments: Population {wildcards.population}"
 	shell:
 		"""
@@ -59,8 +58,8 @@ rule merge_alignments:
 		"""
 
 rule index_merged:
-	input: "Variants/leviathan/input/{population}.bam"
-	output: temp("Variants/leviathan/input/{population}.bam.bai")
+	input: "Variants/leviathan-pop/input/{population}.bam"
+	output: temp("Variants/leviathan-pop/input/{population}.bam.bai")
 	message: "Indexing alignments: Population {wildcards.population}"
 	wildcard_constraints:
 		population = "[a-zA-Z0-9_-]*"
@@ -70,8 +69,8 @@ rule index_merged:
 		"""
 
 rule keep_validBX:
-	input: "Variants/leviathan/input/{population}.bam"
-	output: "Variants/leviathan/input/{population}.bx.valid.bam"
+	input: "Variants/leviathan-pop/input/{population}.bam"
+	output: "Variants/leviathan-pop/input/{population}.bx.valid.bam"
 	message: "Keeping only alignments with valid BX barcodes: {wildcards.population}"
 	wildcard_constraints:
 		population = "[a-zA-Z0-9_-]*"
@@ -81,10 +80,10 @@ rule keep_validBX:
 		"""
 
 rule index_valid:
-	input: "Variants/leviathan/input/{population}.bx.valid.bam"
-	output: "Variants/leviathan/input/{population}.bx.valid.bam.bai"
+	input: "Variants/leviathan-pop/input/{population}.bx.valid.bam"
+	output: "Variants/leviathan-pop/input/{population}.bx.valid.bam.bai"
 	message: "Indexing barcodes: Population {wildcards.population}"
-	benchmark: "Benchmark/Variants/leviathan/indexbam.{population}.txt"
+	benchmark: "Benchmark/Variants/leviathan-pop/indexbam.{population}.txt"
 	wildcard_constraints:
 		population = "[a-zA-Z0-9_-]*"
 	threads: 1
@@ -95,11 +94,11 @@ rule index_valid:
 
 rule index_barcode:
 	input: 
-		bam = "Variants/leviathan/input/{population}.bx.valid.bam",
-		bai = "Variants/leviathan/input/{population}.bx.valid.bam.bai"
-	output: temp("Variants/leviathan/lrezIndexed/{population}.bci")
+		bam = "Variants/leviathan-pop/input/{population}.bx.valid.bam",
+		bai = "Variants/leviathan-pop/input/{population}.bx.valid.bam.bai"
+	output: temp("Variants/leviathan-pop/lrezIndexed/{population}.bci")
 	message: "Indexing barcodes: Population {wildcards.population}"
-	benchmark: "Benchmark/Variants/leviathan/indexbc.{population}.txt"
+	benchmark: "Benchmark/Variants/leviathan-pop/indexbc.{population}.txt"
 	threads: 4
 	shell:
 		"""
@@ -122,16 +121,16 @@ rule index_genome:
 
 rule leviathan_variantcall:
 	input:
-		bam = "Variants/leviathan/input/{population}.bx.valid.bam",
-		bai = "Variants/leviathan/input/{population}.bx.valid.bam.bai",
-		bc_idx = "Variants/leviathan/lrezIndexed/{population}.bci",
+		bam = "Variants/leviathan-pop/input/{population}.bx.valid.bam",
+		bai = "Variants/leviathan-pop/input/{population}.bx.valid.bam.bai",
+		bc_idx = "Variants/leviathan-pop/lrezIndexed/{population}.bci",
 		genome = f"Assembly/{genomefile}"
-	output: vcf = pipe("Variants/leviathan/{population}.vcf")
+	output: vcf = pipe("Variants/leviathan-pop/{population}.vcf")
 	log:  
-		runlog = "Variants/leviathan/logs/{population}.leviathan.log",
-		candidates = "Variants/leviathan/logs/{population}.candidates"
+		runlog = "Variants/leviathan-pop/logs/{population}.leviathan.log",
+		candidates = "Variants/leviathan-pop/logs/{population}.candidates"
 	message: "Calling variants: Population {wildcards.population}"
-	benchmark: "Benchmark/Variants/leviathan/variantcall.{population}.txt"
+	benchmark: "Benchmark/Variants/leviathan-pop/variantcall.{population}.txt"
 	params:
 		extra = extra
 	threads: 3
@@ -141,22 +140,22 @@ rule leviathan_variantcall:
 		"""
 
 rule sort_bcf:
-	input: "Variants/leviathan/{population}.vcf"
-	output: "Variants/leviathan/{population}.bcf"
+	input: "Variants/leviathan-pop/{population}.vcf"
+	output: "Variants/leviathan-pop/{population}.bcf"
 	message: "Sorting and converting to BCF: Population {wildcards.population}"
 	threads: 1
 	params: "{wildcards.population}"
-	benchmark: "Benchmark/Variants/leviathan/sortbcf.{population}.txt"
+	benchmark: "Benchmark/Variants/leviathan-pop/sortbcf.{population}.txt"
 	shell:        
 		"""
 		bcftools sort -Ob --output {output} {input} 2> /dev/null
 		"""
 
 rule index_bcf:
-	input: "Variants/leviathan/{population}.bcf"
-	output: "Variants/leviathan/{population}.bcf.csi"
+	input: "Variants/leviathan-pop/{population}.bcf"
+	output: "Variants/leviathan-pop/{population}.bcf.csi"
 	message: "Indexing: Population {input}"
-	benchmark: "Benchmark/Variants/leviathan/indexbcf.{population}.txt"
+	benchmark: "Benchmark/Variants/leviathan-pop/indexbcf.{population}.txt"
 	threads: 1
 	shell:
 		"""
@@ -165,11 +164,11 @@ rule index_bcf:
 
 rule sv_stats:
 	input: 
-		bcf = "Variants/leviathan/{population}.bcf",
-		idx = "Variants/leviathan/{population}.bcf.csi"
-	output: "Variants/leviathan/stats/{population}.sv.stats"
+		bcf = "Variants/leviathan-pop/{population}.bcf",
+		idx = "Variants/leviathan-pop/{population}.bcf.csi"
+	output: "Variants/leviathan-pop/stats/{population}.sv.stats"
 	message: "Getting stats: Population {input.bcf}"
-	benchmark: "Benchmark/Variants/leviathan/stats.{population}.txt"
+	benchmark: "Benchmark/Variants/leviathan-pop/stats.{population}.txt"
 	threads: 1
 	shell:
 		"""
@@ -178,7 +177,7 @@ rule sv_stats:
 
 rule all_bcfs:
 	input: 
-		bcf = expand("Variants/leviathan/{pop}.bcf", pop = populations),
-		stats = expand("Variants/leviathan/stats/{pop}.sv.stats", pop = populations)
+		bcf = expand("Variants/leviathan-pop/{pop}.bcf", pop = populations),
+		stats = expand("Variants/leviathan-pop/stats/{pop}.sv.stats", pop = populations)
 	message: "Variant calling is complete!"
 	default_target: True

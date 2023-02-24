@@ -20,13 +20,13 @@ if groupings is not None:
 
 def faidx_contignames(infile):
 	bn = os.path.basename(infile)
-	shell("mkdir -p Assembly")
+	os.makedirs("Assembly", exist_ok = True)
 	if not os.path.exists(f"Assembly/{bn}"):
 		shell(f"ln -sr {infile} Assembly/{bn}")
 	if not os.path.exists(f"Assembly/{bn}.fai"):
 		print(f"Assembly/{bn}.fai not found, indexing {bn} with samtools faidx")
 		subprocess.run(["samtools","faidx", "--fai-idx", f"Assembly/{bn}.fai", infile, "2>", "/dev/null"])
-	with open("Assembly/{bn}.fai") as f:
+	with open(f"Assembly/{bn}.fai") as f:
 		lines = [line.rstrip().split("\t")[0] for line in f]
 	return lines
 
