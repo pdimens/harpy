@@ -174,8 +174,8 @@ rule sv_stats:
 	threads: 1
 	shell:
 		"""
-		echo -e "contig\\tposition_start\\tposition_end\\tlength\\ttype\\tn_barcodes\\tn_pairs" > {output}
-		bcftools query -f '%CHROM\\t%POS\\t%END\\t%SVLEN\\t%SVTYPE\\t%BARCODES\\t%PAIRS\\n' {input.bcf} >> {output}
+		echo -e "population\\tcontig\\tposition_start\\tposition_end\\tlength\\ttype\\tn_barcodes\\tn_pairs" > {output}
+		bcftools query -f '{wildcards.population}\\t%CHROM\\t%POS\\t%END\\t%SVLEN\\t%SVTYPE\\t%BARCODES\\t%PAIRS\\n' {input.bcf} >> {output}
 		"""
 
 rule all_bcfs:
