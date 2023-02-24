@@ -135,7 +135,7 @@ rule leviathan_variantcall:
 	benchmark: "Benchmark/Variants/leviathan-pop/variantcall.{population}.txt"
 	params:
 		extra = extra
-	threads: 3
+	threads: 8
 	shell:
 		"""
 		LEVIATHAN -b {input.bam} -i {input.bc_idx} {params} -g {input.genome} -o {output} -t {threads} --candidates {log.candidates} 2> {log.runlog}
