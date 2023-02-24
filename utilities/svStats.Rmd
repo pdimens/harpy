@@ -1,0 +1,45 @@
+
+
+```{r message=FALSE, warning=FALSE}
+library(dplyr)
+library(ggplot2)
+library(magrittr)
+```
+
+```{r echo = FALSE}
+fa.sizes <- read.table("~/genome.fasta.fai", header = F)[,1:2]
+colnames(fa.sizes) <- c("contig", "size")
+```
+
+```{r echo = FALSE}
+sv <- read.table("~/1.sv.stats", header = T)
+sv <- merge(x=sv,y=fa.sizes, by="contig")
+```
+
+
+
+```{r echo = FALSE, fig.height = 1.5}
+for(i in unique(fa.sizes$contig)){
+  sv.filt <- sv %>% filter(contig == i)
+  sv_stats <- group_by(sv.filt, type) %>%  summarise(n = length(type))
+  if(nrow(sv_stats) > 0){
+    .subtitle <- paste(paste(sv_stats$type, sv_stats$n), collapse = " | ")
+  } else {
+    next
+  }
+  plt <- sv.filt %>% 
+    ggplot() +
+    geom_rect(alpha = 0.5, color = "black", aes(xmin = position_start, xmax = position_end, ymin = 0, ymax = 1, fill = type)) +  
+    theme(
+      axis.text.y=element_blank(),
+      axis.line.y = element_blank(),
+      axis.ticks.y = element_blank(),
+      panel.grid.major = element_blank(),
+      panel.grid.minor = element_blank()
+    ) +
+    xlim(1, sv$size[1]) +
+    xlab("Position (bp)") +
+    ggtitle(i, subtitle = .subtitle)
+  print(plt)
+  }
+```
