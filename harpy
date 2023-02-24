@@ -80,7 +80,7 @@ def cli():
 @click.command()
 @click.option('-p', '--popgroup', required = False, type=click.Path(exists=True), metavar = "Input folder Path", help = 'Create generic sample-group file using existing sample file names (fq.gz or bam)')
 @click.option('-s', '--stitch-params', type=str, metavar = "Output file name", help = 'Create template STITCH parameter file')
-@click.option('-h', '--hpc', default = "slurm", type = click.Choice(["slurm", "sge"], case_sensitive = False), help = 'Create HPC scheduling profile')
+@click.option('-h', '--hpc', type = click.Choice(["slurm", "sge"], case_sensitive = False), help = 'Create HPC scheduling profile')
 def extra(popgroup, stitch_params, hpc):
     """
     Create various associated/necessary files
