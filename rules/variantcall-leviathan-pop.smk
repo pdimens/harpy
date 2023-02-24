@@ -60,7 +60,7 @@ rule merge_populations:
 rule index_merged:
 	input: "Variants/leviathan-pop/input/{population}.bam"
 	output: temp("Variants/leviathan-pop/input/{population}.bam.bai")
-	message: "Indexing alignments: Population {wildcards.population}"
+	message: "Indexing merged alignments: Population {wildcards.population}"
 	wildcard_constraints:
 		population = "[a-zA-Z0-9_-]*"
 	shell:
@@ -84,7 +84,7 @@ rule keep_validBX:
 rule index_valid:
 	input: "Variants/leviathan-pop/input/{population}.bx.valid.bam"
 	output: "Variants/leviathan-pop/input/{population}.bx.valid.bam.bai"
-	message: "Indexing barcodes: Population {wildcards.population}"
+	message: "Indexing valid alignments: Population {wildcards.population}"
 	benchmark: "Benchmark/Variants/leviathan-pop/indexbam.{population}.txt"
 	wildcard_constraints:
 		population = "[a-zA-Z0-9_-]*"
