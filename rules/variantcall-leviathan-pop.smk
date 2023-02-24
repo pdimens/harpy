@@ -69,14 +69,16 @@ rule index_merged:
 		"""
 
 rule keep_validBX:
-	input: "Variants/leviathan-pop/input/{population}.bam"
+	input: 
+		bam = "Variants/leviathan-pop/input/{population}.bam",
+		bai = "Variants/leviathan-pop/input/{population}.bam.bai"
 	output: "Variants/leviathan-pop/input/{population}.bx.valid.bam"
 	message: "Keeping only alignments with valid BX barcodes: {wildcards.population}"
 	wildcard_constraints:
 		population = "[a-zA-Z0-9_-]*"
 	shell:
 		"""
-		utilities/filterBXBAM.py --valid --input {input}
+		utilities/filterBXBAM.py --valid --input {input.bam}
 		"""
 
 rule index_valid:
