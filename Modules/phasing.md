@@ -45,19 +45,19 @@ across all of your samples to speed things along.
 
 ```mermaid
 graph LR
-    A((split samples)) --> B((extractHAIRS))
-    B-->C((LinkFragments))
-    Z((sample alignments)) --> B
+    A([split samples]) --> B([extractHAIRS])
+    B-->C([LinkFragments])
+    Z([sample alignments]) --> B
     Z-->C
-    C-->D((phase blocks))
+    C-->D([phase blocks])
     B-->D
     A-->D
-    D-->E((annotate BCFs))
-    E-->F((index annotations))
-    F-->G((merge annotations))
+    D-->E([annotate BCFs])
+    E-->F([index annotations])
+    F-->G([merge annotations])
     E-->G
     A-->G
     D-->G
-    G-->H((index merged annotations))
-    H-->I((merge phased samples))
+    G-->H([index merged annotations])
+    H-->I([merge phased samples])
 ```

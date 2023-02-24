@@ -48,23 +48,23 @@ Since [EMA](https://github.com/arshajii/ema) does extra things to account for ba
 
 ```mermaid
 graph LR
-    A((count beadtags)) --> B((EMA preprocess))
-    B-->C((EMA align barcoded))
-    C-->D((sort alignments))
-    D-->E((merge alignments))
+    A([count beadtags]) --> B([EMA preprocess])
+    B-->C([EMA align barcoded])
+    C-->D([sort alignments])
+    D-->E([merge alignments])
     E-->G
-    E-->F((merge alignments))
-    IDX((index genome))-->C
-    IDX-->Z((BWA align unbarcoded))
-    Z-->Y((sort alignments))
-    Y-->X((mark duplicates))
+    E-->F([merge alignments])
+    IDX([index genome])-->C
+    IDX-->Z([BWA align unbarcoded])
+    Z-->Y([sort alignments])
+    Y-->X([mark duplicates])
     X-->F
-    F-->K((sort alignments))
-    K-->J((alignment reports))
-    K-->G((convert to BED))
-    G-->H((calculate reads per BX))
-    G-->L((calculate BX size))
-    G-->I((calculate genomic coverage))
+    F-->K([sort alignments])
+    K-->J([alignment reports])
+    K-->G([convert to BED])
+    G-->H([calculate reads per BX])
+    G-->L([calculate BX size])
+    G-->I([calculate genomic coverage])
 ```
 
 ### BWA
@@ -79,12 +79,12 @@ The [BWA MEM](https://github.com/lh3/bwa) workflow is substantially simpler than
 
 ```mermaid
 graph LR
-    A((index genome)) --> B((align to genome))
-    B-->C((sort alignments))
-    C-->D((mark duplicates))
-    D-->E((alignment reports))
-    D-->F((convert to BED))
-    F-->G((calculate genomic coverage))
+    A([index genome]) --> B([align to genome])
+    B-->C([sort alignments])
+    C-->D([mark duplicates])
+    D-->E([alignment reports])
+    D-->F([convert to BED])
+    F-->G([calculate genomic coverage])
 ```
 
 ## Why EMA?

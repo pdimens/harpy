@@ -39,5 +39,5 @@ approach (`--cut-right`) to identify low quality bases. The workflow is quite si
 
 ```mermaid
 graph LR
-    A((trim reads)) --> B((create reports))
+    A([trim reads]) --> B([create reports])
 ```

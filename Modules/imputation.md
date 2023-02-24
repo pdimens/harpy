@@ -11,7 +11,7 @@ harpy impute OPTIONS...
 ```
 |||  :icon-checklist: You will need
 - a tab-delimited parameter file 
-    - create with `harpy impute --init`
+    - create with `harpy extra --stitch-params`
     - modify the file with parameters suitable for your study
 - a variant call format file (_e.g._ from `mpileup` with `harpy variants ...`)
     - accepted formats: `.vcf`, `.vcf.gz`, `.bcf`
@@ -123,10 +123,10 @@ iterate over these model parameters.
 
 ```mermaid
 graph LR
-    A((count contigs)) --> B((split contigs))
-    B-->C((keep biallelic SNPs))
-    C-->D((convert to STITCH format))
-    D-->E((STITCH imputation))
-    E-->F((merge output))
-    G((create file list))-->E
+    A([count contigs]) --> B([split contigs])
+    B-->C([keep biallelic SNPs])
+    C-->D([convert to STITCH format])
+    D-->E([STITCH imputation])
+    E-->F([merge output])
+    G([create file list])-->E
 ```
