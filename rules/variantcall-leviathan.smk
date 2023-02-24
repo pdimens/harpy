@@ -1,3 +1,5 @@
+import os
+
 bam_dir = config["seq_directory"]
 genomefile = config["genomefile"]
 samplenames = config["samplenames"] 

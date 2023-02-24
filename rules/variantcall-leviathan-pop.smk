@@ -1,3 +1,6 @@
+import sys
+import os
+
 bam_dir = config["seq_directory"]
 genomefile = config["genomefile"]
 samplenames = config["samplenames"] 
@@ -26,12 +29,12 @@ def pop_manifest(infile, dirn, sampnames):
 			else:
 				d[pop].append(samp)
 	if absent:
-		print(f"ERROR: {len(absent)} samples in {infile} not found in {dirn} directory:")
-		print(", ".join(absent))
-		exit(1)
+		sys.tracebacklimit = 0
+		raise ValueError(f"{len(absent)} sample(s) in \033[1m{infile}\033[0m not found in \033[1m{dirn}\033[0m directory:\n\033[33m" + ", ".join(absent) + "\033[0m")
 	return d
 
 popdict = pop_manifest(groupfile, bam_dir, samplenames)
+#sys.tracebacklimit = 1
 populations = popdict.keys()
 
 rule bamlist:
