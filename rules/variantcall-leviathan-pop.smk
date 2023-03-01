@@ -68,36 +68,10 @@ rule index_merged:
 		sambamba index {input} {output}
 		"""
 
-rule keep_validBX:
+rule index_barcode:
 	input: 
 		bam = "Variants/leviathan-pop/input/{population}.bam",
 		bai = "Variants/leviathan-pop/input/{population}.bam.bai"
-	output: "Variants/leviathan-pop/input/{population}.bx.valid.bam"
-	message: "Keeping only alignments with valid BX barcodes: Population {wildcards.population}"
-	wildcard_constraints:
-		population = "[a-zA-Z0-9_-]*"
-	shell:
-		"""
-		utilities/filterBXBAM.py --valid --input {input.bam}
-		"""
-
-rule index_valid:
-	input: "Variants/leviathan-pop/input/{population}.bx.valid.bam"
-	output: "Variants/leviathan-pop/input/{population}.bx.valid.bam.bai"
-	message: "Indexing valid alignments: Population {wildcards.population}"
-	benchmark: "Benchmark/Variants/leviathan-pop/indexbam.{population}.txt"
-	wildcard_constraints:
-		population = "[a-zA-Z0-9_-]*"
-	threads: 1
-	shell:
-		"""
-		sambamba index {input} {output}
-		"""
-
-rule index_barcode:
-	input: 
-		bam = "Variants/leviathan-pop/input/{population}.bx.valid.bam",
-		bai = "Variants/leviathan-pop/input/{population}.bx.valid.bam.bai"
 	output: temp("Variants/leviathan-pop/lrezIndexed/{population}.bci")
 	message: "Indexing barcodes: Population {wildcards.population}"
 	benchmark: "Benchmark/Variants/leviathan-pop/indexbc.{population}.txt"

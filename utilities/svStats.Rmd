@@ -1,24 +1,76 @@
+---
+title: "Leviathan Structural Variant Summary"
+author:
+    - "Created using HARPY"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output:
+  html_document:
+    highlight: tango
+    number_sections: no
+    theme: default
+    df_print: kable
+    toc: yes
+    toc_depth: 2
+    toc_float:
+      collapsed: no
+      smooth_scroll: yes
+---
 
+Below is a series of tables and plots detailing the structural variants
+identified by `LEVIATHAN`, which are:
 
-```{r message=FALSE, warning=FALSE}
+- `INV`: Inversion
+- `DUP`: Duplication
+- `DEL`: Deletion
+- `BND`: Breakend
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
 library(dplyr)
 library(ggplot2)
 library(magrittr)
+library(raster)
+library(DT)
 ```
+
 
 ```{r echo = FALSE}
 fa.sizes <- read.table("~/genome.fasta.fai", header = F)[,1:2]
 colnames(fa.sizes) <- c("contig", "size")
 ```
 
-```{r echo = FALSE}
+```{r echo = FALSE, warnings= FALSE, message = FALSE}
 sv <- read.table("~/1.sv.stats", header = T)
 sv <- merge(x=sv,y=fa.sizes, by="contig")
+sv$length <- gsub("\\.", "1", sv$length) %>%  as.numeric()
+grpstats <- sv %>% group_by(contig, type) %>% summarise(
+  count = n(),
+  total_bp = sum(length)
+)
 ```
 
+## General information
+This table shows the overall statistics for detected structural variants.
+```{r echo = FALSE}
+grpstats %>% group_by(type) %>% summarise(
+  total = sum(count),
+  avg_per_contig = mean(count),
+  sd = sd(count)
+)
+```
 
+## Per-contig information
+This table details each type of structural variant for every contig.
+```{r echo = FALSE}
+DT::datatable(grpstats, rownames = F, filter = "top", extensions = 'Buttons', options = list(dom = 'Brtip', buttons = c('csv', 'pdf'), scrollX = TRUE))
+```
 
-```{r echo = FALSE, fig.height = 1.5}
+---
+
+## SV size and location
+The plots below are a visual representation of each SV where it was detected.
+Contigs that are absent did not have any SV's detected on them.
+
+```{r echo = FALSE, fig.height = 1.5, warning=FALSE}
 for(i in unique(fa.sizes$contig)){
   sv.filt <- sv %>% filter(contig == i)
   sv_stats <- group_by(sv.filt, type) %>%  summarise(n = length(type))
@@ -29,7 +81,8 @@ for(i in unique(fa.sizes$contig)){
   }
   plt <- sv.filt %>% 
     ggplot() +
-    geom_rect(alpha = 0.5, color = "black", aes(xmin = position_start, xmax = position_end, ymin = 0, ymax = 1, fill = type)) +  
+    geom_rect(alpha = 0.7, aes(xmin = position_start, xmax = position_end, ymin = 0, ymax = 1, fill = type, color = type)) +
+    theme_bw() +
     theme(
       axis.text.y=element_blank(),
       axis.line.y = element_blank(),
@@ -37,8 +90,11 @@ for(i in unique(fa.sizes$contig)){
       panel.grid.major = element_blank(),
       panel.grid.minor = element_blank()
     ) +
-    xlim(1, sv$size[1]) +
+    scale_color_manual(values=c("DEL"="#004D40", "DUP"="#FFC107", "INV"="#1E88E5","BND"="#D81B60")) +
+    scale_fill_manual(values=c("DEL"="#004D40", "DUP"="#FFC107", "INV"="#1E88E5","BND"="#D81B60")) +
+    xlim(1, sv.filt$size[1]) +
     xlab("Position (bp)") +
+    labs(fill = "SV type", color = "SV type") +
     ggtitle(i, subtitle = .subtitle)
   print(plt)
   }

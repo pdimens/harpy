@@ -1,9 +1,35 @@
+---
+title: "Leviathan Structural Variant Summary"
+author:
+    - "Created using HARPY"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output:
+  html_document:
+    highlight: tango
+    number_sections: no
+    theme: default
+    df_print: kable
+    toc: yes
+    toc_depth: 3
+    toc_float:
+      collapsed: no
+      smooth_scroll: yes
+---
 
+Below is a series of tables and plots detailing the structural variants
+identified by `LEVIATHAN`, which are:
 
-```{r message=FALSE, warning=FALSE}
+- `INV`: Inversion
+- `DUP`: Duplication
+- `DEL`: Deletion
+- `BND`: Breakend
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
 library(dplyr)
 library(ggplot2)
 library(magrittr)
+library(tidyr)
+library(DT)
 ```
 
 ```{r echo = FALSE}
@@ -11,17 +37,57 @@ fa.sizes <- read.table("~/genome.fasta.fai", header = F)[,1:2]
 colnames(fa.sizes) <- c("contig", "size")
 ```
 
-```{r echo = FALSE}
+```{r message = FALSE, echo = FALSE}
 sv <- read.table("~/1.sv.stats", header = T)
 sv2 <- read.table("~/2.sv.stats", skip = 1, header = F)
 colnames(sv2) <- colnames(sv)
 sv <- rbind(sv, sv2)
 sv <- merge(x=sv,y=fa.sizes, by="contig")
+sv$length <- gsub("\\.", "1", sv$length) %>%  as.numeric()
+grpcounts <- sv %>% group_by(population, contig, type) %>% summarise(count = n()) %>% 
+  pivot_wider(names_from = population, values_from = count)
+grplens <- sv %>% group_by(population, contig, type) %>% 
+  summarise(bp = sum(length)) %>% 
+  pivot_wider(names_from = population, values_from = bp)
 ```
 
+## General information
+This table shows the overall counts, average per contig, and standard deviation per contig for detected structural variants across populations.
+```{r echo = FALSE}
+fnlist <- list(
+  count = ~sum(.x, na.rm = TRUE), 
+  avg = ~round(mean(.x, na.rm = TRUE),2),
+  sd = ~round(sd(.x, na.rm = TRUE),2)
+)
+grpcounts %>% group_by(type) %>% summarise(
+  across(
+    where(is.numeric), fnlist, .names = "{.col}.{.fn}"
+  )
+)
+```
 
+## Per-contig information
+### counts per contig
+This table details counts each type of structural variant for every contig for every population.
+```{r echo = FALSE}
+DT::datatable(grpcounts, rownames = F, filter = "top", extensions = 'Buttons', options = list(dom = 'Brtip', buttons = c('csv', 'pdf'), scrollX = TRUE))
+```
 
-```{r echo = FALSE, fig.height = 1.5}
+### bp per contig
+This table details the lengths (in bp) of SV's for every contig for every population.
+```{r echo = FALSE}
+DT::datatable(grplens, rownames = F, filter = "top", extensions = 'Buttons', options = list(dom = 'Brtip', buttons = c('csv', 'pdf'), scrollX = TRUE))
+```
+
+---
+
+## SV size and location
+The plots below are a visual representation of each SV where it was detected.
+Contigs that are absent did not have any SV's detected on them. Within each 
+contig, each population is plotted as a labeled row to help visualize shared
+variants between populations.
+
+```{r echo = FALSE, fig.height = 2, warning=FALSE}
 for(i in unique(fa.sizes$contig)){
   sv.filt <- sv %>% filter(contig == i)
   sv_stats <- group_by(sv.filt, type) %>%  summarise(n = length(type))
@@ -29,20 +95,24 @@ for(i in unique(fa.sizes$contig)){
     next
   }
   plt <- sv.filt %>% 
-    ggplot(aes(y = as.factor(population), yend = as.factor(population), x = position_start, xend = position_end, color = as.factor(type))) +
-    scale_color_manual(values=c("DEL"="black", "DUP"="violet", "INV"="dodgerblue","BND"="orange")) +
-    geom_segment(alpha = 0.5, linewidth = 10) +  
+    ggplot() +
+    geom_rect(alpha = 0.7, aes(ymin = 0, ymax = 1, xmin = position_start, xmax = position_end, fill = type, color = type)) +
+    scale_color_manual(values=c("DEL"="#004D40", "DUP"="#FFC107", "INV"="#1E88E5","BND"="#D81B60")) +
+    scale_fill_manual(values=c("DEL"="#004D40", "DUP"="#FFC107", "INV"="#1E88E5","BND"="#D81B60")) +
+    facet_grid(rows = vars(population)) +
+    theme_bw() +
     theme(
+      axis.text.y = element_blank(),
       axis.line.y = element_blank(),
       axis.ticks.y = element_blank(),
       panel.grid.major = element_blank(),
       panel.grid.minor = element_blank()
     ) +
-    xlim(1, sv$size[1]) +
+    xlim(1, sv.filt$size[1]) +
     xlab("Position (bp)") +
-    ylab("Population") +
-    labs(color="SV type") +
+    labs(fill = "SV type", color = "SV type") +
     ggtitle(i)
   print(plt)
 }
 ```
+
