@@ -67,9 +67,7 @@ graph LR
 ### Leviathan
 [Leviathan](https://github.com/morispi/LEVIATHAN) is an alternative variant caller that uses linked read barcode information 
 to call structural variants (indels, inversions, etc.). Harpy first uses [LRez](https://github.com/morispi/LRez) to index the barcodes 
-in the alignments, then it calls variants for individual samples using Leviathan. It's unclear what Leviathan does with invalid barcodes 
-and until that gets clarified, Harpy will preprocess alignments to keep only alignments with a complete barcode (no `00` beadtags, 
-[read more below](#barcode-validation)).
+in the alignments, then it calls variants for individual samples using Leviathan.
 
 #### Individual-level variant calling
 Leviathan is intended to call structural variants on individual samples. Without using a population grouping file (`--populations`),
@@ -100,25 +98,9 @@ graph LR
     subgraph Individual calling
     bams([individual alignments])
     end
-    popsplit-->Z
-    bams-->Z
-    Z([keep valid BX </br> alignments])-->A
+    popsplit-->A
+    bams-->A
     A([index barcodes]) --> B([leviathan])
     B-->C([convert to BCF])
     C-->D([index BCFs])
 ```
-
-!!!info 
-#### Barcode Validation
-Haplotag beadtags are stored in fastq read headers with the `BX:Z` tag, and
-this information is retained in the alignment (.bam) files. When demultiplexing,
-unresolved beadtag sections are encoded as `00`, for example the `A00` in 
-`A00C15B22D76`. The haplotag toggle in `EMA` recognizes this and considers those
-barcodes invalid. However, `Leviathan` doesn't have this behavior documented, so 
-we don't know if invalid barcodes are ignored, or if `Leviathan` (or `LRez`) 
-treats `00` as valid. If not, this would be a problem because it may be incorrectly
-associating alignments with molecules that are actually undetermined. As a 
-precaution, we only keep alignments with complete `AxxCxxBxxDxx` barcodes.
-There is an [open Issue](https://github.com/morispi/LEVIATHAN/issues/8)
-on the Leviathan repository addressing that.
-!!!
