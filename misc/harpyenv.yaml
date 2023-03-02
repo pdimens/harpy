@@ -307,7 +307,7 @@ dependencies:
   - r-tidyselect=1.2.0=r42hc72bb7e_0
   - r-tinytex=0.43=r42hc72bb7e_0
   - r-utf8=1.2.2=r42h06615bd_1
-  - r-vctrs=0.5.1=r42h7525677_0
+  - r-vctrs=0.5.2=r42h38f115c_0
   - r-viridislite=0.4.1=r42hc72bb7e_1
   - r-waldo=0.4.0=r42hc72bb7e_1
   - r-withr=2.5.0=r42hc72bb7e_1
@@ -377,3 +377,4 @@ dependencies:
   - zipp=3.10.0=pyhd8ed1ab_0
   - zlib=1.2.13=h166bdaf_4
   - zstd=1.5.2=h6239696_4
+prefix: /home/pd348/miniconda3/envs/harpy

@@ -107,5 +107,5 @@ for (i in unique(fa.sizes$contig)) {
 ```
 
 ```{r}
-save.image("debug.rdata")
+#save.image("debug.rdata")
 ```

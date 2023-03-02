@@ -128,5 +128,5 @@ for (i in unique(fa.sizes$contig)) {
 ```
 
 ```
-save.image()
+#save.image()
 ```
