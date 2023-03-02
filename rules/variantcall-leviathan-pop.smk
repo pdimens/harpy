@@ -152,9 +152,28 @@ rule sv_stats:
 		bcftools query -f '{wildcards.population}\\t%CHROM\\t%POS\\t%END\\t%SVLEN\\t%SVTYPE\\t%BARCODES\\t%PAIRS\\n' {input.bcf} >> {output}
 		"""
 
+rule sv_report_bypop:
+	input:	
+		statsfile = "Variants/leviathan-pop/stats/{population}.sv.stats",
+		faidx = "Assembly/{genomefile}.fai"
+	output:	"Variants/leviathan-pop/reports/{population}.sv.html"
+	message: "Generating SV report for all populations"
+	script:	"utilities/svStats.Rmd"
+
+
+rule sv_report:
+	input:	
+		statsfiles = expand("Variants/leviathan-pop/stats/{pop}.sv.stats", pop = populations),
+		faidx = "Assembly/{genomefile}.fai"
+	output:	"Variants/leviathan-pop/reports/SV.summary.html"
+	message: "Generating SV report for all populations"
+	script:	"utilities/svPopStats.Rmd"
+
 rule all_bcfs:
 	input: 
 		bcf = expand("Variants/leviathan-pop/{pop}.bcf", pop = populations),
-		stats = expand("Variants/leviathan-pop/stats/{pop}.sv.stats", pop = populations)
+		stats = expand("Variants/leviathan-pop/stats/{pop}.sv.stats", pop = populations),
+		popreports = expand("Variants/leviathan-pop/reports/{pop}.sv.html", pop = populations),
+		finalreport = "Variants/leviathan-pop/reports/SV.summary.html"
 	message: "Variant calling is complete!"
 	default_target: True

@@ -1,5 +1,5 @@
 ---
-title: "Leviathan Structural Variant Summary"
+title: "Leviathan Structural Variants Summary"
 author:
     - "Created using HARPY"
 date: "`r format(Sys.time(), '%d %B, %Y')`"
@@ -7,7 +7,7 @@ output:
   html_document:
     highlight: tango
     number_sections: no
-    theme: default
+    theme: cosmo
     df_print: kable
     toc: yes
     toc_depth: 3
@@ -33,19 +33,24 @@ library(DT)
 ```
 
 ```{r echo = FALSE}
-fa.sizes <- read.table("~/genome.fasta.fai", header = F)[,1:2]
+fa.sizes <- read.table(snakemake@input[[2]], header = F)[,1:2]
 colnames(fa.sizes) <- c("contig", "size")
 ```
 
 ```{r message = FALSE, echo = FALSE}
-sv <- read.table("~/1.sv.stats", header = T)
-sv2 <- read.table("~/2.sv.stats", skip = 1, header = F)
-colnames(sv2) <- colnames(sv)
-sv <- rbind(sv, sv2)
+sv <- do.call(rbind, lapply(snakemake@input[[1]], function(x) read.table(x, header = T)))
+#sv <- read.table("~/1.sv.stats", header = T)
+#sv2 <- read.table("~/2.sv.stats", skip = 1, header = F)
+#colnames(sv2) <- colnames(sv)
+#sv <- rbind(sv, sv2)
 sv <- merge(x=sv,y=fa.sizes, by="contig")
-sv$length <- gsub("\\.", "1", sv$length) %>%  as.numeric()
+sv$length <- gsub("\\.", "1", sv$length) %>% as.numeric()
+```
+
+```{r echo = FALSE, message = FALSE}
 grpcounts <- sv %>% group_by(population, contig, type) %>% summarise(count = n()) %>% 
   pivot_wider(names_from = population, values_from = count)
+
 grplens <- sv %>% group_by(population, contig, type) %>% 
   summarise(bp = sum(length)) %>% 
   pivot_wider(names_from = population, values_from = bp)
@@ -55,9 +60,9 @@ grplens <- sv %>% group_by(population, contig, type) %>%
 This table shows the overall counts, average per contig, and standard deviation per contig for detected structural variants across populations.
 ```{r echo = FALSE}
 fnlist <- list(
-  count = ~sum(.x, na.rm = TRUE), 
-  avg = ~round(mean(.x, na.rm = TRUE),2),
-  sd = ~round(sd(.x, na.rm = TRUE),2)
+  count = ~sum(.x, na.rm = TRUE),
+  avg = ~round(mean(.x, na.rm = TRUE), 2),
+  sd = ~round(sd(.x, na.rm = TRUE), 2)
 )
 grpcounts %>% group_by(type) %>% summarise(
   across(
@@ -85,16 +90,18 @@ DT::datatable(grplens, rownames = F, filter = "top", extensions = 'Buttons', opt
 The plots below are a visual representation of each SV where it was detected.
 Contigs that are absent did not have any SV's detected on them. Within each 
 contig, each population is plotted as a labeled row to help visualize shared
-variants between populations.
+variants between populations. Plotting only the first 30 contigs.
 
 ```{r echo = FALSE, fig.height = 2, warning=FALSE}
-for(i in unique(fa.sizes$contig)){
+.i <- 0
+for (i in unique(fa.sizes$contig)) {
+  .i <- .i + 1
   sv.filt <- sv %>% filter(contig == i)
-  sv_stats <- group_by(sv.filt, type) %>%  summarise(n = length(type))
-  if(nrow(sv_stats) == 0){
+  sv_stats <- group_by(sv.filt, type) %>% summarise(n = length(type))
+  if (nrow(sv_stats) == 0) {
     next
   }
-  plt <- sv.filt %>% 
+  plt <- sv.filt %>%
     ggplot() +
     geom_rect(alpha = 0.7, aes(ymin = 0, ymax = 1, xmin = position_start, xmax = position_end, fill = type, color = type)) +
     scale_color_manual(values=c("DEL"="#004D40", "DUP"="#FFC107", "INV"="#1E88E5","BND"="#D81B60")) +
@@ -113,6 +120,10 @@ for(i in unique(fa.sizes$contig)){
     labs(fill = "SV type", color = "SV type") +
     ggtitle(i)
   print(plt)
+  # stop at 30
+  if (.i == 30) {
+    break
+  }
 }
 ```
 

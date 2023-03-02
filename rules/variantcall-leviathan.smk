@@ -100,12 +100,22 @@ rule sv_stats:
     threads: 1
     shell:
         """
-        bcftools stats {input.bcf} > {output}
+		echo -e "sample\\tcontig\\tposition_start\\tposition_end\\tlength\\ttype\\tn_barcodes\\tn_pairs" > {output}
+		bcftools query -f '{wildcards.sample}\\t%CHROM\\t%POS\\t%END\\t%SVLEN\\t%SVTYPE\\t%BARCODES\\t%PAIRS\\n' {input.bcf} >> {output}
         """
+
+rule sv_report:
+	input:	
+		statsfile = "Variants/leviathan-pop/stats/{sample}.sv.stats",
+		faidx = "Assembly/{genomefile}.fai"
+	output:	"Variants/leviathan/reports/{sample}.SV.html"
+	message: "Generating SV report: {wildcards.sample}"
+	script:	"utilities/svStats.Rmd"
 
 rule all_bcfs:
     input: 
         bcf = expand("Variants/leviathan/{sample}.bcf", sample = samplenames),
-        index = expand("Variants/leviathan/stats/{sample}.sv.stats", sample = samplenames)
+        index = expand("Variants/leviathan/stats/{sample}.sv.stats", sample = samplenames),
+        reports = expand("Variants/leviathan/reports/{sample}.SV.html", sample = samplenames)
     message: "Variant calling is complete!"
     default_target: True

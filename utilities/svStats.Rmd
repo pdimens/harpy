@@ -1,5 +1,5 @@
 ---
-title: "Leviathan Structural Variant Summary"
+title: "Leviathan Structural Variants Summary"
 author:
     - "Created using HARPY"
 date: "`r format(Sys.time(), '%d %B, %Y')`"
@@ -7,7 +7,7 @@ output:
   html_document:
     highlight: tango
     number_sections: no
-    theme: default
+    theme: cosmo
     df_print: kable
     toc: yes
     toc_depth: 2
@@ -28,33 +28,34 @@ identified by `LEVIATHAN`, which are:
 library(dplyr)
 library(ggplot2)
 library(magrittr)
-library(raster)
 library(DT)
 ```
 
 
 ```{r echo = FALSE}
-fa.sizes <- read.table("~/genome.fasta.fai", header = F)[,1:2]
+fa.sizes <- read.table(snakemake@input[[2]], header = F)[,1:2]
 colnames(fa.sizes) <- c("contig", "size")
 ```
 
 ```{r echo = FALSE, warnings= FALSE, message = FALSE}
-sv <- read.table("~/1.sv.stats", header = T)
+sv <- read.table(snakemake@input[[1]], header = T)
 sv <- merge(x=sv,y=fa.sizes, by="contig")
 sv$length <- gsub("\\.", "1", sv$length) %>%  as.numeric()
-grpstats <- sv %>% group_by(contig, type) %>% summarise(
-  count = n(),
-  total_bp = sum(length)
-)
+
+grpstats <- sv %>%
+  group_by(contig, type) %>%
+  summarise(count = n(), total_bp  = sum(length))
 ```
 
 ## General information
 This table shows the overall statistics for detected structural variants.
 ```{r echo = FALSE}
-grpstats %>% group_by(type) %>% summarise(
-  total = sum(count),
-  avg_per_contig = mean(count),
-  sd = sd(count)
+grpstats %>%
+  group_by(type) %>%
+  summarise(
+    total = sum(count),
+    avg_per_contig = mean(count),
+    sd = sd(count)
 )
 ```
 
@@ -68,18 +69,20 @@ DT::datatable(grpstats, rownames = F, filter = "top", extensions = 'Buttons', op
 
 ## SV size and location
 The plots below are a visual representation of each SV where it was detected.
-Contigs that are absent did not have any SV's detected on them.
+Contigs that are absent did not have any SV's detected on them. Plotting only the first 30 contigs.
 
 ```{r echo = FALSE, fig.height = 1.5, warning=FALSE}
-for(i in unique(fa.sizes$contig)){
+.i <- 0
+for (i in unique(fa.sizes$contig)) {
+  .i <- .i + 1
   sv.filt <- sv %>% filter(contig == i)
   sv_stats <- group_by(sv.filt, type) %>%  summarise(n = length(type))
-  if(nrow(sv_stats) > 0){
+  if (nrow(sv_stats) > 0) {
     .subtitle <- paste(paste(sv_stats$type, sv_stats$n), collapse = " | ")
   } else {
     next
   }
-  plt <- sv.filt %>% 
+  plt <- sv.filt %>%
     ggplot() +
     geom_rect(alpha = 0.7, aes(xmin = position_start, xmax = position_end, ymin = 0, ymax = 1, fill = type, color = type)) +
     theme_bw() +
@@ -97,5 +100,8 @@ for(i in unique(fa.sizes$contig)){
     labs(fill = "SV type", color = "SV type") +
     ggtitle(i, subtitle = .subtitle)
   print(plt)
+  if (.i == 30) {
+    break
   }
+}
 ```

@@ -7,7 +7,7 @@ output:
   html_document:
     highlight: tango
     number_sections: no
-    theme: default
+    theme: cosmo
     df_print: kable
     toc: yes
     toc_depth: 2
