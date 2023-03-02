@@ -158,7 +158,7 @@ rule sv_report_bypop:
 		faidx = f"Assembly/{genomefile}.fai"
 	output:	"Variants/leviathan-pop/reports/{population}.sv.html"
 	message: "Generating SV report for all populations"
-	script:	"utilities/svStats.Rmd"
+	script:	"utilities/test.R"
 
 
 rule sv_report:
