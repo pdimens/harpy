@@ -97,8 +97,8 @@ rule index_genome:
 
 rule leviathan_variantcall:
 	input:
-		bam = "Variants/leviathan-pop/input/{population}.bx.valid.bam",
-		bai = "Variants/leviathan-pop/input/{population}.bx.valid.bam.bai",
+		bam = "Variants/leviathan-pop/input/{population}.bam",
+		bai = "Variants/leviathan-pop/input/{population}.bam.bai",
 		bc_idx = "Variants/leviathan-pop/lrezIndexed/{population}.bci",
 		genome = f"Assembly/{genomefile}"
 	output: vcf = pipe("Variants/leviathan-pop/{population}.vcf")

@@ -49,8 +49,8 @@ rule index_genome:
 
 rule leviathan_variantcall:
     input:
-        bam = "Variants/leviathan/input/{sample}.bx.valid.bam",
-        bai = "Variants/leviathan/input/{sample}.bx.valid.bam.bai",
+        bam = bam_dir + "/{sample}.bam",
+        bai = bam_dir + "/{sample}.bam.bai",
         bc_idx = "Variants/leviathan/lrezIndexed/{sample}.bci",
         genome = f"Assembly/{genomefile}"
     output: vcf = pipe("Variants/leviathan/{sample}.vcf")
