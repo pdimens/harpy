@@ -5,10 +5,7 @@ order: 3
 ---
 
 # Impute Genotypes using Sequences
-You can impute genotypes with Harpy by calling the `impute` module:
-```bash
-harpy impute OPTIONS...
-```
+
 |||  :icon-checklist: You will need
 - a tab-delimited parameter file 
     - create with `harpy extra --stitch-params`
@@ -18,15 +15,20 @@ harpy impute OPTIONS...
 - sequence alignments, in `.bam` format
 |||
 
+You can impute genotypes with Harpy by calling the `impute` module:
+```bash
+harpy impute OPTIONS...
+```
+
 ## Running Options
-| argument       | short name | type        |    default    | required | description                             |
-|:---------------|:----------:|:------------|:-------------:|:--------:|:----------------------------------------|
-| `--vcf`        |    `-v`    | file path   |               | **yes**  | Path to VCF/BCF file                    |
-| `--directory`  |    `-d`    | folder path |               | **yes**  | Directory with sequence alignments      |
-| `--parameters` |    `-p`    | file path   | stitch.params | **yes**  | STITCH parameter file (tab-delimited)   |
-| `--threads`    |    `-t`    | integer     |       4       |    no    | Number of threads to use                |
-| `--snakemake`  |    `-s`    | string      |               |    no    | Additional Snakemake options, in quotes |
-| `--help`       |            |             |               |          | Show the module docstring               |
+| argument       | short name | type        |    default    | required | description                                                            |
+|:---------------|:----------:|:------------|:-------------:|:--------:|:-----------------------------------------------------------------------|
+| `--vcf`        |    `-v`    | file path   |               | **yes**  | Path to VCF/BCF file                                                   |
+| `--directory`  |    `-d`    | folder path |               | **yes**  | Directory with sequence alignments                                     |
+| `--parameters` |    `-p`    | file path   | stitch.params | **yes**  | STITCH parameter file (tab-delimited)                                  |
+| `--threads`    |    `-t`    | integer     |       4       |    no    | Number of threads to use                                               |
+| `--snakemake`  |    `-s`    | string      |               |    no    | Additional Snakemake options, in quotes ([more info](../snakemake.md)) |
+| `--help`       |            |             |               |          | Show the module docstring                                              |
 
 ## Parameter file
 Typically, one runs STITCH multiple times, exploring how results vary with

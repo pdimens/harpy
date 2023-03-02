@@ -5,10 +5,6 @@ order: 6
 ---
 
 # Quality Trimming Sequence Data
-You can remove adapters and quality trim sequences using:
-```bash
-harpy trim OPTIONS... 
-```
 |||  :icon-checklist: You will need
 - at least 2 cores/threads available
 - b/gzipped fastq sequence files
@@ -20,15 +16,20 @@ harpy trim OPTIONS...
         - or the same but ending with `.fastq.gz`, but don't mix and match
 |||
 
+You can remove adapters and quality trim sequences using:
+```bash
+harpy trim OPTIONS... 
+```
+
 ## Running Options
-| argument         | short name | type        | default | required | description                              |
-|:-----------------|:----------:|:------------|:-------:|:--------:|:-----------------------------------------|
-| `--dir`          |    `-d`    | folder path |         | **yes**  | Directory with sequence alignments       |
-| `--max-length`   |    `-l`    | integer     |   150   |    no    | Maximum length to trim sequences down to |
-| `--extra-params` |    `-x`    | string      |         |    no    | Additional Hapcut2 parameters, in quotes |
-| `--threads`      |    `-t`    | integer     |    4    |    no    | Number of threads to use                 |
-| `--snakemake`    |    `-s`    | string      |         |    no    | Additional Snakemake options, in quotes  |
-| `--help`         |            |             |         |          | Show the module docstring                |
+| argument         | short name | type        | default | required | description                                                            |
+|:-----------------|:----------:|:------------|:-------:|:--------:|:-----------------------------------------------------------------------|
+| `--dir`          |    `-d`    | folder path |         | **yes**  | Directory with sequence alignments                                     |
+| `--max-length`   |    `-l`    | integer     |   150   |    no    | Maximum length to trim sequences down to                               |
+| `--extra-params` |    `-x`    | string      |         |    no    | Additional Hapcut2 parameters, in quotes                               |
+| `--threads`      |    `-t`    | integer     |    4    |    no    | Number of threads to use                                               |
+| `--snakemake`    |    `-s`    | string      |         |    no    | Additional Snakemake options, in quotes ([more info](../snakemake.md)) |
+| `--help`         |            |             |         |          | Show the module docstring                                              |
 
 ---
 ## Fastp Workflow

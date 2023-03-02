@@ -5,7 +5,21 @@ order: 2
 ---
 
 # Adding additional Snakamake parameters
-Harpy relies on Snakemake under the hood to handle file and job dependencies. Most of these details have been abstracted away from the end-user, but every module of Harpy (except `extra`) has an optional flag `-s` (`--snakemake`) that you can use to augment the Snakemake workflow if necessary. Any time you use this flag, your argument must be encased in quotation marks, _e.g._ `-s "--dry-run"`.
+Harpy relies on Snakemake under the hood to handle file and job dependencies. Most of these details have been abstracted away from the end-user, but every module of Harpy (except `extra`) has an optional flag `-s` (`--snakemake`) that you can use to augment the Snakemake workflow if necessary. Whenever you use this flag, your argument must be enclosed in quotation marks, for example:
+```bash
+harpy trim -d rawseq -s "--dry-run"
+```
+This means you can add several Snakemake arguments at once, as long as the entire thing is enclosed in quotes:
+```bash
+harpy trim -d rawseq -s "--dry-run --debug --shadow-prefix /scratch"
+```
+
+## Reserved arguments
+Harpy calls Snakemake using specific arguments, meaning you cannot append these again to the internal command line call. Well, you can, but Snakemake will error and exit. [Everything else](https://snakemake.readthedocs.io/en/stable/executing/cli.html#all-options) is allowed. The reserved (**forbidden**) arguments are:
+- `--directory`
+- `--cores`
+- `--snakefile`
+- `--config`
 
 ## Use cases
 You likely wont need to invoke `--snakemake` very often, if ever. That being said, here are what might be the most common use cases for this parameter.

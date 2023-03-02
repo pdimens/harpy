@@ -5,10 +5,6 @@ order: 5
 ---
 
 # Mapping Reads onto a Reference Genome
-You can map reads onto genome assemblies with Harpy by calling the `align` module:
-```bash
-harpy align OPTIONS...
-```
 |||  :icon-checklist: You will need
 - at least 4 cores/threads available
 - a genome assembly in FASTA format
@@ -19,19 +15,24 @@ harpy align OPTIONS...
         - _e.g._ `samplename.R1.fq.gz` and `samplename.R2.fq.gz`
         - _e.g._ `samplename_R1.fq.gz` and `samplename_R2.fq.gz`
         - or the same but ending with `.fastq.gz`, but don't mix and match
+
 |||
+You can map reads onto genome assemblies with Harpy by calling the `align` module:
+```bash
+harpy align OPTIONS...
+```
 
 ## Running Options
-| argument         | short name | type        | default | required | description                                    |
-|:-----------------|:----------:|:------------|:-------:|:--------:|:-----------------------------------------------|
-| `--genome`       |    `-g`    | file path   |         | **yes**  | Genome assembly for read mapping               |
-| `--dir`          |    `-d`    | folder path |         | **yes**  | Directory with sample sequences                |
-| `--ema-bins`     |    `-e`    | integer     |   500   |    no    | Number of barcode bins for EMA                 |
-| `--bwa`          |    `-b`    | toggle      |         |    no    | Use BWA MEM instead of EMA                     |
-| `--extra-params` |    `-x`    | string      |         |    no    | Additional EMA-align/BWA parameters, in quotes |
-| `--threads`      |    `-t`    | integer     |    4    |    no    | Number of threads to use                       |
-| `--snakemake`    |    `-s`    | string      |         |    no    | Additional Snakemake options, in quotes        |
-| `--help`         |            |             |         |          | Show the module docstring                      |
+| argument         | short name | type        | default | required | description                                                            |
+|:-----------------|:----------:|:------------|:-------:|:--------:|:-----------------------------------------------------------------------|
+| `--genome`       |    `-g`    | file path   |         | **yes**  | Genome assembly for read mapping                                       |
+| `--dir`          |    `-d`    | folder path |         | **yes**  | Directory with sample sequences                                        |
+| `--ema-bins`     |    `-e`    | integer     |   500   |    no    | Number of barcode bins for EMA                                         |
+| `--bwa`          |    `-b`    | toggle      |         |    no    | Use BWA MEM instead of EMA                                             |
+| `--extra-params` |    `-x`    | string      |         |    no    | Additional EMA-align/BWA parameters, in quotes                         |
+| `--threads`      |    `-t`    | integer     |    4    |    no    | Number of threads to use                                               |
+| `--snakemake`    |    `-s`    | string      |         |    no    | Additional Snakemake options, in quotes ([more info](../snakemake.md)) |
+| `--help`         |            |             |         |          | Show the module docstring                                              |
 
 ----
 

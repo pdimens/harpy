@@ -5,29 +5,30 @@ order: 4
 ---
 
 # Calling Variants
-You can call variants with Harpy by calling the `variants` module:
-```bash
-harpy variants OPTIONS... 
-```
 |||  :icon-checklist: You will need
 - at least 4 cores/threads available
 - a genome assembly in FASTA format
 - alignment files
-- sample grouping file ([see below](variantcalling.md/#sample-grouping-file])
+- sample grouping file ([see below](#sample-grouping-file))
 |||
 
+You can call variants with Harpy by calling the `variants` module:
+```bash
+harpy variants OPTIONS... 
+```
+
 ## Running Options
-| argument         | short name | type                  | default | required | description                                        |
-|:-----------------|:----------:|:----------------------|:-------:|:--------:|:---------------------------------------------------|
-| `--genome`       |    `-g`    | file path             |         | **yes**  | Genome assembly for variant calling                |
-| `--dir`          |    `-d`    | folder path           |         | **yes**  | Directory with sequence alignments                 |
-| `--populations`  |    `-p`    | file path             |         |    no    | Tab-delimited file of sample\<tab\>group           |
-| `--ploidy`       |    `-x`    | integer               |    2    |    no    | Ploidy of samples                                  |
-| `--leviathan`    |    `-l`    | toggle                |         |    no    | Call variants with Leviathan instead of bcftools   |
-| `--extra-params` |    `-x`    | string                |         |    no    | Additional mpileup/Leviathan parameters, in quotes |
-| `--threads`      |    `-t`    | integer               |    4    |    no    | Number of threads to use                           |
-| `--snakemake`    |    `-s`    | string                |         |    no    | Additional Snakemake options, in quotes            |
-| `--help`         |            |                       |         |          | Show the module docstring                          |
+| argument         | short name | type        | default | required | description                                                            |
+|:-----------------|:----------:|:------------|:-------:|:--------:|:-----------------------------------------------------------------------|
+| `--genome`       |    `-g`    | file path   |         | **yes**  | Genome assembly for variant calling                                    |
+| `--dir`          |    `-d`    | folder path |         | **yes**  | Directory with sequence alignments                                     |
+| `--populations`  |    `-p`    | file path   |         |    no    | Tab-delimited file of sample\<tab\>group                               |
+| `--ploidy`       |    `-x`    | integer     |    2    |    no    | Ploidy of samples                                                      |
+| `--leviathan`    |    `-l`    | toggle      |         |    no    | Call variants with Leviathan instead of bcftools                       |
+| `--extra-params` |    `-x`    | string      |         |    no    | Additional mpileup/Leviathan parameters, in quotes                     |
+| `--threads`      |    `-t`    | integer     |    4    |    no    | Number of threads to use                                               |
+| `--snakemake`    |    `-s`    | string      |         |    no    | Additional Snakemake options, in quotes ([more info](../snakemake.md)) |
+| `--help`         |            |             |         |          | Show the module docstring                                              |
 
 ### sample grouping file
 This file is entirely optional and useful if you want variant calling to happen on a per-population level.
@@ -67,20 +68,19 @@ graph LR
 
 ### Leviathan
 [Leviathan](https://github.com/morispi/LEVIATHAN) is an alternative variant caller that uses linked read barcode information 
-to call structural variants (indels, inversions, etc.). Harpy first uses [LRez](https://github.com/morispi/LRez) to index the barcodes 
-in the alignments, then it calls variants for individual samples using Leviathan.
+to call structural variants (indels, inversions, etc.) exclusively, meaning it does not call SNPs. Harpy first uses [LRez](https://github.com/morispi/LRez) to index the barcodes 
+in the alignments, then it calls variants using Leviathan.
 
 #### Individual-level variant calling
-Leviathan is intended to call structural variants on individual samples. Without using a population grouping file (`--populations`),
-variants will be called per-sample. Due to the nature of Structural Variant (SV) VCF files, there isn't an entirely fool-proof way 
+When not using a population grouping file via `--populations`, variants will be called per-sample. 
+Due to the nature of Structural Variant (SV) VCF files, there isn't an entirely fool-proof way 
 of combining the variants of all the samples into a single VCF file, therefore the output will be a VCF for every sample.
 
 #### Population-level variant calling
-Some internal preliminary work revealed better SV calling when samples are grouped by population. With the inclusion of a population
-grouping file via `--populations`, Harpy will merge the bam files from for all samples within a population and call SV's on these
-alignment pools. Preliminary work shows that this way identifies more variants and fewer false positives. **However**, individual-level
-information gets lost using this approach, so you will only be able to assess population-level variants, if that's what your primary
-interest is. 
+With the inclusion of a population grouping file via `--populations`, Harpy will merge the bam files of all samples within a 
+population and call SV's on these alignment pools. Preliminary work shows that this way identifies more variants and fewer false 
+positives. **However**, individual-level information gets lost using this approach, so you will only be able to assess 
+population-level variants, if that's what your primary interest is. 
 
 !!!warning Potential barcode clashing
 If pooling by population, be mindful of potential sources of barcode clashing. For example, Gen I haplotagging uses 4-segment beadtags,
