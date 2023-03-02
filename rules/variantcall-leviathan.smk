@@ -107,7 +107,7 @@ rule sv_stats:
 rule sv_report:
 	input:	
 		statsfile = "Variants/leviathan-pop/stats/{sample}.sv.stats",
-		faidx = "Assembly/{genomefile}.fai"
+		faidx = f"Assembly/{genomefile}.fai"
 	output:	"Variants/leviathan/reports/{sample}.SV.html"
 	message: "Generating SV report: {wildcards.sample}"
 	script:	"utilities/svStats.Rmd"
