@@ -24,7 +24,7 @@ identified by `LEVIATHAN`, which are:
 - `DEL`: Deletion
 - `BND`: Breakend
 
-```{r echo=FALSE, message=FALSE, warning=FALSE}
+```{r load environment, echo=FALSE, message=FALSE, warning=FALSE}
 library(dplyr)
 library(ggplot2)
 library(magrittr)
@@ -125,8 +125,4 @@ for (i in unique(fa.sizes$contig)) {
     break
   }
 }
-```
-
-```
-#save.image()
 ```

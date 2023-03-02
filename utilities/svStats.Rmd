@@ -24,7 +24,7 @@ identified by `LEVIATHAN`, which are:
 - `DEL`: Deletion
 - `BND`: Breakend
 
-```{r echo=FALSE, message=FALSE, warning=FALSE}
+```{r load environment, echo=FALSE, message=FALSE, warning=FALSE}
 library(dplyr)
 library(ggplot2)
 library(magrittr)
@@ -49,7 +49,7 @@ grpstats <- sv %>%
 
 ## General information
 This table shows the overall statistics for detected structural variants.
-```{r echo = FALSE}
+```{r echo = FALSE, message = FALSE}
 grpstats %>%
   group_by(type) %>%
   summarise(
@@ -104,8 +104,4 @@ for (i in unique(fa.sizes$contig)) {
     break
   }
 }
-```
-
-```{r}
-#save.image("debug.rdata")
 ```
