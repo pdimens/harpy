@@ -3,6 +3,9 @@ library(ggplot2)
 library(magrittr)
 library(DT)
 
+print(snakemake@input[["faidx"]])
+print(snakemake@input[["statsfile"]])
+
 fa.sizes <- read.table(snakemake@input[["faidx"]], header = F)[,1:2]
 colnames(fa.sizes) <- c("contig", "size")
 fa.sizes
