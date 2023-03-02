@@ -1,10 +1,15 @@
+cat("start")
 library(dplyr)
+cat("dplyr ok")
 library(ggplot2)
+cat("ggplot ok")
 library(magrittr)
+cat("magrittr ok")
 library(DT)
+cat("DT ok")
 
-print(snakemake@input[["faidx"]])
-print(snakemake@input[["statsfile"]])
+cat(snakemake@input[["faidx"]])
+cat(snakemake@input[["statsfile"]])
 
 fa.sizes <- read.table(snakemake@input[["faidx"]], header = F)[,1:2]
 colnames(fa.sizes) <- c("contig", "size")
