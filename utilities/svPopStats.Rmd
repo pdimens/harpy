@@ -33,12 +33,12 @@ library(DT)
 ```
 
 ```{r echo = FALSE}
-fa.sizes <- read.table(snakemake@input[[2]], header = F)[,1:2]
+fa.sizes <- read.table(snakemake@input[["faidx"]], header = F)[,1:2]
 colnames(fa.sizes) <- c("contig", "size")
 ```
 
 ```{r message = FALSE, echo = FALSE}
-sv <- do.call(rbind, lapply(snakemake@input[[1]], function(x) read.table(x, header = T)))
+sv <- do.call(rbind, lapply(snakemake@input[["statsfiles"]], function(x) read.table(x, header = T)))
 #sv <- read.table("~/1.sv.stats", header = T)
 #sv2 <- read.table("~/2.sv.stats", skip = 1, header = F)
 #colnames(sv2) <- colnames(sv)
@@ -127,3 +127,6 @@ for (i in unique(fa.sizes$contig)) {
 }
 ```
 
+```
+save.image()
+```

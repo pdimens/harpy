@@ -33,12 +33,12 @@ library(DT)
 
 
 ```{r echo = FALSE}
-fa.sizes <- read.table(snakemake@input[[2]], header = F)[,1:2]
+fa.sizes <- read.table(snakemake@input[["faidx"]], header = F)[,1:2]
 colnames(fa.sizes) <- c("contig", "size")
 ```
 
 ```{r echo = FALSE, warnings= FALSE, message = FALSE}
-sv <- read.table(snakemake@input[[1]], header = T)
+sv <- read.table(snakemake@input[["statsfile"]], header = T)
 sv <- merge(x=sv,y=fa.sizes, by="contig")
 sv$length <- gsub("\\.", "1", sv$length) %>%  as.numeric()
 
