@@ -62,6 +62,7 @@ graph LR
     C-->D([index BCFs])
     D-->E([combine BCFs])
     C-->E
+    E-->F([generate reports])
 ```
 
 ### Leviathan
@@ -103,4 +104,5 @@ graph LR
     A([index barcodes]) --> B([leviathan])
     B-->C([convert to BCF])
     C-->D([index BCFs])
+    C-->E([generate reports])
 ```
