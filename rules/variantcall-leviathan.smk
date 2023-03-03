@@ -13,7 +13,7 @@ if not os.path.exists(f"Assembly/{bn}"):
 rule index_alignment:
     input: bam_dir + "/{sample}.bam"
     output: bam_dir + "/{sample}.bam.bai"
-    message: "Indexing barcodes: {wildcards.sample}"
+    message: "Indexing alignment: {wildcards.sample}"
     benchmark: "Benchmark/Variants/leviathan/indexbam.{sample}.txt"
     shell:
         """
