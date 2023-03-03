@@ -7,13 +7,7 @@ order: 6
 # Quality Trimming Sequence Data
 |||  :icon-checklist: You will need
 - at least 2 cores/threads available
-- b/gzipped fastq sequence files
-    - paired-end files
-    - file extension is either `.fastq.gz` or `.fq.gz` (do not mix)
-    - forward-reverse is noted as either `.1.`/`.2.` **or** `.F.`/`.R.` (do no mix)
-        - _e.g._ `samplename.F.fq.gz` and `samplename.R.fq.gz`
-        - _e.g._ `samplename.1.fq.gz` and `samplename.2.fq.gz`
-        - or the same but ending with `.fastq.gz`, but don't mix and match
+- paired-end b/gzipped fastq sequence files
 |||
 
 You can remove adapters and quality trim sequences using:
@@ -30,6 +24,18 @@ harpy trim OPTIONS...
 | `--threads`      |    `-t`    | integer     |    4    |    no    | Number of threads to use                                               |
 | `--snakemake`    |    `-s`    | string      |         |    no    | Additional Snakemake options, in quotes ([more info](../snakemake.md)) |
 | `--help`         |            |             |         |          | Show the module docstring                                              |
+
+## Fastq file format
+There are a handful of "accepted" naming schemes for fastq file extensions, but Harpy only accepts a limited number of them, shown below.
+The fastq files **must** be bzipped or gzipped and be **consistent** with regards to the extensions and read-pair naming styles.
+That is, all your files must only use `.fastq.gz` or only use `.fq.gz` for all files, and the same for `.1.`/`.2.` or `.F.`/`.R.`.
+Notice that the read pair part differs from the [accepted fastq formats](readmapping.md/#fastq-file-format) for aligning reads.
+#### acceptable formats
+- file extension is either `.fastq.gz` or `.fq.gz` (do not mix)
+- forward-reverse is provided as either `.1.`/`.2.` **or** `.F.`/`.R.` (do no mix)
+    - _e.g._ `samplename.F.fq.gz` and `samplename.R.fq.gz`
+    - _e.g._ `samplename.1.fq.gz` and `samplename.2.fq.gz`
+    - or the same but ending with `.fastq.gz`, but don't mix and match
 
 ---
 ## Fastp Workflow

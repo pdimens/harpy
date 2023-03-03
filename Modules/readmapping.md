@@ -8,14 +8,7 @@ order: 5
 |||  :icon-checklist: You will need
 - at least 4 cores/threads available
 - a genome assembly in FASTA format
-- b/gzipped fastq sequence files
-    - paired-end files
-    - file extension is either `.fastq.gz` or `.fq.gz` (do not mix)
-    - forward-reverse is noted as either `.R1.`/`.R2.` or `_R1.`/`_R2.` (do no mix)
-        - _e.g._ `samplename.R1.fq.gz` and `samplename.R2.fq.gz`
-        - _e.g._ `samplename_R1.fq.gz` and `samplename_R2.fq.gz`
-        - or the same but ending with `.fastq.gz`, but don't mix and match
-
+- paired-end b/gzipped fastq sequence files
 |||
 You can map reads onto genome assemblies with Harpy by calling the `align` module:
 ```bash
@@ -33,6 +26,18 @@ harpy align OPTIONS...
 | `--threads`      |    `-t`    | integer     |    4    |    no    | Number of threads to use                                               |
 | `--snakemake`    |    `-s`    | string      |         |    no    | Additional Snakemake options, in quotes ([more info](../snakemake.md)) |
 | `--help`         |            |             |         |          | Show the module docstring                                              |
+
+## Fastq file format
+There are a handful of "accepted" naming schemes for fastq file extensions, but Harpy only accepts a limited number of them, shown below.
+The fastq files **must** be bzipped or gzipped and be **consistent** with regards to the extensions and read-pair naming styles.
+That is, all your files must only use `.fastq.gz` or only use `.fq.gz` for all files, and the same for `.R1.`/`.R2.` or `_R1.`/`_R2.`.
+Notice that the read pair part differs from the [accepted fastq formats](qualitytrimming.md/#fastq-file-format) for read trimming.
+#### acceptable formats
+- file extension is either `.fastq.gz` or `.fq.gz` (do not mix)
+    - forward-reverse is noted as either `.R1.`/`.R2.` **or** `_R1.`/`_R2.` (do no mix)
+        - _e.g._ `samplename.R1.fq.gz` and `samplename.R2.fq.gz`
+        - _e.g._ `samplename_R1.fq.gz` and `samplename_R2.fq.gz`
+    - or the same but ending with `.fastq.gz`, but don't mix and match
 
 ----
 

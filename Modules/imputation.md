@@ -8,10 +8,7 @@ order: 3
 
 |||  :icon-checklist: You will need
 - a tab-delimited parameter file 
-    - create with `harpy extra --stitch-params`
-    - modify the file with parameters suitable for your study
-- a variant call format file (_e.g._ from `mpileup` with `harpy variants ...`)
-    - accepted formats: `.vcf`, `.vcf.gz`, `.bcf`
+- a variant call format file (`.vcf`, `.vcf.gz`, `.bcf`)
 - sequence alignments, in `.bam` format
 |||
 
