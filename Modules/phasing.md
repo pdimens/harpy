@@ -9,7 +9,6 @@ order: 2
 |||  :icon-checklist: You will need
 - at least 2 cores/threads available
 - a vcf/bcf file of genotypes
-    - like the one produce using `harpy impute`
 - alignment files in `.bam` format
 |||
 
