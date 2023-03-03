@@ -10,7 +10,10 @@ order: 6
 - paired-end b/gzipped fastq sequence files
 |||
 
-You can remove adapters and quality trim sequences using:
+Raw sequences are not suitable for downstream analyses. They have sequencing adapters,
+index sequences, regions of poor quality, etc. The first step of any genetic sequence
+analyses is to remove these adapters and trim poor quality data. You can remove adapters
+and quality trim sequences using the `trim` module:
 ```bash
 harpy trim OPTIONS... 
 ```

@@ -12,7 +12,11 @@ order: 2
 - alignment files in `.bam` format
 |||
 
-You can phase genotypes into haplotypes using:
+You may want to phase your genotypes into haplotypes, as haplotypes tend to be more informative
+than unphased genotypes (higher polymorphism, captures relationship between genotypes). Phasing
+genotypes into haplotypes requires alignment files, such as those produced by `harpy align` and
+a variant call file, such as those produced by `harpy variants` or `harpy impute`. Phasing only
+works on SNP data, and will not work for structural variants produced by `LEVIATHAN`. You can phase genotypes into haplotypes with Harpy using the `phase` module:
 ```bash
 harpy phase OPTIONS... 
 ```

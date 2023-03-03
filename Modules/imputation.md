@@ -12,7 +12,12 @@ order: 3
 - sequence alignments, in `.bam` format
 |||
 
-You can impute genotypes with Harpy by calling the `impute` module:
+After variants have been called, you may want to impute missing genotypes to get the
+most from your data. Harpy uses `STITCH` to impute genotypes, a haplotype-based
+method that is linked-read aware. Imputing genotypes requires a variant call file 
+**containing SNPs**, such as that produced by `harpy variants`. STITCH cannot impute
+genotypes with the variant call files produced by `LEVIATHAN`, as they do not contain SNPs.
+You can impute genotypes with Harpy using the `impute` module:
 ```bash
 harpy impute OPTIONS...
 ```
@@ -122,8 +127,7 @@ iterate over these model parameters.
 
 ```mermaid
 graph LR
-    A([count contigs]) --> B([split contigs])
-    B-->C([keep biallelic SNPs])
+    B([split contigs])-->C([keep biallelic SNPs])
     C-->D([convert to STITCH format])
     D-->E([STITCH imputation])
     E-->F([merge output])

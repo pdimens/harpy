@@ -12,7 +12,10 @@ order: 4
 - sample grouping file ([see below](#sample-grouping-file))
 |||
 
-You can call variants with Harpy by calling the `variants` module:
+After reads have been aligned, e.g. with `harpy align`, you can use those alignment files
+(`.bam`) to call variants in your data. Harpy can call variants using `bcftools mpileup`,
+which calls SNPs and indels primarily, or with `LEVIATHAN`, which only calls structural variants (SV)
+such as inversions and duplications. You can call variants with Harpy using the `variants` module:
 ```bash
 harpy variants OPTIONS... 
 ```

@@ -10,7 +10,11 @@ order: 5
 - a genome assembly in FASTA format
 - paired-end b/gzipped fastq sequence files
 |||
-You can map reads onto genome assemblies with Harpy by calling the `align` module:
+
+Once sequences have been trimmed and passed through other QC filters, they will need to
+be aligned to a reference genome. This module within Harpy expects filtered reads as input,
+such as those derived using `harpy trim`. You can map reads onto a genome assembly with Harpy 
+using the `align` module:
 ```bash
 harpy align OPTIONS...
 ```
@@ -85,6 +89,7 @@ The [BWA MEM](https://github.com/lh3/bwa) workflow is substantially simpler than
 
 ```mermaid
 graph LR
+    Z([trimmed reads]) --> B
     A([index genome]) --> B([align to genome])
     B-->C([sort alignments])
     C-->D([mark duplicates])
