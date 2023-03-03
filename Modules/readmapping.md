@@ -33,8 +33,8 @@ harpy align OPTIONS...
 
 ## Fastq file format
 There are a handful of "accepted" naming schemes for fastq file extensions, but Harpy only accepts a limited number of them, shown below.
-The fastq files **must** be bzipped or gzipped and be **consistent** with regards to the extensions and read-pair naming styles.
-That is, all your files must only use `.fastq.gz` or only use `.fq.gz` for all files, and the same for `.R1.`/`.R2.` or `_R1.`/`_R2.`.
+The fastq files **must** be bgzipped or gzipped and be **consistent** with regards to the extensions and read-pair naming styles.
+That is, you must only use `.fastq.gz` or only use `.fq.gz` for all files, and the same for `.R1.`/`.R2.` or `_R1.`/`_R2.`.
 Notice that the read pair part differs from the [accepted fastq formats](qualitytrimming.md/#fastq-file-format) for read trimming.
 #### acceptable formats
 - file extension is either `.fastq.gz` or `.fq.gz` (do not mix)
