@@ -39,6 +39,13 @@ colnames(fa.sizes) <- c("contig", "size")
 
 ```{r echo = FALSE, warnings= FALSE, message = FALSE}
 sv <- read.table(snakemake@input[["statsfile"]], header = T)
+if (nrow(sv) == 0) {
+  print("No variants in the file")
+  q()
+}
+```
+
+```{r echo = FALSE, warnings= FALSE, message = FALSE}
 sv <- merge(x=sv,y=fa.sizes, by="contig")
 sv$length <- gsub("\\.", "1", sv$length) %>%  as.numeric()
 
