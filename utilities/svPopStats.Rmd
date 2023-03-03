@@ -45,8 +45,8 @@ if (nrow(sv) == 0) {
   q()
 }
 
-sv <- merge(x=sv,y=fa.sizes, by="contig")
-sv$length <- gsub("\\.", "1", sv$length) %>% as.numeric()
+sv <- merge(x=sv,y=fa.sizes, by="contig", )
+sv$length <- as.numeric(gsub("\\.", "1", sv$length))
 ```
 
 ```{r echo = FALSE, message = FALSE}
@@ -94,7 +94,12 @@ Contigs that are absent did not have any SV's detected on them. Within each
 contig, each population is plotted as a labeled row to help visualize shared
 variants between populations. Plotting only the first 30 contigs.
 
-```{r echo = FALSE, fig.height = 2, warning=FALSE}
+```{r echo= FALSE, warning=FALSE, message=FALSE}
+plotheight <- length(snakemake@input[["statsfiles"]]) / 2
+```
+
+
+```{r echo = FALSE, fig.height=plotheight, warning=FALSE}
 .i <- 0
 for (i in unique(fa.sizes$contig)) {
   .i <- .i + 1
