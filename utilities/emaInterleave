@@ -18,7 +18,7 @@ fi
 
 FASTQpaste () {
     # add BX tag with a space to keep formatting from getting messed up
-    pigz -c -d $1 | paste - - - - | awk '{print $1" "$2"\t"$5"\t"$6"\t"$7}'
+    gzip -c -d $1 | paste - - - - | awk '{print $1" "$2"\t"$5"\t"$6"\t"$7}'
 }
 
 # last tr command converts the \sBX: tag to \tBX:
