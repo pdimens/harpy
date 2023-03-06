@@ -140,7 +140,7 @@ rule align_nobarcode:
 rule sort_ema:
     input: 
         sam = "ReadMapping/ema/{sample}/{sample}.{emabin}.sam",
-        genome = "Assembly/{genomefile}"
+        genome = f"Assembly/{genomefile}"
     output: temp("ReadMapping/ema/{sample}/{sample}.{emabin}.bam")
     wildcard_constraints:
         sample = "[a-zA-Z0-9_-]*",
