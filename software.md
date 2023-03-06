@@ -27,5 +27,6 @@ Issues with specific tools might warrant a discussion with the authors/developer
 | rich-click | [website](https://github.com/ewels/rich-click)               |                                                                                                        |
 | sambamba   | [website](https://github.com/biod/sambamba)                  | [publication](https://doi.org/10.1093/bioinformatics/btv098)                                           |
 | samtools   | [website](http://www.htslib.org/)                            |                                                                                                        |
+| seqkit     | [website](https://bioinf.shenwei.me/seqkit/)                 | [publication](https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0163962)               |
 | Snakemake  | [website](https://github.com/snakemake/snakemake)            | [publication](https://f1000research.com/articles/10-33/v1)                                             |
 | STITCH     | [website](https://github.com/rwdavies/STITCH)                | [publication](https://doi.org/10.1038%2Fng.3594)                                                       |
