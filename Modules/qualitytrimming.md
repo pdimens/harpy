@@ -25,7 +25,7 @@ harpy trim OPTIONS...
 | `--max-length`   |    `-l`    | integer     |   150   |    no    | Maximum length to trim sequences down to                               |
 | `--extra-params` |    `-x`    | string      |         |    no    | Additional Hapcut2 parameters, in quotes                               |
 | `--threads`      |    `-t`    | integer     |    4    |    no    | Number of threads to use                                               |
-| `--snakemake`    |    `-s`    | string      |         |    no    | Additional Snakemake options, in quotes ([more info](../snakemake.md)) |
+| `--snakemake`    |    `-s`    | string      |         |    no    | Additional Snakemake options, in quotes ([more info](../getstarted.md/#adding-additional-snakamake-parameters)) |
 | `--help`         |            |             |         |          | Show the module docstring                                              |
 
 ## Fastq file format

@@ -29,7 +29,7 @@ harpy impute OPTIONS...
 | `--directory`  |    `-d`    | folder path |               | **yes**  | Directory with sequence alignments                                     |
 | `--parameters` |    `-p`    | file path   | stitch.params | **yes**  | STITCH parameter file (tab-delimited)                                  |
 | `--threads`    |    `-t`    | integer     |       4       |    no    | Number of threads to use                                               |
-| `--snakemake`  |    `-s`    | string      |               |    no    | Additional Snakemake options, in quotes ([more info](../snakemake.md)) |
+| `--snakemake`  |    `-s`    | string      |               |    no    | Additional Snakemake options, in quotes ([more info](../getstarted.md/#adding-additional-snakamake-parameters)) |
 | `--help`       |            |             |               |          | Show the module docstring                                              |
 
 ## Parameter file

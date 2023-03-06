@@ -30,7 +30,7 @@ harpy phase OPTIONS...
 | `--prune-threshold`   |    `-p`    | integer (0-100) |    7    |    no    | PHRED-scale (%) threshold for pruning low-confidence SNPs               |
 | `--extra-params`      |    `-x`    | string          |         |    no    | Additional Hapcut2 parameters, in quotes                                |
 | `--threads`           |    `-t`    | integer         |    4    |    no    | Number of threads to use                                                |
-| `--snakemake`         |    `-s`    | string          |         |    no    | Additional Snakemake options, in quotes ([more info](../snakemake.md))  |
+| `--snakemake`         |    `-s`    | string          |         |    no    | Additional Snakemake options, in quotes ([more info](../getstarted.md/#adding-additional-snakamake-parameters))  |
 | `--help`              |            |                 |         |          | Show the module docstring                                               |
 
 
