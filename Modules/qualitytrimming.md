@@ -5,10 +5,10 @@ order: 6
 ---
 
 # Quality Trimming Sequence Data
-|||  :icon-checklist: You will need
+===  :icon-checklist: You will need
 - at least 2 cores/threads available
 - paired-end b/gzipped fastq sequence files
-|||
+===
 
 Raw sequences are not suitable for downstream analyses. They have sequencing adapters,
 index sequences, regions of poor quality, etc. The first step of any genetic sequence
@@ -28,17 +28,21 @@ harpy trim OPTIONS...
 | `--snakemake`    |    `-s`    | string      |         |    no    | Additional Snakemake options, in quotes ([more info](../getstarted.md/#adding-additional-snakamake-parameters)) |
 | `--help`         |            |             |         |          | Show the module docstring                                              |
 
-## Fastq file format
+## FASTQ file format
 There are a handful of "accepted" naming schemes for fastq file extensions, but Harpy only accepts a limited number of them, shown below.
 The fastq files **must** be bgzipped or gzipped and be **consistent** with regards to the extensions and read-pair naming styles.
-That is, you must only use `.fastq.gz` or only use `.fq.gz` for all files, and the same for `.1.`/`.2.` or `.F.`/`.R.`.
+That is, you must only use `.fastq.gz` or only use `.fq.gz` for all files, and the same for `.1.`/`.2.` or `.F.`/`.R.` (adhere to a single row in the table below).
 Notice that the read pair part differs from the [accepted fastq formats](readmapping.md/#fastq-file-format) for aligning reads.
-#### acceptable formats
-- file extension is either `.fastq.gz` or `.fq.gz` (do not mix)
-- forward-reverse is provided as either `.1.`/`.2.` **or** `.F.`/`.R.` (do no mix)
-    - _e.g._ `samplename.F.fq.gz` and `samplename.R.fq.gz`
-    - _e.g._ `samplename.1.fq.gz` and `samplename.2.fq.gz`
-    - or the same but ending with `.fastq.gz`, but don't mix and match
+=== acceptable formats
+
+| forward-reverse notation | extension  | example forward          | example reverse         |
+|:-------------------------|:-----------|:-------------------------|:------------------------|
+| `.F` / `.R`                | `fastq.gz` | ` samplename.F.fastq.gz` | `samplename.R.fastq.gz` |
+| `.F` / `.R`                | `fq.gz`    | `samplename.F.fq.gz`     | `samplename.R.fq.gz`    |
+| `.1` / `.2`                | `fastq.gz` | `samplename.2.fastq.gz`  | `samplename.2.fastq.gz` |
+| `.1` / `.2`                | `fq.gz`    | `samplename.1.fq.gz`     | `samplename.2.fq.gz`    |
+
+===
 
 ---
 ## Fastp Workflow

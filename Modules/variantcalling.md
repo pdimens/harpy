@@ -5,12 +5,12 @@ order: 4
 ---
 
 # Calling Variants
-|||  :icon-checklist: You will need
+===  :icon-checklist: You will need
 - at least 4 cores/threads available
 - a genome assembly in FASTA format
-- alignment files
+- sequence alignments, in `.bam` format
 - sample grouping file ([see below](#sample-grouping-file))
-|||
+===
 
 After reads have been aligned, e.g. with `harpy align`, you can use those alignment files
 (`.bam`) to call variants in your data. Harpy can call variants using `bcftools mpileup`,
@@ -85,14 +85,14 @@ population and call SV's on these alignment pools. Preliminary work shows that t
 positives. **However**, individual-level information gets lost using this approach, so you will only be able to assess 
 population-level variants, if that's what your primary interest is. 
 
-!!!warning Potential barcode clashing
+==- :icon-alert: Potential barcode clashing :icon-alert:
 If pooling by population, be mindful of potential sources of barcode clashing. For example, Gen I haplotagging uses 4-segment beadtags,
 `AXXCXXBXXDXX`, where `A`, `B`, `C`, and `D` can range from `1`-`96`, but the `C` barcode is specific for a sample (i.e. it does not change within
 a sample). If your samples were sequenced across different lanes (i.e. were not prepared on the same plate in the laboratory), a common method to
 reduce artifactual sequencing bias, then there's a possibility multiple samples within a population might have the same `C` barcode due to laboratory
 preparation. If you have samples within a population with clashing `C` barcodes, you will need to replace the `C` part of the barcode in the BAM headers
 to make sure each sample has a unique `C`, otherwise it might confuse Leviathan.
-!!!
+==-
 
 ```mermaid
 graph LR

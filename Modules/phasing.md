@@ -6,11 +6,11 @@ order: 2
 
 # Phasing Haplotypes
 
-|||  :icon-checklist: You will need
+===  :icon-checklist: You will need
 - at least 2 cores/threads available
 - a vcf/bcf file of genotypes
-- alignment files in `.bam` format
-|||
+- sequence alignments, in `.bam` format
+===
 
 You may want to phase your genotypes into haplotypes, as haplotypes tend to be more informative
 than unphased genotypes (higher polymorphism, captures relationship between genotypes). Phasing

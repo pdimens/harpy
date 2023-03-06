@@ -3,22 +3,21 @@ label: Before you start
 icon: check-circle
 order: 97
 ---
-
+# Before you start
+## Required files and formats
 Before you start using Harpy for your haplotagging data processing, you will need to make sure you have a few things on hand for things to go smoothly.
 At the minimum, you will need:
 
-||| 1. Haplotagging sequences, in b/gzipped FASTQ format
+=== 1. Haplotagging sequences, in b/gzipped FASTQ format
 - the haplotagging sequences **must** have the barcode in the read headers. 
 - the barcode must be in the format `AXXCXXBXXDXX`, where `XX` is a number between `00` and `96`
     - `00` indicates a missing/invalide barcode segment
 - the barcode must be preceded by a `BX:Z` tag in the read header
     - _e.g._ `@A00470:481:HNYFWDRX2:1:2101:16062:1031 BX:Z:A62C38B38D99 1:N:0:TATCAGTA+TTACTACT`
-|||
-
-||| 2. A reference genome, in FASTA format
+=== 2. A reference genome, in FASTA format
 A plain haploid genome assembly in uncompressed FASTA format, where contigs names begin with `>` like the standard format. Try to avoid special/nonstandard characters in the contig names (it's just a good habit, 
 might not affect anything).
-|||
+===
 
 ## Adding additional Snakamake parameters
 Harpy relies on Snakemake under the hood to handle file and job dependencies. Most of these details have been abstracted away from the end-user, but every module of Harpy (except `extra`) has an optional flag `-s` (`--snakemake`) that you can use to augment the Snakemake workflow if necessary. Whenever you use this flag, your argument must be enclosed in quotation marks, for example:

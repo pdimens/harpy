@@ -6,11 +6,11 @@ order: 3
 
 # Impute Genotypes using Sequences
 
-|||  :icon-checklist: You will need
+===  :icon-checklist: You will need
 - a tab-delimited parameter file 
 - a variant call format file (`.vcf`, `.vcf.gz`, `.bcf`)
 - sequence alignments, in `.bam` format
-|||
+===
 
 After variants have been called, you may want to impute missing genotypes to get the
 most from your data. Harpy uses `STITCH` to impute genotypes, a haplotype-based
