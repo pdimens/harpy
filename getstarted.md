@@ -11,12 +11,11 @@ At the minimum, you will need:
 === 1. Haplotagging sequences, in b/gzipped FASTQ format
 - the haplotagging sequences **must** have the barcode in the read headers. 
 - the barcode must be in the format `AXXCXXBXXDXX`, where `XX` is a number between `00` and `96`
-    - `00` indicates a missing/invalide barcode segment
+    - `00` indicates a missing/invalid barcode segment
 - the barcode must be preceded by a `BX:Z` tag in the read header
     - _e.g._ `@A00470:481:HNYFWDRX2:1:2101:16062:1031 BX:Z:A62C38B38D99 1:N:0:TATCAGTA+TTACTACT`
 === 2. A reference genome, in FASTA format
-A plain haploid genome assembly in uncompressed FASTA format, where contigs names begin with `>` like the standard format. Try to avoid special/nonstandard characters in the contig names (it's just a good habit, 
-might not affect anything).
+A plain haploid genome assembly in uncompressed FASTA format, where contigs names begin with `>` like the standard format.
 ===
 
 ## Adding additional Snakamake parameters
