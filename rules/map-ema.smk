@@ -58,7 +58,6 @@ rule count_beadtags:
     threads: 1
     shell:
         """
-        #../utilities/emaInterleave 
         seqkit seq {input.forward_reads} {input.reverse_reads} | ema-h count -p -o {params} 2> {output.logs}
         """
 
