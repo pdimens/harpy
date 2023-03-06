@@ -110,7 +110,7 @@ rule sv_report:
         faidx = f"Assembly/{genomefile}.fai"
     output:	"Variants/leviathan/reports/{sample}.SV.html"
     message: "Generating SV report: {wildcards.sample}"
-    script:	"utilities/svStats.Rmd"
+    script:	"../utilities/svStats.Rmd"
 
 rule all_bcfs:
     input: 

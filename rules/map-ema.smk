@@ -58,7 +58,7 @@ rule count_beadtags:
     threads: 1
     shell:
         """
-        emaInterleave {input.forward_reads} {input.reverse_reads} | ema-h count -p -o {params} 2> {output.logs}
+        ../utilities/emaInterleave {input.forward_reads} {input.reverse_reads} | ema-h count -p -o {params} 2> {output.logs}
         """
 
 rule beadtag_summary:
