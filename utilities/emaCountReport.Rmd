@@ -37,11 +37,12 @@ to the correct format, `BX:Z:AXXCXXBXXDXX`, where there is a whitespace/tab befo
 
 ```{r echo = FALSE, message = FALSE, warning = FALSE}
 BXstats <- data.frame(
-            Sample=character(),
-            ReadsIgnored=integer(),
-            BarcodeValid=integer(),
-            BarcodeTotal=integer(),
-            PercentValid=numeric()
+            Sample = character(),
+            ReadsIgnored = integer(),
+            BarcodeValid = integer(),
+            BarcodeTotal = integer(),
+            PercentValid = numeric(),
+            PercentIgnored = numeric()
 )
 
 #for (i in list.files("/home/pdimens", "count.log", full.names = TRUE)) {
@@ -53,14 +54,16 @@ for (i in snakemake@input[["countlog"]]) {
   counts <- as.numeric(unlist(regmatches(bc_line, matches)))
   bc_ok <- counts[1]
   bc_total <- counts[2]
+  ignored <- as.numeric(gsub("[^0-9]", "", filetext[3]))
   if (bc_total == 0) {
     bc_percent <- 0
+    ig_percent <- 0
   } else {
     bc_percent <- trunc((bc_ok / bc_total) * 10000) / 100
+    ig_percent <- trunc((ignored / bc_total) * 10000) / 100
   }
-  ignored <- as.numeric(gsub("[^0-9]", "", filetext[3]))
 
-  BXstats <- rbind(BXstats, data.frame(Sample = samplename, ReadsIgnored = ignored, BarcodeValid = bc_ok, BarcodeTotal = bc_total, PercentValid = bc_percent))
+  BXstats <- rbind(BXstats, data.frame(Sample = samplename, ReadsIgnored = ignored, BarcodeValid = bc_ok, BarcodeTotal = bc_total, PercentValid = bc_percent, PercentIgnored = ig_percent))
 }
 DT::datatable(BXstats, rownames = F, filter = "top", extensions = 'Buttons', options = list(dom = 'Brtip', buttons = c('csv', 'pdf'), scrollX = TRUE))
 ```
