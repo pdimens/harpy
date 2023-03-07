@@ -66,12 +66,12 @@ DT::datatable(BXstats, rownames = F, filter = "top", extensions = 'Buttons', opt
 ```
 
 
-```{r echo = FALSE, message = FALSE, warning = FALSE}
+```{r echo = FALSE, message = FALSE, warning = FALSE, out.width = '100%'}
 p <- BXstats %>% 
   mutate(Invalid = BarcodeTotal - BarcodeValid) %>% 
   rename(Valid = BarcodeValid) %>% 
   select(Sample, Valid, Invalid) %>% 
-  pivot_longer(-Sample, names_to = "BarcodeStatus", values_to = "Count") %>% 
+  pivot_longer(-Sample, names_to = "BarcodeStatus", values_to = "Count") %>%
   ggplot(aes(x = Sample, y = Count, fill = BarcodeStatus)) +
     geom_col() +
     theme_minimal() +
