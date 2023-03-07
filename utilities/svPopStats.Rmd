@@ -51,7 +51,7 @@ sv$length <- as.numeric(gsub("\\.", "1", sv$length))
 
 ## General information
 This table shows the overall counts, average per contig, and standard deviation per contig for detected structural variants across populations.
-```{r echo = FALSE}
+```{r echo = FALSE, warnings= FALSE, message = FALSE}
 genstats <- sv %>% group_by(population, contig, type) %>% summarise(tot = n()) %>% 
   group_by(population, type) %>% summarise(count = sum(tot), avg = mean(tot, na.rm = T), sd = sd(tot, na.rm = T)) %>% 
   pivot_wider(names_from = type, values_from = c(count, avg, sd), names_glue = "{type}.{.value}", names_vary = "slowest")
@@ -62,7 +62,7 @@ DT::datatable(genstats, rownames = F, filter = "top", extensions = 'Buttons', op
 ## Per-contig information
 ### counts per contig
 This table details counts each type of structural variant for every contig for every population.
-```{r echo = FALSE}
+```{r echo = FALSE, warnings= FALSE, message = FALSE}
 grpcounts <- sv %>% group_by(population, contig, type) %>% summarise(count = n()) %>% 
   pivot_wider(names_from = population, values_from = count)
 
@@ -71,7 +71,7 @@ DT::datatable(grpcounts, rownames = F, filter = "top", extensions = 'Buttons', o
 
 ### bp per contig
 This table details the lengths (in bp) of SV's for every contig for every population.
-```{r echo = FALSE}
+```{r echo = FALSE, warnings= FALSE, message = FALSE}
 grplens <- sv %>% group_by(population, contig, type) %>% 
   summarise(bp = sum(length)) %>% 
   pivot_wider(names_from = population, values_from = bp)
@@ -92,7 +92,7 @@ plotheight <- length(snakemake@input[["statsfiles"]]) / 2
 ```
 
 
-```{r echo = FALSE, fig.height=plotheight, warning=FALSE}
+```{r echo = FALSE, fig.height=plotheight, out.width = '100%', warning=FALSE}
 .i <- 0
 for (i in unique(fa.sizes$contig)) {
   .i <- .i + 1

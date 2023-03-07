@@ -78,7 +78,7 @@ DT::datatable(grpstats, rownames = F, filter = "top", extensions = 'Buttons', op
 The plots below are a visual representation of each SV where it was detected.
 Contigs that are absent did not have any SV's detected on them. Plotting only the first 30 contigs.
 
-```{r echo = FALSE, fig.height = 1.5, warning=FALSE}
+```{r echo = FALSE, fig.height = 1.5, out.width = '100%', warning=FALSE}
 .i <- 0
 for (i in unique(fa.sizes$contig)) {
   .i <- .i + 1
