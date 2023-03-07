@@ -1,0 +1,73 @@
+---
+  title: "EMA count beadtag processing"
+author:
+  - "Created using HARPY"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output:
+  html_document:
+  highlight: tango
+number_sections: no
+theme: cosmo
+df_print: kable
+toc: yes
+toc_depth: 2
+toc_float:
+  collapsed: no
+smooth_scroll: yes
+---
+  
+```{r echo = FALSE, message = FALSE}
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+library(magrittr)
+library(DT)
+library(plotly)
+```
+
+```{r echo = FALSE, message = FALSE}
+BXstats <- data.frame(
+            Sample=character(),
+            ReadsIgnored=integer(),
+            BarcodeValid=integer(),
+            BarcodeTotal=integer(),
+            PercentValid=numeric()
+)
+
+#for (i in list.files("/home/pdimens", "count.log", full.names = TRUE)) {
+for (i in snakemake@input[["countlog"]])) {  
+  samplename <- gsub(".count.log", "", basename(i))
+  filetext <- readLines(i)
+  bc_line <- unlist(strsplit(filetext[2], " "))
+  ignored <- as.numeric(unlist(strsplit(filetext[3], " "))[3])
+  bc_len <- length(bc_line)
+  bc_ok <- as.numeric(gsub(",", "", bc_line[6]))
+  bc_total <- as.numeric(gsub(",", "", bc_line[bc_len]))
+  bc_percent <- trunc((bc_ok / bc_total) * 10000) / 100
+  BXstats <- rbind(BXstats, data.frame(Sample = samplename, ReadsIgnored = ignored, BarcodeValid = bc_ok, BarcodeTotal = bc_total, PercentValid = bc_percent))
+}
+DT::datatable(BXstats, rownames = F, filter = "top", extensions = 'Buttons', options = list(dom = 'Brtip', buttons = c('csv', 'pdf'), scrollX = TRUE))
+```
+
+
+```{r echo = FALSE, message = FALSE}
+p <- BXstats %>% 
+  mutate(Invalid = BarcodeTotal - BarcodeValid) %>% 
+  rename(Valid = BarcodeValid) %>% 
+  select(Sample, Valid, Invalid) %>% 
+  pivot_longer(-Sample, names_to = "BarcodeStatus", values_to = "Count") %>% 
+  ggplot(aes(x = Sample, y = Count, fill = BarcodeStatus)) +
+    geom_col() +
+    theme_minimal() +
+    theme(
+      panel.grid.major.x = element_blank(),
+      axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)
+    ) +
+    scale_fill_manual(values = c(Valid = "#afd5e7", Invalid = "#aa6f73")) +
+  labs(title = "Summary of Valid Barcodes") 
+  
+plt <- ggplotly(p) %>% layout(hovermode = "x")
+
+plt
+
+```
