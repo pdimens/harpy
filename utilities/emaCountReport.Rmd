@@ -48,16 +48,17 @@ BXstats <- data.frame(
 for (i in snakemake@input[["countlog"]]) {
   samplename <- gsub(".count.log", "", basename(i))
   filetext <- readLines(i)
-  bc_line <- unlist(strsplit(filetext[2], " "))
-  ignored <- as.numeric(unlist(strsplit(filetext[3], " "))[3])
-  bc_len <- length(bc_line)
-  bc_ok <- as.numeric(gsub(",", "", bc_line[6]))
-  bc_total <- as.numeric(gsub(",", "", bc_line[bc_len]))
+  bc_line <- gsub(",", "", filetext[2])
+  matches <- gregexpr('[0-9]+', bc_line)
+  counts <- as.numeric(unlist(regmatches(bc_line, matches)))
+  bc_ok <- counts[1]
+  bc_total <- counts[2]
   if (bc_total == 0) {
     bc_percent <- 0
   } else {
     bc_percent <- trunc((bc_ok / bc_total) * 10000) / 100
   }
+  ignored <- as.numeric(gsub("[^0-9]", "", filetext[3]))
 
   BXstats <- rbind(BXstats, data.frame(Sample = samplename, ReadsIgnored = ignored, BarcodeValid = bc_ok, BarcodeTotal = bc_total, PercentValid = bc_percent))
 }
