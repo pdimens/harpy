@@ -53,7 +53,7 @@ sv$length <- as.numeric(gsub("\\.", "1", sv$length))
 This table shows the overall counts, average per contig, and standard deviation per contig for detected structural variants across populations.
 ```{r echo = FALSE, warnings= FALSE, message = FALSE}
 genstats <- sv %>% group_by(population, contig, type) %>% summarise(tot = n()) %>% 
-  group_by(population, type) %>% summarise(count = sum(tot), avg = mean(tot, na.rm = T), sd = sd(tot, na.rm = T)) %>% 
+  group_by(population, type) %>% summarise(count = sum(tot), avg = round(mean(tot, na.rm = T),2 ), sd = round(sd(tot, na.rm = T), 2)) %>% 
   pivot_wider(names_from = type, values_from = c(count, avg, sd), names_glue = "{type}.{.value}", names_vary = "slowest")
 
 DT::datatable(genstats, rownames = F, filter = "top", extensions = 'Buttons', options = list(dom = 'Brtip', buttons = c('csv', 'pdf'), scrollX = TRUE))
@@ -115,7 +115,8 @@ for (i in unique(fa.sizes$contig)) {
       panel.grid.major = element_blank(),
       panel.grid.minor = element_blank()
     ) +
-    xlim(1, sv.filt$size[1]) +
+    xlim(0, sv.filt$size[1]) +
+    coord_cartesian(xlim = c(0, sv.filt$size[1] + 1), expand = F) +
     xlab("Position (bp)") +
     labs(fill = "SV type", color = "SV type") +
     ggtitle(i)
