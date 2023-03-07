@@ -49,40 +49,33 @@ sv <- merge(x=sv,y=fa.sizes, by="contig", )
 sv$length <- as.numeric(gsub("\\.", "1", sv$length))
 ```
 
-```{r echo = FALSE, message = FALSE}
-grpcounts <- sv %>% group_by(population, contig, type) %>% summarise(count = n()) %>% 
-  pivot_wider(names_from = population, values_from = count)
-
-grplens <- sv %>% group_by(population, contig, type) %>% 
-  summarise(bp = sum(length)) %>% 
-  pivot_wider(names_from = population, values_from = bp)
-```
-
 ## General information
 This table shows the overall counts, average per contig, and standard deviation per contig for detected structural variants across populations.
 ```{r echo = FALSE}
-fnlist <- list(
-  count = ~sum(.x, na.rm = TRUE),
-  avg = ~round(mean(.x, na.rm = TRUE), 2),
-  sd = ~round(sd(.x, na.rm = TRUE), 2)
-)
-grpcounts %>% group_by(type) %>% summarise(
-  across(
-    where(is.numeric), fnlist, .names = "{.col}.{.fn}"
-  )
-)
+genstats <- sv %>% group_by(population, contig, type) %>% summarise(tot = n()) %>% 
+  group_by(population, type) %>% summarise(count = sum(tot), avg = mean(tot, na.rm = T), sd = sd(tot, na.rm = T)) %>% 
+  pivot_wider(names_from = type, values_from = c(count, avg, sd), names_glue = "{type}.{.value}", names_vary = "slowest")
+
+DT::datatable(genstats, rownames = F, filter = "top", extensions = 'Buttons', options = list(dom = 'Brtip', buttons = c('csv', 'pdf'), scrollX = TRUE))
 ```
 
 ## Per-contig information
 ### counts per contig
 This table details counts each type of structural variant for every contig for every population.
 ```{r echo = FALSE}
+grpcounts <- sv %>% group_by(population, contig, type) %>% summarise(count = n()) %>% 
+  pivot_wider(names_from = population, values_from = count)
+
 DT::datatable(grpcounts, rownames = F, filter = "top", extensions = 'Buttons', options = list(dom = 'Brtip', buttons = c('csv', 'pdf'), scrollX = TRUE))
 ```
 
 ### bp per contig
 This table details the lengths (in bp) of SV's for every contig for every population.
 ```{r echo = FALSE}
+grplens <- sv %>% group_by(population, contig, type) %>% 
+  summarise(bp = sum(length)) %>% 
+  pivot_wider(names_from = population, values_from = bp)
+
 DT::datatable(grplens, rownames = F, filter = "top", extensions = 'Buttons', options = list(dom = 'Brtip', buttons = c('csv', 'pdf'), scrollX = TRUE))
 ```
 
