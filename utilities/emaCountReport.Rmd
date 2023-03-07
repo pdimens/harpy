@@ -25,7 +25,14 @@ library(DT)
 library(plotly)
 ```
 
-```{r echo = FALSE, message = FALSE}
+## Barcode validity
+Below is a table listing all the samples Harpy processed and their associated barcode statistics as
+determined by `EMA count`. If `BarcodeTotal` equals `0` for some reason, then there is an issue
+with the format of your FASTQ files. Please check that the barcode in the read headers comforms 
+to the correct format, `BX:Z:AXXCXXBXXDXX`, where there is a whitespace/tab before `BX:Z:` and `XX` are
+2-digit numbers between `00` and `96`. 
+
+```{r echo = FALSE, message = FALSE, warning = FALSE}
 BXstats <- data.frame(
             Sample=character(),
             ReadsIgnored=integer(),
@@ -35,7 +42,7 @@ BXstats <- data.frame(
 )
 
 #for (i in list.files("/home/pdimens", "count.log", full.names = TRUE)) {
-for (i in snakemake@input[["countlog"]])) {  
+for (i in snakemake@input[["countlog"]]) {
   samplename <- gsub(".count.log", "", basename(i))
   filetext <- readLines(i)
   bc_line <- unlist(strsplit(filetext[2], " "))
@@ -43,14 +50,19 @@ for (i in snakemake@input[["countlog"]])) {
   bc_len <- length(bc_line)
   bc_ok <- as.numeric(gsub(",", "", bc_line[6]))
   bc_total <- as.numeric(gsub(",", "", bc_line[bc_len]))
-  bc_percent <- trunc((bc_ok / bc_total) * 10000) / 100
+  if (bc_total == 0) {
+    bc_percent <- 0
+  } else {
+    bc_percent <- trunc((bc_ok / bc_total) * 10000) / 100
+  }
+
   BXstats <- rbind(BXstats, data.frame(Sample = samplename, ReadsIgnored = ignored, BarcodeValid = bc_ok, BarcodeTotal = bc_total, PercentValid = bc_percent))
 }
 DT::datatable(BXstats, rownames = F, filter = "top", extensions = 'Buttons', options = list(dom = 'Brtip', buttons = c('csv', 'pdf'), scrollX = TRUE))
 ```
 
 
-```{r echo = FALSE, message = FALSE}
+```{r echo = FALSE, message = FALSE, warning = FALSE}
 p <- BXstats %>% 
   mutate(Invalid = BarcodeTotal - BarcodeValid) %>% 
   rename(Valid = BarcodeValid) %>% 
@@ -65,9 +77,7 @@ p <- BXstats %>%
     ) +
     scale_fill_manual(values = c(Valid = "#afd5e7", Invalid = "#aa6f73")) +
   labs(title = "Summary of Valid Barcodes") 
-  
+
 plt <- ggplotly(p) %>% layout(hovermode = "x")
-
 plt
-
 ```

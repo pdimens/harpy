@@ -15,7 +15,7 @@ rule create_reports:
         expand("ReadMapping/bxstats/moleculesize/{sample}.molsize", sample = samplenames),
         expand("ReadMapping/bxstats/moleculesize/{sample}.molsize.hist", sample = samplenames),
         expand("ReadMapping/bxstats/readsperbx/{sample}.readsperbx", sample = samplenames),
-        "ReadMapping/ema/count/Beadtag.report"
+        "ReadMapping/ema/count/Beadtag.report.html"
     output: 
         stats = "ReadMapping/alignment.stats.html",
         flagstat = "ReadMapping/alignment.flagstat.html"
@@ -62,23 +62,12 @@ rule count_beadtags:
         """
 
 rule beadtag_summary:
-    input: expand("ReadMapping/ema/count/logs/{sample}.count.log", sample = samplenames)
-    output: "ReadMapping/ema/count/Beadtag.report"
+    input: 
+        countlog = expand("ReadMapping/ema/count/logs/{sample}.count.log", sample = samplenames)
+    output: "ReadMapping/ema/count/Beadtag.report.html"
     message: "Creating sample barcode validation report"
     benchmark: "Benchmark/Mapping/ema/beadtagsummary.txt"
-    run:
-        import os
-        with open(output[0], "w") as outfile:
-            outfile.write('{0!s} {1!s} {2!s} {3!s}\n'.format("Sample", "BarcodeOK", "BarcodeTotal", "PercentTotal"))
-            for i in input:
-                with open(i) as f:
-                    samplename = os.path.basename(i).split(".count.log")[0]
-                    bc_line = [line for line in f.read().splitlines() if 'OK barcode:' in line][0].split(" ")
-                    bc_len = len(bc_line)
-                    bc_ok = bc_line[bc_len - 4]
-                    bc_total = bc_line[bc_len - 1]
-                    bc_percent = int(bc_ok.replace(',', '')) / int(bc_total.replace(',', '')) * 100
-                    outfile.write('{0!s} {1!s} {2!s} {3!s}\n'.format(samplename, bc_ok, bc_total, round(bc_percent, 2)))
+    script: "../utilities/emaCountReport.Rmd"
 
 rule preprocess_ema:
     input: 
