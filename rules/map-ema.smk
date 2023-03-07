@@ -58,7 +58,7 @@ rule count_beadtags:
     threads: 1
     shell:
         """
-        seqkit seq {input.forward_reads} {input.reverse_reads} | ema-h count -p -o {params} 2> {output.logs}
+        seqfu interleave -1 {input.forward_reads} -2 {input.reverse_reads} | ema-h count -p -o {params} 2> {output.logs}
         """
 
 rule beadtag_summary:
@@ -99,7 +99,7 @@ rule preprocess_ema:
         bins = nbins
     shell:
         """
-        seqkit seq {input.forward_reads} {input.reverse_reads} | ema-h preproc -p -n {params.bins} -t {threads} -o {params.outdir} {input.emacounts} 2>&1 | cat - > {log}
+        seqfu interleave -1 {input.forward_reads} -2 {input.reverse_reads} | ema-h preproc -p -n {params.bins} -t {threads} -o {params.outdir} {input.emacounts} 2>&1 | cat - > {log}
         """
 
 rule align_ema:
