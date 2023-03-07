@@ -30,7 +30,10 @@ Below is a table listing all the samples Harpy processed and their associated ba
 determined by `EMA count`. If `BarcodeTotal` equals `0` for some reason, then there is an issue
 with the format of your FASTQ files. Please check that the barcode in the read headers comforms 
 to the correct format, `BX:Z:AXXCXXBXXDXX`, where there is a whitespace/tab before `BX:Z:` and `XX` are
-2-digit numbers between `00` and `96`. 
+2-digit numbers between `00` and `96`. A valid FASTQ read header would then look like
+```
+@A00470:481:HNYFWDRX2:1:2101:16062:1031 BX:Z:A62C38B38D96 1:N:0:TATCAGTA+TTACTACT
+```
 
 ```{r echo = FALSE, message = FALSE, warning = FALSE}
 BXstats <- data.frame(
