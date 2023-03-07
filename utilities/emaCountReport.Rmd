@@ -65,7 +65,7 @@ for (i in snakemake@input[["countlog"]]) {
 DT::datatable(BXstats, rownames = F, filter = "top", extensions = 'Buttons', options = list(dom = 'Brtip', buttons = c('csv', 'pdf'), scrollX = TRUE))
 ```
 
-
+Below is a table summarizing the number of valid vs invalid barcodes per sample.
 ```{r echo = FALSE, message = FALSE, warning = FALSE, out.width = '100%'}
 p <- BXstats %>% 
   mutate(Invalid = BarcodeTotal - BarcodeValid) %>% 
