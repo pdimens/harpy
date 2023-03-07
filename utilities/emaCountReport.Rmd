@@ -1,19 +1,19 @@
 ---
-  title: "EMA count beadtag processing"
+title: "Barcode Validation Summary"
 author:
-  - "Created using HARPY"
+    - "Created using HARPY"
 date: "`r format(Sys.time(), '%d %B, %Y')`"
 output:
   html_document:
-  highlight: tango
-number_sections: no
-theme: cosmo
-df_print: kable
-toc: yes
-toc_depth: 2
-toc_float:
-  collapsed: no
-smooth_scroll: yes
+    highlight: tango
+    number_sections: no
+    theme: cosmo
+    df_print: kable
+    toc: yes
+    toc_depth: 2
+    toc_float:
+      collapsed: no
+      smooth_scroll: yes
 ---
   
 ```{r echo = FALSE, message = FALSE}
