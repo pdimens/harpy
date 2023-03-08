@@ -187,6 +187,7 @@ dependencies:
   - pandoc=2.19.2=h32600fe_1
   - pango=1.50.12=h382ae3d_0
   - paramiko=2.12.0=pyhd8ed1ab_0
+  - pcre=8.45=h295c915_0
   - pcre2=10.40=hc3806b6_0
   - peppy=0.35.2=pyhd8ed1ab_0
   - perl=5.34.0=h5eee18b_2
@@ -326,6 +327,7 @@ dependencies:
   - sambamba=0.6.6=2
   - samtools=1.16.1=h6899075_1
   - sed=4.8=he412f7d_0
+  - seqfu=1.17.1=hbd632db_0
   - setuptools=65.5.1=pyhd8ed1ab_0
   - setuptools-scm=7.0.5=pyhd8ed1ab_1
   - simplejson=3.17.6=py310h5764c6d_2
