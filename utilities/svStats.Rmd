@@ -29,6 +29,7 @@ library(dplyr)
 library(ggplot2)
 library(magrittr)
 library(DT)
+library(plotly)
 ```
 
 
@@ -36,13 +37,15 @@ library(DT)
 fa.sizes <- read.table(snakemake@input[["faidx"]], header = F)[,1:2]
 colnames(fa.sizes) <- c("contig", "size")
 ```
-
+## All variants detected
+This table details all the variants LEVIATHAN detected and the quantity/quality of evidence for those detections.
 ```{r echo = FALSE, warnings= FALSE, message = FALSE}
 sv <- read.table(snakemake@input[["statsfile"]], header = T)
 if (nrow(sv) == 0) {
   print("No variants in the file")
   q()
 }
+DT::datatable(sv, rownames = F, filter = "top", extensions = 'Buttons', options = list(dom = 'Brtip', buttons = c('csv'), scrollX = TRUE))
 ```
 
 ```{r echo = FALSE, warnings= FALSE, message = FALSE}
@@ -69,7 +72,7 @@ grpstats %>%
 ## Per-contig information
 This table details each type of structural variant for every contig.
 ```{r echo = FALSE}
-DT::datatable(grpstats, rownames = F, filter = "top", extensions = 'Buttons', options = list(dom = 'Brtip', buttons = c('csv', 'pdf'), scrollX = TRUE))
+DT::datatable(grpstats, rownames = F, filter = "top", extensions = 'Buttons', options = list(dom = 'Brtip', buttons = c('csv'), scrollX = TRUE))
 ```
 
 ---
@@ -78,8 +81,9 @@ DT::datatable(grpstats, rownames = F, filter = "top", extensions = 'Buttons', op
 The plots below are a visual representation of each SV where it was detected.
 Contigs that are absent did not have any SV's detected on them. Plotting only the first 30 contigs.
 
-```{r echo = FALSE, fig.height = 1.5, out.width = '100%', warning=FALSE}
+```{r echo = FALSE, out.width = '100%', warning=FALSE}
 .i <- 0
+l <- htmltools::tagList()
 for (i in unique(fa.sizes$contig)) {
   .i <- .i + 1
   sv.filt <- sv %>% filter(contig == i)
@@ -91,7 +95,7 @@ for (i in unique(fa.sizes$contig)) {
   }
   plt <- sv.filt %>%
     ggplot() +
-    geom_rect(alpha = 0.7, aes(xmin = position_start, xmax = position_end, ymin = 0, ymax = 1, fill = type, color = type)) +
+    geom_rect(alpha = 0.7, aes(xmin = position_start, xmax = position_end, ymin = 0, ymax = 1, fill = type, color = type, text = sprintf("Type: %s<br>Position: %s-%s<br>barcodes: %s", type, position_start, position_end, n_barcodes))) +
     theme_bw() +
     theme(
       axis.text.y=element_blank(),
@@ -107,9 +111,10 @@ for (i in unique(fa.sizes$contig)) {
     xlab("Position (bp)") +
     labs(fill = "SV type", color = "SV type") +
     ggtitle(i, subtitle = .subtitle)
-  print(plt)
+  l[[.i]] <- ggplotly(plt, tooltip = "text")
   if (.i == 30) {
     break
   }
 }
+l
 ```

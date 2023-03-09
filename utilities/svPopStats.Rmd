@@ -30,6 +30,7 @@ library(ggplot2)
 library(magrittr)
 library(tidyr)
 library(DT)
+library(plotly)
 ```
 
 ```{r echo = FALSE}
@@ -37,6 +38,8 @@ fa.sizes <- read.table(snakemake@input[["faidx"]], header = F)[,1:2]
 colnames(fa.sizes) <- c("contig", "size")
 ```
 
+## All variants detected
+This table details all the variants LEVIATHAN detected and the quantity/quality of evidence for those detections.
 ```{r message = FALSE, echo = FALSE}
 sv <- do.call(rbind, lapply(snakemake@input[["statsfiles"]], function(x) read.table(x, header = T)))
 
@@ -44,7 +47,10 @@ if (nrow(sv) == 0) {
   print("No variants detected")
   q()
 }
+DT::datatable(sv, rownames = F, filter = "top", extensions = 'Buttons', options = list(dom = 'Brtip', buttons = c('csv'), scrollX = TRUE))
+```
 
+```{r}
 sv <- merge(x=sv,y=fa.sizes, by="contig", )
 sv$length <- as.numeric(gsub("\\.", "1", sv$length))
 ```
@@ -52,31 +58,31 @@ sv$length <- as.numeric(gsub("\\.", "1", sv$length))
 ## General information
 This table shows the overall counts, average per contig, and standard deviation per contig for detected structural variants across populations.
 ```{r echo = FALSE, warnings= FALSE, message = FALSE}
-genstats <- sv %>% group_by(population, contig, type) %>% summarise(tot = n()) %>% 
+genstats <- sv %>% group_by(population, contig, type) %>% summarise(tot = n()) %>%
   group_by(population, type) %>% summarise(count = sum(tot), avg = round(mean(tot, na.rm = T),2 ), sd = round(sd(tot, na.rm = T), 2)) %>% 
   pivot_wider(names_from = type, values_from = c(count, avg, sd), names_glue = "{type}.{.value}", names_vary = "slowest")
 
-DT::datatable(genstats, rownames = F, filter = "top", extensions = 'Buttons', options = list(dom = 'Brtip', buttons = c('csv', 'pdf'), scrollX = TRUE))
+DT::datatable(genstats, rownames = F, filter = "top", extensions = 'Buttons', options = list(dom = 'Brtip', buttons = c('csv'), scrollX = TRUE))
 ```
 
 ## Per-contig information
 ### counts per contig
 This table details counts each type of structural variant for every contig for every population.
 ```{r echo = FALSE, warnings= FALSE, message = FALSE}
-grpcounts <- sv %>% group_by(population, contig, type) %>% summarise(count = n()) %>% 
+grpcounts <- sv %>% group_by(population, contig, type) %>% summarise(count = n()) %>%
   pivot_wider(names_from = population, values_from = count)
 
-DT::datatable(grpcounts, rownames = F, filter = "top", extensions = 'Buttons', options = list(dom = 'Brtip', buttons = c('csv', 'pdf'), scrollX = TRUE))
+DT::datatable(grpcounts, rownames = F, filter = "top", extensions = 'Buttons', options = list(dom = 'Brtip', buttons = c('csv'), scrollX = TRUE))
 ```
 
 ### bp per contig
 This table details the lengths (in bp) of SV's for every contig for every population.
 ```{r echo = FALSE, warnings= FALSE, message = FALSE}
-grplens <- sv %>% group_by(population, contig, type) %>% 
+grplens <- sv %>% group_by(population, contig, type) %>%
   summarise(bp = sum(length)) %>% 
   pivot_wider(names_from = population, values_from = bp)
 
-DT::datatable(grplens, rownames = F, filter = "top", extensions = 'Buttons', options = list(dom = 'Brtip', buttons = c('csv', 'pdf'), scrollX = TRUE))
+DT::datatable(grplens, rownames = F, filter = "top", extensions = 'Buttons', options = list(dom = 'Brtip', buttons = c('csv'), scrollX = TRUE))
 ```
 
 ---
@@ -84,16 +90,19 @@ DT::datatable(grplens, rownames = F, filter = "top", extensions = 'Buttons', opt
 ## SV size and location
 The plots below are a visual representation of each SV where it was detected.
 Contigs that are absent did not have any SV's detected on them. Within each 
-contig, each population is plotted as a labeled row to help visualize shared
-variants between populations. Plotting only the first 30 contigs.
+contig, each population is plotted as a row to help visualize shared
+variants between populations. Long population names create issues with row name
+formatting, therefore the population name is included in the hover tooltip.
+Plotting only the first 30 contigs.
 
 ```{r echo= FALSE, warning=FALSE, message=FALSE}
 plotheight <- length(snakemake@input[["statsfiles"]]) / 2
 ```
 
 
-```{r echo = FALSE, fig.height=plotheight, out.width = '100%', warning=FALSE}
+```{r echo = FALSE, out.width = '100%', warning=FALSE}
 .i <- 0
+l <- htmltools::tagList()
 for (i in unique(fa.sizes$contig)) {
   .i <- .i + 1
   sv.filt <- sv %>% filter(contig == i)
@@ -103,7 +112,7 @@ for (i in unique(fa.sizes$contig)) {
   }
   plt <- sv.filt %>%
     ggplot() +
-    geom_rect(alpha = 0.7, aes(ymin = 0, ymax = 1, xmin = position_start, xmax = position_end, fill = type, color = type)) +
+    geom_rect(alpha = 0.7, aes(ymin = 0, ymax = 1, xmin = position_start, xmax = position_end, fill = type, color = type, text = sprintf("Population: %s<br>Type: %s<br>Position: %s-%s<br>barcodes: %s", population, type, position_start, position_end, n_barcodes))) +
     scale_color_manual(values=c("DEL"="#004D40", "DUP"="#FFC107", "INV"="#1E88E5","BND"="#D81B60")) +
     scale_fill_manual(values=c("DEL"="#004D40", "DUP"="#FFC107", "INV"="#1E88E5","BND"="#D81B60")) +
     facet_grid(rows = vars(population)) +
@@ -113,17 +122,20 @@ for (i in unique(fa.sizes$contig)) {
       axis.line.y = element_blank(),
       axis.ticks.y = element_blank(),
       panel.grid.major = element_blank(),
-      panel.grid.minor = element_blank()
+      panel.grid.minor = element_blank(),
+      strip.background = element_blank(),
+      strip.text = element_blank()
     ) +
     xlim(0, sv.filt$size[1]) +
     coord_cartesian(xlim = c(0, sv.filt$size[1] + 1), expand = F) +
     xlab("Position (bp)") +
     labs(fill = "SV type", color = "SV type") +
     ggtitle(i)
-  print(plt)
+  l[[.i]] <- ggplotly(plt, tooltip = "text")
   # stop at 30
   if (.i == 30) {
     break
   }
 }
+l
 ```
