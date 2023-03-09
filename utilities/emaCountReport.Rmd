@@ -70,10 +70,10 @@ DT::datatable(BXstats, rownames = F, filter = "top", extensions = 'Buttons', opt
 
 Below is a plot summarizing the number of valid vs invalid barcodes per sample.
 ```{r echo = FALSE, message = FALSE, warning = FALSE, out.width = '100%'}
-p <- BXstats %>% 
-  mutate(Invalid = BarcodeTotal - BarcodeValid) %>% 
-  rename(Valid = BarcodeValid) %>% 
-  select(Sample, Valid, Invalid) %>% 
+p <- BXstats %>%
+  mutate(Invalid = BarcodeTotal - BarcodeValid) %>%
+  rename(Valid = BarcodeValid) %>%
+  select(Sample, Valid, Invalid) %>%
   pivot_longer(-Sample, names_to = "BarcodeStatus", values_to = "Count") %>%
   ggplot(aes(x = Sample, y = Count, fill = BarcodeStatus)) +
     geom_col() +
