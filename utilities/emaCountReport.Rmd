@@ -83,7 +83,7 @@ p <- BXstats %>%
       axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)
     ) +
     scale_fill_manual(values = c(Valid = "#afd5e7", Invalid = "#aa6f73")) +
-  labs(title = "Summary of Valid Barcodes") +
+  labs(title = "Summary of Valid Barcodes")
 
 plt <- ggplotly(p) %>% layout(hovermode = "x")
 plt
