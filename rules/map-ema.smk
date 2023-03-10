@@ -17,8 +17,8 @@ rule create_reports:
         expand("ReadMapping/bxstats/readsperbx/{sample}.readsperbx", sample = samplenames),
         "ReadMapping/ema/count/Beadtag.report.html"
     output: 
-        stats = "ReadMapping/alignment.stats.html",
-        flagstat = "ReadMapping/alignment.flagstat.html"
+        stats = "ReadMapping/ema/stats/alignment.stats.html",
+        flagstat = "ReadMapping/ema/flagstat/alignment.flagstat.html"
     message: "Read mapping completed!\nAlignment reports:\n\t{output.stats}\n\t{output.flagstat}"
     benchmark: "Benchmark/Mapping/ema/report.txt"
     default_target: True
