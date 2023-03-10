@@ -21,8 +21,8 @@ rule create_reports:
 		expand("ReadMapping/bwa/{ext}/{sample}.{ext}", sample = samplenames, ext = ["stats", "flagstat"]),
 		expand("ReadMapping/bwa/coverage/{sample}.gencov", sample = samplenames)
 	output: 
-		stats = "ReadMapping/alignment.stats.html",
-		flagstat = "ReadMapping/alignment.flagstat.html"
+		stats = "ReadMapping/bwa/stats/alignment.stats.html",
+		flagstat = "ReadMapping/bwa/flagstats/alignment.flagstat.html"
 	message: "Read mapping completed!\nAlignment reports:\n{output.stats}\n{output.flagstat}"
 	benchmark: "Benchmark/Mapping/bwa/reports.txt"
 	default_target: True
