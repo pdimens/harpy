@@ -148,3 +148,4 @@ rule all:
         bcf = expand("Imputation/{stitchparams}/variants.imputed.bcf", stitchparams=paramspace.instance_patterns),
         reports = expand("Imputation/{stitchparams}/variants.imputed.html", stitchparams=paramspace.instance_patterns)
     default_target: True
+    message: "Genotype imputation is complete!"

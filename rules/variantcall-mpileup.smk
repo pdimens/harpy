@@ -146,3 +146,4 @@ rule all:
 		bcf = "Variants/mpileup/variants.raw.bcf",
 		report = "Variants/mpileup/variants.raw.html"
 	default_target: True
+	message: "Variant calling is complete!"

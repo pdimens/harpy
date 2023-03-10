@@ -146,5 +146,5 @@ rule indexFinal:
     output: "Phasing/variants.phased.bcf.csi"
     benchmark: "Benchmark/Phase/finalindex.txt"
     default_target: True
-    message: "Indexing {input}"
+    message: "Phasing is complete!"
     shell: "bcftools index {input}"

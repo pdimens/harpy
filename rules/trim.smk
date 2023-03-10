@@ -35,3 +35,4 @@ rule trimCheck:
 		expand("Trimming/{sample}{ext}", sample = samplenames, ext = [".R1.fq.gz", ".R2.fq.gz"]),
 		"Trimming/logs/trim.report.html"
 	default_target: True
+	message: "Trimming is complete!"
