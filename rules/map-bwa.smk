@@ -1,4 +1,3 @@
-import subprocess
 import os
 
 seq_dir = config["seq_directory"]
@@ -6,9 +5,7 @@ genomefile = config["genomefile"]
 Rsep = config["Rsep"]
 fqext = config["fqext"]
 samplenames = config["samplenames"]
-#BXmarkdup = config["BXmarkdup"]
 extra = config.get("extra", "") 
-#txt = " using BX barcodes" if BXmarkdup else ""
 
 bn = os.path.basename(genomefile)
 shell("mkdir -p Assembly")
