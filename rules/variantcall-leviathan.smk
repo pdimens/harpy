@@ -79,21 +79,9 @@ rule sort_bcf:
         bcftools sort -Ob --output {output} {input} 2> /dev/null
         """
 
-rule index_bcf:
-    input: "Variants/leviathan/{sample}.bcf"
-    output: "Variants/leviathan/{sample}.bcf.csi"
-    message: "Indexing: {input}"
-    benchmark: "Benchmark/Variants/leviathan/indexbcf.{sample}.txt"
-    threads: 1
-    shell:
-        """
-        bcftools index --output {output} {input}
-        """
-
 rule sv_stats:
     input: 
-        bcf = "Variants/leviathan/{sample}.bcf",
-        idx = "Variants/leviathan/{sample}.bcf.csi"
+        bcf = "Variants/leviathan/{sample}.bcf"
     output: "Variants/leviathan/stats/{sample}.sv.stats"
     message: "Getting stats for {input.bcf}"
     benchmark: "Benchmark/Variants/leviathan/stats.{sample}.txt"

@@ -127,21 +127,9 @@ rule sort_bcf:
 		bcftools sort -Ob --output {output} {input} 2> /dev/null
 		"""
 
-rule index_bcf:
-	input: "Variants/leviathan-pop/{population}.bcf"
-	output: "Variants/leviathan-pop/{population}.bcf.csi"
-	message: "Indexing: Population {input}"
-	benchmark: "Benchmark/Variants/leviathan-pop/indexbcf.{population}.txt"
-	threads: 1
-	shell:
-		"""
-		bcftools index --output {output} {input}
-		"""
-
 rule sv_stats:
 	input: 
-		bcf = "Variants/leviathan-pop/{population}.bcf",
-		idx = "Variants/leviathan-pop/{population}.bcf.csi"
+		bcf = "Variants/leviathan-pop/{population}.bcf"
 	output: "Variants/leviathan-pop/stats/{population}.sv.stats"
 	message: "Getting stats: Population {input.bcf}"
 	benchmark: "Benchmark/Variants/leviathan-pop/stats.{population}.txt"
