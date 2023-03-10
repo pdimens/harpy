@@ -1,4 +1,6 @@
-# user specified configs
+import os
+
+
 seq_dir = config["seq_directory"]
 nbins = config["EMA_bins"]
 genomefile = config["genomefile"]
@@ -6,6 +8,11 @@ Rsep = config["Rsep"]
 fqext = config["fqext"]
 samplenames = config["samplenames"]
 extra = config.get("extra", "") 
+
+bn = os.path.basename(genomefile)
+shell("mkdir -p Assembly")
+if not os.path.exists(f"Assembly/{bn}"):
+    shell(f"ln -sr {genomefile} Assembly/{bn}")
 
 rule create_reports:
     input: 
