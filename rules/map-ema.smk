@@ -19,10 +19,12 @@ rule create_reports:
         expand("ReadMapping/ema/{sample}.bam", sample = samplenames),
         expand("ReadMapping/ema/{sample}.bam.bai", sample = samplenames),
         expand("ReadMapping/ema/{ext}/{sample}.{ext}", sample = samplenames, ext = ["stats", "flagstat"]),
-        expand("ReadMapping/bxstats/moleculesize/{sample}.molsize", sample = samplenames),
-        expand("ReadMapping/bxstats/moleculesize/{sample}.molsize.hist", sample = samplenames),
-        expand("ReadMapping/bxstats/readsperbx/{sample}.readsperbx", sample = samplenames),
-        "ReadMapping/ema/count/Beadtag.report.html"
+        expand("ReadMapping/ema/stats/moleculesize/{sample}.molsize", sample = samplenames),
+        expand("ReadMapping/ema/stats/moleculesize/{sample}.molsize.hist", sample = samplenames),
+        expand("ReadMapping/ema/stats/readsperbx/{sample}.readsperbx", sample = samplenames),
+        expand("ReadMapping/ema/stats/coverage/{sample}.bx.gencov", sample = samplenames),
+        expand("ReadMapping/ema/stats/coverage/{sample}.all.gencov", sample = samplenames),
+        "ReadMapping/ema/stats/beadtag.report.html"
     output: 
         stats = "ReadMapping/ema/stats/alignment.stats.html",
         flagstat = "ReadMapping/ema/flagstat/alignment.flagstat.html"
@@ -31,8 +33,8 @@ rule create_reports:
     default_target: True
     shell:
         """
-        multiqc ReadMapping/ema/stats --force --quiet --no-data-dir --filename {output.stats} 2> /dev/null
-        multiqc ReadMapping/ema/flagstat --force --quiet --no-data-dir --filename {output.flagstat} 2> /dev/null
+        multiqc ReadMapping/ema/stats/samtools_stats    --force --quiet --no-data-dir --filename {output.stats} 2> /dev/null
+        multiqc ReadMapping/ema/stats/samtools_flagstat --force --quiet --no-data-dir --filename {output.flagstat} 2> /dev/null
         """
 
 rule index_genome:
@@ -71,7 +73,7 @@ rule count_beadtags:
 rule beadtag_summary:
     input: 
         countlog = expand("ReadMapping/ema/count/logs/{sample}.count.log", sample = samplenames)
-    output: "ReadMapping/ema/count/Beadtag.report.html"
+    output: "ReadMapping/ema/stats/beadtag.report.html"
     message: "Creating sample barcode validation report"
     benchmark: "Benchmark/Mapping/ema/beadtagsummary.txt"
     script: "../utilities/emaCountReport.Rmd"
@@ -170,9 +172,9 @@ rule markduplicates:
         bam = temp("ReadMapping/ema/{sample}/{sample}.nobarcode.bam"),
         bai = temp("ReadMapping/ema/{sample}/{sample}.nobarcode.bam.bai")
     log: 
-        mdlog = "ReadMapping/ema/log/{sample}.markdup.nobarcode.log",
-        stats = "ReadMapping/ema/stats/{sample}.nobarcode.stats",
-        flagstat = "ReadMapping/ema/flagstat/{sample}.nobarcode.flagstat"
+        mdlog = "ReadMapping/ema/stats/markduplicates/{sample}.markdup.nobarcode.log",
+        stats = "ReadMapping/ema/stats/samtools_stats/{sample}.nobarcode.stats",
+        flagstat = "ReadMapping/ema/stats/samtools_flagstat/{sample}.nobarcode.flagstat"
     wildcard_constraints:
         sample = "[a-zA-Z0-9_-]*"
     message: "Marking duplicates in unbarcoded alignments: {wildcards.sample}"
@@ -201,13 +203,13 @@ rule merge_barcoded:
         sambamba merge -t {threads} {output.bam} {input}
         """
 
-rule mergestats:
+rule bcstats:
     input: 
         bam = "ReadMapping/ema/{sample}/{sample}.barcoded.bam",
         bai = "ReadMapping/ema/{sample}/{sample}.barcoded.bam.bai"
     log:
-        stats = "ReadMapping/ema/stats/{sample}.barcoded.stats",
-        flagstat = "ReadMapping/ema/flagstat/{sample}.barcoded.flagstat"
+        stats = "ReadMapping/ema/stats/samtools_stats/{sample}.barcoded.stats",
+        flagstat = "ReadMapping/ema/stats/samtools_flagstat/{sample}.barcoded.flagstat"
     wildcard_constraints:
         sample = "[a-zA-Z0-9_-]*"
     message: "Indexing merged barcoded alignemnts: {wildcards.sample}"
@@ -221,8 +223,8 @@ rule mergestats:
 rule BEDconvert:
     input: "ReadMapping/ema/{sample}/{sample}.barcoded.bam"
     output: 
-        filt = temp("ReadMapping/bedfiles/{sample}.bx.bed"),
-        unfilt = temp("ReadMapping/bedfiles/{sample}.all.bed")
+        filt = temp("ReadMapping/ema/bedfiles/{sample}.bx.bed"),
+        unfilt = temp("ReadMapping/ema/bedfiles/{sample}.all.bed")
     message: "Converting to BED format: {wildcards.sample}"
     wildcard_constraints:
         sample = "[a-zA-Z0-9_-]*"
@@ -236,11 +238,11 @@ rule BEDconvert:
         """
 
 rule BX_stats:
-    input: "ReadMapping/bedfiles/{sample}.bx.bed"
+    input: "ReadMapping/ema/bedfiles/{sample}.bx.bed"
     output:	
-        molsize = "ReadMapping/bxstats/moleculesize/{sample}.molsize",
-        molhist = "ReadMapping/bxstats/moleculesize/{sample}.molsize.hist",
-        readsper = "ReadMapping/bxstats/readsperbx/{sample}.readsperbx"
+        molsize = "ReadMapping/ema/stats/moleculesize/{sample}.molsize",
+        molhist = "ReadMapping/ema/stats/moleculesize/{sample}.molsize.hist",
+        readsper = "ReadMapping/ema/stats/readsperbx/{sample}.readsperbx"
     message: "Calculating molecule size, reads per molecule: {wildcards.sample}"
     wildcard_constraints:
         sample = "[a-zA-Z0-9_-]*"
@@ -298,7 +300,7 @@ rule genome_coords:
 
 rule bamtobed:
     input: "ReadMapping/ema/{sample}.bam"
-    output: temp("ReadMapping/bedfiles/{sample}.total.bed")
+    output: temp("ReadMapping/ema/bedfiles/{sample}.total.bed")
     message: "Creating bedfile of all alignments: {wildcards.sample}"
     benchmark: "Benchmark/Mapping/ema/fullbed.{sample}.txt"
     shell:
@@ -307,15 +309,15 @@ rule bamtobed:
 rule genome_BX_coverage:
     input:
         geno = f"Assembly/{genomefile}.bed",
-        bx = "ReadMapping/bedfiles/{sample}.bx.bed",
-        alntot = "ReadMapping/bedfiles/{sample}.total.bed"
+        bx = "ReadMapping/ema/bedfiles/{sample}.bx.bed",
+        alntot = "ReadMapping/ema/bedfiles/{sample}.total.bed"
     output: 
-        bx = "ReadMapping/ema/coverage/{sample}.bx.gencov",
-        alntot = "ReadMapping/ema/coverage/{sample}.all.gencov"
+        bx = "ReadMapping/ema/stats/coverage/{sample}.bx.gencov",
+        alntot = "ReadMapping/ema/stats/coverage/{sample}.all.gencov"
     message: "Calculating genomic coverage of alignments: {wildcards.sample}"
     shell:
         """
-        bedtools genomecov -i {input.bx}   -g {input.geno} > {output.bx}
+        bedtools genomecov -i {input.bx}       -g {input.geno} > {output.bx}
         bedtools genomecov -i {input.alntot}   -g {input.geno} > {output.alntot}
         """
 
@@ -336,8 +338,8 @@ rule alignment_stats:
         bam = "ReadMapping/ema/{sample}.bam",
         bai = "ReadMapping/ema/{sample}.bam.bai"
     output:
-        stats = report("ReadMapping/ema/stats/{sample}.stats", category="{sample}", subcategory="All Aligments", labels={"Metric": "stats"}),
-        flagstat = report("ReadMapping/ema/flagstat/{sample}.flagstat", category="{sample}", subcategory="All Aligments", labels={"Metric": "flagstat"})
+        stats = "ReadMapping/ema/stats/samtools_stats/{sample}.stats")
+        flagstat = "ReadMapping/ema/stats/samtools_flagstat/{sample}.flagstat"
     message: "Calculating alignment stats: {wildcards.sample}"
     benchmark: "Benchmark/Mapping/ema/Mergedstats.{sample}.txt"
     wildcard_constraints:
