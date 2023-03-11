@@ -16,7 +16,7 @@ rule create_reports:
 	input: 
 		expand("ReadMapping/bwa/{sample}.bam", sample = samplenames),
 		expand("ReadMapping/bwa/stats/samtools_{ext}/{sample}.{ext}", sample = samplenames, ext = ["stats", "flagstat"]),
-		expand("ReadMapping/bwa/coverage/{sample}.gencov", sample = samplenames)
+		expand("ReadMapping/bwa/stats/coverage/{sample}.gencov", sample = samplenames)
 	output: 
 		stats =    "ReadMapping/bwa/stats/samtools_stats/bwa.stats.html",
 		flagstat = "ReadMapping/bwa/stats/samtools_flagstat/bwa.flagstat.html"
@@ -130,7 +130,7 @@ rule genome_coverage:
 		geno = f"Assembly/{genomefile}.bed",
 		bed = "ReadMapping/bwa/bedfiles/{sample}.bed"
 	output: 
-		"ReadMapping/bwa/coverage/{sample}.gencov"
+		"ReadMapping/bwa/stats/coverage/{sample}.gencov"
 	message: 
 		"Calculating genomic coverage of alignments: {wildcards.sample}"
 	shell:
