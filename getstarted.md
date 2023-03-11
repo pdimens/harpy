@@ -64,3 +64,27 @@ So, the easiest workaround would be to regenerate the incomplete files and use `
 ```bash
 harpy variants --leviathan -g genome.fasta  -d ReadMapping/ema --threads 8 -p samples.groups -s "--rerun-incomplete"
 ```
+
+## Snakemake etc.
+Sometimes Snakemake might scold/warn you about something you didn't realize you did. One
+common case is when you prematurely terminate Harpy with `ctrl + c` or by terminating 
+the process by other means. You might try to rerun Harpy afterwards and be met with a 
+`LockException` like this:
+```
+Building DAG of jobs...
+LockException:
+Error: Directory cannot be locked. Please make sure that no other Snakemake pro
+cess is trying to create the same files in the following directory:
+/local/user/projectdir
+If you are sure that no other instances of snakemake are running on this direct
+ory, the remaining lock was likely caused by a kill signal or a power loss. It 
+can be removed with the --unlock argument.
+```
+Like the error suggests, this can be overcome using the `--unlock` argument, which
+would be provided to Harpy as `-s "--unlock"`. However, whenever that happens, I
+am lazy and just remove the entire `.snakemake` directory in my working directory
+and that alleviates the issue. Choose your own adventure.
+
+```bash
+$ rm -r .snakemake/
+```
