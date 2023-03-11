@@ -338,7 +338,7 @@ rule alignment_stats:
         bam = "ReadMapping/ema/{sample}.bam",
         bai = "ReadMapping/ema/{sample}.bam.bai"
     output:
-        stats = "ReadMapping/ema/stats/samtools_stats/{sample}.stats")
+        stats = "ReadMapping/ema/stats/samtools_stats/{sample}.stats",
         flagstat = "ReadMapping/ema/stats/samtools_flagstat/{sample}.flagstat"
     message: "Calculating alignment stats: {wildcards.sample}"
     benchmark: "Benchmark/Mapping/ema/Mergedstats.{sample}.txt"
