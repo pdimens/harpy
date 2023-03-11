@@ -105,7 +105,7 @@ rule align_ema:
         readbin = "ReadMapping/ema/preproc/{sample}/ema-bin-{bin}",
         genome = f"Assembly/{genomefile}",
         genome_idx = multiext(f"Assembly/{genomefile}", ".ann", ".bwt", ".fai", ".pac", ".sa", ".amb")
-    output: pipe("ReadMapping/ema/{sample}/{sample}.{bin}.sam")
+    output: pipe("ReadMapping/ema/align/{sample}/{sample}.{bin}.sam")
     wildcard_constraints:
         sample = "[a-zA-Z0-9_-]*"
     message: "Mapping onto {input.genome}: {wildcards.sample}-{wildcards.bin}"
@@ -124,7 +124,7 @@ rule align_nobarcode:
         genome = f"Assembly/{genomefile}",
         genome_idx = multiext(f"Assembly/{genomefile}", ".ann", ".bwt", ".fai", ".pac", ".sa", ".amb")
     output: 
-        samfile = pipe("ReadMapping/ema/{sample}/{sample}.nobarcode.sam")
+        samfile = pipe("ReadMapping/ema/align/{sample}/{sample}.nobarcode.sam")
     benchmark: "Benchmark/Mapping/ema/bwaAlign.{sample}.txt"
     wildcard_constraints:
         sample = "[a-zA-Z0-9_-]*"
@@ -137,9 +137,9 @@ rule align_nobarcode:
 
 rule sort_ema:
     input: 
-        sam = "ReadMapping/ema/{sample}/{sample}.{emabin}.sam",
+        sam = "ReadMapping/ema/align/{sample}/{sample}.{emabin}.sam",
         genome = f"Assembly/{genomefile}"
-    output: temp("ReadMapping/ema/{sample}/{sample}.{emabin}.bam")
+    output: temp("ReadMapping/ema/align/{sample}/{sample}.{emabin}.bam")
     wildcard_constraints:
         sample = "[a-zA-Z0-9_-]*",
         emabin = "[0-9]*"
@@ -153,9 +153,9 @@ rule sort_ema:
 
 rule sort_nobarcode:
     input: 
-        sam = "ReadMapping/ema/{sample}/{sample}.nobarcode.sam",
+        sam = "ReadMapping/ema/align/{sample}/{sample}.nobarcode.sam",
         genome = f"Assembly/{genomefile}"
-    output: temp("ReadMapping/ema/{sample}/{sample}.nobarcode.bam.tmp")
+    output: temp("ReadMapping/ema/align/{sample}/{sample}.nobarcode.bam.tmp")
     wildcard_constraints:
         sample = "[a-zA-Z0-9_-]*"
     message: "Sorting unbarcoded alignments: {wildcards.sample}"
@@ -167,10 +167,10 @@ rule sort_nobarcode:
         """    
 
 rule markduplicates:
-    input: "ReadMapping/ema/{sample}/{sample}.nobarcode.bam.tmp"
+    input: "ReadMapping/ema/align/{sample}/{sample}.nobarcode.bam.tmp"
     output: 
-        bam = temp("ReadMapping/ema/{sample}/{sample}.nobarcode.bam"),
-        bai = temp("ReadMapping/ema/{sample}/{sample}.nobarcode.bam.bai")
+        bam = temp("ReadMapping/ema/align/{sample}/{sample}.nobarcode.bam"),
+        bai = temp("ReadMapping/ema/align/{sample}/{sample}.nobarcode.bam.bai")
     log: 
         mdlog = "ReadMapping/ema/stats/markduplicates/{sample}.markdup.nobarcode.log",
         stats = "ReadMapping/ema/stats/samtools_stats/{sample}.nobarcode.stats",
@@ -189,10 +189,10 @@ rule markduplicates:
 
 rule merge_barcoded:
     input:
-        aln_barcoded = expand("ReadMapping/ema/{{sample}}/{{sample}}.{bin}.bam", bin = ["%03d" % i for i in range(nbins)]),
+        aln_barcoded = expand("ReadMapping/ema/align/{{sample}}/{{sample}}.{bin}.bam", bin = ["%03d" % i for i in range(nbins)]),
     output: 
-        bam = temp("ReadMapping/ema/{sample}/{sample}.barcoded.bam"),
-        bai = temp("ReadMapping/ema/{sample}/{sample}.barcoded.bam.bai")
+        bam = temp("ReadMapping/ema/align/{sample}/{sample}.barcoded.bam"),
+        bai = temp("ReadMapping/ema/align/{sample}/{sample}.barcoded.bam.bai")
     wildcard_constraints:
         sample = "[a-zA-Z0-9_-]*"
     message: "Merging barcoded alignments: {wildcards.sample}"
@@ -205,8 +205,8 @@ rule merge_barcoded:
 
 rule bcstats:
     input: 
-        bam = "ReadMapping/ema/{sample}/{sample}.barcoded.bam",
-        bai = "ReadMapping/ema/{sample}/{sample}.barcoded.bam.bai"
+        bam = "ReadMapping/ema/align/{sample}/{sample}.barcoded.bam",
+        bai = "ReadMapping/ema/align/{sample}/{sample}.barcoded.bam.bai"
     log:
         stats = "ReadMapping/ema/stats/samtools_stats/{sample}.barcoded.stats",
         flagstat = "ReadMapping/ema/stats/samtools_flagstat/{sample}.barcoded.flagstat"
@@ -221,7 +221,7 @@ rule bcstats:
         """
 
 rule BEDconvert:
-    input: "ReadMapping/ema/{sample}/{sample}.barcoded.bam"
+    input: "ReadMapping/ema/align/{sample}/{sample}.barcoded.bam"
     output: 
         filt = temp("ReadMapping/ema/bedfiles/{sample}.bx.bed"),
         unfilt = temp("ReadMapping/ema/bedfiles/{sample}.all.bed")
@@ -257,13 +257,13 @@ rule BX_stats:
 
 rule merge_alignments:
     input:
-        aln_barcoded = "ReadMapping/ema/{sample}/{sample}.barcoded.bam",
-        aln_nobarcode = "ReadMapping/ema/{sample}/{sample}.nobarcode.bam",
-        idx_barcoded = "ReadMapping/ema/{sample}/{sample}.barcoded.bam.bai",
-        idx_nobarcode = "ReadMapping/ema/{sample}/{sample}.nobarcode.bam.bai"
+        aln_barcoded = "ReadMapping/ema/align/{sample}/{sample}.barcoded.bam",
+        aln_nobarcode = "ReadMapping/ema/align/{sample}/{sample}.nobarcode.bam",
+        idx_barcoded = "ReadMapping/ema/align/{sample}/{sample}.barcoded.bam.bai",
+        idx_nobarcode = "ReadMapping/ema/align/{sample}/{sample}.nobarcode.bam.bai"
     output: 
-        bam = temp("ReadMapping/ema/{sample}.unsort.bam"),
-        bai = temp("ReadMapping/ema/{sample}.unsort.bam.bai")
+        bam = temp("ReadMapping/ema/align/{sample}.unsort.bam"),
+        bai = temp("ReadMapping/ema/align/{sample}.unsort.bam.bai")
     wildcard_constraints:
         sample = "[a-zA-Z0-9_-]*"
     message: "Merging all alignments: {wildcards.sample}"
@@ -276,7 +276,7 @@ rule merge_alignments:
 
 rule sort_merge:
     input:
-        bam = "ReadMapping/ema/{sample}.unsort.bam",
+        bam = "ReadMapping/ema/align/{sample}.unsort.bam",
         genome = genomefile
     output: "ReadMapping/ema/{sample}.bam"
     message: "Sorting merged barcoded alignments: {wildcards.sample}"
