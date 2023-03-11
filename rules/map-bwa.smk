@@ -15,18 +15,18 @@ if not os.path.exists(f"Assembly/{bn}"):
 rule create_reports:
 	input: 
 		expand("ReadMapping/bwa/{sample}.bam", sample = samplenames),
-		expand("ReadMapping/bwa/{ext}/{sample}.{ext}", sample = samplenames, ext = ["stats", "flagstat"]),
+		expand("ReadMapping/bwa/stats/samtools_{ext}/{sample}.{ext}", sample = samplenames, ext = ["stats", "flagstat"]),
 		expand("ReadMapping/bwa/coverage/{sample}.gencov", sample = samplenames)
 	output: 
-		stats = "ReadMapping/bwa/stats/alignment.stats.html",
-		flagstat = "ReadMapping/bwa/flagstats/alignment.flagstat.html"
+		stats =    "ReadMapping/bwa/stats/samtools_stats/bwa.stats.html",
+		flagstat = "ReadMapping/bwa/stats/samtools_flagstat/bwa.flagstat.html"
 	message: "Read mapping completed!\nAlignment reports:\n{output.stats}\n{output.flagstat}"
 	benchmark: "Benchmark/Mapping/bwa/reports.txt"
 	default_target: True
 	shell:
 		"""
-		multiqc ReadMapping/bwa/stats --force --quiet --no-data-dir --filename {output.stats} 2> /dev/null
-		multiqc ReadMapping/bwa/flagstat --force --quiet --no-data-dir --filename {output.flagstat} 2> /dev/null
+		multiqc ReadMapping/bwa/samtools_stats    --force --quiet --no-data-dir --filename {output.stats} 2> /dev/null
+		multiqc ReadMapping/bwa/samtools_flagstat --force --quiet --no-data-dir --filename {output.flagstat} 2> /dev/null
 		"""
 
 rule index_genome:
@@ -143,8 +143,8 @@ rule alignment_stats:
 		bam = "ReadMapping/bwa/{sample}.bam",
 		bai = "ReadMapping/bwa/{sample}.bam.bai"
 	output: 
-		stats = "ReadMapping/bwa/stats/{sample}.stats",
-		flagstat = "ReadMapping/bwa/flagstat/{sample}.flagstat"
+		stats = "ReadMapping/bwa/stats/samtools_stats/{sample}.stats",
+		flagstat = "ReadMapping/bwa/stats/samtools_flagstat/{sample}.flagstat"
 	wildcard_constraints:
 		sample = "[a-zA-Z0-9_-]*"
 	message: "Calculating alignment stats: {wildcards.sample}"
