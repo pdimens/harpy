@@ -18,7 +18,7 @@ rule create_reports:
     input: 
         expand("ReadMapping/ema/{sample}.bam", sample = samplenames),
         expand("ReadMapping/ema/{sample}.bam.bai", sample = samplenames),
-        expand("ReadMapping/ema/{ext}/{sample}.{ext}", sample = samplenames, ext = ["stats", "flagstat"]),
+        expand("ReadMapping/ema/samtools_{ext}/{sample}.{ext}", sample = samplenames, ext = ["stats", "flagstat"]),
         expand("ReadMapping/ema/stats/moleculesize/{sample}.molsize", sample = samplenames),
         expand("ReadMapping/ema/stats/moleculesize/{sample}.molsize.hist", sample = samplenames),
         expand("ReadMapping/ema/stats/readsperbx/{sample}.readsperbx", sample = samplenames),
@@ -26,8 +26,8 @@ rule create_reports:
         expand("ReadMapping/ema/stats/coverage/{sample}.all.gencov", sample = samplenames),
         "ReadMapping/ema/stats/beadtag.report.html"
     output: 
-        stats = "ReadMapping/ema/stats/alignment.stats.html",
-        flagstat = "ReadMapping/ema/flagstat/alignment.flagstat.html"
+        stats =    "ReadMapping/ema/stats/samtools_stats/alignment.stats.html",
+        flagstat = "ReadMapping/ema/stats/samtools_flagstat/alignment.flagstat.html"
     message: "Read mapping completed!\nAlignment reports:\n\t{output.stats}\n\t{output.flagstat}"
     benchmark: "Benchmark/Mapping/ema/report.txt"
     default_target: True
