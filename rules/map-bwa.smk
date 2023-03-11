@@ -25,8 +25,8 @@ rule create_reports:
 	default_target: True
 	shell:
 		"""
-		multiqc ReadMapping/bwa/samtools_stats    --force --quiet --no-data-dir --filename {output.stats} 2> /dev/null
-		multiqc ReadMapping/bwa/samtools_flagstat --force --quiet --no-data-dir --filename {output.flagstat} 2> /dev/null
+		multiqc ReadMapping/bwa/stats/samtools_stats    --force --quiet --no-data-dir --filename {output.stats} 2> /dev/null
+		multiqc ReadMapping/bwa/stats/samtools_flagstat --force --quiet --no-data-dir --filename {output.flagstat} 2> /dev/null
 		"""
 
 rule index_genome:
