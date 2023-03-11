@@ -18,7 +18,7 @@ rule create_reports:
     input: 
         expand("ReadMapping/ema/{sample}.bam", sample = samplenames),
         expand("ReadMapping/ema/{sample}.bam.bai", sample = samplenames),
-        expand("ReadMapping/ema/samtools_{ext}/{sample}.{ext}", sample = samplenames, ext = ["stats", "flagstat"]),
+        expand("ReadMapping/ema/stats/samtools_{ext}/{sample}.{ext}", sample = samplenames, ext = ["stats", "flagstat"]),
         expand("ReadMapping/ema/stats/moleculesize/{sample}.molsize", sample = samplenames),
         expand("ReadMapping/ema/stats/moleculesize/{sample}.molsize.hist", sample = samplenames),
         expand("ReadMapping/ema/stats/readsperbx/{sample}.readsperbx", sample = samplenames),
