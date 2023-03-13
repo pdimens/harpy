@@ -28,21 +28,21 @@ This means you can add several Snakemake arguments at once, as long as the entir
 harpy trim -d rawseq -s "--dry-run --debug --shadow-prefix /scratch"
 ```
 
-#### Reserved arguments
+### Reserved arguments
 Harpy calls Snakemake using specific arguments, meaning you cannot append these again to the internal command line call. Well, you can, but Snakemake will error and exit. [Everything else](https://snakemake.readthedocs.io/en/stable/executing/cli.html#all-options) is allowed. The reserved (**forbidden**) arguments are:
 - `--directory`
 - `--cores`
 - `--snakefile`
 - `--config`
 
-### Use cases
+##### Use cases
 You likely wont need to invoke `--snakemake` very often, if ever. That being said, here are what might be the most common use cases for this parameter.
 
-#### Dry run
+### Dry run
 ##### `--dry-run`
 This is a directive in which Snakemake will build the DAG and "pretend" to run the Harpy workflow. Useful for knowing what you're getting yourself into ahead of time. It's also useful for debugging during development.
 
-#### Rerun an incomplete workflow
+### Rerun an incomplete workflow
 ##### `--rerun-incomplete`
 There will be plenty of reasons that Harpy/Snakemake might end prematurely, like corrupt files, system errors, insufficient resources, etc.
 When this happens, Snakemake has a save-state in the `.snakemake` folder where it knows the last run was incomplete, and when you try to run
@@ -65,6 +65,18 @@ So, the easiest workaround would be to regenerate the incomplete files and use `
 harpy variants --leviathan -g genome.fasta  -d ReadMapping/ema --threads 8 -p samples.groups -s "--rerun-incomplete"
 ```
 
+### Set a shadow directory
+##### `--shadow-prefix <dirname>`
+If running Harpy on an HPC, your system administrator may enforce a policy that all data needs to be moved to a particular
+network-attached storage for execution. On some systems this is called a `SCRATCH/` drive (or something similar) and files
+are automatically deleted from that drive after the completion of an HPC-scheduled job. Rather than manually adding and removing
+your files into that workspace storage to make sure you keep the output of your work while not running afoul of your HPC's policy,
+you may use `--shadow-prefix <dirname>` where `<dirname>` is the path to the mandatory directory you need to work out of. By 
+configuring this "shadow directory" setting, Snakemake will automatically move the files in/out of that directory for you:
+```bash
+harpy variants --leviathan -g genome.fasta  -d ReadMapping/ema --threads 8 -p samples.groups -s "--shadow-prefix /SCRATCH/username/"
+```
+
 ## Snakemake etc.
 Sometimes Snakemake might scold/warn you about something you didn't realize you did. One
 common case is when you prematurely terminate Harpy with `ctrl + c` or by terminating 
@@ -81,10 +93,6 @@ ory, the remaining lock was likely caused by a kill signal or a power loss. It
 can be removed with the --unlock argument.
 ```
 Like the error suggests, this can be overcome using the `--unlock` argument, which
-would be provided to Harpy as `-s "--unlock"`. However, whenever that happens, I
-am lazy and just remove the entire `.snakemake` directory in my working directory
-and that alleviates the issue. Choose your own adventure.
-
-```bash
-$ rm -r .snakemake/
-```
+would be provided to Harpy as `-s "--unlock"`. However, I live dangerously and often
+remove the entire `.snakemake` directory in my working directory, alleviating the issue.
+Choose your own adventure.
