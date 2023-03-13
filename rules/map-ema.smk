@@ -288,37 +288,18 @@ rule sort_merge:
         samtools sort -@ {threads} -O bam --reference {input.genome} -l 0 -m 4G -o {output} {input.bam} 2> /dev/null
         """
 
-rule genome_coords:
-    input: f"Assembly/{genomefile}.fai"
-    output: f"Assembly/{genomefile}.bed"
-    message: "Creating BED file of genomic coordinates"
-    threads: 1
-    shell:
-        """
-        awk 'BEGIN{{FS=OFS="\\t"}} {{print $1,$2}}' {input} > {output}
-        """
-
-rule bamtobed:
-    input: "ReadMapping/ema/{sample}.bam"
-    output: temp("ReadMapping/ema/bedfiles/{sample}.total.bed")
-    message: "Creating bedfile of all alignments: {wildcards.sample}"
-    benchmark: "Benchmark/Mapping/ema/fullbed.{sample}.txt"
-    shell:
-        "bedtools bamtobed -i {input} > {output}"
-
-rule genome_BX_coverage:
+rule genome_coverage:
     input:
-        geno = f"Assembly/{genomefile}.bed",
-        bx = "ReadMapping/ema/bedfiles/{sample}.bx.bed",
-        alntot = "ReadMapping/ema/bedfiles/{sample}.total.bed"
+        alntot = "ReadMapping/ema/{sample}.bam",
+        bx = "ReadMapping/ema/align/{sample}/{sample}.barcoded.bam"
     output: 
         bx = "ReadMapping/ema/stats/coverage/{sample}.bx.gencov",
         alntot = "ReadMapping/ema/stats/coverage/{sample}.all.gencov"
-    message: "Calculating genomic coverage of alignments: {wildcards.sample}"
+    message: "Calculating genomic coverage: {wildcards.sample}"
     shell:
         """
-        bedtools genomecov -i {input.bx}       -g {input.geno} > {output.bx}
-        bedtools genomecov -i {input.alntot}   -g {input.geno} > {output.alntot}
+        bedtools genomecov -ibam {input.bx}     -bg > {output.bx}
+        bedtools genomecov -ibam {input.alntot} -bg > {output.alntot}
         """
 
 rule index_alignments:

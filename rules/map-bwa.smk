@@ -96,47 +96,14 @@ rule mark_duplicates:
 		sambamba markdup -t {threads} -l 0 {input} {output.bam} 2> {log}
 		"""
 
-#	if [[ "{params.bx}" == "False" ]]; then
-#	else
-#		samtools collate -o {params.rootname}.collate.bam {input} 2> {log}
-#		samtools fixmate -m {params.rootname}.collate.bam {params.rootname}.fixmate.bam 2>> {log}
-#		rm {params.rootname}.collate.bam
-#		samtools sort -O bam {params.rootname}.fixmate.bam > {params.rootname}.fixsort.bam 2>> {log}
-#		rm {params.rootname}.fixmate.bam
-#		samtools markdup --barcode-tag BX {params.rootname}.fixsort.bam {output.bam} 2>> {log}
-#		rm {params.rootname}.fixsort.bam
-#		samtools index {output.bam} 2> {log}
-#	fi
-
-rule genome_coords:
-	input: f"Assembly/{genomefile}.fai"
-	output: f"Assembly/{genomefile}.bed"
-	message: "Creating BED file of genomic coordinates"
-	threads: 1
-	shell:
-		"""
-		awk 'BEGIN{{FS=OFS="\\t"}} {{print $1,$2}}' {input} > {output}
-		"""
-
-rule BEDconvert:
-	input: "ReadMapping/bwa/{sample}.bam"
-	output: temp("ReadMapping/bwa/bedfiles/{sample}.bed")
-	message: "Converting to BED format: {wildcards.sample}"
-	shell:
-		"bedtools bamtobed -i {input} > {output}"
-
 rule genome_coverage:
-	input:
-		geno = f"Assembly/{genomefile}.bed",
-		bed = "ReadMapping/bwa/bedfiles/{sample}.bed"
-	output: 
-		"ReadMapping/bwa/stats/coverage/{sample}.gencov"
-	message: 
-		"Calculating genomic coverage of alignments: {wildcards.sample}"
-	shell:
-		"""
-		bedtools genomecov -i {input.bed} -g {input.geno} > {output}
-		"""
+    input: "ReadMapping/bwa/{sample}.bam"
+    output: "ReadMapping/bwa/stats/coverage/{sample}.gencov"
+    message: "Calculating genomic coverage: {wildcards.sample}"
+    shell:
+        """
+        bedtools genomecov -ibam {input} -bg > {output}
+        """
 
 rule alignment_stats:
 	input:
