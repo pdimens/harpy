@@ -228,7 +228,7 @@ rule BEDconvert:
     message: "Converting to BED format: {wildcards.sample}"
     wildcard_constraints:
         sample = "[a-zA-Z0-9_-]*"
-    params: lambda wc: "ReadMapping/ema/" + wc.get("sample") + "/" + wc.get("sample") + ".barcoded.all.bed"
+    params: lambda wc: "ReadMapping/ema/align/" + wc.get("sample") + "/" + wc.get("sample") + ".barcoded.all.bed"
     threads: 1
     shell:
         """

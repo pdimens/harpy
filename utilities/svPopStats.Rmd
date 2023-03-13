@@ -34,6 +34,7 @@ library(plotly)
 ```
 
 ```{r echo = FALSE}
+#fa.sizes <- read.table("~/genome.fasta.fai", header = F)[,1:2]
 fa.sizes <- read.table(snakemake@input[["faidx"]], header = F)[,1:2]
 colnames(fa.sizes) <- c("contig", "size")
 ```
@@ -41,6 +42,7 @@ colnames(fa.sizes) <- c("contig", "size")
 ## All variants detected
 This table details all the variants LEVIATHAN detected and the quantity/quality of evidence for those detections.
 ```{r message = FALSE, echo = FALSE}
+#sv <- do.call(rbind, lapply(c("~/1.sv.stats", "~/2.sv.stats"), function(x) read.table(x, header = T)))
 sv <- do.call(rbind, lapply(snakemake@input[["statsfiles"]], function(x) read.table(x, header = T)))
 
 if (nrow(sv) == 0) {
@@ -50,7 +52,7 @@ if (nrow(sv) == 0) {
 DT::datatable(sv, rownames = F, filter = "top", extensions = 'Buttons', options = list(dom = 'Brtip', buttons = c('csv'), scrollX = TRUE))
 ```
 
-```{r}
+```{r echo = FALSE, warnings= FALSE, message = FALSE}
 sv <- merge(x=sv,y=fa.sizes, by="contig", )
 sv$length <- as.numeric(gsub("\\.", "1", sv$length))
 ```
@@ -94,10 +96,6 @@ contig, each population is plotted as a row to help visualize shared
 variants between populations. Long population names create issues with row name
 formatting, therefore the population name is included in the hover tooltip.
 Plotting only the first 30 contigs.
-
-```{r echo= FALSE, warning=FALSE, message=FALSE}
-plotheight <- length(snakemake@input[["statsfiles"]]) / 2
-```
 
 
 ```{r echo = FALSE, out.width = '100%', warning=FALSE}
