@@ -304,7 +304,7 @@ rule bamtobed:
     message: "Creating bedfile of all alignments: {wildcards.sample}"
     benchmark: "Benchmark/Mapping/ema/fullbed.{sample}.txt"
     shell:
-        "bedtools bamtobed {input} > {output}"
+        "bedtools bamtobed -i {input} > {output}"
 
 rule genome_BX_coverage:
     input:
