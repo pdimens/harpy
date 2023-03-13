@@ -106,6 +106,5 @@ graph LR
     bams-->A
     A([index barcodes]) --> B([leviathan])
     B-->C([convert to BCF])
-    C-->D([index BCFs])
     C-->E([generate reports])
 ```
