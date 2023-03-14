@@ -35,7 +35,7 @@ library(plotly)
 
 ```{r echo = FALSE}
 #fa.sizes <- read.table("~/genome.fasta.fai", header = F)[,1:2]
-fa.sizes <- read.table(snakemake@input[["faidx"]], header = F)[,1:2]
+fa.sizes <- read.table(snakemake@input[["faidx"]], header = F)[,1:2] %>% arrange(desc(V2))
 colnames(fa.sizes) <- c("contig", "size")
 ```
 
@@ -95,7 +95,7 @@ Contigs that are absent did not have any SV's detected on them. Within each
 contig, each population is plotted as a row to help visualize shared
 variants between populations. Long population names create issues with row name
 formatting, therefore the population name is included in the hover tooltip.
-Plotting only the first 30 contigs.
+Plotting only the first 30 largest contigs.
 
 
 ```{r echo = FALSE, out.width = '100%', warning=FALSE}

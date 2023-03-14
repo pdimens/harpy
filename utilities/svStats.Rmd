@@ -1,5 +1,5 @@
 ---
-title: "Leviathan Structural Variants Summary"
+title: "Leviathan Variant Calling Per-Sample Summary"
 author:
     - "Created using HARPY"
 date: "`r format(Sys.time(), '%d %B, %Y')`"
@@ -33,13 +33,12 @@ library(plotly)
 ```
 
 
-```{r echo = FALSE}
-#hd <- system2("bcftools", args =  paste("head", snakemake@input[["bcf"]]), stdout = T)
-#fa.sizes <- hd[grep("contig=", hd)]
-#fa.sizes <- as.data.frame(do.call(rbind, strsplit(fa.sizes, ",length=")))
-#fa.sizes$V1 <- gsub("##contig=<ID=", "", fa.sizes$V1)
-#fa.sizes$V2 <- as.numeric(gsub(">", "", fa.sizes$V2))
-fa.sizes <- read.table(snakemake@input[["faidx"]], header = F)[,1:2]
+```{r contigSizes, echo = FALSE}
+hd <- system2("bcftools", args =  paste("head", snakemake@input[["bcf"]]), stdout = T)
+fa.sizes <- hd[grep("contig=", hd)]
+fa.sizes <- as.data.frame(do.call(rbind, strsplit(fa.sizes, ",length="))) %>% arrange(desc(V2))
+fa.sizes$V1 <- gsub("##contig=<ID=", "", fa.sizes$V1)
+fa.sizes$V2 <- as.numeric(gsub(">", "", fa.sizes$V2))
 colnames(fa.sizes) <- c("contig", "size")
 ```
 ## All variants detected
@@ -84,7 +83,7 @@ DT::datatable(grpstats, rownames = F, filter = "top", extensions = 'Buttons', op
 
 ## SV size and location
 The plots below are a visual representation of each SV where it was detected.
-Contigs that are absent did not have any SV's detected on them. Plotting only the first 30 contigs.
+Contigs that are absent did not have any SV's detected on them. Plotting the first 30 largest contigs.
 
 ```{r echo = FALSE, out.width = '100%', warning=FALSE}
 .i <- 0

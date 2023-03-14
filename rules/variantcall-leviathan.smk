@@ -94,8 +94,8 @@ rule sv_stats:
 
 rule sv_report:
     input:	
-        statsfile = "Variants/leviathan/stats/{sample}.sv.stats",
-        faidx = f"Assembly/{genomefile}.fai"
+        bcf = "Variants/leviathan/{sample}.bcf",
+        statsfile = "Variants/leviathan/stats/{sample}.sv.stats"
     output:	"Variants/leviathan/reports/{sample}.SV.html"
     message: "Generating SV report: {wildcards.sample}"
     script:	"../utilities/svStats.Rmd"
@@ -103,7 +103,6 @@ rule sv_report:
 rule all_bcfs:
     input: 
         bcf = expand("Variants/leviathan/{sample}.bcf", sample = samplenames),
-        index = expand("Variants/leviathan/stats/{sample}.sv.stats", sample = samplenames),
         reports = expand("Variants/leviathan/reports/{sample}.SV.html", sample = samplenames)
     message: "Variant calling is complete!"
     default_target: True
