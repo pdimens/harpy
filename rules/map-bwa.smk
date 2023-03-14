@@ -14,19 +14,19 @@ if not os.path.exists(f"Assembly/{bn}"):
 
 rule create_reports:
 	input: 
-		expand("ReadMapping/bwa/{sample}.bam", sample = samplenames),
-		expand("ReadMapping/bwa/stats/samtools_{ext}/{sample}.{ext}", sample = samplenames, ext = ["stats", "flagstat"]),
-		expand("ReadMapping/bwa/stats/coverage/{sample}.gencov", sample = samplenames)
+		expand("Alignments/bwa/{sample}.bam", sample = samplenames),
+		expand("Alignments/bwa/stats/samtools_{ext}/{sample}.{ext}", sample = samplenames, ext = ["stats", "flagstat"]),
+		expand("Alignments/bwa/stats/coverage/{sample}.gencov", sample = samplenames)
 	output: 
-		stats =    "ReadMapping/bwa/stats/samtools_stats/bwa.stats.html",
-		flagstat = "ReadMapping/bwa/stats/samtools_flagstat/bwa.flagstat.html"
+		stats =    "Alignments/bwa/stats/samtools_stats/bwa.stats.html",
+		flagstat = "Alignments/bwa/stats/samtools_flagstat/bwa.flagstat.html"
 	message: "Read mapping completed!\nAlignment reports:\n{output.stats}\n{output.flagstat}"
 	benchmark: "Benchmark/Mapping/bwa/reports.txt"
 	default_target: True
 	shell:
 		"""
-		multiqc ReadMapping/bwa/stats/samtools_stats    --force --quiet --no-data-dir --filename {output.stats} 2> /dev/null
-		multiqc ReadMapping/bwa/stats/samtools_flagstat --force --quiet --no-data-dir --filename {output.flagstat} 2> /dev/null
+		multiqc Alignments/bwa/stats/samtools_stats    --force --quiet --no-data-dir --filename {output.stats} 2> /dev/null
+		multiqc Alignments/bwa/stats/samtools_flagstat --force --quiet --no-data-dir --filename {output.flagstat} 2> /dev/null
 		"""
 
 rule index_genome:
@@ -49,8 +49,8 @@ rule align_bwa:
 		reverse_reads = seq_dir + "/{sample}" + f".{Rsep[1]}.{fqext}",
 		genome = f"Assembly/{genomefile}",
 		genome_idx = multiext(f"Assembly/{genomefile}", ".ann", ".bwt", ".fai", ".pac", ".sa", ".amb")
-	output:  pipe("ReadMapping/bwa/{sample}.sam")
-	log: "ReadMapping/bwa/logs/{sample}.log"
+	output:  pipe("Alignments/bwa/{sample}.sam")
+	log: "Alignments/bwa/logs/{sample}.log"
 	message: "Mapping onto {input.genome}: {wildcards.sample}"
 	wildcard_constraints:
 		sample = "[a-zA-Z0-9_-]*"
@@ -65,9 +65,9 @@ rule align_bwa:
 
 rule sort_alignments:
 	input: 
-		sam = "ReadMapping/bwa/{sample}.sam",
+		sam = "Alignments/bwa/{sample}.sam",
 		asm = f"Assembly/{genomefile}"
-	output: temp("ReadMapping/bwa/{sample}.sort.bam")
+	output: temp("Alignments/bwa/{sample}.sort.bam")
 	wildcard_constraints:
 		sample = "[a-zA-Z0-9_-]*"
 	message: "Sorting {wildcards.sample} alignments"
@@ -79,17 +79,17 @@ rule sort_alignments:
 		"""
 
 rule mark_duplicates:
-	input: "ReadMapping/bwa/{sample}.sort.bam"
+	input: "Alignments/bwa/{sample}.sort.bam"
 	output:
-		bam = "ReadMapping/bwa/{sample}.bam",
-		bai = "ReadMapping/bwa/{sample}.bam.bai"
-	log: "ReadMapping/bwa/logs/{sample}.markdup.log"
+		bam = "Alignments/bwa/{sample}.bam",
+		bai = "Alignments/bwa/{sample}.bam.bai"
+	log: "Alignments/bwa/logs/{sample}.markdup.log"
 	message: f"Marking duplicates: " + "{wildcards.sample}"
 	wildcard_constraints:
 		sample = "[a-zA-Z0-9_-]*"
 	benchmark: "Benchmark/Mapping/bwa/markdup.{sample}.txt"
 	params:
-		rootname = "ReadMapping/bwa/{sample}"
+		rootname = "Alignments/bwa/{sample}"
 	threads: 4
 	shell:
 		"""
@@ -97,8 +97,8 @@ rule mark_duplicates:
 		"""
 
 rule genome_coverage:
-    input: "ReadMapping/bwa/{sample}.bam"
-    output: "ReadMapping/bwa/stats/coverage/{sample}.gencov"
+    input: "Alignments/bwa/{sample}.bam"
+    output: "Alignments/bwa/stats/coverage/{sample}.gencov"
     message: "Calculating genomic coverage: {wildcards.sample}"
     shell:
         """
@@ -107,11 +107,11 @@ rule genome_coverage:
 
 rule alignment_stats:
 	input:
-		bam = "ReadMapping/bwa/{sample}.bam",
-		bai = "ReadMapping/bwa/{sample}.bam.bai"
+		bam = "Alignments/bwa/{sample}.bam",
+		bai = "Alignments/bwa/{sample}.bam.bai"
 	output: 
-		stats = "ReadMapping/bwa/stats/samtools_stats/{sample}.stats",
-		flagstat = "ReadMapping/bwa/stats/samtools_flagstat/{sample}.flagstat"
+		stats = "Alignments/bwa/stats/samtools_stats/{sample}.stats",
+		flagstat = "Alignments/bwa/stats/samtools_flagstat/{sample}.flagstat"
 	wildcard_constraints:
 		sample = "[a-zA-Z0-9_-]*"
 	message: "Calculating alignment stats: {wildcards.sample}"

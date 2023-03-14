@@ -16,25 +16,25 @@ if not os.path.exists(f"Assembly/{bn}"):
 
 rule create_reports:
     input: 
-        expand("ReadMapping/ema/{sample}.bam", sample = samplenames),
-        expand("ReadMapping/ema/{sample}.bam.bai", sample = samplenames),
-        expand("ReadMapping/ema/stats/samtools_{ext}/{sample}.{ext}", sample = samplenames, ext = ["stats", "flagstat"]),
-        expand("ReadMapping/ema/stats/moleculesize/{sample}.molsize", sample = samplenames),
-        expand("ReadMapping/ema/stats/moleculesize/{sample}.molsize.hist", sample = samplenames),
-        expand("ReadMapping/ema/stats/readsperbx/{sample}.readsperbx", sample = samplenames),
-        expand("ReadMapping/ema/stats/coverage/{sample}.bx.gencov", sample = samplenames),
-        expand("ReadMapping/ema/stats/coverage/{sample}.all.gencov", sample = samplenames),
-        "ReadMapping/ema/stats/beadtag.report.html"
+        expand("Alignments/ema/{sample}.bam", sample = samplenames),
+        expand("Alignments/ema/{sample}.bam.bai", sample = samplenames),
+        expand("Alignments/ema/stats/samtools_{ext}/{sample}.{ext}", sample = samplenames, ext = ["stats", "flagstat"]),
+        expand("Alignments/ema/stats/moleculesize/{sample}.molsize", sample = samplenames),
+        expand("Alignments/ema/stats/moleculesize/{sample}.molsize.hist", sample = samplenames),
+        expand("Alignments/ema/stats/readsperbx/{sample}.readsperbx", sample = samplenames),
+        expand("Alignments/ema/stats/coverage/{sample}.bx.gencov", sample = samplenames),
+        expand("Alignments/ema/stats/coverage/{sample}.all.gencov", sample = samplenames),
+        "Alignments/ema/stats/beadtag.report.html"
     output: 
-        stats =    "ReadMapping/ema/stats/samtools_stats/alignment.stats.html",
-        flagstat = "ReadMapping/ema/stats/samtools_flagstat/alignment.flagstat.html"
+        stats =    "Alignments/ema/stats/samtools_stats/alignment.stats.html",
+        flagstat = "Alignments/ema/stats/samtools_flagstat/alignment.flagstat.html"
     message: "Read mapping completed!\nAlignment reports:\n\t{output.stats}\n\t{output.flagstat}"
     benchmark: "Benchmark/Mapping/ema/report.txt"
     default_target: True
     shell:
         """
-        multiqc ReadMapping/ema/stats/samtools_stats    --force --quiet --no-data-dir --filename {output.stats} 2> /dev/null
-        multiqc ReadMapping/ema/stats/samtools_flagstat --force --quiet --no-data-dir --filename {output.flagstat} 2> /dev/null
+        multiqc Alignments/ema/stats/samtools_stats    --force --quiet --no-data-dir --filename {output.stats} 2> /dev/null
+        multiqc Alignments/ema/stats/samtools_flagstat --force --quiet --no-data-dir --filename {output.flagstat} 2> /dev/null
         """
 
 rule index_genome:
@@ -56,14 +56,14 @@ rule count_beadtags:
         forward_reads = seq_dir + "/{sample}" + f".{Rsep[0]}.{fqext}",
         reverse_reads = seq_dir + "/{sample}" + f".{Rsep[1]}.{fqext}"
     output: 
-        counts = "ReadMapping/ema/count/{sample}.ema-ncnt",
-        logs = temp("ReadMapping/ema/count/logs/{sample}.count.log")
+        counts = "Alignments/ema/count/{sample}.ema-ncnt",
+        logs = temp("Alignments/ema/count/logs/{sample}.count.log")
     wildcard_constraints:
         sample = "[a-zA-Z0-9_-]*"
     message: "Counting barcode frequency: {wildcards.sample}"
     benchmark: "Benchmark/Mapping/ema/Count.{sample}.txt"
     params:
-        prefix = lambda wc: "ReadMapping/ema/count/" + wc.get("sample")
+        prefix = lambda wc: "Alignments/ema/count/" + wc.get("sample")
     threads: 1
     shell:
         """
@@ -72,8 +72,8 @@ rule count_beadtags:
 
 rule beadtag_summary:
     input: 
-        countlog = expand("ReadMapping/ema/count/logs/{sample}.count.log", sample = samplenames)
-    output: "ReadMapping/ema/stats/beadtag.report.html"
+        countlog = expand("Alignments/ema/count/logs/{sample}.count.log", sample = samplenames)
+    output: "Alignments/ema/stats/beadtag.report.html"
     message: "Creating sample barcode validation report"
     benchmark: "Benchmark/Mapping/ema/beadtagsummary.txt"
     script: "../utilities/emaCountReport.Rmd"
@@ -82,18 +82,18 @@ rule preprocess_ema:
     input: 
         forward_reads = seq_dir + "/{sample}" + f".{Rsep[0]}.{fqext}",
         reverse_reads = seq_dir + "/{sample}" + f".{Rsep[1]}.{fqext}",
-        emacounts = "ReadMapping/ema/count/{sample}.ema-ncnt"
+        emacounts = "Alignments/ema/count/{sample}.ema-ncnt"
     output: 
-        bins = temp(expand("ReadMapping/ema/preproc/{{sample}}/ema-bin-{bin}", bin = ["%03d" % i for i in range(nbins)])),
-        unbarcoded = temp("ReadMapping/ema/preproc/{sample}/ema-nobc")
+        bins = temp(expand("Alignments/ema/preproc/{{sample}}/ema-bin-{bin}", bin = ["%03d" % i for i in range(nbins)])),
+        unbarcoded = temp("Alignments/ema/preproc/{sample}/ema-nobc")
     wildcard_constraints:
         sample = "[a-zA-Z0-9_-]*"
-    log: "ReadMapping/ema/preproc/logs/{sample}.preproc.log"
+    log: "Alignments/ema/preproc/logs/{sample}.preproc.log"
     message: "Preprocessing for EMA mapping: {wildcards.sample}"
     benchmark: "Benchmark/Mapping/ema/Preproc.{sample}.txt"
     threads: 2
     params:
-        outdir = lambda wc: "ReadMapping/ema/preproc/" + wc.get("sample"),
+        outdir = lambda wc: "Alignments/ema/preproc/" + wc.get("sample"),
         bins = nbins
     shell:
         """
@@ -102,10 +102,10 @@ rule preprocess_ema:
 
 rule align_ema:
     input:
-        readbin = "ReadMapping/ema/preproc/{sample}/ema-bin-{bin}",
+        readbin = "Alignments/ema/preproc/{sample}/ema-bin-{bin}",
         genome = f"Assembly/{genomefile}",
         genome_idx = multiext(f"Assembly/{genomefile}", ".ann", ".bwt", ".fai", ".pac", ".sa", ".amb")
-    output: pipe("ReadMapping/ema/align/{sample}/{sample}.{bin}.sam")
+    output: pipe("Alignments/ema/align/{sample}/{sample}.{bin}.sam")
     wildcard_constraints:
         sample = "[a-zA-Z0-9_-]*"
     message: "Mapping onto {input.genome}: {wildcards.sample}-{wildcards.bin}"
@@ -120,11 +120,11 @@ rule align_ema:
 
 rule align_nobarcode:
     input:
-        reads = "ReadMapping/ema/preproc/{sample}/ema-nobc",
+        reads = "Alignments/ema/preproc/{sample}/ema-nobc",
         genome = f"Assembly/{genomefile}",
         genome_idx = multiext(f"Assembly/{genomefile}", ".ann", ".bwt", ".fai", ".pac", ".sa", ".amb")
     output: 
-        samfile = pipe("ReadMapping/ema/align/{sample}/{sample}.nobarcode.sam")
+        samfile = pipe("Alignments/ema/align/{sample}/{sample}.nobarcode.sam")
     benchmark: "Benchmark/Mapping/ema/bwaAlign.{sample}.txt"
     wildcard_constraints:
         sample = "[a-zA-Z0-9_-]*"
@@ -137,9 +137,9 @@ rule align_nobarcode:
 
 rule sort_ema:
     input: 
-        sam = "ReadMapping/ema/align/{sample}/{sample}.{emabin}.sam",
+        sam = "Alignments/ema/align/{sample}/{sample}.{emabin}.sam",
         genome = f"Assembly/{genomefile}"
-    output: temp("ReadMapping/ema/align/{sample}/{sample}.{emabin}.bam")
+    output: temp("Alignments/ema/align/{sample}/{sample}.{emabin}.bam")
     wildcard_constraints:
         sample = "[a-zA-Z0-9_-]*",
         emabin = "[0-9]*"
@@ -153,9 +153,9 @@ rule sort_ema:
 
 rule sort_nobarcode:
     input: 
-        sam = "ReadMapping/ema/align/{sample}/{sample}.nobarcode.sam",
+        sam = "Alignments/ema/align/{sample}/{sample}.nobarcode.sam",
         genome = f"Assembly/{genomefile}"
-    output: temp("ReadMapping/ema/align/{sample}/{sample}.nobarcode.bam.tmp")
+    output: temp("Alignments/ema/align/{sample}/{sample}.nobarcode.bam.tmp")
     wildcard_constraints:
         sample = "[a-zA-Z0-9_-]*"
     message: "Sorting unbarcoded alignments: {wildcards.sample}"
@@ -167,14 +167,14 @@ rule sort_nobarcode:
         """    
 
 rule markduplicates:
-    input: "ReadMapping/ema/align/{sample}/{sample}.nobarcode.bam.tmp"
+    input: "Alignments/ema/align/{sample}/{sample}.nobarcode.bam.tmp"
     output: 
-        bam = temp("ReadMapping/ema/align/{sample}/{sample}.nobarcode.bam"),
-        bai = temp("ReadMapping/ema/align/{sample}/{sample}.nobarcode.bam.bai")
+        bam = temp("Alignments/ema/align/{sample}/{sample}.nobarcode.bam"),
+        bai = temp("Alignments/ema/align/{sample}/{sample}.nobarcode.bam.bai")
     log: 
-        mdlog = "ReadMapping/ema/stats/markduplicates/{sample}.markdup.nobarcode.log",
-        stats = "ReadMapping/ema/stats/samtools_stats/{sample}.nobarcode.stats",
-        flagstat = "ReadMapping/ema/stats/samtools_flagstat/{sample}.nobarcode.flagstat"
+        mdlog = "Alignments/ema/stats/markduplicates/{sample}.markdup.nobarcode.log",
+        stats = "Alignments/ema/stats/samtools_stats/{sample}.nobarcode.stats",
+        flagstat = "Alignments/ema/stats/samtools_flagstat/{sample}.nobarcode.flagstat"
     wildcard_constraints:
         sample = "[a-zA-Z0-9_-]*"
     message: "Marking duplicates in unbarcoded alignments: {wildcards.sample}"
@@ -189,10 +189,10 @@ rule markduplicates:
 
 rule merge_barcoded:
     input:
-        aln_barcoded = expand("ReadMapping/ema/align/{{sample}}/{{sample}}.{bin}.bam", bin = ["%03d" % i for i in range(nbins)]),
+        aln_barcoded = expand("Alignments/ema/align/{{sample}}/{{sample}}.{bin}.bam", bin = ["%03d" % i for i in range(nbins)]),
     output: 
-        bam = temp("ReadMapping/ema/align/{sample}/{sample}.barcoded.bam"),
-        bai = temp("ReadMapping/ema/align/{sample}/{sample}.barcoded.bam.bai")
+        bam = temp("Alignments/ema/align/{sample}/{sample}.barcoded.bam"),
+        bai = temp("Alignments/ema/align/{sample}/{sample}.barcoded.bam.bai")
     wildcard_constraints:
         sample = "[a-zA-Z0-9_-]*"
     message: "Merging barcoded alignments: {wildcards.sample}"
@@ -205,11 +205,11 @@ rule merge_barcoded:
 
 rule bcstats:
     input: 
-        bam = "ReadMapping/ema/align/{sample}/{sample}.barcoded.bam",
-        bai = "ReadMapping/ema/align/{sample}/{sample}.barcoded.bam.bai"
+        bam = "Alignments/ema/align/{sample}/{sample}.barcoded.bam",
+        bai = "Alignments/ema/align/{sample}/{sample}.barcoded.bam.bai"
     log:
-        stats = "ReadMapping/ema/stats/samtools_stats/{sample}.barcoded.stats",
-        flagstat = "ReadMapping/ema/stats/samtools_flagstat/{sample}.barcoded.flagstat"
+        stats = "Alignments/ema/stats/samtools_stats/{sample}.barcoded.stats",
+        flagstat = "Alignments/ema/stats/samtools_flagstat/{sample}.barcoded.flagstat"
     wildcard_constraints:
         sample = "[a-zA-Z0-9_-]*"
     message: "Indexing merged barcoded alignemnts: {wildcards.sample}"
@@ -221,14 +221,14 @@ rule bcstats:
         """
 
 rule BEDconvert:
-    input: "ReadMapping/ema/align/{sample}/{sample}.barcoded.bam"
+    input: "Alignments/ema/align/{sample}/{sample}.barcoded.bam"
     output: 
-        filt = temp("ReadMapping/ema/bedfiles/{sample}.bx.bed"),
-        unfilt = temp("ReadMapping/ema/bedfiles/{sample}.all.bed")
+        filt = temp("Alignments/ema/bedfiles/{sample}.bx.bed"),
+        unfilt = temp("Alignments/ema/bedfiles/{sample}.all.bed")
     message: "Converting to BED format: {wildcards.sample}"
     wildcard_constraints:
         sample = "[a-zA-Z0-9_-]*"
-    params: lambda wc: "ReadMapping/ema/align/" + wc.get("sample") + "/" + wc.get("sample") + ".barcoded.all.bed"
+    params: lambda wc: "Alignments/ema/align/" + wc.get("sample") + "/" + wc.get("sample") + ".barcoded.all.bed"
     threads: 1
     shell:
         """
@@ -238,11 +238,11 @@ rule BEDconvert:
         """
 
 rule BX_stats:
-    input: "ReadMapping/ema/bedfiles/{sample}.bx.bed"
+    input: "Alignments/ema/bedfiles/{sample}.bx.bed"
     output:	
-        molsize = "ReadMapping/ema/stats/moleculesize/{sample}.molsize",
-        molhist = "ReadMapping/ema/stats/moleculesize/{sample}.molsize.hist",
-        readsper = "ReadMapping/ema/stats/readsperbx/{sample}.readsperbx"
+        molsize = "Alignments/ema/stats/moleculesize/{sample}.molsize",
+        molhist = "Alignments/ema/stats/moleculesize/{sample}.molsize.hist",
+        readsper = "Alignments/ema/stats/readsperbx/{sample}.readsperbx"
     message: "Calculating molecule size, reads per molecule: {wildcards.sample}"
     wildcard_constraints:
         sample = "[a-zA-Z0-9_-]*"
@@ -257,13 +257,13 @@ rule BX_stats:
 
 rule merge_alignments:
     input:
-        aln_barcoded = "ReadMapping/ema/align/{sample}/{sample}.barcoded.bam",
-        aln_nobarcode = "ReadMapping/ema/align/{sample}/{sample}.nobarcode.bam",
-        idx_barcoded = "ReadMapping/ema/align/{sample}/{sample}.barcoded.bam.bai",
-        idx_nobarcode = "ReadMapping/ema/align/{sample}/{sample}.nobarcode.bam.bai"
+        aln_barcoded = "Alignments/ema/align/{sample}/{sample}.barcoded.bam",
+        aln_nobarcode = "Alignments/ema/align/{sample}/{sample}.nobarcode.bam",
+        idx_barcoded = "Alignments/ema/align/{sample}/{sample}.barcoded.bam.bai",
+        idx_nobarcode = "Alignments/ema/align/{sample}/{sample}.nobarcode.bam.bai"
     output: 
-        bam = temp("ReadMapping/ema/align/{sample}.unsort.bam"),
-        bai = temp("ReadMapping/ema/align/{sample}.unsort.bam.bai")
+        bam = temp("Alignments/ema/align/{sample}.unsort.bam"),
+        bai = temp("Alignments/ema/align/{sample}.unsort.bam.bai")
     wildcard_constraints:
         sample = "[a-zA-Z0-9_-]*"
     message: "Merging all alignments: {wildcards.sample}"
@@ -276,9 +276,9 @@ rule merge_alignments:
 
 rule sort_merge:
     input:
-        bam = "ReadMapping/ema/align/{sample}.unsort.bam",
+        bam = "Alignments/ema/align/{sample}.unsort.bam",
         genome = genomefile
-    output: "ReadMapping/ema/{sample}.bam"
+    output: "Alignments/ema/{sample}.bam"
     message: "Sorting merged barcoded alignments: {wildcards.sample}"
     wildcard_constraints:
         sample = "[a-zA-Z0-9_-]*"
@@ -290,11 +290,11 @@ rule sort_merge:
 
 rule genome_coverage:
     input:
-        alntot = "ReadMapping/ema/{sample}.bam",
-        bx = "ReadMapping/ema/align/{sample}/{sample}.barcoded.bam"
+        alntot = "Alignments/ema/{sample}.bam",
+        bx = "Alignments/ema/align/{sample}/{sample}.barcoded.bam"
     output: 
-        bx = "ReadMapping/ema/stats/coverage/{sample}.bx.gencov",
-        alntot = "ReadMapping/ema/stats/coverage/{sample}.all.gencov"
+        bx = "Alignments/ema/stats/coverage/{sample}.bx.gencov",
+        alntot = "Alignments/ema/stats/coverage/{sample}.all.gencov"
     message: "Calculating genomic coverage: {wildcards.sample}"
     shell:
         """
@@ -303,8 +303,8 @@ rule genome_coverage:
         """
 
 rule index_alignments:
-    input: "ReadMapping/ema/{sample}.bam"
-    output: "ReadMapping/ema/{sample}.bam.bai"
+    input: "Alignments/ema/{sample}.bam"
+    output: "Alignments/ema/{sample}.bam.bai"
     message: "Indexing: {input}"
     benchmark: "Benchmark/Mapping/ema/IndexMerged.{sample}.txt"
     wildcard_constraints:
@@ -316,11 +316,11 @@ rule index_alignments:
 
 rule alignment_stats:
     input: 		
-        bam = "ReadMapping/ema/{sample}.bam",
-        bai = "ReadMapping/ema/{sample}.bam.bai"
+        bam = "Alignments/ema/{sample}.bam",
+        bai = "Alignments/ema/{sample}.bam.bai"
     output:
-        stats = "ReadMapping/ema/stats/samtools_stats/{sample}.stats",
-        flagstat = "ReadMapping/ema/stats/samtools_flagstat/{sample}.flagstat"
+        stats = "Alignments/ema/stats/samtools_stats/{sample}.stats",
+        flagstat = "Alignments/ema/stats/samtools_flagstat/{sample}.flagstat"
     message: "Calculating alignment stats: {wildcards.sample}"
     benchmark: "Benchmark/Mapping/ema/Mergedstats.{sample}.txt"
     wildcard_constraints:
