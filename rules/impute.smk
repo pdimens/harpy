@@ -111,7 +111,7 @@ rule index_vcf:
         bcftools stats {input.vcf} -S {input.samplelist} > {output.stats}
         """
 
-rule_stitch_reports:
+rule stitch_reports:
     input: "Imputation/{stitchparams}/contigs/{part}/impute.stats"
     output: "Imputation/{stitchparams}/contigs/{part}/{part}.report.html"
     message: "Generating STITCH report: {wildcards.part}"
