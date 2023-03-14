@@ -263,18 +263,6 @@ def impute(parameters, directory, threads, vcf, snakemake):
     """
     vcfcheck(vcf)
     samplenames = getnames(directory, '.bam')
-    
-    contigfile = "Imputation/contigs/" + os.path.splitext(os.path.basename(vcf))[0] + ".contigs"
-    if not exists(contigfile):
-        print(f"Extracting contig names from {vcf}")
-        os.makedirs("Imputation/contigs", exist_ok = True)
-        with open(contigfile, "w") as fout:
-            bcftools = subprocess.Popen(["bcftools", "query", "-f", '%CHROM\\n', f"{vcf}"], stdout = subprocess.PIPE)
-            chromsort = subprocess.Popen(["sort"], stdin = bcftools.stdout, stdout = subprocess.PIPE)
-            subprocess.run(["uniq"], stdin = chromsort.stdout, stdout = fout)
-    else:
-        print(f"Using existing file of contig names: {contigfile}")
-
     command = f'snakemake --cores {threads} --directory . --snakefile rules/impute.smk'.split()
     if snakemake is not None:
         [command.append(i) for i in snakemake.split()]
@@ -283,7 +271,6 @@ def impute(parameters, directory, threads, vcf, snakemake):
     command.append(f"seq_directory={directory}")
     command.append(f"samplenames={samplenames}")
     command.append(f"variantfile={vcf}")
-    command.append(f"contignames={contigfile}")
     command.append(f"paramfile={parameters}")
     command.append(f"filtervcf=False")
     #command.append(f"extra={extra_params}")

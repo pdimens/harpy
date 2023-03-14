@@ -1,19 +1,20 @@
 from snakemake.utils import Paramspace
 import pandas as pd
+import subprocess
 
-# user specified configs
 bam_dir = config["seq_directory"]
-contigfile = config["contignames"]
 samplenames = config["samplenames"]
 variantfile = config["variantfile"]
 
 # declare a dataframe to be a paramspace
 paramspace = Paramspace(pd.read_csv(config["paramfile"], sep="\t"), param_sep = "", filename_params="*")
 
-def contignames(contig_file):
-    with open(contig_file) as f:
-        lines = [line.rstrip() for line in f]
-    return lines
+def contignames(vcf):
+    bcftools = subprocess.Popen(f"bcftools view --header-only {vcf}".split(), stdout = subprocess.PIPE)
+    idcontigs = subprocess.Popen("grep contig=<ID".split(), stdin = bcftools.stdout, stdout = subprocess.PIPE)
+    rm_suffix = subprocess.Popen("cut -d, -f1".split(), stdin = idcontigs.stdout, stdout = subprocess.PIPE)
+    rm_prefix = subprocess.run(["sed", "s/##contig=<ID=//g"], stdin = rm_suffix.stdout, stdout = subprocess.PIPE)
+    return sorted([chr for chr in rm_prefix.stdout.decode('utf-8').split()])
 
 contigs = contignames(contigfile)
 dict_cont = dict(zip(contigs, contigs))
