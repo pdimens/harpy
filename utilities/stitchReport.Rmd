@@ -53,10 +53,10 @@ library(RColorBrewer)
 dataL <- readLines(snakemake@input[[1]])
 #bcf <- gsub(".stats$", ".bcf", "~/CM031716.1/impute.stats")
 bcf <- gsub(".stats$", ".bcf", snakemake@input[[1]])
-basedir <- dirname(snakemake@input[[1]])
+basedir <- dirname(normalizePath(snakemake@input[[1]]))
 #basedir <- dirname("~/CM031716.1/impute.stats")
 chrom <- basename(basedir)
-plotdir <- paste(basedir, "plots/", sep= "/")
+plotdir <- paste(basedir, "plots/", sep = "/")
 ```
 #### File: `r bcf`
 
