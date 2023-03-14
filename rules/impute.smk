@@ -16,6 +16,7 @@ def contignames(contig_file):
     return lines
 
 contigs = contignames(contigfile)
+dict_cont = dict(zip(contigs, contigs))
 
 rule bam_list:
     input: expand(bam_dir + "/{sample}.bam", sample = samplenames)
@@ -27,30 +28,30 @@ rule bam_list:
             for bamfile in input:
                 fout.write(f"{bamfile}\n")
 
-rule split_contigs:
-    input: contigfile
-    output: expand("Imputation/input/contigs/{part}", part = contigs)
-    message: "Splitting contig names for parallelization"
-    benchmark: "Benchmark/Impute/splitcontigs.txt"
-    run:
-        with open(input[0]) as f:
-            cpath = "Imputation/input/contigs"
-            for line in f:
-                contig = line.rstrip()
-                with open(f"{cpath}/{contig}", "w") as fout:
-                    gremlin = fout.write(f"{contig}\n")
+#rule split_contigs:
+#    input: contigfile
+#    output: expand("Imputation/input/contigs/{part}", part = contigs)
+#    message: "Splitting contig names for parallelization"
+#    benchmark: "Benchmark/Impute/splitcontigs.txt"
+#    run:
+#        with open(input[0]) as f:
+#            cpath = "Imputation/input/contigs"
+#            for line in f:
+#                contig = line.rstrip()
+#                with open(f"{cpath}/{contig}", "w") as fout:
+#                    gremlin = fout.write(f"{contig}\n")
 
 rule prepare_biallelic_snps:
-    input: 
-        vcf = variantfile,
-        contig = "Imputation/input/contigs/{part}"
+    input: variantfile
     output: pipe("Imputation/input/{part}.bisnp.bcf")
     message: "Keeping only biallelic SNPs from {wildcards.part}"
+    params:
+        lambda wc: dict_cont[wc.part]
     benchmark: "Benchmark/Impute/fileprep.{part}.txt"
     threads: 1
     shell:
         """
-        bcftools view -m2 -M2 -v snps --regions {wildcards.part} --output-type b {input.vcf} > {output}
+        bcftools view -m2 -M2 -v snps --regions {wildcards.part} --output-type b {input} > {output}
         """
 
 #TODO investigate filter option
@@ -98,16 +99,25 @@ rule index_vcf:
     input:
         vcf = "Imputation/{stitchparams}/contigs/{part}/impute.vcf.gz",
         samplelist = "Imputation/input/samples.names"
-    output: "Imputation/{stitchparams}/contigs/{part}/impute.vcf.gz.tbi"
-    log: "Imputation/{stitchparams}/contigs/{part}/impute.stats"
+    output: 
+        idx = "Imputation/{stitchparams}/contigs/{part}/impute.vcf.gz.tbi",
+        stats = "Imputation/{stitchparams}/contigs/{part}/impute.stats"
     message: "Indexing: {wildcards.stitchparams}/{wildcards.part}"
     benchmark: "Benchmark/Impute/indexvcf.{stitchparams}.{part}.txt"
     threads: 1
     shell:
         """
         tabix {input.vcf}
-        bcftools stats {input.vcf} -S {input.samplelist} > {log}
+        bcftools stats {input.vcf} -S {input.samplelist} > {output.stats}
         """
+
+rule_stitch_reports:
+    input: "Imputation/{stitchparams}/contigs/{part}/impute.stats"
+    output: "Imputation/{stitchparams}/contigs/{part}/{part}.report.html"
+    message: "Generating STITCH report: {wildcards.part}"
+    benchmark: "Benchmark/Impute/report.{part}.txt"
+    threads: 1
+    script: "../utilities/stitchReport.Rmd"
 
 rule merge_vcfs:
     input: 
@@ -146,6 +156,7 @@ rule reports:
 rule all:
     input: 
         bcf = expand("Imputation/{stitchparams}/variants.imputed.bcf", stitchparams=paramspace.instance_patterns),
-        reports = expand("Imputation/{stitchparams}/variants.imputed.html", stitchparams=paramspace.instance_patterns)
+        reports = expand("Imputation/{stitchparams}/variants.imputed.html", stitchparams=paramspace.instance_patterns),
+        contigreports = expand("Imputation/{stitchparams}/contigs/{part}/{part}.report.html", stitchparams=paramspace.instance_patterns, part = contigs)
     default_target: True
     message: "Genotype imputation is complete!"
