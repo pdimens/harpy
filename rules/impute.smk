@@ -71,8 +71,7 @@ rule STITCH_format:
 rule impute:
     input:
         bamlist = "Imputation/input/samples.list",
-        infile = "Imputation/input/{part}.stitch",
-        chromosome = "Imputation/input/contigs/{part}"
+        infile = "Imputation/input/{part}.stitch"
     output:
         # format a wildcard pattern like "k{k}/s{s}/ngen{ngen}"
         # into a file path, with k, s, ngen being the columns of the data frame

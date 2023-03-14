@@ -4,8 +4,8 @@ suppressPackageStartupMessages(library("STITCH"))
 
 # Params pulled in from Snakemake
 bamlist <- snakemake@input[["bamlist"]]
-chr <- readLines(snakemake@input[["chromosome"]])[1]
 posfile <- snakemake@input[["infile"]]
+chr <- gsub(".stitch", "", basename(posfile))
 outdir <- normalizePath(dirname(snakemake@output[[1]]))
 outfile <- basename(snakemake@output[[1]])
 logfile <- file(snakemake@log[[1]], open = "wt")
