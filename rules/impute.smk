@@ -115,7 +115,7 @@ rule stitch_reports:
     input: "Imputation/{stitchparams}/contigs/{part}/impute.stats"
     output: "Imputation/{stitchparams}/contigs/{part}/{part}.report.html"
     message: "Generating STITCH report: {wildcards.part}"
-    benchmark: "Benchmark/Impute/report.{part}.txt"
+    benchmark: "Benchmark/Impute/report.{stitchparams}.{part}.txt"
     threads: 1
     script: "../utilities/stitchReport.Rmd"
 
