@@ -31,6 +31,7 @@ def faidx_contignames(infile):
 	return lines
 
 contigs = faidx_contignames(genomefile)
+dict_cont = dict(zip(contigs, contigs))
 
 rule index_alignments:
 	input: bam_dir + "/{sample}.bam"
@@ -42,18 +43,18 @@ rule index_alignments:
 		sambamba index {input} {output}
 		"""
 
-rule split_contigs:
-	input: f"Assembly/{genomefile}.fai"
-	output: temp(expand("Variants/mpileup/regions/{part}", part = contigs))
-	message: "Separating {input} by contig for parallelization later"
-	benchmark: "Benchmark/Variants/mpileup/splitcontigs.txt"
-	run:
-		with open(input[0]) as f:
-			cpath = "Variants/mpileup/regions"
-			for line in f:
-				contig = line.rstrip().split("\t")[0]
-				with open(f"{cpath}/{contig}", "w") as fout:
-					gremlin = fout.write(f"{contig}\n")
+#rule split_contigs:
+#	input: f"Assembly/{genomefile}.fai"
+#	output: temp(expand("Variants/mpileup/regions/{part}", part = contigs))
+#	message: "Separating {input} by contig for parallelization later"
+#	benchmark: "Benchmark/Variants/mpileup/splitcontigs.txt"
+#	run:
+#		with open(input[0]) as f:
+#			cpath = "Variants/mpileup/regions"
+#			for line in f:
+#				contig = line.rstrip().split("\t")[0]
+#				with open(f"{cpath}/{contig}", "w") as fout:
+#					gremlin = fout.write(f"{contig}\n")
 
 rule bam_list:
 	input: 
@@ -70,12 +71,17 @@ rule bam_list:
 rule mpileup:
 	input:
 		bamlist = "Variants/mpileup/samples.list",
-		genome = f"Assembly/{genomefile}",
-		region = "Variants/mpileup/regions/{part}"
-	output: pipe("Variants/mpileup/{part}.mp.bcf")
-	message: "Finding variants: {wildcards.part}"
-	log: "Variants/mpileup/logs/{part}.mpileup.log"
-	benchmark: "Benchmark/Variants/mpileup/mpileup.{part}.txt"
+		genome = f"Assembly/{genomefile}"
+	output: 
+		pipe("Variants/mpileup/{part}.mp.bcf")
+	params: 
+		lambda wc: dict_cont[wc.part]
+	message: 
+		"Finding variants: {wildcards.part}"
+	log: 
+		"Variants/mpileup/logs/{part}.mpileup.log"
+	benchmark: 
+		"Benchmark/Variants/mpileup/mpileup.{part}.txt"
 	params:
 		extra = extra
 	shell:
