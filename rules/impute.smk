@@ -29,19 +29,6 @@ rule bam_list:
             for bamfile in input:
                 fout.write(f"{bamfile}\n")
 
-#rule split_contigs:
-#    input: contigfile
-#    output: expand("Imputation/input/contigs/{part}", part = contigs)
-#    message: "Splitting contig names for parallelization"
-#    benchmark: "Benchmark/Impute/splitcontigs.txt"
-#    run:
-#        with open(input[0]) as f:
-#            cpath = "Imputation/input/contigs"
-#            for line in f:
-#                contig = line.rstrip()
-#                with open(f"{cpath}/{contig}", "w") as fout:
-#                    gremlin = fout.write(f"{contig}\n")
-
 rule prepare_biallelic_snps:
     input: variantfile
     output: pipe("Imputation/input/{part}.bisnp.bcf")
@@ -118,6 +105,16 @@ rule stitch_reports:
     benchmark: "Benchmark/Impute/report.{stitchparams}.{part}.txt"
     threads: 1
     script: "../utilities/stitchReport.Rmd"
+
+rule clean_stitch:
+    input: "Imputation/{stitchparams}/contigs/{part}/{part}.report.html"
+    message: "Cleaning up extra STITCH files"
+    shell: 
+        """
+        rm -r Imputation/{wildcards.stitchparams}/contigs/{wildcards.part}/input
+        rm -r Imputation/{wildcards.stitchparams}/contigs/{wildcards.part}/RData
+        rm -r Imputation/{wildcards.stitchparams}/contigs/{wildcards.part}/plots
+        """
 
 rule merge_vcfs:
     input: 
