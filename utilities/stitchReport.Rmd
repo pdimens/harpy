@@ -38,8 +38,6 @@ script src = "https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"
   });
 ```
 
-For convenience, this report consolidates the various outputs from `STITCH` and `bcftools` into a single document.
-
 ```{r setup environment}
 library(ggplot2)
 library(magrittr)
@@ -50,16 +48,17 @@ library(RColorBrewer)
 ```
 
 ```{r load data}
-dataL <- readLines("~/CM031716.1/impute.stats")
-#dataL <- readLines(snakemake@input[[1]])
-bcf <- gsub(".stats$", ".bcf", "~/CM031716.1/impute.stats")
-#bcf <- gsub(".stats$", ".bcf", snakemake@input[[1]])
-#basedir <- dirname(normalizePath(snakemake@input[[1]]))
-basedir <- dirname("~/CM031716.1/impute.stats")
+#dataL <- readLines("~/CM031716.1/impute.stats")
+dataL <- readLines(snakemake@input[[1]])
+#bcf <- gsub(".stats$", ".bcf", "~/CM031716.1/impute.stats")
+bcf <- gsub(".stats$", ".bcf", snakemake@input[[1]])
+basedir <- dirname(normalizePath(snakemake@input[[1]]))
+#basedir <- dirname("~/CM031716.1/impute.stats")
 chrom <- basename(basedir)
 plotdir <- paste(basedir, "plots/", sep = "/")
 ```
-#### File: `r bcf`
+##### file: `r bcf`
+For convenience, this report consolidates the various outputs from `STITCH` and `bcftools` into a single document.
 
 ## General details
 This reflects the general information stored in the records of `r bcf`. Since STITCH
@@ -68,7 +67,7 @@ of variants (MNPs, indels, _etc._).
 
 ```{r General Stats}
 .snL <- grepl("^SN", dataL)
-sn <- read.table(text=dataL[.snL], sep = "\t")[,3:4]
+sn <- read.table(text=dataL[.snL], sep = "\t")[, 3:4]
 names(sn) <- c("Metric", "Number")
 sn$Metric <- gsub("number of ", "", sn$Metric)
 sn$Metric <- gsub(":", "", sn$Metric)
@@ -83,7 +82,7 @@ sn
 ## Individual Statistics {.tabset}
 Below is an interactive plot and a table of variant statistics per individual, corresponding to the `r sn$samples[1]` samples in `r bcf`.
 
-### Plot
+### plot
 ```{r}
 # scale plot height to sample count
 p_height <- paste0(50 + (sn$samples[1] * 20), "px")
@@ -108,7 +107,7 @@ pscplot <- ggplot(data = tidy_psc, mapping = aes(x = Count, y = Sample, color = 
 ggplotly(pscplot)
 ```
 
-### Table
+### table
 ```{r}
 DT::datatable(psc[,c(1,12,2,3,13,4,5,6,9)], rownames = F, filter = "top", extensions = 'Buttons', options = list(dom = 'Brtip', buttons = c('csv'), scrollX = TRUE))
 ```

@@ -39,7 +39,21 @@ fa.sizes <- read.table(snakemake@input[["faidx"]], header = F)[,1:2] %>% arrange
 colnames(fa.sizes) <- c("contig", "size")
 ```
 
-## All variants detected
+## Various information {.tabset}
+### summary info
+This table shows the overall counts, average per contig, and standard deviation per contig for detected structural variants across populations.
+```{r echo = FALSE, warnings= FALSE, message = FALSE}
+genstats <- sv %>%
+  group_by(population, contig, type) %>%
+  summarise(tot = n()) %>%
+  group_by(population, type) %>%
+  summarise(count = sum(tot), avg = round(mean(tot, na.rm = T),2 ), sd = round(sd(tot, na.rm = T), 2)) %>% 
+  pivot_wider(names_from = type, values_from = c(count, avg, sd), names_glue = "{type}.{.value}", names_vary = "slowest")
+
+DT::datatable(genstats, rownames = F, filter = "top", extensions = 'Buttons', options = list(dom = 'Brtip', buttons = c('csv'), scrollX = TRUE))
+```
+
+### all variants
 This table details all the variants LEVIATHAN detected and the quantity/quality of evidence for those detections.
 ```{r message = FALSE, echo = FALSE}
 #sv <- do.call(rbind, lapply(c("~/1.sv.stats", "~/2.sv.stats"), function(x) read.table(x, header = T)))
@@ -53,35 +67,29 @@ DT::datatable(sv, rownames = F, filter = "top", extensions = 'Buttons', options 
 ```
 
 ```{r echo = FALSE, warnings= FALSE, message = FALSE}
-sv <- merge(x=sv,y=fa.sizes, by="contig", )
+sv <- merge(x = sv, y = fa.sizes, by = "contig")
 sv$length <- as.numeric(gsub("\\.", "1", sv$length))
 ```
 
-## General information
-This table shows the overall counts, average per contig, and standard deviation per contig for detected structural variants across populations.
-```{r echo = FALSE, warnings= FALSE, message = FALSE}
-genstats <- sv %>% group_by(population, contig, type) %>% summarise(tot = n()) %>%
-  group_by(population, type) %>% summarise(count = sum(tot), avg = round(mean(tot, na.rm = T),2 ), sd = round(sd(tot, na.rm = T), 2)) %>% 
-  pivot_wider(names_from = type, values_from = c(count, avg, sd), names_glue = "{type}.{.value}", names_vary = "slowest")
-
-DT::datatable(genstats, rownames = F, filter = "top", extensions = 'Buttons', options = list(dom = 'Brtip', buttons = c('csv'), scrollX = TRUE))
-```
-
-## Per-contig information
+## Per-contig information {.tabset}
 ### counts per contig
 This table details counts each type of structural variant for every contig for every population.
 ```{r echo = FALSE, warnings= FALSE, message = FALSE}
-grpcounts <- sv %>% group_by(population, contig, type) %>% summarise(count = n()) %>%
+grpcounts <- sv %>%
+  group_by(population, contig, type) %>%
+  summarise(count = n()) %>%
   pivot_wider(names_from = population, values_from = count)
 
 DT::datatable(grpcounts, rownames = F, filter = "top", extensions = 'Buttons', options = list(dom = 'Brtip', buttons = c('csv'), scrollX = TRUE))
 ```
 
 ### bp per contig
-This table details the lengths (in bp) of SV's for every contig for every population.
+This table details the lengths (in bp) of SV's for every contig for every population. Breakends are not counted because they do not have a size.
 ```{r echo = FALSE, warnings= FALSE, message = FALSE}
-grplens <- sv %>% group_by(population, contig, type) %>%
-  summarise(bp = sum(length)) %>% 
+grplens <- sv %>% 
+  filter(type != "BND") %>%
+  group_by(population, contig, type) %>%
+  summarise(bp = sum(length)) %>%
   pivot_wider(names_from = population, values_from = bp)
 
 DT::datatable(grplens, rownames = F, filter = "top", extensions = 'Buttons', options = list(dom = 'Brtip', buttons = c('csv'), scrollX = TRUE))

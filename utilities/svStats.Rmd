@@ -9,11 +9,7 @@ output:
     number_sections: no
     theme: cosmo
     df_print: kable
-    toc: yes
-    toc_depth: 2
-    toc_float:
-      collapsed: no
-      smooth_scroll: yes
+    toc: no
 ---
 
 Below is a series of tables and plots detailing the structural variants
@@ -32,7 +28,6 @@ library(DT)
 library(plotly)
 ```
 
-
 ```{r contigSizes, echo = FALSE}
 hd <- system2("bcftools", args =  paste("head", snakemake@input[["bcf"]]), stdout = T)
 fa.sizes <- hd[grep("contig=", hd)]
@@ -41,27 +36,9 @@ fa.sizes$V1 <- gsub("##contig=<ID=", "", fa.sizes$V1)
 fa.sizes$V2 <- as.numeric(gsub(">", "", fa.sizes$V2))
 colnames(fa.sizes) <- c("contig", "size")
 ```
-## All variants detected
-This table details all the variants LEVIATHAN detected and the quantity/quality of evidence for those detections.
-```{r echo = FALSE, warnings= FALSE, message = FALSE}
-sv <- read.table(snakemake@input[["statsfile"]], header = T)
-if (nrow(sv) == 0) {
-  print("No variants in the file")
-  q()
-}
-DT::datatable(sv, rownames = F, filter = "top", extensions = 'Buttons', options = list(dom = 'Brtip', buttons = c('csv'), scrollX = TRUE))
-```
 
-```{r echo = FALSE, warnings= FALSE, message = FALSE}
-sv <- merge(x=sv,y=fa.sizes, by="contig")
-sv$length <- gsub("\\.", "1", sv$length) %>%  as.numeric()
-
-grpstats <- sv %>%
-  group_by(contig, type) %>%
-  summarise(count = n(), total_bp  = sum(length))
-```
-
-## General information
+## Various Stats {.tabset}
+### summary info
 This table shows the overall statistics for detected structural variants.
 ```{r echo = FALSE, message = FALSE}
 grpstats %>%
@@ -73,9 +50,28 @@ grpstats %>%
 )
 ```
 
-## Per-contig information
+### all variants
+This table details all the variants LEVIATHAN detected and the quantity/quality of evidence for those detections.
+```{r echo = FALSE, warnings = FALSE, message = FALSE}
+sv <- read.table(snakemake@input[["statsfile"]], header = T)
+if (nrow(sv) == 0) {
+  print("No variants in the file")
+  q()
+}
+DT::datatable(sv, rownames = F, filter = "top", extensions = 'Buttons', options = list(dom = 'Brtip', buttons = c('csv'), scrollX = TRUE))
+```
+
+
+### per-contig info
 This table details each type of structural variant for every contig.
-```{r echo = FALSE}
+```{r echo = FALSE, message = FALSE, warning = FALSE}
+sv <- merge(x = sv, y = fa.sizes, by = "contig")
+sv$length <- gsub("\\.", "1", sv$length) %>%  as.numeric()
+
+grpstats <- sv %>%
+  group_by(contig, type) %>%
+  summarise(count = n(), total_bp  = sum(length))
+
 DT::datatable(grpstats, rownames = F, filter = "top", extensions = 'Buttons', options = list(dom = 'Brtip', buttons = c('csv'), scrollX = TRUE))
 ```
 
