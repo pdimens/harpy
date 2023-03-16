@@ -104,7 +104,7 @@ rule stitch_reports:
     message: "Generating STITCH report: {wildcards.part}"
     benchmark: "Benchmark/Impute/report.{stitchparams}.{part}.txt"
     threads: 1
-    script: "../utilities/stitchReport.Rmd"
+    script: "../utilities/reportStitch.Rmd"
 
 rule clean_stitch:
     input: "Imputation/{stitchparams}/contigs/{part}/{part}.report.html"
@@ -148,7 +148,7 @@ rule reports:
     output: "Imputation/{stitchparams}/variants.imputed.html"
     message: "Generating bcftools report: {output}"
     benchmark: "Benchmark/Impute/stitchreport.{stitchparams}.txt"
-    script: "../utilities/bcftoolsreport.Rmd"
+    script: "../utilities/reportBcftools.Rmd"
 
 rule all:
     input: 

@@ -144,7 +144,7 @@ rule bcfreport:
 	output: "Variants/mpileup/variants.raw.html"
 	message: "Generating bcftools report: {output}"
 	benchmark: "Benchmark/Variants/mpileup/reports.txt"
-	script: "../utilities/bcftoolsreport.Rmd"
+	script: "../utilities/reportBcftools.Rmd"
 
 
 rule all:

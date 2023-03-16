@@ -37,12 +37,12 @@ to the correct format, `BX:Z:AXXCXXBXXDXX`, where there is a whitespace/tab befo
 
 ```{r echo = FALSE, message = FALSE, warning = FALSE}
 BXstats <- data.frame(
-            Sample = character(),
-            ReadsIgnored = integer(),
-            BarcodeValid = integer(),
-            BarcodeTotal = integer(),
-            PercentValid = numeric(),
-            PercentIgnored = numeric()
+  Sample = character(),
+  ReadsIgnored = integer(),
+  BarcodeValid = integer(),
+  BarcodeTotal = integer(),
+  PercentValid = numeric(),
+  PercentIgnored = numeric()
 )
 
 #for (i in list.files("/home/pdimens", "count.log", full.names = TRUE)) {
@@ -50,7 +50,7 @@ for (i in snakemake@input[["countlog"]]) {
   samplename <- gsub(".count.log", "", basename(i))
   filetext <- readLines(i)
   bc_line <- gsub(",", "", filetext[2])
-  matches <- gregexpr('[0-9]+', bc_line)
+  matches <- gregexpr("[0-9]+", bc_line)
   counts <- as.numeric(unlist(regmatches(bc_line, matches)))
   bc_ok <- counts[1]
   bc_total <- counts[2]
@@ -63,9 +63,28 @@ for (i in snakemake@input[["countlog"]]) {
     ig_percent <- trunc((ignored / bc_total) * 10000) / 100
   }
 
-  BXstats <- rbind(BXstats, data.frame(Sample = samplename, ReadsIgnored = ignored, BarcodeValid = bc_ok, BarcodeTotal = bc_total, PercentValid = bc_percent, PercentIgnored = ig_percent))
+  BXstats <- rbind(
+    BXstats,
+    data.frame(
+      Sample = samplename,
+      ReadsIgnored = ignored,
+      BarcodeValid = bc_ok,
+      BarcodeTotal = bc_total,
+      PercentValid = bc_percent,
+      PercentIgnored = ig_percent)
+  )
 }
-DT::datatable(BXstats, rownames = F, filter = "top", extensions = 'Buttons', options = list(dom = 'Brtip', buttons = c('csv', 'pdf'), scrollX = TRUE))
+DT::datatable(
+  BXstats,
+  rownames = FALSE,
+  filter = "top",
+  extensions = "Buttons",
+  options = list(
+    dom = "Brtip",
+    buttons = c("csv"),
+    scrollX = TRUE
+  )
+)
 ```
 
 Below is a plot summarizing the number of valid vs invalid barcodes per sample.
@@ -75,16 +94,13 @@ p <- BXstats %>%
   rename(Valid = BarcodeValid) %>%
   select(Sample, Valid, Invalid) %>%
   pivot_longer(-Sample, names_to = "BarcodeStatus", values_to = "Count") %>%
-  ggplot(aes(x = Sample, y = Count, fill = BarcodeStatus)) +
+  ggplot(aes(y = Sample, x = Count, fill = BarcodeStatus)) +
     geom_col() +
     theme_minimal() +
-    theme(
-      panel.grid.major.x = element_blank(),
-      axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)
-    ) +
-    scale_fill_manual(values = c(Valid = "#afd5e7", Invalid = "#aa6f73")) +
+    theme(panel.grid.major.y = element_blank()) +
+    scale_fill_manual(values = c(Valid = "#afd5e7", Invalid = "#c02554")) +
   labs(title = "Summary of Valid Barcodes")
 
-plt <- ggplotly(p) %>% layout(hovermode = "x")
+plt <- ggplotly(p) %>% layout(hovermode = "y")
 plt
 ```

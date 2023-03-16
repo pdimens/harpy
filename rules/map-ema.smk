@@ -76,7 +76,7 @@ rule beadtag_summary:
     output: "Alignments/ema/stats/beadtag.report.html"
     message: "Creating sample barcode validation report"
     benchmark: "Benchmark/Mapping/ema/beadtagsummary.txt"
-    script: "../utilities/emaCountReport.Rmd"
+    script: "../utilities/reportEmaCount.Rmd"
 
 rule preprocess_ema:
     input: 
