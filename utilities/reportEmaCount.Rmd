@@ -94,7 +94,7 @@ p <- BXstats %>%
   ggplot(aes(y = Sample, x = Count, fill = BarcodeStatus)) +
     geom_col() +
     theme_minimal() +
-    theme(panel.grid.major.y = element_blank()) +
+    theme(panel.grid.major.y = element_blank(), axis.title.y = element_blank()) +
     scale_fill_manual(values = c(Valid = "#afd5e7", Invalid = "#c02554")) +
   labs(title = "Summary of Valid Barcodes")
 
