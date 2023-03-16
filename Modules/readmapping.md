@@ -25,11 +25,19 @@ harpy align OPTIONS...
 | `--genome`       |    `-g`    | file path   |         | **yes**  | Genome assembly for read mapping                                       |
 | `--dir`          |    `-d`    | folder path |         | **yes**  | Directory with sample sequences                                        |
 | `--ema-bins`     |    `-e`    | integer     |   500   |    no    | Number of barcode bins for EMA                                         |
+| `--proximity`    |    `-p`    | integer     |   250   |    no    | Alignment window merging proximity (bp) for coverage calculations      |
 | `--bwa`          |    `-b`    | toggle      |         |    no    | Use BWA MEM instead of EMA                                             |
 | `--extra-params` |    `-x`    | string      |         |    no    | Additional EMA-align/BWA parameters, in quotes                         |
 | `--threads`      |    `-t`    | integer     |    4    |    no    | Number of threads to use                                               |
 | `--snakemake`    |    `-s`    | string      |         |    no    | Additional Snakemake options, in quotes ([more info](../getstarted.md/#adding-additional-snakamake-parameters)) |
 | `--help`         |            |             |         |          | Show the module docstring                                              |
+
+!!!info
+The `--proximity` flag is for the genomic alignment coverage calculations, which occurs after sequence alignment. It therefore does not impact 
+sequence alignment. The default value (`250`) means alignment intervals within 250bp will be merged and their coverages summed. If you don't
+want intervals merged, set this argument as `--proximity 1` (1bp). Merging is useful for reducing file size (kilobytes vs mega/gigabytes),
+which makes visualization easier downstream too. 
+!!!
 
 ## FASTQ file format
 There are a handful of "accepted" naming schemes for fastq file extensions, but Harpy only accepts a limited number of them, shown below.
