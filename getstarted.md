@@ -65,6 +65,14 @@ So, the easiest workaround would be to regenerate the incomplete files and use `
 harpy variants --leviathan -g genome.fasta  -d ReadMapping/ema --threads 8 -p samples.groups -s "--rerun-incomplete"
 ```
 
+### Specific file target
+Sometimes you want to generate a single (or a few files) rather than running the entire module to completion. For example,
+you want the beadtag report Harpy makes from the output of `EMA count`. To do this, just list the file/files (relative
+to your working directory) without any flags. Example for the beadtag report:
+```bash
+harpy align -g genome.fasta -d Trimming -t 4 -s "Alignemnts/ema/stats/beadtag.report.html"
+```
+
 ### Set a shadow directory
 ##### `--shadow-prefix <dirname>`
 If running Harpy on an HPC, your system administrator may enforce a policy that all data needs to be moved to a particular
