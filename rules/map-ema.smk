@@ -7,6 +7,7 @@ genomefile = config["genomefile"]
 Rsep = config["Rsep"]
 fqext = config["fqext"]
 samplenames = config["samplenames"]
+bed_prox = config["bed_proximity"]
 extra = config.get("extra", "") 
 
 bn = os.path.basename(genomefile)
@@ -296,10 +297,12 @@ rule genome_coverage:
         bx = "Alignments/ema/stats/coverage/{sample}.bx.gencov",
         alntot = "Alignments/ema/stats/coverage/{sample}.all.gencov"
     message: "Calculating genomic coverage: {wildcards.sample}"
+    params: bed_prox
+    threads: 2
     shell:
         """
-        bedtools genomecov -ibam {input.bx}     -bg > {output.bx}
-        bedtools genomecov -ibam {input.alntot} -bg > {output.alntot}
+        bedtools genomecov -ibam {input.bx}     -bg | bedtools merge -c 4 -o sum -d {params} > {output.bx}
+        bedtools genomecov -ibam {input.alntot} -bg | bedtools merge -c 4 -o sum -d {params} > {output.alntot}
         """
 
 rule index_alignments:

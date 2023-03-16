@@ -5,6 +5,7 @@ genomefile = config["genomefile"]
 Rsep = config["Rsep"]
 fqext = config["fqext"]
 samplenames = config["samplenames"]
+bed_prox = config["bed_proximity"]
 extra = config.get("extra", "") 
 
 bn = os.path.basename(genomefile)
@@ -100,9 +101,11 @@ rule genome_coverage:
     input: "Alignments/bwa/{sample}.bam"
     output: "Alignments/bwa/stats/coverage/{sample}.gencov"
     message: "Calculating genomic coverage: {wildcards.sample}"
+	threads: 2
+	params: bed_prox
     shell:
         """
-        bedtools genomecov -ibam {input} -bg > {output}
+        bedtools genomecov -ibam {input} -bg | bedtools merge -c 4 -0 sum -d {params} > {output}
         """
 
 rule alignment_stats:
