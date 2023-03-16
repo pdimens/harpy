@@ -1,5 +1,5 @@
 ---
-title: "Barcode Validation Summary"
+title: "ema-count Summary"
 author:
     - "Created using HARPY"
 date: "`r format(Sys.time(), '%d %B, %Y')`"
@@ -9,11 +9,7 @@ output:
     number_sections: no
     theme: cosmo
     df_print: kable
-    toc: yes
-    toc_depth: 2
-    toc_float:
-      collapsed: no
-      smooth_scroll: yes
+    toc: no
 ---
   
 ```{r echo = FALSE, message = FALSE}
@@ -24,8 +20,8 @@ library(magrittr)
 library(DT)
 library(plotly)
 ```
-
-## Barcode validity
+## Barcode Validation {.tabset}
+### table
 Below is a table listing all the samples Harpy processed and their associated barcode statistics as
 determined by `EMA count`. If `BarcodeTotal` equals `0` for some reason, then there is an issue
 with the format of your FASTQ files. Please check that the barcode in the read headers comforms 
@@ -87,6 +83,7 @@ DT::datatable(
 )
 ```
 
+### plot
 Below is a plot summarizing the number of valid vs invalid barcodes per sample.
 ```{r echo = FALSE, message = FALSE, warning = FALSE, out.width = '100%'}
 p <- BXstats %>%
@@ -101,6 +98,5 @@ p <- BXstats %>%
     scale_fill_manual(values = c(Valid = "#afd5e7", Invalid = "#c02554")) +
   labs(title = "Summary of Valid Barcodes")
 
-plt <- ggplotly(p) %>% layout(hovermode = "y")
-plt
+ggplotly(p)
 ```
