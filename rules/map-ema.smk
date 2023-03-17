@@ -25,6 +25,8 @@ rule create_reports:
         expand("Alignments/ema/stats/readsperbx/{sample}.readsperbx", sample = samplenames),
         expand("Alignments/ema/stats/coverage/{sample}.bx.gencov", sample = samplenames),
         expand("Alignments/ema/stats/coverage/{sample}.all.gencov", sample = samplenames),
+        expand("Alignments/ema/stats/coverage/data/{sample}.all.gencov", sample = samplenames),
+        expand("Alignments/ema/stats/coverage/data/{sample}.bx.gencov", sample = samplenames),
         "Alignments/ema/stats/beadtag.report.html"
     output: 
         stats =    "Alignments/ema/stats/samtools_stats/alignment.stats.html",
@@ -294,8 +296,8 @@ rule genome_coverage:
         alntot = "Alignments/ema/{sample}.bam",
         bx = "Alignments/ema/align/{sample}/{sample}.barcoded.bam"
     output: 
-        bx = "Alignments/ema/stats/coverage/{sample}.bx.gencov",
-        alntot = "Alignments/ema/stats/coverage/{sample}.all.gencov"
+        bx = "Alignments/ema/stats/coverage/data/{sample}.bx.gencov",
+        alntot = "Alignments/ema/stats/coverage/data/{sample}.all.gencov"
     message: "Calculating genomic coverage: {wildcards.sample}"
     params: bed_prox
     threads: 2
@@ -304,6 +306,29 @@ rule genome_coverage:
         bedtools genomecov -ibam {input.bx}     -bg | bedtools merge -c 4 -o sum -d {params} > {output.bx}
         bedtools genomecov -ibam {input.alntot} -bg | bedtools merge -c 4 -o sum -d {params} > {output.alntot}
         """
+
+rule gencovBX_report:
+    input: 
+        bx = "Alignments/ema/stats/coverage/data/{sample}.bx.gencov",
+        idx = f"Assembly/{genomefile}.fai"
+    output:
+        "Alignments/ema/stats/coverage/{sample}.gencov.bx.html"
+    message:
+        "Creating report of alignment coverage: {wildcards.sample}"
+    script:
+        "../utilities/reportGencov.Rmd"
+
+rule gencovAll_report:
+    input:
+        alntot = "Alignments/ema/stats/coverage/data/{sample}.all.gencov",
+        idx = f"Assembly/{genomefile}.fai"
+    output:
+        "Alignments/ema/stats/coverage/{sample}.gencov.all.html"
+    message:
+        "Creating report of alignment coverage: {wildcards.sample}"
+    script:
+        "../utilities/reportGencov.Rmd"
+
 
 rule index_alignments:
     input: "Alignments/ema/{sample}.bam"

@@ -1,0 +1,98 @@
+---
+title: "Sequence Alignment Coverage"
+author:
+    - "Created using HARPY"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output:
+  html_document:
+    highlight: tango
+    number_sections: no
+    theme: cosmo
+    toc: no
+---
+
+```{r echo = FALSE, message = FALSE, warning = FALSE}
+library(ggplot2)
+```
+
+```{r echo = FALSE, message = FALSE, warning = FALSE}
+covfile <- snakemake@input[["gencov"]]
+#covfile <- "~/ShadHap1_C01.gencov"
+gencov <- read.table(covfile, header = F)
+colnames(gencov) <- c("contig", "start", "end","coverage")
+gencov$midpoint <- (gencov$start + gencov$end) / 2
+
+fa.sizes <- read.table(snakemake@input[["faidx"]], header = F)[,1:2] %>% arrange(desc(V2))
+#fa.sizes <- read.table("~/genome.fasta.fai", header = F)[,1:2]
+colnames(fa.sizes) <- c("contig", "size")
+
+sname <- gsub(".gencov", "", basename(covfile))
+#TODO
+if (grepl("all.gencov", covfile)){
+  txt <- "all alignments, meaning coverage was quantified irrespective of whether a read had a valid barcode or not."
+} else {
+  txt <- "only alignments whose reads had a valid barcode."
+}
+```
+#### Sample: `r sname`
+This report summarizes alignment coverage across the genome for file `r sname` with respect to `r txt`
+
+## Coverage Plots {.tabset}
+### general
+
+Below are the first 30 contigs plotted to show sequence alignment coverage across
+the genome. Each peak is the midpoint of an alignment interval. The orange horizontal 
+line reflects the mean coverage for the contig. To reduce file size, Harpy does not output
+intervals with no coverage, so these plots should be interpreted as generalizations.
+
+```{r echo = FALSE, message = FALSE, warning = FALSE, out.width="100%"}
+.i <- 0
+for(i in fa.sizes$contig) {
+.i <- .i + 1
+.g <- gencov[gencov$contig == i,]
+.covmean <-round(mean(.g$coverage), digits = 0)
+p <- ggplot(.g, aes(x = midpoint, y = coverage)) +
+  geom_area(fill = "grey40") +
+  geom_hline(yintercept = .covmean, color = "orange") +
+  xlim(0, fa.sizes$size[i]) +
+  theme_bw() +
+  labs(x = "position (bp)", title = i, subtitle = paste("mean coverage:", .covmean)) +
+  theme(panel.grid.major.x = element_blank(), panel.grid.minor.x = element_blank())
+  print(p)
+  if (.i == 30) {
+    break
+  }
+}
+```
+
+### detailed
+Below are the first 30 contigs plotted to show sequence alignment coverage across
+the genome. Each point represents the midpoint of an alignment interval, with a 
+line bisecting it horizontally that spans the length of the alignment interval.
+The orange horizontal line reflects the mean coverage for the contig.
+While providing more detail than the generalized plots, the horizontal lines
+may not be visible on sufficiently long contigs or sufficiently short intervals,
+obfuscating readability somewhat.
+
+```{r echo = FALSE, message = FALSE, warning = FALSE, out.width="100%"}
+.i <- 0
+for(i in fa.sizes$contig) {
+.i <- .i + 1
+.g <- gencov[gencov$contig == i, ]
+.covmean <-round(mean(.g$coverage), digits = 0)
+p <- ggplot(.g, aes(x=midpoint, y=coverage, color = coverage)) +
+  geom_point(size = 0.5) +
+  geom_segment(linewidth = 0.5, aes(x = start, xend= end, y = coverage, yend = coverage, color = coverage), inherit.aes = FALSE) +
+  geom_hline(yintercept = .covmean, color = "orange") +
+  xlim(0, fa.sizes$size[i]) +
+  coord_cartesian(xlim = c(0, fa.sizes$size[i] + 1), expand = F) +
+  theme_bw() +
+  scale_color_gradient(low = "indianred", high = "dodgerblue") +
+  labs(x = "position (bp)", title = i, subtitle = paste("mean coverage:", .covmean)) +
+  theme(panel.grid.major.x = element_blank(), panel.grid.minor.x = element_blank(), legend.position = "none")
+  print(p)
+  if (.i == 30) {
+    break
+  }
+}
+```

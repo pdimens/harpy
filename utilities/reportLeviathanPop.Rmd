@@ -67,7 +67,6 @@ DT::datatable(sv, rownames = F, filter = "top", extensions = 'Buttons', options 
 ```
 
 ```{r echo = FALSE, warnings= FALSE, message = FALSE}
-sv <- merge(x = sv, y = fa.sizes, by = "contig")
 sv$length <- as.numeric(gsub("\\.", "1", sv$length))
 ```
 
@@ -109,7 +108,7 @@ Plotting only the first 30 largest contigs.
 ```{r echo = FALSE, out.width = '100%', warning=FALSE}
 .i <- 0
 l <- htmltools::tagList()
-for (i in unique(fa.sizes$contig)) {
+for (i in fa.sizes$contig) {
   .i <- .i + 1
   sv.filt <- sv %>% filter(contig == i)
   sv_stats <- group_by(sv.filt, type) %>% summarise(n = length(type))
@@ -132,8 +131,8 @@ for (i in unique(fa.sizes$contig)) {
       strip.background = element_blank(),
       strip.text = element_blank()
     ) +
-    xlim(0, sv.filt$size[1]) +
-    coord_cartesian(xlim = c(0, sv.filt$size[1] + 1), expand = F) +
+    xlim(0, fa.sizes$size[i]) +
+    coord_cartesian(xlim = c(0, fa.sizes$size[i] + 1), expand = F) +
     xlab("Position (bp)") +
     labs(fill = "SV type", color = "SV type") +
     ggtitle(i)

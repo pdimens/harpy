@@ -65,7 +65,6 @@ DT::datatable(sv, rownames = F, filter = "top", extensions = 'Buttons', options 
 ### per-contig info
 This table details each type of structural variant for every contig.
 ```{r echo = FALSE, message = FALSE, warning = FALSE}
-sv <- merge(x = sv, y = fa.sizes, by = "contig")
 sv$length <- gsub("\\.", "1", sv$length) %>%  as.numeric()
 
 grpstats <- sv %>%
@@ -106,8 +105,8 @@ for (i in unique(fa.sizes$contig)) {
     ) +
     scale_color_manual(values=c("DEL"="#004D40", "DUP"="#FFC107", "INV"="#1E88E5","BND"="#D81B60")) +
     scale_fill_manual(values=c("DEL"="#004D40", "DUP"="#FFC107", "INV"="#1E88E5","BND"="#D81B60")) +
-    xlim(1, sv.filt$size[1]) +
-    coord_cartesian(xlim = c(0, sv.filt$size[1] + 1), expand = F) +
+    xlim(1, fa.fa.sizes$size[i]) +
+    coord_cartesian(xlim = c(0, fa.sizes$size[i] + 1), expand = F) +
     xlab("Position (bp)") +
     labs(fill = "SV type", color = "SV type") +
     ggtitle(i, subtitle = .subtitle)
