@@ -46,7 +46,6 @@ These are taken directly from running `hapcut2 --help`.
 
 ``` hapcut2 arguments
 Haplotype Post-Processing Options:
---threshold, --t <float>:           PHRED SCALED threshold for pruning low-confidence SNPs (range 0-100, larger values prune more.). default: 6.98
 --skip_prune, --sp <0/1>:           skip default likelihood pruning step (prune SNPs after the fact using column 11 of the output). default: 0
 --discrete_pruning, --dp <0/1>:     use discrete heuristic to prune SNPs. default: 0
 --error_analysis_mode, --ea <0/1>:  compute switch confidence scores and print to haplotype file but don't split blocks or prune. default: 0
