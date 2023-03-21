@@ -1,5 +1,6 @@
 ---
 label: Variant Calling
+description: Call variants on alignments generated from haplotagged sequences with Harpy
 icon: sliders
 order: 4
 ---
@@ -37,10 +38,34 @@ harpy variants --threads 20 --genome genome.fasta --dir Alignments/ema --leviath
 | `--populations`  |    `-p`    | file path   |         |    no    | Tab-delimited file of sample\<tab\>group                               |
 | `--ploidy`       |    `-x`    | integer     |    2    |    no    | Ploidy of samples                                                      |
 | `--leviathan`    |    `-l`    | toggle      |         |    no    | Call variants with Leviathan instead of bcftools                       |
-| `--extra-params` |    `-x`    | string      |         |    no    | Additional mpileup/Leviathan parameters, in quotes                     |
+| `--extra-params` |    `-x`    | string      |         |    no    | Additional mpileup/Leviathan arguments, in quotes                     |
 | `--threads`      |    `-t`    | integer     |    4    |    no    | Number of threads to use                                               |
 | `--snakemake`    |    `-s`    | string      |         |    no    | Additional Snakemake options, in quotes ([more info](../getstarted.md/#adding-additional-snakamake-parameters)) |
 | `--help`         |            |             |         |          | Show the module docstring                                              |
+
+==- mpileup arguments
+The mpileup module of samtools has *a lot* of command line options. Listing them all here would be difficult to read, therefore please
+refer to the [mpileup documentation](http://www.htslib.org/doc/samtools-mpileup.html#OPTIONS) to explore ways to configure your mpileup run.
+
+==- LEVIATHAN arguments
+Below is a list of all `LEVIATHAN` command line options, excluding those Harpy already uses or those made redundant by Harpy's implementation of LEVIATHAN.
+These are taken directly from the [LEVIATHAN documentation](https://github.com/morispi/LEVIATHAN).
+``` LEVIATHAN arguments
+  -r, --regionSize:         Size of the regions on the reference genome to consider (default: 1000)
+  -v, --minVariantSize:     Minimum size of the SVs to detect (default: same as regionSize)
+  -n, --maxLinks:           Remove from candidates list all candidates which have a region involved in that much candidates (default: 1000)
+  -M, --mediumSize:         Minimum size of medium variants (default: 2000)
+  -L, --largeSize:          Minimum size of large variants (default: 10000)
+  -s, --smallRate:          Percentile to chose as a threshold in the distribution of the number of shared barcodes for small variants (default: 99)
+  -m, --mediumRate:         Percentile to chose as a threshold in the distribution of the number of shared barcodes for medium variants (default: 99)
+  -l, --largeRate:          Percentile to chose as a threshold in the distribution of the number of shared barcodes for large variants (default: 99)
+  -d, --duplicates:         Consider SV as duplicates if they have the same type and if their breakpoints are within this distance (default: 10)
+  -s, --skipTranslocations: Skip SVs that are translocations (default: false)
+  -p, --poolSize:           Size of the thread pool (default: 100000)
+  -B, --nbBins:             Number of iterations to perform through the barcode index (default: 10)
+  -c, --minBarcodes:        Always remove candidates that share less than this number of barcodes (default: 1)
+```
+===
 
 ### sample grouping file
 This file is entirely optional and useful if you want variant calling to happen on a per-population level.

@@ -23,3 +23,7 @@ branding:
 favicon: static/favicon.png # Path to a custom favicon, or.
 search:
   mode: partial
+edit:
+  repo: "https://github.com/pdimens/HARPY/edit"
+  base: /
+  branch: "docs"

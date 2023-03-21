@@ -1,5 +1,6 @@
 ---
 label: Impute Genotypes
+description: Impute genotypes for haplotagged data with Harpy
 icon: workflow
 order: 3
 ---

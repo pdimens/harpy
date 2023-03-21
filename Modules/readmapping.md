@@ -1,5 +1,6 @@
 ---
 label: Read Mapping
+description: Align haplotagged sequences to a reference genome with Harpy
 icon: quote
 order: 5
 ---
@@ -36,10 +37,42 @@ harpy align --threads 20 --genome genome.fasta --dir Sequences/ --bwa
 | `--ema-bins`     |    `-e`    | integer     |   500   |    no    | Number of barcode bins for EMA                                         |
 | `--proximity`    |    `-p`    | integer     |   250   |    no    | Alignment window merging proximity (bp) for coverage calculations      |
 | `--bwa`          |    `-b`    | toggle      |         |    no    | Use BWA MEM instead of EMA                                             |
-| `--extra-params` |    `-x`    | string      |         |    no    | Additional EMA-align/BWA parameters, in quotes                         |
+| `--extra-params` |    `-x`    | string      |         |    no    | Additional EMA-align/BWA arguments , in quotes                         |
 | `--threads`      |    `-t`    | integer     |    4    |    no    | Number of threads to use                                               |
 | `--snakemake`    |    `-s`    | string      |         |    no    | Additional Snakemake options, in quotes ([more info](../getstarted.md/#adding-additional-snakamake-parameters)) |
 | `--help`         |            |             |         |          | Show the module docstring                                              |
+
+==- EMA arguments
+Below is a list of all `ema align` command line arguments, excluding those Harpy already uses or those made redundant by Harpy's implementation of EMA.
+These are taken directly from the [EMA documentation](https://github.com/arshajii/ema).
+
+``` ema arguments
+  -d: apply fragment read density optimization [off]
+  -p <platform>: sequencing platform (one of '10x', 'tru', 'cpt') [10x]
+  -i <index>: index to follow 'BX' tag in SAM output [1]
+```
+==- BWA arguments
+Below is a list of all `bwa mem` command line arguments, excluding those Harpy already uses or those made redundant by Harpy's implementation of BWA.
+These are taken directly from the [BWA documentation](https://bio-bwa.sourceforge.net/bwa.shtml).
+```bwa arguments
+-k INT 	Minimum seed length. Matches shorter than INT will be missed. The alignment speed is usually insensitive to this value unless it significantly deviates 20. [19]
+-w INT 	Band width. Essentially, gaps longer than INT will not be found. Note that the maximum gap length is also affected by the scoring matrix and the hit length, not solely determined by this option. [100]
+-d INT 	Off-diagonal X-dropoff (Z-dropoff). Stop extension when the difference between the best and the current extension score is above |i-j|*A+INT, where i and j are the current positions of the query and reference, respectively, and A is the matching score. Z-dropoff is similar to BLAST’s X-dropoff except that it doesn’t penalize gaps in one of the sequences in the alignment. Z-dropoff not only avoids unnecessary extension, but also reduces poor alignments inside a long good alignment. [100]
+-r FLOAT 	Trigger re-seeding for a MEM longer than minSeedLen*FLOAT. This is a key heuristic parameter for tuning the performance. Larger value yields fewer seeds, which leads to faster alignment speed but lower accuracy. [1.5]
+-c INT 	Discard a MEM if it has more than INT occurence in the genome. This is an insensitive parameter. [10000]
+-P 	In the paired-end mode, perform SW to rescue missing hits only but do not try to find hits that fit a proper pair.
+-A INT 	Matching score. [1]
+-B INT 	Mismatch penalty. The sequence error rate is approximately: {.75 * exp[-log(4) * B/A]}. [4]
+-O INT 	Gap open penalty. [6]
+-E INT 	Gap extension penalty. A gap of length k costs O + k*E (i.e. -O is for opening a zero-length gap). [1]
+-L INT 	Clipping penalty. When performing SW extension, BWA-MEM keeps track of the best score reaching the end of query. If this score is larger than the best SW score minus the clipping penalty, clipping will not be applied. Note that in this case, the SAM AS tag reports the best SW score; clipping penalty is not deducted. [5]
+-U INT 	Penalty for an unpaired read pair. BWA-MEM scores an unpaired read pair as scoreRead1+scoreRead2-INT and scores a paired as scoreRead1+scoreRead2-insertPenalty. It compares these two scores to determine whether we should force pairing. [9]
+-T INT 	Don’t output alignment with score lower than INT. This option only affects output. [30]
+-a 	Output all found alignments for single-end or unpaired paired-end reads. These alignments will be flagged as secondary alignments.
+-H 	Use hard clipping ’H’ in the SAM output. This option may dramatically reduce the redundancy of output when mapping long contig or BAC sequences.
+-M 	Mark shorter split hits as secondary (for Picard compatibility).
+```
+===
 
 !!!info
 The `--proximity` flag is for the genomic alignment coverage calculations, which are purely for reporting reasons
