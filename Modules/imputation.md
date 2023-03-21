@@ -122,7 +122,7 @@ robust to misspecifications of this parameter.
 |||
 
 ----
-## STITCH Workflow
+## Imputation Workflow
 +++ description
 [STITCH](https://github.com/rwdavies/STITCH) is a genotype imputation software developed for use in
 the R programming language. It has quite a few model parameters that can be tweaked, but HARPY only
