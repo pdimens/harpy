@@ -11,7 +11,7 @@ extra = config.get("extra", "")
 bn = os.path.basename(genomefile)
 shell("mkdir -p Assembly")
 if not os.path.exists(f"Assembly/{bn}"):
-    shell(f"ln -sr {genomefile} Assembly/{bn}")
+	shell(f"ln -sr {genomefile} Assembly/{bn}")
 
 rule create_reports:
 	input: 
@@ -36,7 +36,7 @@ rule index_genome:
 		asm = f"Assembly/{genomefile}",
 		idx = multiext(f"Assembly/{genomefile}", ".ann", ".bwt", ".fai", ".pac", ".sa", ".amb")
 	message: "Indexing {input}"
-    log: f"Assembly/{genomefile}.idx.log"
+	log: f"Assembly/{genomefile}.idx.log"
 	shell: 
 		"""
 		ln -sr {input} {output.asm}
@@ -98,15 +98,15 @@ rule mark_duplicates:
 		"""
 
 rule genome_coverage:
-    input: "Alignments/bwa/{sample}.bam"
-    output: "Alignments/bwa/stats/coverage/{sample}.gencov"
-    message: "Calculating genomic coverage: {wildcards.sample}"
+	input: "Alignments/bwa/{sample}.bam"
+	output: "Alignments/bwa/stats/coverage/{sample}.gencov"
+	message: "Calculating genomic coverage: {wildcards.sample}"
 	threads: 2
 	params: bed_prox
-    shell:
-        """
-        bedtools genomecov -ibam {input} -bg | bedtools merge -c 4 -0 sum -d {params} > {output}
-        """
+	shell:
+		"""
+		bedtools genomecov -ibam {input} -bg | bedtools merge -c 4 -0 sum -d {params} > {output}
+		"""
 
 rule alignment_stats:
 	input:
