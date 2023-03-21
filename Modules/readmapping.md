@@ -15,9 +15,18 @@ Once sequences have been trimmed and passed through other QC filters, they will 
 be aligned to a reference genome. This module within Harpy expects filtered reads as input,
 such as those derived using `harpy trim`. You can map reads onto a genome assembly with Harpy 
 using the `align` module:
-```bash
+
+```bash usage
 harpy align OPTIONS...
 ```
+```bash examples
+# align with EMA
+harpy align --threads 20 --genome genome.fasta --dir Sequences/ 
+
+# align with BWA
+harpy align --threads 20 --genome genome.fasta --dir Sequences/ --bwa
+```
+
 
 ## Running Options
 | argument         | short name | type        | default | required | description                                                            |
@@ -33,7 +42,8 @@ harpy align OPTIONS...
 | `--help`         |            |             |         |          | Show the module docstring                                              |
 
 !!!info
-The `--proximity` flag is for the genomic alignment coverage calculations, which occurs after sequence alignment. It therefore does not impact 
+The `--proximity` flag is for the genomic alignment coverage calculations, which are purely for reporting reasons
+and occur after sequence alignment. It therefore does not impact 
 sequence alignment. The default value (`250`) means alignment intervals within 250bp will be merged and their coverages summed. If you don't
 want intervals merged, set this argument as `--proximity 1` (1bp). Merging is useful for reducing file size (kilobytes vs mega/gigabytes),
 which makes visualization easier downstream too. 
@@ -58,12 +68,12 @@ Notice that the read pair part differs from the [accepted fastq formats](quality
 ----
 
 ## EMA workflow
-=== EMA details
++++ details
 - **recommended**
 - leverages the BX barcode information to improve mapping
+- better downstream SV detection
 - slower
 - lots of temporary files
-===
 
 Since [EMA](https://github.com/arshajii/ema) does extra things to account for barcode information, the EMA workflow is a bit more complicated under the hood. Reads with barcodes are aligned using EMA and reads without valid barcodes are separately mapped using BWA before merging all the alignments together again. EMA will mark duplicates within alignments, but the BWA alignments need duplicates marked manually using [sambamba](https://lomereiter.github.io/sambamba/). Thankfully, you shouldn't need to worry about any of these details.
 
@@ -87,7 +97,7 @@ graph LR
     F-->J([alignment stats])
     E-->J
 ```
-### EMA output
++++ EMA output
 The `harpy align` module creates an `Alignments/ema` directory with the folder structure below. `Sample1` is a generic sample name for demonstration purposes.
 ```
 Alignments/ema
@@ -132,17 +142,16 @@ Alignments/ema
 | `stats/samtools_flagstat/*.nobarcode.flagstat` | results of `samtools flagstat` on alignments that had no/invalid BX barcodes               |
 | `stats/samtools_flagstat/*html`                | report summarizing `samtools flagstat` results across all samples from `multiqc`           |
 | `stats/samtools_stats/*`                       | same as `samtools_flagstat` except for the results of `samtools stats`                     |
-
++++
 
 
 ## BWA workflow
 +++ description
-=== BWA details
 - ignores barcode information
 - might be preferred depending on experimental design
 - faster
-- no temporary files
-===
+- substantially fewer temporary files
+
 
 The [BWA MEM](https://github.com/lh3/bwa) workflow is substantially simpler than the EMA workflow and maps all reads against the reference genome, no muss no fuss. Duplicates are marked at the end using [sambamba](https://lomereiter.github.io/sambamba/). The `BX:Z` tags in the read headers are still added to the alignment headers, even though barcodes are not used to inform mapping.
 
@@ -154,7 +163,7 @@ graph LR
     C-->D([mark duplicates])
     D-->E([alignment stats])
 ```
-+++ output
++++ BWA output
 The `harpy align --bwa` module creates an `Alignments/bwa` directory with the folder structure below. `Sample1` is a generic sample name for demonstration purposes.
 ```
 Alignments/bwa

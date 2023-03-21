@@ -17,9 +17,14 @@ than unphased genotypes (higher polymorphism, captures relationship between geno
 genotypes into haplotypes requires alignment files, such as those produced by `harpy align` and
 a variant call file, such as those produced by `harpy variants` or `harpy impute`. **Phasing only
 works on SNP data**, and will not work for structural variants produced by `LEVIATHAN`. You can phase genotypes into haplotypes with Harpy using the `phase` module:
-```bash
+
+```bash usage
 harpy phase OPTIONS... 
 ```
+```bash example
+harpy phase --threads 20 --vcf Variants/variants.raw.bcf --dir Alignments/ema 
+```
+
 
 ## Running Options
 | argument              | short name | type            | default | required | description                                                             |
@@ -44,6 +49,7 @@ value between 0-1 internally (_i.e._ `-p 7` is equivalent to 0.07 threshold).
 
 ---
 ## Phasing Workflow
++++ description
 Phasing is performed using [HapCut2](https://github.com/vibansal/HapCUT2). Most of the tasks cannot
 be parallelized, but HapCut2 operates on a per-sample basis, so the workflow is parallelized
 across all of your samples to speed things along.
@@ -67,7 +73,7 @@ graph LR
     H-->I([merge phased samples])
 ```
 
-### harpy phase outputs
++++ phasing outputs
 The `harpy phase` module creates an `Phasing` directory with the folder structure below. `Sample1` is a generic sample name for demonstration purposes.
 
 ```
@@ -113,4 +119,4 @@ Phasing/
 | `linkFragments/logs` | everything `linkFragments` prints to `stderr` |
 | `phaseBlocks/*.blocks*` | output from HapCut2 |
 | `phaseBlocks/logs` | everything HapCut2 prints to `stderr` |
-
++++

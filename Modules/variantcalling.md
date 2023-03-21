@@ -12,12 +12,21 @@ order: 4
 - sample grouping file ([see below](#sample-grouping-file))
 ===
 
-After reads have been aligned, e.g. with `harpy align`, you can use those alignment files
+After reads have been aligned, _e.g._ with `harpy align`, you can use those alignment files
 (`.bam`) to call variants in your data. Harpy can call variants using `bcftools mpileup`,
 which calls SNPs and indels primarily, or with `LEVIATHAN`, which only calls structural variants (SV)
 such as inversions and duplications. You can call variants with Harpy using the `variants` module:
-```bash
+
+```bash usage
 harpy variants OPTIONS... 
+```
+
+```bash examples
+# call variants with mpileup
+harpy variants --threads 20 --genome genome.fasta --dir Alignments/ema
+
+# call structural variants with LEVIATHAN
+harpy variants --threads 20 --genome genome.fasta --dir Alignments/ema --leviathan
 ```
 
 ## Running Options
@@ -49,8 +58,8 @@ sample5 3
 ```
 
 ----
-## Workflows
-### bcftools mpileup
+### mpileup workflow
++++ description
 The `mpileup` and `call` modules from [bcftools](https://samtools.github.io/bcftools/bcftools.html) (formerly samtools) 
 are used to call variants from alignments. This is a tried-and-true method and one of methods featured in other variant
 callers, such as that provided in [ANGSD](http://www.popgen.dk/angsd/index.php/Genotype_Likelihoods), which is why Harpy
@@ -68,22 +77,26 @@ graph LR
     C-->E
     E-->F([generate reports])
 ```
++++ mpileup output
 
-### Leviathan
++++
+
+### LEVIATHAN workflow
++++ description
 [Leviathan](https://github.com/morispi/LEVIATHAN) is an alternative variant caller that uses linked read barcode information 
 to call structural variants (indels, inversions, etc.) exclusively, meaning it does not call SNPs. Harpy first uses [LRez](https://github.com/morispi/LRez) to index the barcodes 
 in the alignments, then it calls variants using Leviathan.
 
-#### Individual-level variant calling
+#### Single-sample variant calling
 When not using a population grouping file via `--populations`, variants will be called per-sample. 
 Due to the nature of Structural Variant (SV) VCF files, there isn't an entirely fool-proof way 
 of combining the variants of all the samples into a single VCF file, therefore the output will be a VCF for every sample.
 
-#### Population-level variant calling
+#### Pooled-sample variant calling
 With the inclusion of a population grouping file via `--populations`, Harpy will merge the bam files of all samples within a 
-population and call SV's on these alignment pools. Preliminary work shows that this way identifies more variants and fewer false 
+population and call SV's on these alignment pools. Preliminary work shows that this way identifies more variants and with fewer false 
 positives. **However**, individual-level information gets lost using this approach, so you will only be able to assess 
-population-level variants, if that's what your primary interest is. 
+group-level variants, if that's what your primary interest is. 
 
 ==- :icon-alert: Potential barcode clashing :icon-alert:
 If pooling by population, be mindful of potential sources of barcode clashing. For example, Gen I haplotagging uses 4-segment beadtags,
@@ -108,3 +121,6 @@ graph LR
     B-->C([convert to BCF])
     C-->E([generate reports])
 ```
++++ leviathan output
+
++++

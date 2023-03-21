@@ -18,15 +18,20 @@ method that is linked-read aware. Imputing genotypes requires a variant call fil
 **containing SNPs**, such as that produced by `harpy variants`. STITCH cannot impute
 genotypes with the variant call files produced by `LEVIATHAN`, as they do not contain SNPs.
 You can impute genotypes with Harpy using the `impute` module:
-```bash
+```bash usage
 harpy impute OPTIONS...
+```
+
+```bash example
+harpy extra -s stitch.params  # create stitch parameter file 'stitch.params'
+harpy impute --threads 20 --vcf Variants/variants.raw.bcf --dir Alignments/ema --parameters stitch.params
 ```
 
 ## Running Options
 | argument       | short name | type        |    default    | required | description                                                            |
 |:---------------|:----------:|:------------|:-------------:|:--------:|:-----------------------------------------------------------------------|
 | `--vcf`        |    `-v`    | file path   |               | **yes**  | Path to VCF/BCF file                                                   |
-| `--directory`  |    `-d`    | folder path |               | **yes**  | Directory with sequence alignments                                     |
+| `--dir      `  |    `-d`    | folder path |               | **yes**  | Directory with sequence alignments                                     |
 | `--parameters` |    `-p`    | file path   | stitch.params | **yes**  | STITCH parameter file (tab-delimited)                                  |
 | `--threads`    |    `-t`    | integer     |       4       |    no    | Number of threads to use                                               |
 | `--snakemake`  |    `-s`    | string      |               |    no    | Additional Snakemake options, in quotes ([more info](../getstarted.md/#adding-additional-snakamake-parameters)) |
@@ -118,6 +123,7 @@ robust to misspecifications of this parameter.
 
 ----
 ## STITCH Workflow
++++ description
 [STITCH](https://github.com/rwdavies/STITCH) is a genotype imputation software developed for use in
 the R programming language. It has quite a few model parameters that can be tweaked, but HARPY only
 focuses on a small handful that have the largest impact on the quality of the results. Imputation is
@@ -133,3 +139,6 @@ graph LR
     E-->F([merge output])
     G([create file list])-->E
 ```
++++ imputation output
+
++++
