@@ -87,7 +87,7 @@ graph LR
     F-->J([alignment stats])
     E-->J
 ```
-### ema output
+### EMA output
 The `harpy align` module creates an `Alignments/ema` directory with the folder structure below. `Sample1` is a generic sample name for demonstration purposes.
 ```
 Alignments/ema
@@ -136,6 +136,7 @@ Alignments/ema
 
 
 ## BWA workflow
++++ description
 === BWA details
 - ignores barcode information
 - might be preferred depending on experimental design
@@ -153,5 +154,34 @@ graph LR
     C-->D([mark duplicates])
     D-->E([alignment stats])
 ```
-### bwa output
-The `harpy align --bwa` module creates an `Alignments/bwa` directory with the folder structure below. `Sample1` and `Sample2` are generic sample names for demonstration purposes.
++++ output
+The `harpy align --bwa` module creates an `Alignments/bwa` directory with the folder structure below. `Sample1` is a generic sample name for demonstration purposes.
+```
+Alignments/bwa
+├── Sample1.bam
+├── Sample1.bam.bai
+└── stats
+    ├── markduplicates
+    │   ├── Sample1.markdup.log
+    ├── samtools_flagstat
+    │   ├── alignment.flagstat.html
+    │   ├── Sample1.flagstat
+    │   ├── Sample1.nobarcode.flagstat
+    └── samtools_stats
+        ├── alignment.stats.html
+        ├── Sample1.nobarcode.stats
+        └── Sample1.stats
+```
+
+| item                                           | description                                                                                |
+|:-----------------------------------------------|:-------------------------------------------------------------------------------------------|
+| `*.bam`                                        | sequence alignments for each sample                                                        |
+| `*.bai`                                        | sequence alignment indexes for each sample                                                 |
+| `stats/`                                       | various counts/statistics/reports relating to sequence alignment                           |
+| `stats/markduplicates`                         | everything `sambamba markdup` writes to `stderr` during operation  |
+| `stats/samtools_flagstat/*flagstat`            | results of `samtools flagstat` on all alignments for a sample                              |
+| `stats/samtools_flagstat/*.nobarcode.flagstat` | results of `samtools flagstat` on alignments that had no/invalid BX barcodes               |
+| `stats/samtools_flagstat/*html`                | report summarizing `samtools flagstat` results across all samples from `multiqc`           |
+| `stats/samtools_stats/*`                       | same as `samtools_flagstat` except for the results of `samtools stats`                     |
+
++++
