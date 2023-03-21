@@ -11,7 +11,21 @@ program. Harpy uses both well known and niche programs to take raw haplotagging 
 them to become called SNP genotypes (or haplotypes). Most of the settings are pre-configured and the settings you
 can modify are done at the command line. There aren't too many, which should make things a little simpler. 
 
-## Modules
+## What is haplotagging?
+Linked-read sequencing exists to combine the throughput and accuracy of short-read
+sequencing with the long range haplotype information of long-read sequencing.
+Haplotagging is an implementation of linked-read sequencing developed by
+[Meier _et al._](https://doi.org/10.1073/pnas.2015005118) to:
+
+1. sequence a large number of samples
+2. achieve high molecular resolution
+3. do both within a reasonable budget
+
+If you don't have haplotagged data, then Harpy will likely be of little to no use to you. See the [haplotagging site](http://fml.tuebingen.mpg.de/chan-group/haplotagging/)
+for more information about haplotagging.
+
+
+## Harpy Modules
 Harpy is modular, meaning you can use different parts of it independent from each other. Need to only align reads?
 Great! Only want to call variants? Awesome! All modules are called by `harpy <module>`. For example, use `harpy align` to align reads.
 
@@ -26,7 +40,7 @@ Great! Only want to call variants? Awesome! All modules are called by `harpy <mo
 
 
 ## Using Harpy
-You can call `harpy` without any arguments (or with `--help`) to print the docstring to your terminal. You can likewise call any of the modules with `--help` (e.g. `harpy align --help`) to see their usage.
+You can call `harpy` without any arguments (or with `--help`) to print the docstring to your terminal. You can likewise call any of the modules with `--help` to see their usage  (e.g. `harpy align --help`).
 ``` harpy --help                                                      
  Usage: harpy [OPTIONS] COMMAND [ARGS]...                     
                                                               
@@ -34,7 +48,7 @@ You can call `harpy` without any arguments (or with `--help`) to print the docst
                             version: 0.1                            
                                                                     
  The pipeline trims reads, maps sequences, calls variants, imputes  
- genotypes, and phases haplotypes of Haplotagging data.             
+ genotypes, and phases haplotypes using Haplotagging data.             
                                                                     
  trim 🡒 align 🡒 variants 🡒 impute 🡒 phase                           
                                                                     

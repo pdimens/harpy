@@ -12,8 +12,10 @@ At the minimum, you will need:
 - the haplotagging sequences **must** have the barcode in the read headers. 
 - the barcode must be in the format `AXXCXXBXXDXX`, where `XX` is a number between `00` and `96`
     - `00` indicates a missing/invalid barcode segment
-- the barcode must be preceded by a `BX:Z` tag in the read header
-    - _e.g._ `@A00470:481:HNYFWDRX2:1:2101:16062:1031 BX:Z:A62C38B38D99 1:N:0:TATCAGTA+TTACTACT`
+- the barcode must be preceded by a `BX:Z:` tag in the read header
+``` example header
+@A00470:481:HNYFWDRX2:1:2101:16062:1031 BX:Z:A62C38B38D99 1:N:0:TATCAGTA+TTACTACT
+```
 === 2. A reference genome, in FASTA format
 A plain haploid genome assembly in uncompressed FASTA format, where contigs names begin with `>` like the standard format.
 ===
@@ -66,12 +68,13 @@ harpy variants --leviathan -g genome.fasta  -d ReadMapping/ema --threads 8 -p sa
 ```
 
 ### Specific file target
-Sometimes you want to generate a single (or a few files) rather than running the entire module to completion. For example,
+Sometimes you want to generate a specific intermediate file (or files) rather than running the entire module to completion. For example,
 you want the beadtag report Harpy makes from the output of `EMA count`. To do this, just list the file/files (relative
 to your working directory) without any flags. Example for the beadtag report:
 ```bash
 harpy align -g genome.fasta -d Trimming -t 4 -s "Alignemnts/ema/stats/beadtag.report.html"
 ```
+This of course necessitates knowing the names of the files ahead of time. See the individual modules for a breakdown of expected outputs. 
 
 ### Set a shadow directory
 ##### `--shadow-prefix <dirname>`

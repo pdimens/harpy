@@ -57,8 +57,7 @@ Notice that the read pair part differs from the [accepted fastq formats](quality
 
 ----
 
-## Workflows
-### EMA
+## EMA workflow
 === EMA details
 - **recommended**
 - leverages the BX barcode information to improve mapping
@@ -88,8 +87,55 @@ graph LR
     F-->J([alignment stats])
     E-->J
 ```
+### ema output
+The `harpy align` module creates an `Alignments/ema` directory with the folder structure below. `Sample1` is a generic sample name for demonstration purposes.
+```
+Alignments/ema
+├── Sample1.bam
+├── Sample1.bam.bai
+├── count
+│   ├── Sample1.ema-ncnt
+├── preproc
+│   └── logs
+│       ├── Sample1.preproc.log
+└── stats
+    ├── beadtag.report.html
+    ├── markduplicates
+    │   ├── Sample1.markdup.nobarcode.log
+    ├── moleculesize
+    │   ├── Sample1.molsize
+    │   ├── Sample1.molsize.hist
+    ├── readsperbx
+    │   ├── Sample1.readsperbx
+    ├── samtools_flagstat
+    │   ├── alignment.flagstat.html
+    │   ├── Sample1.flagstat
+    │   ├── Sample1.nobarcode.flagstat
+    └── samtools_stats
+        ├── alignment.stats.html
+        ├── Sample1.nobarcode.stats
+        ├── Sample1.stats
+```
+| item                                           | contents                                                                                   |
+|:-----------------------------------------------|:-------------------------------------------------------------------------------------------|
+| `*.bam`                                        | sequence alignments for each sample                                                        |
+| `*.bai`                                        | sequence alignment indexes for each sample                                                 |
+| `count/`                                       | output of `ema count`                                                                      |
+| `preproc/logs`                                 | everything `ema preproc` wrote to `stderr` during operation                                |
+| `stats/`                                       | various counts/statistics/reports relating to sequence alignment                           |
+| `stats/beadtag.report.html`                    | interactive html report summarizing `ema count` across all samples                         |
+| `stats/markduplicates`                         | everything `sambamba markdup` writes to `stderr` during operation on unbarcoded alignments |
+| `stats/moleculesize/*.molsize`                 | molecule lengths as inferred from BX tags                                                  |
+| `stats/moleculesize/*.molsize.hist`            | molecule lengths as inferred from BX tags, binned as a histogram                           |
+| `stats/readsperbx`                             | inferred number of alignments per BX barcode                                               |
+| `stats/samtools_flagstat/*flagstat`            | results of `samtools flagstat` on all alignments for a sample                              |
+| `stats/samtools_flagstat/*.nobarcode.flagstat` | results of `samtools flagstat` on alignments that had no/invalid BX barcodes               |
+| `stats/samtools_flagstat/*html`                | report summarizing `samtools flagstat` results across all samples from `multiqc`           |
+| `stats/samtools_stats/*`                       | same as `samtools_flagstat` except for the results of `samtools stats`                     |
 
-### BWA
+
+
+## BWA workflow
 === BWA details
 - ignores barcode information
 - might be preferred depending on experimental design
@@ -107,3 +153,5 @@ graph LR
     C-->D([mark duplicates])
     D-->E([alignment stats])
 ```
+### bwa output
+The `harpy align --bwa` module creates an `Alignments/bwa` directory with the folder structure below. `Sample1` and `Sample2` are generic sample names for demonstration purposes.

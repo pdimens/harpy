@@ -12,12 +12,12 @@ A working installation of [conda](https://conda.io/projects/conda/en/latest/user
 
 ## Clone the repository
 Until this pipeline gets completed and hosted on Bioconda, it will be available by cloning/downloading [the repository](https://github.com/pdimens/harpy). 
-```bash
+```bash clone the repository
 git clone https://github.com/pdimens/HARPY.git
 ```
 ## Install the dependencies
 The dependencies can be installed into a conda environment using the provided `harpyenv.yaml`:
-```bash
+```bash install the dependencies with conda
 conda env create --name harpy --file misc/harpyenv.yaml
 ```
 This will create a conda environment named `harpy` with all the bits necessary to successfully run Harpy. You can change the name of this environment by specifying
@@ -25,7 +25,7 @@ This will create a conda environment named `harpy` with all the bits necessary t
 
 ## Activate the environment
 The environment with all the preinstalled dependencies can be activated with:
-```bash
+```bash activate the conda environment
 # assuming the environment name is harpy from the step above
 conda activate harpy
 ```
