@@ -114,9 +114,9 @@ Alignments/ema
     └── samtools_stats
         ├── alignment.stats.html
         ├── Sample1.nobarcode.stats
-        ├── Sample1.stats
+        └── Sample1.stats
 ```
-| item                                           | contents                                                                                   |
+| item                                           | description                                                                                |
 |:-----------------------------------------------|:-------------------------------------------------------------------------------------------|
 | `*.bam`                                        | sequence alignments for each sample                                                        |
 | `*.bai`                                        | sequence alignment indexes for each sample                                                 |

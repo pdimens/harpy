@@ -15,8 +15,8 @@ order: 2
 You may want to phase your genotypes into haplotypes, as haplotypes tend to be more informative
 than unphased genotypes (higher polymorphism, captures relationship between genotypes). Phasing
 genotypes into haplotypes requires alignment files, such as those produced by `harpy align` and
-a variant call file, such as those produced by `harpy variants` or `harpy impute`. Phasing only
-works on SNP data, and will not work for structural variants produced by `LEVIATHAN`. You can phase genotypes into haplotypes with Harpy using the `phase` module:
+a variant call file, such as those produced by `harpy variants` or `harpy impute`. **Phasing only
+works on SNP data**, and will not work for structural variants produced by `LEVIATHAN`. You can phase genotypes into haplotypes with Harpy using the `phase` module:
 ```bash
 harpy phase OPTIONS... 
 ```
@@ -43,7 +43,7 @@ With Harpy, you configure this value as an integer between 0-100, which gets con
 value between 0-1 internally (_i.e._ `-p 7` is equivalent to 0.07 threshold).
 
 ---
-## HapCut2 Workflow
+## Phasing Workflow
 Phasing is performed using [HapCut2](https://github.com/vibansal/HapCUT2). Most of the tasks cannot
 be parallelized, but HapCut2 operates on a per-sample basis, so the workflow is parallelized
 across all of your samples to speed things along.
@@ -66,3 +66,51 @@ graph LR
     G-->H([index merged annotations])
     H-->I([merge phased samples])
 ```
+
+### harpy phase outputs
+The `harpy phase` module creates an `Phasing` directory with the folder structure below. `Sample1` is a generic sample name for demonstration purposes.
+
+```
+Phasing/
+├── variants.phased.bcf
+├── variants.phased.bcf.csi
+├── annotations
+│   ├── Sample1.annot.gz
+│   ├── Sample1.annot.gz.tbi
+├── annotations_merge
+│   ├── Sample1.phased.annot.bcf
+│   ├── Sample1.phased.annot.bcf.csi
+├── extractHairs
+│   ├── logs
+│   │   ├── Sample1.unlinked.log
+│   ├── Sample1.unlinked.frags
+├── input
+│   ├── header.names
+│   ├── Sample1.bcf
+│   ├── Sample1.het.bcf
+├── linkFragments
+│   ├── logs
+│   │   ├── Sample1.linked.log
+│   ├── Sample1.linked.frags
+└── phaseBlocks
+    ├── logs
+    │   ├── Sample1.blocks.phased.log
+    ├── Sample1.blocks
+    └── Sample1.blocks.phased.VCF
+```
+
+| item | description |
+|:---|:---|
+| `variants.phased.bcf*` | final vcf output of HapCut2 with all samples merged into a single file (with .csi index) |
+| `annotations/` | phased vcf annotated with phased blocks |
+| `annotations_merge/` | merged vcf of annotated and original vcf |
+| `extractHairs/` | output from `extractHairs` |
+| `extractHairs/logs/` | everything HapCut2's `extractHairs` prints to `stderr` |
+| `input/head.names` | extra file harpy creates to support new INFO fields in the phased VCF |
+| `input/*.bcf` | vcf of a single sample from the original multi-sample input vcf |
+| `input/*.het.bcf` | vcf of heterozygous loci of a single sample from the original multi-sample input vcf |
+| `linkFragments/` | results from HapCut2's `linkFragments` |
+| `linkFragments/logs` | everything `linkFragments` prints to `stderr` |
+| `phaseBlocks/*.blocks*` | output from HapCut2 |
+| `phaseBlocks/logs` | everything HapCut2 prints to `stderr` |
+
