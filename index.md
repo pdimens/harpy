@@ -1,5 +1,6 @@
 ---
 label: Home
+description: Using Harpy to process your haplotagged data
 icon: home
 ---
 ![](static/logo.png)
