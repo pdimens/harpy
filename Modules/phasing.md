@@ -90,7 +90,7 @@ graph LR
     H-->I([merge phased samples])
 ```
 
-+++ phasing outputs
++++ phasing output
 The `harpy phase` module creates an `Phasing` directory with the folder structure below. `Sample1` is a generic sample name for demonstration purposes.
 
 ```
