@@ -46,7 +46,7 @@ the genome. Each peak is the midpoint of an alignment interval. The orange horiz
 line reflects the mean coverage for the contig. To reduce file size, Harpy does not output
 intervals with no coverage, so these plots should be interpreted as generalizations.
 
-```{r echo = FALSE, message = FALSE, warning = FALSE, out.width="100%", fig.height = 2}
+```{r echo = FALSE, message = FALSE, warning = FALSE, out.width="100%", out.height = 2}
 .i <- 0
 for(i in fa.sizes$contig) {
 .i <- .i + 1
@@ -75,7 +75,7 @@ While providing more detail than the generalized plots, the horizontal lines
 may not be visible on sufficiently long contigs or sufficiently short intervals,
 obfuscating readability somewhat.
 
-```{r echo = FALSE, message = FALSE, warning = FALSE, out.width="100%", fig.height=2}
+```{r echo = FALSE, message = FALSE, warning = FALSE, out.width="100%", out.height=2}
 .i <- 0
 for(i in fa.sizes$contig) {
 .i <- .i + 1
