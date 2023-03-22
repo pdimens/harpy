@@ -176,5 +176,31 @@ graph LR
     C-->E([generate reports])
 ```
 +++ leviathan output
+The `harpy variants --leviathan` module creates a `Variants/leviathan` directory with the folder structure below. `sample1` and `sample2` are generic sample names for demonstration purposes.
+
+```
+Variants/leviathan/
+├── sample1.bcf
+├── sample2.bcf
+├── logs
+│   ├── sample1.leviathan.log
+│   ├── sample1.candidates
+│   ├── sample2.leviathan.log
+│   └── sample2.candidates
+├── reports
+│   ├── sample1.SV.html
+│   └── sample2.SV.html
+└── stats
+    ├── sample1.sv.stats
+    └── sample2.sv.stats
+```
+
+| item                   | description                                              |
+|:-----------------------|:---------------------------------------------------------|
+| `*.bcf`                | structural variants identified by LEVIATHAN              |
+| `logs/*.leviathan.log` | what LEVIATHAN writes to `stderr` during operation       |
+| `logs/*candidates`     | candidate structural variants LEVIATHAN identified       |
+| `reports/`             | summary reports with interactive plots of detected SV    |
+| `stats/`               | results of `bcftools stats` on the vcf LEVIATHAN creates |
 
 +++
