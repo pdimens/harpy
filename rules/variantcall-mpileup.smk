@@ -5,7 +5,7 @@ genomefile = config["genomefile"]
 groupings = config.get("groupings", None)
 ploidy = config["ploidy"]
 samplenames = config["samplenames"]
-extra = config.get("extra", "") 
+mp_extra = config.get("extra", "") 
 
 if groupings is not None:
 	absent = []
@@ -83,7 +83,7 @@ rule mpileup:
 	benchmark: 
 		"Benchmark/Variants/mpileup/mpileup.{part}.txt"
 	params:
-		extra = extra,
+		extra = mp_extra,
 		region = "{wildcards.part}"
 	shell:
 		"""
