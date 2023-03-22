@@ -83,11 +83,11 @@ rule mpileup:
 	benchmark: 
 		"Benchmark/Variants/mpileup/mpileup.{part}.txt"
 	params:
-		extra = mp_extra,
-		region = "--region {wildcards.part}"
+		region = "{wildcards.part}",
+		extra = mp_extra
 	shell:
 		"""
-		bcftools mpileup --fasta-ref {input.genome} {params} --bam-list {input.bamlist} --annotate AD --output-type b > {output} 2> {log}
+		bcftools mpileup --fasta-ref {input.genome} --region {params} --bam-list {input.bamlist} --annotate AD --output-type b > {output} 2> {log}
 		"""
 
 rule call_genotypes:
