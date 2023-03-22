@@ -22,12 +22,12 @@ gencov <- read.table(covfile, header = F)
 colnames(gencov) <- c("contig", "start", "end","coverage")
 gencov$midpoint <- (gencov$start + gencov$end) / 2
 
-fa.sizes <- read.table(snakemake@input[["faidx"]], header = F)[,1:2] %>% arrange(desc(V2))
+fa.sizes <- read.table(snakemake@input[["faidx"]], header = F)[, 1:2]
+fa.size <- fa.sizes[order(fa.sizes$V2), ]
 #fa.sizes <- read.table("~/genome.fasta.fai", header = F)[,1:2]
 colnames(fa.sizes) <- c("contig", "size")
 
-sname <- gsub(".gencov", "", basename(covfile))
-#TODO
+sname <- gsub(".\\w+.gencov", "", basename(covfile))
 if (grepl("bx.gencov", covfile)){
   txt <- "only alignments whose reads had a valid barcode."
 } else {
