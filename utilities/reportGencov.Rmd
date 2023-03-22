@@ -15,7 +15,7 @@ output:
 library(ggplot2)
 ```
 
-```{r echo = FALSE, message = FALSE, warning = FALSE, fig.height = "300px"}
+```{r echo = FALSE, message = FALSE, warning = FALSE}
 covfile <- snakemake@input[["gencov"]]
 #covfile <- "~/ShadHap1_C01.gencov"
 gencov <- read.table(covfile, header = F)
