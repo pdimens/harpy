@@ -43,9 +43,7 @@ rule extractHairs:
     benchmark: "Benchmark/Phase/extracthairs.{sample}.txt"
     threads: 1
     shell:
-        """
-        extractHAIRS --10X 1 --nf 1 --bam {input.bam} --VCF {input.vcf} --out {output} 2> {log}
-        """
+        "extractHAIRS --10X 1 --nf 1 --bam {input.bam} --VCF {input.vcf} --out {output} 2> {log}"
 
 rule linkFragments:
     input: 
@@ -58,9 +56,7 @@ rule linkFragments:
     benchmark: "Benchmark/Phase/linkfrag.{sample}.txt"
     params: d = molecule_distance
     shell:
-        """
-        LinkFragments.py  --bam {input.bam} --VCF {input.vcf} --fragments {input.fragments} --out {output} -d {params} > {log} 2>&1
-        """
+        "LinkFragments.py  --bam {input.bam} --VCF {input.vcf} --fragments {input.fragments} --out {output} -d {params} > {log} 2>&1"
 
 rule phaseBlocks:
     input:
@@ -77,9 +73,7 @@ rule phaseBlocks:
         extra = extra
     threads: 1
     shell:
-        """
-        HAPCUT2 --fragments {input.fragments} --vcf {input.vcf} {params} --out {output.blocks} --nf 1 {params} --error_analysis_mode 1 --call_homozygous 1 --outvcf 1 2> {log}
-        """
+        "HAPCUT2 --fragments {input.fragments} --vcf {input.vcf} {params} --out {output.blocks} --nf 1 {params} --error_analysis_mode 1 --call_homozygous 1 --outvcf 1 2> {log}"
 
 rule createAnnotations:
     input: "Phasing/phaseBlocks/{sample}.blocks.phased.VCF"
@@ -87,16 +81,15 @@ rule createAnnotations:
     message: "Creating annotation files: {wildcards.sample}"
     benchmark: "Benchmark/Phase/createAnno.{sample}.txt"
     shell:
-        """
-        bcftools query -f "%CHROM\\t%POS[\\t%GT\\t%PS\\t%PQ\\t%PD]\\n" {input} | bgzip -c > {output}
-        """
+        "bcftools query -f \"%CHROM\\t%POS[\\t%GT\\t%PS\\t%PQ\\t%PD]\\n\" {input} | bgzip -c > {output}"
 
 rule indexAnnotations:
     input: "Phasing/annotations/{sample}.annot.gz"
     output: "Phasing/annotations/{sample}.annot.gz.tbi"
     message: "Indexing {wildcards.sample}.annot.gz"
     benchmark: "Benchmark/Phase/indexAnno.{sample}.txt"
-    shell: "tabix -b 2 -e 2 {input}"
+    shell: 
+        "tabix -b 2 -e 2 {input}"
 
 rule headerfile:
     output: "Phasing/input/header.names"
@@ -120,16 +113,15 @@ rule mergeAnnotations:
     message: "Merging annotations: {wildcards.sample}"
     benchmark: "Benchmark/Phase/mergeAnno.{sample}.txt"
     shell:
-        """
-        bcftools annotate -h {input.extraheaders} -a {input.annot} {input.orig} -c CHROM,POS,FMT/GX,FMT/PS,FMT/PQ,FMT/PD -m +HAPCUT |  awk '!/<ID=GX/' | sed 's/:GX:/:GT:/' | bcftools view -Ob -o {output} - 
-        """
-
+        "bcftools annotate -h {input.extraheaders} -a {input.annot} {input.orig} -c CHROM,POS,FMT/GX,FMT/PS,FMT/PQ,FMT/PD -m +HAPCUT |  awk '!/<ID=GX/' | sed 's/:GX:/:GT:/' | bcftools view -Ob -o {output} -"
+        
 rule indexAnnotations2:
     input: "Phasing/annotations_merge/{sample}.phased.annot.bcf"
     output: "Phasing/annotations_merge/{sample}.phased.annot.bcf.csi"
     message: "Indexing annotations: {wildcards.sample}"
     benchmark: "Benchmark/Phase/indexAnno.{sample}.txt"
-    shell: "bcftools index {input}"
+    shell:
+        "bcftools index {input}"
 
 rule mergeSamples:
     input: 
@@ -139,7 +131,8 @@ rule mergeSamples:
     message: "Combinging samples into a single BCF file"
     benchmark: "Benchmark/Phase/mergesamples.txt"
     threads: 30
-    shell: "bcftools merge --threads {threads} --output-type b {input.bcf} > {output}"
+    shell:
+        "bcftools merge --threads {threads} --output-type b {input.bcf} > {output}"
 
 rule indexFinal:
     input: "Phasing/variants.phased.bcf"
@@ -147,4 +140,5 @@ rule indexFinal:
     benchmark: "Benchmark/Phase/finalindex.txt"
     default_target: True
     message: "Phasing is complete!"
-    shell: "bcftools index {input}"
+    shell: 
+        "bcftools index {input}"

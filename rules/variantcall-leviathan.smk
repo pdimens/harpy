@@ -16,9 +16,7 @@ rule index_alignment:
     message: "Indexing alignment: {wildcards.sample}"
     benchmark: "Benchmark/Variants/leviathan/indexbam.{sample}.txt"
     shell:
-        """
-        sambamba index {input} {output}
-        """
+        "sambamba index {input} {output}"
 
 rule index_barcode:
     input: 
@@ -29,9 +27,7 @@ rule index_barcode:
     benchmark: "Benchmark/Variants/leviathan/indexbc.{sample}.txt"
     threads: 4
     shell:
-        """
-        LRez index bam -p -b {input.bam} -o {output} --threads {threads}
-        """
+        "LRez index bam -p -b {input.bam} -o {output} --threads {threads}"
 
 rule index_genome:
     input: genomefile
@@ -63,9 +59,7 @@ rule leviathan_variantcall:
         extra = extra
     threads: 3
     shell:
-        """
-        LEVIATHAN -b {input.bam} -i {input.bc_idx} {params} -g {input.genome} -o {output} -t {threads} --candidates {log.candidates} 2> {log.runlog}
-        """
+        "LEVIATHAN -b {input.bam} -i {input.bc_idx} {params} -g {input.genome} -o {output} -t {threads} --candidates {log.candidates} 2> {log.runlog}"
 
 rule sort_bcf:
     input: "Variants/leviathan/{sample}.vcf"
@@ -75,9 +69,7 @@ rule sort_bcf:
     params: "{wildcards.sample}"
     benchmark: "Benchmark/Variants/leviathan/sortbcf.{sample}.txt"
     shell:        
-        """
-        bcftools sort -Ob --output {output} {input} 2> /dev/null
-        """
+        "bcftools sort -Ob --output {output} {input} 2> /dev/null"
 
 rule sv_stats:
     input: 

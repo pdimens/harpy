@@ -53,9 +53,7 @@ rule merge_populations:
 	output: temp("Variants/leviathan-pop/input/{population}.bam")
 	message: "Merging alignments: Population {wildcards.population}"
 	shell:
-		"""
-		samtools merge -b {input} -o {output}        
-		"""
+		"samtools merge -b {input} -o {output}"
 
 rule index_merged:
 	input: "Variants/leviathan-pop/input/{population}.bam"
@@ -64,9 +62,7 @@ rule index_merged:
 	wildcard_constraints:
 		population = "[a-zA-Z0-9_-]*"
 	shell:
-		"""
-		sambamba index {input} {output}
-		"""
+		"sambamba index {input} {output}"
 
 rule index_barcode:
 	input: 
@@ -77,9 +73,7 @@ rule index_barcode:
 	benchmark: "Benchmark/Variants/leviathan-pop/indexbc.{population}.txt"
 	threads: 4
 	shell:
-		"""
-		LRez index bam -p -b {input.bam} -o {output} --threads {threads}
-		"""
+		"LRez index bam -p -b {input.bam} -o {output} --threads {threads}"
 
 rule index_genome:
 	input: genomefile
@@ -111,9 +105,7 @@ rule leviathan_variantcall:
 		extra = extra
 	threads: 3
 	shell:
-		"""
-		LEVIATHAN -b {input.bam} -i {input.bc_idx} {params} -g {input.genome} -o {output} -t {threads} --candidates {log.candidates} 2> {log.runlog}
-		"""
+		"LEVIATHAN -b {input.bam} -i {input.bc_idx} {params} -g {input.genome} -o {output} -t {threads} --candidates {log.candidates} 2> {log.runlog}"
 
 rule sort_bcf:
 	input: "Variants/leviathan-pop/{population}.vcf"
@@ -123,9 +115,7 @@ rule sort_bcf:
 	params: "{wildcards.population}"
 	benchmark: "Benchmark/Variants/leviathan-pop/sortbcf.{population}.txt"
 	shell:        
-		"""
-		bcftools sort -Ob --output {output} {input} 2> /dev/null
-		"""
+		"bcftools sort -Ob --output {output} {input} 2> /dev/null"
 
 rule sv_stats:
 	input: 

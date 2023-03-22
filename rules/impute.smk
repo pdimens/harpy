@@ -38,9 +38,7 @@ rule prepare_biallelic_snps:
     benchmark: "Benchmark/Impute/fileprep.{part}.txt"
     threads: 1
     shell:
-        """
-        bcftools view -m2 -M2 -v snps --regions {wildcards.part} --output-type b {input} > {output}
-        """
+        "bcftools view -m2 -M2 -v snps --regions {wildcards.part} --output-type b {input} > {output}"
 
 #TODO investigate filter option
 rule STITCH_format:
@@ -52,9 +50,7 @@ rule STITCH_format:
     params: 
         filters = "-i \'QUAL>20 && DP>10\'" if config["filtervcf"] else ""
     shell:
-        """
-        bcftools query {params} -f '%CHROM\\t%POS\\t%REF\\t%ALT\\n' {input} > {output}
-        """
+        "bcftools query {params} -f '%CHROM\\t%POS\\t%REF\\t%ALT\\n' {input} > {output}"
 
 rule impute:
     input:
@@ -126,9 +122,7 @@ rule merge_vcfs:
     benchmark: "Benchmark/Impute/mergevcf.{stitchparams}.txt"
     threads: 20
     shell:
-        """
-        bcftools concat --threads {threads} -o {output} --output-type b {input.vcf} 2> {log}
-        """
+        "bcftools concat --threads {threads} -o {output} --output-type b {input.vcf} 2> {log}"
 
 rule stats:
     input:

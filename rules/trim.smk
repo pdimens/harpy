@@ -23,12 +23,14 @@ rule trimFastp:
 	params:
 		maxlen = f"--max_len1 {maxlen}",
 		extra = extra
-	shell: "fastp --trim_poly_g --cut_right --detect_adapter_for_pe {params} --thread {threads} -i {input.fw} -I {input.rv} -o {output.fw} -O {output.rv} -h {log.html} -j {output.json} 2> {log.serr}"
+	shell: 
+		"fastp --trim_poly_g --cut_right --detect_adapter_for_pe {params} --thread {threads} -i {input.fw} -I {input.rv} -o {output.fw} -O {output.rv} -h {log.html} -j {output.json} 2> {log.serr}"
 
 rule createReport:
 	input: expand("Trimming/logs/json/{sample}.fastp.json", sample = samplenames)
 	output: "Trimming/logs/trim.report.html"
-	shell: "multiqc Trimming/logs/json -m fastp --force --filename {output} --quiet --no-data-dir 2>/dev/null"
+	shell: 
+		"multiqc Trimming/logs/json -m fastp --force --filename {output} --quiet --no-data-dir 2>/dev/null"
 
 rule trimCheck:
 	input: 

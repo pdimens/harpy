@@ -39,9 +39,7 @@ rule index_alignments:
 	message: "Indexing barcodes: {wildcards.sample}"
 	benchmark: "Benchmark/Variants/mpileup/indexbam.{sample}.txt"
 	shell:
-		"""
-		sambamba index {input} {output}
-		"""
+		"sambamba index {input} {output}"
 
 #rule split_contigs:
 #	input: f"Assembly/{genomefile}.fai"
@@ -86,9 +84,7 @@ rule mpileup:
 		region = "{wildcards.part}",
 		extra = mp_extra
 	shell:
-		"""
-		bcftools mpileup --fasta-ref {input.genome} --region {params} --bam-list {input.bamlist} --annotate AD --output-type b > {output} 2> {log}
-		"""
+		"bcftools mpileup --fasta-ref {input.genome} --region {params} --bam-list {input.bamlist} --annotate AD --output-type b > {output} 2> {log}"
 
 rule call_genotypes:
 	input: "Variants/mpileup/{part}.mp.bcf"
@@ -101,9 +97,7 @@ rule call_genotypes:
 		groupsamples = '' if groupings is None else f"--group-samples {groupings}",
 		ploidy = f"--ploidy {ploidy}"
 	shell:
-		"""
-		bcftools call --multiallelic-caller {params} --variants-only --output-type b {input} | bcftools sort - --output {output} 2> /dev/null
-		"""
+		"bcftools call --multiallelic-caller {params} --variants-only --output-type b {input} | bcftools sort - --output {output} 2> /dev/null"
 
 rule index_bcf:
 	input: 

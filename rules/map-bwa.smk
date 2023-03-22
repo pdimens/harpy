@@ -52,9 +52,7 @@ rule align_bwa:
 		extra = extra
 	threads: 3
 	shell:
-		"""
-		bwa mem -C -t {threads} {params} -M -R "@RG\\tID:{wildcards.sample}\\tSM:{wildcards.sample}" {input.genome} {input.forward_reads} {input.reverse_reads} > {output} 2> {log}
-		"""
+		"bwa mem -C -t {threads} {params} -M -R \"@RG\\tID:{wildcards.sample}\\tSM:{wildcards.sample}\" {input.genome} {input.forward_reads} {input.reverse_reads} > {output} 2> {log}"
 
 rule sort_alignments:
 	input: 
@@ -67,9 +65,7 @@ rule sort_alignments:
 	benchmark: "Benchmark/Mapping/bwa/sort.{sample}.txt"
 	threads: 1
 	shell:
-		"""
-		samtools sort --threads {threads} --reference {input.asm} -O bam -l 0 -m 4G -o {output} {input.sam}
-		"""
+		"samtools sort --threads {threads} --reference {input.asm} -O bam -l 0 -m 4G -o {output} {input.sam}"
 
 rule mark_duplicates:
 	input: "Alignments/bwa/{sample}.sort.bam"
@@ -85,9 +81,7 @@ rule mark_duplicates:
 		rootname = "Alignments/bwa/{sample}"
 	threads: 4
 	shell:
-		"""
-		sambamba markdup -t {threads} -l 0 {input} {output.bam} 2> {log}
-		"""
+		"sambamba markdup -t {threads} -l 0 {input} {output.bam} 2> {log}"
 
 rule genome_coverage:
 	input: "Alignments/bwa/{sample}.bam"
@@ -96,9 +90,7 @@ rule genome_coverage:
 	threads: 2
 	params: bed_prox
 	shell:
-		"""
-		bedtools genomecov -ibam {input} -bg | bedtools merge -c 4 -o sum -d {params} > {output}
-		"""
+		"bedtools genomecov -ibam {input} -bg | bedtools merge -c 4 -o sum -d {params} > {output}"
 
 rule gencov_report:
 	input:

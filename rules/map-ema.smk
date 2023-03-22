@@ -57,9 +57,7 @@ rule count_beadtags:
         prefix = lambda wc: "Alignments/ema/count/" + wc.get("sample")
     threads: 1
     shell:
-        """
-        seqfu interleave -1 {input.forward_reads} -2 {input.reverse_reads} | ema-h count -p -o {params} 2> {output.logs}
-        """
+        "seqfu interleave -1 {input.forward_reads} -2 {input.reverse_reads} | ema-h count -p -o {params} 2> {output.logs}"
 
 rule beadtag_summary:
     input: 
@@ -87,9 +85,7 @@ rule preprocess_ema:
         outdir = lambda wc: "Alignments/ema/preproc/" + wc.get("sample"),
         bins = nbins
     shell:
-        """
-        seqfu interleave -1 {input.forward_reads} -2 {input.reverse_reads} | ema-h preproc -p -n {params.bins} -t {threads} -o {params.outdir} {input.emacounts} 2>&1 | cat - > {log}
-        """
+        "seqfu interleave -1 {input.forward_reads} -2 {input.reverse_reads} | ema-h preproc -p -n {params.bins} -t {threads} -o {params.outdir} {input.emacounts} 2>&1 | cat - > {log}"
 
 rule align_ema:
     input:
@@ -105,9 +101,7 @@ rule align_ema:
         extra = extra
     threads: 3
     shell:
-        """
-        ema-h align -t {threads} {params} -d -p haptag -r {input.genome} -o {output} -R "@RG\\tID:{wildcards.sample}\\tSM:{wildcards.sample}" -s {input.readbin} 2> /dev/null
-        """
+        "ema-h align -t {threads} {params} -d -p haptag -r {input.genome} -o {output} -R \"@RG\\tID:{wildcards.sample}\\tSM:{wildcards.sample}\" -s {input.readbin} 2> /dev/null"
 
 rule align_nobarcode:
     input:
@@ -122,9 +116,7 @@ rule align_nobarcode:
     message: "Mapping unbarcoded reads onto {input.genome}: {wildcards.sample}"
     threads: 2
     shell:
-        """
-        bwa mem -t {threads} -C -M -R "@RG\\tID:{wildcards.sample}\\tSM:{wildcards.sample}" {input.genome} {input.reads} > {output} 2> /dev/null
-        """
+        "bwa mem -t {threads} -C -M -R \"@RG\\tID:{wildcards.sample}\\tSM:{wildcards.sample}\" {input.genome} {input.reads} > {output} 2> /dev/null"
 
 rule sort_ema:
     input: 
@@ -138,9 +130,7 @@ rule sort_ema:
     benchmark: "Benchmark/Mapping/ema/Sort.{sample}.{emabin}.txt"
     threads: 1
     shell: 
-        """
-        samtools sort -@ {threads} --reference {input.genome} -O bam -l 0 -m 4G -o {output} {input.sam}
-        """
+        "samtools sort -@ {threads} --reference {input.genome} -O bam -l 0 -m 4G -o {output} {input.sam}"
 
 rule sort_nobarcode:
     input: 
@@ -153,9 +143,7 @@ rule sort_nobarcode:
     benchmark: "Benchmark/Mapping/ema/bwaSort.{sample}.txt"
     threads: 2
     shell:
-        """
-        samtools sort -@ {threads} -O bam -l 0 -m 4G --reference {input.genome} -o {output} {input.sam}
-        """    
+        "samtools sort -@ {threads} -O bam -l 0 -m 4G --reference {input.genome} -o {output} {input.sam}"    
 
 rule markduplicates:
     input: "Alignments/ema/align/{sample}/{sample}.nobarcode.bam.tmp"
@@ -190,9 +178,7 @@ rule merge_barcoded:
     benchmark: "Benchmark/Mapping/ema/merge.{sample}.txt"
     threads: 10
     shell:
-        """
-        sambamba merge -t {threads} {output.bam} {input}
-        """
+        "sambamba merge -t {threads} {output.bam} {input}"
 
 rule bcstats:
     input: 
@@ -261,9 +247,7 @@ rule merge_alignments:
     benchmark: "Benchmark/Mapping/ema/mergebc_nobc.{sample}.txt"
     threads: 10
     shell:
-        """
-        sambamba merge -t {threads} {output.bam} {input.aln_barcoded} {input.aln_nobarcode}
-        """
+        "sambamba merge -t {threads} {output.bam} {input.aln_barcoded} {input.aln_nobarcode}"
 
 rule sort_merge:
     input:
@@ -275,9 +259,7 @@ rule sort_merge:
         sample = "[a-zA-Z0-9_-]*"
     threads: 2
     shell:
-        """
-        samtools sort -@ {threads} -O bam --reference {input.genome} -l 0 -m 4G -o {output} {input.bam} 2> /dev/null
-        """
+        "samtools sort -@ {threads} -O bam --reference {input.genome} -l 0 -m 4G -o {output} {input.bam} 2> /dev/null"
 
 rule genome_coverage:
     input:
@@ -326,9 +308,7 @@ rule index_alignments:
     wildcard_constraints:
         sample = "[a-zA-Z0-9_-]*"
     shell:
-        """
-        sambamba index {input} {output}
-        """
+        "sambamba index {input} {output}"
 
 rule alignment_stats:
     input: 		
