@@ -17,7 +17,7 @@ rule create_reports:
 	input: 
 		expand("Alignments/bwa/{sample}.bam", sample = samplenames),
 		expand("Alignments/bwa/stats/samtools_{ext}/{sample}.{ext}", sample = samplenames, ext = ["stats", "flagstat"]),
-		expand("Alignments/bwa/stats/coverage/{sample}.gencov", sample = samplenames)
+		expand("Alignments/bwa/stats/coverage/{sample}.gencov.html", sample = samplenames)
 	output: 
 		stats =    "Alignments/bwa/stats/samtools_stats/bwa.stats.html",
 		flagstat = "Alignments/bwa/stats/samtools_flagstat/bwa.flagstat.html"
@@ -99,14 +99,25 @@ rule mark_duplicates:
 
 rule genome_coverage:
 	input: "Alignments/bwa/{sample}.bam"
-	output: "Alignments/bwa/stats/coverage/{sample}.gencov"
+	output: "Alignments/bwa/stats/coverage/data/{sample}.gencov"
 	message: "Calculating genomic coverage: {wildcards.sample}"
 	threads: 2
 	params: bed_prox
 	shell:
 		"""
-		bedtools genomecov -ibam {input} -bg | bedtools merge -c 4 -0 sum -d {params} > {output}
+		bedtools genomecov -ibam {input} -bg | bedtools merge -c 4 -o sum -d {params} > {output}
 		"""
+
+rule gencov_report:
+    input:
+        gencov = "Alignments/bwa/stats/coverage/data/{sample}.gencov",
+        idx = f"Assembly/{genomefile}.fai"
+    output:
+        "Alignments/bwa/stats/coverage/{sample}.gencov.html"
+    message:
+        "Creating report of alignment coverage: {wildcards.sample}"
+    script:
+        "../utilities/reportGencov.Rmd"
 
 rule alignment_stats:
 	input:

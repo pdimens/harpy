@@ -28,10 +28,10 @@ colnames(fa.sizes) <- c("contig", "size")
 
 sname <- gsub(".gencov", "", basename(covfile))
 #TODO
-if (grepl("all.gencov", covfile)){
-  txt <- "all alignments, meaning coverage was quantified irrespective of whether a read had a valid barcode or not."
-} else {
+if (grepl("bx.gencov", covfile)){
   txt <- "only alignments whose reads had a valid barcode."
+} else {
+  txt <- "all alignments, meaning coverage was quantified irrespective of whether a read had a valid barcode or not."
 }
 ```
 #### Sample: `r sname`

@@ -23,11 +23,8 @@ rule create_reports:
         expand("Alignments/ema/stats/moleculesize/{sample}.molsize", sample = samplenames),
         expand("Alignments/ema/stats/moleculesize/{sample}.molsize.hist", sample = samplenames),
         expand("Alignments/ema/stats/readsperbx/{sample}.readsperbx", sample = samplenames),
-        expand("Alignments/ema/stats/coverage/{sample}.bx.gencov", sample = samplenames),
-        expand("Alignments/ema/stats/coverage/{sample}.all.gencov", sample = samplenames),
-        expand("Alignments/ema/stats/coverage/data/{sample}.all.gencov", sample = samplenames),
-        expand("Alignments/ema/stats/coverage/data/{sample}.bx.gencov", sample = samplenames),
-        "Alignments/ema/stats/beadtag.report.html"
+        expand("Alignments/ema/stats/coverage/{sample}.gencov.{aln}.html", sample = samplenames, aln = ["all", "bx"]),
+        "Alignments/ema/stats/reads.bxstats.html"
     output: 
         stats =    "Alignments/ema/stats/samtools_stats/alignment.stats.html",
         flagstat = "Alignments/ema/stats/samtools_flagstat/alignment.flagstat.html"
@@ -76,7 +73,7 @@ rule count_beadtags:
 rule beadtag_summary:
     input: 
         countlog = expand("Alignments/ema/count/logs/{sample}.count.log", sample = samplenames)
-    output: "Alignments/ema/stats/beadtag.report.html"
+    output: "Alignments/ema/stats/reads.bxstats.html"
     message: "Creating sample barcode validation report"
     benchmark: "Benchmark/Mapping/ema/beadtagsummary.txt"
     script: "../utilities/reportEmaCount.Rmd"
@@ -194,8 +191,8 @@ rule merge_barcoded:
     input:
         aln_barcoded = expand("Alignments/ema/align/{{sample}}/{{sample}}.{bin}.bam", bin = ["%03d" % i for i in range(nbins)]),
     output: 
-        bam = temp("Alignments/ema/align/{sample}/{sample}.barcoded.bam"),
-        bai = temp("Alignments/ema/align/{sample}/{sample}.barcoded.bam.bai")
+        bam = "Alignments/ema/align/barcoded/{sample}.barcoded.bam",
+        bai = temp("Alignments/ema/align/barcoded/{sample}.barcoded.bam.bai")
     wildcard_constraints:
         sample = "[a-zA-Z0-9_-]*"
     message: "Merging barcoded alignments: {wildcards.sample}"
@@ -208,8 +205,8 @@ rule merge_barcoded:
 
 rule bcstats:
     input: 
-        bam = "Alignments/ema/align/{sample}/{sample}.barcoded.bam",
-        bai = "Alignments/ema/align/{sample}/{sample}.barcoded.bam.bai"
+        bam = "Alignments/ema/align/barcoded/{sample}.barcoded.bam",
+        bai = "Alignments/ema/align/barcoded/{sample}.barcoded.bam.bai"
     log:
         stats = "Alignments/ema/stats/samtools_stats/{sample}.barcoded.stats",
         flagstat = "Alignments/ema/stats/samtools_flagstat/{sample}.barcoded.flagstat"
@@ -224,7 +221,7 @@ rule bcstats:
         """
 
 rule BEDconvert:
-    input: "Alignments/ema/align/{sample}/{sample}.barcoded.bam"
+    input: "Alignments/ema/align/barcoded/{sample}.barcoded.bam"
     output: 
         filt = temp("Alignments/ema/bedfiles/{sample}.bx.bed"),
         unfilt = temp("Alignments/ema/bedfiles/{sample}.all.bed")
@@ -260,9 +257,9 @@ rule BX_stats:
 
 rule merge_alignments:
     input:
-        aln_barcoded = "Alignments/ema/align/{sample}/{sample}.barcoded.bam",
+        aln_barcoded = "Alignments/ema/align/barcoded/{sample}.barcoded.bam",
+        idx_barcoded = "Alignments/ema/align/barcoded/{sample}.barcoded.bam.bai",
         aln_nobarcode = "Alignments/ema/align/{sample}/{sample}.nobarcode.bam",
-        idx_barcoded = "Alignments/ema/align/{sample}/{sample}.barcoded.bam.bai",
         idx_nobarcode = "Alignments/ema/align/{sample}/{sample}.nobarcode.bam.bai"
     output: 
         bam = temp("Alignments/ema/align/{sample}.unsort.bam"),
@@ -294,7 +291,7 @@ rule sort_merge:
 rule genome_coverage:
     input:
         alntot = "Alignments/ema/{sample}.bam",
-        bx = "Alignments/ema/align/{sample}/{sample}.barcoded.bam"
+        bx = "Alignments/ema/align/barcoded/{sample}.barcoded.bam"
     output: 
         bx = "Alignments/ema/stats/coverage/data/{sample}.bx.gencov",
         alntot = "Alignments/ema/stats/coverage/data/{sample}.all.gencov"
