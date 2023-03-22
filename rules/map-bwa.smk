@@ -135,7 +135,6 @@ rule samtools_reports:
 	output: 
 		stats =    "Alignments/bwa/stats/samtools_stats/bwa.stats.html",
 		flagstat = "Alignments/bwa/stats/samtools_flagstat/bwa.flagstat.html"
-	message: "Read mapping completed!\nAlignment reports:\n{output.stats}\n{output.flagstat}"
     message: "Summarizing samtools stats and flagstats"
 	shell:
 		"""
