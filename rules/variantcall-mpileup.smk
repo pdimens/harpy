@@ -83,7 +83,7 @@ rule mpileup:
 	benchmark: 
 		"Benchmark/Variants/mpileup/mpileup.{part}.txt"
 	params:
-		extra = extra
+		extra = extra,
 		region = "{wildcards.part}"
 	shell:
 		"""
