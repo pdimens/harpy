@@ -41,24 +41,11 @@ rule index_alignments:
 	shell:
 		"sambamba index {input} {output}"
 
-#rule split_contigs:
-#	input: f"Assembly/{genomefile}.fai"
-#	output: temp(expand("Variants/mpileup/regions/{part}", part = contigs))
-#	message: "Separating {input} by contig for parallelization later"
-#	benchmark: "Benchmark/Variants/mpileup/splitcontigs.txt"
-#	run:
-#		with open(input[0]) as f:
-#			cpath = "Variants/mpileup/regions"
-#			for line in f:
-#				contig = line.rstrip().split("\t")[0]
-#				with open(f"{cpath}/{contig}", "w") as fout:
-#					gremlin = fout.write(f"{contig}\n")
-
 rule bam_list:
 	input: 
 		bam = expand(bam_dir + "/{sample}.bam", sample = samplenames),
 		bai = expand(bam_dir + "/{sample}.bam.bai", sample = samplenames)
-	output: "Variants/mpileup/samples.list"
+	output: "Variants/mpileup/logs/samples.files"
 	message: "Creating list of alignment files"
 	benchmark: "Benchmark/Variants/mpileup/bamlist.txt"
 	run:
@@ -66,9 +53,17 @@ rule bam_list:
 			for bamfile in input.bam:
 				_ = fout.write(bamfile + "\n")
 
+rule samplenames:
+	output: "Variants/mpileup/logs/samples.names"
+	message: "Creating list of sample names"
+	run:
+		with open(output[0], "w") as fout:
+			for samplename in samplenames:
+				_ = fout.write(samplename + "\n")		
+
 rule mpileup:
 	input:
-		bamlist = "Variants/mpileup/samples.list",
+		bamlist = "Variants/mpileup/logs/samples.files",
 		genome = f"Assembly/{genomefile}"
 	output: 
 		pipe("Variants/mpileup/{part}.mp.bcf")
@@ -102,7 +97,7 @@ rule call_genotypes:
 rule index_bcf:
 	input: 
 		bcf = "Variants/mpileup/call/{part}.bcf",
-		samplelist = "Variants/mpileup/samples.list",
+		samplelist = "Variants/mpileup/logs/samples.names",
 		genome = f"Assembly/{genomefile}"
 	output: temp("Variants/mpileup/call/{part}.bcf.csi")
 	log: "Variants/mpileup/stats/{part}.stats"
@@ -131,7 +126,7 @@ rule combine_bcfs:
 		"""
 		bcftools concat --threads {threads} --output-type b --naive {input.bcf} > {output.bcf} 2> /dev/null
 		bcftools index --output {output.idx} {output.bcf}
-		bcftools stats --fasta-ref {input.genome} {output.bcf} > {output.stats}
+		bcftools stats -S {input.samplelist} --fasta-ref {input.genome} {output.bcf} > {output.stats}
 		"""
 
 rule bcfreport:
