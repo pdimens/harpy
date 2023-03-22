@@ -101,15 +101,15 @@ rule genome_coverage:
 		"""
 
 rule gencov_report:
-    input:
-        gencov = "Alignments/bwa/stats/coverage/data/{sample}.gencov",
-        faidx = f"Assembly/{genomefile}.fai"
-    output:
-        "Alignments/bwa/stats/coverage/{sample}.gencov.html"
-    message:
-        "Summarizing alignment coverage: {wildcards.sample}"
-    script:
-        "../utilities/reportGencov.Rmd"
+	input:
+		gencov = "Alignments/bwa/stats/coverage/data/{sample}.gencov",
+		faidx = f"Assembly/{genomefile}.fai"
+	output:
+		"Alignments/bwa/stats/coverage/{sample}.gencov.html"
+	message:
+		"Summarizing alignment coverage: {wildcards.sample}"
+	script:
+		"../utilities/reportGencov.Rmd"
 
 rule alignment_stats:
 	input:
@@ -135,7 +135,7 @@ rule samtools_reports:
 	output: 
 		stats =    "Alignments/bwa/stats/samtools_stats/bwa.stats.html",
 		flagstat = "Alignments/bwa/stats/samtools_flagstat/bwa.flagstat.html"
-    message: "Summarizing samtools stats and flagstats"
+	message: "Summarizing samtools stats and flagstats"
 	shell:
 		"""
 		multiqc Alignments/bwa/stats/samtools_stats    --force --quiet --no-data-dir --filename {output.stats} 2> /dev/null
