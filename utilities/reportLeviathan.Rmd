@@ -37,19 +37,8 @@ fa.sizes$V2 <- as.numeric(gsub(">", "", fa.sizes$V2))
 colnames(fa.sizes) <- c("contig", "size")
 ```
 
-## Various Stats {.tabset}
-### summary info
-This table shows the overall statistics for detected structural variants.
-```{r echo = FALSE, message = FALSE}
-grpstats %>%
-  group_by(type) %>%
-  summarise(
-    total = sum(count),
-    avg_per_contig = mean(count),
-    sd = sd(count)
-)
-```
 
+## Various Stats {.tabset}
 ### all variants
 This table details all the variants LEVIATHAN detected and the quantity/quality of evidence for those detections.
 ```{r echo = FALSE, warnings = FALSE, message = FALSE}
@@ -61,6 +50,22 @@ if (nrow(sv) == 0) {
 DT::datatable(sv, rownames = F, filter = "top", extensions = 'Buttons', options = list(dom = 'Brtip', buttons = c('csv'), scrollX = TRUE))
 ```
 
+### summary info
+This table shows the overall statistics for detected structural variants.
+```{r echo = FALSE, message = FALSE}
+
+grpstats <- sv %>%
+  group_by(contig, type) %>%
+  summarise(count = n(), total_bp  = sum(length))
+
+grpstats %>%
+  group_by(type) %>%
+  summarise(
+    total = sum(count),
+    avg_per_contig = mean(count),
+    sd = sd(count)
+)
+```
 
 ### per-contig info
 This table details each type of structural variant for every contig.

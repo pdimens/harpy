@@ -86,8 +86,7 @@ rule sv_stats:
 
 rule sv_report:
     input:	
-        bcf = "Variants/leviathan/{sample}.bcf",
-        statsfile = "Variants/leviathan/stats/{sample}.sv.stats"
+        bcf = "Variants/leviathan/{sample}.bcf"
     output:	"Variants/leviathan/reports/{sample}.SV.html"
     message: "Generating SV report: {wildcards.sample}"
     script:	"../utilities/reportLeviathan.Rmd"
