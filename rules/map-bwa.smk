@@ -16,19 +16,11 @@ if not os.path.exists(f"Assembly/{bn}"):
 rule create_reports:
 	input: 
 		expand("Alignments/bwa/{sample}.bam", sample = samplenames),
-		expand("Alignments/bwa/stats/samtools_{ext}/{sample}.{ext}", sample = samplenames, ext = ["stats", "flagstat"]),
-		expand("Alignments/bwa/stats/coverage/{sample}.gencov.html", sample = samplenames)
-	output: 
-		stats =    "Alignments/bwa/stats/samtools_stats/bwa.stats.html",
-		flagstat = "Alignments/bwa/stats/samtools_flagstat/bwa.flagstat.html"
-	message: "Read mapping completed!\nAlignment reports:\n{output.stats}\n{output.flagstat}"
-	benchmark: "Benchmark/Mapping/bwa/reports.txt"
+		expand("Alignments/bwa/stats/coverage/{sample}.gencov.html", sample = samplenames),
+		"Alignments/bwa/stats/samtools_stats/bwa.stats.html",
+		"Alignments/bwa/stats/samtools_flagstat/bwa.flagstat.html"
+	message: "Read mapping completed!"
 	default_target: True
-	shell:
-		"""
-		multiqc Alignments/bwa/stats/samtools_stats    --force --quiet --no-data-dir --filename {output.stats} 2> /dev/null
-		multiqc Alignments/bwa/stats/samtools_flagstat --force --quiet --no-data-dir --filename {output.flagstat} 2> /dev/null
-		"""
 
 rule index_genome:
 	input: genomefile
@@ -135,4 +127,18 @@ rule alignment_stats:
 		"""
 		samtools stats {input.bam} > {output.stats}
 		samtools flagstat {input.bam} > {output.flagstat}
+		"""
+
+rule samtools_reports:
+	input: 
+		expand("Alignments/bwa/stats/samtools_{ext}/{sample}.{ext}", sample = samplenames, ext = ["stats", "flagstat"]),
+	output: 
+		stats =    "Alignments/bwa/stats/samtools_stats/bwa.stats.html",
+		flagstat = "Alignments/bwa/stats/samtools_flagstat/bwa.flagstat.html"
+	message: "Read mapping completed!\nAlignment reports:\n{output.stats}\n{output.flagstat}"
+    message: "Summarizing samtools stats and flagstats"
+	shell:
+		"""
+		multiqc Alignments/bwa/stats/samtools_stats    --force --quiet --no-data-dir --filename {output.stats} 2> /dev/null
+		multiqc Alignments/bwa/stats/samtools_flagstat --force --quiet --no-data-dir --filename {output.flagstat} 2> /dev/null
 		"""
