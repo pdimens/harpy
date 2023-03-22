@@ -91,7 +91,7 @@ rule mpileup:
 
 rule call_genotypes:
 	input: "Variants/mpileup/{part}.mp.bcf"
-	output: temp("Variants/mpileup/{part}.bcf")
+	output: temp("Variants/mpileup/call/{part}.bcf")
 	message: "Calling genotypes: {wildcards.part}"
 	benchmark: "Benchmark/Variants/mpileup/call.{part}.txt"
 	log: "Variants/mpileup/logs/{part}.call.log"
@@ -106,10 +106,10 @@ rule call_genotypes:
 
 rule index_bcf:
 	input: 
-		bcf = "Variants/mpileup/{part}.bcf",
+		bcf = "Variants/mpileup/call/{part}.bcf",
 		samplelist = "Variants/mpileup/samples.list",
 		genome = f"Assembly/{genomefile}"
-	output: temp("Variants/mpileup/{part}.bcf.csi")
+	output: temp("Variants/mpileup/call/{part}.bcf.csi")
 	log: "Variants/mpileup/stats/{part}.stats"
 	message: "Indexing: {wildcards.part}"
 	benchmark: "Benchmark/Variants/mpileup/indexbcf.{part}.txt"
@@ -122,8 +122,8 @@ rule index_bcf:
 
 rule combine_bcfs:
 	input: 
-		bcf = expand("Variants/mpileup/{part}.bcf", part = contigs),
-		idx = expand("Variants/mpileup/{part}.bcf.csi", part = contigs),
+		bcf = expand("Variants/mpileup/call/{part}.bcf", part = contigs),
+		idx = expand("Variants/mpileup/call/{part}.bcf.csi", part = contigs),
 		genome = f"Assembly/{genomefile}"
 	output: 
 		bcf = "Variants/mpileup/variants.raw.bcf",
