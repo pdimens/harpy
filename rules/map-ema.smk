@@ -322,7 +322,7 @@ rule gencovAll_report:
     output:
         "Alignments/ema/stats/coverage/{sample}.gencov.all.html"
     message:
-        "Creating report of alignment coverage: {wildcards.sample}"
+        "Summarizing alignment coverage: {wildcards.sample}"
     script:
         "../utilities/reportGencov.Rmd"
 

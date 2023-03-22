@@ -115,7 +115,7 @@ rule gencov_report:
     output:
         "Alignments/bwa/stats/coverage/{sample}.gencov.html"
     message:
-        "Creating report of alignment coverage: {wildcards.sample}"
+        "Summarizing alignment coverage: {wildcards.sample}"
     script:
         "../utilities/reportGencov.Rmd"
 
