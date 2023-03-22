@@ -53,6 +53,7 @@ DT::datatable(sv, rownames = F, filter = "top", extensions = 'Buttons', options 
 ### summary info
 This table shows the overall statistics for detected structural variants.
 ```{r echo = FALSE, message = FALSE}
+sv$length <- gsub("\\.", "1", sv$length) %>%  as.numeric()
 
 grpstats <- sv %>%
   group_by(contig, type) %>%
@@ -70,8 +71,6 @@ grpstats %>%
 ### per-contig info
 This table details each type of structural variant for every contig.
 ```{r echo = FALSE, message = FALSE, warning = FALSE}
-sv$length <- gsub("\\.", "1", sv$length) %>%  as.numeric()
-
 grpstats <- sv %>%
   group_by(contig, type) %>%
   summarise(count = n(), total_bp  = sum(length))
