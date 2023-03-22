@@ -306,8 +306,8 @@ rule genome_coverage:
 
 rule gencovBX_report:
     input: 
-        bx = "Alignments/ema/stats/coverage/data/{sample}.bx.gencov",
-        idx = f"Assembly/{genomefile}.fai"
+        gencov = "Alignments/ema/stats/coverage/data/{sample}.bx.gencov",
+        faidx = f"Assembly/{genomefile}.fai"
     output:
         "Alignments/ema/stats/coverage/{sample}.gencov.bx.html"
     message:
@@ -317,8 +317,8 @@ rule gencovBX_report:
 
 rule gencovAll_report:
     input:
-        alntot = "Alignments/ema/stats/coverage/data/{sample}.all.gencov",
-        idx = f"Assembly/{genomefile}.fai"
+        gencov = "Alignments/ema/stats/coverage/data/{sample}.all.gencov",
+        faidx = f"Assembly/{genomefile}.fai"
     output:
         "Alignments/ema/stats/coverage/{sample}.gencov.all.html"
     message:

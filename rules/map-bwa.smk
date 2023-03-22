@@ -111,7 +111,7 @@ rule genome_coverage:
 rule gencov_report:
     input:
         gencov = "Alignments/bwa/stats/coverage/data/{sample}.gencov",
-        idx = f"Assembly/{genomefile}.fai"
+        faidx = f"Assembly/{genomefile}.fai"
     output:
         "Alignments/bwa/stats/coverage/{sample}.gencov.html"
     message:
