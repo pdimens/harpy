@@ -83,7 +83,8 @@ rule mpileup:
 	benchmark: 
 		"Benchmark/Variants/mpileup/mpileup.{part}.txt"
 	params:
-		extra = mp_extra + " --regions {wildcards.part}"
+		extra = mp_extra,
+		region = "--region {wildcards.part}"
 	shell:
 		"""
 		bcftools mpileup --fasta-ref {input.genome} {params} --bam-list {input.bamlist} --annotate AD --output-type b > {output} 2> {log}
@@ -97,7 +98,7 @@ rule call_genotypes:
 	log: "Variants/mpileup/logs/{part}.call.log"
 	threads: 2
 	params: 
-		groupsamples = '' if groupings is not None else f"--group-samples {groupings}",
+		groupsamples = '' if groupings is None else f"--group-samples {groupings}",
 		ploidy = f"--ploidy {ploidy}"
 	shell:
 		"""
