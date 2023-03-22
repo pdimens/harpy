@@ -131,7 +131,7 @@ rule alignment_stats:
 
 rule samtools_reports:
 	input: 
-		expand("Alignments/bwa/stats/samtools_{ext}/{sample}.{ext}", sample = samplenames, ext = ["stats", "flagstat"]),
+		expand("Alignments/bwa/stats/samtools_{ext}/{sample}.{ext}", sample = samplenames, ext = ["stats", "flagstat"])
 	output: 
 		stats =    "Alignments/bwa/stats/samtools_stats/bwa.stats.html",
 		flagstat = "Alignments/bwa/stats/samtools_flagstat/bwa.flagstat.html"
