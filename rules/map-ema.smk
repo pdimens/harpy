@@ -1,6 +1,5 @@
 import os
 
-
 seq_dir = config["seq_directory"]
 nbins = config["EMA_bins"]
 genomefile = config["genomefile"]
@@ -19,23 +18,15 @@ rule create_reports:
     input: 
         expand("Alignments/ema/{sample}.bam", sample = samplenames),
         expand("Alignments/ema/{sample}.bam.bai", sample = samplenames),
-        expand("Alignments/ema/stats/samtools_{ext}/{sample}.{ext}", sample = samplenames, ext = ["stats", "flagstat"]),
-        expand("Alignments/ema/stats/moleculesize/{sample}.molsize", sample = samplenames),
-        expand("Alignments/ema/stats/moleculesize/{sample}.molsize.hist", sample = samplenames),
+        expand("Alignments/ema/stats/moleculesize/{sample}.{ext}", sample = samplenames, ext = ["molsize", "molsize.hist"]),
         expand("Alignments/ema/stats/readsperbx/{sample}.readsperbx", sample = samplenames),
         expand("Alignments/ema/stats/coverage/{sample}.gencov.{aln}.html", sample = samplenames, aln = ["all", "bx"]),
-        "Alignments/ema/stats/reads.bxstats.html"
-    output: 
-        stats =    "Alignments/ema/stats/samtools_stats/alignment.stats.html",
-        flagstat = "Alignments/ema/stats/samtools_flagstat/alignment.flagstat.html"
-    message: "Read mapping completed!\nAlignment reports:\n\t{output.stats}\n\t{output.flagstat}"
+        "Alignments/ema/stats/reads.bxstats.html",
+        "Alignments/ema/stats/samtools_stats/alignment.stats.html",
+        "Alignments/ema/stats/samtools_flagstat/alignment.flagstat.html"
+    message: "Read mapping completed!"
     benchmark: "Benchmark/Mapping/ema/report.txt"
     default_target: True
-    shell:
-        """
-        multiqc Alignments/ema/stats/samtools_stats    --force --quiet --no-data-dir --filename {output.stats} 2> /dev/null
-        multiqc Alignments/ema/stats/samtools_flagstat --force --quiet --no-data-dir --filename {output.flagstat} 2> /dev/null
-        """
 
 rule index_genome:
     input: genomefile
@@ -354,4 +345,18 @@ rule alignment_stats:
         """
         samtools stats {input.bam} > {output.stats}
         samtools flagstat {input.bam} > {output.flagstat}
+        """
+
+rule samtools_reports:
+    input: 
+        expand("Alignments/ema/stats/samtools_{ext}/{sample}.{ext}", sample = samplenames, ext = ["stats", "flagstat"]),
+    output: 
+        stats =    "Alignments/ema/stats/samtools_stats/alignment.stats.html",
+        flagstat = "Alignments/ema/stats/samtools_flagstat/alignment.flagstat.html"
+    message: "Summarizing samtools stats and flagstats"
+    benchmark: "Benchmark/Mapping/ema/report.txt"
+    shell:
+        """
+        multiqc Alignments/ema/stats/samtools_stats    --force --quiet --no-data-dir --filename {output.stats} 2> /dev/null
+        multiqc Alignments/ema/stats/samtools_flagstat --force --quiet --no-data-dir --filename {output.flagstat} 2> /dev/null
         """
