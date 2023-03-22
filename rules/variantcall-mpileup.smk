@@ -114,7 +114,8 @@ rule combine_bcfs:
 	input: 
 		bcf = expand("Variants/mpileup/call/{part}.bcf", part = contigs),
 		idx = expand("Variants/mpileup/call/{part}.bcf.csi", part = contigs),
-		genome = f"Assembly/{genomefile}"
+		genome = f"Assembly/{genomefile}",
+		samplelist = "Variants/mpileup/logs/samples.names"
 	output: 
 		bcf = "Variants/mpileup/variants.raw.bcf",
 		idx = "Variants/mpileup/variants.raw.bcf.csi",
