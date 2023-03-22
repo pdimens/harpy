@@ -27,7 +27,8 @@ fa.size <- fa.sizes[order(fa.sizes$V2), ]
 #fa.sizes <- read.table("~/genome.fasta.fai", header = F)[,1:2]
 colnames(fa.sizes) <- c("contig", "size")
 
-sname <- gsub(".\\w+.gencov", "", basename(covfile))
+sname <- gsub("\\.\\w?\\w?\\w?.?gencov", "", basename(covfile))
+
 if (grepl("bx.gencov", covfile)){
   txt <- "only alignments whose reads had a valid barcode."
 } else {
@@ -87,7 +88,7 @@ p <- ggplot(.g, aes(x=midpoint, y=coverage, color = coverage)) +
   xlim(0, fa.sizes$size[i]) +
   coord_cartesian(xlim = c(0, fa.sizes$size[i] + 1), expand = F) +
   theme_bw() +
-  scale_color_gradient(low = "indianred", high = "dodgerblue") +
+  scale_color_gradient(high = "indianred", low = "dodgerblue") +
   labs(x = "position (bp)", title = i, subtitle = paste("mean coverage:", .covmean)) +
   theme(panel.grid.major.x = element_blank(), panel.grid.minor.x = element_blank(), legend.position = "none")
   print(p)
