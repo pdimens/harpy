@@ -134,24 +134,31 @@ The `harpy align` module creates an `Alignments/ema` directory with the folder s
 Alignments/ema
 ├── Sample1.bam
 ├── Sample1.bam.bai
+├── barcoded
+│   └── Sample1.barcoded.bam
 ├── count
-│   ├── Sample1.ema-ncnt
+│   └── Sample1.ema-ncnt
 ├── preproc
 │   └── logs
-│       ├── Sample1.preproc.log
+│       └── Sample1.preproc.log
 └── stats
-    ├── beadtag.report.html
+    ├── reads.bxstats.html
+    ├── coverage
+    │   ├── Sample1.gencov.html
+    │   └── data
+    │       ├── Sample1.all.gencov
+    │       └── Sample1.bx.gencov
     ├── markduplicates
-    │   ├── Sample1.markdup.nobarcode.log
+    │   └── Sample1.markdup.nobarcode.log
     ├── moleculesize
     │   ├── Sample1.molsize
-    │   ├── Sample1.molsize.hist
+    │   └── Sample1.molsize.hist
     ├── readsperbx
-    │   ├── Sample1.readsperbx
+    │   └── Sample1.readsperbx
     ├── samtools_flagstat
     │   ├── alignment.flagstat.html
     │   ├── Sample1.flagstat
-    │   ├── Sample1.nobarcode.flagstat
+    │   └── Sample1.nobarcode.flagstat
     └── samtools_stats
         ├── alignment.stats.html
         ├── Sample1.nobarcode.stats
@@ -161,14 +168,18 @@ Alignments/ema
 |:-----------------------------------------------|:-------------------------------------------------------------------------------------------|
 | `*.bam`                                        | sequence alignments for each sample                                                        |
 | `*.bai`                                        | sequence alignment indexes for each sample                                                 |
+| `barcoded/*.bam`                               | sequence alignments for each sample, containing only alignments with valid BX barcodes     |
 | `count/`                                       | output of `ema count`                                                                      |
-| `preproc/logs`                                 | everything `ema preproc` wrote to `stderr` during operation                                |
+| `preproc/logs/`                                | everything `ema preproc` wrote to `stderr` during operation                                |
 | `stats/`                                       | various counts/statistics/reports relating to sequence alignment                           |
-| `stats/beadtag.report.html`                    | interactive html report summarizing `ema count` across all samples                         |
-| `stats/markduplicates`                         | everything `sambamba markdup` writes to `stderr` during operation on unbarcoded alignments |
+| `stats/reads.bxstats .html`                    | interactive html report summarizing `ema count` across all samples                         |
+| `stats/coverage/*.html`                        | summary plots of alignment coverage per contig                                             |
+| `stats/coverage/data/*.all.gencov`             | output from bedtools gencov from all alignments, used for plots                            |
+| `stats/coverage/data/*.bx.gencov`              | output from bedtools gencov from alignments with valid BX barcodes, used for plots         |
+| `stats/markduplicates/`                        | everything `sambamba markdup` writes to `stderr` during operation on alignments with invalid/missing barcodes |
 | `stats/moleculesize/*.molsize`                 | molecule lengths as inferred from BX tags                                                  |
 | `stats/moleculesize/*.molsize.hist`            | molecule lengths as inferred from BX tags, binned as a histogram                           |
-| `stats/readsperbx`                             | inferred number of alignments per BX barcode                                               |
+| `stats/readsperbx/`                            | inferred number of alignments per BX barcode                                               |
 | `stats/samtools_flagstat/*flagstat`            | results of `samtools flagstat` on all alignments for a sample                              |
 | `stats/samtools_flagstat/*.nobarcode.flagstat` | results of `samtools flagstat` on alignments that had no/invalid BX barcodes               |
 | `stats/samtools_flagstat/*html`                | report summarizing `samtools flagstat` results across all samples from `multiqc`           |
@@ -201,12 +212,16 @@ Alignments/bwa
 ├── Sample1.bam
 ├── Sample1.bam.bai
 └── stats
+    ├── coverage
+    │   ├── Sample1.gencov.html
+    │   └── data
+    │       └── Sample1.gencov
     ├── markduplicates
-    │   ├── Sample1.markdup.log
+    │   └── Sample1.markdup.log
     ├── samtools_flagstat
     │   ├── alignment.flagstat.html
     │   ├── Sample1.flagstat
-    │   ├── Sample1.nobarcode.flagstat
+    │   └── Sample1.nobarcode.flagstat
     └── samtools_stats
         ├── alignment.stats.html
         ├── Sample1.nobarcode.stats
@@ -218,6 +233,8 @@ Alignments/bwa
 | `*.bam`                                        | sequence alignments for each sample                                                        |
 | `*.bai`                                        | sequence alignment indexes for each sample                                                 |
 | `stats/`                                       | various counts/statistics/reports relating to sequence alignment                           |
+| `stats/coverage/*.html`                        | summary plots of alignment coverage per contig                                             |
+| `stats/coverage/data/*.gencov`                 | output from bedtools gencov from all alignments, used for plots                            |
 | `stats/markduplicates`                         | everything `sambamba markdup` writes to `stderr` during operation  |
 | `stats/samtools_flagstat/*flagstat`            | results of `samtools flagstat` on all alignments for a sample                              |
 | `stats/samtools_flagstat/*.nobarcode.flagstat` | results of `samtools flagstat` on alignments that had no/invalid BX barcodes               |
