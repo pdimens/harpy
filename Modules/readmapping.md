@@ -48,7 +48,6 @@ These are taken directly from the [EMA documentation](https://github.com/arshaji
 
 ``` ema arguments
   -d: apply fragment read density optimization [off]
-  -p <platform>: sequencing platform (one of '10x', 'tru', 'cpt') [10x]
   -i <index>: index to follow 'BX' tag in SAM output [1]
 ```
 ==- BWA arguments
@@ -70,7 +69,6 @@ These are taken directly from the [BWA documentation](https://bio-bwa.sourceforg
 -T INT 	Don’t output alignment with score lower than INT. This option only affects output. [30]
 -a 	Output all found alignments for single-end or unpaired paired-end reads. These alignments will be flagged as secondary alignments.
 -H 	Use hard clipping ’H’ in the SAM output. This option may dramatically reduce the redundancy of output when mapping long contig or BAC sequences.
--M 	Mark shorter split hits as secondary (for Picard compatibility).
 ```
 ===
 
