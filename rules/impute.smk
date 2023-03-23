@@ -41,7 +41,7 @@ rule biallelic_STITCH_format:
     threads: 2
     shell:
         """
-        bcftools view -m2 -M2 -v snps --regions {wildcards.part} --output-type b {input} |\\
+        bcftools view -m2 -M2 -v snps --region {wildcards.part} --output-type b {input} |\\
         bcftools query {params} -f '%CHROM\\t%POS\\t%REF\\t%ALT\\n' > {output}
         """
 
