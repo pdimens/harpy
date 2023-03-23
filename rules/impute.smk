@@ -18,7 +18,8 @@ def contignames(vcf):
     #contigs = sorted([chr for chr in rm_prefix.stdout.decode('utf-8').split()])
     biallelic = subprocess.Popen(f"bcftools view -m2 -M2 -v snps {vcf} -Ob".split(), stdout = subprocess.PIPE)
     contigs = subprocess.Popen(f"bcftools query -f '%CHROM\\n'".split(), stdin = biallelic.stdout, stdout = subprocess.PIPE)
-    uniq_contigs = sorted(set([chr for chr in contigs.stdout.split()]))
+    print(list(contigs.stdout))
+    uniq_contigs = sorted(set([chr for chr in list(contigs.stdout)]))
     return uniq_contigs
 
 contigs = contignames(variantfile)
