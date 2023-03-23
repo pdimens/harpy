@@ -198,7 +198,7 @@ def align(genome, threads, bwa, directory, ema_bins, proximity, extra_params, sn
             print("Read the documentation for details: https://pdimens.github.io/HARPY/modules/readmapping/")
             sys.exit(1)
     mapper = "ema" if not bwa else "bwa"
-    command = f'snakemake --cores {threads} --directory . --snakefile rules/map-{mapper}.smk'.split()
+    command = f'snakemake --cores {threads} --directory . --snakefile rules/align-{mapper}.smk'.split()
     if snakemake is not None:
         [command.append(i) for i in snakemake.split()]
     command.append('--config')
@@ -237,7 +237,7 @@ def variants(genome, threads, directory, populations, ploidy, leviathan, extra_p
     vcaller = "mpileup" if not leviathan else "leviathan"
     if vcaller == "leviathan" and populations is not None:
         vcaller = "leviathan-pop"
-    command = (f'snakemake --cores {threads} --directory . --snakefile rules/variantcall-{vcaller}.smk').split()
+    command = (f'snakemake --cores {threads} --directory . --snakefile rules/variants-{vcaller}.smk').split()
     if snakemake is not None:
         [command.append(i) for i in snakemake.split()]
     command.append('--config')

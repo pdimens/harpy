@@ -258,6 +258,7 @@ rule sort_merge:
     wildcard_constraints:
         sample = "[a-zA-Z0-9_-]*"
     threads: 2
+    priority: 1
     shell:
         "samtools sort -@ {threads} -O bam --reference {input.genome} -l 0 -m 4G -o {output} {input.bam} 2> /dev/null"
 

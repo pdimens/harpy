@@ -113,6 +113,7 @@ rule stitch_reports:
 rule clean_stitch:
     input: "Imputation/{stitchparams}/contigs/{part}/{part}.report.html"
     message: "Cleaning up extra STITCH files"
+    priority: 1
     shell: 
         """
         rm -r Imputation/{wildcards.stitchparams}/contigs/{wildcards.part}/input
