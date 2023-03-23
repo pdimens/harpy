@@ -10,11 +10,16 @@ variantfile = config["variantfile"]
 paramspace = Paramspace(pd.read_csv(config["paramfile"], sep="\t"), param_sep = "", filename_params="*")
 
 def contignames(vcf):
-    bcftools = subprocess.Popen(f"bcftools view --header-only {vcf}".split(), stdout = subprocess.PIPE)
-    idcontigs = subprocess.Popen("grep contig=<ID".split(), stdin = bcftools.stdout, stdout = subprocess.PIPE)
-    rm_suffix = subprocess.Popen("cut -d, -f1".split(), stdin = idcontigs.stdout, stdout = subprocess.PIPE)
-    rm_prefix = subprocess.run(["sed", "s/##contig=<ID=//g"], stdin = rm_suffix.stdout, stdout = subprocess.PIPE)
-    return sorted([chr for chr in rm_prefix.stdout.decode('utf-8').split()])
+    """extract contig names for contigs with at least 1 bialleleic SNP"""
+    #bcftools = subprocess.Popen(f"bcftools view --header-only {vcf}".split(), stdout = subprocess.PIPE)
+    #idcontigs = subprocess.Popen("grep contig=<ID".split(), stdin = bcftools.stdout, stdout = subprocess.PIPE)
+    #rm_suffix = subprocess.Popen("cut -d, -f1".split(), stdin = idcontigs.stdout, stdout = subprocess.PIPE)
+    #rm_prefix = subprocess.run(["sed", "s/##contig=<ID=//g"], stdin = rm_suffix.stdout, stdout = subprocess.PIPE)
+    #contigs = sorted([chr for chr in rm_prefix.stdout.decode('utf-8').split()])
+    biallelic = subprocess.Popen(f"bcftools view -m2 -M2 -v snps {vcf} -Ob".split(), stdout = subprocess.PIPE)
+    contigs = subprocess.Popen(f"bcftools query -f '%CHROM\\t%POS\\t%REF\\t%ALT\\n'".split(), stdin = bcftools.stdout, stdout = subprocess.PIPE)
+    uniq_contigs = sorted(set([chr for chr in contigs.stdout.decode('utf-8').split()]))
+    return uniq_contigs
 
 contigs = contignames(variantfile)
 dict_cont = dict(zip(contigs, contigs))
