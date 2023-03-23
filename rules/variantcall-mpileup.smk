@@ -119,7 +119,7 @@ rule combine_bcfs:
 	output: 
 		bcf = "Variants/mpileup/variants.raw.bcf",
 		idx = "Variants/mpileup/variants.raw.bcf.csi",
-		stats = "Variants/mpileup/variants.raw.stats"
+		stats = "Variants/mpileup/stats/variants.raw.stats"
 	message: "Merging all BCFs into: {output.bcf}"
 	benchmark: "Benchmark/Variants/mpileup/merge.txt"
 	threads: 50
@@ -131,8 +131,8 @@ rule combine_bcfs:
 		"""
 
 rule bcfreport:
-	input: "Variants/mpileup/variants.raw.stats"
-	output: "Variants/mpileup/variants.raw.html"
+	input: "Variants/mpileup/stats/variants.raw.stats"
+	output: "Variants/mpileup/stats/variants.raw.html"
 	message: "Generating bcftools report: {output}"
 	benchmark: "Benchmark/Variants/mpileup/reports.txt"
 	script: "../utilities/reportBcftools.Rmd"
@@ -141,6 +141,6 @@ rule bcfreport:
 rule all:
 	input: 
 		bcf = "Variants/mpileup/variants.raw.bcf",
-		report = "Variants/mpileup/variants.raw.html"
+		report = "Variants/mpileup/stats/variants.raw.html"
 	default_target: True
 	message: "Variant calling is complete!"
