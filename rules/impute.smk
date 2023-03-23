@@ -29,28 +29,30 @@ rule bam_list:
             for bamfile in input:
                 fout.write(f"{bamfile}\n")
 
-rule prepare_biallelic_snps:
+##TODO investigate filter option
+rule biallelic_STITCH_format:
     input: variantfile
-    output: pipe("Imputation/input/{part}.bisnp.bcf")
-    message: "Keeping only biallelic SNPs from {wildcards.part}"
+    output: "Imputation/input/{part}.stitch"
+    message: "Converting data to biallelic STITCH format: {wildcards.part}"
     params:
         lambda wc: dict_cont[wc.part]
+        #filters = "-i \'QUAL>20 && DP>10\'" if config["filtervcf"] else ""
     benchmark: "Benchmark/Impute/fileprep.{part}.txt"
-    threads: 1
+    threads: 2
     shell:
-        "bcftools view -m2 -M2 -v snps --regions {wildcards.part} --output-type b {input} > {output}"
+        """
+        bcftools view -m2 -M2 -v snps --regions {wildcards.part} --output-type b {input} |\\
+        bcftools query {params} -f '%CHROM\\t%POS\\t%REF\\t%ALT\\n' > {output}
+        """
 
-#TODO investigate filter option
-rule STITCH_format:
-    input: "Imputation/input/{part}.bisnp.bcf"
-    output: "Imputation/input/{part}.stitch"
-    message: "Converting biallelic data to STITCH format: {wildcards.part}"
-    benchmark: "Benchmark/Impute/stitchformat.{part}.txt"
-    threads: 1
-    params: 
-        filters = "-i \'QUAL>20 && DP>10\'" if config["filtervcf"] else ""
-    shell:
-        "bcftools query {params} -f '%CHROM\\t%POS\\t%REF\\t%ALT\\n' {input} > {output}"
+#rule STITCH_format:
+#    input: "Imputation/input/{part}.bisnp.bcf"
+#    output: "Imputation/input/{part}.stitch"
+#    message: "Converting biallelic data to STITCH format: {wildcards.part}"
+#    benchmark: "Benchmark/Impute/stitchformat.{part}.txt"
+#    threads: 1
+#    shell:
+#        "bcftools query {params} -f '%CHROM\\t%POS\\t%REF\\t%ALT\\n' {input} > {output}"
 
 rule impute:
     input:
