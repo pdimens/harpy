@@ -108,8 +108,6 @@ The `harpy variants` module creates a `Variants/mpileup` directory with the fold
 Variants/mpileup
 ├── variants.raw.bcf
 ├── variants.raw.bcf.csi
-├── variants.raw.html
-├── variants.raw.stats
 ├── logs
 │   ├── contig1.call.log
 │   ├── contig1.mpileup.log
@@ -119,19 +117,20 @@ Variants/mpileup
 │   └── samples.names
 └── stats
     ├── contig1.stats
-    └── contig2.stats
+    ├── contig2.stats
+    ├── variants.raw.html
+    └── variants.raw.stats
 ```
-| item                   | description                                                                   |
-|:-----------------------|:------------------------------------------------------------------------------|
-| `variants.raw.bcf`     | final vcf file produced from variant calling, contains all samples and loci   |
-| `variants.raw.bcf.csi` | index file for `variants.raw.bcf`                                             |
-| `variants.raw.html`    | report summarizing final variants                                             |
-| `variants.raw.stats`   | output of `bcftools stats variants.raw.bcf`                                   |
-| `logs/*.call.log`      | what `bcftools call` writes to `stderr`                                       |
-| `logs/*.mpileup.log`   | what `bcftools mpileup` writes to `stderr`                                    |
-| `samples.files`        | list of alignment files used for variant calling                              |
-| `samples.names`        | list of sample names associated with alignment files used for variant calling |
-| `stats/`               | per-contig variant calling stats                                              |
+| item                      | description                                                                   |
+|:--------------------------|:------------------------------------------------------------------------------|
+| `variants.raw.bcf`        | final vcf file produced from variant calling, contains all samples and loci   |
+| `variants.raw.bcf.csi`    | index file for `variants.raw.bcf`                                             |
+| `logs/*.call.log`         | what `bcftools call` writes to `stderr`                                       |
+| `logs/*.mpileup.log`      | what `bcftools mpileup` writes to `stderr`                                    |
+| `samples.files`           | list of alignment files used for variant calling                              |
+| `samples.names`           | list of sample names associated with alignment files used for variant calling |
+| `stats/*.stats`           | output of `bcftools stats`                                                    |
+| `stats/variants.raw.html` | report summarizing final variants                                             |
 
 +++
 
@@ -176,7 +175,7 @@ graph LR
     C-->E([generate reports])
 ```
 +++ leviathan output
-The `harpy variants --leviathan` module creates a `Variants/leviathan` directory with the folder structure below. `sample1` and `sample2` are generic sample names for demonstration purposes.
+The `harpy variants --leviathan` module creates a `Variants/leviathan` (or `leviathan-pop`) directory with the folder structure below. `sample1` and `sample2` are generic sample names for demonstration purposes.
 
 ```
 Variants/leviathan/
