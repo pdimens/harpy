@@ -17,7 +17,7 @@ def contignames(vcf):
     #rm_prefix = subprocess.run(["sed", "s/##contig=<ID=//g"], stdin = rm_suffix.stdout, stdout = subprocess.PIPE)
     #contigs = sorted([chr for chr in rm_prefix.stdout.decode('utf-8').split()])
     biallelic = subprocess.Popen(f"bcftools view -m2 -M2 -v snps {vcf} -Ob".split(), stdout = subprocess.PIPE)
-    contigs = subprocess.Popen(f"bcftools query -f '%CHROM\\t%POS\\t%REF\\t%ALT\\n'".split(), stdin = bcftools.stdout, stdout = subprocess.PIPE)
+    contigs = subprocess.Popen(f"bcftools query -f '%CHROM\\n'".split(), stdin = biallelic.stdout, stdout = subprocess.PIPE)
     uniq_contigs = sorted(set([chr for chr in contigs.stdout.decode('utf-8').split()]))
     return uniq_contigs
 
