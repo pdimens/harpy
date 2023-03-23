@@ -132,6 +132,13 @@ performed on a per-contig (or chromosome) level, so Harpy automatically iterates
 present in the input variant call file. Using the magic of Snakemake, Harpy will automatically
 iterate over these model parameters.
 
+!!! Filtering for biallelic contigs
+Since STITCH creates haplotype blocks from which it imputes genotypes, it will not work for
+contigs with no biallelic SNPs (obvious reasons), or contigs with a single biallelic SNP
+(need 2+ SNPs to create haplotype). Therefore, Harpy first identifies which
+contigs have at least 2 biallelic SNPs, then performs imputation on only those contigs.  
+!!!
+
 ```mermaid
 graph LR
     B([split contigs])-->C([keep biallelic SNPs])
