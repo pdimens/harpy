@@ -1,6 +1,7 @@
 from snakemake.utils import Paramspace
 import pandas as pd
 import subprocess
+import sys
 
 bam_dir = config["seq_directory"]
 samplenames = config["samplenames"]
@@ -10,8 +11,7 @@ variantfile = config["variantfile"]
 paramspace = Paramspace(pd.read_csv(config["paramfile"], sep="\t"), param_sep = "", filename_params="*")
 
 def contignames(vcf):
-    """extract contig names for contigs with at least 2 bialleleic SNPs"""
-    print("Preprocessing: Indentifying contigs with at least 2 biallelic SNPs")
+    sys.stderr.write("Preprocessing: Indentifying contigs with at least 2 biallelic SNPs\n")
     biallelic = subprocess.Popen(f"bcftools view -m2 -M2 -v snps {vcf} -Ob".split(), stdout = subprocess.PIPE)
     contigs = subprocess.run(f"bcftools query -f %CHROM\\n".split(), stdin = biallelic.stdout, stdout = subprocess.PIPE)
     dict_cont = dict()
@@ -20,7 +20,6 @@ def contignames(vcf):
             dict_cont[i] += 1
         else:
             dict_cont[i] = 1
-
     return [contig for contig in dict_cont if dict_cont[contig] > 1]
 
 contigs = contignames(variantfile)
