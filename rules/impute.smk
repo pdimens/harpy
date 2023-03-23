@@ -16,7 +16,7 @@ def contignames(vcf):
     rm_prefix = subprocess.run(["sed", "s/##contig=<ID=//g"], stdin = rm_suffix.stdout, stdout = subprocess.PIPE)
     return sorted([chr for chr in rm_prefix.stdout.decode('utf-8').split()])
 
-contigs = contignames(contigfile)
+contigs = contignames(variantfile)
 dict_cont = dict(zip(contigs, contigs))
 
 rule bam_list:
