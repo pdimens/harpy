@@ -110,9 +110,9 @@ rule clean_stitch:
     priority: 1
     shell: 
         """
-        rm -r Imputation/{wildcards.stitchparams}/contigs/{wildcards.part}/input
-        rm -r Imputation/{wildcards.stitchparams}/contigs/{wildcards.part}/RData
-        rm -r Imputation/{wildcards.stitchparams}/contigs/{wildcards.part}/plots
+        rm -rf Imputation/{wildcards.stitchparams}/contigs/{wildcards.part}/input
+        rm -rf Imputation/{wildcards.stitchparams}/contigs/{wildcards.part}/RData
+        rm -rf Imputation/{wildcards.stitchparams}/contigs/{wildcards.part}/plots
         touch {output}
         """
 
