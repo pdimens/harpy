@@ -68,7 +68,7 @@ DT::datatable(psc, rownames = F, filter = "top", extensions = 'Buttons', options
 ## Depth Statistics {.tabset}
 These are per-locus statistics, which correspond to the Depth (`DP`) calculations of `bcftools stats`
 ### plot
-```{r Locus Stats, echo=FALSE, message=FALSE, warning=FALSE, paged.print=TRUE, out.width="100%"}
+```{r depth plot, echo=FALSE, message=FALSE, warning=FALSE, paged.print=TRUE, out.width="100%"}
 .dpL <- grepl("^DP", dataL)
 if(sum(.dpL) == 0){
   cat(paste0("No DP section in", snakemake@input[[1]], " found\n"))
@@ -87,7 +87,7 @@ if(sum(.dpL) == 0){
 }
 ```
 ### table
-```{r Locus Stats, echo=FALSE, message=FALSE, warning=FALSE, paged.print=TRUE, out.width="100%"}
+```{r depth table, echo=FALSE, message=FALSE, warning=FALSE, paged.print=TRUE, out.width="100%"}
 if(sum(.dpL) == 0){
   cat(paste0("No DP section in", snakemake@input[[1]], " found\n"))
 } else {
