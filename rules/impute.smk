@@ -51,15 +51,6 @@ rule biallelic_STITCH_format:
         bcftools query -f '%CHROM\\t%POS\\t%REF\\t%ALT\\n' > {output}
         """
 
-#rule STITCH_format:
-#    input: "Imputation/input/{part}.bisnp.bcf"
-#    output: "Imputation/input/{part}.stitch"
-#    message: "Converting biallelic data to STITCH format: {wildcards.part}"
-#    benchmark: "Benchmark/Impute/stitchformat.{part}.txt"
-#    threads: 1
-#    shell:
-#        "bcftools query {params} -f '%CHROM\\t%POS\\t%REF\\t%ALT\\n' {input} > {output}"
-
 rule impute:
     input:
         bamlist = "Imputation/input/samples.list",
