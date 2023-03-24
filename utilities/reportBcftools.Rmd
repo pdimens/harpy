@@ -41,7 +41,6 @@ rownames(sn) <- NULL
 sn
 ```
 
-
 ## Individual Statistics {.tabset}
 These statistics correspond to the `r sn$samples[1]` samples in `r bcf`.
 
@@ -66,6 +65,7 @@ pscplot <- ggplot(data = tidy_psc, mapping = aes(x = Count, y = Sample, color = 
 ggplotly(pscplot)
 ```
 
+### table
 ```{r Individual table, echo=FALSE, message=FALSE, warning=FALSE, paged.print=TRUE, out.width="100%"}
 DT::datatable(psc, rownames = F, filter = "top", extensions = 'Buttons', options = list(dom = 'Brtip', buttons = c('csv'), scrollX = TRUE))
 ```
@@ -74,7 +74,6 @@ DT::datatable(psc, rownames = F, filter = "top", extensions = 'Buttons', options
 These are per-locus statistics, which correspond to the Depth (`DP`) calculations of `bcftools stats`
 
 ### plot
-
 ```{r depth plot, echo=FALSE, message=FALSE, warning=FALSE, paged.print=TRUE, out.width="100%"}
 .dpL <- grepl("^DP", dataL)
 if(sum(.dpL) == 0){
