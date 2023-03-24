@@ -10,7 +10,7 @@ rule splitbysamplehet:
         vcf = variantfile,
         bam = bam_dir + "/{sample}.bam"
     output: "Phasing/input/{sample}.het.bcf"
-    message: "Extracting {wildcards.sample} from {input.vcf}"
+    message: "Extracting heterozygous variants: {wildcards.sample}"
     benchmark: "Benchmark/Phase/splithet.{sample}.txt"
     threads: 1
     shell:
@@ -24,7 +24,7 @@ rule splitbysample:
         vcf = variantfile,
         bam = bam_dir + "/{sample}.bam"
     output: "Phasing/input/{sample}.bcf"
-    message: "Extracting {wildcards.sample} from {input.vcf}"
+    message: "Extracting variants: {wildcards.sample}"
     benchmark: "Benchmark/Phase/split.{sample}.txt"
     threads: 1
     shell:
