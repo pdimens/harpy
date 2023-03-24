@@ -42,9 +42,11 @@ sn
 ```
 
 
-## Individual Statistics
+## Individual Statistics {.tabset}
 These statistics correspond to the `r sn$samples[1]` samples in `r bcf`.
-```{r Individual Stats, echo=FALSE, message=FALSE, warning=FALSE, paged.print=TRUE, out.width="100%"}
+
+### plot
+```{r Individual plot, echo=FALSE, message=FALSE, warning=FALSE, paged.print=TRUE, out.width="100%"}
 .pscL <- grepl("^PSC", dataL)
 psc <- read.table(text=dataL[.pscL])[ ,3:14]
 names(psc) <- c("Sample", "HomozygousRef", "HomozygousAtl", "Heterozygotes", "Transitions", "Transversions", "Indels",	"MeanDepth", "Singletons",	"HapRef", "HapAlt", "Missing")
@@ -62,12 +64,17 @@ pscplot <- ggplot(data = tidy_psc, mapping = aes(x = Count, y = Sample, color = 
   theme(panel.grid.minor = element_blank(), panel.grid.major.y = element_blank(), axis.title.y = element_blank())
 
 ggplotly(pscplot)
+```
+
+```{r Individual table, echo=FALSE, message=FALSE, warning=FALSE, paged.print=TRUE, out.width="100%"}
 DT::datatable(psc, rownames = F, filter = "top", extensions = 'Buttons', options = list(dom = 'Brtip', buttons = c('csv'), scrollX = TRUE))
 ```
 
 ## Depth Statistics {.tabset}
 These are per-locus statistics, which correspond to the Depth (`DP`) calculations of `bcftools stats`
+
 ### plot
+
 ```{r depth plot, echo=FALSE, message=FALSE, warning=FALSE, paged.print=TRUE, out.width="100%"}
 .dpL <- grepl("^DP", dataL)
 if(sum(.dpL) == 0){
@@ -86,6 +93,7 @@ if(sum(.dpL) == 0){
   ggplotly(dpplot)
 }
 ```
+
 ### table
 ```{r depth table, echo=FALSE, message=FALSE, warning=FALSE, paged.print=TRUE, out.width="100%"}
 if(sum(.dpL) == 0){
