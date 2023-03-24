@@ -35,6 +35,14 @@ rule bam_list:
             for bamfile in input:
                 fout.write(f"{bamfile}\n")
 
+rule samples_file:
+    output: "Imputation/input/samples.names"
+    message: "Creating file of sample names"
+    threads: 1
+    run:
+        with open(output[0], "w") as fout:
+            [fout.write(f"{i}\n") for i in samplenames]
+
 ##TODO investigate filter option
 rule biallelic_STITCH_format:
     input: variantfile
@@ -69,13 +77,6 @@ rule impute:
     threads: 50
     script: "../utilities/stitch_impute.R"
 
-rule samples_file:
-    output: "Imputation/input/samples.names"
-    message: "Creating file of sample names"
-    threads: 1
-    run:
-        with open(output[0], "w") as fout:
-            [fout.write(f"{i}\n") for i in samplenames]
 
 rule index_vcf:
     input:
