@@ -112,6 +112,7 @@ rule stitch_reports:
 
 rule clean_stitch:
     input: "Imputation/{stitchparams}/contigs/{part}/{part}.report.html"
+    output: temp("Imputation/{stitchparams}/contigs/{part}/.cleaned")
     message: "Cleaning up extra STITCH files"
     priority: 1
     shell: 
@@ -125,6 +126,7 @@ rule merge_vcfs:
     input: 
         vcf = expand("Imputation/{{stitchparams}}/contigs/{part}/impute.vcf.gz", part = contigs),
         idx = expand("Imputation/{{stitchparams}}/contigs/{part}/impute.vcf.gz.tbi", part = contigs),
+        cleancheck = "Imputation/{stitchparams}/contigs/{part}/.cleaned"
     output: "Imputation/{stitchparams}/variants.imputed.bcf"
     log: "Imputation/{stitchparams}/concat.log"
     message: "Merging VCFs: {wildcards.stitchparams}"
