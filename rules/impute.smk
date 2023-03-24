@@ -6,9 +6,9 @@ import sys
 bam_dir = config["seq_directory"]
 samplenames = config["samplenames"]
 variantfile = config["variantfile"]
-
+paramfile = config["paramfile"]
 # declare a dataframe to be a paramspace
-paramspace = Paramspace(pd.read_csv(config["paramfile"], sep="\t"), param_sep = "", filename_params="*")
+paramspace = Paramspace(pd.read_csv(paramfile, sep="\t"), param_sep = "", filename_params="*")
 
 def contignames(vcf):
     sys.stderr.write("Preprocessing: Indentifying contigs with at least 2 biallelic SNPs\n")
@@ -72,7 +72,8 @@ rule impute:
         # automatically translate the wildcard values into an instance of the param space
         # in the form of a dict (here: {"k": ..., "s": ..., "ngen": ...})
         parameters = paramspace.instance
-    message: "Running STITCH: {wildcards.part}\n  Parameters:\n  " + "{params.parameters}"
+    message: 
+        "Running STITCH: {wildcards.part}\nmodel: {wildcards.model}\nuseBX: {wildcards.useBX}\n    k: {wildcards.k}\n    s: {wildcards.s}\n nGen: {wildcards.nGen}"
     benchmark: f"Benchmark/Impute/stitch.{paramspace.wildcard_pattern}" + ".{part}.txt"
     threads: 50
     script: "../utilities/stitch_impute.R"
@@ -105,13 +106,14 @@ rule stitch_reports:
 rule clean_stitch:
     input: "Imputation/{stitchparams}/contigs/{part}/{part}.report.html"
     output: temp("Imputation/{stitchparams}/contigs/{part}/.cleaned")
-    message: "Cleaning up extra STITCH files"
+    message: "Cleaning up {wildcards.stitchparams}: {wildcards.part}"
     priority: 1
     shell: 
         """
         rm -r Imputation/{wildcards.stitchparams}/contigs/{wildcards.part}/input
         rm -r Imputation/{wildcards.stitchparams}/contigs/{wildcards.part}/RData
         rm -r Imputation/{wildcards.stitchparams}/contigs/{wildcards.part}/plots
+        touch {output}
         """
 
 rule merge_vcfs:
