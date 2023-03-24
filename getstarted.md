@@ -8,7 +8,7 @@ order: 97
 Before you start using Harpy for your haplotagging data processing, you will need to make sure you have a few things on hand for things to go smoothly.
 At the minimum, you will need:
 
-=== 1. Haplotagging sequences, in b/gzipped FASTQ format
+==- 1. Haplotagging sequences, in b/gzipped FASTQ format
 - the haplotagging sequences **must** have the barcode in the read headers. 
 - the barcode must be in the format `AXXCXXBXXDXX`, where `XX` is a number between `00` and `96`
     - `00` indicates a missing/invalid barcode segment
@@ -16,7 +16,7 @@ At the minimum, you will need:
 ``` example header
 @A00470:481:HNYFWDRX2:1:2101:16062:1031 BX:Z:A62C38B38D99 1:N:0:TATCAGTA+TTACTACT
 ```
-=== 2. A reference genome, in FASTA format
+==- 2. A reference genome, in FASTA format
 A plain haploid genome assembly in uncompressed FASTA format, where contigs names begin with `>` like the standard format.
 ===
 
@@ -37,14 +37,16 @@ Harpy calls Snakemake using specific arguments, meaning you cannot append these 
 - `--snakefile`
 - `--config`
 
-##### Use cases
-You likely wont need to invoke `--snakemake` very often, if ever. That being said, here are what might be the most common use cases for this parameter.
+### Use cases
+You likely wont need to invoke `--snakemake` very often, if ever. However, here are common use cases for this parameter.
 
-### Dry run
+==- Dry run
 ##### `--dry-run`
-This is a directive in which Snakemake will build the DAG and "pretend" to run the Harpy workflow. Useful for knowing what you're getting yourself into ahead of time. It's also useful for debugging during development.
-
-### Rerun an incomplete workflow
+This is a directive in which Snakemake will build the DAG and "pretend" to run the Harpy workflow. Useful for knowing what you're getting yourself into ahead of time. It's also useful for debugging during development. Here is an example of dry-running variant calling:
+```bash
+harpy variants -g genome.fasta  -d ReadMapping/ema -s "--dry-run"
+```
+==- Rerun an incomplete workflow
 ##### `--rerun-incomplete`
 There will be plenty of reasons that Harpy/Snakemake might end prematurely, like corrupt files, system errors, insufficient resources, etc.
 When this happens, Snakemake has a save-state in the `.snakemake` folder where it knows the last run was incomplete, and when you try to run
@@ -66,17 +68,16 @@ So, the easiest workaround would be to regenerate the incomplete files and use `
 ```bash
 harpy variants --leviathan -g genome.fasta  -d ReadMapping/ema --threads 8 -p samples.groups -s "--rerun-incomplete"
 ```
-
-### Specific file target
+==- Specific file target
 Sometimes you want to generate a specific intermediate file (or files) rather than running the entire module to completion. For example,
 you want the beadtag report Harpy makes from the output of `EMA count`. To do this, just list the file/files (relative
 to your working directory) without any flags. Example for the beadtag report:
 ```bash
-harpy align -g genome.fasta -d Trimming -t 4 -s "Alignemnts/ema/stats/beadtag.report.html"
+harpy align -g genome.fasta -d Trimming -t 4 -s "Alignemnts/ema/stats/reads.bxstats.html"
 ```
 This of course necessitates knowing the names of the files ahead of time. See the individual modules for a breakdown of expected outputs. 
 
-### Set a shadow directory
+==- Set a shadow directory
 ##### `--shadow-prefix <dirname>`
 If running Harpy on an HPC, your system administrator may enforce a policy that all data needs to be moved to a particular
 network-attached storage for execution. On some systems this is called a `SCRATCH/` drive (or something similar) and files
@@ -87,8 +88,7 @@ configuring this "shadow directory" setting, Snakemake will automatically move t
 ```bash
 harpy variants --leviathan -g genome.fasta  -d ReadMapping/ema --threads 8 -p samples.groups -s "--shadow-prefix /SCRATCH/username/"
 ```
-
-## Snakemake etc.
+==- Unlocking the directory
 Sometimes Snakemake might scold/warn you about something you didn't realize you did. One
 common case is when you prematurely terminate Harpy with `ctrl + c` or by terminating 
 the process by other means. You might try to rerun Harpy afterwards and be met with a 
@@ -104,6 +104,8 @@ ory, the remaining lock was likely caused by a kill signal or a power loss. It
 can be removed with the --unlock argument.
 ```
 Like the error suggests, this can be overcome using the `--unlock` argument, which
-would be provided to Harpy as `-s "--unlock"`. However, I live dangerously and often
-remove the entire `.snakemake` directory in my working directory, alleviating the issue.
-Choose your own adventure.
+would be provided to Harpy as `-s "--unlock"`. You may also remove
+`.snakemake/` your working directory. Choose your own adventure, although unlocking
+is likely safer. Unlocking the directory does not run Harpy, it just exists after unlocking (a snakemake nuance),
+so you will need to run Harpy again  without this parameter.
+===
