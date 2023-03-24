@@ -93,6 +93,7 @@ if(sum(.dpL) == 0){
 } else {
   DT::datatable(dp, rownames = F, filter = "top", extensions = 'Buttons', options = list(dom = 'Brtip', buttons = c('csv')))
 }
+```
 
 ## Insertions and Deletions
 Below is a distribution of insertions and deletions based on length and frequency.
