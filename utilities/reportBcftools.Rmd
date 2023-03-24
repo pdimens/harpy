@@ -44,7 +44,7 @@ sn
 
 ## Individual Statistics
 These statistics correspond to the `r sn$samples[1]` samples in `r bcf`.
-```{r Individual Stats, echo=FALSE, message=FALSE, warning=FALSE, paged.print=TRUE}
+```{r Individual Stats, echo=FALSE, message=FALSE, warning=FALSE, paged.print=TRUE, out.width="100%"}
 .pscL <- grepl("^PSC", dataL)
 psc <- read.table(text=dataL[.pscL])[ ,3:14]
 names(psc) <- c("Sample", "HomozygousRef", "HomozygousAtl", "Heterozygotes", "Transitions", "Transversions", "Indels",	"MeanDepth", "Singletons",	"HapRef", "HapAlt", "Missing")
@@ -59,15 +59,16 @@ pscplot <- ggplot(data = tidy_psc, mapping = aes(x = Count, y = Sample, color = 
   scale_x_continuous(n.breaks=9) +
   xlab("Count") +
   scale_color_brewer(palette = "Dark2") +
-  theme(panel.grid.minor = element_blank(), panel.grid.major.y = element_blank())
+  theme(panel.grid.minor = element_blank(), panel.grid.major.y = element_blank(), axis.title.y = element_blank())
 
 ggplotly(pscplot)
-DT::datatable(psc, rownames = F, filter = "top", extensions = 'Buttons', options = list(dom = 'Brtip', buttons = c('csv', 'pdf'), scrollX = TRUE))
+DT::datatable(psc, rownames = F, filter = "top", extensions = 'Buttons', options = list(dom = 'Brtip', buttons = c('csv'), scrollX = TRUE))
 ```
 
-## Locus Statistics
+## Depth Statistics {.tabset}
 These are per-locus statistics, which correspond to the Depth (`DP`) calculations of `bcftools stats`
-```{r Locus Stats, echo=FALSE, message=FALSE, warning=FALSE, paged.print=TRUE}
+### plot
+```{r Locus Stats, echo=FALSE, message=FALSE, warning=FALSE, paged.print=TRUE, out.width="100%"}
 .dpL <- grepl("^DP", dataL)
 if(sum(.dpL) == 0){
   cat(paste0("No DP section in", snakemake@input[[1]], " found\n"))
@@ -83,13 +84,19 @@ if(sum(.dpL) == 0){
     theme(panel.grid.minor.y = element_blank())
 
   ggplotly(dpplot)
-  DT::datatable(dp, rownames = F, filter = "top", extensions = 'Buttons', options = list(dom = 'Brtip', buttons = c('csv', 'pdf')))
 }
 ```
+### table
+```{r Locus Stats, echo=FALSE, message=FALSE, warning=FALSE, paged.print=TRUE, out.width="100%"}
+if(sum(.dpL) == 0){
+  cat(paste0("No DP section in", snakemake@input[[1]], " found\n"))
+} else {
+  DT::datatable(dp, rownames = F, filter = "top", extensions = 'Buttons', options = list(dom = 'Brtip', buttons = c('csv')))
+}
 
 ## Insertions and Deletions
 Below is a distribution of insertions and deletions based on length and frequency.
-```{r Indel Stats, echo=FALSE, message=FALSE, warning=FALSE, paged.print=TRUE}
+```{r Indel Stats, echo=FALSE, message=FALSE, warning=FALSE, paged.print=TRUE, out.width="100%"}
 .iddL <- grepl("^IDD", dataL)
 if(sum(.iddL) == 0){
   cat(paste0("No IDD section in", snakemake@input[[1]], " found\n"))
