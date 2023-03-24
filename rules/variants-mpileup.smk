@@ -130,17 +130,41 @@ rule combine_bcfs:
 		bcftools stats -S {input.samplelist} --fasta-ref {input.genome} {output.bcf} > {output.stats}
 		"""
 
+rule normalize_bcf:
+	input: 
+		genome = f"Assembly/{genomefile}",
+		bcf = "Variants/mpileup/variants.raw.bcf",
+		samplelist = "Variants/mpileup/logs/samples.names"
+	output:
+		bcf = "Variants/mpileup/variants.normalized.bcf",
+		idx = "Variants/mpileup/variants.normalized.bcf.csi",
+		stats = "Variants/mpileup/stats/variants.normalized.stats"
+	message: 
+		"Normalizing the called variants"
+	threads: 2
+	shell:
+		"""
+		bcftools norm -d none -f {input.genome} {input.bcf} | bcftools norm -m -any -N -Ob > {output.bcf}
+		bcftools index --output {output.idx} {output.bcf}
+		bcftools stats -S {input.samplelist} --fasta-ref {input.genome} {output.bcf} > {output.stats}
+		"""
+
 rule bcfreport:
 	input: "Variants/mpileup/stats/variants.raw.stats"
 	output: "Variants/mpileup/stats/variants.raw.html"
-	message: "Generating bcftools report: {output}"
+	message: "Generating bcftools report: variants.raw.bcf"
 	benchmark: "Benchmark/Variants/mpileup/reports.txt"
 	script: "../utilities/reportBcftools.Rmd"
 
+rule bcfreportnorm:
+	input: "Variants/mpileup/stats/variants.normalized.stats"
+	output: "Variants/mpileup/stats/variants.normalized.html"
+	message: "Generating bcftools report: variants.normalized.bcf"
+	script: "../utilities/reportBcftools.Rmd"
 
 rule all:
 	input: 
-		bcf = "Variants/mpileup/variants.raw.bcf",
-		report = "Variants/mpileup/stats/variants.raw.html"
+		expand("Variants/mpileup/variants.{file}.bcf", file = ["raw","normalized"]),
+		expand("Variants/mpileup/stats/variants.{file}.html", file = ["raw","normalized"])
 	default_target: True
 	message: "Variant calling is complete!"
