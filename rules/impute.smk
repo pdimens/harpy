@@ -126,7 +126,7 @@ rule merge_vcfs:
     input: 
         vcf = expand("Imputation/{{stitchparams}}/contigs/{part}/impute.vcf.gz", part = contigs),
         idx = expand("Imputation/{{stitchparams}}/contigs/{part}/impute.vcf.gz.tbi", part = contigs),
-        cleancheck = "Imputation/{stitchparams}/contigs/{part}/.cleaned"
+        cleancheck = expand("Imputation/{stitchparams}/contigs/{part}/.cleaned", part = contigs)
     output: "Imputation/{stitchparams}/variants.imputed.bcf"
     log: "Imputation/{stitchparams}/concat.log"
     message: "Merging VCFs: {wildcards.stitchparams}"
