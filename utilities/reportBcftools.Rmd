@@ -82,7 +82,7 @@ if(sum(.dpL) == 0){
   dp <- read.table(text=dataL[.dpL])[ , 3:7]
   names(dp) <- c("Bin", "Genotypes", "PercentGenotypes", "NumberSites", "PercentSites")
   dpplot <- ggplot(data = dp, mapping = aes(x = Bin, y = NumberSites)) +
-    geom_bar(stat = "identity", color = "indianred", fill = "indianred") +
+    geom_bar(stat = "identity", color = "#F28500", fill = "#F28500") +
     scale_y_continuous(n.breaks=10) +
     labs(title = "Depth per Site") +
     ylab("Number of Sites") +
@@ -103,7 +103,7 @@ if(sum(.dpL) == 0){
 ```
 
 ## Insertions and Deletions
-Below is a distribution of insertions and deletions based on length and frequency.
+Below is the distribution of insertions and deletions based on length and frequency.
 ```{r Indel Stats, echo=FALSE, message=FALSE, warning=FALSE, paged.print=TRUE, out.width="100%"}
 .iddL <- grepl("^IDD", dataL)
 if(sum(.iddL) == 0){
