@@ -148,5 +148,50 @@ graph LR
     G([create file list])-->E
 ```
 +++ imputation output
-
+The `harpy impute` module creates an `Imputation` directory with the folder structure below. `contig1` and `contig2` 
+are generic contig names from an imaginary `genome.fasta` for demonstration purposes. The directory `model1/`
+is a generic name to reflect the corresponding parameter row in the stitch parameter
+file, which would have explicit names in real use (e.g. `modelpseudoHaploid_useBXTrue_k10_s1_nGen50/`).
+```
+Imputation/
+├── input
+│   ├── contig1.stitch
+│   ├── contig2.stitch
+│   ├── samples.list
+│   ├── samples.names
+└── model1
+    ├── concat.log
+    ├── variants.imputed.bcf
+    ├── variants.imputed.bcf.csi
+    ├── variants.imputed.html
+    ├── variants.imputed.stats
+    └── contigs
+        ├── contig1
+        │   ├──contig1.log
+        │   ├──contig1.impute.html
+        │   ├──contig1.stats
+        │   ├──contig1.vcf.gz
+        │   ├──contig1.vcf.gz.tbi
+        └── contig2
+            ├──contig2.log
+            ├──contig2.impute.html
+            ├──contig2.stats
+            ├──contig2.vcf.gz
+            └──contig2.vcf.gz.tbi
+```
+| item                                | description                                             |
+|:------------------------------------|:--------------------------------------------------------|
+| `input/*.stitch`                    | biallelic SNPs used for imputation                      |
+| `input/samples.list`                | list of input BAM files                                 |
+| `input/samples.names`               | list of sample names                                    |
+| `model*/concat.log`                 | output from bcftools concat to create final imputed bcf |
+| `model*/variants.imputed.bcf`       | final bcf file of imputed genotypes                     |
+| `model*/variants.imputed.bcf.csi`   | index of `variants.imputed.bcf`                         |
+| `model*/variants.imputed.bcf.html`  | report summarizing `bcftools stats`                     |
+| `model*/variants.imputed.bcf.stats` | result of `bcftools stats`                              |
+| `model*/contigs/*/*.impute.html`    | summary of STITCH imputation                            |
+| `model*/contigs/*/*.log`            | what STITCH writes to `stdout` and `stderr`             |
+| `model*/contigs/*/*.stats`          | results of `bcftools stats`                             |
+| `model*/contigs/*/*.vcf.gz`         | variants resulting from imputation                      |
+| `model*/contigs/*/*.vcf.gz.tbi`     | index of variant file                                   |
 +++

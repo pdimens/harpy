@@ -100,12 +100,16 @@ graph LR
     C-->D([index BCFs])
     D-->E([combine BCFs])
     C-->E
+    E-->G([normalize variants])
     E-->F([generate reports])
+    G-->F
 ```
 +++ mpileup output
-The `harpy variants` module creates a `Variants/mpileup` directory with the folder structure below. `contig1` and `contig2` are generic contig names for demonstration purposes.
+The `harpy variants` module creates a `Variants/mpileup` directory with the folder structure below. `contig1` and `contig2` are generic contig names from an imaginary `genome.fasta` for demonstration purposes.
 ```
 Variants/mpileup
+├── variants.normalized.bcf
+├── variants.normalized.bcf.csi
 ├── variants.raw.bcf
 ├── variants.raw.bcf.csi
 ├── logs
@@ -118,19 +122,22 @@ Variants/mpileup
 └── stats
     ├── contig1.stats
     ├── contig2.stats
+    ├── variants.normalized.html
+    ├── variants.normalized.stats
     ├── variants.raw.html
     └── variants.raw.stats
 ```
-| item                      | description                                                                   |
-|:--------------------------|:------------------------------------------------------------------------------|
-| `variants.raw.bcf`        | final vcf file produced from variant calling, contains all samples and loci   |
-| `variants.raw.bcf.csi`    | index file for `variants.raw.bcf`                                             |
-| `logs/*.call.log`         | what `bcftools call` writes to `stderr`                                       |
-| `logs/*.mpileup.log`      | what `bcftools mpileup` writes to `stderr`                                    |
-| `samples.files`           | list of alignment files used for variant calling                              |
-| `samples.names`           | list of sample names associated with alignment files used for variant calling |
-| `stats/*.stats`           | output of `bcftools stats`                                                    |
-| `stats/variants.raw.html` | report summarizing final variants                                             |
+| item                      | description                                                                                   |
+|:--------------------------|:----------------------------------------------------------------------------------------------|
+| `variants.raw.bcf`        | vcf file produced from variant calling, contains all samples and loci                         |
+| `variants.normalized.bcf` | left-aligned (parsimonious) variants with multiallelic sites decomposed and duplicates removed |
+| `variants.*.bcf.csi`      | index file for `variants.*.bcf`                                                               |
+| `logs/*.call.log`         | what `bcftools call` writes to `stderr`                                                       |
+| `logs/*.mpileup.log`      | what `bcftools mpileup` writes to `stderr`                                                    |
+| `samples.files`           | list of alignment files used for variant calling                                              |
+| `samples.names`           | list of sample names associated with alignment files used for variant calling                 |
+| `stats/*.stats`           | output of `bcftools stats`                                                                    |
+| `stats/variants.*.html`   | report summarizing variants                                                                   |
 
 +++
 
