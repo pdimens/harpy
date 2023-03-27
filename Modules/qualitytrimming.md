@@ -5,7 +5,7 @@ icon: codescan-checkmark
 order: 6
 ---
 
-# :icon-codescan-checkmark: Quality Trimming Sequence Data
+# :icon-codescan-checkmark: Quality Trim Sequences
 ===  :icon-checklist: You will need
 - at least 2 cores/threads available
 - paired-end b/gzipped fastq sequence files
