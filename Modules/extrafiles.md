@@ -4,7 +4,7 @@ icon: file-diff
 description: Generate extra files for analysis with Harpy
 ---
 
-# Generate Extra Files
+# :icon-file-diff: Generate Extra Files
 Some parts of Harpy (variant calling, imputation) want or need extra files. You can create various files necessary for different modules using the `harpy extra` module:
 ```bash
 harpy extra OPTIONS... 
@@ -12,7 +12,7 @@ harpy extra OPTIONS...
 
 The arguments represent different sub-commands and can be run in any order or combination to generate the files you need.
 
-## Running Options
+## :icon-terminal: Running Options
 | argument          | short name | type           | default | required | description                                                                      |
 |:------------------|:----------:|:---------------|:-------:|:--------:|:---------------------------------------------------------------------------------|
 | `--popgroup`      |    `-p`    | folder path    |         |    no    | Create generic sample-group file using existing sample file names (fq.gz or bam) |

@@ -5,7 +5,7 @@ icon: workflow
 order: 3
 ---
 
-# Impute Genotypes using Sequences
+# :icon-workflow: Impute Genotypes using Sequences
 
 ===  :icon-checklist: You will need
 - a tab-delimited parameter file 
@@ -28,7 +28,7 @@ harpy extra -s stitch.params  # create stitch parameter file 'stitch.params'
 harpy impute --threads 20 --vcf Variants/variants.raw.bcf --dir Alignments/ema --parameters stitch.params
 ```
 
-## Running Options
+## :icon-terminal: Running Options
 | argument       | short name | type        |    default    | required | description                                                            |
 |:---------------|:----------:|:------------|:-------------:|:--------:|:-----------------------------------------------------------------------|
 | `--vcf`        |    `-v`    | file path   |               | **yes**  | Path to VCF/BCF file                                                   |
@@ -38,7 +38,7 @@ harpy impute --threads 20 --vcf Variants/variants.raw.bcf --dir Alignments/ema -
 | `--snakemake`  |    `-s`    | string      |               |    no    | Additional Snakemake options, in quotes ([more info](../getstarted.md/#adding-additional-snakamake-parameters)) |
 | `--help`       |            |             |               |          | Show the module docstring                                              |
 
-## Parameter file
+## :icon-file: Parameter file
 Typically, one runs STITCH multiple times, exploring how results vary with
 different model parameters. The solution Harpy uses for this is to have the user
 provide a tab-delimited dataframe file where the columns are the 5 STITCH model 
@@ -59,7 +59,7 @@ that you will need to adjust for your study. The parameter must follow a particu
 | s           |   integer    |                   ≥ 1                   | Number of instances of the founder haplotypes to average results over |
 | nGen        |   integer    |                   ≥ 1                   | Estimated number of generations since founding                        |
 
-### example
+==- example parameter file
 +++ tab-delimited
 This file is tab-delimited, note the column names:
 ``` paramaters.txt
@@ -77,8 +77,9 @@ This is the table view of the tab-delimited file, shown here for clarity.
 | pseudoHaploid | TRUE  | 10 | 1  | 50   |
 | pseudoHaploid | TRUE  | 15 | 10 | 100  |
 +++
+===
 
-### model
+### :icon-question: model
 ||| Which method to use
 STITCH uses one of three "methods" reflecting different statistical and biological models: 
 - `diploid`: the best general method with the best statistical properties
@@ -90,14 +91,14 @@ STITCH uses one of three "methods" reflecting different statistical and biologic
 
 Each model assumes the samples are diploid and all methods output diploid genotypes and probabilities.
 |||
-### useBX
+### :icon-question: useBX
 ||| Use BX barcodes
 The `useBX` parameter is given as a true/false. Simulations suggest including linked-read information isn't helpful
 in species with short haploblocks (it might makes things worse). So, it's worth trying both options if you aren't
 sure about the length of haplotype blocks in your species.
 |||
 
-### k
+### :icon-question: k
 ||| Number ancestral haplotypes
 The `k` parameter is the number of ancestral haplotypes in the model. Larger K allows for more accurate imputation for 
 large samples and coverages, but takes longer and accuracy may suffer with lower coverage. There's value in in trying a
@@ -107,13 +108,13 @@ within computational constraints, while also ensuring `k` is not too large given
 that each ancestral haplotype gets at least a certain average \_X of coverage, like 10X, given your number of samples and average depth).
 |||
 
-### s
+### :icon-question: s
 ||| Number of ancestral haplotypes to average over
 The `s` parameter controls the number of sets of ancestral haplotypes used and which final results are averaged over. 
 This may be useful for wild or large populations, like humans. The `s` value should affect RAM and run time in a near-linearly.
 |||
 
-### nGen
+### :icon-question: nGen
 ||| Recombination rate between samples
 The `nGen` parameter controls recombination rate between the sequenced samples and the ancestral haplotypes. 
 It's probably fine to set it to $ \frac {4 \times Ne} {k} $ given some estimate of effective population size ${Ne}$ .
@@ -123,8 +124,8 @@ robust to misspecifications of this parameter.
 |||
 
 ----
-## Imputation Workflow
-+++ description
+## :icon-git-pull-request: Imputation Workflow
++++ :icon-git-merge: details
 [STITCH](https://github.com/rwdavies/STITCH) is a genotype imputation software developed for use in
 the R programming language. It has quite a few model parameters that can be tweaked, but HARPY only
 focuses on a small handful that have the largest impact on the quality of the results. Imputation is
@@ -147,7 +148,7 @@ graph LR
     E-->F([merge output])
     G([create file list])-->E
 ```
-+++ imputation output
++++ :icon-file-directory: imputation output
 The `harpy impute` module creates an `Imputation` directory with the folder structure below. `contig1` and `contig2` 
 are generic contig names from an imaginary `genome.fasta` for demonstration purposes. The directory `model1/`
 is a generic name to reflect the corresponding parameter row in the stitch parameter

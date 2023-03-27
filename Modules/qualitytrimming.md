@@ -5,7 +5,7 @@ icon: codescan-checkmark
 order: 6
 ---
 
-# Quality Trimming Sequence Data
+# :icon-codescan-checkmark: Quality Trimming Sequence Data
 ===  :icon-checklist: You will need
 - at least 2 cores/threads available
 - paired-end b/gzipped fastq sequence files
@@ -24,7 +24,7 @@ harpy trim OPTIONS...
 harpy trim --dir Sequences_Raw/ --threads 20 
 ```
 
-## Running Options
+## :icon-terminal: Running Options
 | argument         | short name | type        | default | required | description                                                            |
 |:-----------------|:----------:|:------------|:-------:|:--------:|:-----------------------------------------------------------------------|
 | `--dir`          |    `-d`    | folder path |         | **yes**  | Directory with sequence alignments                                     |
@@ -34,7 +34,7 @@ harpy trim --dir Sequences_Raw/ --threads 20
 | `--snakemake`    |    `-s`    | string      |         |    no    | Additional Snakemake options, in quotes ([more info](../getstarted.md/#adding-additional-snakamake-parameters)) |
 | `--help`         |            |             |         |          | Show the module docstring                                              |
 
-==- fastp arguments
+==- :icon-code-square: fastp arguments
 Below is a list of all `fastp` command line options, excluding those Harpy already uses or those made redundant by Harpy's implementation of fastp.
 These are taken directly from the [fastp documentation](https://github.com/OpenGene/fastp).
 ``` fastp arguments
@@ -135,12 +135,12 @@ These are taken directly from the [fastp documentation](https://github.com/OpenG
 ```
 ===
 
-## FASTQ file format
+## :icon-checklist: FASTQ file names
 There are a handful of "accepted" naming schemes for fastq file extensions, but Harpy only accepts a limited number of them, shown below.
 The fastq files **must** be bgzipped or gzipped and be **consistent** with regards to the extensions and read-pair naming styles.
 That is, you must only use `.fastq.gz` or only use `.fq.gz` for all files, and the same for `.1.`/`.2.` or `.F.`/`.R.` (adhere to a single row in the table below).
-Notice that the read pair part differs from the [accepted fastq formats](readmapping.md/#fastq-file-format) for aligning reads.
-=== acceptable formats
+Notice that the read pair part differs from the [accepted fastq names](readmapping.md/#fastq-file-names) for aligning reads.
+==- :icon-check-circle: acceptable fastq names
 
 | forward-reverse notation | extension  | example forward          | example reverse         |
 |:-------------------------|:-----------|:-------------------------|:------------------------|
@@ -152,8 +152,8 @@ Notice that the read pair part differs from the [accepted fastq formats](readmap
 ===
 
 ---
-## Trimming Workflow
-+++ description
+## :icon-git-pull-request: Trimming Workflow
++++ :icon-git-merge: details
 [Fastp](https://github.com/OpenGene/fastp) is an ultra-fast all-in-one adapter remover, deduplicator, 
 and quality trimmer. Harpy uses it to remove adapters, low-quality bases, and trim sequences down to a particular
 length (default 150bp). Harpy uses the fastp overlap analysis to identify adapters for removal and a sliding window
@@ -164,7 +164,7 @@ graph LR
     A([fastp trim]) --> B([create reports])
 ```
 
-+++ trimming output
++++ :icon-file-directory: trimming output
 The `harpy trim` module creates a `Trimming` directory with the folder structure below. `Sample1` and `Sample2` are generic sample names for demonstration purposes.
 ```
 Trimming/

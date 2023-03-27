@@ -5,7 +5,7 @@ icon: sliders
 order: 4
 ---
 
-# Calling Variants
+# :icon-sliders: Calling Variants
 ===  :icon-checklist: You will need
 - at least 4 cores/threads available
 - a genome assembly in FASTA format
@@ -30,7 +30,7 @@ harpy variants --threads 20 --genome genome.fasta --dir Alignments/ema
 harpy variants --threads 20 --genome genome.fasta --dir Alignments/ema --leviathan
 ```
 
-## Running Options
+## :icon-terminal: Running Options
 | argument         | short name | type        | default | required | description                                                            |
 |:-----------------|:----------:|:------------|:-------:|:--------:|:-----------------------------------------------------------------------|
 | `--genome`       |    `-g`    | file path   |         | **yes**  | Genome assembly for variant calling                                    |
@@ -43,11 +43,11 @@ harpy variants --threads 20 --genome genome.fasta --dir Alignments/ema --leviath
 | `--snakemake`    |    `-s`    | string      |         |    no    | Additional Snakemake options, in quotes ([more info](../getstarted.md/#adding-additional-snakamake-parameters)) |
 | `--help`         |            |             |         |          | Show the module docstring                                              |
 
-==- mpileup arguments
+==- :icon-code-square: mpileup arguments
 The mpileup module of samtools has *a lot* of command line options. Listing them all here would be difficult to read, therefore please
 refer to the [mpileup documentation](http://www.htslib.org/doc/samtools-mpileup.html#OPTIONS) to explore ways to configure your mpileup run.
 
-==- LEVIATHAN arguments
+==- :icon-code-square: LEVIATHAN arguments
 Below is a list of all `LEVIATHAN` command line options, excluding those Harpy already uses or those made redundant by Harpy's implementation of LEVIATHAN.
 These are taken directly from the [LEVIATHAN documentation](https://github.com/morispi/LEVIATHAN).
 ``` LEVIATHAN arguments
@@ -67,7 +67,7 @@ These are taken directly from the [LEVIATHAN documentation](https://github.com/m
 ```
 ===
 
-### sample grouping file
+### :icon-file: sample grouping file
 This file is entirely optional and useful if you want variant calling to happen on a per-population level.
 - takes the format of sample\<tab\>group
 - the groups can be numbers or text (_i.e._ meaningful population names)
@@ -83,8 +83,8 @@ sample5 3
 ```
 
 ----
-### mpileup workflow
-+++ description
+### :icon-git-pull-request: mpileup workflow
++++ :icon-git-merge: details
 The `mpileup` and `call` modules from [bcftools](https://samtools.github.io/bcftools/bcftools.html) (formerly samtools) 
 are used to call variants from alignments. This is a tried-and-true method and one of methods featured in other variant
 callers, such as that provided in [ANGSD](http://www.popgen.dk/angsd/index.php/Genotype_Likelihoods), which is why Harpy
@@ -104,7 +104,7 @@ graph LR
     E-->F([generate reports])
     G-->F
 ```
-+++ mpileup output
++++ :icon-file-directory: mpileup output
 The `harpy variants` module creates a `Variants/mpileup` directory with the folder structure below. `contig1` and `contig2` are generic contig names from an imaginary `genome.fasta` for demonstration purposes.
 ```
 Variants/mpileup
@@ -141,8 +141,8 @@ Variants/mpileup
 
 +++
 
-### LEVIATHAN workflow
-+++ description
+### :icon-git-pull-request: LEVIATHAN workflow
++++ :icon-git-merge: details
 [Leviathan](https://github.com/morispi/LEVIATHAN) is an alternative variant caller that uses linked read barcode information 
 to call structural variants (indels, inversions, etc.) exclusively, meaning it does not call SNPs. Harpy first uses [LRez](https://github.com/morispi/LRez) to index the barcodes 
 in the alignments, then it calls variants using Leviathan.
@@ -181,7 +181,7 @@ graph LR
     B-->C([convert to BCF])
     C-->E([generate reports])
 ```
-+++ leviathan output
++++ :icon-file-directory: leviathan output
 The `harpy variants --leviathan` module creates a `Variants/leviathan` (or `leviathan-pop`) directory with the folder structure below. `sample1` and `sample2` are generic sample names for demonstration purposes.
 
 ```

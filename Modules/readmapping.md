@@ -5,7 +5,7 @@ icon: quote
 order: 5
 ---
 
-# Mapping Reads onto a Reference Genome
+# :icon-quote: Mapping Reads onto a genome
 ===  :icon-checklist: You will need
 - at least 4 cores/threads available
 - a genome assembly in FASTA format
@@ -29,7 +29,7 @@ harpy align --threads 20 --genome genome.fasta --dir Sequences/ --bwa
 ```
 
 
-## Running Options
+## :icon-terminal: Running Options
 | argument         | short name | type        | default | required | description                                                            |
 |:-----------------|:----------:|:------------|:-------:|:--------:|:-----------------------------------------------------------------------|
 | `--genome`       |    `-g`    | file path   |         | **yes**  | Genome assembly for read mapping                                       |
@@ -42,7 +42,7 @@ harpy align --threads 20 --genome genome.fasta --dir Sequences/ --bwa
 | `--snakemake`    |    `-s`    | string      |         |    no    | Additional Snakemake options, in quotes ([more info](../getstarted.md/#adding-additional-snakamake-parameters)) |
 | `--help`         |            |             |         |          | Show the module docstring                                              |
 
-==- EMA arguments
+==- :icon-code-square: EMA arguments
 Below is a list of all `ema align` command line arguments, excluding those Harpy already uses or those made redundant by Harpy's implementation of EMA.
 These are taken directly from the [EMA documentation](https://github.com/arshajii/ema).
 
@@ -50,7 +50,7 @@ These are taken directly from the [EMA documentation](https://github.com/arshaji
   -d: apply fragment read density optimization [off]
   -i <index>: index to follow 'BX' tag in SAM output [1]
 ```
-==- BWA arguments
+==- :icon-code-square: BWA arguments
 Below is a list of all `bwa mem` command line arguments, excluding those Harpy already uses or those made redundant by Harpy's implementation of BWA.
 These are taken directly from the [BWA documentation](https://bio-bwa.sourceforge.net/bwa.shtml).
 ```bwa arguments
@@ -80,12 +80,12 @@ want intervals merged, set this argument as `--proximity 1` (1bp). Merging is us
 which makes visualization easier downstream too. 
 !!!
 
-## FASTQ file format
+## :icon-checklist: FASTQ file names
 There are a handful of "accepted" naming schemes for fastq file extensions, but Harpy only accepts a limited number of them, shown below.
 The fastq files **must** be bgzipped or gzipped and be **consistent** with regards to the extensions and read-pair naming styles.
 That is, you must only use `.fastq.gz` or only use `.fq.gz` for all files, and the same for `.R1.`/`.R2.` or `_R1.`/`_R2.` (adhere to a single row in the table below).
-Notice that the read pair part differs from the [accepted fastq formats](qualitytrimming.md/#fastq-file-format) for read trimming.
-=== acceptable formats
+Notice that the read pair part differs from the [accepted fastq names](qualitytrimming.md/#fastq-file-names) for read trimming.
+==- :icon-check-circle: acceptable fastq names
 
 | forward-reverse notation | extension  | example forward           | example reverse          |
 |:-------------------------|:-----------|:--------------------------|:-------------------------|
@@ -98,8 +98,8 @@ Notice that the read pair part differs from the [accepted fastq formats](quality
 
 ----
 
-## EMA workflow
-+++ details
+## :icon-git-pull-request: EMA workflow
++++ :icon-git-merge: details
 - **recommended**
 - leverages the BX barcode information to improve mapping
 - better downstream SV detection
@@ -128,7 +128,7 @@ graph LR
     F-->J([alignment stats])
     E-->J
 ```
-+++ EMA output
++++ :icon-file-directory: EMA output
 The `harpy align` module creates an `Alignments/ema` directory with the folder structure below. `Sample1` is a generic sample name for demonstration purposes.
 ```
 Alignments/ema
@@ -187,8 +187,8 @@ Alignments/ema
 +++
 
 
-## BWA workflow
-+++ description
+## :icon-git-pull-request: BWA workflow
++++ :icon-git-merge: details
 - ignores barcode information
 - might be preferred depending on experimental design
 - faster
@@ -205,7 +205,7 @@ graph LR
     C-->D([mark duplicates])
     D-->E([alignment stats])
 ```
-+++ BWA output
++++ :icon-file-directory: BWA output
 The `harpy align --bwa` module creates an `Alignments/bwa` directory with the folder structure below. `Sample1` is a generic sample name for demonstration purposes.
 ```
 Alignments/bwa

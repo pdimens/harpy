@@ -5,7 +5,7 @@ icon: stack
 order: 2
 ---
 
-# Phasing Haplotypes
+# :icon-stack: Phasing Haplotypes
 
 ===  :icon-checklist: You will need
 - at least 2 cores/threads available
@@ -27,7 +27,7 @@ harpy phase --threads 20 --vcf Variants/variants.raw.bcf --dir Alignments/ema
 ```
 
 
-## Running Options
+## :icon-terminal: Running Options
 | argument              | short name | type            | default | required | description                                                             |
 |:----------------------|:----------:|:----------------|:-------:|:--------:|:------------------------------------------------------------------------|
 | `--vcf`               |    `-v`    | file path       |         | **yes**  | Path to BCF/VCF file                                                    |
@@ -40,7 +40,7 @@ harpy phase --threads 20 --vcf Variants/variants.raw.bcf --dir Alignments/ema
 | `--help`              |            |                 |         |          | Show the module docstring                                               |
 
 
-==- HapCut2 arguments
+==- :icon-code-square: HapCut2 arguments
 Below is a list of all `HapCut2` command line options, excluding those Harpy already uses or those made redundant by Harpy's implementation of HapCut2.
 These are taken directly from running `hapcut2 --help`.
 
@@ -65,8 +65,8 @@ With Harpy, you configure this value as an integer between 0-100, which gets con
 value between 0-1 internally (_i.e._ `-p 7` is equivalent to 0.07 threshold).
 
 ---
-## Phasing Workflow
-+++ description
+## :icon-git-pull-request: Phasing Workflow
++++ :icon-git-merge: details
 Phasing is performed using [HapCut2](https://github.com/vibansal/HapCUT2). Most of the tasks cannot
 be parallelized, but HapCut2 operates on a per-sample basis, so the workflow is parallelized
 across all of your samples to speed things along.
@@ -90,7 +90,7 @@ graph LR
     H-->I([merge phased samples])
 ```
 
-+++ phasing output
++++ :icon-file-directory: phasing output
 The `harpy phase` module creates an `Phasing` directory with the folder structure below. `Sample1` is a generic sample name for demonstration purposes.
 
 ```
