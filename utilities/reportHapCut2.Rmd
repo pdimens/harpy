@@ -1,0 +1,145 @@
+---
+title: "HapCut2 Report"
+author:
+    - "Created using HARPY"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output:
+  html_document:
+    highlight: tango
+    number_sections: no
+    theme: cosmo
+    df_print: kable
+    toc: no
+---
+
+```{r echo= FALSE, message = FALSE, warning = FALSE}
+library(ggplot2)
+library(DT)
+library(dplyr)
+library(magrittr)
+library(plotly)
+```
+
+```{r echo= FALSE, message = FALSE, warning = FALSE}
+## File
+file <- "~/Downloads/ShadHap1_C01.blocks"
+ 
+## the number of lines
+com <- paste("wc -l ", file, " | awk '{ print $1 }'", sep="")
+n <- as.numeric(system(command=com, intern=TRUE))
+```
+
+```{r echo= FALSE, message = FALSE, warning = FALSE}
+## setup storage vectors
+contig <- as.character()
+n_snp <- as.numeric()
+pos_start <- as.numeric()
+len_block <- as.numeric()
+
+## Create connection
+con <- file(description=file, open="r")
+
+## Loop over a file connection
+firstline <- TRUE
+for(i in 1:n) {
+  .line <- scan(file=con, nlines=1, what = character(), quiet=TRUE)
+  if (.line[1] == "BLOCK:") {
+    n_snp <- c(n_snp, as.numeric(.line[7]))
+    len_block <- c(len_block, as.numeric(.line[9]))
+    firstline <- TRUE
+  } else {
+    if (firstline) {
+      pos_start <- c(pos_start, as.numeric(.line[5]))
+      contig <- c(contig, .line[4])
+      firstline <- FALSE
+    } else {
+      next
+    }
+  }
+}
+close(con)
+pos_end <- pos_start + len_block
+
+df <- data.frame(contig = contig, n_snp = n_snp, pos_start = pos_start, pos_end = pos_end, block_length = len_block)
+
+```
+
+## Haplotyping details (overall) {.tabset}
+### summary
+```{r echo= FALSE, message = FALSE, warning = FALSE}
+df %>% summarise(
+    mean_snps = mean(n_snp),
+    median_snps = median(n_snp),
+    mean_blocksize = mean(block_length),
+    median_blocksize = median(block_length)
+  )
+```
+
+### all data
+Comparison of:
+
+- `contig`: name of the contig where the haplotype block is
+- `n_snp`: number of SNPs included in a block
+- `pos_start`: where the haplotype block begins
+- `pos_end`: where the haploype block ends
+- `block_length`: the length, in base pairs, of the haplotype block
+
+```{r echo= FALSE, message = FALSE, warning = FALSE}
+DT::datatable(df, rownames = F, filter = "top", extensions = 'Buttons', options = list(dom = 'Brtip', buttons = c('csv'), scrollX = TRUE))
+```
+
+### SNPs per haplotype block
+```{r echo= FALSE, message = FALSE, warning = FALSE, out.width = "100%"}
+df$n_snp <- as.factor(df$n_snp)
+p_nsnp <- ggplot(df, aes(x = n_snp)) +
+  geom_histogram(stat="count") +
+  labs(title = "SNP count per haplotype block") +
+  theme_minimal() +
+  xlab("number of snps") +
+  ylab("frequency") +
+  theme(panel.grid.major.x = element_blank())
+layout(ggplotly(p_nsnp), hovermode = 'x')
+```
+
+### haplotype lengths
+```{r echo= FALSE, message = FALSE, warning = FALSE, out.width = "100%"}
+p_hapl <- ggplot(df, aes(x = block_length)) +
+  geom_histogram(binwidth = 2000) +
+  labs(title = "Haplotype block length frequencies - 2kb bins") +
+  theme_minimal() +
+  xlab("Haplotype length (bp)") +
+  ylab("frequency") +
+  theme(panel.grid.major.x = element_blank())
+layout(ggplotly(p_hapl), hovermode = 'x')
+```
+
+### SNPs/haplotype-lengths
+Below is a 2-dimensional histogram of the frequency spectrum of the number of SNPS per haplotype-block bin. 
+```{r echo= FALSE, message = FALSE, warning = FALSE, out.width = "100%"}
+df$n_snp <- as.numeric(df$n_snp)
+
+p_snphex <- ggplot(df, aes(x = n_snp, y = block_length)) +
+  geom_hex() +
+  labs(title = "SNP count with respect to block size") +
+  theme_minimal() +
+  xlab("number of snps") +
+  ylab("haplotype block length") +
+  scale_fill_viridis_c()
+ 
+ggplotly(p_snphex)
+```
+
+## Haplotyping details (per-contig) {.tabset}
+
+### summary
+```{r echo= FALSE, message = FALSE, warning = FALSE}
+grp <- df %>% group_by(contig) %>%
+  summarise(
+    mean_snps = mean(n_snp),
+    median_snps = median(n_snp),
+    mean_blocksize = mean(block_length),
+    median_blocksize = median(block_length)
+  )
+DT::datatable(grp, rownames = F, filter = "top", extensions = 'Buttons', options = list(dom = 'Brtip', buttons = c('csv'), scrollX = TRUE))
+```
+
