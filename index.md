@@ -3,6 +3,9 @@ label: Home
 description: Using Harpy to process your haplotagged data
 icon: home
 ---
+
+# :icon-home: Home
+
 ![](static/logo.png)
 
 Harpy is a haplotagging data processing pipeline for Linux-based systems. It uses all the 
