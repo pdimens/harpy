@@ -4,7 +4,7 @@ icon: desktop-download
 order: 100
 ---
 
-# Install HARPY
+# :icon-desktop-download: Install HARPY
 === :icon-checklist: You will need
 A working installation of [conda](https://conda.io/projects/conda/en/latest/user-guide/install/index.html). We recommend you use [mamba](https://mamba.readthedocs.io/en/latest/installation.html). It's **so** much faster and uses a **lot** less memory. If using mamba, replace `conda` with `mamba` in the instructions below.
 ===
