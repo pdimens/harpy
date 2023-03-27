@@ -99,27 +99,28 @@ Phasing/
 ├── variants.phased.bcf.csi
 ├── annotations
 │   ├── Sample1.annot.gz
-│   ├── Sample1.annot.gz.tbi
+│   └── Sample1.annot.gz.tbi
 ├── annotations_merge
 │   ├── Sample1.phased.annot.bcf
-│   ├── Sample1.phased.annot.bcf.csi
+│   └── Sample1.phased.annot.bcf.csi
 ├── extractHairs
-│   ├── logs
-│   │   ├── Sample1.unlinked.log
 │   ├── Sample1.unlinked.frags
+│   └── logs
+│       └── Sample1.unlinked.log
 ├── input
 │   ├── header.names
 │   ├── Sample1.bcf
-│   ├── Sample1.het.bcf
+│   └── Sample1.het.bcf
 ├── linkFragments
-│   ├── logs
-│   │   ├── Sample1.linked.log
 │   ├── Sample1.linked.frags
+│   └── logs
+│       └── Sample1.linked.log
 └── phaseBlocks
-    ├── logs
-    │   ├── Sample1.blocks.phased.log
     ├── Sample1.blocks
     └── Sample1.blocks.phased.VCF
+        └── logs
+            └── Sample1.blocks.phased.log
+
 ```
 
 | item | description |
