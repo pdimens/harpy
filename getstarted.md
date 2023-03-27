@@ -3,7 +3,7 @@ label: Before you start
 icon: check-circle
 order: 97
 ---
-# Before you start
+# :icon-check-circle: Before you start
 ## Required files and formats
 Before you start using Harpy for your haplotagging data processing, you will need to make sure you have a few things on hand for things to go smoothly.
 At the minimum, you will need:
