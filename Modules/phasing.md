@@ -117,9 +117,9 @@ Phasing/
 │       └── Sample1.linked.log
 └── phaseBlocks
     ├── Sample1.blocks
-    └── Sample1.blocks.phased.VCF
-        └── logs
-            └── Sample1.blocks.phased.log
+    ├── Sample1.blocks.phased.VCF
+    └── logs
+        └── Sample1.blocks.phased.log
 
 ```
 
