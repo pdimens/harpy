@@ -92,7 +92,8 @@ The `--quality` argument filters out alignments below a given `MQ` threshold. Th
 that are at least 80% likely accurately mapped. Set this value to `1` if you only want alignments with
 MQ = 0 removed, or set it to `0` to keep all alignments. This plot shows the relationship
 between MQ score and alignment correctness.
-![Explanation of Mapping Quality](/static/MQ.plot.png)
+
+<iframe width="100%" height="400" frameborder="0" scrolling="no" src="//plotly.com/~pdimens/7.embed"></iframe>
 
 ----
 
