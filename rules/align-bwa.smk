@@ -66,7 +66,7 @@ rule sort_alignments:
 		quality = config["quality"]
 	threads: 2
 	shell:
-		"samtools view -bq {params.quality} {input.sam} | samtools sort --threads 1 --reference {input.asm} -O bam -l 0 -m 4G -o {output} -"
+		"samtools view -bSq {params.quality} {input.sam} | samtools sort --threads 1 --reference {input.asm} -O bam -l 0 -m 4G -o {output} -"
 
 rule mark_duplicates:
 	input: "Alignments/bwa/{sample}.sort.bam"
