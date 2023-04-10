@@ -45,17 +45,17 @@ harpy align --threads 20 --genome genome.fasta --dir Sequences/ --bwa
 
 
 ## :icon-terminal: Running Options
-| argument         | short name | type        | default | required | description                                                            |
-|:-----------------|:----------:|:------------|:-------:|:--------:|:-----------------------------------------------------------------------|
-| `--genome`       |    `-g`    | file path   |         | **yes**  | Genome assembly for read mapping                                       |
-| `--dir`          |    `-d`    | folder path |         | **yes**  | Directory with sample sequences                                        |
-| `--ema-bins`     |    `-e`    | integer     |   500   |    no    | Number of barcode bins for EMA                                         |
-| `--quality`      |    `-q`    | integer     |   7     |    no    | SAM `MQ` (mapping quality) filtering cutoff                              |
-| `--bwa`          |    `-b`    | toggle      |         |    no    | Use BWA MEM instead of EMA                                             |
-| `--extra-params` |    `-x`    | string      |         |    no    | Additional EMA-align/BWA arguments , in quotes                         |
-| `--threads`      |    `-t`    | integer     |    4    |    no    | Number of threads to use                                               |
-| `--snakemake`    |    `-s`    | string      |         |    no    | Additional Snakemake options, in quotes ([more info](../getstarted.md/#adding-additional-snakamake-parameters)) |
-| `--help`         |            |             |         |          | Show the module docstring                                              |
+| argument           | short name | type             | default | required | description                                                                                                     |
+|:-------------------|:----------:|:-----------------|:-------:|:--------:|:----------------------------------------------------------------------------------------------------------------|
+| `--genome`         |    `-g`    | file path        |         | **yes**  | Genome assembly for read mapping                                                                                |
+| `--dir`            |    `-d`    | folder path      |         | **yes**  | Directory with sample sequences                                                                                 |
+| `--ema-bins`       |    `-e`    | integer (1-1000) |   500   |    no    | Number of barcode bins for EMA                                                                                  |
+| `--quality-filter` |    `-q`    | integer (0-40)   |    7    |    no    | Minimum `MQ` (SAM mapping quality) to pass filtering                                                            |
+| `--bwa`            |    `-b`    | toggle           |         |    no    | Use BWA MEM instead of EMA                                                                                      |
+| `--extra-params`   |    `-x`    | string           |         |    no    | Additional EMA-align/BWA arguments , in quotes                                                                  |
+| `--threads`        |    `-t`    | integer          |    4    |    no    | Number of threads to use                                                                                        |
+| `--snakemake`      |    `-s`    | string           |         |    no    | Additional Snakemake options, in quotes ([more info](../getstarted.md/#adding-additional-snakamake-parameters)) |
+| `--help`           |            |                  |         |          | Show the module docstring                                                                                       |
 
 ==- :icon-code-square: EMA arguments
 Below is a list of all `ema align` command line arguments, excluding those Harpy already uses or those made redundant by Harpy's implementation of EMA.
