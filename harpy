@@ -168,12 +168,12 @@ def trim(directory, max_length, extra_params, threads, snakemake):
 @click.option('-d', '--directory', required = True, type=click.Path(exists=True), metavar = "Folder Path", help = 'Directory with sample sequences')
 @click.option('-e', '--ema-bins', default = 500, show_default = True, type = click.IntRange(1,1000), metavar = "Integer", help="Number of barcode bins for EMA")
 @click.option('--bwa', is_flag=True, metavar = "Toggle", help="Use BWA MEM instead of EMA (ignore BX)")
-@click.option('-q', '--quality', default = 7, show_default = True, type = click.IntRange(min = 0, max = 40), metavar = "Integer", help = 'Minimum mapping quality to pass filtering')
+@click.option('-q', '--quality-filter', default = 7, show_default = True, type = click.IntRange(min = 0, max = 40), metavar = "Integer", help = 'Minimum mapping quality to pass filtering')
 #@click.option('--bx-markdup', is_flag=True, metavar = "Toggle", help = 'Mark duplicates using BX barcodes (--bwa only)')
 @click.option('-x', '--extra-params', type = str, metavar = "String", help = 'Additional EMA-align/BWA parameters, in quotes')
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(min = 2, max_open = True), metavar = "Integer", help = 'Number of threads to use')
 @click.option('-s', '--snakemake', type = str, metavar = "String", help = 'Additional Snakemake parameters, in quotes')
-def align(genome, threads, bwa, directory, ema_bins, extra_params, quality, snakemake):
+def align(genome, threads, bwa, directory, ema_bins, extra_params, quality_filter, snakemake):
     """
     Align sample sequences to a reference genome
 
@@ -206,7 +206,7 @@ def align(genome, threads, bwa, directory, ema_bins, extra_params, quality, snak
     command.append(f"samplenames={samplenames}")
     command.append(f"genomefile={genome}")
     command.append(f"EMA_bins={ema_bins}")
-    command.append(f"quality={quality}")
+    command.append(f"quality={quality_filter}")
     #if bx_markdup is not None:
     #    command.append(f"BXmarkdup=True")
     #else:
