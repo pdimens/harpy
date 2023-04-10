@@ -5,7 +5,6 @@ genomefile = config["genomefile"]
 Rsep = config["Rsep"]
 fqext = config["fqext"]
 samplenames = config["samplenames"]
-bed_prox = config["bed_proximity"]
 extra = config.get("extra", "") 
 
 bn = os.path.basename(genomefile)
@@ -85,16 +84,15 @@ rule mark_duplicates:
 
 rule genome_coverage:
 	input: "Alignments/bwa/{sample}.bam"
-	output: "Alignments/bwa/stats/coverage/data/{sample}.gencov"
+	output: "Alignments/bwa/stats/coverage/data/{sample}.gencov.gz"
 	message: "Calculating genomic coverage: {wildcards.sample}"
 	threads: 2
-	params: bed_prox
 	shell:
-		"bedtools genomecov -ibam {input} -bg | bedtools merge -c 4 -o sum -d {params} > {output}"
+		"bedtools genomecov -ibam {input} -bg | gzip > {output}"
 
 rule gencov_report:
 	input:
-		gencov = "Alignments/bwa/stats/coverage/data/{sample}.gencov",
+		gencov = "Alignments/bwa/stats/coverage/data/{sample}.gencov.gz",
 		faidx = f"Assembly/{genomefile}.fai"
 	output:
 		"Alignments/bwa/stats/coverage/{sample}.gencov.html"

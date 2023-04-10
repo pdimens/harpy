@@ -6,7 +6,6 @@ genomefile = config["genomefile"]
 Rsep = config["Rsep"]
 fqext = config["fqext"]
 samplenames = config["samplenames"]
-bed_prox = config["bed_proximity"]
 extra = config.get("extra", "") 
 
 bn = os.path.basename(genomefile)
@@ -267,20 +266,19 @@ rule genome_coverage:
         alntot = "Alignments/ema/{sample}.bam",
         bx = "Alignments/ema/align/barcoded/{sample}.barcoded.bam"
     output: 
-        bx = "Alignments/ema/stats/coverage/data/{sample}.bx.gencov",
-        alntot = "Alignments/ema/stats/coverage/data/{sample}.all.gencov"
+        bx = "Alignments/ema/stats/coverage/data/{sample}.bx.gencov.gz",
+        alntot = "Alignments/ema/stats/coverage/data/{sample}.all.gencov.gz"
     message: "Calculating genomic coverage: {wildcards.sample}"
-    params: bed_prox
     threads: 2
     shell:
         """
-        bedtools genomecov -ibam {input.bx}     -bg | bedtools merge -c 4 -o sum -d {params} > {output.bx}
-        bedtools genomecov -ibam {input.alntot} -bg | bedtools merge -c 4 -o sum -d {params} > {output.alntot}
+        bedtools genomecov -ibam {input.bx}     -bg | gzip > {output.bx}
+        bedtools genomecov -ibam {input.alntot} -bg | gzip > {output.alntot}
         """
 
 rule gencovBX_report:
     input: 
-        gencov = "Alignments/ema/stats/coverage/data/{sample}.bx.gencov",
+        gencov = "Alignments/ema/stats/coverage/data/{sample}.bx.gencov.gz",
         faidx = f"Assembly/{genomefile}.fai"
     output:
         "Alignments/ema/stats/coverage/{sample}.gencov.bx.html"
@@ -291,7 +289,7 @@ rule gencovBX_report:
 
 rule gencovAll_report:
     input:
-        gencov = "Alignments/ema/stats/coverage/data/{sample}.all.gencov",
+        gencov = "Alignments/ema/stats/coverage/data/{sample}.all.gencov.gz",
         faidx = f"Assembly/{genomefile}.fai"
     output:
         "Alignments/ema/stats/coverage/{sample}.gencov.all.html"
