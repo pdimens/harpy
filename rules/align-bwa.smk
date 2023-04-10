@@ -62,9 +62,11 @@ rule sort_alignments:
 		sample = "[a-zA-Z0-9_-]*"
 	message: "Sorting {wildcards.sample} alignments"
 	benchmark: "Benchmark/Mapping/bwa/sort.{sample}.txt"
-	threads: 1
+	params:
+		quality = config["quality"]
+	threads: 2
 	shell:
-		"samtools sort --threads {threads} --reference {input.asm} -O bam -l 0 -m 4G -o {output} {input.sam}"
+		"samtools view -bq {params.quality} {input.sam} | samtools sort --threads 1 --reference {input.asm} -O bam -l 0 -m 4G -o {output} -"
 
 rule mark_duplicates:
 	input: "Alignments/bwa/{sample}.sort.bam"

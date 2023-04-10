@@ -127,9 +127,11 @@ rule sort_ema:
         emabin = "[0-9]*"
     message: "Sorting alignments: {wildcards.sample}-{wildcards.emabin}"
     benchmark: "Benchmark/Mapping/ema/Sort.{sample}.{emabin}.txt"
+    params:
+        quality = config["quality"]
     threads: 1
     shell: 
-        "samtools sort -@ {threads} --reference {input.genome} -O bam -l 0 -m 4G -o {output} {input.sam}"
+        "samtools view -bSq {params.quality} {input.sam} | samtools sort -@ {threads} --reference {input.genome} -O bam -l 0 -m 4G -o {output} -"
 
 rule sort_nobarcode:
     input: 
@@ -140,9 +142,11 @@ rule sort_nobarcode:
         sample = "[a-zA-Z0-9_-]*"
     message: "Sorting unbarcoded alignments: {wildcards.sample}"
     benchmark: "Benchmark/Mapping/ema/bwaSort.{sample}.txt"
+    params:
+        quality = config["quality"]
     threads: 2
     shell:
-        "samtools sort -@ {threads} -O bam -l 0 -m 4G --reference {input.genome} -o {output} {input.sam}"    
+        "samtools view -bSq {params.quality} {input.sam} | samtools sort -@ 1 -O bam -l 0 -m 4G --reference {input.genome} -o {output} -"    
 
 rule markduplicates:
     input: "Alignments/ema/align/{sample}/{sample}.nobarcode.bam.tmp"
@@ -257,6 +261,8 @@ rule sort_merge:
     wildcard_constraints:
         sample = "[a-zA-Z0-9_-]*"
     threads: 2
+    params:
+        quality = config["quality"]
     priority: 1
     shell:
         "samtools sort -@ {threads} -O bam --reference {input.genome} -l 0 -m 4G -o {output} {input.bam} 2> /dev/null"
