@@ -9,6 +9,20 @@ order: 6
 ===  :icon-checklist: You will need
 - at least 2 cores/threads available
 - paired-end b/gzipped fastq sequence files
+==- :icon-stop: FASTQ file names
+There are a handful of "accepted" naming schemes for fastq file extensions, but Harpy only accepts a limited number of them, shown below.
+The fastq files **must** be bgzipped or gzipped and be **consistent** with regards to the extensions and read-pair naming styles.
+That is, you must only use `.fastq.gz` or only use `.fq.gz` for all files, and the same for `.1.`/`.2.` or `.F.`/`.R.` (adhere to a single row in the table below).
+Notice that the read pair part differs from the accepted fastq names for aligning reads.
+#### :icon-check-circle: acceptable fastq names
+
+| forward-reverse notation | extension  | example forward          | example reverse         |
+|:-------------------------|:-----------|:-------------------------|:------------------------|
+| `.F` / `.R`                | `fastq.gz` | ` samplename.F.fastq.gz` | `samplename.R.fastq.gz` |
+| `.F` / `.R`                | `fq.gz`    | `samplename.F.fq.gz`     | `samplename.R.fq.gz`    |
+| `.1` / `.2`                | `fastq.gz` | `samplename.2.fastq.gz`  | `samplename.2.fastq.gz` |
+| `.1` / `.2`                | `fq.gz`    | `samplename.1.fq.gz`     | `samplename.2.fq.gz`    |
+
 ===
 
 Raw sequences are not suitable for downstream analyses. They have sequencing adapters,
@@ -133,22 +147,6 @@ These are taken directly from the [fastp documentation](https://github.com/OpenG
   # help
   -?, --help                           print this message
 ```
-===
-
-## :icon-checklist: FASTQ file names
-There are a handful of "accepted" naming schemes for fastq file extensions, but Harpy only accepts a limited number of them, shown below.
-The fastq files **must** be bgzipped or gzipped and be **consistent** with regards to the extensions and read-pair naming styles.
-That is, you must only use `.fastq.gz` or only use `.fq.gz` for all files, and the same for `.1.`/`.2.` or `.F.`/`.R.` (adhere to a single row in the table below).
-Notice that the read pair part differs from the [accepted fastq names](readmapping.md/#fastq-file-names) for aligning reads.
-==- :icon-check-circle: acceptable fastq names
-
-| forward-reverse notation | extension  | example forward          | example reverse         |
-|:-------------------------|:-----------|:-------------------------|:------------------------|
-| `.F` / `.R`                | `fastq.gz` | ` samplename.F.fastq.gz` | `samplename.R.fastq.gz` |
-| `.F` / `.R`                | `fq.gz`    | `samplename.F.fq.gz`     | `samplename.R.fq.gz`    |
-| `.1` / `.2`                | `fastq.gz` | `samplename.2.fastq.gz`  | `samplename.2.fastq.gz` |
-| `.1` / `.2`                | `fq.gz`    | `samplename.1.fq.gz`     | `samplename.2.fq.gz`    |
-
 ===
 
 ---

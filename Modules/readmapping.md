@@ -10,6 +10,21 @@ order: 5
 - at least 4 cores/threads available
 - a genome assembly in FASTA format
 - paired-end b/gzipped fastq sequence files
+==- :icon-stop: FASTQ file names
+There are a handful of "accepted" naming schemes for fastq file extensions, but Harpy only accepts a limited number of them, shown below.
+The fastq files **must** be bgzipped or gzipped and be **consistent** with regards to the extensions and read-pair naming styles.
+That is, you must only use `.fastq.gz` or only use `.fq.gz` for all files, and the same for `.R1.`/`.R2.` or `_R1.`/`_R2.` (adhere to a single row in the table below).
+Notice that the read pair part differs from the accepted fastq names for read trimming.
+
+#### :icon-check-circle: acceptable fastq names
+
+| forward-reverse notation | extension  | example forward           | example reverse          |
+|:-------------------------|:-----------|:--------------------------|:-------------------------|
+| `.R1` / `.R2`            | `fastq.gz` | ` samplename.R1.fastq.gz` | `samplename.R2.fastq.gz` |
+| `.R1` / `.R2`            | `fq.gz`    | `samplename.R1.fq.gz`     | `samplename.R2.fq.gz`    |
+| `_R1` / `_R2`            | `fastq.gz` | `samplename_R1.fastq.gz`  | `samplename_R2.fastq.gz` |
+| `_R1` / `_R2`            | `fq.gz`    | `samplename_R1.fq.gz`     | `samplename_R2.fq.gz`    |
+
 ===
 
 Once sequences have been trimmed and passed through other QC filters, they will need to
@@ -35,7 +50,7 @@ harpy align --threads 20 --genome genome.fasta --dir Sequences/ --bwa
 | `--genome`       |    `-g`    | file path   |         | **yes**  | Genome assembly for read mapping                                       |
 | `--dir`          |    `-d`    | folder path |         | **yes**  | Directory with sample sequences                                        |
 | `--ema-bins`     |    `-e`    | integer     |   500   |    no    | Number of barcode bins for EMA                                         |
-| `--proximity`    |    `-p`    | integer     |   250   |    no    | Alignment window merging proximity (bp) for coverage calculations      |
+| `--quality`      |    `-q`    | integer     |   7     |    no    | SAM `MQ` (mapping quality) filtering cutoff                              |
 | `--bwa`          |    `-b`    | toggle      |         |    no    | Use BWA MEM instead of EMA                                             |
 | `--extra-params` |    `-x`    | string      |         |    no    | Additional EMA-align/BWA arguments , in quotes                         |
 | `--threads`      |    `-t`    | integer     |    4    |    no    | Number of threads to use                                               |
@@ -72,29 +87,12 @@ These are taken directly from the [BWA documentation](https://bio-bwa.sourceforg
 ```
 ===
 
-!!!info
-The `--proximity` flag is for the genomic alignment coverage calculations, which are purely for reporting reasons
-and occur after sequence alignment. It therefore does not impact 
-sequence alignment. The default value (`250`) means alignment intervals within 250bp will be merged and their coverages summed. If you don't
-want intervals merged, set this argument as `--proximity 1` (1bp). Merging is useful for reducing file size (kilobytes vs mega/gigabytes),
-which makes visualization easier downstream too. 
-!!!
-
-## :icon-checklist: FASTQ file names
-There are a handful of "accepted" naming schemes for fastq file extensions, but Harpy only accepts a limited number of them, shown below.
-The fastq files **must** be bgzipped or gzipped and be **consistent** with regards to the extensions and read-pair naming styles.
-That is, you must only use `.fastq.gz` or only use `.fq.gz` for all files, and the same for `.R1.`/`.R2.` or `_R1.`/`_R2.` (adhere to a single row in the table below).
-Notice that the read pair part differs from the [accepted fastq names](qualitytrimming.md/#fastq-file-names) for read trimming.
-==- :icon-check-circle: acceptable fastq names
-
-| forward-reverse notation | extension  | example forward           | example reverse          |
-|:-------------------------|:-----------|:--------------------------|:-------------------------|
-| `.R1` / `.R2`            | `fastq.gz` | ` samplename.R1.fastq.gz` | `samplename.R2.fastq.gz` |
-| `.R1` / `.R2`            | `fq.gz`    | `samplename.R1.fq.gz`     | `samplename.R2.fq.gz`    |
-| `_R1` / `_R2`            | `fastq.gz` | `samplename_R1.fastq.gz`  | `samplename_R2.fastq.gz` |
-| `_R1` / `_R2`            | `fq.gz`    | `samplename_R1.fq.gz`     | `samplename_R2.fq.gz`    |
-
-===
+## :icon-filter: Quality filtering
+The `--quality` argument filters out alignments below a given `MQ` threshold. The default, `7`, keeps alignments
+that are at least 80% likely accurately mapped. Set this value to `1` if you only want alignments with
+MQ = 0 removed, or set it to `0` to keep all alignments. This plot shows the relationship
+between MQ score and alignment correctness.
+![Explanation of Mapping Quality](/static/MQ.plot.png)
 
 ----
 
@@ -146,8 +144,8 @@ Alignments/ema
     ├── coverage
     │   ├── Sample1.gencov.html
     │   └── data
-    │       ├── Sample1.all.gencov
-    │       └── Sample1.bx.gencov
+    │       ├── Sample1.all.gencov.gz
+    │       └── Sample1.bx.gencov.gz
     ├── markduplicates
     │   └── Sample1.markdup.nobarcode.log
     ├── moleculesize
@@ -174,8 +172,8 @@ Alignments/ema
 | `stats/`                                       | various counts/statistics/reports relating to sequence alignment                           |
 | `stats/reads.bxstats .html`                    | interactive html report summarizing `ema count` across all samples                         |
 | `stats/coverage/*.html`                        | summary plots of alignment coverage per contig                                             |
-| `stats/coverage/data/*.all.gencov`             | output from bedtools gencov from all alignments, used for plots                            |
-| `stats/coverage/data/*.bx.gencov`              | output from bedtools gencov from alignments with valid BX barcodes, used for plots         |
+| `stats/coverage/data/*.all.gencov.gz`             | output from bedtools gencov from all alignments, used for plots                            |
+| `stats/coverage/data/*.bx.gencov.gz`              | output from bedtools gencov from alignments with valid BX barcodes, used for plots         |
 | `stats/markduplicates/`                        | everything `sambamba markdup` writes to `stderr` during operation on alignments with invalid/missing barcodes |
 | `stats/moleculesize/*.molsize`                 | molecule lengths as inferred from BX tags                                                  |
 | `stats/moleculesize/*.molsize.hist`            | molecule lengths as inferred from BX tags, binned as a histogram                           |
@@ -215,7 +213,7 @@ Alignments/bwa
     ├── coverage
     │   ├── Sample1.gencov.html
     │   └── data
-    │       └── Sample1.gencov
+    │       └── Sample1.gencov.gz
     ├── markduplicates
     │   └── Sample1.markdup.log
     ├── samtools_flagstat
@@ -234,7 +232,7 @@ Alignments/bwa
 | `*.bai`                                        | sequence alignment indexes for each sample                                                 |
 | `stats/`                                       | various counts/statistics/reports relating to sequence alignment                           |
 | `stats/coverage/*.html`                        | summary plots of alignment coverage per contig                                             |
-| `stats/coverage/data/*.gencov`                 | output from bedtools gencov from all alignments, used for plots                            |
+| `stats/coverage/data/*.gencov.gz`                 | output from bedtools gencov from all alignments, used for plots                            |
 | `stats/markduplicates`                         | everything `sambamba markdup` writes to `stderr` during operation  |
 | `stats/samtools_flagstat/*flagstat`            | results of `samtools flagstat` on all alignments for a sample                              |
 | `stats/samtools_flagstat/*.nobarcode.flagstat` | results of `samtools flagstat` on alignments that had no/invalid BX barcodes               |
