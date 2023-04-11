@@ -37,10 +37,10 @@ harpy align OPTIONS...
 ```
 ```bash examples
 # align with EMA
-harpy align --threads 20 --genome genome.fasta --dir Sequences/ 
+harpy align --genome genome.fasta --dir Sequences/ 
 
 # align with BWA
-harpy align --threads 20 --genome genome.fasta --dir Sequences/ --bwa
+harpy align --bwa --genome genome.fasta --dir Sequences/ 
 ```
 
 
@@ -62,8 +62,8 @@ Below is a list of all `ema align` command line arguments, excluding those Harpy
 These are taken directly from the [EMA documentation](https://github.com/arshajii/ema).
 
 ``` ema arguments
-  -d: apply fragment read density optimization [off]
-  -i <index>: index to follow 'BX' tag in SAM output [1]
+-d: apply fragment read density optimization [off]
+-i <index>: index to follow 'BX' tag in SAM output [1]
 ```
 ==- :icon-code-square: BWA arguments
 Below is a list of all `bwa mem` command line arguments, excluding those Harpy already uses or those made redundant by Harpy's implementation of BWA.
