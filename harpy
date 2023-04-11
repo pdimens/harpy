@@ -10,6 +10,7 @@ click.rich_click.USE_MARKDOWN = True
 click.rich_click.SHOW_ARGUMENTS = False
 click.rich_click.SHOW_METAVARS_COLUMN = False
 click.rich_click.APPEND_METAVARS_HELP = False
+click.rich_click.REQUIRED_SHORT_STRING = ""
 click.rich_click.ERRORS_SUGGESTION = "Try the '--help' flag for more information."
 click.rich_click.ERRORS_EPILOGUE = "See the documentation: [link=https://pdimens.github.io/HARPY/]https://pdimens.github.io/HARPY/[/link]"
 
