@@ -44,22 +44,22 @@ Great! Only want to call variants? Awesome! All modules are called by `harpy <mo
 
 
 ## Using Harpy
-You can call `harpy` without any arguments (or with `--help`) to print the docstring to your terminal. You can likewise call any of the modules with `--help` to see their usage  (e.g. `harpy align --help`).
+You can call `harpy` without any arguments (or with `--help`) to print the docstring to your terminal. You can likewise call any of the modules without arguments or with `--help` to see their usage  (e.g. `harpy align --help`).
 ``` harpy --help                                                      
- Usage: harpy [OPTIONS] COMMAND [ARGS]...                     
+ Usage: harpy COMMAND [ARGS]...                     
                                                               
                Haplotagging Research Pipeline (HARPY)               
-                            version: 0.1                            
                                                                     
- The pipeline trims reads, maps sequences, calls variants, imputes  
- genotypes, and phases haplotypes using Haplotagging data.             
+ The pipeline trims reads, maps sequences, calls variants, imputes genotypes, and phases         
+ haplotypes of Haplotagging data.             
                                                                     
  trim 🡒 align 🡒 variants 🡒 impute 🡒 phase                           
                                                                     
  Documentation: https://pdimens.github.io/HARPY/                    
-                                                                    
+                                                                                                     
 ╭─ Options ────────────────────────────────────────────────────────╮
-│ --help      Show this message and exit.                          │
+│ --version      Show the version and exit.                        │
+│ --help     -h  Show this message and exit.                       │
 ╰──────────────────────────────────────────────────────────────────╯
 ╭─ Commands ───────────────────────────────────────────────────────╮
 │ align     Align sample sequences to a reference genome           │
