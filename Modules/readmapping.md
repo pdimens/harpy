@@ -89,7 +89,7 @@ These are taken directly from the [BWA documentation](https://bio-bwa.sourceforg
 
 ## :icon-filter: Quality filtering
 ==- What is a $MQ$ score?
-Every alignment in a BAM file has an associated mapping quality ($MQ$) score that informs you of the likelihood 
+Every alignment in a BAM file has an associated mapping quality score ($MQ$) that informs you of the likelihood 
 that the alignment is accurate. This score can range from 0-40, where higher numbers mean the alignment is more
 likely correct. The math governing the $MQ$ score actually calculates the percent chance the alignment is ***incorrect***: 
 $$
@@ -104,10 +104,10 @@ $$
 $$
 ===
 The `--quality` argument filters out alignments below a given $MQ$ threshold. The default, `20`, keeps alignments
-that are at least 99% likely accurately mapped (100 - 1% incorrect). Set this value to `1` if you only want alignments removed with
+that are at least 99% likely correctly mapped. Set this value to `1` if you only want alignments removed with
 $MQ = 0$ (100% likely incorrect). You may also set it to `0` to keep all alignments for diagnostic purposes.
 The plot below shows the relationship between $MQ$ score and the likelihood the alignment is wrong and will serve to help you decide
-on a value you may want to use. It is common to filter out alignments with $MQ <20$ (<99% chance correct) or $MQ <30$ (<99.9% chance correct).
+on a value you may want to use. It is common to remove alignments with $MQ <20$ (<99% chance correct) or $MQ <30$ (<99.9% chance correct).
 
 [!embed el="embed"](//plotly.com/~pdimens/7.embed)
 
