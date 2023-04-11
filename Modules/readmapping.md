@@ -88,10 +88,11 @@ These are taken directly from the [BWA documentation](https://bio-bwa.sourceforg
 ===
 
 ## :icon-filter: Quality filtering
-The `--quality` argument filters out alignments below a given `MQ` threshold. The default, `7`, keeps alignments
-that are at least 80% likely accurately mapped. Set this value to `1` if you only want alignments with
+The `--quality` argument filters out alignments below a given `MQ` threshold. The default, `20`, keeps alignments
+that are at least 99% likely accurately mapped. Set this value to `1` if you only want alignments with
 MQ = 0 removed, or set it to `0` to keep all alignments. This plot shows the relationship
-between MQ score and alignment correctness.
+between MQ score and alignment correctness and will serve to help you decide
+on a value you may want to use.
 
 [!embed el="embed"](//plotly.com/~pdimens/7.embed)
 
