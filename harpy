@@ -7,7 +7,9 @@ import sys
 import rich_click as click
 
 click.rich_click.USE_MARKDOWN = True
-click.rich_click.SHOW_ARGUMENTS = True
+click.rich_click.SHOW_ARGUMENTS = False
+click.rich_click.SHOW_METAVARS_COLUMN = False
+click.rich_click.APPEND_METAVARS_HELP = False
 click.rich_click.ERRORS_SUGGESTION = "Try the '--help' flag for more information."
 click.rich_click.ERRORS_EPILOGUE = "See the documentation: [link=https://pdimens.github.io/HARPY/]https://pdimens.github.io/HARPY/[/link]"
 
@@ -61,12 +63,64 @@ def fq_extension(directory):
 
 
 ## the modules ##
-@click.group()
+click.rich_click.OPTION_GROUPS = {
+    "harpy trim": [
+        {
+            "name": "Configuration",
+            "options": ["--directory", "--max-length", "--extra-params"],
+        },
+        {
+            "name": "Other Options",
+            "options": ["--threads", "--snakemake", "--help"],
+        },
+    ],
+    "harpy align": [
+        {
+            "name": "Configuration",
+            "options": ["--genome", "--directory", "--quality-filter", "--ema-bins", "--bwa", "--extra-params"],
+        },
+        {
+            "name": "Other Options",
+            "options": ["--threads", "--snakemake", "--help"],
+        },
+    ],
+    "harpy variants": [
+        {
+            "name": "Configuration",
+            "options": ["--genome", "--directory", "--populations", "--ploidy", "--leviathan", "--extra-params"],
+        },
+        {
+            "name": "Other Options",
+            "options": ["--threads", "--snakemake", "--help"],
+        },
+    ],
+    "harpy impute": [
+        {
+            "name": "Configuration",
+            "options": ["--vcf", "--directory", "--parameters"],
+        },
+        {
+            "name": "Other Options",
+            "options": ["--threads", "--snakemake", "--help"],
+        },
+    ],
+    "harpy phase": [
+        {
+            "name": "Configuration",
+            "options": ["--vcf", "--directory", "--molecule-distance", "--prune-threshold", "--extra-params"],
+        },
+        {
+            "name": "Other Options",
+            "options": ["--threads", "--snakemake", "--help"],
+        },
+    ]
+}
+
+@click.group(options_metavar='', context_settings=dict(help_option_names=["-h", "--help"]))
+@click.version_option("0.1", prog_name="Harpy")
 def cli():
     """
     ## Haplotagging Research Pipeline (HARPY)
-
-    ### version: 0.1
     
     The pipeline trims reads, maps sequences, calls variants, imputes genotypes,
     and phases haplotypes of Haplotagging data. 
@@ -77,7 +131,7 @@ def cli():
     """
     pass
 
-@click.command()
+@click.command(no_args_is_help = True)
 @click.option('-p', '--popgroup', required = False, type=click.Path(exists=True), metavar = "Input folder Path", help = 'Create generic sample-group file using existing sample file names (fq.gz or bam)')
 @click.option('-s', '--stitch-params', type=str, metavar = "Output file name", help = 'Create template STITCH parameter file')
 @click.option('-h', '--hpc', type = click.Choice(["slurm", "sge"], case_sensitive = False), help = 'Create HPC scheduling profile')
@@ -127,7 +181,8 @@ def extra(popgroup, stitch_params, hpc):
         print('\033[1m' + "<><> HPC Profile <><>" + '\033[0m')
         subprocess.run(["utilities/hpc_profile.py", hpc])
 
-@click.command()
+
+@click.command(no_args_is_help = True)
 @click.option('-d', '--directory', required = True, type=click.Path(exists=True), metavar = "Folder Path", help = 'Directory with raw sample sequences')
 @click.option('-l', '--max-length', default = 150, show_default = True, type=int, metavar = "Integer", help = 'Maximum length to trim sequences down to')
 @click.option('-x', '--extra-params', type = str, metavar = "String", help = 'Additional Fastp parameters, in quotes')
@@ -163,7 +218,7 @@ def trim(directory, max_length, extra_params, threads, snakemake):
         command.append(f"extra={extra_params}")
     subprocess.run(command)
 
-@click.command()
+@click.command(no_args_is_help = True)
 @click.option('-g', '--genome', type=click.Path(exists=True), required = True, metavar = "File Path", help = 'Genome assembly for read mapping')
 @click.option('-d', '--directory', required = True, type=click.Path(exists=True), metavar = "Folder Path", help = 'Directory with sample sequences')
 @click.option('-e', '--ema-bins', default = 500, show_default = True, type = click.IntRange(1,1000), metavar = "Integer", help="Number of barcode bins for EMA")
@@ -215,7 +270,7 @@ def align(genome, threads, bwa, directory, ema_bins, extra_params, quality_filte
         command.append(f"extra={extra_params}")
     subprocess.run(command)
 
-@click.command()
+@click.command(no_args_is_help = True)
 @click.option('-g', '--genome', type=click.Path(exists=True), required = True, metavar = "File Path", help = 'Genome assembly for variant calling')
 @click.option('-d', '--directory', required = True, type=click.Path(exists=True), metavar = "Folder Path", help = 'Directory with sequence alignments')
 @click.option('-p', '--populations', type=click.Path(exists = True), metavar = "File Path", help = 'Tab-delimited file of sample<tab>population')
@@ -250,7 +305,7 @@ def variants(genome, threads, directory, populations, ploidy, leviathan, extra_p
     subprocess.run(command)
 
 #@click.option('-f', '--filter', is_flag=True, help="Filter VCF file to keep SNPs with QUAL>20 and DP>10")
-@click.command()
+@click.command(no_args_is_help = True)
 @click.option('-v', '--vcf', required = True, type=click.Path(exists=True),metavar = "File Path", help = 'Path to BCF/VCF file')
 @click.option('-d', '--directory', required = True, type=click.Path(exists=True), metavar = "Folder Path", help = 'Directory with sequence alignments (*.bam)')
 @click.option('-p', '--parameters', required = True, type=click.Path(exists=True), metavar = "File Path", help = 'STITCH parameter file (tab-delimited)')
@@ -278,7 +333,7 @@ def impute(parameters, directory, threads, vcf, snakemake):
     #command.append(f"extra={extra_params}")
     subprocess.run(command)
 
-@click.command()
+@click.command(no_args_is_help = True)
 @click.option('-v', '--vcf', required = True, type=click.Path(exists=True), metavar = "File Path", help = 'Path to BCF/VCF file')
 @click.option('-d', '--directory', required = True, type=click.Path(exists=True), metavar = "Folder Path", help = 'Directory with sequence alignments (*.bam)')
 @click.option('-m', '--molecule-distance', default = 20000, show_default = True, type = int, metavar = "Integer", help = 'Base-pair distance delineating separate molecules')
