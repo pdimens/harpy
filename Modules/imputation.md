@@ -51,6 +51,15 @@ that you will need to adjust for your study. The parameter must follow a particu
 - header row present with the specific column names below
     - all column names begin with a lowercase character
 
++++example file
+This file is tab-delimited, note the column names:
+``` paramaters.txt
+model   useBX   k       s       nGen
+pseudoHaploid   TRUE    10      5       50
+pseudoHaploid   TRUE    10      1       50
+pseudoHaploid   TRUE    15      10      100
+```
++++parameter file columns
 | column name |  value type  |             accepted values             | description                                                           |
 |:------------|:------------:|:---------------------------------------:|:----------------------------------------------------------------------|
 | model       |     text     | pseudoHaploid, diploid, diploid-inbred  | The STITCH model/method to use                                        |
@@ -59,16 +68,7 @@ that you will need to adjust for your study. The parameter must follow a particu
 | s           |   integer    |                   ≥ 1                   | Number of instances of the founder haplotypes to average results over |
 | nGen        |   integer    |                   ≥ 1                   | Estimated number of generations since founding                        |
 
-==- example parameter file
-+++ tab-delimited
-This file is tab-delimited, note the column names:
-``` paramaters.txt
-model   useBX   k       s       nGen
-pseudoHaploid   TRUE    10      5       50
-pseudoHaploid   TRUE    10      1       50
-pseudoHaploid   TRUE    15      10      100
-```
-+++table-view
++++example file  (as a table)
 This is the table view of the tab-delimited file, shown here for clarity.
 
 | model         | useBX | k  | s  | nGen |
@@ -77,7 +77,7 @@ This is the table view of the tab-delimited file, shown here for clarity.
 | pseudoHaploid | TRUE  | 10 | 1  | 50   |
 | pseudoHaploid | TRUE  | 15 | 10 | 100  |
 +++
-===
+
 
 ### :icon-question: model
 ||| Which method to use
