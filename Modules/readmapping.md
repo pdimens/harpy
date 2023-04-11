@@ -88,11 +88,25 @@ These are taken directly from the [BWA documentation](https://bio-bwa.sourceforg
 ===
 
 ## :icon-filter: Quality filtering
-The `--quality` argument filters out alignments below a given `MQ` threshold. The default, `20`, keeps alignments
-that are at least 99% likely accurately mapped. Set this value to `1` if you only want alignments with
-MQ = 0 removed, or set it to `0` to keep all alignments. This plot shows the relationship
-between MQ score and alignment correctness and will serve to help you decide
-on a value you may want to use.
+Every alignment in a BAM file has an associated mapping quality ($MQ$) score that informs you of the likelihood 
+that the alignment is accurate. This score can range from 0-40, where higher numbers mean the alignment is more
+likely correct. The math governing the $MQ$ score actually calculates the percent chance the alignment is ***incorrect***: 
+$$
+\%\ chance\ incorrect = 10^\frac{-MQ}{10} \times 100\\
+\text{where }0\le MQ\le 40
+$$
+You can simply subtract it from 100 to determine the percent chance the alignment is ***correct***:
+$$
+\%\ chance\ correct = 100 - \%\ chance\ incorrect\\
+\text{or} \\
+\%\ chance\ correct = (1 - 10^\frac{-MQ}{10}) \times 100
+$$
+
+The `--quality` argument filters out alignments below a given $MQ$ threshold. The default, `20`, keeps alignments
+that are at least 99% likely accurately mapped (100 - 1% incorrect). Set this value to `1` if you only want alignments with
+$MQ = 0$ removed (100% likely incorrect). You may also set it to `0` to keep all alignments for diagnostic purposes.
+The plot below shows the relationship between $MQ$ score and the likelihood the alignment is wrong and will serve to help you decide
+on a value you may want to use. It is common to filter out alignments with $MQ <20$ (<99% chance correct) or $MQ <30$ (<99.9% chance correct).
 
 [!embed el="embed"](//plotly.com/~pdimens/7.embed)
 
