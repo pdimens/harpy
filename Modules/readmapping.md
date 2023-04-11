@@ -105,8 +105,8 @@ $$
 ===
 The `--quality` argument filters out alignments below a given $MQ$ threshold. The default, `20`, keeps alignments
 that are at least 99% likely correctly mapped. Set this value to `1` if you only want alignments removed with
-$MQ = 0$ (100% likely incorrect). You may also set it to `0` to keep all alignments for diagnostic purposes.
-The plot below shows the relationship between $MQ$ score and the likelihood the alignment is wrong and will serve to help you decide
+$MQ = 0$ (0% likely correct). You may also set it to `0` to keep all alignments for diagnostic purposes.
+The plot below shows the relationship between $MQ$ score and the likelihood the alignment is correct and will serve to help you decide
 on a value you may want to use. It is common to remove alignments with $MQ <20$ (<99% chance correct) or $MQ <30$ (<99.9% chance correct).
 
 [!embed el="embed"](//plotly.com/~pdimens/7.embed)
