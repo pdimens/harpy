@@ -16,9 +16,7 @@ order: 3
 After variants have been called, you may want to impute missing genotypes to get the
 most from your data. Harpy uses `STITCH` to impute genotypes, a haplotype-based
 method that is linked-read aware. Imputing genotypes requires a variant call file 
-**containing SNPs**, such as that produced by `harpy variants`. STITCH cannot impute
-genotypes with the variant call files produced by `LEVIATHAN`, as they do not contain SNPs.
-You can impute genotypes with Harpy using the `impute` module:
+**containing SNPs**, such as that produced by `harpy variants`. You can impute genotypes with Harpy using the `impute` module:
 ```bash usage
 harpy impute OPTIONS...
 ```
@@ -27,6 +25,10 @@ harpy impute OPTIONS...
 harpy extra -s stitch.params  # create stitch parameter file 'stitch.params'
 harpy impute --threads 20 --vcf Variants/variants.raw.bcf --dir Alignments/ema --parameters stitch.params
 ```
+!!!danger SNPs only
+STITCH requires biallelic SNPs and therefore cannot impute genotypes with the variant call files produced by `LEVIATHAN`, as they do not contain SNPs. Don't worry about
+isolating biallelic SNPs, Harpy will do that for you ✨✨
+!!!
 
 ## :icon-terminal: Running Options
 | argument       | short name | type        |    default    | required | description                                                            |

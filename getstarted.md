@@ -17,7 +17,7 @@ At the minimum, you will need:
 @A00470:481:HNYFWDRX2:1:2101:16062:1031 BX:Z:A62C38B38D69 1:N:0:TATCAGTA+TTACTACT
 ```
 ==- 2. A reference genome, in FASTA format
-A plain haploid genome assembly in uncompressed FASTA format, where contigs names begin with `>` like the standard format.
+A plain haploid genome assembly in uncompressed FASTA format.
 ===
 
 ## Adding additional Snakamake parameters
@@ -30,12 +30,13 @@ This means you can add several Snakemake arguments at once, as long as the entir
 harpy trim -d rawseq -s "--dry-run --debug --shadow-prefix /scratch"
 ```
 
-### Reserved arguments
-Harpy calls Snakemake using specific arguments, meaning you cannot append these again to the internal command line call. Well, you can, but Snakemake will error and exit. [Everything else](https://snakemake.readthedocs.io/en/stable/executing/cli.html#all-options) is allowed. The reserved (**forbidden**) arguments are:
+!!!danger reserved/forbidden arguments
+Harpy calls Snakemake with a given set of arguments, meaning you cannot append these again to the internal command line call. Well, you can, but Snakemake will error and exit. [Everything else](https://snakemake.readthedocs.io/en/stable/executing/cli.html#all-options) is allowed. The reserved (**forbidden**) arguments are:
 - `--directory`
 - `--cores`
 - `--snakefile`
 - `--config`
+!!!
 
 ### Use cases
 You likely wont need to invoke `--snakemake` very often, if ever. However, here are common use cases for this parameter.
