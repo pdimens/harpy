@@ -131,7 +131,7 @@ rule sort_ema:
         quality = config["quality"]
     threads: 1
     shell: 
-        "samtools view -bSq {params.quality} {input.sam} | samtools sort -@ {threads} --reference {input.genome} -O bam -l 0 -m 4G -o {output} -"
+        "samtools view -bhq {params.quality} {input.sam} | samtools sort -@ {threads} --reference {input.genome} -O bam -l 0 -m 4G -o {output} -"
 
 rule sort_nobarcode:
     input: 
@@ -146,7 +146,7 @@ rule sort_nobarcode:
         quality = config["quality"]
     threads: 2
     shell:
-        "samtools view -bSq {params.quality} {input.sam} | samtools sort -@ 1 -O bam -l 0 -m 4G --reference {input.genome} -o {output} -"    
+        "samtools view -bhq {params.quality} -F 4 {input.sam} | samtools sort -@ 1 -O bam -l 0 -m 4G --reference {input.genome} -o {output} -"    
 
 rule markduplicates:
     input: "Alignments/ema/align/{sample}/{sample}.nobarcode.bam.tmp"
