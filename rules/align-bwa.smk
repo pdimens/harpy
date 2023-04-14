@@ -49,7 +49,7 @@ rule align_bwa:
 	benchmark: "Benchmark/Mapping/bwa/align.{sample}.txt"
 	params: 
 		extra = extra
-	threads: 3
+	threads: 2
 	shell:
 		"bwa mem -C -t {threads} {params} -M -R \"@RG\\tID:{wildcards.sample}\\tSM:{wildcards.sample}\" {input.genome} {input.forward_reads} {input.reverse_reads} > {output} 2> {log}"
 
@@ -66,7 +66,7 @@ rule sort_alignments:
 		quality = config["quality"]
 	threads: 2
 	shell:
-		"samtools view -bSq {params.quality} {input.sam} | samtools sort --threads 1 --reference {input.asm} -O bam -l 0 -m 4G -o {output} -"
+		"samtools view -bShq {params.quality} {input.sam} | samtools sort --threads 1 --reference {input.asm} -O bam -l 0 -m 4G -o {output} -"
 
 rule mark_duplicates:
 	input: "Alignments/bwa/{sample}.sort.bam"

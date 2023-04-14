@@ -261,11 +261,9 @@ rule sort_merge:
     wildcard_constraints:
         sample = "[a-zA-Z0-9_-]*"
     threads: 2
-    params:
-        quality = config["quality"]
     priority: 1
     shell:
-        "samtools sort -@ {threads} -O bam --reference {input.genome} -l 0 -m 4G -o {output} {input.bam} 2> /dev/null"
+        "samtools sort -@ 1 -O bam --reference {input.genome} -l 0 -m 4G -o {output} {input.bam} 2> /dev/null"
 
 rule genome_coverage:
     input:
@@ -303,7 +301,6 @@ rule gencovAll_report:
         "Summarizing alignment coverage: {wildcards.sample}"
     script:
         "../utilities/reportGencov.Rmd"
-
 
 rule index_alignments:
     input: "Alignments/ema/{sample}.bam"
