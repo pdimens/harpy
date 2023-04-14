@@ -27,14 +27,12 @@ rule trimFastp:
 		"fastp --trim_poly_g --cut_right --detect_adapter_for_pe {params} --thread {threads} -i {input.fw} -I {input.rv} -o {output.fw} -O {output.rv} -h {log.html} -j {output.json} 2> {log.serr}"
 
 rule createReport:
-	input: expand("Trimming/logs/json/{sample}.fastp.json", sample = samplenames)
+	input: 
+		json = expand("Trimming/logs/json/{sample}.fastp.json", sample = samplenames),
+		fr = expand("Trimming/{sample}.R1.fq.gz", sample = samplenamaes),
+		rv = expand("Trimming/{sample}.R2.fq.gz", sample = samplenamaes)
 	output: "Trimming/logs/trim.report.html"
+	default_target: True
+	message: "Sequencing quality filtering and trimming is complete!"
 	shell: 
 		"multiqc Trimming/logs/json -m fastp --force --filename {output} --quiet --no-data-dir 2>/dev/null"
-
-rule trimCheck:
-	input: 
-		expand("Trimming/{sample}{ext}", sample = samplenames, ext = [".R1.fq.gz", ".R2.fq.gz"]),
-		"Trimming/logs/trim.report.html"
-	default_target: True
-	message: "Trimming is complete!"
