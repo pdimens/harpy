@@ -42,7 +42,9 @@ rule align:
 		reverse_reads = seq_dir + "/{sample}" + f".{Rsep[1]}.{fqext}",
 		genome = f"Assembly/{genomefile}",
 		genome_idx = multiext(f"Assembly/{genomefile}", ".ann", ".bwt", ".fai", ".pac", ".sa", ".amb")
-	output:  "Alignments/bwa/{sample}.sort.bam"
+	output:  
+		bam = "Alignments/bwa/{sample}.sort.bam",
+		tmpdir = temp(dir("Alignments/bwa/{sample}"))
 	log: "Alignments/bwa/logs/{sample}.log"
 	message: "Mapping onto {input.genome}: {wildcards.sample}"
 	wildcard_constraints:
@@ -54,9 +56,10 @@ rule align:
 	threads: 8
 	shell:
 		"""
+		mkdir -p Alignments/bwa/{wildcards.sample}
 		BWA_THREADS=$(( {threads} - 1 ))
 		bwa mem -C -t $BWA_THREADS {params} -M -v 1 -R \"@RG\\tID:{wildcards.sample}\\tSM:{wildcards.sample}\" {input.genome} {input.forward_reads} {input.reverse_reads} 2> {log} |
-		samtools sort --threads 1 --reference {input.genome} -O bam -m 4G -o {output} -
+		samtools sort --threads 1 -T Alignments/bwa/{wildcards.sample} --reference {input.genome} -O bam -m 4G -o {output.bam} -
 		"""
 
 #rule sort_alignments:
