@@ -131,7 +131,9 @@ rule sort_ema:
         quality = config["quality"]
     threads: 1
     shell: 
-        "samtools view -bhq {params.quality} {input.sam} | samtools sort -@ {threads} --reference {input.genome} -O bam -l 0 -m 4G -o {output} -"
+        """
+        sambamba view -f bam -h -F "mapping_quality >= {params.quality}" {input.sam} | samtools sort -@ {threads} --reference {input.genome} -O bam -l 0 -m 4G -o {output} -
+        """
 
 rule sort_nobarcode:
     input: 
@@ -166,7 +168,7 @@ rule markduplicates:
     threads: 2
     shell:
         """
-        sambamba markdup -t {threads} {input} {output.bam} 2> {log.mdlog}
+        sambamba markdup -t {threads} -l 4 {input} {output.bam} 2> {log.mdlog}
         samtools stats {output.bam} > {log.stats}
         samtools flagstat {output.bam} > {log.flagstat}
         """   
@@ -183,7 +185,7 @@ rule merge_barcoded:
     benchmark: "Benchmark/Mapping/ema/merge.{sample}.txt"
     threads: 10
     shell:
-        "sambamba merge -t {threads} {output.bam} {input}"
+        "sambamba merge -t {threads} -l 4 {output.bam} {input}"
 
 rule bcstats:
     input: 

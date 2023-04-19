@@ -80,11 +80,9 @@ rule mark_duplicates:
 	wildcard_constraints:
 		sample = "[a-zA-Z0-9_-]*"
 	benchmark: "Benchmark/Mapping/bwa/markdup.{sample}.txt"
-	params:
-		rootname = "Alignments/bwa/{sample}"
 	threads: 4
 	shell:
-		"sambamba markdup -t {threads} {input} {output.bam} 2> {log}"
+		"sambamba markdup -t {threads} -l 4 {input} {output.bam} 2> {log}"
 
 rule genome_coverage:
 	input: "Alignments/bwa/{sample}.bam"
