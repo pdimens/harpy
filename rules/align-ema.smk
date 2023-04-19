@@ -104,7 +104,8 @@ rule align_ema:
         """
         EMATHREADS=$(( {threads} - 2 ))
         ema-h align -t $EMATHREADS {params.extra} -d -p haptag -r {input.genome} -R \"@RG\\tID:{wildcards.sample}\\tSM:{wildcards.sample}\" -s {input.readbin} 2> /dev/null |
-        samtools view -h -F 4 -q {params.quality} - | samtools sort --reference {input.genome} -O bam -m 4G -o {output} -
+        samtools view -h -F 4 -q {params.quality} - | 
+        samtools sort --reference {input.genome} -O bam -m 4G -o {output} - 2> /dev/null
         """
 
 rule align_nobarcode:
@@ -125,7 +126,7 @@ rule align_nobarcode:
         """
         BWATHREADS=$(( {threads} - 1 ))
         bwa mem -t $BWATHREADS -T {params.quality} -C -M -R \"@RG\\tID:{wildcards.sample}\\tSM:{wildcards.sample}\" {input.genome} {input.reads} 2> /dev/null |
-        samtools sort -O bam -m 4G --reference {input.genome} -o {output} -
+        samtools sort -O bam -m 4G --reference {input.genome} -o {output} - 2> /dev/null
         """
 
 #rule sort_ema:

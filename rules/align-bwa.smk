@@ -6,7 +6,6 @@ Rsep = config["Rsep"]
 fqext = config["fqext"]
 samplenames = config["samplenames"]
 extra = config.get("extra", "") 
-mapqual = config["quality"]
 
 bn = os.path.basename(genomefile)
 shell("mkdir -p Assembly")
@@ -51,15 +50,16 @@ rule align:
 		sample = "[a-zA-Z0-9_-]*"
 	benchmark: "Benchmark/Mapping/bwa/align.{sample}.txt"
 	params: 
-		quality = f"-T {mapqual}",
+		quality = config["quality"],
 		extra = extra
 	threads: 8
 	shell:
 		"""
 		mkdir -p Alignments/bwa/{wildcards.sample}
-		BWA_THREADS=$(( {threads} - 1 ))
-		bwa mem -C -t $BWA_THREADS {params} -M -v 1 -R \"@RG\\tID:{wildcards.sample}\\tSM:{wildcards.sample}\" {input.genome} {input.forward_reads} {input.reverse_reads} 2> {log} |
-		samtools sort --threads 1 -T Alignments/bwa/{wildcards.sample} --reference {input.genome} -O bam -m 4G -o {output.bam} -
+		BWA_THREADS=$(( {threads} - 2 ))
+		bwa mem -C -t $BWA_THREADS {params.extra} -M -v 1 -R \"@RG\\tID:{wildcards.sample}\\tSM:{wildcards.sample}\" {input.genome} {input.forward_reads} {input.reverse_reads} 2> {log} |
+		samtools view -h -F 4 -q {params.quality} - | 
+		samtools sort -T Alignments/bwa/{wildcards.sample} --reference {input.genome} -O bam -m 4G -o {output.bam} -
 		"""
 
 #rule sort_alignments:
