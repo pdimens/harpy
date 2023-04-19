@@ -36,13 +36,13 @@ rule index_genome:
 		samtools faidx --fai-idx {output.asm}.fai {output.asm} 2>> {log}
 		"""
 
-rule align_bwa:
+rule align:
 	input:
 		forward_reads = seq_dir + "/{sample}" + f".{Rsep[0]}.{fqext}",
 		reverse_reads = seq_dir + "/{sample}" + f".{Rsep[1]}.{fqext}",
 		genome = f"Assembly/{genomefile}",
 		genome_idx = multiext(f"Assembly/{genomefile}", ".ann", ".bwt", ".fai", ".pac", ".sa", ".amb")
-	output:  pipe("Alignments/bwa/{sample}.sam")
+	output:  "Alignments/bwa/{sample}.sort.bam"
 	log: "Alignments/bwa/logs/{sample}.log"
 	message: "Mapping onto {input.genome}: {wildcards.sample}"
 	wildcard_constraints:
@@ -51,24 +51,28 @@ rule align_bwa:
 	params: 
 		quality = f"-T {mapqual}",
 		extra = extra
-	threads: 2
+	threads: 8
 	shell:
-		"bwa mem -C -t {threads} {params} -M -v 1 -R \"@RG\\tID:{wildcards.sample}\\tSM:{wildcards.sample}\" {input.genome} {input.forward_reads} {input.reverse_reads} > {output} 2> {log}"
+		"""
+		BWA_THREADS=$(( {threads} - 1 ))
+		bwa mem -C -t $BWA_THREADS {params} -M -v 1 -R \"@RG\\tID:{wildcards.sample}\\tSM:{wildcards.sample}\" {input.genome} {input.forward_reads} {input.reverse_reads} 2> {log} |
+		samtools sort --threads 1 --reference {input.asm} -O bam -m 4G -o {output} -
+		"""
 
-rule sort_alignments:
-	input: 
-		sam = "Alignments/bwa/{sample}.sam",
-		asm = f"Assembly/{genomefile}"
-	output: temp("Alignments/bwa/{sample}.sort.bam")
-	wildcard_constraints:
-		sample = "[a-zA-Z0-9_-]*"
-	message: "Sorting {wildcards.sample} alignments"
-	benchmark: "Benchmark/Mapping/bwa/sort.{sample}.txt"
-	threads: 2
-	shell:
-		"""
-		samtools sort --threads {threads} --reference {input.asm} -O bam -m 4G -o {output} {input.sam}
-		"""
+#rule sort_alignments:
+#	input: 
+#		sam = "Alignments/bwa/{sample}.sam",
+#		asm = f"Assembly/{genomefile}"
+#	output: temp("Alignments/bwa/{sample}.sort.bam")
+#	wildcard_constraints:
+#		sample = "[a-zA-Z0-9_-]*"
+#	message: "Sorting {wildcards.sample} alignments"
+#	benchmark: "Benchmark/Mapping/bwa/sort.{sample}.txt"
+#	threads: 2
+#	shell:
+#		"""
+#		samtools sort --threads {threads} --reference {input.asm} -O bam -m 4G -o {output} {input.sam}
+#		"""
 
 rule mark_duplicates:
 	input: "Alignments/bwa/{sample}.sort.bam"
