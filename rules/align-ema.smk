@@ -91,16 +91,21 @@ rule align_ema:
         readbin = "Alignments/ema/preproc/{sample}/ema-bin-{bin}",
         genome = f"Assembly/{genomefile}",
         genome_idx = multiext(f"Assembly/{genomefile}", ".ann", ".bwt", ".fai", ".pac", ".sa", ".amb")
-    output: pipe("Alignments/ema/align/{sample}/{sample}.{bin}.sam")
+    output: temp("Alignments/ema/align/{sample}/{sample}.{bin}.bam")
     wildcard_constraints:
         sample = "[a-zA-Z0-9_-]*"
-    message: "Mapping onto {input.genome}: {wildcards.sample}-{wildcards.bin}"
+    message: "Aligning barcoded sequences: {wildcards.sample}-{wildcards.bin}"
     benchmark: "Benchmark/Mapping/ema/Align.{sample}.{bin}.txt"
     params: 
+        quality = config["quality"],
         extra = extra
-    threads: 3
+    threads: 8
     shell:
-        "ema-h align -t {threads} {params} -d -p haptag -r {input.genome} -o {output} -R \"@RG\\tID:{wildcards.sample}\\tSM:{wildcards.sample}\" -s {input.readbin} 2> /dev/null"
+        """
+        EMATHREADS=$(( {threads} - 2 ))
+        ema-h align -t $EMATHREADS {params.extra} -d -p haptag -r {input.genome} -R \"@RG\\tID:{wildcards.sample}\\tSM:{wildcards.sample}\" -s {input.readbin} 2> /dev/null |
+        samtools view -h -F 4 -q {params.quality} - | samtools sort --reference {input.genome} -O bam -m 4G -o {output} -
+        """
 
 rule align_nobarcode:
     input:
@@ -108,49 +113,55 @@ rule align_nobarcode:
         genome = f"Assembly/{genomefile}",
         genome_idx = multiext(f"Assembly/{genomefile}", ".ann", ".bwt", ".fai", ".pac", ".sa", ".amb")
     output: 
-        samfile = pipe("Alignments/ema/align/{sample}/{sample}.nobarcode.sam")
+        samfile = temp("Alignments/ema/align/{sample}/{sample}.nobarcode.bam.tmp")
     benchmark: "Benchmark/Mapping/ema/bwaAlign.{sample}.txt"
     wildcard_constraints:
         sample = "[a-zA-Z0-9_-]*"
-    message: "Mapping unbarcoded reads onto {input.genome}: {wildcards.sample}"
-    threads: 2
-    shell:
-        "bwa mem -t {threads} -C -M -R \"@RG\\tID:{wildcards.sample}\\tSM:{wildcards.sample}\" {input.genome} {input.reads} > {output} 2> /dev/null"
-
-rule sort_ema:
-    input: 
-        sam = "Alignments/ema/align/{sample}/{sample}.{emabin}.sam",
-        genome = f"Assembly/{genomefile}"
-    output: temp("Alignments/ema/align/{sample}/{sample}.{emabin}.bam")
-    wildcard_constraints:
-        sample = "[a-zA-Z0-9_-]*",
-        emabin = "[0-9]*"
-    message: "Sorting alignments: {wildcards.sample}-{wildcards.emabin}"
-    benchmark: "Benchmark/Mapping/ema/Sort.{sample}.{emabin}.txt"
     params:
         quality = config["quality"]
-    threads: 1
-    shell: 
-        """
-        sambamba view -f bam -h -F "mapping_quality >= {params.quality}" {input.sam} | samtools sort -@ {threads} --reference {input.genome} -O bam -l 0 -m 4G -o {output} -
-        """
-
-rule sort_nobarcode:
-    input: 
-        sam = "Alignments/ema/align/{sample}/{sample}.nobarcode.sam",
-        genome = f"Assembly/{genomefile}"
-    output: temp("Alignments/ema/align/{sample}/{sample}.nobarcode.bam.tmp")
-    wildcard_constraints:
-        sample = "[a-zA-Z0-9_-]*"
-    message: "Sorting unbarcoded alignments: {wildcards.sample}"
-    benchmark: "Benchmark/Mapping/ema/bwaSort.{sample}.txt"
-    params:
-        quality = config["quality"]
-    threads: 2
+    message: "Aligning unbarcoded sequences: {wildcards.sample}"
+    threads: 8
     shell:
         """
-        sambamba view -f bam -h -F "mapping_quality >= {params.quality}" {input.sam} | samtools sort -@ 1 -O bam -m 4G --reference {input.genome} -o {output} -
-        """    
+        BWATHREADS=$(( {threads} - 1 ))
+        bwa mem -t $BWATHREADS -T {params.quality} -C -M -R \"@RG\\tID:{wildcards.sample}\\tSM:{wildcards.sample}\" {input.genome} {input.reads} 2> /dev/null |
+        samtools sort -O bam -m 4G --reference {input.genome} -o {output} {input.sam}
+        """
+
+#rule sort_ema:
+#    input: 
+#        sam = "Alignments/ema/align/{sample}/{sample}.{emabin}.sam",
+#        genome = f"Assembly/{genomefile}"
+#    output: temp("Alignments/ema/align/{sample}/{sample}.{emabin}.bam")
+#    wildcard_constraints:
+#        sample = "[a-zA-Z0-9_-]*",
+#        emabin = "[0-9]*"
+#    message: "Sorting alignments: {wildcards.sample}-{wildcards.emabin}"
+#    benchmark: "Benchmark/Mapping/ema/Sort.{sample}.{emabin}.txt"
+#    params:
+#        quality = config["quality"]
+#    threads: 2
+#    shell: 
+#        """
+#        samtools view -h -F 4 -q {params.quality} {input.sam} | samtools sort --reference {input.genome} -O bam -m 4G -o {output} -
+#        """
+
+#rule sort_nobarcode:
+#    input: 
+#        sam = "Alignments/ema/align/{sample}/{sample}.nobarcode.sam",
+#        genome = f"Assembly/{genomefile}"
+#    output: temp("Alignments/ema/align/{sample}/{sample}.nobarcode.bam.tmp")
+#    wildcard_constraints:
+#        sample = "[a-zA-Z0-9_-]*"
+#    message: "Sorting unbarcoded alignments: {wildcards.sample}"
+#    benchmark: "Benchmark/Mapping/ema/bwaSort.{sample}.txt"
+#    params:
+#        quality = config["quality"]
+#    threads: 2
+#    shell:
+#        """
+#        samtools sort -@ {threads} -O bam -m 4G --reference {input.genome} -o {output} {input.sam}
+#        """    
 
 rule markduplicates:
     input: "Alignments/ema/align/{sample}/{sample}.nobarcode.bam.tmp"
