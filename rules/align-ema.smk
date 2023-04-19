@@ -125,7 +125,7 @@ rule align_nobarcode:
         """
         BWATHREADS=$(( {threads} - 1 ))
         bwa mem -t $BWATHREADS -T {params.quality} -C -M -R \"@RG\\tID:{wildcards.sample}\\tSM:{wildcards.sample}\" {input.genome} {input.reads} 2> /dev/null |
-        samtools sort -O bam -m 4G --reference {input.genome} -o {output} {input.sam}
+        samtools sort -O bam -m 4G --reference {input.genome} -o {output} -
         """
 
 #rule sort_ema:
@@ -278,7 +278,7 @@ rule sort_merge:
     threads: 2
     priority: 1
     shell:
-        "samtools sort -@ 1 -O bam --reference {input.genome} -l 0 -m 4G -o {output} {input.bam} 2> /dev/null"
+        "samtools sort -@ {threads} -O bam --reference {input.genome} -m 4G -o {output} {input.bam} 2> /dev/null"
 
 rule genome_coverage:
     input:
