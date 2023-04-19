@@ -43,8 +43,8 @@ rule align:
 		genome = f"Assembly/{genomefile}",
 		genome_idx = multiext(f"Assembly/{genomefile}", ".ann", ".bwt", ".fai", ".pac", ".sa", ".amb")
 	output:  
-		bam = "Alignments/bwa/{sample}.sort.bam",
-		tmpdir = temp(dir("Alignments/bwa/{sample}"))
+		bam = temp("Alignments/bwa/{sample}.sort.bam"),
+		tmpdir = temp(directory("Alignments/bwa/{sample}"))
 	log: "Alignments/bwa/logs/{sample}.log"
 	message: "Mapping onto {input.genome}: {wildcards.sample}"
 	wildcard_constraints:
