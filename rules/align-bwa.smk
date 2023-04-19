@@ -46,7 +46,7 @@ rule align:
 		bam = temp("Alignments/bwa/{sample}.sort.bam"),
 		tmpdir = temp(directory("Alignments/bwa/{sample}"))
 	log: "Alignments/bwa/logs/{sample}.log"
-	message: "Mapping onto {input.genome}: {wildcards.sample}"
+	message: "Aligning sequences: {wildcards.sample}"
 	wildcard_constraints:
 		sample = "[a-zA-Z0-9_-]*"
 	benchmark: "Benchmark/Mapping/bwa/align.{sample}.txt"
