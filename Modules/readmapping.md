@@ -50,9 +50,9 @@ harpy align --bwa --genome genome.fasta --dir Sequences/
 | `--genome`         |    `-g`    | file path        |         | **yes**  | Genome assembly for read mapping                                                                                |
 | `--dir`            |    `-d`    | folder path      |         | **yes**  | Directory with sample sequences                                                                                 |
 | `--ema-bins`       |    `-e`    | integer (1-1000) |   500   |    no    | Number of barcode bins for EMA                                                                                  |
-| `--quality-filter` |    `-q`    | integer (0-40)   |    20   |    no    | Minimum `MQ` (SAM mapping quality) to pass filtering                                                            |
+| `--quality-filter` |    `-q`    | integer (0-40)   |    30   |    no    | Minimum `MQ` (SAM mapping quality) to pass filtering                                                            |
 | `--bwa`            |    `-b`    | toggle           |         |    no    | Use BWA MEM instead of EMA                                                                                      |
-| `--extra-params`   |    `-x`    | string           |         |    no    | Additional EMA-align/BWA arguments , in quotes                                                                  |
+| `--extra-params`   |    `-x`    | string           |         |    no    | Additional EMA-align/BWA arguments, in quotes                                                                  |
 | `--threads`        |    `-t`    | integer          |    4    |    no    | Number of threads to use                                                                                        |
 | `--snakemake`      |    `-s`    | string           |         |    no    | Additional Snakemake options, in quotes ([more info](../getstarted.md/#adding-additional-snakamake-parameters)) |
 | `--help`           |            |                  |         |          | Show the module docstring                                                                                       |
