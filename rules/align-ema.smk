@@ -146,7 +146,9 @@ rule sort_nobarcode:
         quality = config["quality"]
     threads: 2
     shell:
-        "samtools view -bhq {params.quality} -F 4 {input.sam} | samtools sort -@ 1 -O bam -l 0 -m 4G --reference {input.genome} -o {output} -"    
+        """
+        sambamba view -f bam -h -F "mapping_quality >= {params.quality}" {input.sam} | samtools sort -@ 1 -O bam -m 4G --reference {input.genome} -o {output} -
+        """    
 
 rule markduplicates:
     input: "Alignments/ema/align/{sample}/{sample}.nobarcode.bam.tmp"
@@ -164,7 +166,7 @@ rule markduplicates:
     threads: 2
     shell:
         """
-        sambamba markdup -t {threads} -l 0 {input} {output.bam} 2> {log.mdlog}
+        sambamba markdup -t {threads} {input} {output.bam} 2> {log.mdlog}
         samtools stats {output.bam} > {log.stats}
         samtools flagstat {output.bam} > {log.flagstat}
         """   
