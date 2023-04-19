@@ -56,7 +56,7 @@ rule align:
 		"""
 		BWA_THREADS=$(( {threads} - 1 ))
 		bwa mem -C -t $BWA_THREADS {params} -M -v 1 -R \"@RG\\tID:{wildcards.sample}\\tSM:{wildcards.sample}\" {input.genome} {input.forward_reads} {input.reverse_reads} 2> {log} |
-		samtools sort --threads 1 --reference {input.asm} -O bam -m 4G -o {output} -
+		samtools sort --threads 1 --reference {input.genome} -O bam -m 4G -o {output} -
 		"""
 
 #rule sort_alignments:
