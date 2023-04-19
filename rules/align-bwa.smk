@@ -6,6 +6,7 @@ Rsep = config["Rsep"]
 fqext = config["fqext"]
 samplenames = config["samplenames"]
 extra = config.get("extra", "") 
+mapqual = config["quality"]
 
 bn = os.path.basename(genomefile)
 shell("mkdir -p Assembly")
@@ -48,6 +49,7 @@ rule align_bwa:
 		sample = "[a-zA-Z0-9_-]*"
 	benchmark: "Benchmark/Mapping/bwa/align.{sample}.txt"
 	params: 
+		quality = f"-T {mapqual}",
 		extra = extra
 	threads: 2
 	shell:
@@ -62,12 +64,10 @@ rule sort_alignments:
 		sample = "[a-zA-Z0-9_-]*"
 	message: "Sorting {wildcards.sample} alignments"
 	benchmark: "Benchmark/Mapping/bwa/sort.{sample}.txt"
-	params:
-		quality = config["quality"]
 	threads: 2
 	shell:
 		"""
-		sambamba view -f bam -h -F "mapping_quality >= {params.quality}" {input.sam} | samtools sort --threads 1 --reference {input.asm} -O bam -m 4G -o {output} -
+		samtools sort --threads {threads} --reference {input.asm} -O bam -m 4G -o {output} {input.sam}
 		"""
 
 rule mark_duplicates:
