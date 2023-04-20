@@ -9,6 +9,10 @@ Before you start using Harpy for your haplotagging data processing, you will nee
 At the minimum, you will need:
 
 ==- 1. Haplotagging sequences, in b/gzipped FASTQ format
+- file names must not have any wierd special characters or dot (`.`) separators in the sample name
+    - legal: `sample_01_pop1.F.fq.gz`
+    - legal: `sample-01.F.fq.gz`
+    - **illegal**: `sample.01.pop1.F.fq.gz`
 - the haplotagging sequences **must** have the barcode in the read headers. 
 - the barcode must be in the format `AXXCXXBXXDXX`, where `XX` is a number between `00` and `96`
     - `00` indicates a missing/invalid barcode segment
