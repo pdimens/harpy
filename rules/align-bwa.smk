@@ -59,7 +59,7 @@ rule align:
 		BWA_THREADS=$(( {threads} - 2 ))
 		bwa mem -C -t $BWA_THREADS {params.extra} -M -R \"@RG\\tID:{wildcards.sample}\\tSM:{wildcards.sample}\" {input.genome} {input.forward_reads} {input.reverse_reads} 2> {log} |
 		samtools view -h -F 4 -q {params.quality} - | 
-		samtools sort -T Alignments/bwa/{wildcards.sample} --reference {input.genome} -O bam -m 4G -o {output.bam} -
+		samtools sort -T Alignments/bwa/{wildcards.sample} --reference {input.genome} -O bam -m 4G -o {output.bam} - 2> /dev/null
 		"""
 
 #rule sort_alignments:

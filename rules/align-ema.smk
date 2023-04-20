@@ -190,7 +190,7 @@ rule merge_barcoded:
     input:
         aln_barcoded = expand("Alignments/ema/align/{{sample}}/{{sample}}.{bin}.bam", bin = ["%03d" % i for i in range(nbins)]),
     output: 
-        bam = "Alignments/ema/align/barcoded/{sample}.barcoded.bam",
+        bam = temp("Alignments/ema/align/barcoded/{sample}.barcoded.bam"),
         bai = temp("Alignments/ema/align/barcoded/{sample}.barcoded.bam.bai")
     wildcard_constraints:
         sample = "[a-zA-Z0-9_-]*"
