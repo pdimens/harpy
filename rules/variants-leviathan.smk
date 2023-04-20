@@ -27,7 +27,7 @@ rule index_barcode:
     benchmark: "Benchmark/Variants/leviathan/indexbc.{sample}.txt"
     threads: 4
     shell:
-        "LRez index bam -p -b {input.bam} -o {output} --threads {threads}"
+        "LRez index bam --threads {threads} -p -b {input.bam} -o {output}"
 
 rule index_genome:
     input: genomefile
