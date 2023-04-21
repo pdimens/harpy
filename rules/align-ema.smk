@@ -126,8 +126,8 @@ rule align_nobarcode:
         """
         BWATHREADS=$(( {threads} - 2 ))
         bwa mem -t $BWATHREADS -C -M -R \"@RG\\tID:{wildcards.sample}\\tSM:{wildcards.sample}\" {input.genome} {input.reads} 2> /dev/null |
-        samtools view -h -F 4 -q {params.quality} - | 
-        samtools sort -O bam -m 4G --reference {input.genome} -o {output} - 2> /dev/null
+        samtools view -h -F 4 -q {params.quality} | 
+        samtools sort -O bam -m 4G --reference {input.genome} -o {output} 2> /dev/null
         """
 
 #rule sort_ema:

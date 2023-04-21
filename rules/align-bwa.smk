@@ -89,7 +89,7 @@ rule mark_duplicates:
 	benchmark: "Benchmark/Mapping/bwa/markdup.{sample}.txt"
 	threads: 4
 	shell:
-		"sambamba markdup -t {threads} -l 4 {input} {output.bam} 2> {log}"
+		"sambamba markdup -t {threads} -l 0 {input} {output.bam} 2> {log}"
 
 rule genome_coverage:
 	input: "Alignments/bwa/{sample}.bam"
