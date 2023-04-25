@@ -20,13 +20,14 @@ library(tidyr)
 ```{r echo = FALSE, message = FALSE, warning = FALSE}
 covfile <- snakemake@input[["gencov"]]
 # covfile <- "~/ShadHap1_C01.gencov"
+gencov <- read.table(covfile, header = F)
 if (ncol(gencov) == 5) {
   mult <- FALSE
-  gencov <- read.table(covfile, header = F)[, c(1,2,3,5)]
+  gencov <- gencov[, c(1,2,3,5)]
   colnames(gencov) <- c("contig", "start", "end", "alignments")
 } else {
   mult <- TRUE
-  gencov <- read.table(covfile, header = F)[, c(1,2,3,6,7)]
+  gencov <- gencov[, c(1,2,3,6,7)]
   colnames(gencov) <- c("contig", "start", "end", "all", "barcodeOnly")
   gencov$barcodeOnly <- gencov$barcodeOnly * -1
 }
