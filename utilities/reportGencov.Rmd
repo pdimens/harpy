@@ -39,10 +39,10 @@ contigs <- group_by(gencov, contig) %>%
 
 # limit the data to only the 30 largest contigs
 if (nrow(contigs) > 30){
-  pltheight <- 50
-  gencov <- filter(gencov, contig %in% contigs$contig[1:30])
+    pltheight <- 50
+    gencov <- filter(gencov, contig %in% contigs$contig[1:30])
 } else {
-   pltheight <- round(5 * (nrow(contigs)), digits = 0)
+    pltheight <- round(3 * (nrow(contigs)), digits = 0)
 }
 
 # pivot longer for generalized plotting
@@ -67,7 +67,7 @@ number of reads that had a proper alignment in the 10kb interval. "Proper" refer
 not marked as a duplicate or flagged with the SAM `UNMAP`, `SECONDARY`,  or `QCFAIL` flags.
 These values are derived by using `samtools bedcov -n`.
 
-```{r echo = FALSE, message = FALSE, warning = FALSE, fig.height=pltheight, out.width = "150%"}
+```{r echo = FALSE, message = FALSE, warning = FALSE, fig.height=pltheight, out.width = "100%"}
 if (mult) {
   ggplot(gencov, aes(xmin = start, xmax = end, ymin = 0, ymax = depth, color = alignment, fill = alignment)) +
     geom_rect() +
@@ -84,7 +84,7 @@ if (mult) {
     geom_rect(color = "#3f3f3f", fill = "#3f3f3f") +
     theme_minimal() +
     facet_wrap(~contig, ncol = 3, scales = "free_x") +
-    labs(x = "position (bp)", y = "depth", title = "Alignment Depth") +
+    labs(x = "position (bp)", y = "depth") +
     theme(panel.grid.major.x = element_blank(), panel.grid.minor.x = element_blank(), legend.position = "top") +
     guides(x = "none") -> p
 }
