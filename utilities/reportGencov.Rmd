@@ -39,10 +39,10 @@ contigs <- group_by(gencov, contig) %>%
 
 # limit the data to only the 30 largest contigs
 if (nrow(contigs) > 30){
-    pltheight <- 50
+    pltheight <- 42
     gencov <- filter(gencov, contig %in% contigs$contig[1:30])
 } else {
-    pltheight <- round(3 * (nrow(contigs)), digits = 0)
+    pltheight <- round(1.5 * (nrow(contigs)), digits = 0)
 }
 
 # pivot longer for generalized plotting
