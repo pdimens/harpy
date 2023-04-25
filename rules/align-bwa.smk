@@ -15,7 +15,8 @@ rule create_reports:
 		expand("Alignments/bwa/stats/coverage/{sample}.cov.html", sample = samplenames),
 		"Alignments/bwa/stats/samtools_stats/bwa.stats.html",
 		"Alignments/bwa/stats/samtools_flagstat/bwa.flagstat.html"
-	message: "Read mapping completed!"
+	message:
+		"Read mapping completed!"
 	default_target: True
 
 rule link_genome:
@@ -54,11 +55,14 @@ rule align:
 	output:  
 		bam = temp("Alignments/bwa/{sample}.sort.bam"),
 		tmpdir = temp(directory("Alignments/bwa/{sample}"))
-	log: "Alignments/bwa/logs/{sample}.log"
-	message: "Aligning sequences: {wildcards.sample}"
+	log:
+		"Alignments/bwa/logs/{sample}.log"
+	message:
+		"Aligning sequences: {wildcards.sample}"
 	wildcard_constraints:
 		sample = "[a-zA-Z0-9_-]*"
-	benchmark: "Benchmark/Mapping/bwa/align.{sample}.txt"
+	benchmark:
+		"Benchmark/Mapping/bwa/align.{sample}.txt"
 	params: 
 		quality = config["quality"],
 		extra = extra
@@ -88,15 +92,19 @@ rule align:
 #		"""
 
 rule mark_duplicates:
-	input: "Alignments/bwa/{sample}.sort.bam"
+	input:
+		"Alignments/bwa/{sample}.sort.bam"
 	output:
 		bam = "Alignments/bwa/{sample}.bam",
 		bai = "Alignments/bwa/{sample}.bam.bai"
-	log: "Alignments/bwa/logs/{sample}.markdup.log"
-	message: f"Marking duplicates: " + "{wildcards.sample}"
+	log:
+		"Alignments/bwa/logs/{sample}.markdup.log"
+	message:
+		f"Marking duplicates: " + "{wildcards.sample}"
 	wildcard_constraints:
 		sample = "[a-zA-Z0-9_-]*"
-	benchmark: "Benchmark/Mapping/bwa/markdup.{sample}.txt"
+	benchmark:
+		"Benchmark/Mapping/bwa/markdup.{sample}.txt"
 	threads: 4
 	shell:
 		"sambamba markdup -t {threads} -l 0 {input} {output.bam} 2> {log}"
@@ -105,8 +113,10 @@ rule alignment_coverage:
 	input: 
 		bed = f"Assembly/{bn}.bed",
 		bam = "Alignments/bwa/{sample}.bam"
-	output: "Alignments/bwa/stats/coverage/data/{sample}.cov.gz"
-	message: "Calculating genomic coverage: {wildcards.sample}"
+	output: 
+		"Alignments/bwa/stats/coverage/data/{sample}.cov.gz"
+	message:
+		"Calculating genomic coverage: {wildcards.sample}"
 	threads: 2
 	shell:
 		"samtools bedcov -c {input} | gzip > {output}"
@@ -130,8 +140,10 @@ rule alignment_stats:
 		flagstat = "Alignments/bwa/stats/samtools_flagstat/{sample}.flagstat"
 	wildcard_constraints:
 		sample = "[a-zA-Z0-9_-]*"
-	message: "Calculating alignment stats: {wildcards.sample}"
-	benchmark: "Benchmark/Mapping/bwa/stats.{sample}.txt"
+	message:
+		"Calculating alignment stats: {wildcards.sample}"
+	benchmark:
+		"Benchmark/Mapping/bwa/stats.{sample}.txt"
 	threads: 1
 	shell:
 		"""
@@ -145,7 +157,8 @@ rule samtools_reports:
 	output: 
 		stats =    "Alignments/bwa/stats/samtools_stats/bwa.stats.html",
 		flagstat = "Alignments/bwa/stats/samtools_flagstat/bwa.flagstat.html"
-	message: "Summarizing samtools stats and flagstats"
+	message:
+		"Summarizing samtools stats and flagstats"
 	shell:
 		"""
 		multiqc Alignments/bwa/stats/samtools_stats    --force --quiet --no-data-dir --filename {output.stats} 2> /dev/null

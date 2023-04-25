@@ -15,8 +15,10 @@ rule trimFastp:
 	log:
 		html = "Trimming/logs/html/{sample}.html",
 		serr = "Trimming/logs/err/{sample}.log"
-	benchmark: "Benchmark/Trimming/{sample}.txt"
-	message: "Removing adapters + quality trimming: {wildcards.sample}"
+	benchmark:
+		"Benchmark/Trimming/{sample}.txt"
+	message:
+		"Removing adapters + quality trimming: {wildcards.sample}"
 	wildcard_constraints: 
 		sample = "[a-zA-Z0-9_-]*"
 	threads: 2
@@ -31,8 +33,10 @@ rule createReport:
 		json = expand("Trimming/logs/json/{sample}.fastp.json", sample = samplenames),
 		fr = expand("Trimming/{sample}.R1.fq.gz", sample = samplenamaes),
 		rv = expand("Trimming/{sample}.R2.fq.gz", sample = samplenamaes)
-	output: "Trimming/logs/trim.report.html"
+	output:
+		"Trimming/logs/trim.report.html"
+	message:
+		"Sequencing quality filtering and trimming is complete!"
 	default_target: True
-	message: "Sequencing quality filtering and trimming is complete!"
 	shell: 
 		"multiqc Trimming/logs/json -m fastp --force --filename {output} --quiet --no-data-dir 2>/dev/null"
