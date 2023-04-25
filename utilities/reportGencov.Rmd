@@ -70,7 +70,7 @@ These values are derived by using `samtools bedcov -n`.
 ```{r echo = FALSE, message = FALSE, warning = FALSE, fig.height=pltheight, out.width = "100%"}
 if (mult) {
   ggplot(gencov, aes(xmin = start, xmax = end, ymin = 0, ymax = depth, color = alignment, fill = alignment)) +
-    geom_rect() +
+    geom_rect(alpha = 0.7) +
     theme_minimal() +
     facet_wrap(~contig, ncol = 2, scales = "free_x") +
     scale_color_manual(values = c("#3f3f3f", "dodgerblue")) +
@@ -81,7 +81,7 @@ if (mult) {
     guides(x = "none") -> p
 } else {
   ggplot(gencov, aes(xmin = start, xmax = end, ymin = 0, ymax = depth)) +
-    geom_rect(color = "#3f3f3f", fill = "#3f3f3f") +
+    geom_rect(alpha = 0.7, color = "#3f3f3f", fill = "#3f3f3f") +
     theme_minimal() +
     facet_wrap(~contig, ncol = 2, scales = "free_x") +
     labs(x = "position (bp)", y = "depth") +
