@@ -30,10 +30,10 @@ rule create_reports:
 rule index_genome:
     input: genomefile
     output: 
-        asm = f"Assembly/{genomefile}",
-        idx = multiext(f"Assembly/{genomefile}", ".ann", ".bwt", ".fai", ".pac", ".sa", ".amb")
+        asm = f"Assembly/{bn}",
+        idx = multiext(f"Assembly/{bn}", ".ann", ".bwt", ".fai", ".pac", ".sa", ".amb")
     message: "Indexing {input}"
-    log: f"Assembly/{genomefile}.idx.log"
+    log: f"Assembly/{bn}.idx.log"
     shell: 
         """
         ln -sr {input} {output.asm}
@@ -89,8 +89,8 @@ rule preprocess_ema:
 rule align_ema:
     input:
         readbin = "Alignments/ema/preproc/{sample}/ema-bin-{bin}",
-        genome = f"Assembly/{genomefile}",
-        genome_idx = multiext(f"Assembly/{genomefile}", ".ann", ".bwt", ".fai", ".pac", ".sa", ".amb")
+        genome = f"Assembly/{bn}",
+        genome_idx = multiext(f"Assembly/{bn}", ".ann", ".bwt", ".fai", ".pac", ".sa", ".amb")
     output: temp("Alignments/ema/align/{sample}/{sample}.{bin}.bam")
     wildcard_constraints:
         sample = "[a-zA-Z0-9_-]*"
@@ -111,8 +111,8 @@ rule align_ema:
 rule align_nobarcode:
     input:
         reads = "Alignments/ema/preproc/{sample}/ema-nobc",
-        genome = f"Assembly/{genomefile}",
-        genome_idx = multiext(f"Assembly/{genomefile}", ".ann", ".bwt", ".fai", ".pac", ".sa", ".amb")
+        genome = f"Assembly/{bn}",
+        genome_idx = multiext(f"Assembly/{bn}", ".ann", ".bwt", ".fai", ".pac", ".sa", ".amb")
     output: 
         samfile = temp("Alignments/ema/align/{sample}/{sample}.nobarcode.bam.tmp")
     benchmark: "Benchmark/Mapping/ema/bwaAlign.{sample}.txt"
@@ -272,7 +272,7 @@ rule merge_alignments:
 rule sort_merge:
     input:
         bam = "Alignments/ema/align/{sample}.unsort.bam",
-        genome = genomefile
+        genome = f"Assembly/{bn}"
     output: "Alignments/ema/{sample}.bam"
     message: "Sorting merged barcoded alignments: {wildcards.sample}"
     wildcard_constraints:
@@ -300,7 +300,7 @@ rule genome_coverage:
 rule gencovBX_report:
     input: 
         gencov = "Alignments/ema/stats/coverage/data/{sample}.bx.gencov.gz",
-        faidx = f"Assembly/{genomefile}.fai"
+        faidx = f"Assembly/{bn}.fai"
     output:
         "Alignments/ema/stats/coverage/{sample}.gencov.bx.html"
     message:
@@ -311,7 +311,7 @@ rule gencovBX_report:
 rule gencovAll_report:
     input:
         gencov = "Alignments/ema/stats/coverage/data/{sample}.all.gencov.gz",
-        faidx = f"Assembly/{genomefile}.fai"
+        faidx = f"Assembly/{bn}.fai"
     output:
         "Alignments/ema/stats/coverage/{sample}.gencov.all.html"
     message:

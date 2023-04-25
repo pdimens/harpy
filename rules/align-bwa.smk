@@ -24,10 +24,10 @@ rule create_reports:
 rule index_genome:
 	input: genomefile
 	output: 
-		asm = f"Assembly/{genomefile}",
-		idx = multiext(f"Assembly/{genomefile}", ".ann", ".bwt", ".fai", ".pac", ".sa", ".amb")
+		asm = f"Assembly/{bn}",
+		idx = multiext(f"Assembly/{bn}", ".ann", ".bwt", ".fai", ".pac", ".sa", ".amb")
 	message: "Indexing {input}"
-	log: f"Assembly/{genomefile}.idx.log"
+	log: f"Assembly/{bn}.idx.log"
 	shell: 
 		"""
 		ln -sr {input} {output.asm}
@@ -39,8 +39,8 @@ rule align:
 	input:
 		forward_reads = seq_dir + "/{sample}" + f".{Rsep[0]}.{fqext}",
 		reverse_reads = seq_dir + "/{sample}" + f".{Rsep[1]}.{fqext}",
-		genome = f"Assembly/{genomefile}",
-		genome_idx = multiext(f"Assembly/{genomefile}", ".ann", ".bwt", ".fai", ".pac", ".sa", ".amb")
+		genome = f"Assembly/{bn}",
+		genome_idx = multiext(f"Assembly/{bn}", ".ann", ".bwt", ".fai", ".pac", ".sa", ".amb")
 	output:  
 		bam = temp("Alignments/bwa/{sample}.sort.bam"),
 		tmpdir = temp(directory("Alignments/bwa/{sample}"))
