@@ -20,8 +20,10 @@ rule create_reports:
 		"Alignments/ema/stats/reads.bxstats.html",
 		"Alignments/ema/stats/samtools_stats/alignment.stats.html",
 		"Alignments/ema/stats/samtools_flagstat/alignment.flagstat.html"
-	message: "Read mapping completed!"
-	benchmark: "Benchmark/Mapping/ema/report.txt"
+	message:
+		"Read mapping completed!"
+	benchmark:
+		"Benchmark/Mapping/ema/report.txt"
 	default_target: True
 
 rule link_genome:
@@ -48,7 +50,7 @@ rule index_genome:
 		"""
 		bwa index {input} 2> {log}
 		samtools faidx --fai-idx {input}.fai {input} 2>> {log}
-		../utilities/makewindows.py -i {input}.fai -w 10000 -o {input}.bed
+		utilities/makewindows.py -i {input}.fai -w 10000 -o {input}.bed
 		"""
 
 rule count_beadtags:
@@ -60,8 +62,10 @@ rule count_beadtags:
 		logs = temp("Alignments/ema/count/logs/{sample}.count.log")
 	wildcard_constraints:
 		sample = "[a-zA-Z0-9_-]*"
-	message: "Counting barcode frequency: {wildcards.sample}"
-	benchmark: "Benchmark/Mapping/ema/Count.{sample}.txt"
+	message:
+		"Counting barcode frequency: {wildcards.sample}"
+	benchmark:
+		"Benchmark/Mapping/ema/Count.{sample}.txt"
 	params:
 		prefix = lambda wc: "Alignments/ema/count/" + wc.get("sample")
 	threads: 1
@@ -71,10 +75,14 @@ rule count_beadtags:
 rule beadtag_summary:
 	input: 
 		countlog = expand("Alignments/ema/count/logs/{sample}.count.log", sample = samplenames)
-	output: "Alignments/ema/stats/reads.bxstats.html"
-	message: "Creating sample barcode validation report"
-	benchmark: "Benchmark/Mapping/ema/beadtagsummary.txt"
-	script: "../utilities/reportEmaCount.Rmd"
+	output:
+		"Alignments/ema/stats/reads.bxstats.html"
+	message:
+		"Creating sample barcode validation report"
+	benchmark:
+		"Benchmark/Mapping/ema/beadtagsummary.txt"
+	script:
+		"../utilities/reportEmaCount.Rmd"
 
 rule preprocess_ema:
 	input: 
@@ -86,9 +94,12 @@ rule preprocess_ema:
 		unbarcoded = temp("Alignments/ema/preproc/{sample}/ema-nobc")
 	wildcard_constraints:
 		sample = "[a-zA-Z0-9_-]*"
-	log: "Alignments/ema/preproc/logs/{sample}.preproc.log"
-	message: "Preprocessing for EMA mapping: {wildcards.sample}"
-	benchmark: "Benchmark/Mapping/ema/Preproc.{sample}.txt"
+	log:
+		"Alignments/ema/preproc/logs/{sample}.preproc.log"
+	message:
+		"Preprocessing for EMA mapping: {wildcards.sample}"
+	benchmark:
+		"Benchmark/Mapping/ema/Preproc.{sample}.txt"
 	threads: 2
 	params:
 		outdir = lambda wc: "Alignments/ema/preproc/" + wc.get("sample"),
@@ -101,11 +112,14 @@ rule align_ema:
 		readbin = "Alignments/ema/preproc/{sample}/ema-bin-{bin}",
 		genome = f"Assembly/{bn}",
 		genome_idx = multiext(f"Assembly/{bn}", ".ann", ".bwt", ".fai", ".pac", ".sa", ".amb")
-	output: temp("Alignments/ema/align/{sample}/{sample}.{bin}.bam")
+	output:
+		temp("Alignments/ema/align/{sample}/{sample}.{bin}.bam")
 	wildcard_constraints:
 		sample = "[a-zA-Z0-9_-]*"
-	message: "Aligning barcoded sequences: {wildcards.sample}-{wildcards.bin}"
-	benchmark: "Benchmark/Mapping/ema/Align.{sample}.{bin}.txt"
+	message:
+		"Aligning barcoded sequences: {wildcards.sample}-{wildcards.bin}"
+	benchmark:
+		"Benchmark/Mapping/ema/Align.{sample}.{bin}.txt"
 	params: 
 		quality = config["quality"],
 		extra = extra
@@ -125,12 +139,14 @@ rule align_nobarcode:
 		genome_idx = multiext(f"Assembly/{bn}", ".ann", ".bwt", ".fai", ".pac", ".sa", ".amb")
 	output: 
 		samfile = temp("Alignments/ema/align/{sample}/{sample}.nobarcode.bam.tmp")
-	benchmark: "Benchmark/Mapping/ema/bwaAlign.{sample}.txt"
+	benchmark:
+		"Benchmark/Mapping/ema/bwaAlign.{sample}.txt"
 	wildcard_constraints:
 		sample = "[a-zA-Z0-9_-]*"
 	params:
 		quality = config["quality"]
-	message: "Aligning unbarcoded sequences: {wildcards.sample}"
+	message:
+		"Aligning unbarcoded sequences: {wildcards.sample}"
 	threads: 8
 	shell:
 		"""
@@ -140,43 +156,9 @@ rule align_nobarcode:
 		samtools sort -O bam -m 4G --reference {input.genome} -o {output} 2> /dev/null
 		"""
 
-#rule sort_ema:
-#    input: 
-#        sam = "Alignments/ema/align/{sample}/{sample}.{emabin}.sam",
-#        genome = f"Assembly/{genomefile}"
-#    output: temp("Alignments/ema/align/{sample}/{sample}.{emabin}.bam")
-#    wildcard_constraints:
-#        sample = "[a-zA-Z0-9_-]*",
-#        emabin = "[0-9]*"
-#    message: "Sorting alignments: {wildcards.sample}-{wildcards.emabin}"
-#    benchmark: "Benchmark/Mapping/ema/Sort.{sample}.{emabin}.txt"
-#    params:
-#        quality = config["quality"]
-#    threads: 2
-#    shell: 
-#        """
-#        samtools view -h -F 4 -q {params.quality} {input.sam} | samtools sort --reference {input.genome} -O bam -m 4G -o {output} -
-#        """
-
-#rule sort_nobarcode:
-#    input: 
-#        sam = "Alignments/ema/align/{sample}/{sample}.nobarcode.sam",
-#        genome = f"Assembly/{genomefile}"
-#    output: temp("Alignments/ema/align/{sample}/{sample}.nobarcode.bam.tmp")
-#    wildcard_constraints:
-#        sample = "[a-zA-Z0-9_-]*"
-#    message: "Sorting unbarcoded alignments: {wildcards.sample}"
-#    benchmark: "Benchmark/Mapping/ema/bwaSort.{sample}.txt"
-#    params:
-#        quality = config["quality"]
-#    threads: 2
-#    shell:
-#        """
-#        samtools sort -@ {threads} -O bam -m 4G --reference {input.genome} -o {output} {input.sam}
-#        """    
-
 rule markduplicates:
-	input: "Alignments/ema/align/{sample}/{sample}.nobarcode.bam.tmp"
+	input:
+		"Alignments/ema/align/{sample}/{sample}.nobarcode.bam.tmp"
 	output: 
 		bam = temp("Alignments/ema/align/{sample}/{sample}.nobarcode.bam"),
 		bai = temp("Alignments/ema/align/{sample}/{sample}.nobarcode.bam.bai")
@@ -186,8 +168,10 @@ rule markduplicates:
 		flagstat = "Alignments/ema/stats/samtools_flagstat/{sample}.nobarcode.flagstat"
 	wildcard_constraints:
 		sample = "[a-zA-Z0-9_-]*"
-	message: "Marking duplicates in unbarcoded alignments: {wildcards.sample}"
-	benchmark: "Benchmark/Mapping/ema/markdup.{sample}.txt"
+	message:
+		"Marking duplicates in unbarcoded alignments: {wildcards.sample}"
+	benchmark:
+		"Benchmark/Mapping/ema/markdup.{sample}.txt"
 	threads: 2
 	shell:
 		"""
@@ -204,8 +188,10 @@ rule merge_barcoded:
 		bai = temp("Alignments/ema/align/barcoded/{sample}.barcoded.bam.bai")
 	wildcard_constraints:
 		sample = "[a-zA-Z0-9_-]*"
-	message: "Merging barcoded alignments: {wildcards.sample}"
-	benchmark: "Benchmark/Mapping/ema/merge.{sample}.txt"
+	message:
+		"Merging barcoded alignments: {wildcards.sample}"
+	benchmark:
+		"Benchmark/Mapping/ema/merge.{sample}.txt"
 	threads: 10
 	shell:
 		"sambamba merge -t {threads} -l 4 {output.bam} {input}"
@@ -219,8 +205,10 @@ rule bcstats:
 		flagstat = "Alignments/ema/stats/samtools_flagstat/{sample}.barcoded.flagstat"
 	wildcard_constraints:
 		sample = "[a-zA-Z0-9_-]*"
-	message: "Indexing merged barcoded alignemnts: {wildcards.sample}"
-	benchmark: "Benchmark/Mapping/ema/indexmerge.{sample}.txt"
+	message:
+		"Indexing merged barcoded alignemnts: {wildcards.sample}"
+	benchmark:
+		"Benchmark/Mapping/ema/indexmerge.{sample}.txt"
 	shell:
 		"""
 		samtools stats {input.bam} > {log.stats}
@@ -228,11 +216,13 @@ rule bcstats:
 		"""
 
 rule BEDconvert:
-	input: "Alignments/ema/align/barcoded/{sample}.barcoded.bam"
+	input:
+		"Alignments/ema/align/barcoded/{sample}.barcoded.bam"
 	output: 
 		filt = temp("Alignments/ema/bedfiles/{sample}.bx.bed"),
 		unfilt = temp("Alignments/ema/bedfiles/{sample}.all.bed")
-	message: "Converting to BED format: {wildcards.sample}"
+	message:
+		"Converting to BED format: {wildcards.sample}"
 	wildcard_constraints:
 		sample = "[a-zA-Z0-9_-]*"
 	params: lambda wc: "Alignments/ema/align/" + wc.get("sample") + "/" + wc.get("sample") + ".barcoded.all.bed"
@@ -245,7 +235,8 @@ rule BEDconvert:
 		"""
 
 rule BX_stats:
-	input: "Alignments/ema/bedfiles/{sample}.bx.bed"
+	input:
+		"Alignments/ema/bedfiles/{sample}.bx.bed"
 	output:	
 		molsize = "Alignments/ema/stats/moleculesize/{sample}.molsize",
 		molhist = "Alignments/ema/stats/moleculesize/{sample}.molsize.hist",
