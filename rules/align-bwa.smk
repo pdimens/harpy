@@ -12,7 +12,7 @@ bn = os.path.basename(genomefile)
 rule create_reports:
 	input: 
 		expand("Alignments/bwa/{sample}.bam", sample = samplenames),
-		expand("Alignments/bwa/stats/coverage/{sample}.gencov.html", sample = samplenames),
+		expand("Alignments/bwa/stats/coverage/{sample}.cov.html", sample = samplenames),
 		"Alignments/bwa/stats/samtools_stats/bwa.stats.html",
 		"Alignments/bwa/stats/samtools_flagstat/bwa.flagstat.html"
 	message: "Read mapping completed!"
@@ -115,7 +115,7 @@ rule coverage_report:
 	input:
 		gencov = "Alignments/bwa/stats/coverage/data/{sample}.cov.gz"
 	output:
-		"Alignments/bwa/stats/coverage/{sample}.gencov.html"
+		"Alignments/bwa/stats/coverage/{sample}.cov.html"
 	message:
 		"Summarizing alignment coverage: {wildcards.sample}"
 	script:
