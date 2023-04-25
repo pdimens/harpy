@@ -9,9 +9,6 @@ samplenames = config["samplenames"]
 extra = config.get("extra", "") 
 
 bn = os.path.basename(genomefile)
-shell("mkdir -p Assembly")
-if not os.path.exists(f"Assembly/{bn}"):
-    shell(f"ln -sr {genomefile} Assembly/{bn}")
 
 rule create_reports:
     input: 
@@ -27,18 +24,29 @@ rule create_reports:
     benchmark: "Benchmark/Mapping/ema/report.txt"
     default_target: True
 
-rule index_genome:
-    input: genomefile
+rule link_genome:
+    input:
+        genomefile
     output: 
-        asm = f"Assembly/{bn}",
-        idx = multiext(f"Assembly/{bn}", ".ann", ".bwt", ".fai", ".pac", ".sa", ".amb")
-    message: "Indexing {input}"
-    log: f"Assembly/{bn}.idx.log"
+        f"Assembly/{bn}"
+    message:
+        "Symlinking {input}"
+    shell: 
+        "ln -sr {input} {output}"
+
+
+rule index_genome:
+    input: f"Assembly/{bn}"
+    output: 
+        multiext(f"Assembly/{bn}", ".ann", ".bwt", ".fai", ".pac", ".sa", ".amb")
+    message: 
+        "Indexing {input}"
+    log: 
+        f"Assembly/{bn}.idx.log"
     shell: 
         """
-        ln -sr {input} {output.asm}
-        bwa index {output.asm} 2> {log}
-        samtools faidx --fai-idx {output.asm}.fai {output.asm} 2>> {log}
+        bwa index {input} 2> {log}
+        samtools faidx --fai-idx {input}.fai {input} 2>> {log}
         """
 
 rule count_beadtags:
