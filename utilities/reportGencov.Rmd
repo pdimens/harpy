@@ -1,5 +1,5 @@
 ---
-title: "Sequence Alignment Coverage"
+title: "Sequence Alignment Depth and Coverage"
 author:
     - "Created using HARPY"
 date: "`r format(Sys.time(), '%d %B, %Y')`"
@@ -13,87 +13,79 @@ output:
 
 ```{r echo = FALSE, message = FALSE, warning = FALSE}
 library(ggplot2)
+library(dplyr)
+library(tidyr)
 ```
 
 ```{r echo = FALSE, message = FALSE, warning = FALSE}
 covfile <- snakemake@input[["gencov"]]
-#covfile <- "~/ShadHap1_C01.gencov"
-gencov <- read.table(covfile, header = F)
-colnames(gencov) <- c("contig", "start", "end","coverage")
-gencov$midpoint <- (gencov$start + gencov$end) / 2
-
-fa.sizes <- read.table(snakemake@input[["faidx"]], header = F)[, 1:2]
-fa.size <- fa.sizes[order(fa.sizes$V2), ]
-#fa.sizes <- read.table("~/genome.fasta.fai", header = F)[,1:2]
-colnames(fa.sizes) <- c("contig", "size")
-
-sname <- gsub("\\.\\w?\\w?\\w?.?gencov", "", basename(covfile))
-
-if (grepl("bx.gencov", covfile)){
-  txt <- "only alignments whose reads had a valid barcode."
+# covfile <- "~/ShadHap1_C01.gencov"
+if (ncol(gencov) == 5) {
+  mult <- FALSE
+  gencov <- read.table(covfile, header = F)[, c(1,2,3,5)]
+  colnames(gencov) <- c("contig", "start", "end", "alignments")
 } else {
-  txt <- "all alignments, meaning coverage was quantified irrespective of whether a read had a valid barcode or not."
+  mult <- TRUE
+  gencov <- read.table(covfile, header = F)[, c(1,2,3,6,7)]
+  colnames(gencov) <- c("contig", "start", "end", "all", "barcodeOnly")
+  gencov$barcodeOnly <- gencov$barcodeOnly * -1
 }
+
+# Find the 30 largest contigs
+contigs <- group_by(gencov, contig) %>%
+  summarize(size = max(end)) %>%
+  arrange(desc(size))
+
+# limit the data to only the 30 largest contigs
+if (nrow(contigs) > 30){
+  pltheight <- 50
+  gencov <- filter(gencov, contig %in% contigs$contig[1:30])
+} else {
+   pltheight <- round(10 * (nrow(contigs) / 3), digits = 0)
+}
+
+# pivot longer for generalized plotting
+gencov <- pivot_longer(gencov, -(1:3), names_to = "alignment", values_to = "depth")
+
+#gencov$midpoint <- (gencov$start + gencov$end) / 2
+
+#fa.sizes <- read.table(snakemake@input[["faidx"]], header = F)[, 1:2]
+#fa.size <- fa.sizes[order(fa.sizes$V2), ]
+#fa.sizes <- read.table("~/genome.fasta.fai", header = F)[,1:2]
+#colnames(fa.sizes) <- c("contig", "size")
+
+sname <- gsub("\\.\\w?\\w?\\w?.?cov.gz", "", basename(covfile))
+
 ```
+## Alignment Depth
 #### Sample: `r sname`
-This report summarizes alignment coverage across the genome for file `r sname` with respect to `r txt`
 
-## Coverage Plots {.tabset}
-### general
+Plotted below are (up to) the 30 largest contigs to show sequence alignment depth across
+the genome. Each bar represents the alignment depth at a 10kb genomic interval, that is, the
+number of reads that had a proper alignment in the 10kb interval. "Proper" refers to a read
+not marked as a duplicate or flagged with the SAM `UNMAP`, `SECONDARY`,  or `QCFAIL` flags.
+These values are derived by using `samtools bedcov -n`.
 
-Below are the first 30 contigs plotted to show sequence alignment coverage across
-the genome. Each peak is the midpoint of an alignment interval. The orange horizontal 
-line reflects the mean coverage for the contig. To reduce file size, Harpy does not output
-intervals with no coverage, so these plots should be interpreted as generalizations.
-
-```{r echo = FALSE, message = FALSE, warning = FALSE, out.width="100%"}
-.i <- 0
-for(i in fa.sizes$contig) {
-.i <- .i + 1
-.g <- gencov[gencov$contig == i,]
-.covmean <-round(mean(.g$coverage), digits = 0)
-p <- ggplot(.g, aes(x = midpoint, y = coverage)) +
-  geom_area(fill = "grey40") +
-  geom_hline(yintercept = .covmean, color = "orange") +
-  xlim(0, fa.sizes$size[i]) +
-  theme_bw() +
-  labs(x = "position (bp)", title = i, subtitle = paste("mean coverage:", .covmean)) +
-  theme(panel.grid.major.x = element_blank(), panel.grid.minor.x = element_blank())
-  print(p)
-  if (.i == 30) {
-    break
-  }
+```{r echo = FALSE, message = FALSE, warning = FALSE, fig.height=pltheight, out.width = "150%"}
+if (mult) {
+  ggplot(gencov, aes(xmin = start, xmax = end, ymin = 0, ymax = depth, color = alignment, fill = alignment)) +
+    geom_rect() +
+    theme_minimal() +
+    facet_wrap(~contig, ncol = 3, scales = "free_x") +
+    scale_color_manual(values = c("#3f3f3f", "dodgerblue")) +
+    scale_fill_manual(values = c("#3f3f3f", "dodgerblue")) +
+    scale_y_continuous(labels = abs) +
+    labs(x = "position (bp)", y = "depth", title = "Alignment Depth") +
+    theme(panel.grid.major.x = element_blank(), panel.grid.minor.x = element_blank(), legend.position = "top") +
+    guides(x = "none") -> p
+} else {
+  ggplot(gencov, aes(xmin = start, xmax = end, ymin = 0, ymax = depth)) +
+    geom_rect(color = "#3f3f3f", fill = "#3f3f3f") +
+    theme_minimal() +
+    facet_wrap(~contig, ncol = 3, scales = "free_x") +
+    labs(x = "position (bp)", y = "depth", title = "Alignment Depth") +
+    theme(panel.grid.major.x = element_blank(), panel.grid.minor.x = element_blank(), legend.position = "top") +
+    guides(x = "none") -> p
 }
-```
-
-### detailed
-Below are the first 30 contigs plotted to show sequence alignment coverage across
-the genome. Each point represents the midpoint of an alignment interval, with a 
-line bisecting it horizontally that spans the length of the alignment interval.
-The orange horizontal line reflects the mean coverage for the contig.
-While providing more detail than the generalized plots, the horizontal lines
-may not be visible on sufficiently long contigs or sufficiently short intervals,
-obfuscating readability somewhat.
-
-```{r echo = FALSE, message = FALSE, warning = FALSE, out.width="100%"}
-.i <- 0
-for(i in fa.sizes$contig) {
-.i <- .i + 1
-.g <- gencov[gencov$contig == i, ]
-.covmean <-round(mean(.g$coverage), digits = 0)
-p <- ggplot(.g, aes(x=midpoint, y=coverage, color = coverage)) +
-  geom_point(size = 0.5) +
-  geom_segment(linewidth = 0.5, aes(x = start, xend= end, y = coverage, yend = coverage, color = coverage), inherit.aes = FALSE) +
-  geom_hline(yintercept = .covmean, color = "orange") +
-  xlim(0, fa.sizes$size[i]) +
-  coord_cartesian(xlim = c(0, fa.sizes$size[i] + 1), expand = F) +
-  theme_bw() +
-  scale_color_gradient(high = "indianred", low = "dodgerblue") +
-  labs(x = "position (bp)", title = i, subtitle = paste("mean coverage:", .covmean)) +
-  theme(panel.grid.major.x = element_blank(), panel.grid.minor.x = element_blank(), legend.position = "none")
-  print(p)
-  if (.i == 30) {
-    break
-  }
-}
+print(p)
 ```

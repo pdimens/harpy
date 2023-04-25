@@ -33,7 +33,7 @@ rule index_genome:
 	input:
 		f"Assembly/{bn}"
 	output: 
-		idx = multiext(f"Assembly/{bn}", ".ann", ".bwt", ".fai", ".pac", ".sa", ".amb")
+		multiext(f"Assembly/{bn}", ".ann", ".bwt", ".fai", ".pac", ".sa", ".amb", ".bed")
 	message:
 		"Indexing {input}"
 	log: 
@@ -42,6 +42,7 @@ rule index_genome:
 		"""
 		bwa index {input} 2> {log}
 		samtools faidx --fai-idx {input}.fai {input} 2>> {log}
+		bedtools makewindows -g {input}.fai -w 10000 > {input}.bed
 		"""
 
 rule align:
@@ -100,18 +101,19 @@ rule mark_duplicates:
 	shell:
 		"sambamba markdup -t {threads} -l 0 {input} {output.bam} 2> {log}"
 
-rule genome_coverage:
-	input: "Alignments/bwa/{sample}.bam"
-	output: "Alignments/bwa/stats/coverage/data/{sample}.gencov.gz"
+rule alignment_coverage:
+	input: 
+		bed = f"Assembly/{bn}.bed",
+		bam = "Alignments/bwa/{sample}.bam"
+	output: "Alignments/bwa/stats/coverage/data/{sample}.cov.gz"
 	message: "Calculating genomic coverage: {wildcards.sample}"
 	threads: 2
 	shell:
-		"bedtools genomecov -ibam {input} -bg | gzip > {output}"
+		"samtools bedcov -c {input} | gzip > {output}"
 
-rule gencov_report:
+rule coverage_report:
 	input:
-		gencov = "Alignments/bwa/stats/coverage/data/{sample}.gencov.gz",
-		faidx = f"Assembly/{genomefile}.fai"
+		gencov = "Alignments/bwa/stats/coverage/data/{sample}.cov.gz"
 	output:
 		"Alignments/bwa/stats/coverage/{sample}.gencov.html"
 	message:
