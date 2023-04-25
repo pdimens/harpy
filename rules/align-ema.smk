@@ -16,7 +16,7 @@ rule create_reports:
 		expand("Alignments/ema/{sample}.bam.bai", sample = samplenames),
 		expand("Alignments/ema/stats/moleculesize/{sample}.{ext}", sample = samplenames, ext = ["molsize", "molsize.hist"]),
 		expand("Alignments/ema/stats/readsperbx/{sample}.readsperbx", sample = samplenames),
-		expand("Alignments/ema/stats/coverage/{sample}.gencov.{aln}.html", sample = samplenames, aln = ["all", "bx"]),
+		expand("Alignments/ema/stats/coverage/{sample}.cov.html", sample = samplenames),
 		"Alignments/ema/stats/reads.bxstats.html",
 		"Alignments/ema/stats/samtools_stats/alignment.stats.html",
 		"Alignments/ema/stats/samtools_flagstat/alignment.flagstat.html"
@@ -314,7 +314,7 @@ rule gencovBX_report:
 	input: 
 		gencov = "Alignments/ema/stats/coverage/data/{sample}.cov.gz",
 	output:
-		"Alignments/ema/stats/coverage/{sample}.gencov.html"
+		"Alignments/ema/stats/coverage/{sample}.cov.html"
 	message:
 		"Creating report of alignment coverage: {wildcards.sample}"
 	script:
