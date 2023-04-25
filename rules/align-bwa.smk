@@ -42,7 +42,7 @@ rule index_genome:
 		"""
 		bwa index {input} 2> {log}
 		samtools faidx --fai-idx {input}.fai {input} 2>> {log}
-		bedtools makewindows -g {input}.fai -w 10000 > {input}.bed
+		../utilities/makewindows.py -i {input}.fai -w 10000 -o {input}.bed
 		"""
 
 rule align:
