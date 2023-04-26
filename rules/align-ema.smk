@@ -307,7 +307,7 @@ rule alignment_coverage:
 		bed = f"Assembly/{bn}.bed",
 		bam = "Alignments/ema/{sample}.bam",
 		bai = "Alignments/ema/{sample}.bam.bai",
-		bx = "Alignments/ema/align/barcoded/{sample}.barcoded.bam"
+		bx = "Alignments/ema/align/barcoded/{sample}.barcoded.bam",
 		bxbai = "Alignments/ema/align/barcoded/{sample}.barcoded.bam.bai"
 	output: 
 		"Alignments/ema/stats/coverage/data/{sample}.cov.gz"
