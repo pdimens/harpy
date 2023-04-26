@@ -288,29 +288,6 @@ rule sort_merge:
 	shell:
 		"samtools sort -@ {threads} -O bam --reference {input.genome} -m 4G -o {output} {input.bam} 2> /dev/null"
 
-rule alignment_coverage:
-	input: 
-		bed = f"Assembly/{bn}.bed",
-		bam = "Alignments/ema/{sample}.bam",
-		bx = "Alignments/ema/align/barcoded/{sample}.barcoded.bam"
-	output: 
-		"Alignments/ema/stats/coverage/data/{sample}.cov.gz"
-	message:
-		"Calculating genomic coverage: {wildcards.sample}"
-	threads: 2
-	shell:
-		"samtools bedcov -c {input} | gzip > {output}"
-
-rule gencovBX_report:
-	input: 
-		gencov = "Alignments/ema/stats/coverage/data/{sample}.cov.gz",
-	output:
-		"Alignments/ema/stats/coverage/{sample}.cov.html"
-	message:
-		"Creating report of alignment coverage: {wildcards.sample}"
-	script:
-		"../utilities/reportGencov.Rmd"
-
 rule index_alignments:
 	input: 
 		"Alignments/ema/{sample}.bam"
@@ -324,6 +301,31 @@ rule index_alignments:
 		sample = "[a-zA-Z0-9_-]*"
 	shell:
 		"sambamba index {input} {output}"
+
+rule alignment_coverage:
+	input: 
+		bed = f"Assembly/{bn}.bed",
+		bam = "Alignments/ema/{sample}.bam",
+		bai = "Alignments/ema/{sample}.bam.bai",
+		bx = "Alignments/ema/align/barcoded/{sample}.barcoded.bam"
+		bxbai = "Alignments/ema/align/barcoded/{sample}.barcoded.bam.bai"
+	output: 
+		"Alignments/ema/stats/coverage/data/{sample}.cov.gz"
+	message:
+		"Calculating genomic coverage: {wildcards.sample}"
+	threads: 2
+	shell:
+		"samtools bedcov -c {input.bed} {input.bam} {input.bx} | gzip > {output}"
+
+rule gencovBX_report:
+	input: 
+		gencov = "Alignments/ema/stats/coverage/data/{sample}.cov.gz",
+	output:
+		"Alignments/ema/stats/coverage/{sample}.cov.html"
+	message:
+		"Creating report of alignment coverage: {wildcards.sample}"
+	script:
+		"../utilities/reportGencov.Rmd"
 
 rule alignment_stats:
 	input: 		
