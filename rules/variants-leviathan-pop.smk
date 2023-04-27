@@ -69,7 +69,7 @@ rule index_merged:
 	wildcard_constraints:
 		population = "[a-zA-Z0-9_-]*"
 	shell:
-		"sambamba index {input} {output}"
+		"sambamba index {input} {output} 2> /dev/null"
 
 rule index_barcode:
 	input: 

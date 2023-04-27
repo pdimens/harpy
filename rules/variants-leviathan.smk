@@ -20,7 +20,7 @@ rule index_alignment:
     benchmark:
         "Benchmark/Variants/leviathan/indexbam.{sample}.txt"
     shell:
-        "sambamba index {input} {output}"
+        "sambamba index {input} {output} 2> /dev/null"
 
 rule index_barcode:
     input: 
