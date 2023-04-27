@@ -95,7 +95,7 @@ rule sv_stats:
     output: 
         "Variants/leviathan/stats/{sample}.sv.stats"
     message:
-        "Getting stats for {input.bcf}"
+        "Getting SV stats for {wildcards.sample}"
     benchmark:
         "Benchmark/Variants/leviathan/stats.{sample}.txt"
     threads: 1
