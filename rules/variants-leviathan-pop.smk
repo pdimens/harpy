@@ -163,7 +163,7 @@ rule sv_report_bypop:
 	message:
 		"Generating SV report for all populations"
 	script:
-		"../utilities/reportLeviathan.Rmd"
+		"../reports/reportLeviathan.Rmd"
 
 
 rule sv_report:
@@ -175,7 +175,7 @@ rule sv_report:
 	message:
 		"Generating SV report for all populations"
 	script:
-		"../utilities/reportLeviathanPop.Rmd"
+		"../reports/reportLeviathanPop.Rmd"
 
 rule all_bcfs:
 	input: 

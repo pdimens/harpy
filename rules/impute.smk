@@ -120,7 +120,7 @@ rule stitch_reports:
         "Benchmark/Impute/report.{stitchparams}.{part}.txt"
     threads: 1
     script:
-        "../utilities/reportStitch.Rmd"
+        "../reports/reportStitch.Rmd"
 
 rule clean_stitch:
     input:
@@ -181,7 +181,7 @@ rule reports:
     benchmark:
         "Benchmark/Impute/stitchreport.{stitchparams}.txt"
     script:
-        "../utilities/reportBcftools.Rmd"
+        "../reports/reportBcftools.Rmd"
 
 rule all:
     input: 

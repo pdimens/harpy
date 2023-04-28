@@ -82,7 +82,7 @@ rule beadtag_summary:
 	benchmark:
 		"Benchmark/Mapping/ema/beadtagsummary.txt"
 	script:
-		"../utilities/reportEmaCount.Rmd"
+		"../reports/reportEmaCount.Rmd"
 
 rule preprocess_ema:
 	input: 
@@ -325,7 +325,7 @@ rule gencovBX_report:
 	message:
 		"Creating report of alignment coverage: {wildcards.sample}"
 	script:
-		"../utilities/reportGencov.Rmd"
+		"../reports/reportGencov.Rmd"
 
 rule alignment_stats:
 	input: 		

@@ -129,7 +129,7 @@ rule coverage_report:
 	message:
 		"Summarizing alignment coverage: {wildcards.sample}"
 	script:
-		"../utilities/reportGencov.Rmd"
+		"../reports/reportGencov.Rmd"
 
 rule alignment_stats:
 	input:

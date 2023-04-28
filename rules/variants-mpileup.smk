@@ -179,7 +179,7 @@ rule bcfreport:
 	benchmark:
 		"Benchmark/Variants/mpileup/reports.txt"
 	script:
-		"../utilities/reportBcftools.Rmd"
+		"../reports/reportBcftools.Rmd"
 
 rule bcfreportnorm:
 	input:
@@ -189,7 +189,7 @@ rule bcfreportnorm:
 	message:
 		"Generating bcftools report: variants.normalized.bcf"
 	script:
-		"../utilities/reportBcftools.Rmd"
+		"../reports/reportBcftools.Rmd"
 
 rule all:
 	input: 

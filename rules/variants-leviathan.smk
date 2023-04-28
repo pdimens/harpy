@@ -114,7 +114,7 @@ rule sv_report:
     message:
         "Generating SV report: {wildcards.sample}"
     script:
-        "../utilities/reportLeviathan.Rmd"
+        "../reports/reportLeviathan.Rmd"
 
 rule all_bcfs:
     input: 
