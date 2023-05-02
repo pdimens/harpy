@@ -219,8 +219,8 @@ rule BEDconvert:
 	input:
 		"Alignments/ema/align/barcoded/{sample}.barcoded.bam"
 	output: 
-		filt = temp("Alignments/ema/bedfiles/{sample}.bx.bed"),
-		unfilt = temp("Alignments/ema/bedfiles/{sample}.all.bed")
+		unfilt = temp("Alignments/ema/bedfiles/{sample}.all.bed"),
+		bx = temp("Alignments/ema/bedfiles/{sample}.bx.bed")
 	message:
 		"Converting to BED format: {wildcards.sample}"
 	wildcard_constraints:
@@ -231,7 +231,7 @@ rule BEDconvert:
 		"""
 		utilities/writeBED.pl {input}
 		mv {params} {output.unfilt}
-		awk '!($4~/A00|B00|C00|D00/)' {output.unfilt} > {output.filt}
+		awk '!($4~/A00|B00|C00|D00/)' {output.unfilt} > {output.bx}
 		"""
 
 rule BX_stats:
@@ -305,8 +305,8 @@ rule index_alignments:
 rule alignment_coverage:
 	input: 
 		bed = f"Assembly/{bn}.bed",
-		bam = "Alignments/ema/{sample}.bam",
-		bai = "Alignments/ema/{sample}.bam.bai",
+		nobx = "Alignments/ema/align/{sample}/{sample}.nobarcode.bam",
+		nobxbai = "Alignments/ema/align/{sample}/{sample}.nobarcode.bam.bai",
 		bx = "Alignments/ema/align/barcoded/{sample}.barcoded.bam",
 		bxbai = "Alignments/ema/align/barcoded/{sample}.barcoded.bam.bai"
 	output: 
@@ -315,7 +315,7 @@ rule alignment_coverage:
 		"Calculating genomic coverage: {wildcards.sample}"
 	threads: 2
 	shell:
-		"samtools bedcov -c {input.bed} {input.bam} {input.bx} | gzip > {output}"
+		"samtools bedcov -c {input.bed} {input.bx} {input.nobx} | gzip > {output}"
 
 rule gencovBX_report:
 	input: 

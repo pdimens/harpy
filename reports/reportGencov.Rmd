@@ -28,7 +28,7 @@ if (ncol(gencov) == 5) {
 } else {
   mult <- TRUE
   gencov <- gencov[, c(1,2,3,6,7)]
-  colnames(gencov) <- c("contig", "start", "end", "all", "barcodeOnly")
+  colnames(gencov) <- c("contig", "start", "end", "barcodeOnly", "noBarcode")
   gencov$barcodeOnly <- gencov$barcodeOnly * -1
 }
 
