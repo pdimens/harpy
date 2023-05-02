@@ -29,7 +29,7 @@ if (ncol(gencov) == 5) {
   mult <- TRUE
   gencov <- gencov[, c(1,2,3,6,7)]
   colnames(gencov) <- c("contig", "start", "end", "barcodeOnly", "noBarcode")
-  gencov$barcodeOnly <- gencov$barcodeOnly * -1
+  gencov$noBarcode <- gencov$noBarcode * -1
 }
 
 # Find the 30 largest contigs
