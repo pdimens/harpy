@@ -77,7 +77,11 @@ if (mult) {
     scale_fill_manual(values = c("#3f3f3f", "dodgerblue")) +
     scale_y_continuous(labels = abs) +
     labs(x = "position (bp)", y = "depth", title = "Alignment Depth") +
-    theme(panel.grid.major.x = element_blank(), panel.grid.minor.x = element_blank(), legend.position = "top") +
+    theme(
+      panel.grid.major.x = element_blank(),
+      panel.grid.minor.x = element_blank(),
+      legend.position = "top"
+      ) +
     guides(x = "none") -> p
 } else {
   ggplot(gencov, aes(xmin = start, xmax = end, ymin = 0, ymax = depth)) +
@@ -85,7 +89,11 @@ if (mult) {
     theme_minimal() +
     facet_wrap(~contig, ncol = 2, scales = "free_x") +
     labs(x = "position (bp)", y = "depth") +
-    theme(panel.grid.major.x = element_blank(), panel.grid.minor.x = element_blank(), legend.position = "top") +
+    theme(
+      panel.grid.major.x = element_blank(),
+      panel.grid.minor.x = element_blank(),
+      legend.position = "top"
+      ) +
     guides(x = "none") -> p
 }
 print(p)
