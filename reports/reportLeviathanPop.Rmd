@@ -17,13 +17,20 @@ output:
 ---
 
 Below is a series of tables and plots detailing the structural variants
-identified by `LEVIATHAN`, which are:
+identified by `LEVIATHAN`. The variants are given by:
 
-- `INV`: Inversion
-- `DUP`: Duplication
-- `DEL`: Deletion
-- `BND`: Breakend
-
+```{r table2, echo=FALSE, message=FALSE, warnings=FALSE, results='asis'}
+data.frame(
+  "Variant" = c("INV", "DUP", "DEL","BND"),
+  "Name" = c("Inversion", "Duplication", "Deletion", "Breakend"),
+  "Description" = c(
+    "a segment that broke off and reattached within the same chromosome, but in reverse orientation",
+    "a type of mutation that involves the production of one or more copies of a gene or region of a chromosome",
+    "a type of mutation that involves the loss of one or more nucleotides from a segment of DNA",
+    "the endpoint of a structural variant, which can be useful to explain complex variants"
+    )
+  )
+```
 ```{r load environment, echo=FALSE, message=FALSE, warning=FALSE}
 library(dplyr)
 library(ggplot2)
@@ -37,6 +44,10 @@ library(plotly)
 #fa.sizes <- read.table("~/genome.fasta.fai", header = F)[,1:2]
 fa.sizes <- read.table(snakemake@input[["faidx"]], header = F)[,1:2] %>% arrange(desc(V2))
 colnames(fa.sizes) <- c("contig", "size")
+# limit the data to only the 30 largest contigs
+if (nrow(fa.sizes) > 30){
+  fa.sizes <- fa.sizes[1:30, ]
+}
 ```
 
 ## Various information {.tabset}
@@ -104,20 +115,38 @@ variants between populations. Long population names create issues with row name
 formatting, therefore the population name is included in the hover tooltip.
 Plotting only the first 30 largest contigs.
 
+```{r echo = FALSE, message = FALSE, warning = FALSE}
+sv$ystart <- case_when(
+      sv$type == "INV" ~ 0.1,
+      sv$type == "DUP" ~ 1.1,
+      sv$type == "DEL" ~ 2.1,
+      sv$type == "BND" ~ 3.1,
+    )
+sv$ystop <- sv$ystart + 0.8
+```
 
 ```{r echo = FALSE, out.width = '100%', warning=FALSE}
-.i <- 0
 l <- htmltools::tagList()
-for (i in fa.sizes$contig) {
-  .i <- .i + 1
-  sv.filt <- sv %>% filter(contig == i)
+for (i in 1:nrow(fa.sizes)) {
+  sv.filt <- sv %>% filter(contig == fa.sizes$contig[i])
   sv_stats <- group_by(sv.filt, type) %>% summarise(n = length(type))
   if (nrow(sv_stats) == 0) {
     next
   }
   plt <- sv.filt %>%
     ggplot() +
-    geom_rect(alpha = 0.7, aes(ymin = 0, ymax = 1, xmin = position_start, xmax = position_end, fill = type, color = type, text = sprintf("Population: %s<br>Type: %s<br>Position: %s-%s<br>barcodes: %s", population, type, position_start, position_end, n_barcodes))) +
+    geom_rect(
+      alpha = 0.7, 
+      aes(
+        ymin = ystart,
+        ymax = ystop,
+        xmin = position_start,
+        xmax = position_end,
+        fill = type, 
+        color = type, 
+        text = sprintf("Population: %s<br>Type: %s<br>Position: %s-%s<br>barcodes: %s", population, type, position_start, position_end, n_barcodes)
+        )
+      ) +
     scale_color_manual(values=c("DEL"="#004D40", "DUP"="#FFC107", "INV"="#1E88E5","BND"="#D81B60")) +
     scale_fill_manual(values=c("DEL"="#004D40", "DUP"="#FFC107", "INV"="#1E88E5","BND"="#D81B60")) +
     facet_grid(rows = vars(population)) +
@@ -136,11 +165,7 @@ for (i in fa.sizes$contig) {
     xlab("Position (bp)") +
     labs(fill = "SV type", color = "SV type") +
     ggtitle(i)
-  l[[.i]] <- ggplotly(plt, tooltip = "text")
-  # stop at 30
-  if (.i == 30) {
-    break
-  }
+  l[[i]] <- ggplotly(plt, tooltip = "text")
 }
 l
 ```

@@ -13,12 +13,20 @@ output:
 ---
 
 Below is a series of tables and plots detailing the structural variants
-identified by `LEVIATHAN`, which are:
+identified by `LEVIATHAN`. The variants are given by:
 
-- `INV`: Inversion
-- `DUP`: Duplication
-- `DEL`: Deletion
-- `BND`: Breakend
+```{r table2, echo=FALSE, message=FALSE, warnings=FALSE, results='asis'}
+data.frame(
+  "Variant" = c("INV", "DUP", "DEL","BND"),
+  "Name" = c("Inversion", "Duplication", "Deletion", "Breakend"),
+  "Description" = c(
+    "a segment that broke off and reattached within the same chromosome, but in reverse orientation",
+    "a type of mutation that involves the production of one or more copies of a gene or region of a chromosome",
+    "a type of mutation that involves the loss of one or more nucleotides from a segment of DNA",
+    "the endpoint of a structural variant, which can be useful to explain complex variants"
+    )
+  )
+```
 
 ```{r load environment, echo=FALSE, message=FALSE, warning=FALSE}
 library(dplyr)
