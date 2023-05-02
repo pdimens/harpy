@@ -43,6 +43,10 @@ fa.sizes <- as.data.frame(do.call(rbind, strsplit(fa.sizes, ",length="))) %>% ar
 fa.sizes$V1 <- gsub("##contig=<ID=", "", fa.sizes$V1)
 fa.sizes$V2 <- as.numeric(gsub(">", "", fa.sizes$V2))
 colnames(fa.sizes) <- c("contig", "size")
+# limit the data to only the 30 largest contigs
+if (nrow(fa.sizes) > 30){
+  fa.sizes <- fa.sizes[1:30, ]
+}
 ```
 
 
@@ -93,27 +97,37 @@ The plots below are a visual representation of each SV where it was detected.
 Contigs that are absent did not have any SV's detected on them. Plotting the first 30 largest contigs.
 
 ```{r echo = FALSE, out.width = '100%', warning=FALSE}
-.i <- 0
 l <- htmltools::tagList()
-for (i in unique(fa.sizes$contig)) {
-  .i <- .i + 1
-  sv.filt <- sv %>% filter(contig == i)
+for (i in 1:nrow(fa.sizes)) {
+  sv.filt <- sv %>% filter(contig == fa.sizes$contig[i])
   sv_stats <- group_by(sv.filt, type) %>%  summarise(n = length(type))
-  if (nrow(sv_stats) > 0) {
-    .subtitle <- paste(paste(sv_stats$type, sv_stats$n), collapse = " | ")
-  } else {
+  if (nrow(sv_stats) == 0) {
     next
   }
   plt <- sv.filt %>%
     ggplot() +
-    geom_rect(alpha = 0.7, aes(xmin = position_start, xmax = position_end, ymin = 0, ymax = 1, fill = type, color = type, text = sprintf("Type: %s<br>Position: %s-%s<br>barcodes: %s", type, position_start, position_end, n_barcodes))) +
-    theme_bw() +
+    geom_rect(
+      alpha = 0.7,
+      aes(
+        xmin = position_start,
+        xmax = position_end,
+        ymin = 0,
+        ymax = 1,
+        fill = type,
+        color = type,
+        text = sprintf("Type: %s<br>Position: %s-%s<br>barcodes: %s", type, position_start, position_end, n_barcodes)
+      )
+    ) +
+    theme_light() +
     theme(
       axis.text.y=element_blank(),
       axis.line.y = element_blank(),
       axis.ticks.y = element_blank(),
       panel.grid.major = element_blank(),
-      panel.grid.minor = element_blank()
+      panel.grid.minor = element_blank(),
+      strip.background = element_rect(fill = "grey80"),
+      strip.text = element_text(color = "grey20"),
+      legend.position = "none"
     ) +
     scale_color_manual(values=c("DEL"="#004D40", "DUP"="#FFC107", "INV"="#1E88E5","BND"="#D81B60")) +
     scale_fill_manual(values=c("DEL"="#004D40", "DUP"="#FFC107", "INV"="#1E88E5","BND"="#D81B60")) +
@@ -121,11 +135,8 @@ for (i in unique(fa.sizes$contig)) {
     coord_cartesian(xlim = c(0, fa.sizes$size[i] + 1), expand = F) +
     xlab("Position (bp)") +
     labs(fill = "SV type", color = "SV type") +
-    ggtitle(i, subtitle = .subtitle)
-  l[[.i]] <- ggplotly(plt, tooltip = "text")
-  if (.i == 30) {
-    break
-  }
+    ggtitle(i)
+  l[[i]] <- ggplotly(plt, tooltip = "text")
 }
 l
 ```

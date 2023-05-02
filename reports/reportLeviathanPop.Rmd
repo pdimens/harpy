@@ -136,31 +136,38 @@ for (i in 1:nrow(fa.sizes)) {
   plt <- sv.filt %>%
     ggplot() +
     geom_rect(
-      alpha = 0.7, 
+      alpha = 0.7,
       aes(
         ymin = ystart,
         ymax = ystop,
         xmin = position_start,
         xmax = position_end,
-        fill = type, 
-        color = type, 
+        fill = type,
+        color = type,
         text = sprintf("Population: %s<br>Type: %s<br>Position: %s-%s<br>barcodes: %s", population, type, position_start, position_end, n_barcodes)
         )
       ) +
+    geom_hline(yintercept = 1:3, color = "grey90") +
     scale_color_manual(values=c("DEL"="#004D40", "DUP"="#FFC107", "INV"="#1E88E5","BND"="#D81B60")) +
     scale_fill_manual(values=c("DEL"="#004D40", "DUP"="#FFC107", "INV"="#1E88E5","BND"="#D81B60")) +
     facet_grid(rows = vars(population)) +
-    theme_bw() +
+    theme_light() +
     theme(
-      axis.text.y = element_blank(),
+      axis.text.y = element_text(angle=90),
       axis.line.y = element_blank(),
       axis.ticks.y = element_blank(),
       panel.grid.major = element_blank(),
       panel.grid.minor = element_blank(),
       strip.background = element_blank(),
-      strip.text = element_blank()
+      strip.text = element_blank(),
+      legend.position = "none",
     ) +
     xlim(0, fa.sizes$size[i]) +
+    scale_y_continuous(
+      breaks = c(0.5, 1.5, 2.5, 3.5),
+      labels = c("INV", "DUP", "DEL", "BND"),
+      limits = c(0,4)
+    ) +
     coord_cartesian(xlim = c(0, fa.sizes$size[i] + 1), expand = F) +
     xlab("Position (bp)") +
     labs(fill = "SV type", color = "SV type") +
