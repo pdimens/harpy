@@ -229,8 +229,8 @@ rule BEDconvert:
 	threads: 1
 	shell:
 		"""
-		utilities/writeBED.pl {input}
-		mv {params} {output.unfilt}
+		utilities/writeBED.pl {input} {output.unfilt}
+		# mv {params} {output.unfilt}
 		awk '!($4~/A00|B00|C00|D00/)' {output.unfilt} > {output.bx}
 		"""
 
