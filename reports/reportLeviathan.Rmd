@@ -119,6 +119,7 @@ for (i in 1:nrow(fa.sizes)) {
       )
     ) +
     theme_light() +
+    facet_grid(rows = vars(type)) +
     theme(
       axis.text.y=element_blank(),
       axis.line.y = element_blank(),
