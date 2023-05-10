@@ -18,8 +18,12 @@ At the minimum, you will need:
     - `00` indicates a missing/invalid barcode segment
 - the barcode must be preceded by a `BX:Z:` tag in the read header
 ``` example header
-@A00470:481:HNYFWDRX2:1:2101:16062:1031 BX:Z:A62C38B38D69 1:N:0:TATCAGTA+TTACTACT
+@A00814:267:HTMH3DRXX:2:1101:4580:1000 BX:Z:A02C01B11D46        RX:Z:GAAACGACCAACA+CGAACACGTTAGC   QX:Z:F,FFFFFFFFFFF+FF,FFF:FFFFFF
 ```
+Notably, only the sequence ID (`@...`) and `BX:Z:` tag are required. In the example above, there are additional tags 
+(`RX:Z:` and `QX:Z:`) which arent used by Harpy, but they conform to the 
+[SAM comment spec (section 1.5)](https://samtools.github.io/hts-specs/SAMv1.pdf) of `TAG:TYPE:VALUE`. The takeaway 
+is that the `BX:Z` tag can be anywhere in the read header after the sequence ID as long as any tags after it conform to the SAM spec `TAG:TYPE:VALUE`. 
 ==- 2. A reference genome, in FASTA format
 A plain haploid genome assembly in uncompressed FASTA format.
 ===
