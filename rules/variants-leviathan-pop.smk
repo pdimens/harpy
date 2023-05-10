@@ -142,7 +142,7 @@ rule sv_stats:
 	input: 
 		"Variants/leviathan-pop/{population}.bcf"
 	output:
-		"Variants/leviathan-pop/stats/{population}.sv.stats"
+		"Variants/leviathan-pop/reports/stats/{population}.sv.stats"
 	message:
 		"Getting stats: Population {input.bcf}"
 	benchmark:
@@ -156,7 +156,7 @@ rule sv_stats:
 
 rule sv_report_bypop:
 	input:	
-		statsfile = "Variants/leviathan-pop/stats/{population}.sv.stats",
+		statsfile = "Variants/leviathan-pop/reports/stats/{population}.sv.stats",
 		faidx = f"Assembly/{genomefile}.fai"
 	output:
 		"Variants/leviathan-pop/reports/{population}.sv.html"
@@ -168,7 +168,7 @@ rule sv_report_bypop:
 
 rule sv_report:
 	input:	
-		statsfiles = expand("Variants/leviathan-pop/stats/{pop}.sv.stats", pop = populations),
+		statsfiles = expand("Variants/leviathan-pop/reports/stats/{pop}.sv.stats", pop = populations),
 		faidx = f"Assembly/{genomefile}.fai"
 	output:
 		"Variants/leviathan-pop/reports/SV.summary.html"
@@ -180,7 +180,7 @@ rule sv_report:
 rule all_bcfs:
 	input: 
 		bcf = expand("Variants/leviathan-pop/{pop}.bcf", pop = populations),
-		stats = expand("Variants/leviathan-pop/stats/{pop}.sv.stats", pop = populations),
+		stats = expand("Variants/leviathan-pop/reports/stats/{pop}.sv.stats", pop = populations),
 		popreports = expand("Variants/leviathan-pop/reports/{pop}.sv.html", pop = populations),
 		finalreport = "Variants/leviathan-pop/reports/SV.summary.html"
 	default_target: True

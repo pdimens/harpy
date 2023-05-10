@@ -93,7 +93,7 @@ rule sv_stats:
     input: 
         "Variants/leviathan/{sample}.bcf"
     output: 
-        "Variants/leviathan/stats/{sample}.sv.stats"
+        "Variants/leviathan/reports/stats/{sample}.sv.stats"
     message:
         "Getting SV stats for {wildcards.sample}"
     benchmark:
@@ -108,7 +108,7 @@ rule sv_stats:
 rule sv_report:
     input:	
         bcf = "Variants/leviathan/{sample}.bcf",
-        statsfile = "Variants/leviathan/stats/{sample}.sv.stats"
+        statsfile = "Variants/leviathan/reports/stats/{sample}.sv.stats"
     output:	
         "Variants/leviathan/reports/{sample}.SV.html"
     message:
