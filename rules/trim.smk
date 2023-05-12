@@ -31,8 +31,8 @@ rule trimFastp:
 rule createReport:
 	input: 
 		json = expand("Trimming/logs/json/{sample}.fastp.json", sample = samplenames),
-		fr = expand("Trimming/{sample}.R1.fq.gz", sample = samplenamaes),
-		rv = expand("Trimming/{sample}.R2.fq.gz", sample = samplenamaes)
+		fr = expand("Trimming/{sample}.R1.fq.gz", sample = samplenames),
+		rv = expand("Trimming/{sample}.R2.fq.gz", sample = samplenames)
 	output:
 		"Trimming/logs/trim.report.html"
 	message:
