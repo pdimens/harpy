@@ -5,7 +5,9 @@ mkdir -p $CONDA_PREFIX/bin
 
 # build and install ema
 git clone --recursive https://github.com/EdHarry/ema.git
-cd ema && make
+cd ema 
+git submodule update --remote
+make
 chmod +x ema
 cp ema $CONDA_PREFIX/bin/ema-h
 cd ..
