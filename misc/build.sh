@@ -8,6 +8,7 @@ cd ema
 make
 chmod +x ema
 cp ema $CONDA_PREFIX/bin/ema-h
+cd ..
 
 # Harpy executable
 chmod +x harpy
