@@ -43,7 +43,7 @@ rule index_genome:
 		"""
 		bwa index {input} 2> {log}
 		samtools faidx --fai-idx {input}.fai {input} 2>> {log}
-		utilities/makewindows.py -i {input}.fai -w 10000 -o {input}.bed
+		makewindows.py -i {input}.fai -w 10000 -o {input}.bed
 		"""
 
 rule align:
@@ -129,7 +129,7 @@ rule coverage_report:
 	message:
 		"Summarizing alignment coverage: {wildcards.sample}"
 	script:
-		"../reports/reportGencov.Rmd"
+		"reportGencov.Rmd"
 
 rule alignment_stats:
 	input:

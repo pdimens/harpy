@@ -50,7 +50,7 @@ rule index_genome:
 		"""
 		bwa index {input} 2> {log}
 		samtools faidx --fai-idx {input}.fai {input} 2>> {log}
-		utilities/makewindows.py -i {input}.fai -w 10000 -o {input}.bed
+		makewindows.py -i {input}.fai -w 10000 -o {input}.bed
 		"""
 
 rule count_beadtags:
@@ -82,7 +82,7 @@ rule beadtag_summary:
 	benchmark:
 		"Benchmark/Mapping/ema/beadtagsummary.txt"
 	script:
-		"../reports/reportEmaCount.Rmd"
+		"reportEmaCount.Rmd"
 
 rule preprocess_ema:
 	input: 
@@ -229,7 +229,7 @@ rule BEDconvert:
 	threads: 1
 	shell:
 		"""
-		utilities/writeBED.pl {input} {output.unfilt}
+		writeBED.pl {input} {output.unfilt}
 		# mv {params} {output.unfilt}
 		awk '!($4~/A00|B00|C00|D00/)' {output.unfilt} > {output.bx}
 		"""
@@ -325,7 +325,7 @@ rule gencovBX_report:
 	message:
 		"Creating report of alignment coverage: {wildcards.sample}"
 	script:
-		"../reports/reportGencov.Rmd"
+		"reportGencov.Rmd"
 
 rule alignment_stats:
 	input: 		

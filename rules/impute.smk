@@ -88,7 +88,7 @@ rule impute:
         f"Benchmark/Impute/stitch.{paramspace.wildcard_pattern}" + ".{part}.txt"
     threads: 50
     script:
-        "../utilities/stitch_impute.R"
+        "stitch_impute.R"
 
 
 rule index_vcf:
@@ -120,7 +120,7 @@ rule stitch_reports:
         "Benchmark/Impute/report.{stitchparams}.{part}.txt"
     threads: 1
     script:
-        "../reports/reportStitch.Rmd"
+        "reportStitch.Rmd"
 
 rule clean_stitch:
     input:
@@ -181,7 +181,7 @@ rule reports:
     benchmark:
         "Benchmark/Impute/stitchreport.{stitchparams}.txt"
     script:
-        "../reports/reportBcftools.Rmd"
+        "reportBcftools.Rmd"
 
 rule all:
     input: 
