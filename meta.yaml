@@ -12,6 +12,7 @@ package:
 source:
   git_rev: '{{ version }}'
   git_url: https://github.com/pdimens/HARPY.git
+  git_depth: 1
 
 build:
   number: 0
