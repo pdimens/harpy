@@ -10,9 +10,9 @@ try:
 except:
     import textwrap
     termwidth = os.get_terminal_size()[0]
-    enverror = "\033[1;33mERROR:\033[00m Harpy expects to run from within an activate conda environment, but one was not detected."
+    enverror = "\033[1;33mERROR:\033[00m Harpy expects to run from within an active conda environment, but one was not detected."
     print(textwrap.fill(enverror, width = termwidth))
-    fix = "\033[1;34mFIX:\033[00m Activate the conda environment Harpy was installed into and run Harpy again."
+    fix = "\033[1;34mSOLUTION:\033[00m Activate the conda environment Harpy was installed into and run Harpy again."
     print()
     print(textwrap.fill(fix, width = termwidth))
     print(f"\n\033[1mDetails:\033[00m")
