@@ -216,7 +216,7 @@ circos.genomicTrack(
 lgd <- Legend(
   at = c("Inversion", "Deletion", "Duplication", "Breakend"),
   type = "grid",
-  legend_gp = gpar(col = c("#1E88E5", "#004D40", "#FFC107", "#D81B60")),
+  legend_gp = gpar(fill = c("#1E88E5", "#004D40", "#FFC107", "#D81B60"), alpha = 0.8),
   title_position = "topleft",
   title = "Variant Types"
 )
