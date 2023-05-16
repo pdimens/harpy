@@ -311,7 +311,7 @@ def variants(genome, threads, directory, populations, ploidy, leviathan, extra_p
         vcaller = "leviathan-pop"
     #command = (f'snakemake --cores {threads} --directory . --snakefile rules/variants-{vcaller}.smk').split()
     #command = (f'snakemake --cores {threads} --directory . --snakefile variants-{vcaller}.test.smk').split()
-    command = (f'snakemake --cores {threads} --directory . --snakefile {harpypath}/variants-{vcaller}.test.smk').split()
+    command = (f'snakemake --cores {threads} --directory . --snakefile {harpypath}/variants-{vcaller}.smk').split()
     if snakemake is not None:
         [command.append(i) for i in snakemake.split()]
     command.append('--config')
