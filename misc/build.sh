@@ -5,7 +5,8 @@ mkdir -p $CONDA_PREFIX/bin
 
 # build and install ema
 git clone --recursive https://github.com/EdHarry/ema.git
-cd ema 
+cd ema
+git checkout haplotag
 git submodule update --remote
 make
 chmod +x ema
