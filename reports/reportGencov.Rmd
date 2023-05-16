@@ -37,9 +37,9 @@ script src = "https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"
 ```
 
 ```{r echo = FALSE, message = FALSE, warning = FALSE}
-#covfile <- snakemake@input[["gencov"]]
+covfile <- snakemake@input[["gencov"]]
 # covfile <- "~/ShadHap1_C01.gencov"
-covfile <- "/home/pdimens/Omega/Cornell/dmel/2A_3.ema.cov.gz"
+#covfile <- "/home/pdimens/Omega/Cornell/dmel/2A_3.ema.cov.gz"
 
 gencov <- read.table(covfile, header = F)
 if (ncol(gencov) == 5) {
@@ -88,8 +88,8 @@ These values are derived by using `samtools bedcov -n`.
 
 ### Summary
 This is a circular plot summarize the information across the largest contigs, with black showing
-alignment depth of the barcoded sequences, and the reddish color showing alignment depth of sequences
-with an invalid barcode.
+alignment depth of the barcoded sequences. The reddish color, if present, shows the alignment depth
+of sequences with an invalid barcode as "negative" values for visual distinction.
 ```{r echo = FALSE, message = FALSE, warning = FALSE, fig.align='center', out.width= "100%"}
 circos.clear()
 col_text <- "grey40"
@@ -141,17 +141,23 @@ circos.track(
 )
 
 maxaln <- round(max(.gencov$Barcode), digits = -1)
-cov.yaxis <- c(round(min(.gencov$noBarcode), digits = -1), 0, round(maxaln * 1/3, digits = -1), round(maxaln * 2/3, digits = -1), maxaln)
+cov.yaxis <- c(0, round(maxaln * 1/3, digits = -1), round(maxaln * 2/3, digits = -1), maxaln)
+if (mult){
+  cov.yaxis <- c(round(min(.gencov$noBarcode), digits = -1), cov.yaxis)
+}
 # coverage
 circos.genomicTrack(
   data=.gencov, 
   panel.fun=function(region, value, ...) {
     circos.genomicLines(region, value, type="l", col="#3f3f3f", lwd=0.8)
+    if(mult){
     circos.genomicLines(region, value, type="l", col="#cb6843", lwd=0.8, numeric.column = 2)
+    }
     circos.segments(x0=0, x1=max(.contigs$size), y0=min(.gencov$noBarcode)-100, y1=min(.gencov$noBarcode) - 100, lwd=0.8, lty="11", col="grey90")
     circos.segments(x0=0, x1=max(.contigs$size), y0=maxaln + 100, y1=maxaln + 100, lwd=0.8, lty="11", col="grey90")
   }, 
-  track.height=0.2, bg.border=F
+  track.height=0.5,
+  bg.border=F
 )
 circos.yaxis(at=cov.yaxis, labels.cex=0.4, lwd=0.8, labels.col=col_text, col="grey30")
 
