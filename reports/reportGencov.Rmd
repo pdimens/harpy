@@ -15,11 +15,32 @@ output:
 library(ggplot2)
 library(dplyr)
 library(tidyr)
+library(circlize)
+```
+
+```{css zoom-lib-src, echo = FALSE, message = FALSE, warning = FALSE}
+script src = "https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"
+```
+```{js zoom-jquery, echo = FALSE, message = FALSE, warning = FALSE}
+ $(document).ready(function() {
+    $('body').prepend('<div class=\"zoomDiv\"><img src=\"\" class=\"zoomImg\"></div>');
+    // onClick function for all plots (img's)
+    $('img:not(.zoomImg)').click(function() {
+      $('.zoomImg').attr('src', $(this).attr('src')).css({width: '100%'});
+      $('.zoomDiv').css({opacity: '1', width: 'auto', border: '1px solid white', borderRadius: '5px', position: 'fixed', top: '50%', left: '50%', marginRight: '-50%', transform: 'translate(-50%, -50%)', boxShadow: '0px 0px 50px #888888', zIndex: '50', overflow: 'auto', maxHeight: '100%'});
+    });
+    // onClick function for zoomImg
+    $('img.zoomImg').click(function() {
+      $('.zoomDiv').css({opacity: '0', width: '0%'}); 
+    });
+  });
 ```
 
 ```{r echo = FALSE, message = FALSE, warning = FALSE}
-covfile <- snakemake@input[["gencov"]]
+#covfile <- snakemake@input[["gencov"]]
 # covfile <- "~/ShadHap1_C01.gencov"
+covfile <- "/home/pdimens/Omega/Cornell/dmel/2A_3.ema.cov.gz"
+
 gencov <- read.table(covfile, header = F)
 if (ncol(gencov) == 5) {
   mult <- FALSE
@@ -40,39 +61,111 @@ contigs <- group_by(gencov, contig) %>%
 # limit the data to only the 30 largest contigs
 if (nrow(contigs) > 30){
     pltheight <- 45
-    gencov <- filter(gencov, contig %in% contigs$contig[1:30])
+    .contigs <- contigs[1:30,]
+    .gencov <- filter(gencov, contig %in% .contigs)
 } else {
     pltheight <- round(1.5 * (nrow(contigs)), digits = 0)
+    .gencov <- gencov
+    .contigs <- contigs
 }
 
+.l <-  nrow(.contigs)
+
 # pivot longer for generalized plotting
-gencov <- pivot_longer(gencov, -(1:3), names_to = "alignment", values_to = "depth")
-
-#gencov$midpoint <- (gencov$start + gencov$end) / 2
-
-#fa.sizes <- read.table(snakemake@input[["faidx"]], header = F)[, 1:2]
-#fa.size <- fa.sizes[order(fa.sizes$V2), ]
-#fa.sizes <- read.table("~/genome.fasta.fai", header = F)[,1:2]
-#colnames(fa.sizes) <- c("contig", "size")
+gencov <- pivot_longer(.gencov, -(1:3), names_to = "alignment", values_to = "depth")
 
 sname <- gsub("\\.\\w?\\w?\\w?.?cov.gz", "", basename(covfile))
 
 ```
-## Alignment Depth
 #### Sample: `r sname`
 
+## Alignment Depth {.tabset}
 Plotted below are (up to) the 30 largest contigs to show sequence alignment depth across
 the genome. Each bar represents the alignment depth at a 10kb genomic interval, that is, the
 number of reads that had a proper alignment in the 10kb interval. "Proper" refers to a read
 not marked as a duplicate or flagged with the SAM `UNMAP`, `SECONDARY`,  or `QCFAIL` flags.
 These values are derived by using `samtools bedcov -n`.
 
+### Summary
+This is a circular plot summarize the information across the largest contigs, with black showing
+alignment depth of the barcoded sequences, and the reddish color showing alignment depth of sequences
+with an invalid barcode.
+```{r echo = FALSE, message = FALSE, warning = FALSE, fig.align='center', out.width= "100%"}
+circos.clear()
+col_text <- "grey40"
+circos.par("track.height"=0.8, gap.degree=4, cell.padding=c(0, 0, 0, 0))
+circos.initialize(
+  factors=.contigs$contig, 
+  xlim=matrix(c(rep(0, .l), .contigs$size), ncol=2)
+)
+
+# contigs
+circos.track(
+  ylim=c(0, 1), 
+  panel.fun=function(x, y) {
+    chr=CELL_META$sector.index
+    xlim=CELL_META$xlim
+    ylim=CELL_META$ylim
+    circos.text(
+      mean(xlim),
+      mean(ylim), 
+      chr, 
+      cex=0.5, 
+      col=col_text, 
+      facing="bending.inside", 
+      niceFacing=TRUE
+      )
+    }, 
+  bg.col="grey90", 
+  bg.border=F, 
+  track.height=0.06
+)
+
+# x axis
+brk <- seq(0, 10, 0.5)*10^7
+circos.track(
+  track.index = get.current.track.index(), 
+  panel.fun=function(x, y) {
+    circos.axis(
+      h="top", 
+      major.at=brk, 
+      labels=round(brk/10^6, 1), 
+      labels.cex=0.4, 
+      col=col_text, 
+      labels.col=col_text, 
+      lwd=0.7, 
+      labels.facing="clockwise"
+    )
+  }, 
+  bg.border=F
+)
+
+maxaln <- round(max(.gencov$Barcode), digits = -1)
+cov.yaxis <- c(round(min(.gencov$noBarcode), digits = -1), 0, round(maxaln * 1/3, digits = -1), round(maxaln * 2/3, digits = -1), maxaln)
+# coverage
+circos.genomicTrack(
+  data=.gencov, 
+  panel.fun=function(region, value, ...) {
+    circos.genomicLines(region, value, type="l", col="#3f3f3f", lwd=0.8)
+    circos.genomicLines(region, value, type="l", col="#cb6843", lwd=0.8, numeric.column = 2)
+    circos.segments(x0=0, x1=max(.contigs$size), y0=min(.gencov$noBarcode)-100, y1=min(.gencov$noBarcode) - 100, lwd=0.8, lty="11", col="grey90")
+    circos.segments(x0=0, x1=max(.contigs$size), y0=maxaln + 100, y1=maxaln + 100, lwd=0.8, lty="11", col="grey90")
+  }, 
+  track.height=0.2, bg.border=F
+)
+circos.yaxis(at=cov.yaxis, labels.cex=0.4, lwd=0.8, labels.col=col_text, col="grey30")
+
+```
+
+### Per-Contig
+Plotted below is the same depth information, but shown in better detail per contig for easier visual assessment.
+
 ```{r echo = FALSE, message = FALSE, warning = FALSE, fig.height=pltheight, out.width = "100%"}
 if (mult) {
   ggplot(gencov, aes(xmin = start, xmax = end, ymin = 0, ymax = depth, color = alignment, fill = alignment)) +
     geom_rect(alpha = 0.7) +
     theme_minimal() +
-    facet_wrap(~contig, ncol = 2, scales = "free_x") +
+    facet_wrap(~contig, ncol = 2, scales = "free") +
     scale_color_manual(values = c("#3f3f3f", "#cb6843")) +
     scale_fill_manual(values = c("#3f3f3f", "#cb6843")) +
     scale_y_continuous(labels = abs) +
