@@ -57,8 +57,8 @@ script src = "https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"
 ```
 
 ```{r contigSizes, echo = FALSE}
-#bcf <- snakemake@input[["bcf"]]
-bcf <- "/home/pdimens/Omega/Cornell/dmel/leviathan.bcf"
+bcf <- snakemake@input[["bcf"]]
+#bcf <- "/home/pdimens/Omega/Cornell/dmel/leviathan.bcf"
 hd <- system2("bcftools", args =  paste("head", bcf), stdout = T)
 fa.sizes <- hd[grep("contig=", hd)]
 fa.sizes <- as.data.frame(do.call(rbind, strsplit(fa.sizes, ",length="))) %>% arrange(desc(V2))
