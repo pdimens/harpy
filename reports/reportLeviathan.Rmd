@@ -34,10 +34,32 @@ library(ggplot2)
 library(magrittr)
 library(DT)
 library(plotly)
+library(circlize)
+library(ComplexHeatmap)
+```
+
+```{css zoom-lib-src, echo = FALSE, message = FALSE, warning = FALSE}
+script src = "https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"
+```
+```{js zoom-jquery, echo = FALSE, message = FALSE, warning = FALSE}
+ $(document).ready(function() {
+    $('body').prepend('<div class=\"zoomDiv\"><img src=\"\" class=\"zoomImg\"></div>');
+    // onClick function for all plots (img's)
+    $('img:not(.zoomImg)').click(function() {
+      $('.zoomImg').attr('src', $(this).attr('src')).css({width: '100%'});
+      $('.zoomDiv').css({opacity: '1', width: 'auto', border: '1px solid white', borderRadius: '5px', position: 'fixed', top: '50%', left: '50%', marginRight: '-50%', transform: 'translate(-50%, -50%)', boxShadow: '0px 0px 50px #888888', zIndex: '50', overflow: 'auto', maxHeight: '100%'});
+    });
+    // onClick function for zoomImg
+    $('img.zoomImg').click(function() {
+      $('.zoomDiv').css({opacity: '0', width: '0%'}); 
+    });
+  });
 ```
 
 ```{r contigSizes, echo = FALSE}
-hd <- system2("bcftools", args =  paste("head", snakemake@input[["bcf"]]), stdout = T)
+#bcf <- snakemake@input[["bcf"]]
+bcf <- "/home/pdimens/Omega/Cornell/dmel/leviathan.bcf"
+hd <- system2("bcftools", args =  paste("head", bcf), stdout = T)
 fa.sizes <- hd[grep("contig=", hd)]
 fa.sizes <- as.data.frame(do.call(rbind, strsplit(fa.sizes, ",length="))) %>% arrange(desc(V2))
 fa.sizes$V1 <- gsub("##contig=<ID=", "", fa.sizes$V1)
@@ -54,7 +76,9 @@ if (nrow(fa.sizes) > 30){
 ### all variants
 This table details all the variants LEVIATHAN detected and the quantity/quality of evidence for those detections.
 ```{r echo = FALSE, warnings = FALSE, message = FALSE}
-sv <- read.table(snakemake@input[["statsfile"]], header = T)
+statsfile <- snakemake@input[["statsfile"]]
+#statsfile <- "/home/pdimens/Omega/Cornell/dmel/leviathan.stats"
+sv <- read.table(statsfile, header = T)
 if (nrow(sv) == 0) {
   print("No variants in the file")
   q()
@@ -92,10 +116,109 @@ DT::datatable(grpstats, rownames = F, filter = "top", extensions = 'Buttons', op
 
 ---
 
-## SV size and location
-The plots below are a visual representation of each SV where it was detected.
-Contigs that are absent did not have any SV's detected on them. Plotting the first 30 largest contigs.
+## SV size and location {.tabset}
+### Summary
+Below is a circular plot to visualize the distribution of SV across (up to) 30 of the largest contigs. This should help you assess
+the presence/absence of expected variants. For more detailed interactive plots, see the **Per-contig** tab. You may click on the plot
+to expand it.
+```{r echo = FALSE, message = FALSE, warning = FALSE, fig.align='center', out.width= "100%"}
+circos.clear()
+col_text <- "grey40"
+circos.par("track.height"=0.8, gap.degree=4, cell.padding=c(0, 0, 0, 0))
+circos.initialize(
+  factors = fa.sizes$contig, 
+  xlim = matrix(c(rep(0, nrow(fa.sizes)), fa.sizes$size), ncol=2)
+)
 
+# contigs
+circos.track(
+  ylim=c(0, 1), 
+  panel.fun=function(x, y) {
+    chr=CELL_META$sector.index
+    xlim=CELL_META$xlim
+    ylim=CELL_META$ylim
+    circos.text(
+      mean(xlim),
+      mean(ylim), 
+      chr, 
+      cex=0.5, 
+      col=col_text, 
+      facing="bending.inside", 
+      niceFacing=TRUE
+      )
+    }, 
+  bg.col="grey90", 
+  bg.border=F, 
+  track.height=0.06
+)
+
+# x axis
+brk <- seq(0, 10, 0.5)*10^7
+circos.track(
+  track.index = get.current.track.index(), 
+  panel.fun=function(x, y) {
+    circos.axis(
+      h="top", 
+      major.at=brk, 
+      labels=round(brk/10^6, 1), 
+      labels.cex=0.4, 
+      col=col_text, 
+      labels.col=col_text, 
+      lwd=0.7, 
+      labels.facing="clockwise"
+    )
+  }, 
+  bg.border=F
+)
+
+# INV
+circos.genomicTrack(
+  ylim = c(0,1),
+  data = sv[sv$type == "INV", -1], 
+  track.height = 0.2,
+  bg.border = F,
+  panel.fun=function(region, value, ...) {
+    circos.genomicRect(region, value, ybottom = 0, ytop = 1, col = "#1E88E5")
+  }
+)
+
+
+circos.genomicTrack(
+  ylim = c(0,1),
+  data = sv[sv$type == "DEL", -1], 
+  track.height = 0.2,
+  bg.border = F,
+  panel.fun=function(region, value, ...) {
+    circos.genomicRect(region, value, ybottom = 0, ytop = 1, col = "#004D40")
+  }
+)
+
+circos.genomicTrack(
+  ylim = c(0,1),
+  data = sv[sv$type == "DUP", -1], 
+  track.height = 0.2,
+  bg.border = F,
+  panel.fun=function(region, value, ...) {
+    circos.genomicRect(region, value, ybottom = 0, ytop = 1, col = "#FFC107")
+  }
+)
+
+circos.genomicTrack(
+  ylim = c(0,1),
+  data = sv[sv$type == "BND", -1], 
+  track.height = 0.2,
+  bg.border = F,
+  panel.fun=function(region, value, ...) {
+    circos.genomicRect(region, value, ybottom = 0, ytop = 1, col = "#D81B60")
+  }
+)
+
+```
+
+### Per-contig
+Below are a series of plots to help you assess what structural variants were detected by LEVIATHAN. These plots are interactive,
+allowing you to hover over a variant to provide additional information, including the genomic interval in which it occurs and the
+number of haplotag barcodes supporting the variant.
 ```{r echo = FALSE, out.width = '100%', warning=FALSE}
 l <- htmltools::tagList()
 for (i in 1:nrow(fa.sizes)) {
