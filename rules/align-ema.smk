@@ -180,6 +180,7 @@ rule markduplicates:
 		samtools flagstat {output.bam} > {log.flagstat}
 		"""   
 
+
 rule merge_barcoded:
 	input:
 		aln_barcoded = expand("Alignments/ema/align/{{sample}}/{{sample}}.{bin}.bam", bin = ["%03d" % i for i in range(nbins)]),
@@ -214,6 +215,31 @@ rule bcstats:
 		samtools stats {input.bam} > {log.stats}
 		samtools flagstat {input.bam} > {log.flagstat}
 		"""
+
+rule alignment_coverage:
+	input: 
+		bed = f"Assembly/{bn}.bed",
+		nobx = "Alignments/ema/align/{sample}/{sample}.nobarcode.bam",
+		nobxbai = "Alignments/ema/align/{sample}/{sample}.nobarcode.bam.bai",
+		bx = "Alignments/ema/align/barcoded/{sample}.barcoded.bam",
+		bxbai = "Alignments/ema/align/barcoded/{sample}.barcoded.bam.bai"
+	output: 
+		"Alignments/ema/stats/coverage/data/{sample}.cov.gz"
+	message:
+		"Calculating genomic coverage: {wildcards.sample}"
+	threads: 2
+	shell:
+		"samtools bedcov -c {input.bed} {input.bx} {input.nobx} | gzip > {output}"
+
+rule gencovBX_report:
+	input: 
+		gencov = "Alignments/ema/stats/coverage/data/{sample}.cov.gz",
+	output:
+		"Alignments/ema/stats/coverage/{sample}.cov.html"
+	message:
+		"Creating report of alignment coverage: {wildcards.sample}"
+	script:
+		"reportGencov.Rmd"
 
 rule BEDconvert:
 	input:
@@ -301,31 +327,6 @@ rule index_alignments:
 		sample = "[a-zA-Z0-9_-]*"
 	shell:
 		"sambamba index {input} {output}"
-
-rule alignment_coverage:
-	input: 
-		bed = f"Assembly/{bn}.bed",
-		nobx = "Alignments/ema/align/{sample}/{sample}.nobarcode.bam",
-		nobxbai = "Alignments/ema/align/{sample}/{sample}.nobarcode.bam.bai",
-		bx = "Alignments/ema/align/barcoded/{sample}.barcoded.bam",
-		bxbai = "Alignments/ema/align/barcoded/{sample}.barcoded.bam.bai"
-	output: 
-		"Alignments/ema/stats/coverage/data/{sample}.cov.gz"
-	message:
-		"Calculating genomic coverage: {wildcards.sample}"
-	threads: 2
-	shell:
-		"samtools bedcov -c {input.bed} {input.bx} {input.nobx} | gzip > {output}"
-
-rule gencovBX_report:
-	input: 
-		gencov = "Alignments/ema/stats/coverage/data/{sample}.cov.gz",
-	output:
-		"Alignments/ema/stats/coverage/{sample}.cov.html"
-	message:
-		"Creating report of alignment coverage: {wildcards.sample}"
-	script:
-		"reportGencov.Rmd"
 
 rule alignment_stats:
 	input: 		
