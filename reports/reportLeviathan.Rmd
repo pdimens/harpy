@@ -178,7 +178,7 @@ circos.genomicTrack(
   track.height = 0.2,
   bg.border = F,
   panel.fun=function(region, value, ...) {
-    circos.genomicRect(region, value, ybottom = 0, ytop = 1, col = "#1E88E5")
+    circos.genomicRect(region, value, ybottom = 0, ytop = 1, col = "#1E88E5", border = "#1E88E5")
   }
 )
 
@@ -189,7 +189,7 @@ circos.genomicTrack(
   track.height = 0.2,
   bg.border = F,
   panel.fun=function(region, value, ...) {
-    circos.genomicRect(region, value, ybottom = 0, ytop = 1, col = "#004D40")
+    circos.genomicRect(region, value, ybottom = 0, ytop = 1, col = "#004D40", border = "#004D40")
   }
 )
 
@@ -199,7 +199,7 @@ circos.genomicTrack(
   track.height = 0.2,
   bg.border = F,
   panel.fun=function(region, value, ...) {
-    circos.genomicRect(region, value, ybottom = 0, ytop = 1, col = "#FFC107")
+    circos.genomicRect(region, value, ybottom = 0, ytop = 1, col = "#FFC107", border =  "#FFC107")
   }
 )
 
@@ -209,10 +209,19 @@ circos.genomicTrack(
   track.height = 0.2,
   bg.border = F,
   panel.fun=function(region, value, ...) {
-    circos.genomicRect(region, value, ybottom = 0, ytop = 1, col = "#D81B60")
+    circos.genomicRect(region, value, ybottom = 0, ytop = 1, col = "#D81B60", border = "#D81B60")
   }
 )
 
+lgd <- Legend(
+  at = c("Inversion", "Deletion", "Duplication", "Breakend"), 
+  type = "rect", 
+    legend_gp = gpar(col = c("#1E88E5", "#004D40", "#FFC107", "#D81B60"), 
+    title_position = "topleft", 
+    title = "Variant Types"
+)
+
+draw(lgd, x = unit(0.9, "npc"), just = c("right", "bottom"))
 ```
 
 ### Per-contig
