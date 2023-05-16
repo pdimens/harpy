@@ -178,7 +178,7 @@ circos.genomicTrack(
   track.height = 0.2,
   bg.border = F,
   panel.fun=function(region, value, ...) {
-    circos.genomicRect(region, value, ybottom = 0, ytop = 1, col = "#1E88E5", border = "#1E88E5", alpha = 0.8)
+    circos.genomicRect(region, value, ybottom = 0, ytop = 1, col = "#1E88E5", border = "#1E88E5", transparency = 0.8)
   }
 )
 
@@ -189,7 +189,7 @@ circos.genomicTrack(
   track.height = 0.2,
   bg.border = F,
   panel.fun=function(region, value, ...) {
-    circos.genomicRect(region, value, ybottom = 0, ytop = 1, col = "#004D40", border = "#004D40", alpha = 0.8)
+    circos.genomicRect(region, value, ybottom = 0, ytop = 1, col = "#004D40", border = "#004D40", transparency = 0.8)
   }
 )
 
@@ -199,7 +199,7 @@ circos.genomicTrack(
   track.height = 0.2,
   bg.border = F,
   panel.fun=function(region, value, ...) {
-    circos.genomicRect(region, value, ybottom = 0, ytop = 1, col = "#FFC107", border =  "#FFC107", alpha = 0.8)
+    circos.genomicRect(region, value, ybottom = 0, ytop = 1, col = "#FFC107", border =  "#FFC107", transparency = 0.8)
   }
 )
 
@@ -209,7 +209,7 @@ circos.genomicTrack(
   track.height = 0.2,
   bg.border = F,
   panel.fun=function(region, value, ...) {
-    circos.genomicRect(region, value, ybottom = 0, ytop = 1, col = "#D81B60", border = "#D81B60", alpha = 0.8)
+    circos.genomicRect(region, value, ybottom = 0, ytop = 1, col = "#D81B60", border = "#D81B60", transparency = 0.8)
   }
 )
 
@@ -221,7 +221,7 @@ lgd <- Legend(
   title = "Variant Types"
 )
 
-draw(lgd, x = unit(0.95, "npc"), just = c("right", "bottom"))
+draw(lgd, x = unit(0.96, "npc"), just = c("right", "bottom"))
 ```
 
 ### Per-contig
