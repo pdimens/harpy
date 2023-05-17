@@ -124,57 +124,57 @@ to expand it.
 ```{r echo = FALSE, message = FALSE, warning = FALSE, fig.align='center', out.width= "100%"}
 circos.clear()
 col_text <- "grey40"
-circos.par("track.height"=0.8, gap.degree=4, cell.padding=c(0, 0, 0, 0))
+circos.par("track.height" = 0.8, gap.degree = 4, cell.padding = c(0, 0, 0, 0))
 circos.initialize(
-  factors = fa.sizes$contig, 
-  xlim = matrix(c(rep(0, nrow(fa.sizes)), fa.sizes$size), ncol=2)
+  factors = fa.sizes$contig,
+  xlim = matrix(c(rep(0, nrow(fa.sizes)), fa.sizes$size), ncol = 2)
 )
 
 # contigs
 circos.track(
-  ylim=c(0, 1), 
-  panel.fun=function(x, y) {
-    chr=CELL_META$sector.index
-    xlim=CELL_META$xlim
-    ylim=CELL_META$ylim
+  ylim = c(0, 1),
+  bg.col = "grey90",
+  bg.border = F,
+  track.height = 0.06,
+  panel.fun = function(x, y) {
+    chr = CELL_META$sector.index
+    xlim = CELL_META$xlim
+    ylim = CELL_META$ylim
     circos.text(
       mean(xlim),
-      mean(ylim), 
-      chr, 
-      cex=0.5, 
-      col=col_text, 
-      facing="bending.inside", 
-      niceFacing=TRUE
-      )
-    }, 
-  bg.col="grey90", 
-  bg.border=F, 
-  track.height=0.06
+      mean(ylim),
+      chr,
+      cex = 0.5,
+      col = col_text,
+      facing="bending.inside",
+      niceFacing = T
+    )
+  }
 )
 
 # x axis
-brk <- seq(0, 10, 0.5)*10^7
+brk <- seq(0, 10, 0.5) * 10^7
 circos.track(
-  track.index = get.current.track.index(), 
-  panel.fun=function(x, y) {
+  track.index = get.current.track.index(),
+  bg.border = F,
+  panel.fun = function(x, y) {
     circos.axis(
-      h="top", 
-      major.at=brk, 
-      labels=round(brk/10^6, 1), 
-      labels.cex=0.4, 
-      col=col_text, 
-      labels.col=col_text, 
-      lwd=0.7, 
-      labels.facing="clockwise"
+      h = "top",
+      major.at = brk,
+      labels = round(brk/10^6, 1),
+      labels.cex = 0.4,
+      col = col_text,
+      labels.col = col_text,
+      lwd = 0.7,
+      labels.facing = "clockwise"
     )
-  }, 
-  bg.border=F
+  }
 )
 
 # INV
 circos.genomicTrack(
   ylim = c(0,1),
-  data = sv[sv$type == "INV", -1], 
+  data = sv[sv$type == "INV", -1],
   track.height = 0.2,
   bg.border = F,
   panel.fun=function(region, value, ...) {
@@ -185,7 +185,7 @@ circos.genomicTrack(
 
 circos.genomicTrack(
   ylim = c(0,1),
-  data = sv[sv$type == "DEL", -1], 
+  data = sv[sv$type == "DEL", -1],
   track.height = 0.2,
   bg.border = F,
   panel.fun=function(region, value, ...) {
@@ -228,11 +228,21 @@ draw(lgd, x = unit(0.97, "npc"), just = c("right", "bottom"))
 Below are a series of plots to help you assess what structural variants were detected by LEVIATHAN. These plots are interactive,
 allowing you to hover over a variant to provide additional information, including the genomic interval in which it occurs and the
 number of haplotag barcodes supporting the variant.
+```{r colors, echo = FALSE, warning = FALSE, message = FALSE}
+col.palette <- c(
+  "DEL" = "#004D40",
+  "DUP" = "#FFC107",
+  "INV" = "#1E88E5",
+  "BND" = "#D81B60"
+  )
+
+```
+
 ```{r echo = FALSE, out.width = '100%', warning=FALSE}
 l <- htmltools::tagList()
 for (i in 1:nrow(fa.sizes)) {
   sv.filt <- sv %>% filter(contig == fa.sizes$contig[i])
-  sv_stats <- group_by(sv.filt, type) %>%  summarise(n = length(type))
+  sv_stats <- group_by(sv.filt, type) %>% summarise(n = length(type))
   if (nrow(sv_stats) == 0) {
     next
   }
@@ -262,8 +272,8 @@ for (i in 1:nrow(fa.sizes)) {
       strip.text = element_text(color = "grey20"),
       legend.position = "none"
     ) +
-    scale_color_manual(values=c("DEL"="#004D40", "DUP"="#FFC107", "INV"="#1E88E5","BND"="#D81B60")) +
-    scale_fill_manual(values=c("DEL"="#004D40", "DUP"="#FFC107", "INV"="#1E88E5","BND"="#D81B60")) +
+    scale_color_manual(values = col.palette) +
+    scale_fill_manual(values = col.palette) +
     xlim(1, fa.sizes$size[i]) +
     coord_cartesian(xlim = c(0, fa.sizes$size[i] + 1), expand = F) +
     xlab("Position (bp)") +
