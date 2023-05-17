@@ -96,7 +96,7 @@ rule index_genome:
 	input:
 		f"Assembly/{bn}"
 	output: 
-		multiext(f"Assembly/{bn}", ".ann", ".bwt", ".fai", ".pac", ".sa", ".amb", ".bed")
+		multiext(f"Assembly/{bn}", ".ann", ".bwt", ".fai", ".pac", ".sa", ".amb")
 	message: 
 		"Indexing {input}"
 	log: 
