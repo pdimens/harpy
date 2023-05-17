@@ -155,6 +155,7 @@ circos.track(
 # x axis
 brk <- seq(0, 10, 0.5) * 10^7
 circos.track(
+  ylim = c(0,1),
   track.index = get.current.track.index(),
   bg.border = F,
   panel.fun = function(x, y) {
