@@ -44,7 +44,7 @@ library(circlize)
 ```{r echo = FALSE}
 #fa.sizes <- read.table("~/genome.fasta.fai", header = F)[,1:2]
 faidx <- snakemake@input[["faidx"]]
-fa.sizes <- read.table(faidx, header = F)[,1:2] %>% arrange(desc(V2))
+fa.sizes <- read.table(faidx, header = F)[,1:2] %>% arrange(desc(2))
 colnames(fa.sizes) <- c("contig", "size")
 # limit the data to only the 30 largest contigs
 if (nrow(fa.sizes) > 30){
