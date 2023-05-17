@@ -177,7 +177,7 @@ circos.genomicTrack(
   data = sv[sv$type == "INV", -1],
   track.height = 0.2,
   bg.border = F,
-  panel.fun=function(region, value, ...) {
+  panel.fun = function(region, value, ...) {
     circos.genomicRect(region, value, ybottom = 0, ytop = 1, col = "#1E88E5", border = "#1E88E5")
   }
 )
@@ -188,7 +188,7 @@ circos.genomicTrack(
   data = sv[sv$type == "DEL", -1],
   track.height = 0.2,
   bg.border = F,
-  panel.fun=function(region, value, ...) {
+  panel.fun = function(region, value, ...) {
     circos.genomicRect(region, value, ybottom = 0, ytop = 1, col = "#004D40", border = "#004D40")
   }
 )
@@ -198,7 +198,7 @@ circos.genomicTrack(
   data = sv[sv$type == "DUP", -1],
   track.height = 0.2,
   bg.border = F,
-  panel.fun=function(region, value, ...) {
+  panel.fun = function(region, value, ...) {
     circos.genomicRect(region, value, ybottom = 0, ytop = 1, col = "#FFC107", border =  "#FFC107")
   }
 )
@@ -208,7 +208,7 @@ circos.genomicTrack(
   data = sv[sv$type == "BND", -1],
   track.height = 0.2,
   bg.border = F,
-  panel.fun=function(region, value, ...) {
+  panel.fun = function(region, value, ...) {
     circos.genomicRect(region, value, ybottom = 0, ytop = 1, col = "#D81B60", border = "#D81B60")
   }
 )
