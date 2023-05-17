@@ -124,7 +124,7 @@ to expand it.
 ```{r echo = FALSE, message = FALSE, warning = FALSE, fig.align='center', out.width= "100%"}
 circos.clear()
 col_text <- "grey40"
-circos.par("track.height" = 0.8, gap.degree = 4, cell.padding = c(0, 0, 0, 0))
+circos.par("track.height" = 0.8, gap.degree = 3, cell.padding = c(0, 0, 0, 0))
 circos.initialize(
   factors = fa.sizes$contig,
   xlim = matrix(c(rep(0, nrow(fa.sizes)), fa.sizes$size), ncol = 2)
