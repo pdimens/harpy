@@ -179,7 +179,7 @@ rule sv_report_bypop:
 	output:
 		"Variants/leviathan-pop/reports/{population}.sv.html"
 	message:
-		"Generating SV report for all populations"
+		"Generating SV report: population {population}"
 	script:
 		"reportLeviathan.Rmd"
 
