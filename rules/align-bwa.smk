@@ -30,20 +30,44 @@ rule link_genome:
 		"ln -sr {input} {output}"
 
 
-rule index_genome:
+rule faidx_genome:
+    input: 
+        f"Assembly/{bn}"
+    output: 
+        f"Assembly/{bn}.fai"
+    message:
+        "Indexing {input}"
+    log:
+        f"Assembly/{bn}.faidx.log"
+    shell: 
+        """
+        samtools faidx --fai-idx {output} {input} 2> {log}
+        """
+
+rule index_bwa_genome:
+    input: 
+        f"Assembly/{bn}"
+    output: 
+        multiext(f"Assembly/{bn}", ".ann", ".bwt", ".pac", ".sa", ".amb")
+    message:
+        "Indexing {input}"
+    log:
+        f"Assembly/{bn}.idx.log"
+    shell: 
+        """
+        bwa index {input} 2> {log}
+        """
+
+rule make_genome_windows:
 	input:
-		f"Assembly/{bn}"
+		f"Assembly/{bn}.fai"
 	output: 
-		multiext(f"Assembly/{bn}", ".ann", ".bwt", ".fai", ".pac", ".sa", ".amb", ".bed")
-	message:
-		"Indexing {input}"
-	log: 
-		f"Assembly/{bn}.idx.log"
+		f"Assembly/{bn}.bed"
+	message: 
+		"Creating BED intervals from {input}"
 	shell: 
 		"""
-		bwa index {input} 2> {log}
-		samtools faidx --fai-idx {input}.fai {input} 2>> {log}
-		makewindows.py -i {input}.fai -w 10000 -o {input}.bed
+		makewindows.py -i {input} -w 10000 -o {output}
 		"""
 
 rule align:

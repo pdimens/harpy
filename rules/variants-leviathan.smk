@@ -43,11 +43,25 @@ rule link_genome:
 	shell: 
 		"ln -sr {input} {output}"
 
-rule index_genome:
+rule index_faidx_genome:
     input: 
         f"Assembly/{bn}"
     output: 
-        multiext(f"Assembly/{bn}", ".ann", ".bwt", ".fai", ".pac", ".sa", ".amb")
+        f"Assembly/{bn}.fai"
+    message:
+        "Indexing {input}"
+    log:
+        f"Assembly/{bn}.faidx.log"
+    shell: 
+        """
+        samtools faidx --fai-idx {output} {input} 2> {log}
+        """
+
+rule index_bwa_genome:
+    input: 
+        f"Assembly/{bn}"
+    output: 
+        multiext(f"Assembly/{bn}", ".ann", ".bwt", ".pac", ".sa", ".amb")
     message:
         "Indexing {input}"
     log:
@@ -55,7 +69,6 @@ rule index_genome:
     shell: 
         """
         bwa index {input} 2> {log}
-        samtools faidx --fai-idx {input}.fai {input} 2>> {log}
         """
 
 rule leviathan_variantcall:
