@@ -52,7 +52,7 @@ rule index_genome:
     message:
         "Indexing {input}"
     log:
-        f"Assembly/{genomefile}.idx.log"
+        f"Assembly/{bn}.idx.log"
     shell: 
         """
         ln -sr {input} {output.asm}

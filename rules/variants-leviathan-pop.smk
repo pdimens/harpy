@@ -162,7 +162,7 @@ rule sv_stats:
 rule sv_report_bypop:
 	input:	
 		statsfile = "Variants/leviathan-pop/reports/stats/{population}.sv.stats",
-		faidx = f"Assembly/{genomefile}.fai"
+		faidx = f"Assembly/{bn}.fai"
 	output:
 		"Variants/leviathan-pop/reports/{population}.sv.html"
 	message:
@@ -174,7 +174,7 @@ rule sv_report_bypop:
 rule sv_report:
 	input:	
 		statsfiles = expand("Variants/leviathan-pop/reports/stats/{pop}.sv.stats", pop = populations),
-		faidx = f"Assembly/{genomefile}.fai"
+		faidx = f"Assembly/{bn}.fai"
 	output:
 		"Variants/leviathan-pop/reports/SV.summary.html"
 	message:
