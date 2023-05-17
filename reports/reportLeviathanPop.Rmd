@@ -224,7 +224,7 @@ popheight <- 5 / length(populations) / 10
 col.ramp <- viridis(length(populations))
 
 for (SV in c("INV", "DEL", "DUP", "BND")){
-  circosplot(sv, fa.sizes, SV, popheight, populations)
+  circosplot(sv, fa.sizes, SV, popheight, populations, col.ramp)
 }
 
 
