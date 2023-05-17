@@ -117,11 +117,11 @@ Plotting only the first 30 largest contigs.
 
 ```{r echo = FALSE, message = FALSE, warning = FALSE}
 sv$ystart <- case_when(
-      sv$type == "INV" ~ 0.1,
-      sv$type == "DUP" ~ 1.1,
-      sv$type == "DEL" ~ 2.1,
-      sv$type == "BND" ~ 3.1,
-    )
+  sv$type == "INV" ~ 0.1,
+  sv$type == "DUP" ~ 1.1,
+  sv$type == "DEL" ~ 2.1,
+  sv$type == "BND" ~ 3.1,
+)
 sv$ystop <- sv$ystart + 0.8
 ```
 

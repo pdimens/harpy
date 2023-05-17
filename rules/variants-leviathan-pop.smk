@@ -144,7 +144,7 @@ rule sv_stats:
 	output:
 		"Variants/leviathan-pop/reports/stats/{population}.sv.stats"
 	message:
-		"Getting stats: Population {input.bcf}"
+		"Getting stats: Population {input}"
 	benchmark:
 		"Benchmark/Variants/leviathan-pop/stats.{population}.txt"
 	threads: 1
@@ -163,7 +163,7 @@ rule sv_report_bypop:
 	message:
 		"Generating SV report for all populations"
 	script:
-		"../reports/reportLeviathan.Rmd"
+		"reportLeviathan.Rmd"
 
 
 rule sv_report:
@@ -175,7 +175,7 @@ rule sv_report:
 	message:
 		"Generating SV report for all populations"
 	script:
-		"../reports/reportLeviathanPop.Rmd"
+		"reportLeviathanPop.Rmd"
 
 rule all_bcfs:
 	input: 
