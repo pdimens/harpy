@@ -202,15 +202,6 @@ circosplot <- function(data, contigdata, svtype, trackheight, poplist, colormap)
       circos.genomicRect(region, value, ybottom = 0, ytop = 1, col = colormap[i], border = colormap[i])
       }
     )
-    lgd <- Legend(
-      at = poplist,
-      type = "grid",
-      legend_gp = gpar(fill = colormap),
-      title_position = "topleft",
-      title = "Populations"
-    )
-
-  draw(lgd, x = unit(0.98, "npc"), just = "right")
   }
   
   text(0, 0, svtype, cex = 1.5)
@@ -226,6 +217,15 @@ col.ramp <- viridis(length(populations))
 for (SV in c("INV", "DEL", "DUP", "BND")){
   circosplot(sv, fa.sizes, SV, popheight, populations, col.ramp)
 }
+    lgd <- Legend(
+      at = populations,
+      type = "grid",
+      legend_gp = gpar(fill = col.ramp),
+      title_position = "topleft",
+      title = "Populations"
+    )
+
+  draw(lgd)
 
 
 ```
