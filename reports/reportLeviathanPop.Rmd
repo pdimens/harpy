@@ -139,7 +139,7 @@ variants between populations. Plotting only the first 30 largest contigs.
 
 ### Summary
 ```{r echo = FALSE, message = FALSE, warning = FALSE}
-circosplot <- function(data, contigdata, svtype, trackheight, poplist){
+circosplot <- function(data, contigdata, svtype, trackheight, poplist, colormap){
   circos.clear()
   col_text <- "grey40"
   circos.par("track.height" = 0.8, gap.degree = 2, cell.padding = c(0, 0, 0, 0))
@@ -162,7 +162,7 @@ circosplot <- function(data, contigdata, svtype, trackheight, poplist){
         mean(xlim),
         mean(ylim),
         chr,
-        cex = 0.35,
+        cex = 0.2,
         col = col_text,
         facing="bending.inside",
         niceFacing = T
@@ -181,7 +181,7 @@ circosplot <- function(data, contigdata, svtype, trackheight, poplist){
         h = "top",
         major.at = brk,
         labels = round(brk/10^6, 1),
-        labels.cex = 0.4,
+        labels.cex = 0.2,
         col = col_text,
         labels.col = col_text,
         lwd = 0.7,
@@ -199,9 +199,18 @@ circosplot <- function(data, contigdata, svtype, trackheight, poplist){
       track.height = trackheight,
       bg.border = F,
       panel.fun = function(region, value, ...) {
-      circos.genomicRect(region, value, ybottom = 0, ytop = 1, col = col.ramp[i], border = col.ramp[i])
+      circos.genomicRect(region, value, ybottom = 0, ytop = 1, col = colormap[i], border = colormap[i])
       }
     )
+    lgd <- Legend(
+      at = poplist,
+      type = "grid",
+      legend_gp = gpar(fill = colormap),
+      title_position = "topleft",
+      title = "Populations"
+    )
+
+  draw(lgd, x = unit(0.95, "npc"), just = c("right", "bottom"))
   }
   
   text(0, 0, svtype, cex = 1.5)
@@ -217,15 +226,7 @@ col.ramp <- viridis(length(populations))
 for (SV in c("INV", "DEL", "DUP", "BND")){
   circosplot(sv, fa.sizes, SV, popheight, populations)
 }
-lgd <- Legend(
-    at = populations,
-    type = "grid",
-    legend_gp = gpar(fill = col.ramp),
-    title_position = "topleft",
-    title = "Populations"
-  )
 
-draw(lgd, x = unit(0, "npc"), just = c("right", "bottom"))
 
 ```
 
