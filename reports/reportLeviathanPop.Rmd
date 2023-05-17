@@ -210,7 +210,7 @@ circosplot <- function(data, contigdata, svtype, trackheight, poplist, colormap)
       title = "Populations"
     )
 
-  draw(lgd, x = unit(0.95, "npc"), just = c("right", "bottom"))
+  draw(lgd, x = unit(0.98, "npc"), just = c("right", "bottom"))
   }
   
   text(0, 0, svtype, cex = 1.5)
