@@ -61,7 +61,7 @@ bcf <- snakemake@input[["bcf"]]
 #bcf <- "/home/pdimens/Omega/Cornell/dmel/leviathan.bcf"
 hd <- system2("bcftools", args =  paste("head", bcf), stdout = T)
 fa.sizes <- hd[grep("contig=", hd)]
-fa.sizes <- as.data.frame(do.call(rbind, strsplit(fa.sizes, ",length="))) %>% arrange(desc(V2))
+fa.sizes <- as.data.frame(do.call(rbind, strsplit(fa.sizes, ",length="))) %>% arrange(desc(2))
 fa.sizes$V1 <- gsub("##contig=<ID=", "", fa.sizes$V1)
 fa.sizes$V2 <- as.numeric(gsub(">", "", fa.sizes$V2))
 colnames(fa.sizes) <- c("contig", "size")
