@@ -208,24 +208,25 @@ circosplot <- function(data, contigdata, svtype, trackheight, poplist, colormap)
 }
 ```
 
-```{r echo = FALSE, message = FALSE, warning = FALSE, fig.align='center', out.width= "100%"}
+```{r echo = FALSE, message = FALSE, warning = FALSE, fig.align='center', fig.width=18, fig.height=18, out.width= "100%"}
 par(mfrow = c(2, 2))
 populations <- unique(sv$population)
 popheight <- 5 / length(populations) / 10
 col.ramp <- viridis(length(populations))
+lgd <- Legend(
+  at = populations,
+  type = "grid",
+  legend_gp = gpar(fill = col.ramp),
+  title_position = "topleft",
+  title = "Populations"
+)
 
 for (SV in c("INV", "DEL", "DUP", "BND")){
   circosplot(sv, fa.sizes, SV, popheight, populations, col.ramp)
+  if (SV == "BND"){
+    draw(lgd)
+  }
 }
-    lgd <- Legend(
-      at = populations,
-      type = "grid",
-      legend_gp = gpar(fill = col.ramp),
-      title_position = "topleft",
-      title = "Populations"
-    )
-
-  draw(lgd)
 
 
 ```
