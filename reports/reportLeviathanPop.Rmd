@@ -139,7 +139,7 @@ variants between populations. Plotting only the first 30 largest contigs.
 
 ### Summary
 ```{r echo = FALSE, message = FALSE, warning = FALSE}
-circosplot <- function(data, contigdata, svtype, trackheight, poplist, colormap){
+circosplot <- function(data, contigdata, svtype, trackheight, poplist, colormap, draw.leg){
   circos.clear()
   col_text <- "grey40"
   circos.par("track.height" = 0.8, gap.degree = 2, cell.padding = c(0, 0, 0, 0))
@@ -162,7 +162,7 @@ circosplot <- function(data, contigdata, svtype, trackheight, poplist, colormap)
         mean(xlim),
         mean(ylim),
         chr,
-        cex = 0.2,
+        cex = 0.6,
         col = col_text,
         facing="bending.inside",
         niceFacing = T
@@ -181,7 +181,7 @@ circosplot <- function(data, contigdata, svtype, trackheight, poplist, colormap)
         h = "top",
         major.at = brk,
         labels = round(brk/10^6, 1),
-        labels.cex = 0.2,
+        labels.cex = 0.6,
         col = col_text,
         labels.col = col_text,
         lwd = 0.7,
@@ -203,8 +203,17 @@ circosplot <- function(data, contigdata, svtype, trackheight, poplist, colormap)
       }
     )
   }
-  
-  text(0, 0, svtype, cex = 1.5)
+  if (draw.leg) {
+    lgd <- Legend(
+      at = poplist,
+      type = "grid",
+      legend_gp = gpar(fill = colormap),
+      title_position = "topleft",
+      title = "Populations"
+    )
+    draw(lgd)
+  }
+  text(0, 0, svtype, cex = 2)
 }
 ```
 
@@ -213,19 +222,13 @@ par(mfrow = c(2, 2))
 populations <- unique(sv$population)
 popheight <- 5 / length(populations) / 10
 col.ramp <- viridis(length(populations))
-lgd <- Legend(
-  at = populations,
-  type = "grid",
-  legend_gp = gpar(fill = col.ramp),
-  title_position = "topleft",
-  title = "Populations"
-)
+lgnd <- FALSE
 
 for (SV in c("INV", "DEL", "DUP", "BND")){
-  circosplot(sv, fa.sizes, SV, popheight, populations, col.ramp)
   if (SV == "BND"){
-    draw(lgd)
+    lgnd <- TRUE
   }
+  circosplot(sv, fa.sizes, SV, popheight, populations, col.ramp, lgnd)
 }
 
 
