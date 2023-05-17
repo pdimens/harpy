@@ -139,7 +139,7 @@ variants between populations. Plotting only the first 30 largest contigs.
 
 ### Summary
 ```{r echo = FALSE, message = FALSE, warning = FALSE}
-circosplot <- function(data, contigdata, svtype, trackheight, poplist, trackcolor){
+circosplot <- function(data, contigdata, svtype, trackheight, poplist){
   circos.clear()
   col_text <- "grey40"
   circos.par("track.height" = 0.8, gap.degree = 2, cell.padding = c(0, 0, 0, 0))
@@ -215,7 +215,7 @@ popheight <- 5 / length(populations) / 10
 col.ramp <- viridis(length(populations))
 
 for (SV in c("INV", "DEL", "DUP", "BND")){
-  circosplot(sv, fa.sizes, SV, popheight, populations, "#FFC107")
+  circosplot(sv, fa.sizes, SV, popheight, populations)
 }
 lgd <- Legend(
     at = populations,
@@ -225,7 +225,7 @@ lgd <- Legend(
     title = "Populations"
   )
 
-draw(lgd, x = unit(0.97, "npc"), just = c("right", "bottom"))
+draw(lgd, x = unit(0, "npc"), just = c("right", "bottom"))
 
 ```
 
