@@ -144,7 +144,7 @@ circos.track(
       mean(xlim),
       mean(ylim),
       chr,
-      cex = 0.5,
+      cex = 0.35,
       col = col_text,
       facing="bending.inside",
       niceFacing = T

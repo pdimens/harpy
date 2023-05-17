@@ -9,11 +9,7 @@ output:
     number_sections: no
     theme: cosmo
     df_print: kable
-    toc: yes
-    toc_depth: 3
-    toc_float:
-      collapsed: no
-      smooth_scroll: yes
+    toc: no
 ---
 
 Below is a series of tables and plots detailing the structural variants
@@ -129,7 +125,9 @@ sv$ystop <- sv$ystart + 0.8
 ```
 
 ```{r echo = FALSE, out.width = '100%', warning=FALSE}
+color.palette <- c("DEL"="#004D40", "DUP"="#FFC107", "INV"="#1E88E5","BND"="#D81B60")
 l <- htmltools::tagList()
+
 for (i in 1:nrow(fa.sizes)) {
   sv.filt <- sv %>% filter(contig == fa.sizes$contig[i])
   sv_stats <- group_by(sv.filt, type) %>% summarise(n = length(type))
@@ -151,8 +149,8 @@ for (i in 1:nrow(fa.sizes)) {
         )
       ) +
     geom_hline(yintercept = 1:3, color = "grey90") +
-    scale_color_manual(values=c("DEL"="#004D40", "DUP"="#FFC107", "INV"="#1E88E5","BND"="#D81B60")) +
-    scale_fill_manual(values=c("DEL"="#004D40", "DUP"="#FFC107", "INV"="#1E88E5","BND"="#D81B60")) +
+    scale_color_manual(values = color.palette) +
+    scale_fill_manual(values = color.palette) +
     facet_grid(rows = vars(population)) +
     theme_light() +
     theme(
@@ -162,7 +160,6 @@ for (i in 1:nrow(fa.sizes)) {
       panel.grid.major = element_blank(),
       panel.grid.minor = element_blank(),
       strip.background = element_blank(),
-      strip.text = element_blank(),
       legend.position = "none",
     ) +
     xlim(0, fa.sizes$size[i]) +
@@ -174,7 +171,7 @@ for (i in 1:nrow(fa.sizes)) {
     coord_cartesian(xlim = c(0, fa.sizes$size[i] + 1), expand = F) +
     xlab("Position (bp)") +
     labs(fill = "SV type", color = "SV type") +
-    ggtitle(i)
+    ggtitle(fa.sizes$contig[i])
   l[[i]] <- ggplotly(plt, tooltip = "text")
 }
 l
