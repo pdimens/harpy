@@ -6,9 +6,6 @@ samplenames = config["samplenames"]
 extra = config.get("extra", "") 
 
 bn = os.path.basename(genomefile)
-os.makedirs("Assembly", exist_ok = True)
-if not os.path.exists(f"Assembly/{bn}"):
-    shell(f"ln -sr {genomefile} Assembly/{bn}")
 
 rule index_alignment:
     input:
@@ -36,12 +33,22 @@ rule index_barcode:
     shell:
         "LRez index bam --threads {threads} -p -b {input.bam} -o {output}"
 
+rule link_genome:
+	input:
+		genomefile
+	output: 
+		f"Assembly/{bn}"
+	message:
+		"Symlinking {input} to Assembly/"
+	shell: 
+		"ln -sr {input} {output}"
+
 rule index_genome:
     input: 
         genomefile
     output: 
-        asm = f"Assembly/{genomefile}",
-        idx = multiext(f"Assembly/{genomefile}", ".ann", ".bwt", ".fai", ".pac", ".sa", ".amb")
+        asm = f"Assembly/{bn}",
+        idx = multiext(f"Assembly/{bn}", ".ann", ".bwt", ".fai", ".pac", ".sa", ".amb")
     message:
         "Indexing {input}"
     log:
@@ -58,7 +65,7 @@ rule leviathan_variantcall:
         bam = bam_dir + "/{sample}.bam",
         bai = bam_dir + "/{sample}.bam.bai",
         bc_idx = "Variants/leviathan/lrezIndexed/{sample}.bci",
-        genome = f"Assembly/{genomefile}"
+        genome = f"Assembly/{bn}"
     output:
         pipe("Variants/leviathan/{sample}.vcf")
     log:  

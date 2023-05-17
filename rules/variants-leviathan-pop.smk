@@ -8,9 +8,6 @@ extra = config.get("extra", "")
 groupfile = config["groupings"]
 
 bn = os.path.basename(genomefile)
-os.makedirs("Assembly", exist_ok = True)
-if not os.path.exists(f"Assembly/{bn}"):
-	shell(f"ln -sr {genomefile} Assembly/{bn}")
 
 # create dictionary of population => filenames
 ## this makes it easier to set the snakemake rules/wildcards
@@ -85,21 +82,29 @@ rule index_barcode:
 	shell:
 		"LRez index bam -p -b {input.bam} -o {output} --threads {threads}"
 
-rule index_genome:
+rule link_genome:
 	input:
 		genomefile
 	output: 
-		asm = f"Assembly/{genomefile}",
-		idx = multiext(f"Assembly/{genomefile}", ".ann", ".bwt", ".fai", ".pac", ".sa", ".amb")
+		f"Assembly/{bn}"
 	message:
+		"Symlinking {input} to Assembly/"
+	shell: 
+		"ln -sr {input} {output}"
+
+rule index_genome:
+	input:
+		f"Assembly/{bn}"
+	output: 
+		multiext(f"Assembly/{bn}", ".ann", ".bwt", ".fai", ".pac", ".sa", ".amb", ".bed")
+	message: 
 		"Indexing {input}"
-	log:
-		f"Assembly/{genomefile}.idx.log"
+	log: 
+		f"Assembly/{bn}.idx.log"
 	shell: 
 		"""
-		ln -sr {input} {output.asm}
-		bwa index {output.asm} 2> {log}
-		samtools faidx --fai-idx {output.asm}.fai {output.asm} 2>> {log}
+		bwa index {input} 2> {log}
+		samtools faidx --fai-idx {input}.fai {input} 2>> {log}
 		"""
 
 rule leviathan_variantcall:
@@ -107,7 +112,7 @@ rule leviathan_variantcall:
 		bam = "Variants/leviathan-pop/input/{population}.bam",
 		bai = "Variants/leviathan-pop/input/{population}.bam.bai",
 		bc_idx = "Variants/leviathan-pop/lrezIndexed/{population}.bci",
-		genome = f"Assembly/{genomefile}"
+		genome = f"Assembly/{bn}"
 	output:
 		pipe("Variants/leviathan-pop/{population}.vcf")
 	log:  
