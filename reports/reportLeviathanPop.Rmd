@@ -159,7 +159,8 @@ for (i in 1:nrow(fa.sizes)) {
       axis.ticks.y = element_blank(),
       panel.grid.major = element_blank(),
       panel.grid.minor = element_blank(),
-      strip.background = element_blank(),
+      strip.background = element_rect(fill = "grey80"),
+      strip.text = element_text(color = "grey20"),
       legend.position = "none",
     ) +
     xlim(0, fa.sizes$size[i]) +
