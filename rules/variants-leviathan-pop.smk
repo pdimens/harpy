@@ -175,7 +175,7 @@ rule sv_stats:
 rule sv_report_bypop:
 	input:	
 		statsfile = "Variants/leviathan-pop/reports/stats/{population}.sv.stats",
-		faidx = f"Assembly/{bn}.fai"
+		bcf = "Variants/leviathan-pop/{population}.bcf"
 	output:
 		"Variants/leviathan-pop/reports/{population}.sv.html"
 	message:
