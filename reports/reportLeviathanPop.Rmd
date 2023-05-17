@@ -51,8 +51,13 @@ if (nrow(fa.sizes) > 30){
   fa.sizes <- fa.sizes[1:30, ]
 }
 
-statsfile <- snakemake@input[["statsfile"]]
-sv <- read.table(statsfile)
+#sv <- do.call(rbind, lapply(c("~/1.sv.stats", "~/2.sv.stats"), function(x) read.table(x, header = T)))
+sv <- do.call(rbind, lapply(snakemake@input[["statsfiles"]], function(x) read.table(x, header = T)))
+
+if (nrow(sv) == 0) {
+  print("No variants detected")
+  q()
+}
 ```
 
 ## Various information {.tabset}
@@ -72,13 +77,6 @@ DT::datatable(genstats, rownames = F, filter = "top", extensions = 'Buttons', op
 ### all variants
 This table details all the variants LEVIATHAN detected and the quantity/quality of evidence for those detections.
 ```{r message = FALSE, echo = FALSE}
-#sv <- do.call(rbind, lapply(c("~/1.sv.stats", "~/2.sv.stats"), function(x) read.table(x, header = T)))
-sv <- do.call(rbind, lapply(snakemake@input[["statsfiles"]], function(x) read.table(x, header = T)))
-
-if (nrow(sv) == 0) {
-  print("No variants detected")
-  q()
-}
 DT::datatable(sv, rownames = F, filter = "top", extensions = 'Buttons', options = list(dom = 'Brtip', buttons = c('csv'), scrollX = TRUE))
 ```
 
