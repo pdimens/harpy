@@ -217,7 +217,7 @@ circosplot <- function(data, contigdata, svtype, trackheight, poplist, colormap,
 }
 ```
 
-```{r echo = FALSE, message = FALSE, warning = FALSE, fig.align='center', fig.width=18, fig.height=18, out.width= "100%"}
+```{r echo = FALSE, message = FALSE, warning = FALSE, fig.align='center', fig.width=12, fig.height=12, out.width= "100%"}
 par(mfrow = c(2, 2))
 populations <- unique(sv$population)
 popheight <- 5 / length(populations) / 10
