@@ -175,7 +175,7 @@ rule align_nobarcode:
 	shell:
 		"""
 		BWATHREADS=$(( {threads} - 2 ))
-		bwa mem -t $BWATHREADS -C -M -R \"@RG\\tID:{wildcards.sample}\\tSM:{wildcards.sample}\" {input.genome} {input.reads} 2> /dev/null |
+		bwa mem -t $BWATHREADS -C -R \"@RG\\tID:{wildcards.sample}\\tSM:{wildcards.sample}\" {input.genome} {input.reads} 2> /dev/null |
 		samtools view -h -F 4 -q {params.quality} | 
 		samtools sort -O bam -m 4G --reference {input.genome} -o {output} 2> /dev/null
 		"""
@@ -204,13 +204,12 @@ rule markduplicates:
 		samtools flagstat {output.bam} > {log.flagstat}
 		"""   
 
-
 rule merge_barcoded:
 	input:
 		aln_barcoded = expand("Alignments/ema/align/{{sample}}/{{sample}}.{bin}.bam", bin = ["%03d" % i for i in range(nbins)]),
 	output: 
-		bam = temp("Alignments/ema/align/barcoded/{sample}.barcoded.bam"),
-		bai = temp("Alignments/ema/align/barcoded/{sample}.barcoded.bam.bai")
+		bam = temp("Alignments/ema/align/barcoded/{sample}.barcoded.sec.bam"),
+		bai = temp("Alignments/ema/align/barcoded/{sample}.barcoded.sec.bam.bai")
 	wildcard_constraints:
 		sample = "[a-zA-Z0-9_-]*"
 	message:
@@ -220,6 +219,18 @@ rule merge_barcoded:
 	threads: 10
 	shell:
 		"sambamba merge -t {threads} -l 4 {output.bam} {input}"
+
+rule secondary2split:
+	input:
+		bam = temp("Alignments/ema/align/barcoded/{sample}.barcoded.sec.bam"),
+		bai = temp("Alignments/ema/align/barcoded/{sample}.barcoded.sec.bam.bai")
+	output:
+		bam = temp("Alignments/ema/align/barcoded/{sample}.barcoded.bam"),
+		bai = temp("Alignments/ema/align/barcoded/{sample}.barcoded.bam.bai")
+	message:
+		"Converting Secondary SAM flags to Split flags: {input.bam}"
+	shell:
+		"secondary2split.py {input.bam} {output.bam}"
 
 rule bcstats:
 	input: 
