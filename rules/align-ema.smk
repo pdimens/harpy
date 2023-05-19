@@ -227,8 +227,10 @@ rule secondary2split:
 	output:
 		bam = temp("Alignments/ema/align/barcoded/{sample}.barcoded.bam"),
 		bai = temp("Alignments/ema/align/barcoded/{sample}.barcoded.bam.bai")
+	wildcard_constraints:
+		sample = "[a-zA-Z0-9_-]*"
 	message:
-		"Converting Secondary SAM flags to Split flags: {input.bam}"
+		"Converting Secondary SAM flags to Split flags: {wildcards.sample}"
 	shell:
 		"secondary2split.py {input.bam} {output.bam}"
 
