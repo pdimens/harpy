@@ -1,0 +1,71 @@
+{% set version = "0.2.2" %}
+{% set sha256 = "a5c3011d4caffd1e1eac96dbe8bca38f271da278ce3d0b95daf069493fef1b6a" %}
+
+package:
+  name: harpy
+  version: '{{ version }}'
+
+source:
+  url: https://github.com/pdimens/harpy/archive/{{ version }}.tar.gz
+  sha256: '{{ sha256 }}'
+  folder: harpy
+
+build:
+  number: 0
+
+requirements:
+  build:
+    - git
+    - make
+    - {{ compiler('c') }}
+    - {{ compiler('cxx') }}
+  host:
+    - zlib
+    - llvm-openmp
+  run:
+    - bioconductor-complexheatmap
+    - bwa
+    - bcftools
+    - datamash
+    - fastp
+    - hapcut2
+    - libzlib
+    - leviathan
+    - llvm-openmp 
+    - multiqc
+    - python >=3.7
+    - r-base >=4
+    - r-circlize
+    - r-dplyr
+    - r-dt
+    - r-ggplot2
+    - r-knitr
+    - r-magrittr
+    - r-plotly
+    - r-rmarkdown
+    - r-stitch
+    - r-tidyr
+    - rich-click
+    - snakemake >=7
+    - sambamba
+    - samtools
+    - seqfu
+    - tabix
+    - zlib
+
+test:
+  commands:
+    - "snakemake --version"
+    - "R --version"
+about:
+  home: "https://github.com/pdimens/HARPY/"
+  license: "The MIT License (MIT)"
+  summary: "Process raw haplotagging data, from raw sequences to phased haplotypes."
+  doc_url: https://pdimens.github.io/HARPY/
+  dev_url: https://github.com/pdimens/HARPY
+
+extra:
+  container:
+    extended-base: True
+  maintainers:
+    - pdimens
