@@ -1,5 +1,5 @@
-{% set version = "0.2.2" %}
-{% set sha256 = "a5c3011d4caffd1e1eac96dbe8bca38f271da278ce3d0b95daf069493fef1b6a" %}
+{% set version = "0.1.0" %}
+{% set sha256 = "9e9dbfa11ca8be724019eecfa78ca1bb15d7c4cc01b4f0376bc03be4dc4b82d1" %}
 
 package:
   name: harpy
@@ -14,14 +14,6 @@ build:
   number: 0
 
 requirements:
-  build:
-    - git
-    - make
-    - {{ compiler('c') }}
-    - {{ compiler('cxx') }}
-  host:
-    - zlib
-    - llvm-openmp
   run:
     - bioconductor-complexheatmap
     - bwa
