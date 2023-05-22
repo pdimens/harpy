@@ -28,7 +28,7 @@ click.rich_click.SHOW_METAVARS_COLUMN = False
 click.rich_click.APPEND_METAVARS_HELP = False
 click.rich_click.REQUIRED_SHORT_STRING = ""
 click.rich_click.ERRORS_SUGGESTION = "Try the '--help' flag for more information."
-click.rich_click.ERRORS_EPILOGUE = "See the documentation: [link=https://pdimens.github.io/HARPY/]https://pdimens.github.io/HARPY/[/link]"
+click.rich_click.ERRORS_EPILOGUE = "See the documentation: [link=https://pdimens.github.io/harpy/]https://pdimens.github.io/harpy/[/link]"
 
 
 ## recurring checks and such ##
@@ -145,7 +145,7 @@ def cli():
     
     **trim 🡒 align 🡒 variants 🡒 impute 🡒 phase**
     
-    **Documentation**: [https://pdimens.github.io/HARPY/](https://pdimens.github.io/HARPY/)
+    **Documentation**: [https://pdimens.github.io/harpy/](https://pdimens.github.io/harpy/)
     """
     pass
 
@@ -222,7 +222,7 @@ def trim(directory, max_length, extra_params, threads, snakemake):
         except:
             print(f"\033[1;33mERROR:\033[00m No fastq files with acceptable names found in {directory}")
             print("Check that the files conform to [.1. | .F.][.fastq | .fq].gz")
-            print("Read the documentation for details: https://pdimens.github.io/HARPY/modules/qualitytrimming/")
+            print("Read the documentation for details: https://pdimens.github.io/harpy/modules/qualitytrimming/")
     command = f'snakemake --cores {threads} --directory . --snakefile {harpypath}/trim.smk'.split()
     if snakemake is not None:
         [command.append(i) for i in snakemake.split()]
@@ -266,7 +266,7 @@ def align(genome, threads, bwa, directory, ema_bins, extra_params, quality_filte
         except:
             print(f"\033[1;33mERROR:\033[00m No fastq files with acceptable names found in {directory}")
             print("Check that the files conform to [.1. | .F. | .R1.][.fastq | .fq].gz")
-            print("Read the documentation for details: https://pdimens.github.io/HARPY/modules/readmapping/")
+            print("Read the documentation for details: https://pdimens.github.io/harpy/modules/readmapping/")
             sys.exit(1)
     mapper = "ema" if not bwa else "bwa"
     command = f'snakemake --cores {threads} --directory . --snakefile {harpypath}/align-{mapper}.smk'.split()

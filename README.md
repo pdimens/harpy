@@ -1,4 +1,4 @@
-![logo](https://github.com/pdimens/HARPY/blob/docs/static/logo.png?raw=true)
+![logo](https://github.com/pdimens/harpy/blob/docs/static/logo.png?raw=true)
 
 [![documentation badge](https://img.shields.io/badge/read%20the-documentation-c0bad4?style=for-the-badge&logo=Read%20The%20Docs)](https://pdimens.github.io/harpy) 
 
@@ -24,7 +24,7 @@ The version of [EMA](https://github.com/arshajii/ema) bundled in this repository
                                                               
  trim 🡒 align 🡒 variants 🡒 impute 🡒 phase           
                                                               
- Documentation: https://pdimens.github.io/HARPY/#/                      
+ Documentation: https://pdimens.github.io/harpy/                      
                                                               
 ╭─ Options ──────────────────────────────────────────────╮
 │ --help      Show this message and exit.                │
