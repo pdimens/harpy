@@ -29,16 +29,17 @@ if len(sys.argv) == 1:
 args = parser.parse_args()
 
 if not os.path.exists(args.bamfile):
-    print(f"File {args.bamfile} was not found, check spelling and try again.", file = sys.stderr)
+    print(f"File {args.bamfile} was not found, check the spelling and try again.", file = sys.stderr)
     exit(1)
 
 alnfile = pysam.AlignmentFile(args.bamfile)
 
 with pysam.AlignmentFile(args.outfile, "wb", template = alnfile) as outfile:
     for read in alnfile.fetch():
-        if read.mapq >= 30 and read.is_secondary:
-            read.is_secondary = False
-            read.is_supplementary = True
+        if not read.has_tag("XA"):
+            if read.mapq >= 30 and read.is_secondary:
+                read.is_secondary = False
+                read.is_supplementary = True
         _ = outfile.write(read)
 
 alnfile.close()
