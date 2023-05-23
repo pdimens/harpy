@@ -38,9 +38,9 @@ where `<env_name>` is the name of that environment. After doing so, the `harpy` 
 The version of [EMA](https://github.com/arshajii/ema) bundled in this repository (`ema-h`) is a [fork](https://github.com/EdHarry/ema/tree/haplotag) of the orignal EMA modified to work with Generation 1 haplotag beadtags (AxxCxxBxxDxx). Work is underway to merge haplotag support and publish a new version of EMA to remove reliance on this precompiled fork. 
 
 ## Usage
+Just call `harpy` or `harpy --help` on the command line to get started!
+
 ```
-harpy --help
-                                                           
  Usage: harpy [OPTIONS] COMMAND [ARGS]...                     
                                                               
  HARPY Haplotagging data processing pipeline.                 
