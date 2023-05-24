@@ -232,7 +232,6 @@ def trim(directory, max_length, extra_params, threads, snakemake):
     command.append(f"fqext={fullext}")
     command.append(f"samplenames={samplenames}")
     command.append(f"maxlen={max_length}")
-    #command.append(f"harpypath={harpypath}")
     if extra_params is not None:
         command.append(f"extra={extra_params}")
     subprocess.run(command)
@@ -243,7 +242,6 @@ def trim(directory, max_length, extra_params, threads, snakemake):
 @click.option('-e', '--ema-bins', default = 500, show_default = True, type = click.IntRange(1,1000), metavar = "Integer", help="Number of barcode bins for EMA")
 @click.option('--bwa', is_flag=True, metavar = "Toggle", help="Use BWA MEM instead of EMA")
 @click.option('-q', '--quality-filter', default = 30, show_default = True, type = click.IntRange(min = 0, max = 40), metavar = "Integer", help = 'Minimum mapping quality to pass filtering')
-#@click.option('--bx-markdup', is_flag=True, metavar = "Toggle", help = 'Mark duplicates using BX barcodes (--bwa only)')
 @click.option('-x', '--extra-params', type = str, metavar = "String", help = 'Additional EMA-align/BWA parameters, in quotes')
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(min = 4, max_open = True), metavar = "Integer", help = 'Number of threads to use')
 @click.option('-s', '--snakemake', type = str, metavar = "String", help = 'Additional Snakemake parameters, in quotes')
@@ -281,11 +279,7 @@ def align(genome, threads, bwa, directory, ema_bins, extra_params, quality_filte
     command.append(f"genomefile={genome}")
     command.append(f"EMA_bins={ema_bins}")
     command.append(f"quality={quality_filter}")
-    #command.append(f"harpypath={harpypath}")
-    #if bx_markdup is not None:
-    #    command.append(f"BXmarkdup=True")
-    #else:
-    #    command.append(f"BXmarkdup=False")
+
     if extra_params is not None:
         command.append(f"extra={extra_params}")
     subprocess.run(command)
@@ -309,8 +303,6 @@ def variants(genome, threads, directory, populations, ploidy, leviathan, extra_p
     vcaller = "mpileup" if not leviathan else "leviathan"
     if vcaller == "leviathan" and populations is not None:
         vcaller = "leviathan-pop"
-    #command = (f'snakemake --cores {threads} --directory . --snakefile rules/variants-{vcaller}.smk').split()
-    #command = (f'snakemake --cores {threads} --directory . --snakefile variants-{vcaller}.test.smk').split()
     command = (f'snakemake --cores {threads} --directory . --snakefile {harpypath}/variants-{vcaller}.smk').split()
     if snakemake is not None:
         [command.append(i) for i in snakemake.split()]
