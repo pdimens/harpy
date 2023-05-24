@@ -3,7 +3,7 @@ label: Haplotag data format
 icon: file-binary
 order: 97
 ---
-# :icon-check-circle: Haplotag data format
+# :icon-file-binary: Haplotag data format
 
 ## Barcodes
 While barcodes are actually combinatorial bases, in the read headers they are represented
