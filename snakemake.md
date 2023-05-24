@@ -4,7 +4,7 @@ icon: terminal
 order: 49
 ---
 
-# Sneaky Snakemake
+# :icon-terminal: Sneaky Snakemake
 
 ## Adding additional Snakamake parameters
 Harpy relies on Snakemake under the hood to handle file and job dependencies. Most of these details have been abstracted away from the end-user, but every module of Harpy (except `extra`) has an optional flag `-s` (`--snakemake`) that you can use to augment the Snakemake workflow if necessary. Whenever you use this flag, your argument must be enclosed in quotation marks, for example:
