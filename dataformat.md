@@ -59,10 +59,10 @@ Notice that the read pair part differs from the accepted fastq names for read tr
 
 | forward-reverse notation | extension  | example forward          | example reverse         |
 |:-------------------------|:-----------|:-------------------------|:------------------------|
-| `.F` / `.R`                | `fastq.gz` | ` samplename.F.fastq.gz` | `samplename.R.fastq.gz` |
-| `.F` / `.R`                | `fq.gz`    | `samplename.F.fq.gz`     | `samplename.R.fq.gz`    |
-| `.1` / `.2`                | `fastq.gz` | `samplename.2.fastq.gz`  | `samplename.2.fastq.gz` |
-| `.1` / `.2`                | `fq.gz`    | `samplename.1.fq.gz`     | `samplename.2.fq.gz`    |
+| `.F` / `.R`                | `.fastq.gz` | ` samplename.F.fastq.gz` | `samplename.R.fastq.gz` |
+| `.F` / `.R`                | `.fq.gz`    | `samplename.F.fq.gz`     | `samplename.R.fq.gz`    |
+| `.1` / `.2`                | `.fastq.gz` | `samplename.2.fastq.gz`  | `samplename.2.fastq.gz` |
+| `.1` / `.2`                | `.fq.gz`    | `samplename.1.fq.gz`     | `samplename.2.fq.gz`    |
 
 ==- :icon-check-circle: acceptable fastq names for **aligning**
 Notice that the forward/reverse notation is slightly different for reads expected to be used for
@@ -70,8 +70,9 @@ alignment. This is deliberate to make sure trimmed reads have a different conven
 
 | forward-reverse notation | extension  | example forward           | example reverse          |
 |:-------------------------|:-----------|:--------------------------|:-------------------------|
-| `.R1` / `.R2`            | `fastq.gz` | ` samplename.R1.fastq.gz` | `samplename.R2.fastq.gz` |
-| `.R1` / `.R2`            | `fq.gz`    | `samplename.R1.fq.gz`     | `samplename.R2.fq.gz`    |
-| `_R1` / `_R2`            | `fastq.gz` | `samplename_R1.fastq.gz`  | `samplename_R2.fastq.gz` |
-| `_R1` / `_R2`            | `fq.gz`    | `samplename_R1.fq.gz`     | `samplename_R2.fq.gz`    |
+| `.R1` / `.R2`            | `.fastq.gz` | ` samplename.R1.fastq.gz` | `samplename.R2.fastq.gz` |
+| `.R1` / `.R2`            | `.fq.gz`    | `samplename.R1.fq.gz`     | `samplename.R2.fq.gz`    |
+| `_R1` / `_R2`            | `.fastq.gz` | `samplename_R1.fastq.gz`  | `samplename_R2.fastq.gz` |
+| `_R1` / `_R2`            | `.fq.gz`    | `samplename_R1.fq.gz`     | `samplename_R2.fq.gz`    |
+
 ===
