@@ -9,22 +9,7 @@ order: 5
 ===  :icon-checklist: You will need
 - at least 4 cores/threads available
 - a genome assembly in FASTA format
-- paired-end b/gzipped fastq sequence files
-==- :icon-stop: FASTQ file names
-There are a handful of "accepted" naming schemes for fastq file extensions, but Harpy only accepts a limited number of them, shown below.
-The fastq files **must** be bgzipped or gzipped and be **consistent** with regards to the extensions and read-pair naming styles.
-That is, you must only use `.fastq.gz` or only use `.fq.gz` for all files, and the same for `.R1.`/`.R2.` or `_R1.`/`_R2.` (adhere to a single row in the table below).
-Notice that the read pair part differs from the accepted fastq names for read trimming.
-
-#### :icon-check-circle: acceptable fastq names
-
-| forward-reverse notation | extension  | example forward           | example reverse          |
-|:-------------------------|:-----------|:--------------------------|:-------------------------|
-| `.R1` / `.R2`            | `fastq.gz` | ` samplename.R1.fastq.gz` | `samplename.R2.fastq.gz` |
-| `.R1` / `.R2`            | `fq.gz`    | `samplename.R1.fq.gz`     | `samplename.R2.fq.gz`    |
-| `_R1` / `_R2`            | `fastq.gz` | `samplename_R1.fastq.gz`  | `samplename_R2.fastq.gz` |
-| `_R1` / `_R2`            | `fq.gz`    | `samplename_R1.fq.gz`     | `samplename_R2.fq.gz`    |
-
+- paired-end b/gzipped fastq sequence files with the [proper naming convention](../dataformat/#naming-conventions)
 ===
 
 Once sequences have been trimmed and passed through other QC filters, they will need to
@@ -54,7 +39,7 @@ harpy align --bwa --genome genome.fasta --dir Sequences/
 | `--bwa`            |    `-b`    | toggle           |         |    no    | Use BWA MEM instead of EMA                                                                                      |
 | `--extra-params`   |    `-x`    | string           |         |    no    | Additional EMA-align/BWA arguments, in quotes                                                                  |
 | `--threads`        |    `-t`    | integer          |    4    |    no    | Number of threads to use                                                                                        |
-| `--snakemake`      |    `-s`    | string           |         |    no    | Additional Snakemake options, in quotes ([more info](../getstarted.md/#adding-additional-snakamake-parameters)) |
+| `--snakemake`      |    `-s`    | string           |         |    no    | Additional [Snakemake](../snakemake/#adding-additional-snakamake-parameters) options, in quotes |
 | `--help`           |            |                  |         |          | Show the module docstring                                                                                       |
 
 ==- :icon-code-square: EMA arguments

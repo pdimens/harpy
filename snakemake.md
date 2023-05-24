@@ -1,32 +1,10 @@
 ---
-label: Before you start
-icon: check-circle
-order: 97
+label: Sneaky Snakemake
+icon: terminal
+order: 49
 ---
-# :icon-check-circle: Before you start
-## Required files and formats
-Before you start using Harpy for your haplotagging data processing, you will need to make sure you have a few things on hand for things to go smoothly.
-At the minimum, you will need:
 
-==- 1. Haplotagging sequences, in b/gzipped FASTQ format
-- file names must not have any wierd special characters or dot (`.`) separators in the sample name
-    - legal: `sample_01_pop1.F.fq.gz`
-    - legal: `sample-01.F.fq.gz`
-    - **illegal**: `sample.01.pop1.F.fq.gz`
-- the haplotagging sequences **must** have the barcode in the read headers. 
-- the barcode must be in the format `AXXCXXBXXDXX`, where `XX` is a number between `00` and `96`
-    - `00` indicates a missing/invalid barcode segment
-- the barcode must be preceded by a `BX:Z:` tag in the read header
-``` example header
-@A00814:267:HTMH3DRXX:2:1101:4580:1000 BX:Z:A02C01B11D46        RX:Z:GAAACGACCAACA+CGAACACGTTAGC   QX:Z:F,FFFFFFFFFFF+FF,FFF:FFFFFF
-```
-Notably, only the sequence ID (`@...`) and `BX:Z:` tag are required. In the example above, there are additional tags 
-(`RX:Z:` and `QX:Z:`) which arent used by Harpy, but they conform to the 
-[SAM comment spec (section 1.5)](https://samtools.github.io/hts-specs/SAMv1.pdf) of `TAG:TYPE:VALUE`. The takeaway 
-is that the `BX:Z` tag can be anywhere in the read header after the sequence ID as long as any tags after it conform to the SAM spec `TAG:TYPE:VALUE`. 
-==- 2. A reference genome, in FASTA format
-A plain haploid genome assembly in uncompressed FASTA format.
-===
+# Sneaky Snakemake
 
 ## Adding additional Snakamake parameters
 Harpy relies on Snakemake under the hood to handle file and job dependencies. Most of these details have been abstracted away from the end-user, but every module of Harpy (except `extra`) has an optional flag `-s` (`--snakemake`) that you can use to augment the Snakemake workflow if necessary. Whenever you use this flag, your argument must be enclosed in quotation marks, for example:
@@ -46,7 +24,7 @@ Harpy calls Snakemake with a given set of arguments, meaning you cannot append t
 - `--config`
 !!!
 
-### Use cases
+### Common use cases
 You likely wont need to invoke `--snakemake` very often, if ever. However, here are common use cases for this parameter.
 
 ==- Dry run

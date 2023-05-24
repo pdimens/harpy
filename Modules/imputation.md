@@ -37,7 +37,7 @@ isolating biallelic SNPs, Harpy will do that for you ✨✨
 | `--dir      `  |    `-d`    | folder path |               | **yes**  | Directory with sequence alignments                                     |
 | `--parameters` |    `-p`    | file path   | stitch.params | **yes**  | STITCH parameter file (tab-delimited)                                  |
 | `--threads`    |    `-t`    | integer     |       4       |    no    | Number of threads to use                                               |
-| `--snakemake`  |    `-s`    | string      |               |    no    | Additional Snakemake options, in quotes ([more info](../getstarted.md/#adding-additional-snakamake-parameters)) |
+| `--snakemake`  |    `-s`    | string      |               |    no    | Additional [Snakemake](../snakemake/#adding-additional-snakamake-parameters) options, in quotes |
 | `--help`       |            |             |               |          | Show the module docstring                                              |
 
 ## :icon-file: Parameter file

@@ -36,7 +36,7 @@ harpy phase --threads 20 --vcf Variants/variants.raw.bcf --dir Alignments/ema
 | `--prune-threshold`   |    `-p`    | integer (0-100) |    7    |    no    | PHRED-scale (%) threshold for pruning low-confidence SNPs               |
 | `--extra-params`      |    `-x`    | string          |         |    no    | Additional Hapcut2 arguments, in quotes                                |
 | `--threads`           |    `-t`    | integer         |    4    |    no    | Number of threads to use                                                |
-| `--snakemake`         |    `-s`    | string          |         |    no    | Additional Snakemake options, in quotes ([more info](../getstarted.md/#adding-additional-snakamake-parameters))  |
+| `--snakemake`         |    `-s`    | string          |         |    no    | Additional [Snakemake](../snakemake/#adding-additional-snakamake-parameters) options, in quotes |
 | `--help`              |            |                 |         |          | Show the module docstring                                               |
 
 

@@ -40,7 +40,7 @@ harpy variants --threads 20 --genome genome.fasta --dir Alignments/ema --leviath
 | `--leviathan`    |    `-l`    | toggle      |         |    no    | Call variants with Leviathan instead of bcftools                       |
 | `--extra-params` |    `-x`    | string      |         |    no    | Additional mpileup/Leviathan arguments, in quotes                     |
 | `--threads`      |    `-t`    | integer     |    4    |    no    | Number of threads to use                                               |
-| `--snakemake`    |    `-s`    | string      |         |    no    | Additional Snakemake options, in quotes ([more info](../getstarted.md/#adding-additional-snakamake-parameters)) |
+| `--snakemake`    |    `-s`    | string      |         |    no    | Additional [Snakemake](../snakemake/#adding-additional-snakamake-parameters) options, in quotes |
 | `--help`         |            |             |         |          | Show the module docstring                                              |
 
 ==- :icon-code-square: mpileup arguments

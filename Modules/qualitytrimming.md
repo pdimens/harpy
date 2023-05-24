@@ -8,21 +8,7 @@ order: 6
 # :icon-codescan-checkmark: Quality Trim Sequences
 ===  :icon-checklist: You will need
 - at least 2 cores/threads available
-- paired-end b/gzipped fastq sequence files
-==- :icon-stop: FASTQ file names
-There are a handful of "accepted" naming schemes for fastq file extensions, but Harpy only accepts a limited number of them, shown below.
-The fastq files **must** be bgzipped or gzipped and be **consistent** with regards to the extensions and read-pair naming styles.
-That is, you must only use `.fastq.gz` or only use `.fq.gz` for all files, and the same for `.1.`/`.2.` or `.F.`/`.R.` (adhere to a single row in the table below).
-Notice that the read pair part differs from the accepted fastq names for aligning reads.
-#### :icon-check-circle: acceptable fastq names
-
-| forward-reverse notation | extension  | example forward          | example reverse         |
-|:-------------------------|:-----------|:-------------------------|:------------------------|
-| `.F` / `.R`                | `fastq.gz` | ` samplename.F.fastq.gz` | `samplename.R.fastq.gz` |
-| `.F` / `.R`                | `fq.gz`    | `samplename.F.fq.gz`     | `samplename.R.fq.gz`    |
-| `.1` / `.2`                | `fastq.gz` | `samplename.2.fastq.gz`  | `samplename.2.fastq.gz` |
-| `.1` / `.2`                | `fq.gz`    | `samplename.1.fq.gz`     | `samplename.2.fq.gz`    |
-
+- paired-end b/gzipped fastq sequence files with the [proper naming convention](../dataformat/#naming-conventions)
 ===
 
 Raw sequences are not suitable for downstream analyses. They have sequencing adapters,
@@ -45,7 +31,7 @@ harpy trim --dir Sequences_Raw/ --threads 20
 | `--max-length`   |    `-l`    | integer     |   150   |    no    | Maximum length to trim sequences down to                               |
 | `--extra-params` |    `-x`    | string      |         |    no    | Additional fastp arguments, in quotes                                 |
 | `--threads`      |    `-t`    | integer     |    4    |    no    | Number of threads to use                                               |
-| `--snakemake`    |    `-s`    | string      |         |    no    | Additional Snakemake options, in quotes ([more info](../getstarted.md/#adding-additional-snakamake-parameters)) |
+| `--snakemake`    |    `-s`    | string      |         |    no    | Additional [Snakemake](../snakemake/#adding-additional-snakamake-parameters) options, in quotes |
 | `--help`         |            |             |         |          | Show the module docstring                                              |
 
 ==- :icon-code-square: fastp arguments
