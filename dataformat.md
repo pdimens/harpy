@@ -7,8 +7,11 @@ order: 97
 
 ## Barcodes
 While barcodes are actually combinatorial bases, in the read headers they are represented
-with the format `AxxCxxBxxDxx`, where `xx` is a number between `00` and `96`. A `00` barcode 
-indicates a missing/invalid barcode segment, which invalidates the entire barcode. Each segment represents a unique barcode segment used in your experiment (e.g. `C33` might actually correspond to `CCATCA`).
+with the format `AxxCxxBxxDxx`, where each barcode segment is denoted as `Axx` (or `Bxx`, etc.).
+The capital letter denotes which preparation microwell plate the barcode segment is from (plate `A`, `B`, `C`, or `D`) 
+and `xx` is a number between `00` and `96` corresponding to the well from that microplate.
+So, the `A14` segment would correspond with the barcode from Plate `A`, well `14`.
+A `00` barcode (e.g. `C00`) indicates a missing/invalid barcode segment, which invalidates the entire barcode.
 
 ### where the barcodes go
 Chromium 10X linked-reads have a particular format where the barcode is the leading 16 bases 
