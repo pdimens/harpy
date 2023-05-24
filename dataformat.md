@@ -42,13 +42,11 @@ anyway.
 Input sequences will have the format `{samplename}.{extension}`. To make sure there are no hiccups, this section details valid naming conventions for both the `{samplename}` and `{extention}` parts of file names intended as input for Harpy.
 
 ### sample names
-Sample names must not have any unusual special characters or dot (`.`) separators in them.
-- 🔵 good: `sample_01_pop1`
-    - example: `sample_01_pop1.F.fastq.gz`
-- 🔵 good: `sample-01`
-    - example: `sample-01.R.fastq.gz`
-- 🚫 **bad**: `sample.01.pop1`
-    - example: `sample_01.pop1.F.fastq.gz`
+Sample names must not have any unusual special characters in them. Keep to common conventions, such as underscore (`_`) or hyphen (`-`) separators. Examples:
+- sample001
+- sample_001
+- sample-001
+- sample_001_pop2
 
 ### file extensions
 There are a handful of "accepted" naming schemes for fastq file extensions, but Harpy only 
