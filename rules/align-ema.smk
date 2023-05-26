@@ -222,8 +222,8 @@ rule merge_barcoded:
 
 rule secondary2split:
 	input:
-		bam = temp("Alignments/ema/align/barcoded/{sample}.barcoded.sec.bam"),
-		bai = temp("Alignments/ema/align/barcoded/{sample}.barcoded.sec.bam.bai")
+		bam = "Alignments/ema/align/barcoded/{sample}.barcoded.sec.bam",
+		bai = "Alignments/ema/align/barcoded/{sample}.barcoded.sec.bam.bai"
 	output:
 		bam = temp("Alignments/ema/align/barcoded/{sample}.barcoded.bam"),
 		bai = temp("Alignments/ema/align/barcoded/{sample}.barcoded.bam.bai")
