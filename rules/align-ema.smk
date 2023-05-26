@@ -218,7 +218,7 @@ rule merge_barcoded:
 		"Benchmark/Mapping/ema/merge.{sample}.txt"
 	threads: 10
 	shell:
-		"sambamba merge -t {threads} -l 4 {output.bam} {input}"
+		"sambamba merge -t {threads} -l 4 {output.bam} {input} 2> /dev/null"
 
 rule secondary2split:
 	input:
@@ -334,7 +334,7 @@ rule merge_alignments:
 		"Benchmark/Mapping/ema/mergebc_nobc.{sample}.txt"
 	threads: 10
 	shell:
-		"sambamba merge -t {threads} {output.bam} {input.aln_barcoded} {input.aln_nobarcode}"
+		"sambamba merge -t {threads} {output.bam} {input.aln_barcoded} {input.aln_nobarcode} 2> /dev/null"
 
 rule sort_merge:
 	input:
@@ -363,7 +363,7 @@ rule index_alignments:
 	wildcard_constraints:
 		sample = "[a-zA-Z0-9_-]*"
 	shell:
-		"sambamba index {input} {output}"
+		"sambamba index {input} {output} 2> /dev/null"
 
 rule alignment_stats:
 	input: 		
