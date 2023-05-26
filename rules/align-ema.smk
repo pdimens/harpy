@@ -151,7 +151,7 @@ rule align_ema:
 	shell:
 		"""
 		EMATHREADS=$(( {threads} - 2 ))
-		ema-h align -t $EMATHREADS {params.extra} -d -p haplotag -r {input.genome} -R \"@RG\\tID:{wildcards.sample}\\tSM:{wildcards.sample}\" -s {input.readbin} 2> /dev/null |
+		ema-h align -t $EMATHREADS {params.extra} -d -p haptag -r {input.genome} -R \"@RG\\tID:{wildcards.sample}\\tSM:{wildcards.sample}\" -s {input.readbin} 2> /dev/null |
 		samtools view -h -F 4 -q {params.quality} - | 
 		samtools sort --reference {input.genome} -O bam -m 4G -o {output} - 2> /dev/null
 		"""
