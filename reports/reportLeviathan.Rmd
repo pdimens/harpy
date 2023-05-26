@@ -179,7 +179,7 @@ circos.genomicTrack(
   track.height = 0.2,
   bg.border = F,
   panel.fun = function(region, value, ...) {
-    circos.genomicRect(region, value, ybottom = 0, ytop = 1, col = "#1E88E5", border = "#1E88E5")
+    circos.genomicRect(region, value, ybottom = 0, ytop = 1, col = "#4a9fea", border = "#4a9fea")
   }
 )
 
@@ -190,7 +190,7 @@ circos.genomicTrack(
   track.height = 0.2,
   bg.border = F,
   panel.fun = function(region, value, ...) {
-    circos.genomicRect(region, value, ybottom = 0, ytop = 1, col = "#004D40", border = "#004D40")
+    circos.genomicRect(region, value, ybottom = 0, ytop = 1, col = "#5a8c84", border = "#5a8c84")
   }
 )
 
@@ -200,7 +200,7 @@ circos.genomicTrack(
   track.height = 0.2,
   bg.border = F,
   panel.fun = function(region, value, ...) {
-    circos.genomicRect(region, value, ybottom = 0, ytop = 1, col = "#FFC107", border =  "#FFC107")
+    circos.genomicRect(region, value, ybottom = 0, ytop = 1, col = "#ffd75f", border =  "#ffd75f")
   }
 )
 
@@ -210,14 +210,14 @@ circos.genomicTrack(
   track.height = 0.2,
   bg.border = F,
   panel.fun = function(region, value, ...) {
-    circos.genomicRect(region, value, ybottom = 0, ytop = 1, col = "#D81B60", border = "#D81B60")
+    circos.genomicRect(region, value, ybottom = 0, ytop = 1, col = "#df487f", border = "#df487f")
   }
 )
 
 lgd <- Legend(
   at = c("Inversion", "Deletion", "Duplication", "Breakend"),
   type = "grid",
-  legend_gp = gpar(fill = c("#1E88E5", "#004D40", "#FFC107", "#D81B60")),
+  legend_gp = gpar(fill = c("#4a9fea", "#5a8c84", "#ffd75f", "#df487f")),
   title_position = "topleft",
   title = "Variant Types"
 )
@@ -231,10 +231,10 @@ allowing you to hover over a variant to provide additional information, includin
 number of haplotag barcodes supporting the variant.
 ```{r colors, echo = FALSE, warning = FALSE, message = FALSE}
 col.palette <- c(
-  "DEL" = "#004D40",
-  "DUP" = "#FFC107",
-  "INV" = "#1E88E5",
-  "BND" = "#D81B60"
+  "DEL" = "#5a8c84",
+  "DUP" = "#ffd75f",
+  "INV" = "#4a9fea",
+  "BND" = "#df487f"
   )
 
 ```
@@ -279,7 +279,7 @@ for (i in 1:nrow(fa.sizes)) {
     coord_cartesian(xlim = c(0, fa.sizes$size[i] + 1), expand = F) +
     xlab("Position (bp)") +
     labs(fill = "SV type", color = "SV type") +
-    ggtitle(i)
+    ggtitle(fa.sizes$contig[i])
   l[[i]] <- ggplotly(plt, tooltip = "text")
 }
 l

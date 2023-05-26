@@ -246,7 +246,7 @@ sv$ystop <- sv$ystart + 0.8
 ```
 
 ```{r echo = FALSE, out.width = '100%', warning=FALSE}
-color.palette <- c("DEL"="#004D40", "DUP"="#FFC107", "INV"="#1E88E5","BND"="#D81B60")
+color.palette <- c("DEL"="#5a8c84", "DUP"="#ffd75f", "INV"="#4a9fea","BND"="#df487f")
 l <- htmltools::tagList()
 
 for (i in 1:nrow(fa.sizes)) {
