@@ -95,7 +95,7 @@ click.rich_click.OPTION_GROUPS = {
     "harpy align": [
         {
             "name": "Configuration",
-            "options": ["--genome", "--directory", "--quality-filter", "--ema-bins", "--bwa", "--extra-params"],
+            "options": ["--genome", "--directory", "--quality-filter", "--method", "--ema-bins", "--extra-params"],
         },
         {
             "name": "Other Options",
@@ -105,7 +105,7 @@ click.rich_click.OPTION_GROUPS = {
     "harpy variants": [
         {
             "name": "Configuration",
-            "options": ["--genome", "--directory", "--populations", "--ploidy", "--leviathan", "--extra-params"],
+            "options": ["--genome", "--directory", "--populations", "--ploidy", "--method", "--extra-params"],
         },
         {
             "name": "Other Options",
@@ -138,12 +138,12 @@ click.rich_click.OPTION_GROUPS = {
 @click.version_option("0.1", prog_name="Harpy")
 def cli():
     """
-    ## Haplotagging Research Pipeline (HARPY)
+    ## Harpy haplotagging pipeline
     
-    The pipeline trims reads, maps sequences, calls variants, imputes genotypes,
-    and phases haplotypes of Haplotagging data. 
+    An automated workflow to trim reads, map sequences, call variants, impute genotypes,
+    and phase haplotypes of Haplotagging data. Batteries included.
     
-    **trim 🡒 align 🡒 variants 🡒 impute 🡒 phase**
+    **trim >> align >> variants >> impute >> phase**
     
     **Documentation**: [https://pdimens.github.io/harpy/](https://pdimens.github.io/harpy/)
     """
@@ -155,7 +155,7 @@ def cli():
 @click.option('-h', '--hpc', type = click.Choice(["slurm", "sge"], case_sensitive = False), help = 'Create HPC scheduling profile')
 def extra(popgroup, stitch_params, hpc):
     """
-    Create various associated/necessary files
+    Create various optional/necessary input files
 
     With this command you can generate a sample grouping file (for variant calling),
     a templace STITCH parameter file (for imputation), and a HPC profile for running
@@ -239,18 +239,22 @@ def trim(directory, max_length, extra_params, threads, snakemake):
 @click.command(no_args_is_help = True)
 @click.option('-g', '--genome', type=click.Path(exists=True), required = True, metavar = "File Path", help = 'Genome assembly for read mapping')
 @click.option('-d', '--directory', required = True, type=click.Path(exists=True), metavar = "Folder Path", help = 'Directory with sample sequences')
-@click.option('-e', '--ema-bins', default = 500, show_default = True, type = click.IntRange(1,1000), metavar = "Integer", help="Number of barcode bins for EMA")
-@click.option('--bwa', is_flag=True, metavar = "Toggle", help="Use BWA MEM instead of EMA")
+@click.option('-e', '--ema-bins', default = 500, show_default = True, type = click.IntRange(1,1000), metavar = "Integer", help="Number of barcode bins if using EMA")
+@click.option('-m', '--method', default = "bwa", show_default = True, type = click.Choice(["bwa", "ema"], case_sensitive = False), metavar = "String", help = "Method for aligning reads")
+#@click.option('--ema', is_flag=True, metavar = "Toggle", help="Use EMA instead of BWA MEM")
 @click.option('-q', '--quality-filter', default = 30, show_default = True, type = click.IntRange(min = 0, max = 40), metavar = "Integer", help = 'Minimum mapping quality to pass filtering')
 @click.option('-x', '--extra-params', type = str, metavar = "String", help = 'Additional EMA-align/BWA parameters, in quotes')
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(min = 4, max_open = True), metavar = "Integer", help = 'Number of threads to use')
 @click.option('-s', '--snakemake', type = str, metavar = "String", help = 'Additional Snakemake parameters, in quotes')
-def align(genome, threads, bwa, directory, ema_bins, extra_params, quality_filter, snakemake):
+def align(genome, threads, method, ema_bins, directory, extra_params, quality_filter, snakemake):
     """
     Align sample sequences to a reference genome
 
-    The default is to use the BX barcode-aware EMA aligner. You may choose to use
-    BWA MEM instead with `--bwa` and ignore the BX barcodes when mapping.
+    ## methods
+    - **bwa**: uses BWA MEM to align reads, retaining BX tags in the alignments
+    - **ema**: uses the BX barcode-aware EMA aligner. Note that EMA marks split
+    reads as secondary reads, which makes it less useful with leviathan and 
+    problematic with naibr variant callers.
     """
     # extension guessing
     fqext, Rsep = fq_extension(directory)
@@ -266,7 +270,7 @@ def align(genome, threads, bwa, directory, ema_bins, extra_params, quality_filte
             print("Check that the files conform to [.1. | .F. | .R1.][.fastq | .fq].gz")
             print("Read the documentation for details: https://pdimens.github.io/harpy/modules/readmapping/")
             sys.exit(1)
-    mapper = "ema" if not bwa else "bwa"
+    mapper = method
     command = f'snakemake --cores {threads} --directory . --snakefile {harpypath}/align-{mapper}.smk'.split()
     if snakemake is not None:
         [command.append(i) for i in snakemake.split()]
@@ -284,25 +288,36 @@ def align(genome, threads, bwa, directory, ema_bins, extra_params, quality_filte
         command.append(f"extra={extra_params}")
     subprocess.run(command)
 
+
+
 @click.command(no_args_is_help = True)
 @click.option('-g', '--genome', type=click.Path(exists=True), required = True, metavar = "File Path", help = 'Genome assembly for variant calling')
-@click.option('-d', '--directory', required = True, type=click.Path(exists=True), metavar = "Folder Path", help = 'Directory with sequence alignments')
-@click.option('-p', '--populations', type=click.Path(exists = True), metavar = "File Path", help = 'Tab-delimited file of sample<tab>population')
+@click.option('-d', '--directory', required = True, type=click.Path(exists=True), metavar = "Folder Path", help = 'Directory with BAM alignments')
+@click.option('-p', '--populations', type=click.Path(exists = True), metavar = "File Path", help = 'Optional tab-delimited file of sample<tab>population')
 @click.option('-x', '--ploidy', default = 2, show_default = True, type=click.IntRange(1,12), metavar = "Integer", help = 'Ploidy of samples')
-@click.option('-l', '--leviathan', is_flag=True, metavar = "Toggle", help="Call variants with Leviathan instead of bcftools")
+@click.option('-m', '--method', default = "mpileup", show_default = True, type = click.Choice(["mpileup", "leviathan", "naibr"], case_sensitive = False), metavar = "String", help = "Method for calling variants")
+#@click.option('-l', '--leviathan', is_flag=True, metavar = "Toggle", help="Call variants with Leviathan instead of bcftools")
+#@click.option('-n', '--naibr', is_flag=True, metavar = "Toggle", help="Call variants with naibr instead of bcftools")
 @click.option('-x', '--extra-params', type = str, metavar = "String", help = 'Additional mpileup/leviathan parameters, in quotes')
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(min = 4, max_open = True), metavar = "Integer", help = 'Number of threads to use')
 @click.option('-s', '--snakemake', type = str, metavar = "String", help = 'Additional Snakemake parameters, in quotes')
-def variants(genome, threads, directory, populations, ploidy, leviathan, extra_params, snakemake):
+def variants(genome, threads, directory, populations, ploidy, method, extra_params, snakemake):
     """
     Call variants from sample alignments
+    
+    Optionally, use **harpy extra --popgroup** to create a sample grouping file to use with `--populations`.
+    
+    ## methods
 
-    Use `harpy extra --popgroup` to create a sample grouping file (optional) from samples files  
+    - **mpileup**: calls SNPS and indels
+    - **leviathan**: calls inversions, duplicates, deletions, breakends
+    - **naibr**: calls inversions, duplicates, deletions
+
     """
     samplenames = getnames_err(directory, '.bam')
-    vcaller = "mpileup" if not leviathan else "leviathan"
-    if vcaller == "leviathan" and populations is not None:
-        vcaller = "leviathan-pop"
+    vcaller = method
+    if vcaller in ["leviathan", "naibr"] and populations is not None:
+        vcaller += "-pop"
     command = (f'snakemake --cores {threads} --directory . --snakefile {harpypath}/variants-{vcaller}.smk').split()
     if snakemake is not None:
         [command.append(i) for i in snakemake.split()]
@@ -357,7 +372,7 @@ def impute(parameters, directory, threads, vcf, snakemake):
 @click.option('-s', '--snakemake',  type = str, metavar = "String", help = 'Additional Snakemake parameters, in quotes')
 def phase(vcf, directory, threads, molecule_distance, prune_threshold, snakemake, extra_params):
     """
-    Phase SNPs into haplotypes 
+    Phase SNPs into haplotypes
     """
     vcfcheck(vcf)
     if vcf.lower().endswith(".vcf.gz"):
