@@ -177,7 +177,8 @@ rule report_pop:
 rule all:
     input:
         expand(outdir + "/{pop}.bedpe",      pop = populations),
-        expand(outdir + "/{pop}.naibr.html", pop = populations)
+        expand(outdir + "/{pop}.naibr.html", pop = populations).
+        outdir + "/reports/naibr.summary.html"
     default_target: True
     message:
         "Variant calling completed!"
