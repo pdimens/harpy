@@ -13,7 +13,7 @@ output:
 ---
 
 Below is a series of tables and plots detailing the structural variants
-identified by `LEVIATHAN`. The variants are given by:
+identified by [LEVIATHAN](https://github.com/morispi/LEVIATHAN) [(preprint)](https://doi.org/10.1101/2021.03.25.437002). The variants are given by:
 
 ```{r table2, echo=FALSE, message=FALSE, warnings=FALSE, results='asis'}
 data.frame(
