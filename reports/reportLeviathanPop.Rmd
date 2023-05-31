@@ -62,9 +62,8 @@ faidx <- snakemake@input[["faidx"]]
 fa.sizes <- read.table(faidx, header = F)[,1:2] %>% arrange(desc(2))
 colnames(fa.sizes) <- c("contig", "size")
 # limit the data to only the 30 largest contigs
-if (nrow(fa.sizes) > 30){
-  fa.sizes <- fa.sizes[1:30, ]
-}
+fa.sizes <- fa.sizes[1:min(nrow(fa.sizes), 30), ]
+
 
 #statsfiles <- c("/mnt/Win11/Users/pdime/Documents/Omega/Cornell/Haplotagging/1.sv.stats", "/mnt/Win11/Users/pdime/Documents/Omega/Cornell/Haplotagging/2.sv.stats")
 statsfiles <- snakemake@input[["statsfiles"]]
@@ -145,7 +144,7 @@ circosplot <- function(data, contigdata, svtype, trackheight, poplist, colormap,
   col_text <- "grey40"
   circos.par("track.height" = 0.8, gap.degree = 2, cell.padding = c(0, 0, 0, 0))
   circos.initialize(
-    factors = fa.sizes$contig,
+    factors = contigdata$contig,
     xlim = matrix(c(rep(0, nrow(contigdata)), contigdata$size), ncol = 2)
   )
 

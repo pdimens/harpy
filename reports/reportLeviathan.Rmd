@@ -66,9 +66,7 @@ fa.sizes$V1 <- gsub("##contig=<ID=", "", fa.sizes$V1)
 fa.sizes$V2 <- as.numeric(gsub(">", "", fa.sizes$V2))
 colnames(fa.sizes) <- c("contig", "size")
 # limit the data to only the 30 largest contigs
-if (nrow(fa.sizes) > 30){
-  fa.sizes <- fa.sizes[1:30, ]
-}
+fa.sizes <- fa.sizes[1:min(nrow(fa.sizes), 30), ]
 ```
 
 
