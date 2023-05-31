@@ -1,5 +1,5 @@
 ---
-title: "NAIBR Variant Calling Per-Sample Summary"
+title: "NAIBR Variant Calling Summary"
 author:
     - "Created using HARPY"
 date: "`r format(Sys.time(), '%d %B, %Y')`"
@@ -94,9 +94,7 @@ chimeric <- function(x){
 fa.sizes <- read.table(fai, header = F) %>% arrange(desc(2))
 colnames(fa.sizes) <- c("contig", "size")
 # limit the data to only the 30 largest contigs
-if (nrow(fa.sizes) > 30){
-  fa.sizes <- fa.sizes[1:30, ]
-}
+fa.sizes <- fa.sizes[1:min(nrow(fa.sizes), 30), ]
 ```
 
 ## Various Stats {.tabset}

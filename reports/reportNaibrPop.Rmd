@@ -1,0 +1,315 @@
+---
+title: "NAIBR Structural Variants Summary"
+author:
+    - "Created using HARPY"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output:
+  html_document:
+    highlight: tango
+    number_sections: no
+    theme: cosmo
+    df_print: kable
+    toc: no
+---
+
+```{r echo = FALSE, warnings = FALSE, message = FALSE}
+#infiles <- snakemake@input[["bedpe"]]
+infiles <- "/home/pdimens/ZS102.bedpe"
+#fai <- snakemake@input[["fai"]]
+fai <- "/home/pdimens/assembly.fai"
+```
+
+Below is a series of tables and plots detailing the structural variants
+identified by [NAIBR](https://github.com/pontushojer/NAIBR) [(publication)](https://doi.org/10.1093/bioinformatics/btx712).
+The variants are given by:
+
+```{r table2, echo=FALSE, message=FALSE, warnings=FALSE, results='asis'}
+data.frame(
+  "Name" = c("Inversion", "Duplication", "Deletion"),
+  "Description" = c(
+    "a segment that broke off and reattached within the same chromosome, but in reverse orientation",
+    "a type of mutation that involves the production of one or more copies of a gene or region of a chromosome",
+    "a type of mutation that involves the loss of one or more nucleotides from a segment of DNA"
+    )
+  )
+```
+```{r load environment, echo=FALSE, message=FALSE, warning=FALSE}
+library(dplyr)
+library(ggplot2)
+library(magrittr)
+library(tidyr)
+library(DT)
+library(plotly)
+library(circlize)
+library(viridisLite)
+library(ComplexHeatmap)
+```
+```{css zoom-lib-src, echo = FALSE, message = FALSE, warning = FALSE}
+script src = "https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"
+```
+```{js zoom-jquery, echo = FALSE, message = FALSE, warning = FALSE}
+ $(document).ready(function() {
+    $('body').prepend('<div class=\"zoomDiv\"><img src=\"\" class=\"zoomImg\"></div>');
+    // onClick function for all plots (img's)
+    $('img:not(.zoomImg)').click(function() {
+      $('.zoomImg').attr('src', $(this).attr('src')).css({width: '100%'});
+      $('.zoomDiv').css({opacity: '1', width: 'auto', border: '1px solid white', borderRadius: '5px', position: 'fixed', top: '50%', left: '50%', marginRight: '-50%', transform: 'translate(-50%, -50%)', boxShadow: '0px 0px 50px #888888', zIndex: '50', overflow: 'auto', maxHeight: '100%'});
+    });
+    // onClick function for zoomImg
+    $('img.zoomImg').click(function() {
+      $('.zoomDiv').css({opacity: '0', width: '0%'}); 
+    });
+  });
+```
+
+```{r echo = FALSE, warnings = FALSE, message = FALSE}
+cleanbedpe <- function(x){
+  .x <- read.table(x, header = T)
+  y <- .x[.x$Chr1 == .x$Chr2, c(-3,-10)]
+  popname <- data.frame("Population" = rep(gsub(".bedpe", "", basename(x)), nrow(y)))
+  y <- cbind(popname, y)
+  names(y)[2] <- "Contig"
+  y$Score <- round(y$Score, digits = 3)
+  y$Length <- abs(y$Break2 - y$Break1)
+
+  return(y)
+}
+
+```
+
+```{r echo = FALSE, warnings = FALSE, message = FALSE}
+fa.sizes <- read.table(fai, header = F) %>% arrange(desc(2))
+colnames(fa.sizes) <- c("contig", "size")
+# limit the data to only the 30 largest contigs
+fa.sizes <- fa.sizes[1:min(nrow(fa.sizes), 30), ]
+
+```
+
+```{r echo = FALSE, results='asis'}
+#statsfiles <- c("/mnt/Win11/Users/pdime/Documents/Omega/Cornell/Haplotagging/1.sv.stats", "/mnt/Win11/Users/pdime/Documents/Omega/Cornell/Haplotagging/2.sv.stats")
+infiles
+sv <- do.call(rbind, lapply(infiles, function(x) cleanbedpe(x))
+#.sv <- sv
+#.sv$population <- ifelse(.sv$population == 1, 3, 4)
+#.sv2 <- sv
+#.sv2$population <- ifelse(.sv2$population == 3, 5, 6)
+#sv <- rbind(sv, .sv, .sv2)
+
+if (nrow(sv) == 0) {
+  cat("There are no variants detected in files:\n")
+  cat(paste0("- `", infiles, "`"), sep = "\n")
+  knitr::knit_exit()
+}
+```
+
+## Various information {.tabset}
+### summary info
+This table shows the overall counts, average per contig, and standard deviation per contig for detected structural variants across populations.
+```{r echo = FALSE, warnings= FALSE, message = FALSE}
+genstats <- sv %>%
+  group_by(Population, Contig, SV) %>%
+  summarise(tot = n()) %>%
+  group_by(Population, SV) %>%
+  summarise(count = sum(tot), avg = round(mean(tot, na.rm = T),2 ), sd = round(sd(tot, na.rm = T), 2)) %>% 
+  pivot_wider(names_from = type, values_from = c(count, avg, sd), names_glue = "{type}.{.value}", names_vary = "slowest")
+
+DT::datatable(genstats, rownames = F, filter = "top", extensions = 'Buttons', options = list(dom = 'Brtip', buttons = c('csv'), scrollX = TRUE))
+```
+
+### all variants
+This table details all the variants LEVIATHAN detected and the quantity/quality of evidence for those detections.
+```{r message = FALSE, echo = FALSE}
+DT::datatable(sv, rownames = F, filter = "top", extensions = 'Buttons', options = list(dom = 'Brtip', buttons = c('csv'), scrollX = TRUE))
+```
+
+## Per-contig information {.tabset}
+### counts per contig
+This table details counts each type of structural variant for every contig for every population.
+```{r echo = FALSE, warnings= FALSE, message = FALSE}
+grpcounts <- sv %>%
+  group_by(Population, Contig, SV) %>%
+  summarise(count = n()) %>%
+  pivot_wider(names_from = Population, values_from = count)
+
+DT::datatable(grpcounts, rownames = F, filter = "top", extensions = 'Buttons', options = list(dom = 'Brtip', buttons = c('csv'), scrollX = TRUE))
+```
+
+### bp per contig
+This table details the lengths (in bp) of SV's for every contig for every population.
+```{r echo = FALSE, warnings= FALSE, message = FALSE}
+grplens <- sv %>% 
+  group_by(Population, Contig, Type) %>%
+  summarise(bp = sum(Length)) %>%
+  pivot_wider(names_from = Population, values_from = bp)
+
+DT::datatable(grplens, rownames = F, filter = "top", extensions = 'Buttons', options = list(dom = 'Brtip', buttons = c('csv'), scrollX = TRUE))
+```
+
+---
+
+## SV size and location {.tabset}
+The plots below are a visual representation of each SV where it was detected.
+Contigs that are absent did not have any SV's detected on them. Within each 
+contig, each population is plotted as a row to help visualize shared
+variants between populations. Plotting only the first 30 largest contigs.
+
+### Summary
+```{r echo = FALSE, message = FALSE, warning = FALSE}
+circosplot <- function(data, contigdata, svtype, trackheight, poplist, colormap, draw.leg){
+  circos.clear()
+  col_text <- "grey40"
+  circos.par("track.height" = 0.8, gap.degree = 2, cell.padding = c(0, 0, 0, 0))
+  circos.initialize(
+    factors = contigdata$contig,
+    xlim = matrix(c(rep(0, nrow(contigdata)), contigdata$size), ncol = 2)
+  )
+
+  # contigs
+  circos.track(
+    ylim = c(0, 1),
+    bg.col = "grey90",
+    bg.border = F,
+    track.height = 0.06,
+    panel.fun = function(x, y) {
+      chr = CELL_META$sector.index
+      xlim = CELL_META$xlim
+      ylim = CELL_META$ylim
+      circos.text(
+        mean(xlim),
+        mean(ylim),
+        chr,
+        cex = 0.6,
+        col = col_text,
+        facing="bending.inside",
+        niceFacing = T
+      )
+    }
+  )
+
+  # x axis
+  brk <- seq(0, 10, 0.5) * 10^7
+  circos.track(
+    ylim = c(0,1),
+    track.index = get.current.track.index(),
+    bg.border = F,
+    panel.fun = function(x, y) {
+      circos.axis(
+        h = "top",
+        major.at = brk,
+        labels = round(brk/10^6, 1),
+        labels.cex = 0.6,
+        col = col_text,
+        labels.col = col_text,
+        lwd = 0.7,
+        labels.facing = "clockwise"
+      )
+    }
+  )
+
+  # plot the track
+  for(i in 1:length(poplist)){
+    svquery = data$Population == populations[i] & data$SV == svtype
+    circos.genomicTrack(
+      ylim = c(0,1),
+      data = sv[svquery, -1],
+      track.height = trackheight,
+      bg.border = F,
+      panel.fun = function(region, value, ...) {
+      circos.genomicRect(region, value, ybottom = 0, ytop = 1, col = colormap[i], border = colormap[i])
+      }
+    )
+  }
+  if (draw.leg) {
+    lgd <- Legend(
+      at = poplist,
+      type = "grid",
+      legend_gp = gpar(fill = colormap),
+      title_position = "topleft",
+      title = "Populations"
+    )
+    draw(lgd)
+  }
+  text(0, 0, svtype, cex = 2)
+}
+```
+
+```{r echo = FALSE, message = FALSE, warning = FALSE, fig.align='center', fig.width=12, fig.height=12, out.width= "100%"}
+par(mfrow = c(2, 2))
+populations <- unique(sv$Population)
+popheight <- 5 / length(populations) / 10
+col.ramp <- viridis(length(populations))
+lgnd <- FALSE
+
+for (SV in c("inversion", "deletion", "duplication")){
+  if (SV == "duplication"){
+    lgnd <- TRUE
+  }
+  circosplot(sv, fa.sizes, SV, popheight, populations, col.ramp, lgnd)
+}
+
+
+```
+
+### Per-contig
+```{r echo = FALSE, message = FALSE, warning = FALSE}
+sv$ystart <- case_when(
+  sv$SV == "inversion" ~ 0.1,
+  sv$SV == "duplication" ~ 1.1,
+  sv$SV == "deletion" ~ 2.1
+)
+sv$ystop <- sv$ystart + 0.8
+```
+
+```{r echo = FALSE, out.width = '100%', warning=FALSE}
+color.palette <- c("deletion"="#5a8c84", "duplcation"="#ffd75f", "inversion"="#4a9fea")
+l <- htmltools::tagList()
+
+for (i in 1:nrow(fa.sizes)) {
+  sv.filt <- sv %>% filter(Contig == fa.sizes$contig[i])
+  sv_stats <- group_by(sv.filt, SV) %>% summarise(n = length(SV))
+  if (nrow(sv_stats) == 0) {
+    next
+  }
+  plt <- sv.filt %>%
+    ggplot() +
+    geom_rect(
+      alpha = 0.7,
+      aes(
+        ymin = ystart,
+        ymax = ystop,
+        xmin = Break1,
+        xmax = Break2,
+        fill = SV,
+        color = SV,
+        text = sprintf("Population: %s<br>Type: %s<br>Position: %s-%s<br>barcodes: %s", Population, SV, Break1, Break2, SplitMolecules)
+        )
+      ) +
+    geom_hline(yintercept = 1:3, color = "grey90") +
+    scale_color_manual(values = color.palette) +
+    scale_fill_manual(values = color.palette) +
+    facet_grid(rows = vars(Population)) +
+    theme_light() +
+    theme(
+      axis.text.y = element_text(angle=90),
+      axis.line.y = element_blank(),
+      axis.ticks.y = element_blank(),
+      panel.grid.major = element_blank(),
+      panel.grid.minor = element_blank(),
+      strip.background = element_rect(fill = "grey80"),
+      strip.text = element_text(color = "grey20"),
+      legend.position = "none",
+    ) +
+    xlim(0, fa.sizes$size[i]) +
+    scale_y_continuous(
+      breaks = c(0.5, 1.5, 2.5),
+      labels = c("Inversion", "Duplication", "Deletion"),
+      limits = c(0,4)
+    ) +
+    coord_cartesian(xlim = c(0, fa.sizes$size[i] + 1), expand = F) +
+    xlab("Position (bp)") +
+    labs(fill = "SV type", color = "SV type") +
+    ggtitle(fa.sizes$contig[i])
+  l[[i]] <- ggplotly(plt, tooltip = "text")
+}
+l
+```
