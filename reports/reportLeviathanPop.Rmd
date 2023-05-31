@@ -56,7 +56,7 @@ script src = "https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"
   });
 ```
 
-```{r echo = FALSE}
+```{r echo = FALSE, results='asis'}
 #faidx <- "/mnt/Win11/Users/pdime/Documents/Omega/Cornell/Haplotagging/genome.fasta.fai"
 faidx <- snakemake@input[["faidx"]]
 fa.sizes <- read.table(faidx, header = F)[,1:2] %>% arrange(desc(2))
@@ -76,7 +76,8 @@ sv <- do.call(rbind, lapply(statsfiles, function(x) read.table(x, header = T)))
 #sv <- rbind(sv, .sv, .sv2)
 
 if (nrow(sv) == 0) {
-  print("No variants detected")
+  cat("There are no variants detected in files:\n")
+  cat(paste0("- `", statsfiles, "`"), sep = "\n")
   knitr::knit_exit()
 }
 ```

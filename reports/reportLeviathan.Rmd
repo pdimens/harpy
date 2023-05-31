@@ -75,12 +75,12 @@ if (nrow(fa.sizes) > 30){
 ## Various Stats {.tabset}
 ### all variants
 This table details all the variants LEVIATHAN detected and the quantity/quality of evidence for those detections.
-```{r echo = FALSE, warnings = FALSE, message = FALSE}
+```{r echo = FALSE, warnings = FALSE, message = FALSE, results = 'asis'}
 statsfile <- snakemake@input[["statsfile"]]
 #statsfile <- "/home/pdimens/Omega/Cornell/dmel/leviathan.stats"
 sv <- read.table(statsfile, header = T)
 if (nrow(sv) == 0) {
-  print("No variants in the file")
+  cat(paste0("There are no variants in the file ", "`", bcf, "`"))
   knitr::knit_exit()
 }
 DT::datatable(sv, rownames = F, filter = "top", extensions = 'Buttons', options = list(dom = 'Brtip', buttons = c('csv'), scrollX = TRUE))

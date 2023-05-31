@@ -22,11 +22,10 @@ samplename <- gsub(".bedpe", "", basename(infile))
 #### Sample: `r samplename`
 
 
-```{r echo = FALSE, warnings = FALSE, message = FALSE}
+```{r echo = FALSE, warnings = FALSE, message = FALSE, results = 'asis'}
 variants <- read.table(infile, header = T) 
-
 if (nrow(variants) == 0) {
-  print("No variants in the file")
+  cat(paste0("There are no variants in the file ", "`", infile, "`"))
   knitr::knit_exit()
 }
 ```
