@@ -3,12 +3,12 @@ import pandas as pd
 import subprocess
 import sys
 
-bam_dir = config["seq_directory"]
+bam_dir     = config["seq_directory"]
 samplenames = config["samplenames"]
 variantfile = config["variantfile"]
-paramfile = config["paramfile"]
-# declare a dataframe to be a paramspace
-paramspace = Paramspace(pd.read_csv(paramfile, sep="\t"), param_sep = "", filename_params="*")
+paramfile   = config["paramfile"]
+paramspace  = Paramspace(pd.read_csv(paramfile, sep="\t"), param_sep = "", filename_params="*")
+#^ declare a dataframe to be a paramspace
 
 def contignames(vcf):
     sys.stderr.write("Preprocessing: Indentifying contigs with at least 2 biallelic SNPs\n")
@@ -22,7 +22,7 @@ def contignames(vcf):
             dict_cont[i] = 1
     return [contig for contig in dict_cont if dict_cont[contig] > 1]
 
-contigs = contignames(variantfile)
+contigs   = contignames(variantfile)
 dict_cont = dict(zip(contigs, contigs))
 
 rule bam_list:

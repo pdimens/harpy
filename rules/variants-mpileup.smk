@@ -1,11 +1,11 @@
 import os
 
-bam_dir = config["seq_directory"]
-genomefile = config["genomefile"]
-groupings = config.get("groupings", None)
-ploidy = config["ploidy"]
+bam_dir 	= config["seq_directory"]
+genomefile 	= config["genomefile"]
+groupings 	= config.get("groupings", None)
+ploidy 		= config["ploidy"]
 samplenames = config["samplenames"]
-mp_extra = config.get("extra", "") 
+mp_extra 	= config.get("extra", "") 
 
 if groupings is not None:
 	absent = []
@@ -30,7 +30,7 @@ def faidx_contignames(infile):
 		lines = [line.rstrip().split("\t")[0] for line in f]
 	return lines
 
-contigs = faidx_contignames(genomefile)
+contigs   = faidx_contignames(genomefile)
 dict_cont = dict(zip(contigs, contigs))
 
 rule index_alignments:

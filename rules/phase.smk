@@ -1,9 +1,9 @@
-bam_dir = config["seq_directory"]
-samplenames = config["samplenames"]
-variantfile = config["variantfile"]
-pruning = config["prune"]
+bam_dir           = config["seq_directory"]
+samplenames       = config["samplenames"]
+variantfile       = config["variantfile"]
+pruning           = config["prune"]
 molecule_distance = config["molecule_distance"]
-extra = config.get("extra", "") 
+extra             = config.get("extra", "") 
 
 rule splitbysamplehet:
     input: 

@@ -1,13 +1,12 @@
 import os
 
-seq_dir = config["seq_directory"]
-genomefile = config["genomefile"]
-Rsep = config["Rsep"]
-fqext = config["fqext"]
+seq_dir		= config["seq_directory"]
+genomefile 	= config["genomefile"]
+Rsep 		= config["Rsep"]
+fqext 		= config["fqext"]
 samplenames = config["samplenames"]
-extra = config.get("extra", "") 
-
-bn = os.path.basename(genomefile)
+extra 		= config.get("extra", "") 
+bn 			= os.path.basename(genomefile)
 
 rule create_reports:
 	input: 

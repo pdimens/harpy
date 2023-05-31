@@ -2,14 +2,13 @@ import sys
 import os
 import re
 
-bam_dir = config["seq_directory"]
+bam_dir     = config["seq_directory"]
 samplenames = config["samplenames"] 
-extra = config.get("extra", "") 
-groupfile = config["groupings"]
-genomefile = config["genomefile"]
-
-outdir = "Variants/naibr-pop"
-bn = os.path.basename(genomefile)
+extra       = config.get("extra", "") 
+groupfile   = config["groupings"]
+genomefile  = config["genomefile"]
+bn          = os.path.basename(genomefile)
+outdir      = "Variants/naibr-pop"
 
 def process_args(args):
     argsDict = {
@@ -45,7 +44,7 @@ def pop_manifest(infile, dirn, sampnames):
 		raise ValueError(f"{len(absent)} sample(s) in \033[1m{infile}\033[0m not found in \033[1m{dirn}\033[0m directory:\n\033[33m" + ", ".join(absent) + "\033[0m")
 	return d
 
-popdict = pop_manifest(groupfile, bam_dir, samplenames)
+popdict     = pop_manifest(groupfile, bam_dir, samplenames)
 populations = popdict.keys()
 
 rule bamlist:

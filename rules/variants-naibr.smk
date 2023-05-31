@@ -1,11 +1,12 @@
 import os
 import re
 
-bam_dir = config["seq_directory"]
+bam_dir     = config["seq_directory"]
 samplenames = config["samplenames"] 
-extra = config.get("extra", "") 
-
-outdir = "Variants/naibr"
+extra       = config.get("extra", "") 
+genomefile  = config["genomefile"]
+bn          = os.path.basename(genomefile)
+outdir      = "Variants/naibr"
 
 def process_args(args):
     argsDict = {
@@ -51,7 +52,7 @@ rule create_config:
 
 rule call_sv:
     input:
-        bam = bam_dir + "/{sample}.bam",
+        bam        = bam_dir + "/{sample}.bam",
         configfile = outdir + "configs/{sample}.config"
     output:
         bedpe      = outdir + "{sample}/{sample}.bedpe",
@@ -73,3 +74,46 @@ rule call_sv:
         mv {params}/NAIBR.reformat.bedpe {output.bedpe_fmt}
         mv {params}/NAIBR.vcf {output.vcf}
         """
+
+rule link_genome:
+	input:
+		genomefile
+	output: 
+		f"Assembly/{bn}"
+	message:
+		"Symlinking {input} to Assembly/"
+	shell: 
+		"ln -sr {input} {output}"
+
+rule faidx_genome:
+    input: 
+        f"Assembly/{bn}"
+    output: 
+        f"Assembly/{bn}.fai"
+    message:
+        "Indexing {input}"
+    log:
+        f"Assembly/{bn}.faidx.log"
+    shell: 
+        """
+        samtools faidx --fai-idx {output} {input} 2> {log}
+        """
+
+rule report:
+    input:
+        bedpe = outdir + "{sample}/{sample}.bedpe",
+        fai   = f"Assembly/{bn}.fai"
+    output:
+        outdir + "{sample}/{sample}.naibr.html"
+    message:
+        "Creating report: {wildcards.sample}"
+	script:
+		"reportNaibr.Rmd"
+
+rule all:
+    input:
+        expand(outdir + "{sample}/{sample}.bedpe", sample = samplenames),
+        expand(outdir + "{sample}/{sample}.naibr.html", sample = samplenames)
+    default_target: True
+    message:
+        "Variant calling completed!"

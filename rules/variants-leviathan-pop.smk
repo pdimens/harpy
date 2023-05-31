@@ -1,13 +1,12 @@
 import sys
 import os
 
-bam_dir = config["seq_directory"]
-genomefile = config["genomefile"]
+bam_dir 	= config["seq_directory"]
+genomefile 	= config["genomefile"]
 samplenames = config["samplenames"] 
-extra = config.get("extra", "") 
-groupfile = config["groupings"]
-
-bn = os.path.basename(genomefile)
+extra 		= config.get("extra", "") 
+groupfile 	= config["groupings"]
+bn 			= os.path.basename(genomefile)
 
 # create dictionary of population => filenames
 ## this makes it easier to set the snakemake rules/wildcards

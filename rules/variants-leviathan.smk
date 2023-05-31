@@ -1,11 +1,10 @@
 import os
 
-bam_dir = config["seq_directory"]
-genomefile = config["genomefile"]
+bam_dir     = config["seq_directory"]
+genomefile  = config["genomefile"]
 samplenames = config["samplenames"] 
-extra = config.get("extra", "") 
-
-bn = os.path.basename(genomefile)
+extra       = config.get("extra", "") 
+bn          = os.path.basename(genomefile)
 
 rule index_alignment:
     input:

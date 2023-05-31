@@ -1,7 +1,7 @@
-maxlen = config["maxlen"]
-extra = config.get("extra", "") 
-seq_dir = config["seq_directory"]
-fqext = config["fqext"]
+maxlen 		= config["maxlen"]
+extra 		= config.get("extra", "") 
+seq_dir 	= config["seq_directory"]
+fqext 		= config["fqext"]
 samplenames = config["samplenames"]
 
 rule trimFastp:
