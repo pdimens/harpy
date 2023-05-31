@@ -35,7 +35,7 @@ rule create_config:
     input:
         bam_dir + "/{sample}.bam"
     output:
-        temp(outdir + "configs/{sample}.config")
+        temp(outdir + "/configs/{sample}.config")
     message:
         "Creating naibr config file: {wildcards.sample}"
     params:
@@ -53,24 +53,25 @@ rule create_config:
 rule call_sv:
     input:
         bam        = bam_dir + "/{sample}.bam",
-        configfile = outdir + "configs/{sample}.config"
+        bai        = bam_dir + "/{sample}.bam.bai",
+        configfile = outdir + "/configs/{sample}.config"
     output:
-        bedpe      = outdir + "{sample}/{sample}.bedpe",
-        bedpe_fmt  = outdir + "{sample}/{sample}.reformat.bedpe" 
-        bedpe_fail = outdir + "{sample}/{sample}.fail.bedpe"
-        vcf        = outdir + "{sample}/{sample}.vcf" 
+        bedpe      = outdir + "/{sample}.bedpe",
+        bedpe_fmt  = outdir + "/IGV/{sample}.reformat.bedpe",
+        bedpe_fail = outdir + "/filtered/{sample}.fail.bedpe",
+        vcf        = outdir + "/vcf/{sample}.vcf" 
     threads:
         8        
     params:
-        outdir + "{wildcards.sample}"
+        outdir + "/{wildcards.sample}"
     message:
         "Calling variants: {wildcards.sample}"
     log:
-        outdir + "{sample}/{sample}.log" 
+        outdir + "log/{sample}.log" 
     shell:
         """
         naibr {input.configfile} 2>&1 > {log}
-        inferSV.py {params}/NAIBR.bedpe -f > {output.bedpe}
+        inferSV.py {params}/NAIBR.bedpe -f {output.bedpe_fail} > {output.bedpe}
         mv {params}/NAIBR.reformat.bedpe {output.bedpe_fmt}
         mv {params}/NAIBR.vcf {output.vcf}
         """
@@ -101,10 +102,10 @@ rule faidx_genome:
 
 rule report:
     input:
-        bedpe = outdir + "{sample}/{sample}.bedpe",
+        bedpe = outdir + "/{sample}.bedpe",
         fai   = f"Assembly/{bn}.fai"
     output:
-        outdir + "{sample}/{sample}.naibr.html"
+        outdir + "/reports/{sample}.naibr.html"
     message:
         "Creating report: {wildcards.sample}"
 	script:
@@ -112,8 +113,8 @@ rule report:
 
 rule all:
     input:
-        expand(outdir + "{sample}/{sample}.bedpe", sample = samplenames),
-        expand(outdir + "{sample}/{sample}.naibr.html", sample = samplenames)
+        expand(outdir + "/{sample}.bedpe",      sample = samplenames),
+        expand(outdir + "/{sample}.naibr.html", sample = samplenames)
     default_target: True
     message:
         "Variant calling completed!"

@@ -61,7 +61,7 @@ rule bamlist:
 
 rule merge_populations:
 	input: 
-		bamlist = outdir + "/input/{population}.list",
+		bamlist  = outdir + "/input/{population}.list",
 		bamfiles = lambda wc: expand("{sample}", sample = popdict[wc.population]) 
 	output:
 		temp(outdir + "/input/{population}.bam")
@@ -86,7 +86,7 @@ rule create_config:
     input:
         outdir + "/input/{population}.bam"
     output:
-        temp(outdir + "configs/{population}.config")
+        temp(outdir + "/configs/{population}.config")
     message:
         "Creating naibr config file: {wildcards.population}"
     params:
@@ -103,12 +103,14 @@ rule create_config:
 
 rule call_sv:
     input:
-        outdir + "/input/{population}.bam"
-        configfile = outdir + "configs/{population}.config"
+        bam        = outdir + "/input/{population}.bam",
+        bai        = outdir + "/input/{population}.bam.bai",
+        configfile = outdir + "/configs/{population}.config"
     output:
-        bedpe     = outdir + "{population}/{population}.bedpe",
-        bedpe_fmt = outdir + "{population}/{population}.reformat.bedpe" 
-        vcf = outdir + "{population}/{population}.vcf"
+        bedpe      = outdir + "/{population}.bedpe",
+        bedpe_fmt  = outdir + "/IGV/{population}.reformat.bedpe",
+        bedpe_fail = outdir + "/filtered/{population}.fail.bedpe",
+        vcf        = outdir + "/vcf/{population}.vcf"
     threads:
         8        
     params:
@@ -116,14 +118,25 @@ rule call_sv:
     message:
         "Calling variants: {wildcards.population}"
     log:
-        outdir + "{population}/{population}.log",
+        outdir + "logs/{population}.log",
     shell:
         """
         naibr {input.configfile} 2>&1 > {log}
-        mv {params}/NAIBR.bedpe {output.bedpe}
+        inferSV.py {params}/NAIBR.bedpe -f {output.bedpe_fail} > {output.bedpe}
         mv {params}/NAIBR.reformat.bedpe {output.bedpe_fmt}
         mv {params}/NAIBR.vcf {output.vcf}
+        rm -rf {params}
         """
+
+rule link_genome:
+	input:
+		genomefile
+	output: 
+		f"Assembly/{bn}"
+	message:
+		"Symlinking {input} to Assembly/"
+	shell: 
+		"ln -sr {input} {output}"
 
 rule index_faidx_genome:
     input: 
@@ -138,3 +151,33 @@ rule index_faidx_genome:
         """
         samtools faidx --fai-idx {output} {input} 2> {log}
         """
+
+rule report:
+    input:
+        bedpe = outdir + "/{population}.bedpe",
+        fai   = f"Assembly/{bn}.fai"
+    output:
+        outdir + "/reports/{population}.naibr.html"
+    message:
+        "Creating report: {wildcards.population}"
+	script:
+		"reportNaibr.Rmd"
+
+rule report_pop:
+    input:
+        bedpe = expand(outdir + "/{pop}.bedpe", pop = populations),
+        fai   = f"Assembly/{bn}.fai"
+    output:
+        outdir + "/reports/naibr.summary.html"
+    message:
+        "Creating report: {wildcards.population}"
+	script:
+		"reportNaibrPop.Rmd"
+
+rule all:
+    input:
+        expand(outdir + "/{pop}.bedpe",      pop = populations),
+        expand(outdir + "/{pop}.naibr.html", pop = populations)
+    default_target: True
+    message:
+        "Variant calling completed!"
