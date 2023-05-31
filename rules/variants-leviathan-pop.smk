@@ -40,8 +40,8 @@ rule bamlist:
 		"Creating file lists for each population."
 	run:
 		for p in populations:
+			bamlist = popdict[p]
 			with open(f"Variants/leviathan-pop/input/{p}.list", "w") as fout:
-				bamlist = popdict[p]
 				for bamfile in bamlist:
 					_ = fout.write(bamfile + "\n")
 

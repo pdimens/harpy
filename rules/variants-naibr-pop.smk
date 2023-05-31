@@ -6,8 +6,10 @@ bam_dir = config["seq_directory"]
 samplenames = config["samplenames"] 
 extra = config.get("extra", "") 
 groupfile = config["groupings"]
+genomefile = config["genomefile"]
 
 outdir = "Variants/naibr-pop"
+bn = os.path.basename(genomefile)
 
 def process_args(args):
     argsDict = {
@@ -53,8 +55,8 @@ rule bamlist:
 		"Creating file lists for each population."
 	run:
 		for p in populations:
+            bamlist = popdict[p]
 			with open(f"{outdir}/input/{p}.list", "w") as fout:
-				bamlist = popdict[p]
 				for bamfile in bamlist:
 					_ = fout.write(bamfile + "\n")
 
@@ -107,15 +109,33 @@ rule call_sv:
     output:
         bedpe     = outdir + "{population}/{population}.bedpe",
         bedpe_fmt = outdir + "{population}/{population}.reformat.bedpe" 
+        vcf = outdir + "{population}/{population}.vcf"
     threads:
         8        
     params:
         outdir + "{wildcards.population}"
     message:
         "Calling variants: {wildcards.population}"
+    log:
+        outdir + "{population}/{population}.log",
     shell:
         """
-        naibr {input.configfile}
+        naibr {input.configfile} 2>&1 > {log}
         mv {params}/NAIBR.bedpe {output.bedpe}
         mv {params}/NAIBR.reformat.bedpe {output.bedpe_fmt}
+        mv {params}/NAIBR.vcf {output.vcf}
+        """
+
+rule index_faidx_genome:
+    input: 
+        f"Assembly/{bn}"
+    output: 
+        f"Assembly/{bn}.fai"
+    message:
+        "Indexing {input}"
+    log:
+        f"Assembly/{bn}.faidx.log"
+    shell: 
+        """
+        samtools faidx --fai-idx {output} {input} 2> {log}
         """
