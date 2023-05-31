@@ -77,7 +77,7 @@ sv <- do.call(rbind, lapply(statsfiles, function(x) read.table(x, header = T)))
 
 if (nrow(sv) == 0) {
   print("No variants detected")
-  q()
+  knitr::knit_exit()
 }
 ```
 

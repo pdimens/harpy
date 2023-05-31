@@ -54,17 +54,22 @@ rule call_sv:
         bam = bam_dir + "/{sample}.bam",
         configfile = outdir + "configs/{sample}.config"
     output:
-        bedpe     = outdir + "{sample}/{sample}.bedpe",
-        bedpe_fmt = outdir + "{sample}/{sample}.reformat.bedpe" 
+        bedpe      = outdir + "{sample}/{sample}.bedpe",
+        bedpe_fmt  = outdir + "{sample}/{sample}.reformat.bedpe" 
+        bedpe_fail = outdir + "{sample}/{sample}.fail.bedpe"
+        vcf        = outdir + "{sample}/{sample}.vcf" 
     threads:
         8        
     params:
         outdir + "{wildcards.sample}"
     message:
         "Calling variants: {wildcards.sample}"
+    log:
+        outdir + "{sample}/{sample}.log" 
     shell:
         """
-        naibr {input.configfile}
-        mv {params}/NAIBR.bedpe {output.bedpe}
+        naibr {input.configfile} 2>&1 > {log}
+        inferSV.py {params}/NAIBR.bedpe -f > {output.bedpe}
         mv {params}/NAIBR.reformat.bedpe {output.bedpe_fmt}
+        mv {params}/NAIBR.vcf {output.vcf}
         """
