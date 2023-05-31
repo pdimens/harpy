@@ -13,10 +13,10 @@ output:
 ---
 
 ```{r echo = FALSE, warnings = FALSE, message = FALSE}
-#infiles <- snakemake@input[["bedpe"]]
-infiles <- "/home/pdimens/ZS102.bedpe"
-#fai <- snakemake@input[["fai"]]
-fai <- "/home/pdimens/assembly.fai"
+infiles <- snakemake@input[["bedpe"]]
+fai <- snakemake@input[["fai"]]
+#infiles <- c("/home/pdimens/ZS10.bedpe", "/home/pdimens/ZS11.bedpe", "/home/pdimens/ZS12.bedpe", "/home/pdimens/ZS13.bedpe")
+#fai <- "/home/pdimens/assembly.fai"
 ```
 
 Below is a series of tables and plots detailing the structural variants
@@ -82,13 +82,11 @@ fa.sizes <- read.table(fai, header = F) %>% arrange(desc(2))
 colnames(fa.sizes) <- c("contig", "size")
 # limit the data to only the 30 largest contigs
 fa.sizes <- fa.sizes[1:min(nrow(fa.sizes), 30), ]
-
 ```
 
 ```{r echo = FALSE, results='asis'}
 #statsfiles <- c("/mnt/Win11/Users/pdime/Documents/Omega/Cornell/Haplotagging/1.sv.stats", "/mnt/Win11/Users/pdime/Documents/Omega/Cornell/Haplotagging/2.sv.stats")
-infiles
-sv <- do.call(rbind, lapply(infiles, function(x) cleanbedpe(x))
+sv <- do.call(rbind, lapply(infiles, function(x) cleanbedpe(x)))
 #.sv <- sv
 #.sv$population <- ifelse(.sv$population == 1, 3, 4)
 #.sv2 <- sv
@@ -111,13 +109,13 @@ genstats <- sv %>%
   summarise(tot = n()) %>%
   group_by(Population, SV) %>%
   summarise(count = sum(tot), avg = round(mean(tot, na.rm = T),2 ), sd = round(sd(tot, na.rm = T), 2)) %>% 
-  pivot_wider(names_from = type, values_from = c(count, avg, sd), names_glue = "{type}.{.value}", names_vary = "slowest")
+  pivot_wider(names_from = SV, values_from = c(count, avg, sd), names_glue = "{SV}.{.value}", names_vary = "slowest")
 
 DT::datatable(genstats, rownames = F, filter = "top", extensions = 'Buttons', options = list(dom = 'Brtip', buttons = c('csv'), scrollX = TRUE))
 ```
 
 ### all variants
-This table details all the variants LEVIATHAN detected and the quantity/quality of evidence for those detections.
+This table details all the variants NAIBR detected and the quantity/quality of evidence for those detections.
 ```{r message = FALSE, echo = FALSE}
 DT::datatable(sv, rownames = F, filter = "top", extensions = 'Buttons', options = list(dom = 'Brtip', buttons = c('csv'), scrollX = TRUE))
 ```
@@ -135,10 +133,10 @@ DT::datatable(grpcounts, rownames = F, filter = "top", extensions = 'Buttons', o
 ```
 
 ### bp per contig
-This table details the lengths (in bp) of SV's for every contig for every population.
+This table details the lengths (in bp) of structural variants for every contig for every population.
 ```{r echo = FALSE, warnings= FALSE, message = FALSE}
 grplens <- sv %>% 
-  group_by(Population, Contig, Type) %>%
+  group_by(Population, Contig, SV) %>%
   summarise(bp = sum(Length)) %>%
   pivot_wider(names_from = Population, values_from = bp)
 
@@ -155,7 +153,7 @@ variants between populations. Plotting only the first 30 largest contigs.
 
 ### Summary
 ```{r echo = FALSE, message = FALSE, warning = FALSE}
-circosplot <- function(data, contigdata, svtype, trackheight, poplist, colormap, draw.leg){
+circosplot <- function(data, contigdata, svtype, trackheight, poplist, colormap){
   circos.clear()
   col_text <- "grey40"
   circos.par("track.height" = 0.8, gap.degree = 2, cell.padding = c(0, 0, 0, 0))
@@ -219,34 +217,45 @@ circosplot <- function(data, contigdata, svtype, trackheight, poplist, colormap,
       }
     )
   }
-  if (draw.leg) {
-    lgd <- Legend(
-      at = poplist,
-      type = "grid",
-      legend_gp = gpar(fill = colormap),
-      title_position = "topleft",
-      title = "Populations"
-    )
-    draw(lgd)
-  }
   text(0, 0, svtype, cex = 2)
 }
 ```
 
-```{r echo = FALSE, message = FALSE, warning = FALSE, fig.align='center', fig.width=12, fig.height=12, out.width= "100%"}
+```{r echo = FALSE, message = FALSE, warning = FALSE}
+# add legend to an empty plot
+# used in the next chunk to add the legend to the last cell in the 2x2 grid.
+draw_legend <- function(contigdata, poplist, colormap){
+  circos.clear()
+  col_text <- "grey40"
+  circos.par("track.height" = 0.8, gap.degree = 2, cell.padding = c(0, 0, 0, 0))
+  circos.initialize(
+    factors = contigdata$contig,
+    xlim = matrix(c(rep(0, nrow(contigdata)), contigdata$size), ncol = 2)
+  )
+  lgd <- Legend(
+      at = poplist,
+      type = "grid",
+      legend_gp = gpar(fill = colormap),
+      labels_gp = gpar(fontsize = 16),
+      title_position = "topleft",
+      title = "Populations",
+      title_gp = gpar(fontsize = 20)
+      
+    )
+    draw(lgd, x = unit(250, "mm"), y = unit(140, "mm"))
+}
+```
+
+```{r echo = FALSE, message = FALSE, warning = FALSE, fig.align='center', fig.width=13, fig.height=13, out.width= "100%"}
 par(mfrow = c(2, 2))
 populations <- unique(sv$Population)
-popheight <- 5 / length(populations) / 10
+popheight <- .5 / length(populations)
 col.ramp <- viridis(length(populations))
-lgnd <- FALSE
 
 for (SV in c("inversion", "deletion", "duplication")){
-  if (SV == "duplication"){
-    lgnd <- TRUE
-  }
-  circosplot(sv, fa.sizes, SV, popheight, populations, col.ramp, lgnd)
+  circosplot(sv, fa.sizes, SV, popheight, populations, col.ramp)
 }
-
+draw_legend(fa.sizes, populations, col.ramp)
 
 ```
 
@@ -258,10 +267,13 @@ sv$ystart <- case_when(
   sv$SV == "deletion" ~ 2.1
 )
 sv$ystop <- sv$ystart + 0.8
+
+chrheight <- 2.5 * length(populations)
+
 ```
 
-```{r echo = FALSE, out.width = '100%', warning=FALSE}
-color.palette <- c("deletion"="#5a8c84", "duplcation"="#ffd75f", "inversion"="#4a9fea")
+```{r echo = FALSE, out.width = '100%', warning=FALSE, fig.height=chrheight}
+color.palette <- c("deletion"="#5a8c84", "duplication"="#ffd75f", "inversion"="#4a9fea")
 l <- htmltools::tagList()
 
 for (i in 1:nrow(fa.sizes)) {
@@ -284,7 +296,7 @@ for (i in 1:nrow(fa.sizes)) {
         text = sprintf("Population: %s<br>Type: %s<br>Position: %s-%s<br>barcodes: %s", Population, SV, Break1, Break2, SplitMolecules)
         )
       ) +
-    geom_hline(yintercept = 1:3, color = "grey90") +
+    geom_hline(yintercept = 1:2, color = "grey90") +
     scale_color_manual(values = color.palette) +
     scale_fill_manual(values = color.palette) +
     facet_grid(rows = vars(Population)) +
@@ -302,8 +314,8 @@ for (i in 1:nrow(fa.sizes)) {
     xlim(0, fa.sizes$size[i]) +
     scale_y_continuous(
       breaks = c(0.5, 1.5, 2.5),
-      labels = c("Inversion", "Duplication", "Deletion"),
-      limits = c(0,4)
+      labels = c("Inv", "Dup", "Del"),
+      limits = c(0,3)
     ) +
     coord_cartesian(xlim = c(0, fa.sizes$size[i] + 1), expand = F) +
     xlab("Position (bp)") +

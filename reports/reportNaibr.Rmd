@@ -13,10 +13,10 @@ output:
 ---
 
 ```{r echo = FALSE, warnings = FALSE, message = FALSE}
-#infile <- snakemake@input[["bedpe"]]
-infile <- "/home/pdimens/ZS102.bedpe"
-#fai <- snakemake@input[["fai"]]
-fai <- "/home/pdimens/assembly.fai"
+infile <- snakemake@input[["bedpe"]]
+fai <- snakemake@input[["fai"]]
+#infile <- "/home/pdimens/ZS10.bedpe"
+#fai <- "/home/pdimens/assembly.fai"
 samplename <- gsub(".bedpe", "", basename(infile))
 ```
 #### Sample: `r samplename`
