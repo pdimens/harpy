@@ -40,8 +40,8 @@ rule extractHairs:
 
 rule linkFragments:
     input: 
-        bam = bam_dir + "/{sample}.bam",
-        vcf = "Phasing/input/{sample}.het.bcf",
+        bam       = bam_dir + "/{sample}.bam",
+        vcf       = "Phasing/input/{sample}.het.bcf",
         fragments = "Phasing/extractHairs/{sample}.unlinked.frags"
     output:
         "Phasing/linkFragments/{sample}.linked.frags"
@@ -58,11 +58,11 @@ rule linkFragments:
 
 rule phaseBlocks:
     input:
-        vcf = "Phasing/input/{sample}.het.bcf",
+        vcf       = "Phasing/input/{sample}.het.bcf",
         fragments = "Phasing/linkFragments/{sample}.linked.frags"
     output: 
-        blocks = "Phasing/phaseBlocks/{sample}.blocks",
-        vcf = "Phasing/phaseBlocks/{sample}.blocks.phased.VCF"
+        blocks    = "Phasing/phaseBlocks/{sample}.blocks",
+        vcf       = "Phasing/phaseBlocks/{sample}.blocks.phased.VCF"
     message:
         "Creating phased haplotype blocks: {wildcards.sample}"
     benchmark:

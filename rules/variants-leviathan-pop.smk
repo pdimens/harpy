@@ -46,7 +46,7 @@ rule bamlist:
 
 rule merge_populations:
 	input: 
-		bamlist = "Variants/leviathan-pop/input/{population}.list",
+		bamlist  = "Variants/leviathan-pop/input/{population}.list",
 		bamfiles = lambda wc: expand("{sample}", sample = popdict[wc.population]) 
 	output:
 		temp("Variants/leviathan-pop/input/{population}.bam")
@@ -121,14 +121,14 @@ rule index_bwa_genome:
 
 rule leviathan_variantcall:
 	input:
-		bam = "Variants/leviathan-pop/input/{population}.bam",
-		bai = "Variants/leviathan-pop/input/{population}.bam.bai",
+		bam    = "Variants/leviathan-pop/input/{population}.bam",
+		bai    = "Variants/leviathan-pop/input/{population}.bam.bai",
 		bc_idx = "Variants/leviathan-pop/lrezIndexed/{population}.bci",
 		genome = f"Assembly/{bn}"
 	output:
 		pipe("Variants/leviathan-pop/{population}.vcf")
 	log:  
-		runlog = "Variants/leviathan-pop/logs/{population}.leviathan.log",
+		runlog     = "Variants/leviathan-pop/logs/{population}.leviathan.log",
 		candidates = "Variants/leviathan-pop/logs/{population}.candidates"
 	message:
 		"Calling variants: Population {wildcards.population}"
@@ -174,7 +174,7 @@ rule sv_stats:
 rule sv_report_bypop:
 	input:	
 		statsfile = "Variants/leviathan-pop/reports/stats/{population}.sv.stats",
-		bcf = "Variants/leviathan-pop/{population}.bcf"
+		bcf       = "Variants/leviathan-pop/{population}.bcf"
 	output:
 		"Variants/leviathan-pop/reports/{population}.sv.html"
 	message:
@@ -185,8 +185,8 @@ rule sv_report_bypop:
 
 rule sv_report:
 	input:	
-		statsfiles = expand("Variants/leviathan-pop/reports/stats/{pop}.sv.stats", pop = populations),
-		faidx = f"Assembly/{bn}.fai"
+		faidx      = f"Assembly/{bn}.fai",
+		statsfiles = expand("Variants/leviathan-pop/reports/stats/{pop}.sv.stats", pop = populations)
 	output:
 		"Variants/leviathan-pop/reports/SV.summary.html"
 	message:
@@ -196,10 +196,10 @@ rule sv_report:
 
 rule all_bcfs:
 	input: 
-		bcf = expand("Variants/leviathan-pop/{pop}.bcf", pop = populations),
-		stats = expand("Variants/leviathan-pop/reports/stats/{pop}.sv.stats", pop = populations),
-		popreports = expand("Variants/leviathan-pop/reports/{pop}.sv.html", pop = populations),
-		finalreport = "Variants/leviathan-pop/reports/SV.summary.html"
+		bcf       = expand("Variants/leviathan-pop/{pop}.bcf", pop = populations),
+		stats     = expand("Variants/leviathan-pop/reports/stats/{pop}.sv.stats", pop = populations),
+		popreport = expand("Variants/leviathan-pop/reports/{pop}.sv.html", pop = populations),
+		report    = "Variants/leviathan-pop/reports/SV.summary.html"
 	default_target: True
 	message:
 		"Variant calling is complete!"

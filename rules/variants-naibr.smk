@@ -52,14 +52,14 @@ rule create_config:
 
 rule call_sv:
     input:
-        bam        = bam_dir + "/{sample}.bam",
-        bai        = bam_dir + "/{sample}.bam.bai",
-        configfile = outdir + "/configs/{sample}.config"
+        bam    = bam_dir + "/{sample}.bam",
+        bai    = bam_dir + "/{sample}.bam.bai",
+        config = outdir + "/configs/{sample}.config"
     output:
-        bedpe      = outdir + "/{sample}.bedpe",
-        bedpe_fmt  = outdir + "/IGV/{sample}.reformat.bedpe",
-        bedpe_fail = outdir + "/filtered/{sample}.fail.bedpe",
-        vcf        = outdir + "/vcf/{sample}.vcf" 
+        bedpe  = outdir + "/{sample}.bedpe",
+        refmt  = outdir + "/IGV/{sample}.reformat.bedpe",
+        fail   = outdir + "/filtered/{sample}.fail.bedpe",
+        vcf    = outdir + "/vcf/{sample}.vcf" 
     threads:
         8        
     params:
@@ -71,8 +71,8 @@ rule call_sv:
     shell:
         """
         naibr {input.configfile} 2>&1 > {log}
-        inferSV.py {params}/NAIBR.bedpe -f {output.bedpe_fail} > {output.bedpe}
-        mv {params}/NAIBR.reformat.bedpe {output.bedpe_fmt}
+        inferSV.py {params}/NAIBR.bedpe -f {output.fail} > {output.bedpe}
+        mv {params}/NAIBR.reformat.bedpe {output.refmt}
         mv {params}/NAIBR.vcf {output.vcf}
         """
 

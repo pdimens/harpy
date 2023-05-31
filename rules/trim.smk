@@ -6,11 +6,11 @@ samplenames = config["samplenames"]
 
 rule trimFastp:
 	input:
-		fw = seq_dir + "/{sample}" + fqext[0],
-		rv = seq_dir + "/{sample}" + fqext[1]
+		fw   = seq_dir + "/{sample}" + fqext[0],
+		rv   = seq_dir + "/{sample}" + fqext[1]
 	output:
-		fw = "Trimming/{sample}.R1.fq.gz",
-		rv = "Trimming/{sample}.R2.fq.gz",
+		fw   = "Trimming/{sample}.R1.fq.gz",
+		rv   = "Trimming/{sample}.R2.fq.gz",
 		json = "Trimming/logs/json/{sample}.fastp.json"
 	log:
 		html = "Trimming/logs/html/{sample}.html",
@@ -31,8 +31,8 @@ rule trimFastp:
 rule createReport:
 	input: 
 		json = expand("Trimming/logs/json/{sample}.fastp.json", sample = samplenames),
-		fr = expand("Trimming/{sample}.R1.fq.gz", sample = samplenames),
-		rv = expand("Trimming/{sample}.R2.fq.gz", sample = samplenames)
+		fr   = expand("Trimming/{sample}.R1.fq.gz", sample = samplenames),
+		rv   = expand("Trimming/{sample}.R2.fq.gz", sample = samplenames)
 	output:
 		"Trimming/logs/trim.report.html"
 	message:

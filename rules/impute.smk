@@ -71,7 +71,7 @@ rule convert2stitch:
 rule impute:
     input:
         bamlist = "Imputation/input/samples.list",
-        infile = "Imputation/input/{part}.stitch"
+        infile  = "Imputation/input/{part}.stitch"
     output:
         # format a wildcard pattern like "k{k}/s{s}/ngen{ngen}"
         # into a file path, with k, s, ngen being the columns of the data frame
@@ -93,11 +93,11 @@ rule impute:
 
 rule index_vcf:
     input:
-        vcf = "Imputation/{stitchparams}/contigs/{part}/{part}.vcf.gz",
+        vcf        = "Imputation/{stitchparams}/contigs/{part}/{part}.vcf.gz",
         samplelist = "Imputation/input/samples.names"
     output: 
-        idx = "Imputation/{stitchparams}/contigs/{part}/{part}.vcf.gz.tbi",
-        stats = "Imputation/{stitchparams}/contigs/{part}/{part}.stats"
+        idx        = "Imputation/{stitchparams}/contigs/{part}/{part}.vcf.gz.tbi",
+        stats      = "Imputation/{stitchparams}/contigs/{part}/{part}.stats"
     message:
         "Indexing: {wildcards.stitchparams}/{wildcards.part}"
     benchmark:
@@ -140,9 +140,9 @@ rule clean_stitch:
 
 rule merge_vcfs:
     input: 
-        vcf = expand("Imputation/{{stitchparams}}/contigs/{part}/{part}.vcf.gz", part = contigs),
-        idx = expand("Imputation/{{stitchparams}}/contigs/{part}/{part}.vcf.gz.tbi", part = contigs),
-        cleancheck = expand("Imputation/{{stitchparams}}/contigs/{part}/.cleaned", part = contigs)
+        vcf   = expand("Imputation/{{stitchparams}}/contigs/{part}/{part}.vcf.gz", part = contigs),
+        idx   = expand("Imputation/{{stitchparams}}/contigs/{part}/{part}.vcf.gz.tbi", part = contigs),
+        clean = expand("Imputation/{{stitchparams}}/contigs/{part}/.cleaned", part = contigs)
     output:
         "Imputation/{stitchparams}/variants.imputed.bcf"
     log:
@@ -157,7 +157,7 @@ rule merge_vcfs:
 
 rule stats:
     input:
-        bcf = "Imputation/{stitchparams}/variants.imputed.bcf",
+        bcf        = "Imputation/{stitchparams}/variants.imputed.bcf",
         samplelist = "Imputation/input/samples.names"
     output:
         "Imputation/{stitchparams}/variants.imputed.stats"
@@ -185,8 +185,8 @@ rule reports:
 
 rule all:
     input: 
-        bcf = expand("Imputation/{stitchparams}/variants.imputed.bcf", stitchparams=paramspace.instance_patterns),
-        reports = expand("Imputation/{stitchparams}/variants.imputed.html", stitchparams=paramspace.instance_patterns),
+        bcf           = expand("Imputation/{stitchparams}/variants.imputed.bcf", stitchparams=paramspace.instance_patterns),
+        reports       = expand("Imputation/{stitchparams}/variants.imputed.html", stitchparams=paramspace.instance_patterns),
         contigreports = expand("Imputation/{stitchparams}/contigs/{part}/{part}.impute.html", stitchparams=paramspace.instance_patterns, part = contigs)
     message: 
         "Genotype imputation is complete!"

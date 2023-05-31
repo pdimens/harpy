@@ -57,8 +57,8 @@ rule extractHairs:
 
 rule linkFragments:
     input: 
-        bam = bam_dir + "/{sample}.bam",
-        vcf = "Phasing/input/{sample}.het.bcf",
+        bam       = bam_dir + "/{sample}.bam",
+        vcf       = "Phasing/input/{sample}.het.bcf",
         fragments = "Phasing/extractHairs/{sample}.unlinked.frags"
     output:
         "Phasing/linkFragments/{sample}.linked.frags"
@@ -75,11 +75,11 @@ rule linkFragments:
 
 rule phaseBlocks:
     input:
-        vcf = "Phasing/input/{sample}.het.bcf",
+        vcf       = "Phasing/input/{sample}.het.bcf",
         fragments = "Phasing/linkFragments/{sample}.linked.frags"
     output: 
-        blocks = "Phasing/phaseBlocks/{sample}.blocks",
-        vcf = "Phasing/phaseBlocks/{sample}.blocks.phased.VCF"
+        blocks    = "Phasing/phaseBlocks/{sample}.blocks",
+        vcf       = "Phasing/phaseBlocks/{sample}.blocks.phased.VCF"
     message:
         "Creating phased haplotype blocks: {wildcards.sample}"
     benchmark:
@@ -134,10 +134,10 @@ rule headerfile:
 
 rule mergeAnnotations:
     input:
-        annot = "Phasing/annotations/{sample}.annot.gz",
-        idx = "Phasing/annotations/{sample}.annot.gz.tbi",
-        orig = "Phasing/input/{sample}.bcf",
-        extraheaders = "Phasing/input/header.names"
+        annot   = "Phasing/annotations/{sample}.annot.gz",
+        idx     = "Phasing/annotations/{sample}.annot.gz.tbi",
+        orig    = "Phasing/input/{sample}.bcf",
+        headers = "Phasing/input/header.names"
     output:
         "Phasing/annotations_merge/{sample}.phased.annot.bcf"
     message:
@@ -145,7 +145,7 @@ rule mergeAnnotations:
     benchmark:
         "Benchmark/Phase/mergeAnno.{sample}.txt"
     shell:
-        "bcftools annotate -h {input.extraheaders} -a {input.annot} {input.orig} -c CHROM,POS,FMT/GX,FMT/PS,FMT/PQ,FMT/PD -m +HAPCUT |  awk '!/<ID=GX/' | sed 's/:GX:/:GT:/' | bcftools view -Ob -o {output} -"
+        "bcftools annotate -h {input.headers} -a {input.annot} {input.orig} -c CHROM,POS,FMT/GX,FMT/PS,FMT/PQ,FMT/PD -m +HAPCUT |  awk '!/<ID=GX/' | sed 's/:GX:/:GT:/' | bcftools view -Ob -o {output} -"
         
 rule indexAnnotations2:
     input:

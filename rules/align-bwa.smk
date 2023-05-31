@@ -73,10 +73,10 @@ rule align:
 	input:
 		forward_reads = seq_dir + "/{sample}" + f".{Rsep[0]}.{fqext}",
 		reverse_reads = seq_dir + "/{sample}" + f".{Rsep[1]}.{fqext}",
-		genome = f"Assembly/{bn}",
-		genome_idx = multiext(f"Assembly/{bn}", ".ann", ".bwt", ".fai", ".pac", ".sa", ".amb")
+		genome 		  = f"Assembly/{bn}",
+		genome_idx 	  = multiext(f"Assembly/{bn}", ".ann", ".bwt", ".fai", ".pac", ".sa", ".amb")
 	output:  
-		bam = temp("Alignments/bwa/{sample}.sort.bam"),
+		bam    = temp("Alignments/bwa/{sample}.sort.bam"),
 		tmpdir = temp(directory("Alignments/bwa/{sample}"))
 	log:
 		"Alignments/bwa/logs/{sample}.log"
@@ -88,8 +88,9 @@ rule align:
 		"Benchmark/Mapping/bwa/align.{sample}.txt"
 	params: 
 		quality = config["quality"],
-		extra = extra
-	threads: 8
+		extra   = extra
+	threads:
+		8
 	shell:
 		"""
 		mkdir -p Alignments/bwa/{wildcards.sample}
@@ -98,21 +99,6 @@ rule align:
 		samtools view -h -q {params.quality} | 
 		samtools sort -T Alignments/bwa/{wildcards.sample} --reference {input.genome} -O bam -l 0 -m 4G -o {output.bam} 2> /dev/null
 		"""
-
-#rule sort_alignments:
-#	input: 
-#		sam = "Alignments/bwa/{sample}.sam",
-#		asm = f"Assembly/{genomefile}"
-#	output: temp("Alignments/bwa/{sample}.sort.bam")
-#	wildcard_constraints:
-#		sample = "[a-zA-Z0-9_-]*"
-#	message: "Sorting {wildcards.sample} alignments"
-#	benchmark: "Benchmark/Mapping/bwa/sort.{sample}.txt"
-#	threads: 2
-#	shell:
-#		"""
-#		samtools sort --threads {threads} --reference {input.asm} -O bam -m 4G -o {output} {input.sam}
-#		"""
 
 rule mark_duplicates:
 	input:
@@ -128,7 +114,8 @@ rule mark_duplicates:
 		sample = "[a-zA-Z0-9_-]*"
 	benchmark:
 		"Benchmark/Mapping/bwa/markdup.{sample}.txt"
-	threads: 4
+	threads: 
+		4
 	shell:
 		"sambamba markdup -t {threads} -l 0 {input} {output.bam} 2> {log}"
 
@@ -140,7 +127,8 @@ rule alignment_coverage:
 		"Alignments/bwa/stats/coverage/data/{sample}.cov.gz"
 	message:
 		"Calculating genomic coverage: {wildcards.sample}"
-	threads: 2
+	threads: 
+		2
 	shell:
 		"samtools bedcov -c {input} | gzip > {output}"
 
@@ -156,10 +144,10 @@ rule coverage_report:
 
 rule alignment_stats:
 	input:
-		bam = "Alignments/bwa/{sample}.bam",
-		bai = "Alignments/bwa/{sample}.bam.bai"
+		bam      = "Alignments/bwa/{sample}.bam",
+		bai      = "Alignments/bwa/{sample}.bam.bai"
 	output: 
-		stats = "Alignments/bwa/stats/samtools_stats/{sample}.stats",
+		stats    = "Alignments/bwa/stats/samtools_stats/{sample}.stats",
 		flagstat = "Alignments/bwa/stats/samtools_flagstat/{sample}.flagstat"
 	wildcard_constraints:
 		sample = "[a-zA-Z0-9_-]*"
@@ -167,7 +155,6 @@ rule alignment_stats:
 		"Calculating alignment stats: {wildcards.sample}"
 	benchmark:
 		"Benchmark/Mapping/bwa/stats.{sample}.txt"
-	threads: 1
 	shell:
 		"""
 		samtools stats {input.bam} > {output.stats}
@@ -178,7 +165,7 @@ rule samtools_reports:
 	input: 
 		expand("Alignments/bwa/stats/samtools_{ext}/{sample}.{ext}", sample = samplenames, ext = ["stats", "flagstat"])
 	output: 
-		stats =    "Alignments/bwa/stats/samtools_stats/bwa.stats.html",
+		stats    = "Alignments/bwa/stats/samtools_stats/bwa.stats.html",
 		flagstat = "Alignments/bwa/stats/samtools_flagstat/bwa.flagstat.html"
 	message:
 		"Summarizing samtools stats and flagstats"

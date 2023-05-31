@@ -72,14 +72,14 @@ rule index_bwa_genome:
 
 rule leviathan_variantcall:
     input:
-        bam = bam_dir + "/{sample}.bam",
-        bai = bam_dir + "/{sample}.bam.bai",
+        bam    = bam_dir + "/{sample}.bam",
+        bai    = bam_dir + "/{sample}.bam.bai",
         bc_idx = "Variants/leviathan/lrezIndexed/{sample}.bci",
         genome = f"Assembly/{bn}"
     output:
         pipe("Variants/leviathan/{sample}.vcf")
     log:  
-        runlog = "Variants/leviathan/logs/{sample}.leviathan.log",
+        runlog     = "Variants/leviathan/logs/{sample}.leviathan.log",
         candidates = "Variants/leviathan/logs/{sample}.candidates"
     message:
         "Calling variants: {wildcards.sample}"
@@ -124,7 +124,7 @@ rule sv_stats:
 
 rule sv_report:
     input:	
-        bcf = "Variants/leviathan/{sample}.bcf",
+        bcf       = "Variants/leviathan/{sample}.bcf",
         statsfile = "Variants/leviathan/reports/stats/{sample}.sv.stats"
     output:	
         "Variants/leviathan/reports/{sample}.SV.html"
@@ -135,7 +135,7 @@ rule sv_report:
 
 rule all_bcfs:
     input: 
-        bcf = expand("Variants/leviathan/{sample}.bcf", sample = samplenames),
+        bcf     = expand("Variants/leviathan/{sample}.bcf", sample = samplenames),
         reports = expand("Variants/leviathan/reports/{sample}.SV.html", sample = samplenames)
     default_target: True
     message:

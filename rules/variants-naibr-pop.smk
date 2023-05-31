@@ -103,14 +103,14 @@ rule create_config:
 
 rule call_sv:
     input:
-        bam        = outdir + "/input/{population}.bam",
-        bai        = outdir + "/input/{population}.bam.bai",
-        configfile = outdir + "/configs/{population}.config"
+        bam    = outdir + "/input/{population}.bam",
+        bai    = outdir + "/input/{population}.bam.bai",
+        config = outdir + "/configs/{population}.config"
     output:
-        bedpe      = outdir + "/{population}.bedpe",
-        bedpe_fmt  = outdir + "/IGV/{population}.reformat.bedpe",
-        bedpe_fail = outdir + "/filtered/{population}.fail.bedpe",
-        vcf        = outdir + "/vcf/{population}.vcf"
+        bedpe  = outdir + "/{population}.bedpe",
+        refmt  = outdir + "/IGV/{population}.reformat.bedpe",
+        fail   = outdir + "/filtered/{population}.fail.bedpe",
+        vcf    = outdir + "/vcf/{population}.vcf"
     threads:
         8        
     params:
@@ -122,8 +122,8 @@ rule call_sv:
     shell:
         """
         naibr {input.configfile} 2>&1 > {log}
-        inferSV.py {params}/NAIBR.bedpe -f {output.bedpe_fail} > {output.bedpe}
-        mv {params}/NAIBR.reformat.bedpe {output.bedpe_fmt}
+        inferSV.py {params}/NAIBR.bedpe -f {output.fail} > {output.bedpe}
+        mv {params}/NAIBR.reformat.bedpe {output.refmt}
         mv {params}/NAIBR.vcf {output.vcf}
         rm -rf {params}
         """
@@ -154,8 +154,8 @@ rule index_faidx_genome:
 
 rule report:
     input:
-        bedpe = outdir + "/{population}.bedpe",
-        fai   = f"Assembly/{bn}.fai"
+        fai   = f"Assembly/{bn}.fai",
+        bedpe = outdir + "/{population}.bedpe"
     output:
         outdir + "/reports/{population}.naibr.html"
     message:
@@ -165,8 +165,8 @@ rule report:
 
 rule report_pop:
     input:
-        bedpe = expand(outdir + "/{pop}.bedpe", pop = populations),
-        fai   = f"Assembly/{bn}.fai"
+        fai   = f"Assembly/{bn}.fai",
+        bedpe = expand(outdir + "/{pop}.bedpe", pop = populations)
     output:
         outdir + "/reports/naibr.summary.html"
     message:

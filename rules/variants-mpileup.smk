@@ -73,7 +73,7 @@ rule samplenames:
 rule mpileup:
 	input:
 		bamlist = "Variants/mpileup/logs/samples.files",
-		genome = f"Assembly/{genomefile}"
+		genome  = f"Assembly/{genomefile}"
 	output: 
 		pipe("Variants/mpileup/{part}.mp.bcf")
 	params: 
@@ -110,9 +110,9 @@ rule call_genotypes:
 
 rule index_bcf:
 	input: 
-		bcf = "Variants/mpileup/call/{part}.bcf",
-		samplelist = "Variants/mpileup/logs/samples.names",
-		genome = f"Assembly/{genomefile}"
+		bcf     = "Variants/mpileup/call/{part}.bcf",
+		samples = "Variants/mpileup/logs/samples.names",
+		genome  = f"Assembly/{genomefile}"
 	output:
 		temp("Variants/mpileup/call/{part}.bcf.csi")
 	log:
@@ -125,19 +125,19 @@ rule index_bcf:
 	shell:
 		"""
 		bcftools index --threads {threads} --output {output} {input.bcf}
-		bcftools stats -S {input.samplelist} --fasta-ref {input.genome} {input.bcf} > {log}
+		bcftools stats -S {input.samples} --fasta-ref {input.genome} {input.bcf} > {log}
 		"""
 
 rule combine_bcfs:
 	input: 
-		bcf = expand("Variants/mpileup/call/{part}.bcf", part = contigs),
-		idx = expand("Variants/mpileup/call/{part}.bcf.csi", part = contigs),
-		genome = f"Assembly/{genomefile}",
-		samplelist = "Variants/mpileup/logs/samples.names"
+		bcf     = expand("Variants/mpileup/call/{part}.bcf", part = contigs),
+		idx     = expand("Variants/mpileup/call/{part}.bcf.csi", part = contigs),
+		genome  = f"Assembly/{genomefile}",
+		samples = "Variants/mpileup/logs/samples.names"
 	output: 
-		bcf = "Variants/mpileup/variants.raw.bcf",
-		idx = "Variants/mpileup/variants.raw.bcf.csi",
-		stats = "Variants/mpileup/stats/variants.raw.stats"
+		bcf     = "Variants/mpileup/variants.raw.bcf",
+		idx     = "Variants/mpileup/variants.raw.bcf.csi",
+		stats   = "Variants/mpileup/stats/variants.raw.stats"
 	message:
 		"Merging all BCFs into: {output.bcf}"
 	benchmark:
@@ -147,18 +147,18 @@ rule combine_bcfs:
 		"""
 		bcftools concat --threads {threads} --output-type b --naive {input.bcf} > {output.bcf} 2> /dev/null
 		bcftools index --output {output.idx} {output.bcf}
-		bcftools stats -S {input.samplelist} --fasta-ref {input.genome} {output.bcf} > {output.stats}
+		bcftools stats -S {input.samples} --fasta-ref {input.genome} {output.bcf} > {output.stats}
 		"""
 
 rule normalize_bcf:
 	input: 
-		genome = f"Assembly/{genomefile}",
-		bcf = "Variants/mpileup/variants.raw.bcf",
-		samplelist = "Variants/mpileup/logs/samples.names"
+		genome  = f"Assembly/{genomefile}",
+		bcf     = "Variants/mpileup/variants.raw.bcf",
+		samples = "Variants/mpileup/logs/samples.names"
 	output:
-		bcf = "Variants/mpileup/variants.normalized.bcf",
-		idx = "Variants/mpileup/variants.normalized.bcf.csi",
-		stats = "Variants/mpileup/stats/variants.normalized.stats"
+		bcf     = "Variants/mpileup/variants.normalized.bcf",
+		idx     = "Variants/mpileup/variants.normalized.bcf.csi",
+		stats   = "Variants/mpileup/stats/variants.normalized.stats"
 	message: 
 		"Normalizing the called variants"
 	threads: 2
@@ -166,7 +166,7 @@ rule normalize_bcf:
 		"""
 		bcftools norm -d none -f {input.genome} {input.bcf} | bcftools norm -m -any -N -Ob > {output.bcf}
 		bcftools index --output {output.idx} {output.bcf}
-		bcftools stats -S {input.samplelist} --fasta-ref {input.genome} {output.bcf} > {output.stats}
+		bcftools stats -S {input.samples} --fasta-ref {input.genome} {output.bcf} > {output.stats}
 		"""
 
 rule bcfreport:
