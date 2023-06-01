@@ -99,11 +99,72 @@ on a value you may want to use. It is common to remove alignments with $MQ <20$ 
 
 ----
 
+## :icon-git-pull-request: BWA workflow
++++ :icon-git-merge: details
+- default aligner
+- ignores (but retains) barcode information
+- fast
+
+The [BWA MEM](https://github.com/lh3/bwa) workflow is substantially simpler and faster than the EMA workflow
+ and maps all reads against the reference genome, no muss no fuss. Duplicates are marked at the end using 
+ [sambamba](https://lomereiter.github.io/sambamba/). The `BX:Z` tags in the read headers are still added 
+ to the alignment headers, even though barcodes are not used to inform mapping.
+
+```mermaid
+graph LR
+    Z([trimmed reads]) --> B
+    A([index genome]) --> B([align to genome])
+    B-->C([sort alignments])
+    C-->D([mark duplicates])
+    D-->E([alignment stats])
+```
++++ :icon-file-directory: BWA output
+The `harpy align --bwa` module creates an `Alignments/bwa` directory with the folder structure below. `Sample1` is a generic sample name for demonstration purposes.
+```
+Alignments/bwa
+├── Sample1.bam
+├── Sample1.bam.bai
+└── stats
+    ├── coverage
+    │   ├── Sample1.gencov.html
+    │   └── data
+    │       └── Sample1.gencov.gz
+    ├── markduplicates
+    │   └── Sample1.markdup.log
+    ├── moleculesize
+    │   ├── Sample1.molsize
+    │   └── Sample1.molsize.hist
+    ├── readsperbx
+    │   └── Sample1.readsperbx
+    ├── samtools_flagstat
+    │   ├── alignment.flagstat.html
+    │   ├── Sample1.flagstat
+    └── samtools_stats
+        ├── alignment.stats.html
+        └── Sample1.stats
+```
+
+| item                                           | description                                                                      |
+|:-----------------------------------------------|:---------------------------------------------------------------------------------|
+| `*.bam`                                        | sequence alignments for each sample                                              |
+| `*.bai`                                        | sequence alignment indexes for each sample                                       |
+| `stats/`                                       | various counts/statistics/reports relating to sequence alignment                 |
+| `stats/coverage/*.html`                        | summary plots of alignment coverage per contig                                   |
+| `stats/coverage/data/*.gencov.gz`              | output from samtools bedcov from all alignments, used for plots                  |
+| `stats/markduplicates`                         | everything `sambamba markdup` writes to `stderr` during operation                |
+| `stats/moleculesize/*.molsize`                 | molecule lengths as inferred from BX tags                                        |
+| `stats/moleculesize/*.molsize.hist`            | molecule lengths as inferred from BX tags, binned as a histogram                 |
+| `stats/readsperbx/`                            | inferred number of alignments per BX barcode                                     |
+| `stats/samtools_flagstat/*flagstat`            | results of `samtools flagstat` on all alignments for a sample                    |
+| `stats/samtools_flagstat/*html`                | report summarizing `samtools flagstat` results across all samples from `multiqc` |
+| `stats/samtools_stats/*`                       | same as `samtools_flagstat` except for the results of `samtools stats`           |
+
++++
+
 ## :icon-git-pull-request: EMA workflow
 +++ :icon-git-merge: details
-- **recommended**
 - leverages the BX barcode information to improve mapping
-- better downstream SV detection
+- sometimes better downstream SV detection
 - slower
 - lots of temporary files
 
@@ -165,81 +226,26 @@ Alignments/ema
         ├── Sample1.nobarcode.stats
         └── Sample1.stats
 ```
-| item                                           | description                                                                                |
-|:-----------------------------------------------|:-------------------------------------------------------------------------------------------|
-| `*.bam`                                        | sequence alignments for each sample                                                        |
-| `*.bai`                                        | sequence alignment indexes for each sample                                                 |
-| `barcoded/*.bam`                               | sequence alignments for each sample, containing only alignments with valid BX barcodes     |
-| `count/`                                       | output of `ema count`                                                                      |
-| `preproc/logs/`                                | everything `ema preproc` wrote to `stderr` during operation                                |
-| `stats/`                                       | various counts/statistics/reports relating to sequence alignment                           |
-| `stats/reads.bxstats .html`                    | interactive html report summarizing `ema count` across all samples                         |
-| `stats/coverage/*.html`                        | summary plots of alignment coverage per contig                                             |
-| `stats/coverage/data/*.all.gencov.gz`             | output from bedtools gencov from all alignments, used for plots                            |
-| `stats/coverage/data/*.bx.gencov.gz`              | output from bedtools gencov from alignments with valid BX barcodes, used for plots         |
+| item                                           | description                                                                                                   |
+|:-----------------------------------------------|:--------------------------------------------------------------------------------------------------------------|
+| `*.bam`                                        | sequence alignments for each sample                                                                           |
+| `*.bai`                                        | sequence alignment indexes for each sample                                                                    |
+| `barcoded/*.bam`                               | sequence alignments for each sample, containing only alignments with valid BX barcodes                        |
+| `count/`                                       | output of `ema count`                                                                                         |
+| `preproc/logs/`                                | everything `ema preproc` wrote to `stderr` during operation                                                   |
+| `stats/`                                       | various counts/statistics/reports relating to sequence alignment                                              |
+| `stats/reads.bxstats .html`                    | interactive html report summarizing `ema count` across all samples                                            |
+| `stats/coverage/*.html`                        | summary plots of alignment coverage per contig                                                                |
+| `stats/coverage/data/*.all.gencov.gz`          | output from samtools bedcov from all alignments, used for plots                                               |
+| `stats/coverage/data/*.bx.gencov.gz`           | output from samtools bedcov from alignments with valid BX barcodes, used for plots                            |
 | `stats/markduplicates/`                        | everything `sambamba markdup` writes to `stderr` during operation on alignments with invalid/missing barcodes |
-| `stats/moleculesize/*.molsize`                 | molecule lengths as inferred from BX tags                                                  |
-| `stats/moleculesize/*.molsize.hist`            | molecule lengths as inferred from BX tags, binned as a histogram                           |
-| `stats/readsperbx/`                            | inferred number of alignments per BX barcode                                               |
-| `stats/samtools_flagstat/*flagstat`            | results of `samtools flagstat` on all alignments for a sample                              |
-| `stats/samtools_flagstat/*.nobarcode.flagstat` | results of `samtools flagstat` on alignments that had no/invalid BX barcodes               |
-| `stats/samtools_flagstat/*html`                | report summarizing `samtools flagstat` results across all samples from `multiqc`           |
+| `stats/moleculesize/*.molsize`                 | molecule lengths as inferred from BX tags                                                                     |
+| `stats/moleculesize/*.molsize.hist`            | molecule lengths as inferred from BX tags, binned as a histogram                                              |
+| `stats/readsperbx/`                            | inferred number of alignments per BX barcode                                                                  |
+| `stats/samtools_flagstat/*flagstat`            | results of `samtools flagstat` on all alignments for a sample                                                 |
+| `stats/samtools_flagstat/*.nobarcode.flagstat` | results of `samtools flagstat` on alignments that had no/invalid BX barcodes                                  |
+| `stats/samtools_flagstat/*html`                | report summarizing `samtools flagstat` results across all samples from `multiqc`                              |
 | `stats/samtools_stats/*`                       | same as `samtools_flagstat` except for the results of `samtools stats`                     |
 +++
 
 
-## :icon-git-pull-request: BWA workflow
-+++ :icon-git-merge: details
-- ignores barcode information
-- might be preferred depending on experimental design
-- faster
-- substantially fewer temporary files
-
-
-The [BWA MEM](https://github.com/lh3/bwa) workflow is substantially simpler than the EMA workflow and maps all reads against the reference genome, no muss no fuss. Duplicates are marked at the end using [sambamba](https://lomereiter.github.io/sambamba/). The `BX:Z` tags in the read headers are still added to the alignment headers, even though barcodes are not used to inform mapping.
-
-```mermaid
-graph LR
-    Z([trimmed reads]) --> B
-    A([index genome]) --> B([align to genome])
-    B-->C([sort alignments])
-    C-->D([mark duplicates])
-    D-->E([alignment stats])
-```
-+++ :icon-file-directory: BWA output
-The `harpy align --bwa` module creates an `Alignments/bwa` directory with the folder structure below. `Sample1` is a generic sample name for demonstration purposes.
-```
-Alignments/bwa
-├── Sample1.bam
-├── Sample1.bam.bai
-└── stats
-    ├── coverage
-    │   ├── Sample1.gencov.html
-    │   └── data
-    │       └── Sample1.gencov.gz
-    ├── markduplicates
-    │   └── Sample1.markdup.log
-    ├── samtools_flagstat
-    │   ├── alignment.flagstat.html
-    │   ├── Sample1.flagstat
-    │   └── Sample1.nobarcode.flagstat
-    └── samtools_stats
-        ├── alignment.stats.html
-        ├── Sample1.nobarcode.stats
-        └── Sample1.stats
-```
-
-| item                                           | description                                                                                |
-|:-----------------------------------------------|:-------------------------------------------------------------------------------------------|
-| `*.bam`                                        | sequence alignments for each sample                                                        |
-| `*.bai`                                        | sequence alignment indexes for each sample                                                 |
-| `stats/`                                       | various counts/statistics/reports relating to sequence alignment                           |
-| `stats/coverage/*.html`                        | summary plots of alignment coverage per contig                                             |
-| `stats/coverage/data/*.gencov.gz`                 | output from bedtools gencov from all alignments, used for plots                            |
-| `stats/markduplicates`                         | everything `sambamba markdup` writes to `stderr` during operation  |
-| `stats/samtools_flagstat/*flagstat`            | results of `samtools flagstat` on all alignments for a sample                              |
-| `stats/samtools_flagstat/*.nobarcode.flagstat` | results of `samtools flagstat` on alignments that had no/invalid BX barcodes               |
-| `stats/samtools_flagstat/*html`                | report summarizing `samtools flagstat` results across all samples from `multiqc`           |
-| `stats/samtools_stats/*`                       | same as `samtools_flagstat` except for the results of `samtools stats`                     |
-
-+++

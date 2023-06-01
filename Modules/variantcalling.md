@@ -73,14 +73,14 @@ This file is entirely optional and useful if you want variant calling to happen 
 - takes the format of sample\<tab\>group
 - the groups can be numbers or text (_i.e._ meaningful population names)
 - create with `harpy extra -p <samplefolder>` or manually
-- if created with `harpy extra -p`, all the samples will be assigned to group `1`, so make sure to edit the second column to reflect your data correctly.
+- if created with `harpy extra -p`, all the samples will be assigned to group `pop1`, so make sure to edit the second column to reflect your data correctly.
 - the file looks like:
 ``` popgroups.txt
-sample1 1
-sample2 1
-sample3 2
-sample4 1
-sample5 3
+sample1 pop1
+sample2 pop1
+sample3 pop2
+sample4 pop1
+sample5 pop3
 ```
 
 ----
