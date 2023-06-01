@@ -227,6 +227,7 @@ def trim(directory, max_length, extra_params, threads, snakemake, quiet):
     command = f'snakemake --cores {threads} --directory . --snakefile {harpypath}/trim.smk'.split()
     if quiet:
         command.append("--quiet")
+        command.append("all")
     if snakemake is not None:
         [command.append(i) for i in snakemake.split()]
     command.append('--config')
@@ -279,6 +280,7 @@ def align(genome, threads, method, ema_bins, directory, extra_params, quality_fi
     command = f'snakemake --cores {threads} --directory . --snakefile {harpypath}/align-{mapper}.smk'.split()
     if quiet:
         command.append("--quiet")
+        command.append("all")
     if snakemake is not None:
         [command.append(i) for i in snakemake.split()]
     command.append('--config')
@@ -329,6 +331,7 @@ def variants(genome, threads, directory, populations, ploidy, method, extra_para
     command = (f'snakemake --cores {threads} --directory . --snakefile {harpypath}/variants-{vcaller}.smk').split()
     if quiet:
         command.append("--quiet")
+        command.append("all")
     if snakemake is not None:
         [command.append(i) for i in snakemake.split()]
     command.append('--config')
@@ -363,6 +366,7 @@ def impute(parameters, directory, threads, vcf, snakemake, quiet):
     command = f'snakemake --cores {threads} --directory . --snakefile {harpypath}/impute.smk'.split()
     if quiet:
         command.append("--quiet")
+        command.append("all")
     if snakemake is not None:
         [command.append(i) for i in snakemake.split()]
     command.append('--config')
@@ -400,6 +404,7 @@ def phase(vcf, directory, threads, molecule_distance, prune_threshold, snakemake
     command = f'snakemake --cores {threads} --directory . --snakefile {harpypath}/phase.smk'.split()
     if quiet:
         command.append("--quiet")
+        command.append("all")
     if snakemake is not None:
         [command.append(i) for i in snakemake.split()]
     command.append('--config')
