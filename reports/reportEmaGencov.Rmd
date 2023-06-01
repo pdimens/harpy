@@ -37,21 +37,12 @@ script src = "https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"
 ```
 
 ```{r echo = FALSE, message = FALSE, warning = FALSE}
-covfile <- snakemake@input[["gencov"]]
-# covfile <- "~/ShadHap1_C01.gencov"
-#covfile <- "/home/pdimens/Omega/Cornell/dmel/2A_3.ema.cov.gz"
+covfile <- snakemake@input[[1]]
 
 gencov <- read.table(covfile, header = F)
-if (ncol(gencov) == 5) {
-  mult <- FALSE
-  gencov <- gencov[, c(1,2,3,5)]
-  colnames(gencov) <- c("contig", "start", "end", "alignments")
-} else {
-  mult <- TRUE
-  gencov <- gencov[, c(1,2,3,6,7)]
-  colnames(gencov) <- c("contig", "start", "end", "Barcode", "noBarcode")
-  gencov$noBarcode <- gencov$noBarcode * -1
-}
+gencov <- gencov[, c(1, 2, 3, 6, 7)]
+colnames(gencov) <- c("contig", "start", "end", "Barcode", "noBarcode")
+gencov$noBarcode <- gencov$noBarcode * -1
 
 # Find the 30 largest contigs
 contigs <- group_by(gencov, contig) %>%
@@ -59,9 +50,9 @@ contigs <- group_by(gencov, contig) %>%
   arrange(desc(size))
 
 # limit the data to only the 30 largest contigs
-if (nrow(contigs) > 30){
+if (nrow(contigs) > 30) {
     pltheight <- 45
-    .contigs <- contigs[1:30,]
+    .contigs <- contigs[1:30, ]
     .gencov <- filter(gencov, contig %in% .contigs)
 } else {
     pltheight <- round(1.5 * (nrow(contigs)), digits = 0)
@@ -93,66 +84,62 @@ of sequences with an invalid barcode as "negative" values for visual distinction
 ```{r echo = FALSE, message = FALSE, warning = FALSE, fig.align='center', out.width= "100%"}
 circos.clear()
 col_text <- "grey40"
-circos.par("track.height"=0.8, gap.degree=4, cell.padding=c(0, 0, 0, 0))
+circos.par("track.height" = 0.8, gap.degree = 4, cell.padding = c(0, 0, 0, 0))
 circos.initialize(
-  factors=.contigs$contig, 
-  xlim=matrix(c(rep(0, .l), .contigs$size), ncol=2)
+  factors = .contigs$contig,
+  xlim = matrix(c(rep(0, .l), .contigs$size), ncol = 2)
 )
 
 # contigs
 circos.track(
-  ylim=c(0, 1), 
-  panel.fun=function(x, y) {
-    chr=CELL_META$sector.index
-    xlim=CELL_META$xlim
-    ylim=CELL_META$ylim
+  ylim = c(0, 1),
+  panel.fun = function(x, y) {
+    chr = CELL_META$sector.index
+    xlim = CELL_META$xlim
+    ylim = CELL_META$ylim
     circos.text(
       mean(xlim),
-      mean(ylim), 
-      chr, 
-      cex=0.5, 
-      col=col_text, 
-      facing="bending.inside", 
-      niceFacing=TRUE
+      mean(ylim),
+      chr,
+      cex = 0.5,
+      col = col_text,
+      facing = "bending.inside",
+      niceFacing = TRUE
       )
-    }, 
-  bg.col="grey90", 
-  bg.border=F, 
-  track.height=0.06
+    },
+  bg.col = "grey90",
+  bg.border = F,
+  track.height = 0.06
 )
 
 # x axis
-brk <- seq(0, 10, 0.5)*10^7
+brk <- seq(0, 10, 0.5) * 10^7
 circos.track(
-  track.index = get.current.track.index(), 
-  panel.fun=function(x, y) {
+  track.index = get.current.track.index(),
+  panel.fun = function(x, y) {
     circos.axis(
-      h="top", 
-      major.at=brk, 
-      labels=round(brk/10^6, 1), 
-      labels.cex=0.4, 
-      col=col_text, 
-      labels.col=col_text, 
-      lwd=0.7, 
-      labels.facing="clockwise"
+      h = "top",
+      major.at = brk,
+      labels = round(brk / 10^6, 1),
+      labels.cex = 0.4,
+      col = col_text,
+      labels.col = col_text,
+      lwd = 0.7,
+      labels.facing = "clockwise"
     )
-  }, 
-  bg.border=F
+  },
+  bg.border = F
 )
 
 maxaln <- round(max(.gencov$Barcode), digits = -1)
 cov.yaxis <- c(0, round(maxaln * 1/3, digits = -1), round(maxaln * 2/3, digits = -1), maxaln)
-if (mult){
-  cov.yaxis <- c(round(min(.gencov$noBarcode), digits = -1), cov.yaxis)
-}
+cov.yaxis <- c(round(min(.gencov$noBarcode), digits = -1), cov.yaxis)
 # coverage
 circos.genomicTrack(
   data=.gencov, 
   panel.fun=function(region, value, ...) {
     circos.genomicLines(region, value, type="l", col="#3f3f3f", lwd=0.8)
-    if(mult){
     circos.genomicLines(region, value, type="l", col="#cb6843", lwd=0.8, numeric.column = 2)
-    }
     circos.segments(x0=0, x1=max(.contigs$size), y0=min(.gencov$noBarcode)-100, y1=min(.gencov$noBarcode) - 100, lwd=0.8, lty="11", col="grey90")
     circos.segments(x0=0, x1=max(.contigs$size), y0=maxaln + 100, y1=maxaln + 100, lwd=0.8, lty="11", col="grey90")
   }, 

@@ -12,6 +12,7 @@ rule create_reports:
 	input: 
 		expand("Alignments/bwa/{sample}.bam", sample = samplenames),
 		expand("Alignments/bwa/stats/coverage/{sample}.cov.html", sample = samplenames),
+		expand("Alignments/bwa/stats/moleculesize/{sample}.molsize.hist", sample = samplenames),
 		"Alignments/bwa/stats/samtools_stats/bwa.stats.html",
 		"Alignments/bwa/stats/samtools_flagstat/bwa.flagstat.html"
 	message:
@@ -134,13 +135,50 @@ rule alignment_coverage:
 
 rule coverage_report:
 	input:
-		gencov = "Alignments/bwa/stats/coverage/data/{sample}.cov.gz"
+		"Alignments/bwa/stats/coverage/data/{sample}.cov.gz"
 	output:
 		"Alignments/bwa/stats/coverage/{sample}.cov.html"
 	message:
 		"Summarizing alignment coverage: {wildcards.sample}"
 	script:
-		"reportGencov.Rmd"
+		"reportBwaGencov.Rmd"
+
+rule BEDconvert:
+	input:
+		bam = "Alignments/bwa/{sample}.bam"
+	output: 
+		unfilt = temp("Alignments/bwa/bedfiles/{sample}.bed"),
+		bx     = temp("Alignments/bwa/bedfiles/{sample}.bx.bed")
+	message:
+		"Converting to BED format: {wildcards.sample}"
+	wildcard_constraints:
+		sample = "[a-zA-Z0-9_-]*"
+	params: lambda wc: "Alignments/bwa/align/" + wc.get("sample") + "/" + wc.get("sample") + ".bed"
+	threads: 1
+	shell:
+		"""
+		writeBED.pl {input} {output.unfilt}
+		awk '!($4~/A00|B00|C00|D00/)' {output.unfilt} > {output.bx}
+		"""
+
+rule BX_stats:
+	input:
+		bedfile  = "Alignments/bwa/bedfiles/{sample}.bx.bed"
+	output:	
+		molsize  = "Alignments/bwa/stats/moleculesize/{sample}.molsize",
+		molhist  = "Alignments/bwa/stats/moleculesize/{sample}.molsize.hist",
+		readsper = "Alignments/bwa/stats/readsperbx/{sample}.readsperbx"
+	message: 
+		"Calculating molecule size, reads per molecule: {wildcards.sample}"
+	wildcard_constraints:
+		sample = "[a-zA-Z0-9_-]*"
+	threads: 1
+	shell:
+		"""
+		cut -f10 {input} | datamash -s groupby 1 count 1 | sort -k 1 -n > {output.readsper}
+		awk '{{ print $1"\\t"$2"\\t"$3"\\t"$3-$2"\\t"$4"\\t"$10 }}' {input} | sort -k 4 -n > {output.molsize}
+		cut -f4 {output.molsize} | datamash bin:1000 1 | datamash -s groupby 1 count 1 | sort -k 1 -n > {output.molhist}
+		"""
 
 rule alignment_stats:
 	input:

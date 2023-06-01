@@ -270,20 +270,20 @@ rule alignment_coverage:
 
 rule gencovBX_report:
 	input: 
-		gencov = "Alignments/ema/stats/coverage/data/{sample}.cov.gz",
+		"Alignments/ema/stats/coverage/data/{sample}.cov.gz",
 	output:
 		"Alignments/ema/stats/coverage/{sample}.cov.html"
 	message:
 		"Creating report of alignment coverage: {wildcards.sample}"
 	script:
-		"reportGencov.Rmd"
+		"reportEmaGencov.Rmd"
 
 rule BEDconvert:
 	input:
 		"Alignments/ema/align/barcoded/{sample}.barcoded.bam"
 	output: 
 		unfilt = temp("Alignments/ema/bedfiles/{sample}.all.bed"),
-		bx = temp("Alignments/ema/bedfiles/{sample}.bx.bed")
+		bx     = temp("Alignments/ema/bedfiles/{sample}.bx.bed")
 	message:
 		"Converting to BED format: {wildcards.sample}"
 	wildcard_constraints:
