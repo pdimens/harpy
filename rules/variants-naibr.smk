@@ -71,9 +71,9 @@ rule call_sv:
     shell:
         """
         naibr {input.configfile} 2>&1 > {log}
-        inferSV.py {params}/NAIBR.bedpe -f {output.fail} > {output.bedpe}
-        mv {params}/NAIBR.reformat.bedpe {output.refmt}
-        mv {params}/NAIBR.vcf {output.vcf}
+        inferSV.py {params}/NAIBR_SVs.bedpe -f {output.fail} > {output.bedpe}
+        mv {params}/NAIBR_SVs.reformat.bedpe {output.refmt}
+        mv {params}/NAIBR_SVs.vcf {output.vcf}
         """
 
 rule link_genome:
