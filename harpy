@@ -37,13 +37,13 @@ def vcfcheck(vcf):
     if vfile.endswith(".vcf") or vfile.endswith(".bcf") or vfile.endswith(".vcf.gz"):
         pass
     else:
-        print(f"\033[1;33mERROR:\033[00m Supplied variant call file ({vcf}) must end in one of [.vcf | .vcf.gz | .bcf]")
+        print(f"\033[1;33mERROR:\033[00m Supplied variant call file ({vcf}) must end in one of [.vcf | .vcf.gz | .bcf]", file = sys.stderr)
         exit(1)
 
 def getnames(directory, ext):
     samplenames = set([i.split(ext)[0] for i in os.listdir(directory) if i.endswith(ext)])
     if len(samplenames) < 1:
-        print(f"\033[1;33mERROR:\033[00m No sample files ending with {ext} found in {directory}.")
+        print(f"\033[1;33mERROR:\033[00m No sample files ending with {ext} found in {directory}.", file = sys.stderr)
         sys.exit(1)
     return samplenames
 
@@ -68,14 +68,14 @@ def fq_extension(directory):
             rsp = "".join(base[-2:]).lstrip('^_.-')
             rsep.add(rsp)
     if len(ext) < 1:
-        print(f"\033[1;33mERROR:\033[00m No fastq.gz or fq.gz files identified in {directory}")
+        print(f"\033[1;33mERROR:\033[00m No fastq.gz or fq.gz files identified in {directory}", file = sys.stderr)
         sys.exit(1)
     if len(ext) > 1:
         err += f"- multiple file extensions detected: {ext}.\n  - format your files so there's only one style of .fq.gz | .fastq.gz\n"
     if len(rsep) > 2:
         err += f"- multiple read forward/reverse styles detected: {rsep}\n  - format your files so there's only one style of .1. | .F. | .R1.\n"
     if err != "":
-        print("\033[1;33mERROR:\033[00m\n" + err)
+        print("\033[1;33mERROR:\033[00m\n" + err, file = sys.stderr)
         sys.exit(1)
     return (f"{list(ext)[0]}", sorted(rsep))
 
@@ -162,7 +162,7 @@ def extra(popgroup, stitch_params, hpc):
     Harpy on a cluster. You can use any combination of options at a time. 
     """
     if popgroup is not None:
-        print('\033[1m' + "<><> Sampling Grouping File <><>" + '\033[0m')
+        print('\033[1m' + "<><> Sampling Grouping File <><>" + '\033[0m', file = sys.stderr)
         try:
             samplenames = getnames_err(popgroup, '.bam')
         except:
@@ -172,10 +172,10 @@ def extra(popgroup, stitch_params, hpc):
                 try:
                     samplenames = set([i[:-2].rstrip('_.^') for i in getnames_err(popgroup, '.fq.gz')])
                 except:
-                    print(f"\033[1;33mERROR:\033[00m No files ending in fq.gz, fastq.gz, or .bam found in {popgroup}")
+                    print(f"\033[1;33mERROR:\033[00m No files ending in fq.gz, fastq.gz, or .bam found in {popgroup}", file = sys.stderr)
                     sys.exit(1)
 
-        print(f"Samples detected in {popgroup}: " + str(len(samplenames)))
+        print(f"Samples detected in {popgroup}: " + str(len(samplenames)), file = sys.stderr)
         fout = "samples.groups"
         if exists("samples.groups"):
             overwrite = input("File \'samples.groups\' already exists, overwrite (no|yes)?  ").lower()
@@ -185,15 +185,15 @@ def extra(popgroup, stitch_params, hpc):
                 fout = "samples.groups"
         with open(fout, "w") as file:
             for i in samplenames:
-                file.write(i + '\t1\n') 
-        print('Created sample population grouping file: ' + fout + '\nPlease review it, as all samples have been grouped into a single population\n')
+                file.write(i + '\tpop1\n') 
+        print('Created sample population grouping file: ' + fout + '\nPlease review it, as all samples have been grouped into a single population\n', file = sys.stderr)
 
     if stitch_params is not None:
-        print('\033[1m' + "<><> STITCH Parameter File <><>" + '\033[0m')
+        print('\033[1m' + "<><> STITCH Parameter File <><>" + '\033[0m', file = sys.stderr)
         with open(stitch_params, "w") as file:
             file.write('model\tuseBX\tk\ts\tnGen\npseudoHaploid\tTRUE\t10\t5\t50\npseudoHaploid\tTRUE\t10\t1\t50\npseudoHaploid\tTRUE\t15\t10\t100')
-        print(f"Created example parameter file: {stitch_params}")
-        print("Modify the model parameters as needed, but " + '\033[1m' + "DO NOT" + '\033[0m' + " add/remove columns")
+        print(f"Created example parameter file: {stitch_params}", file = sys.stderr)
+        print("Modify the model parameters as needed, but " + '\033[1m' + "DO NOT" + '\033[0m' + " add/remove columns", file = sys.stderr)
 
     if hpc is not None:
         print('\033[1m' + "<><> HPC Profile <><>" + '\033[0m')
@@ -221,9 +221,9 @@ def trim(directory, max_length, extra_params, threads, snakemake, quiet):
             fullext = [f"_{fqext[1][0]}.{fqext[0]}", f"_{fqext[1][1]}.{fqext[0]}"]
             samplenames = getnames_err(directory, fullext[0])
         except:
-            print(f"\033[1;33mERROR:\033[00m No fastq files with acceptable names found in {directory}")
-            print("Check that the files conform to [.1. | .F.][.fastq | .fq].gz")
-            print("Read the documentation for details: https://pdimens.github.io/harpy/dataformat/#naming-conventions")
+            print(f"\033[1;33mERROR:\033[00m No fastq files with acceptable names found in {directory}", file = sys.stderr)
+            print("Check that the files conform to [.1. | .F.][.fastq | .fq].gz", file = sys.stderr)
+            print("Read the documentation for details: https://pdimens.github.io/harpy/dataformat/#naming-conventions", file = sys.stderr)
     command = f'snakemake --cores {threads} --directory . --snakefile {harpypath}/trim.smk'.split()
     if snakemake is not None:
         [command.append(i) for i in snakemake.split()]
@@ -245,7 +245,6 @@ def trim(directory, max_length, extra_params, threads, snakemake, quiet):
 @click.option('-d', '--directory', required = True, type=click.Path(exists=True), metavar = "Folder Path", help = 'Directory with sample sequences')
 @click.option('-e', '--ema-bins', default = 500, show_default = True, type = click.IntRange(1,1000), metavar = "Integer", help="Number of barcode bins if using EMA")
 @click.option('-m', '--method', default = "bwa", show_default = True, type = click.Choice(["bwa", "ema"], case_sensitive = False), metavar = "String", help = "Method for aligning reads")
-#@click.option('--ema', is_flag=True, metavar = "Toggle", help="Use EMA instead of BWA MEM")
 @click.option('-f', '--quality-filter', default = 30, show_default = True, type = click.IntRange(min = 0, max = 40), metavar = "Integer", help = 'Minimum mapping quality to pass filtering')
 @click.option('-x', '--extra-params', type = str, metavar = "String", help = 'Additional aligner parameters, in quotes')
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(min = 4, max_open = True), metavar = "Integer", help = 'Number of threads to use')
@@ -272,9 +271,9 @@ def align(genome, threads, method, ema_bins, directory, extra_params, quality_fi
             fullext = [f"_{fqext[1][0]}.{fqext[0]}", f"_{fqext[1][1]}.{fqext[0]}"]
             samplenames = getnames_err(directory, fullext[0])
         except:
-            print(f"\033[1;33mERROR:\033[00m No fastq files with acceptable names found in {directory}")
-            print("Check that the files conform to [.1. | .F. | .R1.][.fastq | .fq].gz")
-            print("Read the documentation for details: https://pdimens.github.io/harpy/dataformat/#naming-conventions")
+            print(f"\033[1;33mERROR:\033[00m No fastq files with acceptable names found in {directory}", file = sys.stderr)
+            print("Check that the files conform to [.1. | .F. | .R1.][.fastq | .fq].gz", file = sys.stderr)
+            print("Read the documentation for details: https://pdimens.github.io/harpy/dataformat/#naming-conventions", file = sys.stderr)
             sys.exit(1)
     mapper = method
     command = f'snakemake --cores {threads} --directory . --snakefile {harpypath}/align-{mapper}.smk'.split()
@@ -304,7 +303,6 @@ def align(genome, threads, method, ema_bins, directory, extra_params, quality_fi
 @click.option('-d', '--directory', required = True, type=click.Path(exists=True), metavar = "Folder Path", help = 'Directory with BAM alignments')
 @click.option('-p', '--populations', type=click.Path(exists = True), metavar = "File Path", help = 'Tab-delimited file of sample<tab>population (optional)')
 @click.option('-x', '--ploidy', default = 2, show_default = True, type=int, metavar = "Integer", help = 'Ploidy of samples')
-#@click.option('-m', '--method', default = "mpileup", show_default = True, type = click.Choice(["mpileup", "leviathan", "naibr"], case_sensitive = False), metavar = "String", help = "Method for calling variants")
 @click.option('-m', '--method', default = "mpileup", show_default = True, type = click.Choice(["mpileup", "leviathan"], case_sensitive = False), metavar = "String", help = "Method for calling variants")
 @click.option('-x', '--extra-params', type = str, metavar = "String", help = 'Additional variant caller parameters, in quotes')
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(min = 4, max_open = True), metavar = "Integer", help = 'Number of threads to use')
