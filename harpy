@@ -377,7 +377,7 @@ def impute(parameters, directory, threads, vcf, snakemake, quiet):
 
 @click.command(no_args_is_help = True)
 @click.option('-v', '--vcf', required = True, type=click.Path(exists=True), metavar = "File Path", help = 'Path to BCF/VCF file')
-@click.option('-d', '--directory', required = True, type=click.Path(exists=True), metavar = "Folder Path", help = 'Directory with sequence alignments (*.bam)')
+@click.option('-d', '--directory', required = True, type=click.Path(exists=True), metavar = "Folder Path", help = 'Directory with BAM alignments')
 @click.option('-m', '--molecule-distance', default = 20000, show_default = True, type = int, metavar = "Integer", help = 'Base-pair distance delineating separate molecules')
 @click.option('-p', '--prune-threshold', default = 7, show_default = True, type = click.IntRange(0,100), metavar = "Integer", help = 'PHRED-scale threshold (%) for pruning low-confidence SNPs (larger prunes more.)')
 @click.option('-x', '--extra-params', type = str, metavar = "String", help = 'Additional HapCut2 parameters, in quotes')
