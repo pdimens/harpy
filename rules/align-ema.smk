@@ -13,7 +13,7 @@ rule create_reports:
 	input: 
 		expand("Alignments/ema/{sample}.bam", sample = samplenames),
 		expand("Alignments/ema/{sample}.bam.bai", sample = samplenames),
-		expand("Alignments/ema/stats/moleculesize/{sample}.{ext}", sample = samplenames, ext = ["molsize", "molsize.hist"]),
+		expand("Alignments/ema/stats/moleculesize/{sample}.{ext}", sample = samplenames, ext = ["molsize.gz", "molsize.hist"]),
 		expand("Alignments/ema/stats/readsperbx/{sample}.readsperbx", sample = samplenames),
 		expand("Alignments/ema/stats/coverage/{sample}.cov.html", sample = samplenames),
 		"Alignments/ema/stats/reads.bxstats.html",
@@ -300,7 +300,7 @@ rule BX_stats:
 	input:
 		bedfile  = "Alignments/ema/bedfiles/{sample}.bx.bed"
 	output:	
-		molsize  = "Alignments/ema/stats/moleculesize/{sample}.molsize",
+		molsize  = "Alignments/ema/stats/moleculesize/{sample}.molsize.gz",
 		molhist  = "Alignments/ema/stats/moleculesize/{sample}.molsize.hist",
 		readsper = "Alignments/ema/stats/readsperbx/{sample}.readsperbx"
 	message: 
@@ -311,9 +311,8 @@ rule BX_stats:
 	shell:
 		"""
 		cut -f10 {input} | datamash -s groupby 1 count 1 | sort -k 1 -n > {output.readsper}
-		awk '{{ print $1"\\t"$2"\\t"$3"\\t"$3-$2"\\t"$4"\\t"$10 }}' {input} | sort -k 4 -n > {output.molsize}
-		cut -f4 {output.molsize} | datamash bin:1000 1 | datamash -s groupby 1 count 1 | sort -k 1 -n > {output.molhist}
-		# datamash groupby 1,5 min 2 max 3 < {output.molsize} | awk '{{ print $1"\\t"$2"\\t"$4-$3 }}' > 
+		awk '{{ print $1"\\t"$2"\\t"$3"\\t"$3-$2"\\t"$4"\\t"$10 }}' {input} | sort -k 4 -n | gzip > {output.molsize}
+		zcat {output.molsize} | cut -f4 | datamash bin:1000 1 | datamash -s groupby 1 count 1 | sort -k 1 -n > {output.molhist}
 		"""
 
 rule merge_alignments:

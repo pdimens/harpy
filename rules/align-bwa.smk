@@ -12,7 +12,7 @@ rule create_reports:
 	input: 
 		expand("Alignments/bwa/{sample}.bam", sample = samplenames),
 		expand("Alignments/bwa/stats/coverage/{sample}.cov.html", sample = samplenames),
-		expand("Alignments/bwa/stats/moleculesize/{sample}.molsize.hist", sample = samplenames),
+		expand("Alignments/bwa/stats/moleculesize/{sample}.{ext}", sample = samplenames, ext = ["molsize.gz", "molsize.hist"]),
 		"Alignments/bwa/stats/samtools_stats/bwa.stats.html",
 		"Alignments/bwa/stats/samtools_flagstat/bwa.flagstat.html"
 	message:
@@ -165,7 +165,7 @@ rule BX_stats:
 	input:
 		bedfile  = "Alignments/bwa/bedfiles/{sample}.bx.bed"
 	output:	
-		molsize  = "Alignments/bwa/stats/moleculesize/{sample}.molsize",
+		molsize  = "Alignments/bwa/stats/moleculesize/{sample}.molsize.gz",
 		molhist  = "Alignments/bwa/stats/moleculesize/{sample}.molsize.hist",
 		readsper = "Alignments/bwa/stats/readsperbx/{sample}.readsperbx"
 	message: 
@@ -176,8 +176,8 @@ rule BX_stats:
 	shell:
 		"""
 		cut -f10 {input} | datamash -s groupby 1 count 1 | sort -k 1 -n > {output.readsper}
-		awk '{{ print $1"\\t"$2"\\t"$3"\\t"$3-$2"\\t"$4"\\t"$10 }}' {input} | sort -k 4 -n > {output.molsize}
-		cut -f4 {output.molsize} | datamash bin:1000 1 | datamash -s groupby 1 count 1 | sort -k 1 -n > {output.molhist}
+		awk '{{ print $1"\\t"$2"\\t"$3"\\t"$3-$2"\\t"$4"\\t"$10 }}' {input} | sort -k 4 -n | gzip > {output.molsize}
+		zcat {output.molsize} | cut -f4 | datamash bin:1000 1 | datamash -s groupby 1 count 1 | sort -k 1 -n > {output.molhist}
 		"""
 
 rule alignment_stats:
