@@ -89,7 +89,7 @@ click.rich_click.OPTION_GROUPS = {
         },
         {
             "name": "Other Options",
-            "options": ["--threads", "--snakemake", "--help"],
+            "options": ["--threads", "--snakemake", "--quiet", "--help"],
         },
     ],
     "harpy align": [
@@ -99,7 +99,7 @@ click.rich_click.OPTION_GROUPS = {
         },
         {
             "name": "Other Options",
-            "options": ["--threads", "--snakemake", "--help"],
+            "options": ["--threads", "--snakemake", "--quiet", "--help"],
         },
     ],
     "harpy variants": [
@@ -109,7 +109,7 @@ click.rich_click.OPTION_GROUPS = {
         },
         {
             "name": "Other Options",
-            "options": ["--threads", "--snakemake", "--help"],
+            "options": ["--threads", "--snakemake", "--quiet", "--help"],
         },
     ],
     "harpy impute": [
@@ -119,7 +119,7 @@ click.rich_click.OPTION_GROUPS = {
         },
         {
             "name": "Other Options",
-            "options": ["--threads", "--snakemake", "--help"],
+            "options": ["--threads", "--snakemake", "--quiet", "--help"],
         },
     ],
     "harpy phase": [
@@ -129,13 +129,13 @@ click.rich_click.OPTION_GROUPS = {
         },
         {
             "name": "Other Options",
-            "options": ["--threads", "--snakemake", "--help"],
+            "options": ["--threads", "--snakemake", "--quiet", "--help"],
         },
     ]
 }
 
 @click.group(options_metavar='', context_settings=dict(help_option_names=["-h", "--help"]))
-@click.version_option("0.1", prog_name="Harpy")
+@click.version_option("0.2", prog_name="Harpy")
 def cli():
     """
     ## Harpy haplotagging pipeline
@@ -206,7 +206,8 @@ def extra(popgroup, stitch_params, hpc):
 @click.option('-x', '--extra-params', type = str, metavar = "String", help = 'Additional Fastp parameters, in quotes')
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(min = 4, max_open = True), metavar = "Integer", help = 'Number of threads to use')
 @click.option('-s', '--snakemake', type = str, metavar = "String", help = 'Additional Snakemake parameters, in quotes')
-def trim(directory, max_length, extra_params, threads, snakemake):
+@click.option('-q', '--quiet',  is_flag = True, show_default = True, default = False, metavar = "Toggle", help = 'Don\'t show output text while running')
+def trim(directory, max_length, extra_params, threads, snakemake, quiet):
     """
     Remove adapters and quality trim sequences
     """
@@ -222,8 +223,10 @@ def trim(directory, max_length, extra_params, threads, snakemake):
         except:
             print(f"\033[1;33mERROR:\033[00m No fastq files with acceptable names found in {directory}")
             print("Check that the files conform to [.1. | .F.][.fastq | .fq].gz")
-            print("Read the documentation for details: https://pdimens.github.io/harpy/modules/qualitytrimming/")
+            print("Read the documentation for details: https://pdimens.github.io/harpy/dataformat/#naming-conventions")
     command = f'snakemake --cores {threads} --directory . --snakefile {harpypath}/trim.smk'.split()
+    if quiet:
+        command.append("--quiet")
     if snakemake is not None:
         [command.append(i) for i in snakemake.split()]
     command.append('--config')
@@ -243,18 +246,20 @@ def trim(directory, max_length, extra_params, threads, snakemake):
 @click.option('-m', '--method', default = "bwa", show_default = True, type = click.Choice(["bwa", "ema"], case_sensitive = False), metavar = "String", help = "Method for aligning reads")
 #@click.option('--ema', is_flag=True, metavar = "Toggle", help="Use EMA instead of BWA MEM")
 @click.option('-q', '--quality-filter', default = 30, show_default = True, type = click.IntRange(min = 0, max = 40), metavar = "Integer", help = 'Minimum mapping quality to pass filtering')
-@click.option('-x', '--extra-params', type = str, metavar = "String", help = 'Additional EMA-align/BWA parameters, in quotes')
+@click.option('-x', '--extra-params', type = str, metavar = "String", help = 'Additional aligner parameters, in quotes')
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(min = 4, max_open = True), metavar = "Integer", help = 'Number of threads to use')
 @click.option('-s', '--snakemake', type = str, metavar = "String", help = 'Additional Snakemake parameters, in quotes')
-def align(genome, threads, method, ema_bins, directory, extra_params, quality_filter, snakemake):
+@click.option('-q', '--quiet',  is_flag = True, show_default = True, default = False, metavar = "Toggle", help = 'Don\'t show output text while running')
+def align(genome, threads, method, ema_bins, directory, extra_params, quality_filter, snakemake, quiet):
     """
     Align sample sequences to a reference genome
 
+    EMA improves mapping overall, but note that EMA marks split 
+    reads as secondary reads, which makes it less useful for leviathan.
+
     ## methods
     - **bwa**: uses BWA MEM to align reads, retaining BX tags in the alignments
-    - **ema**: uses the BX barcode-aware EMA aligner. Note that EMA marks split
-    reads as secondary reads, which makes it less useful with leviathan and 
-    problematic with naibr variant callers.
+    - **ema**: uses the BX barcode-aware EMA aligner
     """
     # extension guessing
     fqext, Rsep = fq_extension(directory)
@@ -268,10 +273,12 @@ def align(genome, threads, method, ema_bins, directory, extra_params, quality_fi
         except:
             print(f"\033[1;33mERROR:\033[00m No fastq files with acceptable names found in {directory}")
             print("Check that the files conform to [.1. | .F. | .R1.][.fastq | .fq].gz")
-            print("Read the documentation for details: https://pdimens.github.io/harpy/modules/readmapping/")
+            print("Read the documentation for details: https://pdimens.github.io/harpy/dataformat/#naming-conventions")
             sys.exit(1)
     mapper = method
     command = f'snakemake --cores {threads} --directory . --snakefile {harpypath}/align-{mapper}.smk'.split()
+    if quiet:
+        command.append("--quiet")
     if snakemake is not None:
         [command.append(i) for i in snakemake.split()]
     command.append('--config')
@@ -293,25 +300,26 @@ def align(genome, threads, method, ema_bins, directory, extra_params, quality_fi
 @click.command(no_args_is_help = True)
 @click.option('-g', '--genome', type=click.Path(exists=True), required = True, metavar = "File Path", help = 'Genome assembly for variant calling')
 @click.option('-d', '--directory', required = True, type=click.Path(exists=True), metavar = "Folder Path", help = 'Directory with BAM alignments')
-@click.option('-p', '--populations', type=click.Path(exists = True), metavar = "File Path", help = 'Optional tab-delimited file of sample<tab>population')
-@click.option('-x', '--ploidy', default = 2, show_default = True, type=click.IntRange(1,12), metavar = "Integer", help = 'Ploidy of samples')
+@click.option('-p', '--populations', type=click.Path(exists = True), metavar = "File Path", help = 'Tab-delimited file of sample<tab>population (optional)')
+@click.option('-x', '--ploidy', default = 2, show_default = True, type=int, metavar = "Integer", help = 'Ploidy of samples')
 @click.option('-m', '--method', default = "mpileup", show_default = True, type = click.Choice(["mpileup", "leviathan", "naibr"], case_sensitive = False), metavar = "String", help = "Method for calling variants")
-#@click.option('-l', '--leviathan', is_flag=True, metavar = "Toggle", help="Call variants with Leviathan instead of bcftools")
-#@click.option('-n', '--naibr', is_flag=True, metavar = "Toggle", help="Call variants with naibr instead of bcftools")
-@click.option('-x', '--extra-params', type = str, metavar = "String", help = 'Additional mpileup/leviathan parameters, in quotes')
+@click.option('-x', '--extra-params', type = str, metavar = "String", help = 'Additional variant caller parameters, in quotes')
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(min = 4, max_open = True), metavar = "Integer", help = 'Number of threads to use')
 @click.option('-s', '--snakemake', type = str, metavar = "String", help = 'Additional Snakemake parameters, in quotes')
-def variants(genome, threads, directory, populations, ploidy, method, extra_params, snakemake):
+@click.option('-q', '--quiet',  is_flag = True, show_default = True, default = False, metavar = "Toggle", help = 'Don\'t show output text while running')
+def variants(genome, threads, directory, populations, ploidy, method, extra_params, snakemake, quiet):
     """
     Call variants from sample alignments
     
-    Optionally, use **harpy extra --popgroup** to create a sample grouping file to use with `--populations`.
+    Optionally specify `--populations` for population-aware (mpileup)
+    or population-pooled (naibr, leviathan) variant calling. Use 
+    **harpy extra --popgroup** to create a sample grouping file to 
+    use as input for `--populations`.
     
     ## methods
-
     - **mpileup**: calls SNPS and indels
-    - **leviathan**: calls inversions, duplicates, deletions, breakends
     - **naibr**: calls inversions, duplicates, deletions
+    - **leviathan**: calls inversions, duplicates, deletions, misc breakends
 
     """
     samplenames = getnames_err(directory, '.bam')
@@ -319,6 +327,8 @@ def variants(genome, threads, directory, populations, ploidy, method, extra_para
     if vcaller in ["leviathan", "naibr"] and populations is not None:
         vcaller += "-pop"
     command = (f'snakemake --cores {threads} --directory . --snakefile {harpypath}/variants-{vcaller}.smk').split()
+    if quiet:
+        command.append("--quiet")
     if snakemake is not None:
         [command.append(i) for i in snakemake.split()]
     command.append('--config')
@@ -341,7 +351,8 @@ def variants(genome, threads, directory, populations, ploidy, method, extra_para
 #@click.option('-x', '--extra-params', default = "", type = str, metavar = "String", help = 'Additional STITCH parameters, in quotes')
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(min = 4, max_open = True), metavar = "Integer", help = 'Number of threads to use')
 @click.option('-s', '--snakemake', type = str, metavar = "String", help = 'Additional Snakemake parameters, in quotes')
-def impute(parameters, directory, threads, vcf, snakemake):
+@click.option('-q', '--quiet',  is_flag = True, show_default = True, default = False, metavar = "Toggle", help = 'Don\'t show output text while running')
+def impute(parameters, directory, threads, vcf, snakemake, quiet):
     """
     Impute genotypes using variants and sequences
     
@@ -350,6 +361,8 @@ def impute(parameters, directory, threads, vcf, snakemake):
     vcfcheck(vcf)
     samplenames = getnames(directory, '.bam')
     command = f'snakemake --cores {threads} --directory . --snakefile {harpypath}/impute.smk'.split()
+    if quiet:
+        command.append("--quiet")
     if snakemake is not None:
         [command.append(i) for i in snakemake.split()]
     command.append('--config')
@@ -370,7 +383,8 @@ def impute(parameters, directory, threads, vcf, snakemake):
 @click.option('-x', '--extra-params', type = str, metavar = "String", help = 'Additional HapCut2 parameters, in quotes')
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(min = 2, max_open = True), metavar = "Integer", help = 'Number of threads to use')
 @click.option('-s', '--snakemake',  type = str, metavar = "String", help = 'Additional Snakemake parameters, in quotes')
-def phase(vcf, directory, threads, molecule_distance, prune_threshold, snakemake, extra_params):
+@click.option('-q', '--quiet',  is_flag = True, show_default = True, default = False, metavar = "Toggle", help = 'Don\'t show output text while running')
+def phase(vcf, directory, threads, molecule_distance, prune_threshold, snakemake, extra_params, quiet):
     """
     Phase SNPs into haplotypes
     """
@@ -384,6 +398,8 @@ def phase(vcf, directory, threads, molecule_distance, prune_threshold, snakemake
     samplenames = getnames(directory, '.bam')
     prune_threshold /= 100
     command = f'snakemake --cores {threads} --directory . --snakefile {harpypath}/phase.smk'.split()
+    if quiet:
+        command.append("--quiet")
     if snakemake is not None:
         [command.append(i) for i in snakemake.split()]
     command.append('--config')
