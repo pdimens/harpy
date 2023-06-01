@@ -278,11 +278,11 @@ def align(genome, threads, method, ema_bins, directory, extra_params, quality_fi
             sys.exit(1)
     mapper = method
     command = f'snakemake --cores {threads} --directory . --snakefile {harpypath}/align-{mapper}.smk'.split()
+    if snakemake is not None:
+        [command.append(i) for i in snakemake.split()]
     if quiet:
         command.append("--quiet")
         command.append("all")
-    if snakemake is not None:
-        [command.append(i) for i in snakemake.split()]
     command.append('--config')
     directory = directory.rstrip("/^")
     command.append(f"seq_directory={directory}")
