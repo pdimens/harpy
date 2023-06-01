@@ -132,7 +132,7 @@ Alignments/bwa
     ├── markduplicates
     │   └── Sample1.markdup.log
     ├── moleculesize
-    │   ├── Sample1.molsize
+    │   ├── Sample1.molsize.gz
     │   └── Sample1.molsize.hist
     ├── readsperbx
     │   └── Sample1.readsperbx
@@ -152,7 +152,7 @@ Alignments/bwa
 | `stats/coverage/*.html`                        | summary plots of alignment coverage per contig                                   |
 | `stats/coverage/data/*.gencov.gz`              | output from samtools bedcov from all alignments, used for plots                  |
 | `stats/markduplicates`                         | everything `sambamba markdup` writes to `stderr` during operation                |
-| `stats/moleculesize/*.molsize`                 | molecule lengths as inferred from BX tags                                        |
+| `stats/moleculesize/*.molsize.gz`                 | molecule lengths as inferred from BX tags                                        |
 | `stats/moleculesize/*.molsize.hist`            | molecule lengths as inferred from BX tags, binned as a histogram                 |
 | `stats/readsperbx/`                            | inferred number of alignments per BX barcode                                     |
 | `stats/samtools_flagstat/*flagstat`            | results of `samtools flagstat` on all alignments for a sample                    |
@@ -213,7 +213,7 @@ Alignments/ema
     ├── markduplicates
     │   └── Sample1.markdup.nobarcode.log
     ├── moleculesize
-    │   ├── Sample1.molsize
+    │   ├── Sample1.molsize.gz
     │   └── Sample1.molsize.hist
     ├── readsperbx
     │   └── Sample1.readsperbx
@@ -239,7 +239,7 @@ Alignments/ema
 | `stats/coverage/data/*.all.gencov.gz`          | output from samtools bedcov from all alignments, used for plots                                               |
 | `stats/coverage/data/*.bx.gencov.gz`           | output from samtools bedcov from alignments with valid BX barcodes, used for plots                            |
 | `stats/markduplicates/`                        | everything `sambamba markdup` writes to `stderr` during operation on alignments with invalid/missing barcodes |
-| `stats/moleculesize/*.molsize`                 | molecule lengths as inferred from BX tags                                                                     |
+| `stats/moleculesize/*.molsize.gz`                 | molecule lengths as inferred from BX tags                                                                     |
 | `stats/moleculesize/*.molsize.hist`            | molecule lengths as inferred from BX tags, binned as a histogram                                              |
 | `stats/readsperbx/`                            | inferred number of alignments per BX barcode                                                                  |
 | `stats/samtools_flagstat/*flagstat`            | results of `samtools flagstat` on all alignments for a sample                                                 |
