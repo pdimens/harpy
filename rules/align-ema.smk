@@ -208,8 +208,8 @@ rule merge_barcoded:
 	input:
 		aln_barcoded = expand("Alignments/ema/align/{{sample}}/{{sample}}.{bin}.bam", bin = ["%03d" % i for i in range(nbins)]),
 	output: 
-		bam 		 = temp("Alignments/ema/align/barcoded/{sample}.barcoded.sec.bam"),
-		bai 		 = temp("Alignments/ema/align/barcoded/{sample}.barcoded.sec.bam.bai")
+		bam 		 = temp("Alignments/ema/align/barcoded/{sample}.barcoded.bam"),
+		bai 		 = temp("Alignments/ema/align/barcoded/{sample}.barcoded.bam.bai")
 	wildcard_constraints:
 		sample = "[a-zA-Z0-9_-]*"
 	message:
@@ -220,19 +220,19 @@ rule merge_barcoded:
 	shell:
 		"sambamba merge -t {threads} -l 4 {output.bam} {input} 2> /dev/null"
 
-rule secondary2split:
-	input:
-		bam = "Alignments/ema/align/barcoded/{sample}.barcoded.sec.bam",
-		bai = "Alignments/ema/align/barcoded/{sample}.barcoded.sec.bam.bai"
-	output:
-		bam = temp("Alignments/ema/align/barcoded/{sample}.barcoded.bam"),
-		bai = temp("Alignments/ema/align/barcoded/{sample}.barcoded.bam.bai")
-	wildcard_constraints:
-		sample = "[a-zA-Z0-9_-]*"
-	message:
-		"Converting Secondary SAM flags to Split flags: {wildcards.sample}"
-	shell:
-		"secondary2split.py {input.bam} {output.bam}"
+#rule secondary2split:
+#	input:
+#		bam = "Alignments/ema/align/barcoded/{sample}.barcoded.sec.bam",
+#		bai = "Alignments/ema/align/barcoded/{sample}.barcoded.sec.bam.bai"
+#	output:
+#		bam = temp("Alignments/ema/align/barcoded/{sample}.barcoded.bam"),
+#		bai = temp("Alignments/ema/align/barcoded/{sample}.barcoded.bam.bai")
+#	wildcard_constraints:
+#		sample = "[a-zA-Z0-9_-]*"
+#	message:
+#		"Converting Secondary SAM flags to Split flags: {wildcards.sample}"
+#	shell:
+#		"secondary2split.py {input.bam} {output.bam}"
 
 rule bcstats:
 	input: 
