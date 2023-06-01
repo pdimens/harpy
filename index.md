@@ -48,25 +48,25 @@ You can call `harpy` without any arguments (or with `--help`) to print the docst
 ``` harpy --help                                                      
  Usage: harpy COMMAND [ARGS]...                     
                                                               
-               Haplotagging Research Pipeline (HARPY)               
-                                                                    
- The pipeline trims reads, maps sequences, calls variants, imputes genotypes, and phases         
- haplotypes of Haplotagging data.             
-                                                                    
- trim 🡒 align 🡒 variants 🡒 impute 🡒 phase                           
-                                                                    
- Documentation: https://pdimens.github.io/HARPY/                    
-                                                                                                     
-╭─ Options ────────────────────────────────────────────────────────╮
-│ --version      Show the version and exit.                        │
-│ --help     -h  Show this message and exit.                       │
-╰──────────────────────────────────────────────────────────────────╯
-╭─ Commands ───────────────────────────────────────────────────────╮
-│ align     Align sample sequences to a reference genome           │
-│ extra     Create various associated/necessary files              │
-│ impute    Impute genotypes using variants and sequences          │
-│ phase     Phase SNPs into haplotypes                             │
-│ trim      Remove adapters and quality trim sequences             │
-│ variants  Call variants from sample alignments                   │
-╰──────────────────────────────────────────────────────────────────╯
+                     Harpy haplotagging pipeline                     
+ An automated workflow to trim reads, map sequences, call variants,  
+ impute genotypes, and phase haplotypes of Haplotagging data.        
+ Batteries included.                                                 
+                                                                     
+ trim >> align >> variants >> impute >> phase                        
+                                                                     
+ Documentation: https://pdimens.github.io/harpy/                     
+                                                                     
+╭─ Options ─────────────────────────────────────────────────────────╮
+│ --version      Show the version and exit.                         │
+│ --help     -h  Show this message and exit.                        │
+╰───────────────────────────────────────────────────────────────────╯
+╭─ Commands ────────────────────────────────────────────────────────╮
+│ align     Align sample sequences to a reference genome            │
+│ extra     Create various optional/necessary input files           │
+│ impute    Impute genotypes using variants and sequences           │
+│ phase     Phase SNPs into haplotypes                              │
+│ trim      Remove adapters and quality trim sequences              │
+│ variants  Call variants from sample alignments                    │
+╰───────────────────────────────────────────────────────────────────╯
 ```

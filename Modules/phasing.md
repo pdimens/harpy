@@ -28,16 +28,17 @@ harpy phase --threads 20 --vcf Variants/variants.raw.bcf --dir Alignments/ema
 
 
 ## :icon-terminal: Running Options
-| argument              | short name | type            | default | required | description                                                             |
-|:----------------------|:----------:|:----------------|:-------:|:--------:|:------------------------------------------------------------------------|
-| `--vcf`               |    `-v`    | file path       |         | **yes**  | Path to BCF/VCF file                                                    |
-| `--dir`               |    `-d`    | folder path     |         | **yes**  | Directory with sequence alignments                                      |
-| `--molecule-distance` |    `-m`    | integer         |  20000  |    no    | Base-pair distance dilineating separate molecules                       |
-| `--prune-threshold`   |    `-p`    | integer (0-100) |    7    |    no    | PHRED-scale (%) threshold for pruning low-confidence SNPs               |
-| `--extra-params`      |    `-x`    | string          |         |    no    | Additional Hapcut2 arguments, in quotes                                |
-| `--threads`           |    `-t`    | integer         |    4    |    no    | Number of threads to use                                                |
+| argument              | short name | type            | default | required | description                                                                                     |
+|:----------------------|:----------:|:----------------|:-------:|:--------:|:------------------------------------------------------------------------------------------------|
+| `--vcf`               |    `-v`    | file path       |         | **yes**  | Path to BCF/VCF file                                                                            |
+| `--dir`               |    `-d`    | folder path     |         | **yes**  | Directory with sequence alignments                                                              |
+| `--molecule-distance` |    `-m`    | integer         |  20000  |    no    | Base-pair distance dilineating separate molecules                                               |
+| `--prune-threshold`   |    `-p`    | integer (0-100) |    7    |    no    | PHRED-scale (%) threshold for pruning low-confidence SNPs                                       |
+| `--extra-params`      |    `-x`    | string          |         |    no    | Additional Hapcut2 arguments, in quotes                                                         |
+| `--threads`           |    `-t`    | integer         |    4    |    no    | Number of threads to use                                                                        |
 | `--snakemake`         |    `-s`    | string          |         |    no    | Additional [Snakemake](../snakemake/#adding-additional-snakamake-parameters) options, in quotes |
-| `--help`              |            |                 |         |          | Show the module docstring                                               |
+| `--quiet`             |    `-q`    | toggle          |         |    no    | Supressing Snakemake printing to console                                                        |
+| `--help`              |            |                 |         |          | Show the module docstring                                                                       |
 
 
 ==- :icon-code-square: HapCut2 arguments

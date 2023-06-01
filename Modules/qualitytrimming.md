@@ -25,14 +25,15 @@ harpy trim --dir Sequences_Raw/ --threads 20
 ```
 
 ## :icon-terminal: Running Options
-| argument         | short name | type        | default | required | description                                                            |
-|:-----------------|:----------:|:------------|:-------:|:--------:|:-----------------------------------------------------------------------|
-| `--dir`          |    `-d`    | folder path |         | **yes**  | Directory with sequence alignments                                     |
-| `--max-length`   |    `-l`    | integer     |   150   |    no    | Maximum length to trim sequences down to                               |
-| `--extra-params` |    `-x`    | string      |         |    no    | Additional fastp arguments, in quotes                                 |
-| `--threads`      |    `-t`    | integer     |    4    |    no    | Number of threads to use                                               |
+| argument         | short name | type        | default | required | description                                                                                     |
+|:-----------------|:----------:|:------------|:-------:|:--------:|:------------------------------------------------------------------------------------------------|
+| `--dir`          |    `-d`    | folder path |         | **yes**  | Directory with sequence alignments                                                              |
+| `--max-length`   |    `-l`    | integer     |   150   |    no    | Maximum length to trim sequences down to                                                        |
+| `--extra-params` |    `-x`    | string      |         |    no    | Additional fastp arguments, in quotes                                                           |
+| `--threads`      |    `-t`    | integer     |    4    |    no    | Number of threads to use                                                                        |
 | `--snakemake`    |    `-s`    | string      |         |    no    | Additional [Snakemake](../snakemake/#adding-additional-snakamake-parameters) options, in quotes |
-| `--help`         |            |             |         |          | Show the module docstring                                              |
+| `--quiet`        |    `-q`    | toggle      |         |    no    | Supressing Snakemake printing to console                                                        |
+| `--help`         |            |             |         |          | Show the module docstring                                                                       |
 
 ==- :icon-code-square: fastp arguments
 The list of all `fastp` command line options is quite extensive and would

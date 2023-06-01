@@ -31,17 +31,18 @@ harpy variants --threads 20 --genome genome.fasta --dir Alignments/ema --leviath
 ```
 
 ## :icon-terminal: Running Options
-| argument         | short name | type        | default | required | description                                                            |
-|:-----------------|:----------:|:------------|:-------:|:--------:|:-----------------------------------------------------------------------|
-| `--genome`       |    `-g`    | file path   |         | **yes**  | Genome assembly for variant calling                                    |
-| `--dir`          |    `-d`    | folder path |         | **yes**  | Directory with sequence alignments                                     |
-| `--populations`  |    `-p`    | file path   |         |    no    | Tab-delimited file of sample\<tab\>group                               |
-| `--ploidy`       |    `-x`    | integer     |    2    |    no    | Ploidy of samples                                                      |
-| `--leviathan`    |    `-l`    | toggle      |         |    no    | Call variants with Leviathan instead of bcftools                       |
-| `--extra-params` |    `-x`    | string      |         |    no    | Additional mpileup/Leviathan arguments, in quotes                     |
-| `--threads`      |    `-t`    | integer     |    4    |    no    | Number of threads to use                                               |
-| `--snakemake`    |    `-s`    | string      |         |    no    | Additional [Snakemake](../snakemake/#adding-additional-snakamake-parameters) options, in quotes |
-| `--help`         |            |             |         |          | Show the module docstring                                              |
+| argument         | short name | type                            | default | required | description                                                                                     |
+|:-----------------|:----------:|:--------------------------------|:-------:|:--------:|:------------------------------------------------------------------------------------------------|
+| `--genome`       |    `-g`    | file path                       |         | **yes**  | Genome assembly for variant calling                                                             |
+| `--dir`          |    `-d`    | folder path                     |         | **yes**  | Directory with sequence alignments                                                              |
+| `--populations`  |    `-p`    | file path                       |         |    no    | Tab-delimited file of sample\<tab\>group                                                        |
+| `--ploidy`       |    `-x`    | integer                         |    2    |    no    | Ploidy of samples                                                                               |
+| `--method`       |    `-l`    | choice [`mpileup`, `leviathan`] | mpileup |    no    | Which variant caller to use                                                                     |
+| `--extra-params` |    `-x`    | string                          |         |    no    | Additional mpileup/Leviathan arguments, in quotes                                               |
+| `--threads`      |    `-t`    | integer                         |    4    |    no    | Number of threads to use                                                                        |
+| `--snakemake`    |    `-s`    | string                          |         |    no    | Additional [Snakemake](../snakemake/#adding-additional-snakamake-parameters) options, in quotes |
+| `--quiet`        |    `-q`    | toggle                          |         |    no    | Supressing Snakemake printing to console                                                        |
+| `--help`         |            |                                 |         |          | Show the module docstring                                                                       |
 
 ==- :icon-code-square: mpileup arguments
 The mpileup module of samtools has *a lot* of command line options. Listing them all here would be difficult to read, therefore please
@@ -146,6 +147,12 @@ Variants/mpileup
 [Leviathan](https://github.com/morispi/LEVIATHAN) is an alternative variant caller that uses linked read barcode information 
 to call structural variants (indels, inversions, etc.) exclusively, meaning it does not call SNPs. Harpy first uses [LRez](https://github.com/morispi/LRez) to index the barcodes 
 in the alignments, then it calls variants using Leviathan.
+
+!!!warning EMA-mapped reads
+Leviathan relies on split-read information in the sequence alignments to call variants. The EMA aligner
+does not report split read alignments, instead it reports secondary alignments. It is recommended to use
+BWA-generated alignments if intending to call variants with leviathan. 
+!!!
 
 #### Single-sample variant calling
 When not using a population grouping file via `--populations`, variants will be called per-sample. 
