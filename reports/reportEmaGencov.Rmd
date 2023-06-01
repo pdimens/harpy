@@ -155,33 +155,20 @@ Plotted below is the same depth information, but shown in better detail per cont
 Note that the X and Y axes vary between all contigs.
 
 ```{r echo = FALSE, message = FALSE, warning = FALSE, fig.height=pltheight, out.width = "100%"}
-if (mult) {
-  ggplot(gencov, aes(xmin = start, xmax = end, ymin = 0, ymax = depth, color = alignment, fill = alignment)) +
-    geom_rect(alpha = 0.7) +
-    theme_minimal() +
-    facet_wrap(~contig, ncol = 2, scales = "free") +
-    scale_color_manual(values = c("#3f3f3f", "#cb6843")) +
-    scale_fill_manual(values = c("#3f3f3f", "#cb6843")) +
-    scale_y_continuous(labels = abs) +
-    labs(x = "position (bp)", y = "depth", title = "Alignment Depth") +
-    theme(
-      panel.grid.major.x = element_blank(),
-      panel.grid.minor.x = element_blank(),
-      legend.position = "top"
-      ) +
-    guides(x = "none") -> p
-} else {
-  ggplot(gencov, aes(xmin = start, xmax = end, ymin = 0, ymax = depth)) +
-    geom_rect(alpha = 0.7, color = "#3f3f3f", fill = "#3f3f3f") +
-    theme_minimal() +
-    facet_wrap(~contig, ncol = 2, scales = "free") +
-    labs(x = "position (bp)", y = "depth") +
-    theme(
-      panel.grid.major.x = element_blank(),
-      panel.grid.minor.x = element_blank(),
-      legend.position = "top"
-      ) +
-    guides(x = "none") -> p
-}
+ggplot(.gencov, aes(xmin = start, xmax = end, ymin = 0, ymax = depth, color = alignment, fill = alignment)) +
+  geom_rect(alpha = 0.7) +
+  theme_minimal() +
+  facet_wrap(~contig, ncol = 2, scales = "free") +
+  scale_color_manual(values = c("#3f3f3f", "#cb6843")) +
+  scale_fill_manual(values = c("#3f3f3f", "#cb6843")) +
+  scale_y_continuous(labels = abs) +
+  labs(x = "position (bp)", y = "depth", title = "Alignment Depth") +
+  theme(
+    panel.grid.major.x = element_blank(),
+    panel.grid.minor.x = element_blank(),
+    legend.position = "top"
+    ) +
+  guides(x = "none") -> p
+
 print(p)
 ```
