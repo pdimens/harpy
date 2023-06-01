@@ -225,11 +225,11 @@ def trim(directory, max_length, extra_params, threads, snakemake, quiet):
             print("Check that the files conform to [.1. | .F.][.fastq | .fq].gz")
             print("Read the documentation for details: https://pdimens.github.io/harpy/dataformat/#naming-conventions")
     command = f'snakemake --cores {threads} --directory . --snakefile {harpypath}/trim.smk'.split()
+    if snakemake is not None:
+        [command.append(i) for i in snakemake.split()]
     if quiet:
         command.append("--quiet")
         command.append("all")
-    if snakemake is not None:
-        [command.append(i) for i in snakemake.split()]
     command.append('--config')
     directory = directory.rstrip("/^")
     command.append(f"seq_directory={directory}")
@@ -329,11 +329,11 @@ def variants(genome, threads, directory, populations, ploidy, method, extra_para
     if vcaller in ["leviathan", "naibr"] and populations is not None:
         vcaller += "-pop"
     command = (f'snakemake --cores {threads} --directory . --snakefile {harpypath}/variants-{vcaller}.smk').split()
+    if snakemake is not None:
+        [command.append(i) for i in snakemake.split()]
     if quiet:
         command.append("--quiet")
         command.append("all")
-    if snakemake is not None:
-        [command.append(i) for i in snakemake.split()]
     command.append('--config')
     directory = directory.rstrip("/^")
     command.append(f"seq_directory={directory}")
@@ -364,11 +364,11 @@ def impute(parameters, directory, threads, vcf, snakemake, quiet):
     vcfcheck(vcf)
     samplenames = getnames(directory, '.bam')
     command = f'snakemake --cores {threads} --directory . --snakefile {harpypath}/impute.smk'.split()
+    if snakemake is not None:
+        [command.append(i) for i in snakemake.split()]
     if quiet:
         command.append("--quiet")
         command.append("all")
-    if snakemake is not None:
-        [command.append(i) for i in snakemake.split()]
     command.append('--config')
     directory = directory.rstrip("/^")
     command.append(f"seq_directory={directory}")
@@ -402,11 +402,11 @@ def phase(vcf, directory, threads, molecule_distance, prune_threshold, snakemake
     samplenames = getnames(directory, '.bam')
     prune_threshold /= 100
     command = f'snakemake --cores {threads} --directory . --snakefile {harpypath}/phase.smk'.split()
+    if snakemake is not None:
+        [command.append(i) for i in snakemake.split()]
     if quiet:
         command.append("--quiet")
         command.append("all")
-    if snakemake is not None:
-        [command.append(i) for i in snakemake.split()]
     command.append('--config')
     directory = directory.rstrip("/^")
     command.append(f"seq_directory={directory}")
