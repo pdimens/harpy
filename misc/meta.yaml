@@ -17,8 +17,9 @@ requirements:
   build:
   host:
   run:
-    - bwa
     - bcftools
+    - bioconductor-complexheatmap
+    - bwa
     - datamash
     - fastp
     - hapcut2
@@ -28,6 +29,7 @@ requirements:
     - multiqc
     - python >=3.7
     - r-base >=4
+    - r-circlize
     - r-dplyr
     - r-dt
     - r-ggplot2
@@ -37,6 +39,7 @@ requirements:
     - r-rmarkdown
     - r-stitch
     - r-tidyr
+    - r-viridislite
     - rich-click
     - snakemake >=7
     - sambamba
