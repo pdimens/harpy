@@ -10,9 +10,9 @@ outdir      = "Variants/naibr"
 
 def process_args(args):
     argsDict = {
-        min_mapq : 30
-        d        : 10000
-        min_sv   : 1000
+        min_mapq : 30,
+        d        : 10000,
+        min_sv   : 1000,
         k        : 3
     }
     if args != "":
