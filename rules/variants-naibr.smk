@@ -77,14 +77,14 @@ rule call_sv:
         """
 
 rule link_genome:
-	input:
-		genomefile
-	output: 
-		f"Assembly/{bn}"
-	message:
-		"Symlinking {input} to Assembly/"
-	shell: 
-		"ln -sr {input} {output}"
+    input:
+        genomefile
+    output: 
+        f"Assembly/{bn}"
+    message:
+        "Symlinking {input} to Assembly/"
+    shell: 
+        "ln -sr {input} {output}"
 
 rule faidx_genome:
     input: 
@@ -108,8 +108,8 @@ rule report:
         outdir + "/reports/{sample}.naibr.html"
     message:
         "Creating report: {wildcards.sample}"
-	script:
-		"reportNaibr.Rmd"
+    script:
+        "reportNaibr.Rmd"
 
 rule all:
     input:
