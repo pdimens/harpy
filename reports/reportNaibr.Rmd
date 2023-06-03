@@ -160,7 +160,7 @@ grpstats <- sv %>%
   group_by(Contig, SV) %>%
   summarise(count = n(), total_bp  = sum(Length))
 
-DT::datatable(grpstats, rownames = F, filter = "top", extensions = 'Buttons', options = list(dom = 'Brtip', buttons = c('csv'), scrollX = TRUE))
+DT::datatable(grpstats, rownames = F, filter = "top", extensions = 'Buttons', options = list(dom = 'Brtip', buttons = c('csv'), scrollX = TRUE), colnames = c('Contig', 'Variant Type', 'Count', 'Total Base Pairs'))
 ```
 
 ---
