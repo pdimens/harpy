@@ -12,15 +12,15 @@ outdir      = "Variants/naibr-pop"
 
 def process_args(args):
     argsDict = {
-        min_mapq : 30
-        d        : 10000
-        min_sv   : 1000
-        k        : 3
+        min_mapq : 30,
+        d        : 10000,
+        min_sv   : 1000,
+        k        : 3,
     }
     if args != "":
         words = [i for i in re.split("\s|=", args) if len(i) > 0]
         for i in zip(words[::2], words[1::2]):
-            argsDict[i[0]]] = i[1]
+            argsDict[i[0]] = i[1]
     return argsDict
 
 # create dictionary of population => filenames
@@ -177,7 +177,7 @@ rule report_pop:
 rule all:
     input:
         expand(outdir + "/{pop}.bedpe",      pop = populations),
-        expand(outdir + "/{pop}.naibr.html", pop = populations).
+        expand(outdir + "reports/{pop}.naibr.html", pop = populations).
         outdir + "/reports/naibr.summary.html"
     default_target: True
     message:
