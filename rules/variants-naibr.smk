@@ -18,7 +18,7 @@ def process_args(args):
     if args != "":
         words = [i for i in re.split("\s|=", args) if len(i) > 0]
         for i in zip(words[::2], words[1::2]):
-            argsDict[i[0]]] = i[1]
+            argsDict[i[0]] = i[1]
     return argsDict
 
 rule index_alignment:
