@@ -16,6 +16,7 @@ library(ggplot2)
 library(dplyr)
 library(tidyr)
 library(circlize)
+library(scales)
 ```
 
 ```{css zoom-lib-src, echo = FALSE, message = FALSE, warning = FALSE}
@@ -211,6 +212,7 @@ the table above for more information about these regions.
     theme_minimal() +
     facet_wrap(~contig, ncol = 2, scales = "free_x") +
     labs(x = "position (bp)", y = "depth") +
+    scale_y_continuous(labels = scales::comma) +
     theme(
       panel.grid.major.x = element_blank(),
       panel.grid.minor.x = element_blank(),
