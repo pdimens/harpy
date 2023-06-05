@@ -44,7 +44,8 @@ rule create_config:
         from multiprocessing import cpu_count
         argdict = process_args(params)
         with open(output[0], "w") as conf:
-            _ = conf.write(f"bam_file={wildcards.sample}\n")
+            _ = conf.write(f"bam_file={input[0]}\n")
+            _ = conf.write(f"prefix={wildcards.sample}\n")
             _ = conf.write(f"outdir={wildcards.sample}\n")
             _ = conf.write(f"threads={cpu_count()}\n")
             for i in argdict:
@@ -71,9 +72,9 @@ rule call_sv:
     shell:
         """
         naibr {input.configfile} 2>&1 > {log}
-        inferSV.py {params}/NAIBR_SVs.bedpe -f {output.fail} > {output.bedpe}
-        mv {params}/NAIBR_SVs.reformat.bedpe {output.refmt}
-        mv {params}/NAIBR_SVs.vcf {output.vcf}
+        inferSV.py {params}/{wildcards.sample}.bedpe -f {output.fail} > {output.bedpe}
+        mv {params}/{wildcards.sample}.reformat.bedpe {output.refmt}
+        mv {params}/{wildcards.sample}.vcf {output.vcf}
         """
 
 rule link_genome:
