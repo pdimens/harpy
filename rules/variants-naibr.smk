@@ -64,7 +64,7 @@ rule call_sv:
         8        
     params:
     params:
-        outdir = outdir + "{wildcards.sample}",
+        outdir = lambda wc: outdir + "/" + wc.get("population"),
         sample = lambda wc: wc.get("sample")
     message:
         "Calling variants: {wildcards.sample}"

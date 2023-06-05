@@ -116,7 +116,7 @@ rule call_sv:
     threads:
         8        
     params:
-        outdir = outdir + "{wildcards.population}",
+        outdir = lambda wc: outdir + "/" + wc.get("population"),
         population = lambda wc: wc.get("population")
     message:
         "Calling variants: {wildcards.population}"
