@@ -63,7 +63,9 @@ rule call_sv:
     threads:
         8        
     params:
-        outdir + "/{wildcards.sample}"
+    params:
+        outdir = outdir + "{wildcards.sample}",
+        sample = lambda wc: wc.get("sample")
     message:
         "Calling variants: {wildcards.sample}"
     log:
@@ -72,9 +74,10 @@ rule call_sv:
         """
         echo "threads={threads}" >> {input.conf}
         naibr {input.conf} 2>&1 > {log}
-        inferSV.py {params}/{wildcards.sample}.bedpe -f {output.fail} > {output.bedpe}
-        mv {params}/{wildcards.sample}.reformat.bedpe {output.refmt}
-        mv {params}/{wildcards.sample}.vcf {output.vcf}
+        inferSV.py {params.outdir}/{params.sample}.bedpe -f {output.fail} > {output.bedpe}
+        mv {params.outdir}/{params.sample}.reformat.bedpe {output.refmt}
+        mv {params.outdir}/{params.sample}.vcf {output.vcf}
+        rm -rf {params.outdir}
         """
 
 rule link_genome:

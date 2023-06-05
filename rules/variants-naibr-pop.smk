@@ -116,19 +116,20 @@ rule call_sv:
     threads:
         8        
     params:
-        outdir + "{wildcards.population}"
+        outdir = outdir + "{wildcards.population}",
+        pop = lambda wc: wc.get("population")
     message:
         "Calling variants: {wildcards.population}"
     log:
-        outdir + "logs/{population}.log",
+        outdir + "/logs/{population}.log",
     shell:
         """
         echo "threads={threads}" >> {input.conf}
         naibr {input.conf} 2>&1 > {log}
-        inferSV.py {params}/{wildcards.population}.bedpe -f {output.fail} > {output.bedpe}
-        mv {params}/{wildcards.population}.reformat.bedpe {output.refmt}
-        mv {params}/{wildcards.population}.vcf {output.vcf}
-        rm -rf {params}
+        inferSV.py {params.outdir}/{params.pop}.bedpe -f {output.fail} > {output.bedpe}
+        mv {params.outdir}/{params.pop}.reformat.bedpe {output.refmt}
+        mv {params.outdir}/{params.pop}.vcf {output.vcf}
+        rm -rf {params.outdir}
         """
 
 rule link_genome:
