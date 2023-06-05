@@ -105,14 +105,14 @@ rule create_config:
 
 rule call_sv:
     input:
-        bam    = outdir + "/input/{population}.bam",
-        bai    = outdir + "/input/{population}.bam.bai",
-        config = outdir + "/configs/{population}.config"
+        bam   = outdir + "/input/{population}.bam",
+        bai   = outdir + "/input/{population}.bam.bai",
+        conf  = outdir + "/configs/{population}.config"
     output:
-        bedpe  = outdir + "/{population}.bedpe",
-        refmt  = outdir + "/IGV/{population}.reformat.bedpe",
-        fail   = outdir + "/filtered/{population}.fail.bedpe",
-        vcf    = outdir + "/vcf/{population}.vcf"
+        bedpe = outdir + "/{population}.bedpe",
+        refmt = outdir + "/IGV/{population}.reformat.bedpe",
+        fail  = outdir + "/filtered/{population}.fail.bedpe",
+        vcf   = outdir + "/vcf/{population}.vcf"
     threads:
         8        
     params:
@@ -123,8 +123,8 @@ rule call_sv:
         outdir + "logs/{population}.log",
     shell:
         """
-        echo "threads={threads}" >> {input.config}
-        naibr {input.configfile} 2>&1 > {log}
+        echo "threads={threads}" >> {input.conf}
+        naibr {input.conf} 2>&1 > {log}
         inferSV.py {params}/{wildcards.population}.bedpe -f {output.fail} > {output.bedpe}
         mv {params}/{wildcards.population}.reformat.bedpe {output.refmt}
         mv {params}/{wildcards.population}.vcf {output.vcf}
