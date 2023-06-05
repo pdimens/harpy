@@ -41,7 +41,7 @@ rule bamlist:
 	run:
 		for p in populations:
 			bamlist = popdict[p]
-			with open(foutdir + "/input/{p}.list", "w") as fout:
+			with open(f"{outdir}/input/{p}.list", "w") as fout:
 				for bamfile in bamlist:
 					_ = fout.write(bamfile + "\n")
 
