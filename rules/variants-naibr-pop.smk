@@ -99,7 +99,8 @@ rule create_config:
             _ = conf.write(f"outdir={wildcards.sample}\n")
             _ = conf.write(f"threads={cpu_count()}\n")
             for i in argdict.items():
-                _ = conf.write(f"{i[0]}={i[1]}\n")
+                _ = conf.write(i[0], "=", i[1])
+                #_ = conf.write(f"{i[0]}={i[1]}\n")
 
 rule call_sv:
     input:
