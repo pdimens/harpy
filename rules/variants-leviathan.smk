@@ -5,6 +5,7 @@ genomefile  = config["genomefile"]
 samplenames = config["samplenames"] 
 extra       = config.get("extra", "") 
 bn          = os.path.basename(genomefile)
+outdir      = "Variants/leviathan"
 
 rule index_alignment:
     input:
@@ -23,7 +24,7 @@ rule index_barcode:
         bam = bam_dir + "/{sample}.bam",
         bai = bam_dir + "/{sample}.bam.bai"
     output:
-        temp("Variants/leviathan/lrezIndexed/{sample}.bci")
+        temp(outdir + "/lrezIndexed/{sample}.bci")
     message:
         "Indexing barcodes: {wildcards.sample}"
     benchmark:
@@ -74,13 +75,13 @@ rule leviathan_variantcall:
     input:
         bam    = bam_dir + "/{sample}.bam",
         bai    = bam_dir + "/{sample}.bam.bai",
-        bc_idx = "Variants/leviathan/lrezIndexed/{sample}.bci",
+        bc_idx = outdir + "/lrezIndexed/{sample}.bci",
         genome = f"Assembly/{bn}"
     output:
-        pipe("Variants/leviathan/{sample}.vcf")
+        pipe(outdir + "/{sample}.vcf")
     log:  
-        runlog     = "Variants/leviathan/logs/{sample}.leviathan.log",
-        candidates = "Variants/leviathan/logs/{sample}.candidates"
+        runlog     = outdir + "/logs/{sample}.leviathan.log",
+        candidates = outdir + "/logs/{sample}.candidates"
     message:
         "Calling variants: {wildcards.sample}"
     benchmark:
@@ -93,9 +94,9 @@ rule leviathan_variantcall:
 
 rule sort_bcf:
     input:
-        "Variants/leviathan/{sample}.vcf"
+        outdir + "/{sample}.vcf"
     output:
-        "Variants/leviathan/{sample}.bcf"
+        outdir + "/{sample}.bcf"
     message:
         "Sorting and converting to BCF: {wildcards.sample}"
     threads: 1
@@ -108,9 +109,9 @@ rule sort_bcf:
 
 rule sv_stats:
     input: 
-        "Variants/leviathan/{sample}.bcf"
+        outdir + "/{sample}.bcf"
     output: 
-        "Variants/leviathan/reports/stats/{sample}.sv.stats"
+        outdir + "/reports/stats/{sample}.sv.stats"
     message:
         "Getting SV stats for {wildcards.sample}"
     benchmark:
@@ -124,10 +125,10 @@ rule sv_stats:
 
 rule sv_report:
     input:	
-        bcf       = "Variants/leviathan/{sample}.bcf",
-        statsfile = "Variants/leviathan/reports/stats/{sample}.sv.stats"
+        bcf       = outdir + "/{sample}.bcf",
+        statsfile = outdir + "/reports/stats/{sample}.sv.stats"
     output:	
-        "Variants/leviathan/reports/{sample}.SV.html"
+        outdir + "/reports/{sample}.SV.html"
     message:
         "Generating SV report: {wildcards.sample}"
     script:
@@ -135,8 +136,8 @@ rule sv_report:
 
 rule all_bcfs:
     input: 
-        bcf     = expand("Variants/leviathan/{sample}.bcf", sample = samplenames),
-        reports = expand("Variants/leviathan/reports/{sample}.SV.html", sample = samplenames)
+        bcf     = expand(outdir + "/{sample}.bcf", sample = samplenames),
+        reports = expand(outdir + "/reports/{sample}.SV.html", sample = samplenames)
     default_target: True
     message:
         "Variant calling is complete!"

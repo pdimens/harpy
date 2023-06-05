@@ -6,6 +6,7 @@ groupings 	= config.get("groupings", None)
 ploidy 		= config["ploidy"]
 samplenames = config["samplenames"]
 mp_extra 	= config.get("extra", "") 
+outdir      = "Variants/mpileup"
 
 if groupings is not None:
 	absent = []
@@ -50,7 +51,7 @@ rule bam_list:
 		bam = expand(bam_dir + "/{sample}.bam", sample = samplenames),
 		bai = expand(bam_dir + "/{sample}.bam.bai", sample = samplenames)
 	output:
-		"Variants/mpileup/logs/samples.files"
+		outdir + "/logs/samples.files"
 	message:
 		"Creating list of alignment files"
 	benchmark:
@@ -62,7 +63,7 @@ rule bam_list:
 
 rule samplenames:
 	output:
-		"Variants/mpileup/logs/samples.names"
+		outdir + "/logs/samples.names"
 	message:
 		"Creating list of sample names"
 	run:
@@ -72,16 +73,16 @@ rule samplenames:
 
 rule mpileup:
 	input:
-		bamlist = "Variants/mpileup/logs/samples.files",
+		bamlist = outdir + "/logs/samples.files",
 		genome  = f"Assembly/{genomefile}"
 	output: 
-		pipe("Variants/mpileup/{part}.mp.bcf")
+		pipe(outdir + "/{part}.mp.bcf")
 	params: 
 		lambda wc: dict_cont[wc.part]
 	message: 
 		"Finding variants: {wildcards.part}"
 	log: 
-		"Variants/mpileup/logs/{part}.mpileup.log"
+		outdir + "/logs/{part}.mpileup.log"
 	benchmark: 
 		"Benchmark/Variants/mpileup/mpileup.{part}.txt"
 	params:
@@ -92,15 +93,15 @@ rule mpileup:
 
 rule call_genotypes:
 	input:
-		"Variants/mpileup/{part}.mp.bcf"
+		outdir + "/{part}.mp.bcf"
 	output:
-		temp("Variants/mpileup/call/{part}.bcf")
+		temp(outdir + "/call/{part}.bcf")
 	message:
 		"Calling genotypes: {wildcards.part}"
 	benchmark:
 		"Benchmark/Variants/mpileup/call.{part}.txt"
 	log:
-		"Variants/mpileup/logs/{part}.call.log"
+		outdir + "/logs/{part}.call.log"
 	threads: 2
 	params: 
 		groupsamples = '' if groupings is None else f"--group-samples {groupings}",
@@ -110,13 +111,13 @@ rule call_genotypes:
 
 rule index_bcf:
 	input: 
-		bcf     = "Variants/mpileup/call/{part}.bcf",
-		samples = "Variants/mpileup/logs/samples.names",
+		bcf     = outdir + "/call/{part}.bcf",
+		samples = outdir + "/logs/samples.names",
 		genome  = f"Assembly/{genomefile}"
 	output:
-		temp("Variants/mpileup/call/{part}.bcf.csi")
+		temp(outdir + "/call/{part}.bcf.csi")
 	log:
-		"Variants/mpileup/stats/{part}.stats"
+		outdir + "/stats/{part}.stats"
 	message:
 		"Indexing: {wildcards.part}"
 	benchmark:
@@ -130,14 +131,14 @@ rule index_bcf:
 
 rule combine_bcfs:
 	input: 
-		bcf     = expand("Variants/mpileup/call/{part}.bcf", part = contigs),
-		idx     = expand("Variants/mpileup/call/{part}.bcf.csi", part = contigs),
+		bcf     = expand(outdir + "/call/{part}.bcf", part = contigs),
+		idx     = expand(outdir + "/call/{part}.bcf.csi", part = contigs),
 		genome  = f"Assembly/{genomefile}",
-		samples = "Variants/mpileup/logs/samples.names"
+		samples = outdir + "/logs/samples.names"
 	output: 
-		bcf     = "Variants/mpileup/variants.raw.bcf",
-		idx     = "Variants/mpileup/variants.raw.bcf.csi",
-		stats   = "Variants/mpileup/stats/variants.raw.stats"
+		bcf     = outdir + "/variants.raw.bcf",
+		idx     = outdir + "/variants.raw.bcf.csi",
+		stats   = outdir + "/stats/variants.raw.stats"
 	message:
 		"Merging all BCFs into: {output.bcf}"
 	benchmark:
@@ -153,12 +154,12 @@ rule combine_bcfs:
 rule normalize_bcf:
 	input: 
 		genome  = f"Assembly/{genomefile}",
-		bcf     = "Variants/mpileup/variants.raw.bcf",
-		samples = "Variants/mpileup/logs/samples.names"
+		bcf     = outdir + "/variants.raw.bcf",
+		samples = outdir + "/logs/samples.names"
 	output:
-		bcf     = "Variants/mpileup/variants.normalized.bcf",
-		idx     = "Variants/mpileup/variants.normalized.bcf.csi",
-		stats   = "Variants/mpileup/stats/variants.normalized.stats"
+		bcf     = outdir + "/variants.normalized.bcf",
+		idx     = outdir + "/variants.normalized.bcf.csi",
+		stats   = outdir + "/stats/variants.normalized.stats"
 	message: 
 		"Normalizing the called variants"
 	threads: 2
@@ -171,9 +172,9 @@ rule normalize_bcf:
 
 rule bcfreport:
 	input:
-		"Variants/mpileup/stats/variants.raw.stats"
+		outdir + "/stats/variants.raw.stats"
 	output:
-		"Variants/mpileup/stats/variants.raw.html"
+		outdir + "/stats/variants.raw.html"
 	message:
 		"Generating bcftools report: variants.raw.bcf"
 	benchmark:
@@ -183,9 +184,9 @@ rule bcfreport:
 
 rule bcfreportnorm:
 	input:
-		"Variants/mpileup/stats/variants.normalized.stats"
+		outdir + "/stats/variants.normalized.stats"
 	output:
-		"Variants/mpileup/stats/variants.normalized.html"
+		outdir + "/stats/variants.normalized.html"
 	message:
 		"Generating bcftools report: variants.normalized.bcf"
 	script:
@@ -193,8 +194,8 @@ rule bcfreportnorm:
 
 rule all:
 	input: 
-		expand("Variants/mpileup/variants.{file}.bcf", file = ["raw","normalized"]),
-		expand("Variants/mpileup/stats/variants.{file}.html", file = ["raw","normalized"])
+		expand(outdir + "/variants.{file}.bcf", file = ["raw","normalized"]),
+		expand(outdir + "/stats/variants.{file}.html", file = ["raw","normalized"])
 	message:
 		"Variant calling is complete!"
 	default_target: True

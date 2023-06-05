@@ -7,14 +7,15 @@ fqext 		= config["fqext"]
 samplenames = config["samplenames"]
 extra 		= config.get("extra", "") 
 bn 			= os.path.basename(genomefile)
+outdir      = "Alignments/bwa"
 
 rule create_reports:
 	input: 
-		expand("Alignments/bwa/{sample}.bam", sample = samplenames),
-		expand("Alignments/bwa/stats/coverage/{sample}.cov.html", sample = samplenames),
-		expand("Alignments/bwa/stats/moleculesize/{sample}.{ext}", sample = samplenames, ext = ["molsize.gz", "molsize.hist"]),
-		"Alignments/bwa/stats/samtools_stats/bwa.stats.html",
-		"Alignments/bwa/stats/samtools_flagstat/bwa.flagstat.html"
+		expand(outdir + "/{sample}.bam", sample = samplenames),
+		expand(outdir + "/stats/coverage/{sample}.cov.html", sample = samplenames),
+		expand(outdir + "/stats/moleculesize/{sample}.{ext}", sample = samplenames, ext = ["molsize.gz", "molsize.hist"]),
+		outdir + "/stats/samtools_stats/bwa.stats.html",
+		outdir + "/stats/samtools_flagstat/bwa.flagstat.html"
 	message:
 		"Read mapping completed!"
 	default_target: True
@@ -77,10 +78,10 @@ rule align:
 		genome 		  = f"Assembly/{bn}",
 		genome_idx 	  = multiext(f"Assembly/{bn}", ".ann", ".bwt", ".fai", ".pac", ".sa", ".amb")
 	output:  
-		bam    = temp("Alignments/bwa/{sample}.sort.bam"),
-		tmpdir = temp(directory("Alignments/bwa/{sample}"))
+		bam    = temp(outdir + "/{sample}.sort.bam"),
+		tmpdir = temp(directory(outdir + "/{sample}"))
 	log:
-		"Alignments/bwa/logs/{sample}.log"
+		outdir + "/logs/{sample}.log"
 	message:
 		"Aligning sequences: {wildcards.sample}"
 	wildcard_constraints:
@@ -103,12 +104,12 @@ rule align:
 
 rule mark_duplicates:
 	input:
-		"Alignments/bwa/{sample}.sort.bam"
+		outdir + "/{sample}.sort.bam"
 	output:
-		bam = "Alignments/bwa/{sample}.bam",
-		bai = "Alignments/bwa/{sample}.bam.bai"
+		bam = outdir + "/{sample}.bam",
+		bai = outdir + "/{sample}.bam.bai"
 	log:
-		"Alignments/bwa/logs/{sample}.markdup.log"
+		outdir + "/logs/{sample}.markdup.log"
 	message:
 		f"Marking duplicates: " + "{wildcards.sample}"
 	wildcard_constraints:
@@ -123,9 +124,9 @@ rule mark_duplicates:
 rule alignment_coverage:
 	input: 
 		bed = f"Assembly/{bn}.bed",
-		bam = "Alignments/bwa/{sample}.bam"
+		bam = outdir + "/{sample}.bam"
 	output: 
-		"Alignments/bwa/stats/coverage/data/{sample}.cov.gz"
+		outdir + "/stats/coverage/data/{sample}.cov.gz"
 	message:
 		"Calculating genomic coverage: {wildcards.sample}"
 	threads: 
@@ -135,9 +136,9 @@ rule alignment_coverage:
 
 rule coverage_report:
 	input:
-		"Alignments/bwa/stats/coverage/data/{sample}.cov.gz"
+		outdir + "/stats/coverage/data/{sample}.cov.gz"
 	output:
-		"Alignments/bwa/stats/coverage/{sample}.cov.html"
+		outdir + "/stats/coverage/{sample}.cov.html"
 	message:
 		"Summarizing alignment coverage: {wildcards.sample}"
 	script:
@@ -145,15 +146,15 @@ rule coverage_report:
 
 rule BEDconvert:
 	input:
-		bam = "Alignments/bwa/{sample}.bam"
+		bam = outdir + "/{sample}.bam"
 	output: 
-		unfilt = temp("Alignments/bwa/bedfiles/{sample}.bed"),
-		bx     = temp("Alignments/bwa/bedfiles/{sample}.bx.bed")
+		unfilt = temp(outdir + "/bedfiles/{sample}.bed"),
+		bx     = temp(outdir + "/bedfiles/{sample}.bx.bed")
 	message:
 		"Converting to BED format: {wildcards.sample}"
 	wildcard_constraints:
 		sample = "[a-zA-Z0-9_-]*"
-	params: lambda wc: "Alignments/bwa/align/" + wc.get("sample") + "/" + wc.get("sample") + ".bed"
+	params: lambda wc: outdir + "/align/" + wc.get("sample") + "/" + wc.get("sample") + ".bed"
 	threads: 1
 	shell:
 		"""
@@ -163,11 +164,11 @@ rule BEDconvert:
 
 rule BX_stats:
 	input:
-		bedfile  = "Alignments/bwa/bedfiles/{sample}.bx.bed"
+		bedfile  = outdir + "/bedfiles/{sample}.bx.bed"
 	output:	
-		molsize  = "Alignments/bwa/stats/moleculesize/{sample}.molsize.gz",
-		molhist  = "Alignments/bwa/stats/moleculesize/{sample}.molsize.hist",
-		readsper = "Alignments/bwa/stats/readsperbx/{sample}.readsperbx"
+		molsize  = outdir + "/stats/moleculesize/{sample}.molsize.gz",
+		molhist  = outdir + "/stats/moleculesize/{sample}.molsize.hist",
+		readsper = outdir + "/stats/readsperbx/{sample}.readsperbx"
 	message: 
 		"Calculating molecule size, reads per molecule: {wildcards.sample}"
 	wildcard_constraints:
@@ -182,11 +183,11 @@ rule BX_stats:
 
 rule alignment_stats:
 	input:
-		bam      = "Alignments/bwa/{sample}.bam",
-		bai      = "Alignments/bwa/{sample}.bam.bai"
+		bam      = outdir + "/{sample}.bam",
+		bai      = outdir + "/{sample}.bam.bai"
 	output: 
-		stats    = "Alignments/bwa/stats/samtools_stats/{sample}.stats",
-		flagstat = "Alignments/bwa/stats/samtools_flagstat/{sample}.flagstat"
+		stats    = outdir + "/stats/samtools_stats/{sample}.stats",
+		flagstat = outdir + "/stats/samtools_flagstat/{sample}.flagstat"
 	wildcard_constraints:
 		sample = "[a-zA-Z0-9_-]*"
 	message:
@@ -201,10 +202,10 @@ rule alignment_stats:
 
 rule samtools_reports:
 	input: 
-		expand("Alignments/bwa/stats/samtools_{ext}/{sample}.{ext}", sample = samplenames, ext = ["stats", "flagstat"])
+		expand(outdir + "/stats/samtools_{ext}/{sample}.{ext}", sample = samplenames, ext = ["stats", "flagstat"])
 	output: 
-		stats    = "Alignments/bwa/stats/samtools_stats/bwa.stats.html",
-		flagstat = "Alignments/bwa/stats/samtools_flagstat/bwa.flagstat.html"
+		stats    = outdir + "/stats/samtools_stats/bwa.stats.html",
+		flagstat = outdir + "/stats/samtools_flagstat/bwa.flagstat.html"
 	message:
 		"Summarizing samtools stats and flagstats"
 	shell:

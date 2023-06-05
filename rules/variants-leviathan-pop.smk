@@ -7,6 +7,7 @@ samplenames = config["samplenames"]
 extra 		= config.get("extra", "") 
 groupfile 	= config["groupings"]
 bn 			= os.path.basename(genomefile)
+outdir      = "Variants/leviathan-pop"
 
 # create dictionary of population => filenames
 ## this makes it easier to set the snakemake rules/wildcards
@@ -34,22 +35,22 @@ populations = popdict.keys()
 
 rule bamlist:
 	output:
-		expand("Variants/leviathan-pop/input/{pop}.list", pop = populations)
+		expand(outdir + "/input/{pop}.list", pop = populations)
 	message:
 		"Creating file lists for each population."
 	run:
 		for p in populations:
 			bamlist = popdict[p]
-			with open(f"Variants/leviathan-pop/input/{p}.list", "w") as fout:
+			with open(foutdir + "/input/{p}.list", "w") as fout:
 				for bamfile in bamlist:
 					_ = fout.write(bamfile + "\n")
 
 rule merge_populations:
 	input: 
-		bamlist  = "Variants/leviathan-pop/input/{population}.list",
+		bamlist  = outdir + "/input/{population}.list",
 		bamfiles = lambda wc: expand("{sample}", sample = popdict[wc.population]) 
 	output:
-		temp("Variants/leviathan-pop/input/{population}.bam")
+		temp(outdir + "/input/{population}.bam")
 	message:
 		"Merging alignments: Population {wildcards.population}"
 	shell:
@@ -57,9 +58,9 @@ rule merge_populations:
 
 rule index_merged:
 	input:
-		"Variants/leviathan-pop/input/{population}.bam"
+		outdir + "/input/{population}.bam"
 	output:
-		temp("Variants/leviathan-pop/input/{population}.bam.bai")
+		temp(outdir + "/input/{population}.bam.bai")
 	message:
 		"Indexing merged alignments: Population {wildcards.population}"
 	wildcard_constraints:
@@ -69,10 +70,10 @@ rule index_merged:
 
 rule index_barcode:
 	input: 
-		bam = "Variants/leviathan-pop/input/{population}.bam",
-		bai = "Variants/leviathan-pop/input/{population}.bam.bai"
+		bam = outdir + "/input/{population}.bam",
+		bai = outdir + "/input/{population}.bam.bai"
 	output:
-		temp("Variants/leviathan-pop/lrezIndexed/{population}.bci")
+		temp(outdir + "/lrezIndexed/{population}.bci")
 	message:
 		"Indexing barcodes: Population {wildcards.population}"
 	benchmark:
@@ -121,15 +122,15 @@ rule index_bwa_genome:
 
 rule leviathan_variantcall:
 	input:
-		bam    = "Variants/leviathan-pop/input/{population}.bam",
-		bai    = "Variants/leviathan-pop/input/{population}.bam.bai",
-		bc_idx = "Variants/leviathan-pop/lrezIndexed/{population}.bci",
+		bam    = outdir + "/input/{population}.bam",
+		bai    = outdir + "/input/{population}.bam.bai",
+		bc_idx = outdir + "/lrezIndexed/{population}.bci",
 		genome = f"Assembly/{bn}"
 	output:
-		pipe("Variants/leviathan-pop/{population}.vcf")
+		pipe(outdir + "/{population}.vcf")
 	log:  
-		runlog     = "Variants/leviathan-pop/logs/{population}.leviathan.log",
-		candidates = "Variants/leviathan-pop/logs/{population}.candidates"
+		runlog     = outdir + "/logs/{population}.leviathan.log",
+		candidates = outdir + "/logs/{population}.candidates"
 	message:
 		"Calling variants: Population {wildcards.population}"
 	benchmark:
@@ -142,9 +143,9 @@ rule leviathan_variantcall:
 
 rule sort_bcf:
 	input:
-		"Variants/leviathan-pop/{population}.vcf"
+		outdir + "/{population}.vcf"
 	output:
-		"Variants/leviathan-pop/{population}.bcf"
+		outdir + "/{population}.bcf"
 	message:
 		"Sorting and converting to BCF: Population {wildcards.population}"
 	threads: 1
@@ -157,9 +158,9 @@ rule sort_bcf:
 
 rule sv_stats:
 	input: 
-		"Variants/leviathan-pop/{population}.bcf"
+		outdir + "/{population}.bcf"
 	output:
-		"Variants/leviathan-pop/reports/stats/{population}.sv.stats"
+		outdir + "/reports/stats/{population}.sv.stats"
 	message:
 		"Getting stats: Population {input}"
 	benchmark:
@@ -173,10 +174,10 @@ rule sv_stats:
 
 rule sv_report_bypop:
 	input:	
-		statsfile = "Variants/leviathan-pop/reports/stats/{population}.sv.stats",
-		bcf       = "Variants/leviathan-pop/{population}.bcf"
+		statsfile = outdir + "/reports/stats/{population}.sv.stats",
+		bcf       = outdir + "/{population}.bcf"
 	output:
-		"Variants/leviathan-pop/reports/{population}.sv.html"
+		outdir + "/reports/{population}.sv.html"
 	message:
 		"Generating SV report: population {wildcards.population}"
 	script:
@@ -186,9 +187,9 @@ rule sv_report_bypop:
 rule sv_report:
 	input:	
 		faidx      = f"Assembly/{bn}.fai",
-		statsfiles = expand("Variants/leviathan-pop/reports/stats/{pop}.sv.stats", pop = populations)
+		statsfiles = expand(outdir + "/reports/stats/{pop}.sv.stats", pop = populations)
 	output:
-		"Variants/leviathan-pop/reports/SV.summary.html"
+		outdir + "/reports/SV.summary.html"
 	message:
 		"Generating SV report for all populations"
 	script:
@@ -196,10 +197,10 @@ rule sv_report:
 
 rule all_bcfs:
 	input: 
-		bcf       = expand("Variants/leviathan-pop/{pop}.bcf", pop = populations),
-		stats     = expand("Variants/leviathan-pop/reports/stats/{pop}.sv.stats", pop = populations),
-		popreport = expand("Variants/leviathan-pop/reports/{pop}.sv.html", pop = populations),
-		report    = "Variants/leviathan-pop/reports/SV.summary.html"
+		bcf       = expand(outdir + "/{pop}.bcf", pop = populations),
+		stats     = expand(outdir + "/reports/stats/{pop}.sv.stats", pop = populations),
+		popreport = expand(outdir + "/reports/{pop}.sv.html", pop = populations),
+		report    = outdir + "/reports/SV.summary.html"
 	default_target: True
 	message:
 		"Variant calling is complete!"
