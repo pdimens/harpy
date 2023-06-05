@@ -137,9 +137,20 @@ Contigs that are absent did not have any SV's detected on them. Within each
 contig, each population is plotted as a row to help visualize shared
 variants between populations. Plotting only the first 30 largest contigs.
 
+```{r echo = FALSE, message = FALSE, warning = FALSE, fig.align='center', out.width= "100%"}
+#populations <- c("red", "blue", "green","orange","violet")  # relevant for dev
+populations <- unique(sv$population)
+col.ramp <- viridis(length(populations))
+
+plot(NULL ,xaxt='n',yaxt='n',bty='n',ylab='',xlab='', xlim=0:1, ylim=0:1)
+legend("topleft", legend = populations, pch=15, pt.cex=3, cex=1.5, bty='n',
+    col = col.ramp, ncol=6)
+mtext("Populations", at=0.2, cex=2)
+```
+
 ### Summary
 ```{r echo = FALSE, message = FALSE, warning = FALSE}
-circosplot <- function(data, contigdata, svtype, trackheight, poplist, colormap, draw.leg){
+circosplot <- function(data, contigdata, svtype, trackheight, poplist, colormap){
   circos.clear()
   col_text <- "grey40"
   circos.par("track.height" = 0.8, gap.degree = 2, cell.padding = c(0, 0, 0, 0))
@@ -203,32 +214,16 @@ circosplot <- function(data, contigdata, svtype, trackheight, poplist, colormap,
       }
     )
   }
-  if (draw.leg) {
-    lgd <- Legend(
-      at = poplist,
-      type = "grid",
-      legend_gp = gpar(fill = colormap),
-      title_position = "topleft",
-      title = "Populations"
-    )
-    draw(lgd)
-  }
   text(0, 0, svtype, cex = 2)
 }
 ```
 
 ```{r echo = FALSE, message = FALSE, warning = FALSE, fig.align='center', fig.width=12, fig.height=12, out.width= "100%"}
 par(mfrow = c(2, 2))
-populations <- unique(sv$population)
 popheight <- 5 / length(populations) / 10
-col.ramp <- viridis(length(populations))
-lgnd <- FALSE
 
 for (SV in c("INV", "DEL", "DUP", "BND")){
-  if (SV == "BND"){
-    lgnd <- TRUE
-  }
-  circosplot(sv, fa.sizes, SV, popheight, populations, col.ramp, lgnd)
+  circosplot(sv, fa.sizes, SV, popheight, populations, col.ramp)
 }
 
 
