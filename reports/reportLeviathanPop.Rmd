@@ -137,18 +137,19 @@ Contigs that are absent did not have any SV's detected on them. Within each
 contig, each population is plotted as a row to help visualize shared
 variants between populations. Plotting only the first 30 largest contigs.
 
+### Summary
+
 ```{r echo = FALSE, message = FALSE, warning = FALSE, fig.align='center', out.width= "100%"}
 #populations <- c("red", "blue", "green","orange","violet")  # relevant for dev
 populations <- unique(sv$population)
 col.ramp <- viridis(length(populations))
 
 plot(NULL ,xaxt='n',yaxt='n',bty='n',ylab='',xlab='', xlim=0:1, ylim=0:1)
-legend("topleft", legend = populations, pch=15, pt.cex=3, cex=1.5, bty='n',
+legend("topleft", legend = populations, pch=15, pt.cex=1, cex=1, bty='n',
     col = col.ramp, ncol=6)
-mtext("Populations", at=0.2, cex=2)
+mtext("Populations", at=0.2, cex=1.5)
 ```
 
-### Summary
 ```{r echo = FALSE, message = FALSE, warning = FALSE}
 circosplot <- function(data, contigdata, svtype, trackheight, poplist, colormap){
   circos.clear()
