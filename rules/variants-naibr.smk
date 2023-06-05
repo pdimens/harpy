@@ -39,12 +39,11 @@ rule create_config:
     message:
         "Creating naibr config file: {wildcards.sample}"
     params:
-        extra
+	    lambda wc: wc.get("population")
     run:
-        from multiprocessing import cpu_count
-        argdict = process_args(params)
+        argdict = process_args(extra)
         with open(output[0], "w") as conf:
-            _ = conf.write(f"bam_file={input[0]}\n")
+            _ = conf.write(f"bam_file=input/{params[0]}.bam\n")
             _ = conf.write(f"prefix={params[0]}\n")
             _ = conf.write(f"outdir={params[0]}\n")
             for i in argdict:
@@ -63,8 +62,7 @@ rule call_sv:
     threads:
         8        
     params:
-    params:
-        outdir = lambda wc: outdir + "/" + wc.get("population"),
+        outdir = lambda wc: outdir + "/" + wc.get("sample"),
         sample = lambda wc: wc.get("sample")
     message:
         "Calling variants: {wildcards.sample}"
@@ -73,7 +71,9 @@ rule call_sv:
     shell:
         """
         echo "threads={threads}" >> {input.conf}
-        naibr {input.conf} 2>&1 > {log}
+        cd Variants/naibr
+        naibr configs/{params.sample}.config > logs/{params.sample}.log 2>&1
+        cd ../..
         inferSV.py {params.outdir}/{params.sample}.bedpe -f {output.fail} > {output.bedpe}
         mv {params.outdir}/{params.sample}.reformat.bedpe {output.refmt}
         mv {params.outdir}/{params.sample}.vcf {output.vcf}
