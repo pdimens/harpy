@@ -139,7 +139,7 @@ variants between populations. Plotting only the first 30 largest contigs.
 
 ### Summary
 
-```{r echo = FALSE, message = FALSE, warning = FALSE, dev='svg', fig.align='center'}
+```{r echo = FALSE, message = FALSE, warning = FALSE,fig.height = 1, fig.asp=0.35, fig.align='center'}
 #populations <- c("red", "blue", "green","orange","violet")  # relevant for dev
 populations <- unique(sv$population)
 col.ramp <- viridis(length(populations))
@@ -147,7 +147,7 @@ col.ramp <- viridis(length(populations))
 plot(NULL ,xaxt='n',yaxt='n',bty='n',ylab='',xlab='', xlim=0:1, ylim=0:1)
 legend("topleft", legend = populations, pch=15, pt.cex=1, cex=1, bty='n',
     col = col.ramp, ncol=6)
-mtext("Populations", at=0.2, cex=1.5)
+mtext("Populations", at=0.1, cex=1.5)
 ```
 
 ```{r echo = FALSE, message = FALSE, warning = FALSE}
