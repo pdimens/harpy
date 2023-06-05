@@ -27,60 +27,60 @@ def process_args(args):
 ## this makes it easier to set the snakemake rules/wildcards
 ## exits with an error if the groupfile has samples not in the bam folder
 def pop_manifest(infile, dirn, sampnames):
-	d = dict()
-	absent = []
-	with open(infile) as f:
-		for line in f:
-			samp, pop = line.rstrip().split()
-			if samp not in sampnames:
-				absent.append(samp)
-			samp = f"{dirn}/{samp}.bam"
-			if pop not in d.keys():
-				d[pop] = [samp]
-			else:
-				d[pop].append(samp)
-	if absent:
-		sys.tracebacklimit = 0
-		raise ValueError(f"{len(absent)} sample(s) in \033[1m{infile}\033[0m not found in \033[1m{dirn}\033[0m directory:\n\033[33m" + ", ".join(absent) + "\033[0m" + "\n")
+    d = dict()
+    absent = []
+    with open(infile) as f:
+        for line in f:
+            samp, pop = line.rstrip().split()
+            if samp not in sampnames:
+                absent.append(samp)
+            samp = f"{dirn}/{samp}.bam"
+            if pop not in d.keys():
+                d[pop] = [samp]
+            else:
+                d[pop].append(samp)
+    if absent:
+        sys.tracebacklimit = 0
+        raise ValueError(f"{len(absent)} sample(s) in \033[1m{infile}\033[0m not found in \033[1m{dirn}\033[0m directory:\n\033[33m" + ", ".join(absent) + "\033[0m" + "\n")
     return d
 
 popdict     = pop_manifest(groupfile, bam_dir, samplenames)
 populations = popdict.keys()
 
 rule bamlist:
-	output:
-		expand(outdir + "/input/{pop}.list", pop = populations)
-	message:
-		"Creating file lists for each population."
-	run:
-		for p in populations:
+    output:
+        expand(outdir + "/input/{pop}.list", pop = populations)
+    message:
+        "Creating file lists for each population."
+    run:
+        for p in populations:
             bamlist = popdict[p]
-			with open(f"{outdir}/input/{p}.list", "w") as fout:
-				for bamfile in bamlist:
-					_ = fout.write(bamfile + "\n")
+            with open(f"{outdir}/input/{p}.list", "w") as fout:
+                for bamfile in bamlist:
+                    _ = fout.write(bamfile + "\n")
 
 rule merge_populations:
-	input: 
-		bamlist  = outdir + "/input/{population}.list",
-		bamfiles = lambda wc: expand("{sample}", sample = popdict[wc.population]) 
-	output:
-		temp(outdir + "/input/{population}.bam")
-	message:
-		"Merging alignments: Population {wildcards.population}"
-	shell:
-		"samtools merge -b {input} -o {output}"
+    input: 
+        bamlist  = outdir + "/input/{population}.list",
+        bamfiles = lambda wc: expand("{sample}", sample = popdict[wc.population]) 
+    output:
+        temp(outdir + "/input/{population}.bam")
+    message:
+        "Merging alignments: Population {wildcards.population}"
+    shell:
+        "samtools merge -b {input} -o {output}"
 
 rule index_merged:
-	input:
-		outdir + "/input/{population}.bam"
-	output:
-		temp(outdir + "/input/{population}.bam.bai")
-	message:
-		"Indexing merged alignments: Population {wildcards.population}"
-	wildcard_constraints:
-		population = "[a-zA-Z0-9_-]*"
-	shell:
-		"sambamba index {input} {output} 2> /dev/null"
+    input:
+        outdir + "/input/{population}.bam"
+    output:
+        temp(outdir + "/input/{population}.bam.bai")
+    message:
+        "Indexing merged alignments: Population {wildcards.population}"
+    wildcard_constraints:
+        population = "[a-zA-Z0-9_-]*"
+    shell:
+        "sambamba index {input} {output} 2> /dev/null"
 
 rule create_config:
     input:
@@ -129,14 +129,14 @@ rule call_sv:
         """
 
 rule link_genome:
-	input:
-		genomefile
-	output: 
-		f"Assembly/{bn}"
-	message:
-		"Symlinking {input} to Assembly/"
-	shell: 
-		"ln -sr {input} {output}"
+    input:
+        genomefile
+    output: 
+        f"Assembly/{bn}"
+    message:
+        "Symlinking {input} to Assembly/"
+    shell: 
+        "ln -sr {input} {output}"
 
 rule index_faidx_genome:
     input: 
@@ -160,8 +160,8 @@ rule report:
         outdir + "/reports/{population}.naibr.html"
     message:
         "Creating report: {wildcards.population}"
-	script:
-		"reportNaibr.Rmd"
+    script:
+        "reportNaibr.Rmd"
 
 rule report_pop:
     input:
@@ -171,8 +171,8 @@ rule report_pop:
         outdir + "/reports/naibr.summary.html"
     message:
         "Creating report: {wildcards.population}"
-	script:
-		"reportNaibrPop.Rmd"
+    script:
+        "reportNaibrPop.Rmd"
 
 rule all:
     input:
