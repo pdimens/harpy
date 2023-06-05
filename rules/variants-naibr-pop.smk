@@ -117,7 +117,7 @@ rule call_sv:
         8        
     params:
         outdir = outdir + "{wildcards.population}",
-        pop = lambda wc: wc.get("population")
+        population = lambda wc: wc.get("population")
     message:
         "Calling variants: {wildcards.population}"
     log:
@@ -126,9 +126,9 @@ rule call_sv:
         """
         echo "threads={threads}" >> {input.conf}
         naibr {input.conf} 2>&1 > {log}
-        inferSV.py {params.outdir}/{params.pop}.bedpe -f {output.fail} > {output.bedpe}
-        mv {params.outdir}/{params.pop}.reformat.bedpe {output.refmt}
-        mv {params.outdir}/{params.pop}.vcf {output.vcf}
+        inferSV.py {params.outdir}/{params.population}.bedpe -f {output.fail} > {output.bedpe}
+        mv {params.outdir}/{params.population}.reformat.bedpe {output.refmt}
+        mv {params.outdir}/{params.population}.vcf {output.vcf}
         rm -rf {params.outdir}
         """
 
