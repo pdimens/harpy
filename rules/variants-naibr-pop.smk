@@ -41,8 +41,8 @@ def pop_manifest(infile, dirn, sampnames):
 				d[pop].append(samp)
 	if absent:
 		sys.tracebacklimit = 0
-		raise ValueError(f"{len(absent)} sample(s) in \033[1m{infile}\033[0m not found in \033[1m{dirn}\033[0m directory:\n\033[33m" + ", ".join(absent) + "\033[0m")
-	return d
+		raise ValueError(f"{len(absent)} sample(s) in \033[1m{infile}\033[0m not found in \033[1m{dirn}\033[0m directory:\n\033[33m" + ", ".join(absent) + "\033[0m" + "\n")
+    return d
 
 popdict     = pop_manifest(groupfile, bam_dir, samplenames)
 populations = popdict.keys()
