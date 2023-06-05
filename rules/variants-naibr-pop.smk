@@ -125,7 +125,10 @@ rule call_sv:
     shell:
         """
         echo "threads={threads}" >> {input.conf}
-        naibr {input.conf} 2>&1 > {log}
+        cd Variants/naibr-pop
+        #naibr {input.conf} > {log} 2>&1
+        naibr configs/{params.population}.config
+        cd ../..
         inferSV.py {params.outdir}/{params.population}.bedpe -f {output.fail} > {output.bedpe}
         mv {params.outdir}/{params.population}.reformat.bedpe {output.refmt}
         mv {params.outdir}/{params.population}.vcf {output.vcf}
