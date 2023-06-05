@@ -90,14 +90,15 @@ rule create_config:
     message:
         "Creating naibr config file: {wildcards.population}"
     params:
-        "{wildcards.sample}"
+	    lambda wc: wc.get("population")
     run:
-        from multiprocessing import cpu_count
+        
+        snakemake.utils.available_cpu_count()
         argdict = process_args(extra)
         with open(output[0], "w") as conf:
             _ = conf.write(f"bam_file={input[0]}\n")
             _ = conf.write(f"outdir={params[0]}\n")
-            _ = conf.write(f"threads={cpu_count()}\n")
+            _ = conf.write(f"prefix={params[0]}\n")
             for i in argdict:
                 _ = conf.write(f"{i}={argdict[i]}\n")
 
@@ -122,6 +123,7 @@ rule call_sv:
         outdir + "logs/{population}.log",
     shell:
         """
+        echo "threads={threads}" >> {input.config}
         naibr {input.configfile} 2>&1 > {log}
         inferSV.py {params}/NAIBR_SVs.bedpe -f {output.fail} > {output.bedpe}
         mv {params}/NAIBR_SVs.reformat.bedpe {output.refmt}

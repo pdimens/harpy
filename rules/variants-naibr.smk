@@ -45,9 +45,8 @@ rule create_config:
         argdict = process_args(params)
         with open(output[0], "w") as conf:
             _ = conf.write(f"bam_file={input[0]}\n")
-            _ = conf.write(f"prefix={wildcards.sample}\n")
-            _ = conf.write(f"outdir={wildcards.sample}\n")
-            _ = conf.write(f"threads={cpu_count()}\n")
+            _ = conf.write(f"prefix={params[0]}\n")
+            _ = conf.write(f"outdir={params[0]}\n")
             for i in argdict:
                 _ = conf.write(f"{i}={argdict[i]}\n")
 
@@ -71,6 +70,7 @@ rule call_sv:
         outdir + "log/{sample}.log" 
     shell:
         """
+        echo "threads={threads}" >> {input.config}
         naibr {input.configfile} 2>&1 > {log}
         inferSV.py {params}/{wildcards.sample}.bedpe -f {output.fail} > {output.bedpe}
         mv {params}/{wildcards.sample}.reformat.bedpe {output.refmt}
