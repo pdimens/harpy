@@ -115,7 +115,7 @@ rule report:
 rule all:
     input:
         expand(outdir + "/{sample}.bedpe",      sample = samplenames),
-        expand(outdir + "reports//{sample}.naibr.html", sample = samplenames)
+        expand(outdir + "/reports/{sample}.naibr.html", sample = samplenames)
     default_target: True
     message:
         "Variant calling completed!"
