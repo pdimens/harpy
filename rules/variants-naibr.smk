@@ -10,10 +10,10 @@ outdir      = "Variants/naibr"
 
 def process_args(args):
     argsDict = {
-        min_mapq : 30,
-        d        : 10000,
-        min_sv   : 1000,
-        k        : 3
+        "min_mapq" : 30,
+        "d"        : 10000,
+        "min_sv"   : 1000,
+        "k"        : 3
     }
     if args != "":
         words = [i for i in re.split("\s|=", args) if len(i) > 0]

@@ -12,10 +12,10 @@ outdir      = "Variants/naibr-pop"
 
 def process_args(args):
     argsDict = {
-        min_mapq : 30,
-        d        : 10000,
-        min_sv   : 1000,
-        k        : 3,
+        "min_mapq" : 30,
+        "d"        : 10000,
+        "min_sv"   : 1000,
+        "k"        : 3,
     }
     if args != "":
         words = [i for i in re.split("\s|=", args) if len(i) > 0]
@@ -98,9 +98,9 @@ rule create_config:
             _ = conf.write(f"bam_file={wildcards.sample}\n")
             _ = conf.write(f"outdir={wildcards.sample}\n")
             _ = conf.write(f"threads={cpu_count()}\n")
-            for i in argdict.items():
-                _ = conf.write(i[0], "=", i[1])
-                #_ = conf.write(f"{i[0]}={i[1]}\n")
+            for i in argdict:
+                _ = conf.write(f"{i}={argdict[i]}\n")
+
 
 rule call_sv:
     input:
