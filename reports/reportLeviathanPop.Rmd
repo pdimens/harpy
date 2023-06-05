@@ -145,7 +145,7 @@ populations <- unique(sv$population)
 col.ramp <- viridis(length(populations))
 
 plot(NULL ,xaxt='n',yaxt='n',bty='n',ylab='',xlab='', xlim=0:1, ylim=0:1)
-legend("topleft", legend = populations, pch=15, pt.cex=1, cex=1, bty='n',
+legend("topleft", legend = populations, pch=15, pt.cex=3, cex=1, bty='n',
     col = col.ramp, ncol=6)
 mtext("Populations", at=0.1, cex=1.5)
 ```
