@@ -1,5 +1,5 @@
 ---
-label: Phase Haplotypes
+label: Phase
 description: Phase haplotypes for haplotagged data with Harpy
 icon: stack
 order: 2

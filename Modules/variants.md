@@ -1,5 +1,5 @@
 ---
-label: Variant Calling
+label: Variants
 description: Call variants on alignments generated from haplotagged sequences with Harpy
 icon: sliders
 order: 4
@@ -82,6 +82,12 @@ sample3 pop2
 sample4 pop1
 sample5 pop3
 ```
+
+!!!warning known quirk
+There's an unusual error on the Snakemake side of things that happens when the name of a sample and population are identical.
+It has been unclear how to resolve this issue, so to protect yourself, it's best to make sure the population names are different
+from the sample names. A simple fix would be to use underscores (`_`) to differentiate the population name.
+!!!
 
 ----
 ### :icon-git-pull-request: mpileup workflow

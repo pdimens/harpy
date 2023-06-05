@@ -1,5 +1,5 @@
 ---
-label: Quality Trimming
+label: Trim
 description: Quality trim haplotagged sequences with Harpy
 icon: codescan-checkmark
 order: 6

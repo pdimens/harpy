@@ -1,4 +1,5 @@
 ---
+label: Extra
 order: 7
 icon: file-diff
 description: Generate extra files for analysis with Harpy

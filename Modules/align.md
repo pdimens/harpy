@@ -1,5 +1,5 @@
 ---
-label: Read Mapping
+label: Align
 description: Align haplotagged sequences to a reference genome with Harpy
 icon: quote
 order: 5
