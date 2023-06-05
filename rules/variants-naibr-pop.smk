@@ -125,9 +125,9 @@ rule call_sv:
         """
         echo "threads={threads}" >> {input.config}
         naibr {input.configfile} 2>&1 > {log}
-        inferSV.py {params}/NAIBR_SVs.bedpe -f {output.fail} > {output.bedpe}
-        mv {params}/NAIBR_SVs.reformat.bedpe {output.refmt}
-        mv {params}/NAIBR_SVs.vcf {output.vcf}
+        inferSV.py {params}/{wildcards.population}.bedpe -f {output.fail} > {output.bedpe}
+        mv {params}/{wildcards.population}.reformat.bedpe {output.refmt}
+        mv {params}/{wildcards.population}.vcf {output.vcf}
         rm -rf {params}
         """
 
