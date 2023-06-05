@@ -111,7 +111,7 @@ rule call_sv:
     output:
         bedpe = outdir + "/{population}.bedpe",
         refmt = outdir + "/IGV/{population}.reformat.bedpe",
-        fail  = outdir + "/filtered/{population}.fail.bedpe",
+        fail  = outdir + "/bad_candidates/{population}.fail.bedpe",
         vcf   = outdir + "/vcf/{population}.vcf"
     threads:
         8        
@@ -126,8 +126,8 @@ rule call_sv:
         """
         echo "threads={threads}" >> {input.conf}
         cd Variants/naibr-pop
-        #naibr {input.conf} > {log} 2>&1
-        naibr configs/{params.population}.config
+        #naibr {input.conf} > logs/{params.population}.log 2>&1
+        naibr configs/{params.population}.config > logs/{params.population}.log 2>&1
         cd ../..
         inferSV.py {params.outdir}/{params.population}.bedpe -f {output.fail} > {output.bedpe}
         mv {params.outdir}/{params.population}.reformat.bedpe {output.refmt}

@@ -73,7 +73,7 @@ rule call_sv:
     shell:
         """
         echo "threads={threads}" >> {input.conf}
-        naibr {input.conf} > {log} 2>&1
+        naibr {input.conf} 2>&1 > {log}
         inferSV.py {params.outdir}/{params.sample}.bedpe -f {output.fail} > {output.bedpe}
         mv {params.outdir}/{params.sample}.reformat.bedpe {output.refmt}
         mv {params.outdir}/{params.sample}.vcf {output.vcf}
