@@ -89,13 +89,11 @@ rule create_config:
         temp(outdir + "/configs/{population}.config")
     message:
         "Creating naibr config file: {wildcards.population}"
-    params:
-        extra
     run:
         from multiprocessing import cpu_count
-        argdict = process_args(params)
+        argdict = process_args(extra)
         with open(output[0], "w") as conf:
-            _ = conf.write(f"bam_file={wildcards.sample}\n")
+            _ = conf.write(f"bam_file={input[0]}\n")
             _ = conf.write(f"outdir={wildcards.sample}\n")
             _ = conf.write(f"threads={cpu_count()}\n")
             for i in argdict:
