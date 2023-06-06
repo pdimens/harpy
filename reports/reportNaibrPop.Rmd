@@ -15,7 +15,7 @@ output:
 ```{r echo = FALSE, warnings = FALSE, message = FALSE}
 infiles <- snakemake@input[["bedpe"]]
 fai <- snakemake@input[["fai"]]
-#infiles <- c("/home/pdimens/ZS10.bedpe", "/home/pdimens/ZS11.bedpe", "/home/pdimens/ZS12.bedpe", "/home/pdimens/ZS13.bedpe")
+#infiles <- c("/home/pdimens/ZS10.ema.bedpe", "/home/pdimens/ZS10.bwa.bedpe")
 #fai <- "/home/pdimens/assembly.fai"
 ```
 
@@ -63,18 +63,27 @@ script src = "https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"
 ```
 
 ```{r echo = FALSE, warnings = FALSE, message = FALSE}
-cleanbedpe <- function(x){
+readvariants <- function(x){
   .x <- read.table(x, header = T)
-  y <- .x[.x$Chr1 == .x$Chr2, c(-3,-10)]
-  popname <- data.frame("Population" = rep(gsub(".bedpe", "", basename(x)), nrow(y)))
-  y <- cbind(popname, y)
-  names(y)[2] <- "Contig"
-  y$Score <- round(y$Score, digits = 3)
-  y$Length <- abs(y$Break2 - y$Break1)
-
+  popname <- data.frame("Population" = rep(gsub(".bedpe", "", basename(x)), nrow(.x)))
+  y <- cbind(popname, .x)
   return(y)
 }
 
+cleanbedpe <- function(x){
+  y <- x[x$Chr1 == x$Chr2, c(-4, -11)]
+  names(y)[2] <- "Contig"
+  y$Score <- round(y$Score, digits = 3)
+  y$Length <- abs(y$Break2 - y$Break1)
+  return(y)
+}
+
+
+chimeric <- function(x){
+  y <- x[x$Chr1!=x$Chr2, -11]
+  y$Score <- round(y$Score, digits = 3)
+  return(y)
+}
 ```
 
 ```{r echo = FALSE, warnings = FALSE, message = FALSE}
@@ -85,13 +94,7 @@ fa.sizes <- fa.sizes[1:min(nrow(fa.sizes), 30), ]
 ```
 
 ```{r echo = FALSE, results='asis'}
-#statsfiles <- c("/mnt/Win11/Users/pdime/Documents/Omega/Cornell/Haplotagging/1.sv.stats", "/mnt/Win11/Users/pdime/Documents/Omega/Cornell/Haplotagging/2.sv.stats")
-sv <- do.call(rbind, lapply(infiles, function(x) cleanbedpe(x)))
-#.sv <- sv
-#.sv$population <- ifelse(.sv$population == 1, 3, 4)
-#.sv2 <- sv
-#.sv2$population <- ifelse(.sv2$population == 3, 5, 6)
-#sv <- rbind(sv, .sv, .sv2)
+sv <- do.call(rbind, lapply(infiles, function(x) readvariants(x)))
 
 if (nrow(sv) == 0) {
   cat("There are no variants detected in files:\n")
@@ -104,27 +107,36 @@ if (nrow(sv) == 0) {
 ### summary info
 This table shows the overall counts, average per contig, and standard deviation per contig for detected structural variants across populations.
 ```{r echo = FALSE, warnings= FALSE, message = FALSE}
-genstats <- sv %>%
+sv_clean <- cleanbedpe(sv)
+genstats <- sv_clean %>%
   group_by(Population, Contig, SV) %>%
   summarise(tot = n()) %>%
   group_by(Population, SV) %>%
   summarise(count = sum(tot), avg = round(mean(tot, na.rm = T),2 ), sd = round(sd(tot, na.rm = T), 2)) %>% 
   pivot_wider(names_from = SV, values_from = c(count, avg, sd), names_glue = "{SV}.{.value}", names_vary = "slowest")
 
-DT::datatable(genstats, rownames = F, filter = "top", extensions = 'Buttons', options = list(dom = 'Brtip', buttons = c('csv'), scrollX = TRUE))
+DT::datatable(genstats, rownames = F, filter = "top", extensions = 'Buttons', options = list(dom = 'Brtip', buttons = c('csv'), scrollX = TRUE), colnames = c("Population", "Deletion Count", "Deletion Average", "Deletion Stdv", "Duplication Count", "Duplication Average", "Duplication Stdv", "Inversion Count", "Inversion Average", "Inversion Stdv"))
 ```
 
 ### all variants
-This table details all the variants NAIBR detected and the quantity/quality of evidence for those detections.
+This table details the variants detected by NAIBR that appear on a single contig/chromosome and passed the programs internal filtering.
 ```{r message = FALSE, echo = FALSE}
-DT::datatable(sv, rownames = F, filter = "top", extensions = 'Buttons', options = list(dom = 'Brtip', buttons = c('csv'), scrollX = TRUE))
+DT::datatable(sv_clean, rownames = F, filter = "top", extensions = 'Buttons', options = list(dom = 'Brtip', buttons = c('csv'), scrollX = TRUE))
+```
+### chimeric variants
+
+This table shows any structural variants whose breakpoints span multiple contigs and may require further assessment. These variants are not shown in the plots below.
+
+```{r echo = FALSE, warnings = FALSE, message = FALSE}
+DT::datatable(chimeric(sv), rownames = F, filter = "top", extensions = 'Buttons', options = list(dom = 'Brtip', buttons = c('csv'), scrollX = TRUE))
+
 ```
 
 ## Per-contig information {.tabset}
 ### counts per contig
 This table details counts each type of structural variant for every contig for every population.
 ```{r echo = FALSE, warnings= FALSE, message = FALSE}
-grpcounts <- sv %>%
+grpcounts <- sv_clean %>%
   group_by(Population, Contig, SV) %>%
   summarise(count = n()) %>%
   pivot_wider(names_from = Population, values_from = count)
@@ -135,7 +147,7 @@ DT::datatable(grpcounts, rownames = F, filter = "top", extensions = 'Buttons', o
 ### bp per contig
 This table details the lengths (in bp) of structural variants for every contig for every population.
 ```{r echo = FALSE, warnings= FALSE, message = FALSE}
-grplens <- sv %>% 
+grplens <- sv_clean %>% 
   group_by(Population, Contig, SV) %>%
   summarise(bp = sum(Length)) %>%
   pivot_wider(names_from = Population, values_from = bp)
@@ -209,7 +221,7 @@ circosplot <- function(data, contigdata, svtype, trackheight, poplist, colormap)
     svquery = data$Population == populations[i] & data$SV == svtype
     circos.genomicTrack(
       ylim = c(0,1),
-      data = sv[svquery, -1],
+      data = data[svquery, -1],
       track.height = trackheight,
       bg.border = F,
       panel.fun = function(region, value, ...) {
@@ -253,7 +265,7 @@ popheight <- .5 / length(populations)
 col.ramp <- viridis(length(populations))
 
 for (SV in c("inversion", "deletion", "duplication")){
-  circosplot(sv, fa.sizes, SV, popheight, populations, col.ramp)
+  circosplot(sv_clean, fa.sizes, SV, popheight, populations, col.ramp)
 }
 draw_legend(fa.sizes, populations, col.ramp)
 
@@ -261,12 +273,12 @@ draw_legend(fa.sizes, populations, col.ramp)
 
 ### Per-contig
 ```{r echo = FALSE, message = FALSE, warning = FALSE}
-sv$ystart <- case_when(
-  sv$SV == "inversion" ~ 0.1,
-  sv$SV == "duplication" ~ 1.1,
-  sv$SV == "deletion" ~ 2.1
+sv_clean$ystart <- case_when(
+  sv_clean$SV == "inversion" ~ 0.1,
+  sv_clean$SV == "duplication" ~ 1.1,
+  sv_clean$SV == "deletion" ~ 2.1
 )
-sv$ystop <- sv$ystart + 0.8
+sv_clean$ystop <- sv_clean$ystart + 0.8
 
 chrheight <- 2.5 * length(populations)
 
@@ -277,7 +289,7 @@ color.palette <- c("deletion"="#5a8c84", "duplication"="#ffd75f", "inversion"="#
 l <- htmltools::tagList()
 
 for (i in 1:nrow(fa.sizes)) {
-  sv.filt <- sv %>% filter(Contig == fa.sizes$contig[i])
+  sv.filt <- sv_clean %>% filter(Contig == fa.sizes$contig[i])
   sv_stats <- group_by(sv.filt, SV) %>% summarise(n = length(SV))
   if (nrow(sv_stats) == 0) {
     next
