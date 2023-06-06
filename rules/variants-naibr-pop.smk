@@ -177,7 +177,7 @@ rule report_pop:
     output:
         outdir + "/reports/naibr.summary.html"
     message:
-        "Creating report: {wildcards.population}"
+        "Creating summary report"
     script:
         "reportNaibrPop.Rmd"
 
