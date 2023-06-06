@@ -175,7 +175,7 @@ rule report_pop:
         fai   = f"Assembly/{bn}.fai",
         bedpe = expand(outdir + "/{pop}.bedpe", pop = populations)
     output:
-        outdir + "/reports/naibr.summary.html"
+        outdir + "/reports/naibr.pop.summary.html"
     message:
         "Creating summary report"
     script:
@@ -185,7 +185,7 @@ rule all:
     input:
         expand(outdir + "/{pop}.bedpe",      pop = populations),
         expand(outdir + "/reports/{pop}.naibr.html", pop = populations),
-        outdir + "/reports/naibr.summary.html"
+        outdir + "/reports/naibr.pop.summary.html"
     default_target: True
     message:
         "Variant calling completed!"
