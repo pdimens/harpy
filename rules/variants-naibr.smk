@@ -72,7 +72,8 @@ rule call_sv:
         """
         echo "threads={threads}" >> {input.conf}
         cd Variants/naibr
-        naibr configs/{params.sample}.config > logs/{params.sample}.log 2>&1
+        naibr configs/{params.sample}.config > logs/.{params.sample}.log 2>&1
+        grep -v "pairs/s" logs/.{params.sample}.log > logs/{params.sample}.log && rm logs/.{params.sample}.log
         cd ../..
         inferSV.py {params.outdir}/{params.sample}.bedpe -f {output.fail} > {output.bedpe}
         mv {params.outdir}/{params.sample}.reformat.bedpe {output.refmt}
