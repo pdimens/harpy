@@ -122,15 +122,26 @@ This table details the variants detected by NAIBR that appear on a single contig
 ```{r echo = FALSE, warnings = FALSE, message = FALSE}
 sv <- variants |>cleanbedpe()
 
-DT::datatable(sv[,-10], rownames = F, filter = "top", extensions = 'Buttons', options = list(dom = 'Brtip', buttons = c('csv'), scrollX = TRUE))
+DT::datatable(
+  sv[,-10],
+  rownames = F,
+  filter = "top",
+  extensions = 'Buttons',
+  options = list(dom = 'Brtip', buttons = c('csv'), scrollX = TRUE)
+)
 ```
 ### chimeric variants
 
 This table shows any structural variants whose breakpoints span multiple contigs and may require further assessment. These variants are not shown in the plots below.
 
 ```{r echo = FALSE, warnings = FALSE, message = FALSE}
-DT::datatable(chimeric(variants), rownames = F, filter = "top", extensions = 'Buttons', options = list(dom = 'Brtip', buttons = c('csv'), scrollX = TRUE))
-
+DT::datatable(
+  chimeric(variants),
+  rownames = F,
+  filter = "top",
+  extensions = 'Buttons',
+  options = list(dom = 'Brtip', buttons = c('csv'), scrollX = TRUE)
+)
 ```
 
 ### summary info
@@ -160,7 +171,14 @@ grpstats <- sv %>%
   group_by(Contig, SV) %>%
   summarise(count = n(), total_bp  = sum(Length))
 
-DT::datatable(grpstats, rownames = F, filter = "top", extensions = 'Buttons', options = list(dom = 'Brtip', buttons = c('csv'), scrollX = TRUE), colnames = c('Contig', 'Variant Type', 'Count', 'Total Base Pairs'))
+DT::datatable(
+  grpstats,
+  rownames = F,
+  filter = "top",
+  extensions = 'Buttons',
+  options = list(dom = 'Brtip', buttons = c('csv'), scrollX = TRUE),
+  colnames = c('Contig', 'Variant Type', 'Count', 'Total Base Pairs')
+)
 ```
 
 ---

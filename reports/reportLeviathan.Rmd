@@ -81,7 +81,14 @@ if (nrow(sv) == 0) {
   cat(paste0("There are no variants in the file ", "`", bcf, "`"))
   knitr::knit_exit()
 }
-DT::datatable(sv, rownames = F, filter = "top", extensions = 'Buttons', options = list(dom = 'Brtip', buttons = c('csv'), scrollX = TRUE))
+
+DT::datatable(
+  sv,
+  rownames = F,
+  filter = "top",
+  extensions = 'Buttons',
+  options = list(dom = 'Brtip', buttons = c('csv'), scrollX = TRUE)
+)
 ```
 
 ### summary info
@@ -109,7 +116,13 @@ grpstats <- sv %>%
   group_by(contig, type) %>%
   summarise(count = n(), total_bp  = sum(length))
 
-DT::datatable(grpstats, rownames = F, filter = "top", extensions = 'Buttons', options = list(dom = 'Brtip', buttons = c('csv'), scrollX = TRUE))
+DT::datatable(
+  grpstats, 
+  rownames = F, 
+  filter = "top", 
+  extensions = 'Buttons', 
+  options = list(dom = 'Brtip', buttons = c('csv'), scrollX = TRUE)
+)
 ```
 
 ---

@@ -92,7 +92,16 @@ genstats <- sv %>%
   summarise(count = sum(tot), avg = round(mean(tot, na.rm = T),2 ), sd = round(sd(tot, na.rm = T), 2)) %>% 
   pivot_wider(names_from = type, values_from = c(count, avg, sd), names_glue = "{type}.{.value}", names_vary = "slowest")
 
-DT::datatable(genstats, rownames = F, filter = "top", extensions = 'Buttons', options = list(dom = 'Brtip', buttons = c('csv'), scrollX = TRUE))
+nicecols <- toTitleCase(gsub("\\."," ", names(genstats)))
+
+DT::datatable(
+  genstats,
+  rownames = F,
+  filter = "top",
+  extensions = 'Buttons',
+  options = list(dom = 'Brtip', buttons = c('csv'), scrollX = TRUE),
+  colnames = nicecols
+)
 ```
 
 ### all variants
