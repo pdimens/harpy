@@ -43,7 +43,7 @@ rule create_config:
     run:
         argdict = process_args(extra)
         with open(output[0], "w") as conf:
-            _ = conf.write(f"bam_file=input/{params[0]}.bam\n")
+            _ = conf.write(f"bam_file={input[0]}\n")
             _ = conf.write(f"prefix={params[0]}\n")
             _ = conf.write(f"outdir=Variants/naibr/{params[0]}\n")
             for i in argdict:
