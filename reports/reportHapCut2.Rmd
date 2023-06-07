@@ -140,6 +140,13 @@ grp <- df %>% group_by(contig) %>%
     mean_blocksize = mean(block_length),
     median_blocksize = median(block_length)
   )
-DT::datatable(grp, rownames = F, filter = "top", extensions = 'Buttons', options = list(dom = 'Brtip', buttons = c('csv'), scrollX = TRUE))
+DT::datatable(
+  grp,
+  rownames = F,
+  filter = "top",
+  extensions = 'Buttons',
+  options = list(dom = 'Brtip', buttons = c('csv'), scrollX = TRUE),
+  colnames = c("Contig", "Mean SNPs", "Median SNPs", "Mean Block Size", "Median Block Size")
+  )
 ```
 
