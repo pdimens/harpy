@@ -189,7 +189,7 @@ rule sv_report:
 		faidx      = f"Assembly/{bn}.fai",
 		statsfiles = expand(outdir + "/reports/stats/{pop}.sv.stats", pop = populations)
 	output:
-		outdir + "/reports/SV.summary.html"
+		outdir + "/reports/leviathan.pop.summary.html"
 	message:
 		"Generating SV report for all populations"
 	script:
@@ -200,7 +200,7 @@ rule all_bcfs:
 		bcf       = expand(outdir + "/{pop}.bcf", pop = populations),
 		stats     = expand(outdir + "/reports/stats/{pop}.sv.stats", pop = populations),
 		popreport = expand(outdir + "/reports/{pop}.sv.html", pop = populations),
-		report    = outdir + "/reports/SV.summary.html"
+		report    = outdir + "/reports/leviathan.pop.summary.html"
 	default_target: True
 	message:
 		"Variant calling is complete!"
