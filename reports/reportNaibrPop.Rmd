@@ -117,20 +117,39 @@ genstats <- sv_clean %>%
   pivot_wider(names_from = SV, values_from = c(count, avg, sd), names_glue = "{SV}.{.value}", names_vary = "slowest")
 
 nicecols <- toTitleCase(gsub("\\."," ", names(genstats)))
-DT::datatable(genstats, rownames = F, filter = "top", extensions = 'Buttons', options = list(dom = 'Brtip', buttons = c('csv'), scrollX = TRUE)), colnames = nicecols)
+DT::datatable(
+  genstats,
+  rownames = F,
+  filter = "top",
+  extensions = 'Buttons',
+  options = list(dom = 'Brtip', buttons = c('csv'), scrollX = TRUE),
+  colnames = nicecols
+)
 ```
 
 ### all variants
 This table details the variants detected by NAIBR that appear on a single contig/chromosome and passed the programs internal filtering.
 ```{r message = FALSE, echo = FALSE}
-DT::datatable(sv_clean, rownames = F, filter = "top", extensions = 'Buttons', options = list(dom = 'Brtip', buttons = c('csv'), scrollX = TRUE))
+DT::datatable(
+  sv_clean,
+  rownames = F,
+  filter = "top",
+  extensions = 'Buttons', 
+  options = list(dom = 'Brtip', buttons = c('csv'), scrollX = TRUE)
+)
 ```
 ### chimeric variants
 
 This table shows any structural variants whose breakpoints span multiple contigs and may require further assessment. These variants are not shown in the plots below.
 
 ```{r echo = FALSE, warnings = FALSE, message = FALSE}
-DT::datatable(chimeric(sv), rownames = F, filter = "top", extensions = 'Buttons', options = list(dom = 'Brtip', buttons = c('csv'), scrollX = TRUE))
+DT::datatable(
+  chimeric(sv),
+  rownames = F,
+  filter = "top",
+  extensions = 'Buttons',
+  options = list(dom = 'Brtip', buttons = c('csv'), scrollX = TRUE)
+)
 
 ```
 
@@ -143,7 +162,13 @@ grpcounts <- sv_clean %>%
   summarise(count = n()) %>%
   pivot_wider(names_from = Population, values_from = count)
 
-DT::datatable(grpcounts, rownames = F, filter = "top", extensions = 'Buttons', options = list(dom = 'Brtip', buttons = c('csv'), scrollX = TRUE))
+DT::datatable(
+  grpcounts,
+  rownames = F,
+  filter = "top",
+  extensions = 'Buttons',
+  options = list(dom = 'Brtip', buttons = c('csv'), scrollX = TRUE)
+)
 ```
 
 ### bp per contig
@@ -154,7 +179,13 @@ grplens <- sv_clean %>%
   summarise(bp = sum(Length)) %>%
   pivot_wider(names_from = Population, values_from = bp)
 
-DT::datatable(grplens, rownames = F, filter = "top", extensions = 'Buttons', options = list(dom = 'Brtip', buttons = c('csv'), scrollX = TRUE))
+DT::datatable(
+  grplens,
+  rownames = F,
+  filter = "top",
+  extensions = 'Buttons',
+  options = list(dom = 'Brtip', buttons = c('csv'), scrollX = TRUE)
+)
 ```
 
 ---
@@ -282,7 +313,7 @@ sv_clean$ystart <- case_when(
 )
 sv_clean$ystop <- sv_clean$ystart + 0.8
 
-chrheight <- 2.5 * length(populations)
+chrheight <- 3 * length(populations)
 
 ```
 
