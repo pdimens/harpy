@@ -313,7 +313,7 @@ sv_clean$ystart <- case_when(
 )
 sv_clean$ystop <- sv_clean$ystart + 0.8
 
-chrheight <- paste0(1.5 * length(populations), "in")
+chrheight <- paste0(3 * length(populations), "in")
 
 ```
 
