@@ -313,11 +313,9 @@ sv_clean$ystart <- case_when(
 )
 sv_clean$ystop <- sv_clean$ystart + 0.8
 
-chrheight <- paste0(3 * length(populations), "in")
-
 ```
 
-```{r echo = FALSE, out.width = '100%', warning=FALSE, out.height=chrheight}
+```{r echo = FALSE, out.width = '100%', warning=FALSE}
 color.palette <- c("deletion"="#5a8c84", "duplication"="#ffd75f", "inversion"="#4a9fea")
 l <- htmltools::tagList()
 
@@ -366,7 +364,7 @@ for (i in 1:nrow(fa.sizes)) {
     xlab("Position (bp)") +
     labs(fill = "SV type", color = "SV type") +
     ggtitle(fa.sizes$contig[i])
-  l[[i]] <- ggplotly(plt, tooltip = "text")
+  l[[i]] <- ggplotly(plt, height = 100 * length(populations), tooltip = "text")
 }
 l
 ```
