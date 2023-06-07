@@ -313,11 +313,11 @@ sv_clean$ystart <- case_when(
 )
 sv_clean$ystop <- sv_clean$ystart + 0.8
 
-chrheight <- 3 * length(populations)
+chrheight <- paste0(1.5 * length(populations), "in")
 
 ```
 
-```{r echo = FALSE, out.width = '100%', warning=FALSE, fig.height=chrheight}
+```{r echo = FALSE, out.width = '100%', warning=FALSE, out.height=chrheight}
 color.palette <- c("deletion"="#5a8c84", "duplication"="#ffd75f", "inversion"="#4a9fea")
 l <- htmltools::tagList()
 
