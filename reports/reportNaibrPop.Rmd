@@ -42,6 +42,7 @@ library(DT)
 library(plotly)
 library(circlize)
 library(viridisLite)
+library(tools)
 library(ComplexHeatmap)
 ```
 ```{css zoom-lib-src, echo = FALSE, message = FALSE, warning = FALSE}
@@ -115,7 +116,8 @@ genstats <- sv_clean %>%
   summarise(count = sum(tot), avg = round(mean(tot, na.rm = T),2 ), sd = round(sd(tot, na.rm = T), 2)) %>% 
   pivot_wider(names_from = SV, values_from = c(count, avg, sd), names_glue = "{SV}.{.value}", names_vary = "slowest")
 
-DT::datatable(genstats, rownames = F, filter = "top", extensions = 'Buttons', options = list(dom = 'Brtip', buttons = c('csv'), scrollX = TRUE))#, colnames = c("Population", "Deletion Count", "Deletion Average", "Deletion Stdv", "Duplication Count", "Duplication Average", "Duplication Stdv", "Inversion Count", "Inversion Average", "Inversion Stdv"))
+nicecols <- toTitleCase(gsub("\\."," ", names(genstats)))
+DT::datatable(genstats, rownames = F, filter = "top", extensions = 'Buttons', options = list(dom = 'Brtip', buttons = c('csv'), scrollX = TRUE)), colnames = nicecols)
 ```
 
 ### all variants
