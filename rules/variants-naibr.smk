@@ -45,7 +45,7 @@ rule create_config:
         with open(output[0], "w") as conf:
             _ = conf.write(f"bam_file=input/{params[0]}.bam\n")
             _ = conf.write(f"prefix={params[0]}\n")
-            _ = conf.write(f"outdir={params[0]}\n")
+            _ = conf.write(f"outdir=Variants/naibr/{params[0]}\n")
             for i in argdict:
                 _ = conf.write(f"{i}={argdict[i]}\n")
 
@@ -71,10 +71,8 @@ rule call_sv:
     shell:
         """
         echo "threads={threads}" >> {input.conf}
-        cd Variants/naibr
-        naibr configs/{params.sample}.config > logs/.{params.sample}.log 2>&1
-        grep -v "pairs/s" logs/.{params.sample}.log > logs/{params.sample}.log && rm logs/.{params.sample}.log
-        cd ../..
+        naibr {input.conf} > {log}.tmp 2>&1
+        grep -v "pairs/s" {log}.tmp > {log} && rm {log}.tmp
         inferSV.py {params.outdir}/{params.sample}.bedpe -f {output.fail} > {output.bedpe}
         mv {params.outdir}/{params.sample}.reformat.bedpe {output.refmt}
         mv {params.outdir}/{params.sample}.vcf {output.vcf}
