@@ -299,7 +299,7 @@ for (i in 1:nrow(fa.sizes)) {
     xlab("Position (bp)") +
     labs(fill = "SV type", color = "SV type") +
     ggtitle(fa.sizes$contig[i])
-  l[[i]] <- ggplotly(plt, tooltip = "text")
+  l[[i]] <- ggplotly(plt, height = 155 * length(populations), tooltip = "text")
 }
 l
 ```
