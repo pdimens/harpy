@@ -96,12 +96,12 @@ Below is a plot summarizing the number of valid vs invalid barcodes per sample.
 plotdata <- BXstats %>%
   mutate(Invalid = BarcodeTotal - BarcodeValid) %>%
   rename(Valid = BarcodeValid) %>%
-  select(Sample, Valid, Invalid) %>%
-  pivot_longer(-Sample, names_to = "BarcodeStatus", values_to = "Count")
+  select(Sample, Valid, Invalid)
 ```
 
 ```{r echo = FALSE, message = FALSE, warning = FALSE, out.width = '100%'}
 p <-  plotdata %>%
+  pivot_longer(-Sample, names_to = "BarcodeStatus", values_to = "Count")
   ggplot(aes(y = Sample, x = Count, fill = BarcodeStatus)) +
     geom_col() +
     theme_minimal() +
@@ -118,12 +118,19 @@ Below is a plot summarizing the number of valid vs invalid barcodes per sample a
 of the total reads for that sample.
 
 ```{r echo = FALSE, message = FALSE, warning = FALSE, out.width = '100%'}
-pc <- plotdata %>%
-  ggplot(aes(y = Sample, x = Count, fill = BarcodeStatus)) +
-    geom_bar(position="fill", stat="identity") +
+percdata <- BXstats %>%
+  mutate(Valid = round(BarcodeValid / BarcodeTotal * 100, 2)) %>%
+  mutate(Invalid = 100.0 - Valid) %>%
+  select(Sample, Valid, Invalid)
+
+pc <- percdata %>%
+  pivot_longer(-Sample, names_to = "BarcodeStatus", values_to = "Percent") %>%
+  ggplot(aes(y = Sample, x = Percent, fill = BarcodeStatus)) +
+    geom_col() +
     theme_minimal() +
     theme(panel.grid.major.y = element_blank(), axis.title.y = element_blank()) +
     scale_fill_manual(values = c(Valid = "#afd5e7", Invalid = "#c02554")) +
+    xlim(0, 100) +
     scale_x_continuous(labels = scales::comma) +
     labs(title = "Summary of Valid Barcodes")
 
