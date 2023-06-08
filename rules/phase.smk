@@ -10,7 +10,7 @@ rule splitbysamplehet:
         vcf = variantfile,
         bam = bam_dir + "/{sample}.bam"
     output:
-        "Phasing/input/{sample}.het.bcf"
+        "Phase/input/{sample}.het.bcf"
     message:
         "Extracting heterozygous variants: {wildcards.sample}"
     benchmark:
@@ -27,7 +27,7 @@ rule splitbysample:
         vcf = variantfile,
         bam = bam_dir + "/{sample}.bam"
     output:
-        "Phasing/input/{sample}.bcf"
+        "Phase/input/{sample}.bcf"
     message:
         "Extracting variants: {wildcards.sample}"
     benchmark:
@@ -41,12 +41,12 @@ rule splitbysample:
 
 rule extractHairs:
     input:
-        vcf = "Phasing/input/{sample}.het.bcf",
+        vcf = "Phase/input/{sample}.het.bcf",
         bam = bam_dir + "/{sample}.bam"
     output:
-        "Phasing/extractHairs/{sample}.unlinked.frags"
+        "Phase/extractHairs/{sample}.unlinked.frags"
     log:
-        "Phasing/extractHairs/logs/{sample}.unlinked.log"
+        "Phase/extractHairs/logs/{sample}.unlinked.log"
     message:
         "Converting to compact fragment format: {wildcards.sample}"
     benchmark:
@@ -58,12 +58,12 @@ rule extractHairs:
 rule linkFragments:
     input: 
         bam       = bam_dir + "/{sample}.bam",
-        vcf       = "Phasing/input/{sample}.het.bcf",
-        fragments = "Phasing/extractHairs/{sample}.unlinked.frags"
+        vcf       = "Phase/input/{sample}.het.bcf",
+        fragments = "Phase/extractHairs/{sample}.unlinked.frags"
     output:
-        "Phasing/linkFragments/{sample}.linked.frags"
+        "Phase/linkFragments/{sample}.linked.frags"
     log:
-        "Phasing/linkFragments/logs/{sample}.linked.log"
+        "Phase/linkFragments/logs/{sample}.linked.log"
     message:
         "Linking fragments: {wildcards.sample}"
     benchmark:
@@ -75,17 +75,17 @@ rule linkFragments:
 
 rule phaseBlocks:
     input:
-        vcf       = "Phasing/input/{sample}.het.bcf",
-        fragments = "Phasing/linkFragments/{sample}.linked.frags"
+        vcf       = "Phase/input/{sample}.het.bcf",
+        fragments = "Phase/linkFragments/{sample}.linked.frags"
     output: 
-        blocks    = "Phasing/phaseBlocks/{sample}.blocks",
-        vcf       = "Phasing/phaseBlocks/{sample}.blocks.phased.VCF"
+        blocks    = "Phase/phaseBlocks/{sample}.blocks",
+        vcf       = "Phase/phaseBlocks/{sample}.blocks.phased.VCF"
     message:
         "Creating phased haplotype blocks: {wildcards.sample}"
     benchmark:
         "Benchmark/Phase/phase.{sample}.txt"
     log:
-        "Phasing/phaseBlocks/logs/{sample}.blocks.phased.log"
+        "Phase/phaseBlocks/logs/{sample}.blocks.phased.log"
     params: 
         prune = f"--threshold {pruning}" if pruning > 0 else "--no_prune 1",
         extra = extra
@@ -95,9 +95,9 @@ rule phaseBlocks:
 
 rule createAnnotations:
     input:
-        "Phasing/phaseBlocks/{sample}.blocks.phased.VCF"
+        "Phase/phaseBlocks/{sample}.blocks.phased.VCF"
     output:
-        "Phasing/annotations/{sample}.annot.gz"
+        "Phase/annotations/{sample}.annot.gz"
     message:
         "Creating annotation files: {wildcards.sample}"
     benchmark:
@@ -107,9 +107,9 @@ rule createAnnotations:
 
 rule indexAnnotations:
     input:
-        "Phasing/annotations/{sample}.annot.gz"
+        "Phase/annotations/{sample}.annot.gz"
     output:
-        "Phasing/annotations/{sample}.annot.gz.tbi"
+        "Phase/annotations/{sample}.annot.gz.tbi"
     message:
         "Indexing {wildcards.sample}.annot.gz"
     benchmark:
@@ -119,7 +119,7 @@ rule indexAnnotations:
 
 rule headerfile:
     output:
-        "Phasing/input/header.names"
+        "Phase/input/header.names"
     message:
         "Creating additional header file"
     benchmark:
@@ -134,12 +134,12 @@ rule headerfile:
 
 rule mergeAnnotations:
     input:
-        annot   = "Phasing/annotations/{sample}.annot.gz",
-        idx     = "Phasing/annotations/{sample}.annot.gz.tbi",
-        orig    = "Phasing/input/{sample}.bcf",
-        headers = "Phasing/input/header.names"
+        annot   = "Phase/annotations/{sample}.annot.gz",
+        idx     = "Phase/annotations/{sample}.annot.gz.tbi",
+        orig    = "Phase/input/{sample}.bcf",
+        headers = "Phase/input/header.names"
     output:
-        "Phasing/annotations_merge/{sample}.phased.annot.bcf"
+        "Phase/annotations_merge/{sample}.phased.annot.bcf"
     message:
         "Merging annotations: {wildcards.sample}"
     benchmark:
@@ -149,9 +149,9 @@ rule mergeAnnotations:
         
 rule indexAnnotations2:
     input:
-        "Phasing/annotations_merge/{sample}.phased.annot.bcf"
+        "Phase/annotations_merge/{sample}.phased.annot.bcf"
     output:
-        "Phasing/annotations_merge/{sample}.phased.annot.bcf.csi"
+        "Phase/annotations_merge/{sample}.phased.annot.bcf.csi"
     message:
         "Indexing annotations: {wildcards.sample}"
     benchmark:
@@ -161,10 +161,10 @@ rule indexAnnotations2:
 
 rule mergeSamples:
     input: 
-        bcf = expand("Phasing/annotations_merge/{sample}.phased.annot.bcf", sample = samplenames),
-        idx = expand("Phasing/annotations_merge/{sample}.phased.annot.bcf.csi", sample = samplenames)
+        bcf = expand("Phase/annotations_merge/{sample}.phased.annot.bcf", sample = samplenames),
+        idx = expand("Phase/annotations_merge/{sample}.phased.annot.bcf.csi", sample = samplenames)
     output:
-        "Phasing/variants.phased.bcf"
+        "Phase/variants.phased.bcf"
     message:
         "Combinging samples into a single BCF file"
     benchmark:
@@ -175,9 +175,9 @@ rule mergeSamples:
 
 rule indexFinal:
     input:
-        "Phasing/variants.phased.bcf"
+        "Phase/variants.phased.bcf"
     output:
-        "Phasing/variants.phased.bcf.csi"
+        "Phase/variants.phased.bcf.csi"
     benchmark:
         "Benchmark/Phase/finalindex.txt"
     message:

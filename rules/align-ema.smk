@@ -8,7 +8,7 @@ fqext 		= config["fqext"]
 samplenames = config["samplenames"]
 extra 		= config.get("extra", "") 
 bn 			= os.path.basename(genomefile)
-outdir      = "Alignments/ema"
+outdir      = "Align/ema"
 
 rule create_reports:
 	input: 
@@ -395,6 +395,6 @@ rule samtools_reports:
 		"Benchmark/Mapping/ema/report.txt"
 	shell:
 		"""
-		multiqc Alignments/ema/stats/samtools_stats    --force --quiet --no-data-dir --filename {output.stats} 2> /dev/null
-		multiqc Alignments/ema/stats/samtools_flagstat --force --quiet --no-data-dir --filename {output.flagstat} 2> /dev/null
+		multiqc Align/ema/stats/samtools_stats    --force --quiet --no-data-dir --filename {output.stats} 2> /dev/null
+		multiqc Align/ema/stats/samtools_flagstat --force --quiet --no-data-dir --filename {output.flagstat} 2> /dev/null
 		"""

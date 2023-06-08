@@ -29,7 +29,7 @@ rule bam_list:
     input:
         expand(bam_dir + "/{sample}.bam", sample = samplenames)
     output:
-        "Imputation/input/samples.list"
+        "Impute/input/samples.list"
     message:
         "Creating list of alignment files"
     benchmark:
@@ -41,7 +41,7 @@ rule bam_list:
 
 rule samples_file:
     output:
-        "Imputation/input/samples.names"
+        "Impute/input/samples.names"
     message:
         "Creating file of sample names"
     threads: 1
@@ -54,7 +54,7 @@ rule convert2stitch:
     input:
         variantfile
     output:
-        "Imputation/input/{part}.stitch"
+        "Impute/input/{part}.stitch"
     message:
         "Converting data to biallelic STITCH format: {wildcards.part}"
     #params:
@@ -70,14 +70,14 @@ rule convert2stitch:
 
 rule impute:
     input:
-        bamlist = "Imputation/input/samples.list",
-        infile  = "Imputation/input/{part}.stitch"
+        bamlist = "Impute/input/samples.list",
+        infile  = "Impute/input/{part}.stitch"
     output:
         # format a wildcard pattern like "k{k}/s{s}/ngen{ngen}"
         # into a file path, with k, s, ngen being the columns of the data frame
-        f"Imputation/{paramspace.wildcard_pattern}/contigs/" + "{part}/{part}.vcf.gz"
+        f"Impute/{paramspace.wildcard_pattern}/contigs/" + "{part}/{part}.vcf.gz"
     log:
-        f"Imputation/{paramspace.wildcard_pattern}/contigs/" + "{part}/{part}.log"
+        f"Impute/{paramspace.wildcard_pattern}/contigs/" + "{part}/{part}.log"
     params:
         # automatically translate the wildcard values into an instance of the param space
         # in the form of a dict (here: {"k": ..., "s": ..., "ngen": ...})
@@ -93,11 +93,11 @@ rule impute:
 
 rule index_vcf:
     input:
-        vcf        = "Imputation/{stitchparams}/contigs/{part}/{part}.vcf.gz",
-        samplelist = "Imputation/input/samples.names"
+        vcf        = "Impute/{stitchparams}/contigs/{part}/{part}.vcf.gz",
+        samplelist = "Impute/input/samples.names"
     output: 
-        idx        = "Imputation/{stitchparams}/contigs/{part}/{part}.vcf.gz.tbi",
-        stats      = "Imputation/{stitchparams}/contigs/{part}/{part}.stats"
+        idx        = "Impute/{stitchparams}/contigs/{part}/{part}.vcf.gz.tbi",
+        stats      = "Impute/{stitchparams}/contigs/{part}/{part}.stats"
     message:
         "Indexing: {wildcards.stitchparams}/{wildcards.part}"
     benchmark:
@@ -111,9 +111,9 @@ rule index_vcf:
 
 rule stitch_reports:
     input:
-        "Imputation/{stitchparams}/contigs/{part}/{part}.stats"
+        "Impute/{stitchparams}/contigs/{part}/{part}.stats"
     output:
-        "Imputation/{stitchparams}/contigs/{part}/{part}.impute.html"
+        "Impute/{stitchparams}/contigs/{part}/{part}.impute.html"
     message:
         "Generating STITCH report: {wildcards.part}"
     benchmark:
@@ -124,29 +124,29 @@ rule stitch_reports:
 
 rule clean_stitch:
     input:
-        "Imputation/{stitchparams}/contigs/{part}/{part}.impute.html"
+        "Impute/{stitchparams}/contigs/{part}/{part}.impute.html"
     output:
-        temp("Imputation/{stitchparams}/contigs/{part}/.cleaned")
+        temp("Impute/{stitchparams}/contigs/{part}/.cleaned")
     message:
         "Cleaning up {wildcards.stitchparams}: {wildcards.part}"
     priority: 1
     shell: 
         """
-        rm -rf Imputation/{wildcards.stitchparams}/contigs/{wildcards.part}/input
-        rm -rf Imputation/{wildcards.stitchparams}/contigs/{wildcards.part}/RData
-        rm -rf Imputation/{wildcards.stitchparams}/contigs/{wildcards.part}/plots
+        rm -rf Impute/{wildcards.stitchparams}/contigs/{wildcards.part}/input
+        rm -rf Impute/{wildcards.stitchparams}/contigs/{wildcards.part}/RData
+        rm -rf Impute/{wildcards.stitchparams}/contigs/{wildcards.part}/plots
         touch {output}
         """
 
 rule merge_vcfs:
     input: 
-        vcf   = expand("Imputation/{{stitchparams}}/contigs/{part}/{part}.vcf.gz", part = contigs),
-        idx   = expand("Imputation/{{stitchparams}}/contigs/{part}/{part}.vcf.gz.tbi", part = contigs),
-        clean = expand("Imputation/{{stitchparams}}/contigs/{part}/.cleaned", part = contigs)
+        vcf   = expand("Impute/{{stitchparams}}/contigs/{part}/{part}.vcf.gz", part = contigs),
+        idx   = expand("Impute/{{stitchparams}}/contigs/{part}/{part}.vcf.gz.tbi", part = contigs),
+        clean = expand("Impute/{{stitchparams}}/contigs/{part}/.cleaned", part = contigs)
     output:
-        "Imputation/{stitchparams}/variants.imputed.bcf"
+        "Impute/{stitchparams}/variants.imputed.bcf"
     log:
-        "Imputation/{stitchparams}/concat.log"
+        "Impute/{stitchparams}/concat.log"
     message:
         "Merging VCFs: {wildcards.stitchparams}"
     benchmark:
@@ -157,10 +157,10 @@ rule merge_vcfs:
 
 rule stats:
     input:
-        bcf        = "Imputation/{stitchparams}/variants.imputed.bcf",
-        samplelist = "Imputation/input/samples.names"
+        bcf        = "Impute/{stitchparams}/variants.imputed.bcf",
+        samplelist = "Impute/input/samples.names"
     output:
-        "Imputation/{stitchparams}/variants.imputed.stats"
+        "Impute/{stitchparams}/variants.imputed.stats"
     message:
         "Indexing and calculating stats: {wildcards.stitchparams}/variants.imputed.bcf"
     benchmark:
@@ -173,9 +173,9 @@ rule stats:
 
 rule reports:
     input: 
-        "Imputation/{stitchparams}/variants.imputed.stats"
+        "Impute/{stitchparams}/variants.imputed.stats"
     output:
-        "Imputation/{stitchparams}/variants.imputed.html"
+        "Impute/{stitchparams}/variants.imputed.html"
     message:
         "Generating bcftools report: {output}"
     benchmark:
@@ -185,9 +185,9 @@ rule reports:
 
 rule all:
     input: 
-        bcf           = expand("Imputation/{stitchparams}/variants.imputed.bcf", stitchparams=paramspace.instance_patterns),
-        reports       = expand("Imputation/{stitchparams}/variants.imputed.html", stitchparams=paramspace.instance_patterns),
-        contigreports = expand("Imputation/{stitchparams}/contigs/{part}/{part}.impute.html", stitchparams=paramspace.instance_patterns, part = contigs)
+        bcf           = expand("Impute/{stitchparams}/variants.imputed.bcf", stitchparams=paramspace.instance_patterns),
+        reports       = expand("Impute/{stitchparams}/variants.imputed.html", stitchparams=paramspace.instance_patterns),
+        contigreports = expand("Impute/{stitchparams}/contigs/{part}/{part}.impute.html", stitchparams=paramspace.instance_patterns, part = contigs)
     message: 
         "Genotype imputation is complete!"
     default_target: True

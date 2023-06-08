@@ -9,14 +9,14 @@ rule trimFastp:
 		fw   = seq_dir + "/{sample}" + fqext[0],
 		rv   = seq_dir + "/{sample}" + fqext[1]
 	output:
-		fw   = "Trimming/{sample}.R1.fq.gz",
-		rv   = "Trimming/{sample}.R2.fq.gz",
-		json = "Trimming/logs/json/{sample}.fastp.json"
+		fw   = "Trim/{sample}.R1.fq.gz",
+		rv   = "Trim/{sample}.R2.fq.gz",
+		json = "Trim/logs/json/{sample}.fastp.json"
 	log:
-		html = "Trimming/logs/html/{sample}.html",
-		serr = "Trimming/logs/err/{sample}.log"
+		html = "Trim/logs/html/{sample}.html",
+		serr = "Trim/logs/err/{sample}.log"
 	benchmark:
-		"Benchmark/Trimming/{sample}.txt"
+		"Benchmark/Trim/{sample}.txt"
 	message:
 		"Removing adapters + quality trimming: {wildcards.sample}"
 	wildcard_constraints: 
@@ -30,13 +30,13 @@ rule trimFastp:
 
 rule createReport:
 	input: 
-		json = expand("Trimming/logs/json/{sample}.fastp.json", sample = samplenames),
-		fr   = expand("Trimming/{sample}.R1.fq.gz", sample = samplenames),
-		rv   = expand("Trimming/{sample}.R2.fq.gz", sample = samplenames)
+		json = expand("Trim/logs/json/{sample}.fastp.json", sample = samplenames),
+		fr   = expand("Trim/{sample}.R1.fq.gz", sample = samplenames),
+		rv   = expand("Trim/{sample}.R2.fq.gz", sample = samplenames)
 	output:
-		"Trimming/logs/trim.report.html"
+		"Trim/logs/trim.report.html"
 	message:
 		"Sequencing quality filtering and trimming is complete!"
 	default_target: True
 	shell: 
-		"multiqc Trimming/logs/json -m fastp --force --filename {output} --quiet --no-data-dir 2>/dev/null"
+		"multiqc Trim/logs/json -m fastp --force --filename {output} --quiet --no-data-dir 2>/dev/null"

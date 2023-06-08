@@ -7,7 +7,7 @@ fqext 		= config["fqext"]
 samplenames = config["samplenames"]
 extra 		= config.get("extra", "") 
 bn 			= os.path.basename(genomefile)
-outdir      = "Alignments/bwa"
+outdir      = "Align/bwa"
 
 rule create_reports:
 	input: 
@@ -95,11 +95,11 @@ rule align:
 		8
 	shell:
 		"""
-		mkdir -p Alignments/bwa/{wildcards.sample}
+		mkdir -p Align/bwa/{wildcards.sample}
 		BWA_THREADS=$(( {threads} - 2 ))
 		bwa mem -C -t $BWA_THREADS {params.extra} -R \"@RG\\tID:{wildcards.sample}\\tSM:{wildcards.sample}\" {input.genome} {input.forward_reads} {input.reverse_reads} 2> {log} |
 		samtools view -h -q {params.quality} | 
-		samtools sort -T Alignments/bwa/{wildcards.sample} --reference {input.genome} -O bam -l 0 -m 4G -o {output.bam} 2> /dev/null
+		samtools sort -T Align/bwa/{wildcards.sample} --reference {input.genome} -O bam -l 0 -m 4G -o {output.bam} 2> /dev/null
 		"""
 
 rule mark_duplicates:
@@ -210,6 +210,6 @@ rule samtools_reports:
 		"Summarizing samtools stats and flagstats"
 	shell:
 		"""
-		multiqc Alignments/bwa/stats/samtools_stats    --force --quiet --no-data-dir --filename {output.stats} 2> /dev/null
-		multiqc Alignments/bwa/stats/samtools_flagstat --force --quiet --no-data-dir --filename {output.flagstat} 2> /dev/null
+		multiqc Align/bwa/stats/samtools_stats    --force --quiet --no-data-dir --filename {output.stats} 2> /dev/null
+		multiqc Align/bwa/stats/samtools_flagstat --force --quiet --no-data-dir --filename {output.flagstat} 2> /dev/null
 		"""
