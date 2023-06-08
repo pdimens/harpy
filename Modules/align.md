@@ -125,6 +125,7 @@ Align/bwa
 ├── Sample1.bam
 ├── Sample1.bam.bai
 └── stats
+    ├── reads.bxstats.html
     ├── coverage
     │   ├── Sample1.gencov.html
     │   └── data
@@ -149,10 +150,11 @@ Align/bwa
 | `*.bam`                                        | sequence alignments for each sample                                              |
 | `*.bai`                                        | sequence alignment indexes for each sample                                       |
 | `stats/`                                       | various counts/statistics/reports relating to sequence alignment                 |
+| `stats/reads.bxstats.html`                     | interactive html report summarizing valid vs invalid barcodes across all samples |                                           |
 | `stats/coverage/*.html`                        | summary plots of alignment coverage per contig                                   |
 | `stats/coverage/data/*.gencov.gz`              | output from samtools bedcov from all alignments, used for plots                  |
 | `stats/markduplicates`                         | everything `sambamba markdup` writes to `stderr` during operation                |
-| `stats/moleculesize/*.molsize.gz`                 | molecule lengths as inferred from BX tags                                        |
+| `stats/moleculesize/*.molsize.gz`              | molecule lengths as inferred from BX tags                                        |
 | `stats/moleculesize/*.molsize.hist`            | molecule lengths as inferred from BX tags, binned as a histogram                 |
 | `stats/readsperbx/`                            | inferred number of alignments per BX barcode                                     |
 | `stats/samtools_flagstat/*flagstat`            | results of `samtools flagstat` on all alignments for a sample                    |
@@ -245,18 +247,18 @@ Align/ema
 | `count/`                                       | output of `ema count`                                                                                         |
 | `preproc/logs/`                                | everything `ema preproc` wrote to `stderr` during operation                                                   |
 | `stats/`                                       | various counts/statistics/reports relating to sequence alignment                                              |
-| `stats/reads.bxstats .html`                    | interactive html report summarizing `ema count` across all samples                                            |
+| `stats/reads.bxstats.html`                     | interactive html report summarizing `ema count` across all samples                                            |
 | `stats/coverage/*.html`                        | summary plots of alignment coverage per contig                                                                |
 | `stats/coverage/data/*.all.gencov.gz`          | output from samtools bedcov from all alignments, used for plots                                               |
 | `stats/coverage/data/*.bx.gencov.gz`           | output from samtools bedcov from alignments with valid BX barcodes, used for plots                            |
 | `stats/markduplicates/`                        | everything `sambamba markdup` writes to `stderr` during operation on alignments with invalid/missing barcodes |
-| `stats/moleculesize/*.molsize.gz`                 | molecule lengths as inferred from BX tags                                                                     |
+| `stats/moleculesize/*.molsize.gz`              | molecule lengths as inferred from BX tags                                                                     |
 | `stats/moleculesize/*.molsize.hist`            | molecule lengths as inferred from BX tags, binned as a histogram                                              |
 | `stats/readsperbx/`                            | inferred number of alignments per BX barcode                                                                  |
 | `stats/samtools_flagstat/*flagstat`            | results of `samtools flagstat` on all alignments for a sample                                                 |
 | `stats/samtools_flagstat/*.nobarcode.flagstat` | results of `samtools flagstat` on alignments that had no/invalid BX barcodes                                  |
 | `stats/samtools_flagstat/*html`                | report summarizing `samtools flagstat` results across all samples from `multiqc`                              |
-| `stats/samtools_stats/*`                       | same as `samtools_flagstat` except for the results of `samtools stats`                     |
+| `stats/samtools_stats/*`                       | same as `samtools_flagstat` except for the results of `samtools stats`                                        |
 +++
 
 
