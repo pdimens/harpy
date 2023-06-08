@@ -23,7 +23,7 @@ works on SNP data**, and will not work for structural variants produced by `LEVI
 harpy phase OPTIONS... 
 ```
 ```bash example
-harpy phase --threads 20 --vcf Variants/variants.raw.bcf --dir Alignments/ema 
+harpy phase --threads 20 --vcf Variants/variants.raw.bcf --dir Align/ema 
 ```
 
 
@@ -36,7 +36,7 @@ harpy phase --threads 20 --vcf Variants/variants.raw.bcf --dir Alignments/ema
 | `--prune-threshold`   |    `-p`    | integer (0-100) |    7    |    no    | PHRED-scale (%) threshold for pruning low-confidence SNPs                                       |
 | `--extra-params`      |    `-x`    | string          |         |    no    | Additional Hapcut2 arguments, in quotes                                                         |
 | `--threads`           |    `-t`    | integer         |    4    |    no    | Number of threads to use                                                                        |
-| `--snakemake`         |    `-s`    | string          |         |    no    | Additional [Snakemake](../snakemake/#adding-additional-snakamake-parameters) options, in quotes |
+| `--snakemake`         |    `-s`    | string          |         |    no    | Additional [Snakemake](../snakemake/#adding-snakamake-parameters) options, in quotes |
 | `--quiet`             |    `-q`    | toggle          |         |    no    | Supressing Snakemake printing to console                                                        |
 | `--help`              |            |                 |         |          | Show the module docstring                                                                       |
 
@@ -95,7 +95,7 @@ graph LR
 The `harpy phase` module creates an `Phasing` directory with the folder structure below. `Sample1` is a generic sample name for demonstration purposes.
 
 ```
-Phasing/
+Phase/
 ├── variants.phased.bcf
 ├── variants.phased.bcf.csi
 ├── annotations

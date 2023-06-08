@@ -24,10 +24,10 @@ harpy variants OPTIONS...
 
 ```bash examples
 # call variants with mpileup
-harpy variants --threads 20 --genome genome.fasta --dir Alignments/ema
+harpy variants --threads 20 --genome genome.fasta --dir Align/ema
 
 # call structural variants with LEVIATHAN
-harpy variants --threads 20 --genome genome.fasta --dir Alignments/ema --leviathan
+harpy variants --threads 20 --genome genome.fasta --dir Align/ema --method leviathan
 ```
 
 ## :icon-terminal: Running Options
@@ -40,7 +40,7 @@ harpy variants --threads 20 --genome genome.fasta --dir Alignments/ema --leviath
 | `--method`       |    `-l`    | choice [`mpileup`, `leviathan`] | mpileup |    no    | Which variant caller to use                                                                     |
 | `--extra-params` |    `-x`    | string                          |         |    no    | Additional mpileup/Leviathan arguments, in quotes                                               |
 | `--threads`      |    `-t`    | integer                         |    4    |    no    | Number of threads to use                                                                        |
-| `--snakemake`    |    `-s`    | string                          |         |    no    | Additional [Snakemake](../snakemake/#adding-additional-snakamake-parameters) options, in quotes |
+| `--snakemake`    |    `-s`    | string                          |         |    no    | Additional [Snakemake](../snakemake/#adding-snakamake-parameters) options, in quotes |
 | `--quiet`        |    `-q`    | toggle                          |         |    no    | Supressing Snakemake printing to console                                                        |
 | `--help`         |            |                                 |         |          | Show the module docstring                                                                       |
 
@@ -195,7 +195,7 @@ graph LR
     C-->E([generate reports])
 ```
 +++ :icon-file-directory: leviathan output
-The `harpy variants --leviathan` module creates a `Variants/leviathan` (or `leviathan-pop`) directory with the folder structure below. `sample1` and `sample2` are generic sample names for demonstration purposes.
+The `harpy variants --method leviathan` module creates a `Variants/leviathan` (or `leviathan-pop`) directory with the folder structure below. `sample1` and `sample2` are generic sample names for demonstration purposes.
 
 ```
 Variants/leviathan/

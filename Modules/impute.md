@@ -22,11 +22,15 @@ harpy impute OPTIONS...
 ```
 
 ```bash example
-harpy extra -s stitch.params  # create stitch parameter file 'stitch.params'
-harpy impute --threads 20 --vcf Variants/variants.raw.bcf --dir Alignments/ema --parameters stitch.params
+# create stitch parameter file 'stitch.params'
+harpy extra -s stitch.params 
+
+# run imputation
+harpy impute --threads 20 --vcf Variants/mpileup/variants.raw.bcf --dir Align/ema --parameters stitch.params
 ```
 !!!danger SNPs only
-STITCH requires biallelic SNPs and therefore cannot impute genotypes with the variant call files produced by `LEVIATHAN`, as they do not contain SNPs. Don't worry about
+STITCH requires biallelic SNPs and therefore cannot impute genotypes with VCFs
+produced by callers that don't output SNPs (e.g. LEVIATHAN, NAIBR). Don't worry about
 isolating biallelic SNPs, Harpy will do that for you ✨✨
 !!!
 
@@ -37,7 +41,7 @@ isolating biallelic SNPs, Harpy will do that for you ✨✨
 | `--dir      `  |    `-d`    | folder path |               | **yes**  | Directory with sequence alignments                                                              |
 | `--parameters` |    `-p`    | file path   | stitch.params | **yes**  | STITCH parameter file (tab-delimited)                                                           |
 | `--threads`    |    `-t`    | integer     |       4       |    no    | Number of threads to use                                                                        |
-| `--snakemake`  |    `-s`    | string      |               |    no    | Additional [Snakemake](../snakemake/#adding-additional-snakamake-parameters) options, in quotes |
+| `--snakemake`  |    `-s`    | string      |               |    no    | Additional [Snakemake](../snakemake/#adding-snakamake-parameters) options, in quotes |
 | `--quiet`      |    `-q`    | toggle      |               |    no    | Supressing Snakemake printing to console                                                        |
 | `--help`       |            |             |               |          | Show the module docstring                                                                       |
 
@@ -154,7 +158,7 @@ are generic contig names from an imaginary `genome.fasta` for demonstration purp
 is a generic name to reflect the corresponding parameter row in the stitch parameter
 file, which would have explicit names in real use (e.g. `modelpseudoHaploid_useBXTrue_k10_s1_nGen50/`).
 ```
-Imputation/
+Impute/
 ├── input
 │   ├── contig1.stitch
 │   ├── contig2.stitch

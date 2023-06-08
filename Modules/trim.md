@@ -31,7 +31,7 @@ harpy trim --dir Sequences_Raw/ --threads 20
 | `--max-length`   |    `-l`    | integer     |   150   |    no    | Maximum length to trim sequences down to                                                        |
 | `--extra-params` |    `-x`    | string      |         |    no    | Additional fastp arguments, in quotes                                                           |
 | `--threads`      |    `-t`    | integer     |    4    |    no    | Number of threads to use                                                                        |
-| `--snakemake`    |    `-s`    | string      |         |    no    | Additional [Snakemake](../snakemake/#adding-additional-snakamake-parameters) options, in quotes |
+| `--snakemake`    |    `-s`    | string      |         |    no    | Additional [Snakemake](../snakemake/#adding-snakamake-parameters) options, in quotes |
 | `--quiet`        |    `-q`    | toggle      |         |    no    | Supressing Snakemake printing to console                                                        |
 | `--help`         |            |             |         |          | Show the module docstring                                                                       |
 
@@ -56,7 +56,7 @@ graph LR
 +++ :icon-file-directory: trimming output
 The `harpy trim` module creates a `Trimming` directory with the folder structure below. `Sample1` and `Sample2` are generic sample names for demonstration purposes.
 ```
-Trimming/
+Trim/
 ├── Sample1.R1.fq.gz
 ├── Sample1.R2.fq.gz
 ├── Sample2.R1.fq.gz

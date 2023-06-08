@@ -4,9 +4,7 @@ icon: terminal
 order: 49
 ---
 
-# :icon-terminal: Sneaky Snakemake
-
-## Adding additional Snakamake parameters
+# :icon-terminal: Adding Snakamake parameters
 Harpy relies on Snakemake under the hood to handle file and job dependencies. Most of these details have been abstracted away from the end-user, but every module of Harpy (except `extra`) has an optional flag `-s` (`--snakemake`) that you can use to augment the Snakemake workflow if necessary. Whenever you use this flag, your argument must be enclosed in quotation marks, for example:
 ```bash
 harpy trim -d rawseq -s "--dry-run"
@@ -31,7 +29,7 @@ You likely wont need to invoke `--snakemake` very often, if ever. However, here 
 ##### `--dry-run`
 This is a directive in which Snakemake will build the DAG and "pretend" to run the Harpy workflow. Useful for knowing what you're getting yourself into ahead of time. It's also useful for debugging during development. Here is an example of dry-running variant calling:
 ```bash
-harpy variants -g genome.fasta  -d ReadMapping/ema -s "--dry-run"
+harpy variants -g genome.fasta  -d Align/ema -s "--dry-run"
 ```
 ==- Rerun an incomplete workflow
 ##### `--rerun-incomplete`
@@ -39,7 +37,7 @@ There will be plenty of reasons that Harpy/Snakemake might end prematurely, like
 When this happens, Snakemake has a save-state in the `.snakemake` folder where it knows the last run was incomplete, and when you try to run
 Harpy again, Snakemake will complain. Something like this:
 ```
-$ harpy variants --leviathan -g genome.fasta  -d ReadMapping/ema --threads 8 -p samples.groups
+$ harpy variants --method leviathan -g genome.fasta  -d Align/ema --threads 8 -p samples.groups
 Building DAG of jobs...
 IncompleteFilesException:
 The files below seem to be incomplete. If you are sure that certain files are n
@@ -53,14 +51,14 @@ Variants/leviathan-pop/lrezIndexed/2.bci
 ```
 So, the easiest workaround would be to regenerate the incomplete files and use `-s "--rerun-incomplete"`, like so:
 ```bash
-harpy variants --leviathan -g genome.fasta  -d ReadMapping/ema --threads 8 -p samples.groups -s "--rerun-incomplete"
+harpy variants --method leviathan -g genome.fasta  -d Align/bwa --threads 8 -p samples.groups -s "--rerun-incomplete"
 ```
 ==- Specific file target
 Sometimes you want to generate a specific intermediate file (or files) rather than running the entire module to completion. For example,
 you want the beadtag report Harpy makes from the output of `EMA count`. To do this, just list the file/files (relative
 to your working directory) without any flags. Example for the beadtag report:
 ```bash
-harpy align -g genome.fasta -d Trimming -t 4 -s "Alignemnts/ema/stats/reads.bxstats.html"
+harpy align -g genome.fasta -d Trim/ -t 4 -s "Alignemnts/ema/stats/reads.bxstats.html"
 ```
 This of course necessitates knowing the names of the files ahead of time. See the individual modules for a breakdown of expected outputs. 
 
@@ -73,7 +71,7 @@ your files into that workspace storage to make sure you keep the output of your 
 you may use `--shadow-prefix <dirname>` where `<dirname>` is the path to the mandatory directory you need to work out of. By 
 configuring this "shadow directory" setting, Snakemake will automatically move the files in/out of that directory for you:
 ```bash
-harpy variants --leviathan -g genome.fasta  -d ReadMapping/ema --threads 8 -p samples.groups -s "--shadow-prefix /SCRATCH/username/"
+harpy variants --method leviathan -g genome.fasta  -d Align/bwa --threads 8 -p samples.groups -s "--shadow-prefix /SCRATCH/username/"
 ```
 ==- Unlocking the directory
 Sometimes Snakemake might scold/warn you about something you didn't realize you did. One

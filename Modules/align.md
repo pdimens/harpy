@@ -39,7 +39,7 @@ harpy align --method ema --genome genome.fasta --dir Sequences/
 | `--method`         |    `-m`    | choice [`bwa`, `ema`] |   bwa   |    no    | Which aligning software to use                                                                  |
 | `--extra-params`   |    `-x`    | string                |         |    no    | Additional EMA-align/BWA arguments, in quotes                                                   |
 | `--threads`        |    `-t`    | integer               |    4    |    no    | Number of threads to use                                                                        |
-| `--snakemake`      |    `-s`    | string                |         |    no    | Additional [Snakemake](../snakemake/#adding-additional-snakamake-parameters) options, in quotes |
+| `--snakemake`      |    `-s`    | string                |         |    no    | Additional [Snakemake](../snakemake/#adding-snakamake-parameters) options, in quotes |
 | `--quiet`          |    `-q`    | toggle                |         |    no    | Supressing Snakemake printing to console                                                        |
 | `--help`           |            |                       |         |          | Show the module docstring                                                                       |
 
@@ -119,9 +119,9 @@ graph LR
     D-->E([alignment stats])
 ```
 +++ :icon-file-directory: BWA output
-The `harpy align --bwa` module creates an `Alignments/bwa` directory with the folder structure below. `Sample1` is a generic sample name for demonstration purposes.
+The `harpy align` module creates an `Align/bwa` directory with the folder structure below. `Sample1` is a generic sample name for demonstration purposes.
 ```
-Alignments/bwa
+Align/bwa
 ├── Sample1.bam
 ├── Sample1.bam.bai
 └── stats
@@ -166,12 +166,23 @@ Alignments/bwa
 - leverages the BX barcode information to improve mapping
 - sometimes better downstream SV detection
 - slower
+- marks split alignments as secondary alignments ⚠️
 - lots of temporary files
 
-Since [EMA](https://github.com/arshajii/ema) does extra things to account for barcode information, the EMA workflow is a bit more complicated under the hood. Reads with barcodes are aligned using EMA and reads without valid barcodes are separately mapped using BWA before merging all the alignments together again. EMA will mark duplicates within alignments, but the BWA alignments need duplicates marked manually using [sambamba](https://lomereiter.github.io/sambamba/). Thankfully, you shouldn't need to worry about any of these details.
+Since [EMA](https://github.com/arshajii/ema) does extra things to account for barcode
+information, the EMA workflow is a bit more complicated under the hood. Reads with 
+barcodes are aligned using EMA and reads without valid barcodes are separately mapped
+using BWA before merging all the alignments together again. EMA will mark duplicates
+within alignments, but the BWA alignments need duplicates marked manually using 
+[sambamba](https://lomereiter.github.io/sambamba/). Thankfully, you shouldn't need 
+to worry about any of these details.
 
 ==- Why EMA?
-The original haplotag manuscript uses BWA to map reads, but the authors have since then recommended the use of EMA (EMerald Aligner) for most applications. EMA is barcode-aware, meaning it considers sequences with identical barcodes to have originated from the same molecule, and therefore has higher mapping accuracy than using BWA. Here's a comparison from the [EMA manuscript](https://www.biorxiv.org/content/10.1101/220236v1):
+The original haplotag manuscript uses BWA to map reads. The authors have since recommended
+the use of EMA (EMerald Aligner) for most applications. EMA is barcode-aware,
+meaning it considers sequences with identical barcodes to have originated from the same 
+molecule, and therefore has higher mapping accuracy than using BWA. Here's a comparison
+from the [EMA manuscript](https://www.biorxiv.org/content/10.1101/220236v1):
 ![EMA Publication figure 3](/static/EMA.fig3.png)
 ==-
 
@@ -191,9 +202,9 @@ graph LR
     E-->J
 ```
 +++ :icon-file-directory: EMA output
-The `harpy align` module creates an `Alignments/ema` directory with the folder structure below. `Sample1` is a generic sample name for demonstration purposes.
+The `harpy align` module creates an `Align/ema` directory with the folder structure below. `Sample1` is a generic sample name for demonstration purposes.
 ```
-Alignments/ema
+Align/ema
 ├── Sample1.bam
 ├── Sample1.bam.bai
 ├── barcoded

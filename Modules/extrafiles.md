@@ -31,11 +31,11 @@ This file is entirely optional and useful if you want variant calling to happen 
 - all the samples will be assigned to group `1` since file names don't always provide grouping information, so make sure to edit the second column to reflect your data correctly.
 - the file will look like:
 ```less popgroups.txt
-sample1 1
-sample2 1
-sample3 2
-sample4 1
-sample5 3
+sample1 pop1
+sample2 pop1
+sample3 pop2
+sample4 pop1
+sample5 pop3
 ```
 |||
 
