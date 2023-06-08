@@ -97,6 +97,13 @@ plotdata <- BXstats %>%
   mutate(Invalid = BarcodeTotal - BarcodeValid) %>%
   rename(Valid = BarcodeValid) %>%
   select(Sample, Valid, Invalid)
+
+percdata <- BXstats %>%
+  mutate(Valid = round(BarcodeValid / BarcodeTotal * 100, 2)) %>%
+  mutate(Invalid = 100.0 - Valid) %>%
+  select(Sample, Valid, Invalid)
+
+pltheight <- 50 * length(unique(plotdata$Sample))
 ```
 
 ```{r echo = FALSE, message = FALSE, warning = FALSE, out.width = '100%'}
@@ -110,7 +117,7 @@ p <-  plotdata %>%
     scale_x_continuous(labels = scales::comma) +
     labs(title = "Summary of Valid Barcodes")
 
-ggplotly(p)
+ggplotly(p, height = pltheight)
 ```
 
 ### % Per Sample Plot
@@ -118,11 +125,6 @@ Below is a plot summarizing the number of valid vs invalid barcodes per sample a
 of the total reads for that sample.
 
 ```{r echo = FALSE, message = FALSE, warning = FALSE, out.width = '100%'}
-percdata <- BXstats %>%
-  mutate(Valid = round(BarcodeValid / BarcodeTotal * 100, 2)) %>%
-  mutate(Invalid = 100.0 - Valid) %>%
-  select(Sample, Valid, Invalid)
-
 pc <- percdata %>%
   pivot_longer(-Sample, names_to = "BarcodeStatus", values_to = "Percent") %>%
   ggplot(aes(y = Sample, x = Percent, fill = BarcodeStatus)) +
@@ -134,6 +136,5 @@ pc <- percdata %>%
     scale_x_continuous(labels = scales::comma) +
     labs(title = "Summary of Valid Barcodes")
 
-ggplotly(pc)
-
+ggplotly(pc, height = pltheight)
 ```
