@@ -1,5 +1,5 @@
-{% set version = "0.1.0" %}
-{% set sha256 = "9e9dbfa11ca8be724019eecfa78ca1bb15d7c4cc01b4f0376bc03be4dc4b82d1" %}
+{% set version = "0.2.0" %}
+{% set sha256 = "" %}
 
 package:
   name: harpy
