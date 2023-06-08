@@ -101,7 +101,7 @@ plotdata <- BXstats %>%
 
 ```{r echo = FALSE, message = FALSE, warning = FALSE, out.width = '100%'}
 p <-  plotdata %>%
-  pivot_longer(-Sample, names_to = "BarcodeStatus", values_to = "Count")
+  pivot_longer(-Sample, names_to = "BarcodeStatus", values_to = "Count") %>%
   ggplot(aes(y = Sample, x = Count, fill = BarcodeStatus)) +
     geom_col() +
     theme_minimal() +
