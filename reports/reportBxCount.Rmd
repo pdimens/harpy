@@ -22,7 +22,7 @@ library(DT)
 library(plotly)
 ```
 ## Barcode Validation {.tabset}
-### table
+### Table
 Below is a table listing all the samples Harpy processed and their associated barcode statistics as
 determined by `EMA count`. If `BarcodeTotal` equals `0` for some reason, then there is an issue
 with the format of your FASTQ files. Please check that the barcode in the read headers comforms 
@@ -89,14 +89,19 @@ DT::datatable(
 )
 ```
 
-### plot
+### Per Sample Plot
 Below is a plot summarizing the number of valid vs invalid barcodes per sample.
-```{r echo = FALSE, message = FALSE, warning = FALSE, out.width = '100%'}
-p <- BXstats %>%
+
+```{r echo = FALSE, message = FALSE, warning = FALSE}
+plotdata <- BXstats %>%
   mutate(Invalid = BarcodeTotal - BarcodeValid) %>%
   rename(Valid = BarcodeValid) %>%
   select(Sample, Valid, Invalid) %>%
-  pivot_longer(-Sample, names_to = "BarcodeStatus", values_to = "Count") %>%
+  pivot_longer(-Sample, names_to = "BarcodeStatus", values_to = "Count")
+```
+
+```{r echo = FALSE, message = FALSE, warning = FALSE, out.width = '100%'}
+p <-  plotdata %>%
   ggplot(aes(y = Sample, x = Count, fill = BarcodeStatus)) +
     geom_col() +
     theme_minimal() +
@@ -106,4 +111,22 @@ p <- BXstats %>%
     labs(title = "Summary of Valid Barcodes")
 
 ggplotly(p)
+```
+
+### % Per Sample Plot
+Below is a plot summarizing the number of valid vs invalid barcodes per sample as a percentage
+of the total reads for that sample.
+
+```{r echo = FALSE, message = FALSE, warning = FALSE, out.width = '100%'}
+pc <- plotdata %>%
+  ggplot(aes(y = Sample, x = Count, fill = BarcodeStatus)) +
+    geom_bar(position="fill", stat="identity") +
+    theme_minimal() +
+    theme(panel.grid.major.y = element_blank(), axis.title.y = element_blank()) +
+    scale_fill_manual(values = c(Valid = "#afd5e7", Invalid = "#c02554")) +
+    scale_x_continuous(labels = scales::comma) +
+    labs(title = "Summary of Valid Barcodes")
+
+ggplotly(pc)
+
 ```
