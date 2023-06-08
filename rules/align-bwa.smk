@@ -14,6 +14,7 @@ rule create_reports:
 		expand(outdir + "/{sample}.bam", sample = samplenames),
 		expand(outdir + "/stats/coverage/{sample}.cov.html", sample = samplenames),
 		expand(outdir + "/stats/moleculesize/{sample}.{ext}", sample = samplenames, ext = ["molsize.gz", "molsize.hist"]),
+		outdir + "/stats/reads.bxstats.html",
 		outdir + "/stats/samtools_stats/bwa.stats.html",
 		outdir + "/stats/samtools_flagstat/bwa.flagstat.html"
 	message:
@@ -70,6 +71,33 @@ rule make_genome_windows:
 		"""
 		makewindows.py -i {input} -w 10000 -o {output}
 		"""
+
+rule count_beadtags:
+	input:
+		forward_reads = seq_dir + "/{sample}" + f".{Rsep[0]}.{fqext}",
+		reverse_reads = seq_dir + "/{sample}" + f".{Rsep[1]}.{fqext}"
+	output: 
+		counts = tmp(outdir + "/stats/bxcount/{sample}.ema-ncnt"),
+		logs   = temp(outdir + "/stats/bxcount/{sample}.count.log")
+	wildcard_constraints:
+		sample = "[a-zA-Z0-9_-]*"
+	message:
+		"Counting barcode frequency: {wildcards.sample}"
+	params:
+		prefix = lambda wc: outdir + "/count/" + wc.get("sample")
+	threads: 1
+	shell:
+		"seqfu interleave -1 {input.forward_reads} -2 {input.reverse_reads} | ema-h count -p -o {params} 2> {output.logs}"
+
+rule beadtag_summary:
+	input: 
+		countlog = expand(outdir + "/stats/bxcount/{sample}.count.log", sample = samplenames)
+	output:
+		outdir + "/stats/reads.bxstats.html"
+	message:
+		"Creating sample barcode validation report"
+	script:
+		"reportBxCount.Rmd"
 
 rule align:
 	input:

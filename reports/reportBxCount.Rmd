@@ -1,5 +1,5 @@
 ---
-title: "ema-count Summary"
+title: "BX Bardcode Summary"
 author:
     - "Created using HARPY"
 date: "`r format(Sys.time(), '%d %B, %Y')`"
