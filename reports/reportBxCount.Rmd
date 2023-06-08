@@ -16,6 +16,7 @@ output:
 library(dplyr)
 library(tidyr)
 library(ggplot2)
+library(scales)
 library(magrittr)
 library(DT)
 library(plotly)
@@ -101,7 +102,8 @@ p <- BXstats %>%
     theme_minimal() +
     theme(panel.grid.major.y = element_blank(), axis.title.y = element_blank()) +
     scale_fill_manual(values = c(Valid = "#afd5e7", Invalid = "#c02554")) +
-  labs(title = "Summary of Valid Barcodes")
+    scale_x_continuous(labels = scales::comma) +
+    labs(title = "Summary of Valid Barcodes")
 
 ggplotly(p)
 ```
