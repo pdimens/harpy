@@ -23,7 +23,7 @@ library(plotly)
 ```
 ## Barcode Validation {.tabset}
 This report details the counts of valid and invalid haplotag barcodes in the sample read headers.
-The correct haplotag format is, `BX:Z:AXXCXXBXXDXX`, where there is a whitespace/tab before `BX:Z:` 
+The correct haplotag format is `BX:Z:AXXCXXBXXDXX`, where there is a whitespace/tab before `BX:Z:` 
 and `XX` are 2-digit numbers between `00` and `96`. A valid FASTQ read header would then look like:
 ```
 @A00814:267:HTMH3DRXX:2:1101:4580:1000 BX:Z:A02C01B11D46        RX:Z:GAAACGACCAACA+CGAACACGTTAGC   QX:Z:F,FFFFFFFFFFF+FF,FFF:FFFFFF
