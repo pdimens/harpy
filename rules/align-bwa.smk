@@ -77,7 +77,7 @@ rule count_beadtags:
 		forward_reads = seq_dir + "/{sample}" + f".{Rsep[0]}.{fqext}",
 		reverse_reads = seq_dir + "/{sample}" + f".{Rsep[1]}.{fqext}"
 	output: 
-		counts = tmp(outdir + "/stats/bxcount/{sample}.ema-ncnt"),
+		counts = temp(outdir + "/stats/bxcount/{sample}.ema-ncnt"),
 		logs   = temp(outdir + "/stats/bxcount/{sample}.count.log")
 	wildcard_constraints:
 		sample = "[a-zA-Z0-9_-]*"
