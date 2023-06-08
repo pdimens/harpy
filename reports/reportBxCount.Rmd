@@ -22,12 +22,9 @@ library(DT)
 library(plotly)
 ```
 ## Barcode Validation {.tabset}
-### Table
-Below is a table listing all the samples Harpy processed and their associated barcode statistics as
-determined by `EMA count`. If `BarcodeTotal` equals `0` for some reason, then there is an issue
-with the format of your FASTQ files. Please check that the barcode in the read headers comforms 
-to the correct format, `BX:Z:AXXCXXBXXDXX`, where there is a whitespace/tab before `BX:Z:` and `XX` are
-2-digit numbers between `00` and `96`. A valid FASTQ read header would then look like:
+This report details the counts of valid and invalid haplotag barcodes in the sample read headers.
+The correct haplotag format is, `BX:Z:AXXCXXBXXDXX`, where there is a whitespace/tab before `BX:Z:` 
+and `XX` are 2-digit numbers between `00` and `96`. A valid FASTQ read header would then look like:
 ```
 @A00814:267:HTMH3DRXX:2:1101:4580:1000 BX:Z:A02C01B11D46        RX:Z:GAAACGACCAACA+CGAACACGTTAGC   QX:Z:F,FFFFFFFFFFF+FF,FFF:FFFFFF
 ```
@@ -36,6 +33,10 @@ Notably, only the sequence ID (`@...`) and `BX:Z:` tag are required. In the exam
 [SAM comment spec (section 1.5)](https://samtools.github.io/hts-specs/SAMv1.pdf) of `TAG:TYPE:VALUE`. The takeaway 
 is that the `BX:Z` tag can be anywhere in the read header after the sequence ID as long as any tags after it conform to the SAM spec `TAG:TYPE:VALUE`. 
 
+### Table
+Below is a table listing all the samples Harpy processed and their associated barcode statistics as
+determined by `EMA count`. If `BarcodeTotal` equals `0` for some reason, then there may be an issue
+with the format of your FASTQ headers.
 
 ```{r echo = FALSE, message = FALSE, warning = FALSE}
 BXstats <- data.frame(
