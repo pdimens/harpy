@@ -49,7 +49,15 @@ BXstats <- data.frame(
   PercentIgnored = numeric()
 )
 
-#for (i in c("~/stats.1", "~/stats.2")) {
+invalids <- data.frame(
+  Sample = character(),
+  A = integer(),
+  C = integer(),
+  B = integer(),
+  D = integer()
+)
+
+#for (i in c("~/stats.1.count.log", "~/stats.2.count.log")) {
 for (i in snakemake@input[["countlog"]]) {
   samplename <- gsub(".count.log", "", basename(i))
   s_df <- read.table(i, header = F)
@@ -77,11 +85,38 @@ for (i in snakemake@input[["countlog"]]) {
       PercentInvalid = ig_percent
       )
   )
+  invalids <- rbind(
+    invalids,
+    data.frame(
+      Sample = samplename,
+      A = s_df$V2[5],
+      C = s_df$V2[6],
+      B = s_df$V2[7],
+      D = s_df$V2[8]
+    )
+  )
 }
 DT::datatable(
   BXstats,
   rownames = FALSE,
   filter = "top",
+  extensions = "Buttons",
+  options = list(
+    dom = "Brtip",
+    buttons = c("csv"),
+    scrollX = TRUE
+  )
+)
+```
+
+### Invalid by Segment
+This table details the count of invalid beadtag segments across all **forward reads** within a sample.
+This can help you diagnose if any beadtag segments in your experimental design have a higher incidence
+of failure than others.
+```{r echo = FALSE, message = FALSE, warning = FALSE}
+DT::datatable(
+  invalids,
+  rownames = FALSE,
   extensions = "Buttons",
   options = list(
     dom = "Brtip",
