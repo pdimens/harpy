@@ -106,7 +106,7 @@ rule beadtag_summary:
 	benchmark:
 		"Benchmark/Mapping/ema/beadtagsummary.txt"
 	script:
-		"reportBxCount.Rmd"
+		"reportEmaCount.Rmd"
 
 rule preprocess_ema:
 	input: 

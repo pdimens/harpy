@@ -74,20 +74,15 @@ rule make_genome_windows:
 
 rule count_beadtags:
 	input:
-		forward_reads = seq_dir + "/{sample}" + f".{Rsep[0]}.{fqext}",
-		reverse_reads = seq_dir + "/{sample}" + f".{Rsep[1]}.{fqext}"
+		forward_reads = seq_dir + "/{sample}" + f".{Rsep[0]}.{fqext}"
 	output: 
-		counts = temp(outdir + "/stats/bxcount/{sample}.ema-ncnt"),
 		logs   = temp(outdir + "/stats/bxcount/{sample}.count.log")
 	wildcard_constraints:
 		sample = "[a-zA-Z0-9_-]*"
 	message:
 		"Counting barcode frequency: {wildcards.sample}"
-	params:
-		prefix = lambda wc: outdir + "/stats/bxcount/" + wc.get("sample")
-	threads: 1
 	shell:
-		"seqfu interleave -1 {input.forward_reads} -2 {input.reverse_reads} | ema-h count -p -o {params} 2> {output.logs}"
+		"countBX.py {input} > {output}"
 
 rule beadtag_summary:
 	input: 
