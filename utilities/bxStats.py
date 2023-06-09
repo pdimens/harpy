@@ -11,7 +11,7 @@ args = parser.parse_args()
 
 d = dict()
 alnfile = pysam.AlignmentFile(args.i)
-outfile = (args.i[0:-4] + ".bx.stats")
+outfile = (args.i[0:-4] + ".bx.stats.gz")
 
 for read in alnfile.fetch():
     if read.is_duplicate or read.is_unmapped:
@@ -20,7 +20,7 @@ for read in alnfile.fetch():
         bx = read.get_tag("BX")
         validBX = True
         # do a regex search to find X00 pattern in the BX
-        if re.search("[A-Z]0{2,4}", bx):
+        if re.search("[ABCD]0{2,4}", bx):
             # if found, invalid
             bx = "invalidBX"
             validBX = False
@@ -43,7 +43,9 @@ for read in alnfile.fetch():
             "low":  lw,
             "high": hi,
             "bp":   bp,
-            "n" :   1
+            "n" :   1,
+            "lastpos" : hi,
+            "dist" : 100000
             }
         }
     # create bx stats if it's not present
@@ -53,7 +55,9 @@ for read in alnfile.fetch():
             "low":  lw,
             "high": hi,
             "bp":   bp,
-            "n":    1
+            "n":    1,
+            "lastpos" : hi,
+            "dist" : 100000
             }
         }
     # if BX is present for this chrm, update
@@ -65,12 +69,17 @@ for read in alnfile.fetch():
             d[chrm][bx]["high"] = hi
         d[chrm][bx]["bp"] += bp
         d[chrm][bx]["n"] += 1
+        # distance from last alignment = current aln start - previous aln end
+        dist = lw - d[chrm][bx]["lastpos"]
+        # set the last position to be the end of current alignment
+        d[chrm][bx]["lastpos"] = hi
+        if dist < d[chrm][bx]["dist"]:
+            d[chrm][bx]["dist"] = dist
 
-
-with open(outfile, "w") as fout:
-    _ = fout.write("contig\tbx\treads\tstart\tend\tlength_inferred\taligned_bp\n")
+with open(outfile, "wt") as fout:
+    _ = fout.write("contig\tbx\treads\tstart\tend\tlength_inferred\taligned_bp\tmindist\n")
     for chrm in d:
         for bx in d[chrm]:
             _d = d[chrm][bx]
             inferred = str(_d["high"] - _d["low"])
-            _ = fout.write(chrm + "\t" + bx + "\t" + str(_d["n"]) + "\t" + str(_d["low"]) + "\t" + str(_d["high"]) + "\t" + inferred + "\t" + str(_d["bp"]) + "\n")
+            _ = fout.write(chrm + "\t" + bx + "\t" + str(_d["n"]) + "\t" + str(_d["low"]) + "\t" + str(_d["high"]) + "\t" + inferred + "\t" + str(_d["bp"]) + "\t" + str(_d["dist"]) "\n")
