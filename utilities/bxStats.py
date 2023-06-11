@@ -10,10 +10,34 @@ parser.add_argument('i', help = "Input bam/sam file. A corresponding index file 
 args = parser.parse_args()
 
 d = dict()
+chromlast = False
 alnfile = pysam.AlignmentFile(args.i)
-outfile = (args.i[0:-4] + ".bx.stats.gz")
+outfile = (args.i[0:-4] + ".bx.stats")
+
+# define write function
+# it will only be called when the current alignment's chromosome doesn't
+# match the chromosome from the previous alignment
+def writestats(x,chr, outf):
+    with open(outf, "a") as fout:
+        for bx in x:
+            x[bx]["inferred"] = x[bx]["end"] - x[bx]["start"] 
+            if x[bx]["mindist"] < 0:
+                x[bx]["mindist"] = 0
+            outtext = f"{chr}\t{bx}\t" + "\t".join([str(x[bx][i]) for i in ["n", "start","end", "inferred", "bp", "mindist", "n_exceed"]])
+            _ = fout.write(outtext + "\n")
+
+# write the first line of the output file
+with open(outfile, "w") as fout:
+    _ = fout.write("contig\tbx\treads\tstart\tend\tlength_inferred\taligned_bp\tmindist\texceed_50k\n")
 
 for read in alnfile.fetch():
+    chrm = read.reference_name
+    bp   = read.alen
+    # check if the current chromosome is different from the previous one
+    # if so, print the dict to file and empty it (a consideration for RAM usage)
+    if chromlast != False and chrm != chromlast:
+        writestats(d, chromlast, outfile)
+        d = dict()
     if read.is_duplicate or read.is_unmapped:
         continue
     try:
@@ -28,58 +52,48 @@ for read in alnfile.fetch():
         # There is no bx tag
         bx = "noBX"
         validBX = False
-    chrm = read.reference_name
-    bp   = read.alen
     if validBX:
-        lw, hi = read.blocks[0]
+        pos_start, pos_end = read.blocks[0]
     else:
-        lw  = 0
-        hi  = 0
-    # create chromosome key if not present
-    # populate it with the bx stats
-    if chrm not in d.keys():
-        d[chrm] = {
-            bx : {
-            "low":  lw,
-            "high": hi,
-            "bp":   bp,
-            "n" :   1,
-            "lastpos" : hi,
-            "dist" : 100000
-            }
-        }
+        pos_start  = 0
+        pos_end  = 0
+    
     # create bx stats if it's not present
-    elif bx not in d[chrm].keys():
-        d[chrm] = {
-            bx : {
-            "low":  lw,
-            "high": hi,
+    if bx not in d.keys():
+        d[bx] = {
+            "start":  pos_start,
+            "end": pos_end,
             "bp":   bp,
             "n":    1,
-            "lastpos" : hi,
-            "dist" : 100000
-            }
+            "lastpos" : pos_end,
+            "mindist" : -1,
+            "n_exceed" : 0
         }
-    # if BX is present for this chrm, update
-    # only if low < currentlow or high > currenthigh
+        chromlast = chrm
+    # if BX is present, update
     else:
-        if lw < d[chrm][bx]["low"]:
-            d[chrm][bx]["low"] = lw
-        if hi > d[chrm][bx]["high"]:
-            d[chrm][bx]["high"] = hi
-        d[chrm][bx]["bp"] += bp
-        d[chrm][bx]["n"] += 1
-        # distance from last alignment = current aln start - previous aln end
-        dist = lw - d[chrm][bx]["lastpos"]
-        # set the last position to be the end of current alignment
-        d[chrm][bx]["lastpos"] = hi
-        if dist < d[chrm][bx]["dist"]:
-            d[chrm][bx]["dist"] = dist
+        d[bx]["bp"] += bp
+        d[bx]["n"]  += 1
+        chromlast = chrm
+        # if invalid/absent BX, skip the distance stuff
+        if bx in ["noBX", "invalidBX"]:
+            continue
 
-with open(outfile, "wt") as fout:
-    _ = fout.write("contig\tbx\treads\tstart\tend\tlength_inferred\taligned_bp\tmindist\n")
-    for chrm in d:
-        for bx in d[chrm]:
-            _d = d[chrm][bx]
-            inferred = str(_d["high"] - _d["low"])
-            _ = fout.write(chrm + "\t" + bx + "\t" + str(_d["n"]) + "\t" + str(_d["low"]) + "\t" + str(_d["high"]) + "\t" + inferred + "\t" + str(_d["bp"]) + "\t" + str(_d["dist"]) "\n")
+        # only if low < currentlow or high > currenthigh
+        if pos_start < d[bx]["start"]:
+            d[bx]["start"] = pos_start
+        if pos_end > d[bx]["end"]:
+            d[bx]["end"] = pos_end
+
+        # distance from last alignment = current aln start - previous aln end
+        dist = pos_start - d[bx]["lastpos"]
+        # set the last position to be the end of current alignment
+        d[bx]["lastpos"] = pos_end
+        if dist < d[bx]["mindist"] or d[bx]["mindist"] < 0:
+            d[bx]["mindist"] = dist
+        
+        # if the distance between alignments is >50kbp, increment n_exceed.
+        # it's a diagnostic proxy for cases where the same barcode could
+        # be found in alignments that are too far away from each other
+        if dist > 50000:
+            d[bx]["n_exceed"] += 1
