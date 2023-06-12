@@ -61,11 +61,11 @@ rule convert2stitch:
         #filters = "-i \'QUAL>20 && DP>10\'" if config["filtervcf"] else ""
     benchmark:
         "Benchmark/Impute/fileprep.{part}.txt"
-    threads: 2
+    threads: 3
     shell:
         """
-        bcftools view -m2 -M2 -v snps --regions {wildcards.part} {input} |\\
-        bcftools query -f '%CHROM\\t%POS\\t%REF\\t%ALT\\n' | sort -n -k1,2 > {output}
+        bcftools sort {input} | bcftools view -m2 -M2 -v snps --regions {wildcards.part} |\\
+        bcftools query -f '%CHROM\\t%POS\\t%REF\\t%ALT\\n' > {output}
         """
 
 rule impute:
