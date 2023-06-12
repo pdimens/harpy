@@ -7,7 +7,8 @@ import argparse
 
 parser = argparse.ArgumentParser(prog = 'bxStats.py',
                     description = 'Calculate BX molecule length and reads per molecule from BAM file.')
-parser.add_argument('input', help = "Input bam/sam file. A corresponding index file should be in the same directory.")
+parser.add_argument('input', help = "Input bam/sam file. If bam, a matching index file should be in the same directory.")
+parser.add_argument('-c','--cutoff', default = 100000,help = "Distance in base pairs at which alignments with the same barcode should be considered different molecules.")
 args = parser.parse_args()
 
 d = dict()
@@ -94,7 +95,7 @@ for read in alnfile.fetch():
         # if the distance between alignments is >100kbp, it's a different molecule
         # so we'll +1 the suffix of the main barcode and relabel this one as BX + suffix
         # since it's a new entry, we initialize it and move on
-        if dist > 100000:
+        if dist > args.cutoff:
             d[orig]["current_suffix"] += 1
             bx = orig + "." + str(d[orig]["current_suffix"])
             d[bx] = {
@@ -106,6 +107,7 @@ for read in alnfile.fetch():
                 "mindist" : -1,
                 "current_suffix": 0
             }
+            chromlast = chrm
             continue 
         if dist < d[bx]["mindist"] or d[bx]["mindist"] < 0:
             d[bx]["mindist"] = dist
