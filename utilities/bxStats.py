@@ -90,25 +90,25 @@ for read in alnfile.fetch():
         bx = orig + "." + str(d[orig]["current_suffix"])
 
     # distance from last alignment = current aln start - previous aln end
+    dist = pos_start - d[bx]["lastpos"]
+    # if the distance between alignments is >100kbp, it's a different molecule
+    # so we'll +1 the suffix of the main barcode and relabel this one as BX + suffix
+    # since it's a new entry, we initialize it and move on
+    if dist > args.cutoff:
+        d[orig]["current_suffix"] += 1
+        bx = orig + "." + str(d[orig]["current_suffix"])
+        d[bx] = {
+            "start":  pos_start,
+            "end": pos_end,
+            "bp":   bp,
+            "n":    1,
+            "lastpos" : pos_end,
+            "mindist" : -1,
+            "current_suffix": 0
+        }
+        chromlast = chrm
+        continue 
     if read.is_forward or (read.is_reverse and not read.is_paired):
-        dist = pos_start - d[bx]["lastpos"]
-        # if the distance between alignments is >100kbp, it's a different molecule
-        # so we'll +1 the suffix of the main barcode and relabel this one as BX + suffix
-        # since it's a new entry, we initialize it and move on
-        if dist > args.cutoff:
-            d[orig]["current_suffix"] += 1
-            bx = orig + "." + str(d[orig]["current_suffix"])
-            d[bx] = {
-                "start":  pos_start,
-                "end": pos_end,
-                "bp":   bp,
-                "n":    1,
-                "lastpos" : pos_end,
-                "mindist" : -1,
-                "current_suffix": 0
-            }
-            chromlast = chrm
-            continue 
         if dist < d[bx]["mindist"] or d[bx]["mindist"] < 0:
             d[bx]["mindist"] = dist
 
