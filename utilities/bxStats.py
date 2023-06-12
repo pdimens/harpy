@@ -1,6 +1,7 @@
 #! /usr/bin/env python3
 
 import re
+import sys
 import pysam
 import argparse
 
@@ -12,31 +13,36 @@ args = parser.parse_args()
 d = dict()
 chromlast = False
 alnfile = pysam.AlignmentFile(args.i)
-outfile = (args.i[0:-4] + ".bx.stats")
+#outfile = (args.i[0:-4] + ".bx.stats")
 
 # define write function
 # it will only be called when the current alignment's chromosome doesn't
 # match the chromosome from the previous alignment
-def writestats(x,chr, outf):
-    with open(outf, "a") as fout:
-        for bx in x:
-            x[bx]["inferred"] = x[bx]["end"] - x[bx]["start"] 
-            if x[bx]["mindist"] < 0:
-                x[bx]["mindist"] = 0
-            outtext = f"{chr}\t{bx}\t" + "\t".join([str(x[bx][i]) for i in ["n", "start","end", "inferred", "bp", "mindist", "n_exceed"]])
-            _ = fout.write(outtext + "\n")
+def writestats(x,chr):
+    #with open(outf, "a") as fout:
+    for bx in x:
+        x[bx]["inferred"] = x[bx]["end"] - x[bx]["start"] 
+        if x[bx]["mindist"] < 0:
+            x[bx]["mindist"] = 0
+        outtext = f"{chr}\t{bx}\t" + "\t".join([str(x[bx][i]) for i in ["n", "start","end", "inferred", "bp", "mindist", "n_exceed"]])
+        #_ = fout.write(outtext + "\n")
+        print(outtext, file = sys.stdout)
 
 # write the first line of the output file
-with open(outfile, "w") as fout:
-    _ = fout.write("contig\tbx\treads\tstart\tend\tlength_inferred\taligned_bp\tmindist\texceed_50k\n")
+#with open(outfile, "w") as fout:
+#    _ = fout.write("contig\tbx\treads\tstart\tend\tlength_inferred\taligned_bp\tmindist\texceed_50k\n")
+print("contig\tbx\treads\tstart\tend\tlength_inferred\taligned_bp\tmindist\texceed_50k", file = sys.stdout)
+
+#alnfile = pysam.AlignmentFile("/home/pdimens/subset.bam")
+
 
 for read in alnfile.fetch():
     chrm = read.reference_name
-    bp   = read.alen
+    bp   = read.query_alignment_length
     # check if the current chromosome is different from the previous one
     # if so, print the dict to file and empty it (a consideration for RAM usage)
     if chromlast != False and chrm != chromlast:
-        writestats(d, chromlast, outfile)
+        writestats(d, chromlast)
         d = dict()
     if read.is_duplicate or read.is_unmapped:
         continue
@@ -57,7 +63,7 @@ for read in alnfile.fetch():
     else:
         pos_start  = 0
         pos_end  = 0
-    
+
     # create bx stats if it's not present
     if bx not in d.keys():
         d[bx] = {
@@ -86,14 +92,17 @@ for read in alnfile.fetch():
             d[bx]["end"] = pos_end
 
         # distance from last alignment = current aln start - previous aln end
-        dist = pos_start - d[bx]["lastpos"]
-        # set the last position to be the end of current alignment
-        d[bx]["lastpos"] = pos_end
-        if dist < d[bx]["mindist"] or d[bx]["mindist"] < 0:
-            d[bx]["mindist"] = dist
-        
-        # if the distance between alignments is >50kbp, increment n_exceed.
-        # it's a diagnostic proxy for cases where the same barcode could
-        # be found in alignments that are too far away from each other
-        if dist > 50000:
-            d[bx]["n_exceed"] += 1
+        if read.is_forward or (read.is_reverse and not read.is_paired):
+            dist = pos_start - d[bx]["lastpos"]
+            if dist < d[bx]["mindist"] or d[bx]["mindist"] < 0:
+                d[bx]["mindist"] = dist
+            # if the distance between alignments is >50kbp, increment n_exceed.
+            # it's a diagnostic proxy for cases where the same barcode could
+            # be found in alignments that are too far away from each other
+            if dist > 50000:
+                d[bx]["n_exceed"] += 1
+
+        if read.is_reverse or (read.is_forward and not read.is_paired):
+            # set the last position to be the end of current alignment
+            d[bx]["lastpos"] = pos_end
+
