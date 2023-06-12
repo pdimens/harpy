@@ -44,7 +44,7 @@ rule index_alignments:
 	benchmark:
 		"Benchmark/Variants/mpileup/indexbam.{sample}.txt"
 	shell:
-		"sambamba index {input} {output}"
+		"sambamba index {input} {output} 2> /dev/null"
 
 rule bam_list:
 	input: 
