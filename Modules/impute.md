@@ -11,6 +11,16 @@ order: 3
 - a tab-delimited parameter file 
 - a variant call format file (`.vcf`, `.vcf.gz`, `.bcf`)
 - sequence alignments, in `.bam` format
+==- :icon-codescan: Curation of input VCF file
+STITCH needs the input VCF to meet specific criteria:
+1. Biallelic SNPs only
+2. VCF is sorted by position
+3. No duplicate positions
+4. No duplicate sample names
+
+Harpy will automatically extract biallelic SNPs and sort the input VCF file (1 and 2), but it will not
+do any further assessments for your input VCF file regarding duplicate sample names or positions. Please
+curate your input VCF to meet criteria 3 and 4 prior to running the `impute` module.  
 ===
 
 After variants have been called, you may want to impute missing genotypes to get the
@@ -28,11 +38,6 @@ harpy extra -s stitch.params
 # run imputation
 harpy impute --threads 20 --vcf Variants/mpileup/variants.raw.bcf --dir Align/ema --parameters stitch.params
 ```
-!!!danger SNPs only
-STITCH requires biallelic SNPs and therefore cannot impute genotypes with VCFs
-produced by callers that don't output SNPs (e.g. LEVIATHAN, NAIBR). Don't worry about
-isolating biallelic SNPs, Harpy will do that for you ✨✨
-!!!
 
 ## :icon-terminal: Running Options
 | argument       | short name | type        |    default    | required | description                                                                                     |
@@ -67,6 +72,9 @@ pseudoHaploid   TRUE    10      1       50
 pseudoHaploid   TRUE    15      10      100
 ```
 +++parameter file columns
+See the section below for detailed information on each parameter. This
+table serves as an overview of the parameters.
+
 | column name |  value type  |             accepted values             | description                                                           |
 |:------------|:------------:|:---------------------------------------:|:----------------------------------------------------------------------|
 | model       |     text     | pseudoHaploid, diploid, diploid-inbred  | The STITCH model/method to use                                        |
