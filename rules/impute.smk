@@ -65,7 +65,7 @@ rule convert2stitch:
     shell:
         """
         bcftools view -m2 -M2 -v snps --regions {wildcards.part} {input} |\\
-        bcftools query -f '%CHROM\\t%POS\\t%REF\\t%ALT\\n' | sort -n1,2 > {output}
+        bcftools query -f '%CHROM\\t%POS\\t%REF\\t%ALT\\n' | sort -n -k1,2 > {output}
         """
 
 rule impute:
