@@ -7,12 +7,12 @@ import argparse
 
 parser = argparse.ArgumentParser(prog = 'bxStats.py',
                     description = 'Calculate BX molecule length and reads per molecule from BAM file.')
-parser.add_argument('i', help = "Input bam/sam file. A corresponding index file should be in the same directory.")
+parser.add_argument('input', help = "Input bam/sam file. A corresponding index file should be in the same directory.")
 args = parser.parse_args()
 
 d = dict()
 chromlast = False
-alnfile = pysam.AlignmentFile(args.i)
+alnfile = pysam.AlignmentFile(args.input)
 #outfile = (args.i[0:-4] + ".bx.stats")
 
 # define write function
