@@ -52,8 +52,10 @@ def getnames_err(directory, ext):
     samplenames = set([i.split(ext)[0] for i in os.listdir(directory) if i.endswith(ext)])
     if len(samplenames) < 1:
         import traceback
-        traceback.print_exc(limit=1)
-        raise Exception(f"\033[1;33mERROR:\033[00m No sample files ending with {ext} found in {directory}.")
+        try:
+            raise Exception(f"\033[1;33mERROR:\033[00m No sample files ending with {ext} found in {directory}.")
+        except Exception:
+            traceback.print_exc(limit=1)
     return samplenames
 
 # find fastq extension types
