@@ -8,7 +8,7 @@ import argparse
 parser = argparse.ArgumentParser(prog = 'bxStats.py',
                     description = 'Calculate BX molecule length and reads per molecule from BAM file.')
 parser.add_argument('input', help = "Input bam/sam file. If bam, a matching index file should be in the same directory.")
-parser.add_argument('-c','--cutoff', default = 100000,help = "Distance in base pairs at which alignments with the same barcode should be considered different molecules.")
+parser.add_argument('-c','--cutoff', type=int, default = 100000, help = "Distance in base pairs at which alignments with the same barcode should be considered different molecules.")
 args = parser.parse_args()
 
 d = dict()
