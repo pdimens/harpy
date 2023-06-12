@@ -50,6 +50,23 @@ rule samples_file:
             [fout.write(f"{i}\n") for i in samplenames]
 
 ##TODO investigate filter option
+
+rule sort_bcf:
+    input:
+        variantfile
+    output:
+        bcf = temp("Impute/input/input.sorted.bcf"),
+        idx = temp("Impute/input/input.sorted.bcf.csi")
+    log:
+        "Impute/input.sorted.log"
+    message:
+        "Sorting input variant call file"
+    shell:
+        """
+        bcftools sort -Ob {input} > {output.bcf} 2> {log}
+		bcftools index --output {output.idx} {output.bcf}
+        """
+
 rule convert2stitch:
     input:
         variantfile
@@ -64,7 +81,7 @@ rule convert2stitch:
     threads: 3
     shell:
         """
-        bcftools sort {input} | bcftools view -m2 -M2 -v snps --regions {wildcards.part} |\\
+        bcftools view -m2 -M2 -v snps --regions {wildcards.part} {input} |\\
         bcftools query -f '%CHROM\\t%POS\\t%REF\\t%ALT\\n' > {output}
         """
 
