@@ -40,7 +40,7 @@ rule index_alignments:
 	output:
 		bam_dir + "/{sample}.bam.bai"
 	message:
-		"Indexing barcodes: {wildcards.sample}"
+		"Indexing alignments: {wildcards.sample}"
 	benchmark:
 		"Benchmark/Variants/mpileup/indexbam.{sample}.txt"
 	shell:
