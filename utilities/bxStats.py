@@ -14,7 +14,6 @@ args = parser.parse_args()
 d = dict()
 chromlast = False
 alnfile = pysam.AlignmentFile(args.input)
-#outfile = (args.i[0:-4] + ".bx.stats")
 
 # define write function
 # it will only be called when the current alignment's chromosome doesn't
@@ -29,13 +28,7 @@ def writestats(x,chr):
         #_ = fout.write(outtext + "\n")
         print(outtext, file = sys.stdout)
 
-# write the first line of the output file
-#with open(outfile, "w") as fout:
-#    _ = fout.write("contig\tbx\treads\tstart\tend\tlength_inferred\taligned_bp\tmindist\texceed_50k\n")
 print("contig\tbx\treads\tstart\tend\tlength_inferred\taligned_bp\tmindist", file = sys.stdout)
-
-#alnfile = pysam.AlignmentFile("/home/pdimens/subset.bam")
-
 
 for read in alnfile.fetch():
     chrm = read.reference_name
@@ -65,7 +58,7 @@ for read in alnfile.fetch():
         pos_start  = 0
         pos_end  = 0
 
-    # create bx stats if it's not present
+    # create bx entry if it's not present
     if bx not in d.keys():
         d[bx] = {
             "start":  pos_start,
@@ -84,16 +77,17 @@ for read in alnfile.fetch():
         chromlast = chrm
         continue
 
+    # store the original barcode as `orig` b/c we might need to suffix it
     orig = bx
-    # section to add current suffix to barcode name, if exists
+    # if there is a suffix, append it to the barcode name
     if d[orig]["current_suffix"] > 0:
         bx = orig + "." + str(d[orig]["current_suffix"])
 
     # distance from last alignment = current aln start - previous aln end
     dist = pos_start - d[bx]["lastpos"]
     # if the distance between alignments is >100kbp, it's a different molecule
-    # so we'll +1 the suffix of the main barcode and relabel this one as BX + suffix
-    # since it's a new entry, we initialize it and move on
+    # so we'll +1 the suffix of the original barcode and relabel this one as 
+    # BX + suffix. Since it's a new entry, we initialize it and move on
     if dist > args.cutoff:
         d[orig]["current_suffix"] += 1
         bx = orig + "." + str(d[orig]["current_suffix"])
@@ -108,11 +102,13 @@ for read in alnfile.fetch():
         }
         chromlast = chrm
         continue 
+    # only calculate the minimum distance between alignments
+    # if it's a forward read or an unpaired reverse read
     if read.is_forward or (read.is_reverse and not read.is_paired):
         if dist < d[bx]["mindist"] or d[bx]["mindist"] < 0:
             d[bx]["mindist"] = dist
 
-    # if BX is present, update
+    # update the basic alignment info of the barcode
     d[bx]["bp"] += bp
     d[bx]["n"]  += 1
     chromlast = chrm
