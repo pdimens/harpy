@@ -5,10 +5,19 @@ import sys
 import pysam
 import argparse
 
-parser = argparse.ArgumentParser(prog = 'bxStats.py',
-                    description = 'Calculate BX molecule length and reads per molecule from BAM file.')
+parser = argparse.ArgumentParser(
+    prog = 'bxStats.py',
+    description = 'Calculate BX molecule length and reads per molecule from BAM file.',
+    usage = "bxStats.py input.bam -c cutoff > output.bxstats",
+    exit_on_error = False
+    )
 parser.add_argument('input', help = "Input bam/sam file. If bam, a matching index file should be in the same directory.")
 parser.add_argument('-c','--cutoff', type=int, default = 100000, help = "Distance in base pairs at which alignments with the same barcode should be considered different molecules.")
+
+if len(sys.argv) == 1:
+    parser.print_help(sys.stderr)
+    sys.exit(1)
+
 args = parser.parse_args()
 
 d = dict()
@@ -19,13 +28,11 @@ alnfile = pysam.AlignmentFile(args.input)
 # it will only be called when the current alignment's chromosome doesn't
 # match the chromosome from the previous alignment
 def writestats(x,chr):
-    #with open(outf, "a") as fout:
     for bx in x:
         x[bx]["inferred"] = x[bx]["end"] - x[bx]["start"] 
         if x[bx]["mindist"] < 0:
             x[bx]["mindist"] = 0
         outtext = f"{chr}\t{bx}\t" + "\t".join([str(x[bx][i]) for i in ["n", "start","end", "inferred", "bp", "mindist"]])
-        #_ = fout.write(outtext + "\n")
         print(outtext, file = sys.stdout)
 
 print("contig\tbx\treads\tstart\tend\tlength_inferred\taligned_bp\tmindist", file = sys.stdout)
@@ -85,7 +92,7 @@ for read in alnfile.fetch():
 
     # distance from last alignment = current aln start - previous aln end
     dist = pos_start - d[bx]["lastpos"]
-    # if the distance between alignments is >100kbp, it's a different molecule
+    # if the distance between alignments is > cutoff, it's a different molecule
     # so we'll +1 the suffix of the original barcode and relabel this one as 
     # BX + suffix. Since it's a new entry, we initialize it and move on
     if dist > args.cutoff:
