@@ -18,39 +18,50 @@ output:
 ```{r echo = F, results = F, message = F}
 library(dplyr)
 library(ggplot2)
+library(plotly)
 library(magrittr)
 library(DT)
+library(scales)
+```
 
-# infile <- "~/subset.bx.stats"
+```{r echo = F, results = F, message = F}
+#infile <- "~/ZS10.bx.stats.gz"
 infile <- snakemake@input[[1]]
-bamfile <- gsub(".bx.stats", ".bam", infile)
-samplename <- gsub(".bx.stats", "", basename(infile))
+bamfile <- gsub(".bx.stats.gz", ".bam", infile)
+samplename <- gsub(".bx.stats.gz", "", basename(infile))
 tb <- read.table(infile, header = T) %>% select(-start, -end)
 tb$valid <- tb$bx
 tb[!(tb$valid %in% c("noBX", "invalidBX")), "valid"] <- "validBX"
 tb$valid <- gsub("BX", " BX", tb$valid)
-tb$fill <- case_when(
-    tb$valid == "no BX" ~ "#cf79c8",
-    tb$valid == "invalid BX" ~ "#f19a29",
-    tb$valid == "valid BX" ~ "#7cb4ec"
-)
-# pop out and merge noBX and invalid across contigs
-invalid <- filter(tb, valid %in% c("no BX", "invalid BX")) %>%
-    group_by(valid) %>%
-    summarise(
-        contig = first(contig),
-        reads = sum(reads),
-        fill = first(fill),
-        length_inferred = 0,
-        bx = first(bx),
-        aligned_bp = sum(aligned_bp)
-        )
-# recombine with main dataframe
-tb <- rbind(filter(tb, !(valid %in% c("no BX", "invalid BX"))), invalid)
 ```
 ### Sample: `r samplename`
-The data presented below was gathered from the alignments within ``r basename(bamfile)``. BX barcode validity is classified
-into one of three categories:
+The data presented below was gathered from the alignments within ``r basename(bamfile)``.
+
+## Interpreting the data {.tabset}
+### The `r basename(infile)` file
+The table below defines the columns in the `r basename(infile)`
+
+| column name | description |
+| :--- | :---|
+|contig| name of the contig bx occurs on |
+|bx | the barcode |
+|reads | number of alignments with this barcode |
+|start | the start position of the first alignment for that barcode on that contig |
+|end |  the end position of the last alignment for that barcode on that contig |
+|length_inferred| inferred length of the molecule based on the start/end of the alignments with that barcode |
+|aligned_bp| number of total bp aligned for that barcode |
+|mindist| the minimum basepair distance between two alignments sharing a barcode (excluding read pairs) |
+
+#### Regarding molecule splitting
+It's not uncommon for a barcode to reappear much further
+along a chromosome or across multiple chromosomes and the process that derives
+the data in this report separates those recurring barcodes as unique molecules.
+The "split" molecules are identified by a numerical suffix in their name, such
+as `A01C22B96D11.1`. These suffixes were added only for reporting purposes and 
+*did not* alter the barcodes in your alignment file.
+
+### Barcode validity
+BX barcode validity is classified into one of three categories:
 
 - `valid BX`: a complete BX barcode was present in the read (i.e. no `00` for any segments)
 - `no BX`: no barcode was present in the read
@@ -58,50 +69,75 @@ into one of three categories:
 
 ## Reads per molecule
 The chart below shows the distribution of the number of reads per BX molecule. That is, how many alignments
-are associated with a particular BX barcode. This also includes the number of reads associated with invalid
+are associated with a particular BX barcode. This excludes the number of reads associated with invalid
 or absent BX barcodes.
-```{r echo = F}
-ggplot(tb, aes(x = reads, fill = fill)) +
-    stat_bin(binwidth = 0.5, geom="text", position = "dodge", aes(label=after_stat(if_else (condition = count>0, as.character(count), ""))), vjust = -0.5) +
-    geom_histogram(binwidth = 0.5, position = "dodge") +
-    scale_fill_identity(
-        "BX Barcode",
-        labels = sort(unique(tb$valid), decreasing = T),
-        guide = "legend"
-    ) +
-    labs(title = "Reads per BX molecule", subtitle = samplename) +
-    xlab("Aligned reads per BX molecule") +
-    ylab("Number of occurrences") +
-    theme_minimal() +
+```{r echo = FALSE, message = FALSE, warning = FALSE, out.width = '100%'}
+p <- filter(tb, valid == "valid BX") %>% 
+  ggplot(aes(x = reads)) +
+    geom_histogram(fill = "#987890", color = "white", binwidth = 2) +
+    labs(title = "Alignments per barcoded molecule", subtitle = samplename) +
+    xlab("Alignments per BX molecule") +
+    ylab("Number of barcodes") +
+    scale_y_continuous(labels = scales::comma) +
+    theme_light() +
+    xlim(c(1, NA)) +
     theme(
         panel.grid.minor.y = element_blank(),
         panel.grid.minor.x = element_blank()
     )
+
+ggplotly(p)
+
 ```
 
 
 ## Inferred molecule Lengths
-The chart below shows the distribution of molecule lengths (in 250bp bins) inferred from the first and last alignment
-positions along a contig for all alignments associated with a single BX barcode on a given contig.
-```{r echo = F}
-tb %>% filter(valid == "valid BX") %>%
+The chart below shows the distribution of molecule lengths (in 250bp bins) 
+inferred from the first and last alignment positions along a contig for all
+alignments associated with a single BX barcode on a given contig.
+```{r echo = FALSE, message = FALSE, warning = FALSE, out.width = '100%'}
+p <- tb %>% filter(valid == "valid BX", length_inferred > 10) %>%
     ggplot(aes(x = length_inferred)) +
-        geom_histogram(binwidth = 250, fill = "#7cb4ec") +
-        stat_bin(binwidth = 250, center = 2.5, geom="text", aes(label=after_stat(if_else (condition = count>0, as.character(count), ""))), vjust = -0.5) +
+        geom_histogram(binwidth = 2500, fill = "#70a7d9") + #, color = "white") +
         labs(title = "Inferred Haplotagged Molecule Lengths", subtitle = samplename) +
-        xlab("Inferred Length of Molecule (250bp bins)") +
+        xlab("Inferred Length of Molecule (2,500 bp bins)") +
         ylab("Number of occurrences") +
-        theme_minimal() +
+        theme_light() +
+        scale_y_continuous(labels = scales::comma) +
+        scale_x_continuous(labels = scales::comma) +
         theme(
             panel.grid.minor.y = element_blank(),
         )
+ggplotly(p)
 ```
 
-## Total bases aligned
+## Total bases aligned {.tabset}
+### Bases Per Barcode
+Below is a histogram showing the distribution of the number of base pairs aligned
+per unique barcode per contig. These data are shown in 500 bp bins, _i.e._ the Y-value
+at `X = 0` would represent the number of barcodes with 0-500bp aligned.
+
+```{r echo = FALSE, message = FALSE, warning = FALSE, out.width = '100%'}
+p <- tb %>% filter(valid == "valid BX", length_inferred > 10) %>%
+    ggplot(aes(x = aligned_bp)) +
+        geom_histogram(binwidth = 500, fill = "#99cccc", color = "white") +
+        labs(title = "Bases Aligned Per Barcode", subtitle = samplename) +
+        xlab("Number of aligned bases (500 bp bins)") +
+        ylab("Number of occurrences") +
+        theme_light() +
+        scale_y_continuous(labels = scales::comma) +
+        scale_x_continuous(labels = scales::comma) +
+        theme(
+            panel.grid.minor.y = element_blank(),
+        )
+ggplotly(p)
+```
+
+### Valid vs Invalid Barcode
 The chart below shows the total number of base-pairs that aligned to the reference genome, grouped by
 BX barcode presence and validity. 
 
-```{r echo = F}
+```{r echo = FALSE, message = FALSE, warning = FALSE, out.width = '100%'}
 tots <- tb %>% 
     group_by(valid) %>%
     summarize(total = sum(aligned_bp))
@@ -114,47 +150,18 @@ tots$fill <- case_when(
 ggplot(tots, aes(x = valid, y = total, fill = fill)) +
     geom_col() +
     scale_fill_identity(
-        "BX Barcode",
+        "Barcode Validity",
         labels = sort(unique(tots$valid), decreasing = T),
         guide = "legend"
     ) +
     geom_text(aes(label = total), position = position_stack(vjust = .5)) +
+    scale_y_continuous(labels = scales::comma) +
     coord_flip() +
     labs(title = "Total base-pairs aligned", subtitle = samplename) +
     ylab("Number of aligned base-pairs") +
     xlab("") +
-    theme_minimal() +
+    theme_light() +
     theme(panel.grid.major.y = element_blank()
 )
 
-```
-
-## Potential barcode clashing
-The table below identifies instances when reads with the same BX barcode aligned
-to multiple contigs. If the table isn't empty, there are a few possibilities as to why that might have happened:
-
-1. **By chance**: more than one molecule was tagged with the same BX barcode
-2. **Mapping error**: the reads were incorrectly mapped
-3. **Assembly error**: the alignments are correct, but the assembly has a misassembly
-4. **Fragmented assembly**: the alignments are correct and the contigs originated from the same chromosome
-
-If you suspect the culprit is because of #1, you can filter out alignments with particular
-barcodes using:
-```
-# specify a single barcode #
-filterBXBAM.py --input `r bamfile` --remove A01C22B23D96
-
-# or with a file of one-per-line BX barcodes #
-filterBXBAM.py --input `r bamfile` --remove rmBX.txt
-```
-
-```{r echo = F}
-clashes <- tb %>%
-    filter(valid == "valid BX") %>%
-    select(contig, bx) %>%
-    group_by(bx) %>%
-    mutate(n_clashes = length(unique(contig)), occurs_in = paste(contig, sep = ",")) %>%
-    filter(n_clashes > 1) %>%
-    select(bx, n_clashes, occurs_in)
-DT::datatable(clashes, rownames = F, filter = "top", extensions = 'Buttons', options = list(dom = 'Brtip', buttons = c('csv', 'pdf'), scrollX = TRUE))
 ```

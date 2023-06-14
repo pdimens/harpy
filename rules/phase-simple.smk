@@ -4,6 +4,8 @@ variantfile       = config["variantfile"]
 pruning           = config["prune"]
 molecule_distance = config["molecule_distance"]
 extra             = config.get("extra", "") 
+fragfile          = "Phase/extractHairs/{sample}.unlinked.frags" if config["noBX"] else "Phase/linkFragments/{sample}.linked.frags"
+
 
 rule splitbysample:
     input: 
@@ -60,10 +62,11 @@ rule linkFragments:
     shell:
         "LinkFragments.py  --bam {input.bam} --VCF {input.vcf} --fragments {input.fragments} --out {output} -d {params} > {log} 2>&1"
 
+
 rule phaseBlocks:
     input:
         vcf       = "Phase/input/{sample}.het.bcf",
-        fragments = "Phase/linkFragments/{sample}.linked.frags"
+        fragments = fragfile
     output: 
         blocks    = "Phase/phaseBlocks/{sample}.blocks",
         vcf       = "Phase/phaseBlocks/{sample}.blocks.phased.VCF"
@@ -79,6 +82,7 @@ rule phaseBlocks:
     threads: 1
     shell:
         "HAPCUT2 --fragments {input.fragments} --vcf {input.vcf} {params} --out {output.blocks} --nf 1 {params} --error_analysis_mode 1 --call_homozygous 1 --outvcf 1 2> {log}"
+
 
 rule mergeSamples:
     input: 
