@@ -126,7 +126,7 @@ click.rich_click.OPTION_GROUPS = {
     "harpy phase": [
         {
             "name": "Configuration",
-            "options": ["--vcf", "--directory", "--molecule-distance", "--prune-threshold", "--extra-params"],
+            "options": ["--vcf", "--directory", "--molecule-distance", "--prune-threshold", "--ignore-bx", "--extra-params"],
         },
         {
             "name": "Other Options",
