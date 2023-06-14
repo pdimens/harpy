@@ -401,7 +401,7 @@ def phase(vcf, directory, threads, molecule_distance, prune_threshold, snakemake
         variantfile = vcf
     samplenames = getnames(directory, '.bam')
     prune_threshold /= 100
-    command = f'snakemake --cores {threads} --directory . --snakefile {harpypath}/phase-simple.smk'.split()
+    command = f'snakemake --cores {threads} --directory . --snakefile {harpypath}/phase.smk'.split()
     if snakemake is not None:
         [command.append(i) for i in snakemake.split()]
     if quiet:

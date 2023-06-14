@@ -4,6 +4,7 @@ variantfile       = config["variantfile"]
 pruning           = config["prune"]
 molecule_distance = config["molecule_distance"]
 extra             = config.get("extra", "") 
+fragfile          = "Phase/extractHairs/{sample}.unlinked.frags" if config["noBX"] else "Phase/linkFragments/{sample}.linked.frags"
 
 rule splitbysamplehet:
     input: 
@@ -84,7 +85,7 @@ rule linkFragments:
 rule phaseBlocks:
     input:
         vcf       = "Phase/input/{sample}.het.bcf",
-        fragments = "Phase/linkFragments/{sample}.linked.frags"
+        fragments = fragfile
     output: 
         blocks    = "Phase/phaseBlocks/{sample}.blocks",
         vcf       = "Phase/phaseBlocks/{sample}.blocks.phased.VCF"
