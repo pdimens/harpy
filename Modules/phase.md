@@ -41,22 +41,6 @@ harpy phase --threads 20 --vcf Variants/variants.raw.bcf --dir Align/ema
 | `--help`              |            |                 |         |          | Show the module docstring                                                                       |
 
 
-==- :icon-code-square: HapCut2 arguments
-Below is a list of all `HapCut2` command line options, excluding those Harpy already uses or those made redundant by Harpy's implementation of HapCut2.
-These are taken directly from running `hapcut2 --help`.
-
-``` hapcut2 arguments
-Haplotype Post-Processing Options:
---skip_prune, --sp <0/1>:           skip default likelihood pruning step (prune SNPs after the fact using column 11 of the output). default: 0
---discrete_pruning, --dp <0/1>:     use discrete heuristic to prune SNPs. default: 0
---error_analysis_mode, --ea <0/1>:  compute switch confidence scores and print to haplotype file but don't split blocks or prune. default: 0
-
-Advanced Options:
---max_iter, --mi <int> :            maximum number of global iterations. Preferable to tweak --converge option instead. default: 10000
---maxcut_iter, --mc <int> :         maximum number of max-likelihood-cut iterations. Preferable to tweak --converge option instead. default: 10000
-```
-===
-
 The molecule distance is and pruning thresholds are considered the most impactful parameters
 for running HapCut2, therefore they are directly configurable from the command. The molecule distance
 refers to the base-pair distance dilineating separate molecules. Feel free to play around with this number 
@@ -138,4 +122,19 @@ Phase/
 | `linkFragments/logs` | everything `linkFragments` prints to `stderr` |
 | `phaseBlocks/*.blocks*` | output from HapCut2 |
 | `phaseBlocks/logs` | everything HapCut2 prints to `stderr` |
+
++++ :icon-code-square: HapCut2 arguments
+Below is a list of all `HapCut2` command line options, excluding those Harpy already uses or those made redundant by Harpy's implementation of HapCut2.
+These are taken directly from running `hapcut2 --help`.
+
+``` hapcut2 arguments
+Haplotype Post-Processing Options:
+--skip_prune, --sp <0/1>:           skip default likelihood pruning step (prune SNPs after the fact using column 11 of the output). default: 0
+--discrete_pruning, --dp <0/1>:     use discrete heuristic to prune SNPs. default: 0
+--error_analysis_mode, --ea <0/1>:  compute switch confidence scores and print to haplotype file but don't split blocks or prune. default: 0
+
+Advanced Options:
+--max_iter, --mi <int> :            maximum number of global iterations. Preferable to tweak --converge option instead. default: 10000
+--maxcut_iter, --mc <int> :         maximum number of max-likelihood-cut iterations. Preferable to tweak --converge option instead. default: 10000
+```
 +++

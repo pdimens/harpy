@@ -37,36 +37,13 @@ harpy variants --threads 20 --genome genome.fasta --dir Align/ema --method levia
 | `--dir`          |    `-d`    | folder path                     |         | **yes**  | Directory with sequence alignments                                                              |
 | `--populations`  |    `-p`    | file path                       |         |    no    | Tab-delimited file of sample\<tab\>group                                                        |
 | `--ploidy`       |    `-x`    | integer                         |    2    |    no    | Ploidy of samples                                                                               |
-| `--method`       |    `-l`    | choice [`mpileup`, `leviathan`] | mpileup |    no    | Which variant caller to use                                                                     |
+| `--method`       |    `-l`    | choice [`mpileup`, `naibr`, `leviathan`] | mpileup |    no    | Which variant caller to use                                                                     |
 | `--extra-params` |    `-x`    | string                          |         |    no    | Additional mpileup/Leviathan arguments, in quotes                                               |
 | `--threads`      |    `-t`    | integer                         |    4    |    no    | Number of threads to use                                                                        |
 | `--snakemake`    |    `-s`    | string                          |         |    no    | Additional [Snakemake](../snakemake/#adding-snakamake-parameters) options, in quotes |
 | `--quiet`        |    `-q`    | toggle                          |         |    no    | Supressing Snakemake printing to console                                                        |
 | `--help`         |            |                                 |         |          | Show the module docstring                                                                       |
 
-==- :icon-code-square: mpileup arguments
-The mpileup module of samtools has *a lot* of command line options. Listing them all here would be difficult to read, therefore please
-refer to the [mpileup documentation](http://www.htslib.org/doc/samtools-mpileup.html#OPTIONS) to explore ways to configure your mpileup run.
-
-==- :icon-code-square: LEVIATHAN arguments
-Below is a list of all `LEVIATHAN` command line options, excluding those Harpy already uses or those made redundant by Harpy's implementation of LEVIATHAN.
-These are taken directly from the [LEVIATHAN documentation](https://github.com/morispi/LEVIATHAN).
-``` LEVIATHAN arguments
-  -r, --regionSize:         Size of the regions on the reference genome to consider (default: 1000)
-  -v, --minVariantSize:     Minimum size of the SVs to detect (default: same as regionSize)
-  -n, --maxLinks:           Remove from candidates list all candidates which have a region involved in that much candidates (default: 1000)
-  -M, --mediumSize:         Minimum size of medium variants (default: 2000)
-  -L, --largeSize:          Minimum size of large variants (default: 10000)
-  -s, --smallRate:          Percentile to chose as a threshold in the distribution of the number of shared barcodes for small variants (default: 99)
-  -m, --mediumRate:         Percentile to chose as a threshold in the distribution of the number of shared barcodes for medium variants (default: 99)
-  -l, --largeRate:          Percentile to chose as a threshold in the distribution of the number of shared barcodes for large variants (default: 99)
-  -d, --duplicates:         Consider SV as duplicates if they have the same type and if their breakpoints are within this distance (default: 10)
-  -s, --skipTranslocations: Skip SVs that are translocations (default: false)
-  -p, --poolSize:           Size of the thread pool (default: 100000)
-  -B, --nbBins:             Number of iterations to perform through the barcode index (default: 10)
-  -c, --minBarcodes:        Always remove candidates that share less than this number of barcodes (default: 1)
-```
-===
 
 ### :icon-file: sample grouping file
 This file is entirely optional and useful if you want variant calling to happen on a per-population level.
@@ -146,6 +123,88 @@ Variants/mpileup
 | `stats/*.stats`           | output of `bcftools stats`                                                                    |
 | `stats/variants.*.html`   | report summarizing variants                                                                   |
 
++++ :icon-code-square: mpileup arguments
+The mpileup module of samtools has *a lot* of command line options. Listing them all here would be difficult to read, therefore please
+refer to the [mpileup documentation](http://www.htslib.org/doc/samtools-mpileup.html#OPTIONS) to explore ways to configure your mpileup run.
++++
+
+### :icon-git-pull-request: NAIBR workflow
++++ :icon-git-merge: details
+[Naibr](https://github.com/raphael-group/NAIBR) is an alternative variant caller that uses linked read barcode information 
+to call structural variants (indels, inversions, etc.) exclusively, meaning it does not call SNPs. The authors of Naibr have not been updating or improving it, so Harpy uses
+[an active fork](https://github.com/pontushojer/NAIBR) of it that is available on [Bioconda](https://anaconda.org/bioconda/naibr-plus) under the name `naibr-plus`. This fork includes improved accuracy as well as quality-of-life updates.
+
+#### Single-sample variant calling
+When not using a population grouping file via `--populations`, variants will be called per-sample. 
+Due to the nature of Structural Variant (SV) VCF files, there isn't an entirely fool-proof way 
+of combining the variants of all the samples into a single VCF file, therefore the output will be a VCF for every sample.
+
+#### Pooled-sample variant calling
+With the inclusion of a population grouping file via `--populations`, Harpy will merge the bam files of all samples within a 
+population and call SV's on these alignment pools. Preliminary work shows that this way identifies more variants and with fewer false 
+positives. **However**, individual-level information gets lost using this approach, so you will only be able to assess 
+group-level variants, if that's what your primary interest is. 
+
+
+```mermaid
+graph LR
+    subgraph Population calling
+    popsplit([merge by population])
+    end
+    subgraph Individual calling
+    bams([individual alignments])
+    end
+    popsplit-->A
+    bams-->A
+    A([index alignments]) --> B([naibr])
+    Z([create config file]) --> B
+    popsplit --> Z
+    bams --> Z
+    B-->C([generate reports])
+```
++++ :icon-file-directory: naibr output
+The `harpy variants --method naibr` module creates a `Variants/naibr` (or `naibr-pop`) directory with the folder structure below. `sample1` and `sample2` are generic sample names for demonstration purposes.
+
+```
+Variants/naibr/
+├── sample1.bedpe
+├── sample2.bedpe
+├── logs
+│   ├── sample1.log
+│   └── sample2.log
+├── filtered
+│   ├── sample1.fail.bedpe
+│   └── sample2.fail.bedpe
+├── IGV
+│   ├── sample1.reformat.bedpe
+│   └── sample2.reformat.bedpe
+├── reports
+│   ├── sample1.naibr.html
+│   └── sample2.naibr.html
+└── vcf
+    ├── sample1.vcf
+    └── sample2.vcf
+```
+
+| item          | description                                              |
+|:--------------|:---------------------------------------------------------|
+| `*.bedpe`     | structural variants identified by NAIBR                  |
+| `filtered/`   | the variants that failed NAIBR's internal filters        |
+| `IGV/`        | same as the output .bedpe` files but in IGV format       |
+| `logs/*.log`  | what NAIBR writes to `stderr` during operation           |
+| `reports/`    | summary reports with interactive plots of detected SV    |
+| `vcf/`        | the resulting variants, but in `.VCF` format             |
++++ :icon-code-square: naibr arguments
+Below is a list of all `NAIBR` command line options, excluding those Harpy already uses or those made redundant by Harpy's implementation of NAIBR.
+These are taken directly from the [NAIBR documentation](https://github.com/pontushojer/NAIBR#running-naibr). If adding these arguments, do so like:
+`-x "min_sv 1000 d 50000"`
+``` NAIBR arguments
+ -d: The maximum distance in basepairs between reads in a linked-read (default: 10000)
+ -blacklist: BED-file with regions to be excluded from analysis
+ -candidates: BEDPE-file with novel adjacencies to be scored by NAIBR. This will override automatic detection of candidate novel adjacencies
+ -min_sv: Minimum size of a structural variant to be detected (default: lmax, i.e. the 95th percentile of the paired-end read insert size distribution)
+ -k: minimum number of barcode overlaps supporting a candidate NA (default = 3)
+```
 +++
 
 ### :icon-git-pull-request: LEVIATHAN workflow
@@ -170,15 +229,6 @@ With the inclusion of a population grouping file via `--populations`, Harpy will
 population and call SV's on these alignment pools. Preliminary work shows that this way identifies more variants and with fewer false 
 positives. **However**, individual-level information gets lost using this approach, so you will only be able to assess 
 group-level variants, if that's what your primary interest is. 
-
-==- :icon-alert: Potential barcode clashing :icon-alert:
-If pooling by population, be mindful of potential sources of barcode clashing. For example, Gen I haplotagging uses 4-segment beadtags,
-`AXXCXXBXXDXX`, where `A`, `B`, `C`, and `D` can range from `1`-`96`, but the `C` barcode is specific for a sample (i.e. it does not change within
-a sample). If your samples were sequenced across different lanes (i.e. were not prepared on the same plate in the laboratory), a common method to
-reduce artifactual sequencing bias, then there's a possibility multiple samples within a population might have the same `C` barcode due to laboratory
-preparation. If you have samples within a population with clashing `C` barcodes, you will need to replace the `C` part of the barcode in the BAM headers
-to make sure each sample has a unique `C`, otherwise it might confuse Leviathan.
-==-
 
 ```mermaid
 graph LR
@@ -222,4 +272,22 @@ Variants/leviathan/
 | `reports/`             | summary reports with interactive plots of detected SV    |
 | `stats/`               | results of `bcftools stats` on the vcf LEVIATHAN creates |
 
++++ :icon-code-square: leviathan arguments
+Below is a list of all `LEVIATHAN` command line options, excluding those Harpy already uses or those made redundant by Harpy's implementation of LEVIATHAN.
+These are taken directly from the [LEVIATHAN documentation](https://github.com/morispi/LEVIATHAN).
+``` LEVIATHAN arguments
+  -r, --regionSize:         Size of the regions on the reference genome to consider (default: 1000)
+  -v, --minVariantSize:     Minimum size of the SVs to detect (default: same as regionSize)
+  -n, --maxLinks:           Remove from candidates list all candidates which have a region involved in that much candidates (default: 1000)
+  -M, --mediumSize:         Minimum size of medium variants (default: 2000)
+  -L, --largeSize:          Minimum size of large variants (default: 10000)
+  -s, --smallRate:          Percentile to chose as a threshold in the distribution of the number of shared barcodes for small variants (default: 99)
+  -m, --mediumRate:         Percentile to chose as a threshold in the distribution of the number of shared barcodes for medium variants (default: 99)
+  -l, --largeRate:          Percentile to chose as a threshold in the distribution of the number of shared barcodes for large variants (default: 99)
+  -d, --duplicates:         Consider SV as duplicates if they have the same type and if their breakpoints are within this distance (default: 10)
+  -s, --skipTranslocations: Skip SVs that are translocations (default: false)
+  -p, --poolSize:           Size of the thread pool (default: 100000)
+  -B, --nbBins:             Number of iterations to perform through the barcode index (default: 10)
+  -c, --minBarcodes:        Always remove candidates that share less than this number of barcodes (default: 1)
+```
 +++
