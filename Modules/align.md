@@ -43,14 +43,6 @@ harpy align --method ema --genome genome.fasta --dir Sequences/
 | `--quiet`          |    `-q`    | toggle                |         |    no    | Supressing Snakemake printing to console                                                        |
 | `--help`           |            |                       |         |          | Show the module docstring                                                                       |
 
-==- :icon-code-square: EMA arguments
-Below is a list of all `ema align` command line arguments, excluding those Harpy already uses or those made redundant by Harpy's implementation of EMA.
-These are taken directly from the [EMA documentation](https://github.com/arshajii/ema).
-
-``` ema arguments
--d: apply fragment read density optimization [off]
--i <index>: index to follow 'BX' tag in SAM output [1]
-```
 ==- :icon-code-square: BWA arguments
 Below is a list of all `bwa mem` command line arguments, excluding those Harpy already uses or those made redundant by Harpy's implementation of BWA.
 These are taken directly from the [BWA documentation](https://bio-bwa.sourceforge.net/bwa.shtml).
@@ -70,6 +62,14 @@ These are taken directly from the [BWA documentation](https://bio-bwa.sourceforg
 -T INT 	Don’t output alignment with score lower than INT. This option only affects output. [30]
 -a 	Output all found alignments for single-end or unpaired paired-end reads. These alignments will be flagged as secondary alignments.
 -H 	Use hard clipping ’H’ in the SAM output. This option may dramatically reduce the redundancy of output when mapping long contig or BAC sequences.
+```
+==- :icon-code-square: EMA arguments
+Below is a list of all `ema align` command line arguments, excluding those Harpy already uses or those made redundant by Harpy's implementation of EMA.
+These are taken directly from the [EMA documentation](https://github.com/arshajii/ema).
+
+``` ema arguments
+-d: apply fragment read density optimization [off]
+-i <index>: index to follow 'BX' tag in SAM output [1]
 ```
 ===
 
@@ -166,7 +166,7 @@ Align/bwa
 - leverages the BX barcode information to improve mapping
 - sometimes better downstream SV detection
 - slower
-- marks split alignments as secondary alignments ⚠️
+- marks split alignments as secondary alignments [⚠️](variants.md#leviathan-workflow)
 - lots of temporary files
 
 Since [EMA](https://github.com/arshajii/ema) does extra things to account for barcode
@@ -215,7 +215,11 @@ Align/ema
 │   └── logs
 │       └── Sample1.preproc.log
 └── stats
-    ├── reads.bxstats.html
+    ├── reads.bxcounts.html
+    ├── BXstats
+    │   ├── Sample1.bxstats.html
+    │   └── data
+    │       └── Sample1.bxstats.gz
     ├── coverage
     │   ├── Sample1.gencov.html
     │   └── data
@@ -223,11 +227,6 @@ Align/ema
     │       └── Sample1.bx.gencov.gz
     ├── markduplicates
     │   └── Sample1.markdup.nobarcode.log
-    ├── moleculesize
-    │   ├── Sample1.molsize.gz
-    │   └── Sample1.molsize.hist
-    ├── readsperbx
-    │   └── Sample1.readsperbx
     ├── samtools_flagstat
     │   ├── alignment.flagstat.html
     │   ├── Sample1.flagstat
@@ -250,9 +249,8 @@ Align/ema
 | `stats/coverage/data/*.all.gencov.gz`          | output from samtools bedcov from all alignments, used for plots                                               |
 | `stats/coverage/data/*.bx.gencov.gz`           | output from samtools bedcov from alignments with valid BX barcodes, used for plots                            |
 | `stats/markduplicates/`                        | everything `sambamba markdup` writes to `stderr` during operation on alignments with invalid/missing barcodes |
-| `stats/moleculesize/*.molsize.gz`              | molecule lengths as inferred from BX tags                                                                     |
-| `stats/moleculesize/*.molsize.hist`            | molecule lengths as inferred from BX tags, binned as a histogram                                              |
-| `stats/readsperbx/`                            | inferred number of alignments per BX barcode                                                                  |
+| `stats/BXstats/`                               | reports summarizing molecule size and reads per molecule                         |
+| `stats/BXstats/data/`                          | tabular data containing the information used to generate the BXstats reports     |
 | `stats/samtools_flagstat/*flagstat`            | results of `samtools flagstat` on all alignments for a sample                                                 |
 | `stats/samtools_flagstat/*.nobarcode.flagstat` | results of `samtools flagstat` on alignments that had no/invalid BX barcodes                                  |
 | `stats/samtools_flagstat/*html`                | report summarizing `samtools flagstat` results across all samples from `multiqc`                              |
