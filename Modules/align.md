@@ -116,7 +116,8 @@ graph LR
     A([index genome]) --> B([align to genome])
     B-->C([sort alignments])
     C-->D([mark duplicates])
-    D-->E([alignment stats])
+    D-->E([alignment metrics])
+    D-->F([barcode stats])
 ```
 +++ :icon-file-directory: BWA output
 The `harpy align` module creates an `Align/bwa` directory with the folder structure below. `Sample1` is a generic sample name for demonstration purposes.
@@ -125,18 +126,16 @@ Align/bwa
 ├── Sample1.bam
 ├── Sample1.bam.bai
 └── stats
-    ├── reads.bxstats.html
+    ├── BXstats
+    │   ├── Sample1.bxstats.html
+    │   └── data
+    │       └── Sample1.bxstats.gz
     ├── coverage
     │   ├── Sample1.gencov.html
     │   └── data
     │       └── Sample1.gencov.gz
     ├── markduplicates
     │   └── Sample1.markdup.log
-    ├── moleculesize
-    │   ├── Sample1.molsize.gz
-    │   └── Sample1.molsize.hist
-    ├── readsperbx
-    │   └── Sample1.readsperbx
     ├── samtools_flagstat
     │   ├── alignment.flagstat.html
     │   ├── Sample1.flagstat
@@ -145,21 +144,20 @@ Align/bwa
         └── Sample1.stats
 ```
 
-| item                                           | description                                                                      |
-|:-----------------------------------------------|:---------------------------------------------------------------------------------|
-| `*.bam`                                        | sequence alignments for each sample                                              |
-| `*.bai`                                        | sequence alignment indexes for each sample                                       |
-| `stats/`                                       | various counts/statistics/reports relating to sequence alignment                 |
-| `stats/reads.bxstats.html`                     | interactive html report summarizing valid vs invalid barcodes across all samples |                                           |
-| `stats/coverage/*.html`                        | summary plots of alignment coverage per contig                                   |
-| `stats/coverage/data/*.gencov.gz`              | output from samtools bedcov from all alignments, used for plots                  |
-| `stats/markduplicates`                         | everything `sambamba markdup` writes to `stderr` during operation                |
-| `stats/moleculesize/*.molsize.gz`              | molecule lengths as inferred from BX tags                                        |
-| `stats/moleculesize/*.molsize.hist`            | molecule lengths as inferred from BX tags, binned as a histogram                 |
-| `stats/readsperbx/`                            | inferred number of alignments per BX barcode                                     |
-| `stats/samtools_flagstat/*flagstat`            | results of `samtools flagstat` on all alignments for a sample                    |
-| `stats/samtools_flagstat/*html`                | report summarizing `samtools flagstat` results across all samples from `multiqc` |
-| `stats/samtools_stats/*`                       | same as `samtools_flagstat` except for the results of `samtools stats`           |
+| item     | description                                                      |
+|:---------|:-----------------------------------------------------------------|
+| `*.bam`  | sequence alignments for each sample                              |
+| `*.bai`  | sequence alignment indexes for each sample                       |
+| `stats/` | various counts/statistics/reports relating to sequence alignment |
+| `stats/reads.bxstats.html`          | interactive html report summarizing valid vs invalid barcodes across all samples | 
+| `stats/coverage/*.html`             | summary plots of alignment coverage per contig                                   |
+| `stats/coverage/data/*.gencov.gz`   | output from samtools bedcov from all alignments, used for plots                  |
+| `stats/markduplicates`              | everything `sambamba markdup` writes to `stderr` during operation                |
+| `stats/BXstats/`                    | reports summarizing molecule size and reads per molecule                         |
+| `stats/BXstats/data/`               | tabular data containing the information used to generate the BXstats reports     |
+| `stats/samtools_flagstat/*flagstat` | results of `samtools flagstat` on all alignments for a sample                    |
+| `stats/samtools_flagstat/*html`     | report summarizing `samtools flagstat` results across all samples from `multiqc` |
+| `stats/samtools_stats/*`            | same as `samtools_flagstat` except for the results of `samtools stats`           |
 
 +++
 
