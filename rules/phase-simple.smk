@@ -25,9 +25,9 @@ rule splitbysample:
 		if grep -q "INFO_SCORE" <(bcftools head {input.vcf}); then
 			bcftools view -s {wildcards.sample} -i 'INFO/INFO_SCORE >= 0.2' {input.vcf} 
 		else
-			bcftools view -s {wildcards.sample} {input.vcf}
-		fi |
-		awk '/^#/;/CHROM/ {{OFS="\\t"}}; !/^#/ &&  $10~/^0\\/0/ {{$10="0|0:"substr($10,5);print $0}}; !/^#/ && $10~/^0\\/1/; !/^#/ &&  $10~/^1\\/1/ {{$10="1|1:"substr($10,5);print $0}}; !/^#/ {{print $0}}' > {output}
+			bcftools view -s {wildcards.sample} {input.vcf} > {output}
+		fi
+		#awk '/^#/;/CHROM/ {{OFS="\\t"}}; !/^#/ &&  $10~/^0\\/0/ {{$10="0|0:"substr($10,5);print $0}}; !/^#/ && $10~/^0\\/1/; !/^#/ &&  $10~/^1\\/1/ {{$10="1|1:"substr($10,5);print $0}}; !/^#/ {{print $0}}' > {output}
 		"""
 
 rule extractHairs:
