@@ -13,7 +13,7 @@ rule trimFastp:
 		rv   = "Trim/{sample}.R2.fq.gz",
 		json = "Trim/logs/json/{sample}.fastp.json"
 	log:
-		html = "Trim/logs/html/{sample}.html",
+		html = "Trim/reports/{sample}.html",
 		serr = "Trim/logs/err/{sample}.log"
 	benchmark:
 		"Benchmark/Trim/{sample}.txt"
@@ -28,13 +28,36 @@ rule trimFastp:
 	shell: 
 		"fastp --trim_poly_g --cut_right --detect_adapter_for_pe {params} --thread {threads} -i {input.fw} -I {input.rv} -o {output.fw} -O {output.rv} -h {log.html} -j {output.json} 2> {log.serr}"
 
+rule count_beadtags:
+	input:
+		"Trim/{sample}.R1.fq.gz"
+	output: 
+		temp("Trim/bxcount/{sample}.count.log")
+	wildcard_constraints:
+		sample = "[a-zA-Z0-9_-]*"
+	message:
+		"Counting barcode frequency: {wildcards.sample}"
+	shell:
+		"countBX.py {input} > {output}"
+
+rule beadtag_counts_summary:
+	input: 
+		countlog = expand("Trim/bxcount/{sample}.count.log", sample = samplenames)
+	output:
+		"Trim/summary.bx.valid.html"
+	message:
+		"Summarizing sample barcode validation"
+	script:
+		"reportBxCount.Rmd"
+
 rule createReport:
 	input: 
 		json = expand("Trim/logs/json/{sample}.fastp.json", sample = samplenames),
 		fr   = expand("Trim/{sample}.R1.fq.gz", sample = samplenames),
-		rv   = expand("Trim/{sample}.R2.fq.gz", sample = samplenames)
+		rv   = expand("Trim/{sample}.R2.fq.gz", sample = samplenames),
+		cts  = "Trim/summary.bx.valid.html"
 	output:
-		"Trim/logs/trim.report.html"
+		"Trim/trim.report.html"
 	message:
 		"Sequencing quality filtering and trimming is complete!"
 	default_target: True

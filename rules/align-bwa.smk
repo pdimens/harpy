@@ -13,8 +13,7 @@ rule create_reports:
 	input: 
 		expand(outdir + "/{sample}.bam", sample = samplenames),
 		expand(outdir + "/stats/coverage/{sample}.cov.html", sample = samplenames),
-		expand(outdir + "/stats/moleculesize/{sample}.{ext}", sample = samplenames, ext = ["molsize.gz", "molsize.hist"]),
-		outdir + "/stats/reads.bxstats.html",
+		expand(outdir + "/stats/BXstats/{sample}.bxstats.html", sample = samplenames),
 		outdir + "/stats/samtools_stats/bwa.stats.html",
 		outdir + "/stats/samtools_flagstat/bwa.flagstat.html"
 	message:
@@ -71,28 +70,6 @@ rule make_genome_windows:
 		"""
 		makewindows.py -i {input} -w 10000 -o {output}
 		"""
-
-rule count_beadtags:
-	input:
-		forward_reads = seq_dir + "/{sample}" + f".{Rsep[0]}.{fqext}"
-	output: 
-		logs   = temp(outdir + "/stats/bxcount/{sample}.count.log")
-	wildcard_constraints:
-		sample = "[a-zA-Z0-9_-]*"
-	message:
-		"Counting barcode frequency: {wildcards.sample}"
-	shell:
-		"countBX.py {input} > {output}"
-
-rule beadtag_summary:
-	input: 
-		countlog = expand(outdir + "/stats/bxcount/{sample}.count.log", sample = samplenames)
-	output:
-		outdir + "/stats/reads.bxstats.html"
-	message:
-		"Creating sample barcode validation report"
-	script:
-		"reportBxCount.Rmd"
 
 rule align:
 	input:
@@ -167,44 +144,34 @@ rule coverage_report:
 	script:
 		"reportBwaGencov.Rmd"
 
-rule BEDconvert:
+rule alignment_bxstats:
 	input:
-		bam = outdir + "/{sample}.bam"
+		bam = outdir + "/{sample}.bam",
+		bai = outdir + "/{sample}.bam.bai"
 	output: 
-		unfilt = temp(outdir + "/bedfiles/{sample}.bed"),
-		bx     = temp(outdir + "/bedfiles/{sample}.bx.bed")
+		outdir + "/stats/BXstats/data/{sample}.bxstats.gz"
 	message:
-		"Converting to BED format: {wildcards.sample}"
+		"Calculating barcode alignment statistics: {wildcards.sample}"
 	wildcard_constraints:
 		sample = "[a-zA-Z0-9_-]*"
-	params: lambda wc: outdir + "/align/" + wc.get("sample") + "/" + wc.get("sample") + ".bed"
 	threads: 1
 	shell:
-		"""
-		writeBED.pl {input} {output.unfilt}
-		awk '!($4~/A00|B00|C00|D00/)' {output.unfilt} > {output.bx}
-		"""
+		"bxStats.py {input.bam} > {output}"
 
-rule BX_stats:
+rule bx_stats_report:
 	input:
-		bedfile  = outdir + "/bedfiles/{sample}.bx.bed"
+		outdir + "/stats/BXstats/data/{sample}.bxstats.gz"
 	output:	
-		molsize  = outdir + "/stats/moleculesize/{sample}.molsize.gz",
-		molhist  = outdir + "/stats/moleculesize/{sample}.molsize.hist",
-		readsper = outdir + "/stats/readsperbx/{sample}.readsperbx"
+		outdir + "/stats/BXstats/{sample}.bxstats.html"
 	message: 
-		"Calculating molecule size, reads per molecule: {wildcards.sample}"
+		"Generating summary of barcode alignment: {wildcards.sample}"
 	wildcard_constraints:
 		sample = "[a-zA-Z0-9_-]*"
 	threads: 1
-	shell:
-		"""
-		cut -f10 {input} | datamash -s groupby 1 count 1 | sort -k 1 -n > {output.readsper}
-		awk '{{ print $1"\\t"$2"\\t"$3"\\t"$3-$2"\\t"$4"\\t"$10 }}' {input} | sort -k 4 -n | gzip > {output.molsize}
-		zcat {output.molsize} | cut -f4 | datamash bin:1000 1 | datamash -s groupby 1 count 1 | sort -k 1 -n > {output.molhist}
-		"""
-
-rule alignment_stats:
+	script:
+		"reportBxStats.Rmd"
+	
+rule general_alignment_stats:
 	input:
 		bam      = outdir + "/{sample}.bam",
 		bai      = outdir + "/{sample}.bam.bai"
