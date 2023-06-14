@@ -16,7 +16,7 @@ rule create_reports:
 		expand(outdir + "/{sample}.bam.bai", sample = samplenames),
 		expand(outdir + "/stats/BXstats/{sample}.bxstats.html", sample = samplenames),
 		expand(outdir + "/stats/coverage/{sample}.cov.html", sample = samplenames),
-		outdir + "/stats/reads.bxstats.html",
+		outdir + "/stats/reads.bxcounts.html",
 		outdir + "/stats/samtools_stats/alignment.stats.html",
 		outdir + "/stats/samtools_flagstat/alignment.flagstat.html"
 	message:
@@ -99,7 +99,7 @@ rule beadtag_summary:
 	input: 
 		countlog = expand(outdir + "/count/logs/{sample}.count.log", sample = samplenames)
 	output:
-		outdir + "/stats/reads.bxstats.html"
+		outdir + "/stats/reads.bxcounts.html"
 	message:
 		"Creating sample barcode validation report"
 	benchmark:
