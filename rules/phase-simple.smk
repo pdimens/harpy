@@ -51,7 +51,7 @@ rule extractHairs:
 rule linkFragments:
 	input: 
 		bam       = bam_dir + "/{sample}.bam",
-		vcf       = "Phase/input/{sample}.het.bcf",
+		vcf       = "Phase/input/{sample}.bcf",
 		fragments = "Phase/extractHairs/{sample}.unlinked.frags"
 	output:
 		"Phase/linkFragments/{sample}.linked.frags"
@@ -69,7 +69,7 @@ rule linkFragments:
 
 rule phaseBlocks:
 	input:
-		vcf       = "Phase/input/{sample}.het.bcf",
+		vcf       = "Phase/input/{sample}.bcf",
 		fragments = fragfile
 	output: 
 		blocks    = "Phase/phaseBlocks/{sample}.blocks",
