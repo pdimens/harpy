@@ -27,8 +27,8 @@ library(scales)
 ```{r echo = F, results = F, message = F}
 #infile <- "~/ZS10.bx.stats.gz"
 infile <- snakemake@input[[1]]
-bamfile <- gsub(".bx.stats.gz", ".bam", infile)
-samplename <- gsub(".bx.stats.gz", "", basename(infile))
+bamfile <- gsub(".bxstats.gz", ".bam", infile)
+samplename <- gsub(".bxstats.gz", "", basename(infile))
 tb <- read.table(infile, header = T) %>% select(-start, -end)
 tb$valid <- tb$bx
 tb[!(tb$valid %in% c("noBX", "invalidBX")), "valid"] <- "validBX"
