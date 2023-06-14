@@ -17,6 +17,8 @@ rule splitbysample:
         "Extracting variants: {wildcards.sample}"
     benchmark:
         "Benchmark/Phase/split.{sample}.txt"
+    wildcard_constraints:
+		sample = "[a-zA-Z0-9_-]*"
     threads: 1
     shell:
         """
@@ -38,6 +40,8 @@ rule extractHairs:
         "Phase/extractHairs/logs/{sample}.unlinked.log"
     message:
         "Converting to compact fragment format: {wildcards.sample}"
+	wildcard_constraints:
+		sample = "[a-zA-Z0-9_-]*"
     benchmark:
         "Benchmark/Phase/extracthairs.{sample}.txt"
     threads: 1
