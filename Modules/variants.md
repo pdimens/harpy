@@ -194,6 +194,7 @@ Variants/naibr/
 | `logs/*.log`  | what NAIBR writes to `stderr` during operation           |
 | `reports/`    | summary reports with interactive plots of detected SV    |
 | `vcf/`        | the resulting variants, but in `.VCF` format             |
+
 +++ :icon-code-square: naibr arguments
 Below is a list of all `NAIBR` command line options, excluding those Harpy already uses or those made redundant by Harpy's implementation of NAIBR.
 These are taken directly from the [NAIBR documentation](https://github.com/pontushojer/NAIBR#running-naibr). If adding these arguments, do so like:
