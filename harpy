@@ -225,7 +225,7 @@ def trim(directory, max_length, extra_params, threads, snakemake, quiet):
             print(f"\033[1;33mERROR:\033[00m No fastq files with acceptable names found in {directory}", file = sys.stderr)
             print("Check that the files conform to [.1. | .F.][.fastq | .fq].gz", file = sys.stderr)
             print("Read the documentation for details: https://pdimens.github.io/harpy/dataformat/#naming-conventions", file = sys.stderr)
-    command = f'snakemake --cores {threads} --directory . --snakefile {harpypath}/trim.smk'.split()
+    command = f'snakemake --rerun-incomplete --cores {threads} --directory . --snakefile {harpypath}/trim.smk'.split()
     if snakemake is not None:
         [command.append(i) for i in snakemake.split()]
     if quiet:
@@ -277,7 +277,7 @@ def align(genome, threads, method, ema_bins, directory, extra_params, quality_fi
             print("Read the documentation for details: https://pdimens.github.io/harpy/dataformat/#naming-conventions", file = sys.stderr)
             sys.exit(1)
     mapper = method
-    command = f'snakemake --cores {threads} --directory . --snakefile {harpypath}/align-{mapper}.smk'.split()
+    command = f'snakemake --rerun-incomplete --cores {threads} --directory . --snakefile {harpypath}/align-{mapper}.smk'.split()
     if snakemake is not None:
         [command.append(i) for i in snakemake.split()]
     if quiet:
@@ -327,7 +327,7 @@ def variants(genome, threads, directory, populations, ploidy, method, extra_para
     vcaller = method
     if vcaller in ["leviathan", "naibr"] and populations is not None:
         vcaller += "-pop"
-    command = (f'snakemake --cores {threads} --directory . --snakefile {harpypath}/variants-{vcaller}.smk').split()
+    command = (f'snakemake --rerun-incomplete --cores {threads} --directory . --snakefile {harpypath}/variants-{vcaller}.smk').split()
     if snakemake is not None:
         [command.append(i) for i in snakemake.split()]
     if quiet:
@@ -362,7 +362,7 @@ def impute(parameters, directory, threads, vcf, snakemake, quiet):
     """
     vcfcheck(vcf)
     samplenames = getnames(directory, '.bam')
-    command = f'snakemake --cores {threads} --directory . --snakefile {harpypath}/impute.smk'.split()
+    command = f'snakemake --rerun-incomplete --cores {threads} --directory . --snakefile {harpypath}/impute.smk'.split()
     if snakemake is not None:
         [command.append(i) for i in snakemake.split()]
     if quiet:
@@ -401,7 +401,7 @@ def phase(vcf, directory, threads, molecule_distance, prune_threshold, snakemake
         variantfile = vcf
     samplenames = getnames(directory, '.bam')
     prune_threshold /= 100
-    command = f'snakemake --cores {threads} --directory . --snakefile {harpypath}/phase.smk'.split()
+    command = f'snakemake --rerun-incomplete --cores {threads} --directory . --snakefile {harpypath}/phase.smk'.split()
     if snakemake is not None:
         [command.append(i) for i in snakemake.split()]
     if quiet:
