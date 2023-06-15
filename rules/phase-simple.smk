@@ -4,16 +4,16 @@ variantfile       = config["variantfile"]
 pruning           = config["prune"]
 molecule_distance = config["molecule_distance"]
 extra             = config.get("extra", "") 
-fragfile          = "Phase/extractHairs/{sample}.unlinked.frags" if config["noBX"] else "Phase/linkFragments/{sample}.linked.frags"
 linkarg           = "--10x 0" if config["noBX"] else "--10x 1"
-
+outdir 			  = "Phase.noBX"if config["noBX"] else "Phase"
+fragfile          = "Phase.noBX/extractHairs/{sample}.unlinked.frags" if config["noBX"] else "Phase/linkFragments/{sample}.linked.frags"
 
 rule splitbysample:
 	input: 
 		vcf = variantfile,
 		bam = bam_dir + "/{sample}.bam"
 	output:
-		temp("Phase/input/{sample}.bcf")
+		temp(outdir + "/input/{sample}.bcf")
 	message:
 		"Extracting variants: {wildcards.sample}"
 	benchmark:
@@ -36,9 +36,9 @@ rule extractHairs:
 		vcf = "Phase/input/{sample}.bcf",
 		bam = bam_dir + "/{sample}.bam"
 	output:
-		"Phase/extractHairs/{sample}.unlinked.frags"
+		outdir + "/extractHairs/{sample}.unlinked.frags"
 	log:
-		"Phase/extractHairs/logs/{sample}.unlinked.log"
+		outdir + "/extractHairs/logs/{sample}.unlinked.log"
 	message:
 		"Converting to compact fragment format: {wildcards.sample}"
 	params:
@@ -54,12 +54,12 @@ rule extractHairs:
 rule linkFragments:
 	input: 
 		bam       = bam_dir + "/{sample}.bam",
-		vcf       = "Phase/input/{sample}.bcf",
-		fragments = "Phase/extractHairs/{sample}.unlinked.frags"
+		vcf       = outdir + "/input/{sample}.bcf",
+		fragments = outdir + "/extractHairs/{sample}.unlinked.frags"
 	output:
-		"Phase/linkFragments/{sample}.linked.frags"
+		outdir + "/linkFragments/{sample}.linked.frags"
 	log:
-		"Phase/linkFragments/logs/{sample}.linked.log"
+		outdir + "/linkFragments/logs/{sample}.linked.log"
 	message:
 		"Linking fragments: {wildcards.sample}"
 	benchmark:
@@ -72,17 +72,17 @@ rule linkFragments:
 
 rule phaseBlocks:
 	input:
-		vcf       = "Phase/input/{sample}.bcf",
+		vcf       = outdir + "/input/{sample}.bcf",
 		fragments = fragfile
 	output: 
-		blocks    = "Phase/phaseBlocks/{sample}.blocks",
-		vcf       = "Phase/phaseBlocks/{sample}.blocks.phased.VCF"
+		blocks    = outdir + "/phaseBlocks/{sample}.blocks",
+		vcf       = outdir + "/phaseBlocks/{sample}.blocks.phased.VCF"
 	message:
 		"Creating phased haplotype blocks: {wildcards.sample}"
 	benchmark:
 		"Benchmark/Phase/phase.{sample}.txt"
 	log:
-		"Phase/phaseBlocks/logs/{sample}.blocks.phased.log"
+		outdir + "/phaseBlocks/logs/{sample}.blocks.phased.log"
 	params: 
 		prune = f"--threshold {pruning}" if pruning > 0 else "--no_prune 1",
 		extra = extra
@@ -93,9 +93,9 @@ rule phaseBlocks:
 
 rule mergeSamples:
 	input: 
-		vcf = expand("Phase/phaseBlocks/{sample}.blocks.phased.VCF", sample = samplenames)
+		vcf = expand(outdir + "/phaseBlocks/{sample}.blocks.phased.VCF", sample = samplenames)
 	output:
-		"Phase/variants.phased.bcf"
+		outdir + "/variants.phased.bcf"
 	message:
 		"Combinging samples into a single BCF file"
 	benchmark:
@@ -106,9 +106,9 @@ rule mergeSamples:
 
 rule indexFinal:
 	input:
-		"Phase/variants.phased.bcf"
+		outdir + "/variants.phased.bcf"
 	output:
-		"Phase/variants.phased.bcf.csi"
+		outdir + "/variants.phased.bcf.csi"
 	benchmark:
 		"Benchmark/Phase/finalindex.txt"
 	message:

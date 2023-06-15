@@ -4,7 +4,8 @@ variantfile       = config["variantfile"]
 pruning           = config["prune"]
 molecule_distance = config["molecule_distance"]
 extra             = config.get("extra", "") 
-fragfile          = "Phase/extractHairs/{sample}.unlinked.frags" if config["noBX"] else "Phase/linkFragments/{sample}.linked.frags"
+outdir 			  = "Phase.noBX"if config["noBX"] else "Phase"
+fragfile          = "Phase.noBX/extractHairs/{sample}.unlinked.frags" if config["noBX"] else "Phase/linkFragments/{sample}.linked.frags"
 linkarg           = "--10x 0" if config["noBX"] else "--10x 1"
 
 rule splitbysamplehet:
@@ -12,7 +13,7 @@ rule splitbysamplehet:
         vcf = variantfile,
         bam = bam_dir + "/{sample}.bam"
     output:
-        "Phase/input/{sample}.het.bcf"
+        outdir + "/input/{sample}.het.bcf"
     message:
         "Extracting heterozygous variants: {wildcards.sample}"
     benchmark:
@@ -33,7 +34,7 @@ rule splitbysample:
         vcf = variantfile,
         bam = bam_dir + "/{sample}.bam"
     output:
-        "Phase/input/{sample}.bcf"
+        outdir + "/input/{sample}.bcf"
     message:
         "Extracting variants: {wildcards.sample}"
     benchmark:
@@ -51,12 +52,12 @@ rule splitbysample:
 
 rule extractHairs:
     input:
-        vcf = "Phase/input/{sample}.het.bcf",
+        vcf = outdir + "/input/{sample}.het.bcf",
         bam = bam_dir + "/{sample}.bam"
     output:
-        "Phase/extractHairs/{sample}.unlinked.frags"
+        outdir + "/extractHairs/{sample}.unlinked.frags"
     log:
-        "Phase/extractHairs/logs/{sample}.unlinked.log"
+        outdir + "/extractHairs/logs/{sample}.unlinked.log"
     message:
         "Converting to compact fragment format: {wildcards.sample}"
     params:
@@ -70,12 +71,12 @@ rule extractHairs:
 rule linkFragments:
     input: 
         bam       = bam_dir + "/{sample}.bam",
-        vcf       = "Phase/input/{sample}.het.bcf",
-        fragments = "Phase/extractHairs/{sample}.unlinked.frags"
+        vcf       = outdir + "/input/{sample}.het.bcf",
+        fragments = outdir + "/extractHairs/{sample}.unlinked.frags"
     output:
-        "Phase/linkFragments/{sample}.linked.frags"
+        outdir + "/linkFragments/{sample}.linked.frags"
     log:
-        "Phase/linkFragments/logs/{sample}.linked.log"
+        outdir + "/linkFragments/logs/{sample}.linked.log"
     message:
         "Linking fragments: {wildcards.sample}"
     benchmark:
@@ -87,17 +88,17 @@ rule linkFragments:
 
 rule phaseBlocks:
     input:
-        vcf       = "Phase/input/{sample}.het.bcf",
+        vcf       = outdir + "/input/{sample}.het.bcf",
         fragments = fragfile
     output: 
-        blocks    = "Phase/phaseBlocks/{sample}.blocks",
-        vcf       = "Phase/phaseBlocks/{sample}.blocks.phased.VCF"
+        blocks    = outdir + "/phaseBlocks/{sample}.blocks",
+        vcf       = outdir + "/phaseBlocks/{sample}.blocks.phased.VCF"
     message:
         "Creating phased haplotype blocks: {wildcards.sample}"
     benchmark:
         "Benchmark/Phase/phase.{sample}.txt"
     log:
-        "Phase/phaseBlocks/logs/{sample}.blocks.phased.log"
+        outdir + "/phaseBlocks/logs/{sample}.blocks.phased.log"
     params: 
         prune = f"--threshold {pruning}" if pruning > 0 else "--no_prune 1",
         extra = extra
@@ -107,9 +108,9 @@ rule phaseBlocks:
 
 rule createAnnotations:
     input:
-        "Phase/phaseBlocks/{sample}.blocks.phased.VCF"
+        outdir + "/phaseBlocks/{sample}.blocks.phased.VCF"
     output:
-        "Phase/annotations/{sample}.annot.gz"
+        outdir + "/annotations/{sample}.annot.gz"
     message:
         "Creating annotation files: {wildcards.sample}"
     benchmark:
@@ -119,9 +120,9 @@ rule createAnnotations:
 
 rule indexAnnotations:
     input:
-        "Phase/annotations/{sample}.annot.gz"
+        outdir + "/annotations/{sample}.annot.gz"
     output:
-        "Phase/annotations/{sample}.annot.gz.tbi"
+        outdir + "/annotations/{sample}.annot.gz.tbi"
     message:
         "Indexing {wildcards.sample}.annot.gz"
     benchmark:
@@ -131,7 +132,7 @@ rule indexAnnotations:
 
 rule headerfile:
     output:
-        "Phase/input/header.names"
+        outdir + "/input/header.names"
     message:
         "Creating additional header file"
     benchmark:
@@ -146,12 +147,12 @@ rule headerfile:
 
 rule mergeAnnotations:
     input:
-        annot   = "Phase/annotations/{sample}.annot.gz",
-        idx     = "Phase/annotations/{sample}.annot.gz.tbi",
-        orig    = "Phase/input/{sample}.bcf",
-        headers = "Phase/input/header.names"
+        annot   = outdir + "/annotations/{sample}.annot.gz",
+        idx     = outdir + "/annotations/{sample}.annot.gz.tbi",
+        orig    = outdir + "/input/{sample}.bcf",
+        headers = outdir + "/input/header.names"
     output:
-        "Phase/annotations_merge/{sample}.phased.annot.bcf"
+        outdir + "/annotations_merge/{sample}.phased.annot.bcf"
     message:
         "Merging annotations: {wildcards.sample}"
     benchmark:
@@ -161,9 +162,9 @@ rule mergeAnnotations:
         
 rule indexAnnotations2:
     input:
-        "Phase/annotations_merge/{sample}.phased.annot.bcf"
+        outdir + "/annotations_merge/{sample}.phased.annot.bcf"
     output:
-        "Phase/annotations_merge/{sample}.phased.annot.bcf.csi"
+        outdir + "/annotations_merge/{sample}.phased.annot.bcf.csi"
     message:
         "Indexing annotations: {wildcards.sample}"
     benchmark:
@@ -173,10 +174,10 @@ rule indexAnnotations2:
 
 rule mergeSamples:
     input: 
-        bcf = expand("Phase/annotations_merge/{sample}.phased.annot.bcf", sample = samplenames),
-        idx = expand("Phase/annotations_merge/{sample}.phased.annot.bcf.csi", sample = samplenames)
+        bcf = expand(outdir + "/annotations_merge/{sample}.phased.annot.bcf", sample = samplenames),
+        idx = expand(outdir + "/annotations_merge/{sample}.phased.annot.bcf.csi", sample = samplenames)
     output:
-        "Phase/variants.phased.bcf"
+        outdir + "/variants.phased.bcf"
     message:
         "Combinging samples into a single BCF file"
     benchmark:
@@ -187,9 +188,9 @@ rule mergeSamples:
 
 rule indexFinal:
     input:
-        "Phase/variants.phased.bcf"
+        outdir + "/variants.phased.bcf"
     output:
-        "Phase/variants.phased.bcf.csi"
+        outdir + "/variants.phased.bcf.csi"
     benchmark:
         "Benchmark/Phase/finalindex.txt"
     message:
