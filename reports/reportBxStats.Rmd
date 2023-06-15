@@ -64,8 +64,8 @@ as `A01C22B96D11.1`. These suffixes were added only for reporting purposes and
 BX barcode validity is classified into one of three categories:
 
 - `valid BX`: a complete BX barcode was present in the read (i.e. no `00` for any segments)
-- `no BX`: no barcode was present in the read
 - `invalid BX`: A barcode was present in the read, but it contained `00` for any of the haplotag segments
+- `no BX`: no barcode was present in the read
 
 ## Reads per molecule
 The chart below shows the distribution of the number of reads per BX molecule. That is, how many alignments
