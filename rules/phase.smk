@@ -65,7 +65,7 @@ rule extractHairs:
         "Benchmark/Phase/extracthairs.{sample}.txt"
     threads: 1
     shell:
-        "extractHAIRS {params} 1 --nf 1 --bam {input.bam} --VCF {input.vcf} --out {output} 2> {log}"
+        "extractHAIRS {params} --nf 1 --bam {input.bam} --VCF {input.vcf} --out {output} 2> {log}"
 
 rule linkFragments:
     input: 
