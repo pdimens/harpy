@@ -207,4 +207,18 @@ Impute/
 | `model*/contigs/*/*.stats`          | results of `bcftools stats`                             |
 | `model*/contigs/*/*.vcf.gz`         | variants resulting from imputation                      |
 | `model*/contigs/*/*.vcf.gz.tbi`     | index of variant file                                   |
+
++++ :icon-code-square: STITCH parameters
+While you are expected to run STITCH using your own set of 
+configurable parameters as described in the section below, Harpy 
+also runs STITCH with a few fixed parameters:
+```r
+STITCH(
+    ..., 
+    bxTagUpperLimit      = 50000,
+    niterations          = 40,
+    switchModelIteration = 39,
+    splitReadIterations  = NA
+)
+```
 +++

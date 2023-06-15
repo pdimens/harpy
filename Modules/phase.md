@@ -123,9 +123,13 @@ Phase/
 | `phaseBlocks/*.blocks*` | output from HapCut2 |
 | `phaseBlocks/logs` | everything HapCut2 prints to `stderr` |
 
-+++ :icon-code-square: HapCut2 arguments
-Below is a list of all `HapCut2` command line options, excluding those Harpy already uses or those made redundant by Harpy's implementation of HapCut2.
-These are taken directly from running `hapcut2 --help`.
++++ :icon-code-square: HapCut2 parameters
+By default, Harpy runs `HAPCUT2` with these parameters (excluding inputs and outputs):
+```bash
+HAPCUT2 --nf 1 --error_analysis_mode 1 --call_homozygous 1 --outvcf 1
+```
+Below is a list of all `HAPCUT2` command line options, excluding those Harpy already uses or those made redundant by Harpy's implementation of HapCut2.
+These are taken directly from running `HAPCUT2 --help`.
 
 ``` hapcut2 arguments
 Haplotype Post-Processing Options:

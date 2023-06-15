@@ -82,7 +82,12 @@ Trim/
 | `reports/summary.bx.valid.html` | a report detailing valid vs invalid barcodes and the segments causing invalidation |
 | `logs/json`                     | json representation of the data `fastp` uses to create the html reports            |
 
-+++ :icon-code-square: fastp arguments
++++ :icon-code-square: fastp parameters
+By default, Harpy runs `fastp` with these parameters (excluding inputs and outputs):
+```bash
+fastp --trim_poly_g --cut_right --detect_adapter_for_pe
+```
+
 The list of all `fastp` command line options is quite extensive and would
 be cumbersome to print here. See the list of options in the [fastp documentation](https://github.com/OpenGene/fastp).
 

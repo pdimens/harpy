@@ -123,7 +123,12 @@ Variants/mpileup
 | `stats/*.stats`           | output of `bcftools stats`                                                                    |
 | `stats/variants.*.html`   | report summarizing variants                                                                   |
 
-+++ :icon-code-square: mpileup arguments
++++ :icon-code-square: mpileup parameters
+By default, Harpy runs `mpileup` with these parameters (excluding inputs and outputs):
+```bash
+bcftools mpileup --region contigname --annotate AD --output-type b
+```
+
 The mpileup module of samtools has *a lot* of command line options. Listing them all here would be difficult to read, therefore please
 refer to the [mpileup documentation](http://www.htslib.org/doc/samtools-mpileup.html#OPTIONS) to explore ways to configure your mpileup run.
 +++
@@ -195,8 +200,16 @@ Variants/naibr/
 | `reports/`    | summary reports with interactive plots of detected SV    |
 | `vcf/`        | the resulting variants, but in `.VCF` format             |
 
-+++ :icon-code-square: naibr arguments
-Below is a list of all `NAIBR` command line options, excluding those Harpy already uses or those made redundant by Harpy's implementation of NAIBR.
++++ :icon-code-square: naibr parameters
+By default, Harpy runs `naibr` with these parameters (excluding inputs and outputs):
+```python
+min_mapq = 30
+d        = 10000
+min_sv   = 1000
+k        = 3
+```
+
+Below is a list of all `NAIBR` runtime options, excluding those Harpy already uses or those made redundant by Harpy's implementation of NAIBR.
 These are taken directly from the [NAIBR documentation](https://github.com/pontushojer/NAIBR#running-naibr). If adding these arguments, do so like:
 `-x "min_sv 1000 d 50000"`
 ``` NAIBR arguments
@@ -273,8 +286,10 @@ Variants/leviathan/
 | `reports/`             | summary reports with interactive plots of detected SV    |
 | `stats/`               | results of `bcftools stats` on the vcf LEVIATHAN creates |
 
-+++ :icon-code-square: leviathan arguments
-Below is a list of all `LEVIATHAN` command line options, excluding those Harpy already uses or those made redundant by Harpy's implementation of LEVIATHAN.
++++ :icon-code-square: leviathan parameters
+By default, Harpy runs `leviathan` with default parameters (shown below), only modifying inputs and outputs at the command line.
+
+Below is a list of all `leviathan` command line options, excluding those Harpy already uses or those made redundant by Harpy's implementation of LEVIATHAN.
 These are taken directly from the [LEVIATHAN documentation](https://github.com/morispi/LEVIATHAN).
 ``` LEVIATHAN arguments
   -r, --regionSize:         Size of the regions on the reference genome to consider (default: 1000)

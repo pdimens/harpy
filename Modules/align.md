@@ -129,7 +129,12 @@ Align/bwa
 | `stats/samtools_flagstat/*html`     | report summarizing `samtools flagstat` results across all samples from `multiqc` |
 | `stats/samtools_stats/*`            | same as `samtools_flagstat` except for the results of `samtools stats`           |
 
-+++ :icon-code-square: BWA arguments
++++ :icon-code-square: BWA parameters
+By default, Harpy runs `bwa` with these parameters (excluding inputs and outputs):
+```bash
+bwa mem -C -R "@RG\tID:samplename\tSM:samplename"
+```
+
 Below is a list of all `bwa mem` command line arguments, excluding those Harpy already uses or those made redundant by Harpy's implementation of BWA.
 These are taken directly from the [BWA documentation](https://bio-bwa.sourceforge.net/bwa.shtml).
 ```bwa arguments
@@ -246,7 +251,12 @@ Align/ema
 | `stats/samtools_flagstat/*html`                | report summarizing `samtools flagstat` results across all samples from `multiqc`                              |
 | `stats/samtools_stats/*`                       | same as `samtools_flagstat` except for the results of `samtools stats`                                        |
 
-+++ :icon-code-square: EMA arguments
++++ :icon-code-square: EMA parameters
+By default, Harpy runs `ema` with these parameters (excluding inputs and outputs):
+```bash
+ema-h align -d -p haptag -R "@RG\tID:samplename\tSM:samplename"
+```
+
 Below is a list of all `ema align` command line arguments, excluding those Harpy already uses or those made redundant by Harpy's implementation of EMA.
 These are taken directly from the [EMA documentation](https://github.com/arshajii/ema).
 
