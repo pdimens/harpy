@@ -5,6 +5,7 @@ pruning           = config["prune"]
 molecule_distance = config["molecule_distance"]
 extra             = config.get("extra", "") 
 fragfile          = "Phase/extractHairs/{sample}.unlinked.frags" if config["noBX"] else "Phase/linkFragments/{sample}.linked.frags"
+linkarg           = "--10x 0" if config["noBX"] else "--10x 1"
 
 
 rule splitbysample:
@@ -40,13 +41,15 @@ rule extractHairs:
 		"Phase/extractHairs/logs/{sample}.unlinked.log"
 	message:
 		"Converting to compact fragment format: {wildcards.sample}"
+	params:
+		linkarg
 	wildcard_constraints:
 		sample = "[a-zA-Z0-9_-]*"
 	benchmark:
 		"Benchmark/Phase/extracthairs.{sample}.txt"
 	threads: 1
 	shell:
-		"extractHAIRS --10X 1 --nf 1 --bam {input.bam} --VCF {input.vcf} --out {output} 2> {log}"
+		"extractHAIRS {params} --nf 1 --bam {input.bam} --VCF {input.vcf} --out {output} 2> {log}"
 
 rule linkFragments:
 	input: 
@@ -64,7 +67,7 @@ rule linkFragments:
 	params:
 		d = molecule_distance
 	shell:
-		"LinkFragments.py  --bam {input.bam} --VCF {input.vcf} --fragments {input.fragments} --out {output} -d {params} > {log} 2>&1"
+		"LinkFragments.py --bam {input.bam} --VCF {input.vcf} --fragments {input.fragments} --out {output} -d {params} > {log} 2>&1"
 
 
 rule phaseBlocks:
