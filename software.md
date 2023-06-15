@@ -23,6 +23,7 @@ Issues with specific tools might warrant a discussion with the authors/developer
 | LEVIATHAN  | [website](https://github.com/morispi/LEVIATHAN)              | [publication](https://doi.org/10.1101/2021.03.25.437002)                                               |
 | LRez       | [website](https://github.com/morispi/LRez)                   | [publication](https://academic.oup.com/bioinformaticsadvances/article/1/1/vbab022/6375438?login=false) |
 | mamba      | [website](https://github.com/mamba-org/mamba)                |                                                                                                        |
+| NAIBR      | [website](https://github.com/raphael-group/NAIBR) [fork](https://github.com/pontushojer/NAIBR) | [publication](https://doi.org/10.1093/bioinformatics/btx712)  |
 | python     | [website](https://www.python.org/)                           |                                                                                                        |
 | rich-click | [website](https://github.com/ewels/rich-click)               |                                                                                                        |
 | sambamba   | [website](https://github.com/biod/sambamba)                  | [publication](https://doi.org/10.1093/bioinformatics/btv098)                                           |
