@@ -76,7 +76,8 @@ graph LR
 ```
 
 +++ :icon-file-directory: phasing output
-The `harpy phase` module creates an `Phasing` directory with the folder structure below. `Sample1` is a generic sample name for demonstration purposes.
+The `harpy phase` module creates an `Phasing` directory with the folder structure below. `Sample1` is a generic sample name for demonstration purposes. Harpy will also write a record of the relevant
+runtime parameters in `logs/phase.params`.
 
 ```
 Phase/

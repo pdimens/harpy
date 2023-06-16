@@ -90,7 +90,8 @@ graph LR
     D-->F([barcode stats])
 ```
 +++ :icon-file-directory: BWA output
-The `harpy align` module creates an `Align/bwa` directory with the folder structure below. `Sample1` is a generic sample name for demonstration purposes.
+The `harpy align` module creates an `Align/bwa` directory with the folder structure below. `Sample1` is a generic sample name for demonstration purposes. Harpy will also write a record of the relevant
+runtime parameters in `logs/align.params`.
 ```
 Align/bwa
 ├── Sample1.bam
@@ -197,7 +198,8 @@ graph LR
     E-->J
 ```
 +++ :icon-file-directory: EMA output
-The `harpy align` module creates an `Align/ema` directory with the folder structure below. `Sample1` is a generic sample name for demonstration purposes.
+The `harpy align` module creates an `Align/ema` directory with the folder structure below. `Sample1` is a generic sample name for demonstration purposes. Harpy will also write a record of the relevant
+runtime parameters in `logs/align.params`.
 ```
 Align/ema
 ├── Sample1.bam

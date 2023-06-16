@@ -165,6 +165,7 @@ The `harpy impute` module creates an `Imputation` directory with the folder stru
 are generic contig names from an imaginary `genome.fasta` for demonstration purposes. The directory `model1/`
 is a generic name to reflect the corresponding parameter row in the stitch parameter
 file, which would have explicit names in real use (e.g. `modelpseudoHaploid_useBXTrue_k10_s1_nGen50/`).
+Harpy will also write a record of the relevant runtime parameters in `logs/impute.params`.
 ```
 Impute/
 ├── input

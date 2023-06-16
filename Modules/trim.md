@@ -51,7 +51,8 @@ graph LR
 ```
 
 +++ :icon-file-directory: trimming output
-The `harpy trim` module creates a `Trimming` directory with the folder structure below. `Sample1` and `Sample2` are generic sample names for demonstration purposes.
+The `harpy trim` module creates a `Trimming` directory with the folder structure below. `Sample1` and `Sample2` are generic sample names for demonstration purposes. Harpy will also write a record of 
+the relevant runtime parameters in `logs/trim.params`.
 ```
 Trim/
 ├── Sample1.R1.fq.gz

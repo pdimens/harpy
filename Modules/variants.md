@@ -89,7 +89,8 @@ graph LR
     G-->F
 ```
 +++ :icon-file-directory: mpileup output
-The `harpy variants` module creates a `Variants/mpileup` directory with the folder structure below. `contig1` and `contig2` are generic contig names from an imaginary `genome.fasta` for demonstration purposes.
+The `harpy variants` module creates a `Variants/mpileup` directory with the folder structure below. `contig1` and `contig2` are generic contig names from an imaginary `genome.fasta` for demonstration purposes. 
+Harpy will also write a record of the relevant runtime parameters in `logs/variants.params`.
 ```
 Variants/mpileup
 ├── variants.normalized.bcf
@@ -174,15 +175,18 @@ The `harpy variants --method naibr` module creates a `Variants/naibr` (or `naibr
 Variants/naibr/
 ├── sample1.bedpe
 ├── sample2.bedpe
-├── logs
-│   ├── sample1.log
-│   └── sample2.log
+├── configs
+│   ├── sample1.config
+│   └── sample2.config
 ├── filtered
 │   ├── sample1.fail.bedpe
 │   └── sample2.fail.bedpe
 ├── IGV
 │   ├── sample1.reformat.bedpe
 │   └── sample2.reformat.bedpe
+├── logs
+│   ├── sample1.log
+│   └── sample2.log
 ├── reports
 │   ├── sample1.naibr.html
 │   └── sample2.naibr.html
@@ -194,6 +198,7 @@ Variants/naibr/
 | item          | description                                              |
 |:--------------|:---------------------------------------------------------|
 | `*.bedpe`     | structural variants identified by NAIBR                  |
+| `configs/`    | the configuration files harpy generated for each sample  |
 | `filtered/`   | the variants that failed NAIBR's internal filters        |
 | `IGV/`        | same as the output .bedpe` files but in IGV format       |
 | `logs/*.log`  | what NAIBR writes to `stderr` during operation           |
@@ -259,7 +264,8 @@ graph LR
     C-->E([generate reports])
 ```
 +++ :icon-file-directory: leviathan output
-The `harpy variants --method leviathan` module creates a `Variants/leviathan` (or `leviathan-pop`) directory with the folder structure below. `sample1` and `sample2` are generic sample names for demonstration purposes.
+The `harpy variants --method leviathan` module creates a `Variants/leviathan` (or `leviathan-pop`) directory with the folder structure below. `sample1` and `sample2` are generic sample names for demonstration purposes. Harpy will also write a record of the relevant
+runtime parameters in `logs/variants.params`.
 
 ```
 Variants/leviathan/
