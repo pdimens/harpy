@@ -23,24 +23,25 @@ with open(args.input, "r") as f:
         line = f.readline()
         if not line:
             break
-        line = line.strip().split("\t")
+        line = line.strip().split()
 
         # identify if the line is a BLOCK line, asterisks, or SNP
-        if line[0] == "BLOCK:":
-            header = 1
-        elif line[0] == "********":
-            continue
-        else:
-            header == 0
-
-        if header == 1:
+        try:
+            if line[0] == "BLOCK:":
+                header = 0
+            elif "*" in line[0]:
+                continue
+            else:
+                header += 1
+        except:
+            break
+        if header == 0:
             n      = line[6]
             span   = line[8]
-        elif header == 0:
+        elif header == 1:
             chrm   = line[3]
             start  = line[4]
-            end    = start + span
-            header = 2
+            end    = int(start) + int(span)
             print(f"{chrm}\t{start}\t{end}\t{n}", file = sys.stdout)
         else:
             # skip all the snps after the first since we have all the info we need
