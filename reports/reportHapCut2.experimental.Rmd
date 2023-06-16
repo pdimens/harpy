@@ -1,0 +1,68 @@
+```{r echo = F, message = F, warning = F}
+library(ggplot2)
+library(dplyr)
+```
+```{r echo = F, message = F, warning = F}
+bx <- read.table("~/ZS10.haplosummary", header = T)
+bx$method <- "bx"
+bx$ymin <- 0
+bx$ymax <- 1
+nobx <- read.table("~/ZS10.nobx.haplosummary", header = T)
+nobx$method <- "nobx"
+nobx$ymin <- 1
+nobx$ymax <- 2
+
+merged <- rbind(bx, nobx)
+```
+```{r echo = FALSE, warnings = FALSE, message = FALSE}
+fai <- "~/assembly.fai"
+fa.sizes <- read.table(fai, header = F) |> arrange(desc(2))
+colnames(fa.sizes) <- c("contig", "size")
+# limit the data to only the 30 largest contigs
+fa.sizes <- fa.sizes[1:min(nrow(fa.sizes), 30), ]
+```
+
+```{r echo = FALSE, warnings = FALSE, message = FALSE, out.width = "100%"}
+ggplot(merged, aes(x = end - start)) +
+  geom_histogram(binwidth = 50)+
+  facet_grid(cols = vars(method)) +
+  theme_minimal() +
+  xlab("Haplotype block size")
+
+```
+
+
+```{r echo = FALSE, warnings = FALSE, message = FALSE, out.width = "100%"}
+ggplot(merged[merged$contig=="2L",]) +
+geom_rect(
+  alpha = 0.7,
+  aes(
+    xmin = start,
+    xmax = end,
+    ymin = ymin,
+    ymax = ymax,
+    fill = method,
+    color = method,
+  )
+) +
+theme_light() +
+#facet_grid(cols = vars(method)) +
+theme(
+  axis.text.y=element_blank(),
+  axis.line.y = element_blank(),
+  axis.ticks.y = element_blank(),
+  panel.grid.major = element_blank(),
+  panel.grid.minor = element_blank(),
+  strip.background = element_rect(fill = "grey80"),
+  strip.text = element_text(color = "grey20"),
+  legend.position = "none"
+) +
+#scale_color_manual(values = col.palette) +
+#scale_fill_manual(values = col.palette) +
+xlim(1, fa.sizes$size[1]) +
+coord_cartesian(xlim = c(0, fa.sizes$size[1] + 1), expand = F) +
+xlab("Position (bp)") +
+labs(fill = "# SNPs", color = "# SNPs") +
+ggtitle(fa.sizes$contig[1])
+
+```
