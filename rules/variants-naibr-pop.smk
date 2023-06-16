@@ -86,14 +86,12 @@ rule create_config:
     input:
         outdir + "/input/{population}.bam"
     output:
-        temp(outdir + "/configs/{population}.config")
+        outdir + "/configs/{population}.config"
     message:
         "Creating naibr config file: {wildcards.population}"
     params:
 	    lambda wc: wc.get("population")
     run:
-        
-        snakemake.utils.available_cpu_count()
         argdict = process_args(extra)
         with open(output[0], "w") as conf:
             _ = conf.write(f"bam_file={input[0]}\n")
@@ -125,7 +123,6 @@ rule call_sv:
     shell:
         """
         echo "threads={threads}" >> {input.conf}
-        #cd Variants/naibr-pop
         naibr {input.conf} > {log}.tmp 2>&1
         grep -v "pairs/s" {log}.tmp > {log} && rm {log}.tmp
         inferSV.py {params.outdir}/{params.population}.bedpe -f {output.fail} > {output.bedpe}

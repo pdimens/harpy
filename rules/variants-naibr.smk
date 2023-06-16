@@ -35,7 +35,7 @@ rule create_config:
     input:
         bam_dir + "/{sample}.bam"
     output:
-        temp(outdir + "/configs/{sample}.config")
+        outdir + "/configs/{sample}.config"
     message:
         "Creating naibr config file: {wildcards.sample}"
     params:

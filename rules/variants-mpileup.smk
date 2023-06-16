@@ -199,3 +199,11 @@ rule all:
 	message:
 		"Variant calling is complete!"
 	default_target: True
+
+with open(f"{outdir}/logs/variants.params", "w") as f:
+	_ = f.write("The harpy variants module ran using these parameters:\n\n")
+	_ = f.write("bcftools mpileup --fasta-ref GENOME --region CONTIG " + mp_extra + " --bam-list BAMS --annotate AD --output-type b\n")
+	gp = '' if groupings is None else f"--group-samples {groupings} " + f"--ploidy {ploidy}"
+	_ = f.write("bcftools call --multiallelic-caller " + gp + " --variants-only --output-type b | bcftools sort -\n")
+	_ = f.write("bcftools concat --output-type b --naive\n")
+	_ = f.write("bcftools norm -d none | bcftools norm -m -any -N -Ob")
