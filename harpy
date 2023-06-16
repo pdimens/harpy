@@ -320,6 +320,7 @@ def variants(genome, threads, directory, populations, ploidy, method, extra_para
     
     ## methods
     - **mpileup**: calls SNPS and indels
+    - **naibr**: calls inversions, duplicates, deletions
     - **leviathan**: calls inversions, duplicates, deletions, misc breakends
 
     """
