@@ -208,3 +208,33 @@ rule all:
     message: 
         "Genotype imputation is complete!"
     default_target: True
+
+
+
+with open("Impute/impute.params", "w") as f:
+	_ = f.write("The harpy impute module ran using these parameters:\n\n")
+	_ = f.write("## preprocessing ##\n")
+    _ = f.write("bcftools view -m2 -M2 -v snps --regions CONTIG INFILE |\n")
+    _ = f.write("bcftools query -f '%CHROM\\t%POS\\t%REF\\t%ALT\\n'\n")
+    _ = f.write("## STITCH imputation ##\n")
+    _ = f.write(
+        """
+        STITCH(
+            method                  = modeltype,
+            posfile                 = posfile,
+            bamlist                 = bamlist,
+            nCores                  = nCores,
+            nGen                    = nGenerations,
+            chr                     = chr,
+            K                       = K,
+            S                       = S,
+            use_bx_tag              = bx,
+            bxTagUpperLimit         = 50000,
+            niterations             = 40,
+            switchModelIteration    = 39,
+            splitReadIterations     = NA,
+            outputdir               = outdir,
+            output_filename         = outfile
+        )
+        """
+    )

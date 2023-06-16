@@ -387,3 +387,15 @@ rule samtools_reports:
 		multiqc Align/ema/stats/samtools_stats    --force --quiet --no-data-dir --filename {output.stats} 2> /dev/null
 		multiqc Align/ema/stats/samtools_flagstat --force --quiet --no-data-dir --filename {output.flagstat} 2> /dev/null
 		"""
+
+with open(f"{outdir}/logs/align-ema.params", "w") as f:
+	_ = f.write("The harpy align module ran using these parameters:\n\n")
+	_ = f.write("## ema ##\n")
+	_ = f.write("ema-h count -p\n")
+	_ = f.write(f"ema-h preproc -p -n {nbins}\n")
+	_ = f.write("ema-h align " + extra + " -d -p haptag -R \"@RG\\tID:SAMPLE\\tSM:SAMPLE\" |\n")
+	_ = f.write("samtools view -h -F 4 -q " + str(config["quality"]) + " - |\n") 
+	_ = f.write("samtools sort --reference genome -m 4G\n\n")
+	_ = f.write("## bwa ##\n")
+	_ = f.write("bwa mem -C -R \"@RG\\tID:SAMPLE\\tSM:SAMPLE\" genome forward_reads reverse_reads |\n")
+	_ = f.write("sambamba markdup -l 0")
