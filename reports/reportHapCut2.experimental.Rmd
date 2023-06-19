@@ -1,0 +1,95 @@
+```{r echo = F, message = F, warning = F}
+library(ggplot2)
+library(dplyr)
+library(scales)
+```
+```{r echo = F, message = F, warning = F}
+bx <- read.table("~/ZS10.bx.haplosummary", header = T)
+bx$method <- "bx"
+bx$ymin <- 0
+bx$ymax <- 1
+bx$size <- bx$end - bx$start
+bx$capsize <- ifelse(bx$size > 20000, 25000, bx$size)
+nobx <- read.table("~/ZS10.nobx.haplosummary", header = T)
+nobx$method <- "nobx"
+nobx$ymin <- 1
+nobx$ymax <- 2
+nobx$size <- nobx$end - nobx$start
+nobx$capsize <- ifelse(nobx$size > 20000, 25000, nobx$size)
+
+merged <- rbind(bx, nobx)
+```
+```{r echo = FALSE, warnings = FALSE, message = FALSE}
+fai <- "~/assembly.fai"
+fa.sizes <- read.table(fai, header = F) |> arrange(desc(2))
+colnames(fa.sizes) <- c("contig", "size")
+# limit the data to only the 30 largest contigs
+fa.sizes <- fa.sizes[1:min(nrow(fa.sizes), 30), ]
+```
+
+```{r echo = FALSE, warnings = FALSE, message = FALSE}
+bind_hist <- function(x1, x2){
+    data.frame(
+      "breaks" = c(x1$breaks[-1], x2$breaks[-1]),
+      "counts" = c(x1$counts, x2$counts),
+      "method" = c(rep("Including Linked-Read Barcodes", length(x1$counts)), rep("Ignoring Linked-Read Barcodes", length(x1$counts)))
+    )
+}
+
+```
+
+```{r echo = FALSE, warnings = FALSE, message = FALSE, out.width = "100%"}
+bxhist = hist(x = bx$capsize, breaks = seq(0,26000,2000), plot = F)
+nobxhist = hist(x = nobx$capsize, breaks = seq(0,26000,2000), plot = F)
+hists <- bind_hist(bxhist, nobxhist)
+
+ggplot(hists, aes(x = breaks, y = counts, fill = method)) +
+  geom_bar(stat = "identity")+
+  facet_wrap(~method, scales = "free_y", ncol = 1) +
+  theme_minimal() +
+  theme(
+    panel.grid.minor.y = element_blank(),
+    legend.position = "none"
+  ) +
+  xlab("Haplotype block size (bp)") +
+  ylab("Count") +
+  scale_fill_manual(values = c("#ffa5a0", "#9966cc")) +
+  scale_x_continuous(labels = scales::comma) +
+  scale_y_continuous(labels = scales::comma)
+ggsave("/mnt/Win11/Users/pdime/Documents/Omega/Cornell/EVO2023/haplotypes.png", width = 6, height = 4)
+```
+
+
+```{r echo = FALSE, warnings = FALSE, message = FALSE, out.width = "100%"}
+i <- 2
+ggplot(merged[merged$contig==fa.sizes$contig[i],]) +
+geom_linerange(
+  position = position_dodge2(width = 1),
+  linewidth = 1.5,
+  lineend="round",
+  aes(
+    x = method,
+    ymin = start,
+    ymax = end,
+    color = method,
+  )
+) +
+theme_light() +
+#facet_grid(cols = vars(method)) +
+theme(
+  #axis.text.y=element_blank(),
+  axis.line.y = element_blank(),
+  axis.ticks.y = element_blank(),
+  panel.grid.major = element_blank(),
+  panel.grid.minor = element_blank(),
+  strip.background = element_rect(fill = "grey80"),
+  strip.text = element_text(color = "grey20"),
+  legend.position = "none"
+) +
+scale_y_continuous(labels = scales::comma) +
+coord_flip() +
+ylab("Position (bp)") +
+labs(color = "# SNPs") +
+ggtitle(fa.sizes$contig[i])
+
+```

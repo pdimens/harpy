@@ -1,5 +1,5 @@
-{% set version = "0.1.0" %}
-{% set sha256 = "9e9dbfa11ca8be724019eecfa78ca1bb15d7c4cc01b4f0376bc03be4dc4b82d1" %}
+{% set version = "0.2.0" %}
+{% set sha256 = "" %}
 
 package:
   name: harpy
@@ -17,8 +17,9 @@ requirements:
   build:
   host:
   run:
-    - bwa
     - bcftools
+    - bioconductor-complexheatmap
+    - bwa
     - datamash
     - fastp
     - hapcut2
@@ -28,6 +29,7 @@ requirements:
     - multiqc
     - python >=3.7
     - r-base >=4
+    - r-circlize
     - r-dplyr
     - r-dt
     - r-ggplot2
@@ -37,6 +39,7 @@ requirements:
     - r-rmarkdown
     - r-stitch
     - r-tidyr
+    - r-viridislite
     - rich-click
     - snakemake >=7
     - sambamba

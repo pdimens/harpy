@@ -1,5 +1,5 @@
 ---
-title: "Leviathan Variant Calling Per-Sample Summary"
+title: "NAIBR Variant Calling Summary"
 author:
     - "Created using HARPY"
 date: "`r format(Sys.time(), '%d %B, %Y')`"
@@ -12,18 +12,35 @@ output:
     toc: no
 ---
 
+```{r echo = FALSE, warnings = FALSE, message = FALSE}
+infile <- snakemake@input[["bedpe"]]
+fai <- snakemake@input[["fai"]]
+#infile <- "/home/pdimens/ZS10.bedpe"
+#fai <- "/home/pdimens/assembly.fai"
+samplename <- gsub(".bedpe", "", basename(infile))
+```
+#### Sample: `r samplename`
+
+
+```{r echo = FALSE, warnings = FALSE, message = FALSE, results = 'asis'}
+variants <- read.table(infile, header = T) 
+if (nrow(variants) == 0) {
+  cat(paste0("There are no variants in the file ", "`", infile, "`"))
+  knitr::knit_exit()
+}
+```
+
 Below is a series of tables and plots detailing the structural variants
-identified by [LEVIATHAN](https://github.com/morispi/LEVIATHAN) [(preprint)](https://doi.org/10.1101/2021.03.25.437002). The variants are given by:
+identified by [NAIBR](https://github.com/pontushojer/NAIBR) [(publication)](https://doi.org/10.1093/bioinformatics/btx712).
+The variants are given by:
 
 ```{r table2, echo=FALSE, message=FALSE, warnings=FALSE, results='asis'}
 data.frame(
-  "Variant" = c("INV", "DUP", "DEL","BND"),
-  "Name" = c("Inversion", "Duplication", "Deletion", "Breakend"),
+  "Name" = c("Inversion", "Duplication", "Deletion"),
   "Description" = c(
     "a segment that broke off and reattached within the same chromosome, but in reverse orientation",
     "a type of mutation that involves the production of one or more copies of a gene or region of a chromosome",
-    "a type of mutation that involves the loss of one or more nucleotides from a segment of DNA",
-    "the endpoint of a structural variant, which can be useful to explain complex variants"
+    "a type of mutation that involves the loss of one or more nucleotides from a segment of DNA"
     )
   )
 ```
@@ -56,34 +73,70 @@ script src = "https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"
   });
 ```
 
-```{r contigSizes, echo = FALSE}
-bcf <- snakemake@input[["bcf"]]
-#bcf <- "/home/pdimens/Omega/Cornell/dmel/leviathan.bcf"
-hd <- system2("bcftools", args =  paste("head", bcf), stdout = T)
-fa.sizes <- hd[grep("contig=", hd)]
-fa.sizes <- as.data.frame(do.call(rbind, strsplit(fa.sizes, ",length="))) %>% arrange(desc(2))
-fa.sizes$V1 <- gsub("##contig=<ID=", "", fa.sizes$V1)
-fa.sizes$V2 <- as.numeric(gsub(">", "", fa.sizes$V2))
+```{r echo = FALSE, warnings = FALSE, message = FALSE}
+cleanbedpe <- function(x){
+  y <- x[x$Chr1==x$Chr2, c(-3,-10)]
+  y$Score <- round(y$Score, digits = 3)
+  y$Length <- abs(y$Break2 - y$Break1)
+  names(y)[1] <- "Contig"
+  return(y)
+}
+
+chimeric <- function(x){
+  y <- x[x$Chr1!=x$Chr2, -10]
+  y$Score <- round(y$Score, digits = 3)
+  names(y)[1] <- "Contig"
+  return(y)
+}
+```
+
+```{r echo = FALSE, warnings = FALSE, message = FALSE}
+fa.sizes <- read.table(fai, header = F) %>% arrange(desc(2))
 colnames(fa.sizes) <- c("contig", "size")
 # limit the data to only the 30 largest contigs
 fa.sizes <- fa.sizes[1:min(nrow(fa.sizes), 30), ]
 ```
 
-
 ## Various Stats {.tabset}
-### all variants
-This table details all the variants LEVIATHAN detected and the quantity/quality of evidence for those detections.
-```{r echo = FALSE, warnings = FALSE, message = FALSE, results = 'asis'}
-statsfile <- snakemake@input[["statsfile"]]
-#statsfile <- "/home/pdimens/Omega/Cornell/dmel/leviathan.stats"
-sv <- read.table(statsfile, header = T)
-if (nrow(sv) == 0) {
-  cat(paste0("There are no variants in the file ", "`", bcf, "`"))
-  knitr::knit_exit()
-}
+### interpreting output
+NAIBR outputs a tab-delimited file with named columns (along with a VCF
+and a reformatted bedpe file with extra information). The columns of the
+bedpe file are deciphered as such:
+
+| Column Name | Description |
+| :--- | :--- |
+| Chr1 | Contig name of first breakpoint |
+| Break1 | Base-pair position in `Chr1` of first breakpoint |
+| Chr2 | Contig name of second breakpoint |
+| Break2 | Base-pair position in `Chr2` of second breakpoint |
+| SplitMolecules | Number of split molecules supporting variant |
+| DiscordantReads | Number of discordant reads supporting variant |
+| Orientation | Orientation of variant relative to reference |
+| Haplotype | The haplotype of the variant |
+| Score | log-likelihood score for variant |
+| Pass filter | `PASS` if passes internal NAIBR filter threshold, otherwise `FAIL` |
+
+
+### variants
+This table details the variants detected by NAIBR that appear on a single contig/chromosome and passed the programs internal filtering.
+```{r echo = FALSE, warnings = FALSE, message = FALSE}
+sv <- variants |>cleanbedpe()
 
 DT::datatable(
-  sv,
+  sv[,-10],
+  rownames = F,
+  filter = "top",
+  extensions = 'Buttons',
+  options = list(dom = 'Brtip', buttons = c('csv'), scrollX = TRUE)
+)
+```
+### chimeric variants
+
+This table shows any structural variants whose breakpoints span multiple contigs and may require further assessment. These variants are not shown in the plots below.
+
+```{r echo = FALSE, warnings = FALSE, message = FALSE}
+DT::datatable(
+  chimeric(variants),
   rownames = F,
   filter = "top",
   extensions = 'Buttons',
@@ -92,53 +145,60 @@ DT::datatable(
 ```
 
 ### summary info
-This table shows the overall statistics for detected structural variants.
+This table shows the overall statistics for counts and lengths of detected structural variants.
 ```{r echo = FALSE, message = FALSE}
-sv$length <- gsub("\\.", "1", sv$length) %>%  as.numeric()
-
 grpstats <- sv %>%
-  group_by(contig, type) %>%
-  summarise(count = n(), total_bp  = sum(length))
+  group_by(Contig, SV) %>%
+  summarise(n = n())
+
+svlen <- sv %>% group_by(SV) %>%  summarise(mlen = mean(Length), sdlen = sd(Length))
 
 grpstats %>%
-  group_by(type) %>%
+  group_by(SV) %>%
   summarise(
-    total = sum(count),
-    avg_per_contig = mean(count),
-    sd = sd(count)
-)
+    count = sum(n),
+    avg_per_contig = round(mean(n), 2),
+    sd = round(sd(n), 2)
+) %>% 
+  mutate(avg_len = round(svlen$mlen, 2), sd_len = round(svlen$sdlen, 2))
+
 ```
 
 ### per-contig info
-This table details each type of structural variant for every contig.
+This table details how many of each type of structural variant appear in each contig.
 ```{r echo = FALSE, message = FALSE, warning = FALSE}
 grpstats <- sv %>%
-  group_by(contig, type) %>%
-  summarise(count = n(), total_bp  = sum(length))
+  group_by(Contig, SV) %>%
+  summarise(count = n(), total_bp  = sum(Length))
 
 DT::datatable(
-  grpstats, 
-  rownames = F, 
-  filter = "top", 
-  extensions = 'Buttons', 
-  options = list(dom = 'Brtip', buttons = c('csv'), scrollX = TRUE)
+  grpstats,
+  rownames = F,
+  filter = "top",
+  extensions = 'Buttons',
+  options = list(dom = 'Brtip', buttons = c('csv'), scrollX = TRUE),
+  colnames = c('Contig', 'Variant Type', 'Count', 'Total Base Pairs')
 )
 ```
 
 ---
 
-## SV size and location {.tabset}
+## Variant size and location {.tabset}
 ### Summary
-Below is a circular plot to visualize the distribution of SV across (up to) 30 of the largest contigs. This should help you assess
-the presence/absence of expected variants. For more detailed interactive plots, see the **Per-contig** tab. You may click on the plot
-to expand it.
+Below is a circular plot to visualize the distribution of structural variants 
+across (up to) 30 of the largest contigs. This should help you assess
+the presence/absence of expected variants. Note that this plot does not 
+display overlapping variants of the same type. For more detailed and
+interactive plots, see the **Per-contig** tab. Clicking the plot below
+will expand it.
 ```{r echo = FALSE, message = FALSE, warning = FALSE, fig.align='center', out.width= "100%"}
+circosplot <- function(data, sizes, plottitle){
 circos.clear()
 col_text <- "grey40"
 circos.par("track.height" = 0.8, gap.degree = 3, cell.padding = c(0, 0, 0, 0))
 circos.initialize(
-  factors = fa.sizes$contig,
-  xlim = matrix(c(rep(0, nrow(fa.sizes)), fa.sizes$size), ncol = 2)
+  factors = sizes$contig,
+  xlim = matrix(c(rep(0, nrow(sizes)), sizes$size), ncol = 2)
 )
 
 # contigs
@@ -186,7 +246,7 @@ circos.track(
 # INV
 circos.genomicTrack(
   ylim = c(0,1),
-  data = sv[sv$type == "INV", -1],
+  data = data[data$SV == "inversion",],
   track.height = 0.2,
   bg.border = F,
   panel.fun = function(region, value, ...) {
@@ -197,7 +257,7 @@ circos.genomicTrack(
 
 circos.genomicTrack(
   ylim = c(0,1),
-  data = sv[sv$type == "DEL", -1],
+  data = data[data$SV == "deletion",],
   track.height = 0.2,
   bg.border = F,
   panel.fun = function(region, value, ...) {
@@ -207,54 +267,48 @@ circos.genomicTrack(
 
 circos.genomicTrack(
   ylim = c(0,1),
-  data = sv[sv$type == "DUP", -1],
+  data = data[data$SV == "duplication",],
   track.height = 0.2,
   bg.border = F,
   panel.fun = function(region, value, ...) {
     circos.genomicRect(region, value, ybottom = 0, ytop = 1, col = "#ffd75f", border =  "#ffd75f")
   }
 )
-
-circos.genomicTrack(
-  ylim = c(0,1),
-  data = sv[sv$type == "BND", -1],
-  track.height = 0.2,
-  bg.border = F,
-  panel.fun = function(region, value, ...) {
-    circos.genomicRect(region, value, ybottom = 0, ytop = 1, col = "#df487f", border = "#df487f")
-  }
-)
+title(plottitle)
 
 lgd <- Legend(
-  at = c("Inversion", "Deletion", "Duplication", "Breakend"),
+  at = c("Inversion", "Deletion", "Duplication"),
   type = "grid",
-  legend_gp = gpar(fill = c("#4a9fea", "#5a8c84", "#ffd75f", "#df487f")),
+  legend_gp = gpar(fill = c("#4a9fea", "#5a8c84", "#ffd75f")),
   title_position = "topleft",
-  title = "Variant Types"
+  title = "Variant Type"
 )
 
-draw(lgd, x = unit(0.97, "npc"), just = c("right", "bottom"))
+draw(lgd, x = unit(0.95, "npc"), just = c("right", "bottom"))
+}
+```
+
+```{r echo=FALSE, fig.align='center', message=FALSE, warning=FALSE, out.width="100%"}
+circosplot(sv, fa.sizes, samplename)
 ```
 
 ### Per-contig
-Below are a series of plots to help you assess what structural variants were detected by LEVIATHAN. These plots are interactive,
+Below are a series of plots to help you assess what structural variants were detected by NAIBR. These plots are interactive,
 allowing you to hover over a variant to provide additional information, including the genomic interval in which it occurs and the
 number of haplotag barcodes supporting the variant.
 ```{r colors, echo = FALSE, warning = FALSE, message = FALSE}
 col.palette <- c(
-  "DEL" = "#5a8c84",
-  "DUP" = "#ffd75f",
-  "INV" = "#4a9fea",
-  "BND" = "#df487f"
+  "deletion" = "#5a8c84",
+  "duplication" = "#ffd75f",
+  "inversion" = "#4a9fea"
   )
-
 ```
 
 ```{r echo = FALSE, out.width = '100%', warning=FALSE}
 l <- htmltools::tagList()
 for (i in 1:nrow(fa.sizes)) {
-  sv.filt <- sv %>% filter(contig == fa.sizes$contig[i])
-  sv_stats <- group_by(sv.filt, type) %>% summarise(n = length(type))
+  sv.filt <- sv %>% filter(Contig == fa.sizes$contig[i])
+  sv_stats <- group_by(sv.filt, SV) %>% summarise(n = length(SV))
   if (nrow(sv_stats) == 0) {
     next
   }
@@ -263,17 +317,17 @@ for (i in 1:nrow(fa.sizes)) {
     geom_rect(
       alpha = 0.7,
       aes(
-        xmin = position_start,
-        xmax = position_end,
+        xmin = Break1,
+        xmax = Break2,
         ymin = 0,
         ymax = 1,
-        fill = type,
-        color = type,
-        text = sprintf("Type: %s<br>Position: %s-%s<br>barcodes: %s", type, position_start, position_end, n_barcodes)
+        fill = SV,
+        color = SV,
+        text = sprintf("Type: %s<br>Position: %s-%s<br>barcodes: %s", SV, Break1, Break2, SplitMolecules)
       )
     ) +
     theme_light() +
-    facet_grid(rows = vars(type)) +
+    facet_grid(rows = vars(SV)) +
     theme(
       axis.text.y=element_blank(),
       axis.line.y = element_blank(),
@@ -295,3 +349,4 @@ for (i in 1:nrow(fa.sizes)) {
 }
 l
 ```
+

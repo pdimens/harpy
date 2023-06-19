@@ -1,25 +1,24 @@
 import os
 
-seq_dir = config["seq_directory"]
-nbins = config["EMA_bins"]
-genomefile = config["genomefile"]
-Rsep = config["Rsep"]
-fqext = config["fqext"]
+seq_dir 	= config["seq_directory"]
+nbins 		= config["EMA_bins"]
+genomefile 	= config["genomefile"]
+Rsep 		= config["Rsep"]
+fqext 		= config["fqext"]
 samplenames = config["samplenames"]
-extra = config.get("extra", "") 
-
-bn = os.path.basename(genomefile)
+extra 		= config.get("extra", "") 
+bn 			= os.path.basename(genomefile)
+outdir      = "Align/ema"
 
 rule create_reports:
 	input: 
-		expand("Alignments/ema/{sample}.bam", sample = samplenames),
-		expand("Alignments/ema/{sample}.bam.bai", sample = samplenames),
-		expand("Alignments/ema/stats/moleculesize/{sample}.{ext}", sample = samplenames, ext = ["molsize", "molsize.hist"]),
-		expand("Alignments/ema/stats/readsperbx/{sample}.readsperbx", sample = samplenames),
-		expand("Alignments/ema/stats/coverage/{sample}.cov.html", sample = samplenames),
-		"Alignments/ema/stats/reads.bxstats.html",
-		"Alignments/ema/stats/samtools_stats/alignment.stats.html",
-		"Alignments/ema/stats/samtools_flagstat/alignment.flagstat.html"
+		expand(outdir + "/{sample}.bam", sample = samplenames),
+		expand(outdir + "/{sample}.bam.bai", sample = samplenames),
+		expand(outdir + "/stats/BXstats/{sample}.bxstats.html", sample = samplenames),
+		expand(outdir + "/stats/coverage/{sample}.cov.html", sample = samplenames),
+		outdir + "/stats/reads.bxcounts.html",
+		outdir + "/stats/samtools_stats/alignment.stats.html",
+		outdir + "/stats/samtools_flagstat/alignment.flagstat.html"
 	message:
 		"Read mapping completed!"
 	benchmark:
@@ -82,8 +81,8 @@ rule count_beadtags:
 		forward_reads = seq_dir + "/{sample}" + f".{Rsep[0]}.{fqext}",
 		reverse_reads = seq_dir + "/{sample}" + f".{Rsep[1]}.{fqext}"
 	output: 
-		counts = "Alignments/ema/count/{sample}.ema-ncnt",
-		logs = temp("Alignments/ema/count/logs/{sample}.count.log")
+		counts = outdir + "/count/{sample}.ema-ncnt",
+		logs   = temp(outdir + "/count/logs/{sample}.count.log")
 	wildcard_constraints:
 		sample = "[a-zA-Z0-9_-]*"
 	message:
@@ -91,16 +90,16 @@ rule count_beadtags:
 	benchmark:
 		"Benchmark/Mapping/ema/Count.{sample}.txt"
 	params:
-		prefix = lambda wc: "Alignments/ema/count/" + wc.get("sample")
+		prefix = lambda wc: outdir + "/count/" + wc.get("sample")
 	threads: 1
 	shell:
 		"seqfu interleave -1 {input.forward_reads} -2 {input.reverse_reads} | ema-h count -p -o {params} 2> {output.logs}"
 
 rule beadtag_summary:
 	input: 
-		countlog = expand("Alignments/ema/count/logs/{sample}.count.log", sample = samplenames)
+		countlog = expand(outdir + "/count/logs/{sample}.count.log", sample = samplenames)
 	output:
-		"Alignments/ema/stats/reads.bxstats.html"
+		outdir + "/stats/reads.bxcounts.html"
 	message:
 		"Creating sample barcode validation report"
 	benchmark:
@@ -112,32 +111,33 @@ rule preprocess_ema:
 	input: 
 		forward_reads = seq_dir + "/{sample}" + f".{Rsep[0]}.{fqext}",
 		reverse_reads = seq_dir + "/{sample}" + f".{Rsep[1]}.{fqext}",
-		emacounts = "Alignments/ema/count/{sample}.ema-ncnt"
+		emacounts     = outdir + "/count/{sample}.ema-ncnt"
 	output: 
-		bins = temp(expand("Alignments/ema/preproc/{{sample}}/ema-bin-{bin}", bin = ["%03d" % i for i in range(nbins)])),
-		unbarcoded = temp("Alignments/ema/preproc/{sample}/ema-nobc")
+		bins       	  = temp(expand(outdir + "/preproc/{{sample}}/ema-bin-{bin}", bin = ["%03d" % i for i in range(nbins)])),
+		unbarcoded    = temp(outdir + "/preproc/{sample}/ema-nobc")
 	wildcard_constraints:
 		sample = "[a-zA-Z0-9_-]*"
 	log:
-		"Alignments/ema/preproc/logs/{sample}.preproc.log"
+		outdir + "/preproc/logs/{sample}.preproc.log"
 	message:
 		"Preprocessing for EMA mapping: {wildcards.sample}"
 	benchmark:
 		"Benchmark/Mapping/ema/Preproc.{sample}.txt"
-	threads: 2
+	threads:
+		2
 	params:
-		outdir = lambda wc: "Alignments/ema/preproc/" + wc.get("sample"),
-		bins = nbins
+		outdir = lambda wc: outdir + "/preproc/" + wc.get("sample"),
+		bins   = nbins
 	shell:
 		"seqfu interleave -1 {input.forward_reads} -2 {input.reverse_reads} | ema-h preproc -p -n {params.bins} -t {threads} -o {params.outdir} {input.emacounts} 2>&1 | cat - > {log}"
 
 rule align_ema:
 	input:
-		readbin = "Alignments/ema/preproc/{sample}/ema-bin-{bin}",
-		genome = f"Assembly/{bn}",
+		readbin    = outdir + "/preproc/{sample}/ema-bin-{bin}",
+		genome 	   = f"Assembly/{bn}",
 		genome_idx = multiext(f"Assembly/{bn}", ".ann", ".bwt", ".fai", ".pac", ".sa", ".amb")
 	output:
-		temp("Alignments/ema/align/{sample}/{sample}.{bin}.bam")
+		alignment  = temp(outdir + "/align/{sample}/{sample}.{bin}.bam")
 	wildcard_constraints:
 		sample = "[a-zA-Z0-9_-]*"
 	message:
@@ -158,11 +158,11 @@ rule align_ema:
 
 rule align_nobarcode:
 	input:
-		reads = "Alignments/ema/preproc/{sample}/ema-nobc",
-		genome = f"Assembly/{bn}",
+		reads      = outdir + "/preproc/{sample}/ema-nobc",
+		genome 	   = f"Assembly/{bn}",
 		genome_idx = multiext(f"Assembly/{bn}", ".ann", ".bwt", ".fai", ".pac", ".sa", ".amb")
 	output: 
-		samfile = temp("Alignments/ema/align/{sample}/{sample}.nobarcode.bam.tmp")
+		samfile    = temp(outdir + "/align/{sample}/{sample}.nobarcode.bam.tmp")
 	benchmark:
 		"Benchmark/Mapping/ema/bwaAlign.{sample}.txt"
 	wildcard_constraints:
@@ -182,14 +182,14 @@ rule align_nobarcode:
 
 rule markduplicates:
 	input:
-		"Alignments/ema/align/{sample}/{sample}.nobarcode.bam.tmp"
+		bam      = outdir + "/align/{sample}/{sample}.nobarcode.bam.tmp"
 	output: 
-		bam = temp("Alignments/ema/align/{sample}/{sample}.nobarcode.bam"),
-		bai = temp("Alignments/ema/align/{sample}/{sample}.nobarcode.bam.bai")
+		bam      = temp(outdir + "/align/{sample}/{sample}.nobarcode.bam"),
+		bai      = temp(outdir + "/align/{sample}/{sample}.nobarcode.bam.bai")
 	log: 
-		mdlog = "Alignments/ema/stats/markduplicates/{sample}.markdup.nobarcode.log",
-		stats = "Alignments/ema/stats/samtools_stats/{sample}.nobarcode.stats",
-		flagstat = "Alignments/ema/stats/samtools_flagstat/{sample}.nobarcode.flagstat"
+		mdlog    = outdir + "/stats/markduplicates/{sample}.markdup.nobarcode.log",
+		stats    = outdir + "/stats/samtools_stats/{sample}.nobarcode.stats",
+		flagstat = outdir + "/stats/samtools_flagstat/{sample}.nobarcode.flagstat"
 	wildcard_constraints:
 		sample = "[a-zA-Z0-9_-]*"
 	message:
@@ -206,10 +206,10 @@ rule markduplicates:
 
 rule merge_barcoded:
 	input:
-		aln_barcoded = expand("Alignments/ema/align/{{sample}}/{{sample}}.{bin}.bam", bin = ["%03d" % i for i in range(nbins)]),
+		aln_barcoded = expand(outdir + "/align/{{sample}}/{{sample}}.{bin}.bam", bin = ["%03d" % i for i in range(nbins)]),
 	output: 
-		bam = temp("Alignments/ema/align/barcoded/{sample}.barcoded.sec.bam"),
-		bai = temp("Alignments/ema/align/barcoded/{sample}.barcoded.sec.bam.bai")
+		bam 		 = temp(outdir + "/align/barcoded/{sample}.barcoded.bam"),
+		bai 		 = temp(outdir + "/align/barcoded/{sample}.barcoded.bam.bai")
 	wildcard_constraints:
 		sample = "[a-zA-Z0-9_-]*"
 	message:
@@ -220,27 +220,27 @@ rule merge_barcoded:
 	shell:
 		"sambamba merge -t {threads} -l 4 {output.bam} {input} 2> /dev/null"
 
-rule secondary2split:
-	input:
-		bam = "Alignments/ema/align/barcoded/{sample}.barcoded.sec.bam",
-		bai = "Alignments/ema/align/barcoded/{sample}.barcoded.sec.bam.bai"
-	output:
-		bam = temp("Alignments/ema/align/barcoded/{sample}.barcoded.bam"),
-		bai = temp("Alignments/ema/align/barcoded/{sample}.barcoded.bam.bai")
-	wildcard_constraints:
-		sample = "[a-zA-Z0-9_-]*"
-	message:
-		"Converting Secondary SAM flags to Split flags: {wildcards.sample}"
-	shell:
-		"secondary2split.py {input.bam} {output.bam}"
+#rule secondary2split:
+#	input:
+#		bam = outdir + "/align/barcoded/{sample}.barcoded.sec.bam",
+#		bai = outdir + "/align/barcoded/{sample}.barcoded.sec.bam.bai"
+#	output:
+#		bam = temp(outdir + "/align/barcoded/{sample}.barcoded.bam"),
+#		bai = temp(outdir + "/align/barcoded/{sample}.barcoded.bam.bai")
+#	wildcard_constraints:
+#		sample = "[a-zA-Z0-9_-]*"
+#	message:
+#		"Converting Secondary SAM flags to Split flags: {wildcards.sample}"
+#	shell:
+#		"secondary2split.py {input.bam} {output.bam}"
 
 rule bcstats:
 	input: 
-		bam = "Alignments/ema/align/barcoded/{sample}.barcoded.bam",
-		bai = "Alignments/ema/align/barcoded/{sample}.barcoded.bam.bai"
+		bam      = outdir + "/align/barcoded/{sample}.barcoded.bam",
+		bai      = outdir + "/align/barcoded/{sample}.barcoded.bam.bai"
 	log:
-		stats = "Alignments/ema/stats/samtools_stats/{sample}.barcoded.stats",
-		flagstat = "Alignments/ema/stats/samtools_flagstat/{sample}.barcoded.flagstat"
+		stats    = outdir + "/stats/samtools_stats/{sample}.barcoded.stats",
+		flagstat = outdir + "/stats/samtools_flagstat/{sample}.barcoded.flagstat"
 	wildcard_constraints:
 		sample = "[a-zA-Z0-9_-]*"
 	message:
@@ -255,13 +255,13 @@ rule bcstats:
 
 rule alignment_coverage:
 	input: 
-		bed = f"Assembly/{bn}.bed",
-		nobx = "Alignments/ema/align/{sample}/{sample}.nobarcode.bam",
-		nobxbai = "Alignments/ema/align/{sample}/{sample}.nobarcode.bam.bai",
-		bx = "Alignments/ema/align/barcoded/{sample}.barcoded.bam",
-		bxbai = "Alignments/ema/align/barcoded/{sample}.barcoded.bam.bai"
+		bed     = f"Assembly/{bn}.bed",
+		nobx    = outdir + "/align/{sample}/{sample}.nobarcode.bam",
+		nobxbai = outdir + "/align/{sample}/{sample}.nobarcode.bam.bai",
+		bx      = outdir + "/align/barcoded/{sample}.barcoded.bam",
+		bxbai   = outdir + "/align/barcoded/{sample}.barcoded.bam.bai"
 	output: 
-		"Alignments/ema/stats/coverage/data/{sample}.cov.gz"
+		outdir + "/stats/coverage/data/{sample}.cov.gz"
 	message:
 		"Calculating genomic coverage: {wildcards.sample}"
 	threads: 2
@@ -270,62 +270,23 @@ rule alignment_coverage:
 
 rule gencovBX_report:
 	input: 
-		gencov = "Alignments/ema/stats/coverage/data/{sample}.cov.gz",
+		outdir + "/stats/coverage/data/{sample}.cov.gz",
 	output:
-		"Alignments/ema/stats/coverage/{sample}.cov.html"
+		outdir + "/stats/coverage/{sample}.cov.html"
 	message:
 		"Creating report of alignment coverage: {wildcards.sample}"
 	script:
-		"reportGencov.Rmd"
-
-rule BEDconvert:
-	input:
-		"Alignments/ema/align/barcoded/{sample}.barcoded.bam"
-	output: 
-		unfilt = temp("Alignments/ema/bedfiles/{sample}.all.bed"),
-		bx = temp("Alignments/ema/bedfiles/{sample}.bx.bed")
-	message:
-		"Converting to BED format: {wildcards.sample}"
-	wildcard_constraints:
-		sample = "[a-zA-Z0-9_-]*"
-	params: lambda wc: "Alignments/ema/align/" + wc.get("sample") + "/" + wc.get("sample") + ".all.bed"
-	threads: 1
-	shell:
-		"""
-		writeBED.pl {input} {output.unfilt}
-		# mv {params} {output.unfilt}
-		awk '!($4~/A00|B00|C00|D00/)' {output.unfilt} > {output.bx}
-		"""
-
-rule BX_stats:
-	input:
-		"Alignments/ema/bedfiles/{sample}.bx.bed"
-	output:	
-		molsize = "Alignments/ema/stats/moleculesize/{sample}.molsize",
-		molhist = "Alignments/ema/stats/moleculesize/{sample}.molsize.hist",
-		readsper = "Alignments/ema/stats/readsperbx/{sample}.readsperbx"
-	message: 
-		"Calculating molecule size, reads per molecule: {wildcards.sample}"
-	wildcard_constraints:
-		sample = "[a-zA-Z0-9_-]*"
-	threads: 1
-	shell:
-		"""
-		cut -f10 {input} | datamash -s groupby 1 count 1 | sort -k 1 -n > {output.readsper}
-		awk '{{ print $1"\\t"$2"\\t"$3"\\t"$3-$2"\\t"$4"\\t"$10 }}' {input} | sort -k 4 -n > {output.molsize}
-		cut -f4 {output.molsize} | datamash bin:1000 1 | datamash -s groupby 1 count 1 | sort -k 1 -n > {output.molhist}
-		# datamash groupby 1,5 min 2 max 3 < {output.molsize} | awk '{{ print $1"\\t"$2"\\t"$4-$3 }}' > 
-		"""
+		"reportEmaGencov.Rmd"
 
 rule merge_alignments:
 	input:
-		aln_barcoded = "Alignments/ema/align/barcoded/{sample}.barcoded.bam",
-		idx_barcoded = "Alignments/ema/align/barcoded/{sample}.barcoded.bam.bai",
-		aln_nobarcode = "Alignments/ema/align/{sample}/{sample}.nobarcode.bam",
-		idx_nobarcode = "Alignments/ema/align/{sample}/{sample}.nobarcode.bam.bai"
+		aln_barcoded  = outdir + "/align/barcoded/{sample}.barcoded.bam",
+		idx_barcoded  = outdir + "/align/barcoded/{sample}.barcoded.bam.bai",
+		aln_nobarcode = outdir + "/align/{sample}/{sample}.nobarcode.bam",
+		idx_nobarcode = outdir + "/align/{sample}/{sample}.nobarcode.bam.bai"
 	output: 
-		bam = temp("Alignments/ema/align/{sample}.unsort.bam"),
-		bai = temp("Alignments/ema/align/{sample}.unsort.bam.bai")
+		bam 		  = temp(outdir + "/align/{sample}.unsort.bam"),
+		bai 		  = temp(outdir + "/align/{sample}.unsort.bam.bai")
 	wildcard_constraints:
 		sample = "[a-zA-Z0-9_-]*"
 	message:
@@ -338,10 +299,10 @@ rule merge_alignments:
 
 rule sort_merge:
 	input:
-		bam = "Alignments/ema/align/{sample}.unsort.bam",
+		bam    = outdir + "/align/{sample}.unsort.bam",
 		genome = f"Assembly/{bn}"
 	output:
-		"Alignments/ema/{sample}.bam"
+		outdir + "/{sample}.bam"
 	message:
 		"Sorting merged barcoded alignments: {wildcards.sample}"
 	wildcard_constraints:
@@ -353,9 +314,9 @@ rule sort_merge:
 
 rule index_alignments:
 	input: 
-		"Alignments/ema/{sample}.bam"
+		outdir + "/{sample}.bam"
 	output:
-		"Alignments/ema/{sample}.bam.bai"
+		outdir + "/{sample}.bam.bai"
 	message:
 		"Indexing: {input}"
 	benchmark:
@@ -365,13 +326,40 @@ rule index_alignments:
 	shell:
 		"sambamba index {input} {output} 2> /dev/null"
 
-rule alignment_stats:
+rule alignment_bxstats:
+	input:
+		bam = outdir + "/{sample}.bam",
+		bai = outdir + "/{sample}.bam.bai"
+	output: 
+		outdir + "/stats/BXstats/data/{sample}.bxstats.gz"
+	message:
+		"Calculating barcode alignment statistics: {wildcards.sample}"
+	wildcard_constraints:
+		sample = "[a-zA-Z0-9_-]*"
+	threads: 1
+	shell:
+		"bxStats.py {input.bam} > {output}"
+
+rule bx_stats_report:
+	input:
+		outdir + "/stats/BXstats/data/{sample}.bxstats.gz"
+	output:	
+		outdir + "/stats/BXstats/{sample}.bxstats.html"
+	message: 
+		"Generating summary of barcode alignment: {wildcards.sample}"
+	wildcard_constraints:
+		sample = "[a-zA-Z0-9_-]*"
+	threads: 1
+	script:
+		"reportBxStats.Rmd"
+
+rule general_alignment_stats:
 	input: 		
-		bam = "Alignments/ema/{sample}.bam",
-		bai = "Alignments/ema/{sample}.bam.bai"
+		bam      = outdir + "/{sample}.bam",
+		bai      = outdir + "/{sample}.bam.bai"
 	output:
-		stats = "Alignments/ema/stats/samtools_stats/{sample}.stats",
-		flagstat = "Alignments/ema/stats/samtools_flagstat/{sample}.flagstat"
+		stats    = outdir + "/stats/samtools_stats/{sample}.stats",
+		flagstat = outdir + "/stats/samtools_flagstat/{sample}.flagstat"
 	message:
 		"Calculating alignment stats: {wildcards.sample}"
 	benchmark:
@@ -386,16 +374,28 @@ rule alignment_stats:
 
 rule samtools_reports:
 	input: 
-		expand("Alignments/ema/stats/samtools_{ext}/{sample}.{ext}", sample = samplenames, ext = ["stats", "flagstat"]),
+		expand(outdir + "/stats/samtools_{ext}/{sample}.{ext}", sample = samplenames, ext = ["stats", "flagstat"]),
 	output: 
-		stats =    "Alignments/ema/stats/samtools_stats/alignment.stats.html",
-		flagstat = "Alignments/ema/stats/samtools_flagstat/alignment.flagstat.html"
+		stats    = outdir + "/stats/samtools_stats/alignment.stats.html",
+		flagstat = outdir + "/stats/samtools_flagstat/alignment.flagstat.html"
 	message:
 		"Summarizing samtools stats and flagstats"
 	benchmark:
 		"Benchmark/Mapping/ema/report.txt"
 	shell:
 		"""
-		multiqc Alignments/ema/stats/samtools_stats    --force --quiet --no-data-dir --filename {output.stats} 2> /dev/null
-		multiqc Alignments/ema/stats/samtools_flagstat --force --quiet --no-data-dir --filename {output.flagstat} 2> /dev/null
+		multiqc Align/ema/stats/samtools_stats    --force --quiet --no-data-dir --filename {output.stats} 2> /dev/null
+		multiqc Align/ema/stats/samtools_flagstat --force --quiet --no-data-dir --filename {output.flagstat} 2> /dev/null
 		"""
+
+#with open(f"{outdir}/logs/align-ema.params", "w") as f:
+#	_ = f.write("The harpy align module ran using these parameters:\n\n")
+#	_ = f.write("## ema ##\n")
+#	_ = f.write("ema-h count -p\n")
+#	_ = f.write(f"ema-h preproc -p -n {nbins}\n")
+#	_ = f.write("ema-h align " + extra + " -d -p haptag -R \"@RG\\tID:SAMPLE\\tSM:SAMPLE\" |\n")
+#	_ = f.write("samtools view -h -F 4 -q " + str(config["quality"]) + " - |\n") 
+#	_ = f.write("samtools sort --reference genome -m 4G\n\n")
+#	_ = f.write("## bwa ##\n")
+#	_ = f.write("bwa mem -C -R \"@RG\\tID:SAMPLE\\tSM:SAMPLE\" genome forward_reads reverse_reads |\n")
+#	_ = f.write("sambamba markdup -l 0")

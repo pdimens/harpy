@@ -98,7 +98,14 @@ if(sum(.dpL) == 0){
 if(sum(.dpL) == 0){
   cat(paste0("No DP section in", snakemake@input[[1]], " found\n"))
 } else {
-  DT::datatable(dp, rownames = F, filter = "top", extensions = 'Buttons', options = list(dom = 'Brtip', buttons = c('csv')))
+  DT::datatable(
+    dp,
+    rownames = F,
+    filter = "top",
+    extensions = 'Buttons',
+    options = list(dom = 'Brtip', buttons = c('csv')),
+    colnames = c("Bin", "Genotypes", "% Genotypes", "Sites", "% Sites")
+    )
 }
 ```
 

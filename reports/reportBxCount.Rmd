@@ -35,12 +35,13 @@ is that the `BX:Z` tag can be anywhere in the read header after the sequence ID 
 
 ### Table
 Below is a table listing all the samples Harpy processed and their associated barcode statistics as
-determined by `EMA count`. If `BarcodeTotal` equals `0` for some reason, then there may be an issue
+determined by the reads in the **forward read only**. If `BarcodeTotal` equals `0` for some reason, then there may be an issue
 with the format of your FASTQ headers.
 
 ```{r echo = FALSE, message = FALSE, warning = FALSE}
 BXstats <- data.frame(
   Sample = character(),
+  TotalReads = integer(),
   ReadsIgnored = integer(),
   BarcodeValid = integer(),
   BarcodeTotal = integer(),
@@ -48,33 +49,51 @@ BXstats <- data.frame(
   PercentIgnored = numeric()
 )
 
-#for (i in list.files("/home/pdimens", "count.log", full.names = TRUE)) {
+invalids <- data.frame(
+  Sample = character(),
+  A = integer(),
+  C = integer(),
+  B = integer(),
+  D = integer()
+)
+
+#for (i in c("~/stats.1.count.log", "~/stats.2.count.log")) {
 for (i in snakemake@input[["countlog"]]) {
   samplename <- gsub(".count.log", "", basename(i))
-  filetext <- readLines(i)
-  bc_line <- gsub(",", "", filetext[2])
-  matches <- gregexpr("[0-9]+", bc_line)
-  counts <- as.numeric(unlist(regmatches(bc_line, matches)))
-  bc_ok <- counts[1]
-  bc_total <- counts[2]
-  ignored <- as.numeric(gsub("[^0-9]", "", filetext[3]))
+  s_df <- read.table(i, header = F)
+  total <- s_df$V2[1]
+  bc_total <- s_df$V2[2]
+  bc_ok <- s_df$V2[3]
+  bc_invalid <- s_df$V2[4]
   if (bc_total == 0) {
     bc_percent <- 0
     ig_percent <- 0
   } else {
     bc_percent <- trunc((bc_ok / bc_total) * 10000) / 100
-    ig_percent <- trunc((ignored / bc_total) * 10000) / 100
+    ig_percent <- trunc((bc_invalid / bc_total) * 10000) / 100
   }
 
   BXstats <- rbind(
     BXstats,
     data.frame(
       Sample = samplename,
-      ReadsIgnored = ignored,
+      TotalReads = total,
+      BarcodePresent = bc_total,
       BarcodeValid = bc_ok,
-      BarcodeTotal = bc_total,
       PercentValid = bc_percent,
-      PercentIgnored = ig_percent)
+      BarcodeInvalid = bc_invalid,
+      PercentInvalid = ig_percent
+      )
+  )
+  invalids <- rbind(
+    invalids,
+    data.frame(
+      Sample = samplename,
+      A = s_df$V2[5],
+      C = s_df$V2[6],
+      B = s_df$V2[7],
+      D = s_df$V2[8]
+    )
   )
 }
 DT::datatable(
@@ -90,21 +109,36 @@ DT::datatable(
 )
 ```
 
+### Invalid by Segment
+This table details the count of invalid beadtag segments across all **forward reads** within a sample.
+This can help you diagnose if any beadtag segments in your experimental design have a higher incidence
+of failure than others.
+```{r echo = FALSE, message = FALSE, warning = FALSE}
+DT::datatable(
+  invalids,
+  rownames = FALSE,
+  extensions = "Buttons",
+  options = list(
+    dom = "Brtip",
+    buttons = c("csv"),
+    scrollX = TRUE
+  )
+)
+```
+
 ### Per Sample Plot
 Below is a plot summarizing the number of valid vs invalid barcodes per sample.
 
 ```{r echo = FALSE, message = FALSE, warning = FALSE}
 plotdata <- BXstats %>%
-  mutate(Invalid = BarcodeTotal - BarcodeValid) %>%
-  rename(Valid = BarcodeValid) %>%
-  select(Sample, Valid, Invalid)
+  select(Sample, BarcodeValid, BarcodeInvalid) %>% 
+  rename(Valid = BarcodeValid, Invalid = BarcodeInvalid)
 
 percdata <- BXstats %>%
-  mutate(Valid = round(BarcodeValid / BarcodeTotal * 100, 2)) %>%
-  mutate(Invalid = 100.0 - Valid) %>%
-  select(Sample, Valid, Invalid)
+  select(Sample, PercentValid, PercentInvalid) %>% 
+  rename(Valid= PercentValid, Invalid = PercentInvalid)
 
-pltheight <- 50 * length(unique(plotdata$Sample))
+pltheight <- max(50 * length(unique(plotdata$Sample)), 300)
 ```
 
 ```{r echo = FALSE, message = FALSE, warning = FALSE, out.width = '100%'}
