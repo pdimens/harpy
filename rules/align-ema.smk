@@ -93,7 +93,7 @@ rule count_beadtags:
 		prefix = lambda wc: outdir + "/count/" + wc.get("sample")
 	threads: 1
 	shell:
-		"seqfu interleave -1 {input.forward_reads} -2 {input.reverse_reads} | ema-h count -p -o {params} 2> {output.logs}"
+		"seqfu interleave -1 {input.forward_reads} -2 {input.reverse_reads} | ema count -p -o {params} 2> {output.logs}"
 
 rule beadtag_summary:
 	input: 
@@ -129,7 +129,7 @@ rule preprocess_ema:
 		outdir = lambda wc: outdir + "/preproc/" + wc.get("sample"),
 		bins   = nbins
 	shell:
-		"seqfu interleave -1 {input.forward_reads} -2 {input.reverse_reads} | ema-h preproc -p -n {params.bins} -t {threads} -o {params.outdir} {input.emacounts} 2>&1 | cat - > {log}"
+		"seqfu interleave -1 {input.forward_reads} -2 {input.reverse_reads} | ema preproc -p -n {params.bins} -t {threads} -o {params.outdir} {input.emacounts} 2>&1 | cat - > {log}"
 
 rule align_ema:
 	input:
@@ -151,7 +151,7 @@ rule align_ema:
 	shell:
 		"""
 		EMATHREADS=$(( {threads} - 2 ))
-		ema-h align -t $EMATHREADS {params.extra} -d -p haptag -r {input.genome} -R \"@RG\\tID:{wildcards.sample}\\tSM:{wildcards.sample}\" -s {input.readbin} 2> /dev/null |
+		ema align -t $EMATHREADS {params.extra} -d -p haptag -r {input.genome} -R \"@RG\\tID:{wildcards.sample}\\tSM:{wildcards.sample}\" -s {input.readbin} 2> /dev/null |
 		samtools view -h -F 4 -q {params.quality} - | 
 		samtools sort --reference {input.genome} -O bam -m 4G -o {output} - 2> /dev/null
 		"""
@@ -391,9 +391,9 @@ rule samtools_reports:
 #with open(f"{outdir}/logs/align-ema.params", "w") as f:
 #	_ = f.write("The harpy align module ran using these parameters:\n\n")
 #	_ = f.write("## ema ##\n")
-#	_ = f.write("ema-h count -p\n")
-#	_ = f.write(f"ema-h preproc -p -n {nbins}\n")
-#	_ = f.write("ema-h align " + extra + " -d -p haptag -R \"@RG\\tID:SAMPLE\\tSM:SAMPLE\" |\n")
+#	_ = f.write("ema count -p\n")
+#	_ = f.write(f"ema preproc -p -n {nbins}\n")
+#	_ = f.write("ema align " + extra + " -d -p haptag -R \"@RG\\tID:SAMPLE\\tSM:SAMPLE\" |\n")
 #	_ = f.write("samtools view -h -F 4 -q " + str(config["quality"]) + " - |\n") 
 #	_ = f.write("samtools sort --reference genome -m 4G\n\n")
 #	_ = f.write("## bwa ##\n")

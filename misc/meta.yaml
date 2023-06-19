@@ -21,8 +21,10 @@ requirements:
     - bioconductor-complexheatmap
     - bwa
     - datamash
+    - ema >= 0.7
     - fastp
     - hapcut2
+    - naibr-plus
     - libzlib
     - leviathan
     - llvm-openmp 

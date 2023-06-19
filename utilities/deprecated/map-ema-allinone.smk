@@ -56,7 +56,7 @@ rule ema_count:
 	threads: 1
 	shell:
 		"""
-		emaInterleave {input.forward_reads} {input.reverse_reads} | ema-h count -p -o {params} 2> {log}
+		emaInterleave {input.forward_reads} {input.reverse_reads} | ema count -p -o {params} 2> {log}
 		"""
 
 rule ema_preprocess:
@@ -77,7 +77,7 @@ rule ema_preprocess:
 		bins = nbins
 	shell:
 		"""
-		emaInterleave {input.forward_reads} {input.reverse_reads} | ema-h preproc -p -b -n {params.bins} -t {threads} -o {params.outdir} {input.emacounts} 2>&1 {log}
+		emaInterleave {input.forward_reads} {input.reverse_reads} | ema preproc -p -b -n {params.bins} -t {threads} -o {params.outdir} {input.emacounts} 2>&1 {log}
 		"""
 
 rule ema_align:
