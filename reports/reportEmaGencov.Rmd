@@ -160,7 +160,7 @@ contigs <- group_by(Lnonoutliers, contig) %>%
 if (nrow(contigs) > 30) {
     pltheight <- 45
     .contigs <- contigs[1:30, ]
-    .gencov <- filter(Lnonoutliers, contig %in% .contigs$contig) %>% 
+    .gencov <- filter(Lnonoutliers, contig %in% .contigs$contig) %>%
       filter(alignment != "all")
 } else {
     pltheight <- round(1.5 * (nrow(contigs)), digits = 0)

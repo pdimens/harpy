@@ -115,7 +115,7 @@ contigs <- group_by(gencov, contig) %>%
 if (nrow(contigs) > 30){
     pltheight <- 45
     .contigs <- contigs[1:30, ]
-    .gencov <- filter(gencov, contig %in% .contigs)
+    .gencov <- filter(gencov, contig %in% .contigs$contig)
 } else {
     pltheight <- round(1.5 * (nrow(contigs)), digits = 0)
     .gencov <- gencov
