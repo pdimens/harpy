@@ -205,11 +205,12 @@ rule samtools_reports:
 		"""
 
 
-with open(f"{outdir}/logs/align-bwa.params", "w") as f:
-	_ = f.write("The harpy align module ran using these parameters:\n\n")
-	_ = f.write("## Aligning ##\n")
-	_ = f.write("bwa mem -C " + extra + " -R \"@RG\\tID:SAMPLE\\tSM:SAMPLE\" genome forward_reads reverse_reads |\n")
-	_ = f.write("samtools view -h -q " + str(config["quality"]) + " |\n")
-	_ = f.write("samtools sort -T SAMPLE --reference genome -m 4G\n\n")
-	_ = f.write("## Marking Duplicates ##\n")
-	_ = f.write("sambamba markdup -l 0")
+#with open(f"{outdir}/logs/align-bwa.params", "w") as f:
+#	_ = f.write("The harpy align module ran using these parameters:\n\n")
+#	_ = f.write("## Aligning ##\n")
+#	_ = f.write("bwa mem -C " + extra + " -R \"@RG\\tID:SAMPLE\\tSM:SAMPLE\" genome forward_reads reverse_reads |\n")
+#	_ = f.write("samtools view -h -q " + str(config["quality"]) + " |\n")
+#	_ = f.write("samtools sort -T SAMPLE --reference genome -m 4G\n\n")
+#	_ = f.write("## Marking Duplicates ##\n")
+#	_ = f.write("sambamba markdup -l 0")
+#

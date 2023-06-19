@@ -64,6 +64,6 @@ rule createReport:
 	shell: 
 		"multiqc Trim/logs/json -m fastp --force --filename {output} --quiet --no-data-dir 2>/dev/null"
 
-with open("Trim/logs/trim.params", "w") as f:
-	_ = f.write("The harpy trim module ran using these parameters:\n\n")
-	_ = f.write("fastp --trim_poly_g --cut_right --detect_adapter_for_pe" + extra)
+#with open("Trim/logs/trim.params", "w") as f:
+#	_ = f.write("The harpy trim module ran using these parameters:\n\n")
+#	_ = f.write("fastp --trim_poly_g --cut_right --detect_adapter_for_pe" + extra)

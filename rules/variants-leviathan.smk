@@ -143,7 +143,7 @@ rule all_bcfs:
         "Variant calling is complete!"
 
 
-with open(f"{outdir}/logs/variants.params", "w") as f:
-	_ = f.write("LRez index bam -p -b INPUT\n")
-	_ = f.write("LEVIATHAN -b INPUT -i INPUT.BCI " + extra + " -g GENOME\n")
-	_ = f.write("bcftools sort")
+#with open(f"{outdir}/logs/variants.params", "w") as f:
+#	_ = f.write("LRez index bam -p -b INPUT\n")
+#	_ = f.write("LEVIATHAN -b INPUT -i INPUT.BCI " + extra + " -g GENOME\n")
+#	_ = f.write("bcftools sort")
