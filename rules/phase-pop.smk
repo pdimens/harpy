@@ -155,6 +155,8 @@ rule mergeAnnotations:
         outdir + "/annotations_merge/{sample}.phased.annot.bcf"
     message:
         "Merging annotations: {wildcards.sample}"
+    threads:
+        2
     benchmark:
         "Benchmark/Phase/mergeAnno.{sample}.txt"
     shell:
