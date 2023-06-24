@@ -4,7 +4,7 @@
 [![Anaconda-Server Badge](https://anaconda.org/bioconda/harpy/badges/platforms.svg)](https://anaconda.org/bioconda/harpy)
 [![Anaconda-Server Badge](https://anaconda.org/bioconda/harpy/badges/downloads.svg)](https://anaconda.org/bioconda/harpy)
 
-Experimental Haplotagging Data Processing Pipeline
+Haplotagging Data Processing Pipeline, getting you from raw reads to genotypes or phased haplotypes or your money back.
 
 ## Install
 Now hosted on [Bioconda](https://anaconda.org/bioconda/harpy)! Install harpy on Linux-based systems using [conda](https://mamba.readthedocs.io/en/latest/installation.html).
