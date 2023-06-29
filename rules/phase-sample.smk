@@ -76,7 +76,7 @@ rule phaseBlocks:
 		fragments = fragfile
 	output: 
 		blocks    = outdir + "/phaseBlocks/{sample}.blocks",
-		vcf       = outdir + "/phaseBlocks/{sample}.blocks.phased.VCF"
+		vcf       = temp(outdir + "/phaseBlocks/{sample}.blocks.phased.VCF")
 	message:
 		"Creating phased haplotype blocks: {wildcards.sample}"
 	benchmark:
@@ -90,10 +90,30 @@ rule phaseBlocks:
 	shell:
 		"HAPCUT2 --fragments {input.fragments} --vcf {input.vcf} {params} --out {output.blocks} --nf 1 --error_analysis_mode 1 --call_homozygous 1 --outvcf 1 2> {log}"
 
+rule compress_vcf:
+	input:
+		vcf = outdir + "/phaseBlocks/{sample}.blocks.phased.VCF"
+	output: 
+		idx = outdir + "/phaseBlocks/{sample}.blocks.phased.VCF.gz",
+	message:
+		"Compressing: {wildcards.sample}"
+	shell:
+		"bgzip {input}"
+
+rule index_vcf:
+	input:
+		vcf = outdir + "/phaseBlocks/{sample}.blocks.phased.VCF.gz"
+	output: 
+		idx = outdir + "/phaseBlocks/{sample}.blocks.phased.VCF.gz.tbi",
+	message:
+		"Compressing: {wildcards.sample}"
+	shell:
+		"tabix -b 2 -e 2 {input}"
 
 rule mergeSamples:
 	input: 
-		vcf = expand(outdir + "/phaseBlocks/{sample}.blocks.phased.VCF", sample = samplenames)
+		vcf = expand(outdir + "/phaseBlocks/{sample}.blocks.phased.VCF.gz", sample = samplenames),
+		idx = expand(outdir + "/phaseBlocks/{sample}.blocks.phased.VCF.gz.tbi", sample = samplenames)
 	output:
 		outdir + "/variants.phased.bcf"
 	message:
