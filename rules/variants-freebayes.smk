@@ -10,19 +10,8 @@ extra 	    = config.get("extra", "")
 outdir      = "Variants/freebayes"
 chunksize   = config["windowsize"]
 
-#if groupings is not None:
-#	absent = []
-#	with open(groupings) as f:
-#		for line in f:
-#			samp, pop = line.rstrip().split()
-#			if samp not in samplenames:
-#				absent.append(samp)
-#	if absent:
-#		sys.tracebacklimit = 0
-#		raise ValueError(f"{len(absent)} sample(s) in \033[1m{groupings}\033[0m not found in \033[1m{bam_dir}\033[0m directory:\n\033[33m" + ", ".join(absent) + "\033[0m")
-
 # create a python list of regions instead of creating a multitude of files
-def createregions(infile):
+def createregions(infile, window):
     bn = os.path.basename(infile)
     os.makedirs("Assembly", exist_ok = True)
     if not os.path.exists(f"Assembly/{bn}"):
@@ -31,7 +20,6 @@ def createregions(infile):
         print(f"Assembly/{bn}.fai not found, indexing {bn} with samtools faidx", file = sys.stderr)
         subprocess.run(["samtools","faidx", "--fai-idx", f"Assembly/{bn}.fai", infile, "2>", "/dev/null"])
     with open(f"Assembly/{bn}.fai") as fai:
-        window = chunksize
         bedregion = []
         while True:
             # Get next line from file
@@ -45,7 +33,7 @@ def createregions(infile):
             c_len = int(lsplit[1])
             start = 0
             end = window
-            starts = [1]
+            starts = [0]
             ends = [window]
             while end < c_len:
                 end = end + window if (end + window) < c_len else c_len
@@ -56,7 +44,7 @@ def createregions(infile):
                 bedregion.append(f"{contig}:{startpos}-{endpos}")
         return bedregion
 
-_regions   = createregions(genomefile)
+_regions   = createregions(genomefile, chunksize)
 regions = dict(zip(_regions, _regions))
 
 rule bam_list:
