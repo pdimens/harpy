@@ -1,4 +1,5 @@
 import os
+import sys
 
 bam_dir 	= config["seq_directory"]
 genomefile 	= config["genomefile"]
@@ -25,7 +26,7 @@ def faidx_contignames(infile):
 	if not os.path.exists(f"Assembly/{bn}"):
 		shell(f"ln -sr {infile} Assembly/{bn}")
 	if not os.path.exists(f"Assembly/{bn}.fai"):
-		print(f"Assembly/{bn}.fai not found, indexing {bn} with samtools faidx")
+		print(f"Assembly/{bn}.fai not found, indexing {bn} with samtools faidx", file = sys.stderr)
 		subprocess.run(["samtools","faidx", "--fai-idx", f"Assembly/{bn}.fai", infile, "2>", "/dev/null"])
 	with open(f"Assembly/{bn}.fai") as f:
 		lines = [line.rstrip().split("\t")[0] for line in f]
