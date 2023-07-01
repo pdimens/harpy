@@ -103,7 +103,7 @@ rule call_variants:
         populations = '' if groupings is None else f"--populations {groupings}",
         extra = extra
     shell:
-        "freebayes -f {input.ref} -L {input.samples} {params} | bcftools sort > {output} 2> {log}"
+        "freebayes -f {input.ref} -L {input.samples} {params} | bcftools sort - --output {output} 2> {log}"
 
 rule vcf_list:
     output:
@@ -120,69 +120,84 @@ rule merge_vcfs:
         vcfs = expand(outdir + "/regions/{part}.vcf", part = _regions),
         filelist = outdir + "/logs/vcf.files"
     output:
-        outdir + "/variants.raw.bcf"
+        bcf = outdir + "/variants.raw.bcf",
+        idx = outdir + "/variants.raw.bcf.csi"
     message:
         "Combining vcfs into a single file"
     log:
         "logs/concat.log"
     threads:
-        3
+        50
     shell:  
-        "bcftools concat -f {input.filelist} --rm-dups | bcftools view -Ob > {output} 2> {log}"
+        "bcftools concat -f {input.filelist} --threads {threads} --rm-dups -Ob --naive --write-index > {output.bcf} 2> {log}"
 
-rule index_bcf:
-    input: 
-        bcf = outdir + "/variants.raw.bcf",
-        samples = outdir + "/logs/samples.names",
-        genome  = f"Assembly/{bn}"
-    output:
-        outdir + "/variants.raw.bcf.csi"
-    message:
-        "Indexing: {input.bcf}"
-    threads:
-        4
-    shell:
-        """
-        bcftools index --threads {threads} --output {output} {input.bcf}
-        """
+rule normalize_bcf:
+	input: 
+		genome  = f"Assembly/{bn}",
+		bcf     = outdir + "/variants.raw.bcf"
+	output:
+		bcf     = outdir + "/variants.normalized.bcf",
+		idx     = outdir + "/variants.normalized.bcf.csi",
+	message: 
+		"Normalizing the called variants"
+	threads: 2
+	shell:
+		"""
+		bcftools norm -d none -f {input.genome} {input.bcf} | bcftools norm -m -any -N -Ob --write-index > {output.bcf}
+		"""
 
-rule bcf_stats:
-    input: 
-        bcf = outdir + "/variants.raw.bcf",
-        csi = outdir + "/variants.raw.bcf.csi",
-        samples = outdir + "/logs/samples.names",
-        genome  = f"Assembly/{bn}"
-    output:
-        outdir + "/stats/variants.raw.stats"
-    message:
-        "Calculating stats"
-    shell:
-        """
-        bcftools stats -S {input.samples} --fasta-ref {input.genome} {input.bcf} > {output}
-        """
+rule variants_stats:
+	input:
+        genome  = f"Assembly/{bn}",
+		bcf     = outdir + "/variants.{type}.bcf",
+		idx     = outdir + "/variants.{type}.bcf.csi",
+        samples = outdir + "/logs/samples.names"
+	output:
+		outdir + "/stats/variants.{type}.stats",
+	message:
+		"Calculating variant stats: variants.{wildcards.type}.bcf"
+	shell:
+		"""
+		bcftools stats -S {input.samples} --fasta-ref {input.genome} {input.bcf} > {output}
+		"""
 
 rule bcfreport:
     input:
-        outdir + "/stats/variants.raw.stats"
+        outdir + "/stats/variants.{type}.stats"
     output:
-        outdir + "/stats/variants.raw.html"
+        outdir + "/stats/variants.{type}.html"
     message:
-        "Generating bcftools report: variants.raw.bcf"
+        "Generating bcftools report: variants.{wildcards.type}.bcf"
     script:
         "reportBcftools.Rmd"
 
+rule log_runtime:
+    output:
+        outdir + "/logs/harpy.variants.log"
+    message:
+        "Creating record of relevant runtime parameters: {output}"
+    params:
+        ploidy = f"-p {ploidy}",
+        populations = '' if groupings is None else f"--populations {groupings}",
+        extra = extra
+    run:
+        with open([output[0]], "w") as f:
+        	_ = f.write("The harpy variants module ran using these parameters:\n\n")
+            _ = f.write(f"The provided genome: {bn}\n")
+            _ = f.write(f"The directory with alignments: {bam_dir}\n")
+            _ = f.write(f"Size of intervals to split genome for variant calling: {chunksize}\n")
+            _ = f.write("The freebayes parameters:\n")
+            _ = f.write(f"\tfreebayes -f GENOME -L samples.list -r REGION {params} | bcftools sort -\n")
+            _ = f.write("The variants identified in the intervals were merged into the final variant file using:\n")
+            _ = f.write("\tbcftools concat -f vcf.list --rm-dups --naive\t")
+            _ = f.write("The variants were normalized using:\n")
+			_ = f.write("\tbcftools norm -d none | bcftools norm -m -any -N -Ob")
+
 rule all:
     input: 
-        outdir + "/variants.raw.bcf",
-        outdir + "/stats/variants.raw.html"
+        outdir + "/logs/harpy.variants.log",
+        expand(outdir + "/variants.{file}.bcf",        file = ["raw", "normalized"]),
+        expand(outdir + "/stats/variants.{file}.html", file = ["raw", "normalized"])
     message:
         "Variant calling is complete!"
     default_target: True
-
-#with open(f"{outdir}/logs/variants.params", "w") as f:
-#	_ = f.write("The harpy variants module ran using these parameters:\n\n")
-#	_ = f.write("bcftools mpileup --fasta-ref GENOME --region CONTIG " + mp_extra + " --bam-list BAMS --annotate AD --output-type b\n")
-#	gp = '' if groupings is None else f"--group-samples {groupings} " + f"--ploidy {ploidy}"
-#	_ = f.write("bcftools call --multiallelic-caller " + gp + " --variants-only --output-type b | bcftools sort -\n")
-#	_ = f.write("bcftools concat --output-type b --naive\n")
-#	_ = f.write("bcftools norm -d none | bcftools norm -m -any -N -Ob")

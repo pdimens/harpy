@@ -9,32 +9,70 @@ ploidy 		= config["ploidy"]
 samplenames = config["samplenames"]
 mp_extra 	= config.get("extra", "") 
 outdir      = "Variants/mpileup"
+chunksize   = config["windowsize"]
 
-if groupings is not None:
-	absent = []
-	with open(groupings) as f:
-		for line in f:
-			samp, pop = line.rstrip().split()
-			if samp not in samplenames:
-				absent.append(samp)
-	if absent:
-		sys.tracebacklimit = 0
-		raise ValueError(f"{len(absent)} sample(s) in \033[1m{groupings}\033[0m not found in \033[1m{bam_dir}\033[0m directory:\n\033[33m" + ", ".join(absent) + "\033[0m")
+# create a python list of regions instead of creating a multitude of files
+def createregions(infile, window):
+    bn = os.path.basename(infile)
+    os.makedirs("Assembly", exist_ok = True)
+    if not os.path.exists(f"Assembly/{bn}"):
+        shell(f"ln -sr {infile} Assembly/{bn}")
+    if not os.path.exists(f"Assembly/{bn}.fai"):
+        print(f"Assembly/{bn}.fai not found, indexing {bn} with samtools faidx", file = sys.stderr)
+        subprocess.run(["samtools","faidx", "--fai-idx", f"Assembly/{bn}.fai", infile, "2>", "/dev/null"])
+    with open(f"Assembly/{bn}.fai") as fai:
+        bedregion = []
+        while True:
+            # Get next line from file
+            line = fai.readline()
+            # if line is empty, end of file is reached
+            if not line:
+                break
+            # split the line by tabs
+            lsplit = line.split()
+            contig = lsplit[0]
+            c_len = int(lsplit[1])
+            start = 0
+            end = window
+            starts = [0]
+            ends = [window]
+            while end < c_len:
+                end = end + window if (end + window) < c_len else c_len
+                ends.append(end)
+                start += window
+                starts.append(start)
+            for (startpos, endpos) in zip (starts,ends):
+                bedregion.append(f"{contig}:{startpos}-{endpos}")
+        return bedregion
 
-def faidx_contignames(infile):
-	bn = os.path.basename(infile)
-	os.makedirs("Assembly", exist_ok = True)
-	if not os.path.exists(f"Assembly/{bn}"):
-		shell(f"ln -sr {infile} Assembly/{bn}")
-	if not os.path.exists(f"Assembly/{bn}.fai"):
-		print(f"Assembly/{bn}.fai not found, indexing {bn} with samtools faidx", file = sys.stderr)
-		subprocess.run(["samtools","faidx", "--fai-idx", f"Assembly/{bn}.fai", infile, "2>", "/dev/null"])
-	with open(f"Assembly/{bn}.fai") as f:
-		lines = [line.rstrip().split("\t")[0] for line in f]
-	return lines
+_regions   = createregions(genomefile, chunksize)
+regions = dict(zip(_regions, _regions))
 
-contigs   = faidx_contignames(genomefile)
-dict_cont = dict(zip(contigs, contigs))
+#if groupings is not None:
+#	absent = []
+#	with open(groupings) as f:
+#		for line in f:
+#			samp, pop = line.rstrip().split()
+#			if samp not in samplenames:
+#				absent.append(samp)
+#	if absent:
+#		sys.tracebacklimit = 0
+#		raise ValueError(f"{len(absent)} sample(s) in \033[1m{groupings}\033[0m not found in \033[1m{bam_dir}\033[0m directory:\n\033[33m" + ", ".join(absent) + "\033[0m")
+
+#def faidx_contignames(infile):
+#	bn = os.path.basename(infile)
+#	os.makedirs("Assembly", exist_ok = True)
+#	if not os.path.exists(f"Assembly/{bn}"):
+#		shell(f"ln -sr {infile} Assembly/{bn}")
+#	if not os.path.exists(f"Assembly/{bn}.fai"):
+#		print(f"Assembly/{bn}.fai not found, indexing {bn} with samtools faidx", file = sys.stderr)
+#		subprocess.run(["samtools","faidx", "--fai-idx", f"Assembly/{bn}.fai", infile, "2>", "/dev/null"])
+#	with open(f"Assembly/{bn}.fai") as f:
+#		lines = [line.rstrip().split("\t")[0] for line in f]
+#	return lines
+#
+#contigs   = faidx_contignames(genomefile)
+#dict_cont = dict(zip(contigs, contigs))
 
 rule index_alignments:
 	input:
@@ -73,14 +111,22 @@ rule samplenames:
 			for samplename in samplenames:
 				_ = fout.write(samplename + "\n")		
 
+rule vcf_list:
+    output:
+        outdir + "/logs/vcf.files"
+    message:
+        "Creating list of region-specific vcf files"
+    run:
+        with open(output[0], "w") as fout:
+            for vcf in _regions:
+                _ = fout.write(f"{outdir}/regions/{vcf}.vcf" + "\n")   
+
 rule mpileup:
 	input:
 		bamlist = outdir + "/logs/samples.files",
         genome  = f"Assembly/{bn}"
 	output: 
 		pipe(outdir + "/{part}.mp.bcf")
-	params: 
-		lambda wc: dict_cont[wc.part]
 	message: 
 		"Finding variants: {wildcards.part}"
 	log: 
@@ -88,16 +134,17 @@ rule mpileup:
 	benchmark: 
 		"Benchmark/Variants/mpileup/mpileup.{part}.txt"
 	params:
-		region = "{wildcards.part}",
+        region = lambda wc: "-r " + regions[wc.part],
 		extra = mp_extra
 	shell:
-		"bcftools mpileup --fasta-ref {input.genome} --region {params} --bam-list {input.bamlist} --annotate AD --output-type b > {output} 2> {log}"
+		"bcftools mpileup --fasta-ref {input.genome} --bam-list {input.bamlist} --annotate AD --output-type b {params} > {output} 2> {log}"
 
 rule call_genotypes:
 	input:
 		outdir + "/{part}.mp.bcf"
 	output:
-		temp(outdir + "/call/{part}.bcf")
+		bcf = temp(outdir + "/call/{part}.bcf"),
+		idx = temp(outdir + "/call/{part}.bcf.csi")
 	message:
 		"Calling genotypes: {wildcards.part}"
 	benchmark:
@@ -109,103 +156,93 @@ rule call_genotypes:
 		groupsamples = '' if groupings is None else f"--group-samples {groupings}",
 		ploidy = f"--ploidy {ploidy}"
 	shell:
-		"bcftools call --multiallelic-caller {params} --variants-only --output-type b {input} | bcftools sort - --output {output} 2> /dev/null"
+		"bcftools call --multiallelic-caller {params} --variants-only --output-type b {input} | bcftools sort - --output {output} --write-index 2> /dev/null"
 
-rule index_bcf:
-	input: 
-		bcf     = outdir + "/call/{part}.bcf",
-		samples = outdir + "/logs/samples.names",
-		genome  = f"Assembly/{genomefile}"
-	output:
-		temp(outdir + "/call/{part}.bcf.csi")
-	log:
-		outdir + "/stats/{part}.stats"
-	message:
-		"Indexing: {wildcards.part}"
-	benchmark:
-		"Benchmark/Variants/mpileup/indexbcf.{part}.txt"
-	threads: 4
-	shell:
-		"""
-		bcftools index --threads {threads} --output {output} {input.bcf}
-		bcftools stats -S {input.samples} --fasta-ref {input.genome} {input.bcf} > {log}
-		"""
-
-rule combine_bcfs:
-	input: 
-		bcf     = expand(outdir + "/call/{part}.bcf", part = contigs),
-		idx     = expand(outdir + "/call/{part}.bcf.csi", part = contigs),
-		genome  = f"Assembly/{genomefile}",
-		samples = outdir + "/logs/samples.names"
-	output: 
-		bcf     = outdir + "/variants.raw.bcf",
-		idx     = outdir + "/variants.raw.bcf.csi",
-		stats   = outdir + "/stats/variants.raw.stats"
-	message:
-		"Merging all BCFs into: {output.bcf}"
-	benchmark:
-		"Benchmark/Variants/mpileup/merge.txt"
-	threads: 50
-	shell:
-		"""
-		bcftools concat --threads {threads} --output-type b --naive {input.bcf} > {output.bcf} 2> /dev/null
-		bcftools index --output {output.idx} {output.bcf}
-		bcftools stats -S {input.samples} --fasta-ref {input.genome} {output.bcf} > {output.stats}
-		"""
+rule merge_vcfs:
+    input:
+        vcfs = expand(outdir + "/call/{part}.{ext}", part = _regions, ext = ["bcf", "bcf.csi"]),
+        filelist = outdir + "/logs/vcf.files"
+    output:
+        bcf = outdir + "/variants.raw.bcf",
+		idx = outdir + "/variants.raw.bcf.csi"
+    message:
+        "Combining vcfs into a single file"
+    log:
+        "logs/concat.log"
+    threads:
+        50
+    shell:  
+        "bcftools concat -f {input.filelist} --threads {threads} --naive --rm-dups -Ob --write-index > {output.bcf} 2> {log}"
 
 rule normalize_bcf:
 	input: 
-		genome  = f"Assembly/{genomefile}",
+		genome  = f"Assembly/{bn}",
 		bcf     = outdir + "/variants.raw.bcf",
 		samples = outdir + "/logs/samples.names"
 	output:
 		bcf     = outdir + "/variants.normalized.bcf",
-		idx     = outdir + "/variants.normalized.bcf.csi",
-		stats   = outdir + "/stats/variants.normalized.stats"
+		idx     = outdir + "/variants.normalized.bcf.csi"
 	message: 
 		"Normalizing the called variants"
 	threads: 2
 	shell:
 		"""
-		bcftools norm -d none -f {input.genome} {input.bcf} | bcftools norm -m -any -N -Ob > {output.bcf}
-		bcftools index --output {output.idx} {output.bcf}
-		bcftools stats -S {input.samples} --fasta-ref {input.genome} {output.bcf} > {output.stats}
+		bcftools norm -d none -f {input.genome} {input.bcf} | bcftools norm -m -any -N -Ob --write-index > {output.bcf}
+		"""
+		
+rule variants_stats:
+	input:
+        genome  = f"Assembly/{bn}",
+		bcf     = outdir + "/variants.{type}.bcf",
+		idx     = outdir + "/variants.{type}.bcf.csi",
+        samples = outdir + "/logs/samples.names"
+	output:
+		outdir + "/stats/variants.{type}.stats",
+	message:
+		"Calculating variant stats: variants.{wildcards.type}.bcf"
+	shell:
+		"""
+		bcftools stats -S {input.samples} --fasta-ref {input.genome} {input.bcf} > {output}
 		"""
 
 rule bcfreport:
-	input:
-		outdir + "/stats/variants.raw.stats"
-	output:
-		outdir + "/stats/variants.raw.html"
-	message:
-		"Generating bcftools report: variants.raw.bcf"
-	benchmark:
-		"Benchmark/Variants/mpileup/reports.txt"
-	script:
-		"reportBcftools.Rmd"
+    input:
+        outdir + "/stats/variants.{type}.stats"
+    output:
+        outdir + "/stats/variants.{type}.html"
+    message:
+        "Generating bcftools report: variants.{wildcards.type}.bcf"
+    script:
+        "reportBcftools.Rmd"
 
-rule bcfreportnorm:
-	input:
-		outdir + "/stats/variants.normalized.stats"
-	output:
-		outdir + "/stats/variants.normalized.html"
-	message:
-		"Generating bcftools report: variants.normalized.bcf"
-	script:
-		"reportBcftools.Rmd"
+rule log_runtime:
+    output:
+        outdir + "/logs/harpy.variants.log"
+    message:
+        "Creating record of relevant runtime parameters: {output}"
+    params:
+        ploidy = f"--ploidy {ploidy}",
+        populations = '' if groupings is None else f"--populations {groupings}"
+    run:
+        with open([output[0]], "w") as f:
+			_ = f.write("The harpy variants module ran using these parameters:\n\n")
+			_ = f.write(f"The provided genome: {bn}\n")
+            _ = f.write(f"The directory with alignments: {bam_dir}\n")
+            _ = f.write(f"Size of intervals to split genome for variant calling: {chunksize}\n")
+            _ = f.write("The mpileup parameters:\n")
+			_ = f.write("\tbcftools mpileup --fasta-ref GENOME --region REGION --bam-list BAMS --annotate AD --output-type b {mp_extra}\n")
+			_ = f.write("The bcftools call parameters:\n")
+			_ = f.write("\tbcftools call --multiallelic-caller {params} --variants-only --output-type b | bcftools sort -\n")
+			_ = f.write("The variants identified in the intervals were merged into the final variant file using:\n")
+            _ = f.write("\tbcftools concat -f vcf.list --rm-dups --naive")
+			_ = f.write("The variants were normalized using:\n")
+			_ = f.write("\tbcftools norm -d none | bcftools norm -m -any -N -Ob")
 
 rule all:
-	input: 
-		expand(outdir + "/variants.{file}.bcf", file = ["raw","normalized"]),
+	input:
+		outdir + "/logs/harpy.variants.log",
+		expand(outdir + "/variants.{file}.bcf",        file = ["raw","normalized"]),
 		expand(outdir + "/stats/variants.{file}.html", file = ["raw","normalized"])
 	message:
 		"Variant calling is complete!"
 	default_target: True
-
-#with open(f"{outdir}/logs/variants.params", "w") as f:
-#	_ = f.write("The harpy variants module ran using these parameters:\n\n")
-#	_ = f.write("bcftools mpileup --fasta-ref GENOME --region CONTIG " + mp_extra + " --bam-list BAMS --annotate AD --output-type b\n")
-#	gp = '' if groupings is None else f"--group-samples {groupings} " + f"--ploidy {ploidy}"
-#	_ = f.write("bcftools call --multiallelic-caller " + gp + " --variants-only --output-type b | bcftools sort -\n")
-#	_ = f.write("bcftools concat --output-type b --naive\n")
-#	_ = f.write("bcftools norm -d none | bcftools norm -m -any -N -Ob")
