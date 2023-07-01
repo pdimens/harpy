@@ -131,8 +131,6 @@ rule mpileup:
         "Finding variants: {wildcards.part}"
     log: 
         outdir + "/logs/{part}.mpileup.log"
-    benchmark: 
-        "Benchmark/Variants/mpileup/mpileup.{part}.txt"
     params:
         region = lambda wc: "-r " + regions[wc.part],
         extra = mp_extra
@@ -147,10 +145,6 @@ rule call_genotypes:
         idx = temp(outdir + "/call/{part}.bcf.csi")
     message:
         "Calling genotypes: {wildcards.part}"
-    benchmark:
-        "Benchmark/Variants/mpileup/call.{part}.txt"
-    log:
-        outdir + "/logs/{part}.call.log"
     threads:
         2
     params: 

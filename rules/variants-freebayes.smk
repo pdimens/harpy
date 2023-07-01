@@ -93,8 +93,6 @@ rule call_variants:
         temp(outdir + "/regions/{part}.vcf")
     message:
         "Calling variants: {wildcards.part}"
-    log:
-        outdir + "/logs/{part}.log"
     threads:
         2
     params:
@@ -103,7 +101,7 @@ rule call_variants:
         populations = '' if groupings is None else f"--populations {groupings}",
         extra = extra
     shell:
-        "freebayes -f {input.ref} -L {input.samples} {params} | bcftools sort - --output {output} 2> {log}"
+        "freebayes -f {input.ref} -L {input.samples} {params} | bcftools sort - --output {output} 2> /dev/null"
 
 rule vcf_list:
     output:
