@@ -163,7 +163,7 @@ rule merge_vcfs:
     message:
         "Combining vcfs into a single file"
     log:
-        "logs/concat.log"
+        outdir + "/logs/concat.log"
     threads:
         50
     shell:  
