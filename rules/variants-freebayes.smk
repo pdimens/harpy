@@ -132,7 +132,7 @@ rule index_bcf:
     input: 
         bcf = outdir + "/variants.raw.bcf",
         samples = outdir + "/logs/samples.names",
-        genome  = f"Assembly/{genomefile}"
+        genome  = f"Assembly/{bn}"
     output:
         outdir + "/variants.raw.bcf.csi"
     message:
@@ -149,13 +149,11 @@ rule bcf_stats:
         bcf = outdir + "/variants.raw.bcf",
         csi = outdir + "/variants.raw.bcf.csi",
         samples = outdir + "/logs/samples.names",
-        genome  = f"Assembly/{genomefile}"
+        genome  = f"Assembly/{bn}"
     output:
         outdir + "/stats/variants.raw.stats"
     message:
         "Calculating stats"
-    benchmark:
-        "Benchmark/Variants/mpileup/indexbcf.{part}.txt"
     shell:
         """
         bcftools stats -S {input.samples} --fasta-ref {input.genome} {input.bcf} > {output}
