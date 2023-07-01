@@ -228,7 +228,7 @@ rule log_runtime:
             _ = f.write("The mpileup parameters:\n")
             _ = f.write("\tbcftools mpileup --fasta-ref GENOME --region REGION --bam-list BAMS --annotate AD --output-type b" + mp_extra + "\n")
             _ = f.write("The bcftools call parameters:\n")
-            _ = f.write("\tbcftools call --multiallelic-caller " + params + " --variants-only --output-type b | bcftools sort -\n")
+            _ = f.write("\tbcftools call --multiallelic-caller " + " ".join(params) + " --variants-only --output-type b | bcftools sort -\n")
             _ = f.write("The variants identified in the intervals were merged into the final variant file using:\n")
             _ = f.write("\tbcftools concat -f vcf.list --rm-dups --naive")
             _ = f.write("The variants were normalized using:\n")
