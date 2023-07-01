@@ -151,7 +151,8 @@ rule call_genotypes:
 		"Benchmark/Variants/mpileup/call.{part}.txt"
 	log:
 		outdir + "/logs/{part}.call.log"
-	threads: 2
+	threads:
+		2
 	params: 
 		groupsamples = '' if groupings is None else f"--group-samples {groupings}",
 		ploidy = f"--ploidy {ploidy}"
@@ -184,7 +185,8 @@ rule normalize_bcf:
 		idx     = outdir + "/variants.normalized.bcf.csi"
 	message: 
 		"Normalizing the called variants"
-	threads: 2
+	threads:
+		2
 	shell:
 		"""
 		bcftools norm -d none -f {input.genome} {input.bcf} | bcftools norm -m -any -N -Ob --write-index > {output.bcf}
