@@ -61,14 +61,14 @@ rule index_alignments:
         "sambamba index {input} {output} 2> /dev/null"
 
 rule samplenames:
-	output:
-		outdir + "/logs/samples.names"
-	message:
-		"Creating list of sample names"
-	run:
-		with open(output[0], "w") as fout:
-			for samplename in samplenames:
-				_ = fout.write(samplename + "\n")	
+    output:
+        outdir + "/logs/samples.names"
+    message:
+        "Creating list of sample names"
+    run:
+        with open(output[0], "w") as fout:
+            for samplename in samplenames:
+                _ = fout.write(samplename + "\n")	
 
 rule bam_list:
     input: 
@@ -132,34 +132,34 @@ rule merge_vcfs:
         "bcftools concat -f {input.filelist} --threads {threads} --rm-dups both -Ob --naive --write-index > {output.bcf} 2> {log}"
 
 rule normalize_bcf:
-	input: 
-		genome  = f"Assembly/{bn}",
-		bcf     = outdir + "/variants.raw.bcf"
-	output:
-		bcf     = outdir + "/variants.normalized.bcf",
-		idx     = outdir + "/variants.normalized.bcf.csi",
-	message: 
-		"Normalizing the called variants"
-	threads: 2
-	shell:
-		"""
-		bcftools norm -d none -f {input.genome} {input.bcf} | bcftools norm -m -any -N -Ob --write-index > {output.bcf}
-		"""
+    input: 
+        genome  = f"Assembly/{bn}",
+        bcf     = outdir + "/variants.raw.bcf"
+    output:
+        bcf     = outdir + "/variants.normalized.bcf",
+        idx     = outdir + "/variants.normalized.bcf.csi",
+    message: 
+        "Normalizing the called variants"
+    threads: 2
+    shell:
+        """
+        bcftools norm -d none -f {input.genome} {input.bcf} | bcftools norm -m -any -N -Ob --write-index > {output.bcf}
+        """
 
 rule variants_stats:
-	input:
+    input:
         genome  = f"Assembly/{bn}",
-		bcf     = outdir + "/variants.{type}.bcf",
-		idx     = outdir + "/variants.{type}.bcf.csi",
+        bcf     = outdir + "/variants.{type}.bcf",
+        idx     = outdir + "/variants.{type}.bcf.csi",
         samples = outdir + "/logs/samples.names"
-	output:
-		outdir + "/stats/variants.{type}.stats",
-	message:
-		"Calculating variant stats: variants.{wildcards.type}.bcf"
-	shell:
-		"""
-		bcftools stats -S {input.samples} --fasta-ref {input.genome} {input.bcf} > {output}
-		"""
+    output:
+        outdir + "/stats/variants.{type}.stats",
+    message:
+        "Calculating variant stats: variants.{wildcards.type}.bcf"
+    shell:
+        """
+        bcftools stats -S {input.samples} --fasta-ref {input.genome} {input.bcf} > {output}
+        """
 
 rule bcfreport:
     input:
@@ -182,7 +182,7 @@ rule log_runtime:
         extra = extra
     run:
         with open([output[0]], "w") as f:
-        	_ = f.write("The harpy variants module ran using these parameters:\n\n")
+            _ = f.write("The harpy variants module ran using these parameters:\n\n")
             _ = f.write(f"The provided genome: {bn}\n")
             _ = f.write(f"The directory with alignments: {bam_dir}\n")
             _ = f.write(f"Size of intervals to split genome for variant calling: {chunksize}\n")
@@ -191,7 +191,7 @@ rule log_runtime:
             _ = f.write("The variants identified in the intervals were merged into the final variant file using:\n")
             _ = f.write("\tbcftools concat -f vcf.list --rm-dups --naive\t")
             _ = f.write("The variants were normalized using:\n")
-			_ = f.write("\tbcftools norm -d none | bcftools norm -m -any -N -Ob")
+            _ = f.write("\tbcftools norm -d none | bcftools norm -m -any -N -Ob")
 
 rule all:
     input: 

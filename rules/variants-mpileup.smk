@@ -75,41 +75,41 @@ regions = dict(zip(_regions, _regions))
 #dict_cont = dict(zip(contigs, contigs))
 
 rule index_alignments:
-	input:
-		bam_dir + "/{sample}.bam"
-	output:
-		bam_dir + "/{sample}.bam.bai"
-	message:
-		"Indexing alignments: {wildcards.sample}"
-	benchmark:
-		"Benchmark/Variants/mpileup/indexbam.{sample}.txt"
-	shell:
-		"sambamba index {input} {output} 2> /dev/null"
+    input:
+        bam_dir + "/{sample}.bam"
+    output:
+        bam_dir + "/{sample}.bam.bai"
+    message:
+        "Indexing alignments: {wildcards.sample}"
+    benchmark:
+        "Benchmark/Variants/mpileup/indexbam.{sample}.txt"
+    shell:
+        "sambamba index {input} {output} 2> /dev/null"
 
 rule bam_list:
-	input: 
-		bam = expand(bam_dir + "/{sample}.bam", sample = samplenames),
-		bai = expand(bam_dir + "/{sample}.bam.bai", sample = samplenames)
-	output:
-		outdir + "/logs/samples.files"
-	message:
-		"Creating list of alignment files"
-	benchmark:
-		"Benchmark/Variants/mpileup/bamlist.txt"
-	run:
-		with open(output[0], "w") as fout:
-			for bamfile in input.bam:
-				_ = fout.write(bamfile + "\n")
+    input: 
+        bam = expand(bam_dir + "/{sample}.bam", sample = samplenames),
+        bai = expand(bam_dir + "/{sample}.bam.bai", sample = samplenames)
+    output:
+        outdir + "/logs/samples.files"
+    message:
+        "Creating list of alignment files"
+    benchmark:
+        "Benchmark/Variants/mpileup/bamlist.txt"
+    run:
+        with open(output[0], "w") as fout:
+            for bamfile in input.bam:
+                _ = fout.write(bamfile + "\n")
 
 rule samplenames:
-	output:
-		outdir + "/logs/samples.names"
-	message:
-		"Creating list of sample names"
-	run:
-		with open(output[0], "w") as fout:
-			for samplename in samplenames:
-				_ = fout.write(samplename + "\n")		
+    output:
+        outdir + "/logs/samples.names"
+    message:
+        "Creating list of sample names"
+    run:
+        with open(output[0], "w") as fout:
+            for samplename in samplenames:
+                _ = fout.write(samplename + "\n")		
 
 rule vcf_list:
     output:
@@ -122,42 +122,42 @@ rule vcf_list:
                 _ = fout.write(f"{outdir}/regions/{vcf}.vcf" + "\n")   
 
 rule mpileup:
-	input:
-		bamlist = outdir + "/logs/samples.files",
+    input:
+        bamlist = outdir + "/logs/samples.files",
         genome  = f"Assembly/{bn}"
-	output: 
-		pipe(outdir + "/{part}.mp.bcf")
-	message: 
-		"Finding variants: {wildcards.part}"
-	log: 
-		outdir + "/logs/{part}.mpileup.log"
-	benchmark: 
-		"Benchmark/Variants/mpileup/mpileup.{part}.txt"
-	params:
+    output: 
+        pipe(outdir + "/{part}.mp.bcf")
+    message: 
+        "Finding variants: {wildcards.part}"
+    log: 
+        outdir + "/logs/{part}.mpileup.log"
+    benchmark: 
+        "Benchmark/Variants/mpileup/mpileup.{part}.txt"
+    params:
         region = lambda wc: "-r " + regions[wc.part],
-		extra = mp_extra
-	shell:
-		"bcftools mpileup --fasta-ref {input.genome} --bam-list {input.bamlist} --annotate AD --output-type b {params} > {output} 2> {log}"
+        extra = mp_extra
+    shell:
+        "bcftools mpileup --fasta-ref {input.genome} --bam-list {input.bamlist} --annotate AD --output-type b {params} > {output} 2> {log}"
 
 rule call_genotypes:
-	input:
-		outdir + "/{part}.mp.bcf"
-	output:
-		bcf = temp(outdir + "/call/{part}.bcf"),
-		idx = temp(outdir + "/call/{part}.bcf.csi")
-	message:
-		"Calling genotypes: {wildcards.part}"
-	benchmark:
-		"Benchmark/Variants/mpileup/call.{part}.txt"
-	log:
-		outdir + "/logs/{part}.call.log"
-	threads:
-		2
-	params: 
-		groupsamples = '' if groupings is None else f"--group-samples {groupings}",
-		ploidy = f"--ploidy {ploidy}"
-	shell:
-		"bcftools call --multiallelic-caller {params} --variants-only --output-type b {input} | bcftools sort - --output {output} --write-index 2> /dev/null"
+    input:
+        outdir + "/{part}.mp.bcf"
+    output:
+        bcf = temp(outdir + "/call/{part}.bcf"),
+        idx = temp(outdir + "/call/{part}.bcf.csi")
+    message:
+        "Calling genotypes: {wildcards.part}"
+    benchmark:
+        "Benchmark/Variants/mpileup/call.{part}.txt"
+    log:
+        outdir + "/logs/{part}.call.log"
+    threads:
+        2
+    params: 
+        groupsamples = '' if groupings is None else f"--group-samples {groupings}",
+        ploidy = f"--ploidy {ploidy}"
+    shell:
+        "bcftools call --multiallelic-caller {params} --variants-only --output-type b {input} | bcftools sort - --output {output} --write-index 2> /dev/null"
 
 rule merge_vcfs:
     input:
@@ -165,7 +165,7 @@ rule merge_vcfs:
         filelist = outdir + "/logs/vcf.files"
     output:
         bcf = outdir + "/variants.raw.bcf",
-		idx = outdir + "/variants.raw.bcf.csi"
+        idx = outdir + "/variants.raw.bcf.csi"
     message:
         "Combining vcfs into a single file"
     log:
@@ -176,36 +176,36 @@ rule merge_vcfs:
         "bcftools concat -f {input.filelist} --threads {threads} --naive --rm-dups both -Ob --write-index > {output.bcf} 2> {log}"
 
 rule normalize_bcf:
-	input: 
-		genome  = f"Assembly/{bn}",
-		bcf     = outdir + "/variants.raw.bcf",
-		samples = outdir + "/logs/samples.names"
-	output:
-		bcf     = outdir + "/variants.normalized.bcf",
-		idx     = outdir + "/variants.normalized.bcf.csi"
-	message: 
-		"Normalizing the called variants"
-	threads:
-		2
-	shell:
-		"""
-		bcftools norm -d none -f {input.genome} {input.bcf} | bcftools norm -m -any -N -Ob --write-index > {output.bcf}
-		"""
-		
-rule variants_stats:
-	input:
+    input: 
         genome  = f"Assembly/{bn}",
-		bcf     = outdir + "/variants.{type}.bcf",
-		idx     = outdir + "/variants.{type}.bcf.csi",
+        bcf     = outdir + "/variants.raw.bcf",
         samples = outdir + "/logs/samples.names"
-	output:
-		outdir + "/stats/variants.{type}.stats",
-	message:
-		"Calculating variant stats: variants.{wildcards.type}.bcf"
-	shell:
-		"""
-		bcftools stats -S {input.samples} --fasta-ref {input.genome} {input.bcf} > {output}
-		"""
+    output:
+        bcf     = outdir + "/variants.normalized.bcf",
+        idx     = outdir + "/variants.normalized.bcf.csi"
+    message: 
+        "Normalizing the called variants"
+    threads:
+        2
+    shell:
+        """
+        bcftools norm -d none -f {input.genome} {input.bcf} | bcftools norm -m -any -N -Ob --write-index > {output.bcf}
+        """
+        
+rule variants_stats:
+    input:
+        genome  = f"Assembly/{bn}",
+        bcf     = outdir + "/variants.{type}.bcf",
+        idx     = outdir + "/variants.{type}.bcf.csi",
+        samples = outdir + "/logs/samples.names"
+    output:
+        outdir + "/stats/variants.{type}.stats",
+    message:
+        "Calculating variant stats: variants.{wildcards.type}.bcf"
+    shell:
+        """
+        bcftools stats -S {input.samples} --fasta-ref {input.genome} {input.bcf} > {output}
+        """
 
 rule bcfreport:
     input:
@@ -227,24 +227,24 @@ rule log_runtime:
         populations = '' if groupings is None else f"--populations {groupings}"
     run:
         with open([output[0]], "w") as f:
-			_ = f.write("The harpy variants module ran using these parameters:\n\n")
-			_ = f.write(f"The provided genome: {bn}\n")
+            _ = f.write("The harpy variants module ran using these parameters:\n\n")
+            _ = f.write(f"The provided genome: {bn}\n")
             _ = f.write(f"The directory with alignments: {bam_dir}\n")
             _ = f.write(f"Size of intervals to split genome for variant calling: {chunksize}\n")
             _ = f.write("The mpileup parameters:\n")
-			_ = f.write("\tbcftools mpileup --fasta-ref GENOME --region REGION --bam-list BAMS --annotate AD --output-type b {mp_extra}\n")
-			_ = f.write("The bcftools call parameters:\n")
-			_ = f.write("\tbcftools call --multiallelic-caller {params} --variants-only --output-type b | bcftools sort -\n")
-			_ = f.write("The variants identified in the intervals were merged into the final variant file using:\n")
+            _ = f.write("\tbcftools mpileup --fasta-ref GENOME --region REGION --bam-list BAMS --annotate AD --output-type b {mp_extra}\n")
+            _ = f.write("The bcftools call parameters:\n")
+            _ = f.write("\tbcftools call --multiallelic-caller {params} --variants-only --output-type b | bcftools sort -\n")
+            _ = f.write("The variants identified in the intervals were merged into the final variant file using:\n")
             _ = f.write("\tbcftools concat -f vcf.list --rm-dups --naive")
-			_ = f.write("The variants were normalized using:\n")
-			_ = f.write("\tbcftools norm -d none | bcftools norm -m -any -N -Ob")
+            _ = f.write("The variants were normalized using:\n")
+            _ = f.write("\tbcftools norm -d none | bcftools norm -m -any -N -Ob")
 
 rule all:
-	input:
-		outdir + "/logs/harpy.variants.log",
-		expand(outdir + "/variants.{file}.bcf",        file = ["raw","normalized"]),
-		expand(outdir + "/stats/variants.{file}.html", file = ["raw","normalized"])
-	message:
-		"Variant calling is complete!"
-	default_target: True
+    input:
+        outdir + "/logs/harpy.variants.log",
+        expand(outdir + "/variants.{file}.bcf",        file = ["raw","normalized"]),
+        expand(outdir + "/stats/variants.{file}.html", file = ["raw","normalized"])
+    message:
+        "Variant calling is complete!"
+    default_target: True
