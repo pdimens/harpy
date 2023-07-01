@@ -179,7 +179,7 @@ rule log_runtime:
         populations = '' if groupings is None else f"--populations {groupings}",
         extra = extra
     run:
-        with open([output[0]], "w") as f:
+        with open(output[0], "w") as f:
             _ = f.write("The harpy variants module ran using these parameters:\n\n")
             _ = f.write(f"The provided genome: {bn}\n")
             _ = f.write(f"The directory with alignments: {bam_dir}\n")

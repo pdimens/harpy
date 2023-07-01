@@ -155,7 +155,7 @@ rule call_genotypes:
 
 rule merge_vcfs:
     input:
-        vcfs = expand(outdir + "/call/{part}.{ext}", part = _regions, ext = ["bcf", "bcf.csi"]),
+        vcfs     = expand(outdir + "/call/{part}.{ext}", part = _regions, ext = ["bcf", "bcf.csi"]),
         filelist = outdir + "/logs/vcf.files"
     output:
         bcf = outdir + "/variants.raw.bcf",
@@ -220,7 +220,7 @@ rule log_runtime:
         ploidy = f"--ploidy {ploidy}",
         populations = '' if groupings is None else f"--populations {groupings}"
     run:
-        with open([output[0]], "w") as f:
+        with open(output[0], "w") as f:
             _ = f.write("The harpy variants module ran using these parameters:\n\n")
             _ = f.write(f"The provided genome: {bn}\n")
             _ = f.write(f"The directory with alignments: {bam_dir}\n")
