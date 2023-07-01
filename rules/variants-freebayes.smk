@@ -95,13 +95,15 @@ rule call_variants:
         "Calling variants: {wildcards.part}"
     log:
         outdir + "/logs/{part}.log"
+    threads:
+        2
     params:
         region = lambda wc: "-r " + regions[wc.part],
         ploidy = f"-p {ploidy}",
         populations = '' if groupings is None else f"--populations {groupings}",
         extra = extra
     shell:
-        "freebayes -f {input.ref} -L {input.samples} {params} > {output} 2> {log}"
+        "freebayes -f {input.ref} -L {input.samples} {params} | bcftools sort > {output} 2> {log}"
 
 rule vcf_list:
     output:
