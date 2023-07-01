@@ -3,6 +3,7 @@ import sys
 
 bam_dir 	= config["seq_directory"]
 genomefile 	= config["genomefile"]
+bn          = os.path.basename(genomefile)
 groupings 	= config.get("groupings", None)
 ploidy 		= config["ploidy"]
 samplenames = config["samplenames"]

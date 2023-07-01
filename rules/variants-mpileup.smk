@@ -3,6 +3,7 @@ import sys
 
 bam_dir 	= config["seq_directory"]
 genomefile 	= config["genomefile"]
+bn          = os.path.basename(genomefile)
 groupings 	= config.get("groupings", None)
 ploidy 		= config["ploidy"]
 samplenames = config["samplenames"]
@@ -75,7 +76,7 @@ rule samplenames:
 rule mpileup:
 	input:
 		bamlist = outdir + "/logs/samples.files",
-		genome  = f"Assembly/{genomefile}"
+        genome  = f"Assembly/{bn}"
 	output: 
 		pipe(outdir + "/{part}.mp.bcf")
 	params: 
