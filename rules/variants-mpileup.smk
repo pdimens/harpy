@@ -173,7 +173,7 @@ rule merge_vcfs:
     threads:
         50
     shell:  
-        "bcftools concat -f {input.filelist} --threads {threads} --naive --rm-dups -Ob --write-index > {output.bcf} 2> {log}"
+        "bcftools concat -f {input.filelist} --threads {threads} --naive --rm-dups both -Ob --write-index > {output.bcf} 2> {log}"
 
 rule normalize_bcf:
 	input: 
