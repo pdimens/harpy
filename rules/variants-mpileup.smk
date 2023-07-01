@@ -167,7 +167,7 @@ rule merge_vcfs:
     threads:
         50
     shell:  
-        "bcftools concat -f {input.filelist} --threads {threads} --naive --rm-dups both -Ob --write-index > {output.bcf} 2> {log}"
+        "bcftools concat -f {input.filelist} --threads {threads} --naive --remove-duplicates -Ob --write-index > {output.bcf} 2> {log}"
 
 rule normalize_bcf:
     input: 
@@ -230,7 +230,7 @@ rule log_runtime:
             _ = f.write("The bcftools call parameters:\n")
             _ = f.write("\tbcftools call --multiallelic-caller " + " ".join(params) + " --variants-only --output-type b | bcftools sort -\n")
             _ = f.write("The variants identified in the intervals were merged into the final variant file using:\n")
-            _ = f.write("\tbcftools concat -f vcf.list --rm-dups --naive")
+            _ = f.write("\tbcftools concat -f vcf.list --remove-duplicates --naive")
             _ = f.write("The variants were normalized using:\n")
             _ = f.write("\tbcftools norm -d none | bcftools norm -m -any -N -Ob")
 
