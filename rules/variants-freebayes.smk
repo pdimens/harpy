@@ -47,21 +47,6 @@ def createregions(infile, window):
 _regions   = createregions(genomefile, chunksize)
 regions = dict(zip(_regions, _regions))
 
-rule bam_list:
-    input: 
-        bam = expand(bam_dir + "/{sample}.bam", sample = samplenames),
-        bai = expand(bam_dir + "/{sample}.bam.bai", sample = samplenames)
-    output:
-        outdir + "/logs/samples.files"
-    message:
-        "Creating list of alignment files"
-    benchmark:
-        "Benchmark/Variants/mpileup/bamlist.txt"
-    run:
-        with open(output[0], "w") as fout:
-            for bamfile in input.bam:
-                _ = fout.write(bamfile + "\n")
-
 rule index_alignments:
     input:
         bam_dir + "/{sample}.bam"
