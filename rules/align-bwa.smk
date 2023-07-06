@@ -216,9 +216,11 @@ rule log_runtime:
 	run:
 		with open(output[0], "w") as f:
 			_ = f.write("The harpy align module ran using these parameters:\n\n")
-			_ = f.write("## Alignming ##\n")
-			_ = f.write("bwa mem -C " + " ".join(params) " -R \"@RG\\tID:SAMPLE\\tSM:SAMPLE\" genome forward_reads reverse_reads |\n")
-			_ = f.write("samtools view -h -q " + str(config["quality"]) + " |\n")
-			_ = f.write("samtools sort -T SAMPLE --reference genome -m 4G\n\n")
-			_ = f.write("## Marking Duplicates ##\n")
-			_ = f.write("sambamba markdup -l 0")
+			_ = f.write(f"The provided genome: {bn}\n")
+			_ = f.write(f"The directory with sequences: {seq_dir}\n\n")
+			_ = f.write("Sequencing were aligned with BWA using:\n")
+			_ = f.write("\tbwa mem -C " + " ".join(params) " -R \"@RG\\tID:SAMPLE\\tSM:SAMPLE\" genome forward_reads reverse_reads |\n")
+			_ = f.write("\tsamtools view -h -q " + str(config["quality"]) + " |\n")
+			_ = f.write("\tsamtools sort -T SAMPLE --reference genome -m 4G\n")
+			_ = f.write("Duplicates in the alignments were marked using sambamba:\n")
+			_ = f.write("\tsambamba markdup -l 0")

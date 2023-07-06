@@ -231,7 +231,7 @@ rule log_runtime:
         populations = '' if groupings is None else f"--populations {groupings}"
     run:
         with open(output[0], "w") as f:
-            _ = f.write("The harpy variants module ran using these parameters:\n\n")
+            _ = f.write("The harpy variants snp module ran using these parameters:\n\n")
             _ = f.write(f"The provided genome: {bn}\n")
             _ = f.write(f"The directory with alignments: {bam_dir}\n")
             _ = f.write(f"Size of intervals to split genome for variant calling: {chunksize}\n")
@@ -240,7 +240,7 @@ rule log_runtime:
             _ = f.write("The bcftools call parameters:\n")
             _ = f.write("\tbcftools call --multiallelic-caller " + " ".join(params) + " --variants-only --output-type b | bcftools sort -\n")
             _ = f.write("The variants identified in the intervals were merged into the final variant file using:\n")
-            _ = f.write("\tbcftools concat -f vcf.list -a --remove-duplicates")
+            _ = f.write("\tbcftools concat -f vcf.list -a --remove-duplicates\n")
             _ = f.write("The variants were normalized using:\n")
             _ = f.write("\tbcftools norm -d none | bcftools norm -m -any -N -Ob")
 

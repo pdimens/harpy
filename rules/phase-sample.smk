@@ -140,12 +140,14 @@ rule log_runtime:
 		run:
         	with open(output[0], "w") as f:
 				_ = f.write("The harpy phase module ran using these parameters:\n\n")
-				_ = f.write("## Preprocessing ##\n")
-				_ = f.write("""bcftools view -s SAMPLE | awk '/^#/;/CHROM/ OFS="\\t"; !/^#/ && $10~/^0\\/1/'\n\n""")
-				_ = f.write("## Phasing ##\n")
-				_ = f.write("extractHAIRS " + params[0] + " --nf 1 --bam sample.bam --VCF sample.vcf --out sample.unlinked.frags\n")
-				_ = f.write("LinkFragments.py --bam sample.BAM --VCF sample.vcf --fragments sample.unlinked.frags --out sample.linked.frags -d " + params[1] + "\n")
-        		_ = f.write("HAPCUT2 --fragments sample.linked.frags --vcf sample.vcf --out sample.blocks --nf 1 --error_analysis_mode 1 --call_homozygous 1 --outvcf 1" + params[2] + params[3])
+				_ = f.write(f"The provided variant file: {variantfile}\n")
+				_ = f.write(f"The directory with alignments: {bam_dir}\n")
+				_ = f.write("The variant file was split by sample and preprocessed using:\n")
+				_ = f.write("""\tbcftools view -s SAMPLE | awk '/^#/;/CHROM/ OFS="\\t"; !/^#/ && $10~/^0\\/1/'\n\n""")
+				_ = f.write("Phasing was performed using the components of HapCut2:\n")
+				_ = f.write("\textractHAIRS " + params[0] + " --nf 1 --bam sample.bam --VCF sample.vcf --out sample.unlinked.frags\n")
+				_ = f.write("\tLinkFragments.py --bam sample.BAM --VCF sample.vcf --fragments sample.unlinked.frags --out sample.linked.frags -d " + params[1] + "\n")
+        		_ = f.write("\tHAPCUT2 --fragments sample.linked.frags --vcf sample.vcf --out sample.blocks --nf 1 --error_analysis_mode 1 --call_homozygous 1 --outvcf 1" + params[2] + params[3])
 
 rule indexFinal:
 	input:

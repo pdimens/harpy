@@ -208,9 +208,11 @@ rule log_runtime:
     run:
         with open(output[0], "w") as f:
             _ = f.write("The harpy impute module ran using these parameters:\n\n")
-            _ = f.write("## Preprocessing ##\n")
-            _ = f.write("bcftools view -m2 -M2 -v snps --regions CONTIG INFILE |\n")
-            _ = f.write("bcftools query -f '%CHROM\\t%POS\\t%REF\\t%ALT\\n'\n\n")
+            _ = f.write(f"The provided variant file: {variantfile}\n")
+            _ = f.write(f"The directory with alignments: {bam_dir}\n")
+            _ = f.write("Preprocessing was performed with:\n")
+            _ = f.write("\tbcftools view -m2 -M2 -v snps --regions CONTIG INFILE |\n")
+            _ = f.write("\tbcftools query -f '%CHROM\\t%POS\\t%REF\\t%ALT\\n'\n")
             _ = f.write("## STITCH imputation ##\n")
             _ = f.write("The STITCH parameters were governed by the rows of the input parameter table:\n")
             with open(config["paramfile"], "r") as f1:

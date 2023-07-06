@@ -185,6 +185,11 @@ rule log_runtime:
     run:
         argdict = process_args(extra)
         with open(output[0], "w") as f:
+            _ = f.write("The harpy variants sv module ran using these parameters:\n\n")
+            _ = f.write(f"The provided genome: {bn}\n")
+            _ = f.write(f"The directory with alignments: {bam_dir}\n")
+            _ = f.write(f"The sample grouping file: {groupfile}\n\n")
+            _ = f.write("naibr variant calling ran using these configurations:\n")
             _ = f.write(f"bam_file=BAMFILE\n")
             _ = f.write(f"prefix=PREFIX\n")
             _ = f.write(f"outdir=Variants/naibr/PREFIX\n")
