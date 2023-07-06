@@ -200,18 +200,6 @@ rule reports:
     script:
         "reportBcftools.Rmd"
 
-rule all:
-    input: 
-        bcf           = expand("Impute/{stitchparams}/variants.imputed.bcf", stitchparams=paramspace.instance_patterns),
-        reports       = expand("Impute/{stitchparams}/variants.imputed.html", stitchparams=paramspace.instance_patterns),
-        contigreports = expand("Impute/{stitchparams}/contigs/{part}/{part}.impute.html", stitchparams=paramspace.instance_patterns, part = contigs),
-        runlog        = "Impute/logs/harpy.impute.log"
-
-    message: 
-        "Genotype imputation is complete!"
-    default_target: True
-
-
 rule log_runtime:
     output:
         "Impute/logs/harpy.impute.log"
@@ -249,3 +237,13 @@ rule log_runtime:
                 )
                 """
             )
+
+rule all:
+    input: 
+        bcf           = expand("Impute/{stitchparams}/variants.imputed.bcf", stitchparams=paramspace.instance_patterns),
+        reports       = expand("Impute/{stitchparams}/variants.imputed.html", stitchparams=paramspace.instance_patterns),
+        contigreports = expand("Impute/{stitchparams}/contigs/{part}/{part}.impute.html", stitchparams=paramspace.instance_patterns, part = contigs),
+        runlog        = "Impute/logs/harpy.impute.log"
+    message: 
+        "Genotype imputation is complete!"
+    default_target: True
