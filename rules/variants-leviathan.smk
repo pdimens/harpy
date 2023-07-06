@@ -134,16 +134,25 @@ rule sv_report:
     script:
         "reportLeviathan.Rmd"
 
+rule log_runtime:
+    output:
+        outdir + "/logs/harpy.variants.log"
+    message:
+        "Creating record of relevant runtime parameters: {output}"
+    params:
+		extra = extra
+	run:
+        with open(output[0], "w") as f:
+            _ = f.write("The harpy variants sv module ran using these parameters:\n\n")
+            _ = f.write("LRez index bam -p -b INPUT\n")
+            _ = f.write(f"LEVIATHAN -b INPUT -i INPUT.BCI -g GENOME {params}\n")
+            _ = f.write("bcftools sort")
+
 rule all_bcfs:
     input: 
         bcf     = expand(outdir + "/{sample}.bcf", sample = samplenames),
-        reports = expand(outdir + "/reports/{sample}.SV.html", sample = samplenames)
+        reports = expand(outdir + "/reports/{sample}.SV.html", sample = samplenames),
+        runlog  = outdir + "/logs/harpy.variants.log"
     default_target: True
     message:
         "Variant calling is complete!"
-
-
-#with open(f"{outdir}/logs/variants.params", "w") as f:
-#	_ = f.write("LRez index bam -p -b INPUT\n")
-#	_ = f.write("LEVIATHAN -b INPUT -i INPUT.BCI " + extra + " -g GENOME\n")
-#	_ = f.write("bcftools sort")

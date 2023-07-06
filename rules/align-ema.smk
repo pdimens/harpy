@@ -18,7 +18,8 @@ rule create_reports:
 		expand(outdir + "/stats/coverage/{sample}.cov.html", sample = samplenames),
 		outdir + "/stats/reads.bxcounts.html",
 		outdir + "/stats/samtools_stats/alignment.stats.html",
-		outdir + "/stats/samtools_flagstat/alignment.flagstat.html"
+		outdir + "/stats/samtools_flagstat/alignment.flagstat.html",
+		outdir + "/logs/harpy.align.log"
 	message:
 		"Read mapping completed!"
 	benchmark:
@@ -206,10 +207,10 @@ rule markduplicates:
 
 rule merge_barcoded:
 	input:
-		aln_barcoded = expand(outdir + "/align/{{sample}}/{{sample}}.{bin}.bam", bin = ["%03d" % i for i in range(nbins)]),
+		aln = expand(outdir + "/align/{{sample}}/{{sample}}.{bin}.bam", bin = ["%03d" % i for i in range(nbins)]),
 	output: 
-		bam 		 = temp(outdir + "/align/barcoded/{sample}.barcoded.bam"),
-		bai 		 = temp(outdir + "/align/barcoded/{sample}.barcoded.bam.bai")
+		bam = temp(outdir + "/align/barcoded/{sample}.barcoded.bam"),
+		bai = temp(outdir + "/align/barcoded/{sample}.barcoded.bam.bai")
 	wildcard_constraints:
 		sample = "[a-zA-Z0-9_-]*"
 	message:
@@ -388,14 +389,23 @@ rule samtools_reports:
 		multiqc Align/ema/stats/samtools_flagstat --force --quiet --no-data-dir --filename {output.flagstat} 2> /dev/null
 		"""
 
-#with open(f"{outdir}/logs/align-ema.params", "w") as f:
-#	_ = f.write("The harpy align module ran using these parameters:\n\n")
-#	_ = f.write("## ema ##\n")
-#	_ = f.write("ema count -p\n")
-#	_ = f.write(f"ema preproc -p -n {nbins}\n")
-#	_ = f.write("ema align " + extra + " -d -p haptag -R \"@RG\\tID:SAMPLE\\tSM:SAMPLE\" |\n")
-#	_ = f.write("samtools view -h -F 4 -q " + str(config["quality"]) + " - |\n") 
-#	_ = f.write("samtools sort --reference genome -m 4G\n\n")
-#	_ = f.write("## bwa ##\n")
-#	_ = f.write("bwa mem -C -R \"@RG\\tID:SAMPLE\\tSM:SAMPLE\" genome forward_reads reverse_reads |\n")
-#	_ = f.write("sambamba markdup -l 0")
+rule log_runtime:
+    output:
+        outdir + "/logs/harpy.align.log"
+    message:
+        "Creating record of relevant runtime parameters: {output}"
+    params:
+		extra = extra
+	run:
+		with open(output[0], "w") as f:
+			_ = f.write("The harpy align module ran using these parameters:\n\n")
+			_ = f.write("## ema ##\n")
+			_ = f.write("ema count -p\n")
+			_ = f.write(f"ema preproc -p -n {nbins}\n")
+			_ = f.write("ema align " + extra + " -d -p haptag -R \"@RG\\tID:SAMPLE\\tSM:SAMPLE\" |\n")
+			_ = f.write("samtools view -h -F 4 -q " + str(config["quality"]) + " - |\n") 
+			_ = f.write("samtools sort --reference genome -m 4G\n\n")
+			_ = f.write("## bwa ##\n")
+			_ = f.write("bwa mem -C -R \"@RG\\tID:SAMPLE\\tSM:SAMPLE\" genome forward_reads reverse_reads |\n")
+			_ = f.write("sambamba markdup -l 0")
+

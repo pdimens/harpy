@@ -9,13 +9,14 @@ extra 		= config.get("extra", "")
 bn 			= os.path.basename(genomefile)
 outdir      = "Align/bwa"
 
-rule create_reports:
+rule all:
 	input: 
 		expand(outdir + "/{sample}.bam", sample = samplenames),
 		expand(outdir + "/stats/coverage/{sample}.cov.html", sample = samplenames),
 		expand(outdir + "/stats/BXstats/{sample}.bxstats.html", sample = samplenames),
 		outdir + "/stats/samtools_stats/bwa.stats.html",
-		outdir + "/stats/samtools_flagstat/bwa.flagstat.html"
+		outdir + "/stats/samtools_flagstat/bwa.flagstat.html",
+		outdir + "/logs/harpy.align.log"
 	message:
 		"Read mapping completed!"
 	default_target: True
@@ -204,13 +205,20 @@ rule samtools_reports:
 		multiqc Align/bwa/stats/samtools_flagstat --force --quiet --no-data-dir --filename {output.flagstat} 2> /dev/null
 		"""
 
-
-#with open(f"{outdir}/logs/align-bwa.params", "w") as f:
-#	_ = f.write("The harpy align module ran using these parameters:\n\n")
-#	_ = f.write("## Aligning ##\n")
-#	_ = f.write("bwa mem -C " + extra + " -R \"@RG\\tID:SAMPLE\\tSM:SAMPLE\" genome forward_reads reverse_reads |\n")
-#	_ = f.write("samtools view -h -q " + str(config["quality"]) + " |\n")
-#	_ = f.write("samtools sort -T SAMPLE --reference genome -m 4G\n\n")
-#	_ = f.write("## Marking Duplicates ##\n")
-#	_ = f.write("sambamba markdup -l 0")
-#
+rule log_runtime:
+    output:
+        outdir + "/logs/harpy.align.log"
+    message:
+        "Creating record of relevant runtime parameters: {output}"
+    params:
+		quality = config["quality"],
+		extra   = extra
+	run:
+		with open(output[0], "w") as f:
+			_ = f.write("The harpy align module ran using these parameters:\n\n")
+			_ = f.write("## Alignming ##\n")
+			_ = f.write("bwa mem -C " + " ".join(params) " -R \"@RG\\tID:SAMPLE\\tSM:SAMPLE\" genome forward_reads reverse_reads |\n")
+			_ = f.write("samtools view -h -q " + str(config["quality"]) + " |\n")
+			_ = f.write("samtools sort -T SAMPLE --reference genome -m 4G\n\n")
+			_ = f.write("## Marking Duplicates ##\n")
+			_ = f.write("sambamba markdup -l 0")

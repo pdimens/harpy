@@ -177,11 +177,26 @@ rule report_pop:
     script:
         "reportNaibrPop.Rmd"
 
+rule log_runtime:
+    output:
+        outdir + "/logs/harpy.variants.log"
+    message:
+        "Creating record of relevant runtime parameters: {output}"
+    run:
+        argdict = process_args(extra)
+        with open(output[0], "w") as f:
+            _ = f.write(f"bam_file=BAMFILE\n")
+            _ = f.write(f"prefix=PREFIX\n")
+            _ = f.write(f"outdir=Variants/naibr/PREFIX\n")
+            for i in argdict:
+                _ = f.write(f"{i}={argdict[i]}\n")
+
 rule all:
     input:
         expand(outdir + "/{pop}.bedpe",      pop = populations),
         expand(outdir + "/reports/{pop}.naibr.html", pop = populations),
-        outdir + "/reports/naibr.pop.summary.html"
+        outdir + "/reports/naibr.pop.summary.html",
+        outdir + "/logs/harpy.variants.log"
     default_target: True
     message:
         "Variant calling completed!"
