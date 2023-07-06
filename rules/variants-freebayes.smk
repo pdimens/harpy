@@ -120,7 +120,7 @@ rule concat_list:
 
 rule merge_vcfs:
     input:
-        vcfs = expand(outdir + "/regions/{part}.bcf", part = _regions),
+        bcfs = expand(outdir + "/regions/{part}.{ext}", part = _regions, ext = ["bcf", "bcf.csi"]),
         filelist = outdir + "/logs/bcf.files"
     output:
         bcf = outdir + "/variants.raw.bcf",
