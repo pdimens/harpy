@@ -50,12 +50,27 @@ rule beadtag_counts_summary:
 	script:
 		"reportBxCount.Rmd"
 
+
+rule log_runtime:
+    output:
+        "Trim/logs/harpy.trim.log"
+    message:
+        "Creating record of relevant runtime parameters: {output}"
+    params:
+		maxlen = f"--max_len1 {maxlen}",
+		extra = extra
+    run:
+        with open(output[0], "w") as f:
+			_ = f.write("The harpy trim module ran using these parameters:\n\n")
+            _ = f.write(f"The directory with sequences: {seq_dir}\n")
+			_ = f.write("fastp --trim_poly_g --cut_right --detect_adapter_for_pe" + params[0] + " " + params[1])
+
 rule createReport:
 	input: 
-		json = expand("Trim/logs/json/{sample}.fastp.json", sample = samplenames),
-		fr   = expand("Trim/{sample}.R1.fq.gz", sample = samplenames),
-		rv   = expand("Trim/{sample}.R2.fq.gz", sample = samplenames),
-		cts  = "Trim/summary.bx.valid.html"
+		expand("Trim/logs/json/{sample}.fastp.json", sample = samplenames),
+		expand("Trim/{sample}.{FR}.fq.gz", FR = ["R1", "R2"], sample = samplenames),
+		"Trim/summary.bx.valid.html",
+		"Trim/logs/harpy.trim.log"
 	output:
 		"Trim/trim.report.html"
 	message:
@@ -63,7 +78,3 @@ rule createReport:
 	default_target: True
 	shell: 
 		"multiqc Trim/logs/json -m fastp --force --filename {output} --quiet --no-data-dir 2>/dev/null"
-
-#with open("Trim/logs/trim.params", "w") as f:
-#	_ = f.write("The harpy trim module ran using these parameters:\n\n")
-#	_ = f.write("fastp --trim_poly_g --cut_right --detect_adapter_for_pe" + extra)
