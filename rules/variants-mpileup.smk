@@ -111,7 +111,7 @@ rule samplenames:
             for samplename in samplenames:
                 _ = fout.write(samplename + "\n")		
 
-rule vcf_list:
+rule concat_list:
     output:
         outdir + "/logs/vcf.files"
     message:
@@ -119,7 +119,7 @@ rule vcf_list:
     run:
         with open(output[0], "w") as fout:
             for vcf in _regions:
-                _ = fout.write(f"{outdir}/regions/{vcf}.vcf" + "\n")   
+                _ = fout.write(f"{outdir}/regions/{vcf}.vcf\n")   
 
 rule mpileup:
     input:
@@ -151,7 +151,11 @@ rule call_genotypes:
         groupsamples = '' if groupings is None else f"--group-samples {groupings}",
         ploidy = f"--ploidy {ploidy}"
     shell:
-        "bcftools call --multiallelic-caller {params} --variants-only --output-type b {input} | bcftools sort - --output {output} --write-index 2> /dev/null"
+        """
+        #bcftools call --multiallelic-caller {params} --variants-only --output-type b {input} | bcftools sort - --output {output.bcf} --write-index 2> /dev/null
+        bcftools call --multiallelic-caller {params} --variants-only --output-type b {input} | bcftools sort - --output {output.bcf} 2> /dev/null
+        bcftools index {output.bcf}
+        """
 
 rule merge_vcfs:
     input:
@@ -167,7 +171,11 @@ rule merge_vcfs:
     threads:
         50
     shell:  
-        "bcftools concat -f {input.filelist} --threads {threads} --naive --remove-duplicates -Ob --write-index > {output.bcf} 2> {log}"
+        """
+        #bcftools concat -f {input.filelist} --threads {threads} --naive --remove-duplicates -Ob --write-index > {output.bcf} 2> {log}
+        bcftools concat -f {input.filelist} --threads {threads} --naive --remove-duplicates -Ob > {output.bcf} 2> {log}
+        bcftools index {output.bcf}
+        """
 
 rule normalize_bcf:
     input: 
@@ -183,7 +191,9 @@ rule normalize_bcf:
         2
     shell:
         """
-        bcftools norm -d none -f {input.genome} {input.bcf} | bcftools norm -m -any -N -Ob --write-index > {output.bcf}
+        #bcftools norm -d none -f {input.genome} {input.bcf} | bcftools norm -m -any -N -Ob --write-index > {output.bcf}
+        bcftools norm -d none -f {input.genome} {input.bcf} | bcftools norm -m -any -N -Ob > {output.bcf}
+        bcftools index {output.bcf}
         """
         
 rule variants_stats:

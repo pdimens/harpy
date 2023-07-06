@@ -103,7 +103,7 @@ rule call_variants:
     shell:
         "freebayes -f {input.ref} -L {input.samples} {params} | bcftools sort - --output {output} 2> /dev/null"
 
-rule vcf_list:
+rule concat_list:
     output:
         outdir + "/logs/vcf.files"
     message:
@@ -111,7 +111,7 @@ rule vcf_list:
     run:
         with open(output[0], "w") as fout:
             for vcf in _regions:
-                _ = fout.write(f"{outdir}/regions/{vcf}.vcf" + "\n")   
+                _ = fout.write(f"{outdir}/regions/{vcf}.vcf\n")   
 
 rule merge_vcfs:
     input:
@@ -127,7 +127,11 @@ rule merge_vcfs:
     threads:
         50
     shell:  
-        "bcftools concat -f {input.filelist} --threads {threads} --remove-duplicates -Ob --naive > {output.bcf} 2> {log}"
+        """
+        #bcftools concat -f {input.filelist} --threads {threads} --remove-duplicates -Ob --naive  --write-index > {output.bcf} 2> {log}
+        bcftools concat -f {input.filelist} --threads {threads} --remove-duplicates -Ob --naive > {output.bcf} 2> {log}
+        bcftools index {output.bcf}
+        """
 
 rule normalize_bcf:
     input: 
@@ -140,7 +144,11 @@ rule normalize_bcf:
         "Normalizing the called variants"
     threads: 2
     shell:
-        "bcftools norm -d none -f {input.genome} {input.bcf} | bcftools norm -m -any -N -Ob --write-index > {output.bcf}"
+        """
+        #bcftools norm -d none -f {input.genome} {input.bcf} | bcftools norm -m -any -N -Ob --write-index > {output.bcf}
+        bcftools norm -d none -f {input.genome} {input.bcf} | bcftools norm -m -any -N -Ob > {output.bcf}
+        bcftools index {output.bcf}        
+        """
 
 rule variants_stats:
     input:
