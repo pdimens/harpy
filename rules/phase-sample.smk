@@ -122,11 +122,35 @@ rule mergeSamples:
 		"Benchmark/Phase/mergesamples.txt"
 	threads: 30
 	shell:
-		"bcftools merge --threads {threads} --output-type b {input.vcf} > {output}"
+		"""
+		#bcftools merge --threads {threads} --output-type b --write-index {input.vcf} > {output}
+		bcftools merge --threads {threads} --output-type b {input.vcf} > {output}
+		"""
+
+rule log_runtime:
+    output:
+        outdir + "/logs/harpy.phase.log"
+    message:
+        "Creating record of relevant runtime parameters: {output}"
+    params:
+		links = linkarg,
+		d =  molecule_distance,
+		prune = f"--threshold {pruning} " if pruning > 0 else "--no_prune 1 ",
+		extra = extra
+		run:
+        	with open(output[0], "w") as f:
+				_ = f.write("The harpy phase module ran using these parameters:\n\n")
+				_ = f.write("## Preprocessing ##\n")
+				_ = f.write("""bcftools view -s SAMPLE | awk '/^#/;/CHROM/ OFS="\\t"; !/^#/ && $10~/^0\\/1/'\n\n""")
+				_ = f.write("## Phasing ##\n")
+				_ = f.write("extractHAIRS " + params[0] + " --nf 1 --bam sample.bam --VCF sample.vcf --out sample.unlinked.frags\n")
+				_ = f.write("LinkFragments.py --bam sample.BAM --VCF sample.vcf --fragments sample.unlinked.frags --out sample.linked.frags -d " + params[1] + "\n")
+        		_ = f.write("HAPCUT2 --fragments sample.linked.frags --vcf sample.vcf --out sample.blocks --nf 1 --error_analysis_mode 1 --call_homozygous 1 --outvcf 1" + params[2] + params[3])
 
 rule indexFinal:
 	input:
-		outdir + "/variants.phased.bcf"
+		bcf    = outdir + "/variants.phased.bcf",
+		runlog = outdir + "/logs/harpy.phase.log"
 	output:
 		outdir + "/variants.phased.bcf.csi"
 	benchmark:
@@ -135,4 +159,4 @@ rule indexFinal:
 		"Phasing is complete!"
 	default_target: True
 	shell: 
-		"bcftools index {input}"
+		"bcftools index {input.bcf}"
