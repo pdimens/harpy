@@ -90,7 +90,8 @@ rule call_variants:
         ref     = f"Assembly/{bn}",
         samples = outdir + "/logs/samples.files"
     output:
-        temp(outdir + "/regions/{part}.vcf")
+        bcf = temp(outdir + "/regions/{part}.bcf"),
+        idx = temp(outdir + "/regions/{part}.bcf.csi")
     message:
         "Calling variants: {wildcards.part}"
     threads:
@@ -101,22 +102,26 @@ rule call_variants:
         populations = '' if groupings is None else f"--populations {groupings}",
         extra = extra
     shell:
-        "freebayes -f {input.ref} -L {input.samples} {params} | bcftools sort - --output {output} 2> /dev/null"
+        """
+        freebayes -f {input.ref} -L {input.samples} {params} | bcftools sort - -Ob --output {output.bcf} 2> /dev/null
+        bcftools index {output.bcf}
+        #freebayes -f {input.ref} -L {input.samples} {params} | bcftools sort - -Ob --output {output} --write-index 2> /dev/null
+        """
 
 rule concat_list:
     output:
-        outdir + "/logs/vcf.files"
+        outdir + "/logs/bcf.files"
     message:
         "Creating list of region-specific vcf files"
     run:
         with open(output[0], "w") as fout:
-            for vcf in _regions:
-                _ = fout.write(f"{outdir}/regions/{vcf}.vcf\n")   
+            for bcf in _regions:
+                _ = fout.write(f"{outdir}/regions/{bcf}.bcf\n")   
 
 rule merge_vcfs:
     input:
-        vcfs = expand(outdir + "/regions/{part}.vcf", part = _regions),
-        filelist = outdir + "/logs/vcf.files"
+        vcfs = expand(outdir + "/regions/{part}.bcf", part = _regions),
+        filelist = outdir + "/logs/bcf.files"
     output:
         bcf = outdir + "/variants.raw.bcf",
         idx = outdir + "/variants.raw.bcf.csi"
@@ -128,9 +133,9 @@ rule merge_vcfs:
         50
     shell:  
         """
-        #bcftools concat -f {input.filelist} --threads {threads} -Ob -a --remove-duplicates --write-index > {output.bcf} 2> {log}
-        bcftools concat -f {input.filelist} --threads {threads} -a --remove-duplicates -Ob > {output.bcf} 2> {log}
-        bcftools index {output.bcf}
+        #bcftools concat -f {input.filelist} --threads {threads} -Ob --naive --write-index > {output.bcf} 2> {log}
+        bcftools concat -f {input.filelist} --threads {threads} --naive -Ob > {output.bcf} 2> {log}
+        bcftools index --threads {threads} {output.bcf}
         """
 
 rule normalize_bcf:
@@ -145,9 +150,9 @@ rule normalize_bcf:
     threads: 2
     shell:
         """
-        #bcftools norm -d none -f {input.genome} {input.bcf} | bcftools norm -m -any -N -Ob --write-index > {output.bcf}
-        bcftools norm -d none -f {input.genome} {input.bcf} | bcftools norm -m -any -N -Ob > {output.bcf}
-        bcftools index {output.bcf}        
+        #bcftools norm -d exact -f {input.genome} {input.bcf} | bcftools norm -m -any -N -Ob --write-index > {output.bcf}
+        bcftools norm -d exact -f {input.genome} {input.bcf} | bcftools norm -m -any -N -Ob > {output.bcf}
+        bcftools index --threads {threads} {output.bcf}        
         """
 
 rule variants_stats:

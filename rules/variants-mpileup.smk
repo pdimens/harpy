@@ -172,9 +172,9 @@ rule merge_vcfs:
         50
     shell:  
         """
-        #bcftools concat -f {input.filelist} --threads {threads} -a --remove-duplicates -Ob --write-index > {output.bcf} 2> {log}
-        bcftools concat -f {input.filelist} --threads {threads} -a --remove-duplicates -Ob > {output.bcf} 2> {log}
-        bcftools index {output.bcf}
+        #bcftools concat -f {input.filelist} --threads {threads} --naive -Ob --write-index > {output.bcf} 2> {log}
+        bcftools concat -f {input.filelist} --threads {threads} --naive -Ob > {output.bcf} 2> {log}
+        bcftools index --threads {threads} {output.bcf}
         """
 
 rule normalize_bcf:
@@ -191,9 +191,9 @@ rule normalize_bcf:
         2
     shell:
         """
-        #bcftools norm -d none -f {input.genome} {input.bcf} | bcftools norm -m -any -N -Ob --write-index > {output.bcf}
-        bcftools norm -d none -f {input.genome} {input.bcf} | bcftools norm -m -any -N -Ob > {output.bcf}
-        bcftools index {output.bcf}
+        #bcftools norm -d exact -f {input.genome} {input.bcf} | bcftools norm -m -any -N -Ob --write-index > {output.bcf}
+        bcftools norm -d exact -f {input.genome} {input.bcf} | bcftools norm -m -any -N -Ob > {output.bcf}
+        bcftools index --threads {threads} {output.bcf}
         """
         
 rule variants_stats:
