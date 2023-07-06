@@ -128,8 +128,8 @@ rule merge_vcfs:
         50
     shell:  
         """
-        #bcftools concat -f {input.filelist} --threads {threads} -Ob --naive  --write-index > {output.bcf} 2> {log}
-        bcftools concat -f {input.filelist} --threads {threads} -Ob --naive > {output.bcf} 2> {log}
+        #bcftools concat -f {input.filelist} --threads {threads} -Ob -a --remove-duplicates --write-index > {output.bcf} 2> {log}
+        bcftools concat -f {input.filelist} --threads {threads} -a --remove-duplicates -Ob > {output.bcf} 2> {log}
         bcftools index {output.bcf}
         """
 
@@ -193,7 +193,7 @@ rule log_runtime:
             _ = f.write("The freebayes parameters:\n")
             _ = f.write("\tfreebayes -f GENOME -L samples.list -r REGION " + " ".join(params) + " | bcftools sort -\n")
             _ = f.write("The variants identified in the intervals were merged into the final variant file using:\n")
-            _ = f.write("\tbcftools concat -f vcf.list --naive\t")
+            _ = f.write("\tbcftools concat -f vcf.list -a --remove-duplicates\t")
             _ = f.write("The variants were normalized using:\n")
             _ = f.write("\tbcftools norm -d none | bcftools norm -m -any -N -Ob")
 
