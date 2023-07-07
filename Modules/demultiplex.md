@@ -2,6 +2,7 @@
 label: Demultiplex
 description: Demultiplex raw sequences into haplotag barcoded samples
 icon: versions
+visibility: hidden
 order: 7
 ---
 
@@ -12,42 +13,42 @@ order: 7
 - gzipped forward/reverse reads from an Illumina sequencer
 ===
 
-
-You may want to phase your genotypes into haplotypes, as haplotypes tend to be more informative
-than unphased genotypes (higher polymorphism, captures relationship between genotypes). Phasing
-genotypes into haplotypes requires alignment files, such as those produced by `harpy align` and
-a variant call file, such as those produced by `harpy variants` or `harpy impute`. **Phasing only
-works on SNP data**, and will not work for structural variants produced by `LEVIATHAN`. You can phase genotypes into haplotypes with Harpy using the `phase` module:
+When pooling samples and sequencing them in parallel on an Illumina sequencer, you will be given large multiplexed FASTQ
+files in return. These files contain sequences for all of your samples and need to be demultiplexed using barcodes to 
+separate the sequences for each sample into their own files (a forward and reverse file for each sample). These barcodes
+should have been added during the sample DNA preparation in a laboratory. The demultiplexing strategy will vary based on the
+haplotag technology you are using (read [Haplotag Types](#haplotag-types)).
 
 ```bash usage
 harpy demultiplex OPTIONS... 
 ```
 ```bash example
-harpy phase --threads 20 --directory Variants/variants.raw.bcf
+harpy demultiplex --threads 20 --directory raw_seqs/
 ```
 
-
+# TODO
 ## :icon-terminal: Running Options
 | argument              | short name | type            | default | required | description                                                                                     |
 |:----------------------|:----------:|:----------------|:-------:|:--------:|:------------------------------------------------------------------------------------------------|
-| `--vcf`               |    `-v`    | file path       |         | **yes**  | Path to BCF/VCF file                                                                            |
-| `--directory`               |    `-d`    | folder path     |         | **yes**  | Directory with sequence alignments                                                              |
-| `--molecule-distance` |    `-m`    | integer         |  20000  |    no    | Base-pair distance dilineating separate molecules                                               |
-| `--prune-threshold`   |    `-p`    | integer (0-100) |    7    |    no    | PHRED-scale (%) threshold for pruning low-confidence SNPs                                       |
-| `--extra-params`      |    `-x`    | string          |         |    no    | Additional Hapcut2 arguments, in quotes                                                         |
+| `--directory`         |    `-d`    | folder path     |         | **yes**  | Directory with raw sequence                                                               |
+| `--method`            |    `-m`    | choice          | `gen1`  |    yes   | Haplotagging technology type                                               |
 | `--threads`           |    `-t`    | integer         |    4    |    no    | Number of threads to use                                                                        |
 | `--snakemake`         |    `-s`    | string          |         |    no    | Additional [Snakemake](../snakemake/#adding-snakamake-parameters) options, in quotes |
 | `--quiet`             |    `-q`    | toggle          |         |    no    | Supressing Snakemake printing to console                                                        |
 | `--help`              |            |                 |         |          | Show the module docstring                                                                       |
 
+## Haplotag Types
+==- Generation 1 - `gen1`
+- Barcode configuration: `13 + 13`
+- sequencing mask: `151+13+13+151`
+- Sample identifier: `Cxx` barcode
+- Facility should **not** demultiplex
 
-The molecule distance is and pruning thresholds are considered the most impactful parameters
-for running HapCut2, therefore they are directly configurable from the command. The molecule distance
-refers to the base-pair distance dilineating separate molecules. Feel free to play around with this number 
-if you do not know the distance, as it's not clear how impactful this can be on the results. The pruning 
-threshold refers to a PHRED-scale value between 0-1 (a percentage) for removing low-confidence SNPs from consideration. 
-With Harpy, you configure this value as an integer between 0-100, which gets converted to a floating point
-value between 0-1 internally (_i.e._ `-p 7` is equivalent to 0.07 threshold).
+These are the original 13 + 13 barcodes described in Meier et al. 2021. You should request that the sequencing facility you used
+do **not** demultiplex the sequences. Requires the use of `bcl2fastq` without `sample-sheet` and with the settings
+`--use-bases-mask=Y151,I13,I13,Y151` and `--create-fastq-for-index-reads`. With Generation I beadtags, the `C` barcode is sample-specific,
+meaning a single sample should have the same `C` barcode for all of its sequences.
+===
 
 ---
 ## :icon-git-pull-request: Phasing Workflow

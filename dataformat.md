@@ -13,7 +13,7 @@ and `xx` is a number between `00` and `96` corresponding to the well from that m
 So, the `A14` segment would correspond with the barcode from Plate `A`, well `14`.
 A `00` barcode (e.g. `C00`) indicates a missing/invalid barcode segment, which invalidates the entire barcode.
 
-### Barcode protocol varieties
+### barcode protocol varieties
 If you think haplotagging is as simple as exactly $96^4$ unique barcodes, you would only be half-correct. The original haplotagging
 protocol in Meier *et al.* is good, but the authors (and others) have been working to improve this linked-read technology to improve
 things like reduce PCR duplicates, improve successful barcode sequencing and error correction, etc. As a result, a few updated variants
