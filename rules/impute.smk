@@ -81,7 +81,7 @@ rule convert2stitch:
     threads: 3
     shell:
         """
-        bcftools view --types snps -M2 -V indels,mnps,ref,bnd,other --regions {wildcards.part} {input} |
+        bcftools view --types snps -M2 --regions {wildcards.part} {input} |
         bcftools query -f '%CHROM\\t%POS\\t%REF\\t%ALT\\n' > {output}
         """
 
