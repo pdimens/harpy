@@ -1,0 +1,159 @@
+---
+title: "BCFtools Stats Report"
+author:
+    - "Created using HARPY"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output:
+  html_document:
+    highlight: tango
+    number_sections: no
+    theme: cosmo
+    df_print: kable
+    toc: yes
+    toc_depth: 2
+    toc_float:
+      collapsed: no
+      smooth_scroll: yes
+---
+```{r load environment, echo=FALSE, message=FALSE, warning=FALSE}
+library(ggplot2)
+library(magrittr)
+library(tidyr)
+library(DT)
+library(plotly)
+library(RColorBrewer)
+#dataL <- readLines("~/checkstats.txt")
+dataL <- readLines(snakemake@input[[1]])
+bcf <- gsub(".stats$", ".bcf", snakemake@input[[1]])
+```
+### File: `r bcf`
+
+## General Information
+This reflects the general information stored in the records of `r bcf`.
+```{r General Stats, echo = FALSE, message = FALSE, warning = FALSE}
+.snL <- grepl("^SN", dataL)
+sn <- read.table(text=dataL[.snL], sep = "\t")[,3:4]
+names(sn) <- c("Metric", "Number")
+sn$Metric <- gsub("number of ", "", sn$Metric)
+rownames(sn) <- sn$Metric
+sn <- as.data.frame(t(sn[2]))
+rownames(sn) <- NULL
+sn
+```
+
+## Individual Statistics {.tabset}
+These statistics correspond to the `r sn$samples[1]` samples in `r bcf`.
+### Imputation success
+This table details the number of `missing` genotypes that were imputed per individual. Following standard VCF convention, `Ref` refers to
+the reference allele (from the reference genome), `Alt` refers to the alternative allele, and `Missing` details how many SNPs remain missing
+(failed to impute) for that individual. As an example, the `Homozygous Ref` column is the number of missing genotypes that were imputed into
+a homozygous genotype for the reference allele.
+
+```{r Individual plot, echo=FALSE, message=FALSE, warning=FALSE}
+comparefile <- readLines(snakemake@input[[2]])
+gcts <- read.table(comparefile, header = F)[,c(2, 23, 25, 24, 27)]
+names(gcts) <- c("sample","missing2RRHom", "missing2RAHet",	"missing2AAHom", "missing")
+
+DT::datatable(
+  gcts,
+  rownames = FALSE,
+  extensions = "Buttons",
+  colnames = c("Sample", "Homozygous Ref", "Homozygous Alt", "Heterozygote", "Missing"),
+  options = list(
+    dom = "Brtip",
+    buttons = c("csv"),
+    scrollX = TRUE
+  )
+)
+```
+
+
+### plot
+```{r Individual plot, echo=FALSE, message=FALSE, warning=FALSE, paged.print=TRUE, out.width="100%"}
+.pscL <- grepl("^PSC", dataL)
+psc <- read.table(text=dataL[.pscL])[ ,3:14]
+names(psc) <- c("Sample", "HomozygousRef", "HomozygousAtl", "Heterozygotes", "Transitions", "Transversions", "Indels",	"MeanDepth", "Singletons",	"HapRef", "HapAlt", "Missing")
+psc$Homozygotes <- psc$HomozygousRef + psc$HomozygousAtl
+tidy_psc <- pivot_longer(psc[,c(1,4,5,6,7,9,12,13)], -Sample , names_to = "Metric", values_to = "Count")
+psc <- psc[,c(1,8,12,2,3,13,4,5,6,7,9,10,11)]
+
+pscplot <- ggplot(data = tidy_psc, mapping = aes(x = Count, y = Sample, color = Metric)) +
+  geom_point(size = 2) +
+  labs(title = "Individual Statistics") +
+  theme_bw() +
+  scale_x_continuous(n.breaks=9) +
+  xlab("Count") +
+  scale_color_brewer(palette = "Dark2") +
+  theme(panel.grid.minor = element_blank(), panel.grid.major.y = element_blank(), axis.title.y = element_blank())
+
+ggplotly(pscplot)
+```
+
+### table
+```{r Individual table, echo=FALSE, message=FALSE, warning=FALSE, paged.print=TRUE, out.width="100%"}
+DT::datatable(psc, rownames = F, filter = "top", extensions = 'Buttons', options = list(dom = 'Brtip', buttons = c('csv'), scrollX = TRUE))
+```
+
+## Depth Statistics {.tabset}
+These are per-locus statistics, which correspond to the Depth (`DP`) calculations of `bcftools stats`
+
+### plot
+```{r depth plot, echo=FALSE, message=FALSE, warning=FALSE, paged.print=TRUE, out.width="100%"}
+.dpL <- grepl("^DP", dataL)
+if(sum(.dpL) == 0){
+  cat(paste0("No DP section in", snakemake@input[[1]], " found\n"))
+} else {
+  dp <- read.table(text=dataL[.dpL])[ , 3:7]
+  names(dp) <- c("Bin", "Genotypes", "PercentGenotypes", "NumberSites", "PercentSites")
+  dpplot <- ggplot(data = dp, mapping = aes(x = Bin, y = NumberSites)) +
+    geom_bar(stat = "identity", color = "#F28500", fill = "#F28500") +
+    scale_y_continuous(n.breaks=10) +
+    labs(title = "Depth per Site") +
+    ylab("Number of Sites") +
+    theme_minimal() +
+    theme(panel.grid.minor.y = element_blank())
+
+  ggplotly(dpplot)
+}
+```
+
+### table
+```{r depth table, echo=FALSE, message=FALSE, warning=FALSE, paged.print=TRUE, out.width="100%"}
+if(sum(.dpL) == 0){
+  cat(paste0("No DP section in", snakemake@input[[1]], " found\n"))
+} else {
+  DT::datatable(
+    dp,
+    rownames = F,
+    filter = "top",
+    extensions = 'Buttons',
+    options = list(dom = 'Brtip', buttons = c('csv')),
+    colnames = c("Bin", "Genotypes", "% Genotypes", "Sites", "% Sites")
+    )
+}
+```
+
+## Insertions and Deletions
+Below is the distribution of insertions and deletions based on length and frequency.
+```{r Indel Stats, echo=FALSE, message=FALSE, warning=FALSE, paged.print=TRUE, out.width="100%"}
+.iddL <- grepl("^IDD", dataL)
+if(sum(.iddL) == 0){
+  cat(paste0("No IDD section in", snakemake@input[[1]], " found\n"))
+} else {
+  idd <- read.table(text=dataL[.iddL])[ ,3:4]
+  names(idd) <- c("Length", "Count")
+  idd$Type <- idd$Length > 0
+  idd$Type <-  gsub(TRUE, "Insertion", idd$Type)
+  idd$Type <-  gsub(FALSE, "Deletion", idd$Type)
+  iddplot <- ggplot(data = idd, mapping = aes(x = Length, y = Count,  color = Type)) +
+    geom_point() +
+    scale_color_manual(values=c("indianred","#56B4E9"))+
+    labs(title = "Insertion-Deletion Distribution") +
+    xlab("indel length") +
+    ylab("number of sites") +
+    theme_minimal()
+
+  ggplotly(iddplot)
+}
+```
+

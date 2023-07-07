@@ -170,35 +170,63 @@ rule merge_vcfs:
         "Benchmark/Impute/mergevcf.{stitchparams}.txt"
     threads: 50
     shell:
-        "bcftools concat --threads {threads} -o {output} --output-type b {input.vcf} 2> {log}"
+        """
+        bcftools concat --threads {threads} -o {output} --output-type b {input.vcf} 2> {log}
+        #bcftools concat --threads {threads} -o {output} --output-type b --write-index {input.vcf} 2> {log}"
+        """
+
+rule index_merged:
+    input:
+        "Impute/{stitchparams}/variants.imputed.bcf"
+    output:
+        "Impute/{stitchparams}/variants.imputed.bcf.csi"
+    message:
+        "Indexing: {wildcards.stitchparams}/variants.imputed.bcf"
+    shell:
+        "bcftools index {input}"
 
 rule stats:
     input:
-        bcf        = "Impute/{stitchparams}/variants.imputed.bcf",
-        samplelist = "Impute/input/samples.names"
+        bcf     = "Impute/{stitchparams}/variants.imputed.bcf",
+        idx     = "Impute/{stitchparams}/variants.imputed.bcf.csi",
+        samples = "Impute/input/samples.names"
     output:
         "Impute/{stitchparams}/variants.imputed.stats"
     message:
-        "Indexing and calculating stats: {wildcards.stitchparams}/variants.imputed.bcf"
+        "Calculating stats: {wildcards.stitchparams}/variants.imputed.bcf"
     benchmark:
         "Benchmark/Impute/mergestats.{stitchparams}.txt"
     shell:
-        """
-        bcftools index {input.bcf}
-        bcftools stats {input.bcf} -S {input.samplelist} > {output}
-        """
+        "bcftools stats {input.bcf} -S {input.samples} > {output}"
+
+rule comparestats:
+    input:
+        orig    = "Impute/input/input.sorted.bcf",
+        origidx = "Impute/input/input.sorted.bcf.csi",
+        impute  = "Impute/{stitchparams}/variants.imputed.bcf",
+        idx     = "Impute/{stitchparams}/variants.imputed.bcf.csi",
+        samples = "Impute/input/samples.names"
+    output:
+        "Impute/{stitchparams}/impute.compare.stats"
+    message:
+        "Comparing imputed variants to original VCF: {wildcards.stitchparams}"
+    benchmark:
+        "Benchmark/Impute/mergestats.{stitchparams}.txt"
+    shell:
+        "bcftools stats {input.impute} {input.orig} -S {input.samples} | grep \"GCTs\" > {output}"
 
 rule reports:
     input: 
-        "Impute/{stitchparams}/variants.imputed.stats"
+        "Impute/{stitchparams}/variants.imputed.stats",
+        "Impute/{stitchparams}/impute.compare.stats"
     output:
         "Impute/{stitchparams}/variants.imputed.html"
     message:
-        "Generating bcftools report: {output}"
+        "Generating imputation success report: {output}"
     benchmark:
         "Benchmark/Impute/stitchreport.{stitchparams}.txt"
     script:
-        "reportBcftools.Rmd"
+        "reportImpute.Rmd"
 
 rule log_runtime:
     output:
@@ -240,10 +268,10 @@ rule log_runtime:
 
 rule all:
     input: 
-        bcf           = expand("Impute/{stitchparams}/variants.imputed.bcf", stitchparams=paramspace.instance_patterns),
-        reports       = expand("Impute/{stitchparams}/variants.imputed.html", stitchparams=paramspace.instance_patterns),
-        contigreports = expand("Impute/{stitchparams}/contigs/{part}/{part}.impute.html", stitchparams=paramspace.instance_patterns, part = contigs),
-        runlog        = "Impute/logs/harpy.impute.log"
+        bcf     = expand("Impute/{stitchparams}/variants.imputed.bcf", stitchparams=paramspace.instance_patterns),
+        reports = expand("Impute/{stitchparams}/variants.imputed.html", stitchparams=paramspace.instance_patterns),
+        contigs = expand("Impute/{stitchparams}/contigs/{part}/{part}.impute.html", stitchparams=paramspace.instance_patterns, part = contigs),
+        runlog  = "Impute/logs/harpy.impute.log"
     message: 
         "Genotype imputation is complete!"
     default_target: True
