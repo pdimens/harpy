@@ -11,7 +11,7 @@ paramspace  = Paramspace(pd.read_csv(paramfile, sep="\t"), param_sep = "", filen
 #^ declare a dataframe to be a paramspace
 
 def contignames(vcf):
-    sys.stderr.write("Preprocessing: Indentifying contigs with at least 2 biallelic SNPs\n")
+    sys.stderr.write("Preprocessing: Identifying contigs with at least 2 biallelic SNPs\n")
     biallelic = subprocess.Popen(f"bcftools view -m2 -M2 -v snps {vcf} -Ob".split(), stdout = subprocess.PIPE)
     contigs = subprocess.run(f"bcftools query -f %CHROM\\n".split(), stdin = biallelic.stdout, stdout = subprocess.PIPE)
     dict_cont = dict()
