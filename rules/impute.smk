@@ -82,7 +82,7 @@ rule convert2stitch:
     shell:
         """
         bcftools view --types snps -M2 --regions {wildcards.part} {input} |
-        bcftools query -f '%CHROM\\t%POS\\t%REF\\t%ALT\\n' > {output}
+        bcftools query -f '%CHROM\\t%POS\\t%REF\\t%ALT\\t%TYPE\\n' > {output}
         """
 
 rule impute:
