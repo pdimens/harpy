@@ -13,7 +13,7 @@ paramspace  = Paramspace(pd.read_csv(paramfile, sep="\t"), param_sep = "", filen
 def contignames(vcf):
     print("Preprocessing: Identifying contigs with at least 2 biallelic SNPs", file = sys.stderr)
     biallelic = subprocess.Popen(f"bcftools view -m2 -M2 -v snps {vcf} -Ob".split(), stdout = subprocess.PIPE)
-    contigs = subprocess.run("""bcftools query -i 'TYPE="SNP"' -f %CHROM\\n""".split(), stdin = biallelic.stdout, stdout = subprocess.PIPE)
+    contigs = subprocess.run("""bcftools query -f %CHROM\\n""".split(), stdin = biallelic.stdout, stdout = subprocess.PIPE)
     dict_cont = dict()
     for i in list([chr for chr in contigs.stdout.decode('utf-8').split()]):
         if i in dict_cont:
@@ -168,7 +168,7 @@ rule merge_vcfs:
         "Merging VCFs: {wildcards.stitchparams}"
     benchmark:
         "Benchmark/Impute/mergevcf.{stitchparams}.txt"
-    threads: 20
+    threads: 50
     shell:
         "bcftools concat --threads {threads} -o {output} --output-type b {input.vcf} 2> {log}"
 
