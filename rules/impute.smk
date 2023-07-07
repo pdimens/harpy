@@ -211,33 +211,31 @@ rule log_runtime:
             _ = f.write(f"The provided variant file: {variantfile}\n")
             _ = f.write(f"The directory with alignments: {bam_dir}\n")
             _ = f.write("Preprocessing was performed with:\n")
-            _ = f.write("\tbcftools view -m2 -M2 -v snps --regions CONTIG INFILE |\n")
-            _ = f.write("\tbcftools query -f '%CHROM\\t%POS\\t%REF\\t%ALT\\n'\n")
+            _ = f.write("\tbcftools view -M2 -v snps --regions CONTIG INFILE |\n")
+            _ = f.write("""\tbcftools query -i '(STRLEN(REF)==1) & (STRLEN(ALT[0])==1) & (REF!="N")' -f '%CHROM\\t%POS\\t%REF\\t%ALT\\n'\n""")
             _ = f.write("## STITCH imputation ##\n")
             _ = f.write("The STITCH parameters were governed by the rows of the input parameter table:\n")
             with open(config["paramfile"], "r") as f1:
                 for line in f1:
                     _ = f.write(line)
+            _ = f.write("\nWithin R, STITCH was invoked with the following parameters:\n")
             _ = f.write(
-                """
-                STITCH(
-                    method               = model,
-                    posfile              = posfile,
-                    bamlist              = bamlist,
-                    nCores               = nCores,
-                    nGen                 = nGen,
-                    chr                  = chr,
-                    K                    = k,
-                    S                    = s,
-                    use_bx_tag           = useBX,
-                    bxTagUpperLimit      = 50000,
-                    niterations          = 40,
-                    switchModelIteration = 39,
-                    splitReadIterations  = NA,
-                    outputdir            = outdir,
-                    output_filename      = outfile
-                )
-                """
+                "STITCH(\n" +
+                "\tmethod               = model,\n" +
+                "\tposfile              = posfile,\n" +
+                "\tbamlist              = bamlist,\n" +
+                "\tnCores               = nCores,\n" +
+                "\tnGen                 = nGen,\n" +
+                "\tchr                  = chr,\n" +
+                "\tK                    = k,\n" +
+                "\tS                    = s,\n" +
+                "\tuse_bx_tag           = useBX,\n" +
+                "\tbxTagUpperLimit      = 50000,\n" +
+                "\tniterations          = 40,\n" +
+                "\tswitchModelIteration = 39,\n" +
+                "\tsplitReadIterations  = NA,\n" +
+                "\toutputdir            = outdir,\n" +
+                "\toutput_filename      = outfile\n)"
             )
 
 rule all:
