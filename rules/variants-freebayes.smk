@@ -200,7 +200,7 @@ rule log_runtime:
             _ = f.write("The variants identified in the intervals were merged into the final variant file using:\n")
             _ = f.write("\tbcftools concat -f vcf.list -a --remove-duplicates\n")
             _ = f.write("The variants were normalized using:\n")
-            _ = f.write("\tbcftools norm -d none | bcftools norm -m -any -N -Ob")
+            _ = f.write("\tbcftools norm -d exact | bcftools norm -m -any -N -Ob")
 
 rule all:
     input: 
