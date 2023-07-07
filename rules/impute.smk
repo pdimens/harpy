@@ -12,7 +12,7 @@ paramspace  = Paramspace(pd.read_csv(paramfile, sep="\t"), param_sep = "", filen
 
 def contignames(vcf):
     print("Preprocessing: Identifying contigs with at least 2 biallelic SNPs", file = sys.stderr)
-    biallelic = subprocess.Popen(f"bcftools view -m2 -M2 -v snps {vcf} -Ob".split(), stdout = subprocess.PIPE)
+    biallelic = subprocess.Popen(f"bcftools view -M2 -v snps {vcf} -Ob".split(), stdout = subprocess.PIPE)
     contigs = subprocess.run("""bcftools query -f %CHROM\\n""".split(), stdin = biallelic.stdout, stdout = subprocess.PIPE)
     dict_cont = dict()
     for i in list([chr for chr in contigs.stdout.decode('utf-8').split()]):
@@ -81,8 +81,8 @@ rule convert2stitch:
     threads: 3
     shell:
         """
-        bcftools view -m2 -M2 -v snps --regions {wildcards.part} {input} |
-        bcftools query -i 'TYPE="SNP"' -f '%CHROM\\t%POS\\t%REF\\t%ALT\\n' > {output}
+        bcftools view --types snps -M2 -V indels,mnps,ref,bnd,other --regions {wildcards.part} {input} |
+        bcftools query -f '%CHROM\\t%POS\\t%REF\\t%ALT\\n' > {output}
         """
 
 rule impute:
