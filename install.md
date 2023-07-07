@@ -39,7 +39,7 @@ repository, installing the preconfigured conda environment, and running the `mis
 **Clone the repository**
 
 ```bash clone the repository
-git clone https://github.com/pdimens/HARPY.git
+git clone https://github.com/pdimens/harpy.git
 ```
 ```bash install the dependencies with conda
 conda env create --name harpy --file misc/harpyenv.yaml
