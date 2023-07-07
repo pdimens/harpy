@@ -100,7 +100,7 @@ rule impute:
         # in the form of a dict (here: {"k": ..., "s": ..., "ngen": ...})
         parameters = paramspace.instance
     message: 
-        "Running STITCH: {wildcards.part}\nmodel: {wildcards.model}\nuseBX: {wildcards.useBX}\n    k: {wildcards.k}\n    s: {wildcards.s}\n nGen: {wildcards.nGen}"
+        "Performing imputation: {wildcards.part}\nmodel: {wildcards.model}\nuseBX: {wildcards.useBX}\n    k: {wildcards.k}\n    s: {wildcards.s}\n nGen: {wildcards.nGen}"
     benchmark:
         f"Benchmark/Impute/stitch.{paramspace.wildcard_pattern}" + ".{part}.txt"
     threads: 50
