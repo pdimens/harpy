@@ -34,7 +34,7 @@ conda install -c bioconda harpy
 ⚠️ **Not intended for regular users** ⚠️
 
 If intent on installing harpy for development, you can do so by cloning the harpy
-repository, installing the preconfigured conda environment, and running the `misc/build.sh` script to move all the necessary files to the `/bin/` path within your active conda environment.
+repository, installing the preconfigured conda environment, and running the `misc/buildlocal.sh` script to move all the necessary files to the `/bin/` path within your active conda environment.
 
 **Clone the repository**
 
