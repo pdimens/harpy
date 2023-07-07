@@ -24,17 +24,17 @@ harpy variants OPTIONS...
 
 ```bash examples
 # call variants with mpileup
-harpy variants --threads 20 --genome genome.fasta --dir Align/ema
+harpy variants --threads 20 --genome genome.fasta --directory Align/ema
 
 # call structural variants with LEVIATHAN
-harpy variants --threads 20 --genome genome.fasta --dir Align/ema --method leviathan
+harpy variants --threads 20 --genome genome.fasta --directory Align/ema --method leviathan
 ```
 
 ## :icon-terminal: Running Options
 | argument         | short name | type                            | default | required | description                                                                                     |
 |:-----------------|:----------:|:--------------------------------|:-------:|:--------:|:------------------------------------------------------------------------------------------------|
 | `--genome`       |    `-g`    | file path                       |         | **yes**  | Genome assembly for variant calling                                                             |
-| `--dir`          |    `-d`    | folder path                     |         | **yes**  | Directory with sequence alignments                                                              |
+| `--directory`          |    `-d`    | folder path                     |         | **yes**  | Directory with sequence alignments                                                              |
 | `--populations`  |    `-p`    | file path                       |         |    no    | Tab-delimited file of sample\<tab\>group                                                        |
 | `--ploidy`       |    `-x`    | integer                         |    2    |    no    | Ploidy of samples                                                                               |
 | `--method`       |    `-l`    | choice [`mpileup`, `naibr`, `leviathan`] | mpileup |    no    | Which variant caller to use                                                                     |

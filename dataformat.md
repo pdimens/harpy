@@ -13,10 +13,17 @@ and `xx` is a number between `00` and `96` corresponding to the well from that m
 So, the `A14` segment would correspond with the barcode from Plate `A`, well `14`.
 A `00` barcode (e.g. `C00`) indicates a missing/invalid barcode segment, which invalidates the entire barcode.
 
+### Barcode protocol varieties
+If you think haplotagging is as simple as exactly $96^4$ unique barcodes, you would only be half-correct. The original haplotagging
+protocol in Meier *et al.* is good, but the authors (and others) have been working to improve this linked-read technology to improve
+things like reduce PCR duplicates, improve successful barcode sequencing and error correction, etc. As a result, a few updated variants
+of the beadtags will appear, each likely with their own way of properly demultiplexing the raw sequences. Harpy will aim to incorporate
+demultiplexing these beadtag variants as they become available.
+
 ### where the barcodes go
 Chromium 10X linked-reads have a particular format where the barcode is the leading 16 bases 
 of the read. However, haplotagging data **does not use that format**, nor do the tools 
-implemented in Harpy work correctly with it. Simply put, haplotagging sequences should look like regular FASTQ files of inserts and the barcode is stored in a `BX:Z:` tag in the read header. Again, **do not include the barcode in the sequence**.
+implemented in Harpy work correctly with it. Simply put, haplotagging sequences should look like regular FASTQ files of inserts and the barcode is stored in a `BX:Z:AxxCxxBxxDxx` tag in the read header. Again, **do not include the barcode in the sequence**.
 
 ## Read headers
 Like mentioned immediately above this sentence, the haplotag barcode is expected to be stored

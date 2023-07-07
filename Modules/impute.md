@@ -36,14 +36,14 @@ harpy impute OPTIONS...
 harpy extra -s stitch.params 
 
 # run imputation
-harpy impute --threads 20 --vcf Variants/mpileup/variants.raw.bcf --dir Align/ema --parameters stitch.params
+harpy impute --threads 20 --vcf Variants/mpileup/variants.raw.bcf --directory Align/ema --parameters stitch.params
 ```
 
 ## :icon-terminal: Running Options
 | argument       | short name | type        |    default    | required | description                                                                                     |
 |:---------------|:----------:|:------------|:-------------:|:--------:|:------------------------------------------------------------------------------------------------|
 | `--vcf`        |    `-v`    | file path   |               | **yes**  | Path to VCF/BCF file                                                                            |
-| `--dir      `  |    `-d`    | folder path |               | **yes**  | Directory with sequence alignments                                                              |
+| `--directory      `  |    `-d`    | folder path |               | **yes**  | Directory with sequence alignments                                                              |
 | `--parameters` |    `-p`    | file path   | stitch.params | **yes**  | STITCH parameter file (tab-delimited)                                                           |
 | `--threads`    |    `-t`    | integer     |       4       |    no    | Number of threads to use                                                                        |
 | `--snakemake`  |    `-s`    | string      |               |    no    | Additional [Snakemake](../snakemake/#adding-snakamake-parameters) options, in quotes |

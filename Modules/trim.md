@@ -21,13 +21,13 @@ harpy trim OPTIONS...
 ```
 
 ```bash example
-harpy trim --dir Sequences_Raw/ --threads 20 
+harpy trim --directory Sequences_Raw/ --threads 20 
 ```
 
 ## :icon-terminal: Running Options
 | argument         | short name | type        | default | required | description                                                                                     |
 |:-----------------|:----------:|:------------|:-------:|:--------:|:------------------------------------------------------------------------------------------------|
-| `--dir`          |    `-d`    | folder path |         | **yes**  | Directory with sequence alignments                                                              |
+| `--directory`          |    `-d`    | folder path |         | **yes**  | Directory with sequence alignments                                                              |
 | `--max-length`   |    `-l`    | integer     |   150   |    no    | Maximum length to trim sequences down to                                                        |
 | `--extra-params` |    `-x`    | string      |         |    no    | Additional fastp arguments, in quotes                                                           |
 | `--threads`      |    `-t`    | integer     |    4    |    no    | Number of threads to use                                                                        |

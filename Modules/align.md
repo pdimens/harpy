@@ -22,10 +22,10 @@ harpy align OPTIONS...
 ```
 ```bash examples
 # align with BWA
-harpy align --genome genome.fasta --dir Sequences/ 
+harpy align --genome genome.fasta --directory Sequences/ 
 
 # align with EMA
-harpy align --method ema --genome genome.fasta --dir Sequences/ 
+harpy align --method ema --genome genome.fasta --directory Sequences/ 
 ```
 
 
@@ -33,7 +33,7 @@ harpy align --method ema --genome genome.fasta --dir Sequences/
 | argument           | short name | type                  | default | required | description                                                                                     |
 |:-------------------|:----------:|:----------------------|:-------:|:--------:|:------------------------------------------------------------------------------------------------|
 | `--genome`         |    `-g`    | file path             |         | **yes**  | Genome assembly for read mapping                                                                |
-| `--dir`            |    `-d`    | folder path           |         | **yes**  | Directory with sample sequences                                                                 |
+| `--directory`            |    `-d`    | folder path           |         | **yes**  | Directory with sample sequences                                                                 |
 | `--ema-bins`       |    `-e`    | integer (1-1000)      |   500   |    no    | Number of barcode bins for EMA                                                                  |
 | `--quality-filter` |    `-f`    | integer (0-40)        |   30    |    no    | Minimum `MQ` (SAM mapping quality) to pass filtering                                            |
 | `--method`         |    `-m`    | choice [`bwa`, `ema`] |   bwa   |    no    | Which aligning software to use                                                                  |

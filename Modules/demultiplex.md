@@ -1,17 +1,17 @@
 ---
-label: Phase
-description: Phase haplotypes for haplotagged data with Harpy
-icon: stack
-order: 2
+label: Demultiplex
+description: Demultiplex raw sequences into haplotag barcoded samples
+icon: versions
+order: 7
 ---
 
-# :icon-stack: Phasing Haplotypes
+# :icon-versions: Demultiplex Raw Sequences
 
 ===  :icon-checklist: You will need
 - at least 2 cores/threads available
-- a vcf/bcf file of genotypes
-- sequence alignments, in `.bam` format
+- gzipped forward/reverse reads from an Illumina sequencer
 ===
+
 
 You may want to phase your genotypes into haplotypes, as haplotypes tend to be more informative
 than unphased genotypes (higher polymorphism, captures relationship between genotypes). Phasing
@@ -20,10 +20,10 @@ a variant call file, such as those produced by `harpy variants` or `harpy impute
 works on SNP data**, and will not work for structural variants produced by `LEVIATHAN`. You can phase genotypes into haplotypes with Harpy using the `phase` module:
 
 ```bash usage
-harpy phase OPTIONS... 
+harpy demultiplex OPTIONS... 
 ```
 ```bash example
-harpy phase --threads 20 --vcf Variants/variants.raw.bcf --directory Align/ema 
+harpy phase --threads 20 --directory Variants/variants.raw.bcf
 ```
 
 
