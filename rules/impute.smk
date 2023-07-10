@@ -183,6 +183,8 @@ rule index_merged:
     shell:
         "bcftools index {input}"
 
+# TODO MERGE IMPUTED WITH ORIGINAL
+
 rule stats:
     input:
         bcf     = "Impute/{stitchparams}/variants.imputed.bcf",
@@ -265,7 +267,7 @@ rule log_runtime:
                 "\tswitchModelIteration = 39,\n" +
                 "\tsplitReadIterations  = NA,\n" +
                 "\toutputdir            = outdir,\n" +
-                "\toutput_filename      = outfile\n)"
+                "\toutput_filename      = outfile\n)\n"
             )
 
 rule all:

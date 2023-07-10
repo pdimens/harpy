@@ -221,7 +221,7 @@ rule log_runtime:
                 _ = f.write('\t##FORMAT=<ID=GX,Number=1,Type=String,Description="Haplotype">\n')
                 _ = f.write('\t##FORMAT=<ID=PS,Number=1,Type=Integer,Description="ID of Phase Set for Variant">\n')
                 _ = f.write('\t##FORMAT=<ID=PQ,Number=1,Type=Integer,Description="Phred QV indicating probability that this variant is incorrectly phased relative to the haplotype">\n')
-                _ = f.write('\t##FORMAT=<ID=PD,Number=1,Type=Integer,Description="phased Read Depth">')
+                _ = f.write('\t##FORMAT=<ID=PD,Number=1,Type=Integer,Description="phased Read Depth">\n')
 
 
 rule indexFinal:

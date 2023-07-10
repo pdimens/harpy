@@ -147,7 +147,7 @@ rule log_runtime:
 				_ = f.write("Phasing was performed using the components of HapCut2:\n")
 				_ = f.write("\textractHAIRS " + params[0] + " --nf 1 --bam sample.bam --VCF sample.vcf --out sample.unlinked.frags\n")
 				_ = f.write("\tLinkFragments.py --bam sample.BAM --VCF sample.vcf --fragments sample.unlinked.frags --out sample.linked.frags -d " + params[1] + "\n")
-        		_ = f.write("\tHAPCUT2 --fragments sample.linked.frags --vcf sample.vcf --out sample.blocks --nf 1 --error_analysis_mode 1 --call_homozygous 1 --outvcf 1" + params[2] + params[3])
+        		_ = f.write("\tHAPCUT2 --fragments sample.linked.frags --vcf sample.vcf --out sample.blocks --nf 1 --error_analysis_mode 1 --call_homozygous 1 --outvcf 1" + params[2] + params[3] + "\n")
 
 rule indexFinal:
 	input:

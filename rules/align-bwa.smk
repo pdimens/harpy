@@ -223,4 +223,4 @@ rule log_runtime:
 			_ = f.write("\tsamtools view -h -q " + str(config["quality"]) + " |\n")
 			_ = f.write("\tsamtools sort -T SAMPLE --reference genome -m 4G\n")
 			_ = f.write("Duplicates in the alignments were marked using sambamba:\n")
-			_ = f.write("\tsambamba markdup -l 0")
+			_ = f.write("\tsambamba markdup -l 0\n")
