@@ -206,13 +206,17 @@ rule comparestats:
         idx     = "Impute/{stitchparams}/variants.imputed.bcf.csi",
         samples = "Impute/input/samples.names"
     output:
-        "Impute/{stitchparams}/impute.compare.stats"
+        compare = "Impute/{stitchparams}/stats/impute.compare.stats",
+        info_sc = "Impute/{stitchparams}/stats/impute.infoscore"
     message:
         "Comparing imputed variants to original VCF: {wildcards.stitchparams}"
     benchmark:
         "Benchmark/Impute/mergestats.{stitchparams}.txt"
     shell:
-        "bcftools stats {input.impute} {input.orig} -S {input.samples} | grep \"GCTs\" > {output}"
+        """
+        bcftools stats {input.impute} {input.orig} -S {input.samples} | grep \"GCTs\" > {output.compare}
+        bcftools query -f '%CHROM\\t%POS\\t%INFO/INFO_SCORE\\n' {input.impute} > {output.info_sc}
+        """
 
 rule reports:
     input: 

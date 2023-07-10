@@ -426,6 +426,7 @@ def impute(parameters, directory, threads, vcf, snakemake, quiet):
         command.append("--quiet")
         command.append("all")
     # generate and store list of viable contigs (minimum of 2 biallelic SNPs)
+    # doing it here so it doesn't have to run each time inside the workflow
     vbn = os.path.basename(vcf)
     if not os.path.exists(f"Impute/input/_{vbn}.list"):
         os.makedirs("Impute/input/", exist_ok = True)
@@ -441,13 +442,9 @@ def impute(parameters, directory, threads, vcf, snakemake, quiet):
                 l_corr = l.decode().replace("\'", "")
                 _ = f.write(f"{l_corr}\n")
                 contigs.append(f"{l_corr}")
-        print(contigs)
-        exit()
     else:
         with open(f"Impute/input/_{vbn}.list", "r") as f:
             contigs = [line.rstrip() for line in f]
-        print(contigs)
-        exit()
     command.append('--config')
     directory = directory.rstrip("/^")
     command.append(f"seq_directory={directory}")
@@ -455,7 +452,6 @@ def impute(parameters, directory, threads, vcf, snakemake, quiet):
     command.append(f"variantfile={vcf}")
     command.append(f"paramfile={parameters}")
     command.append(f"contigs={contigs}")
-    command.append(f"filtervcf=False")
     #command.append(f"extra={extra_params}")
     subprocess.run(command)
 
