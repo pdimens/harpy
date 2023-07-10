@@ -189,7 +189,7 @@ rule stats:
         idx     = "Impute/{stitchparams}/variants.imputed.bcf.csi",
         samples = "Impute/input/samples.names"
     output:
-        "Impute/{stitchparams}/variants.imputed.stats"
+        "Impute/{stitchparams}/stats/variants.imputed.stats"
     message:
         "Calculating stats: {wildcards.stitchparams}/variants.imputed.bcf"
     benchmark:
@@ -219,10 +219,10 @@ rule comparestats:
 
 rule reports:
     input: 
-        "Impute/{stitchparams}/variants.imputed.stats",
-        "Impute/{stitchparams}/impute.compare.stats"
+        "Impute/{stitchparams}/stats/variants.imputed.stats",
+        "Impute/{stitchparams}/stats/impute.compare.stats"
     output:
-        "Impute/{stitchparams}/variants.imputed.html"
+        "Impute/{stitchparams}/stats/variants.imputed.html"
     message:
         "Generating imputation success report: {output}"
     benchmark:
@@ -271,7 +271,7 @@ rule log_runtime:
 rule all:
     input: 
         bcf     = expand("Impute/{stitchparams}/variants.imputed.bcf", stitchparams=paramspace.instance_patterns),
-        reports = expand("Impute/{stitchparams}/variants.imputed.html", stitchparams=paramspace.instance_patterns),
+        reports = expand("Impute/{stitchparams}/stats/variants.imputed.html", stitchparams=paramspace.instance_patterns),
         contigs = expand("Impute/{stitchparams}/contigs/{part}/{part}.impute.html", stitchparams=paramspace.instance_patterns, part = contigs),
         runlog  = "Impute/logs/harpy.impute.log"
     message: 
