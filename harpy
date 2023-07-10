@@ -434,15 +434,19 @@ def impute(parameters, directory, threads, vcf, snakemake, quiet):
         contigs = subprocess.Popen("""bcftools query -f '%CHROM\\n'""".split(), stdin = biallelic.stdout, stdout = subprocess.PIPE)
         c_sort = subprocess.Popen("sort", stdin = contigs.stdout, stdout = subprocess.PIPE)
         unq = subprocess.Popen("uniq -c".split(), stdin = c_sort.stdout, stdout = subprocess.PIPE)
-        contigs = subprocess.run(["awk", r'{ if ($1 > 1) {print $2} }'], stdin = unq.stdout, stdout = subprocess.PIPE).stdout.splitlines()
+        contigs_out = subprocess.run(["awk", r'{ if ($1 > 1) {print $2} }'], stdin = unq.stdout, stdout = subprocess.PIPE).stdout.splitlines()
+        contigs = []
         with open(f"Impute/input/_{vbn}.list", "w") as f:
-            for l in contigs:
+            for l in contigs_out:
                 l_corr = l.decode().replace("\'", "")
                 _ = f.write(f"{l_corr}\n")
+                contigs.append(f"{l_corr}")
+        print(contigs)
         exit()
     else:
         with open(f"Impute/input/_{vbn}.list", "r") as f:
             contigs = f.readlines()
+            print(contigs)
         exit()
     command.append('--config')
     directory = directory.rstrip("/^")
