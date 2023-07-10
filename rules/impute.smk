@@ -54,8 +54,7 @@ rule samples_file:
 
 rule convert2stitch:
     input:
-        vcf    = "Impute/input/input.sorted.bcf",
-        contig = "Impute/input/contig.list/{part}"
+        "Impute/input/input.sorted.bcf"
     output:
         "Impute/input/{part}.stitch"
     message:
