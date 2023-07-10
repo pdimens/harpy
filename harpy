@@ -428,6 +428,7 @@ def impute(parameters, directory, threads, vcf, snakemake, quiet):
     # generate and store list of viable contigs (minimum of 2 biallelic SNPs)
     if not os.path.exists(f"Impute/input/_{vcf}.list"):
         os.makedirs("Impute/input/", exist_ok = True)
+        print("Preprocessing: Identifying contigs with at least 2 biallelic SNPs", file = sys.stderr)
         biallelic = subprocess.Popen(f"bcftools view -M2 -v snps {vcf} -Ob".split(), stdout = subprocess.PIPE)
         contigs = subprocess.Popen("""bcftools query -f '%CHROM\\n'""".split(), stdin = biallelic.stdout, stdout = subprocess.PIPE)
         c_sort = subprocess.Popen("sort", stdin = contigs.stdout, stdout = subprocess.PIPE)
