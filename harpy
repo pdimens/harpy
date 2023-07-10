@@ -445,8 +445,8 @@ def impute(parameters, directory, threads, vcf, snakemake, quiet):
         exit()
     else:
         with open(f"Impute/input/_{vbn}.list", "r") as f:
-            contigs = f.readlines()
-            print(contigs)
+            contigs = [line.rstrip() for line in f]
+        print(contigs)
         exit()
     command.append('--config')
     directory = directory.rstrip("/^")
