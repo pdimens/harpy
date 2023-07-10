@@ -49,7 +49,7 @@ the reference allele (from the reference genome), `Alt` refers to the alternativ
 (failed to impute) for that individual. As an example, the `Homozygous Ref` column is the number of missing genotypes that were imputed into
 a homozygous genotype for the reference allele.
 
-```{r Individual plot, echo=FALSE, message=FALSE, warning=FALSE}
+```{r success table, echo=FALSE, message=FALSE, warning=FALSE}
 comparefile <- snakemake@input[[2]]
 gcts <- read.table(comparefile, header = F)[, c(2, 23, 25, 24, 27)]
 names(gcts) <- c("sample","missing2RRHom", "missing2RAHet",	"missing2AAHom", "missing")
