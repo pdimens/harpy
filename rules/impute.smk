@@ -155,8 +155,22 @@ rule clean_stitch:
         touch {output}
         """
 
+rule concat_list:
+    input:
+        bcf = expand("Impute/{{stitchparams}}/contigs/{part}/{part}.vcf.gz", part = contigs),
+    output:
+        temp("Impute/{stitchparams}/bcf.files")
+    message:
+        "Creating list vcf files for concatenation"
+    run:
+        with open(output[0], "w") as fout:
+            for bcf in input.bcf:
+                _ = fout.write(f"{bcf}\n")   
+
+
 rule merge_vcfs:
-    input: 
+    input:
+        files = "Impute/{stitchparams}/bcf.files",
         vcf   = expand("Impute/{{stitchparams}}/contigs/{part}/{part}.vcf.gz", part = contigs),
         idx   = expand("Impute/{{stitchparams}}/contigs/{part}/{part}.vcf.gz.tbi", part = contigs),
         clean = expand("Impute/{{stitchparams}}/contigs/{part}/.cleaned", part = contigs)
@@ -171,8 +185,8 @@ rule merge_vcfs:
     threads: 50
     shell:
         """
-        bcftools concat --threads {threads} -o {output} --output-type b {input.vcf} 2> {log}
-        #bcftools concat --threads {threads} -o {output} --output-type b --write-index {input.vcf} 2> {log}"
+        bcftools concat --threads {threads} -o {output} --output-type b -f {input.filelist} --naive 2> {log}
+        #bcftools concat --threads {threads} -o {output} --output-type b --write-index -f {input.filelist} --naive 2> {log}"
         """
 
 rule index_merged:
