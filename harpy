@@ -425,12 +425,29 @@ def impute(parameters, directory, threads, vcf, snakemake, quiet):
     if quiet:
         command.append("--quiet")
         command.append("all")
+    # generate and store list of viable contigs (minimum of 2 biallelic SNPs)
+    if not os.path.exists(f"Impute/input/_{vcf}.list"):
+        os.makedirs("Impute/input/", exist_ok = True)
+        biallelic = subprocess.Popen(f"bcftools view -M2 -v snps {vcf} -Ob".split(), stdout = subprocess.PIPE)
+        contigs = subprocess.Popen("""bcftools query -f '%CHROM\\n'""".split(), stdin = biallelic.stdout, stdout = subprocess.PIPE)
+        c_sort = subprocess.Popen("sort", stdin = contigs.stdout, stdout = subprocess.PIPE)
+        unq = subprocess.Popen("uniq -c".split(), stdin = c_sort.stdout, stdout = subprocess.PIPE)
+        contigs = subprocess.run("awk '{ if ($1 > 1) {print $2} }'".split(), stdin = unq.stdout)
+        print(contigs)
+        with open("Impute/input/contig.list", "w") as f:
+            _ = [f.write(i + "\n") for i in contigs.split("\n")]
+        exit()
+    else:
+        with open(f"Impute/input/_{vcf}.list", "r") as f:
+            contigs = f.readlines()
+        exit()
     command.append('--config')
     directory = directory.rstrip("/^")
     command.append(f"seq_directory={directory}")
     command.append(f"samplenames={samplenames}")
     command.append(f"variantfile={vcf}")
     command.append(f"paramfile={parameters}")
+    command.append(f"contigs={contigs}")
     command.append(f"filtervcf=False")
     #command.append(f"extra={extra_params}")
     subprocess.run(command)
