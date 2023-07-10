@@ -426,7 +426,8 @@ def impute(parameters, directory, threads, vcf, snakemake, quiet):
         command.append("--quiet")
         command.append("all")
     # generate and store list of viable contigs (minimum of 2 biallelic SNPs)
-    if not os.path.exists(f"Impute/input/_{vcf}.list"):
+    vbn = os.path.basename(vcf)
+    if not os.path.exists(f"Impute/input/_{vbn}.list"):
         os.makedirs("Impute/input/", exist_ok = True)
         print("\033[1mPreprocessing:\033[00m Identifying contigs with at least 2 biallelic SNPs", file = sys.stderr)
         biallelic = subprocess.Popen(f"bcftools view -M2 -v snps {vcf} -Ob".split(), stdout = subprocess.PIPE)
@@ -434,12 +435,12 @@ def impute(parameters, directory, threads, vcf, snakemake, quiet):
         c_sort = subprocess.Popen("sort", stdin = contigs.stdout, stdout = subprocess.PIPE)
         unq = subprocess.Popen("uniq -c".split(), stdin = c_sort.stdout, stdout = subprocess.PIPE)
         contigs = subprocess.run(["awk", r'{ if ($1 > 1) {print $2} }'], stdin = unq.stdout, stdout = subprocess.PIPE).stdout.splitlines()
-        with open(f"Impute/input/_{vcf}.list", "w") as f:
+        with open(f"Impute/input/_{vbn}.list", "w") as f:
             for l in contigs:
                 _ = f.write(f"{l.decode()}\n")
         exit()
     else:
-        with open(f"Impute/input/_{vcf}.list", "r") as f:
+        with open(f"Impute/input/_{vbn}.list", "r") as f:
             contigs = f.readlines()
         exit()
     command.append('--config')
