@@ -2,28 +2,67 @@ from snakemake.utils import Paramspace
 import pandas as pd
 import subprocess
 import sys
+import os
 
 bam_dir     = config["seq_directory"]
 samplenames = config["samplenames"]
 variantfile = config["variantfile"]
 paramfile   = config["paramfile"]
+# declare a dataframe to be the paramspace
 paramspace  = Paramspace(pd.read_csv(paramfile, sep="\t"), param_sep = "", filename_params="*")
-#^ declare a dataframe to be a paramspace
 
-def contignames(vcf):
-    print("Preprocessing: Identifying contigs with at least 2 biallelic SNPs", file = sys.stderr)
-    biallelic = subprocess.Popen(f"bcftools view -M2 -v snps {vcf} -Ob".split(), stdout = subprocess.PIPE)
-    contigs = subprocess.run("""bcftools query -f %CHROM\\n""".split(), stdin = biallelic.stdout, stdout = subprocess.PIPE)
-    dict_cont = dict()
-    for i in list([chr for chr in contigs.stdout.decode('utf-8').split()]):
-        if i in dict_cont:
-            dict_cont[i] += 1
-        else:
-            dict_cont[i] = 1
-    return [contig for contig in dict_cont if dict_cont[contig] > 1]
+#def contignames(vcf):
+#    print("Preprocessing: Identifying contigs with at least 2 biallelic SNPs", file = sys.stderr)
+#    biallelic = subprocess.Popen(f"bcftools view -M2 -v snps {vcf} -Ob".split(), stdout = subprocess.PIPE)
+#    contigs = subprocess.run("""bcftools query -f %CHROM\\n""".split(), stdin = biallelic.stdout, stdout = subprocess.PIPE)
+#    dict_cont = dict()
+#    for i in list([chr for chr in contigs.stdout.decode('utf-8').split()]):
+#        if i in dict_cont:
+#            dict_cont[i] += 1
+#        else:
+#            dict_cont[i] = 1
+#    return [contig for contig in dict_cont if dict_cont[contig] > 1]
+#
+#contigs   = contignames(variantfile)
+#dict_cont = dict(zip(contigs, contigs))
 
-contigs   = contignames(variantfile)
-dict_cont = dict(zip(contigs, contigs))
+def get_contig_names(wildcards):
+    # note 1: ck_output is the output of the checkpoint rule, but this requires
+    # the checkpoint to complete before we can figure out what it is!
+    ck_output = checkpoints.find_useful_contigs.get(**wildcards).output[0]
+    SMP, = glob_wildcards(os.path.join(ck_output, "{sample}"))
+    return expand(os.path.join(ck_output, "{SAMPLE}"), SAMPLE=SMP)
+
+rule sort_bcf:
+    input:
+        variantfile
+    output:
+        bcf = temp("Impute/input/input.sorted.bcf"),
+        idx = temp("Impute/input/input.sorted.bcf.csi")
+    log:
+        "Impute/input.sorted.log"
+    message:
+        "Sorting input variant call file"
+    shell:
+        """
+        bcftools sort -Ob {input} > {output.bcf} 2> {log}
+		bcftools index --output {output.idx} {output.bcf}
+        """
+
+checkpoint find_useful_contigs:
+    input:
+        "Impute/input/input.sorted.bcf"
+    output:
+        directory("Impute/input/contig.list")
+    message: 
+        "Identifying contigs with at least 2 biallelic SNPs"
+    shell:
+        """
+        bcftools view -M2 -v snps impute.filtered.bcf | 
+        bcftools query -f '%CHROM\\n' | 
+        uniq -c |
+        awk '{{ if ($1 > 1) {{fn="Impute/input/contiglist/"$2; print $2 > fn}} }}'
+        """
 
 rule bam_list:
     input:
@@ -49,27 +88,10 @@ rule samples_file:
         with open(output[0], "w") as fout:
             [fout.write(f"{i}\n") for i in samplenames]
 
-##TODO investigate filter option
-
-rule sort_bcf:
-    input:
-        variantfile
-    output:
-        bcf = temp("Impute/input/input.sorted.bcf"),
-        idx = temp("Impute/input/input.sorted.bcf.csi")
-    log:
-        "Impute/input.sorted.log"
-    message:
-        "Sorting input variant call file"
-    shell:
-        """
-        bcftools sort -Ob {input} > {output.bcf} 2> {log}
-		bcftools index --output {output.idx} {output.bcf}
-        """
-
 rule convert2stitch:
     input:
-        variantfile
+        vcf    = "Impute/input/input.sorted.bcf",
+        contig = "Impute/input/contig.list/{part}"
     output:
         "Impute/input/{part}.stitch"
     message:
@@ -157,7 +179,7 @@ rule clean_stitch:
 
 rule concat_list:
     input:
-        bcf = expand("Impute/{{stitchparams}}/contigs/{part}/{part}.vcf.gz", part = contigs),
+        bcf = expand("Impute/{{stitchparams}}/contigs/{part}/{part}.vcf.gz", part = get_contig_names),
     output:
         temp("Impute/{stitchparams}/bcf.files")
     message:
@@ -171,9 +193,9 @@ rule concat_list:
 rule merge_vcfs:
     input:
         files = "Impute/{stitchparams}/bcf.files",
-        vcf   = expand("Impute/{{stitchparams}}/contigs/{part}/{part}.vcf.gz", part = contigs),
-        idx   = expand("Impute/{{stitchparams}}/contigs/{part}/{part}.vcf.gz.tbi", part = contigs),
-        clean = expand("Impute/{{stitchparams}}/contigs/{part}/.cleaned", part = contigs)
+        vcf   = expand("Impute/{{stitchparams}}/contigs/{part}/{part}.vcf.gz", part = get_contig_names),
+        idx   = expand("Impute/{{stitchparams}}/contigs/{part}/{part}.vcf.gz.tbi", part = get_contig_names),
+        clean = expand("Impute/{{stitchparams}}/contigs/{part}/.cleaned", part = get_contig_names)
     output:
         "Impute/{stitchparams}/variants.imputed.bcf"
     log:
@@ -284,7 +306,7 @@ rule all:
     input: 
         bcf     = expand("Impute/{stitchparams}/variants.imputed.bcf", stitchparams=paramspace.instance_patterns),
         reports = expand("Impute/{stitchparams}/variants.imputed.html", stitchparams=paramspace.instance_patterns),
-        contigs = expand("Impute/{stitchparams}/contigs/{part}/{part}.impute.html", stitchparams=paramspace.instance_patterns, part = contigs),
+        contigs = expand("Impute/{stitchparams}/contigs/{part}/{part}.impute.html", stitchparams=paramspace.instance_patterns, part = get_contig_names),
         runlog  = "Impute/logs/harpy.impute.log"
     message: 
         "Genotype imputation is complete!"
