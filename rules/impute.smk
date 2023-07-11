@@ -169,8 +169,8 @@ rule merge_vcfs:
     threads: 50
     shell:
         """
-        bcftools concat --threads {threads} -o {output} --output-type b -f {input.filelist} --naive 2> {log}
-        #bcftools concat --threads {threads} -o {output} --output-type b --write-index -f {input.filelist} --naive 2> {log}"
+        bcftools concat --threads {threads} -o {output} --output-type b -f {input.files} --naive 2> {log}
+        #bcftools concat --threads {threads} -o {output} --output-type b --write-index -f {input.files} --naive 2> {log}"
         """
 
 rule index_merged:
