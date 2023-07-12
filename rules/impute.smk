@@ -169,8 +169,8 @@ rule merge_vcfs:
     threads: 50
     shell:
         """
-        bcftools concat --threads {threads} -o {output} --output-type b -f {input.files} --naive 2> {log}
-        #bcftools concat --threads {threads} -o {output} --output-type b --write-index -f {input.files} --naive 2> {log}"
+        bcftools concat --threads {threads} -o {output} --output-type b -f {input.files} 2> {log}
+        #bcftools concat --threads {threads} -o {output} --output-type b --write-index -f {input.files} 2> {log}"
         """
 
 rule index_merged:
@@ -210,7 +210,7 @@ rule comparestats:
         compare = "Impute/{stitchparams}/stats/impute.compare.stats",
         info_sc = "Impute/{stitchparams}/stats/impute.infoscore"
     message:
-        "Comparing imputed variants to original VCF: {wildcards.stitchparams}"
+        "Computing post-imputation stats: {wildcards.stitchparams}"
     benchmark:
         "Benchmark/Impute/mergestats.{stitchparams}.txt"
     shell:
