@@ -92,7 +92,7 @@ DT::datatable(df, rownames = F, filter = "top", extensions = 'Buttons', options 
 ```{r echo= FALSE, message = FALSE, warning = FALSE, out.width = "100%"}
 df$n_snp <- as.factor(df$n_snp)
 p_nsnp <- ggplot(df, aes(x = n_snp)) +
-  geom_histogram(stat="count") +
+  geom_histogram(stat="count", boundary = 0.5) +
   labs(title = "SNP count per haplotype block") +
   theme_minimal() +
   xlab("number of snps") +
@@ -104,7 +104,7 @@ layout(ggplotly(p_nsnp), hovermode = 'x')
 ### haplotype lengths
 ```{r echo= FALSE, message = FALSE, warning = FALSE, out.width = "100%"}
 p_hapl <- ggplot(df, aes(x = block_length)) +
-  geom_histogram(binwidth = 2000) +
+  geom_histogram(binwidth = 2000, boundary = 0.5) +
   labs(title = "Haplotype block length frequencies - 2kb bins") +
   theme_minimal() +
   xlab("Haplotype length (bp)") +
