@@ -1,5 +1,5 @@
 ---
-title: "BCFtools Stats Report"
+title: "Imputation Assessment"
 author:
     - "Created using HARPY"
 date: "`r format(Sys.time(), '%d %B, %Y')`"
@@ -9,11 +9,7 @@ output:
     number_sections: no
     theme: cosmo
     df_print: kable
-    toc: yes
-    toc_depth: 2
-    toc_float:
-      collapsed: no
-      smooth_scroll: yes
+    toc: no
 ---
 ```{r load environment, echo=FALSE, message=FALSE, warning=FALSE}
 library(ggplot2)
@@ -21,40 +17,27 @@ library(magrittr)
 library(tidyr)
 library(dplyr)
 library(DT)
-library(plotly)
 library(scales)
-library(RColorBrewer)
-#dataL <- readLines("~/checkstats.txt")
-dataL <- readLines(snakemake@input[[1]])
-bcf <- gsub(".stats$", ".bcf", snakemake@input[[1]])
+#modelparams <- paste(snakemake@params[[1]])
+modelparams <- "Filler Text"
 ```
-### File: `r bcf`
-
-## General Information
-This reflects the general information stored in the records of `r bcf`.
-```{r General Stats, echo = FALSE, message = FALSE, warning = FALSE}
-.snL <- grepl("^SN", dataL)
-sn <- read.table(text=dataL[.snL], sep = "\t")[,3:4]
-names(sn) <- c("Metric", "Number")
-sn$Metric <- gsub("number of ", "", sn$Metric)
-rownames(sn) <- sn$Metric
-sn <- as.data.frame(t(sn[2]))
-rownames(sn) <- NULL
-sn
-```
+### Imputed genotypes from model: `r modelparams`
 
 ## Individual Statistics {.tabset}
-These statistics correspond to the `r sn$samples[1]` samples in `r bcf`.
-### Imputation success
-This table details the number of `missing` genotypes that were imputed per individual. Following standard VCF convention, `Ref` refers to
-the reference allele (from the reference genome), `Alt` refers to the alternative allele, and `Missing` details how many SNPs remain missing
-(failed to impute) for that individual. As an example, the `Homozygous Ref` column is the number of missing genotypes that were imputed into
+### Imputation Results
+This table details the number of `missing` genotypes that were imputed into a 
+different genotype per individual. Following standard VCF convention, `Ref` refers to
+the reference allele (from the reference genome), `Alt` refers to the alternative 
+allele, and `Missing` details how many SNPs remain missing
+(failed to impute) for that individual. As an example, the `Homozygous Ref` column is 
+the number of missing genotypes that were imputed into
 a homozygous genotype for the reference allele.
 
 ```{r success table, echo=FALSE, message=FALSE, warning=FALSE}
-comparefile <- snakemake@input[[2]]
+comparefile <- snakemake@input[[1]]
+#comparefile <- "~/impute.compare.stats"
 gcts <- read.table(comparefile, header = F)[, c(2, 23, 25, 24, 27)]
-names(gcts) <- c("sample","missing2RRHom", "missing2RAHet",	"missing2AAHom", "missing")
+names(gcts) <- c("sample","RefHom", "Het",	"AltHom", "missing")
 
 DT::datatable(
   gcts,
@@ -68,32 +51,27 @@ DT::datatable(
   )
 )
 ```
+### Plot
+This chart visualizes the count and proportion of missing genotypes per sample imputed
+into other genotypes (same data as the table from the previous tab).
 
-
-### plot
-```{r Individual plot, echo=FALSE, message=FALSE, warning=FALSE, paged.print=TRUE, out.width="100%"}
-.pscL <- grepl("^PSC", dataL)
-psc <- read.table(text=dataL[.pscL])[ ,3:14]
-names(psc) <- c("Sample", "HomozygousRef", "HomozygousAtl", "Heterozygotes", "Transitions", "Transversions", "Indels",	"MeanDepth", "Singletons",	"HapRef", "HapAlt", "Missing")
-psc$Homozygotes <- psc$HomozygousRef + psc$HomozygousAtl
-tidy_psc <- pivot_longer(psc[,c(1,4,5,6,7,9,12,13)], -Sample , names_to = "Metric", values_to = "Count")
-psc <- psc[,c(1,8,12,2,3,13,4,5,6,7,9,10,11)]
-
-pscplot <- ggplot(data = tidy_psc, mapping = aes(x = Count, y = Sample, color = Metric)) +
-  geom_point(size = 2) +
-  labs(title = "Individual Statistics") +
-  theme_bw() +
-  scale_x_continuous(n.breaks=9) +
-  xlab("Count") +
-  scale_color_brewer(palette = "Dark2") +
-  theme(panel.grid.minor = element_blank(), panel.grid.major.y = element_blank(), axis.title.y = element_blank())
-
-ggplotly(pscplot)
+```{r echo = FALSE, message = FALSE, warning = FALSE}
+conv_height <- 0.2 * nrow(gcts) 
+gcts <- pivot_longer(gcts, -1, names_to = "Conversion", values_to = "Count")
 ```
 
-### table
-```{r Individual table, echo=FALSE, message=FALSE, warning=FALSE, paged.print=TRUE, out.width="100%"}
-DT::datatable(psc, rownames = F, filter = "top", extensions = 'Buttons', options = list(dom = 'Brtip', buttons = c('csv'), scrollX = TRUE))
+```{r echo = FALSE, message = FALSE, warning = FALSE, fig.height=conv_height, out.width= "100%"}
+ggplot(gcts, aes(y = sample, x = Count, fill = Conversion)) +
+  geom_col(position = "stack") +
+  scale_x_continuous(expand = c(0,0), labels = comma) +
+  ylab("") +
+  theme_minimal() +
+  theme(panel.grid.major.y = element_blank(), axis.ticks.y = element_line(size = 0.5)) +
+  scale_fill_manual(
+    labels = c("→ Homozygous Alt", "→ Heterozygote", "→ Missing", "→ Homozygous Ref"),
+    values = c("#4a9fea", "#5a8c84", "#424043", "#ffd75f")
+  )
+
 ```
 
 ## INFO Scores {.tabset}
@@ -103,7 +81,9 @@ very poor, and `1.0` being very good. You will want to filter the resulting vari
 based on this `INFO/INFO_SCORE` tag, which can be done that simply with `bcftools`.
 Here is an example snippet of keeping loci with an `INFO_SCORE` of at least `0.2`: 
 ```
-bcftools view -i 'INFO/INFO_SCORE >= 0.2' file.vcf
+# use -Ob to output to bcf instead of vcf to save on disk space
+
+bcftools view -i 'INFO/INFO_SCORE >= 0.2' -Ob file.vcf > filtered.file.bcf
 ```
 ### Overall distribution
 Below is the frequency distribution of the `INFO_SCORE` values for all the variants
@@ -119,12 +99,12 @@ maxsizes <- infos %>% group_by(contig) %>% summarise(maxsize = max(position)) %>
 maxsizes <- maxsizes[1:min(nrow(maxsizes), 30), ]
 
 ncontig <- nrow(maxsizes)
-pltheight <- round(1.5 * ncontig, digits = 0)
+pltheight <- round(1.1 * ncontig, digits = 0)
 ```
 
-```{r echo = FALSE, message = FALSE, warning = FALSE, fig.align='center', out.width= "100%"}
+```{r echo = FALSE, message = FALSE, warning = FALSE, fig.height=2.5, out.width= "100%"}
 ggplot(infos, aes(x = info)) +
-  geom_histogram(fill = "grey60", color = "grey53", boundary = 0.5) +
+  geom_histogram(fill = "grey60", color = "grey40", linewidth = 0.25, bins = 100, boundary = 0.5) +
   theme_minimal() +
   theme(
     panel.grid.minor = element_blank()
@@ -140,7 +120,7 @@ Below is the frequency distribution of the `INFO_SCORE` values for the variants
 in the VCF file, shown per-contig, up to 30 of the largest contigs. 
 ```{r echo = FALSE, message = FALSE, warning = FALSE, fig.height=pltheight, fig.align='center', out.width = "100%"}
 ggplot(infos[infos$contig %in% maxsizes$contig, ], aes(x = info)) +
-  geom_histogram(fill = "grey60", color = "grey53", boundary = 0.5) +
+  geom_histogram(fill = "grey60", color = "grey40", linewidth = 0.25, bins = 100, boundary = 0.5) +
   facet_wrap(~contig, ncol = 2, scales = "free_y") +
   theme_minimal() +
   theme(
@@ -154,7 +134,9 @@ ggplot(infos[infos$contig %in% maxsizes$contig, ], aes(x = info)) +
 
 ### Potential sites removed
 Below is a table of the number of variants sites that may remain if filtering
-at different minimum `INFO/INFO_SCORE` thresholds.
+at different minimum `INFO/INFO_SCORE` thresholds. Each column after `Total Variants`
+refers to a filtering threshold and the numbers within that column are the number of 
+SNPs that would be kept if filtering out SNPs with an `INFO/INFO_SCORE` value below it (_i.e._ `0.2` is the number of SNPs with a score `>= 0.2` )
 
 ```{r echo = FALSE, message = FALSE, warning = FALSE}
 filterthresh <- infos %>% group_by(contig) %>%

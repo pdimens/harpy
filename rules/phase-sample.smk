@@ -23,11 +23,7 @@ rule splitbysample:
 	threads: 1
 	shell:
 		"""
-		if grep -q "INFO_SCORE" <(bcftools head {input.vcf}); then
-			bcftools view -s {wildcards.sample} -i 'INFO/INFO_SCORE >= 0.2' {input.vcf} 
-		else
-			bcftools view -s {wildcards.sample} {input.vcf}
-		fi |
+		bcftools view -s {wildcards.sample} {input.vcf} |
         awk '/^#/;/CHROM/ {{OFS="\\t"}}; !/^#/ && $10~/^0\\/1/' > {output}
 		"""
 

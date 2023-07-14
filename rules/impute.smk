@@ -221,12 +221,14 @@ rule comparestats:
 
 rule reports:
     input: 
-        "Impute/{stitchparams}/stats/variants.imputed.stats",
-        "Impute/{stitchparams}/stats/impute.compare.stats"
+        "Impute/{stitchparams}/stats/impute.compare.stats",
+        "Impute/{stitchparams}/stats/impute.infoscore"
     output:
         "Impute/{stitchparams}/stats/variants.imputed.html"
     message:
         "Generating imputation success report: {output}"
+    params:
+        lambda wc: wc.get("stitchparams")
     benchmark:
         "Benchmark/Impute/stitchreport.{stitchparams}.txt"
     script:
