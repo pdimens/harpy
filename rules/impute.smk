@@ -208,7 +208,7 @@ rule comparestats:
         samples = "Impute/input/samples.names"
     output:
         compare = "Impute/{stitchparams}/stats/impute.compare.stats",
-        info_sc = "Impute/{stitchparams}/stats/impute.infoscore"
+        info_sc = temp("Impute/{stitchparams}/stats/impute.infoscore")
     message:
         "Computing post-imputation stats: {wildcards.stitchparams}"
     benchmark:
