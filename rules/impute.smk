@@ -19,7 +19,7 @@ rule sort_bcf:
         bcf = temp("Impute/input/input.sorted.bcf"),
         idx = temp("Impute/input/input.sorted.bcf.csi")
     log:
-        "Impute/input.sorted.log"
+        "Impute/input/input.sorted.log"
     message:
         "Sorting input variant call file"
     shell:
