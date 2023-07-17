@@ -160,8 +160,6 @@ rule merge_vcfs:
         clean = expand("Impute/{{stitchparams}}/contigs/{part}/.cleaned", part = contigs)
     output:
         "Impute/{stitchparams}/variants.imputed.bcf"
-    log:
-        "Impute/{stitchparams}/concat.log"
     message:
         "Merging VCFs: {wildcards.stitchparams}"
     benchmark:
@@ -169,8 +167,8 @@ rule merge_vcfs:
     threads: 50
     shell:
         """
-        bcftools concat --threads {threads} -o {output} --output-type b -f {input.files} 2> {log}
-        #bcftools concat --threads {threads} -o {output} --output-type b --write-index -f {input.files} 2> {log}"
+        bcftools concat --threads {threads} -o {output} --output-type b -f {input.files} 2> /dev/null
+        #bcftools concat --threads {threads} -o {output} --output-type b --write-index -f {input.files} 2> /dev/null"
         """
 
 rule index_merged:
@@ -224,7 +222,7 @@ rule reports:
         "Impute/{stitchparams}/stats/impute.compare.stats",
         "Impute/{stitchparams}/stats/impute.infoscore"
     output:
-        "Impute/{stitchparams}/stats/variants.imputed.html"
+        "Impute/{stitchparams}/variants.imputed.html"
     message:
         "Generating imputation success report: {output}"
     params:
