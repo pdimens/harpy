@@ -115,7 +115,7 @@ rule stitch_reports:
     input:
         "Impute/{stitchparams}/contigs/{part}/{part}.stats"
     output:
-        "Impute/{stitchparams}/contigs/{part}/{part}.impute.html"
+        "Impute/{stitchparams}/contigs/{part}/{part}.STITCH.html"
     message:
         "Generating STITCH report: {wildcards.part}"
     benchmark:
@@ -126,7 +126,7 @@ rule stitch_reports:
 
 rule clean_stitch:
     input:
-        "Impute/{stitchparams}/contigs/{part}/{part}.impute.html"
+        "Impute/{stitchparams}/contigs/{part}/{part}.STITCH.html"
     output:
         temp("Impute/{stitchparams}/contigs/{part}/.cleaned")
     message:
