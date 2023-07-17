@@ -1,5 +1,4 @@
 import os
-configfile: "samples.yaml"
 
 # sanity check of the multiplexed sequences performed earlier in bash script
 # this identifies whether .fastq.gz or .fq.gz was used
