@@ -273,8 +273,8 @@ rule log_runtime:
 rule all:
     input: 
         bcf     = expand("Impute/{stitchparams}/variants.imputed.bcf", stitchparams=paramspace.instance_patterns),
-        reports = expand("Impute/{stitchparams}/stats/variants.imputed.html", stitchparams=paramspace.instance_patterns),
-        contigs = expand("Impute/{stitchparams}/contigs/{part}/{part}.impute.html", stitchparams=paramspace.instance_patterns, part = contigs),
+        reports = expand("Impute/{stitchparams}/variants.imputed.html", stitchparams=paramspace.instance_patterns),
+        contigs = expand("Impute/{stitchparams}/contigs/{part}/{part}.STITCH.html", stitchparams=paramspace.instance_patterns, part = contigs),
         runlog  = "Impute/logs/harpy.impute.log"
     message: 
         "Genotype imputation is complete!"
