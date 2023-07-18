@@ -189,7 +189,6 @@ rule all:
         rv_reads = expand(outdir + "{sample}.R.fq.gz", sample = samplenames),
         runlog   = outdir + "logs/harpy.demultiplex.log",
         qcreport =    outdir + "logs/demultiplex.QC.html"
-
     default_target:
         True
     message:
