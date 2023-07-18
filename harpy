@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 
 import subprocess
+import sys
 import os
 from os.path import exists
-import sys
 
 try:
     harpypath = '{CONDA_PREFIX}'.format(**os.environ) + "/bin"
