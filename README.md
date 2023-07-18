@@ -4,28 +4,32 @@
 [![Anaconda-Server Badge](https://anaconda.org/bioconda/harpy/badges/platforms.svg)](https://anaconda.org/bioconda/harpy)
 [![Anaconda-Server Badge](https://anaconda.org/bioconda/harpy/badges/downloads.svg)](https://anaconda.org/bioconda/harpy)
 
-Experimental Haplotagging Data Processing Pipeline
+Haplotag Data Processing Pipeline
 
 ## Install
 Now hosted on [Bioconda](https://anaconda.org/bioconda/harpy)! Install harpy on Linux-based systems using [conda](https://mamba.readthedocs.io/en/latest/installation.html).
 
-### into existing conda environment
-If you wish to install harpy and its dependencies into an existing environment, activate that environment (`conda activate <env_name>`) and execute this `conda install` code:
-```bash
-conda install -c bioconda harpy
-
-# or ⚡ mamba ⚡#
-mamba install -c bioconda -c conda-forge harpy
-```
-
-### into new conda environment
+### Install into new environment (recommended)
 To avoid dependency conflicts with an existing environment, it is best to create a new environment for a harpy installation. The code below creates a new conda environment called `harpy` (`-n harpy`) and installs harpy into it. You can name this environment whatever you like. 
 ```bash
 conda create -n harpy -c bioconda harpy
 
-# or ⚡ mamba ⚡#
+# or ⚡ mamba ⚡
 mamba create -n harpy -c bioconda -c conda-forge harpy
 ```
+
+<details>
+  <summary>install into an existing conda environment</summary>
+ 
+### Install into existing environment
+If you wish to install harpy and its dependencies into an existing environment, activate that environment (`conda activate <env_name>`) and execute this `conda install` code:
+```bash
+conda install -c bioconda harpy
+
+# or ⚡ mamba ⚡
+mamba install -c bioconda -c conda-forge harpy
+```
+</details>
 
 ### Activate the harpy environment
 Once installed with one of the methods above, activate the conda environment you installed harpy into with
