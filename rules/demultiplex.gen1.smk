@@ -1,8 +1,6 @@
 import os
 import re
 import sys
-from snakemake.utils import Paramspace
-import pandas as pd
 
 infile = config["infile"]
 samplefile = config["samplefile"]
