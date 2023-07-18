@@ -132,7 +132,7 @@ ggplot(infos[infos$contig %in% maxsizes$contig, ], aes(x = info)) +
   labs(title = "Distribution of imputation INFO_SCORE")
 ```
 
-### Potential sites removed
+### Filtering Expectations
 Below is a table of the number of variants sites that may remain if filtering
 at different minimum `INFO/INFO_SCORE` thresholds. Each column after `Total Variants`
 refers to a filtering threshold and the numbers within that column are the number of 
