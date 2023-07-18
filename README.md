@@ -38,31 +38,33 @@ conda activate <env_name>
 ```
 where `<env_name>` is the name of that environment. After doing so, the `harpy` executable should be callable from your path.
 
-#### EMA note
-The version of [EMA](https://github.com/arshajii/ema) bundled in this repository (`ema-h`) is a [fork](https://github.com/EdHarry/ema/tree/haplotag) of the orignal EMA modified to work with Generation 1 haplotag beadtags (AxxCxxBxxDxx). Work is underway to merge haplotag support and publish a new version of EMA to remove reliance on this precompiled fork. 
-
 ## Usage
 Just call `harpy` or `harpy --help` on the command line to get started!
 
-```
- Usage: harpy [OPTIONS] COMMAND [ARGS]...                     
-                                                              
- HARPY Haplotagging data processing pipeline.                 
- The pipeline trims reads, map sequences, calls variants,     
- imputes genotypes, and phases haplotypes.                   
-                                                              
- trim 🡒 align 🡒 variants 🡒 impute 🡒 phase           
-                                                              
- Documentation: https://pdimens.github.io/harpy/                      
-                                                              
-╭─ Options ──────────────────────────────────────────────╮
-│ --help      Show this message and exit.                │
-╰────────────────────────────────────────────────────────╯
-╭─ Commands ─────────────────────────────────────────────╮
-│ align     Align sample sequences to a reference genome │
-│ impute    Impute genotypes from genotype likelihoods   │
-│ phase     Phase SNPs into haplotypes                   │
-│ trim      Remove adapters and quality trim sequences   │
-│ variants  Call variants from sample alignments         │
-╰────────────────────────────────────────────────────────╯
+```                                                                 
+ Usage: harpy COMMAND [ARGS]...                                  
+                                                                 
+                                                                 
+                   Harpy haplotagging pipeline                   
+ An automated workflow to trim reads, map sequences, call        
+ variants, impute genotypes, and phase haplotypes of             
+ Haplotagging data. Batteries included.                          
+                                                                 
+ demultiplex >> trim >> align >> variants >> impute >> phase     
+                                                                 
+ Documentation: https://pdimens.github.io/harpy/                 
+                                                                 
+╭─ Options ─────────────────────────────────────────────────────╮
+│ --version      Show the version and exit.                     │
+│ --help     -h  Show this message and exit.                    │
+╰───────────────────────────────────────────────────────────────╯
+╭─ Commands ────────────────────────────────────────────────────╮
+│ align        Align sample sequences to a reference genome     │
+│ demultiplex  Demultiplex haplotagged FASTQ files              │
+│ extra        Create various optional/necessary input files    │
+│ impute       Impute genotypes using variants and sequences    │
+│ phase        Phase SNPs into haplotypes                       │
+│ trim         Remove adapters and quality trim sequences       │
+│ variants     Call variants (SNP/SV) from samples              │
+╰───────────────────────────────────────────────────────────────╯
 ```

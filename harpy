@@ -164,7 +164,7 @@ def cli():
     An automated workflow to trim reads, map sequences, call variants, impute genotypes,
     and phase haplotypes of Haplotagging data. Batteries included.
     
-    **trim >> align >> variants >> impute >> phase**
+    **demultiplex >> trim >> align >> variants >> impute >> phase**
     
     **Documentation**: [https://pdimens.github.io/harpy/](https://pdimens.github.io/harpy/)
     """
