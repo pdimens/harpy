@@ -10,7 +10,7 @@ Haplotag Data Processing Pipeline
 Now hosted on [Bioconda](https://anaconda.org/bioconda/harpy)! Install harpy on Linux-based systems using [conda](https://mamba.readthedocs.io/en/latest/installation.html).
 
 ### Install into new environment (recommended)
-To avoid dependency conflicts with an existing environment, it is best to create a new environment for a harpy installation. The code below creates a new conda environment called `harpy` (`-n harpy`) and installs harpy into it. You can name this environment whatever you like. 
+To avoid dependency conflicts with an existing environment, it is best to create a new environment for a harpy installation. The code below creates a new conda environment called `harpy` (via `-n harpy`) and installs harpy into it. You can name this environment whatever you like. 
 ```bash
 conda create -n harpy -c bioconda harpy
 
