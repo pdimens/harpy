@@ -85,8 +85,7 @@ rule demux_bx:
         mkdir -p {params.logdir}
         cd {params.outdr}
         demuxGen1 DATA_ {params.outprfx}
-        mv {params.outprfx}_clearBC.log logs
-        mv {params.outprfx}_unclearBC.log logs
+        mv {params.outprfx}*BC.log logs
         """
 
 rule split_samples_fw:
