@@ -16,7 +16,7 @@ cp harpy ${CONDA_PREFIX}/bin/
 cp rules/*.smk ${CONDA_PREFIX}/bin/
 
 # associated scripts
-cp utilities/*.{py,R,pl} ${CONDA_PREFIX}/bin/
+cp utilities/* ${CONDA_PREFIX}/bin/
 
 # reports
 cp reports/*.Rmd ${CONDA_PREFIX}/bin/

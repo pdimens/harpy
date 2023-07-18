@@ -1,4 +1,4 @@
-#! /urs/bin/env python3
+#! /usr/bin/env python3
 
 ## Generates the BC_{ABCD}.txt files necessary to demultiplex Gen I haplotag barcodes
 
@@ -12,5 +12,5 @@ BX = {
 for BC in ["A","C","B","D"]:
     with open(f"BC_{BC}.txt", "w") as f:
         ID = [f"{BC}{number:02d}" for number in range(1, 97)]
-        delim = ["\t".join(tup) for tup in zip(ID, BX[BC])]
+        delim = ["	".join(tup) for tup in zip(ID, BX[BC])]
         _ = [f.write(f"{i}\n") for i in delim]
