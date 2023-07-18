@@ -61,7 +61,7 @@ rule bx_files:
     output:
         temp(expand(outdir + "BC_{letter}.txt", letter = ["A","C","B","D"]))
     message:
-        "Creating the Gen I barcode files"
+        "Creating the Gen I barcode files necessary for barcode demultiplexing"
     params:
         outdr = outdir
     shell:
@@ -165,7 +165,6 @@ rule qc_report:
         outdir + "logs/.QC"
     shell:
         "multiqc {params} --force --quiet --no-data-dir --filename {output} 2> /dev/null"
-
 
 rule log_runtime:
     output:
