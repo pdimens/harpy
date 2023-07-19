@@ -6,12 +6,13 @@ infile = config["infile"]
 samplefile = config["samplefile"]
 #paramspace  = Paramspace(pd.read_csv(samplefile, sep="\t", header = None, names = ["barcode", "sample"]), param_sep = "", filename_params="*")
 bn = os.path.basename(infile)
-fq_extension = re.search(r"(?:\_00[1-9])*\.f(.*?)q\.gz$", infile, re.IGNORECASE).group(0)
-inprefix     = re.sub(r"[\_\.][IR][12]?(?:\_00[1-9])*\.f(.*?)q\.gz$", "", bn)
-inprefixfull = re.sub(r"[\_\.][IR][12]?(?:\_00[1-9])*\.f(.*?)q\.gz$", "", infile)
+fq_extension = re.search(r"(?:\_00[0-9])*\.f(.*?)q(?:\.gz)?$", infile, re.IGNORECASE).group(0)
+inprefix     = re.sub(r"[\_\.][IR][12]?(?:\_00[0-9])*\.f(?:ast)?q(?:\.gz)?$", "", bn)
+inprefixfull = re.sub(r"[\_\.][IR][12]?(?:\_00[0-9])*\.f(?:ast)?q(?:\.gz)?$", "", infile)
 infiles = [f"{inprefixfull}_{i}{fq_extension}" for i in ["I1", "I2","R1","R2"]]
 indir = os.path.dirname(infile)
 outdir = f"Demultiplex/{inprefix}/"
+
 
 # mv functions to harpy executable?
 def checkfiles(prefix, prefixfull, ext):
