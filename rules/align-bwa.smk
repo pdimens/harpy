@@ -4,12 +4,13 @@ import glob
 
 seq_dir		= config["seq_directory"]
 genomefile 	= config["genomefile"]
-#Rsep 		= config["Rsep"]
-#fqext 		= config["fqext"]
-#samplenames = config["samplenames"]
 extra 		= config.get("extra", "") 
 bn 			= os.path.basename(genomefile)
 outdir      = "Align/bwa"
+## deprecated ##
+#Rsep 		= config["Rsep"]
+#fqext 		= config["fqext"]
+#samplenames = config["samplenames"]
 
 flist = os.listdir(seq_dir)
 r = re.compile(".*\.f(?:ast)?q(?:\.gz)?$", flags=re.IGNORECASE)
