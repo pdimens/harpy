@@ -1,7 +1,13 @@
 .snakemake/
 .vscode/
 Seqs/
-ReadMapping/
+Trim/
+Demultiplex/
+Assembly/
+Align/
+Variants/
+Impute/
+Phase/
 samples.populations
 *.fasta
 genome.fasta
