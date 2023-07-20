@@ -15,6 +15,7 @@ outdir = f"Demultiplex/{inprefix}/"
 
 
 # mv functions to harpy executable?
+## depends on what other demux methods look like
 def checkfiles(prefix, prefixfull, ext):
     filelist = []
     printerr = False
