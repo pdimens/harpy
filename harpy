@@ -2,6 +2,7 @@
 
 import subprocess
 import sys
+import re
 import os
 from os.path import exists
 
@@ -40,46 +41,20 @@ def vcfcheck(vcf):
         print(f"\033[1;33mERROR:\033[00m Supplied variant call file ({vcf}) must end in one of [.vcf | .vcf.gz | .bcf]", file = sys.stderr)
         exit(1)
 
-#def getnames(directory, ext):
-#    samplenames = set([i.split(ext)[0] for i in os.listdir(directory) if i.endswith(ext)])
-#    if len(samplenames) < 1:
-#        print(f"\033[1;33mERROR:\033[00m No sample files ending with {ext} found in {directory}.", file = sys.stderr)
-#        sys.exit(1)
-#    return samplenames
-#
-## Nicer version for init
+def getnames(directory, ext):
+    samplenames = set([i.split(ext)[0] for i in os.listdir(directory) if i.endswith(ext)])
+    if len(samplenames) < 1:
+        print(f"\033[1;33mERROR:\033[00m No sample files ending with {ext} found in {directory}.", file = sys.stderr)
+        sys.exit(1)
+    return samplenames
+
+# Nicer version for init
 def getnames_err(directory, ext):
     samplenames = set([i.split(ext)[0] for i in os.listdir(directory) if i.endswith(ext)])
     if len(samplenames) < 1:
         sys.tracebacklimit = 0
         raise Exception(f"\033[1;33mERROR:\033[00m No sample files ending with {ext} found in {directory}.")
     return samplenames
-
-## find fastq extension types
-#def fq_extension(directory):
-#    ext = set()
-#    rsep = set()
-#    err = ""
-#    for i in os.listdir(directory):
-#        if i.endswith(".fastq.gz") | i.endswith(".fq.gz"):
-#            sep = i.split(".")
-#            fq = ".".join(sep[-2:])          
-#            ext.add(fq)
-#            base = i.split(f".{fq}")[0]
-#            rsp = "".join(base[-2:]).lstrip('^_.-')
-#            rsep.add(rsp)
-#    if len(ext) < 1:
-#        print(f"\033[1;33mERROR:\033[00m No fastq.gz or fq.gz files identified in {directory}", file = sys.stderr)
-#        sys.exit(1)
-#    if len(ext) > 1:
-#        err += f"- multiple file extensions detected: {ext}.\n  - format your files so there's only one style of .fq.gz | .fastq.gz\n"
-#    if len(rsep) > 2:
-#        err += f"- multiple read forward/reverse styles detected: {rsep}\n  - format your files so there's only one style of .1. | .F. | .R1.\n"
-#    if err != "":
-#        print("\033[1;33mERROR:\033[00m\n" + err, file = sys.stderr)
-#        sys.exit(1)
-#    return (f"{list(ext)[0]}", sorted(rsep))
-
 
 ## the modules ##
 click.rich_click.OPTION_GROUPS = {
@@ -259,19 +234,6 @@ def trim(directory, max_length, extra_params, threads, snakemake, quiet):
     """
     Remove adapters and quality trim sequences
     """
-    # extension guessing
-    #fqext, Rsep = fq_extension(directory)
-    #try:
-    #    fullext = [f".{Rsep[0]}.{fqext}", f".{Rsep[1]}.{fqext}"]
-    #    samplenames = getnames_err(directory, fullext[0])
-    #except:
-    #    try:
-    #        fullext = [f"_{fqext[1][0]}.{fqext[0]}", f"_{fqext[1][1]}.{fqext[0]}"]
-    #        samplenames = getnames_err(directory, fullext[0])
-    #    except:
-    #        print(f"\033[1;33mERROR:\033[00m No fastq files with acceptable names found in {directory}", file = sys.stderr)
-    #        print("Check that the files conform to [.1. | .F.][.fastq | .fq].gz", file = sys.stderr)
-    #        print("Read the documentation for details: https://pdimens.github.io/harpy/dataformat/#naming-conventions", file = sys.stderr)
     command = f'snakemake --rerun-incomplete --cores {threads} --directory . --snakefile {harpypath}/trim.smk'.split()
     if snakemake is not None:
         [command.append(i) for i in snakemake.split()]
@@ -309,20 +271,14 @@ def align(genome, threads, method, ema_bins, directory, extra_params, quality_fi
     - **bwa**: uses BWA MEM to align reads, retaining BX tags in the alignments
     - **ema**: uses the BX barcode-aware EMA aligner
     """
-    # extension guessing
-    #fqext, Rsep = fq_extension(directory)
-    #try:
-    #    fullext = [f".{Rsep[0]}.{fqext}", f".{Rsep[1]}.{fqext}"]
-    #    samplenames = getnames_err(directory, fullext[0])
-    #except:
-    #    try:
-    #        fullext = [f"_{fqext[1][0]}.{fqext[0]}", f"_{fqext[1][1]}.{fqext[0]}"]
-    #        samplenames = getnames_err(directory, fullext[0])
-    #    except:
-    #        print(f"\033[1;33mERROR:\033[00m No fastq files with acceptable names found in {directory}", file = sys.stderr)
-    #        print("Check that the files conform to [.1. | .F. | .R1.][.fastq | .fq].gz", file = sys.stderr)
-    #        print("Read the documentation for details: https://pdimens.github.io/harpy/dataformat/#naming-conventions", file = sys.stderr)
-    #        sys.exit(1)
+    flist = os.listdir(directory)
+    r = re.compile(".*\.f(?:ast)?q\.gz$", flags=re.IGNORECASE)
+    fqlist = list(filter(r.match, flist))
+    if len(fqlist) == 0:
+        print(f"\033[1;33mERROR:\033[00m No fastq files with acceptable names found in {directory}", file = sys.stderr)
+        print("Check that the files conform to [.F. | .R1.][.fastq | .fq].gz", file = sys.stderr)
+        print("Read the documentation for details: https://pdimens.github.io/harpy/dataformat/#naming-conventions", file = sys.stderr)
+        sys.exit(1)
     mapper = method
     command = f'snakemake --rerun-incomplete --cores {threads} --directory . --snakefile {harpypath}/align-{mapper}.smk'.split()
     if snakemake is not None:
@@ -334,11 +290,36 @@ def align(genome, threads, method, ema_bins, directory, extra_params, quality_fi
     directory = directory.rstrip("/^")
     command.append(f"seq_directory={directory}")
     command.append(f"genomefile={genome}")
-    command.append(f"EMA_bins={ema_bins}")
     command.append(f"quality={quality_filter}")
-    #command.append(f"Rsep={Rsep}")
-    #command.append(f"fqext={fqext}")
-    #command.append(f"samplenames={samplenames}")
+    if mapper == "ema":
+        ## find fastq extension types for EMA
+        ext = set()
+        rsep = set()
+        err = ""
+        for i in fqlist:
+            sep = i.split(".")
+            fq = ".".join(sep[-2:])          
+            ext.add(fq)
+            base = i.split(f".{fq}")[0]
+            rsp = "".join(base[-3:])
+            if rsp[0].isnumeric():
+                rsp = rsp[1:]
+            rsep.add(rsp)
+        if len(ext) < 1:
+            print(f"\033[1;33mERROR:\033[00m No fastq.gz or fq.gz files identified in {directory}", file = sys.stderr)
+            sys.exit(1)
+        if len(ext) > 1:
+            err += f"- multiple fastq extensions detected: {ext}.\n  - format your files so there's only one style of .fq.gz | .fastq.gz\n"
+        if len(rsep) > 2:
+            err += f"- multiple read forward/reverse styles detected: {rsep}\n  - format your files so there's only one style of .F. | .R1.\n"
+        if err != "":
+            print("\033[1;33mERROR:\033[00m\n" + err, file = sys.stderr)
+            sys.exit(1)
+        fqext, Rsep =  (f"{list(ext)[0]}", sorted(rsep))
+
+        command.append(f"EMA_bins={ema_bins}")
+        command.append(f"Rsep={Rsep}")
+        command.append(f"fqext={fqext}")
 
     if extra_params is not None:
         command.append(f"extra={extra_params}")
