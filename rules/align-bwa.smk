@@ -122,12 +122,12 @@ rule align:
         8
     shell:
         """
-        mkdir -p {params.tmpdir}
         #Align/bwa/{wildcards.sample}
         BWA_THREADS=$(( {threads} - 2 ))
         bwa mem -C -t $BWA_THREADS {params.extra} -R \"@RG\\tID:{wildcards.sample}\\tSM:{wildcards.sample}\" {input.genome} {input.forward_reads} {input.reverse_reads} 2> {log} |
         samtools view -h -q {params.quality} | 
         samtools sort -T {params.tmpdir} --reference {input.genome} -O bam -l 0 -m 4G -o {output} 2> /dev/null
+        rm -rf {params.tmpdir}
         """
 
 rule mark_duplicates:
