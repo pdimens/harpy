@@ -40,15 +40,13 @@ harpy impute --threads 20 --vcf Variants/mpileup/variants.raw.bcf --directory Al
 ```
 
 ## :icon-terminal: Running Options
+In addition to the [common runtime options](../commonoptions.md), the `harpy impute` module is configured using these command-line arguments:
+
 | argument       | short name | type        |    default    | required | description                                                                                     |
 |:---------------|:----------:|:------------|:-------------:|:--------:|:------------------------------------------------------------------------------------------------|
 | `--vcf`        |    `-v`    | file path   |               | **yes**  | Path to VCF/BCF file                                                                            |
 | `--directory      `  |    `-d`    | folder path |               | **yes**  | Directory with sequence alignments                                                              |
 | `--parameters` |    `-p`    | file path   | stitch.params | **yes**  | STITCH parameter file (tab-delimited)                                                           |
-| `--threads`    |    `-t`    | integer     |       4       |    no    | Number of threads to use                                                                        |
-| `--snakemake`  |    `-s`    | string      |               |    no    | Additional [Snakemake](../snakemake/#adding-snakamake-parameters) options, in quotes |
-| `--quiet`      |    `-q`    | toggle      |               |    no    | Supressing Snakemake printing to console                                                        |
-| `--help`       |            |             |               |          | Show the module docstring                                                                       |
 
 ## :icon-file: Parameter file
 Typically, one runs STITCH multiple times, exploring how results vary with
@@ -165,7 +163,7 @@ The `harpy impute` module creates an `Imputation` directory with the folder stru
 are generic contig names from an imaginary `genome.fasta` for demonstration purposes. The directory `model1/`
 is a generic name to reflect the corresponding parameter row in the stitch parameter
 file, which would have explicit names in real use (e.g. `modelpseudoHaploid_useBXTrue_k10_s1_nGen50/`).
-Harpy will also write a record of the relevant runtime parameters in `logs/impute.params`.
+
 ```
 Impute/
 ├── input
@@ -173,41 +171,45 @@ Impute/
 │   ├── contig2.stitch
 │   ├── samples.list
 │   ├── samples.names
+│   └── logs
+│       └── harpy.impute.log
 └── model1
     ├── concat.log
     ├── variants.imputed.bcf
     ├── variants.imputed.bcf.csi
     ├── variants.imputed.html
-    ├── variants.imputed.stats
     └── contigs
         ├── contig1
-        │   ├──contig1.log
-        │   ├──contig1.impute.html
-        │   ├──contig1.stats
-        │   ├──contig1.vcf.gz
-        │   ├──contig1.vcf.gz.tbi
-        └── contig2
-            ├──contig2.log
-            ├──contig2.impute.html
-            ├──contig2.stats
-            ├──contig2.vcf.gz
-            └──contig2.vcf.gz.tbi
+        │   ├── contig1.log
+        │   ├── contig1.impute.html
+        │   ├── contig1.stats
+        │   ├── contig1.vcf.gz
+        │   └── contig1.vcf.gz.tbi
+        ├── contig2
+        │   ├── contig2.log
+        │   ├── contig2.impute.html
+        │   ├── contig2.stats
+        │   ├── contig2.vcf.gz
+        │   └── contig2.vcf.gz.tbi
+        └── stats
+            └── impute.compare.stats
+
 ```
-| item                                | description                                             |
-|:------------------------------------|:--------------------------------------------------------|
-| `input/*.stitch`                    | biallelic SNPs used for imputation                      |
-| `input/samples.list`                | list of input BAM files                                 |
-| `input/samples.names`               | list of sample names                                    |
-| `model*/concat.log`                 | output from bcftools concat to create final imputed bcf |
-| `model*/variants.imputed.bcf`       | final bcf file of imputed genotypes                     |
-| `model*/variants.imputed.bcf.csi`   | index of `variants.imputed.bcf`                         |
-| `model*/variants.imputed.bcf.html`  | report summarizing `bcftools stats`                     |
-| `model*/variants.imputed.bcf.stats` | result of `bcftools stats`                              |
-| `model*/contigs/*/*.impute.html`    | summary of STITCH imputation                            |
-| `model*/contigs/*/*.log`            | what STITCH writes to `stdout` and `stderr`             |
-| `model*/contigs/*/*.stats`          | results of `bcftools stats`                             |
-| `model*/contigs/*/*.vcf.gz`         | variants resulting from imputation                      |
-| `model*/contigs/*/*.vcf.gz.tbi`     | index of variant file                                   |
+| item                                | description                                                               |
+|:------------------------------------|:--------------------------------------------------------------------------|
+| `logs/harpy.impute.log`             | relevant runtime parameters for the phase module                          |
+| `input/*.stitch`                    | biallelic SNPs used for imputation                                        |
+| `input/samples.list`                | list of input BAM files                                                   |
+| `input/samples.names`               | list of sample names                                                      |
+| `model*/concat.log`                 | output from bcftools concat to create final imputed bcf                   |
+| `model*/variants.imputed.bcf`       | final bcf file of imputed genotypes                                       |
+| `model*/variants.imputed.bcf.csi`   | index of `variants.imputed.bcf`                                           |
+| `model*/variants.imputed.bcf.html`  | report summarizing the results of imputation                              |
+| `model*/contigs/*/*.impute.html`    | summary of STITCH imputation                                              |
+| `model*/contigs/*/*.log`            | what STITCH writes to `stdout` and `stderr`                               |
+| `model*/contigs/*/*.vcf.gz`         | variants resulting from imputation                                        |
+| `model*/contigs/*/*.vcf.gz.tbi`     | index of variant file                                                     |
+| `model*/contigs/*/impute.compare.stats` | results of `bcftools stats` comparing the original to the imputed vcf |
 
 +++ :icon-code-square: STITCH parameters
 While you are expected to run STITCH using your own set of 

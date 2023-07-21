@@ -6,18 +6,20 @@ order: 100
 
 # :icon-desktop-download: Install HARPY
 === :icon-checklist: You will need
-A working installation of [conda](https://conda.io/projects/conda/en/latest/user-guide/install/index.html). We recommend you use [mamba](https://mamba.readthedocs.io/en/latest/installation.html). It's **so** much faster and uses a **lot** less memory. If using mamba, replace `conda` with `mamba` in the instructions below.
+A working installation of [conda](https://conda.io/projects/conda/en/latest/user-guide/install/index.html). 
+We recommend you use [⚡mamba⚡](https://mamba.readthedocs.io/en/latest/installation.html). It's **so** much faster and uses a **lot** less memory. If using mamba, replace `conda` with `mamba` in the instructions below.
 ===
 
-Harpy is now hosted on [Bioconda](https://anaconda.org/bioconda/harpy)! That means to install it, you just need to have `conda` (or `mamba`) on your system and install it with a simple command. You can install Harpy into an existing environment or create a new one for it (recommended).
+Harpy is now hosted on [Bioconda](https://anaconda.org/bioconda/harpy)! That means to install it, you just need to have `conda` (or `mamba`) on your Linux-based 
+system and install it with a simple command. You can install Harpy into an existing environment or create a new one for it (recommended).
 
-=== install into a new environment
+=== install into a new environment (**recommended**)
 The code snippet below creates a new environment called `harpy` (the `-n harpy` part) and installs harpy into it from the bioconda channel (`-c bioconda` part). You can name this
 environment anything (e.g. `haplotagging`, `jeanclaudevandamme`, etc.).
 ```bash install harpy
-conda create -n harpy -c bioconda harpy
+conda create -n harpy -c bioconda -c conda-forge harpy
 ```
-Once conda finishes the install, you can activate the environment and `harpy` will be callable
+Once conda finishes the install, you can activate the environment (with whatever `-n <env_name>` you gave it) and `harpy` will be callable
 from the command line.
 ```bash activate harpy environment
 conda activate <env_name>
@@ -30,11 +32,12 @@ will be callable from the command line.
 ```bash install harpy
 conda install -c bioconda harpy
 ```
-==- local install for devleopment
+==- local install for development
 ⚠️ **Not intended for regular users** ⚠️
 
 If intent on installing harpy for development, you can do so by cloning the harpy
-repository, installing the preconfigured conda environment, and running the `misc/buildlocal.sh` script to move all the necessary files to the `/bin/` path within your active conda environment.
+repository, installing the preconfigured conda environment, and running the `misc/buildlocal.sh`
+script to move all the necessary files to the `/bin/` path within your active conda environment.
 
 **Clone the repository**
 
@@ -54,4 +57,13 @@ The environment with all the preinstalled dependencies can be activated with:
 # assuming the environment name is harpy from the step above
 conda activate harpy
 ```
+**Install the Harpy files**
+
+Call the `misc/buildlocal.sh` bash script to install the Harpy-specific files into the conda environment:
+
+```bash install the repo into the environment
+bash misc/buildlocal.sh
+```
+
+
 ===

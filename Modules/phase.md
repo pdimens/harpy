@@ -5,7 +5,7 @@ icon: stack
 order: 2
 ---
 
-# :icon-stack: Phasing Haplotypes
+# :icon-stack: Phase SNPs into Haplotypes
 
 ===  :icon-checklist: You will need
 - at least 2 cores/threads available
@@ -17,7 +17,8 @@ You may want to phase your genotypes into haplotypes, as haplotypes tend to be m
 than unphased genotypes (higher polymorphism, captures relationship between genotypes). Phasing
 genotypes into haplotypes requires alignment files, such as those produced by `harpy align` and
 a variant call file, such as those produced by `harpy variants` or `harpy impute`. **Phasing only
-works on SNP data**, and will not work for structural variants produced by `LEVIATHAN`. You can phase genotypes into haplotypes with Harpy using the `phase` module:
+works on SNP data**, and will not work for structural variants produced by `LEVIATHAN`. You can 
+phase genotypes into haplotypes with Harpy using the `phase` module:
 
 ```bash usage
 harpy phase OPTIONS... 
@@ -28,18 +29,15 @@ harpy phase --threads 20 --vcf Variants/variants.raw.bcf --directory Align/ema
 
 
 ## :icon-terminal: Running Options
-| argument              | short name | type            | default | required | description                                                                                     |
-|:----------------------|:----------:|:----------------|:-------:|:--------:|:------------------------------------------------------------------------------------------------|
-| `--vcf`               |    `-v`    | file path       |         | **yes**  | Path to BCF/VCF file                                                                            |
-| `--directory`               |    `-d`    | folder path     |         | **yes**  | Directory with sequence alignments                                                              |
-| `--molecule-distance` |    `-m`    | integer         |  20000  |    no    | Base-pair distance dilineating separate molecules                                               |
-| `--prune-threshold`   |    `-p`    | integer (0-100) |    7    |    no    | PHRED-scale (%) threshold for pruning low-confidence SNPs                                       |
-| `--extra-params`      |    `-x`    | string          |         |    no    | Additional Hapcut2 arguments, in quotes                                                         |
-| `--threads`           |    `-t`    | integer         |    4    |    no    | Number of threads to use                                                                        |
-| `--snakemake`         |    `-s`    | string          |         |    no    | Additional [Snakemake](../snakemake/#adding-snakamake-parameters) options, in quotes |
-| `--quiet`             |    `-q`    | toggle          |         |    no    | Supressing Snakemake printing to console                                                        |
-| `--help`              |            |                 |         |          | Show the module docstring                                                                       |
+In addition to the [common runtime options](../commonoptions.md), the `harpy phase` module is configured using these command-line arguments:
 
+| argument              | short name | type            | default | required | description                                               |
+|:----------------------|:----------:|:----------------|:-------:|:--------:|:----------------------------------------------------------|
+| `--vcf`               |    `-v`    | file path       |         | **yes**  | Path to BCF/VCF file                                      |
+| `--directory`         |    `-d`    | folder path     |         | **yes**  | Directory with sequence alignments                        |
+| `--molecule-distance` |    `-m`    | integer         |  20000  |    no    | Base-pair distance dilineating separate molecules         |
+| `--prune-threshold`   |    `-p`    | integer (0-100) |    7    |    no    | PHRED-scale (%) threshold for pruning low-confidence SNPs |
+| `--extra-params`      |    `-x`    | string          |         |    no    | Additional Hapcut2 arguments, in quotes                   |
 
 The molecule distance is and pruning thresholds are considered the most impactful parameters
 for running HapCut2, therefore they are directly configurable from the command. The molecule distance
@@ -76,8 +74,7 @@ graph LR
 ```
 
 +++ :icon-file-directory: phasing output
-The `harpy phase` module creates an `Phasing` directory with the folder structure below. `Sample1` is a generic sample name for demonstration purposes. Harpy will also write a record of the relevant
-runtime parameters in `logs/phase.params`.
+The `harpy phase` module creates an `Phasing` directory with the folder structure below. `Sample1` is a generic sample name for demonstration purposes.
 
 ```
 Phase/
@@ -101,6 +98,8 @@ Phase/
 │   ├── Sample1.linked.frags
 │   └── logs
 │       └── Sample1.linked.log
+├── logs
+│   └── harpy.phase.log
 └── phaseBlocks
     ├── Sample1.blocks
     ├── Sample1.blocks.phased.VCF
@@ -121,6 +120,7 @@ Phase/
 | `input/*.het.bcf` | vcf of heterozygous loci of a single sample from the original multi-sample input vcf |
 | `linkFragments/` | results from HapCut2's `linkFragments` |
 | `linkFragments/logs` | everything `linkFragments` prints to `stderr` |
+| `logs/harpy.phase.log` | relevant runtime parameters for the phase module |
 | `phaseBlocks/*.blocks*` | output from HapCut2 |
 | `phaseBlocks/logs` | everything HapCut2 prints to `stderr` |
 

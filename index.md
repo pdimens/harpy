@@ -33,14 +33,15 @@ for more information about haplotagging and why you might consider it for your s
 Harpy is modular, meaning you can use different parts of it independent from each other. Need to only align reads?
 Great! Only want to call variants? Awesome! All modules are called by `harpy <module>`. For example, use `harpy align` to align reads.
 
-| Module     | Description                                   |
-|:-----------|:----------------------------------------------|
-| `extra`    | Create various associated or necessary files  |
-| `trim`     | Remove adapters and quality trim sequences    |
-| `align`    | Align sample sequences to a reference genome  |
-| `variants` | Call variants from sample alignments          |
-| `impute`   | Impute genotypes using variants and sequences |
-| `phase`    | Phase SNPs into haplotypes                    |
+| Module        | Description                                   |
+|:--------------|:----------------------------------------------|
+| `extra`       | Create various associated or necessary files  |
+| `demultiplex` | Demultiplex haplotagged FASTQ files           |
+| `trim`        | Remove adapters and quality trim sequences    |
+| `align`       | Align sample sequences to a reference genome  |
+| `variants`    | Call variants from sample alignments          |
+| `impute`      | Impute genotypes using variants and sequences |
+| `phase`       | Phase SNPs into haplotypes                    |
 
 
 ## Using Harpy
@@ -53,7 +54,7 @@ You can call `harpy` without any arguments (or with `--help`) to print the docst
  impute genotypes, and phase haplotypes of Haplotagging data.        
  Batteries included.                                                 
                                                                      
- trim >> align >> variants >> impute >> phase                        
+ demultiplex >> trim >> align >> variants >> impute >> phase                        
                                                                      
  Documentation: https://pdimens.github.io/harpy/                     
                                                                      
@@ -62,11 +63,12 @@ You can call `harpy` without any arguments (or with `--help`) to print the docst
 │ --help     -h  Show this message and exit.                        │
 ╰───────────────────────────────────────────────────────────────────╯
 ╭─ Commands ────────────────────────────────────────────────────────╮
-│ align     Align sample sequences to a reference genome            │
-│ extra     Create various optional/necessary input files           │
-│ impute    Impute genotypes using variants and sequences           │
-│ phase     Phase SNPs into haplotypes                              │
-│ trim      Remove adapters and quality trim sequences              │
-│ variants  Call variants from sample alignments                    │
+│ align        Align sample sequences to a reference genome         │
+│ demultiplex  Demultiplex haplotagged FASTQ files                  │
+│ extra        Create various optional/necessary input files        │
+│ impute       Impute genotypes using variants and sequences        │
+│ phase        Phase SNPs into haplotypes                           │
+│ trim         Remove adapters and quality trim sequences           │
+│ variants     Call variants from sample alignments                 │
 ╰───────────────────────────────────────────────────────────────────╯
 ```

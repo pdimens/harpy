@@ -42,39 +42,44 @@ after the sequence ID as long as any tags after it conform to the SAM spec `TAG:
 Reads must be at least 30 base pairs in length for alignment. The `trim` module removes reads <50bp.
 
 ## Compression
-Harpy expects the input sequences to be in gzipped/bgzipped format, therefore the file names should end in `.gz`. This is a hard requirement and it's good practice to compress your reads
-anyway. 
+Harpy generally doesn't require the input sequences to be in gzipped/bgzipped format, but it's good practice to compress your reads anyway.
+Compressed files are expected to end with the extension `.gz`. There is a hard requirement for fastq files to be gzipped when [using ema](#file-naming-for-align-ema) to align reads. 
 
 ## Naming conventions
-Input sequences will have the format `{samplename}.{extension}`. To make sure there are no hiccups, this section details valid naming conventions for both the `{samplename}` and `{extention}` parts of file names intended as input for Harpy.
+Unfortunately, there are many different ways of naming FASTQ files, which makes it difficult to accomodate every wacky iteration currently in circulation.
+While Harpy tries its best to be flexible, there are limitations, specifically with how Snakemake has difficulty with the `harpy align --method ema` module.
+To that end, for the `demultiplex`, `trim`, and `align --method bwa` methods, the most common FASTQ naming styles are supported:
+- **sample names**: Alphanumeric and `.`, `-`, `_`
+    - you can mix and match special characters, but that's bad practice and not recommended
+    - examples: `Sample.001`, `Sample_001_year4`, `Sample-001_population1.year2` <- not recommended
+- **forward/reverse**: `_F`, `.F`, `_R1`, `.R1`, `_R1_001`, `.R1_001`, *etc.*
+- **fastq extension**: `.fastq`, `.FASTQ`, `.fq`, `.FQ`
+- **gzipped**: supported
+- **not gzipped**: supported (but not recommended)
 
-### sample names
-Sample names must not have any unusual special characters in them. Keep to common conventions, such as underscore (`_`) or hyphen (`-`) separators. Examples:
-- sample001
-- sample_001
-- sample-001
-- sample_001_pop2
+You can also mix and match different formats and styles within a given directory, although again, this isn't recommended
+As a good rule of thumb for any computational work, you should be deliberate and consistent in how you name things.
 
-### file extensions
-There are a handful of "accepted" naming schemes for fastq file extensions, but Harpy only 
-accepts a limited number of them, shown below. The fastq files **must be consistent** with regards to the extensions and read-pair naming styles.
+### file naming for align-ema
+As mentioned, the `align` workflow using `ema` is a bit of a problem with this. Not for lack of trying, but the logic that keeps the other modules
+flexible with naming doesn't seem to work with align-ema, at least not when Snakemake is concerned. Therefore, if you want to align you reads with `ema`,
+then you need to make sure your reads follow a **specific** and **consistent** naming convention. We would happily welcome anyone who is interested in fixing
+that module's logic to be as flexible as the other ones 🙏. 
+
+#### sample names
+Follow best-practices-- if you need to use special characters (among `.`, `_`, and `-`), then pick one and stick with it.
+When in doubt, use underscores (`_`).
+- examples: `Sample001`, `Sample_001`, `Sample001_population002_year3` 
+
+#### file extensions 
+👉 TL;DR: adhere to a single row in the table below 👈
+
+The fastq files **must be consistent** with regards to the extensions and read-pair naming styles.
 That is, you must only use `.fastq.gz` or only use `.fq.gz` for all files, and the same for `.
-R1.`/`.R2.` or `_R1.`/`_R2.` (adhere to a single row in the tables below).
-Notice that the read pair part differs from the accepted fastq names for read trimming.
+R1.`/`.R2.` or `_R1.`/`_R2.`. Note that these are case-sensitive and the F/R1 designations **do not** have `_001` after them, like
+is sometimes seen in fastq names (*e.g.,* `_R1_001.fastq.gz`).
 
-==- :icon-check-circle: acceptable fastq names for **trimming**
-
-| forward-reverse notation | extension  | example forward          | example reverse         |
-|:-------------------------|:-----------|:-------------------------|:------------------------|
-| `.F` / `.R`                | `.fastq.gz` | ` samplename.F.fastq.gz` | `samplename.R.fastq.gz` |
-| `.F` / `.R`                | `.fq.gz`    | `samplename.F.fq.gz`     | `samplename.R.fq.gz`    |
-| `.1` / `.2`                | `.fastq.gz` | `samplename.2.fastq.gz`  | `samplename.2.fastq.gz` |
-| `.1` / `.2`                | `.fq.gz`    | `samplename.1.fq.gz`     | `samplename.2.fq.gz`    |
-
-==- :icon-check-circle: acceptable fastq names for **aligning**
-Notice that the forward/reverse notation is slightly different for reads expected to be used for
-alignment. This is deliberate to make sure trimmed reads have a different convention from raw reads and avoid confusion (i.e. "has this file already been trimmed??").
-
+#### :icon-check-circle: acceptable fastq names for **aligning with ema**
 | forward-reverse notation | extension  | example forward           | example reverse          |
 |:-------------------------|:-----------|:--------------------------|:-------------------------|
 | `.R1` / `.R2`            | `.fastq.gz` | ` samplename.R1.fastq.gz` | `samplename.R2.fastq.gz` |
@@ -82,4 +87,3 @@ alignment. This is deliberate to make sure trimmed reads have a different conven
 | `_R1` / `_R2`            | `.fastq.gz` | `samplename_R1.fastq.gz`  | `samplename_R2.fastq.gz` |
 | `_R1` / `_R2`            | `.fq.gz`    | `samplename_R1.fq.gz`     | `samplename_R2.fq.gz`    |
 
-===

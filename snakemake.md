@@ -41,7 +41,7 @@ run the Harpy workflow. Useful for knowing what you're getting yourself into
 ahead of time. It's also useful for debugging during development. Here is an 
 example of dry-running variant calling:
 ```bash
-harpy variants -g genome.fasta  -d Align/ema -s "--dry-run"
+harpy variants snp -g genome.fasta  -d Align/ema -s "--dry-run"
 ```
 ==- Specific file target
 Sometimes you want to generate a specific intermediate file (or files) rather than running the entire module to completion. For example,
@@ -61,7 +61,7 @@ your files into that workspace storage to make sure you keep the output of your 
 you may use `--shadow-prefix <dirname>` where `<dirname>` is the path to the mandatory directory you need to work out of. By 
 configuring this "shadow directory" setting, Snakemake will automatically move the files in/out of that directory for you:
 ```bash
-harpy variants --method leviathan -g genome.fasta  -d Align/bwa --threads 8 -p samples.groups -s "--shadow-prefix /SCRATCH/username/"
+harpy variants sv --method leviathan -g genome.fasta  -d Align/bwa --threads 8 -p samples.groups -s "--shadow-prefix /SCRATCH/username/"
 ```
 ==- Unlocking the directory
 Sometimes Snakemake might scold/warn you about something you didn't realize you did. One

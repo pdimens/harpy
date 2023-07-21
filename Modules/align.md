@@ -5,11 +5,11 @@ icon: quote
 order: 5
 ---
 
-# :icon-quote: Mapping Reads onto a genome
+# :icon-quote: Map Reads onto a genome
 ===  :icon-checklist: You will need
 - at least 4 cores/threads available
 - a genome assembly in FASTA format
-- paired-end b/gzipped fastq sequence files with the [proper naming convention](../dataformat/#naming-conventions)
+- paired-end fastq sequence file with the [proper naming convention](../dataformat/#naming-conventions) (gzipped recommended)
 ===
 
 Once sequences have been trimmed and passed through other QC filters, they will need to
@@ -30,6 +30,8 @@ harpy align --method ema --genome genome.fasta --directory Sequences/
 
 
 ## :icon-terminal: Running Options
+In addition to the [common runtime options](../commonoptions.md), the `harpy align` module is configured using these command-line arguments:
+
 | argument           | short name | type                  | default | required | description                                                                                     |
 |:-------------------|:----------:|:----------------------|:-------:|:--------:|:------------------------------------------------------------------------------------------------|
 | `--genome`         |    `-g`    | file path             |         | **yes**  | Genome assembly for read mapping                                                                |
@@ -38,10 +40,6 @@ harpy align --method ema --genome genome.fasta --directory Sequences/
 | `--quality-filter` |    `-f`    | integer (0-40)        |   30    |    no    | Minimum `MQ` (SAM mapping quality) to pass filtering                                            |
 | `--method`         |    `-m`    | choice [`bwa`, `ema`] |   bwa   |    no    | Which aligning software to use                                                                  |
 | `--extra-params`   |    `-x`    | string                |         |    no    | Additional EMA-align/BWA arguments, in quotes                                                   |
-| `--threads`        |    `-t`    | integer               |    4    |    no    | Number of threads to use                                                                        |
-| `--snakemake`      |    `-s`    | string                |         |    no    | Additional [Snakemake](../snakemake/#adding-snakamake-parameters) options, in quotes |
-| `--quiet`          |    `-q`    | toggle                |         |    no    | Supressing Snakemake printing to console                                                        |
-| `--help`           |            |                       |         |          | Show the module docstring                                                                       |
 
 ## :icon-filter: Quality filtering
 ==- What is a $MQ$ score?
@@ -90,12 +88,13 @@ graph LR
     D-->F([barcode stats])
 ```
 +++ :icon-file-directory: BWA output
-The `harpy align` module creates an `Align/bwa` directory with the folder structure below. `Sample1` is a generic sample name for demonstration purposes. Harpy will also write a record of the relevant
-runtime parameters in `logs/align.params`.
+The `harpy align` module creates an `Align/bwa` directory with the folder structure below. `Sample1` is a generic sample name for demonstration purposes.
 ```
 Align/bwa
 ├── Sample1.bam
 ├── Sample1.bam.bai
+├── logs
+│   └── harpy.align.log
 └── stats
     ├── BXstats
     │   ├── Sample1.bxstats.html
@@ -119,6 +118,7 @@ Align/bwa
 |:---------|:-----------------------------------------------------------------|
 | `*.bam`  | sequence alignments for each sample                              |
 | `*.bai`  | sequence alignment indexes for each sample                       |
+| `logs/harpy.align.log` | relevant runtime parameters for the align module       |
 | `stats/` | various counts/statistics/reports relating to sequence alignment |
 | `stats/reads.bxstats.html`          | interactive html report summarizing valid vs invalid barcodes across all samples | 
 | `stats/coverage/*.html`             | summary plots of alignment coverage per contig                                   |
@@ -162,7 +162,7 @@ These are taken directly from the [BWA documentation](https://bio-bwa.sourceforg
 - leverages the BX barcode information to improve mapping
 - sometimes better downstream SV detection
 - slower
-- marks split alignments as secondary alignments [⚠️](variants.md#leviathan-workflow)
+- marks split alignments as secondary alignments [⚠️](variants/sv.md#leviathan-workflow)
 - lots of temporary files
 
 Since [EMA](https://github.com/arshajii/ema) does extra things to account for barcode
@@ -198,8 +198,7 @@ graph LR
     E-->J
 ```
 +++ :icon-file-directory: EMA output
-The `harpy align` module creates an `Align/ema` directory with the folder structure below. `Sample1` is a generic sample name for demonstration purposes. Harpy will also write a record of the relevant
-runtime parameters in `logs/align.params`.
+The `harpy align` module creates an `Align/ema` directory with the folder structure below. `Sample1` is a generic sample name for demonstration purposes.
 ```
 Align/ema
 ├── Sample1.bam
@@ -208,9 +207,11 @@ Align/ema
 │   └── Sample1.barcoded.bam
 ├── count
 │   └── Sample1.ema-ncnt
+├── logs
+│   ├── harpy.align.log
+│   └── Sample1.preproc.log
 ├── preproc
 │   └── logs
-│       └── Sample1.preproc.log
 └── stats
     ├── reads.bxcounts.html
     ├── BXstats
@@ -239,15 +240,16 @@ Align/ema
 | `*.bai`                                        | sequence alignment indexes for each sample                                                                    |
 | `barcoded/*.bam`                               | sequence alignments for each sample, containing only alignments with valid BX barcodes                        |
 | `count/`                                       | output of `ema count`                                                                                         |
-| `preproc/logs/`                                | everything `ema preproc` wrote to `stderr` during operation                                                   |
+| `logs/harpy.align.log`                         | relevant runtime parameters for the align module                                                              |
+| `logs/*.preproc.log`                           | everything `ema preproc` wrote to `stderr` during operation                                                   |
 | `stats/`                                       | various counts/statistics/reports relating to sequence alignment                                              |
 | `stats/reads.bxstats.html`                     | interactive html report summarizing `ema count` across all samples                                            |
 | `stats/coverage/*.html`                        | summary plots of alignment coverage per contig                                                                |
 | `stats/coverage/data/*.all.gencov.gz`          | output from samtools bedcov from all alignments, used for plots                                               |
 | `stats/coverage/data/*.bx.gencov.gz`           | output from samtools bedcov from alignments with valid BX barcodes, used for plots                            |
 | `stats/markduplicates/`                        | everything `sambamba markdup` writes to `stderr` during operation on alignments with invalid/missing barcodes |
-| `stats/BXstats/`                               | reports summarizing molecule size and reads per molecule                         |
-| `stats/BXstats/data/`                          | tabular data containing the information used to generate the BXstats reports     |
+| `stats/BXstats/`                               | reports summarizing molecule size and reads per molecule                                                      |
+| `stats/BXstats/data/`                          | tabular data containing the information used to generate the BXstats reports                                  |
 | `stats/samtools_flagstat/*flagstat`            | results of `samtools flagstat` on all alignments for a sample                                                 |
 | `stats/samtools_flagstat/*.nobarcode.flagstat` | results of `samtools flagstat` on alignments that had no/invalid BX barcodes                                  |
 | `stats/samtools_flagstat/*html`                | report summarizing `samtools flagstat` results across all samples from `multiqc`                              |
@@ -256,7 +258,7 @@ Align/ema
 +++ :icon-code-square: EMA parameters
 By default, Harpy runs `ema` with these parameters (excluding inputs and outputs):
 ```bash
-ema-h align -d -p haptag -R "@RG\tID:samplename\tSM:samplename"
+ema-h align -d -p haplotag -R "@RG\tID:samplename\tSM:samplename"
 ```
 
 Below is a list of all `ema align` command line arguments, excluding those Harpy already uses or those made redundant by Harpy's implementation of EMA.
