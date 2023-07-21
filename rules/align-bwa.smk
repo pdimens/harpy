@@ -244,7 +244,7 @@ rule log_runtime:
             _ = f.write(f"The provided genome: {bn}\n")
             _ = f.write(f"The directory with sequences: {seq_dir}\n\n")
             _ = f.write("Sequencing were aligned with BWA using:\n")
-            _ = f.write("\tbwa mem -C " + " ".join(params) + " -R \"@RG\\tID:SAMPLE\\tSM:SAMPLE\" genome forward_reads reverse_reads |\n")
+            _ = f.write("\tbwa mem -C " + " ".join([str(i) for i in params]) + " -R \"@RG\\tID:SAMPLE\\tSM:SAMPLE\" genome forward_reads reverse_reads |\n")
             _ = f.write("\tsamtools view -h -q " + str(config["quality"]) + " |\n")
             _ = f.write("\tsamtools sort -T SAMPLE --reference genome -m 4G\n")
             _ = f.write("Duplicates in the alignments were marked using sambamba:\n")
