@@ -183,7 +183,7 @@ rule alignment_bxstats:
     params:
         sample = lambda wc: d[wc.sample],
     shell:
-        "bxStats.py {input.bam} > {output}"
+        "bxStats.py {input.bam} | gzip > {output}"
 
 rule bx_stats_report:
     input:

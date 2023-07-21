@@ -354,7 +354,7 @@ rule alignment_bxstats:
     wildcard_constraints:
         sample = "[a-zA-Z0-9\_\-\.]*"
     shell:
-        "bxStats.py {input.bam} > {output}"
+        "bxStats.py {input.bam} | gzip > {output}"
 
 rule bx_stats_report:
     input:
