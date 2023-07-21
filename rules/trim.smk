@@ -8,7 +8,8 @@ seq_dir 	= config["seq_directory"]
 #fqext 		= config["fqext"]
 #samplenames = config["samplenames"]
 
-flist = os.listdir(seq_dir)
+#flist = os.listdir(seq_dir)
+flist = [os.path.basename(i) for i in glob.iglob(f"{seq_dir}/*") if not os.path.isdir(i)]
 r = re.compile(".*\.f(?:ast)?q(?:\.gz)?$", flags=re.IGNORECASE)
 fqlist = list(filter(r.match, flist))
 bn_r = r"[\.\_][RF](?:[12])?(?:\_00[1-9])*\.f(?:ast)?q(?:\.gz)?$"

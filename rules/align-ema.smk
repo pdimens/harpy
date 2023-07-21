@@ -1,5 +1,6 @@
 import os
 import re
+import glob
 
 seq_dir 	= config["seq_directory"]
 nbins 		= config["EMA_bins"]
@@ -11,7 +12,8 @@ extra 		= config.get("extra", "")
 bn 			= os.path.basename(genomefile)
 outdir      = "Align/ema"
 
-flist = os.listdir(seq_dir)
+#flist = os.listdir(seq_dir)
+flist = [os.path.basename(i) for i in glob.iglob(f"{seq_dir}/*") if not os.path.isdir(i)]
 r = re.compile(".*\.f(?:ast)?q(?:\.gz)?$", flags=re.IGNORECASE)
 fqlist = list(filter(r.match, flist))
 bn_r = r"[\.\_][RF](?:[12])?(?:\_00[1-9])*\.f(?:ast)?q(?:\.gz)?$"
@@ -133,7 +135,7 @@ rule preprocess_ema:
     threads:
         2
     params:
-        outdir = lambda wc: outdir + "/preproc/" + wc.get("sample"),
+        outdir = lambda wc: outdir + "/" + wc.get("sample") + "/preproc",
         bins   = nbins
     shell:
         "seqfu interleave -1 {input.forward_reads} -2 {input.reverse_reads} | ema preproc -p -n {params.bins} -t {threads} -o {params.outdir} {input.emacounts} 2>&1 | cat - > {log}"
