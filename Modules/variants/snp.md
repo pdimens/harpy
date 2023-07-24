@@ -168,7 +168,7 @@ the image and open it in a new tab if you wish to see the example in better deta
 
 ||| Variant stats
 Summarizes information provided by `bcftools stats` on the called SNPs and indels.
-![model*/contigs/\*/*.impute.html](/static/report_variants.png)
+![stats/variants.*.html](/static/report_variants.png)
 |||
 
 +++
