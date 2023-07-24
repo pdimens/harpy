@@ -143,6 +143,9 @@ Advanced Options:
 --maxcut_iter, --mc <int> :         maximum number of max-likelihood-cut iterations. Preferable to tweak --converge option instead. default: 10000
 ```
 +++ :icon-graph: reports
+These are the summary reports Harpy generates for this workflow. You may right-click
+the image and open it in a new tab if you wish to see the example in better detail.
 
+Under development!
 
 +++

@@ -95,13 +95,15 @@ be cumbersome to print here. See the list of options in the [fastp documentation
 
 These are the summary reports Harpy generates for this workflow. You may right-click
 the images and open them in a new tab if you wish to see the examples in better detail.
-#TODO
 
+||| fastp report
+Reports of all QC activities performed by fastp (fastp creates this)
+![reports/trim.report.html](/static/report_trim_fastp.png)
 ||| Trimming and QC
 Aggregates the metrics FASTP generates for every sample during QC and trimming.
-![reports/trim.report.html](/static/report_demux.png)
+![reports/trim.report.html](/static/report_trim_aggregate.png)
 ||| BX validation
-Reports the number of valid/invalid barcodes in the alignments and the segments contributing to invalidation.
+Reports the number of valid/invalid barcodes in the sequences and the segments contributing to invalidation.
 ![reports/summary.bx.valid.html](/static/report_align_bxstats.png)
 |||
 

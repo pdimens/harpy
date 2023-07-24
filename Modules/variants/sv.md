@@ -159,7 +159,19 @@ These are taken directly from the [NAIBR documentation](https://github.com/pontu
  -min_sv: Minimum size of a structural variant to be detected (default: lmax, i.e. the 95th percentile of the paired-end read insert size distribution)
  -k: minimum number of barcode overlaps supporting a candidate NA (default = 3)
 ```
+
++++ :icon-graph: reports
+These are the summary reports Harpy generates for this workflow. You may right-click
+the image and open it in a new tab if you wish to see the example in better detail.
+
+||| Variant stats
+Summarizes the count and type of structural variants and visualizes their locations on
+the chromosomes. Calling variants on population-pooled samples will instead report on populations.
+![reports/*.html](/static/report_sv_naibr.png)
+|||
+
 +++
+
 
 ### :icon-git-pull-request: LEVIATHAN workflow
 +++ :icon-git-merge: details
@@ -238,6 +250,13 @@ These are taken directly from the [LEVIATHAN documentation](https://github.com/m
   -c, --minBarcodes:        Always remove candidates that share less than this number of barcodes (default: 1)
 ```
 +++ :icon-graph: reports
+These are the summary reports Harpy generates for this workflow. You may right-click
+the image and open it in a new tab if you wish to see the example in better detail.
 
+||| Variant stats
+Summarizes the count and type of structural variants and visualizes their locations on
+the chromosomes. Calling variants on population-pooled samples will instead report on populations.
+![reports/*.html](/static/report_sv_leviathan.png)
+|||
 
 +++

@@ -167,8 +167,10 @@ These are the summary reports Harpy generates for this workflow. You may right-c
 the image and open it in a new tab if you wish to see the example in better detail.
 
 ||| Variant stats
+
 Summarizes information provided by `bcftools stats` on the called SNPs and indels.
 ![stats/variants.*.html](/static/report_variants.png)
+
 |||
 
 +++
