@@ -38,7 +38,7 @@ def get_samplenames(smpl):
     with open(smpl, "r") as f:
         #rows = [i.split("\t")[0] for i in f.readlines()]
         for i in f.readlines():
-            bc,smpl = i.split()
+            smpl, bc = i.split()
             d[smpl] = bc
     return d
 
