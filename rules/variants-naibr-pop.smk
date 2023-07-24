@@ -128,7 +128,7 @@ rule call_sv:
         inferSV.py {params.outdir}/{params.population}.bedpe -f {output.fail} > {output.bedpe}
         mv {params.outdir}/{params.population}.reformat.bedpe {output.refmt}
         mv {params.outdir}/{params.population}.vcf {output.vcf}
-        mv Variants/naibrlog/{params.population}.log {log}
+        #mv Variants/naibrlog/{params.population}.log {log}
         rm -rf {params.outdir}
         """
 
