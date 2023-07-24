@@ -22,11 +22,12 @@ library(plotly)
 
 ```{r echo= FALSE, message = FALSE, warning = FALSE}
 ## File
-file <- "~/Downloads/ShadHap1_C01.blocks"
- 
+#file <- "~/Downloads/ShadHap1_C01.blocks"
+file <- snakemake@input[[1]]
+
 ## the number of lines
-com <- paste("wc -l ", file, " | awk '{ print $1 }'", sep="")
-n <- as.numeric(system(command=com, intern=TRUE))
+com <- paste("zcat ", file, " | wc -l ", " | awk '{ print $1 }'", sep = "")
+n <- as.numeric(system(command = com, intern = TRUE))
 ```
 
 ```{r echo= FALSE, message = FALSE, warning = FALSE}
@@ -37,12 +38,12 @@ pos_start <- as.numeric()
 len_block <- as.numeric()
 
 ## Create connection
-con <- file(description=file, open="r")
+con <- gzfile(description = file, open = "r")
 
 ## Loop over a file connection
 firstline <- TRUE
 for(i in 1:n) {
-  .line <- scan(file=con, nlines=1, what = character(), quiet=TRUE)
+  .line <- scan(file = con, nlines=1, what = character(), quiet = TRUE)
   if (.line[1] == "BLOCK:") {
     n_snp <- c(n_snp, as.numeric(.line[7]))
     len_block <- c(len_block, as.numeric(.line[9]))
