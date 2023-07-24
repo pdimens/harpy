@@ -142,4 +142,7 @@ Advanced Options:
 --max_iter, --mi <int> :            maximum number of global iterations. Preferable to tweak --converge option instead. default: 10000
 --maxcut_iter, --mc <int> :         maximum number of max-likelihood-cut iterations. Preferable to tweak --converge option instead. default: 10000
 ```
++++ :icon-graph: reports
+
+
 +++

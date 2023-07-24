@@ -91,4 +91,7 @@ fastp --trim_poly_g --cut_right --detect_adapter_for_pe
 The list of all `fastp` command line options is quite extensive and would
 be cumbersome to print here. See the list of options in the [fastp documentation](https://github.com/OpenGene/fastp).
 
++++ :icon-graph: reports
+
+
 +++

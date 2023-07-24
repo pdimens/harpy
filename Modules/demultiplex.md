@@ -42,7 +42,7 @@ In addition to the [common runtime options](../commonoptions.md), the `harpy dem
 - Facility should **not** demultiplex
 
 These are the original 13 + 13 barcodes described in Meier et al. 2021. You should request that the sequencing facility you used
-do **not** demultiplex the sequences. Requires the use of `bcl2fastq` without `sample-sheet` and with the settings
+do **not** demultiplex the sequences. Requires the use of [bcl2fastq](https://support.illumina.com/sequencing/sequencing_software/bcl2fastq-conversion-software.html) without `sample-sheet` and with the settings
 `--use-bases-mask=Y151,I13,I13,Y151` and `--create-fastq-for-index-reads`. With Generation I beadtags, the `C` barcode is sample-specific,
 meaning a single sample should have the same `C` barcode for all of its sequences.
 
@@ -98,4 +98,8 @@ Demultiplex/PREFIX
 | `logs/demultiplex.QC.html` | phased vcf annotated with phased blocks |
 | `logs/harpy.demultiplex.log` | relevant runtime parameters for demultiplexing |
 
++++ :icon-graph: reports
+
+
 +++
+

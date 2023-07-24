@@ -237,4 +237,7 @@ These are taken directly from the [LEVIATHAN documentation](https://github.com/m
   -B, --nbBins:             Number of iterations to perform through the barcode index (default: 10)
   -c, --minBarcodes:        Always remove candidates that share less than this number of barcodes (default: 1)
 ```
++++ :icon-graph: reports
+
+
 +++
