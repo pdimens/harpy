@@ -54,6 +54,10 @@ rows as necessary. See the [Imputation section](impute.md) for details on these 
 ### hpc
 ||| `--hpc`
 **HPC cluster profile**
+!!!warning
+HPC support is not yet natively integrated into Harpy. Until then, you can manually
+use the [Snakemake HPC infrastructure](https://snakemake.readthedocs.io/en/stable/executing/cluster.html) with the `-s` flag.
+!!!
 
 For snakemake to work in harmony with an HPC scheduler, a "profile" needs to
 be provided that tells Snakemake how it needs to interact with the HPC scheduler
@@ -64,9 +68,4 @@ the intended Harpy module with an extra ``--snakemake` argument:
 # use the slurm profile
 harpy module --option1 <value1> --option2 <value2> --snakemake "--profile slurm/"
 ```
-
-#### Profiles
-These are ongoing as I figure out how it works. Currently working on SLURM support, as that is
-the system we have available.
-- slurm: [by jdblischak](https://github.com/jdblischak/smk-simple-slurm)
 |||
