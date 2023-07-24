@@ -18,8 +18,8 @@ library(tidyr)
 library(dplyr)
 library(DT)
 library(scales)
-#modelparams <- paste(snakemake@params[[1]])
-modelparams <- "Filler Text"
+modelparams <- paste(snakemake@params[[1]])
+#modelparams <- "Filler Text"
 ```
 ### Imputed genotypes from model: `r modelparams`
 
