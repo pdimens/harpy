@@ -96,10 +96,11 @@ Demultiplex/PREFIX
 | `*.F.fq.gz` | Forward-reads from multiplexed input `--file` belonging to samples from the `samplesheet` |
 | `*.R.fq.gz` | Reverse-reads from multiplexed input `--file` belonging to samples from the `samplesheet` |
 | `logs/demultiplex.QC.html` | phased vcf annotated with phased blocks |
-| `logs/harpy.demultiplex.log` | relevant runtime parameters for demultiplexing |
+| `logs/harpy.demultiplex.log` | (relevant runtime parameters for demultiplexing |
 
 +++ :icon-graph: reports
-
+Using MultiQC, Harpy will report the aggregated FASTQC results as `logs/demultiplex.QC.html`
+![demultiplex report](/static/report_demux.png)
 
 +++
 

@@ -121,6 +121,7 @@ Align/bwa
 | `logs/harpy.align.log` | relevant runtime parameters for the align module       |
 | `stats/` | various counts/statistics/reports relating to sequence alignment |
 | `stats/reads.bxstats.html`          | interactive html report summarizing valid vs invalid barcodes across all samples | 
+| `stats/BXstats/*.bxstats.html`      | interactive html report summarizing inferred molecule size                       | 
 | `stats/coverage/*.html`             | summary plots of alignment coverage per contig                                   |
 | `stats/coverage/data/*.gencov.gz`   | output from samtools bedcov from all alignments, used for plots                  |
 | `stats/markduplicates`              | everything `sambamba markdup` writes to `stderr` during operation                |
@@ -156,7 +157,21 @@ These are taken directly from the [BWA documentation](https://bio-bwa.sourceforg
 -H 	Use hard clipping ’H’ in the SAM output. This option may dramatically reduce the redundancy of output when mapping long contig or BAC sequences.
 ```
 +++ :icon-graph: reports
-
+These are the summary reports Harpy generates for this workflow. You may right-click
+the images and open them in a new tab if you wish to see the examples in better detail.
+||| Depth and coverage
+Reports the depth of alignments in 10kb windows.
+![stats/coverage/*.html](/static/report_align_coverage.png)
+||| BX validation
+Reports the number of valid/invalid barcodes in the alignments.
+![stats/reads.bxstats.html](/static/report_align_bxstats.png)
+||| Molecule size
+Reports the inferred molecule sized based on barcodes in the alignments.
+![stats/BXstats/*.bxstats.html](/static/report_align_bxmol.png)
+||| Alignment stats
+Reports the general statistics computed by samtools `stats` and `flagstat`
+![stats/samtools_*stat/*html](/static/report_align_flagstat.png)
+|||
 
 +++
 
@@ -252,6 +267,7 @@ Align/ema
 | `stats/coverage/data/*.bx.gencov.gz`           | output from samtools bedcov from alignments with valid BX barcodes, used for plots                            |
 | `stats/markduplicates/`                        | everything `sambamba markdup` writes to `stderr` during operation on alignments with invalid/missing barcodes |
 | `stats/BXstats/`                               | reports summarizing molecule size and reads per molecule                                                      |
+| `stats/BXstats/*.bxstats.html`      | interactive html report summarizing inferred molecule size                       | 
 | `stats/BXstats/data/`                          | tabular data containing the information used to generate the BXstats reports                                  |
 | `stats/samtools_flagstat/*flagstat`            | results of `samtools flagstat` on all alignments for a sample                                                 |
 | `stats/samtools_flagstat/*.nobarcode.flagstat` | results of `samtools flagstat` on alignments that had no/invalid BX barcodes                                  |
@@ -272,7 +288,22 @@ These are taken directly from the [EMA documentation](https://github.com/arshaji
 -i <index>: index to follow 'BX' tag in SAM output [1]
 ```
 +++ :icon-graph: reports
+These are the summary reports Harpy generates for this workflow. You may right-click
+the images and open them in a new tab if you wish to see the examples in better detail.
 
+||| Depth and coverage
+Reports the depth of alignments in 10kb windows.
+![stats/coverage/*.html](/static/report_align_coverage.png)
+||| BX validation
+Reports the number of valid/invalid barcodes in the alignments.
+![stats/reads.bxstats.html](/static/report_align_bxstats.png)
+||| Molecule size
+Reports the inferred molecule sized based on barcodes in the alignments.
+![stats/BXstats/*.bxstats.html](/static/report_align_bxmol.png)
+||| Alignment stats
+Reports the general statistics computed by samtools `stats` and `flagstat`
+![stats/samtools_*stat/*html](/static/report_align_flagstat.png)
+|||
 
 +++
 
