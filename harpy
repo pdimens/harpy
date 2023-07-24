@@ -424,7 +424,7 @@ def sv(genome, threads, directory, populations, method, extra_params, snakemake,
     command.append(f"samplenames={samplenames}")
     if populations is not None:
         command.append(f"groupings={populations}")
-    command.append(f"ploidy={ploidy}")
+    #command.append(f"ploidy={ploidy}")
     command.append(f"genomefile={genome}")
     if extra_params is not None:
         command.append(f"extra={extra_params}")
