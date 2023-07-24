@@ -38,11 +38,7 @@ rule splitbysample:
     threads: 1
     shell:
         """
-        if grep -q "INFO_SCORE" <(bcftools head {input.vcf}); then
-            bcftools view -s {wildcards.sample} -i 'INFO/INFO_SCORE >= 0.2' {input.vcf} 
-        else
-            bcftools view -s {wildcards.sample} {input.vcf}
-        fi |
+        bcftools view -s {wildcards.sample} {input.vcf} |
         awk '/^#/;/CHROM/ {{OFS="\\t"}}; !/^#/ &&  $10~/^0\\/0/ {{$10="0|0:"substr($10,5);print $0}}; !/^#/ && $10~/^0\\/1/; !/^#/ &&  $10~/^1\\/1/ {{$10="1|1:"substr($10,5);print $0}}; !/^#/ {{print $0}}' > {output}
         """
 
@@ -223,8 +219,8 @@ rule log_runtime:
             _ = f.write("""\tbcftools view -s SAMPLE | awk '/^#/;/CHROM/ OFS="\\t"; !/^#/ && $10~/^0\\/1/'\n\n""")
             _ = f.write("Phasing was performed using the components of HapCut2:\n")
             _ = f.write("\textractHAIRS " + params[0] + " --nf 1 --bam sample.bam --VCF sample.vcf --out sample.unlinked.frags\n")
-            _ = f.write("\tLinkFragments.py --bam sample.bam --VCF sample.vcf --fragments sample.unlinked.frags --out sample.linked.frags -d " + params[1] + "\n")
-            _ = f.write("\tHAPCUT2 --fragments sample.linked.frags --vcf sample.vcf --out sample.blocks --nf 1 --error_analysis_mode 1 --call_homozygous 1 --outvcf 1" + params[2] + params[3] + "\n\n")
+            _ = f.write("\tLinkFragments.py --bam sample.bam --VCF sample.vcf --fragments sample.unlinked.frags --out sample.linked.frags -d " + f"{params[1]}" + "\n")
+            _ = f.write("\tHAPCUT2 --fragments sample.linked.frags --vcf sample.vcf --out sample.blocks --nf 1 --error_analysis_mode 1 --call_homozygous 1 --outvcf 1" + f" {params[2]} {params[3]}" + "\n\n")
             _ = f.write("Variant annotation was performed using:\n")
             _ = f.write("\tbcftools query -f \"%CHROM\\t%POS[\\t%GT\\t%PS\\t%PQ\\t%PD]\\n\" sample.vcf | bgzip -c\n")
             _ = f.write("\tbcftools annotate -h header.file -a sample.annot sample.bcf -c CHROM,POS,FMT/GX,FMT/PS,FMT/PQ,FMT/PD -m +HAPCUT |\n")
