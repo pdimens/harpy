@@ -111,6 +111,8 @@ rule call_sv:
         refmt = outdir + "/IGV/{population}.reformat.bedpe",
         fail  = outdir + "/bad_candidates/{population}.fail.bedpe",
         vcf   = outdir + "/vcf/{population}.vcf"
+    log:
+        outdir + "/logs/{population}.log"
     threads:
         8        
     params:
@@ -118,8 +120,6 @@ rule call_sv:
         population = lambda wc: wc.get("population")
     message:
         "Calling variants: {wildcards.population}"
-    log:
-        outdir + "/logs/{population}.log",
     shell:
         """
         echo "threads={threads}" >> {input.conf}
@@ -128,6 +128,7 @@ rule call_sv:
         inferSV.py {params.outdir}/{params.population}.bedpe -f {output.fail} > {output.bedpe}
         mv {params.outdir}/{params.population}.reformat.bedpe {output.refmt}
         mv {params.outdir}/{params.population}.vcf {output.vcf}
+        mv Variants/naibrlog/{params.population}.log {log}
         rm -rf {params.outdir}
         """
 
@@ -205,3 +206,5 @@ rule all:
     default_target: True
     message:
         "Variant calling completed!"
+    shell:
+        "rm -rf Variants/naibrlog"

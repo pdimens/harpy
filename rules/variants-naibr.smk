@@ -59,6 +59,8 @@ rule call_sv:
         refmt = outdir + "/IGV/{sample}.reformat.bedpe",
         fail  = outdir + "/filtered/{sample}.fail.bedpe",
         vcf   = outdir + "/vcf/{sample}.vcf" 
+    log:
+        outdir + "/logs/{sample}.log"
     threads:
         8        
     params:
@@ -76,6 +78,7 @@ rule call_sv:
         inferSV.py {params.outdir}/{params.sample}.bedpe -f {output.fail} > {output.bedpe}
         mv {params.outdir}/{params.sample}.reformat.bedpe {output.refmt}
         mv {params.outdir}/{params.sample}.vcf {output.vcf}
+        mv Variants/naibrlog/{params.sample}.log {log}
         rm -rf {params.outdir}
         """
 
@@ -140,3 +143,5 @@ rule all:
     default_target: True
     message:
         "Variant calling completed!"
+    shell:
+        "rm -rf Variants/naibrlog"
