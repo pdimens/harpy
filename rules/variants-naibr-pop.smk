@@ -90,7 +90,7 @@ rule create_config:
     message:
         "Creating naibr config file: {wildcards.population}"
     params:
-	    lambda wc: wc.get("population")
+        lambda wc: wc.get("population")
     run:
         argdict = process_args(extra)
         with open(output[0], "w") as conf:

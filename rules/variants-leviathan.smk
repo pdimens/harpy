@@ -34,14 +34,14 @@ rule index_barcode:
         "LRez index bam --threads {threads} -p -b {input.bam} -o {output}"
 
 rule link_genome:
-	input:
-		genomefile
-	output: 
-		f"Assembly/{bn}"
-	message:
-		"Symlinking {input} to Assembly/"
-	shell: 
-		"ln -sr {input} {output}"
+    input:
+        genomefile
+    output: 
+        f"Assembly/{bn}"
+    message:
+        "Symlinking {input} to Assembly/"
+    shell: 
+        "ln -sr {input} {output}"
 
 rule index_faidx_genome:
     input: 
@@ -140,8 +140,8 @@ rule log_runtime:
     message:
         "Creating record of relevant runtime parameters: {output}"
     params:
-		extra = extra
-	run:
+        extra = extra
+    run:
         with open(output[0], "w") as f:
             _ = f.write("The harpy variants sv module ran using these parameters:\n\n")
             _ = f.write(f"The provided genome: {bn}\n")
