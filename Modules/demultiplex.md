@@ -99,8 +99,9 @@ Demultiplex/PREFIX
 | `logs/harpy.demultiplex.log` | (relevant runtime parameters for demultiplexing |
 
 +++ :icon-graph: reports
-Using MultiQC, Harpy will report the aggregated FASTQC results as `logs/demultiplex.QC.html`
-![demultiplex report](/static/report_demux.png)
+This is the summary report Harpy generates for this workflow. You may right-click
+the image and open it in a new tab if you wish to see the example in better detail.
+![logs/demultiplex.QC.html](/static/report_demux.png)
 
 +++
 

@@ -204,7 +204,7 @@ Impute/
 | `model*/concat.log`                 | output from bcftools concat to create final imputed bcf                   |
 | `model*/variants.imputed.bcf`       | final bcf file of imputed genotypes                                       |
 | `model*/variants.imputed.bcf.csi`   | index of `variants.imputed.bcf`                                           |
-| `model*/variants.imputed.bcf.html`  | report summarizing the results of imputation                              |
+| `model*/variants.imputed.html`  | report summarizing the results of imputation                              |
 | `model*/contigs/*/*.impute.html`    | summary of STITCH imputation                                              |
 | `model*/contigs/*/*.log`            | what STITCH writes to `stdout` and `stderr`                               |
 | `model*/contigs/*/*.vcf.gz`         | variants resulting from imputation                                        |
@@ -225,6 +225,15 @@ STITCH(
 )
 ```
 +++ :icon-graph: reports
+These are the summary reports Harpy generates for this workflow. You may right-click
+the images and open them in a new tab if you wish to see the examples in better detail.
 
+||| STITCH Reports
+Aggregates the various outputs of a STITCH run into a single report along with `bcftools stats`.
+![model*/contigs/\*/*.impute.html](/static/report_stitchimpute.png)
+||| Imputation Metrics
+Reports how effective STITCH was at genotype imputation.
+![model*/variants.imputed.html](/static/report_impute.png)
+|||
 
 +++

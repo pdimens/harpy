@@ -163,6 +163,12 @@ freebayes -f genome.fasta -L bam.list -p ploidy
 Freebayes has *a lot* of command line options. Listing them all here would be difficult to read, therefore please
 refer to the [freebayes documentation](https://github.com/freebayes/freebayes#usage) to explore ways to configure your freebayes run.
 +++ :icon-graph: reports
+These are the summary reports Harpy generates for this workflow. You may right-click
+the image and open it in a new tab if you wish to see the example in better detail.
 
+||| Variant stats
+Summarizes information provided by `bcftools stats` on the called SNPs and indels.
+![model*/contigs/\*/*.impute.html](/static/report_variants.png)
+|||
 
 +++
