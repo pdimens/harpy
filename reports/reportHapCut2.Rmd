@@ -1,5 +1,5 @@
 ---
-title: "HapCut2 Report"
+title: "Haplotype Phasing Report"
 author:
     - "Created using HARPY"
 date: "`r format(Sys.time(), '%d %B, %Y')`"
@@ -17,137 +17,167 @@ library(ggplot2)
 library(DT)
 library(dplyr)
 library(magrittr)
-library(plotly)
+library(scales)
+library(ggridges)
 ```
 
 ```{r echo= FALSE, message = FALSE, warning = FALSE}
 ## File
-#file <- "~/Downloads/ShadHap1_C01.blocks"
+#file <- "~/blocks.file.gz"
 file <- snakemake@input[[1]]
-
-## the number of lines
-com <- paste("zcat ", file, " | wc -l ", " | awk '{ print $1 }'", sep = "")
-n <- as.numeric(system(command = com, intern = TRUE))
+df <- read.table(file, header = T)
+df$pos_end <- df$pos_start + df$block_length
+df <- df[, c(1,2,3,4,6,5)]
 ```
 
-```{r echo= FALSE, message = FALSE, warning = FALSE}
-## setup storage vectors
-contig <- as.character()
-n_snp <- as.numeric()
-pos_start <- as.numeric()
-len_block <- as.numeric()
-
-## Create connection
-con <- gzfile(description = file, open = "r")
-
-## Loop over a file connection
-firstline <- TRUE
-for(i in 1:n) {
-  .line <- scan(file = con, nlines=1, what = character(), quiet = TRUE)
-  if (.line[1] == "BLOCK:") {
-    n_snp <- c(n_snp, as.numeric(.line[7]))
-    len_block <- c(len_block, as.numeric(.line[9]))
-    firstline <- TRUE
-  } else {
-    if (firstline) {
-      pos_start <- c(pos_start, as.numeric(.line[5]))
-      contig <- c(contig, .line[4])
-      firstline <- FALSE
-    } else {
-      next
-    }
-  }
+```{r echo = FALSE, message = FALSE, warning = FALSE}
+# Find the 30 largest contigs
+contigs <- group_by(df, contig) %>%
+  summarize(size = max(pos_end)) %>%
+  arrange(desc(size))
+# limit the data to only the 30 largest contigs
+if (nrow(contigs) > 30){
+    .contigs <- contigs[1:30, ]$contig
+} else {
+    .contigs <- contigs$contig
 }
-close(con)
-pos_end <- pos_start + len_block
-
-df <- data.frame(contig = contig, n_snp = n_snp, pos_start = pos_start, pos_end = pos_end, block_length = len_block)
-
+pltheight <- round(2.1 * (length(.contigs)), digits = 0)
+ridgeheight <- 1 + round(0.7 * (length(.contigs)), digits = 0)
 ```
 
-## Haplotyping details (overall) {.tabset}
-### summary
+## Haplotyping details {.tabset}
+The data presented here are the results of phasing genotypes into haplotypes using
+[HapCut2](https://github.com/vibansal/HapCUT2). The information is derived from `r file`,
+which summarized information across all samples using the `.blocks` files HapCut2
+generates. The VCF files HapCut2 also generates were not used as they lack
+some of the information in the `.blocks` files that were collated in this report.
+
+### overall stats
+The table below summarizes the outcome of haplotype phasing across all samples and contigs.
+
 ```{r echo= FALSE, message = FALSE, warning = FALSE}
-df %>% summarise(
-    mean_snps = mean(n_snp),
+overall <- df %>% summarise(
+    mean_snps = round(mean(n_snp), digits = 0),
     median_snps = median(n_snp),
-    mean_blocksize = mean(block_length),
-    median_blocksize = median(block_length)
-  )
+    mean_blocksize = round(mean(block_length), digits = 0),
+    median_blocksize = median(block_length),
+    max_blocksize = max(block_length)
+)
+names(overall) <- c("Average SNPs per Haplotype", "Median SNPs per Haplotype", "Mean Haplotype Size", "Median Haplotype Length", "Largest Haplotype")
+overall
+
+```
+The plot below shows the distribution of haplotype length (in base pairs). Phasing typically 
+results in extreme right-tails in these distributions, making regular visualization
+difficult to plot meaningfully. The plot presented below has **log-scaled lengths**
+to collapse the right tail for better readability. 
+
+```{r warning=FALSE, message=FALSE, echo= FALSE, out.width="100%", fig.height=2.7}
+ggplot(df, aes(block_length, after_stat(count))) + 
+  geom_density(color = "#859f9a", fill = "#bfe4dc") +
+  theme_minimal() +
+  theme(
+    panel.grid.minor.y = element_blank(),
+    panel.grid.minor.x = element_blank()
+    ) +
+   scale_y_continuous(labels = label_comma()) +
+   scale_x_log10(
+    breaks = trans_breaks("log10", function(x) 10^x),
+    labels = trans_format("log10", math_format(10^.x))
+  ) +
+  xlab("Haplotype Length (log scale)") +
+  ylab("Count") +
+  labs(title = "Distribution of Overall Haplotype Lengths")
 ```
 
-### all data
-Comparison of:
-
-- `contig`: name of the contig where the haplotype block is
-- `n_snp`: number of SNPs included in a block
-- `pos_start`: where the haplotype block begins
-- `pos_end`: where the haploype block ends
-- `block_length`: the length, in base pairs, of the haplotype block
-
+### stats per contig
+The table below provides details on the outcome of haplotype phasing on a per-contig basis.
 ```{r echo= FALSE, message = FALSE, warning = FALSE}
-DT::datatable(df, rownames = F, filter = "top", extensions = 'Buttons', options = list(dom = 'Brtip', buttons = c('csv'), scrollX = TRUE))
-```
-
-### SNPs per haplotype block
-```{r echo= FALSE, message = FALSE, warning = FALSE, out.width = "100%"}
-df$n_snp <- as.factor(df$n_snp)
-p_nsnp <- ggplot(df, aes(x = n_snp)) +
-  geom_histogram(stat="count", boundary = 0.5) +
-  labs(title = "SNP count per haplotype block") +
-  theme_minimal() +
-  xlab("number of snps") +
-  ylab("frequency") +
-  theme(panel.grid.major.x = element_blank())
-layout(ggplotly(p_nsnp), hovermode = 'x')
-```
-
-### haplotype lengths
-```{r echo= FALSE, message = FALSE, warning = FALSE, out.width = "100%"}
-p_hapl <- ggplot(df, aes(x = block_length)) +
-  geom_histogram(binwidth = 2000, boundary = 0.5) +
-  labs(title = "Haplotype block length frequencies - 2kb bins") +
-  theme_minimal() +
-  xlab("Haplotype length (bp)") +
-  ylab("frequency") +
-  theme(panel.grid.major.x = element_blank())
-layout(ggplotly(p_hapl), hovermode = 'x')
-```
-
-### SNPs/haplotype-lengths
-Below is a 2-dimensional histogram of the frequency spectrum of the number of SNPS per haplotype-block bin. 
-```{r echo= FALSE, message = FALSE, warning = FALSE, out.width = "100%"}
-df$n_snp <- as.numeric(df$n_snp)
-
-p_snphex <- ggplot(df, aes(x = n_snp, y = block_length)) +
-  geom_hex() +
-  labs(title = "SNP count with respect to block size") +
-  theme_minimal() +
-  xlab("number of snps") +
-  ylab("haplotype block length") +
-  scale_fill_viridis_c()
- 
-ggplotly(p_snphex)
-```
-
-## Haplotyping details (per-contig) {.tabset}
-
-### summary
-```{r echo= FALSE, message = FALSE, warning = FALSE}
-grp <- df %>% group_by(contig) %>%
-  summarise(
-    mean_snps = mean(n_snp),
+percontig <- df %>% group_by(contig) %>% summarise(
+    n_haplo = round(length(n_snp)),
+    mean_snps = round(mean(n_snp), digits = 0),
     median_snps = median(n_snp),
-    mean_blocksize = mean(block_length),
-    median_blocksize = median(block_length)
+    mean_blocksize = round(mean(block_length), digits = 0),
+    median_blocksize = median(block_length),
+    max_blocksize = max(block_length)
   )
+
 DT::datatable(
-  grp,
+  percontig,
   rownames = F,
-  filter = "top",
   extensions = 'Buttons',
   options = list(dom = 'Brtip', buttons = c('csv'), scrollX = TRUE),
-  colnames = c("Contig", "Mean SNPs", "Median SNPs", "Mean Block Size", "Median Block Size")
+  colnames = c("Contig", "Total Haplotypes", "Mean SNPs", "Median SNPs", "Mean Haplotype Length", "Median Haplotype Length", "Largest Haplotype")
   )
 ```
 
+The plot below shows the distribution of haplotype length (in base pairs) for 
+each contig, up to 30 of the largest contigs, the size of whom is inferred/assumed
+from the end position of the last haplotype. Phasing typically results in extreme
+right-tails in these distributions, making regular visualization
+difficult to plot meaningfully. The plot presented below has **log-scaled lengths**
+to collapse the right tails for better readability. 
+
+```{r warning=FALSE, message=FALSE, echo= FALSE, fig.height=pltheight, out.width="100%"}
+ggplot(df, aes(block_length, after_stat(count))) + 
+  geom_density(color = "#af9caf", fill = "#DBC3DB") +
+  theme_light() +
+  theme(
+    panel.grid.minor.y = element_blank(),
+    panel.grid.minor.x = element_blank(),
+    strip.background =element_rect(fill="grey90", color = "grey70"),
+    strip.text = element_text(colour = 'grey40')
+    ) +
+  scale_y_continuous(labels = label_comma()) +
+  scale_x_log10(
+     breaks = trans_breaks("log10", function(x) 10^x),
+     labels = trans_format("log10", math_format(10^.x))
+  ) +
+  facet_wrap(~contig, ncol = 1, scales = "free") +
+  xlab("Haplotype Length (log scale)") +
+  ylab("Count") +
+  labs(title = "Distribution of Haplotype Lengths Per Contig")
+```
+
+### stats per sample
+Haplotype phasing occurs per-sample and the table below provides details on the outcome of haplotype phasing for each sample.
+
+```{r echo= FALSE, message = FALSE, warning = FALSE}
+persample <- df %>% group_by(sample) %>% summarise(
+    n_haplo = sum(length(n_snp)),
+    mean_snps = round(mean(n_snp), digits = 0),
+    median_snps = median(n_snp),
+    mean_blocksize = round(mean(block_length), digits = 0),
+    median_blocksize = median(block_length),
+    max_blocksize = max(block_length)
+)
+
+DT::datatable(
+  persample,
+  rownames = F,
+  extensions = 'Buttons',
+  options = list(dom = 'Brtip', buttons = c('csv'), scrollX = TRUE),
+  colnames = c("Contig", "Haplotypes", "Mean SNPs", "Median SNPs", "Mean Haplotype Length", "Median Haplotype Length", "Largest Haplotype")
+)
+```
+The ridgeline plot below shows the distribution of haplotype lengths (in base pairs) for each 
+sample. While no Y-axis for these counts are provided, this plot is intended to be more of
+a visual reference of the relative distributions of haplotype lengths among samples.
+Phasing typically results in extreme right-tails in these distributions, making regular 
+visualization difficult to plot meaningfully. The plot presented below has 
+**log-scaled lengths** to collapse the right tails for better readability. 
+
+```{r warning=FALSE, message=FALSE, echo= FALSE, out.width="100%", fig.height=ridgeheight}
+ggplot(df, aes(x = block_length, y = sample, fill = stat(x))) +
+  geom_density_ridges_gradient(scale = 1.4) +
+  scale_fill_viridis_c(option = "G", trans = "log10") +
+  theme_minimal() +
+  theme(legend.position = "none") +
+  scale_x_log10(
+     breaks = trans_breaks("log10", function(x) 10^x),
+     labels = trans_format("log10", math_format(10^.x))
+  ) +
+  labs(title = "Distribution of Haplotype Lengths by Sample", fill = "Haplotype Length (bp)") +
+  xlab("Haplotype Length (log scale)") +
+  ylab("")
+```

@@ -132,7 +132,7 @@ rule merge_blocks:
     message:
         "Summarizing phasing results"
     shell:
-        "cat {input} | gzip > output"
+        "cat {input} | gzip > {output}"
 
 rule phase_report:
     input:

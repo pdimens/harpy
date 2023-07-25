@@ -1,3 +1,6 @@
+##TODO MANUAL PRUNING OF SWITCH ERRORS
+# https://github.com/vibansal/HapCUT2/blob/master/outputformat.md
+
 bam_dir           = config["seq_directory"]
 samplenames       = config["samplenames"]
 variantfile       = config["variantfile"]
@@ -18,7 +21,6 @@ rule splitbysamplehet:
         "Extracting heterozygous variants: {wildcards.sample}"
     benchmark:
         "Benchmark/Phase/splithet.{sample}.txt"
-    threads: 1
     shell:
         """
         bcftools view -s {wildcards.sample} {input.vcf} |
@@ -35,7 +37,6 @@ rule splitbysample:
         "Extracting variants: {wildcards.sample}"
     benchmark:
         "Benchmark/Phase/split.{sample}.txt"
-    threads: 1
     shell:
         """
         bcftools view -s {wildcards.sample} {input.vcf} |
@@ -56,7 +57,6 @@ rule extractHairs:
         linkarg
     benchmark:
         "Benchmark/Phase/extracthairs.{sample}.txt"
-    threads: 1
     shell:
         "extractHAIRS {params} --nf 1 --bam {input.bam} --VCF {input.vcf} --out {output} 2> {log}"
 
@@ -94,7 +94,6 @@ rule phaseBlocks:
     params: 
         prune = f"--threshold {pruning}" if pruning > 0 else "--no_prune 1",
         extra = extra
-    threads: 1
     shell:
         "HAPCUT2 --fragments {input.fragments} --vcf {input.vcf} {params} --out {output.blocks} --nf 1 --error_analysis_mode 1 --call_homozygous 1 --outvcf 1 2> {log}"
 
@@ -152,7 +151,12 @@ rule mergeAnnotations:
     benchmark:
         "Benchmark/Phase/mergeAnno.{sample}.txt"
     shell:
-        "bcftools annotate -h {input.headers} -a {input.annot} {input.orig} -c CHROM,POS,FMT/GX,FMT/PS,FMT/PQ,FMT/PD -m +HAPCUT |  awk '!/<ID=GX/' | sed 's/:GX:/:GT:/' | bcftools view -Ob -o {output} -"
+        """
+        bcftools annotate -h {input.headers} -a {input.annot} {input.orig} -c CHROM,POS,FMT/GX,FMT/PS,FMT/PQ,FMT/PD -m +HAPCUT |
+        awk '!/<ID=GX/' |
+        sed 's/:GX:/:GT:/' |
+        bcftools view -Ob -o {output} -
+        """
         
 rule indexAnnotations2:
     input:
@@ -176,29 +180,39 @@ rule mergeSamples:
         "Combinging samples into a single BCF file"
     benchmark:
         "Benchmark/Phase/mergesamples.txt"
-    threads: 30
+    threads:
+        30
     shell:
         "bcftools merge --threads {threads} --output-type b {input.bcf} > {output}"
 
-rule merge_blocks:
+rule summarize_blocks:
     input:
         expand(outdir + "/phaseBlocks/{sample}.blocks", sample = samplenames)
     output:
-        outdir + "/phased.blocks.gz"
+        outdir + "/reports/blocks.summary.gz"
     message:
         "Summarizing phasing results"
+    params:
+        outdir + "/reports/blocks.summary"
     shell:
-        "cat {input} | gzip > output"
+        """
+        echo -e "sample\\tcontig\\tn_snp\\tpos_start\\tblock_length" > {params}
+        for i in {input}; do
+            parsePhaseBlocks.py -i $i >> {params}
+        done
+        gzip {params}
+        """
 
 rule phase_report:
     input:
-        outdir + "/phased.blocks.gz"
+        outdir + "/reports/blocks.summary.gz"
     output:
         outdir + "/reports/phase.html"
     message:
         "Summarizing phasing results"
     script:
         "reportHapCut2.Rmd"
+
 
 rule log_runtime:
     output:
@@ -208,7 +222,7 @@ rule log_runtime:
     params:
         links = linkarg,
         d =  molecule_distance,
-        prune = f"--threshold {pruning} " if pruning > 0 else "--no_prune 1 ",
+        prune = f"--threshold {pruning}" if pruning > 0 else "--no_prune 1",
         extra = extra
     run:
         with open(output[0], "w") as f:

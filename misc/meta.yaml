@@ -36,6 +36,7 @@ requirements:
     - r-dplyr
     - r-dt
     - r-ggplot2
+    - r-ggridges
     - r-knitr
     - r-magrittr
     - r-plotly
