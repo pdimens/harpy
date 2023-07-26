@@ -313,8 +313,8 @@ rule sort_merge:
         bam    = outdir + "/{sample}/{sample}.unsort.bam",
         genome = f"Assembly/{bn}"
     output:
-        bam = outdir + "/{sample}.bam",
-        bai = outdir + "/{sample}.bai"
+        bam = temp(outdir + "/{sample}/{sample}.sorted.bam"),
+        bai = temp(outdir + "/{sample}/{sample}.sorted.bam.bai")
     message:
         "Sorting merged barcoded alignments: {wildcards.sample}"
     wildcard_constraints:
@@ -325,6 +325,23 @@ rule sort_merge:
         1
     shell:
         "samtools sort -@ {threads} -O bam --reference {input.genome} -m 4G --write-index -o {output.bam}###idx###{output.bai} {input.bam} 2> /dev/null"
+
+rule clip_overlap:
+    input:
+        bam = outdir + "/{sample}/{sample}.sorted.bam",
+        bai = outdir + "/{sample}/{sample}.sorted.bam.bai"
+    output:
+        bam = outdir + "/{sample}.bam",
+        bai = outdir + "/{sample}.bam.bai"
+    log:
+        outdir + "/logs/{sample}.clipOverlap.log"
+    message:
+        "Clipping alignment overlaps: {wildcards.sample}"
+    shell:
+        """
+        bam clipOverlap --in {input.bam} --out {output.bam} --stats --noPhoneHome > {log} 2>&1
+        samtools index {output.bam}
+        """
 
 #rule index_alignments:
 #    input: 
