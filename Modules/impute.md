@@ -46,7 +46,7 @@ In addition to the [common runtime options](../commonoptions.md), the `harpy imp
 |:---------------|:----------:|:------------|:-------------:|:--------:|:------------------------------------------------------------------------------------------------|
 | `--vcf`        |    `-v`    | file path   |               | **yes**  | Path to VCF/BCF file                                                                            |
 | `--directory      `  |    `-d`    | folder path |               | **yes**  | Directory with sequence alignments                                                              |
-| `--parameters` |    `-p`    | file path   | stitch.params | **yes**  | STITCH parameter file (tab-delimited)                                                           |
+| `--parameters` |    `-p`    | file path   |        | **yes**  | STITCH parameter file (tab-delimited)                                                           |
 
 ## :icon-file: Parameter file
 Typically, one runs STITCH multiple times, exploring how results vary with
