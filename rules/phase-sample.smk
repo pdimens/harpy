@@ -120,8 +120,8 @@ rule mergeSamples:
         30
     shell:
         """
-        #bcftools merge --threads {threads} --output-type b --write-index {input.vcf} > {output}
-        bcftools merge --threads {threads} --output-type b {input.vcf} > {output}
+        bcftools merge --threads {threads} --output-type b --write-index {input.vcf} > {output}
+        #bcftools merge --threads {threads} --output-type b {input.vcf} > {output}
         """
 
 rule merge_blocks:

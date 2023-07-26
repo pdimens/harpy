@@ -69,9 +69,7 @@ rule faidx_genome:
     log:
         f"Assembly/{bn}.faidx.log"
     shell: 
-        """
-        samtools faidx --fai-idx {output} {input} 2> {log}
-        """
+        "samtools faidx --fai-idx {output} {input} 2> {log}"
 
 rule index_bwa_genome:
     input: 
@@ -83,9 +81,7 @@ rule index_bwa_genome:
     log:
         f"Assembly/{bn}.idx.log"
     shell: 
-        """
-        bwa index {input} 2> {log}
-        """
+        "bwa index {input} 2> {log}"
 
 rule make_genome_windows:
     input:
@@ -95,9 +91,7 @@ rule make_genome_windows:
     message: 
         "Creating BED intervals from {input}"
     shell: 
-        """
-        makewindows.py -i {input} -w 10000 -o {output}
-        """
+        "makewindows.py -i {input} -w 10000 -o {output}"
 
 rule align:
     input:
@@ -111,8 +105,6 @@ rule align:
         outdir + "/logs/{sample}.log"
     message:
         "Aligning sequences: {wildcards.sample}"
-    #wildcard_constraints:
-    #    sample = "^(sort\.bam)"
     benchmark:
         "Benchmark/Mapping/bwa/align.{sample}.txt"
     params: 

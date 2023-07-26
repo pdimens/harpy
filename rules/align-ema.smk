@@ -2,12 +2,12 @@ import os
 import re
 import glob
 
+#samplenames = config["samplenames"]
 seq_dir 	= config["seq_directory"]
 nbins 		= config["EMA_bins"]
 genomefile 	= config["genomefile"]
 Rsep 		= config["Rsep"]
 fqext 		= config["fqext"]
-#samplenames = config["samplenames"]
 extra 		= config.get("extra", "") 
 bn 			= os.path.basename(genomefile)
 outdir      = "Align/ema"
@@ -56,9 +56,7 @@ rule faidx_genome:
     log:
         f"Assembly/{bn}.faidx.log"
     shell: 
-        """
-        samtools faidx --fai-idx {output} {input} 2> {log}
-        """
+        "samtools faidx --fai-idx {output} {input} 2> {log}"
 
 rule index_bwa_genome:
     input: 
@@ -70,9 +68,7 @@ rule index_bwa_genome:
     log:
         f"Assembly/{bn}.idx.log"
     shell: 
-        """
-        bwa index {input} 2> {log}
-        """
+        "bwa index {input} 2> {log}"
 
 rule make_genome_windows:
     input:
@@ -82,9 +78,7 @@ rule make_genome_windows:
     message: 
         "Creating BED intervals from {input}"
     shell: 
-        """
-        makewindows.py -i {input} -w 10000 -o {output}
-        """
+        "makewindows.py -i {input} -w 10000 -o {output}"
 
 rule count_beadtags:
     input:
@@ -319,7 +313,8 @@ rule sort_merge:
         bam    = outdir + "/{sample}/{sample}.unsort.bam",
         genome = f"Assembly/{bn}"
     output:
-        outdir + "/{sample}.bam"
+        bam = outdir + "/{sample}.bam",
+        bai = outdir + "/{sample}.bai"
     message:
         "Sorting merged barcoded alignments: {wildcards.sample}"
     wildcard_constraints:
@@ -329,21 +324,21 @@ rule sort_merge:
     priority:
         1
     shell:
-        "samtools sort -@ {threads} -O bam --reference {input.genome} -m 4G -o {output} {input.bam} 2> /dev/null"
+        "samtools sort -@ {threads} -O bam --reference {input.genome} -m 4G --write-index -o {output.bam}###idx###{output.bai} {input.bam} 2> /dev/null"
 
-rule index_alignments:
-    input: 
-        outdir + "/{sample}.bam"
-    output:
-        outdir + "/{sample}.bam.bai"
-    message:
-        "Indexing: {input}"
-    benchmark:
-        "Benchmark/Mapping/ema/IndexMerged.{sample}.txt"
-    wildcard_constraints:
-        sample = "[a-zA-Z0-9\_\-\.]*"
-    shell:
-        "sambamba index {input} {output} 2> /dev/null"
+#rule index_alignments:
+#    input: 
+#        outdir + "/{sample}.bam"
+#    output:
+#        outdir + "/{sample}.bam.bai"
+#    message:
+#        "Indexing: {input}"
+#    benchmark:
+#        "Benchmark/Mapping/ema/IndexMerged.{sample}.txt"
+#    wildcard_constraints:
+#        sample = "[a-zA-Z0-9\_\-\.]*"
+#    shell:
+#        "sambamba index {input} {output} 2> /dev/null"
 
 rule alignment_bxstats:
     input:

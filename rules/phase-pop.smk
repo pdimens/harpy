@@ -143,7 +143,9 @@ rule mergeAnnotations:
         orig    = outdir + "/input/{sample}.bcf",
         headers = outdir + "/input/header.names"
     output:
-        outdir + "/annotations_merge/{sample}.phased.annot.bcf"
+        bcf = outdir + "/annotations_merge/{sample}.phased.annot.bcf",
+        idx = outdir + "/annotations_merge/{sample}.phased.annot.bcf.csi"
+
     message:
         "Merging annotations: {wildcards.sample}"
     threads:
@@ -155,27 +157,28 @@ rule mergeAnnotations:
         bcftools annotate -h {input.headers} -a {input.annot} {input.orig} -c CHROM,POS,FMT/GX,FMT/PS,FMT/PQ,FMT/PD -m +HAPCUT |
         awk '!/<ID=GX/' |
         sed 's/:GX:/:GT:/' |
-        bcftools view -Ob -o {output} -
+        bcftools view -Ob --write-index -o {output.bcf} -
         """
         
-rule indexAnnotations2:
-    input:
-        outdir + "/annotations_merge/{sample}.phased.annot.bcf"
-    output:
-        outdir + "/annotations_merge/{sample}.phased.annot.bcf.csi"
-    message:
-        "Indexing annotations: {wildcards.sample}"
-    benchmark:
-        "Benchmark/Phase/indexAnno.{sample}.txt"
-    shell:
-        "bcftools index {input}"
+# rule indexAnnotations2:
+#    input:
+#        outdir + "/annotations_merge/{sample}.phased.annot.bcf"
+#    output:
+#        outdir + "/annotations_merge/{sample}.phased.annot.bcf.csi"
+#    message:
+#        "Indexing annotations: {wildcards.sample}"
+#    benchmark:
+#        "Benchmark/Phase/indexAnno.{sample}.txt"
+#    shell:
+#        "bcftools index {input}"
 
 rule mergeSamples:
     input: 
         bcf = expand(outdir + "/annotations_merge/{sample}.phased.annot.bcf", sample = samplenames),
         idx = expand(outdir + "/annotations_merge/{sample}.phased.annot.bcf.csi", sample = samplenames)
     output:
-        outdir + "/variants.phased.bcf"
+        bcf = outdir + "/variants.phased.bcf",
+        idx = outdir + "/variants.phased.bcf.csi"
     message:
         "Combinging samples into a single BCF file"
     benchmark:
@@ -183,7 +186,7 @@ rule mergeSamples:
     threads:
         30
     shell:
-        "bcftools merge --threads {threads} --output-type b {input.bcf} > {output}"
+        "bcftools merge --threads {threads} --Ob --write-index {input.bcf} > {output}"
 
 rule summarize_blocks:
     input:
@@ -213,12 +216,11 @@ rule phase_report:
     script:
         "reportHapCut2.Rmd"
 
-
 rule log_runtime:
     output:
         outdir + "/logs/harpy.phase.log"
     message:
-        "Creating record of relevant runtime parameters: {output}"
+        "Creating record of relevant runtime parameters"
     params:
         links = linkarg,
         d =  molecule_distance,
@@ -252,15 +254,12 @@ rule log_runtime:
 
 rule indexFinal:
     input:
-        bcf      = outdir + "/variants.phased.bcf",
-        runlog   = outdir + "/logs/harpy.phase.log",
-        phaserpt = outdir + "/reports/phase.html"
-    output:
-        outdir + "/variants.phased.bcf.csi"
+        outdir + "/variants.phased.bcf",
+        outdir + "/logs/harpy.phase.log",
+        outdir + "/reports/phase.html"
     benchmark:
         "Benchmark/Phase/finalindex.txt"
     message:
         "Phasing is complete!"
     default_target: True
-    shell: 
-        "bcftools index {input.bcf}"
+

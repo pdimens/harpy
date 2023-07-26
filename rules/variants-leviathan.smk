@@ -99,7 +99,6 @@ rule sort_bcf:
         outdir + "/{sample}.bcf"
     message:
         "Sorting and converting to BCF: {wildcards.sample}"
-    threads: 1
     params:
         "{wildcards.sample}"
     benchmark:
@@ -116,7 +115,6 @@ rule sv_stats:
         "Getting SV stats for {wildcards.sample}"
     benchmark:
         "Benchmark/Variants/leviathan/stats.{sample}.txt"
-    threads: 1
     shell:
         """
         echo -e "sample\\tcontig\\tposition_start\\tposition_end\\tlength\\ttype\\tn_barcodes\\tn_pairs" > {output}

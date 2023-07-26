@@ -50,23 +50,26 @@ rule merge_populations:
         bamlist  = outdir + "/input/{population}.list",
         bamfiles = lambda wc: expand("{sample}", sample = popdict[wc.population]) 
     output:
-        temp(outdir + "/input/{population}.bam")
+        bam = temp(outdir + "/input/{population}.bam"),
+        bai = temp(outdir + "/input/{population}.bam.bai")
+
     message:
         "Merging alignments: Population {wildcards.population}"
     shell:
-        "samtools merge -b {input} -o {output}"
+        "samtools merge -b {input} -o {output.bam}##idx##{output.bai}"
+#        "samtools merge -b {input} -o {output}"
 
-rule index_merged:
-    input:
-        outdir + "/input/{population}.bam"
-    output:
-        temp(outdir + "/input/{population}.bam.bai")
-    message:
-        "Indexing merged alignments: Population {wildcards.population}"
-    wildcard_constraints:
-        population = "[a-zA-Z0-9_-]*"
-    shell:
-        "sambamba index {input} {output} 2> /dev/null"
+#rule index_merged:
+#    input:
+#        outdir + "/input/{population}.bam"
+#    output:
+#        temp(outdir + "/input/{population}.bam.bai")
+#    message:
+#        "Indexing merged alignments: Population {wildcards.population}"
+#    wildcard_constraints:
+#        population = "[a-zA-Z0-9_-]*"
+#    shell:
+#        "sambamba index {input} {output} 2> /dev/null"
 
 rule index_barcode:
     input: 

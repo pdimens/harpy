@@ -59,21 +59,6 @@ regions = dict(zip(_regions, _regions))
 #		sys.tracebacklimit = 0
 #		raise ValueError(f"{len(absent)} sample(s) in \033[1m{groupings}\033[0m not found in \033[1m{bam_dir}\033[0m directory:\n\033[33m" + ", ".join(absent) + "\033[0m")
 
-#def faidx_contignames(infile):
-#	bn = os.path.basename(infile)
-#	os.makedirs("Assembly", exist_ok = True)
-#	if not os.path.exists(f"Assembly/{bn}"):
-#		shell(f"ln -sr {infile} Assembly/{bn}")
-#	if not os.path.exists(f"Assembly/{bn}.fai"):
-#		print(f"Assembly/{bn}.fai not found, indexing {bn} with samtools faidx", file = sys.stderr)
-#		subprocess.run(["samtools","faidx", "--fai-idx", f"Assembly/{bn}.fai", infile, "2>", "/dev/null"])
-#	with open(f"Assembly/{bn}.fai") as f:
-#		lines = [line.rstrip().split("\t")[0] for line in f]
-#	return lines
-#
-#contigs   = faidx_contignames(genomefile)
-#dict_cont = dict(zip(contigs, contigs))
-
 rule index_alignments:
     input:
         bam_dir + "/{sample}.bam"
@@ -152,9 +137,9 @@ rule call_genotypes:
         ploidy = f"--ploidy {ploidy}"
     shell:
         """
-        #bcftools call --multiallelic-caller {params} --variants-only --output-type b {input} | bcftools sort - --output {output.bcf} --write-index 2> /dev/null
-        bcftools call --multiallelic-caller {params} --variants-only --output-type b {input} | bcftools sort - --output {output.bcf} 2> /dev/null
-        bcftools index {output.bcf}
+        bcftools call --multiallelic-caller {params} --variants-only --output-type b {input} | bcftools sort - --output {output.bcf} --write-index 2> /dev/null
+        #bcftools call --multiallelic-caller {params} --variants-only --output-type b {input} | bcftools sort - --output {output.bcf} 2> /dev/null
+        #bcftools index {output.bcf}
         """
 
 rule merge_vcfs:
@@ -172,9 +157,9 @@ rule merge_vcfs:
         50
     shell:  
         """
-        #bcftools concat -f {input.filelist} --threads {threads} --naive -Ob --write-index > {output.bcf} 2> {log}
-        bcftools concat -f {input.filelist} --threads {threads} --naive -Ob > {output.bcf} 2> {log}
-        bcftools index --threads {threads} {output.bcf}
+        bcftools concat -f {input.filelist} --threads {threads} --naive -Ob --write-index > {output.bcf} 2> {log}
+        #bcftools concat -f {input.filelist} --threads {threads} --naive -Ob > {output.bcf} 2> {log}
+        #bcftools index --threads {threads} {output.bcf}
         """
 
 rule normalize_bcf:
@@ -191,9 +176,9 @@ rule normalize_bcf:
         2
     shell:
         """
-        #bcftools norm -d exact -f {input.genome} {input.bcf} | bcftools norm -m -any -N -Ob --write-index > {output.bcf}
-        bcftools norm -d exact -f {input.genome} {input.bcf} | bcftools norm -m -any -N -Ob > {output.bcf}
-        bcftools index --threads {threads} {output.bcf}
+        bcftools norm -d exact -f {input.genome} {input.bcf} | bcftools norm -m -any -N -Ob --write-index > {output.bcf}
+        #bcftools norm -d exact -f {input.genome} {input.bcf} | bcftools norm -m -any -N -Ob > {output.bcf}
+        #bcftools index --threads {threads} {output.bcf}
         """
         
 rule variants_stats:

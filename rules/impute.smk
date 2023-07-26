@@ -24,8 +24,7 @@ rule sort_bcf:
         "Sorting input variant call file"
     shell:
         """
-        bcftools sort -Ob {input} > {output.bcf} 2> {log}
-		bcftools index --output {output.idx} {output.bcf}
+        bcftools sort -Ob --write-index {input} > {output.bcf} 2> {log}
         """
 
 rule bam_list:
@@ -88,15 +87,16 @@ rule impute:
         "Performing imputation: {wildcards.part}\nmodel: {wildcards.model}\nuseBX: {wildcards.useBX}\n    k: {wildcards.k}\n    s: {wildcards.s}\n nGen: {wildcards.nGen}"
     benchmark:
         f"Benchmark/Impute/stitch.{paramspace.wildcard_pattern}" + ".{part}.txt"
-    threads: 50
+    threads:
+        50
     script:
         "stitch_impute.R"
 
 
 rule index_vcf:
     input:
-        vcf        = "Impute/{stitchparams}/contigs/{part}/{part}.vcf.gz",
-        samplelist = "Impute/input/samples.names"
+        vcf     = "Impute/{stitchparams}/contigs/{part}/{part}.vcf.gz",
+        samples = "Impute/input/samples.names"
     output: 
         idx        = "Impute/{stitchparams}/contigs/{part}/{part}.vcf.gz.tbi",
         stats      = "Impute/{stitchparams}/contigs/{part}/{part}.stats"
@@ -108,7 +108,7 @@ rule index_vcf:
     shell:
         """
         tabix {input.vcf}
-        bcftools stats {input.vcf} -S {input.samplelist} > {output.stats}
+        bcftools stats {input.vcf} -S {input.samples} > {output.stats}
         """
 
 rule stitch_reports:
@@ -152,7 +152,6 @@ rule concat_list:
             for bcf in input.bcf:
                 _ = fout.write(f"{bcf}\n")   
 
-
 rule merge_vcfs:
     input:
         files = "Impute/{stitchparams}/bcf.files",
@@ -167,21 +166,21 @@ rule merge_vcfs:
     threads: 50
     shell:
         """
-        bcftools concat --threads {threads} -o {output} --output-type b -f {input.files} 2> /dev/null
-        #bcftools concat --threads {threads} -o {output} --output-type b --write-index -f {input.files} 2> /dev/null"
+        bcftools concat --threads {threads} -o {output} --output-type b --write-index -f {input.files} 2> /dev/null"
+        #bcftools concat --threads {threads} -o {output} --output-type b -f {input.files} 2> /dev/null
         """
 
-rule index_merged:
-    input:
-        "Impute/{stitchparams}/variants.imputed.bcf"
-    output:
-        "Impute/{stitchparams}/variants.imputed.bcf.csi"
-    message:
-        "Indexing: {wildcards.stitchparams}/variants.imputed.bcf"
-    shell:
-        "bcftools index {input}"
-
-# TODO MERGE IMPUTED WITH ORIGINAL
+#rule index_merged:
+#    input:
+#        "Impute/{stitchparams}/variants.imputed.bcf"
+#    output:
+#        "Impute/{stitchparams}/variants.imputed.bcf.csi"
+#    message:
+#        "Indexing: {wildcards.stitchparams}/variants.imputed.bcf"
+#    shell:
+#        "bcftools index {input}"
+#
+# TODO MERGE IMPUTED WITH ORIGINAL ?
 
 rule stats:
     input:
