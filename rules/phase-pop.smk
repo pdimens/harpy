@@ -10,6 +10,10 @@ extra             = config.get("extra", "")
 outdir 			  = "Phase.noBX"if config["noBX"] else "Phase"
 fragfile          = "Phase.noBX/extractHairs/{sample}.unlinked.frags" if config["noBX"] else "Phase/linkFragments/{sample}.linked.frags"
 linkarg           = "--10x 0" if config["noBX"] else "--10x 1"
+if config["indels"]:
+    indelarg 	  = f"--indels 1 --ref {config[indels]}"
+else:
+    indelarg      = ""
 
 rule splitbysamplehet:
     input: 
@@ -54,7 +58,8 @@ rule extractHairs:
     message:
         "Converting to compact fragment format: {wildcards.sample}"
     params:
-        linkarg
+        indels = indelarg,
+        bx = linkarg
     benchmark:
         "Benchmark/Phase/extracthairs.{sample}.txt"
     shell:
