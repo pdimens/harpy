@@ -51,7 +51,7 @@ rule link_genome:
     input:
         genomefile
     output: 
-        f"Assembly/{bn}"
+        f"Genome/{bn}"
     message: 
         "Symlinking {input}"
     shell: 
@@ -59,33 +59,33 @@ rule link_genome:
 
 rule faidx_genome:
     input: 
-        f"Assembly/{bn}"
+        f"Genome/{bn}"
     output: 
-        f"Assembly/{bn}.fai"
+        f"Genome/{bn}.fai"
     message:
         "Indexing {input}"
     log:
-        f"Assembly/{bn}.faidx.log"
+        f"Genome/{bn}.faidx.log"
     shell: 
         "samtools faidx --fai-idx {output} {input} 2> {log}"
 
 rule index_bwa_genome:
     input: 
-        f"Assembly/{bn}"
+        f"Genome/{bn}"
     output: 
-        multiext(f"Assembly/{bn}", ".ann", ".bwt", ".pac", ".sa", ".amb")
+        multiext(f"Genome/{bn}", ".ann", ".bwt", ".pac", ".sa", ".amb")
     message:
         "Indexing {input}"
     log:
-        f"Assembly/{bn}.idx.log"
+        f"Genome/{bn}.idx.log"
     shell: 
         "bwa index {input} 2> {log}"
 
 rule make_genome_windows:
     input:
-        f"Assembly/{bn}.fai"
+        f"Genome/{bn}.fai"
     output: 
-        f"Assembly/{bn}.bed"
+        f"Genome/{bn}.bed"
     message: 
         "Creating BED intervals from {input}"
     shell: 
@@ -95,8 +95,8 @@ rule align:
     input:
         forward_reads = get_fq1,
         reverse_reads = get_fq2,
-        genome 		  = f"Assembly/{bn}",
-        genome_idx 	  = multiext(f"Assembly/{bn}", ".ann", ".bwt", ".fai", ".pac", ".sa", ".amb")
+        genome 		  = f"Genome/{bn}",
+        genome_idx 	  = multiext(f"Genome/{bn}", ".ann", ".bwt", ".fai", ".pac", ".sa", ".amb")
     output:  
         temp(outdir + "/{sample}/{sample}.sort.bam"),
     log:
@@ -157,7 +157,7 @@ rule clip_overlap:
 
 rule alignment_coverage:
     input: 
-        bed = f"Assembly/{bn}.bed",
+        bed = f"Genome/{bn}.bed",
         bam = outdir + "/{sample}.bam"
     output: 
         outdir + "/stats/coverage/data/{sample}.cov.gz"

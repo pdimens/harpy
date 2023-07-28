@@ -38,42 +38,42 @@ rule link_genome:
     input:
         genomefile
     output: 
-        f"Assembly/{bn}"
+        f"Genome/{bn}"
     message:
-        "Symlinking {input} to Assembly/"
+        "Symlinking {input} to Genome/"
     shell: 
         "ln -sr {input} {output}"
 
 
 rule faidx_genome:
     input: 
-        f"Assembly/{bn}"
+        f"Genome/{bn}"
     output: 
-        f"Assembly/{bn}.fai"
+        f"Genome/{bn}.fai"
     message:
         "Indexing {input}"
     log:
-        f"Assembly/{bn}.faidx.log"
+        f"Genome/{bn}.faidx.log"
     shell: 
         "samtools faidx --fai-idx {output} {input} 2> {log}"
 
 rule index_bwa_genome:
     input: 
-        f"Assembly/{bn}"
+        f"Genome/{bn}"
     output: 
-        multiext(f"Assembly/{bn}", ".ann", ".bwt", ".pac", ".sa", ".amb")
+        multiext(f"Genome/{bn}", ".ann", ".bwt", ".pac", ".sa", ".amb")
     message:
         "Indexing {input}"
     log:
-        f"Assembly/{bn}.idx.log"
+        f"Genome/{bn}.idx.log"
     shell: 
         "bwa index {input} 2> {log}"
 
 rule make_genome_windows:
     input:
-        f"Assembly/{bn}.fai"
+        f"Genome/{bn}.fai"
     output: 
-        f"Assembly/{bn}.bed"
+        f"Genome/{bn}.bed"
     message: 
         "Creating BED intervals from {input}"
     shell: 
@@ -136,8 +136,8 @@ rule preprocess_ema:
 rule align_ema:
     input:
         readbin    = outdir + "/{sample}/preproc/ema-bin-{bin}",
-        genome 	   = f"Assembly/{bn}",
-        genome_idx = multiext(f"Assembly/{bn}", ".ann", ".bwt", ".fai", ".pac", ".sa", ".amb")
+        genome 	   = f"Genome/{bn}",
+        genome_idx = multiext(f"Genome/{bn}", ".ann", ".bwt", ".fai", ".pac", ".sa", ".amb")
     output:
         alignment  = temp(outdir + "/{sample}/{sample}.{bin}.bam")
     wildcard_constraints:
@@ -164,8 +164,8 @@ rule align_ema:
 rule align_nobarcode:
     input:
         reads      = outdir + "/{sample}/preproc/ema-nobc",
-        genome 	   = f"Assembly/{bn}",
-        genome_idx = multiext(f"Assembly/{bn}", ".ann", ".bwt", ".fai", ".pac", ".sa", ".amb")
+        genome 	   = f"Genome/{bn}",
+        genome_idx = multiext(f"Genome/{bn}", ".ann", ".bwt", ".fai", ".pac", ".sa", ".amb")
     output: 
         samfile    = temp(outdir + "/{sample}/{sample}.nobarcode.bam.tmp")
     benchmark:
@@ -263,7 +263,7 @@ rule bcstats:
 
 rule alignment_coverage:
     input: 
-        bed     = f"Assembly/{bn}.bed",
+        bed     = f"Genome/{bn}.bed",
         nobx    = outdir + "/{sample}/{sample}.nobarcode.bam",
         nobxbai = outdir + "/{sample}/{sample}.nobarcode.bam.bai",
         bx      = outdir + "/{sample}/{sample}.barcoded.bam",
@@ -310,7 +310,7 @@ rule merge_alignments:
 rule sort_merge:
     input:
         bam    = outdir + "/{sample}/{sample}.unsort.bam",
-        genome = f"Assembly/{bn}"
+        genome = f"Genome/{bn}"
     output:
         bam = temp(outdir + "/{sample}/{sample}.sorted.bam"),
         bai = temp(outdir + "/{sample}/{sample}.sorted.bam.bai")

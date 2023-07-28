@@ -138,21 +138,21 @@ rule link_genome:
     input:
         genomefile
     output: 
-        f"Assembly/{bn}"
+        f"Genome/{bn}"
     message:
-        "Symlinking {input} to Assembly/"
+        "Symlinking {input} to Genome/"
     shell: 
         "ln -sr {input} {output}"
 
 rule index_faidx_genome:
     input: 
-        f"Assembly/{bn}"
+        f"Genome/{bn}"
     output: 
-        f"Assembly/{bn}.fai"
+        f"Genome/{bn}.fai"
     message:
         "Indexing {input}"
     log:
-        f"Assembly/{bn}.faidx.log"
+        f"Genome/{bn}.faidx.log"
     shell: 
         """
         samtools faidx --fai-idx {output} {input} 2> {log}
@@ -160,7 +160,7 @@ rule index_faidx_genome:
 
 rule report:
     input:
-        fai   = f"Assembly/{bn}.fai",
+        fai   = f"Genome/{bn}.fai",
         bedpe = outdir + "/{population}.bedpe"
     output:
         outdir + "/reports/{population}.naibr.html"
@@ -171,7 +171,7 @@ rule report:
 
 rule report_pop:
     input:
-        fai   = f"Assembly/{bn}.fai",
+        fai   = f"Genome/{bn}.fai",
         bedpe = expand(outdir + "/{pop}.bedpe", pop = populations)
     output:
         outdir + "/reports/naibr.pop.summary.html"

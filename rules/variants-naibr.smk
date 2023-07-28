@@ -86,21 +86,21 @@ rule link_genome:
     input:
         genomefile
     output: 
-        f"Assembly/{bn}"
+        f"Genome/{bn}"
     message:
-        "Symlinking {input} to Assembly/"
+        "Symlinking {input} to Genome/"
     shell: 
         "ln -sr {input} {output}"
 
 rule faidx_genome:
     input: 
-        f"Assembly/{bn}"
+        f"Genome/{bn}"
     output: 
-        f"Assembly/{bn}.fai"
+        f"Genome/{bn}.fai"
     message:
         "Indexing {input}"
     log:
-        f"Assembly/{bn}.faidx.log"
+        f"Genome/{bn}.faidx.log"
     shell: 
         """
         samtools faidx --fai-idx {output} {input} 2> {log}
@@ -109,7 +109,7 @@ rule faidx_genome:
 rule report:
     input:
         bedpe = outdir + "/{sample}.bedpe",
-        fai   = f"Assembly/{bn}.fai"
+        fai   = f"Genome/{bn}.fai"
     output:
         outdir + "/reports/{sample}.naibr.html"
     message:

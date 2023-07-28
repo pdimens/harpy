@@ -15,12 +15,12 @@ chunksize   = config["windowsize"]
 def createregions(infile, window):
     bn = os.path.basename(infile)
     os.makedirs("Assembly", exist_ok = True)
-    if not os.path.exists(f"Assembly/{bn}"):
-        shell(f"ln -sr {infile} Assembly/{bn}")
-    if not os.path.exists(f"Assembly/{bn}.fai"):
-        print(f"Assembly/{bn}.fai not found, indexing {bn} with samtools faidx", file = sys.stderr)
-        subprocess.run(["samtools","faidx", "--fai-idx", f"Assembly/{bn}.fai", infile, "2>", "/dev/null"])
-    with open(f"Assembly/{bn}.fai") as fai:
+    if not os.path.exists(f"Genome/{bn}"):
+        shell(f"ln -sr {infile} Genome/{bn}")
+    if not os.path.exists(f"Genome/{bn}.fai"):
+        print(f"Genome/{bn}.fai not found, indexing {bn} with samtools faidx", file = sys.stderr)
+        subprocess.run(["samtools","faidx", "--fai-idx", f"Genome/{bn}.fai", infile, "2>", "/dev/null"])
+    with open(f"Genome/{bn}.fai") as fai:
         bedregion = []
         while True:
             # Get next line from file
@@ -87,7 +87,7 @@ rule call_variants:
     input:
         bam = expand(bam_dir + "/{sample}.bam", sample = samplenames),
         bai = expand(bam_dir + "/{sample}.bam.bai", sample = samplenames),
-        ref     = f"Assembly/{bn}",
+        ref     = f"Genome/{bn}",
         samples = outdir + "/logs/samples.files"
     output:
         bcf = temp(outdir + "/regions/{part}.bcf"),
@@ -140,7 +140,7 @@ rule merge_vcfs:
 
 rule normalize_bcf:
     input: 
-        genome  = f"Assembly/{bn}",
+        genome  = f"Genome/{bn}",
         bcf     = outdir + "/variants.raw.bcf"
     output:
         bcf     = outdir + "/variants.normalized.bcf",
@@ -157,7 +157,7 @@ rule normalize_bcf:
 
 rule variants_stats:
     input:
-        genome  = f"Assembly/{bn}",
+        genome  = f"Genome/{bn}",
         bcf     = outdir + "/variants.{type}.bcf",
         idx     = outdir + "/variants.{type}.bcf.csi",
         samples = outdir + "/logs/samples.names"

@@ -37,21 +37,21 @@ rule link_genome:
     input:
         genomefile
     output: 
-        f"Assembly/{bn}"
+        f"Genome/{bn}"
     message:
-        "Symlinking {input} to Assembly/"
+        "Symlinking {input} to Genome/"
     shell: 
         "ln -sr {input} {output}"
 
 rule index_faidx_genome:
     input: 
-        f"Assembly/{bn}"
+        f"Genome/{bn}"
     output: 
-        f"Assembly/{bn}.fai"
+        f"Genome/{bn}.fai"
     message:
         "Indexing {input}"
     log:
-        f"Assembly/{bn}.faidx.log"
+        f"Genome/{bn}.faidx.log"
     shell: 
         """
         samtools faidx --fai-idx {output} {input} 2> {log}
@@ -59,13 +59,13 @@ rule index_faidx_genome:
 
 rule index_bwa_genome:
     input: 
-        f"Assembly/{bn}"
+        f"Genome/{bn}"
     output: 
-        multiext(f"Assembly/{bn}", ".ann", ".bwt", ".pac", ".sa", ".amb")
+        multiext(f"Genome/{bn}", ".ann", ".bwt", ".pac", ".sa", ".amb")
     message:
         "Indexing {input}"
     log:
-        f"Assembly/{bn}.idx.log"
+        f"Genome/{bn}.idx.log"
     shell: 
         """
         bwa index {input} 2> {log}
@@ -76,7 +76,7 @@ rule leviathan_variantcall:
         bam    = bam_dir + "/{sample}.bam",
         bai    = bam_dir + "/{sample}.bam.bai",
         bc_idx = outdir + "/lrezIndexed/{sample}.bci",
-        genome = f"Assembly/{bn}"
+        genome = f"Genome/{bn}"
     output:
         pipe(outdir + "/{sample}.vcf")
     log:  
