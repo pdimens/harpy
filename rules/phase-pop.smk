@@ -7,11 +7,12 @@ variantfile       = config["variantfile"]
 pruning           = config["prune"]
 molecule_distance = config["molecule_distance"]
 extra             = config.get("extra", "") 
+useindels         = config["indels"]
 outdir 			  = "Phase.noBX"if config["noBX"] else "Phase"
 fragfile          = "Phase.noBX/extractHairs/{sample}.unlinked.frags" if config["noBX"] else "Phase/linkFragments/{sample}.linked.frags"
 linkarg           = "--10x 0" if config["noBX"] else "--10x 1"
-if config["indels"]:
-    indelarg 	  = f"--indels 1 --ref {config[indels]}"
+if useindels:
+    indelarg 	  = f"--indels 1 --ref {useindels}"
 else:
     indelarg      = ""
 
