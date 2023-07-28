@@ -41,8 +41,7 @@ rule all:
         expand(outdir + "/{sample}.bam", sample = samplenames),
         expand(outdir + "/stats/coverage/{sample}.cov.html", sample = samplenames),
         expand(outdir + "/stats/BXstats/{sample}.bxstats.html", sample = samplenames),
-        outdir + "/stats/samtools_stats/bwa.stats.html",
-        outdir + "/stats/samtools_flagstat/bwa.flagstat.html",
+        outdir + "/stats/bwa.stats.html",
         outdir + "/logs/harpy.align.log"
     message:
         "Read mapping completed!"
@@ -57,7 +56,6 @@ rule link_genome:
         "Symlinking {input}"
     shell: 
         "ln -sr {input} {output}"
-
 
 rule faidx_genome:
     input: 
@@ -100,7 +98,7 @@ rule align:
         genome 		  = f"Assembly/{bn}",
         genome_idx 	  = multiext(f"Assembly/{bn}", ".ann", ".bwt", ".fai", ".pac", ".sa", ".amb")
     output:  
-        temp(outdir + "/{sample}.sort.bam"),
+        temp(outdir + "/{sample}/{sample}.sort.bam"),
     log:
         outdir + "/logs/{sample}.log"
     message:
@@ -127,8 +125,8 @@ rule mark_duplicates:
     input:
         lambda wc: outdir + "/" + d[wc.sample] + ".sort.bam"
     output:
-        bam = temp(outdir + "/{sample}.markdup.bam"),
-        bai = temp(outdir + "/{sample}.markdup.bam.bai")
+        bam = temp(outdir + "/{sample}/{sample}.markdup.bam"),
+        bai = temp(outdir + "/{sample}/{sample}.markdup.bam.bai")
     log:
         outdir + "/logs/{sample}.markdup.log"
     message:
@@ -142,8 +140,8 @@ rule mark_duplicates:
 
 rule clip_overlap:
     input:
-        bam = outdir + "/{sample}.markdup.bam",
-        bai = outdir + "/{sample}.markdup.bam.bai"
+        bam = outdir + "/{sample}/{sample}.markdup.bam",
+        bai = outdir + "/{sample}/{sample}.markdup.bam.bai"
     output:
         bam = outdir + "/{sample}.bam",
         bai = outdir + "/{sample}.bam.bai"
@@ -212,12 +210,12 @@ rule general_alignment_stats:
         bam      = outdir + "/{sample}.bam",
         bai      = outdir + "/{sample}.bam.bai"
     output: 
-        stats    = outdir + "/stats/samtools_stats/{sample}.stats",
-        flagstat = outdir + "/stats/samtools_flagstat/{sample}.flagstat"
+        stats    = temp(outdir + "/stats/samtools_stats/{sample}.stats"),
+        flagstat = temp(outdir + "/stats/samtools_flagstat/{sample}.flagstat")
     message:
         "Calculating alignment stats: {wildcards.sample}"
     params:
-        sample = lambda wc: d[wc.sample],
+        sample = lambda wc: d[wc.sample]
     benchmark:
         "Benchmark/Mapping/bwa/stats.{sample}.txt"
     shell:
@@ -230,15 +228,11 @@ rule samtools_reports:
     input: 
         expand(outdir + "/stats/samtools_{ext}/{sample}.{ext}", sample = samplenames, ext = ["stats", "flagstat"])
     output: 
-        stats    = outdir + "/stats/samtools_stats/bwa.stats.html",
-        flagstat = outdir + "/stats/samtools_flagstat/bwa.flagstat.html"
+        outdir + "/stats/bwa.stats.html",
     message:
-        "Summarizing samtools stats and flagstats"
+        "Summarizing samtools stats and flagstat"
     shell:
-        """
-        multiqc Align/bwa/stats/samtools_stats    --force --quiet --no-data-dir --filename {output.stats} 2> /dev/null
-        multiqc Align/bwa/stats/samtools_flagstat --force --quiet --no-data-dir --filename {output.flagstat} 2> /dev/null
-        """
+        "multiqc Align/bwa/stats/samtools_stats Align/bwa/stats/samtools_flagstat --force --quiet --no-data-dir --filename {output} 2> /dev/null"
 
 rule log_runtime:
     output:

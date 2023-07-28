@@ -26,8 +26,7 @@ rule all:
         expand(outdir + "/stats/BXstats/{sample}.bxstats.html", sample = samplenames),
         expand(outdir + "/stats/coverage/{sample}.cov.html", sample = samplenames),
         outdir + "/stats/reads.bxcounts.html",
-        outdir + "/stats/samtools_stats/alignment.stats.html",
-        outdir + "/stats/samtools_flagstat/alignment.flagstat.html",
+        outdir + "/stats/ema.stats.html"
         outdir + "/logs/harpy.align.log"
     message:
         "Read mapping completed!"
@@ -387,8 +386,8 @@ rule general_alignment_stats:
         bam      = outdir + "/{sample}.bam",
         bai      = outdir + "/{sample}.bam.bai"
     output:
-        stats    = outdir + "/stats/samtools_stats/{sample}.stats",
-        flagstat = outdir + "/stats/samtools_flagstat/{sample}.flagstat"
+        stats    = temp(outdir + "/stats/samtools_stats/{sample}.stats"),
+        flagstat = temp(outdir + "/stats/samtools_flagstat/{sample}.flagstat")
     message:
         "Calculating alignment stats: {wildcards.sample}"
     benchmark:
@@ -405,17 +404,11 @@ rule samtools_reports:
     input: 
         expand(outdir + "/stats/samtools_{ext}/{sample}.{ext}", sample = samplenames, ext = ["stats", "flagstat"]),
     output: 
-        stats    = outdir + "/stats/samtools_stats/alignment.stats.html",
-        flagstat = outdir + "/stats/samtools_flagstat/alignment.flagstat.html"
+        outdir + "/stats/ema.stats.html"
     message:
-        "Summarizing samtools stats and flagstats"
-    benchmark:
-        "Benchmark/Mapping/ema/report.txt"
+        "Summarizing samtools stats and flagstat"
     shell:
-        """
-        multiqc Align/ema/stats/samtools_stats    --force --quiet --no-data-dir --filename {output.stats} 2> /dev/null
-        multiqc Align/ema/stats/samtools_flagstat --force --quiet --no-data-dir --filename {output.flagstat} 2> /dev/null
-        """
+        "multiqc Align/ema/stats/samtools_stats Align/ema/stats/samtools_flagstat --force --quiet --no-data-dir --filename {output} 2> /dev/null"
 
 rule log_runtime:
     output:
