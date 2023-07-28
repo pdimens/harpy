@@ -128,7 +128,7 @@ rule mark_duplicates:
         bam = temp(outdir + "/{sample}/{sample}.markdup.bam"),
         bai = temp(outdir + "/{sample}/{sample}.markdup.bam.bai")
     log:
-        outdir + "/logs/{sample}.markdup.log"
+        outdir + "/logs/makrduplicates/{sample}.markdup.log"
     message:
         f"Marking duplicates: " + "{wildcards.sample}"
     benchmark:
@@ -146,7 +146,7 @@ rule clip_overlap:
         bam = outdir + "/{sample}.bam",
         bai = outdir + "/{sample}.bam.bai"
     log:
-        outdir + "/logs/{sample}.clipOverlap.log"
+        outdir + "/logs/clipOverlap/{sample}.clipOverlap.log"
     message:
         "Clipping alignment overlaps: {wildcards.sample}"
     shell:

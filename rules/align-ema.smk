@@ -120,7 +120,7 @@ rule preprocess_ema:
     wildcard_constraints:
         sample = "[a-zA-Z0-9\_\-\.]*"
     log:
-        outdir + "/preproc/logs/{sample}.preproc.log"
+        outdir + "/logs/preproc/{sample}.preproc.log"
     message:
         "Preprocessing for EMA mapping: {wildcards.sample}"
     benchmark:
@@ -193,7 +193,7 @@ rule markduplicates:
         bam      = temp(outdir + "/{sample}/{sample}.nobarcode.bam"),
         bai      = temp(outdir + "/{sample}/{sample}.nobarcode.bam.bai")
     log: 
-        mdlog    = outdir + "/stats/markduplicates/{sample}.markdup.nobarcode.log",
+        mdlog    = outdir + "/logs/markduplicates/{sample}.markdup.nobarcode.log",
         stats    = outdir + "/stats/samtools_stats/{sample}.nobarcode.stats",
         flagstat = outdir + "/stats/samtools_flagstat/{sample}.nobarcode.flagstat"
     wildcard_constraints:
@@ -333,7 +333,7 @@ rule clip_overlap:
         bam = outdir + "/{sample}.bam",
         bai = outdir + "/{sample}.bam.bai"
     log:
-        outdir + "/logs/{sample}.clipOverlap.log"
+        outdir + "/logs/clipOverlap/{sample}.clipOverlap.log"
     message:
         "Clipping alignment overlaps: {wildcards.sample}"
     shell:
