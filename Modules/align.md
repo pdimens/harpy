@@ -84,8 +84,9 @@ graph LR
     A([index genome]) --> B([align to genome])
     B-->C([sort alignments])
     C-->D([mark duplicates])
-    D-->E([alignment metrics])
-    D-->F([barcode stats])
+    D-->E([clip overlaps])
+    E-->F([alignment metrics])
+    F-->G([barcode stats])
 ```
 +++ :icon-file-directory: BWA output
 The `harpy align` module creates an `Align/bwa` directory with the folder structure below. `Sample1` is a generic sample name for demonstration purposes.
@@ -94,42 +95,40 @@ Align/bwa
 ├── Sample1.bam
 ├── Sample1.bam.bai
 ├── logs
-│   └── harpy.align.log
+│   ├── harpy.align.log
+│   ├── clipOverlap
+│   │   └── Sample1.clipOverlap.log
+│   └── markduplicates
+│       └── Sample1.markdup.log
 └── stats
+    ├── bwa.stats.html
     ├── BXstats
     │   ├── Sample1.bxstats.html
     │   └── data
     │       └── Sample1.bxstats.gz
-    ├── coverage
-    │   ├── Sample1.gencov.html
-    │   └── data
-    │       └── Sample1.gencov.gz
-    ├── markduplicates
-    │   └── Sample1.markdup.log
-    ├── samtools_flagstat
-    │   ├── alignment.flagstat.html
-    │   ├── Sample1.flagstat
-    └── samtools_stats
-        ├── alignment.stats.html
-        └── Sample1.stats
+    └── coverage
+        ├── Sample1.gencov.html
+        └── data
+            └── Sample1.gencov.gz
+
+
 ```
 
 | item     | description                                                      |
 |:---------|:-----------------------------------------------------------------|
-| `*.bam`  | sequence alignments for each sample                              |
-| `*.bai`  | sequence alignment indexes for each sample                       |
-| `logs/harpy.align.log` | relevant runtime parameters for the align module       |
-| `stats/` | various counts/statistics/reports relating to sequence alignment |
+| `*.bam`                             | sequence alignments for each sample                                              |
+| `*.bai`                             | sequence alignment indexes for each sample                                       |
+| `logs/harpy.align.log`              | relevant runtime parameters for the align module                                 |
+| `logs/clipOverlap/`                 | everything `bam clipOverlap` writes to `stdout/stderr` during operation          |
+| `logs/markduplicates`               | everything `sambamba markdup` writes to `stderr` during operation                |
+| `stats/`                            | various counts/statistics/reports relating to sequence alignment                 |
+| `stats/bwa.stats.html`              | report summarizing `samtools flagstat and stats` results across all samples from `multiqc` |
 | `stats/reads.bxstats.html`          | interactive html report summarizing valid vs invalid barcodes across all samples | 
 | `stats/BXstats/*.bxstats.html`      | interactive html report summarizing inferred molecule size                       | 
 | `stats/coverage/*.html`             | summary plots of alignment coverage per contig                                   |
 | `stats/coverage/data/*.gencov.gz`   | output from samtools bedcov from all alignments, used for plots                  |
-| `stats/markduplicates`              | everything `sambamba markdup` writes to `stderr` during operation                |
 | `stats/BXstats/`                    | reports summarizing molecule size and reads per molecule                         |
 | `stats/BXstats/data/`               | tabular data containing the information used to generate the BXstats reports     |
-| `stats/samtools_flagstat/*flagstat` | results of `samtools flagstat` on all alignments for a sample                    |
-| `stats/samtools_flagstat/*html`     | report summarizing `samtools flagstat` results across all samples from `multiqc` |
-| `stats/samtools_stats/*`            | same as `samtools_flagstat` except for the results of `samtools stats`           |
 
 +++ :icon-code-square: BWA parameters
 By default, Harpy runs `bwa` with these parameters (excluding inputs and outputs):
@@ -212,7 +211,8 @@ graph LR
     Z-->Y([sort alignments])
     Y-->X([mark duplicates])
     X-->F
-    F-->J([alignment stats])
+    F-->H([clip overlaps])
+    H-->J([alignment stats])
     E-->J
 ```
 +++ :icon-file-directory: EMA output
@@ -221,58 +221,48 @@ The `harpy align` module creates an `Align/ema` directory with the folder struct
 Align/ema
 ├── Sample1.bam
 ├── Sample1.bam.bai
-├── barcoded
-│   └── Sample1.barcoded.bam
 ├── count
 │   └── Sample1.ema-ncnt
 ├── logs
 │   ├── harpy.align.log
-│   └── Sample1.preproc.log
-├── preproc
-│   └── logs
+│   ├── clipOverlap
+│   │   └── Sample1.clipOverlap.log
+│   ├── markduplicates
+│   │   └── Sample1.markdup.nobarcode.log
+│   └── preproc
+│       └── Sample1.preproc.log
 └── stats
+    ├── ema.stats.html
     ├── reads.bxcounts.html
     ├── BXstats
     │   ├── Sample1.bxstats.html
     │   └── data
     │       └── Sample1.bxstats.gz
-    ├── coverage
-    │   ├── Sample1.gencov.html
-    │   └── data
-    │       ├── Sample1.all.gencov.gz
-    │       └── Sample1.bx.gencov.gz
-    ├── markduplicates
-    │   └── Sample1.markdup.nobarcode.log
-    ├── samtools_flagstat
-    │   ├── alignment.flagstat.html
-    │   ├── Sample1.flagstat
-    │   └── Sample1.nobarcode.flagstat
-    └── samtools_stats
-        ├── alignment.stats.html
-        ├── Sample1.nobarcode.stats
-        └── Sample1.stats
+    └── coverage
+        ├── Sample1.gencov.html
+        └── data
+            ├── Sample1.all.gencov.gz
+            └── Sample1.bx.gencov.gz
+
 ```
 | item                                           | description                                                                                                   |
 |:-----------------------------------------------|:--------------------------------------------------------------------------------------------------------------|
 | `*.bam`                                        | sequence alignments for each sample                                                                           |
 | `*.bai`                                        | sequence alignment indexes for each sample                                                                    |
-| `barcoded/*.bam`                               | sequence alignments for each sample, containing only alignments with valid BX barcodes                        |
 | `count/`                                       | output of `ema count`                                                                                         |
 | `logs/harpy.align.log`                         | relevant runtime parameters for the align module                                                              |
-| `logs/*.preproc.log`                           | everything `ema preproc` wrote to `stderr` during operation                                                   |
+| `logs/clipOverlap/`                            | everything `bam clipOverlap` writes to `stdout/stderr` during operation                                       |
+| `logs/markduplicates/`                         | everything `sambamba markdup` writes to `stderr` during operation on alignments with invalid/missing barcodes |
+| `logs/preproc/*.preproc.log`                   | everything `ema preproc` writes to `stderr` during operation                                                  |
 | `stats/`                                       | various counts/statistics/reports relating to sequence alignment                                              |
+| `stats/ema.stats.html`                         | report summarizing `samtools flagstat and stats` results across all samples from `multiqc`                              |
 | `stats/reads.bxstats.html`                     | interactive html report summarizing `ema count` across all samples                                            |
 | `stats/coverage/*.html`                        | summary plots of alignment coverage per contig                                                                |
 | `stats/coverage/data/*.all.gencov.gz`          | output from samtools bedcov from all alignments, used for plots                                               |
 | `stats/coverage/data/*.bx.gencov.gz`           | output from samtools bedcov from alignments with valid BX barcodes, used for plots                            |
-| `stats/markduplicates/`                        | everything `sambamba markdup` writes to `stderr` during operation on alignments with invalid/missing barcodes |
 | `stats/BXstats/`                               | reports summarizing molecule size and reads per molecule                                                      |
-| `stats/BXstats/*.bxstats.html`      | interactive html report summarizing inferred molecule size                       | 
+| `stats/BXstats/*.bxstats.html`                 | interactive html report summarizing inferred molecule size                       | 
 | `stats/BXstats/data/`                          | tabular data containing the information used to generate the BXstats reports                                  |
-| `stats/samtools_flagstat/*flagstat`            | results of `samtools flagstat` on all alignments for a sample                                                 |
-| `stats/samtools_flagstat/*.nobarcode.flagstat` | results of `samtools flagstat` on alignments that had no/invalid BX barcodes                                  |
-| `stats/samtools_flagstat/*html`                | report summarizing `samtools flagstat` results across all samples from `multiqc`                              |
-| `stats/samtools_stats/*`                       | same as `samtools_flagstat` except for the results of `samtools stats`                                        |
 
 +++ :icon-code-square: EMA parameters
 By default, Harpy runs `ema` with these parameters (excluding inputs and outputs):
