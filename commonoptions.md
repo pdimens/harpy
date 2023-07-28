@@ -5,6 +5,7 @@ order: 96
 ---
 
 # :icon-list-unordered: Common Harpy Options
+
 Every Harpy module has a series of configuration parameters. These are arguments you need to input
 to configure the module to run on your data, such as the directory with the reads/alignments,
 the genome assembly, etc. All modules (except `extra`) also share a series of common runtime
@@ -27,3 +28,9 @@ harpy align --threads 20 --directory samples/trimmedreads --method bwa --quiet
 
 harpy align -t 20 -d samples/trimmedreads -m bwa -q
 ```
+
+## The `Genome` folder
+You will notice that many of the workflows will create a `Genome` folder in the working 
+directory. This folder is to make it easier for Harpy to store the genome and the associated
+indexing/etc. files. Your input genome will be symlinked into that directory (not copied), but
+all the other files (`.fai`, `.bwt`, `.bed`, etc.) will be created in that directory.

@@ -27,25 +27,38 @@ harpy phase OPTIONS...
 harpy phase --threads 20 --vcf Variants/variants.raw.bcf --directory Align/ema 
 ```
 
-
 ## :icon-terminal: Running Options
 In addition to the [common runtime options](../commonoptions.md), the `harpy phase` module is configured using these command-line arguments:
 
-| argument              | short name | type            | default | required | description                                               |
-|:----------------------|:----------:|:----------------|:-------:|:--------:|:----------------------------------------------------------|
-| `--vcf`               |    `-v`    | file path       |         | **yes**  | Path to BCF/VCF file                                      |
-| `--directory`         |    `-d`    | folder path     |         | **yes**  | Directory with sequence alignments                        |
-| `--molecule-distance` |    `-m`    | integer         |  20000  |    no    | Base-pair distance dilineating separate molecules         |
-| `--prune-threshold`   |    `-p`    | integer (0-100) |    7    |    no    | PHRED-scale (%) threshold for pruning low-confidence SNPs |
-| `--extra-params`      |    `-x`    | string          |         |    no    | Additional Hapcut2 arguments, in quotes                   |
+| argument              | short name | type            | default | required | description                                                          |
+|:----------------------|:----------:|:----------------|:-------:|:--------:|:---------------------------------------------------------------------|
+| `--vcf`               |    `-v`    | file path       |         | **yes**  | Path to BCF/VCF file                                                 |
+| `--directory`         |    `-d`    | folder path     |         | **yes**  | Directory with sequence alignments                                   |
+| `--molecule-distance` |    `-m`    | integer         |  30000  |    no    | Base-pair distance dilineating separate molecules                    |
+| `--indels           ` |    `-i`    | file path       |         |    no    | Path to genome if wanting to also use reads spanning indels          |
+| `--prune-threshold`   |    `-p`    | integer (0-100) |    7    |    no    | PHRED-scale (%) threshold for pruning low-confidence SNPs            |
+| `--ignore-bx`         |    `-b`    | toggle          |         |    no    | Ignore haplotag barcodes for phasing                                 |
+| `--extra-params`      |    `-x`    | string          |         |    no    | Additional Hapcut2 arguments, in quotes                              |
 
-The molecule distance is and pruning thresholds are considered the most impactful parameters
-for running HapCut2, therefore they are directly configurable from the command. The molecule distance
-refers to the base-pair distance dilineating separate molecules. Feel free to play around with this number 
-if you do not know the distance, as it's not clear how impactful this can be on the results. The pruning 
-threshold refers to a PHRED-scale value between 0-1 (a percentage) for removing low-confidence SNPs from consideration. 
-With Harpy, you configure this value as an integer between 0-100, which gets converted to a floating point
-value between 0-1 internally (_i.e._ `-p 7` is equivalent to 0.07 threshold).
+The molecule distance and pruning thresholds are considered the most impactful parameters
+for running HapCut2.
+
+### Molecule distance
+The molecule distance refers to the base-pair distance dilineating separate molecules.
+In other words, when two alignments on a single contig share the same barcode, how far
+away from each other are we willing to say they were and still consider them having 
+originated from the same DNA molecule rather than having the same barcodes by chance.
+Feel free to play around with this number if you aren't sure. A larger distance means
+you are allowing the program to be more lenient in assuming two alignments with the
+same barcode originated from the same DNA molecule. The HapCut2 default is `20000` (20kbp),
+but Harpy's default is more lenient with `30000` (50kbp). Unless you have strong evidence
+in favor of it, a distance above `200000` (200kbp) would probably do more harm than good. 
+
+### Pruning threshold
+The pruning threshold refers to a PHRED-scale value between 0-1 (a percentage) for removing
+low-confidence SNPs from consideration. With Harpy, you configure this value as an integer 
+between 0-100, which gets converted to a floating point value between 0-1 internally
+(_i.e._ `-p 7` is equivalent to a 0.07 threshold, aka 7%).
 
 ---
 ## :icon-git-pull-request: Phasing Workflow
@@ -74,7 +87,8 @@ graph LR
 ```
 
 +++ :icon-file-directory: phasing output
-The `harpy phase` module creates an `Phasing` directory with the folder structure below. `Sample1` is a generic sample name for demonstration purposes.
+The `harpy phase` module creates an `Phase` directory with the folder structure below. `Sample1` is a generic sample name for demonstration purposes.
+If using the `--ignore-bx` option, the output directory will be named `Phase.noBX` instead.
 
 ```
 Phase/
@@ -100,6 +114,9 @@ Phase/
 │       └── Sample1.linked.log
 ├── logs
 │   └── harpy.phase.log
+├── reports
+│   ├── blocks.summary.gz
+│   └── phase.html
 └── phaseBlocks
     ├── Sample1.blocks
     ├── Sample1.blocks.phased.VCF
@@ -121,6 +138,8 @@ Phase/
 | `linkFragments/` | results from HapCut2's `linkFragments` |
 | `linkFragments/logs` | everything `linkFragments` prints to `stderr` |
 | `logs/harpy.phase.log` | relevant runtime parameters for the phase module |
+| `reports/blocks.summary.gz` | summary information of all the samples' block files |
+| `reports/phase.html` | report of haplotype phasing results |
 | `phaseBlocks/*.blocks*` | output from HapCut2 |
 | `phaseBlocks/logs` | everything HapCut2 prints to `stderr` |
 
@@ -136,7 +155,6 @@ These are taken directly from running `HAPCUT2 --help`.
 Haplotype Post-Processing Options:
 --skip_prune, --sp <0/1>:           skip default likelihood pruning step (prune SNPs after the fact using column 11 of the output). default: 0
 --discrete_pruning, --dp <0/1>:     use discrete heuristic to prune SNPs. default: 0
---error_analysis_mode, --ea <0/1>:  compute switch confidence scores and print to haplotype file but don't split blocks or prune. default: 0
 
 Advanced Options:
 --max_iter, --mi <int> :            maximum number of global iterations. Preferable to tweak --converge option instead. default: 10000
