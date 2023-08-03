@@ -1,5 +1,6 @@
 import os
 import sys
+import subprocess
 
 bam_dir 	= config["seq_directory"]
 genomefile 	= config["genomefile"]
