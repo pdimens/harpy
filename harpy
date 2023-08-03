@@ -379,6 +379,15 @@ def snp(genome, threads, directory, populations, ploidy, method,windowsize, extr
     command.append(f"seq_directory={directory}")
     command.append(f"samplenames={samplenames}")
     if populations is not None:
+        # check that samplenames and populations line up
+        with open(populations, "r") as f:
+            p_list = [i.split()[0] for i in f.readlines()]
+        missing_samples = [x for x in p_list if x not in samplenames]
+        if len(missing_samples) > 0:
+            print(f"\n\033[1;33mERROR:\033[00m There are samples included in \033[01m{populations}\033[00m that weren\'t found in \033[01m{directory}\033[00m. Terminating Harpy to avoid downstream errors. The samples causing this error are:", file = sys.stderr)
+            print(", ".join(missing_samples), file = sys.stderr)
+            print(f"\n\033[1;34mSOLUTION:\033[00m Make sure the spelling of these samples is identical in \033[01m{directory}\033[00m and \033[01m{populations}\033[00m, or remove them from \033[01m{populations}\033[00m.", file = sys.stderr)
+            exit()
         command.append(f"groupings={populations}")
     command.append(f"ploidy={ploidy}")
     command.append(f"windowsize={windowsize}")
@@ -423,6 +432,15 @@ def sv(genome, threads, directory, populations, method, extra_params, snakemake,
     command.append(f"seq_directory={directory}")
     command.append(f"samplenames={samplenames}")
     if populations is not None:
+        # check that samplenames and populations line up
+        with open(populations, "r") as f:
+            p_list = [i.split()[0] for i in f.readlines()]
+        missing_samples = [x for x in p_list if x not in samplenames]
+        if len(missing_samples) > 0:
+            print(f"\n\033[1;33mERROR:\033[00m There are samples included in \033[01m{populations}\033[00m that weren\'t found in \033[01m{directory}\033[00m. Terminating Harpy to avoid downstream errors. The samples causing this error are:", file = sys.stderr)
+            print(", ".join(sorted(missing_samples)), file = sys.stderr)
+            print(f"\n\033[1;34mSOLUTION:\033[00m Make sure the spelling of these samples is identical in \033[01m{directory}\033[00m and \033[01m{populations}\033[00m, or remove them from \033[01m{populations}\033[00m.", file = sys.stderr)
+            exit()
         command.append(f"groupings={populations}")
     #command.append(f"ploidy={ploidy}")
     command.append(f"genomefile={genome}")
@@ -446,7 +464,16 @@ def impute(parameters, directory, threads, vcf, snakemake, quiet):
     Requires a parameter file, use **harpy extra --stitch-params** to generate one and adjust it for your study.
     """
     vcfcheck(vcf)
-    samplenames = getnames(directory, '.bam')
+    samplenames = getnames_err(directory, '.bam')
+    # check that samples in VCF match input directory
+    bcfquery = subprocess.Popen(["bcftools", "query", "-l", vcf], stdout=subprocess.PIPE)
+    s_list = bcfquery.stdout.read().decode().split()
+    missing_samples = [x for x in samplenames if x not in s_list]
+    if len(missing_samples) > 0:
+        print(f"\n\033[1;33mERROR:\033[00m There are samples included in \033[01m{directory}\033[00m that weren\'t found in \033[01m{vcf}\033[00m. Terminating Harpy to avoid downstream errors. The samples causing this error are:", file = sys.stderr)
+        print(", ".join(sorted(missing_samples)), file = sys.stderr)
+        print(f"\n\033[1;34mSOLUTION:\033[00m Your input directory cannot contain samples that are absent in \033[01m{vcf}\033[00m. Check the spelling or remove those files from \033[01m{directory}\033[00m or remake the vcf file to contain these samples.", file = sys.stderr)
+        exit()
     command = f'snakemake --rerun-incomplete --cores {threads} --directory . --snakefile {harpypath}/impute.smk'.split()
     if snakemake is not None:
         [command.append(i) for i in snakemake.split()]
@@ -506,6 +533,15 @@ def phase(vcf, directory, threads, molecule_distance, prune_threshold, indels, s
     else:
         variantfile = vcf
     samplenames = getnames(directory, '.bam')
+    # check that samples in VCF match input directory
+    bcfquery = subprocess.Popen(["bcftools", "query", "-l", vcf], stdout=subprocess.PIPE)
+    s_list = bcfquery.stdout.read().decode().split()
+    missing_samples = [x for x in samplenames if x not in s_list]
+    if len(missing_samples) > 0:
+        print(f"\n\033[1;33mERROR:\033[00m There are samples included in \033[01m{directory}\033[00m that weren\'t found in \033[01m{vcf}\033[00m. Terminating Harpy to avoid downstream errors. The samples causing this error are:", file = sys.stderr)
+        print(", ".join(sorted(missing_samples)), file = sys.stderr)
+        print(f"\n\033[1;34mSOLUTION:\033[00m Your input directory cannot contain samples that are absent in \033[01m{vcf}\033[00m. Check the spelling or remove those files from \033[01m{directory}\033[00m or remake the vcf file to contain these samples.", file = sys.stderr)
+        exit()
     prune_threshold /= 100
     command = f'snakemake --rerun-incomplete --cores {threads} --directory . --snakefile {harpypath}/phase-pop.smk'.split()
     if snakemake is not None:
