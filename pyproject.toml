@@ -1,0 +1,28 @@
+[build-system]
+requires = ["setuptools>=65", "setuptools_scm[toml]>=3.4"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "harpy"
+authors = [
+    {name = "Pavel Dimens"}
+]
+description = "An automated workflow to trim reads, map sequences, call variants, impute genotypes, and phase haplotypes of Haplotagging data. Batteries included."
+requires-python = ">=3.7"
+readme = {file = "README.md", content-type = "text/markdown"}
+license = {text = "GPL-3.0"}
+dynamic = ["version"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[project.scripts]
+harpy = "harpy.__main__:main"
+
+[project.optional-dependencies]
+test = ["pytest"]
+
+[tool.setuptools_scm]
+
+[project.urls]
+Homepage = "https://github.com/pdimens/harpy"

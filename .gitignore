@@ -11,3 +11,6 @@ Phase/
 samples.populations
 *.fasta
 genome.fasta
+build/
+src/harpy.egg-info
+src/harpy/__pycache__
