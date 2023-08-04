@@ -10,7 +10,7 @@ variantfile = config["variantfile"]
 paramfile   = config["paramfile"]
 contigs     = config["contigs"]
 # declare a dataframe to be the paramspace
-paramspace  = Paramspace(pd.read_csv(paramfile, sep="\t"), param_sep = "", filename_params="*")
+paramspace  = Paramspace(pd.read_csv(paramfile, delim_whitespace = True), param_sep = "", filename_params="*")
 
 rule sort_bcf:
     input:
