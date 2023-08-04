@@ -66,7 +66,7 @@ def snp(genome, threads, directory, populations, ploidy, method,windowsize, extr
             print(f"\033[01mNOTICE:\033[00m There are {len(overlooked)} samples found in \033[01m{directory}\033[00m that weren\'t included in \033[01m{populations}\033[00m. This will not cause errors and can be ignored if it was deliberate. The samples are:", file = sys.stderr)
             print(", ".join(overlooked), file = sys.stderr)
         if len(missing_samples) > 0:
-            exit()
+            sys.exit(1)
         command.append(f"groupings={populations}")
     command.append(f"ploidy={ploidy}")
     command.append(f"windowsize={windowsize}")
@@ -124,7 +124,7 @@ def sv(genome, threads, directory, populations, method, extra_params, snakemake,
             print(f"\033[01mNOTICE:\033[00m There are {len(overlooked)} samples found in \033[01m{directory}\033[00m that weren\'t included in \033[01m{populations}\033[00m. This will not cause errors and can be ignored if it was deliberate. The samples are:", file = sys.stderr)
             print(", ".join(overlooked), file = sys.stderr)
         if len(missing_samples) > 0:        
-            exit()
+            sys.exit(1)
         command.append(f"groupings={populations}")
     #command.append(f"ploidy={ploidy}")
     command.append(f"genomefile={genome}")

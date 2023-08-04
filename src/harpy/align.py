@@ -1,6 +1,8 @@
 import rich_click as click
+from pathlib import Path
 import subprocess
 import glob
+import gzip
 import sys
 import os
 import re
@@ -31,14 +33,17 @@ def align(genome, threads, method, ema_bins, directory, extra_params, quality_fi
     - **bwa**: uses BWA MEM to align reads, retaining BX tags in the alignments
     - **ema**: uses the BX barcode-aware EMA aligner
     """
-    flist = [os.path.basename(i) for i in glob.iglob(f"{directory}/*") if not os.path.isdir(i)]
-    r = re.compile(".*\.f(?:ast)?q\.gz$", flags=re.IGNORECASE)
-    fqlist = list(filter(r.match, flist))
+    full_flist = [i for i in glob.iglob(f"{directory}/*") if not os.path.isdir(i)]
+    r = re.compile(".*\.f(?:ast)?q(?:\.gz)?$", flags=re.IGNORECASE)
+    full_fqlist = list(filter(r.match, full_flist))
+    fqlist = [os.path.basename(i) for i in full_fqlist]
+    bn_r = r"[\.\_][RF](?:[12])?(?:\_00[1-9])*\.f(?:ast)?q(?:\.gz)?$"
     if len(fqlist) == 0:
         print(f"\033[1;33mERROR:\033[00m No fastq files with acceptable names found in {directory}", file = sys.stderr)
         print("Check that the files conform to [.F. | .R1.][.fastq | .fq].gz", file = sys.stderr)
         print("Read the documentation for details: https://pdimens.github.io/harpy/dataformat/#naming-conventions", file = sys.stderr)
         sys.exit(1)
+    samplenames = set([re.sub(bn_r, "", i, flags = re.IGNORECASE) for i in fqlist])
     mapper = method
     command = f'snakemake --rerun-incomplete --cores {threads} --directory . --snakefile {harpypath}/align-{mapper}.smk'.split()
     if snakemake is not None:
@@ -47,40 +52,37 @@ def align(genome, threads, method, ema_bins, directory, extra_params, quality_fi
         command.append("--quiet")
         command.append("all")
     command.append('--config')
-    directory = directory.rstrip("/^")
-    command.append(f"seq_directory={directory}")
     command.append(f"genomefile={genome}")
     command.append(f"quality={quality_filter}")
-    #TODO create renamed symlinks of fastq and apply the BWA regex
-    if mapper == "ema":
-        ## find fastq extension types for EMA
-        ext = set()
-        rsep = set()
-        err = ""
-        for i in fqlist:
-            sep = i.split(".")
-            fq = ".".join(sep[-2:])          
-            ext.add(fq)
-            base = i.split(f".{fq}")[0]
-            rsp = "".join(base[-3:])
-            if rsp[0].isnumeric():
-                rsp = rsp[1:]
-            rsep.add(rsp)
-        if len(ext) < 1:
-            print(f"\033[1;33mERROR:\033[00m No fastq.gz or fq.gz files identified in {directory}", file = sys.stderr)
-            sys.exit(1)
-        if len(ext) > 1:
-            err += f"- multiple fastq extensions detected: {ext}.\n  - format your files so there's only one style of .fq.gz | .fastq.gz\n"
-        if len(rsep) > 2:
-            err += f"- multiple read forward/reverse styles detected: {rsep}\n  - format your files so there's only one style of .F. | .R1.\n"
-        if err != "":
-            print("\033[1;33mERROR:\033[00m\n" + err, file = sys.stderr)
-            sys.exit(1)
-        fqext, Rsep =  (f"{list(ext)[0]}", sorted(rsep))
-
-        command.append(f"EMA_bins={ema_bins}")
-        command.append(f"Rsep={Rsep}")
-        command.append(f"fqext={fqext}")
+    command.append(f"samplenames={samplenames}")
+    command.append(f"EMA_bins={ema_bins}")
+    linkdir = f"Align/{mapper}/input"
+    command.append(f"seq_directory={linkdir}")
+    os.makedirs(linkdir, exist_ok = True)
+    re_FR = re.compile(r"\s[12]\:[YN]")
+    for seqfile in full_fqlist:
+        if seqfile.endswith(".gz"):
+            gz_ext = ".gz"
+            f = gzip.open(seqfile, "r")
+        else:
+            gz_ext = ""
+            f = open(seqfile, "r")
+        header = f"{f.readline()}"
+        f.close()
+        # search for 1:Y or 2:Y in first read header
+        if "1" in re_FR.search(header).group(0):
+            FR = "F"
+        else:
+            FR = "R"
+        bn = re.sub(bn_r, "", os.path.basename(seqfile), flags = re.IGNORECASE)
+        target = Path(seqfile)
+        linkedfile = linkdir + f"/{bn}.{FR}.fq{gz_ext}"
+        try:
+            _ = Path(linkedfile).symlink_to(target)
+        except:
+            pass
+    print(samplenames)
+    exit()
 
     if extra_params is not None:
         command.append(f"extra={extra_params}")

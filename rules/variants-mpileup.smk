@@ -15,7 +15,7 @@ chunksize   = config["windowsize"]
 # create a python list of regions instead of creating a multitude of files
 def createregions(infile, window):
     bn = os.path.basename(infile)
-    os.makedirs("Assembly", exist_ok = True)
+    os.makedirs("Genome", exist_ok = True)
     if not os.path.exists(f"Genome/{bn}"):
         shell(f"ln -sr {infile} Genome/{bn}")
     if not os.path.exists(f"Genome/{bn}.fai"):

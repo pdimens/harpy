@@ -50,7 +50,7 @@ def phase(vcf, directory, threads, molecule_distance, prune_threshold, vcf_sampl
         print(f"\n\033[1;33mERROR:\033[00m There are {len(missing_samples)} samples found in \033[01m{fromthis}\033[00m that are not in \033[01m{inthis}\033[00m. Terminating Harpy to avoid downstream errors. The samples causing this error are:", file = sys.stderr)
         print(", ".join(sorted(missing_samples)), file = sys.stderr)
         print(f"\n\033[1;34mSOLUTION:\033[00m \033[01m{fromthis}\033[00m cannot contain samples that are absent in \033[01m{inthis}\033[00m. Check the spelling or remove those samples from \033[01m{fromthis}\033[00m or remake the vcf file to include/omit these samples. Alternatively, toggle \033[01m--vcf-samples\033[00m to aggregate the sample list from \033[01m{directory}\033[00m or \033[01m{vcf}\033[00m.\n", file = sys.stderr)
-        exit()
+        sys.exit(1)
     prune_threshold /= 100
     command = f'snakemake --rerun-incomplete --cores {threads} --directory . --snakefile {harpypath}/phase-pop.smk'.split()
     if snakemake is not None:

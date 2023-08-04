@@ -46,7 +46,7 @@ def impute(parameters, directory, threads, vcf, vcf_samples, snakemake, quiet):
         print(f"\n\033[1;33mERROR:\033[00m There are {len(missing_samples)} samples found in \033[01m{fromthis}\033[00m that are not in \033[01m{inthis}\033[00m. Terminating Harpy to avoid downstream errors. The samples causing this error are:", file = sys.stderr)
         print(", ".join(sorted(missing_samples)), file = sys.stderr)
         print(f"\n\033[1;34mSOLUTION:\033[00m \033[01m{fromthis}\033[00m cannot contain samples that are absent in \033[01m{inthis}\033[00m. Check the spelling or remove those samples from \033[01m{fromthis}\033[00m or remake the vcf file to include/omit these samples. Alternatively, toggle \033[01m--vcf-samples\033[00m to aggregate the sample list from \033[01m{directory}\033[00m or \033[01m{vcf}\033[00m.\n", file = sys.stderr)
-        exit()
+        sys.exit(1)
     ### check that parameter file is valid
     with open(parameters, "r") as fp:
         header = fp.readline().rstrip()
@@ -58,7 +58,7 @@ def impute(parameters, directory, threads, vcf, vcf_samples, snakemake, quiet):
             print(f"\n\033[1;33mERROR:\033[00m Parameter file \033[01m{parameters}\033[00m has incorrect column names. Valid names are case-sensitive and in this order:\nmodel useBX k s nGen\n", file = sys.stderr)
             print(f"Columns in {parameters}:\n{header}\n", file = sys.stderr)
             print(f"\033[1;34mSOLUTION:\033[00m Fix the headers in \033[01m{parameters}\033[00m or use \033[01mharpy extra -s stitch.params\033[00m to generate a valid parameter file and modify it with appropriate values.")
-            exit()
+            sys.exit(1)
         while True:
             # Get next line from file
             line = fp.readline()
@@ -77,7 +77,7 @@ def impute(parameters, directory, threads, vcf, vcf_samples, snakemake, quiet):
             print("\033[01mrow\tcolumns\033[00m")
             for i in zip(badrows, badlens):
                 print(f"{i[0]}\t{i[1]}")
-            exit()
+            sys.exit(1)
     command = f'snakemake --rerun-incomplete --cores {threads} --directory . --snakefile {harpypath}/impute.smk'.split()
     if snakemake is not None:
         [command.append(i) for i in snakemake.split()]

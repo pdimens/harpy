@@ -2,39 +2,24 @@ import os
 import re
 import glob
 
+outdir      = "Align/bwa"
 seq_dir		= config["seq_directory"]
 genomefile 	= config["genomefile"]
 extra 		= config.get("extra", "") 
 bn 			= os.path.basename(genomefile)
-outdir      = "Align/bwa"
-## deprecated ##
-#Rsep 		= config["Rsep"]
-#fqext 		= config["fqext"]
-#samplenames = config["samplenames"]
+samplenames = config["samplenames"]
 
-#flist = os.listdir(seq_dir)
-flist = [os.path.basename(i) for i in glob.iglob(f"{seq_dir}/*") if not os.path.isdir(i)]
-r = re.compile(".*\.f(?:ast)?q(?:\.gz)?$", flags=re.IGNORECASE)
-fqlist = list(filter(r.match, flist))
-bn_r = r"[\.\_][RF](?:[12])?(?:\_00[1-9])*\.f(?:ast)?q(?:\.gz)?$"
-samplenames = set([re.sub(bn_r, "", i, flags = re.IGNORECASE) for i in fqlist])
-d = dict()
-for i in samplenames:
-    d[i] = i
+d = dict(zip(samplenames, samplenames))
 
 def get_fq1(wildcards):
     # code that returns a list of fastq files for read 1 based on *wildcards.sample* e.g.
-    lst = sorted(glob.glob(seq_dir + "/" + wildcards.sample + "*"))
-    r = re.compile(".*[\_\.][FR][1]?(?:\_00[0-9])*\.f(?:ast)?q(?:\.gz)?$", flags=re.IGNORECASE)
-    fqlist = list(filter(r.match, lst))
-    return fqlist
+    lst = glob.glob(seq_dir + "/" + wildcards.sample + ".F.fq*")
+    return lst
 
 def get_fq2(wildcards):
     # code that returns a list of fastq files for read 2 based on *wildcards.sample*, e.g.
-    lst = sorted(glob.glob(seq_dir + "/" + wildcards.sample + "*"))
-    r = re.compile(".*[\_\.][R][2]?(?:\_00[0-9])*\.f(?:ast)?q(?:\.gz)?$", flags=re.IGNORECASE)
-    fqlist = list(filter(r.match, lst))
-    return fqlist
+    lst = sorted(glob.glob(seq_dir + "/" + wildcards.sample + ".R.fq*"))
+    return lst
 
 rule all:
     input: 

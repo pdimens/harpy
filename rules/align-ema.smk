@@ -3,21 +3,26 @@ import re
 import glob
 
 #samplenames = config["samplenames"]
+outdir      = "Align/ema"
 seq_dir 	= config["seq_directory"]
 nbins 		= config["EMA_bins"]
 genomefile 	= config["genomefile"]
-Rsep 		= config["Rsep"]
-fqext 		= config["fqext"]
+samplenames = config["samplenames"]
 extra 		= config.get("extra", "") 
 bn 			= os.path.basename(genomefile)
-outdir      = "Align/ema"
 
-#flist = os.listdir(seq_dir)
-flist = [os.path.basename(i) for i in glob.iglob(f"{seq_dir}/*") if not os.path.isdir(i)]
-r = re.compile(".*\.f(?:ast)?q(?:\.gz)?$", flags=re.IGNORECASE)
-fqlist = list(filter(r.match, flist))
-bn_r = r"[\.\_][RF](?:[12])?(?:\_00[1-9])*\.f(?:ast)?q(?:\.gz)?$"
-samplenames = set([re.sub(bn_r, "", i, flags = re.IGNORECASE) for i in fqlist])
+
+d = dict(zip(samplenames, samplenames))
+
+def get_fq1(wildcards):
+    # code that returns a list of fastq files for read 1 based on *wildcards.sample* e.g.
+    lst = glob.glob(seq_dir + "/" + wildcards.sample + ".F.fq*")
+    return lst
+
+def get_fq2(wildcards):
+    # code that returns a list of fastq files for read 2 based on *wildcards.sample*, e.g.
+    lst = sorted(glob.glob(seq_dir + "/" + wildcards.sample + ".R.fq*"))
+    return lst
 
 rule all:
     input: 
@@ -26,7 +31,7 @@ rule all:
         expand(outdir + "/stats/BXstats/{sample}.bxstats.html", sample = samplenames),
         expand(outdir + "/stats/coverage/{sample}.cov.html", sample = samplenames),
         outdir + "/stats/reads.bxcounts.html",
-        outdir + "/stats/ema.stats.html"
+        outdir + "/stats/ema.stats.html",
         outdir + "/logs/harpy.align.log"
     message:
         "Read mapping completed!"
