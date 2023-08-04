@@ -7,6 +7,10 @@ extra             = config.get("extra", "")
 linkarg           = "--10x 0" if config["noBX"] else "--10x 1"
 outdir 			  = "Phase.noBX"if config["noBX"] else "Phase"
 fragfile          = "Phase.noBX/extractHairs/{sample}.unlinked.frags" if config["noBX"] else "Phase/linkFragments/{sample}.linked.frags"
+try:
+    indelarg = "--indels 1 --ref " + config["indels"]
+except:
+    indelarg = ""
 
 rule splitbysample:
     input: 
@@ -150,8 +154,6 @@ rule log_runtime:
     message:
         "Creating record of relevant runtime parameters: {output}"
     params:
-        links = linkarg,
-        d =  molecule_distance,
         prune = f"--threshold {pruning} " if pruning > 0 else "--no_prune 1 ",
         extra = extra
     run:
@@ -162,9 +164,9 @@ rule log_runtime:
             _ = f.write("The variant file was split by sample and preprocessed using:\n")
             _ = f.write("""\tbcftools view -s SAMPLE | awk '/^#/;/CHROM/ OFS="\\t"; !/^#/ && $10~/^0\\/1/'\n\n""")
             _ = f.write("Phasing was performed using the components of HapCut2:\n")
-            _ = f.write(f"\textractHAIRS {params[0]} --nf 1 --bam sample.bam --VCF sample.vcf --out sample.unlinked.frags\n")
-            _ = f.write(f"\tLinkFragments.py --bam sample.BAM --VCF sample.vcf --fragments sample.unlinked.frags --out sample.linked.frags -d {params[1]}\n")
-            _ = f.write(f"\tHAPCUT2 --fragments sample.linked.frags --vcf sample.vcf --out sample.blocks --nf 1 --error_analysis_mode 1 --call_homozygous 1 --outvcf 1 {params[2]} {params[3]}\n")
+            _ = f.write(f"\textractHAIRS {linkarg} --nf 1 --bam sample.bam --VCF sample.vcf --out sample.unlinked.frags\n")
+            _ = f.write(f"\tLinkFragments.py --bam sample.BAM --VCF sample.vcf --fragments sample.unlinked.frags --out sample.linked.frags -d {molecule_distance}\n")
+            _ = f.write(f"\tHAPCUT2 --fragments sample.linked.frags --vcf sample.vcf --out sample.blocks --nf 1 --error_analysis_mode 1 --call_homozygous 1 --outvcf 1 {params[0]} {params[1]}\n")
 
 rule indexFinal:
     input:
