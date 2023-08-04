@@ -116,7 +116,7 @@ click.rich_click.OPTION_GROUPS = {
         },
         {
             "name": "Other Options",
-            "options": ["--threads", "--snakemake", "--quiet", "--help"],
+            "options": ["--vcf-samples", "--threads", "--snakemake", "--quiet", "--help"],
         },
     ],
     "harpy phase": [
@@ -126,7 +126,7 @@ click.rich_click.OPTION_GROUPS = {
         },
         {
             "name": "Other Options",
-            "options": ["--threads", "--snakemake", "--quiet", "--help"],
+            "options": ["--vcf-samples", "--threads", "--snakemake", "--quiet", "--help"],
         },
     ]
 }
@@ -383,10 +383,15 @@ def snp(genome, threads, directory, populations, ploidy, method,windowsize, extr
         with open(populations, "r") as f:
             p_list = [i.split()[0] for i in f.readlines()]
         missing_samples = [x for x in p_list if x not in samplenames]
+        overlooked = [x for x in samplenames if x not in p_list]
         if len(missing_samples) > 0:
-            print(f"\n\033[1;33mERROR:\033[00m There are samples included in \033[01m{populations}\033[00m that weren\'t found in \033[01m{directory}\033[00m. Terminating Harpy to avoid downstream errors. The samples causing this error are:", file = sys.stderr)
+            print(f"\n\033[1;33mERROR:\033[00m There are {len(missing_samples)} samples included in \033[01m{populations}\033[00m that weren\'t found in \033[01m{directory}\033[00m. Terminating Harpy to avoid downstream errors. The samples causing this error are:", file = sys.stderr)
             print(", ".join(missing_samples), file = sys.stderr)
-            print(f"\n\033[1;34mSOLUTION:\033[00m Make sure the spelling of these samples is identical in \033[01m{directory}\033[00m and \033[01m{populations}\033[00m, or remove them from \033[01m{populations}\033[00m.", file = sys.stderr)
+            print(f"\n\033[1;34mSOLUTION:\033[00m Make sure the spelling of these samples is identical in \033[01m{directory}\033[00m and \033[01m{populations}\033[00m, or remove them from \033[01m{populations}\033[00m.\n", file = sys.stderr)
+        if len(overlooked) > 0 and not quiet:
+            print(f"\033[01mNOTICE:\033[00m There are {len(overlooked)} samples found in \033[01m{directory}\033[00m that weren\'t included in \033[01m{populations}\033[00m. This will not cause errors and can be ignored if it was deliberate. The samples are:", file = sys.stderr)
+            print(", ".join(overlooked), file = sys.stderr)
+        if len(missing_samples) > 0:
             exit()
         command.append(f"groupings={populations}")
     command.append(f"ploidy={ploidy}")
@@ -436,10 +441,15 @@ def sv(genome, threads, directory, populations, method, extra_params, snakemake,
         with open(populations, "r") as f:
             p_list = [i.split()[0] for i in f.readlines()]
         missing_samples = [x for x in p_list if x not in samplenames]
+        overlooked = [x for x in samplenames if x not in p_list]
         if len(missing_samples) > 0:
-            print(f"\n\033[1;33mERROR:\033[00m There are samples included in \033[01m{populations}\033[00m that weren\'t found in \033[01m{directory}\033[00m. Terminating Harpy to avoid downstream errors. The samples causing this error are:", file = sys.stderr)
+            print(f"\n\033[1;33mERROR:\033[00m There are {len(missing_samples)} samples included in \033[01m{populations}\033[00m that weren\'t found in \033[01m{directory}\033[00m. Terminating Harpy to avoid downstream errors. The samples causing this error are:", file = sys.stderr)
             print(", ".join(sorted(missing_samples)), file = sys.stderr)
-            print(f"\n\033[1;34mSOLUTION:\033[00m Make sure the spelling of these samples is identical in \033[01m{directory}\033[00m and \033[01m{populations}\033[00m, or remove them from \033[01m{populations}\033[00m.", file = sys.stderr)
+            print(f"\n\033[1;34mSOLUTION:\033[00m Make sure the spelling of these samples is identical in \033[01m{directory}\033[00m and \033[01m{populations}\033[00m, or remove them from \033[01m{populations}\033[00m.\n", file = sys.stderr)
+        if len(overlooked) > 0 and not quiet:
+            print(f"\033[01mNOTICE:\033[00m There are {len(overlooked)} samples found in \033[01m{directory}\033[00m that weren\'t included in \033[01m{populations}\033[00m. This will not cause errors and can be ignored if it was deliberate. The samples are:", file = sys.stderr)
+            print(", ".join(overlooked), file = sys.stderr)
+        if len(missing_samples) > 0:        
             exit()
         command.append(f"groupings={populations}")
     #command.append(f"ploidy={ploidy}")
@@ -454,26 +464,69 @@ def sv(genome, threads, directory, populations, method, extra_params, snakemake,
 @click.option('-d', '--directory', required = True, type=click.Path(exists=True), metavar = "Folder Path", help = 'Directory with BAM alignments')
 @click.option('-p', '--parameters', required = True, type=click.Path(exists=True), metavar = "File Path", help = 'STITCH parameter file (tab-delimited)')
 #@click.option('-x', '--extra-params', default = "", type = str, metavar = "String", help = 'Additional STITCH parameters, in quotes')
+@click.option('--vcf-samples',  is_flag = True, show_default = True, default = False, metavar = "Toggle", help = 'Use samples present in vcf file for imputation rather than those found the directory')
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(min = 4, max_open = True), metavar = "Integer", help = 'Number of threads to use')
 @click.option('-s', '--snakemake', type = str, metavar = "String", help = 'Additional Snakemake parameters, in quotes')
 @click.option('-q', '--quiet',  is_flag = True, show_default = True, default = False, metavar = "Toggle", help = 'Don\'t show output text while running')
-def impute(parameters, directory, threads, vcf, snakemake, quiet):
+def impute(parameters, directory, threads, vcf, vcf_samples, snakemake, quiet):
     """
     Impute genotypes using variants and sequences
     
     Requires a parameter file, use **harpy extra --stitch-params** to generate one and adjust it for your study.
     """
+    ## validate inputs ##
     vcfcheck(vcf)
     samplenames = getnames_err(directory, '.bam')
-    # check that samples in VCF match input directory
+    ### check that samples in VCF match input directory
     bcfquery = subprocess.Popen(["bcftools", "query", "-l", vcf], stdout=subprocess.PIPE)
-    s_list = bcfquery.stdout.read().decode().split()
+    if vcf_samples:
+        samplenames = bcfquery.stdout.read().decode().split()
+        s_list = getnames_err(directory, '.bam')
+        fromthis = vcf
+        inthis = directory
+    else:
+        samplenames = getnames_err(directory, '.bam')
+        s_list = bcfquery.stdout.read().decode().split()
+        fromthis = directory
+        inthis = vcf
     missing_samples = [x for x in samplenames if x not in s_list]
+    # check that samples in VCF match input directory
     if len(missing_samples) > 0:
-        print(f"\n\033[1;33mERROR:\033[00m There are samples included in \033[01m{directory}\033[00m that weren\'t found in \033[01m{vcf}\033[00m. Terminating Harpy to avoid downstream errors. The samples causing this error are:", file = sys.stderr)
+        print(f"\n\033[1;33mERROR:\033[00m There are {len(missing_samples)} samples found in \033[01m{fromthis}\033[00m that are not in \033[01m{inthis}\033[00m. Terminating Harpy to avoid downstream errors. The samples causing this error are:", file = sys.stderr)
         print(", ".join(sorted(missing_samples)), file = sys.stderr)
-        print(f"\n\033[1;34mSOLUTION:\033[00m Your input directory cannot contain samples that are absent in \033[01m{vcf}\033[00m. Check the spelling or remove those files from \033[01m{directory}\033[00m or remake the vcf file to contain these samples.", file = sys.stderr)
+        print(f"\n\033[1;34mSOLUTION:\033[00m \033[01m{fromthis}\033[00m cannot contain samples that are absent in \033[01m{inthis}\033[00m. Check the spelling or remove those samples from \033[01m{fromthis}\033[00m or remake the vcf file to include/omit these samples. Alternatively, toggle \033[01m--vcf-samples\033[00m to aggregate the sample list from \033[01m{directory}\033[00m or \033[01m{vcf}\033[00m.\n", file = sys.stderr)
         exit()
+    ### check that parameter file is valid
+    with open(parameters, "r") as fp:
+        header = fp.readline().rstrip()
+        headersplt = header.split()
+        row = 0
+        badrows = []
+        badlens = []
+        if headersplt != ["model", "useBX", "k", "s", "nGen"]:
+            print(f"\n\033[1;33mERROR:\033[00m Parameter file \033[01m{parameters}\033[00m has incorrect column names. Valid names are case-sensitive and in this order:\nmodel useBX k s nGen\n", file = sys.stderr)
+            print(f"Columns in {parameters}:\n{header}\n", file = sys.stderr)
+            print(f"\033[1;34mSOLUTION:\033[00m Fix the headers in \033[01m{parameters}\033[00m or use \033[01mharpy extra -s stitch.params\033[00m to generate a valid parameter file and modify it with appropriate values.")
+            exit()
+        while True:
+            # Get next line from file
+            line = fp.readline()
+            row += 1
+            # if line is empty, end of file is reached
+            if not line:
+                break
+            # split the line by whitespace
+            rowlen = len(line.rstrip().split())
+            if rowlen != 5:
+                badrows.append(row)
+                badlens.append(rowlen)
+        if len(badrows) > 0:
+            print(f"\n\033[1;33mERROR:\033[00m Parameter file \033[01m{parameters}\033[00m is formatted incorrectly. Not all rows have the expected 5 columns.", file = sys.stderr)
+            print(f"\n\033[1;34mSOLUTION:\033[00m See the problematic rows below. Check that you are using a whitespace (space or tab) delimeter in \033[01m{parameters}\033[00m or use \033[01mharpy extra -s stitch.params\033[00m to generate a valid parameter file and modify it with appropriate values.")
+            print("\033[01mrow\tcolumns\033[00m")
+            for i in zip(badrows, badlens):
+                print(f"{i[0]}\t{i[1]}")
+            exit()
     command = f'snakemake --rerun-incomplete --cores {threads} --directory . --snakefile {harpypath}/impute.smk'.split()
     if snakemake is not None:
         [command.append(i) for i in snakemake.split()]
@@ -516,12 +569,13 @@ def impute(parameters, directory, threads, vcf, snakemake, quiet):
 @click.option('-m', '--molecule-distance', default = 50000, show_default = True, type = int, metavar = "Integer", help = 'Base-pair distance delineating separate molecules')
 @click.option('-p', '--prune-threshold', default = 7, show_default = True, type = click.IntRange(0,100), metavar = "Integer", help = 'PHRED-scale threshold (%) for pruning low-confidence SNPs (larger prunes more.)')
 @click.option('-b', '--ignore-bx',  is_flag = True, show_default = True, default = False, metavar = "Toggle", help = 'Ignore barcodes when phasing')
+@click.option('--vcf-samples',  is_flag = True, show_default = True, default = False, metavar = "Toggle", help = 'Use samples present in vcf file for phasing rather than those found the directory')
 @click.option('-i', '--indels', type=click.Path(exists=True), metavar = "File path", help = 'Path to genome assembly if wanting to also extract reads spanning indels')
 @click.option('-x', '--extra-params', type = str, metavar = "String", help = 'Additional HapCut2 parameters, in quotes')
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(min = 2, max_open = True), metavar = "Integer", help = 'Number of threads to use')
 @click.option('-s', '--snakemake',  type = str, metavar = "String", help = 'Additional Snakemake parameters, in quotes')
 @click.option('-q', '--quiet',  is_flag = True, show_default = True, default = False, metavar = "Toggle", help = 'Don\'t show output text while running')
-def phase(vcf, directory, threads, molecule_distance, prune_threshold, indels, snakemake, extra_params, ignore_bx, quiet):
+def phase(vcf, directory, threads, molecule_distance, prune_threshold, vcf_samples, indels, snakemake, extra_params, ignore_bx, quiet):
     """
     Phase SNPs into haplotypes
     """
@@ -532,15 +586,24 @@ def phase(vcf, directory, threads, molecule_distance, prune_threshold, indels, s
         subprocess.run(f"bcftools view {vcf} -Ob > {variantfile}".split())
     else:
         variantfile = vcf
-    samplenames = getnames(directory, '.bam')
-    # check that samples in VCF match input directory
+    
     bcfquery = subprocess.Popen(["bcftools", "query", "-l", vcf], stdout=subprocess.PIPE)
-    s_list = bcfquery.stdout.read().decode().split()
+    if vcf_samples:
+        samplenames = bcfquery.stdout.read().decode().split()
+        s_list = getnames_err(directory, '.bam')
+        fromthis = vcf
+        inthis = directory
+    else:
+        samplenames = getnames_err(directory, '.bam')
+        s_list = bcfquery.stdout.read().decode().split()
+        fromthis = directory
+        inthis = vcf
     missing_samples = [x for x in samplenames if x not in s_list]
+    # check that samples in VCF match input directory
     if len(missing_samples) > 0:
-        print(f"\n\033[1;33mERROR:\033[00m There are samples included in \033[01m{directory}\033[00m that weren\'t found in \033[01m{vcf}\033[00m. Terminating Harpy to avoid downstream errors. The samples causing this error are:", file = sys.stderr)
+        print(f"\n\033[1;33mERROR:\033[00m There are {len(missing_samples)} samples found in \033[01m{fromthis}\033[00m that are not in \033[01m{inthis}\033[00m. Terminating Harpy to avoid downstream errors. The samples causing this error are:", file = sys.stderr)
         print(", ".join(sorted(missing_samples)), file = sys.stderr)
-        print(f"\n\033[1;34mSOLUTION:\033[00m Your input directory cannot contain samples that are absent in \033[01m{vcf}\033[00m. Check the spelling or remove those files from \033[01m{directory}\033[00m or remake the vcf file to contain these samples.", file = sys.stderr)
+        print(f"\n\033[1;34mSOLUTION:\033[00m \033[01m{fromthis}\033[00m cannot contain samples that are absent in \033[01m{inthis}\033[00m. Check the spelling or remove those samples from \033[01m{fromthis}\033[00m or remake the vcf file to include/omit these samples. Alternatively, toggle \033[01m--vcf-samples\033[00m to aggregate the sample list from \033[01m{directory}\033[00m or \033[01m{vcf}\033[00m.\n", file = sys.stderr)
         exit()
     prune_threshold /= 100
     command = f'snakemake --rerun-incomplete --cores {threads} --directory . --snakefile {harpypath}/phase-pop.smk'.split()
