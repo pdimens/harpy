@@ -110,10 +110,6 @@ rule align:
         rm -rf {params.tmpdir}
         """
 
-#rule testall:
-#    input: expand(outdir + "/{sample}/{sample}.markdup.bam", sample = samplenames)
-#    default_target: True
-
 rule mark_duplicates:
     input:
         lambda wc: outdir + "/{sample}/{sample}.sort.bam"

@@ -6,6 +6,7 @@ import glob
 outdir      = "Align/ema"
 seq_dir 	= config["seq_directory"]
 nbins 		= config["EMA_bins"]
+binrange    = ["%03d" % i for i in range(nbins)]
 genomefile 	= config["genomefile"]
 samplenames = config["samplenames"]
 extra 		= config.get("extra", "") 
@@ -24,6 +25,11 @@ def get_fq2(wildcards):
     lst = sorted(glob.glob(seq_dir + "/" + wildcards.sample + ".R.fq*"))
     return lst
 
+def ema_fq(wildcards):
+    # code that returns a list of fastq files for read 2 based on *wildcards.sample*, e.g.
+    lst = sorted(glob.glob("Align/ema/" + wildcards.sample +" /preproc/ema-bin-*"))
+    return lst
+
 rule all:
     input: 
         expand(outdir + "/{sample}.bam", sample = samplenames),
@@ -37,7 +43,7 @@ rule all:
         "Read mapping completed!"
     benchmark:
         "Benchmark/Mapping/ema/report.txt"
-    default_target: True
+#    default_target: True
 
 rule link_genome:
     input:
@@ -90,6 +96,8 @@ rule count_beadtags:
         #reverse_reads = seq_dir + "/{sample}" + f"{Rsep[1]}.{fqext}"
         forward_reads = get_fq1,
         reverse_reads = get_fq2
+        #forward_reads = "Align/ema/input/{sample}.F.fq.gz",
+        #reverse_reads = "Align/ema/input/{sample}.R.fq.gz"
     output: 
         counts = outdir + "/count/{sample}.ema-ncnt",
         logs   = temp(outdir + "/count/logs/{sample}.count.log")
@@ -124,7 +132,8 @@ rule preprocess_ema:
         reverse_reads = get_fq2,
         emacounts     = outdir + "/count/{sample}.ema-ncnt"
     output: 
-        bins       	  = temp(expand(outdir + "/{{sample}}/preproc/ema-bin-{bin}", bin = ["%03d" % i for i in range(nbins)])),
+        bins       	  = temp(expand(outdir + "/{{sample}}/preproc/ema-bin-{nbin}", nbin = binrange)),
+        #bins       	  = temp(directory(outdir + "/{sample}/preproc/")),
         unbarcoded    = temp(outdir + "/{sample}/preproc/ema-nobc")
     wildcard_constraints:
         sample = "[a-zA-Z0-9_\-]*"
@@ -142,30 +151,63 @@ rule preprocess_ema:
     shell:
         "seqfu interleave -1 {input.forward_reads} -2 {input.reverse_reads} | ema preproc -p -n {params.bins} -t {threads} -o {params.outdir} {input.emacounts} 2>&1 | cat - > {log}"
 
-rule align_ema:
+rule testall:
+    #input: expand(outdir + "/{sample}/preproc/ema-bin-{bin}", sample = samplenames, bin = ["%03d" % i for i in range(nbins)])
+    input: expand(outdir + "/{sample}/barcoded.bam", sample = samplenames)
+    default_target: True
+
+#rule align:
+#    input:
+#        readbin    = outdir + "/{sample}/preproc/ema-bin-{nbin}",
+#        genome 	   = f"Genome/{bn}",
+#        genome_idx = multiext(f"Genome/{bn}", ".ann", ".bwt", ".fai", ".pac", ".sa", ".amb")
+#    output:
+#        alignment  = temp(outdir + "/{sample}/{sample}.{nbin}.bam")
+#    wildcard_constraints:
+#        sample = "[a-zA-Z0-9_\-]*"
+#    message:
+#        "Aligning barcoded sequences: {wildcards.sample}-{wildcards.nbin}"
+#    benchmark:
+#        "Benchmark/Mapping/ema/Align.{sample}.{nbin}.txt"
+#    params: 
+#        quality = config["quality"],
+#        sample = lambda wc: wc.get("sample"),
+#        extra = extra
+#    threads:
+#        8
+#    shell:
+#        """
+#        EMATHREADS=$(( {threads} - 2 ))
+#        ema align -t $EMATHREADS {params.extra} -d -p haplotag -r {input.genome} -R \"@RG\\tID:{params.sample}\\tSM:{params.sample}\" -s {input.readbin} 2> /dev/null |
+#        samtools view -h -F 4 -q {params.quality} - | 
+#        samtools sort --reference {input.genome} -O bam -m 4G -o {output} - 2> /dev/null
+#        """
+
+rule align:
     input:
-        readbin    = outdir + "/{sample}/preproc/ema-bin-{bin}",
+        readbin    = expand(outdir + "/{{sample}}/preproc/ema-bin-{nbin}", nbin = ["%03d" % i for i in range(nbins)]),
+        #readbin    = lambda wc: expand(f"{outdir}/" + d[wc.get("sample")] + "/preproc/ema-bin-{nbin}", nbin = binrange),
         genome 	   = f"Genome/{bn}",
         genome_idx = multiext(f"Genome/{bn}", ".ann", ".bwt", ".fai", ".pac", ".sa", ".amb")
     output:
-        alignment  = temp(outdir + "/{sample}/{sample}.{bin}.bam")
-    wildcard_constraints:
-        sample = "[a-zA-Z0-9_\-]*"
-        bin = "\d{3}"
+        #alignment  = temp(outdir + "/{sample}/{sample}.barcoded.bam")
+        alignment  = temp(outdir + "/{sample, [a-zA-Z0-9_\-]*}/barcoded.bam")
+#    wildcard_constraints:
+#        sample = "[a-zA-Z0-9_\-]*"
     message:
-        "Aligning barcoded sequences: {wildcards.sample}-{wildcards.bin}"
-    benchmark:
-        "Benchmark/Mapping/ema/Align.{sample}.{bin}.txt"
+        "Aligning barcoded sequences: {wildcards.sample}-{wildcards.nbin}"
+#    benchmark:
+#        "Benchmark/Mapping/ema/Align.{sample}.txt"
     params: 
         quality = config["quality"],
-        sample = lambda wc: wc.get("sample"),
+        #sample = lambda wc: wc.get("sample"),
         extra = extra
     threads:
         8
     shell:
         """
         EMATHREADS=$(( {threads} - 2 ))
-        ema align -t $EMATHREADS {params.extra} -d -p haplotag -r {input.genome} -R \"@RG\\tID:{params.sample}\\tSM:{params.sample}\" -s {input.readbin} 2> /dev/null |
+        ema align -t $EMATHREADS {params.extra} -d -p haplotag -r {input.genome} -R \"@RG\\tID:{wildcards.sample}\\tSM:{wildcards.sample}\" -x {input.readbin} 2> /dev/null |
         samtools view -h -F 4 -q {params.quality} - | 
         samtools sort --reference {input.genome} -O bam -m 4G -o {output} - 2> /dev/null
         """
@@ -222,7 +264,7 @@ rule markduplicates:
 
 rule merge_barcoded:
     input:
-        aln = expand(outdir + "/{{sample}}/{{sample}}.{bin}.bam", bin = ["%03d" % i for i in range(nbins)]),
+        aln = expand(outdir + "/{{sample}}/{{sample}}.{nbin}.bam", nbin = ["%03d" % i for i in range(nbins)]),
     output: 
         bam = temp(outdir + "/{sample}/{sample}.barcoded.bam"),
         bai = temp(outdir + "/{sample}/{sample}.barcoded.bam.bai")
