@@ -12,12 +12,14 @@ samplenames = config["samplenames"]
 d = dict(zip(samplenames, samplenames))
 
 def get_fq1(wildcards):
-    # code that returns a list of fastq files for read 1 based on *wildcards.sample* e.g.
+    # returns a list of fastq files for read 1 based on *wildcards.sample* e.g.
+    # the list is just the single reverse file
     lst = glob.glob(seq_dir + "/" + wildcards.sample + ".F.fq*")
     return lst
 
 def get_fq2(wildcards):
-    # code that returns a list of fastq files for read 2 based on *wildcards.sample*, e.g.
+    # returns a list of fastq files for read 2 based on *wildcards.sample*, e.g.
+    # the list is just the single reverse file
     lst = sorted(glob.glob(seq_dir + "/" + wildcards.sample + ".R.fq*"))
     return lst
 
@@ -88,6 +90,8 @@ rule align:
         outdir + "/logs/{sample}.log"
     message:
         "Aligning sequences: {wildcards.sample}"
+    wildcard_constraints:
+        sample = "[a-zA-Z0-9_\-]*"
     benchmark:
         "Benchmark/Mapping/bwa/align.{sample}.txt"
     params: 
@@ -106,9 +110,13 @@ rule align:
         rm -rf {params.tmpdir}
         """
 
+#rule testall:
+#    input: expand(outdir + "/{sample}/{sample}.markdup.bam", sample = samplenames)
+#    default_target: True
+
 rule mark_duplicates:
     input:
-        lambda wc: outdir + "/" + d[wc.sample] + ".sort.bam"
+        lambda wc: outdir + "/{sample}/{sample}.sort.bam"
     output:
         bam = temp(outdir + "/{sample}/{sample}.markdup.bam"),
         bai = temp(outdir + "/{sample}/{sample}.markdup.bam.bai")
@@ -116,6 +124,8 @@ rule mark_duplicates:
         outdir + "/logs/makrduplicates/{sample}.markdup.log"
     message:
         f"Marking duplicates: " + "{wildcards.sample}"
+    wildcard_constraints:
+        sample = "[a-zA-Z0-9_\-]*"
     benchmark:
         "Benchmark/Mapping/bwa/markdup.{sample}.txt"
     threads: 
@@ -132,6 +142,8 @@ rule clip_overlap:
         bai = outdir + "/{sample}.bam.bai"
     log:
         outdir + "/logs/clipOverlap/{sample}.clipOverlap.log"
+    wildcard_constraints:
+        sample = "[a-zA-Z0-9_\-]*"
     message:
         "Clipping alignment overlaps: {wildcards.sample}"
     shell:
@@ -148,8 +160,8 @@ rule alignment_coverage:
         outdir + "/stats/coverage/data/{sample}.cov.gz"
     message:
         "Calculating genomic coverage: {wildcards.sample}"
-    params:
-        lambda wc: d[wc.sample]
+    wildcard_constraints:
+        sample = "[a-zA-Z0-9_\-]*"
     threads: 
         2
     shell:
@@ -162,6 +174,8 @@ rule coverage_report:
         outdir + "/stats/coverage/{sample}.cov.html"
     message:
         "Summarizing alignment coverage: {wildcards.sample}"
+    wildcard_constraints:
+        sample = "[a-zA-Z0-9_\-]*"
     script:
         "reportBwaGencov.Rmd"
 
@@ -173,6 +187,8 @@ rule alignment_bxstats:
         outdir + "/stats/BXstats/data/{sample}.bxstats.gz"
     message:
         "Calculating barcode alignment statistics: {wildcards.sample}"
+    wildcard_constraints:
+        sample = "[a-zA-Z0-9_\-]*"
     params:
         sample = lambda wc: d[wc.sample],
     shell:
@@ -185,8 +201,6 @@ rule bx_stats_report:
         outdir + "/stats/BXstats/{sample}.bxstats.html"
     message: 
         "Generating summary of barcode alignment: {wildcards.sample}"
-    params:
-        sample = lambda wc: d[wc.sample]
     script:
         "reportBxStats.Rmd"
     
@@ -199,8 +213,8 @@ rule general_alignment_stats:
         flagstat = temp(outdir + "/stats/samtools_flagstat/{sample}.flagstat")
     message:
         "Calculating alignment stats: {wildcards.sample}"
-    params:
-        sample = lambda wc: d[wc.sample]
+#    params:
+#        sample = lambda wc: d[wc.sample]
     benchmark:
         "Benchmark/Mapping/bwa/stats.{sample}.txt"
     shell:
