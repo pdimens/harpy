@@ -86,13 +86,15 @@ rule make_genome_windows:
 
 rule count_beadtags:
     input:
-        forward_reads = seq_dir + "/{sample}" + f"{Rsep[0]}.{fqext}",
-        reverse_reads = seq_dir + "/{sample}" + f"{Rsep[1]}.{fqext}"
+        #forward_reads = seq_dir + "/{sample}" + f"{Rsep[0]}.{fqext}",
+        #reverse_reads = seq_dir + "/{sample}" + f"{Rsep[1]}.{fqext}"
+        forward_reads = get_fq1,
+        reverse_reads = get_fq2
     output: 
         counts = outdir + "/count/{sample}.ema-ncnt",
         logs   = temp(outdir + "/count/logs/{sample}.count.log")
     wildcard_constraints:
-        sample = "[a-zA-Z0-9\_\-\.]*"
+        sample = "[a-zA-Z0-9_\-]*"
     message:
         "Counting barcode frequency: {wildcards.sample}"
     benchmark:
@@ -116,14 +118,16 @@ rule beadtag_summary:
 
 rule preprocess_ema:
     input: 
-        forward_reads = seq_dir + "/{sample}" + f"{Rsep[0]}.{fqext}",
-        reverse_reads = seq_dir + "/{sample}" + f"{Rsep[1]}.{fqext}",
+        #forward_reads = seq_dir + "/{sample}" + f"{Rsep[0]}.{fqext}",
+        #reverse_reads = seq_dir + "/{sample}" + f"{Rsep[1]}.{fqext}",
+        forward_reads = get_fq1,
+        reverse_reads = get_fq2,
         emacounts     = outdir + "/count/{sample}.ema-ncnt"
     output: 
         bins       	  = temp(expand(outdir + "/{{sample}}/preproc/ema-bin-{bin}", bin = ["%03d" % i for i in range(nbins)])),
         unbarcoded    = temp(outdir + "/{sample}/preproc/ema-nobc")
     wildcard_constraints:
-        sample = "[a-zA-Z0-9\_\-\.]*"
+        sample = "[a-zA-Z0-9_\-]*"
     log:
         outdir + "/logs/preproc/{sample}.preproc.log"
     message:
@@ -146,7 +150,7 @@ rule align_ema:
     output:
         alignment  = temp(outdir + "/{sample}/{sample}.{bin}.bam")
     wildcard_constraints:
-        sample = "[a-zA-Z0-9\_\-\.]*",
+        sample = "[a-zA-Z0-9_\-]*"
         bin = "\d{3}"
     message:
         "Aligning barcoded sequences: {wildcards.sample}-{wildcards.bin}"
@@ -176,7 +180,7 @@ rule align_nobarcode:
     benchmark:
         "Benchmark/Mapping/ema/bwaAlign.{sample}.txt"
     wildcard_constraints:
-        sample = "[a-zA-Z0-9\_\-\.]*"
+        sample = "[a-zA-Z0-9_\-]*"
     params:
         quality = config["quality"]
     message:
@@ -202,7 +206,7 @@ rule markduplicates:
         stats    = outdir + "/stats/samtools_stats/{sample}.nobarcode.stats",
         flagstat = outdir + "/stats/samtools_flagstat/{sample}.nobarcode.flagstat"
     wildcard_constraints:
-        sample = "[a-zA-Z0-9\_\-\.]*"
+        sample = "[a-zA-Z0-9_\-]*"
     message:
         "Marking duplicates in unbarcoded alignments: {wildcards.sample}"
     benchmark:
@@ -223,7 +227,7 @@ rule merge_barcoded:
         bam = temp(outdir + "/{sample}/{sample}.barcoded.bam"),
         bai = temp(outdir + "/{sample}/{sample}.barcoded.bam.bai")
     wildcard_constraints:
-        sample = "[a-zA-Z0-9\_\-\.]*"
+        sample = "[a-zA-Z0-9_\-]*"
     message:
         "Merging barcoded alignments: {wildcards.sample}"
     benchmark:
@@ -255,7 +259,7 @@ rule bcstats:
         stats    = outdir + "/stats/samtools_stats/{sample}.barcoded.stats",
         flagstat = outdir + "/stats/samtools_flagstat/{sample}.barcoded.flagstat"
     wildcard_constraints:
-        sample = "[a-zA-Z0-9\_\-\.]*"
+        sample = "[a-zA-Z0-9_\-]*"
     message:
         "Indexing merged barcoded alignemnts: {wildcards.sample}"
     benchmark:
@@ -302,7 +306,7 @@ rule merge_alignments:
         bam 		  = temp(outdir + "/{sample}/{sample}.unsort.bam"),
         bai 		  = temp(outdir + "/{sample}/{sample}.unsort.bam.bai")
     wildcard_constraints:
-        sample = "[a-zA-Z0-9\_\-\.]*"
+        sample = "[a-zA-Z0-9_\-]*"
     message:
         "Merging all alignments: {wildcards.sample}"
     benchmark:
@@ -322,7 +326,7 @@ rule sort_merge:
     message:
         "Sorting merged barcoded alignments: {wildcards.sample}"
     wildcard_constraints:
-        sample = "[a-zA-Z0-9\_\-\.]*"
+        sample = "[a-zA-Z0-9_\-]*"
     threads:
         2
     priority:
@@ -370,7 +374,7 @@ rule alignment_bxstats:
     message:
         "Calculating barcode alignment statistics: {wildcards.sample}"
     wildcard_constraints:
-        sample = "[a-zA-Z0-9\_\-\.]*"
+        sample = "[a-zA-Z0-9_\-]*"
     shell:
         "bxStats.py {input.bam} | gzip > {output}"
 
@@ -382,7 +386,7 @@ rule bx_stats_report:
     message: 
         "Generating summary of barcode alignment: {wildcards.sample}"
     wildcard_constraints:
-        sample = "[a-zA-Z0-9\_\-\.]*"
+        sample = "[a-zA-Z0-9_\-]*"
     script:
         "reportBxStats.Rmd"
 
@@ -398,7 +402,7 @@ rule general_alignment_stats:
     benchmark:
         "Benchmark/Mapping/ema/Mergedstats.{sample}.txt"
     wildcard_constraints:
-        sample = "[a-zA-Z0-9\_\-\.]*"
+        sample = "[a-zA-Z0-9_\-]*"
     shell:
         """
         samtools stats {input.bam} > {output.stats}
