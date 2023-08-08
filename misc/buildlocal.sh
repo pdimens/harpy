@@ -11,7 +11,7 @@ mkdir -p ${CONDA_PREFIX}/bin
 
 # Harpy executable
 #cp harpy ${CONDA_PREFIX}/bin/
-pip install -e .
+pip install .
 
 # rules
 cp rules/*.smk ${CONDA_PREFIX}/bin/
