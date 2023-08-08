@@ -30,6 +30,7 @@ def getnames_err(directory, ext):
 
 # standardizes fastq filenames to not include periods in the samplename and
 # ends in .F|R.fq[.gz]
+# dont use?
 def sanitize_fastq(full_fqlist, linkdir):
     samplenames = set()
     os.makedirs(linkdir, exist_ok = True)

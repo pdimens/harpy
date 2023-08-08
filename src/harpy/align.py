@@ -1,5 +1,5 @@
 import rich_click as click
-from .harpymisc import sanitize_fastq
+#from .harpymisc import sanitize_fastq
 from pathlib import Path
 import subprocess
 import glob
@@ -45,9 +45,16 @@ def align(genome, threads, method, ema_bins, directory, extra_params, quality_fi
         sys.exit(1)
 
     mapper = method
+    ## DEPRECATED ##
     # create relative symlinks for input files with standard naming convention
-    linkdir = f"Align/{mapper}/input"
-    samplenames = sanitize_fastq(full_fqlist, linkdir)  
+    #linkdir = f"Align/{mapper}/input"
+    # find the basenames with this flexible regex
+    #samplenames = sanitize_fastq(full_fqlist, linkdir)  
+    flist = [os.path.basename(i) for i in glob.iglob(f"{directory}/*") if not os.path.isdir(i)]
+    r = re.compile(".*\.f(?:ast)?q(?:\.gz)?$", flags=re.IGNORECASE)
+    fqlist = list(filter(r.match, flist))
+    bn_r = r"[\.\_][RF](?:[12])?(?:\_00[1-9])*\.f(?:ast)?q(?:\.gz)?$"
+    samplenames = set([re.sub(bn_r, "", i, flags = re.IGNORECASE) for i in fqlist])
     command = f'snakemake --rerun-incomplete --cores {threads} --directory . --snakefile {harpypath}/align-{mapper}.smk'.split()
     if snakemake is not None:
         [command.append(i) for i in snakemake.split()]
@@ -59,7 +66,8 @@ def align(genome, threads, method, ema_bins, directory, extra_params, quality_fi
     command.append(f"quality={quality_filter}")
     command.append(f"samplenames={samplenames}")
     command.append(f"EMA_bins={ema_bins}")
-    command.append(f"seq_directory={linkdir}")
+    directory = directory.rstrip("/^")
+    command.append(f"seq_directory={directory}")
 
     if extra_params is not None:
         command.append(f"extra={extra_params}")

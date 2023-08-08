@@ -14,27 +14,38 @@ d = dict(zip(samplenames, samplenames))
 def get_fq1(wildcards):
     # returns a list of fastq files for read 1 based on *wildcards.sample* e.g.
     # the list is just the single reverse file
-    lst = glob.glob(seq_dir + "/" + wildcards.sample + ".F.fq*")
-    return lst
+    lst = glob.glob(seq_dir + "/" + wildcards.sample + "*")
+    return lst[0]
 
 def get_fq2(wildcards):
     # returns a list of fastq files for read 2 based on *wildcards.sample*, e.g.
     # the list is just the single reverse file
-    lst = sorted(glob.glob(seq_dir + "/" + wildcards.sample + ".R.fq*"))
-    return lst
+    lst = sorted(glob.glob(seq_dir + "/" + wildcards.sample + "*"))
+    return lst[1]
 
 rule all:
     input: 
-        expand(outdir + "/{sample}.bam", sample = samplenames),
+        expand(outdir + "/align/{sample}.bam", sample = samplenames),
         expand(outdir + "/stats/coverage/{sample}.cov.html", sample = samplenames),
         expand(outdir + "/stats/BXstats/{sample}.bxstats.html", sample = samplenames),
         outdir + "/stats/bwa.stats.html",
         outdir + "/logs/harpy.align.log"
     message:
-        "Read mapping completed!"
+        "Finished aligning! Moving alignment files into the base Align/bwa directory."
     default_target: True
+    run:
+        for i in input[0]:
+            fname = os.path.basename(i)
+            try:
+                # move file into base path
+                os.rename(i, f"{outdir}/{fname}")
+                # preserve "original" in align folder as symlink
+                target = Path(f"{outdir}/{fname}").absolute()
+                _ = Path(i).symlink_to(target)
+            except:
+                pass
 
-rule link_genome:
+rule genome_link:
     input:
         genomefile
     output: 
@@ -44,7 +55,7 @@ rule link_genome:
     shell: 
         "ln -sr {input} {output}"
 
-rule faidx_genome:
+rule genome_faidx:
     input: 
         f"Genome/{bn}"
     output: 
@@ -56,7 +67,7 @@ rule faidx_genome:
     shell: 
         "samtools faidx --fai-idx {output} {input} 2> {log}"
 
-rule index_bwa_genome:
+rule genome_bwa_index:
     input: 
         f"Genome/{bn}"
     output: 
@@ -68,7 +79,7 @@ rule index_bwa_genome:
     shell: 
         "bwa index {input} 2> {log}"
 
-rule make_genome_windows:
+rule genome_make_windows:
     input:
         f"Genome/{bn}.fai"
     output: 
@@ -90,8 +101,6 @@ rule align:
         outdir + "/logs/{sample}.log"
     message:
         "Aligning sequences: {wildcards.sample}"
-    wildcard_constraints:
-        sample = "[a-zA-Z0-9_\-]*"
     benchmark:
         "Benchmark/Mapping/bwa/align.{sample}.txt"
     params: 
@@ -120,8 +129,6 @@ rule mark_duplicates:
         outdir + "/logs/makrduplicates/{sample}.markdup.log"
     message:
         f"Marking duplicates: " + "{wildcards.sample}"
-    wildcard_constraints:
-        sample = "[a-zA-Z0-9_\-]*"
     benchmark:
         "Benchmark/Mapping/bwa/markdup.{sample}.txt"
     threads: 
@@ -134,12 +141,10 @@ rule clip_overlap:
         bam = outdir + "/{sample}/{sample}.markdup.bam",
         bai = outdir + "/{sample}/{sample}.markdup.bam.bai"
     output:
-        bam = outdir + "/{sample}.bam",
-        bai = outdir + "/{sample}.bam.bai"
+        bam = outdir + "/align/{sample}.bam",
+        bai = outdir + "/align/{sample}.bam.bai"
     log:
         outdir + "/logs/clipOverlap/{sample}.clipOverlap.log"
-    wildcard_constraints:
-        sample = "[a-zA-Z0-9_\-]*"
     message:
         "Clipping alignment overlaps: {wildcards.sample}"
     shell:
@@ -151,13 +156,11 @@ rule clip_overlap:
 rule alignment_coverage:
     input: 
         bed = f"Genome/{bn}.bed",
-        bam = outdir + "/{sample}.bam"
+        bam = outdir + "/align/{sample}.bam"
     output: 
         outdir + "/stats/coverage/data/{sample}.cov.gz"
     message:
         "Calculating genomic coverage: {wildcards.sample}"
-    wildcard_constraints:
-        sample = "[a-zA-Z0-9_\-]*"
     threads: 
         2
     shell:
@@ -170,27 +173,24 @@ rule coverage_report:
         outdir + "/stats/coverage/{sample}.cov.html"
     message:
         "Summarizing alignment coverage: {wildcards.sample}"
-    wildcard_constraints:
-        sample = "[a-zA-Z0-9_\-]*"
+
     script:
         "reportBwaGencov.Rmd"
 
 rule alignment_bxstats:
     input:
-        bam = outdir + "/{sample}.bam",
-        bai = outdir + "/{sample}.bam.bai"
+        bam = outdir + "/align/{sample}.bam",
+        bai = outdir + "/align/{sample}.bam.bai"
     output: 
         outdir + "/stats/BXstats/data/{sample}.bxstats.gz"
     message:
         "Calculating barcode alignment statistics: {wildcards.sample}"
-    wildcard_constraints:
-        sample = "[a-zA-Z0-9_\-]*"
     params:
         sample = lambda wc: d[wc.sample],
     shell:
         "bxStats.py {input.bam} | gzip > {output}"
 
-rule bx_stats_report:
+rule bxstats_report:
     input:
         outdir + "/stats/BXstats/data/{sample}.bxstats.gz"
     output:	
@@ -202,8 +202,8 @@ rule bx_stats_report:
     
 rule general_alignment_stats:
     input:
-        bam      = outdir + "/{sample}.bam",
-        bai      = outdir + "/{sample}.bam.bai"
+        bam      = outdir + "/align/{sample}.bam",
+        bai      = outdir + "/align/{sample}.bam.bai"
     output: 
         stats    = temp(outdir + "/stats/samtools_stats/{sample}.stats"),
         flagstat = temp(outdir + "/stats/samtools_flagstat/{sample}.flagstat")
