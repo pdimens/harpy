@@ -44,17 +44,13 @@ def align(genome, threads, method, ema_bins, directory, extra_params, quality_fi
         print("Read the documentation for details: https://pdimens.github.io/harpy/dataformat/#naming-conventions", file = sys.stderr)
         sys.exit(1)
 
+    samplenames = set([re.sub(bn_r, "", i, flags = re.IGNORECASE) for i in fqlist])
     mapper = method
     ## DEPRECATED ##
     # create relative symlinks for input files with standard naming convention
     #linkdir = f"Align/{mapper}/input"
     # find the basenames with this flexible regex
     #samplenames = sanitize_fastq(full_fqlist, linkdir)  
-    flist = [os.path.basename(i) for i in glob.iglob(f"{directory}/*") if not os.path.isdir(i)]
-    r = re.compile(".*\.f(?:ast)?q(?:\.gz)?$", flags=re.IGNORECASE)
-    fqlist = list(filter(r.match, flist))
-    bn_r = r"[\.\_][RF](?:[12])?(?:\_00[1-9])*\.f(?:ast)?q(?:\.gz)?$"
-    samplenames = set([re.sub(bn_r, "", i, flags = re.IGNORECASE) for i in fqlist])
     command = f'snakemake --rerun-incomplete --cores {threads} --directory . --snakefile {harpypath}/align-{mapper}.smk'.split()
     if snakemake is not None:
         [command.append(i) for i in snakemake.split()]
