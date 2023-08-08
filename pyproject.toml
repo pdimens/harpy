@@ -4,14 +4,14 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "harpy"
+version = "0.2.0"
 authors = [
-    {name = "Pavel Dimens"}
+    "Pavel Dimens <pdimens@gmail.com>"
 ]
 description = "An automated workflow to trim reads, map sequences, call variants, impute genotypes, and phase haplotypes of Haplotagging data. Batteries included."
 requires-python = ">=3.7"
 readme = {file = "README.md", content-type = "text/markdown"}
 license = {text = "GPL-3.0"}
-dynamic = ["version"]
 
 [tool.setuptools.packages.find]
 where = ["src"]
