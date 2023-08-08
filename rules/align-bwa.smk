@@ -5,9 +5,9 @@ import glob
 outdir      = "Align/bwa"
 seq_dir		= config["seq_directory"]
 genomefile 	= config["genomefile"]
+samplenames = config["samplenames"]
 extra 		= config.get("extra", "") 
 bn 			= os.path.basename(genomefile)
-samplenames = config["samplenames"]
 
 d = dict(zip(samplenames, samplenames))
 

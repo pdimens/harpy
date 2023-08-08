@@ -45,6 +45,8 @@ def align(genome, threads, method, ema_bins, directory, extra_params, quality_fi
         sys.exit(1)
 
     samplenames = set([re.sub(bn_r, "", i, flags = re.IGNORECASE) for i in fqlist])
+    print(samplenames)
+    exit()
     mapper = method
     ## DEPRECATED ##
     # create relative symlinks for input files with standard naming convention
