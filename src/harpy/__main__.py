@@ -1,13 +1,6 @@
 #!/usr/bin/env python3
+
 import os
-from .harpymisc import getnames_err, getnames, vcfcheck
-from .extra import extra
-from .demultiplex import demultiplex
-from .trim import trim
-from .align import align
-from .variants import variants
-from .impute import impute
-from .phase import phase
 
 try:
     harpypath = '{CONDA_PREFIX}'.format(**os.environ) + "/bin"
@@ -22,6 +15,14 @@ except:
     print(details)
     exit(1)
 
+from .harpymisc import getnames_err, getnames, vcfcheck
+from .extra import extra
+from .demultiplex import demultiplex
+from .trim import trim
+from .align import align
+from .variants import variants
+from .impute import impute
+from .phase import phase
 import rich_click as click
 
 click.rich_click.USE_MARKDOWN = True
@@ -133,4 +134,4 @@ def main():
     cli()
 
 if __name__ == '__main__':
-    cli()
+    exit(cli())
