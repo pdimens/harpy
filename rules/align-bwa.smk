@@ -96,7 +96,7 @@ rule align:
         genome 		  = f"Genome/{bn}",
         genome_idx 	  = multiext(f"Genome/{bn}", ".ann", ".bwt", ".fai", ".pac", ".sa", ".amb")
     output:  
-        outdir + "/{sample}/{sample}.sort.bam",
+        temp(outdir + "/{sample}/{sample}.sort.bam"),
     log:
         outdir + "/logs/{sample}.log"
     message:
@@ -105,10 +105,10 @@ rule align:
         "Benchmark/Mapping/bwa/align.{sample}.txt"
     params: 
         quality = config["quality"],
-        tmpdir = lambda wc: outdir + "/" + d[wc.sample],
+        tmpdir = lambda wc: outdir + "/." + d[wc.sample],
         extra   = extra
     threads:
-        8
+        10
     shell:
         """
         #Align/bwa/{wildcards.sample}
