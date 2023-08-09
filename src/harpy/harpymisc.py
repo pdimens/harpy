@@ -88,7 +88,7 @@ def check_impute_params(parameters):
                 colerr += 1
         if culprits["model"]:
             print("Invalid values for column \033[01mmodel\033[00m.", file = sys.stderr)
-            print("Expected values: diploid, diploid-inbred, pseudoHaploid (case-sensitive).", file = sys.stderr)
+            print("Expected values: diploid, diploid-inbred, pseudoHaploid (case-sensitive)", file = sys.stderr)
             print("Rows causing error: " + " ".join(culprits["model"]), file = sys.stderr)
             print("", file = sys.stderr)
 
@@ -98,7 +98,7 @@ def check_impute_params(parameters):
                 colerr += 1
         if culprits["usebx"]:
             print("Invalid values for column \033[01musebx\033[00m.", file = sys.stderr)
-            print("Expected values: True, False (not case sensitive).", file = sys.stderr)
+            print("Expected values: True, False (not case sensitive)", file = sys.stderr)
             print("Rows causing error: " + " ".join(culprits["usebx"]), file = sys.stderr)
             print("", file = sys.stderr)
 
