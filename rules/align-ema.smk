@@ -366,7 +366,7 @@ rule all:
     run:
         for i,j in zip(input.bam, input.bai):
             fname = os.path.basename(i)
-            fnamebai = os.path.basename(i,j)
+            fnamebai = os.path.basename(j)
             try:
                 # move file into base path
                 os.rename(i, f"{outdir}/{fname}")
