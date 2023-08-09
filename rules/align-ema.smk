@@ -255,7 +255,28 @@ rule sort_merge:
     threads:
         2
     shell:
-        "samtools sort -@ {threads} -O bam --reference {input.genome} -m 4G --write-index -o {output.bam}###idx###{output.bai} {input.bam} 2> /dev/null"
+        "samtools sort -@ {threads} -O bam --reference {input.genome} -m 4G --write-index -o {output.bam}##idx##{output.bai} {input.bam} 2> /dev/null"
+
+rule bx_stats_alignments:
+    input:
+        bam = outdir + "/{sample}/{sample}.sorted.bam",
+        bai = outdir + "/{sample}/{sample}.sorted.bam.bai"
+    output: 
+        outdir + "/stats/BXstats/data/{sample}.bxstats.gz"
+    message:
+        "Calculating barcode alignment statistics: {wildcards.sample}"
+    shell:
+        "bxStats.py {input.bam} | gzip > {output}"
+
+rule bx_stats_report:
+    input:
+        outdir + "/stats/BXstats/data/{sample}.bxstats.gz"
+    output:	
+        outdir + "/stats/BXstats/{sample}.bxstats.html"
+    message: 
+        "Generating summary of barcode alignment: {wildcards.sample}"
+    script:
+        "reportBxStats.Rmd"
 
 rule clip_overlap:
     input:
@@ -273,27 +294,6 @@ rule clip_overlap:
         bam clipOverlap --in {input.bam} --out {output.bam} --stats --noPhoneHome > {log} 2>&1
         samtools index {output.bam}
         """
-
-rule bx_stats_alignments:
-    input:
-        bam = outdir + "/align/{sample}.bam",
-        bai = outdir + "/align/{sample}.bam.bai"
-    output: 
-        outdir + "/stats/BXstats/data/{sample}.bxstats.gz"
-    message:
-        "Calculating barcode alignment statistics: {wildcards.sample}"
-    shell:
-        "bxStats.py {input.bam} | gzip > {output}"
-
-rule bx_stats_report:
-    input:
-        outdir + "/stats/BXstats/data/{sample}.bxstats.gz"
-    output:	
-        outdir + "/stats/BXstats/{sample}.bxstats.html"
-    message: 
-        "Generating summary of barcode alignment: {wildcards.sample}"
-    script:
-        "reportBxStats.Rmd"
 
 rule general_stats:
     input: 		

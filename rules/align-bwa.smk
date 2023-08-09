@@ -96,7 +96,9 @@ rule align:
         genome 		  = f"Genome/{bn}",
         genome_idx 	  = multiext(f"Genome/{bn}", ".ann", ".bwt", ".fai", ".pac", ".sa", ".amb")
     output:  
-        temp(outdir + "/{sample}/{sample}.sort.bam"),
+        bam = temp(outdir + "/{sample}/{sample}.sort.bam"),
+        bai = temp(outdir + "/{sample}/{sample}.sort.bam.bai")
+
     log:
         outdir + "/logs/{sample}.log"
     message:
@@ -115,9 +117,32 @@ rule align:
         BWA_THREADS=$(( {threads} - 2 ))
         bwa mem -C -t $BWA_THREADS {params.extra} -R \"@RG\\tID:{wildcards.sample}\\tSM:{wildcards.sample}\" {input.genome} {input.forward_reads} {input.reverse_reads} 2> {log} |
         samtools view -h -q {params.quality} | 
-        samtools sort -T {params.tmpdir} --reference {input.genome} -O bam -l 0 -m 4G > {output} 2> /dev/null
+        samtools sort -T {params.tmpdir} --reference {input.genome} -O bam -l 0 -m 4G --write-index -o {output.bam}##idx##{output.bai} 2> /dev/null
         rm -rf {params.tmpdir}
         """
+
+rule alignment_bxstats:
+    input:
+        bam = outdir + "/{sample}/{sample}.sort.bam"
+        bai = outdir + "/{sample}/{sample}.sort.bam.bai"
+    output: 
+        outdir + "/stats/BXstats/data/{sample}.bxstats.gz"
+    message:
+        "Calculating barcode alignment statistics: {wildcards.sample}"
+    params:
+        sample = lambda wc: d[wc.sample],
+    shell:
+        "bxStats.py {input.bam} | gzip > {output}"
+
+rule bxstats_report:
+    input:
+        outdir + "/stats/BXstats/data/{sample}.bxstats.gz"
+    output:	
+        outdir + "/stats/BXstats/{sample}.bxstats.html"
+    message: 
+        "Generating summary of barcode alignment: {wildcards.sample}"
+    script:
+        "reportBxStats.Rmd"
 
 rule mark_duplicates:
     input:
@@ -176,29 +201,6 @@ rule coverage_report:
 
     script:
         "reportBwaGencov.Rmd"
-
-rule alignment_bxstats:
-    input:
-        bam = outdir + "/align/{sample}.bam",
-        bai = outdir + "/align/{sample}.bam.bai"
-    output: 
-        outdir + "/stats/BXstats/data/{sample}.bxstats.gz"
-    message:
-        "Calculating barcode alignment statistics: {wildcards.sample}"
-    params:
-        sample = lambda wc: d[wc.sample],
-    shell:
-        "bxStats.py {input.bam} | gzip > {output}"
-
-rule bxstats_report:
-    input:
-        outdir + "/stats/BXstats/data/{sample}.bxstats.gz"
-    output:	
-        outdir + "/stats/BXstats/{sample}.bxstats.html"
-    message: 
-        "Generating summary of barcode alignment: {wildcards.sample}"
-    script:
-        "reportBxStats.Rmd"
     
 rule general_alignment_stats:
     input:
@@ -209,8 +211,6 @@ rule general_alignment_stats:
         flagstat = temp(outdir + "/stats/samtools_flagstat/{sample}.flagstat")
     message:
         "Calculating alignment stats: {wildcards.sample}"
-#    params:
-#        sample = lambda wc: d[wc.sample]
     benchmark:
         "Benchmark/Mapping/bwa/stats.{sample}.txt"
     shell:
