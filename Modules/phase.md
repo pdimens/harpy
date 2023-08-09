@@ -38,7 +38,16 @@ In addition to the [common runtime options](../commonoptions.md), the `harpy pha
 | `--indels           ` |    `-i`    | file path       |         |    no    | Path to genome if wanting to also use reads spanning indels          |
 | `--prune-threshold`   |    `-p`    | integer (0-100) |    7    |    no    | PHRED-scale (%) threshold for pruning low-confidence SNPs            |
 | `--ignore-bx`         |    `-b`    | toggle          |         |    no    | Ignore haplotag barcodes for phasing                                 |
+| `--vcf-samples`       |            |  toggle         |         |    no    | [Use samples present in vcf file](#prioritize-the-vcf-file) for imputation rather than those found the directory    |
 | `--extra-params`      |    `-x`    | string          |         |    no    | Additional Hapcut2 arguments, in quotes                              |
+
+### Prioritize the vcf file
+Sometimes you want to run imputation on all the samples present in the `--directory`, but other times you may want
+to only impute the samples present in the `--vcf` file. By default, Harpy assumes you want to use all the samples
+present in the `--directory` and will inform you of errors when there is a mismatch between the sample files
+present and those listed in the `--vcf` file. You can instead use the `--vcf-samples` flag if you want Harpy to build a workflow
+around the samples present in the `--vcf` file. When using this toggle, Harpy will inform you when samples in the `--vcf` file
+are missing from the provided `--directory`.  
 
 The molecule distance and pruning thresholds are considered the most impactful parameters
 for running HapCut2.

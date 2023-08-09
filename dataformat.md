@@ -43,12 +43,14 @@ Reads must be at least 30 base pairs in length for alignment. The `trim` module 
 
 ## Compression
 Harpy generally doesn't require the input sequences to be in gzipped/bgzipped format, but it's good practice to compress your reads anyway.
-Compressed files are expected to end with the extension `.gz`. There is a hard requirement for fastq files to be gzipped when [using ema](#file-naming-for-align-ema) to align reads. 
+Compressed files are expected to end with the extension `.gz`.
 
 ## Naming conventions
-Unfortunately, there are many different ways of naming FASTQ files, which makes it difficult to accomodate every wacky iteration currently in circulation.
-While Harpy tries its best to be flexible, there are limitations, specifically with how Snakemake has difficulty with the `harpy align --method ema` module.
-To that end, for the `demultiplex`, `trim`, and `align --method bwa` methods, the most common FASTQ naming styles are supported:
+Unfortunately, there are many different ways of naming FASTQ files, which makes it 
+difficult to accomodate every wacky iteration currently in circulation.
+While Harpy tries its best to be flexible, there are limitations. 
+To that end, for the `demultiplex`, `trim`, and `align` modules, the 
+most common FASTQ naming styles are supported:
 - **sample names**: Alphanumeric and `.`, `-`, `_`
     - you can mix and match special characters, but that's bad practice and not recommended
     - examples: `Sample.001`, `Sample_001_year4`, `Sample-001_population1.year2` <- not recommended
@@ -57,33 +59,5 @@ To that end, for the `demultiplex`, `trim`, and `align --method bwa` methods, th
 - **gzipped**: supported
 - **not gzipped**: supported (but not recommended)
 
-You can also mix and match different formats and styles within a given directory, although again, this isn't recommended
+You can also mix and match different formats and styles within a given directory, although again, **this isn't recommended**.
 As a good rule of thumb for any computational work, you should be deliberate and consistent in how you name things.
-
-### file naming for align-ema
-As mentioned, the `align` workflow using `ema` is a bit of a problem with this. Not for lack of trying, but the logic that keeps the other modules
-flexible with naming doesn't seem to work with align-ema, at least not when Snakemake is concerned. Therefore, if you want to align you reads with `ema`,
-then you need to make sure your reads follow a **specific** and **consistent** naming convention. We would happily welcome anyone who is interested in fixing
-that module's logic to be as flexible as the other ones 🙏. 
-
-#### sample names
-Follow best-practices-- if you need to use special characters (among `.`, `_`, and `-`), then pick one and stick with it.
-When in doubt, use underscores (`_`).
-- examples: `Sample001`, `Sample_001`, `Sample001_population002_year3` 
-
-#### file extensions 
-👉 TL;DR: adhere to a single row in the table below 👈
-
-The fastq files **must be consistent** with regards to the extensions and read-pair naming styles.
-That is, you must only use `.fastq.gz` or only use `.fq.gz` for all files, and the same for `.
-R1.`/`.R2.` or `_R1.`/`_R2.`. Note that these are case-sensitive and the F/R1 designations **do not** have `_001` after them, like
-is sometimes seen in fastq names (*e.g.,* `_R1_001.fastq.gz`).
-
-#### :icon-check-circle: acceptable fastq names for **aligning with ema**
-| forward-reverse notation | extension  | example forward           | example reverse          |
-|:-------------------------|:-----------|:--------------------------|:-------------------------|
-| `.R1` / `.R2`            | `.fastq.gz` | ` samplename.R1.fastq.gz` | `samplename.R2.fastq.gz` |
-| `.R1` / `.R2`            | `.fq.gz`    | `samplename.R1.fq.gz`     | `samplename.R2.fq.gz`    |
-| `_R1` / `_R2`            | `.fastq.gz` | `samplename_R1.fastq.gz`  | `samplename_R2.fastq.gz` |
-| `_R1` / `_R2`            | `.fq.gz`    | `samplename_R1.fq.gz`     | `samplename_R2.fq.gz`    |
-

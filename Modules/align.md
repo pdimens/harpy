@@ -86,7 +86,7 @@ graph LR
     C-->D([mark duplicates])
     D-->E([clip overlaps])
     E-->F([alignment metrics])
-    F-->G([barcode stats])
+    D-->G([barcode stats])
 ```
 +++ :icon-file-directory: BWA output
 The `harpy align` module creates an `Align/bwa` directory with the folder structure below. `Sample1` is a generic sample name for demonstration purposes.

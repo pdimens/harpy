@@ -45,8 +45,17 @@ In addition to the [common runtime options](../commonoptions.md), the `harpy imp
 | argument       | short name | type        |    default    | required | description                                                                                     |
 |:---------------|:----------:|:------------|:-------------:|:--------:|:------------------------------------------------------------------------------------------------|
 | `--vcf`        |    `-v`    | file path   |               | **yes**  | Path to VCF/BCF file                                                                            |
-| `--directory      `  |    `-d`    | folder path |               | **yes**  | Directory with sequence alignments                                                              |
-| `--parameters` |    `-p`    | file path   |        | **yes**  | STITCH parameter file (tab-delimited)                                                           |
+| `--vcf-samples`        |     |  toggle   |               | no  |  [Use samples present in vcf file](#prioritize-the-vcf-file) for imputation rather than those found the directory    |
+| `--directory      `  |    `-d`    | folder path |             | **yes**  | Directory with sequence alignments                                                              |
+| `--parameters` |    `-p`    | file path   |        | **yes**  | STITCH [parameter file](#parameter-file) (tab-delimited)                                                           |
+
+### Prioritize the vcf file
+Sometimes you want to run imputation on all the samples present in the `--directory`, but other times you may want
+to only impute the samples present in the `--vcf` file. By default, Harpy assumes you want to use all the samples
+present in the `--directory` and will inform you of errors when there is a mismatch between the sample files
+present and those listed in the `--vcf` file. You can instead use the `--vcf-samples` flag if you want Harpy to build a workflow
+around the samples present in the `--vcf` file. When using this toggle, Harpy will inform you when samples in the `--vcf` file
+are missing from the provided `--directory`.   
 
 ## :icon-file: Parameter file
 Typically, one runs STITCH multiple times, exploring how results vary with
