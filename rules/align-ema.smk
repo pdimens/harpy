@@ -367,14 +367,14 @@ rule all:
         for i,j in zip(input.bam, input.bai):
             fname = os.path.basename(i)
             fnamebai = os.path.basename(j)
-            try:
+            #try:
                 # move file into base path
-                os.rename(i, f"{outdir}/{fname}")
-                os.rename(j, f"{outdir}/{fnamebai}")
-                # preserve "original" in align folder as symlink
-                target = Path(f"{outdir}/{fname}").absolute()
-                targetbai = Path(f"{outdir}/{fnamebai}").absolute()
-                _ = Path(i).symlink_to(target)
-                _ = Path(j).symlink_to(targetbai)
-            except:
-                pass
+            os.rename(i, f"{outdir}/{fname}")
+            os.rename(j, f"{outdir}/{fnamebai}")
+            # preserve "original" in align folder as symlink
+            target = Path(f"{outdir}/{fname}").absolute()
+            targetbai = Path(f"{outdir}/{fnamebai}").absolute()
+            _ = Path(i).symlink_to(target)
+            _ = Path(j).symlink_to(targetbai)
+            #except:
+            #    pass
