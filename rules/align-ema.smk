@@ -129,7 +129,7 @@ rule align:
         quality = config["quality"],
         extra = extra
     threads:
-        8
+        10
     shell:
         """
         EMATHREADS=$(( {threads} - 2 ))
