@@ -351,6 +351,7 @@ rule log_runtime:
 rule all:
     input: 
         bam = expand(outdir + "/align/{sample}.bam", sample = samplenames),
+        bai = expand(outdir + "/align/{sample}.bam.bai", sample = samplenames),
         samtools = expand(outdir + "/stats/samtools_{stat}/{sample}.bc.{stat}", stat = ["stats", "flagstat"], sample = samplenames),
         covstats = expand(outdir + "/stats/coverage/{sample}.cov.html", sample = samplenames),
         bxstats = expand(outdir + "/stats/BXstats/{sample}.bxstats.html", sample = samplenames),
@@ -363,13 +364,17 @@ rule all:
         "Finished aligning! Moving alignment files into the base Align/ema directory."
     default_target: True
     run:
-        for i in input[0]:
+        for i,j in zip(input.bam, input.bai):
             fname = os.path.basename(i)
+            fnamebai = os.path.basename(i,j)
             try:
                 # move file into base path
                 os.rename(i, f"{outdir}/{fname}")
+                os.rename(j, f"{outdir}/{fnamebai}")
                 # preserve "original" in align folder as symlink
                 target = Path(f"{outdir}/{fname}").absolute()
+                targetbai = Path(f"{outdir}/{fnamebai}").absolute()
                 _ = Path(i).symlink_to(target)
+                _ = Path(j).symlink_to(targetbai)
             except:
                 pass

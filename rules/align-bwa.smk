@@ -25,23 +25,28 @@ def get_fq2(wildcards):
 
 rule all:
     input: 
-        expand(outdir + "/align/{sample}.bam", sample = samplenames),
-        expand(outdir + "/stats/coverage/{sample}.cov.html", sample = samplenames),
-        expand(outdir + "/stats/BXstats/{sample}.bxstats.html", sample = samplenames),
-        outdir + "/stats/bwa.stats.html",
-        outdir + "/logs/harpy.align.log"
+        bam = expand(outdir + "/align/{sample}.bam", sample = samplenames),
+        bai = expand(outdir + "/align/{sample}.bam.bai", sample = samplenames),
+        covreport = expand(outdir + "/stats/coverage/{sample}.cov.html", sample = samplenames),
+        bxreport = expand(outdir + "/stats/BXstats/{sample}.bxstats.html", sample = samplenames),
+        statsreport = outdir + "/stats/bwa.stats.html",
+        runlog = outdir + "/logs/harpy.align.log"
     message:
         "Finished aligning! Moving alignment files into the base Align/bwa directory."
     default_target: True
     run:
-        for i in input[0]:
+        for i,j in zip(input.bam, input.bai):
             fname = os.path.basename(i)
+            fnamebai = os.path.basename(i,j)
             try:
                 # move file into base path
                 os.rename(i, f"{outdir}/{fname}")
+                os.rename(j, f"{outdir}/{fnamebai}")
                 # preserve "original" in align folder as symlink
                 target = Path(f"{outdir}/{fname}").absolute()
+                targetbai = Path(f"{outdir}/{fnamebai}").absolute()
                 _ = Path(i).symlink_to(target)
+                _ = Path(j).symlink_to(targetbai)
             except:
                 pass
 
