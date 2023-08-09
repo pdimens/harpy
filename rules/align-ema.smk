@@ -127,6 +127,7 @@ rule align:
         "Aligning barcoded sequences: {wildcards.sample}"
     params: 
         quality = config["quality"],
+        tmpdir = lambda wc: outdir + "/." + d[wc.sample],
         extra = extra
     threads:
         10
@@ -135,7 +136,8 @@ rule align:
         EMATHREADS=$(( {threads} - 2 ))
         ema align -t $EMATHREADS {params.extra} -d -p haplotag -r {input.genome} -R \"@RG\\tID:{wildcards.sample}\\tSM:{wildcards.sample}\" -x {input.readbin} 2> /dev/null |
         samtools view -h -F 4 -q {params.quality} - | 
-        samtools sort --reference {input.genome} -O bam --write-index -m 4G -o {output.aln}##idx##{output.idx} - 2> /dev/null
+        samtools sort -T {params.tmpdir} --reference {input.genome} -O bam --write-index -m 4G -o {output.aln}##idx##{output.idx} - 2> /dev/null
+        rm -rf {params.tmpdir}
         """
 
 rule align_nobarcode:
