@@ -123,7 +123,7 @@ rule align:
 
 rule alignment_bxstats:
     input:
-        bam = outdir + "/{sample}/{sample}.sort.bam"
+        bam = outdir + "/{sample}/{sample}.sort.bam",
         bai = outdir + "/{sample}/{sample}.sort.bam.bai"
     output: 
         outdir + "/stats/BXstats/data/{sample}.bxstats.gz"
