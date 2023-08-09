@@ -345,8 +345,15 @@ rule log_runtime:
             _ = f.write("\tsamtools view -h -F 4 -q " + str(config["quality"]) + " - |\n") 
             _ = f.write("\tsamtools sort --reference genome -m 4G\n\n")
             _ = f.write("Invalid/non barcoded sequences were aligned with BWA using:\n")
-            _ = f.write("\tbwa mem -C -R \"@RG\\tID:SAMPLE\\tSM:SAMPLE\" genome forward_reads reverse_reads |\n")
+            _ = f.write("\tbwa mem -C -R \"@RG\\tID:SAMPLE\\tSM:SAMPLE\" genome forward_reads reverse_reads\n")
+            _ = f.write("Duplicats in non-barcoded alignments were marked using:\n")
             _ = f.write("\tsambamba markdup -l 0\n")
+            _ = f.write("Alignments were merged using:\n")
+            _ = f.write("\tsambamba merge output.bam barcode.bam nobarcode.bam\n")
+            _ = f.write("Merged alignments were sorted using:\n")
+            _ = f.write("\tsamtools sort merged.bam\n")
+            _ = f.write("Overlaps were clipped using:\n")
+            _ = f.write("\tbam clipOverlap --in file.bam --out outfile.bam --stats --noPhoneHome\n")
 
 rule all:
     input: 

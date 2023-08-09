@@ -253,3 +253,5 @@ rule log_runtime:
             _ = f.write("\tsamtools sort -T SAMPLE --reference genome -m 4G\n")
             _ = f.write("Duplicates in the alignments were marked using sambamba:\n")
             _ = f.write("\tsambamba markdup -l 0\n")
+            _ = f.write("Overlaps were clipped using:\n")
+            _ = f.write("\tbam clipOverlap --in file.bam --out outfile.bam --stats --noPhoneHome\n")
