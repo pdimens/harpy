@@ -16,9 +16,9 @@ parameters <- snakemake@params[["parameters"]]
 modeltype <- parameters$model
 K <- parameters$k
 S <- parameters$s
-.bx <- toupper(parameters$useBX)
+.bx <- toupper(parameters$usebx)
 bx <- .bx == "TRUE" || .bx == "YES" || .bx == "Y"
-nGenerations <- parameters$nGen
+nGenerations <- parameters$ngen
 nCores <- snakemake@threads
 inputBundleBlockSize <- NA
 

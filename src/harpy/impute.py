@@ -1,4 +1,4 @@
-from .harpymisc import getnames_err, vcfcheck
+from .harpymisc import getnames_err, vcfcheck, check_impute_params
 import rich_click as click
 import subprocess
 import sys
@@ -47,37 +47,9 @@ def impute(parameters, directory, threads, vcf, vcf_samples, snakemake, quiet):
         print(", ".join(sorted(missing_samples)), file = sys.stderr)
         print(f"\n\033[1;34mSOLUTION:\033[00m \033[01m{fromthis}\033[00m cannot contain samples that are absent in \033[01m{inthis}\033[00m. Check the spelling or remove those samples from \033[01m{fromthis}\033[00m or remake the vcf file to include/omit these samples. Alternatively, toggle \033[01m--vcf-samples\033[00m to aggregate the sample list from \033[01m{directory}\033[00m or \033[01m{vcf}\033[00m.\n", file = sys.stderr)
         sys.exit(1)
-    ### check that parameter file is valid
-    with open(parameters, "r") as fp:
-        header = fp.readline().rstrip()
-        headersplt = header.split()
-        row = 0
-        badrows = []
-        badlens = []
-        if headersplt != ["model", "useBX", "k", "s", "nGen"]:
-            print(f"\n\033[1;33mERROR:\033[00m Parameter file \033[01m{parameters}\033[00m has incorrect column names. Valid names are case-sensitive and in this order:\nmodel useBX k s nGen\n", file = sys.stderr)
-            print(f"Columns in {parameters}:\n{header}\n", file = sys.stderr)
-            print(f"\033[1;34mSOLUTION:\033[00m Fix the headers in \033[01m{parameters}\033[00m or use \033[01mharpy extra -s stitch.params\033[00m to generate a valid parameter file and modify it with appropriate values.")
-            sys.exit(1)
-        while True:
-            # Get next line from file
-            line = fp.readline()
-            row += 1
-            # if line is empty, end of file is reached
-            if not line:
-                break
-            # split the line by whitespace
-            rowlen = len(line.rstrip().split())
-            if rowlen != 5:
-                badrows.append(row)
-                badlens.append(rowlen)
-        if len(badrows) > 0:
-            print(f"\n\033[1;33mERROR:\033[00m Parameter file \033[01m{parameters}\033[00m is formatted incorrectly. Not all rows have the expected 5 columns.", file = sys.stderr)
-            print(f"\n\033[1;34mSOLUTION:\033[00m See the problematic rows below. Check that you are using a whitespace (space or tab) delimeter in \033[01m{parameters}\033[00m or use \033[01mharpy extra -s stitch.params\033[00m to generate a valid parameter file and modify it with appropriate values.")
-            print("\033[01mrow\tcolumns\033[00m")
-            for i in zip(badrows, badlens):
-                print(f"{i[0]}\t{i[1]}")
-            sys.exit(1)
+
+    check_impute_params(parameters)
+
     command = f'snakemake --rerun-incomplete --cores {threads} --directory . --snakefile {harpypath}/impute.smk'.split()
     if snakemake is not None:
         [command.append(i) for i in snakemake.split()]

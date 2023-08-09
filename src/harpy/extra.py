@@ -53,7 +53,7 @@ def extra(popgroup, stitch_params, hpc):
     if stitch_params is not None:
         print('\033[1m' + "<><> STITCH Parameter File <><>" + '\033[0m', file = sys.stderr)
         with open(stitch_params, "w") as file:
-            file.write('model\tuseBX\tk\ts\tnGen\npseudoHaploid\tTRUE\t10\t5\t50\npseudoHaploid\tTRUE\t10\t1\t50\npseudoHaploid\tTRUE\t15\t10\t100')
+            file.write('model\tusebx\tk\ts\tngen\npseudoHaploid\tTRUE\t10\t5\t50\npseudoHaploid\tTRUE\t10\t1\t50\npseudoHaploid\tTRUE\t15\t10\t100')
         print(f"Created example parameter file: {stitch_params}", file = sys.stderr)
         print("Modify the model parameters as needed, but " + '\033[1m' + "DO NOT" + '\033[0m' + " add/remove columns", file = sys.stderr)
 

@@ -11,6 +11,8 @@ paramfile   = config["paramfile"]
 contigs     = config["contigs"]
 # declare a dataframe to be the paramspace
 paramspace  = Paramspace(pd.read_csv(paramfile, delim_whitespace = True), param_sep = "", filename_params="*")
+# standardize colnames to be lowercase
+paramspace  = paramspace.rename(columns=str.lower)
 
 rule sort_bcf:
     input:
@@ -84,7 +86,7 @@ rule impute:
         # in the form of a dict (here: {"k": ..., "s": ..., "ngen": ...})
         parameters = paramspace.instance
     message: 
-        "Performing imputation: {wildcards.part}\nmodel: {wildcards.model}\nuseBX: {wildcards.useBX}\n    k: {wildcards.k}\n    s: {wildcards.s}\n nGen: {wildcards.nGen}"
+        "Performing imputation: {wildcards.part}\nmodel: {wildcards.model}\nuseBX: {wildcards.usebx}\n    k: {wildcards.k}\n    s: {wildcards.s}\n nGen: {wildcards.ngen}"
     benchmark:
         f"Benchmark/Impute/stitch.{paramspace.wildcard_pattern}" + ".{part}.txt"
     threads:
