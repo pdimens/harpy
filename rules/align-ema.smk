@@ -73,7 +73,7 @@ rule beadtag_count:
         forward_reads = get_fq1,
         reverse_reads = get_fq2
     output: 
-        counts = outdir + "/{sample}/{sample}.ema-ncnt",
+        counts = tmp(outdir + "/{sample}/{sample}.ema-ncnt"),
         logs   = temp(outdir + "/logs/count/{sample}.count")
     message:
         "Counting barcode frequency: {wildcards.sample}"
@@ -372,16 +372,17 @@ rule all:
     default_target: True
     run:
         for i,j in zip(input.bam, input.bai):
-            fname = os.path.basename(i)
-            fnamebai = os.path.basename(j)
-            #try:
+            if not os.path.islink(i):
+                # yank out just the filename
+                fname = os.path.basename(i)
                 # move file into base path
-            os.rename(i, f"{outdir}/{fname}")
-            os.rename(j, f"{outdir}/{fnamebai}")
-            # preserve "original" in align folder as symlink
-            target = Path(f"{outdir}/{fname}").absolute()
-            targetbai = Path(f"{outdir}/{fnamebai}").absolute()
-            _ = Path(i).symlink_to(target)
-            _ = Path(j).symlink_to(targetbai)
-            #except:
-            #    pass
+                os.rename(i, f"{outdir}/{fname}")
+                # preserve "original" in align folder as symlink
+                target = Path(f"{outdir}/{fname}").absolute()
+                _ = Path(i).symlink_to(target)
+            if not os.path.islink(j):
+                # same for .bai file
+                fnamebai = os.path.basename(j)
+                os.rename(j, f"{outdir}/{fnamebai}")
+                targetbai = Path(f"{outdir}/{fnamebai}").absolute()
+                _ = Path(j).symlink_to(targetbai)
