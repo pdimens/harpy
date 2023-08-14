@@ -81,7 +81,8 @@ if(sum(.dpL) == 0){
 } else {
   dp <- read.table(text=dataL[.dpL])[ , 3:7]
   names(dp) <- c("Bin", "Genotypes", "PercentGenotypes", "NumberSites", "PercentSites")
-  dpplot <- ggplot(data = dp, mapping = aes(x = sort(as.numeric(Bin)), y = NumberSites)) +
+  dp$Bin <- as.numeric(dp$Bin)
+  dpplot <- ggplot(data = dp, mapping = aes(x = Bin, y = NumberSites)) +
     geom_bar(stat = "identity", color = "#F28500", fill = "#F28500") +
     scale_y_continuous(n.breaks=10) +
     labs(title = "Depth per Site") +
