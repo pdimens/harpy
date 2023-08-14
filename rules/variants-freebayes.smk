@@ -104,9 +104,8 @@ rule call_variants:
         extra = extra
     shell:
         """
-        #freebayes -f {input.ref} -L {input.samples} {params} | bcftools sort - -Ob --output {output.bcf} 2> /dev/null
-        #bcftools index {output.bcf}
-        freebayes -f {input.ref} -L {input.samples} {params} | bcftools sort - -Ob --output {output} --write-index 2> /dev/null
+        freebayes -f {input.ref} -L {input.samples} {params} | bcftools sort - -Ob --output {output.bcf} 2> /dev/null
+        bcftools index {output.bcf}
         """
 
 rule concat_list:
