@@ -138,9 +138,9 @@ rule call_genotypes:
         ploidy = f"--ploidy {ploidy}"
     shell:
         """
-        bcftools call --multiallelic-caller {params} --variants-only --output-type b {input} | bcftools sort - --output {output.bcf} --write-index 2> /dev/null
-        #bcftools call --multiallelic-caller {params} --variants-only --output-type b {input} | bcftools sort - --output {output.bcf} 2> /dev/null
-        #bcftools index {output.bcf}
+        #bcftools call --multiallelic-caller {params} --variants-only --output-type b {input} | bcftools sort - --output {output.bcf} --write-index 2> /dev/null
+        bcftools call --multiallelic-caller {params} --variants-only --output-type b {input} | bcftools sort - --output {output.bcf} 2> /dev/null
+        bcftools index {output.bcf}
         """
 
 rule merge_vcfs:
@@ -158,9 +158,9 @@ rule merge_vcfs:
         50
     shell:  
         """
-        bcftools concat -f {input.filelist} --threads {threads} --naive -Ob --write-index > {output.bcf} 2> {log}
-        #bcftools concat -f {input.filelist} --threads {threads} --naive -Ob > {output.bcf} 2> {log}
-        #bcftools index --threads {threads} {output.bcf}
+        #bcftools concat -f {input.filelist} --threads {threads} --naive -Ob --write-index > {output.bcf} 2> {log}
+        bcftools concat -f {input.filelist} --threads {threads} --naive -Ob > {output.bcf} 2> {log}
+        bcftools index --threads {threads} {output.bcf}
         """
 
 rule normalize_bcf:
@@ -177,9 +177,9 @@ rule normalize_bcf:
         2
     shell:
         """
-        bcftools norm -d exact -f {input.genome} {input.bcf} | bcftools norm -m -any -N -Ob --write-index > {output.bcf}
-        #bcftools norm -d exact -f {input.genome} {input.bcf} | bcftools norm -m -any -N -Ob > {output.bcf}
-        #bcftools index --threads {threads} {output.bcf}
+        #bcftools norm -d exact -f {input.genome} {input.bcf} | bcftools norm -m -any -N -Ob --write-index > {output.bcf}
+        bcftools norm -d exact -f {input.genome} {input.bcf} | bcftools norm -m -any -N -Ob > {output.bcf}
+        bcftools index --threads {threads} {output.bcf}
         """
         
 rule variants_stats:
