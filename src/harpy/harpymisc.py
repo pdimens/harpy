@@ -61,8 +61,6 @@ def createregions(infile, window, base):
                 bedregion.append(f"{contig}:{startpos}-{endpos}")
         return bedregion
 
-_regions   = createregions(genomefile, chunksize)
-
 def check_impute_params(parameters):
     with open(parameters, "r") as fp:
         header = fp.readline().rstrip().lower()
