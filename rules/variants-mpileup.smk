@@ -36,7 +36,7 @@ def createregions(infile, window):
             start = 1
             end = window
             starts = [1]
-            ends = [window + 1]
+            ends = [window]
             while end < c_len:
                 end = end + window if (end + window) < c_len else c_len
                 ends.append(end)
