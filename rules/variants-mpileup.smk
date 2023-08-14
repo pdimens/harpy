@@ -50,16 +50,6 @@ rule samplenames:
             for samplename in samplenames:
                 _ = fout.write(samplename + "\n")		
 
-rule concat_list:
-    output:
-        outdir + "/logs/vcf.files"
-    message:
-        "Creating list of region-specific vcf files"
-    run:
-        with open(output[0], "w") as fout:
-            for vcf in intervals:
-                _ = fout.write(f"{outdir}/regions/{vcf}.vcf\n")   
-
 rule mpileup:
     input:
         bamlist = outdir + "/logs/samples.files",
@@ -96,10 +86,22 @@ rule call_genotypes:
         bcftools index {output.bcf}
         """
 
+rule concat_list:
+    input:
+        bcfs = expand(outdir + "/call/{part}.bcf", part = intervals),
+    output:
+        outdir + "/logs/bcf.files"
+    message:
+        "Creating list of region-specific vcf files"
+    run:
+        with open(output[0], "w") as fout:
+            for bcf in input.bcfs:
+                _ = fout.write(f"{bcf}\n")  
+
 rule merge_vcfs:
     input:
         vcfs     = expand(outdir + "/call/{part}.{ext}", part = intervals, ext = ["bcf", "bcf.csi"]),
-        filelist = outdir + "/logs/vcf.files"
+        filelist = outdir + "/logs/bcf.files"
     output:
         bcf = outdir + "/variants.raw.bcf",
         idx = outdir + "/variants.raw.bcf.csi"
