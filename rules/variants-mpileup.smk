@@ -33,7 +33,7 @@ def createregions(infile, window):
             lsplit = line.split()
             contig = lsplit[0]
             c_len = int(lsplit[1])
-            start = 0
+            start = 1
             end = window
             starts = [0]
             ends = [window]
@@ -48,17 +48,6 @@ def createregions(infile, window):
 
 _regions   = createregions(genomefile, chunksize)
 regions = dict(zip(_regions, _regions))
-
-#if groupings is not None:
-#	absent = []
-#	with open(groupings) as f:
-#		for line in f:
-#			samp, pop = line.rstrip().split()
-#			if samp not in samplenames:
-#				absent.append(samp)
-#	if absent:
-#		sys.tracebacklimit = 0
-#		raise ValueError(f"{len(absent)} sample(s) in \033[1m{groupings}\033[0m not found in \033[1m{bam_dir}\033[0m directory:\n\033[33m" + ", ".join(absent) + "\033[0m")
 
 rule index_alignments:
     input:
