@@ -35,7 +35,7 @@ def createregions(infile, window):
             c_len = int(lsplit[1])
             start = 1
             end = window
-            starts = [0]
+            starts = [1]
             ends = [window]
             while end < c_len:
                 end = end + window if (end + window) < c_len else c_len
