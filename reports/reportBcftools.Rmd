@@ -22,6 +22,7 @@ library(tidyr)
 library(DT)
 library(plotly)
 library(RColorBrewer)
+library(scales)
 #dataL <- readLines("~/checkstats.txt")
 dataL <- readLines(snakemake@input[[1]])
 bcf <- gsub(".stats$", ".bcf", snakemake@input[[1]])
@@ -57,7 +58,7 @@ pscplot <- ggplot(data = tidy_psc, mapping = aes(x = Count, y = Sample, color = 
   geom_point(size = 2) +
   labs(title = "Individual Statistics") +
   theme_bw() +
-  scale_x_continuous(n.breaks=9) +
+  scale_x_continuous(n.breaks=9, labels = comma) +
   xlab("Count") +
   scale_color_brewer(palette = "Dark2") +
   theme(panel.grid.minor = element_blank(), panel.grid.major.y = element_blank(), axis.title.y = element_blank())
@@ -111,7 +112,8 @@ if(sum(.dpL) == 0){
 ```
 
 ## Insertions and Deletions
-Below is the distribution of insertions and deletions based on length and frequency.
+Below is the distribution of insertions and deletions based on length and frequency. The deletion
+length is presented here as negative values for visual clarity. 
 ```{r Indel Stats, echo=FALSE, message=FALSE, warning=FALSE, paged.print=TRUE, out.width="100%"}
 .iddL <- grepl("^IDD", dataL)
 if(sum(.iddL) == 0){
