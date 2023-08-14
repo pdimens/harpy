@@ -57,7 +57,7 @@ rule concat_list:
         "Creating list of region-specific vcf files"
     run:
         with open(output[0], "w") as fout:
-            for vcf in _regions:
+            for vcf in intervals:
                 _ = fout.write(f"{outdir}/regions/{vcf}.vcf\n")   
 
 rule mpileup:
@@ -98,7 +98,7 @@ rule call_genotypes:
 
 rule merge_vcfs:
     input:
-        vcfs     = expand(outdir + "/call/{part}.{ext}", part = _regions, ext = ["bcf", "bcf.csi"]),
+        vcfs     = expand(outdir + "/call/{part}.{ext}", part = intervals, ext = ["bcf", "bcf.csi"]),
         filelist = outdir + "/logs/vcf.files"
     output:
         bcf = outdir + "/variants.raw.bcf",

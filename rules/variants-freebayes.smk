@@ -79,12 +79,12 @@ rule concat_list:
         "Creating list of region-specific vcf files"
     run:
         with open(output[0], "w") as fout:
-            for bcf in _regions:
+            for bcf in intervals:
                 _ = fout.write(f"{outdir}/regions/{bcf}.bcf\n")   
 
 rule merge_vcfs:
     input:
-        bcfs = expand(outdir + "/regions/{part}.{ext}", part = _regions, ext = ["bcf", "bcf.csi"]),
+        bcfs = expand(outdir + "/regions/{part}.{ext}", part = intervals, ext = ["bcf", "bcf.csi"]),
         filelist = outdir + "/logs/bcf.files"
     output:
         bcf = outdir + "/variants.raw.bcf",
