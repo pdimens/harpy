@@ -1,4 +1,4 @@
-from .harpymisc import getnames_err
+from .harpymisc import getnames_err, createregions
 import rich_click as click
 import subprocess
 import sys
@@ -42,6 +42,8 @@ def snp(genome, threads, directory, populations, ploidy, method,windowsize, extr
     """
     samplenames = getnames_err(directory, '.bam')
     vcaller = method
+    coordbase = 0 if method == "freebayes" else 1
+    callcoords = createregions(genome, windowsize, coordbase)
     command = (f'snakemake --rerun-incomplete --cores {threads} --directory . --snakefile {harpypath}/variants-{vcaller}.smk').split()
     if snakemake is not None:
         [command.append(i) for i in snakemake.split()]
@@ -69,7 +71,8 @@ def snp(genome, threads, directory, populations, ploidy, method,windowsize, extr
             sys.exit(1)
         command.append(f"groupings={populations}")
     command.append(f"ploidy={ploidy}")
-    command.append(f"windowsize={windowsize}")
+    #command.append(f"windowsize={windowsize}")
+    command.append(f"intervals={callcoords}")
     command.append(f"genomefile={genome}")
     if extra_params is not None:
         command.append(f"extra={extra_params}")

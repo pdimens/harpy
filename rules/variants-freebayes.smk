@@ -1,6 +1,5 @@
 import os
 import sys
-import subprocess
 
 bam_dir 	= config["seq_directory"]
 genomefile 	= config["genomefile"]
@@ -9,45 +8,10 @@ groupings 	= config.get("groupings", None)
 ploidy 		= config["ploidy"]
 samplenames = config["samplenames"]
 extra 	    = config.get("extra", "") 
-outdir      = "Variants/freebayes"
 chunksize   = config["windowsize"]
-
-# create a python list of regions instead of creating a multitude of files
-def createregions(infile, window):
-    bn = os.path.basename(infile)
-    os.makedirs("Genome", exist_ok = True)
-    if not os.path.exists(f"Genome/{bn}"):
-        shell(f"ln -sr {infile} Genome/{bn}")
-    if not os.path.exists(f"Genome/{bn}.fai"):
-        print(f"Genome/{bn}.fai not found, indexing {bn} with samtools faidx", file = sys.stderr)
-        subprocess.run(["samtools","faidx", "--fai-idx", f"Genome/{bn}.fai", infile, "2>", "/dev/null"])
-    with open(f"Genome/{bn}.fai") as fai:
-        bedregion = []
-        while True:
-            # Get next line from file
-            line = fai.readline()
-            # if line is empty, end of file is reached
-            if not line:
-                break
-            # split the line by tabs
-            lsplit = line.split()
-            contig = lsplit[0]
-            c_len = int(lsplit[1])
-            start = 0
-            end = window
-            starts = [0]
-            ends = [window]
-            while end < c_len:
-                end = end + window if (end + window) < c_len else c_len
-                ends.append(end)
-                start += window
-                starts.append(start)
-            for (startpos, endpos) in zip (starts,ends):
-                bedregion.append(f"{contig}:{startpos}-{endpos}")
-        return bedregion
-
-_regions   = createregions(genomefile, chunksize)
-regions = dict(zip(_regions, _regions))
+intervals   = config["intervals"]
+outdir      = "Variants/freebayes"
+regions     = dict(zip(intervals, intervals))
 
 rule index_alignments:
     input:

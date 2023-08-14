@@ -28,6 +28,41 @@ def getnames_err(directory, ext):
         raise Exception(f"\033[1;33mERROR:\033[00m No sample files ending with {ext} found in {directory}.")
     return samplenames
 
+def createregions(infile, window, base):
+    bn = os.path.basename(infile)
+    os.makedirs("Genome", exist_ok = True)
+    if not os.path.exists(f"Genome/{bn}"):
+        shell(f"ln -sr {infile} Genome/{bn}")
+    if not os.path.exists(f"Genome/{bn}.fai"):
+        print(f"Genome/{bn}.fai not found, indexing {bn} with samtools faidx", file = sys.stderr)
+        subprocess.run(["samtools","faidx", "--fai-idx", f"Genome/{bn}.fai", infile, "2>", "/dev/null"])
+    with open(f"Genome/{bn}.fai") as fai:
+        bedregion = []
+        while True:
+            # Get next line from file
+            line = fai.readline()
+            # if line is empty, end of file is reached
+            if not line:
+                break
+            # split the line by tabs
+            lsplit = line.split()
+            contig = lsplit[0]
+            c_len = int(lsplit[1])
+            start = base
+            end = window
+            starts = [base]
+            ends = [window]
+            while end < c_len:
+                end = end + window if (end + window) < c_len else c_len
+                ends.append(end)
+                start += window
+                starts.append(start)
+            for (startpos, endpos) in zip (starts,ends):
+                bedregion.append(f"{contig}:{startpos}-{endpos}")
+        return bedregion
+
+_regions   = createregions(genomefile, chunksize)
+
 def check_impute_params(parameters):
     with open(parameters, "r") as fp:
         header = fp.readline().rstrip().lower()
