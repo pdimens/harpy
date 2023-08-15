@@ -38,8 +38,12 @@ def get_samplenames(smpl):
     with open(smpl, "r") as f:
         #rows = [i.split("\t")[0] for i in f.readlines()]
         for i in f.readlines():
-            smpl, bc = i.split()
-            d[smpl] = bc
+            # a casual way to ignore empty lines or lines with >2 fields
+            try:
+                smpl, bc = i.split()
+                d[smpl] = bc
+            except:
+                continue
     return d
 
 samples = get_samplenames(samplefile)

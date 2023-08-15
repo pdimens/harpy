@@ -21,7 +21,7 @@ def demultiplex(file, method, samplesheet, threads, snakemake, quiet):
     Double-check that you are using the correct haplotag method (`--method`), since the different barcoding approaches
     have very different demultiplexing strategies. Note: the `--samplesheet` must be or space delimited and have no header (i.e. no column names).
     """
-    command = f'snakemake --rerun-incomplete --cores {threads} --directory . --snakefile {harpypath}/demultiplex.{method}.smk'.split()
+    command = f'snakemake --rerun-incomplete --nolock --cores {threads} --directory . --snakefile {harpypath}/demultiplex.{method}.smk'.split()
     if snakemake is not None:
         [command.append(i) for i in snakemake.split()]
     if quiet:
