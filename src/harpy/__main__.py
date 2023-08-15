@@ -39,8 +39,9 @@ def cli():
     """
     ## Harpy haplotagging pipeline
     
-    An automated workflow to trim reads, map sequences, call variants, impute genotypes,
-    and phase haplotypes of Haplotagging data. Batteries included.
+    An automated workflow to demultiplex sequences, trim reads, 
+    map sequences, call variants, impute genotypes, and phase 
+    haplotypes of Haplotagging data. Batteries included.
     
     **demultiplex >> trim >> align >> variants >> impute >> phase**
     
