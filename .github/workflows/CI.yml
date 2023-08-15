@@ -44,7 +44,7 @@ jobs:
         run: pip install setuptools --upgrade
       - name: Install harpy
         run: |
-          /usr/share/miniconda3/condabin/mamba activate harpy
+          conda activate harpy
           python -m pip install --no-deps /home/runner/work/harpy/
       - name: Test harpy
         run: harpy --version
