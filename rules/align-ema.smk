@@ -123,6 +123,9 @@ rule align:
     output:
         aln = temp(outdir + "/{sample}/{sample}.bc.bam"),
         idx = temp(outdir + "/{sample}/{sample}.bc.bam.bai")
+    log:
+        ema     = outdir + "/logs/{sample}.ema.align.log",
+        emasort = outdir + "/logs/{sample}.ema.sort.log"
     message:
         "Aligning barcoded sequences: {wildcards.sample}"
     params: 
@@ -134,9 +137,9 @@ rule align:
     shell:
         """
         EMATHREADS=$(( {threads} - 2 ))
-        ema align -t $EMATHREADS {params.extra} -d -p haplotag -r {input.genome} -R \"@RG\\tID:{wildcards.sample}\\tSM:{wildcards.sample}\" -x {input.readbin} 2> /dev/null |
+        ema align -t $EMATHREADS {params.extra} -d -p haplotag -r {input.genome} -R \"@RG\\tID:{wildcards.sample}\\tSM:{wildcards.sample}\" -x {input.readbin} 2> {logs.ema} |
         samtools view -h -F 4 -q {params.quality} - | 
-        samtools sort -T {params.tmpdir} --reference {input.genome} -O bam --write-index -m 4G -o {output.aln}##idx##{output.idx} - 2> /dev/null
+        samtools sort -T {params.tmpdir} --reference {input.genome} -O bam --write-index -m 4G -o {output.aln}##idx##{output.idx} - 2> {logs.emasort}
         rm -rf {params.tmpdir}
         """
 
@@ -147,6 +150,9 @@ rule align_nobarcode:
         genome_idx = multiext(f"Genome/{bn}", ".ann", ".bwt", ".fai", ".pac", ".sa", ".amb")
     output: 
         temp(outdir + "/{sample}/{sample}.nobc.bam")
+    log:
+        bwa     = outdir + "/logs/{sample}.bwa.align.log",
+        bwasort = outdir + "/logs/{sample}.bwa.sort.log"
     benchmark:
         "Benchmark/Mapping/ema/bwaAlign.{sample}.txt"
     params:
@@ -158,9 +164,9 @@ rule align_nobarcode:
     shell:
         """
         BWATHREADS=$(( {threads} - 2 ))
-        bwa mem -t $BWATHREADS -C -R \"@RG\\tID:{wildcards.sample}\\tSM:{wildcards.sample}\" {input.genome} {input.reads} 2> /dev/null |
+        bwa mem -t $BWATHREADS -C -R \"@RG\\tID:{wildcards.sample}\\tSM:{wildcards.sample}\" {input.genome} {input.reads} 2> {logs.bwa} |
         samtools view -h -F 4 -q {params.quality} | 
-        samtools sort -O bam -m 4G --reference {input.genome} -o {output} 2> /dev/null
+        samtools sort -O bam -m 4G --reference {input.genome} -o {output} 2> {logs.bwasort}
         """
 
 rule mark_duplicates:

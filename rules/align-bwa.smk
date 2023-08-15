@@ -104,9 +104,9 @@ rule align:
     output:  
         bam = temp(outdir + "/{sample}/{sample}.sort.bam"),
         bai = temp(outdir + "/{sample}/{sample}.sort.bam.bai")
-
     log:
-        outdir + "/logs/{sample}.log"
+        bwa     = outdir + "/logs/{sample}.bwa.align.log",
+        bwasort = outdir + "/logs/{sample}.bwa.sort.log"
     message:
         "Aligning sequences: {wildcards.sample}"
     benchmark:
@@ -119,11 +119,10 @@ rule align:
         10
     shell:
         """
-        #Align/bwa/{wildcards.sample}
         BWA_THREADS=$(( {threads} - 2 ))
-        bwa mem -C -t $BWA_THREADS {params.extra} -R \"@RG\\tID:{wildcards.sample}\\tSM:{wildcards.sample}\" {input.genome} {input.forward_reads} {input.reverse_reads} 2> {log} |
+        bwa mem -C -t $BWA_THREADS {params.extra} -R \"@RG\\tID:{wildcards.sample}\\tSM:{wildcards.sample}\" {input.genome} {input.forward_reads} {input.reverse_reads} 2> {log.bwa} |
         samtools view -h -q {params.quality} | 
-        samtools sort -T {params.tmpdir} --reference {input.genome} -O bam -l 0 -m 4G --write-index -o {output.bam}##idx##{output.bai} 2> /dev/null
+        samtools sort -T {params.tmpdir} --reference {input.genome} -O bam -l 0 -m 4G --write-index -o {output.bam}##idx##{output.bai} 2> {log.bwasort}
         rm -rf {params.tmpdir}
         """
 
