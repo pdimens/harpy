@@ -43,4 +43,6 @@ jobs:
         if: steps.cache.outputs.cache-hit != 'true'
 
       - name: Install harpy
-        run: pip install --no-deps .
+        run: python -m pip install --no-deps .
+      - name: Test harpy
+        run: harpy --version
