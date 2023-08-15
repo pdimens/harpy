@@ -37,13 +37,14 @@ jobs:
           path: /usr/share/miniconda3/envs/harpy
           key: linux-64-conda-${{ hashFiles('misc/harpyenv.yaml') }}-${{ env.DATE }}-${{ env.CACHE_NUMBER }}
         id: cache
-
       - name: Update environment
         run: mamba env update -n harpy -f misc/harpyenv.yaml
         if: steps.cache.outputs.cache-hit != 'true'
       - name: Update setuptools
         run: pip install setuptools --upgrade
       - name: Install harpy
-        run: python -m pip install --no-deps .
+        run: |
+          /usr/share/miniconda3/condabin/mamba activate harpy
+          python -m pip install --no-deps /home/runner/work/harpy/
       - name: Test harpy
         run: harpy --version
