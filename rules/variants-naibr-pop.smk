@@ -193,11 +193,11 @@ rule log_runtime:
             _ = f.write(f"The directory with alignments: {bam_dir}\n")
             _ = f.write(f"The sample grouping file: {groupfile}\n\n")
             _ = f.write("naibr variant calling ran using these configurations:\n")
-            _ = f.write(f"bam_file=BAMFILE\n")
-            _ = f.write(f"prefix=PREFIX\n")
-            _ = f.write(f"outdir=Variants/naibr/PREFIX\n")
+            _ = f.write(f"    bam_file=BAMFILE\n")
+            _ = f.write(f"    prefix=PREFIX\n")
+            _ = f.write(f"    outdir=Variants/naibr/PREFIX\n")
             for i in argdict:
-                _ = f.write(f"{i}={argdict[i]}\n")
+                _ = f.write(f"    {i}={argdict[i]}\n")
 
 rule all:
     input:

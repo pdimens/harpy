@@ -343,23 +343,23 @@ rule log_runtime:
             _ = f.write(f"The provided genome: {bn}\n")
             _ = f.write(f"The directory with sequences: {seq_dir}\n")
             _ = f.write("Barcodes were counted and validated with EMA using:\n")
-            _ = f.write("\tseqfu interleave forward.fq.gz reverse.fq.gz | ema count -p\n")
+            _ = f.write("    seqfu interleave forward.fq.gz reverse.fq.gz | ema count -p\n")
             _ = f.write("Barcoded sequences were binned with EMA using:\n")
-            _ = f.write(f"\tseqfu interleave forward.fq.gz reverse.fq.gz | ema preproc -p -n {nbins}\n")
+            _ = f.write(f"    seqfu interleave forward.fq.gz reverse.fq.gz | ema preproc -p -n {nbins}\n")
             _ = f.write("Barcoded bins were aligned with ema align using:\n")
-            _ = f.write("\tema align " + extra + " -d -p haptag -R \"@RG\\tID:SAMPLE\\tSM:SAMPLE\" |\n")
-            _ = f.write("\tsamtools view -h -F 4 -q " + str(config["quality"]) + " - |\n") 
-            _ = f.write("\tsamtools sort --reference genome -m 4G\n\n")
+            _ = f.write("    ema align " + extra + " -d -p haptag -R \"@RG\\tID:SAMPLE\\tSM:SAMPLE\" |\n")
+            _ = f.write("    samtools view -h -F 4 -q " + str(config["quality"]) + " - |\n") 
+            _ = f.write("    samtools sort --reference genome -m 4G\n\n")
             _ = f.write("Invalid/non barcoded sequences were aligned with BWA using:\n")
-            _ = f.write("\tbwa mem -C -R \"@RG\\tID:SAMPLE\\tSM:SAMPLE\" genome forward_reads reverse_reads\n")
+            _ = f.write("    bwa mem -C -R \"@RG\\tID:SAMPLE\\tSM:SAMPLE\" genome forward_reads reverse_reads\n")
             _ = f.write("Duplicats in non-barcoded alignments were marked using:\n")
-            _ = f.write("\tsambamba markdup -l 0\n")
+            _ = f.write("    sambamba markdup -l 0\n")
             _ = f.write("Alignments were merged using:\n")
-            _ = f.write("\tsambamba merge output.bam barcode.bam nobarcode.bam\n")
+            _ = f.write("    sambamba merge output.bam barcode.bam nobarcode.bam\n")
             _ = f.write("Merged alignments were sorted using:\n")
-            _ = f.write("\tsamtools sort merged.bam\n")
+            _ = f.write("    samtools sort merged.bam\n")
             _ = f.write("Overlaps were clipped using:\n")
-            _ = f.write("\tbam clipOverlap --in file.bam --out outfile.bam --stats --noPhoneHome\n")
+            _ = f.write("    bam clipOverlap --in file.bam --out outfile.bam --stats --noPhoneHome\n")
 
 rule all:
     input: 
@@ -371,8 +371,6 @@ rule all:
         bxcounts = f"{outdir}/stats/reads.bxcounts.html",
         emastats = f"{outdir}/stats/ema.stats.html",
         runlog = f"{outdir}/logs/harpy.align.log"
-        #expand(outdir + "/{sample}/{sample}.markdup.nobc.bam", sample = samplenames),
-        #expand(outdir + "/{sample}/{sample}.bc.bam", sample = samplenames)
     message:
         "Finished aligning! Moving alignment files into the base Align/ema directory."
     default_target: True

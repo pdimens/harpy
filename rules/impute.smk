@@ -26,7 +26,9 @@ rule sort_bcf:
         "Sorting input variant call file"
     shell:
         """
-        bcftools sort -Ob --write-index {input} > {output.bcf} 2> {log}
+        #bcftools sort -Ob --write-index {input} > {output.bcf} 2> {log}
+        bcftools sort -Ob {input} > {output.bcf} 2> {log}
+        bcftools index {output.bcf}
         """
 
 rule bam_list:
@@ -168,21 +170,10 @@ rule merge_vcfs:
     threads: 50
     shell:
         """
-        bcftools concat --threads {threads} -o {output} --output-type b --write-index -f {input.files} 2> /dev/null"
-        #bcftools concat --threads {threads} -o {output} --output-type b -f {input.files} 2> /dev/null
+        #bcftools concat --threads {threads} -o {output} --output-type b --write-index -f {input.files} 2> /dev/null"
+        bcftools concat --threads {threads} -o {output} --output-type b -f {input.files} 2> /dev/null
+        bcftools index {output}
         """
-
-#rule index_merged:
-#    input:
-#        "Impute/{stitchparams}/variants.imputed.bcf"
-#    output:
-#        "Impute/{stitchparams}/variants.imputed.bcf.csi"
-#    message:
-#        "Indexing: {wildcards.stitchparams}/variants.imputed.bcf"
-#    shell:
-#        "bcftools index {input}"
-#
-# TODO MERGE IMPUTED WITH ORIGINAL ?
 
 rule stats:
     input:
@@ -244,8 +235,8 @@ rule log_runtime:
             _ = f.write(f"The provided variant file: {variantfile}\n")
             _ = f.write(f"The directory with alignments: {bam_dir}\n")
             _ = f.write("Preprocessing was performed with:\n")
-            _ = f.write("\tbcftools view -M2 -v snps --regions CONTIG INFILE |\n")
-            _ = f.write("""\tbcftools query -i '(STRLEN(REF)==1) & (STRLEN(ALT[0])==1) & (REF!="N")' -f '%CHROM\\t%POS\\t%REF\\t%ALT\\n'\n""")
+            _ = f.write("    bcftools view -M2 -v snps --regions CONTIG INFILE |\n")
+            _ = f.write("""    bcftools query -i '(STRLEN(REF)==1) & (STRLEN(ALT[0])==1) & (REF!="N")' -f '%CHROM\\t%POS\\t%REF\\t%ALT\\n'\n""")
             _ = f.write("## STITCH imputation ##\n")
             _ = f.write("The STITCH parameters were governed by the rows of the input parameter table:\n")
             with open(config["paramfile"], "r") as f1:
@@ -254,21 +245,21 @@ rule log_runtime:
             _ = f.write("\nWithin R, STITCH was invoked with the following parameters:\n")
             _ = f.write(
                 "STITCH(\n" +
-                "\tmethod               = model,\n" +
-                "\tposfile              = posfile,\n" +
-                "\tbamlist              = bamlist,\n" +
-                "\tnCores               = nCores,\n" +
-                "\tnGen                 = nGen,\n" +
-                "\tchr                  = chr,\n" +
-                "\tK                    = k,\n" +
-                "\tS                    = s,\n" +
-                "\tuse_bx_tag           = useBX,\n" +
-                "\tbxTagUpperLimit      = 50000,\n" +
-                "\tniterations          = 40,\n" +
-                "\tswitchModelIteration = 39,\n" +
-                "\tsplitReadIterations  = NA,\n" +
-                "\toutputdir            = outdir,\n" +
-                "\toutput_filename      = outfile\n)\n"
+                "    method               = model,\n" +
+                "    posfile              = posfile,\n" +
+                "    bamlist              = bamlist,\n" +
+                "    nCores               = nCores,\n" +
+                "    nGen                 = nGen,\n" +
+                "    chr                  = chr,\n" +
+                "    K                    = k,\n" +
+                "    S                    = s,\n" +
+                "    use_bx_tag           = useBX,\n" +
+                "    bxTagUpperLimit      = 50000,\n" +
+                "    niterations          = 40,\n" +
+                "    switchModelIteration = 39,\n" +
+                "    splitReadIterations  = NA,\n" +
+                "    outputdir            = outdir,\n" +
+                "    output_filename      = outfile\n)\n"
             )
 
 rule all:

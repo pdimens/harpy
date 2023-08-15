@@ -162,11 +162,11 @@ rule log_runtime:
             _ = f.write(f"The provided variant file: {variantfile}\n")
             _ = f.write(f"The directory with alignments: {bam_dir}\n")
             _ = f.write("The variant file was split by sample and preprocessed using:\n")
-            _ = f.write("""\tbcftools view -s SAMPLE | awk '/^#/;/CHROM/ OFS="\\t"; !/^#/ && $10~/^0\\/1/'\n\n""")
+            _ = f.write("""    bcftools view -s SAMPLE | awk '/^#/;/CHROM/ OFS="\\t"; !/^#/ && $10~/^0\\/1/'\n\n""")
             _ = f.write("Phasing was performed using the components of HapCut2:\n")
-            _ = f.write(f"\textractHAIRS {linkarg} --nf 1 --bam sample.bam --VCF sample.vcf --out sample.unlinked.frags\n")
-            _ = f.write(f"\tLinkFragments.py --bam sample.BAM --VCF sample.vcf --fragments sample.unlinked.frags --out sample.linked.frags -d {molecule_distance}\n")
-            _ = f.write(f"\tHAPCUT2 --fragments sample.linked.frags --vcf sample.vcf --out sample.blocks --nf 1 --error_analysis_mode 1 --call_homozygous 1 --outvcf 1 {params[0]} {params[1]}\n")
+            _ = f.write(f"    extractHAIRS {linkarg} --nf 1 --bam sample.bam --VCF sample.vcf --out sample.unlinked.frags\n")
+            _ = f.write(f"    LinkFragments.py --bam sample.BAM --VCF sample.vcf --fragments sample.unlinked.frags --out sample.linked.frags -d {molecule_distance}\n")
+            _ = f.write(f"    HAPCUT2 --fragments sample.linked.frags --vcf sample.vcf --out sample.blocks --nf 1 --error_analysis_mode 1 --call_homozygous 1 --outvcf 1 {params[0]} {params[1]}\n")
 
 rule indexFinal:
     input:

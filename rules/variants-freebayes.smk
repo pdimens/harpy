@@ -162,11 +162,11 @@ rule log_runtime:
             _ = f.write(f"The directory with alignments: {bam_dir}\n")
             _ = f.write(f"Size of intervals to split genome for variant calling: {chunksize}\n")
             _ = f.write("The freebayes parameters:\n")
-            _ = f.write("\tfreebayes -f GENOME -L samples.list -r REGION " + " ".join(params) + " | bcftools sort -\n")
+            _ = f.write("    freebayes -f GENOME -L samples.list -r REGION " + " ".join(params) + " | bcftools sort -\n")
             _ = f.write("The variants identified in the intervals were merged into the final variant file using:\n")
-            _ = f.write("\tbcftools concat -f vcf.list -a --remove-duplicates\n")
+            _ = f.write("    bcftools concat -f vcf.list -a --remove-duplicates\n")
             _ = f.write("The variants were normalized using:\n")
-            _ = f.write("\tbcftools norm -d exact | bcftools norm -m -any -N -Ob\n")
+            _ = f.write("    bcftools norm -d exact | bcftools norm -m -any -N -Ob\n")
 
 rule all:
     input: 

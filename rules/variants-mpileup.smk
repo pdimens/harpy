@@ -177,13 +177,13 @@ rule log_runtime:
             _ = f.write(f"The directory with alignments: {bam_dir}\n")
             _ = f.write(f"Size of intervals to split genome for variant calling: {chunksize}\n")
             _ = f.write("The mpileup parameters:\n")
-            _ = f.write("\tbcftools mpileup --fasta-ref GENOME --region REGION --bam-list BAMS --annotate AD --output-type b" + mp_extra + "\n")
+            _ = f.write("    bcftools mpileup --fasta-ref GENOME --region REGION --bam-list BAMS --annotate AD --output-type b" + mp_extra + "\n")
             _ = f.write("The bcftools call parameters:\n")
-            _ = f.write("\tbcftools call --multiallelic-caller " + " ".join(params) + " --variants-only --output-type b | bcftools sort -\n")
+            _ = f.write("    bcftools call --multiallelic-caller " + " ".join(params) + " --variants-only --output-type b | bcftools sort -\n")
             _ = f.write("The variants identified in the intervals were merged into the final variant file using:\n")
-            _ = f.write("\tbcftools concat -f vcf.list -a --remove-duplicates\n")
+            _ = f.write("    bcftools concat -f vcf.list -a --remove-duplicates\n")
             _ = f.write("The variants were normalized using:\n")
-            _ = f.write("\tbcftools norm -d exact | bcftools norm -m -any -N -Ob\n")
+            _ = f.write("    bcftools norm -d exact | bcftools norm -m -any -N -Ob\n")
 
 rule all:
     input:

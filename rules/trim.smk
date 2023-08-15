@@ -90,7 +90,7 @@ rule log_runtime:
             _ = f.write("The harpy trim module ran using these parameters:\n\n")
             _ = f.write(f"The directory with sequences: {seq_dir}\n")
             _ = f.write("fastp trimming ran using:\n")
-            _ = f.write("\tfastp --trim_poly_g --cut_right --detect_adapter_for_pe" + " ".join(params) + "\n")
+            _ = f.write("    fastp --trim_poly_g --cut_right --detect_adapter_for_pe" + " ".join(params) + "\n")
 
 rule createReport:
     input: 

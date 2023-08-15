@@ -211,9 +211,9 @@ rule log_runtime:
             _ = f.write(f"The provided genome: {bn}\n")
             _ = f.write(f"The directory with alignments: {bam_dir}\n")
             _ = f.write("The barcodes were indexed using:\n")
-            _ = f.write("\tLRez index bam -p -b INPUT\n")
+            _ = f.write("    LRez index bam -p -b INPUT\n")
             _ = f.write("Leviathan was called using:\n")
-            _ = f.write(f"\tLEVIATHAN -b INPUT -i INPUT.BCI -g GENOME {params}\n")
+            _ = f.write(f"    LEVIATHAN -b INPUT -i INPUT.BCI -g GENOME {params}\n")
 
 rule all_bcfs:
     input: 

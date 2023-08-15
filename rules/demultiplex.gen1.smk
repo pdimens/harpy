@@ -176,9 +176,9 @@ rule log_runtime:
             _ = f.write("Haplotag technology: Generation I\n")
             _ = f.write(f"The multiplexed input file: {infile}\n")
             _ = f.write(f"The inferred files associated with {infile}:\n")
-            _ = f.write("\t" + "\n\t".join(infiles) + "\n")
+            _ = f.write("    " + "\n    ".join(infiles) + "\n")
             _ = f.write("Barcodes were moved into the read headers using the command:\n")
-            _ = f.write(f"\tdemuxGen1 DATA_ {inprefix}\n")
+            _ = f.write(f"    demuxGen1 DATA_ {inprefix}\n")
             _ = f.write(f"The delimited file associating CXX barcodes with samplenames: {samplefile}\n")
 
 rule all:

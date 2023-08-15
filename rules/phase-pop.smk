@@ -162,20 +162,10 @@ rule mergeAnnotations:
         bcftools annotate -h {input.headers} -a {input.annot} {input.orig} -c CHROM,POS,FMT/GX,FMT/PS,FMT/PQ,FMT/PD -m +HAPCUT |
         awk '!/<ID=GX/' |
         sed 's/:GX:/:GT:/' |
-        bcftools view -Ob --write-index -o {output.bcf} -
+        #bcftools view -Ob --write-index -o {output.bcf} -
+        bcftools view -Ob -o {output.bcf} -
+        bcftools index {output.bcf}
         """
-        
-# rule indexAnnotations2:
-#    input:
-#        outdir + "/annotations_merge/{sample}.phased.annot.bcf"
-#    output:
-#        outdir + "/annotations_merge/{sample}.phased.annot.bcf.csi"
-#    message:
-#        "Indexing annotations: {wildcards.sample}"
-#    benchmark:
-#        "Benchmark/Phase/indexAnno.{sample}.txt"
-#    shell:
-#        "bcftools index {input}"
 
 rule mergeSamples:
     input: 
@@ -191,7 +181,11 @@ rule mergeSamples:
     threads:
         30
     shell:
-        "bcftools merge --threads {threads} --Ob --write-index {input.bcf} > {output}"
+        """
+        bcftools merge --threads {threads} --Ob {input.bcf} > {output.bcf}
+        bcftools index {output.bcf}
+        """
+        #"bcftools merge --threads {threads} --Ob --write-index {input.bcf} > {output}"
 
 rule summarize_blocks:
     input:
@@ -235,24 +229,24 @@ rule log_runtime:
             _ = f.write(f"The provided variant file: {variantfile}\n")
             _ = f.write(f"The directory with alignments: {bam_dir}\n")
             _ = f.write("The variant file was split by sample and preprocessed using:\n")
-            _ = f.write("""\tbcftools view -s SAMPLE | awk '/^#/;/CHROM/ OFS="\\t"; !/^#/ && $10~/^0\\/1/'\n\n""")
+            _ = f.write("""    bcftools view -s SAMPLE | awk '/^#/;/CHROM/ OFS="\\t"; !/^#/ && $10~/^0\\/1/'\n\n""")
             _ = f.write("Phasing was performed using the components of HapCut2:\n")
-            _ = f.write("\textractHAIRS " + linkarg + " --nf 1 --bam sample.bam --VCF sample.vcf --out sample.unlinked.frags\n")
-            _ = f.write("\tLinkFragments.py --bam sample.bam --VCF sample.vcf --fragments sample.unlinked.frags --out sample.linked.frags -d " + f"{molecule_distance}" + "\n")
-            _ = f.write("\tHAPCUT2 --fragments sample.linked.frags --vcf sample.vcf --out sample.blocks --nf 1 --error_analysis_mode 1 --call_homozygous 1 --outvcf 1" + f" {params[0]} {params[1]}" + "\n\n")
+            _ = f.write("    extractHAIRS " + linkarg + " --nf 1 --bam sample.bam --VCF sample.vcf --out sample.unlinked.frags\n")
+            _ = f.write("    LinkFragments.py --bam sample.bam --VCF sample.vcf --fragments sample.unlinked.frags --out sample.linked.frags -d " + f"{molecule_distance}" + "\n")
+            _ = f.write("    HAPCUT2 --fragments sample.linked.frags --vcf sample.vcf --out sample.blocks --nf 1 --error_analysis_mode 1 --call_homozygous 1 --outvcf 1" + f" {params[0]} {params[1]}" + "\n\n")
             _ = f.write("Variant annotation was performed using:\n")
-            _ = f.write("\tbcftools query -f \"%CHROM\\t%POS[\\t%GT\\t%PS\\t%PQ\\t%PD]\\n\" sample.vcf | bgzip -c\n")
-            _ = f.write("\tbcftools annotate -h header.file -a sample.annot sample.bcf -c CHROM,POS,FMT/GX,FMT/PS,FMT/PQ,FMT/PD -m +HAPCUT |\n")
-            _ = f.write("\tawk '!/<ID=GX/' |\n")
-            _ = f.write("\tsed 's/:GX:/:GT:/' |\n")
-            _ = f.write("\tbcftools view -Ob -o sample.annot.bcf -\n")
-            _ = f.write("\tbcftools merge --output-type b samples.annot.bcf\n\n")
+            _ = f.write("    bcftools query -f \"%CHROM\\t%POS[\\t%GT\\t%PS\\t%PQ\\t%PD]\\n\" sample.vcf | bgzip -c\n")
+            _ = f.write("    bcftools annotate -h header.file -a sample.annot sample.bcf -c CHROM,POS,FMT/GX,FMT/PS,FMT/PQ,FMT/PD -m +HAPCUT |\n")
+            _ = f.write("    awk '!/<ID=GX/' |\n")
+            _ = f.write("    sed 's/:GX:/:GT:/' |\n")
+            _ = f.write("    bcftools view -Ob -o sample.annot.bcf -\n")
+            _ = f.write("    bcftools merge --output-type b samples.annot.bcf\n\n")
             _ = f.write("The header.file of extra vcf tags:\n")
-            _ = f.write('\t##INFO=<ID=HAPCUT,Number=0,Type=Flag,Description="The haplotype was created with Hapcut2">\n')
-            _ = f.write('\t##FORMAT=<ID=GX,Number=1,Type=String,Description="Haplotype">\n')
-            _ = f.write('\t##FORMAT=<ID=PS,Number=1,Type=Integer,Description="ID of Phase Set for Variant">\n')
-            _ = f.write('\t##FORMAT=<ID=PQ,Number=1,Type=Integer,Description="Phred QV indicating probability that this variant is incorrectly phased relative to the haplotype">\n')
-            _ = f.write('\t##FORMAT=<ID=PD,Number=1,Type=Integer,Description="phased Read Depth">\n')
+            _ = f.write('    ##INFO=<ID=HAPCUT,Number=0,Type=Flag,Description="The haplotype was created with Hapcut2">\n')
+            _ = f.write('    ##FORMAT=<ID=GX,Number=1,Type=String,Description="Haplotype">\n')
+            _ = f.write('    ##FORMAT=<ID=PS,Number=1,Type=Integer,Description="ID of Phase Set for Variant">\n')
+            _ = f.write('    ##FORMAT=<ID=PQ,Number=1,Type=Integer,Description="Phred QV indicating probability that this variant is incorrectly phased relative to the haplotype">\n')
+            _ = f.write('    ##FORMAT=<ID=PD,Number=1,Type=Integer,Description="phased Read Depth">\n')
 
 
 rule indexFinal:
