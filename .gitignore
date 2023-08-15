@@ -15,4 +15,3 @@ genome.fasta
 build/
 src/harpy.egg-info
 src/harpy/__pycache__
-test*/
