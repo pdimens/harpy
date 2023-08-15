@@ -186,7 +186,7 @@ rule all:
         fw_reads = expand(outdir + "{sample}.F.fq.gz", sample = samplenames),
         rv_reads = expand(outdir + "{sample}.R.fq.gz", sample = samplenames),
         runlog   = outdir + "logs/harpy.demultiplex.log",
-        qcreport =    outdir + "logs/demultiplex.QC.html"
+        qcreport = outdir + "logs/demultiplex.QC.html"
     default_target:
         True
     message:
