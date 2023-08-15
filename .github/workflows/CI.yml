@@ -39,7 +39,7 @@ jobs:
       - name: Install harpy
         run: |
           python3 -m pip install --upgrade build && python3 -m build
-          python3 -m pip install dist
+          pip install dist/*.whl
         shell: micromamba-shell {0}
       - name: Test harpy
         run: harpy --version
