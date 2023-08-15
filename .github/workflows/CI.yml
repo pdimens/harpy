@@ -37,7 +37,10 @@ jobs:
           cache-environment: true
           post-cleanup: 'all'
       - name: Install harpy
-        run: python3 -m pip install --upgrade build && python3 -m build
+        run: |
+          python3 -m pip install --upgrade build && python3 -m build
+          python3 -m pip install dist
+        shell: micromamba-shell {0}
       - name: Test harpy
         run: harpy --version
         shell: micromamba-shell {0}
