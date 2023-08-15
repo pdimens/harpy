@@ -73,7 +73,7 @@ rule beadtag_count:
         forward_reads = get_fq1,
         reverse_reads = get_fq2
     output: 
-        counts = tmp(outdir + "/{sample}/{sample}.ema-ncnt"),
+        counts = temp(outdir + "/{sample}/{sample}.ema-ncnt"),
         logs   = temp(outdir + "/logs/count/{sample}.count")
     message:
         "Counting barcode frequency: {wildcards.sample}"
