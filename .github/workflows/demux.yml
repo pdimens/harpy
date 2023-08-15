@@ -1,17 +1,19 @@
-name: ci
+name: Test Demultiplex
 
 on:
   push:
     branches:
       - 'dev'
-    paths-ignore:
-      - "*.md"
+    paths:
+      - '**demultiplex**.smk'
+      - '**demuxGen1'
 
   pull_request:
     branches:
-      - 'dev'
-    paths-ignore:
-      - "*.md"
+    - 'dev'
+    paths:
+      - '**demultiplex**.smk'
+      - '**demuxGen1'
 
   schedule:
     - cron: '0 0 * * *'
@@ -41,6 +43,7 @@ jobs:
           python3 -m pip install --upgrade build && python3 -m build
           pip install dist/*.whl
         shell: micromamba-shell {0}
-      - name: Test harpy
-        run: harpy --version
+
+      - name: Test demux
+        run: harpy demultiplex --file test/data/demux/Undetermined_S0_L004_I1_001.fastq.gz
         shell: micromamba-shell {0}
