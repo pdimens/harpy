@@ -48,9 +48,9 @@ jobs:
         shell: micromamba-shell {0}
 
       - name: Test harpy align bwa
-        run: harpy align -d test/data/trim -g test/data/genome/genome.fasta.gz
+        run: harpy align -d test/data/fastq -g test/data/genome/genome.fasta.gz
         shell: micromamba-shell {0}
 
       - name: Test harpy align ema
-        run: harpy align -d test/data/trim -g test/data/genome/genome.fasta.gz --method ema
+        run: harpy align -d test/data/fastq -g test/data/genome/genome.fasta.gz --method ema
         shell: micromamba-shell {0}
