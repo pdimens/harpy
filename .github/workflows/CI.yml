@@ -32,7 +32,7 @@ jobs:
       - name: Set cache date
         run: echo "DATE=$(date +'%Y%m%d')" >> $GITHUB_ENV
 
-      - uses: actions/cache@v2
+      - uses: actions/cache@v3
         with:
           path: /usr/share/miniconda3/envs/harpy
           key: linux-64-conda-${{ hashFiles('misc/harpyenv.yaml') }}-${{ env.DATE }}-${{ env.CACHE_NUMBER }}
@@ -43,6 +43,4 @@ jobs:
         if: steps.cache.outputs.cache-hit != 'true'
 
       - name: Install harpy
-        run: |
-          conda activate harpy
-          pip install --no-deps .
+        run: pip install --no-deps .
