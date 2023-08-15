@@ -7,6 +7,7 @@ on:
     paths:
       - '**demultiplex**.smk'
       - '**demuxGen1'
+      - '**demux.yml'
       - 'test/data/demux/**'
 
   pull_request:
@@ -15,6 +16,7 @@ on:
     paths:
       - '**demultiplex**.smk'
       - '**demuxGen1'
+      - '**demux.yml'
       - 'test/data/demux/**'
 
   schedule:
@@ -47,6 +49,6 @@ jobs:
           misc/buildforCI.sh
         shell: micromamba-shell {0}
 
-      - name: Test demux
+      - name: Test harpy demux
         run: harpy demultiplex --file test/data/demux/Undetermined_S0_L004_I1_001.fastq.gz --samplesheet test/data/demux/samples.schema
         shell: micromamba-shell {0}

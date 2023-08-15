@@ -7,6 +7,7 @@ on:
     paths:
       - '**trim.smk'
       - 'test/data/trim/**'
+      - '**trim.yml'
 
   pull_request:
     branches:
@@ -14,6 +15,7 @@ on:
     paths:
       - '**trim.smk'
       - 'test/data/trim/**'
+      - '**trim.yml'
 
   schedule:
     - cron: '0 0 * * *'
@@ -45,6 +47,6 @@ jobs:
           misc/buildforCI.sh
         shell: micromamba-shell {0}
 
-      - name: Test demux
+      - name: Test harpy trim
         run: harpy trim -d test/data/trim
         shell: micromamba-shell {0}
