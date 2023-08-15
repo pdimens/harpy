@@ -30,7 +30,7 @@ def trim(directory, max_length, extra_params, threads, snakemake, quiet):
         print("Read the documentation for details: https://pdimens.github.io/harpy/dataformat/#naming-conventions", file = sys.stderr)
         sys.exit(1)
 
-    command = f'snakemake --rerun-incomplete --cores {threads} --directory . --snakefile {harpypath}/trim.smk'.split()
+    command = f'snakemake --rerun-incomplete --nolock --cores {threads} --directory . --snakefile {harpypath}/trim.smk'.split()
     if snakemake is not None:
         [command.append(i) for i in snakemake.split()]
     if quiet:
