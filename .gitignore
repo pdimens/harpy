@@ -10,6 +10,7 @@ Impute/
 Phase/
 samples.populations
 *.fasta
+*.bcf
 genome.fasta
 build/
 src/harpy.egg-info
