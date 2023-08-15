@@ -45,5 +45,5 @@ jobs:
         shell: micromamba-shell {0}
 
       - name: Test demux
-        run: harpy demultiplex --file test/data/demux/Undetermined_S0_L004_I1_001.fastq.gz
+        run: harpy demultiplex --file test/data/demux/Undetermined_S0_L004_I1_001.fastq.gz --samplesheet test/data/demux/samples.schema
         shell: micromamba-shell {0}
