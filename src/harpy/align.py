@@ -51,7 +51,7 @@ def align(genome, threads, method, ema_bins, directory, extra_params, quality_fi
     #linkdir = f"Align/{mapper}/input"
     # find the basenames with this flexible regex
     #samplenames = sanitize_fastq(full_fqlist, linkdir)  
-    command = f'snakemake --rerun-incomplete --cores {threads} --directory . --snakefile {harpypath}/align-{mapper}.smk'.split()
+    command = f'snakemake --rerun-incomplete --nolock --cores {threads} --directory . --snakefile {harpypath}/align-{mapper}.smk'.split()
     if snakemake is not None:
         [command.append(i) for i in snakemake.split()]
     if quiet:

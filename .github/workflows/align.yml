@@ -1,0 +1,56 @@
+name: Test Align
+
+on:
+  push:
+    branches:
+      - 'dev'
+    paths:
+      - '**align**.smk'
+      - 'test/data/fastq/**'
+      - '**align.yml'
+
+  pull_request:
+    branches:
+      - 'dev'
+    paths:
+      - '**align**.smk'
+      - 'test/data/fastq/**'
+      - '**align.yml'
+
+  schedule:
+    - cron: '0 0 * * *'
+
+env:
+  CACHE_NUMBER: 0  # increase to reset cache manually
+
+jobs:
+  build:
+    name: linux64
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 1
+      - name: setup mamba
+        uses: mamba-org/setup-micromamba@v1
+        with:
+          init-shell: bash
+          generate-run-shell: true
+          environment-file: misc/harpyenv.yaml
+          cache-environment: true
+          post-cleanup: 'all'
+      - name: Install harpy
+        run: |
+          python3 -m pip install --upgrade build && python3 -m build
+          pip install dist/*.whl
+          misc/buildforCI.sh
+        shell: micromamba-shell {0}
+
+      - name: Test harpy align bwa
+        run: harpy align -d test/data/trim -g test/data/genome/genome.fasta.gz
+        shell: micromamba-shell {0}
+
+      - name: Test harpy align ema
+        run: harpy align -d test/data/trim -g test/data/genome/genome.fasta.gz --method ema
+        shell: micromamba-shell {0}
