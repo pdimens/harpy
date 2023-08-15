@@ -5,7 +5,7 @@ mkdir -p ${PREFIX}/bin
 
 # Harpy executable
 #cp harpy ${PREFIX}/bin/
-pip install -e .
+#pip install -e .
 
 # rules
 cp rules/*.smk ${PREFIX}/bin/

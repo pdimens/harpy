@@ -21,7 +21,8 @@ requirements:
     - setuptools-scm
     - pip
   run:
-    - bcftools >= 1.18
+    - bamutil
+    - bcftools >= 1.17
     - bioconductor-complexheatmap
     - bwa
     - ema >= 0.7
@@ -42,6 +43,7 @@ requirements:
     - r-magrittr
     - r-plotly
     - r-rmarkdown
+    - r-scales
     - r-stitch
     - r-tidyr
     - r-viridislite
