@@ -214,7 +214,7 @@ them further using the table above.
     facet_wrap(~contig, ncol = 2, scales = "free_x") +
     labs(x = "position (bp)", y = "depth") +
     scale_y_continuous(labels = scales::comma) +
-    scale_x_continuous(labels = scales::comma) +
+    scale_x_continuous(labels = scales::comma, guide = guide_axis(n.dodge = 2)) +
     theme(
       panel.grid.major.x = element_blank(),
       panel.grid.minor.x = element_blank(),

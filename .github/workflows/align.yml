@@ -5,7 +5,16 @@ on:
     branches:
       - 'dev'
     paths:
-      - '**align**.smk'
+      - 'rules/align-**.smk'
+      - '**align.py'
+      - 'reports/reportBwaGencov.Rmd'
+      - 'reports/reportEmaGencov.Rmd'
+      - 'reports/reportEmaCount.Rmd'
+      - 'reports/reportBxCount.Rmd'
+      - 'reports/reportBxStats.Rmd'
+      - 'reports/ilities/bxStats.py'
+      - 'utilities/countBX.py'
+      - 'utilities/makewindows.py'
       - 'test/data/fastq/**'
       - '**align.yml'
 
