@@ -1,8 +1,7 @@
 [![logo](https://github.com/pdimens/harpy/blob/docs/static/logo.png?raw=true)](https://pdimens.github.io/harpy)
 
 [![documentation badge](https://img.shields.io/badge/read%20the-documentation-fbab3a?style=for-the-badge&logo=Read%20The%20Docs)](https://pdimens.github.io/harpy) 
-[![Anaconda-Server Badge](https://anaconda.org/bioconda/harpy/badges/platforms.svg)](https://anaconda.org/bioconda/harpy)
-[![Anaconda-Server Badge](https://anaconda.org/bioconda/harpy/badges/downloads.svg)](https://anaconda.org/bioconda/harpy)
+[![Anaconda-Server Badge](https://img.shields.io/conda/dn/bioconda/harpy.svg?style=for-the-badge)](https://anaconda.org/bioconda/harpy)
 
 Haplotag Data Processing Pipeline
 
