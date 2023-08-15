@@ -12,10 +12,14 @@ source:
 build:
   number: 0
   skip: True  # [osx]
+  script: {{ PYTHON }} -m pip install --no-deps .
 
 requirements:
   build:
   host:
+    - python >=3.7
+    - setuptools-scm
+    - pip
   run:
     - bcftools >= 1.18
     - bioconductor-complexheatmap

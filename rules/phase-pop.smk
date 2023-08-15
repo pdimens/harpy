@@ -7,14 +7,13 @@ variantfile       = config["variantfile"]
 pruning           = config["prune"]
 molecule_distance = config["molecule_distance"]
 extra             = config.get("extra", "") 
-useindels         = config["indels"]
 outdir 			  = "Phase.noBX"if config["noBX"] else "Phase"
 fragfile          = "Phase.noBX/extractHairs/{sample}.unlinked.frags" if config["noBX"] else "Phase/linkFragments/{sample}.linked.frags"
 linkarg           = "--10x 0" if config["noBX"] else "--10x 1"
-if useindels:
-    indelarg 	  = f"--indels 1 --ref {useindels}"
-else:
-    indelarg      = ""
+try:
+    indelarg = "--indels 1 --ref " + config["indels"]
+except:
+    indelarg = ""
 
 rule splitbysamplehet:
     input: 
@@ -228,8 +227,6 @@ rule log_runtime:
     message:
         "Creating record of relevant runtime parameters"
     params:
-        links = linkarg,
-        d =  molecule_distance,
         prune = f"--threshold {pruning}" if pruning > 0 else "--no_prune 1",
         extra = extra
     run:
@@ -240,9 +237,9 @@ rule log_runtime:
             _ = f.write("The variant file was split by sample and preprocessed using:\n")
             _ = f.write("""\tbcftools view -s SAMPLE | awk '/^#/;/CHROM/ OFS="\\t"; !/^#/ && $10~/^0\\/1/'\n\n""")
             _ = f.write("Phasing was performed using the components of HapCut2:\n")
-            _ = f.write("\textractHAIRS " + params[0] + " --nf 1 --bam sample.bam --VCF sample.vcf --out sample.unlinked.frags\n")
-            _ = f.write("\tLinkFragments.py --bam sample.bam --VCF sample.vcf --fragments sample.unlinked.frags --out sample.linked.frags -d " + f"{params[1]}" + "\n")
-            _ = f.write("\tHAPCUT2 --fragments sample.linked.frags --vcf sample.vcf --out sample.blocks --nf 1 --error_analysis_mode 1 --call_homozygous 1 --outvcf 1" + f" {params[2]} {params[3]}" + "\n\n")
+            _ = f.write("\textractHAIRS " + linkarg + " --nf 1 --bam sample.bam --VCF sample.vcf --out sample.unlinked.frags\n")
+            _ = f.write("\tLinkFragments.py --bam sample.bam --VCF sample.vcf --fragments sample.unlinked.frags --out sample.linked.frags -d " + f"{molecule_distance}" + "\n")
+            _ = f.write("\tHAPCUT2 --fragments sample.linked.frags --vcf sample.vcf --out sample.blocks --nf 1 --error_analysis_mode 1 --call_homozygous 1 --outvcf 1" + f" {params[0]} {params[1]}" + "\n\n")
             _ = f.write("Variant annotation was performed using:\n")
             _ = f.write("\tbcftools query -f \"%CHROM\\t%POS[\\t%GT\\t%PS\\t%PQ\\t%PD]\\n\" sample.vcf | bgzip -c\n")
             _ = f.write("\tbcftools annotate -h header.file -a sample.annot sample.bcf -c CHROM,POS,FMT/GX,FMT/PS,FMT/PQ,FMT/PD -m +HAPCUT |\n")

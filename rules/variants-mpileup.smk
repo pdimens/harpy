@@ -1,6 +1,5 @@
 import os
 import sys
-import subprocess
 
 bam_dir 	= config["seq_directory"]
 genomefile 	= config["genomefile"]
@@ -9,56 +8,10 @@ groupings 	= config.get("groupings", None)
 ploidy 		= config["ploidy"]
 samplenames = config["samplenames"]
 mp_extra 	= config.get("extra", "") 
-outdir      = "Variants/mpileup"
 chunksize   = config["windowsize"]
-
-# create a python list of regions instead of creating a multitude of files
-def createregions(infile, window):
-    bn = os.path.basename(infile)
-    os.makedirs("Assembly", exist_ok = True)
-    if not os.path.exists(f"Genome/{bn}"):
-        shell(f"ln -sr {infile} Genome/{bn}")
-    if not os.path.exists(f"Genome/{bn}.fai"):
-        print(f"Genome/{bn}.fai not found, indexing {bn} with samtools faidx", file = sys.stderr)
-        subprocess.run(["samtools","faidx", "--fai-idx", f"Genome/{bn}.fai", infile, "2>", "/dev/null"])
-    with open(f"Genome/{bn}.fai") as fai:
-        bedregion = []
-        while True:
-            # Get next line from file
-            line = fai.readline()
-            # if line is empty, end of file is reached
-            if not line:
-                break
-            # split the line by tabs
-            lsplit = line.split()
-            contig = lsplit[0]
-            c_len = int(lsplit[1])
-            start = 0
-            end = window
-            starts = [0]
-            ends = [window]
-            while end < c_len:
-                end = end + window if (end + window) < c_len else c_len
-                ends.append(end)
-                start += window
-                starts.append(start)
-            for (startpos, endpos) in zip (starts,ends):
-                bedregion.append(f"{contig}:{startpos}-{endpos}")
-        return bedregion
-
-_regions   = createregions(genomefile, chunksize)
-regions = dict(zip(_regions, _regions))
-
-#if groupings is not None:
-#	absent = []
-#	with open(groupings) as f:
-#		for line in f:
-#			samp, pop = line.rstrip().split()
-#			if samp not in samplenames:
-#				absent.append(samp)
-#	if absent:
-#		sys.tracebacklimit = 0
-#		raise ValueError(f"{len(absent)} sample(s) in \033[1m{groupings}\033[0m not found in \033[1m{bam_dir}\033[0m directory:\n\033[33m" + ", ".join(absent) + "\033[0m")
+intervals   = config["intervals"]
+outdir      = "Variants/mpileup"
+regions     = dict(zip(intervals, intervals))
 
 rule index_alignments:
     input:
@@ -97,16 +50,6 @@ rule samplenames:
             for samplename in samplenames:
                 _ = fout.write(samplename + "\n")		
 
-rule concat_list:
-    output:
-        outdir + "/logs/vcf.files"
-    message:
-        "Creating list of region-specific vcf files"
-    run:
-        with open(output[0], "w") as fout:
-            for vcf in _regions:
-                _ = fout.write(f"{outdir}/regions/{vcf}.vcf\n")   
-
 rule mpileup:
     input:
         bamlist = outdir + "/logs/samples.files",
@@ -138,15 +81,27 @@ rule call_genotypes:
         ploidy = f"--ploidy {ploidy}"
     shell:
         """
-        bcftools call --multiallelic-caller {params} --variants-only --output-type b {input} | bcftools sort - --output {output.bcf} --write-index 2> /dev/null
-        #bcftools call --multiallelic-caller {params} --variants-only --output-type b {input} | bcftools sort - --output {output.bcf} 2> /dev/null
-        #bcftools index {output.bcf}
+        #bcftools call --multiallelic-caller {params} --variants-only --output-type b {input} | bcftools sort - --output {output.bcf} --write-index 2> /dev/null
+        bcftools call --multiallelic-caller {params} --variants-only --output-type b {input} | bcftools sort - --output {output.bcf} 2> /dev/null
+        bcftools index {output.bcf}
         """
+
+rule concat_list:
+    input:
+        bcfs = expand(outdir + "/call/{part}.bcf", part = intervals),
+    output:
+        outdir + "/logs/bcf.files"
+    message:
+        "Creating list of region-specific vcf files"
+    run:
+        with open(output[0], "w") as fout:
+            for bcf in input.bcfs:
+                _ = fout.write(f"{bcf}\n")  
 
 rule merge_vcfs:
     input:
-        vcfs     = expand(outdir + "/call/{part}.{ext}", part = _regions, ext = ["bcf", "bcf.csi"]),
-        filelist = outdir + "/logs/vcf.files"
+        vcfs     = expand(outdir + "/call/{part}.{ext}", part = intervals, ext = ["bcf", "bcf.csi"]),
+        filelist = outdir + "/logs/bcf.files"
     output:
         bcf = outdir + "/variants.raw.bcf",
         idx = outdir + "/variants.raw.bcf.csi"
@@ -158,9 +113,9 @@ rule merge_vcfs:
         50
     shell:  
         """
-        bcftools concat -f {input.filelist} --threads {threads} --naive -Ob --write-index > {output.bcf} 2> {log}
-        #bcftools concat -f {input.filelist} --threads {threads} --naive -Ob > {output.bcf} 2> {log}
-        #bcftools index --threads {threads} {output.bcf}
+        #bcftools concat -f {input.filelist} --threads {threads} --naive -Ob --write-index > {output.bcf} 2> {log}
+        bcftools concat -f {input.filelist} --threads {threads} --naive -Ob > {output.bcf} 2> {log}
+        bcftools index --threads {threads} {output.bcf}
         """
 
 rule normalize_bcf:
@@ -177,9 +132,9 @@ rule normalize_bcf:
         2
     shell:
         """
-        bcftools norm -d exact -f {input.genome} {input.bcf} | bcftools norm -m -any -N -Ob --write-index > {output.bcf}
-        #bcftools norm -d exact -f {input.genome} {input.bcf} | bcftools norm -m -any -N -Ob > {output.bcf}
-        #bcftools index --threads {threads} {output.bcf}
+        #bcftools norm -d exact -f {input.genome} {input.bcf} | bcftools norm -m -any -N -Ob --write-index > {output.bcf}
+        bcftools norm -d exact -f {input.genome} {input.bcf} | bcftools norm -m -any -N -Ob > {output.bcf}
+        bcftools index --threads {threads} {output.bcf}
         """
         
 rule variants_stats:

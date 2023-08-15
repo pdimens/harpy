@@ -1,6 +1,5 @@
 import os
 import sys
-import subprocess
 
 bam_dir 	= config["seq_directory"]
 genomefile 	= config["genomefile"]
@@ -9,45 +8,10 @@ groupings 	= config.get("groupings", None)
 ploidy 		= config["ploidy"]
 samplenames = config["samplenames"]
 extra 	    = config.get("extra", "") 
-outdir      = "Variants/freebayes"
 chunksize   = config["windowsize"]
-
-# create a python list of regions instead of creating a multitude of files
-def createregions(infile, window):
-    bn = os.path.basename(infile)
-    os.makedirs("Assembly", exist_ok = True)
-    if not os.path.exists(f"Genome/{bn}"):
-        shell(f"ln -sr {infile} Genome/{bn}")
-    if not os.path.exists(f"Genome/{bn}.fai"):
-        print(f"Genome/{bn}.fai not found, indexing {bn} with samtools faidx", file = sys.stderr)
-        subprocess.run(["samtools","faidx", "--fai-idx", f"Genome/{bn}.fai", infile, "2>", "/dev/null"])
-    with open(f"Genome/{bn}.fai") as fai:
-        bedregion = []
-        while True:
-            # Get next line from file
-            line = fai.readline()
-            # if line is empty, end of file is reached
-            if not line:
-                break
-            # split the line by tabs
-            lsplit = line.split()
-            contig = lsplit[0]
-            c_len = int(lsplit[1])
-            start = 0
-            end = window
-            starts = [0]
-            ends = [window]
-            while end < c_len:
-                end = end + window if (end + window) < c_len else c_len
-                ends.append(end)
-                start += window
-                starts.append(start)
-            for (startpos, endpos) in zip (starts,ends):
-                bedregion.append(f"{contig}:{startpos}-{endpos}")
-        return bedregion
-
-_regions   = createregions(genomefile, chunksize)
-regions = dict(zip(_regions, _regions))
+intervals   = config["intervals"]
+outdir      = "Variants/freebayes"
+regions     = dict(zip(intervals, intervals))
 
 rule index_alignments:
     input:
@@ -104,24 +68,25 @@ rule call_variants:
         extra = extra
     shell:
         """
-        #freebayes -f {input.ref} -L {input.samples} {params} | bcftools sort - -Ob --output {output.bcf} 2> /dev/null
-        #bcftools index {output.bcf}
-        freebayes -f {input.ref} -L {input.samples} {params} | bcftools sort - -Ob --output {output} --write-index 2> /dev/null
+        freebayes -f {input.ref} -L {input.samples} {params} | bcftools sort - -Ob --output {output.bcf} 2> /dev/null
+        bcftools index {output.bcf}
         """
 
 rule concat_list:
+    input:
+        bcfs = expand(outdir + "/regions/{part}.bcf", part = intervals),
     output:
         outdir + "/logs/bcf.files"
     message:
         "Creating list of region-specific vcf files"
     run:
         with open(output[0], "w") as fout:
-            for bcf in _regions:
-                _ = fout.write(f"{outdir}/regions/{bcf}.bcf\n")   
+            for bcf in input.bcfs:
+                _ = fout.write(f"{bcf}\n")   
 
 rule merge_vcfs:
     input:
-        bcfs = expand(outdir + "/regions/{part}.{ext}", part = _regions, ext = ["bcf", "bcf.csi"]),
+        bcfs = expand(outdir + "/regions/{part}.{ext}", part = intervals, ext = ["bcf", "bcf.csi"]),
         filelist = outdir + "/logs/bcf.files"
     output:
         bcf = outdir + "/variants.raw.bcf",
@@ -134,9 +99,9 @@ rule merge_vcfs:
         50
     shell:  
         """
-        bcftools concat -f {input.filelist} --threads {threads} --naive -Ob --write-index > {output.bcf} 2> {log}
-        #bcftools concat -f {input.filelist} --threads {threads} --naive -Ob > {output.bcf} 2> {log}
-        #bcftools index --threads {threads} {output.bcf}
+        #bcftools concat -f {input.filelist} --threads {threads} --naive -Ob --write-index > {output.bcf} 2> {log}
+        bcftools concat -f {input.filelist} --threads {threads} --naive -Ob > {output.bcf} 2> {log}
+        bcftools index --threads {threads} {output.bcf}
         """
 
 rule normalize_bcf:
@@ -151,9 +116,9 @@ rule normalize_bcf:
     threads: 2
     shell:
         """
-        bcftools norm -d exact -f {input.genome} {input.bcf} | bcftools norm -m -any -N -Ob --write-index > {output.bcf}
-        #bcftools norm -d exact -f {input.genome} {input.bcf} | bcftools norm -m -any -N -Ob > {output.bcf}
-        #bcftools index --threads {threads} {output.bcf}        
+        #bcftools norm -d exact -f {input.genome} {input.bcf} | bcftools norm -m -any -N -Ob --write-index > {output.bcf}
+        bcftools norm -d exact -f {input.genome} {input.bcf} | bcftools norm -m -any -N -Ob > {output.bcf}
+        bcftools index --threads {threads} {output.bcf}        
         """
 
 rule variants_stats:
