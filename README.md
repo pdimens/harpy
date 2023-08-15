@@ -3,7 +3,7 @@
 [![documentation badge](https://img.shields.io/badge/read%20the-documentation-fbab3a?style=for-the-badge&logo=Read%20The%20Docs)](https://pdimens.github.io/harpy) 
 [![Anaconda-Server Badge](https://img.shields.io/conda/dn/bioconda/harpy.svg?style=for-the-badge)](https://anaconda.org/bioconda/harpy)
 
-Haplotag Data Processing Pipeline
+[Haplotag](https://doi.org/10.1073/pnas.2015005118) Data Processing Pipeline
 
 ## Install
 Now hosted on [Bioconda](https://anaconda.org/bioconda/harpy)! Install harpy on Linux-based systems using [conda](https://mamba.readthedocs.io/en/latest/installation.html) or [mamba](https://mamba.readthedocs.io/en/latest/micromamba-installation.html#umamba-install) (**recommended**).
