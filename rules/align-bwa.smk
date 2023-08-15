@@ -8,6 +8,8 @@ genomefile 	= config["genomefile"]
 samplenames = config["samplenames"]
 extra 		= config.get("extra", "") 
 bn 			= os.path.basename(genomefile)
+genome_zip  = True if (bn.endswith(".gz") or bn.endswith(".GZ")) else False
+bn_idx      = f"{bn}.gzi" if genome_zip else f"{bn}.fai"
 
 d = dict(zip(samplenames, samplenames))
 
@@ -59,19 +61,44 @@ rule genome_link:
     message: 
         "Symlinking {input}"
     shell: 
-        "ln -sr {input} {output}"
+        """
+        if (file {input} | grep -q compressed ) ;then
+            # is regular gzipped, needs to be BGzipped
+            zcat {input} | bgzip -c > {output}
+        elif (file {input} | grep -q BGZF ); then
+            # is bgzipped, just linked
+            ln -sr {input} {output}
+        else
+            # isn't compressed, just linked
+            ln -sr {input} {output}
+        fi
+        """
 
-rule genome_faidx:
-    input: 
-        f"Genome/{bn}"
-    output: 
-        f"Genome/{bn}.fai"
-    message:
-        "Indexing {input}"
-    log:
-        f"Genome/{bn}.faidx.log"
-    shell: 
-        "samtools faidx --fai-idx {output} {input} 2> {log}"
+if genome_zip:
+    rule genome_compressed_faidx:
+        input: 
+            f"Genome/{bn}"
+        output: 
+            gzi = f"Genome/{bn}.gzi",
+            fai = f"Genome/{bn}.fai"
+        message:
+            "Indexing {input}"
+        log:
+            f"Genome/{bn}.faidx.gzi.log"
+        shell: 
+            "samtools faidx --gzi-idx {output.gzi} --fai-idx {output.fai} {input} 2> {log}"
+else:
+    rule genome_faidx:
+        input: 
+            f"Genome/{bn}"
+        output: 
+            f"Genome/{bn}.fai"
+        message:
+            "Indexing {input}"
+        log:
+            f"Genome/{bn}.faidx.log"
+        shell:
+            "samtools faidx --fai-idx {output} {input} 2> {log}"
 
 rule genome_bwa_index:
     input: 
@@ -100,7 +127,8 @@ rule align:
         forward_reads = get_fq1,
         reverse_reads = get_fq2,
         genome 		  = f"Genome/{bn}",
-        genome_idx 	  = multiext(f"Genome/{bn}", ".ann", ".bwt", ".fai", ".pac", ".sa", ".amb")
+        genome_samidx = f"Genome/{bn_idx}",
+        genome_idx 	  = multiext(f"Genome/{bn}", ".ann", ".bwt", ".pac", ".sa", ".amb")
     output:  
         bam = temp(outdir + "/{sample}/{sample}.sort.bam"),
         bai = temp(outdir + "/{sample}/{sample}.sort.bam.bai")

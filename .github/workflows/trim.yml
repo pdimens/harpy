@@ -48,5 +48,5 @@ jobs:
         shell: micromamba-shell {0}
 
       - name: Test harpy trim
-        run: harpy trim -d test/data/fastq
+        run: harpy trim -d test/fastq
         shell: micromamba-shell {0}

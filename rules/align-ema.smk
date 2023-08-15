@@ -11,6 +11,8 @@ genomefile 	= config["genomefile"]
 samplenames = config["samplenames"]
 extra 		= config.get("extra", "") 
 bn 			= os.path.basename(genomefile)
+genome_zip  = True if (bn.endswith(".gz") or bn.endswith(".GZ")) else False
+bn_idx      = f"{bn}.gzi" if genome_zip else f"{bn}.fai"
 
 d = dict(zip(samplenames, samplenames))
 
@@ -29,22 +31,47 @@ rule genome_link:
         genomefile
     output: 
         f"Genome/{bn}"
-    message:
-        "Symlinking {input} to Genome/"
+    message: 
+        "Symlinking {input}"
     shell: 
-        "ln -sr {input} {output}"
+        """
+        if (file {input} | grep -q compressed ) ;then
+            # is regular gzipped, needs to be BGzipped
+            zcat {input} | bgzip -c > {output}
+        elif (file {input} | grep -q BGZF ); then
+            # is bgzipped, just linked
+            ln -sr {input} {output}
+        else
+            # isn't compressed, just linked
+            ln -sr {input} {output}
+        fi
+        """
 
-rule genome_faidx:
-    input: 
-        f"Genome/{bn}"
-    output: 
-        f"Genome/{bn}.fai"
-    message:
-        "Indexing {input}"
-    log:
-        f"Genome/{bn}.faidx.log"
-    shell: 
-        "samtools faidx --fai-idx {output} {input} 2> {log}"
+if genome_zip:
+    rule genome_compressed_faidx:
+        input: 
+            f"Genome/{bn}"
+        output: 
+            gzi = f"Genome/{bn}.gzi",
+            fai = f"Genome/{bn}.fai"
+        message:
+            "Indexing {input}"
+        log:
+            f"Genome/{bn}.faidx.gzi.log"
+        shell: 
+            "samtools faidx --gzi-idx {output.gzi} --fai-idx {output.fai} {input} 2> {log}"
+else:
+    rule genome_faidx:
+        input: 
+            f"Genome/{bn}"
+        output: 
+            f"Genome/{bn}.fai"
+        message:
+            "Indexing {input}"
+        log:
+            f"Genome/{bn}.faidx.log"
+        shell:
+            "samtools faidx --fai-idx {output} {input} 2> {log}"
 
 rule genome_bwa_index:
     input: 
@@ -114,12 +141,12 @@ rule preprocess:
     shell:
         "seqfu interleave -1 {input.forward_reads} -2 {input.reverse_reads} | ema preproc -p -n {params.bins} -t {threads} -o {params.outdir} {input.emacounts} 2>&1 | cat - > {log}"
 
-
 rule align:
     input:
-        readbin  = expand(outdir + "/{{sample}}/preproc/ema-bin-{bin}", bin = binrange),
-        genome 	 = f"Genome/{bn}",
-        geno_idx = multiext(f"Genome/{bn}", ".ann", ".bwt", ".fai", ".pac", ".sa", ".amb")
+        readbin    = expand(outdir + "/{{sample}}/preproc/ema-bin-{bin}", bin = binrange),
+        genome 	   = f"Genome/{bn}",
+        geno_faidx = f"Genome/{bn_idx}",
+        geno_idx   = multiext(f"Genome/{bn}", ".ann", ".bwt", ".pac", ".sa", ".amb")
     output:
         aln = temp(outdir + "/{sample}/{sample}.bc.bam"),
         idx = temp(outdir + "/{sample}/{sample}.bc.bam.bai")
@@ -137,9 +164,9 @@ rule align:
     shell:
         """
         EMATHREADS=$(( {threads} - 2 ))
-        ema align -t $EMATHREADS {params.extra} -d -p haplotag -r {input.genome} -R \"@RG\\tID:{wildcards.sample}\\tSM:{wildcards.sample}\" -x {input.readbin} 2> {logs.ema} |
+        ema align -t $EMATHREADS {params.extra} -d -p haplotag -r {input.genome} -R \"@RG\\tID:{wildcards.sample}\\tSM:{wildcards.sample}\" -x {input.readbin} 2> {log.ema} |
         samtools view -h -F 4 -q {params.quality} - | 
-        samtools sort -T {params.tmpdir} --reference {input.genome} -O bam --write-index -m 4G -o {output.aln}##idx##{output.idx} - 2> {logs.emasort}
+        samtools sort -T {params.tmpdir} --reference {input.genome} -O bam --write-index -m 4G -o {output.aln}##idx##{output.idx} - 2> {log.emasort}
         rm -rf {params.tmpdir}
         """
 
@@ -147,7 +174,8 @@ rule align_nobarcode:
     input:
         reads      = outdir + "/{sample}/preproc/ema-nobc",
         genome 	   = f"Genome/{bn}",
-        genome_idx = multiext(f"Genome/{bn}", ".ann", ".bwt", ".fai", ".pac", ".sa", ".amb")
+        geno_faidx = f"Genome/{bn_idx}",
+        geno_idx   = multiext(f"Genome/{bn}", ".ann", ".bwt", ".pac", ".sa", ".amb")
     output: 
         temp(outdir + "/{sample}/{sample}.nobc.bam")
     log:
@@ -164,9 +192,9 @@ rule align_nobarcode:
     shell:
         """
         BWATHREADS=$(( {threads} - 2 ))
-        bwa mem -t $BWATHREADS -C -R \"@RG\\tID:{wildcards.sample}\\tSM:{wildcards.sample}\" {input.genome} {input.reads} 2> {logs.bwa} |
+        bwa mem -t $BWATHREADS -C -R \"@RG\\tID:{wildcards.sample}\\tSM:{wildcards.sample}\" {input.genome} {input.reads} 2> {log.bwa} |
         samtools view -h -F 4 -q {params.quality} | 
-        samtools sort -O bam -m 4G --reference {input.genome} -o {output} 2> {logs.bwasort}
+        samtools sort -O bam -m 4G --reference {input.genome} -o {output} 2> {log.bwasort}
         """
 
 rule mark_duplicates:
