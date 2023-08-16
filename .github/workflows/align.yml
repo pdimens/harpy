@@ -58,10 +58,11 @@ jobs:
 
       - name: align bwa
         id: alignbwa
-        uses: mathiasvr/command-output@v1
+        uses: mathiasvr/command-output@v2
         with:
-          run: harpy align -d test/fastq -g test/genome/genome.fasta.gz -s "--show-failed-logs"
-          shell: micromamba-shell {0}
+          run: |
+            harpy align -d test/fastq -g test/genome/genome.fasta.gz -s "--show-failed-logs"
+          shell: bash -el {0}
 
       - name: check bwa
         if: contains(steps.alignbwa.outputs.stderr, 'job execution failed')
@@ -69,10 +70,10 @@ jobs:
 
       - name: align ema
         id: alignema
-        uses: mathiasvr/command-output@v1
+        uses: mathiasvr/command-output@v2
         with:
           run: harpy align --method ema --ema-bins 20 -d test/fastq -g test/genome/genome.fasta.gz -s "--show-failed-logs"
-          shell: micromamba-shell {0}
+          shell: bash -el {0}
 
       - name: check ema
         if: contains(steps.alignbwa.outputs.stderr, 'job execution failed')
