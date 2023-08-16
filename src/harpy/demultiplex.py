@@ -30,4 +30,5 @@ def demultiplex(file, method, samplesheet, threads, snakemake, quiet):
     command.append('--config')
     command.append(f"infile={file}")
     command.append(f"samplefile={samplesheet}")
-    subprocess.run(command)
+    _module = subprocess.run(command)
+    sys.exit(_module.returncode)

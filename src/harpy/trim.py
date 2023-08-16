@@ -42,4 +42,5 @@ def trim(directory, max_length, extra_params, threads, snakemake, quiet):
     command.append(f"maxlen={max_length}")
     if extra_params is not None:
         command.append(f"extra={extra_params}")
-    subprocess.run(command)
+    _module = subprocess.run(command)
+    sys.exit(_module.returncode)

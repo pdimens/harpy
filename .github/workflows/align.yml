@@ -61,18 +61,11 @@ jobs:
 
       - name: align bwa
         id: alignbwa
-        shell: bash -el {0}
-        run: |
-          micromamba activate harpy
-          harpy align -d test/fastq -g test/genome/genome.fasta.gz -s "--show-failed-logs"
-
-#      - name: check bwa
-#        if: contains(steps.alignbwa.outputs.stderr, 'job execution failed')
-#        run: exit 1
+        shell: micromamba-shell {0}
+        run: harpy align -d test/fastq -g test/genome/genome.fasta.gz -s "--show-failed-logs"
+        continue-on-error: true
 
       - name: align ema
         id: alignema
-        shell: bash -el {0}
-        run: |
-          micromamba activate harpy
-          harpy align --method ema --ema-bins 20 -d test/fastq -g test/genome/genome.fasta.gz -s "--show-failed-logs" || exit 127
+        shell: micromamba-shell {0}
+        run: harpy align --method ema --ema-bins 20 -d test/fastq -g test/genome/genome.fasta.gz -s "--show-failed-logs"

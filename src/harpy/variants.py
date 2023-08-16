@@ -44,7 +44,7 @@ def snp(genome, threads, directory, populations, ploidy, method,windowsize, extr
     vcaller = method
     coordbase = 0 if method == "freebayes" else 1
     callcoords = createregions(genome, windowsize, coordbase)
-    command = (f'snakemake --rerun-incomplete --cores {threads} --directory . --snakefile {harpypath}/variants-{vcaller}.smk').split()
+    command = (f'snakemake --rerun-incomplete --nolock --cores {threads} --directory . --snakefile {harpypath}/variants-{vcaller}.smk').split()
     if snakemake is not None:
         [command.append(i) for i in snakemake.split()]
     if quiet:
@@ -76,7 +76,8 @@ def snp(genome, threads, directory, populations, ploidy, method,windowsize, extr
     command.append(f"genomefile={genome}")
     if extra_params is not None:
         command.append(f"extra={extra_params}")
-    subprocess.run(command)
+    _module = subprocess.run(command)
+    sys.exit(_module.returncode)
 
 @click.command(no_args_is_help = True)
 @click.option('-g', '--genome', type=click.Path(exists=True), required = True, metavar = "File Path", help = 'Genome assembly for variant calling')
@@ -103,7 +104,7 @@ def sv(genome, threads, directory, populations, method, extra_params, snakemake,
     vcaller = method
     if populations is not None:
         vcaller += "-pop"
-    command = (f'snakemake --rerun-incomplete --cores {threads} --directory . --snakefile {harpypath}/variants-{vcaller}.smk').split()
+    command = (f'snakemake --rerun-incomplete --nolock --cores {threads} --directory . --snakefile {harpypath}/variants-{vcaller}.smk').split()
     if snakemake is not None:
         [command.append(i) for i in snakemake.split()]
     if quiet:
@@ -133,7 +134,8 @@ def sv(genome, threads, directory, populations, method, extra_params, snakemake,
     command.append(f"genomefile={genome}")
     if extra_params is not None:
         command.append(f"extra={extra_params}")
-    subprocess.run(command)
+    _module = subprocess.run(command)
+    sys.exit(_module.returncode)
 
 variants.add_command(sv)
 variants.add_command(snp)

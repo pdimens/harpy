@@ -50,7 +50,7 @@ def impute(parameters, directory, threads, vcf, vcf_samples, snakemake, quiet):
 
     check_impute_params(parameters)
 
-    command = f'snakemake --rerun-incomplete --cores {threads} --directory . --snakefile {harpypath}/impute.smk'.split()
+    command = f'snakemake --rerun-incomplete --nolock --cores {threads} --directory . --snakefile {harpypath}/impute.smk'.split()
     if snakemake is not None:
         [command.append(i) for i in snakemake.split()]
     if quiet:
@@ -84,4 +84,5 @@ def impute(parameters, directory, threads, vcf, vcf_samples, snakemake, quiet):
     command.append(f"paramfile={parameters}")
     command.append(f"contigs={contigs}")
     #command.append(f"extra={extra_params}")
-    subprocess.run(command)
+    _module = subprocess.run(command)
+    sys.exit(_module.returncode)
