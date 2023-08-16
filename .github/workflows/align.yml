@@ -56,12 +56,20 @@ jobs:
           misc/buildforCI.sh
         shell: micromamba-shell {0}
 
-      - name: Test harpy align bwa
-        run: harpy align -d test/fastq -g test/genome/genome.fasta.gz -s "--show-failed-logs" || exit 1
+      - name: align bwa
+        id: alignbwa
+        run: harpy align -d test/fastq -g test/genome/genome.fasta.gz -s "--show-failed-logs" 2>&1 > $GITHUB_OUTPUT
         shell: micromamba-shell {0}
-        continue-on-error: false
 
-      - name: Test harpy align ema
-        run: harpy align -d test/fastq -g test/genome/genome.fasta.gz --method ema -s "--show-failed-logs" || exit 1
+      - name: check bwa
+        if: contains(steps.alignbwa.outputs, 'Exiting because a job execution failed')
+        run: exit 1
+
+      - name: align ema
+        id: alignema
+        run: harpy align -d test/fastq -g test/genome/genome.fasta.gz --method ema -s "--show-failed-logs" > $GITHUB_OUTPUT
         shell: micromamba-shell {0}
-        continue-on-error: false
+
+      - name: check ema
+        if: contains(steps.alignema.outputs, 'Exiting because a job execution failed')
+        run: exit 1
