@@ -58,18 +58,22 @@ jobs:
 
       - name: align bwa
         id: alignbwa
-        run: harpy align -d test/fastq -g test/genome/genome.fasta.gz -s "--show-failed-logs" 2>&1 > $GITHUB_OUTPUT
-        shell: micromamba-shell {0}
+        uses: mathiasvr/command-output@v1
+        with:
+          run: harpy align -d test/fastq -g test/genome/genome.fasta.gz -s "--show-failed-logs"
+          shell: micromamba-shell {0}
 
       - name: check bwa
-        if: contains(steps.alignbwa.outputs, 'Exiting because a job execution failed')
+        if: contains(steps.alignbwa.outputs.stderr, 'job execution failed')
         run: exit 1
 
       - name: align ema
         id: alignema
-        run: harpy align -d test/fastq -g test/genome/genome.fasta.gz --method ema -s "--show-failed-logs" > $GITHUB_OUTPUT
-        shell: micromamba-shell {0}
+        uses: mathiasvr/command-output@v1
+        with:
+          run: harpy align --method ema --ema-bins 20 -d test/fastq -g test/genome/genome.fasta.gz -s "--show-failed-logs"
+          shell: micromamba-shell {0}
 
       - name: check ema
-        if: contains(steps.alignema.outputs, 'Exiting because a job execution failed')
+        if: contains(steps.alignbwa.outputs.stderr, 'job execution failed')
         run: exit 1
