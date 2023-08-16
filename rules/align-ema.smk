@@ -105,9 +105,14 @@ rule beadtag_count:
     message:
         "Counting barcode frequency: {wildcards.sample}"
     params:
-        prefix = lambda wc: outdir + "/" + wc.get("sample") + "/" + wc.get("sample")
+        prefix = lambda wc: outdir + "/" + wc.get("sample") + "/" + wc.get("sample"),
+        logdir = outdir + "/logs/count/"
     shell:
-        "seqfu interleave -1 {input.forward_reads} -2 {input.reverse_reads} | ema count -p -o {params} 2> {output.logs}"
+        """
+        mkdir -p {params.prefix}
+        mkdir -p {params.logdir}
+        seqfu interleave -1 {input.forward_reads} -2 {input.reverse_reads} | ema count -p -o {params.prefix} 2> {output.logs}
+        """
 
 rule beadtag_summary:
     input: 
