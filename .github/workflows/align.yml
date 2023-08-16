@@ -15,7 +15,7 @@ on:
       - 'reports/ilities/bxStats.py'
       - 'utilities/countBX.py'
       - 'utilities/makewindows.py'
-      - 'test/data/fastq/**'
+      - 'test/fastq/**'
       - '**align.yml'
 
   pull_request:
@@ -23,7 +23,7 @@ on:
       - 'dev'
     paths:
       - '**align**.smk'
-      - 'test/data/fastq/**'
+      - 'test/fastq/**'
       - '**align.yml'
 
   schedule:

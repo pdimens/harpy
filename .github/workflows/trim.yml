@@ -7,7 +7,7 @@ on:
     paths:
       - 'rules/trim.smk'
       - '**trim.py'
-      - 'test/data/fastq/**'
+      - 'test/fastq/**'
       - '**trim.yml'
 
   pull_request:
@@ -15,7 +15,7 @@ on:
       - 'dev'
     paths:
       - '**trim.smk'
-      - 'test/data/fastq/**'
+      - 'test/fastq/**'
       - '**trim.yml'
 
   schedule:
