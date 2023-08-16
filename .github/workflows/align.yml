@@ -34,6 +34,9 @@ env:
 
 jobs:
   build:
+    defaults:
+      run:
+        shell: bash -l {0}
     name: linux64
     runs-on: ubuntu-latest
     steps:
@@ -43,12 +46,15 @@ jobs:
           fetch-depth: 1
       - name: setup mamba
         uses: mamba-org/setup-micromamba@v1
+        env:
+          ACTIONS_STEP_DEBUG: true
         with:
           init-shell: bash
           generate-run-shell: true
           environment-file: misc/harpyenv.yaml
           cache-environment: true
           post-cleanup: 'all'
+          log-level: debug
       - name: Install harpy
         run: |
           python3 -m pip install --upgrade build && python3 -m build
@@ -63,7 +69,6 @@ jobs:
           run: |
             mamba activate harpy
             harpy align -d test/fastq -g test/genome/genome.fasta.gz -s "--show-failed-logs"
-          shell: bash
 
       - name: check bwa
         if: contains(steps.alignbwa.outputs.stderr, 'job execution failed')
@@ -76,7 +81,6 @@ jobs:
           run: |
             mamba activate harpy
             harpy align --method ema --ema-bins 20 -d test/fastq -g test/genome/genome.fasta.gz -s "--show-failed-logs"
-          shell: bash
 
       - name: check ema
         if: contains(steps.alignbwa.outputs.stderr, 'job execution failed')
