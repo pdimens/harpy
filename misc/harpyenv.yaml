@@ -247,7 +247,6 @@ dependencies:
   - parallel=20160622=1
   - paramiko=2.12.0=pyhd8ed1ab_0
   - pbzip2=1.1.13=0
-  - pcre=8.45=h295c915_0
   - pcre2=10.40=hc3806b6_0
   - peppy=0.35.2=pyhd8ed1ab_0
   - perl=5.34.0=h5eee18b_2
