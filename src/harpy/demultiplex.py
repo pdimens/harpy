@@ -1,6 +1,8 @@
 import rich_click as click
 import subprocess
+import sys
 import os
+
 try:
     harpypath = '{CONDA_PREFIX}'.format(**os.environ) + "/bin"
 except:
