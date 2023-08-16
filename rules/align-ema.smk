@@ -106,12 +106,13 @@ rule beadtag_count:
         "Counting barcode frequency: {wildcards.sample}"
     params:
         prefix = lambda wc: outdir + "/" + wc.get("sample") + "/" + wc.get("sample"),
-        logdir = outdir + "/logs/count/"
+        logdir = f"{outdir}/logs/count/"
     shell:
         """
         mkdir -p {params.prefix}
         mkdir -p {params.logdir}
-        seqfu interleave -1 {input.forward_reads} -2 {input.reverse_reads} | ema count -p -o {params.prefix} 2> {output.logs}
+        seqtk mergepe {input.forward_reads} {input.reverse_reads} | 
+            ema count -p -o {params.prefix} 2> {output.logs}
         """
 
 rule beadtag_summary:
@@ -144,7 +145,7 @@ rule preprocess:
         outdir = lambda wc: outdir + "/" + wc.get("sample") + "/preproc",
         bins   = nbins
     shell:
-        "seqfu interleave -1 {input.forward_reads} -2 {input.reverse_reads} | ema preproc -p -n {params.bins} -t {threads} -o {params.outdir} {input.emacounts} 2>&1 | cat - > {log}"
+        "seqtk mergepe {input.forward_reads} {input.reverse_reads} | ema preproc -p -n {params.bins} -t {threads} -o {params.outdir} {input.emacounts} 2>&1 | cat - > {log}"
 
 rule align:
     input:

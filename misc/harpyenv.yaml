@@ -420,8 +420,7 @@ dependencies:
   - samtools=1.17=h00cdaf9_0
   - scipy=1.10.1=py310ha4c1d20_3
   - sed=4.8=he412f7d_0
-  - seqfu=1.17.1=hbd632db_0
-  - seqkit=2.3.1=h9ee0642_0
+  - seqtk=1.4=he4a0461_1
   - setuptools=65.5.1=pyhd8ed1ab_0
   - setuptools-scm=7.0.5=pyhd8ed1ab_1
   - simplejson=3.17.6=py310h5764c6d_2

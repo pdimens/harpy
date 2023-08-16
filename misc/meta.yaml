@@ -51,7 +51,7 @@ requirements:
     - snakemake >=7
     - sambamba
     - samtools
-    - seqfu
+    - seqtk
     - tabix
     - zlib
 
