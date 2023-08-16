@@ -59,7 +59,9 @@ jobs:
       - name: Test harpy align bwa
         run: harpy align -d test/fastq -g test/genome/genome.fasta.gz -s "--show-failed-logs" || exit 1
         shell: micromamba-shell {0}
+        continue-on-error: false
 
       - name: Test harpy align ema
         run: harpy align -d test/fastq -g test/genome/genome.fasta.gz --method ema -s "--show-failed-logs" || exit 1
         shell: micromamba-shell {0}
+        continue-on-error: false
