@@ -67,4 +67,5 @@ def align(genome, threads, method, ema_bins, directory, extra_params, quality_fi
 
     if extra_params is not None:
         command.append(f"extra={extra_params}")
-    subprocess.run(command)
+    _module = subprocess.run(command)
+    sys.exit(_module.returncode)
