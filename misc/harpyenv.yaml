@@ -492,4 +492,3 @@ dependencies:
   - zstd=1.5.2=h6239696_4
   - pip:
       - mpmath==1.2.1
-prefix: /home/pd348/miniconda3/envs/harpy

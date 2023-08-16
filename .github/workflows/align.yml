@@ -61,6 +61,7 @@ jobs:
         uses: mathiasvr/command-output@v1
         with:
           run: |
+            mamba activate harpy
             harpy align -d test/fastq -g test/genome/genome.fasta.gz -s "--show-failed-logs"
           shell: bash
 
@@ -72,7 +73,9 @@ jobs:
         id: alignema
         uses: mathiasvr/command-output@v1
         with:
-          run: harpy align --method ema --ema-bins 20 -d test/fastq -g test/genome/genome.fasta.gz -s "--show-failed-logs"
+          run: |
+            mamba activate harpy
+            harpy align --method ema --ema-bins 20 -d test/fastq -g test/genome/genome.fasta.gz -s "--show-failed-logs"
           shell: bash
 
       - name: check ema
