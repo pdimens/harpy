@@ -62,7 +62,7 @@ jobs:
         with:
           run: |
             harpy align -d test/fastq -g test/genome/genome.fasta.gz -s "--show-failed-logs"
-          shell: bash -el {0}
+          shell: bash
 
       - name: check bwa
         if: contains(steps.alignbwa.outputs.stderr, 'job execution failed')
@@ -73,7 +73,7 @@ jobs:
         uses: mathiasvr/command-output@v1
         with:
           run: harpy align --method ema --ema-bins 20 -d test/fastq -g test/genome/genome.fasta.gz -s "--show-failed-logs"
-          shell: bash -el {0}
+          shell: bash
 
       - name: check ema
         if: contains(steps.alignbwa.outputs.stderr, 'job execution failed')
