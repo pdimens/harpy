@@ -9,6 +9,9 @@ groupfile   = config["groupings"]
 genomefile  = config["genomefile"]
 bn          = os.path.basename(genomefile)
 outdir      = "Variants/naibr-pop"
+genome_zip  = True if bn.lower().endswith(".gz") else False
+if genome_zip:
+    bn = bn[:-3]
 
 def process_args(args):
     argsDict = {
@@ -68,8 +71,10 @@ rule merge_populations:
         bai = temp(outdir + "/input/{population}.bam.bai")
     message:
         "Merging alignments: Population {wildcards.population}"
+    threads:
+        2
     shell:
-        "samtools merge -b {input} -o {output.bam}##idx##{output.bai}"
+        "samtools merge -o {output.bam}##idx##{output.bai} --threads {threads} --write-index -b {input.bamlist}"
 
 rule create_config:
     input:
@@ -110,7 +115,9 @@ rule call_sv:
         "Calling variants: {wildcards.population}"
     shell:
         """
-        echo "threads={threads}" >> {input.conf}
+        if ! grep -q "threads" {input.conf}; then
+            echo "threads={threads}" >> {input.conf}
+        fi
         naibr {input.conf} > {log}.tmp 2>&1
         grep -v "pairs/s" {log}.tmp > {log} && rm {log}.tmp
         inferSV.py {params.outdir}/{params.population}.bedpe -f {output.fail} > {output.bedpe}

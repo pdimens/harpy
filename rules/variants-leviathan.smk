@@ -6,8 +6,9 @@ samplenames = config["samplenames"]
 extra       = config.get("extra", "") 
 outdir      = "Variants/leviathan"
 bn          = os.path.basename(genomefile)
-genome_zip  = True if (bn.endswith(".gz") or bn.endswith(".GZ")) else False
-bn_idx      = f"{bn}.gzi" if genome_zip else f"{bn}.fai"
+genome_zip  = True if bn.lower().endswith(".gz") else False
+if genome_zip:
+    bn = bn[:-3]
 
 rule index_alignment:
     input:
@@ -42,46 +43,32 @@ rule genome_link:
     output: 
         f"Genome/{bn}"
     message: 
-        "Symlinking {input}"
+        "Creating {output}"
     shell: 
         """
         if (file {input} | grep -q compressed ) ;then
-            # is regular gzipped, needs to be BGzipped
-            zcat {input} | bgzip -c > {output}
+            # is regular gzipped, needs to be decompressed
+            gzip -dc {input} > {output}
         elif (file {input} | grep -q BGZF ); then
-            # is bgzipped, just linked
-            ln -sr {input} {output}
+            # is bgzipped, decompress
+            gzip -dc {input} > {output}
         else
             # isn't compressed, just linked
             ln -sr {input} {output}
         fi
         """
 
-if genome_zip:
-    rule genome_compressed_faidx:
-        input: 
-            f"Genome/{bn}"
-        output: 
-            gzi = f"Genome/{bn}.gzi",
-            fai = f"Genome/{bn}.fai"
-        message:
-            "Indexing {input}"
-        log:
-            f"Genome/{bn}.faidx.gzi.log"
-        shell: 
-            "samtools faidx --gzi-idx {output.gzi} --fai-idx {output.fai} {input} 2> {log}"
-else:
-    rule genome_faidx:
-        input: 
-            f"Genome/{bn}"
-        output: 
-            f"Genome/{bn}.fai"
-        message:
-            "Indexing {input}"
-        log:
-            f"Genome/{bn}.faidx.log"
-        shell:
-            "samtools faidx --fai-idx {output} {input} 2> {log}"
+rule genome_faidx:
+    input: 
+        f"Genome/{bn}"
+    output: 
+        f"Genome/{bn}.fai"
+    message:
+        "Indexing {input}"
+    log:
+        f"Genome/{bn}.faidx.log"
+    shell:
+        "samtools faidx --fai-idx {output} {input} 2> {log}"
 
 rule index_bwa_genome:
     input: 
@@ -101,8 +88,7 @@ rule leviathan_variantcall:
         bai    = bam_dir + "/{sample}.bam.bai",
         bc_idx = outdir + "/lrezIndexed/{sample}.bci",
         genome = f"Genome/{bn}",
-        genidx = f"Genome/{bn_idx}",
-        genbwa = multiext(f"Genome/{bn}", ".ann", ".bwt", ".pac", ".sa", ".amb")
+        genidx = multiext(f"Genome/{bn}", ".fai", ".ann", ".bwt", ".pac", ".sa", ".amb")
     output:
         pipe(outdir + "/{sample}.vcf")
     log:  

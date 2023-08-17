@@ -33,7 +33,7 @@ def createregions(infile, window, method):
     bn = os.path.basename(infile)
     os.makedirs("Genome", exist_ok = True)
     base = 0 if method == "freebayes" else 1
-    gen_zip = True if (bn.endswith(".gz") or bn.endswith(".GZ")) else False
+    gen_zip = True if bn.lower().endswith(".gz") else False
     if method == "freebayes":
         # freebayes requires uncompressed genome
         if gen_zip:

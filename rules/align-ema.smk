@@ -11,7 +11,7 @@ genomefile 	= config["genomefile"]
 samplenames = config["samplenames"]
 extra 		= config.get("extra", "") 
 bn 			= os.path.basename(genomefile)
-genome_zip  = True if (bn.endswith(".gz") or bn.endswith(".GZ")) else False
+genome_zip  = True if bn.lower().endswith(".gz") else False
 bn_idx      = f"{bn}.gzi" if genome_zip else f"{bn}.fai"
 
 d = dict(zip(samplenames, samplenames))

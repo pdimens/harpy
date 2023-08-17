@@ -32,6 +32,7 @@ requirements:
     - leviathan
     - multiqc
     - naibr-plus
+    - pysam
     - python >=3.7
     - r-base >=4
     - r-circlize

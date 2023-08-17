@@ -74,7 +74,9 @@ rule call_sv:
         outdir + "log/{sample}.log" 
     shell:
         """
-        echo "threads={threads}" >> {input.conf}
+        if ! grep -q "threads" {input.conf}; then
+            echo "threads={threads}" >> {input.conf}
+        fi
         naibr {input.conf} > {log}.tmp 2>&1
         grep -v "pairs/s" {log}.tmp > {log} && rm {log}.tmp
         inferSV.py {params.outdir}/{params.sample}.bedpe -f {output.fail} > {output.bedpe}
