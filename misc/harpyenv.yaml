@@ -221,8 +221,8 @@ dependencies:
   - markupsafe=2.1.1=py310h5764c6d_2
   - matplotlib=3.7.1=py310hff52083_0
   - matplotlib-base=3.7.1=py310he60537e_0
-  - mpc=1.2.1=h9f54685_0
-  - mpfr=4.1.0=h9202a9a_1
+  - mpc=1.3.1=hfe3b2da_0
+  - mpfr=4.2.0=hb012696_0
   - mpg123=1.31.3=hcb278e6_0
   - multidict=6.0.2=py310h5764c6d_2
   - multiqc=1.14=pyhdfd78af_0
@@ -385,7 +385,7 @@ dependencies:
   - r-sass=0.4.4=r42h7525677_0
   - r-scales=1.2.1=r42hc72bb7e_1
   - r-shape=1.4.6=r42ha770c72_1
-  - r-stitch=1.6.6=r42h37595e4_4
+  - r-stitch=1.6.8=r42h06b5641_1
   - r-stringi=1.7.8=r42h30a9eb7_1
   - r-stringr=1.5.0=r42h785f33e_0
   - r-sys=3.4.1=r42h06615bd_0

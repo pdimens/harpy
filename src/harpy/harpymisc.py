@@ -94,13 +94,13 @@ def check_impute_params(parameters):
     with open(parameters, "r") as fp:
         header = fp.readline().rstrip().lower()
         headersplt = header.split()
-        correct_header = sorted(["model", "usebx", "k", "s", "ngen"])
+        correct_header = sorted(["model", "usebx", "bxlimit", "k", "s", "ngen"])
         row = 0
         badrows = []
         badlens = []
         if sorted(headersplt) != correct_header:
             culprits = [i for i in headersplt if i not in correct_header]
-            print(f"\n\033[1;33mERROR:\033[00m Parameter file \033[01m{parameters}\033[00m has incorrect column names. Valid names are:\n\tmodel usebx k s ngen\n", file = sys.stderr)
+            print(f"\n\033[1;33mERROR:\033[00m Parameter file \033[01m{parameters}\033[00m has incorrect column names. Valid names are:\n\tmodel usebx bxlimit k s ngen\n", file = sys.stderr)
             print("Column names causing this error:\n\t" + " ".join(culprits), file = sys.stderr)
             print(f"\n\033[1;34mSOLUTION:\033[00m Fix the headers in \033[01m{parameters}\033[00m or use \033[01mharpy extra -s stitch.params\033[00m to generate a valid parameter file and modify it with appropriate values.")
             sys.exit(1)
@@ -118,7 +118,7 @@ def check_impute_params(parameters):
             # split the line by whitespace
             rowvals = line.rstrip().split()
             rowlen = len(rowvals)
-            if rowlen != 5:
+            if rowlen != 6:
                 badrows.append(row)
                 badlens.append(rowlen)
             elif len(badrows) > 0:
@@ -128,7 +128,7 @@ def check_impute_params(parameters):
                     data[j].append(k)
 
         if len(badrows) > 0:
-            print(f"\n\033[1;33mERROR:\033[00m Parameter file \033[01m{parameters}\033[00m is formatted incorrectly. Not all rows have the expected 5 columns.", file = sys.stderr)
+            print(f"\n\033[1;33mERROR:\033[00m Parameter file \033[01m{parameters}\033[00m is formatted incorrectly. Not all rows have the expected 6 columns.", file = sys.stderr)
             print(f"\n\033[1;34mSOLUTION:\033[00m See the problematic rows below. Check that you are using a whitespace (space or tab) delimeter in \033[01m{parameters}\033[00m or use \033[01mharpy extra -s stitch.params\033[00m to generate a valid parameter file and modify it with appropriate values.")
             print("\033[01mrow\tcolumns\033[00m")
             for i in zip(badrows, badlens):
@@ -137,11 +137,12 @@ def check_impute_params(parameters):
         
         # Validate each column
         culprits = {
-            "model" : [],
-            "usebx" : [],
-            "k"     : [],
-            "s"     : [],
-            "ngen"  : []
+            "model"   : [],
+            "usebx"   : [],
+            "bxlimit" : [],
+            "k"       : [],
+            "s"       : [],
+            "ngen"    : []
         }
         colerr = 0
         for i,j in enumerate(data["model"]):
@@ -163,6 +164,18 @@ def check_impute_params(parameters):
             print("Expected values: True, False (not case sensitive)", file = sys.stderr)
             print("Rows causing error: " + " ".join(culprits["usebx"]), file = sys.stderr)
             print("", file = sys.stderr)
+        
+        for i,j in enumerate(data["bxlimit"]):
+            if not j.isdigit():
+                culprits["bxlimit"].append(str(i + 1))
+                colerr += 1
+
+        if culprits["bxlimit"]:
+            print("Invalid values for column \033[01mbxlimit\033[00m.", file = sys.stderr)
+            print("Expected values: Integers", file = sys.stderr)
+            print("Rows causing error: " + " ".join(culprits["bxlimit"]), file = sys.stderr)
+            print("", file = sys.stderr)
+
 
         for i,j in enumerate(data["k"]):
             if not j.isdigit():

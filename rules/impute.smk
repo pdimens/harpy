@@ -86,7 +86,7 @@ rule impute:
         # in the form of a dict (here: {"k": ..., "s": ..., "ngen": ...})
         parameters = paramspace.instance
     message: 
-        "Performing imputation: {wildcards.part}\nmodel: {wildcards.model}\nuseBX: {wildcards.usebx}\n    k: {wildcards.k}\n    s: {wildcards.s}\n nGen: {wildcards.ngen}"
+        "Performing imputation: {wildcards.part}\nmodel: {wildcards.model}\nuseBX: {wildcards.usebx}    \nbxLimit: {wildcards.bxlimit}\n    k: {wildcards.k}\n    s: {wildcards.s}\n nGen: {wildcards.ngen}"
     benchmark:
         f"Benchmark/Impute/stitch.{paramspace.wildcard_pattern}" + ".{part}.txt"
     threads:
@@ -133,12 +133,15 @@ rule clean_stitch:
         temp("Impute/{stitchparams}/contigs/{part}/.cleaned")
     message:
         "Cleaning up {wildcards.stitchparams}: {wildcards.part}"
-    priority: 2
+    priority:
+        2
+    params:
+        lambda wc: wc.get("stitchparams")
     shell: 
         """
-        rm -rf Impute/{wildcards.stitchparams}/contigs/{wildcards.part}/input
-        rm -rf Impute/{wildcards.stitchparams}/contigs/{wildcards.part}/RData
-        rm -rf Impute/{wildcards.stitchparams}/contigs/{wildcards.part}/plots
+        rm -rf Impute/{params}/contigs/{wildcards.part}/input
+        rm -rf Impute/{params}/contigs/{wildcards.part}/RData
+        rm -rf Impute/{params}/contigs/{wildcards.part}/plots
         touch {output}
         """
 
@@ -160,17 +163,19 @@ rule merge_vcfs:
         idx   = expand("Impute/{{stitchparams}}/contigs/{part}/{part}.vcf.gz.tbi", part = contigs),
         clean = expand("Impute/{{stitchparams}}/contigs/{part}/.cleaned", part = contigs)
     output:
-        "Impute/{stitchparams}/variants.imputed.bcf"
+        bcf = "Impute/{stitchparams}/variants.imputed.bcf",
+        bai = "Impute/{stitchparams}/variants.imputed.bcf.csi"
     message:
         "Merging VCFs: {wildcards.stitchparams}"
     benchmark:
         "Benchmark/Impute/mergevcf.{stitchparams}.txt"
-    threads: 50
+    threads:
+        50
     shell:
         """
-        #bcftools concat --threads {threads} -o {output} --output-type b --write-index -f {input.files} 2> /dev/null"
-        bcftools concat --threads {threads} -o {output} --output-type b -f {input.files} 2> /dev/null
-        bcftools index {output}
+        #bcftools concat --threads {threads} --write-index -o {output.bcf}##idx##{output.bai} -f {input.files} 2> /dev/null
+        bcftools concat --threads {threads} -o {output.bcf} -Ob -f {input.files} 2> /dev/null"
+        bcftools index {output.bcf}
         """
 
 rule stats:
