@@ -70,19 +70,6 @@ rule merge_populations:
         "Merging alignments: Population {wildcards.population}"
     shell:
         "samtools merge -b {input} -o {output.bam}##idx##{output.bai}"
-#        "samtools merge -b {input} -o {output}"
-
-#rule index_merged:
-#    input:
-#        outdir + "/input/{population}.bam"
-#    output:
-#        temp(outdir + "/input/{population}.bam.bai")
-#    message:
-#        "Indexing merged alignments: Population {wildcards.population}"
-#    wildcard_constraints:
-#        population = "[a-zA-Z0-9\_\-]*"
-#    shell:
-#        "sambamba index {input} {output} 2> /dev/null"
 
 rule create_config:
     input:
@@ -102,7 +89,6 @@ rule create_config:
             for i in argdict:
                 _ = conf.write(f"{i}={argdict[i]}\n")
 
-
 rule call_sv:
     input:
         bam   = outdir + "/input/{population}.bam",
@@ -118,8 +104,8 @@ rule call_sv:
     threads:
         8        
     params:
-        outdir = lambda wc: outdir + "/" + wc.get("population"),
-        population = lambda wc: wc.get("population")
+        population = lambda wc: wc.get("population"),
+        outdir     = lambda wc: outdir + "/" + wc.get("population")
     message:
         "Calling variants: {wildcards.population}"
     shell:
@@ -134,29 +120,52 @@ rule call_sv:
         rm -rf {params.outdir}
         """
 
-rule link_genome:
+rule genome_link:
     input:
         genomefile
     output: 
         f"Genome/{bn}"
-    message:
-        "Symlinking {input} to Genome/"
+    message: 
+        "Symlinking {input}"
     shell: 
-        "ln -sr {input} {output}"
+        """
+        if (file {input} | grep -q compressed ) ;then
+            # is regular gzipped, needs to be BGzipped
+            zcat {input} | bgzip -c > {output}
+        elif (file {input} | grep -q BGZF ); then
+            # is bgzipped, just linked
+            ln -sr {input} {output}
+        else
+            # isn't compressed, just linked
+            ln -sr {input} {output}
+        fi
+        """
 
-rule index_faidx_genome:
-    input: 
-        f"Genome/{bn}"
-    output: 
-        f"Genome/{bn}.fai"
-    message:
-        "Indexing {input}"
-    log:
-        f"Genome/{bn}.faidx.log"
-    shell: 
-        """
-        samtools faidx --fai-idx {output} {input} 2> {log}
-        """
+if genome_zip:
+    rule genome_compressed_faidx:
+        input: 
+            f"Genome/{bn}"
+        output: 
+            gzi = f"Genome/{bn}.gzi",
+            fai = f"Genome/{bn}.fai"
+        message:
+            "Indexing {input}"
+        log:
+            f"Genome/{bn}.faidx.gzi.log"
+        shell: 
+            "samtools faidx --gzi-idx {output.gzi} --fai-idx {output.fai} {input} 2> {log}"
+else:
+    rule genome_faidx:
+        input: 
+            f"Genome/{bn}"
+        output: 
+            f"Genome/{bn}.fai"
+        message:
+            "Indexing {input}"
+        log:
+            f"Genome/{bn}.faidx.log"
+        shell:
+            "samtools faidx --fai-idx {output} {input} 2> {log}"
 
 rule report:
     input:

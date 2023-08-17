@@ -2,6 +2,7 @@ import sys
 import os
 import re
 import gzip
+import subprocess
 from pathlib import Path
 
 ## recurring checks and such ##
@@ -28,14 +29,41 @@ def getnames_err(directory, ext):
         raise Exception(f"\033[1;33mERROR:\033[00m No sample files ending with {ext} found in {directory}.")
     return samplenames
 
-def createregions(infile, window, base):
+def createregions(infile, window, method):
     bn = os.path.basename(infile)
     os.makedirs("Genome", exist_ok = True)
-    if not os.path.exists(f"Genome/{bn}"):
-        shell(f"ln -sr {infile} Genome/{bn}")
+    base = 0 if method == "freebayes" else 1
+    gen_zip = True if (bn.endswith(".gz") or bn.endswith(".GZ")) else False
+    if method == "freebayes":
+        # freebayes requires uncompressed genome
+        if gen_zip:
+            # remove .gz extension
+            bn = bn[:-3]
+            if not os.path.exists(f"Genome/{bn}"):
+                with open(f"Genome/{bn}", "w") as fo:
+                    subprocess.run(f"gzip -dc {infile}".split(), stdout = fo)
+        else:
+            if not os.path.exists(f"Genome/{bn}"):
+                subprocess.run(f"ln -sr {infile} Genome/{bn}".split())
+    else:
+        if not os.path.exists(f"Genome/{bn}"):
+            ftype = subprocess.run(["file", infile], stdout=subprocess.PIPE).stdout.decode('utf-8')
+            if "Blocked GNU Zip" in ftype:
+                # is bgzipped, just link it
+                subprocess.run(f"ln -sr {infile} Genome/{bn}".split())
+            elif "gzip compressed data" in ftype:
+                # is regular gzipped, needs to be bgzipped
+                subprocess.run(f"zcat {infile} | bgzip -c > Genome/{bn}".split())
+            else:
+                # not compressed, just link
+                subprocess.run(f"ln -sr {infile} Genome/{bn}".split())
+
     if not os.path.exists(f"Genome/{bn}.fai"):
-        print(f"Genome/{bn}.fai not found, indexing {bn} with samtools faidx", file = sys.stderr)
-        subprocess.run(["samtools","faidx", "--fai-idx", f"Genome/{bn}.fai", infile, "2>", "/dev/null"])
+        try:
+            subprocess.run(f"samtools faidx --fai-idx Genome/{bn}.fai --gzi-idx Genome/{bn}.gzi Genome/{bn}".split(), stderr = subprocess.DEVNULL)
+        except:
+            subprocess.run(f"samtools faidx --fai-idx Genome/{bn}.fai Genome/{bn}".split(), stderr = subprocess.DEVNULL)
+
     with open(f"Genome/{bn}.fai") as fai:
         bedregion = []
         while True:
@@ -48,6 +76,7 @@ def createregions(infile, window, base):
             lsplit = line.split()
             contig = lsplit[0]
             c_len = int(lsplit[1])
+            c_len = c_len - 1 if base == 0 else c_len
             start = base
             end = window
             starts = [base]
@@ -59,7 +88,7 @@ def createregions(infile, window, base):
                 starts.append(start)
             for (startpos, endpos) in zip (starts,ends):
                 bedregion.append(f"{contig}:{startpos}-{endpos}")
-        return bedregion
+        return bedregion, f"Genome/{bn}"
 
 def check_impute_params(parameters):
     with open(parameters, "r") as fp:

@@ -12,7 +12,7 @@ except:
     pass
 
 @click.command(no_args_is_help = True)
-@click.option('-p', '--popgroup', required = False, type=click.Path(exists=True), metavar = "Input folder Path", help = 'Create generic sample-group file using existing sample file names (fq.gz or bam)')
+@click.option('-p', '--popgroup', required = False, type=click.Path(exists=True), metavar = "Input folder Path", help = 'Create generic sample-group file using existing sample file names (fq.gz or bam) in provided folder')
 @click.option('-s', '--stitch-params', type=str, metavar = "Output file name", help = 'Create template STITCH parameter file')
 @click.option('-h', '--hpc', type = click.Choice(["slurm", "sge"], case_sensitive = False), help = 'Create HPC scheduling profile')
 def extra(popgroup, stitch_params, hpc):
@@ -39,7 +39,7 @@ def extra(popgroup, stitch_params, hpc):
 
         print(f"Samples detected in {popgroup}: " + str(len(samplenames)), file = sys.stderr)
         fout = "samples.groups"
-        if exists("samples.groups"):
+        if os.path.exists("samples.groups"):
             overwrite = input("File \'samples.groups\' already exists, overwrite (no|yes)?  ").lower()
             if (overwrite == "no") or (overwrite == "n"):
                 fout = input("Please suggest a different name for the output file: ")

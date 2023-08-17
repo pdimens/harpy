@@ -4,8 +4,10 @@ bam_dir     = config["seq_directory"]
 genomefile  = config["genomefile"]
 samplenames = config["samplenames"] 
 extra       = config.get("extra", "") 
-bn          = os.path.basename(genomefile)
 outdir      = "Variants/leviathan"
+bn          = os.path.basename(genomefile)
+genome_zip  = True if (bn.endswith(".gz") or bn.endswith(".GZ")) else False
+bn_idx      = f"{bn}.gzi" if genome_zip else f"{bn}.fai"
 
 rule index_alignment:
     input:
@@ -29,33 +31,57 @@ rule index_barcode:
         "Indexing barcodes: {wildcards.sample}"
     benchmark:
         "Benchmark/Variants/leviathan/indexbc.{sample}.txt"
-    threads: 4
+    threads:
+        4
     shell:
         "LRez index bam --threads {threads} -p -b {input.bam} -o {output}"
 
-rule link_genome:
+rule genome_link:
     input:
         genomefile
     output: 
         f"Genome/{bn}"
-    message:
-        "Symlinking {input} to Genome/"
+    message: 
+        "Symlinking {input}"
     shell: 
-        "ln -sr {input} {output}"
+        """
+        if (file {input} | grep -q compressed ) ;then
+            # is regular gzipped, needs to be BGzipped
+            zcat {input} | bgzip -c > {output}
+        elif (file {input} | grep -q BGZF ); then
+            # is bgzipped, just linked
+            ln -sr {input} {output}
+        else
+            # isn't compressed, just linked
+            ln -sr {input} {output}
+        fi
+        """
 
-rule index_faidx_genome:
-    input: 
-        f"Genome/{bn}"
-    output: 
-        f"Genome/{bn}.fai"
-    message:
-        "Indexing {input}"
-    log:
-        f"Genome/{bn}.faidx.log"
-    shell: 
-        """
-        samtools faidx --fai-idx {output} {input} 2> {log}
-        """
+if genome_zip:
+    rule genome_compressed_faidx:
+        input: 
+            f"Genome/{bn}"
+        output: 
+            gzi = f"Genome/{bn}.gzi",
+            fai = f"Genome/{bn}.fai"
+        message:
+            "Indexing {input}"
+        log:
+            f"Genome/{bn}.faidx.gzi.log"
+        shell: 
+            "samtools faidx --gzi-idx {output.gzi} --fai-idx {output.fai} {input} 2> {log}"
+else:
+    rule genome_faidx:
+        input: 
+            f"Genome/{bn}"
+        output: 
+            f"Genome/{bn}.fai"
+        message:
+            "Indexing {input}"
+        log:
+            f"Genome/{bn}.faidx.log"
+        shell:
+            "samtools faidx --fai-idx {output} {input} 2> {log}"
 
 rule index_bwa_genome:
     input: 
@@ -67,16 +93,16 @@ rule index_bwa_genome:
     log:
         f"Genome/{bn}.idx.log"
     shell: 
-        """
-        bwa index {input} 2> {log}
-        """
+        "bwa index {input} 2> {log}"
 
 rule leviathan_variantcall:
     input:
         bam    = bam_dir + "/{sample}.bam",
         bai    = bam_dir + "/{sample}.bam.bai",
         bc_idx = outdir + "/lrezIndexed/{sample}.bci",
-        genome = f"Genome/{bn}"
+        genome = f"Genome/{bn}",
+        genidx = f"Genome/{bn_idx}",
+        genbwa = multiext(f"Genome/{bn}", ".ann", ".bwt", ".pac", ".sa", ".amb")
     output:
         pipe(outdir + "/{sample}.vcf")
     log:  
@@ -88,7 +114,8 @@ rule leviathan_variantcall:
         "Benchmark/Variants/leviathan/variantcall.{sample}.txt"
     params:
         extra = extra
-    threads: 3
+    threads:
+        3
     shell:
         "LEVIATHAN -b {input.bam} -i {input.bc_idx} {params} -g {input.genome} -o {output} -t {threads} --candidates {log.candidates} 2> {log.runlog}"
 

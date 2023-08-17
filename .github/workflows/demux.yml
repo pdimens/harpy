@@ -16,9 +16,11 @@ on:
     branches:
     - 'dev'
     paths:
-      - '**demultiplex**.smk'
+      - 'rules/demultiplex**.smk'
+      - '**demultiplex.py'
       - '**demuxGen1'
       - '**demux.yml'
+      - 'BC_files.py'
       - 'test/data/demux/**'
 
   schedule:

@@ -20,7 +20,8 @@ from .extra import extra
 from .demultiplex import demultiplex
 from .trim import trim
 from .align import align
-from .variants import variants
+from .variants_snp import snp
+from .variants_sv import sv
 from .impute import impute
 from .phase import phase
 import rich_click as click
@@ -49,6 +50,16 @@ def cli():
     """
     pass
 
+@click.group(options_metavar='', context_settings=dict(help_option_names=["-h", "--help"]))
+def variants():
+    """
+    Call variants (SNP/SV) from samples
+
+    Provide an additional command `snp` or `sv` to get more information on calling
+    those types of variants.
+    """
+    pass
+
 cli.add_command(extra)
 cli.add_command(demultiplex)
 cli.add_command(trim)
@@ -56,6 +67,8 @@ cli.add_command(align)
 cli.add_command(variants)
 cli.add_command(impute)
 cli.add_command(phase)
+variants.add_command(sv)
+variants.add_command(snp)
 
 ## the modules ##
 click.rich_click.OPTION_GROUPS = {

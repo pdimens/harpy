@@ -14,7 +14,8 @@ on:
     branches:
       - 'dev'
     paths:
-      - '**trim.smk'
+      - 'rules/trim.smk'
+      - '**trim.py'
       - 'test/fastq/**'
       - '**trim.yml'
 
