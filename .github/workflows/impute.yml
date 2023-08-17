@@ -17,15 +17,15 @@ on:
   pull_request:
     branches:
       - 'dev'
-      paths:
-        - 'rules/impute.smk'
-        - '**impute.py'
-        - 'test/bam/**'
-        - 'test/test.bcf'
-        - '**impute.yml'
-        - 'reports/reportImpute.Rmd'
-        - 'reports/reportStitch.Rmd'
-        - 'utilities/stitch_impute.R'
+    paths:
+      - 'rules/impute.smk'
+      - '**impute.py'
+      - 'test/bam/**'
+      - 'test/test.bcf'
+      - '**impute.yml'
+      - 'reports/reportImpute.Rmd'
+      - 'reports/reportStitch.Rmd'
+      - 'utilities/stitch_impute.R'
 
   schedule:
     - cron: '0 0 * * *'
