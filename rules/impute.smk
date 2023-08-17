@@ -10,9 +10,7 @@ variantfile = config["variantfile"]
 paramfile   = config["paramfile"]
 contigs     = config["contigs"]
 # declare a dataframe to be the paramspace
-paramspace  = Paramspace(pd.read_csv(paramfile, delim_whitespace = True), param_sep = "", filename_params="*")
-# standardize colnames to be lowercase
-paramspace  = paramspace.rename(columns=str.lower)
+paramspace  = Paramspace(pd.read_csv(paramfile, delim_whitespace = True).rename(columns=str.lower), param_sep = "", filename_params="*")
 
 rule sort_bcf:
     input:
