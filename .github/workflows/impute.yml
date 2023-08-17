@@ -1,0 +1,69 @@
+name: Test Impute
+
+on:
+  push:
+    branches:
+      - 'dev'
+    paths:
+      - 'rules/impute.smk'
+      - '**impute.py'
+      - 'test/bam/**'
+      - 'test/test.bcf'
+      - '**impute.yml'
+      - 'reports/reportImpute.Rmd'
+      - 'reports/reportStitch.Rmd'
+      - 'utilities/stitch_impute.R'
+
+  pull_request:
+    branches:
+      - 'dev'
+      paths:
+        - 'rules/impute.smk'
+        - '**impute.py'
+        - 'test/bam/**'
+        - 'test/test.bcf'
+        - '**impute.yml'
+        - 'reports/reportImpute.Rmd'
+        - 'reports/reportStitch.Rmd'
+        - 'utilities/stitch_impute.R'
+
+  schedule:
+    - cron: '0 0 * * *'
+
+env:
+  CACHE_NUMBER: 0  # increase to reset cache manually
+
+jobs:
+  build:
+    name: linux64
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 1
+      - name: setup mamba
+        uses: mamba-org/setup-micromamba@v1
+        env:
+          ACTIONS_STEP_DEBUG: true
+        with:
+          init-shell: bash
+          generate-run-shell: true
+          environment-file: misc/harpyenv.yaml
+          cache-environment: true
+          post-cleanup: 'all'
+          log-level: error
+      - name: Install harpy
+        run: |
+          python3 -m pip install --upgrade build && python3 -m build
+          pip install dist/*.whl
+          misc/buildforCI.sh
+        shell: micromamba-shell {0}
+
+      - name: impute
+        shell: micromamba-shell {0}
+        run: harpy impute-d test/bam --vcf test/test.bcf -d test/bam -p test/stitch.params -s "--show-failed-logs"
+
+      - name: impute from vcf
+        shell: micromamba-shell {0}
+        run: harpy impute-d test/bam --vcf-samples --vcf test/test.bcf -d test/bam -p test/stitch.params -s "--show-failed-logs"

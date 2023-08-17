@@ -1,0 +1,3 @@
+model	usebx	k	s	ngen
+pseudoHaploid	TRUE	10	5	50
+pseudoHaploid	TRUE	10	1	50
