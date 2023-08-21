@@ -1,2 +1,14 @@
 *.fasta*
 *.bam*
+test/
+src/
+.snakemake/
+Benchmark/
+build/
+Demultiplex/
+Trim/
+Align/
+Variants/
+Impute/
+Phase/
+workflows/
