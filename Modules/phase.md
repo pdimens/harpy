@@ -61,7 +61,8 @@ Feel free to play around with this number if you aren't sure. A larger distance 
 you are allowing the program to be more lenient in assuming two alignments with the
 same barcode originated from the same DNA molecule. The HapCut2 default is `20000` (20kbp),
 but Harpy's default is more lenient with `30000` (50kbp). Unless you have strong evidence
-in favor of it, a distance above `200000` (200kbp) would probably do more harm than good. 
+in favor of it, a distance above `200000` (200kbp) would probably do more harm than good.
+See [haplotag data](../haplotagdata/#barcode-thresholds) for a more thorough explanation.
 
 ### Pruning threshold
 The pruning threshold refers to a PHRED-scale value between 0-1 (a percentage) for removing

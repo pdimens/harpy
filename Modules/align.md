@@ -9,7 +9,7 @@ order: 5
 ===  :icon-checklist: You will need
 - at least 4 cores/threads available
 - a genome assembly in FASTA format
-- paired-end fastq sequence file with the [proper naming convention](../dataformat/#naming-conventions) (gzipped recommended)
+- paired-end fastq sequence file with the [proper naming convention](../haplotagdata/#naming-conventions) (gzipped recommended)
 ===
 
 Once sequences have been trimmed and passed through other QC filters, they will need to

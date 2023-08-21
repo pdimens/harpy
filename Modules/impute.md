@@ -45,9 +45,9 @@ In addition to the [common runtime options](../commonoptions.md), the `harpy imp
 | argument       | short name | type        |    default    | required | description                                                                                     |
 |:---------------|:----------:|:------------|:-------------:|:--------:|:------------------------------------------------------------------------------------------------|
 | `--vcf`        |    `-v`    | file path   |               | **yes**  | Path to VCF/BCF file                                                                            |
-| `--vcf-samples`        |     |  toggle   |               | no  |  [Use samples present in vcf file](#prioritize-the-vcf-file) for imputation rather than those found the directory    |
-| `--directory      `  |    `-d`    | folder path |             | **yes**  | Directory with sequence alignments                                                              |
-| `--parameters` |    `-p`    | file path   |        | **yes**  | STITCH [parameter file](#parameter-file) (tab-delimited)                                                           |
+| `--vcf-samples`|            |    toggle   |               | no       |  [Use samples present in vcf file](#prioritize-the-vcf-file) for imputation rather than those found the directory    |
+| `--directory`  |    `-d`    | folder path |               | **yes**  | Directory with sequence alignments                                                              |
+| `--parameters` |    `-p`    | file path   |               | **yes**  | STITCH [parameter file](#parameter-file) (tab-delimited)                                                           |
 
 ### Prioritize the vcf file
 Sometimes you want to run imputation on all the samples present in the `--directory`, but other times you may want
@@ -60,23 +60,22 @@ are missing from the provided `--directory`.
 ## :icon-file: Parameter file
 Typically, one runs STITCH multiple times, exploring how results vary with
 different model parameters (explained in next section). The solution Harpy uses for this is to have the user
-provide a tab-delimited dataframe file where the columns are the 5 STITCH model 
+provide a tab-delimited dataframe file where the columns are the 6 STITCH model 
 parameters and the rows are the values for those parameters. The parameter file 
 is required and can be created manually or with `harpy extra -s <filename>`.
 If created using harpy, the resulting file includes largely meaningless values 
 that you will need to adjust for your study. The parameter must follow a particular format:
 - tab or comma delimited
-- column order doesn't matter, but all 5 column names must be present
+- column order doesn't matter, but all 6 column names must be present
 - header row present with the specific column names below
-    - all column names begin with a lowercase character
 
 +++example file
 This file is tab-delimited, note the column names:
 ``` paramaters.txt
-model   useBX   k       s       nGen
-pseudoHaploid   TRUE    10      5       50
-pseudoHaploid   TRUE    10      1       50
-pseudoHaploid   TRUE    15      10      100
+model   usebx   bxlimit   k       s       nGen
+diploid   TRUE    50000    10      5       50
+diploid   TRUE    50000   15      10      100
+pseudoHaploid   TRUE    50000   10      1       50
 ```
 +++parameter file columns
 See the section below for detailed information on each parameter. This
@@ -85,7 +84,8 @@ table serves as an overview of the parameters.
 | column name |  value type  |             accepted values             | description                                                           |
 |:------------|:------------:|:---------------------------------------:|:----------------------------------------------------------------------|
 | model       |     text     | pseudoHaploid, diploid, diploid-inbred  | The STITCH model/method to use                                        |
-| useBX       | text/boolean | true, false, yes, no (case insensitive) | Whether to incorporate beadtag information                            |
+| usebx       | text/boolean | true, false, yes, no (case insensitive) | Whether to incorporate beadtag information                            |
+| bxlimit     |   integer    |                   ≥ 1                   | Distance between identical BX tags at which to consider them different molecules |
 | k           |   integer    |                   ≥ 1                   | Number of founder haplotypes                                          |
 | s           |   integer    |                   ≥ 1                   | Number of instances of the founder haplotypes to average results over |
 | nGen        |   integer    |                   ≥ 1                   | Estimated number of generations since founding                        |
@@ -93,11 +93,11 @@ table serves as an overview of the parameters.
 +++example file  (as a table)
 This is the table view of the tab-delimited file, shown here for clarity.
 
-| model         | useBX | k  | s  | nGen |
-|:--------------|:------|:---|:---|:-----|
-| pseudoHaploid | TRUE  | 10 | 5  | 50   |
-| pseudoHaploid | TRUE  | 10 | 1  | 50   |
-| pseudoHaploid | TRUE  | 15 | 10 | 100  |
+| model         | useBX | bxlimit  | k  | s  | nGen |
+|:--------------|:------|:---------|:---|:---|:-----|
+| diploid | TRUE  |   50000  | 10 | 5  | 50   |
+| diploid | TRUE  |   50000  | 15 | 10 | 100  |
+| pseudoHaploid | TRUE  |   50000  | 10 | 1  | 50   |
 +++
 
 ## STITCH Parameters
@@ -113,11 +113,18 @@ STITCH uses one of three "methods" reflecting different statistical and biologic
 
 Each model assumes the samples are diploid and all methods output diploid genotypes and probabilities.
 
-+++useBX
++++usebx
 ##### Use BX barcodes
 The `useBX` parameter is given as a true/false. Simulations suggest including linked-read information isn't helpful
 in species with short haploblocks (it might makes things worse). So, it's worth trying both options if you aren't
 sure about the length of haplotype blocks in your species.
+
++++bxlimit
+The `bxlimit` parameter is an integer that informs STITCH when alignments with the same barcode on the same contig
+should be considered as originating from different molecules. This is a common consideration for linked-read analyses
+and 50kb (`50000`) is often a reasonable default. A lower value is considered more strict (fewer reads per moleucle)
+and a higher value is considered more generous (more reads per molecule). You can/should change this value if you 
+have evidence that 50kb isn't appropriate. See [haplotag data](../haplotagdata/#barcode-thresholds) for a more thorough explanation.
 
 +++k
 ##### Number ancestral haplotypes
