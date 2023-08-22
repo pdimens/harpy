@@ -1,0 +1,75 @@
+name: Test Phase
+
+on:
+  push:
+    branches:
+      - 'dev'
+    paths:
+      - 'rules/phase-pop.smk'
+      - '**phase.py'
+      - 'test/bam/**'
+      - 'test/vcf/test.bcf'
+      - '**phase.yml'
+      - 'reports/reportHapCut2.Rmd'
+      - 'utilities/parsePhaseBlocks.py'
+      - 'utilities/summarizeHaplobocks.py'
+
+  pull_request:
+    branches:
+      - 'dev'
+    paths:
+      - 'rules/phase-pop.smk'
+      - '**phase.py'
+      - 'test/bam/**'
+      - 'test/vcf/test.bcf'
+      - '**phase.yml'
+      - 'reports/reportHapCut2.Rmd'
+      - 'utilities/parsePhaseBlocks.py'
+      - 'utilities/summarizeHaplobocks.py'
+
+  schedule:
+    - cron: '0 0 * * *'
+
+env:
+  CACHE_NUMBER: 0  # increase to reset cache manually
+
+
+jobs:
+  build:
+    name: linux64
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 1
+      - name: setup mamba
+        uses: mamba-org/setup-micromamba@v1
+        env:
+          ACTIONS_STEP_DEBUG: true
+        with:
+          init-shell: bash
+          generate-run-shell: true
+          environment-file: misc/harpyenv.yaml
+          cache-environment: true
+          post-cleanup: 'all'
+          log-level: error
+      - name: Install harpy
+        run: |
+          python3 -m pip install --upgrade build && python3 -m build
+          pip install dist/*.whl
+          misc/buildforCI.sh
+        shell: micromamba-shell {0}
+
+      - name: phase
+        shell: micromamba-shell {0}
+        run: harpy phase --vcf test/vcf/test.bcf -d test/bam -s "--show-failed-logs"
+
+      - name: phase with indels
+        shell: micromamba-shell {0}
+        run: harpy phase --vcf test/vcf/test.bcf -g test/genome/genome.fasta.gz -d test/bam -s "--show-failed-logs"
+
+      - name: phase from vcf
+        shell: micromamba-shell {0}
+        run: harpy phase --vcf-samples --vcf test/vcf/test.bcf -d test/bam -s "--show-failed-logs"
+  
