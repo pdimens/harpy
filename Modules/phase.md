@@ -34,8 +34,8 @@ In addition to the [common runtime options](../commonoptions.md), the `harpy pha
 |:----------------------|:----------:|:----------------|:-------:|:--------:|:---------------------------------------------------------------------|
 | `--vcf`               |    `-v`    | file path       |         | **yes**  | Path to BCF/VCF file                                                 |
 | `--directory`         |    `-d`    | folder path     |         | **yes**  | Directory with sequence alignments                                   |
-| `--molecule-distance` |    `-m`    | integer         |  30000  |    no    | Base-pair distance dilineating separate molecules                    |
-| `--indels           ` |    `-i`    | file path       |         |    no    | Path to genome if wanting to also use reads spanning indels          |
+| `--genome           ` |    `-g`    | file path       |         |    no    | Path to genome if wanting to also use reads spanning indels          |
+| `--molecule-distance` |    `-m`    | integer         |  50000  |    no    | Base-pair distance dilineating separate molecules                    |
 | `--prune-threshold`   |    `-p`    | integer (0-100) |    7    |    no    | PHRED-scale (%) threshold for pruning low-confidence SNPs            |
 | `--ignore-bx`         |    `-b`    | toggle          |         |    no    | Ignore haplotag barcodes for phasing                                 |
 | `--vcf-samples`       |            |  toggle         |         |    no    | [Use samples present in vcf file](#prioritize-the-vcf-file) for imputation rather than those found the directory    |
@@ -60,7 +60,7 @@ originated from the same DNA molecule rather than having the same barcodes by ch
 Feel free to play around with this number if you aren't sure. A larger distance means
 you are allowing the program to be more lenient in assuming two alignments with the
 same barcode originated from the same DNA molecule. The HapCut2 default is `20000` (20kbp),
-but Harpy's default is more lenient with `30000` (50kbp). Unless you have strong evidence
+but Harpy's default is more lenient with `50000` (50kbp). Unless you have strong evidence
 in favor of it, a distance above `200000` (200kbp) would probably do more harm than good.
 See [haplotag data](../haplotagdata/#barcode-thresholds) for a more thorough explanation.
 
