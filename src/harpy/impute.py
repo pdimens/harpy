@@ -78,6 +78,9 @@ def impute(parameters, directory, threads, vcf, vcf_samples, snakemake, quiet):
     else:
         with open(f"Impute/input/_{vbn}.list", "r") as f:
             contigs = [line.rstrip() for line in f]
+    if len(contigs) == 0:
+        print("\n\033[1mWarning:\033[00m: No contigs with at least 2 biallelic SNPs identified. Cannot continue with imputation.", file = sys.stderr)
+        exit(1)
     command.append('--config')
     directory = directory.rstrip("/^")
     command.append(f"seq_directory={directory}")

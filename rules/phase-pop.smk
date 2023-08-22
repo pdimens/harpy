@@ -182,7 +182,7 @@ rule mergeSamples:
         30
     shell:
         """
-        bcftools merge --threads {threads} --Ob {input.bcf} > {output.bcf}
+        bcftools merge --threads {threads} -Ob {input.bcf} > {output.bcf}
         bcftools index {output.bcf}
         """
         #"bcftools merge --threads {threads} --Ob --write-index {input.bcf} > {output}"

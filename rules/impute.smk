@@ -106,7 +106,6 @@ rule index_vcf:
         "Indexing: {wildcards.stitchparams}/{wildcards.part}"
     benchmark:
         "Benchmark/Impute/indexvcf.{stitchparams}.{part}.txt"
-    threads: 1
     shell:
         """
         tabix {input.vcf}
@@ -122,7 +121,6 @@ rule stitch_reports:
         "Generating STITCH report: {wildcards.part}"
     benchmark:
         "Benchmark/Impute/report.{stitchparams}.{part}.txt"
-    threads: 1
     script:
         "reportStitch.Rmd"
 
@@ -147,15 +145,14 @@ rule clean_stitch:
 
 rule concat_list:
     input:
-        bcf = expand("Impute/{{stitchparams}}/contigs/{part}/{part}.vcf.gz", part = contigs),
+        bcf = expand("Impute/{{stitchparams}}/contigs/{part}/{part}.vcf.gz", part = contigs)
     output:
         temp("Impute/{stitchparams}/bcf.files")
     message:
         "Creating list vcf files for concatenation"
     run:
         with open(output[0], "w") as fout:
-            for bcf in input.bcf:
-                _ = fout.write(f"{bcf}\n")   
+            _ = fout.write("\n".join(input.bcf))
 
 rule merge_vcfs:
     input:
@@ -174,7 +171,7 @@ rule merge_vcfs:
     shell:
         """
         #bcftools concat --threads {threads} --write-index -o {output.bcf}##idx##{output.bai} -f {input.files} 2> /dev/null
-        bcftools concat --threads {threads} -o {output.bcf} -Ob -f {input.files} 2> /dev/null"
+        bcftools concat --threads {threads} -o {output.bcf} -Ob -f {input.files} 2> /dev/null
         bcftools index {output.bcf}
         """
 
