@@ -301,8 +301,8 @@ rule sort_merge:
 
 rule bx_stats_alignments:
     input:
-        bam = outdir + "/{sample}/{sample}.sorted.bam",
-        bai = outdir + "/{sample}/{sample}.sorted.bam.bai"
+        bam = outdir + "/align/{sample}.bam",
+        bai = outdir + "/align/{sample}.bam.bai"
     output: 
         outdir + "/stats/BXstats/data/{sample}.bxstats.gz"
     message:
