@@ -24,6 +24,8 @@ def impute(parameters, directory, threads, vcf, vcf_samples, snakemake, quiet):
     Impute genotypes using variants and sequences
     
     Requires a parameter file, use **harpy extra --stitch-params** to generate one and adjust it for your study.
+    Use the `--vcf-samples` toggle to phase only the samples present in your input `--vcf` file rather than all
+    the samples present in the `--directory`.
     """
     ## validate inputs ##
     vcfcheck(vcf)
