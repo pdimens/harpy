@@ -290,8 +290,8 @@ rule sort_merge:
         bam    = outdir + "/{sample}/{sample}.unsort.bam",
         genome = f"Genome/{bn}"
     output:
-        bam = temp(outdir + "/{sample}/{sample}.sorted.bam"),
-        bai = temp(outdir + "/{sample}/{sample}.sorted.bam.bai")
+        bam = outdir + "/align/{sample}.bam",
+        bai = outdir + "/align/{sample}.bam.bai"
     message:
         "Sorting merged barcoded alignments: {wildcards.sample}"
     threads:
@@ -320,22 +320,22 @@ rule bx_stats_report:
     script:
         "reportBxStats.Rmd"
 
-rule clip_overlap:
-    input:
-        bam = outdir + "/{sample}/{sample}.sorted.bam",
-        bai = outdir + "/{sample}/{sample}.sorted.bam.bai"
-    output:
-        bam = outdir + "/align/{sample}.bam",
-        bai = outdir + "/align/{sample}.bam.bai"
-    log:
-        outdir + "/logs/clipOverlap/{sample}.clipOverlap.log"
-    message:
-        "Clipping alignment overlaps: {wildcards.sample}"
-    shell:
-        """
-        bam clipOverlap --in {input.bam} --out {output.bam} --stats --noPhoneHome > {log} 2>&1
-        samtools index {output.bam}
-        """
+#rule clip_overlap:
+#    input:
+#        bam = outdir + "/{sample}/{sample}.sorted.bam",
+#        bai = outdir + "/{sample}/{sample}.sorted.bam.bai"
+#    output:
+#        bam = outdir + "/align/{sample}.bam",
+#        bai = outdir + "/align/{sample}.bam.bai"
+#    log:
+#        outdir + "/logs/clipOverlap/{sample}.clipOverlap.log"
+#    message:
+#        "Clipping alignment overlaps: {wildcards.sample}"
+#    shell:
+#        """
+#        bam clipOverlap --in {input.bam} --out {output.bam} --stats --noPhoneHome > {log} 2>&1
+#        samtools index {output.bam}
+#        """
 
 rule general_stats:
     input: 		

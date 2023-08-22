@@ -14,10 +14,10 @@ mkdir -p ${CONDA_PREFIX}/bin
 pip install .
 
 # rules
-cp rules/*.smk ${CONDA_PREFIX}/bin/
+cp -f rules/*.smk ${CONDA_PREFIX}/bin/
 
 # associated scripts
-cp utilities/* ${CONDA_PREFIX}/bin/
+cp -f utilities/* ${CONDA_PREFIX}/bin/
 
 # reports
-cp reports/*.Rmd ${CONDA_PREFIX}/bin/
+cp -f reports/*.Rmd ${CONDA_PREFIX}/bin/

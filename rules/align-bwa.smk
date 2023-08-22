@@ -181,8 +181,8 @@ rule mark_duplicates:
     input:
         lambda wc: outdir + "/{sample}/{sample}.sort.bam"
     output:
-        bam = temp(outdir + "/{sample}/{sample}.markdup.bam"),
-        bai = temp(outdir + "/{sample}/{sample}.markdup.bam.bai")
+        bam = outdir + "/align/{sample}.bam",
+        bai = outdir + "/align/{sample}.bam.bai"
     log:
         outdir + "/logs/makrduplicates/{sample}.markdup.log"
     message:
@@ -194,22 +194,22 @@ rule mark_duplicates:
     shell:
         "sambamba markdup -t {threads} -l 0 {input} {output.bam} 2> {log}"
 
-rule clip_overlap:
-    input:
-        bam = outdir + "/{sample}/{sample}.markdup.bam",
-        bai = outdir + "/{sample}/{sample}.markdup.bam.bai"
-    output:
-        bam = outdir + "/align/{sample}.bam",
-        bai = outdir + "/align/{sample}.bam.bai"
-    log:
-        outdir + "/logs/clipOverlap/{sample}.clipOverlap.log"
-    message:
-        "Clipping alignment overlaps: {wildcards.sample}"
-    shell:
-        """
-        bam clipOverlap --in {input.bam} --out {output.bam} --stats --noPhoneHome > {log} 2>&1
-        samtools index {output.bam}
-        """
+#rule clip_overlap:
+#    input:
+#        bam = outdir + "/{sample}/{sample}.markdup.bam",
+#        bai = outdir + "/{sample}/{sample}.markdup.bam.bai"
+#    output:
+#        bam = outdir + "/align/{sample}.bam",
+#        bai = outdir + "/align/{sample}.bam.bai"
+#    log:
+#        outdir + "/logs/clipOverlap/{sample}.clipOverlap.log"
+#    message:
+#        "Clipping alignment overlaps: {wildcards.sample}"
+#    shell:
+#        """
+#        bam clipOverlap --in {input.bam} --out {output.bam} --stats --noPhoneHome > {log} 2>&1
+#        samtools index {output.bam}
+#        """
 
 rule alignment_coverage:
     input: 
