@@ -65,10 +65,10 @@ def phase(vcf, directory, threads, molecule_distance, prune_threshold, vcf_sampl
         command.append("all")
     command.append('--config')
     directory = directory.rstrip("/^")
-    if indels is not None:
-        command.append(f"indels={indels}")
+    if genome is not None:
+        command.append(f"indels={genome}")
         if not os.path.exists(indels + ".fai"):
-            sys.run(f"samtools faidx {indels}".split())
+            sys.run(f"samtools faidx --fai-idx {genome}.fai {genome}".split())
     command.append(f"seq_directory={directory}")
     command.append(f"samplenames={samplenames}")
     command.append(f"variantfile={variantfile}")
