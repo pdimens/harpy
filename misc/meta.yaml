@@ -21,7 +21,6 @@ requirements:
     - setuptools-scm
     - pip
   run:
-    - bamutil
     - bcftools >= 1.17
     - bioconductor-complexheatmap
     - bwa
