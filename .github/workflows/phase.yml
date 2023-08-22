@@ -72,4 +72,3 @@ jobs:
       - name: phase from vcf
         shell: micromamba-shell {0}
         run: harpy phase --vcf-samples --vcf test/vcf/test.bcf -d test/bam -s "--show-failed-logs"
-  
