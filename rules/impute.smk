@@ -29,6 +29,7 @@ rule sort_bcf:
         bcftools index {output.bcf}
         """
 
+# TODO TOGGLE THIS BASED ON VCF-SAMPLES
 rule bam_list:
     input:
         expand(bam_dir + "/{sample}.bam", sample = samplenames)
@@ -43,6 +44,7 @@ rule bam_list:
             for bamfile in input:
                 fout.write(f"{bamfile}\n")
 
+# TODO TOGGLE THIS BASED ON VCF-SAMPLES
 rule samples_file:
     output:
         "Impute/input/samples.names"
@@ -205,7 +207,7 @@ rule comparestats:
         "Benchmark/Impute/mergestats.{stitchparams}.txt"
     shell:
         """
-        bcftools stats {input.impute} {input.orig} -S {input.samples} | grep \"GCTs\" > {output.compare}
+        bcftools stats -S {input.samples} {input.impute} {input.orig} | grep \"GCTs\" > {output.compare}
         bcftools query -f '%CHROM\\t%POS\\t%INFO/INFO_SCORE\\n' {input.impute} > {output.info_sc}
         """
 
