@@ -62,8 +62,8 @@ jobs:
 
       - name: impute
         shell: micromamba-shell {0}
-        run: harpy impute -d test/bam --vcf test/vcf/test.bcf -d test/bam -p test/stitch.params -s "--show-failed-logs"
+        run: harpy impute --vcf test/vcf/test.bcf -d test/bam -p test/stitch.params -s "--show-failed-logs"
 
       - name: impute from vcf
         shell: micromamba-shell {0}
-        run: harpy impute -d test/bam --vcf-samples --vcf test/vcf/test.bcf -d test/bam -p test/stitch.params -s "--show-failed-logs"
+        run: harpy impute --vcf-samples --vcf test/vcf/test.bcf -d test/bam -p test/stitch.params -s "--show-failed-logs"
