@@ -67,8 +67,12 @@ jobs:
 
       - name: phase with indels
         shell: micromamba-shell {0}
-        run: harpy phase --vcf test/vcf/test.bcf -g test/genome/genome.fasta.gz -d test/bam -s "--show-failed-logs"
+        run: |
+          rm -rf Phase
+          harpy phase --vcf test/vcf/test.bcf -g test/genome/genome.fasta.gz -d test/bam -s "--show-failed-logs"
 
       - name: phase from vcf
         shell: micromamba-shell {0}
-        run: harpy phase --vcf-samples --vcf test/vcf/test.bcf -d test/bam -s "--show-failed-logs"
+        run: |
+          rm -rf Phase
+          harpy phase --vcf-samples --vcf test/vcf/test.bcf -d test/bam -s "--show-failed-logs"

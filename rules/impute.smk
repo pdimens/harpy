@@ -29,7 +29,6 @@ rule sort_bcf:
         bcftools index {output.bcf}
         """
 
-# TODO TOGGLE THIS BASED ON VCF-SAMPLES
 rule bam_list:
     input:
         expand(bam_dir + "/{sample}.bam", sample = samplenames)
@@ -44,7 +43,6 @@ rule bam_list:
             for bamfile in input:
                 fout.write(f"{bamfile}\n")
 
-# TODO TOGGLE THIS BASED ON VCF-SAMPLES
 rule samples_file:
     output:
         "Impute/input/samples.names"
