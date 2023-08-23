@@ -24,11 +24,13 @@ demultiplexing these beadtag variants as they become available.
 #### where the barcodes go
 Chromium 10X linked-reads have a particular format where the barcode is the leading 16 bases 
 of the read. However, haplotagging data **does not use that format**, nor do the tools 
-implemented in Harpy work correctly with it. Simply put, haplotagging sequences should look like regular FASTQ files of inserts and the barcode is stored in a `BX:Z:AxxCxxBxxDxx` tag in the read header. Again, **do not include the barcode in the sequence**.
+implemented in Harpy work correctly with it. Once demultiplexed, haplotagging sequences should look 
+like regular FASTQ files of inserts and the barcode is stored in a `BX:Z:AxxCxxBxxDxx` tag 
+in the read header. Again, **do not include the barcode in the sequence**.
 
 ### Read headers
-Like mentioned immediately above this sentence, the haplotag barcode is expected to be stored
-in the `BX:Z:` tag in the read header. This information is retained through the various Harpy
+Like just mentioned, the haplotag barcode is expected to be stored in the `BX:Z:` tag in the 
+read header. This information is retained through the various Harpy
 steps. An example read header could look like:
 ``` example valid read header
 @A00814:267:HTMH3DRXX:2:1101:4580:1000 BX:Z:A02C01B11D46        RX:Z:GAAACGACCAACA+CGAACACGTTAGC   QX:Z:F,FFFFFFFFFFF+FF,FFF:FFFFFF
@@ -55,11 +57,11 @@ most common FASTQ naming styles are supported:
 - **sample names**: Alphanumeric and `.`, `-`, `_`
     - you can mix and match special characters, but that's bad practice and not recommended
     - examples: `Sample.001`, `Sample_001_year4`, `Sample-001_population1.year2` <- not recommended
-- **forward/reverse**: `_F`, `.F`, `_R1`, `.R1`, `_R1_001`, `.R1_001`, *etc.*\
+- **forward/reverse**: `_F`, `.F`, `_R1`, `.R1`, `_R1_001`, `.R1_001`, *etc.*
     - note that this **does not include** `.1` or `_1` conventions for forward/reverse
 - **fastq extension**: `.fastq`, `.FASTQ`, `.fq`, `.FQ`
-- **gzipped**: supported
-- **not gzipped**: supported (but not recommended)
+- **gzipped**: supported and recommended
+- **not gzipped**: supported
 
 You can also mix and match different formats and styles within a given directory, although again, **this isn't recommended**.
 As a good rule of thumb for any computational work, you should be deliberate and consistent in how you name things.

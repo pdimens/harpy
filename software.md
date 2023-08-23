@@ -23,11 +23,11 @@ Issues with specific tools might warrant a discussion with the authors/developer
 | LEVIATHAN  | [website](https://github.com/morispi/LEVIATHAN)              | [publication](https://doi.org/10.1101/2021.03.25.437002)                                               |
 | LRez       | [website](https://github.com/morispi/LRez)                   | [publication](https://academic.oup.com/bioinformaticsadvances/article/1/1/vbab022/6375438?login=false) |
 | mamba      | [website](https://github.com/mamba-org/mamba)                |                                                                                                        |
-| NAIBR      | [website](https://github.com/raphael-group/NAIBR) [fork](https://github.com/pontushojer/NAIBR) | [publication](https://doi.org/10.1093/bioinformatics/btx712)  |
+| NAIBR      | [website](https://github.com/raphael-group/NAIBR) [fork](https://github.com/pontushojer/NAIBR) | [publication](https://doi.org/10.1093/bioinformatics/btx712)         |
 | python     | [website](https://www.python.org/)                           |                                                                                                        |
 | rich-click | [website](https://github.com/ewels/rich-click)               |                                                                                                        |
 | sambamba   | [website](https://github.com/biod/sambamba)                  | [publication](https://doi.org/10.1093/bioinformatics/btv098)                                           |
 | samtools   | [website](http://www.htslib.org/)                            |                                                                                                        |
-| seqfu      | [website](https://telatin.github.io/seqfu2/)                 | [publication](https://doi.org/10.3390/bioengineering8050059)                                           |
+| seqtk      | [website](https://github.com/lh3/seqtk)                      |                                                                                                        |
 | Snakemake  | [website](https://github.com/snakemake/snakemake)            | [publication](https://f1000research.com/articles/10-33/v1)                                             |
 | STITCH     | [website](https://github.com/rwdavies/STITCH)                | [publication](https://doi.org/10.1038%2Fng.3594)                                                       |
