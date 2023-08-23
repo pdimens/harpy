@@ -1,4 +1,4 @@
-from .harpymisc import getnames_err, vcfcheck, check_impute_params
+from .harpymisc import getnames_err, vcfcheck, check_impute_params, validate_bamfiles
 import rich_click as click
 import subprocess
 import sys
@@ -50,7 +50,9 @@ def impute(parameters, directory, threads, vcf, vcf_samples, snakemake, quiet):
         print(f"\n\033[1;34mSOLUTION:\033[00m \033[01m{fromthis}\033[00m cannot contain samples that are absent in \033[01m{inthis}\033[00m. Check the spelling or remove those samples from \033[01m{fromthis}\033[00m or remake the vcf file to include/omit these samples. Alternatively, toggle \033[01m--vcf-samples\033[00m to aggregate the sample list from \033[01m{directory}\033[00m or \033[01m{vcf}\033[00m.\n", file = sys.stderr)
         sys.exit(1)
 
+    directory = directory.rstrip("/^")
     check_impute_params(parameters)
+    validate_bamfiles(directory, samplenames)
 
     command = f'snakemake --rerun-incomplete --nolock --cores {threads} --directory . --snakefile {harpypath}/impute.smk'.split()
     if snakemake is not None:
@@ -82,7 +84,6 @@ def impute(parameters, directory, threads, vcf, vcf_samples, snakemake, quiet):
         print("\n\033[1mWarning:\033[00m: No contigs with at least 2 biallelic SNPs identified. Cannot continue with imputation.", file = sys.stderr)
         exit(1)
     command.append('--config')
-    directory = directory.rstrip("/^")
     command.append(f"seq_directory={directory}")
     command.append(f"samplenames={samplenames}")
     command.append(f"variantfile={vcf}")

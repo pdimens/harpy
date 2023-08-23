@@ -213,37 +213,32 @@ def check_impute_params(parameters):
             print(f"\n\033[1;34mSOLUTION:\033[00m See above for an explanation of what values each column expects and which rows are causing problems.")
             print("Find more details in the documentation: https://pdimens.github.io/harpy/modules/impute/#parameter-file", file = sys.stderr)
             exit(1)
+
+def validate_bamfiles(dir, namelist):
+    culpritfiles = []
+    culpritIDs   = []
+    for i in namelist:
+        fname = f"{dir}/{i}.bam"
+        samview = subprocess.Popen(f"samtools view -H {fname}".split(), stdout = subprocess.PIPE)
+        IDtag = subprocess.run("grep ^@RG".split(), stdin = samview.stdout, stdout=subprocess.PIPE).stdout.decode('utf-8')
+        r = re.compile("(\t)(ID:.*?)(\t)")
+        IDsearch = r.search(IDtag)
+        if IDsearch:
+            # strip right and left whitespaces and rm "ID:"
+            IDval = IDsearch.group(0).rstrip().lstrip()[3:]
+            # does the ID: tag match the sample name?
+            if IDval != i:
+                culpritfiles.append(os.path.basename(fname))
+                culpritIDs.append(IDval)
+        else:
+            culpritfiles.append(os.path.basename)
+            culpritIDs.append("missing @RG ID:")
         
-# standardizes fastq filenames to not include periods in the samplename and
-# ends in .F|R.fq[.gz]
-# dont use?
-def sanitize_fastq(full_fqlist, linkdir):
-    samplenames = set()
-    os.makedirs(linkdir, exist_ok = True)
-    # regex to find forward or reverse spec in read header
-    bn_r = r"[\.\_][RF](?:[12])?(?:\_00[1-9])*\.f(?:ast)?q(?:\.gz)?$"
-    re_FR = re.compile(r"\s[12]\:[YN]")
-    for seqfile in full_fqlist:
-        if seqfile.endswith(".gz"):
-            gz_ext = ".gz"
-            f = gzip.open(seqfile, "r")
-        else:
-            gz_ext = ""
-            f = open(seqfile, "r")
-        header = f"{f.readline()}"
-        f.close()
-        # search for 1:Y or 2:Y in first read header
-        if "1" in re_FR.search(header).group(0):
-            FR = "F"
-        else:
-            FR = "R"
-        bn = re.sub(bn_r, "", os.path.basename(seqfile), flags = re.IGNORECASE)
-        bn = bn.replace(".", "_")
-        samplenames.add(bn)
-        target = Path(seqfile).absolute()
-        linkedfile = f"{linkdir}/{bn}.{FR}.fq{gz_ext}"
-        try:
-            _ = Path(linkedfile).symlink_to(target)
-        except:
-            pass
-    return samplenames
+    if len(culpritfiles) > 0:
+        print(f"\033[1;33mERROR:\033[00m There are {len(culpritfiles)} alignment files whose ID tags do not match their filenames.", file = sys.stderr)
+        print("\n\033[1;34mSOLUTION:\033[00m For alignment files (sam/bam), the base of the file name must be identical to the @RD ID: tag in the file header. For example, a file named \'sample_001.bam\' should have the \'@RG ID:sample_001\' tag. Use the \033[01mrenamebam\033[00m script to properly rename alignment files so as to also update the @RG header.", file = sys.stderr)
+        print("\nFiles causing error:", file = sys.stderr)
+        print("\033[01mfilename\tID:name\033[00m")
+        for i,j in zip(culpritfiles,culpritIDs):
+            print(f"{i}\t{j}")
+        exit(1)

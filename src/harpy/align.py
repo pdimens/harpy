@@ -1,5 +1,5 @@
 import rich_click as click
-#from .harpymisc import sanitize_fastq
+#from .harpymisc import validate_bamfiles
 from pathlib import Path
 import subprocess
 import glob
@@ -45,6 +45,7 @@ def align(genome, threads, method, ema_bins, directory, extra_params, quality_fi
         sys.exit(1)
 
     samplenames = set([re.sub(bn_r, "", i, flags = re.IGNORECASE) for i in fqlist])
+    directory = directory.rstrip("/^")
     mapper = method
     ## DEPRECATED ##
     # create relative symlinks for input files with standard naming convention
@@ -62,7 +63,6 @@ def align(genome, threads, method, ema_bins, directory, extra_params, quality_fi
     command.append(f"quality={quality_filter}")
     command.append(f"samplenames={samplenames}")
     command.append(f"EMA_bins={ema_bins}")
-    directory = directory.rstrip("/^")
     command.append(f"seq_directory={directory}")
 
     if extra_params is not None:

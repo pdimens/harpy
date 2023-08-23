@@ -1,4 +1,4 @@
-from .harpymisc import getnames_err, createregions
+from .harpymisc import getnames_err, createregions, validate_bamfiles
 import rich_click as click
 import subprocess
 import sys
@@ -35,6 +35,8 @@ def snp(genome, threads, directory, populations, ploidy, method,windowsize, extr
     #coordbase = 0 if method == "freebayes" else 1
     #callcoords = createregions(genome, windowsize, coordbase)
     callcoords, linkedgenome = createregions(genome, windowsize, method)
+    directory = directory.rstrip("/^")
+    validate_bamfiles(directory, samplenames)
     command = (f'snakemake --rerun-incomplete --nolock --cores {threads} --directory . --snakefile {harpypath}/variants-{vcaller}.smk').split()
     if snakemake is not None:
         [command.append(i) for i in snakemake.split()]
@@ -42,7 +44,6 @@ def snp(genome, threads, directory, populations, ploidy, method,windowsize, extr
         command.append("--quiet")
         command.append("all")
     command.append('--config')
-    directory = directory.rstrip("/^")
     command.append(f"seq_directory={directory}")
     command.append(f"samplenames={samplenames}")
     if populations is not None:

@@ -1,4 +1,4 @@
-from .harpymisc import getnames_err, vcfcheck
+from .harpymisc import getnames_err, vcfcheck, validate_bamfiles
 import rich_click as click
 import subprocess
 import sys
@@ -30,6 +30,7 @@ def phase(vcf, directory, threads, molecule_distance, prune_threshold, vcf_sampl
     the samples present in your input `--vcf` file rather than all the samples present in
     the `--directory`.
     """
+    directory = directory.rstrip("/^")
     vcfcheck(vcf)
     if vcf.lower().endswith(".vcf.gz"):
         print(f"Notice: HapCut2 does not accept gzipped vcf files. Converting to bcf.")
@@ -56,6 +57,8 @@ def phase(vcf, directory, threads, molecule_distance, prune_threshold, vcf_sampl
         print(", ".join(sorted(missing_samples)), file = sys.stderr)
         print(f"\n\033[1;34mSOLUTION:\033[00m \033[01m{fromthis}\033[00m cannot contain samples that are absent in \033[01m{inthis}\033[00m. Check the spelling or remove those samples from \033[01m{fromthis}\033[00m or remake the vcf file to include/omit these samples. Alternatively, toggle \033[01m--vcf-samples\033[00m to aggregate the sample list from \033[01m{directory}\033[00m or \033[01m{vcf}\033[00m.\n", file = sys.stderr)
         sys.exit(1)
+
+    validate_bamfiles(directory, samplenames)
     prune_threshold /= 100
     command = f'snakemake --rerun-incomplete --nolock --cores {threads} --directory . --snakefile {harpypath}/phase-pop.smk'.split()
     if snakemake is not None:
@@ -64,7 +67,6 @@ def phase(vcf, directory, threads, molecule_distance, prune_threshold, vcf_sampl
         command.append("--quiet")
         command.append("all")
     command.append('--config')
-    directory = directory.rstrip("/^")
     if genome is not None:
         command.append(f"indels={genome}")
         if not os.path.exists(f"{genome}.fai"):

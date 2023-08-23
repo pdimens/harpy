@@ -34,6 +34,7 @@ def sv(genome, threads, directory, populations, method, extra_params, snakemake,
     vcaller = method
     if populations is not None:
         vcaller += "-pop"
+    directory = directory.rstrip("/^")
     command = (f'snakemake --rerun-incomplete --nolock --cores {threads} --directory . --snakefile {harpypath}/variants-{vcaller}.smk').split()
     if snakemake is not None:
         [command.append(i) for i in snakemake.split()]
@@ -41,7 +42,6 @@ def sv(genome, threads, directory, populations, method, extra_params, snakemake,
         command.append("--quiet")
         command.append("all")
     command.append('--config')
-    directory = directory.rstrip("/^")
     command.append(f"seq_directory={directory}")
     command.append(f"samplenames={samplenames}")
     if populations is not None:
