@@ -28,6 +28,7 @@ is allowed. The reserved (**forbidden**) arguments are:
 - `--snakefile`
 - `--config`
 - `--rerun-incomplete`
+- `--nolock`
 !!!
 
 ### Common use cases
@@ -63,24 +64,4 @@ configuring this "shadow directory" setting, Snakemake will automatically move t
 ```bash
 harpy variants sv --method leviathan -g genome.fasta  -d Align/bwa --threads 8 -p samples.groups -s "--shadow-prefix /SCRATCH/username/"
 ```
-==- Unlocking the directory
-Sometimes Snakemake might scold/warn you about something you didn't realize you did. One
-common case is when you prematurely terminate Harpy with `ctrl + c` or by terminating 
-the process by other means. You might try to rerun Harpy afterwards and be met with a 
-`LockException` like this:
-```
-Building DAG of jobs...
-LockException:
-Error: Directory cannot be locked. Please make sure that no other Snakemake pro
-cess is trying to create the same files in the following directory:
-/local/user/projectdir
-If you are sure that no other instances of snakemake are running on this direct
-ory, the remaining lock was likely caused by a kill signal or a power loss. It 
-can be removed with the --unlock argument.
-```
-Like the error suggests, this can be overcome using the `--unlock` argument, which
-would be provided to Harpy as `-s "--unlock"`. You may also remove
-`.snakemake/` your working directory. Choose your own adventure, although unlocking
-is likely safer. Unlocking the directory does not run Harpy, it just exists after unlocking (a snakemake nuance),
-so you will need to run Harpy again  without this parameter.
 ===

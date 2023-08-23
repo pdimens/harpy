@@ -84,8 +84,7 @@ graph LR
     A([index genome]) --> B([align to genome])
     B-->C([sort alignments])
     C-->D([mark duplicates])
-    D-->E([clip overlaps])
-    E-->F([alignment metrics])
+    D-->F([alignment metrics])
     D-->G([barcode stats])
 ```
 +++ :icon-file-directory: BWA output
@@ -94,10 +93,11 @@ The `harpy align` module creates an `Align/bwa` directory with the folder struct
 Align/bwa
 ├── Sample1.bam
 ├── Sample1.bam.bai
+├── align
+│   ├── Sample1.bam
+│   └── Sample1.bam.bai
 ├── logs
 │   ├── harpy.align.log
-│   ├── clipOverlap
-│   │   └── Sample1.clipOverlap.log
 │   └── markduplicates
 │       └── Sample1.markdup.log
 └── stats
@@ -118,8 +118,8 @@ Align/bwa
 |:---------|:-----------------------------------------------------------------|
 | `*.bam`                             | sequence alignments for each sample                                              |
 | `*.bai`                             | sequence alignment indexes for each sample                                       |
+| `align/*bam*`                       | symlinks to the alignment files for snakemake purporses                          |
 | `logs/harpy.align.log`              | relevant runtime parameters for the align module                                 |
-| `logs/clipOverlap/`                 | everything `bam clipOverlap` writes to `stdout/stderr` during operation          |
 | `logs/markduplicates`               | everything `sambamba markdup` writes to `stderr` during operation                |
 | `stats/`                            | various counts/statistics/reports relating to sequence alignment                 |
 | `stats/bwa.stats.html`              | report summarizing `samtools flagstat and stats` results across all samples from `multiqc` |
@@ -204,16 +204,13 @@ graph LR
     A([EMA count]) --> B([EMA preprocess])
     B-->C([EMA align barcoded])
     C-->D([sort BX alignments])
-    D-->E([merge BX alignments])
-    E-->F([merge all alignments])
+    D-->F([merge all alignments])
     IDX([index genome])-->C
     IDX-->Z([BWA align unbarcoded])
     Z-->Y([sort alignments])
     Y-->X([mark duplicates])
     X-->F
-    F-->H([clip overlaps])
-    H-->J([alignment stats])
-    E-->J
+    F-->J([alignment stats])
 ```
 +++ :icon-file-directory: EMA output
 The `harpy align` module creates an `Align/ema` directory with the folder structure below. `Sample1` is a generic sample name for demonstration purposes.
@@ -221,12 +218,13 @@ The `harpy align` module creates an `Align/ema` directory with the folder struct
 Align/ema
 ├── Sample1.bam
 ├── Sample1.bam.bai
+├── align
+│   ├── Sample1.bam
+│   └── Sample1.bam.bai
 ├── count
 │   └── Sample1.ema-ncnt
 ├── logs
 │   ├── harpy.align.log
-│   ├── clipOverlap
-│   │   └── Sample1.clipOverlap.log
 │   ├── markduplicates
 │   │   └── Sample1.markdup.nobarcode.log
 │   └── preproc
@@ -249,9 +247,9 @@ Align/ema
 |:-----------------------------------------------|:--------------------------------------------------------------------------------------------------------------|
 | `*.bam`                                        | sequence alignments for each sample                                                                           |
 | `*.bai`                                        | sequence alignment indexes for each sample                                                                    |
+| `align/*bam*`                                  | symlinks to the alignment files for snakemake purporses                                                       |
 | `count/`                                       | output of `ema count`                                                                                         |
 | `logs/harpy.align.log`                         | relevant runtime parameters for the align module                                                              |
-| `logs/clipOverlap/`                            | everything `bam clipOverlap` writes to `stdout/stderr` during operation                                       |
 | `logs/markduplicates/`                         | everything `sambamba markdup` writes to `stderr` during operation on alignments with invalid/missing barcodes |
 | `logs/preproc/*.preproc.log`                   | everything `ema preproc` writes to `stderr` during operation                                                  |
 | `stats/`                                       | various counts/statistics/reports relating to sequence alignment                                              |
