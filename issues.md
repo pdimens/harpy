@@ -7,6 +7,12 @@ order: 1
 Lots of stuff can go wrong during an analysis. The intent of this page is to highlight
 common issues you may experience during analysis and ways to address these issues.
 
+## Problem installing with conda
+Conda is an awesome package manager, but it's _slow_ and uses a ton of memory
+as dependencies increase. Harpy has a lot of dependencies and you might stall
+out conda trying to install it. Use mamba instead-- it'll work where conda fails.
+
+
 ## Failures during imputation or phasing
 If you use `bamutils clipOverlap` on alignments that are used for the `impute` or
 `phase` modules, they will cause both programs to error. We don't know why, but they do.
