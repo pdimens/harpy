@@ -1,3 +1,6 @@
+##TODO MANUAL PRUNING OF SWITCH ERRORS
+# https://github.com/vibansal/HapCUT2/blob/master/outputformat.md
+
 bam_dir           = config["seq_directory"]
 samplenames       = config["samplenames"]
 variantfile       = config["variantfile"]
@@ -7,6 +10,10 @@ extra             = config.get("extra", "")
 outdir 			  = "Phase.noBX"if config["noBX"] else "Phase"
 fragfile          = "Phase.noBX/extractHairs/{sample}.unlinked.frags" if config["noBX"] else "Phase/linkFragments/{sample}.linked.frags"
 linkarg           = "--10x 0" if config["noBX"] else "--10x 1"
+try:
+    indelarg = "--indels 1 --ref " + config["indels"]
+except:
+    indelarg = ""
 
 rule splitbysamplehet:
     input: 
@@ -18,14 +25,9 @@ rule splitbysamplehet:
         "Extracting heterozygous variants: {wildcards.sample}"
     benchmark:
         "Benchmark/Phase/splithet.{sample}.txt"
-    threads: 1
     shell:
         """
-        if grep -q "INFO_SCORE" <(bcftools head {input.vcf}); then
-            bcftools view -s {wildcards.sample} -i 'INFO/INFO_SCORE >= 0.2' {input.vcf} 
-        else
-            bcftools view -s {wildcards.sample} {input.vcf}
-        fi |
+        bcftools view -s {wildcards.sample} {input.vcf} |
         awk '/^#/;/CHROM/ {{OFS="\\t"}}; !/^#/ && $10~/^0\\/1/' > {output}
         """
 
@@ -39,14 +41,9 @@ rule splitbysample:
         "Extracting variants: {wildcards.sample}"
     benchmark:
         "Benchmark/Phase/split.{sample}.txt"
-    threads: 1
     shell:
         """
-        if grep -q "INFO_SCORE" <(bcftools head {input.vcf}); then
-            bcftools view -s {wildcards.sample} -i 'INFO/INFO_SCORE >= 0.2' {input.vcf} 
-        else
-            bcftools view -s {wildcards.sample} {input.vcf}
-        fi |
+        bcftools view -s {wildcards.sample} {input.vcf} |
         awk '/^#/;/CHROM/ {{OFS="\\t"}}; !/^#/ &&  $10~/^0\\/0/ {{$10="0|0:"substr($10,5);print $0}}; !/^#/ && $10~/^0\\/1/; !/^#/ &&  $10~/^1\\/1/ {{$10="1|1:"substr($10,5);print $0}}; !/^#/ {{print $0}}' > {output}
         """
 
@@ -61,10 +58,10 @@ rule extractHairs:
     message:
         "Converting to compact fragment format: {wildcards.sample}"
     params:
-        linkarg
+        indels = indelarg,
+        bx = linkarg
     benchmark:
         "Benchmark/Phase/extracthairs.{sample}.txt"
-    threads: 1
     shell:
         "extractHAIRS {params} --nf 1 --bam {input.bam} --VCF {input.vcf} --out {output} 2> {log}"
 
@@ -102,9 +99,8 @@ rule phaseBlocks:
     params: 
         prune = f"--threshold {pruning}" if pruning > 0 else "--no_prune 1",
         extra = extra
-    threads: 1
     shell:
-        "HAPCUT2 --fragments {input.fragments} --vcf {input.vcf} {params} --out {output.blocks} --nf 1 --error_analysis_mode 1 --call_homozygous 1 --outvcf 1 2> {log}"
+        "HAPCUT2 --fragments {input.fragments} --vcf {input.vcf} {params} --out {output.blocks} --nf 1 --error_analysis_mode 1 --call_homozygous 1 --outvcf 1 > {log} 2>&1"
 
 rule createAnnotations:
     input:
@@ -139,11 +135,11 @@ rule headerfile:
         "Benchmark/Phase/headerfile.txt"
     run:
         with open(output[0], "w") as fout:
-            fout.write('##INFO=<ID=HAPCUT,Number=0,Type=Flag,Description="The haplotype was created with Hapcut2">\n')
-            fout.write('##FORMAT=<ID=GX,Number=1,Type=String,Description="Haplotype">\n')
-            fout.write('##FORMAT=<ID=PS,Number=1,Type=Integer,Description="ID of Phase Set for Variant">\n')
-            fout.write('##FORMAT=<ID=PQ,Number=1,Type=Integer,Description="Phred QV indicating probability that this variant is incorrectly phased relative to the haplotype">\n')
-            fout.write('##FORMAT=<ID=PD,Number=1,Type=Integer,Description="phased Read Depth">')
+            _ = fout.write('##INFO=<ID=HAPCUT,Number=0,Type=Flag,Description="The haplotype was created with Hapcut2">\n')
+            _ = fout.write('##FORMAT=<ID=GX,Number=1,Type=String,Description="Haplotype">\n')
+            _ = fout.write('##FORMAT=<ID=PS,Number=1,Type=Integer,Description="ID of Phase Set for Variant">\n')
+            _ = fout.write('##FORMAT=<ID=PQ,Number=1,Type=Integer,Description="Phred QV indicating probability that this variant is incorrectly phased relative to the haplotype">\n')
+            _ = fout.write('##FORMAT=<ID=PD,Number=1,Type=Integer,Description="phased Read Depth">')
 
 rule mergeAnnotations:
     input:
@@ -152,49 +148,115 @@ rule mergeAnnotations:
         orig    = outdir + "/input/{sample}.bcf",
         headers = outdir + "/input/header.names"
     output:
-        outdir + "/annotations_merge/{sample}.phased.annot.bcf"
+        bcf = outdir + "/annotations_merge/{sample}.phased.annot.bcf",
+        idx = outdir + "/annotations_merge/{sample}.phased.annot.bcf.csi"
+
     message:
         "Merging annotations: {wildcards.sample}"
+    threads:
+        2
     benchmark:
         "Benchmark/Phase/mergeAnno.{sample}.txt"
     shell:
-        "bcftools annotate -h {input.headers} -a {input.annot} {input.orig} -c CHROM,POS,FMT/GX,FMT/PS,FMT/PQ,FMT/PD -m +HAPCUT |  awk '!/<ID=GX/' | sed 's/:GX:/:GT:/' | bcftools view -Ob -o {output} -"
-        
-rule indexAnnotations2:
-    input:
-        outdir + "/annotations_merge/{sample}.phased.annot.bcf"
-    output:
-        outdir + "/annotations_merge/{sample}.phased.annot.bcf.csi"
-    message:
-        "Indexing annotations: {wildcards.sample}"
-    benchmark:
-        "Benchmark/Phase/indexAnno.{sample}.txt"
-    shell:
-        "bcftools index {input}"
+        """
+        bcftools annotate -h {input.headers} -a {input.annot} {input.orig} -c CHROM,POS,FMT/GX,FMT/PS,FMT/PQ,FMT/PD -m +HAPCUT |
+        awk '!/<ID=GX/' |
+        sed 's/:GX:/:GT:/' |
+        #bcftools view -Ob --write-index -o {output.bcf} -
+        bcftools view -Ob -o {output.bcf} -
+        bcftools index {output.bcf}
+        """
 
 rule mergeSamples:
     input: 
         bcf = expand(outdir + "/annotations_merge/{sample}.phased.annot.bcf", sample = samplenames),
         idx = expand(outdir + "/annotations_merge/{sample}.phased.annot.bcf.csi", sample = samplenames)
     output:
-        outdir + "/variants.phased.bcf"
+        bcf = outdir + "/variants.phased.bcf",
+        idx = outdir + "/variants.phased.bcf.csi"
     message:
         "Combinging samples into a single BCF file"
     benchmark:
         "Benchmark/Phase/mergesamples.txt"
-    threads: 30
+    threads:
+        30
     shell:
-        "bcftools merge --threads {threads} --output-type b {input.bcf} > {output}"
+        """
+        bcftools merge --threads {threads} -Ob {input.bcf} > {output.bcf}
+        bcftools index {output.bcf}
+        """
+        #"bcftools merge --threads {threads} --Ob --write-index {input.bcf} > {output}"
+
+rule summarize_blocks:
+    input:
+        expand(outdir + "/phaseBlocks/{sample}.blocks", sample = samplenames)
+    output:
+        outdir + "/reports/blocks.summary.gz"
+    message:
+        "Summarizing phasing results"
+    params:
+        outdir + "/reports/blocks.summary"
+    shell:
+        """
+        echo -e "sample\\tcontig\\tn_snp\\tpos_start\\tblock_length" > {params}
+        for i in {input}; do
+            parsePhaseBlocks.py -i $i >> {params}
+        done
+        gzip {params}
+        """
+
+rule phase_report:
+    input:
+        outdir + "/reports/blocks.summary.gz"
+    output:
+        outdir + "/reports/phase.html"
+    message:
+        "Summarizing phasing results"
+    script:
+        "reportHapCut2.Rmd"
+
+rule log_runtime:
+    output:
+        outdir + "/logs/harpy.phase.log"
+    message:
+        "Creating record of relevant runtime parameters"
+    params:
+        prune = f"--threshold {pruning}" if pruning > 0 else "--no_prune 1",
+        extra = extra
+    run:
+        with open(output[0], "w") as f:
+            _ = f.write("The harpy phase module ran using these parameters:\n\n")
+            _ = f.write(f"The provided variant file: {variantfile}\n")
+            _ = f.write(f"The directory with alignments: {bam_dir}\n")
+            _ = f.write("The variant file was split by sample and preprocessed using:\n")
+            _ = f.write("""    bcftools view -s SAMPLE | awk '/^#/;/CHROM/ OFS="\\t"; !/^#/ && $10~/^0\\/1/'\n\n""")
+            _ = f.write("Phasing was performed using the components of HapCut2:\n")
+            _ = f.write("    extractHAIRS " + linkarg + " --nf 1 --bam sample.bam --VCF sample.vcf --out sample.unlinked.frags\n")
+            _ = f.write("    LinkFragments.py --bam sample.bam --VCF sample.vcf --fragments sample.unlinked.frags --out sample.linked.frags -d " + f"{molecule_distance}" + "\n")
+            _ = f.write("    HAPCUT2 --fragments sample.linked.frags --vcf sample.vcf --out sample.blocks --nf 1 --error_analysis_mode 1 --call_homozygous 1 --outvcf 1" + f" {params[0]} {params[1]}" + "\n\n")
+            _ = f.write("Variant annotation was performed using:\n")
+            _ = f.write("    bcftools query -f \"%CHROM\\t%POS[\\t%GT\\t%PS\\t%PQ\\t%PD]\\n\" sample.vcf | bgzip -c\n")
+            _ = f.write("    bcftools annotate -h header.file -a sample.annot sample.bcf -c CHROM,POS,FMT/GX,FMT/PS,FMT/PQ,FMT/PD -m +HAPCUT |\n")
+            _ = f.write("    awk '!/<ID=GX/' |\n")
+            _ = f.write("    sed 's/:GX:/:GT:/' |\n")
+            _ = f.write("    bcftools view -Ob -o sample.annot.bcf -\n")
+            _ = f.write("    bcftools merge --output-type b samples.annot.bcf\n\n")
+            _ = f.write("The header.file of extra vcf tags:\n")
+            _ = f.write('    ##INFO=<ID=HAPCUT,Number=0,Type=Flag,Description="The haplotype was created with Hapcut2">\n')
+            _ = f.write('    ##FORMAT=<ID=GX,Number=1,Type=String,Description="Haplotype">\n')
+            _ = f.write('    ##FORMAT=<ID=PS,Number=1,Type=Integer,Description="ID of Phase Set for Variant">\n')
+            _ = f.write('    ##FORMAT=<ID=PQ,Number=1,Type=Integer,Description="Phred QV indicating probability that this variant is incorrectly phased relative to the haplotype">\n')
+            _ = f.write('    ##FORMAT=<ID=PD,Number=1,Type=Integer,Description="phased Read Depth">\n')
+
 
 rule indexFinal:
     input:
-        outdir + "/variants.phased.bcf"
-    output:
-        outdir + "/variants.phased.bcf.csi"
+        outdir + "/variants.phased.bcf",
+        outdir + "/logs/harpy.phase.log",
+        outdir + "/reports/phase.html"
     benchmark:
         "Benchmark/Phase/finalindex.txt"
     message:
         "Phasing is complete!"
     default_target: True
-    shell: 
-        "bcftools index {input}"
+

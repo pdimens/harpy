@@ -1,0 +1,54 @@
+name: Test Trim
+
+on:
+  push:
+    branches:
+      - 'dev'
+    paths:
+      - 'rules/trim.smk'
+      - '**trim.py'
+      - 'test/fastq/**'
+      - '**trim.yml'
+
+  pull_request:
+    branches:
+      - 'dev'
+    paths:
+      - 'rules/trim.smk'
+      - '**trim.py'
+      - 'test/fastq/**'
+      - '**trim.yml'
+
+  schedule:
+    - cron: '0 0 * * *'
+
+env:
+  CACHE_NUMBER: 0  # increase to reset cache manually
+
+jobs:
+  build:
+    name: linux64
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 1
+      - name: setup mamba
+        uses: mamba-org/setup-micromamba@v1
+        with:
+          init-shell: bash
+          generate-run-shell: true
+          environment-file: misc/harpyenv.yaml
+          cache-environment: true
+          post-cleanup: 'all'
+      - name: Install harpy
+        run: |
+          python3 -m pip install --upgrade build && python3 -m build
+          pip install dist/*.whl
+          misc/buildforCI.sh
+        shell: micromamba-shell {0}
+
+      - name: Test harpy trim
+        run: harpy trim -d test/fastq
+        shell: micromamba-shell {0}

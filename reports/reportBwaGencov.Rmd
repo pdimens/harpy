@@ -39,6 +39,7 @@ script src = "https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"
 
 ```{r echo = FALSE, message = FALSE, warning = FALSE}
 covfile <- snakemake@input[[1]]
+#covfile <- "~/data.cov.gz"
 gencov <- read.table(covfile, header = F)
 gencov <- gencov[, c(1, 2, 3, 5)]
 colnames(gencov) <- c("contig", "start", "end", "depth")
@@ -195,8 +196,9 @@ circos.yaxis(at=cov.yaxis, labels.cex=0.4, lwd=0.8, labels.col=col_text, col="gr
 Plotted below is the same depth information, but shown in better detail per 
 contig for easier visual assessment. Note that regions of extremely high depth
 are flagged as outliers and for visual clarity, their values have been converted
-to the global mean depth (`r round(global_avg_filt,0)`) after removing outliers. Investigate
-the table above for more information about these regions.
+to the global mean depth (`r round(global_avg_filt,0)`) after removing outliers.
+These outlier regions are marked by the orange vertical lines and you may investigate
+them further using the table above.
 
 ```{r echo = FALSE, message = FALSE, warning = FALSE}
 # Cap the outliers as the mean
@@ -205,20 +207,17 @@ the table above for more information about these regions.
 
 
 ```{r echo = FALSE, message = FALSE, warning = FALSE, fig.height=pltheight, out.width = "100%"}
-  ggplot(.gencov, aes(xmin = start, xmax = end, ymin = 0, ymax = depth)) +
-    geom_rect(alpha = 0.7, aes(color = outlier, fill = outlier)) +
-    scale_color_manual(values = c("FALSE" = "#3f3f3f", "TRUE" =  "#cb6843")) +
-    scale_fill_manual(values = c("FALSE" = "#3f3f3f", "TRUE" =  "#cb6843")) +
+  ggplot(.gencov, aes(x = start, y = depth)) +
+    geom_area(stat = "identity", fill = "#3f3f3f") +
+    geom_vline(data = outliers, color = "#cb6843", aes(xintercept = start)) +
     theme_minimal() +
     facet_wrap(~contig, ncol = 2, scales = "free_x") +
     labs(x = "position (bp)", y = "depth") +
     scale_y_continuous(labels = scales::comma) +
+    scale_x_continuous(labels = scales::comma, guide = guide_axis(n.dodge = 2)) +
     theme(
       panel.grid.major.x = element_blank(),
       panel.grid.minor.x = element_blank(),
       legend.position = "top"
-      ) +
-    guides(x = "none") -> p
-
-print(p)
+      )
 ```

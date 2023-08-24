@@ -29,7 +29,7 @@ library(scales)
 infile <- snakemake@input[[1]]
 bamfile <- gsub(".bxstats.gz", ".bam", infile)
 samplename <- gsub(".bxstats.gz", "", basename(infile))
-tb <- read.table(infile, header = T) %>% select(-start, -end)
+tb <- read.table(infile, header = T, sep = "\t") %>% select(-start, -end)
 tb$valid <- tb$bx
 tb[!(tb$valid %in% c("noBX", "invalidBX")), "valid"] <- "validBX"
 tb$valid <- gsub("BX", " BX", tb$valid)
@@ -74,7 +74,7 @@ or absent BX barcodes.
 ```{r echo = FALSE, message = FALSE, warning = FALSE, out.width = '100%'}
 p <- filter(tb, valid == "valid BX") %>% 
   ggplot(aes(x = reads)) +
-    geom_histogram(fill = "#987890", color = "white", binwidth = 2) +
+    geom_histogram(fill = "#987890", color = "white", binwidth = 2, boundary = 0.5) +
     labs(title = "Alignments per barcoded molecule", subtitle = samplename) +
     xlab("Alignments per BX molecule") +
     ylab("Number of barcodes") +
@@ -98,7 +98,7 @@ alignments associated with a single BX barcode on a given contig.
 ```{r echo = FALSE, message = FALSE, warning = FALSE, out.width = '100%'}
 p <- tb %>% filter(valid == "valid BX", length_inferred > 10) %>%
     ggplot(aes(x = length_inferred)) +
-        geom_histogram(binwidth = 2500, fill = "#70a7d9") + #, color = "white") +
+        geom_histogram(binwidth = 2500, fill = "#70a7d9", boundary = 0.5) + #, color = "white") +
         labs(title = "Inferred Haplotagged Molecule Lengths", subtitle = samplename) +
         xlab("Inferred Length of Molecule (2,500 bp bins)") +
         ylab("Number of occurrences") +
@@ -120,7 +120,7 @@ at `X = 0` would represent the number of barcodes with 0-500bp aligned.
 ```{r echo = FALSE, message = FALSE, warning = FALSE, out.width = '100%'}
 p <- tb %>% filter(valid == "valid BX", length_inferred > 10) %>%
     ggplot(aes(x = aligned_bp)) +
-        geom_histogram(binwidth = 500, fill = "#99cccc", color = "white") +
+        geom_histogram(binwidth = 500, fill = "#99cccc", color = "white", boundary = 0.5) +
         labs(title = "Bases Aligned Per Barcode", subtitle = samplename) +
         xlab("Number of aligned bases (500 bp bins)") +
         ylab("Number of occurrences") +

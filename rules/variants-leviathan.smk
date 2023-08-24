@@ -4,8 +4,11 @@ bam_dir     = config["seq_directory"]
 genomefile  = config["genomefile"]
 samplenames = config["samplenames"] 
 extra       = config.get("extra", "") 
-bn          = os.path.basename(genomefile)
 outdir      = "Variants/leviathan"
+bn          = os.path.basename(genomefile)
+genome_zip  = True if bn.lower().endswith(".gz") else False
+if genome_zip:
+    bn = bn[:-3]
 
 rule index_alignment:
     input:
@@ -29,54 +32,63 @@ rule index_barcode:
         "Indexing barcodes: {wildcards.sample}"
     benchmark:
         "Benchmark/Variants/leviathan/indexbc.{sample}.txt"
-    threads: 4
+    threads:
+        4
     shell:
         "LRez index bam --threads {threads} -p -b {input.bam} -o {output}"
 
-rule link_genome:
-	input:
-		genomefile
-	output: 
-		f"Assembly/{bn}"
-	message:
-		"Symlinking {input} to Assembly/"
-	shell: 
-		"ln -sr {input} {output}"
-
-rule index_faidx_genome:
-    input: 
-        f"Assembly/{bn}"
+rule genome_link:
+    input:
+        genomefile
     output: 
-        f"Assembly/{bn}.fai"
+        f"Genome/{bn}"
+    message: 
+        "Creating {output}"
+    shell: 
+        """
+        if (file {input} | grep -q compressed ) ;then
+            # is regular gzipped, needs to be decompressed
+            gzip -dc {input} > {output}
+        elif (file {input} | grep -q BGZF ); then
+            # is bgzipped, decompress
+            gzip -dc {input} > {output}
+        else
+            # isn't compressed, just linked
+            ln -sr {input} {output}
+        fi
+        """
+
+rule genome_faidx:
+    input: 
+        f"Genome/{bn}"
+    output: 
+        f"Genome/{bn}.fai"
     message:
         "Indexing {input}"
     log:
-        f"Assembly/{bn}.faidx.log"
-    shell: 
-        """
-        samtools faidx --fai-idx {output} {input} 2> {log}
-        """
+        f"Genome/{bn}.faidx.log"
+    shell:
+        "samtools faidx --fai-idx {output} {input} 2> {log}"
 
 rule index_bwa_genome:
     input: 
-        f"Assembly/{bn}"
+        f"Genome/{bn}"
     output: 
-        multiext(f"Assembly/{bn}", ".ann", ".bwt", ".pac", ".sa", ".amb")
+        multiext(f"Genome/{bn}", ".ann", ".bwt", ".pac", ".sa", ".amb")
     message:
         "Indexing {input}"
     log:
-        f"Assembly/{bn}.idx.log"
+        f"Genome/{bn}.idx.log"
     shell: 
-        """
-        bwa index {input} 2> {log}
-        """
+        "bwa index {input} 2> {log}"
 
 rule leviathan_variantcall:
     input:
         bam    = bam_dir + "/{sample}.bam",
         bai    = bam_dir + "/{sample}.bam.bai",
         bc_idx = outdir + "/lrezIndexed/{sample}.bci",
-        genome = f"Assembly/{bn}"
+        genome = f"Genome/{bn}",
+        genidx = multiext(f"Genome/{bn}", ".fai", ".ann", ".bwt", ".pac", ".sa", ".amb")
     output:
         pipe(outdir + "/{sample}.vcf")
     log:  
@@ -88,7 +100,8 @@ rule leviathan_variantcall:
         "Benchmark/Variants/leviathan/variantcall.{sample}.txt"
     params:
         extra = extra
-    threads: 3
+    threads:
+        3
     shell:
         "LEVIATHAN -b {input.bam} -i {input.bc_idx} {params} -g {input.genome} -o {output} -t {threads} --candidates {log.candidates} 2> {log.runlog}"
 
@@ -99,7 +112,6 @@ rule sort_bcf:
         outdir + "/{sample}.bcf"
     message:
         "Sorting and converting to BCF: {wildcards.sample}"
-    threads: 1
     params:
         "{wildcards.sample}"
     benchmark:
@@ -116,7 +128,6 @@ rule sv_stats:
         "Getting SV stats for {wildcards.sample}"
     benchmark:
         "Benchmark/Variants/leviathan/stats.{sample}.txt"
-    threads: 1
     shell:
         """
         echo -e "sample\\tcontig\\tposition_start\\tposition_end\\tlength\\ttype\\tn_barcodes\\tn_pairs" > {output}
@@ -134,16 +145,28 @@ rule sv_report:
     script:
         "reportLeviathan.Rmd"
 
+rule log_runtime:
+    output:
+        outdir + "/logs/harpy.variants.log"
+    message:
+        "Creating record of relevant runtime parameters: {output}"
+    params:
+        extra = extra
+    run:
+        with open(output[0], "w") as f:
+            _ = f.write("The harpy variants sv module ran using these parameters:\n\n")
+            _ = f.write(f"The provided genome: {bn}\n")
+            _ = f.write(f"The directory with alignments: {bam_dir}\n")
+            _ = f.write("The barcodes were indexed using:\n")
+            _ = f.write("    LRez index bam -p -b INPUT\n")
+            _ = f.write("Leviathan was called using:\n")
+            _ = f.write(f"    LEVIATHAN -b INPUT -i INPUT.BCI -g GENOME {params}\n")
+
 rule all_bcfs:
     input: 
         bcf     = expand(outdir + "/{sample}.bcf", sample = samplenames),
-        reports = expand(outdir + "/reports/{sample}.SV.html", sample = samplenames)
+        reports = expand(outdir + "/reports/{sample}.SV.html", sample = samplenames),
+        runlog  = outdir + "/logs/harpy.variants.log"
     default_target: True
     message:
         "Variant calling is complete!"
-
-
-#with open(f"{outdir}/logs/variants.params", "w") as f:
-#	_ = f.write("LRez index bam -p -b INPUT\n")
-#	_ = f.write("LEVIATHAN -b INPUT -i INPUT.BCI " + extra + " -g GENOME\n")
-#	_ = f.write("bcftools sort")

@@ -9,6 +9,9 @@ groupfile   = config["groupings"]
 genomefile  = config["genomefile"]
 bn          = os.path.basename(genomefile)
 outdir      = "Variants/naibr-pop"
+genome_zip  = True if bn.lower().endswith(".gz") else False
+if genome_zip:
+    bn = bn[:-3]
 
 def process_args(args):
     argsDict = {
@@ -64,23 +67,14 @@ rule merge_populations:
         bamlist  = outdir + "/input/{population}.list",
         bamfiles = lambda wc: expand("{sample}", sample = popdict[wc.population]) 
     output:
-        temp(outdir + "/input/{population}.bam")
+        bam = temp(outdir + "/input/{population}.bam"),
+        bai = temp(outdir + "/input/{population}.bam.bai")
     message:
         "Merging alignments: Population {wildcards.population}"
+    threads:
+        2
     shell:
-        "samtools merge -b {input} -o {output}"
-
-rule index_merged:
-    input:
-        outdir + "/input/{population}.bam"
-    output:
-        temp(outdir + "/input/{population}.bam.bai")
-    message:
-        "Indexing merged alignments: Population {wildcards.population}"
-    wildcard_constraints:
-        population = "[a-zA-Z0-9_-]*"
-    shell:
-        "sambamba index {input} {output} 2> /dev/null"
+        "samtools merge -o {output.bam}##idx##{output.bai} --threads {threads} --write-index -b {input.bamlist}"
 
 rule create_config:
     input:
@@ -90,7 +84,7 @@ rule create_config:
     message:
         "Creating naibr config file: {wildcards.population}"
     params:
-	    lambda wc: wc.get("population")
+        lambda wc: wc.get("population")
     run:
         argdict = process_args(extra)
         with open(output[0], "w") as conf:
@@ -99,7 +93,6 @@ rule create_config:
             _ = conf.write(f"prefix={params[0]}\n")
             for i in argdict:
                 _ = conf.write(f"{i}={argdict[i]}\n")
-
 
 rule call_sv:
     input:
@@ -111,53 +104,79 @@ rule call_sv:
         refmt = outdir + "/IGV/{population}.reformat.bedpe",
         fail  = outdir + "/bad_candidates/{population}.fail.bedpe",
         vcf   = outdir + "/vcf/{population}.vcf"
+    log:
+        outdir + "/logs/{population}.log"
     threads:
         8        
     params:
-        outdir = lambda wc: outdir + "/" + wc.get("population"),
-        population = lambda wc: wc.get("population")
+        population = lambda wc: wc.get("population"),
+        outdir     = lambda wc: outdir + "/" + wc.get("population")
     message:
         "Calling variants: {wildcards.population}"
-    log:
-        outdir + "/logs/{population}.log",
     shell:
         """
-        echo "threads={threads}" >> {input.conf}
+        if ! grep -q "threads" {input.conf}; then
+            echo "threads={threads}" >> {input.conf}
+        fi
         naibr {input.conf} > {log}.tmp 2>&1
         grep -v "pairs/s" {log}.tmp > {log} && rm {log}.tmp
         inferSV.py {params.outdir}/{params.population}.bedpe -f {output.fail} > {output.bedpe}
         mv {params.outdir}/{params.population}.reformat.bedpe {output.refmt}
         mv {params.outdir}/{params.population}.vcf {output.vcf}
+        #mv Variants/naibrlog/{params.population}.log {log}
         rm -rf {params.outdir}
         """
 
-rule link_genome:
+rule genome_link:
     input:
         genomefile
     output: 
-        f"Assembly/{bn}"
-    message:
-        "Symlinking {input} to Assembly/"
+        f"Genome/{bn}"
+    message: 
+        "Symlinking {input}"
     shell: 
-        "ln -sr {input} {output}"
+        """
+        if (file {input} | grep -q compressed ) ;then
+            # is regular gzipped, needs to be BGzipped
+            zcat {input} | bgzip -c > {output}
+        elif (file {input} | grep -q BGZF ); then
+            # is bgzipped, just linked
+            ln -sr {input} {output}
+        else
+            # isn't compressed, just linked
+            ln -sr {input} {output}
+        fi
+        """
 
-rule index_faidx_genome:
-    input: 
-        f"Assembly/{bn}"
-    output: 
-        f"Assembly/{bn}.fai"
-    message:
-        "Indexing {input}"
-    log:
-        f"Assembly/{bn}.faidx.log"
-    shell: 
-        """
-        samtools faidx --fai-idx {output} {input} 2> {log}
-        """
+if genome_zip:
+    rule genome_compressed_faidx:
+        input: 
+            f"Genome/{bn}"
+        output: 
+            gzi = f"Genome/{bn}.gzi",
+            fai = f"Genome/{bn}.fai"
+        message:
+            "Indexing {input}"
+        log:
+            f"Genome/{bn}.faidx.gzi.log"
+        shell: 
+            "samtools faidx --gzi-idx {output.gzi} --fai-idx {output.fai} {input} 2> {log}"
+else:
+    rule genome_faidx:
+        input: 
+            f"Genome/{bn}"
+        output: 
+            f"Genome/{bn}.fai"
+        message:
+            "Indexing {input}"
+        log:
+            f"Genome/{bn}.faidx.log"
+        shell:
+            "samtools faidx --fai-idx {output} {input} 2> {log}"
 
 rule report:
     input:
-        fai   = f"Assembly/{bn}.fai",
+        fai   = f"Genome/{bn}.fai",
         bedpe = outdir + "/{population}.bedpe"
     output:
         outdir + "/reports/{population}.naibr.html"
@@ -168,7 +187,7 @@ rule report:
 
 rule report_pop:
     input:
-        fai   = f"Assembly/{bn}.fai",
+        fai   = f"Genome/{bn}.fai",
         bedpe = expand(outdir + "/{pop}.bedpe", pop = populations)
     output:
         outdir + "/reports/naibr.pop.summary.html"
@@ -177,11 +196,33 @@ rule report_pop:
     script:
         "reportNaibrPop.Rmd"
 
+rule log_runtime:
+    output:
+        outdir + "/logs/harpy.variants.log"
+    message:
+        "Creating record of relevant runtime parameters: {output}"
+    run:
+        argdict = process_args(extra)
+        with open(output[0], "w") as f:
+            _ = f.write("The harpy variants sv module ran using these parameters:\n\n")
+            _ = f.write(f"The provided genome: {bn}\n")
+            _ = f.write(f"The directory with alignments: {bam_dir}\n")
+            _ = f.write(f"The sample grouping file: {groupfile}\n\n")
+            _ = f.write("naibr variant calling ran using these configurations:\n")
+            _ = f.write(f"    bam_file=BAMFILE\n")
+            _ = f.write(f"    prefix=PREFIX\n")
+            _ = f.write(f"    outdir=Variants/naibr/PREFIX\n")
+            for i in argdict:
+                _ = f.write(f"    {i}={argdict[i]}\n")
+
 rule all:
     input:
         expand(outdir + "/{pop}.bedpe",      pop = populations),
         expand(outdir + "/reports/{pop}.naibr.html", pop = populations),
-        outdir + "/reports/naibr.pop.summary.html"
+        outdir + "/reports/naibr.pop.summary.html",
+        outdir + "/logs/harpy.variants.log"
     default_target: True
     message:
         "Variant calling completed!"
+    shell:
+        "rm -rf Variants/naibrlog"

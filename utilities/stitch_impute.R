@@ -1,6 +1,6 @@
 #!/usr/bin/env Rscript
 
-suppressPackageStartupMessages(library("STITCH"))
+suppressWarnings(suppressPackageStartupMessages(library("STITCH")))
 
 # Params pulled in from Snakemake
 bamlist <- snakemake@input[["bamlist"]]
@@ -9,6 +9,9 @@ chr <- gsub(".stitch", "", basename(posfile))
 outdir <- normalizePath(dirname(snakemake@output[[1]]))
 outfile <- basename(snakemake@output[[1]])
 logfile <- file(snakemake@log[[1]], open = "wt")
+# create tmpdir if not already present
+tmpdr <- paste(outdir, "tmp", sep = "/")
+dir.create(file.path(tmpdr), showWarnings = FALSE)
 
 # model parameters
 parameters <- snakemake@params[["parameters"]]
@@ -16,9 +19,10 @@ parameters <- snakemake@params[["parameters"]]
 modeltype <- parameters$model
 K <- parameters$k
 S <- parameters$s
-.bx <- toupper(parameters$useBX)
+.bx <- toupper(parameters$usebx)
 bx <- .bx == "TRUE" || .bx == "YES" || .bx == "Y"
-nGenerations <- parameters$nGen
+bxlim <- parameters$bxlimit
+nGenerations <- parameters$ngen
 nCores <- snakemake@threads
 inputBundleBlockSize <- NA
 
@@ -35,12 +39,13 @@ STITCH(
     K                       = K,
     S                       = S,
     use_bx_tag              = bx,
-    bxTagUpperLimit         = 50000,
+    bxTagUpperLimit         = bxlim,
     niterations             = 40,
     switchModelIteration    = 39,
     splitReadIterations     = NA,
     outputdir               = outdir,
-    output_filename         = outfile
+    output_filename         = outfile,
+    tempdir                 = tmpdr
 )
 sink()
 

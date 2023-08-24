@@ -1,4 +1,4 @@
-{% set version = "0.2.0" %}
+{% set version = "0.3.0" %}
 {% set sha256 = "" %}
 
 package:
@@ -11,32 +11,39 @@ source:
 
 build:
   number: 0
-  noarch: generic
+  skip: True  # [osx]
+  script: {{ PYTHON }} -m pip install --no-deps .
 
 requirements:
   build:
   host:
+    - python >=3.7
+    - setuptools-scm
+    - pip
   run:
-    - bcftools
+    - bcftools >= 1.17
     - bioconductor-complexheatmap
     - bwa
-    - datamash
+    - ema >= 0.7
     - fastp
+    - freebayes
     - hapcut2
-    - libzlib
     - leviathan
-    - llvm-openmp 
     - multiqc
+    - naibr-plus
+    - pysam
     - python >=3.7
     - r-base >=4
     - r-circlize
     - r-dplyr
     - r-dt
     - r-ggplot2
+    - r-ggridges
     - r-knitr
     - r-magrittr
     - r-plotly
     - r-rmarkdown
+    - r-scales
     - r-stitch
     - r-tidyr
     - r-viridislite
@@ -44,7 +51,7 @@ requirements:
     - snakemake >=7
     - sambamba
     - samtools
-    - seqfu
+    - seqtk
     - tabix
     - zlib
 
@@ -65,3 +72,5 @@ extra:
     extended-base: True
   maintainers:
     - pdimens
+  skip-lints:
+    - should_be_noarch_generic
