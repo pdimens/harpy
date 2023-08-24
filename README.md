@@ -5,6 +5,7 @@
 
 [Haplotag](https://doi.org/10.1073/pnas.2015005118) Data Processing Pipeline. Getting you from raw reads to genotypes/phased haplotypes or your money back.
 
+
 ## Install
 Now hosted on [Bioconda](https://anaconda.org/bioconda/harpy)! Install harpy on Linux-based systems using [conda](https://mamba.readthedocs.io/en/latest/installation.html) or [mamba](https://mamba.readthedocs.io/en/latest/micromamba-installation.html#umamba-install) (**recommended**).
 
@@ -31,11 +32,12 @@ mamba install -c bioconda -c conda-forge harpy
 </details>
 
 ### Activate the harpy environment
-Once installed with one of the methods above, activate the conda environment you installed harpy into with
+Once conda/mamba finishes, activate the conda environment you installed harpy into with
 ```bash
 conda activate <env_name>
 ```
 where `<env_name>` is the name of that environment. After doing so, the `harpy` executable should be callable from your path.
+
 
 ## Usage
 Just call `harpy` or `harpy --help` on the command line to get started!
