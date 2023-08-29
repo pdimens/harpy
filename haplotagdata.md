@@ -1,7 +1,7 @@
 ---
 label: Haplotag data
 icon: file-binary
-order: 97
+order: 5
 ---
 # :icon-file-binary: Haplotag data
 

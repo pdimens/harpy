@@ -1,7 +1,7 @@
 ---
 label: Sneaky Snakemake
 icon: terminal
-order: 49
+order: 2
 ---
 
 # :icon-terminal: Adding Snakamake parameters

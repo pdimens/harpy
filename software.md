@@ -1,10 +1,10 @@
 ---
 label: Software
 icon: zap
-order: 1
+order: 2
 ---
 
-# :icon-zap: Software used in HARPY
+# :icon-zap: Software used in Harpy
 HARPY is the sum of its parts, and out of tremendous respect for the developers involved in the included software, we would like to highlight the tools directly involved in HARPY's many moving pieces.
 
 Issues with specific tools might warrant a discussion with the authors/developers on the repositories of these projects.

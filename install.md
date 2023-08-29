@@ -32,38 +32,4 @@ will be callable from the command line.
 ```bash install harpy
 mamba install -c bioconda harpy
 ```
-==- local install for development
-⚠️ **Not intended for regular users** ⚠️
-
-If intent on installing harpy for development, you can do so by cloning the harpy
-repository, installing the preconfigured conda environment, and running the `misc/buildlocal.sh`
-script to move all the necessary files to the `/bin/` path within your active conda environment.
-
-**Clone the repository**
-
-```bash clone the repository
-git clone https://github.com/pdimens/harpy.git
-```
-```bash install the dependencies with conda
-mamba env create --name harpy --file misc/harpyenv.yaml
-```
-This will create a conda environment named `harpy` with all the bits necessary to successfully run Harpy. You can change the name of this environment by specifying
-`--name something`. 
-
-**Activate the environment**
-
-The environment with all the preinstalled dependencies can be activated with:
-```bash activate the conda environment
-# assuming the environment name is harpy from the step above
-mamba activate harpy
-```
-**Install the Harpy files**
-
-Call the `misc/buildlocal.sh` bash script to install the Harpy-specific files into the conda environment:
-
-```bash install the repo into the environment
-bash misc/buildlocal.sh
-```
-
-
 ===

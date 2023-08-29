@@ -1,7 +1,7 @@
 ---
 label: Common Issues
 icon: alert
-order: 1
+order: 3
 ---
 
 Lots of stuff can go wrong during an analysis. The intent of this page is to highlight
