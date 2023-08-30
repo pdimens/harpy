@@ -49,7 +49,7 @@ Sometimes you want to generate a specific intermediate file (or files) rather th
 you want the beadtag report Harpy makes from the output of `EMA count`. To do this, just list the file/files (relative
 to your working directory) without any flags. Example for the beadtag report:
 ```bash
-harpy align -g genome.fasta -d Trim/ -t 4 -s "Alignemnts/ema/stats/reads.bxstats.html"
+harpy align -g genome.fasta -d Trim/ -t 4 -s "Align/ema/stats/reads.bxstats.html"
 ```
 This of course necessitates knowing the names of the files ahead of time. See the individual modules for a breakdown of expected outputs. 
 
