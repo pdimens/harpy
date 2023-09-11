@@ -6,6 +6,7 @@ outdir      = "Align/bwa"
 seq_dir		= config["seq_directory"]
 genomefile 	= config["genomefile"]
 samplenames = config["samplenames"]
+molecule_distance = config["molecule_distance"]
 extra 		= config.get("extra", "") 
 bn 			= os.path.basename(genomefile)
 genome_zip  = True if bn.lower().endswith(".gz") else False
@@ -164,8 +165,9 @@ rule alignment_bxstats:
         "Calculating barcode alignment statistics: {wildcards.sample}"
     params:
         sample = lambda wc: d[wc.sample],
+        mdist = molecule_distance
     shell:
-        "bxStats.py {input.bam} | gzip > {output}"
+        "bxStats.py -c {params.mdist} {input.bam} | gzip > {output}"
 
 rule bxstats_report:
     input:
@@ -174,6 +176,8 @@ rule bxstats_report:
         outdir + "/stats/BXstats/{sample}.bxstats.html"
     message: 
         "Generating summary of barcode alignment: {wildcards.sample}"
+    params:
+        molecule_distance
     script:
         "reportBxStats.Rmd"
 
@@ -193,23 +197,6 @@ rule mark_duplicates:
         4
     shell:
         "sambamba markdup -t {threads} -l 0 {input} {output.bam} 2> {log}"
-
-#rule clip_overlap:
-#    input:
-#        bam = outdir + "/{sample}/{sample}.markdup.bam",
-#        bai = outdir + "/{sample}/{sample}.markdup.bam.bai"
-#    output:
-#        bam = outdir + "/align/{sample}.bam",
-#        bai = outdir + "/align/{sample}.bam.bai"
-#    log:
-#        outdir + "/logs/clipOverlap/{sample}.clipOverlap.log"
-#    message:
-#        "Clipping alignment overlaps: {wildcards.sample}"
-#    shell:
-#        """
-#        bam clipOverlap --in {input.bam} --out {output.bam} --stats --noPhoneHome > {log} 2>&1
-#        samtools index {output.bam}
-#        """
 
 rule alignment_coverage:
     input: 

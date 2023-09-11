@@ -248,13 +248,13 @@ rule log_runtime:
                 "    method               = model,\n" +
                 "    posfile              = posfile,\n" +
                 "    bamlist              = bamlist,\n" +
-                "    nCores               = nCores,\n" +
-                "    nGen                 = nGen,\n" +
+                "    nCores               = ncores,\n" +
+                "    nGen                 = ngen,\n" +
                 "    chr                  = chr,\n" +
                 "    K                    = k,\n" +
                 "    S                    = s,\n" +
-                "    use_bx_tag           = useBX,\n" +
-                "    bxTagUpperLimit      = 50000,\n" +
+                "    use_bx_tag           = usebX,\n" +
+                "    bxTagUpperLimit      = bxlimit,\n" +
                 "    niterations          = 40,\n" +
                 "    switchModelIteration = 39,\n" +
                 "    splitReadIterations  = NA,\n" +

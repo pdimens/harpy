@@ -3,7 +3,7 @@ import os
 
 bam_dir 	= config["seq_directory"]
 genomefile 	= config["genomefile"]
-samplenames = config["samplenames"] 
+samplenames = config["samplenames"]
 extra 		= config.get("extra", "") 
 groupfile 	= config["groupings"]
 outdir      = "Variants/leviathan-pop"

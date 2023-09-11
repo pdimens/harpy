@@ -5,6 +5,7 @@ bam_dir     = config["seq_directory"]
 samplenames = config["samplenames"] 
 extra       = config.get("extra", "") 
 genomefile  = config["genomefile"]
+molecule_distance = config["molecule_distance"]
 outdir      = "Variants/naibr"
 bn          = os.path.basename(genomefile)
 genome_zip  = True if (bn.endswith(".gz") or bn.endswith(".GZ")) else False
@@ -13,7 +14,7 @@ bn_idx      = f"{bn}.gzi" if genome_zip else f"{bn}.fai"
 def process_args(args):
     argsDict = {
         "min_mapq" : 30,
-        "d"        : 10000,
+        "d"        : molecule_distance,
         "min_sv"   : 1000,
         "k"        : 3
     }

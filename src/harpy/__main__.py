@@ -95,7 +95,7 @@ click.rich_click.OPTION_GROUPS = {
     "harpy align": [
         {
             "name": "Configuration",
-            "options": ["--genome", "--directory", "--quality-filter", "--method", "--ema-bins", "--extra-params"],
+            "options": ["--genome", "--directory", "--quality-filter", "--method", "--molecule-distance", "--ema-bins", "--extra-params"],
         },
         {
             "name": "Other Options",
@@ -115,7 +115,7 @@ click.rich_click.OPTION_GROUPS = {
     "harpy variants sv": [
         {
             "name": "Configuration",
-            "options": ["--genome", "--directory", "--populations", "--method", "--extra-params"],
+            "options": ["--genome", "--directory", "--populations", "--method", "--molecule-distance", "--extra-params"],
         },
         {
             "name": "Other Options",

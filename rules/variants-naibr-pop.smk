@@ -7,6 +7,7 @@ samplenames = config["samplenames"]
 extra       = config.get("extra", "") 
 groupfile   = config["groupings"]
 genomefile  = config["genomefile"]
+molecule_distance = config["molecule_distance"]
 bn          = os.path.basename(genomefile)
 outdir      = "Variants/naibr-pop"
 genome_zip  = True if bn.lower().endswith(".gz") else False
@@ -16,7 +17,7 @@ if genome_zip:
 def process_args(args):
     argsDict = {
         "min_mapq" : 30,
-        "d"        : 10000,
+        "d"        : molecule_distance,
         "min_sv"   : 1000,
         "k"        : 3,
     }

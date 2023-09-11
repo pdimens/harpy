@@ -17,17 +17,20 @@ except:
 @click.option('-d', '--directory', required = True, type=click.Path(exists=True), metavar = "Folder Path", help = 'Directory with sample sequences')
 @click.option('-e', '--ema-bins', default = 500, show_default = True, type = click.IntRange(1,1000), metavar = "Integer", help="Number of barcode bins if using EMA")
 @click.option('-m', '--method', default = "bwa", show_default = True, type = click.Choice(["bwa", "ema"], case_sensitive = False), metavar = "String", help = "Method for aligning reads")
+@click.option('-l', '--molecule-distance', default = 100000, show_default = True, type = int, metavar = "Integer", help = 'Base-pair distance threshold to separate molecules')
 @click.option('-f', '--quality-filter', default = 30, show_default = True, type = click.IntRange(min = 0, max = 40), metavar = "Integer", help = 'Minimum mapping quality to pass filtering')
 @click.option('-x', '--extra-params', type = str, metavar = "String", help = 'Additional aligner parameters, in quotes')
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(min = 4, max_open = True), metavar = "Integer", help = 'Number of threads to use')
 @click.option('-s', '--snakemake', type = str, metavar = "String", help = 'Additional Snakemake parameters, in quotes')
 @click.option('-q', '--quiet',  is_flag = True, show_default = True, default = False, metavar = "Toggle", help = 'Don\'t show output text while running')
-def align(genome, threads, method, ema_bins, directory, extra_params, quality_filter, snakemake, quiet):
+def align(genome, threads, method, ema_bins, directory, extra_params, quality_filter, molecule_distance, snakemake, quiet):
     """
     Align sample sequences to a reference genome
 
-    EMA improves mapping overall, but note that EMA marks split 
-    reads as secondary reads, which makes it less useful for leviathan.
+    EMA may improves mapping, but EMA marks split reads as secondary
+    reads, making it less useful for leviathan variant calling.
+    Note that `--molecule-distance` is for reporting barcode alignment
+    information and does not affect mapping.
 
     ## methods
     - **bwa**: uses BWA MEM to align reads, retaining BX tags in the alignments
@@ -63,6 +66,7 @@ def align(genome, threads, method, ema_bins, directory, extra_params, quality_fi
     command.append(f"quality={quality_filter}")
     command.append(f"samplenames={samplenames}")
     command.append(f"EMA_bins={ema_bins}")
+    command.append(f"molecule_distance={molecule_distance}")
     command.append(f"seq_directory={directory}")
 
     if extra_params is not None:

@@ -27,6 +27,7 @@ library(scales)
 ```{r echo = F, results = F, message = F}
 #infile <- "~/ZS10.bx.stats.gz"
 infile <- snakemake@input[[1]]
+mdist <- infile <- snakemake@params[[1]]
 bamfile <- gsub(".bxstats.gz", ".bam", infile)
 samplename <- gsub(".bxstats.gz", "", basename(infile))
 tb <- read.table(infile, header = T, sep = "\t") %>% select(-start, -end)
@@ -53,9 +54,11 @@ The table below defines the columns in the `r basename(infile)`
 |mindist| the minimum basepair distance between two alignments sharing a barcode (excluding read pairs) |
 
 #### Regarding molecule splitting
+##### Split threshold: `r mdist`
 It's not uncommon for a barcode to reappear much further
 along a chromosome or across multiple chromosomes and the process that derives
-the data in this report separates those recurring barcodes as unique molecules.
+the data in this report separates those recurring barcodes as unique molecules
+when there distance is greater than `r mdist` base pairs.
 The "split" molecules are identified by a numerical suffix in their name, such
 as `A01C22B96D11.1`. These suffixes were added only for reporting purposes and 
 *did not* alter the barcodes in your alignment file.
