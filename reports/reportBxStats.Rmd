@@ -27,7 +27,7 @@ library(scales)
 ```{r echo = F, results = F, message = F}
 #infile <- "~/ZS10.bx.stats.gz"
 infile <- snakemake@input[[1]]
-mdist <- infile <- snakemake@params[[1]]
+mdist <- snakemake@params[[1]]
 bamfile <- gsub(".bxstats.gz", ".bam", infile)
 samplename <- gsub(".bxstats.gz", "", basename(infile))
 tb <- read.table(infile, header = T, sep = "\t") %>% select(-start, -end)
