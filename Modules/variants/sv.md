@@ -39,10 +39,16 @@ In addition to the [common runtime options](../../commonoptions.md), the `harpy 
 |:-----------------|:----------:|:--------------------------------|:-------:|:--------:|:---------------------------------------------------|
 | `--genome`       |    `-g`    | file path                       |         | **yes**  | Genome assembly for variant calling                |
 | `--directory`    |    `-d`    | folder path                     |         | **yes**  | Directory with sequence alignments                 |
+| `--molecule-distance` |    `-l`    | integer         |  100000  |    no    | Base-pair distance threshold to separate molecules           |
 | `--populations`  |    `-p`    | file path                       |         |    no    | Tab-delimited file of sample\<*tab*\>group           |
 | `--ploidy`       |    `-x`    | integer                         |    2    |    no    | Ploidy of samples                                  |
 | `--method`       |    `-l`    | choice [`naibr`, `leviathan`] | mpileup |    no    | Which variant caller to use                          |
 | `--extra-params` |    `-x`    | string                          |         |    no    | Additional naibr/leviathan arguments, in quotes    |
+
+### Molecule distance
+The `--molecule-distance` option is only used for NAIBR variant calling since LEVIATHAN does not have
+a means to adjust this parameter. See [haplotag data](../../haplotagdata/#barcode-thresholds) for more information on
+what this value does.
 
 ### The --populations option
 #### Single-sample variant calling
@@ -144,16 +150,18 @@ Variants/naibr/
 By default, Harpy runs `naibr` with these parameters (excluding inputs and outputs):
 ```python
 min_mapq = 30
-d        = 10000
 min_sv   = 1000
 k        = 3
 ```
 
-Below is a list of all `NAIBR` runtime options, excluding those Harpy already uses or those made redundant by Harpy's implementation of NAIBR.
-These are taken directly from the [NAIBR documentation](https://github.com/pontushojer/NAIBR#running-naibr). If adding these arguments, do so like:
-`-x "min_sv 1000 d 50000"`
+Below is a list of all `naibr` runtime options, excluding those Harpy already uses or those made redundant by Harpy's implementation of NAIBR.
+These are taken directly from the [NAIBR documentation](https://github.com/pontushojer/NAIBR#running-naibr). If adding these arguments, do so in quotes:
+
+```
+harpy variants sv -d somedir -x "min_sv 1000 k 5"
+```
+
 ``` NAIBR arguments
- -d: The maximum distance in basepairs between reads in a linked-read (default: 10000)
  -blacklist: BED-file with regions to be excluded from analysis
  -candidates: BEDPE-file with novel adjacencies to be scored by NAIBR. This will override automatic detection of candidate novel adjacencies
  -min_sv: Minimum size of a structural variant to be detected (default: lmax, i.e. the 95th percentile of the paired-end read insert size distribution)

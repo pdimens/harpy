@@ -36,10 +36,16 @@ In addition to the [common runtime options](../commonoptions.md), the `harpy ali
 |:-------------------|:----------:|:----------------------|:-------:|:--------:|:------------------------------------------------------------------------------------------------|
 | `--genome`         |    `-g`    | file path             |         | **yes**  | Genome assembly for read mapping                                                                |
 | `--directory`            |    `-d`    | folder path           |         | **yes**  | Directory with sample sequences                                                                 |
+| `--molecule-distance` |    `-l`    | integer         |  100000  |    no    | Base-pair distance threshold to separate molecules                   |
 | `--ema-bins`       |    `-e`    | integer (1-1000)      |   500   |    no    | Number of barcode bins for EMA                                                                  |
 | `--quality-filter` |    `-f`    | integer (0-40)        |   30    |    no    | Minimum `MQ` (SAM mapping quality) to pass filtering                                            |
 | `--method`         |    `-m`    | choice [`bwa`, `ema`] |   bwa   |    no    | Which aligning software to use                                                                  |
 | `--extra-params`   |    `-x`    | string                |         |    no    | Additional EMA-align/BWA arguments, in quotes                                                   |
+
+### Molecule distance
+The `--molecule-distance` option is only used for reporting alignment statistics regarding the barcodes. Changing this
+value will not impact sequence alignment in any way. See [haplotag data](../haplotagdata/#barcode-thresholds) for more information on
+what this value does.
 
 ## :icon-filter: Quality filtering
 ==- What is a $MQ$ score?
