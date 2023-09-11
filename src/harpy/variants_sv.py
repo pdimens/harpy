@@ -20,7 +20,7 @@ except:
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(min = 4, max_open = True), metavar = "Integer", help = 'Number of threads to use')
 @click.option('-s', '--snakemake', type = str, metavar = "String", help = 'Additional Snakemake parameters, in quotes')
 @click.option('-q', '--quiet',  is_flag = True, show_default = True, default = False, metavar = "Toggle", help = 'Don\'t show output text while running')
-def sv(genome, threads, directory, populations, method, extra_params, snakemake, quiet):
+def sv(genome, threads, directory, populations, method, molecule_distance, extra_params, snakemake, quiet):
     """
     Call structural variants from samples
     
