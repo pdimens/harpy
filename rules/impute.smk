@@ -97,8 +97,8 @@ rule impute:
 
 rule index_vcf:
     input:
-        vcf     = "Impute/{stitchparams}/contigs/{part}/{part}.vcf.gz",
-        samples = "Impute/input/samples.names"
+        vcf     = "Impute/{stitchparams}/contigs/{part}/{part}.vcf.gz"
+        #samples = "Impute/input/samples.names"
     output: 
         idx        = "Impute/{stitchparams}/contigs/{part}/{part}.vcf.gz.tbi",
         stats      = "Impute/{stitchparams}/contigs/{part}/{part}.stats"
@@ -178,8 +178,8 @@ rule merge_vcfs:
 rule stats:
     input:
         bcf     = "Impute/{stitchparams}/variants.imputed.bcf",
-        idx     = "Impute/{stitchparams}/variants.imputed.bcf.csi",
-        samples = "Impute/input/samples.names"
+        idx     = "Impute/{stitchparams}/variants.imputed.bcf.csi"
+        #samples = "Impute/input/samples.names"
     output:
         "Impute/{stitchparams}/stats/variants.imputed.stats"
     message:
@@ -194,8 +194,8 @@ rule comparestats:
         orig    = "Impute/input/input.sorted.bcf",
         origidx = "Impute/input/input.sorted.bcf.csi",
         impute  = "Impute/{stitchparams}/variants.imputed.bcf",
-        idx     = "Impute/{stitchparams}/variants.imputed.bcf.csi",
-        samples = "Impute/input/samples.names"
+        idx     = "Impute/{stitchparams}/variants.imputed.bcf.csi"
+        #samples = "Impute/input/samples.names"
     output:
         compare = "Impute/{stitchparams}/stats/impute.compare.stats",
         info_sc = temp("Impute/{stitchparams}/stats/impute.infoscore")

@@ -141,16 +141,14 @@ rule variants_stats:
     input:
         genome  = f"Genome/{bn}",
         bcf     = outdir + "/variants.{type}.bcf",
-        idx     = outdir + "/variants.{type}.bcf.csi",
-        samples = outdir + "/logs/samples.names"
+        idx     = outdir + "/variants.{type}.bcf.csi"
+        #samples = outdir + "/logs/samples.names"
     output:
         outdir + "/stats/variants.{type}.stats",
     message:
         "Calculating variant stats: variants.{wildcards.type}.bcf"
     shell:
-        """
-        bcftools stats -s - --fasta-ref {input.genome} {input.bcf} > {output}
-        """
+        "bcftools stats -s - --fasta-ref {input.genome} {input.bcf} > {output}"
 
 rule bcfreport:
     input:
