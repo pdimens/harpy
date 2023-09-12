@@ -150,7 +150,7 @@ rule align:
         """
         BWA_THREADS=$(( {threads} - 2 ))
         bwa mem -C -t $BWA_THREADS {params.extra} -R \"@RG\\tID:{wildcards.sample}\\tSM:{wildcards.sample}\" {input.genome} {input.forward_reads} {input.reverse_reads} 2> {log.bwa} |
-        samtools view -h -q {params.quality} | 
+        samtools view -h -F 4 -q {params.quality} | 
         samtools sort -T {params.tmpdir} --reference {input.genome} -O bam -l 0 -m 4G --write-index -o {output.bam}##idx##{output.bai} 2> {log.bwasort}
         rm -rf {params.tmpdir}
         """
@@ -264,7 +264,7 @@ rule log_runtime:
             _ = f.write(f"The directory with sequences: {seq_dir}\n\n")
             _ = f.write("Sequencing were aligned with BWA using:\n")
             _ = f.write("    bwa mem -C " + " ".join([str(i) for i in params]) + " -R \"@RG\\tID:SAMPLE\\tSM:SAMPLE\" genome forward_reads reverse_reads |\n")
-            _ = f.write("    samtools view -h -q " + str(config["quality"]) + " |\n")
+            _ = f.write("    samtools view -h -F 4 -q " + str(config["quality"]) + " |\n")
             _ = f.write("    samtools sort -T SAMPLE --reference genome -m 4G\n")
             _ = f.write("Duplicates in the alignments were marked using sambamba:\n")
             _ = f.write("    sambamba markdup -l 0\n")
