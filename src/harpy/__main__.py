@@ -20,6 +20,7 @@ from .extra import extra
 from .demultiplex import demultiplex
 from .trim import trim
 from .align import align
+from .validate import bam, fastq
 from .variants_snp import snp
 from .variants_sv import sv
 from .impute import impute
@@ -60,7 +61,17 @@ def variants():
     """
     pass
 
+@click.group(options_metavar='', context_settings=dict(help_option_names=["-h", "--help"]))
+def validate():
+    """
+    Run validity checks on haplotagged FASTQ/BAM files
+
+    Provide an additional command `fastq` or `bam` to see more information and options. 
+    """
+    pass
+
 cli.add_command(extra)
+cli.add_command(validate)
 cli.add_command(demultiplex)
 cli.add_command(trim)
 cli.add_command(align)
@@ -69,9 +80,31 @@ cli.add_command(impute)
 cli.add_command(phase)
 variants.add_command(sv)
 variants.add_command(snp)
+validate.add_command(fastq)
+validate.add_command(bam)
 
 ## the modules ##
 click.rich_click.OPTION_GROUPS = {
+    "harpy validate bam": [
+        {
+            "name": "Configuration",
+            "options": ["--directory"],
+        },
+        {
+            "name": "Other Options",
+            "options": ["--threads", "--snakemake", "--quiet", "--help"],
+        },
+    ],
+    "harpy validate fastq": [
+        {
+            "name": "Configuration",
+            "options": ["--directory"],
+        },
+        {
+            "name": "Other Options",
+            "options": ["--threads", "--snakemake", "--quiet", "--help"],
+        },
+    ],
     "harpy demultiplex": [
         {
             "name": "Configuration",
