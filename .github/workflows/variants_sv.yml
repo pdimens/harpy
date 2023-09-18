@@ -33,9 +33,6 @@ on:
       - 'reports/reportLeviathanPop.Rmd'
       - 'utilities/inferSV.py'
 
-  schedule:
-    - cron: '0 0 * * *'
-
 env:
   CACHE_NUMBER: 0  # increase to reset cache manually
 

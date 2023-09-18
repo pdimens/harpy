@@ -27,9 +27,6 @@ on:
       - 'reports/reportStitch.Rmd'
       - 'utilities/stitch_impute.R'
 
-  schedule:
-    - cron: '0 0 * * *'
-
 env:
   CACHE_NUMBER: 0  # increase to reset cache manually
 

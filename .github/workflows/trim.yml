@@ -19,9 +19,6 @@ on:
       - 'test/fastq/**'
       - '**trim.yml'
 
-  schedule:
-    - cron: '0 0 * * *'
-
 env:
   CACHE_NUMBER: 0  # increase to reset cache manually
 

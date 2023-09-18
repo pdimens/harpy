@@ -25,9 +25,6 @@ on:
       - 'test/bam/**'
       - '**variants_snp.yml'
 
-  schedule:
-    - cron: '0 0 * * *'
-
 env:
   CACHE_NUMBER: 0  # increase to reset cache manually
 
