@@ -17,6 +17,7 @@ pip install .
 cp -f rules/*.smk ${CONDA_PREFIX}/bin/
 
 # associated scripts
+chmod +x utilities/* 
 cp -f utilities/* ${CONDA_PREFIX}/bin/
 
 # reports
