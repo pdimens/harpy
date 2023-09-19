@@ -18,8 +18,9 @@ except:
 from .harpymisc import getnames_err, getnames, vcfcheck
 from .extra import extra
 from .demultiplex import demultiplex
-from .trim import trim
+from .qc import qc
 from .align import align
+from .preflight import bam, fastq
 from .variants_snp import snp
 from .variants_sv import sv
 from .impute import impute
@@ -44,7 +45,7 @@ def cli():
     map sequences, call variants, impute genotypes, and phase 
     haplotypes of Haplotagging data. Batteries included.
     
-    **demultiplex >> trim >> align >> variants >> impute >> phase**
+    **demultiplex >> qc >> align >> variants >> impute >> phase**
     
     **Documentation**: [https://pdimens.github.io/harpy/](https://pdimens.github.io/harpy/)
     """
@@ -60,18 +61,50 @@ def variants():
     """
     pass
 
+@click.group(options_metavar='', context_settings=dict(help_option_names=["-h", "--help"]))
+def preflight():
+    """
+    Run file format checks on haplotagged FASTQ/BAM files
+
+    Provide an additional command `fastq` or `bam` to see more information and options. 
+    """
+    pass
+
 cli.add_command(extra)
+cli.add_command(preflight)
 cli.add_command(demultiplex)
-cli.add_command(trim)
+cli.add_command(qc)
 cli.add_command(align)
 cli.add_command(variants)
 cli.add_command(impute)
 cli.add_command(phase)
 variants.add_command(sv)
 variants.add_command(snp)
+preflight.add_command(fastq)
+preflight.add_command(bam)
 
 ## the modules ##
 click.rich_click.OPTION_GROUPS = {
+    "harpy preflight bam": [
+        {
+            "name": "Configuration",
+            "options": ["--directory"],
+        },
+        {
+            "name": "Other Options",
+            "options": ["--threads", "--snakemake", "--quiet", "--help"],
+        },
+    ],
+    "harpy preflight fastq": [
+        {
+            "name": "Configuration",
+            "options": ["--directory"],
+        },
+        {
+            "name": "Other Options",
+            "options": ["--threads", "--snakemake", "--quiet", "--help"],
+        },
+    ],
     "harpy demultiplex": [
         {
             "name": "Configuration",
@@ -82,7 +115,7 @@ click.rich_click.OPTION_GROUPS = {
             "options": ["--threads", "--snakemake", "--quiet", "--help"],
         },
     ],
-    "harpy trim": [
+    "harpy qc": [
         {
             "name": "Configuration",
             "options": ["--directory", "--max-length", "--extra-params"],
