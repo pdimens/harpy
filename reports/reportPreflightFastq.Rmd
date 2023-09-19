@@ -1,0 +1,134 @@
+---
+title: "FASTQ File Format Check"
+date: "`r format(Sys.time(), '%m-%d-%y %X')`"
+output:
+  flexdashboard::flex_dashboard:
+    theme: lumen
+    orientation: rows  
+    vertical_layout: scroll
+    favicon: "https://raw.githubusercontent.com/pdimens/harpy/docs/static/favicon.png"
+---
+
+
+```{css zoom-lib-src, echo = FALSE, message = FALSE, warning = FALSE}
+script src = "https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"
+```
+```{js zoom-jquery, echo = FALSE, message = FALSE, warning = FALSE}
+ $(document).ready(function() {
+    $('body').prepend('<div class=\"zoomDiv\"><img src=\"\" class=\"zoomImg\"></div>');
+    // onClick function for all plots (img's)
+    $('img:not(.zoomImg)').click(function() {
+      $('.zoomImg').attr('src', $(this).attr('src')).css({width: '100%'});
+      $('.zoomDiv').css({opacity: '1', width: 'auto', border: '1px solid white', borderRadius: '5px', position: 'fixed', top: '50%', left: '50%', marginRight: '-50%', transform: 'translate(-50%, -50%)', boxShadow: '0px 0px 50px #888888', zIndex: '50', overflow: 'auto', maxHeight: '90%'});
+    });
+    // onClick function for zoomImg
+    $('img.zoomImg').click(function() {
+      $('.zoomDiv').css({opacity: '0', width: '0%'}); 
+    });
+  });
+```
+
+```{r load environment, echo=FALSE, message=FALSE, warning=FALSE}
+library(flexdashboard)
+library(ggplot2)
+library(dplyr)
+library(tidyr)
+library(DT)
+library(scales)
+#infile <- "~/Documents/harpy/test/fastq/Preflight/filecheck.fastq.tsv"
+infile <- snakemake@input[[1]]
+dirname <- snakemake@params[[1]]
+data <- read.table(infile, header = T)
+attention_df <- data %>% 
+  mutate(allmissing = (reads == noBX)) %>% 
+  select(4:6) %>% 
+  rowwise() %>% 
+  summarise(count = sum(c(badBX,badSamSpec, allmissing)))
+attention <- sum(attention_df$count > 0)
+```
+## filetop
+### fltop {.no-title}
+<h1> Directory: `r dirname` </h1>
+
+This report reflects the FASTQ files identified in `r dirname`. Harpy has processed
+the files in this folder to identify formatting issues that may require your attention.
+
+## General Information {data-height=100}
+### nfiles
+```{r}
+valueBox(scales::comma(nrow(data)), caption = "Files", color = "info")
+```
+### fileformat
+```{r}
+valueBox("FASTQ", caption = "File Format", color = "info")
+```
+### issues
+```{r}
+valueBox(scales::comma(attention), caption = "Files With Issues", color = ifelse(attention > 0, "warning", "success"))
+```
+
+## interpret
+### interpcol {.no-title}
+<h2> Interpreting the Data </h2>
+
+The `harpy preflight fastq -d ...` created a `Preflight` folder within
+the supplied directory and within it you will find this report, along with the
+`filecheck.fastq.tsv` file summing the results that are included in this report.
+This file contains a tab-delimited table with the columns: `file`,	`reads`, `noBX`,	`badBX`, and	`badSamSpec`. These columns are defined by:
+
+- `file`: the name of the fastq file
+- `reads`: the total number of reads in the file
+- `noBX`: the number of reads that do not have a `BX:Z:` tag in the read header
+  - severity: <strong style='color:#c0c0c0;'>minimal</strong> and likely won't cause issues unless no reads have `BX:Z:` tags
+  - if you expect all of your reads should have `BX:Z:` tags, then further investigation is necessary
+- `badBX`: the haplotag barcode in the `BX:Z:` comment does not adhere to the proper `AxxCxxBxxDxx` format
+  - severity: <strong style='color:red;'>critical</strong> and will cause downstream issues and errors
+- `badSamSpec`: the comments in the read header after the read ID do not conform to the `TAG:TYPE:VALUE` [SAM specification](https://samtools.github.io/hts-specs/SAMv1.pdf)
+  - severity: <strong style='color:red;'>critical</strong> and will cause downstream issues and errors
+
+### Proper header {.no-title}
+<h2> Proper Read Headers </h2>
+
+An example of a proper FASTQ read header is like the one below, where all comments
+following the initial read ID (`@A00814...`) have the proper [SAM spec](https://samtools.github.io/hts-specs/SAMv1.pdf)
+`TAG:TYPE:VALUE` format and among them is a `BX:Z:` tag followed by a `AxxCxxBxxDxx`
+formatted haplotag barcode. The read header below contains the read ID `@A00814...`,
+the `BX:Z:` haplotag barcode tag, and two more comments `RX:Z:` and `QX:Z:` that both
+adhere to the SAM specification.
+
+```
+@A00814:267:HTMH3DRXX:2:1101:4580:1000 BX:Z:A02C01B11D46 RX:Z:GAAACGACCAACA+CGAACACGTTAGC QX:Z:F,FFFFFFFFFFF+FF,FFF:FFFFFF
+```
+
+## viz desc
+### desc {.no-title}
+<h2> FASTQ file format Check </h2>
+Below are a plot and corresponding table of the results of the preflight checks. You
+may click on the plot to expand it in your browser window. Clicking it again will exit
+out of the zoomed view.
+
+## datarow
+### plot {.no-title}
+```{r}
+n <- nrow(data)
+pltheight <- max(round(0.38 * n, digits = 0), 3)
+```
+
+```{r plottable, dev="jpeg", echo=FALSE, message=FALSE, warning=FALSE, fig.height=pltheight}
+pivot_longer(data, -1, names_to = "Parameter", values_to = "Count") %>% 
+ggplot(aes(x = Count, y = file, fill = Parameter, color = Parameter)) +
+  geom_col(stat= "identity", position = position_dodge(width = 0.5), linewidth = 0.3) +
+  theme_minimal() +
+  theme(panel.grid.major.y = element_blank()) +
+  scale_fill_manual(values = c("indianred", "dodgerblue","orange","grey70")) +
+  scale_color_manual(values = c("#a23c3c", "#2a7ed0","#dd8f00","grey60")) +
+  #scale_color_manual(values = c("#d57575", "#369cff","#ffb42a","grey75")) +
+  scale_x_continuous(labels = scales::comma) +
+  ylab("") +
+  labs(title = "FASTQ file check")
+```
+
+### table {.no-title}
+```{r dtable, echo=FALSE, message=FALSE, warning=FALSE}
+DT::datatable(data, rownames = F, filter = "top", extensions = 'Buttons', options = list(dom = 'Brtip', buttons = c('csv'), scrollX = T))
+```

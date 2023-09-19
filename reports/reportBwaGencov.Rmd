@@ -1,7 +1,5 @@
 ---
 title: "Alignment Depth and Coverage"
-author:
-    - "`r gsub('.cov.gz$', '', snakemake@input[[1]])`"
 date: "`r format(Sys.time(), '%m-%d-%y %X')`"
 output:
   flexdashboard::flex_dashboard:

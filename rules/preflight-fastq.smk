@@ -46,7 +46,6 @@ rule checkReverse:
         "checkFASTQ.py {input} > {output}"
 
 rule mergeChecks:
-    default_target: True
     input:
         expand(out_dir + "{sample}.{FR}.log", sample = samplenames, FR = ["F","R"])
     output:
@@ -60,7 +59,15 @@ rule mergeChecks:
         echo -e "file\treads\tnoBX\tbadBX\tbadSamSpec\n$(cat {output.tmp})" > {output.final}
         """
 
-
-# TODO add rmd report
-#rule createReport:
-
+rule createReport:
+    default_target: True
+    input:
+        out_dir + "filecheck.fastq.tsv"
+    output:
+        out_dir + "filecheck.fastq.html"
+    params:
+        seq_dir
+    message:
+        "Producing report"
+    script:
+        "reportPreflightFastq.Rmd"

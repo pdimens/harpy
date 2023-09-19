@@ -1,0 +1,134 @@
+---
+title: "BAM File Format Check"
+date: "`r format(Sys.time(), '%m-%d-%y %X')`"
+output:
+  flexdashboard::flex_dashboard:
+    theme: lumen
+    orientation: rows  
+    vertical_layout: scroll
+    favicon: "https://raw.githubusercontent.com/pdimens/harpy/docs/static/favicon.png"
+---
+
+
+```{css zoom-lib-src, echo = FALSE, message = FALSE, warning = FALSE}
+script src = "https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"
+```
+```{js zoom-jquery, echo = FALSE, message = FALSE, warning = FALSE}
+ $(document).ready(function() {
+    $('body').prepend('<div class=\"zoomDiv\"><img src=\"\" class=\"zoomImg\"></div>');
+    // onClick function for all plots (img's)
+    $('img:not(.zoomImg)').click(function() {
+      $('.zoomImg').attr('src', $(this).attr('src')).css({width: '100%'});
+      $('.zoomDiv').css({opacity: '1', width: 'auto', border: '1px solid white', borderRadius: '5px', position: 'fixed', top: '50%', left: '50%', marginRight: '-50%', transform: 'translate(-50%, -50%)', boxShadow: '0px 0px 50px #888888', zIndex: '50', overflow: 'auto', maxHeight: '90%'});
+    });
+    // onClick function for zoomImg
+    $('img.zoomImg').click(function() {
+      $('.zoomDiv').css({opacity: '0', width: '0%'}); 
+    });
+  });
+```
+
+```{r load environment, echo=FALSE, message=FALSE, warning=FALSE}
+library(flexdashboard)
+library(ggplot2)
+library(dplyr)
+library(tidyr)
+library(DT)
+library(scales)
+#infile <- "~/Documents/harpy/test/bam/Preflight/filecheck.bamfilecheck.a.tsv"
+infile <- snakemake@input[[1]]
+dirname <- snakemake@params[[1]]
+data <- read.table(infile, header = T)
+attention_df <- data %>% select(-1,-3) %>% rowwise() %>% summarise(count = sum(c(nameMismatch, noBX, badBX)))
+attention <- sum(attention_df$count > 0)
+```
+## filetop
+### fltop {.no-title}
+<h1> Directory: `r dirname` </h1>
+
+This report reflects the BAM files identified in `r dirname`. Harpy has processed
+the files in this folder to identify formatting issues that may require your attention.
+
+## General Information {data-height=100}
+### nfiles
+```{r}
+valueBox(scales::comma(nrow(data)), caption = "Files", color = "info")
+```
+### fileformat
+```{r}
+valueBox("BAM", caption = "File Format", color = "info")
+```
+### issues
+```{r}
+valueBox(scales::comma(attention), caption = "Files With Issues", color = ifelse(attention > 0, "warning", "success"))
+```
+
+
+## interpret
+### interpcol {.no-title}
+<h2> Interpreting the Data </h2>
+
+The `harpy preflight bam -d ...` created a `Preflight` folder within
+the supplied directory and within it you will find this report, along with the
+`bam` file summing the results that are included in this report.
+This file contains a tab-delimited table with the columns: `file`,	`nameMismatch`, `alignments`,	`noBX`, and	`badBX`. These columns are defined by:
+
+- `file`: the name of the fastq file
+- `nameMismatch`: the sample name of the file inferred from name of the file (i.e. Harpy assumes `sample1.bam` to be `sample1`) does not match the `@RG ID` tag in the alignment file.
+  - severity: <strong style='color:red;'>critical</strong> and will likely cause downstream issues and errors
+- `alignments`: the total number of alignment records in the file
+- `noBX`: the number of alignments that do not have a `BX:Z:` tag in the record
+  - severity: <strong style='color:#c0c0c0;'>minimal</strong> and likely won't cause issues unless no alignments have `BX:Z:` tags
+  - if you expect all of your alignments should have `BX:Z:` tags, then further investigation is necessary
+- `badBX`: the haplotag barcode in the `BX:Z:` tag does not adhere to the proper `AxxCxxBxxDxx` format
+  - severity: <strong style='color:red;'>critical</strong> and will cause downstream issues and errors
+
+### Proper format {.no-title}
+<h2> Proper BAM file format </h2>
+
+A proper BAM file will contain a `BX:Z:` tag with an alignment that features a
+properly-formatted haplotag barcode `AxxCxxBxxDxx`. If this barcode is not in that
+format, then it's likely the input FASTQ used for read mapping is the source of the
+issue. You can check those FASTQ files for errors with `harpy preflight fastq ...`. 
+
+Below is an example of a proper alignment record for a file named `sample1.bam`.
+Note the tag `RG:Z:sample1`, indicating this alignment is associated with `sample1` and
+matches the file name. Also note the correctly formatted haplotag barcode `BX:Z:A19C01B86D78`.
+
+```
+A00814:267:HTMH3DRXX:2:1132:26268:10316 113     contig1 6312    60      4S47M1D86M      =       6312    0       TAACCCTAACCCTAACCCTAACCCTAAACCTAACCCTAACCCTAACCCTAACCCTATTCCTATTCCTAACCCTAACCCTAAAAACCAACTGCACCCCGGTGCACTTTTGGCTATTACCCCCTATCATACCCTTGTCC     FFFF,FFFF:FFFF:FF:FFF:FFFF,,FFFFFFFFFFF:FFFFF:FFFFFFFFFFFFF:FFFF,FFFFFFFFF:FF:F:FFFFF,F:,FFFFFFFFFF:FFF,FFFFFF:FFFFFF:FFFF:FFFFFFFFFF:FFF     NM:i:2  MD:Z:23C23^C86  MC:Z:4S47M1D86M AS:i:121        XS:i:86 RG:Z:sample1    BX:Z:A19C01B86D78       RX:Z:GAAACGATGTTGC+CCTAAGCCGAATC        QX:Z:FFFFFFFFFFFFF+FFFFF:FFFFFFF
+```
+
+## viz desc
+### desc {.no-title}
+<h2> BAM file format Check </h2>
+Below are a plot and corresponding table of the results of the preflight checks.
+The `nameMismatch` parameter is given as a `0` or `1` rather than a count and indicates
+whether the file name does not match the `@RG ID` tag within the file. You may
+click on the plot to expand it in your browser window. Clicking it again will exit
+out of the zoomed view.
+
+## datarow
+### plot {.no-title}
+```{r}
+n <- nrow(data)
+pltheight <- max(round(0.44 * n, digits = 0),3)
+```
+
+```{r plottable, dev="jpeg", echo=FALSE, message=FALSE, warning=FALSE, fig.height=pltheight}
+pivot_longer(data, 3:5, names_to = "Parameter", values_to = "Count") %>% 
+ggplot(aes(x = Count, y = file, fill = Parameter, color = Parameter)) +
+  geom_col(stat= "identity", position = position_dodge(width = 0.5), linewidth = 0.3) +
+  theme_minimal() +
+  theme(panel.grid.major.y = element_blank()) +
+  scale_fill_manual(values = c("grey70", "indianred", "dodgerblue")) +
+  scale_color_manual(values = c("grey60", "#a23c3c", "#2a7ed0")) +
+  scale_x_continuous(labels = scales::comma) +
+  ylab("") +
+  labs(title = "BAM file check")
+```
+
+### table {.no-title}
+```{r dtable, echo=FALSE, message=FALSE, warning=FALSE}
+DT::datatable(data, rownames = F, filter = "top", extensions = 'Buttons', options = list(dom = 'Brtip', buttons = c('csv'), scrollX = T))
+```
