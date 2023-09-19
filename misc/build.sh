@@ -11,6 +11,7 @@ mkdir -p ${PREFIX}/bin
 cp rules/*.smk ${PREFIX}/bin/
 
 # associated scripts
+chmod +x utilities/* 
 cp utilities/* ${PREFIX}/bin/
 
 # reports
