@@ -72,7 +72,7 @@ def bam(directory, threads, snakemake, quiet):
         if not os.path.exists(f"{i}.bai"):
             missingbai.append(os.path.basename(i))
     nmiss = len(missingbai)
-    print(nmiss)
+    click.echo(nmiss)
     exit(0)
     if nmiss > 0:
         print(f"\033[1;33mERROR:\033[00m {nmiss} BAM files without matching index (.bai) files were found in {directory} and cannot be processed.", file = sys.stderr)

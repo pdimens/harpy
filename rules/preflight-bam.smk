@@ -27,7 +27,7 @@ rule checkBam:
     message:
         "Processing: {wildcards.sample}"
     shell: 
-        "validateBAM.py {input.bam} > {output}"
+        "checkBAM.py {input.bam} > {output}"
 
 rule mergeChecks:
     default_target: True

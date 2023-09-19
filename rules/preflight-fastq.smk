@@ -33,7 +33,7 @@ rule checkForward:
     message:
         "Processing forward reads: {wildcards.sample}"
     shell: 
-        "validateFASTQ.py {input} > {output}"
+        "checkFASTQ.py {input} > {output}"
 
 rule checkReverse:
     input:
@@ -43,7 +43,7 @@ rule checkReverse:
     message:
         "Processing reverse reads: {wildcards.sample}"
     shell: 
-        "validateFASTQ.py {input} > {output}"
+        "checkFASTQ.py {input} > {output}"
 
 rule mergeChecks:
     default_target: True

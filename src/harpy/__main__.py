@@ -20,7 +20,7 @@ from .extra import extra
 from .demultiplex import demultiplex
 from .qc import qc
 from .align import align
-from .validate import bam, fastq
+from .preflight import bam, fastq
 from .variants_snp import snp
 from .variants_sv import sv
 from .impute import impute
