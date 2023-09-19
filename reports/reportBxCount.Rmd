@@ -1,5 +1,5 @@
 ---
-title: "BX Bardcode Summary"
+title: "Haplotag Bardcode Summary"
 date: "`r format(Sys.time(), '%m-%d-%y %X')`"
 output:
   flexdashboard::flex_dashboard:
@@ -30,8 +30,6 @@ Notably, only the sequence ID (`@...`) and `BX:Z:` tag are required. In the exam
 (`RX:Z:` and `QX:Z:`) which arent used by Harpy, but they conform to the 
 [SAM comment spec (section 1.5)](https://samtools.github.io/hts-specs/SAMv1.pdf) of `TAG:TYPE:VALUE`. The takeaway 
 is that the `BX:Z` tag can be anywhere in the read header after the sequence ID as long as any tags after it conform to the SAM spec `TAG:TYPE:VALUE`. 
-
-
 
 ### Per Sample Plot
 Below is a plot summarizing the number of valid vs invalid barcodes per sample.

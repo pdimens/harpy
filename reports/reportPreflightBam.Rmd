@@ -11,7 +11,7 @@ output:
 
 
 ```{css zoom-lib-src, echo = FALSE, message = FALSE, warning = FALSE}
-script src = "https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"
+script src = "https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"
 ```
 ```{js zoom-jquery, echo = FALSE, message = FALSE, warning = FALSE}
  $(document).ready(function() {

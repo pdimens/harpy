@@ -21,7 +21,7 @@ library(scales)
 ```
 
 ```{css zoom-lib-src, echo = FALSE, message = FALSE, warning = FALSE}
-script src = "https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"
+script src = "https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"
 ```
 ```{js zoom-jquery, echo = FALSE, message = FALSE, warning = FALSE}
  $(document).ready(function() {
@@ -68,6 +68,11 @@ contig_avg_filt <- rbind(
   data.frame(contig = "global", average = global_avg_filt, sdv = global_sd_filt), contig_avg_filt) %>% 
   mutate(average = round(average, 2), sdv = round(sdv, 2))
 ```
+
+<h1> `r sname` </h1>
+
+This report contains information regarding the sequence alignment coverage
+and depth for the file `r paste0(sname, ".bam")`.
 
 ## General Information {data-height=100}
 ### ncontigs

@@ -1,15 +1,13 @@
 ---
-title: "BX Bardcode Summary"
-author:
-    - "Created using HARPY"
+title: "EMA Haplotag Bardcode Summary"
 date: "`r format(Sys.time(), '%d %B, %Y')`"
 output:
-  html_document:
-    highlight: tango
-    number_sections: no
-    theme: cosmo
-    df_print: kable
-    toc: no
+  flexdashboard::flex_dashboard:
+    theme: lumen
+    orientation: rows
+    vertical_layout: scroll
+    horizontal_layout: fill
+    favicon: "https://raw.githubusercontent.com/pdimens/harpy/docs/static/favicon.png"
 ---
   
 ```{r echo = FALSE, message = FALSE}
@@ -21,6 +19,8 @@ library(magrittr)
 library(DT)
 library(plotly)
 ```
+#TODO THIS IS NEXT
+
 ## Barcode Validation {.tabset}
 This report details the counts of valid and invalid haplotag barcodes in the sample read headers.
 The correct haplotag format is `BX:Z:AXXCXXBXXDXX`, where there is a whitespace/tab before `BX:Z:` 

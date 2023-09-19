@@ -1,7 +1,5 @@
 ---
-title: "BX Molecule Report"
-author:
-    - "`r gsub('.bxstats.gz', '', 'file.bxstats.gz')`"
+title: "Haplotag Molecule Report"
 date: "`r format(Sys.time(), '%m-%d-%y %X')`"
 output:
   flexdashboard::flex_dashboard:
