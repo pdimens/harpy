@@ -61,11 +61,24 @@ def bam(directory, threads, snakemake, quiet):
     This **will not** fix your data, but it will report the number of records that feature errors  to help
     you diagnose if file formatting will cause downstream issues.
     """
-    flist = [os.path.basename(i) for i in glob.iglob(f"{directory}/*") if not os.path.isdir(i) and i.lower().endswith(".bam")]
+    flist = [i for i in glob.iglob(f"{directory}/*") if not os.path.isdir(i) and i.lower().endswith(".bam")]
     if len(flist) == 0:
         print(f"\033[1;33mERROR:\033[00m No bam files with acceptable names found in {directory}", file = sys.stderr)
         print("Check that the file names end with .bam", file = sys.stderr)
         print("Read the documentation for details: https://pdimens.github.io/harpy/dataformat/#naming-conventions", file = sys.stderr)
+        sys.exit(1)
+    missingbai = []
+    for i in flist:
+        if not os.path.exists(f"{i}.bai"):
+            missingbai.append(os.path.basename(i))
+    nmiss = len(missingbai)
+    print(nmiss)
+    exit(0)
+    if nmiss > 0:
+        print(f"\033[1;33mERROR:\033[00m {nmiss} BAM files without matching index (.bai) files were found in {directory} and cannot be processed.", file = sys.stderr)
+        print("\033[1;34mSOLUTION:\033[00m Index the files listed below using \033[01msamtools index\033[00m or \033[01msambamba index\033[00m and try again", file = sys.stderr)
+        print("\nFiles causing error:", file = sys.stderr)
+        [print(i) for i in missingbai]
         sys.exit(1)
 
     command = f'snakemake --rerun-incomplete --nolock --cores {threads} --directory . --snakefile {harpypath}/preflight-bam.smk'.split()

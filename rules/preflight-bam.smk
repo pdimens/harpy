@@ -3,8 +3,7 @@ import re
 import glob
 
 seq_dir = config["seq_directory"]
-out_dir_ext = os.path.realpath(config["seq_directory"])
-out_dir = "Validate/bam/" + out_dir_ext.replace("/","__") + "/"
+out_dir = f"{seq_dir}/Preflight/"
 
 bamlist = [os.path.basename(i) for i in glob.iglob(f"{seq_dir}/*") if not os.path.isdir(i) and i.lower().endswith(".bam")]
 samplenames = set([os.path.splitext(i)[0] for i in bamlist])  
@@ -19,7 +18,7 @@ def get_bai(wildcards):
     lst = [i for i in glob.iglob(seq_dir + "/" + wildcards.sample + "*") if i.lower().endswith(".bam.bai")]
     return lst
 
-rule validateBam:
+rule checkBam:
     input:
         bam = get_bam,
         bai = get_bai
@@ -30,7 +29,7 @@ rule validateBam:
     shell: 
         "validateBAM.py {input.bam} > {output}"
 
-rule mergeValidations:
+rule mergeChecks:
     default_target: True
     input:
         expand(out_dir + "{sample}.log", sample = samplenames)

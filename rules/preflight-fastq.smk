@@ -3,8 +3,7 @@ import re
 import glob
 
 seq_dir = config["seq_directory"]
-out_dir_ext = os.path.realpath(config["seq_directory"])
-out_dir = "Validate/fastq/" + out_dir_ext.replace("/","__") + "/"
+out_dir = f"{seq_dir}/Preflight/"
 
 flist = [os.path.basename(i) for i in glob.iglob(f"{seq_dir}/*") if not os.path.isdir(i)]
 r = re.compile(".*\.f(?:ast)?q(?:\.gz)?$", flags=re.IGNORECASE)
@@ -26,7 +25,7 @@ def get_fq2(wildcards):
     fqlist = list(filter(r.match, lst))
     return fqlist
 
-rule validateForward:
+rule checkForward:
     input:
         get_fq1
     output:
@@ -36,7 +35,7 @@ rule validateForward:
     shell: 
         "validateFASTQ.py {input} > {output}"
 
-rule validateReverse:
+rule checkReverse:
     input:
         get_fq2
     output:
@@ -46,7 +45,7 @@ rule validateReverse:
     shell: 
         "validateFASTQ.py {input} > {output}"
 
-rule mergeValidations:
+rule mergeChecks:
     default_target: True
     input:
         expand(out_dir + "{sample}.{FR}.log", sample = samplenames, FR = ["F","R"])
