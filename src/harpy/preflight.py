@@ -34,7 +34,7 @@ def fastq(directory, threads, snakemake, quiet):
         print("Read the documentation for details: https://pdimens.github.io/harpy/dataformat/#naming-conventions", file = sys.stderr)
         sys.exit(1)
 
-    command = f'snakemake --rerun-incomplete --nolock --cores {threads} --directory . --snakefile {harpypath}/validate-fastq.smk'.split()
+    command = f'snakemake --rerun-incomplete --nolock --cores {threads} --directory . --snakefile {harpypath}/preflight-fastq.smk'.split()
     if snakemake is not None:
         [command.append(i) for i in snakemake.split()]
     if quiet:
@@ -57,9 +57,8 @@ def bam(directory, threads, snakemake, quiet):
     Run validity checks on haplotagged BAM files
 
     For BAM alignment files, it will check that alignments have BX:Z: tags, that haplotag
-    barcodes are propery formatted (`AxxCxxBxxDxx`) and that the comments in the
-    read headers conform to the SAM specification of TAG:TYPE:VALUE. This **will not**
-    fix your data, but it will report the number of records that feature errors  to help
+    barcodes are propery formatted (`AxxCxxBxxDxx`) and that the filename matches the `@RG ID` tag.
+    This **will not** fix your data, but it will report the number of records that feature errors  to help
     you diagnose if file formatting will cause downstream issues.
     """
     flist = [os.path.basename(i) for i in glob.iglob(f"{directory}/*") if not os.path.isdir(i) and i.lower().endswith(".bam")]
@@ -69,7 +68,7 @@ def bam(directory, threads, snakemake, quiet):
         print("Read the documentation for details: https://pdimens.github.io/harpy/dataformat/#naming-conventions", file = sys.stderr)
         sys.exit(1)
 
-    command = f'snakemake --rerun-incomplete --nolock --cores {threads} --directory . --snakefile {harpypath}/validate-bam.smk'.split()
+    command = f'snakemake --rerun-incomplete --nolock --cores {threads} --directory . --snakefile {harpypath}/preflight-bam.smk'.split()
     if snakemake is not None:
         [command.append(i) for i in snakemake.split()]
     if quiet:
