@@ -8,20 +8,30 @@ out_dir = f"{seq_dir}/Preflight/"
 bamlist = [os.path.basename(i) for i in glob.iglob(f"{seq_dir}/*") if not os.path.isdir(i) and i.lower().endswith(".bam")]
 samplenames = set([os.path.splitext(i)[0] for i in bamlist])  
 
-def get_bam(wildcards):
-    # code that returns a list of fastq files for read 1 based on *wildcards.sample* e.g.
-    lst = [i for i in glob.iglob(seq_dir + "/" + wildcards.sample + "*") if i.lower().endswith(".bam")]
-    return lst
+#def get_bam(wildcards):
+#    # returns a list of fastq files for read 1 based on *wildcards.sample* e.g.
+#    lst = [i for i in glob.iglob(seq_dir + "/" + wildcards.sample + "*") if i.lower().endswith(".bam")]
+#    return lst
+#
+#def get_bai(wildcards):
+#    # returns a list of fastq files for read 1 based on *wildcards.sample* e.g.
+#    lst = [i for i in glob.iglob(seq_dir + "/" + wildcards.sample + "*") if i.lower().endswith(".bam.bai")]
+#    return lst
 
-def get_bai(wildcards):
-    # code that returns a list of fastq files for read 1 based on *wildcards.sample* e.g.
-    lst = [i for i in glob.iglob(seq_dir + "/" + wildcards.sample + "*") if i.lower().endswith(".bam.bai")]
-    return lst
+rule indexBam:
+    input:
+        seq_dir + "/{sample}.bam"
+    output:
+        seq_dir + "/{sample}.bam.bai"
+    message:
+        "Indexing {input}"
+    shell:
+        "samtools index {input}"
 
 rule checkBam:
     input:
-        bam = get_bam,
-        bai = get_bai
+        bam = seq_dir + "/{sample}.bam",
+        bai = seq_dir + "/{sample}.bam.bai"
     output:
         temp(out_dir + "{sample}.log")
     message:
@@ -34,8 +44,8 @@ rule mergeChecks:
     input:
         expand(out_dir + "{sample}.log", sample = samplenames)
     output:
-        tmp = temp(out_dir + "validations.tmp"),
-        final = out_dir + "validations.bam.tsv"
+        tmp = temp(out_dir + "filecheck.tmp"),
+        final = out_dir + "filecheck.bam.tsv"
     message:
         "Concatenating results"
     shell:

@@ -50,8 +50,8 @@ rule mergeChecks:
     input:
         expand(out_dir + "{sample}.{FR}.log", sample = samplenames, FR = ["F","R"])
     output:
-        tmp = temp(out_dir + "validations.tmp"),
-        final = out_dir + "validations.fastq.tsv"
+        tmp = temp(out_dir + "filecheck.tmp"),
+        final = out_dir + "filecheck.fastq.tsv"
     message:
         "Concatenating results"
     shell:
