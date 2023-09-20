@@ -35,15 +35,14 @@ rule trimFastp:
         rv   = "QC/{sample}.R2.fq.gz",
         json = "QC/logs/json/{sample}.fastp.json"
     log:
-        html = "QC/reports/{sample}.html",
-        serr = "QC/logs/err/{sample}.log"
+        html = "QC/logs/fastp_reports/{sample}.html",
+        serr = "QC/logs/fastp_logs/{sample}.log"
     benchmark:
         "Benchmark/QC/{sample}.txt"
     message:
         "Removing adapters + quality trimming: {wildcards.sample}"
-    #wildcard_constraints: 
-    #    sample = "[a-zA-Z0-9_-.]*"
-    threads: 2
+    threads:
+        2
     params:
         maxlen = f"--max_len1 {maxlen}",
         extra = extra
@@ -55,8 +54,6 @@ rule count_beadtags:
         "QC/{sample}.R1.fq.gz"
     output: 
         temp("QC/logs/bxcount/{sample}.count.log")
-    #wildcard_constraints:
-    #    sample = "[a-zA-Z0-9_-.]*"
     message:
         "Counting barcode frequency: {wildcards.sample}"
     shell:
@@ -66,7 +63,7 @@ rule beadtag_counts_summary:
     input: 
         countlog = expand("QC/bxcount/{sample}.count.log", sample = samplenames)
     output:
-        "QC/summary.bx.valid.html"
+        "QC/logs/barcode.summary.html"
     message:
         "Summarizing sample barcode validation"
     script:
