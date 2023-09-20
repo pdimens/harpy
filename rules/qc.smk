@@ -99,4 +99,6 @@ rule createReport:
     message:
         "Sequencing quality filtering and trimming is complete!"
     shell: 
-        "multiqc QC/logs/json -m fastp --force --filename {output} --quiet --no-data-dir 2>/dev/null"
+        """
+        multiqc QC/logs/json -m fastp --force --filename {output} --quiet --title "QC Summary" --comment "This report aggregates trimming and quality control metrics reported by fastp" --no-data-dir 2>/dev/null
+        """

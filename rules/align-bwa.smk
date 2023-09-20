@@ -219,7 +219,9 @@ rule samtools_reports:
     message:
         "Summarizing samtools stats and flagstat"
     shell:
-        "multiqc Align/bwa/stats/samtools_stats Align/bwa/stats/samtools_flagstat --force --quiet --no-data-dir --filename {output} 2> /dev/null"
+        """
+        multiqc Align/bwa/stats/samtools_stats Align/bwa/stats/samtools_flagstat --force --quiet --title "Basic Alignment Statistics" --comment "This report aggregates samtools stats and samtools flagstats results for all alignments." --no-data-dir --filename {output} 2> /dev/null
+        """
 
 rule log_runtime:
     output:
