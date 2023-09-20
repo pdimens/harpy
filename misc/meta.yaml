@@ -22,6 +22,7 @@ requirements:
     - bcftools
     - bioconductor-complexheatmap
     - bwa
+    - falco
     - fastp
     - hapcut2
     - icu
