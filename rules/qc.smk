@@ -35,14 +35,14 @@ rule trimFastp:
         fw   = get_fq1,
         rv   = get_fq2
     output:
-        fw   = "Trim/{sample}.R1.fq.gz",
-        rv   = "Trim/{sample}.R2.fq.gz",
-        json = "Trim/logs/json/{sample}.fastp.json"
+        fw   = "QC/{sample}.R1.fq.gz",
+        rv   = "QC/{sample}.R2.fq.gz",
+        json = "QC/logs/json/{sample}.fastp.json"
     log:
-        html = "Trim/reports/{sample}.html",
-        serr = "Trim/logs/err/{sample}.log"
+        html = "QC/reports/{sample}.html",
+        serr = "QC/logs/err/{sample}.log"
     benchmark:
-        "Benchmark/Trim/{sample}.txt"
+        "Benchmark/QC/{sample}.txt"
     message:
         "Removing adapters + quality trimming: {wildcards.sample}"
     #wildcard_constraints: 
@@ -56,9 +56,9 @@ rule trimFastp:
 
 rule count_beadtags:
     input:
-        "Trim/{sample}.R1.fq.gz"
+        "QC/{sample}.R1.fq.gz"
     output: 
-        temp("Trim/bxcount/{sample}.count.log")
+        temp("QC/bxcount/{sample}.count.log")
     #wildcard_constraints:
     #    sample = "[a-zA-Z0-9_-.]*"
     message:
@@ -68,9 +68,9 @@ rule count_beadtags:
 
 rule beadtag_counts_summary:
     input: 
-        countlog = expand("Trim/bxcount/{sample}.count.log", sample = samplenames)
+        countlog = expand("QC/bxcount/{sample}.count.log", sample = samplenames)
     output:
-        "Trim/summary.bx.valid.html"
+        "QC/summary.bx.valid.html"
     message:
         "Summarizing sample barcode validation"
     script:
@@ -79,7 +79,7 @@ rule beadtag_counts_summary:
 
 rule log_runtime:
     output:
-        "Trim/logs/harpy.trim.log"
+        "QC/logs/harpy.trim.log"
     message:
         "Creating record of relevant runtime parameters: {output}"
     params:
@@ -94,14 +94,14 @@ rule log_runtime:
 
 rule createReport:
     input: 
-        expand("Trim/logs/json/{sample}.fastp.json", sample = samplenames),
-        expand("Trim/{sample}.{FR}.fq.gz", FR = ["R1", "R2"], sample = samplenames),
-        "Trim/summary.bx.valid.html",
-        "Trim/logs/harpy.trim.log"
+        expand("QC/logs/json/{sample}.fastp.json", sample = samplenames),
+        expand("QC/{sample}.{FR}.fq.gz", FR = ["R1", "R2"], sample = samplenames),
+        "QC/summary.bx.valid.html",
+        "QC/logs/harpy.trim.log"
     output:
-        "Trim/trim.report.html"
+        "QC/trim.report.html"
     message:
         "Sequencing quality filtering and trimming is complete!"
     default_target: True
     shell: 
-        "multiqc Trim/logs/json -m fastp --force --filename {output} --quiet --no-data-dir 2>/dev/null"
+        "multiqc QC/logs/json -m fastp --force --filename {output} --quiet --no-data-dir 2>/dev/null"

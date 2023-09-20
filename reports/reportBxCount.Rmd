@@ -142,6 +142,9 @@ for (i in snakemake@input[["countlog"]]) {
     )
   )
 }
+```
+
+```{r}
 DT::datatable(
   BXstats,
   rownames = FALSE,
