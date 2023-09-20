@@ -1,7 +1,7 @@
 .snakemake/
 .vscode/
 Seqs/
-Trim/
+QC/
 Demultiplex/
 Genome/
 Align/

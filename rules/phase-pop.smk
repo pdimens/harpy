@@ -250,6 +250,7 @@ rule log_runtime:
 
 
 rule indexFinal:
+    default_target: True
     input:
         outdir + "/variants.phased.bcf",
         outdir + "/logs/harpy.phase.log",
@@ -258,5 +259,4 @@ rule indexFinal:
         "Benchmark/Phase/finalindex.txt"
     message:
         "Phasing is complete!"
-    default_target: True
 

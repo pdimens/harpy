@@ -73,7 +73,7 @@ for (i in snakemake@input[["countlog"]]) {
 }
 ```
 
-## nfiles {data-height=100}
+## genstats {data-height=100}
 ### filerow {.no-title}
 ```{r}
 valueBox(scales::comma(nrow(BXstats)), caption = "Samples", color = "success")

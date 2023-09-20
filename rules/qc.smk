@@ -5,10 +5,7 @@ import glob
 maxlen 		= config["maxlen"]
 extra 		= config.get("extra", "") 
 seq_dir 	= config["seq_directory"]
-#fqext 		= config["fqext"]
-#samplenames = config["samplenames"]
 
-#flist = os.listdir(seq_dir)
 flist = [os.path.basename(i) for i in glob.iglob(f"{seq_dir}/*") if not os.path.isdir(i)]
 r = re.compile(".*\.f(?:ast)?q(?:\.gz)?$", flags=re.IGNORECASE)
 fqlist = list(filter(r.match, flist))
@@ -28,7 +25,6 @@ def get_fq2(wildcards):
     r = re.compile(".*[\_\.][R][2]?(?:\_00[0-9])*\.f(?:ast)?q(?:\.gz)?$", flags=re.IGNORECASE)
     fqlist = list(filter(r.match, lst))
     return fqlist
-
 
 rule trimFastp:
     input:
@@ -58,7 +54,7 @@ rule count_beadtags:
     input:
         "QC/{sample}.R1.fq.gz"
     output: 
-        temp("QC/bxcount/{sample}.count.log")
+        temp("QC/logs/bxcount/{sample}.count.log")
     #wildcard_constraints:
     #    sample = "[a-zA-Z0-9_-.]*"
     message:
@@ -76,10 +72,9 @@ rule beadtag_counts_summary:
     script:
         "reportBxCount.Rmd"
 
-
 rule log_runtime:
     output:
-        "QC/logs/harpy.trim.log"
+        "QC/logs/harpy.qc.log"
     message:
         "Creating record of relevant runtime parameters: {output}"
     params:
@@ -87,21 +82,21 @@ rule log_runtime:
         extra = extra
     run:
         with open(output[0], "w") as f:
-            _ = f.write("The harpy trim module ran using these parameters:\n\n")
+            _ = f.write("The harpy qc module ran using these parameters:\n\n")
             _ = f.write(f"The directory with sequences: {seq_dir}\n")
             _ = f.write("fastp trimming ran using:\n")
             _ = f.write("    fastp --trim_poly_g --cut_right --detect_adapter_for_pe" + " ".join(params) + "\n")
 
 rule createReport:
+    default_target: True
     input: 
         expand("QC/logs/json/{sample}.fastp.json", sample = samplenames),
         expand("QC/{sample}.{FR}.fq.gz", FR = ["R1", "R2"], sample = samplenames),
         "QC/summary.bx.valid.html",
-        "QC/logs/harpy.trim.log"
+        "QC/logs/harpy.qc.log"
     output:
-        "QC/trim.report.html"
+        "QC/qc.report.html"
     message:
         "Sequencing quality filtering and trimming is complete!"
-    default_target: True
     shell: 
         "multiqc QC/logs/json -m fastp --force --filename {output} --quiet --no-data-dir 2>/dev/null"

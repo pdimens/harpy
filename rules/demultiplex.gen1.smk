@@ -126,42 +126,49 @@ rule fastqc_F:
     input:
         outdir + "{sample}.F.fq.gz"
     output: 
-        html = temp(outdir + "logs/.QC/{sample}.F_fastqc.html"),
-        data = temp(outdir + "logs/.QC/{sample}.F_fastqc.zip")
+        temp(outdir + "logs/.QC/{sample}_F/fastqc_data.txt")
     message:
         "Performing quality assessment: {wildcards.sample}.F.fq.gz"
     params:
-        outdir + "logs/.QC"
+        lambda wc: outdir + "logs/.QC/" + wc.get("sample") + "_F"
     threads:
-        2
+        1
     shell:
         """
-        fastqc -q --threads {threads} -o {params} -f fastq {input}
+        mkdir -p {params}
+        if [ -z $(gzip -cd {input} | head -c1) ]; then
+            touch {output}
+        else
+            falco -q --threads {threads} -skip-report -skip-summary -o {params} {input}
+        fi
         """
 
 rule fastqc_R:
     input:
         outdir + "{sample}.R.fq.gz"
     output: 
-        html = temp(outdir + "logs/.QC/{sample}.R_fastqc.html"),
-        data = temp(outdir + "logs/.QC/{sample}.R_fastqc.zip")
+        temp(outdir + "logs/.QC/{sample}_R/fastqc_data.txt")
     message:
         "Performing quality assessment: {wildcards.sample}.R.fq.gz"
     params:
-        outdir + "logs/.QC"
+        lambda wc: outdir + "logs/.QC/" + wc.get("sample") + "_R"
     threads:
         2
     shell:
         """
-        fastqc -q --threads {threads} -o {params} -f fastq {input}
+        mkdir -p {params}
+        if [ -z $(gzip -cd {input} | head -c1) ]; then
+            touch {output}
+        else
+            falco -q --threads {threads} -skip-report -skip-summary -o {params} {input}
+        fi
         """
 
 rule qc_report:
     input:
-        expand(outdir + "logs/.QC/{sample}.{FR}_fastqc.{ext}", ext = ["html", "zip"], sample = samplenames, FR = ["F","R"])
+        expand(outdir + "logs/.QC/{sample}_{FR}/fastqc_data.txt", sample = samplenames, FR = ["F","R"])
     output:
         outdir + "logs/demultiplex.QC.html"
-    default_target: True
     message:
         "Creating final demultiplexing QC report"
     params:
@@ -184,14 +191,15 @@ rule log_runtime:
             _ = f.write("Barcodes were moved into the read headers using the command:\n")
             _ = f.write(f"    demuxGen1 DATA_ {inprefix}\n")
             _ = f.write(f"The delimited file associating CXX barcodes with samplenames: {samplefile}\n")
+            _ = f.write(f"QC checks were performed on demultiplexed FASTQ files using:\n")
+            _ = f.write(f"    falco -skip-report -skip-summary input.fq.gz\n")
 
 rule all:
+    default_target: True
     input:
         fw_reads = expand(outdir + "{sample}.F.fq.gz", sample = samplenames),
         rv_reads = expand(outdir + "{sample}.R.fq.gz", sample = samplenames),
         runlog   = outdir + "logs/harpy.demultiplex.log",
         qcreport = outdir + "logs/demultiplex.QC.html"
-    default_target:
-        True
     message:
         "Demultiplexing has finished!"

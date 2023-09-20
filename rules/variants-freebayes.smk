@@ -168,10 +168,10 @@ rule log_runtime:
             _ = f.write("    bcftools norm -d exact | bcftools norm -m -any -N -Ob\n")
 
 rule all:
+    default_target: True
     input: 
         outdir + "/logs/harpy.variants.log",
         expand(outdir + "/variants.{file}.bcf",        file = ["raw", "normalized"]),
         expand(outdir + "/stats/variants.{file}.html", file = ["raw", "normalized"])
     message:
         "Variant calling is complete!"
-    default_target: True

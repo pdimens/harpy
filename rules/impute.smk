@@ -94,7 +94,6 @@ rule impute:
     script:
         "stitch_impute.R"
 
-
 rule index_vcf:
     input:
         vcf     = "Impute/{stitchparams}/contigs/{part}/{part}.vcf.gz"
@@ -263,6 +262,7 @@ rule log_runtime:
             )
 
 rule all:
+    default_target: True
     input: 
         bcf     = expand("Impute/{stitchparams}/variants.imputed.bcf", stitchparams=paramspace.instance_patterns),
         reports = expand("Impute/{stitchparams}/variants.imputed.html", stitchparams=paramspace.instance_patterns),
@@ -270,4 +270,3 @@ rule all:
         runlog  = "Impute/logs/harpy.impute.log"
     message: 
         "Genotype imputation is complete!"
-    default_target: True
