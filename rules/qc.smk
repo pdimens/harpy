@@ -47,7 +47,9 @@ rule trimFastp:
         maxlen = f"--max_len1 {maxlen}",
         extra = extra
     shell: 
-        "fastp --trim_poly_g --cut_right --detect_adapter_for_pe {params} --thread {threads} -i {input.fw} -I {input.rv} -o {output.fw} -O {output.rv} -h {log.html} -j {output.json} 2> {log.serr}"
+        """
+        fastp --trim_poly_g --cut_right --detect_adapter_for_pe {params} --thread {threads} -i {input.fw} -I {input.rv} -o {output.fw} -O {output.rv} -h {log.html} -j {output.json} -R "{wildcards.sample} QC Report" 2> {log.serr}
+        """
 
 rule count_beadtags:
     input:
@@ -61,7 +63,7 @@ rule count_beadtags:
 
 rule beadtag_counts_summary:
     input: 
-        countlog = expand("QC/bxcount/{sample}.count.log", sample = samplenames)
+        countlog = expand("QC/logs/bxcount/{sample}.count.log", sample = samplenames)
     output:
         "QC/logs/barcode.summary.html"
     message:
@@ -89,10 +91,10 @@ rule createReport:
     input: 
         expand("QC/logs/json/{sample}.fastp.json", sample = samplenames),
         expand("QC/{sample}.{FR}.fq.gz", FR = ["R1", "R2"], sample = samplenames),
-        "QC/summary.bx.valid.html",
+        "QC/logs/barcode.summary.html",
         "QC/logs/harpy.qc.log"
     output:
-        "QC/qc.report.html"
+        "QC/logs/qc.report.html"
     message:
         "Sequencing quality filtering and trimming is complete!"
     shell: 

@@ -37,7 +37,8 @@ of `TAG:TYPE:VALUE`. The takeaway is that the `BX:Z` tag can be anywhere in the
 read header after the sequence ID as long as any tags after it conform to the 
 SAM spec `TAG:TYPE:VALUE`.
 
-```{r echo = FALSE, message = FALSE, warning = FALSE}
+## genstats {data-height=100}
+```{r instantiate_df, echo = FALSE, message = FALSE, warning = FALSE}
 BXstats <- data.frame(
   Sample = character(),
   TotalReads = integer(),
@@ -55,7 +56,9 @@ invalids <- data.frame(
   B = integer(),
   D = integer()
 )
+```
 
+```{r fill_df, echo = FALSE, message = FALSE, warning = FALSE}
 #for (i in list.files("~/Documents/harpy/test/QC/logs/bxcount/", ".count.log", full.names = TRUE)) {
 for (i in snakemake@input[["countlog"]]) {
   samplename <- gsub(".count.log", "", basename(i))
@@ -99,7 +102,6 @@ for (i in snakemake@input[["countlog"]]) {
 ```
 
 
-## genstats {data-height=100}
 ### filerow {.no-title}
 ```{r}
 valueBox(scales::comma(nrow(BXstats)), caption = "Samples", color = "success")
