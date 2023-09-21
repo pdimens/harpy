@@ -1,5 +1,5 @@
 ---
-title: "Alignment Depth and Coverage"
+title: "BWA Alignment Depth and Coverage"
 date: "`r format(Sys.time(), '%m-%d-%y %X')`"
 output:
   flexdashboard::flex_dashboard:
@@ -70,9 +70,11 @@ contig_avg_filt <- rbind(
 ```
 
 <h1> `r sname` </h1>
-
 This report contains information regarding the sequence alignment coverage
-and depth for the file `r paste0(sname, ".bam")`.
+and depth for the file `r paste0(sname, ".bam")`. The term "filtered" here and
+elsewhere in this report refers to removing intervals whose depth is greater 
+than 3 standard deviations above the mean depth. The filtering described is shown
+for diagnostic purposes and no filtering has been performed on the original alignment file.
 
 ## General Information {data-height=100}
 ### ncontigs
@@ -91,7 +93,7 @@ valueBox(scales::comma(global_avg), caption = "Average depth", color = "info")
 
 ### glob-sd
 ```{r}
-valueBox(scales::comma(global_sd), caption = "Depth standard deviation", color = "info")
+valueBox(scales::comma(global_sd), caption = "Stdev depth", color = "info")
 ```
 
 ### filt-avg
@@ -101,10 +103,10 @@ valueBox(scales::comma(global_avg_filt), caption = "Average depth (filtered)", c
 
 ### filt-sd
 ```{r}
-valueBox(scales::comma(global_sd_filt), caption = "Depth standard deviation (filtered)", color = "info")
+valueBox(scales::comma(global_sd_filt), caption = "Stdev depth (filtered)", color = "info")
 ```
 
-### filt-sd
+### n-outliers
 ```{r}
 valueBox(scales::comma(nrow(outliers)), caption = "Possible outlier regions", color = "warning")
 ```
@@ -124,7 +126,7 @@ distplot <- ggplot(gencov, aes(x = depth)) +
   theme_minimal() +
   scale_y_continuous(labels = scales::comma) +
   scale_x_continuous(labels = scales::comma) +
-  xlim(0, q99) +
+  xlim(NA, q99) +
   labs(title = "Distribution of Alignment Depths") +
   xlab("Depth") +
   ylab("Count")
