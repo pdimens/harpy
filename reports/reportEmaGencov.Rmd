@@ -39,14 +39,13 @@ script src = "https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"
 ```
 
 ```{r fileinput, echo = FALSE, message = FALSE, warning = FALSE}
-covfile <- "~/Documents/harpy/test/Align/ema/stats/coverage/data/sample1.cov.gz"
-#covfile <- snakemake@input[[1]]
+#covfile <- "~/Documents/harpy/test/Align/ema/stats/coverage/data/sample1.cov.gz"
+covfile <- snakemake@input[[1]]
 gencov <- read.table(covfile, header = F)
 gencov <- gencov[, c(1, 2, 3, 6, 7)]
 colnames(gencov) <- c("contig", "start", "end", "Barcode", "noBarcode")
 gencov$noBarcode <- gencov$noBarcode * -1
 sname <- gsub("\\.\\w?\\w?\\w?.?cov.gz", "", basename(covfile))
-q99 <- quantile(gencov$depth, 0.99)
 ```
 
 ```{r averages, echo = FALSE, message = FALSE, warning = FALSE}
@@ -55,6 +54,8 @@ bc_sd <- sd(gencov$Barcode)
 nobc_avg <- mean(abs(gencov$noBarcode))
 nobc_sd <- sd(abs(gencov$noBarcode))
 all_depth <- gencov$Barcode + abs(gencov$noBarcode)
+q99 <- quantile(all_depth, 0.99)
+gencov$all <- all_depth
 global_avg <- mean(all_depth)
 global_sd <- sd(all_depth)
 
@@ -65,28 +66,29 @@ nonoutliers <- gencov[!(gencov$outlier), -6]
 ```
 
 ```{r filter_intervals, echo = FALSE, message = FALSE, warning = FALSE}
-all_depth_filt <- nonoutliers$Barcode + abs(nonoutliers$noBarcode)
+nonoutliers$all <- nonoutliers$Barcode + abs(nonoutliers$noBarcode)
 bc_avg_filt <- mean(nonoutliers$Barcode)
 bc_sd_filt <- sd(nonoutliers$Barcode)
 nobc_avg_filt <- mean(abs(nonoutliers$noBarcode))
 nobc_sd_filt <- sd(abs(nonoutliers$noBarcode))
+all_depth_filt <- nonoutliers$all
 global_avg_filt <- mean(all_depth_filt)
 global_sd_filt <- sd(all_depth_filt)
 
 filt_df <- data.frame(
-  "contig"            = "global",
-  "average_all"       = round(global_avg_filt, 2),
-  "sdv_all"           = round(global_sd_filt, 2),
-  "average_Barcode"   = round(bc_avg_filt, 2),
-  "sdv_Barcode"       = round(bc_sd_filt, 2),
-  "average_noBarcode" = round(nobc_avg_filt, 2),
-  "sdv_noBarcode"     = round(nobc_sd_filt, 2)
-  )
+  "contig" = "global",
+  "average_all" = round(global_avg,2),
+  "sdv_all" = round(global_sd,2),
+  "average_Barcode" = round(bc_avg,2),
+  "sdv_Barcode" = round(bc_sd,2),
+  "average_noBarcode" = round(nobc_avg,2),
+  "sdv_noBarcode" = round(nobc_sd,2)
+)
 ```
 
 ```{r pivot_table, echo = FALSE, message = FALSE, warning = FALSE}
 # pivot longer for generalized plotting
-Lgencov <- pivot_longer(gencov[,-6], -(1:3), names_to = "alignment", values_to = "depth")
+Lgencov <- pivot_longer(gencov[,-7], -(1:3), names_to = "alignment", values_to = "depth")
 ```
 
 <h1> `r sname` </h1>
@@ -176,14 +178,16 @@ valueBox(0, caption = "Possible outlier regions", color = "success")
 ### distdesc {.no-title}
 <h2> Alignment Depth Distribution </h2>
 Below are the frequencies of interval coverage across all 10kbp intervals for all contigs.
+The distribution is given for bins of width 5, where `depth = 0` is equivalent to 
+intervals of depth between `0` and `5`. 
 For visual clarity, the X-axis of this plot is truncated at the 99% quantile of depth
 values, which is **`r q99`** for these data.
 
 ## disrow
 ### distcol {.no-title}
 ```{r echo=F, warning=F, message=F}
-distplot <- ggplot(Lgencov, aes(x = depth, fill = alignment)) +
-  geom_histogram(binwidth = 10, linewidth = 2) +
+distplot <- ggplot(Lgencov[Lgencov$alignment != "all",], aes(x = depth, fill = alignment)) +
+  geom_histogram(binwidth = 5, linewidth = 2) +
   theme_minimal() +
   scale_y_continuous(labels = scales::comma) +
   scale_x_continuous(labels = scales::comma) +
@@ -202,60 +206,53 @@ Below are tables that summarize coverage information for 10kbp intervals.
 
 ## Tableheaders
 ### Sumdesc {.no-title}
+<h4> Alignment metrics with all intervals </h4>
 The table below shows the global and per-contig average depth and standard 
 deviation per 10kbp intervals **including** intervals whose depth is flagged
 an outlier in the data. 
 
-
 ### filtdesc {.no-title}
+<h4> Alignment metrics without outlier intervals </h4>
 The table below shows the global and per-contig average depth and standard 
 deviation per 10kbp intervals, **excluding** intervals whose depth is flagged
 an outlier in the data, as determined by being greater than 3 standard deviations
 above the mean depth. This should be a more accurate representation of read coverage.
 
 ### outlierdesc {.no-title}
-The table below shows the 10kbp intervals considered outliers, as determined by 
-being greater than 3 standard deviations above the mean depth. 
+<h4> Putative outliers </h4>
+Below is a table of the intervals with a coverage being greater than 3 standard 
+deviations above the mean depth. `Barcode Depth` refers to the alignment depth of sequences with a valid
+haplotag barcode, `noBarcode Depth` refers to the alignment depth of sequences without a valid haplotag
+barcode, and `Total Depth` is the sum of `Barcode Depth` and `noBarcode Depth`.
 
-
-## Summary information {.tabset}
-### Averages
-The table below shows the per-contig average depth and standard 
-deviation per 10kbp interval, **including** intervals whose depth is flagged
-an outlier in the data.
+## Summary information
+### Averages {.no-title}
 ```{r echo = FALSE, message = FALSE, warning = FALSE}
 contig_avg <- group_by(Lgencov, contig, alignment) %>%
   summarize(average = round(mean(abs(depth)),2), sdv = round(sd(abs(depth)),2))
 
-contig_avg <- pivot_wider(data = contig_avg, names_from = alignment,values_from = c(average,sdv))#[, c(1,3,6,2,5,4,7)]
+contig_avg <- pivot_wider(data = contig_avg, names_from = alignment,values_from = c(average,sdv))[, c(1,3,6,2,5,4,7)]
 
 DT::datatable(
   contig_avg,
   rownames = F,
   extensions = 'Buttons',
   options = list(dom = 'Brtip', buttons = c('csv'), scrollX = TRUE),
-  colnames = c('Contig', 'Average Barcode', 'StDev Barcode', 'Average noBarcode', 'StDev noBarcode'),
+  colnames = c('Average All', 'StDev All', 'Average Barcode', 'StDev Barcode', 'Average noBarcode', 'StDev noBarcode'),
   autoHideNavigation = T,
   fillContainer = T
 )
 ```
-#TODO ALL THIS SHIT
-### Filtered Averages
-The table below shows the global and per-contig average depth and standard 
-deviation per 10kbp intervals, **excluding** intervals whose depth is flagged
-an outlier in the data, as determined by being greater than 3 standard deviations
-above the mean depth. This should be a more accurate representation of read coverage.
-
+### Filtered Averages {.no-title}
 ```{r echo = FALSE, message = FALSE, warning = FALSE}
-Lnonoutliers <- pivot_longer(nonoutliers, -(1:3), names_to = "alignment", values_to = "depth")
+Lnonoutliers <- pivot_longer(nonoutliers[,-6], -(1:3), names_to = "alignment", values_to = "depth")
 
-
-contig_avg_filt_non <- group_by(Lnonoutliers, contig, alignment) %>%
+contig_avg_filt <- group_by(Lnonoutliers, contig, alignment) %>%
   summarize(average = round(mean(abs(depth)),2), sdv = round(sd(abs(depth)),2))
 
-contig_avg_filt_non <- pivot_wider(data = contig_avg_filt_non, names_from = alignment,values_from = c(average,sdv))#[, c(1,3,6,2,5,4,7)]
+contig_avg_filt <- pivot_wider(data = contig_avg_filt, names_from = alignment,values_from = c(average,sdv))[, c(1,3,6,2,5,4,7)]
 
-contig_avg_filt_non <- rbind(filt_df, contig_avg_filt_non)
+contig_avg_filt <- rbind(filt_df, contig_avg_filt)
 
 DT::datatable(
   contig_avg_filt,
@@ -269,11 +266,7 @@ DT::datatable(
 ```
 
 
-### Outliers
-Below is a table of the intervals with a coverage being greater than 3 standard 
-deviations above the mean depth. `Barcode Depth` refers to the alignment depth of sequences with a valid
-haplotag barcode, `noBarcode Depth` refers to the alignment depth of sequences without a valid haplotag
-barcode, and `Total Depth` is the sum of `Barcode Depth` and `noBarcode Depth`.
+### Outliers {.no-title}
 ```{r echo = FALSE, message = FALSE, warning = FALSE}
 outliers$noBarcode <- abs(outliers$noBarcode)
 outliers$all <- outliers$Barcode + abs(outliers$noBarcode)
@@ -288,21 +281,16 @@ DT::datatable(
 )
 ```
 
+## Plot header
+### pltdsc {.no-title}
+<h2> Depth and Coverage Across the Genome </h2>
+Below are plots of the depth and coverage of alignments for this sample. Clicking
+on a plot will expand it to fill your browser window. Clicking it again will exit
+out of the zoomed view.
 
-## Alignment Depth {.tabset}
-Plotted below are (up to) the 30 largest contigs to show sequence alignment depth across
-the genome. Each bar represents the alignment depth at a 10kb genomic interval, that is, the
-number of reads that had a proper alignment in the 10kb interval. "Proper" refers to a read
-not marked as a duplicate or flagged with the SAM `UNMAP`, `SECONDARY`,  or `QCFAIL` flags.
-These values are derived by using `samtools bedcov -n`.
+## Alignment Depth plots desc
 
-### Summary
-This is a circular plot summarize the information across the largest contigs, with black showing
-alignment depth of the barcoded sequences. The reddish color shows the alignment depth
-of sequences with an invalid barcode. For clarity, this visualization omits intervals
-flagged as outliers.
-
-```{r echo = FALSE, message = FALSE, warning = FALSE}
+```{r echo = FALSE, message = FALSE, warning = FALSE, dev = "jpeg"}
 # Find the 30 largest contigs
 contigs <- group_by(Lnonoutliers, contig) %>%
   summarize(size = max(end)) %>%
@@ -322,7 +310,26 @@ if (nrow(contigs) > 30) {
 
 .l <-  nrow(.contigs)
 ```
-```{r eval = FALSE, echo = FALSE, message = FALSE, warning = FALSE, fig.align='center', out.width= "100%"}
+
+### circos desc {.no-title}
+Plotted below are (up to) the 30 largest contigs to show sequence alignment depth across
+the genome. Each bar represents the alignment depth at a 10kb genomic interval, that is, the
+number of reads that had a proper alignment in the 10kb interval. "Proper" refers to a read
+not marked as a duplicate or flagged with the SAM `UNMAP`, `SECONDARY`,  or `QCFAIL` flags.
+These values are derived by using `samtools bedcov -n`. The black lines show depth for properly
+barcoded alignments and the orange lines show the depth for alignments with missing/invalid barcodes.
+
+### depth desc {.no-title}
+Plotted below is the same depth information, but shown in better detail per 
+contig for easier visual assessment. Note that regions of extremely high depth
+are plotted with `depth = 0` and are flagged as outliers using blue open circles
+along the X-axis for visual clarity. Investigate
+the table above for more information about these regions. The non-barcoded alignments
+appear below the X axis for visual clarity.
+
+## depth viz
+### circos {.no-title}
+```{r echo = FALSE, message = FALSE, warning = FALSE, fig.align='center', out.width= "100%", dev = "jpeg"}
 nonoutliers$noBarcode <- nonoutliers$noBarcode * -1
 
 circos.clear()
@@ -391,40 +398,28 @@ circos.yaxis(at=cov.yaxis, labels.cex=0.4, lwd=0.8, labels.col=col_text, col="gr
 
 ```
 
-### Per-Contig
-Plotted below is the same depth information, but shown in better detail per 
-contig for easier visual assessment. Note that regions of extremely high depth
-flagged as outliers appear in blue and for visual clarity, their values have been converted
-to the global mean depth recalculated after removing outliers (`r round(global_avg , 0)`). Investigate
-the table above for more information about these regions. The non-barcoded alignment depths are multiplied
-by -1 to be visible on the opposite side of the X-axis.
-
+### Per-Contig {.no-title}
 ```{r echo = FALSE, message = FALSE, warning = FALSE}
-# pivot longer for generalized plotting
-gencov <- pivot_longer(gencov[,-6],  4:5, names_to = "alignment", values_to = "depth")
-gencov <- filter(gencov, contig %in% .contigs$contig)
-gencov$depth[gencov$outlier] <- global_avg
-
-outliers <- pivot_longer(outliers, 4:5, names_to = "alignment", values_to = "depth")
+gencov_plotdata <- filter(gencov, contig %in% .contigs$contig) %>%
+  select(-6) %>% 
+  pivot_longer(4:5, names_to = "alignment", values_to = "depth")
+gencov_plotdata$depth[gencov_plotdata$outlier] <- 0
+outlier_plotdata <- pivot_longer(outliers, 4:5, names_to = "alignment", values_to = "depth")
 ```
 
-```{r echo = FALSE, message = FALSE, warning = FALSE, fig.height=pltheight, out.width = "100%"}
-ggplot(gencov[!(gencov$outlier),], aes(xmin = start, xmax = end, ymin = 0, ymax = depth, color = alignment, fill = alignment)) +
-  geom_rect(alpha = 0.7) +
-  geom_rect(data = outliers, color = "dodgerblue", fill = "dodgerblue", aes(xmin = start, xmax = end, ymin = 0, ymax = global_avg)) +
-  #geom_point(data = outliers, x = (outliers$end - outliers$start)/2, y = 0, color = "purple") +
-  theme_minimal() +
-  facet_wrap(~contig, ncol = 2, scales = "free_x") +
-  scale_color_manual(values = c("#3f3f3f", "#cb6843")) +
-  scale_fill_manual(values = c("#3f3f3f", "#cb6843")) +
-  scale_y_continuous(labels = scales::comma) +
-  labs(x = "position (bp)", y = "depth", title = "Alignment Depth") +
-  theme(
-    panel.grid.major.x = element_blank(),
-    panel.grid.minor.x = element_blank(),
-    legend.position = "top"
-    ) +
-  guides(x = "none") #-> p
-
-#print(p)
+```{r echo = FALSE, message = FALSE, warning = FALSE, fig.height=pltheight, out.width = "100%", dev='jpeg'}
+  ggplot(gencov_plotdata, aes(x = start/1000000, y = depth)) +
+    geom_line(aes(color = alignment)) +
+    #geom_segment(data = outlier_plotdata, color = "#9393d2", size = 0.2, aes(x = start/1000000, y = 0, xend = start/1000000, yend = global_avg)) +
+    geom_point(data = outlier_plotdata, color = "dodgerblue", size = 1, shape = 1, aes(x = start/1000000, y = 0)) +
+    theme_minimal() +
+    facet_wrap(~contig, ncol = 2, scales = "free_x") +
+    labs(x = "position (Mbp)", y = "depth") +
+    scale_y_continuous(labels = scales::comma) +
+    scale_x_continuous(labels = scales::comma) +
+    scale_color_manual(values = c("#3f3f3f", "#cb6843")) +
+    theme(
+      panel.grid.major.x = element_blank(),
+      panel.grid.minor.x = element_blank(),
+    )
 ```
