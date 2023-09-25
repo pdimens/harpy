@@ -158,17 +158,41 @@ being greater than 3 standard deviations above the mean depth.
 ## Summary information 
 ### Averages
 ```{r}
-DT::datatable(contig_avg, rownames = F, extensions = 'Buttons', options = list(dom = 'Brtip', buttons = c('csv'), scrollX = TRUE), colnames = c('Contig', 'Average Depth', 'Standard Deviation'))
+DT::datatable(
+  contig_avg, 
+  rownames = F, 
+  extensions = 'Buttons', 
+  options = list(dom = 'Brtip', buttons = c('csv'), scrollX = TRUE), 
+  colnames = c('Contig', 'Average Depth', 'Standard Deviation'),
+  autoHideNavigation = T,
+  fillContainer = T
+)
 ```
 
 ### Filtered Averages
 ```{r echo = FALSE, message = FALSE, warning = FALSE}
-DT::datatable(contig_avg_filt, rownames = F, extensions = 'Buttons', options = list(dom = 'Brtip', buttons = c('csv'), scrollX = TRUE), colnames = c('Contig', 'Average Depth', 'Standard Deviation'))
+DT::datatable(
+  contig_avg_filt,
+  rownames = F, 
+  extensions = 'Buttons', 
+  options = list(dom = 'Brtip', buttons = c('csv'), scrollX = TRUE),
+  colnames = c('Contig', 'Average Depth', 'Standard Deviation'),
+  autoHideNavigation = T,
+  fillContainer = T
+)
 ```
 
 ### Outliers
 ```{r echo = FALSE, message = FALSE, warning = FALSE}
-DT::datatable(outliers, rownames = F, extensions = 'Buttons', options = list(dom = 'Brtip', buttons = c('csv'), scrollX = TRUE), colnames = c('Contig', 'Position Start', 'Position End', 'Depth'))
+DT::datatable(
+  outliers, 
+  rownames = F, 
+  extensions = 'Buttons', 
+  options = list(dom = 'Brtip', buttons = c('csv'), scrollX = TRUE),
+  colnames = c('Contig', 'Position Start', 'Position End', 'Depth'),
+  autoHideNavigation = T,
+  fillContainer = T
+  )
 ```
 
 ## Plotdesc {.no-title}

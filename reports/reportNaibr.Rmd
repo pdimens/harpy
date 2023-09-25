@@ -1,15 +1,13 @@
 ---
 title: "NAIBR Variant Calling Summary"
-author:
-    - "Created using HARPY"
 date: "`r format(Sys.time(), '%d %B, %Y')`"
 output:
-  html_document:
-    highlight: tango
-    number_sections: no
-    theme: cosmo
-    df_print: kable
-    toc: no
+  flexdashboard::flex_dashboard:
+    theme: lumen
+    orientation: rows
+    vertical_layout: scroll
+    horizontal_layout: fill
+    favicon: "https://raw.githubusercontent.com/pdimens/harpy/docs/static/favicon.png"
 ---
 
 ```{r echo = FALSE, warnings = FALSE, message = FALSE}
@@ -19,7 +17,9 @@ fai <- snakemake@input[["fai"]]
 #fai <- "/home/pdimens/assembly.fai"
 samplename <- gsub(".bedpe", "", basename(infile))
 ```
-#### Sample: `r samplename`
+## file top
+### file header {.no-title}
+<h1> `r samplename` NAIBR Variant Calling </h1>
 
 
 ```{r echo = FALSE, warnings = FALSE, message = FALSE, results = 'asis'}
@@ -46,6 +46,7 @@ data.frame(
 ```
 
 ```{r load environment, echo=FALSE, message=FALSE, warning=FALSE}
+library(flexdashboard)
 library(dplyr)
 library(ggplot2)
 library(magrittr)
@@ -97,7 +98,31 @@ colnames(fa.sizes) <- c("contig", "size")
 fa.sizes <- fa.sizes[1:min(nrow(fa.sizes), 30), ]
 ```
 
-## Various Stats {.tabset}
+## overivew desc
+### overvew desc {.no-title}
+<h3> Summry of Detected Variants </h3>
+This table details how many of each type of structural variant appear in each contig.
+
+## overview datatable
+### overview table {.no-title}
+```{r echo = FALSE, message = FALSE, warning = FALSE}
+grpstats <- sv %>%
+  group_by(Contig, SV) %>%
+  summarise(count = n(), total_bp  = sum(Length))
+
+DT::datatable(
+  grpstats,
+  rownames = F,
+  filter = "top",
+  extensions = 'Buttons',
+  options = list(dom = 'Brtip', buttons = c('csv'), scrollX = TRUE),
+  colnames = c('Contig', 'Variant Type', 'Count', 'Total Base Pairs'),
+  autoHideNavigation = T,
+  fillContainer = T
+)
+```
+
+## Various Stats
 ### interpreting output
 NAIBR outputs a tab-delimited file with named columns (along with a VCF
 and a reformatted bedpe file with extra information). The columns of the
@@ -116,9 +141,18 @@ bedpe file are deciphered as such:
 | Score | log-likelihood score for variant |
 | Pass filter | `PASS` if passes internal NAIBR filter threshold, otherwise `FAIL` |
 
+## Variants and Chimeras desc
+### variants desc {.no-title}
+The table below details the variants detected by NAIBR that appear on a single
+contig/chromosome and passed the programs internal filtering. In other words, the
+detected non-chimeric variants.
 
-### variants
-This table details the variants detected by NAIBR that appear on a single contig/chromosome and passed the programs internal filtering.
+### chimeras desc {.no-title}
+The table below shows any structural variants whose breakpoints span multiple contigs
+("chimeric") and may require further assessment. These variants are omitted from the plots below.
+
+## Variants and Chimeras
+### variants {.no-title}
 ```{r echo = FALSE, warnings = FALSE, message = FALSE}
 sv <- variants |>cleanbedpe()
 
@@ -127,24 +161,26 @@ DT::datatable(
   rownames = F,
   filter = "top",
   extensions = 'Buttons',
-  options = list(dom = 'Brtip', buttons = c('csv'), scrollX = TRUE)
+  options = list(dom = 'Brtip', buttons = c('csv'), scrollX = TRUE),
+  autoHideNavigation = T,
+  fillContainer = T
 )
 ```
-### chimeric variants
-
-This table shows any structural variants whose breakpoints span multiple contigs and may require further assessment. These variants are not shown in the plots below.
-
+### chimeric variants {.no-title}
 ```{r echo = FALSE, warnings = FALSE, message = FALSE}
 DT::datatable(
   chimeric(variants),
   rownames = F,
   filter = "top",
   extensions = 'Buttons',
-  options = list(dom = 'Brtip', buttons = c('csv'), scrollX = TRUE)
+  options = list(dom = 'Brtip', buttons = c('csv'), scrollX = TRUE),
+  autoHideNavigation = T,
+  fillContainer = T
 )
 ```
 
 ### summary info
+#TODO THIS WILL PROBABLY BE THE VALUE BOXES
 This table shows the overall statistics for counts and lengths of detected structural variants.
 ```{r echo = FALSE, message = FALSE}
 grpstats <- sv %>%
@@ -164,27 +200,8 @@ grpstats %>%
 
 ```
 
-### per-contig info
-This table details how many of each type of structural variant appear in each contig.
-```{r echo = FALSE, message = FALSE, warning = FALSE}
-grpstats <- sv %>%
-  group_by(Contig, SV) %>%
-  summarise(count = n(), total_bp  = sum(Length))
-
-DT::datatable(
-  grpstats,
-  rownames = F,
-  filter = "top",
-  extensions = 'Buttons',
-  options = list(dom = 'Brtip', buttons = c('csv'), scrollX = TRUE),
-  colnames = c('Contig', 'Variant Type', 'Count', 'Total Base Pairs')
-)
-```
-
----
-
-## Variant size and location {.tabset}
-### Summary
+## Variant size and location
+### Summary plot {.no-title}
 Below is a circular plot to visualize the distribution of structural variants 
 across (up to) 30 of the largest contigs. This should help you assess
 the presence/absence of expected variants. Note that this plot does not 
@@ -292,7 +309,8 @@ draw(lgd, x = unit(0.95, "npc"), just = c("right", "bottom"))
 circosplot(sv, fa.sizes, samplename)
 ```
 
-### Per-contig
+## Per contig plots
+### Per-contig {.no-title}
 Below are a series of plots to help you assess what structural variants were detected by NAIBR. These plots are interactive,
 allowing you to hover over a variant to provide additional information, including the genomic interval in which it occurs and the
 number of haplotag barcodes supporting the variant.

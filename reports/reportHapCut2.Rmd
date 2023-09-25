@@ -1,18 +1,17 @@
 ---
 title: "Haplotype Phasing Report"
-author:
-    - "Created using HARPY"
 date: "`r format(Sys.time(), '%d %B, %Y')`"
 output:
-  html_document:
-    highlight: tango
-    number_sections: no
-    theme: cosmo
-    df_print: kable
-    toc: no
+  flexdashboard::flex_dashboard:
+    theme: lumen
+    orientation: rows
+    vertical_layout: scroll
+    horizontal_layout: fill
+    favicon: "https://raw.githubusercontent.com/pdimens/harpy/docs/static/favicon.png"
 ---
 
 ```{r echo= FALSE, message = FALSE, warning = FALSE}
+library(flexdashboard)
 library(ggplot2)
 library(DT)
 library(dplyr)
@@ -45,14 +44,15 @@ pltheight <- round(2.1 * (length(.contigs)), digits = 0)
 ridgeheight <- 1 + round(0.7 * (length(.contigs)), digits = 0)
 ```
 
-## Haplotyping details {.tabset}
+## Haplotyping details
+### details desc {.no-title}
 The data presented here are the results of phasing genotypes into haplotypes using
 [HapCut2](https://github.com/vibansal/HapCUT2). The information is derived from `r file`,
 which summarized information across all samples using the `.blocks` files HapCut2
 generates. The VCF files HapCut2 also generates were not used as they lack
 some of the information in the `.blocks` files that were collated in this report.
 
-### overall stats
+### overall stats {.no-title}
 The table below summarizes the outcome of haplotype phasing across all samples and contigs.
 
 ```{r echo= FALSE, message = FALSE, warning = FALSE}
@@ -107,7 +107,9 @@ DT::datatable(
   rownames = F,
   extensions = 'Buttons',
   options = list(dom = 'Brtip', buttons = c('csv'), scrollX = TRUE),
-  colnames = c("Contig", "Total Haplotypes", "Mean SNPs", "Median SNPs", "Mean Haplotype Length", "Median Haplotype Length", "Largest Haplotype")
+  colnames = c("Contig", "Total Haplotypes", "Mean SNPs", "Median SNPs", "Mean Haplotype Length", "Median Haplotype Length", "Largest Haplotype"),
+  autoHideNavigation = T,
+  fillContainer = T
   )
 ```
 
@@ -157,7 +159,9 @@ DT::datatable(
   rownames = F,
   extensions = 'Buttons',
   options = list(dom = 'Brtip', buttons = c('csv'), scrollX = TRUE),
-  colnames = c("Contig", "Haplotypes", "Mean SNPs", "Median SNPs", "Mean Haplotype Length", "Median Haplotype Length", "Largest Haplotype")
+  colnames = c("Contig", "Haplotypes", "Mean SNPs", "Median SNPs", "Mean Haplotype Length", "Median Haplotype Length", "Largest Haplotype"),
+  autoHideNavigation = T,
+  fillContainer = T
 )
 ```
 The ridgeline plot below shows the distribution of haplotype lengths (in base pairs) for each 
