@@ -6,9 +6,29 @@ output:
     theme: lumen
     orientation: rows
     vertical_layout: scroll
-    horizontal_layout: fill
     favicon: "https://raw.githubusercontent.com/pdimens/harpy/docs/static/favicon.png"
 ---
+
+
+## header row
+```{css zoom-lib-src, echo = FALSE, message = FALSE, warning = FALSE}
+script src = "https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"
+```
+```{js zoom-jquery, echo = FALSE, message = FALSE, warning = FALSE}
+ $(document).ready(function() {
+    $('body').prepend('<div class=\"zoomDiv\"><img src=\"\" class=\"zoomImg\"></div>');
+    // onClick function for all plots (img's)
+    $('img:not(.zoomImg)').click(function() {
+      $('.zoomImg').attr('src', $(this).attr('src')).css({width: '100%'});
+      $('.zoomDiv').css({opacity: '1', width: 'auto', border: '1px solid white', borderRadius: '5px', position: 'fixed', top: '50%', left: '50%', marginRight: '-50%', transform: 'translate(-50%, -50%)', boxShadow: '0px 0px 50px #888888', zIndex: '50', overflow: 'auto', maxHeight: '90%'});
+    });
+    // onClick function for zoomImg
+    $('img.zoomImg').click(function() {
+      $('.zoomDiv').css({opacity: '0', width: '0%'}); 
+    });
+  });
+```
+
 ```{r load environment, echo=FALSE, message=FALSE, warning=FALSE}
 library(flexdashboard)
 library(ggplot2)
@@ -26,34 +46,72 @@ comparefile <- snakemake@input[[1]]
 gcts <- read.table(comparefile, header = F)[, c(2, 23, 25, 24, 27)]
 names(gcts) <- c("sample","RefHom", "Het",	"AltHom", "missing")
 
-conv_height <- 0.2 * nrow(gcts) 
-gcts <- pivot_longer(gcts, -1, names_to = "Conversion", values_to = "Count")
+conv_height <- 1.4 + (0.12 * nrow(gcts))
+#frameheight <- 1.2 + (0.166 * nrow(invalids))
+
+gcts_long <- pivot_longer(gcts, -1, names_to = "Conversion", values_to = "Count")
 ```
 
-## header row
-<h1> `r comparefile` </h1>
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+#infofile <- snakemake@input[[2]]
+infofile <- "~/impute.infoscore"
+infos <- read.table(infofile, header = F, col.names = c("contig", "position", "info"))
+```
+
+### reportheader {.no-title}
+<h2> `r comparefile` </h2>
 This report details the results of genotype imputation using STITCH with the model parameters:
 `r modelparams`
 
+
+## General Information {data-height=100}
+```{r}
+gcts_minmax <- filter(gcts_long, Conversion != "missing") %>% summarise(min = min(Count), max = max(Count))
+
+```
+
+### nsamples
+```{r}
+valueBox(scales::comma(nrow(gcts)), caption = "Samples", color = "success")
+```
+
+### min impute
+```{r}
+valueBox(scales::comma(gcts_minmax$min), caption = "Minimum Imputations", color = "info")
+```
+### maximpute
+```{r}
+valueBox(scales::comma(gcts_minmax$max), caption = "Maximum Imputations", color = "info")
+```
+
+### mean infoscore
+```{r}
+valueBox(round(mean(infos$info), digits = 2), caption = "Average INFO_SCORE", color = "info")
+```
+
+### sd infoscore
+```{r}
+valueBox(round(sd(infos$info), digits = 2), caption = "StDev INFO_SCORE", color = "info")
+```
+
 ## Ind stats desc
 ### plotdesc {.no-title}
+<h3> Imputations Per Sample </h3>
 This chart visualizes the count and proportion of `missing` genotypes per sample imputed
 into other genotypes. Following standard VCF convention, `Ref` refers to
 the reference allele (from the reference genome), `Alt` refers to the alternative 
 allele, and `Missing` details how many SNPs remain missing
-(failed to impute) for that individual. As an example, the `Homozygous Ref` column is 
+(failed to impute) for that individual. As an example, the `Homozygous Ref` is 
 the number of missing genotypes that were imputed into
-a homozygous genotype for the reference allele.
-
-### tabledesc {.no-title}
-This table details the number of `missing` genotypes that were imputed into a 
-different genotype per individual. These are the data used to create the
-visualization on the left.
+a homozygous genotype for the reference allele. The table on the right is the
+underlying data used to create the visualization. Clicking
+on a plot will expand it to fill your browser window. Clicking it again will exit
+out of the zoomed view.
 
 ## Individual Statistics
 ### Individuals Plot {.no-title}
 ```{r echo = FALSE, message = FALSE, warning = FALSE, fig.height=conv_height, out.width= "100%"}
-ggplot(gcts, aes(y = sample, x = Count, fill = Conversion)) +
+ggplot(gcts_long, aes(y = sample, x = Count, fill = Conversion)) +
   geom_col(position = "stack") +
   scale_x_continuous(expand = c(0,0), labels = comma) +
   ylab("") +
@@ -61,10 +119,12 @@ ggplot(gcts, aes(y = sample, x = Count, fill = Conversion)) +
   theme(panel.grid.major.y = element_blank(), axis.ticks.y = element_line(size = 0.5)) +
   scale_fill_manual(
     labels = c("→ Homozygous Alt", "→ Heterozygote", "→ Missing", "→ Homozygous Ref"),
-    values = c("#4a9fea", "#5a8c84", "#424043", "#ffd75f")
-  )
+    values = c("#93d2fa", "#83afa8", "#424043", "#ffd75f")
+  ) +
+  labs(title = "Missing Genotype Imputations")
 
 ```
+
 ### Imputation Results Table {.no-title}
 ```{r success table, echo=FALSE, message=FALSE, warning=FALSE}
 DT::datatable(
@@ -84,28 +144,18 @@ DT::datatable(
 
 ## INFO Scores
 ### INFO desc {.no-title}
-
+<h3> Distribution of INFO_SCORE </h3>
 `STITCH` outputs a novel `INFO/INFO_SCORE` tag in the resulting VCF files that represents the
 "quality" of the imputation. This value ranges from `0` to `1.0`, with `0` being
-very poor, and `1.0` being very good. You will want to filter the resulting variants
-based on this `INFO/INFO_SCORE` tag, which can be done that simply with `bcftools`.
-Here is an example snippet of keeping loci with an `INFO_SCORE` of at least `0.2`: 
-```
-# use -Ob to output to bcf instead of vcf to save on disk space
-
-bcftools view -i 'INFO/INFO_SCORE >= 0.2' -Ob file.vcf > filtered.file.bcf
-```
+very poor, and `1.0` being very good. You will want to filter this file to remove
+genotypes with a low `INFO_SCORE`. Below is the frequency distribution of the global
+and per-contig `INFO_SCORE` values for the variants in the VCF file.  The  per-contig
+plot shows up to 30 of the largest contigs present in the VCF file. Clicking
+on a plot will expand it to fill your browser window. Clicking it again will exit
+out of the zoomed view.
 
 ## distributions
 ### Overall distribution {.no-title}
-Below is the frequency distribution of the `INFO_SCORE` values for all the variants
-in the VCF file. 
-```{r echo=FALSE, message=FALSE, warning=FALSE}
-infofile <- snakemake@input[[2]]
-#infofile <- "~/impute.infoscore"
-infos <- read.table(infofile, header = F, col.names = c("contig", "position", "info"))
-```
-
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
 maxsizes <- infos %>% group_by(contig) %>% summarise(maxsize = max(position)) %>% arrange(desc(maxsize))
 maxsizes <- maxsizes[1:min(nrow(maxsizes), 30), ]
@@ -121,18 +171,13 @@ ggplot(infos, aes(x = info)) +
   theme(
     panel.grid.minor = element_blank()
   ) +
-  scale_y_continuous(labels = comma) +
+  scale_y_continuous(labels = scales::comma) +
   xlab("INFO_SCORE") +
   ylab("Count") +
   labs(title = "Distribution of imputation INFO_SCORE")
 ```
 
-## dist and filter
 ### Per-contig distribution {.no-title}
-<h3> Per-contig INFO_SCORE Distribution </h3>
-Below is the frequency distribution of the `INFO_SCORE` values for the variants
-in the VCF file, shown per-contig, up to 30 of the largest contigs.
-
 ```{r echo = FALSE, message = FALSE, warning = FALSE, fig.height=pltheight, fig.align='center', out.width = "100%"}
 ggplot(infos[infos$contig %in% maxsizes$contig, ], aes(x = info)) +
   geom_histogram(fill = "grey60", color = "grey40", linewidth = 0.25, bins = 100, boundary = 0.5) +
@@ -147,15 +192,26 @@ ggplot(infos[infos$contig %in% maxsizes$contig, ], aes(x = info)) +
   labs(title = "Distribution of imputation INFO_SCORE")
 ```
 
-
-### Filtering Expectations {.no-title}
+## filtering
+### Filtering Expectations desc {.no-title}
 <h3> Filtering Expectations </h3>
+You will want to filter the resulting variants
+based on this `INFO/INFO_SCORE` tag, which can be done that simply with `bcftools`.
+Here is an example snippet of keeping loci with an `INFO_SCORE` of at least `0.2`: 
+```
+# use -Ob to output to bcf instead of vcf to save on disk space
+
+bcftools view -i 'INFO/INFO_SCORE >= 0.2' -Ob file.vcf > filtered.file.bcf
+```
+
 Below is a table of the number of variants sites that may remain if filtering
 at different minimum `INFO/INFO_SCORE` thresholds. Each column after `Total Variants`
 refers to a filtering threshold and the numbers within that column are the number of 
 SNPs that would be kept if filtering out SNPs with an `INFO/INFO_SCORE` value below 
-it (_i.e._ `0.2` is the number of SNPs with a score `>= 0.2` )
+it (_i.e._ `0.2` is the number of SNPs with a score `>= 0.2` ).
 
+## filtering table
+### filt table {.no-title}
 ```{r echo = FALSE, message = FALSE, warning = FALSE}
 filterthresh <- infos %>% group_by(contig) %>%
   summarise(
