@@ -144,10 +144,8 @@ DT::datatable(
   rownames = FALSE,
   filter = "top",
   extensions = "Buttons",
-  options = list(
-    dom = "Brtip",
-    buttons = c("csv"),
-    scrollX = TRUE
-  )
+  options = list(dom = "Brtip", buttons = c("csv"), scrollX = TRUE),
+  autoHideNavigation = T,
+  fillContainer = T
 )
 ```

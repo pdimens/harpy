@@ -37,11 +37,12 @@ library(DT)
 library(scales)
 #infile <- "~/Documents/harpy/test/fastq/Preflight/filecheck.fastq.tsv"
 infile <- snakemake@input[[1]]
+#dirname <- "filler text"
 dirname <- snakemake@params[[1]]
 data <- read.table(infile, header = T)
 attention_df <- data %>% 
   mutate(allmissing = (reads == noBX)) %>% 
-  select(4:6) %>% 
+  select(4,5,7) %>% 
   rowwise() %>% 
   summarise(count = sum(c(badBX,badSamSpec, allmissing)))
 attention <- sum(attention_df$count > 0)
@@ -67,6 +68,12 @@ valueBox("FASTQ", caption = "File Format", color = "info")
 valueBox(scales::comma(attention), caption = "Files With Issues", color = ifelse(attention > 0, "warning", "success"))
 ```
 
+### BX not last
+```{r}
+bxnotlast <- sum(data$bxNotLast > 0)
+valueBox(bxnotlast, caption = "BX:Z: tag not last", color = ifelse(bxnotlast > 0, "#feda75", "success"))
+```
+
 ## interpret
 ### interpcol {.no-title}
 <h2> Interpreting the Data </h2>
@@ -76,7 +83,7 @@ the supplied directory and within it you will find this report, along with the
 `filecheck.fastq.tsv` file summing the results that are included in this report.
 This file contains a tab-delimited table with the columns: `file`,	`reads`, `noBX`,	`badBX`, and	`badSamSpec`. These columns are defined by:
 
-- `file`: the name of the fastq file
+- `file`: the name of the FASTQ file
 - `reads`: the total number of reads in the file
 - `noBX`: the number of reads that do not have a `BX:Z:` tag in the read header
   - severity: <strong style='color:#c0c0c0;'>minimal</strong> and likely won't cause issues unless no reads have `BX:Z:` tags
@@ -85,6 +92,10 @@ This file contains a tab-delimited table with the columns: `file`,	`reads`, `noB
   - severity: <strong style='color:red;'>critical</strong> and will cause downstream issues and errors
 - `badSamSpec`: the comments in the read header after the read ID do not conform to the `TAG:TYPE:VALUE` [SAM specification](https://samtools.github.io/hts-specs/SAMv1.pdf)
   - severity: <strong style='color:red;'>critical</strong> and will cause downstream issues and errors
+- `bxNotLast`: the `BX:Z:` tag in the FASTQ header is not the last comment
+  - severity: <strong style='color:orange;'>conditional</strong> and only relevant for LEVIATHAN variant calling 
+  - can be ignored if not intending to call structural variants with LEVIATHAN
+  - if intending to use LEVIATHAN, the `BX:Z:` tag must be the last comment in a read header
 
 ### Proper header {.no-title}
 <h2> Proper Read Headers </h2>
@@ -94,7 +105,8 @@ following the initial read ID (`@A00814...`) have the proper [SAM spec](https://
 `TAG:TYPE:VALUE` format and among them is a `BX:Z:` tag followed by a `AxxCxxBxxDxx`
 formatted haplotag barcode. The read header below contains the read ID `@A00814...`,
 the `BX:Z:` haplotag barcode tag, and two more comments `RX:Z:` and `QX:Z:` that both
-adhere to the SAM specification.
+adhere to the SAM specification. If using LEVIATHAN to call structural variants, the `BX:Z:` tag
+must be the last comment in the read header.
 
 ```
 @A00814:267:HTMH3DRXX:2:1101:4580:1000 BX:Z:A02C01B11D46 RX:Z:GAAACGACCAACA+CGAACACGTTAGC QX:Z:F,FFFFFFFFFFF+FF,FFF:FFFFFF
@@ -103,32 +115,76 @@ adhere to the SAM specification.
 ## viz desc
 ### desc {.no-title}
 <h2> FASTQ file format Check </h2>
-Below are a plot and corresponding table of the results of the preflight checks. You
-may click on the plot to expand it in your browser window. Clicking it again will exit
-out of the zoomed view.
+Below are a plot and corresponding table of the results of the preflight checks.
+The plot renames the parameters for clarity and they are:
 
-## datarow
-### plot {.no-title}
 ```{r}
-n <- nrow(data)
-pltheight <- max(round(0.38 * n, digits = 0), 3)
+knitr::kable(
+  data.frame(
+    "data column" = c("`badBX`", "`badSamSpec`", "`bxNotLast`", "`noBX`"),
+    "name in plot" = c("AxxCxxBxxDxx format", "follows SAM spec", "BX:Z: last comment", "BX:Z: tag"),
+    "pass condition" = c(
+      "**all** reads with BX:Z: tag have properly formatted `AxxCxxBxxDxx` barcodes",
+      "**all** reads have proper `TAG:TYPE:VALUE` comments",
+      "**all** reads have `BX:Z`: as final comment",
+      "any `BX:Z:` tags present"
+      ),
+    "fail condition" = c(
+        "**any** BX:Z: barcodes have incorrect format",
+        "**any** reads have incorrectly formatted comments",
+        "**at least 1 read** doesn't have `BX:Z:` tag as final comment",
+        "**all** reads lack `BX:Z:` tag"
+      )
+  ), col.names = c("data column", "name in plot", "pass condition", "fail condition")
+)
 ```
 
-```{r plottable, dev="jpeg", echo=FALSE, message=FALSE, warning=FALSE, fig.height=pltheight}
-pivot_longer(data, -1, names_to = "Parameter", values_to = "Count") %>% 
-ggplot(aes(x = Count, y = file, fill = Parameter, color = Parameter)) +
-  geom_col(stat= "identity", position = position_dodge(width = 0.5), linewidth = 0.3) +
+You may click on the plot to expand it in your browser window. Clicking it again will exit
+out of the zoomed view.
+
+## datarow 
+### plot {.no-title}
+```{r status_df}
+data2 <- data %>% 
+  mutate(
+    noBX = ifelse(noBX == reads, "fail", "pass"),
+    badBX = ifelse(badBX > 0, "fail", "pass"),
+    badSamSpec = ifelse(badSamSpec > 0, "fail", "pass"),
+    bxNotLast = ifelse(bxNotLast > 0, "fail", "pass")
+    ) %>% 
+  select(-2) %>% 
+  rename("1" = "badBX", "2" = "badSamSpec", "3" = "bxNotLast", "4" = "noBX") %>% 
+  pivot_longer(-1, names_to = "category", values_to = "Status")
+
+data2$category <- as.integer(data2$category)
+```
+
+```{r fig.width=6.5}
+ggplot(data2, aes(x = category, y = file, fill = Status)) +
+  geom_tile(color = "white", size = 1) +
   theme_minimal() +
-  theme(panel.grid.major.y = element_blank()) +
-  scale_fill_manual(values = c("indianred", "dodgerblue","orange","grey70")) +
-  scale_color_manual(values = c("#a23c3c", "#2a7ed0","#dd8f00","grey60")) +
-  #scale_color_manual(values = c("#d57575", "#369cff","#ffb42a","grey75")) +
-  scale_x_continuous(labels = scales::comma) +
-  ylab("") +
-  labs(title = "FASTQ file check")
+  theme(panel.grid.major.x = element_blank()) +
+  scale_fill_manual(values = c("fail" = "#feda75", "pass" = "#71c7ec")) +
+  ylab("") + xlab("") +
+  #scale_x_discrete(position = "top")
+  scale_x_continuous(
+    guide = guide_axis(n.dodge=2),
+    breaks = 1:4,
+    labels = c("AxxCxxBxxDxx format", "follows SAM Spec", "BX:Z: last comment", "BX:Z: tag"),
+    sec.axis = dup_axis()
+  ) +
+  labs(title = "FASTQ Preflight Check")
 ```
 
 ### table {.no-title}
 ```{r dtable, echo=FALSE, message=FALSE, warning=FALSE}
-DT::datatable(data, rownames = F, filter = "top", extensions = 'Buttons', options = list(dom = 'Brtip', buttons = c('csv'), scrollX = T))
+DT::datatable(
+  data,
+  rownames = F,
+  filter = "top",
+  extensions = 'Buttons',
+  options = list(dom = 'Brtip', buttons = c('csv'), scrollX = T),
+  autoHideNavigation = T,
+  fillContainer = T
+)
 ```

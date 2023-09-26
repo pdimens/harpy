@@ -50,7 +50,7 @@ rule mergeChecks:
     shell:
         """
         cat {input} | sort -k1 > {output.tmp} 
-        echo -e "file\tnameMismatch\talignments\tnoBX\tbadBX\n$(cat {output.tmp})" > {output.final}
+        echo -e "file\tnameMismatch\talignments\tnoMI\tnoBX\tbadBX\tbxNotLast\n$(cat {output.tmp})" > {output.final}
         """
 
 rule createReport:

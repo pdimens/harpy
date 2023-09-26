@@ -56,7 +56,7 @@ rule mergeChecks:
     shell:
         """
         cat {input} | sort -k1 > {output.tmp}
-        echo -e "file\treads\tnoBX\tbadBX\tbadSamSpec\n$(cat {output.tmp})" > {output.final}
+        echo -e "file\treads\tnoBX\tbadBX\tbadSamSpec\tbxNotLast\n$(cat {output.tmp})" > {output.final}
         """
 
 rule createReport:
