@@ -263,6 +263,7 @@ dependencies:
   - r-fansi=1.0.4=r43h57805ef_1
   - r-farver=2.1.1=r43ha503ecb_2
   - r-fastmap=1.1.1=r43ha503ecb_1
+  - r-flexdashboard=0.6.2=r42hc72bb7e_0
   - r-fontawesome=0.5.2=r43hc72bb7e_0
   - r-foreach=1.5.2=r43hc72bb7e_2
   - r-fs=1.6.3=r43ha503ecb_0
