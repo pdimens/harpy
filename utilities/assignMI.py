@@ -83,12 +83,12 @@ chromlast = False
 # MI is the name of the current molecule. Arbitrarily starting at 1000
 MI = 999
 
-if os.path.exists(args.input) and args.input.lower().endswith(".sam"):
+if args.input.lower().endswith(".sam"):
     alnfile = pysam.AlignmentFile(args.input)
-elif os.path.exists(args.input) and args.input.lower().endswith(".bam"):
-    if os.path.exists(args.input + ".bai"):
+elif args.input.lower().endswith(".bam"):
+    try:
         alnfile = pysam.AlignmentFile(args.input)
-    else:
+    except:
         print(f"Error: {args.input} requires a matching {args.input}.bai index file, but one wasn\'t found.", file = sys.stderr)
         exit(1)
 else:
