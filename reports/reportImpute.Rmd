@@ -235,7 +235,9 @@ filterthresh <- infos %>% group_by(contig) %>%
     twentyfive = sum(info >= 0.25),
     thirty = sum(info >= 0.30),
     forty = sum(info >= 0.40),
-    fifty = sum(info >= 0.50)
+    fifty = sum(info >= 0.50),
+    seventyfive = sum(info >= 0.75),
+    ninety = sum(info >= 0.90),
     )
 
 tots <- colSums(filterthresh[, -1])
@@ -245,7 +247,7 @@ DT::datatable(
   filterthresh,
   rownames = FALSE,
   extensions = "Buttons",
-  colnames = c("Contigs", "Total Variants", "0.20", "0.25", "0.30", "0.4", "0.5"),
+  colnames = c("Contigs", "Total Variants", "0.20", "0.25", "0.30", "0.4", "0.5", "0.75", "0.90"),
   options = list(
     dom = "Brtip",
     buttons = c("csv"),

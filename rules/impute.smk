@@ -121,7 +121,7 @@ rule stitch_reports:
     benchmark:
         "Benchmark/Impute/report.{stitchparams}.{part}.txt"
     script:
-        "reportStitch.Rmd"
+        "reportImputeStitch.Rmd"
 
 rule clean_stitch:
     input:
@@ -204,7 +204,7 @@ rule comparestats:
         "Benchmark/Impute/mergestats.{stitchparams}.txt"
     shell:
         """
-        bcftools stats -s "-" {input.impute} {input.orig} | grep \"GCTs\" > {output.compare}
+        bcftools stats -s "-" {input.orig} {input.impute} | grep \"GCTs\" > {output.compare}
         bcftools query -f '%CHROM\\t%POS\\t%INFO/INFO_SCORE\\n' {input.impute} > {output.info_sc}
         """
 
