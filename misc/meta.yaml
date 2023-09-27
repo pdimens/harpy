@@ -25,6 +25,7 @@ requirements:
     - ema
     - falco
     - fastp
+    - freebayes
     - hapcut2
     - icu
     - libzlib
