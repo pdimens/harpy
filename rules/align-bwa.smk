@@ -182,7 +182,7 @@ rule assign_molecules:
     params:
         molecule_distance
     shell:
-        "assignMI.py -c {params} -i {input.bam} -i {output.bam}"
+        "assignMI.py -c {params} -i {input.bam} -o {output.bam}"
 
 rule alignment_coverage:
     input: 
