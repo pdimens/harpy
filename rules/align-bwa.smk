@@ -157,8 +157,8 @@ rule mark_duplicates:
     input:
         lambda wc: outdir + "/{sample}/{sample}.sort.bam"
     output:
-        bam = outdir + "/align/{sample}.bam",
-        bai = outdir + "/align/{sample}.bam.bai"
+        bam = temp(outdir + "/align/{sample}.markdup.bam"),
+        bai = temp(outdir + "/align/{sample}.markdup.bam.bai")
     log:
         outdir + "/logs/makrduplicates/{sample}.markdup.log"
     message:
@@ -169,6 +169,20 @@ rule mark_duplicates:
         4
     shell:
         "sambamba markdup -t {threads} -l 0 {input} {output.bam} 2> {log}"
+
+rule assign_molecules:
+    input:
+        bam = outdir + "/align/{sample}.markdup.bam",
+        bai = outdir + "/align/{sample}.markdup.bam.bai"
+    output:
+        bam = outdir + "/align/{sample}.bam",
+        bai = outdir + "/align/{sample}.bam.bai"
+    message:
+        "Assigning barcodes to molecules: {wildcards.sample}"
+    params:
+        molecule_distance
+    shell:
+        "assignMI.py -c {params} -i {input.bam} -i {output.bam}"
 
 rule alignment_coverage:
     input: 
@@ -190,7 +204,6 @@ rule coverage_report:
         outdir + "/stats/coverage/{sample}.cov.html"
     message:
         "Summarizing alignment coverage: {wildcards.sample}"
-
     script:
         "reportBwaGencov.Rmd"
     
