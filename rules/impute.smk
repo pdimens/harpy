@@ -108,7 +108,7 @@ rule index_vcf:
     shell:
         """
         tabix {input.vcf}
-        bcftools stats {input.vcf} -s - > {output.stats}
+        bcftools stats -s "-" {input.vcf} > {output.stats}
         """
 
 rule stitch_reports:
@@ -186,7 +186,7 @@ rule stats:
     benchmark:
         "Benchmark/Impute/mergestats.{stitchparams}.txt"
     shell:
-        "bcftools stats {input.bcf} -s - > {output}"
+        """bcftools stats -s "-" {input.bcf} > {output}"""
 
 rule comparestats:
     input:
@@ -204,7 +204,7 @@ rule comparestats:
         "Benchmark/Impute/mergestats.{stitchparams}.txt"
     shell:
         """
-        bcftools stats -s - {input.impute} {input.orig} | grep \"GCTs\" > {output.compare}
+        bcftools stats -s "-" {input.impute} {input.orig} | grep \"GCTs\" > {output.compare}
         bcftools query -f '%CHROM\\t%POS\\t%INFO/INFO_SCORE\\n' {input.impute} > {output.info_sc}
         """
 
