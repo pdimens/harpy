@@ -9,7 +9,6 @@ output:
     favicon: "https://raw.githubusercontent.com/pdimens/harpy/docs/static/favicon.png"
 ---
 
-
 ## header row
 ```{css zoom-lib-src, echo = FALSE, message = FALSE, warning = FALSE}
 script src = "https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"
@@ -43,7 +42,15 @@ modelparams <- paste(snakemake@params[[1]])
 ```{r echo = FALSE, message = FALSE, warning = FALSE}
 comparefile <- snakemake@input[[1]]
 #comparefile <- "~/impute.compare.stats"
-gcts <- read.table(comparefile, header = F)[, c(2, 23, 25, 24, 27)]
+tryCatch(
+  expr = {
+    gcts <- read.table(comparefile, header = F)[, c(2, 23, 25, 24, 27)]
+  },
+  error = function(e){ 
+    print("Stats file is empty. Perhaps there were no SNPs that bcftools identified.")
+    knitr::knit_exit()
+  }
+)
 names(gcts) <- c("sample","RefHom", "Het",	"AltHom", "missing")
 
 conv_height <- 1.4 + (0.12 * nrow(gcts))
@@ -53,9 +60,18 @@ gcts_long <- pivot_longer(gcts, -1, names_to = "Conversion", values_to = "Count"
 ```
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
-#infofile <- snakemake@input[[2]]
-infofile <- "~/impute.infoscore"
-infos <- read.table(infofile, header = F, col.names = c("contig", "position", "info"))
+infofile <- snakemake@input[[2]]
+#infofile <- "~/impute.infoscore"
+
+tryCatch(
+  expr = {
+    infos <- read.table(infofile, header = F, col.names = c("contig", "position", "info"))
+  },
+  error = function(e){ 
+    print("Info score file is empty. Perhaps there were no SNPs that bcftools identified.")
+    knitr::knit_exit()
+  }
+)
 ```
 
 ### reportheader {.no-title}
@@ -67,7 +83,6 @@ This report details the results of genotype imputation using STITCH with the mod
 ## General Information {data-height=100}
 ```{r}
 gcts_minmax <- filter(gcts_long, Conversion != "missing") %>% summarise(min = min(Count), max = max(Count))
-
 ```
 
 ### nsamples
