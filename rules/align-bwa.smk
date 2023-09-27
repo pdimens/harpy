@@ -157,8 +157,8 @@ rule mark_duplicates:
     input:
         lambda wc: outdir + "/{sample}/{sample}.sort.bam"
     output:
-        bam = temp(outdir + "/align/{sample}.markdup.bam"),
-        bai = temp(outdir + "/align/{sample}.markdup.bam.bai")
+        bam = temp(outdir + "/{sample}/markdup/{sample}.markdup.bam"),
+        bai = temp(outdir + "/{sample}/markdup/{sample}.markdup.bam.bai")
     log:
         outdir + "/logs/makrduplicates/{sample}.markdup.log"
     message:
@@ -172,8 +172,8 @@ rule mark_duplicates:
 
 rule assign_molecules:
     input:
-        bam = outdir + "/align/{sample}.markdup.bam",
-        bai = outdir + "/align/{sample}.markdup.bam.bai"
+        bam = outdir + "/{sample}/markdup/{sample}.markdup.bam",
+        bai = outdir + "/{sample}/markdup/{sample}.markdup.bam.bai"
     output:
         bam = outdir + "/align/{sample}.bam",
         bai = outdir + "/align/{sample}.bam.bai"
