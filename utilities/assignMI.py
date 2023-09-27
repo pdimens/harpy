@@ -8,12 +8,19 @@ import argparse
 
 parser = argparse.ArgumentParser(
     prog = 'assignMI.py',
-    description = 'Assign an MI:i: (Molecular Identifier) tag to each barcoded record based on a molecular distance cutoff',
+    description = 
+    """
+    Assign an MI:i: (Molecular Identifier) tag to each barcoded 
+    record based on a molecular distance cutoff. Unmapped records
+    are discarded in the output. Records without a BX:Z: tag or
+    with an invalid barcode (00 as one of its segments) are presevered
+    but are not assigned an MI:i tag. Input file MUST BE COORDINATE SORTED.
+    """,
     usage = "assignMI.py -c cutoff -i input.bam -o output.bam",
     exit_on_error = False
     )
-parser.add_argument('-c','--cutoff', type=int, default = 100000, help = "Distance in base pairs at which alignments with the same barcode should be considered different molecules.")
-parser.add_argument('-i', '--input', help = "Input bam/sam file. If bam, a matching index file should be in the same directory.")
+parser.add_argument('-c','--cutoff', type=int, default = 100000, help = "Distance in base pairs at which alignments with the same barcode should be considered different molecules. (default: 100000)")
+parser.add_argument('-i', '--input', help = "Input coordinate-sorted bam/sam file. If bam, a matching index file should be in the same directory.")
 parser.add_argument('-o', '--output', help = "Output bam file. Will also create an index file.")
 
 if len(sys.argv) == 1:
