@@ -78,7 +78,7 @@ args = parser.parse_args()
 # initialize the dict
 d = dict()
 # chromlast keeps track of the last chromosome so we can
-# clear the dict when it's a new one
+# clear the dict when it's a new contig/chromosome
 chromlast = False
 # MI is the name of the current molecule. Arbitrarily starting at 1000
 MI = 999
