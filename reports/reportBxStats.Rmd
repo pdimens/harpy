@@ -208,7 +208,10 @@ BX barcode validity is classified into one of three categories:
 It's common for a barcode shared by reads not originating from the same molecule
 to reappear much further along a chromosome or across multiple chromosomes. The 
 process that derives the data in this report separates those recurring barcodes
-as unique molecules when their distance is greater than `r mdist` base pairs.
+as unique molecules when their distance is greater than `r mdist` base pairs along a single contig.
 The "split" molecules are identified by a numerical suffix in their name, such
 as the `.1` in `A01C22B96D11.1`. These suffixes were added only for reporting purposes and 
-the barcodes in your alignment file **were not** altered.
+the barcodes in your alignment file **were not** altered. If aligned with BWA, Harpy added
+a corresponding `MI:i:` (Molecular Identifier) tag that reflects these splits given
+the molecule distance threshold you specified. If aligned with EMA, the EMA software
+itself determines the splits and assigns the `MI:i` tag without user specification.
