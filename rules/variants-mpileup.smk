@@ -148,7 +148,7 @@ rule variants_stats:
     message:
         "Calculating variant stats: variants.{wildcards.type}.bcf"
     shell:
-        "bcftools stats -s "-" --fasta-ref {input.genome} {input.bcf} > {output}"
+        """bcftools stats -s "-" --fasta-ref {input.genome} {input.bcf} > {output}"""
 
 rule bcfreport:
     input:
