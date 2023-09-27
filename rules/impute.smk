@@ -48,7 +48,6 @@ rule samples_file:
         "Impute/input/samples.names"
     message:
         "Creating file of sample names"
-    threads: 1
     run:
         with open(output[0], "w") as fout:
             [fout.write(f"{i}\n") for i in samplenames]
