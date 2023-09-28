@@ -1,15 +1,13 @@
 ---
 title: "NAIBR Variant Calling Summary"
-author:
-    - "Created using HARPY"
 date: "`r format(Sys.time(), '%d %B, %Y')`"
 output:
-  html_document:
-    highlight: tango
-    number_sections: no
-    theme: cosmo
-    df_print: kable
-    toc: no
+  flexdashboard::flex_dashboard:
+    theme: lumen
+    orientation: rows
+    vertical_layout: scroll
+    horizontal_layout: fill
+    favicon: "https://raw.githubusercontent.com/pdimens/harpy/docs/static/favicon.png"
 ---
 
 ```{r echo = FALSE, warnings = FALSE, message = FALSE}
@@ -19,7 +17,9 @@ fai <- snakemake@input[["fai"]]
 #fai <- "/home/pdimens/assembly.fai"
 samplename <- gsub(".bedpe", "", basename(infile))
 ```
-#### Sample: `r samplename`
+## file top
+### file header {.no-title}
+<h1> `r samplename` NAIBR Variant Calling </h1>
 
 
 ```{r echo = FALSE, warnings = FALSE, message = FALSE, results = 'asis'}
@@ -46,6 +46,7 @@ data.frame(
 ```
 
 ```{r load environment, echo=FALSE, message=FALSE, warning=FALSE}
+library(flexdashboard)
 library(dplyr)
 library(ggplot2)
 library(magrittr)
@@ -56,7 +57,7 @@ library(ComplexHeatmap)
 ```
 
 ```{css zoom-lib-src, echo = FALSE, message = FALSE, warning = FALSE}
-script src = "https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"
+script src = "https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"
 ```
 ```{js zoom-jquery, echo = FALSE, message = FALSE, warning = FALSE}
  $(document).ready(function() {
@@ -97,7 +98,31 @@ colnames(fa.sizes) <- c("contig", "size")
 fa.sizes <- fa.sizes[1:min(nrow(fa.sizes), 30), ]
 ```
 
-## Various Stats {.tabset}
+## overivew desc
+### overvew desc {.no-title}
+<h3> Summry of Detected Variants </h3>
+This table details how many of each type of structural variant appear in each contig.
+
+## overview datatable
+### overview table {.no-title}
+```{r echo = FALSE, message = FALSE, warning = FALSE}
+grpstats <- sv %>%
+  group_by(Contig, SV) %>%
+  summarise(count = n(), total_bp  = sum(Length))
+
+DT::datatable(
+  grpstats,
+  rownames = F,
+  filter = "top",
+  extensions = 'Buttons',
+  options = list(dom = 'Brtip', buttons = c('csv'), scrollX = TRUE),
+  colnames = c('Contig', 'Variant Type', 'Count', 'Total Base Pairs'),
+  autoHideNavigation = T,
+  fillContainer = T
+)
+```
+
+## Various Stats
 ### interpreting output
 NAIBR outputs a tab-delimited file with named columns (along with a VCF
 and a reformatted bedpe file with extra information). The columns of the
@@ -116,9 +141,18 @@ bedpe file are deciphered as such:
 | Score | log-likelihood score for variant |
 | Pass filter | `PASS` if passes internal NAIBR filter threshold, otherwise `FAIL` |
 
+## Variants and Chimeras desc
+### variants desc {.no-title}
+The table below details the variants detected by NAIBR that appear on a single
+contig/chromosome and passed the programs internal filtering. In other words, the
+detected non-chimeric variants.
 
-### variants
-This table details the variants detected by NAIBR that appear on a single contig/chromosome and passed the programs internal filtering.
+### chimeras desc {.no-title}
+The table below shows any structural variants whose breakpoints span multiple contigs
+("chimeric") and may require further assessment. These variants are omitted from the plots below.
+
+## Variants and Chimeras
+### variants {.no-title}
 ```{r echo = FALSE, warnings = FALSE, message = FALSE}
 sv <- variants |>cleanbedpe()
 
@@ -127,24 +161,26 @@ DT::datatable(
   rownames = F,
   filter = "top",
   extensions = 'Buttons',
-  options = list(dom = 'Brtip', buttons = c('csv'), scrollX = TRUE)
+  options = list(dom = 'Brtip', buttons = c('csv'), scrollX = TRUE),
+  autoHideNavigation = T,
+  fillContainer = T
 )
 ```
-### chimeric variants
-
-This table shows any structural variants whose breakpoints span multiple contigs and may require further assessment. These variants are not shown in the plots below.
-
+### chimeric variants {.no-title}
 ```{r echo = FALSE, warnings = FALSE, message = FALSE}
 DT::datatable(
   chimeric(variants),
   rownames = F,
   filter = "top",
   extensions = 'Buttons',
-  options = list(dom = 'Brtip', buttons = c('csv'), scrollX = TRUE)
+  options = list(dom = 'Brtip', buttons = c('csv'), scrollX = TRUE),
+  autoHideNavigation = T,
+  fillContainer = T
 )
 ```
 
 ### summary info
+#TODO THIS WILL PROBABLY BE THE VALUE BOXES
 This table shows the overall statistics for counts and lengths of detected structural variants.
 ```{r echo = FALSE, message = FALSE}
 grpstats <- sv %>%
@@ -164,135 +200,117 @@ grpstats %>%
 
 ```
 
-### per-contig info
-This table details how many of each type of structural variant appear in each contig.
-```{r echo = FALSE, message = FALSE, warning = FALSE}
-grpstats <- sv %>%
-  group_by(Contig, SV) %>%
-  summarise(count = n(), total_bp  = sum(Length))
-
-DT::datatable(
-  grpstats,
-  rownames = F,
-  filter = "top",
-  extensions = 'Buttons',
-  options = list(dom = 'Brtip', buttons = c('csv'), scrollX = TRUE),
-  colnames = c('Contig', 'Variant Type', 'Count', 'Total Base Pairs')
-)
-```
-
----
-
-## Variant size and location {.tabset}
-### Summary
+## Variant size and location
+### Summary plot {.no-title}
 Below is a circular plot to visualize the distribution of structural variants 
 across (up to) 30 of the largest contigs. This should help you assess
 the presence/absence of expected variants. Note that this plot does not 
 display overlapping variants of the same type. For more detailed and
 interactive plots, see the **Per-contig** tab. Clicking the plot below
 will expand it.
-```{r echo = FALSE, message = FALSE, warning = FALSE, fig.align='center', out.width= "100%"}
+```{r echo = FALSE, message = FALSE, warning = FALSE}
 circosplot <- function(data, sizes, plottitle){
-circos.clear()
-col_text <- "grey40"
-circos.par("track.height" = 0.8, gap.degree = 3, cell.padding = c(0, 0, 0, 0))
-circos.initialize(
-  factors = sizes$contig,
-  xlim = matrix(c(rep(0, nrow(sizes)), sizes$size), ncol = 2)
-)
-
-# contigs
-circos.track(
-  ylim = c(0, 1),
-  bg.col = "grey90",
-  bg.border = F,
-  track.height = 0.06,
-  panel.fun = function(x, y) {
-    chr = CELL_META$sector.index
-    xlim = CELL_META$xlim
-    ylim = CELL_META$ylim
-    circos.text(
-      mean(xlim),
-      mean(ylim),
-      chr,
-      cex = 0.35,
-      col = col_text,
-      facing="bending.inside",
-      niceFacing = T
-    )
-  }
-)
-
-# x axis
-brk <- seq(0, 10, 0.5) * 10^7
-circos.track(
-  ylim = c(0,1),
-  track.index = get.current.track.index(),
-  bg.border = F,
-  panel.fun = function(x, y) {
-    circos.axis(
-      h = "top",
-      major.at = brk,
-      labels = round(brk/10^6, 1),
-      labels.cex = 0.4,
-      col = col_text,
-      labels.col = col_text,
-      lwd = 0.7,
-      labels.facing = "clockwise"
-    )
-  }
-)
-
-# INV
-circos.genomicTrack(
-  ylim = c(0,1),
-  data = data[data$SV == "inversion",],
-  track.height = 0.2,
-  bg.border = F,
-  panel.fun = function(region, value, ...) {
-    circos.genomicRect(region, value, ybottom = 0, ytop = 1, col = "#4a9fea", border = "#4a9fea")
-  }
-)
-
-
-circos.genomicTrack(
-  ylim = c(0,1),
-  data = data[data$SV == "deletion",],
-  track.height = 0.2,
-  bg.border = F,
-  panel.fun = function(region, value, ...) {
-    circos.genomicRect(region, value, ybottom = 0, ytop = 1, col = "#5a8c84", border = "#5a8c84")
-  }
-)
-
-circos.genomicTrack(
-  ylim = c(0,1),
-  data = data[data$SV == "duplication",],
-  track.height = 0.2,
-  bg.border = F,
-  panel.fun = function(region, value, ...) {
-    circos.genomicRect(region, value, ybottom = 0, ytop = 1, col = "#ffd75f", border =  "#ffd75f")
-  }
-)
-title(plottitle)
-
-lgd <- Legend(
-  at = c("Inversion", "Deletion", "Duplication"),
-  type = "grid",
-  legend_gp = gpar(fill = c("#4a9fea", "#5a8c84", "#ffd75f")),
-  title_position = "topleft",
-  title = "Variant Type"
-)
-
-draw(lgd, x = unit(0.95, "npc"), just = c("right", "bottom"))
+  circos.clear()
+  col_text <- "grey40"
+  circos.par("track.height" = 0.8, gap.degree = 3, cell.padding = c(0, 0, 0, 0))
+  circos.initialize(
+    factors = sizes$contig,
+    xlim = matrix(c(rep(0, nrow(sizes)), sizes$size), ncol = 2)
+  )
+  
+  # contigs
+  circos.track(
+    ylim = c(0, 1),
+    bg.col = "grey90",
+    bg.border = F,
+    track.height = 0.06,
+    panel.fun = function(x, y) {
+      chr = CELL_META$sector.index
+      xlim = CELL_META$xlim
+      ylim = CELL_META$ylim
+      circos.text(
+        mean(xlim),
+        mean(ylim),
+        chr,
+        cex = 0.35,
+        col = col_text,
+        facing="bending.inside",
+        niceFacing = T
+      )
+    }
+  )
+  
+  # x axis
+  brk <- seq(0, 10, 0.5) * 10^7
+  circos.track(
+    ylim = c(0,1),
+    track.index = get.current.track.index(),
+    bg.border = F,
+    panel.fun = function(x, y) {
+      circos.axis(
+        h = "top",
+        major.at = brk,
+        labels = round(brk/10^6, 1),
+        labels.cex = 0.4,
+        col = col_text,
+        labels.col = col_text,
+        lwd = 0.7,
+        labels.facing = "clockwise"
+      )
+    }
+  )
+  
+  # INV
+  circos.genomicTrack(
+    ylim = c(0,1),
+    data = data[data$SV == "inversion",],
+    track.height = 0.2,
+    bg.border = F,
+    panel.fun = function(region, value, ...) {
+      circos.genomicRect(region, value, ybottom = 0, ytop = 1, col = "#4a9fea", border = "#4a9fea")
+    }
+  )
+  
+  
+  circos.genomicTrack(
+    ylim = c(0,1),
+    data = data[data$SV == "deletion",],
+    track.height = 0.2,
+    bg.border = F,
+    panel.fun = function(region, value, ...) {
+      circos.genomicRect(region, value, ybottom = 0, ytop = 1, col = "#5a8c84", border = "#5a8c84")
+    }
+  )
+  
+  circos.genomicTrack(
+    ylim = c(0,1),
+    data = data[data$SV == "duplication",],
+    track.height = 0.2,
+    bg.border = F,
+    panel.fun = function(region, value, ...) {
+      circos.genomicRect(region, value, ybottom = 0, ytop = 1, col = "#ffd75f", border =  "#ffd75f")
+    }
+  )
+  title(plottitle)
+  
+  lgd <- Legend(
+    at = c("Inversion", "Deletion", "Duplication"),
+    type = "grid",
+    legend_gp = gpar(fill = c("#4a9fea", "#5a8c84", "#ffd75f")),
+    title_position = "topleft",
+    title = "Variant Type"
+  )
+  
+  draw(lgd, x = unit(0.95, "npc"), just = c("right", "bottom"))
 }
 ```
 
-```{r echo=FALSE, fig.align='center', message=FALSE, warning=FALSE, out.width="100%"}
+```{r echo=FALSE, fig.align='center', message=FALSE, warning=FALSE, out.width="100%", dev = "jpeg"}
 circosplot(sv, fa.sizes, samplename)
 ```
 
-### Per-contig
+## Per contig plots
+### Per-contig {.no-title}
 Below are a series of plots to help you assess what structural variants were detected by NAIBR. These plots are interactive,
 allowing you to hover over a variant to provide additional information, including the genomic interval in which it occurs and the
 number of haplotag barcodes supporting the variant.
@@ -301,7 +319,7 @@ col.palette <- c(
   "deletion" = "#5a8c84",
   "duplication" = "#ffd75f",
   "inversion" = "#4a9fea"
-  )
+)
 ```
 
 ```{r echo = FALSE, out.width = '100%', warning=FALSE}
@@ -343,8 +361,12 @@ for (i in 1:nrow(fa.sizes)) {
     xlim(1, fa.sizes$size[i]) +
     coord_cartesian(xlim = c(0, fa.sizes$size[i] + 1), expand = F) +
     xlab("Position (bp)") +
-    labs(fill = "SV type", color = "SV type") +
-    ggtitle(fa.sizes$contig[i])
+    labs(
+      title = fa.sizes$contig[i],
+      fill = "SV type",
+      color = "SV type"
+    )
+
   l[[i]] <- ggplotly(plt, tooltip = "text")
 }
 l

@@ -81,7 +81,7 @@ rule linkFragments:
     params:
         d = molecule_distance
     shell:
-        "LinkFragments.py  --bam {input.bam} --VCF {input.vcf} --fragments {input.fragments} --out {output} -d {params} > {log} 2>&1"
+        "LinkFragments.py --bam {input.bam} --VCF {input.vcf} --fragments {input.fragments} --out {output} -d {params} > {log} 2>&1"
 
 rule phaseBlocks:
     input:
@@ -250,6 +250,7 @@ rule log_runtime:
 
 
 rule indexFinal:
+    default_target: True
     input:
         outdir + "/variants.phased.bcf",
         outdir + "/logs/harpy.phase.log",
@@ -258,5 +259,4 @@ rule indexFinal:
         "Benchmark/Phase/finalindex.txt"
     message:
         "Phasing is complete!"
-    default_target: True
 

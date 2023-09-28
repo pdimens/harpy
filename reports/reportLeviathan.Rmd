@@ -1,15 +1,13 @@
 ---
 title: "Leviathan Variant Calling Per-Sample Summary"
-author:
-    - "Created using HARPY"
 date: "`r format(Sys.time(), '%d %B, %Y')`"
 output:
-  html_document:
-    highlight: tango
-    number_sections: no
-    theme: cosmo
-    df_print: kable
-    toc: no
+  flexdashboard::flex_dashboard:
+    theme: lumen
+    orientation: rows
+    vertical_layout: scroll
+    horizontal_layout: fill
+    favicon: "https://raw.githubusercontent.com/pdimens/harpy/docs/static/favicon.png"
 ---
 
 Below is a series of tables and plots detailing the structural variants
@@ -29,6 +27,7 @@ data.frame(
 ```
 
 ```{r load environment, echo=FALSE, message=FALSE, warning=FALSE}
+library(flexdashboard)
 library(dplyr)
 library(ggplot2)
 library(magrittr)
@@ -39,7 +38,7 @@ library(ComplexHeatmap)
 ```
 
 ```{css zoom-lib-src, echo = FALSE, message = FALSE, warning = FALSE}
-script src = "https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"
+script src = "https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"
 ```
 ```{js zoom-jquery, echo = FALSE, message = FALSE, warning = FALSE}
  $(document).ready(function() {
@@ -69,11 +68,7 @@ colnames(fa.sizes) <- c("contig", "size")
 fa.sizes <- fa.sizes[1:min(nrow(fa.sizes), 30), ]
 ```
 
-
-## Various Stats {.tabset}
-### all variants
-This table details all the variants LEVIATHAN detected and the quantity/quality of evidence for those detections.
-```{r echo = FALSE, warnings = FALSE, message = FALSE, results = 'asis'}
+```{r}
 statsfile <- snakemake@input[["statsfile"]]
 #statsfile <- "/home/pdimens/Omega/Cornell/dmel/leviathan.stats"
 sv <- read.table(statsfile, header = T)
@@ -81,18 +76,30 @@ if (nrow(sv) == 0) {
   cat(paste0("There are no variants in the file ", "`", bcf, "`"))
   knitr::knit_exit()
 }
+```
 
+## Various Stats Headers
+### summary info {.no-title}
+Below are three tables separated into tabs. The first table details all the variants
+LEVIATHAN detected and the quantity/quality of evidence for those detections.
+The second table shows the overall statistics for detected structural variants. 
+The last table details each type of structural variant for every contig. 
+
+## Various Stats Tables {.tabset}
+### all variants
+```{r echo = FALSE, warnings = FALSE, message = FALSE, results = 'asis'}
 DT::datatable(
   sv,
   rownames = F,
   filter = "top",
   extensions = 'Buttons',
-  options = list(dom = 'Brtip', buttons = c('csv'), scrollX = TRUE)
+  options = list(dom = 'Brtip', buttons = c('csv'), scrollX = TRUE),
+  autoHideNavigation = T,
+  fillContainer = T
 )
 ```
 
 ### summary info
-This table shows the overall statistics for detected structural variants.
 ```{r echo = FALSE, message = FALSE}
 sv$length <- gsub("\\.", "1", sv$length) %>%  as.numeric()
 
@@ -110,7 +117,6 @@ grpstats %>%
 ```
 
 ### per-contig info
-This table details each type of structural variant for every contig.
 ```{r echo = FALSE, message = FALSE, warning = FALSE}
 grpstats <- sv %>%
   group_by(contig, type) %>%
@@ -121,17 +127,20 @@ DT::datatable(
   rownames = F, 
   filter = "top", 
   extensions = 'Buttons', 
-  options = list(dom = 'Brtip', buttons = c('csv'), scrollX = TRUE)
+  options = list(dom = 'Brtip', buttons = c('csv'), scrollX = TRUE),
+  autoHideNavigation = T,
+  fillContainer = T
 )
 ```
 
----
-
-## SV size and location {.tabset}
-### Summary
+## SV size and location desc
+### Summary desc {.no-title}
 Below is a circular plot to visualize the distribution of SV across (up to) 30 of the largest contigs. This should help you assess
 the presence/absence of expected variants. For more detailed interactive plots, see the **Per-contig** tab. You may click on the plot
 to expand it.
+
+## SV size and location
+### Summary {.no-title}
 ```{r echo = FALSE, message = FALSE, warning = FALSE, fig.align='center', out.width= "100%"}
 circos.clear()
 col_text <- "grey40"
@@ -236,10 +245,15 @@ lgd <- Legend(
 draw(lgd, x = unit(0.97, "npc"), just = c("right", "bottom"))
 ```
 
-### Per-contig
+
+## per contig plot desc
+### per contig desc {.no-title}
 Below are a series of plots to help you assess what structural variants were detected by LEVIATHAN. These plots are interactive,
 allowing you to hover over a variant to provide additional information, including the genomic interval in which it occurs and the
 number of haplotag barcodes supporting the variant.
+
+## per contig plot
+### Per-contig {.no-title}
 ```{r colors, echo = FALSE, warning = FALSE, message = FALSE}
 col.palette <- c(
   "DEL" = "#5a8c84",
@@ -247,7 +261,6 @@ col.palette <- c(
   "INV" = "#4a9fea",
   "BND" = "#df487f"
   )
-
 ```
 
 ```{r echo = FALSE, out.width = '100%', warning=FALSE}

@@ -12,6 +12,8 @@ on:
       - 'test/bam/**'
       - 'utilities/checkBAM.py'
       - 'utilities/checkFASTQ.py'
+      - 'reports/reportPreflightFastq.Rmd'
+      - 'reports/reportPreflightBam.Rmd'
       - '**preflight.yml'
 
   pull_request:
@@ -25,6 +27,8 @@ on:
       - 'test/bam/**'
       - 'utilities/checkBAM.py'
       - 'utilities/checkFASTQ.py'
+      - 'reports/reportPreflightFastq.Rmd'
+      - 'reports/reportPreflightBam.Rmd'
       - '**preflight.yml'
 
 env:

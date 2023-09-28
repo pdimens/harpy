@@ -26,34 +26,6 @@ def get_fq2(wildcards):
     lst = sorted(glob.glob(seq_dir + "/" + wildcards.sample + "*"))
     return lst[1]
 
-rule all:
-    input: 
-        bam = expand(outdir + "/align/{sample}.bam", sample = samplenames),
-        bai = expand(outdir + "/align/{sample}.bam.bai", sample = samplenames),
-        covreport = expand(outdir + "/stats/coverage/{sample}.cov.html", sample = samplenames),
-        bxreport = expand(outdir + "/stats/BXstats/{sample}.bxstats.html", sample = samplenames),
-        statsreport = outdir + "/stats/bwa.stats.html",
-        runlog = outdir + "/logs/harpy.align.log"
-    message:
-        "Finished aligning! Moving alignment files into the base Align/bwa directory."
-    default_target: True
-    run:
-        for i,j in zip(input.bam, input.bai):
-            if not os.path.islink(i):
-                # yank out just the filename
-                fname = os.path.basename(i)
-                # move file into base path
-                os.rename(i, f"{outdir}/{fname}")
-                # preserve "original" in align folder as symlink
-                target = Path(f"{outdir}/{fname}").absolute()
-                _ = Path(i).symlink_to(target)
-            if not os.path.islink(j):
-                # same for .bai file
-                fnamebai = os.path.basename(j)
-                os.rename(j, f"{outdir}/{fnamebai}")
-                targetbai = Path(f"{outdir}/{fnamebai}").absolute()
-                _ = Path(j).symlink_to(targetbai)
-
 rule genome_link:
     input:
         genomefile
@@ -185,8 +157,8 @@ rule mark_duplicates:
     input:
         lambda wc: outdir + "/{sample}/{sample}.sort.bam"
     output:
-        bam = outdir + "/align/{sample}.bam",
-        bai = outdir + "/align/{sample}.bam.bai"
+        bam = temp(outdir + "/{sample}/markdup/{sample}.markdup.bam"),
+        bai = temp(outdir + "/{sample}/markdup/{sample}.markdup.bam.bai")
     log:
         outdir + "/logs/makrduplicates/{sample}.markdup.log"
     message:
@@ -197,6 +169,20 @@ rule mark_duplicates:
         4
     shell:
         "sambamba markdup -t {threads} -l 0 {input} {output.bam} 2> {log}"
+
+rule assign_molecules:
+    input:
+        bam = outdir + "/{sample}/markdup/{sample}.markdup.bam",
+        bai = outdir + "/{sample}/markdup/{sample}.markdup.bam.bai"
+    output:
+        bam = outdir + "/align/{sample}.bam",
+        bai = outdir + "/align/{sample}.bam.bai"
+    message:
+        "Assigning barcodes to molecules: {wildcards.sample}"
+    params:
+        molecule_distance
+    shell:
+        "assignMI.py -c {params} -i {input.bam} -o {output.bam}"
 
 rule alignment_coverage:
     input: 
@@ -218,7 +204,6 @@ rule coverage_report:
         outdir + "/stats/coverage/{sample}.cov.html"
     message:
         "Summarizing alignment coverage: {wildcards.sample}"
-
     script:
         "reportBwaGencov.Rmd"
     
@@ -247,7 +232,9 @@ rule samtools_reports:
     message:
         "Summarizing samtools stats and flagstat"
     shell:
-        "multiqc Align/bwa/stats/samtools_stats Align/bwa/stats/samtools_flagstat --force --quiet --no-data-dir --filename {output} 2> /dev/null"
+        """
+        multiqc Align/bwa/stats/samtools_stats Align/bwa/stats/samtools_flagstat --force --quiet --title "Basic Alignment Statistics" --comment "This report aggregates samtools stats and samtools flagstats results for all alignments." --no-data-dir --filename {output} 2> /dev/null
+        """
 
 rule log_runtime:
     output:
@@ -270,3 +257,31 @@ rule log_runtime:
             _ = f.write("    sambamba markdup -l 0\n")
             _ = f.write("Overlaps were clipped using:\n")
             _ = f.write("    bam clipOverlap --in file.bam --out outfile.bam --stats --noPhoneHome\n")
+
+rule movelinks:
+    default_target: True
+    input: 
+        bam = expand(outdir + "/align/{sample}.bam", sample = samplenames),
+        bai = expand(outdir + "/align/{sample}.bam.bai", sample = samplenames),
+        covreport = expand(outdir + "/stats/coverage/{sample}.cov.html", sample = samplenames),
+        bxreport = expand(outdir + "/stats/BXstats/{sample}.bxstats.html", sample = samplenames),
+        statsreport = outdir + "/stats/bwa.stats.html",
+        runlog = outdir + "/logs/harpy.align.log"
+    message:
+        "Finished aligning! Moving alignment files into the base Align/bwa directory."
+    run:
+        for i,j in zip(input.bam, input.bai):
+            if not os.path.islink(i):
+                # yank out just the filename
+                fname = os.path.basename(i)
+                # move file into base path
+                os.rename(i, f"{outdir}/{fname}")
+                # preserve "original" in align folder as symlink
+                target = Path(f"{outdir}/{fname}").absolute()
+                _ = Path(i).symlink_to(target)
+            if not os.path.islink(j):
+                # same for .bai file
+                fnamebai = os.path.basename(j)
+                os.rename(j, f"{outdir}/{fnamebai}")
+                targetbai = Path(f"{outdir}/{fnamebai}").absolute()
+                _ = Path(j).symlink_to(targetbai)

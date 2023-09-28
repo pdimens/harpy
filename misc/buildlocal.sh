@@ -7,11 +7,9 @@ if [ -z "$CONDA_PREFIX" ]; then
 fi
 
 mkdir -p ${CONDA_PREFIX}/bin
-#cp -n misc/ema-h ${CONDA_PREFIX}/bin
 
-# Harpy executable
-#cp harpy ${CONDA_PREFIX}/bin/
-pip install .
+# install harpy proper
+pip install . --ignore-installed --no-deps
 
 # rules
 cp -f rules/*.smk ${CONDA_PREFIX}/bin/

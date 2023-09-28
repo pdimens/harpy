@@ -40,7 +40,6 @@ rule checkBam:
         "checkBAM.py {input.bam} > {output}"
 
 rule mergeChecks:
-    default_target: True
     input:
         expand(out_dir + "{sample}.log", sample = samplenames)
     output:
@@ -51,8 +50,18 @@ rule mergeChecks:
     shell:
         """
         cat {input} | sort -k1 > {output.tmp} 
-        echo -e "file\tnameMismatch\talignments\tnoBX\tbadBX\n$(cat {output.tmp})" > {output.final}
+        echo -e "file\tnameMismatch\talignments\tnoMI\tnoBX\tbadBX\tbxNotLast\n$(cat {output.tmp})" > {output.final}
         """
 
-# TODO add rmd report
-#rule createReport:
+rule createReport:
+    default_target: True
+    input:
+        out_dir + "filecheck.bam.tsv"
+    output:
+        out_dir + "filecheck.bam.html"
+    params:
+        seq_dir
+    message:
+        "Producing report"
+    script:
+        "reportPreflightBam.Rmd"

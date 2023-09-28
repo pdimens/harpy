@@ -163,10 +163,10 @@ rule log_runtime:
             _ = f.write(f"    LEVIATHAN -b INPUT -i INPUT.BCI -g GENOME {params}\n")
 
 rule all_bcfs:
+    default_target: True
     input: 
         bcf     = expand(outdir + "/{sample}.bcf", sample = samplenames),
         reports = expand(outdir + "/reports/{sample}.SV.html", sample = samplenames),
         runlog  = outdir + "/logs/harpy.variants.log"
-    default_target: True
     message:
         "Variant calling is complete!"

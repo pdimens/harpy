@@ -169,6 +169,7 @@ rule log_runtime:
             _ = f.write(f"    HAPCUT2 --fragments sample.linked.frags --vcf sample.vcf --out sample.blocks --nf 1 --error_analysis_mode 1 --call_homozygous 1 --outvcf 1 {params[0]} {params[1]}\n")
 
 rule indexFinal:
+    default_target: True
     input:
         bcf      = outdir + "/variants.phased.bcf",
         runlog   = outdir + "/logs/harpy.phase.log",
@@ -179,6 +180,5 @@ rule indexFinal:
         "Benchmark/Phase/finalindex.txt"
     message:
         "Phasing is complete!"
-    default_target: True
     shell: 
         "bcftools index {input.bcf}"

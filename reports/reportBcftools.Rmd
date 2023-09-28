@@ -1,21 +1,17 @@
 ---
 title: "BCFtools Stats Report"
-author:
-    - "Created using HARPY"
-date: "`r format(Sys.time(), '%d %B, %Y')`"
+date: "`r format(Sys.time(), '%m-%d-%y %X')`"
 output:
-  html_document:
-    highlight: tango
-    number_sections: no
-    theme: cosmo
-    df_print: kable
-    toc: yes
-    toc_depth: 2
-    toc_float:
-      collapsed: no
-      smooth_scroll: yes
+  flexdashboard::flex_dashboard:
+    theme: lumen
+    orientation: rows
+    vertical_layout: scroll
+    horizontal_layout: fill
+    favicon: "https://raw.githubusercontent.com/pdimens/harpy/docs/static/favicon.png"
 ---
+
 ```{r load environment, echo=FALSE, message=FALSE, warning=FALSE}
+library(flexdashboard)
 library(ggplot2)
 library(magrittr)
 library(tidyr)
@@ -24,13 +20,14 @@ library(plotly)
 library(RColorBrewer)
 library(scales)
 #dataL <- readLines("~/checkstats.txt")
+#bcf <- "filename.bcf"
 dataL <- readLines(snakemake@input[[1]])
 bcf <- gsub(".stats$", ".bcf", snakemake@input[[1]])
 ```
-### File: `r bcf`
+<h1> `r bcf` </h1>
 
-## General Information
 This reflects the general information stored in the records of `r bcf`.
+
 ```{r General Stats, echo = FALSE, message = FALSE, warning = FALSE}
 .snL <- grepl("^SN", dataL)
 sn <- read.table(text=dataL[.snL], sep = "\t")[,3:4]
@@ -38,14 +35,53 @@ names(sn) <- c("Metric", "Number")
 sn$Metric <- gsub("number of ", "", sn$Metric)
 rownames(sn) <- sn$Metric
 sn <- as.data.frame(t(sn[2]))
-rownames(sn) <- NULL
-sn
+```
+## General Information {data-height=100}
+
+### general-samples
+```{r}
+valueBox(scales::comma(sn[1,1]), caption = "Samples", color = "success")
+```
+### general-records
+```{r}
+valueBox(scales::comma(sn[1,2]), caption = "Records", color = "info")
+```
+### general-snps
+```{r}
+valueBox(scales::comma(sn[1,4]), caption = "SNPs", color = "info")
+```
+### general-mnps
+```{r}
+valueBox(scales::comma(sn[1,5]), caption = "MNPs", color = "info")
+```
+### general-indels
+```{r}
+valueBox(scales::comma(sn[1,6]), caption = "Indels", color = "info")
+```
+### general-multisites
+```{r}
+valueBox(scales::comma(sn[1,8]), caption = "Multiallelic Sites", color = "info")
+```
+### general-multisnps
+```{r}
+valueBox(scales::comma(sn[1,9]), caption = "Multiallelic SNPs", color = "info")
+```
+### general-noalts
+```{r}
+valueBox(scales::comma(sn[1,3]), caption = "No-ALTs", color = "info")
+```
+### general-other
+```{r}
+valueBox(scales::comma(sn[1,7]), caption = "Others", color = "info")
 ```
 
-## Individual Statistics {.tabset}
-These statistics correspond to the `r sn$samples[1]` samples in `r bcf`.
+## Ind Statistics Desc
+### Ind Desc {.no-title}
+<h2> Individual Statistics </h2>
+These are per-locus statistics, which correspond to the Per-Sample Counts (`PSC`) calculations of `bcftools stats`. The table reflects the data visualized in the plot tab.
 
-### plot
+## Individual Statistics  {.tabset}
+### Individual Statistics
 ```{r Individual plot, echo=FALSE, message=FALSE, warning=FALSE, paged.print=TRUE, out.width="100%"}
 .pscL <- grepl("^PSC", dataL)
 psc <- read.table(text=dataL[.pscL])[ ,3:14]
@@ -66,15 +102,98 @@ pscplot <- ggplot(data = tidy_psc, mapping = aes(x = Count, y = Sample, color = 
 ggplotly(pscplot)
 ```
 
-### table
-```{r Individual table, echo=FALSE, message=FALSE, warning=FALSE, paged.print=TRUE, out.width="100%"}
+### Individual Data
+```{r Individual table, echo=FALSE, message=FALSE, warning=FALSE}
 DT::datatable(psc, rownames = F, filter = "top", extensions = 'Buttons', options = list(dom = 'Brtip', buttons = c('csv'), scrollX = TRUE))
 ```
 
-## Depth Statistics {.tabset}
-These are per-locus statistics, which correspond to the Depth (`DP`) calculations of `bcftools stats`
+## Quality Statistics Desc
+### Desc {.no-title}
+<h2> Quality Statistics </h2>
+These are per-locus statistics, which correspond to the Quality (`QUAL`) statistics of `bcftools stats`. 
+Each quality score is has a semi-open bin width of 10, where `0` would be considered "a QUAL score
+greater than or equal to `0` and less than `10`".
 
-### plot
+## Quality Statistics
+```{r qual data, echo=FALSE, message=FALSE, warning=FALSE}
+.qual <- grepl("^QUAL", dataL)
+if(sum(.qual) == 0){
+  do_qual <- FALSE
+  cat(paste0("No QUAL section in", snakemake@input[[1]], " found\n"))
+} else {
+  do_qual <- TRUE
+}
+if(do_qual){
+  qual <- read.table(text=dataL[.qual])[ , c(3,4,7)]
+  names(qual) <- c("QualityScore", "SNPs", "Indels")
+  qual[names(qual)] <- sapply(qual[names(qual)],as.numeric)
+}
+```
+```{r resizehist, echo=F}
+# function to merge QUAL bins into a width of 10
+mergebins <- function(x){
+  bins <- seq(min(x[,1]), max(x[,1]), 10)
+  lastbin <- max(x[,1])
+  bins <- c(bins, lastbin)
+  dict <- vector(mode="list", length=length(bins))
+  names(dict) <- as.character(bins)
+  for(i in 1:nrow(x)){
+    databin <- x[i,1]
+    key <- max(which(databin >= bins))
+    dict[[key]] <- c(dict[[key]], x[i,2])
+  }
+  dict <- lapply(dict, sum)
+  df <- as.data.frame(t(as.data.frame(dict)))
+  df$V2 <- as.integer(gsub("X", "", row.names(df)))
+
+  df <- df[,c(2,1)]
+  names(df) <- names(x)
+  row.names(df) <- NULL
+  return(df)
+}
+
+```
+### SNP Quality {.no-title}
+```{r snpqual plot, echo=FALSE, message=FALSE, warning=FALSE}
+if(do_qual){
+qualsnpplot <- ggplot(data = mergebins(qual[,-3]), mapping = aes(x = QualityScore, y = SNPs)) +
+  geom_col(fill = "#8fbbbc") +
+  scale_y_continuous(labels = scales::comma) +
+  scale_x_continuous(labels = scales::comma) +
+  labs(title = "SNP Genotype Quality") +
+  ylab("Count") +
+  theme_minimal() +
+  theme(panel.grid.minor.y = element_blank())
+
+ggplotly(qualsnpplot)
+} else {
+  cat(paste0("No QUAL section in", snakemake@input[[1]], " found\n"))
+}
+```
+
+### Indel Quality {.no-title}
+```{r indelqual plot, echo=FALSE, message=FALSE, warning=FALSE}
+qualindelplot <- ggplot(data = mergebins(qual[,-2]), mapping = aes(x = QualityScore, y = Indels)) +
+  geom_col(fill = "#9393d2") +
+  scale_y_continuous(labels = scales::comma) +
+  scale_x_continuous(labels = scales::comma) +
+  labs(title = "Indel Genotype Quality") +
+  ylab("Count") +
+  theme_minimal() +
+  theme(panel.grid.minor.y = element_blank())
+
+ggplotly(qualindelplot)
+```
+
+## Depth Desc
+### DepthDesc {.no-title}
+<h2> Depth Statistics </h2>
+These are per-locus statistics, which correspond to the Depth (`DP`) calculations of `bcftools stats`
+The table reflects the data visualized in the plot tab.
+
+## Depth Statistics
+
+### Depth Statistics {.no-title}
 ```{r depth plot, echo=FALSE, message=FALSE, warning=FALSE, paged.print=TRUE, out.width="100%"}
 .dpL <- grepl("^DP", dataL)
 if(sum(.dpL) == 0){
@@ -83,6 +202,8 @@ if(sum(.dpL) == 0){
   dp <- read.table(text=dataL[.dpL])[ , 3:7]
   names(dp) <- c("Bin", "Genotypes", "PercentGenotypes", "NumberSites", "PercentSites")
   dp$Bin <- as.numeric(dp$Bin)
+  dp$PercentGenotypes <- round(dp$PercentGenotypes, digits = 3)
+  dp$PercentSites <- round(dp$PercentSites, digits = 3)
   dpplot <- ggplot(data = dp, mapping = aes(x = Bin, y = NumberSites)) +
     geom_bar(stat = "identity", color = "#F28500", fill = "#F28500") +
     scale_y_continuous(n.breaks=10) +
@@ -95,7 +216,8 @@ if(sum(.dpL) == 0){
 }
 ```
 
-### table
+### Depth Data  {data-width=350 .no-title}
+
 ```{r depth table, echo=FALSE, message=FALSE, warning=FALSE, paged.print=TRUE, out.width="100%"}
 if(sum(.dpL) == 0){
   cat(paste0("No DP section in", snakemake@input[[1]], " found\n"))
@@ -111,9 +233,14 @@ if(sum(.dpL) == 0){
 }
 ```
 
-## Insertions and Deletions
+## Indels
+### indelDesc {.no-title}
+<h2> Insertions and Deletions </h2>
 Below is the distribution of insertions and deletions based on length and frequency. The deletion
-length is presented here as negative values for visual clarity. 
+length is presented here as negative values for visual clarity.
+
+## Insertions and Deletions
+### Insertions and Deletions {.no-title}
 ```{r Indel Stats, echo=FALSE, message=FALSE, warning=FALSE, paged.print=TRUE, out.width="100%"}
 .iddL <- grepl("^IDD", dataL)
 if(sum(.iddL) == 0){

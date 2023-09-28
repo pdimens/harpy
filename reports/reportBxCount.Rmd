@@ -1,18 +1,16 @@
 ---
-title: "BX Bardcode Summary"
-author:
-    - "Created using HARPY"
-date: "`r format(Sys.time(), '%d %B, %Y')`"
+title: "Haplotag QC Bardcode Summary"
+date: "`r format(Sys.time(), '%m-%d-%y %X')`"
 output:
-  html_document:
-    highlight: tango
-    number_sections: no
-    theme: cosmo
-    df_print: kable
-    toc: no
+  flexdashboard::flex_dashboard:
+    theme: lumen
+    orientation: rows
+    vertical_layout: scroll
+    favicon: "https://raw.githubusercontent.com/pdimens/harpy/docs/static/favicon.png"
 ---
-  
+
 ```{r echo = FALSE, message = FALSE}
+library(flexdashboard)
 library(dplyr)
 library(tidyr)
 library(ggplot2)
@@ -21,32 +19,34 @@ library(magrittr)
 library(DT)
 library(plotly)
 ```
-## Barcode Validation {.tabset}
-This report details the counts of valid and invalid haplotag barcodes in the sample read headers.
-The correct haplotag format is `BX:Z:AXXCXXBXXDXX`, where there is a whitespace/tab before `BX:Z:` 
-and `XX` are 2-digit numbers between `00` and `96`. A valid FASTQ read header would then look like:
-```
+
+This report details the counts of valid and invalid haplotag barcodes in the 
+sample read headers. The correct haplotag format is `BX:Z:AXXCXXBXXDXX`, where 
+there is a whitespace/tab before `BX:Z:` and `XX` are 2-digit numbers between
+`00` and `96`. A valid FASTQ read header would then look like:
+
+```         
 @A00814:267:HTMH3DRXX:2:1101:4580:1000 BX:Z:A02C01B11D46        RX:Z:GAAACGACCAACA+CGAACACGTTAGC   QX:Z:F,FFFFFFFFFFF+FF,FFF:FFFFFF
 ```
-Notably, only the sequence ID (`@...`) and `BX:Z:` tag are required. In the example above, there are additional tags 
-(`RX:Z:` and `QX:Z:`) which arent used by Harpy, but they conform to the 
-[SAM comment spec (section 1.5)](https://samtools.github.io/hts-specs/SAMv1.pdf) of `TAG:TYPE:VALUE`. The takeaway 
-is that the `BX:Z` tag can be anywhere in the read header after the sequence ID as long as any tags after it conform to the SAM spec `TAG:TYPE:VALUE`. 
 
-### Table
-Below is a table listing all the samples Harpy processed and their associated barcode statistics as
-determined by the reads in the **forward read only**. If `BarcodeTotal` equals `0` for some reason, then there may be an issue
-with the format of your FASTQ headers.
+Notably, only the sequence ID (`@...`) and `BX:Z:` tag are required. 
+In the example above, there are additional tags (`RX:Z:` and `QX:Z:`) 
+which arent used by Harpy, but they conform to the 
+[SAM comment spec (section 1.5)](https://samtools.github.io/hts-specs/SAMv1.pdf) 
+of `TAG:TYPE:VALUE`. The takeaway is that the `BX:Z` tag can be anywhere in the 
+read header after the sequence ID as long as any tags after it conform to the 
+SAM spec `TAG:TYPE:VALUE`.
 
-```{r echo = FALSE, message = FALSE, warning = FALSE}
+## genstats {data-height=100}
+```{r instantiate_df, echo = FALSE, message = FALSE, warning = FALSE}
 BXstats <- data.frame(
   Sample = character(),
   TotalReads = integer(),
-  ReadsIgnored = integer(),
-  BarcodeValid = integer(),
-  BarcodeTotal = integer(),
-  PercentValid = numeric(),
-  PercentIgnored = numeric()
+  TotalBarcodes = integer(),
+  ValidBarcodes = integer(),
+  ValidPercent = numeric(),
+  InvalidBarcodes = integer(),
+  InvalidPercent = numeric()
 )
 
 invalids <- data.frame(
@@ -56,8 +56,10 @@ invalids <- data.frame(
   B = integer(),
   D = integer()
 )
+```
 
-#for (i in c("~/stats.1.count.log", "~/stats.2.count.log")) {
+```{r fill_df, echo = FALSE, message = FALSE, warning = FALSE}
+#for (i in list.files("~/Documents/harpy/test/QC/logs/bxcount/", ".count.log", full.names = TRUE)) {
 for (i in snakemake@input[["countlog"]]) {
   samplename <- gsub(".count.log", "", basename(i))
   s_df <- read.table(i, header = F)
@@ -69,8 +71,8 @@ for (i in snakemake@input[["countlog"]]) {
     bc_percent <- 0
     ig_percent <- 0
   } else {
-    bc_percent <- trunc((bc_ok / bc_total) * 10000) / 100
-    ig_percent <- trunc((bc_invalid / bc_total) * 10000) / 100
+    bc_percent <- round((bc_ok / bc_total) * 100, digits = 3)
+    ig_percent <- round((bc_invalid / bc_total) * 100, digits = 3)
   }
 
   BXstats <- rbind(
@@ -78,17 +80,18 @@ for (i in snakemake@input[["countlog"]]) {
     data.frame(
       Sample = samplename,
       TotalReads = total,
-      BarcodePresent = bc_total,
-      BarcodeValid = bc_ok,
-      PercentValid = bc_percent,
-      BarcodeInvalid = bc_invalid,
-      PercentInvalid = ig_percent
+      TotalBarcodes = bc_total,
+      ValidBarcodes = bc_ok,
+      ValidPercent = bc_percent,
+      InvalidBarcodes = bc_invalid,
+      InvalidPercent = ig_percent
       )
   )
   invalids <- rbind(
     invalids,
     data.frame(
       Sample = samplename,
+      TotalBarcodes = bc_total,
       A = s_df$V2[5],
       C = s_df$V2[6],
       B = s_df$V2[7],
@@ -96,6 +99,54 @@ for (i in snakemake@input[["countlog"]]) {
     )
   )
 }
+```
+
+
+### filerow {.no-title}
+```{r}
+valueBox(scales::comma(nrow(BXstats)), caption = "Samples", color = "success")
+```
+### mininv {.no-title}
+```{r}
+valueBox(min(BXstats$ValidPercent), caption = "Minimum % Valid", color = "info")
+```
+### maxinv {.no-title}
+```{r}
+valueBox(max(BXstats$ValidPercent), caption = "Maximum % Valid", color = "info")
+```
+
+### minign {.no-title}
+```{r}
+absent <- BXstats$TotalReads-BXstats$TotalBarcodes
+valueBox(min(absent), caption = "Minimum Absent Barcodes", color = "info")
+```
+### maxign {.no-title}
+```{r}
+valueBox(max(absent), caption = "Maximum Absent Barcodes", color = "info")
+```
+
+## persamp
+### Persamp desc {.no-title}
+<h3> General Per-Sample Haplotag Barcode Statistics </h3>
+
+Below is a table listing all the samples Harpy processed and their associated
+haplotag barcode statistics as determined by the reads in the **forward read only**.
+If for some reason `TotalBarcodes` equals `0`, then there may be an issue with
+the format of your FASTQ headers.
+
+## persamp viz
+```{r echo = FALSE, message = FALSE, warning = FALSE}
+plotdata <- BXstats %>%
+  select(Sample, ValidBarcodes, InvalidBarcodes) %>% 
+  rename(Valid = ValidBarcodes, Invalid = InvalidBarcodes)
+
+percdata <- BXstats %>%
+  select(Sample, ValidPercent, InvalidPercent) %>% 
+  rename(Valid= ValidPercent, Invalid = InvalidPercent)
+```
+
+### Table {.no-title}
+```{r}
 DT::datatable(
   BXstats,
   rownames = FALSE,
@@ -105,71 +156,119 @@ DT::datatable(
     dom = "Brtip",
     buttons = c("csv"),
     scrollX = TRUE
-  )
+  ),
+  caption = "Overall barcode quality per sample",
+  autoHideNavigation = T,
+  fillContainer = T
 )
 ```
 
-### Invalid by Segment
-This table details the count of invalid beadtag segments across all **forward reads** within a sample.
-This can help you diagnose if any beadtag segments in your experimental design have a higher incidence
-of failure than others.
+
+## table desc
+### inv desc {.no-title}
+<h3> Percent Beadtag Segment Invalidations </h3>
+Below is information describing segment invalidations across all **forward reads**
+within samples. The term "segments" refers to the combinatorial `Axx`, `Bxx`, 
+`Cxx`, `Dxx` segments that make up a complete `AxxCxxBxxDxx` haplotag barcode.
+
+## segment dist desc
+### dist desc {.no-title}
+This plot shows the distribution of percent invalid beadtag segments
+across all samples. This should help you assess whether some segments have a 
+higher incidence of failure than others. The darker horizontal lines within each
+violin plot indicate the 25th, 50th (median), 75th percentiles in ascending order
+from the bottom of the plot. The grey point in each violin plot is the mean and
+the vertical grey lines emerging from it are the standard deviation. 
+
+### dist desc {.no-title}
+The table below details the number of invalid beadtag segments as a 
+percent of total beadtag barcodes within a sample.
+It's likely that percentages will have greater diagnostic value than the total counts
+because the number of reads and barcodes will vary between individual samples.
+These data are visualized in the scatterplot below this section.
+
+## Segment
+```{r echo = FALSE, message = FALSE, warning = FALSE}
+invalids_percent <- data.frame(
+  Sample = invalids$Sample,
+  A = round(invalids$A/invalids$TotalBarcodes * 100, digits = 3),
+  C = round(invalids$C/invalids$TotalBarcodes * 100, digits = 3),
+  B = round(invalids$B/invalids$TotalBarcodes * 100, digits = 3),
+  D = round(invalids$D/invalids$TotalBarcodes * 100, digits = 3)
+)
+invalids_long <- pivot_longer(invalids_percent, -1, names_to = "Segment", values_to = "Count")
+```
+
+### segment dist {.no-title}
+```{r}
+ggplot(invalids_long, aes(x = Segment, y = Count, fill = Segment, color = Segment)) +
+  geom_violin(trim = FALSE, alpha = 0.5, draw_quantiles = c(0.25, 0.5, 0.75)) +
+  stat_summary(fun.data=mean_sdl, geom="pointrange", color="grey20", alpha = 0.5) +
+  scale_y_continuous(labels = scales::comma) +
+  scale_fill_manual(values = c("#4a9fea", "#5a8c84", "#ffd75f", "#df487f")) +
+  scale_color_manual(values = c("#4a9fea", "#5a8c84", "#ffd75f", "#df487f")) +
+  theme_minimal() +
+  theme(legend.position = "none", panel.grid.major.x = element_blank()) +
+  labs(title = "Distribution of Percent Invalid Beadtag Segments")
+```
+
+### table per thousand {.no-title}
 ```{r echo = FALSE, message = FALSE, warning = FALSE}
 DT::datatable(
-  invalids,
+  invalids_percent,
   rownames = FALSE,
   extensions = "Buttons",
   options = list(
     dom = "Brtip",
     buttons = c("csv"),
     scrollX = TRUE
-  )
+  ),
+  colnames = c("Sample","A", "C","B","D"),
+  caption = "Invalid segments relative to total barcodes",
+  autoHideNavigation = T,
+  fillContainer = T
 )
 ```
+## Segment viz description
+### indiv desc {.no-title}
+<h3> Per-Sample Barcode and Segment Invalidations </h3>
+Below are two visualizations showing the occurrence of invalid haplotag barcodes.
+The plot on the left shows this as the count of valid vs. invalid barcodes 
+per individual, whereas the plot on the right shows this in finer detail as
+the percent invalid beadtag segments per individual. Together, these two plots
+should help you assess if any individuals have an unusually high amount of barcode
+invalidations and if any particular beadtag segments appear to be more prone to
+failure than others.
 
-### Per Sample Plot
-Below is a plot summarizing the number of valid vs invalid barcodes per sample.
-
-```{r echo = FALSE, message = FALSE, warning = FALSE}
-plotdata <- BXstats %>%
-  select(Sample, BarcodeValid, BarcodeInvalid) %>% 
-  rename(Valid = BarcodeValid, Invalid = BarcodeInvalid)
-
-percdata <- BXstats %>%
-  select(Sample, PercentValid, PercentInvalid) %>% 
-  rename(Valid= PercentValid, Invalid = PercentInvalid)
-
-pltheight <- max(50 * length(unique(plotdata$Sample)), 300)
+```{r}
+pltheight <- 150 + (15 * nrow(invalids))
+frameheight <- 1.2 + (0.166 * nrow(invalids))
 ```
 
-```{r echo = FALSE, message = FALSE, warning = FALSE, out.width = '100%'}
+## segment plots {data-height=pltheight}
+### general {.no-title}
+```{r echo = FALSE, message = FALSE, warning = FALSE, fig.height = frameheight, out.width = '100%'}
 p <-  plotdata %>%
-  pivot_longer(-Sample, names_to = "BarcodeStatus", values_to = "Count") %>%
-  ggplot(aes(y = Sample, x = Count, fill = BarcodeStatus)) +
+  pivot_longer(-Sample, names_to = "Barcode", values_to = "Count") %>%
+  ggplot(aes(y = Sample, x = Count, fill = Barcode)) +
     geom_col() +
     theme_minimal() +
     theme(panel.grid.major.y = element_blank(), axis.title.y = element_blank()) +
     scale_fill_manual(values = c(Valid = "#afd5e7", Invalid = "#c02554")) +
     scale_x_continuous(labels = scales::comma) +
-    labs(title = "Summary of Valid Barcodes")
+    labs(title = "Barcode Count and Validity")
 
 ggplotly(p, height = pltheight)
 ```
-
-### % Per Sample Plot
-Below is a plot summarizing the number of valid vs invalid barcodes per sample as a percentage
-of the total reads for that sample.
-
-```{r echo = FALSE, message = FALSE, warning = FALSE, out.width = '100%'}
-pc <- percdata %>%
-  pivot_longer(-Sample, names_to = "BarcodeStatus", values_to = "Percent") %>%
-  ggplot(aes(y = Sample, x = Percent, fill = BarcodeStatus)) +
-    geom_col() +
-    theme_minimal() +
-    theme(panel.grid.major.y = element_blank(), axis.title.y = element_blank()) +
-    scale_fill_manual(values = c(Valid = "#afd5e7", Invalid = "#c02554")) +
-    xlim(0, 100) +
-    scale_x_continuous(labels = scales::comma) +
-    labs(title = "Summary of Valid Barcodes")
-
-ggplotly(pc, height = pltheight)
+### indiv segments {.no-title}
+```{r fig.height=frameheight}
+p <- ggplot(invalids_long, aes(x = Count, y = Sample, color = Segment)) +
+  geom_point(size = 2) +
+  theme_minimal() +
+  #theme(panel.grid.major.y = element_blank()) +
+  scale_color_manual(values = c("#4a9fea", "#5a8c84", "#ffd75f", "#df487f")) +
+  scale_x_continuous(labels = scales::comma) +
+  ylab("") +
+  labs(title = "Percent Invalid Beadtag Segments")
+ggplotly(p, height = pltheight)
 ```

@@ -164,11 +164,11 @@ rule log_runtime:
                 _ = f.write(f"    {i}={argdict[i]}\n")
 
 rule all:
+    default_target: True
     input:
         expand(outdir + "/{sample}.bedpe",      sample = samplenames),
         expand(outdir + "/reports/{sample}.naibr.html", sample = samplenames),
         outdir + "/logs/harpy.variants.log"
-    default_target: True
     message:
         "Variant calling completed!"
     shell:

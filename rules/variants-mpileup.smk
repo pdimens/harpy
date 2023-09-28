@@ -148,7 +148,7 @@ rule variants_stats:
     message:
         "Calculating variant stats: variants.{wildcards.type}.bcf"
     shell:
-        "bcftools stats -s - --fasta-ref {input.genome} {input.bcf} > {output}"
+        """bcftools stats -s "-" --fasta-ref {input.genome} {input.bcf} > {output}"""
 
 rule bcfreport:
     input:
@@ -184,10 +184,10 @@ rule log_runtime:
             _ = f.write("    bcftools norm -d exact | bcftools norm -m -any -N -Ob\n")
 
 rule all:
+    default_target: True
     input:
         outdir + "/logs/harpy.variants.log",
         expand(outdir + "/variants.{file}.bcf",        file = ["raw","normalized"]),
         expand(outdir + "/stats/variants.{file}.html", file = ["raw","normalized"])
     message:
         "Variant calling is complete!"
-    default_target: True

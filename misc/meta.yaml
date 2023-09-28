@@ -22,7 +22,10 @@ requirements:
     - bcftools
     - bioconductor-complexheatmap
     - bwa
+    - ema
+    - falco
     - fastp
+    - freebayes
     - hapcut2
     - icu
     - libzlib
@@ -36,6 +39,7 @@ requirements:
     - r-circlize
     - r-dplyr
     - r-dt
+    - r-flexdashboard
     - r-ggplot2
     - r-ggridges
     - r-knitr

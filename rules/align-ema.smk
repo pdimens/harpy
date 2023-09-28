@@ -350,7 +350,9 @@ rule samtools_reports:
     message:
         "Summarizing samtools stats and flagstat"
     shell:
-        "multiqc Align/ema/stats/samtools_stats Align/ema/stats/samtools_flagstat --force --quiet --no-data-dir --filename {output} 2> /dev/null"
+        """
+        multiqc Align/ema/stats/samtools_stats Align/ema/stats/samtools_flagstat --force --quiet --title "Basic Alignment Statistics" --comment "This report aggregates samtools stats and samtools flagstats results for all alignments." --no-data-dir --filename {output} 2> /dev/null
+        """
 
 rule log_runtime:
     output:
@@ -383,7 +385,8 @@ rule log_runtime:
             _ = f.write("Overlaps were clipped using:\n")
             _ = f.write("    bam clipOverlap --in file.bam --out outfile.bam --stats --noPhoneHome\n")
 
-rule all:
+rule movelinks:
+    default_target: True
     input: 
         bam = expand(outdir + "/align/{sample}.bam", sample = samplenames),
         bai = expand(outdir + "/align/{sample}.bam.bai", sample = samplenames),
@@ -395,7 +398,6 @@ rule all:
         runlog = f"{outdir}/logs/harpy.align.log"
     message:
         "Finished aligning! Moving alignment files into the base Align/ema directory."
-    default_target: True
     run:
         for i,j in zip(input.bam, input.bai):
             if not os.path.islink(i):

@@ -48,7 +48,6 @@ rule samples_file:
         "Impute/input/samples.names"
     message:
         "Creating file of sample names"
-    threads: 1
     run:
         with open(output[0], "w") as fout:
             [fout.write(f"{i}\n") for i in samplenames]
@@ -94,7 +93,6 @@ rule impute:
     script:
         "stitch_impute.R"
 
-
 rule index_vcf:
     input:
         vcf     = "Impute/{stitchparams}/contigs/{part}/{part}.vcf.gz"
@@ -109,7 +107,7 @@ rule index_vcf:
     shell:
         """
         tabix {input.vcf}
-        bcftools stats {input.vcf} -s - > {output.stats}
+        bcftools stats -s "-" {input.vcf} > {output.stats}
         """
 
 rule stitch_reports:
@@ -122,7 +120,7 @@ rule stitch_reports:
     benchmark:
         "Benchmark/Impute/report.{stitchparams}.{part}.txt"
     script:
-        "reportStitch.Rmd"
+        "reportImputeStitch.Rmd"
 
 rule clean_stitch:
     input:
@@ -187,7 +185,7 @@ rule stats:
     benchmark:
         "Benchmark/Impute/mergestats.{stitchparams}.txt"
     shell:
-        "bcftools stats {input.bcf} -s - > {output}"
+        """bcftools stats -s "-" {input.bcf} > {output}"""
 
 rule comparestats:
     input:
@@ -205,7 +203,7 @@ rule comparestats:
         "Benchmark/Impute/mergestats.{stitchparams}.txt"
     shell:
         """
-        bcftools stats -s - {input.impute} {input.orig} | grep \"GCTs\" > {output.compare}
+        bcftools stats -s "-" {input.orig} {input.impute} | grep \"GCTs\" > {output.compare}
         bcftools query -f '%CHROM\\t%POS\\t%INFO/INFO_SCORE\\n' {input.impute} > {output.info_sc}
         """
 
@@ -263,6 +261,7 @@ rule log_runtime:
             )
 
 rule all:
+    default_target: True
     input: 
         bcf     = expand("Impute/{stitchparams}/variants.imputed.bcf", stitchparams=paramspace.instance_patterns),
         reports = expand("Impute/{stitchparams}/variants.imputed.html", stitchparams=paramspace.instance_patterns),
@@ -270,4 +269,3 @@ rule all:
         runlog  = "Impute/logs/harpy.impute.log"
     message: 
         "Genotype imputation is complete!"
-    default_target: True
