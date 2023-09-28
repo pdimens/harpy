@@ -51,7 +51,6 @@ with pysam.FastxFile(args.fastqfile) as fh:
                         inv_dict[i[0]] += 1
                     continue
                 n_valid += 1
-            
 
 print(f"totalReads\t{n_reads}")
 print(f"bxTagCount\t{n_bx}")
