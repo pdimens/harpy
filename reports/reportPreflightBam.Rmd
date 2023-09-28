@@ -105,6 +105,7 @@ This file contains a tab-delimited table with the columns: `file`,	`nameMismatch
   - can be ignored if not intending to call structural variants with LEVIATHAN
   - if intending to use LEVIATHAN, the `BX:Z:` tag must be the last tag in the alignment records
     - can be fixed by editing the BAM file, or fixing FASTQ files prior to alignment
+    - `harpy align -m bwa` automatically moves the `BX:Z:` tag to the end of the alignment record
 
 
 ### Proper format {.no-title}

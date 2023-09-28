@@ -22,7 +22,6 @@ if len(sys.argv) == 1:
 
 args = parser.parse_args()
 
-
 n_reads = 0
 n_bx = 0
 n_valid = 0
@@ -38,7 +37,7 @@ inv_dict = {
 with pysam.FastxFile(args.fastqfile) as fh:
     for entry in fh:
         n_reads += 1
-        if bxz.match(entry.comment):
+        if 'BX:Z:' in entry.comment:
             n_bx += 1
             bx = re.search(haplotag, entry.comment).group(0)
             inv = re.findall(invalid, bx)
