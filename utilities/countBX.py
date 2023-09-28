@@ -25,7 +25,6 @@ args = parser.parse_args()
 n_reads = 0
 n_bx = 0
 n_valid = 0
-bxz = re.compile('BX:Z:')
 haplotag = re.compile('A[0-9]{2}C[0-9]{2}B[0-9]{2}D[0-9]{2}')
 invalid = re.compile('[AaBbCcDd]00')
 inv_dict = {
@@ -37,15 +36,21 @@ inv_dict = {
 with pysam.FastxFile(args.fastqfile) as fh:
     for entry in fh:
         n_reads += 1
-        if 'BX:Z:' in entry.comment:
+        comments = entry.comment.split()
+        # looking for a comment that starts as whitespace + BX:Z:
+        bxtag_idx = [i for i,j in enumerate(comments) if j.startswith("BX:Z:")]
+        #if 'BX:Z:' in entry.comment:
+        if bxtag_idx:
             n_bx += 1
-            bx = re.search(haplotag, entry.comment).group(0)
-            inv = re.findall(invalid, bx)
-            if inv:
-                for i in inv:
-                    inv_dict[i[0]] += 1
-                continue
-            n_valid += 1
+            beadtag_full = comments[bxtag_idx]
+            beadtag = beadtag_full[5:]
+            if bool(haplotag.match(beadtag)):
+                inv = re.findall(invalid, beadtag)
+                if inv:
+                    for i in inv:
+                        inv_dict[i[0]] += 1
+                    continue
+                n_valid += 1
             
 
 print(f"totalReads\t{n_reads}")
