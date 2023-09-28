@@ -139,7 +139,7 @@ rule preprocess:
     message:
         "Preprocessing for EMA mapping: {wildcards.sample}"
     benchmark:
-        "Benchmark/Mapping/ema/Preproc.{sample}.txt"
+        ".Benchmark/Mapping/ema/Preproc.{sample}.txt"
     threads:
         2
     params:
@@ -189,7 +189,7 @@ rule align_nobarcode:
         bwa     = outdir + "/logs/{sample}.bwa.align.log",
         bwasort = outdir + "/logs/{sample}.bwa.sort.log"
     benchmark:
-        "Benchmark/Mapping/ema/bwaAlign.{sample}.txt"
+        ".Benchmark/Mapping/ema/bwaAlign.{sample}.txt"
     params:
         quality = config["quality"]
     message:
@@ -217,7 +217,7 @@ rule mark_duplicates:
     message:
         "Marking duplicates in unbarcoded alignments: {wildcards.sample}"
     benchmark:
-        "Benchmark/Mapping/ema/markdup.{sample}.txt"
+        ".Benchmark/Mapping/ema/markdup.{sample}.txt"
     threads:
         2
     shell:
@@ -280,7 +280,7 @@ rule merge_alignments:
     message:
         "Merging all alignments: {wildcards.sample}"
     benchmark:
-        "Benchmark/Mapping/ema/merge.{sample}.txt"
+        ".Benchmark/Mapping/ema/merge.{sample}.txt"
     threads:
         10
     shell:
@@ -335,7 +335,7 @@ rule general_stats:
     message:
         "Calculating alignment stats: {wildcards.sample}"
     benchmark:
-        "Benchmark/Mapping/ema/Mergedstats.{sample}.txt"
+        ".Benchmark/Mapping/ema/Mergedstats.{sample}.txt"
     shell:
         """
         samtools stats {input.bam} > {output.stats}

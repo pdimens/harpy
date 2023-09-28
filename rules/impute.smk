@@ -37,7 +37,7 @@ rule bam_list:
     message:
         "Creating list of alignment files"
     benchmark:
-        "Benchmark/Impute/filelist.txt"
+        ".Benchmark/Impute/filelist.txt"
     run:
         with open(output[0], "w") as fout:
             for bamfile in input:
@@ -62,7 +62,7 @@ rule convert2stitch:
     #params:
         #filters = "-i \'QUAL>20 && DP>10\'" if config["filtervcf"] else ""
     benchmark:
-        "Benchmark/Impute/fileprep.{part}.txt"
+        ".Benchmark/Impute/fileprep.{part}.txt"
     threads: 3
     shell:
         """
@@ -87,7 +87,7 @@ rule impute:
     message: 
         "Performing imputation: {wildcards.part}\nmodel: {wildcards.model}\nuseBX: {wildcards.usebx}    \nbxLimit: {wildcards.bxlimit}\n    k: {wildcards.k}\n    s: {wildcards.s}\n nGen: {wildcards.ngen}"
     benchmark:
-        f"Benchmark/Impute/stitch.{paramspace.wildcard_pattern}" + ".{part}.txt"
+        f".Benchmark/Impute/stitch.{paramspace.wildcard_pattern}" + ".{part}.txt"
     threads:
         50
     script:
@@ -103,7 +103,7 @@ rule index_vcf:
     message:
         "Indexing: {wildcards.stitchparams}/{wildcards.part}"
     benchmark:
-        "Benchmark/Impute/indexvcf.{stitchparams}.{part}.txt"
+        ".Benchmark/Impute/indexvcf.{stitchparams}.{part}.txt"
     shell:
         """
         tabix {input.vcf}
@@ -118,7 +118,7 @@ rule stitch_reports:
     message:
         "Generating STITCH report: {wildcards.part}"
     benchmark:
-        "Benchmark/Impute/report.{stitchparams}.{part}.txt"
+        ".Benchmark/Impute/report.{stitchparams}.{part}.txt"
     script:
         "reportImputeStitch.Rmd"
 
@@ -163,7 +163,7 @@ rule merge_vcfs:
     message:
         "Merging VCFs: {wildcards.stitchparams}"
     benchmark:
-        "Benchmark/Impute/mergevcf.{stitchparams}.txt"
+        ".Benchmark/Impute/mergevcf.{stitchparams}.txt"
     threads:
         50
     shell:
@@ -183,7 +183,7 @@ rule stats:
     message:
         "Calculating stats: {wildcards.stitchparams}/variants.imputed.bcf"
     benchmark:
-        "Benchmark/Impute/mergestats.{stitchparams}.txt"
+        ".Benchmark/Impute/mergestats.{stitchparams}.txt"
     shell:
         """bcftools stats -s "-" {input.bcf} > {output}"""
 
@@ -200,7 +200,7 @@ rule comparestats:
     message:
         "Computing post-imputation stats: {wildcards.stitchparams}"
     benchmark:
-        "Benchmark/Impute/mergestats.{stitchparams}.txt"
+        ".Benchmark/Impute/mergestats.{stitchparams}.txt"
     shell:
         """
         bcftools stats -s "-" {input.orig} {input.impute} | grep \"GCTs\" > {output.compare}
@@ -218,7 +218,7 @@ rule reports:
     params:
         lambda wc: wc.get("stitchparams")
     benchmark:
-        "Benchmark/Impute/stitchreport.{stitchparams}.txt"
+        ".Benchmark/Impute/stitchreport.{stitchparams}.txt"
     script:
         "reportImpute.Rmd"
 

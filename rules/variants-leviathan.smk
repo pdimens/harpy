@@ -18,7 +18,7 @@ rule index_alignment:
     message:
         "Indexing alignment: {wildcards.sample}"
     benchmark:
-        "Benchmark/Variants/leviathan/indexbam.{sample}.txt"
+        ".Benchmark/Variants/leviathan/indexbam.{sample}.txt"
     shell:
         "sambamba index {input} {output} 2> /dev/null"
 
@@ -31,7 +31,7 @@ rule index_barcode:
     message:
         "Indexing barcodes: {wildcards.sample}"
     benchmark:
-        "Benchmark/Variants/leviathan/indexbc.{sample}.txt"
+        ".Benchmark/Variants/leviathan/indexbc.{sample}.txt"
     threads:
         4
     shell:
@@ -97,7 +97,7 @@ rule leviathan_variantcall:
     message:
         "Calling variants: {wildcards.sample}"
     benchmark:
-        "Benchmark/Variants/leviathan/variantcall.{sample}.txt"
+        ".Benchmark/Variants/leviathan/variantcall.{sample}.txt"
     params:
         extra = extra
     threads:
@@ -115,7 +115,7 @@ rule sort_bcf:
     params:
         "{wildcards.sample}"
     benchmark:
-        "Benchmark/Variants/leviathan/sortbcf.{sample}.txt"
+        ".Benchmark/Variants/leviathan/sortbcf.{sample}.txt"
     shell:        
         "bcftools sort -Ob --output {output} {input} 2> /dev/null"
 
@@ -127,7 +127,7 @@ rule sv_stats:
     message:
         "Getting SV stats for {wildcards.sample}"
     benchmark:
-        "Benchmark/Variants/leviathan/stats.{sample}.txt"
+        ".Benchmark/Variants/leviathan/stats.{sample}.txt"
     shell:
         """
         echo -e "sample\\tcontig\\tposition_start\\tposition_end\\tlength\\ttype\\tn_barcodes\\tn_pairs" > {output}

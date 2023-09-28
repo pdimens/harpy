@@ -38,7 +38,7 @@ rule trimFastp:
         html = "QC/logs/fastp_reports/{sample}.html",
         serr = "QC/logs/fastp_logs/{sample}.log"
     benchmark:
-        "Benchmark/QC/{sample}.txt"
+        ".Benchmark/QC/{sample}.txt"
     message:
         "Removing adapters + quality trimming: {wildcards.sample}"
     threads:

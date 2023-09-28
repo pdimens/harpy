@@ -21,7 +21,7 @@ rule index_alignments:
     message:
         "Indexing alignments: {wildcards.sample}"
     benchmark:
-        "Benchmark/Variants/mpileup/indexbam.{sample}.txt"
+        ".Benchmark/Variants/mpileup/indexbam.{sample}.txt"
     shell:
         "sambamba index {input} {output} 2> /dev/null"
 

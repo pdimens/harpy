@@ -21,7 +21,7 @@ rule splitbysample:
     message:
         "Extracting variants: {wildcards.sample}"
     benchmark:
-        "Benchmark/Phase/split.{sample}.txt"
+        ".Benchmark/Phase/split.{sample}.txt"
     wildcard_constraints:
         sample = "[a-zA-Z0-9_-]*"
     threads: 1
@@ -46,7 +46,7 @@ rule extractHairs:
     wildcard_constraints:
         sample = "[a-zA-Z0-9_-]*"
     benchmark:
-        "Benchmark/Phase/extracthairs.{sample}.txt"
+        ".Benchmark/Phase/extracthairs.{sample}.txt"
     threads: 1
     shell:
         "extractHAIRS {params} --nf 1 --bam {input.bam} --VCF {input.vcf} --out {output} 2> {log}"
@@ -63,7 +63,7 @@ rule linkFragments:
     message:
         "Linking fragments: {wildcards.sample}"
     benchmark:
-        "Benchmark/Phase/linkfrag.{sample}.txt"
+        ".Benchmark/Phase/linkfrag.{sample}.txt"
     params:
         d = molecule_distance
     shell:
@@ -80,7 +80,7 @@ rule phaseBlocks:
     message:
         "Creating phased haplotype blocks: {wildcards.sample}"
     benchmark:
-        "Benchmark/Phase/phase.{sample}.txt"
+        ".Benchmark/Phase/phase.{sample}.txt"
     log:
         outdir + "/phaseBlocks/logs/{sample}.blocks.phased.log"
     params: 
@@ -119,7 +119,7 @@ rule mergeSamples:
     message:
         "Combinging samples into a single BCF file"
     benchmark:
-        "Benchmark/Phase/mergesamples.txt"
+        ".Benchmark/Phase/mergesamples.txt"
     threads:
         30
     shell:
@@ -177,7 +177,7 @@ rule indexFinal:
     output:
         outdir + "/variants.phased.bcf.csi"
     benchmark:
-        "Benchmark/Phase/finalindex.txt"
+        ".Benchmark/Phase/finalindex.txt"
     message:
         "Phasing is complete!"
     shell: 
