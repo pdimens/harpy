@@ -34,9 +34,10 @@ def write_validbx(bam, alnrecord, molID):
     molID: the "mol_id" entry of a barcode dictionary
     Formats an alignment record to include the MI tag
     and the BX at the end and writes it to the output
-    bam file.
+    bam file. Replaces existing MI tag, if exists.
     '''
-    tags = alnrecord.get_tags()
+    # get all the tags except MI b/c it's being replaced (if exists)
+    tags = [i for i in alnrecord.get_tags() if j[0] != 'MI']
     # add the MI tag
     tags.append(("MI", molID))
     # find which tag index is the BX tag
@@ -57,9 +58,12 @@ def write_invalidbx(bam, alnrecord):
     alnrecord: the pysam alignment record
     Formats an alignment record to include the BX 
     at the end and writes it to the output
-    bam file.
+    bam file. Removes existing MI tag, if exists.
     '''
-    tags = alnrecord.get_tags()
+    # get all the tags except MI b/c it's being replaced (if exists)
+    # this won't write a new MI, but keeping an existing one
+    # may create incorrect molecule associations by chance
+    tags = [i for i in alnrecord.get_tags() if j[0] != 'MI']
     # find which tag index is the BX tag
     BX_idx = [i for i,j in enumerate(tags) if j[0] == 'BX'][0]
     # get the list of indices for the tag list
@@ -193,8 +197,8 @@ for record in alnfile.fetch():
         # set the last position to be the end of current alignment
         d[bx]["lastpos"] = pos_end
 
-    # if it hasn't moved on by now, it's an updated record for an
-    # existing barcode. Write the record.
+    # if it hasn't moved on by now, it's a record for an
+    # existing barcode/molecule. Write the record.
     write_validbx(outfile, record, d[bx]["mol_id"])
 
     # update the chromosome tracker
