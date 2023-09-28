@@ -42,7 +42,7 @@ with pysam.FastxFile(args.fastqfile) as fh:
         #if 'BX:Z:' in entry.comment:
         if bxtag_idx:
             n_bx += 1
-            beadtag_full = comments[bxtag_idx]
+            beadtag_full = comments[bxtag_idx[0]]
             beadtag = beadtag_full[5:]
             if bool(haplotag.match(beadtag)):
                 inv = re.findall(invalid, beadtag)
