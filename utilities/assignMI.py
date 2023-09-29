@@ -37,7 +37,8 @@ def write_validbx(bam, alnrecord, molID):
     bam file. Replaces existing MI tag, if exists.
     '''
     # get all the tags except MI b/c it's being replaced (if exists)
-    tags = [j for i,j in enumerate(alnrecord.get_tags()) if j[0] != 'MI']
+    # also remove DI because it's not necessary
+    tags = [j for i,j in enumerate(alnrecord.get_tags()) if j[0] != 'MI' or j[0] != 'DI']
     # add the MI tag
     tags.append(("MI", molID))
     # find which tag index is the BX tag
@@ -63,12 +64,13 @@ def write_invalidbx(bam, alnrecord):
     # get all the tags except MI b/c it's being replaced (if exists)
     # this won't write a new MI, but keeping an existing one
     # may create incorrect molecule associations by chance
-    tags = [j for i,j in enumerate(alnrecord.get_tags()) if j[0] != 'MI']
+    # also remove DI because it's not necessary
+    tags = [j for i,j in enumerate(alnrecord.get_tags()) if j[0] != 'MI' or j[0] != 'DI']
     # find which tag index is the BX tag
     BX_idx = [i for i,j in enumerate(tags) if j[0] == 'BX'][0]
     # get the list of indices for the tag list
     idx = [i for i in range(len(tags))]
-    # if BX isn't alrecordy last, make sure BX is at the end
+    # if BX isn't already last, make sure BX is at the end
     if tags[-1][0] != 'BX':
         # swap it with whatever is last
         tags[BX_idx], tags[-1] = tags[-1], tags[BX_idx]
@@ -88,7 +90,8 @@ def write_missingbx(bam, alnrecord):
     # get all the tags except MI b/c it's being replaced (if exists)
     # this won't write a new MI, but keeping an existing one
     # may create incorrect molecule associations by chance
-    tags = [j for i,j in enumerate(alnrecord.get_tags()) if j[0] != 'MI']
+    # also remove DI because it's not necessary
+    tags = [j for i,j in enumerate(alnrecord.get_tags()) if j[0] != 'MI' or j[0] != 'DI']
     tags.append(("BX", "A00C00B00D00"))
     alnrecord.set_tags(tags)
     # write record to output file
@@ -101,8 +104,8 @@ d = dict()
 # chromlast keeps track of the last chromosome so we can
 # clear the dict when it's a new contig/chromosome
 chromlast = False
-# MI is the name of the current molecule. Arbitrarily starting at 1000
-MI = 999
+# MI is the name of the current molecule. Arbitrarily starting at 10000
+MI = 9999
 
 if os.path.exists(args.input) and args.input.lower().endswith(".sam"):
     alnfile = pysam.AlignmentFile(args.input)
@@ -130,6 +133,7 @@ for record in alnfile.fetch():
         d = dict()
     if record.is_unmapped:
         # skip, don't output
+        chromlast = chrm
         continue
 
     try:

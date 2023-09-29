@@ -46,6 +46,7 @@ for read in alnfile.fetch():
         writestats(d, chromlast)
         d = dict()
     if read.is_duplicate or read.is_unmapped:
+        chromlast = chrm
         continue
     try:
         bx = read.get_tag("BX")
@@ -63,6 +64,7 @@ for read in alnfile.fetch():
     aln = read.get_blocks()
     if not aln:
         # unaligned, skip
+        chromlast = chrm
         continue
 
     if validBX:
@@ -139,6 +141,3 @@ for read in alnfile.fetch():
     if read.is_reverse or (read.is_forward and not read.is_paired):
         # set the last position to be the end of current alignment
         d[bx]["lastpos"] = pos_end
-
-
-
