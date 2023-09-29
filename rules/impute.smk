@@ -40,8 +40,7 @@ rule bam_list:
         ".Benchmark/Impute/filelist.txt"
     run:
         with open(output[0], "w") as fout:
-            for bamfile in input:
-                fout.write(f"{bamfile}\n")
+            _ = fout.write(f"{bamfile}\n" for bamfile in input)
 
 rule samples_file:
     output:
@@ -50,7 +49,7 @@ rule samples_file:
         "Creating file of sample names"
     run:
         with open(output[0], "w") as fout:
-            [fout.write(f"{i}\n") for i in samplenames]
+            _ = [fout.write(f"{i}\n") for i in samplenames]
 
 rule convert2stitch:
     input:
