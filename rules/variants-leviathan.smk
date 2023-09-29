@@ -17,8 +17,6 @@ rule index_alignment:
         bam_dir + "/{sample}.bam.bai"
     message:
         "Indexing alignment: {wildcards.sample}"
-    benchmark:
-        ".Benchmark/Variants/leviathan/indexbam.{sample}.txt"
     shell:
         "sambamba index {input} {output} 2> /dev/null"
 
