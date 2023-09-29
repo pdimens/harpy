@@ -77,6 +77,23 @@ def write_invalidbx(bam, alnrecord):
     # write record to output file
     bam.write(alnrecord)
 
+def write_missingbx(bam, alnrecord):
+    '''
+    bam: the output bam
+    alnrecord: the pysam alignment record
+    Formats an alignment record to include invalid BX 
+    at the end and writes it to the output
+    bam file. Removes existing MI tag, if exists.
+    '''
+    # get all the tags except MI b/c it's being replaced (if exists)
+    # this won't write a new MI, but keeping an existing one
+    # may create incorrect molecule associations by chance
+    tags = [j for i,j in enumerate(alnrecord.get_tags()) if j[0] != 'MI']
+    tags.append(("BX", "A00C00B00D00"))
+    alnrecord.set_tags(tags)
+    # write record to output file
+    bam.write(alnrecord)
+
 args = parser.parse_args()
 
 # initialize the dict
@@ -117,31 +134,21 @@ for record in alnfile.fetch():
 
     try:
         bx = record.get_tag("BX")
-        validBX = True
         # do a regex search to find X00 pattern in the BX
         if re.search("[ABCD]0{2,4}", bx):
             # if found, invalid
-            bx = "invalidBX"
-            validBX = False
+            write_invalidbx(outfile, record)
+            chromlast = chrm
+            continue
     except:
         # There is no bx tag
-        bx = "noBX"
-        validBX = False
+        write_missingbx(outfile, record)
+        chromlast = chrm
+        continue
     
     aln = record.get_blocks()
     if not aln:
         # unaligned, skip and don't output
-        continue
-
-    # if invalid/absent BX, write and move on
-    if bx == "noBX":
-        # write as is
-        outfile.write(record)
-        chromlast = chrm
-        continue    
-    if bx == "invalidBX":
-        # write but make sure BX is at the end
-        write_invalidbx(outfile, record)
         chromlast = chrm
         continue
 
