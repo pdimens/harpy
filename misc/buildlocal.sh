@@ -9,7 +9,7 @@ fi
 mkdir -p ${CONDA_PREFIX}/bin
 
 # install harpy proper
-pip install . --ignore-installed --no-deps
+pip install . --no-deps
 
 # rules
 cp -f rules/*.smk ${CONDA_PREFIX}/bin/

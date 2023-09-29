@@ -4,7 +4,7 @@ mkdir -p ${PREFIX}/bin
 #cp misc/ema-h ${PREFIX}/bin
 
 # install harpy proper
-${PREFIX}/bin/python -m pip install . --ignore-installed --no-deps -vv
+${PREFIX}/bin/python -m pip install . --no-deps -vv
 
 # rules
 cp rules/*.smk ${PREFIX}/bin/
