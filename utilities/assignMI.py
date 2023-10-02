@@ -38,7 +38,7 @@ def write_validbx(bam, alnrecord, molID):
     '''
     # get all the tags except MI b/c it's being replaced (if exists)
     # also remove DI because it's not necessary
-    tags = [j for i,j in enumerate(alnrecord.get_tags()) if j[0] != 'MI' or j[0] != 'DI']
+    tags = [j for i,j in enumerate(alnrecord.get_tags()) if j[0] not in ['MI', 'DI']]
     # add the MI tag
     tags.append(("MI", molID))
     # find which tag index is the BX tag
@@ -65,7 +65,7 @@ def write_invalidbx(bam, alnrecord):
     # this won't write a new MI, but keeping an existing one
     # may create incorrect molecule associations by chance
     # also remove DI because it's not necessary
-    tags = [j for i,j in enumerate(alnrecord.get_tags()) if j[0] != 'MI' or j[0] != 'DI']
+    tags = [j for i,j in enumerate(alnrecord.get_tags()) if j[0] not in ['MI', 'DI']]
     # find which tag index is the BX tag
     BX_idx = [i for i,j in enumerate(tags) if j[0] == 'BX'][0]
     # get the list of indices for the tag list
@@ -91,7 +91,7 @@ def write_missingbx(bam, alnrecord):
     # this won't write a new MI, but keeping an existing one
     # may create incorrect molecule associations by chance
     # also remove DI because it's not necessary
-    tags = [j for i,j in enumerate(alnrecord.get_tags()) if j[0] != 'MI' or j[0] != 'DI']
+    tags = [j for i,j in enumerate(alnrecord.get_tags()) if j[0] not in ['MI', 'DI']]
     tags.append(("BX", "A00C00B00D00"))
     alnrecord.set_tags(tags)
     # write record to output file
