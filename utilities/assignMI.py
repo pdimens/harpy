@@ -91,7 +91,8 @@ def write_missingbx(bam, alnrecord):
     # this won't write a new MI, but keeping an existing one
     # may create incorrect molecule associations by chance
     # also remove DI because it's not necessary
-    tags = [j for i,j in enumerate(alnrecord.get_tags()) if j[0] not in ['MI', 'DI']]
+    # removes BX... just in case. It's not supposed to be there to begin with
+    tags = [j for i,j in enumerate(alnrecord.get_tags()) if j[0] not in ['MI', 'DI', 'BX']]
     tags.append(("BX", "A00C00B00D00"))
     alnrecord.set_tags(tags)
     # write record to output file
@@ -104,8 +105,8 @@ d = dict()
 # chromlast keeps track of the last chromosome so we can
 # clear the dict when it's a new contig/chromosome
 chromlast = False
-# MI is the name of the current molecule. Arbitrarily starting at 10000
-MI = 9999
+# MI is the name of the current molecule, starting a 1 (0+1)
+MI = 0
 
 if os.path.exists(args.input) and args.input.lower().endswith(".sam"):
     alnfile = pysam.AlignmentFile(args.input)
