@@ -43,9 +43,12 @@ In addition to the [common runtime options](../commonoptions.md), the `harpy ali
 | `--extra-params`   |    `-x`    | string                |         |    no    | Additional EMA-align/BWA arguments, in quotes                                                   |
 
 ### Molecule distance
-The `--molecule-distance` option is only used for reporting alignment statistics regarding the barcodes. Changing this
-value will not impact sequence alignment in any way. See [haplotag data](../haplotagdata/#barcode-thresholds) for more information on
-what this value does.
+The `--molecule-distance` option is used during the BWA alignment workflow
+to assign alignments a unique Molecular Identifier `MI:i` tag based on their
+ haplotag barcode and the distance threshold you specify. See 
+[haplotag data](../haplotagdata/#barcode-thresholds) for more information on
+what this value does. The EMA aligner will assign this value based on its own
+internal heuristics, so that workflow will ignore this threshold.
 
 ## :icon-filter: Quality filtering
 ==- What is a $MQ$ score?
