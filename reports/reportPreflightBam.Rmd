@@ -137,14 +137,14 @@ knitr::kable(
     "name in plot" = c("name matches", "MI: tag", "BX:Z: tag", "AxxCxxBxxDxx format", "BX:Z: last tag"),
     "pass condition" = c(
       "the file name matches the `@RG ID:` tag in the header",
-      "**all** alignments with `BX:Z:` tags also have `MI:i:` (or `MI:Z:`) tags",
+      "**any** alignments with `BX:Z:` tags also have `MI:i:` (or `MI:Z:`) tags",
       "any `BX:Z:` tags present",
       "**all** alignments with BX:Z: tag have properly formatted `AxxCxxBxxDxx` barcodes",
       "**all** reads have `BX:Z`: as final tag in alignment records"
       ),
     "fail condition" = c(
         "file name does not match `@RG ID:` in the header",
-        "**any** reads have `BX:Z:` tag present but `MI:i:` tag absent",
+        "**all** reads have `BX:Z:` tag present but `MI:i:` tag absent",
         "**all** alignments lack `BX:Z:` tag",
         "**any** `BX:Z:` barcodes have incorrect format",
         "**at least 1 read** doesn't have `BX:Z:` tag as final tag"
@@ -162,7 +162,7 @@ out of the zoomed view.
 data2 <- data %>% 
   mutate(
     nameMismatch = ifelse(nameMismatch > 0, "fail", "pass"),
-    noMI = ifelse(noMI > 0, "fail", "pass"),
+    noMI = ifelse(noMI == alignments, "fail", "pass"),
     noBX = ifelse(noBX == alignments, "fail", "pass"),
     badBX = ifelse(badBX > 0, "fail", "pass"),
     bxNotLast = ifelse(bxNotLast > 0, "fail", "pass")
