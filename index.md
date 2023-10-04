@@ -25,7 +25,7 @@ Haplotagging is an implementation of linked-read sequencing developed by
 2. achieve high molecular resolution
 3. do both within a reasonable budget
 
-If you don't have haplotagged data, then Harpy will likely be of little to no use to you. See the [haplotagging site](http://fml.tuebingen.mpg.de/chan-group/haplotagging/)
+If you don't have haplotagged data, then Harpy will likely be of little to no use to you. See the [haplotagging site](https://www.fml.tuebingen.mpg.de/9418/haplotagging)
 for more information about haplotagging and why you might consider it for your study system.
 
 
