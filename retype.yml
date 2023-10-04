@@ -11,7 +11,7 @@ links:
   link: https://www.therkildsenlab.com/
   icon: beaker
 - text: Haplotag Home
-  link: http://fml.tuebingen.mpg.de/chan-group/haplotagging/
+  link: https://www.fml.tuebingen.mpg.de/9418/haplotagging
   icon: ruby
 footer:
   copyright: "&copy; Copyright {{ year }}. All rights reserved."
