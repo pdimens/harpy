@@ -117,7 +117,7 @@ rule mergeSamples:
     output:
         outdir + "/variants.phased.bcf"
     message:
-        "Combinging samples into a single BCF file"
+        "Combining samples into a single BCF file"
     benchmark:
         ".Benchmark/Phase/mergesamples.txt"
     threads:

@@ -175,7 +175,7 @@ rule mergeSamples:
         bcf = outdir + "/variants.phased.bcf",
         idx = outdir + "/variants.phased.bcf.csi"
     message:
-        "Combinging samples into a single BCF file"
+        "Combining samples into a single BCF file"
     benchmark:
         ".Benchmark/Phase/mergesamples.txt"
     threads:
