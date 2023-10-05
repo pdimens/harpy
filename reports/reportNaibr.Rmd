@@ -89,6 +89,8 @@ chimeric <- function(x){
   names(y)[1] <- "Contig"
   return(y)
 }
+
+sv <- cleanbedpe(variants)
 ```
 
 ```{r echo = FALSE, warnings = FALSE, message = FALSE}
@@ -154,8 +156,6 @@ The table below shows any structural variants whose breakpoints span multiple co
 ## Variants and Chimeras
 ### variants {.no-title}
 ```{r echo = FALSE, warnings = FALSE, message = FALSE}
-sv <- variants |>cleanbedpe()
-
 DT::datatable(
   sv[,-10],
   rownames = F,

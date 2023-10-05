@@ -15,7 +15,7 @@ except:
 @click.option('-d', '--directory', required = True, type=click.Path(exists=True), metavar = "Folder Path", help = 'Directory with BAM alignments')
 @click.option('-p', '--populations', type=click.Path(exists = True), metavar = "File Path", help = 'Tab-delimited file of sample<tab>population (optional)')
 @click.option('-m', '--method', default = "leviathan", show_default = True, type = click.Choice(["leviathan", "naibr"], case_sensitive = False), metavar = "String", help = "Method for calling variants")
-@click.option('-l', '--molecule-distance', default = 50000, show_default = True, type = int, metavar = "Integer", help = 'Base-pair distance delineating separate molecules (naibr only)')
+@click.option('-l', '--molecule-distance', default = 100000, show_default = True, type = int, metavar = "Integer", help = 'Base-pair distance delineating separate molecules (naibr only)')
 @click.option('-x', '--extra-params', type = str, metavar = "String", help = 'Additional variant caller parameters, in quotes')
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(min = 4, max_open = True), metavar = "Integer", help = 'Number of threads to use')
 @click.option('-s', '--snakemake', type = str, metavar = "String", help = 'Additional Snakemake parameters, in quotes')
