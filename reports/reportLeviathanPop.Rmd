@@ -44,7 +44,7 @@ script src = "https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"
 # General Stats
 ## Intro
 ### introtext {.no-title}
-<h1> Structural Variants: `r "fillertext"`</h1>
+<h1> Structural Variants Summary </h1>
 Below is a series of tables and plots detailing the structural variants
 identified by [LEVIATHAN](https://github.com/morispi/LEVIATHAN) [(preprint)](https://doi.org/10.1101/2021.03.25.437002). The variants are given by:
 
@@ -70,16 +70,8 @@ In the colorful summary boxes are the per-population average number of
 variants detected by type.
 
 ```{r echo = FALSE}
-faidx <- "/home/pdimens/test.fai"
-#faidx <- snakemake@input[["faidx"]]
-fa.sizes <- read.table(faidx, header = F)[,1:2] %>% arrange(desc(2))
-colnames(fa.sizes) <- c("contig", "size")
-# limit the data to only the 30 largest contigs
-fa.sizes <- fa.sizes[1:min(nrow(fa.sizes), 30), ]
-
-
-statsfiles <- c("/home/pdimens/1.sv.stats", "/home/pdimens/2.sv.stats")
-#statsfiles <- snakemake@input[["statsfiles"]]
+#statsfiles <- c("/home/pdimens/1.sv.stats", "/home/pdimens/2.sv.stats")
+statsfiles <- snakemake@input[["statsfiles"]]
 sv <- do.call(
   rbind, 
   lapply(
@@ -97,6 +89,15 @@ if (nrow(sv) == 0) {
   cat(paste0("- `", statsfiles, "`"), sep = "\n")
   knitr::knit_exit()
 }
+
+#faidx <- "/home/pdimens/test.fai"
+faidx <- snakemake@input[["faidx"]]
+fa.sizes <- read.table(faidx, header = F)[,1:2] %>% arrange(desc(2))
+colnames(fa.sizes) <- c("contig", "size")
+# limit the data to only the 30 largest contigs
+fa.sizes <- fa.sizes[1:min(nrow(fa.sizes), 30), ]
+
+
 ```
 
 ```{r echo = FALSE, warnings= FALSE, message = FALSE}
