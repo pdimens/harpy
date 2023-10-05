@@ -68,7 +68,6 @@ This tab (`General Stats`) shows overview information. Clicking `Per-Contig Plot
 in the navigation bar at the top of this page will show you interactive
 plots detailing all variants identified.
 
-
 ```{r}
 statsfile <- snakemake@input[["statsfile"]]
 #statsfile <- "/home/pdimens/test.stats"
@@ -127,7 +126,7 @@ ndup <- ifelse("DUP" %in% summinfo$type, summinfo$type[which(summinfo$type == "D
 valueBox(scales::comma(ndup), caption = "Duplications", color = "info")
 ```
 
-### ndeletions
+### ninversions
 ```{r}
 ninv <- ifelse("INV" %in% summinfo$type, summinfo$type[which(summinfo$type == "INV")], 0)
 valueBox(scales::comma(ninv), caption = "Inversions", color = "info")
@@ -186,8 +185,9 @@ col.palette <- c(
   )
 ```
 ### legend {.no-title data-width=200}
-To the right is a circular plot to visualize the distribution of SV across (up to) 30 of the largest contigs. This should help you assess
-the presence/absence of expected variants. The legend on below shows which
+To the right is a circular plot to visualize the distribution of structural variants
+across (up to) 30 of the largest contigs. This should help you assess
+the presence/absence of expected variants. The legend below shows which
 colors correspond to which type of variant.
 You may click on the plot to expand it in your browser window. Clicking it again will exit
 out of the zoomed view.
@@ -328,12 +328,15 @@ number of haplotag barcodes supporting the variant.
 
 ```{r}
 l <- list()
+nplotrows <- 0
+
 for (i in 1:nrow(fa.sizes)) {
   sv.filt <- sv %>% filter(contig == fa.sizes$contig[i])
   sv_stats <- group_by(sv.filt, type) %>% summarise(n = length(type))
   if (nrow(sv_stats) == 0) {
     next
   }
+  nplotrows <- nplotrows + 1
   plt <- sv.filt %>%
     ggplot() +
     geom_rect(
@@ -382,6 +385,5 @@ for (i in 1:nrow(fa.sizes)) {
     )
     l[[i]] <- subplot(ggplotly(plt, height = 800, tooltip = "text"))
 }
-subplot(l, nrows = nrow(fa.sizes), shareX = FALSE, titleX = TRUE)
-```
+subplot(l, nrows = nplotrows, shareX = FALSE, titleX = TRUE)
 ```

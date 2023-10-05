@@ -131,7 +131,7 @@ ndup <- ifelse("DUP" %in% summinfo$type, summinfo$type[which(summinfo$type == "D
 valueBox(scales::comma(ndup), caption = "Duplications (average)", color = "info")
 ```
 
-### ndeletions
+### ninversions
 ```{r}
 ninv <- ifelse("INV" %in% summinfo$type, summinfo$type[which(summinfo$type == "INV")], 3)
 valueBox(scales::comma(ninv), caption = "Inversions (average)", color = "info")
@@ -199,8 +199,8 @@ DT::datatable(
 
 ## SV size and location
 ### legend {.no-title data-height=700 data-width=200}
-The plots to the right are a visual representation of each SV where it was detected.
-Contigs that are absent did not have any SV's detected on them. Within each 
+The plots to the right are a visual representation of each structural variant where it was detected.
+Contigs that are absent did not have any variants detected on them. Within each 
 contig, each population is plotted as a row (ring) to help visualize shared
 variants between populations. Below is the legend to this plot, where
 colors represent populations. Plotting only the first 30 largest contigs.
@@ -332,12 +332,15 @@ sv$ystop <- sv$ystart + 0.8
 ```{r echo = FALSE, out.width = '100%', warning=FALSE}
 color.palette <- c("DEL"="#5a8c84", "DUP"="#ffd75f", "INV"="#4a9fea","BND"="#df487f")
 l <- list()
+nplotrows <- 0
+
 for (i in 1:nrow(fa.sizes)) {
   sv.filt <- sv %>% filter(contig == fa.sizes$contig[i])
   sv_stats <- group_by(sv.filt, type) %>% summarise(n = length(type))
   if (nrow(sv_stats) == 0) {
     next
   }
+  nplotrows <- nplotrows + 1
   plt <- sv.filt %>%
     ggplot() +
     geom_rect(
@@ -389,5 +392,5 @@ for (i in 1:nrow(fa.sizes)) {
     layout(annotations = annotations)
     l[[i]] <- pp
 }
-subplot(l, nrows = nrow(fa.sizes), shareX = FALSE, titleX = TRUE)
+subplot(l, nrows = nplotrows, shareX = FALSE, titleX = TRUE)
 ```
