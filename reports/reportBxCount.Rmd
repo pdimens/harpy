@@ -6,7 +6,7 @@ output:
     theme: lumen
     orientation: rows
     vertical_layout: scroll
-    favicon: "https://raw.githubusercontent.com/pdimens/harpy/docs/static/favicon.png"
+    favicon: "https://raw.githubusercontent.com/pdimens/harpy/docs/static/favicon_dark.png"
 ---
 
 ```{r echo = FALSE, message = FALSE}

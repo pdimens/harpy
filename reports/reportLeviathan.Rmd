@@ -6,7 +6,7 @@ output:
     theme: lumen
     orientation: rows
     vertical_layout: scroll
-    favicon: "https://raw.githubusercontent.com/pdimens/harpy/docs/static/favicon.png"
+    favicon: "https://raw.githubusercontent.com/pdimens/harpy/docs/static/favicon_dark.png"
 ---
 
 ```{r load environment, echo=FALSE, message=FALSE, warning=FALSE}
@@ -64,8 +64,8 @@ in the navigation bar at the top of this page will show you interactive
 plots detailing all variants identified.
 
 ```{r contigSizes, echo = FALSE}
-bcf <- snakemake@input[["bcf"]]
-#bcf <- "/home/pdimens/test.bcf"
+#bcf <- snakemake@input[["bcf"]]
+bcf <- "/home/pdimens/test.bcf"
 hd <- system2("bcftools", args =  paste("head", bcf), stdout = T)
 fa.sizes <- hd[grep("contig=", hd)]
 fa.sizes <- as.data.frame(do.call(rbind, strsplit(fa.sizes, ",length="))) %>% arrange(desc(2))
@@ -77,8 +77,8 @@ fa.sizes <- fa.sizes[1:min(nrow(fa.sizes), 30), ]
 ```
 
 ```{r}
-statsfile <- snakemake@input[["statsfile"]]
-#statsfile <- "/home/pdimens/test.stats"
+#statsfile <- snakemake@input[["statsfile"]]
+statsfile <- "/home/pdimens/test.stats"
 sv <- read.table(statsfile, header = T,
   colClasses = c("factor", "factor", "integer", "integer", "character", "factor", "integer", "integer")
 )
