@@ -150,7 +150,7 @@ Variants/naibr/
 By default, Harpy runs `naibr` with these parameters (excluding inputs and outputs):
 ```python
 min_mapq = 30
-min_sv   = 1000
+min_sv   = 100000
 k        = 3
 ```
 
