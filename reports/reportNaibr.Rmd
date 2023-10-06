@@ -201,7 +201,6 @@ knitr::kable(
     )
   ), col.names = c("Column Name", "Description")
 )
-
 ```
 ## Variants and Chimeras desc
 ### variants desc {.no-title}
