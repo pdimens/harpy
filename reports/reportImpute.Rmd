@@ -9,6 +9,7 @@ output:
     favicon: "https://raw.githubusercontent.com/pdimens/harpy/docs/static/favicon_dark.png"
 ---
 
+# General Stats
 ## header row
 ```{css zoom-lib-src, echo = FALSE, message = FALSE, warning = FALSE}
 script src = "https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"
@@ -77,8 +78,10 @@ tryCatch(
 ### reportheader {.no-title}
 <h2> `r comparefile` </h2>
 This report details the results of genotype imputation using STITCH with the model parameters:
-`r modelparams`
+`r modelparams`.
 
+This page displays various information and general statistics and clicking the `Individual Statistics` tab 
+in the navigation menu above will display imputation results per individual.
 
 ## General Information {data-height=100}
 ```{r}
@@ -109,53 +112,6 @@ valueBox(round(mean(infos$info), digits = 2), caption = "Average INFO_SCORE", co
 valueBox(round(sd(infos$info), digits = 2), caption = "StDev INFO_SCORE", color = "info")
 ```
 
-## Ind stats desc
-### plotdesc {.no-title}
-<h3> Imputations Per Sample </h3>
-This chart visualizes the count and proportion of `missing` genotypes per sample imputed
-into other genotypes. Following standard VCF convention, `Ref` refers to
-the reference allele (from the reference genome), `Alt` refers to the alternative 
-allele, and `Missing` details how many SNPs remain missing
-(failed to impute) for that individual. As an example, the `Homozygous Ref` is 
-the number of missing genotypes that were imputed into
-a homozygous genotype for the reference allele. The table on the right is the
-underlying data used to create the visualization. Clicking
-on a plot will expand it to fill your browser window. Clicking it again will exit
-out of the zoomed view.
-
-## Individual Statistics
-### Individuals Plot {.no-title}
-```{r echo = FALSE, message = FALSE, warning = FALSE, fig.height=conv_height, out.width= "100%"}
-ggplot(gcts_long, aes(y = sample, x = Count, fill = Conversion)) +
-  geom_col(position = "stack") +
-  scale_x_continuous(expand = c(0,0), labels = comma) +
-  ylab("") +
-  theme_minimal() +
-  theme(panel.grid.major.y = element_blank(), axis.ticks.y = element_line(size = 0.5)) +
-  scale_fill_manual(
-    labels = c("→ Homozygous Alt", "→ Heterozygote", "→ Missing", "→ Homozygous Ref"),
-    values = c("#93d2fa", "#83afa8", "#424043", "#ffd75f")
-  ) +
-  labs(title = "Missing Genotype Imputations")
-
-```
-
-### Imputation Results Table {.no-title}
-```{r success table, echo=FALSE, message=FALSE, warning=FALSE}
-DT::datatable(
-  gcts,
-  rownames = FALSE,
-  extensions = "Buttons",
-  colnames = c("Sample", "Homozygous Ref", "Homozygous Alt", "Heterozygote", "Missing"),
-  options = list(
-    dom = "Brtip",
-    buttons = c("csv"),
-    scrollX = TRUE
-  ),
-  autoHideNavigation = T,
-  fillContainer = T
-)
-```
 
 ## INFO Scores
 ### INFO desc {.no-title}
@@ -248,6 +204,55 @@ DT::datatable(
   rownames = FALSE,
   extensions = "Buttons",
   colnames = c("Contigs", "Total Variants", "0.20", "0.25", "0.30", "0.4", "0.5", "0.75", "0.90"),
+  options = list(
+    dom = "Brtip",
+    buttons = c("csv"),
+    scrollX = TRUE
+  ),
+  autoHideNavigation = T,
+  fillContainer = T
+)
+```
+
+# Individual Statistics
+## Ind stats desc
+### plotdesc {.no-title}
+<h3> Imputations Per Sample </h3>
+This chart visualizes the count and proportion of `missing` genotypes per sample imputed
+into other genotypes. Following standard VCF convention, `Ref` refers to
+the reference allele (from the reference genome), `Alt` refers to the alternative 
+allele, and `Missing` details how many SNPs remain missing
+(failed to impute) for that individual. As an example, the `Homozygous Ref` is 
+the number of missing genotypes that were imputed into
+a homozygous genotype for the reference allele. The table on the right is the
+underlying data used to create the visualization. Clicking
+on a plot will expand it to fill your browser window. Clicking it again will exit
+out of the zoomed view.
+
+# Individual Statistics
+## ind stats
+### Individuals Plot {.no-title}
+```{r echo = FALSE, message = FALSE, warning = FALSE, fig.height=conv_height, out.width= "100%"}
+ggplot(gcts_long, aes(y = sample, x = Count, fill = Conversion)) +
+  geom_col(position = "stack") +
+  scale_x_continuous(expand = c(0,0), labels = comma) +
+  ylab("") +
+  theme_minimal() +
+  theme(panel.grid.major.y = element_blank(), axis.ticks.y = element_line(size = 0.5)) +
+  scale_fill_manual(
+    labels = c("→ Homozygous Alt", "→ Heterozygote", "→ Missing", "→ Homozygous Ref"),
+    values = c("#93d2fa", "#83afa8", "#424043", "#ffd75f")
+  ) +
+  labs(title = "Missing Genotype Imputations")
+```
+
+### Imputation Results Table {.no-title}
+```{r success table, echo=FALSE, message=FALSE, warning=FALSE}
+DT::datatable(
+  gcts,
+  rownames = FALSE,
+  extensions = "Buttons",
+  colnames = c("Sample", "Homozygous Ref", "Homozygous Alt", "Heterozygote", "Missing"),
   options = list(
     dom = "Brtip",
     buttons = c("csv"),
