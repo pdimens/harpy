@@ -40,7 +40,7 @@ rule bam_list:
         ".Benchmark/Impute/filelist.txt"
     run:
         with open(output[0], "w") as fout:
-            _ = [fout.write(f"{bamfile}\n" for bamfile in input)]
+            _ = [fout.write(f"{bamfile}\n") for bamfile in input]
 
 rule samples_file:
     output:
