@@ -23,7 +23,16 @@ samplename <- gsub(".bedpe", "", basename(infile))
 <h1> NAIBR Variant Calling: `r samplename`  </h1>
 
 ```{r echo = FALSE, warnings = FALSE, message = FALSE, results = 'asis'}
-variants <- read.table(infile, header = T) 
+tryCatch(
+  expr = {
+    variants <- read.table(infile, header = T) 
+  },
+  error = function(e){ 
+    cat(paste0("There are no variants in the file ", "`", infile, "`"))
+    knitr::knit_exit()
+  }
+)
+
 if (nrow(variants) == 0) {
   cat(paste0("There are no variants in the file ", "`", infile, "`"))
   knitr::knit_exit()

@@ -113,13 +113,16 @@ fa.sizes <- fa.sizes[1:min(nrow(fa.sizes), 30), ]
 ```
 
 ```{r echo = FALSE, results='asis'}
-sv <- do.call(rbind, lapply(infiles, function(x) readvariants(x)))
-
-if (nrow(sv) == 0) {
-  cat("There are no variants detected in files:\n")
-  cat(paste0("- `", infiles, "`"), sep = "\n")
-  knitr::knit_exit()
-}
+tryCatch(
+  expr = {
+    sv <- do.call(rbind, lapply(infiles, function(x) readvariants(x)))
+  },
+  error = function(e){ 
+    cat("There are no variants detected in files:\n")
+    cat(paste0("- `", infiles, "`"), sep = "\n")
+    knitr::knit_exit()
+  }
+)
 ```
 
 ```{r echo = FALSE, warnings= FALSE, message = FALSE}
