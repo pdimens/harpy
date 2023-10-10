@@ -38,9 +38,10 @@ Great! Only want to call variants? Awesome! All modules are called by `harpy <mo
 | `extra`       | Create various associated or necessary files  |
 | `preflight`   | Run various format checks for FASTQ and BAM files |
 | `demultiplex` | Demultiplex haplotagged FASTQ files           |
-| `trim`        | Remove adapters and quality trim sequences    |
+| `qc`        | Remove adapters and quality trim sequences    |
 | `align`       | Align sample sequences to a reference genome  |
-| `variants`    | Call variants from sample alignments          |
+| `snp`          | Call SNPs and small indels                   |
+| `sv`          | Call large structural variants                |
 | `impute`      | Impute genotypes using variants and sequences |
 | `phase`       | Phase SNPs into haplotypes                    |
 
@@ -70,7 +71,8 @@ You can call `harpy` without any arguments (or with `--help`) to print the docst
 │ impute       Impute genotypes using variants and sequences        │
 │ phase        Phase SNPs into haplotypes                           │
 │ preflight    Run format checks on haplotagged FASTQ/BAM files     │
-│ trim         Remove adapters and quality trim sequences           │
-│ variants     Call variants from sample alignments                 │
+│ qc           Remove adapters and quality trim sequences           │
+│ snp          Call snps from sample alignments                     │
+│ sv           Call structural variants from sample alignments      │
 ╰───────────────────────────────────────────────────────────────────╯
 ```
