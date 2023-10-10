@@ -22,11 +22,11 @@ configured using these arguments:
 
 As as example, you could call the `harpy align` module and specify 20 threads with no output to console:
 ```bash combining config and runtime arguments
-harpy align --threads 20 --directory samples/trimmedreads --method bwa --quiet
+harpy align bwa --threads 20 --directory samples/trimmedreads --quiet
 
 # same as #
 
-harpy align -t 20 -d samples/trimmedreads -m bwa -q
+harpy align bwa -t 20 -d samples/trimmedreads -q
 ```
 
 ## The `Genome` folder

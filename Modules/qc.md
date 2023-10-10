@@ -1,5 +1,5 @@
 ---
-label: Trim
+label: QC
 description: Quality trim haplotagged sequences with Harpy
 icon: codescan-checkmark
 order: 6
@@ -14,18 +14,18 @@ order: 6
 Raw sequences are not suitable for downstream analyses. They have sequencing adapters,
 index sequences, regions of poor quality, etc. The first step of any genetic sequence
 analyses is to remove these adapters and trim poor quality data. You can remove adapters
-and quality trim sequences using the `trim` module:
+and quality trim sequences using the `qc` module:
 
 ```bash usage
-harpy trim OPTIONS... 
+harpy qc OPTIONS... 
 ```
 
 ```bash example
-harpy trim --directory Sequences_Raw/ --threads 20 
+harpy qc --directory Sequences_Raw/ --threads 20 
 ```
 
 ## :icon-terminal: Running Options
-In addition to the [common runtime options](../commonoptions.md), the `harpy trim` module is configured using these command-line arguments:
+In addition to the [common runtime options](../commonoptions.md), the `harpy qc` module is configured using these command-line arguments:
 
 | argument         | short name | type        | default | required | description                                                                                     |
 |:-----------------|:----------:|:------------|:-------:|:--------:|:------------------------------------------------------------------------------------------------|
@@ -34,7 +34,7 @@ In addition to the [common runtime options](../commonoptions.md), the `harpy tri
 | `--extra-params` |    `-x`    | string      |         |    no    | Additional fastp arguments, in quotes                                                           |
 
 ---
-## :icon-git-pull-request: Trimming Workflow
+## :icon-git-pull-request: QC Workflow
 +++ :icon-git-merge: details
 [Fastp](https://github.com/OpenGene/fastp) is an ultra-fast all-in-one adapter remover, deduplicator, 
 and quality trimmer. Harpy uses it to remove adapters, low-quality bases, and trim sequences down to a particular
@@ -48,10 +48,10 @@ graph LR
     B --> C
 ```
 
-+++ :icon-file-directory: trimming output
-The `harpy trim` module creates a `Trimming` directory with the folder structure below. `Sample1` and `Sample2` are generic sample names for demonstration purposes. 
++++ :icon-file-directory: qc output
+The `harpy qc` module creates a `QC` directory with the folder structure below. `Sample1` and `Sample2` are generic sample names for demonstration purposes. 
 ```
-Trim/
+QC/
 ├── Sample1.R1.fq.gz
 ├── Sample1.R2.fq.gz
 ├── Sample2.R1.fq.gz
@@ -96,11 +96,11 @@ be cumbersome to print here. See the list of options in the [fastp documentation
 These are the summary reports Harpy generates for this workflow. You may right-click
 the images and open them in a new tab if you wish to see the examples in better detail.
 
-||| fastp report
+||| fastp reports
 Reports of all QC activities performed by fastp (fastp creates this)
 ![reports/trim.report.html](/static/report_trim_fastp.png)
 ||| Trimming and QC
-Aggregates the metrics FASTP generates for every sample during QC and trimming.
+Aggregates the metrics FASTP generates for every sample during QC.
 ![reports/trim.report.html](/static/report_trim_aggregate.png)
 ||| BX validation
 Reports the number of valid/invalid barcodes in the sequences and the segments contributing to invalidation.

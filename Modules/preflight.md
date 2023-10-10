@@ -21,10 +21,10 @@ solution is perform what we lovingly call "pre-flight checks" to assess if your 
 for the pipeline. There are separate `fastq` and `bam` submodules and the result of each is a report detailing "file format QC." 
 
 #### when to run
-- BAM: the preflight checks for BAM files should be run _after_ sequence alignment and _before_ consuming those files for other purposes
+- **BAM**: the preflight checks for BAM files should be run _after_ sequence alignment and _before_ consuming those files for other purposes
 (e.g. variant calling, phasing, imputation)
 
-- FASTQ: the preflight checks for FASTQ files are best performed _after_ demultiplexing (or trimming/QC) and _before_ sequence alignment
+- **FASTQ**: the preflight checks for FASTQ files are best performed _after_ demultiplexing (or trimming/QC) and _before_ sequence alignment
 
 ```bash fastq usage and example
 harpy preflight fastq OPTIONS...
@@ -47,24 +47,34 @@ In addition to the [common runtime options](../commonoptions.md), the `harpy dem
 |:------------------|:----------:|:-----------|:-------:|:--------:|:-------------------------------------------------------------------------------------|
 | `--directory`          |    `-d`    | folder path |         | **yes**  | Directory with sequences or alignments                                                              |
 
+---
 
 ## `fastq` checks
-These are the format specifics `harpy preflight` checks for FASTQ files:
-- `BX:Z:` tag exists for each read
-- `BX:Z:` is the last comment in the header
-- barcodes are in the `AxxCxxBxxDxx` format
-- comments in the fastq header follow `TAG:TYPE:VALUE` SAM specification
+Below is a table of the format specifics `harpy preflight` checks for FASTQ files. Take note
+of the language such as when "any" and "all" are written.
 
+| Criteria | Pass Condition | Fail Condition |
+|:---|:---|:---|
+|AxxCxxBxxDxx format| **all** reads with BX:Z: tag have properly formatted `AxxCxxBxxDxx` barcodes | **any** BX:Z: barcodes have incorrect format|
+|follows SAM spec | **all** reads have proper `TAG:TYPE:VALUE` comments | **any** reads have incorrectly formatted comments|
+|BX:Z: last comment | **all** reads have `BX:Z`: as final comment| **at least 1 read** doesn't have `BX:Z:` tag as final comment|
+|BX:Z: tag | any `BX:Z:` tags present | **all** reads lack `BX:Z:` tag|
+
+---
 
 ## `bam` checks
-These are the format specifics `harpy preflight` checks for SAM/BAM files:
-- `BX:Z:` tag exists in the alignments
-- `BX:Z:` is the last tag in the header
-- barcodes are in the `AxxCxxBxxDxx` format
-- the file name matches the `RG:` sample name of the alignments
-- there is an `MI:i` (or `MI:Z:`) tag
+Below is a table of the format specifics `harpy preflight` checks for SAM/BAM files. Take note
+of the language such as when "any" and "all" are written.
 
-## The output
+| Criteria | Pass Condition | Fail Condition |
+|:---|:---|:---|
+|name matches| the file name matches the `@RG ID:` tag in the header| file name does not match `@RG ID:` in the header|
+|MI: tag| **any** alignments with `BX:Z:` tags also have `MI:i:` (or `MI:Z:`) tags| **all** reads have `BX:Z:` tag present but `MI:i:` tag absent|
+|BX:Z: tag| any `BX:Z:` tags present| **all** alignments lack `BX:Z:` tag|
+|AxxCxxBxxDxx format| **all** alignments with BX:Z: tag have properly formatted `AxxCxxBxxDxx` barcodes| **any** `BX:Z:` barcodes have incorrect format|
+|BX:Z: last tag| **all** reads have `BX:Z`: as final tag in alignment records | **at least 1 read** doesn't have `BX:Z:` tag as final tag|
+
+## output
 Unlike the other modules. `preflight` will not create a new folder in your working directory. Instead, it will create 
-a `Preflight` folder in the same directory that was provided as `-d` (`--directory`). This design is intended to keep
+a `Preflight` folder in the same directory that was provided for `-d` (`--directory`). This design is intended to keep
 the reports near the source data.

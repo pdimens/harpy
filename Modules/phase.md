@@ -17,7 +17,7 @@ You may want to phase your genotypes into haplotypes, as haplotypes tend to be m
 than unphased genotypes (higher polymorphism, captures relationship between genotypes). Phasing
 genotypes into haplotypes requires alignment files, such as those produced by `harpy align` and
 a variant call file, such as those produced by `harpy variants` or `harpy impute`. **Phasing only
-works on SNP data**, and will not work for structural variants produced by `LEVIATHAN`. You can 
+works on SNP data**, and will not work for structural variants produced by `LEVIATHAN` or `NAIBR`. You can 
 phase genotypes into haplotypes with Harpy using the `phase` module:
 
 ```bash usage
@@ -35,7 +35,7 @@ In addition to the [common runtime options](../commonoptions.md), the `harpy pha
 | `--vcf`               |    `-v`    | file path       |         | **yes**  | Path to BCF/VCF file                                                 |
 | `--directory`         |    `-d`    | folder path     |         | **yes**  | Directory with sequence alignments                                   |
 | `--genome           ` |    `-g`    | file path       |         |    no    | Path to genome if wanting to also use reads spanning indels          |
-| `--molecule-distance` |    `-l`    | integer         |  100000  |    no    | Base-pair distance threshold to separate molecules                   |
+| `--molecule-distance` |    `-m`    | integer         |  100000  |    no    | Base-pair distance threshold to separate molecules                   |
 | `--prune-threshold`   |    `-p`    | integer (0-100) |    7    |    no    | PHRED-scale (%) threshold for pruning low-confidence SNPs            |
 | `--ignore-bx`         |    `-b`    | toggle          |         |    no    | Ignore haplotag barcodes for phasing                                 |
 | `--vcf-samples`       |            |  toggle         |         |    no    | [Use samples present in vcf file](#prioritize-the-vcf-file) for imputation rather than those found the directory    |
