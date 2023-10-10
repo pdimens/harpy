@@ -21,7 +21,7 @@ rule index_alignments:
     message:
         "Indexing alignments: {wildcards.sample}"
     benchmark:
-        "Benchmark/Variants/mpileup/indexbam.{sample}.txt"
+        ".Benchmark/Variants/mpileup/indexbam.{sample}.txt"
     shell:
         "sambamba index {input} {output} 2> /dev/null"
 
@@ -34,7 +34,7 @@ rule bam_list:
     message:
         "Creating list of alignment files"
     benchmark:
-        "Benchmark/Variants/mpileup/bamlist.txt"
+        ".Benchmark/Variants/mpileup/bamlist.txt"
     run:
         with open(output[0], "w") as fout:
             for bamfile in input.bam:

@@ -71,7 +71,7 @@ rule index_barcode:
     message:
         "Indexing barcodes: Population {wildcards.population}"
     benchmark:
-        "Benchmark/Variants/leviathan-pop/indexbc.{population}.txt"
+        ".Benchmark/Variants/leviathan-pop/indexbc.{population}.txt"
     threads:
         4
     shell:
@@ -137,7 +137,7 @@ rule leviathan_variantcall:
     message:
         "Calling variants: Population {wildcards.population}"
     benchmark:
-        "Benchmark/Variants/leviathan-pop/variantcall.{population}.txt"
+        ".Benchmark/Variants/leviathan-pop/variantcall.{population}.txt"
     params:
         extra = extra
     threads:
@@ -156,7 +156,7 @@ rule sort_bcf:
     params:
         "{wildcards.population}"
     benchmark:
-        "Benchmark/Variants/leviathan-pop/sortbcf.{population}.txt"
+        ".Benchmark/Variants/leviathan-pop/sortbcf.{population}.txt"
     shell:        
         "bcftools sort -Ob --output {output} {input} 2> /dev/null"
 
@@ -168,7 +168,7 @@ rule sv_stats:
     message:
         "Getting stats: Population {input}"
     benchmark:
-        "Benchmark/Variants/leviathan-pop/stats.{population}.txt"
+        ".Benchmark/Variants/leviathan-pop/stats.{population}.txt"
     threads: 1
     shell:
         """

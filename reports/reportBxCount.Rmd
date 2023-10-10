@@ -6,7 +6,7 @@ output:
     theme: lumen
     orientation: rows
     vertical_layout: scroll
-    favicon: "https://raw.githubusercontent.com/pdimens/harpy/docs/static/favicon.png"
+    favicon: "https://raw.githubusercontent.com/pdimens/harpy/docs/static/favicon_dark.png"
 ---
 
 ```{r echo = FALSE, message = FALSE}
@@ -33,9 +33,12 @@ Notably, only the sequence ID (`@...`) and `BX:Z:` tag are required.
 In the example above, there are additional tags (`RX:Z:` and `QX:Z:`) 
 which arent used by Harpy, but they conform to the 
 [SAM comment spec (section 1.5)](https://samtools.github.io/hts-specs/SAMv1.pdf) 
-of `TAG:TYPE:VALUE`. The takeaway is that the `BX:Z` tag can be anywhere in the 
+of `TAG:TYPE:VALUE`. The takeaway is that the `BX:Z` tag can be anywhere\* in the 
 read header after the sequence ID as long as any tags after it conform to the 
-SAM spec `TAG:TYPE:VALUE`.
+SAM spec `TAG:TYPE:VALUE`. 
+
+| \*The structural variant caller Levaithan requires the BX:Z: tag to be the final tag in an alignment record. Harpy automatically moves the `BX:Z:` tag to the end of the alignment record when using `harpy align`. |
+| :---:|
 
 ## genstats {data-height=100}
 ```{r instantiate_df, echo = FALSE, message = FALSE, warning = FALSE}

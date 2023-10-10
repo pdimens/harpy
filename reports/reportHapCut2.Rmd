@@ -7,7 +7,7 @@ output:
     orientation: rows
     vertical_layout: scroll
     horizontal_layout: fill
-    favicon: "https://raw.githubusercontent.com/pdimens/harpy/docs/static/favicon.png"
+    favicon: "https://raw.githubusercontent.com/pdimens/harpy/docs/static/favicon_dark.png"
 ---
 
 ```{r echo= FALSE, message = FALSE, warning = FALSE}
@@ -20,11 +20,31 @@ library(scales)
 library(ggridges)
 ```
 
+```{css zoom-lib-src, echo = FALSE, message = FALSE, warning = FALSE}
+script src = "https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"
+```
+```{js zoom-jquery, echo = FALSE, message = FALSE, warning = FALSE}
+ $(document).ready(function() {
+    $('body').prepend('<div class=\"zoomDiv\"><img src=\"\" class=\"zoomImg\"></div>');
+    // onClick function for all plots (img's)
+    $('img:not(.zoomImg)').click(function() {
+      $('.zoomImg').attr('src', $(this).attr('src')).css({width: '100%'});
+      $('.zoomDiv').css({opacity: '1', width: 'auto', border: '1px solid white', borderRadius: '5px', position: 'fixed', top: '50%', left: '50%', marginRight: '-50%', transform: 'translate(-50%, -50%)', boxShadow: '0px 0px 50px #888888', zIndex: '50', overflow: 'auto', maxHeight: '100%'});
+    });
+    // onClick function for zoomImg
+    $('img.zoomImg').click(function() {
+      $('.zoomDiv').css({opacity: '0', width: '0%'}); 
+    });
+  });
+```
+
 ```{r echo= FALSE, message = FALSE, warning = FALSE}
-## File
-#file <- "~/blocks.file.gz"
+#file <- "~/blocks.summary.gz"
 file <- snakemake@input[[1]]
-df <- read.table(file, header = T)
+df <- read.table(
+  file, header = T,
+  colClasses = c("factor","factor","integer","integer", "integer")
+ )
 df$pos_end <- df$pos_start + df$block_length
 df <- df[, c(1,2,3,4,6,5)]
 ```
@@ -40,21 +60,25 @@ if (nrow(contigs) > 30){
 } else {
     .contigs <- contigs$contig
 }
-pltheight <- round(2.1 * (length(.contigs)), digits = 0)
+pltheight <- round(1.2 * (length(.contigs)), digits = 0)
 ridgeheight <- 1 + round(0.7 * (length(.contigs)), digits = 0)
 ```
 
-## Haplotyping details
+# General Stats
+## fileheader 
 ### details desc {.no-title}
+<h1> Haplotype Phasing Results </h1>
 The data presented here are the results of phasing genotypes into haplotypes using
 [HapCut2](https://github.com/vibansal/HapCUT2). The information is derived from `r file`,
 which summarized information across all samples using the `.blocks` files HapCut2
 generates. The VCF files HapCut2 also generates were not used as they lack
 some of the information in the `.blocks` files that were collated in this report.
+This page shows general and per-contig information. You may click the plots to
+expand them in your browser. Clicking them again will exit from the zoomed pop-up
+window. The `Per-Sample Stats` tab in the navigation bar above will show you
+statistics relating to haplotypes on the per-sample level.
 
-### overall stats {.no-title}
-The table below summarizes the outcome of haplotype phasing across all samples and contigs.
-
+## Haplotyping details {data-height=100}
 ```{r echo= FALSE, message = FALSE, warning = FALSE}
 overall <- df %>% summarise(
     mean_snps = round(mean(n_snp), digits = 0),
@@ -63,15 +87,58 @@ overall <- df %>% summarise(
     median_blocksize = median(block_length),
     max_blocksize = max(block_length)
 )
-names(overall) <- c("Average SNPs per Haplotype", "Median SNPs per Haplotype", "Mean Haplotype Size", "Median Haplotype Length", "Largest Haplotype")
-overall
-
 ```
-The plot below shows the distribution of haplotype length (in base pairs). Phasing typically 
-results in extreme right-tails in these distributions, making regular visualization
-difficult to plot meaningfully. The plot presented below has **log-scaled lengths**
+### avg snps
+```{r}
+valueBox(scales::comma(overall$mean_snps[1]), caption = "Avg SNPs/Haplotype", color = "info")
+```
+
+### median snps
+```{r}
+valueBox(scales::comma(overall$median_snps[1]), caption = "Median SNPs/Haplotype", color = "info")
+```
+### avg blocksize
+```{r}
+valueBox(scales::comma(overall$mean_blocksize[1]), caption = "Avg Haplotype Length", color = "info")
+```
+
+### median blocksize
+```{r}
+valueBox(scales::comma(overall$median_blocksize[1]), caption = "Median Haplotype Length", color = "info")
+```
+
+### avg snps
+```{r}
+valueBox(scales::comma(overall$max_blocksize[1]), caption = "Longest Haplotype (bp)", color = "info")
+```
+
+## distribution plots
+### haplotype length {.no-title}
+<h2> Distribution of Haplotype Lengths </h2>
+The plots below show the distribution of haplotype length (in base pairs). 
+Phasing typically has a few very large haplotypes, resulting in extreme 
+right-tails in these distributions, making regular visualization
+difficult to plot meaningfully. Therefore, the plot on the left is the distribution of raw (unscaled) haplotype lengths and the one on the right is presented as **log-scaled lengths**
 to collapse the right tail for better readability. 
 
+## dist plot
+### the dist plpt {.no-title}
+```{r warning=FALSE, message=FALSE, echo= FALSE, out.width="100%", fig.height=2.7}
+ggplot(df, aes(block_length, after_stat(count))) + 
+  geom_histogram(color = "#8897a7", fill = "#ABBDD1") +
+  theme_minimal() +
+  theme(
+    panel.grid.minor.y = element_blank(),
+    panel.grid.minor.x = element_blank()
+    ) +
+  scale_y_continuous(labels = label_comma()) +
+  scale_x_continuous(labels = label_comma()) +
+  xlab("Haplotype Length") +
+  ylab("Count") +
+  labs(title = "Distribution of Haplotype Lengths")
+```
+
+### log dist plot {.no-title}
 ```{r warning=FALSE, message=FALSE, echo= FALSE, out.width="100%", fig.height=2.7}
 ggplot(df, aes(block_length, after_stat(count))) + 
   geom_density(color = "#859f9a", fill = "#bfe4dc") +
@@ -87,11 +154,24 @@ ggplot(df, aes(block_length, after_stat(count))) +
   ) +
   xlab("Haplotype Length (log scale)") +
   ylab("Count") +
-  labs(title = "Distribution of Overall Haplotype Lengths")
+  labs(title = "Distribution of Haplotype Lengths")
 ```
 
-### stats per contig
+## Per contig data desc
+### table per contig {.no0-title}
+<h2> Stats Per Contig </h2>
 The table below provides details on the outcome of haplotype phasing on a per-contig basis.
+
+### distribution per contig {.no-title}
+The plot below shows the distribution of haplotype length (in base pairs) for 
+each contig, up to 30 of the largest contigs, the size of whom is inferred/assumed
+from the end position of the last haplotype. Phasing typically results in extreme
+right-tails in these distributions, making regular visualization
+difficult to plot meaningfully. The plot presented below has **log-scaled lengths**
+to collapse the right tails for better readability. 
+
+## Per contig data
+### stats per contig {.no-title}
 ```{r echo= FALSE, message = FALSE, warning = FALSE}
 percontig <- df %>% group_by(contig) %>% summarise(
     n_haplo = round(length(n_snp)),
@@ -106,21 +186,14 @@ DT::datatable(
   percontig,
   rownames = F,
   extensions = 'Buttons',
-  options = list(dom = 'Brtip', buttons = c('csv'), scrollX = TRUE),
+  options = list(dom = 'Brtip', buttons = c('csv'), scrollX = TRUE, pageLength = length(levels(df$contig))),
   colnames = c("Contig", "Total Haplotypes", "Mean SNPs", "Median SNPs", "Mean Haplotype Length", "Median Haplotype Length", "Largest Haplotype"),
   autoHideNavigation = T,
   fillContainer = T
   )
 ```
-
-The plot below shows the distribution of haplotype length (in base pairs) for 
-each contig, up to 30 of the largest contigs, the size of whom is inferred/assumed
-from the end position of the last haplotype. Phasing typically results in extreme
-right-tails in these distributions, making regular visualization
-difficult to plot meaningfully. The plot presented below has **log-scaled lengths**
-to collapse the right tails for better readability. 
-
-```{r warning=FALSE, message=FALSE, echo= FALSE, fig.height=pltheight, out.width="100%"}
+### per contig plot {.no-title}
+```{r warning=FALSE, message=FALSE, echo= FALSE, fig.height=pltheight, out.width="100%", fig.width=8}
 ggplot(df, aes(block_length, after_stat(count))) + 
   geom_density(color = "#af9caf", fill = "#DBC3DB") +
   theme_light() +
@@ -135,15 +208,27 @@ ggplot(df, aes(block_length, after_stat(count))) +
      breaks = trans_breaks("log10", function(x) 10^x),
      labels = trans_format("log10", math_format(10^.x))
   ) +
-  facet_wrap(~contig, ncol = 1, scales = "free") +
+  facet_wrap(~contig, ncol = 3, scales = "free") +
   xlab("Haplotype Length (log scale)") +
   ylab("Count") +
   labs(title = "Distribution of Haplotype Lengths Per Contig")
 ```
 
-### stats per sample
+# Per-Sample Stats
+## per sample desc
+### stats per sample desc {.no-title}
+<h1> Per-Sample Stats </h1>
 Haplotype phasing occurs per-sample and the table below provides details on the outcome of haplotype phasing for each sample.
 
+The ridgeline plot below shows the distribution of haplotype lengths (in base pairs) for each 
+sample. While no Y-axis for these counts are provided, this plot is intended to be more of
+a visual reference of the relative distributions of haplotype lengths among samples.
+Phasing typically results in extreme right-tails in these distributions, making regular 
+visualization difficult to plot meaningfully. The plot presented below has 
+**log-scaled lengths** to collapse the right tails for better readability. 
+
+## per sample 
+### stats per sample {.no-title}
 ```{r echo= FALSE, message = FALSE, warning = FALSE}
 persample <- df %>% group_by(sample) %>% summarise(
     n_haplo = sum(length(n_snp)),
@@ -158,20 +243,15 @@ DT::datatable(
   persample,
   rownames = F,
   extensions = 'Buttons',
-  options = list(dom = 'Brtip', buttons = c('csv'), scrollX = TRUE),
-  colnames = c("Contig", "Haplotypes", "Mean SNPs", "Median SNPs", "Mean Haplotype Length", "Median Haplotype Length", "Largest Haplotype"),
+  options = list(dom = 'Brtip', buttons = c('csv'), scrollX = TRUE, pageLength = length(levels(df$sample))),
+  colnames = c("Sample", "Haplotypes", "Mean SNPs", "Median SNPs", "Mean Haplotype Length", "Median Haplotype Length", "Largest Haplotype"),
   autoHideNavigation = T,
-  fillContainer = T
+  fillContainer = T,
 )
 ```
-The ridgeline plot below shows the distribution of haplotype lengths (in base pairs) for each 
-sample. While no Y-axis for these counts are provided, this plot is intended to be more of
-a visual reference of the relative distributions of haplotype lengths among samples.
-Phasing typically results in extreme right-tails in these distributions, making regular 
-visualization difficult to plot meaningfully. The plot presented below has 
-**log-scaled lengths** to collapse the right tails for better readability. 
 
-```{r warning=FALSE, message=FALSE, echo= FALSE, out.width="100%", fig.height=ridgeheight}
+### the ridgeplot {.no-title}
+```{r warning=FALSE, message=FALSE, echo= FALSE, fig.height=ridgeheight, fig.width=8}
 ggplot(df, aes(x = block_length, y = sample, fill = stat(x))) +
   geom_density_ridges_gradient(scale = 1.4) +
   scale_fill_viridis_c(option = "G", trans = "log10") +

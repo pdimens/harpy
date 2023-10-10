@@ -1,5 +1,4 @@
 import rich_click as click
-#from .harpymisc import validate_bamfiles
 from pathlib import Path
 import subprocess
 import glob
@@ -50,11 +49,6 @@ def align(genome, threads, method, ema_bins, directory, extra_params, quality_fi
     samplenames = set([re.sub(bn_r, "", i, flags = re.IGNORECASE) for i in fqlist])
     directory = directory.rstrip("/^")
     mapper = method
-    ## DEPRECATED ##
-    # create relative symlinks for input files with standard naming convention
-    #linkdir = f"Align/{mapper}/input"
-    # find the basenames with this flexible regex
-    #samplenames = sanitize_fastq(full_fqlist, linkdir)  
     command = f'snakemake --rerun-incomplete --nolock --cores {threads} --directory . --snakefile {harpypath}/align-{mapper}.smk'.split()
     if snakemake is not None:
         [command.append(i) for i in snakemake.split()]

@@ -7,7 +7,7 @@ output:
     orientation: rows
     vertical_layout: scroll
     horizontal_layout: fill
-    favicon: "https://raw.githubusercontent.com/pdimens/harpy/docs/static/favicon.png"
+    favicon: "https://raw.githubusercontent.com/pdimens/harpy/docs/static/favicon_dark.png"
 ---
 
 ```{r load environment, echo=FALSE, message=FALSE, warning=FALSE}

@@ -111,7 +111,7 @@ rule align:
     message:
         "Aligning sequences: {wildcards.sample}"
     benchmark:
-        "Benchmark/Mapping/bwa/align.{sample}.txt"
+        ".Benchmark/Mapping/bwa/align.{sample}.txt"
     params: 
         quality = config["quality"],
         tmpdir = lambda wc: outdir + "/." + d[wc.sample],
@@ -164,7 +164,7 @@ rule mark_duplicates:
     message:
         f"Marking duplicates: " + "{wildcards.sample}"
     benchmark:
-        "Benchmark/Mapping/bwa/markdup.{sample}.txt"
+        ".Benchmark/Mapping/bwa/markdup.{sample}.txt"
     threads: 
         4
     shell:
@@ -217,7 +217,7 @@ rule general_alignment_stats:
     message:
         "Calculating alignment stats: {wildcards.sample}"
     benchmark:
-        "Benchmark/Mapping/bwa/stats.{sample}.txt"
+        ".Benchmark/Mapping/bwa/stats.{sample}.txt"
     shell:
         """
         samtools stats {input.bam} > {output.stats}

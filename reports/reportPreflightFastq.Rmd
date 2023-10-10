@@ -6,7 +6,7 @@ output:
     theme: lumen
     orientation: rows  
     vertical_layout: scroll
-    favicon: "https://raw.githubusercontent.com/pdimens/harpy/docs/static/favicon.png"
+    favicon: "https://raw.githubusercontent.com/pdimens/harpy/docs/static/favicon_dark.png"
 ---
 
 
@@ -96,6 +96,7 @@ This file contains a tab-delimited table with the columns: `file`,	`reads`, `noB
   - severity: <strong style='color:orange;'>conditional</strong> and only relevant for LEVIATHAN variant calling 
   - can be ignored if not intending to call structural variants with LEVIATHAN
   - if intending to use LEVIATHAN, the `BX:Z:` tag must be the last comment in a read header
+  - `harpy align -m bwa` automatically moves the `BX:Z:` tag to the end of the alignment record
 
 ### Proper header {.no-title}
 <h2> Proper Read Headers </h2>
@@ -103,13 +104,14 @@ This file contains a tab-delimited table with the columns: `file`,	`reads`, `noB
 An example of a proper FASTQ read header is like the one below, where all comments
 following the initial read ID (`@A00814...`) have the proper [SAM spec](https://samtools.github.io/hts-specs/SAMv1.pdf)
 `TAG:TYPE:VALUE` format and among them is a `BX:Z:` tag followed by a `AxxCxxBxxDxx`
-formatted haplotag barcode. The read header below contains the read ID `@A00814...`,
+formatted haplotag barcode. The comments must be **TAB separated** because the `:Z:` tag type allows a 
+whitespace character for its value. The read header below contains the read ID `@A00814...`,
 the `BX:Z:` haplotag barcode tag, and two more comments `RX:Z:` and `QX:Z:` that both
 adhere to the SAM specification. If using LEVIATHAN to call structural variants, the `BX:Z:` tag
 must be the last comment in the read header.
 
 ```
-@A00814:267:HTMH3DRXX:2:1101:4580:1000 BX:Z:A02C01B11D46 RX:Z:GAAACGACCAACA+CGAACACGTTAGC QX:Z:F,FFFFFFFFFFF+FF,FFF:FFFFFF
+@A00814:267:HTMH3DRXX:2:1101:4580:1000	BX:Z:A02C01B11D46	RX:Z:GAAACGACCAACA+CGAACACGTTAGC	QX:Z:F,FFFFFFFFFFF+FF,FFF:FFFFFF
 ```
 
 ## viz desc

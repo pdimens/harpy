@@ -34,9 +34,11 @@ def write_validbx(bam, alnrecord, molID):
     molID: the "mol_id" entry of a barcode dictionary
     Formats an alignment record to include the MI tag
     and the BX at the end and writes it to the output
-    bam file.
+    bam file. Replaces existing MI tag, if exists.
     '''
-    tags = alnrecord.get_tags()
+    # get all the tags except MI b/c it's being replaced (if exists)
+    # also remove DI because it's not necessary
+    tags = [j for i,j in enumerate(alnrecord.get_tags()) if j[0] not in ['MI', 'DI']]
     # add the MI tag
     tags.append(("MI", molID))
     # find which tag index is the BX tag
@@ -57,19 +59,42 @@ def write_invalidbx(bam, alnrecord):
     alnrecord: the pysam alignment record
     Formats an alignment record to include the BX 
     at the end and writes it to the output
-    bam file.
+    bam file. Removes existing MI tag, if exists.
     '''
-    tags = alnrecord.get_tags()
+    # get all the tags except MI b/c it's being replaced (if exists)
+    # this won't write a new MI, but keeping an existing one
+    # may create incorrect molecule associations by chance
+    # also remove DI because it's not necessary
+    tags = [j for i,j in enumerate(alnrecord.get_tags()) if j[0] not in ['MI', 'DI']]
     # find which tag index is the BX tag
     BX_idx = [i for i,j in enumerate(tags) if j[0] == 'BX'][0]
     # get the list of indices for the tag list
     idx = [i for i in range(len(tags))]
-    # if BX isn't alrecordy last, make sure BX is at the end
+    # if BX isn't already last, make sure BX is at the end
     if tags[-1][0] != 'BX':
         # swap it with whatever is last
         tags[BX_idx], tags[-1] = tags[-1], tags[BX_idx]
         # update the record's tags
         alnrecord.set_tags(tags)
+    # write record to output file
+    bam.write(alnrecord)
+
+def write_missingbx(bam, alnrecord):
+    '''
+    bam: the output bam
+    alnrecord: the pysam alignment record
+    Formats an alignment record to include invalid BX 
+    at the end and writes it to the output
+    bam file. Removes existing MI tag, if exists.
+    '''
+    # get all the tags except MI b/c it's being replaced (if exists)
+    # this won't write a new MI, but keeping an existing one
+    # may create incorrect molecule associations by chance
+    # also remove DI because it's not necessary
+    # removes BX... just in case. It's not supposed to be there to begin with
+    tags = [j for i,j in enumerate(alnrecord.get_tags()) if j[0] not in ['MI', 'DI', 'BX']]
+    tags.append(("BX", "A00C00B00D00"))
+    alnrecord.set_tags(tags)
     # write record to output file
     bam.write(alnrecord)
 
@@ -80,8 +105,8 @@ d = dict()
 # chromlast keeps track of the last chromosome so we can
 # clear the dict when it's a new contig/chromosome
 chromlast = False
-# MI is the name of the current molecule. Arbitrarily starting at 1000
-MI = 999
+# MI is the name of the current molecule, starting a 1 (0+1)
+MI = 0
 
 if os.path.exists(args.input) and args.input.lower().endswith(".sam"):
     alnfile = pysam.AlignmentFile(args.input)
@@ -109,35 +134,26 @@ for record in alnfile.fetch():
         d = dict()
     if record.is_unmapped:
         # skip, don't output
+        chromlast = chrm
         continue
 
     try:
         bx = record.get_tag("BX")
-        validBX = True
         # do a regex search to find X00 pattern in the BX
         if re.search("[ABCD]0{2,4}", bx):
             # if found, invalid
-            bx = "invalidBX"
-            validBX = False
+            write_invalidbx(outfile, record)
+            chromlast = chrm
+            continue
     except:
         # There is no bx tag
-        bx = "noBX"
-        validBX = False
+        write_missingbx(outfile, record)
+        chromlast = chrm
+        continue
     
     aln = record.get_blocks()
     if not aln:
         # unaligned, skip and don't output
-        continue
-
-    # if invalid/absent BX, write and move on
-    if bx == "noBX":
-        # write as is
-        outfile.write(record)
-        chromlast = chrm
-        continue    
-    if bx == "invalidBX":
-        # write but make sure BX is at the end
-        write_invalidbx(outfile, record)
         chromlast = chrm
         continue
 
@@ -193,8 +209,8 @@ for record in alnfile.fetch():
         # set the last position to be the end of current alignment
         d[bx]["lastpos"] = pos_end
 
-    # if it hasn't moved on by now, it's an updated record for an
-    # existing barcode. Write the record.
+    # if it hasn't moved on by now, it's a record for an
+    # existing barcode/molecule. Write the record.
     write_validbx(outfile, record, d[bx]["mol_id"])
 
     # update the chromosome tracker

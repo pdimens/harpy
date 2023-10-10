@@ -1,30 +1,13 @@
 ---
-title: "Leviathan Variant Calling Per-Sample Summary"
+title: "Leviathan Variant Calling Summary"
 date: "`r format(Sys.time(), '%d %B, %Y')`"
 output:
   flexdashboard::flex_dashboard:
     theme: lumen
     orientation: rows
     vertical_layout: scroll
-    horizontal_layout: fill
-    favicon: "https://raw.githubusercontent.com/pdimens/harpy/docs/static/favicon.png"
+    favicon: "https://raw.githubusercontent.com/pdimens/harpy/docs/static/favicon_dark.png"
 ---
-
-Below is a series of tables and plots detailing the structural variants
-identified by [LEVIATHAN](https://github.com/morispi/LEVIATHAN) [(preprint)](https://doi.org/10.1101/2021.03.25.437002). The variants are given by:
-
-```{r table2, echo=FALSE, message=FALSE, warnings=FALSE, results='asis'}
-data.frame(
-  "Variant" = c("INV", "DUP", "DEL","BND"),
-  "Name" = c("Inversion", "Duplication", "Deletion", "Breakend"),
-  "Description" = c(
-    "a segment that broke off and reattached within the same chromosome, but in reverse orientation",
-    "a type of mutation that involves the production of one or more copies of a gene or region of a chromosome",
-    "a type of mutation that involves the loss of one or more nucleotides from a segment of DNA",
-    "the endpoint of a structural variant, which can be useful to explain complex variants"
-    )
-  )
-```
 
 ```{r load environment, echo=FALSE, message=FALSE, warning=FALSE}
 library(flexdashboard)
@@ -36,7 +19,6 @@ library(plotly)
 library(circlize)
 library(ComplexHeatmap)
 ```
-
 ```{css zoom-lib-src, echo = FALSE, message = FALSE, warning = FALSE}
 script src = "https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"
 ```
@@ -55,9 +37,51 @@ script src = "https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"
   });
 ```
 
+# General Stats
+## Intro
+### introtext {.no-title}
+```{r}
+statsfile <- snakemake@input[["statsfile"]]
+samplename <- gsub(".stats", "", basename(statsfile))
+```
+
+<h1> Structural Variants: `r samplename`</h1>
+Below is a series of tables and plots detailing the structural variants
+identified by [LEVIATHAN](https://github.com/morispi/LEVIATHAN) [(preprint)](https://doi.org/10.1101/2021.03.25.437002). The variants are given by:
+
+```{r table2, echo=FALSE, message=FALSE, warnings=FALSE}
+knitr::kable(
+  data.frame(
+  "Variant" = c("INV", "DUP", "DEL","BND"),
+  "Name" = c("Inversion", "Duplication", "Deletion", "Breakend"),
+  "Description" = c(
+    "a segment that broke off and reattached within the same chromosome, but in reverse orientation",
+    "a type of mutation that involves the production of one or more copies of a gene or region of a chromosome",
+    "a type of mutation that involves the loss of one or more nucleotides from a segment of DNA",
+    "the endpoint of a structural variant, which can be useful to explain complex variants"
+    )
+  )
+)
+```
+
+This tab (`General Stats`) shows overview information. Clicking `Per-Contig Plots`
+in the navigation bar at the top of this page will show you interactive
+plots detailing all variants identified.
+
+```{r}
+statsfile <- snakemake@input[["statsfile"]]
+#statsfile <- "/home/pdimens/test.stats"
+sv <- read.table(statsfile, header = T,
+  colClasses = c("factor", "factor", "integer", "integer", "character", "factor", "integer", "integer")
+)
+if (nrow(sv) == 0) {
+  cat(paste0("There are no variants in the file ", "`", bcf, "`"))
+  knitr::knit_exit()
+}
+```
 ```{r contigSizes, echo = FALSE}
 bcf <- snakemake@input[["bcf"]]
-#bcf <- "/home/pdimens/Omega/Cornell/dmel/leviathan.bcf"
+#bcf <- "/home/pdimens/test.bcf"
 hd <- system2("bcftools", args =  paste("head", bcf), stdout = T)
 fa.sizes <- hd[grep("contig=", hd)]
 fa.sizes <- as.data.frame(do.call(rbind, strsplit(fa.sizes, ",length="))) %>% arrange(desc(2))
@@ -68,26 +92,57 @@ colnames(fa.sizes) <- c("contig", "size")
 fa.sizes <- fa.sizes[1:min(nrow(fa.sizes), 30), ]
 ```
 
+## General Information {data-height=100}
+### nvariants
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+summinfo <- sv %>%
+  group_by(contig, type) %>%
+  summarise(count = n()) %>% 
+  group_by(type) %>%
+  summarise(
+    total = sum(count),
+    avg_per_contig = round(mean(count), 2),
+    sd = round(sd(count), 2)
+)
+
+nvar = sum(summinfo$total)
+valueBox(scales::comma(nvar), caption = "Variants", color = ifelse(nvar > 0, "success", "warning"))
+```
+
+### nbreakends
 ```{r}
-statsfile <- snakemake@input[["statsfile"]]
-#statsfile <- "/home/pdimens/Omega/Cornell/dmel/leviathan.stats"
-sv <- read.table(statsfile, header = T)
-if (nrow(sv) == 0) {
-  cat(paste0("There are no variants in the file ", "`", bcf, "`"))
-  knitr::knit_exit()
-}
+nbnd <- ifelse("BND" %in% summinfo$type, summinfo$type[which(summinfo$type == "BND")], 0)
+valueBox(scales::comma(nbnd), caption = "Breakends", color = "info")
+```
+### ndeletions
+```{r}
+ndel <- ifelse("DEL" %in% summinfo$type, summinfo$type[which(summinfo$type == "DEL")], 0)
+valueBox(scales::comma(ndel), caption = "Deletions", color = "info")
+```
+
+### nduplications
+```{r}
+ndup <- ifelse("DUP" %in% summinfo$type, summinfo$type[which(summinfo$type == "DUP")], 0)
+valueBox(scales::comma(ndup), caption = "Duplications", color = "info")
+```
+
+### ninversions
+```{r}
+ninv <- ifelse("INV" %in% summinfo$type, summinfo$type[which(summinfo$type == "INV")], 0)
+valueBox(scales::comma(ninv), caption = "Inversions", color = "info")
 ```
 
 ## Various Stats Headers
 ### summary info {.no-title}
-Below are three tables separated into tabs. The first table details all the variants
-LEVIATHAN detected and the quantity/quality of evidence for those detections.
-The second table shows the overall statistics for detected structural variants. 
-The last table details each type of structural variant for every contig. 
+<h2> Variant Information </h2>
+Below are two tables with information on the variants. The first (left) table
+details all the variants LEVIATHAN detected and the quantity/quality of evidence
+for those detections. The second (right) table details each type of structural variant for
+every contig. 
 
-## Various Stats Tables {.tabset}
-### all variants
-```{r echo = FALSE, warnings = FALSE, message = FALSE, results = 'asis'}
+## Various Stats Tables
+### All variants found
+```{r echo = FALSE, warnings = FALSE, message = FALSE}
 DT::datatable(
   sv,
   rownames = F,
@@ -99,24 +154,11 @@ DT::datatable(
 )
 ```
 
-### summary info
+### Per-contig info
 ```{r echo = FALSE, message = FALSE}
 sv$length <- gsub("\\.", "1", sv$length) %>%  as.numeric()
-
-grpstats <- sv %>%
-  group_by(contig, type) %>%
-  summarise(count = n(), total_bp  = sum(length))
-
-grpstats %>%
-  group_by(type) %>%
-  summarise(
-    total = sum(count),
-    avg_per_contig = mean(count),
-    sd = sd(count)
-)
 ```
 
-### per-contig info
 ```{r echo = FALSE, message = FALSE, warning = FALSE}
 grpstats <- sv %>%
   group_by(contig, type) %>%
@@ -133,15 +175,46 @@ DT::datatable(
 )
 ```
 
-## SV size and location desc
-### Summary desc {.no-title}
-Below is a circular plot to visualize the distribution of SV across (up to) 30 of the largest contigs. This should help you assess
-the presence/absence of expected variants. For more detailed interactive plots, see the **Per-contig** tab. You may click on the plot
-to expand it.
-
 ## SV size and location
-### Summary {.no-title}
-```{r echo = FALSE, message = FALSE, warning = FALSE, fig.align='center', out.width= "100%"}
+```{r colors, echo = FALSE, warning = FALSE, message = FALSE}
+col.palette <- c(
+  "DEL" = "#5a8c84",
+  "DUP" = "#ffd75f",
+  "INV" = "#4a9fea",
+  "BND" = "#df487f"
+  )
+```
+### legend {.no-title data-width=200}
+To the right is a circular plot to visualize the distribution of structural variants
+across (up to) 30 of the largest contigs. This should help you assess
+the presence/absence of expected variants. The legend below shows which
+colors correspond to which type of variant.
+You may click on the plot to expand it in your browser window. Clicking it again will exit
+out of the zoomed view.
+
+```{r}
+justcolors <- c("#df487f", "#5a8c84", "#ffd75f", "#4a9fea")
+
+data.frame(x = 1, y = 1:4, colour = c("Breakend","Deletion","Duplication", "Inversion")) %>% 
+ggplot(aes(x, y, fill = colour))+
+  geom_point(alpha=0, shape = 22, color = "white")+ # completely transparent rectangular point 
+  scale_fill_manual(values=justcolors, drop=FALSE) +
+  guides(fill = guide_legend(override.aes = list(alpha=1, size = 25)))+ # showing the point in the legend
+  theme(axis.title = element_blank(),
+        axis.text = element_blank(),
+        axis.ticks = element_blank(),
+        legend.position = c(0.3, 0.5),
+        legend.text = element_text(size = 25),
+        legend.title=element_text(size=25),
+        legend.key = element_rect(fill='NA'),
+        panel.grid = element_blank(),
+        panel.border = element_rect(colour = "white", fill='white', linewidth=1)
+  ) +
+  labs(fill="Variant Type")
+```
+
+### Summary {.no-title data-height=700}
+```{r echo = FALSE, message = FALSE, warning = FALSE, dev = "jpeg", out.width= "100%"}
 circos.clear()
 col_text <- "grey40"
 circos.par("track.height" = 0.8, gap.degree = 3, cell.padding = c(0, 0, 0, 0))
@@ -233,78 +306,84 @@ circos.genomicTrack(
     circos.genomicRect(region, value, ybottom = 0, ytop = 1, col = "#df487f", border = "#df487f")
   }
 )
-
-lgd <- Legend(
-  at = c("Inversion", "Deletion", "Duplication", "Breakend"),
-  type = "grid",
-  legend_gp = gpar(fill = c("#4a9fea", "#5a8c84", "#ffd75f", "#df487f")),
-  title_position = "topleft",
-  title = "Variant Types"
-)
-
-draw(lgd, x = unit(0.97, "npc"), just = c("right", "bottom"))
 ```
 
-
-## per contig plot desc
-### per contig desc {.no-title}
-Below are a series of plots to help you assess what structural variants were detected by LEVIATHAN. These plots are interactive,
+# Per-Contig Plots
+## contig plots
+```{r}
+color.palette <- c("DEL"="#5a8c84", "DUP"="#ffd75f", "INV"="#4a9fea","BND"="#df487f")
+sv$ystart <- case_when(
+  sv$type == "INV" ~ 0.1,
+  sv$type == "DUP" ~ 1.1,
+  sv$type == "DEL" ~ 2.1,
+  sv$type == "BND" ~ 3.1,
+)
+sv$ystop <- sv$ystart + 0.8
+```
+### Per-contig {.no-title data-height=7000}
+<h1> Structural Variants Per Contig </h1>
+Below is a plot to help you assess what structural variants were detected by LEVIATHAN. These plots are interactive,
 allowing you to hover over a variant to provide additional information, including the genomic interval in which it occurs and the
 number of haplotag barcodes supporting the variant.
 
-## per contig plot
-### Per-contig {.no-title}
-```{r colors, echo = FALSE, warning = FALSE, message = FALSE}
-col.palette <- c(
-  "DEL" = "#5a8c84",
-  "DUP" = "#ffd75f",
-  "INV" = "#4a9fea",
-  "BND" = "#df487f"
-  )
-```
+```{r}
+l <- list()
+nplotrows <- 0
 
-```{r echo = FALSE, out.width = '100%', warning=FALSE}
-l <- htmltools::tagList()
 for (i in 1:nrow(fa.sizes)) {
   sv.filt <- sv %>% filter(contig == fa.sizes$contig[i])
   sv_stats <- group_by(sv.filt, type) %>% summarise(n = length(type))
   if (nrow(sv_stats) == 0) {
     next
   }
+  nplotrows <- nplotrows + 1
   plt <- sv.filt %>%
     ggplot() +
     geom_rect(
       alpha = 0.7,
       aes(
+        ymin = ystart,
+        ymax = ystop,
         xmin = position_start,
         xmax = position_end,
-        ymin = 0,
-        ymax = 1,
         fill = type,
         color = type,
         text = sprintf("Type: %s<br>Position: %s-%s<br>barcodes: %s", type, position_start, position_end, n_barcodes)
-      )
-    ) +
+        )
+      ) +
+    geom_hline(yintercept = 1:3, color = "grey96") +
+    scale_color_manual(values = color.palette) +
+    scale_fill_manual(values = color.palette) +
+    facet_grid(rows = vars(contig)) +
     theme_light() +
-    facet_grid(rows = vars(type)) +
     theme(
-      axis.text.y=element_blank(),
       axis.line.y = element_blank(),
       axis.ticks.y = element_blank(),
       panel.grid.major = element_blank(),
       panel.grid.minor = element_blank(),
       strip.background = element_rect(fill = "grey80"),
       strip.text = element_text(color = "grey20"),
-      legend.position = "none"
+      legend.position = "none",
     ) +
-    scale_color_manual(values = col.palette) +
-    scale_fill_manual(values = col.palette) +
-    xlim(1, fa.sizes$size[i]) +
+    scale_x_continuous(labels = scales::comma) +
     coord_cartesian(xlim = c(0, fa.sizes$size[i] + 1), expand = F) +
-    xlab("Position (bp)") +
-    labs(fill = "SV type", color = "SV type") +
-    ggtitle(fa.sizes$contig[i])
-  l[[i]] <- ggplotly(plt, tooltip = "text")
+    scale_y_continuous(
+      breaks = c(0.5, 1.5, 2.5, 3.5),
+      labels = c("INV", "DUP", "DEL", "BND"),
+      limits = c(0,4)
+    ) +
+    xlab("Position (bp)")
+    annotations <- list( 
+      x = 0.5,
+      y = 1.05,  
+      text = as.character(fa.sizes$contig[i]),  
+      xref = "paper",  
+      yref = "paper",  
+      xanchor = "center",  
+      yanchor = "bottom",  
+      showarrow = FALSE 
+    )
+    l[[i]] <- subplot(ggplotly(plt, height = 800, tooltip = "text"))
 }
-l
+subplot(l, nrows = nplotrows, shareX = FALSE, titleX = TRUE)
 ```
