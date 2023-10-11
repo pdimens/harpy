@@ -63,7 +63,7 @@ def leviathan(genome, threads, directory, populations, extra_params, snakemake, 
 
 @click.command(no_args_is_help = True)
 @click.option('-d', '--directory', required = True, type=click.Path(exists=True), metavar = "Folder Path", help = 'Directory with BAM alignments')
-@click.option('-g', '--genome', type=click.Path(exists=True), metavar = "File Path", help = 'Genome assembly for alignment phasing')
+@click.option('-g', '--genome', required = True, type=click.Path(exists=True), metavar = "File Path", help = 'Genome assembly')
 @click.option('-v', '--vcf', type=click.Path(exists=True), metavar = "File Path", help = 'Path to phased bcf/vcf file')
 @click.option('-p', '--populations', type=click.Path(exists = True), metavar = "File Path", help = 'Tab-delimited file of sample<tab>population (optional)')
 @click.option('-m', '--molecule-distance', default = 100000, show_default = True, type = int, metavar = "Integer", help = 'Base-pair distance delineating separate molecules')
@@ -77,8 +77,8 @@ def naibr(genome, vcf, threads, directory, populations, molecule_distance, extra
     
     NAIBR requires **phased** bam files as input. This appears as the `HP` or `PS` tags
     in alignment records. If your bam files do not have either of these phasing tags
-    (e.g. BWA does not phase alignments), then provide a `--genome` and a **phased**
-    `--vcf` file such as that created by `harpy phase` and Harpy will use [whatshap haplotag](https://whatshap.readthedocs.io/en/latest/guide.html#whatshap-haplotag)
+    (e.g. BWA does not phase alignments), then provide a **phased** `--vcf` file such
+     as that created by `harpy phase` and Harpy will use [whatshap haplotag](https://whatshap.readthedocs.io/en/latest/guide.html#whatshap-haplotag)
     to phase your input bam files prior to calling variants with NAIBR.
 
     Optionally specify `--populations` for population-pooled variant calling. 
@@ -90,11 +90,8 @@ def naibr(genome, vcf, threads, directory, populations, molecule_distance, extra
     if populations is not None:
         vcaller += "-pop"
     directory = directory.rstrip("/^")
-    if genome is not None and vcf is not None:
+    if vcf is not None:
         command = (f'snakemake --rerun-incomplete --nolock --cores {threads} --directory . --snakefile {harpypath}/variants-{vcaller}-phase.smk').split()
-    elif (genome is not None and vcf is None) or (genome is None and vcf is not None):
-        print(f"\n\033[1;33mERROR:\033[00m If intending for Harpy to phase your input bam files, you must provide both --genome and --vcf arguments.", file = sys.stderr)
-        print(f"\n\033[1;34mSOLUTION:\033[00m Rerun the command using both --genome and --vcf arguments.\n", file = sys.stderr)
     else:
         command = (f'snakemake --rerun-incomplete --nolock --cores {threads} --directory . --snakefile {harpypath}/variants-{vcaller}.smk').split()
     
