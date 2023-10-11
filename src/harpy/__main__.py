@@ -69,7 +69,7 @@ def align():
 @click.group(options_metavar='', context_settings=dict(help_option_names=["-h", "--help"]))
 def snp():
     """
-    Call SNPs and small indels from sample alignments
+    Call SNPs and small indels
     
     **Variant Callers**
     - **mpileup**: call variants using bcftools mpileup
@@ -97,7 +97,7 @@ def sv():
 @click.group(options_metavar='', context_settings=dict(help_option_names=["-h", "--help"]))
 def preflight():
     """
-    Run file format checks on haplotagged FASTQ/BAM files
+    Run file format checks on haplotag data
 
     This is useful to make sure your input files are formatted correctly for the processing pipeline 
     before you are surprised by errors hours into an analysis. Provide an additional command `fastq`
@@ -129,6 +129,20 @@ sv.add_command(leviathan)
 sv.add_command(naibr)
 
 ## the modules ##
+click.rich_click.COMMAND_GROUPS = {
+    "harpy":
+        [
+            {
+                "name": "Modules",
+                "commands": ["demultiplex","qc", "align","snp","sv","impute","phase"],
+            },
+            {
+                "name": "Other Commands",
+                "commands": ["preflight", "extra"]
+            }
+        ]
+}
+
 click.rich_click.OPTION_GROUPS = {
     "harpy preflight bam": [
         {
