@@ -83,7 +83,7 @@ def snp():
 @click.group(options_metavar='', context_settings=dict(help_option_names=["-h", "--help"]))
 def sv():
     """
-    Call large structural variants from samples
+    Call large structural variants
  
     **Structural Variant Callers**
     - **naibr**: calls inversions, duplicates, deletions
