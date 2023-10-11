@@ -69,7 +69,7 @@ You can call `harpy` without any arguments (or with `--help`) to print the docst
 │ qc           Remove adapters and quality trim sequences     │
 │ align        Align sample sequences to a reference genome   │
 │ snp          Call SNPs and small indels                     │
-│ sv           Call large structural variants from samples    │
+│ sv           Call large structural variants                 │
 │ impute       Impute genotypes using variants and sequences  │
 │ phase        Phase SNPs into haplotypes                     │
 ╰─────────────────────────────────────────────────────────────╯
