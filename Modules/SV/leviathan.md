@@ -75,7 +75,14 @@ of combining the variants of all the samples into a single VCF file, therefore t
 With the inclusion of a population grouping file via `--populations`, Harpy will merge the bam files of all samples within a 
 population and call variants on these alignment pools. Preliminary work shows that this way identifies more variants and with fewer false 
 positives. **However**, individual-level information gets lost using this approach, so you will only be able to assess 
-group-level variants, if that's what your primary interest is. 
+group-level variants, if that's what your primary interest is.
+
+!!! a little lifehack
+If you have a small number of samples (~10 or fewer) that you are interested in comparing the results of structural variant calling for,
+you can provide a sample grouping file via `--populations` where each sample is its own population and Harpy will output a report
+comparing "populations" as usual. Keep in mind that if there are too many samples, the formatting of the reports might not render
+it too well.
+!!!
 
 ----
 
