@@ -65,19 +65,19 @@ jobs:
 
       - name: variants leviathan
         shell: micromamba-shell {0}
-        run: harpy variants sv --method leviathan -d test/bam -g test/genome/genome.fasta.gz -s "--show-failed-logs"
+        run: harpy sv leviathan -d test/bam -g test/genome/genome.fasta.gz -s "--show-failed-logs"
         continue-on-error: true
 
       - name: variants leviathan-pop
         shell: micromamba-shell {0}
-        run: harpy variants sv --method leviathan -d test/bam -g test/genome/genome.fasta.gz -p test/samples.groups -s "--show-failed-logs"
+        run: harpy sv leviathan -d test/bam -g test/genome/genome.fasta.gz -p test/samples.groups -s "--show-failed-logs"
         continue-on-error: true
 
       - name: variants naibr
         shell: micromamba-shell {0}
-        run: harpy variants sv --method naibr -d test/bam -g test/genome/genome.fasta.gz -s "--show-failed-logs"
+        run: harpy sv naibr -d test/bam -g test/genome/genome.fasta.gz -s "--show-failed-logs"
         continue-on-error: true
 
       - name: variants naibr-pop
         shell: micromamba-shell {0}
-        run: harpy variants sv --method naibr -d test/bam -g test/genome/genome.fasta.gz -p test/samples.groups -s "--show-failed-logs"
+        run: harpy sv naibr -d test/bam -g test/genome/genome.fasta.gz -p test/samples.groups -s "--show-failed-logs"
