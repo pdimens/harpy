@@ -31,6 +31,7 @@ click.rich_click.USE_MARKDOWN = True
 click.rich_click.SHOW_ARGUMENTS = False
 click.rich_click.SHOW_METAVARS_COLUMN = False
 click.rich_click.APPEND_METAVARS_HELP = False
+click.rich_click.MAX_WIDTH = 75
 click.rich_click.REQUIRED_SHORT_STRING = ""
 click.rich_click.ERRORS_SUGGESTION = "Try the '--help' flag for more information."
 click.rich_click.ERRORS_EPILOGUE = "See the documentation: [link=https://pdimens.github.io/harpy/]https://pdimens.github.io/harpy/[/link]"
@@ -41,7 +42,7 @@ def cli():
     """
     ## Harpy haplotagging pipeline
     
-    An automated workflow to demultiplex sequences, trim reads, 
+    An automated workflow to demultiplex sequences, trim and qc reads, 
     map sequences, call variants, impute genotypes, and phase 
     haplotypes of Haplotagging data. Batteries included.
     
