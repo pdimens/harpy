@@ -54,7 +54,7 @@ harpy sv naibr OPTIONS...
 harpy sv naibr --threads 20 --directory Align/bwa --genome genome.fasta
 
 # input bams require phasing
-harpy sv naibr --threads 20 --genome genome.fasta --vcf Variants/data.vcf.gz --directory Align/bwa
+harpy sv naibr --threads 20 --directory Align/bwa --genome genome.fasta --vcf Variants/data.vcf.gz
 ```
 
 ## :icon-terminal: Running Options
