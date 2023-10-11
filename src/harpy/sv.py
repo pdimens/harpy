@@ -91,6 +91,7 @@ def naibr(genome, vcf, threads, directory, populations, molecule_distance, extra
         vcaller += "-pop"
     directory = directory.rstrip("/^")
     if vcf is not None:
+        #TODO validate that the VCF is phased
         command = (f'snakemake --rerun-incomplete --nolock --cores {threads} --directory . --snakefile {harpypath}/variants-{vcaller}-phase.smk').split()
     else:
         command = (f'snakemake --rerun-incomplete --nolock --cores {threads} --directory . --snakefile {harpypath}/variants-{vcaller}.smk').split()
