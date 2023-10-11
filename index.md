@@ -12,8 +12,8 @@ Harpy is a haplotagging data processing pipeline for Linux-based systems. It use
 magic of [Snakemake](https://snakemake.readthedocs.io/en/stable/) under the hood to handle 
 the worklfow decision-making, but as a user, you just interact with it like a normal command-line 
 program. Harpy uses both well known and niche programs to take raw haplotagging sequences and process
-them to become called SNP genotypes (or haplotypes). Most of the settings are pre-configured and the settings you
-can modify are done at the command line. There aren't too many, which should make things a little simpler. 
+them to become called SNP genotypes (or haplotypes) or large structural variants (inversions, deletions, duplications).
+Most of the settings are pre-configured and the settings you can modify are done at the command line. 
 
 ## What is haplotagging?
 Linked-read sequencing exists to combine the throughput and accuracy of short-read
