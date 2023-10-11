@@ -114,6 +114,23 @@ else:
         wrapper:
            "master/bio/whatshap/haplotag"
 
+rule log_phasing:
+    input:
+        expand(outdir + "/logs/whatshap-haplotag/{sample}.phase.log", sample = samplenames)
+    output:
+        outdir + "/logs/whatshap-haplotag/phasing.log"
+    message:
+        "Creating log of alignment phasing"
+    shell:
+        """
+        echo -e "sample\\ttotal_alignments\\ttagged_alignments" > {output}
+        for i in {input}; do
+            SAMP=$(basename $i .phaselog)
+            echo -e "${SAMP}\\t$(grep "Total alignments" $i)\\t$(grep "could be tagged" $i)" |
+                sed 's/ \+ /\\t/g' | cut -f1,3,5 >> {output}
+        done
+        """
+
 rule create_config:
     input:
         outdir + "/phasedbam/{sample}.bam"
@@ -245,6 +262,8 @@ rule log_runtime:
             _ = f.write("The harpy variants sv module ran using these parameters:\n\n")
             _ = f.write(f"The provided genome: {bn}\n")
             _ = f.write(f"The directory with alignments: {bam_dir}\n\n")
+            _ = f.write("The alignment files were phased using:\n")
+            _ = f.write(f"    whatshap haplotag --reference genome.fasta --linked-read-distance-cutoff  {molecule_distance} --ignore-read-groups --tag-supplementary --sample sample_x file.vcf sample_x.bam\n")
             _ = f.write("naibr variant calling ran using these configurations:\n")
             _ = f.write(f"    bam_file=BAMFILE\n")
             _ = f.write(f"    prefix=PREFIX\n")
@@ -257,7 +276,8 @@ rule all:
     input:
         expand(outdir + "/{sample}.bedpe",      sample = samplenames),
         expand(outdir + "/reports/{sample}.naibr.html", sample = samplenames),
-        outdir + "/logs/harpy.variants.log"
+        outdir + "/logs/harpy.variants.log",
+        outdir + "/logs/whatshap-haplotag/phasing.log"
     message:
         "Variant calling completed!"
     shell:
