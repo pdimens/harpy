@@ -140,7 +140,7 @@ rule log_phasing:
         "Creating log of alignment phasing"
     shell:
         """
-        echo -e "sample\\ttotal_alignments\\ttagged_alignments" > {output}
+        echo -e "sample\\ttotal_alignments\\tphased_alignments" > {output}
         for i in {input}; do
             SAMP=$(basename $i .phaselog)
             echo -e "${SAMP}\\t$(grep "Total alignments" $i)\\t$(grep "could be tagged" $i)" |
