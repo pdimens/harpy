@@ -49,8 +49,9 @@ if vcffile.lower.endswith("bcf"):
     rule phase_alignments:
         input:
             vcf = vcffile,
-            vcfidx = vcffile + ".csi",
-            bam = bam_dir + "/{sample}.bam",
+            vcfindex = vcffile + ".csi",
+            aln = bam_dir + "/{sample}.bam",
+            alnindex = bam_dir + "/{sample}.bam.bai",
             reference = genomefile
         output:
             outdir + "/phasedbam/{sample}.bam"
@@ -79,8 +80,9 @@ elif vcffile.lower.endswith("vcf.gz"):
     rule phase_alignments:
         input:
             vcf = vcffile,
-            vcfidx = vcffile + ".tbi",
-            bam = bam_dir + "/{sample}.bam",
+            vcfindex = vcffile + ".tbi",
+            aln = bam_dir + "/{sample}.bam",
+            alnindex = bam_dir + "/{sample}.bam.bai",
             reference = genomefile
         output:
             outdir + "/phasedbam/{sample}.bam"
@@ -99,7 +101,8 @@ else:
     rule phase_alignments:
         input:
             vcf = vcffile,
-            bam = bam_dir + "/{sample}.bam",
+            aln = bam_dir + "/{sample}.bam",
+            alnindex = bam_dir + "/{sample}.bam.bai",
             reference = genomefile
         output:
             outdir + "/phasedbam/{sample}.bam"
