@@ -1,4 +1,4 @@
-from .harpymisc import getnames_err
+from .harpymisc import getnames_err, check_phase_vcf
 import rich_click as click
 import subprocess
 import sys
@@ -91,7 +91,8 @@ def naibr(genome, vcf, threads, directory, populations, molecule_distance, extra
         vcaller += "-pop"
     directory = directory.rstrip("/^")
     if vcf is not None:
-        #TODO validate that the VCF is phased
+        # look for either FORMAT/PS or FORMAT/HP tags in header
+        check_phase_vcf(vcf)
         command = (f'snakemake --rerun-incomplete --nolock --cores {threads} --directory . --snakefile {harpypath}/variants-{vcaller}-phase.smk').split()
     else:
         command = (f'snakemake --rerun-incomplete --nolock --cores {threads} --directory . --snakefile {harpypath}/variants-{vcaller}.smk').split()

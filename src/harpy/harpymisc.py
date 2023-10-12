@@ -242,3 +242,13 @@ def validate_bamfiles(dir, namelist):
         for i,j in zip(culpritfiles,culpritIDs):
             print(f"{i}\t{j}")
         exit(1)
+
+def check_phase_vcf(infile):
+    vcfheader = subprocess.run(f"bcftools view -h {infile}".split(), stdout = subprocess.PIPE).stdout.decode('utf-8')
+    if ("##FORMAT=<ID=PS" in vcfheader) or ("##FORMAT=<ID=HP" in vcfheader):
+        return
+    else:
+        bn = os.path.basename(infile)
+        print(f"\033[1;33mERROR:\033[00m The input variant file needs to be phased into haplotypes, but no FORMAT/PS or FORMAT/HP fields were found.", file = sys.stderr)
+        print(f"\n\033[1;34mSOLUTION:\033[00m Phase {bn} into haplotypes using \'harpy phase\' or another manner of your choosing and use the phased vcf file as input. If you are confident this file is phased, then the phasing does not follow standard convention and you will need to make sure the phasing information appears as either FORMAT/PS or FORMAT/HP tags.", file = sys.stderr)
+        exit(1)
