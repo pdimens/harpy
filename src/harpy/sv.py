@@ -42,7 +42,7 @@ def leviathan(genome, threads, directory, populations, extra_params, snakemake, 
     if populations is not None:
         # check that samplenames and populations line up
         with open(populations, "r") as f:
-            p_list = [i.split()[0] for i in f.readlines() if i != "\n"]
+            p_list = [i.split()[0] for i in f.readlines() if i != "\n" or i.startswith("#")]
         missing_samples = [x for x in p_list if x not in samplenames]
         overlooked = [x for x in samplenames if x not in p_list]
         if len(missing_samples) > 0:
@@ -108,7 +108,7 @@ def naibr(genome, vcf, threads, directory, populations, molecule_distance, extra
     if populations is not None:
         # check that samplenames and populations line up
         with open(populations, "r") as f:
-            p_list = [i.split()[0] for i in f.readlines() if i != "\n"]
+            p_list = [i.split()[0] for i in f.readlines() if i != "\n" or i.startswith("#")]
         missing_samples = [x for x in p_list if x not in samplenames]
         overlooked = [x for x in samplenames if x not in p_list]
         if len(missing_samples) > 0:
