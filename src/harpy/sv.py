@@ -93,7 +93,7 @@ def naibr(genome, vcf, threads, directory, populations, molecule_distance, extra
     if vcf is not None:
         # look for either FORMAT/PS or FORMAT/HP tags in header
         check_phase_vcf(vcf)
-        command = (f'snakemake --rerun-incomplete --nolock --cores {threads} --directory . --snakefile {harpypath}/variants-{vcaller}-phase.smk').split()
+        command = (f'snakemake --rerun-incomplete --nolock --cores {threads} --directory . --use-conda --snakefile {harpypath}/variants-{vcaller}-phase.smk').split()
     else:
         command = (f'snakemake --rerun-incomplete --nolock --cores {threads} --directory . --snakefile {harpypath}/variants-{vcaller}.smk').split()
     
