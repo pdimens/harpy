@@ -12,6 +12,13 @@ bn          = os.path.basename(genomefile)
 genome_zip  = True if (bn.endswith(".gz") or bn.endswith(".GZ")) else False
 bn_idx      = f"{bn}.gzi" if genome_zip else f"{bn}.fai"
 
+if vcffile.lower.endswith("bcf"):
+    vcfindex = vcffile + ".csi"
+elif vcffile.lower.endswith("bcf"):
+    vcfindex = vcffile + ".tbi"
+else:
+    vcfindex = ""
+
 def process_args(args):
     argsDict = {
         "min_mapq" : 30,
@@ -35,24 +42,35 @@ rule index_original_alignment:
     shell:
         "sambamba index {input} {output} 2> /dev/null"
 
-if vcffile.lower.endswith("bcf"):
-    rule index_vcf:
-        input:
-            vcffile
-        output:
-            vcffile + ".csi"
-        message:
-            "Indexing {input}"
-        shell:
-            "bcftools index {input}"
+rule index_bcf:
+    input:
+        vcffile
+    output:
+        vcffile + ".csi"
+    message:
+        "Indexing {input}"
+    shell:
+        "bcftools index {input}"
 
+rule index_vcfgz:
+    input:
+        vcffile
+    output:
+        vcffile + ".tbi"
+    message:
+        "Indexing {input}"
+    shell:
+        "tabix {input}"
+
+if vcfindex:
     rule phase_alignments:
         input:
             vcf = vcffile,
-            vcfindex = vcffile + ".csi",
+            vcfindex,
             aln = bam_dir + "/{sample}.bam",
-            alnindex = bam_dir + "/{sample}.bam.bai",
-            reference = genomefile
+            bam_dir + "/{sample}.bam.bai",
+            reference = genomefile,
+            genomefile + ".fai"
         output:
             outdir + "/phasedbam/{sample}.bam"
         message:
@@ -64,46 +82,16 @@ if vcffile.lower.endswith("bcf"):
         threads:
             4
         wrapper:
-           "master/bio/whatshap/haplotag"
-
-elif vcffile.lower.endswith("vcf.gz"):
-    rule index_vcf:
-        input:
-            vcffile
-        output:
-            vcffile + ".tbi"
-        message:
-            "Indexing {input}"
-        shell:
-            "tabix {input}"
-
-    rule phase_alignments:
-        input:
-            vcf = vcffile,
-            vcfindex = vcffile + ".tbi",
-            aln = bam_dir + "/{sample}.bam",
-            alnindex = bam_dir + "/{sample}.bam.bai",
-            reference = genomefile
-        output:
-            outdir + "/phasedbam/{sample}.bam"
-        message:
-            "Phasing: {input.bam}"
-        params:
-            extra = lambda wc: f"--ignore-read-groups --sample {wc.get("sample")} --tag-supplementary"
-        log:
-            outdir + "/logs/whatshap-haplotag/{sample}.phase.log"
-        threads:
-            4
-        wrapper:
-           "master/bio/whatshap/haplotag"
+            "master/bio/whatshap/haplotag"
 
 else:
     rule phase_alignments:
         input:
             vcf = vcffile,
             aln = bam_dir + "/{sample}.bam",
-            alnindex = bam_dir + "/{sample}.bam.bai",
-            reference = genomefile
+            bam_dir + "/{sample}.bam.bai",
+            ref = genomefile,
+            genomefile + ".fai"
         output:
             outdir + "/phasedbam/{sample}.bam"
         message:
