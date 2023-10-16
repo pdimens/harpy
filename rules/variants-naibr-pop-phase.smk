@@ -15,6 +15,13 @@ genome_zip  = True if bn.lower().endswith(".gz") else False
 if genome_zip:
     bn = bn[:-3]
 
+if vcffile.lower().endswith("bcf"):
+    vcfindex = vcffile + ".csi"
+elif vcffile.lower().endswith("vcf.gz"):
+    vcfindex = vcffile + ".tbi"
+else:
+    vcfindex = ""
+
 def process_args(args):
     argsDict = {
         "min_mapq" : 30,
@@ -22,7 +29,7 @@ def process_args(args):
         "min_sv"   : 1000,
         "k"        : 3,
     }
-    if args != "":
+    if args:
         words = [i for i in re.split("\s|=", args) if len(i) > 0]
         for i in zip(words[::2], words[1::2]):
             argsDict[i[0]] = i[1]
@@ -52,23 +59,82 @@ def pop_manifest(infile, dirn, sampnames):
 popdict     = pop_manifest(groupfile, outdir, samplenames)
 populations = popdict.keys()
 
-if vcffile.lower.endswith("bcf"):
-    rule index_vcf:
-        input:
-            vcffile
-        output:
-            vcffile + ".csi"
+rule genome_link:
+    input:
+        genomefile
+    output: 
+        f"Genome/{bn}"
+    message: 
+        "Symlinking {input}"
+    shell: 
+        """
+        if (file {input} | grep -q compressed ) ;then
+            # is regular gzipped, needs to be BGzipped
+            zcat {input} | bgzip -c > {output}
+        elif (file {input} | grep -q BGZF ); then
+            # is bgzipped, just linked
+            ln -sr {input} {output}
+        else
+            # isn't compressed, just linked
+            ln -sr {input} {output}
+        fi
+        """
+
+if genome_zip:
+    rule genome_compressed_faidx:
+        input: 
+            f"Genome/{bn}"
+        output: 
+            gzi = f"Genome/{bn}.gzi",
+            fai = f"Genome/{bn}.fai"
         message:
             "Indexing {input}"
+        log:
+            f"Genome/{bn}.faidx.gzi.log"
+        shell: 
+            "samtools faidx --gzi-idx {output.gzi} --fai-idx {output.fai} {input} 2> {log}"
+else:
+    rule genome_faidx:
+        input: 
+            f"Genome/{bn}"
+        output: 
+            f"Genome/{bn}.fai"
+        message:
+            "Indexing {input}"
+        log:
+            f"Genome/{bn}.faidx.log"
         shell:
-            "bcftools index {input}"
+            "samtools faidx --fai-idx {output} {input} 2> {log}"
 
+rule index_bcf:
+    input:
+        vcffile
+    output:
+        vcffile + ".csi"
+    message:
+        "Indexing {input}"
+    shell:
+        "bcftools index {input}"
+
+rule index_vcfgz:
+    input:
+        vcffile
+    output:
+        vcffile + ".tbi"
+    message:
+        "Indexing {input}"
+    shell:
+        "tabix {input}"
+
+if vcfindex:
     rule phase_alignments:
         input:
             vcf = vcffile,
-            vcfidx = vcffile + ".csi",
+            vcfindex,
             bam = bam_dir + "/{sample}.bam",
-            reference = genomefile
+            bam_dir + "/{sample}.bam.bai",
+            ref = genomefile,
+            genomefile + ".fai"
         output:
             outdir + "/phasedbam/{sample}.bam"
         message:
@@ -80,44 +146,16 @@ if vcffile.lower.endswith("bcf"):
         threads:
             4
         wrapper:
-           "master/bio/whatshap/haplotag"
-
-elif vcffile.lower.endswith("vcf.gz"):
-    rule index_vcf:
-        input:
-            vcffile
-        output:
-            vcffile + ".tbi"
-        message:
-            "Indexing {input}"
-        shell:
-            "tabix {input}"
-
-    rule phase_alignments:
-        input:
-            vcf = vcffile,
-            vcfidx = vcffile + ".tbi",
-            bam = bam_dir + "/{sample}.bam",
-            reference = genomefile
-        output:
-            outdir + "/phasedbam/{sample}.bam"
-        message:
-            "Phasing: {input.bam}"
-        params:
-            extra = lambda wc: f"--ignore-read-groups --sample {wc.get("sample")} --tag-supplementary"
-        log:
-            outdir + "/logs/whatshap-haplotag/{sample}.phase.log"
-        threads:
-            4
-        wrapper:
-           "master/bio/whatshap/haplotag"
+            "v2.6.1/bio/whatshap/haplotag"
 
 else:
     rule phase_alignments:
         input:
             vcf = vcffile,
             bam = bam_dir + "/{sample}.bam",
+            bam_dir + "/{sample}.bam.bai",
             reference = genomefile
+            genomefile + ".fai"
         output:
             outdir + "/phasedbam/{sample}.bam"
         message:
@@ -129,7 +167,7 @@ else:
         threads:
             4
         wrapper:
-           "master/bio/whatshap/haplotag"
+           "v2.6.1/bio/whatshap/haplotag"
 
 rule log_phasing:
     input:
@@ -224,53 +262,6 @@ rule call_sv:
         #mv Variants/naibrlog/{params.population}.log {log}
         rm -rf {params.outdir}
         """
-
-rule genome_link:
-    input:
-        genomefile
-    output: 
-        f"Genome/{bn}"
-    message: 
-        "Symlinking {input}"
-    shell: 
-        """
-        if (file {input} | grep -q compressed ) ;then
-            # is regular gzipped, needs to be BGzipped
-            zcat {input} | bgzip -c > {output}
-        elif (file {input} | grep -q BGZF ); then
-            # is bgzipped, just linked
-            ln -sr {input} {output}
-        else
-            # isn't compressed, just linked
-            ln -sr {input} {output}
-        fi
-        """
-
-if genome_zip:
-    rule genome_compressed_faidx:
-        input: 
-            f"Genome/{bn}"
-        output: 
-            gzi = f"Genome/{bn}.gzi",
-            fai = f"Genome/{bn}.fai"
-        message:
-            "Indexing {input}"
-        log:
-            f"Genome/{bn}.faidx.gzi.log"
-        shell: 
-            "samtools faidx --gzi-idx {output.gzi} --fai-idx {output.fai} {input} 2> {log}"
-else:
-    rule genome_faidx:
-        input: 
-            f"Genome/{bn}"
-        output: 
-            f"Genome/{bn}.fai"
-        message:
-            "Indexing {input}"
-        log:
-            f"Genome/{bn}.faidx.log"
-        shell:
-            "samtools faidx --fai-idx {output} {input} 2> {log}"
 
 rule report:
     input:
