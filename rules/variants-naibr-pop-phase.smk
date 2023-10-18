@@ -146,7 +146,7 @@ if vcfindex:
         threads:
             4
         wrapper:
-            "v2.6.1/bio/whatshap/haplotag"
+            "v2.7.0/bio/whatshap/haplotag"
 
 else:
     rule phase_alignments:
@@ -167,7 +167,7 @@ else:
         threads:
             4
         wrapper:
-           "v2.6.1/bio/whatshap/haplotag"
+           "v2.7.0/bio/whatshap/haplotag"
 
 rule log_phasing:
     input:
