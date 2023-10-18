@@ -40,9 +40,18 @@ def leviathan(genome, threads, directory, populations, extra_params, snakemake, 
     command.append(f"seq_directory={directory}")
     command.append(f"samplenames={samplenames}")
     if populations is not None:
-        # check that samplenames and populations line up
+        # check for delimeter and formatting
         with open(populations, "r") as f:
-            p_list = [i.split()[0] for i in f.readlines() if i != "\n" or not i.startswith("#")]
+            rows = [i for i in f.readlines() if i != "\n" and not i.lstrip().startswith("#")]
+        invalids = [(i,j) for i,j in enumerate(rows) if len(j.split()) < 2]
+        if invalids:
+            print(f"\n\033[1;33mERROR:\033[00m There are {len(invalids)} rows in \033[01m{populations}\033[00m without a space/tab delimiter or don't have two entries for sample<tab>population. Terminating Harpy to avoid downstream errors.", file = sys.stderr)
+            print(f"\n\033[1;34mSOLUTION:\033[00m Make sure every entry in \033[01m{populations}\033[00m uses space or tab delimeters and has both a sample name and population designation. You may comment out rows with a # to have Harpy ignore them.", file = sys.stderr)
+            print(f"\nThe rows and values causing this error are:")
+            _ = [print(f"{i[0]+1}\t{i[1]}", file = sys.stderr) for i in invalids]
+            sys.exit(1)
+        # check that samplenames and populations line up
+        p_list = [i.split()[0] for i in rows]
         missing_samples = [x for x in p_list if x not in samplenames]
         overlooked = [x for x in samplenames if x not in p_list]
         if len(missing_samples) > 0:
@@ -106,9 +115,18 @@ def naibr(genome, vcf, threads, directory, populations, molecule_distance, extra
     command.append(f"seq_directory={directory}")
     command.append(f"samplenames={samplenames}")
     if populations is not None:
-        # check that samplenames and populations line up
+        # check for delimeter and formatting
         with open(populations, "r") as f:
-            p_list = [i.split()[0] for i in f.readlines() if i != "\n" or not i.startswith("#")]
+            rows = [i for i in f.readlines() if i != "\n" and not i.lstrip().startswith("#")]
+        invalids = [(i,j) for i,j in enumerate(rows) if len(j.split()) < 2]
+        if invalids:
+            print(f"\n\033[1;33mERROR:\033[00m There are {len(invalids)} rows in \033[01m{populations}\033[00m without a space/tab delimiter or don't have two entries for sample<tab>population. Terminating Harpy to avoid downstream errors.", file = sys.stderr)
+            print(f"\n\033[1;34mSOLUTION:\033[00m Make sure every entry in \033[01m{populations}\033[00m uses space or tab delimeters and has both a sample name and population designation. You may comment out rows with a # to have Harpy ignore them.", file = sys.stderr)
+            print(f"\nThe rows and values causing this error are:")
+            _ = [print(f"{i[0]+1}\t{i[1]}", file = sys.stderr) for i in invalids]
+            sys.exit(1)
+        # check that samplenames and populations line up
+        p_list = [i.split()[0] for i in rows]
         missing_samples = [x for x in p_list if x not in samplenames]
         overlooked = [x for x in samplenames if x not in p_list]
         if len(missing_samples) > 0:

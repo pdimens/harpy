@@ -9,8 +9,6 @@ try:
 except:
     pass
 
-##TODO VALIDATE SAMPLE GROUPING FILE LIKE THE STITCH PARAMS
-
 @click.command(no_args_is_help = True)
 @click.option('-g', '--genome', type=click.Path(exists=True), required = True, metavar = "File Path", help = 'Genome assembly for variant calling')
 @click.option('-d', '--directory', required = True, type=click.Path(exists=True), metavar = "Folder Path", help = 'Directory with BAM alignments')
@@ -43,15 +41,23 @@ def mpileup(genome, threads, directory, populations, ploidy, windowsize, extra_p
     command.append(f"seq_directory={directory}")
     command.append(f"samplenames={samplenames}")
     if populations is not None:
-        # check that samplenames and populations line up
         with open(populations, "r") as f:
-            p_list = [i.split()[0] for i in f.readlines()]
+            rows = [i for i in f.readlines() if i != "\n" and not i.lstrip().startswith("#")]
+        invalids = [(i,j) for i,j in enumerate(rows) if len(j.split()) < 2]
+        if invalids:
+            print(f"\n\033[1;33mERROR:\033[00m There are {len(invalids)} rows in \033[01m{populations}\033[00m without a space/tab delimiter or don't have two entries for sample<tab>population. Terminating Harpy to avoid downstream errors.", file = sys.stderr)
+            print(f"\n\033[1;34mSOLUTION:\033[00m Make sure every entry in \033[01m{populations}\033[00m uses space or tab delimeters and has both a sample name and population designation. You may comment out rows with a # to have Harpy ignore them.", file = sys.stderr)
+            print(f"\nThe rows and values causing this error are:")
+            _ = [print(f"{i[0]+1}\t{i[1]}", file = sys.stderr) for i in invalids]
+            sys.exit(1)
+        # check that samplenames and populations line up
+        p_list = [i.split()[0] for i in rows]
         missing_samples = [x for x in p_list if x not in samplenames]
         overlooked = [x for x in samplenames if x not in p_list]
         if len(missing_samples) > 0:
             print(f"\n\033[1;33mERROR:\033[00m There are {len(missing_samples)} samples included in \033[01m{populations}\033[00m that weren\'t found in \033[01m{directory}\033[00m. Terminating Harpy to avoid downstream errors. The samples causing this error are:", file = sys.stderr)
             print(", ".join(missing_samples), file = sys.stderr)
-            print(f"\n\033[1;34mSOLUTION:\033[00m Make sure the spelling of these samples is identical in \033[01m{directory}\033[00m and \033[01m{populations}\033[00m, or remove them from \033[01m{populations}\033[00m.\n", file = sys.stderr)
+            print(f"\n\033[1;34mSOLUTION:\033[00m Make sure the spelling of these samples is identical in \033[01m{directory}\033[00m and \033[01m{populations}\033[00m, or comment/remove them from \033[01m{populations}\033[00m.\n", file = sys.stderr)
         if len(overlooked) > 0 and not quiet:
             print(f"\033[01mNOTICE:\033[00m There are {len(overlooked)} samples found in \033[01m{directory}\033[00m that weren\'t included in \033[01m{populations}\033[00m. This will not cause errors and can be ignored if it was deliberate. The samples are:", file = sys.stderr)
             print(", ".join(overlooked), file = sys.stderr)
@@ -99,9 +105,17 @@ def freebayes(genome, threads, directory, populations, ploidy, windowsize, extra
     command.append(f"seq_directory={directory}")
     command.append(f"samplenames={samplenames}")
     if populations is not None:
-        # check that samplenames and populations line up
         with open(populations, "r") as f:
-            p_list = [i.split()[0] for i in f.readlines()]
+            rows = [i for i in f.readlines() if i != "\n" and not i.lstrip().startswith("#")]
+        invalids = [(i,j) for i,j in enumerate(rows) if len(j.split()) < 2]
+        if invalids:
+            print(f"\n\033[1;33mERROR:\033[00m There are {len(invalids)} rows in \033[01m{populations}\033[00m without a space/tab delimiter or don't have two entries for sample<tab>population. Terminating Harpy to avoid downstream errors.", file = sys.stderr)
+            print(f"\n\033[1;34mSOLUTION:\033[00m Make sure every entry in \033[01m{populations}\033[00m uses space or tab delimeters and has both a sample name and population designation. You may comment out rows with a # to have Harpy ignore them.", file = sys.stderr)
+            print(f"\nThe rows and values causing this error are:")
+            _ = [print(f"{i[0]+1}\t{i[1]}", file = sys.stderr) for i in invalids]
+            sys.exit(1)
+        # check that samplenames and populations line up
+        p_list = [i.split()[0] for i in rows]
         missing_samples = [x for x in p_list if x not in samplenames]
         overlooked = [x for x in samplenames if x not in p_list]
         if len(missing_samples) > 0:
