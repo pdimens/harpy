@@ -29,9 +29,9 @@ def fastq(directory, threads, snakemake, quiet):
     r = re.compile(".*\.f(?:ast)?q\.gz$", flags=re.IGNORECASE)
     fqlist = list(filter(r.match, flist))
     if len(fqlist) == 0:
-        print(f"\033[1;33mERROR:\033[00m No fastq files with acceptable names found in {directory}", file = sys.stderr)
-        print("Check that the files conform to [.F. | .R1.][.fastq | .fq].gz", file = sys.stderr)
-        print("Read the documentation for details: https://pdimens.github.io/harpy/dataformat/#naming-conventions", file = sys.stderr)
+        click.echo(f"\033[1;33mERROR:\033[00m No fastq files with acceptable names found in {directory}", file = sys.stderr, color = True)
+        click.echo("Check that the files conform to [.F. | .R1.][.fastq | .fq].gz", file = sys.stderr)
+        click.echo("Read the documentation for details: https://pdimens.github.io/harpy/dataformat/#naming-conventions", file = sys.stderr)
         sys.exit(1)
 
     command = f'snakemake --rerun-incomplete --nolock --cores {threads} --directory . --snakefile {harpypath}/preflight-fastq.smk'.split()
@@ -63,9 +63,9 @@ def bam(directory, threads, snakemake, quiet):
     """
     flist = [i for i in glob.iglob(f"{directory}/*") if not os.path.isdir(i) and i.lower().endswith(".bam")]
     if len(flist) == 0:
-        print(f"\033[1;33mERROR:\033[00m No bam files with acceptable names found in {directory}", file = sys.stderr)
-        print("Check that the file names end with .bam", file = sys.stderr)
-        print("Read the documentation for details: https://pdimens.github.io/harpy/dataformat/#naming-conventions", file = sys.stderr)
+        click.echo(f"\033[1;33mERROR:\033[00m No bam files with acceptable names found in {directory}", file = sys.stderr, color = True)
+        click.echo("Check that the file names end with .bam", file = sys.stderr)
+        click.echo("Read the documentation for details: https://pdimens.github.io/harpy/dataformat/#naming-conventions", file = sys.stderr)
         sys.exit(1)
 
     command = f'snakemake --rerun-incomplete --nolock --cores {threads} --directory . --snakefile {harpypath}/preflight-bam.smk'.split()

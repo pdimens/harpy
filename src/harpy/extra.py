@@ -24,7 +24,7 @@ def extra(popgroup, stitch_params, hpc):
     Harpy on a cluster. You can use any combination of options at a time. 
     """
     if popgroup is not None:
-        print('\033[1m' + "<><> Sampling Grouping File <><>" + '\033[0m', file = sys.stderr)
+        click.echo('\033[1m' + "<><> Sampling Grouping File <><>" + '\033[0m', file = sys.stderr, color = True)
         try:
             samplenames = getnames_err(popgroup, '.bam')
         except:
@@ -34,10 +34,10 @@ def extra(popgroup, stitch_params, hpc):
             bn_r = r"[\.\_][RF](?:[12])?(?:\_00[1-9])*\.f(?:ast)?q(?:\.gz)?$"
             samplenames = set([re.sub(bn_r, "", i, flags = re.IGNORECASE) for i in fqlist])
             if len(samplenames) < 1:
-                print(f"\033[1;33mERROR:\033[00m No files ending in fq.gz, fastq.gz, or .bam found in {popgroup}", file = sys.stderr)
+                click.echo(f"\033[1;33mERROR:\033[00m No files ending in fq.gz, fastq.gz, or .bam found in {popgroup}", file = sys.stderr, color = True)
                 sys.exit(1)
 
-        print(f"Samples detected in {popgroup}: " + str(len(samplenames)), file = sys.stderr)
+        click.echo(f"Samples detected in {popgroup}: " + str(len(samplenames)), file = sys.stderr)
         fout = "samples.groups"
         if os.path.exists("samples.groups"):
             overwrite = input("File \'samples.groups\' already exists, overwrite (no|yes)?  ").lower()
@@ -48,15 +48,15 @@ def extra(popgroup, stitch_params, hpc):
         with open(fout, "w") as file:
             for i in samplenames:
                 file.write(i + '\tpop1\n') 
-        print('Created sample population grouping file: ' + fout + '\nPlease review it, as all samples have been grouped into a single population\n', file = sys.stderr)
+        click.echo('Created sample population grouping file: ' + fout + '\nPlease review it, as all samples have been grouped into a single population\n', file = sys.stderr, color = True)
 
     if stitch_params is not None:
-        print('\033[1m' + "<><> STITCH Parameter File <><>" + '\033[0m', file = sys.stderr)
+        click.echo('\033[1m' + "<><> STITCH Parameter File <><>" + '\033[0m', file = sys.stderr)
         with open(stitch_params, "w") as file:
             file.write('model\tusebx\tbxlimit\tk\ts\tngen\ndiploid\tTRUE\t50000\t10\t5\t50\ndiploid\tTRUE\t50000\t10\t1\t50\ndiploid\tTRUE\t50000\t15\t10\t100')
-        print(f"Created example parameter file: {stitch_params}", file = sys.stderr)
-        print("Modify the model parameters as needed, but " + '\033[1m' + "DO NOT" + '\033[0m' + " add/remove columns", file = sys.stderr)
+        click.echo(f"Created example parameter file: {stitch_params}", file = sys.stderr)
+        click.echo("Modify the model parameters as needed, but " + '\033[1m' + "DO NOT" + '\033[0m' + " add/remove columns", file = sys.stderr, color = True)
 
     if hpc is not None:
-        print('\033[1m' + "<><> HPC Profile <><>" + '\033[0m')
+        click.echo('\033[1m' + "<><> HPC Profile <><>" + '\033[0m')
         subprocess.run(["hpc_profile.py", hpc])

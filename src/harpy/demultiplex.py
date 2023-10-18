@@ -8,6 +8,8 @@ try:
 except:
     pass
 
+#TODO demux sample sheet validation
+
 @click.command(no_args_is_help = True)
 @click.option('-f', '--file', required = True, type=click.Path(exists=True), metavar = "File Path", help = 'The forward (or reverse) multiplexed FASTQ file')
 @click.option('-b', '--samplesheet', required = True, type=click.Path(exists=True), metavar = "File Path", help = 'Tab-delimited file of BARCODE<tab>SAMPLENAME')

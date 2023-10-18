@@ -33,7 +33,7 @@ def phase(vcf, directory, threads, molecule_distance, prune_threshold, vcf_sampl
     directory = directory.rstrip("/^")
     vcfcheck(vcf)
     if vcf.lower().endswith(".vcf.gz"):
-        print(f"Notice: HapCut2 does not accept gzipped vcf files. Converting to bcf.")
+        click.echo(f"Notice: HapCut2 does not accept gzipped vcf files. Converting to bcf.")
         variantfile = vcf[0:-7] + ".bcf"
         subprocess.run(f"bcftools view {vcf} -Ob > {variantfile}".split())
     else:
@@ -53,9 +53,10 @@ def phase(vcf, directory, threads, molecule_distance, prune_threshold, vcf_sampl
     missing_samples = [x for x in samplenames if x not in s_list]
     # check that samples in VCF match input directory
     if len(missing_samples) > 0:
-        print(f"\n\033[1;33mERROR:\033[00m There are {len(missing_samples)} samples found in \033[01m{fromthis}\033[00m that are not in \033[01m{inthis}\033[00m. Terminating Harpy to avoid downstream errors. The samples causing this error are:", file = sys.stderr)
-        print(", ".join(sorted(missing_samples)), file = sys.stderr)
-        print(f"\n\033[1;34mSOLUTION:\033[00m \033[01m{fromthis}\033[00m cannot contain samples that are absent in \033[01m{inthis}\033[00m. Check the spelling or remove those samples from \033[01m{fromthis}\033[00m or remake the vcf file to include/omit these samples. Alternatively, toggle \033[01m--vcf-samples\033[00m to aggregate the sample list from \033[01m{directory}\033[00m or \033[01m{vcf}\033[00m.\n", file = sys.stderr)
+        click.echo(f"\n\033[1;33mERROR:\033[00m There are {len(missing_samples)} samples found in \033[01m{fromthis}\033[00m that are not in \033[01m{inthis}\033[00m. Terminating Harpy to avoid downstream errors.", file = sys.stderr, color = True)
+        click.echo(f"\n\033[1;34mSOLUTION:\033[00m \033[01m{fromthis}\033[00m cannot contain samples that are absent in \033[01m{inthis}\033[00m. Check the spelling or remove those samples from \033[01m{fromthis}\033[00m or remake the vcf file to include/omit these samples. Alternatively, toggle \033[01m--vcf-samples\033[00m to aggregate the sample list from \033[01m{directory}\033[00m or \033[01m{vcf}\033[00m.\n", file = sys.stderr, color = True)
+        click.echo("The samples causing this error are:", file = sys.stderr)
+        click.echo(", ".join(sorted(missing_samples)), file = sys.stderr)
         sys.exit(1)
 
     validate_bamfiles(directory, samplenames)
