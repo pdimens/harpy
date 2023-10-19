@@ -31,7 +31,7 @@ In addition to the [common runtime options](/commonoptions.md), the `harpy demul
 | argument          | short name | type       | default | required | description                                                                          |
 |:------------------|:----------:|:-----------|:-------:|:--------:|:-------------------------------------------------------------------------------------|
 | `--file`          |    `-f`    | file path  |         | **yes**  | The forward (or reverse) multiplexed FASTQ file                                      |
-| `--samplesheet`   |    `-b`    | file path  |         | **yes**  | Tab-delimited file of BARCODE<tab>SAMPLENAME                                         |
+| `--samplesheet`   |    `-b`    | file path  |         | **yes**  | Tab-delimited file of sample\<tab\>barcode                                           |
 | `--method`        |    `-m`    | choice     | `gen1`  | **yes**  | Haplotag technology of the sequences                                                 |
 
 ## Haplotag Types
@@ -71,9 +71,9 @@ individual samples is performed in parallel and using the beloved workhorse `gre
 
 ```mermaid
 graph LR
-    A([multiplexed FASTQ]) --> B([demultiplex barcodes])
+    A([multiplexed FASTQ]) --> B([barcodes to headers])
     B-->C([demultiplex samples])
-    C-->D([FASTQC])
+    C-->D([quality metrics])
     D-->E([create report])
 ```
 
