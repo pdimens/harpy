@@ -17,7 +17,7 @@ rule copy_groupings:
     input:
         groupings
     output:
-        outdir + "/logs/sample.groupings"
+        outdir + "/logs/sample.groups"
     message:
         "Logging {input}"
     run:
@@ -64,7 +64,7 @@ if groupings:
         input:
             bam = expand(bam_dir + "/{sample}.bam", sample = samplenames),
             bai = expand(bam_dir + "/{sample}.bam.bai", sample = samplenames),
-            groupings = outdir + "/logs/sample.groupings",
+            groupings = outdir + "/logs/sample.groups",
             ref     = f"Genome/{bn}",
             samples = outdir + "/logs/samples.files"
         output:

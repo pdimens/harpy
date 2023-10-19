@@ -17,7 +17,7 @@ rule copy_groupings:
     input:
         groupings
     output:
-        outdir + "/logs/sample.groupings"
+        outdir + "/logs/sample.groups"
     message:
         "Logging {input}"
     run:
@@ -81,7 +81,7 @@ if groupings:
     rule call_genotypes_pop:
         input:
             bcf = outdir + "/{part}.mp.bcf",
-            groupings = outdir + "/logs/sample.groupings"
+            groupings = outdir + "/logs/sample.groups"
         output:
             bcf = temp(outdir + "/call/{part}.bcf"),
             idx = temp(outdir + "/call/{part}.bcf.csi")
