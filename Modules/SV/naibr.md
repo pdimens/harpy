@@ -182,6 +182,7 @@ Variants/naibr/
 | `filtered/`   | the variants that failed NAIBR's internal filters                |
 | `IGV/`        | same as the output .bedpe` files but in IGV format               |
 | `logs/harpy.variants.log` | relevant runtime parameters for the variants module  |
+| `logs/sample.groups`   | if provided, a copy of the file provided to `--populations` with commented lines removed  |
 | `logs/*.log`  | what NAIBR writes to `stderr` during operation                   |
 | `reports/`    | summary reports with interactive plots of detected SV            |
 | `vcf/`        | the resulting variants, but in `.VCF` format                     |

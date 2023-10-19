@@ -129,6 +129,7 @@ Variants/METHOD
 │   ├── contig2.call.log   # mpileup only
 │   ├── contig2.METHOD.log
 │   ├── harpy.variants.log
+│   ├── sample.groups
 │   ├── samples.files
 │   └── samples.names
 └── stats
@@ -147,6 +148,7 @@ Variants/METHOD
 | `logs/*.call.log`         | what `bcftools call` writes to `stderr`                                                        |
 | `logs/*.METHOD.log`       | what `bcftools mpileup` or `freebayes` writes to `stderr`                                      |
 | `logs/harpy.variants.log` | relevant runtime parameters for the variants module                                            |
+| `logs/sample.groups`      | if provided, a copy of the file provided to `--populations` with commented lines removed       |
 | `logs/samples.files`      | list of alignment files used for variant calling                                               |
 | `logs/samples.names`      | list of sample names associated with alignment files used for variant calling                  |
 | `stats/*.stats`           | output of `bcftools stats`                                                                     |

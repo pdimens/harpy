@@ -133,6 +133,7 @@ Variants/leviathan/
 | item                   | description                                              |
 |:-----------------------|:---------------------------------------------------------|
 | `*.bcf`                | structural variants identified by LEVIATHAN              |
+| `logs/sample.groups`   | if provided, a copy of the file provided to `--populations` with commented lines removed  |
 | `logs/*.leviathan.log` | what LEVIATHAN writes to `stderr` during operation       |
 | `logs/*candidates`     | candidate structural variants LEVIATHAN identified       |
 | `reports/`             | summary reports with interactive plots of detected SV    |
