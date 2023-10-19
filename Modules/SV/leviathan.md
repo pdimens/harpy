@@ -57,7 +57,7 @@ harpy sv leviathan --threads 20 --directory Align/bwa -g genome.fasta
 ```
 
 ## :icon-terminal: Running Options
-In addition to the [common runtime options](../../commonoptions.md), the `harpy sv leviathan` module is configured using these command-line arguments:
+In addition to the [common runtime options](/commonoptions.md), the `harpy sv leviathan` module is configured using these command-line arguments:
 
 | argument         | short name | type          | default | required | description                                        |
 |:-----------------|:----------:|:--------------|:-------:|:--------:|:---------------------------------------------------|

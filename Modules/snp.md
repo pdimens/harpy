@@ -52,7 +52,7 @@ harpy snp freebayes --threads 20 --genome genome.fasta --directory Align/bwa
 ```
 
 ## :icon-terminal: Running Options
-In addition to the [common runtime options](../../commonoptions.md), the `harpy snp` module is configured using these command-line arguments:
+In addition to the [common runtime options](../commonoptions.md), the `harpy snp` module is configured using these command-line arguments:
 
 | argument         | short name | type                            | default | required | description                                         |
 |:-----------------|:----------:|:--------------------------------|:-------:|:--------:|:----------------------------------------------------|

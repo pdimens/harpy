@@ -28,7 +28,7 @@ harpy phase --threads 20 --vcf Variants/variants.raw.bcf --directory Align/ema
 ```
 
 ## :icon-terminal: Running Options
-In addition to the [common runtime options](../commonoptions.md), the `harpy phase` module is configured using these command-line arguments:
+In addition to the [common runtime options](/commonoptions.md), the `harpy phase` module is configured using these command-line arguments:
 
 | argument              | short name | type            | default | required | description                                                          |
 |:----------------------|:----------:|:----------------|:-------:|:--------:|:---------------------------------------------------------------------|
@@ -62,7 +62,7 @@ you are allowing the program to be more lenient in assuming two alignments with 
 same barcode originated from the same DNA molecule. The HapCut2 default is `20000` (20kbp),
 but Harpy's default is more lenient with `100000` (100kbp). Unless you have strong evidence
 in favor of it, a distance above `250000` (250kbp) would probably do more harm than good.
-See [haplotag data](../haplotagdata/#barcode-thresholds) for a more thorough explanation.
+See [haplotag data](/haplotagdata/#barcode-thresholds) for a more thorough explanation.
 
 ### Pruning threshold
 The pruning threshold refers to a PHRED-scale value between 0-1 (a percentage) for removing
@@ -174,6 +174,13 @@ Advanced Options:
 These are the summary reports Harpy generates for this workflow. You may right-click
 the image and open it in a new tab if you wish to see the example in better detail.
 
-Under development!
+||| Overall Phasing
+Aggregates phasing metrics across all samples.
+![reports/phase.html](/static/report_phase.png)
+||| Per Sample Phasing
+The second tab shows haplotype metrics for every sample
+![reports/phase.html](/static/report_phase2.png)
+|||
+
 
 +++

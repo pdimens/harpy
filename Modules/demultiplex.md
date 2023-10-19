@@ -26,7 +26,7 @@ harpy demultiplex OPTIONS...
 harpy demultiplex --threads 20 --file Plate_1_S001_R1.fastq.gz --samplesheet demux.schema
 ```
 ## :icon-terminal: Running Options
-In addition to the [common runtime options](../commonoptions.md), the `harpy demultiplex` module is configured using these command-line arguments:
+In addition to the [common runtime options](/commonoptions.md), the `harpy demultiplex` module is configured using these command-line arguments:
 
 | argument          | short name | type       | default | required | description                                                                          |
 |:------------------|:----------:|:-----------|:-------:|:--------:|:-------------------------------------------------------------------------------------|

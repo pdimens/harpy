@@ -58,7 +58,7 @@ harpy sv naibr --threads 20 --directory Align/bwa --genome genome.fasta --vcf Va
 ```
 
 ## :icon-terminal: Running Options
-In addition to the [common runtime options](../../commonoptions.md), the `harpy sv naibr` module is configured using these command-line arguments:
+In addition to the [common runtime options](/commonoptions.md), the `harpy sv naibr` module is configured using these command-line arguments:
 
 | argument         | short name | type          | default | required | description                                        |
 |:-----------------|:----------:|:--------------|:-------:|:--------:|:---------------------------------------------------|
@@ -72,7 +72,7 @@ In addition to the [common runtime options](../../commonoptions.md), the `harpy 
 ### Molecule distance
 The `--molecule-distance` option is used to let the program determine how far apart alignments on a contig with the same
 barcode can be from each other and still considered as originating from the same DNA molecule. See 
-[haplotag data](../../haplotagdata/#barcode-thresholds) for more information on what this value does.
+[haplotag data](/haplotagdata/#barcode-thresholds) for more information on what this value does.
 
 ### Single-sample variant calling
 When **not** using a population grouping file via `--populations`, variants will be called per-sample. 
@@ -143,7 +143,9 @@ graph LR
     B-->C([generate reports])
 ```
 +++ :icon-file-directory: naibr output
-The `harpy variants --method naibr` module creates a `Variants/naibr` (or `naibr-pop`) directory with the folder structure below. `sample1` and `sample2` are generic sample names for demonstration purposes.
+The `harpy variants --method naibr` module creates a `Variants/naibr` (or `naibr-pop`) 
+directory with the folder structure below. `sample1` and `sample2` are generic sample 
+names for demonstration purposes.
 
 ```
 Variants/naibr/

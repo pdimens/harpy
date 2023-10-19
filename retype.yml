@@ -16,10 +16,11 @@ links:
 footer:
   copyright: "&copy; Copyright {{ year }}. All rights reserved."
 branding:
-  title:                 # Your custom website title; keep it short.
-  logo: static/logo.png          # Path to a logo file.
-  logoDark: static/logo.png # Path to a logo file to use in dark mode.
-  logoAlign: right
+  title: Harpy           # Your custom website title; keep it short.
+  label: v0.4.0
+  logo: static/favicon.png          # Path to a logo file.
+  logoDark: static/favicon.png # Path to a logo file to use in dark mode.
+  logoAlign: left
 favicon: static/favicon.png # Path to a custom favicon, or.
 search:
   mode: partial

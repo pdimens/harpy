@@ -6,7 +6,7 @@ icon: home
 
 # :icon-home: Home
 
-![](static/logo.png)
+![](static/logo_trans.png)
 
 Harpy is a haplotagging data processing pipeline for Linux-based systems. It uses all the 
 magic of [Snakemake](https://snakemake.readthedocs.io/en/stable/) under the hood to handle 

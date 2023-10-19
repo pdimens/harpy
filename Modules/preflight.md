@@ -21,10 +21,10 @@ solution is perform what we lovingly call "pre-flight checks" to assess if your 
 for the pipeline. There are separate `fastq` and `bam` submodules and the result of each is a report detailing "file format QC." 
 
 #### when to run
+- **FASTQ**: the preflight checks for FASTQ files are best performed _after_ demultiplexing (or trimming/QC) and _before_ sequence alignment
 - **BAM**: the preflight checks for BAM files should be run _after_ sequence alignment and _before_ consuming those files for other purposes
 (e.g. variant calling, phasing, imputation)
 
-- **FASTQ**: the preflight checks for FASTQ files are best performed _after_ demultiplexing (or trimming/QC) and _before_ sequence alignment
 
 ```bash fastq usage and example
 harpy preflight fastq OPTIONS...
@@ -41,15 +41,15 @@ harpy preflight bam --threads 20 -d Align/bwa
 ```
 
 ## :icon-terminal: Running Options
-In addition to the [common runtime options](../commonoptions.md), the `harpy demultiplex` module is configured using these command-line arguments:
+In addition to the [common runtime options](/commonoptions.md), the `harpy preflight fastq|bam` module is configured using these command-line arguments:
 
 | argument          | short name | type       | default | required | description                                                                          |
 |:------------------|:----------:|:-----------|:-------:|:--------:|:-------------------------------------------------------------------------------------|
 | `--directory`          |    `-d`    | folder path |         | **yes**  | Directory with sequences or alignments                                                              |
 
----
+## File Format Checks
 
-## `fastq` checks
++++ `fastq` checks
 Below is a table of the format specifics `harpy preflight` checks for FASTQ files. Take note
 of the language such as when "any" and "all" are written.
 
@@ -60,9 +60,7 @@ of the language such as when "any" and "all" are written.
 |BX:Z: last comment | **all** reads have `BX:Z`: as final comment| **at least 1 read** doesn't have `BX:Z:` tag as final comment|
 |BX:Z: tag | any `BX:Z:` tags present | **all** reads lack `BX:Z:` tag|
 
----
-
-## `bam` checks
++++ `bam` checks
 Below is a table of the format specifics `harpy preflight` checks for SAM/BAM files. Take note
 of the language such as when "any" and "all" are written.
 
@@ -74,7 +72,21 @@ of the language such as when "any" and "all" are written.
 |AxxCxxBxxDxx format| **all** alignments with BX:Z: tag have properly formatted `AxxCxxBxxDxx` barcodes| **any** `BX:Z:` barcodes have incorrect format|
 |BX:Z: last tag| **all** reads have `BX:Z`: as final tag in alignment records | **at least 1 read** doesn't have `BX:Z:` tag as final tag|
 
-## output
++++
+
+## Output
 Unlike the other modules. `preflight` will not create a new folder in your working directory. Instead, it will create 
 a `Preflight` folder in the same directory that was provided for `-d` (`--directory`). This design is intended to keep
 the reports near the source data.
+
+### Reports
+The result of `preflight` is a single HTML report in `inputdir/Preflight/filecheck.xxx.html` where `xxx` is either `fastq` or `bam`
+depending on which filetype you specified. The reports for both `fastq` and `bam` are very similar and give you both the
+criteria of what type of format checking occurred, the context, relevance, and severity of those checks, along with pass/fails for each
+file (or sample).
+
+||| FASTQ file report
+![Preflight/filecheck.fastq.html](/static/report_preflightfastq.png)
+||| BAM file report
+![Preflight/filecheck.bam.html](/static/report_preflightbam.png)
+|||

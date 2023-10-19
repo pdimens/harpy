@@ -25,7 +25,7 @@ harpy qc --directory Sequences_Raw/ --threads 20
 ```
 
 ## :icon-terminal: Running Options
-In addition to the [common runtime options](../commonoptions.md), the `harpy qc` module is configured using these command-line arguments:
+In addition to the [common runtime options](/commonoptions.md), the `harpy qc` module is configured using these command-line arguments:
 
 | argument         | short name | type        | default | required | description                                                                                     |
 |:-----------------|:----------:|:------------|:-------:|:--------:|:------------------------------------------------------------------------------------------------|
