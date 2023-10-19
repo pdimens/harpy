@@ -10,7 +10,7 @@ order: 3
 ===  :icon-checklist: You will need
 - a tab-delimited parameter file 
 - a variant call format file (`.vcf`, `.vcf.gz`, `.bcf`)
-- sequence alignments, in `.bam` format
+- sequence alignments in `.bam` format
 ==- :icon-codescan: Curation of input VCF file
 STITCH needs the input VCF to meet specific criteria:
 1. Biallelic SNPs only

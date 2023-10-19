@@ -47,7 +47,7 @@ In addition to the [common runtime options](/commonoptions.md), the `harpy prefl
 |:------------------|:----------:|:-----------|:-------:|:--------:|:-------------------------------------------------------------------------------------|
 | `--directory`          |    `-d`    | folder path |         | **yes**  | Directory with sequences or alignments                                                              |
 
-## File Format Checks
+## Workflow
 
 +++ `fastq` checks
 Below is a table of the format specifics `harpy preflight` checks for FASTQ files. Take note
@@ -72,14 +72,12 @@ of the language such as when "any" and "all" are written.
 |AxxCxxBxxDxx format| **all** alignments with BX:Z: tag have properly formatted `AxxCxxBxxDxx` barcodes| **any** `BX:Z:` barcodes have incorrect format|
 |BX:Z: last tag| **all** reads have `BX:Z`: as final tag in alignment records | **at least 1 read** doesn't have `BX:Z:` tag as final tag|
 
-+++
-
-## Output
++++ output
 Unlike the other modules. `preflight` will not create a new folder in your working directory. Instead, it will create 
 a `Preflight` folder in the same directory that was provided for `-d` (`--directory`). This design is intended to keep
 the reports near the source data.
 
-### Reports
++++ Reports
 The result of `preflight` is a single HTML report in `inputdir/Preflight/filecheck.xxx.html` where `xxx` is either `fastq` or `bam`
 depending on which filetype you specified. The reports for both `fastq` and `bam` are very similar and give you both the
 criteria of what type of format checking occurred, the context, relevance, and severity of those checks, along with pass/fails for each
@@ -90,3 +88,4 @@ file (or sample).
 ||| BAM file report
 ![Preflight/filecheck.bam.html](/static/report_preflightbam.png)
 |||
++++
