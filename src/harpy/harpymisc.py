@@ -3,6 +3,7 @@ import os
 import re
 import gzip
 import subprocess
+import rich_click as click
 from pathlib import Path
 
 ## recurring checks and such ##
@@ -252,3 +253,16 @@ def check_phase_vcf(infile):
         print(f"\033[1;33mERROR:\033[00m The input variant file needs to be phased into haplotypes, but no FORMAT/PS or FORMAT/HP fields were found.", file = sys.stderr)
         print(f"\n\033[1;34mSOLUTION:\033[00m Phase {bn} into haplotypes using \'harpy phase\' or another manner of your choosing and use the phased vcf file as input. If you are confident this file is phased, then the phasing does not follow standard convention and you will need to make sure the phasing information appears as either FORMAT/PS or FORMAT/HP tags.", file = sys.stderr)
         exit(1)
+
+def validate_popfile(infile):
+    with open(infile, "r") as f:
+        rows = [i for i in f.readlines() if i != "\n" and not i.lstrip().startswith("#")]
+        invalids = [(i,j) for i,j in enumerate(rows) if len(j.split()) < 2]
+        if invalids:
+            click.echo(f"\n\033[1;33mERROR:\033[00m There are {len(invalids)} rows in \033[01m{infile}\033[00m without a space/tab delimiter or don't have two entries for sample<tab>population. Terminating Harpy to avoid downstream errors.", file = sys.stderr, color = True)
+            click.echo(f"\n\033[1;34mSOLUTION:\033[00m Make sure every entry in \033[01m{infile}\033[00m uses space or tab delimeters and has both a sample name and population designation. You may comment out rows with a # to have Harpy ignore them.", file = sys.stderr, color = True)
+            click.echo(f"\nThe rows and values causing this error are:", file = sys.stderr)
+            _ = [click.echo(f"{i[0]+1}\t{i[1]}", file = sys.stderr) for i in invalids]
+            sys.exit(1)
+        else:
+            return rows
