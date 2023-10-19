@@ -12,7 +12,7 @@ except:
 
 @click.command(no_args_is_help = True)
 @click.option('-f', '--file', required = True, type=click.Path(exists=True), metavar = "File Path", help = 'The forward (or reverse) multiplexed FASTQ file')
-@click.option('-b', '--samplesheet', required = True, type=click.Path(exists=True), metavar = "File Path", help = 'Tab-delimited file of BARCODE<tab>SAMPLENAME')
+@click.option('-b', '--samplesheet', required = True, type=click.Path(exists=True), metavar = "File Path", help = 'Tab-delimited file of sample<tab>barcode')
 @click.option('-m', '--method', default = "gen1", show_default = True, type = click.Choice(["gen1"], case_sensitive = False), metavar = "String", help = "Haplotag technology of the sequences")
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(min = 1, max_open = True), metavar = "Integer", help = 'Number of threads to use')
 @click.option('-s', '--snakemake', type = str, metavar = "String", help = 'Additional Snakemake parameters, in quotes')
@@ -25,6 +25,20 @@ def demultiplex(file, method, samplesheet, threads, snakemake, quiet):
     Double-check that you are using the correct haplotag method (`--method`), since the different barcoding approaches
     have very different demultiplexing strategies. Note: the `--samplesheet` must be or space delimited and have no header (i.e. no column names).
     """
+    with open(samplesheet, "r") as f:
+        #rows = [i.split("\t")[0] for i in f.readlines()]
+        badrows = []
+        for i,j in enumerate(f.readlines()):
+            # a casual way to ignore empty lines or lines with >2 fields
+            try:
+                smpl, bc = j.split()
+                d[smpl] = bc
+            except:
+                badrows.append((i,j))
+                continue
+    if badrows:
+        #TODO ERROR MESSAGE HERE JUST LIKE POPCHECK
+
     command = f'snakemake --rerun-incomplete --nolock --cores {threads} --directory . --snakefile {harpypath}/demultiplex.{method}.smk'.split()
     if snakemake is not None:
         [command.append(i) for i in snakemake.split()]
