@@ -15,12 +15,12 @@ except:
     print(details)
     exit(1)
 
-from .harpymisc import getnames_err, getnames, vcfcheck
+#from .harpymisc import getnames_err, getnames, vcfcheck
 from .extra import extra
 from .demultiplex import demultiplex
+from .preflight import bam, fastq
 from .qc import qc
 from .align import bwa, ema
-from .preflight import bam, fastq
 from .snp import freebayes, mpileup
 from .sv import leviathan, naibr
 from .impute import impute
