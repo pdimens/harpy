@@ -13,6 +13,17 @@ intervals   = config["intervals"]
 outdir      = "Variants/freebayes"
 regions     = dict(zip(intervals, intervals))
 
+rule copy_groupings:
+    input:
+        groupings
+    output:
+        outdir + "/logs/sample.groupings"
+    message:
+        "Logging {input}"
+    run:
+        with open(input[0], "r") as infile, open(output[0], "w") as outfile:
+            _ = [outfile.write(i) for i in infile.readlines() if not i.lstrip().startswith("#")]
+
 rule index_alignments:
     input:
         bam_dir + "/{sample}.bam"
@@ -48,29 +59,54 @@ rule bam_list:
             for bamfile in input.bam:
                 _ = fout.write(bamfile + "\n")
 
-rule call_variants:
-    input:
-        bam = expand(bam_dir + "/{sample}.bam", sample = samplenames),
-        bai = expand(bam_dir + "/{sample}.bam.bai", sample = samplenames),
-        ref     = f"Genome/{bn}",
-        samples = outdir + "/logs/samples.files"
-    output:
-        bcf = temp(outdir + "/regions/{part}.bcf"),
-        idx = temp(outdir + "/regions/{part}.bcf.csi")
-    message:
-        "Calling variants: {wildcards.part}"
-    threads:
-        2
-    params:
-        region = lambda wc: "-r " + regions[wc.part],
-        ploidy = f"-p {ploidy}",
-        populations = '' if groupings is None else f"--populations {groupings}",
-        extra = extra
-    shell:
-        """
-        freebayes -f {input.ref} -L {input.samples} {params} | bcftools sort - -Ob --output {output.bcf} 2> /dev/null
-        bcftools index {output.bcf}
-        """
+if groupings:
+    rule call_variants_pop:
+        input:
+            bam = expand(bam_dir + "/{sample}.bam", sample = samplenames),
+            bai = expand(bam_dir + "/{sample}.bam.bai", sample = samplenames),
+            groupings = outdir + "/logs/sample.groupings",
+            ref     = f"Genome/{bn}",
+            samples = outdir + "/logs/samples.files"
+        output:
+            bcf = temp(outdir + "/regions/{part}.bcf"),
+            idx = temp(outdir + "/regions/{part}.bcf.csi")
+        message:
+            "Calling variants: {wildcards.part}"
+        threads:
+            2
+        params:
+            region = lambda wc: "-r " + regions[wc.part],
+            ploidy = f"-p {ploidy}",
+            
+            extra = extra
+        shell:
+            """
+            freebayes -f {input.ref} -L {input.samples} --populations {input.groupings} {params} | bcftools sort - -Ob --output {output.bcf} 2> /dev/null
+            bcftools index {output.bcf}
+            """
+else:
+    rule call_variants:
+        input:
+            bam = expand(bam_dir + "/{sample}.bam", sample = samplenames),
+            bai = expand(bam_dir + "/{sample}.bam.bai", sample = samplenames),
+            ref     = f"Genome/{bn}",
+            samples = outdir + "/logs/samples.files"
+        output:
+            bcf = temp(outdir + "/regions/{part}.bcf"),
+            idx = temp(outdir + "/regions/{part}.bcf.csi")
+        message:
+            "Calling variants: {wildcards.part}"
+        threads:
+            2
+        params:
+            region = lambda wc: "-r " + regions[wc.part],
+            ploidy = f"-p {ploidy}",
+            extra = extra
+        shell:
+            """
+            freebayes -f {input.ref} -L {input.samples} {params} | bcftools sort - -Ob --output {output.bcf} 2> /dev/null
+            bcftools index {output.bcf}
+            """
 
 rule concat_list:
     input:
