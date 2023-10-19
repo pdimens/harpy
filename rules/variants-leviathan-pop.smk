@@ -21,6 +21,8 @@ def pop_manifest(infile, dirn, sampnames):
     with open(infile) as f:
         for line in f:
             samp, pop = line.rstrip().split()
+            if samp.lstrip().startswith("#"):
+                continue
             if samp not in sampnames:
                 absent.append(samp)
             samp = f"{dirn}/{samp}.bam"
@@ -36,11 +38,24 @@ def pop_manifest(infile, dirn, sampnames):
 popdict = pop_manifest(groupfile, bam_dir, samplenames)
 populations = popdict.keys()
 
+rule copy_groupings:
+    input:
+        groupfile
+    output:
+        outdir + "/logs/sample.groups"
+    message:
+        "Logging {input}"
+    run:
+        with open(input[0], "r") as infile, open(output[0], "w") as outfile:
+            _ = [outfile.write(i) for i in infile.readlines() if not i.lstrip().startswith("#")]
+
 rule bamlist:
+    input:
+        outdir + "/logs/sample.groups"
     output:
         expand(outdir + "/input/{pop}.list", pop = populations)
     message:
-        "Creating file lists for each population."
+        "Creating population file lists."
     run:
         for p in populations:
             bamlist = popdict[p]
