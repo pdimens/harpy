@@ -17,7 +17,7 @@ except:
 
 #from .harpymisc import getnames_err, getnames, vcfcheck
 from .extra import extra
-from .demultiplex import demultiplex
+from .demultiplex import gen1
 from .preflight import bam, fastq
 from .qc import qc
 from .align import bwa, ema
@@ -53,13 +53,25 @@ def cli():
     pass
 
 @click.group(options_metavar='', context_settings=dict(help_option_names=["-h", "--help"]))
+def demultiplex():
+    """
+    Demultiplex haplotagged FASTQ files
+
+    Check that you are using the correct haplotag method/technology, since the different
+    barcoding approaches have very different demultiplexing strategies.
+
+    **Haplotag Technologies**
+    - `gen1`: the original haplotagging barcode strategy developed by Meier _et al._ (2021)
+    """
+
+@click.group(options_metavar='', context_settings=dict(help_option_names=["-h", "--help"]))
 def align():
     """
     Align sample sequences to a reference genome
 
     **Aligners**
-    - **bwa**: uses BWA MEM to align reads, retaining BX tags in the alignments
-    - **ema**: uses the BX barcode-aware EMA aligner
+    - `bwa`: uses BWA MEM to align reads, retaining BX tags in the alignments
+    - `ema`: uses the BX barcode-aware EMA aligner
 
     Provide an additional subcommand `bwa` or `ema` to get more information on using
     those aligners.
@@ -72,8 +84,8 @@ def snp():
     Call SNPs and small indels
     
     **Variant Callers**
-    - **mpileup**: call variants using bcftools mpileup
-    - **freebayes**: call variants using freebayes
+    - `mpileup`: call variants using bcftools mpileup
+    - `freebayes`: call variants using freebayes
 
     Provide an additional subcommand `mpileup` or `freebayes` to get more information on using
     those variant callers. They are both robust variant callers and neither is recommended over the other.
@@ -86,8 +98,8 @@ def sv():
     Call large structural variants
  
     **Structural Variant Callers**
-    - **naibr**: calls inversions, duplicates, deletions
-    - **leviathan**: calls inversions, duplicates, deletions, misc breakends
+    - `naibr`: calls inversions, duplicates, deletions
+    - `leviathan`: calls inversions, duplicates, deletions, misc breakends
 
     Provide an additional subcommand `leviathan` or `naibr` to get more information on using
     those variant callers. NAIBR tends to call variants better, but requires more user preprocessing.
@@ -101,7 +113,7 @@ def preflight():
 
     This is useful to make sure your input files are formatted correctly for the processing pipeline 
     before you are surprised by errors hours into an analysis. Provide an additional command `fastq`
-    or `bam` to see more information and options. 
+    or `bam` to see more information and options.
     """
     pass
 
@@ -115,6 +127,8 @@ cli.add_command(snp)
 cli.add_command(sv)
 cli.add_command(impute)
 cli.add_command(phase)
+# demultiplex submodules
+demultiplex.add_command(gen1)
 # preflight submodules
 preflight.add_command(fastq)
 preflight.add_command(bam)
@@ -164,10 +178,10 @@ click.rich_click.OPTION_GROUPS = {
             "options": ["--threads", "--snakemake", "--quiet", "--help"],
         },
     ],
-    "harpy demultiplex": [
+    "harpy demultiplex gen1": [
         {
             "name": "Configuration",
-            "options": ["--file", "--samplesheet", "--method"],
+            "options": ["--file", "--samplesheet"],
         },
         {
             "name": "Other Options",

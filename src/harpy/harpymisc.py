@@ -266,3 +266,32 @@ def validate_popfile(infile):
             sys.exit(1)
         else:
             return rows
+
+def validate_demuxschema(infile):
+    with open(infile, "r") as f:
+        rows = [i for i in f.readlines() if i != "\n" and not i.lstrip().startswith("#")]
+        invalids = [(i,j) for i,j in enumerate(rows) if len(j.split()) < 2]
+        if invalids:
+            click.echo(f"\n\033[1;33mERROR:\033[00m There are {len(invalids)} rows in \033[01m{infile}\033[00m without a space/tab delimiter or don't have two entries for sample<tab>barcode. Terminating Harpy to avoid downstream errors.", file = sys.stderr, color = True)
+            click.echo(f"\n\033[1;34mSOLUTION:\033[00m Make sure every entry in \033[01m{infile}\033[00m uses space or tab delimeters and has both a sample name and barcode designation. You may comment out rows with a # to have Harpy ignore them.", file = sys.stderr, color = True)
+            click.echo(f"\nThe rows and values causing this error are:", file = sys.stderr)
+            _ = [click.echo(f"{i[0]+1}\t{i[1]}", file = sys.stderr) for i in invalids]
+            sys.exit(1)
+
+def check_demux_fastq(file):
+    bn = os.path.basename(file)
+    ext = re.search(r"(?:\_00[0-9])*\.f(.*?)q(?:\.gz)?$", file, re.IGNORECASE).group(0)
+    prefix     = re.sub(r"[\_\.][IR][12]?(?:\_00[0-9])*\.f(?:ast)?q(?:\.gz)?$", "", bn)
+    prefixfull = re.sub(r"[\_\.][IR][12]?(?:\_00[0-9])*\.f(?:ast)?q(?:\.gz)?$", "", file)
+    filelist = []
+    printerr = False
+    for i in ["I1", "I2","R1","R2"]:
+        chkfile = f"{prefixfull}_{i}{ext}"
+        TF = os.path.exists(chkfile)
+        printerr = True if not TF else printerr
+        symbol = " " if TF else "X"
+        filelist.append(f"\033[91m{symbol}\033[0m  {prefix}_{i}{ext}")
+    if printerr:
+        print(f"\n\033[91mError\033[0m: Not all necessary files with prefix \033[1m{prefix}\033[0m present")
+        _ = [print(i, file = sys.stderr) for i in filelist]
+        exit(1)

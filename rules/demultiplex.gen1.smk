@@ -13,26 +13,6 @@ infiles = [f"{inprefixfull}_{i}{fq_extension}" for i in ["I1", "I2","R1","R2"]]
 indir = os.path.dirname(infile)
 outdir = f"Demultiplex/{inprefix}/"
 
-
-# mv functions to harpy executable?
-## depends on what other demux methods look like
-def checkfiles(prefix, prefixfull, ext):
-    filelist = []
-    printerr = False
-    for i in ["I1", "I2","R1","R2"]:
-        chkfile = f"{prefixfull}_{i}{ext}"
-        TF = os.path.exists(chkfile)
-        printerr = True if not TF else printerr
-        symbol = " " if TF else "X"
-        filelist.append(f"\033[91m{symbol}\033[0m  {prefix}_{i}{ext}")
-    if printerr:
-        print(f"\n\033[91mError\033[0m: Not all necessary files with prefix \033[1m{prefix}\033[0m present")
-        _ = [print(i, file = sys.stderr) for i in filelist]
-        exit(1)
-
-
-checkfiles(inprefix, inprefixfull, fq_extension)
-
 def barcodedict(smpl):
     d = dict()
     with open(smpl, "r") as f:
@@ -186,7 +166,7 @@ rule qc_report:
     input:
         expand(outdir + "logs/.QC/{sample}_{FR}/fastqc_data.txt", sample = samplenames, FR = ["F","R"])
     output:
-        outdir + "logs/demultiplex.QC.html"
+        outdir + "reports/demultiplex.QC.html"
     message:
         "Creating final demultiplexing QC report"
     params:
@@ -206,7 +186,7 @@ rule log_runtime:
             _ = f.write("The harpy demultiplex module ran using these parameters:\n\n")
             _ = f.write("Haplotag technology: Generation I\n")
             _ = f.write(f"The multiplexed input file: {infile}\n")
-            _ = f.write(f"The inferred files associated with {infile}:\n")
+            _ = f.write(f"The associated inferred from {infile}:\n")
             _ = f.write("    " + "\n    ".join(infiles) + "\n")
             _ = f.write("Barcodes were moved into the read headers using the command:\n")
             _ = f.write(f"    demuxGen1 DATA_ {inprefix}\n")
@@ -220,6 +200,6 @@ rule all:
         fw_reads = expand(outdir + "{sample}.F.fq.gz", sample = samplenames),
         rv_reads = expand(outdir + "{sample}.R.fq.gz", sample = samplenames),
         runlog   = outdir + "logs/harpy.demultiplex.log",
-        qcreport = outdir + "logs/demultiplex.QC.html"
+        qcreport = outdir + "reports/demultiplex.QC.html"
     message:
         "Demultiplexing has finished!"
