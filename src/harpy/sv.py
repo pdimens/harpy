@@ -1,4 +1,4 @@
-from .harpymisc import getnames_err, check_phase_vcf, validate_popfile
+from .harpymisc import getnames, check_phase_vcf, validate_popfile
 import rich_click as click
 import subprocess
 import sys
@@ -25,7 +25,7 @@ def leviathan(genome, threads, directory, populations, extra_params, snakemake, 
     Use **harpy extra --popgroup** to create a sample grouping file to 
     use as input for `--populations`.
     """
-    samplenames = getnames_err(directory, '.bam')
+    samplenames = getnames(directory, '.bam')
     vcaller = "leviathan"
     if populations is not None:
         vcaller += "-pop"
@@ -43,18 +43,7 @@ def leviathan(genome, threads, directory, populations, extra_params, snakemake, 
         # check for delimeter and formatting
         rows = validate_popfile(populations)
         # check that samplenames and populations line up
-        p_list = [i.split()[0] for i in rows]
-        missing_samples = [x for x in p_list if x not in samplenames]
-        overlooked = [x for x in samplenames if x not in p_list]
-        if len(overlooked) > 0 and not quiet:
-            click.echo(f"\033[01mNOTICE:\033[00m There are {len(overlooked)} samples found in \033[01m{directory}\033[00m that weren\'t included in \033[01m{populations}\033[00m. This will not cause errors and can be ignored if it was deliberate. Commenting or removing these lines will avoid this message. The samples are:", file = sys.stderr, color = True)
-            click.echo(", ".join(overlooked), file = sys.stderr)
-        if len(missing_samples) > 0:
-            click.echo(f"\n\033[1;33mERROR:\033[00m There are {len(missing_samples)} samples included in \033[01m{populations}\033[00m that weren\'t found in \033[01m{directory}\033[00m. Terminating Harpy to avoid downstream errors.", file = sys.stderr, color = True)
-            click.echo(f"\n\033[1;34mSOLUTION:\033[00m Make sure the spelling of these samples is identical in \033[01m{directory}\033[00m and \033[01m{populations}\033[00m, or remove them from \033[01m{populations}\033[00m.\n", file = sys.stderr, color = True)
-            click.echo("The samples causing this error are:", file = sys.stderr)
-            click.echo(", ".join(sorted(missing_samples)), file = sys.stderr)
-            sys.exit(1)
+        validate_vcfsamples(directory, populations, samplenames, rows, quiet)
         command.append(f"groupings={populations}")
     command.append(f"genomefile={genome}")
     if extra_params is not None:
@@ -86,7 +75,7 @@ def naibr(genome, vcf, threads, directory, populations, molecule_distance, extra
     Use **harpy extra --popgroup** to create a sample grouping file to 
     use as input for `--populations`.
     """
-    samplenames = getnames_err(directory, '.bam')
+    samplenames = getnames(directory, '.bam')
     vcaller = "naibr"
     if populations is not None:
         vcaller += "-pop"
@@ -110,18 +99,7 @@ def naibr(genome, vcf, threads, directory, populations, molecule_distance, extra
         # check for delimeter and formatting
         rows = validate_popfile(populations)
         # check that samplenames and populations line up
-        p_list = [i.split()[0] for i in rows]
-        missing_samples = [x for x in p_list if x not in samplenames]
-        overlooked = [x for x in samplenames if x not in p_list]
-        if len(overlooked) > 0 and not quiet:
-            click.echo(f"\033[01mNOTICE:\033[00m There are {len(overlooked)} samples found in \033[01m{directory}\033[00m that weren\'t included in \033[01m{populations}\033[00m. This will not cause errors and can be ignored if it was deliberate. Commenting or removing these lines will avoid this message. The samples are:", file = sys.stderr, color = True)
-            click.echo(", ".join(overlooked), file = sys.stderr)
-        if len(missing_samples) > 0:
-            click.echo(f"\n\033[1;33mERROR:\033[00m There are {len(missing_samples)} samples included in \033[01m{populations}\033[00m that weren\'t found in \033[01m{directory}\033[00m. Terminating Harpy to avoid downstream errors.", file = sys.stderr, color = True)
-            click.echo(f"\n\033[1;34mSOLUTION:\033[00m Make sure the spelling of these samples is identical in \033[01m{directory}\033[00m and \033[01m{populations}\033[00m, or remove them from \033[01m{populations}\033[00m.\n", file = sys.stderr, color = True)
-            click.echo("The samples causing this error are:", file = sys.stderr)
-            click.echo(", ".join(sorted(missing_samples)), file = sys.stderr)
-            sys.exit(1)
+        validate_vcfsamples(directory, populations, samplenames, rows, quiet)
         command.append(f"groupings={populations}")
     command.append(f"molecule_distance={molecule_distance}")
     if vcf is not None:

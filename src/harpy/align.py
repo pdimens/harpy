@@ -1,10 +1,9 @@
 import rich_click as click
 from pathlib import Path
+from .harpymisc import get_samples_from_fastq
 import subprocess
-import glob
 import sys
 import os
-import re
 
 try:
     harpypath = '{CONDA_PREFIX}'.format(**os.environ) + "/bin"
@@ -28,18 +27,7 @@ def bwa(genome, threads, directory, extra_params, quality_filter, molecule_dista
     Instead, Harpy post-processes the alignments using the specified `--molecule-distance`
     to assign alignments to unique molecules.
     """
-    full_flist = [i for i in glob.iglob(f"{directory}/*") if not os.path.isdir(i)]
-    r = re.compile(".*\.f(?:ast)?q(?:\.gz)?$", flags=re.IGNORECASE)
-    full_fqlist = list(filter(r.match, full_flist))
-    fqlist = [os.path.basename(i) for i in full_fqlist]
-    bn_r = r"[\.\_][RF](?:[12])?(?:\_00[1-9])*\.f(?:ast)?q(?:\.gz)?$"
-    if len(fqlist) == 0:
-        click.echo(f"\033[1;33mERROR:\033[00m No fastq files with acceptable names found in {directory}", file = sys.stderr, color = True)
-        click.echo("Check that the files conform to [.F. | .R1.][.fastq | .fq].gz", file = sys.stderr)
-        click.echo("Read the documentation for details: https://pdimens.github.io/harpy/dataformat/#naming-conventions", file = sys.stderr)
-        sys.exit(1)
-
-    samplenames = set([re.sub(bn_r, "", i, flags = re.IGNORECASE) for i in fqlist])
+    samplenames = get_samples_from_fastq(directory)
     directory = directory.rstrip("/^")
     command = f'snakemake --rerun-incomplete --nolock --cores {threads} --directory . --snakefile {harpypath}/align-bwa.smk'.split()
     if snakemake is not None:
@@ -78,18 +66,7 @@ def ema(genome, threads, ema_bins, directory, extra_params, quality_filter, mole
     Note that `--molecule-distance` is for reporting barcode alignment
     information and does not affect mapping.
     """
-    full_flist = [i for i in glob.iglob(f"{directory}/*") if not os.path.isdir(i)]
-    r = re.compile(".*\.f(?:ast)?q(?:\.gz)?$", flags=re.IGNORECASE)
-    full_fqlist = list(filter(r.match, full_flist))
-    fqlist = [os.path.basename(i) for i in full_fqlist]
-    bn_r = r"[\.\_][RF](?:[12])?(?:\_00[1-9])*\.f(?:ast)?q(?:\.gz)?$"
-    if len(fqlist) == 0:
-        click.echo(f"\033[1;33mERROR:\033[00m No fastq files with acceptable names found in {directory}", file = sys.stderr, color = True)
-        click.echo("Check that the files conform to [.F. | .R1.][.fastq | .fq].gz", file = sys.stderr)
-        click.echo("Read the documentation for details: https://pdimens.github.io/harpy/dataformat/#naming-conventions", file = sys.stderr)
-        sys.exit(1)
-
-    samplenames = set([re.sub(bn_r, "", i, flags = re.IGNORECASE) for i in fqlist])
+    samplenames = get_samples_from_fastq(directory)
     directory = directory.rstrip("/^")
     command = f'snakemake --rerun-incomplete --nolock --cores {threads} --directory . --snakefile {harpypath}/align-ema.smk'.split()
     if snakemake is not None:

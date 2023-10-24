@@ -1,10 +1,13 @@
-from .harpymisc import getnames_err
+from .harpymisc import get_samples_from_fastq
+
 import os
-import glob
-import rich_click as click
 import re
 import sys
+import glob
 import subprocess
+import rich_click as click
+from rich import print
+from rich.panel import Panel
 
 try:
     harpypath = '{CONDA_PREFIX}'.format(**os.environ) + "/bin"
@@ -26,16 +29,10 @@ def extra(popgroup, stitch_params, hpc):
     if popgroup is not None:
         click.echo('\033[1m' + "<><> Sampling Grouping File <><>" + '\033[0m', file = sys.stderr, color = True)
         try:
-            samplenames = getnames_err(popgroup, '.bam')
+            samplenames = getnames(popgroup, '.bam')
+            click.echo("No bam files detected. Searching for fastq files.", file = sys.stderr)
         except:
-            flist = [os.path.basename(i) for i in glob.iglob(f"{popgroup}/*") if not os.path.isdir(i)]
-            r = re.compile(".*\.f(?:ast)?q(?:\.gz)?$", flags=re.IGNORECASE)
-            fqlist = list(filter(r.match, flist))
-            bn_r = r"[\.\_][RF](?:[12])?(?:\_00[1-9])*\.f(?:ast)?q(?:\.gz)?$"
-            samplenames = set([re.sub(bn_r, "", i, flags = re.IGNORECASE) for i in fqlist])
-            if len(samplenames) < 1:
-                click.echo(f"\033[1;33mERROR:\033[00m No files ending in fq.gz, fastq.gz, or .bam found in {popgroup}", file = sys.stderr, color = True)
-                sys.exit(1)
+            samplenames = get_samples_from_fastq(popgroup)
 
         click.echo(f"Samples detected in {popgroup}: " + str(len(samplenames)), file = sys.stderr)
         fout = "samples.groups"

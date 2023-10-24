@@ -1,8 +1,10 @@
-from .harpymisc import getnames_err, vcfcheck, validate_bamfiles
-import rich_click as click
-import subprocess
+from .harpymisc import getnames, vcfcheck, validate_bamfiles, print_error, print_solution_with_culprits
 import sys
 import os
+import subprocess
+import rich_click as click
+from rich import print
+from rich.panel import Panel
 
 try:
     harpypath = '{CONDA_PREFIX}'.format(**os.environ) + "/bin"
@@ -42,20 +44,25 @@ def phase(vcf, directory, threads, molecule_distance, prune_threshold, vcf_sampl
     bcfquery = subprocess.Popen(["bcftools", "query", "-l", vcf], stdout=subprocess.PIPE)
     if vcf_samples:
         samplenames = bcfquery.stdout.read().decode().split()
-        s_list = getnames_err(directory, '.bam')
+        s_list = getnames(directory, '.bam')
         fromthis = vcf
         inthis = directory
     else:
-        samplenames = getnames_err(directory, '.bam')
+        samplenames = getnames(directory, '.bam')
         s_list = bcfquery.stdout.read().decode().split()
         fromthis = directory
         inthis = vcf
     missing_samples = [x for x in samplenames if x not in s_list]
     # check that samples in VCF match input directory
     if len(missing_samples) > 0:
-        click.echo(f"\n\033[1;33mERROR:\033[00m There are {len(missing_samples)} samples found in \033[01m{fromthis}\033[00m that are not in \033[01m{inthis}\033[00m. Terminating Harpy to avoid downstream errors.", file = sys.stderr, color = True)
-        click.echo(f"\n\033[1;34mSOLUTION:\033[00m \033[01m{fromthis}\033[00m cannot contain samples that are absent in \033[01m{inthis}\033[00m. Check the spelling or remove those samples from \033[01m{fromthis}\033[00m or remake the vcf file to include/omit these samples. Alternatively, toggle \033[01m--vcf-samples\033[00m to aggregate the sample list from \033[01m{directory}\033[00m or \033[01m{vcf}\033[00m.\n", file = sys.stderr, color = True)
-        click.echo("The samples causing this error are:", file = sys.stderr)
+        print_error(f"There are [bold]{len(missing_samples)}[/bold] samples found in [bold]{fromthis}[/bold] that are not in [bold]{inthis}[/bold]. Terminating Harpy to avoid downstream errors.")
+        #click.echo(f"\n\033[1;33mERROR:\033[00m There are {len(missing_samples)} samples found in \033[01m{fromthis}\033[00m that are not in \033[01m{inthis}\033[00m. Terminating Harpy to avoid downstream errors.", file = sys.stderr, color = True)
+        print_solution_with_culprits(
+            f"[bold]{fromthis}[/bold] cannot contain samples that are absent in [bold]{inthis}[/bold]. Check the spelling or remove those samples from [bold]{fromthis}[/bold] or remake the vcf file to include/omit these samples. Alternatively, toggle [green]--vcf-samples[/green] to aggregate the sample list from [bold]{directory}[/bold] or [bold]{vcf}[/bold]."
+            "The samples causing this error are:"
+        )
+        #click.echo(f"\n\033[1;34mSOLUTION:\033[00m \033[01m{fromthis}\033[00m cannot contain samples that are absent in \033[01m{inthis}\033[00m. Check the spelling or remove those samples from \033[01m{fromthis}\033[00m or remake the vcf file to include/omit these samples. Alternatively, toggle \033[01m--vcf-samples\033[00m to aggregate the sample list from \033[01m{directory}\033[00m or \033[01m{vcf}\033[00m.\n", file = sys.stderr, color = True)
+        #click.echo("The samples causing this error are:", file = sys.stderr)
         click.echo(", ".join(sorted(missing_samples)), file = sys.stderr)
         sys.exit(1)
 

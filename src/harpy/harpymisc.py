@@ -1,10 +1,27 @@
 import sys
 import os
 import re
+import glob
 import gzip
 import subprocess
-import rich_click as click
 from pathlib import Path
+from rich import print
+from rich.panel import Panel
+from rich.table import Table
+import rich_click as click
+
+## define some rich print functions for less redundancy
+def print_error(errortext):
+    print(Panel(errortext, title = "[bold]Error", title_align = "left", border_style = "yellow"), file = sys.stderr)
+
+def print_solution(solutiontext):
+    print(Panel(solutiontext, title = "[bold]Solution", title_align = "left", border_style = "blue"), file = sys.stderr)
+
+def print_solution_with_culprits(solutiontext, culprittext):
+    print(Panel(solutiontext, title = "[bold]Solution", title_align = "left", subtitle = culprittext, border_style = "blue"), file = sys.stderr)
+
+def print_notice(noticetext):
+    print(Panel(noticetext, title = "Notice", title_align = "left", border_style = "white"), file = sys.stderr)
 
 ## recurring checks and such ##
 def vcfcheck(vcf):
@@ -12,22 +29,37 @@ def vcfcheck(vcf):
     if vfile.endswith(".vcf") or vfile.endswith(".bcf") or vfile.endswith(".vcf.gz"):
         pass
     else:
-        print(f"\033[1;33mERROR:\033[00m Supplied variant call file ({vcf}) must end in one of [.vcf | .vcf.gz | .bcf]", file = sys.stderr)
+        print_error(f"Supplied variant call file [bold]{vcf}[/bold] must end in one of [.vcf | .vcf.gz | .bcf]")
         exit(1)
 
 def getnames(directory, ext):
     samplenames = set([i.split(ext)[0] for i in os.listdir(directory) if i.endswith(ext)])
     if len(samplenames) < 1:
-        print(f"\033[1;33mERROR:\033[00m No sample files ending with {ext} found in {directory}.", file = sys.stderr)
+        print_error(f"No sample files ending with [bold]{ext}[/bold] found in [bold]{directory}[/bold].")
         sys.exit(1)
     return samplenames
 
+def get_samples_from_fastq(directory):
+    full_flist = [i for i in glob.iglob(f"{directory}/*") if not os.path.isdir(i)]
+    r = re.compile(".*\.f(?:ast)?q(?:\.gz)?$", flags=re.IGNORECASE)
+    full_fqlist = list(filter(r.match, full_flist))
+    fqlist = [os.path.basename(i) for i in full_fqlist]
+    bn_r = r"[\.\_][RF](?:[12])?(?:\_00[1-9])*\.f(?:ast)?q(?:\.gz)?$"
+    if len(fqlist) == 0:
+        print_error(f"No fastq files with acceptable names found in {directory}")
+        print_solution("Check that the files conform to [.F. | .R1.][.fastq | .fq].gz\nRead the documentation for details: https://pdimens.github.io/harpy/dataformat/#naming-conventions")
+        sys.exit(1)
+
+    return set([re.sub(bn_r, "", i, flags = re.IGNORECASE) for i in fqlist])
+
 # Nicer version for init
+## DEPRECATE??
 def getnames_err(directory, ext):
     samplenames = set([i.split(ext)[0] for i in os.listdir(directory) if i.endswith(ext)])
     if len(samplenames) < 1:
+        print_error(f"No sample files ending with [bold]{ext}[/bold] found in [bold]{directory}[/bold].")
         sys.tracebacklimit = 0
-        raise Exception(f"\033[1;33mERROR:\033[00m No sample files ending with {ext} found in {directory}.")
+        raise Exception
     return samplenames
 
 def createregions(infile, window, method):
@@ -96,14 +128,17 @@ def check_impute_params(parameters):
         header = fp.readline().rstrip().lower()
         headersplt = header.split()
         correct_header = sorted(["model", "usebx", "bxlimit", "k", "s", "ngen"])
-        row = 0
+        row = 1
         badrows = []
         badlens = []
         if sorted(headersplt) != correct_header:
             culprits = [i for i in headersplt if i not in correct_header]
-            print(f"\n\033[1;33mERROR:\033[00m Parameter file \033[01m{parameters}\033[00m has incorrect column names. Valid names are:\n\tmodel usebx bxlimit k s ngen\n", file = sys.stderr)
-            print("Column names causing this error:\n\t" + " ".join(culprits), file = sys.stderr)
-            print(f"\n\033[1;34mSOLUTION:\033[00m Fix the headers in \033[01m{parameters}\033[00m or use \033[01mharpy extra -s stitch.params\033[00m to generate a valid parameter file and modify it with appropriate values.")
+            print_error(f"Parameter file [bold]{parameters}[/bold] has incorrect column names. Valid names are:\n[green]model usebx bxlimit k s ngen[/green]")
+            print_solution_with_culprits(
+                f"Fix the headers in [bold]{parameters}[/bold] or use [green]harpy extra -s stitch.params[/green] to generate a valid parameter file and modify it with appropriate values.",
+                "Column names causing this error:"
+            )
+            click.echo(" ".join(culprits), file = sys.stderr)
             sys.exit(1)
         # instantiate dict with colnames
         data = dict()
@@ -129,11 +164,13 @@ def check_impute_params(parameters):
                     data[j].append(k)
 
         if len(badrows) > 0:
-            print(f"\n\033[1;33mERROR:\033[00m Parameter file \033[01m{parameters}\033[00m is formatted incorrectly. Not all rows have the expected 6 columns.", file = sys.stderr)
-            print(f"\n\033[1;34mSOLUTION:\033[00m See the problematic rows below. Check that you are using a whitespace (space or tab) delimeter in \033[01m{parameters}\033[00m or use \033[01mharpy extra -s stitch.params\033[00m to generate a valid parameter file and modify it with appropriate values.")
-            print("\033[01mrow\tcolumns\033[00m")
+            print_error(f"Parameter file [bold]{parameters}[/bold] is formatted incorrectly. Not all rows have the expected 6 columns.")
+            print_solution_with_culprits(
+                f"See the problematic rows below. Check that you are using a whitespace (space or tab) delimeter in [bold]{parameters}[/bold] or use [green]harpy extra -s stitch.params[/green] to generate a valid parameter file and modify it with appropriate values.",
+                "Rows causing this error and their column count:"
+            )
             for i in zip(badrows, badlens):
-                print(f"{i[0]}\t{i[1]}")
+                click.echo(f"{i[0]}\t{i[1]}", file = sys.stderr)
             sys.exit(1)
         
         # Validate each column
@@ -146,25 +183,24 @@ def check_impute_params(parameters):
             "ngen"    : []
         }
         colerr = 0
+        errtable = Table(title="Formatting Errors")
+        errtable.add_column("Column", justify="right", style="white", no_wrap=True)
+        errtable.add_column("Expected Values", style="green")
+        errtable.add_column("Rows with Issues", style = "white")
+
         for i,j in enumerate(data["model"]):
             if j not in ["pseudoHaploid", "diploid","diploid-inbred"]:
                 culprits["model"].append(str(i + 1))
                 colerr += 1
         if culprits["model"]:
-            print("Invalid values for column \033[01mmodel\033[00m.", file = sys.stderr)
-            print("Expected values: diploid, diploid-inbred, pseudoHaploid (case-sensitive)", file = sys.stderr)
-            print("Rows causing error: " + " ".join(culprits["model"]), file = sys.stderr)
-            print("", file = sys.stderr)
+            errtable.add_row("model", "diploid, diploid-inbred, pseudoHaploid", ", ".join(culprits["model"]))
 
         for i,j in enumerate(data["usebx"]):
             if j not in [True, "TRUE", "true", False, "FALSE", "false", "Y","y", "YES", "Yes", "yes", "N", "n", "NO", "No", "no"]:
                 culprits["usebx"].append(str(i + 1))
                 colerr += 1
         if culprits["usebx"]:
-            print("Invalid values for column \033[01musebx\033[00m.", file = sys.stderr)
-            print("Expected values: True, False (not case sensitive)", file = sys.stderr)
-            print("Rows causing error: " + " ".join(culprits["usebx"]), file = sys.stderr)
-            print("", file = sys.stderr)
+            errtable.add_row("usebx", "True, False", ", ".join(culprits["usebx"]))
         
         for i,j in enumerate(data["bxlimit"]):
             if not j.isdigit():
@@ -172,11 +208,7 @@ def check_impute_params(parameters):
                 colerr += 1
 
         if culprits["bxlimit"]:
-            print("Invalid values for column \033[01mbxlimit\033[00m.", file = sys.stderr)
-            print("Expected values: Integers", file = sys.stderr)
-            print("Rows causing error: " + " ".join(culprits["bxlimit"]), file = sys.stderr)
-            print("", file = sys.stderr)
-
+            errtable.add_row("bxlimit", "Integers", ", ".join(culprits["bxlimit"]))
 
         for i,j in enumerate(data["k"]):
             if not j.isdigit():
@@ -184,35 +216,26 @@ def check_impute_params(parameters):
                 colerr += 1
 
         if culprits["k"]:
-            print("Invalid values for column \033[01mk\033[00m.", file = sys.stderr)
-            print("Expected values: Integers", file = sys.stderr)
-            print("Rows causing error: " + " ".join(culprits["k"]), file = sys.stderr)
-            print("", file = sys.stderr)
+            errtable.add_row("k", "Integers", ", ".join(culprits["k"]))
 
         for i,j in enumerate(data["s"]):
             if not j.isdigit():
                 culprits["s"].append(str(i + 1))
                 colerr += 1
         if culprits["s"]:
-            print("Invalid values for column \033[01ms\033[00m.", file = sys.stderr)
-            print("Expected values: Integers", file = sys.stderr)
-            print("Rows causing error: " + " ".join(culprits["s"]), file = sys.stderr)
-            print("", file = sys.stderr)
+            errtable.add_row("s", "Integers", ", ".join(culprits["s"]))
 
         for i,j in enumerate(data["ngen"]):
             if not j.isdigit():
                 culprits["ngen"].append(str(i + 1))
                 colerr += 1
         if culprits["ngen"]:
-            print("Invalid values for column \033[01mngen\033[00m.", file = sys.stderr)
-            print("Expected values: Integers", file = sys.stderr)
-            print("Rows causing error: " + " ".join(culprits["ngen"]), file = sys.stderr)
-            print("", file = sys.stderr)
+            errtable.add_row("ngen", "Integers", ", ".join(culprits["ngen"]))
 
         if colerr > 0:
-            print(f"\033[1;33mERROR:\033[00m Parameter file \033[01m{parameters}\033[00m is formatted incorrectly. Not all columns have valid values.", file = sys.stderr)
-            print(f"\n\033[1;34mSOLUTION:\033[00m See above for an explanation of what values each column expects and which rows are causing problems.")
-            print("Find more details in the documentation: https://pdimens.github.io/harpy/modules/impute/#parameter-file", file = sys.stderr)
+            print_error(f"Parameter file [bold]{parameters}[/bold] is formatted incorrectly. Not all columns have valid values.")
+            print_solution("Review the table below of what values are expected for each column and which rows are causing issues.")
+            print(errtable, file = sys.stderr)
             exit(1)
 
 def validate_bamfiles(dir, namelist):
@@ -236,12 +259,13 @@ def validate_bamfiles(dir, namelist):
             culpritIDs.append("missing @RG ID:")
         
     if len(culpritfiles) > 0:
-        print(f"\033[1;33mERROR:\033[00m There are {len(culpritfiles)} alignment files whose ID tags do not match their filenames.", file = sys.stderr)
-        print("\n\033[1;34mSOLUTION:\033[00m For alignment files (sam/bam), the base of the file name must be identical to the @RD ID: tag in the file header. For example, a file named \'sample_001.bam\' should have the \'@RG ID:sample_001\' tag. Use the \033[01mrenamebam\033[00m script to properly rename alignment files so as to also update the @RG header.", file = sys.stderr)
-        print("\nFiles causing error:", file = sys.stderr)
-        print("\033[01mfilename\tID:name\033[00m")
+        print_error(f"There are [bold]{len(culpritfiles)}[/bold] alignment files whose ID tags do not match their filenames.")
+        print_solution_with_culprits(
+            f"For alignment files (sam/bam), the base of the file name must be identical to the [green]@RD ID:[/green] tag in the file header. For example, a file named \'sample_001.bam\' should have the [green]@RG ID:sample_001[/green] tag. Use the [green]renamebam[/green] script to properly rename alignment files so as to also update the @RG header.",
+            "File causing error and their ID tags:"
+        )
         for i,j in zip(culpritfiles,culpritIDs):
-            print(f"{i}\t{j}")
+            click.echo(f"{i}\t{j}", file = sys.stderr)
         exit(1)
 
 def check_phase_vcf(infile):
@@ -250,8 +274,8 @@ def check_phase_vcf(infile):
         return
     else:
         bn = os.path.basename(infile)
-        print(f"\033[1;33mERROR:\033[00m The input variant file needs to be phased into haplotypes, but no FORMAT/PS or FORMAT/HP fields were found.", file = sys.stderr)
-        print(f"\n\033[1;34mSOLUTION:\033[00m Phase {bn} into haplotypes using \'harpy phase\' or another manner of your choosing and use the phased vcf file as input. If you are confident this file is phased, then the phasing does not follow standard convention and you will need to make sure the phasing information appears as either FORMAT/PS or FORMAT/HP tags.", file = sys.stderr)
+        print_error(f"The input variant file needs to be phased into haplotypes, but no FORMAT/PS or FORMAT/HP fields were found.")
+        print_solution(f"Phase [bold]{bn}[/bold] into haplotypes using [green]harpy phase[/green] or another manner of your choosing and use the phased vcf file as input. If you are confident this file is phased, then the phasing does not follow standard convention and you will need to make sure the phasing information appears as either [bold]FORMAT/PS[/bold] or [bold]FORMAT/HP[/bold] tags.")
         exit(1)
 
 def validate_popfile(infile):
@@ -259,22 +283,41 @@ def validate_popfile(infile):
         rows = [i for i in f.readlines() if i != "\n" and not i.lstrip().startswith("#")]
         invalids = [(i,j) for i,j in enumerate(rows) if len(j.split()) < 2]
         if invalids:
-            click.echo(f"\n\033[1;33mERROR:\033[00m There are {len(invalids)} rows in \033[01m{infile}\033[00m without a space/tab delimiter or don't have two entries for sample<tab>population. Terminating Harpy to avoid downstream errors.", file = sys.stderr, color = True)
-            click.echo(f"\n\033[1;34mSOLUTION:\033[00m Make sure every entry in \033[01m{infile}\033[00m uses space or tab delimeters and has both a sample name and population designation. You may comment out rows with a # to have Harpy ignore them.", file = sys.stderr, color = True)
-            click.echo(f"\nThe rows and values causing this error are:", file = sys.stderr)
+            print_error(f"There are [bold]{len(invalids)}[/bold] rows in [bold]{infile}[/bold] without a space/tab delimiter or don't have two entries for sample[dim]<tab>[/dim]population. Terminating Harpy to avoid downstream errors.")
+            print_solution_with_culprits(
+                f"Make sure every entry in [bold]{infile}[/bold] uses space or tab delimeters and has both a sample name and population designation. You may comment out rows with a # to have Harpy ignore them.",
+                "The rows and values causing this error are:"
+                )
             _ = [click.echo(f"{i[0]+1}\t{i[1]}", file = sys.stderr) for i in invalids]
             sys.exit(1)
         else:
             return rows
+
+def validate_vcfsamples(directory, populations, samplenames, rows, quiet):
+    p_list = [i.split()[0] for i in rows]
+    missing_samples = [x for x in p_list if x not in samplenames]
+    overlooked = [x for x in samplenames if x not in p_list]
+    if len(overlooked) > 0 and not quiet:
+        print_notice(f"There are [bold]{len(overlooked)}[/bold] samples found in [bold]{directory}[/bold] that weren\'t included in [bold]{populations}[/bold]. This will not cause errors and can be ignored if it was deliberate. Commenting or removing these lines will avoid this message. The samples are:\n" + ", ".join(overlooked))
+    if len(missing_samples) > 0:
+        print_error(f"There are [bold]{len(missing_samples)}[/bold] samples included in [bold]{populations}[/bold] that weren\'t found in [bold]{directory}[/bold]. Terminating Harpy to avoid downstream errors.")
+        print_solution_with_culprits(
+            f"Make sure the spelling of these samples is identical in [bold]{directory}[/bold] and [bold]{populations}[/bold], or remove them from [bold]{populations}[/bold].",
+            "The samples causing this error are:"
+        )
+        click.echo(", ".join(sorted(missing_samples)), file = sys.stderr)
+        sys.exit(1)
 
 def validate_demuxschema(infile):
     with open(infile, "r") as f:
         rows = [i for i in f.readlines() if i != "\n" and not i.lstrip().startswith("#")]
         invalids = [(i,j) for i,j in enumerate(rows) if len(j.split()) < 2]
         if invalids:
-            click.echo(f"\n\033[1;33mERROR:\033[00m There are {len(invalids)} rows in \033[01m{infile}\033[00m without a space/tab delimiter or don't have two entries for sample<tab>barcode. Terminating Harpy to avoid downstream errors.", file = sys.stderr, color = True)
-            click.echo(f"\n\033[1;34mSOLUTION:\033[00m Make sure every entry in \033[01m{infile}\033[00m uses space or tab delimeters and has both a sample name and barcode designation. You may comment out rows with a # to have Harpy ignore them.", file = sys.stderr, color = True)
-            click.echo(f"\nThe rows and values causing this error are:", file = sys.stderr)
+            print_error(f"There are [bold]{len(invalids)}[/bold] rows in [bold]{infile}[/bold] without a space/tab delimiter or don't have two entries for sample[dim]<tab>[/dim]barcode. Terminating Harpy to avoid downstream errors.")
+            print_solution_with_culprits(
+                f"Make sure every entry in [bold]{infile}[/bold] uses space or tab delimeters and has both a sample name and barcode designation. You may comment out rows with a # to have Harpy ignore them.",
+                "The rows and values causing this error are:"
+                )
             _ = [click.echo(f"{i[0]+1}\t{i[1]}", file = sys.stderr) for i in invalids]
             sys.exit(1)
 
@@ -292,6 +335,11 @@ def check_demux_fastq(file):
         symbol = " " if TF else "X"
         filelist.append(f"\033[91m{symbol}\033[0m  {prefix}_{i}{ext}")
     if printerr:
-        print(f"\n\033[91mError\033[0m: Not all necessary files with prefix \033[1m{prefix}\033[0m present")
-        _ = [print(i, file = sys.stderr) for i in filelist]
+        print_error(f"Not all necessary files with prefix [bold]{prefix}[/bold] present")
+        print_solution_with_culprits(
+            "Demultiplexing requires 4 sequence files: the forward and reverse sequences (R1 and R2), along with the forward and reverse indices (I2 and I2).",
+            "Necessary/expected files:"
+        )
+        #print(f"\n\033[91mError\033[0m: Not all necessary files with prefix \033[1m{prefix}\033[0m present")
+        _ = [click.echo(i, file = sys.stderr) for i in filelist]
         exit(1)

@@ -1,4 +1,4 @@
-from .harpymisc import getnames_err, createregions, validate_bamfiles, validate_popfile
+from .harpymisc import getnames, createregions, validate_bamfiles, validate_popfile
 import rich_click as click
 import subprocess
 import sys
@@ -27,7 +27,7 @@ def mpileup(genome, threads, directory, populations, ploidy, windowsize, extra_p
     Use **harpy extra --popgroup** to create a sample grouping file to 
     use as input for `--populations`. Available methods are:
     """
-    samplenames = getnames_err(directory, '.bam')
+    samplenames = getnames(directory, '.bam')
     callcoords, linkedgenome = createregions(genome, windowsize, mpileup)
     directory = directory.rstrip("/^")
     validate_bamfiles(directory, samplenames)
@@ -82,7 +82,7 @@ def freebayes(genome, threads, directory, populations, ploidy, windowsize, extra
     Use **harpy extra --popgroup** to create a sample grouping file to 
     use as input for `--populations`.
     """
-    samplenames = getnames_err(directory, '.bam')
+    samplenames = getnames(directory, '.bam')
     callcoords, linkedgenome = createregions(genome, windowsize, freebayes)
     directory = directory.rstrip("/^")
     validate_bamfiles(directory, samplenames)
