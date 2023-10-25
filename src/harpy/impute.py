@@ -1,4 +1,4 @@
-from .harpymisc import getnames, vcfcheck, check_impute_params, validate_bamfiles
+from .helperfunctions import getnames, vcfcheck, check_impute_params, validate_bamfiles
 import rich_click as click
 import subprocess
 import sys

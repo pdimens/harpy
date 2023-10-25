@@ -15,7 +15,7 @@ except:
     print(details)
     exit(1)
 
-#from .harpymisc import getnames_err, getnames, vcfcheck
+#from .helperfunctions import getnames_err, getnames, vcfcheck
 from .extra import extra
 from .demultiplex import gen1
 from .preflight import bam, fastq

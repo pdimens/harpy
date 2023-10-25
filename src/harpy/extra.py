@@ -1,4 +1,4 @@
-from .harpymisc import get_samples_from_fastq
+from .helperfunctions import get_samples_from_fastq
 
 import os
 import re

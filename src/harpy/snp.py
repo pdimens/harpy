@@ -1,4 +1,4 @@
-from .harpymisc import getnames, createregions, validate_bamfiles, validate_popfile
+from .helperfunctions import getnames, createregions, validate_bamfiles, validate_popfile
 import rich_click as click
 import subprocess
 import sys

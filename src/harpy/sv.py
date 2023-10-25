@@ -1,4 +1,4 @@
-from .harpymisc import getnames, check_phase_vcf, validate_popfile
+from .helperfunctions import getnames, check_phase_vcf, validate_popfile, validate_vcfsamples
 import rich_click as click
 import subprocess
 import sys

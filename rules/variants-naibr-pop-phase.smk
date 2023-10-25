@@ -17,10 +17,8 @@ if genome_zip:
 
 if vcffile.lower().endswith("bcf"):
     vcfindex = vcffile + ".csi"
-elif vcffile.lower().endswith("vcf.gz"):
-    vcfindex = vcffile + ".tbi"
 else:
-    vcfindex = ""
+    vcfindex = vcffile + ".tbi"
 
 def process_args(args):
     argsDict = {
@@ -128,48 +126,26 @@ rule index_vcfgz:
     shell:
         "tabix {input}"
 
-if vcfindex:
-    rule phase_alignments:
-        input:
-            vcf = vcffile,
-            vcfindex,
-            bam = bam_dir + "/{sample}.bam",
-            bam_dir + "/{sample}.bam.bai",
-            ref = genomefile,
-            genomefile + ".fai"
-        output:
-            outdir + "/phasedbam/{sample}.bam"
-        message:
-            "Phasing: {input.bam}"
-        params:
-            extra = lambda wc: f"--ignore-read-groups --sample {wc.get("sample")} --tag-supplementary"
-        log:
-            outdir + "/logs/whatshap-haplotag/{sample}.phase.log"
-        threads:
-            4
-        wrapper:
-            "v2.7.0/bio/whatshap/haplotag"
-
-else:
-    rule phase_alignments:
-        input:
-            vcf = vcffile,
-            bam = bam_dir + "/{sample}.bam",
-            bam_dir + "/{sample}.bam.bai",
-            reference = genomefile
-            genomefile + ".fai"
-        output:
-            outdir + "/phasedbam/{sample}.bam"
-        message:
-            "Phasing: {input.bam}"
-        params:
-            extra = lambda wc: f"--ignore-read-groups --sample {wc.get("sample")} --tag-supplementary"
-        log:
-            outdir + "/logs/whatshap-haplotag/{sample}.phase.log"
-        threads:
-            4
-        wrapper:
-           "v2.7.0/bio/whatshap/haplotag"
+rule phase_alignments:
+    input:
+        vcfindex,
+        bam_dir + "/{sample}.bam.bai",
+        f"Genome/{bn}.fai",
+        vcf = vcffile,
+        aln = bam_dir + "/{sample}.bam",
+        ref = f"Genome/{bn}"
+    output:
+        outdir + "/phasedbam/{sample}.bam"
+    message:
+        "Phasing: {input.aln}"
+    params:
+        extra = lambda wc: "--ignore-read-groups --sample " + wc.get("sample") + " --tag-supplementary"
+    log:
+        outdir + "/logs/whatshap-haplotag/{sample}.phase.log"
+    threads:
+        4
+    shell:
+        "whatshap haplotag {params} --output-threads={threads} -o {output} --reference {input.ref} {input.vcf} {input.aln} 2> {log}"
 
 rule log_phasing:
     input:
@@ -183,7 +159,7 @@ rule log_phasing:
         echo -e "sample\\ttotal_alignments\\tphased_alignments" > {output}
         for i in {input}; do
             SAMP=$(basename $i .phaselog)
-            echo -e "${SAMP}\\t$(grep "Total alignments" $i)\\t$(grep "could be tagged" $i)" |
+            echo -e "${{SAMP}}\\t$(grep "Total alignments" $i)\\t$(grep "could be tagged" $i)" |
                 sed 's/ \+ /\\t/g' | cut -f1,3,5 >> {output}
         done
         """
@@ -312,6 +288,8 @@ rule log_runtime:
             _ = f.write(f"The provided genome: {bn}\n")
             _ = f.write(f"The directory with alignments: {bam_dir}\n")
             _ = f.write(f"The sample grouping file: {groupfile}\n\n")
+            _ = f.write("The alignment files were phased using:\n")
+            _ = f.write(f"    whatshap haplotag --reference genome.fasta --linked-read-distance-cutoff {molecule_distance} --ignore-read-groups --tag-supplementary --sample sample_x file.vcf sample_x.bam\n")
             _ = f.write("naibr variant calling ran using these configurations:\n")
             _ = f.write(f"    bam_file=BAMFILE\n")
             _ = f.write(f"    prefix=PREFIX\n")

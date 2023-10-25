@@ -63,21 +63,30 @@ jobs:
           misc/buildforCI.sh
         shell: micromamba-shell {0}
 
-      - name: variants leviathan
+      - name: leviathan
         shell: micromamba-shell {0}
         run: harpy sv leviathan -d test/bam -g test/genome/genome.fasta.gz -s "--show-failed-logs"
         continue-on-error: true
 
-      - name: variants leviathan-pop
+      - name: leviathan-pop
         shell: micromamba-shell {0}
         run: harpy sv leviathan -d test/bam -g test/genome/genome.fasta.gz -p test/samples.groups -s "--show-failed-logs"
         continue-on-error: true
 
-      - name: variants naibr
+      - name: naibr
         shell: micromamba-shell {0}
-        run: harpy sv naibr -d test/bam -g test/genome/genome.fasta.gz -s "--show-failed-logs"
+        run: harpy sv naibr -d test/bam/naibr_phased -g test/genome/genome.fasta.gz -s "--show-failed-logs"
         continue-on-error: true
 
-      - name: variants naibr-pop
+      - name: naibr pop
         shell: micromamba-shell {0}
-        run: harpy sv naibr -d test/bam -g test/genome/genome.fasta.gz -p test/samples.groups -s "--show-failed-logs"
+        run: harpy sv naibr -d test/bam/naibr_phased -g test/genome/genome.fasta.gz -p test/naibr.groups -s "--show-failed-logs"
+
+      - name: naibr phasing
+        shell: micromamba-shell {0}
+        run: harpy sv naibr -d test/bam/naibr_unphased -g test/genome/genome.fasta.gz -v test/vcf/test.phased.bcf -s "--show-failed-logs"
+        continue-on-error: true
+
+      - name: naibr pop phasing
+        shell: micromamba-shell {0}
+        run: harpy sv naibr -d test/bam/naibr_unphased -g test/genome/genome.fasta.gz -v test/vcf/test.phased.bcf -p test/naibr.groups -s "--show-failed-logs"

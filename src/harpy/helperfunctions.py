@@ -285,7 +285,7 @@ def validate_popfile(infile):
         if invalids:
             print_error(f"There are [bold]{len(invalids)}[/bold] rows in [bold]{infile}[/bold] without a space/tab delimiter or don't have two entries for sample[dim]<tab>[/dim]population. Terminating Harpy to avoid downstream errors.")
             print_solution_with_culprits(
-                f"Make sure every entry in [bold]{infile}[/bold] uses space or tab delimeters and has both a sample name and population designation. You may comment out rows with a # to have Harpy ignore them.",
+                f"Make sure every entry in [bold]{infile}[/bold] uses space or tab delimeters and has both a sample name and population designation. You may comment out rows with a [green]#[/green] to have Harpy ignore them.",
                 "The rows and values causing this error are:"
                 )
             _ = [click.echo(f"{i[0]+1}\t{i[1]}", file = sys.stderr) for i in invalids]
@@ -315,7 +315,7 @@ def validate_demuxschema(infile):
         if invalids:
             print_error(f"There are [bold]{len(invalids)}[/bold] rows in [bold]{infile}[/bold] without a space/tab delimiter or don't have two entries for sample[dim]<tab>[/dim]barcode. Terminating Harpy to avoid downstream errors.")
             print_solution_with_culprits(
-                f"Make sure every entry in [bold]{infile}[/bold] uses space or tab delimeters and has both a sample name and barcode designation. You may comment out rows with a # to have Harpy ignore them.",
+                f"Make sure every entry in [bold]{infile}[/bold] uses space or tab delimeters and has both a sample name and barcode designation. You may comment out rows with a [green]#[/green] to have Harpy ignore them.",
                 "The rows and values causing this error are:"
                 )
             _ = [click.echo(f"{i[0]+1}\t{i[1]}", file = sys.stderr) for i in invalids]

@@ -1,4 +1,4 @@
-from .harpymisc import getnames, vcfcheck, validate_bamfiles, print_error, print_solution_with_culprits
+from .helperfunctions import getnames, vcfcheck, validate_bamfiles, print_error, print_solution_with_culprits
 import sys
 import os
 import subprocess

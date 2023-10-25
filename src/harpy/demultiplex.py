@@ -1,5 +1,5 @@
 import rich_click as click
-from .harpymisc import validate_demuxschema, check_demux_fastq
+from .helperfunctions import validate_demuxschema, check_demux_fastq
 import subprocess
 import sys
 import os

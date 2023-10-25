@@ -1,6 +1,6 @@
 import rich_click as click
 from pathlib import Path
-from .harpymisc import get_samples_from_fastq
+from .helperfunctions import get_samples_from_fastq
 import subprocess
 import sys
 import os
