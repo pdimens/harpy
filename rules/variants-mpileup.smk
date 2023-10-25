@@ -13,16 +13,17 @@ intervals   = config["intervals"]
 outdir      = "Variants/mpileup"
 regions     = dict(zip(intervals, intervals))
 
-rule copy_groupings:
-    input:
-        groupings
-    output:
-        outdir + "/logs/sample.groups"
-    message:
-        "Logging {input}"
-    run:
-        with open(input[0], "r") as infile, open(output[0], "w") as outfile:
-            _ = [outfile.write(i) for i in infile.readlines() if not i.lstrip().startswith("#")]
+if groupings:
+    rule copy_groupings:
+        input:
+            groupings
+        output:
+            outdir + "/logs/sample.groups"
+        message:
+            "Logging {input}"
+        run:
+            with open(input[0], "r") as infile, open(output[0], "w") as outfile:
+                _ = [outfile.write(i) for i in infile.readlines() if not i.lstrip().startswith("#")]
 
 rule index_alignments:
     input:
