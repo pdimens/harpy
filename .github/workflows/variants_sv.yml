@@ -82,7 +82,7 @@ jobs:
 
       - name: naibr pop
         shell: micromamba-shell {0}
-        run: harpy sv naibr -d test/bam_phased -g test/genome/genome.fasta.gz -p test/naibr.groups -s "--show-failed-logs"
+        run: harpy sv naibr -d test/bam_phased -g test/genome/genome.fasta.gz -p test/samples.groups -s "--show-failed-logs"
 
       - name: naibr phasing
         shell: micromamba-shell {0}
@@ -91,4 +91,4 @@ jobs:
 
       - name: naibr pop phasing
         shell: micromamba-shell {0}
-        run: harpy sv naibr -d test/bam -g test/genome/genome.fasta.gz -v test/vcf/test.phased.bcf -p test/naibr.groups -s "--show-failed-logs"
+        run: harpy sv naibr -d test/bam -g test/genome/genome.fasta.gz -v test/vcf/test.phased.bcf -p test/samples.groups -s "--show-failed-logs"
