@@ -8,13 +8,13 @@ genomefile  = config["genomefile"]
 molecule_distance = config["molecule_distance"]
 outdir      = "Variants/naibr"
 
-bn          = os.path.basename(genomefile)
+bn = os.path.basename(genomefile)
 if bn.lower().endswith(".gz"):
     validgenome = bn[:-3]
 else:
     validgenome = bn
 
-vcffile     = config["vcf"]
+vcffile = config["vcf"]
 if vcffile.lower().endswith("bcf"):
     vcfindex = vcffile + ".csi"
 else:

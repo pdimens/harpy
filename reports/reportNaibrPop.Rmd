@@ -446,7 +446,6 @@ for (i in 1:nrow(fa.sizes)) {
   if (nrow(sv_stats) == 0) {
     next
   }
-  nplotrows <- nplotrows + 1
   plt <- sv.filt %>%
     ggplot() +
     geom_rect(
@@ -496,5 +495,7 @@ for (i in 1:nrow(fa.sizes)) {
     layout(annotations = annotations)
     l[[i]] <- pp
 }
-subplot(l, nrows = nplotrows, shareX = FALSE, titleX = TRUE)
+# remove null
+l <- Filter(Negate(is.null), l)
+subplot(l, nrows = length(l) , shareX = FALSE, titleX = TRUE)
 ```

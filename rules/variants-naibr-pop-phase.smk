@@ -7,14 +7,16 @@ samplenames = config["samplenames"]
 extra       = config.get("extra", "") 
 groupfile   = config["groupings"]
 genomefile  = config["genomefile"]
-vcffile     = config["vcf"]
 molecule_distance = config["molecule_distance"]
-bn          = os.path.basename(genomefile)
 outdir      = "Variants/naibr-pop"
-genome_zip  = True if bn.lower().endswith(".gz") else False
-if genome_zip:
-    bn = bn[:-3]
 
+bn = os.path.basename(genomefile)
+if bn.lower().endswith(".gz"):
+    validgenome = bn[:-3]
+else:
+    validgenome = bn
+
+vcffile = config["vcf"]
 if vcffile.lower().endswith("bcf"):
     vcfindex = vcffile + ".csi"
 else:
@@ -63,48 +65,34 @@ rule genome_link:
     input:
         genomefile
     output: 
-        f"Genome/{bn}"
+        f"Genome/{validgenome}"
     message: 
-        "Symlinking {input}"
+        "Preprocessing {input}"
     shell: 
         """
         if (file {input} | grep -q compressed ) ;then
-            # is regular gzipped, needs to be BGzipped
-            zcat {input} | bgzip -c > {output}
+            # decompress gzipped
+            zcat {input} > {output}
         elif (file {input} | grep -q BGZF ); then
-            # is bgzipped, just linked
-            ln -sr {input} {output}
+            # decompress bgzipped
+            zcat {input} > {output}
         else
-            # isn't compressed, just linked
+            # linked uncompressed
             ln -sr {input} {output}
         fi
         """
 
-if genome_zip:
-    rule genome_compressed_faidx:
-        input: 
-            f"Genome/{bn}"
-        output: 
-            gzi = f"Genome/{bn}.gzi",
-            fai = f"Genome/{bn}.fai"
-        message:
-            "Indexing {input}"
-        log:
-            f"Genome/{bn}.faidx.gzi.log"
-        shell: 
-            "samtools faidx --gzi-idx {output.gzi} --fai-idx {output.fai} {input} 2> {log}"
-else:
-    rule genome_faidx:
-        input: 
-            f"Genome/{bn}"
-        output: 
-            f"Genome/{bn}.fai"
-        message:
-            "Indexing {input}"
-        log:
-            f"Genome/{bn}.faidx.log"
-        shell:
-            "samtools faidx --fai-idx {output} {input} 2> {log}"
+rule genome_faidx:
+    input: 
+        f"Genome/{validgenome}"
+    output: 
+        f"Genome/{validgenome}.fai"
+    message:
+        "Indexing {input}"
+    log:
+        f"Genome/{validgenome}.faidx.log"
+    shell:
+        "samtools faidx --fai-idx {output} {input} 2> {log}"
 
 rule index_bcf:
     input:
@@ -130,10 +118,10 @@ rule phase_alignments:
     input:
         vcfindex,
         bam_dir + "/{sample}.bam.bai",
-        f"Genome/{bn}.fai",
+        f"Genome/{validgenome}.fai",
         vcf = vcffile,
         aln = bam_dir + "/{sample}.bam",
-        ref = f"Genome/{bn}"
+        ref = f"Genome/{validgenome}"
     output:
         outdir + "/phasedbam/{sample}.bam"
     message:
@@ -256,7 +244,7 @@ rule call_sv:
 
 rule report:
     input:
-        fai   = f"Genome/{bn}.fai",
+        fai   = f"Genome/{validgenome}.fai",
         bedpe = outdir + "/{population}.bedpe"
     output:
         outdir + "/reports/{population}.naibr.html"
@@ -267,7 +255,7 @@ rule report:
 
 rule report_pop:
     input:
-        fai   = f"Genome/{bn}.fai",
+        fai   = f"Genome/{validgenome}.fai",
         bedpe = expand(outdir + "/{pop}.bedpe", pop = populations)
     output:
         outdir + "/reports/naibr.pop.summary.html"

@@ -396,14 +396,13 @@ sv$ystop <- sv$ystart + 0.8
 
 ```{r}
 l <- list()
-nplotrows <- 0
+#nplotrows <- 0
 for (i in 1:nrow(fa.sizes)) {
   sv.filt <- sv %>% filter(Chr1 == fa.sizes$contig[i])
   sv_stats <- group_by(sv.filt, SV) %>% summarise(n = length(SV))
   if (nrow(sv_stats) == 0) {
     next
   }
-  nplotrows <- nplotrows + 1
   plt <- sv.filt %>%
     ggplot() +
     geom_rect(
@@ -452,5 +451,8 @@ for (i in 1:nrow(fa.sizes)) {
     )
     l[[i]] <- subplot(ggplotly(plt, height = 800, tooltip = "text"))
 }
-subplot(l, nrows = nplotrows, shareX = FALSE, titleX = TRUE)
+
+# remove null
+l <- Filter(Negate(is.null), l)
+subplot(l, nrows = length(l) , shareX = FALSE, titleX = TRUE)
 ```
