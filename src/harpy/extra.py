@@ -1,4 +1,4 @@
-from .helperfunctions import get_samples_from_fastq
+from .helperfunctions import get_samples_from_fastq, print_error, print_solution
 
 import os
 import re
@@ -27,13 +27,23 @@ def extra(popgroup, stitch_params, hpc):
     Harpy on a cluster. You can use any combination of options at a time. 
     """
     if popgroup is not None:
-        click.echo('\033[1m' + "<><> Sampling Grouping File <><>" + '\033[0m', file = sys.stderr, color = True)
         try:
             samplenames = getnames(popgroup, '.bam')
-            click.echo("No bam files detected. Searching for fastq files.", file = sys.stderr)
         except:
-            samplenames = get_samples_from_fastq(popgroup)
+            full_flist = [i for i in glob.iglob(f"{popgroup}/*") if not os.path.isdir(i)]
+            r = re.compile(".*\.f(?:ast)?q(?:\.gz)?$", flags=re.IGNORECASE)
+            full_fqlist = list(filter(r.match, full_flist))
+            fqlist = [os.path.basename(i) for i in full_fqlist]
+            bn_r = r"[\.\_][RF](?:[12])?(?:\_00[1-9])*\.f(?:ast)?q(?:\.gz)?$"
+            if len(fqlist) == 0:
+                print_error(f"No FASTQ or BAM files were detected in {popgroup}")
+                print_solution(
+                    "Check that FASTQ file endings conform to [green].[/green][[green]F[/green][dim]|[/dim][green]R1[/green]][green].[/green][[green]fastq[/green][dim]|[/dim][green]fq[/green]][green].gz[/green]\nCheck that BAM files end in [green].bam[/green]\nRead the documentation for details: https://pdimens.github.io/harpy/haplotagdata/#naming-conventions"
+                )
+                exit(1)
+            samplenames = set([re.sub(bn_r, "", i, flags = re.IGNORECASE) for i in fqlist])
 
+        click.echo('\033[1m' + "<><> Sampling Grouping File <><>" + '\033[0m', file = sys.stderr, color = True)
         click.echo(f"Samples detected in {popgroup}: " + str(len(samplenames)), file = sys.stderr)
         fout = "samples.groups"
         if os.path.exists("samples.groups"):
