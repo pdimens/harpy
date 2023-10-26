@@ -16,7 +16,7 @@ def get_fq1(wildcards):
     lst = sorted(glob.glob(seq_dir + "/" + wildcards.sample + "*"))
     r = re.compile(".*[\_\.][FR][1]?(?:\_00[0-9])*\.f(?:ast)?q(?:\.gz)?$", flags=re.IGNORECASE)
     fqlist = list(filter(r.match, lst))
-    return fqlist
+    return fqlist[0]
 
 def get_fq2(wildcards):
     # code that returns a list of fastq files for read 2 based on *wildcards.sample*, e.g.

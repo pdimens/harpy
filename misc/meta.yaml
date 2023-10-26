@@ -17,7 +17,7 @@ build:
 
 requirements:
   host:
-    - python =3.9
+    - python =3.10
   run:
     - bcftools
     - bioconductor-complexheatmap
@@ -33,7 +33,7 @@ requirements:
     - llvm-openmp 
     - multiqc
     - naibr-plus
-    - python =3.9
+    - python =3.10
     - pysam
     - r-base
     - r-circlize
@@ -55,6 +55,7 @@ requirements:
     - samtools
     - seqtk
     - tabix
+    - whatshap
     - xz
 
 test:

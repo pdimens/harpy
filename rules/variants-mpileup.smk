@@ -13,6 +13,18 @@ intervals   = config["intervals"]
 outdir      = "Variants/mpileup"
 regions     = dict(zip(intervals, intervals))
 
+if groupings:
+    rule copy_groupings:
+        input:
+            groupings
+        output:
+            outdir + "/logs/sample.groups"
+        message:
+            "Logging {input}"
+        run:
+            with open(input[0], "r") as infile, open(output[0], "w") as outfile:
+                _ = [outfile.write(i) for i in infile.readlines() if not i.lstrip().startswith("#")]
+
 rule index_alignments:
     input:
         bam_dir + "/{sample}.bam"
@@ -66,25 +78,45 @@ rule mpileup:
     shell:
         "bcftools mpileup --fasta-ref {input.genome} --bam-list {input.bamlist} --annotate AD --output-type b {params} > {output} 2> {log}"
 
-rule call_genotypes:
-    input:
-        outdir + "/{part}.mp.bcf"
-    output:
-        bcf = temp(outdir + "/call/{part}.bcf"),
-        idx = temp(outdir + "/call/{part}.bcf.csi")
-    message:
-        "Calling genotypes: {wildcards.part}"
-    threads:
-        2
-    params: 
-        groupsamples = '' if groupings is None else f"--group-samples {groupings}",
-        ploidy = f"--ploidy {ploidy}"
-    shell:
-        """
-        #bcftools call --multiallelic-caller {params} --variants-only --output-type b {input} | bcftools sort - --output {output.bcf} --write-index 2> /dev/null
-        bcftools call --multiallelic-caller {params} --variants-only --output-type b {input} | bcftools sort - --output {output.bcf} 2> /dev/null
-        bcftools index {output.bcf}
-        """
+if groupings:
+    rule call_genotypes_pop:
+        input:
+            bcf = outdir + "/{part}.mp.bcf",
+            groupings = outdir + "/logs/sample.groups"
+        output:
+            bcf = temp(outdir + "/call/{part}.bcf"),
+            idx = temp(outdir + "/call/{part}.bcf.csi")
+        message:
+            "Calling genotypes: {wildcards.part}"
+        threads:
+            2
+        params: 
+            f"--ploidy {ploidy}"
+        shell:
+            """
+            #bcftools call --multiallelic-caller {params} --variants-only --output-type b {input} | bcftools sort - --output {output.bcf} --write-index 2> /dev/null
+            bcftools call --multiallelic-caller --group-samples {input.groupings} {params} --variants-only --output-type b {input.bcf} | bcftools sort - --output {output.bcf} 2> /dev/null
+            bcftools index {output.bcf}
+            """
+else:
+    rule call_genotypes:
+        input:
+            bcf = outdir + "/{part}.mp.bcf"
+        output:
+            bcf = temp(outdir + "/call/{part}.bcf"),
+            idx = temp(outdir + "/call/{part}.bcf.csi")
+        message:
+            "Calling genotypes: {wildcards.part}"
+        threads:
+            2
+        params: 
+            f"--ploidy {ploidy}"
+        shell:
+            """
+            #bcftools call --multiallelic-caller {params} --variants-only --output-type b {input} | bcftools sort - --output {output.bcf} --write-index 2> /dev/null
+            bcftools call --multiallelic-caller {params} --variants-only --output-type b {input.bcf} | bcftools sort - --output {output.bcf} 2> /dev/null
+            bcftools index {output.bcf}
+            """
 
 rule concat_list:
     input:

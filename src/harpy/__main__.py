@@ -15,14 +15,14 @@ except:
     print(details)
     exit(1)
 
-from .harpymisc import getnames_err, getnames, vcfcheck
+#from .helperfunctions import getnames_err, getnames, vcfcheck
 from .extra import extra
-from .demultiplex import demultiplex
-from .qc import qc
-from .align import align
+from .demultiplex import gen1
 from .preflight import bam, fastq
-from .variants_snp import snp
-from .variants_sv import sv
+from .qc import qc
+from .align import bwa, ema
+from .snp import freebayes, mpileup
+from .sv import leviathan, naibr
 from .impute import impute
 from .phase import phase
 import rich_click as click
@@ -31,59 +31,132 @@ click.rich_click.USE_MARKDOWN = True
 click.rich_click.SHOW_ARGUMENTS = False
 click.rich_click.SHOW_METAVARS_COLUMN = False
 click.rich_click.APPEND_METAVARS_HELP = False
+click.rich_click.MAX_WIDTH = 75
 click.rich_click.REQUIRED_SHORT_STRING = ""
 click.rich_click.ERRORS_SUGGESTION = "Try the '--help' flag for more information."
 click.rich_click.ERRORS_EPILOGUE = "See the documentation: [link=https://pdimens.github.io/harpy/]https://pdimens.github.io/harpy/[/link]"
 
 @click.group(options_metavar='', context_settings=dict(help_option_names=["-h", "--help"]))
-@click.version_option("0.3", prog_name="Harpy")
+@click.version_option("0.4", prog_name="Harpy")
 def cli():
     """
     ## Harpy haplotagging pipeline
     
-    An automated workflow to demultiplex sequences, trim reads, 
+    An automated workflow to demultiplex sequences, trim and qc reads, 
     map sequences, call variants, impute genotypes, and phase 
     haplotypes of Haplotagging data. Batteries included.
     
-    **demultiplex >> qc >> align >> variants >> impute >> phase**
+    **demultiplex >> qc >> align >> snp >> impute >> phase**
     
     **Documentation**: [https://pdimens.github.io/harpy/](https://pdimens.github.io/harpy/)
     """
     pass
 
 @click.group(options_metavar='', context_settings=dict(help_option_names=["-h", "--help"]))
-def variants():
+def demultiplex():
     """
-    Call variants (SNP/SV) from samples
+    Demultiplex haplotagged FASTQ files
 
-    Provide an additional command `snp` or `sv` to get more information on calling
-    those types of variants.
+    Check that you are using the correct haplotag method/technology, since the different
+    barcoding approaches have very different demultiplexing strategies.
+
+    **Haplotag Technologies**
+    - `gen1`: the original haplotagging barcode strategy developed by Meier _et al._ (2021)
+    """
+
+@click.group(options_metavar='', context_settings=dict(help_option_names=["-h", "--help"]))
+def align():
+    """
+    Align sample sequences to a reference genome
+
+    **Aligners**
+    - `bwa`: uses BWA MEM to align reads, retaining BX tags in the alignments
+    - `ema`: uses the BX barcode-aware EMA aligner
+
+    Provide an additional subcommand `bwa` or `ema` to get more information on using
+    those aligners.
+    """
+    pass
+
+@click.group(options_metavar='', context_settings=dict(help_option_names=["-h", "--help"]))
+def snp():
+    """
+    Call SNPs and small indels
+    
+    **Variant Callers**
+    - `mpileup`: call variants using bcftools mpileup
+    - `freebayes`: call variants using freebayes
+
+    Provide an additional subcommand `mpileup` or `freebayes` to get more information on using
+    those variant callers. They are both robust variant callers and neither is recommended over the other.
+    """
+    pass
+
+@click.group(options_metavar='', context_settings=dict(help_option_names=["-h", "--help"]))
+def sv():
+    """
+    Call large structural variants
+ 
+    **Structural Variant Callers**
+    - `naibr`: calls inversions, duplicates, deletions
+    - `leviathan`: calls inversions, duplicates, deletions, misc breakends
+
+    Provide an additional subcommand `leviathan` or `naibr` to get more information on using
+    those variant callers. NAIBR tends to call variants better, but requires more user preprocessing.
     """
     pass
 
 @click.group(options_metavar='', context_settings=dict(help_option_names=["-h", "--help"]))
 def preflight():
     """
-    Run file format checks on haplotagged FASTQ/BAM files
+    Run file format checks on haplotag data
 
-    Provide an additional command `fastq` or `bam` to see more information and options. 
+    This is useful to make sure your input files are formatted correctly for the processing pipeline 
+    before you are surprised by errors hours into an analysis. Provide an additional command `fastq`
+    or `bam` to see more information and options.
     """
     pass
 
+# main program
 cli.add_command(extra)
 cli.add_command(preflight)
 cli.add_command(demultiplex)
 cli.add_command(qc)
 cli.add_command(align)
-cli.add_command(variants)
+cli.add_command(snp)
+cli.add_command(sv)
 cli.add_command(impute)
 cli.add_command(phase)
-variants.add_command(sv)
-variants.add_command(snp)
+# demultiplex submodules
+demultiplex.add_command(gen1)
+# preflight submodules
 preflight.add_command(fastq)
 preflight.add_command(bam)
+# align submodules
+align.add_command(bwa)
+align.add_command(ema)
+# snp submodules
+snp.add_command(mpileup)
+snp.add_command(freebayes)
+# sv submodules
+sv.add_command(leviathan)
+sv.add_command(naibr)
 
 ## the modules ##
+click.rich_click.COMMAND_GROUPS = {
+    "harpy":
+        [
+            {
+                "name": "Modules",
+                "commands": ["demultiplex","qc", "align","snp","sv","impute","phase"],
+            },
+            {
+                "name": "Other Commands",
+                "commands": ["preflight", "extra"]
+            }
+        ]
+}
+
 click.rich_click.OPTION_GROUPS = {
     "harpy preflight bam": [
         {
@@ -105,10 +178,10 @@ click.rich_click.OPTION_GROUPS = {
             "options": ["--threads", "--snakemake", "--quiet", "--help"],
         },
     ],
-    "harpy demultiplex": [
+    "harpy demultiplex gen1": [
         {
             "name": "Configuration",
-            "options": ["--file", "--samplesheet", "--method"],
+            "options": ["--file", "--samplesheet"],
         },
         {
             "name": "Other Options",
@@ -125,30 +198,60 @@ click.rich_click.OPTION_GROUPS = {
             "options": ["--threads", "--snakemake", "--quiet", "--help"],
         },
     ],
-    "harpy align": [
+    "harpy align bwa": [
         {
             "name": "Configuration",
-            "options": ["--genome", "--directory", "--quality-filter", "--method", "--molecule-distance", "--ema-bins", "--extra-params"],
+            "options": ["--genome", "--directory", "--quality-filter", "--molecule-distance", "--extra-params"],
         },
         {
             "name": "Other Options",
             "options": ["--threads", "--snakemake", "--quiet", "--help"],
         },
     ],
-    "harpy variants snp": [
+    "harpy align ema": [
         {
             "name": "Configuration",
-            "options": ["--genome", "--directory", "--populations", "--ploidy", "--windowsize", "--method", "--extra-params"],
+            "options": ["--genome", "--directory", "--quality-filter", "--molecule-distance", "--ema-bins", "--extra-params"],
         },
         {
             "name": "Other Options",
             "options": ["--threads", "--snakemake", "--quiet", "--help"],
         },
     ],
-    "harpy variants sv": [
+    "harpy snp mpileup": [
         {
             "name": "Configuration",
-            "options": ["--genome", "--directory", "--populations", "--method", "--molecule-distance", "--extra-params"],
+            "options": ["--genome", "--directory", "--populations", "--ploidy", "--windowsize", "--extra-params"],
+        },
+        {
+            "name": "Other Options",
+            "options": ["--threads", "--snakemake", "--quiet", "--help"],
+        },
+    ],
+    "harpy snp freebayes": [
+        {
+            "name": "Configuration",
+            "options": ["--genome", "--directory", "--populations", "--ploidy", "--windowsize", "--extra-params"],
+        },
+        {
+            "name": "Other Options",
+            "options": ["--threads", "--snakemake", "--quiet", "--help"],
+        },
+    ],
+    "harpy sv leviathan": [
+        {
+            "name": "Configuration",
+            "options": ["--genome", "--directory", "--populations", "--extra-params"],
+        },
+        {
+            "name": "Other Options",
+            "options": ["--threads", "--snakemake", "--quiet", "--help"],
+        },
+    ],
+    "harpy sv naibr": [
+        {
+            "name": "Configuration",
+            "options": ["--genome", "--directory", "--vcf", "--molecule-distance", "--populations", "--extra-params"],
         },
         {
             "name": "Other Options",

@@ -46,6 +46,7 @@ script src = "https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"
 infiles <- snakemake@input[["bedpe"]]
 fai <- snakemake@input[["fai"]]
 #infiles <- paste0("/home/pdimens/", c(1,2,3), ".bedpe")
+#infiles <- list.files("~/downsampled/", full.names = T)
 #fai <- "/home/pdimens/test.fai"
 ```
 
@@ -112,17 +113,26 @@ colnames(fa.sizes) <- c("contig", "size")
 fa.sizes <- fa.sizes[1:min(nrow(fa.sizes), 30), ]
 ```
 
-```{r echo = FALSE, results='asis'}
-tryCatch(
-  expr = {
-    sv <- do.call(rbind, lapply(infiles, function(x) readvariants(x)))
-  },
-  error = function(e){ 
-    cat("There are no variants detected in files:\n")
-    cat(paste0("- `", infiles, "`"), sep = "\n")
-    knitr::knit_exit()
+```{r echo = FALSE}
+emptyfiles <- character()
+sv <- data.frame(matrix(ncol=12,nrow=0, dimnames=list(NULL, c("Population", "Chr1", "Break1", "Chr2", "Break2", "SplitMolecules", "DiscordantReads", "Orientation", "Haplotype", "Score", "PassFilter", "SV"  ))))
+for(i in infiles){
+  .df <- tryCatch(readvariants(i), error = function(e){return(0)})
+  if(length(.df)==1){
+      emptyfiles <- c(emptyfiles, i)
+  } else {
+    sv <- rbind(sv, .df)
   }
-)
+}
+if(length(emptyfiles) == length(infiles)){
+  cat("There are no variants detected in any of the populations:\n")
+  cat(paste0("- ", infiles), sep = "\n")
+  knitr::knit_exit()
+}
+if(length(emptyfiles > 0)){
+  cat("Some of the populations did not have any variants detected and are omitted from this report:\n")
+  cat(paste0("- ", emptyfiles), sep = "\n")
+}
 ```
 
 ```{r echo = FALSE, warnings= FALSE, message = FALSE}
@@ -271,7 +281,7 @@ DT::datatable(
 )
 ```
 
-## circos plots {data-height=300}
+## circos plots
 ### circos plots desc {.no-title}
 <h2> Variant Summary Plots </h2>
 For an overview of the size and position of detected variants across
@@ -283,32 +293,32 @@ bar above.
 The plots below are a visual representation of each structural variant where it was detected.
 Contigs that are absent did not have any variants detected on them. Within each 
 contig, each population is plotted as a row (ring) to help visualize shared
-variants between populations. To the right is the legend to these plots, where
+variants between populations. Below is the legend to these plots, where
 colors represent populations. Plotting only the first 30 largest contigs.
 You may click on the plot to expand it in your browser window. Clicking it again will exit
 out of the zoomed view.
 
-### Populations legend
-```{r fig.height=0.75, fig.align='left'}
+## legend {data-height=125}
+### Populations legend {.no-title}
+```{r fig.width=20, fig.height=1.5}
 populations <- unique(sv$Population)
 popheight <- .5 / length(populations)
 col.ramp <- viridis(length(populations))
 
-data.frame(x = 1, y = 1:length(populations), colour = levels(populations)) %>% 
-ggplot(aes(x, y, fill = colour))+
-  geom_point(alpha=0, shape = 22, color = "white")+ # completely transparent rectangular point 
+pops <- data.frame(x = 1, population = levels(populations))
+ggplot(pops, aes(x = population, y = 1, fill = population)) +
+  geom_tile(color = "white", lwd = 1.5,linetype = 1) +
   scale_fill_manual(values=col.ramp, drop=FALSE) +
-  guides(fill = guide_legend(title.position = "top", title.hjust = 0.5, override.aes = list(alpha=1, size = 13)))+ # showing the point in the legend
-  theme_void() +
-  theme(legend.direction="horizontal",
-        legend.text = element_text(size = 13),
-        legend.position = c(0.3, 0.5),
-        legend.title=element_text(size=13),
-        legend.box.spacing = unit(0, "null"),
-        legend.spacing = unit(0, "null"),
-        panel.spacing = unit(c(0, 0, 0, 0), "null")
+  theme_minimal() +
+  scale_x_discrete(position = "top", guide = guide_axis(n.dodge = 2)) +
+  theme(
+    panel.grid = element_blank(),
+    legend.position = "none",
+    axis.text.y=element_blank(),
+    axis.ticks.y=element_blank(),
+    axis.title = element_blank()
   ) +
-  labs(fill="Population")
+  labs(title = "Population")
 ```
 
 ## SV size and location {data-height=600}
@@ -436,7 +446,6 @@ for (i in 1:nrow(fa.sizes)) {
   if (nrow(sv_stats) == 0) {
     next
   }
-  nplotrows <- nplotrows + 1
   plt <- sv.filt %>%
     ggplot() +
     geom_rect(
@@ -486,5 +495,7 @@ for (i in 1:nrow(fa.sizes)) {
     layout(annotations = annotations)
     l[[i]] <- pp
 }
-subplot(l, nrows = nplotrows, shareX = FALSE, titleX = TRUE)
+# remove null
+l <- Filter(Negate(is.null), l)
+subplot(l, nrows = length(l) , shareX = FALSE, titleX = TRUE)
 ```

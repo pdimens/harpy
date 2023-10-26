@@ -1,4 +1,4 @@
-from .harpymisc import getnames_err, vcfcheck, check_impute_params, validate_bamfiles
+from .helperfunctions import getnames, vcfcheck, check_impute_params, validate_bamfiles
 import rich_click as click
 import subprocess
 import sys
@@ -29,25 +29,29 @@ def impute(parameters, directory, threads, vcf, vcf_samples, snakemake, quiet):
     """
     ## validate inputs ##
     vcfcheck(vcf)
-    samplenames = getnames_err(directory, '.bam')
+    samplenames = getnames(directory, '.bam')
     ### check that samples in VCF match input directory
     bcfquery = subprocess.Popen(["bcftools", "query", "-l", vcf], stdout=subprocess.PIPE)
     if vcf_samples:
         samplenames = bcfquery.stdout.read().decode().split()
-        s_list = getnames_err(directory, '.bam')
+        s_list = getnames(directory, '.bam')
         fromthis = vcf
         inthis = directory
     else:
-        samplenames = getnames_err(directory, '.bam')
+        samplenames = getnames(directory, '.bam')
         s_list = bcfquery.stdout.read().decode().split()
         fromthis = directory
         inthis = vcf
     missing_samples = [x for x in samplenames if x not in s_list]
     # check that samples in VCF match input directory
     if len(missing_samples) > 0:
-        print(f"\n\033[1;33mERROR:\033[00m There are {len(missing_samples)} samples found in \033[01m{fromthis}\033[00m that are not in \033[01m{inthis}\033[00m. Terminating Harpy to avoid downstream errors. The samples causing this error are:", file = sys.stderr)
-        print(", ".join(sorted(missing_samples)), file = sys.stderr)
-        print(f"\n\033[1;34mSOLUTION:\033[00m \033[01m{fromthis}\033[00m cannot contain samples that are absent in \033[01m{inthis}\033[00m. Check the spelling or remove those samples from \033[01m{fromthis}\033[00m or remake the vcf file to include/omit these samples. Alternatively, toggle \033[01m--vcf-samples\033[00m to aggregate the sample list from \033[01m{directory}\033[00m or \033[01m{vcf}\033[00m.\n", file = sys.stderr)
+        print_error(f"There are [bold]{len(missing_samples)}[/bold] samples found in [bold]{fromthis}[/bold] that are not in [bold]{inthis}[/bold]. Terminating Harpy to avoid downstream errors.")
+        #click.echo(f"\n\033[1;33mERROR:\033[00m There are {len(missing_samples)} samples found in \033[01m{fromthis}\033[00m that are not in \033[01m{inthis}\033[00m. Terminating Harpy to avoid downstream errors.", file = sys.stderr, color = True)
+        print_solution_with_culprits(
+            f"[bold]{fromthis}[/bold] cannot contain samples that are absent in [bold]{inthis}[/bold]. Check the spelling or remove those samples from [bold]{fromthis}[/bold] or remake the vcf file to include/omit these samples. Alternatively, toggle [green]--vcf-samples[/green] to aggregate the sample list from [bold]{directory}[/bold] or [bold]{vcf}[/bold]."
+            "The samples causing this error are:"
+        )
+        click.echo(", ".join(sorted(missing_samples)), file = sys.stderr)
         sys.exit(1)
 
     directory = directory.rstrip("/^")
@@ -65,7 +69,7 @@ def impute(parameters, directory, threads, vcf, vcf_samples, snakemake, quiet):
     vbn = os.path.basename(vcf)
     if not os.path.exists(f"Impute/input/_{vbn}.list"):
         os.makedirs("Impute/input/", exist_ok = True)
-        print("\033[1mPreprocessing:\033[00m Identifying contigs with at least 2 biallelic SNPs", file = sys.stderr)
+        click.echo("\033[1mPreprocessing:\033[00m Identifying contigs with at least 2 biallelic SNPs", file = sys.stderr, color = True)
         biallelic = subprocess.Popen(f"bcftools view -M2 -v snps {vcf} -Ob".split(), stdout = subprocess.PIPE)
         contigs = subprocess.Popen("""bcftools query -f '%CHROM\\n'""".split(), stdin = biallelic.stdout, stdout = subprocess.PIPE)
         c_sort = subprocess.Popen("sort", stdin = contigs.stdout, stdout = subprocess.PIPE)
@@ -81,7 +85,7 @@ def impute(parameters, directory, threads, vcf, vcf_samples, snakemake, quiet):
         with open(f"Impute/input/_{vbn}.list", "r") as f:
             contigs = [line.rstrip() for line in f]
     if len(contigs) == 0:
-        print("\n\033[1mWarning:\033[00m: No contigs with at least 2 biallelic SNPs identified. Cannot continue with imputation.", file = sys.stderr)
+        click.echo("\n\033[1mWarning:\033[00m: No contigs with at least 2 biallelic SNPs identified. Cannot continue with imputation.", file = sys.stderr, color = True)
         exit(1)
     command.append('--config')
     command.append(f"seq_directory={directory}")

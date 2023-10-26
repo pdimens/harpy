@@ -41,6 +41,13 @@ script src = "https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"
   });
 ```
 
+```{r}
+#statsfiles <- c("/home/pdimens/1.sv.stats", "/home/pdimens/2.sv.stats")
+statsfiles <- snakemake@input[["statsfiles"]]
+#faidx <- "/home/pdimens/test.fai"
+faidx <- snakemake@input[["faidx"]]
+```
+
 # General Stats
 ## Intro
 ### introtext {.no-title}
@@ -68,30 +75,39 @@ plots detailing all variants identified.
 
 In the colorful summary boxes are the per-population average number of
 variants detected by type.
-
-```{r echo = FALSE}
-#statsfiles <- c("/home/pdimens/1.sv.stats", "/home/pdimens/2.sv.stats")
-statsfiles <- snakemake@input[["statsfiles"]]
-sv <- do.call(
-  rbind, 
-  lapply(
-    statsfiles, 
-    function(x) read.table(
-      x,
-      header = T,
-      colClasses = c("factor", "factor", "integer", "integer", "character", "factor", "integer", "integer")
-      )
-    )
+```{r}
+readvariants <- function(x){
+  read.table(
+    x,
+    header = T,
+    colClasses = c("factor", "factor", "integer", "integer", "character", "factor", "integer", "integer")
   )
+}
+```
 
-if (nrow(sv) == 0) {
-  cat("There are no variants detected in files:\n")
-  cat(paste0("- `", statsfiles, "`"), sep = "\n")
+```{r}
+emptyfiles <- character()
+sv <- data.frame(matrix(ncol=8,nrow=0, dimnames=list(NULL, c("population",	"contig",	"position_start",	"position_end",	"length",	"type",	"n_barcodes",	"n_pairs"))))
+for(i in statsfiles){
+  .df <- tryCatch(readvariants(i), error = function(e){return(0)})
+  if(length(.df)==1){
+      emptyfiles <- c(emptyfiles, i)
+  } else {
+    sv <- rbind(sv, .df)
+  }
+}
+if(length(emptyfiles) == length(statsfiles)){
+  cat("There are no variants detected in any of the populations:\n")
+  cat(paste0("- ", statsfiles), sep = "\n")
   knitr::knit_exit()
 }
+if(length(emptyfiles > 0)){
+  cat("Some of the populations did not have any variants detected and are omitted from this report:\n")
+  cat(paste0("- ", emptyfiles), sep = "\n")
+}
+```
 
-#faidx <- "/home/pdimens/test.fai"
-faidx <- snakemake@input[["faidx"]]
+```{r}
 fa.sizes <- read.table(faidx, header = F)[,1:2] %>% arrange(desc(2))
 colnames(fa.sizes) <- c("contig", "size")
 # limit the data to only the 30 largest contigs
@@ -205,26 +221,23 @@ colors represent populations. Plotting only the first 30 largest contigs.
 You may click on the plot to expand it in your browser window. Clicking it again will exit
 out of the zoomed view.
 
-```{r dev="jpeg"}
+```{r fig.width = 6}
 populations <- unique(sv$population)
 col.ramp <- viridis(length(populations))
 
-data.frame(x = 1, y = 1:length(populations), colour = levels(populations)) %>% 
-ggplot(aes(x, y, fill = colour))+
-  geom_point(alpha=0, shape = 22, color = "white")+ # completely transparent rectangular point 
+pops <- data.frame(x = 1, population = levels(populations))
+ggplot(pops, aes(y = population, x = 1, fill = population)) +
+  geom_tile(color = "white", lwd = 1.5,linetype = 1) +
   scale_fill_manual(values=col.ramp, drop=FALSE) +
-  guides(fill = guide_legend(override.aes = list(alpha=1, size = 20)))+ # showing the point in the legend
-  theme(axis.title = element_blank(),
-        axis.text = element_blank(),
-        axis.ticks = element_blank(),
-        legend.position = c(0.3, 0.5),
-        legend.text = element_text(size = 20),
-        legend.title=element_text(size=20),
-        legend.key = element_rect(fill='NA'),
-        panel.grid = element_blank(),
-        panel.border = element_rect(colour = "white", fill='white', linewidth=1)
+  theme_minimal() +
+  theme(
+    panel.grid = element_blank(),
+    legend.position = "none",
+    axis.text.x=element_blank(),
+    axis.ticks.x=element_blank(),
+    axis.title = element_blank()
   ) +
-  labs(fill="Populations")
+  labs(title = "Population")
 ```
 
 ### circosplot {.no-title}

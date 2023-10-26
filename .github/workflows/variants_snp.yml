@@ -57,9 +57,9 @@ jobs:
 
       - name: variants mpileup
         shell: micromamba-shell {0}
-        run: harpy variants snp --method mpileup -w 150000 -d test/bam -g test/genome/genome.fasta.gz -s "--show-failed-logs"
+        run: harpy snp mpileup -w 150000 -d test/bam -g test/genome/genome.fasta.gz -s "--show-failed-logs"
         continue-on-error: true
 
       - name: variants freebayes
         shell: micromamba-shell {0}
-        run: harpy variants snp --method freebayes -w 150000 -d test/bam -g test/genome/genome.fasta.gz -s "--show-failed-logs"
+        run: harpy snp freebayes -w 150000 -d test/bam -g test/genome/genome.fasta.gz -s "--show-failed-logs"
