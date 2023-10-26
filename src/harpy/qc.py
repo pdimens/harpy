@@ -1,4 +1,5 @@
 import rich_click as click
+from .helperfunctions import get_samples_from_fastq
 import subprocess
 import re
 import os
@@ -21,15 +22,7 @@ def qc(directory, max_length, extra_params, threads, snakemake, quiet):
     """
     Remove adapters and quality trim sequences
     """
-    flist = [os.path.basename(i) for i in glob.iglob(f"{directory}/*") if not os.path.isdir(i)]
-    r = re.compile(".*\.f(?:ast)?q\.gz$", flags=re.IGNORECASE)
-    fqlist = list(filter(r.match, flist))
-    if len(fqlist) == 0:
-        click.echo(f"\033[1;33mERROR:\033[00m No fastq files with acceptable names found in {directory}", file = sys.stderr, color = True)
-        click.echo("Check that the files conform to [.F. | .R1.][.fastq | .fq].gz", file = sys.stderr)
-        click.echo("Read the documentation for details: https://pdimens.github.io/harpy/dataformat/#naming-conventions", file = sys.stderr)
-        sys.exit(1)
-
+    get_samples_from_fastq(directory)
     command = f'snakemake --rerun-incomplete --nolock --cores {threads} --directory . --snakefile {harpypath}/qc.smk'.split()
     if snakemake is not None:
         [command.append(i) for i in snakemake.split()]

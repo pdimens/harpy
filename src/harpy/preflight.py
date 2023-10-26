@@ -1,4 +1,5 @@
 import rich_click as click
+from .helperfunctions import getnames, get_samples_from_fastq, print_error, print_solution
 import subprocess
 import re
 import os
@@ -25,15 +26,7 @@ def fastq(directory, threads, snakemake, quiet):
     fix your data, but it will report the number of reads that feature errors to help
     you diagnose if file formatting will cause downstream issues.
     """
-    flist = [os.path.basename(i) for i in glob.iglob(f"{directory}/*") if not os.path.isdir(i)]
-    r = re.compile(".*\.f(?:ast)?q\.gz$", flags=re.IGNORECASE)
-    fqlist = list(filter(r.match, flist))
-    if len(fqlist) == 0:
-        click.echo(f"\033[1;33mERROR:\033[00m No fastq files with acceptable names found in {directory}", file = sys.stderr, color = True)
-        click.echo("Check that the files conform to [.F. | .R1.][.fastq | .fq].gz", file = sys.stderr)
-        click.echo("Read the documentation for details: https://pdimens.github.io/harpy/dataformat/#naming-conventions", file = sys.stderr)
-        sys.exit(1)
-
+    get_samples_from_fastq(directory)
     command = f'snakemake --rerun-incomplete --nolock --cores {threads} --directory . --snakefile {harpypath}/preflight-fastq.smk'.split()
     if snakemake is not None:
         [command.append(i) for i in snakemake.split()]
@@ -61,13 +54,7 @@ def bam(directory, threads, snakemake, quiet):
     This **will not** fix your data, but it will report the number of records that feature errors  to help
     you diagnose if file formatting will cause downstream issues.
     """
-    flist = [i for i in glob.iglob(f"{directory}/*") if not os.path.isdir(i) and i.lower().endswith(".bam")]
-    if len(flist) == 0:
-        click.echo(f"\033[1;33mERROR:\033[00m No bam files with acceptable names found in {directory}", file = sys.stderr, color = True)
-        click.echo("Check that the file names end with .bam", file = sys.stderr)
-        click.echo("Read the documentation for details: https://pdimens.github.io/harpy/dataformat/#naming-conventions", file = sys.stderr)
-        sys.exit(1)
-
+    flist = getnames(directory)
     command = f'snakemake --rerun-incomplete --nolock --cores {threads} --directory . --snakefile {harpypath}/preflight-bam.smk'.split()
     if snakemake is not None:
         [command.append(i) for i in snakemake.split()]
