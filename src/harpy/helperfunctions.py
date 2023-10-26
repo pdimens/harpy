@@ -46,8 +46,8 @@ def get_samples_from_fastq(directory):
     fqlist = [os.path.basename(i) for i in full_fqlist]
     bn_r = r"[\.\_][RF](?:[12])?(?:\_00[1-9])*\.f(?:ast)?q(?:\.gz)?$"
     if len(fqlist) == 0:
-        print_error(f"No fastq files with acceptable names found in {directory}")
-        print_solution("Check that the files conform to [.F. | .R1.][.fastq | .fq].gz\nRead the documentation for details: https://pdimens.github.io/harpy/dataformat/#naming-conventions")
+        print_error(f"No fastq files with acceptable names found in [bold]{directory}[/bold]")
+        print_solution("Check that the file endings conform to [green].[/green][[green]F[/green][dim]|[/dim][green]R1[/green]][green].[/green][[green]fastq[/green][dim]|[/dim][green]fq[/green]][green].gz[/green]\nRead the documentation for details: https://pdimens.github.io/harpy/dataformat/#naming-conventions")
         sys.exit(1)
 
     return set([re.sub(bn_r, "", i, flags = re.IGNORECASE) for i in fqlist])

@@ -54,7 +54,7 @@ def bam(directory, threads, snakemake, quiet):
     This **will not** fix your data, but it will report the number of records that feature errors  to help
     you diagnose if file formatting will cause downstream issues.
     """
-    flist = getnames(directory)
+    flist = getnames(directory, ".bam")
     command = f'snakemake --rerun-incomplete --nolock --cores {threads} --directory . --snakefile {harpypath}/preflight-bam.smk'.split()
     if snakemake is not None:
         [command.append(i) for i in snakemake.split()]
