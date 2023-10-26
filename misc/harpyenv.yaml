@@ -20,6 +20,7 @@ dependencies:
   - backports.functools_lru_cache=1.6.4=pyhd8ed1ab_0
   - bamutil=1.0.15=h43eeafb_4
   - bc=1.07.1=h7f98852_0
+  - bcftools=1.17=h3cc50cf_1
   - bcrypt=3.2.2=py310h5764c6d_1
   - bedtools=2.30.0=h468198e_3
   - binutils_impl_linux-64=2.39=h6ceecb4_0
