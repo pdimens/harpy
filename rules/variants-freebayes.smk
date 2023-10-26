@@ -1,9 +1,11 @@
 import os
 import sys
+import gzip
 
 bam_dir 	= config["seq_directory"]
 genomefile 	= config["genomefile"]
 groupings 	= config.get("groupings", None)
+bn          = os.path.basename(genomefile)
 ploidy 		= config["ploidy"]
 samplenames = config["samplenames"]
 extra 	    = config.get("extra", "") 
@@ -12,44 +14,6 @@ intervals   = config["intervals"]
 outdir      = "Variants/freebayes"
 regions     = dict(zip(intervals, intervals))
 
-bn = os.path.basename(genomefile)
-if bn.lower().endswith(".gz"):
-    validgenome = bn[:-3]
-else:
-    validgenome = bn
-
-rule genome_link:
-    input:
-        genomefile
-    output:
-        f"Genome/{validgenome}"
-    message: 
-        "Preprocessing {input}"
-    shell: 
-        """
-        if (file {input} | grep -q compressed ) ;then
-            # decompress gzipped
-            seqtk seq {input} > {output}
-        elif (file {input} | grep -q BGZF ); then
-            # decompress bgzipped
-            seqtk seq {input} > {output}
-        else
-            # linked uncompressed
-            ln -sr {input} {output}
-        fi
-        """
-
-rule genome_faidx:
-    input: 
-        f"Genome/{validgenome}"
-    output: 
-        f"Genome/{validgenome}.fai"
-    message:
-        "Indexing {input}"
-    log:
-        f"Genome/{validgenome}.faidx.log"
-    shell:
-        "samtools faidx --fai-idx {output} {input} 2> {log}"
 
 if groupings:
     rule copy_groupings:
@@ -104,8 +68,8 @@ if groupings:
             bam = expand(bam_dir + "/{sample}.bam", sample = samplenames),
             bai = expand(bam_dir + "/{sample}.bam.bai", sample = samplenames),
             groupings = outdir + "/logs/sample.groups",
-            ref     = f"Genome/{validgenome}",
-            ref_idx = f"Genome/{validgenome}.fai",
+            ref     = f"Genome/{bn}",
+            ref_idx = f"Genome/{bn}.fai",
             samples = outdir + "/logs/samples.files"
         output:
             bcf = temp(outdir + "/regions/{part}.bcf"),
@@ -128,8 +92,8 @@ else:
         input:
             bam = expand(bam_dir + "/{sample}.bam", sample = samplenames),
             bai = expand(bam_dir + "/{sample}.bam.bai", sample = samplenames),
-            ref     = f"Genome/{validgenome}",
-            ref_idx = f"Genome/{validgenome}.fai",
+            ref     = f"Genome/{bn}",
+            ref_idx = f"Genome/{bn}.fai",
             samples = outdir + "/logs/samples.files"
         output:
             bcf = temp(outdir + "/regions/{part}.bcf"),
@@ -182,8 +146,8 @@ rule merge_vcfs:
 
 rule normalize_bcf:
     input: 
-        genome  = f"Genome/{validgenome}",
-        ref_idx = f"Genome/{validgenome}.fai",
+        genome  = f"Genome/{bn}",
+        ref_idx = f"Genome/{bn}.fai",
         bcf     = outdir + "/variants.raw.bcf"
     output:
         bcf     = outdir + "/variants.normalized.bcf",
@@ -201,8 +165,8 @@ rule normalize_bcf:
 
 rule variants_stats:
     input:
-        genome  = f"Genome/{validgenome}",
-        ref_idx = f"Genome/{validgenome}.fai",
+        genome  = f"Genome/{bn}",
+        ref_idx = f"Genome/{bn}.fai",
         bcf     = outdir + "/variants.{type}.bcf",
         idx     = outdir + "/variants.{type}.bcf.csi"
     output:

@@ -1,4 +1,4 @@
-from .helperfunctions import getnames, createregions, validate_bamfiles, validate_popfile
+from .helperfunctions import getnames, createregions, validate_bamfiles, validate_popfile, validate_vcfsamples
 import rich_click as click
 import subprocess
 import sys
@@ -28,7 +28,7 @@ def mpileup(genome, threads, directory, populations, ploidy, windowsize, extra_p
     use as input for `--populations`. Available methods are:
     """
     samplenames = getnames(directory, '.bam')
-    callcoords, linkedgenome = createregions(genome, windowsize, mpileup)
+    callcoords, linkedgenome = createregions(genome, windowsize, "mpileup")
     directory = directory.rstrip("/^")
     validate_bamfiles(directory, samplenames)
     command = (f'snakemake --rerun-incomplete --nolock --cores {threads} --directory . --snakefile {harpypath}/variants-mpileup.smk').split()
@@ -43,17 +43,7 @@ def mpileup(genome, threads, directory, populations, ploidy, windowsize, extra_p
     if populations is not None:
         rows = validate_popfile(populations)
         # check that samplenames and populations line up
-        p_list = [i.split()[0] for i in rows]
-        missing_samples = [x for x in p_list if x not in samplenames]
-        overlooked = [x for x in samplenames if x not in p_list]
-        if len(overlooked) > 0 and not quiet:
-            click.echo(f"\033[01mNOTICE:\033[00m There are {len(overlooked)} samples found in \033[01m{directory}\033[00m that weren\'t included in \033[01m{populations}\033[00m. This will not cause errors and can be ignored if it was deliberate. Commenting or removing these lines will avoid this message. The samples are:", file = sys.stderr, color = True)
-            click.echo(", ".join(overlooked), file = sys.stderr)
-        if len(missing_samples) > 0:
-            click.echo(f"\n\033[1;33mERROR:\033[00m There are {len(missing_samples)} samples included in \033[01m{populations}\033[00m that weren\'t found in \033[01m{directory}\033[00m. Terminating Harpy to avoid downstream errors. The samples causing this error are:", file = sys.stderr, color = True)
-            click.echo(", ".join(missing_samples), file = sys.stderr)
-            click.echo(f"\n\033[1;34mSOLUTION:\033[00m Make sure the spelling of these samples is identical in \033[01m{directory}\033[00m and \033[01m{populations}\033[00m, or comment/remove them from \033[01m{populations}\033[00m.\n", file = sys.stderr, color = True)
-            sys.exit(1)
+        validate_vcfsamples(directory, populations, samplenames, rows, quiet)
         command.append(f"groupings={populations}")
     command.append(f"ploidy={ploidy}")
     command.append(f"windowsize={windowsize}")
@@ -83,7 +73,7 @@ def freebayes(genome, threads, directory, populations, ploidy, windowsize, extra
     use as input for `--populations`.
     """
     samplenames = getnames(directory, '.bam')
-    callcoords, linkedgenome = createregions(genome, windowsize, freebayes)
+    callcoords, linkedgenome = createregions(genome, windowsize, "freebayes")
     directory = directory.rstrip("/^")
     validate_bamfiles(directory, samplenames)
     command = (f'snakemake --rerun-incomplete --nolock --cores {threads} --directory . --snakefile {harpypath}/variants-freebayes.smk').split()
@@ -98,17 +88,7 @@ def freebayes(genome, threads, directory, populations, ploidy, windowsize, extra
     if populations is not None:
         rows = validate_popfile(populations)
         # check that samplenames and populations line up
-        p_list = [i.split()[0] for i in rows]
-        missing_samples = [x for x in p_list if x not in samplenames]
-        overlooked = [x for x in samplenames if x not in p_list]
-        if len(overlooked) > 0 and not quiet:
-            click.echo(f"\033[01mNOTICE:\033[00m There are {len(overlooked)} samples found in \033[01m{directory}\033[00m that weren\'t included in \033[01m{populations}\033[00m. This will not cause errors and can be ignored if it was deliberate. Commenting or removing these lines will avoid this message. The samples are:", file = sys.stderr, color = True)
-            click.echo(", ".join(overlooked), file = sys.stderr)
-        if len(missing_samples) > 0:
-            click.echo(f"\n\033[1;33mERROR:\033[00m There are {len(missing_samples)} samples included in \033[01m{populations}\033[00m that weren\'t found in \033[01m{directory}\033[00m. Terminating Harpy to avoid downstream errors. The samples causing this error are:", file = sys.stderr, color = True)
-            click.echo(", ".join(missing_samples), file = sys.stderr)
-            click.echo(f"\n\033[1;34mSOLUTION:\033[00m Make sure the spelling of these samples is identical in \033[01m{directory}\033[00m and \033[01m{populations}\033[00m, or remove them from \033[01m{populations}\033[00m.\n", file = sys.stderr)
-            sys.exit(1)
+        validate_vcfsamples(directory, populations, samplenames, rows, quiet)
         command.append(f"groupings={populations}")
     command.append(f"ploidy={ploidy}")
     command.append(f"windowsize={windowsize}")
