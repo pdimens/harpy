@@ -7,7 +7,8 @@ on:
     paths:
       - 'rules/variants-leviathan**.smk'
       - 'rules/variants-naibr**.smk'
-      - '**variants_sv.py'
+      - '**sv.py'
+      - '**helperfunctions.py'
       - 'utilities/makewindows.py'
       - 'test/bam/**'
       - 'test/bam_phased/**'
@@ -24,7 +25,8 @@ on:
     paths:
       - 'rules/variants-leviathan**.smk'
       - 'rules/variants-naibr**.smk'
-      - '**variants_sv.py'
+      - '**sv.py'
+      - '**helperfunctions.py'
       - 'utilities/makewindows.py'
       - 'test/bam/**'
       - 'test/bam_phased/**'
