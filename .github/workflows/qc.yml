@@ -48,6 +48,6 @@ jobs:
           misc/buildforCI.sh
         shell: micromamba-shell {0}
 
-      - name: Test harpy qc
+      - name: harpy qc
         run: harpy qc -d test/fastq
         shell: micromamba-shell {0}
