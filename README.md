@@ -39,30 +39,32 @@ Just call `harpy` or `harpy --help` on the command line to get started!
 ```                                                                 
  Usage: harpy COMMAND [ARGS]...                                
                                                                
-                  Harpy haplotagging pipeline                  
- An automated workflow to demultiplex sequences, trim and qc   
- reads, map sequences, call variants, impute genotypes, and    
- phase haplotypes of Haplotagging data. Batteries included.    
-                                                               
- demultiplex >> qc >> align >> snp >> impute >> phase          
-                                                               
- Documentation: https://pdimens.github.io/harpy/               
-                                                               
-╭─ Options ───────────────────────────────────────────────────╮
-│ --version      Show the version and exit.                   │
-│ --help     -h  Show this message and exit.                  │
-╰─────────────────────────────────────────────────────────────╯
-╭─ Modules ───────────────────────────────────────────────────╮
-│ demultiplex  Demultiplex haplotagged FASTQ files            │
-│ qc           Remove adapters and quality trim sequences     │
-│ align        Align sample sequences to a reference genome   │
-│ snp          Call SNPs and small indels                     │
-│ sv           Call large structural variants from samples    │
-│ impute       Impute genotypes using variants and sequences  │
-│ phase        Phase SNPs into haplotypes                     │
-╰─────────────────────────────────────────────────────────────╯
-╭─ Other Commands ────────────────────────────────────────────╮
-│ preflight  Run file format checks on haplotag data          │
-│ extra      Create various optional/necessary input files    │
-╰─────────────────────────────────────────────────────────────╯
+                 Harpy haplotagging pipeline                  
+ An automated workflow to demultiplex sequences, trim and qc  
+ reads, map sequences, call variants, impute genotypes, and   
+ phase haplotypes of Haplotagging data. Batteries included.   
+                                                              
+ demultiplex >> qc >> align >> snp >> impute >> phase >> sv        
+                                                              
+ Documentation: https://pdimens.github.io/harpy/              
+                                                              
+╭─ Options ──────────────────────────────────────────────────╮
+│ --version      Show the version and exit.                  │
+│ --help     -h  Show this message and exit.                 │
+╰────────────────────────────────────────────────────────────╯
+╭─ Modules ──────────────────────────────────────────────────╮
+│ demultiplex  Demultiplex haplotagged FASTQ files           │
+│ qc           Remove adapters and quality trim sequences    │
+│ align        Align sample sequences to a reference genome  │
+│ snp          Call SNPs and small indels                    │
+│ sv           Call large structural variants                │
+│ impute       Impute genotypes using variants and sequences │
+│ phase        Phase SNPs into haplotypes                    │
+╰────────────────────────────────────────────────────────────╯
+╭─ Other Commands ───────────────────────────────────────────╮
+│ preflight     Run file format checks on haplotag data      │
+│ popgroup      Create a sample grouping file                │
+│ stitchparams  Create a template STITCH parameter file      │
+│ hpc           Create a config file to run Harpy on an HPC  │
+╰────────────────────────────────────────────────────────────╯
 ```

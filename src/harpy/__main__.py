@@ -1,22 +1,24 @@
 #!/usr/bin/env python3
 
 import os
+import sys
 
 try:
     harpypath = '{CONDA_PREFIX}'.format(**os.environ) + "/bin"
 except:
     enverror = "\033[1;33mERROR:\033[00m Harpy expects to run from within an active conda environment, but one was not detected."
-    print(enverror)
+    print(enverror, file = sys.stderr)
     fix = "\033[1;34mSOLUTION:\033[00m Activate the conda environment Harpy was installed into and run Harpy again."
     print()
-    print(fix)
+    print(fix, file = sys.stderr)
     print(f"\n\033[1mDetails:\033[00m")
     details = "In order to work correctly, Harpy expects several software packages to be available in the PATH, which are provided automatically with Harpy's conda-based installation. It also expects snakefiles, scripts, utilities, etc. to be in the /bin/ folder within that conda environment. If you're seeing this message, no active conda environment was detected upon execution, and Harpy exited as an early failsafe against unexpected runtime errors associated with \"missing\" files and packages."
-    print(details)
+    print(details, file = sys.stderr)
     exit(1)
 
-#from .helperfunctions import getnames_err, getnames, vcfcheck
-from .extra import extra
+from .popgroups import popgroup
+from .stitchparams import stitchparams
+from .hpc import hpc
 from .demultiplex import gen1
 from .preflight import bam, fastq
 from .qc import qc
@@ -46,7 +48,7 @@ def cli():
     map sequences, call variants, impute genotypes, and phase 
     haplotypes of Haplotagging data. Batteries included.
     
-    **demultiplex >> qc >> align >> snp >> impute >> phase**
+    **demultiplex >> qc >> align >> snp >> impute >> phase >> sv**
     
     **Documentation**: [https://pdimens.github.io/harpy/](https://pdimens.github.io/harpy/)
     """
@@ -118,7 +120,9 @@ def preflight():
     pass
 
 # main program
-cli.add_command(extra)
+cli.add_command(hpc)
+cli.add_command(popgroup)
+cli.add_command(stitchparams)
 cli.add_command(preflight)
 cli.add_command(demultiplex)
 cli.add_command(qc)
@@ -152,7 +156,7 @@ click.rich_click.COMMAND_GROUPS = {
             },
             {
                 "name": "Other Commands",
-                "commands": ["preflight", "extra"]
+                "commands": ["preflight", "popgroup", "stitchparams", "hpc"]
             }
         ]
 }
