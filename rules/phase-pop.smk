@@ -24,7 +24,7 @@ rule splitbysamplehet:
     message:
         "Extracting heterozygous variants: {wildcards.sample}"
     benchmark:
-        "Benchmark/Phase/splithet.{sample}.txt"
+        ".Benchmark/Phase/splithet.{sample}.txt"
     shell:
         """
         bcftools view -s {wildcards.sample} {input.vcf} |
@@ -40,7 +40,7 @@ rule splitbysample:
     message:
         "Extracting variants: {wildcards.sample}"
     benchmark:
-        "Benchmark/Phase/split.{sample}.txt"
+        ".Benchmark/Phase/split.{sample}.txt"
     shell:
         """
         bcftools view -s {wildcards.sample} {input.vcf} |
@@ -61,7 +61,7 @@ rule extractHairs:
         indels = indelarg,
         bx = linkarg
     benchmark:
-        "Benchmark/Phase/extracthairs.{sample}.txt"
+        ".Benchmark/Phase/extracthairs.{sample}.txt"
     shell:
         "extractHAIRS {params} --nf 1 --bam {input.bam} --VCF {input.vcf} --out {output} 2> {log}"
 
@@ -77,11 +77,11 @@ rule linkFragments:
     message:
         "Linking fragments: {wildcards.sample}"
     benchmark:
-        "Benchmark/Phase/linkfrag.{sample}.txt"
+        ".Benchmark/Phase/linkfrag.{sample}.txt"
     params:
         d = molecule_distance
     shell:
-        "LinkFragments.py  --bam {input.bam} --VCF {input.vcf} --fragments {input.fragments} --out {output} -d {params} > {log} 2>&1"
+        "LinkFragments.py --bam {input.bam} --VCF {input.vcf} --fragments {input.fragments} --out {output} -d {params} > {log} 2>&1"
 
 rule phaseBlocks:
     input:
@@ -93,7 +93,7 @@ rule phaseBlocks:
     message:
         "Creating phased haplotype blocks: {wildcards.sample}"
     benchmark:
-        "Benchmark/Phase/phase.{sample}.txt"
+        ".Benchmark/Phase/phase.{sample}.txt"
     log:
         outdir + "/phaseBlocks/logs/{sample}.blocks.phased.log"
     params: 
@@ -110,7 +110,7 @@ rule createAnnotations:
     message:
         "Creating annotation files: {wildcards.sample}"
     benchmark:
-        "Benchmark/Phase/createAnno.{sample}.txt"
+        ".Benchmark/Phase/createAnno.{sample}.txt"
     shell:
         "bcftools query -f \"%CHROM\\t%POS[\\t%GT\\t%PS\\t%PQ\\t%PD]\\n\" {input} | bgzip -c > {output}"
 
@@ -122,7 +122,7 @@ rule indexAnnotations:
     message:
         "Indexing {wildcards.sample}.annot.gz"
     benchmark:
-        "Benchmark/Phase/indexAnno.{sample}.txt"
+        ".Benchmark/Phase/indexAnno.{sample}.txt"
     shell: 
         "tabix -b 2 -e 2 {input}"
 
@@ -132,7 +132,7 @@ rule headerfile:
     message:
         "Creating additional header file"
     benchmark:
-        "Benchmark/Phase/headerfile.txt"
+        ".Benchmark/Phase/headerfile.txt"
     run:
         with open(output[0], "w") as fout:
             _ = fout.write('##INFO=<ID=HAPCUT,Number=0,Type=Flag,Description="The haplotype was created with Hapcut2">\n')
@@ -156,7 +156,7 @@ rule mergeAnnotations:
     threads:
         2
     benchmark:
-        "Benchmark/Phase/mergeAnno.{sample}.txt"
+        ".Benchmark/Phase/mergeAnno.{sample}.txt"
     shell:
         """
         bcftools annotate -h {input.headers} -a {input.annot} {input.orig} -c CHROM,POS,FMT/GX,FMT/PS,FMT/PQ,FMT/PD -m +HAPCUT |
@@ -175,9 +175,9 @@ rule mergeSamples:
         bcf = outdir + "/variants.phased.bcf",
         idx = outdir + "/variants.phased.bcf.csi"
     message:
-        "Combinging samples into a single BCF file"
+        "Combining samples into a single BCF file"
     benchmark:
-        "Benchmark/Phase/mergesamples.txt"
+        ".Benchmark/Phase/mergesamples.txt"
     threads:
         30
     shell:
@@ -250,13 +250,13 @@ rule log_runtime:
 
 
 rule indexFinal:
+    default_target: True
     input:
         outdir + "/variants.phased.bcf",
         outdir + "/logs/harpy.phase.log",
         outdir + "/reports/phase.html"
     benchmark:
-        "Benchmark/Phase/finalindex.txt"
+        ".Benchmark/Phase/finalindex.txt"
     message:
         "Phasing is complete!"
-    default_target: True
 

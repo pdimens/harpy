@@ -13,6 +13,18 @@ intervals   = config["intervals"]
 outdir      = "Variants/mpileup"
 regions     = dict(zip(intervals, intervals))
 
+if groupings:
+    rule copy_groupings:
+        input:
+            groupings
+        output:
+            outdir + "/logs/sample.groups"
+        message:
+            "Logging {input}"
+        run:
+            with open(input[0], "r") as infile, open(output[0], "w") as outfile:
+                _ = [outfile.write(i) for i in infile.readlines() if not i.lstrip().startswith("#")]
+
 rule index_alignments:
     input:
         bam_dir + "/{sample}.bam"
@@ -21,7 +33,7 @@ rule index_alignments:
     message:
         "Indexing alignments: {wildcards.sample}"
     benchmark:
-        "Benchmark/Variants/mpileup/indexbam.{sample}.txt"
+        ".Benchmark/Variants/mpileup/indexbam.{sample}.txt"
     shell:
         "sambamba index {input} {output} 2> /dev/null"
 
@@ -34,7 +46,7 @@ rule bam_list:
     message:
         "Creating list of alignment files"
     benchmark:
-        "Benchmark/Variants/mpileup/bamlist.txt"
+        ".Benchmark/Variants/mpileup/bamlist.txt"
     run:
         with open(output[0], "w") as fout:
             for bamfile in input.bam:
@@ -66,25 +78,45 @@ rule mpileup:
     shell:
         "bcftools mpileup --fasta-ref {input.genome} --bam-list {input.bamlist} --annotate AD --output-type b {params} > {output} 2> {log}"
 
-rule call_genotypes:
-    input:
-        outdir + "/{part}.mp.bcf"
-    output:
-        bcf = temp(outdir + "/call/{part}.bcf"),
-        idx = temp(outdir + "/call/{part}.bcf.csi")
-    message:
-        "Calling genotypes: {wildcards.part}"
-    threads:
-        2
-    params: 
-        groupsamples = '' if groupings is None else f"--group-samples {groupings}",
-        ploidy = f"--ploidy {ploidy}"
-    shell:
-        """
-        #bcftools call --multiallelic-caller {params} --variants-only --output-type b {input} | bcftools sort - --output {output.bcf} --write-index 2> /dev/null
-        bcftools call --multiallelic-caller {params} --variants-only --output-type b {input} | bcftools sort - --output {output.bcf} 2> /dev/null
-        bcftools index {output.bcf}
-        """
+if groupings:
+    rule call_genotypes_pop:
+        input:
+            bcf = outdir + "/{part}.mp.bcf",
+            groupings = outdir + "/logs/sample.groups"
+        output:
+            bcf = temp(outdir + "/call/{part}.bcf"),
+            idx = temp(outdir + "/call/{part}.bcf.csi")
+        message:
+            "Calling genotypes: {wildcards.part}"
+        threads:
+            2
+        params: 
+            f"--ploidy {ploidy}"
+        shell:
+            """
+            #bcftools call --multiallelic-caller {params} --variants-only --output-type b {input} | bcftools sort - --output {output.bcf} --write-index 2> /dev/null
+            bcftools call --multiallelic-caller --group-samples {input.groupings} {params} --variants-only --output-type b {input.bcf} | bcftools sort - --output {output.bcf} 2> /dev/null
+            bcftools index {output.bcf}
+            """
+else:
+    rule call_genotypes:
+        input:
+            bcf = outdir + "/{part}.mp.bcf"
+        output:
+            bcf = temp(outdir + "/call/{part}.bcf"),
+            idx = temp(outdir + "/call/{part}.bcf.csi")
+        message:
+            "Calling genotypes: {wildcards.part}"
+        threads:
+            2
+        params: 
+            f"--ploidy {ploidy}"
+        shell:
+            """
+            #bcftools call --multiallelic-caller {params} --variants-only --output-type b {input} | bcftools sort - --output {output.bcf} --write-index 2> /dev/null
+            bcftools call --multiallelic-caller {params} --variants-only --output-type b {input.bcf} | bcftools sort - --output {output.bcf} 2> /dev/null
+            bcftools index {output.bcf}
+            """
 
 rule concat_list:
     input:
@@ -141,16 +173,14 @@ rule variants_stats:
     input:
         genome  = f"Genome/{bn}",
         bcf     = outdir + "/variants.{type}.bcf",
-        idx     = outdir + "/variants.{type}.bcf.csi",
-        samples = outdir + "/logs/samples.names"
+        idx     = outdir + "/variants.{type}.bcf.csi"
+        #samples = outdir + "/logs/samples.names"
     output:
         outdir + "/stats/variants.{type}.stats",
     message:
         "Calculating variant stats: variants.{wildcards.type}.bcf"
     shell:
-        """
-        bcftools stats -S {input.samples} --fasta-ref {input.genome} {input.bcf} > {output}
-        """
+        """bcftools stats -s "-" --fasta-ref {input.genome} {input.bcf} > {output}"""
 
 rule bcfreport:
     input:
@@ -186,10 +216,10 @@ rule log_runtime:
             _ = f.write("    bcftools norm -d exact | bcftools norm -m -any -N -Ob\n")
 
 rule all:
+    default_target: True
     input:
         outdir + "/logs/harpy.variants.log",
         expand(outdir + "/variants.{file}.bcf",        file = ["raw","normalized"]),
         expand(outdir + "/stats/variants.{file}.html", file = ["raw","normalized"])
     message:
         "Variant calling is complete!"
-    default_target: True

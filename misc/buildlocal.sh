@@ -7,16 +7,15 @@ if [ -z "$CONDA_PREFIX" ]; then
 fi
 
 mkdir -p ${CONDA_PREFIX}/bin
-#cp -n misc/ema-h ${CONDA_PREFIX}/bin
 
-# Harpy executable
-#cp harpy ${CONDA_PREFIX}/bin/
-pip install .
+# install harpy proper
+pip install . --no-deps
 
 # rules
 cp -f rules/*.smk ${CONDA_PREFIX}/bin/
 
 # associated scripts
+chmod +x utilities/* 
 cp -f utilities/* ${CONDA_PREFIX}/bin/
 
 # reports

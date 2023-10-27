@@ -7,6 +7,7 @@ on:
     paths:
       - 'rules/demultiplex**.smk'
       - '**demultiplex.py'
+      - '**helperfunctions.py'
       - '**demuxGen1'
       - '**demux.yml'
       - 'BC_files.py'
@@ -17,14 +18,13 @@ on:
     - 'dev'
     paths:
       - 'rules/demultiplex**.smk'
+      - '**helperfunctions.py'
       - '**demultiplex.py'
       - '**demuxGen1'
       - '**demux.yml'
       - 'BC_files.py'
       - 'test/data/demux/**'
 
-  schedule:
-    - cron: '0 0 * * *'
 
 env:
   CACHE_NUMBER: 0  # increase to reset cache manually
@@ -53,6 +53,6 @@ jobs:
           misc/buildforCI.sh
         shell: micromamba-shell {0}
 
-      - name: Test harpy demux
-        run: harpy demultiplex --file test/demux/Undetermined_S0_L004_I1_001.fastq.gz --samplesheet test/demux/samples.schema
+      - name: harpy demultiplex
+        run: harpy demultiplex gen1 --file test/demux/Undetermined_S0_L004_I1_001.fastq.gz --samplesheet test/demux/samples.schema
         shell: micromamba-shell {0}

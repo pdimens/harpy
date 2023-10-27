@@ -1,26 +1,27 @@
 ---
-title: "Sequence Alignment Depth and Coverage"
-author:
-    - "Created using HARPY"
-date: "`r format(Sys.time(), '%d %B, %Y')`"
+title: "BWA Alignment Depth and Coverage"
+date: "`r format(Sys.time(), '%m-%d-%y %X')`"
 output:
-  html_document:
-    highlight: tango
-    number_sections: no
-    theme: cosmo
-    toc: no
+  flexdashboard::flex_dashboard:
+    theme: lumen
+    orientation: rows
+    vertical_layout: scroll
+    horizontal_layout: fill
+    favicon: "https://raw.githubusercontent.com/pdimens/harpy/docs/static/favicon_dark.png"
 ---
 
 ```{r echo = FALSE, message = FALSE, warning = FALSE}
+library(flexdashboard)
 library(ggplot2)
 library(dplyr)
 library(tidyr)
 library(circlize)
+library(plotly)
 library(scales)
 ```
 
 ```{css zoom-lib-src, echo = FALSE, message = FALSE, warning = FALSE}
-script src = "https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"
+script src = "https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"
 ```
 ```{js zoom-jquery, echo = FALSE, message = FALSE, warning = FALSE}
  $(document).ready(function() {
@@ -28,7 +29,7 @@ script src = "https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"
     // onClick function for all plots (img's)
     $('img:not(.zoomImg)').click(function() {
       $('.zoomImg').attr('src', $(this).attr('src')).css({width: '100%'});
-      $('.zoomDiv').css({opacity: '1', width: 'auto', border: '1px solid white', borderRadius: '5px', position: 'fixed', top: '50%', left: '50%', marginRight: '-50%', transform: 'translate(-50%, -50%)', boxShadow: '0px 0px 50px #888888', zIndex: '50', overflow: 'auto', maxHeight: '100%'});
+      $('.zoomDiv').css({opacity: '1', width: 'auto', border: '1px solid white', borderRadius: '5px', position: 'fixed', top: '50%', left: '50%', marginRight: '-50%', transform: 'translate(-50%, -50%)', boxShadow: '0px 0px 50px #888888', zIndex: '50', overflow: 'auto', maxHeight: '90%'});
     });
     // onClick function for zoomImg
     $('img.zoomImg').click(function() {
@@ -39,11 +40,12 @@ script src = "https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"
 
 ```{r echo = FALSE, message = FALSE, warning = FALSE}
 covfile <- snakemake@input[[1]]
-#covfile <- "~/data.cov.gz"
+#covfile <- "~/test.cov.gz"
 gencov <- read.table(covfile, header = F)
 gencov <- gencov[, c(1, 2, 3, 5)]
 colnames(gencov) <- c("contig", "start", "end", "depth")
 sname <- gsub("\\.\\w?\\w?\\w?.?cov.gz", "", basename(covfile))
+q99 <- quantile(gencov$depth, 0.99)
 ```
 
 ```{r echo = FALSE, message = FALSE, warning = FALSE}
@@ -53,59 +55,172 @@ zscores <- (gencov$depth - global_avg) / global_sd
 gencov$outlier <- zscores >= 3
 outliers <- gencov[gencov$outlier, -5]
 nonoutliers <- gencov[!(gencov$outlier), -5]
-```
-#### Sample: `r sname`
-#### Aligner: `BWA`
-
-## Summary information {.tabset}
-### Averages
-The table below shows the global and per-contig average depth and standard 
-deviation per 10kbp intervals, **including** intervals whose depth is flagged
-an outlier in the data.
-
-```{r echo = FALSE, message = FALSE, warning = FALSE}
 contig_avg <- group_by(gencov, contig) %>%
   summarize(average = mean(depth), sdv = sd(depth))
 contig_avg <- rbind(data.frame(contig = "global", average = global_avg, sdv = global_sd), contig_avg) %>% 
   mutate(average = round(average, 2), sdv = round(sdv, 2))
-DT::datatable(contig_avg, rownames = F, extensions = 'Buttons', options = list(dom = 'Brtip', buttons = c('csv'), scrollX = TRUE), colnames = c('Contig', 'Average Depth', 'Standard Deviation'))
-```
 
-### Filtered Averages
-The tabel below shows the global and per-contig average depth and standard 
-deviation per 10kbp intervals, **excluding** intervals whose depth is flagged
-an outlier in the data, as determined by being greater than 3 standard deviations
-above the mean depth. This should be a more accurate representation of read coverage.
-```{r echo = FALSE, message = FALSE, warning = FALSE}
 global_avg_filt <- mean(nonoutliers$depth)
 global_sd_filt <- sd(nonoutliers$depth)
 contig_avg_filt <- group_by(nonoutliers, contig) %>%
   summarize(average = mean(depth), sdv = sd(depth))
-contig_avg_filt <- rbind(data.frame(contig = "global", average = global_avg_filt, sdv = global_sd_filt), contig_avg_filt) %>% 
+contig_avg_filt <- rbind(
+  data.frame(contig = "global", average = global_avg_filt, sdv = global_sd_filt), contig_avg_filt) %>% 
   mutate(average = round(average, 2), sdv = round(sdv, 2))
-
-DT::datatable(contig_avg_filt, rownames = F, extensions = 'Buttons', options = list(dom = 'Brtip', buttons = c('csv'), scrollX = TRUE), colnames = c('Contig', 'Average Depth', 'Standard Deviation'))
 ```
 
+<h1> `r sname` </h1>
+This report contains information regarding the sequence alignment coverage
+and depth for the file `r paste0(sname, ".bam")`. The term "filtered" here and
+elsewhere in this report refers to removing intervals whose depth is greater 
+than 3 standard deviations above the mean depth. The filtering described is shown
+for diagnostic purposes and no filtering has been performed on the original alignment file.
+
+## General Information {data-height=100}
+### ncontigs
+```{r}
+valueBox(scales::comma(length(unique(gencov$contig))), caption = "Contigs", color = "success")
+```
+
+### general-samples
+```{r}
+valueBox("10kbp", caption = "Intervals", color = "info")
+```
+### glob-avg
+```{r}
+valueBox(scales::comma(global_avg), caption = "Average depth", color = "info")
+```
+
+### glob-sd
+```{r}
+valueBox(scales::comma(global_sd), caption = "Stdev depth", color = "info")
+```
+
+### filt-avg
+```{r}
+valueBox(scales::comma(global_avg_filt), caption = "Average depth (filtered)", color = "info")
+```
+
+### filt-sd
+```{r}
+valueBox(scales::comma(global_sd_filt), caption = "Stdev depth (filtered)", color = "info")
+```
+
+### n-outliers
+```{r}
+valueBox(scales::comma(nrow(outliers)), caption = "Possible outlier regions", color = "warning")
+```
+
+## Distdesc header
+### distdesc {.no-title}
+<h2> Alignment Depth Distribution </h2>
+Below are the frequencies of interval coverage across all 10kbp intervals for all contigs.
+For visual clarity, the X-axis of this plot is truncated at the 99% quantile of depth
+values, which is **`r q99`** for these data.
+
+## disrow
+### distcol {.no-title}
+```{r echo=F, warning=F, message=F}
+distplot <- ggplot(gencov, aes(x = depth)) +
+  geom_histogram(binwidth = 10, color = "#8484bd" , fill = "#9393d2", linewidth = 0.2) +
+  theme_minimal() +
+  scale_y_continuous(labels = scales::comma) +
+  scale_x_continuous(labels = scales::comma) +
+  xlim(NA, q99) +
+  labs(title = "Distribution of Alignment Depths") +
+  xlab("Depth") +
+  ylab("Count")
+ggplotly(distplot)
+```
+
+## Sumheader
+### sumhead {.no-title}
+<h2> Coverage Summary Information </h2>
+Below are tables that summarize coverage information for 10kbp intervals.
+
+## Tableheaders
+### Sumdesc {.no-title}
+The table below shows the global and per-contig average depth and standard 
+deviation per 10kbp intervals **including** intervals whose depth is flagged
+an outlier in the data. 
+
+
+### filtdesc {.no-title}
+The table below shows the global and per-contig average depth and standard 
+deviation per 10kbp intervals, **excluding** intervals whose depth is flagged
+an outlier in the data, as determined by being greater than 3 standard deviations
+above the mean depth. This should be a more accurate representation of read coverage.
+
+### outlierdesc {.no-title}
+The table below shows the 10kbp intervals considered outliers, as determined by 
+being greater than 3 standard deviations above the mean depth. 
+
+## Summary information 
+### Averages
+```{r}
+DT::datatable(
+  contig_avg, 
+  rownames = F, 
+  extensions = 'Buttons', 
+  options = list(dom = 'Brtip', buttons = c('csv'), scrollX = TRUE), 
+  colnames = c('Contig', 'Average Depth', 'Standard Deviation'),
+  autoHideNavigation = T,
+  fillContainer = T
+)
+```
+
+### Filtered Averages
+```{r echo = FALSE, message = FALSE, warning = FALSE}
+DT::datatable(
+  contig_avg_filt,
+  rownames = F, 
+  extensions = 'Buttons', 
+  options = list(dom = 'Brtip', buttons = c('csv'), scrollX = TRUE),
+  colnames = c('Contig', 'Average Depth', 'Standard Deviation'),
+  autoHideNavigation = T,
+  fillContainer = T
+)
+```
 
 ### Outliers
-Below is a table of the intervals with a coverage being greater than 3 standard 
-deviations above the mean depth.
 ```{r echo = FALSE, message = FALSE, warning = FALSE}
-DT::datatable(outliers, rownames = F, extensions = 'Buttons', options = list(dom = 'Brtip', buttons = c('csv'), scrollX = TRUE), colnames = c('Contig', 'Position Start', 'Position End', 'Depth'))
+DT::datatable(
+  outliers, 
+  rownames = F, 
+  extensions = 'Buttons', 
+  options = list(dom = 'Brtip', buttons = c('csv'), scrollX = TRUE),
+  colnames = c('Contig', 'Position Start', 'Position End', 'Depth'),
+  autoHideNavigation = T,
+  fillContainer = T
+  )
 ```
 
+## Plotdesc {.no-title}
+### pltdsc {.no-title}
+<h2> Depth and Coverage Across the Genome </h2>
+Below are plots of the depth and coverage of alignments for this sample. Clicking
+on a plot will expand it to fill your browser window. Clicking it again will exit
+out of the zoomed view.
 
-## Alignment Depth {.tabset}
-Plotted below are (up to) the 30 largest contigs to show sequence alignment depth across
-the genome. Each bar represents the alignment depth at a 10kb genomic interval, that is, the
+
+## Alignment Desc
+### aligndesc {.no-title}
+Below is a circular plot summarizing the depth information across up to 30 of the largest contigs.
+For clarity, this visualization omits intervals flagged as outliers.
+Each bar represents the alignment depth at a 10kb genomic interval, that is, the
 number of reads that had a proper alignment in the 10kb interval. "Proper" refers to a read
 not marked as a duplicate or flagged with the SAM `UNMAP`, `SECONDARY`,  or `QCFAIL` flags.
-These values are derived by using `samtools bedcov -n`.
+These values are derived by using `samtools bedcov -c`. 
 
-### Summary
-This is a circular plot summarizing the depth information across the largest contigs.
-For clarity, this visualization omits intervals flagged as outliers.
+### percontig desc {.no-title}
+Plotted below is depth and coverage information arranged in separate plots per 
+contig for easier visual assessment. Note that regions of extremely high depth
+are flagged as outliers and for visual clarity, they appear as orange vertical lines
+and their values have been converted to the global mean depth (`r round(global_avg_filt,0)`) 
+after removing outliers. Bear in mind the X-axis shows genomic position in **megabases**.
+
+## Alignment Summary
+### Summary {.no-title}
 ```{r echo = FALSE, message = FALSE, warning = FALSE}
 # Find the 30 largest contigs
 contigs <- group_by(gencov, contig) %>%
@@ -118,14 +233,14 @@ if (nrow(contigs) > 30){
     .contigs <- contigs[1:30, ]
     .gencov <- filter(gencov, contig %in% .contigs$contig)
 } else {
-    pltheight <- round(1.5 * (nrow(contigs)), digits = 0)
+    pltheight <- round(1.1 * (nrow(contigs)), digits = 0)
     .gencov <- gencov
     .contigs <- contigs
 }
 
 .l <-  nrow(.contigs)
 ```
-```{r echo = FALSE, message = FALSE, warning = FALSE, fig.align='center', out.width= "100%"}
+```{r echo = FALSE, message = FALSE, warning = FALSE, fig.align='center', out.width= "100%", dev = "jpeg"}
 circos.clear()
 col_text <- "grey40"
 circos.par("track.height" = 0.8, gap.degree = 4, cell.padding = c(0, 0, 0, 0))
@@ -172,7 +287,7 @@ circos.track(
       labels.facing = "clockwise"
     )
   },
-  bg.border = F
+  bg.border = F,
 )
 
 maxaln <- round(max(nonoutliers$depth), digits = -1)
@@ -181,24 +296,27 @@ cov.yaxis <- c(0, round(maxaln * 1/3, digits = -1), round(maxaln * 2/3, digits =
 # coverage
 circos.genomicTrack(
   data = nonoutliers,
+  bg.col = "white",
   panel.fun = function(region, value, ...) {
     circos.genomicLines(region, value, type = "l", col = "#3f3f3f", lwd = 0.8)
-    circos.segments(x0=0, x1=max(.contigs$size), y0=min(nonoutliers$depth)-100, y1=min(nonoutliers$depth) - 100, lwd=0.8, lty="11", col="grey90")
+    circos.segments(
+      x0=0,
+      x1=max(.contigs$size),
+      y0=min(nonoutliers$depth)-100,
+      y1=min(nonoutliers$depth) - 100,
+      lwd=0.8,
+      lty="11",
+      col="grey90",
+    )
   },
   track.height=0.5,
-  bg.border = F
+  bg.border = F,
 )
 circos.yaxis(at=cov.yaxis, labels.cex=0.4, lwd=0.8, labels.col=col_text, col="grey30")
 
 ```
 
-### Per-Contig
-Plotted below is the same depth information, but shown in better detail per 
-contig for easier visual assessment. Note that regions of extremely high depth
-are flagged as outliers and for visual clarity, their values have been converted
-to the global mean depth (`r round(global_avg_filt,0)`) after removing outliers.
-These outlier regions are marked by the orange vertical lines and you may investigate
-them further using the table above.
+### Per-Contig {.no-title}
 
 ```{r echo = FALSE, message = FALSE, warning = FALSE}
 # Cap the outliers as the mean
@@ -206,18 +324,17 @@ them further using the table above.
 ```
 
 
-```{r echo = FALSE, message = FALSE, warning = FALSE, fig.height=pltheight, out.width = "100%"}
-  ggplot(.gencov, aes(x = start, y = depth)) +
-    geom_area(stat = "identity", fill = "#3f3f3f") +
-    geom_vline(data = outliers, color = "#cb6843", aes(xintercept = start)) +
+```{r echo = FALSE, message = FALSE, warning = FALSE, fig.height=pltheight, out.width = "100%", dev='jpeg'}
+  ggplot(.gencov, aes(x = start/1000000, y = depth)) +
+    geom_line(color = "#3f3f3f") +
+    geom_vline(data = outliers, color = "#cb6843", aes(xintercept = start/1000000)) +
     theme_minimal() +
     facet_wrap(~contig, ncol = 2, scales = "free_x") +
-    labs(x = "position (bp)", y = "depth") +
+    labs(x = "position (Mbp)", y = "depth") +
     scale_y_continuous(labels = scales::comma) +
-    scale_x_continuous(labels = scales::comma, guide = guide_axis(n.dodge = 2)) +
+    scale_x_continuous(labels = scales::comma) +
     theme(
       panel.grid.major.x = element_blank(),
       panel.grid.minor.x = element_blank(),
-      legend.position = "top"
       )
 ```

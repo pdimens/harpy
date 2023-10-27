@@ -7,9 +7,11 @@ on:
     paths:
       - 'rules/variants-leviathan**.smk'
       - 'rules/variants-naibr**.smk'
-      - '**variants_sv.py'
+      - '**sv.py'
+      - '**helperfunctions.py'
       - 'utilities/makewindows.py'
       - 'test/bam/**'
+      - 'test/bam_phased/**'
       - '**variants_snp.yml'
       - 'reports/reportNaibr.Rmd'
       - 'reports/reportNaibrPop.Rmd'
@@ -23,18 +25,17 @@ on:
     paths:
       - 'rules/variants-leviathan**.smk'
       - 'rules/variants-naibr**.smk'
-      - '**variants_sv.py'
+      - '**sv.py'
+      - '**helperfunctions.py'
       - 'utilities/makewindows.py'
       - 'test/bam/**'
+      - 'test/bam_phased/**'
       - '**variants_snp.yml'
       - 'reports/reportNaibr.Rmd'
       - 'reports/reportNaibrPop.Rmd'
       - 'reports/reportLeviathan.Rmd'
       - 'reports/reportLeviathanPop.Rmd'
       - 'utilities/inferSV.py'
-
-  schedule:
-    - cron: '0 0 * * *'
 
 env:
   CACHE_NUMBER: 0  # increase to reset cache manually
@@ -66,21 +67,30 @@ jobs:
           misc/buildforCI.sh
         shell: micromamba-shell {0}
 
-      - name: variants leviathan
+      - name: leviathan
         shell: micromamba-shell {0}
-        run: harpy variants sv --method leviathan -d test/bam -g test/genome/genome.fasta.gz -s "--show-failed-logs"
+        run: harpy sv leviathan -d test/bam -g test/genome/genome.fasta.gz -s "--show-failed-logs"
         continue-on-error: true
 
-      - name: variants leviathan-pop
+      - name: leviathan-pop
         shell: micromamba-shell {0}
-        run: harpy variants sv --method leviathan -d test/bam -g test/genome/genome.fasta.gz -p test/samples.groups -s "--show-failed-logs"
+        run: harpy sv leviathan -d test/bam -g test/genome/genome.fasta.gz -p test/samples.groups -s "--show-failed-logs"
         continue-on-error: true
 
-      - name: variants naibr
+      - name: naibr
         shell: micromamba-shell {0}
-        run: harpy variants sv --method naibr -d test/bam -g test/genome/genome.fasta.gz -s "--show-failed-logs"
+        run: harpy sv naibr -d test/bam_phased -g test/genome/genome.fasta.gz -s "--show-failed-logs"
         continue-on-error: true
 
-      - name: variants naibr-pop
+      - name: naibr pop
         shell: micromamba-shell {0}
-        run: harpy variants sv --method naibr -d test/bam -g test/genome/genome.fasta.gz -p test/samples.groups -s "--show-failed-logs"
+        run: harpy sv naibr -d test/bam_phased -g test/genome/genome.fasta.gz -p test/samples.groups -s "--show-failed-logs"
+
+      - name: naibr phasing
+        shell: micromamba-shell {0}
+        run: harpy sv naibr -d test/bam -g test/genome/genome.fasta.gz -v test/vcf/test.phased.bcf -s "--show-failed-logs"
+        continue-on-error: true
+
+      - name: naibr pop phasing
+        shell: micromamba-shell {0}
+        run: harpy sv naibr -d test/bam -g test/genome/genome.fasta.gz -v test/vcf/test.phased.bcf -p test/samples.groups -s "--show-failed-logs"

@@ -13,27 +13,7 @@ infiles = [f"{inprefixfull}_{i}{fq_extension}" for i in ["I1", "I2","R1","R2"]]
 indir = os.path.dirname(infile)
 outdir = f"Demultiplex/{inprefix}/"
 
-
-# mv functions to harpy executable?
-## depends on what other demux methods look like
-def checkfiles(prefix, prefixfull, ext):
-    filelist = []
-    printerr = False
-    for i in ["I1", "I2","R1","R2"]:
-        chkfile = f"{prefixfull}_{i}{ext}"
-        TF = os.path.exists(chkfile)
-        printerr = True if not TF else printerr
-        symbol = " " if TF else "X"
-        filelist.append(f"\033[91m{symbol}\033[0m  {prefix}_{i}{ext}")
-    if printerr:
-        print(f"\n\033[91mError\033[0m: Not all necessary files with prefix \033[1m{prefix}\033[0m present")
-        _ = [print(i, file = sys.stderr) for i in filelist]
-        exit(1)
-
-
-checkfiles(inprefix, inprefixfull, fq_extension)
-
-def get_samplenames(smpl):
+def barcodedict(smpl):
     d = dict()
     with open(smpl, "r") as f:
         #rows = [i.split("\t")[0] for i in f.readlines()]
@@ -46,7 +26,7 @@ def get_samplenames(smpl):
                 continue
     return d
 
-samples = get_samplenames(samplefile)
+samples = barcodedict(samplefile)
 samplenames = [i for i in samples.keys()]
 
 rule link_files:
@@ -57,9 +37,7 @@ rule link_files:
     message:
         f"Linking {inprefix}" + "{wildcards.part} to output directory"
     shell:
-        """
-        ln -sr {input} {output}
-        """
+        "ln -sr {input} {output}"
 
 rule bx_files:
     output:
@@ -99,10 +77,10 @@ rule split_samples_fw:
         f"{outdir}{inprefix}_R1_001.fastq.gz"
     output:
         outdir + "{sample}.F.fq.gz"
-    message:
-        "Demultiplexing forward reads: {wildcards.sample}"
     params:
         c_barcode = lambda wc: samples[wc.get("sample")]
+    message:
+        "Extracting forward reads:\n sample: {wildcards.sample}\n barcode: {params}"
     shell:
         """
         ( zgrep -A3 "A..{params}B..D" {input} | grep -v "^--$" | gzip -q > {output} ) || touch {output}
@@ -114,7 +92,7 @@ rule split_samples_rv:
     output:
         outdir + "{sample}.R.fq.gz"
     message:
-        "Demultiplexing reverse reads: {wildcards.sample}"
+        "Extracting reverse reads:\n sample: {wildcards.sample}\n barcode: {params}"
     params:
         c_barcode = lambda wc: samples[wc.get("sample")]
     shell:
@@ -126,48 +104,77 @@ rule fastqc_F:
     input:
         outdir + "{sample}.F.fq.gz"
     output: 
-        html = temp(outdir + "logs/.QC/{sample}.F_fastqc.html"),
-        data = temp(outdir + "logs/.QC/{sample}.F_fastqc.zip")
+        temp(outdir + "logs/.QC/{sample}_F/fastqc_data.txt")
     message:
         "Performing quality assessment: {wildcards.sample}.F.fq.gz"
     params:
-        outdir + "logs/.QC"
+        lambda wc: outdir + "logs/.QC/" + wc.get("sample") + "_F"
     threads:
-        2
+        1
     shell:
         """
-        fastqc -q --threads {threads} -o {params} -f fastq {input}
+        mkdir -p {params}
+        if [ -z $(gzip -cd {input} | head -c1) ]; then
+            echo "##Falco	1.2.1" > {output}
+            echo ">>Basic Statistics	fail" >> {output}
+            echo "#Measure	Value" >> {output}
+            echo "Filename	{wildcards.sample}.F.fq.gz" >> {output}
+            echo "File type	Conventional base calls" >> {output}
+            echo "Encoding	Sanger / Illumina 1.9" >> {output}
+            echo "Total Sequences	0" >> {output}
+            echo "Sequences flagged as poor quality	0" >> {output}
+            echo "Sequence length	0" >> {output}
+            echo "%GC	0" >> {output}
+            echo ">>END_MODULE" >> {output}
+        else
+            falco -q --threads {threads} -skip-report -skip-summary -o {params} {input}
+        fi
         """
 
 rule fastqc_R:
     input:
         outdir + "{sample}.R.fq.gz"
     output: 
-        html = temp(outdir + "logs/.QC/{sample}.R_fastqc.html"),
-        data = temp(outdir + "logs/.QC/{sample}.R_fastqc.zip")
+        temp(outdir + "logs/.QC/{sample}_R/fastqc_data.txt")
     message:
         "Performing quality assessment: {wildcards.sample}.R.fq.gz"
     params:
-        outdir + "logs/.QC"
+        lambda wc: outdir + "logs/.QC/" + wc.get("sample") + "_R"
     threads:
-        2
+        1
     shell:
         """
-        fastqc -q --threads {threads} -o {params} -f fastq {input}
+        mkdir -p {params}
+        if [ -z $(gzip -cd {input} | head -c1) ]; then
+            echo "##Falco	1.2.1" > {output}
+            echo ">>Basic Statistics	fail" >> {output}
+            echo "#Measure	Value" >> {output}
+            echo "Filename	{wildcards.sample}.F.fq.gz" >> {output}
+            echo "File type	Conventional base calls" >> {output}
+            echo "Encoding	Sanger / Illumina 1.9" >> {output}
+            echo "Total Sequences	0" >> {output}
+            echo "Sequences flagged as poor quality	0" >> {output}
+            echo "Sequence length	0" >> {output}
+            echo "%GC	0" >> {output}
+            echo ">>END_MODULE" >> {output}
+        else
+            falco -q --threads {threads} -skip-report -skip-summary -o {params} {input}
+        fi
         """
 
 rule qc_report:
     input:
-        expand(outdir + "logs/.QC/{sample}.{FR}_fastqc.{ext}", ext = ["html", "zip"], sample = samplenames, FR = ["F","R"])
+        expand(outdir + "logs/.QC/{sample}_{FR}/fastqc_data.txt", sample = samplenames, FR = ["F","R"])
     output:
-        outdir + "logs/demultiplex.QC.html"
-    default_target: True
+        outdir + "reports/demultiplex.QC.html"
     message:
         "Creating final demultiplexing QC report"
     params:
         outdir + "logs/.QC"
     shell:
-        "multiqc {params} --force --quiet --no-data-dir --filename {output} 2> /dev/null"
+        """
+        multiqc {params} --force --quiet --title "QC on Demultiplexed Samples" --comment "This report aggregates the QC results created by falco." --no-data-dir --filename {output} 2> /dev/null
+        """
 
 rule log_runtime:
     output:
@@ -179,19 +186,20 @@ rule log_runtime:
             _ = f.write("The harpy demultiplex module ran using these parameters:\n\n")
             _ = f.write("Haplotag technology: Generation I\n")
             _ = f.write(f"The multiplexed input file: {infile}\n")
-            _ = f.write(f"The inferred files associated with {infile}:\n")
+            _ = f.write(f"The associated inferred from {infile}:\n")
             _ = f.write("    " + "\n    ".join(infiles) + "\n")
             _ = f.write("Barcodes were moved into the read headers using the command:\n")
             _ = f.write(f"    demuxGen1 DATA_ {inprefix}\n")
             _ = f.write(f"The delimited file associating CXX barcodes with samplenames: {samplefile}\n")
+            _ = f.write(f"QC checks were performed on demultiplexed FASTQ files using:\n")
+            _ = f.write(f"    falco -skip-report -skip-summary input.fq.gz\n")
 
 rule all:
+    default_target: True
     input:
         fw_reads = expand(outdir + "{sample}.F.fq.gz", sample = samplenames),
         rv_reads = expand(outdir + "{sample}.R.fq.gz", sample = samplenames),
         runlog   = outdir + "logs/harpy.demultiplex.log",
-        qcreport = outdir + "logs/demultiplex.QC.html"
-    default_target:
-        True
+        qcreport = outdir + "reports/demultiplex.QC.html"
     message:
         "Demultiplexing has finished!"

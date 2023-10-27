@@ -1,17 +1,36 @@
 ---
 title: "Imputation Assessment"
-author:
-    - "Created using HARPY"
 date: "`r format(Sys.time(), '%d %B, %Y')`"
 output:
-  html_document:
-    highlight: tango
-    number_sections: no
-    theme: cosmo
-    df_print: kable
-    toc: no
+  flexdashboard::flex_dashboard:
+    theme: lumen
+    orientation: rows
+    vertical_layout: scroll
+    favicon: "https://raw.githubusercontent.com/pdimens/harpy/docs/static/favicon_dark.png"
 ---
+
+# General Stats
+## header row
+```{css zoom-lib-src, echo = FALSE, message = FALSE, warning = FALSE}
+script src = "https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"
+```
+```{js zoom-jquery, echo = FALSE, message = FALSE, warning = FALSE}
+ $(document).ready(function() {
+    $('body').prepend('<div class=\"zoomDiv\"><img src=\"\" class=\"zoomImg\"></div>');
+    // onClick function for all plots (img's)
+    $('img:not(.zoomImg)').click(function() {
+      $('.zoomImg').attr('src', $(this).attr('src')).css({width: '100%'});
+      $('.zoomDiv').css({opacity: '1', width: 'auto', border: '1px solid white', borderRadius: '5px', position: 'fixed', top: '50%', left: '50%', marginRight: '-50%', transform: 'translate(-50%, -50%)', boxShadow: '0px 0px 50px #888888', zIndex: '50', overflow: 'auto', maxHeight: '90%'});
+    });
+    // onClick function for zoomImg
+    $('img.zoomImg').click(function() {
+      $('.zoomDiv').css({opacity: '0', width: '0%'}); 
+    });
+  });
+```
+
 ```{r load environment, echo=FALSE, message=FALSE, warning=FALSE}
+library(flexdashboard)
 library(ggplot2)
 library(magrittr)
 library(tidyr)
@@ -21,79 +40,93 @@ library(scales)
 modelparams <- paste(snakemake@params[[1]])
 #modelparams <- "Filler Text"
 ```
-### Imputed genotypes from model: `r modelparams`
-
-## Individual Statistics {.tabset}
-### Imputation Results
-This table details the number of `missing` genotypes that were imputed into a 
-different genotype per individual. Following standard VCF convention, `Ref` refers to
-the reference allele (from the reference genome), `Alt` refers to the alternative 
-allele, and `Missing` details how many SNPs remain missing
-(failed to impute) for that individual. As an example, the `Homozygous Ref` column is 
-the number of missing genotypes that were imputed into
-a homozygous genotype for the reference allele.
-
-```{r success table, echo=FALSE, message=FALSE, warning=FALSE}
+```{r echo = FALSE, message = FALSE, warning = FALSE}
 comparefile <- snakemake@input[[1]]
 #comparefile <- "~/impute.compare.stats"
-gcts <- read.table(comparefile, header = F)[, c(2, 23, 25, 24, 27)]
+tryCatch(
+  expr = {
+    gcts <- read.table(comparefile, header = F)[, c(2, 23, 25, 24, 27)]
+  },
+  error = function(e){ 
+    print("Stats file is empty. Perhaps there were no SNPs that bcftools identified.")
+    knitr::knit_exit()
+  }
+)
 names(gcts) <- c("sample","RefHom", "Het",	"AltHom", "missing")
 
-DT::datatable(
-  gcts,
-  rownames = FALSE,
-  extensions = "Buttons",
-  colnames = c("Sample", "Homozygous Ref", "Homozygous Alt", "Heterozygote", "Missing"),
-  options = list(
-    dom = "Brtip",
-    buttons = c("csv"),
-    scrollX = TRUE
-  )
-)
-```
-### Plot
-This chart visualizes the count and proportion of missing genotypes per sample imputed
-into other genotypes (same data as the table from the previous tab).
+conv_height <- 1.4 + (0.12 * nrow(gcts))
+#frameheight <- 1.2 + (0.166 * nrow(invalids))
 
-```{r echo = FALSE, message = FALSE, warning = FALSE}
-conv_height <- 0.2 * nrow(gcts) 
-gcts <- pivot_longer(gcts, -1, names_to = "Conversion", values_to = "Count")
+gcts_long <- pivot_longer(gcts, -1, names_to = "Conversion", values_to = "Count")
 ```
 
-```{r echo = FALSE, message = FALSE, warning = FALSE, fig.height=conv_height, out.width= "100%"}
-ggplot(gcts, aes(y = sample, x = Count, fill = Conversion)) +
-  geom_col(position = "stack") +
-  scale_x_continuous(expand = c(0,0), labels = comma) +
-  ylab("") +
-  theme_minimal() +
-  theme(panel.grid.major.y = element_blank(), axis.ticks.y = element_line(size = 0.5)) +
-  scale_fill_manual(
-    labels = c("→ Homozygous Alt", "→ Heterozygote", "→ Missing", "→ Homozygous Ref"),
-    values = c("#4a9fea", "#5a8c84", "#424043", "#ffd75f")
-  )
-
-```
-
-## INFO Scores {.tabset}
-`STITCH` outputs a novel `INFO/INFO_SCORE` tag in the resulting VCF files that represents the
-"quality" of the imputation. This value ranges from `0` to `1.0`, with `0` being
-very poor, and `1.0` being very good. You will want to filter the resulting variants
-based on this `INFO/INFO_SCORE` tag, which can be done that simply with `bcftools`.
-Here is an example snippet of keeping loci with an `INFO_SCORE` of at least `0.2`: 
-```
-# use -Ob to output to bcf instead of vcf to save on disk space
-
-bcftools view -i 'INFO/INFO_SCORE >= 0.2' -Ob file.vcf > filtered.file.bcf
-```
-### Overall distribution
-Below is the frequency distribution of the `INFO_SCORE` values for all the variants
-in the VCF file. 
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
 infofile <- snakemake@input[[2]]
 #infofile <- "~/impute.infoscore"
-infos <- read.table(infofile, header = F, col.names = c("contig", "position", "info"))
+
+tryCatch(
+  expr = {
+    infos <- read.table(infofile, header = F, col.names = c("contig", "position", "info"))
+  },
+  error = function(e){ 
+    print("Info score file is empty. Perhaps there were no SNPs that bcftools identified.")
+    knitr::knit_exit()
+  }
+)
 ```
 
+### reportheader {.no-title}
+<h2> `r comparefile` </h2>
+This report details the results of genotype imputation using STITCH with the model parameters:
+`r modelparams`.
+
+This page displays various information and general statistics and clicking the `Individual Statistics` tab 
+in the navigation menu above will display imputation results per individual.
+
+## General Information {data-height=100}
+```{r}
+gcts_minmax <- filter(gcts_long, Conversion != "missing") %>% summarise(min = min(Count), max = max(Count))
+```
+
+### nsamples
+```{r}
+valueBox(scales::comma(nrow(gcts)), caption = "Samples", color = "success")
+```
+
+### min impute
+```{r}
+valueBox(scales::comma(gcts_minmax$min), caption = "Minimum Imputations", color = "info")
+```
+### maximpute
+```{r}
+valueBox(scales::comma(gcts_minmax$max), caption = "Maximum Imputations", color = "info")
+```
+
+### mean infoscore
+```{r}
+valueBox(round(mean(infos$info), digits = 2), caption = "Average INFO_SCORE", color = "info")
+```
+
+### sd infoscore
+```{r}
+valueBox(round(sd(infos$info), digits = 2), caption = "StDev INFO_SCORE", color = "info")
+```
+
+
+## INFO Scores
+### INFO desc {.no-title}
+<h3> Distribution of INFO_SCORE </h3>
+`STITCH` outputs a novel `INFO/INFO_SCORE` tag in the resulting VCF files that represents the
+"quality" of the imputation. This value ranges from `0` to `1.0`, with `0` being
+very poor, and `1.0` being very good. You will want to filter this file to remove
+genotypes with a low `INFO_SCORE`. Below is the frequency distribution of the global
+and per-contig `INFO_SCORE` values for the variants in the VCF file.  The  per-contig
+plot shows up to 30 of the largest contigs present in the VCF file. Clicking
+on a plot will expand it to fill your browser window. Clicking it again will exit
+out of the zoomed view.
+
+## distributions
+### Overall distribution {.no-title}
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
 maxsizes <- infos %>% group_by(contig) %>% summarise(maxsize = max(position)) %>% arrange(desc(maxsize))
 maxsizes <- maxsizes[1:min(nrow(maxsizes), 30), ]
@@ -109,15 +142,13 @@ ggplot(infos, aes(x = info)) +
   theme(
     panel.grid.minor = element_blank()
   ) +
-  scale_y_continuous(labels = comma) +
+  scale_y_continuous(labels = scales::comma) +
   xlab("INFO_SCORE") +
   ylab("Count") +
   labs(title = "Distribution of imputation INFO_SCORE")
 ```
 
-### Per-contig distribution
-Below is the frequency distribution of the `INFO_SCORE` values for the variants
-in the VCF file, shown per-contig, up to 30 of the largest contigs. 
+### Per-contig distribution {.no-title}
 ```{r echo = FALSE, message = FALSE, warning = FALSE, fig.height=pltheight, fig.align='center', out.width = "100%"}
 ggplot(infos[infos$contig %in% maxsizes$contig, ], aes(x = info)) +
   geom_histogram(fill = "grey60", color = "grey40", linewidth = 0.25, bins = 100, boundary = 0.5) +
@@ -132,12 +163,26 @@ ggplot(infos[infos$contig %in% maxsizes$contig, ], aes(x = info)) +
   labs(title = "Distribution of imputation INFO_SCORE")
 ```
 
-### Filtering Expectations
+## filtering
+### Filtering Expectations desc {.no-title}
+<h3> Filtering Expectations </h3>
+You will want to filter the resulting variants
+based on this `INFO/INFO_SCORE` tag, which can be done that simply with `bcftools`.
+Here is an example snippet of keeping loci with an `INFO_SCORE` of at least `0.2`: 
+```
+# use -Ob to output to bcf instead of vcf to save on disk space
+
+bcftools view -i 'INFO/INFO_SCORE >= 0.2' -Ob file.vcf > filtered.file.bcf
+```
+
 Below is a table of the number of variants sites that may remain if filtering
 at different minimum `INFO/INFO_SCORE` thresholds. Each column after `Total Variants`
 refers to a filtering threshold and the numbers within that column are the number of 
-SNPs that would be kept if filtering out SNPs with an `INFO/INFO_SCORE` value below it (_i.e._ `0.2` is the number of SNPs with a score `>= 0.2` )
+SNPs that would be kept if filtering out SNPs with an `INFO/INFO_SCORE` value below 
+it (_i.e._ `0.2` is the number of SNPs with a score `>= 0.2` ).
 
+## filtering table
+### filt table {.no-title}
 ```{r echo = FALSE, message = FALSE, warning = FALSE}
 filterthresh <- infos %>% group_by(contig) %>%
   summarise(
@@ -146,7 +191,9 @@ filterthresh <- infos %>% group_by(contig) %>%
     twentyfive = sum(info >= 0.25),
     thirty = sum(info >= 0.30),
     forty = sum(info >= 0.40),
-    fifty = sum(info >= 0.50)
+    fifty = sum(info >= 0.50),
+    seventyfive = sum(info >= 0.75),
+    ninety = sum(info >= 0.90),
     )
 
 tots <- colSums(filterthresh[, -1])
@@ -156,11 +203,62 @@ DT::datatable(
   filterthresh,
   rownames = FALSE,
   extensions = "Buttons",
-  colnames = c("Contigs", "Total Variants", "0.20", "0.25", "0.30", "0.4", "0.5"),
+  colnames = c("Contigs", "Total Variants", "0.20", "0.25", "0.30", "0.4", "0.5", "0.75", "0.90"),
   options = list(
     dom = "Brtip",
     buttons = c("csv"),
     scrollX = TRUE
-  )
+  ),
+  autoHideNavigation = T,
+  fillContainer = T
+)
+```
+
+# Individual Statistics
+## Ind stats desc
+### plotdesc {.no-title}
+<h3> Imputations Per Sample </h3>
+This chart visualizes the count and proportion of `missing` genotypes per sample imputed
+into other genotypes. Following standard VCF convention, `Ref` refers to
+the reference allele (from the reference genome), `Alt` refers to the alternative 
+allele, and `Missing` details how many SNPs remain missing
+(failed to impute) for that individual. As an example, the `Homozygous Ref` is 
+the number of missing genotypes that were imputed into
+a homozygous genotype for the reference allele. The table on the right is the
+underlying data used to create the visualization. Clicking
+on a plot will expand it to fill your browser window. Clicking it again will exit
+out of the zoomed view.
+
+# Individual Statistics
+## ind stats
+### Individuals Plot {.no-title}
+```{r echo = FALSE, message = FALSE, warning = FALSE, fig.height=conv_height, out.width= "100%"}
+ggplot(gcts_long, aes(y = sample, x = Count, fill = Conversion)) +
+  geom_col(position = "stack") +
+  scale_x_continuous(expand = c(0,0), labels = comma) +
+  ylab("") +
+  theme_minimal() +
+  theme(panel.grid.major.y = element_blank(), axis.ticks.y = element_line(size = 0.5)) +
+  scale_fill_manual(
+    labels = c("→ Homozygous Alt", "→ Heterozygote", "→ Missing", "→ Homozygous Ref"),
+    values = c("#93d2fa", "#83afa8", "#424043", "#ffd75f")
+  ) +
+  labs(title = "Missing Genotype Imputations")
+```
+
+### Imputation Results Table {.no-title}
+```{r success table, echo=FALSE, message=FALSE, warning=FALSE}
+DT::datatable(
+  gcts,
+  rownames = FALSE,
+  extensions = "Buttons",
+  colnames = c("Sample", "Homozygous Ref", "Homozygous Alt", "Heterozygote", "Missing"),
+  options = list(
+    dom = "Brtip",
+    buttons = c("csv"),
+    scrollX = TRUE
+  ),
+  autoHideNavigation = T,
+  fillContainer = T
 )
 ```

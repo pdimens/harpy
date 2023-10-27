@@ -7,6 +7,7 @@ on:
     paths:
       - 'rules/phase-pop.smk'
       - '**phase.py'
+      - '**helperfunctions.py'
       - 'test/bam/**'
       - 'test/vcf/test.bcf'
       - '**phase.yml'
@@ -20,15 +21,13 @@ on:
     paths:
       - 'rules/phase-pop.smk'
       - '**phase.py'
+      - '**helperfunctions.py'
       - 'test/bam/**'
       - 'test/vcf/test.bcf'
       - '**phase.yml'
       - 'reports/reportHapCut2.Rmd'
       - 'utilities/parsePhaseBlocks.py'
       - 'utilities/summarizeHaplobocks.py'
-
-  schedule:
-    - cron: '0 0 * * *'
 
 env:
   CACHE_NUMBER: 0  # increase to reset cache manually

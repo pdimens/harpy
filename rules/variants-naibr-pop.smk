@@ -7,6 +7,7 @@ samplenames = config["samplenames"]
 extra       = config.get("extra", "") 
 groupfile   = config["groupings"]
 genomefile  = config["genomefile"]
+molecule_distance = config["molecule_distance"]
 bn          = os.path.basename(genomefile)
 outdir      = "Variants/naibr-pop"
 genome_zip  = True if bn.lower().endswith(".gz") else False
@@ -16,7 +17,7 @@ if genome_zip:
 def process_args(args):
     argsDict = {
         "min_mapq" : 30,
-        "d"        : 10000,
+        "d"        : molecule_distance,
         "min_sv"   : 1000,
         "k"        : 3,
     }
@@ -35,6 +36,8 @@ def pop_manifest(infile, dirn, sampnames):
     with open(infile) as f:
         for line in f:
             samp, pop = line.rstrip().split()
+            if samp.lstrip().startswith("#"):
+                continue
             if samp not in sampnames:
                 absent.append(samp)
             samp = f"{dirn}/{samp}.bam"
@@ -50,11 +53,24 @@ def pop_manifest(infile, dirn, sampnames):
 popdict     = pop_manifest(groupfile, bam_dir, samplenames)
 populations = popdict.keys()
 
+rule copy_groupings:
+    input:
+        groupfile
+    output:
+        outdir + "/logs/sample.groups"
+    message:
+        "Logging {input}"
+    run:
+        with open(input[0], "r") as infile, open(output[0], "w") as outfile:
+            _ = [outfile.write(i) for i in infile.readlines() if not i.lstrip().startswith("#")]
+
 rule bamlist:
+    input:
+        outdir + "/logs/sample.groups"
     output:
         expand(outdir + "/input/{pop}.list", pop = populations)
     message:
-        "Creating file lists for each population."
+        "Creating population file lists."
     run:
         for p in populations:
             bamlist = popdict[p]
@@ -216,12 +232,12 @@ rule log_runtime:
                 _ = f.write(f"    {i}={argdict[i]}\n")
 
 rule all:
+    default_target: True
     input:
         expand(outdir + "/{pop}.bedpe",      pop = populations),
         expand(outdir + "/reports/{pop}.naibr.html", pop = populations),
         outdir + "/reports/naibr.pop.summary.html",
         outdir + "/logs/harpy.variants.log"
-    default_target: True
     message:
         "Variant calling completed!"
     shell:

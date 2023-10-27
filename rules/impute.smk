@@ -37,21 +37,19 @@ rule bam_list:
     message:
         "Creating list of alignment files"
     benchmark:
-        "Benchmark/Impute/filelist.txt"
+        ".Benchmark/Impute/filelist.txt"
     run:
         with open(output[0], "w") as fout:
-            for bamfile in input:
-                fout.write(f"{bamfile}\n")
+            _ = [fout.write(f"{bamfile}\n") for bamfile in input]
 
 rule samples_file:
     output:
         "Impute/input/samples.names"
     message:
         "Creating file of sample names"
-    threads: 1
     run:
         with open(output[0], "w") as fout:
-            [fout.write(f"{i}\n") for i in samplenames]
+            _ = [fout.write(f"{i}\n") for i in samplenames]
 
 rule convert2stitch:
     input:
@@ -63,7 +61,7 @@ rule convert2stitch:
     #params:
         #filters = "-i \'QUAL>20 && DP>10\'" if config["filtervcf"] else ""
     benchmark:
-        "Benchmark/Impute/fileprep.{part}.txt"
+        ".Benchmark/Impute/fileprep.{part}.txt"
     threads: 3
     shell:
         """
@@ -88,28 +86,27 @@ rule impute:
     message: 
         "Performing imputation: {wildcards.part}\nmodel: {wildcards.model}\nuseBX: {wildcards.usebx}    \nbxLimit: {wildcards.bxlimit}\n    k: {wildcards.k}\n    s: {wildcards.s}\n nGen: {wildcards.ngen}"
     benchmark:
-        f"Benchmark/Impute/stitch.{paramspace.wildcard_pattern}" + ".{part}.txt"
+        f".Benchmark/Impute/stitch.{paramspace.wildcard_pattern}" + ".{part}.txt"
     threads:
         50
     script:
         "stitch_impute.R"
 
-
 rule index_vcf:
     input:
-        vcf     = "Impute/{stitchparams}/contigs/{part}/{part}.vcf.gz",
-        samples = "Impute/input/samples.names"
+        vcf     = "Impute/{stitchparams}/contigs/{part}/{part}.vcf.gz"
+        #samples = "Impute/input/samples.names"
     output: 
         idx        = "Impute/{stitchparams}/contigs/{part}/{part}.vcf.gz.tbi",
         stats      = "Impute/{stitchparams}/contigs/{part}/{part}.stats"
     message:
         "Indexing: {wildcards.stitchparams}/{wildcards.part}"
     benchmark:
-        "Benchmark/Impute/indexvcf.{stitchparams}.{part}.txt"
+        ".Benchmark/Impute/indexvcf.{stitchparams}.{part}.txt"
     shell:
         """
         tabix {input.vcf}
-        bcftools stats {input.vcf} -S {input.samples} > {output.stats}
+        bcftools stats -s "-" {input.vcf} > {output.stats}
         """
 
 rule stitch_reports:
@@ -120,9 +117,9 @@ rule stitch_reports:
     message:
         "Generating STITCH report: {wildcards.part}"
     benchmark:
-        "Benchmark/Impute/report.{stitchparams}.{part}.txt"
+        ".Benchmark/Impute/report.{stitchparams}.{part}.txt"
     script:
-        "reportStitch.Rmd"
+        "reportImputeStitch.Rmd"
 
 rule clean_stitch:
     input:
@@ -165,7 +162,7 @@ rule merge_vcfs:
     message:
         "Merging VCFs: {wildcards.stitchparams}"
     benchmark:
-        "Benchmark/Impute/mergevcf.{stitchparams}.txt"
+        ".Benchmark/Impute/mergevcf.{stitchparams}.txt"
     threads:
         50
     shell:
@@ -178,34 +175,34 @@ rule merge_vcfs:
 rule stats:
     input:
         bcf     = "Impute/{stitchparams}/variants.imputed.bcf",
-        idx     = "Impute/{stitchparams}/variants.imputed.bcf.csi",
-        samples = "Impute/input/samples.names"
+        idx     = "Impute/{stitchparams}/variants.imputed.bcf.csi"
+        #samples = "Impute/input/samples.names"
     output:
         "Impute/{stitchparams}/stats/variants.imputed.stats"
     message:
         "Calculating stats: {wildcards.stitchparams}/variants.imputed.bcf"
     benchmark:
-        "Benchmark/Impute/mergestats.{stitchparams}.txt"
+        ".Benchmark/Impute/mergestats.{stitchparams}.txt"
     shell:
-        "bcftools stats {input.bcf} -S {input.samples} > {output}"
+        """bcftools stats -s "-" {input.bcf} > {output}"""
 
 rule comparestats:
     input:
         orig    = "Impute/input/input.sorted.bcf",
         origidx = "Impute/input/input.sorted.bcf.csi",
         impute  = "Impute/{stitchparams}/variants.imputed.bcf",
-        idx     = "Impute/{stitchparams}/variants.imputed.bcf.csi",
-        samples = "Impute/input/samples.names"
+        idx     = "Impute/{stitchparams}/variants.imputed.bcf.csi"
+        #samples = "Impute/input/samples.names"
     output:
         compare = "Impute/{stitchparams}/stats/impute.compare.stats",
         info_sc = temp("Impute/{stitchparams}/stats/impute.infoscore")
     message:
         "Computing post-imputation stats: {wildcards.stitchparams}"
     benchmark:
-        "Benchmark/Impute/mergestats.{stitchparams}.txt"
+        ".Benchmark/Impute/mergestats.{stitchparams}.txt"
     shell:
         """
-        bcftools stats -S {input.samples} {input.impute} {input.orig} | grep \"GCTs\" > {output.compare}
+        bcftools stats -s "-" {input.orig} {input.impute} | grep \"GCTs\" > {output.compare}
         bcftools query -f '%CHROM\\t%POS\\t%INFO/INFO_SCORE\\n' {input.impute} > {output.info_sc}
         """
 
@@ -220,7 +217,7 @@ rule reports:
     params:
         lambda wc: wc.get("stitchparams")
     benchmark:
-        "Benchmark/Impute/stitchreport.{stitchparams}.txt"
+        ".Benchmark/Impute/stitchreport.{stitchparams}.txt"
     script:
         "reportImpute.Rmd"
 
@@ -248,13 +245,13 @@ rule log_runtime:
                 "    method               = model,\n" +
                 "    posfile              = posfile,\n" +
                 "    bamlist              = bamlist,\n" +
-                "    nCores               = nCores,\n" +
-                "    nGen                 = nGen,\n" +
+                "    nCores               = ncores,\n" +
+                "    nGen                 = ngen,\n" +
                 "    chr                  = chr,\n" +
                 "    K                    = k,\n" +
                 "    S                    = s,\n" +
-                "    use_bx_tag           = useBX,\n" +
-                "    bxTagUpperLimit      = 50000,\n" +
+                "    use_bx_tag           = usebX,\n" +
+                "    bxTagUpperLimit      = bxlimit,\n" +
                 "    niterations          = 40,\n" +
                 "    switchModelIteration = 39,\n" +
                 "    splitReadIterations  = NA,\n" +
@@ -263,6 +260,7 @@ rule log_runtime:
             )
 
 rule all:
+    default_target: True
     input: 
         bcf     = expand("Impute/{stitchparams}/variants.imputed.bcf", stitchparams=paramspace.instance_patterns),
         reports = expand("Impute/{stitchparams}/variants.imputed.html", stitchparams=paramspace.instance_patterns),
@@ -270,4 +268,3 @@ rule all:
         runlog  = "Impute/logs/harpy.impute.log"
     message: 
         "Genotype imputation is complete!"
-    default_target: True

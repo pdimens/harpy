@@ -9,6 +9,7 @@ nbins 		= config["EMA_bins"]
 binrange    = ["%03d" % i for i in range(nbins)]
 genomefile 	= config["genomefile"]
 samplenames = config["samplenames"]
+molecule_distance = config["molecule_distance"]
 extra 		= config.get("extra", "") 
 bn 			= os.path.basename(genomefile)
 genome_zip  = True if bn.lower().endswith(".gz") else False
@@ -138,7 +139,7 @@ rule preprocess:
     message:
         "Preprocessing for EMA mapping: {wildcards.sample}"
     benchmark:
-        "Benchmark/Mapping/ema/Preproc.{sample}.txt"
+        ".Benchmark/Mapping/ema/Preproc.{sample}.txt"
     threads:
         2
     params:
@@ -188,7 +189,7 @@ rule align_nobarcode:
         bwa     = outdir + "/logs/{sample}.bwa.align.log",
         bwasort = outdir + "/logs/{sample}.bwa.sort.log"
     benchmark:
-        "Benchmark/Mapping/ema/bwaAlign.{sample}.txt"
+        ".Benchmark/Mapping/ema/bwaAlign.{sample}.txt"
     params:
         quality = config["quality"]
     message:
@@ -216,7 +217,7 @@ rule mark_duplicates:
     message:
         "Marking duplicates in unbarcoded alignments: {wildcards.sample}"
     benchmark:
-        "Benchmark/Mapping/ema/markdup.{sample}.txt"
+        ".Benchmark/Mapping/ema/markdup.{sample}.txt"
     threads:
         2
     shell:
@@ -279,7 +280,7 @@ rule merge_alignments:
     message:
         "Merging all alignments: {wildcards.sample}"
     benchmark:
-        "Benchmark/Mapping/ema/merge.{sample}.txt"
+        ".Benchmark/Mapping/ema/merge.{sample}.txt"
     threads:
         10
     shell:
@@ -307,8 +308,10 @@ rule bx_stats_alignments:
         outdir + "/stats/BXstats/data/{sample}.bxstats.gz"
     message:
         "Calculating barcode alignment statistics: {wildcards.sample}"
+    params:
+        molecule_distance
     shell:
-        "bxStats.py {input.bam} | gzip > {output}"
+        "bxStats.py -c {params} {input.bam} | gzip > {output}"
 
 rule bx_stats_report:
     input:
@@ -317,25 +320,10 @@ rule bx_stats_report:
         outdir + "/stats/BXstats/{sample}.bxstats.html"
     message: 
         "Generating summary of barcode alignment: {wildcards.sample}"
+    params:
+        molecule_distance
     script:
         "reportBxStats.Rmd"
-
-#rule clip_overlap:
-#    input:
-#        bam = outdir + "/{sample}/{sample}.sorted.bam",
-#        bai = outdir + "/{sample}/{sample}.sorted.bam.bai"
-#    output:
-#        bam = outdir + "/align/{sample}.bam",
-#        bai = outdir + "/align/{sample}.bam.bai"
-#    log:
-#        outdir + "/logs/clipOverlap/{sample}.clipOverlap.log"
-#    message:
-#        "Clipping alignment overlaps: {wildcards.sample}"
-#    shell:
-#        """
-#        bam clipOverlap --in {input.bam} --out {output.bam} --stats --noPhoneHome > {log} 2>&1
-#        samtools index {output.bam}
-#        """
 
 rule general_stats:
     input: 		
@@ -347,7 +335,7 @@ rule general_stats:
     message:
         "Calculating alignment stats: {wildcards.sample}"
     benchmark:
-        "Benchmark/Mapping/ema/Mergedstats.{sample}.txt"
+        ".Benchmark/Mapping/ema/Mergedstats.{sample}.txt"
     shell:
         """
         samtools stats {input.bam} > {output.stats}
@@ -362,7 +350,9 @@ rule samtools_reports:
     message:
         "Summarizing samtools stats and flagstat"
     shell:
-        "multiqc Align/ema/stats/samtools_stats Align/ema/stats/samtools_flagstat --force --quiet --no-data-dir --filename {output} 2> /dev/null"
+        """
+        multiqc Align/ema/stats/samtools_stats Align/ema/stats/samtools_flagstat --force --quiet --title "Basic Alignment Statistics" --comment "This report aggregates samtools stats and samtools flagstats results for all alignments." --no-data-dir --filename {output} 2> /dev/null
+        """
 
 rule log_runtime:
     output:
@@ -395,7 +385,8 @@ rule log_runtime:
             _ = f.write("Overlaps were clipped using:\n")
             _ = f.write("    bam clipOverlap --in file.bam --out outfile.bam --stats --noPhoneHome\n")
 
-rule all:
+rule movelinks:
+    default_target: True
     input: 
         bam = expand(outdir + "/align/{sample}.bam", sample = samplenames),
         bai = expand(outdir + "/align/{sample}.bam.bai", sample = samplenames),
@@ -407,7 +398,6 @@ rule all:
         runlog = f"{outdir}/logs/harpy.align.log"
     message:
         "Finished aligning! Moving alignment files into the base Align/ema directory."
-    default_target: True
     run:
         for i,j in zip(input.bam, input.bai):
             if not os.path.islink(i):
