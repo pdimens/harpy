@@ -1,45 +1,47 @@
 ---
-label: Align
-description: Align haplotagged sequences to a reference genome with Harpy
-icon: quote
+label: BWA
+description: Align haplotagged sequences with BWA MEM
+icon: dot
 order: 5
 ---
 
-# :icon-quote: Map Reads onto a genome
+# :icon-quote: Map Reads onto a genome with BWA MEM
 ===  :icon-checklist: You will need
 - at least 4 cores/threads available
 - a genome assembly in FASTA format
-- paired-end fastq sequence file with the [proper naming convention](../haplotagdata/#naming-conventions) (gzipped recommended)
+- paired-end fastq sequence file with the [proper naming convention](/haplotagdata/#naming-conventions) (gzipped recommended)
 ===
 
 Once sequences have been trimmed and passed through other QC filters, they will need to
 be aligned to a reference genome. This module within Harpy expects filtered reads as input,
-such as those derived using `harpy trim`. You can map reads onto a genome assembly with Harpy 
+such as those derived using `harpy qc`. You can map reads onto a genome assembly with Harpy 
 using the `align` module:
 
 ```bash usage
-harpy align OPTIONS...
+harpy align bwa OPTIONS...
 ```
-```bash examples
-# align with BWA
+```bash example
 harpy align --genome genome.fasta --directory Sequences/ 
-
-# align with EMA
-harpy align --method ema --genome genome.fasta --directory Sequences/ 
 ```
-
 
 ## :icon-terminal: Running Options
-In addition to the [common runtime options](../commonoptions.md), the `harpy align` module is configured using these command-line arguments:
+In addition to the [common runtime options](/commonoptions.md), the `harpy align bwa` module is configured using these command-line arguments:
 
 | argument           | short name | type                  | default | required | description                                                                                     |
 |:-------------------|:----------:|:----------------------|:-------:|:--------:|:------------------------------------------------------------------------------------------------|
 | `--genome`         |    `-g`    | file path             |         | **yes**  | Genome assembly for read mapping                                                                |
 | `--directory`            |    `-d`    | folder path           |         | **yes**  | Directory with sample sequences                                                                 |
-| `--ema-bins`       |    `-e`    | integer (1-1000)      |   500   |    no    | Number of barcode bins for EMA                                                                  |
+| `--molecule-distance` |    `-m`    | integer         |  100000  |    no    | Base-pair distance threshold to separate molecules                   |
 | `--quality-filter` |    `-f`    | integer (0-40)        |   30    |    no    | Minimum `MQ` (SAM mapping quality) to pass filtering                                            |
 | `--method`         |    `-m`    | choice [`bwa`, `ema`] |   bwa   |    no    | Which aligning software to use                                                                  |
 | `--extra-params`   |    `-x`    | string                |         |    no    | Additional EMA-align/BWA arguments, in quotes                                                   |
+
+### Molecule distance
+The `--molecule-distance` option is used during the BWA alignment workflow
+to assign alignments a unique Molecular Identifier `MI:i` tag based on their
+ haplotag barcode and the distance threshold you specify. See 
+[haplotag data](/haplotagdata/#barcode-thresholds) for more information on
+what this value does. 
 
 ## :icon-filter: Quality filtering
 ==- What is a $MQ$ score?
@@ -74,9 +76,10 @@ on a value you may want to use. It is common to remove alignments with $MQ <30$ 
 - fast
 
 The [BWA MEM](https://github.com/lh3/bwa) workflow is substantially simpler and faster than the EMA workflow
- and maps all reads against the reference genome, no muss no fuss. Duplicates are marked at the end using 
+ and maps all reads against the reference genome, no muss no fuss. Duplicates are marked using 
  [sambamba](https://lomereiter.github.io/sambamba/). The `BX:Z` tags in the read headers are still added 
- to the alignment headers, even though barcodes are not used to inform mapping.
+ to the alignment headers, even though barcodes are not used to inform mapping. The `-m` threshold is used
+ for alignment molecule assignment.
 
 ```mermaid
 graph LR
@@ -84,8 +87,10 @@ graph LR
     A([index genome]) --> B([align to genome])
     B-->C([sort alignments])
     C-->D([mark duplicates])
-    D-->F([alignment metrics])
+    D-->E([assign molecules])
+    E-->F([alignment metrics])
     D-->G([barcode stats])
+    G-->F
 ```
 +++ :icon-file-directory: BWA output
 The `harpy align` module creates an `Align/bwa` directory with the folder structure below. `Sample1` is a generic sample name for demonstration purposes.
@@ -173,126 +178,3 @@ Reports the general statistics computed by samtools `stats` and `flagstat`
 |||
 
 +++
-
-## :icon-git-pull-request: EMA workflow
-+++ :icon-git-merge: details
-- leverages the BX barcode information to improve mapping
-- sometimes better downstream SV detection
-- slower
-- marks split alignments as secondary alignments [⚠️](variants/sv.md#leviathan-workflow)
-- lots of temporary files
-
-Since [EMA](https://github.com/arshajii/ema) does extra things to account for barcode
-information, the EMA workflow is a bit more complicated under the hood. Reads with 
-barcodes are aligned using EMA and reads without valid barcodes are separately mapped
-using BWA before merging all the alignments together again. EMA will mark duplicates
-within alignments, but the BWA alignments need duplicates marked manually using 
-[sambamba](https://lomereiter.github.io/sambamba/). Thankfully, you shouldn't need 
-to worry about any of these details.
-
-==- Why EMA?
-The original haplotag manuscript uses BWA to map reads. The authors have since recommended
-the use of EMA (EMerald Aligner) for most applications. EMA is barcode-aware,
-meaning it considers sequences with identical barcodes to have originated from the same 
-molecule, and therefore has higher mapping accuracy than using BWA. Here's a comparison
-from the [EMA manuscript](https://www.biorxiv.org/content/10.1101/220236v1):
-![EMA Publication figure 3](/static/EMA.fig3.png)
-==-
-
-```mermaid
-graph LR
-    A([EMA count]) --> B([EMA preprocess])
-    B-->C([EMA align barcoded])
-    C-->D([sort BX alignments])
-    D-->F([merge all alignments])
-    IDX([index genome])-->C
-    IDX-->Z([BWA align unbarcoded])
-    Z-->Y([sort alignments])
-    Y-->X([mark duplicates])
-    X-->F
-    F-->J([alignment stats])
-```
-+++ :icon-file-directory: EMA output
-The `harpy align` module creates an `Align/ema` directory with the folder structure below. `Sample1` is a generic sample name for demonstration purposes.
-```
-Align/ema
-├── Sample1.bam
-├── Sample1.bam.bai
-├── align
-│   ├── Sample1.bam
-│   └── Sample1.bam.bai
-├── count
-│   └── Sample1.ema-ncnt
-├── logs
-│   ├── harpy.align.log
-│   ├── markduplicates
-│   │   └── Sample1.markdup.nobarcode.log
-│   └── preproc
-│       └── Sample1.preproc.log
-└── stats
-    ├── ema.stats.html
-    ├── reads.bxcounts.html
-    ├── BXstats
-    │   ├── Sample1.bxstats.html
-    │   └── data
-    │       └── Sample1.bxstats.gz
-    └── coverage
-        ├── Sample1.gencov.html
-        └── data
-            ├── Sample1.all.gencov.gz
-            └── Sample1.bx.gencov.gz
-
-```
-| item                                           | description                                                                                                   |
-|:-----------------------------------------------|:--------------------------------------------------------------------------------------------------------------|
-| `*.bam`                                        | sequence alignments for each sample                                                                           |
-| `*.bai`                                        | sequence alignment indexes for each sample                                                                    |
-| `align/*bam*`                                  | symlinks to the alignment files for snakemake purporses                                                       |
-| `count/`                                       | output of `ema count`                                                                                         |
-| `logs/harpy.align.log`                         | relevant runtime parameters for the align module                                                              |
-| `logs/markduplicates/`                         | everything `sambamba markdup` writes to `stderr` during operation on alignments with invalid/missing barcodes |
-| `logs/preproc/*.preproc.log`                   | everything `ema preproc` writes to `stderr` during operation                                                  |
-| `stats/`                                       | various counts/statistics/reports relating to sequence alignment                                              |
-| `stats/ema.stats.html`                         | report summarizing `samtools flagstat and stats` results across all samples from `multiqc`                              |
-| `stats/reads.bxstats.html`                     | interactive html report summarizing `ema count` across all samples                                            |
-| `stats/coverage/*.html`                        | summary plots of alignment coverage per contig                                                                |
-| `stats/coverage/data/*.all.gencov.gz`          | output from samtools bedcov from all alignments, used for plots                                               |
-| `stats/coverage/data/*.bx.gencov.gz`           | output from samtools bedcov from alignments with valid BX barcodes, used for plots                            |
-| `stats/BXstats/`                               | reports summarizing molecule size and reads per molecule                                                      |
-| `stats/BXstats/*.bxstats.html`                 | interactive html report summarizing inferred molecule size                       | 
-| `stats/BXstats/data/`                          | tabular data containing the information used to generate the BXstats reports                                  |
-
-+++ :icon-code-square: EMA parameters
-By default, Harpy runs `ema` with these parameters (excluding inputs and outputs):
-```bash
-ema-h align -d -p haplotag -R "@RG\tID:samplename\tSM:samplename"
-```
-
-Below is a list of all `ema align` command line arguments, excluding those Harpy already uses or those made redundant by Harpy's implementation of EMA.
-These are taken directly from the [EMA documentation](https://github.com/arshajii/ema).
-
-``` ema arguments
--d: apply fragment read density optimization [off]
--i <index>: index to follow 'BX' tag in SAM output [1]
-```
-+++ :icon-graph: reports
-These are the summary reports Harpy generates for this workflow. You may right-click
-the images and open them in a new tab if you wish to see the examples in better detail.
-
-||| Depth and coverage
-Reports the depth of alignments in 10kb windows.
-![stats/coverage/*.html](/static/report_align_coverage.png)
-||| BX validation
-Reports the number of valid/invalid barcodes in the alignments.
-![stats/reads.bxstats.html](/static/report_align_bxstats.png)
-||| Molecule size
-Reports the inferred molecule sized based on barcodes in the alignments.
-![stats/BXstats/*.bxstats.html](/static/report_align_bxmol.png)
-||| Alignment stats
-Reports the general statistics computed by samtools `stats` and `flagstat`
-![stats/samtools_*stat/*html](/static/report_align_flagstat.png)
-|||
-
-+++
-
-

@@ -11,11 +11,11 @@ module of Harpy (except `extra`) has an optional flag `-s` (`--snakemake`)
 that you can use to augment the Snakemake workflow if necessary. Whenever you
 use this flag, your argument must be enclosed in quotation marks, for example:
 ```bash
-harpy trim -d rawseq -s "--dry-run"
+harpy qc -d rawseq -s "--dry-run"
 ```
 This means you can add several Snakemake arguments at once, as long as the entire thing is enclosed in quotes:
 ```bash
-harpy trim -d rawseq -s "--dry-run --debug --shadow-prefix /scratch"
+harpy qc -d rawseq -s "--dry-run --debug --shadow-prefix /scratch"
 ```
 
 !!!danger reserved/forbidden arguments

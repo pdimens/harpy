@@ -29,17 +29,25 @@ like regular FASTQ files of inserts and the barcode is stored in a `BX:Z:AxxCxxB
 in the read header. Again, **do not include the barcode in the sequence**.
 
 ### Read headers
-Like just mentioned, the haplotag barcode is expected to be stored in the `BX:Z:` tag in the 
+Like mentioned, the haplotag barcode is expected to be stored in the `BX:Z:` tag in the 
 read header. This information is retained through the various Harpy
 steps. An example read header could look like:
 ``` example valid read header
-@A00814:267:HTMH3DRXX:2:1101:4580:1000 BX:Z:A02C01B11D46        RX:Z:GAAACGACCAACA+CGAACACGTTAGC   QX:Z:F,FFFFFFFFFFF+FF,FFF:FFFFFF
+@A00814:267:HTMH3DRXX:2:1101:4580:1000  RX:Z:GAAACGACCAACA+CGAACACGTTAGC    QX:Z:F,FFFFFFFFFFF+FF,FFF:FFFFFF   BX:Z:A02C01B11D46
 ```
 Notably, only the sequence ID (`@...`) and `BX:Z:` tag are actually required. In the example 
 above, there are additional tags (`RX:Z:` and `QX:Z:`) which arent used by Harpy, but they 
 conform to the [SAM comment spec (section 1.5)](https://samtools.github.io/hts-specs/SAMv1.pdf) 
 of `TAG:TYPE:VALUE`. The takeaway is that the `BX:Z:` tag can be anywhere in the read header 
-after the sequence ID as long as any tags after it conform to the SAM spec `TAG:TYPE:VALUE`. Read comments that aren't following the `TAG:TYPE:VALUE` SAM spec may cause downstream errors (definitely prevents LEVIATHAN from running).  
+after the sequence ID as long as any tags after it conform to the SAM spec `TAG:TYPE:VALUE` (see note). 
+Read comments that aren't following the `TAG:TYPE:VALUE` SAM spec may cause downstream errors.  
+
+!!!warning A caveat
+The Leviathan structural variant caller expects the `BX:Z:` tag at the end of the alignment 
+record, so if you intend on using that variant caller, you will need to make sure the `BX:Z:`
+tag is the last one in the _sequence alignment_ (BAM file). If you use Harpy to align the 
+sequences, then it will make sure the `BX:Z:` tag is moved to the end of the alignment.
+!!!
 
 ### Read length
 Reads must be at least 30 base pairs in length for alignment. The `trim` module removes reads <50bp.
@@ -74,5 +82,5 @@ between alignments with the same barcode. This parameter can be interpreted as "
 same barcode (on the same contig), then we'll consider them as originating from different molecules." If this threshold is lower, then
 you are being more strict and indicating that alignments sharing barcodes must be closer together to be considered originating from the same
 DNA molecule. Conversely, a higher threshold indicates you are being more lax and indicating barcodes can be further away from each other
-and still be considered originating from the same DNA molecule. A threshold of 50kb-100kb is considered a decent balance, but you should choose
+and still be considered originating from the same DNA molecule. A threshold of 50kb-150kb is considered a decent balance, but you should choose
 larger/smaller values if you have evidence to support them. 

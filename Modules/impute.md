@@ -10,7 +10,7 @@ order: 3
 ===  :icon-checklist: You will need
 - a tab-delimited parameter file 
 - a variant call format file (`.vcf`, `.vcf.gz`, `.bcf`)
-- sequence alignments, in `.bam` format
+- sequence alignments in `.bam` format
 ==- :icon-codescan: Curation of input VCF file
 STITCH needs the input VCF to meet specific criteria:
 1. Biallelic SNPs only
@@ -40,7 +40,7 @@ harpy impute --threads 20 --vcf Variants/mpileup/variants.raw.bcf --directory Al
 ```
 
 ## :icon-terminal: Running Options
-In addition to the [common runtime options](../commonoptions.md), the `harpy impute` module is configured using these command-line arguments:
+In addition to the [common runtime options](/commonoptions.md), the `harpy impute` module is configured using these command-line arguments:
 
 | argument       | short name | type        |    default    | required | description                                                                                     |
 |:---------------|:----------:|:------------|:-------------:|:--------:|:------------------------------------------------------------------------------------------------|
@@ -124,7 +124,7 @@ The `bxlimit` parameter is an integer that informs STITCH when alignments with t
 should be considered as originating from different molecules. This is a common consideration for linked-read analyses
 and 50kb (`50000`) is often a reasonable default. A lower value is considered more strict (fewer reads per moleucle)
 and a higher value is considered more generous (more reads per molecule). You can/should change this value if you 
-have evidence that 50kb isn't appropriate. See [haplotag data](../haplotagdata/#barcode-thresholds) for a more thorough explanation.
+have evidence that 50kb isn't appropriate. See [haplotag data](/haplotagdata/#barcode-thresholds) for a more thorough explanation.
 
 +++k
 ##### Number ancestral haplotypes
@@ -174,7 +174,7 @@ graph LR
     E-->F([merge output])
     G([create file list])-->E
 ```
-+++ :icon-file-directory: imputation output
++++ :icon-file-directory: impute output
 The `harpy impute` module creates an `Imputation` directory with the folder structure below. `contig1` and `contig2` 
 are generic contig names from an imaginary `genome.fasta` for demonstration purposes. The directory `model1/`
 is a generic name to reflect the corresponding parameter row in the stitch parameter

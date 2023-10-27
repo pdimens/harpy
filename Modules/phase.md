@@ -17,7 +17,7 @@ You may want to phase your genotypes into haplotypes, as haplotypes tend to be m
 than unphased genotypes (higher polymorphism, captures relationship between genotypes). Phasing
 genotypes into haplotypes requires alignment files, such as those produced by `harpy align` and
 a variant call file, such as those produced by `harpy variants` or `harpy impute`. **Phasing only
-works on SNP data**, and will not work for structural variants produced by `LEVIATHAN`. You can 
+works on SNP data**, and will not work for structural variants produced by `LEVIATHAN` or `NAIBR`. You can 
 phase genotypes into haplotypes with Harpy using the `phase` module:
 
 ```bash usage
@@ -28,14 +28,14 @@ harpy phase --threads 20 --vcf Variants/variants.raw.bcf --directory Align/ema
 ```
 
 ## :icon-terminal: Running Options
-In addition to the [common runtime options](../commonoptions.md), the `harpy phase` module is configured using these command-line arguments:
+In addition to the [common runtime options](/commonoptions.md), the `harpy phase` module is configured using these command-line arguments:
 
 | argument              | short name | type            | default | required | description                                                          |
 |:----------------------|:----------:|:----------------|:-------:|:--------:|:---------------------------------------------------------------------|
 | `--vcf`               |    `-v`    | file path       |         | **yes**  | Path to BCF/VCF file                                                 |
 | `--directory`         |    `-d`    | folder path     |         | **yes**  | Directory with sequence alignments                                   |
 | `--genome           ` |    `-g`    | file path       |         |    no    | Path to genome if wanting to also use reads spanning indels          |
-| `--molecule-distance` |    `-m`    | integer         |  50000  |    no    | Base-pair distance dilineating separate molecules                    |
+| `--molecule-distance` |    `-m`    | integer         |  100000  |    no    | Base-pair distance threshold to separate molecules                   |
 | `--prune-threshold`   |    `-p`    | integer (0-100) |    7    |    no    | PHRED-scale (%) threshold for pruning low-confidence SNPs            |
 | `--ignore-bx`         |    `-b`    | toggle          |         |    no    | Ignore haplotag barcodes for phasing                                 |
 | `--vcf-samples`       |            |  toggle         |         |    no    | [Use samples present in vcf file](#prioritize-the-vcf-file) for imputation rather than those found the directory    |
@@ -60,9 +60,9 @@ originated from the same DNA molecule rather than having the same barcodes by ch
 Feel free to play around with this number if you aren't sure. A larger distance means
 you are allowing the program to be more lenient in assuming two alignments with the
 same barcode originated from the same DNA molecule. The HapCut2 default is `20000` (20kbp),
-but Harpy's default is more lenient with `50000` (50kbp). Unless you have strong evidence
-in favor of it, a distance above `200000` (200kbp) would probably do more harm than good.
-See [haplotag data](../haplotagdata/#barcode-thresholds) for a more thorough explanation.
+but Harpy's default is more lenient with `100000` (100kbp). Unless you have strong evidence
+in favor of it, a distance above `250000` (250kbp) would probably do more harm than good.
+See [haplotag data](/haplotagdata/#barcode-thresholds) for a more thorough explanation.
 
 ### Pruning threshold
 The pruning threshold refers to a PHRED-scale value between 0-1 (a percentage) for removing
@@ -174,6 +174,13 @@ Advanced Options:
 These are the summary reports Harpy generates for this workflow. You may right-click
 the image and open it in a new tab if you wish to see the example in better detail.
 
-Under development!
+||| Overall Phasing
+Aggregates phasing metrics across all samples.
+![reports/phase.html](/static/report_phase.png)
+||| Per Sample Phasing
+The second tab shows haplotype metrics for every sample
+![reports/phase.html](/static/report_phase2.png)
+|||
+
 
 +++

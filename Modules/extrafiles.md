@@ -48,7 +48,7 @@ different model parameters. The solution Harpy uses for this is to have the user
 provide a tab-delimited dataframe file where the columns are the 6 STITCH model 
 parameters and the rows are the values for those parameters. To make formatting
 easier, a template file is generated for you, just replace the values and add/remove
-rows as necessary. See the [Imputation section](impute.md) for details on these parameters.
+rows as necessary. See the [Imputation section](/Modules/impute.md) for details on these parameters.
 |||
 
 ### hpc
