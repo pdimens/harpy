@@ -23,7 +23,7 @@ def stitchparams(output):
         if overwrite not in ["yes", "y"]:
             click.echo("Please suggest a different name for the output file")
             exit(0)
-    with open(outpout, "w") as file:
+    with open(output, "w") as file:
         _ = file.write('model\tusebx\tbxlimit\tk\ts\tngen\n')
         _ = file.write('diploid\tTRUE\t50000\t10\t5\t50\n')
         _ = file.write('diploid\tTRUE\t50000\t10\t1\t50\n')
