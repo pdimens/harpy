@@ -8,7 +8,7 @@ order: 4
 
 Every Harpy module has a series of configuration parameters. These are arguments you need to input
 to configure the module to run on your data, such as the directory with the reads/alignments,
-the genome assembly, etc. All modules (except `extra`) also share a series of common runtime
+the genome assembly, etc. All main modules (e.g. `qc`) also share a series of common runtime
 parameters that don't impact the results of the module, but instead control the speed/verbosity/etc.
 of calling the module. These runtime parameters are listed in the modules' help strings and can be 
 configured using these arguments:

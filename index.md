@@ -35,16 +35,17 @@ Great! Only want to call variants? Awesome! All modules are called by `harpy <mo
 
 | Module        | Description                                   |
 |:--------------|:----------------------------------------------|
-| `extra`       | Create various associated or necessary files  |
 | `preflight`   | Run various format checks for FASTQ and BAM files |
 | `demultiplex` | Demultiplex haplotagged FASTQ files           |
-| `qc`        | Remove adapters and quality trim sequences    |
+| `qc`          | Remove adapters and quality trim sequences    |
 | `align`       | Align sample sequences to a reference genome  |
-| `snp`          | Call SNPs and small indels                   |
+| `snp`         | Call SNPs and small indels                    |
 | `sv`          | Call large structural variants                |
 | `impute`      | Impute genotypes using variants and sequences |
 | `phase`       | Phase SNPs into haplotypes                    |
-
+| `popgroup`      | Create a sample grouping file               |
+| `stitchparams`  | Create a template STITCH parameter file     |
+| `hpc`           | Create a config file to run Harpy on an HPC |
 
 ## Using Harpy
 You can call `harpy` without any arguments (or with `--help`) to print the docstring to your terminal. You can likewise call any of the modules without arguments or with `--help` to see their usage  (e.g. `harpy align --help`).
@@ -56,25 +57,27 @@ You can call `harpy` without any arguments (or with `--help`) to print the docst
  reads, map sequences, call variants, impute genotypes, and    
  phase haplotypes of Haplotagging data. Batteries included.    
                                                                
- demultiplex >> qc >> align >> snp >> impute >> phase          
+ demultiplex >> qc >> align >> snp >> impute >> phase >> sv          
                                                                
  Documentation: https://pdimens.github.io/harpy/               
                                                                
-╭─ Options ───────────────────────────────────────────────────╮
-│ --version      Show the version and exit.                   │
-│ --help     -h  Show this message and exit.                  │
-╰─────────────────────────────────────────────────────────────╯
-╭─ Modules ───────────────────────────────────────────────────╮
-│ demultiplex  Demultiplex haplotagged FASTQ files            │
-│ qc           Remove adapters and quality trim sequences     │
-│ align        Align sample sequences to a reference genome   │
-│ snp          Call SNPs and small indels                     │
-│ sv           Call large structural variants                 │
-│ impute       Impute genotypes using variants and sequences  │
-│ phase        Phase SNPs into haplotypes                     │
-╰─────────────────────────────────────────────────────────────╯
-╭─ Other Commands ────────────────────────────────────────────╮
-│ preflight  Run file format checks on haplotag data          │
-│ extra      Create various optional/necessary input files    │
-╰─────────────────────────────────────────────────────────────╯
+╭─ Options ──────────────────────────────────────────────────╮
+│ --version      Show the version and exit.                  │
+│ --help     -h  Show this message and exit.                 │
+╰────────────────────────────────────────────────────────────╯
+╭─ Modules ──────────────────────────────────────────────────╮
+│ demultiplex  Demultiplex haplotagged FASTQ files           │
+│ qc           Remove adapters and quality trim sequences    │
+│ align        Align sample sequences to a reference genome  │
+│ snp          Call SNPs and small indels                    │
+│ sv           Call large structural variants                │
+│ impute       Impute genotypes using variants and sequences │
+│ phase        Phase SNPs into haplotypes                    │
+╰────────────────────────────────────────────────────────────╯
+╭─ Other Commands ───────────────────────────────────────────╮
+│ preflight     Run file format checks on haplotag data      │
+│ popgroup      Create a sample grouping file                │
+│ stitchparams  Create a template STITCH parameter file      │
+│ hpc           Create a config file to run Harpy on an HPC  │
+╰────────────────────────────────────────────────────────────╯
 ```

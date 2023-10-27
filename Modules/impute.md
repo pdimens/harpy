@@ -33,7 +33,7 @@ harpy impute OPTIONS...
 
 ```bash example
 # create stitch parameter file 'stitch.params'
-harpy extra -s stitch.params 
+harpy stitchparams -o stitch.params 
 
 # run imputation
 harpy impute --threads 20 --vcf Variants/mpileup/variants.raw.bcf --directory Align/ema --parameters stitch.params
@@ -62,7 +62,7 @@ Typically, one runs STITCH multiple times, exploring how results vary with
 different model parameters (explained in next section). The solution Harpy uses for this is to have the user
 provide a tab-delimited dataframe file where the columns are the 6 STITCH model 
 parameters and the rows are the values for those parameters. The parameter file 
-is required and can be created manually or with `harpy extra -s <filename>`.
+is required and can be created manually or with `harpy stitchparams -o <filename>`.
 If created using harpy, the resulting file includes largely meaningless values 
 that you will need to adjust for your study. The parameter must follow a particular format:
 - tab or comma delimited
