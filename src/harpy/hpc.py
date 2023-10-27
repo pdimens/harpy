@@ -19,41 +19,34 @@ def hpc(output, system):
     With this command you can generate a HPC profile for running
     Harpy on a cluster.
     """
-    if hpc == "sge":
-        click.echo("Unfortunately, SGE is not yet supported.")
-        exit(1)
-    if hpc == 'slurm':
-        if os.path.exists(output):
-            overwrite = input(f"File {output} already exists, overwrite (no|yes)?  ").lower()
-            if overwrite not in ["yes", "y"]:
-                click.echo("Please suggest a different name for the output file")
-                exit(0)
-        with open(output, "w") as yml:
-            yml.write(
-                """cluster:
-  mkdir -p logs/{rule} &&
-  sbatch
-    --partition={resources.partition}
-    --qos={resources.qos}
-    --cpus-per-task={threads}
-    --mem={resources.mem_mb}
-    --job-name=smk-{rule}-{wildcards}
-    --output=logs/{rule}/{rule}-{wildcards}-%j.out
-default-resources:
-  - partition=<name-of-default-partition>
-  - qos=<name-of-quality-of-service>
-  - mem_mb=1000
-restart-times: 3
-max-jobs-per-second: 10
-max-status-checks-per-second: 1
-local-cores: 1
-latency-wait: 60
-jobs: 500
-keep-going: True
-rerun-incomplete: True
-printshellcmds: False
-scheduler: greedy
-use-conda: False
-"""
-        )
+    if os.path.exists(output):
+        overwrite = input(f"File {output} already exists, overwrite (no|yes)?  ").lower()
+        if overwrite not in ["yes", "y"]:
+            click.echo("Please suggest a different name for the output file")
+            exit(0)
+    with open(output, "w") as outfile:
+        outfile.write("cluster:\n")
+        outfile.write("\tmkdir -p logs/{rule} &&\n")
+        outfile.write("\tsbatch\n")
+        outfile.write("\t\t--partition={resources.partition}\n")
+        outfile.write("\t\t--qos={resources.qos}\n")
+        outfile.write("\t\t--cpus-per-task={threads}\n")
+        outfile.write("\t\t--mem={resources.mem_mb}\n")
+        outfile.write("\t\t--job-name=smk-{rule}-{wildcards}\n")
+        outfile.write("\t\t--output=logs/{rule}/{rule}-{wildcards}-%j.out\n")
+        outfile.write("default-resources:\n")
+        outfile.write("\t- partition=<name-of-default-partition>\n")
+        outfile.write("\t- qos=<name-of-quality-of-service>\n")
+        outfile.write("\t- mem_mb=1000\n")
+        outfile.write("restart-times: 3\n")
+        outfile.write("max-jobs-per-second: 10\n")
+        outfile.write("max-status-checks-per-second: 1\n")
+        outfile.write("local-cores: 1\n")
+        outfile.write("latency-wait: 60\n")
+        outfile.write("jobs: 500\n")
+        outfile.write("keep-going: True\n")
+        outfile.write("rerun-incomplete: True\n")
+        outfile.write("printshellcmds: False\n")
+        outfile.write("scheduler: greedy\n")
+        outfile.write("use-conda: False\n")
     click.echo(f"Created HPC profile {output}. Replace the \'partition\' and \'qos\' placeholders in {output} with options relevant to your system.", file = sys.stderr)
