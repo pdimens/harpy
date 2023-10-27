@@ -25,7 +25,7 @@ def hpc(output, system):
     if hpc == 'slurm':
         if os.path.exists(output):
             overwrite = input(f"File {output} already exists, overwrite (no|yes)?  ").lower()
-            if (overwrite != "yes") or (overwrite != "y"):
+            if overwrite not in ["yes", "y"]:
                 click.echo("Please suggest a different name for the output file")
                 exit(0)
         with open(output, "w") as yml:

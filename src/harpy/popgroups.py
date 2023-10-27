@@ -28,25 +28,27 @@ def popgroup(directory, output):
     designations.
     """
     try:
-        samplenames = getnames(directory, '.bam')
+        samplenames = set([i.split(".bam")[0] for i in os.listdir(directory) if i.endswith(".bam")])
+        if len(samplenames) < 1:
+            raise Exception
     except:
-        full_flist = [i for i in glob.iglob(f"{directory}/*") if not os.path.isdir(i)]
-        r = re.compile(".*\.f(?:ast)?q(?:\.gz)?$", flags=re.IGNORECASE)
-        full_fqlist = list(filter(r.match, full_flist))
-        fqlist = [os.path.basename(i) for i in full_fqlist]
-        bn_r = r"[\.\_][RF](?:[12])?(?:\_00[1-9])*\.f(?:ast)?q(?:\.gz)?$"
-        if len(fqlist) == 0:
-            print_error(f"No FASTQ or BAM files were detected in [bold]{directory}[/bold]")
-            print_solution(
-                "Check that FASTQ file endings conform to [green].[/green][[green]F[/green][dim]|[/dim][green]R1[/green]][green].[/green][[green]fastq[/green][dim]|[/dim][green]fq[/green]][green].gz[/green]\nCheck that BAM files end in [green].bam[/green]\nRead the documentation for details: https://pdimens.github.io/harpy/haplotagdata/#naming-conventions"
-            )
-            exit(1)
-        samplenames = set([re.sub(bn_r, "", i, flags = re.IGNORECASE) for i in fqlist])
+       full_flist = [i for i in glob.iglob(f"{directory}/*") if not os.path.isdir(i)]
+       r = re.compile(".*\.f(?:ast)?q(?:\.gz)?$", flags=re.IGNORECASE)
+       full_fqlist = list(filter(r.match, full_flist))
+       fqlist = [os.path.basename(i) for i in full_fqlist]
+       bn_r = r"[\.\_][RF](?:[12])?(?:\_00[1-9])*\.f(?:ast)?q(?:\.gz)?$"
+       if len(fqlist) == 0:
+           print_error(f"No FASTQ or BAM files were detected in [bold]{directory}[/bold]")
+           print_solution(
+               "Check that FASTQ file endings conform to [green].[/green][[green]F[/green][dim]|[/dim][green]R1[/green]][green].[/green][[green]fastq[/green][dim]|[/dim][green]fq[/green]][green].gz[/green]\nCheck that BAM files end in [green].bam[/green]\nRead the documentation for details: https://pdimens.github.io/harpy/haplotagdata/#naming-conventions"
+           )
+           exit(1)
+       samplenames = set([re.sub(bn_r, "", i, flags = re.IGNORECASE) for i in fqlist])
 
     click.echo(str(len(samplenames)) + f" samples detected in {directory}", file = sys.stderr)
     if os.path.exists(output):
         overwrite = input(f"File {output} already exists, overwrite (no|yes)?  ").lower()
-        if (overwrite != "yes") or (overwrite != "y"):
+        if overwrite not in ["yes", "y"]:
             click.echo("Please suggest a different name for the output file")
             exit(0)
     with open(output, "w") as file:
