@@ -49,11 +49,11 @@ def bwa(genome, threads, directory, extra_params, quality_filter, molecule_dista
     sys.exit(_module.returncode)
 
 @click.command(no_args_is_help = True)
-@click.argument('beadtype', type = click.Choice(['haplotag', 'tellseq', '10x'], case_sensitive=False))
+@click.option('-b', '--beadtype', type = click.Choice(['haplotag', 'tellseq', '10x'], case_sensitive=False), default = "haplotag", help = "Linked read bead technology [haplotag, tellseq, 10x]")
 @click.option('-w', '--whitelist', type = click.Path(exists=True), help = "Barcode whitelist file for tellSeq/10x")
 @click.option('-g', '--genome', type=click.Path(exists=True), required = True, metavar = "File Path", help = 'Genome assembly for read mapping')
 @click.option('-d', '--directory', required = True, type=click.Path(exists=True), metavar = "Folder Path", help = 'Directory with sample sequences')
-@click.option('-b', '--ema-bins', default = 500, show_default = True, type = click.IntRange(1,1000), metavar = "Integer", help="Number of barcode bins")
+@click.option('-e', '--ema-bins', default = 500, show_default = True, type = click.IntRange(1,1000), metavar = "Integer", help="Number of barcode bins")
 @click.option('-m', '--molecule-distance', default = 100000, show_default = True, type = int, metavar = "Integer", help = 'Base-pair distance threshold to separate molecules')
 @click.option('-f', '--quality-filter', default = 30, show_default = True, type = click.IntRange(min = 0, max = 40), metavar = "Integer", help = 'Minimum mapping quality to pass filtering')
 @click.option('-x', '--extra-params', type = str, metavar = "String", help = 'Additional aligner parameters, in quotes')
@@ -89,6 +89,9 @@ def ema(beadtype, whitelist, genome, threads, ema_bins, directory, extra_params,
         command.append("--quiet")
         command.append("all")
     command.append('--config')
+    if whitelist:
+        command.append(f"whitelist={whitelist}")
+    command.append(f"beadtype={beadtype}")
     command.append(f"genomefile={genome}")
     command.append(f"quality={quality_filter}")
     command.append(f"samplenames={samplenames}")

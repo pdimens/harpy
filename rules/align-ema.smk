@@ -10,6 +10,8 @@ binrange    = ["%03d" % i for i in range(nbins)]
 genomefile 	= config["genomefile"]
 samplenames = config["samplenames"]
 molecule_distance = config["molecule_distance"]
+beadtype    = config["beadtype"]
+whitelist   = config.get("whitelist", "") 
 extra 		= config.get("extra", "") 
 bn 			= os.path.basename(genomefile)
 genome_zip  = True if bn.lower().endswith(".gz") else False
@@ -107,13 +109,13 @@ rule beadtag_count:
         "Counting barcode frequency: {wildcards.sample}"
     params:
         prefix = lambda wc: outdir + "/" + wc.get("sample") + "/" + wc.get("sample"),
+        beadtech = "-p" if beadtype == "haplotag" else f"-w {whitelist}"
         logdir = f"{outdir}/logs/count/"
     shell:
         """
-        mkdir -p {params.prefix}
-        mkdir -p {params.logdir}
+        mkdir -p {params.prefix} {params.logdir}
         seqtk mergepe {input.forward_reads} {input.reverse_reads} | 
-            ema count -p -o {params.prefix} 2> {output.logs}
+            ema count {params.beadtech} -o {params.prefix} 2> {output.logs}
         """
 
 rule beadtag_summary:
@@ -144,9 +146,10 @@ rule preprocess:
         2
     params:
         outdir = lambda wc: outdir + "/" + wc.get("sample") + "/preproc",
+        beadtech = "-p" if beadtype == "haplotag" else f"-w {whitelist}",
         bins   = nbins
     shell:
-        "seqtk mergepe {input.forward_reads} {input.reverse_reads} | ema preproc -p -n {params.bins} -t {threads} -o {params.outdir} {input.emacounts} 2>&1 | cat - > {log}"
+        "seqtk mergepe {input.forward_reads} {input.reverse_reads} | ema preproc {params.beadtech} -n {params.bins} -t {threads} -o {params.outdir} {input.emacounts} 2>&1 | cat - > {log}"
 
 rule align:
     input:
@@ -165,13 +168,14 @@ rule align:
     params: 
         quality = config["quality"],
         tmpdir = lambda wc: outdir + "/." + d[wc.sample],
+        beadtech = f"-p {beadtype}",
         extra = extra
     threads:
         10
     shell:
         """
         EMATHREADS=$(( {threads} - 2 ))
-        ema align -t $EMATHREADS {params.extra} -d -p haplotag -r {input.genome} -R \"@RG\\tID:{wildcards.sample}\\tSM:{wildcards.sample}\" -x {input.readbin} 2> {log.ema} |
+        ema align -t $EMATHREADS {params.extra} -d {params.beadtech} -r {input.genome} -R \"@RG\\tID:{wildcards.sample}\\tSM:{wildcards.sample}\" -x {input.readbin} 2> {log.ema} |
         samtools view -h -F 4 -q {params.quality} - | 
         samtools sort -T {params.tmpdir} --reference {input.genome} -O bam --write-index -m 4G -o {output.aln}##idx##{output.idx} - 2> {log.emasort}
         rm -rf {params.tmpdir}
@@ -360,18 +364,18 @@ rule log_runtime:
     message:
         "Creating record of relevant runtime parameters: {output}"
     params:
-        extra = extra
+        beadtech = "-p" if beadtype == "haplotag" else f"-w {whitelist}"
     run:
         with open(output[0], "w") as f:
             _ = f.write("The harpy align module ran using these parameters:\n\n")
             _ = f.write(f"The provided genome: {bn}\n")
             _ = f.write(f"The directory with sequences: {seq_dir}\n")
             _ = f.write("Barcodes were counted and validated with EMA using:\n")
-            _ = f.write("    seqfu interleave forward.fq.gz reverse.fq.gz | ema count -p\n")
+            _ = f.write("    seqtk mergepe forward.fq.gz reverse.fq.gz | ema count {params.beadtech}\n")
             _ = f.write("Barcoded sequences were binned with EMA using:\n")
-            _ = f.write(f"    seqfu interleave forward.fq.gz reverse.fq.gz | ema preproc -p -n {nbins}\n")
+            _ = f.write(f"    seqtk mergepe forward.fq.gz reverse.fq.gz | ema preproc {params.beadtech} -n {nbins}\n")
             _ = f.write("Barcoded bins were aligned with ema align using:\n")
-            _ = f.write("    ema align " + extra + " -d -p haptag -R \"@RG\\tID:SAMPLE\\tSM:SAMPLE\" |\n")
+            _ = f.write(f"    ema align " + extra + " -d -p " beadtype + " -R \"@RG\\tID:SAMPLE\\tSM:SAMPLE\" |\n")
             _ = f.write("    samtools view -h -F 4 -q " + str(config["quality"]) + " - |\n") 
             _ = f.write("    samtools sort --reference genome -m 4G\n\n")
             _ = f.write("Invalid/non barcoded sequences were aligned with BWA using:\n")
