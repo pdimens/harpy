@@ -10,7 +10,7 @@ binrange    = ["%03d" % i for i in range(nbins)]
 genomefile 	= config["genomefile"]
 samplenames = config["samplenames"]
 molecule_distance = config["molecule_distance"]
-beadtype    = config["beadtype"]
+platform    = config["platform"]
 whitelist   = config.get("whitelist", "") 
 extra 		= config.get("extra", "") 
 bn 			= os.path.basename(genomefile)
@@ -109,7 +109,7 @@ rule beadtag_count:
         "Counting barcode frequency: {wildcards.sample}"
     params:
         prefix = lambda wc: outdir + "/" + wc.get("sample") + "/" + wc.get("sample"),
-        beadtech = "-p" if beadtype == "haplotag" else f"-w {whitelist}"
+        beadtech = "-p" if platform == "haplotag" else f"-w {whitelist}"
         logdir = f"{outdir}/logs/count/"
     shell:
         """
@@ -146,7 +146,7 @@ rule preprocess:
         2
     params:
         outdir = lambda wc: outdir + "/" + wc.get("sample") + "/preproc",
-        beadtech = "-p" if beadtype == "haplotag" else f"-w {whitelist}",
+        beadtech = "-p" if platform == "haplotag" else f"-w {whitelist}",
         bins   = nbins
     shell:
         "seqtk mergepe {input.forward_reads} {input.reverse_reads} | ema preproc {params.beadtech} -n {params.bins} -t {threads} -o {params.outdir} {input.emacounts} 2>&1 | cat - > {log}"
@@ -168,7 +168,7 @@ rule align:
     params: 
         quality = config["quality"],
         tmpdir = lambda wc: outdir + "/." + d[wc.sample],
-        beadtech = f"-p {beadtype}",
+        beadtech = f"-p {platform}",
         extra = extra
     threads:
         10
@@ -364,7 +364,7 @@ rule log_runtime:
     message:
         "Creating record of relevant runtime parameters: {output}"
     params:
-        beadtech = "-p" if beadtype == "haplotag" else f"-w {whitelist}"
+        beadtech = "-p" if platform == "haplotag" else f"-w {whitelist}"
     run:
         with open(output[0], "w") as f:
             _ = f.write("The harpy align module ran using these parameters:\n\n")
@@ -375,7 +375,7 @@ rule log_runtime:
             _ = f.write("Barcoded sequences were binned with EMA using:\n")
             _ = f.write(f"    seqtk mergepe forward.fq.gz reverse.fq.gz | ema preproc {params.beadtech} -n {nbins}\n")
             _ = f.write("Barcoded bins were aligned with ema align using:\n")
-            _ = f.write(f"    ema align " + extra + " -d -p " beadtype + " -R \"@RG\\tID:SAMPLE\\tSM:SAMPLE\" |\n")
+            _ = f.write(f"    ema align " + extra + " -d -p " platform + " -R \"@RG\\tID:SAMPLE\\tSM:SAMPLE\" |\n")
             _ = f.write("    samtools view -h -F 4 -q " + str(config["quality"]) + " - |\n") 
             _ = f.write("    samtools sort --reference genome -m 4G\n\n")
             _ = f.write("Invalid/non barcoded sequences were aligned with BWA using:\n")
