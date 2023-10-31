@@ -11,3 +11,6 @@ cp utilities/* ${CONDA_PREFIX}/bin/
 
 # reports
 cp reports/*.Rmd ${CONDA_PREFIX}/bin/
+
+# completion
+cp misc/harpy_completion.sh ${CONDA_PREFIX}/etc/conda/activate.d/
