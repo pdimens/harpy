@@ -24,7 +24,7 @@ def mpileup(genome, threads, directory, populations, ploidy, windowsize, extra_p
     Call variants from using bcftools mpileup
     
     Optionally specify `--populations` for population-aware variant calling.
-    Use **harpy extra --popgroup** to create a sample grouping file to 
+    Use **harpy popgroup** to create a sample grouping file to 
     use as input for `--populations`. Available methods are:
     """
     samplenames = getnames(directory, '.bam')
@@ -69,7 +69,7 @@ def freebayes(genome, threads, directory, populations, ploidy, windowsize, extra
     Call variants using freebayes
     
     Optionally specify `--populations` for population-aware variant calling.
-    Use **harpy extra --popgroup** to create a sample grouping file to 
+    Use **harpy popgroup** to create a sample grouping file to 
     use as input for `--populations`.
     """
     samplenames = getnames(directory, '.bam')

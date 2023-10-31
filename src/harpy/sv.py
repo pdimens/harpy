@@ -22,7 +22,7 @@ def leviathan(genome, threads, directory, populations, extra_params, snakemake, 
     Call structural variants using LEVIATHAN
     
     Optionally specify `--populations` for population-pooled variant calling. 
-    Use **harpy extra --popgroup** to create a sample grouping file to 
+    Use **harpy popgroup** to create a sample grouping file to 
     use as input for `--populations`.
     """
     samplenames = getnames(directory, '.bam')
@@ -72,7 +72,7 @@ def naibr(genome, vcf, threads, directory, populations, molecule_distance, extra
     to phase your input bam files prior to calling variants with NAIBR.
 
     Optionally specify `--populations` for population-pooled variant calling. 
-    Use **harpy extra --popgroup** to create a sample grouping file to 
+    Use **harpy popgroup** to create a sample grouping file to 
     use as input for `--populations`.
     """
     samplenames = getnames(directory, '.bam')

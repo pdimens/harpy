@@ -135,7 +135,7 @@ def check_impute_params(parameters):
             culprits = [i for i in headersplt if i not in correct_header]
             print_error(f"Parameter file [bold]{parameters}[/bold] has incorrect column names. Valid names are:\n[green]model usebx bxlimit k s ngen[/green]")
             print_solution_with_culprits(
-                f"Fix the headers in [bold]{parameters}[/bold] or use [green]harpy extra -s stitch.params[/green] to generate a valid parameter file and modify it with appropriate values.",
+                f"Fix the headers in [bold]{parameters}[/bold] or use [green]harpy stitchparams[/green] to generate a valid parameter file and modify it with appropriate values.",
                 "Column names causing this error:"
             )
             click.echo(" ".join(culprits), file = sys.stderr)
@@ -166,7 +166,7 @@ def check_impute_params(parameters):
         if len(badrows) > 0:
             print_error(f"Parameter file [bold]{parameters}[/bold] is formatted incorrectly. Not all rows have the expected 6 columns.")
             print_solution_with_culprits(
-                f"See the problematic rows below. Check that you are using a whitespace (space or tab) delimeter in [bold]{parameters}[/bold] or use [green]harpy extra -s stitch.params[/green] to generate a valid parameter file and modify it with appropriate values.",
+                f"See the problematic rows below. Check that you are using a whitespace (space or tab) delimeter in [bold]{parameters}[/bold] or use [green]harpy stitchparams[/green] to generate a valid parameter file and modify it with appropriate values.",
                 "Rows causing this error and their column count:"
             )
             for i in zip(badrows, badlens):
