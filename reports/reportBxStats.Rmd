@@ -28,7 +28,7 @@ mdist <- snakemake@params[[1]]
 bamfile <- gsub(".bxstats.gz", ".bam", infile)
 samplename <- gsub(".bxstats.gz", "", basename(infile))
 tb <- read.table(infile, header = T, sep = "\t") %>% select(-start, -end)
-tb$valid <- tb$bx
+tb$valid <- tb$molecule
 tb[!(tb$valid %in% c("noBX", "invalidBX")), "valid"] <- "validBX"
 tb$valid <- gsub("BX", " BX", tb$valid)
 ```
@@ -36,15 +36,15 @@ tb$valid <- gsub("BX", " BX", tb$valid)
 ```{r bxper, echo = F, results = F, message = F}
 valids <- tb[!(tb$valid %in% c("no BX", "invalid BX")),]
 nBX <- group_by(valids, contig) %>% 
-  summarize(nBX = length(bx))
+  summarize(nBX = length(molecule))
 
 avgBX <- round(mean(nBX$nBX), digits = 2)
 
-totuniqBX <- length(unique(valids$bx))
+totuniqBX <- length(unique(valids$molecule))
 
 tots <- tb %>% 
     group_by(valid) %>%
-    summarize(total = length(bx)) %>% 
+    summarize(total = length(molecule)) %>% 
     as.data.frame()
 for(i in c("no BX", "invalid BX", "valid BX")){
   if (!(i %in% tots$valid)){
@@ -67,7 +67,6 @@ valueBox(scales::comma(length(unique(tb$contig))), caption = "Contigs")
 
 ### validBX
 ```{r}
-
 valueBox(scales::comma(tots[tots$valid == "valid BX", 2]), caption = "Valid Barcodes", color = "success", icon = "fa-vial-circle-check")
 ```
 
@@ -167,9 +166,6 @@ p <- tb %>% filter(valid == "valid BX", length_inferred > 10) %>%
 ggplotly(p)
 ```
 
-### A table of some kind
-pretty sure there is a table that belongs here
-
 ## Interpreting the supporting data
 ### interp desc {.no-title}
 <h2> Interpreting the Data </h2>
@@ -182,9 +178,9 @@ underlying data used to create this report.
 Listed below are the descriptions of the columns in **`r basename(infile)`**, which was created
 by Harpy using the included `bxStats.py` script.
 
-- `contig`: name of the contig the barcode occurs on 
-- `bx`:  the barcode 
-- `reads`:  number of alignments with this barcode 
+- `contig`: name of the contig the molecule occurs on 
+- `molecule`:  the molecule, given by `MI:i:`, that spans reads with the same barcodes 
+- `reads`:  number of alignments associated with this molecule 
 - `start`:  the start position of the first alignment for that barcode on that contig 
 - `end`: the end position of the last alignment for that barcode on that contig 
 - `length_inferred`: inferred length of the molecule based on the start/end of the alignments with that barcode 
@@ -208,10 +204,8 @@ BX barcode validity is classified into one of three categories:
 It's common for a barcode shared by reads not originating from the same molecule
 to reappear much further along a chromosome or across multiple chromosomes. The 
 process that derives the data in this report separates those recurring barcodes
-as unique molecules when their distance is greater than `r mdist` base pairs along a single contig.
-The "split" molecules are identified by a numerical suffix in their name, such
-as the `.1` in `A01C22B96D11.1`. These suffixes were added only for reporting purposes and 
-the barcodes in your alignment file **were not** altered. If aligned with BWA, Harpy added
-a corresponding `MI:i:` (Molecular Identifier) tag that reflects these splits given
-the molecule distance threshold you specified. If aligned with EMA, the EMA software
-itself determines the splits and assigns the `MI:i` tag without user specification.
+as unique molecules when their distance is greater than a predetermined threshold. 
+If aligned with `BWA`, Harpy added a corresponding `MI:i:` (Molecular Identifier) tag
+that reflects splits given the molecule distance threshold you specified (`r mdist`).
+If aligned with `EMA`, the `EMA` software itself determines the splits and assigns
+ the `MI:i` tag without user specification.
