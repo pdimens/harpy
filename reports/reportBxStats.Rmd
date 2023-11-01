@@ -199,8 +199,6 @@ BX barcode validity is classified into one of three categories:
 ### Molecule splitting {.no-title}
 <h3> Molecule Splitting, Explained </h3>
 
-**Split threshold: `r mdist`**
-
 It's common for a barcode shared by reads not originating from the same molecule
 to reappear much further along a chromosome or across multiple chromosomes. The 
 process that derives the data in this report separates those recurring barcodes

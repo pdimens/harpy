@@ -313,7 +313,7 @@ rule bx_stats_alignments:
     message:
         "Calculating barcode alignment statistics: {wildcards.sample}"
     params:
-        molecule_distance
+        "ema was used"
     shell:
         "bxStats.py -c {params} {input.bam} | gzip > {output}"
 
