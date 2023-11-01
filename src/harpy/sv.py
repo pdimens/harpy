@@ -67,7 +67,7 @@ def naibr(genome, vcf, threads, directory, populations, molecule_distance, extra
     
     NAIBR requires **phased** bam files as input. This appears as the `HP` or `PS` tags
     in alignment records. If your bam files do not have either of these phasing tags
-    (e.g. BWA does not phase alignments), then provide a **phased** `--vcf` file such
+    (e.g. BWA/EMA do not phase alignments), then provide a **phased** `--vcf` file such
      as that created by `harpy phase` and Harpy will use [whatshap haplotag](https://whatshap.readthedocs.io/en/latest/guide.html#whatshap-haplotag)
     to phase your input bam files prior to calling variants with NAIBR.
 
