@@ -109,7 +109,7 @@ rule beadtag_count:
         "Counting barcode frequency: {wildcards.sample}"
     params:
         prefix = lambda wc: outdir + "/" + wc.get("sample") + "/" + wc.get("sample"),
-        beadtech = "-p" if platform == "haplotag" else f"-w {whitelist}"
+        beadtech = "-p" if platform == "haplotag" else f"-w {whitelist}",
         logdir = f"{outdir}/logs/count/"
     shell:
         """
@@ -375,7 +375,7 @@ rule log_runtime:
             _ = f.write("Barcoded sequences were binned with EMA using:\n")
             _ = f.write(f"    seqtk mergepe forward.fq.gz reverse.fq.gz | ema preproc {params.beadtech} -n {nbins}\n")
             _ = f.write("Barcoded bins were aligned with ema align using:\n")
-            _ = f.write(f"    ema align " + extra + " -d -p " platform + " -R \"@RG\\tID:SAMPLE\\tSM:SAMPLE\" |\n")
+            _ = f.write(f"    ema align " + extra + " -d -p " + platform + " -R \"@RG\\tID:SAMPLE\\tSM:SAMPLE\" |\n")
             _ = f.write("    samtools view -h -F 4 -q " + str(config["quality"]) + " - |\n") 
             _ = f.write("    samtools sort --reference genome -m 4G\n\n")
             _ = f.write("Invalid/non barcoded sequences were aligned with BWA using:\n")

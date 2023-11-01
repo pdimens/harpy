@@ -15,7 +15,7 @@ except:
     pass
 
 @click.command(no_args_is_help = True)
-@click.option('-d', '--directory', required = True, type=click.Path(exists=True), metavar = "Input folder Path", help = 'Input folder with fastq or bam files')
+@click.option('-d', '--directory', required = True, type=click.Path(exists=True, file_okay=False), metavar = "Input folder Path", help = 'Input folder with fastq or bam files')
 @click.option('-o', '--output', type=str, default = "samples.groups", metavar = "Output file name", help = 'Output file name')
 def popgroup(directory, output):
     """
