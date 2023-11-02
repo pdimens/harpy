@@ -127,20 +127,6 @@ rule align:
         rm -rf {params.tmpdir}
         """
 
-rule alignment_bxstats:
-    input:
-        bam = outdir + "/{sample}/{sample}.sort.bam",
-        bai = outdir + "/{sample}/{sample}.sort.bam.bai"
-    output: 
-        outdir + "/stats/BXstats/data/{sample}.bxstats.gz"
-    message:
-        "Calculating barcode alignment statistics: {wildcards.sample}"
-    params:
-        sample = lambda wc: d[wc.sample],
-        mdist = molecule_distance
-    shell:
-        "bxStats.py -c {params.mdist} {input.bam} | gzip > {output}"
-
 rule bxstats_report:
     input:
         outdir + "/stats/BXstats/data/{sample}.bxstats.gz"
@@ -183,6 +169,19 @@ rule assign_molecules:
         molecule_distance
     shell:
         "assignMI.py -c {params} -i {input.bam} -o {output.bam}"
+
+rule alignment_bxstats:
+    input:
+        bam = outdir + "/align/{sample}.bam",
+        bai = outdir + "/align/{sample}.bam.bai"
+    output: 
+        outdir + "/stats/BXstats/data/{sample}.bxstats.gz"
+    message:
+        "Calculating barcode alignment statistics: {wildcards.sample}"
+    params:
+        sample = lambda wc: d[wc.sample]
+    shell:
+        "bxStats.py {input.bam} | gzip > {output}"
 
 rule alignment_coverage:
     input: 
