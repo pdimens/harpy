@@ -50,7 +50,7 @@ sequences, then it will make sure the `BX:Z:` tag is moved to the end of the ali
 !!!
 
 ### Read length
-Reads must be at least 30 base pairs in length for alignment. The `trim` module removes reads <50bp.
+Reads must be at least 30 base pairs in length for alignment. The `qc` module removes reads <50bp.
 
 ### Compression
 Harpy generally doesn't require the input sequences to be in gzipped/bgzipped format, but it's good practice to compress your reads anyway.
@@ -60,7 +60,7 @@ Compressed files are expected to end with the extension `.gz`.
 Unfortunately, there are many different ways of naming FASTQ files, which makes it 
 difficult to accomodate every wacky iteration currently in circulation.
 While Harpy tries its best to be flexible, there are limitations. 
-To that end, for the `demultiplex`, `trim`, and `align` modules, the 
+To that end, for the `demultiplex`, `qc`, and `align` modules, the 
 most common FASTQ naming styles are supported:
 - **sample names**: Alphanumeric and `.`, `-`, `_`
     - you can mix and match special characters, but that's bad practice and not recommended
