@@ -195,7 +195,7 @@ click.rich_click.OPTION_GROUPS = {
     "harpy qc": [
         {
             "name": "Configuration",
-            "options": ["--directory", "--max-length", "--extra-params"],
+            "options": ["--directory", "--max-length", "--ignore-adapters", "--extra-params"],
         },
         {
             "name": "Other Options",

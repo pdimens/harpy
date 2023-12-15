@@ -22,6 +22,12 @@ except:
 def qc(directory, max_length, ignore_adapters, extra_params, threads, snakemake, quiet):
     """
     Remove adapters and quality trim sequences
+
+    By default, adapters will be automatically detected and removed (can be disabled).
+    The input reads will be quality trimmed using:
+    - a sliding window from front to tail
+    - minimum 15bp length filter
+    - poly-G tail removal
     """
     get_samples_from_fastq(directory)
     command = f'snakemake --rerun-incomplete --nolock --cores {threads} --directory . --snakefile {harpypath}/qc.smk'.split()
