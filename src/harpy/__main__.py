@@ -215,7 +215,7 @@ click.rich_click.OPTION_GROUPS = {
     "harpy align ema": [
         {
             "name": "Configuration",
-            "options": ["--platform", "--whitelist", "--genome", "--directory", "--quality-filter", "--molecule-distance", "--ema-bins", "--extra-params"],
+            "options": ["--platform", "--whitelist", "--genome", "--directory", "--quality-filter", "--ema-bins", "--extra-params"],
         },
         {
             "name": "Other Options",

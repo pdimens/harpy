@@ -327,7 +327,7 @@ rule bx_stats_report:
     message: 
         "Generating summary of barcode alignment: {wildcards.sample}"
     params:
-        molecule_distance
+        "none"
     script:
         "reportBxStats.Rmd"
 
