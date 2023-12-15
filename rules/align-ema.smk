@@ -3,15 +3,12 @@ import re
 import glob
 from pathlib import Path
 
-#TODO fix molecule distance situation?
 outdir      = "Align/ema"
 seq_dir 	= config["seq_directory"]
 nbins 		= config["EMA_bins"]
 binrange    = ["%03d" % i for i in range(nbins)]
 genomefile 	= config["genomefile"]
 samplenames = config["samplenames"]
-molecule_distance = config["molecule_distance"]
-#molecule_distance = 100000
 platform    = config["platform"]
 whitelist   = config.get("whitelist", "") 
 extra 		= config.get("extra", "") 
