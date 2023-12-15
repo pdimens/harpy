@@ -50,7 +50,7 @@ sequences, then it will make sure the `BX:Z:` tag is moved to the end of the ali
 !!!
 
 ### Read length
-Reads must be at least 30 base pairs in length for alignment. The `trim` module removes reads <50bp.
+Reads must be at least 15 base pairs in length for alignment. The `trim` module removes reads <15bp.
 
 ### Compression
 Harpy generally doesn't require the input sequences to be in gzipped/bgzipped format, but it's good practice to compress your reads anyway.
