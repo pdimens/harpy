@@ -14,11 +14,12 @@ except:
 @click.command(no_args_is_help = True)
 @click.option('-d', '--directory', required = True, type=click.Path(exists=True, file_okay=False), metavar = "Folder Path", help = 'Directory with raw sample sequences')
 @click.option('-l', '--max-length', default = 150, show_default = True, type=int, metavar = "Integer", help = 'Maximum length to trim sequences down to')
+@click.option('-a', '--ignore-adapters', is_flag = True, show_default = False, default = False, metavar = "Toggle", help = 'Skip adapter trimming')
 @click.option('-x', '--extra-params', type = str, metavar = "String", help = 'Additional Fastp parameters, in quotes')
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(min = 4, max_open = True), metavar = "Integer", help = 'Number of threads to use')
 @click.option('-s', '--snakemake', type = str, metavar = "String", help = 'Additional Snakemake parameters, in quotes')
 @click.option('-q', '--quiet',  is_flag = True, show_default = True, default = False, metavar = "Toggle", help = 'Don\'t show output text while running')
-def qc(directory, max_length, extra_params, threads, snakemake, quiet):
+def qc(directory, max_length, ignore_adapters, extra_params, threads, snakemake, quiet):
     """
     Remove adapters and quality trim sequences
     """
@@ -32,6 +33,7 @@ def qc(directory, max_length, extra_params, threads, snakemake, quiet):
     command.append('--config')
     directory = directory.rstrip("/^")
     command.append(f"seq_directory={directory}")
+    command.append(f"adapters={ignore_adapters}")
     command.append(f"maxlen={max_length}")
     if extra_params is not None:
         command.append(f"extra={extra_params}")

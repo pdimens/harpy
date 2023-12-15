@@ -51,3 +51,7 @@ jobs:
       - name: harpy qc
         run: harpy qc -d test/fastq
         shell: micromamba-shell {0}
+      
+      - name: harpy qc skip adapter trimming
+        run: harpy qc -d test/fastq -a
+        shell: micromamba-shell {0}

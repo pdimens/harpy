@@ -2,9 +2,10 @@ import os
 import re
 import glob
 
-maxlen 		= config["maxlen"]
-extra 		= config.get("extra", "") 
-seq_dir 	= config["seq_directory"]
+maxlen 	  = config["maxlen"]
+extra 	  = config.get("extra", "") 
+seq_dir   = config["seq_directory"]
+adapters  = config["adapters"]
 
 flist = [os.path.basename(i) for i in glob.iglob(f"{seq_dir}/*") if not os.path.isdir(i)]
 r = re.compile(".*\.f(?:ast)?q(?:\.gz)?$", flags=re.IGNORECASE)
@@ -45,10 +46,11 @@ rule trimFastp:
         2
     params:
         maxlen = f"--max_len1 {maxlen}",
+        tim_adapters = "--detect_adapter_for_pe" if adapters else "--disable_adapter_trimming",
         extra = extra
     shell: 
         """
-        fastp --trim_poly_g --cut_right --detect_adapter_for_pe {params} --thread {threads} -i {input.fw} -I {input.rv} -o {output.fw} -O {output.rv} -h {log.html} -j {output.json} -R "{wildcards.sample} QC Report" 2> {log.serr}
+        fastp --trim_poly_g --cut_right {params} --thread {threads} -i {input.fw} -I {input.rv} -o {output.fw} -O {output.rv} -h {log.html} -j {output.json} -R "{wildcards.sample} QC Report" 2> {log.serr}
         """
 
 rule count_beadtags:
@@ -78,13 +80,14 @@ rule log_runtime:
         "Creating record of relevant runtime parameters: {output}"
     params:
         maxlen = f"--max_len1 {maxlen}",
+        tim_adapters = "--detect_adapter_for_pe" if adapters else "--disable_adapter_trimming",
         extra = extra
     run:
         with open(output[0], "w") as f:
             _ = f.write("The harpy qc module ran using these parameters:\n\n")
             _ = f.write(f"The directory with sequences: {seq_dir}\n")
             _ = f.write("fastp trimming ran using:\n")
-            _ = f.write("    fastp --trim_poly_g --cut_right --detect_adapter_for_pe" + " ".join(params) + "\n")
+            _ = f.write("    fastp --trim_poly_g --cut_right " + " ".join(params) + "\n")
 
 rule createReport:
     default_target: True
