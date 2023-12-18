@@ -11,6 +11,8 @@ parser.add_argument('output', help = "Output bam file. This file will also be in
 
 args = parser.parse_args()
 # the AXXCXXBXXDXX regex match
+# haplotag = re.compile("([A-Z]\d{2,}){3,}")
+
 haplotag = re.compile('A[0-9]{2}C[0-9]{2}B[0-9]{2}D[0-9]{2}')
 
 alnfile = pysam.AlignmentFile(args.input)

@@ -25,8 +25,11 @@ args = parser.parse_args()
 n_reads = 0
 n_bx = 0
 n_valid = 0
+# haplotag = re.compile("([A-Z]\d{2,}){3,}")
 haplotag = re.compile('A[0-9]{2}C[0-9]{2}B[0-9]{2}D[0-9]{2}')
+# invalid = re.compile('[A-Z]00')
 invalid = re.compile('[AaBbCcDd]00')
+# inv_dict = dict()
 inv_dict = {
     "A" : 0,
     "B" : 0,
@@ -48,7 +51,10 @@ with pysam.FastxFile(args.fastqfile) as fh:
                 inv = re.findall(invalid, beadtag)
                 if inv:
                     for i in inv:
+                    #    if i[0] in inv_dict:
                         inv_dict[i[0]] += 1
+                    #   else:
+                    #   inv_dict[i[0]] = 1
                     continue
                 n_valid += 1
 
