@@ -95,7 +95,7 @@ def ema(platform, whitelist, genome, threads, ema_bins, directory, extra_params,
     command.append(f"quality={quality_filter}")
     command.append(f"samplenames={samplenames}")
     command.append(f"EMA_bins={ema_bins}")
-    command.append(f"molecule_distance={molecule_distance}")
+    #command.append(f"molecule_distance={molecule_distance}")
     command.append(f"seq_directory={directory}")
 
     if extra_params is not None:
