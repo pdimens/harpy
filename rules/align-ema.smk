@@ -311,10 +311,8 @@ rule bx_stats_alignments:
         outdir + "/stats/BXstats/data/{sample}.bxstats.gz"
     message:
         "Calculating barcode alignment statistics: {wildcards.sample}"
-    params:
-        "ema was used"
     shell:
-        "bxStats.py -c {params} {input.bam} | gzip > {output}"
+        "bxStats.py {input.bam} | gzip > {output}"
 
 rule bx_stats_report:
     input:
