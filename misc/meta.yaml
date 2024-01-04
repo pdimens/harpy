@@ -17,7 +17,7 @@ build:
 
 requirements:
   host:
-    - python =3.10
+    - python =3.12
   run:
     - bcftools
     - bioconductor-complexheatmap
@@ -33,7 +33,7 @@ requirements:
     - llvm-openmp 
     - multiqc
     - naibr-plus
-    - python =3.10
+    - python =3.12
     - pysam
     - r-base
     - r-circlize
@@ -50,7 +50,7 @@ requirements:
     - r-tidyr
     - r-viridislite
     - rich-click
-    - snakemake >=7
+    - snakemake >=8
     - sambamba
     - samtools
     - seqtk
