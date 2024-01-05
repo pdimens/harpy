@@ -48,7 +48,7 @@ jobs:
         with:
           init-shell: bash
           generate-run-shell: true
-          environment-file: misc/harpyenv.yaml
+          environment-file: workflow/envs/harpyenv.yaml
           cache-environment: true
           post-cleanup: 'all'
           log-level: error
@@ -56,7 +56,7 @@ jobs:
         run: |
           python3 -m pip install --upgrade build && python3 -m build
           pip install dist/*.whl
-          misc/buildforCI.sh
+          resources/buildforCI.sh
         shell: micromamba-shell {0}
 
       - name: impute

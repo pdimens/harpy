@@ -12,14 +12,14 @@ mkdir -p ${CONDA_PREFIX}/bin
 pip install . --no-deps
 
 # rules
-cp -f rules/*.smk ${CONDA_PREFIX}/bin/
+cp -f workflow/rules/*.smk ${CONDA_PREFIX}/bin/
 
 # associated scripts
-chmod +x utilities/* 
-cp -f utilities/* ${CONDA_PREFIX}/bin/
+chmod +x workflow/scripts/* 
+cp -f workflow/scripts/* ${CONDA_PREFIX}/bin/
 
 # reports
-cp -f reports/*.Rmd ${CONDA_PREFIX}/bin/
+cp -f workflow/report/*.Rmd ${CONDA_PREFIX}/bin/
 
 # completion
-cp misc/harpy_completion.sh ${CONDA_PREFIX}/etc/conda/activate.d/
+#cp misc/harpy_completion.sh ${CONDA_PREFIX}/etc/conda/activate.d/
