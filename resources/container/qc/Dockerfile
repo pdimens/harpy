@@ -2,7 +2,7 @@
 
 FROM mambaorg/micromamba
 
-RUN sudo apt-get update && sudo apt-get install -y texlive
+RUN apt install texlive
 
 RUN micromamba install --yes --name base -c bioconda -c conda-forge \
     falco \ 
