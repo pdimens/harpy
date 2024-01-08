@@ -1,3 +1,5 @@
+# used for lockfile creation via CI
+
 name: condalock
 
 channels:
