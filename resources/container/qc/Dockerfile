@@ -2,7 +2,15 @@
 
 FROM mambaorg/micromamba
 
+USER root
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    perl \
+    && rm -rf /var/lib/apt/lists/*
+
 RUN apt-get install perl
+
+USER $MAMBA_USER
 
 #COPY --chown=$MAMBA_USER:$MAMBA_USER qc.lock /tmp/env.lock
 
