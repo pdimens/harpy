@@ -15,12 +15,13 @@ RUN micromamba install --yes --name base -c bioconda -c conda-forge \
     r-plotly \ 
     r-rmarkdown \ 
     r-tidyr \ 
+    conda-forge::r-tinytex \
     r-viridislite
 
 RUN micromamba clean --all --yes
 
 ARG MAMBA_DOCKERFILE_ACTIVATE=1
 
-COPY workflow/scripts/ /home/
+COPY /workdir/pdimens/harpy/workflow/scripts/ /home/
 
 RUN chmod +x /home/scripts/* && cp home/scripts/* $CONDA_PREFIX/bin/
