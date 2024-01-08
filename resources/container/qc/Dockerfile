@@ -2,15 +2,15 @@
 
 FROM mambaorg/micromamba
 
-USER root
+#USER root
 
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    perl \
-    && rm -rf /var/lib/apt/lists/*
-
-RUN apt-get install perl
-
-USER $MAMBA_USER
+#RUN apt-get update && apt-get install -y --no-install-recommends \
+#    perl \
+#    && rm -rf /var/lib/apt/lists/*
+#
+#RUN apt-get install perl
+#
+#USER $MAMBA_USER
 
 #COPY --chown=$MAMBA_USER:$MAMBA_USER qc.lock /tmp/env.lock
 
@@ -31,7 +31,8 @@ RUN micromamba install --yes --name base -c bioconda -c conda-forge \
     r-plotly \ 
     r-rmarkdown \ 
     r-tidyr \ 
-    r-viridislite
+    r-viridislite \
+    perl
 
 ARG MAMBA_DOCKERFILE_ACTIVATE=1
 
