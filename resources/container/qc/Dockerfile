@@ -1,4 +1,4 @@
-# HARPY QC workflow
+# HARPY qc workflow
 
 FROM mambaorg/micromamba
 
@@ -23,10 +23,8 @@ RUN micromamba install --yes --name base -c bioconda -c conda-forge \
     r-dt \ 
     r-flexdashboard \ 
     r-ggplot2 \ 
-    r-knitr \ 
     r-magrittr \ 
     r-plotly \ 
-    r-rmarkdown \ 
     r-tidyr \ 
     r-viridislite
 
