@@ -1,0 +1,8 @@
+name: condalock
+
+channels:
+    - conda-forge
+    - defaults
+
+dependencies:
+    - conda-lock
