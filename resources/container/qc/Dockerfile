@@ -2,7 +2,12 @@
 
 FROM mambaorg/micromamba
 
-RUN apt-get install texlive
+RUN apk install perl
+
+#COPY --chown=$MAMBA_USER:$MAMBA_USER qc.lock /tmp/env.lock
+
+#RUN micromamba install --name base --yes --file /tmp/env.lock \
+#    && micromamba clean --all --yes
 
 RUN micromamba install --yes --name base -c bioconda -c conda-forge \
     falco \ 
@@ -20,8 +25,6 @@ RUN micromamba install --yes --name base -c bioconda -c conda-forge \
     r-tidyr \ 
     conda-forge::r-tinytex \
     r-viridislite
-
-RUN micromamba clean --all --yes
 
 ARG MAMBA_DOCKERFILE_ACTIVATE=1
 
