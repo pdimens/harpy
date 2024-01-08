@@ -1,0 +1,27 @@
+name: variants_snp
+
+channels:
+  - conda-forge
+  - bioconda
+  - defaults
+
+dependencies:
+  - bcftools=1.19
+  - bioconductor-complexheatmap
+  - freebayes
+  - multiqc
+  - r-base
+  - r-circlize
+  - r-dplyr
+  - r-dt
+  - r-flexdashboard
+  - r-ggplot2
+  - r-ggridges
+  - r-magrittr
+  - r-plotly
+  - r-tidyr
+  - r-viridislite
+  - sambamba
+  - samtools
+  - tabix
+  - xz
