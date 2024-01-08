@@ -2,7 +2,7 @@
 
 FROM mambaorg/micromamba
 
-RUN apk install perl
+RUN apt-get install perl
 
 #COPY --chown=$MAMBA_USER:$MAMBA_USER qc.lock /tmp/env.lock
 
@@ -23,7 +23,6 @@ RUN micromamba install --yes --name base -c bioconda -c conda-forge \
     r-plotly \ 
     r-rmarkdown \ 
     r-tidyr \ 
-    conda-forge::r-tinytex \
     r-viridislite
 
 ARG MAMBA_DOCKERFILE_ACTIVATE=1
