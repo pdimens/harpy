@@ -1,6 +1,9 @@
 # HARPY QC workflow
 
 FROM mambaorg/micromamba
+
+RUN apt-get update && apt-get install -y texlive
+
 RUN micromamba install --yes --name base -c bioconda -c conda-forge \
     falco \ 
     fastp \ 
