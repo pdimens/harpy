@@ -22,4 +22,4 @@ USER root
 
 RUN chmod +x /home/MAMBA_USER/scripts/* && mv /home/MAMBA_USER/scripts/* $CONDA_PREFIX/bin/
 
-RUN makewindows.py
+RUN python --version && makewindows.py
