@@ -11,7 +11,7 @@ RUN micromamba install --yes --name base -c bioconda -c conda-forge \
     r-flexdashboard \ 
     r-ggplot2 \ 
     r-plotly \ 
-    r-tidyr \ 
+    r-tidyr
 
 #ARG MAMBA_DOCKERFILE_ACTIVATE=1
 
