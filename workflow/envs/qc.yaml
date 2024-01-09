@@ -1,0 +1,15 @@
+name: qc
+channels:
+  - conda-forge
+  - bioconda
+  - defaults
+dependencies:
+  - falco 
+  - fastp 
+  - multiqc 
+  - r-base 
+  - r-dt
+  - r-flexdashboard 
+  - r-ggplot2 
+  - r-plotly 
+  - r-tidyr

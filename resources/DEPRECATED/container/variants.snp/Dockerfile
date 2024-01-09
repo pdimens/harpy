@@ -1,12 +1,4 @@
-# HARPY variants snp workflow
-
-FROM mambaorg/micromamba
-
-#COPY --chown=$MAMBA_USER:$MAMBA_USER snp.lock /tmp/env.lock
-
-#RUN micromamba install --name base --yes --file /tmp/env.lock \
-#    && micromamba clean --all --yes
-
+FROM mambaorg/micromamba AS snp
 RUN micromamba install --yes --name base -c bioconda -c conda-forge \
     bcftools \ 
     bioconductor-complexheatmap \ 
@@ -14,20 +6,16 @@ RUN micromamba install --yes --name base -c bioconda -c conda-forge \
     pysam \ 
     r-base \ 
     r-circlize \ 
-    r-dplyr \ 
     r-dt \ 
     r-flexdashboard \ 
     r-ggplot2 \ 
     r-ggridges \ 
-    r-magrittr \ 
     r-plotly \ 
     r-tidyr \ 
-    r-viridislite \ 
     sambamba \ 
     samtools \ 
     seqtk \ 
-    tabix
-
-RUN micromamba clean --all --yes
-
-
+    tabix && \
+    micromamba clean --all --yes
+ARG MAMBA_DOCKERFILE_ACTIVATE=1
+COPY --chown=$MAMBA_USER:$MAMBA_USER workflow/scripts/ workflow/report/ $CONDA_PREFIX/bin/

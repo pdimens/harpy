@@ -1,0 +1,26 @@
+name: align
+channels:
+  - conda-forge
+  - bioconda
+  - defaults
+dependencies:
+  - bwa 
+  - ema
+  - icu
+  - libzlib
+  - multiqc
+  - llvm-openmp 
+  - pysam
+  - r-base
+  - r-circlize
+  - r-dt 
+  - r-flexdashboard 
+  - r-ggplot2 
+  - r-ggridges 
+  - r-plotly 
+  - r-tidyr 
+  - sambamba 
+  - samtools 
+  - seqtk 
+  - tabix 
+  - xz

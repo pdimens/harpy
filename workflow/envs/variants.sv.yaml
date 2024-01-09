@@ -1,0 +1,23 @@
+name: align
+channels:
+  - conda-forge
+  - bioconda
+  - defaults
+dependencies:
+  - bcftools 
+  - bioconductor-complexheatmap 
+  - leviathan 
+  - naibr-plus 
+  - pysam 
+  - r-base 
+  - r-circlize 
+  - r-dt 
+  - r-flexdashboard 
+  - r-ggplot2 
+  - r-ggridges 
+  - r-plotly 
+  - r-tidyr 
+  - samtools 
+  - tabix 
+  - whatshap 
+  - xz

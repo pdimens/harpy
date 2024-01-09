@@ -1,0 +1,47 @@
+{
+  "version": "1.1",
+  "engine": "linux/amd64|Transformer|1.40.8|317dfc2eef8c47fc974080eeb7a2a74caab3c878|2024-01-07_07:29:28PM",
+  "containerized": false,
+  "host_distro": {
+    "name": "Manjaro Linux",
+    "version": "",
+    "display_name": "Manjaro Linux"
+  },
+  "type": "build",
+  "state": "error",
+  "target_reference": "qc",
+  "system": {
+    "type": "",
+    "release": "",
+    "distro": {
+      "name": "",
+      "version": "",
+      "display_name": ""
+    }
+  },
+  "source_image": {
+    "identity": {
+      "id": ""
+    },
+    "size": 0,
+    "size_human": "",
+    "create_time": "",
+    "docker_version": "",
+    "architecture": "",
+    "container_entry": {
+      "exe_path": ""
+    }
+  },
+  "minified_image_size": 0,
+  "minified_image_size_human": "",
+  "minified_image": "",
+  "minified_image_has_data": false,
+  "minified_by": 0,
+  "artifact_location": "",
+  "container_report_name": "",
+  "seccomp_profile_name": "",
+  "apparmor_profile_name": "",
+  "image_stack": null,
+  "image_created": false,
+  "image_build_engine": ""
+}
