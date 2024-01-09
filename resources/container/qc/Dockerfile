@@ -9,9 +9,9 @@ FROM mambaorg/micromamba
 
 #USER $MAMBA_USER
 
-COPY --chown=$MAMBA_USER:$MAMBA_USER qc.lock /tmp/env.lock
+COPY --chown=$MAMBA_USER:$MAMBA_USER qc.yaml /tmp/env.yaml
 
-RUN micromamba install --name base --yes --file /tmp/env.lock \
+RUN micromamba install --name base --yes --file /tmp/env.yaml \
     && micromamba clean --all --yes
 #
 #RUN micromamba install --yes --name base -c bioconda -c conda-forge \
