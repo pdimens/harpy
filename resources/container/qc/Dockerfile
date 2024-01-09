@@ -22,4 +22,6 @@ COPY --chown=$MAMBA_USER:$MAMBA_USER workflow/scripts/ /home/MAMBA_USER/scripts/
 
 RUN chmod +x /home/MAMBA_USER/scripts/* && mv /home/MAMBA_USER/scripts/* $CONDA_PREFIX/bin/
 
+COPY --chown=$MAMBA_USER:$MAMBA_USER workflow/report/ $CONDA_PREFIX/bin/
+
 #USER $MAMBA_USER
