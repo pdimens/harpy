@@ -15,6 +15,4 @@ RUN micromamba install --yes --name base -c bioconda -c conda-forge \
 
 #ARG MAMBA_DOCKERFILE_ACTIVATE=1
 
-COPY ../../../workflow/scripts/ /home/$MAMBA_USER/
-
-RUN chmod +x /home/$MAMBA_USER/scripts/* && mv home/scripts/* $CONDA_PREFIX/bin/
+ADD --chown=$MAMBA_USER:$MAMBA_USER --chmod=0755 ../../../workflow/scripts/ $CONDA_PREFIX/bin/
