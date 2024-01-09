@@ -1,42 +1,129 @@
-FROM mambaorg/micromamba
+# HARPY workflows
+
+FROM mambaorg/micromamba AS qc
 RUN micromamba install --yes --name base -c bioconda -c conda-forge \
-    bcftools \ 
-    bioconductor-complexheatmap \ 
-    bwa \ 
-    ema \ 
     falco \ 
     fastp \ 
-    freebayes \ 
-    hapcut2 \ 
-    icu \ 
-    libzlib \ 
-    leviathan \ 
-    llvm-openmp \ 
     multiqc \ 
-    naibr-plus \ 
-    python =3.10 \ 
-    pysam \ 
     r-base \ 
-    r-circlize \ 
-    r-dplyr \ 
+    r-dt \ 
+    r-flexdashboard \ 
+    r-ggplot2 \ 
+    r-plotly \ 
+    r-tidyr && \
+    micromamba clean --all --yes
+ARG MAMBA_DOCKERFILE_ACTIVATE=1
+COPY --chown=$MAMBA_USER:$MAMBA_USER workflow/scripts/ workflow/report/ $CONDA_PREFIX/bin/
+
+FROM mambaorg/micromamba AS align
+RUN micromamba install --yes --name base -c bioconda -c conda-forge \
+    bwa \ 
+    ema \
+    icu \
+    libzlib \
+    multiqc \
+    llvm-openmp \ 
+    pysam \
+    r-base \
+    r-circlize \
     r-dt \ 
     r-flexdashboard \ 
     r-ggplot2 \ 
     r-ggridges \ 
-    r-knitr \ 
-    r-magrittr \ 
     r-plotly \ 
-    r-rmarkdown \ 
-    r-stitch \ 
     r-tidyr \ 
-    r-viridislite \ 
+    sambamba \ 
+    samtools \ 
+    seqtk \ 
+    tabix \ 
+    xz && \
+    micromamba clean --all --yes
+ARG MAMBA_DOCKERFILE_ACTIVATE=1
+COPY --chown=$MAMBA_USER:$MAMBA_USER workflow/scripts/ workflow/report/ $CONDA_PREFIX/bin/
+
+FROM mambaorg/micromamba AS snp
+RUN micromamba install --yes --name base -c bioconda -c conda-forge \
+    bcftools \ 
+    bioconductor-complexheatmap \ 
+    freebayes \ 
+    pysam \ 
+    r-base \ 
+    r-circlize \ 
+    r-dt \ 
+    r-flexdashboard \ 
+    r-ggplot2 \ 
+    r-ggridges \ 
+    r-plotly \ 
+    r-tidyr \ 
+    sambamba \ 
+    samtools \ 
+    seqtk \ 
+    tabix && \
+    micromamba clean --all --yes
+ARG MAMBA_DOCKERFILE_ACTIVATE=1
+COPY --chown=$MAMBA_USER:$MAMBA_USER workflow/scripts/ workflow/report/ $CONDA_PREFIX/bin/
+
+FROM mambaorg/micromamba AS sv
+RUN micromamba install --yes --name base -c bioconda -c conda-forge \
+    bcftools \ 
+    bioconductor-complexheatmap \ 
+    leviathan \ 
+    naibr-plus \ 
+    pysam \ 
+    r-base \ 
+    r-circlize \ 
+    r-dt \ 
+    r-flexdashboard \ 
+    r-ggplot2 \ 
+    r-ggridges \ 
+    r-plotly \ 
+    r-tidyr \ 
     sambamba \ 
     samtools \ 
     seqtk \ 
     tabix \ 
     whatshap \ 
-    xz
+    xz && \
+    micromamba clean --all --yes
+ARG MAMBA_DOCKERFILE_ACTIVATE=1
+COPY --chown=$MAMBA_USER:$MAMBA_USER workflow/scripts/ workflow/report/ $CONDA_PREFIX/bin/
 
-RUN micromamba clean --all --yes
+FROM mambaorg/micromamba AS sv
+RUN micromamba install --yes --name base -c bioconda -c conda-forge \
+    bcftools \ 
+    bioconductor-complexheatmap \ 
+    llvm-openmp \ 
+    multiqc \ 
+    r-base \ 
+    r-circlize \ 
+    r-dt \ 
+    r-flexdashboard \ 
+    r-ggplot2 \ 
+    r-ggridges \ 
+    r-plotly \ 
+    r-stitch \ 
+    r-tidyr && \
+    micromamba clean --all --yes
+ARG MAMBA_DOCKERFILE_ACTIVATE=1
+COPY --chown=$MAMBA_USER:$MAMBA_USER workflow/scripts/ workflow/report/ $CONDA_PREFIX/bin/
 
-
+FROM mambaorg/micromamba AS phase
+RUN micromamba install --yes --name base -c bioconda -c conda-forge \
+    bcftools \ 
+    bioconductor-complexheatmap \ 
+    hapcut2 \ 
+    multiqc \ 
+    pysam \ 
+    r-base \ 
+    r-circlize \ 
+    r-dt \ 
+    r-flexdashboard \ 
+    r-ggplot2 \ 
+    r-ggridges \ 
+    r-plotly \ 
+    r-tidyr \ 
+    sambamba \ 
+    samtools && \
+    micromamba clean --all --yes
+ARG MAMBA_DOCKERFILE_ACTIVATE=1
+COPY --chown=$MAMBA_USER:$MAMBA_USER workflow/scripts/ workflow/report/ $CONDA_PREFIX/bin/
