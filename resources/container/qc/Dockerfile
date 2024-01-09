@@ -18,8 +18,8 @@ ARG MAMBA_DOCKERFILE_ACTIVATE=1
 COPY --chown=$MAMBA_USER:$MAMBA_USER workflow/scripts/ /home/MAMBA_USER/scripts/
 #$CONDA_PREFIX/bin/
 
-USER root
+#USER root
 
 RUN chmod +x /home/MAMBA_USER/scripts/* && mv /home/MAMBA_USER/scripts/* $CONDA_PREFIX/bin/
 
-RUN python --version && makewindows.py
+#USER $MAMBA_USER
