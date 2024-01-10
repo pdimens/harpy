@@ -41,7 +41,7 @@ def getnames(directory, ext):
 
 def get_samples_from_fastq(directory):
     full_flist = [i for i in glob.iglob(f"{directory}/*") if not os.path.isdir(i)]
-    r = re.compile(".*\.f(?:ast)?q(?:\.gz)?$", flags=re.IGNORECASE)
+    r = re.compile(r".*\.f(?:ast)?q(?:\.gz)?$", flags=re.IGNORECASE)
     full_fqlist = list(filter(r.match, full_flist))
     fqlist = [os.path.basename(i) for i in full_fqlist]
     bn_r = r"[\.\_][RF](?:[12])?(?:\_00[1-9])*\.f(?:ast)?q(?:\.gz)?$"
