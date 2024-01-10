@@ -4,7 +4,7 @@ channels:
   - bioconda
   - defaults
 dependencies:
-  - bcftools 
+  - bcftools=1.19
   - hapcut2 
   - multiqc 
   - pysam 

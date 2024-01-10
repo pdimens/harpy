@@ -19,8 +19,8 @@ requirements:
   host:
     - python =3.11
   run:
-    - bcftools
-    - python =3.12
+    - bcftools =1.19
+    - python =3.11
     - rich-click
     - snakemake >=8
     - samtools

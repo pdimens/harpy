@@ -1,10 +1,10 @@
-name: align
+name: variants.snp
 channels:
   - conda-forge
   - bioconda
   - defaults
 dependencies:
-  - bcftools 
+  - bcftools=1.19 
   - freebayes 
   - pysam 
-  - samtools 
+  - samtools

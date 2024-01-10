@@ -7,3 +7,4 @@ dependencies:
   - falco 
   - fastp 
   - multiqc 
+  - pysam

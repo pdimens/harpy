@@ -12,6 +12,6 @@ dependencies:
   - llvm-openmp 
   - pysam
   - sambamba 
-  - samtools 
+  - samtools=1.19
   - seqtk 
   - xz
