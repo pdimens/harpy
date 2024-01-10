@@ -37,8 +37,12 @@ def fastq(directory, threads, snakemake, quiet, print_only):
     command.append('--config')
     directory = directory.rstrip("/^")
     command.append(f"seq_directory={directory}")
-    _module = subprocess.run(command)
-    sys.exit(_module.returncode)
+    if print_only:
+        click.echo(" ".join(command))
+    else:
+        insert_conda_deps()
+        _module = subprocess.run(command)
+        sys.exit(_module.returncode)
 
 
 @click.command(no_args_is_help = True)
@@ -69,5 +73,6 @@ def bam(directory, threads, snakemake, quiet, print_only):
     if print_only:
         click.echo(" ".join(command))
     else:
+        insert_conda_deps()
         _module = subprocess.run(command)
         sys.exit(_module.returncode)
