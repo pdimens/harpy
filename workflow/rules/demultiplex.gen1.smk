@@ -29,6 +29,10 @@ def barcodedict(smpl):
 samples = barcodedict(samplefile)
 samplenames = [i for i in samples.keys()]
 
+conda:
+    os.getcwd() + "/harpyenvs/qc.yaml"
+
+
 rule link_files:
     input:
         indir + "/" + inprefix + "_{part}" + fq_extension
