@@ -19,7 +19,8 @@ except:
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(min = 4, max_open = True), metavar = "Integer", help = 'Number of threads to use')
 @click.option('-s', '--snakemake', type = str, metavar = "String", help = 'Additional Snakemake parameters, in quotes')
 @click.option('-q', '--quiet',  is_flag = True, show_default = True, default = False, metavar = "Toggle", help = 'Don\'t show output text while running')
-def mpileup(genome, threads, directory, populations, ploidy, windowsize, extra_params, snakemake, quiet):
+@click.option('--print-only',  is_flag = True, show_default = True, default = False, metavar = "Toggle", help = 'Print the generated snakemake command and exit')
+def mpileup(genome, threads, directory, populations, ploidy, windowsize, extra_params, snakemake, quiet, print_only):
     """
     Call variants from using bcftools mpileup
     
@@ -51,8 +52,11 @@ def mpileup(genome, threads, directory, populations, ploidy, windowsize, extra_p
     command.append(f"genomefile={linkedgenome}")
     if extra_params is not None:
         command.append(f"extra={extra_params}")
-    _module = subprocess.run(command)
-    sys.exit(_module.returncode)
+    if print_only:
+        click.echo(" ".join(command))
+    else:
+        _module = subprocess.run(command)
+        sys.exit(_module.returncode)
 
 @click.command(no_args_is_help = True)
 @click.option('-g', '--genome', type=click.Path(exists=True, dir_okay=False), required = True, metavar = "File Path", help = 'Genome assembly for variant calling')
@@ -64,7 +68,8 @@ def mpileup(genome, threads, directory, populations, ploidy, windowsize, extra_p
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(min = 4, max_open = True), metavar = "Integer", help = 'Number of threads to use')
 @click.option('-s', '--snakemake', type = str, metavar = "String", help = 'Additional Snakemake parameters, in quotes')
 @click.option('-q', '--quiet',  is_flag = True, show_default = True, default = False, metavar = "Toggle", help = 'Don\'t show output text while running')
-def freebayes(genome, threads, directory, populations, ploidy, windowsize, extra_params, snakemake, quiet):
+@click.option('--print-only',  is_flag = True, show_default = True, default = False, metavar = "Toggle", help = 'Print the generated snakemake command and exit')
+def freebayes(genome, threads, directory, populations, ploidy, windowsize, extra_params, snakemake, quiet, print_only):
     """
     Call variants using freebayes
     
@@ -96,5 +101,8 @@ def freebayes(genome, threads, directory, populations, ploidy, windowsize, extra
     command.append(f"genomefile={linkedgenome}")
     if extra_params is not None:
         command.append(f"extra={extra_params}")
-    _module = subprocess.run(command)
-    sys.exit(_module.returncode)
+    if print_only:
+        click.echo(" ".join(command))
+    else:
+        _module = subprocess.run(command)
+        sys.exit(_module.returncode)

@@ -293,6 +293,29 @@ def validate_popfile(infile):
         else:
             return rows
 
+def vcf_samplematch(vcf, directory, vcf_samples):
+    bcfquery = subprocess.Popen(["bcftools", "query", "-l", vcf], stdout=subprocess.PIPE)
+    filesamples = bcfquery.stdout.read().decode().split()
+    dirsamples  = getnames(directory, '.bam')
+    if vcf_samples:
+        fromthis, query = vcf, filesamples
+        inthis, search = directory, dirsamples
+    else:
+        fromthis, query = directory, dirsamples
+        inthis, search = vcf, filesamples
+
+    missing_samples = [x for x in query if x not in search]
+    # check that samples in VCF match input directory
+    if len(missing_samples) > 0:
+        print_error(f"There are [bold]{len(missing_samples)}[/bold] samples found in [bold]{fromthis}[/bold] that are not in [bold]{inthis}[/bold]. Terminating Harpy to avoid downstream errors.")
+        print_solution_with_culprits(
+            f"[bold]{fromthis}[/bold] cannot contain samples that are absent in [bold]{inthis}[/bold]. Check the spelling or remove those samples from [bold]{fromthis}[/bold] or remake the vcf file to include/omit these samples. Alternatively, toggle [green]--vcf-samples[/green] to aggregate the sample list from [bold]{directory}[/bold] or [bold]{vcf}[/bold].",
+            "The samples causing this error are:"
+        )
+        click.echo(", ".join(sorted(missing_samples)), file = sys.stderr)
+        sys.exit(1)
+    return(query)
+
 def validate_vcfsamples(directory, populations, samplenames, rows, quiet):
     p_list = [i.split()[0] for i in rows]
     missing_samples = [x for x in p_list if x not in samplenames]

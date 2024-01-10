@@ -19,8 +19,8 @@ except:
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(min = 4, max_open = True), metavar = "Integer", help = 'Number of threads to use')
 @click.option('-s', '--snakemake', type = str, metavar = "String", help = 'Additional Snakemake parameters, in quotes')
 @click.option('-q', '--quiet',  is_flag = True, show_default = True, default = False, metavar = "Toggle", help = 'Don\'t show output text while running')
-@click.option('--snakemake-command',  is_flag = True, show_default = True, default = False, metavar = "Toggle", help = 'Only print the snakemake invokation and exit')
-def qc(directory, max_length, ignore_adapters, extra_params, threads, snakemake, quiet, snakemake_command):
+@click.option('--print-only',  is_flag = True, show_default = True, default = False, metavar = "Toggle", help = 'Print the generated snakemake command and exit')
+def qc(directory, max_length, ignore_adapters, extra_params, threads, snakemake, quiet, print_only):
     """
     Remove adapters and quality trim sequences
 
@@ -44,7 +44,7 @@ def qc(directory, max_length, ignore_adapters, extra_params, threads, snakemake,
     command.append(f"maxlen={max_length}")
     if extra_params is not None:
         command.append(f"extra={extra_params}")
-    if snakemake_command:
+    if print_only:
         click.echo(" ".join(command))
     else:
         _module = subprocess.run(command)

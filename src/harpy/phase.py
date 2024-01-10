@@ -1,4 +1,4 @@
-from .helperfunctions import getnames, vcfcheck, validate_bamfiles, print_error, print_solution_with_culprits
+from .helperfunctions import getnames, vcfcheck, vcf_samplematch, validate_bamfiles, print_error, print_solution_with_culprits
 import sys
 import os
 import subprocess
@@ -23,7 +23,8 @@ except:
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(min = 2, max_open = True), metavar = "Integer", help = 'Number of threads to use')
 @click.option('-s', '--snakemake',  type = str, metavar = "String", help = 'Additional Snakemake parameters, in quotes')
 @click.option('-q', '--quiet',  is_flag = True, show_default = True, default = False, metavar = "Toggle", help = 'Don\'t show output text while running')
-def phase(vcf, directory, threads, molecule_distance, prune_threshold, vcf_samples, genome, snakemake, extra_params, ignore_bx, quiet):
+@click.option('--print-only',  is_flag = True, show_default = True, default = False, metavar = "Toggle", help = 'Print the generated snakemake command and exit')
+def phase(vcf, directory, threads, molecule_distance, prune_threshold, vcf_samples, genome, snakemake, extra_params, ignore_bx, quiet, print_only):
     """
     Phase SNPs into haplotypes
 
@@ -41,31 +42,7 @@ def phase(vcf, directory, threads, molecule_distance, prune_threshold, vcf_sampl
     else:
         variantfile = vcf
     
-    bcfquery = subprocess.Popen(["bcftools", "query", "-l", vcf], stdout=subprocess.PIPE)
-    if vcf_samples:
-        samplenames = bcfquery.stdout.read().decode().split()
-        s_list = getnames(directory, '.bam')
-        fromthis = vcf
-        inthis = directory
-    else:
-        samplenames = getnames(directory, '.bam')
-        s_list = bcfquery.stdout.read().decode().split()
-        fromthis = directory
-        inthis = vcf
-    missing_samples = [x for x in samplenames if x not in s_list]
-    # check that samples in VCF match input directory
-    if len(missing_samples) > 0:
-        print_error(f"There are [bold]{len(missing_samples)}[/bold] samples found in [bold]{fromthis}[/bold] that are not in [bold]{inthis}[/bold]. Terminating Harpy to avoid downstream errors.")
-        #click.echo(f"\n\033[1;33mERROR:\033[00m There are {len(missing_samples)} samples found in \033[01m{fromthis}\033[00m that are not in \033[01m{inthis}\033[00m. Terminating Harpy to avoid downstream errors.", file = sys.stderr, color = True)
-        print_solution_with_culprits(
-            f"[bold]{fromthis}[/bold] cannot contain samples that are absent in [bold]{inthis}[/bold]. Check the spelling or remove those samples from [bold]{fromthis}[/bold] or remake the vcf file to include/omit these samples. Alternatively, toggle [green]--vcf-samples[/green] to aggregate the sample list from [bold]{directory}[/bold] or [bold]{vcf}[/bold]."
-            "The samples causing this error are:"
-        )
-        #click.echo(f"\n\033[1;34mSOLUTION:\033[00m \033[01m{fromthis}\033[00m cannot contain samples that are absent in \033[01m{inthis}\033[00m. Check the spelling or remove those samples from \033[01m{fromthis}\033[00m or remake the vcf file to include/omit these samples. Alternatively, toggle \033[01m--vcf-samples\033[00m to aggregate the sample list from \033[01m{directory}\033[00m or \033[01m{vcf}\033[00m.\n", file = sys.stderr, color = True)
-        #click.echo("The samples causing this error are:", file = sys.stderr)
-        click.echo(", ".join(sorted(missing_samples)), file = sys.stderr)
-        sys.exit(1)
-
+    samplenames = vcf_samplematch(vcf, directory, vcf_samples)
     validate_bamfiles(directory, samplenames)
     prune_threshold /= 100
     command = f'snakemake --rerun-incomplete --nolock --cores {threads} --directory . --snakefile {harpypath}/phase-pop.smk'.split()
@@ -87,5 +64,8 @@ def phase(vcf, directory, threads, molecule_distance, prune_threshold, vcf_sampl
     command.append(f"molecule_distance={molecule_distance}")
     if extra_params is not None:
         command.append(f"extra={extra_params}")
-    _module = subprocess.run(command)
-    sys.exit(_module.returncode)
+    if print_only:
+        click.echo(" ".join(command))
+    else:
+        _module = subprocess.run(command)
+        sys.exit(_module.returncode)

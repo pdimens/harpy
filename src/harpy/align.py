@@ -20,7 +20,8 @@ except:
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(min = 4, max_open = True), metavar = "Integer", help = 'Number of threads to use')
 @click.option('-s', '--snakemake', type = str, metavar = "String", help = 'Additional Snakemake parameters, in quotes')
 @click.option('-q', '--quiet',  is_flag = True, show_default = True, default = False, metavar = "Toggle", help = 'Don\'t show output text while running')
-def bwa(genome, threads, directory, extra_params, quality_filter, molecule_distance, snakemake, quiet):
+@click.option('--print-only',  is_flag = True, show_default = True, default = False, metavar = "Toggle", help = 'Print the generated snakemake command and exit')
+def bwa(genome, threads, directory, extra_params, quality_filter, molecule_distance, snakemake, quiet, print_only):
     """
     Align sequences to genome using BWA MEM
  
@@ -45,8 +46,11 @@ def bwa(genome, threads, directory, extra_params, quality_filter, molecule_dista
 
     if extra_params is not None:
         command.append(f"extra={extra_params}")
-    _module = subprocess.run(command)
-    sys.exit(_module.returncode)
+    if print_only:
+        click.echo(" ".join(command))
+    else:
+        _module = subprocess.run(command)
+        sys.exit(_module.returncode)
 
 #####----------ema--------------------
 
@@ -61,7 +65,8 @@ def bwa(genome, threads, directory, extra_params, quality_filter, molecule_dista
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(min = 4, max_open = True), metavar = "Integer", help = 'Number of threads to use')
 @click.option('-s', '--snakemake', type = str, metavar = "String", help = 'Additional Snakemake parameters, in quotes')
 @click.option('-q', '--quiet',  is_flag = True, show_default = True, default = False, metavar = "Toggle", help = 'Don\'t show output text while running')
-def ema(platform, whitelist, genome, threads, ema_bins, directory, extra_params, quality_filter, snakemake, quiet):
+@click.option('--print-only',  is_flag = True, show_default = True, default = False, metavar = "Toggle", help = 'Print the generated snakemake command and exit')
+def ema(platform, whitelist, genome, threads, ema_bins, directory, extra_params, quality_filter, snakemake, quiet, print_only):
     """
     Align sequences to a genome using EMA
 
@@ -100,5 +105,8 @@ def ema(platform, whitelist, genome, threads, ema_bins, directory, extra_params,
 
     if extra_params is not None:
         command.append(f"extra={extra_params}")
-    _module = subprocess.run(command)
-    sys.exit(_module.returncode)
+    if print_only:
+        click.echo(" ".join(command))
+    else:
+        _module = subprocess.run(command)
+        sys.exit(_module.returncode)

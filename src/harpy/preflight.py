@@ -16,7 +16,8 @@ except:
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(min = 1, max_open = True), metavar = "Integer", help = 'Number of threads to use')
 @click.option('-s', '--snakemake', type = str, metavar = "String", help = 'Additional Snakemake parameters, in quotes')
 @click.option('-q', '--quiet',  is_flag = True, show_default = True, default = False, metavar = "Toggle", help = 'Don\'t show output text while running')
-def fastq(directory, threads, snakemake, quiet):
+@click.option('--print-only',  is_flag = True, show_default = True, default = False, metavar = "Toggle", help = 'Print the generated snakemake command and exit')
+def fastq(directory, threads, snakemake, quiet, print_only):
     """
     Run validity checks on haplotagged FASTQ files.
 
@@ -45,7 +46,8 @@ def fastq(directory, threads, snakemake, quiet):
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(min = 1, max_open = True), metavar = "Integer", help = 'Number of threads to use')
 @click.option('-s', '--snakemake', type = str, metavar = "String", help = 'Additional Snakemake parameters, in quotes')
 @click.option('-q', '--quiet',  is_flag = True, show_default = True, default = False, metavar = "Toggle", help = 'Don\'t show output text while running')
-def bam(directory, threads, snakemake, quiet):
+@click.option('--print-only',  is_flag = True, show_default = True, default = False, metavar = "Toggle", help = 'Print the generated snakemake command and exit')
+def bam(directory, threads, snakemake, quiet, print_only):
     """
     Run validity checks on haplotagged BAM files
 
@@ -64,5 +66,8 @@ def bam(directory, threads, snakemake, quiet):
     command.append('--config')
     directory = directory.rstrip("/^")
     command.append(f"seq_directory={directory}")
-    _module = subprocess.run(command)
-    sys.exit(_module.returncode)
+    if print_only:
+        click.echo(" ".join(command))
+    else:
+        _module = subprocess.run(command)
+        sys.exit(_module.returncode)

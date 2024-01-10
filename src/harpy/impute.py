@@ -1,4 +1,4 @@
-from .helperfunctions import getnames, vcfcheck, check_impute_params, validate_bamfiles
+from .helperfunctions import getnames, vcfcheck, vcf_samplematch, check_impute_params, validate_bamfiles
 import rich_click as click
 import subprocess
 import sys
@@ -19,7 +19,8 @@ except:
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(min = 4, max_open = True), metavar = "Integer", help = 'Number of threads to use')
 @click.option('-s', '--snakemake', type = str, metavar = "String", help = 'Additional Snakemake parameters, in quotes')
 @click.option('-q', '--quiet',  is_flag = True, show_default = True, default = False, metavar = "Toggle", help = 'Don\'t show output text while running')
-def impute(parameters, directory, threads, vcf, vcf_samples, snakemake, quiet):
+@click.option('--print-only',  is_flag = True, show_default = True, default = False, metavar = "Toggle", help = 'Print the generated snakemake command and exit')
+def impute(parameters, directory, threads, vcf, vcf_samples, snakemake, quiet, print_only):
     """
     Impute genotypes using variants and sequences
     
@@ -29,32 +30,10 @@ def impute(parameters, directory, threads, vcf, vcf_samples, snakemake, quiet):
     """
     ## validate inputs ##
     vcfcheck(vcf)
-    samplenames = getnames(directory, '.bam')
+    #samplenames = getnames(directory, '.bam')
     ### check that samples in VCF match input directory
-    bcfquery = subprocess.Popen(["bcftools", "query", "-l", vcf], stdout=subprocess.PIPE)
-    if vcf_samples:
-        samplenames = bcfquery.stdout.read().decode().split()
-        s_list = getnames(directory, '.bam')
-        fromthis = vcf
-        inthis = directory
-    else:
-        samplenames = getnames(directory, '.bam')
-        s_list = bcfquery.stdout.read().decode().split()
-        fromthis = directory
-        inthis = vcf
-    missing_samples = [x for x in samplenames if x not in s_list]
-    # check that samples in VCF match input directory
-    if len(missing_samples) > 0:
-        print_error(f"There are [bold]{len(missing_samples)}[/bold] samples found in [bold]{fromthis}[/bold] that are not in [bold]{inthis}[/bold]. Terminating Harpy to avoid downstream errors.")
-        #click.echo(f"\n\033[1;33mERROR:\033[00m There are {len(missing_samples)} samples found in \033[01m{fromthis}\033[00m that are not in \033[01m{inthis}\033[00m. Terminating Harpy to avoid downstream errors.", file = sys.stderr, color = True)
-        print_solution_with_culprits(
-            f"[bold]{fromthis}[/bold] cannot contain samples that are absent in [bold]{inthis}[/bold]. Check the spelling or remove those samples from [bold]{fromthis}[/bold] or remake the vcf file to include/omit these samples. Alternatively, toggle [green]--vcf-samples[/green] to aggregate the sample list from [bold]{directory}[/bold] or [bold]{vcf}[/bold]."
-            "The samples causing this error are:"
-        )
-        click.echo(", ".join(sorted(missing_samples)), file = sys.stderr)
-        sys.exit(1)
-
     directory = directory.rstrip("/^")
+    samplenames = vcf_samplematch(vcf, directory, vcf_samples)
     check_impute_params(parameters)
     validate_bamfiles(directory, samplenames)
 
@@ -94,5 +73,8 @@ def impute(parameters, directory, threads, vcf, vcf_samples, snakemake, quiet):
     command.append(f"paramfile={parameters}")
     command.append(f"contigs={contigs}")
     #command.append(f"extra={extra_params}")
-    _module = subprocess.run(command)
-    sys.exit(_module.returncode)
+    if print_only:
+        click.echo(" ".join(command))
+    else:
+        _module = subprocess.run(command)
+        sys.exit(_module.returncode)
