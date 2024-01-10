@@ -367,7 +367,7 @@ def check_demux_fastq(file):
         _ = [click.echo(i, file = sys.stderr) for i in filelist]
         exit(1)
 
-def insert_conda_deps():
+def generate_conda_deps():
     condachannels = ["conda-forge", "bioconda", "defaults"]
     environ = {
         "qc" : ["falco", "fastp", "multiqc", "pysam"],

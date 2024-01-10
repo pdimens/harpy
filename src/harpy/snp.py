@@ -55,7 +55,7 @@ def mpileup(genome, threads, directory, populations, ploidy, windowsize, extra_p
     if print_only:
         click.echo(" ".join(command))
     else:
-        insert_conda_deps()
+        generate_conda_deps()
         _module = subprocess.run(command)
         sys.exit(_module.returncode)
 
@@ -105,6 +105,6 @@ def freebayes(genome, threads, directory, populations, ploidy, windowsize, extra
     if print_only:
         click.echo(" ".join(command))
     else:
-        insert_conda_deps()
+        generate_conda_deps()
         _module = subprocess.run(command)
         sys.exit(_module.returncode)

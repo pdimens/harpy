@@ -76,6 +76,6 @@ def impute(parameters, directory, threads, vcf, vcf_samples, snakemake, quiet, p
     if print_only:
         click.echo(" ".join(command))
     else:
-        insert_conda_deps()
+        generate_conda_deps()
         _module = subprocess.run(command)
         sys.exit(_module.returncode)

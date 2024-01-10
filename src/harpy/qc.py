@@ -1,5 +1,5 @@
 import rich_click as click
-from .helperfunctions import get_samples_from_fastq, insert_conda_deps
+from .helperfunctions import get_samples_from_fastq, generate_conda_deps
 import subprocess
 import re
 import os
@@ -48,6 +48,6 @@ def qc(directory, max_length, ignore_adapters, extra_params, threads, snakemake,
     if print_only:
         click.echo(" ".join(command))
     else:
-        insert_conda_deps()
+        generate_conda_deps()
         _module = subprocess.run(command)
         sys.exit(_module.returncode)

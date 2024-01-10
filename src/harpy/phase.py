@@ -67,6 +67,6 @@ def phase(vcf, directory, threads, molecule_distance, prune_threshold, vcf_sampl
     if print_only:
         click.echo(" ".join(command))
     else:
-        insert_conda_deps()
+        generate_conda_deps()
         _module = subprocess.run(command)
         sys.exit(_module.returncode)

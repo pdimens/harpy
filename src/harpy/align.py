@@ -49,7 +49,7 @@ def bwa(genome, threads, directory, extra_params, quality_filter, molecule_dista
     if print_only:
         click.echo(" ".join(command))
     else:
-        insert_conda_deps()
+        generate_conda_deps()
         _module = subprocess.run(command)
         sys.exit(_module.returncode)
 
@@ -109,6 +109,6 @@ def ema(platform, whitelist, genome, threads, ema_bins, directory, extra_params,
     if print_only:
         click.echo(" ".join(command))
     else:
-        insert_conda_deps()
+        generate_conda_deps()
         _module = subprocess.run(command)
         sys.exit(_module.returncode)

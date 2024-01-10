@@ -52,7 +52,7 @@ def leviathan(genome, threads, directory, populations, extra_params, snakemake, 
     if print_only:
         click.echo(" ".join(command))
     else:
-        insert_conda_deps()
+        generate_conda_deps()
         _module = subprocess.run(command)
         sys.exit(_module.returncode)
 
@@ -117,6 +117,6 @@ def naibr(genome, vcf, threads, directory, populations, molecule_distance, extra
     if print_only:
         click.echo(" ".join(command))
     else:
-        insert_conda_deps()
+        generate_conda_deps()
         _module = subprocess.run(command)
         sys.exit(_module.returncode)
