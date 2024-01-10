@@ -27,6 +27,9 @@ def get_fq2(wildcards):
     fqlist = list(filter(r.match, lst))
     return fqlist
 
+conda:
+    os.getcwd() + "/harpyenvs/qc.yaml"
+
 rule trimFastp:
     input:
         fw   = get_fq1,
@@ -68,6 +71,8 @@ rule beadtag_counts_summary:
         countlog = expand("QC/logs/bxcount/{sample}.count.log", sample = samplenames)
     output:
         "QC/logs/barcode.summary.html"
+    conda:
+        os.getcwd() + "/harpyenvs/r-env.yaml"
     message:
         "Summarizing sample barcode validation"
     script:

@@ -1,20 +1,12 @@
-name: align
+name: phase
 channels:
   - conda-forge
   - bioconda
   - defaults
 dependencies:
   - bcftools 
-  - bioconductor-complexheatmap 
   - hapcut2 
   - multiqc 
   - pysam 
-  - r-base 
-  - r-circlize 
-  - r-dt 
-  - r-flexdashboard 
-  - r-ggplot2 
-  - r-ggridges 
-  - r-plotly 
-  - r-tidyr 
   - samtools
+  - tabix

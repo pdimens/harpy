@@ -12,6 +12,9 @@ bn 			= os.path.basename(genomefile)
 genome_zip  = True if bn.lower().endswith(".gz") else False
 bn_idx      = f"{bn}.gzi" if genome_zip else f"{bn}.fai"
 
+conda:
+    os.getcwd() + "/harpyenvs/align.yaml"
+
 d = dict(zip(samplenames, samplenames))
 
 def get_fq1(wildcards):
@@ -201,6 +204,8 @@ rule coverage_report:
         outdir + "/stats/coverage/data/{sample}.cov.gz"
     output:
         outdir + "/stats/coverage/{sample}.cov.html"
+    conda:
+        os.getcwd() + "/harpyenvs/r-env.yaml"
     message:
         "Summarizing alignment coverage: {wildcards.sample}"
     script:

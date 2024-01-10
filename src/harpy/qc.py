@@ -1,5 +1,5 @@
 import rich_click as click
-from .helperfunctions import get_samples_from_fastq
+from .helperfunctions import get_samples_from_fastq, insert_conda_deps
 import subprocess
 import re
 import os
@@ -8,6 +8,7 @@ import glob
 
 try:
     harpypath = '{CONDA_PREFIX}'.format(**os.environ) + "/bin"
+    conda_env = '{CONDA_PREFIX}'.format(**os.environ) + "/bin/harpyenv"
 except:
     pass
 
@@ -31,7 +32,7 @@ def qc(directory, max_length, ignore_adapters, extra_params, threads, snakemake,
     - poly-G tail removal
     """
     get_samples_from_fastq(directory)
-    command = f'snakemake --rerun-incomplete --nolock --cores {threads} --directory . --snakefile {harpypath}/qc.smk'.split()
+    command = f'snakemake --rerun-incomplete --nolock  --software-deployment-method conda --conda-prefix ./.snakemake --cores {threads} --directory . --snakefile {harpypath}/qc.smk'.split()
     if snakemake is not None:
         [command.append(i) for i in snakemake.split()]
     if quiet:
@@ -47,5 +48,6 @@ def qc(directory, max_length, ignore_adapters, extra_params, threads, snakemake,
     if print_only:
         click.echo(" ".join(command))
     else:
+        insert_conda_deps()
         _module = subprocess.run(command)
         sys.exit(_module.returncode)

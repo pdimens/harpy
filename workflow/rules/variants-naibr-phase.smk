@@ -33,6 +33,9 @@ def process_args(args):
             argsDict[i[0]] = i[1]
     return argsDict
 
+conda:
+    os.getcwd() + "/harpyenvs/variants.sv.yaml"
+
 rule genome_link:
     input:
         genomefile
@@ -74,7 +77,7 @@ rule index_original_alignment:
     message:
         "Indexing alignment: {wildcards.sample}"
     shell:
-        "sambamba index {input} {output} 2> /dev/null"
+        "samtools index {input} {output} 2> /dev/null"
 
 rule index_bcf:
     input:
@@ -161,7 +164,7 @@ rule index_phased_alignment:
     message:
         "Indexing alignment: {wildcards.sample}"
     shell:
-        "sambamba index {input} {output} 2> /dev/null"
+        "samtools index {input} {output} 2> /dev/null"
 
 rule call_sv:
     input:
@@ -205,6 +208,8 @@ rule report:
         outdir + "/reports/{sample}.naibr.html"
     message:
         "Creating report: {wildcards.sample}"
+    conda:
+        os.getcwd() + "/harpyenvs/r-env.yaml"
     script:
         "reportNaibr.Rmd"
 

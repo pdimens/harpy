@@ -16,6 +16,9 @@ bn 			= os.path.basename(genomefile)
 genome_zip  = True if bn.lower().endswith(".gz") else False
 bn_idx      = f"{bn}.gzi" if genome_zip else f"{bn}.fai"
 
+conda:
+    os.getcwd() + "/harpyenvs/align.yaml"
+
 d = dict(zip(samplenames, samplenames))
 
 def get_fq1(wildcards):
@@ -321,6 +324,8 @@ rule bx_stats_report:
         outdir + "/stats/BXstats/{sample}.bxstats.html"
     message: 
         "Generating summary of barcode alignment: {wildcards.sample}"
+    conda:
+        os.getcwd() + "/harpyenvs/r-env.yaml"
     params:
         "none"
     script:

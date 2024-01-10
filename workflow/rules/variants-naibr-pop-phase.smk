@@ -61,6 +61,9 @@ def pop_manifest(infile, dirn, sampnames):
 popdict     = pop_manifest(groupfile, outdir, samplenames)
 populations = popdict.keys()
 
+conda:
+    os.getcwd() + "/harpyenvs/variants.sv.yaml"
+
 rule genome_link:
     input:
         genomefile
@@ -250,6 +253,8 @@ rule report:
         outdir + "/reports/{population}.naibr.html"
     message:
         "Creating report: {wildcards.population}"
+    conda:
+        os.getcwd() + "/harpyenvs/r-env.yaml"
     script:
         "reportNaibr.Rmd"
 
@@ -261,6 +266,8 @@ rule report_pop:
         outdir + "/reports/naibr.pop.summary.html"
     message:
         "Creating summary report"
+    conda:
+        os.getcwd() + "/harpyenvs/r-env.yaml"
     script:
         "reportNaibrPop.Rmd"
 

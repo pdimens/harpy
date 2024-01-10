@@ -38,6 +38,9 @@ def pop_manifest(infile, dirn, sampnames):
 popdict = pop_manifest(groupfile, bam_dir, samplenames)
 populations = popdict.keys()
 
+conda:
+    os.getcwd() + "/harpyenvs/variants.sv.yaml"
+
 rule copy_groupings:
     input:
         groupfile
@@ -132,6 +135,8 @@ rule index_bwa_genome:
         multiext(f"Genome/{bn}", ".ann", ".bwt", ".pac", ".sa", ".amb")
     message:
         "Indexing {input}"
+    conda:
+        os.getcwd() + "/harpyenvs/align.yaml"
     log:
         f"Genome/{bn}.idx.log"
     shell: 
@@ -167,7 +172,6 @@ rule sort_bcf:
         outdir + "/{population}.bcf"
     message:
         "Sorting and converting to BCF: Population {wildcards.population}"
-    threads: 1
     params:
         "{wildcards.population}"
     benchmark:
@@ -184,7 +188,6 @@ rule sv_stats:
         "Getting stats: Population {input}"
     benchmark:
         ".Benchmark/Variants/leviathan-pop/stats.{population}.txt"
-    threads: 1
     shell:
         """
         echo -e "population\\tcontig\\tposition_start\\tposition_end\\tlength\\ttype\\tn_barcodes\\tn_pairs" > {output}
@@ -199,6 +202,8 @@ rule sv_report_bypop:
         outdir + "/reports/{population}.sv.html"
     message:
         "Generating SV report: population {wildcards.population}"
+    conda:
+        os.getcwd() + "/harpyenvs/r-env.yaml"
     script:
         "reportLeviathan.Rmd"
 
@@ -211,6 +216,8 @@ rule sv_report:
         outdir + "/reports/leviathan.pop.summary.html"
     message:
         "Generating SV report for all populations"
+    conda:
+        os.getcwd() + "/harpyenvs/r-env.yaml"
     script:
         "reportLeviathanPop.Rmd"
 

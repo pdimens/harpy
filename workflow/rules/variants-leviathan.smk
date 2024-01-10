@@ -10,6 +10,9 @@ genome_zip  = True if bn.lower().endswith(".gz") else False
 if genome_zip:
     bn = bn[:-3]
 
+conda:
+    os.getcwd() + "/harpyenvs/variants.sv.yaml"
+
 rule index_alignment:
     input:
         bam_dir + "/{sample}.bam"
@@ -18,7 +21,7 @@ rule index_alignment:
     message:
         "Indexing alignment: {wildcards.sample}"
     shell:
-        "sambamba index {input} {output} 2> /dev/null"
+        "samtools index {input} {output} 2> /dev/null"
 
 rule index_barcode:
     input: 
@@ -75,6 +78,8 @@ rule index_bwa_genome:
         multiext(f"Genome/{bn}", ".ann", ".bwt", ".pac", ".sa", ".amb")
     message:
         "Indexing {input}"
+    conda:
+        os.getcwd() + "/harpyenvs/align.yaml"
     log:
         f"Genome/{bn}.idx.log"
     shell: 
@@ -140,6 +145,8 @@ rule sv_report:
         outdir + "/reports/{sample}.SV.html"
     message:
         "Generating SV report: {wildcards.sample}"
+    conda:
+        os.getcwd() + "/harpyenvs/r-env.yaml"
     script:
         "reportLeviathan.Rmd"
 

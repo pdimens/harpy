@@ -24,6 +24,9 @@ def process_args(args):
             argsDict[i[0]] = i[1]
     return argsDict
 
+conda:
+    os.getcwd() + "/harpyenvs/variants.sv.yaml"
+
 rule index_alignment:
     input:
         bam_dir + "/{sample}.bam"
@@ -32,7 +35,7 @@ rule index_alignment:
     message:
         "Indexing alignment: {wildcards.sample}"
     shell:
-        "sambamba index {input} {output} 2> /dev/null"
+        "samtools index {input} {output} 2> /dev/null"
 
 rule create_config:
     input:
@@ -142,6 +145,8 @@ rule report:
         outdir + "/reports/{sample}.naibr.html"
     message:
         "Creating report: {wildcards.sample}"
+    conda:
+        os.getcwd() + "/harpyenvs/r-env.yaml"
     script:
         "reportNaibr.Rmd"
 

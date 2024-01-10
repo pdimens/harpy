@@ -366,3 +366,26 @@ def check_demux_fastq(file):
         #print(f"\n\033[91mError\033[0m: Not all necessary files with prefix \033[1m{prefix}\033[0m present")
         _ = [click.echo(i, file = sys.stderr) for i in filelist]
         exit(1)
+
+def insert_conda_deps():
+    condachannels = ["conda-forge", "bioconda", "defaults"]
+    environ = {
+        "qc" : ["falco", "fastp", "multiqc", "pysam"],
+        "align": ["bwa", "ema","icu","libzlib","multiqc","llvm","openmp", "pysam", "sambamba", "samtools", "seqtk", "xz"],
+        "variants.snp": ["bcftools=1.19", "freebayes", "pysam", "samtools", "tabix"],
+        "variants.sv": ["bcftools=1.19", "leviathan", "naibr-plus", "pysam", "samtools", "tabix", "whatshap", "xz"],
+        "phase" : ["bcftools=1.19", "hapcut2", "multiqc", "pysam", "samtools", "tabix"],
+        "r-env" : ["bioconductor-complexheatmap", "r-circlize", "r-dt", "r-flexdashboard", "r-ggplot2", "r-ggridges", "r-plotly", "r-tidyr", "r-stitch"]
+    }
+
+    os.makedirs("harpyenvs", exist_ok = True)
+
+    for i in environ:
+        # don't overwrite existing
+        if not os.path.isfile(f"harpyenvs/{i}.yaml"):
+            with open(f"harpyenvs/{i}.yaml", "w") as yml:
+                yml.write(f"name: {i}\n")
+                yml.write("channels:\n  - ")
+                yml.write("\n  - ".join(condachannels))
+                yml.write("\ndependencies:\n  - ")
+                yml.write("\n  - ".join(environ[i]))

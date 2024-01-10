@@ -53,6 +53,9 @@ def pop_manifest(infile, dirn, sampnames):
 popdict     = pop_manifest(groupfile, bam_dir, samplenames)
 populations = popdict.keys()
 
+conda:
+    os.getcwd() + "/harpyenvs/variants.sv.yaml"
+
 rule copy_groupings:
     input:
         groupfile
@@ -209,6 +212,8 @@ rule report_pop:
         outdir + "/reports/naibr.pop.summary.html"
     message:
         "Creating summary report"
+    conda:
+        os.getcwd() + "/harpyenvs/r-env.yaml"
     script:
         "reportNaibrPop.Rmd"
 

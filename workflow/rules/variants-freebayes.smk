@@ -14,6 +14,8 @@ intervals   = config["intervals"]
 outdir      = "Variants/freebayes"
 regions     = dict(zip(intervals, intervals))
 
+conda:
+    os.getcwd() + "/harpyenvs/variants.snp.yaml"
 
 if groupings:
     rule copy_groupings:
@@ -34,10 +36,8 @@ rule index_alignments:
         bam_dir + "/{sample}.bam.bai"
     message:
         "Indexing alignments: {wildcards.sample}"
-    benchmark:
-        ".Benchmark/Variants/mpileup/indexbam.{sample}.txt"
     shell:
-        "sambamba index {input} {output} 2> /dev/null"
+        "samtools index {input} {output} 2> /dev/null"
 
 rule samplenames:
     output:
@@ -139,9 +139,9 @@ rule merge_vcfs:
         50
     shell:  
         """
-        #bcftools concat -f {input.filelist} --threads {threads} --naive -Ob --write-index > {output.bcf} 2> {log}
-        bcftools concat -f {input.filelist} --threads {threads} --naive -Ob > {output.bcf} 2> {log}
-        bcftools index --threads {threads} {output.bcf}
+        bcftools concat -f {input.filelist} --threads {threads} --naive -Ob --write-index > {output.bcf} 2> {log}
+        #bcftools concat -f {input.filelist} --threads {threads} --naive -Ob > {output.bcf} 2> {log}
+        #bcftools index --threads {threads} {output.bcf}
         """
 
 rule normalize_bcf:
@@ -158,9 +158,9 @@ rule normalize_bcf:
         2
     shell:
         """
-        #bcftools norm -d exact -f {input.genome} {input.bcf} | bcftools norm -m -any -N -Ob --write-index > {output.bcf}
-        bcftools norm -d exact -f {input.genome} {input.bcf} | bcftools norm -m -any -N -Ob > {output.bcf}
-        bcftools index --threads {threads} {output.bcf}        
+        bcftools norm -d exact -f {input.genome} {input.bcf} | bcftools norm -m -any -N -Ob --write-index > {output.bcf}
+        #bcftools norm -d exact -f {input.genome} {input.bcf} | bcftools norm -m -any -N -Ob > {output.bcf}
+        #bcftools index --threads {threads} {output.bcf}        
         """
 
 rule variants_stats:
@@ -183,6 +183,8 @@ rule bcfreport:
         outdir + "/stats/variants.{type}.html"
     message:
         "Generating bcftools report: variants.{wildcards.type}.bcf"
+    conda:
+        os.getcwd() + "/harpyenvs/r-env.yaml"
     script:
         "reportBcftools.Rmd"
 

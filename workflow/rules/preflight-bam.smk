@@ -18,6 +18,9 @@ samplenames = set([os.path.splitext(i)[0] for i in bamlist])
 #    lst = [i for i in glob.iglob(seq_dir + "/" + wildcards.sample + "*") if i.lower().endswith(".bam.bai")]
 #    return lst
 
+conda:
+    os.getcwd() + "/harpyenvs/variants.snp.yaml"
+
 rule indexBam:
     input:
         seq_dir + "/{sample}.bam"
@@ -61,6 +64,8 @@ rule createReport:
         out_dir + "filecheck.bam.html"
     params:
         seq_dir
+    conda:
+        os.getcwd() + "/harpyenvs/r-env.yaml"
     message:
         "Producing report"
     script:

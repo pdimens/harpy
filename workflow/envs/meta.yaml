@@ -10,58 +10,24 @@ source:
   sha256: '{{ sha256 }}'
 
 build:
-  skip: True  # [osx]
+#  skip: True  # [osx]
   number: 0
   run_exports:
     - {{ pin_subpackage('harpy', max_pin="x.x") }}
 
 requirements:
   host:
-    - python =3.12
+    - python =3.11
   run:
     - bcftools
-    - bioconductor-complexheatmap
-    - bwa
-    - ema
-    - falco
-    - fastp
-    - freebayes
-    - hapcut2
-    - icu
-    - libzlib
-    - leviathan
-    - llvm-openmp 
-    - multiqc
-    - naibr-plus
     - python =3.12
-    - pysam
-    - r-base
-    - r-circlize
-    - r-dplyr
-    - r-dt
-    - r-flexdashboard
-    - r-ggplot2
-    - r-ggridges
-    - r-knitr
-    - r-magrittr
-    - r-plotly
-    - r-rmarkdown
-    - r-stitch  
-    - r-tidyr
-    - r-viridislite
     - rich-click
     - snakemake >=8
-    - sambamba
     - samtools
-    - seqtk
-    - tabix
-    - whatshap
-    - xz
 
 test:
   commands:
     - "snakemake --version"
-    - "R --version"
     - "harpy --version"
 about:
   home: "https://github.com/pdimens/harpy/"
@@ -75,5 +41,5 @@ extra:
     extended-base: True
   recipe-maintainers:
     - pdimens
-  skip-lints:
-    - should_be_noarch_generic
+#  skip-lints:
+#    - should_be_noarch_generic

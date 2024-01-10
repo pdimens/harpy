@@ -12,6 +12,9 @@ contigs     = config["contigs"]
 # declare a dataframe to be the paramspace
 paramspace  = Paramspace(pd.read_csv(paramfile, delim_whitespace = True).rename(columns=str.lower), param_sep = "", filename_params="*")
 
+conda:
+    os.getcwd() + "/harpyenvs/variants.snp.yaml"
+
 rule sort_bcf:
     input:
         variantfile
@@ -83,6 +86,8 @@ rule impute:
         # automatically translate the wildcard values into an instance of the param space
         # in the form of a dict (here: {"k": ..., "s": ..., "ngen": ...})
         parameters = paramspace.instance
+    conda:
+        os.getcwd() + "/harpyenvs/r-env.yaml"
     message: 
         "Performing imputation: {wildcards.part}\nmodel: {wildcards.model}\nuseBX: {wildcards.usebx}    \nbxLimit: {wildcards.bxlimit}\n    k: {wildcards.k}\n    s: {wildcards.s}\n nGen: {wildcards.ngen}"
     benchmark:
@@ -116,6 +121,8 @@ rule stitch_reports:
         "Impute/{stitchparams}/contigs/{part}/{part}.STITCH.html"
     message:
         "Generating STITCH report: {wildcards.part}"
+    conda:
+        os.getcwd() + "/harpyenvs/r-env.yaml"
     benchmark:
         ".Benchmark/Impute/report.{stitchparams}.{part}.txt"
     script:
@@ -184,7 +191,9 @@ rule stats:
     benchmark:
         ".Benchmark/Impute/mergestats.{stitchparams}.txt"
     shell:
-        """bcftools stats -s "-" {input.bcf} > {output}"""
+        """
+        bcftools stats -s "-" {input.bcf} > {output}
+        """
 
 rule comparestats:
     input:
@@ -214,6 +223,8 @@ rule reports:
         "Impute/{stitchparams}/variants.imputed.html"
     message:
         "Generating imputation success report: {output}"
+    conda:
+        os.getcwd() + "/harpyenvs/r-env.yaml"
     params:
         lambda wc: wc.get("stitchparams")
     benchmark:

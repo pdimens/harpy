@@ -12,6 +12,9 @@ try:
 except:
     indelarg = ""
 
+conda:
+    os.getcwd() + "/harpyenvs/phase.yaml"
+
 rule splitbysample:
     input: 
         vcf = variantfile,
@@ -145,6 +148,8 @@ rule phase_report:
         outdir + "/reports/phase.html"
     message:
         "Summarizing phasing results"
+    conda:
+        os.getcwd() + "/harpyenvs/r-env.yaml"
     script:
         "reportHapCut2.Rmd"
 
