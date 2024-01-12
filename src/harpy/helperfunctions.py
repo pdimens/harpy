@@ -202,35 +202,13 @@ def check_impute_params(parameters):
         if culprits["usebx"]:
             errtable.add_row("usebx", "True, False", ", ".join(culprits["usebx"]))
         
-        for i,j in enumerate(data["bxlimit"]):
-            if not j.isdigit():
-                culprits["bxlimit"].append(str(i + 1))
-                colerr += 1
-
-        if culprits["bxlimit"]:
-            errtable.add_row("bxlimit", "Integers", ", ".join(culprits["bxlimit"]))
-
-        for i,j in enumerate(data["k"]):
-            if not j.isdigit():
-                culprits["k"].append(str(i + 1))
-                colerr += 1
-
-        if culprits["k"]:
-            errtable.add_row("k", "Integers", ", ".join(culprits["k"]))
-
-        for i,j in enumerate(data["s"]):
-            if not j.isdigit():
-                culprits["s"].append(str(i + 1))
-                colerr += 1
-        if culprits["s"]:
-            errtable.add_row("s", "Integers", ", ".join(culprits["s"]))
-
-        for i,j in enumerate(data["ngen"]):
-            if not j.isdigit():
-                culprits["ngen"].append(str(i + 1))
-                colerr += 1
-        if culprits["ngen"]:
-            errtable.add_row("ngen", "Integers", ", ".join(culprits["ngen"]))
+        for param in ["bxlimit","k","s","ngen"]:
+            for i,j in enumerate(data[param]):
+                if not j.isdigit():
+                    culprits[param].append(str(i + 1))
+                    colerr += 1
+            if culprits[param]:
+                errtable.add_row(param, "Integers", ", ".join(culprits[param]))
 
         if colerr > 0:
             print_error(f"Parameter file [bold]{parameters}[/bold] is formatted incorrectly. Not all columns have valid values.")
