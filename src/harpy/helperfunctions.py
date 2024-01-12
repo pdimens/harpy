@@ -174,20 +174,14 @@ def check_impute_params(parameters):
             sys.exit(1)
         
         # Validate each column
-        culprits = {
-            "model"   : [],
-            "usebx"   : [],
-            "bxlimit" : [],
-            "k"       : [],
-            "s"       : [],
-            "ngen"    : []
-        }
+        culprits = dict()
         colerr = 0
         errtable = Table(title="Formatting Errors")
         errtable.add_column("Column", justify="right", style="white", no_wrap=True)
         errtable.add_column("Expected Values", style="green")
         errtable.add_column("Rows with Issues", style = "white")
 
+        culprits["model"] = []
         for i,j in enumerate(data["model"]):
             if j not in ["pseudoHaploid", "diploid","diploid-inbred"]:
                 culprits["model"].append(str(i + 1))
@@ -195,6 +189,7 @@ def check_impute_params(parameters):
         if culprits["model"]:
             errtable.add_row("model", "diploid, diploid-inbred, pseudoHaploid", ", ".join(culprits["model"]))
 
+        culprits["usebx"] = []
         for i,j in enumerate(data["usebx"]):
             if j not in [True, "TRUE", "true", False, "FALSE", "false", "Y","y", "YES", "Yes", "yes", "N", "n", "NO", "No", "no"]:
                 culprits["usebx"].append(str(i + 1))
@@ -203,6 +198,7 @@ def check_impute_params(parameters):
             errtable.add_row("usebx", "True, False", ", ".join(culprits["usebx"]))
         
         for param in ["bxlimit","k","s","ngen"]:
+            culprits[param] = []
             for i,j in enumerate(data[param]):
                 if not j.isdigit():
                     culprits[param].append(str(i + 1))
