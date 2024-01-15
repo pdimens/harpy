@@ -39,7 +39,7 @@ popdict = pop_manifest(groupfile, bam_dir, samplenames)
 populations = popdict.keys()
 
 conda:
-    os.getcwd() + "/harpyenvs/variants.sv.yaml"
+    os.getcwd() + "/harpyenvs/filetools.yaml"
 
 rule copy_groupings:
     input:
@@ -92,6 +92,8 @@ rule index_barcode:
         ".Benchmark/Variants/leviathan-pop/indexbc.{population}.txt"
     threads:
         4
+    conda:
+        os.getcwd() + "/harpyenvs/variants.sv.yaml"
     shell:
         "LRez index bam -p -b {input.bam} -o {output} --threads {threads}"
 
@@ -121,10 +123,10 @@ rule genome_faidx:
         f"Genome/{bn}"
     output: 
         f"Genome/{bn}.fai"
-    message:
-        "Indexing {input}"
     log:
         f"Genome/{bn}.faidx.log"
+    message:
+        "Indexing {input}"
     shell:
         "samtools faidx --fai-idx {output} {input} 2> {log}"
 
@@ -133,12 +135,12 @@ rule index_bwa_genome:
         f"Genome/{bn}"
     output: 
         multiext(f"Genome/{bn}", ".ann", ".bwt", ".pac", ".sa", ".amb")
+    log:
+        f"Genome/{bn}.idx.log"
     message:
         "Indexing {input}"
     conda:
         os.getcwd() + "/harpyenvs/align.yaml"
-    log:
-        f"Genome/{bn}.idx.log"
     shell: 
         "bwa index {input} 2> {log}"
 
@@ -154,14 +156,16 @@ rule leviathan_variantcall:
     log:  
         runlog     = outdir + "/logs/{population}.leviathan.log",
         candidates = outdir + "/logs/{population}.candidates"
-    message:
-        "Calling variants: Population {wildcards.population}"
-    benchmark:
-        ".Benchmark/Variants/leviathan-pop/variantcall.{population}.txt"
     params:
         extra = extra
     threads:
         3
+    conda:
+        os.getcwd() + "/harpyenvs/variants.sv.yaml"
+    message:
+        "Calling variants: Population {wildcards.population}"
+    benchmark:
+        ".Benchmark/Variants/leviathan-pop/variantcall.{population}.txt"
     shell:
         "LEVIATHAN -b {input.bam} -i {input.bc_idx} {params} -g {input.genome} -o {output} -t {threads} --candidates {log.candidates} 2> {log.runlog}"
 

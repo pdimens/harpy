@@ -1,3 +1,6 @@
+conda:
+    os.getcwd() + "/harpyenvs/phase.yaml"
+
 bam_dir           = config["seq_directory"]
 samplenames       = config["samplenames"]
 variantfile       = config["variantfile"]
@@ -12,22 +15,18 @@ try:
 except:
     indelarg = ""
 
-conda:
-    os.getcwd() + "/harpyenvs/phase.yaml"
-
 rule splitbysample:
     input: 
         vcf = variantfile,
         bam = bam_dir + "/{sample}.bam"
     output:
         temp(outdir + "/input/{sample}.bcf")
-    message:
-        "Extracting variants: {wildcards.sample}"
     benchmark:
         ".Benchmark/Phase/split.{sample}.txt"
     wildcard_constraints:
         sample = "[a-zA-Z0-9_-]*"
-    threads: 1
+    message:
+        "Extracting variants: {wildcards.sample}"
     shell:
         """
         bcftools view -s {wildcards.sample} {input.vcf} |
@@ -42,15 +41,14 @@ rule extractHairs:
         outdir + "/extractHairs/{sample}.unlinked.frags"
     log:
         outdir + "/extractHairs/logs/{sample}.unlinked.log"
-    message:
-        "Converting to compact fragment format: {wildcards.sample}"
     params:
         linkarg
     wildcard_constraints:
         sample = "[a-zA-Z0-9_-]*"
     benchmark:
         ".Benchmark/Phase/extracthairs.{sample}.txt"
-    threads: 1
+    message:
+        "Converting to compact fragment format: {wildcards.sample}"
     shell:
         "extractHAIRS {params} --nf 1 --bam {input.bam} --VCF {input.vcf} --out {output} 2> {log}"
 
@@ -63,12 +61,12 @@ rule linkFragments:
         outdir + "/linkFragments/{sample}.linked.frags"
     log:
         outdir + "/linkFragments/logs/{sample}.linked.log"
-    message:
-        "Linking fragments: {wildcards.sample}"
     benchmark:
         ".Benchmark/Phase/linkfrag.{sample}.txt"
     params:
         d = molecule_distance
+    message:
+        "Linking fragments: {wildcards.sample}"
     shell:
         "LinkFragments.py --bam {input.bam} --VCF {input.vcf} --fragments {input.fragments} --out {output} -d {params} > {log} 2>&1"
 
@@ -80,8 +78,6 @@ rule phaseBlocks:
     output: 
         blocks    = outdir + "/phaseBlocks/{sample}.blocks",
         vcf       = temp(outdir + "/phaseBlocks/{sample}.blocks.phased.VCF")
-    message:
-        "Creating phased haplotype blocks: {wildcards.sample}"
     benchmark:
         ".Benchmark/Phase/phase.{sample}.txt"
     log:
@@ -89,7 +85,8 @@ rule phaseBlocks:
     params: 
         prune = f"--threshold {pruning}" if pruning > 0 else "--no_prune 1",
         extra = extra
-    threads: 1
+    message:
+        "Creating phased haplotype blocks: {wildcards.sample}"
     shell:
         "HAPCUT2 --fragments {input.fragments} --vcf {input.vcf} {params} --out {output.blocks} --nf 1 --error_analysis_mode 1 --call_homozygous 1 --outvcf 1 2> {log}"
 
@@ -119,12 +116,12 @@ rule mergeSamples:
         idx = expand(outdir + "/phaseBlocks/{sample}.blocks.phased.VCF.gz.tbi", sample = samplenames)
     output:
         outdir + "/variants.phased.bcf"
-    message:
-        "Combining samples into a single BCF file"
     benchmark:
         ".Benchmark/Phase/mergesamples.txt"
     threads:
         30
+    message:
+        "Combining samples into a single BCF file"
     shell:
         """
         bcftools merge --threads {threads} --output-type b --write-index {input.vcf} > {output}
@@ -146,21 +143,21 @@ rule phase_report:
         outdir + "/phased.blocks.gz"
     output:
         outdir + "/reports/phase.html"
-    message:
-        "Summarizing phasing results"
     conda:
         os.getcwd() + "/harpyenvs/r-env.yaml"
+    message:
+        "Summarizing phasing results"
     script:
         "reportHapCut2.Rmd"
 
 rule log_runtime:
     output:
         outdir + "/logs/harpy.phase.log"
-    message:
-        "Creating record of relevant runtime parameters: {output}"
     params:
         prune = f"--threshold {pruning} " if pruning > 0 else "--no_prune 1 ",
         extra = extra
+    message:
+        "Creating record of relevant runtime parameters: {output}"
     run:
         with open(output[0], "w") as f:
             _ = f.write("The harpy phase module ran using these parameters:\n\n")
@@ -181,8 +178,6 @@ rule indexFinal:
         phaserpt = outdir + "/reports/phase.html"
     output:
         outdir + "/variants.phased.bcf.csi"
-    benchmark:
-        ".Benchmark/Phase/finalindex.txt"
     message:
         "Phasing is complete!"
     shell: 

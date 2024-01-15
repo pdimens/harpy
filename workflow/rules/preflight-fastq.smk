@@ -2,6 +2,9 @@ import os
 import re
 import glob
 
+conda:
+    os.getcwd() + "/harpyenvs/filetools.yaml"
+
 seq_dir = config["seq_directory"]
 out_dir = f"{seq_dir}/Preflight/"
 
@@ -24,9 +27,6 @@ def get_fq2(wildcards):
     r = re.compile(r".*[\_\.][R][2]?(?:\_00[0-9])*\.f(?:ast)?q(?:\.gz)?$", flags=re.IGNORECASE)
     fqlist = list(filter(r.match, lst))
     return fqlist
-
-conda:
-    os.getcwd() + "/harpyenvs/variants.snp.yaml"
 
 rule checkForward:
     input:

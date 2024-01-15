@@ -2,6 +2,9 @@ import os
 import re
 import glob
 
+conda:
+    os.getcwd() + "/harpyenvs/qc.yaml"
+
 maxlen 	  = config["maxlen"]
 extra 	  = config.get("extra", "") 
 seq_dir   = config["seq_directory"]
@@ -27,9 +30,6 @@ def get_fq2(wildcards):
     fqlist = list(filter(r.match, lst))
     return fqlist
 
-conda:
-    os.getcwd() + "/harpyenvs/qc.yaml"
-
 rule trimFastp:
     input:
         fw   = get_fq1,
@@ -43,14 +43,14 @@ rule trimFastp:
         serr = "QC/logs/fastp_logs/{sample}.log"
     benchmark:
         ".Benchmark/QC/{sample}.txt"
-    message:
-        "Removing adapters + quality trimming: {wildcards.sample}"
-    threads:
-        2
     params:
         maxlen = f"--max_len1 {maxlen}",
         tim_adapters = "--detect_adapter_for_pe" if adapters else "--disable_adapter_trimming",
         extra = extra
+    threads:
+        2
+    message:
+        "Removing adapters + quality trimming: {wildcards.sample}"
     shell: 
         """
         fastp --trim_poly_g --cut_right {params} --thread {threads} -i {input.fw} -I {input.rv} -o {output.fw} -O {output.rv} -h {log.html} -j {output.json} -R "{wildcards.sample} QC Report" 2> {log.serr}
@@ -61,6 +61,8 @@ rule count_beadtags:
         "QC/{sample}.R1.fq.gz"
     output: 
         temp("QC/logs/bxcount/{sample}.count.log")
+    conda:
+        os.getcwd() + "/harpyenvs/filetools.yaml"
     message:
         "Counting barcode frequency: {wildcards.sample}"
     shell:
@@ -81,12 +83,12 @@ rule beadtag_counts_summary:
 rule log_runtime:
     output:
         "QC/logs/harpy.qc.log"
-    message:
-        "Creating record of relevant runtime parameters: {output}"
     params:
         maxlen = f"--max_len1 {maxlen}",
         tim_adapters = "--detect_adapter_for_pe" if adapters else "--disable_adapter_trimming",
         extra = extra
+    message:
+        "Creating record of relevant runtime parameters: {output}"
     run:
         with open(output[0], "w") as f:
             _ = f.write("The harpy qc module ran using these parameters:\n\n")
@@ -103,6 +105,8 @@ rule createReport:
         "QC/logs/harpy.qc.log"
     output:
         "QC/logs/qc.report.html"
+    conda:
+        os.getcwd() + "/harpyenvs/filetools.yaml"
     message:
         "Sequencing quality filtering and trimming is complete!"
     shell: 

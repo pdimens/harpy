@@ -1,6 +1,9 @@
 import os
 import re
 
+conda:
+    os.getcwd() + "/harpyenvs/filetools.yaml"
+
 bam_dir     = config["seq_directory"]
 samplenames = config["samplenames"] 
 extra       = config.get("extra", "") 
@@ -24,9 +27,6 @@ def process_args(args):
             argsDict[i[0]] = i[1]
     return argsDict
 
-conda:
-    os.getcwd() + "/harpyenvs/variants.sv.yaml"
-
 rule index_alignment:
     input:
         bam_dir + "/{sample}.bam"
@@ -42,10 +42,10 @@ rule create_config:
         bam_dir + "/{sample}.bam"
     output:
         outdir + "/configs/{sample}.config"
-    message:
-        "Creating naibr config file: {wildcards.sample}"
     params:
         lambda wc: wc.get("sample")
+    message:
+        "Creating naibr config file: {wildcards.sample}"
     run:
         argdict = process_args(extra)
         with open(output[0], "w") as conf:
@@ -61,21 +61,15 @@ rule call_sv:
         bai   = bam_dir + "/{sample}.bam.bai",
         conf  = outdir + "/configs/{sample}.config"
     output:
-        bedpe = outdir + "/{sample}.bedpe",
-        refmt = outdir + "/IGV/{sample}.reformat.bedpe",
-        fail  = outdir + "/filtered/{sample}.fail.bedpe",
-        vcf   = outdir + "/vcf/{sample}.vcf" 
-    log:
-        outdir + "/logs/{sample}.log"
-    threads:
-        8        
-    params:
-        outdir = lambda wc: outdir + "/" + wc.get("sample"),
-        sample = lambda wc: wc.get("sample")
-    message:
-        "Calling variants: {wildcards.sample}"
+        bedpe = outdir + "{sample}/{sample}.bedpe",
+        refmt = outdir + "{sample}/{sample}.reformat.bedpe",
+        vcf   = outdir + "{sample}/{sample}.vcf"
     log:
         outdir + "log/{sample}.log" 
+    threads:
+        8        
+    message:
+        "Calling variants: {wildcards.sample}"
     shell:
         """
         if ! grep -q "threads" {input.conf}; then
@@ -83,11 +77,28 @@ rule call_sv:
         fi
         naibr {input.conf} > {log}.tmp 2>&1
         grep -v "pairs/s" {log}.tmp > {log} && rm {log}.tmp
-        inferSV.py {params.outdir}/{params.sample}.bedpe -f {output.fail} > {output.bedpe}
-        mv {params.outdir}/{params.sample}.reformat.bedpe {output.refmt}
-        mv {params.outdir}/{params.sample}.vcf {output.vcf}
-        #mv Variants/naibrlog/{params.sample}.log {log}
-        rm -rf {params.outdir}
+        """
+
+rule infer_sv:
+    input:
+        bedpe = outdir + "{sample}/{sample}.bedpe",
+        refmt = outdir + "{sample}/{sample}.reformat.bedpe",
+        vcf   = outdir + "{sample}/{sample}.vcf"
+    output:
+        bedpe = outdir + "/{sample}.bedpe",
+        refmt = outdir + "/IGV/{sample}.reformat.bedpe",
+        fail  = outdir + "/filtered/{sample}.fail.bedpe",
+        vcf   = outdir + "/vcf/{sample}.vcf" 
+    params:
+        outdir = lambda wc: outdir + "/" + wc.get("sample")
+    message:
+        "Inferring variants from naibr output: {wildcards.sample}"
+    shell:
+        """
+        inferSV.py {input.bedpe} -f {output.fail} > {output.bedpe} &&
+            mv {input.refmt} {output.refmt} &&
+            mv {input.vcf} {output.vcf} &&
+            rm -rf {params.outdir}
         """
 
 rule genome_link:
@@ -118,10 +129,10 @@ if genome_zip:
         output: 
             gzi = f"Genome/{bn}.gzi",
             fai = f"Genome/{bn}.fai"
-        message:
-            "Indexing {input}"
         log:
             f"Genome/{bn}.faidx.gzi.log"
+        message:
+            "Indexing {input}"
         shell: 
             "samtools faidx --gzi-idx {output.gzi} --fai-idx {output.fai} {input} 2> {log}"
 else:
@@ -130,10 +141,10 @@ else:
             f"Genome/{bn}"
         output: 
             f"Genome/{bn}.fai"
-        message:
-            "Indexing {input}"
         log:
             f"Genome/{bn}.faidx.log"
+        message:
+            "Indexing {input}"
         shell:
             "samtools faidx --fai-idx {output} {input} 2> {log}"
 
@@ -143,10 +154,10 @@ rule report:
         fai   = f"Genome/{bn}.fai"
     output:
         outdir + "/reports/{sample}.naibr.html"
-    message:
-        "Creating report: {wildcards.sample}"
     conda:
         os.getcwd() + "/harpyenvs/r-env.yaml"
+    message:
+        "Creating report: {wildcards.sample}"
     script:
         "reportNaibr.Rmd"
 

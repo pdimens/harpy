@@ -3,6 +3,9 @@ import re
 import glob
 from pathlib import Path
 
+conda:
+    os.getcwd() + "/harpyenvs/align.yaml"
+
 outdir      = "Align/ema"
 seq_dir 	= config["seq_directory"]
 nbins 		= config["EMA_bins"]
@@ -15,9 +18,6 @@ extra 		= config.get("extra", "")
 bn 			= os.path.basename(genomefile)
 genome_zip  = True if bn.lower().endswith(".gz") else False
 bn_idx      = f"{bn}.gzi" if genome_zip else f"{bn}.fai"
-
-conda:
-    os.getcwd() + "/harpyenvs/align.yaml"
 
 d = dict(zip(samplenames, samplenames))
 
@@ -59,10 +59,10 @@ if genome_zip:
         output: 
             gzi = f"Genome/{bn}.gzi",
             fai = f"Genome/{bn}.fai"
-        message:
-            "Indexing {input}"
         log:
             f"Genome/{bn}.faidx.gzi.log"
+        message:
+            "Indexing {input}"
         shell: 
             "samtools faidx --gzi-idx {output.gzi} --fai-idx {output.fai} {input} 2> {log}"
 else:
@@ -71,10 +71,10 @@ else:
             f"Genome/{bn}"
         output: 
             f"Genome/{bn}.fai"
-        message:
-            "Indexing {input}"
         log:
             f"Genome/{bn}.faidx.log"
+        message:
+            "Indexing {input}"
         shell:
             "samtools faidx --fai-idx {output} {input} 2> {log}"
 
@@ -83,10 +83,10 @@ rule genome_bwa_index:
         f"Genome/{bn}"
     output: 
         multiext(f"Genome/{bn}", ".ann", ".bwt", ".pac", ".sa", ".amb")
-    message:
-        "Indexing {input}"
     log:
         f"Genome/{bn}.idx.log"
+    message:
+        "Indexing {input}"
     shell: 
         "bwa index {input} 2> {log}"
 
@@ -95,6 +95,8 @@ rule genome_make_windows:
         f"Genome/{bn}.fai"
     output: 
         f"Genome/{bn}.bed"
+    conda:
+        os.getcwd() + "/harpyenvs/filetools.yaml"
     message: 
         "Creating BED intervals from {input}"
     shell: 
@@ -107,12 +109,12 @@ rule beadtag_count:
     output: 
         counts = temp(outdir + "/{sample}/{sample}.ema-ncnt"),
         logs   = temp(outdir + "/logs/count/{sample}.count")
-    message:
-        "Counting barcode frequency: {wildcards.sample}"
     params:
         prefix = lambda wc: outdir + "/" + wc.get("sample") + "/" + wc.get("sample"),
         beadtech = "-p" if platform == "haplotag" else f"-w {whitelist}",
         logdir = f"{outdir}/logs/count/"
+    message:
+        "Counting barcode frequency: {wildcards.sample}"
     shell:
         """
         mkdir -p {params.prefix} {params.logdir}
@@ -125,6 +127,8 @@ rule beadtag_summary:
         countlog = expand(outdir + "/logs/count/{sample}.count", sample = samplenames)
     output:
         outdir + "/stats/reads.bxcounts.html"
+    conda:
+        os.getcwd() + "/harpyenvs/r-env.yaml"
     message:
         "Creating sample barcode validation report"
     script:
@@ -140,18 +144,20 @@ rule preprocess:
         unbarcoded    = temp(outdir + "/{sample}/preproc/ema-nobc")
     log:
         outdir + "/logs/preproc/{sample}.preproc.log"
-    message:
-        "Preprocessing for EMA mapping: {wildcards.sample}"
-    benchmark:
-        ".Benchmark/Mapping/ema/Preproc.{sample}.txt"
-    threads:
-        2
     params:
         outdir = lambda wc: outdir + "/" + wc.get("sample") + "/preproc",
         beadtech = "-p" if platform == "haplotag" else f"-w {whitelist}",
         bins   = nbins
+    threads:
+        2
+    message:
+        "Preprocessing for EMA mapping: {wildcards.sample}"
     shell:
-        "seqtk mergepe {input.forward_reads} {input.reverse_reads} | ema preproc {params.beadtech} -n {params.bins} -t {threads} -o {params.outdir} {input.emacounts} 2>&1 | cat - > {log}"
+        """
+        seqtk mergepe {input.forward_reads} {input.reverse_reads} |
+            ema preproc {params.beadtech} -n {params.bins} -t {threads} -o {params.outdir} {input.emacounts} 2>&1 |
+            cat - > {log}
+        """
 
 rule align:
     input:
@@ -165,8 +171,6 @@ rule align:
     log:
         ema     = outdir + "/logs/{sample}.ema.align.log",
         emasort = outdir + "/logs/{sample}.ema.sort.log"
-    message:
-        "Aligning barcoded sequences: {wildcards.sample}"
     params: 
         quality = config["quality"],
         tmpdir = lambda wc: outdir + "/." + d[wc.sample],
@@ -174,12 +178,14 @@ rule align:
         extra = extra
     threads:
         10
+    message:
+        "Aligning barcoded sequences: {wildcards.sample}"
     shell:
         """
         EMATHREADS=$(( {threads} - 2 ))
         ema align -t $EMATHREADS {params.extra} -d {params.beadtech} -r {input.genome} -R \"@RG\\tID:{wildcards.sample}\\tSM:{wildcards.sample}\" -x {input.readbin} 2> {log.ema} |
-        samtools view -h -F 4 -q {params.quality} - | 
-        samtools sort -T {params.tmpdir} --reference {input.genome} -O bam --write-index -m 4G -o {output.aln}##idx##{output.idx} - 2> {log.emasort}
+            samtools view -h -F 4 -q {params.quality} - | 
+            samtools sort -T {params.tmpdir} --reference {input.genome} -O bam --write-index -m 4G -o {output.aln}##idx##{output.idx} - 2> {log.emasort}
         rm -rf {params.tmpdir}
         """
 
@@ -198,16 +204,16 @@ rule align_nobarcode:
         ".Benchmark/Mapping/ema/bwaAlign.{sample}.txt"
     params:
         quality = config["quality"]
-    message:
-        "Aligning unbarcoded sequences: {wildcards.sample}"
     threads:
         8
+    message:
+        "Aligning unbarcoded sequences: {wildcards.sample}"
     shell:
         """
         BWATHREADS=$(( {threads} - 2 ))
         bwa mem -t $BWATHREADS -C -R \"@RG\\tID:{wildcards.sample}\\tSM:{wildcards.sample}\" {input.genome} {input.reads} 2> {log.bwa} |
-        samtools view -h -F 4 -q {params.quality} | 
-        samtools sort -O bam -m 4G --reference {input.genome} -o {output} 2> {log.bwasort}
+            samtools view -h -F 4 -q {params.quality} | 
+            samtools sort -O bam -m 4G --reference {input.genome} -o {output} 2> {log.bwasort}
         """
 
 rule mark_duplicates:
@@ -220,12 +226,12 @@ rule mark_duplicates:
         mdlog    = outdir + "/logs/markduplicates/{sample}.markdup.nobc.log",
         stats    = outdir + "/stats/samtools_stats/{sample}.nobc.stats",
         flagstat = outdir + "/stats/samtools_flagstat/{sample}.nobc.flagstat"
-    message:
-        "Marking duplicates in unbarcoded alignments: {wildcards.sample}"
-    benchmark:
-        ".Benchmark/Mapping/ema/markdup.{sample}.txt"
+    conda:
+        os.getcwd() + "/harpyenvs/filetools.yaml"
     threads:
         2
+    message:
+        "Marking duplicates in unbarcoded alignments: {wildcards.sample}"
     shell:
         """
         sambamba markdup -t {threads} -l 4 {input} {output.bam} 2> {log.mdlog}
@@ -257,10 +263,10 @@ rule coverage_stats:
         bxbai   = outdir + "/{sample}/{sample}.bc.bam.bai"
     output: 
         outdir + "/stats/coverage/data/{sample}.cov.gz"
-    message:
-        "Calculating genomic coverage: {wildcards.sample}"
     threads:
         2
+    message:
+        "Calculating genomic coverage: {wildcards.sample}"
     shell:
         "samtools bedcov -c {input.bed} {input.bx} {input.nobx} | gzip > {output}"
 
@@ -269,6 +275,8 @@ rule coverage_report:
         outdir + "/stats/coverage/data/{sample}.cov.gz",
     output:
         outdir + "/stats/coverage/{sample}.cov.html"
+    conda:
+        os.getcwd() + "/harpyenvs/r-env.yaml"
     message:
         "Creating report of alignment coverage: {wildcards.sample}"
     script:
@@ -283,12 +291,12 @@ rule merge_alignments:
     output: 
         bam 	 = temp(outdir + "/{sample}/{sample}.unsort.bam"),
         bai 	 = temp(outdir + "/{sample}/{sample}.unsort.bam.bai")
-    message:
-        "Merging all alignments: {wildcards.sample}"
-    benchmark:
-        ".Benchmark/Mapping/ema/merge.{sample}.txt"
+    conda:
+        os.getcwd() + "/harpyenvs/filetools.yaml"
     threads:
         10
+    message:
+        "Merging all alignments: {wildcards.sample}"
     shell:
         "sambamba merge -t {threads} {output.bam} {input.aln_bc} {input.aln_nobc} 2> /dev/null"
 
@@ -299,10 +307,10 @@ rule sort_merge:
     output:
         bam = outdir + "/align/{sample}.bam",
         bai = outdir + "/align/{sample}.bam.bai"
-    message:
-        "Sorting merged barcoded alignments: {wildcards.sample}"
     threads:
         2
+    message:
+        "Sorting merged barcoded alignments: {wildcards.sample}"
     shell:
         "samtools sort -@ {threads} -O bam --reference {input.genome} -m 4G --write-index -o {output.bam}##idx##{output.bai} {input.bam} 2> /dev/null"
 
@@ -312,6 +320,8 @@ rule bx_stats_alignments:
         bai = outdir + "/align/{sample}.bam.bai"
     output: 
         outdir + "/stats/BXstats/data/{sample}.bxstats.gz"
+    conda:
+        os.getcwd() + "/harpyenvs/filetools.yaml"
     message:
         "Calculating barcode alignment statistics: {wildcards.sample}"
     shell:
@@ -322,12 +332,12 @@ rule bx_stats_report:
         outdir + "/stats/BXstats/data/{sample}.bxstats.gz"
     output:	
         outdir + "/stats/BXstats/{sample}.bxstats.html"
-    message: 
-        "Generating summary of barcode alignment: {wildcards.sample}"
-    conda:
-        os.getcwd() + "/harpyenvs/r-env.yaml"
     params:
         "none"
+    conda:
+        os.getcwd() + "/harpyenvs/r-env.yaml"
+    message: 
+        "Generating summary of barcode alignment: {wildcards.sample}"
     script:
         "reportBxStats.Rmd"
 
@@ -340,8 +350,6 @@ rule general_stats:
         flagstat = temp(outdir + "/stats/samtools_flagstat/{sample}.flagstat")
     message:
         "Calculating alignment stats: {wildcards.sample}"
-    benchmark:
-        ".Benchmark/Mapping/ema/Mergedstats.{sample}.txt"
     shell:
         """
         samtools stats {input.bam} > {output.stats}
@@ -353,6 +361,8 @@ rule samtools_reports:
         expand(outdir + "/stats/samtools_{ext}/{sample}.{ext}", sample = samplenames, ext = ["stats", "flagstat"]),
     output: 
         outdir + "/stats/ema.stats.html"
+    conda:
+        os.getcwd() + "/harpyenvs/filetools.yaml"
     message:
         "Summarizing samtools stats and flagstat"
     shell:
@@ -363,10 +373,10 @@ rule samtools_reports:
 rule log_runtime:
     output:
         outdir + "/logs/harpy.align.log"
-    message:
-        "Creating record of relevant runtime parameters: {output}"
     params:
         beadtech = "-p" if platform == "haplotag" else f"-w {whitelist}"
+    message:
+        "Creating record of relevant runtime parameters: {output}"
     run:
         with open(output[0], "w") as f:
             _ = f.write("The harpy align module ran using these parameters:\n\n")

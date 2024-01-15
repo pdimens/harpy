@@ -1,6 +1,9 @@
 import os
 import re
 
+conda:
+    os.getcwd() + "/harpyenvs/filetools.yaml"
+
 bam_dir     = config["seq_directory"]
 samplenames = config["samplenames"] 
 extra       = config.get("extra", "") 
@@ -33,9 +36,6 @@ def process_args(args):
             argsDict[i[0]] = i[1]
     return argsDict
 
-conda:
-    os.getcwd() + "/harpyenvs/variants.sv.yaml"
-
 rule genome_link:
     input:
         genomefile
@@ -62,10 +62,10 @@ rule genome_faidx:
         f"Genome/{validgenome}"
     output: 
         f"Genome/{validgenome}.fai"
-    message:
-        "Indexing {input}"
     log:
         f"Genome/{validgenome}.faidx.log"
+    message:
+        "Indexing {input}"
     shell:
         "samtools faidx --fai-idx {output} {input} 2> {log}"
 
@@ -109,14 +109,16 @@ rule phase_alignments:
         ref = f"Genome/{validgenome}"
     output:
         outdir + "/phasedbam/{sample}.bam"
-    message:
-        "Phasing: {input.aln}"
-    params:
-        extra = lambda wc: "--ignore-read-groups --sample " + wc.get("sample") +" --tag-supplementary"
     log:
         outdir + "/logs/whatshap-haplotag/{sample}.phase.log"
+    params:
+        extra = lambda wc: "--ignore-read-groups --sample " + wc.get("sample") +" --tag-supplementary"
+    conda:
+        os.getcwd() + "/harpyenvs/phase.yaml"
     threads:
         4
+    message:
+        "Phasing: {input.aln}"
     shell:
         "whatshap haplotag {params} --output-threads={threads} -o {output} --reference {input.ref} {input.vcf} {input.aln} 2> {log}"
 
@@ -143,10 +145,10 @@ rule create_config:
         outdir + "/phasedbam/{sample}.bam"
     output:
         outdir + "/configs/{sample}.config"
-    message:
-        "Creating naibr config file: {wildcards.sample}"
     params:
         lambda wc: wc.get("sample")
+    message:
+        "Creating naibr config file: {wildcards.sample}"
     run:
         argdict = process_args(extra)
         with open(output[0], "w") as conf:
@@ -172,21 +174,17 @@ rule call_sv:
         bai   = outdir + "/phasedbam/{sample}.bam.bai",
         conf  = outdir + "/configs/{sample}.config"
     output:
-        bedpe = outdir + "/{sample}.bedpe",
-        refmt = outdir + "/IGV/{sample}.reformat.bedpe",
-        fail  = outdir + "/filtered/{sample}.fail.bedpe",
-        vcf   = outdir + "/vcf/{sample}.vcf" 
+        bedpe = outdir + "{sample}/{sample}.bedpe",
+        refmt = outdir + "{sample}/{sample}.reformat.bedpe",
+        vcf   = outdir + "{sample}/{sample}.vcf"
     log:
         outdir + "/logs/{sample}.log"
     threads:
-        8        
-    params:
-        outdir = lambda wc: outdir + "/" + wc.get("sample"),
-        sample = lambda wc: wc.get("sample")
+        8
+    conda:
+        os.getcwd() + "/harpyenvs/phase.yaml"
     message:
         "Calling variants: {wildcards.sample}"
-    log:
-        outdir + "log/{sample}.log" 
     shell:
         """
         if ! grep -q "threads" {input.conf}; then
@@ -194,10 +192,28 @@ rule call_sv:
         fi
         naibr {input.conf} > {log}.tmp 2>&1
         grep -v "pairs/s" {log}.tmp > {log} && rm {log}.tmp
-        inferSV.py {params.outdir}/{params.sample}.bedpe -f {output.fail} > {output.bedpe}
-        mv {params.outdir}/{params.sample}.reformat.bedpe {output.refmt}
-        mv {params.outdir}/{params.sample}.vcf {output.vcf}
-        rm -rf {params.outdir}
+        """
+
+rule infer_sv:
+    input:
+        bedpe = outdir + "{sample}/{sample}.bedpe",
+        refmt = outdir + "{sample}/{sample}.reformat.bedpe",
+        vcf   = outdir + "{sample}/{sample}.vcf"
+    output:
+        bedpe = outdir + "/{sample}.bedpe",
+        refmt = outdir + "/IGV/{sample}.reformat.bedpe",
+        fail  = outdir + "/filtered/{sample}.fail.bedpe",
+        vcf   = outdir + "/vcf/{sample}.vcf" 
+    params:
+        outdir = lambda wc: outdir + "/" + wc.get("sample")
+    message:
+        "Inferring variants from naibr output: {wildcards.sample}"
+    shell:
+        """
+        inferSV.py {input.bedpe} -f {output.fail} > {output.bedpe} &&
+            mv {input.refmt} {output.refmt} &&
+            mv {input.vcf} {output.vcf} &&
+            rm -rf {params.outdir}
         """
 
 rule report:
@@ -206,10 +222,10 @@ rule report:
         fai   = f"Genome/{validgenome}.fai"
     output:
         outdir + "/reports/{sample}.naibr.html"
-    message:
-        "Creating report: {wildcards.sample}"
     conda:
         os.getcwd() + "/harpyenvs/r-env.yaml"
+    message:
+        "Creating report: {wildcards.sample}"
     script:
         "reportNaibr.Rmd"
 

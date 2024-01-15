@@ -14,7 +14,7 @@ outdir      = "Variants/mpileup"
 regions     = dict(zip(intervals, intervals))
 
 conda:
-    os.getcwd() + "/harpyenvs/variants.snp.yaml"
+    os.getcwd() + "/harpyenvs/filetools.yaml"
 
 if groupings:
     rule copy_groupings:
@@ -67,13 +67,13 @@ rule mpileup:
         genome  = f"Genome/{bn}"
     output: 
         pipe(outdir + "/{part}.mp.bcf")
-    message: 
-        "Finding variants: {wildcards.part}"
     log: 
         outdir + "/logs/{part}.mpileup.log"
     params:
         region = lambda wc: "-r " + regions[wc.part],
         extra = mp_extra
+    message: 
+        "Finding variants: {wildcards.part}"
     shell:
         "bcftools mpileup --fasta-ref {input.genome} --bam-list {input.bamlist} --annotate AD --output-type b {params} > {output} 2> {log}"
 
@@ -85,17 +85,16 @@ if groupings:
         output:
             bcf = temp(outdir + "/call/{part}.bcf"),
             idx = temp(outdir + "/call/{part}.bcf.csi")
-        message:
-            "Calling genotypes: {wildcards.part}"
-        threads:
-            2
         params: 
             f"--ploidy {ploidy}"
+        threads:
+            2
+        message:
+            "Calling genotypes: {wildcards.part}"
         shell:
             """
-            bcftools call --multiallelic-caller {params} --variants-only --output-type b {input} | bcftools sort - --output {output.bcf} --write-index 2> /dev/null
-            #bcftools call --multiallelic-caller --group-samples {input.groupings} {params} --variants-only --output-type b {input.bcf} | bcftools sort - --output {output.bcf} 2> /dev/null
-            #bcftools index {output.bcf}
+            bcftools call --multiallelic-caller {params} --variants-only --output-type b {input} |
+                bcftools sort - --output {output.bcf} --write-index 2> /dev/null
             """
 else:
     rule call_genotypes:
@@ -104,17 +103,16 @@ else:
         output:
             bcf = temp(outdir + "/call/{part}.bcf"),
             idx = temp(outdir + "/call/{part}.bcf.csi")
-        message:
-            "Calling genotypes: {wildcards.part}"
-        threads:
-            2
         params: 
             f"--ploidy {ploidy}"
+        threads:
+            2
+        message:
+            "Calling genotypes: {wildcards.part}"
         shell:
             """
-            bcftools call --multiallelic-caller {params} --variants-only --output-type b {input} | bcftools sort - --output {output.bcf} --write-index 2> /dev/null
-            #bcftools call --multiallelic-caller {params} --variants-only --output-type b {input.bcf} | bcftools sort - --output {output.bcf} 2> /dev/null
-            #bcftools index {output.bcf}
+            bcftools call --multiallelic-caller {params} --variants-only --output-type b {input} |
+                bcftools sort - --output {output.bcf} --write-index 2> /dev/null
             """
 
 rule concat_list:
@@ -136,17 +134,15 @@ rule merge_vcfs:
     output:
         bcf = outdir + "/variants.raw.bcf",
         idx = outdir + "/variants.raw.bcf.csi"
-    message:
-        "Combining vcfs into a single file"
     log:
         outdir + "/logs/concat.log"
     threads:
         50
+    message:
+        "Combining vcfs into a single file"
     shell:  
         """
-        bcftools concat -f {input.filelist} --threads {threads} --naive -Ob --write-index > {output.bcf} 2> {log}
-        #bcftools concat -f {input.filelist} --threads {threads} --naive -Ob > {output.bcf} 2> {log}
-        #bcftools index --threads {threads} {output.bcf}
+        bcftools concat -f {input.filelist} --threads {threads} --naive -Ob -o {output.bcf} --write-index 2> {log}
         """
 
 rule normalize_bcf:
@@ -157,15 +153,14 @@ rule normalize_bcf:
     output:
         bcf     = outdir + "/variants.normalized.bcf",
         idx     = outdir + "/variants.normalized.bcf.csi"
-    message: 
-        "Normalizing the called variants"
     threads:
         2
+    message: 
+        "Normalizing the called variants"
     shell:
         """
-        #bcftools norm -d exact -f {input.genome} {input.bcf} | bcftools norm -m -any -N -Ob --write-index > {output.bcf}
-        #bcftools norm -d exact -f {input.genome} {input.bcf} | bcftools norm -m -any -N -Ob > {output.bcf}
-        #bcftools index --threads {threads} {output.bcf}
+        bcftools norm -d exact -f {input.genome} {input.bcf} |
+            bcftools norm -m -any -N -Ob --write-index -o {output.bcf}
         """
         
 rule variants_stats:
@@ -173,7 +168,6 @@ rule variants_stats:
         genome  = f"Genome/{bn}",
         bcf     = outdir + "/variants.{type}.bcf",
         idx     = outdir + "/variants.{type}.bcf.csi"
-        #samples = outdir + "/logs/samples.names"
     output:
         outdir + "/stats/variants.{type}.stats",
     message:
@@ -186,21 +180,21 @@ rule bcfreport:
         outdir + "/stats/variants.{type}.stats"
     output:
         outdir + "/stats/variants.{type}.html"
-    message:
-        "Generating bcftools report: variants.{wildcards.type}.bcf"
     conda:
         os.getcwd() + "/harpyenvs/r-env.yaml"
+    message:
+        "Generating bcftools report: variants.{wildcards.type}.bcf"
     script:
         "reportBcftools.Rmd"
 
 rule log_runtime:
     output:
         outdir + "/logs/harpy.variants.log"
-    message:
-        "Creating record of relevant runtime parameters: {output}"
     params:
         ploidy = f"--ploidy {ploidy}",
         populations = '' if groupings is None else f"--populations {groupings}"
+    message:
+        "Creating record of relevant runtime parameters: {output}"
     run:
         with open(output[0], "w") as f:
             _ = f.write("The harpy variants snp module ran using these parameters:\n\n")

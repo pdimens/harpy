@@ -2,6 +2,9 @@ import os
 import re
 import sys
 
+conda:
+    os.getcwd() + "/harpyenvs/qc.yaml"
+
 infile = config["infile"]
 samplefile = config["samplefile"]
 #paramspace  = Paramspace(pd.read_csv(samplefile, sep="\t", header = None, names = ["barcode", "sample"]), param_sep = "", filename_params="*")
@@ -29,10 +32,6 @@ def barcodedict(smpl):
 samples = barcodedict(samplefile)
 samplenames = [i for i in samples.keys()]
 
-conda:
-    os.getcwd() + "/harpyenvs/qc.yaml"
-
-
 rule link_files:
     input:
         indir + "/" + inprefix + "_{part}" + fq_extension
@@ -46,10 +45,10 @@ rule link_files:
 rule bx_files:
     output:
         temp(expand(outdir + "BC_{letter}.txt", letter = ["A","C","B","D"]))
-    message:
-        "Creating the Gen I barcode files necessary for barcode demultiplexing"
     params:
         outdr = outdir
+    message:
+        "Creating the Gen I barcode files necessary for barcode demultiplexing"
     shell:
         """
         cd {params}
@@ -62,12 +61,12 @@ rule demux_bx:
         expand(outdir + "BC_{letter}.txt", letter = ["A","C","B","D"])
     output:
         temp(expand(outdir + inprefix + "_R{ext}_001.fastq.gz", ext = [1,2]))
-    message:
-        "Moving barcodes into read headers"
     params:
         outdr = outdir,
         outprfx = inprefix,
         logdir = outdir +"logs/.QC"
+    message:
+        "Moving barcodes into read headers"
     shell:
         """
         mkdir -p {params.logdir}
@@ -95,10 +94,10 @@ rule split_samples_rv:
         f"{outdir}{inprefix}_R2_001.fastq.gz"
     output:
         outdir + "{sample}.R.fq.gz"
-    message:
-        "Extracting reverse reads:\n sample: {wildcards.sample}\n barcode: {params}"
     params:
         c_barcode = lambda wc: samples[wc.get("sample")]
+    message:
+        "Extracting reverse reads:\n sample: {wildcards.sample}\n barcode: {params}"
     shell:
         """
         ( zgrep -A3 "A..{params}B..D" {input} | grep -v "^--$" | gzip -q > {output} ) || touch {output}
@@ -109,12 +108,12 @@ rule fastqc_F:
         outdir + "{sample}.F.fq.gz"
     output: 
         temp(outdir + "logs/.QC/{sample}_F/fastqc_data.txt")
-    message:
-        "Performing quality assessment: {wildcards.sample}.F.fq.gz"
     params:
         lambda wc: outdir + "logs/.QC/" + wc.get("sample") + "_F"
     threads:
         1
+    message:
+        "Performing quality assessment: {wildcards.sample}.F.fq.gz"
     shell:
         """
         mkdir -p {params}
@@ -140,12 +139,12 @@ rule fastqc_R:
         outdir + "{sample}.R.fq.gz"
     output: 
         temp(outdir + "logs/.QC/{sample}_R/fastqc_data.txt")
-    message:
-        "Performing quality assessment: {wildcards.sample}.R.fq.gz"
     params:
         lambda wc: outdir + "logs/.QC/" + wc.get("sample") + "_R"
     threads:
         1
+    message:
+        "Performing quality assessment: {wildcards.sample}.R.fq.gz"
     shell:
         """
         mkdir -p {params}
@@ -171,10 +170,12 @@ rule qc_report:
         expand(outdir + "logs/.QC/{sample}_{FR}/fastqc_data.txt", sample = samplenames, FR = ["F","R"])
     output:
         outdir + "reports/demultiplex.QC.html"
-    message:
-        "Creating final demultiplexing QC report"
     params:
         outdir + "logs/.QC"
+    conda:
+        os.getcwd() + "/harpyenvs/filetools.yaml"
+    message:
+        "Creating final demultiplexing QC report"
     shell:
         """
         multiqc {params} --force --quiet --title "QC on Demultiplexed Samples" --comment "This report aggregates the QC results created by falco." --no-data-dir --filename {output} 2> /dev/null

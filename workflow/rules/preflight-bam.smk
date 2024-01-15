@@ -19,7 +19,7 @@ samplenames = set([os.path.splitext(i)[0] for i in bamlist])
 #    return lst
 
 conda:
-    os.getcwd() + "/harpyenvs/variants.snp.yaml"
+    os.getcwd() + "/harpyenvs/filetools.yaml"
 
 rule indexBam:
     input:

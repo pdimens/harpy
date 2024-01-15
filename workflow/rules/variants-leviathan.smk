@@ -11,7 +11,7 @@ if genome_zip:
     bn = bn[:-3]
 
 conda:
-    os.getcwd() + "/harpyenvs/variants.sv.yaml"
+    os.getcwd() + "/harpyenvs/filetools.yaml"
 
 rule index_alignment:
     input:
@@ -29,12 +29,14 @@ rule index_barcode:
         bai = bam_dir + "/{sample}.bam.bai"
     output:
         temp(outdir + "/lrezIndexed/{sample}.bci")
+    threads:
+        4
     message:
         "Indexing barcodes: {wildcards.sample}"
     benchmark:
         ".Benchmark/Variants/leviathan/indexbc.{sample}.txt"
-    threads:
-        4
+    conda:
+        os.getcwd() + "/harpyenvs/variants.sv.yaml"
     shell:
         "LRez index bam --threads {threads} -p -b {input.bam} -o {output}"
 
@@ -64,10 +66,10 @@ rule genome_faidx:
         f"Genome/{bn}"
     output: 
         f"Genome/{bn}.fai"
-    message:
-        "Indexing {input}"
     log:
         f"Genome/{bn}.faidx.log"
+    message:
+        "Indexing {input}"
     shell:
         "samtools faidx --fai-idx {output} {input} 2> {log}"
 
@@ -76,12 +78,12 @@ rule index_bwa_genome:
         f"Genome/{bn}"
     output: 
         multiext(f"Genome/{bn}", ".ann", ".bwt", ".pac", ".sa", ".amb")
-    message:
-        "Indexing {input}"
-    conda:
-        os.getcwd() + "/harpyenvs/align.yaml"
     log:
         f"Genome/{bn}.idx.log"
+    conda:
+        os.getcwd() + "/harpyenvs/align.yaml"
+    message:
+        "Indexing {input}"
     shell: 
         "bwa index {input} 2> {log}"
 
@@ -97,14 +99,16 @@ rule leviathan_variantcall:
     log:  
         runlog     = outdir + "/logs/{sample}.leviathan.log",
         candidates = outdir + "/logs/{sample}.candidates"
-    message:
-        "Calling variants: {wildcards.sample}"
-    benchmark:
-        ".Benchmark/Variants/leviathan/variantcall.{sample}.txt"
     params:
         extra = extra
     threads:
         3
+    conda:
+        os.getcwd() + "/harpyenvs/variants.sv.yaml"
+    message:
+        "Calling variants: {wildcards.sample}"
+    benchmark:
+        ".Benchmark/Variants/leviathan/variantcall.{sample}.txt"
     shell:
         "LEVIATHAN -b {input.bam} -i {input.bc_idx} {params} -g {input.genome} -o {output} -t {threads} --candidates {log.candidates} 2> {log.runlog}"
 
@@ -113,10 +117,10 @@ rule sort_bcf:
         outdir + "/{sample}.vcf"
     output:
         outdir + "/{sample}.bcf"
-    message:
-        "Sorting and converting to BCF: {wildcards.sample}"
     params:
         "{wildcards.sample}"
+    message:
+        "Sorting and converting to BCF: {wildcards.sample}"
     benchmark:
         ".Benchmark/Variants/leviathan/sortbcf.{sample}.txt"
     shell:        
@@ -143,20 +147,20 @@ rule sv_report:
         statsfile = outdir + "/reports/stats/{sample}.sv.stats"
     output:	
         outdir + "/reports/{sample}.SV.html"
-    message:
-        "Generating SV report: {wildcards.sample}"
     conda:
         os.getcwd() + "/harpyenvs/r-env.yaml"
+    message:
+        "Generating SV report: {wildcards.sample}"
     script:
         "reportLeviathan.Rmd"
 
 rule log_runtime:
     output:
         outdir + "/logs/harpy.variants.log"
-    message:
-        "Creating record of relevant runtime parameters: {output}"
     params:
         extra = extra
+    message:
+        "Creating record of relevant runtime parameters: {output}"
     run:
         with open(output[0], "w") as f:
             _ = f.write("The harpy variants sv module ran using these parameters:\n\n")

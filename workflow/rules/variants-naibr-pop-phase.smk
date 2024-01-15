@@ -2,6 +2,9 @@ import sys
 import os
 import re
 
+conda:
+    os.getcwd() + "/harpyenvs/filetools.yaml"
+
 bam_dir     = config["seq_directory"]
 samplenames = config["samplenames"] 
 extra       = config.get("extra", "") 
@@ -60,9 +63,6 @@ def pop_manifest(infile, dirn, sampnames):
 
 popdict     = pop_manifest(groupfile, outdir, samplenames)
 populations = popdict.keys()
-
-conda:
-    os.getcwd() + "/harpyenvs/variants.sv.yaml"
 
 rule genome_link:
     input:
@@ -127,14 +127,16 @@ rule phase_alignments:
         ref = f"Genome/{validgenome}"
     output:
         outdir + "/phasedbam/{sample}.bam"
-    message:
-        "Phasing: {input.aln}"
-    params:
-        extra = lambda wc: "--ignore-read-groups --sample " + wc.get("sample") + " --tag-supplementary"
     log:
         outdir + "/logs/whatshap-haplotag/{sample}.phase.log"
     threads:
         4
+    params:
+        extra = lambda wc: "--ignore-read-groups --sample " + wc.get("sample") + " --tag-supplementary"
+    conda:
+        os.getcwd() + "/harpyenvs/phase.yaml"
+    message:
+        "Phasing: {input.aln}"
     shell:
         "whatshap haplotag {params} --output-threads={threads} -o {output} --reference {input.ref} {input.vcf} {input.aln} 2> {log}"
 
@@ -187,10 +189,10 @@ rule merge_populations:
     output:
         bam = temp(outdir + "/input/{population}.bam"),
         bai = temp(outdir + "/input/{population}.bam.bai")
-    message:
-        "Merging alignments: Population {wildcards.population}"
     threads:
         2
+    message:
+        "Merging alignments: Population {wildcards.population}"
     shell:
         "samtools merge -o {output.bam}##idx##{output.bai} --threads {threads} --write-index -b {input.bamlist}"
 
@@ -199,10 +201,10 @@ rule create_config:
         outdir + "/input/{population}.bam"
     output:
         outdir + "/configs/{population}.config"
-    message:
-        "Creating naibr config file: {wildcards.population}"
     params:
         lambda wc: wc.get("population")
+    message:
+        "Creating naibr config file: {wildcards.population}"
     run:
         argdict = process_args(extra)
         with open(output[0], "w") as conf:
@@ -218,17 +220,15 @@ rule call_sv:
         bai   = outdir + "/input/{population}.bam.bai",
         conf  = outdir + "/configs/{population}.config"
     output:
-        bedpe = outdir + "/{population}.bedpe",
-        refmt = outdir + "/IGV/{population}.reformat.bedpe",
-        fail  = outdir + "/bad_candidates/{population}.fail.bedpe",
-        vcf   = outdir + "/vcf/{population}.vcf"
+        bedpe = outdir + "/{population}/{population}.bedpe",
+        refmt = outdir + "/{population}/{population}.reformat.bedpe",
+        vcf   = outdir + "/{population}/{population}.vcf"
     log:
         outdir + "/logs/{population}.log"
     threads:
         8        
-    params:
-        population = lambda wc: wc.get("population"),
-        outdir     = lambda wc: outdir + "/" + wc.get("population")
+    conda:
+        os.getcwd() + "/harpyenvs/phase.yaml"
     message:
         "Calling variants: {wildcards.population}"
     shell:
@@ -238,11 +238,28 @@ rule call_sv:
         fi
         naibr {input.conf} > {log}.tmp 2>&1
         grep -v "pairs/s" {log}.tmp > {log} && rm {log}.tmp
-        inferSV.py {params.outdir}/{params.population}.bedpe -f {output.fail} > {output.bedpe}
-        mv {params.outdir}/{params.population}.reformat.bedpe {output.refmt}
-        mv {params.outdir}/{params.population}.vcf {output.vcf}
-        #mv Variants/naibrlog/{params.population}.log {log}
-        rm -rf {params.outdir}
+        """
+
+rule infer_sv:
+    input:
+        bedpe = outdir + "{population}/{population}.bedpe",
+        refmt = outdir + "{population}/{population}.reformat.bedpe",
+        vcf   = outdir + "{population}/{population}.vcf"
+    output:
+        bedpe = outdir + "/{population}.bedpe",
+        refmt = outdir + "/IGV/{population}.reformat.bedpe",
+        fail  = outdir + "/filtered/{population}.fail.bedpe",
+        vcf   = outdir + "/vcf/{population}.vcf" 
+    params:
+        outdir = lambda wc: outdir + "/" + wc.get("population")
+    message:
+        "Inferring variants from naibr output: {wildcards.population}"
+    shell:
+        """
+        inferSV.py {input.bedpe} -f {output.fail} > {output.bedpe} &&
+            mv {input.refmt} {output.refmt} &&
+            mv {input.vcf} {output.vcf} &&
+            rm -rf {params.outdir}
         """
 
 rule report:

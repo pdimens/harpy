@@ -2,6 +2,9 @@ import os
 import sys
 import gzip
 
+conda:
+    os.getcwd() + "/harpyenvs/filetools.yaml"
+
 bam_dir 	= config["seq_directory"]
 genomefile 	= config["genomefile"]
 groupings 	= config.get("groupings", None)
@@ -13,9 +16,6 @@ chunksize   = config["windowsize"]
 intervals   = config["intervals"]
 outdir      = "Variants/freebayes"
 regions     = dict(zip(intervals, intervals))
-
-conda:
-    os.getcwd() + "/harpyenvs/variants.snp.yaml"
 
 if groupings:
     rule copy_groupings:
@@ -74,18 +74,20 @@ if groupings:
         output:
             bcf = temp(outdir + "/regions/{part}.bcf"),
             idx = temp(outdir + "/regions/{part}.bcf.csi")
-        message:
-            "Calling variants: {wildcards.part}"
-        threads:
-            2
         params:
             region = lambda wc: "-r " + regions[wc.part],
             ploidy = f"-p {ploidy}",
             extra = extra
+        threads:
+            2
+        conda:
+            os.getcwd() + "/harpyenvs/variants.snp.yaml"
+        message:
+            "Calling variants: {wildcards.part}"
         shell:
             """
-            freebayes -f {input.ref} -L {input.samples} --populations {input.groupings} {params} | bcftools sort - -Ob --output {output.bcf} 2> /dev/null
-            bcftools index {output.bcf}
+            freebayes -f {input.ref} -L {input.samples} --populations {input.groupings} {params} |
+                bcftools sort - -Ob --write-index --output {output.bcf} 2> /dev/null
             """
 else:
     rule call_variants:
@@ -98,18 +100,20 @@ else:
         output:
             bcf = temp(outdir + "/regions/{part}.bcf"),
             idx = temp(outdir + "/regions/{part}.bcf.csi")
-        message:
-            "Calling variants: {wildcards.part}"
-        threads:
-            2
         params:
             region = lambda wc: "-r " + regions[wc.part],
             ploidy = f"-p {ploidy}",
             extra = extra
+        threads:
+            2
+        conda:
+            os.getcwd() + "/harpyenvs/variants.snp.yaml"
+        message:
+            "Calling variants: {wildcards.part}"
         shell:
             """
-            freebayes -f {input.ref} -L {input.samples} {params} | bcftools sort - -Ob --output {output.bcf} 2> /dev/null
-            bcftools index {output.bcf}
+            freebayes -f {input.ref} -L {input.samples} {params} |
+                bcftools sort - -Ob --write-index --output {output.bcf} 2> /dev/null
             """
 
 rule concat_list:
@@ -131,17 +135,15 @@ rule merge_vcfs:
     output:
         bcf = outdir + "/variants.raw.bcf",
         idx = outdir + "/variants.raw.bcf.csi"
-    message:
-        "Combining vcfs into a single file"
     log:
         outdir + "/logs/concat.log"
     threads:
         50
+    message:
+        "Combining vcfs into a single file"
     shell:  
         """
-        bcftools concat -f {input.filelist} --threads {threads} --naive -Ob --write-index > {output.bcf} 2> {log}
-        #bcftools concat -f {input.filelist} --threads {threads} --naive -Ob > {output.bcf} 2> {log}
-        #bcftools index --threads {threads} {output.bcf}
+        bcftools concat -f {input.filelist} --threads {threads} --naive -Ob --write-index -o {output.bcf} 2> {log}
         """
 
 rule normalize_bcf:
@@ -152,15 +154,14 @@ rule normalize_bcf:
     output:
         bcf     = outdir + "/variants.normalized.bcf",
         idx     = outdir + "/variants.normalized.bcf.csi",
-    message: 
-        "Normalizing the called variants"
     threads: 
         2
+    message: 
+        "Normalizing the called variants"
     shell:
         """
-        bcftools norm -d exact -f {input.genome} {input.bcf} | bcftools norm -m -any -N -Ob --write-index > {output.bcf}
-        #bcftools norm -d exact -f {input.genome} {input.bcf} | bcftools norm -m -any -N -Ob > {output.bcf}
-        #bcftools index --threads {threads} {output.bcf}        
+        bcftools norm -d exact -f {input.genome} {input.bcf} | 
+            bcftools norm -m -any -N -Ob --write-index -o {output.bcf}    
         """
 
 rule variants_stats:

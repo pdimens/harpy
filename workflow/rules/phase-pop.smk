@@ -16,7 +16,7 @@ except:
     indelarg = ""
 
 conda:
-    os.getcwd() + "/harpyenvs/phase.yaml"
+    os.getcwd() + "/harpyenvs/filetools.yaml"
 
 rule splitbysamplehet:
     input: 
@@ -24,10 +24,10 @@ rule splitbysamplehet:
         bam = bam_dir + "/{sample}.bam"
     output:
         outdir + "/input/{sample}.het.bcf"
-    message:
-        "Extracting heterozygous variants: {wildcards.sample}"
     benchmark:
         ".Benchmark/Phase/splithet.{sample}.txt"
+    message:
+        "Extracting heterozygous variants: {wildcards.sample}"
     shell:
         """
         bcftools view -s {wildcards.sample} {input.vcf} |
@@ -40,10 +40,10 @@ rule splitbysample:
         bam = bam_dir + "/{sample}.bam"
     output:
         outdir + "/input/{sample}.bcf"
-    message:
-        "Extracting variants: {wildcards.sample}"
     benchmark:
         ".Benchmark/Phase/split.{sample}.txt"
+    message:
+        "Extracting variants: {wildcards.sample}"
     shell:
         """
         bcftools view -s {wildcards.sample} {input.vcf} |
@@ -58,13 +58,15 @@ rule extractHairs:
         outdir + "/extractHairs/{sample}.unlinked.frags"
     log:
         outdir + "/extractHairs/logs/{sample}.unlinked.log"
-    message:
-        "Converting to compact fragment format: {wildcards.sample}"
     params:
         indels = indelarg,
         bx = linkarg
+    conda:
+        os.getcwd() + "/harpyenvs/phase.yaml"
     benchmark:
         ".Benchmark/Phase/extracthairs.{sample}.txt"
+    message:
+        "Converting to compact fragment format: {wildcards.sample}"
     shell:
         "extractHAIRS {params} --nf 1 --bam {input.bam} --VCF {input.vcf} --out {output} 2> {log}"
 
@@ -77,12 +79,14 @@ rule linkFragments:
         outdir + "/linkFragments/{sample}.linked.frags"
     log:
         outdir + "/linkFragments/logs/{sample}.linked.log"
-    message:
-        "Linking fragments: {wildcards.sample}"
-    benchmark:
-        ".Benchmark/Phase/linkfrag.{sample}.txt"
     params:
         d = molecule_distance
+    conda:
+        os.getcwd() + "/harpyenvs/phase.yaml"
+    benchmark:
+        ".Benchmark/Phase/linkfrag.{sample}.txt"
+    message:
+        "Linking fragments: {wildcards.sample}"
     shell:
         "LinkFragments.py --bam {input.bam} --VCF {input.vcf} --fragments {input.fragments} --out {output} -d {params} > {log} 2>&1"
 
@@ -93,15 +97,17 @@ rule phaseBlocks:
     output: 
         blocks    = outdir + "/phaseBlocks/{sample}.blocks",
         vcf       = outdir + "/phaseBlocks/{sample}.blocks.phased.VCF"
-    message:
-        "Creating phased haplotype blocks: {wildcards.sample}"
-    benchmark:
-        ".Benchmark/Phase/phase.{sample}.txt"
     log:
         outdir + "/phaseBlocks/logs/{sample}.blocks.phased.log"
     params: 
         prune = f"--threshold {pruning}" if pruning > 0 else "--no_prune 1",
         extra = extra
+    conda:
+        os.getcwd() + "/harpyenvs/phase.yaml"
+    benchmark:
+        ".Benchmark/Phase/phase.{sample}.txt"
+    message:
+        "Creating phased haplotype blocks: {wildcards.sample}"
     shell:
         "HAPCUT2 --fragments {input.fragments} --vcf {input.vcf} {params} --out {output.blocks} --nf 1 --error_analysis_mode 1 --call_homozygous 1 --outvcf 1 > {log} 2>&1"
 
@@ -112,8 +118,6 @@ rule createAnnotations:
         outdir + "/annotations/{sample}.annot.gz"
     message:
         "Creating annotation files: {wildcards.sample}"
-    benchmark:
-        ".Benchmark/Phase/createAnno.{sample}.txt"
     shell:
         "bcftools query -f \"%CHROM\\t%POS[\\t%GT\\t%PS\\t%PQ\\t%PD]\\n\" {input} | bgzip -c > {output}"
 
@@ -124,8 +128,6 @@ rule indexAnnotations:
         outdir + "/annotations/{sample}.annot.gz.tbi"
     message:
         "Indexing {wildcards.sample}.annot.gz"
-    benchmark:
-        ".Benchmark/Phase/indexAnno.{sample}.txt"
     shell: 
         "tabix -b 2 -e 2 {input}"
 
@@ -134,8 +136,6 @@ rule headerfile:
         outdir + "/input/header.names"
     message:
         "Creating additional header file"
-    benchmark:
-        ".Benchmark/Phase/headerfile.txt"
     run:
         with open(output[0], "w") as fout:
             _ = fout.write('##INFO=<ID=HAPCUT,Number=0,Type=Flag,Description="The haplotype was created with Hapcut2">\n')
@@ -153,21 +153,18 @@ rule mergeAnnotations:
     output:
         bcf = outdir + "/annotations_merge/{sample}.phased.annot.bcf",
         idx = outdir + "/annotations_merge/{sample}.phased.annot.bcf.csi"
-
-    message:
-        "Merging annotations: {wildcards.sample}"
     threads:
         2
     benchmark:
         ".Benchmark/Phase/mergeAnno.{sample}.txt"
+    message:
+        "Merging annotations: {wildcards.sample}"
     shell:
         """
         bcftools annotate -h {input.headers} -a {input.annot} {input.orig} -c CHROM,POS,FMT/GX,FMT/PS,FMT/PQ,FMT/PD -m +HAPCUT |
-        awk '!/<ID=GX/' |
-        sed 's/:GX:/:GT:/' |
-        #bcftools view -Ob --write-index -o {output.bcf} -
-        bcftools view -Ob -o {output.bcf} -
-        bcftools index {output.bcf}
+            awk '!/<ID=GX/' |
+            sed 's/:GX:/:GT:/' |
+            bcftools view -Ob --write-index -o {output.bcf} -
         """
 
 rule mergeSamples:
@@ -177,28 +174,24 @@ rule mergeSamples:
     output:
         bcf = outdir + "/variants.phased.bcf",
         idx = outdir + "/variants.phased.bcf.csi"
-    message:
-        "Combining samples into a single BCF file"
     benchmark:
         ".Benchmark/Phase/mergesamples.txt"
     threads:
         30
+    message:
+        "Combining samples into a single BCF file"
     shell:
-        """
-        bcftools merge --threads {threads} -Ob {input.bcf} > {output.bcf}
-        bcftools index {output.bcf}
-        """
-        #"bcftools merge --threads {threads} --Ob --write-index {input.bcf} > {output}"
+        "bcftools merge --threads {threads} --Ob -o {output} --write-index {input.bcf}"
 
 rule summarize_blocks:
     input:
         expand(outdir + "/phaseBlocks/{sample}.blocks", sample = samplenames)
     output:
         outdir + "/reports/blocks.summary.gz"
-    message:
-        "Summarizing phasing results"
     params:
         outdir + "/reports/blocks.summary"
+    message:
+        "Summarizing phasing results"
     shell:
         """
         echo -e "sample\\tcontig\\tn_snp\\tpos_start\\tblock_length" > {params}
@@ -223,11 +216,11 @@ rule phase_report:
 rule log_runtime:
     output:
         outdir + "/logs/harpy.phase.log"
-    message:
-        "Creating record of relevant runtime parameters"
     params:
         prune = f"--threshold {pruning}" if pruning > 0 else "--no_prune 1",
         extra = extra
+    message:
+        "Creating record of relevant runtime parameters"
     run:
         with open(output[0], "w") as f:
             _ = f.write("The harpy phase module ran using these parameters:\n\n")

@@ -344,11 +344,12 @@ def check_demux_fastq(file):
 def generate_conda_deps():
     condachannels = ["conda-forge", "bioconda", "defaults"]
     environ = {
-        "qc" : ["falco", "fastp", "multiqc"],
-        "align": ["bwa", "ema","icu","libzlib","multiqc","llvm","openmp", "sambamba", "samtools", "seqtk", "xz"],
-        "variants.snp": ["bcftools=1.19", "freebayes", "samtools", "tabix"],
-        "variants.sv": ["bcftools=1.19", "leviathan", "naibr-plus", "samtools", "tabix", "whatshap", "xz"],
-        "phase" : ["bcftools=1.19", "hapcut2", "multiqc", "samtools", "tabix"],
+        "qc" : ["falco", "fastp"],
+        "filetools" : ["bcftools=1.19", "multiqc", "pysam", "sambamba", "samtools", "seqtk", "tabix"],
+        "align": ["bwa", "ema","icu","libzlib", "samtools=1.19", "seqtk", "xz"],
+        "variants.snp": ["bcftools=1.19", "freebayes"],
+        "variants.sv": ["leviathan", "naibr-plus"],
+        "phase" : ["hapcut2", "whatshap"],
         "r-env" : ["bioconductor-complexheatmap", "r-circlize", "r-dt", "r-flexdashboard", "r-ggplot2", "r-ggridges", "r-plotly", "r-tidyr", "r-stitch"]
     }
 

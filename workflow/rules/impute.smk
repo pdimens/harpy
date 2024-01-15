@@ -4,6 +4,9 @@ import subprocess
 import sys
 import os
 
+conda:
+    os.getcwd() + "/harpyenvs/filetools.yaml"
+
 bam_dir     = config["seq_directory"]
 samplenames = config["samplenames"]
 variantfile = config["variantfile"]
@@ -11,9 +14,6 @@ paramfile   = config["paramfile"]
 contigs     = config["contigs"]
 # declare a dataframe to be the paramspace
 paramspace  = Paramspace(pd.read_csv(paramfile, delim_whitespace = True).rename(columns=str.lower), param_sep = "", filename_params="*")
-
-conda:
-    os.getcwd() + "/harpyenvs/variants.snp.yaml"
 
 rule sort_bcf:
     input:
@@ -39,8 +39,6 @@ rule bam_list:
         "Impute/input/samples.list"
     message:
         "Creating list of alignment files"
-    benchmark:
-        ".Benchmark/Impute/filelist.txt"
     run:
         with open(output[0], "w") as fout:
             _ = [fout.write(f"{bamfile}\n") for bamfile in input]
@@ -59,13 +57,12 @@ rule convert2stitch:
         "Impute/input/input.sorted.bcf"
     output:
         "Impute/input/{part}.stitch"
-    message:
-        "Converting data to biallelic STITCH format: {wildcards.part}"
-    #params:
-        #filters = "-i \'QUAL>20 && DP>10\'" if config["filtervcf"] else ""
+    threads: 
+        3
     benchmark:
         ".Benchmark/Impute/fileprep.{part}.txt"
-    threads: 3
+    message:
+        "Converting data to biallelic STITCH format: {wildcards.part}"
     shell:
         """
         bcftools view --types snps -M2 --regions {wildcards.part} {input} |
@@ -88,26 +85,23 @@ rule impute:
         parameters = paramspace.instance
     conda:
         os.getcwd() + "/harpyenvs/r-env.yaml"
-    message: 
-        "Performing imputation: {wildcards.part}\nmodel: {wildcards.model}\nuseBX: {wildcards.usebx}    \nbxLimit: {wildcards.bxlimit}\n    k: {wildcards.k}\n    s: {wildcards.s}\n nGen: {wildcards.ngen}"
     benchmark:
         f".Benchmark/Impute/stitch.{paramspace.wildcard_pattern}" + ".{part}.txt"
     threads:
         50
+    message: 
+        "Performing imputation: {wildcards.part}\nmodel: {wildcards.model}\nuseBX: {wildcards.usebx}    \nbxLimit: {wildcards.bxlimit}\n    k: {wildcards.k}\n    s: {wildcards.s}\n nGen: {wildcards.ngen}"
     script:
         "stitch_impute.R"
 
 rule index_vcf:
     input:
-        vcf     = "Impute/{stitchparams}/contigs/{part}/{part}.vcf.gz"
-        #samples = "Impute/input/samples.names"
+        vcf   = "Impute/{stitchparams}/contigs/{part}/{part}.vcf.gz"
     output: 
-        idx        = "Impute/{stitchparams}/contigs/{part}/{part}.vcf.gz.tbi",
-        stats      = "Impute/{stitchparams}/contigs/{part}/{part}.stats"
+        idx   = "Impute/{stitchparams}/contigs/{part}/{part}.vcf.gz.tbi",
+        stats = "Impute/{stitchparams}/contigs/{part}/{part}.stats"
     message:
         "Indexing: {wildcards.stitchparams}/{wildcards.part}"
-    benchmark:
-        ".Benchmark/Impute/indexvcf.{stitchparams}.{part}.txt"
     shell:
         """
         tabix {input.vcf}
@@ -123,8 +117,6 @@ rule stitch_reports:
         "Generating STITCH report: {wildcards.part}"
     conda:
         os.getcwd() + "/harpyenvs/r-env.yaml"
-    benchmark:
-        ".Benchmark/Impute/report.{stitchparams}.{part}.txt"
     script:
         "reportImputeStitch.Rmd"
 
@@ -133,12 +125,12 @@ rule clean_stitch:
         "Impute/{stitchparams}/contigs/{part}/{part}.STITCH.html"
     output:
         temp("Impute/{stitchparams}/contigs/{part}/.cleaned")
-    message:
-        "Cleaning up {wildcards.stitchparams}: {wildcards.part}"
-    priority:
-        2
     params:
         lambda wc: wc.get("stitchparams")
+    priority:
+        2
+    message:
+        "Cleaning up {wildcards.stitchparams}: {wildcards.part}"
     shell: 
         """
         rm -rf Impute/{params}/contigs/{wildcards.part}/input
@@ -166,12 +158,10 @@ rule merge_vcfs:
     output:
         bcf = "Impute/{stitchparams}/variants.imputed.bcf",
         bai = "Impute/{stitchparams}/variants.imputed.bcf.csi"
-    message:
-        "Merging VCFs: {wildcards.stitchparams}"
-    benchmark:
-        ".Benchmark/Impute/mergevcf.{stitchparams}.txt"
     threads:
         50
+    message:
+        "Merging VCFs: {wildcards.stitchparams}"
     shell:
         """
         #bcftools concat --threads {threads} --write-index -o {output.bcf}##idx##{output.bai} -f {input.files} 2> /dev/null
@@ -183,13 +173,10 @@ rule stats:
     input:
         bcf     = "Impute/{stitchparams}/variants.imputed.bcf",
         idx     = "Impute/{stitchparams}/variants.imputed.bcf.csi"
-        #samples = "Impute/input/samples.names"
     output:
         "Impute/{stitchparams}/stats/variants.imputed.stats"
     message:
         "Calculating stats: {wildcards.stitchparams}/variants.imputed.bcf"
-    benchmark:
-        ".Benchmark/Impute/mergestats.{stitchparams}.txt"
     shell:
         """
         bcftools stats -s "-" {input.bcf} > {output}
@@ -201,14 +188,11 @@ rule comparestats:
         origidx = "Impute/input/input.sorted.bcf.csi",
         impute  = "Impute/{stitchparams}/variants.imputed.bcf",
         idx     = "Impute/{stitchparams}/variants.imputed.bcf.csi"
-        #samples = "Impute/input/samples.names"
     output:
         compare = "Impute/{stitchparams}/stats/impute.compare.stats",
         info_sc = temp("Impute/{stitchparams}/stats/impute.infoscore")
     message:
         "Computing post-imputation stats: {wildcards.stitchparams}"
-    benchmark:
-        ".Benchmark/Impute/mergestats.{stitchparams}.txt"
     shell:
         """
         bcftools stats -s "-" {input.orig} {input.impute} | grep \"GCTs\" > {output.compare}
@@ -221,14 +205,12 @@ rule reports:
         "Impute/{stitchparams}/stats/impute.infoscore"
     output:
         "Impute/{stitchparams}/variants.imputed.html"
-    message:
-        "Generating imputation success report: {output}"
-    conda:
-        os.getcwd() + "/harpyenvs/r-env.yaml"
     params:
         lambda wc: wc.get("stitchparams")
-    benchmark:
-        ".Benchmark/Impute/stitchreport.{stitchparams}.txt"
+    conda:
+        os.getcwd() + "/harpyenvs/r-env.yaml"
+    message:
+        "Generating imputation success report: {output}"
     script:
         "reportImpute.Rmd"
 
