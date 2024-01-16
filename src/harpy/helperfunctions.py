@@ -4,6 +4,7 @@ import re
 import glob
 import gzip
 import subprocess
+from urllib.request import urlretrieve
 from pathlib import Path
 from rich import print
 from rich.panel import Panel
@@ -345,8 +346,8 @@ def generate_conda_deps():
     condachannels = ["conda-forge", "bioconda", "defaults"]
     environ = {
         "qc" : ["falco", "fastp"],
-        "filetools" : ["bcftools=1.19", "multiqc", "pysam", "sambamba", "samtools", "seqtk", "tabix"],
-        "align": ["bwa", "ema","icu","libzlib", "samtools=1.19", "seqtk", "xz"],
+        #"filetools" : ["bcftools=1.19", "multiqc", "pysam", "sambamba", "samtools", "seqtk", "tabix"],
+        "align": ["bwa", "ema","icu","libzlib", "sambamba", "samtools=1.19", "seqtk", "xz"],
         "variants.snp": ["bcftools=1.19", "freebayes"],
         "variants.sv": ["leviathan", "naibr-plus"],
         "phase" : ["hapcut2", "whatshap"],
@@ -364,3 +365,25 @@ def generate_conda_deps():
                 yml.write("\n  - ".join(condachannels))
                 yml.write("\ndependencies:\n  - ")
                 yml.write("\n  - ".join(environ[i]))
+
+# finding the snakefiles
+def fetch_snakefile(workflow):
+    result = None
+    try:
+        result = subprocess.check_output(["whereis", workflow])
+    except:
+        print_error(f"The GNU program \'whereis\', which is used to locate the snakefile, was not found on the system and therefore unable to retrieve the snakefile. Terminating harpy.")
+        print_solution("Make sure \'whereis\' is installed on the system. It is usually provided by default in all Unix-like operating systems.")
+
+    if result is None:
+        return []
+
+    result = result.decode().splitlines()
+    for line in result:
+        if line.endswith(":"):
+            print_error(f"The snakefile \"{workflow}\" was not found in PATH, cannot run Harpy module.")
+            print_solution(f"Make sure harpy was installed correctly and that you are in the harpy conda environment.")
+            click.echo("See documentation: https://pdimens.github.io/harpy/install/")
+            exit(1)
+        else:
+            return line.split(" ")[-1]

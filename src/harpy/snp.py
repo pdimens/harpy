@@ -1,4 +1,4 @@
-from .helperfunctions import getnames, createregions, validate_bamfiles, validate_popfile, validate_vcfsamples
+from .helperfunctions import generate_conda_deps, getnames, createregions, validate_bamfiles, validate_popfile, validate_vcfsamples
 import rich_click as click
 import subprocess
 import sys

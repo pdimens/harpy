@@ -1,13 +1,11 @@
 import os
 import re
 import sys
-
-conda:
-    os.getcwd() + "/harpyenvs/qc.yaml"
+from rich.panel import Panel
+from rich import print as rprint
 
 infile = config["infile"]
 samplefile = config["samplefile"]
-#paramspace  = Paramspace(pd.read_csv(samplefile, sep="\t", header = None, names = ["barcode", "sample"]), param_sep = "", filename_params="*")
 bn = os.path.basename(infile)
 fq_extension = re.search(r"(?:\_00[0-9])*\.f(.*?)q(?:\.gz)?$", infile, re.IGNORECASE).group(0)
 inprefix     = re.sub(r"[\_\.][IR][12]?(?:\_00[0-9])*\.f(?:ast)?q(?:\.gz)?$", "", bn)
@@ -19,7 +17,6 @@ outdir = f"Demultiplex/{inprefix}/"
 def barcodedict(smpl):
     d = dict()
     with open(smpl, "r") as f:
-        #rows = [i.split("\t")[0] for i in f.readlines()]
         for i in f.readlines():
             # a casual way to ignore empty lines or lines with >2 fields
             try:
@@ -31,6 +28,30 @@ def barcodedict(smpl):
 
 samples = barcodedict(samplefile)
 samplenames = [i for i in samples.keys()]
+
+onerror:
+    print("")
+    rprint(
+        Panel(
+            f"The workflow has terminated due to an error. See the log file below for more details.",
+            title = "[bold]harpy demultiplex",
+            title_align = "left",
+            border_style = "red"
+            ),
+        file = sys.stderr
+    )
+
+onsuccess:
+    print("")
+    rprint(
+        Panel(
+            f"The workflow has finished successfully! Find the results in [bold]{outdir}[/bold]",
+            title = "[bold]harpy demultiplex",
+            title_align = "left",
+            border_style = "green"
+            ),
+        file = sys.stderr
+    )
 
 rule link_files:
     input:
@@ -112,6 +133,8 @@ rule fastqc_F:
         lambda wc: outdir + "logs/.QC/" + wc.get("sample") + "_F"
     threads:
         1
+    conda:
+        os.getcwd() + "/harpyenvs/qc.yaml"
     message:
         "Performing quality assessment: {wildcards.sample}.F.fq.gz"
     shell:
@@ -143,6 +166,8 @@ rule fastqc_R:
         lambda wc: outdir + "logs/.QC/" + wc.get("sample") + "_R"
     threads:
         1
+    conda:
+        os.getcwd() + "/harpyenvs/qc.yaml"
     message:
         "Performing quality assessment: {wildcards.sample}.R.fq.gz"
     shell:
@@ -172,8 +197,6 @@ rule qc_report:
         outdir + "reports/demultiplex.QC.html"
     params:
         outdir + "logs/.QC"
-    conda:
-        os.getcwd() + "/harpyenvs/filetools.yaml"
     message:
         "Creating final demultiplexing QC report"
     shell:
@@ -183,7 +206,7 @@ rule qc_report:
 
 rule log_runtime:
     output:
-        outdir + "logs/harpy.demultiplex.log"
+        outdir + "logs/demultiplex.workflow.summary"
     message:
         "Creating record of relevant runtime parameters: {output}"
     run:
@@ -204,7 +227,7 @@ rule all:
     input:
         fw_reads = expand(outdir + "{sample}.F.fq.gz", sample = samplenames),
         rv_reads = expand(outdir + "{sample}.R.fq.gz", sample = samplenames),
-        runlog   = outdir + "logs/harpy.demultiplex.log",
+        runlog   = outdir + "logs/demultiplex.workflow.summary",
         qcreport = outdir + "reports/demultiplex.QC.html"
     message:
         "Demultiplexing has finished!"

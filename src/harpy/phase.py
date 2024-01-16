@@ -1,4 +1,4 @@
-from .helperfunctions import getnames, vcfcheck, vcf_samplematch, validate_bamfiles, print_error, print_solution_with_culprits
+from .helperfunctions import generate_conda_deps, getnames, vcfcheck, vcf_samplematch, validate_bamfiles, print_error, print_solution_with_culprits
 import sys
 import os
 import subprocess

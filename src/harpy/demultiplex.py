@@ -1,14 +1,15 @@
 import rich_click as click
-from .helperfunctions import validate_demuxschema, check_demux_fastq
+from .helperfunctions import fetch_snakefile, generate_conda_deps, validate_demuxschema, check_demux_fastq
 import subprocess
+import shutil
 import sys
 import os
 import re
 
-try:
-    harpypath = '{CONDA_PREFIX}'.format(**os.environ) + "/bin"
-except:
-    pass
+#try:
+#    harpypath = '{CONDA_PREFIX}'.format(**os.environ) + "/bin"
+#except:
+#    pass
 
 @click.command(no_args_is_help = True)
 @click.option('-f', '--file', required = True, type=click.Path(exists=True, dir_okay=False), metavar = "File Path", help = 'The forward (or reverse) multiplexed FASTQ file')
@@ -25,9 +26,16 @@ def gen1(file, samplesheet, threads, snakemake, quiet, print_only):
     Harpy will infer the other three. Note: the `--samplesheet` must be tab (or space) delimited and have no header (i.e. no column names).
     """
     check_demux_fastq(file)
+
+    snakefile = fetch_snakefile("demultiplex.gen1.smk")
+    inprefix = re.sub(r"[\_\.][IR][12]?(?:\_00[0-9])*\.f(?:ast)?q(?:\.gz)?$", "", os.path.basename(file))
+    os.makedirs(f"Demultiplex/{inprefix}/logs/", exist_ok = True)
+    # copy2 to keep metadata during copy
+    shutil.copy2(snakefile, f"Demultiplex/{inprefix}/logs/demultiplex.gen1.smk")
+
     validate_demuxschema(samplesheet)
 
-    command = f'snakemake --rerun-incomplete --nolock --cores {threads} --directory . --snakefile {harpypath}/demultiplex.gen1.smk'.split()
+    command = f'snakemake --rerun-incomplete --nolock --cores {threads} --directory . --snakefile Demultiplex/{inprefix}/logs/demultiplex.gen1.smk'.split()
     if snakemake is not None:
         [command.append(i) for i in snakemake.split()]
     if quiet:

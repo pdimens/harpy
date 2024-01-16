@@ -1,5 +1,5 @@
 import rich_click as click
-from .helperfunctions import getnames, get_samples_from_fastq, print_error, print_solution
+from .helperfunctions import generate_conda_deps, getnames, get_samples_from_fastq, print_error, print_solution
 import subprocess
 import re
 import os

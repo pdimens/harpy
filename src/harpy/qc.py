@@ -1,16 +1,16 @@
 import rich_click as click
-from .helperfunctions import get_samples_from_fastq, generate_conda_deps
+from .helperfunctions import generate_conda_deps, get_samples_from_fastq, fetch_snakefile
 import subprocess
 import re
 import os
 import sys
+import shutil
 import glob
 
-try:
-    harpypath = '{CONDA_PREFIX}'.format(**os.environ) + "/bin"
-    conda_env = '{CONDA_PREFIX}'.format(**os.environ) + "/bin/harpyenv"
-except:
-    pass
+#try:
+#    harpypath = '{CONDA_PREFIX}'.format(**os.environ) + "/bin"
+#except:
+#    pass
 
 @click.command(no_args_is_help = True)
 @click.option('-d', '--directory', required = True, type=click.Path(exists=True, file_okay=False), metavar = "Folder Path", help = 'Directory with raw sample sequences')
@@ -31,8 +31,14 @@ def qc(directory, max_length, ignore_adapters, extra_params, threads, snakemake,
     - minimum 15bp length filter
     - poly-G tail removal
     """
+    snakefile = fetch_snakefile("qc.smk")
+    os.makedirs("QC/logs/", exist_ok = True)
+    # copy2 to keep metadata during copy
+    shutil.copy2(snakefile, "QC/logs/qc.smk")
+
     get_samples_from_fastq(directory)
-    command = f'snakemake --rerun-incomplete --nolock  --software-deployment-method conda --conda-prefix ./.snakemake --cores {threads} --directory . --snakefile {harpypath}/qc.smk'.split()
+
+    command = f'snakemake --rerun-incomplete --nolock  --software-deployment-method conda --conda-prefix ./.snakemake --cores {threads} --directory . --snakefile QC/logs/qc.smk'.split()
     if snakemake is not None:
         [command.append(i) for i in snakemake.split()]
     if quiet:

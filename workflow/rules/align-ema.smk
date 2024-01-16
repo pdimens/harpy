@@ -2,9 +2,8 @@ import os
 import re
 import glob
 from pathlib import Path
-
-conda:
-    os.getcwd() + "/harpyenvs/align.yaml"
+from rich.panel import Panel
+from rich import print as rprint
 
 outdir      = "Align/ema"
 seq_dir 	= config["seq_directory"]
@@ -30,6 +29,30 @@ def get_fq2(wildcards):
     # code that returns a list of fastq files for read 2 based on *wildcards.sample*, e.g.
     lst = sorted(glob.glob(seq_dir + "/" + wildcards.sample + "*"))
     return lst[1]
+
+onerror:
+    print("")
+    rprint(
+        Panel(
+            f"The workflow has terminated due to an error. See the log file below for more details.",
+            title = "[bold]harpy align ema",
+            title_align = "left",
+            border_style = "red"
+            ),
+        file = sys.stderr
+    )
+
+onsuccess:
+    print("")
+    rprint(
+        Panel(
+            f"The workflow has finished successfully! Find the results in [bold]{outdir}[/bold]",
+            title = "[bold]harpy align ema",
+            title_align = "left",
+            border_style = "green"
+            ),
+        file = sys.stderr
+    )
 
 rule genome_link:
     input:

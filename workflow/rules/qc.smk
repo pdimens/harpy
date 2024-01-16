@@ -1,14 +1,38 @@
 import os
 import re
+import sys
 import glob
-
-conda:
-    os.getcwd() + "/harpyenvs/qc.yaml"
+from rich.panel import Panel
+from rich import print as rprint
 
 maxlen 	  = config["maxlen"]
 extra 	  = config.get("extra", "") 
 seq_dir   = config["seq_directory"]
 adapters  = config["adapters"]
+
+onsuccess:
+    print("")
+    rprint(
+        Panel(
+            "The workflow has finished successfully! Find the results in [bold]QC/[/bold]",
+            title = "[bold]harpy qc",
+            title_align = "left",
+            border_style = "green"
+            ),
+        file = sys.stderr
+    )
+
+onerror:
+    print("")
+    rprint(
+        Panel(
+            f"The workflow has terminated due to an error. See the log file below for more details.",
+            title = "[bold]harpy qc",
+            title_align = "left",
+            border_style = "red"
+            ),
+        file = sys.stderr
+    )
 
 flist = [os.path.basename(i) for i in glob.iglob(f"{seq_dir}/*") if not os.path.isdir(i)]
 r = re.compile(r".*\.f(?:ast)?q(?:\.gz)?$", flags=re.IGNORECASE)
@@ -49,6 +73,8 @@ rule trimFastp:
         extra = extra
     threads:
         2
+    conda:
+        os.getcwd() + "/harpyenvs/qc.yaml"
     message:
         "Removing adapters + quality trimming: {wildcards.sample}"
     shell: 
@@ -61,8 +87,6 @@ rule count_beadtags:
         "QC/{sample}.R1.fq.gz"
     output: 
         temp("QC/logs/bxcount/{sample}.count.log")
-    conda:
-        os.getcwd() + "/harpyenvs/filetools.yaml"
     message:
         "Counting barcode frequency: {wildcards.sample}"
     shell:
@@ -82,7 +106,7 @@ rule beadtag_counts_summary:
 
 rule log_runtime:
     output:
-        "QC/logs/harpy.qc.log"
+        "QC/logs/qc.workflow.summary"
     params:
         maxlen = f"--max_len1 {maxlen}",
         tim_adapters = "--detect_adapter_for_pe" if adapters else "--disable_adapter_trimming",
@@ -102,11 +126,9 @@ rule createReport:
         expand("QC/logs/json/{sample}.fastp.json", sample = samplenames),
         expand("QC/{sample}.{FR}.fq.gz", FR = ["R1", "R2"], sample = samplenames),
         "QC/logs/barcode.summary.html",
-        "QC/logs/harpy.qc.log"
+        "QC/logs/qc.workflow.summary"
     output:
         "QC/logs/qc.report.html"
-    conda:
-        os.getcwd() + "/harpyenvs/filetools.yaml"
     message:
         "Sequencing quality filtering and trimming is complete!"
     shell: 

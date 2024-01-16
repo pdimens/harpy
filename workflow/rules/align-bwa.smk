@@ -1,9 +1,9 @@
 import os
 import re
 import glob
-
-conda:
-    os.getcwd() + "/harpyenvs/align.yaml"
+import sys
+from rich.panel import Panel
+from rich import print as rprint
 
 outdir      = "Align/bwa"
 seq_dir		= config["seq_directory"]
@@ -28,6 +28,30 @@ def get_fq2(wildcards):
     # the list is just the single reverse file
     lst = sorted(glob.glob(seq_dir + "/" + wildcards.sample + "*"))
     return lst[1]
+
+onerror:
+    print("")
+    rprint(
+        Panel(
+            f"The workflow has terminated due to an error. See the log file below for more details.",
+            title = "[bold]harpy align bwa",
+            title_align = "left",
+            border_style = "red"
+            ),
+        file = sys.stderr
+    )
+
+onsuccess:
+    print("")
+    rprint(
+        Panel(
+            f"The workflow has finished successfully! Find the results in [bold]{outdir}[/bold]",
+            title = "[bold]harpy align bwa",
+            title_align = "left",
+            border_style = "green"
+            ),
+        file = sys.stderr
+    )
 
 rule genome_link:
     input:
@@ -83,6 +107,8 @@ rule genome_bwa_index:
         multiext(f"Genome/{bn}", ".ann", ".bwt", ".pac", ".sa", ".amb")
     log:
         f"Genome/{bn}.idx.log"
+    conda:
+        os.getcwd() + "/harpyenvs/align.yaml"
     message:
         "Indexing {input}"
     shell: 
@@ -106,8 +132,8 @@ rule align:
         genome_samidx = f"Genome/{bn_idx}",
         genome_idx 	  = multiext(f"Genome/{bn}", ".ann", ".bwt", ".pac", ".sa", ".amb")
     output:  
-        bam = temp(outdir + "/{sample}/{sample}.sort.bam"),
-        bai = temp(outdir + "/{sample}/{sample}.sort.bam.bai")
+        bam = temp(outdir + "/samples/{sample}/{sample}.sort.bam"),
+        bai = temp(outdir + "/samples/{sample}/{sample}.sort.bam.bai")
     log:
         bwa     = outdir + "/logs/{sample}.bwa.align.log",
         bwasort = outdir + "/logs/{sample}.bwa.sort.log"
@@ -119,6 +145,8 @@ rule align:
         ".Benchmark/Mapping/bwa/align.{sample}.txt"
     threads:
         10
+    conda:
+        os.getcwd() + "/harpyenvs/align.yaml"
     message:
         "Aligning sequences: {wildcards.sample}"
     shell:
@@ -146,16 +174,16 @@ rule bxstats_report:
 
 rule mark_duplicates:
     input:
-        lambda wc: outdir + "/{sample}/{sample}.sort.bam"
+        lambda wc: outdir + "/samples/{sample}/{sample}.sort.bam"
     output:
-        bam = temp(outdir + "/{sample}/markdup/{sample}.markdup.bam"),
-        bai = temp(outdir + "/{sample}/markdup/{sample}.markdup.bam.bai")
+        bam = temp(outdir + "/samples/{sample}/markdup/{sample}.markdup.bam"),
+        bai = temp(outdir + "/samples/{sample}/markdup/{sample}.markdup.bam.bai")
     log:
         outdir + "/logs/makrduplicates/{sample}.markdup.log"
     threads: 
         4
     conda:
-        os.getcwd() + "/harpyenvs/filetools.yaml"
+        os.getcwd() + "/harpyenvs/align.yaml"
     message:
         f"Marking duplicates: " + "{wildcards.sample}"
     shell:
@@ -163,15 +191,15 @@ rule mark_duplicates:
 
 rule assign_molecules:
     input:
-        bam = outdir + "/{sample}/markdup/{sample}.markdup.bam",
-        bai = outdir + "/{sample}/markdup/{sample}.markdup.bam.bai"
+        bam = outdir + "/samples/{sample}/markdup/{sample}.markdup.bam",
+        bai = outdir + "/samples/{sample}/markdup/{sample}.markdup.bam.bai"
     output:
-        bam = outdir + "/align/{sample}.bam",
-        bai = outdir + "/align/{sample}.bam.bai"
+        bam = outdir + "/{sample}.bam",
+        bai = outdir + "/{sample}.bam.bai"
     params:
         molecule_distance
-    conda:
-        os.getcwd() + "/harpyenvs/filetools.yaml"
+#    wildcard_constraints:
+#        sample = "[^/]"
     message:
         "Assigning barcodes to molecules: {wildcards.sample}"
     shell:
@@ -179,14 +207,12 @@ rule assign_molecules:
 
 rule alignment_bxstats:
     input:
-        bam = outdir + "/align/{sample}.bam",
-        bai = outdir + "/align/{sample}.bam.bai"
+        bam = outdir + "/{sample}.bam",
+        bai = outdir + "/{sample}.bam.bai"
     output: 
         outdir + "/stats/BXstats/data/{sample}.bxstats.gz"
     params:
         sample = lambda wc: d[wc.sample]
-    conda:
-        os.getcwd() + "/harpyenvs/filetools.yaml"
     message:
         "Calculating barcode alignment statistics: {wildcards.sample}"
     shell:
@@ -195,7 +221,7 @@ rule alignment_bxstats:
 rule alignment_coverage:
     input: 
         bed = f"Genome/{bn}.bed",
-        bam = outdir + "/align/{sample}.bam"
+        bam = outdir + "/{sample}.bam"
     output: 
         outdir + "/stats/coverage/data/{sample}.cov.gz"
     threads: 
@@ -219,8 +245,8 @@ rule coverage_report:
     
 rule general_alignment_stats:
     input:
-        bam      = outdir + "/align/{sample}.bam",
-        bai      = outdir + "/align/{sample}.bam.bai"
+        bam      = outdir + "/{sample}.bam",
+        bai      = outdir + "/{sample}.bam.bai"
     output: 
         stats    = temp(outdir + "/stats/samtools_stats/{sample}.stats"),
         flagstat = temp(outdir + "/stats/samtools_flagstat/{sample}.flagstat")
@@ -237,8 +263,6 @@ rule samtools_reports:
         expand(outdir + "/stats/samtools_{ext}/{sample}.{ext}", sample = samplenames, ext = ["stats", "flagstat"])
     output: 
         outdir + "/stats/bwa.stats.html",
-    conda:
-        os.getcwd() + "/harpyenvs/filetools.yaml"
     message:
         "Summarizing samtools stats and flagstat"
     shell:
@@ -248,7 +272,7 @@ rule samtools_reports:
 
 rule log_runtime:
     output:
-        outdir + "/logs/harpy.align.log"
+        outdir + "/logs/align.workflow.summary"
     params:
         quality = config["quality"],
         extra   = extra
@@ -271,27 +295,27 @@ rule log_runtime:
 rule movelinks:
     default_target: True
     input: 
-        bam = expand(outdir + "/align/{sample}.bam", sample = samplenames),
-        bai = expand(outdir + "/align/{sample}.bam.bai", sample = samplenames),
+        bam = expand(outdir + "/{sample}.bam", sample = samplenames),
+        bai = expand(outdir + "/{sample}.bam.bai", sample = samplenames),
         covreport = expand(outdir + "/stats/coverage/{sample}.cov.html", sample = samplenames),
         bxreport = expand(outdir + "/stats/BXstats/{sample}.bxstats.html", sample = samplenames),
         statsreport = outdir + "/stats/bwa.stats.html",
-        runlog = outdir + "/logs/harpy.align.log"
+        runlog = outdir + "/logs/align.workflow.summary"
     message:
-        "Finished aligning! Moving alignment files into the base Align/bwa directory."
-    run:
-        for i,j in zip(input.bam, input.bai):
-            if not os.path.islink(i):
-                # yank out just the filename
-                fname = os.path.basename(i)
-                # move file into base path
-                os.rename(i, f"{outdir}/{fname}")
-                # preserve "original" in align folder as symlink
-                target = Path(f"{outdir}/{fname}").absolute()
-                _ = Path(i).symlink_to(target)
-            if not os.path.islink(j):
-                # same for .bai file
-                fnamebai = os.path.basename(j)
-                os.rename(j, f"{outdir}/{fnamebai}")
-                targetbai = Path(f"{outdir}/{fnamebai}").absolute()
-                _ = Path(j).symlink_to(targetbai)
+        "All jobs completed."
+#    run:
+#        for i,j in zip(input.bam, input.bai):
+#            if not os.path.islink(i):
+#                # yank out just the filename
+#                fname = os.path.basename(i)
+#                # move file into base path
+#                os.rename(i, f"{outdir}/{fname}")
+#                # preserve "original" in align folder as symlink
+#                target = Path(f"{outdir}/{fname}").absolute()
+#                _ = Path(i).symlink_to(target)
+#            if not os.path.islink(j):
+#                # same for .bai file
+#                fnamebai = os.path.basename(j)
+#                os.rename(j, f"{outdir}/{fnamebai}")
+#                targetbai = Path(f"{outdir}/{fnamebai}").absolute()
+#                _ = Path(j).symlink_to(targetbai)
