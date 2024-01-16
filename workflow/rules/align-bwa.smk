@@ -132,29 +132,46 @@ rule align:
         genome_samidx = f"Genome/{bn_idx}",
         genome_idx 	  = multiext(f"Genome/{bn}", ".ann", ".bwt", ".pac", ".sa", ".amb")
     output:  
-        bam = temp(outdir + "/samples/{sample}/{sample}.sort.bam"),
-        bai = temp(outdir + "/samples/{sample}/{sample}.sort.bam.bai")
+        pipe(outdir + "/samples/{sample}/{sample}.raw.sam")
     log:
-        bwa     = outdir + "/logs/{sample}.bwa.align.log",
-        bwasort = outdir + "/logs/{sample}.bwa.sort.log"
+        outdir + "/logs/{sample}.bwa.align.log"
     params: 
-        quality = config["quality"],
-        tmpdir = lambda wc: outdir + "/." + d[wc.sample],
-        extra   = extra
+        extra = extra
     benchmark:
         ".Benchmark/Mapping/bwa/align.{sample}.txt"
     threads:
-        10
+        min(10, workflow.cores) - 2
     conda:
         os.getcwd() + "/harpyenvs/align.yaml"
     message:
         "Aligning sequences: {wildcards.sample}"
     shell:
         """
-        BWA_THREADS=$(( {threads} - 2 ))
-        bwa mem -C -t $BWA_THREADS {params.extra} -R \"@RG\\tID:{wildcards.sample}\\tSM:{wildcards.sample}\" {input.genome} {input.forward_reads} {input.reverse_reads} 2> {log.bwa} |
-        samtools view -h -F 4 -q {params.quality} | 
-        samtools sort -T {params.tmpdir} --reference {input.genome} -O bam -l 0 -m 4G --write-index -o {output.bam}##idx##{output.bai} 2> {log.bwasort}
+        bwa mem -C -t {threads} {params.extra} -R \"@RG\\tID:{wildcards.sample}\\tSM:{wildcards.sample}\" {input.genome} {input.forward_reads} {input.reverse_reads} 2> {log}
+        """
+ 
+ rule sort_align:
+    input:
+        sam           = outdir + "/samples/{sample}/{sample}.raw.sam",
+        genome 		  = f"Genome/{bn}",
+        genome_samidx = f"Genome/{bn_idx}",
+        genome_idx 	  = multiext(f"Genome/{bn}", ".ann", ".bwt", ".pac", ".sa", ".amb")
+    output:
+        bam = temp(outdir + "/samples/{sample}/{sample}.sort.bam."),
+        bai = temp(outdir + "/samples/{sample}/{sample}.sort.bam.bai")
+    log:
+        outdir + "/logs/{sample}.bwa.sort.log"
+    params: 
+        quality = config["quality"],
+        tmpdir = lambda wc: outdir + "/." + d[wc.sample]
+    threads:
+        2
+    message:
+        "Sorting and quality filtering alignments: {wildcards.sample}"
+    shell:
+        """
+        samtools view -h -F 4 -q {params.quality} {input.sam} | 
+            samtools sort -T {params.tmpdir} --reference {input.genome} -O bam -l 0 -m 4G --write-index -o {output.bam}##idx##{output.bai} 2> {log}
         rm -rf {params.tmpdir}
         """
 
@@ -292,7 +309,7 @@ rule log_runtime:
             _ = f.write("Overlaps were clipped using:\n")
             _ = f.write("    bam clipOverlap --in file.bam --out outfile.bam --stats --noPhoneHome\n")
 
-rule movelinks:
+rule all:
     default_target: True
     input: 
         bam = expand(outdir + "/{sample}.bam", sample = samplenames),

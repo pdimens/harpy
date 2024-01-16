@@ -161,7 +161,7 @@ rule merge_vcfs:
     log:
         outdir + "/logs/concat.log"
     threads:
-        50
+        workflow.cores
     message:
         "Combining vcfs into a single file"
     shell:  

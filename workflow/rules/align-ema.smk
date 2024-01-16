@@ -130,10 +130,10 @@ rule beadtag_count:
         forward_reads = get_fq1,
         reverse_reads = get_fq2
     output: 
-        counts = temp(outdir + "/{sample}/{sample}.ema-ncnt"),
+        counts = temp(outdir + "/bxcount/{sample}.ema-ncnt"),
         logs   = temp(outdir + "/logs/count/{sample}.count")
     params:
-        prefix = lambda wc: outdir + "/" + wc.get("sample") + "/" + wc.get("sample"),
+        prefix = lambda wc: outdir + "/bxcount/" + wc.get("sample"),
         beadtech = "-p" if platform == "haplotag" else f"-w {whitelist}",
         logdir = f"{outdir}/logs/count/"
     message:
@@ -161,15 +161,15 @@ rule preprocess:
     input: 
         forward_reads = get_fq1,
         reverse_reads = get_fq2,
-        emacounts     = outdir + "/{sample}/{sample}.ema-ncnt"
+        emacounts     = outdir + "/bxcount/{sample}.ema-ncnt"
     output: 
-        bins       	  = temp(expand(outdir + "/{{sample}}/preproc/ema-bin-{bin}", bin = binrange)),
-        unbarcoded    = temp(outdir + "/{sample}/preproc/ema-nobc")
+        bins       	  = temp(expand(outdir + "/preproc/{{sample}}/ema-bin-{bin}", bin = binrange)),
+        unbarcoded    = temp(outdir + "/preproc/{sample}/ema-nobc")
     log:
         outdir + "/logs/preproc/{sample}.preproc.log"
     params:
-        outdir = lambda wc: outdir + "/" + wc.get("sample") + "/preproc",
-        beadtech = "-p" if platform == "haplotag" else f"-w {whitelist}",
+        outdir = lambda wc: outdir + "/preproc/" + wc.get("sample"),
+        bxtype = "-p" if platform == "haplotag" else f"-w {whitelist}",
         bins   = nbins
     threads:
         2
@@ -178,37 +178,57 @@ rule preprocess:
     shell:
         """
         seqtk mergepe {input.forward_reads} {input.reverse_reads} |
-            ema preproc {params.beadtech} -n {params.bins} -t {threads} -o {params.outdir} {input.emacounts} 2>&1 |
+            ema preproc {params.bxtype} -n {params.bins} -t {threads} -o {params.outdir} {input.emacounts} 2>&1 |
             cat - > {log}
         """
 
 rule align:
     input:
-        readbin    = expand(outdir + "/{{sample}}/preproc/ema-bin-{bin}", bin = binrange),
+        readbin    = expand(outdir + "/preproc/{{sample}}/ema-bin-{bin}", bin = binrange),
         genome 	   = f"Genome/{bn}",
         geno_faidx = f"Genome/{bn_idx}",
         geno_idx   = multiext(f"Genome/{bn}", ".ann", ".bwt", ".pac", ".sa", ".amb")
     output:
-        aln = temp(outdir + "/{sample}/{sample}.bc.bam"),
-        idx = temp(outdir + "/{sample}/{sample}.bc.bam.bai")
+        pipe(outdir + "/align/{sample}.bc.raw.sam"),
     log:
-        ema     = outdir + "/logs/{sample}.ema.align.log",
-        emasort = outdir + "/logs/{sample}.ema.sort.log"
+        outdir + "/logs/{sample}.ema.align.log",
     params: 
         quality = config["quality"],
-        tmpdir = lambda wc: outdir + "/." + d[wc.sample],
-        beadtech = f"-p {platform}",
+        tmpdir = lambda wc: outdir + "/align/." + d[wc.sample],
+        bxtype = f"-p {platform}",
         extra = extra
     threads:
-        10
+        min(10, workflow.cores) - 2
     message:
         "Aligning barcoded sequences: {wildcards.sample}"
     shell:
         """
-        EMATHREADS=$(( {threads} - 2 ))
-        ema align -t $EMATHREADS {params.extra} -d {params.beadtech} -r {input.genome} -R \"@RG\\tID:{wildcards.sample}\\tSM:{wildcards.sample}\" -x {input.readbin} 2> {log.ema} |
-            samtools view -h -F 4 -q {params.quality} - | 
-            samtools sort -T {params.tmpdir} --reference {input.genome} -O bam --write-index -m 4G -o {output.aln}##idx##{output.idx} - 2> {log.emasort}
+        ema align -t {threads} {params.extra} -d {params.bxtype} -r {input.genome} -R \"@RG\\tID:{wildcards.sample}\\tSM:{wildcards.sample}\" -x {input.readbin} 2> {log.ema}
+        """
+
+rule sort_raw_ema:
+    input:
+        aln = outdir + "/align/{sample}.bc.raw.sam",
+        genome 	   = f"Genome/{bn}",
+        geno_faidx = f"Genome/{bn_idx}",
+        geno_idx   = multiext(f"Genome/{bn}", ".ann", ".bwt", ".pac", ".sa", ".amb")
+    output:
+        aln = temp(outdir + "/align/{sample}.bc.bam"),
+        idx = temp(outdir + "/align/{sample}.bc.bam.bai")
+    log:
+        outdir + "/logs/{sample}.ema.sort.log"
+    params: 
+        quality = config["quality"],
+        tmpdir = lambda wc: outdir + "/." + d[wc.sample],
+        extra = extra
+    threads:
+        2
+    message:
+        "Sorting and quality filtering alignments: {wildcards.sample}"
+    shell:
+        """
+        samtools view -h -F 4 -q {params.quality} - | 
+            samtools sort -T {params.tmpdir} --reference {input.genome} -O bam --write-index -m 4G -o {output.aln}##idx##{output.idx} - 2> {log}
         rm -rf {params.tmpdir}
         """
 
@@ -219,32 +239,50 @@ rule align_nobarcode:
         geno_faidx = f"Genome/{bn_idx}",
         geno_idx   = multiext(f"Genome/{bn}", ".ann", ".bwt", ".pac", ".sa", ".amb")
     output: 
-        temp(outdir + "/{sample}/{sample}.nobc.bam")
+        pipe(outdir + "/align/{sample}.nobc.raw.sam")
     log:
-        bwa     = outdir + "/logs/{sample}.bwa.align.log",
-        bwasort = outdir + "/logs/{sample}.bwa.sort.log"
+        bwa     = outdir + "/logs/{sample}.bwa.align.log"
+    benchmark:
+        ".Benchmark/Mapping/ema/bwaAlign.{sample}.txt"
+    threads:
+        min(10, workflow.cores) - 2
+    message:
+        "Aligning unbarcoded sequences: {wildcards.sample}"
+    shell:
+        """
+        bwa mem -t {threads} -C -R \"@RG\\tID:{wildcards.sample}\\tSM:{wildcards.sample}\" {input.genome} {input.reads} 2> {log.bwa}
+        """
+        
+rule sort_raw_nobarcode:
+    input:
+        sam        = outdir + "/align/{sample}.nobc.raw.sam",
+        genome 	   = f"Genome/{bn}",
+        geno_faidx = f"Genome/{bn_idx}",
+        geno_idx   = multiext(f"Genome/{bn}", ".ann", ".bwt", ".pac", ".sa", ".amb")
+    output: 
+        temp(outdir + "/align/{sample}.nobc.bam")
+    log:
+        outdir + "/logs/{sample}.bwa.sort.log"
     benchmark:
         ".Benchmark/Mapping/ema/bwaAlign.{sample}.txt"
     params:
         quality = config["quality"]
     threads:
-        8
+        2
     message:
         "Aligning unbarcoded sequences: {wildcards.sample}"
-    shell:
+    shell:        
         """
-        BWATHREADS=$(( {threads} - 2 ))
-        bwa mem -t $BWATHREADS -C -R \"@RG\\tID:{wildcards.sample}\\tSM:{wildcards.sample}\" {input.genome} {input.reads} 2> {log.bwa} |
-            samtools view -h -F 4 -q {params.quality} | 
-            samtools sort -O bam -m 4G --reference {input.genome} -o {output} 2> {log.bwasort}
+        samtools view -h -F 4 -q {params.quality} {input.bam} | 
+        samtools sort -O bam -m 4G --reference {input.genome} -o {output} 2> {log}
         """
 
 rule mark_duplicates:
     input:
-        bam      = outdir + "/{sample}/{sample}.nobc.bam"
+        bam      = outdir + "/align/{sample}.nobc.bam"
     output: 
-        bam      = temp(outdir + "/{sample}/{sample}.markdup.nobc.bam"),
-        bai      = temp(outdir + "/{sample}/{sample}.markdup.nobc.bam.bai")
+        bam      = temp(outdir + "/align/{sample}.markdup.nobc.bam"),
+        bai      = temp(outdir + "/align/{sample}.markdup.nobc.bam.bai")
     log: 
         mdlog    = outdir + "/logs/markduplicates/{sample}.markdup.nobc.log",
         stats    = outdir + "/stats/samtools_stats/{sample}.nobc.stats",
@@ -264,8 +302,8 @@ rule mark_duplicates:
 
 rule bx_stats:
     input: 
-        bam      = outdir + "/{sample}/{sample}.bc.bam",
-        bai      = outdir + "/{sample}/{sample}.bc.bam.bai"
+        bam      = outdir + "/align/{sample}.bc.bam",
+        bai      = outdir + "/align/{sample}.bc.bam.bai"
     output:
         stats    = outdir + "/stats/samtools_stats/{sample}.bc.stats",
         flagstat = outdir + "/stats/samtools_flagstat/{sample}.bc.flagstat"
@@ -280,10 +318,10 @@ rule bx_stats:
 rule coverage_stats:
     input: 
         bed     = f"Genome/{bn}.bed",
-        nobx    = outdir + "/{sample}/{sample}.markdup.nobc.bam",
-        nobxbai = outdir + "/{sample}/{sample}.markdup.nobc.bam.bai",
-        bx      = outdir + "/{sample}/{sample}.bc.bam",
-        bxbai   = outdir + "/{sample}/{sample}.bc.bam.bai"
+        nobx    = outdir + "/align/{sample}.markdup.nobc.bam",
+        nobxbai = outdir + "/align/{sample}.markdup.nobc.bam.bai",
+        bx      = outdir + "/align/{sample}.bc.bam",
+        bxbai   = outdir + "/align/{sample}.bc.bam.bai"
     output: 
         outdir + "/stats/coverage/data/{sample}.cov.gz"
     threads:
@@ -307,17 +345,17 @@ rule coverage_report:
 
 rule merge_alignments:
     input:
-        aln_bc   = outdir + "/{sample}/{sample}.bc.bam",
-        idx_bc   = outdir + "/{sample}/{sample}.bc.bam.bai",
-        aln_nobc = outdir + "/{sample}/{sample}.markdup.nobc.bam",
-        idx_nobc = outdir + "/{sample}/{sample}.markdup.nobc.bam.bai"
+        aln_bc   = outdir + "/align/{sample}.bc.bam",
+        idx_bc   = outdir + "/align/{sample}.bc.bam.bai",
+        aln_nobc = outdir + "/align/{sample}.markdup.nobc.bam",
+        idx_nobc = outdir + "/align/{sample}.markdup.nobc.bam.bai"
     output: 
-        bam 	 = temp(outdir + "/{sample}/{sample}.unsort.bam"),
-        bai 	 = temp(outdir + "/{sample}/{sample}.unsort.bam.bai")
+        bam 	 = temp(outdir + "/align/{sample}.unsort.bam"),
+        bai 	 = temp(outdir + "/align/{sample}.unsort.bam.bai")
     conda:
-        os.getcwd() + "/harpyenvs/filetools.yaml"
+        os.getcwd() + "/harpyenvs/align.yaml"
     threads:
-        10
+        min(10, workflow.cores)
     message:
         "Merging all alignments: {wildcards.sample}"
     shell:
@@ -325,11 +363,11 @@ rule merge_alignments:
 
 rule sort_merge:
     input:
-        bam    = outdir + "/{sample}/{sample}.unsort.bam",
+        bam    = outdir + "/align/{sample}.unsort.bam",
         genome = f"Genome/{bn}"
     output:
-        bam = outdir + "/align/{sample}.bam",
-        bai = outdir + "/align/{sample}.bam.bai"
+        bam = outdir + "/{sample}.bam",
+        bai = outdir + "/{sample}.bam.bai"
     threads:
         2
     message:
@@ -339,8 +377,8 @@ rule sort_merge:
 
 rule bx_stats_alignments:
     input:
-        bam = outdir + "/align/{sample}.bam",
-        bai = outdir + "/align/{sample}.bam.bai"
+        bam = outdir + "{sample}.bam",
+        bai = outdir + "{sample}.bam.bai"
     output: 
         outdir + "/stats/BXstats/data/{sample}.bxstats.gz"
     conda:
@@ -366,8 +404,8 @@ rule bx_stats_report:
 
 rule general_stats:
     input: 		
-        bam      = outdir + "/align/{sample}.bam",
-        bai      = outdir + "/align/{sample}.bam.bai"
+        bam      = outdir + "{sample}.bam",
+        bai      = outdir + "{sample}.bam.bai"
     output:
         stats    = temp(outdir + "/stats/samtools_stats/{sample}.stats"),
         flagstat = temp(outdir + "/stats/samtools_flagstat/{sample}.flagstat")
@@ -424,12 +462,11 @@ rule log_runtime:
             _ = f.write("Overlaps were clipped using:\n")
             _ = f.write("    bam clipOverlap --in file.bam --out outfile.bam --stats --noPhoneHome\n")
 
-#TODO no links, better folders
-rule movelinks:
+rule all:
     default_target: True
     input: 
-        bam = expand(outdir + "/align/{sample}.bam", sample = samplenames),
-        bai = expand(outdir + "/align/{sample}.bam.bai", sample = samplenames),
+        bam = expand(outdir + "/{sample}.bam", sample = samplenames),
+        bai = expand(outdir + "/{sample}.bam.bai", sample = samplenames),
         samtools = expand(outdir + "/stats/samtools_{stat}/{sample}.bc.{stat}", stat = ["stats", "flagstat"], sample = samplenames),
         covstats = expand(outdir + "/stats/coverage/{sample}.cov.html", sample = samplenames),
         bxstats = expand(outdir + "/stats/BXstats/{sample}.bxstats.html", sample = samplenames),
@@ -438,19 +475,20 @@ rule movelinks:
         runlog = f"{outdir}/logs/align.workflow.summary"
     message:
         "Checking for expected workflow output"
-    run:
-        for i,j in zip(input.bam, input.bai):
-            if not os.path.islink(i):
-                # yank out just the filename
-                fname = os.path.basename(i)
-                # move file into base path
-                os.rename(i, f"{outdir}/{fname}")
-                # preserve "original" in align folder as symlink
-                target = Path(f"{outdir}/{fname}").absolute()
-                _ = Path(i).symlink_to(target)
-            if not os.path.islink(j):
-                # same for .bai file
-                fnamebai = os.path.basename(j)
-                os.rename(j, f"{outdir}/{fnamebai}")
-                targetbai = Path(f"{outdir}/{fnamebai}").absolute()
-                _ = Path(j).symlink_to(targetbai)
+#    run:
+#        for i,j in zip(input.bam, input.bai):
+#            if not os.path.islink(i):
+#                # yank out just the filename
+#                fname = os.path.basename(i)
+#                # move file into base path
+#                os.rename(i, f"{outdir}/{fname}")
+#                # preserve "original" in align folder as symlink
+#                target = Path(f"{outdir}/{fname}").absolute()
+#                _ = Path(i).symlink_to(target)
+#            if not os.path.islink(j):
+#                # same for .bai file
+#                fnamebai = os.path.basename(j)
+#                os.rename(j, f"{outdir}/{fnamebai}")
+#                targetbai = Path(f"{outdir}/{fnamebai}").absolute()
+#                _ = Path(j).symlink_to(targetbai)
+#
