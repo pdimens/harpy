@@ -230,4 +230,4 @@ rule all:
         runlog   = outdir + "logs/demultiplex.workflow.summary",
         qcreport = outdir + "reports/demultiplex.QC.html"
     message:
-        "Demultiplexing has finished!"
+        "Checking for expected workflow output"

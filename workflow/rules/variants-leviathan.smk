@@ -13,9 +13,6 @@ genome_zip  = True if bn.lower().endswith(".gz") else False
 if genome_zip:
     bn = bn[:-3]
 
-conda:
-    os.getcwd() + "/harpyenvs/filetools.yaml"
-
 onerror:
     print("")
     rprint(
@@ -183,7 +180,7 @@ rule sv_report:
 
 rule log_runtime:
     output:
-        outdir + "/logs/harpy.variants.log"
+        outdir + "/logs/sv.leviathan.workflow.summary"
     params:
         extra = extra
     message:
@@ -203,6 +200,6 @@ rule all_bcfs:
     input: 
         bcf     = expand(outdir + "/{sample}.bcf", sample = samplenames),
         reports = expand(outdir + "/reports/{sample}.SV.html", sample = samplenames),
-        runlog  = outdir + "/logs/harpy.variants.log"
+        runlog  = outdir + "/logs/sv.leviathan.workflow.summary"
     message:
-        "Variant calling is complete!"
+        "Checking for expected workflow output"

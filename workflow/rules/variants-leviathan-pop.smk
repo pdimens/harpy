@@ -40,10 +40,6 @@ def pop_manifest(infile, dirn, sampnames):
 popdict = pop_manifest(groupfile, bam_dir, samplenames)
 populations = popdict.keys()
 
-conda:
-    os.getcwd() + "/harpyenvs/filetools.yaml"
-
-
 onerror:
     print("")
     rprint(
@@ -254,7 +250,7 @@ rule sv_report:
 
 rule log_runtime:
     output:
-        outdir + "/logs/harpy.variants.log"
+        outdir + "/logs/sv.leviathan.workflow.summary"
     message:
         "Creating record of relevant runtime parameters: {output}"
     params:
@@ -275,6 +271,6 @@ rule all_bcfs:
         bcf       = expand(outdir + "/{pop}.bcf", pop = populations),
         popreport = expand(outdir + "/reports/{pop}.sv.html", pop = populations),
         report    = outdir + "/reports/leviathan.pop.summary.html",
-        runlog    = outdir + "/logs/harpy.variants.log"
+        runlog    = outdir + "/logs/sv.leviathan.workflow.summary"
     message:
-        "Variant calling is complete!"
+        "Checking for expected workflow output"

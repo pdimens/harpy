@@ -4,9 +4,6 @@ import os
 import sys
 import gzip
 
-conda:
-    os.getcwd() + "/harpyenvs/filetools.yaml"
-
 bam_dir 	= config["seq_directory"]
 genomefile 	= config["genomefile"]
 groupings 	= config.get("groupings", None)
@@ -201,7 +198,9 @@ rule variants_stats:
     message:
         "Calculating variant stats: variants.{wildcards.type}.bcf"
     shell:
-        """bcftools stats -s "-" --fasta-ref {input.genome} {input.bcf} > {output}"""
+        """
+        bcftools stats -s "-" --fasta-ref {input.genome} {input.bcf} > {output}
+        """
 
 rule bcfreport:
     input:
@@ -217,7 +216,7 @@ rule bcfreport:
 
 rule log_runtime:
     output:
-        outdir + "/logs/harpy.variants.log"
+        outdir + "/logs/snp.freebayes.workflow.summary"
     message:
         "Creating record of relevant runtime parameters: {output}"
     params:
@@ -240,8 +239,8 @@ rule log_runtime:
 rule all:
     default_target: True
     input: 
-        outdir + "/logs/harpy.variants.log",
+        outdir + "/logs/snp.freebayes.workflow.summary",
         expand(outdir + "/variants.{file}.bcf",        file = ["raw", "normalized"]),
         expand(outdir + "/stats/variants.{file}.html", file = ["raw", "normalized"])
     message:
-        "Variant calling is complete!"
+         "Checking for expected workflow output"

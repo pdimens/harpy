@@ -302,7 +302,7 @@ rule movelinks:
         statsreport = outdir + "/stats/bwa.stats.html",
         runlog = outdir + "/logs/align.workflow.summary"
     message:
-        "All jobs completed."
+        "Checking for expected workflow output"
 #    run:
 #        for i,j in zip(input.bam, input.bai):
 #            if not os.path.islink(i):

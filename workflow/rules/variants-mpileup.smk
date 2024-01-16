@@ -15,9 +15,6 @@ intervals   = config["intervals"]
 outdir      = "Variants/mpileup"
 regions     = dict(zip(intervals, intervals))
 
-conda:
-    os.getcwd() + "/harpyenvs/filetools.yaml"
-
 onerror:
     print("")
     rprint(
@@ -215,7 +212,7 @@ rule bcfreport:
 
 rule log_runtime:
     output:
-        outdir + "/logs/harpy.variants.log"
+        outdir + "/logs/snp.mpileup.workflow.summary"
     params:
         ploidy = f"--ploidy {ploidy}",
         populations = '' if groupings is None else f"--populations {groupings}"
@@ -239,8 +236,8 @@ rule log_runtime:
 rule all:
     default_target: True
     input:
-        outdir + "/logs/harpy.variants.log",
+        outdir + "/logs/snp.mpileup.workflow.summary",
         expand(outdir + "/variants.{file}.bcf",        file = ["raw","normalized"]),
         expand(outdir + "/stats/variants.{file}.html", file = ["raw","normalized"])
     message:
-        "Variant calling is complete!"
+        "Checking for expected workflow output"

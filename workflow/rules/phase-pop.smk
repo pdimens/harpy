@@ -19,10 +19,6 @@ try:
 except:
     indelarg = ""
 
-#TODO RM global filetools
-conda:
-    os.getcwd() + "/harpyenvs/filetools.yaml"
-
 onerror:
     print("")
     rprint(
@@ -244,7 +240,7 @@ rule phase_report:
 
 rule log_runtime:
     output:
-        outdir + "/logs/harpy.phase.log"
+        outdir + "/logs/phase.workflow.summary"
     params:
         prune = f"--threshold {pruning}" if pruning > 0 else "--no_prune 1",
         extra = extra
@@ -280,10 +276,10 @@ rule indexFinal:
     default_target: True
     input:
         outdir + "/variants.phased.bcf",
-        outdir + "/logs/harpy.phase.log",
+        outdir + "/logs/phase.workflow.summary",
         outdir + "/reports/phase.html"
     benchmark:
         ".Benchmark/Phase/finalindex.txt"
     message:
-        "Phasing is complete!"
+        "Checking for expected workflow output"
 

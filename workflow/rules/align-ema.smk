@@ -395,7 +395,7 @@ rule samtools_reports:
 
 rule log_runtime:
     output:
-        outdir + "/logs/harpy.align.log"
+        outdir + "/logs/align.workflow.summary"
     params:
         beadtech = "-p" if platform == "haplotag" else f"-w {whitelist}"
     message:
@@ -424,6 +424,7 @@ rule log_runtime:
             _ = f.write("Overlaps were clipped using:\n")
             _ = f.write("    bam clipOverlap --in file.bam --out outfile.bam --stats --noPhoneHome\n")
 
+#TODO no links, better folders
 rule movelinks:
     default_target: True
     input: 
@@ -434,9 +435,9 @@ rule movelinks:
         bxstats = expand(outdir + "/stats/BXstats/{sample}.bxstats.html", sample = samplenames),
         bxcounts = f"{outdir}/stats/reads.bxcounts.html",
         emastats = f"{outdir}/stats/ema.stats.html",
-        runlog = f"{outdir}/logs/harpy.align.log"
+        runlog = f"{outdir}/logs/align.workflow.summary"
     message:
-        "Finished aligning! Moving alignment files into the base Align/ema directory."
+        "Checking for expected workflow output"
     run:
         for i,j in zip(input.bam, input.bai):
             if not os.path.islink(i):

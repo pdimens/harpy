@@ -2,10 +2,6 @@ from rich import print as rprint
 from rich.panel import Panel
 import sys
 
-#TODO rm filetools conda
-conda:
-    os.getcwd() + "/harpyenvs/phase.yaml"
-
 bam_dir           = config["seq_directory"]
 samplenames       = config["samplenames"]
 variantfile       = config["variantfile"]
@@ -77,6 +73,8 @@ rule extractHairs:
         sample = "[a-zA-Z0-9_-]*"
     benchmark:
         ".Benchmark/Phase/extracthairs.{sample}.txt"
+    conda:
+        os.getcwd() + "/harpyenvs/phase.yaml"
     message:
         "Converting to compact fragment format: {wildcards.sample}"
     shell:
@@ -95,6 +93,8 @@ rule linkFragments:
         ".Benchmark/Phase/linkfrag.{sample}.txt"
     params:
         d = molecule_distance
+    conda:
+        os.getcwd() + "/harpyenvs/phase.yaml"
     message:
         "Linking fragments: {wildcards.sample}"
     shell:
@@ -115,6 +115,8 @@ rule phaseBlocks:
     params: 
         prune = f"--threshold {pruning}" if pruning > 0 else "--no_prune 1",
         extra = extra
+    conda:
+        os.getcwd() + "/harpyenvs/phase.yaml"
     message:
         "Creating phased haplotype blocks: {wildcards.sample}"
     shell:
@@ -154,8 +156,7 @@ rule mergeSamples:
         "Combining samples into a single BCF file"
     shell:
         """
-        bcftools merge --threads {threads} --output-type b --write-index {input.vcf} > {output}
-        #bcftools merge --threads {threads} --output-type b {input.vcf} > {output}
+        bcftools merge --threads {threads} --output-type b --write-index -o {output} {input.vcf}
         """
 
 rule merge_blocks:
@@ -182,7 +183,7 @@ rule phase_report:
 
 rule log_runtime:
     output:
-        outdir + "/logs/harpy.phase.log"
+        outdir + "/logs/phase.workflow.summary"
     params:
         prune = f"--threshold {pruning} " if pruning > 0 else "--no_prune 1 ",
         extra = extra
@@ -204,11 +205,9 @@ rule indexFinal:
     default_target: True
     input:
         bcf      = outdir + "/variants.phased.bcf",
-        runlog   = outdir + "/logs/harpy.phase.log",
+        runlog   = outdir + "/logs/phase.workflow.summary",
         phaserpt = outdir + "/reports/phase.html"
     output:
         outdir + "/variants.phased.bcf.csi"
     message:
-        "Phasing is complete!"
-    shell: 
-        "bcftools index {input.bcf}"
+         "Checking for expected workflow output"

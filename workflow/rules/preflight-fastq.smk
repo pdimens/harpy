@@ -5,9 +5,6 @@ import re
 import sys
 import glob
 
-conda:
-    os.getcwd() + "/harpyenvs/filetools.yaml"
-
 seq_dir = config["seq_directory"]
 out_dir = f"{seq_dir}/Preflight/"
 

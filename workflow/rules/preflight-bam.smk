@@ -21,10 +21,6 @@ samplenames = set([os.path.splitext(i)[0] for i in bamlist])
 #    lst = [i for i in glob.iglob(seq_dir + "/" + wildcards.sample + "*") if i.lower().endswith(".bam.bai")]
 #    return lst
 
-#TODO rm filetools conda
-conda:
-    os.getcwd() + "/harpyenvs/filetools.yaml"
-
 onerror:
     print("")
     rprint(

@@ -6,9 +6,6 @@ import subprocess
 import sys
 import os
 
-conda:
-    os.getcwd() + "/harpyenvs/filetools.yaml"
-
 bam_dir     = config["seq_directory"]
 samplenames = config["samplenames"]
 variantfile = config["variantfile"]
@@ -52,11 +49,7 @@ rule sort_bcf:
     message:
         "Sorting input variant call file"
     shell:
-        """
-        #bcftools sort -Ob --write-index {input} > {output.bcf} 2> {log}
-        bcftools sort -Ob {input} > {output.bcf} 2> {log}
-        bcftools index {output.bcf}
-        """
+        "bcftools sort -Ob --write-index -o {output.bcf} {input} 2> {log}"
 
 rule bam_list:
     input:
@@ -92,7 +85,7 @@ rule convert2stitch:
     shell:
         """
         bcftools view --types snps -M2 --regions {wildcards.part} {input} |
-        bcftools query -i '(STRLEN(REF)==1) & (STRLEN(ALT[0])==1) & (REF!="N")' -f '%CHROM\\t%POS\\t%REF\\t%ALT\\n' > {output}
+            bcftools query -i '(STRLEN(REF)==1) & (STRLEN(ALT[0])==1) & (REF!="N")' -f '%CHROM\\t%POS\\t%REF\\t%ALT\\n' > {output}
         """
 
 rule impute:
@@ -189,16 +182,12 @@ rule merge_vcfs:
     message:
         "Merging VCFs: {wildcards.stitchparams}"
     shell:
-        """
-        #bcftools concat --threads {threads} --write-index -o {output.bcf}##idx##{output.bai} -f {input.files} 2> /dev/null
-        bcftools concat --threads {threads} -o {output.bcf} -Ob -f {input.files} 2> /dev/null
-        bcftools index {output.bcf}
-        """
+        "bcftools concat --threads {threads} --write-index -o {output.bcf}##idx##{output.bai} -f {input.files} 2> /dev/null"
 
 rule stats:
     input:
-        bcf     = "Impute/{stitchparams}/variants.imputed.bcf",
-        idx     = "Impute/{stitchparams}/variants.imputed.bcf.csi"
+        bcf = "Impute/{stitchparams}/variants.imputed.bcf",
+        idx = "Impute/{stitchparams}/variants.imputed.bcf.csi"
     output:
         "Impute/{stitchparams}/stats/variants.imputed.stats"
     message:
@@ -286,4 +275,4 @@ rule all:
         contigs = expand("Impute/{stitchparams}/contigs/{part}/{part}.STITCH.html", stitchparams=paramspace.instance_patterns, part = contigs),
         runlog  = "Impute/logs/harpy.impute.log"
     message: 
-        "Genotype imputation is complete!"
+        "Checking for expected workflow output"

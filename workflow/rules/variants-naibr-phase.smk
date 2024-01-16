@@ -4,9 +4,6 @@ import sys
 import os
 import re
 
-conda:
-    os.getcwd() + "/harpyenvs/filetools.yaml"
-
 bam_dir     = config["seq_directory"]
 samplenames = config["samplenames"] 
 extra       = config.get("extra", "") 
@@ -258,7 +255,7 @@ rule report:
 
 rule log_runtime:
     output:
-        outdir + "/logs/harpy.variants.log"
+        outdir + "/logs/sv.naibr.workflow.summary"
     message:
         "Creating record of relevant runtime parameters: {output}"
     run:
@@ -281,9 +278,9 @@ rule all:
     input:
         expand(outdir + "/{sample}.bedpe",      sample = samplenames),
         expand(outdir + "/reports/{sample}.naibr.html", sample = samplenames),
-        outdir + "/logs/harpy.variants.log",
+        outdir + "/logs/sv.naibr.workflow.summary",
         outdir + "/logs/whatshap-haplotag/phasing.log"
     message:
-        "Variant calling completed!"
+        "Checking for expected workflow output"
     shell:
         "rm -rf Variants/naibrlog"
