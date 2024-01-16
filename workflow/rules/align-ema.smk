@@ -274,7 +274,7 @@ rule sort_raw_nobarcode:
     shell:        
         """
         samtools view -h -F 4 -q {params.quality} {input.bam} | 
-        samtools sort -O bam -m 4G --reference {input.genome} -o {output} 2> {log}
+            samtools sort -O bam -m 4G --reference {input.genome} -o {output} 2> {log}
         """
 
 rule mark_duplicates:
