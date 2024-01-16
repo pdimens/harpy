@@ -1,4 +1,6 @@
 from snakemake.utils import Paramspace
+from rich import print as rprint
+from rich.panel import Panel
 import pandas as pd
 import subprocess
 import sys
@@ -14,6 +16,30 @@ paramfile   = config["paramfile"]
 contigs     = config["contigs"]
 # declare a dataframe to be the paramspace
 paramspace  = Paramspace(pd.read_csv(paramfile, delim_whitespace = True).rename(columns=str.lower), param_sep = "", filename_params="*")
+
+onerror:
+    print("")
+    rprint(
+        Panel(
+            f"The workflow has terminated due to an error. See the log file below for more details.",
+            title = "[bold]harpy impute",
+            title_align = "left",
+            border_style = "red"
+            ),
+        file = sys.stderr
+    )
+
+onsuccess:
+    print("")
+    rprint(
+        Panel(
+            "The workflow has finished successfully! Find the results in [bold]Impute/[/bold]",
+            title = "[bold]harpy impute",
+            title_align = "left",
+            border_style = "green"
+            ),
+        file = sys.stderr
+    )
 
 rule sort_bcf:
     input:

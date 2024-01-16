@@ -1,15 +1,14 @@
-from .helperfunctions import generate_conda_deps, getnames, vcfcheck, vcf_samplematch, validate_bamfiles, print_error, print_solution_with_culprits
+from .helperfunctions import fetch_snakefile, generate_conda_deps, getnames, vcfcheck, vcf_samplematch, validate_bamfiles
+import shutil
 import sys
 import os
 import subprocess
 import rich_click as click
-from rich import print
-from rich.panel import Panel
 
-try:
-    harpypath = '{CONDA_PREFIX}'.format(**os.environ) + "/bin"
-except:
-    pass
+#try:
+#    harpypath = '{CONDA_PREFIX}'.format(**os.environ) + "/bin"
+#except:
+#    pass
 
 @click.command(no_args_is_help = True)
 @click.option('-v', '--vcf', required = True, type=click.Path(exists=True, dir_okay=False), metavar = "File Path", help = 'Path to BCF/VCF file')
@@ -33,6 +32,10 @@ def phase(vcf, directory, threads, molecule_distance, prune_threshold, vcf_sampl
     the samples present in your input `--vcf` file rather than all the samples present in
     the `--directory`.
     """
+    snakefile = fetch_snakefile("phase-pop.smk")
+    os.makedirs("Phase/logs/", exist_ok = True)
+    # copy2 to keep metadata during copy
+    shutil.copy2(snakefile, "Phase/logs/phase-pop.smk")
     directory = directory.rstrip("/^")
     vcfcheck(vcf)
     if vcf.lower().endswith(".vcf.gz"):
@@ -45,7 +48,7 @@ def phase(vcf, directory, threads, molecule_distance, prune_threshold, vcf_sampl
     samplenames = vcf_samplematch(vcf, directory, vcf_samples)
     validate_bamfiles(directory, samplenames)
     prune_threshold /= 100
-    command = f'snakemake --rerun-incomplete --nolock --cores {threads} --directory . --snakefile {harpypath}/phase-pop.smk'.split()
+    command = f'snakemake --rerun-incomplete --nolock --cores {threads} --directory . --snakefile Phase/logs/phase-pop.smk'.split()
     if snakemake is not None:
         [command.append(i) for i in snakemake.split()]
     if quiet:

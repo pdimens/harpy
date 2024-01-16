@@ -1,6 +1,7 @@
 import rich_click as click
 from pathlib import Path
-from .helperfunctions import fetch_snakefile, generate_conda_deps, get_samples_from_fastq, print_error, print_solution_with_culprits, print_solution, print_notice
+from .helperfunctions import fetch_snakefile, generate_conda_deps, get_samples_from_fastq
+from .helperfunctions import print_error, print_solution, print_notice
 import subprocess
 import shutil
 import sys

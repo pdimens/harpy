@@ -1,13 +1,15 @@
-from .helperfunctions import generate_conda_deps, getnames, createregions, validate_bamfiles, validate_popfile, validate_vcfsamples
+from .helperfunctions import fetch_snakefile, generate_conda_deps, getnames, createregions
+from .helperfunctions import validate_bamfiles, validate_popfile, validate_vcfsamples
 import rich_click as click
 import subprocess
+import shutil
 import sys
 import os
 
-try:
-    harpypath = '{CONDA_PREFIX}'.format(**os.environ) + "/bin"
-except:
-    pass
+#try:
+#    harpypath = '{CONDA_PREFIX}'.format(**os.environ) + "/bin"
+#except:
+#    pass
 
 @click.command(no_args_is_help = True)
 @click.option('-g', '--genome', type=click.Path(exists=True), required = True, metavar = "File Path", help = 'Genome assembly for variant calling')
@@ -28,11 +30,15 @@ def mpileup(genome, threads, directory, populations, ploidy, windowsize, extra_p
     Use **harpy popgroup** to create a sample grouping file to 
     use as input for `--populations`. Available methods are:
     """
+    snakefile = fetch_snakefile("variants-mpileup.smk")
+    os.makedirs("Variants/mpileup/logs/", exist_ok = True)
+    # copy2 to keep metadata during copy
+    shutil.copy2(snakefile, "Variants/mpileup/logs/variants-mpileup.smk")
     samplenames = getnames(directory, '.bam')
     callcoords, linkedgenome = createregions(genome, windowsize, "mpileup")
     directory = directory.rstrip("/^")
     validate_bamfiles(directory, samplenames)
-    command = (f'snakemake --rerun-incomplete --nolock --cores {threads} --directory . --snakefile {harpypath}/variants-mpileup.smk').split()
+    command = (f'snakemake --rerun-incomplete --nolock --cores {threads} --directory . --snakefile Variants/mpileup/logs/variants-mpileup.smk').split()
     if snakemake is not None:
         [command.append(i) for i in snakemake.split()]
     if quiet:
@@ -78,11 +84,16 @@ def freebayes(genome, threads, directory, populations, ploidy, windowsize, extra
     Use **harpy popgroup** to create a sample grouping file to 
     use as input for `--populations`.
     """
+    snakefile = fetch_snakefile("variants-freebayes.smk")
+    os.makedirs("Variants/freebayes/logs/", exist_ok = True)
+    # copy2 to keep metadata during copy
+    shutil.copy2(snakefile, "Variants/freebayes/logs/variants-freebayes.smk")
+
     samplenames = getnames(directory, '.bam')
     callcoords, linkedgenome = createregions(genome, windowsize, "freebayes")
     directory = directory.rstrip("/^")
     validate_bamfiles(directory, samplenames)
-    command = (f'snakemake --rerun-incomplete --nolock --cores {threads} --directory . --snakefile {harpypath}/variants-freebayes.smk').split()
+    command = (f'snakemake --rerun-incomplete --nolock --cores {threads} --directory . --snakefile Variants/freebayes/logs/variants-freebayes.smk').split()
     if snakemake is not None:
         [command.append(i) for i in snakemake.split()]
     if quiet:

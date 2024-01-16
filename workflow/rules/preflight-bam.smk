@@ -1,5 +1,8 @@
+from rich import print as rprint
+from rich.panel import Panel
 import os
 import re
+import sys
 import glob
 
 seq_dir = config["seq_directory"]
@@ -18,8 +21,33 @@ samplenames = set([os.path.splitext(i)[0] for i in bamlist])
 #    lst = [i for i in glob.iglob(seq_dir + "/" + wildcards.sample + "*") if i.lower().endswith(".bam.bai")]
 #    return lst
 
+#TODO rm filetools conda
 conda:
     os.getcwd() + "/harpyenvs/filetools.yaml"
+
+onerror:
+    print("")
+    rprint(
+        Panel(
+            f"The workflow has terminated due to an error. See the log file below for more details.",
+            title = "[bold]harpy preflight bam",
+            title_align = "left",
+            border_style = "red"
+            ),
+        file = sys.stderr
+    )
+
+onsuccess:
+    print("")
+    rprint(
+        Panel(
+            f"The workflow has finished successfully! Find the results in [bold]{out_dir}/[/bold]",
+            title = "[bold]harpy preflight bam",
+            title_align = "left",
+            border_style = "green"
+            ),
+        file = sys.stderr
+    )
 
 rule indexBam:
     input:

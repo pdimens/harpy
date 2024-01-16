@@ -1,5 +1,8 @@
+from rich import print as rprint
+from rich.panel import Panel
 import os
 import re
+import sys
 import glob
 
 conda:
@@ -27,6 +30,30 @@ def get_fq2(wildcards):
     r = re.compile(r".*[\_\.][R][2]?(?:\_00[0-9])*\.f(?:ast)?q(?:\.gz)?$", flags=re.IGNORECASE)
     fqlist = list(filter(r.match, lst))
     return fqlist
+
+onerror:
+    print("")
+    rprint(
+        Panel(
+            f"The workflow has terminated due to an error. See the log file below for more details.",
+            title = "[bold]harpy preflight fastq",
+            title_align = "left",
+            border_style = "red"
+            ),
+        file = sys.stderr
+    )
+
+onsuccess:
+    print("")
+    rprint(
+        Panel(
+            f"The workflow has finished successfully! Find the results in [bold]{out_dir}/[/bold]",
+            title = "[bold]harpy preflight fastq",
+            title_align = "left",
+            border_style = "green"
+            ),
+        file = sys.stderr
+    )
 
 rule checkForward:
     input:

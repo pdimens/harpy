@@ -1,3 +1,6 @@
+from rich import print as rprint
+from rich.panel import Panel
+import sys
 import os
 import re
 
@@ -35,6 +38,30 @@ def process_args(args):
         for i in zip(words[::2], words[1::2]):
             argsDict[i[0]] = i[1]
     return argsDict
+
+onerror:
+    print("")
+    rprint(
+        Panel(
+            f"The workflow has terminated due to an error. See the log file below for more details.",
+            title = "[bold]harpy sv naibr",
+            title_align = "left",
+            border_style = "red"
+            ),
+        file = sys.stderr
+    )
+
+onsuccess:
+    print("")
+    rprint(
+        Panel(
+            f"The workflow has finished successfully! Find the results in [bold]{outdir}/[/bold]",
+            title = "[bold]harpy sv naibr",
+            title_align = "left",
+            border_style = "green"
+            ),
+        file = sys.stderr
+    )
 
 rule genome_link:
     input:

@@ -1,3 +1,7 @@
+from rich import print as rprint
+from rich.panel import Panel
+import sys
+
 ##TODO MANUAL PRUNING OF SWITCH ERRORS
 # https://github.com/vibansal/HapCUT2/blob/master/outputformat.md
 
@@ -15,8 +19,33 @@ try:
 except:
     indelarg = ""
 
+#TODO RM global filetools
 conda:
     os.getcwd() + "/harpyenvs/filetools.yaml"
+
+onerror:
+    print("")
+    rprint(
+        Panel(
+            f"The workflow has terminated due to an error. See the log file below for more details.",
+            title = "[bold]harpy phase",
+            title_align = "left",
+            border_style = "red"
+            ),
+        file = sys.stderr
+    )
+
+onsuccess:
+    print("")
+    rprint(
+        Panel(
+            f"The workflow has finished successfully! Find the results in [bold]{outdir}/[/bold]",
+            title = "[bold]harpy phase",
+            title_align = "left",
+            border_style = "green"
+            ),
+        file = sys.stderr
+    )
 
 rule splitbysamplehet:
     input: 

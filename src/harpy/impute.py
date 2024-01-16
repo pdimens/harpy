@@ -1,13 +1,16 @@
-from .helperfunctions import generate_conda_deps, getnames, vcfcheck, vcf_samplematch, check_impute_params, validate_bamfiles
+from .helperfunctions import fetch_snakefile, generate_conda_deps, getnames
+from .helperfunctions import vcfcheck, vcf_samplematch
+from .helperfunctions import check_impute_params, validate_bamfiles
 import rich_click as click
 import subprocess
+import shutil
 import sys
 import os
 
-try:
-    harpypath = '{CONDA_PREFIX}'.format(**os.environ) + "/bin"
-except:
-    pass
+#try:
+#    harpypath = '{CONDA_PREFIX}'.format(**os.environ) + "/bin"
+#except:
+#    pass
 
 #@click.option('-f', '--filter', is_flag=True, help="Filter VCF file to keep SNPs with QUAL>20 and DP>10")
 @click.command(no_args_is_help = True)
@@ -28,6 +31,10 @@ def impute(parameters, directory, threads, vcf, vcf_samples, snakemake, quiet, p
     Use the `--vcf-samples` toggle to phase only the samples present in your input `--vcf` file rather than all
     the samples present in the `--directory`.
     """
+    snakefile = fetch_snakefile("impute.smk")
+    os.makedirs("Impute/logs/", exist_ok = True)
+    # copy2 to keep metadata during copy
+    shutil.copy2(snakefile, "Impute/logs/impute.smk")
     ## validate inputs ##
     vcfcheck(vcf)
     #samplenames = getnames(directory, '.bam')
@@ -37,7 +44,7 @@ def impute(parameters, directory, threads, vcf, vcf_samples, snakemake, quiet, p
     check_impute_params(parameters)
     validate_bamfiles(directory, samplenames)
 
-    command = f'snakemake --rerun-incomplete --nolock --cores {threads} --directory . --snakefile {harpypath}/impute.smk'.split()
+    command = f'snakemake --rerun-incomplete --nolock --cores {threads} --directory . --snakefile Impute/logs/impute.smk'.split()
     if snakemake is not None:
         [command.append(i) for i in snakemake.split()]
     if quiet:
