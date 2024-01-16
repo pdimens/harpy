@@ -179,6 +179,7 @@ rule create_config:
             _ = conf.write(f"bam_file={input[0]}\n")
             _ = conf.write(f"prefix={params[0]}\n")
             _ = conf.write(f"outdir=Variants/naibr/{params[0]}\n")
+            _ = conf.write(f"threads={workflow.cores}\n")
             for i in argdict:
                 _ = conf.write(f"{i}={argdict[i]}\n")
 
@@ -211,9 +212,6 @@ rule call_sv:
         "Calling variants: {wildcards.sample}"
     shell:
         """
-        if ! grep -q "threads" {input.conf}; then
-            echo "threads={threads}" >> {input.conf}
-        fi
         naibr {input.conf} > {log}.tmp 2>&1
         grep -v "pairs/s" {log}.tmp > {log} && rm {log}.tmp
         """
@@ -234,10 +232,10 @@ rule infer_sv:
         "Inferring variants from naibr output: {wildcards.sample}"
     shell:
         """
-        inferSV.py {input.bedpe} -f {output.fail} > {output.bedpe} &&
-            mv {input.refmt} {output.refmt} &&
-            mv {input.vcf} {output.vcf} &&
-            rm -rf {params.outdir}
+        inferSV.py {input.bedpe} -f {output.fail} > {output.bedpe}
+        mv {input.refmt} {output.refmt} &&
+        mv {input.vcf} {output.vcf} &&
+        rm -rf {params.outdir}
         """
 
 rule report:

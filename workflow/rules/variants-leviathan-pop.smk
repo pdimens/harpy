@@ -19,22 +19,16 @@ if genome_zip:
 ## exits with an error if the groupfile has samples not in the bam folder
 def pop_manifest(infile, dirn, sampnames):
     d = dict()
-    absent = []
     with open(infile) as f:
         for line in f:
             samp, pop = line.rstrip().split()
             if samp.lstrip().startswith("#"):
                 continue
-            if samp not in sampnames:
-                absent.append(samp)
             samp = f"{dirn}/{samp}.bam"
             if pop not in d.keys():
                 d[pop] = [samp]
             else:
                 d[pop].append(samp)
-    if absent:
-        sys.tracebacklimit = 0
-        raise ValueError(f"{len(absent)} sample(s) in \033[1m{infile}\033[0m not found in \033[1m{dirn}\033[0m directory:\n\033[33m" + ", ".join(absent) + "\033[0m" + "\n")
     return d
 
 popdict = pop_manifest(groupfile, bam_dir, samplenames)

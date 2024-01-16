@@ -4,9 +4,6 @@ import sys
 import os
 import re
 
-conda:
-    os.getcwd() + "/harpyenvs/filetools.yaml"
-
 bam_dir     = config["seq_directory"]
 samplenames = config["samplenames"] 
 extra       = config.get("extra", "") 
@@ -42,25 +39,18 @@ def process_args(args):
 
 # create dictionary of population => filenames
 ## this makes it easier to set the snakemake rules/wildcards
-## exits with an error if the groupfile has samples not in the bam folder
 def pop_manifest(infile, dirn, sampnames):
     d = dict()
-    absent = []
     with open(infile) as f:
         for line in f:
             samp, pop = line.rstrip().split()
             if samp.lstrip().startswith("#"):
                 continue
-            if samp not in sampnames:
-                absent.append(samp)
             samp = f"{dirn}/phasedbam/{samp}.bam"
             if pop not in d.keys():
                 d[pop] = [samp]
             else:
                 d[pop].append(samp)
-    if absent:
-        sys.tracebacklimit = 0
-        raise ValueError(f"{len(absent)} sample(s) in \033[1m{infile}\033[0m not found in \033[1m{dirn}\033[0m directory:\n\033[33m" + ", ".join(absent) + "\033[0m" + "\n")
     return d
 
 popdict     = pop_manifest(groupfile, outdir, samplenames)
@@ -237,6 +227,7 @@ rule create_config:
             _ = conf.write(f"bam_file={input[0]}\n")
             _ = conf.write(f"outdir=Variants/naibr-pop/{params[0]}\n")
             _ = conf.write(f"prefix={params[0]}\n")
+            _ = conf.write(f"threads={workflow.cores}\n")
             for i in argdict:
                 _ = conf.write(f"{i}={argdict[i]}\n")
 
@@ -259,9 +250,6 @@ rule call_sv:
         "Calling variants: {wildcards.population}"
     shell:
         """
-        if ! grep -q "threads" {input.conf}; then
-            echo "threads={threads}" >> {input.conf}
-        fi
         naibr {input.conf} > {log}.tmp 2>&1
         grep -v "pairs/s" {log}.tmp > {log} && rm {log}.tmp
         """
@@ -282,10 +270,10 @@ rule infer_sv:
         "Inferring variants from naibr output: {wildcards.population}"
     shell:
         """
-        inferSV.py {input.bedpe} -f {output.fail} > {output.bedpe} &&
-            mv {input.refmt} {output.refmt} &&
-            mv {input.vcf} {output.vcf} &&
-            rm -rf {params.outdir}
+        inferSV.py {input.bedpe} -f {output.fail} > {output.bedpe}
+        mv {input.refmt} {output.refmt} &&
+        mv {input.vcf} {output.vcf} &&
+        rm -rf {params.outdir}
         """
 
 rule report:
@@ -316,7 +304,7 @@ rule report_pop:
 
 rule log_runtime:
     output:
-        outdir + "/logs/harpy.variants.log"
+        outdir + "/logs/sv.naibr.workflow.summary"
     message:
         "Creating record of relevant runtime parameters: {output}"
     run:
@@ -341,8 +329,8 @@ rule all:
         expand(outdir + "/{pop}.bedpe",      pop = populations),
         expand(outdir + "/reports/{pop}.naibr.html", pop = populations),
         outdir + "/reports/naibr.pop.summary.html",
-        outdir + "/logs/harpy.variants.log"
+        outdir + "/logs/sv.naibr.workflow.summary"
     message:
-        "Variant calling completed!"
+        "Checking for expected workflow output"
     shell:
         "rm -rf Variants/naibrlog"
