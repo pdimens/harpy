@@ -20,11 +20,14 @@ requirements:
     - python =3.11
   run:
     - bcftools =1.19
+    - multiqc
     - pysam =0.22
     - python =3.11
     - rich-click
     - snakemake >=8
     - samtools
+    - seqtk
+    - tabix
 
 test:
   commands:
