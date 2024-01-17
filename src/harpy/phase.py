@@ -1,4 +1,4 @@
-from .helperfunctions import fetch_snakefile, generate_conda_deps, getnames, vcfcheck, vcf_samplematch, validate_bamfiles
+from .helperfunctions import fetch_file, generate_conda_deps, getnames, vcfcheck, vcf_samplematch, validate_bamfiles
 import shutil
 import sys
 import os
@@ -32,7 +32,7 @@ def phase(vcf, directory, threads, molecule_distance, prune_threshold, vcf_sampl
     the samples present in your input `--vcf` file rather than all the samples present in
     the `--directory`.
     """
-    snakefile = fetch_snakefile("phase-pop.smk")
+    snakefile = fetch_file("phase-pop.smk")
     os.makedirs("Phase/logs/", exist_ok = True)
     # copy2 to keep metadata during copy
     shutil.copy2(snakefile, "Phase/logs/phase-pop.smk")

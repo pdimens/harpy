@@ -1,17 +1,11 @@
 import rich_click as click
 from pathlib import Path
-from .helperfunctions import fetch_snakefile, generate_conda_deps, get_samples_from_fastq
+from .helperfunctions import fetch_file, generate_conda_deps, get_samples_from_fastq
 from .helperfunctions import print_error, print_solution, print_notice
 import subprocess
-import shutil
 import sys
 import os
 from time import sleep 
-
-#try:
-#    harpypath = '{CONDA_PREFIX}'.format(**os.environ) + "/bin"
-#except:
-#    pass
 
 @click.command(no_args_is_help = True)
 @click.option('-g', '--genome', type=click.Path(exists=True, dir_okay=False), required = True, metavar = "File Path", help = 'Genome assembly for read mapping')
@@ -31,14 +25,12 @@ def bwa(genome, threads, directory, extra_params, quality_filter, molecule_dista
     Instead, Harpy post-processes the alignments using the specified `--molecule-distance`
     to assign alignments to unique molecules.
     """
-    snakefile = fetch_snakefile("align-bwa.smk")
-    os.makedirs("Align/bwa/logs/", exist_ok = True)
-    # copy2 to keep metadata during copy
-    shutil.copy2(snakefile, "Align/bwa/logs/align-bwa.smk")
-
+    fetch_file("align-bwa.smk", "Align/bwa/workflow/")
+    for i in ["BxStats", "BwaGencov"]:
+        fetch_file(f"report{i}.Rmd", "Align/bwa/workflow/report/")
     samplenames = get_samples_from_fastq(directory)
     directory = directory.rstrip("/^")
-    command = f'snakemake --rerun-incomplete --nolock --cores {threads} --directory . --snakefile Align/bwa/logs/align-bwa.smk'.split()
+    command = f'snakemake --rerun-incomplete --nolock --use-conda --cores {threads} --directory . --snakefile Align/bwa/workflow/align-bwa.smk'.split()
     if snakemake is not None:
         [command.append(i) for i in snakemake.split()]
     if quiet:
@@ -81,10 +73,9 @@ def ema(platform, whitelist, genome, threads, ema_bins, directory, extra_params,
     EMA may improve mapping, but it also marks split reads as secondary
     reads, making it less useful for leviathan variant calling.
     """
-    snakefile = fetch_snakefile("align-ema.smk")
-    os.makedirs("Align/ema/logs/", exist_ok = True)
-    # copy2 to keep metadata during copy
-    shutil.copy2(snakefile, "Align/ema/logs/align-ema.smk")
+    fetch_file("align-ema.smk", "Align/ema/workflow/")
+    for i in ["EmaCount", "EmaGencov", "BxStats"]:
+        fetch_file(f"report{i}.Rmd", "Align/ema/workflow/report/")
 
     platform = platform.lower()
     if platform in ["tellseq", "10x"] and not whitelist:
@@ -99,7 +90,7 @@ def ema(platform, whitelist, genome, threads, ema_bins, directory, extra_params,
         sleep(3)
     samplenames = get_samples_from_fastq(directory)
     directory = directory.rstrip("/^")
-    command = f'snakemake --rerun-incomplete --nolock --cores {threads} --directory . --snakefile Align/ema/logs/align-ema.smk'.split()
+    command = f'snakemake --rerun-incomplete --nolock --use-conda --cores {threads} --directory . --snakefile Align/ema/workflow/align-ema.smk'.split()
     if snakemake is not None:
         [command.append(i) for i in snakemake.split()]
     if quiet:
@@ -113,7 +104,6 @@ def ema(platform, whitelist, genome, threads, ema_bins, directory, extra_params,
     command.append(f"quality={quality_filter}")
     command.append(f"samplenames={samplenames}")
     command.append(f"EMA_bins={ema_bins}")
-    #command.append(f"molecule_distance={molecule_distance}")
     command.append(f"seq_directory={directory}")
 
     if extra_params is not None:

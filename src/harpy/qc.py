@@ -4,13 +4,7 @@ import subprocess
 import re
 import os
 import sys
-import shutil
 import glob
-
-#try:
-#    harpypath = '{CONDA_PREFIX}'.format(**os.environ) + "/bin"
-#except:
-#    pass
 
 @click.command(no_args_is_help = True)
 @click.option('-d', '--directory', required = True, type=click.Path(exists=True, file_okay=False), metavar = "Folder Path", help = 'Directory with raw sample sequences')

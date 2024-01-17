@@ -1,5 +1,5 @@
 import rich_click as click
-from .helperfunctions import fetch_snakefile, generate_conda_deps, validate_demuxschema, check_demux_fastq
+from .helperfunctions import fetch_file, generate_conda_deps, validate_demuxschema, check_demux_fastq
 import subprocess
 import shutil
 import sys
@@ -27,7 +27,7 @@ def gen1(file, samplesheet, threads, snakemake, quiet, print_only):
     """
     check_demux_fastq(file)
 
-    snakefile = fetch_snakefile("demultiplex.gen1.smk")
+    snakefile = fetch_file("demultiplex.gen1.smk")
     inprefix = re.sub(r"[\_\.][IR][12]?(?:\_00[0-9])*\.f(?:ast)?q(?:\.gz)?$", "", os.path.basename(file))
     os.makedirs(f"Demultiplex/{inprefix}/logs/", exist_ok = True)
     # copy2 to keep metadata during copy

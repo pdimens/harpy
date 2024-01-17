@@ -1,4 +1,4 @@
-from .helperfunctions import fetch_snakefile, generate_conda_deps, getnames, createregions
+from .helperfunctions import fetch_file, generate_conda_deps, getnames, createregions
 from .helperfunctions import validate_bamfiles, validate_popfile, validate_vcfsamples
 import rich_click as click
 import subprocess
@@ -30,7 +30,7 @@ def mpileup(genome, threads, directory, populations, ploidy, windowsize, extra_p
     Use **harpy popgroup** to create a sample grouping file to 
     use as input for `--populations`. Available methods are:
     """
-    snakefile = fetch_snakefile("variants-mpileup.smk")
+    snakefile = fetch_file("variants-mpileup.smk")
     os.makedirs("Variants/mpileup/logs/", exist_ok = True)
     # copy2 to keep metadata during copy
     shutil.copy2(snakefile, "Variants/mpileup/logs/variants-mpileup.smk")
@@ -84,7 +84,7 @@ def freebayes(genome, threads, directory, populations, ploidy, windowsize, extra
     Use **harpy popgroup** to create a sample grouping file to 
     use as input for `--populations`.
     """
-    snakefile = fetch_snakefile("variants-freebayes.smk")
+    snakefile = fetch_file("variants-freebayes.smk")
     os.makedirs("Variants/freebayes/logs/", exist_ok = True)
     # copy2 to keep metadata during copy
     shutil.copy2(snakefile, "Variants/freebayes/logs/variants-freebayes.smk")

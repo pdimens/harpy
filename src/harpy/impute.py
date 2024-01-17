@@ -1,4 +1,4 @@
-from .helperfunctions import fetch_snakefile, generate_conda_deps, getnames
+from .helperfunctions import fetch_file, generate_conda_deps, getnames
 from .helperfunctions import vcfcheck, vcf_samplematch
 from .helperfunctions import check_impute_params, validate_bamfiles
 import rich_click as click
@@ -31,7 +31,7 @@ def impute(parameters, directory, threads, vcf, vcf_samples, snakemake, quiet, p
     Use the `--vcf-samples` toggle to phase only the samples present in your input `--vcf` file rather than all
     the samples present in the `--directory`.
     """
-    snakefile = fetch_snakefile("impute.smk")
+    snakefile = fetch_file("impute.smk")
     os.makedirs("Impute/logs/", exist_ok = True)
     # copy2 to keep metadata during copy
     shutil.copy2(snakefile, "Impute/logs/impute.smk")

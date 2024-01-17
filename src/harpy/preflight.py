@@ -1,5 +1,5 @@
 import rich_click as click
-from .helperfunctions import fetch_snakefile, generate_conda_deps, getnames, get_samples_from_fastq
+from .helperfunctions import fetch_file, generate_conda_deps, getnames, get_samples_from_fastq
 import subprocess
 import re
 import os
@@ -28,7 +28,7 @@ def fastq(directory, threads, snakemake, quiet, print_only):
     fix your data, but it will report the number of reads that feature errors to help
     you diagnose if file formatting will cause downstream issues.
     """
-    snakefile = fetch_snakefile("preflight-fastq.smk")
+    snakefile = fetch_file("preflight-fastq.smk")
     os.makedirs(f"{directory}/Preflight/logs/", exist_ok = True)
     # copy2 to keep metadata during copy
     shutil.copy2(snakefile, f"{directory}/Preflight/logs/preflight-fastq.smk")
@@ -65,7 +65,7 @@ def bam(directory, threads, snakemake, quiet, print_only):
     This **will not** fix your data, but it will report the number of records that feature errors  to help
     you diagnose if file formatting will cause downstream issues.
     """
-    snakefile = fetch_snakefile("preflight-bam.smk")
+    snakefile = fetch_file("preflight-bam.smk")
     os.makedirs(f"{directory}/Preflight/logs/", exist_ok = True)
     # copy2 to keep metadata during copy
     shutil.copy2(snakefile, f"{directory}/Preflight/logs/preflight-bam.smk")

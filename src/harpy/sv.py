@@ -1,4 +1,4 @@
-from .helperfunctions import fetch_snakefile, generate_conda_deps, getnames, check_phase_vcf
+from .helperfunctions import fetch_file, generate_conda_deps, getnames, check_phase_vcf
 from .helperfunctions import validate_popfile, validate_vcfsamples
 import rich_click as click
 import subprocess
@@ -32,7 +32,7 @@ def leviathan(genome, threads, directory, populations, extra_params, snakemake, 
     vcaller = "leviathan"
     if populations is not None:
         vcaller += "-pop"
-    snakefile = fetch_snakefile(f"variants-{vcaller}.smk")
+    snakefile = fetch_file(f"variants-{vcaller}.smk")
     os.makedirs(f"Variants/{vcaller}/logs/", exist_ok = True)
     # copy2 to keep metadata during copy
     shutil.copy2(snakefile, f"Variants/{vcaller}/logs/variants-{vcaller}.smk")
@@ -99,7 +99,7 @@ def naibr(genome, vcf, threads, directory, populations, molecule_distance, extra
         check_phase_vcf(vcf)
         vcaller += "-phase"
     
-    snakefile = fetch_snakefile(f"variants-{vcaller}.smk")
+    snakefile = fetch_file(f"variants-{vcaller}.smk")
     os.makedirs(f"Variants/{outdir}/logs/", exist_ok = True)
     # copy2 to keep metadata during copy
     shutil.copy2(snakefile, f"Variants/{outdir}/logs/variants-{vcaller}.smk")
