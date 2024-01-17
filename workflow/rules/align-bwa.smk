@@ -150,7 +150,7 @@ rule align:
         bwa mem -C -t {threads} {params.extra} -R \"@RG\\tID:{wildcards.sample}\\tSM:{wildcards.sample}\" {input.genome} {input.forward_reads} {input.reverse_reads} 2> {log}
         """
  
- rule sort_align:
+rule sort_align:
     input:
         sam           = outdir + "/samples/{sample}/{sample}.raw.sam",
         genome 		  = f"Genome/{bn}",
