@@ -183,7 +183,7 @@ rule phase_report:
 
 rule log_runtime:
     output:
-        outdir + "/logs/phase.workflow.summary"
+        outdir + "/workflow/phase.workflow.summary"
     params:
         prune = f"--threshold {pruning} " if pruning > 0 else "--no_prune 1 ",
         extra = extra
@@ -205,7 +205,7 @@ rule indexFinal:
     default_target: True
     input:
         bcf      = outdir + "/variants.phased.bcf",
-        runlog   = outdir + "/logs/phase.workflow.summary",
+        runlog   = outdir + "/workflow/phase.workflow.summary",
         phaserpt = outdir + "/reports/phase.html"
     output:
         outdir + "/variants.phased.bcf.csi"

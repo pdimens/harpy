@@ -436,7 +436,7 @@ rule collate_samtools_stats:
 
 rule log_runtime:
     output:
-        outdir + "/logs/align.workflow.summary"
+        outdir + "/workflow/align.workflow.summary"
     params:
         beadtech = "-p" if platform == "haplotag" else f"-w {whitelist}"
     message:
@@ -475,7 +475,7 @@ rule all:
         bxstats = expand(outdir + "/stats/BXstats/{sample}.bxstats.html", sample = samplenames),
         bxcounts = f"{outdir}/stats/reads.bxcounts.html",
         emastats = f"{outdir}/stats/ema.stats.html",
-        runlog = f"{outdir}/logs/align.workflow.summary"
+        runlog = f"{outdir}/workflow/align.workflow.summary"
     message:
         "Checking for expected workflow output"
 #    run:

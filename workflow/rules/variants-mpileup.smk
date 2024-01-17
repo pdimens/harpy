@@ -212,7 +212,7 @@ rule bcfreport:
 
 rule log_runtime:
     output:
-        outdir + "/logs/snp.mpileup.workflow.summary"
+        outdir + "/workflow/snp.mpileup.workflow.summary"
     params:
         ploidy = f"--ploidy {ploidy}",
         populations = '' if groupings is None else f"--populations {groupings}"
@@ -236,7 +236,7 @@ rule log_runtime:
 rule all:
     default_target: True
     input:
-        outdir + "/logs/snp.mpileup.workflow.summary",
+        outdir + "/workflow/snp.mpileup.workflow.summary",
         expand(outdir + "/variants.{file}.bcf",        file = ["raw","normalized"]),
         expand(outdir + "/stats/variants.{file}.html", file = ["raw","normalized"])
     message:

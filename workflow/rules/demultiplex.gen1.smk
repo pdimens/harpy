@@ -206,7 +206,7 @@ rule qc_report:
 
 rule log_runtime:
     output:
-        outdir + "logs/demultiplex.workflow.summary"
+        outdir + "workflow/demultiplex.workflow.summary"
     message:
         "Creating record of relevant runtime parameters: {output}"
     run:
@@ -227,7 +227,7 @@ rule all:
     input:
         fw_reads = expand(outdir + "{sample}.F.fq.gz", sample = samplenames),
         rv_reads = expand(outdir + "{sample}.R.fq.gz", sample = samplenames),
-        runlog   = outdir + "logs/demultiplex.workflow.summary",
+        runlog   = outdir + "workflow/demultiplex.workflow.summary",
         qcreport = outdir + "reports/demultiplex.QC.html"
     message:
         "Checking for expected workflow output"

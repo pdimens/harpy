@@ -244,7 +244,7 @@ rule sv_report:
 
 rule log_runtime:
     output:
-        outdir + "/logs/sv.leviathan.workflow.summary"
+        outdir + "/workflow/sv.leviathan.workflow.summary"
     message:
         "Creating record of relevant runtime parameters: {output}"
     params:
@@ -265,6 +265,6 @@ rule all_bcfs:
         bcf       = expand(outdir + "/{pop}.bcf", pop = populations),
         popreport = expand(outdir + "/reports/{pop}.sv.html", pop = populations),
         report    = outdir + "/reports/leviathan.pop.summary.html",
-        runlog    = outdir + "/logs/sv.leviathan.workflow.summary"
+        runlog    = outdir + "/workflow/sv.leviathan.workflow.summary"
     message:
         "Checking for expected workflow output"

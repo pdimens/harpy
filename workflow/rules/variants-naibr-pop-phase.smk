@@ -304,7 +304,7 @@ rule report_pop:
 
 rule log_runtime:
     output:
-        outdir + "/logs/sv.naibr.workflow.summary"
+        outdir + "/workflow/sv.naibr.workflow.summary"
     message:
         "Creating record of relevant runtime parameters: {output}"
     run:
@@ -329,7 +329,7 @@ rule all:
         expand(outdir + "/{pop}.bedpe",      pop = populations),
         expand(outdir + "/reports/{pop}.naibr.html", pop = populations),
         outdir + "/reports/naibr.pop.summary.html",
-        outdir + "/logs/sv.naibr.workflow.summary"
+        outdir + "/workflow/sv.naibr.workflow.summary"
     message:
         "Checking for expected workflow output"
     shell:

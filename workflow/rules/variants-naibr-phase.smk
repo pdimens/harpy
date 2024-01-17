@@ -253,7 +253,7 @@ rule report:
 
 rule log_runtime:
     output:
-        outdir + "/logs/sv.naibr.workflow.summary"
+        outdir + "/workflow/sv.naibr.workflow.summary"
     message:
         "Creating record of relevant runtime parameters: {output}"
     run:
@@ -276,7 +276,7 @@ rule all:
     input:
         expand(outdir + "/{sample}.bedpe",      sample = samplenames),
         expand(outdir + "/reports/{sample}.naibr.html", sample = samplenames),
-        outdir + "/logs/sv.naibr.workflow.summary",
+        outdir + "/workflow/sv.naibr.workflow.summary",
         outdir + "/logs/whatshap-haplotag/phasing.log"
     message:
         "Checking for expected workflow output"

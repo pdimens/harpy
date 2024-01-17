@@ -231,7 +231,7 @@ rule reports:
 
 rule log_runtime:
     output:
-        "Impute/logs/harpy.impute.log"
+        "Impute/workflow/impute.workflow.summary"
     message:
         "Creating record of relevant runtime parameters: {output}"
     run:
@@ -273,6 +273,6 @@ rule all:
         bcf     = expand("Impute/{stitchparams}/variants.imputed.bcf", stitchparams=paramspace.instance_patterns),
         reports = expand("Impute/{stitchparams}/variants.imputed.html", stitchparams=paramspace.instance_patterns),
         contigs = expand("Impute/{stitchparams}/contigs/{part}/{part}.STITCH.html", stitchparams=paramspace.instance_patterns, part = contigs),
-        runlog  = "Impute/logs/harpy.impute.log"
+        runlog  = "Impute/workflow/impute.workflow/summary"
     message: 
         "Checking for expected workflow output"

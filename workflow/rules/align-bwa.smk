@@ -289,7 +289,7 @@ rule samtools_reports:
 
 rule log_runtime:
     output:
-        outdir + "/logs/align.workflow.summary"
+        outdir + "/workflow/align.workflow.summary"
     params:
         quality = config["quality"],
         extra   = extra
@@ -317,7 +317,7 @@ rule all:
         covreport = expand(outdir + "/stats/coverage/{sample}.cov.html", sample = samplenames),
         bxreport = expand(outdir + "/stats/BXstats/{sample}.bxstats.html", sample = samplenames),
         statsreport = outdir + "/stats/bwa.stats.html",
-        runlog = outdir + "/logs/align.workflow.summary"
+        runlog = outdir + "/workflow/align.workflow.summary"
     message:
         "Checking for expected workflow output"
 #    run:

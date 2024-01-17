@@ -180,7 +180,7 @@ rule sv_report:
 
 rule log_runtime:
     output:
-        outdir + "/logs/sv.leviathan.workflow.summary"
+        outdir + "/workflow/sv.leviathan.workflow.summary"
     params:
         extra = extra
     message:
@@ -200,6 +200,6 @@ rule all_bcfs:
     input: 
         bcf     = expand(outdir + "/{sample}.bcf", sample = samplenames),
         reports = expand(outdir + "/reports/{sample}.SV.html", sample = samplenames),
-        runlog  = outdir + "/logs/sv.leviathan.workflow.summary"
+        runlog  = outdir + "/workflow/sv.leviathan.workflow.summary"
     message:
         "Checking for expected workflow output"

@@ -216,7 +216,7 @@ rule bcfreport:
 
 rule log_runtime:
     output:
-        outdir + "/logs/snp.freebayes.workflow.summary"
+        outdir + "/workflow/snp.freebayes.workflow.summary"
     message:
         "Creating record of relevant runtime parameters: {output}"
     params:
@@ -239,7 +239,7 @@ rule log_runtime:
 rule all:
     default_target: True
     input: 
-        outdir + "/logs/snp.freebayes.workflow.summary",
+        outdir + "/workflow/snp.freebayes.workflow.summary",
         expand(outdir + "/variants.{file}.bcf",        file = ["raw", "normalized"]),
         expand(outdir + "/stats/variants.{file}.html", file = ["raw", "normalized"])
     message:
