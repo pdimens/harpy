@@ -1,0 +1,15 @@
+name: harpy
+channels:
+  - conda-forge
+  - bioconda
+  - defaults
+dependencies:
+  - bcftools =1.19
+  - multiqc
+  - pysam =0.22
+  - python
+  - rich-click
+  - snakemake
+  - samtools
+  - seqtk
+  - tabix

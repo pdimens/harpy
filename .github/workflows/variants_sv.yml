@@ -5,37 +5,45 @@ on:
     branches:
       - 'dev'
     paths:
-      - 'rules/variants-leviathan**.smk'
-      - 'rules/variants-naibr**.smk'
+      - 'workflow/envs/harpy.yaml'
+      - 'workflow/envs/r-env.yaml'
+      - 'workflow/envs/phase.yaml'
+      - 'workflow/envs/variants.sv.yaml'
+      - 'workflow/rules/variants-leviathan**.smk'
+      - 'workflow/rules/variants-naibr**.smk'
       - '**sv.py'
       - '**helperfunctions.py'
-      - 'utilities/makewindows.py'
+      - 'workflow/scripts/makewindows.py'
       - 'test/bam/**'
       - 'test/bam_phased/**'
       - '**variants_snp.yml'
-      - 'reports/reportNaibr.Rmd'
-      - 'reports/reportNaibrPop.Rmd'
-      - 'reports/reportLeviathan.Rmd'
-      - 'reports/reportLeviathanPop.Rmd'
-      - 'utilities/inferSV.py'
+      - 'workflow/report/Naibr.Rmd'
+      - 'workflow/report/NaibrPop.Rmd'
+      - 'workflow/report/Leviathan.Rmd'
+      - 'workflow/report/LeviathanPop.Rmd'
+      - 'workflow/scripts/inferSV.py'
 
   pull_request:
     branches:
       - 'dev'
     paths:
-      - 'rules/variants-leviathan**.smk'
-      - 'rules/variants-naibr**.smk'
+      - 'workflow/envs/harpy.yaml'
+      - 'workflow/envs/r-env.yaml'
+      - 'workflow/envs/phase.yaml'
+      - 'workflow/envs/variants.sv.yaml'
+      - 'workflow/rules/variants-leviathan**.smk'
+      - 'workflow/rules/variants-naibr**.smk'
       - '**sv.py'
       - '**helperfunctions.py'
-      - 'utilities/makewindows.py'
+      - 'workflow/scripts/makewindows.py'
       - 'test/bam/**'
       - 'test/bam_phased/**'
       - '**variants_snp.yml'
-      - 'reports/reportNaibr.Rmd'
-      - 'reports/reportNaibrPop.Rmd'
-      - 'reports/reportLeviathan.Rmd'
-      - 'reports/reportLeviathanPop.Rmd'
-      - 'utilities/inferSV.py'
+      - 'workflow/report/Naibr.Rmd'
+      - 'workflow/report/NaibrPop.Rmd'
+      - 'workflow/report/Leviathan.Rmd'
+      - 'workflow/report/LeviathanPop.Rmd'
+      - 'workflow/scripts/inferSV.py'
 
 env:
   CACHE_NUMBER: 0  # increase to reset cache manually
@@ -56,7 +64,7 @@ jobs:
         with:
           init-shell: bash
           generate-run-shell: true
-          environment-file: workflow/envs/harpyenv.yaml
+          environment-file: workflow/envs/harpy.yaml
           cache-environment: true
           post-cleanup: 'all'
           log-level: error

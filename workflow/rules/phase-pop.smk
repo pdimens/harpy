@@ -236,7 +236,7 @@ rule phase_report:
     message:
         "Summarizing phasing results"
     script:
-        "reportHapCut2.Rmd"
+        "report/HapCut2.Rmd"
 
 rule log_runtime:
     output:

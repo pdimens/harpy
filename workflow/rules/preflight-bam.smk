@@ -93,4 +93,4 @@ rule createReport:
     message:
         "Producing report"
     script:
-        "reportPreflightBam.Rmd"
+        "report/PreflightBam.Rmd"

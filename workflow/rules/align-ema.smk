@@ -164,7 +164,7 @@ rule beadtag_summary:
     message:
         "Creating sample barcode validation report"
     script:
-        "report/reportEmaCount.Rmd"
+        "report/EmaCount.Rmd"
 
 rule preprocess:
     input: 
@@ -346,7 +346,7 @@ rule coverage_report:
     message:
         "Creating report of alignment coverage: {wildcards.sample}"
     script:
-        "report/reportEmaGencov.Rmd"
+        "report/EmaGencov.Rmd"
 
 rule merge_alignments:
     input:
@@ -405,7 +405,7 @@ rule bx_stats_report:
     message: 
         "Generating summary of barcode alignment: {wildcards.sample}"
     script:
-        "report/reportBxStats.Rmd"
+        "report/BxStats.Rmd"
 
 rule general_stats:
     input: 		

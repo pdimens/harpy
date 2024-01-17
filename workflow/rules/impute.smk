@@ -137,7 +137,7 @@ rule stitch_reports:
     conda:
         os.getcwd() + "/harpyenvs/r-env.yaml"
     script:
-        "reportImputeStitch.Rmd"
+        "report/ImputeStitch.Rmd"
 
 rule clean_stitch:
     input:
@@ -227,7 +227,7 @@ rule reports:
     message:
         "Generating imputation success report: {output}"
     script:
-        "reportImpute.Rmd"
+        "report/Impute.Rmd"
 
 rule log_runtime:
     output:

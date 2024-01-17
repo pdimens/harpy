@@ -208,7 +208,7 @@ rule bcfreport:
     message:
         "Generating bcftools report: variants.{wildcards.type}.bcf"
     script:
-        "reportBcftools.Rmd"
+        "report/BcftoolsStats.Rmd"
 
 rule log_runtime:
     output:

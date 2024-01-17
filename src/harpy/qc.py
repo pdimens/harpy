@@ -26,7 +26,7 @@ def qc(directory, max_length, ignore_adapters, extra_params, threads, snakemake,
     - poly-G tail removal
     """
     fetch_file("qc.smk", "QC/workflow/")
-    fetch_file("reportBxCount.Rmd", "QC/workflow/report/")
+    fetch_file("BxCount.Rmd", "QC/workflow/report/")
     get_samples_from_fastq(directory)
 
     command = f'snakemake --rerun-incomplete --nolock  --use-conda --conda-prefix ./.snakemake --cores {threads} --directory . --snakefile QC/workflow/qc.smk'.split()

@@ -35,6 +35,7 @@ def vcfcheck(vcf):
         exit(1)
 
 def getnames(directory, ext):
+    """Find all files in 'directory' that end with 'ext'"""
     samplenames = set([i.split(ext)[0] for i in os.listdir(directory) if i.endswith(ext)])
     if len(samplenames) < 1:
         print_error(f"No sample files ending with [bold]{ext}[/bold] found in [bold]{directory}[/bold].")
@@ -42,6 +43,7 @@ def getnames(directory, ext):
     return samplenames
 
 def get_samples_from_fastq(directory):
+    """Identify the sample names from a directory containing FASTQ files"""
     full_flist = [i for i in glob.iglob(f"{directory}/*") if not os.path.isdir(i)]
     r = re.compile(r".*\.f(?:ast)?q(?:\.gz)?$", flags=re.IGNORECASE)
     full_fqlist = list(filter(r.match, full_flist))
@@ -57,6 +59,7 @@ def get_samples_from_fastq(directory):
 # Nicer version for init
 ## DEPRECATE??
 def getnames_err(directory, ext):
+    """Get sample names from 'directory' based on files with given extension 'ext'"""
     samplenames = set([i.split(ext)[0] for i in os.listdir(directory) if i.endswith(ext)])
     if len(samplenames) < 1:
         print_error(f"No sample files ending with [bold]{ext}[/bold] found in [bold]{directory}[/bold].")
@@ -65,6 +68,7 @@ def getnames_err(directory, ext):
     return samplenames
 
 def createregions(infile, window, method):
+    """Create a BED file of genomic intervals of size 'window'. Uses 1- or 0- based numbering depending on mpileup or freebayes 'method'"""
     bn = os.path.basename(infile)
     os.makedirs("Genome", exist_ok = True)
     base = 0 if method == "freebayes" else 1
@@ -126,6 +130,7 @@ def createregions(infile, window, method):
         return bedregion, f"Genome/{bn}"
 
 def check_impute_params(parameters):
+    """Validate the STITCH parameter file for column names, order, types, missing values, etc."""
     with open(parameters, "r") as fp:
         header = fp.readline().rstrip().lower()
         headersplt = header.split()
@@ -215,6 +220,7 @@ def check_impute_params(parameters):
             exit(1)
 
 def validate_bamfiles(dir, namelist):
+    """Validate BAM files in directory 'dir' to make sure the sample name inferred from the file matches the @RG tag within the file"""
     culpritfiles = []
     culpritIDs   = []
     for i in namelist:
@@ -245,6 +251,7 @@ def validate_bamfiles(dir, namelist):
         exit(1)
 
 def check_phase_vcf(infile):
+    """Check to see if the input VCf file is phased or not, govered by the presence of ID=PS or ID=HP tags"""
     vcfheader = subprocess.run(f"bcftools view -h {infile}".split(), stdout = subprocess.PIPE).stdout.decode('utf-8')
     if ("##FORMAT=<ID=PS" in vcfheader) or ("##FORMAT=<ID=HP" in vcfheader):
         return
@@ -255,6 +262,7 @@ def check_phase_vcf(infile):
         exit(1)
 
 def validate_popfile(infile):
+    """Validate the input population file to make sure there are two entries per row"""
     with open(infile, "r") as f:
         rows = [i for i in f.readlines() if i != "\n" and not i.lstrip().startswith("#")]
         invalids = [(i,j) for i,j in enumerate(rows) if len(j.split()) < 2]
@@ -270,6 +278,7 @@ def validate_popfile(infile):
             return rows
 
 def vcf_samplematch(vcf, directory, vcf_samples):
+    """Validate that the input VCF file and the samples in the 'directory' (BAM files). The directionality of this check is determined by 'vcf_samples', which prioritizes the sample list in the file, rather that directory."""
     bcfquery = subprocess.Popen(["bcftools", "query", "-l", vcf], stdout=subprocess.PIPE)
     filesamples = bcfquery.stdout.read().decode().split()
     dirsamples  = getnames(directory, '.bam')
@@ -293,6 +302,7 @@ def vcf_samplematch(vcf, directory, vcf_samples):
     return(query)
 
 def validate_vcfsamples(directory, populations, samplenames, rows, quiet):
+    """Validate the presence of samples listed in 'populations' to be in the target directory"""
     p_list = [i.split()[0] for i in rows]
     missing_samples = [x for x in p_list if x not in samplenames]
     overlooked = [x for x in samplenames if x not in p_list]
@@ -308,6 +318,7 @@ def validate_vcfsamples(directory, populations, samplenames, rows, quiet):
         sys.exit(1)
 
 def validate_demuxschema(infile):
+    """Validate the file format of the demultiplex schema"""
     with open(infile, "r") as f:
         rows = [i for i in f.readlines() if i != "\n" and not i.lstrip().startswith("#")]
         invalids = [(i,j) for i,j in enumerate(rows) if len(j.split()) < 2]
@@ -321,6 +332,7 @@ def validate_demuxschema(infile):
             sys.exit(1)
 
 def check_demux_fastq(file):
+    """Check for the presence of corresponding FASTQ files from a single provided FASTQ file based on pipeline expectations."""
     bn = os.path.basename(file)
     ext = re.search(r"(?:\_00[0-9])*\.f(.*?)q(?:\.gz)?$", file, re.IGNORECASE).group(0)
     prefix     = re.sub(r"[\_\.][IR][12]?(?:\_00[0-9])*\.f(?:ast)?q(?:\.gz)?$", "", bn)
@@ -344,6 +356,7 @@ def check_demux_fastq(file):
         exit(1)
 
 def generate_conda_deps():
+    """Create the YAML files of the workflow conda dependencies"""
     condachannels = ["conda-forge", "bioconda", "defaults"]
     environ = {
         "qc" : ["falco", "fastp"],
@@ -367,7 +380,7 @@ def generate_conda_deps():
                 yml.write("\ndependencies:\n  - ")
                 yml.write("\n  - ".join(environ[i]))
 
-# finding the snakefiles
+
 def fetch_file(file, destination, rename=None):
     """Find the 'file' in the PATH and copy it to the 'destination' with the original metadata"""
     result = None

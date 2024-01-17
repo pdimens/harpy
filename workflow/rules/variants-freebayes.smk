@@ -212,7 +212,7 @@ rule bcfreport:
     conda:
         os.getcwd() + "/harpyenvs/r-env.yaml"
     script:
-        "reportBcftools.Rmd"
+        "report/BcftoolsStats.Rmd"
 
 rule log_runtime:
     output:

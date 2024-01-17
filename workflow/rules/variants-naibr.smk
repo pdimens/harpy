@@ -183,7 +183,7 @@ rule report:
     message:
         "Creating report: {wildcards.sample}"
     script:
-        "reportNaibr.Rmd"
+        "report/Naibr.Rmd"
 
 rule log_runtime:
     output:

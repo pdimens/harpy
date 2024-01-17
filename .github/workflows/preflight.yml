@@ -5,32 +5,34 @@ on:
     branches:
       - 'dev'
     paths:
-      - 'rules/preflight-fastq.smk'
-      - 'rules/preflight-bam.smk'
+      - 'workflow/envs/harpy.yaml'
+      - 'workflow/rules/preflight-fastq.smk'
+      - 'workflow/rules/preflight-bam.smk'
       - '**preflight.py'
       - '**helperfunctions.py'
       - 'test/fastq/**'
       - 'test/bam/**'
-      - 'utilities/checkBAM.py'
-      - 'utilities/checkFASTQ.py'
-      - 'reports/reportPreflightFastq.Rmd'
-      - 'reports/reportPreflightBam.Rmd'
+      - 'workflow/scripts/checkBAM.py'
+      - 'workflow/scripts/checkFASTQ.py'
+      - 'workflow/report/PreflightFastq.Rmd'
+      - 'workflow/report/PreflightBam.Rmd'
       - '**preflight.yml'
 
   pull_request:
     branches:
       - 'dev'
     paths:
-      - 'rules/preflight-fastq.smk'
-      - 'rules/preflight-bam.smk'
+      - 'workflow/envs/harpy.yaml'
+      - 'workflow/rules/preflight-fastq.smk'
+      - 'workflow/rules/preflight-bam.smk'
       - '**preflight.py'
       - '**helperfunctions.py'
       - 'test/fastq/**'
       - 'test/bam/**'
-      - 'utilities/checkBAM.py'
-      - 'utilities/checkFASTQ.py'
-      - 'reports/reportPreflightFastq.Rmd'
-      - 'reports/reportPreflightBam.Rmd'
+      - 'workflow/scripts/checkBAM.py'
+      - 'workflow/scripts/checkFASTQ.py'
+      - 'workflow/report/PreflightFastq.Rmd'
+      - 'workflow/report/PreflightBam.Rmd'
       - '**preflight.yml'
 
 env:
@@ -50,7 +52,7 @@ jobs:
         with:
           init-shell: bash
           generate-run-shell: true
-          environment-file: workflow/envs/harpyenv.yaml
+          environment-file: workflow/envs/harpy.yaml
           cache-environment: true
           post-cleanup: 'all'
       - name: Install harpy

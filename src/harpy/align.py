@@ -27,10 +27,10 @@ def bwa(genome, threads, directory, extra_params, quality_filter, molecule_dista
     """
     fetch_file("align-bwa.smk", "Align/bwa/workflow/")
     for i in ["BxStats", "BwaGencov"]:
-        fetch_file(f"report{i}.Rmd", "Align/bwa/workflow/report/")
+        fetch_file(f"{i}.Rmd", "Align/bwa/workflow/report/")
     samplenames = get_samples_from_fastq(directory)
     directory = directory.rstrip("/^")
-    command = f'snakemake --rerun-incomplete --nolock --use-conda --cores {threads} --directory . --snakefile Align/bwa/workflow/align-bwa.smk'.split()
+    command = f'snakemake --rerun-incomplete --nolock --use-conda --conda-prefix ./.snakemake --cores {threads} --directory . --snakefile Align/bwa/workflow/align-bwa.smk'.split()
     if snakemake is not None:
         [command.append(i) for i in snakemake.split()]
     if quiet:
@@ -75,7 +75,7 @@ def ema(platform, whitelist, genome, threads, ema_bins, directory, extra_params,
     """
     fetch_file("align-ema.smk", "Align/ema/workflow/")
     for i in ["EmaCount", "EmaGencov", "BxStats"]:
-        fetch_file(f"report{i}.Rmd", "Align/ema/workflow/report/")
+        fetch_file(f"{i}.Rmd", "Align/ema/workflow/report/")
 
     platform = platform.lower()
     if platform in ["tellseq", "10x"] and not whitelist:

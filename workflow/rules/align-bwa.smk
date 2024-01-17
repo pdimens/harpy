@@ -187,7 +187,7 @@ rule bxstats_report:
     message: 
         "Generating summary of barcode alignment: {wildcards.sample}"
     script:
-        "report/reportBxStats.Rmd"
+        "report/BxStats.Rmd"
 
 rule mark_duplicates:
     input:
@@ -258,7 +258,7 @@ rule coverage_report:
     message:
         "Summarizing alignment coverage: {wildcards.sample}"
     script:
-        "report/reportBwaGencov.Rmd"
+        "report/BwaGencov.Rmd"
     
 rule general_alignment_stats:
     input:

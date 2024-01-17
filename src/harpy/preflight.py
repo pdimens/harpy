@@ -3,14 +3,8 @@ from .helperfunctions import fetch_file, generate_conda_deps, getnames, get_samp
 import subprocess
 import re
 import os
-import shutil
 import sys
 import glob
-
-#try:
-#    harpypath = '{CONDA_PREFIX}'.format(**os.environ) + "/bin"
-#except:
-#    pass
 
 @click.command(no_args_is_help = True)
 @click.option('-d', '--directory', required = True, type=click.Path(exists=True, file_okay=False), metavar = "Folder Path", help = 'Directory with FASTQ files')
@@ -28,12 +22,10 @@ def fastq(directory, threads, snakemake, quiet, print_only):
     fix your data, but it will report the number of reads that feature errors to help
     you diagnose if file formatting will cause downstream issues.
     """
-    snakefile = fetch_file("preflight-fastq.smk")
-    os.makedirs(f"{directory}/Preflight/logs/", exist_ok = True)
-    # copy2 to keep metadata during copy
-    shutil.copy2(snakefile, f"{directory}/Preflight/logs/preflight-fastq.smk")
+    fetch_file("preflight-fastq.smk", f"{directory}/Preflight/workflow/")
+    fetch_file(f"PreflightFastq.Rmd", f"{directory}/Preflight/workflow/")
     get_samples_from_fastq(directory)
-    command = f'snakemake --rerun-incomplete --nolock --cores {threads} --directory . --snakefile {directory}/Preflight/logs/preflight-fastq.smk'.split()
+    command = f'snakemake --rerun-incomplete --nolock --use-conda --conda-prefix ./.snakemake --cores {threads} --directory . --snakefile {directory}/Preflight/workflow/preflight-fastq.smk'.split()
     if snakemake is not None:
         [command.append(i) for i in snakemake.split()]
     if quiet:
@@ -65,13 +57,10 @@ def bam(directory, threads, snakemake, quiet, print_only):
     This **will not** fix your data, but it will report the number of records that feature errors  to help
     you diagnose if file formatting will cause downstream issues.
     """
-    snakefile = fetch_file("preflight-bam.smk")
-    os.makedirs(f"{directory}/Preflight/logs/", exist_ok = True)
-    # copy2 to keep metadata during copy
-    shutil.copy2(snakefile, f"{directory}/Preflight/logs/preflight-bam.smk")
-
+    fetch_file("preflight-bam.smk", f"{directory}/Preflight/workflow/")
+    fetch_file(f"PreflightBam.Rmd", f"{directory}/Preflight/workflow/")
     flist = getnames(directory, ".bam")
-    command = f'snakemake --rerun-incomplete --nolock --cores {threads} --directory . --snakefile {directory}/Preflight/logs/preflight-bam.smk'.split()
+    command = f'snakemake --rerun-incomplete --nolock --use-conda --conda-prefix ./.snakemake --cores {threads} --directory . --snakefile {directory}/Preflight/workflow/preflight-bam.smk'.split()
     if snakemake is not None:
         [command.append(i) for i in snakemake.split()]
     if quiet:

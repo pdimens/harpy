@@ -176,7 +176,7 @@ rule sv_report:
     message:
         "Generating SV report: {wildcards.sample}"
     script:
-        "reportLeviathan.Rmd"
+        "report/Leviathan.Rmd"
 
 rule log_runtime:
     output:

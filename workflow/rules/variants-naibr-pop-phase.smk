@@ -287,7 +287,7 @@ rule report:
     conda:
         os.getcwd() + "/harpyenvs/r-env.yaml"
     script:
-        "reportNaibr.Rmd"
+        "report/Naibr.Rmd"
 
 rule report_pop:
     input:
@@ -300,7 +300,7 @@ rule report_pop:
     conda:
         os.getcwd() + "/harpyenvs/r-env.yaml"
     script:
-        "reportNaibrPop.Rmd"
+        "report/NaibrPop.Rmd"
 
 rule log_runtime:
     output:

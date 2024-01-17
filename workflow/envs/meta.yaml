@@ -17,14 +17,14 @@ build:
 
 requirements:
   host:
-    - python =3.11
+    - python
   run:
     - bcftools =1.19
     - multiqc
     - pysam =0.22
-    - python =3.11
+    - python
     - rich-click
-    - snakemake >=8
+    - snakemake
     - samtools
     - seqtk
     - tabix

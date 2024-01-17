@@ -99,4 +99,4 @@ rule createReport:
     message:
         "Producing report"
     script:
-        "reportPreflightFastq.Rmd"
+        "report/PreflightFastq.Rmd"

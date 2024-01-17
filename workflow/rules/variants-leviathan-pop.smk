@@ -226,7 +226,7 @@ rule sv_report_bypop:
     conda:
         os.getcwd() + "/harpyenvs/r-env.yaml"
     script:
-        "reportLeviathan.Rmd"
+        "report/Leviathan.Rmd"
 
 
 rule sv_report:
@@ -240,7 +240,7 @@ rule sv_report:
     conda:
         os.getcwd() + "/harpyenvs/r-env.yaml"
     script:
-        "reportLeviathanPop.Rmd"
+        "report/LeviathanPop.Rmd"
 
 rule log_runtime:
     output:

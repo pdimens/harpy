@@ -3,16 +3,9 @@ from .helperfunctions import vcfcheck, vcf_samplematch
 from .helperfunctions import check_impute_params, validate_bamfiles
 import rich_click as click
 import subprocess
-import shutil
 import sys
 import os
 
-#try:
-#    harpypath = '{CONDA_PREFIX}'.format(**os.environ) + "/bin"
-#except:
-#    pass
-
-#@click.option('-f', '--filter', is_flag=True, help="Filter VCF file to keep SNPs with QUAL>20 and DP>10")
 @click.command(no_args_is_help = True)
 @click.option('-v', '--vcf', required = True, type=click.Path(exists=True, dir_okay=False),metavar = "File Path", help = 'Path to BCF/VCF file')
 @click.option('-d', '--directory', required = True, type=click.Path(exists=True, file_okay=False), metavar = "Folder Path", help = 'Directory with BAM alignments')
@@ -31,10 +24,9 @@ def impute(parameters, directory, threads, vcf, vcf_samples, snakemake, quiet, p
     Use the `--vcf-samples` toggle to phase only the samples present in your input `--vcf` file rather than all
     the samples present in the `--directory`.
     """
-    snakefile = fetch_file("impute.smk")
-    os.makedirs("Impute/logs/", exist_ok = True)
-    # copy2 to keep metadata during copy
-    shutil.copy2(snakefile, "Impute/logs/impute.smk")
+    fetch_file("impute.smk", "Impute/workflow/")
+    for i in ["Impute", "ImputeStitch"]:
+        fetch_file(f"{i}.Rmd", "Impute/workflow/report/")
     ## validate inputs ##
     vcfcheck(vcf)
     #samplenames = getnames(directory, '.bam')
@@ -44,7 +36,7 @@ def impute(parameters, directory, threads, vcf, vcf_samples, snakemake, quiet, p
     check_impute_params(parameters)
     validate_bamfiles(directory, samplenames)
 
-    command = f'snakemake --rerun-incomplete --nolock --cores {threads} --directory . --snakefile Impute/logs/impute.smk'.split()
+    command = f'snakemake --rerun-incomplete --nolock --use-conda --conda-prefix ./.snakemake --cores {threads} --directory . --snakefile Impute/workflow/impute.smk'.split()
     if snakemake is not None:
         [command.append(i) for i in snakemake.split()]
     if quiet:

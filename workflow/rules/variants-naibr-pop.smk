@@ -233,7 +233,7 @@ rule report:
     message:
         "Creating report: {wildcards.population}"
     script:
-        "reportNaibr.Rmd"
+        "report/Naibr.Rmd"
 
 rule report_pop:
     input:
@@ -246,7 +246,7 @@ rule report_pop:
     message:
         "Creating summary report"
     script:
-        "reportNaibrPop.Rmd"
+        "report/NaibrPop.Rmd"
 
 rule log_runtime:
     output:

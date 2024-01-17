@@ -102,7 +102,7 @@ rule beadtag_counts_summary:
     message:
         "Summarizing sample barcode validation"
     script:
-        "report/reportBxCount.Rmd"
+        "report/BxCount.Rmd"
 
 rule log_runtime:
     output:

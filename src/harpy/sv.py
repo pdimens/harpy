@@ -2,14 +2,8 @@ from .helperfunctions import fetch_file, generate_conda_deps, getnames, check_ph
 from .helperfunctions import validate_popfile, validate_vcfsamples
 import rich_click as click
 import subprocess
-import shutil
 import sys
 import os
-
-#try:
-#    harpypath = '{CONDA_PREFIX}'.format(**os.environ) + "/bin"
-#except:
-#    pass
 
 @click.command(no_args_is_help = True)
 @click.option('-g', '--genome', type=click.Path(exists=True), required = True, metavar = "File Path", help = 'Genome assembly for variant calling')
@@ -32,12 +26,11 @@ def leviathan(genome, threads, directory, populations, extra_params, snakemake, 
     vcaller = "leviathan"
     if populations is not None:
         vcaller += "-pop"
-    snakefile = fetch_file(f"variants-{vcaller}.smk")
-    os.makedirs(f"Variants/{vcaller}/logs/", exist_ok = True)
-    # copy2 to keep metadata during copy
-    shutil.copy2(snakefile, f"Variants/{vcaller}/logs/variants-{vcaller}.smk")
+        fetch_file("LeviathanPop.Rmd", f"Variants/{vcaller}/workflow/report/")
+    fetch_file("Leviathan.Rmd", f"Variants/{vcaller}/workflow/report/")
+    fetch_file(f"variants-{vcaller}.smk", f"Variants/{vcaller}/workflow/")
     directory = directory.rstrip("/^")
-    command = (f'snakemake --rerun-incomplete --nolock --cores {threads} --directory . --snakefile Variants/{vcaller}/logs/variants-{vcaller}.smk').split()
+    command = (f'snakemake --rerun-incomplete --nolock --use-conda --conda-prefix ./.snakemake --cores {threads} --directory . --snakefile Variants/{vcaller}/workflow/variants-{vcaller}.smk').split()
     if snakemake is not None:
         [command.append(i) for i in snakemake.split()]
     if quiet:
@@ -93,18 +86,15 @@ def naibr(genome, vcf, threads, directory, populations, molecule_distance, extra
     if populations is not None:
         vcaller += "-pop"
         outdir += "-pop"
-    directory = directory.rstrip("/^")
+        fetch_file("NaibrPop.Rmd", f"Variants/{vcaller}/workflow/report/")
+    fetch_file("Naibr.Rmd", f"Variants/{vcaller}/workflow/report/")
     if vcf is not None:
-        # look for either FORMAT/PS or FORMAT/HP tags in header
         check_phase_vcf(vcf)
         vcaller += "-phase"
+    fetch_file(f"variants-{vcaller}.smk", f"Variants/{vcaller}/workflow/")
+    command = (f'snakemake --rerun-incomplete --nolock --use-conda --conda-prefix ./.snakemake --cores {threads} --directory . --snakefile Variants/{outdir}/workflow/variants-{vcaller}.smk').split()
     
-    snakefile = fetch_file(f"variants-{vcaller}.smk")
-    os.makedirs(f"Variants/{outdir}/logs/", exist_ok = True)
-    # copy2 to keep metadata during copy
-    shutil.copy2(snakefile, f"Variants/{outdir}/logs/variants-{vcaller}.smk")
-    command = (f'snakemake --rerun-incomplete --nolock --cores {threads} --directory . --use-conda --snakefile Variants/{outdir}/logs/variants-{vcaller}.smk').split()
-    
+    directory = directory.rstrip("/^")
     if snakemake is not None:
         [command.append(i) for i in snakemake.split()]
     if quiet:
