@@ -102,11 +102,11 @@ rule beadtag_counts_summary:
     message:
         "Summarizing sample barcode validation"
     script:
-        "reportBxCount.Rmd"
+        "report/reportBxCount.Rmd"
 
 rule log_runtime:
     output:
-        "QC/logs/qc.workflow.summary"
+        "QC/workflow/qc.workflow.summary"
     params:
         maxlen = f"--max_len1 {maxlen}",
         tim_adapters = "--detect_adapter_for_pe" if adapters else "--disable_adapter_trimming",
@@ -126,7 +126,7 @@ rule createReport:
         expand("QC/logs/json/{sample}.fastp.json", sample = samplenames),
         expand("QC/{sample}.{FR}.fq.gz", FR = ["R1", "R2"], sample = samplenames),
         "QC/logs/barcode.summary.html",
-        "QC/logs/qc.workflow.summary"
+        "QC/workflow/qc.workflow.summary"
     output:
         "QC/logs/qc.report.html"
     message:

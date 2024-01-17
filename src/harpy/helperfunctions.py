@@ -1,6 +1,7 @@
 import sys
 import os
 import re
+import shutil
 import glob
 import gzip
 import subprocess
@@ -367,12 +368,13 @@ def generate_conda_deps():
                 yml.write("\n  - ".join(environ[i]))
 
 # finding the snakefiles
-def fetch_snakefile(workflow):
+def fetch_file(file, destination, rename=None):
+    """Find the 'file' in the PATH and copy it to the 'destination' with the original metadata"""
     result = None
     try:
-        result = subprocess.check_output(["whereis", workflow])
+        result = subprocess.check_output(["whereis", file])
     except:
-        print_error(f"The GNU program \'whereis\', which is used to locate the snakefile, was not found on the system and therefore unable to retrieve the snakefile. Terminating harpy.")
+        print_error(f"The GNU program \'whereis\', which is used to locate the file, was not found on the system and therefore unable to retrieve it. Terminating harpy.")
         print_solution("Make sure \'whereis\' is installed on the system. It is usually provided by default in all Unix-like operating systems.")
 
     if result is None:
@@ -381,9 +383,16 @@ def fetch_snakefile(workflow):
     result = result.decode().splitlines()
     for line in result:
         if line.endswith(":"):
-            print_error(f"The snakefile \"{workflow}\" was not found in PATH, cannot run Harpy module.")
+            print_error(f"The file \"{file}\" was not found in PATH, cannot run Harpy module.")
             print_solution(f"Make sure harpy was installed correctly and that you are in the harpy conda environment.")
             click.echo("See documentation: https://pdimens.github.io/harpy/install/")
             exit(1)
         else:
-            return line.split(" ")[-1]
+            result = line.split(" ")[-1]
+            break
+    
+    os.makedirs(destination, exist_ok = True)
+    if rename:
+        destination += rename
+    # copy2 to keep metadata during copy
+    shutil.copy2(result, destination)

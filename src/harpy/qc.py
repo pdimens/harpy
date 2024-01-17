@@ -1,5 +1,5 @@
 import rich_click as click
-from .helperfunctions import generate_conda_deps, get_samples_from_fastq, fetch_snakefile
+from .helperfunctions import generate_conda_deps, get_samples_from_fastq, fetch_file
 import subprocess
 import re
 import os
@@ -31,14 +31,11 @@ def qc(directory, max_length, ignore_adapters, extra_params, threads, snakemake,
     - minimum 15bp length filter
     - poly-G tail removal
     """
-    snakefile = fetch_snakefile("qc.smk")
-    os.makedirs("QC/logs/", exist_ok = True)
-    # copy2 to keep metadata during copy
-    shutil.copy2(snakefile, "QC/logs/qc.smk")
-
+    fetch_file("qc.smk", "QC/workflow/")
+    fetch_file("reportBxCount.Rmd", "QC/workflow/report/")
     get_samples_from_fastq(directory)
 
-    command = f'snakemake --rerun-incomplete --nolock  --software-deployment-method conda --conda-prefix ./.snakemake --cores {threads} --directory . --snakefile QC/logs/qc.smk'.split()
+    command = f'snakemake --rerun-incomplete --nolock  --use-conda --conda-prefix ./.snakemake --cores {threads} --directory . --snakefile QC/workflow/qc.smk'.split()
     if snakemake is not None:
         [command.append(i) for i in snakemake.split()]
     if quiet:
