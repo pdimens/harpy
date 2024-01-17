@@ -125,10 +125,20 @@ rule genome_make_windows:
     shell: 
         "makewindows.py -i {input} -w 10000 -o {output}"
 
-rule beadtag_count:
+rule interleave_fastq:
     input:
         forward_reads = get_fq1,
         reverse_reads = get_fq2
+    output:
+        pipe(outdir + "/.interleaved/{sample}.interleaved.fq")
+    message:
+        "Interleaving fastq files: {wildcards.sample}"
+    shell:
+        "seqtk mergepe {input}"
+
+rule beadtag_count:
+    input:
+        outdir + "/.interleaved/{sample}.interleaved.fq"
     output: 
         counts = temp(outdir + "/bxcount/{sample}.ema-ncnt"),
         logs   = temp(outdir + "/logs/count/{sample}.count")
@@ -141,8 +151,7 @@ rule beadtag_count:
     shell:
         """
         mkdir -p {params.prefix} {params.logdir}
-        seqtk mergepe {input.forward_reads} {input.reverse_reads} | 
-            ema count {params.beadtech} -o {params.prefix} 2> {output.logs}
+        ema count {input} {params.beadtech} -o {params.prefix} 2> {output.logs}
         """
 
 rule beadtag_summary:
@@ -159,12 +168,11 @@ rule beadtag_summary:
 
 rule preprocess:
     input: 
-        forward_reads = get_fq1,
-        reverse_reads = get_fq2,
-        emacounts     = outdir + "/bxcount/{sample}.ema-ncnt"
+        reads      = outdir + "/.interleaved/{sample}.interleaved.fq"
+        emacounts  = outdir + "/bxcount/{sample}.ema-ncnt"
     output: 
-        bins       	  = temp(expand(outdir + "/preproc/{{sample}}/ema-bin-{bin}", bin = binrange)),
-        unbarcoded    = temp(outdir + "/preproc/{sample}/ema-nobc")
+        bins       = temp(expand(outdir + "/preproc/{{sample}}/ema-bin-{bin}", bin = binrange)),
+        unbarcoded = temp(outdir + "/preproc/{sample}/ema-nobc")
     log:
         outdir + "/logs/preproc/{sample}.preproc.log"
     params:
@@ -177,8 +185,7 @@ rule preprocess:
         "Preprocessing for EMA mapping: {wildcards.sample}"
     shell:
         """
-        seqtk mergepe {input.forward_reads} {input.reverse_reads} |
-            ema preproc {params.bxtype} -n {params.bins} -t {threads} -o {params.outdir} {input.emacounts} 2>&1 |
+        ema preproc {input.reads} {params.bxtype} -n {params.bins} -t {threads} -o {params.outdir} {input.emacounts} 2>&1 |
             cat - > {log}
         """
 
@@ -193,8 +200,6 @@ rule align:
     log:
         outdir + "/logs/{sample}.ema.align.log",
     params: 
-        quality = config["quality"],
-        tmpdir = lambda wc: outdir + "/align/." + d[wc.sample],
         bxtype = f"-p {platform}",
         extra = extra
     threads:
@@ -219,7 +224,7 @@ rule sort_raw_ema:
         outdir + "/logs/{sample}.ema.sort.log"
     params: 
         quality = config["quality"],
-        tmpdir = lambda wc: outdir + "/." + d[wc.sample],
+        tmpdir = lambda wc: outdir + "/align/." + d[wc.sample],
         extra = extra
     threads:
         2
@@ -417,13 +422,11 @@ rule general_stats:
         samtools flagstat {input.bam} > {output.flagstat}
         """
 
-rule samtools_reports:
+rule collate_samtools_stats:
     input: 
         expand(outdir + "/stats/samtools_{ext}/{sample}.{ext}", sample = samplenames, ext = ["stats", "flagstat"]),
     output: 
         outdir + "/stats/ema.stats.html"
-    conda:
-        os.getcwd() + "/harpyenvs/filetools.yaml"
     message:
         "Summarizing samtools stats and flagstat"
     shell:
@@ -444,7 +447,7 @@ rule log_runtime:
             _ = f.write(f"The provided genome: {bn}\n")
             _ = f.write(f"The directory with sequences: {seq_dir}\n")
             _ = f.write("Barcodes were counted and validated with EMA using:\n")
-            _ = f.write("    seqtk mergepe forward.fq.gz reverse.fq.gz | ema count {params.beadtech}\n")
+            _ = f.write(f"    seqtk mergepe forward.fq.gz reverse.fq.gz | ema count {params.beadtech}\n")
             _ = f.write("Barcoded sequences were binned with EMA using:\n")
             _ = f.write(f"    seqtk mergepe forward.fq.gz reverse.fq.gz | ema preproc {params.beadtech} -n {nbins}\n")
             _ = f.write("Barcoded bins were aligned with ema align using:\n")
