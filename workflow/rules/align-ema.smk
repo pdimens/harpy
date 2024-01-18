@@ -268,7 +268,7 @@ rule align_nobarcode:
         "Aligning unbarcoded sequences: {wildcards.sample}"
     shell:
         """
-        bwa mem -t {threads} -C -R \"@RG\\tID:{wildcards.sample}\\tSM:{wildcards.sample}\" {input.genome} {input.reads} 2> {log}
+        bwa mem -t {threads} -C -R \"@RG\\tID:{wildcards.sample}\\tSM:{wildcards.sample}\" {input.genome} {input.reads} > {output} 2> {log}
         """
         
 rule sort_raw_nobarcode:
