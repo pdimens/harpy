@@ -458,8 +458,6 @@ rule log_runtime:
             _ = f.write("    sambamba merge output.bam barcode.bam nobarcode.bam\n")
             _ = f.write("Merged alignments were sorted using:\n")
             _ = f.write("    samtools sort merged.bam\n")
-            _ = f.write("Overlaps were clipped using:\n")
-            _ = f.write("    bam clipOverlap --in file.bam --out outfile.bam --stats --noPhoneHome\n")
 
 rule all:
     default_target: True
@@ -473,20 +471,3 @@ rule all:
         runlog = f"{outdir}/workflow/align.workflow.summary"
     message:
         "Checking for expected workflow output"
-#    run:
-#        for i,j in zip(input.bam, input.bai):
-#            if not os.path.islink(i):
-#                # yank out just the filename
-#                fname = os.path.basename(i)
-#                # move file into base path
-#                os.rename(i, f"{outdir}/{fname}")
-#                # preserve "original" in align folder as symlink
-#                target = Path(f"{outdir}/{fname}").absolute()
-#                _ = Path(i).symlink_to(target)
-#            if not os.path.islink(j):
-#                # same for .bai file
-#                fnamebai = os.path.basename(j)
-#                os.rename(j, f"{outdir}/{fnamebai}")
-#                targetbai = Path(f"{outdir}/{fnamebai}").absolute()
-#                _ = Path(j).symlink_to(targetbai)
-#
