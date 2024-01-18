@@ -84,7 +84,7 @@ def freebayes(genome, threads, directory, populations, ploidy, windowsize, extra
     callcoords, linkedgenome = createregions(genome, windowsize, "freebayes")
     directory = directory.rstrip("/^")
     validate_bamfiles(directory, samplenames)
-    command = (f'snakemake --rerun-incomplete --nolock --use-conda --conda-prefix ./.snakemake --cores {threads} --directory . --snakefile Variants/freebayes/workflwo/variants-freebayes.smk').split()
+    command = (f'snakemake --rerun-incomplete --nolock --use-conda --conda-prefix ./.snakemake --cores {threads} --directory . --snakefile Variants/freebayes/workflow/variants-freebayes.smk').split()
     if snakemake is not None:
         [command.append(i) for i in snakemake.split()]
     if quiet:
