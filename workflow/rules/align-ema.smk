@@ -264,6 +264,8 @@ rule align_nobarcode:
         ".Benchmark/Mapping/ema/bwaAlign.{sample}.txt"
     threads:
         min(10, workflow.cores) - 2
+    conda:
+        os.getcwd() + "/harpyenvs/align.yaml"
     message:
         "Aligning unbarcoded sequences: {wildcards.sample}"
     shell:
