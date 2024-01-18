@@ -357,10 +357,9 @@ def check_demux_fastq(file):
 
 def generate_conda_deps():
     """Create the YAML files of the workflow conda dependencies"""
-    condachannels = ["conda-forge", "bioconda", "defaults"]
+    condachannels = ["conda-forge", "bioconda"]
     environ = {
         "qc" : ["falco", "fastp"],
-        #"filetools" : ["bcftools=1.19", "multiqc", "pysam", "sambamba", "samtools", "seqtk", "tabix"],
         "align": ["bwa", "ema","icu","libzlib", "sambamba", "samtools=1.19", "seqtk", "xz"],
         "variants.snp": ["bcftools=1.19", "freebayes"],
         "variants.sv": ["leviathan", "naibr-plus"],
