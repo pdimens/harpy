@@ -53,6 +53,9 @@ onsuccess:
         file = sys.stderr
     )
 
+wildcard_constraints:
+    sample = "[a-zA-Z0-9._-]+"
+
 rule genome_link:
     input:
         genomefile
@@ -136,6 +139,7 @@ rule align:
     log:
         outdir + "/logs/{sample}.bwa.align.log"
     params: 
+        samps = lambda wc: d[wc.get("sample")],
         extra = extra
     benchmark:
         ".Benchmark/Mapping/bwa/align.{sample}.txt"
@@ -147,7 +151,7 @@ rule align:
         "Aligning sequences: {wildcards.sample}"
     shell:
         """
-        bwa mem -C -t {threads} {params.extra} -R \"@RG\\tID:{wildcards.sample}\\tSM:{wildcards.sample}\" {input.genome} {input.forward_reads} {input.reverse_reads} 2> {log}
+        bwa mem -C -t {threads} {params.extra} -R \"@RG\\tID:{wildcards.sample}\\tSM:{wildcards.sample}\" {input.genome} {input.forward_reads} {input.reverse_reads} > {output} 2> {log}
         """
  
 rule sort_align:
@@ -157,7 +161,7 @@ rule sort_align:
         genome_samidx = f"Genome/{bn_idx}",
         genome_idx 	  = multiext(f"Genome/{bn}", ".ann", ".bwt", ".pac", ".sa", ".amb")
     output:
-        bam = temp(outdir + "/samples/{sample}/{sample}.sort.bam."),
+        bam = temp(outdir + "/samples/{sample}/{sample}.sort.bam"),
         bai = temp(outdir + "/samples/{sample}/{sample}.sort.bam.bai")
     log:
         outdir + "/logs/{sample}.bwa.sort.log"
@@ -177,9 +181,9 @@ rule sort_align:
 
 rule bxstats_report:
     input:
-        outdir + "/stats/BXstats/data/{sample}.bxstats.gz"
+        outdir + "/reports/BXstats/data/{sample}.bxstats.gz"
     output:	
-        outdir + "/stats/BXstats/{sample}.bxstats.html"
+        outdir + "/reports/BXstats/{sample}.bxstats.html"
     params:
         molecule_distance
     conda:
@@ -191,7 +195,7 @@ rule bxstats_report:
 
 rule mark_duplicates:
     input:
-        lambda wc: outdir + "/samples/{sample}/{sample}.sort.bam"
+        outdir + "/samples/{sample}/{sample}.sort.bam"
     output:
         bam = temp(outdir + "/samples/{sample}/markdup/{sample}.markdup.bam"),
         bai = temp(outdir + "/samples/{sample}/markdup/{sample}.markdup.bam.bai")
@@ -202,7 +206,7 @@ rule mark_duplicates:
     conda:
         os.getcwd() + "/harpyenvs/align.yaml"
     message:
-        f"Marking duplicates: " + "{wildcards.sample}"
+        "Marking duplicates: " + "{wildcards.sample}"
     shell:
         "sambamba markdup -t {threads} -l 0 {input} {output.bam} 2> {log}"
 
@@ -215,8 +219,6 @@ rule assign_molecules:
         bai = outdir + "/{sample}.bam.bai"
     params:
         molecule_distance
-#    wildcard_constraints:
-#        sample = "[^/]"
     message:
         "Assigning barcodes to molecules: {wildcards.sample}"
     shell:
@@ -227,7 +229,7 @@ rule alignment_bxstats:
         bam = outdir + "/{sample}.bam",
         bai = outdir + "/{sample}.bam.bai"
     output: 
-        outdir + "/stats/BXstats/data/{sample}.bxstats.gz"
+        outdir + "/reports/BXstats/data/{sample}.bxstats.gz"
     params:
         sample = lambda wc: d[wc.sample]
     message:
@@ -240,7 +242,7 @@ rule alignment_coverage:
         bed = f"Genome/{bn}.bed",
         bam = outdir + "/{sample}.bam"
     output: 
-        outdir + "/stats/coverage/data/{sample}.cov.gz"
+        outdir + "/reports/coverage/data/{sample}.cov.gz"
     threads: 
         2
     message:
@@ -250,9 +252,9 @@ rule alignment_coverage:
 
 rule coverage_report:
     input:
-        outdir + "/stats/coverage/data/{sample}.cov.gz"
+        outdir + "/reports/coverage/data/{sample}.cov.gz"
     output:
-        outdir + "/stats/coverage/{sample}.cov.html"
+        outdir + "/reports/coverage/{sample}.cov.html"
     conda:
         os.getcwd() + "/harpyenvs/r-env.yaml"
     message:
@@ -265,8 +267,8 @@ rule general_alignment_stats:
         bam      = outdir + "/{sample}.bam",
         bai      = outdir + "/{sample}.bam.bai"
     output: 
-        stats    = temp(outdir + "/stats/samtools_stats/{sample}.stats"),
-        flagstat = temp(outdir + "/stats/samtools_flagstat/{sample}.flagstat")
+        stats    = temp(outdir + "/reports/samtools_stats/{sample}.stats"),
+        flagstat = temp(outdir + "/reports/samtools_flagstat/{sample}.flagstat")
     message:
         "Calculating alignment stats: {wildcards.sample}"
     shell:
@@ -277,14 +279,14 @@ rule general_alignment_stats:
 
 rule samtools_reports:
     input: 
-        expand(outdir + "/stats/samtools_{ext}/{sample}.{ext}", sample = samplenames, ext = ["stats", "flagstat"])
+        expand(outdir + "/reports/samtools_{ext}/{sample}.{ext}", sample = samplenames, ext = ["stats", "flagstat"])
     output: 
-        outdir + "/stats/bwa.stats.html",
+        outdir + "/reports/bwa.stats.html",
     message:
         "Summarizing samtools stats and flagstat"
     shell:
         """
-        multiqc Align/bwa/stats/samtools_stats Align/bwa/stats/samtools_flagstat --force --quiet --title "Basic Alignment Statistics" --comment "This report aggregates samtools stats and samtools flagstats results for all alignments." --no-data-dir --filename {output} 2> /dev/null
+        multiqc Align/bwa/reports/samtools_stats Align/bwa/reports/samtools_flagstat --force --quiet --title "Basic Alignment Statistics" --comment "This report aggregates samtools stats and samtools flagstats results for all alignments." --no-data-dir --filename {output} 2> /dev/null
         """
 
 rule log_runtime:
@@ -306,17 +308,15 @@ rule log_runtime:
             _ = f.write("    samtools sort -T SAMPLE --reference genome -m 4G\n")
             _ = f.write("Duplicates in the alignments were marked using sambamba:\n")
             _ = f.write("    sambamba markdup -l 0\n")
-            _ = f.write("Overlaps were clipped using:\n")
-            _ = f.write("    bam clipOverlap --in file.bam --out outfile.bam --stats --noPhoneHome\n")
 
 rule all:
     default_target: True
     input: 
         bam = expand(outdir + "/{sample}.bam", sample = samplenames),
         bai = expand(outdir + "/{sample}.bam.bai", sample = samplenames),
-        covreport = expand(outdir + "/stats/coverage/{sample}.cov.html", sample = samplenames),
-        bxreport = expand(outdir + "/stats/BXstats/{sample}.bxstats.html", sample = samplenames),
-        statsreport = outdir + "/stats/bwa.stats.html",
+        covreport = expand(outdir + "/reports/coverage/{sample}.cov.html", sample = samplenames),
+        bxreport = expand(outdir + "/reports/BXstats/{sample}.bxstats.html", sample = samplenames),
+        statsreport = outdir + "/reports/bwa.stats.html",
         runlog = outdir + "/workflow/align.workflow.summary"
     message:
         "Checking for expected workflow output"

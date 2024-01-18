@@ -54,6 +54,9 @@ onsuccess:
         file = sys.stderr
     )
 
+wildcard_constraints:
+    sample = "[a-zA-Z0-9._-]+"
+
 rule genome_link:
     input:
         genomefile
@@ -108,6 +111,8 @@ rule genome_bwa_index:
         multiext(f"Genome/{bn}", ".ann", ".bwt", ".pac", ".sa", ".amb")
     log:
         f"Genome/{bn}.idx.log"
+    conda:
+        os.getcwd() + "/harpyenvs/align.yaml"
     message:
         "Indexing {input}"
     shell: 
@@ -118,27 +123,29 @@ rule genome_make_windows:
         f"Genome/{bn}.fai"
     output: 
         f"Genome/{bn}.bed"
-    conda:
-        os.getcwd() + "/harpyenvs/filetools.yaml"
     message: 
         "Creating BED intervals from {input}"
     shell: 
         "makewindows.py -i {input} -w 10000 -o {output}"
 
-rule interleave_fastq:
+rule interleave:
     input:
-        forward_reads = get_fq1,
-        reverse_reads = get_fq2
+        fw_reads = get_fq1,
+        rv_reads = get_fq2
     output:
-        pipe(outdir + "/.interleaved/{sample}.interleaved.fq")
+        pipe(outdir + "/.interleave/{sample}.interleave.fq")
     message:
-        "Interleaving fastq files: {wildcards.sample}"
+        "Interleaving input fastq files: {wildcards.sample}"
     shell:
-        "seqtk mergepe {input}"
+        "seqtk mergepe {input} > {output}"
+
+use rule interleave as interleave2 with:
+    output:
+        outdir + "/.interleave/{sample}.interleave2.fq"
 
 rule beadtag_count:
     input:
-        outdir + "/.interleaved/{sample}.interleaved.fq"
+        outdir + "/.interleave/{sample}.interleave.fq"
     output: 
         counts = temp(outdir + "/bxcount/{sample}.ema-ncnt"),
         logs   = temp(outdir + "/logs/count/{sample}.count")
@@ -148,17 +155,19 @@ rule beadtag_count:
         logdir = f"{outdir}/logs/count/"
     message:
         "Counting barcode frequency: {wildcards.sample}"
+    conda:
+        os.getcwd() + "/harpyenvs/align.yaml"
     shell:
         """
         mkdir -p {params.prefix} {params.logdir}
-        ema count {input} {params.beadtech} -o {params.prefix} 2> {output.logs}
+        ema count {params.beadtech} -o {params.prefix} < {input} 2> {output.logs}
         """
 
 rule beadtag_summary:
     input: 
         countlog = expand(outdir + "/logs/count/{sample}.count", sample = samplenames)
     output:
-        outdir + "/stats/reads.bxcounts.html"
+        outdir + "/reports/reads.bxcounts.html"
     conda:
         os.getcwd() + "/harpyenvs/r-env.yaml"
     message:
@@ -168,7 +177,7 @@ rule beadtag_summary:
 
 rule preprocess:
     input: 
-        reads      = outdir + "/.interleaved/{sample}.interleaved.fq"
+        reads = outdir + "/.interleave/{sample}.interleave2.fq",
         emacounts  = outdir + "/bxcount/{sample}.ema-ncnt"
     output: 
         bins       = temp(expand(outdir + "/preproc/{{sample}}/ema-bin-{bin}", bin = binrange)),
@@ -181,11 +190,13 @@ rule preprocess:
         bins   = nbins
     threads:
         2
+    conda:
+        os.getcwd() + "/harpyenvs/align.yaml"
     message:
         "Preprocessing for EMA mapping: {wildcards.sample}"
     shell:
         """
-        ema preproc {input.reads} {params.bxtype} -n {params.bins} -t {threads} -o {params.outdir} {input.emacounts} 2>&1 |
+        ema preproc {params.bxtype} -n {params.bins} -t {threads} -o {params.outdir} {input.emacounts} < {input.reads} 2>&1 |
             cat - > {log}
         """
 
@@ -204,6 +215,8 @@ rule align:
         extra = extra
     threads:
         min(10, workflow.cores) - 2
+    conda:
+        os.getcwd() + "/harpyenvs/align.yaml"
     message:
         "Aligning barcoded sequences: {wildcards.sample}"
     shell:
@@ -239,14 +252,14 @@ rule sort_raw_ema:
 
 rule align_nobarcode:
     input:
-        reads      = outdir + "/{sample}/preproc/ema-nobc",
+        reads      = outdir + "/preproc/{sample}/ema-nobc",
         genome 	   = f"Genome/{bn}",
         geno_faidx = f"Genome/{bn_idx}",
         geno_idx   = multiext(f"Genome/{bn}", ".ann", ".bwt", ".pac", ".sa", ".amb")
     output: 
         pipe(outdir + "/align/{sample}.nobc.raw.sam")
     log:
-        bwa     = outdir + "/logs/{sample}.bwa.align.log"
+        outdir + "/logs/{sample}.bwa.align.log"
     benchmark:
         ".Benchmark/Mapping/ema/bwaAlign.{sample}.txt"
     threads:
@@ -255,7 +268,7 @@ rule align_nobarcode:
         "Aligning unbarcoded sequences: {wildcards.sample}"
     shell:
         """
-        bwa mem -t {threads} -C -R \"@RG\\tID:{wildcards.sample}\\tSM:{wildcards.sample}\" {input.genome} {input.reads} 2> {log.bwa}
+        bwa mem -t {threads} -C -R \"@RG\\tID:{wildcards.sample}\\tSM:{wildcards.sample}\" {input.genome} {input.reads} 2> {log}
         """
         
 rule sort_raw_nobarcode:
@@ -278,7 +291,7 @@ rule sort_raw_nobarcode:
         "Aligning unbarcoded sequences: {wildcards.sample}"
     shell:        
         """
-        samtools view -h -F 4 -q {params.quality} {input.bam} | 
+        samtools view -h -F 4 -q {params.quality} {input.sam} | 
             samtools sort -O bam -m 4G --reference {input.genome} -o {output} 2> {log}
         """
 
@@ -286,14 +299,14 @@ rule mark_duplicates:
     input:
         bam      = outdir + "/align/{sample}.nobc.bam"
     output: 
-        bam      = temp(outdir + "/align/{sample}.markdup.nobc.bam"),
-        bai      = temp(outdir + "/align/{sample}.markdup.nobc.bam.bai")
+        bam      = temp(outdir + "/align/markdup/{sample}.markdup.nobc.bam"),
+        bai      = temp(outdir + "/align/markdup/{sample}.markdup.nobc.bam.bai")
     log: 
         mdlog    = outdir + "/logs/markduplicates/{sample}.markdup.nobc.log",
-        stats    = outdir + "/stats/samtools_stats/{sample}.nobc.stats",
-        flagstat = outdir + "/stats/samtools_flagstat/{sample}.nobc.flagstat"
+        stats    = outdir + "/reports/samtools_stats/{sample}.nobc.stats",
+        flagstat = outdir + "/reports/samtools_flagstat/{sample}.nobc.flagstat"
     conda:
-        os.getcwd() + "/harpyenvs/filetools.yaml"
+        os.getcwd() + "/harpyenvs/align.yaml"
     threads:
         2
     message:
@@ -305,30 +318,15 @@ rule mark_duplicates:
         samtools flagstat {output.bam} > {log.flagstat}
         """
 
-rule bx_stats:
-    input: 
-        bam      = outdir + "/align/{sample}.bc.bam",
-        bai      = outdir + "/align/{sample}.bc.bam.bai"
-    output:
-        stats    = outdir + "/stats/samtools_stats/{sample}.bc.stats",
-        flagstat = outdir + "/stats/samtools_flagstat/{sample}.bc.flagstat"
-    message:
-        "Calculating barcoded alignment stats: {wildcards.sample}"
-    shell:
-        """
-        samtools stats {input.bam} > {output.stats}
-        samtools flagstat {input.bam} > {output.flagstat}
-        """
-
 rule coverage_stats:
     input: 
         bed     = f"Genome/{bn}.bed",
-        nobx    = outdir + "/align/{sample}.markdup.nobc.bam",
-        nobxbai = outdir + "/align/{sample}.markdup.nobc.bam.bai",
+        nobx    = outdir + "/align/markdup/{sample}.markdup.nobc.bam",
+        nobxbai = outdir + "/align/markdup/{sample}.markdup.nobc.bam.bai",
         bx      = outdir + "/align/{sample}.bc.bam",
         bxbai   = outdir + "/align/{sample}.bc.bam.bai"
     output: 
-        outdir + "/stats/coverage/data/{sample}.cov.gz"
+        outdir + "/reports/coverage/data/{sample}.cov.gz"
     threads:
         2
     message:
@@ -338,9 +336,9 @@ rule coverage_stats:
 
 rule coverage_report:
     input: 
-        outdir + "/stats/coverage/data/{sample}.cov.gz",
+        outdir + "/reports/coverage/data/{sample}.cov.gz",
     output:
-        outdir + "/stats/coverage/{sample}.cov.html"
+        outdir + "/reports/coverage/{sample}.cov.html"
     conda:
         os.getcwd() + "/harpyenvs/r-env.yaml"
     message:
@@ -352,8 +350,8 @@ rule merge_alignments:
     input:
         aln_bc   = outdir + "/align/{sample}.bc.bam",
         idx_bc   = outdir + "/align/{sample}.bc.bam.bai",
-        aln_nobc = outdir + "/align/{sample}.markdup.nobc.bam",
-        idx_nobc = outdir + "/align/{sample}.markdup.nobc.bam.bai"
+        aln_nobc = outdir + "/align/markdup/{sample}.markdup.nobc.bam",
+        idx_nobc = outdir + "/align/markdup/{sample}.markdup.nobc.bam.bai"
     output: 
         bam 	 = temp(outdir + "/align/{sample}.unsort.bam"),
         bai 	 = temp(outdir + "/align/{sample}.unsort.bam.bai")
@@ -382,12 +380,10 @@ rule sort_merge:
 
 rule bx_stats_alignments:
     input:
-        bam = outdir + "{sample}.bam",
-        bai = outdir + "{sample}.bam.bai"
+        bam = outdir + "/{sample}.bam",
+        bai = outdir + "/{sample}.bam.bai"
     output: 
-        outdir + "/stats/BXstats/data/{sample}.bxstats.gz"
-    conda:
-        os.getcwd() + "/harpyenvs/filetools.yaml"
+        outdir + "/reports/BXstats/data/{sample}.bxstats.gz"
     message:
         "Calculating barcode alignment statistics: {wildcards.sample}"
     shell:
@@ -395,9 +391,9 @@ rule bx_stats_alignments:
 
 rule bx_stats_report:
     input:
-        outdir + "/stats/BXstats/data/{sample}.bxstats.gz"
+        outdir + "/reports/BXstats/data/{sample}.bxstats.gz"
     output:	
-        outdir + "/stats/BXstats/{sample}.bxstats.html"
+        outdir + "/reports/BXstats/{sample}.bxstats.html"
     params:
         "none"
     conda:
@@ -409,11 +405,11 @@ rule bx_stats_report:
 
 rule general_stats:
     input: 		
-        bam      = outdir + "{sample}.bam",
-        bai      = outdir + "{sample}.bam.bai"
+        bam      = outdir + "/{sample}.bam",
+        bai      = outdir + "/{sample}.bam.bai"
     output:
-        stats    = temp(outdir + "/stats/samtools_stats/{sample}.stats"),
-        flagstat = temp(outdir + "/stats/samtools_flagstat/{sample}.flagstat")
+        stats    = temp(outdir + "/reports/samtools_stats/{sample}.stats"),
+        flagstat = temp(outdir + "/reports/samtools_flagstat/{sample}.flagstat")
     message:
         "Calculating alignment stats: {wildcards.sample}"
     shell:
@@ -424,14 +420,14 @@ rule general_stats:
 
 rule collate_samtools_stats:
     input: 
-        expand(outdir + "/stats/samtools_{ext}/{sample}.{ext}", sample = samplenames, ext = ["stats", "flagstat"]),
+        expand(outdir + "/reports/samtools_{ext}/{sample}.{ext}", sample = samplenames, ext = ["stats", "flagstat"]),
     output: 
-        outdir + "/stats/ema.stats.html"
+        outdir + "/reports/ema.stats.html"
     message:
         "Summarizing samtools stats and flagstat"
     shell:
         """
-        multiqc Align/ema/stats/samtools_stats Align/ema/stats/samtools_flagstat --force --quiet --title "Basic Alignment Statistics" --comment "This report aggregates samtools stats and samtools flagstats results for all alignments." --no-data-dir --filename {output} 2> /dev/null
+        multiqc Align/ema/reports/samtools_stats Align/ema/reports/samtools_flagstat --force --quiet --title "Basic Alignment Statistics" --comment "This report aggregates samtools stats and samtools flagstats results for all alignments." --no-data-dir --filename {output} 2> /dev/null
         """
 
 rule log_runtime:
@@ -470,11 +466,10 @@ rule all:
     input: 
         bam = expand(outdir + "/{sample}.bam", sample = samplenames),
         bai = expand(outdir + "/{sample}.bam.bai", sample = samplenames),
-        samtools = expand(outdir + "/stats/samtools_{stat}/{sample}.bc.{stat}", stat = ["stats", "flagstat"], sample = samplenames),
-        covstats = expand(outdir + "/stats/coverage/{sample}.cov.html", sample = samplenames),
-        bxstats = expand(outdir + "/stats/BXstats/{sample}.bxstats.html", sample = samplenames),
-        bxcounts = f"{outdir}/stats/reads.bxcounts.html",
-        emastats = f"{outdir}/stats/ema.stats.html",
+        covstats = expand(outdir + "/reports/coverage/{sample}.cov.html", sample = samplenames),
+        bxstats = expand(outdir + "/reports/BXstats/{sample}.bxstats.html", sample = samplenames),
+        bxcounts = f"{outdir}/reports/reads.bxcounts.html",
+        emastats = f"{outdir}/reports/ema.stats.html",
         runlog = f"{outdir}/workflow/align.workflow.summary"
     message:
         "Checking for expected workflow output"
