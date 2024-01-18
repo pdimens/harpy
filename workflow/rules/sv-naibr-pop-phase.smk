@@ -10,11 +10,22 @@ extra       = config.get("extra", "")
 groupfile   = config["groupings"]
 genomefile  = config["genomefile"]
 molecule_distance = config["molecule_distance"]
-bn          = os.path.basename(genomefile)
 outdir      = "Variants/naibr-pop"
-genome_zip  = True if bn.lower().endswith(".gz") else False
-if genome_zip:
-    bn = bn[:-3]
+
+wildcard_constraints:
+    sample = "[a-zA-Z0-9._-]+"
+
+bn = os.path.basename(genomefile)
+if bn.lower().endswith(".gz"):
+    validgenome = bn[:-3]
+else:
+    validgenome = bn
+
+vcffile = config["vcf"]
+if vcffile.lower().endswith("bcf"):
+    vcfindex = vcffile + ".csi"
+else:
+    vcfindex = vcffile + ".tbi"
 
 def process_args(args):
     argsDict = {
@@ -23,7 +34,7 @@ def process_args(args):
         "min_sv"   : 1000,
         "k"        : 3,
     }
-    if args != "":
+    if args:
         words = [i for i in re.split("\s|=", args) if len(i) > 0]
         for i in zip(words[::2], words[1::2]):
             argsDict[i[0]] = i[1]
@@ -38,14 +49,14 @@ def pop_manifest(infile, dirn, sampnames):
             samp, pop = line.rstrip().split()
             if samp.lstrip().startswith("#"):
                 continue
-            samp = f"{dirn}/{samp}.bam"
+            samp = f"{dirn}/phasedbam/{samp}.bam"
             if pop not in d.keys():
                 d[pop] = [samp]
             else:
                 d[pop].append(samp)
     return d
 
-popdict     = pop_manifest(groupfile, bam_dir, samplenames)
+popdict     = pop_manifest(groupfile, outdir, samplenames)
 populations = popdict.keys()
 
 onerror:
@@ -72,6 +83,99 @@ onsuccess:
         file = sys.stderr
     )
 
+rule genome_link:
+    input:
+        genomefile
+    output: 
+        f"Genome/{validgenome}"
+    message: 
+        "Preprocessing {input}"
+    shell: 
+        """
+        if (file {input} | grep -q compressed ) ;then
+            # decompress gzipped
+            seqtk seq {input} > {output}
+        elif (file {input} | grep -q BGZF ); then
+            # decompress bgzipped
+            seqtk seq {input} > {output}
+        else
+            # linked uncompressed
+            ln -sr {input} {output}
+        fi
+        """
+
+rule genome_faidx:
+    input: 
+        f"Genome/{validgenome}"
+    output: 
+        f"Genome/{validgenome}.fai"
+    message:
+        "Indexing {input}"
+    log:
+        f"Genome/{validgenome}.faidx.log"
+    shell:
+        "samtools faidx --fai-idx {output} {input} 2> {log}"
+
+rule index_bcf:
+    input:
+        vcffile
+    output:
+        vcffile + ".csi"
+    message:
+        "Indexing {input}"
+    shell:
+        "bcftools index {input}"
+
+rule index_vcfgz:
+    input:
+        vcffile
+    output:
+        vcffile + ".tbi"
+    message:
+        "Indexing {input}"
+    shell:
+        "tabix {input}"
+
+rule phase_alignments:
+    input:
+        vcfindex,
+        bam_dir + "/{sample}.bam.bai",
+        f"Genome/{validgenome}.fai",
+        vcf = vcffile,
+        aln = bam_dir + "/{sample}.bam",
+        ref = f"Genome/{validgenome}"
+    output:
+        outdir + "/phasedbam/{sample}.bam"
+    log:
+        outdir + "/logs/whatshap-haplotag/{sample}.phase.log"
+    threads:
+        4
+    params:
+        extra = lambda wc: "--ignore-read-groups --sample " + wc.get("sample") + " --tag-supplementary"
+    conda:
+        os.getcwd() + "/harpyenvs/phase.yaml"
+    message:
+        "Phasing: {input.aln}"
+    shell:
+        "whatshap haplotag {params} --output-threads={threads} -o {output} --reference {input.ref} {input.vcf} {input.aln} 2> {log}"
+
+rule log_phasing:
+    input:
+        expand(outdir + "/logs/whatshap-haplotag/{sample}.phase.log", sample = samplenames)
+    output:
+        outdir + "/logs/whatshap-haplotag/phasing.log"
+    message:
+        "Creating log of alignment phasing"
+    shell:
+        """
+        echo -e "sample\\ttotal_alignments\\tphased_alignments" > {output}
+        for i in {input}; do
+            SAMP=$(basename $i .phaselog)
+            echo -e "${{SAMP}}\\t$(grep "Total alignments" $i)\\t$(grep "could be tagged" $i)" |
+                sed 's/ \+ /\\t/g' | cut -f1,3,5 >> {output}
+        done
+        """
+
 rule copy_groupings:
     input:
         groupfile
@@ -89,7 +193,7 @@ rule bamlist:
     output:
         expand(outdir + "/input/{pop}.list", pop = populations)
     message:
-        "Creating population file lists."
+        "Creating file lists for each population."
     run:
         for p in populations:
             bamlist = popdict[p]
@@ -144,7 +248,7 @@ rule call_sv:
     threads:
         8        
     conda:
-        os.getcwd() + "/harpyenvs/variants.sv.yaml"
+        os.getcwd() + "/harpyenvs/phase.yaml"
     message:
         "Calling variants: {wildcards.population}"
     shell:
@@ -175,76 +279,29 @@ rule infer_sv:
         rm -rf {params.outdir}
         """
 
-rule genome_link:
-    input:
-        genomefile
-    output: 
-        f"Genome/{bn}"
-    message: 
-        "Symlinking {input}"
-    shell: 
-        """
-        if (file {input} | grep -q compressed ) ;then
-            # is regular gzipped, needs to be BGzipped
-            zcat {input} | bgzip -c > {output}
-        elif (file {input} | grep -q BGZF ); then
-            # is bgzipped, just linked
-            ln -sr {input} {output}
-        else
-            # isn't compressed, just linked
-            ln -sr {input} {output}
-        fi
-        """
-
-if genome_zip:
-    rule genome_compressed_faidx:
-        input: 
-            f"Genome/{bn}"
-        output: 
-            gzi = f"Genome/{bn}.gzi",
-            fai = f"Genome/{bn}.fai"
-        log:
-            f"Genome/{bn}.faidx.gzi.log"
-        message:
-            "Indexing {input}"
-        shell: 
-            "samtools faidx --gzi-idx {output.gzi} --fai-idx {output.fai} {input} 2> {log}"
-else:
-    rule genome_faidx:
-        input: 
-            f"Genome/{bn}"
-        output: 
-            f"Genome/{bn}.fai"
-        log:
-            f"Genome/{bn}.faidx.log"
-        message:
-            "Indexing {input}"
-        shell:
-            "samtools faidx --fai-idx {output} {input} 2> {log}"
-
 rule report:
     input:
-        fai   = f"Genome/{bn}.fai",
+        fai   = f"Genome/{validgenome}.fai",
         bedpe = outdir + "/{population}.bedpe"
     output:
         outdir + "/reports/{population}.naibr.html"
-    conda:
-        os.getcwd() + "/harpyenvs/r-env.yaml"
     message:
         "Creating report: {wildcards.population}"
+    conda:
+        os.getcwd() + "/harpyenvs/r-env.yaml"
     script:
         "report/Naibr.Rmd"
 
 rule report_pop:
     input:
-        fai   = f"Genome/{bn}.fai",
+        fai   = f"Genome/{validgenome}.fai",
         bedpe = expand(outdir + "/{pop}.bedpe", pop = populations)
     output:
         outdir + "/reports/naibr.pop.summary.html"
-    conda:
-        os.getcwd() + "/harpyenvs/r-env.yaml"
     message:
         "Creating summary report"
+    conda:
+        os.getcwd() + "/harpyenvs/r-env.yaml"
     script:
         "report/NaibrPop.Rmd"
 
@@ -260,6 +317,8 @@ rule log_runtime:
             _ = f.write(f"The provided genome: {bn}\n")
             _ = f.write(f"The directory with alignments: {bam_dir}\n")
             _ = f.write(f"The sample grouping file: {groupfile}\n\n")
+            _ = f.write("The alignment files were phased using:\n")
+            _ = f.write(f"    whatshap haplotag --reference genome.fasta --linked-read-distance-cutoff {molecule_distance} --ignore-read-groups --tag-supplementary --sample sample_x file.vcf sample_x.bam\n")
             _ = f.write("naibr variant calling ran using these configurations:\n")
             _ = f.write(f"    bam_file=BAMFILE\n")
             _ = f.write(f"    prefix=PREFIX\n")
@@ -270,7 +329,7 @@ rule log_runtime:
 rule all:
     default_target: True
     input:
-        expand(outdir + "/{pop}.bedpe", pop = populations),
+        expand(outdir + "/{pop}.bedpe",      pop = populations),
         expand(outdir + "/reports/{pop}.naibr.html", pop = populations),
         outdir + "/reports/naibr.pop.summary.html",
         outdir + "/workflow/sv.naibr.workflow.summary"

@@ -28,9 +28,9 @@ def leviathan(genome, threads, directory, populations, extra_params, snakemake, 
         vcaller += "-pop"
         fetch_file("LeviathanPop.Rmd", f"Variants/{vcaller}/workflow/report/")
     fetch_file("Leviathan.Rmd", f"Variants/{vcaller}/workflow/report/")
-    fetch_file(f"variants-{vcaller}.smk", f"Variants/{vcaller}/workflow/")
+    fetch_file(f"sv-{vcaller}.smk", f"Variants/{vcaller}/workflow/")
     directory = directory.rstrip("/^")
-    command = (f'snakemake --rerun-incomplete --nolock --use-conda --conda-prefix ./.snakemake --cores {threads} --directory . --snakefile Variants/{vcaller}/workflow/variants-{vcaller}.smk').split()
+    command = (f'snakemake --rerun-incomplete --nolock --use-conda --conda-prefix ./.snakemake --cores {threads} --directory . --snakefile Variants/{vcaller}/workflow/sv-{vcaller}.smk').split()
     if snakemake is not None:
         [command.append(i) for i in snakemake.split()]
     if quiet:
@@ -86,13 +86,13 @@ def naibr(genome, vcf, threads, directory, populations, molecule_distance, extra
     if populations is not None:
         vcaller += "-pop"
         outdir += "-pop"
-        fetch_file("NaibrPop.Rmd", f"Variants/{vcaller}/workflow/report/")
-    fetch_file("Naibr.Rmd", f"Variants/{vcaller}/workflow/report/")
+        fetch_file("NaibrPop.Rmd", f"Variants/{outdir}/workflow/report/")
+    fetch_file("Naibr.Rmd", f"Variants/{outdir}/workflow/report/")
     if vcf is not None:
         check_phase_vcf(vcf)
         vcaller += "-phase"
-    fetch_file(f"variants-{vcaller}.smk", f"Variants/{vcaller}/workflow/")
-    command = (f'snakemake --rerun-incomplete --nolock --use-conda --conda-prefix ./.snakemake --cores {threads} --directory . --snakefile Variants/{outdir}/workflow/variants-{vcaller}.smk').split()
+    fetch_file(f"sv-{vcaller}.smk", f"Variants/{outdir}/workflow/")
+    command = (f'snakemake --rerun-incomplete --nolock --use-conda --conda-prefix ./.snakemake --cores {threads} --directory . --snakefile Variants/{outdir}/workflow/sv-{vcaller}.smk').split()
     
     directory = directory.rstrip("/^")
     if snakemake is not None:

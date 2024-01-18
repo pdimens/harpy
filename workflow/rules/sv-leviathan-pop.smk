@@ -14,6 +14,9 @@ genome_zip  = True if bn.lower().endswith(".gz") else False
 if genome_zip:
     bn = bn[:-3]
 
+wildcard_constraints:
+    sample = "[a-zA-Z0-9._-]+"
+    
 # create dictionary of population => filenames
 ## this makes it easier to set the snakemake rules/wildcards
 ## exits with an error if the groupfile has samples not in the bam folder

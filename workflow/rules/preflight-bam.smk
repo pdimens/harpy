@@ -11,15 +11,8 @@ out_dir = f"{seq_dir}/Preflight/"
 bamlist = [os.path.basename(i) for i in glob.iglob(f"{seq_dir}/*") if not os.path.isdir(i) and i.lower().endswith(".bam")]
 samplenames = set([os.path.splitext(i)[0] for i in bamlist])  
 
-#def get_bam(wildcards):
-#    # returns a list of fastq files for read 1 based on *wildcards.sample* e.g.
-#    lst = [i for i in glob.iglob(seq_dir + "/" + wildcards.sample + "*") if i.lower().endswith(".bam")]
-#    return lst
-#
-#def get_bai(wildcards):
-#    # returns a list of fastq files for read 1 based on *wildcards.sample* e.g.
-#    lst = [i for i in glob.iglob(seq_dir + "/" + wildcards.sample + "*") if i.lower().endswith(".bam.bai")]
-#    return lst
+wildcard_constraints:
+    sample = "[a-zA-Z0-9._-]+"
 
 onerror:
     print("")

@@ -19,6 +19,9 @@ try:
 except:
     indelarg = ""
 
+wildcard_constraints:
+    sample = "[a-zA-Z0-9._-]+"
+
 onerror:
     print("")
     rprint(

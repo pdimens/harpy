@@ -14,6 +14,9 @@ contigs     = config["contigs"]
 # declare a dataframe to be the paramspace
 paramspace  = Paramspace(pd.read_csv(paramfile, delim_whitespace = True).rename(columns=str.lower), param_sep = "", filename_params="*")
 
+wildcard_constraints:
+    sample = "[a-zA-Z0-9._-]+"
+
 onerror:
     print("")
     rprint(

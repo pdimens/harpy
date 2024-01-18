@@ -8,6 +8,9 @@ import glob
 seq_dir = config["seq_directory"]
 out_dir = f"{seq_dir}/Preflight/"
 
+wildcard_constraints:
+    sample = "[a-zA-Z0-9._-]+"
+
 flist = [os.path.basename(i) for i in glob.iglob(f"{seq_dir}/*") if not os.path.isdir(i)]
 r = re.compile(r".*\.f(?:ast)?q(?:\.gz)?$", flags=re.IGNORECASE)
 fqlist = list(filter(r.match, flist))

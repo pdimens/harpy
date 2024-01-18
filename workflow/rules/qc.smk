@@ -10,6 +10,9 @@ extra 	  = config.get("extra", "")
 seq_dir   = config["seq_directory"]
 adapters  = config["adapters"]
 
+wildcard_constraints:
+    sample = "[a-zA-Z0-9._-]+"
+
 onsuccess:
     print("")
     rprint(

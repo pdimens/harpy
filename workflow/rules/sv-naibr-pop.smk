@@ -7,25 +7,49 @@ import re
 bam_dir     = config["seq_directory"]
 samplenames = config["samplenames"] 
 extra       = config.get("extra", "") 
+groupfile   = config["groupings"]
 genomefile  = config["genomefile"]
 molecule_distance = config["molecule_distance"]
-outdir      = "Variants/naibr"
 bn          = os.path.basename(genomefile)
-genome_zip  = True if (bn.endswith(".gz") or bn.endswith(".GZ")) else False
-bn_idx      = f"{bn}.gzi" if genome_zip else f"{bn}.fai"
+outdir      = "Variants/naibr-pop"
+genome_zip  = True if bn.lower().endswith(".gz") else False
+if genome_zip:
+    bn = bn[:-3]
+
+wildcard_constraints:
+    sample = "[a-zA-Z0-9._-]+"
 
 def process_args(args):
     argsDict = {
         "min_mapq" : 30,
         "d"        : molecule_distance,
         "min_sv"   : 1000,
-        "k"        : 3
+        "k"        : 3,
     }
     if args != "":
         words = [i for i in re.split("\s|=", args) if len(i) > 0]
         for i in zip(words[::2], words[1::2]):
             argsDict[i[0]] = i[1]
     return argsDict
+
+# create dictionary of population => filenames
+## this makes it easier to set the snakemake rules/wildcards
+def pop_manifest(infile, dirn, sampnames):
+    d = dict()
+    with open(infile) as f:
+        for line in f:
+            samp, pop = line.rstrip().split()
+            if samp.lstrip().startswith("#"):
+                continue
+            samp = f"{dirn}/{samp}.bam"
+            if pop not in d.keys():
+                d[pop] = [samp]
+            else:
+                d[pop].append(samp)
+    return d
+
+popdict     = pop_manifest(groupfile, bam_dir, samplenames)
+populations = popdict.keys()
 
 onerror:
     print("")
@@ -51,52 +75,81 @@ onsuccess:
         file = sys.stderr
     )
 
-rule index_alignment:
+rule copy_groupings:
     input:
-        bam_dir + "/{sample}.bam"
+        groupfile
     output:
-        bam_dir + "/{sample}.bam.bai"
+        outdir + "/logs/sample.groups"
     message:
-        "Indexing alignment: {wildcards.sample}"
+        "Logging {input}"
+    run:
+        with open(input[0], "r") as infile, open(output[0], "w") as outfile:
+            _ = [outfile.write(i) for i in infile.readlines() if not i.lstrip().startswith("#")]
+
+rule bamlist:
+    input:
+        outdir + "/logs/sample.groups"
+    output:
+        expand(outdir + "/input/{pop}.list", pop = populations)
+    message:
+        "Creating population file lists."
+    run:
+        for p in populations:
+            bamlist = popdict[p]
+            with open(f"{outdir}/input/{p}.list", "w") as fout:
+                for bamfile in bamlist:
+                    _ = fout.write(bamfile + "\n")
+
+rule merge_populations:
+    input: 
+        bamlist  = outdir + "/input/{population}.list",
+        bamfiles = lambda wc: expand("{sample}", sample = popdict[wc.population]) 
+    output:
+        bam = temp(outdir + "/input/{population}.bam"),
+        bai = temp(outdir + "/input/{population}.bam.bai")
+    threads:
+        2
+    message:
+        "Merging alignments: Population {wildcards.population}"
     shell:
-        "samtools index {input} {output} 2> /dev/null"
+        "samtools merge -o {output.bam}##idx##{output.bai} --threads {threads} --write-index -b {input.bamlist}"
 
 rule create_config:
     input:
-        bam_dir + "/{sample}.bam"
+        outdir + "/input/{population}.bam"
     output:
-        outdir + "/configs/{sample}.config"
+        outdir + "/configs/{population}.config"
     params:
-        lambda wc: wc.get("sample")
+        lambda wc: wc.get("population")
     message:
-        "Creating naibr config file: {wildcards.sample}"
+        "Creating naibr config file: {wildcards.population}"
     run:
         argdict = process_args(extra)
         with open(output[0], "w") as conf:
             _ = conf.write(f"bam_file={input[0]}\n")
+            _ = conf.write(f"outdir=Variants/naibr-pop/{params[0]}\n")
             _ = conf.write(f"prefix={params[0]}\n")
-            _ = conf.write(f"outdir=Variants/naibr/{params[0]}\n")
             _ = conf.write(f"threads={workflow.cores}\n")
             for i in argdict:
                 _ = conf.write(f"{i}={argdict[i]}\n")
 
 rule call_sv:
     input:
-        bam   = bam_dir + "/{sample}.bam",
-        bai   = bam_dir + "/{sample}.bam.bai",
-        conf  = outdir + "/configs/{sample}.config"
+        bam   = outdir + "/input/{population}.bam",
+        bai   = outdir + "/input/{population}.bam.bai",
+        conf  = outdir + "/configs/{population}.config"
     output:
-        bedpe = outdir + "{sample}/{sample}.bedpe",
-        refmt = outdir + "{sample}/{sample}.reformat.bedpe",
-        vcf   = outdir + "{sample}/{sample}.vcf"
+        bedpe = outdir + "/{population}/{population}.bedpe",
+        refmt = outdir + "/{population}/{population}.reformat.bedpe",
+        vcf   = outdir + "/{population}/{population}.vcf"
     log:
-        outdir + "log/{sample}.log" 
+        outdir + "/logs/{population}.log"
     threads:
-        8
+        8        
     conda:
-        os.getcwd() + "/harpyenvs/variants.sv.yaml"     
+        os.getcwd() + "/harpyenvs/variants.sv.yaml"
     message:
-        "Calling variants: {wildcards.sample}"
+        "Calling variants: {wildcards.population}"
     shell:
         """
         naibr {input.conf} > {log}.tmp 2>&1
@@ -105,18 +158,18 @@ rule call_sv:
 
 rule infer_sv:
     input:
-        bedpe = outdir + "/{sample}/{sample}.bedpe",
-        refmt = outdir + "/{sample}/{sample}.reformat.bedpe",
-        vcf   = outdir + "/{sample}/{sample}.vcf"
+        bedpe = outdir + "/{population}/{population}.bedpe",
+        refmt = outdir + "/{population}/{population}.reformat.bedpe",
+        vcf   = outdir + "/{population}/{population}.vcf"
     output:
-        bedpe = outdir + "/{sample}.bedpe",
-        refmt = outdir + "/IGV/{sample}.reformat.bedpe",
-        fail  = outdir + "/filtered/{sample}.fail.bedpe",
-        vcf   = outdir + "/vcf/{sample}.vcf" 
+        bedpe = outdir + "/{population}.bedpe",
+        refmt = outdir + "/IGV/{population}.reformat.bedpe",
+        fail  = outdir + "/filtered/{population}.fail.bedpe",
+        vcf   = outdir + "/vcf/{population}.vcf" 
     params:
-        outdir = lambda wc: outdir + "/" + wc.get("sample")
+        outdir = lambda wc: outdir + "/" + wc.get("population")
     message:
-        "Inferring variants from naibr output: {wildcards.sample}"
+        "Inferring variants from naibr output: {wildcards.population}"
     shell:
         """
         inferSV.py {input.bedpe} -f {output.fail} > {output.bedpe}
@@ -174,16 +227,29 @@ else:
 
 rule report:
     input:
-        bedpe = outdir + "/{sample}.bedpe",
-        fai   = f"Genome/{bn}.fai"
+        fai   = f"Genome/{bn}.fai",
+        bedpe = outdir + "/{population}.bedpe"
     output:
-        outdir + "/reports/{sample}.naibr.html"
+        outdir + "/reports/{population}.naibr.html"
     conda:
         os.getcwd() + "/harpyenvs/r-env.yaml"
     message:
-        "Creating report: {wildcards.sample}"
+        "Creating report: {wildcards.population}"
     script:
         "report/Naibr.Rmd"
+
+rule report_pop:
+    input:
+        fai   = f"Genome/{bn}.fai",
+        bedpe = expand(outdir + "/{pop}.bedpe", pop = populations)
+    output:
+        outdir + "/reports/naibr.pop.summary.html"
+    conda:
+        os.getcwd() + "/harpyenvs/r-env.yaml"
+    message:
+        "Creating summary report"
+    script:
+        "report/NaibrPop.Rmd"
 
 rule log_runtime:
     output:
@@ -195,7 +261,8 @@ rule log_runtime:
         with open(output[0], "w") as f:
             _ = f.write("The harpy variants sv module ran using these parameters:\n\n")
             _ = f.write(f"The provided genome: {bn}\n")
-            _ = f.write(f"The directory with alignments: {bam_dir}\n\n")
+            _ = f.write(f"The directory with alignments: {bam_dir}\n")
+            _ = f.write(f"The sample grouping file: {groupfile}\n\n")
             _ = f.write("naibr variant calling ran using these configurations:\n")
             _ = f.write(f"    bam_file=BAMFILE\n")
             _ = f.write(f"    prefix=PREFIX\n")
@@ -206,8 +273,9 @@ rule log_runtime:
 rule all:
     default_target: True
     input:
-        expand(outdir + "/{sample}.bedpe", sample = samplenames),
-        expand(outdir + "/reports/{sample}.naibr.html", sample = samplenames),
+        expand(outdir + "/{pop}.bedpe", pop = populations),
+        expand(outdir + "/reports/{pop}.naibr.html", pop = populations),
+        outdir + "/reports/naibr.pop.summary.html",
         outdir + "/workflow/sv.naibr.workflow.summary"
     message:
         "Checking for expected workflow output"

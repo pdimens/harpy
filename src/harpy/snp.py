@@ -24,14 +24,14 @@ def mpileup(genome, threads, directory, populations, ploidy, windowsize, extra_p
     Use **harpy popgroup** to create a sample grouping file to 
     use as input for `--populations`.
     """
-    fetch_file("variants-mpileup.smk", "Variants/mpileup/workflow/")
-    fetch_file("reportBcftoolsStats.Rmd", "Variants/mpileup/workflow/report/")
+    fetch_file("snp-mpileup.smk", "Variants/mpileup/workflow/")
+    fetch_file("BcftoolsStats.Rmd", "Variants/mpileup/workflow/report/")
 
     samplenames = getnames(directory, '.bam')
     callcoords, linkedgenome = createregions(genome, windowsize, "mpileup")
     directory = directory.rstrip("/^")
     validate_bamfiles(directory, samplenames)
-    command = (f'snakemake --rerun-incomplete --nolock --cores {threads} --directory . --snakefile Variants/mpileup/workflow/variants-mpileup.smk').split()
+    command = (f'snakemake --rerun-incomplete --nolock --cores {threads} --directory . --snakefile Variants/mpileup/workflow/snp-mpileup.smk').split()
     if snakemake is not None:
         [command.append(i) for i in snakemake.split()]
     if quiet:
@@ -77,14 +77,14 @@ def freebayes(genome, threads, directory, populations, ploidy, windowsize, extra
     Use **harpy popgroup** to create a sample grouping file to 
     use as input for `--populations`.
     """
-    fetch_file("variants-freebayes.smk", "Variants/freebayes/workflow/")
+    fetch_file("snp-freebayes.smk", "Variants/freebayes/workflow/")
     fetch_file("BcftoolsStats.Rmd", "Variants/freebayes/workflow/report/")
 
     samplenames = getnames(directory, '.bam')
     callcoords, linkedgenome = createregions(genome, windowsize, "freebayes")
     directory = directory.rstrip("/^")
     validate_bamfiles(directory, samplenames)
-    command = (f'snakemake --rerun-incomplete --nolock --use-conda --conda-prefix ./.snakemake --cores {threads} --directory . --snakefile Variants/freebayes/workflow/variants-freebayes.smk').split()
+    command = (f'snakemake --rerun-incomplete --nolock --use-conda --conda-prefix ./.snakemake --cores {threads} --directory . --snakefile Variants/freebayes/workflow/snp-freebayes.smk').split()
     if snakemake is not None:
         [command.append(i) for i in snakemake.split()]
     if quiet:

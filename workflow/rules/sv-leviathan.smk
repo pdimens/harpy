@@ -13,6 +13,9 @@ genome_zip  = True if bn.lower().endswith(".gz") else False
 if genome_zip:
     bn = bn[:-3]
 
+wildcard_constraints:
+    sample = "[a-zA-Z0-9._-]+"
+
 onerror:
     print("")
     rprint(
