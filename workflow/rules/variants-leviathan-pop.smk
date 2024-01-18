@@ -204,7 +204,7 @@ rule sv_stats:
     input: 
         outdir + "/{population}.bcf"
     output:
-        outdir + "/reports/stats/{population}.sv.stats"
+        outdir + "/reports/reports/{population}.sv.stats"
     message:
         "Getting stats: Population {input}"
     benchmark:
@@ -217,7 +217,7 @@ rule sv_stats:
 
 rule sv_report_bypop:
     input:	
-        statsfile = outdir + "/reports/stats/{population}.sv.stats",
+        statsfile = outdir + "/reports/reports/{population}.sv.stats",
         bcf       = outdir + "/{population}.bcf"
     output:
         outdir + "/reports/{population}.sv.html"
@@ -232,7 +232,7 @@ rule sv_report_bypop:
 rule sv_report:
     input:	
         faidx      = f"Genome/{bn}.fai",
-        statsfiles = expand(outdir + "/reports/stats/{pop}.sv.stats", pop = populations)
+        statsfiles = expand(outdir + "/reports/reports/{pop}.sv.stats", pop = populations)
     output:
         outdir + "/reports/leviathan.pop.summary.html"
     message:

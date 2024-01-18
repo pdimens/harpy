@@ -189,7 +189,7 @@ rule stats:
         bcf = "Impute/{stitchparams}/variants.imputed.bcf",
         idx = "Impute/{stitchparams}/variants.imputed.bcf.csi"
     output:
-        "Impute/{stitchparams}/stats/variants.imputed.stats"
+        "Impute/{stitchparams}/reports/variants.imputed.stats"
     message:
         "Calculating stats: {wildcards.stitchparams}/variants.imputed.bcf"
     shell:
@@ -204,8 +204,8 @@ rule comparestats:
         impute  = "Impute/{stitchparams}/variants.imputed.bcf",
         idx     = "Impute/{stitchparams}/variants.imputed.bcf.csi"
     output:
-        compare = "Impute/{stitchparams}/stats/impute.compare.stats",
-        info_sc = temp("Impute/{stitchparams}/stats/impute.infoscore")
+        compare = "Impute/{stitchparams}/reports/impute.compare.stats",
+        info_sc = temp("Impute/{stitchparams}/reports/impute.infoscore")
     message:
         "Computing post-imputation stats: {wildcards.stitchparams}"
     shell:
@@ -216,8 +216,8 @@ rule comparestats:
 
 rule reports:
     input: 
-        "Impute/{stitchparams}/stats/impute.compare.stats",
-        "Impute/{stitchparams}/stats/impute.infoscore"
+        "Impute/{stitchparams}/reports/impute.compare.stats",
+        "Impute/{stitchparams}/reports/impute.infoscore"
     output:
         "Impute/{stitchparams}/variants.imputed.html"
     params:

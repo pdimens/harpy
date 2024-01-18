@@ -194,7 +194,7 @@ rule variants_stats:
         bcf     = outdir + "/variants.{type}.bcf",
         idx     = outdir + "/variants.{type}.bcf.csi"
     output:
-        outdir + "/stats/variants.{type}.stats",
+        outdir + "/reports/variants.{type}.stats",
     message:
         "Calculating variant stats: variants.{wildcards.type}.bcf"
     shell:
@@ -204,9 +204,9 @@ rule variants_stats:
 
 rule bcfreport:
     input:
-        outdir + "/stats/variants.{type}.stats"
+        outdir + "/reports/variants.{type}.stats"
     output:
-        outdir + "/stats/variants.{type}.html"
+        outdir + "/reports/variants.{type}.html"
     message:
         "Generating bcftools report: variants.{wildcards.type}.bcf"
     conda:
@@ -241,6 +241,6 @@ rule all:
     input: 
         outdir + "/workflow/snp.freebayes.workflow.summary",
         expand(outdir + "/variants.{file}.bcf",        file = ["raw", "normalized"]),
-        expand(outdir + "/stats/variants.{file}.html", file = ["raw", "normalized"])
+        expand(outdir + "/reports/variants.{file}.html", file = ["raw", "normalized"])
     message:
          "Checking for expected workflow output"
