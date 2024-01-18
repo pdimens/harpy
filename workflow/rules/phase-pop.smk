@@ -209,7 +209,7 @@ rule mergeSamples:
     message:
         "Combining samples into a single BCF file"
     shell:
-        "bcftools merge --threads {threads} -Ob -o {output} --write-index {input.bcf}"
+        "bcftools merge --threads {threads} -Ob -o {output.bcf} --write-index {input.bcf}"
 
 rule summarize_blocks:
     input:
