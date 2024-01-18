@@ -25,6 +25,7 @@ def impute(parameters, directory, threads, vcf, vcf_samples, snakemake, quiet, p
     the samples present in the `--directory`.
     """
     fetch_file("impute.smk", "Impute/workflow/")
+    fetch_file("stitch_impute.R", "Impute/workflow/")
     for i in ["Impute", "ImputeStitch"]:
         fetch_file(f"{i}.Rmd", "Impute/workflow/report/")
     ## validate inputs ##
