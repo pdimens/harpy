@@ -226,7 +226,7 @@ rule align:
 
 rule sort_raw_ema:
     input:
-        aln = outdir + "/align/{sample}.bc.raw.sam",
+        sam        = outdir + "/align/{sample}.bc.raw.sam",
         genome 	   = f"Genome/{bn}",
         geno_faidx = f"Genome/{bn_idx}",
         geno_idx   = multiext(f"Genome/{bn}", ".ann", ".bwt", ".pac", ".sa", ".amb")
@@ -245,7 +245,7 @@ rule sort_raw_ema:
         "Sorting and quality filtering alignments: {wildcards.sample}"
     shell:
         """
-        samtools view -h -F 4 -q {params.quality} - | 
+        samtools view -h -F 4 -q {params.quality} {input.sam} | 
             samtools sort -T {params.tmpdir} --reference {input.genome} -O bam --write-index -m 4G -o {output.aln}##idx##{output.idx} - 2> {log}
         rm -rf {params.tmpdir}
         """
