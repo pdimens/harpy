@@ -2,9 +2,9 @@ name: harpy
 channels:
   - conda-forge
   - bioconda
-  - defaults
 dependencies:
   - bcftools =1.19
+  - mamba
   - multiqc
   - pysam =0.22
   - python
