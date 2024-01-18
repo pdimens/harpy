@@ -221,7 +221,7 @@ rule align:
         "Aligning barcoded sequences: {wildcards.sample}"
     shell:
         """
-        ema align -t {threads} {params.extra} -d {params.bxtype} -r {input.genome} -R \"@RG\\tID:{wildcards.sample}\\tSM:{wildcards.sample}\" -x {input.readbin} 2> {log.ema}
+        ema align -t {threads} {params.extra} -d {params.bxtype} -r {input.genome} -R \"@RG\\tID:{wildcards.sample}\\tSM:{wildcards.sample}\" -x {input.readbin} 2> {log}
         """
 
 rule sort_raw_ema:
