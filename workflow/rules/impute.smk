@@ -273,6 +273,6 @@ rule all:
         bcf     = expand("Impute/{stitchparams}/variants.imputed.bcf", stitchparams=paramspace.instance_patterns),
         reports = expand("Impute/{stitchparams}/variants.imputed.html", stitchparams=paramspace.instance_patterns),
         contigs = expand("Impute/{stitchparams}/contigs/{part}/{part}.STITCH.html", stitchparams=paramspace.instance_patterns, part = contigs),
-        runlog  = "Impute/workflow/impute.workflow/summary"
+        runlog  = "Impute/workflow/impute.workflow.summary"
     message: 
         "Checking for expected workflow output"
