@@ -1,7 +1,7 @@
 import rich_click as click
 from pathlib import Path
 from .helperfunctions import fetch_file, generate_conda_deps, get_samples_from_fastq
-from .helperfunctions import print_error, print_solution, print_notice
+from .helperfunctions import print_error, print_solution, print_notice, print_onstart
 import subprocess
 import sys
 import os
@@ -49,6 +49,9 @@ def bwa(genome, threads, directory, extra_params, quality_filter, molecule_dista
         click.echo(" ".join(command))
     else:
         generate_conda_deps()
+        print_onstart(
+            f"Initializing the [bold]harpy align bwa[/bold] workflow.\nInput Directory: {directory}\nSamples: {len(samplenames)}"
+        )
         _module = subprocess.run(command)
         sys.exit(_module.returncode)
 
@@ -112,5 +115,8 @@ def ema(platform, whitelist, genome, threads, ema_bins, directory, extra_params,
         click.echo(" ".join(command))
     else:
         generate_conda_deps()
+        print_onstart(
+            f"Initializing the [bold]harpy align ema[/bold] workflow.\nInput Directory: {directory}\nSamples: {len(samplenames)}"
+        )
         _module = subprocess.run(command)
         sys.exit(_module.returncode)

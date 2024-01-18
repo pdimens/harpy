@@ -1,5 +1,6 @@
 import rich_click as click
-from .helperfunctions import fetch_file, generate_conda_deps, validate_demuxschema, check_demux_fastq
+from .helperfunctions import fetch_file, generate_conda_deps, print_onstart
+from .helperfunctions import validate_demuxschema, check_demux_fastq
 import subprocess
 import sys
 import os
@@ -37,5 +38,8 @@ def gen1(file, samplesheet, threads, snakemake, quiet, print_only):
         click.echo(" ".join(command))
     else:
         generate_conda_deps()
+        print_onstart(
+            f"Initializing the [bold]harpy demultiplex gen1[/bold] workflow.\nInput Prefix: {inprefix}\nDemultiplex Schema: {samplesheet}"
+        )
         _module = subprocess.run(command)
         sys.exit(_module.returncode)

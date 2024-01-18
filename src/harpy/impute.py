@@ -1,4 +1,4 @@
-from .helperfunctions import fetch_file, generate_conda_deps, getnames
+from .helperfunctions import fetch_file, generate_conda_deps, getnames, print_onstart
 from .helperfunctions import vcfcheck, vcf_samplematch
 from .helperfunctions import check_impute_params, validate_bamfiles
 import rich_click as click
@@ -77,5 +77,8 @@ def impute(parameters, directory, threads, vcf, vcf_samples, snakemake, quiet, p
         click.echo(" ".join(command))
     else:
         generate_conda_deps()
+        print_onstart(
+            f"Initializing the [bold]harpy impute[/bold] workflow.\nInput Directory: {directory}\nInput VCF: {vcf}\nSamples in VCF: {len(samplenames)}"
+        )
         _module = subprocess.run(command)
         sys.exit(_module.returncode)

@@ -1,5 +1,5 @@
 import rich_click as click
-from .helperfunctions import fetch_file, generate_conda_deps, getnames, get_samples_from_fastq
+from .helperfunctions import fetch_file, generate_conda_deps, getnames, get_samples_from_fastq, print_onstart
 import subprocess
 import re
 import os
@@ -24,7 +24,7 @@ def fastq(directory, threads, snakemake, quiet, print_only):
     """
     fetch_file("preflight-fastq.smk", f"{directory}/Preflight/workflow/")
     fetch_file("PreflightFastq.Rmd", f"{directory}/Preflight/workflow/report/")
-    get_samples_from_fastq(directory)
+    sn = get_samples_from_fastq(directory)
     command = f'snakemake --rerun-incomplete --nolock --use-conda --conda-prefix ./.snakemake --cores {threads} --directory . --snakefile {directory}/Preflight/workflow/preflight-fastq.smk'.split()
     if snakemake is not None:
         [command.append(i) for i in snakemake.split()]
@@ -38,6 +38,9 @@ def fastq(directory, threads, snakemake, quiet, print_only):
         click.echo(" ".join(command))
     else:
         generate_conda_deps()
+        print_onstart(
+            f"Initializing the [bold]harpy preflight fastq[/bold] workflow.\nInput Directory: {directory}\nSamples: {len(sn)}"
+        )
         _module = subprocess.run(command)
         sys.exit(_module.returncode)
 
@@ -73,5 +76,8 @@ def bam(directory, threads, snakemake, quiet, print_only):
         click.echo(" ".join(command))
     else:
         generate_conda_deps()
+        print_onstart(
+            f"Initializing the [bold]harpy preflight bam[/bold] workflow.\nInput Directory: {directory}\nFiles: {len(flist)}"
+        )
         _module = subprocess.run(command)
         sys.exit(_module.returncode)

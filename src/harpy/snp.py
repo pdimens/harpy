@@ -1,4 +1,4 @@
-from .helperfunctions import fetch_file, generate_conda_deps, getnames, createregions
+from .helperfunctions import fetch_file, generate_conda_deps, getnames, createregions, print_onstart
 from .helperfunctions import validate_bamfiles, validate_popfile, validate_vcfsamples
 import rich_click as click
 import subprocess
@@ -40,7 +40,9 @@ def mpileup(genome, threads, directory, populations, ploidy, windowsize, extra_p
     command.append('--config')
     command.append(f"seq_directory={directory}")
     command.append(f"samplenames={samplenames}")
+    popgroupings = ""
     if populations is not None:
+        popgroupings += f"\nPopulations: {populations}"
         rows = validate_popfile(populations)
         # check that samplenames and populations line up
         validate_vcfsamples(directory, populations, samplenames, rows, quiet)
@@ -55,6 +57,9 @@ def mpileup(genome, threads, directory, populations, ploidy, windowsize, extra_p
         click.echo(" ".join(command))
     else:
         generate_conda_deps()
+        print_onstart(
+            f"Initializing the [bold]harpy snp mpileup[/bold] workflow.\nInput Directory: {directory}\nSamples: {len(samplenames)}{popgroupings}"
+        )
         _module = subprocess.run(command)
         sys.exit(_module.returncode)
 
@@ -93,7 +98,9 @@ def freebayes(genome, threads, directory, populations, ploidy, windowsize, extra
     command.append('--config')
     command.append(f"seq_directory={directory}")
     command.append(f"samplenames={samplenames}")
+    popgroupings = ""
     if populations is not None:
+        popgroupings += f"\nPopulations: {populations}"
         rows = validate_popfile(populations)
         # check that samplenames and populations line up
         validate_vcfsamples(directory, populations, samplenames, rows, quiet)
@@ -108,5 +115,8 @@ def freebayes(genome, threads, directory, populations, ploidy, windowsize, extra
         click.echo(" ".join(command))
     else:
         generate_conda_deps()
+        print_onstart(
+            f"Initializing the [bold]harpy snp freebayes[/bold] workflow.\nInput Directory: {directory}\nSamples: {len(samplenames)}{popgroupings}"
+        )
         _module = subprocess.run(command)
         sys.exit(_module.returncode)

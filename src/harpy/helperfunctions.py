@@ -408,3 +408,16 @@ def fetch_file(file, destination, rename=None):
         destination += rename
     # copy2 to keep metadata during copy
     shutil.copy2(result, destination)
+
+def print_onstart(text):
+    """Print a panel of info on workflow run"""
+    click.echo("")
+    print(
+        Panel(
+            text,
+            title = "[bold]Harpy",
+            title_align = "left",
+            border_style = "white"
+        ),
+        file = sys.stderr
+    )

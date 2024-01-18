@@ -1,4 +1,5 @@
-from .helperfunctions import fetch_file, generate_conda_deps, getnames, vcfcheck, vcf_samplematch, validate_bamfiles
+from .helperfunctions import fetch_file, generate_conda_deps, getnames, print_onstart
+from .helperfunctions import vcfcheck, vcf_samplematch, validate_bamfiles
 import sys
 import os
 import subprocess
@@ -63,5 +64,8 @@ def phase(vcf, directory, threads, molecule_distance, prune_threshold, vcf_sampl
         click.echo(" ".join(command))
     else:
         generate_conda_deps()
+        print_onstart(
+            f"Initializing the [bold]harpy phase[/bold] workflow.\nInput directory: {directory}\nInput VCF: {vcf}\nSamples in VCF: {len(samplenames)}"
+        )
         _module = subprocess.run(command)
         sys.exit(_module.returncode)

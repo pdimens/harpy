@@ -1,5 +1,5 @@
-from .helperfunctions import fetch_file, generate_conda_deps, getnames, check_phase_vcf
-from .helperfunctions import validate_popfile, validate_vcfsamples
+from .helperfunctions import fetch_file, generate_conda_deps, getnames, print_onstart
+from .helperfunctions import validate_popfile, validate_vcfsamples, check_phase_vcf
 import rich_click as click
 import subprocess
 import sys
@@ -39,7 +39,9 @@ def leviathan(genome, threads, directory, populations, extra_params, snakemake, 
     command.append('--config')
     command.append(f"seq_directory={directory}")
     command.append(f"samplenames={samplenames}")
+    popgroupings = ""
     if populations is not None:
+        popgroupings += f"\nPopulations: {populations}"
         # check for delimeter and formatting
         rows = validate_popfile(populations)
         # check that samplenames and populations line up
@@ -52,6 +54,9 @@ def leviathan(genome, threads, directory, populations, extra_params, snakemake, 
         click.echo(" ".join(command))
     else:
         generate_conda_deps()
+        print_onstart(
+            f"Initializing the [bold]harpy sv leviathan[/bold] workflow.\nInput Directory: {directory}\nSamples: {len(samplenames)}{popgroupings}"
+        )
         _module = subprocess.run(command)
         sys.exit(_module.returncode)
 
@@ -103,7 +108,9 @@ def naibr(genome, vcf, threads, directory, populations, molecule_distance, extra
     command.append('--config')
     command.append(f"seq_directory={directory}")
     command.append(f"samplenames={samplenames}")
+    popgroupings = ""
     if populations is not None:
+        popgroupings += f"\nPopulations: {populations}"
         # check for delimeter and formatting
         rows = validate_popfile(populations)
         # check that samplenames and populations line up
@@ -120,5 +127,8 @@ def naibr(genome, vcf, threads, directory, populations, molecule_distance, extra
         click.echo(" ".join(command))
     else:
         generate_conda_deps()
+        print_onstart(
+            f"Initializing the [bold]harpy sv naibr[/bold] workflow.\nInput Directory: {directory}\nSamples: {len(samplenames)}{popgroupings}"
+        )
         _module = subprocess.run(command)
         sys.exit(_module.returncode)

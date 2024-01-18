@@ -10,6 +10,12 @@ extra 	  = config.get("extra", "")
 seq_dir   = config["seq_directory"]
 adapters  = config["adapters"]
 
+flist = [os.path.basename(i) for i in glob.iglob(f"{seq_dir}/*") if not os.path.isdir(i)]
+r = re.compile(r".*\.f(?:ast)?q(?:\.gz)?$", flags=re.IGNORECASE)
+fqlist = list(filter(r.match, flist))
+bn_r = r"[\.\_][RF](?:[12])?(?:\_00[1-9])*\.f(?:ast)?q(?:\.gz)?$"
+samplenames = set([re.sub(bn_r, "", i, flags = re.IGNORECASE) for i in fqlist])
+
 wildcard_constraints:
     sample = "[a-zA-Z0-9._-]+"
 
@@ -37,11 +43,7 @@ onerror:
         file = sys.stderr
     )
 
-flist = [os.path.basename(i) for i in glob.iglob(f"{seq_dir}/*") if not os.path.isdir(i)]
-r = re.compile(r".*\.f(?:ast)?q(?:\.gz)?$", flags=re.IGNORECASE)
-fqlist = list(filter(r.match, flist))
-bn_r = r"[\.\_][RF](?:[12])?(?:\_00[1-9])*\.f(?:ast)?q(?:\.gz)?$"
-samplenames = set([re.sub(bn_r, "", i, flags = re.IGNORECASE) for i in fqlist])
+
 
 def get_fq1(wildcards):
     # code that returns a list of fastq files for read 1 based on *wildcards.sample* e.g.

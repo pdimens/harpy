@@ -1,5 +1,5 @@
 import rich_click as click
-from .helperfunctions import generate_conda_deps, get_samples_from_fastq, fetch_file
+from .helperfunctions import generate_conda_deps, get_samples_from_fastq, fetch_file, print_onstart
 import subprocess
 import re
 import os
@@ -27,7 +27,7 @@ def qc(directory, max_length, ignore_adapters, extra_params, threads, snakemake,
     """
     fetch_file("qc.smk", "QC/workflow/")
     fetch_file("BxCount.Rmd", "QC/workflow/report/")
-    get_samples_from_fastq(directory)
+    sn = get_samples_from_fastq(directory)
 
     command = f'snakemake --rerun-incomplete --nolock  --use-conda --conda-prefix ./.snakemake --cores {threads} --directory . --snakefile QC/workflow/qc.smk'.split()
     if snakemake is not None:
@@ -46,5 +46,8 @@ def qc(directory, max_length, ignore_adapters, extra_params, threads, snakemake,
         click.echo(" ".join(command))
     else:
         generate_conda_deps()
+        print_onstart(
+            f"Initializing the [bold]harpy qc[/bold] workflow.\nInput Directory: {directory}\nSamples: {len(sn)}"
+        )
         _module = subprocess.run(command)
         sys.exit(_module.returncode)
