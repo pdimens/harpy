@@ -9,7 +9,7 @@ import os
 @click.command(no_args_is_help = True)
 @click.option('-v', '--vcf', required = True, type=click.Path(exists=True, dir_okay=False),metavar = "File Path", help = 'Path to BCF/VCF file')
 @click.option('-d', '--directory', required = True, type=click.Path(exists=True, file_okay=False), metavar = "Folder Path", help = 'Directory with BAM alignments')
-@click.option('-p', '--parameters', required = True, type=click.Path(exists=True, file_okay=False), metavar = "File Path", help = 'STITCH parameter file (tab-delimited)')
+@click.option('-p', '--parameters', required = True, type=click.Path(exists=True, file_okay=True), metavar = "File Path", help = 'STITCH parameter file (tab-delimited)')
 #@click.option('-x', '--extra-params', default = "", type = str, metavar = "String", help = 'Additional STITCH parameters, in quotes')
 @click.option('--vcf-samples',  is_flag = True, show_default = True, default = False, metavar = "Toggle", help = 'Use samples present in vcf file for imputation rather than those found the directory')
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(min = 4, max_open = True), metavar = "Integer", help = 'Number of threads to use')
