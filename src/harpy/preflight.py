@@ -23,7 +23,7 @@ def fastq(directory, threads, snakemake, quiet, print_only):
     you diagnose if file formatting will cause downstream issues.
     """
     fetch_file("preflight-fastq.smk", f"{directory}/Preflight/workflow/")
-    fetch_file(f"PreflightFastq.Rmd", f"{directory}/Preflight/workflow/")
+    fetch_file("PreflightFastq.Rmd", f"{directory}/Preflight/workflow/report/")
     get_samples_from_fastq(directory)
     command = f'snakemake --rerun-incomplete --nolock --use-conda --conda-prefix ./.snakemake --cores {threads} --directory . --snakefile {directory}/Preflight/workflow/preflight-fastq.smk'.split()
     if snakemake is not None:
@@ -58,7 +58,7 @@ def bam(directory, threads, snakemake, quiet, print_only):
     you diagnose if file formatting will cause downstream issues.
     """
     fetch_file("preflight-bam.smk", f"{directory}/Preflight/workflow/")
-    fetch_file(f"PreflightBam.Rmd", f"{directory}/Preflight/workflow/")
+    fetch_file("PreflightBam.Rmd", f"{directory}/Preflight/workflow/report/")
     flist = getnames(directory, ".bam")
     command = f'snakemake --rerun-incomplete --nolock --use-conda --conda-prefix ./.snakemake --cores {threads} --directory . --snakefile {directory}/Preflight/workflow/preflight-bam.smk'.split()
     if snakemake is not None:
