@@ -95,23 +95,17 @@ if groupings:
             ref_idx = f"Genome/{bn}.fai",
             samples = outdir + "/logs/samples.files"
         output:
-            bcf = temp(outdir + "/regions/{part}.bcf"),
-            idx = temp(outdir + "/regions/{part}.bcf.csi")
+            pipe(outdir + "/regions/{part}.vcf")
         params:
             region = lambda wc: "-r " + regions[wc.part],
             ploidy = f"-p {ploidy}",
             extra = extra
-        threads:
-            2
         conda:
             os.getcwd() + "/harpyenvs/variants.snp.yaml"
         message:
             "Calling variants: {wildcards.part}"
         shell:
-            """
-            freebayes -f {input.ref} -L {input.samples} --populations {input.groupings} {params} |
-                bcftools sort - -Ob --write-index --output {output.bcf} 2> /dev/null
-            """
+            "freebayes -f {input.ref} -L {input.samples} --populations {input.groupings} {params}"
 else:
     rule call_variants:
         input:
@@ -121,23 +115,28 @@ else:
             ref_idx = f"Genome/{bn}.fai",
             samples = outdir + "/logs/samples.files"
         output:
-            bcf = temp(outdir + "/regions/{part}.bcf"),
-            idx = temp(outdir + "/regions/{part}.bcf.csi")
+            pipe(outdir + "/regions/{part}.vcf")
         params:
             region = lambda wc: "-r " + regions[wc.part],
             ploidy = f"-p {ploidy}",
             extra = extra
-        threads:
-            2
         conda:
             os.getcwd() + "/harpyenvs/variants.snp.yaml"
         message:
             "Calling variants: {wildcards.part}"
         shell:
-            """
-            freebayes -f {input.ref} -L {input.samples} {params} |
-                bcftools sort - -Ob --write-index --output {output.bcf} 2> /dev/null
-            """
+            "freebayes -f {input.ref} -L {input.samples} {params} > {output}"
+
+rule sort_variants:
+    input:
+        outdir + "/regions/{part}.vcf"
+    output:
+        bcf = temp(outdir + "/regions/{part}.bcf"),
+        idx = temp(outdir + "/regions/{part}.bcf.csi")
+    message:
+        "Sorting: {wildcards.part}"
+    shell:
+        "bcftools sort -Ob --write-index --output {output.bcf} {input} 2> /dev/null"
 
 rule concat_list:
     input:

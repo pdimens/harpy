@@ -105,9 +105,9 @@ rule call_sv:
 
 rule infer_sv:
     input:
-        bedpe = outdir + "{sample}/{sample}.bedpe",
-        refmt = outdir + "{sample}/{sample}.reformat.bedpe",
-        vcf   = outdir + "{sample}/{sample}.vcf"
+        bedpe = outdir + "/{sample}/{sample}.bedpe",
+        refmt = outdir + "/{sample}/{sample}.reformat.bedpe",
+        vcf   = outdir + "/{sample}/{sample}.vcf"
     output:
         bedpe = outdir + "/{sample}.bedpe",
         refmt = outdir + "/IGV/{sample}.reformat.bedpe",
