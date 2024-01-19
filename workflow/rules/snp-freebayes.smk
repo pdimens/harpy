@@ -158,8 +158,7 @@ rule merge_vcfs:
         bcfs = expand(outdir + "/regions/{part}.{ext}", part = intervals, ext = ["bcf", "bcf.csi"]),
         filelist = outdir + "/logs/bcf.files"
     output:
-        bcf = outdir + "/variants.raw.bcf",
-        idx = outdir + "/variants.raw.bcf.csi"
+        outdir + "/variants.raw.bcf"
     log:
         outdir + "/logs/concat.log"
     threads:
@@ -167,9 +166,17 @@ rule merge_vcfs:
     message:
         "Combining vcfs into a single file"
     shell:  
-        """
-        bcftools concat -f {input.filelist} --threads {threads} --naive -Ob --write-index -o {output.bcf} 2> {log}
-        """
+        "bcftools concat -f {input.filelist} --threads {threads} --naive -Ob -o {output} 2> {log}"
+
+rule index_merged:
+    input:
+        outdir + "/variants.raw.bcf"
+    output:
+        outdir + "/variants.raw.bcf.csi"
+    message:
+        "Indexing {input}"
+    shell:
+        "bcftools index {input} 2> /dev/null"
 
 rule normalize_bcf:
     input: 

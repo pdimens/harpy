@@ -56,17 +56,6 @@ def get_samples_from_fastq(directory):
 
     return set([re.sub(bn_r, "", i, flags = re.IGNORECASE) for i in fqlist])
 
-# Nicer version for init
-## DEPRECATE??
-def getnames_err(directory, ext):
-    """Get sample names from 'directory' based on files with given extension 'ext'"""
-    samplenames = set([i.split(ext)[0] for i in os.listdir(directory) if i.endswith(ext)])
-    if len(samplenames) < 1:
-        print_error(f"No sample files ending with [bold]{ext}[/bold] found in [bold]{directory}[/bold].")
-        sys.tracebacklimit = 0
-        raise Exception
-    return samplenames
-
 def createregions(infile, window, method):
     """Create a BED file of genomic intervals of size 'window'. Uses 1- or 0- based numbering depending on mpileup or freebayes 'method'"""
     bn = os.path.basename(infile)
