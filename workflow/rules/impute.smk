@@ -249,25 +249,25 @@ rule log_runtime:
             _ = f.write("The STITCH parameters were governed by the rows of the input parameter table:\n")
             with open(config["paramfile"], "r") as f1:
                 for line in f1:
-                    _ = f.write(line)
+                    _ = f.write("    " + line)
             _ = f.write("\nWithin R, STITCH was invoked with the following parameters:\n")
             _ = f.write(
-                "STITCH(\n" +
-                "    method               = model,\n" +
-                "    posfile              = posfile,\n" +
-                "    bamlist              = bamlist,\n" +
-                "    nCores               = ncores,\n" +
-                "    nGen                 = ngen,\n" +
-                "    chr                  = chr,\n" +
-                "    K                    = k,\n" +
-                "    S                    = s,\n" +
-                "    use_bx_tag           = usebX,\n" +
-                "    bxTagUpperLimit      = bxlimit,\n" +
-                "    niterations          = 40,\n" +
-                "    switchModelIteration = 39,\n" +
-                "    splitReadIterations  = NA,\n" +
-                "    outputdir            = outdir,\n" +
-                "    output_filename      = outfile\n)\n"
+                "    STITCH(\n" +
+                "        method               = model,\n" +
+                "        posfile              = posfile,\n" +
+                "        bamlist              = bamlist,\n" +
+                "        nCores               = ncores,\n" +
+                "        nGen                 = ngen,\n" +
+                "        chr                  = chr,\n" +
+                "        K                    = k,\n" +
+                "        S                    = s,\n" +
+                "        use_bx_tag           = usebX,\n" +
+                "        bxTagUpperLimit      = bxlimit,\n" +
+                "        niterations          = 40,\n" +
+                "        switchModelIteration = 39,\n" +
+                "        splitReadIterations  = NA,\n" +
+                "        outputdir            = outdir,\n" +
+                "        output_filename      = outfile\n)\n"
             )
 
 rule all:
