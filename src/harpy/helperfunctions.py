@@ -350,7 +350,7 @@ def generate_conda_deps():
     environ = {
         "qc" : ["falco", "fastp"],
         "align": ["bwa", "ema","icu","libzlib", "sambamba", "samtools=1.19", "seqtk", "xz"],
-        "variants.snp": ["bcftools=1.19", "freebayes"],
+        "variants.snp": ["bcftools=1.19", "freebayes=1.3.6"],
         "variants.sv": ["leviathan", "naibr-plus"],
         "phase" : ["hapcut2", "whatshap"],
         "r-env" : ["bioconductor-complexheatmap", "r-circlize", "r-dt", "r-flexdashboard", "r-ggplot2", "r-ggridges", "r-plotly", "r-tidyr", "r-stitch"]
