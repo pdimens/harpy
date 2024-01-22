@@ -91,7 +91,7 @@ fa.sizes <- fa.sizes[1:min(nrow(fa.sizes), 30), ]
 
 ## General Information {data-height=100}
 ### nvariants
-```{r echo=FALSE, message=FALSE, warning=FALSE}
+```{r summaryinfo, echo=FALSE, message=FALSE, warning=FALSE}
 summinfo <- sv %>%
   group_by(contig, type) %>%
   summarise(count = n()) %>% 
@@ -139,7 +139,7 @@ every contig.
 
 ## Various Stats Tables
 ### All variants found
-```{r echo = FALSE, warnings = FALSE, message = FALSE}
+```{r various stats, echo = FALSE, warnings = FALSE, message = FALSE}
 DT::datatable(
   sv,
   rownames = F,
@@ -156,7 +156,7 @@ DT::datatable(
 sv$length <- gsub("\\.", "1", sv$length) %>%  as.numeric()
 ```
 
-```{r echo = FALSE, message = FALSE, warning = FALSE}
+```{r percontig, echo = FALSE, message = FALSE, warning = FALSE}
 grpstats <- sv %>%
   group_by(contig, type) %>%
   summarise(count = n(), total_bp  = sum(length))
@@ -189,7 +189,7 @@ colors correspond to which type of variant.
 You may click on the plot to expand it in your browser window. Clicking it again will exit
 out of the zoomed view.
 
-```{r}
+```{r plot legend, echo = FALSE, warning = FALSE, message = FALSE}
 justcolors <- c("#df487f", "#5a8c84", "#ffd75f", "#4a9fea")
 
 data.frame(x = 1, y = 1:4, colour = c("Breakend","Deletion","Duplication", "Inversion")) %>% 
@@ -211,7 +211,7 @@ ggplot(aes(x, y, fill = colour))+
 ```
 
 ### Summary {.no-title data-height=700}
-```{r echo = FALSE, message = FALSE, warning = FALSE, dev = "jpeg", out.width= "100%"}
+```{r circos, echo = FALSE, message = FALSE, warning = FALSE, dev = "jpeg", out.width= "100%"}
 circos.clear()
 col_text <- "grey40"
 circos.par("track.height" = 0.8, gap.degree = 3, cell.padding = c(0, 0, 0, 0))
@@ -307,7 +307,7 @@ circos.genomicTrack(
 
 # Per-Contig Plots
 ## contig plots
-```{r}
+```{r percontig palette}
 color.palette <- c("DEL"="#5a8c84", "DUP"="#ffd75f", "INV"="#4a9fea","BND"="#df487f")
 sv$ystart <- case_when(
   sv$type == "INV" ~ 0.1,
@@ -323,7 +323,7 @@ Below is a plot to help you assess what structural variants were detected by LEV
 allowing you to hover over a variant to provide additional information, including the genomic interval in which it occurs and the
 number of haplotag barcodes supporting the variant.
 
-```{r}
+```{r percontig plotly}
 l <- list()
 nplotrows <- 0
 

@@ -216,10 +216,10 @@ rule bcfreport:
         outdir + "/reports/variants.{type}.stats"
     output:
         outdir + "/reports/variants.{type}.html"
-    message:
-        "Generating bcftools report: variants.{wildcards.type}.bcf"
     conda:
         os.getcwd() + "/harpyenvs/r-env.yaml"
+    message:
+        "Generating bcftools report: variants.{wildcards.type}.bcf"
     script:
         "report/BcftoolsStats.Rmd"
 
