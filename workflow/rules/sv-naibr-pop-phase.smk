@@ -244,7 +244,7 @@ rule call_sv:
         refmt = outdir + "/{population}/{population}.reformat.bedpe",
         vcf   = outdir + "/{population}/{population}.vcf"
     log:
-        full  = outdir + "/logs/{population}.naibrlog"
+        full  = outdir + "/logs/{population}.naibrlog",
         pairs = outdir + "/logs/{population}.log"
     threads:
         8        

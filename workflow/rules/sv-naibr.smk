@@ -93,9 +93,8 @@ rule call_sv:
         refmt = outdir + "/{sample}/{sample}.reformat.bedpe",
         vcf   = outdir + "/{sample}/{sample}.vcf"
     log:
-        outdir + "/logs/{sample}.log"
-    params:
-        outdir + "/logs/{wildcards.sample}.log.tmp" 
+        full  = outdir + "/logs/{sample}.naibrlog",
+        pairs = outdir + "/logs/{sample}.log"
     threads:
         8
     conda:
@@ -104,8 +103,8 @@ rule call_sv:
         "Calling variants: {wildcards.sample}"
     shell:
         """
-        naibr {input.conf} > {params} 2>&1
-        grep -v "pairs/s" {params} > {log} && rm -f {params}
+        naibr {input.conf} > {log.full} 2>&1
+        grep -v "pairs/s" {log.full} > {log.pairs}
         """
 
 rule infer_sv:
