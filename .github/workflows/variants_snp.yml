@@ -57,17 +57,17 @@ jobs:
           post-cleanup: 'all'
           log-level: error
       - name: Install harpy
+        shell: micromamba-shell {0}
         run: |
           python3 -m pip install --upgrade build && python3 -m build
           pip install dist/*.whl
           resources/buildforCI.sh
-        shell: micromamba-shell {0}
 
       - name: variants mpileup
         shell: micromamba-shell {0}
         run: harpy snp mpileup -w 150000 -d test/bam -g test/genome/genome.fasta.gz -s "--show-failed-logs"
-        continue-on-error: true
 
       - name: variants freebayes
+        if: always()
         shell: micromamba-shell {0}
         run: harpy snp freebayes -w 150000 -d test/bam -g test/genome/genome.fasta.gz -s "--show-failed-logs"

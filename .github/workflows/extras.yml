@@ -47,13 +47,15 @@ jobs:
         shell: micromamba-shell {0}
 
       - name: harpy popgroup
+        shell: micromamba-shell {0}
         run: harpy popgroup -d test/fastq
-        shell: micromamba-shell {0}
-
+        
       - name: harpy stitchparams
-        run: harpy stitchparams -o params.file
+        if: always()
         shell: micromamba-shell {0}
+        run: harpy stitchparams -o params.file
 
       - name: harpy hpc
-        run: harpy hpc -o hpc.yml -s slurm
+        if: always()
         shell: micromamba-shell {0}
+        run: harpy hpc -o hpc.yml -s slurm

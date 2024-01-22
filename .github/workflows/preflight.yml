@@ -56,16 +56,17 @@ jobs:
           cache-environment: true
           post-cleanup: 'all'
       - name: Install harpy
+        shell: micromamba-shell {0}
         run: |
           python3 -m pip install --upgrade build && python3 -m build
           pip install dist/*.whl
           resources/buildforCI.sh
-        shell: micromamba-shell {0}
 
       - name: harpy preflight fastq
-        run: harpy preflight fastq -d test/fastq
         shell: micromamba-shell {0}
+        run: harpy preflight fastq -d test/fastq
 
       - name: harpy preflight bam
-        run: harpy preflight bam -d test/bam
+        if: always()
         shell: micromamba-shell {0}
+        run: harpy preflight bam -d test/bam

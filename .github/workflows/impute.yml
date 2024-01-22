@@ -57,11 +57,11 @@ jobs:
           post-cleanup: 'all'
           log-level: error
       - name: Install harpy
+        shell: micromamba-shell {0}
         run: |
           python3 -m pip install --upgrade build && python3 -m build
           pip install dist/*.whl
           resources/buildforCI.sh
-        shell: micromamba-shell {0}
 
       - name: impute
         shell: micromamba-shell {0}
@@ -69,6 +69,7 @@ jobs:
 
       - name: impute from vcf
         shell: micromamba-shell {0}
+        if: always()
         run: |
           rm -rf Impute
           harpy impute --vcf-samples --vcf test/vcf/test.bcf -d test/bam -p test/stitch.params -s "--show-failed-logs"

@@ -69,11 +69,11 @@ jobs:
           post-cleanup: 'all'
           log-level: error
       - name: Install harpy
+        shell: micromamba-shell {0}
         run: |
           python3 -m pip install --upgrade build && python3 -m build
           pip install dist/*.whl
           resources/buildforCI.sh
-        shell: micromamba-shell {0}
 
       - name: leviathan
         shell: micromamba-shell {0}
@@ -81,24 +81,26 @@ jobs:
         continue-on-error: true
 
       - name: leviathan-pop
+        if: always()
         shell: micromamba-shell {0}
         run: harpy sv leviathan -d test/bam -g test/genome/genome.fasta.gz -p test/samples.groups -s "--show-failed-logs"
-        continue-on-error: true
-
+        
       - name: naibr
+        if: always()  
         shell: micromamba-shell {0}
         run: harpy sv naibr -d test/bam_phased -g test/genome/genome.fasta.gz -s "--show-failed-logs"
-        continue-on-error: true
-
+        
       - name: naibr pop
+        if: always()
         shell: micromamba-shell {0}
         run: harpy sv naibr -d test/bam_phased -g test/genome/genome.fasta.gz -p test/samples.groups -s "--show-failed-logs"
 
       - name: naibr phasing
+        if: always()
         shell: micromamba-shell {0}
         run: harpy sv naibr -d test/bam -g test/genome/genome.fasta.gz -v test/vcf/test.phased.bcf -s "--show-failed-logs"
-        continue-on-error: true
-
+        
       - name: naibr pop phasing
+        if: always()
         shell: micromamba-shell {0}
         run: harpy sv naibr -d test/bam -g test/genome/genome.fasta.gz -v test/vcf/test.phased.bcf -p test/samples.groups -s "--show-failed-logs"

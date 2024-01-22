@@ -46,16 +46,17 @@ jobs:
           cache-environment: true
           post-cleanup: 'all'
       - name: Install harpy
+        shell: micromamba-shell {0}
         run: |
           python3 -m pip install --upgrade build && python3 -m build
           pip install dist/*.whl
           resources/buildforCI.sh
-        shell: micromamba-shell {0}
 
       - name: harpy qc
-        run: harpy qc -d test/fastq
         shell: micromamba-shell {0}
+        run: harpy qc -d test/fastq
       
       - name: harpy qc skip adapter trimming
-        run: harpy qc -d test/fastq -a
+        if: always()
         shell: micromamba-shell {0}
+        run: harpy qc -d test/fastq -a
