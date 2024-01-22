@@ -81,7 +81,7 @@ if (nrow(sv) == 0) {
 ```
 ```{r contigSizes, echo = FALSE}
 bcf <- snakemake@input[["bcf"]]
-fai <- snakemake@input[["faidx"]]
+faidx <- snakemake@input[["faidx"]]
 #bcf <- "/home/pdimens/test.bcf"
 fa.sizes <- read.table(faidx, header = F)[,1:2] %>% arrange(desc(2))
 colnames(fa.sizes) <- c("contig", "size")
