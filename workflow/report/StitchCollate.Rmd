@@ -112,7 +112,7 @@ pltheight <- 330 + (15 * n)
 pheight <- 1.2 + (0.166 * n)
 ```
 
-```{r fig.width = 7.5, dev ='jpeg'}
+```{r basic stats, fig.width = 7.5, dev ='jpeg'}
 .pscL <- grepl("^PSC", dataL)
 psc <- read.table(text=dataL[.pscL])[ ,3:14]
 names(psc) <- c("Sample", "HomozygousRef", "HomozygousAtl", "Heterozygotes", "Transitions", "Transversions", "Indels",	"MeanDepth", "Singletons",	"HapRef", "HapAlt", "Missing")
@@ -131,7 +131,7 @@ ggplot(data = tidy_psc, mapping = aes(x = Count, y = Sample, color = Category)) 
 ```
 
 ### table {.no-title}
-```{r}
+```{r stats table}
 DT::datatable(
   psc[,c(1,12,2,3,13,4,5,6,9)],
   rownames = F, 

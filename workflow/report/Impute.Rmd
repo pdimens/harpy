@@ -135,7 +135,7 @@ ncontig <- nrow(maxsizes)
 pltheight <- round(1.1 * ncontig, digits = 0)
 ```
 
-```{r echo = FALSE, message = FALSE, warning = FALSE, fig.height=2.5, out.width= "100%"}
+```{r infoscore histogram, echo = FALSE, message = FALSE, warning = FALSE, fig.height=2.5, out.width= "100%"}
 ggplot(infos, aes(x = info)) +
   geom_histogram(fill = "grey60", color = "grey40", linewidth = 0.25, bins = 100, boundary = 0.5) +
   theme_minimal() +
@@ -149,7 +149,7 @@ ggplot(infos, aes(x = info)) +
 ```
 
 ### Per-contig distribution {.no-title}
-```{r echo = FALSE, message = FALSE, warning = FALSE, fig.height=pltheight, fig.align='center', out.width = "100%"}
+```{r percontig dist, echo = FALSE, message = FALSE, warning = FALSE, fig.height=pltheight, fig.align='center', out.width = "100%"}
 ggplot(infos[infos$contig %in% maxsizes$contig, ], aes(x = info)) +
   geom_histogram(fill = "grey60", color = "grey40", linewidth = 0.25, bins = 100, boundary = 0.5) +
   facet_wrap(~contig, ncol = 2, scales = "free_y") +
@@ -183,7 +183,7 @@ it (_i.e._ `0.2` is the number of SNPs with a score `>= 0.2` ).
 
 ## filtering table
 ### filt table {.no-title}
-```{r echo = FALSE, message = FALSE, warning = FALSE}
+```{r filttable, echo = FALSE, message = FALSE, warning = FALSE}
 filterthresh <- infos %>% group_by(contig) %>%
   summarise(
     totals = length(info),
@@ -198,9 +198,9 @@ filterthresh <- infos %>% group_by(contig) %>%
 
 tots <- colSums(filterthresh[, -1])
 filterthresh <- rbind(c("all", tots), filterthresh) 
-if nrow(filterthresh) < 1 {
-  cat("No variants retained")
-} else {
+#if(nrow(filterthresh)) < 1 {
+#  cat("No variants retained")
+#} else {
   DT::datatable(
     filterthresh,
     rownames = FALSE,
@@ -214,7 +214,7 @@ if nrow(filterthresh) < 1 {
     autoHideNavigation = T,
     fillContainer = T
   )
-}
+#}
 ```
 
 # Individual Statistics
@@ -235,7 +235,7 @@ out of the zoomed view.
 # Individual Statistics
 ## ind stats
 ### Individuals Plot {.no-title}
-```{r echo = FALSE, message = FALSE, warning = FALSE, fig.height=conv_height, out.width= "100%"}
+```{r indiv stats, echo = FALSE, message = FALSE, warning = FALSE, fig.height=conv_height, out.width= "100%"}
 ggplot(gcts_long, aes(y = sample, x = Count, fill = Conversion)) +
   geom_col(position = "stack") +
   scale_x_continuous(expand = c(0,0), labels = comma) +

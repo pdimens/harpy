@@ -130,7 +130,7 @@ rule index_vcf:
         bcftools stats -s "-" {input.vcf} > {output.stats}
         """
 
-rule stitch_reports:
+rule collate_stitch_reports:
     input:
         "Impute/{stitchparams}/contigs/{part}/{part}.stats"
     output:
@@ -178,14 +178,23 @@ rule merge_vcfs:
         idx   = expand("Impute/{{stitchparams}}/contigs/{part}/{part}.vcf.gz.tbi", part = contigs),
         clean = expand("Impute/{{stitchparams}}/contigs/{part}/.cleaned", part = contigs)
     output:
-        bcf = "Impute/{stitchparams}/variants.imputed.bcf",
-        bai = "Impute/{stitchparams}/variants.imputed.bcf.csi"
+        "Impute/{stitchparams}/variants.imputed.bcf"
     threads:
-        50
+        workflow.cores
     message:
         "Merging VCFs: {wildcards.stitchparams}"
     shell:
-        "bcftools concat --threads {threads} --write-index -o {output.bcf}##idx##{output.bai} -f {input.files} 2> /dev/null"
+        "bcftools concat --threads {threads} -O b -o {output} -f {input.files} 2> /dev/null"
+
+rule index_merged:
+    input:
+        "Impute/{stitchparams}/variants.imputed.bcf"
+    output:
+        "Impute/{stitchparams}/variants.imputed.bcf.csi"
+    message:
+        "Indexing resulting file: {output}"
+    shell:
+        "bcftools index {input}"
 
 rule stats:
     input:
@@ -217,7 +226,7 @@ rule comparestats:
         bcftools query -f '%CHROM\\t%POS\\t%INFO/INFO_SCORE\\n' {input.impute} > {output.info_sc}
         """
 
-rule reports:
+rule imputation_results_reports:
     input: 
         "Impute/{stitchparams}/reports/impute.compare.stats",
         "Impute/{stitchparams}/reports/impute.infoscore"
