@@ -65,9 +65,9 @@ jobs:
           
       - name: variants freebayes
         shell: micromamba-shell {0}
-        run: harpy snp freebayes -w 150000 -d test/bam -g test/genome/genome.fasta.gz -s "--show-failed-logs"
+        run: harpy snp freebayes -w 150000 -d test/bam -g test/genome/genome.fasta.gz -s "--conda-cleanup-pkgs --conda-cleanup-envs"
       
       - name: variants mpileup
         if: always()
         shell: micromamba-shell {0}
-        run: harpy snp mpileup -w 150000 -d test/bam -g test/genome/genome.fasta.gz -s "--show-failed-logs"
+        run: harpy snp mpileup -w 150000 -d test/bam -g test/genome/genome.fasta.gz -s "--conda-cleanup-pkgs --conda-cleanup-envs"
