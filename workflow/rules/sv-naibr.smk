@@ -89,11 +89,13 @@ rule call_sv:
         bai   = bam_dir + "/{sample}.bam.bai",
         conf  = outdir + "/configs/{sample}.config"
     output:
-        bedpe = outdir + "{sample}/{sample}.bedpe",
-        refmt = outdir + "{sample}/{sample}.reformat.bedpe",
-        vcf   = outdir + "{sample}/{sample}.vcf"
+        bedpe = outdir + "/{sample}/{sample}.bedpe",
+        refmt = outdir + "/{sample}/{sample}.reformat.bedpe",
+        vcf   = outdir + "/{sample}/{sample}.vcf"
     log:
-        outdir + "log/{sample}.log" 
+        outdir + "/logs/{sample}.log"
+    params:
+        outdir + "/logs/{wildcards.sample}.log.tmp" 
     threads:
         8
     conda:
@@ -102,8 +104,8 @@ rule call_sv:
         "Calling variants: {wildcards.sample}"
     shell:
         """
-        naibr {input.conf} > {log}.tmp 2>&1
-        grep -v "pairs/s" {log}.tmp > {log} && rm {log}.tmp
+        naibr {input.conf} > {params} 2>&1
+        grep -v "pairs/s" {params} > {log} && rm -f {params}
         """
 
 rule infer_sv:

@@ -144,6 +144,8 @@ rule call_sv:
         vcf   = outdir + "/{population}/{population}.vcf"
     log:
         outdir + "/logs/{population}.log"
+    params:
+        outdir + "/logs/{wildcards.population}.log.tmp"
     threads:
         8        
     conda:
@@ -152,8 +154,8 @@ rule call_sv:
         "Calling variants: {wildcards.population}"
     shell:
         """
-        naibr {input.conf} > {log}.tmp 2>&1
-        grep -v "pairs/s" {log}.tmp > {log} && rm {log}.tmp
+        naibr {input.conf} > {params} 2>&1
+        grep -v "pairs/s" {params} > {log} && rm -f {params}
         """
 
 rule infer_sv:
