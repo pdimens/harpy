@@ -188,14 +188,17 @@ rule normalize_bcf:
     output:
         bcf     = outdir + "/variants.normalized.bcf",
         idx     = outdir + "/variants.normalized.bcf.csi"
+    log:
+        outdir + "/logs/normalize.log"
     threads:
         2
     message: 
         "Normalizing the called variants"
     shell:
         """
-        bcftools norm -d exact -f {input.genome} {input.bcf} |
-            bcftools norm -m -any -N -Ob --write-index -o {output.bcf}
+        bcftools norm -d exact -f {input.genome} {input.bcf} 2> {log}.tmp1 | 
+            bcftools norm -m -any -N -Ob --write-index -o {output.bcf} 2> {log}.tmp2
+        cat {log}.tmp1 {log}.tmp2 > {log} && rm {log}.tmp1 {log}.tmp2  
         """
         
 rule variants_stats:
@@ -209,7 +212,7 @@ rule variants_stats:
         "Calculating variant stats: variants.{wildcards.type}.bcf"
     shell:
         """
-        bcftools stats -s "-" --fasta-ref {input.genome} {input.bcf} > {output}
+        bcftools stats -s "-" --fasta-ref {input.genome} {input.bcf} > {output} 2> /dev/null
         """
 
 rule bcfreport:
