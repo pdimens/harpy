@@ -85,7 +85,11 @@ faidx <- snakemake@input[["faidx"]]
 #bcf <- "/home/pdimens/test.bcf"
 fa.sizes <- read.table(faidx, header = F)[,1:2] %>% arrange(desc(2))
 colnames(fa.sizes) <- c("contig", "size")
-# limit the data to only the 30 largest contigs
+
+# make sure that the contigs with SV are the ones being plotted, not the others
+fa.sizes <- fa.sizes[fa.sizes$contig %in% unique(sv$contig), ]
+
+# limit the data to only the 30 of the largest present contigs
 fa.sizes <- fa.sizes[1:min(nrow(fa.sizes), 30), ]
 ```
 

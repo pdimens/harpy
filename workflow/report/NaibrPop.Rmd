@@ -106,13 +106,6 @@ chimeric <- function(x){
 }
 ```
 
-```{r echo = FALSE, warnings = FALSE, message = FALSE}
-fa.sizes <- read.table(fai, header = F) %>% arrange(desc(2))
-colnames(fa.sizes) <- c("contig", "size")
-# limit the data to only the 30 largest contigs
-fa.sizes <- fa.sizes[1:min(nrow(fa.sizes), 30), ]
-```
-
 ```{r echo = FALSE}
 emptyfiles <- character()
 sv <- data.frame(matrix(ncol=12,nrow=0, dimnames=list(NULL, c("Population", "Chr1", "Break1", "Chr2", "Break2", "SplitMolecules", "DiscordantReads", "Orientation", "Haplotype", "Score", "PassFilter", "SV"  ))))
@@ -137,6 +130,16 @@ if(length(emptyfiles > 0)){
 
 ```{r echo = FALSE, warnings= FALSE, message = FALSE}
 sv_clean <- cleanbedpe(sv)
+```
+
+```{r echo = FALSE, warnings = FALSE, message = FALSE}
+fa.sizes <- read.table(fai, header = F) %>% arrange(desc(2))
+colnames(fa.sizes) <- c("contig", "size")
+# make sure that the contigs with SV are the ones being plotted, not the others
+fa.sizes <- fa.sizes[fa.sizes$contig %in% unique(sv_clean$Chr1), ]
+
+# limit the data to only the 30 of the largest present contigs
+fa.sizes <- fa.sizes[1:min(nrow(fa.sizes), 30), ]
 ```
 
 ```{r echo = FALSE, warnings= FALSE, message = FALSE}

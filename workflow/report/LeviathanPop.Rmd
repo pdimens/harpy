@@ -110,7 +110,11 @@ if(length(emptyfiles > 0)){
 ```{r}
 fa.sizes <- read.table(faidx, header = F)[,1:2] %>% arrange(desc(2))
 colnames(fa.sizes) <- c("contig", "size")
-# limit the data to only the 30 largest contigs
+
+# make sure that the contigs with SV are the ones being plotted, not the others
+fa.sizes <- fa.sizes[fa.sizes$contig %in% unique(sv$contig), ]
+
+# limit the data to only the 30 of the largest present contigs
 fa.sizes <- fa.sizes[1:min(nrow(fa.sizes), 30), ]
 ```
 
@@ -155,7 +159,7 @@ valueBox(scales::comma(ninv, accuracy = 0.01), caption = "Inversions (average)",
 ## Various information {.tabset data-height=450}
 ### all variants
 This table details all the variants LEVIATHAN detected and the quantity/quality of evidence for those detections.
-```{r message = FALSE, echo = FALSE}
+```{r all variants, message = FALSE, echo = FALSE}
 DT::datatable(
   sv,
   rownames = F,
@@ -172,7 +176,7 @@ sv$length <- as.numeric(gsub("\\.", "1", sv$length))
 ```
 ### counts per contig
 This table details counts each type of structural variant for every contig for every population.
-```{r echo = FALSE, warnings= FALSE, message = FALSE}
+```{r percontig counts, echo = FALSE, warnings= FALSE, message = FALSE}
 grpcounts <- sv %>%
   group_by(population, contig, type) %>%
   summarise(count = n()) %>%
@@ -191,7 +195,7 @@ DT::datatable(
 
 ### bp per contig
 This table details the lengths (in bp) of structural variants for every contig for every population. Breakends are not counted because they do not have a size.
-```{r echo = FALSE, warnings= FALSE, message = FALSE}
+```{r bp per contig, echo = FALSE, warnings= FALSE, message = FALSE}
 grplens <- sv %>% 
   filter(type != "BND") %>%
   group_by(population, contig, type) %>%
@@ -221,7 +225,7 @@ colors represent populations. Plotting only the first 30 largest contigs.
 You may click on the plot to expand it in your browser window. Clicking it again will exit
 out of the zoomed view.
 
-```{r fig.width = 6}
+```{r circoslegend, fig.width = 6}
 populations <- unique(sv$population)
 col.ramp <- viridis(length(populations))
 
@@ -310,7 +314,7 @@ circosplot <- function(data, contigdata, svtype, trackheight, poplist, colormap)
 }
 ```
 
-```{r echo = FALSE, message = FALSE, warning = FALSE, dev="jpeg", fig.align='center', fig.width=12, fig.height=12, out.width= "100%"}
+```{r circosplots, echo = FALSE, message = FALSE, warning = FALSE, dev="jpeg", fig.align='center', fig.width=12, fig.height=12, out.width= "100%"}
 par(mfrow = c(2, 2))
 popheight <- 5 / length(populations) / 10
 
@@ -340,7 +344,7 @@ sv$ystart <- case_when(
 sv$ystop <- sv$ystart + 0.8
 ```
 
-```{r echo = FALSE, out.width = '100%', warning=FALSE}
+```{r percontig plotly, echo = FALSE, out.width = '100%', warning=FALSE}
 color.palette <- c("DEL"="#5a8c84", "DUP"="#ffd75f", "INV"="#4a9fea","BND"="#df487f")
 l <- list()
 nplotrows <- 0
