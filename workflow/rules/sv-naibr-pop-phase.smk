@@ -249,7 +249,7 @@ rule call_sv:
     threads:
         8        
     conda:
-        os.getcwd() + "/harpyenvs/phase.yaml"
+        os.getcwd() + "/harpyenvs/variants.sv.yaml"
     message:
         "Calling variants: {wildcards.population}"
     shell:
