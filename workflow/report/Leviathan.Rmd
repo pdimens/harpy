@@ -81,12 +81,9 @@ if (nrow(sv) == 0) {
 ```
 ```{r contigSizes, echo = FALSE}
 bcf <- snakemake@input[["bcf"]]
+fai <- snakemake@input[["faidx"]]
 #bcf <- "/home/pdimens/test.bcf"
-hd <- system2("bcftools", args =  paste("head", bcf), stdout = T)
-fa.sizes <- hd[grep("contig=", hd)]
-fa.sizes <- as.data.frame(do.call(rbind, strsplit(fa.sizes, ",length="))) %>% arrange(desc(2))
-fa.sizes$V1 <- gsub("##contig=<ID=", "", fa.sizes$V1)
-fa.sizes$V2 <- as.numeric(gsub(">", "", fa.sizes$V2))
+fa.sizes <- read.table(faidx, header = F)[,1:2] %>% arrange(desc(2))
 colnames(fa.sizes) <- c("contig", "size")
 # limit the data to only the 30 largest contigs
 fa.sizes <- fa.sizes[1:min(nrow(fa.sizes), 30), ]

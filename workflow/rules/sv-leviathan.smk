@@ -171,6 +171,7 @@ rule sv_stats:
 rule sv_report:
     input:	
         bcf       = outdir + "/{sample}.bcf",
+        faidx     = f"Genome/{bn}.fai",
         statsfile = outdir + "/reports/stats/{sample}.sv.stats"
     output:	
         outdir + "/reports/{sample}.SV.html"
