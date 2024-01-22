@@ -221,7 +221,8 @@ rule sv_stats:
 rule sv_report_bypop:
     input:	
         statsfile = outdir + "/reports/reports/{population}.sv.stats",
-        bcf       = outdir + "/{population}.bcf"
+        bcf       = outdir + "/{population}.bcf",
+        faidx     = f"Genome/{bn}.fai"
     output:
         outdir + "/reports/{population}.sv.html"
     message:
