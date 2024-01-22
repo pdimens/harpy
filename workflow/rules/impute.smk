@@ -140,7 +140,7 @@ rule stitch_reports:
     conda:
         os.getcwd() + "/harpyenvs/r-env.yaml"
     script:
-        "report/ImputeStitch.Rmd"
+        "report/StitchCollate.Rmd"
 
 rule clean_stitch:
     input:

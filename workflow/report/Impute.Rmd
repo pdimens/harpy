@@ -198,20 +198,23 @@ filterthresh <- infos %>% group_by(contig) %>%
 
 tots <- colSums(filterthresh[, -1])
 filterthresh <- rbind(c("all", tots), filterthresh) 
-
-DT::datatable(
-  filterthresh,
-  rownames = FALSE,
-  extensions = "Buttons",
-  colnames = c("Contigs", "Total Variants", "0.20", "0.25", "0.30", "0.4", "0.5", "0.75", "0.90"),
-  options = list(
-    dom = "Brtip",
-    buttons = c("csv"),
-    scrollX = TRUE
-  ),
-  autoHideNavigation = T,
-  fillContainer = T
-)
+if nrow(filterthresh) < 1 {
+  cat("No variants retained")
+} else {
+  DT::datatable(
+    filterthresh,
+    rownames = FALSE,
+    extensions = "Buttons",
+    colnames = c("Contigs", "Total Variants", "0.20", "0.25", "0.30", "0.4", "0.5", "0.75", "0.90"),
+    options = list(
+      dom = "Brtip",
+      buttons = c("csv"),
+      scrollX = TRUE
+    ),
+    autoHideNavigation = T,
+    fillContainer = T
+  )
+}
 ```
 
 # Individual Statistics

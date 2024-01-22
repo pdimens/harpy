@@ -14,7 +14,7 @@ on:
       - 'test/vcf/test.bcf'
       - '**impute.yml'
       - 'workflow/report/Impute.Rmd'
-      - 'workflow/report/Stitch.Rmd'
+      - 'workflow/report/StitchCollate.Rmd'
       - 'workflow/scripts/stitch_impute.R'
 
   pull_request:
@@ -30,7 +30,7 @@ on:
       - 'test/vcf/test.bcf'
       - '**impute.yml'
       - 'workflow/report/Impute.Rmd'
-      - 'workflow/report/Stitch.Rmd'
+      - 'workflow/report/StitchCollate.Rmd'
       - 'workflow/scripts/stitch_impute.R'
 
 env:

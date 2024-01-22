@@ -26,7 +26,7 @@ def impute(parameters, directory, threads, vcf, vcf_samples, snakemake, quiet, p
     """
     fetch_file("impute.smk", "Impute/workflow/")
     fetch_file("stitch_impute.R", "Impute/workflow/")
-    for i in ["Impute", "ImputeStitch"]:
+    for i in ["Impute", "StitchCollate"]:
         fetch_file(f"{i}.Rmd", "Impute/workflow/report/")
     ## validate inputs ##
     vcfcheck(vcf)
