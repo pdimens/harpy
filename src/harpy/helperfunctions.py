@@ -1,9 +1,11 @@
 import sys
 import os
 import re
+import shutil
 import glob
 import gzip
 import subprocess
+from urllib.request import urlretrieve
 from pathlib import Path
 from rich import print
 from rich.panel import Panel
@@ -33,6 +35,7 @@ def vcfcheck(vcf):
         exit(1)
 
 def getnames(directory, ext):
+    """Find all files in 'directory' that end with 'ext'"""
     samplenames = set([i.split(ext)[0] for i in os.listdir(directory) if i.endswith(ext)])
     if len(samplenames) < 1:
         print_error(f"No sample files ending with [bold]{ext}[/bold] found in [bold]{directory}[/bold].")
@@ -40,8 +43,9 @@ def getnames(directory, ext):
     return samplenames
 
 def get_samples_from_fastq(directory):
+    """Identify the sample names from a directory containing FASTQ files"""
     full_flist = [i for i in glob.iglob(f"{directory}/*") if not os.path.isdir(i)]
-    r = re.compile(".*\.f(?:ast)?q(?:\.gz)?$", flags=re.IGNORECASE)
+    r = re.compile(r".*\.f(?:ast)?q(?:\.gz)?$", flags=re.IGNORECASE)
     full_fqlist = list(filter(r.match, full_flist))
     fqlist = [os.path.basename(i) for i in full_fqlist]
     bn_r = r"[\.\_][RF](?:[12])?(?:\_00[1-9])*\.f(?:ast)?q(?:\.gz)?$"
@@ -52,17 +56,8 @@ def get_samples_from_fastq(directory):
 
     return set([re.sub(bn_r, "", i, flags = re.IGNORECASE) for i in fqlist])
 
-# Nicer version for init
-## DEPRECATE??
-def getnames_err(directory, ext):
-    samplenames = set([i.split(ext)[0] for i in os.listdir(directory) if i.endswith(ext)])
-    if len(samplenames) < 1:
-        print_error(f"No sample files ending with [bold]{ext}[/bold] found in [bold]{directory}[/bold].")
-        sys.tracebacklimit = 0
-        raise Exception
-    return samplenames
-
 def createregions(infile, window, method):
+    """Create a BED file of genomic intervals of size 'window'. Uses 1- or 0- based numbering depending on mpileup or freebayes 'method'"""
     bn = os.path.basename(infile)
     os.makedirs("Genome", exist_ok = True)
     base = 0 if method == "freebayes" else 1
@@ -124,6 +119,7 @@ def createregions(infile, window, method):
         return bedregion, f"Genome/{bn}"
 
 def check_impute_params(parameters):
+    """Validate the STITCH parameter file for column names, order, types, missing values, etc."""
     with open(parameters, "r") as fp:
         header = fp.readline().rstrip().lower()
         headersplt = header.split()
@@ -135,7 +131,7 @@ def check_impute_params(parameters):
             culprits = [i for i in headersplt if i not in correct_header]
             print_error(f"Parameter file [bold]{parameters}[/bold] has incorrect column names. Valid names are:\n[green]model usebx bxlimit k s ngen[/green]")
             print_solution_with_culprits(
-                f"Fix the headers in [bold]{parameters}[/bold] or use [green]harpy extra -s stitch.params[/green] to generate a valid parameter file and modify it with appropriate values.",
+                f"Fix the headers in [bold]{parameters}[/bold] or use [green]harpy stitchparams[/green] to generate a valid parameter file and modify it with appropriate values.",
                 "Column names causing this error:"
             )
             click.echo(" ".join(culprits), file = sys.stderr)
@@ -166,7 +162,7 @@ def check_impute_params(parameters):
         if len(badrows) > 0:
             print_error(f"Parameter file [bold]{parameters}[/bold] is formatted incorrectly. Not all rows have the expected 6 columns.")
             print_solution_with_culprits(
-                f"See the problematic rows below. Check that you are using a whitespace (space or tab) delimeter in [bold]{parameters}[/bold] or use [green]harpy extra -s stitch.params[/green] to generate a valid parameter file and modify it with appropriate values.",
+                f"See the problematic rows below. Check that you are using a whitespace (space or tab) delimeter in [bold]{parameters}[/bold] or use [green]harpy stitchparams[/green] to generate a valid parameter file and modify it with appropriate values.",
                 "Rows causing this error and their column count:"
             )
             for i in zip(badrows, badlens):
@@ -174,20 +170,14 @@ def check_impute_params(parameters):
             sys.exit(1)
         
         # Validate each column
-        culprits = {
-            "model"   : [],
-            "usebx"   : [],
-            "bxlimit" : [],
-            "k"       : [],
-            "s"       : [],
-            "ngen"    : []
-        }
+        culprits = dict()
         colerr = 0
         errtable = Table(title="Formatting Errors")
         errtable.add_column("Column", justify="right", style="white", no_wrap=True)
         errtable.add_column("Expected Values", style="green")
         errtable.add_column("Rows with Issues", style = "white")
 
+        culprits["model"] = []
         for i,j in enumerate(data["model"]):
             if j not in ["pseudoHaploid", "diploid","diploid-inbred"]:
                 culprits["model"].append(str(i + 1))
@@ -195,6 +185,7 @@ def check_impute_params(parameters):
         if culprits["model"]:
             errtable.add_row("model", "diploid, diploid-inbred, pseudoHaploid", ", ".join(culprits["model"]))
 
+        culprits["usebx"] = []
         for i,j in enumerate(data["usebx"]):
             if j not in [True, "TRUE", "true", False, "FALSE", "false", "Y","y", "YES", "Yes", "yes", "N", "n", "NO", "No", "no"]:
                 culprits["usebx"].append(str(i + 1))
@@ -202,35 +193,14 @@ def check_impute_params(parameters):
         if culprits["usebx"]:
             errtable.add_row("usebx", "True, False", ", ".join(culprits["usebx"]))
         
-        for i,j in enumerate(data["bxlimit"]):
-            if not j.isdigit():
-                culprits["bxlimit"].append(str(i + 1))
-                colerr += 1
-
-        if culprits["bxlimit"]:
-            errtable.add_row("bxlimit", "Integers", ", ".join(culprits["bxlimit"]))
-
-        for i,j in enumerate(data["k"]):
-            if not j.isdigit():
-                culprits["k"].append(str(i + 1))
-                colerr += 1
-
-        if culprits["k"]:
-            errtable.add_row("k", "Integers", ", ".join(culprits["k"]))
-
-        for i,j in enumerate(data["s"]):
-            if not j.isdigit():
-                culprits["s"].append(str(i + 1))
-                colerr += 1
-        if culprits["s"]:
-            errtable.add_row("s", "Integers", ", ".join(culprits["s"]))
-
-        for i,j in enumerate(data["ngen"]):
-            if not j.isdigit():
-                culprits["ngen"].append(str(i + 1))
-                colerr += 1
-        if culprits["ngen"]:
-            errtable.add_row("ngen", "Integers", ", ".join(culprits["ngen"]))
+        for param in ["bxlimit","k","s","ngen"]:
+            culprits[param] = []
+            for i,j in enumerate(data[param]):
+                if not j.isdigit():
+                    culprits[param].append(str(i + 1))
+                    colerr += 1
+            if culprits[param]:
+                errtable.add_row(param, "Integers", ", ".join(culprits[param]))
 
         if colerr > 0:
             print_error(f"Parameter file [bold]{parameters}[/bold] is formatted incorrectly. Not all columns have valid values.")
@@ -239,6 +209,7 @@ def check_impute_params(parameters):
             exit(1)
 
 def validate_bamfiles(dir, namelist):
+    """Validate BAM files in directory 'dir' to make sure the sample name inferred from the file matches the @RG tag within the file"""
     culpritfiles = []
     culpritIDs   = []
     for i in namelist:
@@ -269,6 +240,7 @@ def validate_bamfiles(dir, namelist):
         exit(1)
 
 def check_phase_vcf(infile):
+    """Check to see if the input VCf file is phased or not, govered by the presence of ID=PS or ID=HP tags"""
     vcfheader = subprocess.run(f"bcftools view -h {infile}".split(), stdout = subprocess.PIPE).stdout.decode('utf-8')
     if ("##FORMAT=<ID=PS" in vcfheader) or ("##FORMAT=<ID=HP" in vcfheader):
         return
@@ -279,6 +251,7 @@ def check_phase_vcf(infile):
         exit(1)
 
 def validate_popfile(infile):
+    """Validate the input population file to make sure there are two entries per row"""
     with open(infile, "r") as f:
         rows = [i for i in f.readlines() if i != "\n" and not i.lstrip().startswith("#")]
         invalids = [(i,j) for i,j in enumerate(rows) if len(j.split()) < 2]
@@ -293,7 +266,32 @@ def validate_popfile(infile):
         else:
             return rows
 
+def vcf_samplematch(vcf, directory, vcf_samples):
+    """Validate that the input VCF file and the samples in the 'directory' (BAM files). The directionality of this check is determined by 'vcf_samples', which prioritizes the sample list in the file, rather that directory."""
+    bcfquery = subprocess.Popen(["bcftools", "query", "-l", vcf], stdout=subprocess.PIPE)
+    filesamples = bcfquery.stdout.read().decode().split()
+    dirsamples  = getnames(directory, '.bam')
+    if vcf_samples:
+        fromthis, query = vcf, filesamples
+        inthis, search = directory, dirsamples
+    else:
+        fromthis, query = directory, dirsamples
+        inthis, search = vcf, filesamples
+
+    missing_samples = [x for x in query if x not in search]
+    # check that samples in VCF match input directory
+    if len(missing_samples) > 0:
+        print_error(f"There are [bold]{len(missing_samples)}[/bold] samples found in [bold]{fromthis}[/bold] that are not in [bold]{inthis}[/bold]. Terminating Harpy to avoid downstream errors.")
+        print_solution_with_culprits(
+            f"[bold]{fromthis}[/bold] cannot contain samples that are absent in [bold]{inthis}[/bold]. Check the spelling or remove those samples from [bold]{fromthis}[/bold] or remake the vcf file to include/omit these samples. Alternatively, toggle [green]--vcf-samples[/green] to aggregate the sample list from [bold]{directory}[/bold] or [bold]{vcf}[/bold].",
+            "The samples causing this error are:"
+        )
+        click.echo(", ".join(sorted(missing_samples)), file = sys.stderr)
+        sys.exit(1)
+    return(query)
+
 def validate_vcfsamples(directory, populations, samplenames, rows, quiet):
+    """Validate the presence of samples listed in 'populations' to be in the target directory"""
     p_list = [i.split()[0] for i in rows]
     missing_samples = [x for x in p_list if x not in samplenames]
     overlooked = [x for x in samplenames if x not in p_list]
@@ -309,6 +307,7 @@ def validate_vcfsamples(directory, populations, samplenames, rows, quiet):
         sys.exit(1)
 
 def validate_demuxschema(infile):
+    """Validate the file format of the demultiplex schema"""
     with open(infile, "r") as f:
         rows = [i for i in f.readlines() if i != "\n" and not i.lstrip().startswith("#")]
         invalids = [(i,j) for i,j in enumerate(rows) if len(j.split()) < 2]
@@ -322,6 +321,7 @@ def validate_demuxschema(infile):
             sys.exit(1)
 
 def check_demux_fastq(file):
+    """Check for the presence of corresponding FASTQ files from a single provided FASTQ file based on pipeline expectations."""
     bn = os.path.basename(file)
     ext = re.search(r"(?:\_00[0-9])*\.f(.*?)q(?:\.gz)?$", file, re.IGNORECASE).group(0)
     prefix     = re.sub(r"[\_\.][IR][12]?(?:\_00[0-9])*\.f(?:ast)?q(?:\.gz)?$", "", bn)
@@ -343,3 +343,70 @@ def check_demux_fastq(file):
         #print(f"\n\033[91mError\033[0m: Not all necessary files with prefix \033[1m{prefix}\033[0m present")
         _ = [click.echo(i, file = sys.stderr) for i in filelist]
         exit(1)
+
+def generate_conda_deps():
+    """Create the YAML files of the workflow conda dependencies"""
+    condachannels = ["conda-forge", "bioconda"]
+    environ = {
+        "qc" : ["falco", "fastp"],
+        "align": ["bwa", "ema","icu","libzlib", "sambamba", "samtools=1.19", "seqtk", "xz"],
+        "variants.snp": ["bcftools=1.19", "freebayes=1.3.6"],
+        "variants.sv": ["leviathan", "naibr-plus"],
+        "phase" : ["hapcut2", "whatshap"],
+        "r-env" : ["bioconductor-complexheatmap", "r-circlize", "r-dt", "r-flexdashboard", "r-rmarkdown", "r-ggplot2", "r-ggridges", "r-plotly", "r-tidyr", "r-stitch"]
+    }
+
+    os.makedirs("harpyenvs", exist_ok = True)
+
+    for i in environ:
+        # don't overwrite existing
+        if not os.path.isfile(f"harpyenvs/{i}.yaml"):
+            with open(f"harpyenvs/{i}.yaml", "w") as yml:
+                yml.write(f"name: {i}\n")
+                yml.write("channels:\n  - ")
+                yml.write("\n  - ".join(condachannels))
+                yml.write("\ndependencies:\n  - ")
+                yml.write("\n  - ".join(environ[i]))
+
+
+def fetch_file(file, destination, rename=None):
+    """Find the 'file' in the PATH and copy it to the 'destination' with the original metadata"""
+    result = None
+    try:
+        result = subprocess.check_output(["whereis", file])
+    except:
+        print_error(f"The GNU program \'whereis\', which is used to locate the file, was not found on the system and therefore unable to retrieve it. Terminating harpy.")
+        print_solution("Make sure \'whereis\' is installed on the system. It is usually provided by default in all Unix-like operating systems.")
+
+    if result is None:
+        return []
+
+    result = result.decode().splitlines()
+    for line in result:
+        if line.endswith(":"):
+            print_error(f"The file \"{file}\" was not found in PATH, cannot run Harpy module.")
+            print_solution(f"Make sure harpy was installed correctly and that you are in the harpy conda environment.")
+            click.echo("See documentation: https://pdimens.github.io/harpy/install/")
+            exit(1)
+        else:
+            result = line.split(" ")[-1]
+            break
+    
+    os.makedirs(destination, exist_ok = True)
+    if rename:
+        destination += rename
+    # copy2 to keep metadata during copy
+    shutil.copy2(result, destination)
+
+def print_onstart(text):
+    """Print a panel of info on workflow run"""
+    click.echo("")
+    print(
+        Panel(
+            text,
+            title = "[bold]Harpy",
+            title_align = "left",
+            border_style = "white"
+        ),
+        file = sys.stderr
+    )

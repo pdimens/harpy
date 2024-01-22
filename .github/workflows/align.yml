@@ -5,17 +5,20 @@ on:
     branches:
       - 'dev'
     paths:
-      - 'rules/align-**.smk'
+      - 'workflow/envs/harpy.yaml'
+      - 'workflow/envs/r-env.yaml'
+      - 'workflow/envs/align.yaml'
+      - 'workflow/rules/align-**.smk'
       - '**align.py'
       - '**helperfunctions.py'
-      - 'reports/reportBwaGencov.Rmd'
-      - 'reports/reportEmaGencov.Rmd'
-      - 'reports/reportEmaCount.Rmd'
-      - 'reports/reportBxCount.Rmd'
-      - 'reports/reportBxStats.Rmd'
-      - 'utilities/bxStats.py'
-      - 'utilities/countBX.py'
-      - 'utilities/makewindows.py'
+      - 'workflow/report/BwaGencov.Rmd'
+      - 'workflow/report/EmaGencov.Rmd'
+      - 'workflow/report/EmaCount.Rmd'
+      - 'workflow/report/BxCount.Rmd'
+      - 'workflow/report/BxStats.Rmd'
+      - 'workflow/scripts/bxStats.py'
+      - 'workflow/scripts/countBX.py'
+      - 'workflow/scripts/makewindows.py'
       - 'test/fastq/**'
       - '**align.yml'
 
@@ -23,17 +26,20 @@ on:
     branches:
       - 'dev'
     paths:
-      - 'rules/align-**.smk'
+      - 'workflow/envs/harpy.yaml'
+      - 'workflow/envs/r-env.yaml'
+      - 'workflow/envs/align.yaml'
+      - 'workflow/rules/align-**.smk'
       - '**align.py'
       - '**helperfunctions.py'
-      - 'reports/reportBwaGencov.Rmd'
-      - 'reports/reportEmaGencov.Rmd'
-      - 'reports/reportEmaCount.Rmd'
-      - 'reports/reportBxCount.Rmd'
-      - 'reports/reportBxStats.Rmd'
-      - 'utilities/bxStats.py'
-      - 'utilities/countBX.py'
-      - 'utilities/makewindows.py'
+      - 'workflow/report/BwaGencov.Rmd'
+      - 'workflow/report/EmaGencov.Rmd'
+      - 'workflow/report/EmaCount.Rmd'
+      - 'workflow/report/BxCount.Rmd'
+      - 'workflow/report/BxStats.Rmd'
+      - 'workflow/scripts/bxStats.py'
+      - 'workflow/scripts/countBX.py'
+      - 'workflow/scripts/makewindows.py'
       - 'test/fastq/**'
       - '**align.yml'
 
@@ -56,7 +62,7 @@ jobs:
         with:
           init-shell: bash
           generate-run-shell: true
-          environment-file: misc/harpyenv.yaml
+          environment-file: workflow/envs/harpy.yaml
           cache-environment: true
           post-cleanup: 'all'
           log-level: error
@@ -64,14 +70,15 @@ jobs:
         run: |
           python3 -m pip install --upgrade build && python3 -m build
           pip install dist/*.whl
-          misc/buildforCI.sh
+          resources/buildforCI.sh
         shell: micromamba-shell {0}
 
       - name: align bwa
+        if: always()
         shell: micromamba-shell {0}
         run: harpy align bwa -d test/fastq -g test/genome/genome.fasta.gz -s "--show-failed-logs"
-        continue-on-error: true
 
       - name: align ema
+        if: always()
         shell: micromamba-shell {0}
         run: harpy align ema --ema-bins 20 -d test/fastq -g test/genome/genome.fasta.gz -s "--show-failed-logs"

@@ -5,37 +5,45 @@ on:
     branches:
       - 'dev'
     paths:
-      - 'rules/variants-leviathan**.smk'
-      - 'rules/variants-naibr**.smk'
+      - 'workflow/envs/harpy.yaml'
+      - 'workflow/envs/r-env.yaml'
+      - 'workflow/envs/phase.yaml'
+      - 'workflow/envs/variants.sv.yaml'
+      - 'workflow/rules/sv-leviathan**.smk'
+      - 'workflow/rules/sv-naibr**.smk'
       - '**sv.py'
       - '**helperfunctions.py'
-      - 'utilities/makewindows.py'
+      - 'workflow/scripts/makewindows.py'
       - 'test/bam/**'
       - 'test/bam_phased/**'
       - '**variants_snp.yml'
-      - 'reports/reportNaibr.Rmd'
-      - 'reports/reportNaibrPop.Rmd'
-      - 'reports/reportLeviathan.Rmd'
-      - 'reports/reportLeviathanPop.Rmd'
-      - 'utilities/inferSV.py'
+      - 'workflow/report/Naibr.Rmd'
+      - 'workflow/report/NaibrPop.Rmd'
+      - 'workflow/report/Leviathan.Rmd'
+      - 'workflow/report/LeviathanPop.Rmd'
+      - 'workflow/scripts/inferSV.py'
 
   pull_request:
     branches:
       - 'dev'
     paths:
-      - 'rules/variants-leviathan**.smk'
-      - 'rules/variants-naibr**.smk'
+      - 'workflow/envs/harpy.yaml'
+      - 'workflow/envs/r-env.yaml'
+      - 'workflow/envs/phase.yaml'
+      - 'workflow/envs/variants.sv.yaml'
+      - 'workflow/rules/sv-leviathan**.smk'
+      - 'workflow/rules/sv-naibr**.smk'
       - '**sv.py'
       - '**helperfunctions.py'
-      - 'utilities/makewindows.py'
+      - 'workflow/scripts/makewindows.py'
       - 'test/bam/**'
       - 'test/bam_phased/**'
       - '**variants_snp.yml'
-      - 'reports/reportNaibr.Rmd'
-      - 'reports/reportNaibrPop.Rmd'
-      - 'reports/reportLeviathan.Rmd'
-      - 'reports/reportLeviathanPop.Rmd'
-      - 'utilities/inferSV.py'
+      - 'workflow/report/Naibr.Rmd'
+      - 'workflow/report/NaibrPop.Rmd'
+      - 'workflow/report/Leviathan.Rmd'
+      - 'workflow/report/LeviathanPop.Rmd'
+      - 'workflow/scripts/inferSV.py'
 
 env:
   CACHE_NUMBER: 0  # increase to reset cache manually
@@ -56,16 +64,16 @@ jobs:
         with:
           init-shell: bash
           generate-run-shell: true
-          environment-file: misc/harpyenv.yaml
+          environment-file: workflow/envs/harpy.yaml
           cache-environment: true
           post-cleanup: 'all'
           log-level: error
       - name: Install harpy
+        shell: micromamba-shell {0}
         run: |
           python3 -m pip install --upgrade build && python3 -m build
           pip install dist/*.whl
-          misc/buildforCI.sh
-        shell: micromamba-shell {0}
+          resources/buildforCI.sh
 
       - name: leviathan
         shell: micromamba-shell {0}
@@ -73,24 +81,26 @@ jobs:
         continue-on-error: true
 
       - name: leviathan-pop
+        if: always()
         shell: micromamba-shell {0}
         run: harpy sv leviathan -d test/bam -g test/genome/genome.fasta.gz -p test/samples.groups -s "--show-failed-logs"
-        continue-on-error: true
-
+        
       - name: naibr
+        if: always()  
         shell: micromamba-shell {0}
         run: harpy sv naibr -d test/bam_phased -g test/genome/genome.fasta.gz -s "--show-failed-logs"
-        continue-on-error: true
-
+        
       - name: naibr pop
+        if: always()
         shell: micromamba-shell {0}
         run: harpy sv naibr -d test/bam_phased -g test/genome/genome.fasta.gz -p test/samples.groups -s "--show-failed-logs"
 
       - name: naibr phasing
+        if: always()
         shell: micromamba-shell {0}
         run: harpy sv naibr -d test/bam -g test/genome/genome.fasta.gz -v test/vcf/test.phased.bcf -s "--show-failed-logs"
-        continue-on-error: true
-
+        
       - name: naibr pop phasing
+        if: always()
         shell: micromamba-shell {0}
         run: harpy sv naibr -d test/bam -g test/genome/genome.fasta.gz -v test/vcf/test.phased.bcf -p test/samples.groups -s "--show-failed-logs"

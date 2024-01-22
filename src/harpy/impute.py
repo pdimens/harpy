@@ -1,64 +1,43 @@
-from .helperfunctions import getnames, vcfcheck, check_impute_params, validate_bamfiles
+from .helperfunctions import fetch_file, generate_conda_deps, getnames, print_onstart
+from .helperfunctions import vcfcheck, vcf_samplematch
+from .helperfunctions import check_impute_params, validate_bamfiles
 import rich_click as click
 import subprocess
 import sys
 import os
 
-try:
-    harpypath = '{CONDA_PREFIX}'.format(**os.environ) + "/bin"
-except:
-    pass
-
-#@click.option('-f', '--filter', is_flag=True, help="Filter VCF file to keep SNPs with QUAL>20 and DP>10")
 @click.command(no_args_is_help = True)
-@click.option('-v', '--vcf', required = True, type=click.Path(exists=True),metavar = "File Path", help = 'Path to BCF/VCF file')
-@click.option('-d', '--directory', required = True, type=click.Path(exists=True), metavar = "Folder Path", help = 'Directory with BAM alignments')
-@click.option('-p', '--parameters', required = True, type=click.Path(exists=True), metavar = "File Path", help = 'STITCH parameter file (tab-delimited)')
+@click.option('-v', '--vcf', required = True, type=click.Path(exists=True, dir_okay=False),metavar = "File Path", help = 'Path to BCF/VCF file')
+@click.option('-d', '--directory', required = True, type=click.Path(exists=True, file_okay=False), metavar = "Folder Path", help = 'Directory with BAM alignments')
+@click.option('-p', '--parameters', required = True, type=click.Path(exists=True, dir_okay=False), metavar = "File Path", help = 'STITCH parameter file (tab-delimited)')
 #@click.option('-x', '--extra-params', default = "", type = str, metavar = "String", help = 'Additional STITCH parameters, in quotes')
 @click.option('--vcf-samples',  is_flag = True, show_default = True, default = False, metavar = "Toggle", help = 'Use samples present in vcf file for imputation rather than those found the directory')
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(min = 4, max_open = True), metavar = "Integer", help = 'Number of threads to use')
 @click.option('-s', '--snakemake', type = str, metavar = "String", help = 'Additional Snakemake parameters, in quotes')
 @click.option('-q', '--quiet',  is_flag = True, show_default = True, default = False, metavar = "Toggle", help = 'Don\'t show output text while running')
-def impute(parameters, directory, threads, vcf, vcf_samples, snakemake, quiet):
+@click.option('--print-only',  is_flag = True, show_default = True, default = False, metavar = "Toggle", help = 'Print the generated snakemake command and exit')
+def impute(parameters, directory, threads, vcf, vcf_samples, snakemake, quiet, print_only):
     """
     Impute genotypes using variants and sequences
     
-    Requires a parameter file, use **harpy extra --stitch-params** to generate one and adjust it for your study.
+    Requires a parameter file, use **harpy stitchparams** to generate one and adjust it for your study.
     Use the `--vcf-samples` toggle to phase only the samples present in your input `--vcf` file rather than all
     the samples present in the `--directory`.
     """
+    fetch_file("impute.smk", "Impute/workflow/")
+    fetch_file("stitch_impute.R", "Impute/workflow/")
+    for i in ["Impute", "StitchCollate"]:
+        fetch_file(f"{i}.Rmd", "Impute/workflow/report/")
     ## validate inputs ##
     vcfcheck(vcf)
-    samplenames = getnames(directory, '.bam')
+    #samplenames = getnames(directory, '.bam')
     ### check that samples in VCF match input directory
-    bcfquery = subprocess.Popen(["bcftools", "query", "-l", vcf], stdout=subprocess.PIPE)
-    if vcf_samples:
-        samplenames = bcfquery.stdout.read().decode().split()
-        s_list = getnames(directory, '.bam')
-        fromthis = vcf
-        inthis = directory
-    else:
-        samplenames = getnames(directory, '.bam')
-        s_list = bcfquery.stdout.read().decode().split()
-        fromthis = directory
-        inthis = vcf
-    missing_samples = [x for x in samplenames if x not in s_list]
-    # check that samples in VCF match input directory
-    if len(missing_samples) > 0:
-        print_error(f"There are [bold]{len(missing_samples)}[/bold] samples found in [bold]{fromthis}[/bold] that are not in [bold]{inthis}[/bold]. Terminating Harpy to avoid downstream errors.")
-        #click.echo(f"\n\033[1;33mERROR:\033[00m There are {len(missing_samples)} samples found in \033[01m{fromthis}\033[00m that are not in \033[01m{inthis}\033[00m. Terminating Harpy to avoid downstream errors.", file = sys.stderr, color = True)
-        print_solution_with_culprits(
-            f"[bold]{fromthis}[/bold] cannot contain samples that are absent in [bold]{inthis}[/bold]. Check the spelling or remove those samples from [bold]{fromthis}[/bold] or remake the vcf file to include/omit these samples. Alternatively, toggle [green]--vcf-samples[/green] to aggregate the sample list from [bold]{directory}[/bold] or [bold]{vcf}[/bold]."
-            "The samples causing this error are:"
-        )
-        click.echo(", ".join(sorted(missing_samples)), file = sys.stderr)
-        sys.exit(1)
-
     directory = directory.rstrip("/^")
+    samplenames = vcf_samplematch(vcf, directory, vcf_samples)
     check_impute_params(parameters)
     validate_bamfiles(directory, samplenames)
 
-    command = f'snakemake --rerun-incomplete --nolock --cores {threads} --directory . --snakefile {harpypath}/impute.smk'.split()
+    command = f'snakemake --rerun-incomplete --nolock --use-conda --conda-prefix ./.snakemake --cores {threads} --directory . --snakefile Impute/workflow/impute.smk'.split()
     if snakemake is not None:
         [command.append(i) for i in snakemake.split()]
     if quiet:
@@ -94,5 +73,12 @@ def impute(parameters, directory, threads, vcf, vcf_samples, snakemake, quiet):
     command.append(f"paramfile={parameters}")
     command.append(f"contigs={contigs}")
     #command.append(f"extra={extra_params}")
-    _module = subprocess.run(command)
-    sys.exit(_module.returncode)
+    if print_only:
+        click.echo(" ".join(command))
+    else:
+        generate_conda_deps()
+        print_onstart(
+            f"Initializing the [bold]harpy impute[/bold] workflow.\nInput Directory: {directory}\nInput VCF: {vcf}\nSamples in VCF: {len(samplenames)}"
+        )
+        _module = subprocess.run(command)
+        sys.exit(_module.returncode)

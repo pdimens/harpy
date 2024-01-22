@@ -9,13 +9,8 @@ import rich_click as click
 from rich import print
 from rich.panel import Panel
 
-try:
-    harpypath = '{CONDA_PREFIX}'.format(**os.environ) + "/bin"
-except:
-    pass
-
 @click.command(no_args_is_help = True)
-@click.option('-d', '--directory', required = True, type=click.Path(exists=True), metavar = "Input folder Path", help = 'Input folder with fastq or bam files')
+@click.option('-d', '--directory', required = True, type=click.Path(exists=True, file_okay=False), metavar = "Input folder Path", help = 'Input folder with fastq or bam files')
 @click.option('-o', '--output', type=str, default = "samples.groups", metavar = "Output file name", help = 'Output file name')
 def popgroup(directory, output):
     """
@@ -48,7 +43,7 @@ def popgroup(directory, output):
     click.echo(str(len(samplenames)) + f" samples detected in {directory}", file = sys.stderr)
     if os.path.exists(output):
         overwrite = input(f"File {output} already exists, overwrite (no|yes)?  ").lower()
-        if overwrite not in ["yes", "y"]:
+        if overwrite.lower() not in ["yes", "y"]:
             click.echo("Please suggest a different name for the output file")
             exit(0)
     with open(output, "w") as file:

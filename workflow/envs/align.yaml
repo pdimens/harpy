@@ -1,0 +1,17 @@
+name: align
+channels:
+  - conda-forge
+  - bioconda
+  - defaults
+dependencies:
+  - bwa 
+  - ema
+  - icu
+  - libzlib
+  - multiqc
+  - llvm-openmp 
+  - pysam
+  - sambamba 
+  - samtools=1.19
+  - seqtk 
+  - xz

@@ -5,29 +5,35 @@ on:
     branches:
       - 'dev'
     paths:
-      - 'rules/phase-pop.smk'
+      - 'workflow/envs/harpy.yaml'
+      - 'workflow/envs/r-env.yaml'
+      - 'workflow/envs/phase.yaml'
+      - 'workflow/rules/phase-pop.smk'
       - '**phase.py'
       - '**helperfunctions.py'
       - 'test/bam/**'
       - 'test/vcf/test.bcf'
       - '**phase.yml'
-      - 'reports/reportHapCut2.Rmd'
-      - 'utilities/parsePhaseBlocks.py'
-      - 'utilities/summarizeHaplobocks.py'
+      - 'workflow/report/HapCut2.Rmd'
+      - 'workflow/scripts/parsePhaseBlocks.py'
+      - 'workflow/scripts/summarizeHaplobocks.py'
 
   pull_request:
     branches:
       - 'dev'
     paths:
-      - 'rules/phase-pop.smk'
+      - 'workflow/envs/harpy.yaml'
+      - 'workflow/envs/r-env.yaml'
+      - 'workflow/envs/phase.yaml'
+      - 'workflow/rules/phase-pop.smk'
       - '**phase.py'
       - '**helperfunctions.py'
       - 'test/bam/**'
       - 'test/vcf/test.bcf'
       - '**phase.yml'
-      - 'reports/reportHapCut2.Rmd'
-      - 'utilities/parsePhaseBlocks.py'
-      - 'utilities/summarizeHaplobocks.py'
+      - 'workflow/report/HapCut2.Rmd'
+      - 'workflow/scripts/parsePhaseBlocks.py'
+      - 'workflow/scripts/summarizeHaplobocks.py'
 
 env:
   CACHE_NUMBER: 0  # increase to reset cache manually
@@ -49,7 +55,7 @@ jobs:
         with:
           init-shell: bash
           generate-run-shell: true
-          environment-file: misc/harpyenv.yaml
+          environment-file: workflow/envs/harpy.yaml
           cache-environment: true
           post-cleanup: 'all'
           log-level: error
@@ -57,7 +63,7 @@ jobs:
         run: |
           python3 -m pip install --upgrade build && python3 -m build
           pip install dist/*.whl
-          misc/buildforCI.sh
+          resources/buildforCI.sh
         shell: micromamba-shell {0}
 
       - name: phase
@@ -66,12 +72,14 @@ jobs:
 
       - name: phase with indels
         shell: micromamba-shell {0}
+        if: always()
         run: |
           rm -rf Phase
           harpy phase --vcf test/vcf/test.bcf -g test/genome/genome.fasta.gz -d test/bam -s "--show-failed-logs"
 
       - name: phase from vcf
         shell: micromamba-shell {0}
+        if: always()
         run: |
           rm -rf Phase
           harpy phase --vcf-samples --vcf test/vcf/test.bcf -d test/bam -s "--show-failed-logs"

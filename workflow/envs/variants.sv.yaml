@@ -1,0 +1,14 @@
+name: variants.sv
+channels:
+  - conda-forge
+  - bioconda
+  - defaults
+dependencies:
+  - bcftools=1.19
+  - leviathan 
+  - naibr-plus 
+  - pysam 
+  - samtools 
+  - tabix 
+  - whatshap 
+  - xz

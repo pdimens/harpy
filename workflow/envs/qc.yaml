@@ -1,0 +1,10 @@
+name: qc
+channels:
+  - conda-forge
+  - bioconda
+  - defaults
+dependencies:
+  - falco 
+  - fastp 
+  - multiqc 
+  - pysam

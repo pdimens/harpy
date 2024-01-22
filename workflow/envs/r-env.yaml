@@ -1,0 +1,15 @@
+name: r_env
+channels:
+  - conda-forge
+  - bioconda
+  - defaults
+dependencies:
+  - bioconductor-complexheatmap 
+  - r-circlize 
+  - r-dt 
+  - r-flexdashboard 
+  - r-ggplot2 
+  - r-ggridges 
+  - r-plotly
+  - r-stitch 
+  - r-tidyr 
