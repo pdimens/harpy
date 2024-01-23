@@ -202,9 +202,9 @@ rule call_sv:
         bai   = outdir + "/phasedbam/{sample}.bam.bai",
         conf  = outdir + "/configs/{sample}.config"
     output:
-        bedpe = outdir + "{sample}/{sample}.bedpe",
-        refmt = outdir + "{sample}/{sample}.reformat.bedpe",
-        vcf   = outdir + "{sample}/{sample}.vcf"
+        bedpe = outdir + "/{sample}/{sample}.bedpe",
+        refmt = outdir + "/{sample}/{sample}.reformat.bedpe",
+        vcf   = outdir + "/{sample}/{sample}.vcf"
     log:
         full  = outdir + "/logs/{sample}.naibrlog",
         pairs = outdir + "/logs/{sample}.log"
