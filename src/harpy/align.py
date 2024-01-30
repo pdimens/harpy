@@ -16,8 +16,9 @@ from time import sleep
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(min = 4, max_open = True), metavar = "Integer", help = 'Number of threads to use')
 @click.option('-s', '--snakemake', type = str, metavar = "String", help = 'Additional Snakemake parameters, in quotes')
 @click.option('-q', '--quiet',  is_flag = True, show_default = True, default = False, metavar = "Toggle", help = 'Don\'t show output text while running')
+@click.option('-r', '--skipreports',  is_flag = True, show_default = True, default = False, metavar = "Toggle", help = 'Don\'t generate any HTML reports')
 @click.option('--print-only',  is_flag = True, show_default = True, default = False, metavar = "Toggle", help = 'Print the generated snakemake command and exit')
-def bwa(genome, threads, directory, extra_params, quality_filter, molecule_distance, snakemake, quiet, print_only):
+def bwa(genome, threads, directory, extra_params, quality_filter, molecule_distance, snakemake, skipreports, quiet, print_only):
     """
     Align sequences to genome using BWA MEM
  
@@ -36,15 +37,17 @@ def bwa(genome, threads, directory, extra_params, quality_filter, molecule_dista
     if quiet:
         command.append("--quiet")
         command.append("all")
-    command.append('--config')
-    command.append(f"genomefile={genome}")
-    command.append(f"quality={quality_filter}")
-    command.append(f"samplenames={samplenames}")
-    command.append(f"molecule_distance={molecule_distance}")
-    command.append(f"seq_directory={directory}")
-
-    if extra_params is not None:
-        command.append(f"extra={extra_params}")
+    with open("Align/bwa/workflow/config.yml", "w") as config:
+        config.write(f"genomefile: {genome}\n")
+        config.write(f"seq_directory: {directory}\n")
+        config.write(f"samplenames: {samplenames}\n")
+        config.write(f"quality: {quality_filter}\n")
+        config.write(f"molecule_distance: {molecule_distance}\n")
+        config.write(f"skipreports: {skipreports}\n")
+        if extra_params is not None:
+            config.write(f"extra: {extra_params}\n")
+    command.append("--configfile")
+    command.append("Align/bwa/workflow/config.yml")
     if print_only:
         click.echo(" ".join(command))
     else:
@@ -68,8 +71,9 @@ def bwa(genome, threads, directory, extra_params, quality_filter, molecule_dista
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(min = 4, max_open = True), metavar = "Integer", help = 'Number of threads to use')
 @click.option('-s', '--snakemake', type = str, metavar = "String", help = 'Additional Snakemake parameters, in quotes')
 @click.option('-q', '--quiet',  is_flag = True, show_default = True, default = False, metavar = "Toggle", help = 'Don\'t show output text while running')
+@click.option('-r', '--skipreports',  is_flag = True, show_default = True, default = False, metavar = "Toggle", help = 'Don\'t generate any HTML reports')
 @click.option('--print-only',  is_flag = True, show_default = True, default = False, metavar = "Toggle", help = 'Print the generated snakemake command and exit')
-def ema(platform, whitelist, genome, threads, ema_bins, directory, extra_params, quality_filter, snakemake, quiet, print_only):
+def ema(platform, whitelist, genome, threads, ema_bins, directory, skipreports, extra_params, quality_filter, snakemake, quiet, print_only):
     """
     Align sequences to a genome using EMA
 
@@ -108,6 +112,7 @@ def ema(platform, whitelist, genome, threads, ema_bins, directory, extra_params,
     command.append(f"samplenames={samplenames}")
     command.append(f"EMA_bins={ema_bins}")
     command.append(f"seq_directory={directory}")
+    command.append(f"skipreports={skipreports}")
 
     if extra_params is not None:
         command.append(f"extra={extra_params}")

@@ -209,7 +209,7 @@ click.rich_click.OPTION_GROUPS = {
         },
         {
             "name": "Other Options",
-            "options": ["--threads", "--snakemake", "--quiet", "--print-only", "--help"],
+            "options": ["--threads", "--skipreports", "--snakemake", "--quiet", "--print-only", "--help"],
         },
     ],
     "harpy align ema": [

@@ -17,6 +17,7 @@ extra 		= config.get("extra", "")
 bn 			= os.path.basename(genomefile)
 genome_zip  = True if bn.lower().endswith(".gz") else False
 bn_idx      = f"{bn}.gzi" if genome_zip else f"{bn}.fai"
+skipreports = config["skipreports"]
 
 d = dict(zip(samplenames, samplenames))
 
@@ -461,15 +462,22 @@ rule log_runtime:
             _ = f.write("Merged alignments were sorted using:\n")
             _ = f.write("    samtools sort merged.bam\n")
 
+# conditionally add the reports to the output
+results = list()
+results.append(expand(outdir + "/{sample}.bam", sample = samplenames))
+results.append(expand(outdir + "/{sample}.bam.bai", sample = samplenames))
+results.append(f"{outdir}/workflow/align.workflow.summary")
+
+if not skipreports:
+    results.append(expand(outdir + "/reports/coverage/{sample}.cov.html", sample = samplenames))
+    results.append(expand(outdir + "/reports/BXstats/{sample}.bxstats.html", sample = samplenames))
+    results.append(f"{outdir}/reports/reads.bxcounts.html")
+    results.append(f"{outdir}/reports/ema.stats.html")
+
+
 rule all:
     default_target: True
-    input: 
-        bam = expand(outdir + "/{sample}.bam", sample = samplenames),
-        bai = expand(outdir + "/{sample}.bam.bai", sample = samplenames),
-        covstats = expand(outdir + "/reports/coverage/{sample}.cov.html", sample = samplenames),
-        bxstats = expand(outdir + "/reports/BXstats/{sample}.bxstats.html", sample = samplenames),
-        bxcounts = f"{outdir}/reports/reads.bxcounts.html",
-        emastats = f"{outdir}/reports/ema.stats.html",
-        runlog = f"{outdir}/workflow/align.workflow.summary"
+    input:
+        results
     message:
         "Checking for expected workflow output"

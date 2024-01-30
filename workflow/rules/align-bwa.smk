@@ -14,6 +14,7 @@ extra 		= config.get("extra", "")
 bn 			= os.path.basename(genomefile)
 genome_zip  = True if bn.lower().endswith(".gz") else False
 bn_idx      = f"{bn}.gzi" if genome_zip else f"{bn}.fai"
+skipreports = config["skipreports"]
 
 d = dict(zip(samplenames, samplenames))
 
@@ -309,14 +310,20 @@ rule log_runtime:
             _ = f.write("Duplicates in the alignments were marked using sambamba:\n")
             _ = f.write("    sambamba markdup -l 0\n")
 
+# conditionally add the reports to the output
+results = list()
+results.append(expand(outdir + "/{sample}.bam", sample = samplenames))
+results.append(expand(outdir + "/{sample}.bam.bai", sample = samplenames))
+results.append(outdir + "/workflow/align.workflow.summary")
+
+if not skipreports:
+    results.append(expand(outdir + "/reports/coverage/{sample}.cov.html", sample = samplenames))
+    results.append(expand(outdir + "/reports/BXstats/{sample}.bxstats.html", sample = samplenames))
+    results.append(outdir + "/reports/bwa.stats.html")
+
 rule all:
     default_target: True
     input: 
-        bam = expand(outdir + "/{sample}.bam", sample = samplenames),
-        bai = expand(outdir + "/{sample}.bam.bai", sample = samplenames),
-        covreport = expand(outdir + "/reports/coverage/{sample}.cov.html", sample = samplenames),
-        bxreport = expand(outdir + "/reports/BXstats/{sample}.bxstats.html", sample = samplenames),
-        statsreport = outdir + "/reports/bwa.stats.html",
-        runlog = outdir + "/workflow/align.workflow.summary"
+        results
     message:
         "Checking for expected workflow output"
