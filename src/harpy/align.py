@@ -103,16 +103,22 @@ def ema(platform, whitelist, genome, threads, ema_bins, directory, skipreports, 
     if quiet:
         command.append("--quiet")
         command.append("all")
-    command.append('--config')
-    if whitelist:
-        command.append(f"whitelist={whitelist}")
-    command.append(f"platform={platform}")
-    command.append(f"genomefile={genome}")
-    command.append(f"quality={quality_filter}")
-    command.append(f"samplenames={samplenames}")
-    command.append(f"EMA_bins={ema_bins}")
-    command.append(f"seq_directory={directory}")
-    command.append(f"skipreports={skipreports}")
+    
+    with open("Align/ema/workflow/config.yml", "w") as config:
+        config.write(f"genomefile: {genome}\n")
+        config.write(f"seq_directory: {directory}\n")
+        config.write(f"samplenames: {samplenames}\n")
+        config.write(f"quality: {quality_filter}\n")
+        config.write(f"platform: {platform}\n")
+        config.write(f"EMA_bins: {ema_bins}\n")
+        config.write(f"skipreports: {skipreports}\n")
+        if whitelist:
+            config.write(f"whitelist: {whitelist}\n")
+        if extra_params is not None:
+            config.write(f"extra: {extra_params}\n")
+
+    command.append("--configfile")
+    command.append("Align/ema/workflow/config.yml")
 
     if extra_params is not None:
         command.append(f"extra={extra_params}")
