@@ -120,8 +120,6 @@ def ema(platform, whitelist, genome, threads, ema_bins, directory, skipreports, 
     command.append("--configfile")
     command.append("Align/ema/workflow/config.yml")
 
-    if extra_params is not None:
-        command.append(f"extra={extra_params}")
     if print_only:
         click.echo(" ".join(command))
     else:
