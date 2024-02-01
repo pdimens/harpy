@@ -111,7 +111,7 @@ def naibr(genome, vcf, threads, directory, populations, molecule_distance, extra
         vcaller += "-phase"
     fetch_file(f"sv-{vcaller}.smk", f"Variants/{outdir}/workflow/")
     command = f'snakemake --rerun-incomplete --nolock --use-conda --conda-prefix ./.snakemake --cores {threads} --directory .'.split()
-    command.append(" --snakefile")
+    command.append("--snakefile")
     command.append(f'Variants/{outdir}/workflow/sv-{vcaller}.smk')
     command.append("--configfile")
     command.append(f"Variants/{outdir}/workflow/config.yml")
