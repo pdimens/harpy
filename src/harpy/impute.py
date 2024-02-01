@@ -56,6 +56,7 @@ def impute(parameters, directory, threads, vcf, vcf_samples, snakemake, skiprepo
     # doing it here so it doesn't have to run each time inside the workflow
     vbn = os.path.basename(vcf)
     #TODO make this a function in helperfunctions.py
+    #TODO HAVE PYTHON DO THE SORTING AND COUNTING AND FILTERING?
     if not os.path.exists(f"Impute/input/_{vbn}.list"):
         os.makedirs("Impute/input/", exist_ok = True)
         click.echo("\033[1mPreprocessing:\033[00m Identifying contigs with at least 2 biallelic SNPs", file = sys.stderr, color = True)
@@ -78,11 +79,11 @@ def impute(parameters, directory, threads, vcf, vcf_samples, snakemake, skiprepo
         exit(1)
 
     with open("Impute/workflow/config.yml", "w") as config:
-        config.write(f"seq_directory: {directory}")
-        config.write(f"samplenames: {samplenames}")
-        config.write(f"variantfile: {vcf}")
-        config.write(f"paramfile: {parameters}")
-        config.write(f"contigs: {contigs}")
+        config.write(f"seq_directory: {directory}\n")
+        config.write(f"samplenames: {samplenames}\n")
+        config.write(f"variantfile: {vcf}\n")
+        config.write(f"paramfile: {parameters}\n")
+        config.write(f"contigs: {contigs}\n")
         config.write(f"skipreports: {skipreports}\n")
         config.write(f"workflow_call: {call_SM}\n")
         #config.write(f"extra={extra_params}")

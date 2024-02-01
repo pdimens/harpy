@@ -39,8 +39,8 @@ def gen1(file, samplesheet, threads, snakemake, quiet, print_only):
     call_SM = " ".join(command)
 
     with open(f"Demultiplex/{inprefix}/workflow/config.yml", "w") as config:
-        config.write(f"infile: {file}")
-        config.write(f"samplefile: {samplesheet}")
+        config.write(f"infile: {file}\n")
+        config.write(f"samplefile: {samplesheet}\n")
         config.write(f"workflow_call: {call_SM}\n")
 
     if print_only:
