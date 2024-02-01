@@ -45,9 +45,9 @@ def qc(directory, max_length, ignore_adapters, extra_params, threads, snakemake,
     call_SM = " ".join(command)
 
     with open("QC/workflow/config.yml", "w") as config:
-        command.append(f"seq_directory: {directory}\n")
-        command.append(f"adapters: {ignore_adapters}\n")
-        command.append(f"maxlen: {max_length}\n")
+        config.write(f"seq_directory: {directory}\n")
+        config.write(f"adapters: {ignore_adapters}\n")
+        config.write(f"maxlen: {max_length}\n")
         if extra_params is not None:
             command.append(f"extra: {extra_params}\n")
         config.write(f"skipreports: {skipreports}\n")
