@@ -14,9 +14,10 @@ import os
 @click.option('-x', '--extra-params', type = str, metavar = "String", help = 'Additional variant caller parameters, in quotes')
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(min = 4, max_open = True), metavar = "Integer", help = 'Number of threads to use')
 @click.option('-s', '--snakemake', type = str, metavar = "String", help = 'Additional Snakemake parameters, in quotes')
+@click.option('-r', '--skipreports',  is_flag = True, show_default = True, default = False, metavar = "Toggle", help = 'Don\'t generate any HTML reports')
 @click.option('-q', '--quiet',  is_flag = True, show_default = True, default = False, metavar = "Toggle", help = 'Don\'t show output text while running')
 @click.option('--print-only',  is_flag = True, show_default = True, default = False, metavar = "Toggle", help = 'Print the generated snakemake command and exit')
-def mpileup(genome, threads, directory, populations, ploidy, windowsize, extra_params, snakemake, quiet, print_only):
+def mpileup(genome, threads, directory, populations, ploidy, windowsize, extra_params, snakemake, skipreports, quiet, print_only):
     """
     Call variants from using bcftools mpileup
     
@@ -31,35 +32,45 @@ def mpileup(genome, threads, directory, populations, ploidy, windowsize, extra_p
     callcoords, linkedgenome = createregions(genome, windowsize, "mpileup")
     directory = directory.rstrip("/^")
     validate_bamfiles(directory, samplenames)
-    command = (f'snakemake --rerun-incomplete --nolock --cores {threads} --directory . --snakefile Variants/mpileup/workflow/snp-mpileup.smk').split()
-    if snakemake is not None:
-        [command.append(i) for i in snakemake.split()]
+    command = (f'snakemake --rerun-incomplete --nolock --cores {threads} --directory .').split()
+    command.append('--snakefile')
+    command.append('Variants/mpileup/workflow/snp-mpileup.smk')
+    command.append('--configfile')
+    command.append('Variants/mpileup/workflow/config.yml')
     if quiet:
         command.append("--quiet")
         command.append("all")
-    command.append('--config')
-    command.append(f"seq_directory={directory}")
-    command.append(f"samplenames={samplenames}")
-    popgroupings = ""
-    if populations is not None:
-        popgroupings += f"\nPopulations: {populations}"
-        rows = validate_popfile(populations)
-        # check that samplenames and populations line up
-        validate_vcfsamples(directory, populations, samplenames, rows, quiet)
-        command.append(f"groupings={populations}")
-    command.append(f"ploidy={ploidy}")
-    command.append(f"windowsize={windowsize}")
-    command.append(f"intervals={callcoords}")
-    command.append(f"genomefile={linkedgenome}")
-    if extra_params is not None:
-        command.append(f"extra={extra_params}")
+    if snakemake is not None:
+        [command.append(i) for i in snakemake.split()]
+
+    call_SM = " ".join(command)
+
+    with open("Variants/mpileup/workflow/config.yml", "w") as config:
+        config.write(f"seq_directory: {directory}\n")
+        config.write(f"samplenames: {samplenames}\n")
+        popgroupings = ""
+        if populations is not None:
+            rows = validate_popfile(populations)
+            # check that samplenames and populations line up
+            validate_vcfsamples(directory, populations, samplenames, rows, quiet)
+            config.write(f"groupings: {populations}\n")
+            popgroupings += f"\nPopulations: {populations}"
+        config.write(f"genomefile: {linkedgenome}\n")
+        config.write(f"ploidy: {ploidy}\n")
+        config.write(f"windowsize: {windowsize}\n")
+        config.write(f"intervals: {callcoords}\n")
+        if extra_params is not None:
+            config.write(f"extra: {extra_params}\n")
+        config.write(f"skipreports: {skipreports}\n")
+        config.write(f"workflow_call: {call_SM}\n")
+
     if print_only:
-        click.echo(" ".join(command))
+        click.echo(call_SM)
     else:
-        generate_conda_deps()
         print_onstart(
             f"Initializing the [bold]harpy snp mpileup[/bold] workflow.\nInput Directory: {directory}\nSamples: {len(samplenames)}{popgroupings}"
         )
+        generate_conda_deps()
         _module = subprocess.run(command)
         sys.exit(_module.returncode)
 
@@ -71,10 +82,11 @@ def mpileup(genome, threads, directory, populations, ploidy, windowsize, extra_p
 @click.option('-w', '--windowsize', default = 50000, show_default = True, type = int, metavar = "Integer", help = "Interval size for parallel variant calling")
 @click.option('-x', '--extra-params', type = str, metavar = "String", help = 'Additional variant caller parameters, in quotes')
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(min = 4, max_open = True), metavar = "Integer", help = 'Number of threads to use')
+@click.option('-r', '--skipreports',  is_flag = True, show_default = True, default = False, metavar = "Toggle", help = 'Don\'t generate any HTML reports')
 @click.option('-s', '--snakemake', type = str, metavar = "String", help = 'Additional Snakemake parameters, in quotes')
 @click.option('-q', '--quiet',  is_flag = True, show_default = True, default = False, metavar = "Toggle", help = 'Don\'t show output text while running')
 @click.option('--print-only',  is_flag = True, show_default = True, default = False, metavar = "Toggle", help = 'Print the generated snakemake command and exit')
-def freebayes(genome, threads, directory, populations, ploidy, windowsize, extra_params, snakemake, quiet, print_only):
+def freebayes(genome, threads, directory, populations, ploidy, windowsize, extra_params, snakemake, skipreports, quiet, print_only):
     """
     Call variants using freebayes
     
@@ -89,34 +101,44 @@ def freebayes(genome, threads, directory, populations, ploidy, windowsize, extra
     callcoords, linkedgenome = createregions(genome, windowsize, "freebayes")
     directory = directory.rstrip("/^")
     validate_bamfiles(directory, samplenames)
-    command = (f'snakemake --rerun-incomplete --nolock --use-conda --conda-prefix ./.snakemake --cores {threads} --directory . --snakefile Variants/freebayes/workflow/snp-freebayes.smk').split()
-    if snakemake is not None:
-        [command.append(i) for i in snakemake.split()]
+    command = (f'snakemake --rerun-incomplete --nolock --use-conda --conda-prefix ./.snakemake --cores {threads} --directory .').split()
+    command.append('--snakefile')
+    command.append('Variants/freebayes/workflow/snp-freebayes.smk')
+    command.append('--configfile')
+    command.append('Variants/freebayes/workflow/config.yml')
     if quiet:
         command.append("--quiet")
         command.append("all")
-    command.append('--config')
-    command.append(f"seq_directory={directory}")
-    command.append(f"samplenames={samplenames}")
-    popgroupings = ""
-    if populations is not None:
-        popgroupings += f"\nPopulations: {populations}"
-        rows = validate_popfile(populations)
-        # check that samplenames and populations line up
-        validate_vcfsamples(directory, populations, samplenames, rows, quiet)
-        command.append(f"groupings={populations}")
-    command.append(f"ploidy={ploidy}")
-    command.append(f"windowsize={windowsize}")
-    command.append(f"intervals={callcoords}")
-    command.append(f"genomefile={linkedgenome}")
-    if extra_params is not None:
-        command.append(f"extra={extra_params}")
+    if snakemake is not None:
+        [command.append(i) for i in snakemake.split()]
+
+    call_SM = " ".join(command)
+
+    with open("Variants/mpileup/workflow/config.yml", "w") as config:
+        config.write(f"seq_directory: {directory}\n")
+        config.write(f"samplenames: {samplenames}\n")
+        popgroupings = ""
+        if populations is not None:
+            rows = validate_popfile(populations)
+            # check that samplenames and populations line up
+            validate_vcfsamples(directory, populations, samplenames, rows, quiet)
+            config.write(f"groupings: {populations}\n")
+            popgroupings += f"\nPopulations: {populations}"
+        config.write(f"ploidy: {ploidy}\n")
+        config.write(f"windowsize: {windowsize}\n")
+        config.write(f"intervals: {callcoords}\n")
+        config.write(f"genomefile: {linkedgenome}\n")
+        if extra_params is not None:
+            config.write(f"extra: {extra_params}\n")
+        config.write(f"skipreports: {skipreports}\n")
+        config.write(f"workflow_call: {call_SM}\n")
+
     if print_only:
-        click.echo(" ".join(command))
+        click.echo(call_SM)
     else:
-        generate_conda_deps()
         print_onstart(
             f"Initializing the [bold]harpy snp freebayes[/bold] workflow.\nInput Directory: {directory}\nSamples: {len(samplenames)}{popgroupings}"
         )
+        generate_conda_deps()
         _module = subprocess.run(command)
         sys.exit(_module.returncode)

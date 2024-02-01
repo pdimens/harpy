@@ -13,9 +13,10 @@ import glob
 @click.option('-x', '--extra-params', type = str, metavar = "String", help = 'Additional Fastp parameters, in quotes')
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(min = 4, max_open = True), metavar = "Integer", help = 'Number of threads to use')
 @click.option('-s', '--snakemake', type = str, metavar = "String", help = 'Additional Snakemake parameters, in quotes')
+@click.option('-r', '--skipreports',  is_flag = True, show_default = True, default = False, metavar = "Toggle", help = 'Don\'t generate any HTML reports')
 @click.option('-q', '--quiet',  is_flag = True, show_default = True, default = False, metavar = "Toggle", help = 'Don\'t show output text while running')
 @click.option('--print-only',  is_flag = True, show_default = True, default = False, metavar = "Toggle", help = 'Print the generated snakemake command and exit')
-def qc(directory, max_length, ignore_adapters, extra_params, threads, snakemake, quiet, print_only):
+def qc(directory, max_length, ignore_adapters, extra_params, threads, snakemake, skipreports, quiet, print_only):
     """
     Remove adapters and quality trim sequences
 
@@ -27,27 +28,37 @@ def qc(directory, max_length, ignore_adapters, extra_params, threads, snakemake,
     """
     fetch_file("qc.smk", "QC/workflow/")
     fetch_file("BxCount.Rmd", "QC/workflow/report/")
+    directory = directory.rstrip("/^")
     sn = get_samples_from_fastq(directory)
 
-    command = f'snakemake --rerun-incomplete --nolock  --use-conda --conda-prefix ./.snakemake --cores {threads} --directory . --snakefile QC/workflow/qc.smk'.split()
-    if snakemake is not None:
-        [command.append(i) for i in snakemake.split()]
+    command = f'snakemake --rerun-incomplete --nolock  --use-conda --conda-prefix ./.snakemake --cores {threads} --directory .'.split()
+    command.append('--snakefile')
+    command.append('QC/workflow/qc.smk')
+    command.append('--configfile')
+    command.append('QC/workflow/config.yml')
     if quiet:
         command.append("--quiet")
         command.append("all")
-    command.append('--config')
-    directory = directory.rstrip("/^")
-    command.append(f"seq_directory={directory}")
-    command.append(f"adapters={ignore_adapters}")
-    command.append(f"maxlen={max_length}")
-    if extra_params is not None:
-        command.append(f"extra={extra_params}")
+    if snakemake is not None:
+        [command.append(i) for i in snakemake.split()]
+
+    call_SM = " ".join(command)
+
+    with open("QC/workflow/config.yml", "w") as config:
+        command.append(f"seq_directory: {directory}\n")
+        command.append(f"adapters: {ignore_adapters}\n")
+        command.append(f"maxlen: {max_length}\n")
+        if extra_params is not None:
+            command.append(f"extra: {extra_params}\n")
+        config.write(f"skipreports: {skipreports}\n")
+        config.write(f"workflow_call: {call_SM}\n")
+
     if print_only:
-        click.echo(" ".join(command))
+        click.echo(call_SM)
     else:
-        generate_conda_deps()
         print_onstart(
             f"Initializing the [bold]harpy qc[/bold] workflow.\nInput Directory: {directory}\nSamples: {len(sn)}"
         )
+        generate_conda_deps()
         _module = subprocess.run(command)
         sys.exit(_module.returncode)

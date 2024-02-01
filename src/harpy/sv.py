@@ -12,9 +12,10 @@ import os
 @click.option('-x', '--extra-params', type = str, metavar = "String", help = 'Additional variant caller parameters, in quotes')
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(min = 4, max_open = True), metavar = "Integer", help = 'Number of threads to use')
 @click.option('-s', '--snakemake', type = str, metavar = "String", help = 'Additional Snakemake parameters, in quotes')
+@click.option('-r', '--skipreports',  is_flag = True, show_default = True, default = False, metavar = "Toggle", help = 'Don\'t generate any HTML reports')
 @click.option('-q', '--quiet',  is_flag = True, show_default = True, default = False, metavar = "Toggle", help = 'Don\'t show output text while running')
 @click.option('--print-only',  is_flag = True, show_default = True, default = False, metavar = "Toggle", help = 'Print the generated snakemake command and exit')
-def leviathan(genome, threads, directory, populations, extra_params, snakemake, quiet, print_only):
+def leviathan(genome, threads, directory, populations, extra_params, snakemake, skipreports, quiet, print_only):
     """
     Call structural variants using LEVIATHAN
     
@@ -22,6 +23,7 @@ def leviathan(genome, threads, directory, populations, extra_params, snakemake, 
     Use **harpy popgroup** to create a sample grouping file to 
     use as input for `--populations`.
     """
+    directory = directory.rstrip("/^")
     samplenames = getnames(directory, '.bam')
     vcaller = "leviathan"
     if populations is not None:
@@ -29,34 +31,43 @@ def leviathan(genome, threads, directory, populations, extra_params, snakemake, 
         fetch_file("LeviathanPop.Rmd", f"Variants/{vcaller}/workflow/report/")
     fetch_file("Leviathan.Rmd", f"Variants/{vcaller}/workflow/report/")
     fetch_file(f"sv-{vcaller}.smk", f"Variants/{vcaller}/workflow/")
-    directory = directory.rstrip("/^")
-    command = (f'snakemake --rerun-incomplete --nolock --use-conda --conda-prefix ./.snakemake --cores {threads} --directory . --snakefile Variants/{vcaller}/workflow/sv-{vcaller}.smk').split()
-    if snakemake is not None:
-        [command.append(i) for i in snakemake.split()]
+    command = f'snakemake --rerun-incomplete --nolock --use-conda --conda-prefix ./.snakemake --cores {threads} --directory .'.split()
+    command.append('--snakefile')
+    command.append(f'Variants/{vcaller}/workflow/sv-{vcaller}.smk')
+    command.append('--configfile')
+    command.append(f'Variants/{vcaller}/workflow/config.yml')
     if quiet:
         command.append("--quiet")
         command.append("all")
-    command.append('--config')
-    command.append(f"seq_directory={directory}")
-    command.append(f"samplenames={samplenames}")
-    popgroupings = ""
-    if populations is not None:
-        popgroupings += f"\nPopulations: {populations}"
-        # check for delimeter and formatting
-        rows = validate_popfile(populations)
-        # check that samplenames and populations line up
-        validate_vcfsamples(directory, populations, samplenames, rows, quiet)
-        command.append(f"groupings={populations}")
-    command.append(f"genomefile={genome}")
-    if extra_params is not None:
-        command.append(f"extra={extra_params}")
+    if snakemake is not None:
+        [command.append(i) for i in snakemake.split()]
+
+    call_SM = " ".join(command)
+
+    with open(f'Variants/{vcaller}/workflow/config.yml', "w") as config:
+        config.write(f"seq_directory: {directory}\n")
+        config.write(f"samplenames: {samplenames}\n")
+        popgroupings = ""
+        if populations is not None:
+            # check for delimeter and formatting
+            rows = validate_popfile(populations)
+            # check that samplenames and populations line up
+            validate_vcfsamples(directory, populations, samplenames, rows, quiet)
+            config.write(f"groupings: {populations}\n")
+            popgroupings += f"\nPopulations: {populations}"
+        config.write(f"genomefile: {genome}\n")
+        if extra_params is not None:
+            config.write(f"extra: {extra_params}\n")
+        config.write(f"skipreports: {skipreports}\n")
+        config.write(f"workflow_call: {call_SM}\n")
+
     if print_only:
-        click.echo(" ".join(command))
+        click.echo(call_SM)
     else:
-        generate_conda_deps()
         print_onstart(
             f"Initializing the [bold]harpy sv leviathan[/bold] workflow.\nInput Directory: {directory}\nSamples: {len(samplenames)}{popgroupings}"
         )
+        generate_conda_deps()
         _module = subprocess.run(command)
         sys.exit(_module.returncode)
 
@@ -69,9 +80,10 @@ def leviathan(genome, threads, directory, populations, extra_params, snakemake, 
 @click.option('-x', '--extra-params', type = str, metavar = "String", help = 'Additional variant caller parameters, in quotes')
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(min = 4, max_open = True), metavar = "Integer", help = 'Number of threads to use')
 @click.option('-s', '--snakemake', type = str, metavar = "String", help = 'Additional Snakemake parameters, in quotes')
+@click.option('-r', '--skipreports',  is_flag = True, show_default = True, default = False, metavar = "Toggle", help = 'Don\'t generate any HTML reports')
 @click.option('-q', '--quiet',  is_flag = True, show_default = True, default = False, metavar = "Toggle", help = 'Don\'t show output text while running')
 @click.option('--print-only',  is_flag = True, show_default = True, default = False, metavar = "Toggle", help = 'Print the generated snakemake command and exit')
-def naibr(genome, vcf, threads, directory, populations, molecule_distance, extra_params, snakemake, quiet, print_only):
+def naibr(genome, vcf, threads, directory, populations, molecule_distance, extra_params, snakemake, skipreports, quiet, print_only):
     """
     Call structural variants using NAIBR
     
@@ -85,6 +97,7 @@ def naibr(genome, vcf, threads, directory, populations, molecule_distance, extra
     Use **harpy popgroup** to create a sample grouping file to 
     use as input for `--populations`.
     """
+    directory = directory.rstrip("/^")
     samplenames = getnames(directory, '.bam')
     vcaller = "naibr"
     outdir = "naibr"
@@ -97,38 +110,46 @@ def naibr(genome, vcf, threads, directory, populations, molecule_distance, extra
         check_phase_vcf(vcf)
         vcaller += "-phase"
     fetch_file(f"sv-{vcaller}.smk", f"Variants/{outdir}/workflow/")
-    command = (f'snakemake --rerun-incomplete --nolock --use-conda --conda-prefix ./.snakemake --cores {threads} --directory . --snakefile Variants/{outdir}/workflow/sv-{vcaller}.smk').split()
-    
-    directory = directory.rstrip("/^")
-    if snakemake is not None:
-        [command.append(i) for i in snakemake.split()]
+    command = f'snakemake --rerun-incomplete --nolock --use-conda --conda-prefix ./.snakemake --cores {threads} --directory .'.split()
+    command.append(" --snakefile")
+    command.append(f'Variants/{outdir}/workflow/sv-{vcaller}.smk')
+    command.append("--configfile")
+    command.append(f"Variants/{outdir}/workflow/config.yml")
     if quiet:
         command.append("--quiet")
         command.append("all")
-    command.append('--config')
-    command.append(f"seq_directory={directory}")
-    command.append(f"samplenames={samplenames}")
-    popgroupings = ""
-    if populations is not None:
-        popgroupings += f"\nPopulations: {populations}"
-        # check for delimeter and formatting
-        rows = validate_popfile(populations)
-        # check that samplenames and populations line up
-        validate_vcfsamples(directory, populations, samplenames, rows, quiet)
-        command.append(f"groupings={populations}")
-    command.append(f"molecule_distance={molecule_distance}")
-    if vcf is not None:
-        command.append(f"vcf={vcf}")
-    if genome is not None:
-        command.append(f"genomefile={genome}")
-    if extra_params is not None:
-        command.append(f"extra={extra_params}")
+    if snakemake is not None:
+        [command.append(i) for i in snakemake.split()]
+
+    call_SM = " ".join(command)
+
+    with open(f'Variants/{outdir}/workflow/config.yml', "w") as config:
+        config.write(f"seq_directory: {directory}\n")
+        config.write(f"samplenames: {samplenames}\n")
+        popgroupings = ""
+        if populations is not None:
+            # check for delimeter and formatting
+            rows = validate_popfile(populations)
+            # check that samplenames and populations line up
+            validate_vcfsamples(directory, populations, samplenames, rows, quiet)
+            config.write(f"groupings: {populations}\n")
+            popgroupings += f"\nPopulations: {populations}"
+        config.write(f"molecule_distance: {molecule_distance}\n")
+        if vcf is not None:
+            config.write(f"vcf: {vcf}\n")
+        if genome is not None:
+            config.write(f"genomefile: {genome}\n")
+        if extra_params is not None:
+            config.write(f"extra: {extra_params}\n")
+        config.write(f"skipreports: {skipreports}\n")
+        config.write(f"workflow_call: {call_SM}\n")
+
     if print_only:
-        click.echo(" ".join(command))
+        click.echo(call_SM)
     else:
-        generate_conda_deps()
         print_onstart(
             f"Initializing the [bold]harpy sv naibr[/bold] workflow.\nInput Directory: {directory}\nSamples: {len(samplenames)}{popgroupings}"
         )
+        generate_conda_deps()
         _module = subprocess.run(command)
         sys.exit(_module.returncode)
