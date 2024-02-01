@@ -31,12 +31,19 @@ def bwa(genome, threads, directory, extra_params, quality_filter, molecule_dista
         fetch_file(f"{i}.Rmd", "Align/bwa/workflow/report/")
     samplenames = get_samples_from_fastq(directory)
     directory = directory.rstrip("/^")
-    command = f'snakemake --rerun-incomplete --nolock --use-conda --conda-prefix ./.snakemake --cores {threads} --directory . --snakefile Align/bwa/workflow/align-bwa.smk'.split()
-    if snakemake is not None:
-        [command.append(i) for i in snakemake.split()]
+    command = f'snakemake --rerun-incomplete --nolock --use-conda --conda-prefix ./.snakemake --cores {threads} --directory .'.split()
+    command.append('--snakefile')
+    command.append('Align/bwa/workflow/align-bwa.smk')
+    command.append("--configfile")
+    command.append("Align/bwa/workflow/config.yml")
     if quiet:
         command.append("--quiet")
         command.append("all")
+    if snakemake is not None:
+        [command.append(i) for i in snakemake.split()]
+
+    call_SM = " ".join(command)
+
     with open("Align/bwa/workflow/config.yml", "w") as config:
         config.write(f"genomefile: {genome}\n")
         config.write(f"seq_directory: {directory}\n")
@@ -46,15 +53,14 @@ def bwa(genome, threads, directory, extra_params, quality_filter, molecule_dista
         config.write(f"skipreports: {skipreports}\n")
         if extra_params is not None:
             config.write(f"extra: {extra_params}\n")
-    command.append("--configfile")
-    command.append("Align/bwa/workflow/config.yml")
+        config.write(f"workflow_call: {call_SM}\n")
     if print_only:
-        click.echo(" ".join(command))
+        click.echo(call_SM)
     else:
-        generate_conda_deps()
         print_onstart(
             f"Initializing the [bold]harpy align bwa[/bold] workflow.\nInput Directory: {directory}\nSamples: {len(samplenames)}"
         )
+        generate_conda_deps()
         _module = subprocess.run(command)
         sys.exit(_module.returncode)
 
@@ -97,13 +103,19 @@ def ema(platform, whitelist, genome, threads, ema_bins, directory, skipreports, 
         sleep(3)
     samplenames = get_samples_from_fastq(directory)
     directory = directory.rstrip("/^")
-    command = f'snakemake --rerun-incomplete --nolock --use-conda --cores {threads} --directory . --snakefile Align/ema/workflow/align-ema.smk'.split()
-    if snakemake is not None:
-        [command.append(i) for i in snakemake.split()]
+    command = f'snakemake --rerun-incomplete --nolock --use-conda --cores {threads} --directory .'.split()
+    command.append('--snakefile')
+    command.append('Align/ema/workflow/align-ema.smk')
+    command.append("--configfile")
+    command.append("Align/ema/workflow/config.yml")
     if quiet:
         command.append("--quiet")
         command.append("all")
+    if snakemake is not None:
+        [command.append(i) for i in snakemake.split()]
     
+    call_SM = " ".join(command)
+
     with open("Align/ema/workflow/config.yml", "w") as config:
         config.write(f"genomefile: {genome}\n")
         config.write(f"seq_directory: {directory}\n")
@@ -116,16 +128,14 @@ def ema(platform, whitelist, genome, threads, ema_bins, directory, skipreports, 
             config.write(f"whitelist: {whitelist}\n")
         if extra_params is not None:
             config.write(f"extra: {extra_params}\n")
-
-    command.append("--configfile")
-    command.append("Align/ema/workflow/config.yml")
+        config.write(f"workflow_call: {call_SM}\n")
 
     if print_only:
-        click.echo(" ".join(command))
+        click.echo(call_SM)
     else:
-        generate_conda_deps()
         print_onstart(
             f"Initializing the [bold]harpy align ema[/bold] workflow.\nInput Directory: {directory}\nSamples: {len(samplenames)}"
         )
+        generate_conda_deps()
         _module = subprocess.run(command)
         sys.exit(_module.returncode)

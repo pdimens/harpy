@@ -14,9 +14,10 @@ import os
 @click.option('--vcf-samples',  is_flag = True, show_default = True, default = False, metavar = "Toggle", help = 'Use samples present in vcf file for imputation rather than those found the directory')
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(min = 4, max_open = True), metavar = "Integer", help = 'Number of threads to use')
 @click.option('-s', '--snakemake', type = str, metavar = "String", help = 'Additional Snakemake parameters, in quotes')
+@click.option('-r', '--skipreports',  is_flag = True, show_default = True, default = False, metavar = "Toggle", help = 'Don\'t generate any HTML reports')
 @click.option('-q', '--quiet',  is_flag = True, show_default = True, default = False, metavar = "Toggle", help = 'Don\'t show output text while running')
 @click.option('--print-only',  is_flag = True, show_default = True, default = False, metavar = "Toggle", help = 'Print the generated snakemake command and exit')
-def impute(parameters, directory, threads, vcf, vcf_samples, snakemake, quiet, print_only):
+def impute(parameters, directory, threads, vcf, vcf_samples, snakemake, skipreports, quiet, print_only):
     """
     Impute genotypes using variants and sequences
     
@@ -37,15 +38,24 @@ def impute(parameters, directory, threads, vcf, vcf_samples, snakemake, quiet, p
     check_impute_params(parameters)
     validate_bamfiles(directory, samplenames)
 
-    command = f'snakemake --rerun-incomplete --nolock --use-conda --conda-prefix ./.snakemake --cores {threads} --directory . --snakefile Impute/workflow/impute.smk'.split()
-    if snakemake is not None:
-        [command.append(i) for i in snakemake.split()]
+    command = f'snakemake --rerun-incomplete --nolock --use-conda --conda-prefix ./.snakemake --cores {threads} --directory .'.split()
+    command.append('--snakefile')
+    command.append('Impute/workflow/impute.smk')
+    command.append("--configfile")
+    command.append("Impute/workflow/config.yml")
+
     if quiet:
         command.append("--quiet")
         command.append("all")
+    if snakemake is not None:
+        [command.append(i) for i in snakemake.split()]
+
+    call_SM = " ".join(command)
+
     # generate and store list of viable contigs (minimum of 2 biallelic SNPs)
     # doing it here so it doesn't have to run each time inside the workflow
     vbn = os.path.basename(vcf)
+    #TODO make this a function in helperfunctions.py
     if not os.path.exists(f"Impute/input/_{vbn}.list"):
         os.makedirs("Impute/input/", exist_ok = True)
         click.echo("\033[1mPreprocessing:\033[00m Identifying contigs with at least 2 biallelic SNPs", file = sys.stderr, color = True)
@@ -66,19 +76,23 @@ def impute(parameters, directory, threads, vcf, vcf_samples, snakemake, quiet, p
     if len(contigs) == 0:
         print_error("No contigs with at least 2 biallelic SNPs identified. Cannot continue with imputation.")
         exit(1)
-    command.append('--config')
-    command.append(f"seq_directory={directory}")
-    command.append(f"samplenames={samplenames}")
-    command.append(f"variantfile={vcf}")
-    command.append(f"paramfile={parameters}")
-    command.append(f"contigs={contigs}")
-    #command.append(f"extra={extra_params}")
+
+    with open("Impute/workflow/config.yml", "w") as config:
+        config.write(f"seq_directory: {directory}")
+        config.write(f"samplenames: {samplenames}")
+        config.write(f"variantfile: {vcf}")
+        config.write(f"paramfile: {parameters}")
+        config.write(f"contigs: {contigs}")
+        config.write(f"skipreports: {skipreports}\n")
+        config.write(f"workflow_call: {call_SM}\n")
+        #config.write(f"extra={extra_params}")
+
     if print_only:
-        click.echo(" ".join(command))
+        click.echo(call_SM)
     else:
-        generate_conda_deps()
         print_onstart(
-            f"Initializing the [bold]harpy impute[/bold] workflow.\nInput Directory: {directory}\nInput VCF: {vcf}\nSamples in VCF: {len(samplenames)}"
+            f"Initializing the [bold]harpy impute[/bold] workflow.\nInput Directory: {directory}\nInput VCF: {vcf}\nSamples in VCF: {len(samplenames)}\nContigs Considered: {len(contigs)}"
         )
+        generate_conda_deps()
         _module = subprocess.run(command)
         sys.exit(_module.returncode)

@@ -25,21 +25,30 @@ def gen1(file, samplesheet, threads, snakemake, quiet, print_only):
     fetch_file("demultiplex.gen1.smk", f"Demultiplex/{inprefix}/workflow/")
     validate_demuxschema(samplesheet)
 
-    command = f'snakemake --rerun-incomplete --nolock --use-conda --conda-prefix ./.snakemake --cores {threads} --directory . --snakefile Demultiplex/{inprefix}/workflow/demultiplex.gen1.smk'.split()
-    if snakemake is not None:
-        [command.append(i) for i in snakemake.split()]
+    command = f'snakemake --rerun-incomplete --nolock --use-conda --conda-prefix ./.snakemake --cores {threads} --directory .'.split()
+    command.append('--snakefile')
+    command.append(f'Demultiplex/{inprefix}/workflow/demultiplex.gen1.smk')
+    command.append("--configfile")
+    command.append(f"Demultiplex/{inprefix}/workflow/config.yml")
     if quiet:
         command.append("--quiet")
         command.append("all")
-    command.append('--config')
-    command.append(f"infile={file}")
-    command.append(f"samplefile={samplesheet}")
+    if snakemake is not None:
+        [command.append(i) for i in snakemake.split()]
+
+    call_SM = " ".join(command)
+
+    with open(f"Demultiplex/{inprefix}/workflow/config.yml", "w") as config:
+        config.write(f"infile: {file}")
+        config.write(f"samplefile: {samplesheet}")
+        config.write(f"workflow_call: {call_SM}\n")
+
     if print_only:
-        click.echo(" ".join(command))
+        click.echo(call_SM)
     else:
-        generate_conda_deps()
         print_onstart(
             f"Initializing the [bold]harpy demultiplex gen1[/bold] workflow.\nInput Prefix: {inprefix}\nDemultiplex Schema: {samplesheet}"
         )
+        generate_conda_deps()
         _module = subprocess.run(command)
         sys.exit(_module.returncode)
