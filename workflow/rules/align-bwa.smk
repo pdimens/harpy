@@ -309,7 +309,7 @@ rule log_runtime:
             _ = f.write("    samtools sort -T SAMPLE --reference genome -m 4G\n")
             _ = f.write("Duplicates in the alignments were marked using sambamba:\n")
             _ = f.write("    sambamba markdup -l 0\n")
-            _ = f.write("\nThe Snakemake workflow was called via commandline:\n")
+            _ = f.write("\nThe Snakemake workflow was called via command line:\n")
             _ = f.write("    " + str(config["workflow_call"]))
 
 # conditionally add the reports to the output

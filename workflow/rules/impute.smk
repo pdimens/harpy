@@ -11,6 +11,7 @@ samplenames = config["samplenames"]
 variantfile = config["variantfile"]
 paramfile   = config["paramfile"]
 contigs     = config["contigs"]
+skipreports = config["skipreports"]
 # declare a dataframe to be the paramspace
 paramspace  = Paramspace(pd.read_csv(paramfile, delim_whitespace = True).rename(columns=str.lower), param_sep = "", filename_params="*")
 
@@ -278,15 +279,20 @@ rule log_runtime:
                 "        outputdir            = outdir,\n" +
                 "        output_filename      = outfile\n)\n"
             )
-            _ = f.write("\nThe Snakemake workflow was called via commandline:\n")
+            _ = f.write("\nThe Snakemake workflow was called via command line:\n")
             _ = f.write("    " + str(config["workflow_call"]))
+
+results = list()
+results.append(expand("Impute/{stitchparams}/variants.imputed.bcf", stitchparams=paramspace.instance_patterns))
+results.append(expand("Impute/{stitchparams}/contigs/{part}/{part}.STITCH.html", stitchparams=paramspace.instance_patterns, part = contigs))
+results.append("Impute/workflow/impute.workflow.summary")
+
+if not skipreports:
+    results.append(expand("Impute/{stitchparams}/variants.imputed.html", stitchparams=paramspace.instance_patterns))
 
 rule all:
     default_target: True
     input: 
-        bcf     = expand("Impute/{stitchparams}/variants.imputed.bcf", stitchparams=paramspace.instance_patterns),
-        reports = expand("Impute/{stitchparams}/variants.imputed.html", stitchparams=paramspace.instance_patterns),
-        contigs = expand("Impute/{stitchparams}/contigs/{part}/{part}.STITCH.html", stitchparams=paramspace.instance_patterns, part = contigs),
-        runlog  = "Impute/workflow/impute.workflow.summary"
+        results
     message: 
         "Checking for expected workflow output"

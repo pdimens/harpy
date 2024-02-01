@@ -14,6 +14,7 @@ chunksize   = config["windowsize"]
 intervals   = config["intervals"]
 outdir      = "Variants/mpileup"
 regions     = dict(zip(intervals, intervals))
+skipreports = config["skipreports"]
 
 wildcard_constraints:
     sample = "[a-zA-Z0-9._-]+"
@@ -249,7 +250,7 @@ rule log_runtime:
             _ = f.write("    bcftools concat -f vcf.list -a --remove-duplicates\n")
             _ = f.write("The variants were normalized using:\n")
             _ = f.write("    bcftools norm -d exact | bcftools norm -m -any -N -Ob\n")
-            _ = f.write("\nThe Snakemake workflow was called via commandline:\n")
+            _ = f.write("\nThe Snakemake workflow was called via command line:\n")
             _ = f.write("    " + str(config["workflow_call"]))
 
 rule all:

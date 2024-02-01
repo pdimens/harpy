@@ -9,6 +9,7 @@ maxlen 	  = config["maxlen"]
 extra 	  = config.get("extra", "") 
 seq_dir   = config["seq_directory"]
 adapters  = config["adapters"]
+skipreports = config["skipreports"]
 
 flist = [os.path.basename(i) for i in glob.iglob(f"{seq_dir}/*") if not os.path.isdir(i)]
 r = re.compile(r".*\.f(?:ast)?q(?:\.gz)?$", flags=re.IGNORECASE)
@@ -124,7 +125,7 @@ rule log_runtime:
             _ = f.write(f"The directory with sequences: {seq_dir}\n")
             _ = f.write("fastp trimming ran using:\n")
             _ = f.write("    fastp --trim_poly_g --cut_right " + " ".join(params) + "\n")
-            _ = f.write("\nThe Snakemake workflow was called via commandline:\n")
+            _ = f.write("\nThe Snakemake workflow was called via command line:\n")
             _ = f.write("    " + str(config["workflow_call"]))
 
 rule createReport:

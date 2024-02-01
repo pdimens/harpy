@@ -11,6 +11,7 @@ groupfile   = config["groupings"]
 genomefile  = config["genomefile"]
 molecule_distance = config["molecule_distance"]
 outdir      = "Variants/naibr-pop"
+skipreports = config["skipreports"]
 
 wildcard_constraints:
     sample = "[a-zA-Z0-9._-]+"
@@ -326,7 +327,7 @@ rule log_runtime:
             _ = f.write(f"    outdir=Variants/naibr/PREFIX\n")
             for i in argdict:
                 _ = f.write(f"    {i}={argdict[i]}\n")
-            _ = f.write("\nThe Snakemake workflow was called via commandline:\n")
+            _ = f.write("\nThe Snakemake workflow was called via command line:\n")
             _ = f.write("    " + str(config["workflow_call"]))
 
 rule all:

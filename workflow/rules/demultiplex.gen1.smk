@@ -221,15 +221,21 @@ rule log_runtime:
             _ = f.write(f"The delimited file associating CXX barcodes with samplenames: {samplefile}\n")
             _ = f.write(f"QC checks were performed on demultiplexed FASTQ files using:\n")
             _ = f.write(f"    falco -skip-report -skip-summary input.fq.gz\n")
-            _ = f.write("\nThe Snakemake workflow was called via commandline:\n")
+            _ = f.write("\nThe Snakemake workflow was called via command line:\n")
             _ = f.write("    " + str(config["workflow_call"]))
+
+# conditionally add the reports to the output
+results = list()
+results.append(expand(outdir + "{sample}.F.fq.gz", sample = samplenames))
+results.append(expand(outdir + "{sample}.R.fq.gz", sample = samplenames))
+results.append(outdir + "workflow/demultiplex.workflow.summary")
+
+if not skipreports:
+    results.append(outdir + "reports/demultiplex.QC.html")
 
 rule all:
     default_target: True
     input:
-        fw_reads = expand(outdir + "{sample}.F.fq.gz", sample = samplenames),
-        rv_reads = expand(outdir + "{sample}.R.fq.gz", sample = samplenames),
-        runlog   = outdir + "workflow/demultiplex.workflow.summary",
-        qcreport = outdir + "reports/demultiplex.QC.html"
+        results
     message:
         "Checking for expected workflow output"

@@ -10,6 +10,7 @@ extra       = config.get("extra", "")
 groupfile   = config["groupings"]
 genomefile  = config["genomefile"]
 molecule_distance = config["molecule_distance"]
+skipreports = config["skipreports"]
 bn          = os.path.basename(genomefile)
 outdir      = "Variants/naibr-pop"
 genome_zip  = True if bn.lower().endswith(".gz") else False
@@ -270,7 +271,7 @@ rule log_runtime:
             _ = f.write(f"    outdir=Variants/naibr/PREFIX\n")
             for i in argdict:
                 _ = f.write(f"    {i}={argdict[i]}\n")
-            _ = f.write("\nThe Snakemake workflow was called via commandline:\n")
+            _ = f.write("\nThe Snakemake workflow was called via command line:\n")
             _ = f.write("    " + str(config["workflow_call"]))
 
 rule all:

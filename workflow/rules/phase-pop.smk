@@ -14,6 +14,8 @@ extra             = config.get("extra", "")
 outdir 			  = "Phase.noBX"if config["noBX"] else "Phase"
 fragfile          = "Phase.noBX/extractHairs/{sample}.unlinked.frags" if config["noBX"] else "Phase/linkFragments/{sample}.linked.frags"
 linkarg           = "--10x 0" if config["noBX"] else "--10x 1"
+skipreports = config["skipreports"]
+
 try:
     indelarg = "--indels 1 --ref " + config["indels"]
 except:
@@ -273,7 +275,7 @@ rule log_runtime:
             _ = f.write('    ##FORMAT=<ID=PS,Number=1,Type=Integer,Description="ID of Phase Set for Variant">\n')
             _ = f.write('    ##FORMAT=<ID=PQ,Number=1,Type=Integer,Description="Phred QV indicating probability that this variant is incorrectly phased relative to the haplotype">\n')
             _ = f.write('    ##FORMAT=<ID=PD,Number=1,Type=Integer,Description="phased Read Depth">\n')
-            _ = f.write("\nThe Snakemake workflow was called via commandline:\n")
+            _ = f.write("\nThe Snakemake workflow was called via command line:\n")
             _ = f.write("    " + str(config["workflow_call"]))
 
 rule indexFinal:

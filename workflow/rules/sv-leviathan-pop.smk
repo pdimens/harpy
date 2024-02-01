@@ -9,6 +9,7 @@ samplenames = config["samplenames"]
 extra 		= config.get("extra", "") 
 groupfile 	= config["groupings"]
 outdir      = "Variants/leviathan-pop"
+skipreports = config["skipreports"]
 bn 			= os.path.basename(genomefile)
 genome_zip  = True if bn.lower().endswith(".gz") else False
 if genome_zip:
@@ -262,7 +263,7 @@ rule log_runtime:
             _ = f.write("    LRez index bam -p -b INPUT\n")
             _ = f.write("Leviathan was called using:\n")
             _ = f.write(f"    LEVIATHAN -b INPUT -i INPUT.BCI -g GENOME {params}\n")
-            _ = f.write("\nThe Snakemake workflow was called via commandline:\n")
+            _ = f.write("\nThe Snakemake workflow was called via command line:\n")
             _ = f.write("    " + str(config["workflow_call"]))
 
 rule all_bcfs:
