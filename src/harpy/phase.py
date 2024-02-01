@@ -16,9 +16,10 @@ import rich_click as click
 @click.option('-x', '--extra-params', type = str, metavar = "String", help = 'Additional HapCut2 parameters, in quotes')
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(min = 2, max_open = True), metavar = "Integer", help = 'Number of threads to use')
 @click.option('-s', '--snakemake',  type = str, metavar = "String", help = 'Additional Snakemake parameters, in quotes')
+@click.option('-r', '--skipreports',  is_flag = True, show_default = True, default = False, metavar = "Toggle", help = 'Don\'t generate any HTML reports')
 @click.option('-q', '--quiet',  is_flag = True, show_default = True, default = False, metavar = "Toggle", help = 'Don\'t show output text while running')
 @click.option('--print-only',  is_flag = True, show_default = True, default = False, metavar = "Toggle", help = 'Print the generated snakemake command and exit')
-def phase(vcf, directory, threads, molecule_distance, prune_threshold, vcf_samples, genome, snakemake, extra_params, ignore_bx, quiet, print_only):
+def phase(vcf, directory, threads, molecule_distance, prune_threshold, vcf_samples, genome, snakemake, extra_params, ignore_bx, skipreports, quiet, print_only):
     """
     Phase SNPs into haplotypes
 
@@ -31,41 +32,44 @@ def phase(vcf, directory, threads, molecule_distance, prune_threshold, vcf_sampl
     fetch_file("HapCut2.Rmd", "Phase/workflow/report/")
     directory = directory.rstrip("/^")
     vcfcheck(vcf)
-   # if vcf.lower().endswith(".vcf.gz"):
-   #     click.echo(f"Notice: HapCut2 does not accept gzipped vcf files. Converting to bcf.")
-   #     variantfile = vcf[0:-7] + ".bcf"
-   #     subprocess.run(f"bcftools view {vcf} -Ob > {variantfile}".split())
-   # else:
-   #     variantfile = vcf
-    
     samplenames = vcf_samplematch(vcf, directory, vcf_samples)
     validate_bamfiles(directory, samplenames)
     prune_threshold /= 100
-    command = f'snakemake --rerun-incomplete --nolock --use-conda --conda-prefix ./.snakemake --cores {threads} --directory . --snakefile Phase/workflow/phase-pop.smk'.split()
-    if snakemake is not None:
-        [command.append(i) for i in snakemake.split()]
+    command = f'snakemake --rerun-incomplete --nolock --use-conda --conda-prefix ./.snakemake --cores {threads} --directory .'.split()
+    command.append('--snakefile')
+    command.append('Phase/workflow/phase-pop.smk')
+    command.append("--configfile")
+    command.append("Phase/workflow/config.yml")
     if quiet:
         command.append("--quiet")
         command.append("all")
-    command.append('--config')
-    if genome is not None:
-        command.append(f"indels={genome}")
-        if not os.path.exists(f"{genome}.fai"):
-            subprocess.run(f"samtools faidx --fai-idx {genome}.fai {genome}".split())
-    command.append(f"seq_directory={directory}")
-    command.append(f"samplenames={samplenames}")
-    command.append(f"variantfile={vcf}")
-    command.append(f"noBX={ignore_bx}")
-    command.append(f"prune={prune_threshold}")
-    command.append(f"molecule_distance={molecule_distance}")
-    if extra_params is not None:
-        command.append(f"extra={extra_params}")
+    if snakemake is not None:
+        [command.append(i) for i in snakemake.split()]
+
+    call_SM = " ".join(command)
+
+    with open("Phase/workflow/config.yml", "w") as config:
+        config.write(f"seq_directory: {directory}\n")
+        config.write(f"samplenames: {samplenames}\n")
+        config.write(f"variantfile: {vcf}\n")
+        config.write(f"noBX: {ignore_bx}\n")
+        config.write(f"prune: {prune_threshold}\n")
+        config.write(f"molecule_distance: {molecule_distance}\n")
+        if genome is not None:
+            config.write(f"indels: {genome}\n")
+            if not os.path.exists(f"{genome}.fai"):
+                subprocess.run(f"samtools faidx --fai-idx {genome}.fai {genome}".split())
+        if extra_params is not None:
+            config.write(f"extra: {extra_params}\n")
+        config.write(f"skipreports: {skipreports}\n")
+        config.write(f"workflow_call: {call_SM}\n")
+
     if print_only:
-        click.echo(" ".join(command))
+        click.echo(call_SM)
     else:
-        generate_conda_deps()
         print_onstart(
             f"Initializing the [bold]harpy phase[/bold] workflow.\nInput directory: {directory}\nInput VCF: {vcf}\nSamples in VCF: {len(samplenames)}"
         )
+        generate_conda_deps()
         _module = subprocess.run(command)
         sys.exit(_module.returncode)

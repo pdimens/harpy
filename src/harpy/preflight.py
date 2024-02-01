@@ -25,25 +25,33 @@ def fastq(directory, threads, snakemake, quiet, print_only):
     fetch_file("preflight-fastq.smk", f"{directory}/Preflight/workflow/")
     fetch_file("PreflightFastq.Rmd", f"{directory}/Preflight/workflow/report/")
     sn = get_samples_from_fastq(directory)
-    command = f'snakemake --rerun-incomplete --nolock --use-conda --conda-prefix ./.snakemake --cores {threads} --directory . --snakefile {directory}/Preflight/workflow/preflight-fastq.smk'.split()
-    if snakemake is not None:
-        [command.append(i) for i in snakemake.split()]
+    directory = directory.rstrip("/^")
+    command = f'snakemake --rerun-incomplete --nolock --use-conda --conda-prefix ./.snakemake --cores {threads} --directory .'.split()
+    command.append('--snakefile')
+    command.append(f'{directory}/Preflight/workflow/preflight-fastq.smk')
+    command.append('--configfile')
+    command.append(f"{directory}/Preflight/workflow/config.yml")
     if quiet:
         command.append("--quiet")
         command.append("all")
-    command.append('--config')
-    directory = directory.rstrip("/^")
-    command.append(f"seq_directory={directory}")
+    if snakemake is not None:
+        [command.append(i) for i in snakemake.split()]
+
+    call_SM = " ".join(command)
+
+    with open(f"{directory}/Preflight/workflow/config.yml", "w") as config:
+        config.write(f"seq_directory: {directory}\n")
+        config.write(f"workflow_call: {call_SM}\n")
+
     if print_only:
-        click.echo(" ".join(command))
+        click.echo(call_SM)
     else:
-        generate_conda_deps()
         print_onstart(
             f"Initializing the [bold]harpy preflight fastq[/bold] workflow.\nInput Directory: {directory}\nSamples: {len(sn)}"
         )
+        generate_conda_deps()
         _module = subprocess.run(command)
         sys.exit(_module.returncode)
-
 
 @click.command(no_args_is_help = True)
 @click.option('-d', '--directory', required = True, type=click.Path(exists=True), metavar = "Folder Path", help = 'Directory with FASTQ files')
@@ -62,22 +70,31 @@ def bam(directory, threads, snakemake, quiet, print_only):
     """
     fetch_file("preflight-bam.smk", f"{directory}/Preflight/workflow/")
     fetch_file("PreflightBam.Rmd", f"{directory}/Preflight/workflow/report/")
+    directory = directory.rstrip("/^")
     flist = getnames(directory, ".bam")
-    command = f'snakemake --rerun-incomplete --nolock --use-conda --conda-prefix ./.snakemake --cores {threads} --directory . --snakefile {directory}/Preflight/workflow/preflight-bam.smk'.split()
-    if snakemake is not None:
-        [command.append(i) for i in snakemake.split()]
+    command = f'snakemake --rerun-incomplete --nolock --use-conda --conda-prefix ./.snakemake --cores {threads} --directory .'.split()
+    command.append('--snakefile')
+    command.append(f'{directory}/Preflight/workflow/preflight-bam.smk')
+    command.append('--configfile')
+    command.append(f"{directory}/Preflight/workflow/config.yml")
     if quiet:
         command.append("--quiet")
         command.append("all")
-    command.append('--config')
-    directory = directory.rstrip("/^")
-    command.append(f"seq_directory={directory}")
+    if snakemake is not None:
+        [command.append(i) for i in snakemake.split()]
+    
+    call_SM = " ".join(command)
+
+    with open(f"{directory}/Preflight/workflow/config.yml", "w") as config:
+        config.write(f"seq_directory: {directory}\n")
+        config.write(f"workflow_call: {call_SM}\n")
+
     if print_only:
-        click.echo(" ".join(command))
+        click.echo(call_SM)
     else:
-        generate_conda_deps()
         print_onstart(
             f"Initializing the [bold]harpy preflight bam[/bold] workflow.\nInput Directory: {directory}\nFiles: {len(flist)}"
         )
+        generate_conda_deps()
         _module = subprocess.run(command)
         sys.exit(_module.returncode)
