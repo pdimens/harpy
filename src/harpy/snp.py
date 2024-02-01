@@ -114,7 +114,7 @@ def freebayes(genome, threads, directory, populations, ploidy, windowsize, extra
 
     call_SM = " ".join(command)
 
-    with open("Variants/mpileup/workflow/config.yml", "w") as config:
+    with open("Variants/freebayes/workflow/config.yml", "w") as config:
         config.write(f"seq_directory: {directory}\n")
         config.write(f"samplenames: {samplenames}\n")
         popgroupings = ""
