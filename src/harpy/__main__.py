@@ -189,7 +189,7 @@ click.rich_click.OPTION_GROUPS = {
         },
         {
             "name": "Other Options",
-            "options": ["--threads", "--snakemake", "--quiet", "--print-only", "--help"],
+            "options": ["--threads", "--skipreports", "--snakemake", "--quiet", "--print-only", "--help"],
         },
     ],
     "harpy qc": [
@@ -199,7 +199,7 @@ click.rich_click.OPTION_GROUPS = {
         },
         {
             "name": "Other Options",
-            "options": ["--threads", "--snakemake", "--quiet", "--print-only", "--help"],
+            "options": ["--threads", "--skipreports", "--snakemake", "--quiet", "--print-only", "--help"],
         },
     ],
     "harpy align bwa": [
@@ -219,7 +219,7 @@ click.rich_click.OPTION_GROUPS = {
         },
         {
             "name": "Other Options",
-            "options": ["--threads", "--snakemake", "--quiet", "--print-only", "--help"],
+            "options": ["--threads", "--skipreports", "--snakemake", "--quiet", "--print-only", "--help"],
         },
     ],
     "harpy snp mpileup": [
@@ -229,7 +229,7 @@ click.rich_click.OPTION_GROUPS = {
         },
         {
             "name": "Other Options",
-            "options": ["--threads", "--snakemake", "--quiet", "--print-only", "--help"],
+            "options": ["--threads", "--skipreports", "--snakemake", "--quiet", "--print-only", "--help"],
         },
     ],
     "harpy snp freebayes": [
@@ -239,7 +239,7 @@ click.rich_click.OPTION_GROUPS = {
         },
         {
             "name": "Other Options",
-            "options": ["--threads", "--snakemake", "--quiet", "--print-only", "--help"],
+            "options": ["--threads", "--skipreports", "--snakemake", "--quiet", "--print-only", "--help"],
         },
     ],
     "harpy sv leviathan": [
@@ -249,7 +249,7 @@ click.rich_click.OPTION_GROUPS = {
         },
         {
             "name": "Other Options",
-            "options": ["--threads", "--snakemake", "--quiet", "--print-only", "--help"],
+            "options": ["--threads", "--skipreports", "--snakemake", "--quiet", "--print-only", "--help"],
         },
     ],
     "harpy sv naibr": [
@@ -259,7 +259,7 @@ click.rich_click.OPTION_GROUPS = {
         },
         {
             "name": "Other Options",
-            "options": ["--threads", "--snakemake", "--quiet", "--print-only", "--help"],
+            "options": ["--threads", "--skipreports", "--snakemake", "--quiet", "--print-only", "--help"],
         },
     ],
     "harpy impute": [
@@ -269,7 +269,7 @@ click.rich_click.OPTION_GROUPS = {
         },
         {
             "name": "Other Options",
-            "options": ["--vcf-samples", "--threads", "--snakemake", "--quiet", "--print-only", "--help"],
+            "options": ["--vcf-samples", "--threads", "--skipreports", "--snakemake", "--quiet", "--print-only", "--help"],
         },
     ],
     "harpy phase": [
@@ -279,7 +279,7 @@ click.rich_click.OPTION_GROUPS = {
         },
         {
             "name": "Other Options",
-            "options": ["--vcf-samples", "--threads", "--snakemake", "--quiet", "--print-only", "--help"],
+            "options": ["--vcf-samples", "--threads", "--skipreports", "--snakemake", "--quiet", "--print-only", "--help"],
         },
     ]
 }
