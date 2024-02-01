@@ -274,6 +274,8 @@ rule log_runtime:
             _ = f.write(f"    outdir=Variants/naibr/PREFIX\n")
             for i in argdict:
                 _ = f.write(f"    {i}={argdict[i]}\n")
+            _ = f.write("\nThe Snakemake workflow was called via commandline:\n")
+            _ = f.write("    " + str(config["workflow_call"]))
 
 rule all:
     default_target: True

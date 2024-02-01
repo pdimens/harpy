@@ -278,6 +278,8 @@ rule log_runtime:
                 "        outputdir            = outdir,\n" +
                 "        output_filename      = outfile\n)\n"
             )
+            _ = f.write("\nThe Snakemake workflow was called via commandline:\n")
+            _ = f.write("    " + str(config["workflow_call"]))
 
 rule all:
     default_target: True

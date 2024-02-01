@@ -461,6 +461,8 @@ rule log_runtime:
             _ = f.write("    sambamba merge output.bam barcode.bam nobarcode.bam\n")
             _ = f.write("Merged alignments were sorted using:\n")
             _ = f.write("    samtools sort merged.bam\n")
+            _ = f.write("\nThe Snakemake workflow was called via commandline:\n")
+            _ = f.write("    " + str(config["workflow_call"]))
 
 # conditionally add the reports to the output
 results = list()

@@ -124,6 +124,8 @@ rule log_runtime:
             _ = f.write(f"The directory with sequences: {seq_dir}\n")
             _ = f.write("fastp trimming ran using:\n")
             _ = f.write("    fastp --trim_poly_g --cut_right " + " ".join(params) + "\n")
+            _ = f.write("\nThe Snakemake workflow was called via commandline:\n")
+            _ = f.write("    " + str(config["workflow_call"]))
 
 rule createReport:
     default_target: True

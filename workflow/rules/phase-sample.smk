@@ -203,6 +203,8 @@ rule log_runtime:
             _ = f.write(f"    extractHAIRS {linkarg} --nf 1 --bam sample.bam --VCF sample.vcf --out sample.unlinked.frags\n")
             _ = f.write(f"    LinkFragments.py --bam sample.BAM --VCF sample.vcf --fragments sample.unlinked.frags --out sample.linked.frags -d {molecule_distance}\n")
             _ = f.write(f"    HAPCUT2 --fragments sample.linked.frags --vcf sample.vcf --out sample.blocks --nf 1 --error_analysis_mode 1 --call_homozygous 1 --outvcf 1 {params[0]} {params[1]}\n")
+            _ = f.write("\nThe Snakemake workflow was called via commandline:\n")
+            _ = f.write("    " + str(config["workflow_call"]))
 
 rule indexFinal:
     default_target: True

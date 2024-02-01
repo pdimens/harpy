@@ -221,6 +221,8 @@ rule log_runtime:
             _ = f.write(f"The delimited file associating CXX barcodes with samplenames: {samplefile}\n")
             _ = f.write(f"QC checks were performed on demultiplexed FASTQ files using:\n")
             _ = f.write(f"    falco -skip-report -skip-summary input.fq.gz\n")
+            _ = f.write("\nThe Snakemake workflow was called via commandline:\n")
+            _ = f.write("    " + str(config["workflow_call"]))
 
 rule all:
     default_target: True

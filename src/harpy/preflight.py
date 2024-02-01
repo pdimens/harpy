@@ -37,11 +37,8 @@ def fastq(directory, threads, snakemake, quiet, print_only):
     if snakemake is not None:
         [command.append(i) for i in snakemake.split()]
 
-    call_SM = " ".join(command)
-
     with open(f"{directory}/Preflight/workflow/config.yml", "w") as config:
         config.write(f"seq_directory: {directory}\n")
-        config.write(f"workflow_call: {call_SM}\n")
 
     if print_only:
         click.echo(call_SM)
@@ -83,11 +80,8 @@ def bam(directory, threads, snakemake, quiet, print_only):
     if snakemake is not None:
         [command.append(i) for i in snakemake.split()]
     
-    call_SM = " ".join(command)
-
     with open(f"{directory}/Preflight/workflow/config.yml", "w") as config:
         config.write(f"seq_directory: {directory}\n")
-        config.write(f"workflow_call: {call_SM}\n")
 
     if print_only:
         click.echo(call_SM)

@@ -156,16 +156,16 @@ mergebins <- function(x){
 ### SNP Quality {.no-title}
 ```{r snpqual plot, echo=FALSE, message=FALSE, warning=FALSE}
 if(do_qual){
-qualsnpplot <- ggplot(data = mergebins(qual[,-3]), mapping = aes(x = QualityScore, y = SNPs)) +
-  geom_col(fill = "#8fbbbc") +
-  scale_y_continuous(labels = scales::comma) +
-  scale_x_continuous(labels = scales::comma) +
-  labs(title = "SNP Genotype Quality") +
-  ylab("Count") +
-  theme_minimal() +
-  theme(panel.grid.minor.y = element_blank())
+  qualsnpplot <- ggplot(data = mergebins(qual[,-3]), mapping = aes(x = QualityScore, y = SNPs)) +
+    geom_col(fill = "#8fbbbc") +
+    scale_y_continuous(labels = scales::comma) +
+    scale_x_continuous(labels = scales::comma) +
+    labs(title = "SNP Genotype Quality") +
+    ylab("Count") +
+    theme_minimal() +
+    theme(panel.grid.minor.y = element_blank())
 
-ggplotly(qualsnpplot)
+  ggplotly(qualsnpplot)
 } else {
   cat(paste0("No QUAL section in", snakemake@input[[1]], " found\n"))
 }
