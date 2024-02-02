@@ -6,7 +6,7 @@ import os
 import sys
 import glob
 
-@click.command(no_args_is_help = True)
+@click.command(no_args_is_help = True, epilog = "read the docs for more information: https://pdimens.github.io/harpy/modules/qc")
 @click.option('-d', '--directory', required = True, type=click.Path(exists=True, file_okay=False), metavar = "Folder Path", help = 'Directory with raw sample sequences')
 @click.option('-l', '--max-length', default = 150, show_default = True, type=int, metavar = "Integer", help = 'Maximum length to trim sequences down to')
 @click.option('-a', '--ignore-adapters', is_flag = True, show_default = False, default = False, metavar = "Toggle", help = 'Skip adapter trimming')
@@ -57,7 +57,8 @@ def qc(directory, max_length, ignore_adapters, extra_params, threads, snakemake,
         click.echo(call_SM)
     else:
         print_onstart(
-            f"Initializing the [bold]harpy qc[/bold] workflow.\nInput Directory: {directory}\nSamples: {len(sn)}"
+            f"Input Directory: {directory}\nSamples: {len(sn)}",
+            "qc"
         )
         generate_conda_deps()
         _module = subprocess.run(command)

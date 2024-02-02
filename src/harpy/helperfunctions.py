@@ -14,6 +14,10 @@ from rich.table import Table
 import rich_click as click
 
 ## define some rich print functions for less redundancy
+def print_onstart(text, title):
+    """Print a panel of info on workflow run"""
+    click.echo("")
+    print(Panel(text, title = f"[bold]Harpy {title}", title_align = "left", border_style = "white", subtitle= "Initializing"), file = sys.stderr)
 def print_error(errortext):
     """Print a yellow panel with error text"""
     print(Panel(errortext, title = "[bold]Error", title_align = "left", border_style = "yellow"), file = sys.stderr)
@@ -403,19 +407,6 @@ def fetch_file(file, destination, rename=None):
         destination += rename
     # copy2 to keep metadata during copy
     shutil.copy2(result, destination)
-
-def print_onstart(text):
-    """Print a panel of info on workflow run"""
-    click.echo("")
-    print(
-        Panel(
-            text,
-            title = "[bold]Harpy",
-            title_align = "left",
-            border_style = "white"
-        ),
-        file = sys.stderr
-    )
 
 def biallelic_contigs(vcf):
     """Identify which contigs have at least 2 biallelic SNPs"""

@@ -6,7 +6,7 @@ import sys
 import os
 import re
 
-@click.command(no_args_is_help = True)
+@click.command(no_args_is_help = True, epilog = "read the docs for more information: https://pdimens.github.io/harpy/modules/demultiplex/ ")
 @click.option('-f', '--file', required = True, type=click.Path(exists=True, dir_okay=False), metavar = "File Path", help = 'The forward (or reverse) multiplexed FASTQ file')
 @click.option('-b', '--samplesheet', required = True, type=click.Path(exists=True, dir_okay=False), metavar = "File Path", help = 'Tab-delimited file of sample<tab>barcode')
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(min = 1, max_open = True), metavar = "Integer", help = 'Number of threads to use')
@@ -49,7 +49,8 @@ def gen1(file, samplesheet, threads, snakemake, skipreports, quiet, print_only):
         click.echo(call_SM)
     else:
         print_onstart(
-            f"Initializing the [bold]harpy demultiplex gen1[/bold] workflow.\nInput Prefix: {inprefix}\nDemultiplex Schema: {samplesheet}"
+            f"Input Prefix: {inprefix}\nDemultiplex Schema: {samplesheet}",
+            "demultiplex gen1"
         )
         generate_conda_deps()
         _module = subprocess.run(command)

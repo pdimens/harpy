@@ -9,7 +9,7 @@ import rich_click as click
 from rich import print
 from rich.panel import Panel
 
-@click.command(no_args_is_help = True)
+@click.command(no_args_is_help = True, epilog = "read the docs for more information: https://pdimens.github.io/harpy/modules/snp/#sample-grouping-file")
 @click.option('-d', '--directory', required = True, type=click.Path(exists=True, file_okay=False), metavar = "Input folder Path", help = 'Input folder with fastq or bam files')
 @click.option('-o', '--output', type=str, default = "samples.groups", metavar = "Output file name", help = 'Output file name')
 def popgroup(directory, output):

@@ -6,7 +6,7 @@ import os
 import sys
 import glob
 
-@click.command(no_args_is_help = True)
+@click.command(no_args_is_help = True, epilog = "read the docs for more information: https://pdimens.github.io/harpy/modules/preflight/")
 @click.option('-d', '--directory', required = True, type=click.Path(exists=True, file_okay=False), metavar = "Folder Path", help = 'Directory with FASTQ files')
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(min = 1, max_open = True), metavar = "Integer", help = 'Number of threads to use')
 @click.option('-s', '--snakemake', type = str, metavar = "String", help = 'Additional Snakemake parameters, in quotes')
@@ -44,13 +44,14 @@ def fastq(directory, threads, snakemake, quiet, print_only):
         click.echo(call_SM)
     else:
         print_onstart(
-            f"Initializing the [bold]harpy preflight fastq[/bold] workflow.\nInput Directory: {directory}\nSamples: {len(sn)}"
+            f"Input Directory: {directory}\nSamples: {len(sn)}",
+            "preflight fastq"
         )
         generate_conda_deps()
         _module = subprocess.run(command)
         sys.exit(_module.returncode)
 
-@click.command(no_args_is_help = True)
+@click.command(no_args_is_help = True, epilog = "read the docs for more information: https://pdimens.github.io/harpy/modules/preflight/")
 @click.option('-d', '--directory', required = True, type=click.Path(exists=True), metavar = "Folder Path", help = 'Directory with FASTQ files')
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(min = 1, max_open = True), metavar = "Integer", help = 'Number of threads to use')
 @click.option('-s', '--snakemake', type = str, metavar = "String", help = 'Additional Snakemake parameters, in quotes')
@@ -87,7 +88,8 @@ def bam(directory, threads, snakemake, quiet, print_only):
         click.echo(call_SM)
     else:
         print_onstart(
-            f"Initializing the [bold]harpy preflight bam[/bold] workflow.\nInput Directory: {directory}\nFiles: {len(flist)}"
+            f"Input Directory: {directory}\nFiles: {len(flist)}",
+            "preflight bam"
         )
         generate_conda_deps()
         _module = subprocess.run(command)

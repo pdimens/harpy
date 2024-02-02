@@ -5,7 +5,7 @@ import subprocess
 import sys
 import os
 
-@click.command(no_args_is_help = True)
+@click.command(no_args_is_help = True, epilog = "read the docs for more information: https://pdimens.github.io/harpy/modules/snp")
 @click.option('-g', '--genome', type=click.Path(exists=True), required = True, metavar = "File Path", help = 'Genome assembly for variant calling')
 @click.option('-d', '--directory', required = True, type=click.Path(exists=True), metavar = "Folder Path", help = 'Directory with BAM alignments')
 @click.option('-p', '--populations', type=click.Path(exists = True), metavar = "File Path", help = 'Tab-delimited file of sample<tab>population (optional)')
@@ -68,13 +68,14 @@ def mpileup(genome, threads, directory, populations, ploidy, windowsize, extra_p
         click.echo(call_SM)
     else:
         print_onstart(
-            f"Initializing the [bold]harpy snp mpileup[/bold] workflow.\nInput Directory: {directory}\nSamples: {len(samplenames)}{popgroupings}"
+            f"Input Directory: {directory}\nSamples: {len(samplenames)}{popgroupings}",
+            "snp mpileup"
         )
         generate_conda_deps()
         _module = subprocess.run(command)
         sys.exit(_module.returncode)
 
-@click.command(no_args_is_help = True)
+@click.command(no_args_is_help = True, epilog = "read the docs for more information: https://pdimens.github.io/harpy/modules/snp")
 @click.option('-g', '--genome', type=click.Path(exists=True, dir_okay=False), required = True, metavar = "File Path", help = 'Genome assembly for variant calling')
 @click.option('-d', '--directory', required = True, type=click.Path(exists=True, file_okay=False), metavar = "Folder Path", help = 'Directory with BAM alignments')
 @click.option('-p', '--populations', type=click.Path(exists = True, dir_okay=False), metavar = "File Path", help = 'Tab-delimited file of sample<tab>population (optional)')
@@ -137,7 +138,8 @@ def freebayes(genome, threads, directory, populations, ploidy, windowsize, extra
         click.echo(call_SM)
     else:
         print_onstart(
-            f"Initializing the [bold]harpy snp freebayes[/bold] workflow.\nInput Directory: {directory}\nSamples: {len(samplenames)}{popgroupings}"
+            f"Input Directory: {directory}\nSamples: {len(samplenames)}{popgroupings}",
+            "snp freebayes"
         )
         generate_conda_deps()
         _module = subprocess.run(command)

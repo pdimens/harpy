@@ -9,7 +9,7 @@ try:
 except:
     pass
 
-@click.command(no_args_is_help = True)
+@click.command(no_args_is_help = True, epilog = "read the docs for more information: https://pdimens.github.io/harpy/modules/ ")
 @click.option('-o', '--output', required = True, type=str, metavar = "Output file", help = 'Name of output file')
 @click.option('-s', '--system', required = True, type = click.Choice(["slurm"], case_sensitive = False), help = 'HPC scheduling system [slurm]')
 def hpc(output, system):

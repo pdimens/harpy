@@ -5,7 +5,7 @@ import os
 import subprocess
 import rich_click as click
 
-@click.command(no_args_is_help = True)
+@click.command(no_args_is_help = True, epilog = "read the docs for more information: https://pdimens.github.io/harpy/modules/phase")
 @click.option('-v', '--vcf', required = True, type=click.Path(exists=True, dir_okay=False), metavar = "File Path", help = 'Path to BCF/VCF file')
 @click.option('-d', '--directory', required = True, type=click.Path(exists=True, file_okay=False), metavar = "Folder Path", help = 'Directory with BAM alignments')
 @click.option('-m', '--molecule-distance', default = 100000, show_default = True, type = int, metavar = "Integer", help = 'Base-pair distance threshold to separate molecules')
@@ -68,7 +68,8 @@ def phase(vcf, directory, threads, molecule_distance, prune_threshold, vcf_sampl
         click.echo(call_SM)
     else:
         print_onstart(
-            f"Initializing the [bold]harpy phase[/bold] workflow.\nInput directory: {directory}\nInput VCF: {vcf}\nSamples in VCF: {len(samplenames)}"
+            f"Input directory: {directory}\nInput VCF: {vcf}\nSamples in VCF: {len(samplenames)}",
+            "phase"
         )
         generate_conda_deps()
         _module = subprocess.run(command)

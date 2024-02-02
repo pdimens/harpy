@@ -5,7 +5,7 @@ import subprocess
 import sys
 import os
 
-@click.command(no_args_is_help = True)
+@click.command(no_args_is_help = True, epilog= "read the docs for more information: https://pdimens.github.io/harpy/modules/sv/leviathan/")
 @click.option('-g', '--genome', type=click.Path(exists=True, dir_okay=False), required = True, metavar = "File Path", help = 'Genome assembly for variant calling')
 @click.option('-d', '--directory', required = True, type=click.Path(exists=True, file_okay=False), metavar = "Folder Path", help = 'Directory with BAM alignments')
 @click.option('-p', '--populations', type=click.Path(exists = True, dir_okay=False), metavar = "File Path", help = 'Tab-delimited file of sample<tab>population (optional)')
@@ -65,13 +65,14 @@ def leviathan(genome, threads, directory, populations, extra_params, snakemake, 
         click.echo(call_SM)
     else:
         print_onstart(
-            f"Initializing the [bold]harpy sv leviathan[/bold] workflow.\nInput Directory: {directory}\nSamples: {len(samplenames)}{popgroupings}"
+            f"Input Directory: {directory}\nSamples: {len(samplenames)}{popgroupings}",
+            "sv leviathan"
         )
         generate_conda_deps()
         _module = subprocess.run(command)
         sys.exit(_module.returncode)
 
-@click.command(no_args_is_help = True)
+@click.command(no_args_is_help = True, epilog = "read the docs for more information: https://pdimens.github.io/harpy/modules/sv/naibr/")
 @click.option('-d', '--directory', required = True, type=click.Path(exists=True, file_okay=False), metavar = "Folder Path", help = 'Directory with BAM alignments')
 @click.option('-g', '--genome', required = True, type=click.Path(exists=True, dir_okay=False), metavar = "File Path", help = 'Genome assembly')
 @click.option('-v', '--vcf', type=click.Path(exists=True, dir_okay=False), metavar = "File Path", help = 'Path to phased bcf/vcf file')
@@ -148,7 +149,8 @@ def naibr(genome, vcf, threads, directory, populations, molecule_distance, extra
         click.echo(call_SM)
     else:
         print_onstart(
-            f"Initializing the [bold]harpy sv naibr[/bold] workflow.\nInput Directory: {directory}\nSamples: {len(samplenames)}{popgroupings}"
+            f"Input Directory: {directory}\nSamples: {len(samplenames)}{popgroupings}",
+            "sv naibr"
         )
         generate_conda_deps()
         _module = subprocess.run(command)

@@ -7,7 +7,7 @@ import sys
 import os
 from time import sleep 
 
-@click.command(no_args_is_help = True)
+@click.command(no_args_is_help = True, epilog= "read the docs for more information: https://pdimens.github.io/harpy/modules/align/bwa/")
 @click.option('-g', '--genome', type=click.Path(exists=True, dir_okay=False), required = True, metavar = "File Path", help = 'Genome assembly for read mapping')
 @click.option('-d', '--directory', required = True, type=click.Path(exists=True, file_okay=False), metavar = "Folder Path", help = 'Directory with sample sequences')
 @click.option('-m', '--molecule-distance', default = 100000, show_default = True, type = int, metavar = "Integer", help = 'Base-pair distance threshold to separate molecules')
@@ -58,7 +58,8 @@ def bwa(genome, threads, directory, extra_params, quality_filter, molecule_dista
         click.echo(call_SM)
     else:
         print_onstart(
-            f"Initializing the [bold]harpy align bwa[/bold] workflow.\nInput Directory: {directory}\nSamples: {len(samplenames)}"
+            f"Input Directory: {directory}\nSamples: {len(samplenames)}",
+            "align bwa"
         )
         generate_conda_deps()
         _module = subprocess.run(command)
@@ -66,7 +67,7 @@ def bwa(genome, threads, directory, extra_params, quality_filter, molecule_dista
 
 #####----------ema--------------------
 
-@click.command(no_args_is_help = True)
+@click.command(no_args_is_help = True, epilog = "read the docs for more information: https://pdimens.github.io/harpy/modules/align/ema")
 @click.option('-p', '--platform', type = click.Choice(['haplotag', 'tellseq', '10x'], case_sensitive=False), default = "haplotag", show_default=True, help = "Linked read bead technology\n[haplotag, tellseq, 10x]")
 @click.option('-w', '--whitelist', type = click.Path(exists=True, dir_okay=False), help = "Barcode whitelist file for tellseq/10x")
 @click.option('-g', '--genome', type=click.Path(exists=True, dir_okay=False), required = True, metavar = "File Path", help = 'Genome assembly for read mapping')
@@ -134,7 +135,8 @@ def ema(platform, whitelist, genome, threads, ema_bins, directory, skipreports, 
         click.echo(call_SM)
     else:
         print_onstart(
-            f"Initializing the [bold]harpy align ema[/bold] workflow.\nInput Directory: {directory}\nSamples: {len(samplenames)}"
+            f"Input Directory: {directory}\nSamples: {len(samplenames)}",
+            "align ema"
         )
         generate_conda_deps()
         _module = subprocess.run(command)

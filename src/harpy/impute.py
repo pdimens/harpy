@@ -6,11 +6,11 @@ import subprocess
 import sys
 import os
 
-@click.command(no_args_is_help = True)
+@click.command(no_args_is_help = True, epilog = "read the docs for more information: https://pdimens.github.io/harpy/modules/impute/")
 @click.option('-v', '--vcf', required = True, type=click.Path(exists=True, dir_okay=False),metavar = "File Path", help = 'Path to BCF/VCF file')
 @click.option('-d', '--directory', required = True, type=click.Path(exists=True, file_okay=False), metavar = "Folder Path", help = 'Directory with BAM alignments')
 @click.option('-p', '--parameters', required = True, type=click.Path(exists=True, dir_okay=False), metavar = "File Path", help = 'STITCH parameter file (tab-delimited)')
-@click.option('-x', '--extra-params', default = "", type = str, metavar = "String", help = 'Additional STITCH parameters, in quotes')
+@click.option('-x', '--extra-params', type = str, metavar = "String", help = 'Additional STITCH parameters, in quotes')
 @click.option('--vcf-samples',  is_flag = True, show_default = True, default = False, metavar = "Toggle", help = 'Use samples present in vcf file for imputation rather than those found the directory')
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(min = 4, max_open = True), metavar = "Integer", help = 'Number of threads to use')
 @click.option('-s', '--snakemake', type = str, metavar = "String", help = 'Additional Snakemake parameters, in quotes')
@@ -23,7 +23,11 @@ def impute(parameters, directory, threads, vcf, vcf_samples, extra_params, snake
     
     Requires a parameter file, use **harpy stitchparams** to generate one and adjust it for your study.
     Use the `--vcf-samples` toggle to phase only the samples present in your input `--vcf` file rather than all
-    the samples present in the `--directory`.
+    the samples present in the `--directory`. Additional STITCH arguments, if provided, must be in quotes and 
+    in R language style. The extra parameters will remain constant across different models.
+    Use single-quotes (string literals) if supplying an argument that requires quotes. For example:
+    
+    ```harpy ... -x 'switchModelIteration = 39, splitReadIterations = NA, reference_populations = c("CEU","GBR")'```
     """
     fetch_file("impute.smk", "Impute/workflow/")
     fetch_file("stitch_impute.R", "Impute/workflow/")
@@ -61,7 +65,8 @@ def impute(parameters, directory, threads, vcf, vcf_samples, extra_params, snake
         config.write(f"variantfile: {vcf}\n")
         config.write(f"paramfile: {parameters}\n")
         config.write(f"contigs: {contigs}\n")
-        config.write(f"extra={extra_params}")
+        if extra_params is not None:
+            config.write(f"extra: {extra_params}\n")
         config.write(f"skipreports: {skipreports}\n")
         config.write(f"workflow_call: {call_SM}\n")
 
@@ -69,7 +74,8 @@ def impute(parameters, directory, threads, vcf, vcf_samples, extra_params, snake
         click.echo(call_SM)
     else:
         print_onstart(
-            f"Initializing the [bold]harpy impute[/bold] workflow.\nInput Directory: {directory}\nInput VCF: {vcf}\nSamples in VCF: {len(samplenames)}\nContigs Considered: {len(contigs)}"
+            f"Input Directory: {directory}\nInput VCF: {vcf}\nSamples in VCF: {len(samplenames)}\nContigs Considered: {len(contigs)}",
+            "impute"
         )
         generate_conda_deps()
         _module = subprocess.run(command)
