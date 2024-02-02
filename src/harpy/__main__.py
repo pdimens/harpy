@@ -265,21 +265,21 @@ click.rich_click.OPTION_GROUPS = {
     "harpy impute": [
         {
             "name": "Configuration",
-            "options": ["--vcf", "--directory", "--parameters"],
+            "options": ["--vcf", "--directory", "--parameters", "--extra-params", "--vcf-samples"],
         },
         {
             "name": "Other Options",
-            "options": ["--vcf-samples", "--threads", "--skipreports", "--snakemake", "--quiet", "--print-only", "--help"],
+            "options": ["--threads", "--skipreports", "--snakemake", "--quiet", "--print-only", "--help"],
         },
     ],
     "harpy phase": [
         {
             "name": "Configuration",
-            "options": ["--vcf", "--directory", "--molecule-distance", "--genome", "--prune-threshold", "--ignore-bx", "--extra-params"],
+            "options": ["--vcf", "--directory", "--molecule-distance", "--genome", "--prune-threshold", "--ignore-bx", "--extra-params", "--vcf-samples"],
         },
         {
             "name": "Other Options",
-            "options": ["--vcf-samples", "--threads", "--skipreports", "--snakemake", "--quiet", "--print-only", "--help"],
+            "options": ["--threads", "--skipreports", "--snakemake", "--quiet", "--print-only", "--help"],
         },
     ]
 }
