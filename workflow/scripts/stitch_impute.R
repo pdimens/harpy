@@ -15,18 +15,6 @@ dir.create(file.path(tmpdr), showWarnings = FALSE)
 
 # model parameters
 parameters <- snakemake@params[["parameters"]]
-extra <- snakemake@params[["extra"]]
-extra <- strsplit(extra, ",")[[1]]
-extra <- strsplit(extra, "=")
-argname <- trimws(sapply(extra,"[[",1), "both")
-extraparams <- trimws(sapply(extra,"[[",2), "both")
-#TODO SOME KIND OF TRY/EXCEPT TO CONVERT THE PARAMS TO THE RIGHT TYPE
-interpret <- function(x){
-    for(i in x){
-        
-    }
-}
-
 modeltype <- parameters$model
 K <- parameters$k
 S <- parameters$s
@@ -36,11 +24,7 @@ bxlim <- parameters$bxlimit
 nGenerations <- parameters$ngen
 nCores <- snakemake@threads
 inputBundleBlockSize <- NA
-
-# WTF is a genfile?
-sink(logfile, type = "output")
-sink(logfile, type = "message")
-stitch_args <- c(
+cli_args <- list(
     method               = modeltype,
     posfile              = posfile,
     bamlist              = bamlist,
@@ -58,6 +42,49 @@ stitch_args <- c(
     output_filename      = outfile,
     tempdir              = tmpdr
 )
+# if there are any extra arguments provided to harpy by the -x argument
+extra <- snakemake@params[["extra"]]
+if(extra != ""){
+    # convert the extra arguments into proper R types
+    # converts numbers to numeric, vectors to vectors, leaves strings as-is
+    interpret <- function(x){
+    tryCatch({eval(parse(text=x))}, error = function(y){x})
+    }
+    extraargvals <- unlist(strsplit(extra, ","))
+    n <- length(extraargvals)
+    res <- c()
+    startfrom <- 1
+    for(i in 1:n){
+        if(startfrom > i){
+            next
+        }
+    currentstring <- extraargvals[i]
+    if(grepl("c\\(", currentstring)){
+        for(j in i:n){
+            if(grepl("\\)", extraargvals[j])){
+                .res <- paste(extraargvals[i:j], collapse = ",")
+                startfrom <- j+1
+                break
+            }
+        }
+    } else {
+        .res <- currentstring
+    }
+    res <- c(res, trimws(.res, "both"))
+    }
+    extra <- lapply(strsplit(res, "="), function(x){trimws(x, "both")})
+    argnames <- sapply(extra,"[[",1)
+    extraparams <- sapply(extra,"[[",2)
+    extra_args <- lapply(extraparams, interpret)
+    names(extra_args) <- argnames
+    # combine the parameter list with the extra list, overwrite conflicts
+    stitch_args <- utils::modifyList(cli_args, extra_args)
+} else {
+    stitch_args <- cli_args
+}
+
+sink(logfile, type = "output")
+sink(logfile, type = "message")
 do.call(STITCH, stitch_args)
 sink()
 
