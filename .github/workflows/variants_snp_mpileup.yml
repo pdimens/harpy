@@ -1,37 +1,35 @@
-name: Test Impute
+name: Test Variants mpileup
 
 on:
   push:
     branches:
       - 'dev'
     paths:
-      - 'workflow/rules/impute.smk'
-      - 'workflow/envs/harpy.yaml'
       - 'workflow/envs/r-env.yaml'
-      - '**impute.py'
+      - 'workflow/envs/variants.snp.yaml'
+      - 'workflow/envs/harpy.yaml'
+      - 'workflow/rules/snp-mpileup.smk'
+      - '**snp.py'
       - '**helperfunctions.py'
+      - 'workflow/report/BcftoolsStats.Rmd'
+      - 'workflow/scripts/makewindows.py'
       - 'test/bam/**'
-      - 'test/vcf/test.bcf'
-      - '**impute.yml'
-      - 'workflow/report/Impute.Rmd'
-      - 'workflow/report/StitchCollate.Rmd'
-      - 'workflow/scripts/stitch_impute.R'
+      - '**variants_snp.yml'
 
   pull_request:
     branches:
       - 'dev'
     paths:
-      - 'workflow/rules/impute.smk'
-      - 'workflow/envs/harpy.yaml'
       - 'workflow/envs/r-env.yaml'
-      - '**impute.py'
+      - 'workflow/envs/variants.snp.yaml'
+      - 'workflow/envs/harpy.yaml'
+      - 'workflow/rules/snp-mpileup.smk'
+      - '**snp.py'
       - '**helperfunctions.py'
+      - 'workflow/report/BcftoolsStats.Rmd'
+      - 'workflow/scripts/makewindows.py'
       - 'test/bam/**'
-      - 'test/vcf/test.bcf'
-      - '**impute.yml'
-      - 'workflow/report/Impute.Rmd'
-      - 'workflow/report/StitchCollate.Rmd'
-      - 'workflow/scripts/stitch_impute.R'
+      - '**variants_snp.yml'
 
 env:
   CACHE_NUMBER: 0  # increase to reset cache manually
@@ -62,14 +60,7 @@ jobs:
           python3 -m pip install --upgrade build && python3 -m build
           pip install dist/*.whl
           resources/buildforCI.sh
-
-      - name: impute
+      
+      - name: variants mpileup
         shell: micromamba-shell {0}
-        run: harpy impute --vcf test/vcf/test.bcf -d test/bam -p test/stitch.params -q -s "--show-failed-logs"
-
-      - name: impute from vcf
-        shell: micromamba-shell {0}
-        if: always()
-        run: |
-          rm -rf Impute
-          harpy impute --vcf-samples --vcf test/vcf/test.bcf -d test/bam -p test/stitch.params -q -s "--show-failed-logs"
+        run: harpy snp mpileup -w 150000 -d test/bam -g test/genome/genome.fasta.gz -q

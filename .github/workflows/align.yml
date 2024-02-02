@@ -74,11 +74,10 @@ jobs:
         shell: micromamba-shell {0}
 
       - name: align bwa
-        if: always()
         shell: micromamba-shell {0}
-        run: harpy align bwa -d test/fastq -g test/genome/genome.fasta.gz -s "--show-failed-logs"
+        run: harpy align bwa -d test/fastq -g test/genome/genome.fasta.gz -q -s "--show-failed-logs"
 
       - name: align ema
         if: always()
         shell: micromamba-shell {0}
-        run: harpy align ema --ema-bins 20 -d test/fastq -g test/genome/genome.fasta.gz -s "--show-failed-logs"
+        run: harpy align ema --ema-bins 20 -d test/fastq -g test/genome/genome.fasta.gz -q -s "--show-failed-logs"

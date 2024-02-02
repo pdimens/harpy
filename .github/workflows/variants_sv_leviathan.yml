@@ -1,37 +1,37 @@
-name: Test Variants SNP
+name: Test Variants Leviathan
 
 on:
   push:
     branches:
       - 'dev'
     paths:
-      - 'workflow/envs/r-env.yaml'
-      - 'workflow/envs/variants.snp.yaml'
       - 'workflow/envs/harpy.yaml'
-      - 'workflow/rules/snp-freebayes.smk'
-      - 'workflow/rules/snp-mpileup.smk'
-      - '**snp.py'
+      - 'workflow/envs/r-env.yaml'
+      - 'workflow/envs/variants.sv.yaml'
+      - 'workflow/rules/sv-leviathan**.smk'
+      - '**sv.py'
       - '**helperfunctions.py'
-      - 'workflow/report/BcftoolsStats.Rmd'
       - 'workflow/scripts/makewindows.py'
       - 'test/bam/**'
       - '**variants_snp.yml'
+      - 'workflow/report/Leviathan.Rmd'
+      - 'workflow/report/LeviathanPop.Rmd'
 
   pull_request:
     branches:
       - 'dev'
     paths:
-      - 'workflow/envs/r-env.yaml'
-      - 'workflow/envs/variants.snp.yaml'
       - 'workflow/envs/harpy.yaml'
-      - 'workflow/rules/snp-freebayes.smk'
-      - 'workflow/rules/snp-mpileup.smk'
-      - '**snp.py'
+      - 'workflow/envs/r-env.yaml'
+      - 'workflow/envs/variants.sv.yaml'
+      - 'workflow/rules/sv-leviathan**.smk'
+      - '**sv.py'
       - '**helperfunctions.py'
-      - 'workflow/report/BcftoolsStats.Rmd'
       - 'workflow/scripts/makewindows.py'
       - 'test/bam/**'
       - '**variants_snp.yml'
+      - 'workflow/report/Leviathan.Rmd'
+      - 'workflow/report/LeviathanPop.Rmd'
 
 env:
   CACHE_NUMBER: 0  # increase to reset cache manually
@@ -62,12 +62,13 @@ jobs:
           python3 -m pip install --upgrade build && python3 -m build
           pip install dist/*.whl
           resources/buildforCI.sh
-          
-      - name: variants freebayes
+
+      - name: leviathan
         shell: micromamba-shell {0}
-        run: harpy snp freebayes -w 150000 -d test/bam -g test/genome/genome.fasta.gz
-      
-      - name: variants mpileup
+        run: harpy sv leviathan -d test/bam -g test/genome/genome.fasta.gz -q -s "--show-failed-logs"
+        continue-on-error: true
+
+      - name: leviathan-pop
         if: always()
         shell: micromamba-shell {0}
-        run: rm -r .snakemake && harpy snp mpileup -w 150000 -d test/bam -g test/genome/genome.fasta.gz
+        run: harpy sv leviathan -d test/bam -g test/genome/genome.fasta.gz -p test/samples.groups -q -s "--show-failed-logs"
