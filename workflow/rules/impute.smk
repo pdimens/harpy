@@ -13,7 +13,7 @@ paramfile   = config["paramfile"]
 contigs     = config["contigs"]
 skipreports = config["skipreports"]
 # declare a dataframe to be the paramspace
-paramspace  = Paramspace(pd.read_csv(paramfile, delim_whitespace = True).rename(columns=str.lower), param_sep = "", filename_params="*")
+paramspace  = Paramspace(pd.read_csv(paramfile, sep='\s+').rename(columns=str.lower), param_sep = "", filename_params="*")
 
 wildcard_constraints:
     sample = "[a-zA-Z0-9._-]+"
@@ -106,7 +106,7 @@ rule impute:
         # automatically translate the wildcard values into an instance of the param space
         # in the form of a dict (here: {"k": ..., "s": ..., "ngen": ...})
         parameters = paramspace.instance,
-        extra = ""
+        extra = config.get("extra", "")
     conda:
         os.getcwd() + "/harpyenvs/r-env.yaml"
     benchmark:
@@ -279,6 +279,8 @@ rule log_runtime:
                 "        outputdir            = outdir,\n" +
                 "        output_filename      = outfile\n)\n"
             )
+            _ = f.write("Additional STITCH parameters provided (overrides existing values above):\n")
+            _ = f.write("    " + config.get("extra", "None provided") + "\n")
             _ = f.write("\nThe Snakemake workflow was called via command line:\n")
             _ = f.write("    " + str(config["workflow_call"]))
 
