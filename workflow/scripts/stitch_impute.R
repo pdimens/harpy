@@ -15,7 +15,18 @@ dir.create(file.path(tmpdr), showWarnings = FALSE)
 
 # model parameters
 parameters <- snakemake@params[["parameters"]]
-#extra <- snakemake@params[["extra"]]
+extra <- snakemake@params[["extra"]]
+extra <- strsplit(extra, ",")[[1]]
+extra <- strsplit(extra, "=")
+argname <- trimws(sapply(extra,"[[",1), "both")
+extraparams <- trimws(sapply(extra,"[[",2), "both")
+#TODO SOME KIND OF TRY/EXCEPT TO CONVERT THE PARAMS TO THE RIGHT TYPE
+interpret <- function(x){
+    for(i in x){
+        
+    }
+}
+
 modeltype <- parameters$model
 K <- parameters$k
 S <- parameters$s
@@ -29,24 +40,25 @@ inputBundleBlockSize <- NA
 # WTF is a genfile?
 sink(logfile, type = "output")
 sink(logfile, type = "message")
-STITCH(
-    method                  = modeltype,
-    posfile                 = posfile,
-    bamlist                 = bamlist,
-    nCores                  = nCores,
-    nGen                    = nGenerations,
-    chr                     = chr,
-    K                       = K,
-    S                       = S,
-    use_bx_tag              = bx,
-    bxTagUpperLimit         = bxlim,
-    niterations             = 40,
-    switchModelIteration    = 39,
-    splitReadIterations     = NA,
-    outputdir               = outdir,
-    output_filename         = outfile,
-    tempdir                 = tmpdr
+stitch_args <- c(
+    method               = modeltype,
+    posfile              = posfile,
+    bamlist              = bamlist,
+    nCores               = nCores,
+    nGen                 = nGenerations,
+    chr                  = chr,
+    K                    = K,
+    S                    = S,
+    use_bx_tag           = bx,
+    bxTagUpperLimit      = bxlim,
+    niterations          = 40,
+    switchModelIteration = 39,
+    splitReadIterations  = NA,
+    outputdir            = outdir,
+    output_filename      = outfile,
+    tempdir              = tmpdr
 )
+do.call(STITCH, stitch_args)
 sink()
 
 debugdir <- paste(outdir, "debug", sep = "/")

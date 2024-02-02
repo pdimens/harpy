@@ -105,7 +105,8 @@ rule impute:
     params:
         # automatically translate the wildcard values into an instance of the param space
         # in the form of a dict (here: {"k": ..., "s": ..., "ngen": ...})
-        parameters = paramspace.instance
+        parameters = paramspace.instance,
+        extra = ""
     conda:
         os.getcwd() + "/harpyenvs/r-env.yaml"
     benchmark:
