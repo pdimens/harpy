@@ -417,8 +417,9 @@ def print_onstart(text):
         file = sys.stderr
     )
 
-def biallelic_contigs(vbn):
+def biallelic_contigs(vcf):
     """Identify which contigs have at least 2 biallelic SNPs"""
+    vbn = os.path.basename(vcf)
     if not os.path.exists(f"Impute/input/_{vbn}.list"):
         os.makedirs("Impute/input/", exist_ok = True)
         #click.echo("\033[1mPreprocessing:\033[00m Identifying contigs with at least 2 biallelic SNPs", file = sys.stderr, color = True)

@@ -31,7 +31,6 @@ def impute(parameters, directory, threads, vcf, vcf_samples, snakemake, skiprepo
         fetch_file(f"{i}.Rmd", "Impute/workflow/report/")
     ## validate inputs ##
     vcfcheck(vcf)
-    #samplenames = getnames(directory, '.bam')
     ### check that samples in VCF match input directory
     directory = directory.rstrip("/^")
     samplenames = vcf_samplematch(vcf, directory, vcf_samples)
@@ -54,8 +53,7 @@ def impute(parameters, directory, threads, vcf, vcf_samples, snakemake, skiprepo
 
     # generate and store list of viable contigs (minimum of 2 biallelic SNPs)
     # doing it here so it doesn't have to run each time inside the workflow
-    vbn = os.path.basename(vcf)
-    contigs = biallelic_contigs(vbn)
+    contigs = biallelic_contigs(vcf)
 
     with open("Impute/workflow/config.yml", "w") as config:
         config.write(f"seq_directory: {directory}\n")
