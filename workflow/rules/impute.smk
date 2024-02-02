@@ -255,8 +255,7 @@ rule log_runtime:
             _ = f.write("Preprocessing was performed with:\n")
             _ = f.write("    bcftools view -M2 -v snps --regions CONTIG INFILE |\n")
             _ = f.write("""    bcftools query -i '(STRLEN(REF)==1) & (STRLEN(ALT[0])==1) & (REF!="N")' -f '%CHROM\\t%POS\\t%REF\\t%ALT\\n'\n""")
-            _ = f.write("## STITCH imputation ##\n")
-            _ = f.write("The STITCH parameters were governed by the rows of the input parameter table:\n")
+            _ = f.write("\nThe STITCH parameters were governed by the rows of the input parameter table:\n")
             with open(config["paramfile"], "r") as f1:
                 for line in f1:
                     _ = f.write("    " + line)
