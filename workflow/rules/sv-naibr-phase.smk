@@ -278,13 +278,17 @@ rule log_runtime:
             _ = f.write("\nThe Snakemake workflow was called via command line:\n")
             _ = f.write("    " + str(config["workflow_call"]))
 
+results = list()
+results.append(expand(outdir + "/{sample}.bedpe", sample = samplenames))
+results.append(outdir + "/workflow/sv.naibr.workflow.summary")
+results.append(outdir + "/logs/whatshap-haplotag/phasing.log")
+if not skipreports:
+    results.append(expand(outdir + "/reports/{sample}.naibr.html", sample = samplenames))
+
 rule all:
     default_target: True
     input:
-        expand(outdir + "/{sample}.bedpe",      sample = samplenames),
-        expand(outdir + "/reports/{sample}.naibr.html", sample = samplenames),
-        outdir + "/workflow/sv.naibr.workflow.summary",
-        outdir + "/logs/whatshap-haplotag/phasing.log"
+        results
     message:
         "Checking for expected workflow output"
     shell:

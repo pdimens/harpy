@@ -128,13 +128,17 @@ rule log_runtime:
             _ = f.write("\nThe Snakemake workflow was called via command line:\n")
             _ = f.write("    " + str(config["workflow_call"]))
 
+results = list()
+results.append(expand("QC/logs/json/{sample}.fastp.json", sample = samplenames))
+results.append(expand("QC/{sample}.{FR}.fq.gz", FR = ["R1", "R2"], sample = samplenames))
+results.append("QC/workflow/qc.workflow.summary")
+if not skipreports:
+    results.append("QC/logs/barcode.summary.html")
+    
 rule createReport:
     default_target: True
     input: 
-        expand("QC/logs/json/{sample}.fastp.json", sample = samplenames),
-        expand("QC/{sample}.{FR}.fq.gz", FR = ["R1", "R2"], sample = samplenames),
-        "QC/logs/barcode.summary.html",
-        "QC/workflow/qc.workflow.summary"
+        results
     output:
         "QC/logs/qc.report.html"
     message:

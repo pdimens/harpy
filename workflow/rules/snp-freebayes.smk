@@ -251,11 +251,15 @@ rule log_runtime:
             _ = f.write("\nThe Snakemake workflow was called via command line:\n")
             _ = f.write("    " + str(config["workflow_call"]))
 
+results = list()
+results.append(outdir + "/workflow/snp.freebayes.workflow.summary")
+results.append(expand(outdir + "/variants.{file}.bcf", file = ["raw", "normalized"]))
+if not skipreports:
+    results.append(expand(outdir + "/reports/variants.{file}.html", file = ["raw", "normalized"]))
+
 rule all:
     default_target: True
-    input: 
-        outdir + "/workflow/snp.freebayes.workflow.summary",
-        expand(outdir + "/variants.{file}.bcf",        file = ["raw", "normalized"]),
-        expand(outdir + "/reports/variants.{file}.html", file = ["raw", "normalized"])
+    input:
+        results
     message:
          "Checking for expected workflow output"

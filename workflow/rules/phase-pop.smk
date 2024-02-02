@@ -278,14 +278,17 @@ rule log_runtime:
             _ = f.write("\nThe Snakemake workflow was called via command line:\n")
             _ = f.write("    " + str(config["workflow_call"]))
 
-rule indexFinal:
+results = list()
+results.append(outdir + "/variants.phased.bcf")
+results.append(outdir + "/workflow/phase.workflow.summary")
+
+if not skipreports:
+    results.append(outdir + "/reports/phase.html")
+
+rule all:
     default_target: True
     input:
-        outdir + "/variants.phased.bcf",
-        outdir + "/workflow/phase.workflow.summary",
-        outdir + "/reports/phase.html"
-    benchmark:
-        ".Benchmark/Phase/finalindex.txt"
+        results
     message:
         "Checking for expected workflow output"
 

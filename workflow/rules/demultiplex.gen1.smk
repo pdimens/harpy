@@ -214,7 +214,7 @@ rule log_runtime:
             _ = f.write("The harpy demultiplex module ran using these parameters:\n\n")
             _ = f.write("Haplotag technology: Generation I\n")
             _ = f.write(f"The multiplexed input file: {infile}\n")
-            _ = f.write(f"The associated inferred from {infile}:\n")
+            _ = f.write(f"The associated files inferred from {infile}:\n")
             _ = f.write("    " + "\n    ".join(infiles) + "\n")
             _ = f.write("Barcodes were moved into the read headers using the command:\n")
             _ = f.write(f"    demuxGen1 DATA_ {inprefix}\n")

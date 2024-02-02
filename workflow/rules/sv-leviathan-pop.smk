@@ -266,12 +266,16 @@ rule log_runtime:
             _ = f.write("\nThe Snakemake workflow was called via command line:\n")
             _ = f.write("    " + str(config["workflow_call"]))
 
+results = list()
+results.append(expand(outdir + "/{pop}.bcf", pop = populations))
+results.append(expand(outdir + "/reports/{pop}.sv.html", pop = populations))
+if not skipreports:
+    results.append(outdir + "/reports/leviathan.pop.summary.html")
+    results.append(outdir + "/workflow/sv.leviathan.workflow.summary")
+
 rule all_bcfs:
     default_target: True
     input: 
-        bcf       = expand(outdir + "/{pop}.bcf", pop = populations),
-        popreport = expand(outdir + "/reports/{pop}.sv.html", pop = populations),
-        report    = outdir + "/reports/leviathan.pop.summary.html",
-        runlog    = outdir + "/workflow/sv.leviathan.workflow.summary"
+        results
     message:
         "Checking for expected workflow output"
