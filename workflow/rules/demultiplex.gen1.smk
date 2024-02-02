@@ -15,7 +15,6 @@ infiles = [f"{inprefixfull}_{i}{fq_extension}" for i in ["I1", "I2","R1","R2"]]
 indir = os.path.dirname(infile)
 outdir = f"Demultiplex/{inprefix}/"
 
-
 def barcodedict(smpl):
     d = dict()
     with open(smpl, "r") as f:
