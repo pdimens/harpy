@@ -211,10 +211,10 @@ rule log_runtime:
             _ = f.write("    " + str(config["workflow_call"]))
 
 results = list()
-results.apppend(expand(outdir + "/{sample}.bedpe", sample = samplenames))
-results.apppend(outdir + "/workflow/sv.naibr.workflow.summary")
+results.append(expand(outdir + "/{sample}.bedpe", sample = samplenames))
+results.append(outdir + "/workflow/sv.naibr.workflow.summary")
 if not skipreports:
-    results.apppend(expand(outdir + "/reports/{sample}.naibr.html", sample = samplenames))
+    results.append(expand(outdir + "/reports/{sample}.naibr.html", sample = samplenames))
 
 rule all:
     default_target: True
