@@ -1,5 +1,5 @@
 from .helperfunctions import fetch_file, generate_conda_deps, getnames, print_onstart
-from .helperfunctions import vcfcheck, vcf_samplematch
+from .helperfunctions import vcfcheck, vcf_samplematch, biallelic_contigs
 from .helperfunctions import check_impute_params, validate_bamfiles
 import rich_click as click
 import subprocess
@@ -55,28 +55,7 @@ def impute(parameters, directory, threads, vcf, vcf_samples, snakemake, skiprepo
     # generate and store list of viable contigs (minimum of 2 biallelic SNPs)
     # doing it here so it doesn't have to run each time inside the workflow
     vbn = os.path.basename(vcf)
-    #TODO make this a function in helperfunctions.py
-    #TODO HAVE PYTHON DO THE SORTING AND COUNTING AND FILTERING?
-    if not os.path.exists(f"Impute/input/_{vbn}.list"):
-        os.makedirs("Impute/input/", exist_ok = True)
-        click.echo("\033[1mPreprocessing:\033[00m Identifying contigs with at least 2 biallelic SNPs", file = sys.stderr, color = True)
-        biallelic = subprocess.Popen(f"bcftools view -M2 -v snps {vcf} -Ob".split(), stdout = subprocess.PIPE)
-        contigs = subprocess.Popen("""bcftools query -f '%CHROM\\n'""".split(), stdin = biallelic.stdout, stdout = subprocess.PIPE)
-        c_sort = subprocess.Popen("sort", stdin = contigs.stdout, stdout = subprocess.PIPE)
-        unq = subprocess.Popen("uniq -c".split(), stdin = c_sort.stdout, stdout = subprocess.PIPE)
-        contigs_out = subprocess.run(["awk", r'{ if ($1 > 1) {print $2} }'], stdin = unq.stdout, stdout = subprocess.PIPE).stdout.splitlines()
-        contigs = []
-        with open(f"Impute/input/_{vbn}.list", "w") as f:
-            for l in contigs_out:
-                l_corr = l.decode().replace("\'", "")
-                _ = f.write(f"{l_corr}\n")
-                contigs.append(f"{l_corr}")
-    else:
-        with open(f"Impute/input/_{vbn}.list", "r") as f:
-            contigs = [line.rstrip() for line in f]
-    if len(contigs) == 0:
-        print_error("No contigs with at least 2 biallelic SNPs identified. Cannot continue with imputation.")
-        exit(1)
+    contigs = biallelic_contigs(vbn)
 
     with open("Impute/workflow/config.yml", "w") as config:
         config.write(f"seq_directory: {directory}\n")

@@ -5,6 +5,7 @@ import shutil
 import glob
 import gzip
 import subprocess
+from collections import Counter
 from urllib.request import urlretrieve
 from pathlib import Path
 from rich import print
@@ -351,7 +352,7 @@ def check_demux_fastq(file):
 
 def generate_conda_deps():
     """Create the YAML files of the workflow conda dependencies"""
-    condachannels = ["conda-forge", "bioconda"]
+    condachannels = ["conda-forge", "bioconda", "defaults"]
     environ = {
         "qc" : ["falco", "fastp"],
         "align": ["bwa", "ema","icu","libzlib", "sambamba", "samtools=1.19", "seqtk", "xz"],
@@ -415,3 +416,28 @@ def print_onstart(text):
         ),
         file = sys.stderr
     )
+
+def biallelic_contigs(vbn):
+    """Identify which contigs have at least 2 biallelic SNPs"""
+    if not os.path.exists(f"Impute/input/_{vbn}.list"):
+        os.makedirs("Impute/input/", exist_ok = True)
+        #click.echo("\033[1mPreprocessing:\033[00m Identifying contigs with at least 2 biallelic SNPs", file = sys.stderr, color = True)
+        biallelic = subprocess.Popen(f"bcftools view -M2 -v snps {vcf} -Ob".split(), stdout = subprocess.PIPE)
+        contigs = subprocess.run("""bcftools query -f '%CHROM\\n'""".split(), stdin = biallelic.stdout, stdout = subprocess.PIPE).stdout.decode().splitlines()
+        counts = Counter(contigs)
+        contigs = [i.replace("\'", "") for i in counts if counts[i] > 1]
+
+        #c_sort = subprocess.Popen("sort", stdin = contigs.stdout, stdout = subprocess.PIPE)
+        #unq = subprocess.Popen("uniq -c".split(), stdin = c_sort.stdout, stdout = subprocess.PIPE)
+        #contigs_out = subprocess.run(["awk", r'{ if ($1 > 1) {print $2} }'], stdin = unq.stdout, stdout = subprocess.PIPE).stdout.splitlines()
+        with open(f"Impute/input/_{vbn}.list", "w") as f:
+            _ = [f.write(f"{i}\n") for i in contigs]
+    else:
+        with open(f"Impute/input/_{vbn}.list", "r") as f:
+            contigs = [line.rstrip() for line in f]
+    
+    if len(contigs) == 0:
+        print_error("No contigs with at least 2 biallelic SNPs identified. Cannot continue with imputation.")
+        exit(1)
+    else:
+        return contigs
