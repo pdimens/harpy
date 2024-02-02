@@ -13,7 +13,7 @@ on:
       - '**helperfunctions.py'
       - 'workflow/scripts/makewindows.py'
       - 'test/bam/**'
-      - '**variants_snp.yml'
+      - '**variants_sv_leviathan.yml'
       - 'workflow/report/Leviathan.Rmd'
       - 'workflow/report/LeviathanPop.Rmd'
 
@@ -29,7 +29,7 @@ on:
       - '**helperfunctions.py'
       - 'workflow/scripts/makewindows.py'
       - 'test/bam/**'
-      - '**variants_snp.yml'
+      - '**variants_sv_leviathan.yml'
       - 'workflow/report/Leviathan.Rmd'
       - 'workflow/report/LeviathanPop.Rmd'
 

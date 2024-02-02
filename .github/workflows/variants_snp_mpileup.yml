@@ -14,7 +14,7 @@ on:
       - 'workflow/report/BcftoolsStats.Rmd'
       - 'workflow/scripts/makewindows.py'
       - 'test/bam/**'
-      - '**variants_snp.yml'
+      - '**variants_snp_mpileup.yml'
 
   pull_request:
     branches:
@@ -29,7 +29,7 @@ on:
       - 'workflow/report/BcftoolsStats.Rmd'
       - 'workflow/scripts/makewindows.py'
       - 'test/bam/**'
-      - '**variants_snp.yml'
+      - '**variants_snp_mpileup.yml'
 
 env:
   CACHE_NUMBER: 0  # increase to reset cache manually
