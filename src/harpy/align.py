@@ -68,7 +68,7 @@ def bwa(genome, threads, directory, extra_params, quality_filter, molecule_dista
 #####----------ema--------------------
 
 @click.command(no_args_is_help = True, epilog = "read the docs for more information: https://pdimens.github.io/harpy/modules/align/ema")
-@click.option('-p', '--platform', type = click.Choice(['haplotag', 'tellseq', '10x'], case_sensitive=False), default = "haplotag", show_default=True, help = "Linked read bead technology\n[haplotag, tellseq, 10x]")
+@click.option('-p', '--platform', type = click.Choice(['haplotag', '10x'], case_sensitive=False), default = "haplotag", show_default=True, help = "Linked read bead technology\n[haplotag, 10x]")
 @click.option('-w', '--whitelist', type = click.Path(exists=True, dir_okay=False), help = "Barcode whitelist file for tellseq/10x")
 @click.option('-g', '--genome', type=click.Path(exists=True, dir_okay=False), required = True, metavar = "File Path", help = 'Genome assembly for read mapping')
 @click.option('-d', '--directory', required = True, type=click.Path(exists=True, file_okay=False), metavar = "Folder Path", help = 'Directory with sample sequences')
@@ -85,13 +85,14 @@ def ema(platform, whitelist, genome, threads, ema_bins, directory, skipreports, 
     Align sequences to a genome using EMA
 
     EMA may improve mapping, but it also marks split reads as secondary
-    reads, making it less useful for leviathan variant calling.
+    reads, making it less useful for variant calling with leviathan.
     """
     fetch_file("align-ema.smk", "Align/ema/workflow/")
     for i in ["EmaCount", "EmaGencov", "BxStats"]:
         fetch_file(f"{i}.Rmd", "Align/ema/workflow/report/")
 
     platform = platform.lower()
+    # the tellseq stuff isn't impremented yet, but this is a placeholder for that, wishful thinking
     if platform in ["tellseq", "10x"] and not whitelist:
         print_error(f"{platform} technology requires the use of a barcode whitelist.")
         if platform == "10x":
