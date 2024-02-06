@@ -73,8 +73,21 @@ rule mergeChecks:
         echo -e "file\tnameMismatch\talignments\tnoMI\tnoBX\tbadBX\tbxNotLast\n$(cat {output.tmp})" > {output.final}
         """
 
+rule log_runtime:
+    output:
+        out_dir + "/workflow/preflight.workflow.summary"
+    message:
+        "Creating record of relevant runtime parameters: {output}"
+    run:
+        with open(output[0], "w") as f:
+            _ = f.write("The harpy preflight module ran using these parameters:\n\n")
+            _ = f.write(f"The directory with sequences: {seq_dir}\n")
+            _ = f.write("validations were performed with:\n")
+            _ = f.write("    checkBAM.py sample.bam > sample.txt\n")
+            _ = f.write("\nThe Snakemake workflow was called via command line:\n")
+            _ = f.write("    " + str(config["workflow_call"]) + "\n")
+
 rule createReport:
-    default_target: True
     input:
         out_dir + "filecheck.bam.tsv"
     output:
@@ -87,3 +100,11 @@ rule createReport:
         "Producing report"
     script:
         "report/PreflightBam.Rmd"
+
+rule all:
+    default_target: True
+    input:
+        out_dir + "/workflow/preflight.workflow.summary",
+        out_dir + "filecheck.bam.html"
+    message:
+        "Checking for expected workflow output"

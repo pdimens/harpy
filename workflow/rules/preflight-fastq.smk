@@ -89,8 +89,21 @@ rule mergeChecks:
         echo -e "file\treads\tnoBX\tbadBX\tbadSamSpec\tbxNotLast\n$(cat {output.tmp})" > {output.final}
         """
 
+rule log_runtime:
+    output:
+        out_dir + "/workflow/preflight.workflow.summary"
+    message:
+        "Creating record of relevant runtime parameters: {output}"
+    run:
+        with open(output[0], "w") as f:
+            _ = f.write("The harpy preflight module ran using these parameters:\n\n")
+            _ = f.write(f"The directory with sequences: {seq_dir}\n")
+            _ = f.write("validations were performed with:\n")
+            _ = f.write("    checkFASTQ.py sample.fastq > sample.txt\n")
+            _ = f.write("\nThe Snakemake workflow was called via command line:\n")
+            _ = f.write("    " + str(config["workflow_call"]) + "\n")
+
 rule createReport:
-    default_target: True
     input:
         out_dir + "filecheck.fastq.tsv"
     output:
@@ -103,3 +116,11 @@ rule createReport:
         "Producing report"
     script:
         "report/PreflightFastq.Rmd"
+
+rule all:
+    default_target: True
+    input:
+        out_dir + "/workflow/preflight.workflow.summary",
+        out_dir + "filecheck.fastq.html"
+    message:
+        "Checking for expected workflow output"
