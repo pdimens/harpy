@@ -63,4 +63,4 @@ jobs:
       
       - name: variants mpileup
         shell: micromamba-shell {0}
-        run: harpy snp mpileup -w 150000 -d test/bam -g test/genome/genome.fasta.gz -q -r
+        run: harpy snp mpileup -w 150000 -d test/bam -g test/genome/genome.fasta.gz -q
