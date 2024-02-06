@@ -41,7 +41,7 @@ def impute(parameters, directory, threads, vcf, vcf_samples, extra_params, snake
     check_impute_params(parameters)
     validate_bamfiles(directory, samplenames)
 
-    command = f'snakemake --rerun-incomplete --nolock --use-conda --conda-prefix ./.snakemake --cores {threads} --directory .'.split()
+    command = f'snakemake --rerun-incomplete --nolock --use-conda --conda-prefix ./.snakemake/conda --cores {threads} --directory .'.split()
     command.append('--snakefile')
     command.append('Impute/workflow/impute.smk')
     command.append("--configfile")

@@ -31,7 +31,7 @@ def leviathan(genome, threads, directory, populations, extra_params, snakemake, 
         fetch_file("LeviathanPop.Rmd", f"Variants/{vcaller}/workflow/report/")
     fetch_file("Leviathan.Rmd", f"Variants/{vcaller}/workflow/report/")
     fetch_file(f"sv-{vcaller}.smk", f"Variants/{vcaller}/workflow/")
-    command = f'snakemake --rerun-incomplete --nolock --use-conda --conda-prefix ./.snakemake --cores {threads} --directory .'.split()
+    command = f'snakemake --rerun-incomplete --nolock --use-conda --conda-prefix ./.snakemake/conda --cores {threads} --directory .'.split()
     command.append('--snakefile')
     command.append(f'Variants/{vcaller}/workflow/sv-{vcaller}.smk')
     command.append('--configfile')
@@ -111,7 +111,7 @@ def naibr(genome, vcf, threads, directory, populations, molecule_distance, extra
         check_phase_vcf(vcf)
         vcaller += "-phase"
     fetch_file(f"sv-{vcaller}.smk", f"Variants/{outdir}/workflow/")
-    command = (f'snakemake --rerun-incomplete --nolock --use-conda --conda-prefix ./.snakemake --cores {threads} --directory .').split()
+    command = (f'snakemake --rerun-incomplete --nolock --use-conda --conda-prefix ./.snakemake/conda --cores {threads} --directory .').split()
     command.append('--snakefile')
     command.append(f"Variants/{outdir}/workflow/sv-{vcaller}.smk")
     command.append("--configfile")

@@ -26,7 +26,7 @@ def gen1(file, samplesheet, threads, snakemake, skipreports, quiet, print_only):
     fetch_file("demultiplex.gen1.smk", f"Demultiplex/{inprefix}/workflow/")
     validate_demuxschema(samplesheet)
 
-    command = f'snakemake --rerun-incomplete --nolock --use-conda --conda-prefix ./.snakemake --cores {threads} --directory .'.split()
+    command = f'snakemake --rerun-incomplete --nolock --use-conda --conda-prefix ./.snakemake/conda --cores {threads} --directory .'.split()
     command.append('--snakefile')
     command.append(f'Demultiplex/{inprefix}/workflow/demultiplex.gen1.smk')
     command.append("--configfile")

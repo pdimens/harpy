@@ -31,7 +31,7 @@ def qc(directory, max_length, ignore_adapters, extra_params, threads, snakemake,
     directory = directory.rstrip("/^")
     sn = get_samples_from_fastq(directory)
 
-    command = f'snakemake --rerun-incomplete --nolock  --use-conda --conda-prefix ./.snakemake --cores {threads} --directory .'.split()
+    command = f'snakemake --rerun-incomplete --nolock  --use-conda --conda-prefix ./.snakemake/conda --cores {threads} --directory .'.split()
     command.append('--snakefile')
     command.append('QC/workflow/qc.smk')
     command.append('--configfile')

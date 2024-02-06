@@ -35,7 +35,7 @@ def phase(vcf, directory, threads, molecule_distance, prune_threshold, vcf_sampl
     samplenames = vcf_samplematch(vcf, directory, vcf_samples)
     validate_bamfiles(directory, samplenames)
     prune_threshold /= 100
-    command = f'snakemake --rerun-incomplete --nolock --use-conda --conda-prefix ./.snakemake --cores {threads} --directory .'.split()
+    command = f'snakemake --rerun-incomplete --nolock --use-conda --conda-prefix ./.snakemake/conda --cores {threads} --directory .'.split()
     command.append('--snakefile')
     command.append('Phase/workflow/phase-pop.smk')
     command.append("--configfile")

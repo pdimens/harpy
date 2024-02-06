@@ -31,7 +31,7 @@ def bwa(genome, threads, directory, extra_params, quality_filter, molecule_dista
         fetch_file(f"{i}.Rmd", "Align/bwa/workflow/report/")
     samplenames = get_samples_from_fastq(directory)
     directory = directory.rstrip("/^")
-    command = f'snakemake --rerun-incomplete --nolock --use-conda --conda-prefix ./.snakemake --cores {threads} --directory .'.split()
+    command = f'snakemake --rerun-incomplete --nolock --use-conda --conda-prefix ./.snakemake/conda --cores {threads} --directory .'.split()
     command.append('--snakefile')
     command.append('Align/bwa/workflow/align-bwa.smk')
     command.append("--configfile")
