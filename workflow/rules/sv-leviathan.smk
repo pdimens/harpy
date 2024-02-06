@@ -200,7 +200,7 @@ rule log_runtime:
             _ = f.write("Leviathan was called using:\n")
             _ = f.write(f"    LEVIATHAN -b INPUT -i INPUT.BCI -g GENOME {params}\n")
             _ = f.write("\nThe Snakemake workflow was called via command line:\n")
-            _ = f.write("    " + str(config["workflow_call"]))
+            _ = f.write("    " + str(config["workflow_call"]) + "\n")
 
 results = list()
 results.append(expand(outdir + "/{sample}.bcf", sample = samplenames))

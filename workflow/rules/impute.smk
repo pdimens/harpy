@@ -282,7 +282,7 @@ rule log_runtime:
             _ = f.write("Additional STITCH parameters provided (overrides existing values above):\n")
             _ = f.write("    " + config.get("extra", "None provided") + "\n")
             _ = f.write("\nThe Snakemake workflow was called via command line:\n")
-            _ = f.write("    " + str(config["workflow_call"]))
+            _ = f.write("    " + str(config["workflow_call"]) + "\n")
 
 results = list()
 results.append(expand("Impute/{stitchparams}/variants.imputed.bcf", stitchparams=paramspace.instance_patterns))

@@ -272,7 +272,7 @@ rule log_runtime:
             for i in argdict:
                 _ = f.write(f"    {i}={argdict[i]}\n")
             _ = f.write("\nThe Snakemake workflow was called via command line:\n")
-            _ = f.write("    " + str(config["workflow_call"]))
+            _ = f.write("    " + str(config["workflow_call"]) + "\n")
 
 results = list()
 results.append(expand(outdir + "/{pop}.bedpe", pop = populations))

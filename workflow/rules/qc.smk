@@ -126,7 +126,7 @@ rule log_runtime:
             _ = f.write("fastp trimming ran using:\n")
             _ = f.write("    fastp --trim_poly_g --cut_right " + " ".join(params) + "\n")
             _ = f.write("\nThe Snakemake workflow was called via command line:\n")
-            _ = f.write("    " + str(config["workflow_call"]))
+            _ = f.write("    " + str(config["workflow_call"]) + "\n")
 
 results = list()
 results.append(expand("QC/logs/json/{sample}.fastp.json", sample = samplenames))

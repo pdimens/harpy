@@ -376,7 +376,7 @@ def generate_conda_deps():
                 yml.write("channels:\n  - ")
                 yml.write("\n  - ".join(condachannels))
                 yml.write("\ndependencies:\n  - ")
-                yml.write("\n  - ".join(environ[i]))
+                yml.write("\n  - ".join(environ[i]) + "\n")
 
 
 def fetch_file(file, destination, rename=None):

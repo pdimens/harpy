@@ -249,7 +249,7 @@ rule log_runtime:
             _ = f.write("The variants were normalized using:\n")
             _ = f.write("    bcftools norm -d exact | bcftools norm -m -any -N -Ob\n")
             _ = f.write("\nThe Snakemake workflow was called via command line:\n")
-            _ = f.write("    " + str(config["workflow_call"]))
+            _ = f.write("    " + str(config["workflow_call"]) + "\n")
 
 results = list()
 results.append(outdir + "/workflow/snp.freebayes.workflow.summary")

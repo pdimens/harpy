@@ -223,7 +223,7 @@ rule log_runtime:
             _ = f.write(f"QC checks were performed on demultiplexed FASTQ files using:\n")
             _ = f.write(f"    falco -skip-report -skip-summary input.fq.gz\n")
             _ = f.write("\nThe Snakemake workflow was called via command line:\n")
-            _ = f.write("    " + str(config["workflow_call"]))
+            _ = f.write("    " + str(config["workflow_call"]) + "\n")
 
 # conditionally add the reports to the output
 results = list()
