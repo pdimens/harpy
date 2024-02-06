@@ -144,8 +144,7 @@ rule call_sv:
         refmt = outdir + "/{population}/{population}.reformat.bedpe",
         vcf   = outdir + "/{population}/{population}.vcf"
     log:
-        full  = outdir + "/logs/{population}.naibrlog",
-        pairs = outdir + "/logs/{population}.log"
+        outdir + "/logs/{population}.log"
     threads:
         8        
     conda:
@@ -154,8 +153,7 @@ rule call_sv:
         "Calling variants: {wildcards.population}"
     shell:
         """
-        naibr {input.conf} > {log.full} 2>&1
-        grep -v "pairs/s" {log.full} > {log.pairs}
+        naibr {input.conf} > {log} 2>&1
         """
 
 rule infer_sv:
