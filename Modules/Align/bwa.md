@@ -27,14 +27,14 @@ harpy align bwa --genome genome.fasta --directory Sequences/
 ## :icon-terminal: Running Options
 In addition to the [common runtime options](/commonoptions.md), the `harpy align bwa` module is configured using these command-line arguments:
 
-| argument           | short name | type                  | default | required | description                                                                                     |
-|:-------------------|:----------:|:----------------------|:-------:|:--------:|:------------------------------------------------------------------------------------------------|
-| `--genome`         |    `-g`    | file path             |         | **yes**  | Genome assembly for read mapping                                                                |
-| `--directory`            |    `-d`    | folder path           |         | **yes**  | Directory with sample sequences                                                                 |
-| `--molecule-distance` |    `-m`    | integer         |  100000  |    no    | Base-pair distance threshold to separate molecules                   |
-| `--quality-filter` |    `-f`    | integer (0-40)        |   30    |    no    | Minimum `MQ` (SAM mapping quality) to pass filtering                                            |
-| `--method`         |    `-m`    | choice [`bwa`, `ema`] |   bwa   |    no    | Which aligning software to use                                                                  |
-| `--extra-params`   |    `-x`    | string                |         |    no    | Additional EMA-align/BWA arguments, in quotes                                                   |
+| argument           | short name | type                  | default | required | description                                           |
+|:-------------------|:----------:|:----------------------|:-------:|:--------:|:------------------------------------------------------|
+| `--genome`         |    `-g`    | file path             |         | **yes**  | Genome assembly for read mapping                      |
+| `--directory`      |    `-d`    | folder path           |         | **yes**  | Directory with sample sequences                       |
+| `--molecule-distance` |    `-m`    | integer         |  100000  |    no    | Base-pair distance threshold to separate molecules      |
+| `--quality-filter` |    `-f`    | integer (0-40)        |   30    |    no    | Minimum `MQ` (SAM mapping quality) to pass filtering  |
+| `--method`         |    `-m`    | choice [`bwa`, `ema`] |   bwa   |    no    | Which aligning software to use                        |
+| `--extra-params`   |    `-x`    | string                |         |    no    | Additional EMA-align/BWA arguments, in quotes         |
 
 ### Molecule distance
 The `--molecule-distance` option is used during the BWA alignment workflow
@@ -98,14 +98,10 @@ The `harpy align` module creates an `Align/bwa` directory with the folder struct
 Align/bwa
 ├── Sample1.bam
 ├── Sample1.bam.bai
-├── align
-│   ├── Sample1.bam
-│   └── Sample1.bam.bai
 ├── logs
-│   ├── harpy.align.log
 │   └── markduplicates
 │       └── Sample1.markdup.log
-└── stats
+└── reports
     ├── bwa.stats.html
     ├── BXstats
     │   ├── Sample1.bxstats.html
@@ -119,21 +115,19 @@ Align/bwa
 
 ```
 
-| item     | description                                                      |
-|:---------|:-----------------------------------------------------------------|
+| item     | description                                                                                                 |
+|:---------|:------------------------------------------------------------------------------------------------------------|
 | `*.bam`                             | sequence alignments for each sample                                              |
 | `*.bai`                             | sequence alignment indexes for each sample                                       |
-| `align/*bam*`                       | symlinks to the alignment files for snakemake purporses                          |
-| `logs/harpy.align.log`              | relevant runtime parameters for the align module                                 |
 | `logs/markduplicates`               | everything `sambamba markdup` writes to `stderr` during operation                |
-| `stats/`                            | various counts/statistics/reports relating to sequence alignment                 |
-| `stats/bwa.stats.html`              | report summarizing `samtools flagstat and stats` results across all samples from `multiqc` |
-| `stats/reads.bxstats.html`          | interactive html report summarizing valid vs invalid barcodes across all samples | 
-| `stats/BXstats/*.bxstats.html`      | interactive html report summarizing inferred molecule size                       | 
-| `stats/coverage/*.html`             | summary plots of alignment coverage per contig                                   |
-| `stats/coverage/data/*.gencov.gz`   | output from samtools bedcov from all alignments, used for plots                  |
-| `stats/BXstats/`                    | reports summarizing molecule size and reads per molecule                         |
-| `stats/BXstats/data/`               | tabular data containing the information used to generate the BXstats reports     |
+| `reports/`                          | various counts/statistics/reports relating to sequence alignment                 |
+| `reports/bwa.stats.html`            | report summarizing `samtools flagstat and stats` results across all samples from `multiqc` |
+| `reports/reads.bxstats.html`        | interactive html report summarizing valid vs invalid barcodes across all samples | 
+| `reports/BXstats/*.bxstats.html`    | interactive html report summarizing inferred molecule size                       | 
+| `reports/coverage/*.html`           | summary plots of alignment coverage per contig                                   |
+| `reports/coverage/data/*.gencov.gz` | output from samtools bedcov from all alignments, used for plots                  |
+| `reports/BXstats/`                  | reports summarizing molecule size and reads per molecule                         |
+| `reports/BXstats/data/`             | tabular data containing the information used to generate the BXstats reports     |
 
 +++ :icon-code-square: BWA parameters
 By default, Harpy runs `bwa` with these parameters (excluding inputs and outputs):

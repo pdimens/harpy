@@ -146,7 +146,7 @@ graph LR
     B-->C([generate reports])
 ```
 +++ :icon-file-directory: naibr output
-The `harpy variants --method naibr` module creates a `Variants/naibr` (or `naibr-pop`) 
+The `harpy sv --method naibr` module creates a `Variants/naibr` (or `naibr-pop`) 
 directory with the folder structure below. `sample1` and `sample2` are generic sample 
 names for demonstration purposes.
 
@@ -164,7 +164,6 @@ Variants/naibr/
 │   ├── sample1.reformat.bedpe
 │   └── sample2.reformat.bedpe
 ├── logs
-│   ├── harpy.variants.log
 │   ├── sample1.log
 │   └── sample2.log
 ├── reports
@@ -181,7 +180,6 @@ Variants/naibr/
 | `configs/`    | the configuration files harpy generated for each sample          |
 | `filtered/`   | the variants that failed NAIBR's internal filters                |
 | `IGV/`        | same as the output .bedpe` files but in IGV format               |
-| `logs/harpy.variants.log` | relevant runtime parameters for the variants module  |
 | `logs/sample.groups`   | if provided, a copy of the file provided to `--populations` with commented lines removed  |
 | `logs/*.log`  | what NAIBR writes to `stderr` during operation                   |
 | `reports/`    | summary reports with interactive plots of detected SV            |

@@ -86,17 +86,15 @@ Demultiplex/PREFIX
 ├── Sample1.R.fq.gz
 ├── Sample2.F.fq.gz
 ├── Sample2.R.fq.gz
-└── logs
-    ├── demultiplex.QC.html
-    └── harpy.demultiplex.log
+└── reports
+    └── demultiplex.QC.html
 ```
 
 | item | description |
 |:---|:---|
 | `*.F.fq.gz` | Forward-reads from multiplexed input `--file` belonging to samples from the `samplesheet` |
 | `*.R.fq.gz` | Reverse-reads from multiplexed input `--file` belonging to samples from the `samplesheet` |
-| `logs/demultiplex.QC.html` | phased vcf annotated with phased blocks |
-| `logs/harpy.demultiplex.log` | relevant runtime parameters for demultiplexing |
+| `reports/demultiplex.QC.html` | phased vcf annotated with phased blocks |
 
 +++ :icon-graph: reports
 ||| FASTQC metrics
