@@ -5,32 +5,34 @@ on:
     branches:
       - 'dev'
     paths:
-      - 'rules/preflight-fastq.smk'
-      - 'rules/preflight-bam.smk'
+      - 'workflow/envs/harpy.yaml'
+      - 'workflow/rules/preflight-fastq.smk'
+      - 'workflow/rules/preflight-bam.smk'
       - '**preflight.py'
       - '**helperfunctions.py'
       - 'test/fastq/**'
       - 'test/bam/**'
-      - 'utilities/checkBAM.py'
-      - 'utilities/checkFASTQ.py'
-      - 'reports/reportPreflightFastq.Rmd'
-      - 'reports/reportPreflightBam.Rmd'
+      - 'workflow/scripts/checkBAM.py'
+      - 'workflow/scripts/checkFASTQ.py'
+      - 'workflow/report/PreflightFastq.Rmd'
+      - 'workflow/report/PreflightBam.Rmd'
       - '**preflight.yml'
 
   pull_request:
     branches:
       - 'dev'
     paths:
-      - 'rules/preflight-fastq.smk'
-      - 'rules/preflight-bam.smk'
+      - 'workflow/envs/harpy.yaml'
+      - 'workflow/rules/preflight-fastq.smk'
+      - 'workflow/rules/preflight-bam.smk'
       - '**preflight.py'
       - '**helperfunctions.py'
       - 'test/fastq/**'
       - 'test/bam/**'
-      - 'utilities/checkBAM.py'
-      - 'utilities/checkFASTQ.py'
-      - 'reports/reportPreflightFastq.Rmd'
-      - 'reports/reportPreflightBam.Rmd'
+      - 'workflow/scripts/checkBAM.py'
+      - 'workflow/scripts/checkFASTQ.py'
+      - 'workflow/report/PreflightFastq.Rmd'
+      - 'workflow/report/PreflightBam.Rmd'
       - '**preflight.yml'
 
 env:
@@ -42,7 +44,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           fetch-depth: 1
       - name: setup mamba
@@ -50,20 +52,21 @@ jobs:
         with:
           init-shell: bash
           generate-run-shell: true
-          environment-file: misc/harpyenv.yaml
+          environment-file: workflow/envs/harpy.yaml
           cache-environment: true
           post-cleanup: 'all'
       - name: Install harpy
+        shell: micromamba-shell {0}
         run: |
           python3 -m pip install --upgrade build && python3 -m build
           pip install dist/*.whl
-          misc/buildforCI.sh
-        shell: micromamba-shell {0}
+          resources/buildforCI.sh
 
       - name: harpy preflight fastq
-        run: harpy preflight fastq -d test/fastq
         shell: micromamba-shell {0}
+        run: harpy preflight fastq -d test/fastq
 
       - name: harpy preflight bam
-        run: harpy preflight bam -d test/bam
+        if: always()
         shell: micromamba-shell {0}
+        run: harpy preflight bam -d test/bam

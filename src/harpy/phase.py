@@ -1,91 +1,76 @@
-from .helperfunctions import getnames, vcfcheck, validate_bamfiles, print_error, print_solution_with_culprits
+from .helperfunctions import fetch_file, generate_conda_deps, getnames, print_onstart
+from .helperfunctions import vcfcheck, vcf_samplematch, validate_bamfiles
 import sys
 import os
 import subprocess
 import rich_click as click
-from rich import print
-from rich.panel import Panel
 
-try:
-    harpypath = '{CONDA_PREFIX}'.format(**os.environ) + "/bin"
-except:
-    pass
-
-@click.command(no_args_is_help = True)
-@click.option('-v', '--vcf', required = True, type=click.Path(exists=True), metavar = "File Path", help = 'Path to BCF/VCF file')
-@click.option('-d', '--directory', required = True, type=click.Path(exists=True), metavar = "Folder Path", help = 'Directory with BAM alignments')
+@click.command(no_args_is_help = True, epilog = "read the docs for more information: https://pdimens.github.io/harpy/modules/phase")
+@click.option('-v', '--vcf', required = True, type=click.Path(exists=True, dir_okay=False), metavar = "File Path", help = 'Path to BCF/VCF file')
+@click.option('-d', '--directory', required = True, type=click.Path(exists=True, file_okay=False), metavar = "Folder Path", help = 'Directory with BAM alignments')
 @click.option('-m', '--molecule-distance', default = 100000, show_default = True, type = int, metavar = "Integer", help = 'Base-pair distance threshold to separate molecules')
 @click.option('-p', '--prune-threshold', default = 7, show_default = True, type = click.IntRange(0,100), metavar = "Integer", help = 'PHRED-scale threshold (%) for pruning low-confidence SNPs (larger prunes more.)')
 @click.option('-b', '--ignore-bx',  is_flag = True, show_default = True, default = False, metavar = "Toggle", help = 'Ignore barcodes when phasing')
 @click.option('--vcf-samples',  is_flag = True, show_default = True, default = False, metavar = "Toggle", help = 'Use samples present in vcf file for phasing rather than those found the directory')
-@click.option('-g', '--genome', type=click.Path(exists=True), metavar = "File path", help = 'Path to genome assembly if wanting to also extract reads spanning indels')
+@click.option('-g', '--genome', type=click.Path(exists=True, dir_okay=False), metavar = "File path", help = 'Path to genome assembly if wanting to also extract reads spanning indels')
 @click.option('-x', '--extra-params', type = str, metavar = "String", help = 'Additional HapCut2 parameters, in quotes')
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(min = 2, max_open = True), metavar = "Integer", help = 'Number of threads to use')
 @click.option('-s', '--snakemake',  type = str, metavar = "String", help = 'Additional Snakemake parameters, in quotes')
+@click.option('-r', '--skipreports',  is_flag = True, show_default = True, default = False, metavar = "Toggle", help = 'Don\'t generate any HTML reports')
 @click.option('-q', '--quiet',  is_flag = True, show_default = True, default = False, metavar = "Toggle", help = 'Don\'t show output text while running')
-def phase(vcf, directory, threads, molecule_distance, prune_threshold, vcf_samples, genome, snakemake, extra_params, ignore_bx, quiet):
+@click.option('--print-only',  is_flag = True, show_default = True, default = False, metavar = "Toggle", help = 'Print the generated snakemake command and exit')
+def phase(vcf, directory, threads, molecule_distance, prune_threshold, vcf_samples, genome, snakemake, extra_params, ignore_bx, skipreports, quiet, print_only):
     """
     Phase SNPs into haplotypes
 
     You may choose to omit barcode information with `--ignore-bx`, although it's usually
-    better to include that information. Use the `--vcf-samples` toggle to phase only
+    better to include that information. Use `--vcf-samples` to phase only
     the samples present in your input `--vcf` file rather than all the samples present in
     the `--directory`.
     """
+    fetch_file("phase-pop.smk", "Phase/workflow/")
+    fetch_file("HapCut2.Rmd", "Phase/workflow/report/")
     directory = directory.rstrip("/^")
     vcfcheck(vcf)
-    if vcf.lower().endswith(".vcf.gz"):
-        click.echo(f"Notice: HapCut2 does not accept gzipped vcf files. Converting to bcf.")
-        variantfile = vcf[0:-7] + ".bcf"
-        subprocess.run(f"bcftools view {vcf} -Ob > {variantfile}".split())
-    else:
-        variantfile = vcf
-    
-    bcfquery = subprocess.Popen(["bcftools", "query", "-l", vcf], stdout=subprocess.PIPE)
-    if vcf_samples:
-        samplenames = bcfquery.stdout.read().decode().split()
-        s_list = getnames(directory, '.bam')
-        fromthis = vcf
-        inthis = directory
-    else:
-        samplenames = getnames(directory, '.bam')
-        s_list = bcfquery.stdout.read().decode().split()
-        fromthis = directory
-        inthis = vcf
-    missing_samples = [x for x in samplenames if x not in s_list]
-    # check that samples in VCF match input directory
-    if len(missing_samples) > 0:
-        print_error(f"There are [bold]{len(missing_samples)}[/bold] samples found in [bold]{fromthis}[/bold] that are not in [bold]{inthis}[/bold]. Terminating Harpy to avoid downstream errors.")
-        #click.echo(f"\n\033[1;33mERROR:\033[00m There are {len(missing_samples)} samples found in \033[01m{fromthis}\033[00m that are not in \033[01m{inthis}\033[00m. Terminating Harpy to avoid downstream errors.", file = sys.stderr, color = True)
-        print_solution_with_culprits(
-            f"[bold]{fromthis}[/bold] cannot contain samples that are absent in [bold]{inthis}[/bold]. Check the spelling or remove those samples from [bold]{fromthis}[/bold] or remake the vcf file to include/omit these samples. Alternatively, toggle [green]--vcf-samples[/green] to aggregate the sample list from [bold]{directory}[/bold] or [bold]{vcf}[/bold]."
-            "The samples causing this error are:"
-        )
-        #click.echo(f"\n\033[1;34mSOLUTION:\033[00m \033[01m{fromthis}\033[00m cannot contain samples that are absent in \033[01m{inthis}\033[00m. Check the spelling or remove those samples from \033[01m{fromthis}\033[00m or remake the vcf file to include/omit these samples. Alternatively, toggle \033[01m--vcf-samples\033[00m to aggregate the sample list from \033[01m{directory}\033[00m or \033[01m{vcf}\033[00m.\n", file = sys.stderr, color = True)
-        #click.echo("The samples causing this error are:", file = sys.stderr)
-        click.echo(", ".join(sorted(missing_samples)), file = sys.stderr)
-        sys.exit(1)
-
+    samplenames = vcf_samplematch(vcf, directory, vcf_samples)
     validate_bamfiles(directory, samplenames)
     prune_threshold /= 100
-    command = f'snakemake --rerun-incomplete --nolock --cores {threads} --directory . --snakefile {harpypath}/phase-pop.smk'.split()
-    if snakemake is not None:
-        [command.append(i) for i in snakemake.split()]
+    command = f'snakemake --rerun-incomplete --nolock --use-conda --conda-prefix ./.snakemake/conda --cores {threads} --directory .'.split()
+    command.append('--snakefile')
+    command.append('Phase/workflow/phase-pop.smk')
+    command.append("--configfile")
+    command.append("Phase/workflow/config.yml")
     if quiet:
         command.append("--quiet")
         command.append("all")
-    command.append('--config')
-    if genome is not None:
-        command.append(f"indels={genome}")
-        if not os.path.exists(f"{genome}.fai"):
-            subprocess.run(f"samtools faidx --fai-idx {genome}.fai {genome}".split())
-    command.append(f"seq_directory={directory}")
-    command.append(f"samplenames={samplenames}")
-    command.append(f"variantfile={variantfile}")
-    command.append(f"noBX={ignore_bx}")
-    command.append(f"prune={prune_threshold}")
-    command.append(f"molecule_distance={molecule_distance}")
-    if extra_params is not None:
-        command.append(f"extra={extra_params}")
-    _module = subprocess.run(command)
-    sys.exit(_module.returncode)
+    if snakemake is not None:
+        [command.append(i) for i in snakemake.split()]
+
+    call_SM = " ".join(command)
+
+    with open("Phase/workflow/config.yml", "w") as config:
+        config.write(f"seq_directory: {directory}\n")
+        config.write(f"samplenames: {samplenames}\n")
+        config.write(f"variantfile: {vcf}\n")
+        config.write(f"noBX: {ignore_bx}\n")
+        config.write(f"prune: {prune_threshold}\n")
+        config.write(f"molecule_distance: {molecule_distance}\n")
+        if genome is not None:
+            config.write(f"indels: {genome}\n")
+            if not os.path.exists(f"{genome}.fai"):
+                subprocess.run(f"samtools faidx --fai-idx {genome}.fai {genome}".split())
+        if extra_params is not None:
+            config.write(f"extra: {extra_params}\n")
+        config.write(f"skipreports: {skipreports}\n")
+        config.write(f"workflow_call: {call_SM}\n")
+
+    if print_only:
+        click.echo(call_SM)
+    else:
+        print_onstart(
+            f"Input directory: {directory}\nInput VCF: {vcf}\nSamples in VCF: {len(samplenames)}",
+            "phase"
+        )
+        generate_conda_deps()
+        _module = subprocess.run(command)
+        sys.exit(_module.returncode)

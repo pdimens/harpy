@@ -1,0 +1,89 @@
+name: Test Variants naibr
+
+on:
+  push:
+    branches:
+      - 'dev'
+    paths:
+      - 'workflow/envs/harpy.yaml'
+      - 'workflow/envs/r-env.yaml'
+      - 'workflow/envs/phase.yaml'
+      - 'workflow/envs/variants.sv.yaml'
+      - 'workflow/rules/sv-naibr**.smk'
+      - '**sv.py'
+      - '**helperfunctions.py'
+      - 'workflow/scripts/makewindows.py'
+      - 'test/bam/**'
+      - 'test/bam_phased/**'
+      - '**variants_sv_naibr.yml'
+      - 'workflow/report/Naibr.Rmd'
+      - 'workflow/report/NaibrPop.Rmd'
+      - 'workflow/scripts/inferSV.py'
+
+  pull_request:
+    branches:
+      - 'dev'
+    paths:
+      - 'workflow/envs/harpy.yaml'
+      - 'workflow/envs/r-env.yaml'
+      - 'workflow/envs/phase.yaml'
+      - 'workflow/envs/variants.sv.yaml'
+      - 'workflow/rules/sv-naibr**.smk'
+      - '**sv.py'
+      - '**helperfunctions.py'
+      - 'workflow/scripts/makewindows.py'
+      - 'test/bam/**'
+      - 'test/bam_phased/**'
+      - '**variants_sv_naibr.yml'
+      - 'workflow/report/Naibr.Rmd'
+      - 'workflow/report/NaibrPop.Rmd'
+      - 'workflow/scripts/inferSV.py'
+
+env:
+  CACHE_NUMBER: 0  # increase to reset cache manually
+
+jobs:
+  build:
+    name: linux64
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+      - name: setup mamba
+        uses: mamba-org/setup-micromamba@v1
+        env:
+          ACTIONS_STEP_DEBUG: true
+        with:
+          init-shell: bash
+          generate-run-shell: true
+          environment-file: workflow/envs/harpy.yaml
+          cache-environment: true
+          post-cleanup: 'all'
+          log-level: error
+      - name: Install harpy
+        shell: micromamba-shell {0}
+        run: |
+          python3 -m pip install --upgrade build && python3 -m build
+          pip install dist/*.whl
+          resources/buildforCI.sh
+
+      - name: naibr
+        shell: micromamba-shell {0}
+        run: harpy sv naibr -d test/bam_phased -g test/genome/genome.fasta.gz -q -s "--show-failed-logs"
+        
+      - name: naibr pop
+        if: always()
+        shell: micromamba-shell {0}
+        run: harpy sv naibr -d test/bam_phased -g test/genome/genome.fasta.gz -p test/samples.groups -q -s "--show-failed-logs"
+
+      - name: naibr phasing
+        if: always()
+        shell: micromamba-shell {0}
+        run: harpy sv naibr -d test/bam -g test/genome/genome.fasta.gz -v test/vcf/test.phased.bcf -q -s "--show-failed-logs"
+        
+      - name: naibr pop phasing
+        if: always()
+        shell: micromamba-shell {0}
+        run: harpy sv naibr -d test/bam -g test/genome/genome.fasta.gz -v test/vcf/test.phased.bcf -p test/samples.groups -q -s "--show-failed-logs"

@@ -5,29 +5,33 @@ on:
     branches:
       - 'dev'
     paths:
-      - 'rules/impute.smk'
+      - 'workflow/rules/impute.smk'
+      - 'workflow/envs/harpy.yaml'
+      - 'workflow/envs/r-env.yaml'
       - '**impute.py'
       - '**helperfunctions.py'
       - 'test/bam/**'
       - 'test/vcf/test.bcf'
       - '**impute.yml'
-      - 'reports/reportImpute.Rmd'
-      - 'reports/reportStitch.Rmd'
-      - 'utilities/stitch_impute.R'
+      - 'workflow/report/Impute.Rmd'
+      - 'workflow/report/StitchCollate.Rmd'
+      - 'workflow/scripts/stitch_impute.R'
 
   pull_request:
     branches:
       - 'dev'
     paths:
-      - 'rules/impute.smk'
+      - 'workflow/rules/impute.smk'
+      - 'workflow/envs/harpy.yaml'
+      - 'workflow/envs/r-env.yaml'
       - '**impute.py'
       - '**helperfunctions.py'
       - 'test/bam/**'
       - 'test/vcf/test.bcf'
       - '**impute.yml'
-      - 'reports/reportImpute.Rmd'
-      - 'reports/reportStitch.Rmd'
-      - 'utilities/stitch_impute.R'
+      - 'workflow/report/Impute.Rmd'
+      - 'workflow/report/StitchCollate.Rmd'
+      - 'workflow/scripts/stitch_impute.R'
 
 env:
   CACHE_NUMBER: 0  # increase to reset cache manually
@@ -38,7 +42,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           fetch-depth: 1
       - name: setup mamba
@@ -48,23 +52,24 @@ jobs:
         with:
           init-shell: bash
           generate-run-shell: true
-          environment-file: misc/harpyenv.yaml
+          environment-file: workflow/envs/harpy.yaml
           cache-environment: true
           post-cleanup: 'all'
           log-level: error
       - name: Install harpy
+        shell: micromamba-shell {0}
         run: |
           python3 -m pip install --upgrade build && python3 -m build
           pip install dist/*.whl
-          misc/buildforCI.sh
-        shell: micromamba-shell {0}
+          resources/buildforCI.sh
 
       - name: impute
         shell: micromamba-shell {0}
-        run: harpy impute --vcf test/vcf/test.bcf -d test/bam -p test/stitch.params -s "--show-failed-logs"
+        run: harpy impute --vcf test/vcf/test.bcf -d test/bam -p test/stitch.params -q -s "--show-failed-logs"
 
       - name: impute from vcf
         shell: micromamba-shell {0}
+        if: always()
         run: |
           rm -rf Impute
-          harpy impute --vcf-samples --vcf test/vcf/test.bcf -d test/bam -p test/stitch.params -s "--show-failed-logs"
+          harpy impute --vcf-samples --vcf test/vcf/test.bcf -d test/bam -p test/stitch.params -q -s "--show-failed-logs"

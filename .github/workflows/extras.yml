@@ -28,7 +28,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           fetch-depth: 1
       - name: setup mamba
@@ -36,24 +36,26 @@ jobs:
         with:
           init-shell: bash
           generate-run-shell: true
-          environment-file: misc/harpyenv.yaml
+          environment-file: workflow/envs/harpy.yaml
           cache-environment: true
           post-cleanup: 'all'
       - name: Install harpy
         run: |
           python3 -m pip install --upgrade build && python3 -m build
           pip install dist/*.whl
-          misc/buildforCI.sh
+          resources/buildforCI.sh
         shell: micromamba-shell {0}
 
       - name: harpy popgroup
+        shell: micromamba-shell {0}
         run: harpy popgroup -d test/fastq
-        shell: micromamba-shell {0}
-
+        
       - name: harpy stitchparams
-        run: harpy stitchparams -o params.file
+        if: always()
         shell: micromamba-shell {0}
+        run: harpy stitchparams -o params.file
 
       - name: harpy hpc
-        run: harpy hpc -o hpc.yml -s slurm
+        if: always()
         shell: micromamba-shell {0}
+        run: harpy hpc -o hpc.yml -s slurm
