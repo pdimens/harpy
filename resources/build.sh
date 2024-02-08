@@ -14,6 +14,3 @@ cp workflow/scripts/* ${PREFIX}/bin/
 
 # reports
 cp workflow/report/*.Rmd ${PREFIX}/bin/
-
-# completion
-#cp misc/harpy_completion.sh ${PREFIX}/etc/conda/activate.d/
