@@ -14,7 +14,8 @@ development and how to contribute to it, if you were inclined to do so.
 Before we get into the technical details, you, dear reader, need to understand
 why Harpy is the way it is. Harpy may be a pipeline for other software, but 
 there is a lot of extra stuff built in to make it user 
-friendly. Not just friendly, but _compassionate_. That means there is a lot
+friendly. Not just friendly, but _compassionate_. The guiding ethos for Harpy is
+**"We don't hate the user"**. That means there is a lot
 of code that checks input files, runtime details, etc. to exit before 
 Snakemake takes over. This is done to minimize time wasted on minor 
 errors that only show their ugly heads 18 hours into a 96 hour process. With that in mind:
@@ -92,10 +93,9 @@ build script is also stored in `misc/meta.yml` and `misc/build.sh`. The yaml fil
 is the metadata of the package, including software deps and their versions. The
 build script is how conda will install all of Harpy's parts. In order to modify 
 these files for a new release, you need to fork `bioconda/bioconda-recipes`, 
-create a new branch, modify the Harpy `meta.yml` and `build.sh` files, then open
-a pull request onto the `master` branch of `bioconda/bioconda-recipes`. There is 
-also an automation that submits a pull request on your behalf when you change the
-version number. 
+create a new branch, modify the Harpy `meta.yml` (and possibly `build.sh`) files. Bioconda
+has an bot that looks for changes to the version number in the `meta.yml` file
+and will automatically submit a Pull Request when it notices that's been changed.
 
 ## The Harpy repository
 ### structure

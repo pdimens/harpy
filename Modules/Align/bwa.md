@@ -18,10 +18,10 @@ such as those derived using `harpy qc`. You can map reads onto a genome assembly
 using the `align` module:
 
 ```bash usage
-harpy align bwa OPTIONS...
+harpy align bwa|ema OPTIONS...
 ```
 ```bash example
-harpy align --genome genome.fasta --directory Sequences/ 
+harpy align bwa --genome genome.fasta --directory Sequences/ 
 ```
 
 ## :icon-terminal: Running Options
