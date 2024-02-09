@@ -9,7 +9,7 @@ dependencies:
   - pysam =0.22
   - python
   - rich-click
-  - snakemake
+  - snakemake-minimal
   - samtools
   - seqtk
   - tabix
