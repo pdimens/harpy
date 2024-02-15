@@ -5,7 +5,7 @@ order: 4
 ---
 
 # :icon-list-unordered: Common Harpy Options
-
+## Common command-line options
 Every Harpy module has a series of configuration parameters. These are arguments you need to input
 to configure the module to run on your data, such as the directory with the reads/alignments,
 the genome assembly, etc. All main modules (e.g. `qc`) also share a series of common runtime
@@ -37,6 +37,7 @@ When you run one of the main Harpy modules, the output directory will contain a 
 both necessary for the module to run and is very useful to understand what the module did, be it for your own
 understanding or as a point of reference when writing the Methods within a manuscript. The presence of the folder
 and the contents therein also allow you to rerun the workflow manually. The `workflow` folder may contain the following:
+
 | item | contents | utility |
 |:-----|:---------|:--------|
 |`*.smk`| Snakefile with the full recipe of the workflow | useful for understanding the workflow |

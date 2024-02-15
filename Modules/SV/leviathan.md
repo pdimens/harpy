@@ -25,8 +25,8 @@ This file is optional and only useful if you want variant calling to happen on a
     - spaces can be used as delimeters too
 - the groups can be numbers or text (_i.e._ meaningful population names)
 - you can comment out lines with `#` for Harpy to ignore them
-- create with `harpy extra -p <samplefolder>` or manually
-- if created with `harpy extra -p`, all the samples will be assigned to group `pop1`
+- create with `harpy extra popgroup -d <samplefolder>` or manually
+- if created with `harpy extra popgroup`, all the samples will be assigned to group `pop1`
     - make sure to edit the second column to reflect your data correctly.
 
 ``` example file for --populations
