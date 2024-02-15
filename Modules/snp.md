@@ -74,7 +74,7 @@ but it's likely anything below 20 kbp will give diminishing returns.
 
 ### populations
 Grouping samples changes the way the variant callers computes certain statistics when calling variants. If you
-have reason to beleive there is a biologically meaningful grouping scheme to your samples, then you should include
+have reason to believe there is a biologically meaningful grouping scheme to your samples, then you should include
 it.
 
 ----
