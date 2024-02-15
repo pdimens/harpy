@@ -18,8 +18,8 @@ This file is optional and useful if you want variant calling to happen on a per-
     - spaces can be used as delimeters too
 - the groups can be numbers or text (_i.e._ meaningful population names)
 - you can comment out lines with `#` for Harpy to ignore them
-- create with `harpy extra -p <samplefolder>` or manually
-- if created with `harpy extra -p`, all the samples will be assigned to group `pop1`, so make sure to edit the second column to reflect your data correctly.
+- create with `harpy extra popgroup -d <samplefolder>` or manually
+- if created with `harpy extra popgroup`, all the samples will be assigned to group `pop1`, so make sure to edit the second column to reflect your data correctly.
 
 ``` example file for --populations
 sample1 pop1
@@ -114,7 +114,7 @@ graph LR
 ```
 
 +++ :icon-file-directory: snp output
-The `harpy variants snp` module creates a `Variants/METHOD` directory with the folder structure below where `METHOD` is what
+The `harpy snp` module creates a `Variants/METHOD` directory with the folder structure below where `METHOD` is what
 you specify as the `--method` (mpileup or freebayes). `contig1` and `contig2` are generic contig names from an imaginary
 `genome.fasta` for demonstration purposes.
 ```
@@ -128,11 +128,10 @@ Variants/METHOD
 │   ├── contig1.METHOD.log
 │   ├── contig2.call.log   # mpileup only
 │   ├── contig2.METHOD.log
-│   ├── harpy.variants.log
 │   ├── sample.groups
 │   ├── samples.files
 │   └── samples.names
-└── stats
+└── reports
     ├── contig1.stats
     ├── contig2.stats
     ├── variants.normalized.html
@@ -147,12 +146,11 @@ Variants/METHOD
 | `variants.*.bcf.csi`      | index file for `variants.*.bcf`                                                                |
 | `logs/*.call.log`         | what `bcftools call` writes to `stderr`                                                        |
 | `logs/*.METHOD.log`       | what `bcftools mpileup` or `freebayes` writes to `stderr`                                      |
-| `logs/harpy.variants.log` | relevant runtime parameters for the variants module                                            |
 | `logs/sample.groups`      | if provided, a copy of the file provided to `--populations` with commented lines removed       |
 | `logs/samples.files`      | list of alignment files used for variant calling                                               |
 | `logs/samples.names`      | list of sample names associated with alignment files used for variant calling                  |
-| `stats/*.stats`           | output of `bcftools stats`                                                                     |
-| `stats/variants.*.html`   | report summarizing variants                                                                    |
+| `reports/*.stats`         | output of `bcftools stats`                                                                     |
+| `reports/variants.*.html` | report summarizing variants                                                                    |
 
 +++ :icon-code-square: mpileup parameters
 By default, Harpy runs `mpileup` with these parameters (excluding inputs and outputs):

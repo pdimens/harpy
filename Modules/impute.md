@@ -45,9 +45,20 @@ In addition to the [common runtime options](/commonoptions.md), the `harpy imput
 | argument       | short name | type        |    default    | required | description                                                                                     |
 |:---------------|:----------:|:------------|:-------------:|:--------:|:------------------------------------------------------------------------------------------------|
 | `--vcf`        |    `-v`    | file path   |               | **yes**  | Path to VCF/BCF file                                                                            |
-| `--vcf-samples`|            |    toggle   |               | no       |  [Use samples present in vcf file](#prioritize-the-vcf-file) for imputation rather than those found the directory    |
 | `--directory`  |    `-d`    | folder path |               | **yes**  | Directory with sequence alignments                                                              |
+| `--extra-params` |  `-x`    | folder path |               |  no      | Extra arguments to add to the STITCH R function, provided in quotes and R syntax                |
+| `--vcf-samples`|            |    toggle   |               | no       | [Use samples present in vcf file](#prioritize-the-vcf-file) for imputation rather than those found the directory    |
 | `--parameters` |    `-p`    | file path   |               | **yes**  | STITCH [parameter file](#parameter-file) (tab-delimited)                                                           |
+
+### Extra STITCH parameters
+You may add [additional parameters](https://github.com/rwdavies/STITCH/blob/master/Options.md) to STITCH by way of the 
+`--extra-params` (or `-x`) option. Since STITCH is a function in the R language, the parameters you add must be in R 
+syntax (e.g. `regionStart=0`, `populations=c("GBA","CUE")`). The argument should be wrapped in quotes (like in other Harpy modules),
+however, if your additional parameters require the use of quotes (like the previous example), then wrap the `-x` argument 
+in **single quotes**. Otherwise, the format should take the form of `"arg1=value, arg2=value2"`. Example:
+```bash
+harpy impute -v file.vcf -p stitch.params -t 15 -x 'regionStart=20, regionEnd=500'
+```
 
 ### Prioritize the vcf file
 Sometimes you want to run imputation on all the samples present in the `--directory`, but other times you may want

@@ -26,9 +26,11 @@ is allowed. The reserved (**forbidden**) arguments are:
 - `--directory`
 - `--cores`
 - `--snakefile`
-- `--config`
+- `--configfile`
 - `--rerun-incomplete`
 - `--nolock`
+- `--use-conda`
+- `--conda-prefix`
 !!!
 
 ### Common use cases
@@ -42,14 +44,14 @@ run the Harpy workflow. Useful for knowing what you're getting yourself into
 ahead of time. It's also useful for debugging during development. Here is an 
 example of dry-running variant calling:
 ```bash
-harpy variants snp -g genome.fasta  -d Align/ema -s "--dry-run"
+harpy snp mpileup -g genome.fasta  -d Align/ema -s "--dry-run"
 ```
 ==- Specific file target
 Sometimes you want to generate a specific intermediate file (or files) rather than running the entire module to completion. For example,
 you want the beadtag report Harpy makes from the output of `EMA count`. To do this, just list the file/files (relative
 to your working directory) without any flags. Example for the beadtag report:
 ```bash
-harpy align -g genome.fasta -d QC/ -t 4 -s "Align/ema/stats/reads.bxstats.html"
+harpy align bwa -g genome.fasta -d QC/ -t 4 -s "Align/ema/stats/reads.bxstats.html"
 ```
 This of course necessitates knowing the names of the files ahead of time. See the individual modules for a breakdown of expected outputs. 
 
@@ -62,6 +64,6 @@ your files into that workspace storage to make sure you keep the output of your 
 you may use `--shadow-prefix <dirname>` where `<dirname>` is the path to the mandatory directory you need to work out of. By 
 configuring this "shadow directory" setting, Snakemake will automatically move the files in/out of that directory for you:
 ```bash
-harpy variants sv --method leviathan -g genome.fasta  -d Align/bwa --threads 8 -p samples.groups -s "--shadow-prefix /SCRATCH/username/"
+harpy sv leviathan -g genome.fasta  -d Align/bwa --threads 8 -p samples.groups -s "--shadow-prefix /SCRATCH/username/"
 ```
 ===

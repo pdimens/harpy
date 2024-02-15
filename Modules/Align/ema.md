@@ -35,20 +35,21 @@ harpy align ema --genome genome.fasta --directory Sequences/
 ## :icon-terminal: Running Options
 In addition to the [common runtime options](/commonoptions.md), the `harpy align ema` module is configured using these command-line arguments:
 
-| argument           | short name | type                  | default | required | description                                                                                     |
-|:-------------------|:----------:|:----------------------|:-------:|:--------:|:------------------------------------------------------------------------------------------------|
-| `--genome`         |    `-g`    | file path             |         | **yes**  | Genome assembly for read mapping                                                                |
-| `--directory`            |    `-d`    | folder path           |         | **yes**  | Directory with sample sequences                                                                 |
-| `--molecule-distance` |    `-m`    | integer         |  100000  |    no    | Base-pair distance threshold to consider molecules as separate                   |
-| `--ema-bins`       |    `-e`    | integer (1-1000)      |   500   |    no    | Number of barcode bins for EMA                                                                  |
-| `--quality-filter` |    `-f`    | integer (0-40)        |   30    |    no    | Minimum `MQ` (SAM mapping quality) to pass filtering                                            |
-| `--extra-params`   |    `-x`    | string                |         |    no    | Additional EMA-align/BWA arguments, in quotes                                                   |
+| argument           | short name | type                  | default | required | description                                                        |
+|:-------------------|:----------:|:----------------------|:-------:|:--------:|:-------------------------------------------------------------------|
+| `--genome`         |    `-g`    | file path             |         | **yes**  | Genome assembly for read mapping                                   |
+| `--platform`       |    `-p`    | string                | haplotag | **yes** | Linked read technology: `haplotag` or `10x`                        |
+| `--whitelist`      |    `-w`    | file path             |         |    no    | Path to barcode whitelist (`--platform 10x` only)                  |
+| `--directory`      |    `-d`    | folder path           |         | **yes**  | Directory with sample sequences                                    |
+| `--ema-bins`       |    `-e`    | integer (1-1000)      |   500   |    no    | Number of barcode bins for EMA                                     |
+| `--quality-filter` |    `-f`    | integer (0-40)        |   30    |    no    | Minimum `MQ` (SAM mapping quality) to pass filtering               |
+| `--extra-params`   |    `-x`    | string                |         |    no    | Additional EMA-align/BWA arguments, in quotes                      |
 
-### Molecule distance
-Unlike the manual `MI:i` assignment in the BWA workflow, the EMA aligner will assign
-a unique Molecular Identifier `MI:i` tag to alignments using its own heuristics. 
-Instead, the EMA workflow uses this value to calculate statistics for the haplotag
-barcodes identified in the alignments.
+### Barcode whitelist
+Some linked-read methods (e.g. 10x, Tellseq) require the inclusion of a barcode "whitelist." This file is a 
+simple text file that has one barcode per line so a given software knows what barcodes to expect in your data.
+If you need to process 10x data, then you will need to include the whitelist file (usually provided by 10x).
+Conveniently, **haplotag data doesn't require this file**.
 
 ## :icon-filter: Quality filtering
 ==- What is a $MQ$ score?
@@ -111,18 +112,14 @@ The `harpy align` module creates an `Align/ema` directory with the folder struct
 Align/ema
 ├── Sample1.bam
 ├── Sample1.bam.bai
-├── align
-│   ├── Sample1.bam
-│   └── Sample1.bam.bai
 ├── count
 │   └── Sample1.ema-ncnt
 ├── logs
-│   ├── harpy.align.log
 │   ├── markduplicates
 │   │   └── Sample1.markdup.nobarcode.log
 │   └── preproc
 │       └── Sample1.preproc.log
-└── stats
+└── reports
     ├── ema.stats.html
     ├── reads.bxcounts.html
     ├── BXstats
@@ -140,20 +137,18 @@ Align/ema
 |:-----------------------------------------------|:--------------------------------------------------------------------------------------------------------------|
 | `*.bam`                                        | sequence alignments for each sample                                                                           |
 | `*.bai`                                        | sequence alignment indexes for each sample                                                                    |
-| `align/*bam*`                                  | symlinks to the alignment files for snakemake purporses                                                       |
 | `count/`                                       | output of `ema count`                                                                                         |
-| `logs/harpy.align.log`                         | relevant runtime parameters for the align module                                                              |
 | `logs/markduplicates/`                         | everything `sambamba markdup` writes to `stderr` during operation on alignments with invalid/missing barcodes |
 | `logs/preproc/*.preproc.log`                   | everything `ema preproc` writes to `stderr` during operation                                                  |
-| `stats/`                                       | various counts/statistics/reports relating to sequence alignment                                              |
-| `stats/ema.stats.html`                         | report summarizing `samtools flagstat and stats` results across all samples from `multiqc`                              |
-| `stats/reads.bxstats.html`                     | interactive html report summarizing `ema count` across all samples                                            |
-| `stats/coverage/*.html`                        | summary plots of alignment coverage per contig                                                                |
-| `stats/coverage/data/*.all.gencov.gz`          | output from samtools bedcov from all alignments, used for plots                                               |
-| `stats/coverage/data/*.bx.gencov.gz`           | output from samtools bedcov from alignments with valid BX barcodes, used for plots                            |
-| `stats/BXstats/`                               | reports summarizing molecule size and reads per molecule                                                      |
-| `stats/BXstats/*.bxstats.html`                 | interactive html report summarizing inferred molecule size                       | 
-| `stats/BXstats/data/`                          | tabular data containing the information used to generate the BXstats reports                                  |
+| `reports/`                                     | various counts/statistics/reports relating to sequence alignment                                              |
+| `reports/ema.stats.html`                       | report summarizing `samtools flagstat and stats` results across all samples from `multiqc`                              |
+| `reports/reads.bxstats.html`                   | interactive html report summarizing `ema count` across all samples                                            |
+| `reports/coverage/*.html`                      | summary plots of alignment coverage per contig                                                                |
+| `reports/coverage/data/*.all.gencov.gz`        | output from samtools bedcov from all alignments, used for plots                                               |
+| `reports/coverage/data/*.bx.gencov.gz`         | output from samtools bedcov from alignments with valid BX barcodes, used for plots                            |
+| `reports/BXstats/`                             | reports summarizing molecule size and reads per molecule                                                      |
+| `reports/BXstats/*.bxstats.html`               | interactive html report summarizing inferred molecule size                       | 
+| `reports/BXstats/data/`                        | tabular data containing the information used to generate the BXstats reports                                  |
 
 +++ :icon-code-square: EMA parameters
 By default, Harpy runs `ema` with these parameters (excluding inputs and outputs):

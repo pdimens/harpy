@@ -25,8 +25,8 @@ This file is optional and only useful if you want variant calling to happen on a
     - spaces can be used as delimeters too
 - the groups can be numbers or text (_i.e._ meaningful population names)
 - you can comment out lines with `#` for Harpy to ignore them
-- create with `harpy extra -p <samplefolder>` or manually
-- if created with `harpy extra -p`, all the samples will be assigned to group `pop1`
+- create with `harpy extra popgroup -d <samplefolder>` or manually
+- if created with `harpy extra popgroup`, all the samples will be assigned to group `pop1`
     - make sure to edit the second column to reflect your data correctly.
 
 ``` example file for --populations
@@ -117,7 +117,6 @@ Variants/leviathan/
 ├── sample1.bcf
 ├── sample2.bcf
 ├── logs
-│   ├── harpy.variants.log
 │   ├── sample1.leviathan.log
 │   ├── sample1.candidates
 │   ├── sample2.leviathan.log
@@ -134,7 +133,6 @@ Variants/leviathan/
 |:-----------------------|:---------------------------------------------------------|
 | `*.bcf`                | structural variants identified by LEVIATHAN              |
 | `logs/sample.groups`   | if provided, a copy of the file provided to `--populations` with commented lines removed  |
-| `logs/*.leviathan.log` | what LEVIATHAN writes to `stderr` during operation       |
 | `logs/*candidates`     | candidate structural variants LEVIATHAN identified       |
 | `reports/`             | summary reports with interactive plots of detected SV    |
 | `logs/harpy.variants.log` | relevant runtime parameters for the variants module  |

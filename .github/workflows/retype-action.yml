@@ -11,7 +11,7 @@ jobs:
     name: Publish to retype branch
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
         with:
           ref: docs
       - uses: retypeapp/action-build@latest

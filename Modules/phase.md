@@ -122,8 +122,6 @@ Phase/
 │   ├── Sample1.linked.frags
 │   └── logs
 │       └── Sample1.linked.log
-├── logs
-│   └── harpy.phase.log
 ├── reports
 │   ├── blocks.summary.gz
 │   └── phase.html
@@ -147,7 +145,6 @@ Phase/
 | `input/*.het.bcf` | vcf of heterozygous loci of a single sample from the original multi-sample input vcf |
 | `linkFragments/` | results from HapCut2's `linkFragments` |
 | `linkFragments/logs` | everything `linkFragments` prints to `stderr` |
-| `logs/harpy.phase.log` | relevant runtime parameters for the phase module |
 | `reports/blocks.summary.gz` | summary information of all the samples' block files |
 | `reports/phase.html` | report of haplotype phasing results |
 | `phaseBlocks/*.blocks*` | output from HapCut2 |
