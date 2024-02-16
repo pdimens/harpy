@@ -3,13 +3,13 @@
 mkdir -p ${PREFIX}/bin
 
 # install harpy proper
-${PREFIX}/bin/python -m pip install . --no-deps -vv
+${PYTHON} -m pip install . --no-deps -vvv
 
 # rules
 cp workflow/rules/*.smk ${PREFIX}/bin/
 
 # associated scripts
-chmod +x workdflow/scripts/* 
+chmod +x workflow/scripts/* 
 cp workflow/scripts/* ${PREFIX}/bin/
 
 # reports
