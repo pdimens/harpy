@@ -1,5 +1,5 @@
-{% set version = "0.6.0" %}
-{% set sha256 = "" %}
+{% set version = "0.5.0" %}
+{% set sha256 = "77ba116665fd00a945b65072b86b4c54f672b1b74912309709f580f7329b4adf" %}
 
 package:
   name: harpy
@@ -10,7 +10,7 @@ source:
   sha256: '{{ sha256 }}'
 
 build:
-  noarch: generic
+#  skip: True  # [osx]
   number: 0
   run_exports:
     - {{ pin_subpackage('harpy', max_pin="x.x") }}
@@ -50,5 +50,9 @@ about:
   dev_url: https://github.com/pdimens/harpy
 
 extra:
+  container:
+    extended-base: True
   recipe-maintainers:
     - pdimens
+#  skip-lints:
+#    - should_be_noarch_generic
