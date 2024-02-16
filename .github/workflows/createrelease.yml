@@ -23,16 +23,16 @@ jobs:
         run: |
           gh release create "$tag" \
               --repo="$GITHUB_REPOSITORY" \
-              --title="${GITHUB_REPOSITORY#*/} ${tag#v}" \
+              --title="${GITHUB_REPOSITORY#*/} ${{ github.ref_name }}" \
               --generate-notes
       - name: build artifacts
-        run: tar --exclude="test" --exclude=".git" --exclude=".github" --exclude=".snakemake" -zcvf harpy.${{tag#v}}.tar.gz .
+        run: tar --exclude="test" --exclude=".git" --exclude=".github" --exclude=".snakemake" -zcvf harpy.${{ github.ref_name }}.tar.gz .
       - name: upload tarball
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ github.token }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./harpy.${{tag#v}}.tar.gz
-          asset_name: harpy.${{tag#v}}.tar.gz
+          asset_path: ./harpy.${{ github.ref_name }}.tar.gz
+          asset_name: harpy.${{ github.ref_name }}.tar.gz
           asset_content_type: application/gzip
