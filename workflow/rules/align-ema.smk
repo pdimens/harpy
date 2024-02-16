@@ -273,53 +273,85 @@ rule align_nobarcode:
         """
         bwa mem -t {threads} -C -R \"@RG\\tID:{wildcards.sample}\\tSM:{wildcards.sample}\" {input.genome} {input.reads} > {output} 2> {log}
         """
-        
-rule sort_raw_nobarcode:
+
+rule quality_filter:
     input:
-        sam        = outdir + "/align/{sample}.nobc.raw.sam",
-        genome 	   = f"Genome/{bn}",
-        geno_faidx = f"Genome/{bn_idx}",
-        geno_idx   = multiext(f"Genome/{bn}", ".ann", ".bwt", ".pac", ".sa", ".amb")
-    output: 
-        temp(outdir + "/align/{sample}.nobc.bam")
+        outdir + "/align/{sample}.nobc.raw.sam"
+    output:
+        temp(outdir + "/align/{sample}.bwa.nobc.sam")
+    params: 
+        quality = config["quality"]
+    message:
+        "Quality filtering alignments: {wildcards.sample}"
+    shell:
+        "samtools view -h -F 4 -q {params.quality} {input} > {output}"
+
+rule collate:
+    input:
+        outdir + "/align/{sample}.bwa.nobc.sam"
+    output:
+        temp(outdir + "/align/{sample}.collate.nobc.bam")
+    message:
+        "Collating alignments: {wildcards.sample}"
+    shell:
+        "samtools collate -o {output} {input} 2> /dev/null"
+
+rule fix_mates:
+    input:
+        outdir + "/align/{sample}.collate.nobc.bam"
+    output:
+        temp(outdir + "/align/{sample}.fixmate.nobc.bam")
+    message:
+        "Fixing mates in alignments: {wildcards.sample}"
+    shell:
+        "samtools fixmate -m {input} {output} 2> /dev/null"
+
+rule sort_nobc_alignments:
+    input:
+        sam           = outdir + "/align/{sample}.fixmate.nobc.bam",
+        genome 		  = f"Genome/{bn}",
+        genome_samidx = f"Genome/{bn_idx}",
+        genome_idx 	  = multiext(f"Genome/{bn}", ".ann", ".bwt", ".pac", ".sa", ".amb")
+    output:
+        bam = temp(outdir + "/align/{sample}.sort.nobc.bam"),
+        bai = temp(outdir + "/align/{sample}.sort.nobc.bam.bai")
     log:
         outdir + "/logs/{sample}.bwa.sort.log"
-    benchmark:
-        ".Benchmark/Mapping/ema/bwaAlign.{sample}.txt"
-    params:
-        quality = config["quality"]
-    threads:
-        2
+    params: 
+        quality = config["quality"],
+        tmpdir = lambda wc: outdir + "/." + d[wc.sample]
     message:
-        "Aligning unbarcoded sequences: {wildcards.sample}"
-    shell:        
-        """
-        samtools view -h -F 4 -q {params.quality} {input.sam} | 
-            samtools sort -O bam -m 4G --reference {input.genome} -o {output} 2> {log}
-        """
-
-rule mark_duplicates:
-    input:
-        bam      = outdir + "/align/{sample}.nobc.bam"
-    output: 
-        bam      = temp(outdir + "/align/markdup/{sample}.markdup.nobc.bam"),
-        bai      = temp(outdir + "/align/markdup/{sample}.markdup.nobc.bam.bai")
-    log: 
-        mdlog    = outdir + "/logs/markduplicates/{sample}.markdup.nobc.log",
-        stats    = outdir + "/reports/samtools_stats/{sample}.nobc.stats",
-        flagstat = outdir + "/reports/samtools_flagstat/{sample}.nobc.flagstat"
-    conda:
-        os.getcwd() + "/harpyenvs/align.yaml"
-    threads:
-        2
-    message:
-        "Marking duplicates in unbarcoded alignments: {wildcards.sample}"
+        "Quality filtering alignments: {wildcards.sample}"
     shell:
         """
-        sambamba markdup -t {threads} -l 4 {input} {output.bam} 2> {log.mdlog}
-        samtools stats {output.bam} > {log.stats}
-        samtools flagstat {output.bam} > {log.flagstat}
+        samtools sort -T {params.tmpdir} --reference {input.genome} -O bam -l 0 -m 4G --write-index -o {output.bam}##idx##{output.bai} {input.sam} 2> {log}
+        rm -rf {params.tmpdir}
         """
+
+rule markduplicates:
+    input:
+        bam = outdir + "/align/{sample}.sort.nobc.bam",
+        bai = outdir + "/align/{sample}.sort.nobc.bam.bai"
+    output:
+        temp(outdir + "/align/{sample}.markdup.nobc.bam")
+    log:
+        outdir + "/logs/{sample}.markdup.log"
+    threads:
+        2
+    message:
+        "Marking duplicates in alignments alignment: {wildcards.sample}"
+    shell:
+        "samtools markdup -@ {threads} -S --barcode-tag BX -f {log} {input.bam} {output}  2> /dev/null"
+
+rule index_markdups:
+    input:
+        outdir + "/samples/{sample}/{sample}.markdup.nobc.bam"
+    output:
+        temp(outdir + "/samples/{sample}/{sample}.markdup.nobc.bam.bai")
+    message:
+        "Indexing duplicate-marked alignments: {wildcards.sample}"
+    shell:
+        "samtools index {input}"
 
 rule coverage_stats:
     input: 

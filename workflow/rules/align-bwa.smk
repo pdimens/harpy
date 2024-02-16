@@ -187,7 +187,6 @@ rule fix_mates:
     shell:
         "samtools fixmate -m {input} {output} 2> /dev/null"
 
-
 rule sort_alignments:
     input:
         sam           = outdir + "/samples/{sample}/{sample}.fixmate.bam",
@@ -222,7 +221,7 @@ rule markduplicates:
     message:
         "Marking duplicates in alignments alignment: {wildcards.sample}"
     shell:
-        "samtools markdup -@ {threads} --barcode-tag BX -f {log} {input} {output}  2> /dev/null"
+        "samtools markdup -@ {threads} -S --barcode-tag BX -f {log} {input} {output}  2> /dev/null"
 
 rule index_markdups:
     input:
