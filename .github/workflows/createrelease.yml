@@ -3,7 +3,7 @@ name: Create Release
 on:
   push:
     tags:
-      - v*
+      - '*'
 
 permissions:
   contents: write
@@ -21,6 +21,7 @@ jobs:
         run: |
           gh release create "$tag" \
               --repo="$GITHUB_REPOSITORY" \
+              --target main \
               --title="${GITHUB_REPOSITORY#*/} ${{ github.ref_name }}" \
               --generate-notes
       - name: build artifacts
