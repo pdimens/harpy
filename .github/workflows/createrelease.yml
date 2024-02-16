@@ -4,6 +4,9 @@ on:
   push:
     tags:
     - '*' # Push events of any tag created
+  pull_request:
+    tags:
+    - '*' # Pull request events of any tag created
 
 jobs:
   build:
