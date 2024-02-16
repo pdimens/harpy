@@ -16,7 +16,7 @@ jobs:
         # This builds the release tarball, stripped of unneccessary things
         run: |
           mkdir artifacts
-          tar --exclude="test" --exclude="artifacts" --exclude=".git" --exclude=".github" -zcvf artifacts/harpy.${{ github.ref_name }}.tar.gz .
+          tar --exclude="test" --exclude="DEPRECATED" --exclude="artifacts" --exclude=".git" --exclude=".github" -zcvf artifacts/harpy.${{ github.ref_name }}.tar.gz .
       - name: Create Release
         id: create_release
         uses: actions/create-release@v1
