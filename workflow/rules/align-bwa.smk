@@ -138,7 +138,7 @@ rule align:
     output:  
         pipe(outdir + "/samples/{sample}/{sample}.raw.sam")
     log:
-        outdir + "/logs/{sample}.bwa.align.log"
+        outdir + "/logs/{sample}.bwa.log"
     params: 
         samps = lambda wc: d[wc.get("sample")],
         extra = extra
@@ -155,9 +155,42 @@ rule align:
         bwa mem -C -t {threads} {params.extra} -R \"@RG\\tID:{wildcards.sample}\\tSM:{wildcards.sample}\" {input.genome} {input.forward_reads} {input.reverse_reads} > {output} 2> {log}
         """
  
-rule sort_align:
+rule quality_filter:
     input:
-        sam           = outdir + "/samples/{sample}/{sample}.raw.sam",
+        outdir + "/samples/{sample}/{sample}.raw.sam"
+    output:
+        temp(outdir + "/samples/{sample}/{sample}.bwa.sam")
+    params: 
+        quality = config["quality"]
+    message:
+        "Quality filtering alignments: {wildcards.sample}"
+    shell:
+        "samtools view -h -F 4 -q {params.quality} {input} > {output}"
+
+rule collate:
+    input:
+        outdir + "/samples/{sample}/{sample}.bwa.sam"
+    output:
+        temp(outdir + "/samples/{sample}/{sample}.collate.bam")
+    message:
+        "Collating alignments: {wildcards.sample}"
+    shell:
+        "samtools collate -o {output} {input} 2> /dev/null"
+
+rule fix_mates:
+    input:
+        outdir + "/samples/{sample}/{sample}.collate.bam"
+    output:
+        temp(outdir + "/samples/{sample}/{sample}.fixmate.bam")
+    message:
+        "Fixing mates in alignments: {wildcards.sample}"
+    shell:
+        "samtools fixmate -m {input} {output} 2> /dev/null"
+
+
+rule sort_alignments:
+    input:
+        sam           = outdir + "/samples/{sample}/{sample}.fixmate.bam",
         genome 		  = f"Genome/{bn}",
         genome_samidx = f"Genome/{bn_idx}",
         genome_idx 	  = multiext(f"Genome/{bn}", ".ann", ".bwt", ".pac", ".sa", ".amb")
@@ -169,16 +202,37 @@ rule sort_align:
     params: 
         quality = config["quality"],
         tmpdir = lambda wc: outdir + "/." + d[wc.sample]
-    threads:
-        2
     message:
         "Sorting and quality filtering alignments: {wildcards.sample}"
     shell:
         """
-        samtools view -h -F 4 -q {params.quality} {input.sam} | 
-            samtools sort -T {params.tmpdir} --reference {input.genome} -O bam -l 0 -m 4G --write-index -o {output.bam}##idx##{output.bai} 2> {log}
+        samtools sort -T {params.tmpdir} --reference {input.genome} -O bam -l 0 -m 4G --write-index -o {output.bam}##idx##{output.bai} {input.sam} 2> {log}
         rm -rf {params.tmpdir}
         """
+
+rule markduplicates:
+    input:
+        outdir + "/samples/{sample}/{sample}.sort.bam"
+    output:
+        temp(outdir + "/samples/{sample}/{sample}.markdup.bam")
+    log:
+        outdir + "/logs/{sample}.markdup.log"
+    threads:
+        2
+    message:
+        "Marking duplicates in alignments alignment: {wildcards.sample}"
+    shell:
+        "samtools markdup -@ {threads} --barcode-tag BX -f {log} {input} {output}  2> /dev/null"
+
+rule index_markdups:
+    input:
+        outdir + "/samples/{sample}/{sample}.markdup.bam"
+    output:
+        temp(outdir + "/samples/{sample}/{sample}.markdup.bam.bai")
+    message:
+        "Indexing duplicate-marked alignments: {wildcards.sample}"
+    shell:
+        "samtools index {input}"
 
 rule bxstats_report:
     input:
@@ -194,27 +248,10 @@ rule bxstats_report:
     script:
         "report/BxStats.Rmd"
 
-rule mark_duplicates:
-    input:
-        outdir + "/samples/{sample}/{sample}.sort.bam"
-    output:
-        bam = temp(outdir + "/samples/{sample}/markdup/{sample}.markdup.bam"),
-        bai = temp(outdir + "/samples/{sample}/markdup/{sample}.markdup.bam.bai")
-    log:
-        outdir + "/logs/makrduplicates/{sample}.markdup.log"
-    threads: 
-        4
-    conda:
-        os.getcwd() + "/harpyenvs/align.yaml"
-    message:
-        "Marking duplicates: " + "{wildcards.sample}"
-    shell:
-        "sambamba markdup -t {threads} -l 0 {input} {output.bam} 2> {log}"
-
 rule assign_molecules:
     input:
-        bam = outdir + "/samples/{sample}/markdup/{sample}.markdup.bam",
-        bai = outdir + "/samples/{sample}/markdup/{sample}.markdup.bam.bai"
+        bam = outdir + "/samples/{sample}/{sample}.markdup.bam",
+        bai = outdir + "/samples/{sample}/{sample}.markdup.bam.bai"
     output:
         bam = outdir + "/{sample}.bam",
         bai = outdir + "/{sample}.bam.bai"
