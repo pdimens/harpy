@@ -345,9 +345,9 @@ rule markduplicates:
 
 rule index_markdups:
     input:
-        outdir + "/samples/{sample}/{sample}.markdup.nobc.bam"
+        outdir + "/align/{sample}.markdup.nobc.bam"
     output:
-        temp(outdir + "/samples/{sample}/{sample}.markdup.nobc.bam.bai")
+        temp(outdir + "/align/{sample}.markdup.nobc.bam.bai")
     message:
         "Indexing duplicate-marked alignments: {wildcards.sample}"
     shell:
@@ -356,8 +356,8 @@ rule index_markdups:
 rule coverage_stats:
     input: 
         bed     = f"Genome/{bn}.bed",
-        nobx    = outdir + "/align/markdup/{sample}.markdup.nobc.bam",
-        nobxbai = outdir + "/align/markdup/{sample}.markdup.nobc.bam.bai",
+        nobx    = outdir + "/align/{sample}.markdup.nobc.bam",
+        nobxbai = outdir + "/align/{sample}.markdup.nobc.bam.bai",
         bx      = outdir + "/align/{sample}.bc.bam",
         bxbai   = outdir + "/align/{sample}.bc.bam.bai"
     output: 
@@ -381,27 +381,24 @@ rule coverage_report:
     script:
         "report/EmaGencov.Rmd"
 
-rule merge_alignments:
+rule concatenate_alignments:
     input:
         aln_bc   = outdir + "/align/{sample}.bc.bam",
         idx_bc   = outdir + "/align/{sample}.bc.bam.bai",
-        aln_nobc = outdir + "/align/markdup/{sample}.markdup.nobc.bam",
-        idx_nobc = outdir + "/align/markdup/{sample}.markdup.nobc.bam.bai"
+        aln_nobc = outdir + "/align/{sample}.markdup.nobc.bam",
+        idx_nobc = outdir + "/align/{sample}.markdup.nobc.bam.bai"
     output: 
-        bam 	 = temp(outdir + "/align/{sample}.unsort.bam"),
-        bai 	 = temp(outdir + "/align/{sample}.unsort.bam.bai")
-    conda:
-        os.getcwd() + "/harpyenvs/align.yaml"
+        bam 	 = temp(outdir + "/align/{sample}.concat.unsort.bam")
     threads:
-        min(10, workflow.cores)
+        2
     message:
-        "Merging all alignments: {wildcards.sample}"
+        "Concatenating barcoded and unbarcoded alignments: {wildcards.sample}"
     shell:
-        "sambamba merge -t {threads} {output.bam} {input.aln_bc} {input.aln_nobc} 2> /dev/null"
+        "samtools cat -@ {threads} {input.aln_bc} {input.aln_nobc} > {output.bam}"
 
-rule sort_merge:
+rule sort_concatenated:
     input:
-        bam    = outdir + "/align/{sample}.unsort.bam",
+        bam    = outdir + "/align/{sample}.concat.unsort.bam",
         genome = f"Genome/{bn}"
     output:
         bam = outdir + "/{sample}.bam",
