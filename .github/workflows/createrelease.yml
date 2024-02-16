@@ -1,39 +1,40 @@
-name: Create Release
+name: Upload Release Tarball
 
 on:
   push:
     tags:
-      - '*'
-
-permissions:
-  contents: write
+    - '*' # Push events of any tag created
 
 jobs:
-  release:
-    name: Release pushed tag
-    runs-on: ubuntu-22.04
+  build:
+    name: Upload Release Asset
+    runs-on: ubuntu-latest
     steps:
-      - name: Create release
-        id: create_release
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          tag: ${{ github.ref_name }}
-        run: |
-          gh release create "$tag" \
-              --repo="$GITHUB_REPOSITORY" \
-              --target main \
-              --title="${GITHUB_REPOSITORY#*/} ${{ github.ref_name }}" \
-              --generate-notes
-      - name: build artifacts
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Build project
+        # This builds the release tarball, stripped of unneccessary things
         run: |
           mkdir artifacts
           tar --exclude="test" --exclude="artifacts" --exclude=".git" --exclude=".github" -zcvf artifacts/harpy.${{ github.ref_name }}.tar.gz .
-      - name: upload tarball
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: harpy v${{ github.ref }}
+          draft: false
+          prerelease: false
+      - name: Upload Release Asset
+        id: upload-release-asset 
         uses: actions/upload-release-asset@v1
         env:
-          GITHUB_TOKEN: ${{ github.token }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url` 
+          upload_url: ${{ steps.create_release.outputs.upload_url }} 
           asset_path: ./artifacts/harpy.${{ github.ref_name }}.tar.gz
           asset_name: harpy.${{ github.ref_name }}.tar.gz
-          asset_content_type: application/gzip
+          asset_content_type: application/zip
