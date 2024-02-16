@@ -1,30 +1,35 @@
-{% set version = "0.5.0" %}
-{% set sha256 = "77ba116665fd00a945b65072b86b4c54f672b1b74912309709f580f7329b4adf" %}
+{% set version = "" %}
+{% set sha256 = "" %}
 
 package:
   name: harpy
   version: '{{ version }}'
 
 source:
-  url: https://github.com/pdimens/harpy/archive/{{ version }}.tar.gz
+  url: https://github.com/pdimens/harpy/releases/download/{{ version }}/harpy.{{ version }}.tar.gz
   sha256: '{{ sha256 }}'
 
 build:
-#  skip: True  # [osx]
+  skip: True  # [osx]
   number: 0
+  missing_dso_whitelist:
+    - /lib64/libstdc++.so.6
+    - /lib64/libc.so.6
   run_exports:
     - {{ pin_subpackage('harpy', max_pin="x.x") }}
 
 requirements:
   host:
-    - python
+    - python =3.10
+    - pip
   run:
     - bcftools =1.19
     - multiqc
+    - pandas
     - pysam =0.22
-    - python
+    - python =3.10
     - rich-click
-    - snakemake
+    - snakemake-minimal
     - samtools
     - seqtk
     - tabix
@@ -33,6 +38,7 @@ test:
   commands:
     - "snakemake --version"
     - "harpy --version"
+
 about:
   home: "https://github.com/pdimens/harpy/"
   license: GPL-3.0-or-later
@@ -50,9 +56,7 @@ about:
   dev_url: https://github.com/pdimens/harpy
 
 extra:
-  container:
-    extended-base: True
   recipe-maintainers:
     - pdimens
-#  skip-lints:
-#    - should_be_noarch_generic
+  skip-lints:
+    - should_be_noarch_generic
