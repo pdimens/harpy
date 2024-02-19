@@ -11,8 +11,7 @@ on:
       - 'workflow/rules/align-**.smk'
       - '**align.py'
       - '**helperfunctions.py'
-      - 'workflow/report/BwaGencov.Rmd'
-      - 'workflow/report/EmaGencov.Rmd'
+      - 'workflow/report/**Gencov.Rmd'
       - 'workflow/report/EmaCount.Rmd'
       - 'workflow/report/BxCount.Rmd'
       - 'workflow/report/BxStats.Rmd'
@@ -32,8 +31,7 @@ on:
       - 'workflow/rules/align-**.smk'
       - '**align.py'
       - '**helperfunctions.py'
-      - 'workflow/report/BwaGencov.Rmd'
-      - 'workflow/report/EmaGencov.Rmd'
+      - 'workflow/report/**Gencov.Rmd'
       - 'workflow/report/EmaCount.Rmd'
       - 'workflow/report/BxCount.Rmd'
       - 'workflow/report/BxStats.Rmd'
@@ -47,8 +45,8 @@ env:
   CACHE_NUMBER: 0  # increase to reset cache manually
 
 jobs:
-  build:
-    name: linux64
+  test_bwa:
+    name: bwa
     runs-on: ubuntu-latest
     steps:
       - name: checkout
@@ -72,12 +70,34 @@ jobs:
           pip install dist/*.whl
           resources/buildforCI.sh
         shell: micromamba-shell {0}
-
-      - name: align bwa
+      - name: test bwa
         shell: micromamba-shell {0}
         run: harpy align bwa -d test/fastq -g test/genome/genome.fasta.gz -q -s "--show-failed-logs"
-
-      - name: align ema
-        if: always()
+  test_ema:
+    name: ema
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+      - name: setup mamba
+        uses: mamba-org/setup-micromamba@v1
+        env:
+          ACTIONS_STEP_DEBUG: true
+        with:
+          init-shell: bash
+          generate-run-shell: true
+          environment-file: workflow/envs/harpy.yaml
+          cache-environment: true
+          post-cleanup: 'all'
+          log-level: error
+      - name: Install harpy
+        run: |
+          python3 -m pip install --upgrade build && python3 -m build
+          pip install dist/*.whl
+          resources/buildforCI.sh
+        shell: micromamba-shell {0}
+      - name: test ema
         shell: micromamba-shell {0}
         run: harpy align ema --ema-bins 20 -d test/fastq -g test/genome/genome.fasta.gz -q -s "--show-failed-logs"

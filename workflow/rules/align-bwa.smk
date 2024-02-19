@@ -343,8 +343,11 @@ rule log_runtime:
             _ = f.write("    bwa mem -C " + " ".join([str(i) for i in params]) + " -R \"@RG\\tID:SAMPLE\\tSM:SAMPLE\" genome forward_reads reverse_reads |\n")
             _ = f.write("    samtools view -h -F 4 -q " + str(config["quality"]) + " |\n")
             _ = f.write("    samtools sort -T SAMPLE --reference genome -m 4G\n")
-            _ = f.write("Duplicates in the alignments were marked using samtools markdup:\n")
-            _ = f.write("    samtools markdup -S --barcode-tag BX 0\n")
+            _ = f.write("Duplicates in the alignments were marked following:\n")
+            _ = f.write("    samtools collate \n")
+            _ = f.write("    samtools fixmate\n")
+            _ = f.write("    samtools sort \n")
+            _ = f.write("    samtools markdup -S --barcode-tag BX\n")
             _ = f.write("\nThe Snakemake workflow was called via command line:\n")
             _ = f.write("    " + str(config["workflow_call"]) + "\n")
 
