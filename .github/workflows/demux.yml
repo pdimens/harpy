@@ -34,8 +34,8 @@ env:
   CACHE_NUMBER: 0  # increase to reset cache manually
 
 jobs:
-  build:
-    name: linux64
+  test_dmux_gen1:
+    name: test demux gen1
     runs-on: ubuntu-latest
     steps:
       - name: checkout
@@ -56,7 +56,6 @@ jobs:
           pip install dist/*.whl
           resources/buildforCI.sh
         shell: micromamba-shell {0}
-
       - name: harpy demultiplex
         run: harpy demultiplex gen1 --file test/demux/Undetermined_S0_L004_I1_001.fastq.gz --samplesheet test/demux/samples.schema
         shell: micromamba-shell {0}
