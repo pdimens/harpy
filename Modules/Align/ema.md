@@ -97,8 +97,7 @@ information, the EMA workflow is a bit more complicated under the hood. Reads wi
 barcodes are aligned using EMA and reads without valid barcodes are separately mapped
 using BWA before merging all the alignments together again. EMA will mark duplicates
 within alignments, but the BWA alignments need duplicates marked manually using 
-[sambamba](https://lomereiter.github.io/sambamba/). Thankfully, you shouldn't need 
-to worry about any of these details.
+`samtools markdup`.
 
 ```mermaid
 graph LR
