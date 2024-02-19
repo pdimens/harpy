@@ -341,7 +341,7 @@ rule markduplicates:
     message:
         "Marking duplicates in alignments alignment: {wildcards.sample}"
     shell:
-        "samtools markdup -@ {threads} -S --barcode-tag BX -f {log} {input.bam} {output}  2> /dev/null"
+        "samtools markdup -@ {threads} -S -f {log} {input.bam} {output}  2> /dev/null"
 
 rule index_markdups:
     input:
