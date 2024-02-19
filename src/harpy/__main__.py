@@ -39,7 +39,7 @@ click.rich_click.ERRORS_SUGGESTION = "Try the '--help' flag for more information
 click.rich_click.ERRORS_EPILOGUE = "See the documentation: [link=https://pdimens.github.io/harpy/]https://pdimens.github.io/harpy/[/link]"
 
 @click.group(options_metavar='', context_settings=dict(help_option_names=["-h", "--help"]))
-@click.version_option("0.6.0", prog_name="Harpy")
+@click.version_option("0.6.1", prog_name="Harpy")
 def cli():
     """
     ## Harpy haplotagging pipeline
