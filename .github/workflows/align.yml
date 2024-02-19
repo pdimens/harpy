@@ -47,7 +47,7 @@ env:
   CACHE_NUMBER: 0  # increase to reset cache manually
 
 jobs:
-  test:
+  test_bwa:
     name: bwa
     runs-on: ubuntu-latest
     steps:
@@ -75,7 +75,7 @@ jobs:
       - name: test bwa
         shell: micromamba-shell {0}
         run: harpy align bwa -d test/fastq -g test/genome/genome.fasta.gz -q -s "--show-failed-logs"
-
+  test_ema:
     name: ema
     runs-on: ubuntu-latest
     steps:
