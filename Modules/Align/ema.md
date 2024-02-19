@@ -97,8 +97,7 @@ information, the EMA workflow is a bit more complicated under the hood. Reads wi
 barcodes are aligned using EMA and reads without valid barcodes are separately mapped
 using BWA before merging all the alignments together again. EMA will mark duplicates
 within alignments, but the BWA alignments need duplicates marked manually using 
-[sambamba](https://lomereiter.github.io/sambamba/). Thankfully, you shouldn't need 
-to worry about any of these details.
+`samtools markdup`.
 
 ```mermaid
 graph LR
@@ -121,7 +120,8 @@ graph LR
 
 ```
 +++ :icon-file-directory: EMA output
-The `harpy align` module creates an `Align/ema` directory with the folder structure below. `Sample1` is a generic sample name for demonstration purposes.
+The `harpy align` module creates an `Align/ema` directory with the folder structure below. `Sample1` is a generic sample name for demonstration purposes. 
+The resulting folder also includes a `workflow` directory (not shown) with workflow-relevant runtime files and information.
 ```
 Align/ema
 ├── Sample1.bam

@@ -81,11 +81,10 @@ if the primary alignment was marked as a duplicate. Duplicates get marked but **
 - ignores (but retains) barcode information
 - fast
 
-The [BWA MEM](https://github.com/lh3/bwa) workflow is substantially simpler and faster than the EMA workflow
- and maps all reads against the reference genome, no muss no fuss. Duplicates are marked using 
- [sambamba](https://lomereiter.github.io/sambamba/). The `BX:Z` tags in the read headers are still added 
- to the alignment headers, even though barcodes are not used to inform mapping. The `-m` threshold is used
- for alignment molecule assignment.
+The [BWA MEM](https://github.com/lh3/bwa) workflow is much simpler and faster than the EMA workflow
+and maps all reads against the reference genome. Duplicates are marked using `samtools markdup`.
+The `BX:Z` tags in the read headers are still added to the alignment headers, even though barcodes
+are not used to inform mapping. The `-m` threshold is used for alignment molecule assignment.
 
 ```mermaid
 graph LR
@@ -106,6 +105,7 @@ graph LR
 ```
 +++ :icon-file-directory: BWA output
 The `harpy align` module creates an `Align/bwa` directory with the folder structure below. `Sample1` is a generic sample name for demonstration purposes.
+The resulting folder also includes a `workflow` directory (not shown) with workflow-relevant runtime files and information.
 ```
 Align/bwa
 ├── Sample1.bam

@@ -80,6 +80,7 @@ graph LR
 +++ :icon-file-directory: demultiplexing output
 The `harpy demultiplex` module creates an `Demultiplex/PREFIX` directory with the folder structure below, where `PREFIX` is the prefix of your input file that Harpy
 infers by removing the file extension and forward/reverse distinction. `Sample1` and `Sample2` are generic sample names for demonstration purposes.
+The resulting folder also includes a `workflow` directory (not shown) with workflow-relevant runtime files and information.
 ```
 Demultiplex/PREFIX
 ├── Sample1.F.fq.gz

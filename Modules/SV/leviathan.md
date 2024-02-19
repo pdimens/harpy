@@ -111,6 +111,7 @@ graph LR
 ```
 +++ :icon-file-directory: leviathan output
 The `harpy variants --method leviathan` module creates a `Variants/leviathan` (or `leviathan-pop`) directory with the folder structure below. `sample1` and `sample2` are generic sample names for demonstration purposes.
+The resulting folder also includes a `workflow` directory (not shown) with workflow-relevant runtime files and information.
 
 ```
 Variants/leviathan/
