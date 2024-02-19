@@ -43,7 +43,7 @@ to assign alignments a unique Molecular Identifier `MI:i` tag based on their
 [haplotag data](/haplotagdata/#barcode-thresholds) for more information on
 what this value does. 
 
-## :icon-filter: Quality filtering
+## Quality filtering
 ==- What is a $MQ$ score?
 Every alignment in a BAM file has an associated mapping quality score ($MQ$) that informs you of the likelihood 
 that the alignment is accurate. This score can range from 0-40, where higher numbers mean the alignment is more
@@ -66,6 +66,12 @@ The plot below shows the relationship between $MQ$ score and the likelihood the 
 on a value you may want to use. It is common to remove alignments with $MQ <30$ (<99.9% chance correct) or $MQ <40$ (<99.99% chance correct).
 
 [!embed el="embed"](//plotly.com/~pdimens/7.embed)
+
+## Marking PCR duplicates
+Harpy uses `samtools markdup` to mark putative PCR duplicates. By using the `--barcode-tag BX`
+option, it considers the linked-read barcode for more accurate duplicate detection. Duplicate
+marking also uses the `-S` option to mark supplementary (chimeric) alignments as duplicates
+if the primary alignment was marked as a duplicate. Duplicates get marked but **are not removed**.
 
 ----
 
@@ -91,6 +97,12 @@ graph LR
     E-->F([alignment metrics])
     D-->G([barcode stats])
     G-->F
+    subgraph markdp [mark duplicates via `samtools`]
+        direction LR
+        collate-->fixmate
+        fixmate-->sort
+        sort-->markdup
+    end
 ```
 +++ :icon-file-directory: BWA output
 The `harpy align` module creates an `Align/bwa` directory with the folder structure below. `Sample1` is a generic sample name for demonstration purposes.
@@ -119,7 +131,7 @@ Align/bwa
 |:---------|:------------------------------------------------------------------------------------------------------------|
 | `*.bam`                             | sequence alignments for each sample                                              |
 | `*.bai`                             | sequence alignment indexes for each sample                                       |
-| `logs/markduplicates`               | everything `sambamba markdup` writes to `stderr` during operation                |
+| `logs/markduplicates`               | stats provided by `samtools markdup`                                             |
 | `reports/`                          | various counts/statistics/reports relating to sequence alignment                 |
 | `reports/bwa.stats.html`            | report summarizing `samtools flagstat and stats` results across all samples from `multiqc` |
 | `reports/reads.bxstats.html`        | interactive html report summarizing valid vs invalid barcodes across all samples | 
@@ -159,16 +171,16 @@ These are the summary reports Harpy generates for this workflow. You may right-c
 the images and open them in a new tab if you wish to see the examples in better detail.
 ||| Depth and coverage
 Reports the depth of alignments in 10kb windows.
-![stats/coverage/*.html](/static/report_align_coverage.png)
+![reports/coverage/*.html](/static/report_align_coverage.png)
 ||| BX validation
 Reports the number of valid/invalid barcodes in the alignments.
-![stats/reads.bxstats.html](/static/report_align_bxstats.png)
+![reports/reads.bxstats.html](/static/report_align_bxstats.png)
 ||| Molecule size
 Reports the inferred molecule sized based on barcodes in the alignments.
-![stats/BXstats/*.bxstats.html](/static/report_align_bxmol.png)
+![reports/BXstats/*.bxstats.html](/static/report_align_bxmol.png)
 ||| Alignment stats
 Reports the general statistics computed by samtools `stats` and `flagstat`
-![stats/samtools_*stat/*html](/static/report_align_flagstat.png)
+![reports/samtools_*stat/*html](/static/report_align_flagstat.png)
 |||
 
 +++
