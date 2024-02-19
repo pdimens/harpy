@@ -51,7 +51,7 @@ simple text file that has one barcode per line so a given software knows what ba
 If you need to process 10x data, then you will need to include the whitelist file (usually provided by 10x).
 Conveniently, **haplotag data doesn't require this file**.
 
-## :icon-filter: Quality filtering
+## Quality filtering
 ==- What is a $MQ$ score?
 Every alignment in a BAM file has an associated mapping quality score ($MQ$) that informs you of the likelihood 
 that the alignment is accurate. This score can range from 0-40, where higher numbers mean the alignment is more
@@ -74,6 +74,13 @@ The plot below shows the relationship between $MQ$ score and the likelihood the 
 on a value you may want to use. It is common to remove alignments with $MQ <30$ (<99.9% chance correct) or $MQ <40$ (<99.99% chance correct).
 
 [!embed el="embed"](//plotly.com/~pdimens/7.embed)
+
+## Marking PCR duplicates
+EMA marks duplicates in the resulting alignments, however the read with invalid barcodes
+are aligned separately with BWA. Therefore, Harpy uses `samtools markdup` to mark putative
+PCR duplicates in the reads with invalid barcodes. Duplicate marking uses the `-S` option
+to mark supplementary (chimeric) alignments as duplicates if the primary alignment was
+marked as a duplicate. Duplicates get marked but **are not removed**.
 
 ----
 
@@ -105,6 +112,13 @@ graph LR
     Y-->X([mark duplicates])
     X-->F
     F-->J([alignment stats])
+    subgraph markdp [mark duplicates via `samtools`]
+        direction LR
+        collate-->fixmate
+        fixmate-->sort
+        sort-->markdup
+    end
+
 ```
 +++ :icon-file-directory: EMA output
 The `harpy align` module creates an `Align/ema` directory with the folder structure below. `Sample1` is a generic sample name for demonstration purposes.
@@ -138,16 +152,16 @@ Align/ema
 | `*.bam`                                        | sequence alignments for each sample                                                                           |
 | `*.bai`                                        | sequence alignment indexes for each sample                                                                    |
 | `count/`                                       | output of `ema count`                                                                                         |
-| `logs/markduplicates/`                         | everything `sambamba markdup` writes to `stderr` during operation on alignments with invalid/missing barcodes |
+| `logs/markduplicates/`                         | stats provided by `samtools markdup` for alignments with invalid/missing barcodes                             |
 | `logs/preproc/*.preproc.log`                   | everything `ema preproc` writes to `stderr` during operation                                                  |
 | `reports/`                                     | various counts/statistics/reports relating to sequence alignment                                              |
-| `reports/ema.stats.html`                       | report summarizing `samtools flagstat and stats` results across all samples from `multiqc`                              |
+| `reports/ema.stats.html`                       | report summarizing `samtools flagstat and stats` results across all samples from `multiqc`                    |
 | `reports/reads.bxstats.html`                   | interactive html report summarizing `ema count` across all samples                                            |
 | `reports/coverage/*.html`                      | summary plots of alignment coverage per contig                                                                |
 | `reports/coverage/data/*.all.gencov.gz`        | output from samtools bedcov from all alignments, used for plots                                               |
 | `reports/coverage/data/*.bx.gencov.gz`         | output from samtools bedcov from alignments with valid BX barcodes, used for plots                            |
 | `reports/BXstats/`                             | reports summarizing molecule size and reads per molecule                                                      |
-| `reports/BXstats/*.bxstats.html`               | interactive html report summarizing inferred molecule size                       | 
+| `reports/BXstats/*.bxstats.html`               | interactive html report summarizing inferred molecule size                                                    | 
 | `reports/BXstats/data/`                        | tabular data containing the information used to generate the BXstats reports                                  |
 
 +++ :icon-code-square: EMA parameters
@@ -169,16 +183,16 @@ the images and open them in a new tab if you wish to see the examples in better 
 
 ||| Depth and coverage
 Reports the depth of alignments in 10kb windows.
-![stats/coverage/*.html](/static/report_align_coverage.png)
+![reports/coverage/*.html](/static/report_align_coverage.png)
 ||| BX validation
 Reports the number of valid/invalid barcodes in the alignments.
-![stats/reads.bxstats.html](/static/report_align_bxstats.png)
+![reports/reads.bxstats.html](/static/report_align_bxstats.png)
 ||| Molecule size
 Reports the inferred molecule sized based on barcodes in the alignments.
-![stats/BXstats/*.bxstats.html](/static/report_align_bxmol.png)
+![reports/BXstats/*.bxstats.html](/static/report_align_bxmol.png)
 ||| Alignment stats
 Reports the general statistics computed by samtools `stats` and `flagstat`
-![stats/samtools_*stat/*html](/static/report_align_flagstat.png)
+![reports/samtools_*stat/*html](/static/report_align_flagstat.png)
 |||
 
 +++

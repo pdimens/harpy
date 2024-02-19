@@ -17,7 +17,7 @@ footer:
   copyright: "&copy; Copyright {{ year }}. All rights reserved."
 branding:
   title: Harpy           # Your custom website title; keep it short.
-  label: v0.5.0
+  label: v0.6.1
   logo: static/favicon.png          # Path to a logo file.
   logoDark: static/favicon.png # Path to a logo file to use in dark mode.
   logoAlign: left
