@@ -50,6 +50,7 @@ graph LR
 
 +++ :icon-file-directory: qc output
 The `harpy qc` module creates a `QC` directory with the folder structure below. `Sample1` and `Sample2` are generic sample names for demonstration purposes. 
+The resulting folder also includes a `workflow` directory (not shown) with workflow-relevant runtime files and information.
 ```
 QC/
 ├── Sample1.R1.fq.gz

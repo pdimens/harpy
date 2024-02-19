@@ -99,6 +99,7 @@ graph LR
 +++ :icon-file-directory: phasing output
 The `harpy phase` module creates an `Phase` directory with the folder structure below. `Sample1` is a generic sample name for demonstration purposes.
 If using the `--ignore-bx` option, the output directory will be named `Phase.noBX` instead.
+The resulting folder also includes a `workflow` directory (not shown) with workflow-relevant runtime files and information.
 
 ```
 Phase/

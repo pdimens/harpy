@@ -149,6 +149,7 @@ graph LR
 The `harpy sv --method naibr` module creates a `Variants/naibr` (or `naibr-pop`) 
 directory with the folder structure below. `sample1` and `sample2` are generic sample 
 names for demonstration purposes.
+The resulting folder also includes a `workflow` directory (not shown) with workflow-relevant runtime files and information.
 
 ```
 Variants/naibr/

@@ -117,6 +117,7 @@ graph LR
 The `harpy snp` module creates a `Variants/METHOD` directory with the folder structure below where `METHOD` is what
 you specify as the `--method` (mpileup or freebayes). `contig1` and `contig2` are generic contig names from an imaginary
 `genome.fasta` for demonstration purposes.
+The resulting folder also includes a `workflow` directory (not shown) with workflow-relevant runtime files and information.
 ```
 Variants/METHOD
 ├── variants.normalized.bcf
