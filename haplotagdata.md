@@ -84,3 +84,10 @@ you are being more strict and indicating that alignments sharing barcodes must b
 DNA molecule. Conversely, a higher threshold indicates you are being more lax and indicating barcodes can be further away from each other
 and still be considered originating from the same DNA molecule. A threshold of 50kb-150kb is considered a decent balance, but you should choose
 larger/smaller values if you have evidence to support them. 
+
+![Molecule origin is determined by the distance between alignments with the same barcode relative to the specified threshold](/static/bc_threshold.png)
+
+| Alignment distance     |    Inferred origin  |
+|:-----------------------|:--------------------|
+| less than threshold    |     same molecule   |
+| greater than threshold | different molecules |
