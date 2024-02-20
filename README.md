@@ -8,26 +8,31 @@
 
 
 ## 📥 Install 
-Now hosted on [Bioconda](https://anaconda.org/bioconda/harpy)! Install harpy on Linux-based systems using [mamba](https://mamba.readthedocs.io/en/latest/micromamba-installation.html#umamba-install) (**recommended**) or [conda](https://mamba.readthedocs.io/en/latest/installation.html).
-
-### Install into new environment (recommended)
-To avoid dependency conflicts with an existing environment, it is best to create a new environment for a harpy installation. The code below creates a new conda environment called `harpy` (via `-n harpy`) and installs harpy into it. You can name this environment whatever you like using the `-n somename` argument. 
+To avoid dependency conflicts with an existing environment, it is best to create a new environment for a harpy installation. The code below creates a new conda/mamba environment called `harpy` (via `-n harpy`) and installs harpy into it. You can name this environment whatever you like using the `-n somename` argument. 
 ```bash
 mamba create -n harpy -c bioconda -c conda-forge harpy
 ```
 
 <details>
-  <summary>install into an existing conda environment</summary>
- 
-### Install into existing environment
+  <summary>⚪️ install into an existing conda environment ⚪️</summary>
+
+  ---
+  
 If you wish to install harpy and its dependencies into an existing environment, activate that environment (`conda activate env_name`) and execute this installation code:
 ```bash
 mamba install -c bioconda -c conda-forge harpy
 ```
+Or provide `-n envname` to install it into an existing environment named `envname`
+```bash
+mamba install -n envname -c bioconda -c conda-forge harpy
+```
+
+---
+
 </details>
 
 ### 🌟 Activate the harpy environment
-Once conda/mamba finishes, activate the conda environment you installed harpy into with
+Once conda/mamba finishes, activate the conda/mamba environment you installed harpy into with
 ```bash
 conda activate env_name
 ```
@@ -36,36 +41,6 @@ where `env_name` is the name of that environment. After doing so, the `harpy` ex
 
 ## ⚡ Usage
 Just call `harpy` or `harpy --help` on the command line to get started!
-
-```                                                                 
- Usage: harpy COMMAND [ARGS]...                                
-                                                               
-                 Harpy haplotagging pipeline                  
- An automated workflow to demultiplex sequences, trim and qc  
- reads, map sequences, call variants, impute genotypes, and   
- phase haplotypes of Haplotagging data. Batteries included.   
-                                                              
- demultiplex >> qc >> align >> snp >> impute >> phase >> sv        
-                                                              
- Documentation: https://pdimens.github.io/harpy/              
-                                                              
-╭─ Options ──────────────────────────────────────────────────╮
-│ --version      Show the version and exit.                  │
-│ --help     -h  Show this message and exit.                 │
-╰────────────────────────────────────────────────────────────╯
-╭─ Modules ──────────────────────────────────────────────────╮
-│ demultiplex  Demultiplex haplotagged FASTQ files           │
-│ qc           Remove adapters and quality trim sequences    │
-│ align        Align sample sequences to a reference genome  │
-│ snp          Call SNPs and small indels                    │
-│ sv           Call large structural variants                │
-│ impute       Impute genotypes using variants and sequences │
-│ phase        Phase SNPs into haplotypes                    │
-╰────────────────────────────────────────────────────────────╯
-╭─ Other Commands ───────────────────────────────────────────╮
-│ preflight     Run file format checks on haplotag data      │
-│ popgroup      Create a sample grouping file                │
-│ stitchparams  Create a template STITCH parameter file      │
-│ hpc           Create a config file to run Harpy on an HPC  │
-╰────────────────────────────────────────────────────────────╯
+```bash
+harpy
 ```
