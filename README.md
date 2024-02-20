@@ -14,13 +14,21 @@ mamba create -n harpy -c bioconda -c conda-forge harpy
 ```
 
 <details>
-  <summary>install into an existing conda environment</summary>
----
+  <summary>⚪️ install into an existing conda environment ⚪️</summary>
+
+  ---
+  
 If you wish to install harpy and its dependencies into an existing environment, activate that environment (`conda activate env_name`) and execute this installation code:
 ```bash
 mamba install -c bioconda -c conda-forge harpy
 ```
+Or provide `-n envname` to install it into an existing environment named `envname`
+```bash
+mamba install -n envname -c bioconda -c conda-forge harpy
+```
+
 ---
+
 </details>
 
 ### 🌟 Activate the harpy environment
