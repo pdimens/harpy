@@ -81,7 +81,7 @@ snakefiles for each module, bash scripts, python scripts, and rmarkdown files,
 not all of it can be installed as a pure python program using `setuptools`.
 The build process installs part of Harpy as a pure-python command line program, but
 all the extra files Harpy needs to run need to be installed separately. All of 
-this is handled by `misc/buildlocal.sh`. It's a little circuitous, but it's how
+this is handled by `resources/buildlocal.sh`. It's a little circuitous, but it's how
 we can keep the source code modular, installable, and have the flexibility of 
 using non-python code.
 
@@ -89,13 +89,13 @@ using non-python code.
 For the ease of installation for end-users, Harpy has a [recipe](https://github.com/bioconda/bioconda-recipes/blob/master/recipes/harpy/meta.yaml) 
 and [build script](https://github.com/bioconda/bioconda-recipes/blob/master/recipes/harpy/build.sh) in Bioconda,
 which makes it available for download and installation. A copy of the recipe and
-build script is also stored in `misc/meta.yml` and `misc/build.sh`. The yaml file
+build script is also stored in `resources/meta.yml` and `resources/build.sh`. The yaml file
 is the metadata of the package, including software deps and their versions. The
-build script is how conda will install all of Harpy's parts. In order to modify 
-these files for a new release, you need to fork `bioconda/bioconda-recipes`, 
-create a new branch, modify the Harpy `meta.yml` (and possibly `build.sh`) files. Bioconda
-has an bot that looks for changes to the version number in the `meta.yml` file
-and will automatically submit a Pull Request when it notices that's been changed.
+build script is how conda will install all of Harpy's parts. Now that Harpy is hosted on
+bioconda, when a new version is tagged with a release, Bioconda will automatically create
+a pull request (after a delay), typically not requiring any intervention on the development side
+for the newest Harpy version to be released for conda installation.
+
 
 ## The Harpy repository
 ### structure
@@ -123,7 +123,8 @@ The dev workflow is reasonably standard:
 3. add and modify code with your typical coding workflow, pushing your changes to your Harpy fork
 4. when it's ready for inclusion into Harpy (and testing), create a Pull Request to merge your changes into the Harpy `dev` branch
 
-## Testing and CI
+## Automations
+### Testing
 CI (**C**ontinuous **I**ntegration) is a term describing automated actions that do
 things to/with your code and are triggered by how you interact with a repository.
 Harpy has a series of GitHub Actions triggered by interactions with the `dev` branch (in `.github/workflows`) 
@@ -134,3 +135,17 @@ in the cloud and notify the Harpy devs if for some reason `harpy demultiplex`
 could not run successfully to completion. These tests do not test for accuracy,
 but test for breaking behavior. You'd be shocked to find out how many errors
 crop up this way and require more development so Harpy can be resilient to more use cases.
+### Releases
+To save on disk space, there is an automation to strip out the unnecessary files and upload a
+cleaned tarball to the new release. This is triggered automatically when a new version is tagged.
+Tagging is easily accomplished with Git commands in the command line:
+```bash
+# make sure you're on the main branch
+$ git checkout main
+
+# create the tag locally, where X.X.X is something like 1.7.1
+$ git tag X.X.X
+
+# push the new tag to the repository
+$ git push origin X.X.X
+``` 
