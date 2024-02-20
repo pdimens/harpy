@@ -31,6 +31,7 @@ harpy align bwa --threads 20 --directory samples/trimmedreads --quiet
 
 harpy align bwa -t 20 -d samples/trimmedreads -q
 ```
+---
 
 ## The `workflow` folder
 When you run one of the main Harpy modules, the output directory will contain a `workflow` folder. This folder is
@@ -44,6 +45,8 @@ and the contents therein also allow you to rerun the workflow manually. The `wor
 | `config.yml` | Configuration file generated from command-line arguments and consumed by the Snakefile | useful for bookkeeping | 
 | `report/*.Rmd` | RMarkdown files used to generate the fancy reports | useful to understand math behind plots/tables or borrow code from |
 | `*.workflow.summary` | Plain-text overview of the important parts of the workflow | useful for bookkeeping and writing Methods |
+
+---
 
 ## The `Genome` folder
 
