@@ -83,7 +83,7 @@ def parse_fastq_inputs(input, outdir):
     uniqs = set()
     dupes = [os.path.basename(re_ext.sub("", i)) for i in outfiles if i in uniqs or uniqs.add(i)]
     if dupes:
-        print_error("There are identical filenames, which will cause unexpected behavior and results. Note that files with identical names but different-cased extensions are treated as identical.")
+        print_error("Identical filenames were detected, which will cause unexpected behavior and results. Note that files with identical names but different-cased extensions are treated as identical.")
         print_solution_with_culprits("Make sure all input files have unique names.", "Files with clashing names:")
         for i in dupes:
             click.echo(" ".join([j for j in infiles if i in j]), file = sys.stderr)
@@ -100,45 +100,63 @@ def parse_alignment_inputs(input, outdir):
     Parse the command line input sam/bam arguments to generate a clean list of input files
     and create symlinks of those files to a target destination folder.
     """
-    infiles = []
-    outfiles = []
+    bam_infiles = []
+    bai_infiles = []
+    bam_outfiles = []
+    bai_outfiles = []
     for i in input:
         if os.path.isdir(i):
             for j in os.listdir(i):
-                if j.lower().endswith("bam") or j.lower().endswith("sam") or j.lower().endswith("bai"):
-                    infiles.append(os.path.join(i, j))
+                if j.lower().endswith("bam") or j.lower().endswith("sam"):
+                    bam_infiles.append(os.path.join(i, j))
+                elif j.lower().endswith("bai"):
+                    bai_infiles.append(os.path.join(i, j))
         else:
-            if i.lower().endswith("bam") or i.lower().endswith("sam") or i.lower().endswith("bai"):
-                infiles.append(i)
-    if len(infiles) < 1:
+            if i.lower().endswith("bam") or i.lower().endswith("sam"):
+                bam_infiles.append(i)
+            elif i.lower().endswith("bai"):
+                bai_infiles.append(i)
+    if len(bam_infiles) < 1:
         print_error(f"There were no files found in the provided inputs that end with the [blue].bam[/blue] extension.")
         exit(1)
     re_bam = re.compile("\.bam$", re.IGNORECASE)
-    re_bai = re.compile("\.bai$", re.IGNORECASE)
+    re_bai = re.compile("\.bam\.bai$", re.IGNORECASE)
     re_sam = re.compile("\.sam$", re.IGNORECASE)
-    re_ext = re.compile("\.(bam|sam)?$", re.IGNORECASE)
-    for i in infiles:
+    re_ext = re.compile("\.(bam|sam)$", re.IGNORECASE)
+    for i in bam_infiles:
         destination = os.path.join(outdir,os.path.basename(i))
         # clean up extensions for consistency
         clean_destination = re_bam.sub(".bam", destination)
-        clean_destination = re_bam.sub(".bai", clean_destination)
         clean_destination = re_sam.sub(".sam", clean_destination)
-        outfiles.append(clean_destination)
+        bam_outfiles.append(clean_destination)
     # check if any links will be clashing
     uniqs = set()
-    dupes = [os.path.basename(re_ext.sub("", i)) for i in outfiles if i in uniqs or uniqs.add(i)]
+    dupes = []
+    for i in bam_infiles:
+        bn = os.path.basename(re_ext.sub("", i))
+        if bn in uniqs:
+            dupes.append(bn) 
+        else:
+            uniqs.add(bn)
     if dupes:
-        print_error("There are identical filenames, which will cause unexpected behavior and results. Note that files with identical names but different-cased extensions are treated as identical.")
+        print_error("Identical filenames were detected, which will cause unexpected behavior and results. Note that files with identical names but different-cased extensions are treated as identical.")
         print_solution_with_culprits("Make sure all input files have unique names.", "Files with clashing names:")
         for i in dupes:
-            click.echo(" ".join([j for j in infiles if i in j]), file = sys.stderr)
+            click.echo(" ".join([j for j in bam_infiles if i in j]), file = sys.stderr)
         exit(1)
-
+    for i in bai_infiles:
+        destination = os.path.join(outdir,os.path.basename(i))
+        # clean up extensions for consistency
+        clean_destination = re_bam.sub(".bam.bai", destination)
+        bai_outfiles.append(clean_destination)
     Path(outdir).mkdir(parents=True, exist_ok=True)
-    for (i,o) in zip(infiles, outfiles):
+    for (i,o) in zip(bam_infiles, bam_outfiles):
         Path(o).unlink(missing_ok=True)
         _ = Path(o).symlink_to(Path(i).absolute())
-    return infiles
+    for (i,o) in zip(bai_infiles, bai_outfiles):
+        Path(o).unlink(missing_ok=True)
+        _ = Path(o).symlink_to(Path(i).absolute())
+    return bam_infiles
 
 def get_samples_from_fastq(directory):
     """Identify the sample names from a directory containing FASTQ files"""
