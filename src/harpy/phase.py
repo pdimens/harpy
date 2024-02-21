@@ -1,5 +1,5 @@
 from .helperfunctions import fetch_file, generate_conda_deps, getnames, print_onstart
-from .helperfunctions import vcfcheck, vcf_samplematch, validate_bamfiles
+from .helperfunctions import vcfcheck, vcf_samplematch, validate_bamfiles, parse_alignment_inputs
 import sys
 import os
 import subprocess
@@ -7,7 +7,6 @@ import rich_click as click
 
 @click.command(no_args_is_help = True, epilog = "read the docs for more information: https://pdimens.github.io/harpy/modules/phase")
 @click.option('-v', '--vcf', required = True, type=click.Path(exists=True, dir_okay=False), metavar = "File Path", help = 'Path to BCF/VCF file')
-@click.option('-d', '--directory', required = True, type=click.Path(exists=True, file_okay=False), metavar = "Folder Path", help = 'Directory with BAM alignments')
 @click.option('-m', '--molecule-distance', default = 100000, show_default = True, type = int, metavar = "Integer", help = 'Base-pair distance threshold to separate molecules')
 @click.option('-p', '--prune-threshold', default = 7, show_default = True, type = click.IntRange(0,100), metavar = "Integer", help = 'PHRED-scale threshold (%) for pruning low-confidence SNPs (larger prunes more.)')
 @click.option('-b', '--ignore-bx',  is_flag = True, show_default = True, default = False, metavar = "Toggle", help = 'Ignore barcodes when phasing')
@@ -19,7 +18,8 @@ import rich_click as click
 @click.option('-r', '--skipreports',  is_flag = True, show_default = True, default = False, metavar = "Toggle", help = 'Don\'t generate any HTML reports')
 @click.option('-q', '--quiet',  is_flag = True, show_default = True, default = False, metavar = "Toggle", help = 'Don\'t show output text while running')
 @click.option('--print-only',  is_flag = True, show_default = True, default = False, metavar = "Toggle", help = 'Print the generated snakemake command and exit')
-def phase(vcf, directory, threads, molecule_distance, prune_threshold, vcf_samples, genome, snakemake, extra_params, ignore_bx, skipreports, quiet, print_only):
+@click.argument('input', required=True, type=click.Path(exists=True), nargs=-1)
+def phase(input, vcf, threads, molecule_distance, prune_threshold, vcf_samples, genome, snakemake, extra_params, ignore_bx, skipreports, quiet, print_only):
     """
     Phase SNPs into haplotypes
 
@@ -28,13 +28,6 @@ def phase(vcf, directory, threads, molecule_distance, prune_threshold, vcf_sampl
     the samples present in your input `--vcf` file rather than all the samples present in
     the `--directory`.
     """
-    fetch_file("phase-pop.smk", "Phase/workflow/")
-    fetch_file("HapCut2.Rmd", "Phase/workflow/report/")
-    directory = directory.rstrip("/^")
-    vcfcheck(vcf)
-    samplenames = vcf_samplematch(vcf, directory, vcf_samples)
-    validate_bamfiles(directory, samplenames)
-    prune_threshold /= 100
     command = f'snakemake --rerun-incomplete --nolock --use-conda --conda-prefix ./.snakemake/conda --cores {threads} --directory .'.split()
     command.append('--snakefile')
     command.append('Phase/workflow/phase-pop.smk')
@@ -45,11 +38,20 @@ def phase(vcf, directory, threads, molecule_distance, prune_threshold, vcf_sampl
         command.append("all")
     if snakemake is not None:
         [command.append(i) for i in snakemake.split()]
-
     call_SM = " ".join(command)
+    if print_only:
+        click.echo(call_SM)
+
+    fetch_file("phase-pop.smk", "Phase/workflow/")
+    fetch_file("HapCut2.Rmd", "Phase/workflow/report/")
+    vcfcheck(vcf)
+    sn = parse_alignment_inputs(input, "Phase/workflow/input")
+    samplenames = vcf_samplematch(vcf, "Phase/workflow/input", vcf_samples)
+    validate_bamfiles("Phase/workflow/input", samplenames)
+    prune_threshold /= 100
 
     with open("Phase/workflow/config.yml", "w") as config:
-        config.write(f"seq_directory: {directory}\n")
+        config.write(f"seq_directory: Phase/workflow/input\n")
         config.write(f"samplenames: {samplenames}\n")
         config.write(f"variantfile: {vcf}\n")
         config.write(f"noBX: {ignore_bx}\n")
@@ -64,13 +66,10 @@ def phase(vcf, directory, threads, molecule_distance, prune_threshold, vcf_sampl
         config.write(f"skipreports: {skipreports}\n")
         config.write(f"workflow_call: {call_SM}\n")
 
-    if print_only:
-        click.echo(call_SM)
-    else:
-        print_onstart(
-            f"Input directory: {directory}\nInput VCF: {vcf}\nSamples in VCF: {len(samplenames)}",
-            "phase"
-        )
-        generate_conda_deps()
-        _module = subprocess.run(command)
-        sys.exit(_module.returncode)
+    print_onstart(
+        f"Input VCF: {vcf}\nSamples in VCF: {len(samplenames)}\nOutput Directory: Phase/",
+        "phase"
+    )
+    generate_conda_deps()
+    _module = subprocess.run(command)
+    sys.exit(_module.returncode)
