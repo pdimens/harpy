@@ -23,16 +23,20 @@ def phase(input, vcf, threads, molecule_distance, prune_threshold, vcf_samples, 
     """
     Phase SNPs into haplotypes
 
+    Provide the input alignment (`.bam`) files and/or directories at the end of the command as 
+    individual files/folders, using shell wildcards (e.g. `data/myotis*.bam`), or both.
+    
     You may choose to omit barcode information with `--ignore-bx`, although it's usually
     better to include that information. Use `--vcf-samples` to phase only
     the samples present in your input `--vcf` file rather than all the samples present in
-    the `--directory`.
+    the input alignments.
     """
+    workflowdir = "Phase/workflow"
     command = f'snakemake --rerun-incomplete --nolock --use-conda --conda-prefix ./.snakemake/conda --cores {threads} --directory .'.split()
     command.append('--snakefile')
-    command.append('Phase/workflow/phase-pop.smk')
+    command.append(f"{workflow}/phase-pop.smk")
     command.append("--configfile")
-    command.append("Phase/workflow/config.yml")
+    command.append(f"{workflowdir}/config.yml")
     if quiet:
         command.append("--quiet")
         command.append("all")
@@ -42,16 +46,17 @@ def phase(input, vcf, threads, molecule_distance, prune_threshold, vcf_samples, 
     if print_only:
         click.echo(call_SM)
 
-    fetch_file("phase-pop.smk", "Phase/workflow/")
-    fetch_file("HapCut2.Rmd", "Phase/workflow/report/")
+    os.makedirs(f"{workflowdir}/", exist_ok= True)
+    sn = parse_alignment_inputs(input, f"{workflowdir}/input")
+    samplenames = vcf_samplematch(vcf, f"{workflowdir}/input", vcf_samples)
     vcfcheck(vcf)
-    sn = parse_alignment_inputs(input, "Phase/workflow/input")
-    samplenames = vcf_samplematch(vcf, "Phase/workflow/input", vcf_samples)
-    validate_bamfiles("Phase/workflow/input", samplenames)
+    validate_bamfiles(f"{workflowdir}/input", samplenames)
+    fetch_file("phase-pop.smk", f"{workflowdir}/")
+    fetch_file("HapCut2.Rmd", f"{workflowdir}/report/")
     prune_threshold /= 100
 
-    with open("Phase/workflow/config.yml", "w") as config:
-        config.write(f"seq_directory: Phase/workflow/input\n")
+    with open(f"{workflowdir}/config.yml", "w") as config:
+        config.write(f"seq_directory: {workflowdir}/input\n")
         config.write(f"samplenames: {samplenames}\n")
         config.write(f"variantfile: {vcf}\n")
         config.write(f"noBX: {ignore_bx}\n")

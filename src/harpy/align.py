@@ -22,17 +22,19 @@ def bwa(input, genome, threads, extra_params, quality_filter, molecule_distance,
     """
     Align sequences to genome using BWA MEM
  
+    Provide the input fastq files and/or directories at the end of the command as individual
+     files/folders, using shell wildcards (e.g. `data/echidna*.fastq.gz`), or both.
+    
     BWA is a fast, robust, and reliable aligner that does not use barcodes when mapping.
     Instead, Harpy post-processes the alignments using the specified `--molecule-distance`
-    to assign alignments to unique molecules. Provide the input fastq files and/or directories
-    at the end of the command as either individual files/folders or using shell wildcards
-    (e.g. `data/echidna*.fastq.gz`).
+    to assign alignments to unique molecules. 
     """
+    workflowdir = "Align/bwa/workflow"
     command = f'snakemake --rerun-incomplete --nolock --use-conda --conda-prefix ./.snakemake/conda --cores {threads} --directory .'.split()
     command.append('--snakefile')
-    command.append('Align/bwa/workflow/align-bwa.smk')
+    command.append(f'{workflowdir}/align-bwa.smk')
     command.append("--configfile")
-    command.append("Align/bwa/workflow/config.yml")
+    command.append(f"{workflowdir}/config.yml")
     if quiet:
         command.append("--quiet")
         command.append("all")
@@ -43,16 +45,16 @@ def bwa(input, genome, threads, extra_params, quality_filter, molecule_distance,
         click.echo(call_SM)
         exit(0)
 
-    fetch_file("align-bwa.smk", "Align/bwa/workflow/")
+    os.makedirs(f"{workflowdir}/", exist_ok= True)
+    sn = parse_fastq_inputs(input, f"{workflowdir}/input")
+    samplenames = get_samples_from_fastq(f"{workflowdir}/input")
+    fetch_file("align-bwa.smk", f"{workflowdir}/")
     for i in ["BxStats", "BwaGencov"]:
-        fetch_file(f"{i}.Rmd", "Align/bwa/workflow/report/")
-    
-    sn = parse_fastq_inputs(input, "Align/bwa/workflow/input")
-    samplenames = get_samples_from_fastq("Align/bwa/workflow/input")
+        fetch_file(f"{i}.Rmd", f"{workflowdir}/report/")
 
-    with open("Align/bwa/workflow/config.yml", "w") as config:
+    with open(f"{workflowdir}/config.yml", "w") as config:
         config.write(f"genomefile: {genome}\n")
-        config.write(f"seq_directory: Align/bwa/workflow/input\n")
+        config.write(f"seq_directory: {workflowdir}/input\n")
         config.write(f"samplenames: {samplenames}\n")
         config.write(f"quality: {quality_filter}\n")
         config.write(f"molecule_distance: {molecule_distance}\n")
@@ -62,7 +64,7 @@ def bwa(input, genome, threads, extra_params, quality_filter, molecule_distance,
         config.write(f"workflow_call: {call_SM}\n")
    
     print_onstart(
-        f"Samples: {len(samplenames)}\nOutput Directory: Align/bwa",
+        f"Samples: {len(samplenames)}\nOutput Directory: Align/bwa/",
         "align bwa"
     )
     generate_conda_deps()
@@ -87,17 +89,19 @@ def ema(input, platform, whitelist, genome, threads, ema_bins, skipreports, extr
     """
     Align sequences to a genome using EMA
 
+    Provide the input fastq files and/or directories at the end of the
+    command as individual files/folders, using shell wildcards
+    (e.g. `data/axolotl*.fastq.gz`), or both.
+
     EMA may improve mapping, but it also marks split reads as secondary
     reads, making it less useful for variant calling with leviathan.
-    Provide the input fastq files and/or directories at the end of the
-    command as either individual files/folders or using shell wildcards
-    (e.g. `data/axolotl*.fastq.gz`).
     """
+    workflowdir = "Align/ema/workflow"
     command = f'snakemake --rerun-incomplete --nolock --use-conda --cores {threads} --directory .'.split()
     command.append('--snakefile')
-    command.append('Align/ema/workflow/align-ema.smk')
+    command.append(f'{workflowdir}/align-ema.smk')
     command.append("--configfile")
-    command.append("Align/ema/workflow/config.yml")
+    command.append(f"{workflowdir}/config.yml")
     if quiet:
         command.append("--quiet")
         command.append("all")
@@ -107,10 +111,6 @@ def ema(input, platform, whitelist, genome, threads, ema_bins, skipreports, extr
     call_SM = " ".join(command)
     if print_only:
         click.echo(call_SM)
-
-    fetch_file("align-ema.smk", "Align/ema/workflow/")
-    for i in ["EmaCount", "EmaGencov", "BxStats"]:
-        fetch_file(f"{i}.Rmd", "Align/ema/workflow/report/")
 
     platform = platform.lower()
     # the tellseq stuff isn't impremented yet, but this is a placeholder for that, wishful thinking
@@ -125,12 +125,16 @@ def ema(input, platform, whitelist, genome, threads, ema_bins, skipreports, extr
         print_notice("Haplotag data does not require barcode whitelists and the whitelist provided as input will be ignored.")
         sleep(3)
 
-    sn = parse_fastq_inputs(input, "Align/ema/workflow/input")
-    samplenames = get_samples_from_fastq("Align/ema/workflow/input")
-    
-    with open("Align/ema/workflow/config.yml", "w") as config:
+    os.makedirs(f"{workflowdir}/", exist_ok= True)
+    sn = parse_fastq_inputs(input, f"{workflowdir}/input")
+    samplenames = get_samples_from_fastq(f"{workflowdir}/input")
+    fetch_file("align-ema.smk", f"{workflowdir}/")
+    for i in ["EmaCount", "EmaGencov", "BxStats"]:
+        fetch_file(f"{i}.Rmd", f"{workflowdir}/report/")
+
+    with open(f"{workflowdir}/config.yml", "w") as config:
         config.write(f"genomefile: {genome}\n")
-        config.write(f"seq_directory: Align/ema/workflow/input\n")
+        config.write(f"seq_directory: {workflowdir}/input\n")
         config.write(f"samplenames: {samplenames}\n")
         config.write(f"quality: {quality_filter}\n")
         config.write(f"platform: {platform}\n")
@@ -143,7 +147,7 @@ def ema(input, platform, whitelist, genome, threads, ema_bins, skipreports, extr
         config.write(f"workflow_call: {call_SM}\n")
 
     print_onstart(
-        f"Samples: {len(samplenames)}\nOutput Directory: Align/ema",
+        f"Samples: {len(samplenames)}\nOutput Directory: Align/ema/",
         "align ema"
     )
     generate_conda_deps()
