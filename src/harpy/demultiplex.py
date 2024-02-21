@@ -13,20 +13,21 @@ import re
 @click.option('-r', '--skipreports',  is_flag = True, show_default = True, default = False, metavar = "Toggle", help = 'Don\'t generate any HTML reports')
 @click.option('-q', '--quiet',  is_flag = True, show_default = True, default = False, metavar = "Toggle", help = 'Don\'t show output text while running')
 @click.option('--print-only',  is_flag = True, show_default = True, default = False, metavar = "Toggle", help = 'Print the generated snakemake command and exit')
-@click.argument('fastq_input', required=True, type=click.Path(exists=True, dir_okay=False))
-def gen1(fastq_input, samplesheet, threads, snakemake, skipreports, quiet, print_only):
+@click.argument('input', required=True, type=click.Path(exists=True, dir_okay=False))
+def gen1(input, samplesheet, threads, snakemake, skipreports, quiet, print_only):
     """
     Demultiplex Generation 1 haplotagged FASTQ files
 
     Use one of the four gzipped FASTQ files provided by the sequencer (I1, I2, R1, R2).fastq.gz for the `FASTQ_INPUT` argument, 
     Harpy will infer the other three. Note: the `--samplesheet` must be tab (or space) delimited and have no header (i.e. no column names).
     """
-    inprefix = re.sub(r"[\_\.][IR][12]?(?:\_00[0-9])*\.f(?:ast)?q(?:\.gz)?$", "", os.path.basename(fastq_input))
+    inprefix = re.sub(r"[\_\.][IR][12]?(?:\_00[0-9])*\.f(?:ast)?q(?:\.gz)?$", "", os.path.basename(input))
+    workflowdir = "{workflowdir}"
     command = f'snakemake --rerun-incomplete --nolock --use-conda --conda-prefix ./.snakemake/conda --cores {threads} --directory .'.split()
     command.append('--snakefile')
-    command.append(f'Demultiplex/{inprefix}/workflow/demultiplex.gen1.smk')
+    command.append(f'{workflowdir}/demultiplex.gen1.smk')
     command.append("--configfile")
-    command.append(f"Demultiplex/{inprefix}/workflow/config.yml")
+    command.append(f"{workflowdir}/config.yml")
     if quiet:
         command.append("--quiet")
         command.append("all")
@@ -41,16 +42,17 @@ def gen1(fastq_input, samplesheet, threads, snakemake, skipreports, quiet, print
 
     check_demux_fastq(fastq_input)
     validate_demuxschema(samplesheet)
-    fetch_file("demultiplex.gen1.smk", f"Demultiplex/{inprefix}/workflow/")
+    fetch_file("demultiplex.gen1.smk", f"{workflowdir}/")
 
-    with open(f"Demultiplex/{inprefix}/workflow/config.yml", "w") as config:
-        config.write(f"infile: {fastq_input}\n")
+    with open(f"{workflowdir}/config.yml", "w") as config:
+        config.write(f"infile: {input}\n")
+        config.wriat(f"infile_prefix: {inprefix}\n")
         config.write(f"samplefile: {samplesheet}\n")
         config.write(f"skipreports: {skipreports}\n")
         config.write(f"workflow_call: {call_SM}\n")
 
     print_onstart(
-        f"Input Prefix: {inprefix}\nDemultiplex Schema: {samplesheet}",
+        f"Input Prefix: {inprefix}\nDemultiplex Schema: {samplesheet}\nOutput Directory: Demultiplex/{inprefix}",
         "demultiplex gen1"
     )
     generate_conda_deps()
