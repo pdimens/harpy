@@ -40,7 +40,7 @@ def gen1(input, samplesheet, threads, snakemake, skipreports, quiet, print_only)
         click.echo(call_SM)
         exit()
 
-    check_demux_fastq(fastq_input)
+    check_demux_fastq(input)
     validate_demuxschema(samplesheet)
     fetch_file("demultiplex.gen1.smk", f"{workflowdir}/")
 
