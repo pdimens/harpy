@@ -1,6 +1,6 @@
 import rich_click as click
 from pathlib import Path
-from .helperfunctions import fetch_file, generate_conda_deps, get_samples_from_fastq
+from .helperfunctions import fetch_file, generate_conda_deps, get_samples_from_fastq, parse_fastq_inputs
 from .helperfunctions import print_error, print_solution, print_notice, print_onstart
 import subprocess
 import sys
@@ -9,7 +9,6 @@ from time import sleep
 
 @click.command(no_args_is_help = True, epilog= "read the docs for more information: https://pdimens.github.io/harpy/modules/align/bwa/")
 @click.option('-g', '--genome', type=click.Path(exists=True, dir_okay=False), required = True, metavar = "File Path", help = 'Genome assembly for read mapping')
-@click.option('-d', '--directory', required = True, type=click.Path(exists=True, file_okay=False), metavar = "Folder Path", help = 'Directory with sample sequences')
 @click.option('-m', '--molecule-distance', default = 100000, show_default = True, type = int, metavar = "Integer", help = 'Base-pair distance threshold to separate molecules')
 @click.option('-f', '--quality-filter', default = 30, show_default = True, type = click.IntRange(min = 0, max = 40), metavar = "Integer", help = 'Minimum mapping quality to pass filtering')
 @click.option('-x', '--extra-params', type = str, metavar = "String", help = 'Additional aligner parameters, in quotes')
@@ -18,19 +17,17 @@ from time import sleep
 @click.option('-q', '--quiet',  is_flag = True, show_default = True, default = False, metavar = "Toggle", help = 'Don\'t show output text while running')
 @click.option('-r', '--skipreports',  is_flag = True, show_default = True, default = False, metavar = "Toggle", help = 'Don\'t generate any HTML reports')
 @click.option('--print-only',  is_flag = True, show_default = True, default = False, metavar = "Toggle", help = 'Print the generated snakemake command and exit')
-def bwa(genome, threads, directory, extra_params, quality_filter, molecule_distance, snakemake, skipreports, quiet, print_only):
+@click.argument('input', required=True, type=click.Path(exists=True), nargs=-1)
+def bwa(input, genome, threads, extra_params, quality_filter, molecule_distance, snakemake, skipreports, quiet, print_only):
     """
     Align sequences to genome using BWA MEM
  
-    BWA is a fast, reliable, and robust aligner that does not use barcodes to improve mapping.
+    BWA is a fast, robust, and reliable aligner that does not use barcodes when mapping.
     Instead, Harpy post-processes the alignments using the specified `--molecule-distance`
-    to assign alignments to unique molecules.
+    to assign alignments to unique molecules. Provide the input fastq files and/or directories
+    at the end of the command as either individual files/folders or using shell wildcards
+    (e.g. `data/echidna*.fastq.gz`).
     """
-    fetch_file("align-bwa.smk", "Align/bwa/workflow/")
-    for i in ["BxStats", "BwaGencov"]:
-        fetch_file(f"{i}.Rmd", "Align/bwa/workflow/report/")
-    samplenames = get_samples_from_fastq(directory)
-    directory = directory.rstrip("/^")
     command = f'snakemake --rerun-incomplete --nolock --use-conda --conda-prefix ./.snakemake/conda --cores {threads} --directory .'.split()
     command.append('--snakefile')
     command.append('Align/bwa/workflow/align-bwa.smk')
@@ -41,12 +38,21 @@ def bwa(genome, threads, directory, extra_params, quality_filter, molecule_dista
         command.append("all")
     if snakemake is not None:
         [command.append(i) for i in snakemake.split()]
-
     call_SM = " ".join(command)
+    if print_only:
+        click.echo(call_SM)
+        exit(0)
+
+    fetch_file("align-bwa.smk", "Align/bwa/workflow/")
+    for i in ["BxStats", "BwaGencov"]:
+        fetch_file(f"{i}.Rmd", "Align/bwa/workflow/report/")
+    
+    sn = parse_fastq_inputs(input, "Align/bwa/workflow/input")
+    samplenames = get_samples_from_fastq("Align/bwa/workflow/input")
 
     with open("Align/bwa/workflow/config.yml", "w") as config:
         config.write(f"genomefile: {genome}\n")
-        config.write(f"seq_directory: {directory}\n")
+        config.write(f"seq_directory: Align/bwa/workflow/input\n")
         config.write(f"samplenames: {samplenames}\n")
         config.write(f"quality: {quality_filter}\n")
         config.write(f"molecule_distance: {molecule_distance}\n")
@@ -54,16 +60,14 @@ def bwa(genome, threads, directory, extra_params, quality_filter, molecule_dista
         if extra_params is not None:
             config.write(f"extra: {extra_params}\n")
         config.write(f"workflow_call: {call_SM}\n")
-    if print_only:
-        click.echo(call_SM)
-    else:
-        print_onstart(
-            f"Input Directory: {directory}\nSamples: {len(samplenames)}",
-            "align bwa"
-        )
-        generate_conda_deps()
-        _module = subprocess.run(command)
-        sys.exit(_module.returncode)
+   
+    print_onstart(
+        f"Samples: {len(samplenames)}\nOutput Directory: Align/bwa",
+        "align bwa"
+    )
+    generate_conda_deps()
+    _module = subprocess.run(command)
+    sys.exit(_module.returncode)
 
 #####----------ema--------------------
 
@@ -71,7 +75,6 @@ def bwa(genome, threads, directory, extra_params, quality_filter, molecule_dista
 @click.option('-p', '--platform', type = click.Choice(['haplotag', '10x'], case_sensitive=False), default = "haplotag", show_default=True, help = "Linked read bead technology\n[haplotag, 10x]")
 @click.option('-w', '--whitelist', type = click.Path(exists=True, dir_okay=False), help = "Barcode whitelist file for tellseq/10x")
 @click.option('-g', '--genome', type=click.Path(exists=True, dir_okay=False), required = True, metavar = "File Path", help = 'Genome assembly for read mapping')
-@click.option('-d', '--directory', required = True, type=click.Path(exists=True, file_okay=False), metavar = "Folder Path", help = 'Directory with sample sequences')
 @click.option('-b', '--ema-bins', default = 500, show_default = True, type = click.IntRange(1,1000), metavar = "Integer", help="Number of barcode bins")
 @click.option('-f', '--quality-filter', default = 30, show_default = True, type = click.IntRange(min = 0, max = 40), metavar = "Integer", help = 'Minimum mapping quality to pass filtering')
 @click.option('-x', '--extra-params', type = str, metavar = "String", help = 'Additional aligner parameters, in quotes')
@@ -80,13 +83,31 @@ def bwa(genome, threads, directory, extra_params, quality_filter, molecule_dista
 @click.option('-q', '--quiet',  is_flag = True, show_default = True, default = False, metavar = "Toggle", help = 'Don\'t show output text while running')
 @click.option('-r', '--skipreports',  is_flag = True, show_default = True, default = False, metavar = "Toggle", help = 'Don\'t generate any HTML reports')
 @click.option('--print-only',  is_flag = True, show_default = True, default = False, metavar = "Toggle", help = 'Print the generated snakemake command and exit')
-def ema(platform, whitelist, genome, threads, ema_bins, directory, skipreports, extra_params, quality_filter, snakemake, quiet, print_only):
+def ema(input, platform, whitelist, genome, threads, ema_bins, skipreports, extra_params, quality_filter, snakemake, quiet, print_only):
     """
     Align sequences to a genome using EMA
 
     EMA may improve mapping, but it also marks split reads as secondary
     reads, making it less useful for variant calling with leviathan.
+    Provide the input fastq files and/or directories at the end of the
+    command as either individual files/folders or using shell wildcards
+    (e.g. `data/axolotl*.fastq.gz`).
     """
+    command = f'snakemake --rerun-incomplete --nolock --use-conda --cores {threads} --directory .'.split()
+    command.append('--snakefile')
+    command.append('Align/ema/workflow/align-ema.smk')
+    command.append("--configfile")
+    command.append("Align/ema/workflow/config.yml")
+    if quiet:
+        command.append("--quiet")
+        command.append("all")
+    if snakemake is not None:
+        [command.append(i) for i in snakemake.split()]
+    
+    call_SM = " ".join(command)
+    if print_only:
+        click.echo(call_SM)
+
     fetch_file("align-ema.smk", "Align/ema/workflow/")
     for i in ["EmaCount", "EmaGencov", "BxStats"]:
         fetch_file(f"{i}.Rmd", "Align/ema/workflow/report/")
@@ -103,24 +124,13 @@ def ema(platform, whitelist, genome, threads, ema_bins, directory, skipreports, 
     if platform == "haplotag" and whitelist:
         print_notice("Haplotag data does not require barcode whitelists and the whitelist provided as input will be ignored.")
         sleep(3)
-    samplenames = get_samples_from_fastq(directory)
-    directory = directory.rstrip("/^")
-    command = f'snakemake --rerun-incomplete --nolock --use-conda --cores {threads} --directory .'.split()
-    command.append('--snakefile')
-    command.append('Align/ema/workflow/align-ema.smk')
-    command.append("--configfile")
-    command.append("Align/ema/workflow/config.yml")
-    if quiet:
-        command.append("--quiet")
-        command.append("all")
-    if snakemake is not None:
-        [command.append(i) for i in snakemake.split()]
-    
-    call_SM = " ".join(command)
 
+    sn = parse_fastq_inputs(input, "Align/ema/workflow/input")
+    samplenames = get_samples_from_fastq("Align/ema/workflow/input")
+    
     with open("Align/ema/workflow/config.yml", "w") as config:
         config.write(f"genomefile: {genome}\n")
-        config.write(f"seq_directory: {directory}\n")
+        config.write(f"seq_directory: Align/ema/workflow/input\n")
         config.write(f"samplenames: {samplenames}\n")
         config.write(f"quality: {quality_filter}\n")
         config.write(f"platform: {platform}\n")
@@ -132,13 +142,10 @@ def ema(platform, whitelist, genome, threads, ema_bins, directory, skipreports, 
             config.write(f"extra: {extra_params}\n")
         config.write(f"workflow_call: {call_SM}\n")
 
-    if print_only:
-        click.echo(call_SM)
-    else:
-        print_onstart(
-            f"Input Directory: {directory}\nSamples: {len(samplenames)}",
-            "align ema"
-        )
-        generate_conda_deps()
-        _module = subprocess.run(command)
-        sys.exit(_module.returncode)
+    print_onstart(
+        f"Samples: {len(samplenames)}\nOutput Directory: Align/ema",
+        "align ema"
+    )
+    generate_conda_deps()
+    _module = subprocess.run(command)
+    sys.exit(_module.returncode)

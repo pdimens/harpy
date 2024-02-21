@@ -201,7 +201,7 @@ click.rich_click.OPTION_GROUPS = {
     "harpy align bwa": [
         {
             "name": "Configuration",
-            "options": ["--genome", "--directory", "--quality-filter", "--molecule-distance", "--extra-params"],
+            "options": ["--genome", "--quality-filter", "--molecule-distance", "--extra-params"],
         },
         {
             "name": "Other Options",

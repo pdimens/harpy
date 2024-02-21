@@ -22,7 +22,9 @@ def fastq(input, threads, snakemake, quiet, print_only):
     barcodes are propery formatted (`AxxCxxBxxDxx`) and that the comments in the
     read headers conform to the SAM specification of `TAG:TYPE:VALUE`. This **will not**
     fix your data, but it will report the number of reads that feature errors to help
-    you diagnose if file formatting will cause downstream issues.
+    you diagnose if file formatting will cause downstream issues. Provide the input fastq
+    files and/or directories at the end of the command as either individual files/folders
+    or using shell wildcards (e.g. `data/wombat*.fastq.gz`).
     """
     command = f'snakemake --rerun-incomplete --nolock --use-conda --conda-prefix ./.snakemake/conda --cores {threads} --directory .'.split()
     command.append('--snakefile')
@@ -70,7 +72,9 @@ def bam(input, threads, snakemake, quiet, print_only):
     Files must end in `.bam`. For BAM alignment files, it will check that alignments have BX:Z: tags, that haplotag
     barcodes are properly formatted (`AxxCxxBxxDxx`) and that the filename matches the `@RG ID` tag.
     This **will not** fix your data, but it will report the number of records that feature errors  to help
-    you diagnose if file formatting will cause downstream issues.
+    you diagnose if file formatting will cause downstream issues. rovide the input fastq files and/or directories
+    at the end of the command as either individual files/folders or using shell wildcards
+    (e.g. `data/betula*.bam`).
     """
     command = f'snakemake --rerun-incomplete --nolock --use-conda --conda-prefix ./.snakemake/conda --cores {threads} --directory .'.split()
     command.append('--snakefile')
