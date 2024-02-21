@@ -1,5 +1,6 @@
 import os
 import sys
+from .helperfunctions import print_notice
 import rich_click as click
 
 @click.command(no_args_is_help = True, epilog = "read the docs for more information: https://pdimens.github.io/harpy/modules/impute/#parameter-file")
@@ -23,5 +24,7 @@ def stitchparams(output):
         _ = file.write('diploid\tTRUE\t50000\t10\t5\t50\n')
         _ = file.write('diploid\tTRUE\t50000\t10\t1\t50\n')
         _ = file.write('diploid\tTRUE\t50000\t15\t10\t100')
-    click.echo(f"Created STITCH parameter file: {output}", file = sys.stderr)
-    click.echo("Modify the model parameters as needed, but " + '\033[1m' + "DO NOT" + '\033[0m' + " add/remove columns", file = sys.stderr, color = True)
+    print_notice(
+        f"Created STITCH parameter file: {output}" +
+        "Modify the model parameters as needed, but " + '\033[1m' + "DO NOT" + '\033[0m' + " add/remove columns"
+    )
