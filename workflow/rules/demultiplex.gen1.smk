@@ -198,6 +198,8 @@ rule qc_report:
         outdir + "reports/demultiplex.QC.html"
     params:
         outdir + "logs/.QC"
+    conda:
+        os.getcwd() + "/harpyenvs/qc.yaml"
     message:
         "Creating final demultiplexing QC report"
     shell:

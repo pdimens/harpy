@@ -449,7 +449,7 @@ def generate_conda_deps():
     """Create the YAML files of the workflow conda dependencies"""
     condachannels = ["conda-forge", "bioconda", "defaults"]
     environ = {
-        "qc" : ["falco", "fastp"],
+        "qc" : ["falco", "fastp", "multiqc"],
         "align": ["bwa", "ema","icu","libzlib", "samtools=1.19", "seqtk", "xz"],
         "variants.snp": ["bcftools=1.19", "freebayes=1.3.6"],
         "variants.sv": ["leviathan", "naibr-plus"],

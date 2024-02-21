@@ -141,6 +141,8 @@ rule createReport:
         results
     output:
         "QC/logs/qc.report.html"
+    conda:
+        os.getcwd() + "/harpyenvs/qc.yaml"
     message:
         "Sequencing quality filtering and trimming is complete!"
     shell: 
