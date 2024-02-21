@@ -1,10 +1,9 @@
 from .helperfunctions import fetch_file, generate_conda_deps, getnames, createregions, print_onstart
-from .helperfunctions import validate_bamfiles, validate_popfile, validate_vcfsamples
+from .helperfunctions import validate_bamfiles, validate_popfile, validate_vcfsamples, parse_alignment_inputs
 import rich_click as click
 import subprocess
 import sys
 import os
-#TODO make this ARGS compliant
 @click.command(no_args_is_help = True, epilog = "read the docs for more information: https://pdimens.github.io/harpy/modules/snp")
 @click.option('-g', '--genome', type=click.Path(exists=True), required = True, metavar = "File Path", help = 'Genome assembly for variant calling')
 @click.option('-p', '--populations', type=click.Path(exists = True), metavar = "File Path", help = 'Tab-delimited file of sample<tab>population (optional)')
@@ -23,7 +22,7 @@ def mpileup(input, genome, threads, populations, ploidy, windowsize, extra_param
     
     Optionally specify `--populations` for population-aware variant calling.
     Use **harpy popgroup** to create a sample grouping file to 
-    use as input for `--populations`. Provide the input fastq files and/or directories
+    use as input for `--populations`. Provide the input alignment (.bam) files and/or directories
     at the end of the command as either individual files/folders or using shell wildcards
     (e.g. `data/scarab*.bam`).
     """
@@ -44,19 +43,19 @@ def mpileup(input, genome, threads, populations, ploidy, windowsize, extra_param
     fetch_file("snp-mpileup.smk", "Variants/mpileup/workflow/")
     fetch_file("BcftoolsStats.Rmd", "Variants/mpileup/workflow/report/")
 
-    samplenames = getnames(directory, '.bam')
+    sn = parse_alignment_inputs(input, "Variants/mpileup/workflow/input")
+    samplenames = getnames("Variants/mpileup/workflow/input", '.bam')
     callcoords, linkedgenome = createregions(genome, windowsize, "mpileup")
-    directory = directory.rstrip("/^")
-    validate_bamfiles(directory, samplenames)
+    validate_bamfiles("Variants/mpileup/workflow/input", samplenames)
 
     with open("Variants/mpileup/workflow/config.yml", "w") as config:
-        config.write(f"seq_directory: {directory}\n")
+        config.write(f"seq_directory: Variants/mpileup/workflow/input\n")
         config.write(f"samplenames: {samplenames}\n")
         popgroupings = ""
         if populations is not None:
             rows = validate_popfile(populations)
             # check that samplenames and populations line up
-            validate_vcfsamples(directory, populations, samplenames, rows, quiet)
+            validate_vcfsamples("Variants/mpileup/workflow/input", populations, samplenames, rows, quiet)
             config.write(f"groupings: {populations}\n")
             popgroupings += f"\nPopulations: {populations}"
         config.write(f"genomefile: {linkedgenome}\n")
@@ -70,7 +69,7 @@ def mpileup(input, genome, threads, populations, ploidy, windowsize, extra_param
 
 
     print_onstart(
-        f"Input Directory: {directory}\nSamples: {len(samplenames)}{popgroupings}",
+        f"Samples: {len(samplenames)}{popgroupings}\nOutput Directory: Variants/mpileup/",
         "snp mpileup"
     )
     generate_conda_deps()
@@ -95,7 +94,7 @@ def freebayes(input, genome, threads, populations, ploidy, windowsize, extra_par
     
     Optionally specify `--populations` for population-aware variant calling.
     Use **harpy popgroup** to create a sample grouping file to 
-    use as input for `--populations`. Provide the input fastq files and/or directories
+    use as input for `--populations`. Provide the input alignment (.bam) files and/or directories
     at the end of the command as either individual files/folders or using shell wildcards
     (e.g. `data/jellyfish*.bam`).
     """
@@ -116,19 +115,19 @@ def freebayes(input, genome, threads, populations, ploidy, windowsize, extra_par
     fetch_file("snp-freebayes.smk", "Variants/freebayes/workflow/")
     fetch_file("BcftoolsStats.Rmd", "Variants/freebayes/workflow/report/")
 
-    samplenames = getnames(directory, '.bam')
+    sn = parse_alignment_inputs(input, "Variants/freebayes/workflow/input")
+    samplenames = getnames("Variants/freebayes/workflow/input", '.bam')
     callcoords, linkedgenome = createregions(genome, windowsize, "freebayes")
-    directory = directory.rstrip("/^")
-    validate_bamfiles(directory, samplenames)
+    validate_bamfiles("Variants/freebayes/workflow/input", samplenames)
 
     with open("Variants/freebayes/workflow/config.yml", "w") as config:
-        config.write(f"seq_directory: {directory}\n")
+        config.write(f"seq_directory: Variants/freebayes/workflow/input\n")
         config.write(f"samplenames: {samplenames}\n")
         popgroupings = ""
         if populations is not None:
             rows = validate_popfile(populations)
             # check that samplenames and populations line up
-            validate_vcfsamples(directory, populations, samplenames, rows, quiet)
+            validate_vcfsamples("Variants/freebayes/workflow/input", populations, samplenames, rows, quiet)
             config.write(f"groupings: {populations}\n")
             popgroupings += f"\nPopulations: {populations}"
         config.write(f"ploidy: {ploidy}\n")
@@ -141,7 +140,7 @@ def freebayes(input, genome, threads, populations, ploidy, windowsize, extra_par
         config.write(f"workflow_call: {call_SM}\n")
 
     print_onstart(
-        f"Input Directory: {directory}\nSamples: {len(samplenames)}{popgroupings}",
+        f"Samples: {len(samplenames)}{popgroupings}\nOutput Directory: Variants/freebayes",
         "snp freebayes"
     )
     generate_conda_deps()
