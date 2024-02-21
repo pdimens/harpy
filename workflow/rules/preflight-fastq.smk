@@ -47,7 +47,7 @@ onsuccess:
     print("")
     rprint(
         Panel(
-            f"The workflow has finished successfully! Find the results in [bold]{out_dir}/[/bold]",
+            f"The workflow has finished successfully! Find the results in [bold]{out_dir}[/bold]",
             title = "[bold]harpy preflight fastq",
             title_align = "left",
             border_style = "green"
@@ -120,7 +120,7 @@ rule createReport:
 rule all:
     default_target: True
     input:
-        out_dir + "/workflow/preflight.workflow.summary",
+        out_dir + "workflow/preflight.workflow.summary",
         out_dir + "filecheck.fastq.html"
     message:
         "Checking for expected workflow output"
