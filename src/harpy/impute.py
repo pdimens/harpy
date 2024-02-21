@@ -16,7 +16,8 @@ import os
 @click.option('-r', '--skipreports',  is_flag = True, show_default = True, default = False, metavar = "Toggle", help = 'Don\'t generate any HTML reports')
 @click.option('-q', '--quiet',  is_flag = True, show_default = True, default = False, metavar = "Toggle", help = 'Don\'t show output text while running')
 @click.option('--print-only',  is_flag = True, show_default = True, default = False, metavar = "Toggle", help = 'Print the generated snakemake command and exit')
-def impute(parameters, directory, threads, vcf, vcf_samples, extra_params, snakemake, skipreports, quiet, print_only):
+@click.argument('input', required=True, type=click.Path(exists=True), nargs=-1)
+def impute(input, parameters, threads, vcf, vcf_samples, extra_params, snakemake, skipreports, quiet, print_only):
     """
     Impute genotypes using variants and sequences
     
