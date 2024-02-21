@@ -34,7 +34,7 @@ def phase(input, vcf, threads, molecule_distance, prune_threshold, vcf_samples, 
     workflowdir = "Phase/workflow"
     command = f'snakemake --rerun-incomplete --nolock --use-conda --conda-prefix ./.snakemake/conda --cores {threads} --directory .'.split()
     command.append('--snakefile')
-    command.append(f"{workflow}/phase-pop.smk")
+    command.append(f"{workflowdir}/phase-pop.smk")
     command.append("--configfile")
     command.append(f"{workflowdir}/config.yml")
     if quiet:
