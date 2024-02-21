@@ -46,7 +46,7 @@ def gen1(input, samplesheet, threads, snakemake, skipreports, quiet, print_only)
 
     with open(f"{workflowdir}/config.yml", "w") as config:
         config.write(f"infile: {input}\n")
-        config.wriat(f"infile_prefix: {inprefix}\n")
+        config.write(f"infile_prefix: {inprefix}\n")
         config.write(f"samplefile: {samplesheet}\n")
         config.write(f"skipreports: {skipreports}\n")
         config.write(f"workflow_call: {call_SM}\n")
