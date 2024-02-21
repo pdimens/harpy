@@ -23,7 +23,7 @@ def bwa(input, genome, threads, extra_params, quality_filter, molecule_distance,
     Align sequences to genome using BWA MEM
  
     Provide the input fastq files and/or directories at the end of the command as individual
-     files/folders, using shell wildcards (e.g. `data/echidna*.fastq.gz`), or both.
+    files/folders, using shell wildcards (e.g. `data/echidna*.fastq.gz`), or both.
     
     BWA is a fast, robust, and reliable aligner that does not use barcodes when mapping.
     Instead, Harpy post-processes the alignments using the specified `--molecule-distance`
