@@ -48,7 +48,7 @@ jobs:
 
       - name: harpy popgroup
         shell: micromamba-shell {0}
-        run: harpy popgroup -d test/fastq
+        run: harpy popgroup test/fastq
   test_stitchparams:
     name: stitchparams
     runs-on: ubuntu-latest
