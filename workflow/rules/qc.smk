@@ -69,7 +69,7 @@ rule trimFastp:
         rv   = "QC/{sample}.R2.fq.gz",
         json = "QC/logs/json/{sample}.fastp.json"
     log:
-        html = "QC/logs/fastp_reports/{sample}.html",
+        html = "QC/reports/fastp_reports/{sample}.html",
         serr = "QC/logs/fastp_logs/{sample}.log"
     benchmark:
         ".Benchmark/QC/{sample}.txt"
@@ -102,7 +102,7 @@ rule beadtag_counts_summary:
     input: 
         countlog = expand("QC/logs/bxcount/{sample}.count.log", sample = samplenames)
     output:
-        "QC/logs/barcode.summary.html"
+        "QC/reports/barcode.summary.html"
     conda:
         os.getcwd() + "/harpyenvs/r-env.yaml"
     message:
@@ -133,14 +133,14 @@ results.append(expand("QC/logs/json/{sample}.fastp.json", sample = samplenames))
 results.append(expand("QC/{sample}.{FR}.fq.gz", FR = ["R1", "R2"], sample = samplenames))
 results.append("QC/workflow/qc.workflow.summary")
 if not skipreports:
-    results.append("QC/logs/barcode.summary.html")
+    results.append("QC/reports/barcode.summary.html")
     
 rule createReport:
     default_target: True
     input: 
         results
     output:
-        "QC/logs/qc.report.html"
+        "QC/reports/qc.report.html"
     conda:
         os.getcwd() + "/harpyenvs/qc.yaml"
     message:
