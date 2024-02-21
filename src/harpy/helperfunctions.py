@@ -333,6 +333,10 @@ def validate_demuxschema(infile):
 def check_demux_fastq(file):
     """Check for the presence of corresponding FASTQ files from a single provided FASTQ file based on pipeline expectations."""
     bn = os.path.basename(file)
+    if not bn.lower().endswith("fq") and not bn.lower().endswith("fastq") and not bn.lower().endswith("fastq.gz") and not bn.lower().endswith("fq.gz"):     
+        print_error(f"The file {bn} is not recognized as a FASTQ file by the file extension.")
+        print_solution("Make sure the input file ends with a standard FASTQ extension. These are not case-sensitive.\nAccepted extensions: [blue].fq .fastq .fq.gz .fastq.gz[/blue]")
+        exit(1)
     ext = re.search(r"(?:\_00[0-9])*\.f(.*?)q(?:\.gz)?$", file, re.IGNORECASE).group(0)
     prefix     = re.sub(r"[\_\.][IR][12]?(?:\_00[0-9])*\.f(?:ast)?q(?:\.gz)?$", "", bn)
     prefixfull = re.sub(r"[\_\.][IR][12]?(?:\_00[0-9])*\.f(?:ast)?q(?:\.gz)?$", "", file)
@@ -350,7 +354,6 @@ def check_demux_fastq(file):
             "Demultiplexing requires 4 sequence files: the forward and reverse sequences (R1 and R2), along with the forward and reverse indices (I2 and I2).",
             "Necessary/expected files:"
         )
-        #print(f"\n\033[91mError\033[0m: Not all necessary files with prefix \033[1m{prefix}\033[0m present")
         _ = [click.echo(i, file = sys.stderr) for i in filelist]
         exit(1)
 
