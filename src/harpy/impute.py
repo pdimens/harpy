@@ -56,10 +56,10 @@ def impute(input, parameters, threads, vcf, vcf_samples, extra_params, snakemake
     ## validate inputs ##
     vcfcheck(vcf)
     check_impute_params(parameters)
-    fetch_file("impute.smk", "{workflowdir}/")
-    fetch_file("stitch_impute.R", "{workflowdir}/")
+    fetch_file("impute.smk", f"{workflowdir}/")
+    fetch_file("stitch_impute.R", f"{workflowdir}/")
     for i in ["Impute", "StitchCollate"]:
-        fetch_file(f"{i}.Rmd", "{workflowdir}/report/")
+        fetch_file(f"{i}.Rmd", f"{workflowdir}/report/")
     ### check that samples in VCF match input directory
 
     # generate and store list of viable contigs (minimum of 2 biallelic SNPs)
