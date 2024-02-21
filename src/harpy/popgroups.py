@@ -40,7 +40,9 @@ def popgroup(input, output):
        if len(fqlist) == 0:
            print_error(f"No FASTQ or BAM files were detected in [bold]{input}[/bold]")
            print_solution(
-               "Check that FASTQ file endings conform to [green].[/green][[green]F[/green][dim]|[/dim][green]R1[/green]][green].[/green][[green]fastq[/green][dim]|[/dim][green]fq[/green]][green].gz[/green]\nCheck that BAM files end in [green].bam[/green]\nRead the documentation for details: https://pdimens.github.io/harpy/haplotagdata/#naming-conventions"
+               "Check that FASTQ file endings conform to [green].[/green][[green]F[/green][dim]|[/dim][green]R1[/green]][green].[/green][[green]fastq[/green][dim]|[/dim][green]fq[/green]][green].gz[/green]" +
+               "\nCheck that BAM files end in [green].bam[/green]"+
+               "\nRead the documentation for details: https://pdimens.github.io/harpy/haplotagdata/#naming-conventions"
            )
            exit(1)
        samplenames = set([re.sub(bn_r, "", i, flags = re.IGNORECASE) for i in fqlist])
