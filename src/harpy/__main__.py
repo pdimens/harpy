@@ -30,7 +30,7 @@ from .phase import phase
 import rich_click as click
 
 click.rich_click.USE_MARKDOWN = True
-click.rich_click.SHOW_ARGUMENTS = True
+click.rich_click.SHOW_ARGUMENTS = False
 click.rich_click.SHOW_METAVARS_COLUMN = False
 click.rich_click.APPEND_METAVARS_HELP = False
 click.rich_click.MAX_WIDTH = 75
@@ -211,7 +211,7 @@ click.rich_click.OPTION_GROUPS = {
     "harpy align ema": [
         {
             "name": "Configuration",
-            "options": ["--platform", "--whitelist", "--genome", "--directory", "--quality-filter", "--ema-bins", "--extra-params"],
+            "options": ["--platform", "--whitelist", "--genome", "--quality-filter", "--ema-bins", "--extra-params"],
         },
         {
             "name": "Other Options",
@@ -221,7 +221,7 @@ click.rich_click.OPTION_GROUPS = {
     "harpy snp mpileup": [
         {
             "name": "Configuration",
-            "options": ["--genome", "--directory", "--populations", "--ploidy", "--windowsize", "--extra-params"],
+            "options": ["--genome", "--populations", "--ploidy", "--windowsize", "--extra-params"],
         },
         {
             "name": "Other Options",
@@ -231,7 +231,7 @@ click.rich_click.OPTION_GROUPS = {
     "harpy snp freebayes": [
         {
             "name": "Configuration",
-            "options": ["--genome", "--directory", "--populations", "--ploidy", "--windowsize", "--extra-params"],
+            "options": ["--genome", "--populations", "--ploidy", "--windowsize", "--extra-params"],
         },
         {
             "name": "Other Options",
@@ -241,7 +241,7 @@ click.rich_click.OPTION_GROUPS = {
     "harpy sv leviathan": [
         {
             "name": "Configuration",
-            "options": ["--genome", "--directory", "--populations", "--extra-params"],
+            "options": ["--genome", "--populations", "--extra-params"],
         },
         {
             "name": "Other Options",
@@ -251,7 +251,7 @@ click.rich_click.OPTION_GROUPS = {
     "harpy sv naibr": [
         {
             "name": "Configuration",
-            "options": ["--genome", "--directory", "--vcf", "--print-only", "--molecule-distance", "--populations", "--extra-params"],
+            "options": ["--genome", "--vcf", "--print-only", "--molecule-distance", "--populations", "--extra-params"],
         },
         {
             "name": "Other Options",
@@ -261,7 +261,7 @@ click.rich_click.OPTION_GROUPS = {
     "harpy impute": [
         {
             "name": "Configuration",
-            "options": ["--vcf", "--directory", "--parameters", "--extra-params", "--vcf-samples"],
+            "options": ["--vcf", "--parameters", "--extra-params", "--vcf-samples"],
         },
         {
             "name": "Other Options",
@@ -271,7 +271,7 @@ click.rich_click.OPTION_GROUPS = {
     "harpy phase": [
         {
             "name": "Configuration",
-            "options": ["--vcf", "--directory", "--molecule-distance", "--genome", "--prune-threshold", "--ignore-bx", "--extra-params", "--vcf-samples"],
+            "options": ["--vcf", "--molecule-distance", "--genome", "--prune-threshold", "--ignore-bx", "--extra-params", "--vcf-samples"],
         },
         {
             "name": "Other Options",
