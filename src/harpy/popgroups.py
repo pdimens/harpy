@@ -10,8 +10,8 @@ from rich import print
 from rich.panel import Panel
 
 @click.command(no_args_is_help = True, epilog = "read the docs for more information: https://pdimens.github.io/harpy/modules/snp/#sample-grouping-file")
-@click.option('-o', '--output', type=str, default = "samples.groups", metavar = "Output file name", help = 'Output file name')
-@click.argument('input', required=True, type=click.Path(exists=True, file_okay=False), nargs=-1)
+@click.option('-o', '--output', type=str, default = "samples.groups", metavar = "Output file name", help = 'Output file name, will overwrite existing')
+@click.argument('input', required=True, type=click.Path(exists=True, file_okay=False))
 def popgroup(input, output):
     """
     Create a sample grouping file
@@ -49,11 +49,10 @@ def popgroup(input, output):
 
     click.echo(f"{len(samplenames)} samples detected in {input}", file = sys.stderr)
     if os.path.exists(output):
-        overwrite = input(f"File {output} already exists, overwrite (no|yes)?  ").lower()
-        if overwrite.lower() not in ["yes", "y"]:
-            click.echo("Please suggest a different name for the output file")
-            exit(0)
+        write_text = f"The file [green]{output}[/green] was overwritten."
+    else:
+        write_text = f"Created sample population grouping file [green]{output}[/green]."
     with open(output, "w") as file:
         for i in samplenames:
             _ = file.write(i + '\tpop1\n') 
-    print_notice(f'Created sample population grouping file: {output}\nPlease review it, as all samples have been grouped into a single population')
+    print_notice(write_text + " Please review it, as all samples have been grouped into a single population")
