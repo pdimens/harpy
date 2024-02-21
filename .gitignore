@@ -8,6 +8,7 @@ Genome/
 Align/
 Variants/
 Impute/
+Preflight/
 Phase/
 samples.populations
 *.fasta

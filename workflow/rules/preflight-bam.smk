@@ -6,7 +6,7 @@ import sys
 import glob
 
 seq_dir = config["seq_directory"]
-out_dir = f"{seq_dir}/Preflight/"
+out_dir = f"Preflight/bam/"
 
 bamlist = [os.path.basename(i) for i in glob.iglob(f"{seq_dir}/*") if not os.path.isdir(i) and i.lower().endswith(".bam")]
 samplenames = set([os.path.splitext(i)[0] for i in bamlist])  
@@ -75,7 +75,7 @@ rule mergeChecks:
 
 rule log_runtime:
     output:
-        out_dir + "/workflow/preflight.workflow.summary"
+        out_dir + "workflow/preflight.workflow.summary"
     message:
         "Creating record of relevant runtime parameters: {output}"
     run:

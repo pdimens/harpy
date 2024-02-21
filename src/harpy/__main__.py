@@ -39,7 +39,7 @@ click.rich_click.ERRORS_SUGGESTION = "Try the '--help' flag for more information
 click.rich_click.ERRORS_EPILOGUE = "See the documentation: [link=https://pdimens.github.io/harpy/]https://pdimens.github.io/harpy/[/link]"
 
 @click.group(options_metavar='', context_settings=dict(help_option_names=["-h", "--help"]))
-@click.version_option("0.6.1", prog_name="Harpy")
+@click.version_option("0.7.0", prog_name="Harpy")
 def cli():
     """
     ## Harpy haplotagging pipeline
@@ -173,10 +173,6 @@ click.rich_click.OPTION_GROUPS = {
         },
     ],
     "harpy preflight fastq": [
-        {
-            "name": "Configuration",
-            "options": ["--directory"],
-        },
         {
             "name": "Other Options",
             "options": ["--threads", "--snakemake", "--quiet", "--print-only", "--help"],

@@ -6,7 +6,7 @@ import sys
 import glob
 
 seq_dir = config["seq_directory"]
-out_dir = f"{seq_dir}/Preflight/"
+out_dir = f"Preflight/fastq/"
 
 wildcard_constraints:
     sample = "[a-zA-Z0-9._-]+"
@@ -91,7 +91,7 @@ rule mergeChecks:
 
 rule log_runtime:
     output:
-        out_dir + "/workflow/preflight.workflow.summary"
+        out_dir + "workflow/preflight.workflow.summary"
     message:
         "Creating record of relevant runtime parameters: {output}"
     run:
