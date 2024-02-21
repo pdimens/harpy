@@ -30,7 +30,7 @@ from .phase import phase
 import rich_click as click
 
 click.rich_click.USE_MARKDOWN = True
-click.rich_click.SHOW_ARGUMENTS = False
+click.rich_click.SHOW_ARGUMENTS = True
 click.rich_click.SHOW_METAVARS_COLUMN = False
 click.rich_click.APPEND_METAVARS_HELP = False
 click.rich_click.MAX_WIDTH = 75
@@ -185,7 +185,7 @@ click.rich_click.OPTION_GROUPS = {
     "harpy demultiplex gen1": [
         {
             "name": "Configuration",
-            "options": ["--file", "--samplesheet"],
+            "options": ["--samplesheet"],
         },
         {
             "name": "Other Options",
