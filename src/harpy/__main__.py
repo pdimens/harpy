@@ -39,7 +39,7 @@ click.rich_click.ERRORS_SUGGESTION = "Try the '--help' flag for more information
 click.rich_click.ERRORS_EPILOGUE = "See the documentation: [link=https://pdimens.github.io/harpy/]https://pdimens.github.io/harpy/[/link]"
 
 @click.group(options_metavar='', context_settings=dict(help_option_names=["-h", "--help"]))
-@click.version_option("0.6.1", prog_name="Harpy")
+@click.version_option("0.7.0", prog_name="Harpy")
 def cli():
     """
     ## Harpy haplotagging pipeline
@@ -174,10 +174,6 @@ click.rich_click.OPTION_GROUPS = {
     ],
     "harpy preflight fastq": [
         {
-            "name": "Configuration",
-            "options": ["--directory"],
-        },
-        {
             "name": "Other Options",
             "options": ["--threads", "--snakemake", "--quiet", "--print-only", "--help"],
         },
@@ -185,7 +181,7 @@ click.rich_click.OPTION_GROUPS = {
     "harpy demultiplex gen1": [
         {
             "name": "Configuration",
-            "options": ["--file", "--samplesheet"],
+            "options": ["--samplesheet"],
         },
         {
             "name": "Other Options",
@@ -205,7 +201,7 @@ click.rich_click.OPTION_GROUPS = {
     "harpy align bwa": [
         {
             "name": "Configuration",
-            "options": ["--genome", "--directory", "--quality-filter", "--molecule-distance", "--extra-params"],
+            "options": ["--genome", "--quality-filter", "--molecule-distance", "--extra-params"],
         },
         {
             "name": "Other Options",
@@ -215,7 +211,7 @@ click.rich_click.OPTION_GROUPS = {
     "harpy align ema": [
         {
             "name": "Configuration",
-            "options": ["--platform", "--whitelist", "--genome", "--directory", "--quality-filter", "--ema-bins", "--extra-params"],
+            "options": ["--platform", "--whitelist", "--genome", "--quality-filter", "--ema-bins", "--extra-params"],
         },
         {
             "name": "Other Options",
@@ -225,7 +221,7 @@ click.rich_click.OPTION_GROUPS = {
     "harpy snp mpileup": [
         {
             "name": "Configuration",
-            "options": ["--genome", "--directory", "--populations", "--ploidy", "--windowsize", "--extra-params"],
+            "options": ["--genome", "--populations", "--ploidy", "--windowsize", "--extra-params"],
         },
         {
             "name": "Other Options",
@@ -235,7 +231,7 @@ click.rich_click.OPTION_GROUPS = {
     "harpy snp freebayes": [
         {
             "name": "Configuration",
-            "options": ["--genome", "--directory", "--populations", "--ploidy", "--windowsize", "--extra-params"],
+            "options": ["--genome", "--populations", "--ploidy", "--windowsize", "--extra-params"],
         },
         {
             "name": "Other Options",
@@ -245,7 +241,7 @@ click.rich_click.OPTION_GROUPS = {
     "harpy sv leviathan": [
         {
             "name": "Configuration",
-            "options": ["--genome", "--directory", "--populations", "--extra-params"],
+            "options": ["--genome", "--populations", "--extra-params"],
         },
         {
             "name": "Other Options",
@@ -255,7 +251,7 @@ click.rich_click.OPTION_GROUPS = {
     "harpy sv naibr": [
         {
             "name": "Configuration",
-            "options": ["--genome", "--directory", "--vcf", "--print-only", "--molecule-distance", "--populations", "--extra-params"],
+            "options": ["--genome", "--vcf", "--print-only", "--molecule-distance", "--populations", "--extra-params"],
         },
         {
             "name": "Other Options",
@@ -265,7 +261,7 @@ click.rich_click.OPTION_GROUPS = {
     "harpy impute": [
         {
             "name": "Configuration",
-            "options": ["--vcf", "--directory", "--parameters", "--extra-params", "--vcf-samples"],
+            "options": ["--vcf", "--parameters", "--extra-params", "--vcf-samples"],
         },
         {
             "name": "Other Options",
@@ -275,7 +271,7 @@ click.rich_click.OPTION_GROUPS = {
     "harpy phase": [
         {
             "name": "Configuration",
-            "options": ["--vcf", "--directory", "--molecule-distance", "--genome", "--prune-threshold", "--ignore-bx", "--extra-params", "--vcf-samples"],
+            "options": ["--vcf", "--molecule-distance", "--genome", "--prune-threshold", "--ignore-bx", "--extra-params", "--vcf-samples"],
         },
         {
             "name": "Other Options",

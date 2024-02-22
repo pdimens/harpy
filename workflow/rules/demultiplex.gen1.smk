@@ -9,7 +9,7 @@ samplefile = config["samplefile"]
 skipreports = config["skipreports"]
 bn = os.path.basename(infile)
 fq_extension = re.search(r"(?:\_00[0-9])*\.f(.*?)q(?:\.gz)?$", infile, re.IGNORECASE).group(0)
-inprefix     = re.sub(r"[\_\.][IR][12]?(?:\_00[0-9])*\.f(?:ast)?q(?:\.gz)?$", "", bn)
+inprefix = config["infile_prefix"]
 inprefixfull = re.sub(r"[\_\.][IR][12]?(?:\_00[0-9])*\.f(?:ast)?q(?:\.gz)?$", "", infile)
 infiles = [f"{inprefixfull}_{i}{fq_extension}" for i in ["I1", "I2","R1","R2"]]
 indir = os.path.dirname(infile)
@@ -198,6 +198,8 @@ rule qc_report:
         outdir + "reports/demultiplex.QC.html"
     params:
         outdir + "logs/.QC"
+    conda:
+        os.getcwd() + "/harpyenvs/qc.yaml"
     message:
         "Creating final demultiplexing QC report"
     shell:

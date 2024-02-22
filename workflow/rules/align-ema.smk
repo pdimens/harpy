@@ -455,6 +455,8 @@ rule collate_samtools_stats:
         expand(outdir + "/reports/samtools_{ext}/{sample}.{ext}", sample = samplenames, ext = ["stats", "flagstat"]),
     output: 
         outdir + "/reports/ema.stats.html"
+    conda:
+        os.getcwd() + "/harpyenvs/qc.yaml"
     message:
         "Summarizing samtools stats and flagstat"
     shell:

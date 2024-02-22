@@ -318,7 +318,9 @@ rule samtools_reports:
     input: 
         expand(outdir + "/reports/samtools_{ext}/{sample}.{ext}", sample = samplenames, ext = ["stats", "flagstat"])
     output: 
-        outdir + "/reports/bwa.stats.html",
+        outdir + "/reports/bwa.stats.html"
+    conda:
+        os.getcwd() + "/harpyenvs/qc.yaml"
     message:
         "Summarizing samtools stats and flagstat"
     shell:

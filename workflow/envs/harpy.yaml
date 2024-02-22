@@ -5,7 +5,6 @@ channels:
 dependencies:
   - bcftools =1.19
   - mamba
-  - multiqc
   - pandas
   - pysam =0.22
   - python

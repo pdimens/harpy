@@ -46,10 +46,10 @@ rule sort_bcf:
     input:
         variantfile
     output:
-        bcf = temp("Impute/input/input.sorted.bcf"),
-        idx = temp("Impute/input/input.sorted.bcf.csi")
+        bcf = temp("Impute/stitch_input/input.sorted.bcf"),
+        idx = temp("Impute/stitch_input/input.sorted.bcf.csi")
     log:
-        "Impute/input/input.sorted.log"
+        "Impute/stitch_input/input.sorted.log"
     message:
         "Sorting input variant call file"
     shell:
@@ -59,7 +59,7 @@ rule bam_list:
     input:
         expand(bam_dir + "/{sample}.bam", sample = samplenames)
     output:
-        "Impute/input/samples.list"
+        "Impute/stitch_input/samples.list"
     message:
         "Creating list of alignment files"
     run:
@@ -68,7 +68,7 @@ rule bam_list:
 
 rule samples_file:
     output:
-        "Impute/input/samples.names"
+        "Impute/stitch_input/samples.names"
     message:
         "Creating file of sample names"
     run:
@@ -77,9 +77,9 @@ rule samples_file:
 
 rule convert2stitch:
     input:
-        "Impute/input/input.sorted.bcf"
+        "Impute/stitch_input/input.sorted.bcf"
     output:
-        "Impute/input/{part}.stitch"
+        "Impute/stitch_input/{part}.stitch"
     threads: 
         3
     benchmark:
@@ -94,8 +94,8 @@ rule convert2stitch:
 
 rule impute:
     input:
-        bamlist = "Impute/input/samples.list",
-        infile  = "Impute/input/{part}.stitch"
+        bamlist = "Impute/stitch_input/samples.list",
+        infile  = "Impute/stitch_input/{part}.stitch"
     output:
         # format a wildcard pattern like "k{k}/s{s}/ngen{ngen}"
         # into a file path, with k, s, ngen being the columns of the data frame
@@ -213,8 +213,8 @@ rule stats:
 
 rule comparestats:
     input:
-        orig    = "Impute/input/input.sorted.bcf",
-        origidx = "Impute/input/input.sorted.bcf.csi",
+        orig    = "Impute/stitch_input/input.sorted.bcf",
+        origidx = "Impute/stitch_input/input.sorted.bcf.csi",
         impute  = "Impute/{stitchparams}/variants.imputed.bcf",
         idx     = "Impute/{stitchparams}/variants.imputed.bcf.csi"
     output:

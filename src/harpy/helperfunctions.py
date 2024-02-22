@@ -17,7 +17,7 @@ import rich_click as click
 def print_onstart(text, title):
     """Print a panel of info on workflow run"""
     click.echo("")
-    print(Panel(text, title = f"[bold]Harpy {title}", title_align = "left", border_style = "white", subtitle= "Initializing"), file = sys.stderr)
+    print(Panel(text, title = f"[bold]Harpy {title}", title_align = "left", border_style = "white", subtitle= "Running Workflow"), file = sys.stderr)
 def print_error(errortext):
     """Print a yellow panel with error text"""
     print(Panel(errortext, title = "[bold]Error", title_align = "left", border_style = "yellow"), file = sys.stderr)
@@ -51,6 +51,112 @@ def getnames(directory, ext):
         print_error(f"No sample files ending with [bold]{ext}[/bold] found in [bold]{directory}[/bold].")
         sys.exit(1)
     return samplenames
+
+def parse_fastq_inputs(input, outdir):
+    """
+    Parse the command line input FASTQ arguments to generate a clean list of input files
+    and create symlinks of those files to a target destination folder.
+    """
+    infiles = []
+    outfiles = []
+    for i in input:
+        if os.path.isdir(i):
+            for j in os.listdir(i):
+                if j.lower().endswith("gz") or j.lower().endswith("fastq") or j.lower().endswith("fq"):
+                    infiles.append(os.path.join(i, j))
+        else:
+            if i.lower().endswith("gz") or i.lower().endswith("fastq") or i.lower().endswith("fq"):
+                infiles.append(i)
+    re_fq = re.compile("\.(fq|fastq)", re.IGNORECASE)
+    re_gz = re.compile("\.gz$", re.IGNORECASE)
+    re_ext = re.compile("\.(fq|fastq)(?:\.gz)?$", re.IGNORECASE)
+    if len(infiles) < 1:
+        print_error(f"There were no files found in the provided inputs that end with the accepted fastq extensions [blue].fq .fastq .fq.gz .fastq.gz[/blue]")
+        exit(1)
+    for i in infiles:
+        destination = os.path.join(outdir,os.path.basename(i))
+        # clean up extensions for consistency
+        clean_destination = re_fq.sub(".fq", destination)
+        clean_destination = re_gz.sub(".gz", clean_destination)
+        outfiles.append(clean_destination)
+    # check if any links will be clashing
+    uniqs = set()
+    dupes = [os.path.basename(re_ext.sub("", i)) for i in outfiles if i in uniqs or uniqs.add(i)]
+    if dupes:
+        print_error("Identical filenames were detected, which will cause unexpected behavior and results. Note that files with identical names but different-cased extensions are treated as identical.")
+        print_solution_with_culprits("Make sure all input files have unique names.", "Files with clashing names:")
+        for i in dupes:
+            click.echo(" ".join([j for j in infiles if i in j]), file = sys.stderr)
+        exit(1)
+
+    Path(outdir).mkdir(parents=True, exist_ok=True)
+    for (i,o) in zip(infiles, outfiles):
+        Path(o).unlink(missing_ok=True)
+        _ = Path(o).symlink_to(Path(i).absolute())
+    return infiles
+
+def parse_alignment_inputs(input, outdir):
+    """
+    Parse the command line input sam/bam arguments to generate a clean list of input files
+    and create symlinks of those files to a target destination folder.
+    """
+    bam_infiles = []
+    bai_infiles = []
+    bam_outfiles = []
+    bai_outfiles = []
+    for i in input:
+        if os.path.isdir(i):
+            for j in os.listdir(i):
+                if j.lower().endswith("bam") or j.lower().endswith("sam"):
+                    bam_infiles.append(os.path.join(i, j))
+                elif j.lower().endswith("bai"):
+                    bai_infiles.append(os.path.join(i, j))
+        else:
+            if i.lower().endswith("bam") or i.lower().endswith("sam"):
+                bam_infiles.append(i)
+            elif i.lower().endswith("bai"):
+                bai_infiles.append(i)
+    if len(bam_infiles) < 1:
+        print_error(f"There were no files found in the provided inputs that end with the [blue].bam[/blue] extension.")
+        exit(1)
+    re_bam = re.compile("\.bam$", re.IGNORECASE)
+    re_bai = re.compile("\.bam\.bai$", re.IGNORECASE)
+    re_sam = re.compile("\.sam$", re.IGNORECASE)
+    re_ext = re.compile("\.(bam|sam)$", re.IGNORECASE)
+    for i in bam_infiles:
+        destination = os.path.join(outdir,os.path.basename(i))
+        # clean up extensions for consistency
+        clean_destination = re_bam.sub(".bam", destination)
+        clean_destination = re_sam.sub(".sam", clean_destination)
+        bam_outfiles.append(clean_destination)
+    # check if any links will be clashing
+    uniqs = set()
+    dupes = []
+    for i in bam_infiles:
+        bn = os.path.basename(re_ext.sub("", i))
+        if bn in uniqs:
+            dupes.append(bn) 
+        else:
+            uniqs.add(bn)
+    if dupes:
+        print_error("Identical filenames were detected, which will cause unexpected behavior and results. Note that files with identical names but different-cased extensions are treated as identical.")
+        print_solution_with_culprits("Make sure all input files have unique names.", "Files with clashing names:")
+        for i in dupes:
+            click.echo(" ".join([j for j in bam_infiles if i in j]), file = sys.stderr)
+        exit(1)
+    for i in bai_infiles:
+        destination = os.path.join(outdir,os.path.basename(i))
+        # clean up extensions for consistency
+        clean_destination = re_bam.sub(".bam.bai", destination)
+        bai_outfiles.append(clean_destination)
+    Path(outdir).mkdir(parents=True, exist_ok=True)
+    for (i,o) in zip(bam_infiles, bam_outfiles):
+        Path(o).unlink(missing_ok=True)
+        _ = Path(o).symlink_to(Path(i).absolute())
+    for (i,o) in zip(bai_infiles, bai_outfiles):
+        Path(o).unlink(missing_ok=True)
+        _ = Path(o).symlink_to(Path(i).absolute())
+    return bam_infiles
 
 def get_samples_from_fastq(directory):
     """Identify the sample names from a directory containing FASTQ files"""
@@ -333,6 +439,10 @@ def validate_demuxschema(infile):
 def check_demux_fastq(file):
     """Check for the presence of corresponding FASTQ files from a single provided FASTQ file based on pipeline expectations."""
     bn = os.path.basename(file)
+    if not bn.lower().endswith("fq") and not bn.lower().endswith("fastq") and not bn.lower().endswith("fastq.gz") and not bn.lower().endswith("fq.gz"):     
+        print_error(f"The file {bn} is not recognized as a FASTQ file by the file extension.")
+        print_solution("Make sure the input file ends with a standard FASTQ extension. These are not case-sensitive.\nAccepted extensions: [blue].fq .fastq .fq.gz .fastq.gz[/blue]")
+        exit(1)
     ext = re.search(r"(?:\_00[0-9])*\.f(.*?)q(?:\.gz)?$", file, re.IGNORECASE).group(0)
     prefix     = re.sub(r"[\_\.][IR][12]?(?:\_00[0-9])*\.f(?:ast)?q(?:\.gz)?$", "", bn)
     prefixfull = re.sub(r"[\_\.][IR][12]?(?:\_00[0-9])*\.f(?:ast)?q(?:\.gz)?$", "", file)
@@ -350,7 +460,6 @@ def check_demux_fastq(file):
             "Demultiplexing requires 4 sequence files: the forward and reverse sequences (R1 and R2), along with the forward and reverse indices (I2 and I2).",
             "Necessary/expected files:"
         )
-        #print(f"\n\033[91mError\033[0m: Not all necessary files with prefix \033[1m{prefix}\033[0m present")
         _ = [click.echo(i, file = sys.stderr) for i in filelist]
         exit(1)
 
@@ -358,7 +467,7 @@ def generate_conda_deps():
     """Create the YAML files of the workflow conda dependencies"""
     condachannels = ["conda-forge", "bioconda", "defaults"]
     environ = {
-        "qc" : ["falco", "fastp"],
+        "qc" : ["falco", "fastp", "multiqc"],
         "align": ["bwa", "ema","icu","libzlib", "samtools=1.19", "seqtk", "xz"],
         "variants.snp": ["bcftools=1.19", "freebayes=1.3.6"],
         "variants.sv": ["leviathan", "naibr-plus"],
