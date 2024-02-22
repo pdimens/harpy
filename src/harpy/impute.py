@@ -60,12 +60,10 @@ def impute(input, parameters, threads, vcf, vcf_samples, extra_params, snakemake
     fetch_file("stitch_impute.R", f"{workflowdir}/")
     for i in ["Impute", "StitchCollate"]:
         fetch_file(f"{i}.Rmd", f"{workflowdir}/report/")
-    ### check that samples in VCF match input directory
 
     # generate and store list of viable contigs (minimum of 2 biallelic SNPs)
     # doing it here so it doesn't have to run each time inside the workflow
     contigs = biallelic_contigs(vcf)
-
     with open(f"{workflowdir}/config.yml", "w") as config:
         config.write(f"seq_directory: {workflowdir}/input\n")
         config.write(f"samplenames: {samplenames}\n")
@@ -78,7 +76,7 @@ def impute(input, parameters, threads, vcf, vcf_samples, extra_params, snakemake
         config.write(f"workflow_call: {call_SM}\n")
 
     print_onstart(
-        f"Input VCF: {vcf}\nSamples in VCF: {len(samplenames)}\nContigs Considered: {len(contigs)}\nOutput Directory: Impute/",
+        f"Input VCF: {vcf}\nSamples in VCF: {len(samplenames)}Alignments Provided: {len(sn)}\nContigs Considered: {len(contigs)}\nOutput Directory: Impute/",
         "impute"
     )
     generate_conda_deps()

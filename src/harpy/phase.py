@@ -72,7 +72,7 @@ def phase(input, vcf, threads, molecule_distance, prune_threshold, vcf_samples, 
         config.write(f"workflow_call: {call_SM}\n")
 
     print_onstart(
-        f"Input VCF: {vcf}\nSamples in VCF: {len(samplenames)}\nOutput Directory: Phase/",
+        f"Input VCF: {vcf}\nSamples in VCF: {len(samplenames)}\nAlignments Provided: {len(sn)}\nOutput Directory: Phase/",
         "phase"
     )
     generate_conda_deps()
