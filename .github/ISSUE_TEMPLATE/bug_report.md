@@ -6,8 +6,9 @@ body:
     attributes:
       label: Describe the bug
       description: |
-        A clear and concise description of what the bug is.
-        **Please do note paste in the contents of example files**
+        A clear and concise description of what the bug is. Please do note
+        paste in the contents of example files (do that below), but it may
+        be helpful in some cases to see your project directory structure. 
     validations:
       required: true
 
