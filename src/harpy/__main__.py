@@ -251,7 +251,7 @@ click.rich_click.OPTION_GROUPS = {
     "harpy sv naibr": [
         {
             "name": "Configuration",
-            "options": ["--genome", "--vcf", "--print-only", "--molecule-distance", "--populations", "--extra-params"],
+            "options": ["--genome", "--vcf", "--molecule-distance", "--populations", "--extra-params"],
         },
         {
             "name": "Other Options",
