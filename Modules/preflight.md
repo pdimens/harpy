@@ -27,17 +27,17 @@ for the pipeline. There are separate `fastq` and `bam` submodules and the result
 
 
 ```bash fastq usage and example
-harpy preflight fastq OPTIONS...
+harpy preflight fastq OPTIONS... INPUTS...
 
 # example 
-harpy preflight fastq --threads 20 -d raw_data
+harpy preflight fastq --threads 20 raw_data
 ```
 
 ```bash bam usage and example
-harpy preflight bam OPTIONS... 
+harpy preflight bam OPTIONS... INPUST...
 
 # example
-harpy preflight bam --threads 20 -d Align/bwa
+harpy preflight bam --threads 20 Align/bwa
 ```
 
 ## :icon-terminal: Running Options
@@ -45,12 +45,13 @@ In addition to the [common runtime options](/commonoptions.md), the `harpy prefl
 
 | argument          | short name | type       | default | required | description                                                                          |
 |:------------------|:----------:|:-----------|:-------:|:--------:|:-------------------------------------------------------------------------------------|
-| `--directory`          |    `-d`    | folder path |         | **yes**  | Directory with sequences or alignments                                                              |
+| `INPUTS`           |            | file/directory paths  |         | **yes**  | Files or directories containing [input fastq or bam files](/commonoptions.md#input-arguments)     |
 
 ## Workflow
 
 +++ `fastq` checks
-Below is a table of the format specifics `harpy preflight` checks for FASTQ files. Take note
+Below is a table of the format specifics `harpy preflight` checks for FASTQ files. Since 10X data doesn't use
+the haplotagging data format, you will find little value in running `preflight` on 10X FASTQ files. Take note
 of the language such as when "any" and "all" are written.
 
 | Criteria | Pass Condition | Fail Condition |

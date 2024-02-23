@@ -28,7 +28,7 @@ most from your data. Harpy uses `STITCH` to impute genotypes, a haplotype-based
 method that is linked-read aware. Imputing genotypes requires a variant call file 
 **containing SNPs**, such as that produced by `harpy variants`. You can impute genotypes with Harpy using the `impute` module:
 ```bash usage
-harpy impute OPTIONS...
+harpy impute OPTIONS... INPUTS...
 ```
 
 ```bash example
@@ -36,7 +36,7 @@ harpy impute OPTIONS...
 harpy stitchparams -o stitch.params 
 
 # run imputation
-harpy impute --threads 20 --vcf Variants/mpileup/variants.raw.bcf --directory Align/ema --parameters stitch.params
+harpy impute --threads 20 --vcf Variants/mpileup/variants.raw.bcf --parameters stitch.params Align/ema
 ```
 
 ## :icon-terminal: Running Options
@@ -44,8 +44,8 @@ In addition to the [common runtime options](/commonoptions.md), the `harpy imput
 
 | argument       | short name | type        |    default    | required | description                                                                                     |
 |:---------------|:----------:|:------------|:-------------:|:--------:|:------------------------------------------------------------------------------------------------|
+| `INPUTS`       |            | file/directory paths  |         | **yes**  | Files or directories containing [input BAM files](/commonoptions.md)     |
 | `--vcf`        |    `-v`    | file path   |               | **yes**  | Path to VCF/BCF file                                                                            |
-| `--directory`  |    `-d`    | folder path |               | **yes**  | Directory with sequence alignments                                                              |
 | `--extra-params` |  `-x`    | folder path |               |  no      | Extra arguments to add to the STITCH R function, provided in quotes and R syntax                |
 | `--vcf-samples`|            |    toggle   |               | no       | [Use samples present in vcf file](#prioritize-the-vcf-file) for imputation rather than those found the directory    |
 | `--parameters` |    `-p`    | file path   |               | **yes**  | STITCH [parameter file](#parameter-file) (tab-delimited)                                                           |
@@ -57,7 +57,7 @@ syntax (e.g. `regionStart=0`, `populations=c("GBA","CUE")`). The argument should
 however, if your additional parameters require the use of quotes (like the previous example), then wrap the `-x` argument 
 in **single quotes**. Otherwise, the format should take the form of `"arg1=value, arg2=value2"`. Example:
 ```bash
-harpy impute -v file.vcf -p stitch.params -t 15 -x 'regionStart=20, regionEnd=500'
+harpy impute -v file.vcf -p stitch.params -t 15 -x 'regionStart=20, regionEnd=500' Align/ema
 ```
 
 ### Prioritize the vcf file
@@ -227,7 +227,7 @@ Impute/
 |:------------------------------------|:--------------------------------------------------------------------------|
 | `logs/harpy.impute.log`             | relevant runtime parameters for the phase module                          |
 | `input/*.stitch`                    | biallelic SNPs used for imputation                                        |
-| `input/samples.list`                | list of input BAM files                                                   |
+| `input/samples.list`                | list of [input BAM files](/commonoptions.md)                                                   |
 | `input/samples.names`               | list of sample names                                                      |
 | `model*/concat.log`                 | output from bcftools concat to create final imputed bcf                   |
 | `model*/variants.imputed.bcf`       | final bcf file of imputed genotypes                                       |

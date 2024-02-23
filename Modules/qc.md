@@ -21,17 +21,17 @@ harpy qc OPTIONS...
 ```
 
 ```bash example
-harpy qc --directory Sequences_Raw/ --threads 20 
+harpy qc --threads 20 Sequences_Raw/ 
 ```
 
 ## :icon-terminal: Running Options
 In addition to the [common runtime options](/commonoptions.md), the `harpy qc` module is configured using these command-line arguments:
 
 | argument         | short name | type        | default | required | description                                                                                     |
-|:-----------------|:----------:|:------------|:-------:|:--------:|:------------------------------------------------------------------------------------------------|
-| `--directory`          |    `-d`    | folder path |         | **yes**  | Directory with sequence alignments                                                              |
-| `--max-length`   |    `-l`    | integer     |   150   |    no    | Maximum length to trim sequences down to                                                        |
-| `--extra-params` |    `-x`    | string      |         |    no    | Additional fastp arguments, in quotes                                                           |
+|:-----------------|:----------:|:------------|:-------:|:-------:|:------------------------------------------------------------------------------------------------|
+| `INPUTS`         |            | file/directory paths  |         | **yes**  | Files or directories containing [input FASTQ files](/commonoptions.md#input-arguments)     |
+| `--max-length`   |    `-l`    | integer     |   150   |    no   | Maximum length to trim sequences down to                                                        |
+| `--extra-params` |    `-x`    | string      |         |    no   | Additional fastp arguments, in quotes                                                           |
 
 ---
 ## :icon-git-pull-request: QC Workflow
