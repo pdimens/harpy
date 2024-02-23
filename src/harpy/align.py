@@ -150,7 +150,7 @@ def ema(input, platform, whitelist, genome, threads, ema_bins, skipreports, extr
 
     generate_conda_deps()
     print_onstart(
-        f"Samples: {len(samplenames)}\nOutput Directory: Align/ema/",
+        f"Samples: {len(samplenames)}\nPlatform: {platform}\nOutput Directory: Align/ema/",
         "align ema"
     )
     _module = subprocess.run(command)
