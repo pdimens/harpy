@@ -46,17 +46,17 @@ body:
       render: console
       placeholder: |
         $ harpy preflight bam test/bam test/bam_phased
-        | ╭─ Error ─────────────────────────────────────────────────────────────────╮
-        | │ Identical filenames were detected, which will cause unexpected behavior │
-        | │ and results. Note that files with identical names but different-cased   │
-        | │ extensions are treated as identical.                                    │
-        | ╰─────────────────────────────────────────────────────────────────────────╯
-        | ╭─ Solution ──────────────────────────────────────────────────────────────╮
-        | │ Make sure all input files have unique names.                            │
-        | ╰────────────────────── Files with clashing names: ───────────────────────╯
-        | test/bam/sample2.bam test/bam_phased/sample2.bam
-        | test/bam/sample1.bam test/bam_phased/sample1.bam
-    validations:
+        ╭─ Error ─────────────────────────────────────────────────────────────────╮
+        │ Identical filenames were detected, which will cause unexpected behavior │
+        │ and results. Note that files with identical names but different-cased   │
+        │ extensions are treated as identical.                                    │
+        ╰─────────────────────────────────────────────────────────────────────────╯
+        ╭─ Solution ──────────────────────────────────────────────────────────────╮
+        │ Make sure all input files have unique names.                            │
+        ╰────────────────────── Files with clashing names: ───────────────────────╯
+        test/bam/sample2.bam test/bam_phased/sample2.bam
+        test/bam/sample1.bam test/bam_phased/sample1.bam
+  validations:
       required: true
 
   - type: checkboxes
