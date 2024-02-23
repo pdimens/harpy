@@ -42,6 +42,7 @@ def leviathan(input, genome, threads, populations, extra_params, snakemake, skip
     call_SM = " ".join(command)
     if print_only:
         click.echo(call_SM)
+        exit(0)
 
     os.makedirs(f"{workflowdir}/", exist_ok= True)
     _ = parse_alignment_inputs(input, f"{workflowdir}/input")
@@ -68,11 +69,11 @@ def leviathan(input, genome, threads, populations, extra_params, snakemake, skip
         config.write(f"skipreports: {skipreports}\n")
         config.write(f"workflow_call: {call_SM}\n")
 
+    generate_conda_deps()
     print_onstart(
         f"Samples: {len(samplenames)}{popgroupings}\nOutput Directory: Variants/{vcaller}/",
         "sv leviathan"
     )
-    generate_conda_deps()
     _module = subprocess.run(command)
     sys.exit(_module.returncode)
 
@@ -122,7 +123,8 @@ def naibr(input, genome, vcf, threads, populations, molecule_distance, extra_par
     call_SM = " ".join(command)
     if print_only:
         click.echo(call_SM)
-    
+        exit(0)
+
     os.makedirs(f"{workflowdir}/", exist_ok= True)
     _ = parse_alignment_inputs(input, f"{workflowdir}/input")
     samplenames = getnames(f"{workflowdir}/input", '.bam')
@@ -155,10 +157,10 @@ def naibr(input, genome, vcf, threads, populations, molecule_distance, extra_par
         config.write(f"skipreports: {skipreports}\n")
         config.write(f"workflow_call: {call_SM}\n")
 
+    generate_conda_deps()
     print_onstart(
         f"Samples: {len(samplenames)}{popgroupings}\nOutput Directory: Variants/{vcaller}/",
         "sv naibr"
     )
-    generate_conda_deps()
     _module = subprocess.run(command)
     sys.exit(_module.returncode)

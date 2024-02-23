@@ -42,6 +42,7 @@ def mpileup(input, genome, threads, populations, ploidy, windowsize, extra_param
     call_SM = " ".join(command)
     if print_only:
         click.echo(call_SM)
+        exit(0)
 
     os.makedirs(f"{workflowdir}/", exist_ok= True)
     sn = parse_alignment_inputs(input, f"{workflowdir}/input")
@@ -70,12 +71,11 @@ def mpileup(input, genome, threads, populations, ploidy, windowsize, extra_param
         config.write(f"skipreports: {skipreports}\n")
         config.write(f"workflow_call: {call_SM}\n")
 
-
+    generate_conda_deps()
     print_onstart(
         f"Samples: {len(samplenames)}{popgroupings}\nOutput Directory: Variants/mpileup/",
         "snp mpileup"
     )
-    generate_conda_deps()
     _module = subprocess.run(command)
     sys.exit(_module.returncode)
 
@@ -117,6 +117,7 @@ def freebayes(input, genome, threads, populations, ploidy, windowsize, extra_par
     call_SM = " ".join(command)
     if print_only:
         click.echo(call_SM)
+        exit(0)
 
     os.makedirs(f"{workflowdir}/", exist_ok= True)
     sn = parse_alignment_inputs(input, f"{workflowdir}/input")
@@ -145,10 +146,10 @@ def freebayes(input, genome, threads, populations, ploidy, windowsize, extra_par
         config.write(f"skipreports: {skipreports}\n")
         config.write(f"workflow_call: {call_SM}\n")
 
+    generate_conda_deps()
     print_onstart(
         f"Samples: {len(samplenames)}{popgroupings}\nOutput Directory: Variants/freebayes",
         "snp freebayes"
     )
-    generate_conda_deps()
     _module = subprocess.run(command)
     sys.exit(_module.returncode)

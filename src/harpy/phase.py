@@ -45,6 +45,7 @@ def phase(input, vcf, threads, molecule_distance, prune_threshold, vcf_samples, 
     call_SM = " ".join(command)
     if print_only:
         click.echo(call_SM)
+        exit(0)
 
     os.makedirs(f"{workflowdir}/", exist_ok= True)
     sn = parse_alignment_inputs(input, f"{workflowdir}/input")
@@ -71,10 +72,10 @@ def phase(input, vcf, threads, molecule_distance, prune_threshold, vcf_samples, 
         config.write(f"skipreports: {skipreports}\n")
         config.write(f"workflow_call: {call_SM}\n")
 
+    generate_conda_deps()
     print_onstart(
         f"Input VCF: {vcf}\nSamples in VCF: {len(samplenames)}\nAlignments Provided: {len(sn)}\nOutput Directory: Phase/",
         "phase"
     )
-    generate_conda_deps()
     _module = subprocess.run(command)
     sys.exit(_module.returncode)

@@ -48,6 +48,7 @@ def impute(input, parameters, threads, vcf, vcf_samples, extra_params, snakemake
     call_SM = " ".join(command)
     if print_only:
         click.echo(call_SM)
+        exit(0)
 
     os.makedirs(f"{workflowdir}/", exist_ok= True)
     sn = parse_alignment_inputs(input, f"{workflowdir}/input")
@@ -75,10 +76,10 @@ def impute(input, parameters, threads, vcf, vcf_samples, extra_params, snakemake
         config.write(f"skipreports: {skipreports}\n")
         config.write(f"workflow_call: {call_SM}\n")
 
+    generate_conda_deps()
     print_onstart(
         f"Input VCF: {vcf}\nSamples in VCF: {len(samplenames)}Alignments Provided: {len(sn)}\nContigs Considered: {len(contigs)}\nOutput Directory: Impute/",
         "impute"
     )
-    generate_conda_deps()
     _module = subprocess.run(command)
     sys.exit(_module.returncode)

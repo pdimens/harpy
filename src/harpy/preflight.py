@@ -51,11 +51,11 @@ def fastq(input, threads, snakemake, quiet, print_only):
         config.write(f"seq_directory: Preflight/fastq/workflow/input\n")
         config.write(f"workflow_call: {call_SM}\n")
 
+    generate_conda_deps()
     print_onstart(
         f"Files: {len(sn)}\nOutput Directory: Preflight/fastq",
         "preflight fastq"
     )
-    generate_conda_deps()
     _module = subprocess.run(command)
     sys.exit(_module.returncode)
 
@@ -102,10 +102,10 @@ def bam(input, threads, snakemake, quiet, print_only):
         config.write(f"seq_directory: {workflowdir}/input\n")
         config.write(f"workflow_call: {call_SM}\n")
 
+    generate_conda_deps()
     print_onstart(
         f"Samples: {len(sn)}\nOutput Directory: Preflight/bam",
         "preflight bam"
     )
-    generate_conda_deps()
     _module = subprocess.run(command)
     sys.exit(_module.returncode)

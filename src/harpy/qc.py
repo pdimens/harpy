@@ -43,6 +43,7 @@ def qc(input, max_length, ignore_adapters, extra_params, threads, snakemake, ski
     call_SM = " ".join(command)
     if print_only:
         click.echo(call_SM)
+        exit(0)
 
     os.makedirs(f"{workflowdir}/", exist_ok= True)
     _ = parse_fastq_inputs(input, f"{workflowdir}/input")
@@ -58,10 +59,10 @@ def qc(input, max_length, ignore_adapters, extra_params, threads, snakemake, ski
         config.write(f"skipreports: {skipreports}\n")
         config.write(f"workflow_call: {call_SM}\n")
 
+    generate_conda_deps()
     print_onstart(
         f"Samples: {len(sn)}\nOutput Directory: QC/",
         "qc"
     )
-    generate_conda_deps()
     _module = subprocess.run(command)
-    sys.exit(_module.returncode)
+    sys.exit(success)

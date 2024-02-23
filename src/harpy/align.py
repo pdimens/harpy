@@ -63,11 +63,11 @@ def bwa(input, genome, threads, extra_params, quality_filter, molecule_distance,
             config.write(f"extra: {extra_params}\n")
         config.write(f"workflow_call: {call_SM}\n")
    
+    generate_conda_deps()
     print_onstart(
         f"Samples: {len(samplenames)}\nOutput Directory: Align/bwa/",
         "align bwa"
     )
-    generate_conda_deps()
     _module = subprocess.run(command)
     sys.exit(_module.returncode)
 
@@ -112,6 +112,7 @@ def ema(input, platform, whitelist, genome, threads, ema_bins, skipreports, extr
     call_SM = " ".join(command)
     if print_only:
         click.echo(call_SM)
+        exit(0)
 
     platform = platform.lower()
     # the tellseq stuff isn't impremented yet, but this is a placeholder for that, wishful thinking
@@ -147,10 +148,10 @@ def ema(input, platform, whitelist, genome, threads, ema_bins, skipreports, extr
             config.write(f"extra: {extra_params}\n")
         config.write(f"workflow_call: {call_SM}\n")
 
+    generate_conda_deps()
     print_onstart(
         f"Samples: {len(samplenames)}\nOutput Directory: Align/ema/",
         "align ema"
     )
-    generate_conda_deps()
     _module = subprocess.run(command)
     sys.exit(_module.returncode)

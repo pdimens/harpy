@@ -51,10 +51,10 @@ def gen1(input, samplesheet, threads, snakemake, skipreports, quiet, print_only)
         config.write(f"skipreports: {skipreports}\n")
         config.write(f"workflow_call: {call_SM}\n")
 
+    generate_conda_deps()
     print_onstart(
         f"Input Prefix: {inprefix}\nDemultiplex Schema: {samplesheet}\nOutput Directory: Demultiplex/{inprefix}",
         "demultiplex gen1"
     )
-    generate_conda_deps()
     _module = subprocess.run(command)
     sys.exit(_module.returncode)
