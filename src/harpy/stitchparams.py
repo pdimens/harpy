@@ -1,6 +1,6 @@
 import os
 import sys
-from .helperfunctions import print_notice
+from .printfunctions import print_notice
 import rich_click as click
 
 @click.command(no_args_is_help = True, epilog = "read the docs for more information: https://pdimens.github.io/harpy/modules/impute/#parameter-file")
