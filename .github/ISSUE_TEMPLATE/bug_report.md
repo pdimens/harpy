@@ -1,5 +1,7 @@
+----
 name: Bug report
 description: File a bug report if MultiQC is breaking / not behaving in the way you expect
+---
 body:
   - type: textarea
     id: description
