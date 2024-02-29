@@ -5,7 +5,7 @@ from rich.panel import Panel
 ## define some rich print functions for less redundancy
 def print_onstart(text, title):
     """Print a panel of info on workflow run"""
-    click.echo("")
+    print("")
     print(Panel(text, title = f"[bold]Harpy {title}", title_align = "left", border_style = "light_steel_blue", subtitle= "Running Workflow"), file = sys.stderr)
 
 def print_error(errortext):
