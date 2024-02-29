@@ -5,6 +5,7 @@ import subprocess
 from .fileparsers import getnames
 from urllib.request import urlretrieve
 from pathlib import Path
+from rich.table import Table
 import rich_click as click
 
 def vcfcheck(vcf):
