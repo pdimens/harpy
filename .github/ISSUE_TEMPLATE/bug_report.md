@@ -1,38 +1,81 @@
 ---
 name: Bug report
-about: Create a report to help us improve
+about: Something about harpy is breaking or not behaving in the way you expect
 title: ''
 labels: ''
 assignees: ''
 
 ---
 
-**Describe the bug**
-A clear and concise description of what the bug is.
+body:
+  - type: textarea
+    id: description
+    attributes:
+      label: Describe the bug
+      description: |
+        A clear and concise description of what the bug is. Please do note
+        paste in the contents of example files (do that below), but it may
+        be helpful in some cases to see your project directory structure. 
+    validations:
+      required: true
 
-**To Reproduce**
-Steps to reproduce the behavior:
-1. Go to '...'
-2. Click on '....'
-3. Scroll down to '....'
-4. See error
+  - type: textarea
+    id: error-file
+    attributes:
+      label: File that triggers the error (if applicable)
+      description: |
+        Please drag and drop (and upload to the GitHub issue) an input file that can be used to replicate the error.
+        You may also copy-and-paste it as a code block.
+        If the file type is not allowed, please compress into a `.zip` or `.gz` file.
+      placeholder: |
+        [ Copy and paste or drag and drop an example file here to upload ]
 
-**Expected behavior**
-A clear and concise description of what you expected to happen.
+  - type: textarea
+    id: version
+    attributes:
+      label: Harpy Version
+      description: |
+        Please include the version of harpy that is causing this issue. The version number is provided
+        by running `harpy --version`.
+      placeholder: |
+        x.x.x
+    validations:
+      required: true
 
-**Screenshots**
-If applicable, add screenshots to help explain your problem.
+  - type: textarea
+    id: log
+    attributes:
+      label: Harpy error log
+      description: |
+        Please paste your **full harpy command** and whatever error messages you are seeing
+        that are specific to your workflow and not a generic harpy error message. Helpful information
+        will include which snakemake rules are creating problems, if any.
+      render: console
+      placeholder: |
+        $ harpy preflight bam test/bam test/bam_phased
+        ╭─ Error ─────────────────────────────────────────────────────────────────╮
+        │ Identical filenames were detected, which will cause unexpected behavior │
+        │ and results. Note that files with identical names but different-cased   │
+        │ extensions are treated as identical.                                    │
+        ╰─────────────────────────────────────────────────────────────────────────╯
+        ╭─ Solution ──────────────────────────────────────────────────────────────╮
+        │ Make sure all input files have unique names.                            │
+        ╰────────────────────── Files with clashing names: ───────────────────────╯
+        test/bam/sample2.bam test/bam_phased/sample2.bam
+        test/bam/sample1.bam test/bam_phased/sample1.bam
+  validations:
+      required: true
 
-**Desktop (please complete the following information):**
- - OS: [e.g. iOS]
- - Browser [e.g. chrome, safari]
- - Version [e.g. 22]
-
-**Smartphone (please complete the following information):**
- - Device: [e.g. iPhone6]
- - OS: [e.g. iOS8.1]
- - Browser [e.g. stock browser, safari]
- - Version [e.g. 22]
-
-**Additional context**
-Add any other context about the problem here.
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Before submitting
+      description: >-
+        Please ensure your bug report fulfills all of the following requirements.
+      options:
+        - label: >-
+            I have read the [relevant documentation](https://pdimens.github.io/harpy/).
+          required: true
+        - label: >-
+            I am using the latest release of Harpy.
+          required: true
