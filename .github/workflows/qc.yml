@@ -10,6 +10,9 @@ on:
       - 'workflow/rules/qc.smk'
       - '**qc.py'
       - '**helperfunctions.py'
+      - '**printfunctions.py'
+      - '**fileparsers.py'
+      - '**validations.py'
       - 'test/fastq/**'
       - '**qc.yml'
 
@@ -22,6 +25,9 @@ on:
       - 'workflow/rules/qc.smk'
       - '**qc.py'
       - '**helperfunctions.py'
+      - '**printfunctions.py'
+      - '**fileparsers.py'
+      - '**validations.py'
       - 'test/fastq/**'
       - '**qc.yml'
 
