@@ -16,15 +16,18 @@ links:
 footer:
   copyright: "&copy; Copyright {{ year }}. All rights reserved."
 branding:
-  title: Harpy           # Your custom website title; keep it short.
-  label: v0.6.1
-  logo: static/favicon.png          # Path to a logo file.
-  logoDark: static/favicon.png # Path to a logo file to use in dark mode.
+  title: Harpy
+  label: v0.7.0
+  logo: static/favicon.png
+  logoDark: static/favicon.png
   logoAlign: left
-favicon: static/favicon.png # Path to a custom favicon, or.
+favicon: static/favicon.png
 search:
   mode: partial
 edit:
   repo: "https://github.com/pdimens/HARPY/edit"
   base: /
   branch: "docs"
+exclude:
+  - "src/"
+  - "test/"

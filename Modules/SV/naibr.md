@@ -20,8 +20,8 @@ This file is optional and only useful if you want variant calling to happen on a
     - spaces can be used as delimeters too
 - the groups can be numbers or text (_i.e._ meaningful population names)
 - you can comment out lines with `#` for Harpy to ignore them
-- create with `harpy extra popgroup -d <samplefolder>` or manually
-- if created with `harpy extra popgroup`, all the samples will be assigned to group `pop1`
+- create with `harpy popgroup -d <samplefolder>` or manually
+- if created with `harpy popgroup`, all the samples will be assigned to group `pop1`
     - make sure to edit the second column to reflect your data correctly.
 
 ``` example file for --populations
@@ -49,15 +49,15 @@ should already have that information (yay!). If your alignments don't have phasi
 then you will need to do a little extra work for NAIBR to work best with your data. This process is described below.
 
 ```bash usage
-harpy sv naibr OPTIONS... 
+harpy sv naibr OPTIONS... INPUTS...
 ```
 
 ```bash examples
 # input bams already phased
-harpy sv naibr --threads 20 --directory Align/bwa --genome genome.fasta
+harpy sv naibr --threads 20 --genome genome.fasta Align/bwa
 
 # input bams require phasing
-harpy sv naibr --threads 20 --directory Align/bwa --genome genome.fasta --vcf Variants/data.vcf.gz
+harpy sv naibr --threads 20 --genome genome.fasta --vcf Variants/data.vcf.gz Align/bwa
 ```
 
 ## :icon-terminal: Running Options
@@ -65,8 +65,8 @@ In addition to the [common runtime options](/commonoptions.md), the `harpy sv na
 
 | argument         | short name | type          | default | required | description                                        |
 |:-----------------|:----------:|:--------------|:-------:|:--------:|:---------------------------------------------------|
+| `INPUTS`         |            | file/directory paths  |         | **yes**  | Files or directories containing [input BAM files](/commonoptions.md#input-arguments)     |
 | `--genome`       |    `-g`    | file path     |         | **yes** | Genome assembly for phasing bam files     |
-| `--directory`    |    `-d`    | folder path   |         | **yes**           | Directory with sequence alignments                  |
 | `--vcf`          |    `-v`    | file path     |         | **conditionally** | Phased vcf file for phasing bam files     |
 | `--molecule-distance` |  `-m` | integer       |  100000 |    no             | Base-pair distance threshold to separate molecules |
 | `--populations`  |    `-p`    | file path     |         |    no             | Tab-delimited file of sample\<*tab*\>group         |
@@ -99,7 +99,7 @@ it too well.
 In order to get the best variant calling performance out of NAIBR, it requires _phased_ bam files as input. 
 The `--vcf` option is optional and not used by NAIBR. However, to use `harpy sv naibr` with
 bam files that are not phased, you will need to include `--vcf`, which Harpy uses with 
-`whatshap haplotag` to phase your input bam files prior to variant calling. See the [whatshap documentation](https://whatshap.readthedocs.io/en/latest/guide.html#whatshap-haplotag)
+`whatshap haplotag` to phase your input BAM files prior to variant calling. See the [whatshap documentation](https://whatshap.readthedocs.io/en/latest/guide.html#whatshap-haplotag)
 for more details on that process.
 
 #### a phased input --vcf

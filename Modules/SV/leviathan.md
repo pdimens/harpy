@@ -25,8 +25,8 @@ This file is optional and only useful if you want variant calling to happen on a
     - spaces can be used as delimeters too
 - the groups can be numbers or text (_i.e._ meaningful population names)
 - you can comment out lines with `#` for Harpy to ignore them
-- create with `harpy extra popgroup -d <samplefolder>` or manually
-- if created with `harpy extra popgroup`, all the samples will be assigned to group `pop1`
+- create with `harpy popgroup -d <samplefolder>` or manually
+- if created with `harpy popgroup`, all the samples will be assigned to group `pop1`
     - make sure to edit the second column to reflect your data correctly.
 
 ``` example file for --populations
@@ -47,16 +47,16 @@ from the sample names. A simple fix would be to use underscores (`_`) to differe
 
 After reads have been aligned, _e.g._ with `harpy align`, you can use those alignment files
 (`.bam`) to call structural variants in your data using LEVIATHAN. To make sure your data
-will work seemlessly with LEVIATHAN, the alignments in the input BAM files should **end**
+will work seemlessly with LEVIATHAN, the alignments in the [input BAM files](/commonoptions.md) should **end**
 with a `BX:Z:AxxCxxBxxDxx` tag. Use `harpy preflight bam` if you want to double-check file
 format validity.
 
 ```bash usage
-harpy sv leviathan OPTIONS... 
+harpy sv leviathan OPTIONS... INPUTS...
 ```
 
 ```bash example
-harpy sv leviathan --threads 20 --directory Align/bwa -g genome.fasta
+harpy sv leviathan --threads 20 -g genome.fasta Align/bwa
 ```
 
 ## :icon-terminal: Running Options
@@ -64,8 +64,8 @@ In addition to the [common runtime options](/commonoptions.md), the `harpy sv le
 
 | argument         | short name | type          | default | required | description                                        |
 |:-----------------|:----------:|:--------------|:-------:|:--------:|:---------------------------------------------------|
+| `INPUTS`         |            | file/directory paths  |         | **yes**  | Files or directories containing [input BAM files](/commonoptions.md#input-arguments)     |
 | `--genome`       |    `-g`    | file path     |         | **conditionally** | Genome assembly for phasing bam files     |
-| `--directory`    |    `-d`    | folder path   |         | **yes**           | Directory with sequence alignments                  |
 | `--populations`  |    `-p`    | file path     |         |    no             | Tab-delimited file of sample\<*tab*\>group         |
 | `--extra-params` |    `-x`    | string        |         |    no             | Additional naibr arguments, in quotes              |
 

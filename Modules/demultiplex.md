@@ -20,17 +20,17 @@ should have been added during the sample DNA preparation in a laboratory. The de
 haplotag technology you are using (read [Haplotag Types](#haplotag-types)).
 
 ```bash usage
-harpy demultiplex OPTIONS... 
+harpy demultiplex OPTIONS... INPUT
 ```
 ```bash example
-harpy demultiplex --threads 20 --file Plate_1_S001_R1.fastq.gz --samplesheet demux.schema
+harpy demultiplex --threads 20 --samplesheet demux.schema Plate_1_S001_R1.fastq.gz
 ```
 ## :icon-terminal: Running Options
 In addition to the [common runtime options](/commonoptions.md), the `harpy demultiplex` module is configured using these command-line arguments:
 
 | argument          | short name | type       | default | required | description                                                                          |
 |:------------------|:----------:|:-----------|:-------:|:--------:|:-------------------------------------------------------------------------------------|
-| `--file`          |    `-f`    | file path  |         | **yes**  | The forward (or reverse) multiplexed FASTQ file                                      |
+| `INPUT`           |            | file path  |         | **yes**  | The forward (or reverse) multiplexed FASTQ file                                      |
 | `--samplesheet`   |    `-b`    | file path  |         | **yes**  | Tab-delimited file of sample\<tab\>barcode                                           |
 | `--method`        |    `-m`    | choice     | `gen1`  | **yes**  | Haplotag technology of the sequences                                                 |
 

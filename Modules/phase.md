@@ -21,10 +21,10 @@ works on SNP data**, and will not work for structural variants produced by `LEVI
 phase genotypes into haplotypes with Harpy using the `phase` module:
 
 ```bash usage
-harpy phase OPTIONS... 
+harpy phase OPTIONS... INPUTS...
 ```
 ```bash example
-harpy phase --threads 20 --vcf Variants/variants.raw.bcf --directory Align/ema 
+harpy phase --threads 20 --vcf Variants/variants.raw.bcf Align/ema 
 ```
 
 ## :icon-terminal: Running Options
@@ -32,8 +32,8 @@ In addition to the [common runtime options](/commonoptions.md), the `harpy phase
 
 | argument              | short name | type            | default | required | description                                                          |
 |:----------------------|:----------:|:----------------|:-------:|:--------:|:---------------------------------------------------------------------|
+| `INPUTS`           |            | file/directory paths  |         | **yes**  | Files or directories containing [input BAM files](/commonoptions.md#input-arguments)     |
 | `--vcf`               |    `-v`    | file path       |         | **yes**  | Path to BCF/VCF file                                                 |
-| `--directory`         |    `-d`    | folder path     |         | **yes**  | Directory with sequence alignments                                   |
 | `--genome           ` |    `-g`    | file path       |         |    no    | Path to genome if wanting to also use reads spanning indels          |
 | `--molecule-distance` |    `-m`    | integer         |  100000  |    no    | Base-pair distance threshold to separate molecules                   |
 | `--prune-threshold`   |    `-p`    | integer (0-100) |    7    |    no    | PHRED-scale (%) threshold for pruning low-confidence SNPs            |

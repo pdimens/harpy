@@ -11,15 +11,15 @@ order: 5
 - at least 4 cores/threads available
 - a genome assembly in FASTA format
 - sequence alignments, in `.bam` format
-- sample grouping file
+- sample grouping file (optional)
 ==- :icon-file: sample grouping file
 This file is optional and useful if you want variant calling to happen on a per-population level.
 - takes the format of sample\<*tab*\>group
     - spaces can be used as delimeters too
 - the groups can be numbers or text (_i.e._ meaningful population names)
 - you can comment out lines with `#` for Harpy to ignore them
-- create with `harpy extra popgroup -d <samplefolder>` or manually
-- if created with `harpy extra popgroup`, all the samples will be assigned to group `pop1`, so make sure to edit the second column to reflect your data correctly.
+- create with `harpy popgroup <samplefolder>` or manually
+- if created with `harpy popgroup`, all the samples will be assigned to group `pop1`, so make sure to edit the second column to reflect your data correctly.
 
 ``` example file for --populations
 sample1 pop1
@@ -43,15 +43,15 @@ After reads have been aligned, _e.g._, with `harpy align`, you can use those ali
 You can call SNPs with the ` harpy snp` module:
 
 ```bash usage
-harpy snp method OPTIONS... 
+harpy snp method OPTIONS... INPUTS...
 ```
 
 ```bash examples
 # call variants with mpileup
-harpy snp mpileup --threads 20 --genome genome.fasta --directory Align/bwa
+harpy snp mpileup --threads 20 --genome genome.fasta Align/bwa
 
 # call variants with freebayes
-harpy snp freebayes --threads 20 --genome genome.fasta --directory Align/bwa
+harpy snp freebayes --threads 20 --genome genome.fasta Align/bwa
 ```
 
 ## :icon-terminal: Running Options
@@ -59,8 +59,8 @@ In addition to the [common runtime options](../commonoptions.md), the `harpy snp
 
 | argument         | short name | type                            | default | required | description                                         |
 |:-----------------|:----------:|:--------------------------------|:-------:|:--------:|:----------------------------------------------------|
+| `INPUTS`           |            | file/directory paths  |         | **yes**  | Files or directories containing [input BAM files](/commonoptions.md#input-arguments)   |
 | `--genome`       |    `-g`    | file path                       |         | **yes**  | Genome assembly for variant calling                 |
-| `--directory`    |    `-d`    | folder path                     |         | **yes**  | Directory with sequence alignments                  |
 | `--windowsize`   |    `-w`    | integer                         |  50000  |    no    | Interval size for parallel variant calling          |
 | `--populations`  |    `-p`    | file path                       |         |    no    | Tab-delimited file of sample\<*tab*\>group            |
 | `--ploidy`       |    `-x`    | integer                         |    2    |    no    | Ploidy of samples                                   |

@@ -18,9 +18,12 @@ The arguments represent different sub-commands and can be run in any order or co
 
 ### popgroup
 #### Sample grouping file for variant calling
+
+```bash
+harpy popgroup -o samples.groups data/
+```
 ##### arguments
 - `-o`, `--output`: name of the output file
-- `-d`, `--directory`: name of the directory of input files, either fastq or bam.
 
 This file is entirely optional and useful if you want SNP variant calling to happen on a
 per-population level via `harpy snp ... -p` or on samples pooled-as-populations via `harpy sv ... -p`.

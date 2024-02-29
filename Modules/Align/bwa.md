@@ -18,10 +18,10 @@ such as those derived using `harpy qc`. You can map reads onto a genome assembly
 using the `align` module:
 
 ```bash usage
-harpy align bwa|ema OPTIONS...
+harpy align bwa OPTIONS... INPUTS...
 ```
 ```bash example
-harpy align bwa --genome genome.fasta --directory Sequences/ 
+harpy align bwa --genome genome.fasta Sequences/ 
 ```
 
 ## :icon-terminal: Running Options
@@ -29,8 +29,8 @@ In addition to the [common runtime options](/commonoptions.md), the `harpy align
 
 | argument           | short name | type                  | default | required | description                                           |
 |:-------------------|:----------:|:----------------------|:-------:|:--------:|:------------------------------------------------------|
+| `INPUTS`           |            | file/directory paths  |         | **yes**  | Files or directories containing [input FASTQ files](/commonoptions.md#input-arguments)     |
 | `--genome`         |    `-g`    | file path             |         | **yes**  | Genome assembly for read mapping                      |
-| `--directory`      |    `-d`    | folder path           |         | **yes**  | Directory with sample sequences                       |
 | `--molecule-distance` |    `-m`    | integer         |  100000  |    no    | Base-pair distance threshold to separate molecules      |
 | `--quality-filter` |    `-f`    | integer (0-40)        |   30    |    no    | Minimum `MQ` (SAM mapping quality) to pass filtering  |
 | `--method`         |    `-m`    | choice [`bwa`, `ema`] |   bwa   |    no    | Which aligning software to use                        |
@@ -44,7 +44,13 @@ to assign alignments a unique Molecular Identifier `MI:i` tag based on their
 what this value does. 
 
 ## Quality filtering
-==- What is a $MQ$ score?
+The `--quality` argument filters out alignments below a given $MQ$ threshold. The default, `30`, keeps alignments
+that are at least 99.9% likely correctly mapped. Set this value to `1` if you only want alignments removed with
+$MQ = 0$ (0% likely correct). You may also set it to `0` to keep all alignments for diagnostic purposes.
+The plot below shows the relationship between $MQ$ score and the likelihood the alignment is correct and will serve to help you decide
+on a value you may want to use. It is common to remove alignments with $MQ <30$ (<99.9% chance correct) or $MQ <40$ (<99.99% chance correct).
+
+==- What is the $MQ$ score?
 Every alignment in a BAM file has an associated mapping quality score ($MQ$) that informs you of the likelihood 
 that the alignment is accurate. This score can range from 0-40, where higher numbers mean the alignment is more
 likely correct. The math governing the $MQ$ score actually calculates the percent chance the alignment is ***incorrect***: 
@@ -58,14 +64,9 @@ $$
 \text{or} \\
 \%\ chance\ correct = (1 - 10^\frac{-MQ}{10}) \times 100
 $$
-===
-The `--quality` argument filters out alignments below a given $MQ$ threshold. The default, `30`, keeps alignments
-that are at least 99.9% likely correctly mapped. Set this value to `1` if you only want alignments removed with
-$MQ = 0$ (0% likely correct). You may also set it to `0` to keep all alignments for diagnostic purposes.
-The plot below shows the relationship between $MQ$ score and the likelihood the alignment is correct and will serve to help you decide
-on a value you may want to use. It is common to remove alignments with $MQ <30$ (<99.9% chance correct) or $MQ <40$ (<99.99% chance correct).
 
 [!embed el="embed"](//plotly.com/~pdimens/7.embed)
+===
 
 ## Marking PCR duplicates
 Harpy uses `samtools markdup` to mark putative PCR duplicates. By using the `--barcode-tag BX`
