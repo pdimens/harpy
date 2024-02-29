@@ -6,7 +6,7 @@ import sys
 import glob
 
 seq_dir = config["seq_directory"]
-out_dir = f"{seq_dir}/Preflight/"
+out_dir = f"Preflight/bam/"
 
 bamlist = [os.path.basename(i) for i in glob.iglob(f"{seq_dir}/*") if not os.path.isdir(i) and i.lower().endswith(".bam")]
 samplenames = set([os.path.splitext(i)[0] for i in bamlist])  
@@ -30,7 +30,7 @@ onsuccess:
     print("")
     rprint(
         Panel(
-            f"The workflow has finished successfully! Find the results in [bold]{out_dir}/[/bold]",
+            f"The workflow has finished successfully! Find the results in [bold]{out_dir}[/bold]",
             title = "[bold]harpy preflight bam",
             title_align = "left",
             border_style = "green"
@@ -75,7 +75,7 @@ rule mergeChecks:
 
 rule log_runtime:
     output:
-        out_dir + "/workflow/preflight.workflow.summary"
+        out_dir + "workflow/preflight.workflow.summary"
     message:
         "Creating record of relevant runtime parameters: {output}"
     run:
@@ -104,7 +104,7 @@ rule createReport:
 rule all:
     default_target: True
     input:
-        out_dir + "/workflow/preflight.workflow.summary",
+        out_dir + "workflow/preflight.workflow.summary",
         out_dir + "filecheck.bam.html"
     message:
         "Checking for expected workflow output"

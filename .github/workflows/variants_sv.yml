@@ -11,6 +11,9 @@ on:
       - 'workflow/rules/sv-**.smk'
       - '**sv.py'
       - '**helperfunctions.py'
+      - '**printfunctions.py'
+      - '**fileparsers.py'
+      - '**validations.py'
       - 'workflow/scripts/makewindows.py'
       - 'test/bam/**'
       - 'test/bam_phased/**'
@@ -29,6 +32,9 @@ on:
       - 'workflow/rules/sv-**.smk'
       - '**sv.py'
       - '**helperfunctions.py'
+      - '**printfunctions.py'
+      - '**fileparsers.py'
+      - '**validations.py'
       - 'workflow/scripts/makewindows.py'
       - 'test/bam/**'
       - 'test/bam_phased/**'
@@ -68,12 +74,12 @@ jobs:
           resources/buildforCI.sh
       - name: leviathan
         shell: micromamba-shell {0}
-        run: harpy sv leviathan -d test/bam -g test/genome/genome.fasta.gz -q -s "--show-failed-logs"
+        run: harpy sv leviathan -g test/genome/genome.fasta.gz -q -s "--show-failed-logs" test/bam
         continue-on-error: true
       - name: leviathan-pop
         if: always()
         shell: micromamba-shell {0}
-        run: harpy sv leviathan -d test/bam -g test/genome/genome.fasta.gz -p test/samples.groups -q -s "--show-failed-logs"
+        run: harpy sv leviathan -g test/genome/genome.fasta.gz -p test/samples.groups -q -s "--show-failed-logs" test/bam
   test_naibr:
     name: naibr
     runs-on: ubuntu-latest
@@ -101,16 +107,16 @@ jobs:
           resources/buildforCI.sh
       - name: naibr
         shell: micromamba-shell {0}
-        run: harpy sv naibr -d test/bam_phased -g test/genome/genome.fasta.gz -q -s "--show-failed-logs"
+        run: harpy sv naibr -g test/genome/genome.fasta.gz -q -s "--show-failed-logs" test/bam_phased
       - name: naibr pop
         if: always()
         shell: micromamba-shell {0}
-        run: harpy sv naibr -d test/bam_phased -g test/genome/genome.fasta.gz -p test/samples.groups -q -s "--show-failed-logs"
-      - name: naibr phasing
+        run: harpy sv naibr -g test/genome/genome.fasta.gz -p test/samples.groups -q -s "--show-failed-logs" test/bam_phased
+      - name: naibr with phasing
         if: always()
         shell: micromamba-shell {0}
-        run: harpy sv naibr -d test/bam -g test/genome/genome.fasta.gz -v test/vcf/test.phased.bcf -q -s "--show-failed-logs"       
-      - name: naibr pop phasing
+        run: harpy sv naibr -g test/genome/genome.fasta.gz -v test/vcf/test.phased.bcf -q -s "--show-failed-logs" test/bam    
+      - name: naibr pop with phasing
         if: always()
         shell: micromamba-shell {0}
-        run: harpy sv naibr -d test/bam -g test/genome/genome.fasta.gz -v test/vcf/test.phased.bcf -p test/samples.groups -q -s "--show-failed-logs"
+        run: harpy sv naibr -g test/genome/genome.fasta.gz -v test/vcf/test.phased.bcf -p test/samples.groups -q -s "--show-failed-logs" test/bam

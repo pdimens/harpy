@@ -8,6 +8,7 @@ Genome/
 Align/
 Variants/
 Impute/
+Preflight/
 Phase/
 samples.populations
 *.fasta
@@ -16,4 +17,4 @@ genome.fasta
 build/
 src/harpy.egg-info
 src/harpy/__pycache__
-Benchmark/
+.Benchmark/

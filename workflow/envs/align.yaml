@@ -8,7 +8,6 @@ dependencies:
   - ema
   - icu
   - libzlib
-  - multiqc
   - llvm-openmp 
   - pysam
   - samtools=1.19

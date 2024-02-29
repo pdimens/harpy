@@ -10,6 +10,9 @@ on:
       - 'workflow/rules/demultiplex**.smk'
       - '**demultiplex.py'
       - '**helperfunctions.py'
+      - '**printfunctions.py'
+      - '**fileparsers.py'
+      - '**validations.py'
       - '**demuxGen1'
       - '**demux.yml'
       - 'BC_files.py'
@@ -23,6 +26,9 @@ on:
       - 'workflow/envs/qc.yaml'
       - 'workflow/rules/demultiplex**.smk'
       - '**helperfunctions.py'
+      - '**printfunctions.py'
+      - '**fileparsers.py'
+      - '**validations.py'
       - '**demultiplex.py'
       - '**demuxGen1'
       - '**demux.yml'
@@ -57,5 +63,5 @@ jobs:
           resources/buildforCI.sh
         shell: micromamba-shell {0}
       - name: harpy demultiplex
-        run: harpy demultiplex gen1 --file test/demux/Undetermined_S0_L004_I1_001.fastq.gz --samplesheet test/demux/samples.schema
+        run: harpy demultiplex gen1 --samplesheet test/demux/samples.schema test/demux/Undetermined_S0_L004_I1_001.fastq.gz
         shell: micromamba-shell {0}

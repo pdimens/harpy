@@ -10,6 +10,9 @@ on:
       - 'workflow/rules/qc.smk'
       - '**qc.py'
       - '**helperfunctions.py'
+      - '**printfunctions.py'
+      - '**fileparsers.py'
+      - '**validations.py'
       - 'test/fastq/**'
       - '**qc.yml'
 
@@ -22,6 +25,9 @@ on:
       - 'workflow/rules/qc.smk'
       - '**qc.py'
       - '**helperfunctions.py'
+      - '**printfunctions.py'
+      - '**fileparsers.py'
+      - '**validations.py'
       - 'test/fastq/**'
       - '**qc.yml'
 
@@ -30,7 +36,7 @@ env:
 
 jobs:
   build:
-    name: linux64
+    name: testQC
     runs-on: ubuntu-latest
     steps:
       - name: checkout
@@ -54,9 +60,9 @@ jobs:
 
       - name: harpy qc
         shell: micromamba-shell {0}
-        run: harpy qc -d test/fastq
+        run: harpy qc test/fastq
       
       - name: harpy qc skip adapter trimming
         if: always()
         shell: micromamba-shell {0}
-        run: harpy qc -d test/fastq -a
+        run: harpy qc test/fastq -a

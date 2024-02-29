@@ -10,6 +10,9 @@ on:
       - 'workflow/envs/r-env.yaml'
       - '**impute.py'
       - '**helperfunctions.py'
+      - '**printfunctions.py'
+      - '**fileparsers.py'
+      - '**validations.py'
       - 'test/bam/**'
       - 'test/vcf/test.bcf'
       - '**impute.yml'
@@ -26,6 +29,9 @@ on:
       - 'workflow/envs/r-env.yaml'
       - '**impute.py'
       - '**helperfunctions.py'
+      - '**printfunctions.py'
+      - '**fileparsers.py'
+      - '**validations.py'
       - 'test/bam/**'
       - 'test/vcf/test.bcf'
       - '**impute.yml'
@@ -38,7 +44,7 @@ env:
 
 jobs:
   build:
-    name: linux64
+    name: testImpute
     runs-on: ubuntu-latest
     steps:
       - name: checkout
@@ -65,11 +71,11 @@ jobs:
 
       - name: impute
         shell: micromamba-shell {0}
-        run: harpy impute --vcf test/vcf/test.bcf -d test/bam -p test/stitch.params -s "--show-failed-logs"
+        run: harpy impute --vcf test/vcf/test.bcf -p test/stitch.params -s "--show-failed-logs" test/bam
 
       - name: impute from vcf
         shell: micromamba-shell {0}
         if: always()
         run: |
           rm -rf Impute
-          harpy impute --vcf-samples --vcf test/vcf/test.bcf -d test/bam -p test/stitch.params -s "--show-failed-logs"
+          harpy impute --vcf-samples --vcf test/vcf/test.bcf -p test/stitch.params -s "--show-failed-logs" test/bam

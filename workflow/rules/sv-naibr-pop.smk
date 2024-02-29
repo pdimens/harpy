@@ -121,7 +121,8 @@ rule create_config:
     output:
         outdir + "/configs/{population}.config"
     params:
-        lambda wc: wc.get("population")
+        lambda wc: wc.get("population"),
+        min(10, workflow.cores)
     message:
         "Creating naibr config file: {wildcards.population}"
     run:
@@ -130,7 +131,7 @@ rule create_config:
             _ = conf.write(f"bam_file={input[0]}\n")
             _ = conf.write(f"outdir=Variants/naibr-pop/{params[0]}\n")
             _ = conf.write(f"prefix={params[0]}\n")
-            _ = conf.write(f"threads={workflow.cores}\n")
+            _ = conf.write(f"threads={params[1]}\n")
             for i in argdict:
                 _ = conf.write(f"{i}={argdict[i]}\n")
 
@@ -146,15 +147,13 @@ rule call_sv:
     log:
         outdir + "/logs/{population}.log"
     threads:
-        8        
+        min(10, workflow.cores)
     conda:
         os.getcwd() + "/harpyenvs/variants.sv.yaml"
     message:
         "Calling variants: {wildcards.population}"
     shell:
-        """
-        naibr {input.conf} > {log} 2>&1
-        """
+        "naibr {input.conf} > {log} 2>&1"
 
 rule infer_sv:
     input:

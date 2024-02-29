@@ -11,6 +11,9 @@ on:
       - 'workflow/rules/align-**.smk'
       - '**align.py'
       - '**helperfunctions.py'
+      - '**printfunctions.py'
+      - '**fileparsers.py'
+      - '**validations.py'
       - 'workflow/report/**Gencov.Rmd'
       - 'workflow/report/EmaCount.Rmd'
       - 'workflow/report/BxCount.Rmd'
@@ -31,6 +34,9 @@ on:
       - 'workflow/rules/align-**.smk'
       - '**align.py'
       - '**helperfunctions.py'
+      - '**printfunctions.py'
+      - '**fileparsers.py'
+      - '**validations.py'
       - 'workflow/report/**Gencov.Rmd'
       - 'workflow/report/EmaCount.Rmd'
       - 'workflow/report/BxCount.Rmd'
@@ -72,7 +78,7 @@ jobs:
         shell: micromamba-shell {0}
       - name: test bwa
         shell: micromamba-shell {0}
-        run: harpy align bwa -d test/fastq -g test/genome/genome.fasta.gz -q -s "--show-failed-logs"
+        run: harpy align bwa -g test/genome/genome.fasta.gz -q -s "--show-failed-logs" test/fastq
   test_ema:
     name: ema
     runs-on: ubuntu-latest
@@ -100,4 +106,4 @@ jobs:
         shell: micromamba-shell {0}
       - name: test ema
         shell: micromamba-shell {0}
-        run: harpy align ema --ema-bins 20 -d test/fastq -g test/genome/genome.fasta.gz -q -s "--show-failed-logs"
+        run: harpy align ema --ema-bins 20 -g test/genome/genome.fasta.gz -q -s "--show-failed-logs" test/fastq

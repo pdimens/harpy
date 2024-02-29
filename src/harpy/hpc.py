@@ -1,5 +1,5 @@
-from .helperfunctions import get_samples_from_fastq, print_error, print_solution
-
+from .printfunctions import print_error, print_solution
+from .fileparsers import get_samples_from_fastq
 import os
 import sys
 import rich_click as click

@@ -93,16 +93,15 @@ rule mpileup:
         bamlist = outdir + "/logs/samples.files",
         genome  = f"Genome/{bn}"
     output: 
-        pipe(outdir + "/{part}.mp.bcf")
-    log: 
-        outdir + "/logs/{part}.mpileup.log"
+        bcf = pipe(outdir + "/{part}.mp.bcf"),
+        logfile = temp(outdir + "/logs/{part}.mpileup.log")
     params:
         region = lambda wc: "-r " + regions[wc.part],
         extra = mp_extra
     message: 
         "Finding variants: {wildcards.part}"
     shell:
-        "bcftools mpileup --fasta-ref {input.genome} --bam-list {input.bamlist} --annotate AD --output-type b {params} > {output} 2> {log}"
+        "bcftools mpileup --fasta-ref {input.genome} --bam-list {input.bamlist} --annotate AD --output-type b {params} > {output.bcf} 2> {output.logfile}"
 
 if groupings:
     rule call_genotypes_pop:
@@ -153,6 +152,22 @@ rule concat_list:
         with open(output[0], "w") as fout:
             for bcf in input.bcfs:
                 _ = fout.write(f"{bcf}\n")  
+
+rule concat_logs:
+    input:
+        expand(outdir + "/logs/{part}.mpileup.log", part = intervals)
+    output:
+        outdir + "/logs/mpileup.log"
+    message:
+        "Combining mpileup logs"
+    run:
+        with open(output[0], "w") as fout:
+            for file in input:
+                fin = open(file, "r")
+                interval = os.path.basename(file).replace(".mpileup.log", "")
+                for line in fin.readlines():
+                    fout.write(f"{interval}\t{line}")
+                fin.close()
 
 rule merge_vcfs:
     input:
@@ -256,6 +271,7 @@ rule log_runtime:
 results = list()
 results.append(outdir + "/workflow/snp.mpileup.workflow.summary")
 results.append(expand(outdir + "/variants.{file}.bcf", file = ["raw", "normalized"]))
+results.append(outdir + "/logs/mpileup.log")
 if not skipreports:
     results.append(expand(outdir + "/reports/variants.{file}.html", file = ["raw", "normalized"]))
 

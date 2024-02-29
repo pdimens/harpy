@@ -12,6 +12,9 @@ on:
       - 'workflow/rules/snp-freebayes.smk'
       - '**snp.py'
       - '**helperfunctions.py'
+      - '**printfunctions.py'
+      - '**fileparsers.py'
+      - '**validations.py'
       - 'workflow/report/BcftoolsStats.Rmd'
       - 'workflow/scripts/makewindows.py'
       - 'test/bam/**'
@@ -28,6 +31,9 @@ on:
       - 'workflow/rules/snp-freebayes.smk'
       - '**snp.py'
       - '**helperfunctions.py'
+      - '**printfunctions.py'
+      - '**fileparsers.py'
+      - '**validations.py'
       - 'workflow/report/BcftoolsStats.Rmd'
       - 'workflow/scripts/makewindows.py'
       - 'test/bam/**'
@@ -64,7 +70,7 @@ jobs:
           resources/buildforCI.sh
       - name: variants mpileup
         shell: micromamba-shell {0}
-        run: harpy snp mpileup -w 150000 -d test/bam -g test/genome/genome.fasta.gz -q
+        run: harpy snp mpileup -w 150000 -g test/genome/genome.fasta.gz -q test/bam
   test_freebayes:
     name: freebayes
     runs-on: ubuntu-latest
@@ -92,4 +98,4 @@ jobs:
           resources/buildforCI.sh
       - name: variants freebayes
         shell: micromamba-shell {0}
-        run: harpy snp freebayes -w 150000 -d test/bam -g test/genome/genome.fasta.gz -q
+        run: harpy snp freebayes -w 150000 -g test/genome/genome.fasta.gz -q test/bam

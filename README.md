@@ -31,7 +31,7 @@ mamba install -n envname -c bioconda -c conda-forge harpy
 
 </details>
 
-### 🌟 Activate the harpy environment
+## 🌟 Activate the harpy environment
 Once conda/mamba finishes, activate the conda/mamba environment you installed harpy into with
 ```bash
 conda activate env_name

@@ -11,6 +11,9 @@ on:
       - 'workflow/rules/phase-pop.smk'
       - '**phase.py'
       - '**helperfunctions.py'
+      - '**printfunctions.py'
+      - '**fileparsers.py'
+      - '**validations.py'
       - 'test/bam/**'
       - 'test/vcf/test.bcf'
       - '**phase.yml'
@@ -28,6 +31,9 @@ on:
       - 'workflow/rules/phase-pop.smk'
       - '**phase.py'
       - '**helperfunctions.py'
+      - '**printfunctions.py'
+      - '**fileparsers.py'
+      - '**validations.py'
       - 'test/bam/**'
       - 'test/vcf/test.bcf'
       - '**phase.yml'
@@ -41,7 +47,7 @@ env:
 
 jobs:
   build:
-    name: linux64
+    name: testPhase
     runs-on: ubuntu-latest
     steps:
       - name: checkout
@@ -68,18 +74,18 @@ jobs:
 
       - name: phase
         shell: micromamba-shell {0}
-        run: harpy phase --vcf test/vcf/test.bcf -d test/bam -s "--show-failed-logs"
+        run: harpy phase --vcf test/vcf/test.bcf -s "--show-failed-logs" test/bam
 
       - name: phase with indels
         shell: micromamba-shell {0}
         if: always()
         run: |
           rm -rf Phase
-          harpy phase --vcf test/vcf/test.bcf -g test/genome/genome.fasta.gz -d test/bam -s "--show-failed-logs"
+          harpy phase --vcf test/vcf/test.bcf -g test/genome/genome.fasta.gz -s "--show-failed-logs" test/bam
 
       - name: phase from vcf
         shell: micromamba-shell {0}
         if: always()
         run: |
           rm -rf Phase
-          harpy phase --vcf-samples --vcf test/vcf/test.bcf -d test/bam -s "--show-failed-logs"
+          harpy phase --vcf-samples --vcf test/vcf/test.bcf -s "--show-failed-logs" test/bam
