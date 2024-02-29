@@ -2,6 +2,7 @@ import sys
 import os
 import re
 import subprocess
+from .fileparsers import getnames
 from urllib.request import urlretrieve
 from pathlib import Path
 import rich_click as click
