@@ -1,5 +1,7 @@
-from .helperfunctions import fetch_file, generate_conda_deps, getnames, print_onstart
-from .helperfunctions import vcfcheck, vcf_samplematch, validate_bamfiles, parse_alignment_inputs
+from .helperfunctions import fetch_file, generate_conda_deps
+from .fileparsers import parse_alignment_inputs
+from .printfunctions import print_onstart
+from .validations import vcfcheck, vcf_samplematch, validate_bamfiles
 import sys
 import os
 import subprocess

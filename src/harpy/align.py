@@ -1,7 +1,8 @@
 import rich_click as click
 from pathlib import Path
-from .helperfunctions import fetch_file, generate_conda_deps, get_samples_from_fastq, parse_fastq_inputs
-from .helperfunctions import print_error, print_solution, print_notice, print_onstart
+from .helperfunctions import fetch_file, generate_conda_deps
+from .fileparsers import get_samples_from_fastq, parse_fastq_inputs
+from .printfunctions import print_error, print_solution, print_notice, print_onstart
 import subprocess
 import sys
 import os

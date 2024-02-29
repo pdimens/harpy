@@ -1,5 +1,7 @@
-from .helperfunctions import fetch_file, generate_conda_deps, getnames, print_onstart
-from .helperfunctions import validate_popfile, validate_vcfsamples, check_phase_vcf, parse_alignment_inputs
+from .helperfunctions import fetch_file, generate_conda_deps
+from .fileparsers import getnames, parse_alignment_inputs
+from .printfunctions import print_onstart
+from .validations import validate_popfile, validate_vcfsamples, check_phase_vcf
 import rich_click as click
 import subprocess
 import sys

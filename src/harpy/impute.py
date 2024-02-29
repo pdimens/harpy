@@ -1,6 +1,7 @@
-from .helperfunctions import fetch_file, generate_conda_deps, getnames, print_onstart
-from .helperfunctions import vcfcheck, vcf_samplematch, biallelic_contigs
-from .helperfunctions import check_impute_params, validate_bamfiles, parse_alignment_inputs
+from .helperfunctions import fetch_file, generate_conda_deps, biallelic_contigs
+from .fileparsers import parse_alignment_inputs
+from .printfunctions import print_onstart
+from .validations import vcfcheck, vcf_samplematch, check_impute_params, validate_bamfiles
 import rich_click as click
 import subprocess
 import sys

@@ -1,6 +1,7 @@
 import rich_click as click
-from .helperfunctions import fetch_file, generate_conda_deps, print_onstart
-from .helperfunctions import parse_alignment_inputs, parse_fastq_inputs
+from .helperfunctions import fetch_file, generate_conda_deps
+from .printfunctions import print_onstart
+from .fileparsers import parse_alignment_inputs, parse_fastq_inputs
 import subprocess
 import re
 import os

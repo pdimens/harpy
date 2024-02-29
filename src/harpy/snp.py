@@ -1,9 +1,12 @@
-from .helperfunctions import fetch_file, generate_conda_deps, getnames, createregions, print_onstart
-from .helperfunctions import validate_bamfiles, validate_popfile, validate_vcfsamples, parse_alignment_inputs
+from .helperfunctions import fetch_file, generate_conda_deps, createregions
+from .fileparsers import getnames, parse_alignment_inputs
+from .printfunctions import print_onstart
+from .validations import validate_bamfiles, validate_popfile, validate_vcfsamples
 import rich_click as click
 import subprocess
 import sys
 import os
+
 @click.command(no_args_is_help = True, epilog = "read the docs for more information: https://pdimens.github.io/harpy/modules/snp")
 @click.option('-g', '--genome', type=click.Path(exists=True), required = True, metavar = "File Path", help = 'Genome assembly for variant calling')
 @click.option('-p', '--populations', type=click.Path(exists = True), metavar = "File Path", help = 'Tab-delimited file of sample<tab>population (optional)')

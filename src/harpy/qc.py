@@ -1,5 +1,7 @@
+from .helperfunctions import generate_conda_deps, fetch_file 
+from .fileparsers import get_samples_from_fastq, parse_fastq_inputs
+from .printfunctions import print_onstart
 import rich_click as click
-from .helperfunctions import generate_conda_deps, get_samples_from_fastq, fetch_file, print_onstart, parse_fastq_inputs
 import subprocess
 import re
 import os

@@ -1,4 +1,5 @@
-from .helperfunctions import get_samples_from_fastq, print_error, print_solution, print_notice
+from .fileparsers import get_samples_from_fastq
+from .printfunctions import print_error, print_solution, print_notice
 
 import os
 import re

@@ -1,6 +1,7 @@
 import rich_click as click
-from .helperfunctions import fetch_file, generate_conda_deps, print_onstart
-from .helperfunctions import validate_demuxschema, check_demux_fastq
+from .printfunctions import print_onstart
+from .helperfunctions import fetch_file, generate_conda_deps
+from .validations import validate_demuxschema, check_demux_fastq
 import subprocess
 import sys
 import os
