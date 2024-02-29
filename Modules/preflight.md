@@ -34,7 +34,7 @@ harpy preflight fastq --threads 20 raw_data
 ```
 
 ```bash bam usage and example
-harpy preflight bam OPTIONS... INPUST...
+harpy preflight bam OPTIONS... INPUTS...
 
 # example
 harpy preflight bam --threads 20 Align/bwa
