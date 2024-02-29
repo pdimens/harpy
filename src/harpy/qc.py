@@ -65,4 +65,4 @@ def qc(input, max_length, ignore_adapters, extra_params, threads, snakemake, ski
         "qc"
     )
     _module = subprocess.run(command)
-    sys.exit(_module)
+    sys.exit(_module.returncode)

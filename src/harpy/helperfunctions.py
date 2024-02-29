@@ -17,7 +17,8 @@ import rich_click as click
 def print_onstart(text, title):
     """Print a panel of info on workflow run"""
     click.echo("")
-    print(Panel(text, title = f"[bold]Harpy {title}", title_align = "left", border_style = "white", subtitle= "Running Workflow"), file = sys.stderr)
+    print(Panel(text, title = f"[bold]Harpy {title}", title_align = "left", border_style = "light_steel_blue", subtitle= "Running Workflow"), file = sys.stderr)
+
 def print_error(errortext):
     """Print a yellow panel with error text"""
     print(Panel(errortext, title = "[bold]Error", title_align = "left", border_style = "yellow"), file = sys.stderr)
@@ -32,7 +33,7 @@ def print_solution_with_culprits(solutiontext, culprittext):
 
 def print_notice(noticetext):
     """Print a white panel with information text text"""
-    print(Panel(noticetext, title = "Notice", title_align = "left", border_style = "white"), file = sys.stderr)
+    print(Panel(noticetext, title = "Notice", title_align = "left", border_style = "dim"), file = sys.stderr)
 
 ## recurring checks and such ##
 def vcfcheck(vcf):
