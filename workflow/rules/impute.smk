@@ -75,7 +75,7 @@ rule bam_list:
         "Creating list of alignment files"
     run:
         with open(output[0], "w") as fout:
-            _ = [fout.write(f"{bamfile}\n") for bamfile in input[0]]
+            _ = [fout.write(f"{bamfile}\n") for bamfile in input["bam"]]
 
 rule samples_file:
     output:
