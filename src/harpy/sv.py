@@ -110,6 +110,7 @@ def naibr(input, genome, vcf, threads, populations, molecule_distance, extra_par
     """
     vcaller = "naibr" if populations is None else "naibr-pop"
     workflowdir = f"Variants/{vcaller}/workflow"
+    outdir = f"Variants/{vcaller}"
     vcaller += "-phase" if vcf is not None else ""
     
     command = (f'snakemake --rerun-incomplete --nolock --use-conda --conda-prefix ./.snakemake/conda --cores {threads} --directory .').split()
@@ -161,7 +162,7 @@ def naibr(input, genome, vcf, threads, populations, molecule_distance, extra_par
 
     generate_conda_deps()
     print_onstart(
-        f"Samples: {len(samplenames)}{popgroupings}\nOutput Directory: Variants/{vcaller}/",
+        f"Samples: {len(samplenames)}{popgroupings}\nOutput Directory: {outdir}/",
         "sv naibr"
     )
     _module = subprocess.run(command)
