@@ -5,7 +5,7 @@ on:
     branches:
       - 'dev'
     paths:
-      - 'workflow/rules/impute.smk'
+      - '**impute.smk'
       - 'workflow/envs/harpy.yaml'
       - 'workflow/envs/r-env.yaml'
       - '**impute.py'
@@ -24,7 +24,7 @@ on:
     branches:
       - 'dev'
     paths:
-      - 'workflow/rules/impute.smk'
+      - '**impute.smk'
       - 'workflow/envs/harpy.yaml'
       - 'workflow/envs/r-env.yaml'
       - '**impute.py'

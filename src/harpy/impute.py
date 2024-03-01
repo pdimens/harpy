@@ -79,7 +79,7 @@ def impute(input, parameters, threads, vcf, vcf_samples, extra_params, snakemake
 
     generate_conda_deps()
     print_onstart(
-        f"Input VCF: {vcf}\nSamples in VCF: {len(samplenames)}Alignments Provided: {len(sn)}\nContigs Considered: {len(contigs)}\nOutput Directory: Impute/",
+        f"Input VCF: {vcf}\nSamples in VCF: {len(samplenames)}\nAlignments Provided: {len(sn)}\nContigs Considered: {len(contigs)}\nOutput Directory: Impute/",
         "impute"
     )
     _module = subprocess.run(command)
