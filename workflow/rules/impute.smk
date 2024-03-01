@@ -55,16 +55,27 @@ rule sort_bcf:
     shell:
         "bcftools sort -Ob --write-index -o {output.bcf} {input} 2> {log}"
 
+rule index_alignments:
+    input:
+        bam_dir + "/{sample}.bam"
+    output:
+        bam_dir + "/{sample}.bam.bai"
+    message:
+        "Indexing: {wildcards.sample}"
+    shell:
+        "samtools index {input} {output} 2> /dev/null"
+
 rule bam_list:
     input:
-        expand(bam_dir + "/{sample}.bam", sample = samplenames)
+        bam = expand(bam_dir + "/{sample}.bam", sample = samplenames),
+        bai = expand(bam_dir + "/{sample}.bam.bai", sample = samplenames)
     output:
         "Impute/stitch_input/samples.list"
     message:
         "Creating list of alignment files"
     run:
         with open(output[0], "w") as fout:
-            _ = [fout.write(f"{bamfile}\n") for bamfile in input]
+            _ = [fout.write(f"{bamfile}\n") for bamfile in input[0]]
 
 rule samples_file:
     output:
