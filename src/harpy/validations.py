@@ -3,6 +3,7 @@ import os
 import re
 import subprocess
 from .fileparsers import getnames
+from .printfunctions import print_error, print_notice, print_solution, print_solution_with_culprits
 from urllib.request import urlretrieve
 from pathlib import Path
 from rich.table import Table
