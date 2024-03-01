@@ -232,8 +232,7 @@ underlying data used to create the visualization. Clicking
 on a plot will expand it to fill your browser window. Clicking it again will exit
 out of the zoomed view.
 
-# Individual Statistics
-## ind stats
+## ind stats plt
 ### Individuals Plot {.no-title}
 ```{r indiv stats, echo = FALSE, message = FALSE, warning = FALSE, fig.height=conv_height, out.width= "100%"}
 ggplot(gcts_long, aes(y = sample, x = Count, fill = Conversion)) +
