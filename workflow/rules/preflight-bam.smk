@@ -95,7 +95,7 @@ rule createReport:
     params:
         seq_dir
     conda:
-        os.getcwd() + "/harpyenvs/r-env.yaml"
+        os.getcwd() + "/.harpy_envs/r-env.yaml"
     message:
         "Producing report"
     script:

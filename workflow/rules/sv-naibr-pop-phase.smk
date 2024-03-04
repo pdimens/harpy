@@ -154,7 +154,7 @@ rule phase_alignments:
     params:
         extra = lambda wc: "--ignore-read-groups --sample " + wc.get("sample") + " --tag-supplementary"
     conda:
-        os.getcwd() + "/harpyenvs/phase.yaml"
+        os.getcwd() + "/.harpy_envs/phase.yaml"
     message:
         "Phasing: {input.aln}"
     shell:
@@ -250,7 +250,7 @@ rule call_sv:
     threads:
         min(10, workflow.cores)
     conda:
-        os.getcwd() + "/harpyenvs/variants.sv.yaml"
+        os.getcwd() + "/.harpy_envs/variants.sv.yaml"
     message:
         "Calling variants: {wildcards.population}"
     shell:
@@ -287,7 +287,7 @@ rule report:
     message:
         "Creating report: {wildcards.population}"
     conda:
-        os.getcwd() + "/harpyenvs/r-env.yaml"
+        os.getcwd() + "/.harpy_envs/r-env.yaml"
     script:
         "report/Naibr.Rmd"
 
@@ -300,7 +300,7 @@ rule report_pop:
     message:
         "Creating summary report"
     conda:
-        os.getcwd() + "/harpyenvs/r-env.yaml"
+        os.getcwd() + "/.harpy_envs/r-env.yaml"
     script:
         "report/NaibrPop.Rmd"
 

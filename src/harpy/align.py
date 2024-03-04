@@ -31,7 +31,7 @@ def bwa(input, genome, threads, extra_params, quality_filter, molecule_distance,
     to assign alignments to unique molecules. 
     """
     workflowdir = "Align/bwa/workflow"
-    command = f'snakemake --rerun-incomplete --nolock --use-conda --conda-prefix ./.snakemake/conda --cores {threads} --directory .'.split()
+    command = f'snakemake --rerun-incomplete --nolock --software-deployment-method conda --conda-prefix ./.snakemake/conda --cores {threads} --directory .'.split()
     command.append('--snakefile')
     command.append(f'{workflowdir}/align-bwa.smk')
     command.append("--configfile")
@@ -50,6 +50,8 @@ def bwa(input, genome, threads, extra_params, quality_filter, molecule_distance,
     sn = parse_fastq_inputs(input, f"{workflowdir}/input")
     samplenames = get_samples_from_fastq(f"{workflowdir}/input")
     fetch_file("align-bwa.smk", f"{workflowdir}/")
+    fetch_file("assignMI.py", f"{workflowdir}/scripts/")
+    fetch_file("bxStats.py", f"{workflowdir}/scripts/")
     for i in ["BxStats", "BwaGencov"]:
         fetch_file(f"{i}.Rmd", f"{workflowdir}/report/")
 
@@ -99,7 +101,7 @@ def ema(input, platform, whitelist, genome, threads, ema_bins, skipreports, extr
     reads, making it less useful for variant calling with leviathan.
     """
     workflowdir = "Align/ema/workflow"
-    command = f'snakemake --rerun-incomplete --nolock --use-conda --cores {threads} --directory .'.split()
+    command = f'snakemake --rerun-incomplete --nolock --software-deployment-method conda --cores {threads} --directory .'.split()
     command.append('--snakefile')
     command.append(f'{workflowdir}/align-ema.smk')
     command.append("--configfile")
@@ -132,6 +134,7 @@ def ema(input, platform, whitelist, genome, threads, ema_bins, skipreports, extr
     sn = parse_fastq_inputs(input, f"{workflowdir}/input")
     samplenames = get_samples_from_fastq(f"{workflowdir}/input")
     fetch_file("align-ema.smk", f"{workflowdir}/")
+    fetch_file("bxStats.py", f"{workflowdir}/scripts/")
     for i in ["EmaCount", "EmaGencov", "BxStats"]:
         fetch_file(f"{i}.Rmd", f"{workflowdir}/report/")
 

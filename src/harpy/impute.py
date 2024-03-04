@@ -36,7 +36,7 @@ def impute(input, parameters, threads, vcf, vcf_samples, extra_params, snakemake
     ```
     """
     workflowdir = "Impute/workflow"
-    command = f'snakemake --rerun-incomplete --nolock --use-conda --conda-prefix ./.snakemake/conda --cores {threads} --directory .'.split()
+    command = f'snakemake --rerun-incomplete --nolock --software-deployment-method conda --conda-prefix ./.snakemake/conda --cores {threads} --directory .'.split()
     command.append('--snakefile')
     command.append(f'{workflowdir}/impute.smk')
     command.append("--configfile")

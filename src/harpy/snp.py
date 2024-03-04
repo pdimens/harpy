@@ -32,7 +32,7 @@ def mpileup(input, genome, threads, populations, ploidy, windowsize, extra_param
     use as input for `--populations`. 
     """
     workflowdir = "Variants/mpileup/workflow"
-    command = (f'snakemake --rerun-incomplete --nolock --use-conda --conda-prefix ./.snakemake/conda --cores {threads} --directory .').split()
+    command = (f'snakemake --rerun-incomplete --nolock --software-deployment-method conda --conda-prefix ./.snakemake/conda --cores {threads} --directory .').split()
     command.append('--snakefile')
     command.append(f'{workflowdir}/snp-mpileup.smk')
     command.append('--configfile')
@@ -107,7 +107,7 @@ def freebayes(input, genome, threads, populations, ploidy, windowsize, extra_par
     use as input for `--populations`. 
     """
     workflowdir = "Variants/freebayes/workflow"
-    command = (f'snakemake --rerun-incomplete --nolock --use-conda --conda-prefix ./.snakemake/conda --cores {threads} --directory .').split()
+    command = (f'snakemake --rerun-incomplete --nolock --software-deployment-method conda --conda-prefix ./.snakemake/conda --cores {threads} --directory .').split()
     command.append('--snakefile')
     command.append(f'{workflowdir}/snp-freebayes.smk')
     command.append('--configfile')

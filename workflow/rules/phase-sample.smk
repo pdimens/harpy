@@ -79,7 +79,7 @@ rule extractHairs:
     benchmark:
         ".Benchmark/Phase/extracthairs.{sample}.txt"
     conda:
-        os.getcwd() + "/harpyenvs/phase.yaml"
+        os.getcwd() + "/.harpy_envs/phase.yaml"
     message:
         "Converting to compact fragment format: {wildcards.sample}"
     shell:
@@ -99,7 +99,7 @@ rule linkFragments:
     params:
         d = molecule_distance
     conda:
-        os.getcwd() + "/harpyenvs/phase.yaml"
+        os.getcwd() + "/.harpy_envs/phase.yaml"
     message:
         "Linking fragments: {wildcards.sample}"
     shell:
@@ -121,7 +121,7 @@ rule phaseBlocks:
         prune = f"--threshold {pruning}" if pruning > 0 else "--no_prune 1",
         extra = extra
     conda:
-        os.getcwd() + "/harpyenvs/phase.yaml"
+        os.getcwd() + "/.harpy_envs/phase.yaml"
     message:
         "Creating phased haplotype blocks: {wildcards.sample}"
     shell:
@@ -180,7 +180,7 @@ rule phase_report:
     output:
         outdir + "/reports/phase.html"
     conda:
-        os.getcwd() + "/harpyenvs/r-env.yaml"
+        os.getcwd() + "/.harpy_envs/r-env.yaml"
     message:
         "Summarizing phasing results"
     script:

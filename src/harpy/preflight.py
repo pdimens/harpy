@@ -28,11 +28,12 @@ def fastq(input, threads, snakemake, quiet, print_only):
     fix your data, but it will report the number of reads that feature errors to help
     you diagnose if file formatting will cause downstream issues. 
     """
-    command = f'snakemake --rerun-incomplete --nolock --use-conda --conda-prefix ./.snakemake/conda --cores {threads} --directory .'.split()
+    workflowdir = "Preflight/fastq/workflow"
+    command = f'snakemake --rerun-incomplete --nolock --software-deployment-method conda --conda-prefix ./.snakemake/conda --cores {threads} --directory .'.split()
     command.append('--snakefile')
-    command.append(f'Preflight/fastq/workflow/preflight-fastq.smk')
+    command.append(f'{workflowdir}/preflight-fastq.smk')
     command.append('--configfile')
-    command.append(f"Preflight/fastq/workflow/config.yml")
+    command.append(f"{workflowdir}/config.yml")
     if quiet:
         command.append("--quiet")
         command.append("all")
@@ -44,12 +45,13 @@ def fastq(input, threads, snakemake, quiet, print_only):
         exit()
     
     os.makedirs("{workflowdir}/", exist_ok= True)
-    sn = parse_fastq_inputs(input, "Preflight/fastq/workflow/input")
-    fetch_file("preflight-fastq.smk", f"Preflight/fastq/workflow/")
-    fetch_file("PreflightFastq.Rmd", f"Preflight/fastq/workflow/report/")
+    sn = parse_fastq_inputs(input, f"{workflowdir}/input")
+    fetch_file("preflight-fastq.smk", f"{workflowdir}")
+    fetch_file("PreflightFastq.Rmd", f"{workflowdir}/report/")
+    fetch_file("checkFASTQ.py", f"{workflowdir}/scripts/")
 
-    with open(f"Preflight/fastq/workflow/config.yml", "w") as config:
-        config.write(f"seq_directory: Preflight/fastq/workflow/input\n")
+    with open(f"{workflowdir}/config.yml", "w") as config:
+        config.write(f"seq_directory: {workflowdir}/input\n")
         config.write(f"workflow_call: {call_SM}\n")
 
     generate_conda_deps()
@@ -79,7 +81,7 @@ def bam(input, threads, snakemake, quiet, print_only):
     you diagnose if file formatting will cause downstream issues. 
     """
     workflowdir = "Preflight/bam/workflow"
-    command = f'snakemake --rerun-incomplete --nolock --use-conda --conda-prefix ./.snakemake/conda --cores {threads} --directory .'.split()
+    command = f'snakemake --rerun-incomplete --nolock --software-deployment-method conda --conda-prefix ./.snakemake/conda --cores {threads} --directory .'.split()
     command.append('--snakefile')
     command.append(f'{workflowdir}/preflight-bam.smk')
     command.append('--configfile')
@@ -98,6 +100,7 @@ def bam(input, threads, snakemake, quiet, print_only):
     sn = parse_alignment_inputs(input, f"{workflowdir}/input")
     fetch_file("preflight-bam.smk", f"{workflowdir}/")
     fetch_file("PreflightBam.Rmd", f"{workflowdir}/report/")
+    fetch_file("checkFASTQ.py", f"{workflowdir}/scripts/")
 
     with open(f"{workflowdir}/config.yml", "w") as config:
         config.write(f"seq_directory: {workflowdir}/input\n")

@@ -119,7 +119,7 @@ rule impute:
         parameters = paramspace.instance,
         extra = config.get("extra", "")
     conda:
-        os.getcwd() + "/harpyenvs/r-env.yaml"
+        os.getcwd() + "/.harpy_envs/r-env.yaml"
     benchmark:
         f".Benchmark/Impute/stitch.{paramspace.wildcard_pattern}" + ".{part}.txt"
     threads:
@@ -151,7 +151,7 @@ rule collate_stitch_reports:
     message:
         "Generating STITCH report: {wildcards.part}"
     conda:
-        os.getcwd() + "/harpyenvs/r-env.yaml"
+        os.getcwd() + "/.harpy_envs/r-env.yaml"
     script:
         "report/StitchCollate.Rmd"
 
@@ -248,7 +248,7 @@ rule imputation_results_reports:
     params:
         lambda wc: wc.get("stitchparams")
     conda:
-        os.getcwd() + "/harpyenvs/r-env.yaml"
+        os.getcwd() + "/.harpy_envs/r-env.yaml"
     message:
         "Generating imputation success report: {output}"
     script:

@@ -44,8 +44,6 @@ onerror:
         file = sys.stderr
     )
 
-
-
 def get_fq1(wildcards):
     # code that returns a list of fastq files for read 1 based on *wildcards.sample* e.g.
     lst = sorted(glob.glob(seq_dir + "/" + wildcards.sample + "*"))
@@ -80,7 +78,7 @@ rule trimFastp:
     threads:
         2
     conda:
-        os.getcwd() + "/harpyenvs/qc.yaml"
+        os.getcwd() + "/.harpy_envs/qc.yaml"
     message:
         "Removing adapters + quality trimming: {wildcards.sample}"
     shell: 
@@ -95,8 +93,10 @@ rule count_beadtags:
         temp("QC/logs/bxcount/{sample}.count.log")
     message:
         "Counting barcode frequency: {wildcards.sample}"
+    conda:
+        os.getcwd() + "/.harpy_envs/qc.yaml"
     shell:
-        "countBX.py {input} > {output}"
+        "scripts/countBX.py {input} > {output}"
 
 rule beadtag_counts_summary:
     input: 
@@ -104,7 +104,7 @@ rule beadtag_counts_summary:
     output:
         "QC/reports/barcode.summary.html"
     conda:
-        os.getcwd() + "/harpyenvs/r-env.yaml"
+        os.getcwd() + "/.harpy_envs/r-env.yaml"
     message:
         "Summarizing sample barcode validation"
     script:
@@ -142,7 +142,7 @@ rule createReport:
     output:
         "QC/reports/qc.report.html"
     conda:
-        os.getcwd() + "/harpyenvs/qc.yaml"
+        os.getcwd() + "/.harpy_envs/qc.yaml"
     message:
         "Sequencing quality filtering and trimming is complete!"
     shell: 

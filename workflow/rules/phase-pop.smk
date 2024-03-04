@@ -92,7 +92,7 @@ rule extractHairs:
         indels = indelarg,
         bx = linkarg
     conda:
-        os.getcwd() + "/harpyenvs/phase.yaml"
+        os.getcwd() + "/.harpy_envs/phase.yaml"
     benchmark:
         ".Benchmark/Phase/extracthairs.{sample}.txt"
     message:
@@ -112,7 +112,7 @@ rule linkFragments:
     params:
         d = molecule_distance
     conda:
-        os.getcwd() + "/harpyenvs/phase.yaml"
+        os.getcwd() + "/.harpy_envs/phase.yaml"
     benchmark:
         ".Benchmark/Phase/linkfrag.{sample}.txt"
     message:
@@ -133,7 +133,7 @@ rule phaseBlocks:
         prune = f"--threshold {pruning}" if pruning > 0 else "--no_prune 1",
         extra = extra
     conda:
-        os.getcwd() + "/harpyenvs/phase.yaml"
+        os.getcwd() + "/.harpy_envs/phase.yaml"
     benchmark:
         ".Benchmark/Phase/phase.{sample}.txt"
     message:
@@ -237,7 +237,7 @@ rule phase_report:
     output:
         outdir + "/reports/phase.html"
     conda:
-        os.getcwd() + "/harpyenvs/r-env.yaml"
+        os.getcwd() + "/.harpy_envs/r-env.yaml"
     message:
         "Summarizing phasing results"
     script:

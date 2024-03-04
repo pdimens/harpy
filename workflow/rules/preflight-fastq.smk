@@ -60,10 +60,12 @@ rule checkForward:
         get_fq1
     output:
         temp(out_dir + "{sample}.F.log")
+    conda:
+        os.getcwd() + "/.harpy_envs/qc.yaml"
     message:
         "Processing forward reads: {wildcards.sample}"
     shell: 
-        "checkFASTQ.py {input} > {output}"
+        "scripts/checkFASTQ.py {input} > {output}"
 
 rule checkReverse:
     input:
@@ -72,8 +74,10 @@ rule checkReverse:
         temp(out_dir + "{sample}.R.log")
     message:
         "Processing reverse reads: {wildcards.sample}"
+    conda:
+        os.getcwd() + "/.harpy_envs/qc.yaml"
     shell: 
-        "checkFASTQ.py {input} > {output}"
+        "scripts/checkFASTQ.py {input} > {output}"
 
 rule mergeChecks:
     input:
@@ -111,7 +115,7 @@ rule createReport:
     params:
         seq_dir
     conda:
-        os.getcwd() + "/harpyenvs/r-env.yaml"
+        os.getcwd() + "/.harpy_envs/r-env.yaml"
     message:
         "Producing report"
     script:

@@ -24,7 +24,7 @@ def gen1(input, samplesheet, threads, snakemake, skipreports, quiet, print_only)
     """
     inprefix = re.sub(r"[\_\.][IR][12]?(?:\_00[0-9])*\.f(?:ast)?q(?:\.gz)?$", "", os.path.basename(input))
     workflowdir = "{workflowdir}"
-    command = f'snakemake --rerun-incomplete --nolock --use-conda --conda-prefix ./.snakemake/conda --cores {threads} --directory .'.split()
+    command = f'snakemake --rerun-incomplete --nolock --software-deployment-method conda --conda-prefix ./.snakemake/conda --cores {threads} --directory .'.split()
     command.append('--snakefile')
     command.append(f'{workflowdir}/demultiplex.gen1.smk')
     command.append("--configfile")
