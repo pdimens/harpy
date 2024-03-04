@@ -31,7 +31,7 @@ def leviathan(input, genome, threads, populations, extra_params, snakemake, skip
     vcaller = "leviathan" if populations is None else "leviathan-pop"
     workflowdir = f"Variants/{vcaller}/workflow"
 
-    command = f'snakemake --rerun-incomplete --nolock --use-conda --conda-prefix ./.snakemake/conda --cores {threads} --directory .'.split()
+    command = f'snakemake --rerun-incomplete --nolock --software-deployment-method conda --conda-prefix ./.snakemake/conda --cores {threads} --directory .'.split()
     command.append('--snakefile')
     command.append(f'{workflowdir}/sv-{vcaller}.smk')
     command.append('--configfile')
@@ -113,7 +113,7 @@ def naibr(input, genome, vcf, threads, populations, molecule_distance, extra_par
     outdir = f"Variants/{vcaller}"
     vcaller += "-phase" if vcf is not None else ""
     
-    command = (f'snakemake --rerun-incomplete --nolock --use-conda --conda-prefix ./.snakemake/conda --cores {threads} --directory .').split()
+    command = (f'snakemake --rerun-incomplete --nolock --software-deployment-method conda --conda-prefix ./.snakemake/conda --cores {threads} --directory .').split()
     command.append('--snakefile')
     command.append(f"{workflowdir}/sv-{vcaller}.smk")
     command.append("--configfile")

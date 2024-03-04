@@ -54,10 +54,12 @@ rule checkBam:
         bai = seq_dir + "/{sample}.bam.bai"
     output:
         temp(out_dir + "{sample}.log")
+    conda:
+        os.getcwd() + "/.harpy_envs/qc.yaml"
     message:
         "Processing: {wildcards.sample}"
-    shell: 
-        "checkBAM.py {input.bam} > {output}"
+    script: 
+        "scripts/checkBAM.py"
 
 rule mergeChecks:
     input:
@@ -95,7 +97,7 @@ rule createReport:
     params:
         seq_dir
     conda:
-        os.getcwd() + "/harpyenvs/r-env.yaml"
+        os.getcwd() + "/.harpy_envs/r-env.yaml"
     message:
         "Producing report"
     script:

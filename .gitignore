@@ -1,6 +1,6 @@
 .snakemake/
 .vscode/
-harpyenvs/
+.harpy_envs/
 Seqs/
 QC/
 Demultiplex/

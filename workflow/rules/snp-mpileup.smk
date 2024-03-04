@@ -237,7 +237,7 @@ rule bcfreport:
     output:
         outdir + "/reports/variants.{type}.html"
     conda:
-        os.getcwd() + "/harpyenvs/r-env.yaml"
+        os.getcwd() + "/.harpy_envs/r-env.yaml"
     message:
         "Generating bcftools report: variants.{wildcards.type}.bcf"
     script:

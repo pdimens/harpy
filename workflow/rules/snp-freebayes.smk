@@ -105,7 +105,7 @@ if groupings:
             ploidy = f"-p {ploidy}",
             extra = extra
         conda:
-            os.getcwd() + "/harpyenvs/variants.snp.yaml"
+            os.getcwd() + "/.harpy_envs/variants.snp.yaml"
         message:
             "Calling variants: {wildcards.part}"
         shell:
@@ -125,7 +125,7 @@ else:
             ploidy = f"-p {ploidy}",
             extra = extra
         conda:
-            os.getcwd() + "/harpyenvs/variants.snp.yaml"
+            os.getcwd() + "/.harpy_envs/variants.snp.yaml"
         message:
             "Calling variants: {wildcards.part}"
         shell:
@@ -221,7 +221,7 @@ rule bcfreport:
     output:
         outdir + "/reports/variants.{type}.html"
     conda:
-        os.getcwd() + "/harpyenvs/r-env.yaml"
+        os.getcwd() + "/.harpy_envs/r-env.yaml"
     message:
         "Generating bcftools report: variants.{wildcards.type}.bcf"
     script:

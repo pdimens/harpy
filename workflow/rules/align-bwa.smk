@@ -112,7 +112,7 @@ rule genome_bwa_index:
     log:
         f"Genome/{bn}.idx.log"
     conda:
-        os.getcwd() + "/harpyenvs/align.yaml"
+        os.getcwd() + "/.harpy_envs/align.yaml"
     message:
         "Indexing {input}"
     shell: 
@@ -147,7 +147,7 @@ rule align:
     threads:
         min(10, workflow.cores) - 2
     conda:
-        os.getcwd() + "/harpyenvs/align.yaml"
+        os.getcwd() + "/.harpy_envs/align.yaml"
     message:
         "Aligning sequences: {wildcards.sample}"
     shell:
@@ -241,7 +241,7 @@ rule bxstats_report:
     params:
         molecule_distance
     conda:
-        os.getcwd() + "/harpyenvs/r-env.yaml"
+        os.getcwd() + "/.harpy_envs/r-env.yaml"
     message: 
         "Generating summary of barcode alignment: {wildcards.sample}"
     script:
@@ -256,10 +256,12 @@ rule assign_molecules:
         bai = outdir + "/{sample}.bam.bai"
     params:
         molecule_distance
+    conda:
+        os.getcwd() + "/.harpy_envs/qc.yaml"
     message:
         "Assigning barcodes to molecules: {wildcards.sample}"
-    shell:
-        "assignMI.py -c {params} -i {input.bam} -o {output.bam}"
+    script:
+        "scripts/assignMI.py"
 
 rule alignment_bxstats:
     input:
@@ -269,10 +271,12 @@ rule alignment_bxstats:
         outdir + "/reports/BXstats/data/{sample}.bxstats.gz"
     params:
         sample = lambda wc: d[wc.sample]
+    conda:
+        os.getcwd() + "/.harpy_envs/qc.yaml"
     message:
         "Calculating barcode alignment statistics: {wildcards.sample}"
-    shell:
-        "bxStats.py {input.bam} | gzip > {output}"
+    script:
+        "scripts/bxStats.py"
 
 rule alignment_coverage:
     input: 
@@ -293,7 +297,7 @@ rule coverage_report:
     output:
         outdir + "/reports/coverage/{sample}.cov.html"
     conda:
-        os.getcwd() + "/harpyenvs/r-env.yaml"
+        os.getcwd() + "/.harpy_envs/r-env.yaml"
     message:
         "Summarizing alignment coverage: {wildcards.sample}"
     script:
@@ -320,7 +324,7 @@ rule samtools_reports:
     output: 
         outdir + "/reports/bwa.stats.html"
     conda:
-        os.getcwd() + "/harpyenvs/qc.yaml"
+        os.getcwd() + "/.harpy_envs/qc.yaml"
     message:
         "Summarizing samtools stats and flagstat"
     shell:

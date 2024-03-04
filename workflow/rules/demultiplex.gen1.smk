@@ -135,7 +135,7 @@ rule fastqc_F:
     threads:
         1
     conda:
-        os.getcwd() + "/harpyenvs/qc.yaml"
+        os.getcwd() + "/.harpy_envs/qc.yaml"
     message:
         "Performing quality assessment: {wildcards.sample}.F.fq.gz"
     shell:
@@ -168,7 +168,7 @@ rule fastqc_R:
     threads:
         1
     conda:
-        os.getcwd() + "/harpyenvs/qc.yaml"
+        os.getcwd() + "/.harpy_envs/qc.yaml"
     message:
         "Performing quality assessment: {wildcards.sample}.R.fq.gz"
     shell:
@@ -199,7 +199,7 @@ rule qc_report:
     params:
         outdir + "logs/.QC"
     conda:
-        os.getcwd() + "/harpyenvs/qc.yaml"
+        os.getcwd() + "/.harpy_envs/qc.yaml"
     message:
         "Creating final demultiplexing QC report"
     shell:

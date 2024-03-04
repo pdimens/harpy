@@ -149,7 +149,7 @@ rule call_sv:
     threads:
         min(10, workflow.cores)
     conda:
-        os.getcwd() + "/harpyenvs/variants.sv.yaml"
+        os.getcwd() + "/.harpy_envs/variants.sv.yaml"
     message:
         "Calling variants: {wildcards.population}"
     shell:
@@ -231,7 +231,7 @@ rule report:
     output:
         outdir + "/reports/{population}.naibr.html"
     conda:
-        os.getcwd() + "/harpyenvs/r-env.yaml"
+        os.getcwd() + "/.harpy_envs/r-env.yaml"
     message:
         "Creating report: {wildcards.population}"
     script:
@@ -244,7 +244,7 @@ rule report_pop:
     output:
         outdir + "/reports/naibr.pop.summary.html"
     conda:
-        os.getcwd() + "/harpyenvs/r-env.yaml"
+        os.getcwd() + "/.harpy_envs/r-env.yaml"
     message:
         "Creating summary report"
     script:

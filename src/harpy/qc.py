@@ -32,7 +32,7 @@ def qc(input, max_length, ignore_adapters, extra_params, threads, snakemake, ski
     - poly-G tail removal
     """
     workflowdir = "QC/workflow"
-    command = f'snakemake --rerun-incomplete --nolock  --use-conda --conda-prefix ./.snakemake/conda --cores {threads} --directory .'.split()
+    command = f'snakemake --rerun-incomplete --nolock  --software-deployment-method conda --conda-prefix ./.snakemake/conda --cores {threads} --directory .'.split()
     command.append('--snakefile')
     command.append(f'{workflowdir}/qc.smk')
     command.append('--configfile')
@@ -52,6 +52,7 @@ def qc(input, max_length, ignore_adapters, extra_params, threads, snakemake, ski
     sn = get_samples_from_fastq(f"{workflowdir}/input")
     fetch_file("qc.smk", f"{workflowdir}/")
     fetch_file("BxCount.Rmd", f"{workflowdir}/report/")
+    fetch_file("countBX.py", f"{workflowdir}/scripts/")
     with open(f"{workflowdir}/config.yml", "w") as config:
         config.write(f"seq_directory: {workflowdir}/input\n")
         config.write(f"adapters: {ignore_adapters}\n")
