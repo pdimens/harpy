@@ -59,7 +59,7 @@ rule checkBam:
     message:
         "Processing: {wildcards.sample}"
     script: 
-        "checkBAM.py"
+        "scripts/checkBAM.py"
 
 rule mergeChecks:
     input:
