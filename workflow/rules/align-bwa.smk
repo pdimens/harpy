@@ -276,7 +276,7 @@ rule alignment_bxstats:
     message:
         "Calculating barcode alignment statistics: {wildcards.sample}"
     script:
-        "scripts/bxStats.py {input.bam} | gzip > {output}"
+        "scripts/bxStats.py"
 
 rule alignment_coverage:
     input: 
