@@ -100,7 +100,7 @@ def bam(input, threads, snakemake, quiet, print_only):
     sn = parse_alignment_inputs(input, f"{workflowdir}/input")
     fetch_file("preflight-bam.smk", f"{workflowdir}/")
     fetch_file("PreflightBam.Rmd", f"{workflowdir}/report/")
-    fetch_file("checkFASTQ.py", f"{workflowdir}/scripts/")
+    fetch_file("checkBAM.py", f"{workflowdir}/scripts/")
 
     with open(f"{workflowdir}/config.yml", "w") as config:
         config.write(f"seq_directory: {workflowdir}/input\n")
