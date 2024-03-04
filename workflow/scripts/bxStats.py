@@ -34,9 +34,9 @@ def writestats(x,chr):
         if x[mi]["mindist"] < 0:
             x[mi]["mindist"] = 0
         outtext = f"{chr}\t{mi}\t" + "\t".join([str(x[mi][i]) for i in ["n", "start","end", "inferred", "bp", "mindist"]])
-        print(outtext.encode(), file = outfile)
+        outfile.write(outtext.encode() + b"\n")
 
-print("contig\tmolecule\treads\tstart\tend\tlength_inferred\taligned_bp\tmindist".encode(), file = outfile)
+outfile.write(b"contig\tmolecule\treads\tstart\tend\tlength_inferred\taligned_bp\tmindist\n")
 
 for read in alnfile.fetch():
     chrm = read.reference_name
