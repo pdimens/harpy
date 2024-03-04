@@ -46,7 +46,7 @@ df <- read.table(
   colClasses = c("factor","factor","integer","integer", "integer")
 )
 if(nrow(df) < 1){
-  cat(paste("No phase blocks were observed in the input file", file, "\n")
+  cat(paste("No phase blocks were observed in the input file", file, "\n"))
   knitr::knit_exit()
 }
 df$pos_end <- df$pos_start + df$block_length
