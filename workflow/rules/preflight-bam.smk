@@ -54,6 +54,8 @@ rule checkBam:
         bai = seq_dir + "/{sample}.bam.bai"
     output:
         temp(out_dir + "{sample}.log")
+    conda:
+        os.getcwd() + "/.harpy_envs/qc.yaml"
     message:
         "Processing: {wildcards.sample}"
     shell: 

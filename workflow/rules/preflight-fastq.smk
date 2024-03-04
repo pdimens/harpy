@@ -64,8 +64,8 @@ rule checkForward:
         os.getcwd() + "/.harpy_envs/qc.yaml"
     message:
         "Processing forward reads: {wildcards.sample}"
-    shell: 
-        "scripts/checkFASTQ.py {input} > {output}"
+    script: 
+        "scripts/checkFASTQ.py"
 
 rule checkReverse:
     input:
@@ -76,8 +76,8 @@ rule checkReverse:
         "Processing reverse reads: {wildcards.sample}"
     conda:
         os.getcwd() + "/.harpy_envs/qc.yaml"
-    shell: 
-        "scripts/checkFASTQ.py {input} > {output}"
+    script: 
+        "scripts/checkFASTQ.py"
 
 rule mergeChecks:
     input:

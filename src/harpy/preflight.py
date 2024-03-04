@@ -44,7 +44,7 @@ def fastq(input, threads, snakemake, quiet, print_only):
         click.echo(call_SM)
         exit()
     
-    os.makedirs("{workflowdir}/", exist_ok= True)
+    os.makedirs(f"{workflowdir}/", exist_ok= True)
     sn = parse_fastq_inputs(input, f"{workflowdir}/input")
     fetch_file("preflight-fastq.smk", f"{workflowdir}")
     fetch_file("PreflightFastq.Rmd", f"{workflowdir}/report/")
