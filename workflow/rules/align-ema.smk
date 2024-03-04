@@ -420,8 +420,8 @@ rule bx_stats_alignments:
         os.getcwd() + "/.harpy_envs/qc.yaml"
     message:
         "Calculating barcode alignment statistics: {wildcards.sample}"
-    shell:
-        "scripts/bxStats.py {input.bam} | gzip > {output}"
+    script:
+        "scripts/bxStats.py"
 
 rule bx_stats_report:
     input:

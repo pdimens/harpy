@@ -2,26 +2,28 @@
 
 import re
 import sys
+import gzip
 import pysam
-import argparse
+#import argparse
 
-parser = argparse.ArgumentParser(
-    prog = 'bxStats.py',
-    description = 'Calculate BX molecule length and reads per molecule from BAM file.',
-    usage = "bxStats.py input.bam > output.bxstats",
-    exit_on_error = False
-    )
-parser.add_argument('input', help = "Input bam/sam file. If bam, a matching index file should be in the same directory.")
-
-if len(sys.argv) == 1:
-    parser.print_help(sys.stderr)
-    sys.exit(1)
-
-args = parser.parse_args()
+#parser = argparse.ArgumentParser(
+#    prog = 'bxStats.py',
+#    description = 'Calculate BX molecule length and reads per molecule from BAM file.',
+#    usage = "bxStats.py input.bam > output.bxstats",
+#    exit_on_error = False
+#    )
+#parser.add_argument('input', help = "Input bam/sam file. If bam, a matching index file should be in the same directory.")
+#
+#if len(sys.argv) == 1:
+#    parser.print_help(sys.stderr)
+#    sys.exit(1)
+#
+#args = parser.parse_args()
 
 d = dict()
 chromlast = False
-alnfile = pysam.AlignmentFile(args.input)
+alnfile = pysam.AlignmentFile(snakemake.input[0])
+outfile = gzip.open(snakemake.output[0], "wb")
 
 # define write function
 # it will only be called when the current alignment's chromosome doesn't
@@ -32,9 +34,9 @@ def writestats(x,chr):
         if x[mi]["mindist"] < 0:
             x[mi]["mindist"] = 0
         outtext = f"{chr}\t{mi}\t" + "\t".join([str(x[mi][i]) for i in ["n", "start","end", "inferred", "bp", "mindist"]])
-        print(outtext, file = sys.stdout)
+        print(outtext.encode(), file = outfile)
 
-print("contig\tmolecule\treads\tstart\tend\tlength_inferred\taligned_bp\tmindist", file = sys.stdout)
+print("contig\tmolecule\treads\tstart\tend\tlength_inferred\taligned_bp\tmindist".encode(), file = outfile)
 
 for read in alnfile.fetch():
     chrm = read.reference_name
@@ -128,3 +130,5 @@ for read in alnfile.fetch():
     if read.is_reverse or (read.is_forward and not read.is_paired):
         # set the last position to be the end of current alignment
         d[mi]["lastpos"] = pos_end
+
+outfile.close()

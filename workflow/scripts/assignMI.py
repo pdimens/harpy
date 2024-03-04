@@ -4,28 +4,28 @@ import re
 import os
 import sys
 import pysam
-import argparse
+#import argparse
 
-parser = argparse.ArgumentParser(
-    prog = 'assignMI.py',
-    description = 
-    """
-    Assign an MI:i: (Molecular Identifier) tag to each barcoded 
-    record based on a molecular distance cutoff. Unmapped records
-    are discarded in the output. Records without a BX:Z: tag or
-    with an invalid barcode (00 as one of its segments) are presevered
-    but are not assigned an MI:i tag. Input file MUST BE COORDINATE SORTED.
-    """,
-    usage = "assignMI.py -c cutoff -i input.bam -o output.bam",
-    exit_on_error = False
-    )
-parser.add_argument('-c','--cutoff', type=int, default = 100000, help = "Distance in base pairs at which alignments with the same barcode should be considered different molecules. (default: 100000)")
-parser.add_argument('-i', '--input', help = "Input coordinate-sorted bam/sam file. If bam, a matching index file should be in the same directory.")
-parser.add_argument('-o', '--output', help = "Output bam file. Will also create an index file.")
-
-if len(sys.argv) == 1:
-    parser.print_help(sys.stderr)
-    sys.exit(1)
+#parser = argparse.ArgumentParser(
+#    prog = 'assignMI.py',
+#    description = 
+#    """
+#    Assign an MI:i: (Molecular Identifier) tag to each barcoded 
+#    record based on a molecular distance cutoff. Unmapped records
+#    are discarded in the output. Records without a BX:Z: tag or
+#    with an invalid barcode (00 as one of its segments) are presevered
+#    but are not assigned an MI:i tag. Input file MUST BE COORDINATE SORTED.
+#    """,
+#    usage = "assignMI.py -c cutoff -i input.bam -o output.bam",
+#    exit_on_error = False
+#    )
+#parser.add_argument('-c','--cutoff', type=int, default = 100000, help = "Distance in base pairs at which alignments with the same barcode should be considered different molecules. (default: 100000)")
+#parser.add_argument('-i', '--input', help = "Input coordinate-sorted bam/sam file. If bam, a matching index file should be in the same directory.")
+#parser.add_argument('-o', '--output', help = "Output bam file. Will also create an index file.")
+#
+#if len(sys.argv) == 1:
+#    parser.print_help(sys.stderr)
+#    sys.exit(1)
 
 def write_validbx(bam, alnrecord, molID):
     '''
@@ -98,8 +98,8 @@ def write_missingbx(bam, alnrecord):
     # write record to output file
     bam.write(alnrecord)
 
-args = parser.parse_args()
-
+#args = parser.parse_args()
+bam_input = snakemake.input[0]
 # initialize the dict
 d = dict()
 # chromlast keeps track of the last chromosome so we can
@@ -108,21 +108,21 @@ chromlast = False
 # MI is the name of the current molecule, starting a 1 (0+1)
 MI = 0
 
-if os.path.exists(args.input) and args.input.lower().endswith(".sam"):
-    alnfile = pysam.AlignmentFile(args.input)
-elif os.path.exists(args.input) and args.input.lower().endswith(".bam"):
-    if os.path.exists(args.input + ".bai"):
-        alnfile = pysam.AlignmentFile(args.input)
+if os.path.exists(bam_input) and input.lower().endswith(".sam"):
+    alnfile = pysam.AlignmentFile(bam_input)
+elif os.path.exists(bam_input) and input.lower().endswith(".bam"):
+    if os.path.exists(bam_input + ".bai"):
+        alnfile = pysam.AlignmentFile(bam_input)
     else:
-        print(f"Error: {args.input} requires a matching {args.input}.bai index file, but one wasn\'t found.", file = sys.stderr)
+        print(f"Error: {bam_input} requires a matching {bam_input}.bai index file, but one wasn\'t found.", file = sys.stderr)
         exit(1)
 else:
-    print(f"Error: {args.input} not found", file = sys.stderr)
+    print(f"Error: {bam_input} not found", file = sys.stderr)
     exit(1)
 
 # iniitalize output file
 #alnfile = pysam.AlignmentFile("/home/pdimens/Documents/harpy/test/bam/sample1.bam")
-outfile = pysam.AlignmentFile(args.output, "wb", template = alnfile)
+outfile = pysam.AlignmentFile(snakemake.output[0], "wb", template = alnfile)
 #outfile = pysam.AlignmentFile("/home/pdimens/Documents/harpy/test/bam/test.bam", "w", template = alnfile)
 
 for record in alnfile.fetch():
@@ -188,7 +188,7 @@ for record in alnfile.fetch():
     # if the distance between alignments is > cutoff, it's a different molecule
     # so we'll +1 the suffix of the original barcode and relabel this one as 
     # BX + suffix. Since it's a new entry, we initialize it and move on
-    if dist > args.cutoff:
+    if dist > snakemake.params[0]:
         # increment MI b/c it's a new molecule
         MI += 1 
         # increment original barcode's suffix
@@ -220,7 +220,7 @@ alnfile.close()
 outfile.close()
 
 # index the output file
-pysam.index(args.output)
+pysam.index(snakemake.output[0])
 
 # exit gracefully
 exit(0)

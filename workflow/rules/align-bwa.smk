@@ -260,8 +260,8 @@ rule assign_molecules:
         os.getcwd() + "/.harpy_envs/qc.yaml"
     message:
         "Assigning barcodes to molecules: {wildcards.sample}"
-    shell:
-        "scripts/assignMI.py -c {params} -i {input.bam} -o {output.bam}"
+    script:
+        "scripts/assignMI.py"
 
 rule alignment_bxstats:
     input:
@@ -275,7 +275,7 @@ rule alignment_bxstats:
         os.getcwd() + "/.harpy_envs/qc.yaml"
     message:
         "Calculating barcode alignment statistics: {wildcards.sample}"
-    shell:
+    script:
         "scripts/bxStats.py {input.bam} | gzip > {output}"
 
 rule alignment_coverage:

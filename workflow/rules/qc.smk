@@ -95,8 +95,8 @@ rule count_beadtags:
         "Counting barcode frequency: {wildcards.sample}"
     conda:
         os.getcwd() + "/.harpy_envs/qc.yaml"
-    shell:
-        "scripts/countBX.py {input} > {output}"
+    script:
+        "scripts/countBX.py"
 
 rule beadtag_counts_summary:
     input: 
