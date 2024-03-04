@@ -59,11 +59,11 @@ with pysam.FastxFile(snakemake.input[0]) as fh:
                 n_valid += 1
 
 with open(snakemake.output[0], "w") as fout:
-    print(f"totalReads\t{n_reads}")
-    print(f"bxTagCount\t{n_bx}")
-    print(f"bxValid\t{n_valid}")
-    print(f"bxInvalid\t{n_bx - n_valid}")
-    print("A00\t",str(inv_dict["A"]))
-    print("C00\t",str(inv_dict["C"]))
-    print("B00\t",str(inv_dict["B"]))
-    print("D00\t",str(inv_dict["D"]))
+    print(f"totalReads\t{n_reads}", file = fout)
+    print(f"bxTagCount\t{n_bx}", file = fout)
+    print(f"bxValid\t{n_valid}", file = fout)
+    print(f"bxInvalid\t{n_bx - n_valid}", file = fout)
+    print("A00\t",str(inv_dict["A"]), file = fout)
+    print("C00\t",str(inv_dict["C"]), file = fout)
+    print("B00\t",str(inv_dict["B"]), file = fout)
+    print("D00\t",str(inv_dict["D"]), file = fout)
