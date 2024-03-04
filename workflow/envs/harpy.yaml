@@ -6,10 +6,9 @@ dependencies:
   - bcftools =1.19
   - mamba
   - pandas
-  - pysam =0.22
   - python
   - rich-click
-  - snakemake-minimal
+  - snakemake-minimal >7
   - samtools
   - seqtk
   - tabix
