@@ -58,8 +58,8 @@ rule checkBam:
         os.getcwd() + "/.harpy_envs/qc.yaml"
     message:
         "Processing: {wildcards.sample}"
-    shell: 
-        "checkBAM.py {input.bam} > {output}"
+    script: 
+        "checkBAM.py"
 
 rule mergeChecks:
     input:

@@ -108,9 +108,9 @@ chromlast = False
 # MI is the name of the current molecule, starting a 1 (0+1)
 MI = 0
 
-if os.path.exists(bam_input) and input.lower().endswith(".sam"):
+if os.path.exists(bam_input) and bam_input.lower().endswith(".sam"):
     alnfile = pysam.AlignmentFile(bam_input)
-elif os.path.exists(bam_input) and input.lower().endswith(".bam"):
+elif os.path.exists(bam_input) and bam_input.lower().endswith(".bam"):
     if os.path.exists(bam_input + ".bai"):
         alnfile = pysam.AlignmentFile(bam_input)
     else:
