@@ -80,10 +80,21 @@ rule splitbysample:
         awk '/^#/;/CHROM/ {{OFS="\\t"}}; !/^#/ &&  $10~/^0\\/0/ {{$10="0|0:"substr($10,5);print $0}}; !/^#/ && $10~/^0\\/1/; !/^#/ &&  $10~/^1\\/1/ {{$10="1|1:"substr($10,5);print $0}}; !/^#/ {{print $0}}' > {output}
         """
 
+rule index_alignment:
+    input:
+        bam_dir + "/{sample}.bam"
+    output:
+        bam_dir + "/{sample}.bam.bai"
+    message:
+        "Indexing alignment: {wildcards.sample}"
+    shell:
+        "samtools index {input} {output} 2> /dev/null"
+
 rule extractHairs:
     input:
         vcf = outdir + "/input/{sample}.het.bcf",
-        bam = bam_dir + "/{sample}.bam"
+        bam = bam_dir + "/{sample}.bam",
+        bai = bam_dir + "/{sample}.bam.bai"
     output:
         outdir + "/extractHairs/{sample}.unlinked.frags"
     log:
