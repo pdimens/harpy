@@ -223,7 +223,7 @@ rule mergeSamples:
         "Combining results into {output.bcf}" if len(samplenames) > 1 else "Copying results to {output.bcf}"
     shell:
         """
-        if [ {params} ]; then
+        if [ "{params}" = true ]; then
             bcftools merge --threads {threads} -Ob -o {output.bcf} --write-index {input.bcf}
         else
            cp {input.bcf} {output.bcf}
