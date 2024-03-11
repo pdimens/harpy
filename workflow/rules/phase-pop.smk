@@ -215,14 +215,21 @@ rule mergeSamples:
     output:
         bcf = outdir + "/variants.phased.bcf",
         idx = outdir + "/variants.phased.bcf.csi"
-    benchmark:
-        ".Benchmark/Phase/mergesamples.txt"
+    params:
+        "true" if len(samplenames) > 1 else "false"
     threads:
         30
     message:
-        "Combining samples into a single BCF file"
+        "Combining results into a single BCF file"
     shell:
-        "bcftools merge --threads {threads} -Ob -o {output.bcf} --write-index {input.bcf}"
+        """
+        if [ {params} ]; then
+            bcftools merge --threads {threads} -Ob -o {output.bcf} --write-index {input.bcf}
+        else
+           cp {input.bcf} {output.bcf}
+           cp {input.idx} {output.idx}
+        fi
+        """
 
 rule summarize_blocks:
     input:
