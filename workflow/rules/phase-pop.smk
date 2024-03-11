@@ -220,7 +220,7 @@ rule mergeSamples:
     threads:
         30
     message:
-        "Combining results into a single BCF file"
+        "Combining results into {output.bcf}" if len(samplenames) > 1 else "Copying results to {output.bcf}"
     shell:
         """
         if [ {params} ]; then
