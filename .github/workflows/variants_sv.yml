@@ -79,7 +79,7 @@ jobs:
       - name: leviathan-pop
         if: always()
         shell: micromamba-shell {0}
-        run: harpy sv leviathan -g test/genome/genome.fasta.gz -p test/samples.groups -q -s "--show-failed-logs" test/bam
+        run: harpy sv leviathan -g test/genome/genome.fasta.gz -o SV/leviathanpop -p test/samples.groups -q -s "--show-failed-logs" test/bam
   test_naibr:
     name: naibr
     runs-on: ubuntu-latest
@@ -107,16 +107,16 @@ jobs:
           resources/buildforCI.sh
       - name: naibr
         shell: micromamba-shell {0}
-        run: harpy sv naibr -g test/genome/genome.fasta.gz -q -s "--show-failed-logs" test/bam_phased
+        run: harpy sv naibr -g test/genome/genome.fasta.gz -q -s "--show-failed-logs" test/bam_phased && rm -r SV
       - name: naibr pop
         if: always()
         shell: micromamba-shell {0}
-        run: harpy sv naibr -g test/genome/genome.fasta.gz -p test/samples.groups -q -s "--show-failed-logs" test/bam_phased
+        run: harpy sv naibr -g test/genome/genome.fasta.gz -o SV/pop -p test/samples.groups -q -s "--show-failed-logs" test/bam_phased
       - name: naibr with phasing
         if: always()
         shell: micromamba-shell {0}
-        run: harpy sv naibr -g test/genome/genome.fasta.gz -v test/vcf/test.phased.bcf -q -s "--show-failed-logs" test/bam    
+        run: harpy sv naibr -g test/genome/genome.fasta.gz -o SV/phase -v test/vcf/test.phased.bcf -q -s "--show-failed-logs" test/bam    
       - name: naibr pop with phasing
         if: always()
         shell: micromamba-shell {0}
-        run: harpy sv naibr -g test/genome/genome.fasta.gz -v test/vcf/test.phased.bcf -p test/samples.groups -q -s "--show-failed-logs" test/bam
+        run: harpy sv naibr -g test/genome/genome.fasta.gz -o SV/phasepop -v test/vcf/test.phased.bcf -p test/samples.groups -q -s "--show-failed-logs" test/bam
