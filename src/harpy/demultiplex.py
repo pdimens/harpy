@@ -16,7 +16,7 @@ import re
 @click.option('-o', '--output-dir', type = str, default = "Demultiplex", show_default=True, metavar = "String", help = 'Name of output directory')
 @click.option('--print-only',  is_flag = True, hidden = True, default = False, metavar = "Toggle", help = 'Print the generated snakemake command and exit')
 @click.argument('FASTQ_INPUT', required=True, type=click.Path(exists=True, dir_okay=False))
-def gen1(input, output_dir, samplesheet, threads, snakemake, skipreports, quiet, print_only):
+def gen1(fastq_input, output_dir, samplesheet, threads, snakemake, skipreports, quiet, print_only):
     """
     Demultiplex Generation 1 haplotagged FASTQ files
 
@@ -43,12 +43,12 @@ def gen1(input, output_dir, samplesheet, threads, snakemake, skipreports, quiet,
         click.echo(call_SM)
         exit()
 
-    check_demux_fastq(FASTQ_INPUT)
+    check_demux_fastq(fastq_input)
     validate_demuxschema(samplesheet)
     fetch_file("demultiplex.gen1.smk", f"{workflowdir}/")
 
     with open(f"{workflowdir}/config.yml", "w") as config:
-        config.write(f"infile: {FASTQ_INPUT}\n")
+        config.write(f"infile: {fastq_input}\n")
         config.write(f"output_directory: {output_dir}\n")
         config.write(f"infile_prefix: {inprefix}\n")
         config.write(f"samplefile: {samplesheet}\n")
