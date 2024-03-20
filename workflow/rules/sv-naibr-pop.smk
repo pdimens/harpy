@@ -28,7 +28,7 @@ def process_args(args):
         "k"        : 3,
     }
     if args != "":
-        words = [i for i in re.split("\s|=", args) if len(i) > 0]
+        words = [i for i in re.split(r"\s|=", args) if len(i) > 0]
         for i in zip(words[::2], words[1::2]):
             argsDict[i[0]] = i[1]
     return argsDict
