@@ -181,7 +181,7 @@ click.rich_click.OPTION_GROUPS = {
     "harpy demultiplex gen1": [
         {
             "name": "Configuration",
-            "options": ["--samplesheet"],
+            "options": ["--output-dir", "--samplesheet"],
         },
         {
             "name": "Other Options",
