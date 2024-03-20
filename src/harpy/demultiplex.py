@@ -23,7 +23,7 @@ def gen1(fastq_input, output_dir, samplesheet, threads, snakemake, skipreports, 
     Use one of the four gzipped FASTQ files provided by the sequencer (I1, I2, R1, R2).fastq.gz for the `FASTQ_INPUT` argument, 
     Harpy will infer the other three. Note: the `--samplesheet` must be tab (or space) delimited and have no header (i.e. no column names).
     """
-    inprefix = re.sub(r"[\_\.][IR][12]?(?:\_00[0-9])*\.f(?:ast)?q(?:\.gz)?$", "", os.path.basename(input))
+    inprefix = re.sub(r"[\_\.][IR][12]?(?:\_00[0-9])*\.f(?:ast)?q(?:\.gz)?$", "", os.path.basename(fastq_input))
     output_dir = output_dir.rstrip("/") + f"/{inprefix}"
     workflowdir = f"{output_dir}/workflow"
     command = f'snakemake --rerun-incomplete --nolock --software-deployment-method conda --conda-prefix ./.snakemake/conda --cores {threads} --directory .'.split()
