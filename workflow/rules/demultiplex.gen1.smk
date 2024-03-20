@@ -13,7 +13,7 @@ inprefix = config["infile_prefix"]
 inprefixfull = re.sub(r"[\_\.][IR][12]?(?:\_00[0-9])*\.f(?:ast)?q(?:\.gz)?$", "", infile)
 infiles = [f"{inprefixfull}_{i}{fq_extension}" for i in ["I1", "I2","R1","R2"]]
 indir = os.path.dirname(infile)
-outdir = f"Demultiplex/{inprefix}/"
+outdir = config["output_directory"] + f"/{inprefix}/"
 
 def barcodedict(smpl):
     d = dict()
