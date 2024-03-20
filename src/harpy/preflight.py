@@ -71,7 +71,7 @@ def fastq(input, output_dir, threads, snakemake, quiet, print_only):
 @click.option('-o', '--output-dir', type = str, default = "Preflight/bam", show_default=True, metavar = "String", help = 'Name of output directory')
 @click.option('--print-only',  is_flag = True, hidden = True, default = False, metavar = "Toggle", help = 'Print the generated snakemake command and exit')
 @click.argument('input', required=True, type=click.Path(exists=True), nargs=-1)
-def bam(input, threads, snakemake, quiet, print_only):
+def bam(input, output_dir, threads, snakemake, quiet, print_only):
     """
     Run validity checks on haplotagged BAM files
 
