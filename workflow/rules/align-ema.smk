@@ -5,7 +5,7 @@ from pathlib import Path
 from rich.panel import Panel
 from rich import print as rprint
 
-outdir      = "Align/ema"
+outdir      = config["output_directory"]
 seq_dir 	= config["seq_directory"]
 nbins 		= config["EMA_bins"]
 binrange    = ["%03d" % i for i in range(nbins)]
@@ -457,13 +457,15 @@ rule collate_samtools_stats:
         expand(outdir + "/reports/samtools_{ext}/{sample}.{ext}", sample = samplenames, ext = ["stats", "flagstat"]),
     output: 
         outdir + "/reports/ema.stats.html"
+    params:
+        outdir
     conda:
         os.getcwd() + "/.harpy_envs/qc.yaml"
     message:
         "Summarizing samtools stats and flagstat"
     shell:
         """
-        multiqc Align/ema/reports/samtools_stats Align/ema/reports/samtools_flagstat --force --quiet --title "Basic Alignment Statistics" --comment "This report aggregates samtools stats and samtools flagstats results for all alignments." --no-data-dir --filename {output} 2> /dev/null
+        multiqc {outdir}/reports/samtools_stats {outdir}/reports/samtools_flagstat --force --quiet --title "Basic Alignment Statistics" --comment "This report aggregates samtools stats and samtools flagstats results for all alignments." --no-data-dir --filename {output} 2> /dev/null
         """
 
 rule log_runtime:

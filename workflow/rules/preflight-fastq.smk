@@ -6,7 +6,7 @@ import sys
 import glob
 
 seq_dir = config["seq_directory"]
-out_dir = f"Preflight/fastq/"
+out_dir = config["output_directory"]
 
 wildcard_constraints:
     sample = "[a-zA-Z0-9._-]+"

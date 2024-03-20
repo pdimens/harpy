@@ -17,9 +17,10 @@ from time import sleep
 @click.option('-s', '--snakemake', type = str, metavar = "String", help = 'Additional Snakemake parameters, in quotes')
 @click.option('-q', '--quiet',  is_flag = True, show_default = True, default = False, metavar = "Toggle", help = 'Don\'t show output text while running')
 @click.option('-r', '--skipreports',  is_flag = True, show_default = True, default = False, metavar = "Toggle", help = 'Don\'t generate any HTML reports')
-@click.option('--print-only',  is_flag = True, show_default = True, default = False, metavar = "Toggle", help = 'Print the generated snakemake command and exit')
+@click.option('-o', '--output-dir', type = str, default = "Align/bwa", show_default=True, metavar = "String", help = 'Name of output directory')
+@click.option('--print-only',  is_flag = True, hidden = True, default = False, metavar = "Toggle", help = 'Print the generated snakemake command and exit')
 @click.argument('input', required=True, type=click.Path(exists=True), nargs=-1)
-def bwa(input, genome, threads, extra_params, quality_filter, molecule_distance, snakemake, skipreports, quiet, print_only):
+def bwa(input, output_dir, genome, threads, extra_params, quality_filter, molecule_distance, snakemake, skipreports, quiet, print_only):
     """
     Align sequences to genome using BWA MEM
  
@@ -30,7 +31,8 @@ def bwa(input, genome, threads, extra_params, quality_filter, molecule_distance,
     Instead, Harpy post-processes the alignments using the specified `--molecule-distance`
     to assign alignments to unique molecules. 
     """
-    workflowdir = "Align/bwa/workflow"
+    output_dir = output_dir.rstrip("/")
+    workflowdir = f"{output_dir}/workflow"
     command = f'snakemake --rerun-incomplete --nolock --software-deployment-method conda --conda-prefix ./.snakemake/conda --cores {threads} --directory .'.split()
     command.append('--snakefile')
     command.append(f'{workflowdir}/align-bwa.smk')
@@ -58,6 +60,7 @@ def bwa(input, genome, threads, extra_params, quality_filter, molecule_distance,
     with open(f"{workflowdir}/config.yml", "w") as config:
         config.write(f"genomefile: {genome}\n")
         config.write(f"seq_directory: {workflowdir}/input\n")
+        config.write(f"output_directory: {output_dir}\n")
         config.write(f"samplenames: {samplenames}\n")
         config.write(f"quality: {quality_filter}\n")
         config.write(f"molecule_distance: {molecule_distance}\n")
@@ -68,7 +71,7 @@ def bwa(input, genome, threads, extra_params, quality_filter, molecule_distance,
    
     generate_conda_deps()
     print_onstart(
-        f"Samples: {len(samplenames)}\nOutput Directory: Align/bwa/",
+        f"Samples: {len(samplenames)}\nOutput Directory: {output_dir}",
         "align bwa"
     )
     _module = subprocess.run(command)
@@ -87,9 +90,10 @@ def bwa(input, genome, threads, extra_params, quality_filter, molecule_distance,
 @click.option('-s', '--snakemake', type = str, metavar = "String", help = 'Additional Snakemake parameters, in quotes')
 @click.option('-q', '--quiet',  is_flag = True, show_default = True, default = False, metavar = "Toggle", help = 'Don\'t show output text while running')
 @click.option('-r', '--skipreports',  is_flag = True, show_default = True, default = False, metavar = "Toggle", help = 'Don\'t generate any HTML reports')
-@click.option('--print-only',  is_flag = True, show_default = True, default = False, metavar = "Toggle", help = 'Print the generated snakemake command and exit')
+@click.option('-o', '--output-dir', type = str, default = "Align/ema", show_default=True, metavar = "String", help = 'Name of output directory')
+@click.option('--print-only',  is_flag = True, hidden = True, default = False, metavar = "Toggle", help = 'Print the generated snakemake command and exit')
 @click.argument('input', required=True, type=click.Path(exists=True), nargs=-1)
-def ema(input, platform, whitelist, genome, threads, ema_bins, skipreports, extra_params, quality_filter, snakemake, quiet, print_only):
+def ema(input, output_dir, platform, whitelist, genome, threads, ema_bins, skipreports, extra_params, quality_filter, snakemake, quiet, print_only):
     """
     Align sequences to a genome using EMA
 
@@ -100,7 +104,8 @@ def ema(input, platform, whitelist, genome, threads, ema_bins, skipreports, extr
     EMA may improve mapping, but it also marks split reads as secondary
     reads, making it less useful for variant calling with leviathan.
     """
-    workflowdir = "Align/ema/workflow"
+    output_dir = output_dir.rstrip("/")
+    workflowdir = f"{output_dir}/workflow"
     command = f'snakemake --rerun-incomplete --nolock --software-deployment-method conda --cores {threads} --directory .'.split()
     command.append('--snakefile')
     command.append(f'{workflowdir}/align-ema.smk')
@@ -118,7 +123,7 @@ def ema(input, platform, whitelist, genome, threads, ema_bins, skipreports, extr
         exit(0)
 
     platform = platform.lower()
-    # the tellseq stuff isn't impremented yet, but this is a placeholder for that, wishful thinking
+    # the tellseq stuff isn't impremented yet, but this is a placeholder for that... wishful thinking
     if platform in ["tellseq", "10x"] and not whitelist:
         print_error(f"{platform} technology requires the use of a barcode whitelist.")
         if platform == "10x":
@@ -141,6 +146,7 @@ def ema(input, platform, whitelist, genome, threads, ema_bins, skipreports, extr
     with open(f"{workflowdir}/config.yml", "w") as config:
         config.write(f"genomefile: {genome}\n")
         config.write(f"seq_directory: {workflowdir}/input\n")
+        config.write(f"output_directory: {output_dir}\n")
         config.write(f"samplenames: {samplenames}\n")
         config.write(f"quality: {quality_filter}\n")
         config.write(f"platform: {platform}\n")
@@ -154,7 +160,7 @@ def ema(input, platform, whitelist, genome, threads, ema_bins, skipreports, extr
 
     generate_conda_deps()
     print_onstart(
-        f"Samples: {len(samplenames)}\nPlatform: {platform}\nOutput Directory: Align/ema/",
+        f"Samples: {len(samplenames)}\nPlatform: {platform}\nOutput Directory: {output_dir}/",
         "align ema"
     )
     _module = subprocess.run(command)

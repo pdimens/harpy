@@ -12,7 +12,7 @@ genomefile  = config["genomefile"]
 molecule_distance = config["molecule_distance"]
 skipreports = config["skipreports"]
 bn          = os.path.basename(genomefile)
-outdir      = "Variants/naibr-pop"
+outdir      = config["output_directory"]
 genome_zip  = True if bn.lower().endswith(".gz") else False
 if genome_zip:
     bn = bn[:-3]

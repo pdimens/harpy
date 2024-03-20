@@ -10,7 +10,7 @@ extra       = config.get("extra", "")
 groupfile   = config["groupings"]
 genomefile  = config["genomefile"]
 molecule_distance = config["molecule_distance"]
-outdir      = "Variants/naibr-pop"
+outdir      = config["output_directory"]
 skipreports = config["skipreports"]
 
 wildcard_constraints:

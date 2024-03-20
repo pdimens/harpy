@@ -16,9 +16,10 @@ import glob
 @click.option('-s', '--snakemake', type = str, metavar = "String", help = 'Additional Snakemake parameters, in quotes')
 @click.option('-r', '--skipreports',  is_flag = True, show_default = True, default = False, metavar = "Toggle", help = 'Don\'t generate any HTML reports')
 @click.option('-q', '--quiet',  is_flag = True, show_default = True, default = False, metavar = "Toggle", help = 'Don\'t show output text while running')
-@click.option('--print-only',  is_flag = True, show_default = True, default = False, metavar = "Toggle", help = 'Print the generated snakemake command and exit')
+@click.option('--print-only',  is_flag = True, hidden = True, show_default = True, default = False, metavar = "Toggle", help = 'Print the generated snakemake command and exit')
+@click.option('-o', '--output-dir', type = str, default = "QC", show_default=True, metavar = "String", help = 'Name of output directory')
 @click.argument('input', required=True, type=click.Path(exists=True), nargs=-1)
-def qc(input, max_length, ignore_adapters, extra_params, threads, snakemake, skipreports, quiet, print_only):
+def qc(input, output_dir, max_length, ignore_adapters, extra_params, threads, snakemake, skipreports, quiet, print_only):
     """
     Remove adapters and quality trim sequences
 
@@ -31,7 +32,8 @@ def qc(input, max_length, ignore_adapters, extra_params, threads, snakemake, ski
     - minimum 15bp length filter
     - poly-G tail removal
     """
-    workflowdir = "QC/workflow"
+    output_dir = output_dir.rstrip("/")
+    workflowdir = f"{output_dir}/workflow"
     command = f'snakemake --rerun-incomplete --nolock  --software-deployment-method conda --conda-prefix ./.snakemake/conda --cores {threads} --directory .'.split()
     command.append('--snakefile')
     command.append(f'{workflowdir}/qc.smk')
@@ -55,6 +57,7 @@ def qc(input, max_length, ignore_adapters, extra_params, threads, snakemake, ski
     fetch_file("countBX.py", f"{workflowdir}/scripts/")
     with open(f"{workflowdir}/config.yml", "w") as config:
         config.write(f"seq_directory: {workflowdir}/input\n")
+        config.write(f"output_directory: {output_dir}\n")
         config.write(f"adapters: {ignore_adapters}\n")
         config.write(f"maxlen: {max_length}\n")
         if extra_params is not None:
@@ -64,7 +67,7 @@ def qc(input, max_length, ignore_adapters, extra_params, threads, snakemake, ski
 
     generate_conda_deps()
     print_onstart(
-        f"Samples: {len(sn)}\nOutput Directory: QC/",
+        f"Samples: {len(sn)}\nOutput Directory: {output_dir}/",
         "qc"
     )
     _module = subprocess.run(command)

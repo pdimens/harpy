@@ -12,7 +12,7 @@ samplenames = config["samplenames"]
 mp_extra 	= config.get("extra", "") 
 chunksize   = config["windowsize"]
 intervals   = config["intervals"]
-outdir      = "Variants/mpileup"
+outdir      = config["output_directory"]
 regions     = dict(zip(intervals, intervals))
 skipreports = config["skipreports"]
 

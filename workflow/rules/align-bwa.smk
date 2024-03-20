@@ -5,7 +5,7 @@ import sys
 from rich.panel import Panel
 from rich import print as rprint
 
-outdir      = "Align/bwa"
+outdir      = config["output_directory"]
 seq_dir		= config["seq_directory"]
 genomefile 	= config["genomefile"]
 samplenames = config["samplenames"]
@@ -323,13 +323,15 @@ rule samtools_reports:
         expand(outdir + "/reports/samtools_{ext}/{sample}.{ext}", sample = samplenames, ext = ["stats", "flagstat"])
     output: 
         outdir + "/reports/bwa.stats.html"
+    params:
+        outdir
     conda:
         os.getcwd() + "/.harpy_envs/qc.yaml"
     message:
         "Summarizing samtools stats and flagstat"
     shell:
         """
-        multiqc Align/bwa/reports/samtools_stats Align/bwa/reports/samtools_flagstat --force --quiet --title "Basic Alignment Statistics" --comment "This report aggregates samtools stats and samtools flagstats results for all alignments." --no-data-dir --filename {output} 2> /dev/null
+        multiqc {params}/reports/samtools_stats {params}/reports/samtools_flagstat --force --quiet --title "Basic Alignment Statistics" --comment "This report aggregates samtools stats and samtools flagstats results for all alignments." --no-data-dir --filename {output} 2> /dev/null
         """
 
 rule log_runtime:

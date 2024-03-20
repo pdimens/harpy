@@ -9,7 +9,7 @@ samplenames = config["samplenames"]
 extra       = config.get("extra", "") 
 genomefile  = config["genomefile"]
 molecule_distance = config["molecule_distance"]
-outdir      = "Variants/naibr"
+outdir      = config["output_directory"]
 skipreports = config["skipreports"]
 
 wildcard_constraints:

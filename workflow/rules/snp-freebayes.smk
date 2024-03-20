@@ -13,7 +13,7 @@ samplenames = config["samplenames"]
 extra 	    = config.get("extra", "") 
 chunksize   = config["windowsize"]
 intervals   = config["intervals"]
-outdir      = "Variants/freebayes"
+outdir      = config["output_directory"]
 regions     = dict(zip(intervals, intervals))
 skipreports = config["skipreports"]
 
