@@ -6,7 +6,7 @@ import gzip
 
 bam_dir 	= config["seq_directory"]
 genomefile 	= config["genomefile"]
-groupings 	= config.get("groupings", None)
+groupings 	= config.get("groupings", [])
 bn          = os.path.basename(genomefile)
 ploidy 		= config["ploidy"]
 samplenames = config["samplenames"]
@@ -88,11 +88,11 @@ rule bam_list:
             for bamfile in input.bam:
                 _ = fout.write(bamfile + "\n")
 
-rule call_variants_pop:
+rule call_variants:
     input:
         bam = expand(bam_dir + "/{sample}.bam", sample = samplenames),
         bai = expand(bam_dir + "/{sample}.bam.bai", sample = samplenames),
-        groupings = outdir + "/logs/sample.groups" if groupings else [],
+        groupfile = outdir + "/logs/sample.groups" if groupings else [],
         ref     = f"Genome/{bn}",
         ref_idx = f"Genome/{bn}.fai",
         samples = outdir + "/logs/samples.files"
@@ -101,14 +101,14 @@ rule call_variants_pop:
     params:
         region = lambda wc: "-r " + regions[wc.part],
         ploidy = f"-p {ploidy}",
-        populations = "--populations {input.groupings}" if groupings else ""
+        populations = "--populations " + rules.copy_groupings.output[0] if groupings else "",
         extra = extra
     conda:
         os.getcwd() + "/.harpy_envs/variants.snp.yaml"
     message:
         "Calling variants: {wildcards.part}"
     shell:
-        "freebayes -f {input.ref} -L {input.samples} {params}"
+        "freebayes -f {input.ref} -L {input.samples} {params} > {output}"
 
 rule sort_variants:
     input:

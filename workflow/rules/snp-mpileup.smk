@@ -6,7 +6,7 @@ import os
 bam_dir 	= config["seq_directory"]
 genomefile 	= config["genomefile"]
 bn          = os.path.basename(genomefile)
-groupings 	= config.get("groupings", None)
+groupings 	= config.get("groupings", [])
 ploidy 		= config["ploidy"]
 samplenames = config["samplenames"]
 mp_extra 	= config.get("extra", "") 
@@ -104,7 +104,7 @@ rule mpileup:
 
 rule call_genotypes_pop:
     input:
-        groupings = outdir + "/logs/sample.groups" if groupings else [],
+        groupfile = outdir + "/logs/sample.groups" if groupings else [],
         bcf = outdir + "/{part}.mp.bcf"
     output:
         bcf = temp(outdir + "/call/{part}.bcf"),
