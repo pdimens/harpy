@@ -176,7 +176,7 @@ click.rich_click.OPTION_GROUPS = {
     ],
     "harpy demultiplex gen1": [
         {
-            "name": "Configuration",
+            "name": "Module Parameters",
             "options": ["--samplesheet"],
         },
         {
@@ -186,7 +186,7 @@ click.rich_click.OPTION_GROUPS = {
     ],
     "harpy qc": [
         {
-            "name": "Configuration",
+            "name": "Module Parameters",
             "options": ["--max-length", "--ignore-adapters", "--extra-params"],
         },
         {
@@ -196,7 +196,7 @@ click.rich_click.OPTION_GROUPS = {
     ],
     "harpy align bwa": [
         {
-            "name": "Configuration",
+            "name": "Module Parameters",
             "options": ["--genome", "--quality-filter", "--molecule-distance", "--extra-params"],
         },
         {
@@ -206,7 +206,7 @@ click.rich_click.OPTION_GROUPS = {
     ],
     "harpy align ema": [
         {
-            "name": "Configuration",
+            "name": "Module Parameters",
             "options": ["--platform", "--whitelist", "--genome", "--quality-filter", "--ema-bins", "--extra-params"],
         },
         {
@@ -216,7 +216,7 @@ click.rich_click.OPTION_GROUPS = {
     ],
     "harpy snp mpileup": [
         {
-            "name": "Configuration",
+            "name": "Module Parameters",
             "options": ["--genome", "--populations", "--ploidy", "--windowsize", "--extra-params"],
         },
         {
@@ -226,7 +226,7 @@ click.rich_click.OPTION_GROUPS = {
     ],
     "harpy snp freebayes": [
         {
-            "name": "Configuration",
+            "name": "Module Parameters",
             "options": ["--genome", "--populations", "--ploidy", "--windowsize", "--extra-params"],
         },
         {
@@ -236,7 +236,7 @@ click.rich_click.OPTION_GROUPS = {
     ],
     "harpy sv leviathan": [
         {
-            "name": "Configuration",
+            "name": "Module Parameters",
             "options": ["--genome", "--populations", "--extra-params"],
         },
         {
@@ -246,7 +246,7 @@ click.rich_click.OPTION_GROUPS = {
     ],
     "harpy sv naibr": [
         {
-            "name": "Configuration",
+            "name": "Module Parameters",
             "options": ["--genome", "--vcf", "--molecule-distance", "--populations", "--extra-params"],
         },
         {
@@ -256,7 +256,7 @@ click.rich_click.OPTION_GROUPS = {
     ],
     "harpy impute": [
         {
-            "name": "Configuration",
+            "name": "Module Parameters",
             "options": ["--vcf", "--parameters", "--extra-params", "--vcf-samples"],
         },
         {
@@ -266,7 +266,7 @@ click.rich_click.OPTION_GROUPS = {
     ],
     "harpy phase": [
         {
-            "name": "Configuration",
+            "name": "Module Parameters",
             "options": ["--vcf", "--molecule-distance", "--genome", "--prune-threshold", "--ignore-bx", "--extra-params", "--vcf-samples"],
         },
         {
