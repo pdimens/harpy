@@ -44,17 +44,16 @@ onsuccess:
         file = sys.stderr
     )
 
-if groupings:
-    rule copy_groupings:
-        input:
-            groupings
-        output:
-            outdir + "/logs/sample.groups"
-        message:
-            "Logging {input}"
-        run:
-            with open(input[0], "r") as infile, open(output[0], "w") as outfile:
-                _ = [outfile.write(i) for i in infile.readlines() if not i.lstrip().startswith("#")]
+rule copy_groupings:
+    input:
+        groupings
+    output:
+        outdir + "/logs/sample.groups"
+    message:
+        "Logging {input}"
+    run:
+        with open(input[0], "r") as infile, open(output[0], "w") as outfile:
+            _ = [outfile.write(i) for i in infile.readlines() if not i.lstrip().startswith("#")]
 
 rule index_alignments:
     input:
@@ -89,47 +88,27 @@ rule bam_list:
             for bamfile in input.bam:
                 _ = fout.write(bamfile + "\n")
 
-if groupings:
-    rule call_variants_pop:
-        input:
-            bam = expand(bam_dir + "/{sample}.bam", sample = samplenames),
-            bai = expand(bam_dir + "/{sample}.bam.bai", sample = samplenames),
-            groupings = outdir + "/logs/sample.groups",
-            ref     = f"Genome/{bn}",
-            ref_idx = f"Genome/{bn}.fai",
-            samples = outdir + "/logs/samples.files"
-        output:
-            pipe(outdir + "/regions/{part}.vcf")
-        params:
-            region = lambda wc: "-r " + regions[wc.part],
-            ploidy = f"-p {ploidy}",
-            extra = extra
-        conda:
-            os.getcwd() + "/.harpy_envs/variants.snp.yaml"
-        message:
-            "Calling variants: {wildcards.part}"
-        shell:
-            "freebayes -f {input.ref} -L {input.samples} --populations {input.groupings} {params}"
-else:
-    rule call_variants:
-        input:
-            bam = expand(bam_dir + "/{sample}.bam", sample = samplenames),
-            bai = expand(bam_dir + "/{sample}.bam.bai", sample = samplenames),
-            ref     = f"Genome/{bn}",
-            ref_idx = f"Genome/{bn}.fai",
-            samples = outdir + "/logs/samples.files"
-        output:
-            pipe(outdir + "/regions/{part}.vcf")
-        params:
-            region = lambda wc: "-r " + regions[wc.part],
-            ploidy = f"-p {ploidy}",
-            extra = extra
-        conda:
-            os.getcwd() + "/.harpy_envs/variants.snp.yaml"
-        message:
-            "Calling variants: {wildcards.part}"
-        shell:
-            "freebayes -f {input.ref} -L {input.samples} {params} > {output}"
+rule call_variants_pop:
+    input:
+        bam = expand(bam_dir + "/{sample}.bam", sample = samplenames),
+        bai = expand(bam_dir + "/{sample}.bam.bai", sample = samplenames),
+        groupings = outdir + "/logs/sample.groups" if groupings else [],
+        ref     = f"Genome/{bn}",
+        ref_idx = f"Genome/{bn}.fai",
+        samples = outdir + "/logs/samples.files"
+    output:
+        pipe(outdir + "/regions/{part}.vcf")
+    params:
+        region = lambda wc: "-r " + regions[wc.part],
+        ploidy = f"-p {ploidy}",
+        populations = "--populations {input.groupings}" if groupings else ""
+        extra = extra
+    conda:
+        os.getcwd() + "/.harpy_envs/variants.snp.yaml"
+    message:
+        "Calling variants: {wildcards.part}"
+    shell:
+        "freebayes -f {input.ref} -L {input.samples} {params}"
 
 rule sort_variants:
     input:
