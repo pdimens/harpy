@@ -229,7 +229,7 @@ rule log_runtime:
         outdir + "/workflow/snp.mpileup.workflow.summary"
     params:
         ploidy = f"--ploidy {ploidy}",
-        populations = '' if groupings is None else f"--populations {groupings}"
+        populations = f"--populations {groupings}" if groupings else "--populations -"
     message:
         "Creating record of relevant runtime parameters: {output}"
     run:

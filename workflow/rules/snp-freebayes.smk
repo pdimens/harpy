@@ -213,7 +213,7 @@ rule log_runtime:
         "Creating record of relevant runtime parameters: {output}"
     params:
         ploidy = f"-p {ploidy}",
-        populations = '' if groupings is None else f"--populations {groupings}",
+        populations = f"--populations {groupings}" if groupings else '',
         extra = extra
     run:
         with open(output[0], "w") as f:
