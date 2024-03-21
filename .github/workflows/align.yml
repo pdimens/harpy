@@ -23,6 +23,7 @@ on:
       - 'workflow/scripts/makewindows.py'
       - 'test/fastq/**'
       - '**align.yml'
+      - '**__main__.py'
 
   pull_request:
     branches:
@@ -46,6 +47,7 @@ on:
       - 'workflow/scripts/makewindows.py'
       - 'test/fastq/**'
       - '**align.yml'
+      - '**__main__.py'
 
 env:
   CACHE_NUMBER: 0  # increase to reset cache manually
