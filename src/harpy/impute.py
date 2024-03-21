@@ -16,9 +16,10 @@ import os
 @click.option('-s', '--snakemake', type = str, metavar = "String", help = 'Additional Snakemake parameters, in quotes')
 @click.option('-r', '--skipreports',  is_flag = True, show_default = True, default = False, metavar = "Toggle", help = 'Don\'t generate any HTML reports')
 @click.option('-q', '--quiet',  is_flag = True, show_default = True, default = False, metavar = "Toggle", help = 'Don\'t show output text while running')
-@click.option('--print-only',  is_flag = True, show_default = True, default = False, metavar = "Toggle", help = 'Print the generated snakemake command and exit')
+@click.option('-o', '--output-dir', type = str, default = "Impute", show_default=True, metavar = "String", help = 'Name of output directory')
+@click.option('--print-only',  is_flag = True, hidden = True, default = False, metavar = "Toggle", help = 'Print the generated snakemake command and exit')
 @click.argument('input', required=True, type=click.Path(exists=True), nargs=-1)
-def impute(input, parameters, threads, vcf, vcf_samples, extra_params, snakemake, skipreports, quiet, print_only):
+def impute(input, output_dir, parameters, threads, vcf, vcf_samples, extra_params, snakemake, skipreports, quiet, print_only):
     """
     Impute genotypes using variants and sequences
     
@@ -35,8 +36,9 @@ def impute(input, parameters, threads, vcf, vcf_samples, extra_params, snakemake
     harpy ... -x 'switchModelIteration = 39, splitReadIterations = NA, reference_populations = c("CEU","GBR")'...
     ```
     """
-    workflowdir = "Impute/workflow"
-    command = f'snakemake --rerun-incomplete --nolock --use-conda --conda-prefix ./.snakemake/conda --cores {threads} --directory .'.split()
+    output_dir = output_dir.rstrip("/")
+    workflowdir = f"{output_dir}/workflow"
+    command = f'snakemake --rerun-incomplete --nolock --software-deployment-method conda --conda-prefix ./.snakemake/conda --cores {threads} --directory .'.split()
     command.append('--snakefile')
     command.append(f'{workflowdir}/impute.smk')
     command.append("--configfile")
@@ -68,6 +70,7 @@ def impute(input, parameters, threads, vcf, vcf_samples, extra_params, snakemake
     contigs = biallelic_contigs(vcf)
     with open(f"{workflowdir}/config.yml", "w") as config:
         config.write(f"seq_directory: {workflowdir}/input\n")
+        config.write(f"output_directory: {output_dir}\n")
         config.write(f"samplenames: {samplenames}\n")
         config.write(f"variantfile: {vcf}\n")
         config.write(f"paramfile: {parameters}\n")
@@ -79,7 +82,7 @@ def impute(input, parameters, threads, vcf, vcf_samples, extra_params, snakemake
 
     generate_conda_deps()
     print_onstart(
-        f"Input VCF: {vcf}\nSamples in VCF: {len(samplenames)}\nAlignments Provided: {len(sn)}\nContigs Considered: {len(contigs)}\nOutput Directory: Impute/",
+        f"Input VCF: {vcf}\nSamples in VCF: {len(samplenames)}\nAlignments Provided: {len(sn)}\nContigs Considered: {len(contigs)}\nOutput Directory: {output_dir}/",
         "impute"
     )
     _module = subprocess.run(command)

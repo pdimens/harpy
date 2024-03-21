@@ -4,24 +4,25 @@ import pysam
 import sys
 import re
 import os.path
-import argparse
+#import argparse
 
-parser = argparse.ArgumentParser(
-    prog = 'checkFASTQ.py',
-    description = 'Do a haplotag format validity check on a FASTQ file.',
-    usage = "checkFASTQ.py fastqfile",
-    exit_on_error = False
-    )
+#parser = argparse.ArgumentParser(
+#    prog = 'checkFASTQ.py',
+#    description = 'Do a haplotag format validity check on a FASTQ file.',
+#    usage = "checkFASTQ.py fastqfile",
+#    exit_on_error = False
+#    )
+#
+#parser.add_argument("fastqfile", help = "Input FASTQ file.")
 
-parser.add_argument("fastqfile", help = "Input FASTQ file.")
+#if len(sys.argv) == 1:
+#    parser.print_help(sys.stderr)
+#    sys.exit(1)
+#
+#args = parser.parse_args()
 
-if len(sys.argv) == 1:
-    parser.print_help(sys.stderr)
-    sys.exit(1)
-
-args = parser.parse_args()
-
-fq_in = args.fastqfile
+#fq_in = args.fastqfile
+fq_in = snakemake.input[0]
 
 #bxz = re.compile('BX:Z:')
 samspec = re.compile('[A-Z][A-Z]:[AifZHB]:')
@@ -56,4 +57,5 @@ with pysam.FastxFile(fq_in) as fh:
             noBX += 1
 
 values = [str(i) for i in [os.path.basename(fq_in), n_reads, noBX, badBX, badSamSpec, bxNotLast]]
-print("\t".join(values), file = sys.stdout) 
+with open(snakemake.output[0], "w") as fout:
+    print("\t".join(values), file = fout) 

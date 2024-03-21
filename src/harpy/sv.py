@@ -9,15 +9,16 @@ import os
 
 @click.command(no_args_is_help = True, epilog= "read the docs for more information: https://pdimens.github.io/harpy/modules/sv/leviathan/")
 @click.option('-g', '--genome', type=click.Path(exists=True, dir_okay=False), required = True, metavar = "File Path", help = 'Genome assembly for variant calling')
-@click.option('-p', '--populations', type=click.Path(exists = True, dir_okay=False), metavar = "File Path", help = 'Tab-delimited file of sample<tab>population (optional)')
+@click.option('-p', '--populations', type=click.Path(exists = True, dir_okay=False), metavar = "File Path", help = "Tab-delimited file of sample\<tab\>population")
 @click.option('-x', '--extra-params', type = str, metavar = "String", help = 'Additional variant caller parameters, in quotes')
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(min = 4, max_open = True), metavar = "Integer", help = 'Number of threads to use')
 @click.option('-s', '--snakemake', type = str, metavar = "String", help = 'Additional Snakemake parameters, in quotes')
 @click.option('-r', '--skipreports',  is_flag = True, show_default = True, default = False, metavar = "Toggle", help = 'Don\'t generate any HTML reports')
 @click.option('-q', '--quiet',  is_flag = True, show_default = True, default = False, metavar = "Toggle", help = 'Don\'t show output text while running')
-@click.option('--print-only',  is_flag = True, show_default = True, default = False, metavar = "Toggle", help = 'Print the generated snakemake command and exit')
+@click.option('-o', '--output-dir', type = str, default = "SV/leviathan", show_default=True, metavar = "String", help = 'Name of output directory')
+@click.option('--print-only',  is_flag = True, hidden = True, default = False, metavar = "Toggle", help = 'Print the generated snakemake command and exit')
 @click.argument('input', required=True, type=click.Path(exists=True), nargs=-1)
-def leviathan(input, genome, threads, populations, extra_params, snakemake, skipreports, quiet, print_only):
+def leviathan(input, output_dir, genome, threads, populations, extra_params, snakemake, skipreports, quiet, print_only):
     """
     Call structural variants using LEVIATHAN
     
@@ -28,10 +29,10 @@ def leviathan(input, genome, threads, populations, extra_params, snakemake, skip
     Use **harpy popgroup** to create a sample grouping file to 
     use as input for `--populations`.
     """
+    output_dir = output_dir.rstrip("/")
+    workflowdir = f"{output_dir}/workflow"
     vcaller = "leviathan" if populations is None else "leviathan-pop"
-    workflowdir = f"Variants/{vcaller}/workflow"
-
-    command = f'snakemake --rerun-incomplete --nolock --use-conda --conda-prefix ./.snakemake/conda --cores {threads} --directory .'.split()
+    command = f'snakemake --rerun-incomplete --nolock --software-deployment-method conda --conda-prefix ./.snakemake/conda --cores {threads} --directory .'.split()
     command.append('--snakefile')
     command.append(f'{workflowdir}/sv-{vcaller}.smk')
     command.append('--configfile')
@@ -56,6 +57,7 @@ def leviathan(input, genome, threads, populations, extra_params, snakemake, skip
 
     with open(f'{workflowdir}/config.yml', "w") as config:
         config.write(f"seq_directory: {workflowdir}/input\n")
+        config.write(f"output_directory: {output_dir}\n")
         config.write(f"samplenames: {samplenames}\n")
         popgroupings = ""
         if populations is not None:
@@ -73,7 +75,7 @@ def leviathan(input, genome, threads, populations, extra_params, snakemake, skip
 
     generate_conda_deps()
     print_onstart(
-        f"Samples: {len(samplenames)}{popgroupings}\nOutput Directory: Variants/{vcaller}/",
+        f"Samples: {len(samplenames)}{popgroupings}\nOutput Directory: {output_dir}/",
         "sv leviathan"
     )
     _module = subprocess.run(command)
@@ -82,16 +84,17 @@ def leviathan(input, genome, threads, populations, extra_params, snakemake, skip
 @click.command(no_args_is_help = True, epilog = "read the docs for more information: https://pdimens.github.io/harpy/modules/sv/naibr/")
 @click.option('-g', '--genome', required = True, type=click.Path(exists=True, dir_okay=False), metavar = "File Path", help = 'Genome assembly')
 @click.option('-v', '--vcf', type=click.Path(exists=True, dir_okay=False), metavar = "File Path", help = 'Path to phased bcf/vcf file')
-@click.option('-p', '--populations', type=click.Path(exists = True, dir_okay=False), metavar = "File Path", help = 'Tab-delimited file of sample<tab>population (optional)')
+@click.option('-p', '--populations', type=click.Path(exists = True, dir_okay=False), metavar = "File Path", help = "Tab-delimited file of sample\<tab\>population")
 @click.option('-m', '--molecule-distance', default = 100000, show_default = True, type = int, metavar = "Integer", help = 'Base-pair distance delineating separate molecules')
 @click.option('-x', '--extra-params', type = str, metavar = "String", help = 'Additional variant caller parameters, in quotes')
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(min = 4, max_open = True), metavar = "Integer", help = 'Number of threads to use')
 @click.option('-s', '--snakemake', type = str, metavar = "String", help = 'Additional Snakemake parameters, in quotes')
 @click.option('-r', '--skipreports',  is_flag = True, show_default = True, default = False, metavar = "Toggle", help = 'Don\'t generate any HTML reports')
 @click.option('-q', '--quiet',  is_flag = True, show_default = True, default = False, metavar = "Toggle", help = 'Don\'t show output text while running')
-@click.option('--print-only',  is_flag = True, show_default = True, default = False, metavar = "Toggle", help = 'Print the generated snakemake command and exit')
+@click.option('-o', '--output-dir', type = str, default = "SV/naibr", show_default=True, metavar = "String", help = 'Name of output directory')
+@click.option('--print-only',  is_flag = True, hidden = True, default = False, metavar = "Toggle", help = 'Print the generated snakemake command and exit')
 @click.argument('input', required=True, type=click.Path(exists=True), nargs=-1)
-def naibr(input, genome, vcf, threads, populations, molecule_distance, extra_params, snakemake, skipreports, quiet, print_only):
+def naibr(input, output_dir, genome, vcf, threads, populations, molecule_distance, extra_params, snakemake, skipreports, quiet, print_only):
     """
     Call structural variants using NAIBR
     
@@ -108,11 +111,13 @@ def naibr(input, genome, vcf, threads, populations, molecule_distance, extra_par
     Use **harpy popgroup** to create a sample grouping file to 
     use as input for `--populations`.
     """
+    output_dir = output_dir.rstrip("/")
+    workflowdir = f"{output_dir}/workflow"
     vcaller = "naibr" if populations is None else "naibr-pop"
-    workflowdir = f"Variants/{vcaller}/workflow"
+    workflowdir = f"{output_dir}/workflow"
     vcaller += "-phase" if vcf is not None else ""
     
-    command = (f'snakemake --rerun-incomplete --nolock --use-conda --conda-prefix ./.snakemake/conda --cores {threads} --directory .').split()
+    command = (f'snakemake --rerun-incomplete --nolock --software-deployment-method conda --conda-prefix ./.snakemake/conda --cores {threads} --directory .').split()
     command.append('--snakefile')
     command.append(f"{workflowdir}/sv-{vcaller}.smk")
     command.append("--configfile")
@@ -140,6 +145,7 @@ def naibr(input, genome, vcf, threads, populations, molecule_distance, extra_par
 
     with open(f'{workflowdir}/config.yml', "w") as config:
         config.write(f"seq_directory: {workflowdir}/input\n")
+        config.write(f"output_directory: {output_dir}\n")
         config.write(f"samplenames: {samplenames}\n")
         popgroupings = ""
         if populations is not None:
@@ -161,7 +167,7 @@ def naibr(input, genome, vcf, threads, populations, molecule_distance, extra_par
 
     generate_conda_deps()
     print_onstart(
-        f"Samples: {len(samplenames)}{popgroupings}\nOutput Directory: Variants/{vcaller}/",
+        f"Samples: {len(samplenames)}{popgroupings}\nOutput Directory: {output_dir}/",
         "sv naibr"
     )
     _module = subprocess.run(command)

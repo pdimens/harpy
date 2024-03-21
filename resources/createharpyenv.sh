@@ -4,9 +4,9 @@
 
 mamba create -n $1 -c bioconda -c conda-forge \
     bcftools=1.19 \
-    pysam=0.22 \
     python \
+    pandas \
     rich-click \
-    snakemake \
+    snakemake-minimal>7 \
     samtools \
     seqtk

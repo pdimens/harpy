@@ -20,6 +20,7 @@ on:
       - 'workflow/report/HapCut2.Rmd'
       - 'workflow/scripts/parsePhaseBlocks.py'
       - 'workflow/scripts/summarizeHaplobocks.py'
+      - '**__main__.py'
 
   pull_request:
     branches:
@@ -40,6 +41,7 @@ on:
       - 'workflow/report/HapCut2.Rmd'
       - 'workflow/scripts/parsePhaseBlocks.py'
       - 'workflow/scripts/summarizeHaplobocks.py'
+      - '**__main__.py'
 
 env:
   CACHE_NUMBER: 0  # increase to reset cache manually

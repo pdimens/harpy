@@ -9,7 +9,7 @@ samplenames = config["samplenames"]
 extra       = config.get("extra", "") 
 genomefile  = config["genomefile"]
 molecule_distance = config["molecule_distance"]
-outdir      = "Variants/naibr"
+outdir      = config["output_directory"]
 skipreports = config["skipreports"]
 bn          = os.path.basename(genomefile)
 genome_zip  = True if (bn.endswith(".gz") or bn.endswith(".GZ")) else False
@@ -26,7 +26,7 @@ def process_args(args):
         "k"        : 3
     }
     if args != "":
-        words = [i for i in re.split("\s|=", args) if len(i) > 0]
+        words = [i for i in re.split(r"\s|=", args) if len(i) > 0]
         for i in zip(words[::2], words[1::2]):
             argsDict[i[0]] = i[1]
     return argsDict
@@ -80,7 +80,7 @@ rule create_config:
         with open(output[0], "w") as conf:
             _ = conf.write(f"bam_file={input[0]}\n")
             _ = conf.write(f"prefix={params[0]}\n")
-            _ = conf.write(f"outdir=Variants/naibr/{params[0]}\n")
+            _ = conf.write(f"outdir={outdir}/{params[0]}\n")
             _ = conf.write(f"threads={params[1]}\n")
             for i in argdict:
                 _ = conf.write(f"{i}={argdict[i]}\n")
@@ -99,7 +99,7 @@ rule call_sv:
     threads:
         min(10, workflow.cores)
     conda:
-        os.getcwd() + "/harpyenvs/variants.sv.yaml"     
+        os.getcwd() + "/.harpy_envs/variants.sv.yaml"     
     message:
         "Calling variants: {wildcards.sample}"
     shell:
@@ -139,40 +139,32 @@ rule genome_link:
         if (file {input} | grep -q compressed ) ;then
             # is regular gzipped, needs to be BGzipped
             zcat {input} | bgzip -c > {output}
-        elif (file {input} | grep -q BGZF ); then
-            # is bgzipped, just linked
-            ln -sr {input} {output}
         else
-            # isn't compressed, just linked
+            # if BZgipped or isn't compressed, just linked
             ln -sr {input} {output}
         fi
         """
 
-if genome_zip:
-    rule genome_compressed_faidx:
-        input: 
-            f"Genome/{bn}"
-        output: 
-            gzi = f"Genome/{bn}.gzi",
-            fai = f"Genome/{bn}.fai"
-        log:
-            f"Genome/{bn}.faidx.gzi.log"
-        message:
-            "Indexing {input}"
-        shell: 
-            "samtools faidx --gzi-idx {output.gzi} --fai-idx {output.fai} {input} 2> {log}"
-else:
-    rule genome_faidx:
-        input: 
-            f"Genome/{bn}"
-        output: 
-            f"Genome/{bn}.fai"
-        log:
-            f"Genome/{bn}.faidx.log"
-        message:
-            "Indexing {input}"
-        shell:
-            "samtools faidx --fai-idx {output} {input} 2> {log}"
+rule genome_faidx:
+    input: 
+        f"Genome/{bn}"
+    output: 
+        fai = f"Genome/{bn}.fai",
+        gzi = f"Genome/{bn}.gzi" if genome_zip else []
+    log:
+        f"Genome/{bn}.faidx.gzi.log"
+    params:
+        genome_zip
+    message:
+        "Indexing {input}"
+    shell: 
+        """
+        if [ "{params}" = "True" ]; then
+            samtools faidx --gzi-idx {output.gzi} --fai-idx {output.fai} {input} 2> {log}
+        else
+            samtools faidx --fai-idx {output.fai} {input} 2> {log}
+        fi
+        """
 
 rule report:
     input:
@@ -181,7 +173,7 @@ rule report:
     output:
         outdir + "/reports/{sample}.naibr.html"
     conda:
-        os.getcwd() + "/harpyenvs/r-env.yaml"
+        os.getcwd() + "/.harpy_envs/r-env.yaml"
     message:
         "Creating report: {wildcards.sample}"
     script:
@@ -215,7 +207,8 @@ if not skipreports:
 
 rule all:
     default_target: True
-    input:
+    input: 
+        results
     message:
         "Checking for expected workflow output"
     shell:

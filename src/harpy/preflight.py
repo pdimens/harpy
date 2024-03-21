@@ -9,13 +9,13 @@ import sys
 import glob
 
 @click.command(no_args_is_help = True, epilog = "read the docs for more information: https://pdimens.github.io/harpy/modules/preflight/")
-#@click.option('-o', '--output', default = "current directory", show_default=True, type=click.Path(exists=False, writable=True, file_okay=False), metavar = "Folder Path", help = 'Output directory')
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(min = 1, max_open = True), metavar = "Integer", help = 'Number of threads to use')
 @click.option('-s', '--snakemake', type = str, metavar = "String", help = 'Additional Snakemake parameters, in quotes')
 @click.option('-q', '--quiet',  is_flag = True, show_default = True, default = False, metavar = "Toggle", help = 'Don\'t show output text while running')
-@click.option('--print-only',  is_flag = True, show_default = True, default = False, metavar = "Toggle", help = 'Print the generated snakemake command and exit')
+@click.option('-o', '--output-dir', type = str, default = "Preflight/fastq", show_default=True, metavar = "String", help = 'Name of output directory')
+@click.option('--print-only',  is_flag = True, hidden = True, default = False, metavar = "Toggle", help = 'Print the generated snakemake command and exit')
 @click.argument('input', required=True, type=click.Path(exists=True), nargs=-1)
-def fastq(input, threads, snakemake, quiet, print_only):
+def fastq(input, output_dir, threads, snakemake, quiet, print_only):
     """
     Run validity checks on haplotagged FASTQ files.
 
@@ -28,11 +28,13 @@ def fastq(input, threads, snakemake, quiet, print_only):
     fix your data, but it will report the number of reads that feature errors to help
     you diagnose if file formatting will cause downstream issues. 
     """
-    command = f'snakemake --rerun-incomplete --nolock --use-conda --conda-prefix ./.snakemake/conda --cores {threads} --directory .'.split()
+    output_dir = output_dir.rstrip("/")
+    workflowdir = f"{output_dir}/workflow"
+    command = f'snakemake --rerun-incomplete --nolock --software-deployment-method conda --conda-prefix ./.snakemake/conda --cores {threads} --directory .'.split()
     command.append('--snakefile')
-    command.append(f'Preflight/fastq/workflow/preflight-fastq.smk')
+    command.append(f'{workflowdir}/preflight-fastq.smk')
     command.append('--configfile')
-    command.append(f"Preflight/fastq/workflow/config.yml")
+    command.append(f"{workflowdir}/config.yml")
     if quiet:
         command.append("--quiet")
         command.append("all")
@@ -43,18 +45,20 @@ def fastq(input, threads, snakemake, quiet, print_only):
         click.echo(call_SM)
         exit()
     
-    os.makedirs("{workflowdir}/", exist_ok= True)
-    sn = parse_fastq_inputs(input, "Preflight/fastq/workflow/input")
-    fetch_file("preflight-fastq.smk", f"Preflight/fastq/workflow/")
-    fetch_file("PreflightFastq.Rmd", f"Preflight/fastq/workflow/report/")
+    os.makedirs(f"{workflowdir}/", exist_ok= True)
+    sn = parse_fastq_inputs(input, f"{workflowdir}/input")
+    fetch_file("preflight-fastq.smk", f"{workflowdir}")
+    fetch_file("PreflightFastq.Rmd", f"{workflowdir}/report/")
+    fetch_file("checkFASTQ.py", f"{workflowdir}/scripts/")
 
-    with open(f"Preflight/fastq/workflow/config.yml", "w") as config:
-        config.write(f"seq_directory: Preflight/fastq/workflow/input\n")
+    with open(f"{workflowdir}/config.yml", "w") as config:
+        config.write(f"seq_directory: {workflowdir}/input\n")
+        config.write(f"output_directory: {output_dir}\n")
         config.write(f"workflow_call: {call_SM}\n")
 
     generate_conda_deps()
     print_onstart(
-        f"Files: {len(sn)}\nOutput Directory: Preflight/fastq",
+        f"Files: {len(sn)}\nOutput Directory: {output_dir}/",
         "preflight fastq"
     )
     _module = subprocess.run(command)
@@ -64,9 +68,10 @@ def fastq(input, threads, snakemake, quiet, print_only):
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(min = 1, max_open = True), metavar = "Integer", help = 'Number of threads to use')
 @click.option('-s', '--snakemake', type = str, metavar = "String", help = 'Additional Snakemake parameters, in quotes')
 @click.option('-q', '--quiet',  is_flag = True, show_default = True, default = False, metavar = "Toggle", help = 'Don\'t show output text while running')
-@click.option('--print-only',  is_flag = True, show_default = True, default = False, metavar = "Toggle", help = 'Print the generated snakemake command and exit')
+@click.option('-o', '--output-dir', type = str, default = "Preflight/bam", show_default=True, metavar = "String", help = 'Name of output directory')
+@click.option('--print-only',  is_flag = True, hidden = True, default = False, metavar = "Toggle", help = 'Print the generated snakemake command and exit')
 @click.argument('input', required=True, type=click.Path(exists=True), nargs=-1)
-def bam(input, threads, snakemake, quiet, print_only):
+def bam(input, output_dir, threads, snakemake, quiet, print_only):
     """
     Run validity checks on haplotagged BAM files
 
@@ -78,8 +83,9 @@ def bam(input, threads, snakemake, quiet, print_only):
     This **will not** fix your data, but it will report the number of records that feature errors  to help
     you diagnose if file formatting will cause downstream issues. 
     """
-    workflowdir = "Preflight/bam/workflow"
-    command = f'snakemake --rerun-incomplete --nolock --use-conda --conda-prefix ./.snakemake/conda --cores {threads} --directory .'.split()
+    output_dir = output_dir.rstrip("/")
+    workflowdir = f"{output_dir}/workflow"
+    command = f'snakemake --rerun-incomplete --nolock --software-deployment-method conda --conda-prefix ./.snakemake/conda --cores {threads} --directory .'.split()
     command.append('--snakefile')
     command.append(f'{workflowdir}/preflight-bam.smk')
     command.append('--configfile')
@@ -98,14 +104,16 @@ def bam(input, threads, snakemake, quiet, print_only):
     sn = parse_alignment_inputs(input, f"{workflowdir}/input")
     fetch_file("preflight-bam.smk", f"{workflowdir}/")
     fetch_file("PreflightBam.Rmd", f"{workflowdir}/report/")
+    fetch_file("checkBAM.py", f"{workflowdir}/scripts/")
 
     with open(f"{workflowdir}/config.yml", "w") as config:
         config.write(f"seq_directory: {workflowdir}/input\n")
+        config.write(f"output_directory: {output_dir}\n")
         config.write(f"workflow_call: {call_SM}\n")
 
     generate_conda_deps()
     print_onstart(
-        f"Samples: {len(sn)}\nOutput Directory: Preflight/bam",
+        f"Samples: {len(sn)}\nOutput Directory: {output_dir}/",
         "preflight bam"
     )
     _module = subprocess.run(command)

@@ -12,6 +12,7 @@ variantfile = config["variantfile"]
 paramfile   = config["paramfile"]
 contigs     = config["contigs"]
 skipreports = config["skipreports"]
+outdir      = config["output_directory"]
 # declare a dataframe to be the paramspace
 paramspace  = Paramspace(pd.read_csv(paramfile, sep='\s+').rename(columns=str.lower), param_sep = "", filename_params="*")
 
@@ -34,7 +35,7 @@ onsuccess:
     print("")
     rprint(
         Panel(
-            "The workflow has finished successfully! Find the results in [bold]Impute/[/bold]",
+            f"The workflow has finished successfully! Find the results in [bold]{outdir}/[/bold]",
             title = "[bold]harpy impute",
             title_align = "left",
             border_style = "green"
@@ -46,10 +47,10 @@ rule sort_bcf:
     input:
         variantfile
     output:
-        bcf = temp("Impute/stitch_input/input.sorted.bcf"),
-        idx = temp("Impute/stitch_input/input.sorted.bcf.csi")
+        bcf = temp(outdir + "/stitch_input/input.sorted.bcf"),
+        idx = temp(outdir + "/stitch_input/input.sorted.bcf.csi")
     log:
-        "Impute/stitch_input/input.sorted.log"
+        outdir + "/stitch_input/input.sorted.log"
     message:
         "Sorting input variant call file"
     shell:
@@ -70,7 +71,7 @@ rule bam_list:
         bam = expand(bam_dir + "/{sample}.bam", sample = samplenames),
         bai = expand(bam_dir + "/{sample}.bam.bai", sample = samplenames)
     output:
-        "Impute/stitch_input/samples.list"
+        outdir + "/stitch_input/samples.list"
     message:
         "Creating list of alignment files"
     run:
@@ -79,7 +80,7 @@ rule bam_list:
 
 rule samples_file:
     output:
-        "Impute/stitch_input/samples.names"
+        outdir + "/stitch_input/samples.names"
     message:
         "Creating file of sample names"
     run:
@@ -88,13 +89,11 @@ rule samples_file:
 
 rule convert2stitch:
     input:
-        "Impute/stitch_input/input.sorted.bcf"
+        outdir + "/stitch_input/input.sorted.bcf"
     output:
-        "Impute/stitch_input/{part}.stitch"
+        outdir + "/stitch_input/{part}.stitch"
     threads: 
         3
-    benchmark:
-        ".Benchmark/Impute/fileprep.{part}.txt"
     message:
         "Converting data to biallelic STITCH format: {wildcards.part}"
     shell:
@@ -105,23 +104,23 @@ rule convert2stitch:
 
 rule impute:
     input:
-        bamlist = "Impute/stitch_input/samples.list",
-        infile  = "Impute/stitch_input/{part}.stitch"
+        bamlist = outdir + "/stitch_input/samples.list",
+        infile  = outdir + "/stitch_input/{part}.stitch"
     output:
         # format a wildcard pattern like "k{k}/s{s}/ngen{ngen}"
         # into a file path, with k, s, ngen being the columns of the data frame
-        f"Impute/{paramspace.wildcard_pattern}/contigs/" + "{part}/{part}.vcf.gz"
+        f"{outdir}/{paramspace.wildcard_pattern}/contigs/" + "{part}/{part}.vcf.gz"
     log:
-        f"Impute/{paramspace.wildcard_pattern}/contigs/" + "{part}/{part}.log"
+        f"{outdir}/{paramspace.wildcard_pattern}/contigs/" + "{part}/{part}.log"
     params:
         # automatically translate the wildcard values into an instance of the param space
         # in the form of a dict (here: {"k": ..., "s": ..., "ngen": ...})
         parameters = paramspace.instance,
         extra = config.get("extra", "")
     conda:
-        os.getcwd() + "/harpyenvs/r-env.yaml"
+        os.getcwd() + "/.harpy_envs/r-env.yaml"
     benchmark:
-        f".Benchmark/Impute/stitch.{paramspace.wildcard_pattern}" + ".{part}.txt"
+        f".Benchmark/{outdir}/stitch.{paramspace.wildcard_pattern}" + ".{part}.txt"
     threads:
         50
     message: 
@@ -131,10 +130,10 @@ rule impute:
 
 rule index_vcf:
     input:
-        vcf   = "Impute/{stitchparams}/contigs/{part}/{part}.vcf.gz"
+        vcf   = outdir + "/{stitchparams}/contigs/{part}/{part}.vcf.gz"
     output: 
-        idx   = "Impute/{stitchparams}/contigs/{part}/{part}.vcf.gz.tbi",
-        stats = "Impute/{stitchparams}/contigs/{part}/{part}.stats"
+        idx   = outdir + "/{stitchparams}/contigs/{part}/{part}.vcf.gz.tbi",
+        stats = outdir + "/{stitchparams}/contigs/{part}/{part}.stats"
     message:
         "Indexing: {wildcards.stitchparams}/{wildcards.part}"
     shell:
@@ -145,40 +144,41 @@ rule index_vcf:
 
 rule collate_stitch_reports:
     input:
-        "Impute/{stitchparams}/contigs/{part}/{part}.stats"
+        outdir + "/{stitchparams}/contigs/{part}/{part}.stats"
     output:
-        "Impute/{stitchparams}/contigs/{part}/{part}.STITCH.html"
+        outdir + "/{stitchparams}/contigs/{part}/{part}.STITCH.html"
     message:
         "Generating STITCH report: {wildcards.part}"
     conda:
-        os.getcwd() + "/harpyenvs/r-env.yaml"
+        os.getcwd() + "/.harpy_envs/r-env.yaml"
     script:
         "report/StitchCollate.Rmd"
 
 rule clean_stitch:
     input:
-        "Impute/{stitchparams}/contigs/{part}/{part}.STITCH.html"
+        outdir + "/{stitchparams}/contigs/{part}/{part}.STITCH.html"
     output:
-        temp("Impute/{stitchparams}/contigs/{part}/.cleaned")
+        temp(outdir + "/{stitchparams}/contigs/{part}/.cleaned")
     params:
-        lambda wc: wc.get("stitchparams")
+        stitch = lambda wc: wc.get("stitchparams"),
+        outdir = outdir
     priority:
         2
     message:
         "Cleaning up {wildcards.stitchparams}: {wildcards.part}"
     shell: 
         """
-        rm -rf Impute/{params}/contigs/{wildcards.part}/input
-        rm -rf Impute/{params}/contigs/{wildcards.part}/RData
-        rm -rf Impute/{params}/contigs/{wildcards.part}/plots
+        rm -rf {params.outdir}/{params.stitch}/contigs/{wildcards.part}/input
+        rm -rf {params.outdir}/{params.stitch}/contigs/{wildcards.part}/RData
+        rm -rf {params.outdir}/{params.stitch}/contigs/{wildcards.part}/plots
         touch {output}
         """
 
 rule concat_list:
     input:
-        bcf = expand("Impute/{{stitchparams}}/contigs/{part}/{part}.vcf.gz", part = contigs)
+        bcf = expand(outdir + "/{{stitchparams}}/contigs/{part}/{part}.vcf.gz", part = contigs)
     output:
-        temp("Impute/{stitchparams}/bcf.files")
+        temp(outdir + "/{stitchparams}/bcf.files")
     message:
         "Creating list vcf files for concatenation"
     run:
@@ -187,11 +187,11 @@ rule concat_list:
 
 rule merge_vcfs:
     input:
-        files = "Impute/{stitchparams}/bcf.files",
-        idx   = expand("Impute/{{stitchparams}}/contigs/{part}/{part}.vcf.gz.tbi", part = contigs),
-        clean = expand("Impute/{{stitchparams}}/contigs/{part}/.cleaned", part = contigs)
+        files = outdir + "/{stitchparams}/bcf.files",
+        idx   = expand(outdir + "/{{stitchparams}}/contigs/{part}/{part}.vcf.gz.tbi", part = contigs),
+        clean = expand(outdir + "/{{stitchparams}}/contigs/{part}/.cleaned", part = contigs)
     output:
-        "Impute/{stitchparams}/variants.imputed.bcf"
+        outdir + "/{stitchparams}/variants.imputed.bcf"
     threads:
         workflow.cores
     message:
@@ -201,9 +201,9 @@ rule merge_vcfs:
 
 rule index_merged:
     input:
-        "Impute/{stitchparams}/variants.imputed.bcf"
+        outdir + "/{stitchparams}/variants.imputed.bcf"
     output:
-        "Impute/{stitchparams}/variants.imputed.bcf.csi"
+        outdir + "/{stitchparams}/variants.imputed.bcf.csi"
     message:
         "Indexing resulting file: {output}"
     shell:
@@ -211,10 +211,10 @@ rule index_merged:
 
 rule stats:
     input:
-        bcf = "Impute/{stitchparams}/variants.imputed.bcf",
-        idx = "Impute/{stitchparams}/variants.imputed.bcf.csi"
+        bcf = outdir + "/{stitchparams}/variants.imputed.bcf",
+        idx = outdir + "/{stitchparams}/variants.imputed.bcf.csi"
     output:
-        "Impute/{stitchparams}/reports/variants.imputed.stats"
+        outdir + "/{stitchparams}/reports/variants.imputed.stats"
     message:
         "Calculating stats: {wildcards.stitchparams}/variants.imputed.bcf"
     shell:
@@ -224,13 +224,13 @@ rule stats:
 
 rule comparestats:
     input:
-        orig    = "Impute/stitch_input/input.sorted.bcf",
-        origidx = "Impute/stitch_input/input.sorted.bcf.csi",
-        impute  = "Impute/{stitchparams}/variants.imputed.bcf",
-        idx     = "Impute/{stitchparams}/variants.imputed.bcf.csi"
+        orig    = outdir + "/stitch_input/input.sorted.bcf",
+        origidx = outdir + "/stitch_input/input.sorted.bcf.csi",
+        impute  = outdir + "/{stitchparams}/variants.imputed.bcf",
+        idx     = outdir + "/{stitchparams}/variants.imputed.bcf.csi"
     output:
-        compare = "Impute/{stitchparams}/reports/impute.compare.stats",
-        info_sc = temp("Impute/{stitchparams}/reports/impute.infoscore")
+        compare = outdir + "/{stitchparams}/reports/impute.compare.stats",
+        info_sc = temp(outdir + "/{stitchparams}/reports/impute.infoscore")
     message:
         "Computing post-imputation stats: {wildcards.stitchparams}"
     shell:
@@ -241,14 +241,14 @@ rule comparestats:
 
 rule imputation_results_reports:
     input: 
-        "Impute/{stitchparams}/reports/impute.compare.stats",
-        "Impute/{stitchparams}/reports/impute.infoscore"
+        outdir + "/{stitchparams}/reports/impute.compare.stats",
+        outdir + "/{stitchparams}/reports/impute.infoscore"
     output:
-        "Impute/{stitchparams}/variants.imputed.html"
+        outdir + "/{stitchparams}/variants.imputed.html"
     params:
         lambda wc: wc.get("stitchparams")
     conda:
-        os.getcwd() + "/harpyenvs/r-env.yaml"
+        os.getcwd() + "/.harpy_envs/r-env.yaml"
     message:
         "Generating imputation success report: {output}"
     script:
@@ -256,7 +256,7 @@ rule imputation_results_reports:
 
 rule log_runtime:
     output:
-        "Impute/workflow/impute.workflow.summary"
+        outdir + "/workflow/impute.workflow.summary"
     message:
         "Creating record of relevant runtime parameters: {output}"
     run:
@@ -296,12 +296,12 @@ rule log_runtime:
             _ = f.write("    " + str(config["workflow_call"]) + "\n")
 
 results = list()
-results.append(expand("Impute/{stitchparams}/variants.imputed.bcf", stitchparams=paramspace.instance_patterns))
-results.append(expand("Impute/{stitchparams}/contigs/{part}/{part}.STITCH.html", stitchparams=paramspace.instance_patterns, part = contigs))
-results.append("Impute/workflow/impute.workflow.summary")
+results.append(expand(outdir + "/{stitchparams}/variants.imputed.bcf", stitchparams=paramspace.instance_patterns))
+results.append(expand(outdir + "/{stitchparams}/contigs/{part}/{part}.STITCH.html", stitchparams=paramspace.instance_patterns, part = contigs))
+results.append(outdir + "/workflow/impute.workflow.summary")
 
 if not skipreports:
-    results.append(expand("Impute/{stitchparams}/variants.imputed.html", stitchparams=paramspace.instance_patterns))
+    results.append(expand(outdir + "/{stitchparams}/variants.imputed.html", stitchparams=paramspace.instance_patterns))
 
 rule all:
     default_target: True

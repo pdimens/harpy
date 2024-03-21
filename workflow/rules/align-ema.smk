@@ -5,7 +5,7 @@ from pathlib import Path
 from rich.panel import Panel
 from rich import print as rprint
 
-outdir      = "Align/ema"
+outdir      = config["output_directory"]
 seq_dir 	= config["seq_directory"]
 nbins 		= config["EMA_bins"]
 binrange    = ["%03d" % i for i in range(nbins)]
@@ -113,7 +113,7 @@ rule genome_bwa_index:
     log:
         f"Genome/{bn}.idx.log"
     conda:
-        os.getcwd() + "/harpyenvs/align.yaml"
+        os.getcwd() + "/.harpy_envs/align.yaml"
     message:
         "Indexing {input}"
     shell: 
@@ -157,7 +157,7 @@ rule beadtag_count:
     message:
         "Counting barcode frequency: {wildcards.sample}"
     conda:
-        os.getcwd() + "/harpyenvs/align.yaml"
+        os.getcwd() + "/.harpy_envs/align.yaml"
     shell:
         """
         mkdir -p {params.prefix} {params.logdir}
@@ -170,7 +170,7 @@ rule beadtag_summary:
     output:
         outdir + "/reports/reads.bxcounts.html"
     conda:
-        os.getcwd() + "/harpyenvs/r-env.yaml"
+        os.getcwd() + "/.harpy_envs/r-env.yaml"
     message:
         "Creating sample barcode validation report"
     script:
@@ -192,7 +192,7 @@ rule preprocess:
     threads:
         2
     conda:
-        os.getcwd() + "/harpyenvs/align.yaml"
+        os.getcwd() + "/.harpy_envs/align.yaml"
     message:
         "Preprocessing for EMA mapping: {wildcards.sample}"
     shell:
@@ -217,7 +217,7 @@ rule align:
     threads:
         min(10, workflow.cores) - 2
     conda:
-        os.getcwd() + "/harpyenvs/align.yaml"
+        os.getcwd() + "/.harpy_envs/align.yaml"
     message:
         "Aligning barcoded sequences: {wildcards.sample}"
     shell:
@@ -266,7 +266,7 @@ rule align_nobarcode:
     threads:
         min(10, workflow.cores) - 2
     conda:
-        os.getcwd() + "/harpyenvs/align.yaml"
+        os.getcwd() + "/.harpy_envs/align.yaml"
     message:
         "Aligning unbarcoded sequences: {wildcards.sample}"
     shell:
@@ -375,7 +375,7 @@ rule coverage_report:
     output:
         outdir + "/reports/coverage/{sample}.cov.html"
     conda:
-        os.getcwd() + "/harpyenvs/r-env.yaml"
+        os.getcwd() + "/.harpy_envs/r-env.yaml"
     message:
         "Creating report of alignment coverage: {wildcards.sample}"
     script:
@@ -416,10 +416,12 @@ rule bx_stats_alignments:
         bai = outdir + "/{sample}.bam.bai"
     output: 
         outdir + "/reports/BXstats/data/{sample}.bxstats.gz"
+    conda:
+        os.getcwd() + "/.harpy_envs/qc.yaml"
     message:
         "Calculating barcode alignment statistics: {wildcards.sample}"
-    shell:
-        "bxStats.py {input.bam} | gzip > {output}"
+    script:
+        "scripts/bxStats.py"
 
 rule bx_stats_report:
     input:
@@ -429,7 +431,7 @@ rule bx_stats_report:
     params:
         "none"
     conda:
-        os.getcwd() + "/harpyenvs/r-env.yaml"
+        os.getcwd() + "/.harpy_envs/r-env.yaml"
     message: 
         "Generating summary of barcode alignment: {wildcards.sample}"
     script:
@@ -455,13 +457,15 @@ rule collate_samtools_stats:
         expand(outdir + "/reports/samtools_{ext}/{sample}.{ext}", sample = samplenames, ext = ["stats", "flagstat"]),
     output: 
         outdir + "/reports/ema.stats.html"
+    params:
+        outdir
     conda:
-        os.getcwd() + "/harpyenvs/qc.yaml"
+        os.getcwd() + "/.harpy_envs/qc.yaml"
     message:
         "Summarizing samtools stats and flagstat"
     shell:
         """
-        multiqc Align/ema/reports/samtools_stats Align/ema/reports/samtools_flagstat --force --quiet --title "Basic Alignment Statistics" --comment "This report aggregates samtools stats and samtools flagstats results for all alignments." --no-data-dir --filename {output} 2> /dev/null
+        multiqc {outdir}/reports/samtools_stats {outdir}/reports/samtools_flagstat --force --quiet --title "Basic Alignment Statistics" --comment "This report aggregates samtools stats and samtools flagstats results for all alignments." --no-data-dir --filename {output} 2> /dev/null
         """
 
 rule log_runtime:

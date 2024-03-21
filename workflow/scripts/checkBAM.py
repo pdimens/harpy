@@ -4,24 +4,24 @@ import pysam
 import sys
 import re
 import os.path
-import argparse
+#import argparse
 
-parser = argparse.ArgumentParser(
-    prog = 'checkBAM.py',
-    description = 'Do a haplotag format validity check on a BAM file.',
-    usage = "checkBAM.py bamfile",
-    exit_on_error = False
-    )
+#parser = argparse.ArgumentParser(
+#    prog = 'checkBAM.py',
+#    description = 'Do a haplotag format validity check on a BAM file.',
+#    usage = "checkBAM.py bamfile",
+#    exit_on_error = False
+#    )
 
-parser.add_argument("bamfile", help = "Input BAM file. Must have corresponding index (.bai) file present.")
+#parser.add_argument("bamfile", help = "Input BAM file. Must have corresponding index (.bai) file present.")
+#
+#if len(sys.argv) == 1:
+#    parser.print_help(sys.stderr)
+#    sys.exit(1)
+#
+#args = parser.parse_args()
 
-if len(sys.argv) == 1:
-    parser.print_help(sys.stderr)
-    sys.exit(1)
-
-args = parser.parse_args()
-
-bam_in = args.bamfile
+bam_in = snakemake.input[0]
 
 # regex for EXACTLY AXXCXXBXXDXX
 haplotag = re.compile('^A[0-9][0-9]C[0-9][0-9]B[0-9][0-9]D[0-9][0-9]$')
@@ -64,4 +64,5 @@ alnfile.close()
 
 
 values = [str(i) for i in [os.path.basename(bam_in), nameMismatch, n_reads, noMI, noBX, badBX, bxNotLast]]
-print("\t".join(values), file = sys.stdout) 
+with open(snakemake.output[0], "w") as fout:
+    print("\t".join(values), file = fout) 

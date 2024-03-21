@@ -19,6 +19,7 @@ on:
       - 'workflow/report/Impute.Rmd'
       - 'workflow/report/StitchCollate.Rmd'
       - 'workflow/scripts/stitch_impute.R'
+      - '**__main__.py'
 
   pull_request:
     branches:
@@ -38,6 +39,7 @@ on:
       - 'workflow/report/Impute.Rmd'
       - 'workflow/report/StitchCollate.Rmd'
       - 'workflow/scripts/stitch_impute.R'
+      - '**__main__.py'
 
 env:
   CACHE_NUMBER: 0  # increase to reset cache manually

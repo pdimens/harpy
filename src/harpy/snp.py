@@ -9,7 +9,7 @@ import os
 
 @click.command(no_args_is_help = True, epilog = "read the docs for more information: https://pdimens.github.io/harpy/modules/snp")
 @click.option('-g', '--genome', type=click.Path(exists=True), required = True, metavar = "File Path", help = 'Genome assembly for variant calling')
-@click.option('-p', '--populations', type=click.Path(exists = True), metavar = "File Path", help = 'Tab-delimited file of sample<tab>population (optional)')
+@click.option('-p', '--populations', type=click.Path(exists = True), metavar = "File Path", help = "Tab-delimited file of sample\<tab\>population")
 @click.option('-x', '--ploidy', default = 2, show_default = True, type=int, metavar = "Integer", help = 'Ploidy of samples')
 @click.option('-w', '--windowsize', default = 50000, show_default = True, type = int, metavar = "Integer", help = "Interval size for parallel variant calling")
 @click.option('-x', '--extra-params', type = str, metavar = "String", help = 'Additional variant caller parameters, in quotes')
@@ -17,9 +17,10 @@ import os
 @click.option('-s', '--snakemake', type = str, metavar = "String", help = 'Additional Snakemake parameters, in quotes')
 @click.option('-r', '--skipreports',  is_flag = True, show_default = True, default = False, metavar = "Toggle", help = 'Don\'t generate any HTML reports')
 @click.option('-q', '--quiet',  is_flag = True, show_default = True, default = False, metavar = "Toggle", help = 'Don\'t show output text while running')
-@click.option('--print-only',  is_flag = True, show_default = True, default = False, metavar = "Toggle", help = 'Print the generated snakemake command and exit')
+@click.option('-o', '--output-dir', type = str, default = "SNP/mpileup", show_default=True, metavar = "String", help = 'Name of output directory')
+@click.option('--print-only',  is_flag = True, hidden = True, default = False, metavar = "Toggle", help = 'Print the generated snakemake command and exit')
 @click.argument('input', required=True, type=click.Path(exists=True), nargs=-1)
-def mpileup(input, genome, threads, populations, ploidy, windowsize, extra_params, snakemake, skipreports, quiet, print_only):
+def mpileup(input, output_dir, genome, threads, populations, ploidy, windowsize, extra_params, snakemake, skipreports, quiet, print_only):
     """
     Call variants from using bcftools mpileup
     
@@ -31,8 +32,9 @@ def mpileup(input, genome, threads, populations, ploidy, windowsize, extra_param
     Use **harpy popgroup** to create a sample grouping file to 
     use as input for `--populations`. 
     """
-    workflowdir = "Variants/mpileup/workflow"
-    command = (f'snakemake --rerun-incomplete --nolock --use-conda --conda-prefix ./.snakemake/conda --cores {threads} --directory .').split()
+    output_dir = output_dir.rstrip("/")
+    workflowdir = f"{output_dir}/workflow"
+    command = (f'snakemake --rerun-incomplete --nolock --software-deployment-method conda --conda-prefix ./.snakemake/conda --cores {threads} --directory .').split()
     command.append('--snakefile')
     command.append(f'{workflowdir}/snp-mpileup.smk')
     command.append('--configfile')
@@ -57,6 +59,7 @@ def mpileup(input, genome, threads, populations, ploidy, windowsize, extra_param
 
     with open(f"{workflowdir}/config.yml", "w") as config:
         config.write(f"seq_directory: {workflowdir}/input\n")
+        config.write(f"output_directory: {output_dir}\n")
         config.write(f"samplenames: {samplenames}\n")
         popgroupings = ""
         if populations is not None:
@@ -76,7 +79,7 @@ def mpileup(input, genome, threads, populations, ploidy, windowsize, extra_param
 
     generate_conda_deps()
     print_onstart(
-        f"Samples: {len(samplenames)}{popgroupings}\nOutput Directory: Variants/mpileup/",
+        f"Samples: {len(samplenames)}{popgroupings}\nOutput Directory: {output_dir}/",
         "snp mpileup"
     )
     _module = subprocess.run(command)
@@ -84,7 +87,7 @@ def mpileup(input, genome, threads, populations, ploidy, windowsize, extra_param
 
 @click.command(no_args_is_help = True, epilog = "read the docs for more information: https://pdimens.github.io/harpy/modules/snp")
 @click.option('-g', '--genome', type=click.Path(exists=True, dir_okay=False), required = True, metavar = "File Path", help = 'Genome assembly for variant calling')
-@click.option('-p', '--populations', type=click.Path(exists = True, dir_okay=False), metavar = "File Path", help = 'Tab-delimited file of sample<tab>population (optional)')
+@click.option('-p', '--populations', type=click.Path(exists = True, dir_okay=False), metavar = "File Path", help = "Tab-delimited file of sample\<tab\>population")
 @click.option('-x', '--ploidy', default = 2, show_default = True, type=int, metavar = "Integer", help = 'Ploidy of samples')
 @click.option('-w', '--windowsize', default = 50000, show_default = True, type = int, metavar = "Integer", help = "Interval size for parallel variant calling")
 @click.option('-x', '--extra-params', type = str, metavar = "String", help = 'Additional variant caller parameters, in quotes')
@@ -92,9 +95,10 @@ def mpileup(input, genome, threads, populations, ploidy, windowsize, extra_param
 @click.option('-r', '--skipreports',  is_flag = True, show_default = True, default = False, metavar = "Toggle", help = 'Don\'t generate any HTML reports')
 @click.option('-s', '--snakemake', type = str, metavar = "String", help = 'Additional Snakemake parameters, in quotes')
 @click.option('-q', '--quiet',  is_flag = True, show_default = True, default = False, metavar = "Toggle", help = 'Don\'t show output text while running')
-@click.option('--print-only',  is_flag = True, show_default = True, default = False, metavar = "Toggle", help = 'Print the generated snakemake command and exit')
+@click.option('-o', '--output-dir', type = str, default = "SNP/freebayes", show_default=True, metavar = "String", help = 'Name of output directory')
+@click.option('--print-only',  is_flag = True, hidden = True, default = False, metavar = "Toggle", help = 'Print the generated snakemake command and exit')
 @click.argument('input', required=True, type=click.Path(exists=True), nargs=-1)
-def freebayes(input, genome, threads, populations, ploidy, windowsize, extra_params, snakemake, skipreports, quiet, print_only):
+def freebayes(input, output_dir, genome, threads, populations, ploidy, windowsize, extra_params, snakemake, skipreports, quiet, print_only):
     """
     Call variants using freebayes
     
@@ -106,8 +110,9 @@ def freebayes(input, genome, threads, populations, ploidy, windowsize, extra_par
     Use **harpy popgroup** to create a sample grouping file to 
     use as input for `--populations`. 
     """
-    workflowdir = "Variants/freebayes/workflow"
-    command = (f'snakemake --rerun-incomplete --nolock --use-conda --conda-prefix ./.snakemake/conda --cores {threads} --directory .').split()
+    output_dir = output_dir.rstrip("/")
+    workflowdir = f"{output_dir}/workflow"
+    command = (f'snakemake --rerun-incomplete --nolock --software-deployment-method conda --conda-prefix ./.snakemake/conda --cores {threads} --directory .').split()
     command.append('--snakefile')
     command.append(f'{workflowdir}/snp-freebayes.smk')
     command.append('--configfile')
@@ -132,6 +137,7 @@ def freebayes(input, genome, threads, populations, ploidy, windowsize, extra_par
 
     with open(f"{workflowdir}/config.yml", "w") as config:
         config.write(f"seq_directory: {workflowdir}/input\n")
+        config.write(f"output_directory: {output_dir}\n")
         config.write(f"samplenames: {samplenames}\n")
         popgroupings = ""
         if populations is not None:
@@ -151,7 +157,7 @@ def freebayes(input, genome, threads, populations, ploidy, windowsize, extra_par
 
     generate_conda_deps()
     print_onstart(
-        f"Samples: {len(samplenames)}{popgroupings}\nOutput Directory: Variants/freebayes",
+        f"Samples: {len(samplenames)}{popgroupings}\nOutput Directory: {output_dir}/",
         "snp freebayes"
     )
     _module = subprocess.run(command)

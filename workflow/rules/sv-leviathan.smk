@@ -7,7 +7,7 @@ bam_dir     = config["seq_directory"]
 genomefile  = config["genomefile"]
 samplenames = config["samplenames"] 
 extra       = config.get("extra", "") 
-outdir      = "Variants/leviathan"
+outdir      = config["output_directory"]
 skipreports = config["skipreports"]
 bn          = os.path.basename(genomefile)
 genome_zip  = True if bn.lower().endswith(".gz") else False
@@ -64,7 +64,7 @@ rule index_barcode:
     benchmark:
         ".Benchmark/Variants/leviathan/indexbc.{sample}.txt"
     conda:
-        os.getcwd() + "/harpyenvs/variants.sv.yaml"
+        os.getcwd() + "/.harpy_envs/variants.sv.yaml"
     shell:
         "LRez index bam --threads {threads} -p -b {input.bam} -o {output}"
 
@@ -109,7 +109,7 @@ rule index_bwa_genome:
     log:
         f"Genome/{bn}.idx.log"
     conda:
-        os.getcwd() + "/harpyenvs/align.yaml"
+        os.getcwd() + "/.harpy_envs/align.yaml"
     message:
         "Indexing {input}"
     shell: 
@@ -132,7 +132,7 @@ rule leviathan_variantcall:
     threads:
         3
     conda:
-        os.getcwd() + "/harpyenvs/variants.sv.yaml"
+        os.getcwd() + "/.harpy_envs/variants.sv.yaml"
     message:
         "Calling variants: {wildcards.sample}"
     benchmark:
@@ -177,7 +177,7 @@ rule sv_report:
     output:	
         outdir + "/reports/{sample}.SV.html"
     conda:
-        os.getcwd() + "/harpyenvs/r-env.yaml"
+        os.getcwd() + "/.harpy_envs/r-env.yaml"
     message:
         "Generating SV report: {wildcards.sample}"
     script:

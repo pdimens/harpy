@@ -10,7 +10,7 @@ extra       = config.get("extra", "")
 groupfile   = config["groupings"]
 genomefile  = config["genomefile"]
 molecule_distance = config["molecule_distance"]
-outdir      = "Variants/naibr-pop"
+outdir      = config["output_directory"]
 skipreports = config["skipreports"]
 
 wildcard_constraints:
@@ -36,7 +36,7 @@ def process_args(args):
         "k"        : 3,
     }
     if args:
-        words = [i for i in re.split("\s|=", args) if len(i) > 0]
+        words = [i for i in re.split(r"\s|=", args) if len(i) > 0]
         for i in zip(words[::2], words[1::2]):
             argsDict[i[0]] = i[1]
     return argsDict
@@ -154,7 +154,7 @@ rule phase_alignments:
     params:
         extra = lambda wc: "--ignore-read-groups --sample " + wc.get("sample") + " --tag-supplementary"
     conda:
-        os.getcwd() + "/harpyenvs/phase.yaml"
+        os.getcwd() + "/.harpy_envs/phase.yaml"
     message:
         "Phasing: {input.aln}"
     shell:
@@ -173,7 +173,7 @@ rule log_phasing:
         for i in {input}; do
             SAMP=$(basename $i .phaselog)
             echo -e "${{SAMP}}\\t$(grep "Total alignments" $i)\\t$(grep "could be tagged" $i)" |
-                sed 's/ \+ /\\t/g' | cut -f1,3,5 >> {output}
+                sed 's/ \\+ /\\t/g' | cut -f1,3,5 >> {output}
         done
         """
 
@@ -230,7 +230,7 @@ rule create_config:
         argdict = process_args(extra)
         with open(output[0], "w") as conf:
             _ = conf.write(f"bam_file={input[0]}\n")
-            _ = conf.write(f"outdir=Variants/naibr-pop/{params[0]}\n")
+            _ = conf.write(f"outdir={outdir}/{params[0]}\n")
             _ = conf.write(f"prefix={params[0]}\n")
             _ = conf.write(f"threads={params[1]}\n")
             for i in argdict:
@@ -250,7 +250,7 @@ rule call_sv:
     threads:
         min(10, workflow.cores)
     conda:
-        os.getcwd() + "/harpyenvs/variants.sv.yaml"
+        os.getcwd() + "/.harpy_envs/variants.sv.yaml"
     message:
         "Calling variants: {wildcards.population}"
     shell:
@@ -287,7 +287,7 @@ rule report:
     message:
         "Creating report: {wildcards.population}"
     conda:
-        os.getcwd() + "/harpyenvs/r-env.yaml"
+        os.getcwd() + "/.harpy_envs/r-env.yaml"
     script:
         "report/Naibr.Rmd"
 
@@ -300,7 +300,7 @@ rule report_pop:
     message:
         "Creating summary report"
     conda:
-        os.getcwd() + "/harpyenvs/r-env.yaml"
+        os.getcwd() + "/.harpy_envs/r-env.yaml"
     script:
         "report/NaibrPop.Rmd"
 

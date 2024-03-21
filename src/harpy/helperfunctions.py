@@ -73,7 +73,7 @@ def generate_conda_deps():
     """Create the YAML files of the workflow conda dependencies"""
     condachannels = ["conda-forge", "bioconda", "defaults"]
     environ = {
-        "qc" : ["falco", "fastp", "multiqc"],
+        "qc" : ["falco", "fastp", "multiqc", "pysam=0.22"],
         "align": ["bwa", "ema","icu","libzlib", "samtools=1.19", "seqtk", "xz"],
         "variants.snp": ["bcftools=1.19", "freebayes=1.3.6"],
         "variants.sv": ["leviathan", "naibr-plus"],
@@ -81,12 +81,12 @@ def generate_conda_deps():
         "r-env" : ["bioconductor-complexheatmap", "r-circlize", "r-dt", "r-flexdashboard", "r-ggplot2", "r-ggridges", "r-plotly", "r-tidyr", "r-stitch"]
     }
 
-    os.makedirs("harpyenvs", exist_ok = True)
+    os.makedirs(".harpy_envs", exist_ok = True)
 
     for i in environ:
         # don't overwrite existing
-        if not os.path.isfile(f"harpyenvs/{i}.yaml"):
-            with open(f"harpyenvs/{i}.yaml", "w") as yml:
+        if not os.path.isfile(f".harpy_envs/{i}.yaml"):
+            with open(f".harpy_envs/{i}.yaml", "w") as yml:
                 yml.write(f"name: {i}\n")
                 yml.write("channels:\n  - ")
                 yml.write("\n  - ".join(condachannels))

@@ -10,7 +10,7 @@ extra 	  = config.get("extra", "")
 seq_dir   = config["seq_directory"]
 adapters  = config["adapters"]
 skipreports = config["skipreports"]
-
+outdir      = config["output_directory"]
 flist = [os.path.basename(i) for i in glob.iglob(f"{seq_dir}/*") if not os.path.isdir(i)]
 r = re.compile(r".*\.f(?:ast)?q(?:\.gz)?$", flags=re.IGNORECASE)
 fqlist = list(filter(r.match, flist))
@@ -24,7 +24,7 @@ onsuccess:
     print("")
     rprint(
         Panel(
-            "The workflow has finished successfully! Find the results in [bold]QC/[/bold]",
+            f"The workflow has finished successfully! Find the results in [bold]{outdir}/[/bold]",
             title = "[bold]harpy qc",
             title_align = "left",
             border_style = "green"
@@ -43,8 +43,6 @@ onerror:
             ),
         file = sys.stderr
     )
-
-
 
 def get_fq1(wildcards):
     # code that returns a list of fastq files for read 1 based on *wildcards.sample* e.g.
@@ -65,14 +63,12 @@ rule trimFastp:
         fw   = get_fq1,
         rv   = get_fq2
     output:
-        fw   = "QC/{sample}.R1.fq.gz",
-        rv   = "QC/{sample}.R2.fq.gz",
-        json = "QC/logs/json/{sample}.fastp.json"
+        fw   = outdir + "/{sample}.R1.fq.gz",
+        rv   = outdir + "/{sample}.R2.fq.gz",
+        json = outdir + "/logs/json/{sample}.fastp.json"
     log:
-        html = "QC/reports/fastp_reports/{sample}.html",
-        serr = "QC/logs/fastp_logs/{sample}.log"
-    benchmark:
-        ".Benchmark/QC/{sample}.txt"
+        html = outdir + "/reports/fastp_reports/{sample}.html",
+        serr = outdir + "/logs/fastp_logs/{sample}.log"
     params:
         maxlen = f"--max_len1 {maxlen}",
         tim_adapters = "--detect_adapter_for_pe" if adapters else "--disable_adapter_trimming",
@@ -80,7 +76,7 @@ rule trimFastp:
     threads:
         2
     conda:
-        os.getcwd() + "/harpyenvs/qc.yaml"
+        os.getcwd() + "/.harpy_envs/qc.yaml"
     message:
         "Removing adapters + quality trimming: {wildcards.sample}"
     shell: 
@@ -90,21 +86,23 @@ rule trimFastp:
 
 rule count_beadtags:
     input:
-        "QC/{sample}.R1.fq.gz"
+        outdir + "/{sample}.R1.fq.gz"
     output: 
-        temp("QC/logs/bxcount/{sample}.count.log")
+        temp(outdir + "/logs/bxcount/{sample}.count.log")
     message:
         "Counting barcode frequency: {wildcards.sample}"
-    shell:
-        "countBX.py {input} > {output}"
+    conda:
+        os.getcwd() + "/.harpy_envs/qc.yaml"
+    script:
+        "scripts/countBX.py"
 
 rule beadtag_counts_summary:
     input: 
-        countlog = expand("QC/logs/bxcount/{sample}.count.log", sample = samplenames)
+        countlog = expand(outdir + "/logs/bxcount/{sample}.count.log", sample = samplenames)
     output:
-        "QC/reports/barcode.summary.html"
+        outdir + "/reports/barcode.summary.html"
     conda:
-        os.getcwd() + "/harpyenvs/r-env.yaml"
+        os.getcwd() + "/.harpy_envs/r-env.yaml"
     message:
         "Summarizing sample barcode validation"
     script:
@@ -112,7 +110,7 @@ rule beadtag_counts_summary:
 
 rule log_runtime:
     output:
-        "QC/workflow/qc.workflow.summary"
+        outdir + "/workflow/qc.workflow.summary"
     params:
         maxlen = f"--max_len1 {maxlen}",
         tim_adapters = "--detect_adapter_for_pe" if adapters else "--disable_adapter_trimming",
@@ -129,23 +127,25 @@ rule log_runtime:
             _ = f.write("    " + str(config["workflow_call"]) + "\n")
 
 results = list()
-results.append(expand("QC/logs/json/{sample}.fastp.json", sample = samplenames))
-results.append(expand("QC/{sample}.{FR}.fq.gz", FR = ["R1", "R2"], sample = samplenames))
-results.append("QC/workflow/qc.workflow.summary")
+results.append(expand(outdir + "/logs/json/{sample}.fastp.json", sample = samplenames))
+results.append(expand(outdir + "/{sample}.{FR}.fq.gz", FR = ["R1", "R2"], sample = samplenames))
+results.append(outdir + "/workflow/qc.workflow.summary")
 if not skipreports:
-    results.append("QC/reports/barcode.summary.html")
+    results.append(outdir + "/reports/barcode.summary.html")
     
 rule createReport:
     default_target: True
     input: 
         results
     output:
-        "QC/reports/qc.report.html"
+        outdir + "/reports/qc.report.html"
+    params:
+        outdir
     conda:
-        os.getcwd() + "/harpyenvs/qc.yaml"
+        os.getcwd() + "/.harpy_envs/qc.yaml"
     message:
         "Sequencing quality filtering and trimming is complete!"
     shell: 
         """
-        multiqc QC/logs/json -m fastp --force --filename {output} --quiet --title "QC Summary" --comment "This report aggregates trimming and quality control metrics reported by fastp" --no-data-dir 2>/dev/null
+        multiqc {params}/logs/json -m fastp --force --filename {output} --quiet --title "QC Summary" --comment "This report aggregates trimming and quality control metrics reported by fastp" --no-data-dir 2>/dev/null
         """

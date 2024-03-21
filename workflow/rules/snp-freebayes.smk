@@ -6,14 +6,14 @@ import gzip
 
 bam_dir 	= config["seq_directory"]
 genomefile 	= config["genomefile"]
-groupings 	= config.get("groupings", None)
+groupings 	= config.get("groupings", [])
 bn          = os.path.basename(genomefile)
 ploidy 		= config["ploidy"]
 samplenames = config["samplenames"]
 extra 	    = config.get("extra", "") 
 chunksize   = config["windowsize"]
 intervals   = config["intervals"]
-outdir      = "Variants/freebayes"
+outdir      = config["output_directory"]
 regions     = dict(zip(intervals, intervals))
 skipreports = config["skipreports"]
 
@@ -44,17 +44,16 @@ onsuccess:
         file = sys.stderr
     )
 
-if groupings:
-    rule copy_groupings:
-        input:
-            groupings
-        output:
-            outdir + "/logs/sample.groups"
-        message:
-            "Logging {input}"
-        run:
-            with open(input[0], "r") as infile, open(output[0], "w") as outfile:
-                _ = [outfile.write(i) for i in infile.readlines() if not i.lstrip().startswith("#")]
+rule copy_groupings:
+    input:
+        groupings
+    output:
+        outdir + "/logs/sample.groups"
+    message:
+        "Logging {input}"
+    run:
+        with open(input[0], "r") as infile, open(output[0], "w") as outfile:
+            _ = [outfile.write(i) for i in infile.readlines() if not i.lstrip().startswith("#")]
 
 rule index_alignments:
     input:
@@ -89,47 +88,27 @@ rule bam_list:
             for bamfile in input.bam:
                 _ = fout.write(bamfile + "\n")
 
-if groupings:
-    rule call_variants_pop:
-        input:
-            bam = expand(bam_dir + "/{sample}.bam", sample = samplenames),
-            bai = expand(bam_dir + "/{sample}.bam.bai", sample = samplenames),
-            groupings = outdir + "/logs/sample.groups",
-            ref     = f"Genome/{bn}",
-            ref_idx = f"Genome/{bn}.fai",
-            samples = outdir + "/logs/samples.files"
-        output:
-            pipe(outdir + "/regions/{part}.vcf")
-        params:
-            region = lambda wc: "-r " + regions[wc.part],
-            ploidy = f"-p {ploidy}",
-            extra = extra
-        conda:
-            os.getcwd() + "/harpyenvs/variants.snp.yaml"
-        message:
-            "Calling variants: {wildcards.part}"
-        shell:
-            "freebayes -f {input.ref} -L {input.samples} --populations {input.groupings} {params}"
-else:
-    rule call_variants:
-        input:
-            bam = expand(bam_dir + "/{sample}.bam", sample = samplenames),
-            bai = expand(bam_dir + "/{sample}.bam.bai", sample = samplenames),
-            ref     = f"Genome/{bn}",
-            ref_idx = f"Genome/{bn}.fai",
-            samples = outdir + "/logs/samples.files"
-        output:
-            pipe(outdir + "/regions/{part}.vcf")
-        params:
-            region = lambda wc: "-r " + regions[wc.part],
-            ploidy = f"-p {ploidy}",
-            extra = extra
-        conda:
-            os.getcwd() + "/harpyenvs/variants.snp.yaml"
-        message:
-            "Calling variants: {wildcards.part}"
-        shell:
-            "freebayes -f {input.ref} -L {input.samples} {params} > {output}"
+rule call_variants:
+    input:
+        bam = expand(bam_dir + "/{sample}.bam", sample = samplenames),
+        bai = expand(bam_dir + "/{sample}.bam.bai", sample = samplenames),
+        groupfile = outdir + "/logs/sample.groups" if groupings else [],
+        ref     = f"Genome/{bn}",
+        ref_idx = f"Genome/{bn}.fai",
+        samples = outdir + "/logs/samples.files"
+    output:
+        pipe(outdir + "/regions/{part}.vcf")
+    params:
+        region = lambda wc: "-r " + regions[wc.part],
+        ploidy = f"-p {ploidy}",
+        populations = "--populations " + rules.copy_groupings.output[0] if groupings else "",
+        extra = extra
+    conda:
+        os.getcwd() + "/.harpy_envs/variants.snp.yaml"
+    message:
+        "Calling variants: {wildcards.part}"
+    shell:
+        "freebayes -f {input.ref} -L {input.samples} {params} > {output}"
 
 rule sort_variants:
     input:
@@ -221,7 +200,7 @@ rule bcfreport:
     output:
         outdir + "/reports/variants.{type}.html"
     conda:
-        os.getcwd() + "/harpyenvs/r-env.yaml"
+        os.getcwd() + "/.harpy_envs/r-env.yaml"
     message:
         "Generating bcftools report: variants.{wildcards.type}.bcf"
     script:
@@ -234,7 +213,7 @@ rule log_runtime:
         "Creating record of relevant runtime parameters: {output}"
     params:
         ploidy = f"-p {ploidy}",
-        populations = '' if groupings is None else f"--populations {groupings}",
+        populations = f"--populations {groupings}" if groupings else '',
         extra = extra
     run:
         with open(output[0], "w") as f:

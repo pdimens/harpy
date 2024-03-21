@@ -5,7 +5,7 @@ import sys
 from rich.panel import Panel
 from rich import print as rprint
 
-outdir      = "Align/bwa"
+outdir      = config["output_directory"]
 seq_dir		= config["seq_directory"]
 genomefile 	= config["genomefile"]
 samplenames = config["samplenames"]
@@ -112,7 +112,7 @@ rule genome_bwa_index:
     log:
         f"Genome/{bn}.idx.log"
     conda:
-        os.getcwd() + "/harpyenvs/align.yaml"
+        os.getcwd() + "/.harpy_envs/align.yaml"
     message:
         "Indexing {input}"
     shell: 
@@ -147,7 +147,7 @@ rule align:
     threads:
         min(10, workflow.cores) - 2
     conda:
-        os.getcwd() + "/harpyenvs/align.yaml"
+        os.getcwd() + "/.harpy_envs/align.yaml"
     message:
         "Aligning sequences: {wildcards.sample}"
     shell:
@@ -241,7 +241,7 @@ rule bxstats_report:
     params:
         molecule_distance
     conda:
-        os.getcwd() + "/harpyenvs/r-env.yaml"
+        os.getcwd() + "/.harpy_envs/r-env.yaml"
     message: 
         "Generating summary of barcode alignment: {wildcards.sample}"
     script:
@@ -256,10 +256,12 @@ rule assign_molecules:
         bai = outdir + "/{sample}.bam.bai"
     params:
         molecule_distance
+    conda:
+        os.getcwd() + "/.harpy_envs/qc.yaml"
     message:
         "Assigning barcodes to molecules: {wildcards.sample}"
-    shell:
-        "assignMI.py -c {params} -i {input.bam} -o {output.bam}"
+    script:
+        "scripts/assignMI.py"
 
 rule alignment_bxstats:
     input:
@@ -269,10 +271,12 @@ rule alignment_bxstats:
         outdir + "/reports/BXstats/data/{sample}.bxstats.gz"
     params:
         sample = lambda wc: d[wc.sample]
+    conda:
+        os.getcwd() + "/.harpy_envs/qc.yaml"
     message:
         "Calculating barcode alignment statistics: {wildcards.sample}"
-    shell:
-        "bxStats.py {input.bam} | gzip > {output}"
+    script:
+        "scripts/bxStats.py"
 
 rule alignment_coverage:
     input: 
@@ -293,7 +297,7 @@ rule coverage_report:
     output:
         outdir + "/reports/coverage/{sample}.cov.html"
     conda:
-        os.getcwd() + "/harpyenvs/r-env.yaml"
+        os.getcwd() + "/.harpy_envs/r-env.yaml"
     message:
         "Summarizing alignment coverage: {wildcards.sample}"
     script:
@@ -319,13 +323,15 @@ rule samtools_reports:
         expand(outdir + "/reports/samtools_{ext}/{sample}.{ext}", sample = samplenames, ext = ["stats", "flagstat"])
     output: 
         outdir + "/reports/bwa.stats.html"
+    params:
+        outdir
     conda:
-        os.getcwd() + "/harpyenvs/qc.yaml"
+        os.getcwd() + "/.harpy_envs/qc.yaml"
     message:
         "Summarizing samtools stats and flagstat"
     shell:
         """
-        multiqc Align/bwa/reports/samtools_stats Align/bwa/reports/samtools_flagstat --force --quiet --title "Basic Alignment Statistics" --comment "This report aggregates samtools stats and samtools flagstats results for all alignments." --no-data-dir --filename {output} 2> /dev/null
+        multiqc {params}/reports/samtools_stats {params}/reports/samtools_flagstat --force --quiet --title "Basic Alignment Statistics" --comment "This report aggregates samtools stats and samtools flagstats results for all alignments." --no-data-dir --filename {output} 2> /dev/null
         """
 
 rule log_runtime:

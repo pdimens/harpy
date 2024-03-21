@@ -1,12 +1,13 @@
 .snakemake/
 .vscode/
-harpyenvs/
+.harpy_envs/
 Seqs/
 QC/
 Demultiplex/
 Genome/
 Align/
-Variants/
+SNP/
+SV/
 Impute/
 Preflight/
 Phase/

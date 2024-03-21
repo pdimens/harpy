@@ -13,7 +13,7 @@ inprefix = config["infile_prefix"]
 inprefixfull = re.sub(r"[\_\.][IR][12]?(?:\_00[0-9])*\.f(?:ast)?q(?:\.gz)?$", "", infile)
 infiles = [f"{inprefixfull}_{i}{fq_extension}" for i in ["I1", "I2","R1","R2"]]
 indir = os.path.dirname(infile)
-outdir = f"Demultiplex/{inprefix}/"
+outdir = config["output_directory"] + f"/{inprefix}/"
 
 def barcodedict(smpl):
     d = dict()
@@ -135,7 +135,7 @@ rule fastqc_F:
     threads:
         1
     conda:
-        os.getcwd() + "/harpyenvs/qc.yaml"
+        os.getcwd() + "/.harpy_envs/qc.yaml"
     message:
         "Performing quality assessment: {wildcards.sample}.F.fq.gz"
     shell:
@@ -168,7 +168,7 @@ rule fastqc_R:
     threads:
         1
     conda:
-        os.getcwd() + "/harpyenvs/qc.yaml"
+        os.getcwd() + "/.harpy_envs/qc.yaml"
     message:
         "Performing quality assessment: {wildcards.sample}.R.fq.gz"
     shell:
@@ -199,7 +199,7 @@ rule qc_report:
     params:
         outdir + "logs/.QC"
     conda:
-        os.getcwd() + "/harpyenvs/qc.yaml"
+        os.getcwd() + "/.harpy_envs/qc.yaml"
     message:
         "Creating final demultiplexing QC report"
     shell:

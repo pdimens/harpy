@@ -6,13 +6,13 @@ import os
 bam_dir 	= config["seq_directory"]
 genomefile 	= config["genomefile"]
 bn          = os.path.basename(genomefile)
-groupings 	= config.get("groupings", None)
+groupings 	= config.get("groupings", [])
 ploidy 		= config["ploidy"]
 samplenames = config["samplenames"]
 mp_extra 	= config.get("extra", "") 
 chunksize   = config["windowsize"]
 intervals   = config["intervals"]
-outdir      = "Variants/mpileup"
+outdir      = config["output_directory"]
 regions     = dict(zip(intervals, intervals))
 skipreports = config["skipreports"]
 
@@ -43,17 +43,16 @@ onsuccess:
         file = sys.stderr
     )
 
-if groupings:
-    rule copy_groupings:
-        input:
-            groupings
-        output:
-            outdir + "/logs/sample.groups"
-        message:
-            "Logging {input}"
-        run:
-            with open(input[0], "r") as infile, open(output[0], "w") as outfile:
-                _ = [outfile.write(i) for i in infile.readlines() if not i.lstrip().startswith("#")]
+rule copy_groupings:
+    input:
+        groupings
+    output:
+        outdir + "/logs/sample.groups"
+    message:
+        "Logging {input}"
+    run:
+        with open(input[0], "r") as infile, open(output[0], "w") as outfile:
+            _ = [outfile.write(i) for i in infile.readlines() if not i.lstrip().startswith("#")]
 
 rule index_alignments:
     input:
@@ -103,43 +102,25 @@ rule mpileup:
     shell:
         "bcftools mpileup --fasta-ref {input.genome} --bam-list {input.bamlist} --annotate AD --output-type b {params} > {output.bcf} 2> {output.logfile}"
 
-if groupings:
-    rule call_genotypes_pop:
-        input:
-            bcf = outdir + "/{part}.mp.bcf",
-            groupings = outdir + "/logs/sample.groups"
-        output:
-            bcf = temp(outdir + "/call/{part}.bcf"),
-            idx = temp(outdir + "/call/{part}.bcf.csi")
-        params: 
-            f"--ploidy {ploidy}"
-        threads:
-            2
-        message:
-            "Calling genotypes: {wildcards.part}"
-        shell:
-            """
-            bcftools call --multiallelic-caller {params} --variants-only --output-type b {input} |
-                bcftools sort - --output {output.bcf} --write-index 2> /dev/null
-            """
-else:
-    rule call_genotypes:
-        input:
-            bcf = outdir + "/{part}.mp.bcf"
-        output:
-            bcf = temp(outdir + "/call/{part}.bcf"),
-            idx = temp(outdir + "/call/{part}.bcf.csi")
-        params: 
-            f"--ploidy {ploidy}"
-        threads:
-            2
-        message:
-            "Calling genotypes: {wildcards.part}"
-        shell:
-            """
-            bcftools call --multiallelic-caller {params} --variants-only --output-type b {input} |
-                bcftools sort - --output {output.bcf} --write-index 2> /dev/null
-            """
+rule call_genotypes_pop:
+    input:
+        groupfile = outdir + "/logs/sample.groups" if groupings else [],
+        bcf = outdir + "/{part}.mp.bcf"
+    output:
+        bcf = temp(outdir + "/call/{part}.bcf"),
+        idx = temp(outdir + "/call/{part}.bcf.csi")
+    params: 
+        f"--ploidy {ploidy}",
+        "--group-samples" if groupings else "--group-samples -"
+    threads:
+        2
+    message:
+        "Calling genotypes: {wildcards.part}"
+    shell:
+        """
+        bcftools call --multiallelic-caller --variants-only --output-type b {params} {input} |
+            bcftools sort - --output {output.bcf} --write-index 2> /dev/null
+        """
 
 rule concat_list:
     input:
@@ -237,7 +218,7 @@ rule bcfreport:
     output:
         outdir + "/reports/variants.{type}.html"
     conda:
-        os.getcwd() + "/harpyenvs/r-env.yaml"
+        os.getcwd() + "/.harpy_envs/r-env.yaml"
     message:
         "Generating bcftools report: variants.{wildcards.type}.bcf"
     script:
@@ -248,7 +229,7 @@ rule log_runtime:
         outdir + "/workflow/snp.mpileup.workflow.summary"
     params:
         ploidy = f"--ploidy {ploidy}",
-        populations = '' if groupings is None else f"--populations {groupings}"
+        populations = f"--populations {groupings}" if groupings else "--populations -"
     message:
         "Creating record of relevant runtime parameters: {output}"
     run:

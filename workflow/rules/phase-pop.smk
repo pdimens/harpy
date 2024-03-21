@@ -11,7 +11,7 @@ variantfile       = config["variantfile"]
 pruning           = config["prune"]
 molecule_distance = config["molecule_distance"]
 extra             = config.get("extra", "") 
-outdir 			  = "Phase.noBX"if config["noBX"] else "Phase"
+outdir 			  = config["output_directory"]
 fragfile          = "Phase.noBX/extractHairs/{sample}.unlinked.frags" if config["noBX"] else "Phase/linkFragments/{sample}.linked.frags"
 linkarg           = "--10x 0" if config["noBX"] else "--10x 1"
 skipreports = config["skipreports"]
@@ -80,10 +80,21 @@ rule splitbysample:
         awk '/^#/;/CHROM/ {{OFS="\\t"}}; !/^#/ &&  $10~/^0\\/0/ {{$10="0|0:"substr($10,5);print $0}}; !/^#/ && $10~/^0\\/1/; !/^#/ &&  $10~/^1\\/1/ {{$10="1|1:"substr($10,5);print $0}}; !/^#/ {{print $0}}' > {output}
         """
 
+rule index_alignment:
+    input:
+        bam_dir + "/{sample}.bam"
+    output:
+        bam_dir + "/{sample}.bam.bai"
+    message:
+        "Indexing alignment: {wildcards.sample}"
+    shell:
+        "samtools index {input} {output} 2> /dev/null"
+
 rule extractHairs:
     input:
         vcf = outdir + "/input/{sample}.het.bcf",
-        bam = bam_dir + "/{sample}.bam"
+        bam = bam_dir + "/{sample}.bam",
+        bai = bam_dir + "/{sample}.bam.bai"
     output:
         outdir + "/extractHairs/{sample}.unlinked.frags"
     log:
@@ -92,7 +103,7 @@ rule extractHairs:
         indels = indelarg,
         bx = linkarg
     conda:
-        os.getcwd() + "/harpyenvs/phase.yaml"
+        os.getcwd() + "/.harpy_envs/phase.yaml"
     benchmark:
         ".Benchmark/Phase/extracthairs.{sample}.txt"
     message:
@@ -112,7 +123,7 @@ rule linkFragments:
     params:
         d = molecule_distance
     conda:
-        os.getcwd() + "/harpyenvs/phase.yaml"
+        os.getcwd() + "/.harpy_envs/phase.yaml"
     benchmark:
         ".Benchmark/Phase/linkfrag.{sample}.txt"
     message:
@@ -133,7 +144,7 @@ rule phaseBlocks:
         prune = f"--threshold {pruning}" if pruning > 0 else "--no_prune 1",
         extra = extra
     conda:
-        os.getcwd() + "/harpyenvs/phase.yaml"
+        os.getcwd() + "/.harpy_envs/phase.yaml"
     benchmark:
         ".Benchmark/Phase/phase.{sample}.txt"
     message:
@@ -204,14 +215,21 @@ rule mergeSamples:
     output:
         bcf = outdir + "/variants.phased.bcf",
         idx = outdir + "/variants.phased.bcf.csi"
-    benchmark:
-        ".Benchmark/Phase/mergesamples.txt"
+    params:
+        "true" if len(samplenames) > 1 else "false"
     threads:
         30
     message:
-        "Combining samples into a single BCF file"
+        "Combining results into {output.bcf}" if len(samplenames) > 1 else "Copying results to {output.bcf}"
     shell:
-        "bcftools merge --threads {threads} -Ob -o {output.bcf} --write-index {input.bcf}"
+        """
+        if [ "{params}" = true ]; then
+            bcftools merge --threads {threads} -Ob -o {output.bcf} --write-index {input.bcf}
+        else
+           cp {input.bcf} {output.bcf}
+           cp {input.idx} {output.idx}
+        fi
+        """
 
 rule summarize_blocks:
     input:
@@ -237,7 +255,7 @@ rule phase_report:
     output:
         outdir + "/reports/phase.html"
     conda:
-        os.getcwd() + "/harpyenvs/r-env.yaml"
+        os.getcwd() + "/.harpy_envs/r-env.yaml"
     message:
         "Summarizing phasing results"
     script:

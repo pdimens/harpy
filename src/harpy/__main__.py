@@ -39,7 +39,7 @@ click.rich_click.ERRORS_SUGGESTION = "Try the '--help' flag for more information
 click.rich_click.ERRORS_EPILOGUE = "See the documentation: [link=https://pdimens.github.io/harpy/]https://pdimens.github.io/harpy/[/link]"
 
 @click.group(options_metavar='', context_settings=dict(help_option_names=["-h", "--help"]))
-@click.version_option("0.7.3", prog_name="Harpy")
+@click.version_option("0.8.0", prog_name="Harpy")
 def cli():
     """
     ## Harpy haplotagging pipeline
@@ -164,118 +164,114 @@ click.rich_click.COMMAND_GROUPS = {
 click.rich_click.OPTION_GROUPS = {
     "harpy preflight bam": [
         {
-            "name": "Configuration",
-            "options": ["--directory"],
-        },
-        {
-            "name": "Other Options",
-            "options": ["--threads", "--snakemake", "--quiet", "--print-only", "--help"],
+            "name": "Options",
+            "options": ["--output-dir", "--threads", "--snakemake", "--quiet", "--help"],
         },
     ],
     "harpy preflight fastq": [
         {
-            "name": "Other Options",
-            "options": ["--threads", "--snakemake", "--quiet", "--print-only", "--help"],
+            "name": "Options",
+            "options": ["--output-dir", "--threads", "--snakemake", "--quiet", "--help"],
         },
     ],
     "harpy demultiplex gen1": [
         {
-            "name": "Configuration",
+            "name": "Module Parameters",
             "options": ["--samplesheet"],
         },
         {
             "name": "Other Options",
-            "options": ["--threads", "--skipreports", "--snakemake", "--quiet", "--print-only", "--help"],
+            "options": ["--output-dir", "--threads", "--skipreports", "--snakemake", "--quiet", "--help"],
         },
     ],
     "harpy qc": [
         {
-            "name": "Configuration",
-            "options": ["--directory", "--max-length", "--ignore-adapters", "--extra-params"],
+            "name": "Module Parameters",
+            "options": ["--max-length", "--ignore-adapters", "--extra-params"],
         },
         {
             "name": "Other Options",
-            "options": ["--threads", "--skipreports", "--snakemake", "--quiet", "--print-only", "--help"],
+            "options": ["--output-dir", "--threads", "--skipreports", "--snakemake", "--quiet", "--help"],
         },
     ],
     "harpy align bwa": [
         {
-            "name": "Configuration",
+            "name": "Module Parameters",
             "options": ["--genome", "--quality-filter", "--molecule-distance", "--extra-params"],
         },
         {
             "name": "Other Options",
-            "options": ["--threads", "--skipreports", "--snakemake", "--quiet", "--print-only", "--help"],
+            "options": ["--output-dir", "--threads", "--skipreports", "--snakemake", "--quiet", "--help"],
         },
     ],
     "harpy align ema": [
         {
-            "name": "Configuration",
+            "name": "Module Parameters",
             "options": ["--platform", "--whitelist", "--genome", "--quality-filter", "--ema-bins", "--extra-params"],
         },
         {
             "name": "Other Options",
-            "options": ["--threads", "--skipreports", "--snakemake", "--quiet", "--print-only", "--help"],
+            "options": ["--output-dir", "--threads", "--skipreports", "--snakemake", "--quiet", "--help"],
         },
     ],
     "harpy snp mpileup": [
         {
-            "name": "Configuration",
+            "name": "Module Parameters",
             "options": ["--genome", "--populations", "--ploidy", "--windowsize", "--extra-params"],
         },
         {
             "name": "Other Options",
-            "options": ["--threads", "--skipreports", "--snakemake", "--quiet", "--print-only", "--help"],
+            "options": ["--output-dir", "--threads", "--skipreports", "--snakemake", "--quiet", "--help"],
         },
     ],
     "harpy snp freebayes": [
         {
-            "name": "Configuration",
+            "name": "Module Parameters",
             "options": ["--genome", "--populations", "--ploidy", "--windowsize", "--extra-params"],
         },
         {
             "name": "Other Options",
-            "options": ["--threads", "--skipreports", "--snakemake", "--quiet", "--print-only", "--help"],
+            "options": ["--output-dir", "--threads", "--skipreports", "--snakemake", "--quiet", "--help"],
         },
     ],
     "harpy sv leviathan": [
         {
-            "name": "Configuration",
+            "name": "Module Parameters",
             "options": ["--genome", "--populations", "--extra-params"],
         },
         {
             "name": "Other Options",
-            "options": ["--threads", "--skipreports", "--snakemake", "--quiet", "--print-only", "--help"],
+            "options": ["--output-dir", "--threads", "--skipreports", "--snakemake", "--quiet", "--help"],
         },
     ],
     "harpy sv naibr": [
         {
-            "name": "Configuration",
+            "name": "Module Parameters",
             "options": ["--genome", "--vcf", "--molecule-distance", "--populations", "--extra-params"],
         },
         {
             "name": "Other Options",
-            "options": ["--threads", "--skipreports", "--snakemake", "--quiet", "--print-only", "--help"],
+            "options": ["--output-dir", "--threads", "--skipreports", "--snakemake", "--quiet", "--help"],
         },
     ],
     "harpy impute": [
         {
-            "name": "Configuration",
+            "name": "Module Parameters",
             "options": ["--vcf", "--parameters", "--extra-params", "--vcf-samples"],
         },
         {
             "name": "Other Options",
-            "options": ["--threads", "--skipreports", "--snakemake", "--quiet", "--print-only", "--help"],
+            "options": ["--output-dir", "--threads", "--skipreports", "--snakemake", "--quiet", "--help"],
         },
     ],
     "harpy phase": [
         {
-            "name": "Configuration",
+            "name": "Module Parameters",
             "options": ["--vcf", "--molecule-distance", "--genome", "--prune-threshold", "--ignore-bx", "--extra-params", "--vcf-samples"],
         },
         {
             "name": "Other Options",
-            "options": ["--threads", "--skipreports", "--snakemake", "--quiet", "--print-only", "--help"],
+            "options": ["--output-dir", "--threads", "--skipreports", "--snakemake", "--quiet", "--help"],
         },
     ]
 }

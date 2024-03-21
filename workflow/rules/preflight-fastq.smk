@@ -6,7 +6,7 @@ import sys
 import glob
 
 seq_dir = config["seq_directory"]
-out_dir = f"Preflight/fastq/"
+out_dir = config["output_directory"]
 
 wildcard_constraints:
     sample = "[a-zA-Z0-9._-]+"
@@ -60,10 +60,12 @@ rule checkForward:
         get_fq1
     output:
         temp(out_dir + "{sample}.F.log")
+    conda:
+        os.getcwd() + "/.harpy_envs/qc.yaml"
     message:
         "Processing forward reads: {wildcards.sample}"
-    shell: 
-        "checkFASTQ.py {input} > {output}"
+    script: 
+        "scripts/checkFASTQ.py"
 
 rule checkReverse:
     input:
@@ -72,8 +74,10 @@ rule checkReverse:
         temp(out_dir + "{sample}.R.log")
     message:
         "Processing reverse reads: {wildcards.sample}"
-    shell: 
-        "checkFASTQ.py {input} > {output}"
+    conda:
+        os.getcwd() + "/.harpy_envs/qc.yaml"
+    script: 
+        "scripts/checkFASTQ.py"
 
 rule mergeChecks:
     input:
@@ -111,7 +115,7 @@ rule createReport:
     params:
         seq_dir
     conda:
-        os.getcwd() + "/harpyenvs/r-env.yaml"
+        os.getcwd() + "/.harpy_envs/r-env.yaml"
     message:
         "Producing report"
     script:
