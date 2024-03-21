@@ -198,31 +198,26 @@ rule genome_link:
         fi
         """
 
-if genome_zip:
-    rule genome_compressed_faidx:
-        input: 
-            f"Genome/{bn}"
-        output: 
-            gzi = f"Genome/{bn}.gzi",
-            fai = f"Genome/{bn}.fai"
-        log:
-            f"Genome/{bn}.faidx.gzi.log"
-        message:
-            "Indexing {input}"
-        shell: 
-            "samtools faidx --gzi-idx {output.gzi} --fai-idx {output.fai} {input} 2> {log}"
-else:
-    rule genome_faidx:
-        input: 
-            f"Genome/{bn}"
-        output: 
-            f"Genome/{bn}.fai"
-        log:
-            f"Genome/{bn}.faidx.log"
-        message:
-            "Indexing {input}"
-        shell:
-            "samtools faidx --fai-idx {output} {input} 2> {log}"
+rule genome_faidx:
+    input: 
+        f"Genome/{bn}"
+    output: 
+        fai = f"Genome/{bn}.fai",
+        gzi = f"Genome/{bn}.gzi" if genome_zip else []
+    log:
+        f"Genome/{bn}.faidx.gzi.log"
+    params:
+        genome_zip
+    message:
+        "Indexing {input}"
+    shell: 
+        """
+        if [ "{params}" = "True" ]; then
+            samtools faidx --gzi-idx {output.gzi} --fai-idx {output.fai} {input} 2> {log}
+        else
+            samtools faidx --fai-idx {output.fai} {input} 2> {log}
+        fi
+        """
 
 rule report:
     input:
