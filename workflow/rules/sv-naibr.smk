@@ -207,7 +207,8 @@ if not skipreports:
 
 rule all:
     default_target: True
-    input:
+    input: 
+        results
     message:
         "Checking for expected workflow output"
     shell:
