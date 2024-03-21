@@ -164,7 +164,7 @@ rule log_phasing:
         for i in {input}; do
             SAMP=$(basename $i .phaselog)
             echo -e "${{SAMP}}\\t$(grep "Total alignments" $i)\\t$(grep "could be tagged" $i)" |
-                sed 's/ \+ /\\t/g' | cut -f1,3,5 >> {output}
+                sed 's/ \\+ /\\t/g' | cut -f1,3,5 >> {output}
         done
         """
 
