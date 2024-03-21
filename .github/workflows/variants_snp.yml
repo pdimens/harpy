@@ -102,6 +102,6 @@ jobs:
       - name: snp freebayes
         shell: micromamba-shell {0}
         run: harpy snp freebayes -w 150000 -g test/genome/genome.fasta.gz -q test/bam
-    - name: snp freebayes-pop
+      - name: snp freebayes-pop
         shell: micromamba-shell {0}
         run: harpy snp freebayes -w 150000 -g test/genome/genome.fasta.gz -p test/samples.groups -q test/bam
