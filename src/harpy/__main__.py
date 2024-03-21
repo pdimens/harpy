@@ -164,17 +164,13 @@ click.rich_click.COMMAND_GROUPS = {
 click.rich_click.OPTION_GROUPS = {
     "harpy preflight bam": [
         {
-            "name": "Configuration",
-            "options": ["--directory"],
-        },
-        {
-            "name": "Other Options",
+            "name": "Options",
             "options": ["--output-dir", "--threads", "--snakemake", "--quiet", "--help"],
         },
     ],
     "harpy preflight fastq": [
         {
-            "name": "Other Options",
+            "name": "Options",
             "options": ["--output-dir", "--threads", "--snakemake", "--quiet", "--help"],
         },
     ],
