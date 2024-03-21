@@ -107,7 +107,7 @@ jobs:
           resources/buildforCI.sh
       - name: naibr
         shell: micromamba-shell {0}
-        run: harpy sv naibr -g test/genome/genome.fasta.gz -o SV/naibr -s "--show-failed-logs" test/bam_phased && rm -r SV
+        run: harpy sv naibr -g test/genome/genome.fasta.gz -o SV/naibr -s "--show-failed-logs" test/bam_phased
       - name: naibr pop
         if: always()
         shell: micromamba-shell {0}
