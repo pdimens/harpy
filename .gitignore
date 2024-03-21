@@ -6,7 +6,8 @@ QC/
 Demultiplex/
 Genome/
 Align/
-Variants/
+SNP/
+SV/
 Impute/
 Preflight/
 Phase/
