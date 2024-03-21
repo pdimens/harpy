@@ -169,113 +169,113 @@ click.rich_click.OPTION_GROUPS = {
         },
         {
             "name": "Other Options",
-            "options": ["--threads", "--snakemake", "--quiet", "--help"],
+            "options": ["--output-dir", "--threads", "--snakemake", "--quiet", "--help"],
         },
     ],
     "harpy preflight fastq": [
         {
             "name": "Other Options",
-            "options": ["--threads", "--snakemake", "--quiet", "--help"],
+            "options": ["--output-dir", "--threads", "--snakemake", "--quiet", "--help"],
         },
     ],
     "harpy demultiplex gen1": [
         {
             "name": "Configuration",
-            "options": ["--output-dir", "--samplesheet"],
+            "options": ["--samplesheet"],
         },
         {
             "name": "Other Options",
-            "options": ["--threads", "--skipreports", "--snakemake", "--quiet", "--help"],
+            "options": ["--output-dir", "--threads", "--skipreports", "--snakemake", "--quiet", "--help"],
         },
     ],
     "harpy qc": [
         {
             "name": "Configuration",
-            "options": ["--output-dir", "--max-length", "--ignore-adapters", "--extra-params"],
+            "options": ["--max-length", "--ignore-adapters", "--extra-params"],
         },
         {
             "name": "Other Options",
-            "options": ["--threads", "--skipreports", "--snakemake", "--quiet", "--help"],
+            "options": ["--output-dir", "--threads", "--skipreports", "--snakemake", "--quiet", "--help"],
         },
     ],
     "harpy align bwa": [
         {
             "name": "Configuration",
-            "options": ["--output-dir", "--genome", "--quality-filter", "--molecule-distance", "--extra-params"],
+            "options": ["--genome", "--quality-filter", "--molecule-distance", "--extra-params"],
         },
         {
             "name": "Other Options",
-            "options": ["--threads", "--skipreports", "--snakemake", "--quiet", "--help"],
+            "options": ["--output-dir", "--threads", "--skipreports", "--snakemake", "--quiet", "--help"],
         },
     ],
     "harpy align ema": [
         {
             "name": "Configuration",
-            "options": ["--output-dir", "--platform", "--whitelist", "--genome", "--quality-filter", "--ema-bins", "--extra-params"],
+            "options": ["--platform", "--whitelist", "--genome", "--quality-filter", "--ema-bins", "--extra-params"],
         },
         {
             "name": "Other Options",
-            "options": ["--threads", "--skipreports", "--snakemake", "--quiet", "--help"],
+            "options": ["--output-dir", "--threads", "--skipreports", "--snakemake", "--quiet", "--help"],
         },
     ],
     "harpy snp mpileup": [
         {
             "name": "Configuration",
-            "options": ["--output-dir", "--genome", "--populations", "--ploidy", "--windowsize", "--extra-params"],
+            "options": ["--genome", "--populations", "--ploidy", "--windowsize", "--extra-params"],
         },
         {
             "name": "Other Options",
-            "options": ["--threads", "--skipreports", "--snakemake", "--quiet", "--help"],
+            "options": ["--output-dir", "--threads", "--skipreports", "--snakemake", "--quiet", "--help"],
         },
     ],
     "harpy snp freebayes": [
         {
             "name": "Configuration",
-            "options": ["--output-dir", "--genome", "--populations", "--ploidy", "--windowsize", "--extra-params"],
+            "options": ["--genome", "--populations", "--ploidy", "--windowsize", "--extra-params"],
         },
         {
             "name": "Other Options",
-            "options": ["--threads", "--skipreports", "--snakemake", "--quiet", "--help"],
+            "options": ["--output-dir", "--threads", "--skipreports", "--snakemake", "--quiet", "--help"],
         },
     ],
     "harpy sv leviathan": [
         {
             "name": "Configuration",
-            "options": ["--output-dir", "--genome", "--populations", "--extra-params"],
+            "options": ["--genome", "--populations", "--extra-params"],
         },
         {
             "name": "Other Options",
-            "options": ["--threads", "--skipreports", "--snakemake", "--quiet", "--help"],
+            "options": ["--output-dir", "--threads", "--skipreports", "--snakemake", "--quiet", "--help"],
         },
     ],
     "harpy sv naibr": [
         {
             "name": "Configuration",
-            "options": ["--output-dir", "--genome", "--vcf", "--molecule-distance", "--populations", "--extra-params"],
+            "options": ["--genome", "--vcf", "--molecule-distance", "--populations", "--extra-params"],
         },
         {
             "name": "Other Options",
-            "options": ["--threads", "--skipreports", "--snakemake", "--quiet", "--help"],
+            "options": ["--output-dir", "--threads", "--skipreports", "--snakemake", "--quiet", "--help"],
         },
     ],
     "harpy impute": [
         {
             "name": "Configuration",
-            "options": ["--output-dir", "--vcf", "--parameters", "--extra-params", "--vcf-samples"],
+            "options": ["--vcf", "--parameters", "--extra-params", "--vcf-samples"],
         },
         {
             "name": "Other Options",
-            "options": ["--threads", "--skipreports", "--snakemake", "--quiet", "--help"],
+            "options": ["--output-dir", "--threads", "--skipreports", "--snakemake", "--quiet", "--help"],
         },
     ],
     "harpy phase": [
         {
             "name": "Configuration",
-            "options": ["--output-dir", "--vcf", "--molecule-distance", "--genome", "--prune-threshold", "--ignore-bx", "--extra-params", "--vcf-samples"],
+            "options": ["--vcf", "--molecule-distance", "--genome", "--prune-threshold", "--ignore-bx", "--extra-params", "--vcf-samples"],
         },
         {
             "name": "Other Options",
-            "options": ["--threads", "--skipreports", "--snakemake", "--quiet", "--help"],
+            "options": ["--output-dir", "--threads", "--skipreports", "--snakemake", "--quiet", "--help"],
         },
     ]
 }
