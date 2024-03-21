@@ -80,7 +80,7 @@ rule create_config:
         with open(output[0], "w") as conf:
             _ = conf.write(f"bam_file={input[0]}\n")
             _ = conf.write(f"prefix={params[0]}\n")
-            _ = conf.write(f"outdir=Variants/naibr/{params[0]}\n")
+            _ = conf.write(f"outdir={outdir}/{params[0]}\n")
             _ = conf.write(f"threads={params[1]}\n")
             for i in argdict:
                 _ = conf.write(f"{i}={argdict[i]}\n")

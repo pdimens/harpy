@@ -129,7 +129,7 @@ rule create_config:
         argdict = process_args(extra)
         with open(output[0], "w") as conf:
             _ = conf.write(f"bam_file={input[0]}\n")
-            _ = conf.write(f"outdir=Variants/naibr-pop/{params[0]}\n")
+            _ = conf.write(f"outdir={outdir}/{params[0]}\n")
             _ = conf.write(f"prefix={params[0]}\n")
             _ = conf.write(f"threads={params[1]}\n")
             for i in argdict:
