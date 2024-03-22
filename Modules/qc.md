@@ -17,7 +17,7 @@ analyses is to remove these adapters and trim poor quality data. You can remove 
 and quality trim sequences using the `qc` module:
 
 ```bash usage
-harpy qc OPTIONS... 
+harpy qc OPTIONS... INPUTS...
 ```
 
 ```bash example
