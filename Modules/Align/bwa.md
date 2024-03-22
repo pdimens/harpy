@@ -105,7 +105,7 @@ graph LR
     end
 ```
 +++ :icon-file-directory: BWA output
-The `harpy align` module creates an `Align/bwa` directory with the folder structure below. `Sample1` is a generic sample name for demonstration purposes.
+The default output directory is `Align/bwa` with the folder structure below. `Sample1` is a generic sample name for demonstration purposes.
 The resulting folder also includes a `workflow` directory (not shown) with workflow-relevant runtime files and information.
 ```
 Align/bwa

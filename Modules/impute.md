@@ -186,7 +186,7 @@ graph LR
     G([create file list])-->E
 ```
 +++ :icon-file-directory: impute output
-The `harpy impute` module creates an `Imputation` directory with the folder structure below. `contig1` and `contig2` 
+The default output directory is `Impute` with the folder structure below. `contig1` and `contig2` 
 are generic contig names from an imaginary `genome.fasta` for demonstration purposes. The directory `model1/`
 is a generic name to reflect the corresponding parameter row in the stitch parameter
 file, which would have explicit names in real use (e.g. `modelpseudoHaploid_useBXTrue_k10_s1_nGen50/`).
