@@ -121,7 +121,7 @@ graph LR
 
 ```
 +++ :icon-file-directory: EMA output
-The `harpy align` module creates an `Align/ema` directory with the folder structure below. `Sample1` is a generic sample name for demonstration purposes. 
+The default output directory is `Align/ema` with the folder structure below. `Sample1` is a generic sample name for demonstration purposes. 
 The resulting folder also includes a `workflow` directory (not shown) with workflow-relevant runtime files and information.
 ```
 Align/ema

@@ -74,9 +74,7 @@ of the language such as when "any" and "all" are written.
 |BX:Z: last tag| **all** reads have `BX:Z`: as final tag in alignment records | **at least 1 read** doesn't have `BX:Z:` tag as final tag|
 
 +++ output
-Unlike the other modules. `preflight` will not create a new folder in your working directory. Instead, it will create 
-a `Preflight` folder in the same directory that was provided for `-d` (`--directory`). This design is intended to keep
-the reports near the source data.
+The default output directory is `Preflight/fastq` or `Preflight/bam` depending on which mode you are using.
 
 +++ Reports
 The result of `preflight` is a single HTML report in `inputdir/Preflight/filecheck.xxx.html` where `xxx` is either `fastq` or `bam`
