@@ -17,6 +17,8 @@ except:
     exit(1)
 
 from .popgroups import popgroup
+from .simulate.linkedreads import reads
+from .simulate.variants import variants
 from .stitchparams import stitchparams
 from .hpc import hpc
 from .demultiplex import gen1
@@ -130,7 +132,7 @@ def simulate():
     pass
 
 # main program
-cli.add_command(hpc)
+#cli.add_command(hpc)
 cli.add_command(popgroup)
 cli.add_command(stitchparams)
 cli.add_command(preflight)
@@ -158,7 +160,7 @@ sv.add_command(leviathan)
 sv.add_command(naibr)
 # simulate submodules
 simulate.add_command(variants)
-#simulate.add_command(reads)
+simulate.add_command(reads)
 
 ## the modules ##
 click.rich_click.COMMAND_GROUPS = {

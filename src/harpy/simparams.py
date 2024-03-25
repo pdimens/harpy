@@ -3,7 +3,7 @@ import sys
 from .printfunctions import print_notice
 import rich_click as click
 
-genome_conf = """# HARPY GENOME SIMULATION CONFIGURATION FILE #
+variants_conf = """# HARPY VARIANT SIMULATION CONFIGURATION FILE #
 # ======================================== PLEASE READ ME FIRST ========================================= #
 # All of these parameters are optional
 # Most simuG parameters are shown here and all with their default values (except random_seed)
@@ -92,27 +92,70 @@ coding_partition_for_snp_simulation:
 #     - options: noncoding, coding, 2d, 4d
 #     - this option needs to be used together with gene_gff"""
 
-@click.command(no_args_is_help = True, epilog = "read the docs for more information: https://pdimens.github.io/harpy/modules/impute/#parameter-file")
-@click.option('-o', '--output', type=str, required = True, help = 'Name of output simulation parameter file')
-def simparams(output):
-    """
-    Create a template parameter file for `harpy simulate genome`
+reads_conf = """# path of template fasta file
+Path_Fastahap1=
+Path_Fastahap2=
+# number threads
+processors=50
+# coverage for long fragment
+CF=15
+# the average length for long fragment (Kb)
+Mu_F=20
+# length of short reads (bp)
+SR=150
+# coverage for short reads
+CR=20
+# mean of insert size for short reads (bp)
+Mu_IS=400
+# standard deviation of insert size for short reads (bp)
+Std_IS=10
+# the average number of molecules per droplet
+N_FP=16
+# fast mode ('Y' or 'N'; only simulate uniform sequencing quality)
+Fast_mode=N
+# simulate sequencing error ('Y') or not ('N')
+Seq_error=Y
+# sequencing error rate
+Error_rate=0.01
+#path to sequencing error profile
+Path_Seq_qual=
+#path to barcode error profile
+Path_Barcode_qual=
+# barcode list
+Path_barcodepool=
+# Haploid (Hap=1) or Diploid (Hap=2)
+Hap=2"""
 
-    With this command you can create a template parameter
-    file necessary for simulating random variants in a genome via `harpy simulate`
-    The resulting file will have default `simuG` values and should be modified appropriately.
+@click.command(no_args_is_help = True, epilog = "read the docs for more information: https://pdimens.github.io/harpy/modules/impute/#parameter-file")
+@click.option('-o', '--output-prefix', type=str, required = True, help = 'Name prefix for output files')
+def simparams(output_prefix):
     """
-    if os.path.exists(output):
-        overwrite = input(f"File {output} already exists, overwrite (no|yes)?  ").lower()
+    Create template parameter files for `harpy simulate`
+
+    With this command you can create the template parameter files for simulating
+    genomic variants or linked reads via `harpy simulate`. The resulting files
+    should be modified accordingly before use.
+    """
+    if os.path.exists(f"{output_prefix}.variants.yaml"):
+        overwrite = input(f"File {output_prefix} already exists, overwrite (no|yes)?  ").lower()
         if overwrite not in ["yes", "y"]:
-            click.echo("Please suggest a different name for the output file")
+            click.echo("Please suggest a different filename prefix")
             exit(0)
 
-    with open(output, "w+") as f:
-        f.writelines(genome_conf)
+    with open(f"{output_prefix}.variants.yaml", "w+") as f:
+        f.writelines(variants_conf)
+
+    if os.path.exists(f"{output_prefix}.reads.yaml"):
+        overwrite = input(f"File {output_prefix} already exists, overwrite (no|yes)?  ").lower()
+        if overwrite not in ["yes", "y"]:
+            click.echo("Please suggest a different filename prefix")
+            exit(0)
+
+    with open(f"{output_prefix}.reads.yaml") as f:
+        f.writelines(reads_conf)
 
     print_notice(
-        f"Created simulation parameter file: {output}\n" +
-        "Modify the file as needed, details are provided inside the file."
+        f"Created simulation parameter files: {output_prefix}.variants.yaml, {output_prefix}.reads.yaml\n" +
+        "Modify the files as needed, details are provided inside the file."
     )
 
