@@ -39,7 +39,7 @@ click.rich_click.ERRORS_SUGGESTION = "Try the '--help' flag for more information
 click.rich_click.ERRORS_EPILOGUE = "See the documentation: [link=https://pdimens.github.io/harpy/]https://pdimens.github.io/harpy/[/link]"
 
 @click.group(options_metavar='', context_settings=dict(help_option_names=["-h", "--help"]))
-@click.version_option("0.8.0", prog_name="Harpy")
+@click.version_option("0.9.0", prog_name="Harpy")
 def cli():
     """
     ## Harpy haplotagging pipeline
@@ -119,6 +119,16 @@ def preflight():
     """
     pass
 
+@click.group(options_metavar='', context_settings=dict(help_option_names=["-h", "--help"]))
+def simulate():
+    """
+    Simulate variants or linked reads from a genome
+
+    Use `harpy simulate variants` to add simulated variants (snp, cnv, indel, inversion, or translocation)
+    to a genome or `harpy simulate reads` to simulate linked-read data from a genome. 
+    """
+    pass
+
 # main program
 cli.add_command(hpc)
 cli.add_command(popgroup)
@@ -131,6 +141,7 @@ cli.add_command(snp)
 cli.add_command(sv)
 cli.add_command(impute)
 cli.add_command(phase)
+cli.add_command(simulate)
 # demultiplex submodules
 demultiplex.add_command(gen1)
 # preflight submodules
@@ -145,6 +156,9 @@ snp.add_command(freebayes)
 # sv submodules
 sv.add_command(leviathan)
 sv.add_command(naibr)
+# simulate submodules
+simulate.add_command(variants)
+#simulate.add_command(reads)
 
 ## the modules ##
 click.rich_click.COMMAND_GROUPS = {
@@ -156,7 +170,7 @@ click.rich_click.COMMAND_GROUPS = {
             },
             {
                 "name": "Other Commands",
-                "commands": ["preflight", "popgroup", "stitchparams", "hpc"]
+                "commands": ["preflight", "popgroup", "stitchparams", "simulate"]
             }
         ]
 }

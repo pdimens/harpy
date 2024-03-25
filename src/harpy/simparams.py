@@ -42,19 +42,19 @@ coding_partition_for_snp_simulation:
 
 
 # ============================================= Parameter descriptions ======================================================= #
-## ------------------------------ Randomly simulate Single Nucleotide Polymorphisms (SNP) ----------------------------------- ##
+## ------------------------------ Randomly simulate Single Nucleotide Polymorphisms (snp) ----------------------------------- ##
 # snp_count: specify the number of SNP variants to be introduced
 # transition_transversion_ratio: the transition/transversion ratio used for SNP variants
 #     - transition_transversion_ratio: Inf <- only transitions 
 #     - transition_transversion_ratio: 0   <- only transversions
 
-## ------------------------------- Randomly simulate  and insertion-deletions (indel) --------------------------------------- ##
+## ------------------------------- Randomly simulate insertion-deletions (indel) --------------------------------------- ##
 # indel_count: the number of indel variants to be introduced
 # insertion_deletion_ratio: the insertion/deletion ratio used to simulate indel variants
 #    - insertion_deletion_ratio: Inf <- only insertions
 #    - insertion_deletion_ratio: 0   <- only deletions
 
-## -------------------------------------- Randomly simulate Copy Number Variants (CNV) ------------------------------------- ##
+## -------------------------------------- Randomly simulate Copy Number Variants (cnv) ------------------------------------- ##
 # cnv_count: number of CNV variants to be introduced
 # cnv_min_size: minimum copy number size in base pairs
 # cnv_max_size: maximum copy number size in base pairs
