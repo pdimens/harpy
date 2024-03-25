@@ -8,7 +8,7 @@ onsuccess:
     rprint(
         Panel(
             f"The workflow has finished successfully! Find the results in [bold]{outdir}/[/bold]",
-            title = "[bold]harpy simulate genome",
+            title = "[bold]harpy simulate genome (diploid)",
             title_align = "left",
             border_style = "green"
             ),
@@ -20,7 +20,7 @@ onerror:
     rprint(
         Panel(
             f"The workflow has terminated due to an error. See the log file below for more details.",
-            title = "[bold]harpy simulate genome",
+            title = "[bold]harpy simulate genome (diploid)",
             title_align = "left",
             border_style = "red"
             ),

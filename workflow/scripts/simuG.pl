@@ -3890,7 +3890,7 @@ sub introduce_random_translocation {
 sub generate_output_files {
   my ($prefix, $refseq_arrayref, $refseq_hashref, $simseq_hashref, $ref2sim_map_hashref, $excluded_refseq_hashref) = @_;
   # output fasta.gz file for the simulated genome
-  my $output_simseq_fasta = "$prefix.simulated.fasta";
+  my $output_simseq_fasta = "$prefix.fasta";
   my $output_simseq_fasta_fh = write_file($output_simseq_fasta);
   if ((defined $translocation_vcf) or (defined $translocation_count)) {
     foreach my $chr (sort keys %$simseq_hashref) {
@@ -3985,8 +3985,8 @@ sub generate_output_files {
   print "\nGenerating reference-based vcf file for genomic variants introduced during simulation:\n";
   my $gmt_time = gmtime();
   if ((defined $snp_vcf) or (defined $snp_count)) {
-    print "$prefix.SNP.vcf\n";
-    my $output_ref2sim_snp_vcf = "$prefix.SNP.vcf";
+    print "$prefix.snp.vcf\n";
+    my $output_ref2sim_snp_vcf = "$prefix.snp.vcf";
     my $output_ref2sim_snp_vcf_fh = write_file($output_ref2sim_snp_vcf);
     print $output_ref2sim_snp_vcf_fh "##fileformat=VCFv4.1\n";
     print $output_ref2sim_snp_vcf_fh "##fileDate=$gmt_time (GMT time)\n";
@@ -4055,8 +4055,8 @@ sub generate_output_files {
     }
   }
   if ((defined $cnv_vcf) or (defined $cnv_count)) {
-    print "$prefix.CNV.vcf\n\n";
-    my $output_ref2sim_cnv_vcf = "$prefix.CNV.vcf";
+    print "$prefix.cnv.vcf\n\n";
+    my $output_ref2sim_cnv_vcf = "$prefix.cnv.vcf";
     my $output_ref2sim_cnv_vcf_fh = write_file($output_ref2sim_cnv_vcf);
     print $output_ref2sim_cnv_vcf_fh "##fileformat=VCFv4.1\n";
     print $output_ref2sim_cnv_vcf_fh "##fileDate=$gmt_time (GMT time)\n";

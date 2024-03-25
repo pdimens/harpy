@@ -14,18 +14,19 @@ genome_conf = """# HARPY GENOME SIMULATION CONFIGURATION FILE #
 # Refer to the Harpy documentation for more details: https://pdimens.github.io/harpy
 # ======================================================================================================= #
 
-snp_indel:
+snp:
     snp_count:
-    titv_ratio: 0.5
+    transition_transversion_ratio: 0.5
+indel:
     indel_count:
-    indel_ratio: 1.0
+    insertion_deletion_ratio: 1.0
 cnv:
     cnv_count:
     cnv_min_size: 100
     cnv_max_size: 100000
     cnv_max_copy_number: 10
     cnv_gain_loss_ratio:
-    duplication_tandem_dispersed_ratio: 1
+    tandem_dispersed_ratio: 1
 inversion:
     inversion_count:
     inversion_min_size: 1000
@@ -41,15 +42,17 @@ coding_partition_for_snp_simulation:
 
 
 # ============================================= Parameter descriptions ======================================================= #
-## -------------- Randomly simulate Single Nucleotide Polymorphisms (SNP) and insertion-deletions (indel) ------------------- ##
+## ------------------------------ Randomly simulate Single Nucleotide Polymorphisms (SNP) ----------------------------------- ##
 # snp_count: specify the number of SNP variants to be introduced
-# titv_ratio: the transition/transversion ratio used for SNP variants
-#     - titv_ratio: Inf <- only transitions 
-#     - titv_ratio: 0   <- only transversions
+# transition_transversion_ratio: the transition/transversion ratio used for SNP variants
+#     - transition_transversion_ratio: Inf <- only transitions 
+#     - transition_transversion_ratio: 0   <- only transversions
+
+## ------------------------------- Randomly simulate  and insertion-deletions (indel) --------------------------------------- ##
 # indel_count: the number of indel variants to be introduced
-# indel_ratio: the insertion/deletion ratio used to simulate indel variants
-#    - indel_ratio: Inf <- only insertions
-#    - indel_ratio: 0   <- only deletions
+# insertion_deletion_ratio: the insertion/deletion ratio used to simulate indel variants
+#    - insertion_deletion_ratio: Inf <- only insertions
+#    - insertion_deletion_ratio: 0   <- only deletions
 
 ## -------------------------------------- Randomly simulate Copy Number Variants (CNV) ------------------------------------- ##
 # cnv_count: number of CNV variants to be introduced
@@ -59,9 +62,9 @@ coding_partition_for_snp_simulation:
 # cnv_gain_loss_ratio: the relative ratio of DNA gain over DNA loss
 #    - cnv_gain_loss_ratio: Inf <- only copy number gain
 #    - cnv_gain_loss_ratio: 0   <- only copy number loss
-# duplication_tandem_dispersed_ratio: expected frequency ratio between tandem and dispersed duplication for CNV variants
-#     - duplication_tandem_dispersed_ratio: Inf <- only tandem duplications
-#     - duplication_tandem_dispersed_ratio: 0   <- only dispersed duplications
+# tandem_dispersed_ratio: expected frequency ratio between tandem and dispersed duplication for CNV variants
+#     - tandem_dispersed_ratio: Inf <- only tandem duplications
+#     - tandem_dispersed_ratio: 0   <- only dispersed duplications
 
 ## --------------------------------------------- Randomly simulate inversions ---------------------------------------------- ##
 # inversion_count: number of inversions to be introduced
