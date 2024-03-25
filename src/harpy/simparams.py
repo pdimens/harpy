@@ -9,8 +9,9 @@ genome_conf = """# HARPY GENOME SIMULATION CONFIGURATION FILE #
 # Most simuG parameters are shown here and all with their default values (except random_seed)
 # If you aren't interested in simulating a particular type of variant, remove or comment out that section
 # If you don't need a particular parameter, remove or comment it
+# If you are also using VCF files as inputs, all parameters listed here for those variant types will be ignored
 # The bottom of this file has a description of every parameter
-# Refer to the Harpy documentation for more detailed and plain-language information
+# Refer to the Harpy documentation for more details: https://pdimens.github.io/harpy
 # ======================================================================================================= #
 
 snp_indel:
@@ -33,21 +34,22 @@ inversion:
 translocation:
     translocation_count:
     translocation_breakpoints:
+random_seed: 12343212345
 centromere_gff:
 gene_gff:
 coding_partition_for_snp_simulation:
-random_seed: 12343212345
 
-# ============================================= Parameters explained ========================================================= #
+
+# ============================================= Parameter descriptions ======================================================= #
 ## -------------- Randomly simulate Single Nucleotide Polymorphisms (SNP) and insertion-deletions (indel) ------------------- ##
 # snp_count: specify the number of SNP variants to be introduced
 # titv_ratio: the transition/transversion ratio used for SNP variants
-#     - transitions only, titv_ratio: Inf
-#     - transversions only, titv_ration: 0
+#     - titv_ratio: Inf <- only transitions 
+#     - titv_ratio: 0   <- only transversions
 # indel_count: the number of indel variants to be introduced
 # indel_ratio: the insertion/deletion ratio used to simulate indel variants
-#    - insertions only, indel_ratio: Inf
-#    - deletions only, indel_ratio: 0
+#    - indel_ratio: Inf <- only insertions
+#    - indel_ratio: 0   <- only deletions
 
 ## -------------------------------------- Randomly simulate Copy Number Variants (CNV) ------------------------------------- ##
 # cnv_count: number of CNV variants to be introduced
@@ -55,11 +57,11 @@ random_seed: 12343212345
 # cnv_max_size: maximum copy number size in base pairs
 # cnv_max_copy_number: maximum number of copies
 # cnv_gain_loss_ratio: the relative ratio of DNA gain over DNA loss
-#    - copy number gain only, cnv_gain_loss_ratio: Inf
-#    - copy number loss only, cnv_gain_loss_ratio: 0
+#    - cnv_gain_loss_ratio: Inf <- only copy number gain
+#    - cnv_gain_loss_ratio: 0   <- only copy number loss
 # duplication_tandem_dispersed_ratio: expected frequency ratio between tandem and dispersed duplication for CNV variants
-#     - tandem duplications only, duplication_tandem_dispersed_ratio: Inf
-#     - dispersed duplications only, duplication_tandem_dispersed_ratio: 0
+#     - duplication_tandem_dispersed_ratio: Inf <- only tandem duplications
+#     - duplication_tandem_dispersed_ratio: 0   <- only dispersed duplications
 
 ## --------------------------------------------- Randomly simulate inversions ---------------------------------------------- ##
 # inversion_count: number of inversions to be introduced
@@ -72,20 +74,20 @@ random_seed: 12343212345
 # translocation_breakpoints: GFF3 file of the potential breakpoints for triggering translocation
 
 ## --------------------------------------------------- Other parameters ---------------------------------------------------- ##
+# random_seed: an integer set as the random seed for the simulation
+#     - try to set a very large number
 # centromere_gff: GFF3 file to specify centromeres for constraining the random CNV, inversion,
 #     and translocation simulation. If provided, will prevent those variants types from being
 #     simulated in centromeric regions. Potential translocations that will create dicentric
 #     rearranged chromosomes will also be disabled. 
 # gene_gff: GFF3 file of genes for constraining the random SNP, CNV, inversion, and translocation simulation.
-#     For random CNV, inversion, and translocation simulation, this option will prevent simulated
-#     breakpoints falling on the defined genes. For random SNP simulation, this option NEEDS to be 
-#     used together with the option 'coding_partition_for_snp_simulation' to constrain SNP simulations
-#     only in noncoding regions, coding regions, 2-fold degenerate (2d) sites or 4-fold degenerate (4d)
-#     sites. 
+#     - for random CNV, inversion, and translocation simulation, this option will prevent simulated
+#       breakpoints falling on the defined genes
+#     - for random SNP simulation, this option NEEDS to be used with the option 'coding_partition_for_snp_simulation'
+#       to constrain SNP simulations only in noncoding regions, coding regions, 2-fold degenerate (2d) sites or 4-fold degenerate (4d) sites 
 # coding_partition_for_snp_simulation: the coding partition used to constrain randomly simulated SNPs 
-#     - Options: noncoding, coding, 2d, 4d
-#     - This option needs to be used together with gene_gff
-# random_seed: an integer set as the random seed for the simulation. Try to set a very large number."""
+#     - options: noncoding, coding, 2d, 4d
+#     - this option needs to be used together with gene_gff"""
 
 @click.command(no_args_is_help = True, epilog = "read the docs for more information: https://pdimens.github.io/harpy/modules/impute/#parameter-file")
 @click.option('-o', '--output', type=str, required = True, help = 'Name of output simulation parameter file')
