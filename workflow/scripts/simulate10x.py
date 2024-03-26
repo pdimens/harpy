@@ -28,22 +28,21 @@ class Short_reads_PE(object):
 
 class parameter(object):
     def __init__(self):
-        self.coverageLongFrag=0
-        self.coverageShortRead=0
-        self.molPerDroplet=0
-        self.avgLenLongFrag=0
-        self.lenShortRead=0
-        self.avgInsertShortRead=0
-        self.stdInsertShortRead=0
         self.fastaHap1='N'
         self.fastaHap2='N'
         self.barcodePool='N'
-        self.hap=1
-        self.seqQualityFile='N'
         self.barcodeQualityFile='N'
+        self.seqQualityFile='N'
+        self.coverageLongFrag=0
+        self.avgLenLongFrag=0
+        self.molPerDroplet=0
+        self.lenShortRead=0
+        self.coverageShortRead=0
+        self.avgInsertShortRead=0
+        self.stdInsertShortRead=0
         self.errorRate=0
-        self.processor=1
-        self.redundance='N'
+        self.hap=1
+        self.threads=1
 
 #read template sequence
 def input_seq(in_path):
@@ -72,20 +71,8 @@ def input_seq(in_path):
     f.close()
     return reflist, reftitle
 
-def read_abundance(Par):
-    """sample long fragments from empirical distribution"""
-    inputfile=open(Par.redundance,'r')
-    abun_dict=defaultdict(float)
-    for line in inputfile:
-        info=line.strip('\n').split('\t')
-        abun_dict[info[0]]=float(info[1])
-    inputfile.close()
-    return abun_dict
-
 def randomlong(Par,reflist,reftitle):
     """randomly generate long molecules from supplied genome""" 
-    if Par.redundance!='N':
-       abun_dict=read_abundance(Par)
     global N_frag
     N_frag=0
     frag_list=[]
@@ -99,10 +86,7 @@ def randomlong(Par,reflist,reftitle):
     for seq in reflist:
         #calculate required number of molecules
         lensingle=len(seq)
-        if Par.redundance=='N':
-            N_frag=int(lensingle*Par.coverageLongFrag/(Par.avgLenLongFrag*1000))
-        else:    
-            N_frag=int(abun_dict[reftitle[index]]*lensingle*len(reflist)*Par.coverageLongFrag/(Par.avgLenLongFrag*1000))
+        N_frag=int(lensingle*Par.coverageLongFrag/(Par.avgLenLongFrag*1000))
         #randomly simulate molecules
         for i in range(N_frag):
             start=int(np.random.uniform(low=0,high=lensingle))
@@ -137,6 +121,7 @@ def deternumdroplet(N_frag,N_FP):
             assign_drop.append(last)
             break
     return assign_drop
+
 def selectbarcode(pool,assign_drop,MolSet,droplet_container):
     """assign barcode to each fragment"""
     #permute index of long fragment for random sampling
@@ -177,6 +162,7 @@ def child_initialize(_MolSet,_reflist):
 # I think this is the main program that runs stuff
 # Yep, it is
 def haploid(Par,lib):
+    """This is the main program that runs the simulations by calling everything else"""
     global MolSet    
     global reflist
     droplet_container=[]
@@ -196,14 +182,15 @@ def haploid(Par,lib):
     MolSet=selectbarcode(Par.barcodePool,assign_drop,MolSet,droplet_container)
     print('assign barcode to molecule finished (library '+lib+')')
     print('begin to simulate short reads, please wait...')
-    pool = multiprocessing.Pool(int(Par.processor),initializer= child_initialize,initargs = (MolSet,reflist,))
+    pool = multiprocessing.Pool(int(Par.threads),initializer= child_initialize,initargs = (MolSet,reflist,))
     Mol_process=[]
-    maxprocessor=int(len(MolSet)/int(Par.processor))
+    maxprocessor=int(len(MolSet)/int(Par.threads))
     t=0
     while t<len(MolSet):
         Mol_process.append(t)
         t += maxprocessor
     Mol_process.append(len(MolSet)-1)
+    # parallelize the process
     for m in range(len(Mol_process)-1):
         pool.apply_async(SIMSR,(Mol_process[m],Mol_process[m+1],Par,lib,m,))
     pool.close()
@@ -239,38 +226,36 @@ def reverseq(seq):
     return rev_complementary
 
 def Input_BarcodeQual(Par):
-    f=open(Par.barcodeQualityFile,"r")
-    line_index=0
-    position=0
-    Qual_dict=defaultdict(list)
-    Prob_dict=defaultdict(list)
-    for line in f:
-        if line_index>0:
-           linequal=line.strip('\t,\n')
-           qualarray=linequal.split('\t')
-           Qual_dict[qualarray[0]].append(ord(qualarray[1]))
-           Prob_dict[qualarray[0]].append(float(qualarray[2]))
-        line_index=line_index+1
-    f.close()
+    with open(Par.barcodeQualityFile,"r") as f:
+        line_index=0
+        position=0
+        Qual_dict=defaultdict(list)
+        Prob_dict=defaultdict(list)
+        for line in f:
+            if line_index>0:
+                linequal=line.strip('\t,\n')
+                qualarray=linequal.split('\t')
+                Qual_dict[qualarray[0]].append(ord(qualarray[1]))
+                Prob_dict[qualarray[0]].append(float(qualarray[2]))
+            line_index += 1
     return Qual_dict,Prob_dict
 
 def Input_SeqQual(Par):
-    f=open(Par.seqQualityFile,"r")
-    line_index=0
-    position=0
-    Qual_dict=defaultdict(list)
-    Prob_dict=defaultdict(list)
-    Substitute_dict=defaultdict(list)
-    for line in f:
-        if line_index>0:
-           change=[]
-           linequal=line.strip('\t,\n')
-           qualarray=linequal.split('\t')
-           Qual_dict[qualarray[0]].append(ord(qualarray[1]))
-           Prob_dict[qualarray[0]].append(float(qualarray[2]))
-           Substitute_dict[(qualarray[0],ord(qualarray[1]))]=list(map(float,qualarray[3:]))
-        line_index=line_index+1
-    f.close()
+    with open(Par.seqQualityFile,"r") as f:
+        line_index=0
+        position=0
+        Qual_dict=defaultdict(list)
+        Prob_dict=defaultdict(list)
+        Substitute_dict=defaultdict(list)
+        for line in f:
+            if line_index>0:
+                change=[]
+                linequal=line.strip('\t,\n')
+                qualarray=linequal.split('\t')
+                Qual_dict[qualarray[0]].append(ord(qualarray[1]))
+                Prob_dict[qualarray[0]].append(float(qualarray[2]))
+                Substitute_dict[(qualarray[0],ord(qualarray[1]))]=list(map(float,qualarray[3:]))
+            line_index += 1
     return Qual_dict,Prob_dict,Substitute_dict
 
 def SIMSR(start,end,Par,lib,jobid):
@@ -377,15 +362,10 @@ def pairend(Par,insert_size,MolSetX,Barcode_rand_qual,Seq_rand_qual1,Seq_rand_qu
             rand_nuc=np.random.choice(['A','C','G','T'],1,p=np.asarray([0.25,0.25,0.25,0.25]))
         read2new[i]=rand_nuc[0]
         #TODO REMOVE THE NNNNNNNN
-        read1seq=MolSetX.barcode+'NNNNNNN'+''.join(read1new)
-        read2seq=''.join(read2new)
-        read1qual=''.join(map(chr,Barcode_rand_qual[index,:]))+'KKKKKKK'+''.join(map(chr,Seq_rand_qual1[index,23:Par.lenShortRead]))
-        read2qual=''.join(map(chr,Seq_rand_qual2[index,:]))
-    else:
-       read1seq=MolSetX.barcode+'NNNNNNN'+read1
-       read2seq=read2
-       read1qual='K'*Par.lenShortRead
-       read2qual='K'*Par.lenShortRead
+    read1seq=MolSetX.barcode+'NNNNNNN'+''.join(read1new)
+    read2seq=''.join(read2new)
+    read1qual=''.join(map(chr,Barcode_rand_qual[index,:]))+'KKKKKKK'+''.join(map(chr,Seq_rand_qual1[index,23:Par.lenShortRead]))
+    read2qual=''.join(map(chr,Seq_rand_qual2[index,:]))
     return Short_reads_PE(read1seq,read1qual,start_for,end_for,read2seq,read2qual,start_rev,end_rev)
 
 def main():
