@@ -1,3 +1,5 @@
+import numpy as np
+
 #Parameter definition
 large_droplet=40000000
 class Molecule(object):
@@ -49,7 +51,7 @@ def input_seq(in_path):
     reflist = []
     reftitle = []
     sequence = ""
-    compressed = True if in_path.lower().endswith(".gz") else False
+    compressed = True if in_path.lower().endswith("gz") else False
     if compressed:
         f = gzip.open(in_path, "r")
     else:
@@ -173,15 +175,15 @@ def haploid(Par,lib):
         reftitle.extend(reftitle2)
     
     #recode cut position of long fragment
-    print('read template finished (library '+lib+')')
+    #print('read template finished (library '+lib+')')
     MolSet=randomlong(Par,reflist,reftitle)
-    print('generate molecule finished (library '+lib+')')
+    #print('generate molecule finished (library '+lib+')')
     #calculate number of droplet
     assign_drop=deternumdroplet(N_frag,Par.molPerDroplet)
-    print('assign molecule to droplet finished (library '+lib+')')
+    #print('assign molecule to droplet finished (library '+lib+')')
     MolSet=selectbarcode(Par.barcodePool,assign_drop,MolSet,droplet_container)
-    print('assign barcode to molecule finished (library '+lib+')')
-    print('begin to simulate short reads, please wait...')
+    #print('assign barcode to molecule finished (library '+lib+')')
+    #print('begin to simulate short reads, please wait...')
     pool = multiprocessing.Pool(int(Par.threads),initializer= child_initialize,initargs = (MolSet,reflist,))
     Mol_process=[]
     maxprocessor=int(len(MolSet)/int(Par.threads))
@@ -195,18 +197,15 @@ def haploid(Par,lib):
         pool.apply_async(SIMSR,(Mol_process[m],Mol_process[m+1],Par,lib,m,))
     pool.close()
     pool.join()
-    os.system('touch '+lib+'_S1_L001_R1_001.fastq.gz')
-    os.system('touch '+lib+'_S1_L001_R2_001.fastq.gz')
+    out_f = snakemake.output["fw"]
+    out_r = snakemake.output["rv"]
+    os.system(f'touch {out_f}')
+    os.system(f'touch {out_r}')
     for m in range(len(Mol_process)-1):
-        os.system('cat '+lib+'_S1_L001_id'+str(m)+'_R1_001.fastq.gz >> '+lib+'_S1_L001_R1_001.fastq.gz')
-        os.system('cat '+lib+'_S1_L001_id'+str(m)+'_R2_001.fastq.gz >> '+lib+'_S1_L001_R2_001.fastq.gz')
-        os.system('rm '+lib+'_S1_L001_id'+str(m)+'_R1_001.fastq.gz')
-        os.system('rm '+lib+'_S1_L001_id'+str(m)+'_R2_001.fastq.gz')
-    os.system('mv '+lib+'_S1_L001_R1_001.fastq.gz '+sys.argv[1]+'/lib_'+lib)
-    os.system('mv '+lib+'_S1_L001_R2_001.fastq.gz '+sys.argv[1]+'/lib_'+lib)
-
-    print('Library '+lib+' simulation completed!')
-    return None
+        os.system(f'cat {lib}_S1_L001_id{m}_R1_001.fq.gz >> {out_f} && rm {lib}_S1_L001_id{m}_R1_001.fq.gz')
+        os.system(f'cat {lib}_S1_L001_id{m}_R2_001.fq.gz >> {out_r} && rm {lib}_S1_L001_id{m}_R2_001.fq.gz')
+    #print('Library '+lib+' simulation completed!')
+    return
 
 def reverseq(seq):
     complementary=''
@@ -368,18 +367,25 @@ def pairend(Par,insert_size,MolSetX,Barcode_rand_qual,Seq_rand_qual1,Seq_rand_qu
     read2qual=''.join(map(chr,Seq_rand_qual2[index,:]))
     return Short_reads_PE(read1seq,read1qual,start_for,end_for,read2seq,read2qual,start_rev,end_rev)
 
-def main():
-    list=os.listdir(sys.argv[1])
-    list.sort()
-    Par=parameter()
-    for i in range(len(list)):
-        libname=list[i].split('.')
-        print('processing library '+str(i+1)+' for '+libname[0])
-        os.system('mkdir '+sys.argv[1]+'/lib_'+libname[0])
-        deter=input_parameter(sys.argv[1]+'/'+list[i],Par)
-        if deter==1:
-            #TODO THIS IS WHAT INVOKES IT ALL
-           haploid(Par,libname[0])
-    return None
-if __name__=="__main__":
-    main()
+
+Par = parameter()
+Par.fastaHap1 = snakemake.input["genome1"]
+Par.fastaHap1 = snakemake.input["genome2"]
+Par.hap = snakemake.params["haplotypes"]
+Par.avgInsertShortRead = snakemake.params["short_insert"]
+Par.avgLenLongFrag = snakemake.params["long_len"]
+Par.barcodePool = snakemake.input["barcodes"]
+Par.barcodeQualityFile = snakemake.input["bc_quality"]
+Par.coverageLongFrag = snakemake.params["long_coverage"]
+Par.coverageShortRead = snakemake.params["short_coverage"]
+Par.errorRate = snakemake.params["error_rate"]
+Par.lenShortRead = snakemake.params["short_len"]
+Par.molPerDroplet = snakemake.params["mol_per_droplet"]
+Par.seqQualityFile = snakemake.input["seq_quality"]
+Par.stdInsertShortRead = snakemake.params["short_insert_sd"]
+Par.threads = snakemake.threads
+if Par.hap == 2:
+    Par.coverageLongFrag /= 2
+    #TODO output prefix?
+haploid(Par, snakemake.params["tempdir"])
+

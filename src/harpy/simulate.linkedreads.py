@@ -10,9 +10,9 @@ import multiprocessing
 from collections import defaultdict
 
 @click.command(no_args_is_help = True, epilog = "read the docs for more information: https://pdimens.github.io/harpy/modules/simulate")
-@click.option('-f', '--long-frag', type = int, default = 15, show_default= True, help = "Coverage of long fragments")
+@click.option('-f', '--long-frag-cov', type = int, default = 15, show_default= True, help = "Coverage of long fragments")
 @click.option('-l', '--long-frag-len', type = int, default = 100, help = "Average length of long fragments (kbp)")
-@click.option('-r', '--coverage', type = int, default = 30, help = "Coverage of short reads")
+@click.option('-c', '--short-read-cov', type = int, default = 30, help = "Coverage of short reads")
 @click.option('-f', '--short-read-len', type = int, default = 150, help = "Length of short reads")
 @click.option('-i', '--short-read-insert', type = int, default = 400, help = "Average insert size of short reads")
 @click.option('-d', '--insert-sd', type = int, default=50, help = "Standard deviation of insert size (bp)")
@@ -27,7 +27,7 @@ from collections import defaultdict
 @click.option('-o', '--output-dir', type = str, default = "Simulate/linkedreads", help = 'Name of output directory')
 @click.argument('genome_hap1', required=True, type=click.Path(exists=True), nargs=1)
 @click.argument('genome_hap2', required=False, type=click.Path(exists=True), nargs=1)
-def reads(genome_hap1, genome_hap2, output_dir, long_frag, long_frag_len, coverage, short_read_len, short_read_insert, insert_sd, molecules, error_rate, barcodes, ploidy, threads, snakemake, quiet, print_only):
+def reads(genome_hap1, genome_hap2, output_dir, long_frag_cov, long_frag_len, short_read_cov, short_read_len, short_read_insert, insert_sd, molecules, error_rate, barcodes, ploidy, threads, snakemake, quiet, print_only):
     """
     Create linked reads from a genome
  
