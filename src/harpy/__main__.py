@@ -17,8 +17,8 @@ except:
     exit(1)
 
 from .popgroups import popgroup
-from .simulate.linkedreads import reads
-from .simulate.variants import variants
+#from .simulatelinkedreads import reads
+from .simulatevariants import variants
 from .stitchparams import stitchparams
 from .hpc import hpc
 from .demultiplex import gen1
@@ -126,8 +126,8 @@ def simulate():
     """
     Simulate variants or linked reads from a genome
 
-    Use `harpy simulate variants` to add simulated variants (snp, cnv, indel, inversion, or translocation)
-    to a genome or `harpy simulate reads` to simulate linked-read data from a genome. 
+    Provide an additional subcommand `variants` or `reads` to get more information
+    about that workflow.
     """
     pass
 
@@ -160,7 +160,7 @@ sv.add_command(leviathan)
 sv.add_command(naibr)
 # simulate submodules
 simulate.add_command(variants)
-simulate.add_command(reads)
+#simulate.add_command(reads)
 
 ## the modules ##
 click.rich_click.COMMAND_GROUPS = {
@@ -288,6 +288,37 @@ click.rich_click.OPTION_GROUPS = {
         {
             "name": "Other Options",
             "options": ["--output-dir", "--threads", "--skipreports", "--snakemake", "--quiet", "--help"],
+        },
+        
+    ],
+        "harpy simulate variants": [
+        {
+            "name": "Universal Parameters",
+            "options": ["--variant-type", "--genes", "--centromeres", "--exclude-chr", "--heterozygosity"],
+        },
+        {
+            "name": "SNP-specific Options",
+            "options": ["--count", "--snp-gene-constraints"],
+        },
+        {
+            "name": "INDEL-specific Options",
+            "options": ["--count", "--ratio"],
+        },
+        {
+            "name": "Inversion-specific Options",
+            "options": ["--count", "--min-size", "--max-size"],
+        },
+        {
+            "name": "CNV-specific Options",
+            "options": ["--count", "--min-size", "--max-size", "--cnv-max-copy", "--ratio", "--cnv-ratio"],
+        },
+        {
+            "name": "Translocation-specific Options",
+            "options": ["--count"],
+        },
+        {
+            "name": "Other Options",
+            "options": ["--output-dir", "--randomseed", "--snakemake", "--quiet", "--help"],
         },
     ]
 }
