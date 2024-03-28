@@ -18,7 +18,7 @@ except:
 
 from .popgroups import popgroup
 #from .simulatelinkedreads import reads
-from .simulatevariants import variants
+from .simulatevariants import snpindel, inversion, cnv, translocation
 from .stitchparams import stitchparams
 from .hpc import hpc
 from .demultiplex import gen1
@@ -126,8 +126,10 @@ def simulate():
     """
     Simulate variants or linked reads from a genome
 
-    Provide an additional subcommand `variants` or `reads` to get more information
-    about that workflow.
+    To simulate genomic variants, provide an additional subcommand {`snpindel`,`inversion`,`cnv`,`translocation`} 
+    to get more information about that workflow. The limitations of the simulator
+    (`simuG`) are such that you may simulate only one type of variant at a time,
+    so you may need to run this module again on the resulting genome.
     """
     pass
 
@@ -159,7 +161,10 @@ snp.add_command(freebayes)
 sv.add_command(leviathan)
 sv.add_command(naibr)
 # simulate submodules
-simulate.add_command(variants)
+simulate.add_command(snpindel)
+simulate.add_command(inversion)
+simulate.add_command(cnv)
+simulate.add_command(translocation)
 #simulate.add_command(reads)
 
 ## the modules ##
@@ -168,12 +173,19 @@ click.rich_click.COMMAND_GROUPS = {
         [
             {
                 "name": "Modules",
-                "commands": ["demultiplex","qc", "align","snp","sv","impute","phase"],
+                "commands": ["demultiplex","qc", "align","snp","sv","impute","phase", "simulate"],
             },
             {
                 "name": "Other Commands",
-                "commands": ["preflight", "popgroup", "stitchparams", "simulate"]
+                "commands": ["preflight", "popgroup", "stitchparams"]
             }
+        ],
+    "harpy simulate":
+        [
+            {
+                "name": "Genomic Variants",
+                "commands": ["snpindel","inversion", "cnv", "translocation"],
+            },
         ]
 }
 
@@ -288,40 +300,66 @@ click.rich_click.OPTION_GROUPS = {
         {
             "name": "Other Options",
             "options": ["--output-dir", "--threads", "--skipreports", "--snakemake", "--quiet", "--help"],
-        },
-        
+        },     
     ],
-        "harpy simulate variants": [
+    "harpy simulate snpindel": [
         {
-            "name": "Universal Parameters",
-            "options": ["--variant-type", "--genes", "--centromeres", "--exclude-chr", "--heterozygosity"],
+            "name": "Known Variants",
+            "options": ["--snp-vcf", "--indel-vcf"],
         },
         {
-            "name": "SNP-specific Options",
-            "options": ["--count", "--snp-gene-constraints"],
-        },
-        {
-            "name": "INDEL-specific Options",
-            "options": ["--count", "--ratio"],
-        },
-        {
-            "name": "Inversion-specific Options",
-            "options": ["--count", "--min-size", "--max-size"],
-        },
-        {
-            "name": "CNV-specific Options",
-            "options": ["--count", "--min-size", "--max-size", "--cnv-max-copy", "--ratio", "--cnv-ratio"],
-        },
-        {
-            "name": "Translocation-specific Options",
-            "options": ["--count"],
+            "name": "Random Variants",
+            "options": ["--snp-count", "--indel-count", "--titv-ratio", "--indel-ratio", "--snp-gene-constraints", "--genes", "--centromeres", "--exclude-chr"],
         },
         {
             "name": "Other Options",
-            "options": ["--output-dir", "--randomseed", "--snakemake", "--quiet", "--help"],
+            "options": ["--output-dir", "--heterozygosity", "--randomseed", "--snakemake", "--quiet", "--help"],
         },
-    ]
+    ],
+    "harpy simulate inversion": [
+        {
+            "name": "Known Variants",
+            "options": ["--vcf"],
+        },
+        {
+            "name": "Random Variants",
+            "options": ["--count", "--min-size", "--max-size", "--genes", "--centromeres", "--exclude-chr"],
+        },
+        {
+            "name": "Other Options",
+            "options": ["--output-dir", "--heterozygosity", "--randomseed", "--snakemake", "--quiet", "--help"],
+        },
+    ],
+    "harpy simulate cnv": [
+        {
+            "name": "Known Variants",
+            "options": ["--vcf"],
+        },
+        {
+            "name": "Random Variants",
+            "options": ["--count", "--min-size", "--max-size", "--max-copy", "--dup-ratio", "--gain-ratio", "--genes", "--centromeres", "--exclude-chr"],
+        },
+        {
+            "name": "Other Options",
+            "options": ["--output-dir", "--heterozygosity", "--randomseed", "--snakemake", "--quiet", "--help"],
+        },
+    ],
+    "harpy simulate translocation": [
+        {
+            "name": "Known Variants",
+            "options": ["--vcf"],
+        },
+        {
+            "name": "Random Variants",
+            "options": ["--count", "--genes", "--centromeres", "--exclude-chr"],
+        },
+        {
+            "name": "Other Options",
+            "options": ["--output-dir","--heterozygosity", "--randomseed", "--snakemake", "--quiet", "--help"],
+        },
+    ],
 }
+
 
 def main():
     cli()
