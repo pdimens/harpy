@@ -65,7 +65,6 @@ onerror:
         file = sys.stderr
     )
 
-#TODO this needs more logic before it and check the BCFTOOLS call
 rule convert_vcf:
     input:
         f"{indir}/{vcf}"
@@ -81,9 +80,9 @@ rule simulate_variants:
         geno = genome,
         vcf_correct if vcf else []
     output:
-        expand(f"{outdir}/simulation.hap1".{ext}, ext = f"{variant}.vcf", "variants.bed", "fasta")
+        expand(f"{outdir}/{outprefix}.{variant}" + "{ext}", ext = [".vcf", ".bed", ".fasta"])
     params:
-        prefix = f"{outdir}/{variant}.hap1",
+        prefix = f"{outdir}/{outprefix}.{variant}",
         simuG = f"{outdir}/workflow/scripts/simuG.pl",
         parameters = variant_params
     conda:
@@ -95,8 +94,7 @@ rule simulate_variants:
         perl {params.simuG} -refseq {input.geno} -prefix {params.prefix} {params.parameters}
         """
 
-
-rule create_heterozygote_snp_vcf:
+rule create_heterozygote_vcf:
     input:
         f"{outdir}/{outprefix}.{variant}.vcf"
     output:
@@ -131,7 +129,7 @@ rule create_heterozygote_snp_vcf:
 
 rule all:
     input:
-        expand(f"{outdir}/simulation.hap1.{ext}", ext = f"{variant}.vcf", "variants.bed", "fasta"),
-        f"{prefix}.{variant}.hap2.vcf" if heterozygosity > 0 else []
+        expand(f"{outdir}/{outprefix}.{variant}" + "{ext}", ext = [".vcf", ".bed", ".fasta"]),
+        expand(f"{outdir}/{prefix}.{variant}" + ".hap{n}.vcf", n = [1,2]) if heterozygosity > 0 else []
     message:
         "Checking for workflow outputs"

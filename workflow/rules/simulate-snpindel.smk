@@ -12,14 +12,18 @@ indel_vcf = config.get("indel_vcf", None)
 het = config["heterozygosity"]
 outprefix = config["prefix"]
 in_vcfs = []
+snp = False 
+indel = False
 
 if snp_vcf or indel_vcf:
     variant_params = ""
     if snp_vcf:
+        snp = True
         snp_vcf_correct = snp_vcf[:-4] + ".vcf.gz" if snp_vcf.lower().endswith("bcf") else snp_vcf
         variant_params += f" -snp_vcf {indir}/{snp_vcf_correct}"
         in_vcfs.append(f"{indir}/{snp_vcf_correct}")
     if indel_vcf:
+        indel = True
         indel_vcf_correct = indel_vcf[:-4] + ".vcf.gz" if indel_vcf.lower().endswith("bcf") else indel_vcf
         variant_params += f" -indel_vcf {indir}/{indel_vcf_correct}"
         in_vcfs.append(f"{indir}/{indel_vcf_correct}")
@@ -27,6 +31,7 @@ else:
     snp_count, indel_count = config.get("snp_count", None), config.get("indel_count", None)
     variant_params = ""
     if snp_count:
+        snp = True
         variant_params += f" -snp_count {snp_count}"
         snp_constraint = config.get("snp_gene_constraints", None)
         variant_params += f" -coding_partition_for_snp_simulation {snp_constraint}" if snp_constraint else ""
@@ -34,6 +39,7 @@ else:
         variant_params += f" -titv_ratio {ratio}" if ratio else ""
 
     if indel_count:
+        indel = True
         variant_params += f" -indel_count {indel_count}"
         ratio = config.get("indel_ratio", None)
         variant_params += f" -ins_del_ratio {ratio}" if ratio else ""
@@ -92,7 +98,8 @@ rule simulate_variants:
         geno = genome,
         in_vcfs
     output:
-        expand(f"{outdir}/simulation.hap".{ext}, ext = f"{variant}.vcf", "variants.bed", "fasta")
+        expand(f"{outdir}/{outprefix}" + ".{var}.vcf", var = [i for i,j in zip(["snp", "indel"], [snp, indel]) if j]),
+        expand(f"{outdir}/{outprefix}" + ".{ext}", ext = [".fasta", ".bed"])
     params:
         prefix = f"{outdir}/{outprefix}",
         simuG = f"{outdir}/workflow/scripts/simuG.pl",
@@ -139,16 +146,10 @@ rule create_heterozygote_snp_vcf:
                     else:
                         hap2_vcf.write(line)
 
-use rule create_heterozygote_snp_vcf as create_heterozygote_indel_vcf with:
-    input:
-        f"{outdir}/{outprefix}indel.vcf"
-    output:
-        f"{outdir}/{outprefix}indel.hap1.vcf"
-        f"{outdir}/{outprefix}indel.hap2.vcf"
-
 rule all:
     input:
-        expand(f"{outdir}/simulation.hap.{ext}", ext = f"{variant}.vcf", "variants.bed", "fasta"),
-        [f"{prefix}.{variant}.hap1.vcf",f"{prefix}.{variant}.hap2.vcf"] if heterozygosity > 0 else []
+        expand(f"{outdir}/{outprefix}.{variant}" + "{ext}", ext = [".vcf", ".bed", ".fasta"),
+        expand(f"{outdir}/{prefix}" + ".snp.hap{n}.vcf", n = [1,2]) if snp and heterozygosity > 0 else [],
+        expand(f"{outdir}/{prefix}" + ".indel.hap{n}.vcf", n = [1,2]) if indel and heterozygosity > 0 else []
     message:
         "Checking for workflow outputs"

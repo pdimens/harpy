@@ -3914,8 +3914,7 @@ sub generate_output_files {
 
   # generate the correspondance map for genomic variants introduced during simulation
   print "Generating the correspondance map for genomic variants introduced during simulation:\n";
-  print "$prefix.variants.bed\n";
-  my $output_ref2sim_map = "$prefix.variants.bed";
+  my $output_ref2sim_map = "$prefix.bed";
   my $output_ref2sim_map_fh = write_file($output_ref2sim_map);
   print $output_ref2sim_map_fh "ref_chr\tref_start\tref_end\tref_strand\tref_allele\tsim_chr\tsim_start\tsim_end\tref_strand\tsim_allele\tvariant_type\tvariant_id\tdonor_chr_in_ref\tdonor_start_in_ref\tdonor_end_in_ref\tdonor_strand_in_ref\tduplication_type\tinserted_copy_number\ttotal_copy_number\n";
 
@@ -3985,7 +3984,6 @@ sub generate_output_files {
   print "\nGenerating reference-based vcf file for genomic variants introduced during simulation:\n";
   my $gmt_time = gmtime();
   if ((defined $snp_vcf) or (defined $snp_count)) {
-    print "$prefix.snp.vcf\n";
     my $output_ref2sim_snp_vcf = "$prefix.snp.vcf";
     my $output_ref2sim_snp_vcf_fh = write_file($output_ref2sim_snp_vcf);
     print $output_ref2sim_snp_vcf_fh "##fileformat=VCFv4.1\n";
@@ -4020,7 +4018,6 @@ sub generate_output_files {
     }
   }
   if ((defined $indel_vcf) or (defined $indel_count)) {
-    print "$prefix.indel.vcf\n\n";
     my $output_ref2sim_indel_vcf = "$prefix.indel.vcf";
     my $output_ref2sim_indel_vcf_fh = write_file($output_ref2sim_indel_vcf);
     print $output_ref2sim_indel_vcf_fh "##fileformat=VCFv4.1\n";
@@ -4055,7 +4052,6 @@ sub generate_output_files {
     }
   }
   if ((defined $cnv_vcf) or (defined $cnv_count)) {
-    print "$prefix.cnv.vcf\n\n";
     my $output_ref2sim_cnv_vcf = "$prefix.cnv.vcf";
     my $output_ref2sim_cnv_vcf_fh = write_file($output_ref2sim_cnv_vcf);
     print $output_ref2sim_cnv_vcf_fh "##fileformat=VCFv4.1\n";
@@ -4131,7 +4127,6 @@ sub generate_output_files {
     }
   }
   if ((defined $inversion_vcf) or (defined $inversion_count)) {
-    print "$prefix.inversion.vcf\n\n";
     my $output_ref2sim_inversion_vcf = "$prefix.inversion.vcf";
     my $output_ref2sim_inversion_vcf_fh = write_file($output_ref2sim_inversion_vcf);
     print $output_ref2sim_inversion_vcf_fh "##fileformat=VCFv4.1\n";
@@ -4169,7 +4164,6 @@ sub generate_output_files {
     }
   }
   if ((defined $translocation_vcf) or (defined $translocation_count)) {
-    print "$prefix.translocation.vcf\n\n";
     my $output_ref2sim_translocation_vcf = "$prefix.translocation.vcf";
     my $output_ref2sim_translocation_vcf_fh = write_file($output_ref2sim_translocation_vcf);
     print $output_ref2sim_translocation_vcf_fh "##fileformat=VCFv4.1\n";
@@ -4350,7 +4344,7 @@ Specify centromeres for constraining the random CNV, inversion, and translocatio
 =item B<-gene_gff>
 
 Specify genes for constraining the random SNP, CNV, inversion, and translocation simulation (in gff3 or gff3.gz format). For random SNP simulation, this option needs to be used together with the option '-coding_partition_for_snp_simulation' to constrain SNPs simulations only in noncoding regions, coding regions, 2-fold degenerate (2d) sites or 4-fold degenerate (4d) sites. For random CNV, inversion, and translocation simulation, applied this option will disallow simulated breakpoints falling on the defined genes. Default = "". Example: -gene_gff gene.gff(.gz).
-
+jj
 =item B<-excluded_chr_list>
 
 Specify the name of chromosome(s) to be excluded for introducing genomic variants (a single-column list file in txt format). Default = "". Example: -excluded_chr_list excluded_chr_list.txt.
