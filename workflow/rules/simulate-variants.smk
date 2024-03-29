@@ -12,7 +12,8 @@ vcf = config.get("vcf", None)
 het = config["heterozygosity"]
 if vcf:
     vcf_correct = vcf[:-4] + ".vcf.gz" if vcf.lower().endswith("bcf") else vcf
-    variant_params = f"-{variant}_vcf"
+    variant_params = f"-{variant}_vcf {indir}/{vcf_correct}"
+"
 else:
     variant_params = f"-{variant}_count " + str(config["count"])
     centromeres = config.get("centromeres", None)
@@ -23,20 +24,12 @@ else:
     variant_params += f" -excluded_chr_list {indir + '/' + os.path.basename(exclude)}" if exclude else ""
     randomseedseed = config.get("randomseed", None)
     variant_params += f" -seed {randomseed}" if randomseed else ""
-    if variant == "snp":
-        snp_constraint = config.get("snp_gene_constraints", None)
-        variant_params += f" -coding_partition_for_snp_simulation {snp_constraint}" if snp_constraint else ""
-        ratio = config.get("ratio", None)
-        variant_params += f" -titv_ratio {ratio}" if ratio else ""
-    elif variant_type == "indel":
-        ratio = config.get("ratio", None)
-        variant_params += f" -ins_del_ratio {ratio}" if ratio else ""
-    elif variant_type == "inversion":
+    if variant_type == "inversion":
         minsize = config.get("min_size", None)
         variant_params += f" -{variant}_min_size {min_size}" if min_size else ""
         maxsize = config.get("max_size", None)
         variant_params += f" -{variant}_max_size {max_size}" if max_size else ""
-    elif variant_type == "cnv":
+    if variant_type == "cnv":
         minsize = config.get("min_size", None)
         variant_params += f" -{variant}_min_size {min_size}" if min_size else ""
         maxsize = config.get("max_size", None)
@@ -53,7 +46,7 @@ onsuccess:
     rprint(
         Panel(
             f"The workflow has finished successfully! Find the results in [bold]{outdir}/[/bold]",
-            title = "[bold]harpy simulate genome",
+            title = f"[bold]harpy simulate {variant}",
             title_align = "left",
             border_style = "green"
             ),
@@ -65,7 +58,7 @@ onerror:
     rprint(
         Panel(
             f"The workflow has terminated due to an error. See the log file below for more details.",
-            title = "[bold]harpy simulate genome",
+            title = f"[bold]harpy simulate {variant}",
             title_align = "left",
             border_style = "red"
             ),
@@ -83,66 +76,58 @@ rule convert_vcf:
     shell:
         "bcftools view -Oz {input} > {output}"
 
-if vcf:
-    rule simulate_variants:
-        input:
-            geno = f"{indir}/{genome}",
-            vcf = vcf_correct
-        output:
-            expand(f"{outdir}/simulation.hap1".{ext}, ext = f"{variant}.vcf", "variants.bed", "fasta")
-        params:
-            prefix = f"{outdir}/{variant}.hap1",
-            simuG = f"{outdir}/workflow/scripts/simuG.pl",
-            parameters = variant_params
-        conda:
-            os.getcwd() + "/.harpy_envs/simulations.yaml"
-        message:
-            f"Simulating {variant}s for first haplotype"
-        shell:
-            """
-            perl {params.simuG} -refseq {input.geno} -prefix {params.prefix} {params.parameters} {input.vcf}
-            """
-else:
-    rule simulate_variants:
-        input:
-            genome
-        output:
-            expand(f"{outdir}/simulation.hap1".{ext}, ext = f"{variant}.vcf", "variants.bed", "fasta")
-        params:
-            prefix = f"{outdir}/{variant}.hap1",
-            simuG = f"{outdir}/workflow/scripts/simuG.pl",
-            parameters = variant_params
-        conda:
-            os.getcwd() + "/.harpy_envs/simulations.yaml"
-        message:
-            f"Simulating {variant}s for first haplotype"
-        shell:
-            """
-            perl {params.simuG} -refseq {input} -prefix {params.prefix} {params.parameters}
-            """
-
-rule create_heterozygote_vcf:
+rule simulate_variants:
     input:
-        f"{outdir}.{variant}.vcf"
+        geno = genome,
+        vcf_correct if vcf else []
     output:
-        f"{outdir}.{variant}.hap2.vcf"
+        expand(f"{outdir}/simulation.hap1".{ext}, ext = f"{variant}.vcf", "variants.bed", "fasta")
+    params:
+        prefix = f"{outdir}/{variant}.hap1",
+        simuG = f"{outdir}/workflow/scripts/simuG.pl",
+        parameters = variant_params
+    conda:
+        os.getcwd() + "/.harpy_envs/simulations.yaml"
+    message:
+        f"Simulating {variant}s for first haplotype"
+    shell:
+        """
+        perl {params.simuG} -refseq {input.geno} -prefix {params.prefix} {params.parameters}
+        """
+
+
+rule create_heterozygote_snp_vcf:
+    input:
+        f"{outdir}/{outprefix}.{variant}.vcf"
+    output:
+        f"{outdir}/{outprefix}.{variant}.hap1.vcf",
+        f"{outdir}/{outprefix}.{variant}.hap2.vcf"
     params:
         het
     message:
-        "Creating subsampled variant file"
+        "Creating diploid variant files for heterozygosity = {params}"
     run:
         random.seed(6969)
-        out_vcf = open(output[0], "w")
+        hap1_vcf, hap2_vcf = open(output[0], "w"), open(output[1], "w")
         with open(input[0], "r") as in_vcf:
             while True:
                 line = in_vcf.readline()
                 if not line:
                     break
                 if line.startswith("#"):
-                    print(line.rstrip("\n"), file = out_vcf)
+                    hap1_vcf.write(line)
+                    hap2_vcf.write(line)
+                    continue
+                if random.uniform(0, 1) >= params[0]:
+                    # write homozygote
+                    hap1_vcf.write(line)
+                    hap2_vcf.write(line)
                 else:
-                    if random.uniform(0, 1) >= params[0]:
-                        print(line.rstrip("\n"), file = out_vcf)
+                    # 50% chance of falling into hap1 or hap2
+                    if random.uniform(0, 1) >= 0.5:
+                        hap1_vcf.write(line)
+                    else:
+                        hap2_vcf.write(line)
 
 rule all:
     input:
