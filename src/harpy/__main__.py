@@ -313,7 +313,7 @@ click.rich_click.OPTION_GROUPS = {
         },
         {
             "name": "Other Options",
-            "options": ["--output-dir", "--heterozygosity", "--randomseed", "--snakemake", "--quiet", "--help"],
+            "options": ["--output-dir", "--prefix", "--heterozygosity", "--randomseed", "--snakemake", "--quiet", "--help"],
         },
     ],
     "harpy simulate inversion": [
@@ -327,7 +327,7 @@ click.rich_click.OPTION_GROUPS = {
         },
         {
             "name": "Other Options",
-            "options": ["--output-dir", "--heterozygosity", "--randomseed", "--snakemake", "--quiet", "--help"],
+            "options": ["--output-dir", "--prefix", "--heterozygosity", "--randomseed", "--snakemake", "--quiet", "--help"],
         },
     ],
     "harpy simulate cnv": [
@@ -341,7 +341,7 @@ click.rich_click.OPTION_GROUPS = {
         },
         {
             "name": "Other Options",
-            "options": ["--output-dir", "--heterozygosity", "--randomseed", "--snakemake", "--quiet", "--help"],
+            "options": ["--output-dir", "--prefix", "--heterozygosity", "--randomseed", "--snakemake", "--quiet", "--help"],
         },
     ],
     "harpy simulate translocation": [
@@ -355,7 +355,7 @@ click.rich_click.OPTION_GROUPS = {
         },
         {
             "name": "Other Options",
-            "options": ["--output-dir","--heterozygosity", "--randomseed", "--snakemake", "--quiet", "--help"],
+            "options": ["--output-dir","--prefix","--heterozygosity", "--randomseed", "--snakemake", "--quiet", "--help"],
         },
     ],
 }

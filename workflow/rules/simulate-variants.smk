@@ -4,16 +4,18 @@ import random
 from rich.panel import Panel
 from rich import print as rprint
 
-indir = config["input_directory"] +
+indir = config["input_directory"]
 outdir = config["output_directory"]
 variant = config["variant_type"]
+outprefix = config["prefix"]
 genome = config["genome"]
 vcf = config.get("vcf", None)
-het = config["heterozygosity"]
+heterozygosity = config["heterozygosity"]
+vcf_correct = "None"
 if vcf:
     vcf_correct = vcf[:-4] + ".vcf.gz" if vcf.lower().endswith("bcf") else vcf
     variant_params = f"-{variant}_vcf {indir}/{vcf_correct}"
-"
+
 else:
     variant_params = f"-{variant}_count " + str(config["count"])
     centromeres = config.get("centromeres", None)
@@ -22,17 +24,17 @@ else:
     variant_params += f" -gene_gff {indir + '/' + os.path.basename(genes)}" if genes else ""
     exclude = config.get("exclude_chr", None)
     variant_params += f" -excluded_chr_list {indir + '/' + os.path.basename(exclude)}" if exclude else ""
-    randomseedseed = config.get("randomseed", None)
+    randomseed = config.get("randomseed", None)
     variant_params += f" -seed {randomseed}" if randomseed else ""
-    if variant_type == "inversion":
-        minsize = config.get("min_size", None)
+    if variant == "inversion":
+        min_size = config.get("min_size", None)
         variant_params += f" -{variant}_min_size {min_size}" if min_size else ""
-        maxsize = config.get("max_size", None)
+        maxs_ize = config.get("max_size", None)
         variant_params += f" -{variant}_max_size {max_size}" if max_size else ""
-    if variant_type == "cnv":
-        minsize = config.get("min_size", None)
+    if variant == "cnv":
+        min_size = config.get("min_size", None)
         variant_params += f" -{variant}_min_size {min_size}" if min_size else ""
-        maxsize = config.get("max_size", None)
+        max_size = config.get("max_size", None)
         variant_params += f" -{variant}_max_size {max_size}" if max_size else ""
         ratio   = config.get("ratio", None)
         variant_params += f" -duplication_tandem_dispersed_ratio {ratio}" if ratio else ""
@@ -65,24 +67,27 @@ onerror:
         file = sys.stderr
     )
 
-rule convert_vcf:
-    input:
-        f"{indir}/{vcf}"
-    output:
-        f"{indir}/{vcf_correct}"
-    message:
-        "Converting {input} to compressed VCF format"
-    shell:
-        "bcftools view -Oz {input} > {output}"
+if vcf:
+    rule convert_vcf:
+        input:
+            f"{indir}/{vcf}"
+        output:
+            f"{indir}/{vcf_correct}"
+        message:
+            "Converting {input} to compressed VCF format"
+        shell:
+            "bcftools view -Oz {input} > {output}"
 
 rule simulate_variants:
     input:
-        geno = genome,
-        vcf_correct if vcf else []
+        vcf_correct if vcf else [],
+        geno = genome
     output:
-        expand(f"{outdir}/{outprefix}.{variant}" + "{ext}", ext = [".vcf", ".bed", ".fasta"])
+        expand(f"{outdir}/{outprefix}" + "{ext}", ext = [".vcf", ".bed", ".fasta"])
+    log:
+        f"{outdir}/{outprefix}.log"
     params:
-        prefix = f"{outdir}/{outprefix}.{variant}",
+        prefix = f"{outdir}/{outprefix}",
         simuG = f"{outdir}/workflow/scripts/simuG.pl",
         parameters = variant_params
     conda:
@@ -91,17 +96,17 @@ rule simulate_variants:
         f"Simulating {variant}s for first haplotype"
     shell:
         """
-        perl {params.simuG} -refseq {input.geno} -prefix {params.prefix} {params.parameters}
+        perl {params.simuG} -refseq {input.geno} -prefix {params.prefix} {params.parameters} > {log}
         """
 
 rule create_heterozygote_vcf:
     input:
-        f"{outdir}/{outprefix}.{variant}.vcf"
+        f"{outdir}/{outprefix}.vcf"
     output:
-        f"{outdir}/{outprefix}.{variant}.hap1.vcf",
-        f"{outdir}/{outprefix}.{variant}.hap2.vcf"
+        f"{outdir}/{outprefix}.hap1.vcf",
+        f"{outdir}/{outprefix}.hap2.vcf"
     params:
-        het
+        heterozygosity
     message:
         "Creating diploid variant files for heterozygosity = {params}"
     run:
@@ -129,7 +134,7 @@ rule create_heterozygote_vcf:
 
 rule all:
     input:
-        expand(f"{outdir}/{outprefix}.{variant}" + "{ext}", ext = [".vcf", ".bed", ".fasta"]),
-        expand(f"{outdir}/{prefix}.{variant}" + ".hap{n}.vcf", n = [1,2]) if heterozygosity > 0 else []
+        expand(f"{outdir}/{outprefix}" + "{ext}", ext = [".vcf", ".bed", ".fasta"]),
+        expand(f"{outdir}/{prefix}" + ".hap{n}.vcf", n = [1,2]) if heterozygosity > 0 else []
     message:
         "Checking for workflow outputs"

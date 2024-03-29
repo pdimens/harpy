@@ -4052,7 +4052,7 @@ sub generate_output_files {
     }
   }
   if ((defined $cnv_vcf) or (defined $cnv_count)) {
-    my $output_ref2sim_cnv_vcf = "$prefix.cnv.vcf";
+    my $output_ref2sim_cnv_vcf = "$prefix.vcf";
     my $output_ref2sim_cnv_vcf_fh = write_file($output_ref2sim_cnv_vcf);
     print $output_ref2sim_cnv_vcf_fh "##fileformat=VCFv4.1\n";
     print $output_ref2sim_cnv_vcf_fh "##fileDate=$gmt_time (GMT time)\n";
@@ -4127,7 +4127,7 @@ sub generate_output_files {
     }
   }
   if ((defined $inversion_vcf) or (defined $inversion_count)) {
-    my $output_ref2sim_inversion_vcf = "$prefix.inversion.vcf";
+    my $output_ref2sim_inversion_vcf = "$prefix.vcf";
     my $output_ref2sim_inversion_vcf_fh = write_file($output_ref2sim_inversion_vcf);
     print $output_ref2sim_inversion_vcf_fh "##fileformat=VCFv4.1\n";
     print $output_ref2sim_inversion_vcf_fh "##fileDate=$gmt_time (GMT time)\n";
@@ -4164,7 +4164,7 @@ sub generate_output_files {
     }
   }
   if ((defined $translocation_vcf) or (defined $translocation_count)) {
-    my $output_ref2sim_translocation_vcf = "$prefix.translocation.vcf";
+    my $output_ref2sim_translocation_vcf = "$prefix.vcf";
     my $output_ref2sim_translocation_vcf_fh = write_file($output_ref2sim_translocation_vcf);
     print $output_ref2sim_translocation_vcf_fh "##fileformat=VCFv4.1\n";
     print $output_ref2sim_translocation_vcf_fh "##fileDate=$gmt_time (GMT time)\n";

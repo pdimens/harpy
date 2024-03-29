@@ -6,6 +6,11 @@ import subprocess
 import os
 import sys
 
+def symlink(original, destination):
+    """Create a symbolic link from original -> destination if the destinationd doesn't already exist."""
+    if not (Path(destination).is_symlink() or Path(destination).exists()):
+        Path(destination).symlink_to(Path(original).absolute()) 
+
 @click.command(no_args_is_help = True, epilog = "This workflow can be quite technical, please read the docs for more information: https://pdimens.github.io/harpy/modules/simulate")
 @click.option('-v', '--snp-vcf', type=click.Path(exists=True), help = 'VCF file of known snps to simulate')
 @click.option('-i', '--indel-vcf', type=click.Path(exists=True), help = 'VCF file of known indels to simulate')
@@ -27,7 +32,7 @@ import sys
 @click.option('--print-only',  is_flag = True, hidden = True, show_default = True, default = False, metavar = "Toggle", help = 'Print the generated snakemake command and exit')
 @click.option('-o', '--output-dir', type = str, default = "Simulate/snpindel", show_default=True, help = 'Name of output directory')
 @click.argument('genome', required=True, type=click.Path(exists=True), nargs=1)
-def snpindel(genome, snp_vcf, indel_vcf, output_dir, snp_count, indel_count, titv_ratio, indel_ratio, indel_size_alpha, indel_size_constant, centromeres, genes, snp_gene_constraints, heterozygosity, exclude_chr, randomseed, snakemake, quiet, print_only):
+def snpindel(genome, snp_vcf, indel_vcf, output_dir, prefix, snp_count, indel_count, titv_ratio, indel_ratio, indel_size_alpha, indel_size_constant, centromeres, genes, snp_gene_constraints, heterozygosity, exclude_chr, randomseed, snakemake, quiet, print_only):
     """
     Introduce snps and/or indels into a genome
  
@@ -35,14 +40,13 @@ def snpindel(genome, snp_vcf, indel_vcf, output_dir, snp_count, indel_count, tit
     via `--snp-vcf` and/or `--indel-vcf` or the command line options listed below to simulate random variants of the selected
     type. Setting `--heterozygosity` greater than `0` will also create a subsampled VCF file with which you can create
     another simulated genome (diploid) by running the `simulate` module again.
-
     The ratio parameters control different things for snp and indel variants and have special meanings when setting
-    the value to either `9999` or `0`:
+    the value to either `9999` or `0` :
     
-    | ratio | meaning | `9999` | `0` | 
-    |:----|:----|:---|:----|
-    | `--snp-ratio` | transitions / transversions | transit. only | transv. only |
-    | `--indel-ratio` | insertions / deletions | insert. only | delet. only |
+    | ratio | meaning | `9999` | `0` |
+    |:---- |:---- |:--- |:---- |
+    | `--snp-ratio`   | transitions / transversions | transit. only | transv. only |
+    | `--indel-ratio` | insertions / deletions      | insert. only  | delet. only  |
     """
     if (snp_gene_constraints and not genes) or (genes and not snp_gene_constraints):
         print_error("The options `--genes` and `--snp-coding-partition` must be used together for SNP variants.")
@@ -50,9 +54,9 @@ def snpindel(genome, snp_vcf, indel_vcf, output_dir, snp_count, indel_count, tit
         print_error("You must either provide a vcf file of known variants to simulate or a count of that variant to randomly simulate.")
     output_dir = output_dir.rstrip("/")
     workflowdir = f"{output_dir}/workflow"
-    command = f'snakemake --rerun-incomplete --nolock --software-deployment-method conda --conda-prefix ./.snakemake/conda --cores {threads} --directory .'.split()
+    command = f'snakemake --rerun-incomplete --nolock --software-deployment-method conda --conda-prefix ./.snakemake/conda --cores 1 --directory .'.split()
     command.append('--snakefile')
-    command.append(f'{workflowdir}/simulate-variants.smk')
+    command.append(f'{workflowdir}/simulate-snpindel.smk')
     command.append("--configfile")
     command.append(f"{workflowdir}/config.yml")
     if quiet:
@@ -70,7 +74,7 @@ def snpindel(genome, snp_vcf, indel_vcf, output_dir, snp_count, indel_count, tit
     _ = Path(f"{workflowdir}/input/{os.path.basename(genome)}").symlink_to(Path(genome).absolute())
     printmsg = f"Inpute Genome: {genome}\nOutput Directory: {output_dir}/\n"
     genome_link = f"{workflowdir}/input/{os.path.basename(genome)}"
-    _ = Path(genome_link).symlink_to(Path(vcf).absolute())
+    _ = Path(genome_link).symlink_to(Path(genome).absolute())
     if snp_vcf:
         snp_vcf_link = f"{workflowdir}/input/{os.path.basename(snp_vcf)}"
         _ = Path(snp_vcf_link).symlink_to(Path(snp_vcf).absolute())
@@ -122,7 +126,8 @@ def snpindel(genome, snp_vcf, indel_vcf, output_dir, snp_count, indel_count, tit
         printmsg.rstrip("\n"),
         "simulate variants: snpindel"
     )
-    return 0
+    _module = subprocess.run(command)
+    sys.exit(_module.returncode)
 
 @click.command(no_args_is_help = True, epilog = "Please read the docs for more information: https://pdimens.github.io/harpy/modules/simulate")
 @click.option('-v', '--vcf', type=click.Path(exists=True), help = 'VCF file of known inversions to simulate')
@@ -140,7 +145,7 @@ def snpindel(genome, snp_vcf, indel_vcf, output_dir, snp_count, indel_count, tit
 @click.option('--print-only',  is_flag = True, hidden = True, show_default = True, default = False, metavar = "Toggle", help = 'Print the generated snakemake command and exit')
 @click.option('-o', '--output-dir', type = str, default = "Simulate/inversion", show_default=True, help = 'Name of output directory')
 @click.argument('genome', required=True, type=click.Path(exists=True), nargs=1)
-def inversion(genome, vcf, output_dir, count, min_size, max_size, centromeres, genes, heterozygosity, exclude_chr, randomseed, snakemake, quiet, print_only):
+def inversion(genome, vcf, prefix, output_dir, count, min_size, max_size, centromeres, genes, heterozygosity, exclude_chr, randomseed, snakemake, quiet, print_only):
     """
     Introduce inversions into a genome
  
@@ -154,7 +159,7 @@ def inversion(genome, vcf, output_dir, count, min_size, max_size, centromeres, g
 
     output_dir = output_dir.rstrip("/")
     workflowdir = f"{output_dir}/workflow"
-    command = f'snakemake --rerun-incomplete --nolock --software-deployment-method conda --conda-prefix ./.snakemake/conda --cores {threads} --directory .'.split()
+    command = f'snakemake --rerun-incomplete --nolock --software-deployment-method conda --conda-prefix ./.snakemake/conda --cores 1 --directory .'.split()
     command.append('--snakefile')
     command.append(f'{workflowdir}/simulate-variants.smk')
     command.append("--configfile")
@@ -174,7 +179,7 @@ def inversion(genome, vcf, output_dir, count, min_size, max_size, centromeres, g
     _ = Path(f"{workflowdir}/input/{os.path.basename(genome)}").symlink_to(Path(genome).absolute())
     printmsg = f"Inpute Genome: {genome}\nOutput Directory: {output_dir}/\n"
     genome_link = f"{workflowdir}/input/{os.path.basename(genome)}"
-    _ = Path(genome_link).symlink_to(Path(vcf).absolute())
+    _ = Path(genome_link).symlink_to(Path(genome).absolute())
     if vcf:
         vcf_link = f"{workflowdir}/input/{os.path.basename(vcf)}"
         _ = Path(vcf_link).symlink_to(Path(vcf).absolute())
@@ -217,7 +222,8 @@ def inversion(genome, vcf, output_dir, count, min_size, max_size, centromeres, g
         printmsg.rstrip("\n"),
         "simulate variants: inversion"
     )
-    return 0
+    _module = subprocess.run(command)
+    sys.exit(_module.returncode)
 
 @click.command(no_args_is_help = True, epilog = "Please read the docs for more information: https://pdimens.github.io/harpy/modules/simulate")
 @click.option('-v', '--vcf', type=click.Path(exists=True), help = 'VCF file of known copy number variants to simulate')
@@ -232,13 +238,13 @@ def inversion(genome, vcf, output_dir, count, min_size, max_size, centromeres, g
 @click.option('-h', '--heterozygosity', type = click.FloatRange(0,1), default = 0, show_default=True, help = '\% heterozygosity to simulate diploid later')
 @click.option('-e', '--exclude-chr', type = click.Path(exists=True), help = "Text file of chromosomes to avoid")
 @click.option('--randomseed', type = click.IntRange(min = 1), help = "Random seed for simulation")
-@click.option('-p', '--prefix', type = str, default= "simulation", show_default=True, help = "Naming prefix for output files")
+@click.option('-p', '--prefix', type = str, default= "simulate.cnv", show_default=True, help = "Naming prefix for output files")
 @click.option('-s', '--snakemake', type = str, metavar = "String", help = 'Additional Snakemake parameters, in quotes')
 @click.option('-q', '--quiet',  is_flag = True, show_default = True, default = False, metavar = "Toggle", help = 'Don\'t show output text while running')
 @click.option('--print-only',  is_flag = True, hidden = True, show_default = True, default = False, metavar = "Toggle", help = 'Print the generated snakemake command and exit')
 @click.option('-o', '--output-dir', type = str, default = "Simulate/cnv", show_default=True, help = 'Name of output directory')
 @click.argument('genome', required=True, type=click.Path(exists=True), nargs=1)
-def cnv(genome, output_dir, count, min_size, max_size, dup_ratio, max_copy, gain_ratio, centromeres, genes, heterozygosity, exclude_chr, randomseed, snakemake, quiet, print_only):
+def cnv(genome, output_dir, vcf, prefix, count, min_size, max_size, dup_ratio, max_copy, gain_ratio, centromeres, genes, heterozygosity, exclude_chr, randomseed, snakemake, quiet, print_only):
     """
     Introduce copy number variants into a genome
  
@@ -248,7 +254,7 @@ def cnv(genome, output_dir, count, min_size, max_size, dup_ratio, max_copy, gain
     by running this module again.
 
     The two ratio parameters control different things and have special meanings when setting their value to either `9999` or `0`:
-
+    
     | ratio | meaning | `9999` | `0` |
     |:----|:----|:---|:----|
     | `--dup-ratio` | tandem / dispersed | tand. only | disp. only |
@@ -258,7 +264,7 @@ def cnv(genome, output_dir, count, min_size, max_size, dup_ratio, max_copy, gain
         print_error("Provide either a `--count` of cnv to randomly simulate or a `--vcf` of known cnv to simulate.")
     output_dir = output_dir.rstrip("/")
     workflowdir = f"{output_dir}/workflow"
-    command = f'snakemake --rerun-incomplete --nolock --software-deployment-method conda --conda-prefix ./.snakemake/conda --cores {threads} --directory .'.split()
+    command = f'snakemake --rerun-incomplete --nolock --software-deployment-method conda --conda-prefix ./.snakemake/conda --cores 1 --directory .'.split()
     command.append('--snakefile')
     command.append(f'{workflowdir}/simulate-variants.smk')
     command.append("--configfile")
@@ -275,25 +281,27 @@ def cnv(genome, output_dir, count, min_size, max_size, dup_ratio, max_copy, gain
     # instantiate workflow directory
     # move necessary files to workflow dir
     os.makedirs(f"{workflowdir}/input/", exist_ok= True)   
-    _ = Path(f"{workflowdir}/input/{os.path.basename(genome)}").symlink_to(Path(genome).absolute())
+    symlink(genome, f"{workflowdir}/input/{os.path.basename(genome)}")
     printmsg = f"Inpute Genome: {genome}\nOutput Directory: {output_dir}/\n"
     genome_link = f"{workflowdir}/input/{os.path.basename(genome)}"
-    _ = Path(genome_link).symlink_to(Path(vcf).absolute())
+    symlink(genome, genome_link)
     if vcf:
         vcf_link = f"{workflowdir}/input/{os.path.basename(vcf)}"
-        _ = Path(vcf_link).symlink_to(Path(vcf).absolute())
+        symlink(vcf, vcf_link)
         printmsg += f"Input VCF: {vcf}\n"
+    else:
+        printmsg += f"Mode: Random variants\n"
     if centromeres:
         centromeres_link = f"{workflowdir}/input/{os.path.basename(centromeres)}"
-        _ = Path(centromeres_link).symlink_to(Path(centromeres).absolute())
+        symlink(centromeres, centromeres_link)
         printmsg += f"Centromere GFF: {centromeres}\n"
     if genes:
         genes_link = f"{workflowdir}/input/{os.path.basename(genes)}"
-        _ = Path(genes_link).symlink_to(Path(genes).absolute())
+        symlink(genes, genes_link)
         printmsg += f"Genes GFF: {genes}\n"
     if exclude_chr:
         exclude_link = f"{workflowdir}/input/{os.path.basename(exclude_chr)}"
-        _ = Path(exclude_link).symlink_to(Path(exclude_chr).absolute())
+        symlink(exclude_chr, exclude_link)
         printmsg += f"Excluded Chromosomes: {exclude_chr}\n"
     fetch_file("simulate-variants.smk", f"{workflowdir}/")
     fetch_file("simuG.pl", f"{workflowdir}/scripts/")
@@ -301,30 +309,32 @@ def cnv(genome, output_dir, count, min_size, max_size, dup_ratio, max_copy, gain
     with open(f"{workflowdir}/config.yml", "w") as config:
         config.write(f"input_directory: {workflowdir}/input\n")
         config.write(f"output_directory: {output_dir}\n")
-        config.write(f"variant_type: {variant_type}\n")
-        config.write(f"genome: {genome}\n")
+        config.write(f"variant_type: cnv\n")
+        config.write(f"genome: {genome_link}\n")
+        config.write(f"prefix: {prefix}\n")
         if vcf:
-            config.write(f"vcf: {vcf}\n")
+            config.write(f"vcf: {vcf_link}\n")
         else:
             config.write(f"count: {count}\n")
             config.write(f"min_size: {min_size}\n") if min_size else None
             config.write(f"max_size: {max_size}\n") if max_size else None
             config.write(f"dup_ratio: {dup_ratio}\n") if dup_ratio else None
-            config.write(f"cnv_max_copy: {cnv_max_copy}\n") if cnv_max_copy else None
+            config.write(f"cnv_max_copy: {max_copy}\n") if max_copy else None
             config.write(f"gain_ratio: {gain_ratio}\n") if gain_ratio else None
-            config.write(f"centromeres: {centromeres}\n") if centromeres else None
-            config.write(f"genes: {genes}\n") if genes else None
-            config.write(f"heterozygosity: {heterozygosity}\n") if heterozygosity else None
-            config.write(f"exclude_chr: {exclude_chr}\n") if exclude_chr else None
+            config.write(f"centromeres: {centromeres_link}\n") if centromeres else None
+            config.write(f"genes: {genes_link}\n") if genes else None
+            config.write(f"exclude_chr: {exclude_link}\n") if exclude_chr else None
             config.write(f"randomseed: {randomseed}\n") if randomseed else None
+        config.write(f"heterozygosity: {heterozygosity}\n")
         config.write(f"workflow_call: {call_SM}\n")
 
     generate_conda_deps()
     print_onstart(
         printmsg.rstrip("\n"),
-        "simulate variants: cnv"
+        "simulate cnv"
     )
-    return 0
+    _module = subprocess.run(command)
+    sys.exit(_module.returncode)
 
 @click.command(no_args_is_help = True, epilog = "Please read the docs for more information: https://pdimens.github.io/harpy/modules/simulate")
 @click.option('-v', '--vcf', type=click.Path(exists=True), help = 'VCF file of known translocations to simulate')
@@ -340,7 +350,7 @@ def cnv(genome, output_dir, count, min_size, max_size, dup_ratio, max_copy, gain
 @click.option('--print-only',  is_flag = True, hidden = True, show_default = True, default = False, metavar = "Toggle", help = 'Print the generated snakemake command and exit')
 @click.option('-o', '--output-dir', type = str, default = "Simulate/translocation", show_default=True, help = 'Name of output directory')
 @click.argument('genome', required=True, type=click.Path(exists=True), nargs=1)
-def translocation(genome, output_dir, vcf, count, centromeres, genes, snp_gene_constraints, heterozygosity, exclude_chr, randomseed, snakemake, quiet, print_only):
+def translocation(genome, output_dir, prefix, vcf, count, centromeres, genes, snp_gene_constraints, heterozygosity, exclude_chr, randomseed, snakemake, quiet, print_only):
     """
     Introduce transolcations into a genome
  
@@ -354,7 +364,7 @@ def translocation(genome, output_dir, vcf, count, centromeres, genes, snp_gene_c
         print_error("Provide either a `--count` of cnv to randomly simulate or a `--vcf` of known cnv to simulate.")
     output_dir = output_dir.rstrip("/")
     workflowdir = f"{output_dir}/workflow"
-    command = f'snakemake --rerun-incomplete --nolock --software-deployment-method conda --conda-prefix ./.snakemake/conda --cores {threads} --directory .'.split()
+    command = f'snakemake --rerun-incomplete --nolock --software-deployment-method conda --conda-prefix ./.snakemake/conda --cores 1 --directory .'.split()
     command.append('--snakefile')
     command.append(f'{workflowdir}/simulate-variants.smk')
     command.append("--configfile")
@@ -415,4 +425,8 @@ def translocation(genome, output_dir, vcf, count, centromeres, genes, snp_gene_c
         printmsg.rstrip("\n"),
         "simulate variants: translocation"
     )
-    return 0
+    _module = subprocess.run(command)
+    sys.exit(_module.returncode)
+
+
+#TODO ONLY CNV WAS FIXED. OTHERS NEED FIXING
