@@ -10,7 +10,7 @@ variant = config["variant_type"]
 outprefix = config["prefix"]
 genome = config["genome"]
 vcf = config.get("vcf", None)
-heterozygosity = config["heterozygosity"]
+heterozygosity = float(config["heterozygosity"])
 vcf_correct = "None"
 if vcf:
     vcf_correct = vcf[:-4] + ".vcf.gz" if vcf.lower().endswith("bcf") else vcf
@@ -132,9 +132,15 @@ rule create_heterozygote_vcf:
                     else:
                         hap2_vcf.write(line)
 
+results = list()
+results.append(expand(f"{outdir}/{outprefix}" + "{ext}", ext = [".vcf", ".bed", ".fasta"]))
+if heterozygosity > 0:
+    results.append(expand(f"{outdir}/{outprefix}.hap" + "{n}.vcf", n = [1,2]))
+
 rule all:
     input:
-        expand(f"{outdir}/{outprefix}" + "{ext}", ext = [".vcf", ".bed", ".fasta"]),
-        expand(f"{outdir}/{prefix}" + ".hap{n}.vcf", n = [1,2]) if heterozygosity > 0 else []
+        results
     message:
         "Checking for workflow outputs"
+
+#TODO HET output isn't working. If statement not catching?
