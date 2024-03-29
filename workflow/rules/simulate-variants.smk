@@ -93,7 +93,7 @@ rule simulate_variants:
     conda:
         os.getcwd() + "/.harpy_envs/simulations.yaml"
     message:
-        f"Simulating {variant}s for first haplotype"
+        f"Simulating {variant}s onto genome"
     shell:
         """
         perl {params.simuG} -refseq {input.geno} -prefix {params.prefix} {params.parameters} > {log}
