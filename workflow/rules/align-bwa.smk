@@ -120,7 +120,7 @@ rule genome_bwa_index:
 
 rule genome_make_windows:
     input:
-        f"Genome/{bn}.fai"
+        f"Genome/{bn}"
     output: 
         f"Genome/{bn}.bed"
     message: 
@@ -133,7 +133,6 @@ rule align:
         forward_reads = get_fq1,
         reverse_reads = get_fq2,
         genome 		  = f"Genome/{bn}",
-        genome_samidx = f"Genome/{bn_idx}",
         genome_idx 	  = multiext(f"Genome/{bn}", ".ann", ".bwt", ".pac", ".sa", ".amb")
     output:  
         pipe(outdir + "/samples/{sample}/{sample}.raw.sam")

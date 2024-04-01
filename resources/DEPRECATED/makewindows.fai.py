@@ -36,5 +36,3 @@ with open(args.infile, "r") as fai:
         for (startpos, endpos) in zip (starts,ends):
             outbed.write(f"{contig}\t{startpos}\t{endpos}\n")
     outbed.close()
-
-#TODO make this parse a FASTA file

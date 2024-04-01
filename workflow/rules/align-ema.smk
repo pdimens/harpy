@@ -121,7 +121,7 @@ rule genome_bwa_index:
 
 rule genome_make_windows:
     input:
-        f"Genome/{bn}.fai"
+        f"Genome/{bn}"
     output: 
         f"Genome/{bn}.bed"
     message: 
@@ -205,7 +205,6 @@ rule align:
     input:
         readbin    = expand(outdir + "/preproc/{{sample}}/ema-bin-{bin}", bin = binrange),
         genome 	   = f"Genome/{bn}",
-        geno_faidx = f"Genome/{bn_idx}",
         geno_idx   = multiext(f"Genome/{bn}", ".ann", ".bwt", ".pac", ".sa", ".amb")
     output:
         pipe(outdir + "/align/{sample}.bc.raw.sam"),

@@ -120,7 +120,7 @@ rule genome_index:
 
 rule genome_make_windows:
     input:
-        f"Genome/{bn}.fai"
+        f"Genome/{bn}"
     output: 
         f"Genome/{bn}.bed"
     message: 
