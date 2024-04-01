@@ -104,6 +104,16 @@ else:
         shell:
             "samtools faidx --fai-idx {output} {input} 2> {log}"
 
+rule genome_make_windows:
+    input:
+        f"Genome/{bn}"
+    output: 
+        f"Genome/{bn}.bed"
+    message: 
+        "Creating BED intervals from {input}"
+    shell: 
+        "makewindows.py -i {input} -w 10000 -o {output}"
+
 rule genome_index:
     input: 
         f"Genome/{bn}"
@@ -116,17 +126,7 @@ rule genome_index:
     message:
         "Indexing {input}"
     shell: 
-        "minimap2 -d {output} {input} 2> {log}"
-
-rule genome_make_windows:
-    input:
-        f"Genome/{bn}"
-    output: 
-        f"Genome/{bn}.bed"
-    message: 
-        "Creating BED intervals from {input}"
-    shell: 
-        "makewindows.py -i {input} -w 10000 -o {output}"
+        "minimap2 -x sr -d {output} {input} 2> {log}"
 
 rule align:
     input:
@@ -298,7 +298,7 @@ rule coverage_report:
     message:
         "Summarizing alignment coverage: {wildcards.sample}"
     script:
-        "report/GenCov.Rmd"
+        "report/Gencov.Rmd"
     
 rule general_alignment_stats:
     input:

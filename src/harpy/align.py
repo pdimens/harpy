@@ -54,7 +54,7 @@ def bwa(input, output_dir, genome, threads, extra_params, quality_filter, molecu
     fetch_file("align-bwa.smk", f"{workflowdir}/")
     fetch_file("assignMI.py", f"{workflowdir}/scripts/")
     fetch_file("bxStats.py", f"{workflowdir}/scripts/")
-    for i in ["BxStats", "GenCov"]:
+    for i in ["BxStats", "Gencov"]:
         fetch_file(f"{i}.Rmd", f"{workflowdir}/report/")
 
     with open(f"{workflowdir}/config.yml", "w") as config:
@@ -214,7 +214,7 @@ def minimap(input, output_dir, genome, threads, extra_params, quality_filter, mo
     fetch_file("align-minimap.smk", f"{workflowdir}/")
     fetch_file("assignMI.py", f"{workflowdir}/scripts/")
     fetch_file("bxStats.py", f"{workflowdir}/scripts/")
-    for i in ["BxStats", "GenCov"]:
+    for i in ["BxStats", "Gencov"]:
         fetch_file(f"{i}.Rmd", f"{workflowdir}/report/")
 
     with open(f"{workflowdir}/config.yml", "w") as config:

@@ -300,7 +300,7 @@ rule coverage_report:
     message:
         "Summarizing alignment coverage: {wildcards.sample}"
     script:
-        "report/GenCov.Rmd"
+        "report/Gencov.Rmd"
     
 rule general_alignment_stats:
     input:
