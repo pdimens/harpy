@@ -14,7 +14,7 @@ heterozygosity = float(config["heterozygosity"])
 vcf_correct = "None"
 if vcf:
     vcf_correct = vcf[:-4] + ".vcf.gz" if vcf.lower().endswith("bcf") else vcf
-    variant_params = f"-{variant}_vcf {indir}/{vcf_correct}"
+    variant_params = f"-{variant}_vcf {vcf_correct}"
 
 else:
     variant_params = f"-{variant}_count " + str(config["count"])
@@ -29,7 +29,7 @@ else:
     if variant == "inversion":
         min_size = config.get("min_size", None)
         variant_params += f" -{variant}_min_size {min_size}" if min_size else ""
-        maxs_ize = config.get("max_size", None)
+        max_size = config.get("max_size", None)
         variant_params += f" -{variant}_max_size {max_size}" if max_size else ""
     if variant == "cnv":
         min_size = config.get("min_size", None)
@@ -70,9 +70,9 @@ onerror:
 if vcf:
     rule convert_vcf:
         input:
-            f"{indir}/{vcf}"
+            vcf
         output:
-            f"{indir}/{vcf_correct}"
+            vcf_correct
         message:
             "Converting {input} to compressed VCF format"
         shell:
@@ -85,7 +85,7 @@ rule simulate_variants:
     output:
         expand(f"{outdir}/{outprefix}" + "{ext}", ext = [".vcf", ".bed", ".fasta"])
     log:
-        f"{outdir}/{outprefix}.log"
+        f"{outdir}/logs/{outprefix}.log"
     params:
         prefix = f"{outdir}/{outprefix}",
         simuG = f"{outdir}/workflow/scripts/simuG.pl",
@@ -133,14 +133,15 @@ rule create_heterozygote_vcf:
                         hap2_vcf.write(line)
 
 results = list()
-results.append(expand(f"{outdir}/{outprefix}" + "{ext}", ext = [".vcf", ".bed", ".fasta"]))
+results.append(multiext(f"{outdir}/{outprefix}", ".vcf", ".bed", ".fasta"))
 if heterozygosity > 0:
     results.append(expand(f"{outdir}/{outprefix}.hap" + "{n}.vcf", n = [1,2]))
 
 rule all:
+    default_target: True
     input:
         results
+    params:
+        heterozygosity
     message:
         "Checking for workflow outputs"
-
-#TODO HET output isn't working. If statement not catching?

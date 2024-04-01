@@ -23,10 +23,10 @@ def symlink(original, destination):
 @click.option('-c', '--centromeres', type = click.Path(exists=True), help = "GFF3 file of centromeres to avoid")
 @click.option('-y', '--snp-gene-constraints', type = click.Choice(["noncoding", "coding", "2d", "4d"]), help = "How to constrain randomly simulated SNPs {`noncoding`,`coding`,`2d`,`4d`}")
 @click.option('-g', '--genes', type = click.Path(exists=True), help = "GFF3 file of genes to use with `--snp-gene-constraints`")
-@click.option('-z', '--heterozygosity', type = click.FloatRange(0,1), default = 0, show_default=True, help = '\% heterozygosity to simulate diploid later')
+@click.option('-z', '--heterozygosity', type = click.FloatRange(0,1), default = 0, show_default=True, help = '% heterozygosity to simulate diploid later')
 @click.option('-e', '--exclude-chr', type = click.Path(exists=True), help = "Text file of chromosomes to avoid")
 @click.option('--randomseed', type = click.IntRange(min = 1), help = "Random seed for simulation")
-@click.option('-p', '--prefix', type = str, default= "simulation", show_default=True, help = "Naming prefix for output files")
+@click.option('-p', '--prefix', type = str, default= "simulate.snpindel", show_default=True, help = "Naming prefix for output files")
 @click.option('-s', '--snakemake', type = str, metavar = "String", help = 'Additional Snakemake parameters, in quotes')
 @click.option('-q', '--quiet',  is_flag = True, show_default = True, default = False, metavar = "Toggle", help = 'Don\'t show output text while running')
 @click.option('--print-only',  is_flag = True, hidden = True, show_default = True, default = False, metavar = "Toggle", help = 'Print the generated snakemake command and exit')
@@ -50,7 +50,7 @@ def snpindel(genome, snp_vcf, indel_vcf, output_dir, prefix, snp_count, indel_co
     """
     if (snp_gene_constraints and not genes) or (genes and not snp_gene_constraints):
         print_error("The options `--genes` and `--snp-coding-partition` must be used together for SNP variants.")
-    if (not snp_vcf and snp_count == 0) or (not indel_vcf and indel_count == 0):
+    if (not snp_vcf and snp_count == 0) and (not indel_vcf and indel_count == 0):
         print_error("You must either provide a vcf file of known variants to simulate or a count of that variant to randomly simulate.")
     output_dir = output_dir.rstrip("/")
     workflowdir = f"{output_dir}/workflow"
@@ -71,54 +71,58 @@ def snpindel(genome, snp_vcf, indel_vcf, output_dir, prefix, snp_count, indel_co
     # instantiate workflow directory
     # move necessary files to workflow dir
     os.makedirs(f"{workflowdir}/input/", exist_ok= True)   
-    _ = Path(f"{workflowdir}/input/{os.path.basename(genome)}").symlink_to(Path(genome).absolute())
-    printmsg = f"Inpute Genome: {genome}\nOutput Directory: {output_dir}/\n"
     genome_link = f"{workflowdir}/input/{os.path.basename(genome)}"
-    _ = Path(genome_link).symlink_to(Path(genome).absolute())
+    symlink(genome, genome_link)
+    printmsg = f"Inpute Genome: {genome}\nOutput Directory: {output_dir}/\n"
     if snp_vcf:
         snp_vcf_link = f"{workflowdir}/input/{os.path.basename(snp_vcf)}"
-        _ = Path(snp_vcf_link).symlink_to(Path(snp_vcf).absolute())
-        printmsg += f"Input vcf (snp): {vcf}\n"
+        symlink(snp_vcf, snp_vcf_link)
+        printmsg += f"SNPs: from vcf ({snp_vcf})\n"
+    elif snp_count > 0:
+        printmsg += f"SNPs: random\n"
     if indel_vcf:
         indel_vcf_link = f"{workflowdir}/input/{os.path.basename(indel_vcf)}"
-        _ = Path(indel_vcf_link).symlink_to(Path(indel_vcf).absolute())
-        printmsg += f"Input vcf (indel): {vcf}\n"
+        symlink(indel_vcf, indel_vcf_link)
+        printmsg += f"Indels: from vcf: ({indel_vcf})\n"
+    elif indel_count > 0:
+        printmsg += f"Indels: random\n"
     if centromeres:
         centromeres_link = f"{workflowdir}/input/{os.path.basename(centromeres)}"
-        _ = Path(centromeres_link).symlink_to(Path(centromeres).absolute())
+        symlink(centromeres, centromeres_link)
         printmsg += f"Centromere GFF: {centromeres}\n"
     if genes:
         genes_link = f"{workflowdir}/input/{os.path.basename(genes)}"
-        _ = Path(genes_link).symlink_to(Path(genes).absolute())
+        symlink(genes, genes_link)
         printmsg += f"Genes GFF: {genes}\n"
     if exclude_chr:
         exclude_link = f"{workflowdir}/input/{os.path.basename(exclude_chr)}"
-        _ = Path(exclude_link).symlink_to(Path(exclude_chr).absolute())
+        symlink(exclude_chr, exclude_link)
         printmsg += f"Excluded Chromosomes: {exclude_chr}\n"
-    fetch_file("simulate-variants.smk", f"{workflowdir}/")
+    fetch_file("simulate-snpindel.smk", f"{workflowdir}/")
     fetch_file("simuG.pl", f"{workflowdir}/scripts/")
     # setup the config file depending on inputs
     with open(f"{workflowdir}/config.yml", "w") as config:
         config.write(f"input_directory: {workflowdir}/input\n")
         config.write(f"output_directory: {output_dir}\n")
-        config.write(f"genome: {genome}\n")
+        config.write(f"genome: {genome_link}\n")
+        config.write(f"prefix: {prefix}\n")
         if snp_vcf:
-            config.write(f"snp_vcf: {snp_vcf}\n")
+            config.write(f"snp_vcf: {snp_vcf_link}\n")
         if indel_vcf:
-            config.write(f"indel_vcf: {indel_vcf}\n")
+            config.write(f"indel_vcf: {indel_vcf_link}\n")
         else:
             config.write(f"snp_count: {snp_count}\n") if snp_count else None
             config.write(f"indel_count: {snp_count}\n") if indel_count else None
             config.write(f"snp_gene_constraints: {snp_gene_constraints}\n") if snp_gene_constraints else None
-            config.write(f"titv_ratio: {titv_ratio}\n") if ratio else None
-            config.write(f"indel_ratio: {indel_ratio}\n") if ratio else None
+            config.write(f"titv_ratio: {titv_ratio}\n") if titv_ratio else None
+            config.write(f"indel_ratio: {indel_ratio}\n") if indel_ratio else None
             config.write(f"indel_size_alpha: {indel_size_alpha}\n") if indel_size_alpha else None
             config.write(f"indel_size_constant: {indel_size_constant}\n") if indel_size_constant else None
-            config.write(f"centromeres: {centromeres}\n") if centromeres else None
-            config.write(f"genes: {genes}\n") if genes else None
-            config.write(f"heterozygosity: {heterozygosity}\n") if heterozygosity else None
-            config.write(f"exclude_chr: {exclude_chr}\n") if exclude_chr else None
+            config.write(f"centromeres: {centromeres_link}\n") if centromeres else None
+            config.write(f"genes: {genes_link}\n") if genes else None
+            config.write(f"exclude_chr: {exclude_link}\n") if exclude_chr else None
             config.write(f"randomseed: {randomseed}\n") if randomseed else None
+        config.write(f"heterozygosity: {heterozygosity}\n")
         config.write(f"workflow_call: {call_SM}\n")
 
     generate_conda_deps()
@@ -136,10 +140,10 @@ def snpindel(genome, snp_vcf, indel_vcf, output_dir, prefix, snp_count, indel_co
 @click.option('-x', '--max-size', type = click.IntRange(min = 1), default = 100000, show_default= True, help = "Maximum inversion size (bp)")
 @click.option('-c', '--centromeres', type = click.Path(exists=True), help = "GFF3 file of centromeres to avoid")
 @click.option('-g', '--genes', type = click.Path(exists=True), help = "GFF3 file of genes to avoid when simulating")
-@click.option('-z', '--heterozygosity', type = click.FloatRange(0,1), default = 0, show_default=True, help = '\% heterozygosity to simulate diploid later')
+@click.option('-z', '--heterozygosity', type = click.FloatRange(0,1), default = 0, show_default=True, help = '% heterozygosity to simulate diploid later')
 @click.option('-e', '--exclude-chr', type = click.Path(exists=True), help = "Text file of chromosomes to avoid")
 @click.option('--randomseed', type = click.IntRange(min = 1), help = "Random seed for simulation")
-@click.option('-p', '--prefix', type = str, default= "simulation", show_default=True, help = "Naming prefix for output files")
+@click.option('-p', '--prefix', type = str, default= "simulate.inversion", show_default=True, help = "Naming prefix for output files")
 @click.option('-s', '--snakemake', type = str, metavar = "String", help = 'Additional Snakemake parameters, in quotes')
 @click.option('-q', '--quiet',  is_flag = True, show_default = True, default = False, metavar = "Toggle", help = 'Don\'t show output text while running')
 @click.option('--print-only',  is_flag = True, hidden = True, show_default = True, default = False, metavar = "Toggle", help = 'Print the generated snakemake command and exit')
@@ -175,26 +179,28 @@ def inversion(genome, vcf, prefix, output_dir, count, min_size, max_size, centro
         exit(0)
     # instantiate workflow directory
     # move necessary files to workflow dir
-    os.makedirs(f"{workflowdir}/input/", exist_ok= True)   
-    _ = Path(f"{workflowdir}/input/{os.path.basename(genome)}").symlink_to(Path(genome).absolute())
-    printmsg = f"Inpute Genome: {genome}\nOutput Directory: {output_dir}/\n"
+    os.makedirs(f"{workflowdir}/input/", exist_ok= True)
     genome_link = f"{workflowdir}/input/{os.path.basename(genome)}"
-    _ = Path(genome_link).symlink_to(Path(genome).absolute())
+    symlink(genome, genome_link)
+    printmsg = f"Inpute Genome: {genome}\nOutput Directory: {output_dir}/\n"
+    symlink(genome, genome_link)
     if vcf:
         vcf_link = f"{workflowdir}/input/{os.path.basename(vcf)}"
-        _ = Path(vcf_link).symlink_to(Path(vcf).absolute())
+        symlink(vcf, vcf_link)
         printmsg += f"Input VCF: {vcf}\n"
+    else:
+        printmsg += f"Mode: Random variants\n"
     if centromeres:
         centromeres_link = f"{workflowdir}/input/{os.path.basename(centromeres)}"
-        _ = Path(centromeres_link).symlink_to(Path(centromeres).absolute())
+        symlink(centromeres, centromeres_link)
         printmsg += f"Centromere GFF: {centromeres}\n"
     if genes:
         genes_link = f"{workflowdir}/input/{os.path.basename(genes)}"
-        _ = Path(genes_link).symlink_to(Path(genes).absolute())
+        symlink(genes, genes_link)
         printmsg += f"Genes GFF: {genes}\n"
     if exclude_chr:
         exclude_link = f"{workflowdir}/input/{os.path.basename(exclude_chr)}"
-        _ = Path(exclude_link).symlink_to(Path(exclude_chr).absolute())
+        symlink(exclude_chr, exclude_link)
         printmsg += f"Excluded Chromosomes: {exclude_chr}\n"
     fetch_file("simulate-variants.smk", f"{workflowdir}/")
     fetch_file("simuG.pl", f"{workflowdir}/scripts/")
@@ -202,19 +208,20 @@ def inversion(genome, vcf, prefix, output_dir, count, min_size, max_size, centro
     with open(f"{workflowdir}/config.yml", "w") as config:
         config.write(f"input_directory: {workflowdir}/input\n")
         config.write(f"output_directory: {output_dir}\n")
-        config.write(f"variant_type: {variant_type}\n")
-        config.write(f"genome: {genome}\n")
+        config.write(f"variant_type: inversion\n")
+        config.write(f"genome: {genome_link}\n")
+        config.write(f"prefix: {prefix}\n")
         if vcf:
-            config.write(f"vcf: {vcf}\n")
+            config.write(f"vcf: {vcf_link}\n")
         else:
             config.write(f"count: {count}\n")
             config.write(f"min_size: {min_size}\n") if min_size else None
             config.write(f"max_size: {max_size}\n") if max_size else None
-            config.write(f"centromeres: {centromeres}\n") if centromeres else None
-            config.write(f"genes: {genes}\n") if genes else None
-            config.write(f"heterozygosity: {heterozygosity}\n") if heterozygosity else None
-            config.write(f"exclude_chr: {exclude_chr}\n") if exclude_chr else None
+            config.write(f"centromeres: {centromeres_link}\n") if centromeres else None
+            config.write(f"genes: {genes_link}\n") if genes else None
+            config.write(f"exclude_chr: {exclude_link}\n") if exclude_chr else None
             config.write(f"randomseed: {randomseed}\n") if randomseed else None
+        config.write(f"heterozygosity: {heterozygosity}\n")
         config.write(f"workflow_call: {call_SM}\n")
 
     generate_conda_deps()
@@ -235,7 +242,7 @@ def inversion(genome, vcf, prefix, output_dir, count, min_size, max_size, centro
 @click.option('-y', '--max-copy', type = click.IntRange(min = 1), default=10, show_default=True, help = "Maximum number of copies")
 @click.option('-c', '--centromeres', type = click.Path(exists=True), help = "GFF3 file of centromeres to avoid")
 @click.option('-g', '--genes', type = click.Path(exists=True), help = "GFF3 file of genes to avoid when simulating (requires `--snp-coding-partition` for SNPs)")
-@click.option('-z', '--heterozygosity', type = click.FloatRange(0,1), default = 0, show_default=True, help = '\% heterozygosity to simulate diploid later')
+@click.option('-z', '--heterozygosity', type = click.FloatRange(0,1), default = 0, show_default=True, help = '% heterozygosity to simulate diploid later')
 @click.option('-e', '--exclude-chr', type = click.Path(exists=True), help = "Text file of chromosomes to avoid")
 @click.option('--randomseed', type = click.IntRange(min = 1), help = "Random seed for simulation")
 @click.option('-p', '--prefix', type = str, default= "simulate.cnv", show_default=True, help = "Naming prefix for output files")
@@ -281,9 +288,9 @@ def cnv(genome, output_dir, vcf, prefix, count, min_size, max_size, dup_ratio, m
     # instantiate workflow directory
     # move necessary files to workflow dir
     os.makedirs(f"{workflowdir}/input/", exist_ok= True)   
-    symlink(genome, f"{workflowdir}/input/{os.path.basename(genome)}")
-    printmsg = f"Inpute Genome: {genome}\nOutput Directory: {output_dir}/\n"
     genome_link = f"{workflowdir}/input/{os.path.basename(genome)}"
+    symlink(genome, genome_link)
+    printmsg = f"Inpute Genome: {genome}\nOutput Directory: {output_dir}/\n"
     symlink(genome, genome_link)
     if vcf:
         vcf_link = f"{workflowdir}/input/{os.path.basename(vcf)}"
@@ -341,16 +348,16 @@ def cnv(genome, output_dir, vcf, prefix, count, min_size, max_size, dup_ratio, m
 @click.option('-n', '--count', type = click.IntRange(min = 0), default=0, show_default=False, help = "Number of random translocations to simluate")
 @click.option('-c', '--centromeres', type = click.Path(exists=True), help = "GFF3 file of centromeres to avoid")
 @click.option('-g', '--genes', type = click.Path(exists=True), help = "GFF3 file of genes to avoid when simulating")
-@click.option('-z', '--heterozygosity', type = click.FloatRange(0,1), default = 0, show_default=True, help = '\% heterozygosity to simulate diploid later')
+@click.option('-z', '--heterozygosity', type = click.FloatRange(0,1), default = 0, show_default=True, help = '% heterozygosity to simulate diploid later')
 @click.option('-e', '--exclude-chr', type = click.Path(exists=True), help = "Text file of chromosomes to avoid")
 @click.option('--randomseed', type = click.IntRange(min = 1), help = "Random seed for simulation")
-@click.option('-p', '--prefix', type = str, default= "simulation", show_default=True, help = "Naming prefix for output files")
+@click.option('-p', '--prefix', type = str, default= "simulate.translocation", show_default=True, help = "Naming prefix for output files")
 @click.option('-s', '--snakemake', type = str, metavar = "String", help = 'Additional Snakemake parameters, in quotes')
 @click.option('-q', '--quiet',  is_flag = True, show_default = True, default = False, metavar = "Toggle", help = 'Don\'t show output text while running')
 @click.option('--print-only',  is_flag = True, hidden = True, show_default = True, default = False, metavar = "Toggle", help = 'Print the generated snakemake command and exit')
 @click.option('-o', '--output-dir', type = str, default = "Simulate/translocation", show_default=True, help = 'Name of output directory')
 @click.argument('genome', required=True, type=click.Path(exists=True), nargs=1)
-def translocation(genome, output_dir, prefix, vcf, count, centromeres, genes, snp_gene_constraints, heterozygosity, exclude_chr, randomseed, snakemake, quiet, print_only):
+def translocation(genome, output_dir, prefix, vcf, count, centromeres, genes, heterozygosity, exclude_chr, randomseed, snakemake, quiet, print_only):
     """
     Introduce transolcations into a genome
  
@@ -381,25 +388,27 @@ def translocation(genome, output_dir, prefix, vcf, count, centromeres, genes, sn
     # instantiate workflow directory
     # move necessary files to workflow dir
     os.makedirs(f"{workflowdir}/input/", exist_ok= True)   
-    _ = Path(f"{workflowdir}/input/{os.path.basename(genome)}").symlink_to(Path(genome).absolute())
-    printmsg = f"Inpute Genome: {genome}\nOutput Directory: {output_dir}/\n"
     genome_link = f"{workflowdir}/input/{os.path.basename(genome)}"
-    _ = Path(genome_link).symlink_to(Path(vcf).absolute())
+    symlink(genome, genome_link)
+    printmsg = f"Inpute Genome: {genome}\nOutput Directory: {output_dir}/\n"
+    symlink(genome, genome_link)
     if vcf:
         vcf_link = f"{workflowdir}/input/{os.path.basename(vcf)}"
-        _ = Path(vcf_link).symlink_to(Path(vcf).absolute())
+        symlink(vcf, vcf_link)
         printmsg += f"Input VCF: {vcf}\n"
+    else:
+        printmsg += f"Mode: Random variants\n"
     if centromeres:
         centromeres_link = f"{workflowdir}/input/{os.path.basename(centromeres)}"
-        _ = Path(centromeres_link).symlink_to(Path(centromeres).absolute())
+        symlink(centromeres, centromeres_link)
         printmsg += f"Centromere GFF: {centromeres}\n"
     if genes:
         genes_link = f"{workflowdir}/input/{os.path.basename(genes)}"
-        _ = Path(genes_link).symlink_to(Path(genes).absolute())
+        symlink(genes, genes_link)
         printmsg += f"Genes GFF: {genes}\n"
     if exclude_chr:
         exclude_link = f"{workflowdir}/input/{os.path.basename(exclude_chr)}"
-        _ = Path(exclude_link).symlink_to(Path(exclude_chr).absolute())
+        symlink(exclude_chr, exclude_link)
         printmsg += f"Excluded Chromosomes: {exclude_chr}\n"
     fetch_file("simulate-variants.smk", f"{workflowdir}/")
     fetch_file("simuG.pl", f"{workflowdir}/scripts/")
@@ -407,17 +416,18 @@ def translocation(genome, output_dir, prefix, vcf, count, centromeres, genes, sn
     with open(f"{workflowdir}/config.yml", "w") as config:
         config.write(f"input_directory: {workflowdir}/input\n")
         config.write(f"output_directory: {output_dir}\n")
-        config.write(f"variant_type: {variant_type}\n")
-        config.write(f"genome: {genome}\n")
+        config.write(f"variant_type: translocation\n")
+        config.write(f"genome: {genome_link}\n")
+        config.write(f"prefix: {prefix}\n")
         if vcf:
-            config.write(f"vcf: {vcf}\n")
+            config.write(f"vcf: {vcf_link}\n")
         else:
             config.write(f"count: {count}\n")
-            config.write(f"centromeres: {centromeres}\n") if centromeres else None
-            config.write(f"genes: {genes}\n") if genes else None
-            config.write(f"heterozygosity: {heterozygosity}\n") if heterozygosity else None
-            config.write(f"exclude_chr: {exclude_chr}\n") if exclude_chr else None
+            config.write(f"centromeres: {centromeres_link}\n") if centromeres else None
+            config.write(f"genes: {genes_link}\n") if genes else None
+            config.write(f"exclude_chr: {exclude_link}\n") if exclude_chr else None
             config.write(f"randomseed: {randomseed}\n") if randomseed else None
+        config.write(f"heterozygosity: {heterozygosity}\n")
         config.write(f"workflow_call: {call_SM}\n")
 
     generate_conda_deps()
