@@ -75,7 +75,7 @@ jobs:
         if: always()
         run: |
           harpy simulate cnv --count 10 -z 0.5 test/genome/genome.fasta.gz
-          harpy simulate cnv --prefix Simulate/cnvvcf --vcf Simulate/inversion/sim.cnv.hap1.vcf test/genome/genome.fasta.gz
+          harpy simulate cnv --prefix Simulate/cnvvcf --vcf Simulate/cnv/sim.cnv.hap1.vcf test/genome/genome.fasta.gz
 
 
       - name: simulate translocations
