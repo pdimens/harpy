@@ -24,7 +24,7 @@ from .hpc import hpc
 from .demultiplex import gen1
 from .preflight import bam, fastq
 from .qc import qc
-from .align import bwa, ema
+from .align import bwa, ema, minimap
 from .snp import freebayes, mpileup
 from .sv import leviathan, naibr
 from .impute import impute
@@ -73,11 +73,18 @@ def align():
     """
     Align sample sequences to a reference genome
 
-    **Aligners**
-    - `bwa`: uses BWA MEM to align reads, retaining BX tags in the alignments
-    - `ema`: uses the BX barcode-aware EMA aligner
+    The three available aligners all retain the linked-read barcode information in the
+    resulting output, however `EMA` is the only aligner to use the barcode information
+    to facilitate the aligning process and can be prohibitively slow. The `minimap2`
+    aligner is the fastest of the three and is comparable in accuracy to `bwa` for
+    sequences >100bp.
 
-    Provide an additional subcommand `bwa` or `ema` to get more information on using
+    **Aligners**
+    - `bwa`: uses BWA MEM to align reads (fast)
+    - `ema`: uses the BX barcode-aware EMA aligner (very slow)
+    - `minimap`: uses minimap2 to align reads (ultra fast)
+
+    Provide an additional subcommand `bwa`, `ema`, or `minimap` to get more information on using
     those aligners.
     """
     pass
@@ -154,6 +161,7 @@ preflight.add_command(bam)
 # align submodules
 align.add_command(bwa)
 align.add_command(ema)
+align.add_command(minimap)
 # snp submodules
 snp.add_command(mpileup)
 snp.add_command(freebayes)
@@ -236,6 +244,16 @@ click.rich_click.OPTION_GROUPS = {
         {
             "name": "Module Parameters",
             "options": ["--platform", "--whitelist", "--genome", "--quality-filter", "--ema-bins", "--extra-params"],
+        },
+        {
+            "name": "Other Options",
+            "options": ["--output-dir", "--threads", "--skipreports", "--snakemake", "--quiet", "--help"],
+        },
+    ],
+    "harpy align minimap": [
+        {
+            "name": "Module Parameters",
+            "options": ["--genome", "--quality-filter", "--molecule-distance", "--extra-params"],
         },
         {
             "name": "Other Options",

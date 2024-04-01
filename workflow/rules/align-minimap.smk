@@ -35,7 +35,7 @@ onerror:
     rprint(
         Panel(
             f"The workflow has terminated due to an error. See the log file below for more details.",
-            title = "[bold]harpy align bwa",
+            title = "[bold]harpy align minimap",
             title_align = "left",
             border_style = "red"
             ),
@@ -47,7 +47,7 @@ onsuccess:
     rprint(
         Panel(
             f"The workflow has finished successfully! Find the results in [bold]{outdir}[/bold]",
-            title = "[bold]harpy align bwa",
+            title = "[bold]harpy align minimap",
             title_align = "left",
             border_style = "green"
             ),
@@ -104,19 +104,19 @@ else:
         shell:
             "samtools faidx --fai-idx {output} {input} 2> {log}"
 
-rule genome_bwa_index:
+rule genome_index:
     input: 
         f"Genome/{bn}"
     output: 
-        multiext(f"Genome/{bn}", ".ann", ".bwt", ".pac", ".sa", ".amb")
+        temp(f"Genome/{bn}.mmi")
     log:
-        f"Genome/{bn}.idx.log"
+        f"Genome/{bn}.mmi.log"
     conda:
         os.getcwd() + "/.harpy_envs/align.yaml"
     message:
         "Indexing {input}"
     shell: 
-        "bwa index {input} 2> {log}"
+        "minimap2 -d {output} {input} 2> {log}"
 
 rule genome_make_windows:
     input:
@@ -132,18 +132,16 @@ rule align:
     input:
         forward_reads = get_fq1,
         reverse_reads = get_fq2,
-        genome 		  = f"Genome/{bn}",
-        genome_samidx = f"Genome/{bn_idx}",
-        genome_idx 	  = multiext(f"Genome/{bn}", ".ann", ".bwt", ".pac", ".sa", ".amb")
+        genome 		  = f"Genome/{bn}.mmi"
     output:  
         pipe(outdir + "/samples/{sample}/{sample}.raw.sam")
     log:
-        outdir + "/logs/{sample}.bwa.log"
+        outdir + "/logs/{sample}.minimap.log"
     params: 
         samps = lambda wc: d[wc.get("sample")],
         extra = extra
     benchmark:
-        ".Benchmark/Mapping/bwa/align.{sample}.txt"
+        ".Benchmark/Mapping/minimap/align.{sample}.txt"
     threads:
         min(10, workflow.cores) - 2
     conda:
@@ -152,14 +150,14 @@ rule align:
         "Aligning sequences: {wildcards.sample}"
     shell:
         """
-        bwa mem -C -t {threads} {params.extra} -R \"@RG\\tID:{wildcards.sample}\\tSM:{wildcards.sample}\" {input.genome} {input.forward_reads} {input.reverse_reads} > {output} 2> {log}
+        minimap2 -ax sr  -t {threads} -y --sam-hit-only -R \"@RG\\tID:{wildcards.sample}\\tSM:{wildcards.sample}\" {input.genome} {input.forward_reads} {input.reverse_reads} > {output} 2> {log}
         """
  
 rule quality_filter:
     input:
         outdir + "/samples/{sample}/{sample}.raw.sam"
     output:
-        temp(outdir + "/samples/{sample}/{sample}.bwa.sam")
+        temp(outdir + "/samples/{sample}/{sample}.mm2.sam")
     params: 
         quality = config["quality"]
     message:
@@ -169,7 +167,7 @@ rule quality_filter:
 
 rule collate:
     input:
-        outdir + "/samples/{sample}/{sample}.bwa.sam"
+        outdir + "/samples/{sample}/{sample}.mm2.sam"
     output:
         temp(outdir + "/samples/{sample}/{sample}.collate.bam")
     message:
@@ -191,13 +189,12 @@ rule sort_alignments:
     input:
         sam           = outdir + "/samples/{sample}/{sample}.fixmate.bam",
         genome 		  = f"Genome/{bn}",
-        genome_samidx = f"Genome/{bn_idx}",
-        genome_idx 	  = multiext(f"Genome/{bn}", ".ann", ".bwt", ".pac", ".sa", ".amb")
+        genome_samidx = f"Genome/{bn_idx}"
     output:
         bam = temp(outdir + "/samples/{sample}/{sample}.sort.bam"),
         bai = temp(outdir + "/samples/{sample}/{sample}.sort.bam.bai")
     log:
-        outdir + "/logs/{sample}.bwa.sort.log"
+        outdir + "/logs/{sample}.minimap.sort.log"
     params: 
         quality = config["quality"],
         tmpdir = lambda wc: outdir + "/." + d[wc.sample]
@@ -322,7 +319,7 @@ rule samtools_reports:
     input: 
         expand(outdir + "/reports/samtools_{ext}/{sample}.{ext}", sample = samplenames, ext = ["stats", "flagstat"])
     output: 
-        outdir + "/reports/bwa.stats.html"
+        outdir + "/reports/minimap.stats.html"
     params:
         outdir
     conda:
@@ -347,8 +344,8 @@ rule log_runtime:
             _ = f.write("The harpy align module ran using these parameters:\n\n")
             _ = f.write(f"The provided genome: {bn}\n")
             _ = f.write(f"The directory with sequences: {seq_dir}\n\n")
-            _ = f.write("Sequencing were aligned with BWA using:\n")
-            _ = f.write("    bwa mem -C " + " ".join([str(i) for i in params]) + " -R \"@RG\\tID:SAMPLE\\tSM:SAMPLE\" genome forward_reads reverse_reads |\n")
+            _ = f.write("Sequencing were aligned with Minimap2 using:\n")
+            _ = f.write("    minimap2 -y " + " ".join([str(i) for i in params]) + " --sam-hit-only -R \"@RG\\tID:SAMPLE\\tSM:SAMPLE\" genome.mmi forward_reads reverse_reads |\n")
             _ = f.write("    samtools view -h -F 4 -q " + str(config["quality"]) + " |\n")
             _ = f.write("    samtools sort -T SAMPLE --reference genome -m 4G\n")
             _ = f.write("Duplicates in the alignments were marked following:\n")
@@ -368,7 +365,7 @@ results.append(outdir + "/workflow/align.workflow.summary")
 if not skipreports:
     results.append(expand(outdir + "/reports/coverage/{sample}.cov.html", sample = samplenames))
     results.append(expand(outdir + "/reports/BXstats/{sample}.bxstats.html", sample = samplenames))
-    results.append(outdir + "/reports/bwa.stats.html")
+    results.append(outdir + "/reports/minimap.stats.html")
 
 rule all:
     default_target: True

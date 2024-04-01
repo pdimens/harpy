@@ -74,7 +74,7 @@ def generate_conda_deps():
     condachannels = ["conda-forge", "bioconda", "defaults"]
     environ = {
         "qc" : ["falco", "fastp", "multiqc", "pysam=0.22"],
-        "align": ["bwa", "ema","icu","libzlib", "samtools=1.19", "seqtk", "xz"],
+        "align": ["bwa", "ema","icu","libzlib", "minimap2", "samtools=1.19", "seqtk", "xz"],
         "variants.snp": ["bcftools=1.19", "freebayes=1.3.6"],
         "variants.sv": ["leviathan", "naibr-plus"],
         "phase" : ["hapcut2", "whatshap"],
