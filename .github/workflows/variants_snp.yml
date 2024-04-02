@@ -72,7 +72,7 @@ jobs:
           resources/buildforCI.sh
       - name: snp mpileup
         shell: micromamba-shell {0}
-        run: harpy snp mpileup -w 150000 -g test/genome/genome.fasta.gz -q test/bam
+        run: harpy snp mpileup -w 150000 -g test/genome/genome.fasta.gz -q -x "--ignore-RG" test/bam
       - name: snp mpileup-pop
         shell: micromamba-shell {0}
         run: harpy snp mpileup -w 150000 -g test/genome/genome.fasta.gz -p test/samples.groups -q test/bam
@@ -103,7 +103,7 @@ jobs:
           resources/buildforCI.sh
       - name: snp freebayes
         shell: micromamba-shell {0}
-        run: harpy snp freebayes -w 150000 -g test/genome/genome.fasta.gz -q test/bam
+        run: harpy snp freebayes -w 150000 -g test/genome/genome.fasta.gz -q -x "-g 200" test/bam
       - name: snp freebayes-pop
         shell: micromamba-shell {0}
         run: harpy snp freebayes -w 150000 -g test/genome/genome.fasta.gz -p test/samples.groups -q test/bam

@@ -76,7 +76,7 @@ jobs:
           resources/buildforCI.sh
       - name: leviathan
         shell: micromamba-shell {0}
-        run: harpy sv leviathan -g test/genome/genome.fasta.gz -q -s "--show-failed-logs" test/bam
+        run: harpy sv leviathan -g test/genome/genome.fasta.gz -q -s "--show-failed-logs" -x "-M 2002" test/bam
         continue-on-error: true
       - name: leviathan-pop
         if: always()
@@ -109,7 +109,7 @@ jobs:
           resources/buildforCI.sh
       - name: naibr
         shell: micromamba-shell {0}
-        run: harpy sv naibr -g test/genome/genome.fasta.gz -o SV/naibr -s "--show-failed-logs" test/bam_phased
+        run: harpy sv naibr -g test/genome/genome.fasta.gz -o SV/naibr -s "--show-failed-logs" -x "-min_sv 5000" test/bam_phased
       - name: naibr pop
         if: always()
         shell: micromamba-shell {0}

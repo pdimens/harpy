@@ -74,10 +74,11 @@ def generate_conda_deps():
     condachannels = ["conda-forge", "bioconda", "defaults"]
     environ = {
         "qc" : ["falco", "fastp", "multiqc", "pysam=0.22"],
-        "align": ["bwa", "ema","icu","libzlib", "samtools=1.19", "seqtk", "xz"],
+        "align": ["bwa", "ema","icu","libzlib", "minimap2", "samtools=1.19", "seqtk", "xz"],
         "variants.snp": ["bcftools=1.19", "freebayes=1.3.6"],
         "variants.sv": ["leviathan", "naibr-plus"],
         "phase" : ["hapcut2", "whatshap"],
+        "simulations" : ["perl", "numpy"],
         "r-env" : ["bioconductor-complexheatmap", "r-circlize", "r-dt", "r-flexdashboard", "r-ggplot2", "r-ggridges", "r-plotly", "r-tidyr", "r-stitch"]
     }
 
@@ -108,8 +109,8 @@ def fetch_file(file, destination, rename=None):
     result = result.decode().splitlines()
     for line in result:
         if line.endswith(":"):
-            print_error(f"The file \"{file}\" was not found in PATH, cannot run Harpy module.")
-            print_solution(f"Make sure harpy was installed correctly and that you are in the harpy conda environment.")
+            print_error(f"The file [green bold]{file}[/green bold] was not found in the [bold]PATH[/bold], cannot run Harpy module.")
+            print_solution(f"Make sure harpy was installed correctly and that you are in the conda environment where harpy was installed.")
             click.echo("See documentation: https://pdimens.github.io/harpy/install/")
             exit(1)
         else:

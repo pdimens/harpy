@@ -80,7 +80,7 @@ jobs:
         shell: micromamba-shell {0}
       - name: test bwa
         shell: micromamba-shell {0}
-        run: harpy align bwa -g test/genome/genome.fasta.gz -s "--show-failed-logs" test/fastq
+        run: harpy align bwa -g test/genome/genome.fasta.gz -s "--show-failed-logs" -x "-A 2" test/fastq
   test_ema:
     name: ema
     runs-on: ubuntu-latest
@@ -108,4 +108,32 @@ jobs:
         shell: micromamba-shell {0}
       - name: test ema
         shell: micromamba-shell {0}
-        run: harpy align ema --ema-bins 20 -g test/genome/genome.fasta.gz -s "--show-failed-logs" test/fastq
+        run: harpy align ema --ema-bins 20 -g test/genome/genome.fasta.gz -s "--show-failed-logs" -x "-d" test/fastq
+  test_minimap:
+    name: minimap
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+      - name: setup mamba
+        uses: mamba-org/setup-micromamba@v1
+        env:
+          ACTIONS_STEP_DEBUG: true
+        with:
+          init-shell: bash
+          generate-run-shell: true
+          environment-file: workflow/envs/harpy.yaml
+          cache-environment: true
+          post-cleanup: 'all'
+          log-level: error
+      - name: Install harpy
+        run: |
+          python3 -m pip install --upgrade build && python3 -m build
+          pip install dist/*.whl
+          resources/buildforCI.sh
+        shell: micromamba-shell {0}
+      - name: test minimap
+        shell: micromamba-shell {0}
+        run: harpy align minimap -g test/genome/genome.fasta.gz -s "--show-failed-logs" -x "--seed 13" test/fastq

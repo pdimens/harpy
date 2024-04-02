@@ -62,9 +62,9 @@ jobs:
 
       - name: harpy qc
         shell: micromamba-shell {0}
-        run: harpy qc test/fastq
+        run: harpy qc test/fastq -x "--trim_poly_g"
       
       - name: harpy qc skip adapter trimming
         if: always()
         shell: micromamba-shell {0}
-        run: harpy qc test/fastq -a
+        run: harpy qc -a test/fastq

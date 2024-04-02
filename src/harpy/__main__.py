@@ -17,12 +17,14 @@ except:
     exit(1)
 
 from .popgroups import popgroup
+#from .simulatelinkedreads import reads
+from .simulatevariants import snpindel, inversion, cnv, translocation
 from .stitchparams import stitchparams
 from .hpc import hpc
 from .demultiplex import gen1
 from .preflight import bam, fastq
 from .qc import qc
-from .align import bwa, ema
+from .align import bwa, ema, minimap
 from .snp import freebayes, mpileup
 from .sv import leviathan, naibr
 from .impute import impute
@@ -39,7 +41,7 @@ click.rich_click.ERRORS_SUGGESTION = "Try the '--help' flag for more information
 click.rich_click.ERRORS_EPILOGUE = "See the documentation: [link=https://pdimens.github.io/harpy/]https://pdimens.github.io/harpy/[/link]"
 
 @click.group(options_metavar='', context_settings=dict(help_option_names=["-h", "--help"]))
-@click.version_option("0.8.0", prog_name="Harpy")
+@click.version_option("0.9.0", prog_name="Harpy")
 def cli():
     """
     ## Harpy haplotagging pipeline
@@ -71,11 +73,18 @@ def align():
     """
     Align sample sequences to a reference genome
 
-    **Aligners**
-    - `bwa`: uses BWA MEM to align reads, retaining BX tags in the alignments
-    - `ema`: uses the BX barcode-aware EMA aligner
+    The three available aligners all retain the linked-read barcode information in the
+    resulting output, however `EMA` is the only aligner to use the barcode information
+    to facilitate the aligning process and can be prohibitively slow. The `minimap2`
+    aligner is the fastest of the three and is comparable in accuracy to `bwa` for
+    sequences >100bp.
 
-    Provide an additional subcommand `bwa` or `ema` to get more information on using
+    **Aligners**
+    - `bwa`: uses BWA MEM to align reads (fast)
+    - `ema`: uses the BX barcode-aware EMA aligner (very slow)
+    - `minimap`: uses minimap2 to align reads (ultra fast)
+
+    Provide an additional subcommand `bwa`, `ema`, or `minimap` to get more information on using
     those aligners.
     """
     pass
@@ -119,8 +128,20 @@ def preflight():
     """
     pass
 
+@click.group(options_metavar='', context_settings=dict(help_option_names=["-h", "--help"]))
+def simulate():
+    """
+    Simulate variants or linked reads from a genome
+
+    To simulate genomic variants, provide an additional subcommand {`snpindel`,`inversion`,`cnv`,`translocation`} 
+    to get more information about that workflow. The limitations of the simulator
+    (`simuG`) are such that you may simulate only one type of variant at a time,
+    so you may need to run this module again on the resulting genome.
+    """
+    pass
+
 # main program
-cli.add_command(hpc)
+#cli.add_command(hpc)
 cli.add_command(popgroup)
 cli.add_command(stitchparams)
 cli.add_command(preflight)
@@ -131,6 +152,7 @@ cli.add_command(snp)
 cli.add_command(sv)
 cli.add_command(impute)
 cli.add_command(phase)
+cli.add_command(simulate)
 # demultiplex submodules
 demultiplex.add_command(gen1)
 # preflight submodules
@@ -139,12 +161,19 @@ preflight.add_command(bam)
 # align submodules
 align.add_command(bwa)
 align.add_command(ema)
+align.add_command(minimap)
 # snp submodules
 snp.add_command(mpileup)
 snp.add_command(freebayes)
 # sv submodules
 sv.add_command(leviathan)
 sv.add_command(naibr)
+# simulate submodules
+simulate.add_command(snpindel)
+simulate.add_command(inversion)
+simulate.add_command(cnv)
+simulate.add_command(translocation)
+#simulate.add_command(reads)
 
 ## the modules ##
 click.rich_click.COMMAND_GROUPS = {
@@ -152,12 +181,19 @@ click.rich_click.COMMAND_GROUPS = {
         [
             {
                 "name": "Modules",
-                "commands": ["demultiplex","qc", "align","snp","sv","impute","phase"],
+                "commands": ["demultiplex","qc", "align","snp","sv","impute","phase", "simulate"],
             },
             {
                 "name": "Other Commands",
-                "commands": ["preflight", "popgroup", "stitchparams", "hpc"]
+                "commands": ["preflight", "popgroup", "stitchparams"]
             }
+        ],
+    "harpy simulate":
+        [
+            {
+                "name": "Genomic Variants",
+                "commands": ["snpindel","inversion", "cnv", "translocation"],
+            },
         ]
 }
 
@@ -208,6 +244,16 @@ click.rich_click.OPTION_GROUPS = {
         {
             "name": "Module Parameters",
             "options": ["--platform", "--whitelist", "--genome", "--quality-filter", "--ema-bins", "--extra-params"],
+        },
+        {
+            "name": "Other Options",
+            "options": ["--output-dir", "--threads", "--skipreports", "--snakemake", "--quiet", "--help"],
+        },
+    ],
+    "harpy align minimap": [
+        {
+            "name": "Module Parameters",
+            "options": ["--genome", "--quality-filter", "--molecule-distance", "--extra-params"],
         },
         {
             "name": "Other Options",
@@ -272,9 +318,66 @@ click.rich_click.OPTION_GROUPS = {
         {
             "name": "Other Options",
             "options": ["--output-dir", "--threads", "--skipreports", "--snakemake", "--quiet", "--help"],
+        },     
+    ],
+    "harpy simulate snpindel": [
+        {
+            "name": "Known Variants",
+            "options": ["--snp-vcf", "--indel-vcf"],
         },
-    ]
+        {
+            "name": "Random Variants",
+            "options": ["--snp-count", "--indel-count", "--titv-ratio", "--indel-ratio", "--snp-gene-constraints", "--genes", "--centromeres", "--exclude-chr"],
+        },
+        {
+            "name": "Other Options",
+            "options": ["--output-dir", "--prefix", "--heterozygosity", "--randomseed", "--snakemake", "--quiet", "--help"],
+        },
+    ],
+    "harpy simulate inversion": [
+        {
+            "name": "Known Variants",
+            "options": ["--vcf"],
+        },
+        {
+            "name": "Random Variants",
+            "options": ["--count", "--min-size", "--max-size", "--genes", "--centromeres", "--exclude-chr"],
+        },
+        {
+            "name": "Other Options",
+            "options": ["--output-dir", "--prefix", "--heterozygosity", "--randomseed", "--snakemake", "--quiet", "--help"],
+        },
+    ],
+    "harpy simulate cnv": [
+        {
+            "name": "Known Variants",
+            "options": ["--vcf"],
+        },
+        {
+            "name": "Random Variants",
+            "options": ["--count", "--min-size", "--max-size", "--max-copy", "--dup-ratio", "--gain-ratio", "--genes", "--centromeres", "--exclude-chr"],
+        },
+        {
+            "name": "Other Options",
+            "options": ["--output-dir", "--prefix", "--heterozygosity", "--randomseed", "--snakemake", "--quiet", "--help"],
+        },
+    ],
+    "harpy simulate translocation": [
+        {
+            "name": "Known Variants",
+            "options": ["--vcf"],
+        },
+        {
+            "name": "Random Variants",
+            "options": ["--count", "--genes", "--centromeres", "--exclude-chr"],
+        },
+        {
+            "name": "Other Options",
+            "options": ["--output-dir","--prefix","--heterozygosity", "--randomseed", "--snakemake", "--quiet", "--help"],
+        },
+    ],
 }
+
 
 def main():
     cli()
