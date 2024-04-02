@@ -78,7 +78,7 @@ rule trimFastp:
     conda:
         os.getcwd() + "/.harpy_envs/qc.yaml"
     message:
-        "Removing adapters + quality trimming: {wildcards.sample}"
+        "Removing adapters + quality trimming: {wildcards.sample}" if not skipadapters else "Quality trimming: {wildcards.sample}" 
     shell: 
         """
         fastp --trim_poly_g --cut_right {params} --thread {threads} -i {input.fw} -I {input.rv} -o {output.fw} -O {output.rv} -h {log.html} -j {output.json} -R "{wildcards.sample} QC Report" 2> {log.serr}
