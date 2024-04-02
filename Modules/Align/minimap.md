@@ -5,7 +5,7 @@ icon: dot
 order: 5
 ---
 
-# :icon-quote: Map Reads onto a genome with BWA MEM
+# :icon-quote: Map Reads onto a genome with Minimap2
 ===  :icon-checklist: You will need
 - at least 4 cores/threads available
 - a genome assembly in FASTA format
