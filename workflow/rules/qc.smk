@@ -8,7 +8,7 @@ from rich import print as rprint
 maxlen 	  = config["maxlen"]
 extra 	  = config.get("extra", "") 
 seq_dir   = config["seq_directory"]
-adapters  = config["adapters"]
+skipadapters  = config["adapters"]
 skipreports = config["skipreports"]
 outdir      = config["output_directory"]
 flist = [os.path.basename(i) for i in glob.iglob(f"{seq_dir}/*") if not os.path.isdir(i)]
@@ -71,7 +71,7 @@ rule trimFastp:
         serr = outdir + "/logs/fastp_logs/{sample}.log"
     params:
         maxlen = f"--max_len1 {maxlen}",
-        tim_adapters = "--detect_adapter_for_pe" if adapters else "--disable_adapter_trimming",
+        tim_adapters = "--disable_adapter_trimming" if skipadapters else "--detect_adapter_for_pe",
         extra = extra
     threads:
         2
@@ -113,7 +113,7 @@ rule log_runtime:
         outdir + "/workflow/qc.workflow.summary"
     params:
         maxlen = f"--max_len1 {maxlen}",
-        tim_adapters = "--detect_adapter_for_pe" if adapters else "--disable_adapter_trimming",
+        tim_adapters = "--disable_adapter_trimming" if skipadapters else "--detect_adapter_for_pe",
         extra = extra
     message:
         "Creating record of relevant runtime parameters: {output}"
