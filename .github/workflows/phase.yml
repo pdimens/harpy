@@ -76,7 +76,7 @@ jobs:
 
       - name: phase
         shell: micromamba-shell {0}
-        run: harpy phase --vcf test/vcf/test.bcf -s "--show-failed-logs" test/bam
+        run: harpy phase --vcf test/vcf/test.bcf -s "--show-failed-logs" -x "--max_iter 10001" test/bam
 
       - name: phase with indels
         shell: micromamba-shell {0}
