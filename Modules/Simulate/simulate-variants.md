@@ -45,14 +45,15 @@ specific variants to simulate. There are also these unifying options among the d
 
 | argument | short name | type | required | description |
 | :-----|:-----|:-----|:-----|:-----|
-| `INPUT_GENOME`           |            | file path  |   **yes**  | The forward (or reverse) multiplexed FASTQ file                                      |
+| `INPUT_GENOME`           |            | file path  |   **yes**  | The haploid genome to simulate variants onto   |
 | `--prefix` | | string | | Naming prefix for output files (default: `sim.{module_name}`)|
 | `--exclude-chr` | `-e` | file path | | Text file of chromosomes to avoid, one per line |
 | `--centromeres` | `-c` | file path | | GFF3 file of centromeres to avoid |
 | `--genes` | `-g` | file path | | GFF3 file of genes to avoid simulating over (see `snpindel` for caveat) |
-| `--heterozygosity` | `-z` | float between [0,1] | 0 | [% heterozygosity to simulate diploid later](#simulate-diploids) |
+| `--heterozygosity` | `-z` | float between [0,1] | | [% heterozygosity to simulate diploid later](#simulate-diploids) (default: `0`) |
 | `--randomseed` |  | integer > 0 |  | Random seed for simulation |
 
+==- snpindel
 ### snpindel
 The snp and indel variants are combined in this module because `simuG` allows simulating them together. The
 ratio parameters control different things for snp and indel variants and have special meanings when setting
@@ -76,6 +77,7 @@ the value to either `9999` or `0` :
 | `--indel-size-constant` | `-l` | float | 0.5 | Exponent constant for power-law-fitted indel size distribution |
 | `--snp-gene-constraints` | `-y` | string | | How to constrain randomly simulated SNPs {`noncoding`,`coding`,`2d`,`4d`} when using `--genes`|
 
+==- inversion
 ### inversion
 Inversions are when a section of a chromosome appears in the reverse orientation.
 
@@ -86,6 +88,7 @@ Inversions are when a section of a chromosome appears in the reverse orientation
 | `--min-size` | `-m` | integer | 1000 | Minimum inversion size (bp) |
 | `--max-size` | `-x` | integer | 100000 | Maximum inversion size (bp) |
 
+===
 ## Simulate known variants
 
 ## Simulate diploids
