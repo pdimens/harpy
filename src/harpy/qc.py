@@ -9,15 +9,15 @@ import sys
 import glob
 
 @click.command(no_args_is_help = True, epilog = "read the docs for more information: https://pdimens.github.io/harpy/modules/qc")
-@click.option('-l', '--max-length', default = 150, show_default = True, type=int, metavar = "Integer", help = 'Maximum length to trim sequences down to')
-@click.option('-a', '--ignore-adapters', is_flag = True, show_default = False, default = False, metavar = "Toggle", help = 'Skip adapter trimming')
-@click.option('-x', '--extra-params', type = str, metavar = "String", help = 'Additional Fastp parameters, in quotes')
-@click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(min = 4, max_open = True), metavar = "Integer", help = 'Number of threads to use')
+@click.option('-l', '--max-length', default = 150, show_default = True, type=int, help = 'Maximum length to trim sequences down to')
+@click.option('-a', '--ignore-adapters', is_flag = True, show_default = False, default = False, help = 'Skip adapter trimming')
+@click.option('-x', '--extra-params', type = str, help = 'Additional Fastp parameters, in quotes')
+@click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(min = 4, max_open = True), help = 'Number of threads to use')
 @click.option('-s', '--snakemake', type = str, metavar = "String", help = 'Additional Snakemake parameters, in quotes')
-@click.option('-r', '--skipreports',  is_flag = True, show_default = True, default = False, metavar = "Toggle", help = 'Don\'t generate any HTML reports')
-@click.option('-q', '--quiet',  is_flag = True, show_default = True, default = False, metavar = "Toggle", help = 'Don\'t show output text while running')
-@click.option('--print-only',  is_flag = True, hidden = True, show_default = True, default = False, metavar = "Toggle", help = 'Print the generated snakemake command and exit')
-@click.option('-o', '--output-dir', type = str, default = "QC", show_default=True, metavar = "String", help = 'Name of output directory')
+@click.option('-r', '--skipreports',  is_flag = True, show_default = True, default = False, help = 'Don\'t generate any HTML reports')
+@click.option('-q', '--quiet',  is_flag = True, show_default = True, default = False, help = 'Don\'t show output text while running')
+@click.option('--print-only',  is_flag = True, hidden = True, show_default = True, default = False, help = 'Print the generated snakemake command and exit')
+@click.option('-o', '--output-dir', type = str, default = "QC", show_default=True, help = 'Name of output directory')
 @click.argument('input', required=True, type=click.Path(exists=True), nargs=-1)
 def qc(input, output_dir, max_length, ignore_adapters, extra_params, threads, snakemake, skipreports, quiet, print_only):
     """
@@ -60,8 +60,7 @@ def qc(input, output_dir, max_length, ignore_adapters, extra_params, threads, sn
         config.write(f"output_directory: {output_dir}\n")
         config.write(f"adapters: {ignore_adapters}\n")
         config.write(f"maxlen: {max_length}\n")
-        if extra_params is not None:
-            command.append(f"extra: {extra_params}\n")
+        config.write(f"extra: {extra_params}\n") if extra_params else None
         config.write(f"skipreports: {skipreports}\n")
         config.write(f"workflow_call: {call_SM}\n")
 
