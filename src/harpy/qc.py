@@ -9,7 +9,8 @@ import sys
 import glob
 
 @click.command(no_args_is_help = True, epilog = "read the docs for more information: https://pdimens.github.io/harpy/modules/qc")
-@click.option('-l', '--max-length', default = 150, show_default = True, type=int, help = 'Maximum length to trim sequences down to')
+@click.option('-n', '--min-length', default = 30, show_default = True, type=int, help = 'Discard reads shorter than this length')
+@click.option('-m', '--max-length', default = 150, show_default = True, type=int, help = 'Maximum length to trim sequences down to')
 @click.option('-a', '--ignore-adapters', is_flag = True, show_default = False, default = False, help = 'Skip adapter trimming')
 @click.option('-x', '--extra-params', type = str, help = 'Additional Fastp parameters, in quotes')
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(min = 4, max_open = True), help = 'Number of threads to use')
@@ -19,17 +20,16 @@ import glob
 @click.option('--print-only',  is_flag = True, hidden = True, show_default = True, default = False, help = 'Print the generated snakemake command and exit')
 @click.option('-o', '--output-dir', type = str, default = "QC", show_default=True, help = 'Name of output directory')
 @click.argument('input', required=True, type=click.Path(exists=True), nargs=-1)
-def qc(input, output_dir, max_length, ignore_adapters, extra_params, threads, snakemake, skipreports, quiet, print_only):
+def qc(input, output_dir, min_length, max_length, ignore_adapters, extra_params, threads, snakemake, skipreports, quiet, print_only):
     """
     Remove adapters and quality trim sequences
 
     Provide the input fastq files and/or directories at the end of the command
     as individual files/folders, using shell wildcards (e.g. `data/acronotus*.fq`), or both.
     
-    By default, adapters will be automatically detected and removed (can be disabled).
+    By default, adapters will be automatically detected and removed (can be disabled with `-a`).
     The input reads will be quality trimmed using:
     - a sliding window from front to tail
-    - minimum 15bp length filter
     - poly-G tail removal
     """
     output_dir = output_dir.rstrip("/")
@@ -59,7 +59,8 @@ def qc(input, output_dir, max_length, ignore_adapters, extra_params, threads, sn
         config.write(f"seq_directory: {workflowdir}/input\n")
         config.write(f"output_directory: {output_dir}\n")
         config.write(f"adapters: {ignore_adapters}\n")
-        config.write(f"maxlen: {max_length}\n")
+        config.write(f"min_len: {min_length}\n")        
+        config.write(f"max_len: {max_length}\n")
         config.write(f"extra: {extra_params}\n") if extra_params else None
         config.write(f"skipreports: {skipreports}\n")
         config.write(f"workflow_call: {call_SM}\n")

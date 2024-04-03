@@ -5,7 +5,8 @@ import glob
 from rich.panel import Panel
 from rich import print as rprint
 
-maxlen 	  = config["maxlen"]
+minlen 	  = config["min_len"]
+maxlen 	  = config["max_len"]
 extra 	  = config.get("extra", "") 
 seq_dir   = config["seq_directory"]
 skipadapters  = config["adapters"]
@@ -70,7 +71,8 @@ rule trimFastp:
         html = outdir + "/reports/fastp_reports/{sample}.html",
         serr = outdir + "/logs/fastp_logs/{sample}.log"
     params:
-        maxlen = f"--max_len1 {maxlen}",
+        minlen = f"--length_required {min_len}",
+        maxlen = f"--max_len1 {max_len}",
         tim_adapters = "--disable_adapter_trimming" if skipadapters else "--detect_adapter_for_pe",
         extra = extra
     threads:
@@ -112,7 +114,8 @@ rule log_runtime:
     output:
         outdir + "/workflow/qc.workflow.summary"
     params:
-        maxlen = f"--max_len1 {maxlen}",
+        minlen = f"--length_required {min_len}",
+        maxlen = f"--max_len1 {max_len}",
         tim_adapters = "--disable_adapter_trimming" if skipadapters else "--detect_adapter_for_pe",
         extra = extra
     message:
