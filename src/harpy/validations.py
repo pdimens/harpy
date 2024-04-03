@@ -14,11 +14,11 @@ def validate_input_by_ext(input, option, ext):
         test = [not(input.lower().endswith(i)) for i in ext]
         if all(test):
             ext_text = " | ".join(ext)
-            print_error(f"The input file for {option} must end in [green]{ext_text}[/green]")
+            print_error(f"The input file for [bold]{option}[/bold] must end in one of:\n[green bold]{ext_text}[/green bold]")
             exit(1)
     else:
         if not input.lower().endswith(ext):
-            print_error(f"The input file for {option} must end in [green bold]{ext}[/green bold]")
+            print_error(f"The input file for [bold]{option}[/bold] must end in [green bold]{ext}[/green bold]")
             exit(1)
 
 def vcfcheck(vcf):
