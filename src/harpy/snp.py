@@ -1,7 +1,7 @@
 from .helperfunctions import fetch_file, generate_conda_deps, createregions
 from .fileparsers import getnames, parse_alignment_inputs
 from .printfunctions import print_onstart
-from .validations import validate_bamfiles, validate_popfile, validate_vcfsamples
+from .validations import validate_bamfiles, validate_popfile, validate_vcfsamples, validate_input_by_ext
 import rich_click as click
 import subprocess
 import sys
@@ -52,10 +52,11 @@ def mpileup(input, output_dir, genome, threads, populations, ploidy, windowsize,
     os.makedirs(f"{workflowdir}/", exist_ok= True)
     sn = parse_alignment_inputs(input, f"{workflowdir}/input")
     samplenames = getnames(f"{workflowdir}/input", '.bam')
+    validate_bamfiles(f"{workflowdir}/input", samplenames)
+    validate_input_by_ext(genome, "--genome", [".fasta", ".fa", ".fasta.gz", ".fa.gz"])
     fetch_file("snp-mpileup.smk", f"{workflowdir}/")
     fetch_file("BcftoolsStats.Rmd", f"{workflowdir}/report/")
     callcoords, linkedgenome = createregions(genome, windowsize, "mpileup")
-    validate_bamfiles(f"{workflowdir}/input", samplenames)
 
     with open(f"{workflowdir}/config.yml", "w") as config:
         config.write(f"seq_directory: {workflowdir}/input\n")
@@ -130,10 +131,11 @@ def freebayes(input, output_dir, genome, threads, populations, ploidy, windowsiz
     os.makedirs(f"{workflowdir}/", exist_ok= True)
     sn = parse_alignment_inputs(input, f"{workflowdir}/input")
     samplenames = getnames(f"{workflowdir}/input", '.bam')
+    validate_bamfiles(f"{workflowdir}/input", samplenames)
+    validate_input_by_ext(genome, "--genome", [".fasta", ".fa", ".fasta.gz", ".fa.gz"])
     fetch_file("snp-freebayes.smk", f"{workflowdir}/")
     fetch_file("BcftoolsStats.Rmd", f"{workflowdir}/report/")
     callcoords, linkedgenome = createregions(genome, windowsize, "freebayes")
-    validate_bamfiles(f"{workflowdir}/input", samplenames)
 
     with open(f"{workflowdir}/config.yml", "w") as config:
         config.write(f"seq_directory: {workflowdir}/input\n")

@@ -1,7 +1,7 @@
 from .helperfunctions import fetch_file, generate_conda_deps
 from .fileparsers import getnames, parse_alignment_inputs
 from .printfunctions import print_onstart
-from .validations import validate_popfile, validate_vcfsamples, check_phase_vcf
+from .validations import validate_popfile, validate_vcfsamples, check_phase_vcf, validate_input_by_ext
 import rich_click as click
 import subprocess
 import sys
@@ -50,6 +50,7 @@ def leviathan(input, output_dir, genome, threads, populations, extra_params, sna
     os.makedirs(f"{workflowdir}/", exist_ok= True)
     _ = parse_alignment_inputs(input, f"{workflowdir}/input")
     samplenames = getnames(f"{workflowdir}/input", '.bam')
+    validate_input_by_ext(genome, "--genome", [".fasta", ".fa", ".fasta.gz", ".fa.gz"])
     if populations is not None:
         fetch_file("LeviathanPop.Rmd", f"{workflowdir}/report/")
     fetch_file("Leviathan.Rmd", f"{workflowdir}/report/")
@@ -135,6 +136,7 @@ def naibr(input, output_dir, genome, vcf, threads, populations, molecule_distanc
     os.makedirs(f"{workflowdir}/", exist_ok= True)
     _ = parse_alignment_inputs(input, f"{workflowdir}/input")
     samplenames = getnames(f"{workflowdir}/input", '.bam')
+    validate_input_by_ext(genome, "--genome", [".fasta", ".fa", ".fasta.gz", ".fa.gz"])
     if populations is not None:
         fetch_file("NaibrPop.Rmd", f"{workflowdir}/report/")
     fetch_file("Naibr.Rmd", f"{workflowdir}/report/")

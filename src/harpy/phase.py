@@ -1,7 +1,7 @@
 from .helperfunctions import fetch_file, generate_conda_deps
 from .fileparsers import parse_alignment_inputs
 from .printfunctions import print_onstart
-from .validations import vcfcheck, vcf_samplematch, validate_bamfiles
+from .validations import vcfcheck, vcf_samplematch, validate_bamfiles, validate_input_by_ext
 import sys
 import os
 import subprocess
@@ -56,6 +56,7 @@ def phase(input, output_dir, vcf, threads, molecule_distance, prune_threshold, v
     samplenames = vcf_samplematch(vcf, f"{workflowdir}/input", vcf_samples)
     vcfcheck(vcf)
     validate_bamfiles(f"{workflowdir}/input", samplenames)
+    validate_input_by_ext(genome, "--genome", [".fasta", ".fa", ".fasta.gz", ".fa.gz"])
     fetch_file("phase-pop.smk", f"{workflowdir}/")
     fetch_file("HapCut2.Rmd", f"{workflowdir}/report/")
     prune_threshold /= 100

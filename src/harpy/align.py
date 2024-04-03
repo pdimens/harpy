@@ -3,6 +3,7 @@ from pathlib import Path
 from .helperfunctions import fetch_file, generate_conda_deps
 from .fileparsers import get_samples_from_fastq, parse_fastq_inputs
 from .printfunctions import print_error, print_solution, print_notice, print_onstart
+from .validations import validate_input_by_ext
 import subprocess
 import sys
 import os
@@ -51,6 +52,7 @@ def bwa(input, output_dir, genome, threads, extra_params, quality_filter, molecu
     os.makedirs(f"{workflowdir}/", exist_ok= True)
     sn = parse_fastq_inputs(input, f"{workflowdir}/input")
     samplenames = get_samples_from_fastq(f"{workflowdir}/input")
+    validate_input_by_ext(genome, "--genome", [".fasta", ".fa", ".fasta.gz", ".fa.gz"])
     fetch_file("align-bwa.smk", f"{workflowdir}/")
     fetch_file("assignMI.py", f"{workflowdir}/scripts/")
     fetch_file("bxStats.py", f"{workflowdir}/scripts/")
@@ -138,6 +140,7 @@ def ema(input, output_dir, platform, whitelist, genome, threads, ema_bins, skipr
     os.makedirs(f"{workflowdir}/", exist_ok= True)
     sn = parse_fastq_inputs(input, f"{workflowdir}/input")
     samplenames = get_samples_from_fastq(f"{workflowdir}/input")
+    validate_input_by_ext(genome, "--genome", [".fasta", ".fa", ".fasta.gz", ".fa.gz"])
     fetch_file("align-ema.smk", f"{workflowdir}/")
     fetch_file("bxStats.py", f"{workflowdir}/scripts/")
     for i in ["EmaCount", "EmaGencov", "BxStats"]:
@@ -211,6 +214,7 @@ def minimap(input, output_dir, genome, threads, extra_params, quality_filter, mo
     os.makedirs(f"{workflowdir}/", exist_ok= True)
     sn = parse_fastq_inputs(input, f"{workflowdir}/input")
     samplenames = get_samples_from_fastq(f"{workflowdir}/input")
+    validate_input_by_ext(genome, "--genome", [".fasta", ".fa", ".fasta.gz", ".fa.gz"])
     fetch_file("align-minimap.smk", f"{workflowdir}/")
     fetch_file("assignMI.py", f"{workflowdir}/scripts/")
     fetch_file("bxStats.py", f"{workflowdir}/scripts/")
