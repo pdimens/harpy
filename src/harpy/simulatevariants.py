@@ -6,7 +6,6 @@ import subprocess
 import os
 import sys
 
-#TODO add validations to all variants, move the function to helper file
 @click.command(no_args_is_help = True, epilog = "This workflow can be quite technical, please read the docs for more information: https://pdimens.github.io/harpy/modules/simulate")
 @click.option('-v', '--snp-vcf', type=click.Path(exists=True), help = 'VCF file of known snps to simulate')
 @click.option('-i', '--indel-vcf', type=click.Path(exists=True), help = 'VCF file of known indels to simulate')
