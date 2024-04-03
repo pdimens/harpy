@@ -28,6 +28,7 @@ harpy simulate variant OPTIONS... INPUT_GENOME
 ```bash example
 harpy simulate inversion -n 10 --min-size 1000 --max-size 50000  path/to/genome.fasta
 ```
+## Modules
 There are 4 submodules with very obvious names:
 
 | submodule | what it does |
@@ -51,7 +52,7 @@ specific variants to simulate. There are also these unifying options among the d
 | `--centromeres` | `-c` | file path | GFF3 file of centromeres to avoid |
 | `--genes` | `-g` | file path |  GFF3 file of genes to avoid simulating over (see `snpindel` for caveat) |
 | `--heterozygosity` | `-z` | float between [0,1] |  [% heterozygosity to simulate diploid later](#heterozygosity) (default: `0`) |
-| `--randomseed` |  | integer > 0 |   Random seed for simulation |
+| `--randomseed` |  | integer |   Random seed for simulation |
 
 ==- snps and indels
 ### snpindel
@@ -78,6 +79,10 @@ the value to either `9999` or `0` :
 | `--indel-size-alpha` | `-a` | float |  2.0 | Exponent Alpha for power-law-fitted indel size distribution|
 | `--indel-size-constant` | `-l` | float | 0.5 | Exponent constant for power-law-fitted indel size distribution |
 | `--snp-gene-constraints` | `-y` | string | | How to constrain randomly simulated SNPs {`noncoding`,`coding`,`2d`,`4d`} when using `--genes`|
+
+!!!warning SNPs can be slow
+Given software limitations, simulating many SNPs (>10,000) will be noticeably slower than the other variant types.
+!!!
 
 ==- inversions
 ### inversion
@@ -187,6 +192,7 @@ h1 h2
    1  <- heterozygote with ALT on h2
 1     <- heterozygote with ALT on h1
 ```
+Within Harpy, a heterozygous variant has a 50% chance of being assigned to one of the haplotypes.
 So that's the logic behind the `--heterozygosity` parameter and why it ouputs 3 VCF files:
 1. the VCF `simuG` outputs of variants added to the genome
 2. haplotype 1 of that VCF file with some of the variants
@@ -205,6 +211,7 @@ the `--heterozygosity` parameter to simulate known variants from random ones! Th
 
 #### Step 1
 Simulate random variants onto your haploid assembly with `--heterozygosity` (`-z`) set above `0`.
+We aren't interested in the resulting genome, but rather the positions of the variants `simuG` created.
 ```mermaid
 graph LR
     geno(haploid genome)-->|simulate inversion -n 10 -z 0.5|hap(inversions.vcf)
@@ -212,7 +219,9 @@ graph LR
     hap-->hap2(inversion.hap2.vcf)
 ```
 #### Step 2
-Use the resulting hap1 and hap2 VCF files to simulate those same variants onto the (original) haploid genome. 
+Use the resulting hap1 and hap2 VCF files to simulate those same variants, but shuffled
+into homozygotes and heterozygotes, onto the original haploid genome, creating two haplotype
+genomes. 
 ```mermaid
 graph LR
     hap1(inversion.hap1.vcf)-->|simulate inversion -v|geno
@@ -225,7 +234,9 @@ graph LR
 ```
 #### Step 3
 Use the one of the new genome haplotypes for simulating other kinds of variants. 
-Again, use `--heterozygosity` (`-z`) with a value greater than `0`.
+Again, use `--heterozygosity` (`-z`) with a value greater than `0`. Like [**Step 1**](#step-1),
+we're only interested in the haplotype VCF files (positions of variants) and not the resulting
+genome.
 ```mermaid
 graph LR
     geno(haplotype-1 genome)-->|simulate snpindel -n 100000 -z 0.5|hap(snpindel.vcf)
@@ -233,7 +244,7 @@ graph LR
     hap-->hap2(snpindel.hap2.vcf)
 ```
 #### Step 4
-Use the resulting haplotype VCFs to simulate known variants onto the haplotype genomes from
+Use the resulting haplotype VCFs to simulate known variants onto the **haplotype genomes** from
 Step 2.
 
 ```mermaid
