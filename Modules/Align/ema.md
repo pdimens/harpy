@@ -10,6 +10,7 @@ order: 5
 - at least 4 cores/threads available
 - a genome assembly in FASTA format
 - paired-end fastq sequence file with the [proper naming convention](/haplotagdata/#naming-conventions) (gzipped recommended)
+- patience
 ==- Why EMA?
 The original haplotag manuscript uses BWA to map reads. The authors have since recommended
 the use of EMA (EMerald Aligner) for most applications. EMA is barcode-aware,
