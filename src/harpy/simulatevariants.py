@@ -11,6 +11,18 @@ def symlink(original, destination):
     if not (Path(destination).is_symlink() or Path(destination).exists()):
         Path(destination).symlink_to(Path(original).absolute()) 
 
+def validate_input_ext(input, option, ext):
+    if isinstance(ext, list):
+        test = [not(input.lower().endswith(i)) for i in ext]
+        if all(test):
+            ext_text = " | ".join(ext)
+            print_error(f"The input file for {option} must end in [green]{ext_text}[/green]")
+            exit(1)
+    else:
+        if not input.lower().endswith(ext):
+            print_error(f"The input file for {option} must end in [green bold]{ext}[/green bold]")
+            exit(1)
+
 @click.command(no_args_is_help = True, epilog = "This workflow can be quite technical, please read the docs for more information: https://pdimens.github.io/harpy/modules/simulate")
 @click.option('-v', '--snp-vcf', type=click.Path(exists=True), help = 'VCF file of known snps to simulate')
 @click.option('-i', '--indel-vcf', type=click.Path(exists=True), help = 'VCF file of known indels to simulate')
@@ -71,16 +83,19 @@ def snpindel(genome, snp_vcf, indel_vcf, output_dir, prefix, snp_count, indel_co
     # instantiate workflow directory
     # move necessary files to workflow dir
     os.makedirs(f"{workflowdir}/input/", exist_ok= True)   
+    validate_input_ext(genome, "GENOME", [".fasta", ".fa", ".fasta.gz", ".fa.gz"])
     genome_link = f"{workflowdir}/input/{os.path.basename(genome)}"
     symlink(genome, genome_link)
     printmsg = f"Inpute Genome: {genome}\nOutput Directory: {output_dir}/\n"
     if snp_vcf:
+        validate_input_ext(snp_vcf, "--snp-vcf", ["vcf","vcf.gz","bcf"])
         snp_vcf_link = f"{workflowdir}/input/{os.path.basename(snp_vcf)}"
         symlink(snp_vcf, snp_vcf_link)
         printmsg += f"SNPs: from vcf ({snp_vcf})\n"
     elif snp_count > 0:
         printmsg += f"SNPs: random\n"
     if indel_vcf:
+        validate_input_ext(indel_vcf, "--indel-vcf", ["vcf","vcf.gz","bcf"])
         indel_vcf_link = f"{workflowdir}/input/{os.path.basename(indel_vcf)}"
         symlink(indel_vcf, indel_vcf_link)
         printmsg += f"Indels: from vcf: ({indel_vcf})\n"
