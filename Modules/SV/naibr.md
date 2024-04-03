@@ -111,12 +111,15 @@ a phased VCF file than using alignments that were phased when mapped with EMA. T
 circuitous (see the workflow diagram), but the results were noticeably better.
 
 ```mermaid
+---
+title: Calling variants with NAIBR, starting with unphased alignments
+---
 graph LR
-    aln([alignments])-->|harpy snp|snps([SNPs])
+    aln[alignments]-->|harpy snp|snps([SNPs])
     snps-->|bcftools filter -i 'QUAL>95' ...|filt([filtered SNPs])
     filt-->|harpy phase|phasesnp([phased haplotypes])
-    phasesnp-->|whatshap haplotag|aln
-    aln-->|NAIBR|results((structural variants))
+    phasesnp-->|whatshap haplotag|aln2
+    aln2([phased alignments])-->|NAIBR|results((structural variants))
 ```
 
 ----
@@ -131,19 +134,22 @@ This fork includes improved accuracy as well as quality-of-life updates.
 
 ```mermaid
 graph LR
-    subgraph Phase
-    aln([unphased alignments])-->phased([phased alignments])
+    subgraph id1 ["Phase"]
+    aln[unphased BAM alignments]-->phased([phased alignments])
     end
-    subgraph Population calling
-    phased-->popsplit([merge by population])
+    subgraph id2 ["Population calling"]
+    popsplit([merge by population])
     end
+    id1-->id2
     popsplit-->A
-    phased-->A
+    id1-->A
     A([index alignments]) --> B([NAIBR])
     Z([create config file]) --> B
     popsplit --> Z
-    phased --> Z
+    id1 --> Z
     B-->C([generate reports])
+    style id2 fill:#f0f0f0,stroke:#e8e8e8,stroke-width:2px
+    style id1 fill:#f0f0f0,stroke:#e8e8e8,stroke-width:2px
 ```
 +++ :icon-file-directory: naibr output
 The default output directory is `SV/naibr` with the folder structure below. `sample1` and `sample2` are generic sample 

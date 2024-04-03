@@ -79,10 +79,12 @@ across all of your samples to speed things along.
 
 ```mermaid
 graph LR
-    A([split samples]) --> B([extractHAIRS])
-    B-->C([LinkFragments])
-    Z([sample alignments]) --> B
-    Z-->C
+    subgraph Inputs
+    Z([sample alignments])---gen["genome (optional)"]
+    end
+    Inputs --> B([extractHAIRS])
+    Inputs--->A([split samples])
+    Inputs-->C([LinkFragments])
     C-->D([phase blocks])
     B-->D
     A-->D
@@ -94,6 +96,7 @@ graph LR
     D-->G
     G-->H([index merged annotations])
     H-->I([merge phased samples])
+    style Inputs fill:#f0f0f0,stroke:#e8e8e8,stroke-width:2px
 ```
 
 +++ :icon-file-directory: phasing output

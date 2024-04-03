@@ -56,6 +56,10 @@ specific variants to simulate. There are also these unifying options among the d
 
 ==- snps and indels
 ### snpindel
+!!!warning SNPs can be slow
+Given software limitations, simulating many SNPs (>10,000) will be noticeably slower than the other variant types.
+!!!
+
 A single nucleotide polymorphism ("SNP") is a genomic variant at a single base position in the DNA ([source](https://www.genome.gov/genetics-glossary/Single-Nucleotide-Polymorphisms)).
 An indel, is a type of mutation that involves the addition/deletion of one or more nucleotides into a segment of DNA ([insertions](https://www.genome.gov/genetics-glossary/Insertion), [deletions](https://www.genome.gov/genetics-glossary/Deletion)).
 The snp and indel variants are combined in this module because `simuG` allows simulating them together. The
@@ -79,10 +83,6 @@ the value to either `9999` or `0` :
 | `--indel-size-alpha` | `-a` | float |  2.0 | Exponent Alpha for power-law-fitted indel size distribution|
 | `--indel-size-constant` | `-l` | float | 0.5 | Exponent constant for power-law-fitted indel size distribution |
 | `--snp-gene-constraints` | `-y` | string | | How to constrain randomly simulated SNPs {`noncoding`,`coding`,`2d`,`4d`} when using `--genes`|
-
-!!!warning SNPs can be slow
-Given software limitations, simulating many SNPs (>10,000) will be noticeably slower than the other variant types.
-!!!
 
 ==- inversions
 ### inversion
@@ -224,13 +224,11 @@ into homozygotes and heterozygotes, onto the original haploid genome, creating t
 genomes. 
 ```mermaid
 graph LR
-    hap1(inversion.hap1.vcf)-->|simulate inversion -v|geno
-    geno(haploid genome)-->genohap1(haplotype-1 genome)
-```
-```mermaid
-graph LR
-    hap1(inversion.hap2.vcf)-->|simulate inversion -v|geno
-    geno(haploid genome)-->genohap1(haplotype-2 genome)
+    subgraph id1 ["Inputs"]
+    hap1(inversion.hap1.vcf)---geno(haploid genome)
+    end
+    id1-->|simulate inversion -v|hapgeno(haplotype-1 genome)
+    style id1 fill:#f0f0f0,stroke:#e8e8e8,stroke-width:2px
 ```
 #### Step 3
 Use the one of the new genome haplotypes for simulating other kinds of variants. 
@@ -245,17 +243,22 @@ graph LR
 ```
 #### Step 4
 Use the resulting haplotype VCFs to simulate known variants onto the **haplotype genomes** from
-Step 2.
-
+[Step 2](#step-2).
 ```mermaid
 graph LR
-    hap1(snpindel.hap1.vcf)-->|simulate snpindel -v|geno
-    geno(haplotype-1 genome)-->genohap1(haplotype-1 genome with new variants)
+    subgraph id1 ["Haplotype 1 inputs"]
+    hap1(snpindel.hap1.vcf)---geno(haplotype-1 genome)
+    end
+    id1-->|simulate inversion -v|genohap1(haplotype-1 genome with new variants)
+    style id1 fill:#f0f0f0,stroke:#e8e8e8,stroke-width:2px
 ```
 ```mermaid
 graph LR
-    hap1(snpindel.hap2.vcf)-->|simulate snpindel -v|geno
-    geno(haplotype-2 genome)-->genohap1(haplotype-2 genome with new variants)
+    subgraph id2 ["Haplotype 2 inputs"]
+    hap1(snpindel.hap2.vcf)---geno(haplotype-2 genome)
+    end
+    id2-->|simulate inversion -v|genohap2(haplotype-2 genome with new variants)
+    style id2 fill:#f0f0f0,stroke:#e8e8e8,stroke-width:2px
 ```
 
 #### Step 5

@@ -89,6 +89,10 @@ are used to call variants from alignments.
 
 ```mermaid
 graph LR
+    subgraph Inputs
+        aln[BAM alignments]---gen[genome]
+    end
+    Inputs --> B & A
     A([split contigs]) --> B([bcftools mpileup])
     B-->C([bcftools call])
     C-->D([index BCFs])
@@ -97,6 +101,7 @@ graph LR
     E-->G([normalize variants])
     E-->F([generate reports])
     G-->F
+    style Inputs fill:#f0f0f0,stroke:#e8e8e8,stroke-width:2px
 ```
 
 ### freebayes
@@ -105,12 +110,17 @@ call SNPs and small indels. Like mpileup, this method is ubiquitous in bioinform
 
 ```mermaid
 graph LR
+    subgraph Inputs
+        aln[BAM alignments]---gen[genome]
+    end
+    Inputs --> B & A
     A([split contigs]) --> B([freebayes])
     B-->D([index BCFs])
     D-->E([combine BCFs])
     E-->G([normalize variants])
     E-->F([generate reports])
     G-->F
+    style Inputs fill:#f0f0f0,stroke:#e8e8e8,stroke-width:2px
 ```
 
 +++ :icon-file-directory: snp output

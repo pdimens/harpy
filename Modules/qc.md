@@ -43,9 +43,14 @@ approach (`--cut-right`) to identify low quality bases. The workflow is quite si
 
 ```mermaid
 graph LR
+    subgraph Inputs
+        F[FASTQ files]
+    end
+    Inputs-->A
     A([fastp trim]) --> B([count barcodes])
     A --> C([create reports])
     B --> C
+    style Inputs fill:#f0f0f0,stroke:#e8e8e8,stroke-width:2px
 ```
 
 +++ :icon-file-directory: qc output

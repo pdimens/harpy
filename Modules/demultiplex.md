@@ -71,10 +71,16 @@ individual samples is performed in parallel and using the beloved workhorse `gre
 
 ```mermaid
 graph LR
-    A([multiplexed FASTQ]) --> B([barcodes to headers])
+    subgraph Inputs
+        A[multiplexed FASTQ]
+        BX[Barcode Files]
+        SCH[Sample Schema]
+    end
+    Inputs-->B([barcodes to headers])
     B-->C([demultiplex samples])
     C-->D([quality metrics])
     D-->E([create report])
+    style Inputs fill:#f0f0f0,stroke:#e8e8e8,stroke-width:2px
 ```
 
 +++ :icon-file-directory: demultiplexing output
