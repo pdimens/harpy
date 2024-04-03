@@ -91,7 +91,6 @@ are not used to inform mapping. The `-m` threshold is used for alignment molecul
 
 ```mermaid
 graph LR
-    Z([trimmed reads]) --> B
     A([index genome]) --> B([align to genome])
     B-->C([sort alignments])
     C-->D([mark duplicates])
@@ -99,12 +98,18 @@ graph LR
     E-->F([alignment metrics])
     D-->G([barcode stats])
     G-->F
+    subgraph aln [Inputs]
+        Z[FASTQ files]---genome[genome]
+    end
+    aln-->B & A
     subgraph markdp [mark duplicates via `samtools`]
         direction LR
         collate-->fixmate
         fixmate-->sort
         sort-->markdup
     end
+    style markdp fill:#f0f0f0,stroke:#e8e8e8,stroke-width:2px
+    style aln fill:#f0f0f0,stroke:#e8e8e8,stroke-width:2px
 ```
 +++ :icon-file-directory: minimap2 output
 The default output directory is `Align/minimap` with the folder structure below. `Sample1` is a generic sample name for demonstration purposes.

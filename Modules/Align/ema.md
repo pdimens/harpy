@@ -103,6 +103,10 @@ within alignments, but the BWA alignments need duplicates marked manually using
 
 ```mermaid
 graph LR
+    subgraph Inputs
+        trm[FASTQ files]---geno[genome]
+    end
+    Inputs-->A & IDX
     A([EMA count]) --> B([EMA preprocess])
     B-->C([EMA align barcoded])
     C-->D([sort BX alignments])
@@ -119,6 +123,8 @@ graph LR
         fixmate-->sort
         sort-->markdup
     end
+    style markdp fill:#f0f0f0,stroke:#e8e8e8,stroke-width:2px
+    style Inputs fill:#f0f0f0,stroke:#e8e8e8,stroke-width:2px
 
 ```
 +++ :icon-file-directory: EMA output

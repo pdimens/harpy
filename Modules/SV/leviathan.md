@@ -97,17 +97,18 @@ in the alignments, then it calls variants using Leviathan.
 
 ```mermaid
 graph LR
-    subgraph Population calling
-    popsplit([merge by population])
+    subgraph id1 [Population calling]
+        bams2[BAM alignments] --> popsplit([merge by population])
     end
-    subgraph Individual calling
-    bams([individual alignments])
+    subgraph id2 [Individual calling]
+        bams[BAM alignments]
     end
-    popsplit-->A
-    bams-->A
+    id1 & id2-->A
     A([index barcodes]) --> B([leviathan])
     B-->C([convert to BCF])
     C-->E([generate reports])
+    style id1 fill:#f0f0f0,stroke:#e8e8e8,stroke-width:2px
+    style id2 fill:#f0f0f0,stroke:#e8e8e8,stroke-width:2px
 ```
 +++ :icon-file-directory: leviathan output
 The default output directory is `SV/leviathan` with the folder structure below. `sample1` and `sample2` are generic sample names for demonstration purposes.
