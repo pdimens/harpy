@@ -10,6 +10,7 @@ from rich import box, print
 import rich_click as click
 
 def validate_input_by_ext(input, option, ext):
+    """Check that the input file for a given option matches the acceptable extensions """
     if isinstance(ext, list):
         test = [not(input.lower().endswith(i)) for i in ext]
         if all(test):
@@ -27,7 +28,7 @@ def vcfcheck(vcf):
     if vfile.endswith(".vcf") or vfile.endswith(".bcf") or vfile.endswith(".vcf.gz"):
         pass
     else:
-        print_error(f"Supplied variant call file [bold]{vcf}[/bold] must end in one of [.vcf | .vcf.gz | .bcf]")
+        print_error(f"Supplied variant call file [bold]{vcf}[/bold] must end in one of:\n[green bold].vcf | .vcf.gz | .bcf[/green bold]")
         exit(1)
 
 def check_impute_params(parameters):
@@ -41,9 +42,9 @@ def check_impute_params(parameters):
         badlens = []
         if sorted(headersplt) != correct_header:
             culprits = [i for i in headersplt if i not in correct_header]
-            print_error(f"Parameter file [bold]{parameters}[/bold] has incorrect column names. Valid names are:\n[green]model usebx bxlimit k s ngen[/green]")
+            print_error(f"Parameter file [bold]{parameters}[/bold] has incorrect column names. Valid names are:\n[green bold]model usebx bxlimit k s ngen[/green bold]")
             print_solution_with_culprits(
-                f"Fix the headers in [bold]{parameters}[/bold] or use [green]harpy stitchparams[/green] to generate a valid parameter file and modify it with appropriate values.",
+                f"Fix the headers in [bold]{parameters}[/bold] or use [blue bold]harpy stitchparams[/blue bold] to generate a valid parameter file and modify it with appropriate values.",
                 "Column names causing this error:"
             )
             click.echo(" ".join(culprits), file = sys.stderr)
@@ -74,7 +75,7 @@ def check_impute_params(parameters):
         if len(badrows) > 0:
             print_error(f"Parameter file [bold]{parameters}[/bold] is formatted incorrectly. Not all rows have the expected 6 columns.")
             print_solution_with_culprits(
-                f"See the problematic rows below. Check that you are using a whitespace (space or tab) delimeter in [bold]{parameters}[/bold] or use [green]harpy stitchparams[/green] to generate a valid parameter file and modify it with appropriate values.",
+                f"See the problematic rows below. Check that you are using a whitespace (space or tab) delimeter in [bold]{parameters}[/bold] or use [blue bold]harpy stitchparams[/blue bold] to generate a valid parameter file and modify it with appropriate values.",
                 "Rows causing this error and their column count:"
             )
             for i in zip(badrows, badlens):
@@ -147,7 +148,7 @@ def validate_bamfiles(dir, namelist):
     if len(culpritfiles) > 0:
         print_error(f"There are [bold]{len(culpritfiles)}[/bold] alignment files whose ID tags do not match their filenames.")
         print_solution_with_culprits(
-            f"For alignment files (sam/bam), the base of the file name must be identical to the [green]@RD ID:[/green] tag in the file header. For example, a file named \'sample_001.bam\' should have the [green]@RG ID:sample_001[/green] tag. Use the [green]renamebam[/green] script to properly rename alignment files so as to also update the @RG header.",
+            f"For alignment files (sam/bam), the base of the file name must be identical to the [green bold]@RD ID:[/green bold] tag in the file header. For example, a file named \'sample_001.bam\' should have the [green bold]@RG ID:sample_001[/green bold] tag. Use the [blue bold]renamebam[/blue bold] script to properly rename alignment files so as to also update the @RG header.",
             "File causing error and their ID tags:"
         )
         for i,j in zip(culpritfiles,culpritIDs):
@@ -162,7 +163,7 @@ def check_phase_vcf(infile):
     else:
         bn = os.path.basename(infile)
         print_error(f"The input variant file needs to be phased into haplotypes, but no FORMAT/PS or FORMAT/HP fields were found.")
-        print_solution(f"Phase [bold]{bn}[/bold] into haplotypes using [green]harpy phase[/green] or another manner of your choosing and use the phased vcf file as input. If you are confident this file is phased, then the phasing does not follow standard convention and you will need to make sure the phasing information appears as either [bold]FORMAT/PS[/bold] or [bold]FORMAT/HP[/bold] tags.")
+        print_solution(f"Phase [bold]{bn}[/bold] into haplotypes using [blue bold]harpy phase[/blue bold] or another manner of your choosing and use the phased vcf file as input. If you are confident this file is phased, then the phasing does not follow standard convention and you will need to make sure the phasing information appears as either [bold]FORMAT/PS[/bold] or [bold]FORMAT/HP[/bold] tags.")
         exit(1)
 
 def validate_popfile(infile):
@@ -173,7 +174,7 @@ def validate_popfile(infile):
         if invalids:
             print_error(f"There are [bold]{len(invalids)}[/bold] rows in [bold]{infile}[/bold] without a space/tab delimiter or don't have two entries for sample[dim]<tab>[/dim]population. Terminating Harpy to avoid downstream errors.")
             print_solution_with_culprits(
-                f"Make sure every entry in [bold]{infile}[/bold] uses space or tab delimeters and has both a sample name and population designation. You may comment out rows with a [green]#[/green] to have Harpy ignore them.",
+                f"Make sure every entry in [bold]{infile}[/bold] uses space or tab delimeters and has both a sample name and population designation. You may comment out rows with a [green bold]#[/green bold] to have Harpy ignore them.",
                 "The rows and values causing this error are:"
                 )
             _ = [click.echo(f"{i[0]+1}\t{i[1]}", file = sys.stderr) for i in invalids]
@@ -240,7 +241,7 @@ def check_demux_fastq(file):
     bn = os.path.basename(file)
     if not bn.lower().endswith("fq") and not bn.lower().endswith("fastq") and not bn.lower().endswith("fastq.gz") and not bn.lower().endswith("fq.gz"):     
         print_error(f"The file {bn} is not recognized as a FASTQ file by the file extension.")
-        print_solution("Make sure the input file ends with a standard FASTQ extension. These are not case-sensitive.\nAccepted extensions: [blue].fq .fastq .fq.gz .fastq.gz[/blue]")
+        print_solution("Make sure the input file ends with a standard FASTQ extension. These are not case-sensitive.\nAccepted extensions: [green bold].fq .fastq .fq.gz .fastq.gz[/green bold]")
         exit(1)
     ext = re.search(r"(?:\_00[0-9])*\.f(.*?)q(?:\.gz)?$", file, re.IGNORECASE).group(0)
     prefix     = re.sub(r"[\_\.][IR][12]?(?:\_00[0-9])*\.f(?:ast)?q(?:\.gz)?$", "", bn)
