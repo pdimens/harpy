@@ -3,9 +3,15 @@ import os
 import re
 import shutil
 import subprocess
+from pathlib import Path
 from .printfunctions import print_error, print_solution, print_solution_with_culprits
 from collections import Counter
 import rich_click as click
+
+def symlink(original, destination):
+    """Create a symbolic link from original -> destination if the destination doesn't already exist."""
+    if not (Path(destination).is_symlink() or Path(destination).exists()):
+        Path(destination).symlink_to(Path(original).absolute()) 
 
 def createregions(infile, window, method):
     """Create a BED file of genomic intervals of size 'window'. Uses 1- or 0- based numbering depending on mpileup or freebayes 'method'"""

@@ -1,27 +1,11 @@
-from .helperfunctions import generate_conda_deps, fetch_file 
+from .helperfunctions import generate_conda_deps, fetch_file, symlink
 from .printfunctions import print_onstart, print_error
+from .validations import validate_input_by_ext
 import rich_click as click
-from pathlib import Path
 import subprocess
 import os
 import sys
 
-def symlink(original, destination):
-    """Create a symbolic link from original -> destination if the destinationd doesn't already exist."""
-    if not (Path(destination).is_symlink() or Path(destination).exists()):
-        Path(destination).symlink_to(Path(original).absolute()) 
-
-def validate_input_ext(input, option, ext):
-    if isinstance(ext, list):
-        test = [not(input.lower().endswith(i)) for i in ext]
-        if all(test):
-            ext_text = " | ".join(ext)
-            print_error(f"The input file for {option} must end in [green]{ext_text}[/green]")
-            exit(1)
-    else:
-        if not input.lower().endswith(ext):
-            print_error(f"The input file for {option} must end in [green bold]{ext}[/green bold]")
-            exit(1)
 #TODO add validations to all variants, move the function to helper file
 @click.command(no_args_is_help = True, epilog = "This workflow can be quite technical, please read the docs for more information: https://pdimens.github.io/harpy/modules/simulate")
 @click.option('-v', '--snp-vcf', type=click.Path(exists=True), help = 'VCF file of known snps to simulate')
@@ -83,30 +67,31 @@ def snpindel(genome, snp_vcf, indel_vcf, output_dir, prefix, snp_count, indel_co
     # instantiate workflow directory
     # move necessary files to workflow dir
     os.makedirs(f"{workflowdir}/input/", exist_ok= True)   
-    validate_input_ext(genome, "GENOME", [".fasta", ".fa", ".fasta.gz", ".fa.gz"])
+    validate_input_by_ext(genome, "GENOME", [".fasta", ".fa", ".fasta.gz", ".fa.gz"])
     genome_link = f"{workflowdir}/input/{os.path.basename(genome)}"
     symlink(genome, genome_link)
     printmsg = f"Inpute Genome: {genome}\nOutput Directory: {output_dir}/\n"
     if snp_vcf:
-        validate_input_ext(snp_vcf, "--snp-vcf", ["vcf","vcf.gz","bcf"])
+        validate_input_by_ext(snp_vcf, "--snp-vcf", ["vcf","vcf.gz","bcf"])
         snp_vcf_link = f"{workflowdir}/input/{os.path.basename(snp_vcf)}"
         symlink(snp_vcf, snp_vcf_link)
         printmsg += f"SNPs: from vcf ({snp_vcf})\n"
     elif snp_count > 0:
         printmsg += f"SNPs: random\n"
     if indel_vcf:
-        validate_input_ext(indel_vcf, "--indel-vcf", ["vcf","vcf.gz","bcf"])
+        validate_input_by_ext(indel_vcf, "--indel-vcf", ["vcf","vcf.gz","bcf"])
         indel_vcf_link = f"{workflowdir}/input/{os.path.basename(indel_vcf)}"
         symlink(indel_vcf, indel_vcf_link)
         printmsg += f"Indels: from vcf: ({indel_vcf})\n"
     elif indel_count > 0:
         printmsg += f"Indels: random\n"
     if centromeres:
+        validate_input_by_ext(centromeres, "--centromeres", [".gff",".gff3",".gff.gz", ".gff3.gz"])
         centromeres_link = f"{workflowdir}/input/{os.path.basename(centromeres)}"
         symlink(centromeres, centromeres_link)
         printmsg += f"Centromere GFF: {centromeres}\n"
     if genes:
-        validate_input_ext(genes, "--genes", [".gff",".gff3",".gff.gz", ".gff3.gz"])
+        validate_input_by_ext(genes, "--genes", [".gff",".gff3",".gff.gz", ".gff3.gz"])
         genes_link = f"{workflowdir}/input/{os.path.basename(genes)}"
         symlink(genes, genes_link)
         printmsg += f"Genes GFF: {genes}\n"
@@ -196,21 +181,25 @@ def inversion(genome, vcf, prefix, output_dir, count, min_size, max_size, centro
     # instantiate workflow directory
     # move necessary files to workflow dir
     os.makedirs(f"{workflowdir}/input/", exist_ok= True)
+    validate_input_by_ext(genome, "GENOME", [".fasta", ".fa", ".fasta.gz", ".fa.gz"])
     genome_link = f"{workflowdir}/input/{os.path.basename(genome)}"
     symlink(genome, genome_link)
     printmsg = f"Inpute Genome: {genome}\nOutput Directory: {output_dir}/\n"
     symlink(genome, genome_link)
     if vcf:
+        validate_input_by_ext(vcf, "--vcf", ["vcf","vcf.gz","bcf"])
         vcf_link = f"{workflowdir}/input/{os.path.basename(vcf)}"
         symlink(vcf, vcf_link)
         printmsg += f"Input VCF: {vcf}\n"
     else:
         printmsg += f"Mode: Random variants\n"
     if centromeres:
+        validate_input_by_ext(centromeres, "--centromeres", [".gff",".gff3",".gff.gz", ".gff3.gz"])
         centromeres_link = f"{workflowdir}/input/{os.path.basename(centromeres)}"
         symlink(centromeres, centromeres_link)
         printmsg += f"Centromere GFF: {centromeres}\n"
     if genes:
+        validate_input_by_ext(genes, "--genes", [".gff",".gff3",".gff.gz", ".gff3.gz"])
         genes_link = f"{workflowdir}/input/{os.path.basename(genes)}"
         symlink(genes, genes_link)
         printmsg += f"Genes GFF: {genes}\n"
@@ -303,22 +292,26 @@ def cnv(genome, output_dir, vcf, prefix, count, min_size, max_size, dup_ratio, m
         exit(0)
     # instantiate workflow directory
     # move necessary files to workflow dir
-    os.makedirs(f"{workflowdir}/input/", exist_ok= True)   
+    os.makedirs(f"{workflowdir}/input/", exist_ok= True)
+    validate_input_by_ext(genome, "GENOME", [".fasta", ".fa", ".fasta.gz", ".fa.gz"])
     genome_link = f"{workflowdir}/input/{os.path.basename(genome)}"
     symlink(genome, genome_link)
     printmsg = f"Inpute Genome: {genome}\nOutput Directory: {output_dir}/\n"
     symlink(genome, genome_link)
     if vcf:
+        validate_input_by_ext(vcf, "--vcf", ["vcf","vcf.gz","bcf"])
         vcf_link = f"{workflowdir}/input/{os.path.basename(vcf)}"
         symlink(vcf, vcf_link)
         printmsg += f"Input VCF: {vcf}\n"
     else:
         printmsg += f"Mode: Random variants\n"
     if centromeres:
+        validate_input_by_ext(centromeres, "--centromeres", [".gff",".gff3",".gff.gz", ".gff3.gz"])
         centromeres_link = f"{workflowdir}/input/{os.path.basename(centromeres)}"
         symlink(centromeres, centromeres_link)
         printmsg += f"Centromere GFF: {centromeres}\n"
     if genes:
+        validate_input_by_ext(genes, "--genes", [".gff",".gff3",".gff.gz", ".gff3.gz"])
         genes_link = f"{workflowdir}/input/{os.path.basename(genes)}"
         symlink(genes, genes_link)
         printmsg += f"Genes GFF: {genes}\n"
@@ -403,22 +396,26 @@ def translocation(genome, output_dir, prefix, vcf, count, centromeres, genes, he
         exit(0)
     # instantiate workflow directory
     # move necessary files to workflow dir
-    os.makedirs(f"{workflowdir}/input/", exist_ok= True)   
+    os.makedirs(f"{workflowdir}/input/", exist_ok= True)
+    validate_input_by_ext(genome, "GENOME", [".fasta", ".fa", ".fasta.gz", ".fa.gz"])
     genome_link = f"{workflowdir}/input/{os.path.basename(genome)}"
     symlink(genome, genome_link)
     printmsg = f"Inpute Genome: {genome}\nOutput Directory: {output_dir}/\n"
     symlink(genome, genome_link)
     if vcf:
+        validate_input_by_ext(vcf, "--vcf", ["vcf","vcf.gz","bcf"])
         vcf_link = f"{workflowdir}/input/{os.path.basename(vcf)}"
         symlink(vcf, vcf_link)
         printmsg += f"Input VCF: {vcf}\n"
     else:
         printmsg += f"Mode: Random variants\n"
     if centromeres:
+        validate_input_by_ext(centromeres, "--centromeres", [".gff",".gff3",".gff.gz", ".gff3.gz"])
         centromeres_link = f"{workflowdir}/input/{os.path.basename(centromeres)}"
         symlink(centromeres, centromeres_link)
         printmsg += f"Centromere GFF: {centromeres}\n"
     if genes:
+        validate_input_by_ext(genes, "--genes", [".gff",".gff3",".gff.gz", ".gff3.gz"])
         genes_link = f"{workflowdir}/input/{os.path.basename(genes)}"
         symlink(genes, genes_link)
         printmsg += f"Genes GFF: {genes}\n"

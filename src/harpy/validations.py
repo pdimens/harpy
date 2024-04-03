@@ -9,6 +9,18 @@ from rich.table import Table
 from rich import box, print
 import rich_click as click
 
+def validate_input_by_ext(input, option, ext):
+    if isinstance(ext, list):
+        test = [not(input.lower().endswith(i)) for i in ext]
+        if all(test):
+            ext_text = " | ".join(ext)
+            print_error(f"The input file for {option} must end in [green]{ext_text}[/green]")
+            exit(1)
+    else:
+        if not input.lower().endswith(ext):
+            print_error(f"The input file for {option} must end in [green bold]{ext}[/green bold]")
+            exit(1)
+
 def vcfcheck(vcf):
     """Check that a file ends with one of .vcf, .bcf, or .vcf.gz. Is case insensitive."""
     vfile = vcf.lower()
