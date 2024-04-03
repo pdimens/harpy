@@ -56,7 +56,8 @@ def phase(input, output_dir, vcf, threads, molecule_distance, prune_threshold, v
     samplenames = vcf_samplematch(vcf, f"{workflowdir}/input", vcf_samples)
     vcfcheck(vcf)
     validate_bamfiles(f"{workflowdir}/input", samplenames)
-    validate_input_by_ext(genome, "--genome", [".fasta", ".fa", ".fasta.gz", ".fa.gz"])
+    if genome:
+        validate_input_by_ext(genome, "--genome", [".fasta", ".fa", ".fasta.gz", ".fa.gz"])
     fetch_file("phase-pop.smk", f"{workflowdir}/")
     fetch_file("HapCut2.Rmd", f"{workflowdir}/report/")
     prune_threshold /= 100
