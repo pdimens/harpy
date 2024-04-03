@@ -5,8 +5,8 @@ import glob
 from rich.panel import Panel
 from rich import print as rprint
 
-minlen 	  = config["min_len"]
-maxlen 	  = config["max_len"]
+min_len 	  = config["min_len"]
+max_len 	  = config["max_len"]
 extra 	  = config.get("extra", "") 
 seq_dir   = config["seq_directory"]
 skipadapters  = config["adapters"]
