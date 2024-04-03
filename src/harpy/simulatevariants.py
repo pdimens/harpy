@@ -22,7 +22,7 @@ def validate_input_ext(input, option, ext):
         if not input.lower().endswith(ext):
             print_error(f"The input file for {option} must end in [green bold]{ext}[/green bold]")
             exit(1)
-
+#TODO add validations to all variants, move the function to helper file
 @click.command(no_args_is_help = True, epilog = "This workflow can be quite technical, please read the docs for more information: https://pdimens.github.io/harpy/modules/simulate")
 @click.option('-v', '--snp-vcf', type=click.Path(exists=True), help = 'VCF file of known snps to simulate')
 @click.option('-i', '--indel-vcf', type=click.Path(exists=True), help = 'VCF file of known indels to simulate')
@@ -106,6 +106,7 @@ def snpindel(genome, snp_vcf, indel_vcf, output_dir, prefix, snp_count, indel_co
         symlink(centromeres, centromeres_link)
         printmsg += f"Centromere GFF: {centromeres}\n"
     if genes:
+        validate_input_ext(genes, "--genes", [".gff",".gff3",".gff.gz", ".gff3.gz"])
         genes_link = f"{workflowdir}/input/{os.path.basename(genes)}"
         symlink(genes, genes_link)
         printmsg += f"Genes GFF: {genes}\n"
