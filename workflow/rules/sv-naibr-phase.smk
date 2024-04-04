@@ -240,7 +240,7 @@ rule infer_sv:
         rm -rf {params.outdir}
         """
 
-rule report:
+rule create_report:
     input:
         bedpe = outdir + "/{sample}.bedpe",
         fai   = f"Genome/{validgenome}.fai"

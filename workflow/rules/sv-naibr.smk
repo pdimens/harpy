@@ -166,7 +166,7 @@ rule genome_faidx:
         fi
         """
 
-rule report:
+rule create_report:
     input:
         bedpe = outdir + "/{sample}.bedpe",
         fai   = f"Genome/{bn}.fai"

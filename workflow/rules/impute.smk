@@ -87,7 +87,7 @@ rule samples_file:
         with open(output[0], "w") as fout:
             _ = [fout.write(f"{i}\n") for i in samplenames]
 
-rule convert2stitch:
+rule convert_stitch:
     input:
         outdir + "/stitch_input/input.sorted.bcf"
     output:
@@ -222,7 +222,7 @@ rule stats:
         bcftools stats -s "-" {input.bcf} > {output}
         """
 
-rule comparestats:
+rule compare_stats:
     input:
         orig    = outdir + "/stitch_input/input.sorted.bcf",
         origidx = outdir + "/stitch_input/input.sorted.bcf.csi",

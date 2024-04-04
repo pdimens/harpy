@@ -206,7 +206,7 @@ rule sort_alignments:
         rm -rf {params.tmpdir}
         """
 
-rule markduplicates:
+rule mark_duplicates:
     input:
         outdir + "/samples/{sample}/{sample}.sort.bam"
     output:

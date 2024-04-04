@@ -38,7 +38,7 @@ onsuccess:
         file = sys.stderr
     )
 
-rule indexBam:
+rule index_bam:
     input:
         seq_dir + "/{sample}.bam"
     output:
@@ -48,7 +48,7 @@ rule indexBam:
     shell:
         "samtools index {input}"
 
-rule checkBam:
+rule check_bam:
     input:
         bam = seq_dir + "/{sample}.bam",
         bai = seq_dir + "/{sample}.bam.bai"
@@ -61,7 +61,7 @@ rule checkBam:
     script: 
         "scripts/checkBAM.py"
 
-rule mergeChecks:
+rule merge_checks:
     input:
         expand(out_dir + "{sample}.log", sample = samplenames)
     output:
@@ -89,7 +89,7 @@ rule log_runtime:
             _ = f.write("\nThe Snakemake workflow was called via command line:\n")
             _ = f.write("    " + str(config["workflow_call"]) + "\n")
 
-rule createReport:
+rule create_report:
     input:
         out_dir + "filecheck.bam.tsv"
     output:

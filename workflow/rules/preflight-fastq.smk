@@ -55,7 +55,7 @@ onsuccess:
         file = sys.stderr
     )
 
-rule checkForward:
+rule check_forward:
     input:
         get_fq1
     output:
@@ -67,7 +67,7 @@ rule checkForward:
     script: 
         "scripts/checkFASTQ.py"
 
-rule checkReverse:
+rule check_reverse:
     input:
         get_fq2
     output:
@@ -79,7 +79,7 @@ rule checkReverse:
     script: 
         "scripts/checkFASTQ.py"
 
-rule mergeChecks:
+rule merge_checks:
     input:
         expand(out_dir + "{sample}.{FR}.log", sample = samplenames, FR = ["F","R"])
     output:
@@ -107,7 +107,7 @@ rule log_runtime:
             _ = f.write("\nThe Snakemake workflow was called via command line:\n")
             _ = f.write("    " + str(config["workflow_call"]) + "\n")
 
-rule createReport:
+rule create_report:
     input:
         out_dir + "filecheck.fastq.tsv"
     output:

@@ -194,7 +194,7 @@ rule variants_stats:
         bcftools stats -s "-" --fasta-ref {input.genome} {input.bcf} > {output} 2> /dev/null
         """
 
-rule bcfreport:
+rule bcf_report:
     input:
         outdir + "/reports/variants.{type}.stats"
     output:

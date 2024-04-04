@@ -48,7 +48,7 @@ onsuccess:
         file = sys.stderr
     )
 
-rule splitbysamplehet:
+rule split_by_samplehet:
     input: 
         vcf = variantfile,
         bam = bam_dir + "/{sample}.bam"
@@ -64,7 +64,7 @@ rule splitbysamplehet:
         awk '/^#/;/CHROM/ {{OFS="\\t"}}; !/^#/ && $10~/^0\\/1/' > {output}
         """
 
-rule splitbysample:
+rule split_by_sample:
     input: 
         vcf = variantfile,
         bam = bam_dir + "/{sample}.bam"
@@ -90,7 +90,7 @@ rule index_alignment:
     shell:
         "samtools index {input} {output} 2> /dev/null"
 
-rule extractHairs:
+rule extract_hairs:
     input:
         vcf = outdir + "/input/{sample}.het.bcf",
         bam = bam_dir + "/{sample}.bam",
@@ -111,7 +111,7 @@ rule extractHairs:
     shell:
         "extractHAIRS {params} --nf 1 --bam {input.bam} --VCF {input.vcf} --out {output} 2> {log}"
 
-rule linkFragments:
+rule link_fragments:
     input: 
         bam       = bam_dir + "/{sample}.bam",
         vcf       = outdir + "/input/{sample}.het.bcf",
@@ -131,7 +131,7 @@ rule linkFragments:
     shell:
         "LinkFragments.py --bam {input.bam} --VCF {input.vcf} --fragments {input.fragments} --out {output} -d {params} > {log} 2>&1"
 
-rule phaseBlocks:
+rule phase_blocks:
     input:
         vcf       = outdir + "/input/{sample}.het.bcf",
         fragments = fragfile
@@ -152,7 +152,7 @@ rule phaseBlocks:
     shell:
         "HAPCUT2 --fragments {input.fragments} --vcf {input.vcf} {params} --out {output.blocks} --nf 1 --error_analysis_mode 1 --call_homozygous 1 --outvcf 1 > {log} 2>&1"
 
-rule createAnnotations:
+rule create_annotations:
     input:
         outdir + "/phaseBlocks/{sample}.blocks.phased.VCF"
     output:
@@ -162,7 +162,7 @@ rule createAnnotations:
     shell:
         "bcftools query -f \"%CHROM\\t%POS[\\t%GT\\t%PS\\t%PQ\\t%PD]\\n\" {input} | bgzip -c > {output}"
 
-rule indexAnnotations:
+rule index_annotations:
     input:
         outdir + "/annotations/{sample}.annot.gz"
     output:
@@ -185,7 +185,7 @@ rule headerfile:
             _ = fout.write('##FORMAT=<ID=PQ,Number=1,Type=Integer,Description="Phred QV indicating probability that this variant is incorrectly phased relative to the haplotype">\n')
             _ = fout.write('##FORMAT=<ID=PD,Number=1,Type=Integer,Description="phased Read Depth">')
 
-rule mergeAnnotations:
+rule merge_annotations:
     input:
         annot   = outdir + "/annotations/{sample}.annot.gz",
         idx     = outdir + "/annotations/{sample}.annot.gz.tbi",
@@ -208,7 +208,7 @@ rule mergeAnnotations:
             bcftools view -Ob --write-index -o {output.bcf} -
         """
 
-rule mergeSamples:
+rule merge_samples:
     input: 
         bcf = expand(outdir + "/annotations_merge/{sample}.phased.annot.bcf", sample = samplenames),
         idx = expand(outdir + "/annotations_merge/{sample}.phased.annot.bcf.csi", sample = samplenames)

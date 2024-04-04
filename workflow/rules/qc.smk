@@ -59,7 +59,7 @@ def get_fq2(wildcards):
     fqlist = list(filter(r.match, lst))
     return fqlist
 
-rule trimFastp:
+rule qc_fastp:
     input:
         fw   = get_fq1,
         rv   = get_fq2
@@ -136,7 +136,7 @@ results.append(outdir + "/workflow/qc.workflow.summary")
 if not skipreports:
     results.append(outdir + "/reports/barcode.summary.html")
     
-rule createReport:
+rule create_report:
     default_target: True
     input: 
         results

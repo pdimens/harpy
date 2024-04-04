@@ -327,7 +327,7 @@ rule sort_nobc_alignments:
         rm -rf {params.tmpdir}
         """
 
-rule markduplicates:
+rule mark_duplicates:
     input:
         bam = outdir + "/align/{sample}.sort.nobc.bam",
         bai = outdir + "/align/{sample}.sort.nobc.bam.bai"

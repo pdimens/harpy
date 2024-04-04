@@ -188,7 +188,7 @@ rule copy_groupings:
         with open(input[0], "r") as infile, open(output[0], "w") as outfile:
             _ = [outfile.write(i) for i in infile.readlines() if not i.lstrip().startswith("#")]
 
-rule bamlist:
+rule bam_list:
     input:
         outdir + "/logs/sample.groups"
     output:
@@ -278,7 +278,7 @@ rule infer_sv:
         rm -rf {params.outdir}
         """
 
-rule report:
+rule create_report:
     input:
         fai   = f"Genome/{validgenome}.fai",
         bedpe = outdir + "/{population}.bedpe"
