@@ -84,7 +84,7 @@ def generate_conda_deps():
         "variants.snp": ["bcftools=1.19", "freebayes=1.3.6"],
         "variants.sv": ["leviathan", "naibr-plus"],
         "phase" : ["hapcut2", "whatshap"],
-        "simulations" : ["perl", "bioconda::perl-math-random", "bioconda::perl-inline-c", "bioconda::perl-parse-recdescent", "numpy", "alienzj::msort"],
+        "simulations" : ["perl", "bioconda::perl-math-random", "bioconda::perl-inline-c", "bioconda::perl-parse-recdescent", "numpy", "alienzj::msort", "samtools"],
         "r-env" : ["bioconductor-complexheatmap", "r-circlize", "r-dt", "r-flexdashboard", "r-ggplot2", "r-ggridges", "r-plotly", "r-tidyr", "r-stitch"]
     }
 

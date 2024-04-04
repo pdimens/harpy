@@ -5,6 +5,20 @@ import glob
 from rich.panel import Panel
 from rich import print as rprint
 
+lrsim_params = "-p " + config["output_dir"] + "/simulations"
+lrsim_params += " -i " + str(config["outer_distance"])
+lrsim_params += " -s " + str(config["distance_sd"])
+lrsim_params += " -x " + str(config["read_pairs"])
+lrsim_params += " -f " + str(config["molecule_length"])
+lrsim_params += " -t " + str(config["partitions"])
+lrsim_params += " -m " + str(config["molecules_per_partition"])
+outdir = config["output_dir"]
+gen_hap1 = config["genome_hap1"]
+gen_hap2 = config["genome_hap2"]
+
+#TODO DEAL WITH THIS
+barcodes = config.get("barcodes", None)
+
 onsuccess:
     print("")
     rprint(
@@ -31,8 +45,8 @@ onerror:
 
 rule lrsim:
     input:
-        hap1 = ,
-        hap2 = ,
+        hap1 = gen_hap1,
+        hap2 = gen_hap2,
         barcodes = 
     output:
         hap1_F  = outdir + "/{sample}.R1.fq.gz",
@@ -43,16 +57,17 @@ rule lrsim:
     log:
         f"{outdir}/logs/LRSIM.log"
     params:
-        prefix = outprefix
+        lrsim = f"{outdir}/workflow/scripts/LRSIM.pl",
+        runoptions = lrsim_params
     threads:
         workflow.cores
     conda:
         os.getcwd() + "/.harpy_envs/simulations.yaml"
     message:
-        f"Running LRSIM to generate linked reads from:\nhaplotype 1: {hap1}\nhaplotype 2: {hap2}" 
+        f"Running LRSIM to generate linked reads from\nhaplotype 1: {input.hap1}\nhaplotype 2: {input.hap2}" 
     shell: 
         """
-        
+        {params.lrsim} -g {input.hap1},{input.hap2} {params.runoptions} -z {threads} -o -u 2 > {log}
         """
 
 rule convert_haplotag:
