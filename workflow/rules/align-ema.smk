@@ -320,7 +320,7 @@ rule sort_nobc_alignments:
         quality = config["quality"],
         tmpdir = lambda wc: outdir + "/." + d[wc.sample]
     message:
-        "Quality filtering alignments: {wildcards.sample}"
+        "Sorting alignments: {wildcards.sample}"
     shell:
         """
         samtools sort -T {params.tmpdir} --reference {input.genome} -O bam -l 0 -m 4G --write-index -o {output.bam}##idx##{output.bai} {input.sam} 2> {log}
