@@ -43,6 +43,22 @@ onerror:
         file = sys.stderr
     )
 
+rule prepare_directory:
+    input:
+        hap1 = gen_hap1,
+        hap2 = gen_hap2,
+    output:
+        hap1 = f"{outdir}/dwgsim/sim.hap.A.clean.fasta",
+        hap2 = f"{outdir}/dwgsim/sim.hap.B.clean.fasta" 
+    message:
+        "Fooling LRSIM into a false sense of security"
+    shell:
+        """
+        mkdir -p dwgsim
+        ln -s {input.hap1} {output.hap1}
+        ln -s {input.hap2} {output.hap2}
+        """
+
 rule lrsim:
     input:
         hap1 = gen_hap1,
