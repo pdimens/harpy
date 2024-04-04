@@ -9,7 +9,7 @@ onsuccess:
     print("")
     rprint(
         Panel(
-            f"The workflow has finished successfully! Find the results in [bold]{outdir}/[/bold]",
+            f"The workflow has finished successfully! Find the results in [bold]{outdir}/[/bold]. If you want to combine both haplotypes of the forward (or reverse) reads together, you can do so with:\n[blue bold]cat reads_hap{{1..2}}.R1.fq.gz > simulations.R1.fq.gz[/blue bold]",
             title = "[bold]harpy simulate reads",
             title_align = "left",
             border_style = "green"
@@ -35,8 +35,11 @@ rule lrsim:
         hap2 = ,
         barcodes = 
     output:
-        fw   = outdir + "/{sample}.R1.fq.gz",
-        rv   = outdir + "/{sample}.R2.fq.gz"
+        hap1_F  = outdir + "/{sample}.R1.fq.gz",
+        hap1_R  = outdir + "/{sample}.R2.fq.gz".
+        hap2_F = ,
+        hap2_R = ,
+        expand("output.hap1.fq.gz")
     log:
         f"{outdir}/logs/LRSIM.log"
     params:
@@ -52,6 +55,21 @@ rule lrsim:
         
         """
 
+rule convert_haplotag:
+    input:
+        fw = "hap{num}.R1.fq.gz",
+        rv = "hap{num}.R2.fq.gz",
+        barcodes = "BARCODE FILE"
+    output:
+        fw = "hap{num}_haplotag.R1.fq.gz",
+        rv = "hap{num}_haplotag.R2.fq.gz"
+    log:
+        conversions = outdir + "/workflow/10XtoHaplotag_{num}.txt" 
+    message:
+        "Converting 10X barcodes to haplotag format"
+    run:
+
+
 rule log_runtime:
     output:
         outdir + "/workflow/qc.workflow.summary"
@@ -64,7 +82,7 @@ rule log_runtime:
         "Creating record of relevant runtime parameters: {output}"
     run:
         with open(output[0], "w") as f:
-            _ = f.write("The harpy qc module ran using these parameters:\n\n")
+            _ = f.write("The harpy simulate reads module ran using these parameters:\n\n")
             _ = f.write(f"The directory with sequences: {seq_dir}\n")
             _ = f.write("fastp trimming ran using:\n")
             _ = f.write("    fastp --trim_poly_g --cut_right " + " ".join(params) + "\n")
