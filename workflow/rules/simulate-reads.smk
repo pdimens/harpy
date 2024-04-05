@@ -5,14 +5,14 @@ import glob
 from rich.panel import Panel
 from rich import print as rprint
 
-lrsim_params = "-p " + config["output_dir"] + "/sim"
+outdir = config["output_directory"]
+lrsim_params = f"-p {outdir}/sim"
 lrsim_params += " -i " + str(config["outer_distance"])
 lrsim_params += " -s " + str(config["distance_sd"])
 lrsim_params += " -x " + str(config["read_pairs"])
 lrsim_params += " -f " + str(config["molecule_length"])
 lrsim_params += " -t " + str(config["partitions"])
 lrsim_params += " -m " + str(config["molecules_per_partition"])
-outdir = config["output_dir"]
 gen_hap1 = config["genome_hap1"]
 gen_hap2 = config["genome_hap2"]
 
@@ -91,7 +91,7 @@ rule lrsim:
     input:
         hap1 = f"{outdir}/sim.hap.0.clean.fasta",
         hap2 = f"{outdir}/sim.hap.1.clean.fasta",
-        expand(outdir + "/sim.hap.{hap}.clean.fasta.fai", hap = [0,1]),
+        fai = expand(outdir + "/sim.hap.{hap}.clean.fasta.fai", hap = [0,1]),
         barcodes = barcodefile
     output:
         expand(outdir + "/sim_S1_L00{hap}_R{fr}_001.fastq.gz", hap = [0,1], fr = [0,1]),
@@ -107,33 +107,31 @@ rule lrsim:
     conda:
         os.getcwd() + "/.harpy_envs/simulations.yaml"
     message:
-        f"Running LRSIM to generate linked reads from\nhaplotype 1: {input.hap1}\nhaplotype 2: {input.hap2}" 
+        "Running LRSIM to generate linked reads from\nhaplotype 1: {input.hap1}\nhaplotype 2: {input.hap2}" 
     shell: 
         "{params.lrsim} -g {input.hap1},{input.hap2} {params.runoptions} -z {threads} -o -u 3 > {log}"
 
 rule convert_haplotag:
     input:
         fw = outdir + "/sim_S1_L00{hap}_R1_001.fastq.gz",
-        fw = outdir + "/sim_S1_L00{hap}_R2_001.fastq.gz",
+        rv = outdir + "/sim_S1_L00{hap}_R2_001.fastq.gz",
         barcodes = barcodefile
     output:
         fw = "hap{hap}_haplotag.R1.fq.gz",
         rv = "hap{hap}_haplotag.R2.fq.gz"
     log:
-        conversions = outdir + "/workflow/10XtoHaplotag_{num}.txt" 
+        conversions = outdir + "/workflow/10XtoHaplotag_{hap}.txt" 
     message:
         "Converting 10X barcodes to haplotag format"
     script:
         "10xtoHaplotag.py"
 
-rule log_runtime:
+rule log_workflow:
+    default_target: True
+    input:
+        expand("hap{hap}_haplotag.R{fw}.fq.gz", hap = [1,2], fw = [1,2])
     output:
         outdir + "/workflow/simulate.reads.workflow.summary"
-    params:
-        minlen = f"--length_required {min_len}",
-        maxlen = f"--max_len1 {max_len}",
-        tim_adapters = "--disable_adapter_trimming" if skipadapters else "--detect_adapter_for_pe",
-        extra = extra
     message:
         "Creating record of relevant runtime parameters: {output}"
     run:
@@ -148,27 +146,3 @@ rule log_runtime:
             _ = f.write("    " + f"10xtoHaplotag.py")
             _ = f.write("\nThe Snakemake workflow was called via command line:\n")
             _ = f.write("    " + str(config["workflow_call"]) + "\n")
-
-results = list()
-results.append(expand(outdir + "/logs/json/{sample}.fastp.json", sample = samplenames))
-results.append(expand(outdir + "/{sample}.{FR}.fq.gz", FR = ["R1", "R2"], sample = samplenames))
-results.append(outdir + "/workflow/qc.workflow.summary")
-if not skipreports:
-    results.append(outdir + "/reports/barcode.summary.html")
-    
-rule create_report:
-    default_target: True
-    input: 
-        results
-    output:
-        outdir + "/reports/qc.report.html"
-    params:
-        outdir
-    conda:
-        os.getcwd() + "/.harpy_envs/qc.yaml"
-    message:
-        "Sequencing quality filtering and trimming is complete!"
-    shell: 
-        """
-        multiqc {params}/logs/json -m fastp --force --filename {output} --quiet --title "QC Summary" --comment "This report aggregates trimming and quality control metrics reported by fastp" --no-data-dir 2>/dev/null
-        """

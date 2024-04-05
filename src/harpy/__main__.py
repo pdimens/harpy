@@ -19,6 +19,7 @@ except:
 from .popgroups import popgroup
 #from .simulatelinkedreads import reads
 from .simulatevariants import snpindel, inversion, cnv, translocation
+from .simulatelinkedreads import linkedreads
 from .stitchparams import stitchparams
 from .hpc import hpc
 from .demultiplex import gen1
@@ -41,7 +42,7 @@ click.rich_click.ERRORS_SUGGESTION = "Try the '--help' flag for more information
 click.rich_click.ERRORS_EPILOGUE = "See the documentation: [link=https://pdimens.github.io/harpy/]https://pdimens.github.io/harpy/[/link]"
 
 @click.group(options_metavar='', context_settings=dict(help_option_names=["-h", "--help"]))
-@click.version_option("0.9.2", prog_name="Harpy")
+@click.version_option("0.10.0", prog_name="Harpy")
 def cli():
     """
     ## Harpy haplotagging pipeline
@@ -136,7 +137,9 @@ def simulate():
     To simulate genomic variants, provide an additional subcommand {`snpindel`,`inversion`,`cnv`,`translocation`} 
     to get more information about that workflow. The limitations of the simulator
     (`simuG`) are such that you may simulate only one type of variant at a time,
-    so you may need to run this module again on the resulting genome.
+    so you may need to run this module again on the resulting genome. Use `simulate linkedreads`
+    to simulate haplotag linked-reads from a diploid genome, which you can create by simulating
+    genomic variants.
     """
     pass
 
@@ -173,6 +176,7 @@ simulate.add_command(snpindel)
 simulate.add_command(inversion)
 simulate.add_command(cnv)
 simulate.add_command(translocation)
+simulate.add_command(linkedreads)
 #simulate.add_command(reads)
 
 ## the modules ##
@@ -192,7 +196,7 @@ click.rich_click.COMMAND_GROUPS = {
         [
             {
                 "name": "Genomic Variants",
-                "commands": ["snpindel","inversion", "cnv", "translocation"],
+                "commands": ["linkedreads", "snpindel","inversion", "cnv", "translocation"],
             },
         ]
 }
@@ -212,7 +216,7 @@ click.rich_click.OPTION_GROUPS = {
     ],
     "harpy demultiplex gen1": [
         {
-            "name": "Module Parameters",
+            "name": "Parameters",
             "options": ["--samplesheet"],
         },
         {
@@ -222,7 +226,7 @@ click.rich_click.OPTION_GROUPS = {
     ],
     "harpy qc": [
         {
-            "name": "Module Parameters",
+            "name": "Parameters",
             "options": ["--max-length", "--ignore-adapters", "--extra-params"],
         },
         {
@@ -232,7 +236,7 @@ click.rich_click.OPTION_GROUPS = {
     ],
     "harpy align bwa": [
         {
-            "name": "Module Parameters",
+            "name": "Parameters",
             "options": ["--genome", "--quality-filter", "--molecule-distance", "--extra-params"],
         },
         {
@@ -242,7 +246,7 @@ click.rich_click.OPTION_GROUPS = {
     ],
     "harpy align ema": [
         {
-            "name": "Module Parameters",
+            "name": "Parameters",
             "options": ["--platform", "--whitelist", "--genome", "--quality-filter", "--ema-bins", "--extra-params"],
         },
         {
@@ -252,7 +256,7 @@ click.rich_click.OPTION_GROUPS = {
     ],
     "harpy align minimap": [
         {
-            "name": "Module Parameters",
+            "name": "Parameters",
             "options": ["--genome", "--quality-filter", "--molecule-distance", "--extra-params"],
         },
         {
@@ -262,7 +266,7 @@ click.rich_click.OPTION_GROUPS = {
     ],
     "harpy snp mpileup": [
         {
-            "name": "Module Parameters",
+            "name": "Parameters",
             "options": ["--genome", "--populations", "--ploidy", "--windowsize", "--extra-params"],
         },
         {
@@ -272,7 +276,7 @@ click.rich_click.OPTION_GROUPS = {
     ],
     "harpy snp freebayes": [
         {
-            "name": "Module Parameters",
+            "name": "Parameters",
             "options": ["--genome", "--populations", "--ploidy", "--windowsize", "--extra-params"],
         },
         {
@@ -282,7 +286,7 @@ click.rich_click.OPTION_GROUPS = {
     ],
     "harpy sv leviathan": [
         {
-            "name": "Module Parameters",
+            "name": "Parameters",
             "options": ["--genome", "--populations", "--extra-params"],
         },
         {
@@ -302,7 +306,7 @@ click.rich_click.OPTION_GROUPS = {
     ],
     "harpy impute": [
         {
-            "name": "Module Parameters",
+            "name": "Parameters",
             "options": ["--vcf", "--parameters", "--extra-params", "--vcf-samples"],
         },
         {
@@ -312,12 +316,22 @@ click.rich_click.OPTION_GROUPS = {
     ],
     "harpy phase": [
         {
-            "name": "Module Parameters",
+            "name": "Parameters",
             "options": ["--vcf", "--molecule-distance", "--genome", "--prune-threshold", "--ignore-bx", "--extra-params", "--vcf-samples"],
         },
         {
             "name": "Other Options",
             "options": ["--output-dir", "--threads", "--skipreports", "--snakemake", "--quiet", "--help"],
+        },     
+    ],
+    "harpy simulate linkedreads": [
+        {
+            "name": "Parameters",
+            "options": ["--barcodes", "--read-pairs", "--outer-distance", "--distance-sd", "--molecule-length", "--partitions", "--molecules-per"],
+        },
+        {
+            "name": "Other Options",
+            "options": ["--output-dir", "--threads", "--snakemake", "--quiet", "--help"],
         },     
     ],
     "harpy simulate snpindel": [
