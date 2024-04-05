@@ -12,7 +12,7 @@ pruning           = config["prune"]
 molecule_distance = config["molecule_distance"]
 extra             = config.get("extra", "") 
 outdir 			  = config["output_directory"]
-if config["noBX"]
+if config["noBX"]:
     fragfile = outdir + "/extractHairs/{sample}.unlinked.frags"
 else:
     fragfile =  outdir + "/linkFragments/{sample}.linked.frags"
