@@ -63,7 +63,8 @@ elif testname.endswith("fasta") or testname.endswith("fa") or testname.endswith(
             break
         if line[0] == ">": 
             if c_len == 0:
-                contig = line.rstrip("\n").lstrip(">")
+                # remove newline, > starting symbol, and any comments after name
+                contig = line.rstrip("\n").lstrip(">").split()[0]
                 continue
             else:
                 makewindows(contig, c_len, args.window, outbed)
