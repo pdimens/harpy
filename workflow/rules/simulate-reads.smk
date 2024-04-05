@@ -5,7 +5,7 @@ import glob
 from rich.panel import Panel
 from rich import print as rprint
 
-lrsim_params = "-p " + config["output_dir"] + "/simulations"
+lrsim_params = "-p " + config["output_dir"] + "/sim"
 lrsim_params += " -i " + str(config["outer_distance"])
 lrsim_params += " -s " + str(config["distance_sd"])
 lrsim_params += " -x " + str(config["read_pairs"])
@@ -48,8 +48,8 @@ rule prepare_directory:
         hap1 = gen_hap1,
         hap2 = gen_hap2,
     output:
-        hap1 = f"{outdir}/dwgsim/sim.hap.A.clean.fasta",
-        hap2 = f"{outdir}/dwgsim/sim.hap.B.clean.fasta" 
+        hap1 = f"{outdir}/sim.hap.0.clean.fasta",
+        hap2 = f"{outdir}/sim.hap.1.clean.fasta" 
     message:
         "Fooling LRSIM into a false sense of security"
     shell:
@@ -59,17 +59,29 @@ rule prepare_directory:
         ln -s {input.hap2} {output.hap2}
         """
 
+rule genome_faidx:
+    input:
+        outdir + "/sim.hap.{hap}.clean.fasta"
+    output: 
+        outdir + "/sim.hap.{hap}.clean.fasta.fai"
+    log:
+        outdir + "/logs/.{hap}.clean.fasta"
+    message:
+        "Indexing {input}"
+    shell:
+        "samtools faidx --fai-idx {output} {input} 2> {log}"
+
+
 rule lrsim:
     input:
-        hap1 = gen_hap1,
-        hap2 = gen_hap2,
-        barcodes = 
+        hap1 = f"{outdir}/sim.hap.0.clean.fasta",
+        hap2 = f"{outdir}/sim.hap.1.clean.fasta",
+        expand(outdir + "/sim.hap.{hap}.clean.fasta.fai", hap = [0,1]),
+        barcodes = barcodefile
     output:
-        hap1_F  = outdir + "/{sample}.R1.fq.gz",
-        hap1_R  = outdir + "/{sample}.R2.fq.gz".
-        hap2_F = ,
-        hap2_R = ,
-        expand("output.hap1.fq.gz")
+        expand(outdir + "/sim_S1_L00{hap}_R{fr}_001.fastq.gz", hap = [0,1], fr = [0,1]),
+        expand(outdir + "/sim.{hap}.{ext}", hap = [0,1], ext = ["fp", "manifest", "sort.manifest"]),
+        temp(expand(outdir + "/sim.dwgsim.{hap}.12.fastq", hap = [0,1]))
     log:
         f"{outdir}/logs/LRSIM.log"
     params:
@@ -82,28 +94,26 @@ rule lrsim:
     message:
         f"Running LRSIM to generate linked reads from\nhaplotype 1: {input.hap1}\nhaplotype 2: {input.hap2}" 
     shell: 
-        """
-        {params.lrsim} -g {input.hap1},{input.hap2} {params.runoptions} -z {threads} -o -u 2 > {log}
-        """
+        "{params.lrsim} -g {input.hap1},{input.hap2} {params.runoptions} -z {threads} -o -u 3 > {log}"
 
 rule convert_haplotag:
     input:
-        fw = "hap{num}.R1.fq.gz",
-        rv = "hap{num}.R2.fq.gz",
+        fw = outdir + "/sim_S1_L00{hap}_R1_001.fastq.gz",
+        fw = outdir + "/sim_S1_L00{hap}_R2_001.fastq.gz",
         barcodes = "BARCODE FILE"
     output:
-        fw = "hap{num}_haplotag.R1.fq.gz",
-        rv = "hap{num}_haplotag.R2.fq.gz"
+        fw = "hap{hap}_haplotag.R1.fq.gz",
+        rv = "hap{hap}_haplotag.R2.fq.gz"
     log:
         conversions = outdir + "/workflow/10XtoHaplotag_{num}.txt" 
     message:
         "Converting 10X barcodes to haplotag format"
-    run:
-
+    script:
+        "10xtoBX.py"
 
 rule log_runtime:
     output:
-        outdir + "/workflow/qc.workflow.summary"
+        outdir + "/workflow/simulate.reads.workflow.summary"
     params:
         minlen = f"--length_required {min_len}",
         maxlen = f"--max_len1 {max_len}",
