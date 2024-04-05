@@ -16,8 +16,11 @@ outdir = config["output_dir"]
 gen_hap1 = config["genome_hap1"]
 gen_hap2 = config["genome_hap2"]
 
-#TODO DEAL WITH THIS
 barcodes = config.get("barcodes", None)
+if barcodes:
+    barcodefile = barcodes
+else:
+    barcodefile = f"{outdir}/workflow/input/4M-with-alts-february-2016.txt"
 
 onsuccess:
     print("")
@@ -71,6 +74,18 @@ rule genome_faidx:
     shell:
         "samtools faidx --fai-idx {output} {input} 2> {log}"
 
+if not barcodes:
+    rule download_barcodes:
+        output:
+            barcodefile
+        message:
+            "Downloading list of standard 10X barcodes"
+        run:
+            from urllib.request import urlretrieve
+            _ = urlretrieve(
+                "https://github.com/aquaskyline/LRSIM/blob/master/4M-with-alts-february-2016.txt",
+                output[0]
+            )
 
 rule lrsim:
     input:
@@ -100,7 +115,7 @@ rule convert_haplotag:
     input:
         fw = outdir + "/sim_S1_L00{hap}_R1_001.fastq.gz",
         fw = outdir + "/sim_S1_L00{hap}_R2_001.fastq.gz",
-        barcodes = "BARCODE FILE"
+        barcodes = barcodefile
     output:
         fw = "hap{hap}_haplotag.R1.fq.gz",
         rv = "hap{hap}_haplotag.R2.fq.gz"
@@ -109,7 +124,7 @@ rule convert_haplotag:
     message:
         "Converting 10X barcodes to haplotag format"
     script:
-        "10xtoBX.py"
+        "10xtoHaplotag.py"
 
 rule log_runtime:
     output:
@@ -124,9 +139,13 @@ rule log_runtime:
     run:
         with open(output[0], "w") as f:
             _ = f.write("The harpy simulate reads module ran using these parameters:\n\n")
-            _ = f.write(f"The directory with sequences: {seq_dir}\n")
-            _ = f.write("fastp trimming ran using:\n")
-            _ = f.write("    fastp --trim_poly_g --cut_right " + " ".join(params) + "\n")
+            _ = f.write(f"Genome haplotype 1: {gen_hap1}\n")
+            _ = f.write(f"Genome haplotype 2: {gen_hap2}\n")
+            _ = f.write(f"Barcode file: {barcodefile}\n")
+            _ = f.write("LRSIM was started from step 3 (-u 3) with these parameters:\n")
+            _ = f.write("    " + f"LRSIM.pl -g genome1,genome2 -o -u 3 {lrsim_params}\n")
+            _ = f.write("10X style barcodes were converted in haplotag BX:Z tags using:\n")
+            _ = f.write("    " + f"10xtoHaplotag.py")
             _ = f.write("\nThe Snakemake workflow was called via command line:\n")
             _ = f.write("    " + str(config["workflow_call"]) + "\n")
 

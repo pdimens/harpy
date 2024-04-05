@@ -4,23 +4,6 @@ import rich_click as click
 import subprocess
 import os
 import sys
-"""
-    Reference genome and variants:
-    -i INT      Outer distance between the two ends for pairs [350] XX
-    -s INT      Standard deviation of the distance for pairs [35] XX
-    -b STRING   Barcode list                                      XX
-    -x INT      # million reads pairs in total to simulated [600] XX
-    -f INT      Mean molecule length in kbp [100]                 XX
-    -t INT      n*1000 partitions to generate [1500]              XX
-    -m INT      Average # of molecules per partition [10]         XX
-    
-    -1 INT      1 SNP per INT base pairs [1000]
-    -z INT      # of threads to run DWGSIM [8]
-    -g STRING   Haploid FASTAs separated by comma. Overrides -r and -d.
-    -d INT      Haplotypes to simulate [2]
-    -o          Disable parameter checking
-    -u 2
-"""
 
 @click.command(no_args_is_help = True, epilog = "read the docs for more information: https://pdimens.github.io/harpy/modules/simulate")
 @click.option('-d', '--outer-distance', type = int, default = 350, show_default= True, help = "Outer distance between paired-end reads (bp)")
@@ -41,7 +24,57 @@ def reads(genome_hap1, genome_hap2, output_dir, outer_distance, insert_sd, barco
     """
     Create linked reads from a genome
  
-   
+    If not providing a text file of `--barcodes` to use for the simulated linked reads, Harpy will
+    download the `4M-with-alts-february-2016.txt` file containing the standard 10X barcodes, which
+    is available from 10X genomics and the LRSIM [GitHub repository](https://github.com/aquaskyline/LRSIM/).  
     """
+    output_dir = output_dir.rstrip("/")
+    workflowdir = f"{output_dir}/workflow"
+    command = f'snakemake --rerun-incomplete --nolock  --software-deployment-method conda --conda-prefix ./.snakemake/conda --cores {threads} --directory .'.split()
+    command.append('--snakefile')
+    command.append(f'{workflowdir}/simualate-reads.smk')
+    command.append('--configfile')
+    command.append(f'{workflowdir}/config.yml')
+    if quiet:
+        command.append("--quiet")
+        command.append("all")
+    if snakemake is not None:
+        [command.append(i) for i in snakemake.split()]
+    call_SM = " ".join(command)
+    if print_only:
+        click.echo(call_SM)
+        exit(0)
 
+    validate_input_by_ext(genome_hap1, "GENOME_HAP1", [".fasta", ".fa", ".fasta.gz", ".fa.gz"])
+    validate_input_by_ext(genome_hap2, "GENOME_HAP2", [".fasta", ".fa", ".fasta.gz", ".fa.gz"])
+
+    os.makedirs(f"{workflowdir}/", exist_ok= True)
+    fetch_file("simulate-reads.smk", f"{workflowdir}/")
+    fetch_file("10xtoBX.py", f"{workflowdir}/scripts/")
+    fetch_file("LRSIM.pl", f"{workflowdir}/scripts/")
+    fetch_file("faFilter.pl", f"{workflowdir}/scripts/")
+    with open(f"{workflowdir}/config.yml", "w") as config:
+        config.write(f"genome_hap1: {genome_hap1}\n")
+        config.write(f"genome_hap2: {genome_hap2}\n")
+        config.write(f"output_directory: {output_dir}\n")
+        if barcodes:
+            config.write(f"barcodes: {barcodes}\n")
+        config.write(f"outer_distance: {outer_distance}\n")
+        config.write(f"insert_sd: {insert_sd}\n")
+        config.write(f"barcodes: {barcodes}\n")
+        config.write(f"read_pairs: {read_pairs}\n")
+        config.write(f"molecule_length: {molecule_length}\n")
+        config.write(f"partitions: {partitions}\n")
+        config.write(f"molecules_per: {molecules_per}\n")
+        config.write(f"workflow_call: {call_SM}\n")
+
+    generate_conda_deps()
+    onstart_text = f"Genome Haplotype 1: {os.path.basename(genome_hap1)}\n"
+    onstart_text += f"Genome Haplotype 2: {os.path.basename(genome_hap2)}\n"
+    onstart_text += f"Barcodes: {os.path.basename(barcodes)}\n" if barcodes else "Barcodes: 10X Default\n"
+    onstart_text += f"Output Directory: {output_dir}/"
+    print_onstart(onstart_text, "simulate reads")
+    
+    _module = subprocess.run(command)
+    sys.exit(_module.returncode)
 
