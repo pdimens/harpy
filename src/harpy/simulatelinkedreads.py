@@ -8,7 +8,7 @@ import sys
 @click.command(no_args_is_help = True, epilog = "read the docs for more information: https://pdimens.github.io/harpy/modules/simulate")
 @click.option('-d', '--outer-distance', type = int, default = 350, show_default= True, help = "Outer distance between paired-end reads (bp)")
 @click.option('-i', '--distance-sd', type = int, default = 15, show_default=True, help = "Standard deviation of read-pair distance")
-@click.option('-b', '--barcodes', type = click.Path(exists=True), help = "File of linked-read barcodes")
+@click.option('-b', '--barcodes', type = click.Path(exists=True, dir_okay=False), help = "File of linked-read barcodes")
 @click.option('-n', '--read-pairs', type = int, default = 600, show_default=True, help = "Number of read pairs to simulate, in millions")
 @click.option('-l', '--molecule-length', type = int, default = 100, show_default=True, help = "Mean molecule length (kbp)")
 @click.option('-p', '--partitions', type = int, default=1500, show_default=True, help = "How many partitions to generate (×1000)")
@@ -18,8 +18,8 @@ import sys
 @click.option('-q', '--quiet',  is_flag = True, show_default = True, default = False, help = 'Don\'t show output text while running')
 @click.option('--print-only',  is_flag = True, hidden = True, show_default = True, default = False, help = 'Print the generated snakemake command and exit')
 @click.option('-o', '--output-dir', type = str, default = "Simulate/linkedreads", help = 'Name of output directory')
-@click.argument('genome_hap1', required=True, type=click.Path(exists=True), nargs=1)
-@click.argument('genome_hap2', required=True, type=click.Path(exists=True), nargs=1)
+@click.argument('genome_hap1', required=True, type=click.Path(exists=True, dir_okay=False), nargs=1)
+@click.argument('genome_hap2', required=True, type=click.Path(exists=True, dir_okay=False), nargs=1)
 def reads(genome_hap1, genome_hap2, output_dir, outer_distance, insert_sd, barcodes, read_pairs, molecule_length, partitions, molecules_per, threads, snakemake, quiet, print_only):
     """
     Create linked reads from a genome
