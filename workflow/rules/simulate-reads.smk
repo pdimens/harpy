@@ -85,12 +85,10 @@ rule genome_faidx:
         outdir + "/workflow/input/sim.hap.{hap}.fasta"
     output: 
         outdir + "/workflow/input/sim.hap.{hap}.fasta.fai"
-    log:
-        outdir + "/logs/.{hap}.clean.fasta"
     message:
         "Indexing {input}"
     shell:
-        "samtools faidx --fai-idx {output} {input} 2> {log}"
+        "samtools faidx --fai-idx {output} {input}"
 
 if not barcodes:
     rule download_barcodes:
