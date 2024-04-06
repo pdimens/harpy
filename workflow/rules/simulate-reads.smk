@@ -2,6 +2,8 @@ import os
 import re
 import sys
 import glob
+import gzip
+from pathlib import Path
 from rich.panel import Panel
 from rich import print as rprint
 
@@ -46,27 +48,43 @@ onerror:
         file = sys.stderr
     )
 
-rule prepare_directory:
+rule genome1_link:
     input:
-        hap1 = gen_hap1,
-        hap2 = gen_hap2,
-    output:
-        hap1 = f"{outdir}/sim.hap.0.clean.fasta",
-        hap2 = f"{outdir}/sim.hap.1.clean.fasta" 
-    message:
-        "Fooling LRSIM into a false sense of security"
-    shell:
-        """
-        mkdir -p dwgsim
-        ln -s {input.hap1} {output.hap1}
-        ln -s {input.hap2} {output.hap2}
-        """
+        gen_hap1
+    output: 
+        f"{outdir}/workflow/input/sim.hap.0.fasta"
+    message: 
+        "Decompressing {input}" if gen_hap1.lower().endswith("gz") else "Symlinking {input}"
+    run:
+        if input[0].lower().endswith("gz"):
+            with open(input[0], 'rb') as inf, open(output[0], 'w', encoding='utf8') as outf:
+                decom_str = gzip.decompress(inf.read()).decode('utf-8')
+                outf.write(decom_str)        
+        else:
+            if not (Path(output[0]).is_symlink() or Path(output[0]).exists()):
+                Path(output[0]).symlink_to(Path(input[0]).absolute()) 
+
+rule genome2_link:
+    input:
+        gen_hap2
+    output: 
+        f"{outdir}/workflow/input/sim.hap.1.fasta"
+    message: 
+        "Decompressing {input}" if gen_hap2.lower().endswith("gz") else "Symlinking {input}"
+    run:
+        if input[0].lower().endswith("gz"):
+            with open(input[0], 'rb') as inf, open(output[0], 'w', encoding='utf8') as outf:
+                decom_str = gzip.decompress(inf.read()).decode('utf-8')
+                outf.write(decom_str)        
+        else:
+            if not (Path(output[0]).is_symlink() or Path(output[0]).exists()):
+                Path(output[0]).symlink_to(Path(input[0]).absolute()) 
 
 rule genome_faidx:
     input:
-        outdir + "/sim.hap.{hap}.clean.fasta"
+        outdir + "/workflow/input/sim.hap.{hap}.fasta"
     output: 
-        outdir + "/sim.hap.{hap}.clean.fasta.fai"
+        outdir + "/workflow/input/sim.hap.{hap}.fasta.fai"
     log:
         outdir + "/logs/.{hap}.clean.fasta"
     message:
@@ -82,39 +100,56 @@ if not barcodes:
             "Downloading list of standard 10X barcodes"
         run:
             from urllib.request import urlretrieve
-            _ = urlretrieve(
-                "https://github.com/aquaskyline/LRSIM/blob/master/4M-with-alts-february-2016.txt",
-                output[0]
-            )
+            _ = urlretrieve("https://raw.githubusercontent.com/aquaskyline/LRSIM/master/4M-with-alts-february-2016.txt", output[0])
 
-rule move_extractreads_bin:
+rule create_molecules_hap1:
+    input:
+        f"{outdir}/workflow/input/sim.hap.0.fasta"
     output:
-        f"{outdir}/workflow/scripts/extractReads"
+        outdir + "/dwgsim.0.12.fastq",
+        temp(multiext(f"{outdir}/dwgsim.0.mutations", ".txt", ".vcf")), 
+    log:
+        outdir + "/logs/dwgsim.hap0.log"
+    params:
+        readpairs = config["read_pairs"] * 5000000,
+        outerdist = config["outer_distance"],
+        distsd = config["distance_sd"],
+        prefix = f"{outdir}/dwgsim.0"
     conda:
         os.getcwd() + "/.harpy_envs/simulations.yaml"
     message:
-        "Moving extractReads into the simulations conda env"
+        "Creating reads from {input}"
     shell:
         """
-        cp -f $(which extractReads) ${CONDA_PREFIX}/bin/
-        ln -nsfr $(which extractReads) {output}
-        """    
+        dwgsim -N {params.readpairs} -e 0.0001,0.0016 -E 0.0001,0.0016 -d {params.outerdist} -s {params.distsd} -1 135 -2 151 -H -y 0 -S 0 -c 0 -R 0 -r 0 -F 0 -o 2 -m /dev/null {input} {params.prefix} 2> {log}
+        """
+
+use rule create_molecules_hap1 as create_molecules_hap2 with:
+    input:
+        f"{outdir}/workflow/input/sim.hap.1.fasta"
+    output:
+        outdir + "/dwgsim.1.12.fastq"
+    log:
+        outdir + "/logs/dwgsim.hap1.log"
+    params:
+        readpairs = config["read_pairs"] * 5000000,
+        outerdist = config["outer_distance"],
+        distsd = config["distance_sd"],
+        prefix = f"{outdir}/dwgsim.1"
 
 rule lrsim:
+    default_target: True
     input:
-        hap1 = f"{outdir}/sim.hap.0.clean.fasta",
-        hap2 = f"{outdir}/sim.hap.1.clean.fasta",
-        fai = expand(outdir + "/sim.hap.{hap}.clean.fasta.fai", hap = [0,1]),
-        barcodes = barcodefile,
-        extract_bin = f"{outdir}/workflow/scripts/extractReads"
+        hap1 = f"{outdir}/dwgsim.0.12.fastq",
+        hap2 = f"{outdir}/dwgsim.1.12.fastq",
+        fai = expand(outdir + "/workflow/input/sim.hap.{hap}.fasta.fai", hap = [0,1]),
+        barcodes = barcodefile
     output:
-        expand(outdir + "/sim_S1_L00{hap}_R{fr}_001.fastq.gz", hap = [0,1], fr = [0,1]),
-        expand(outdir + "/sim.{hap}.{ext}", hap = [0,1], ext = ["fp", "manifest", "sort.manifest"]),
-        temp(expand(outdir + "/sim.dwgsim.{hap}.12.fastq", hap = [0,1]))
+        expand(outdir + "/sim.{hap}.{ext}", hap = [0,1], ext = ["fp", "manifest"])
     log:
         f"{outdir}/logs/LRSIM.log"
     params:
-        lrsim = f"{outdir}/workflow/scripts/LRSIM.pl",
+        lrsim = f"{outdir}/workflow/scripts/LRSIMtiny.pl",
         runoptions = lrsim_params
     threads:
         workflow.cores
@@ -123,25 +158,49 @@ rule lrsim:
     message:
         "Running LRSIM to generate linked reads from\nhaplotype 1: {input.hap1}\nhaplotype 2: {input.hap2}" 
     shell: 
-        "{params.lrsim} -g {input.hap1},{input.hap2} {params.runoptions} -z {threads} -o -u 3 > {log}"
+        "{params.lrsim} -g {input.hap1},{input.hap2} {params.runoptions} -z {threads} -o -u 4 > {log}"
 
+rule sort_manifest:
+    input:
+        outdir + "/sim.{hap}.manifest"
+    output:
+        outdir + "/sim.{hap}.sort.manifest"
+    shell:
+        "msort -kn1 {input} > {output}"
+
+rule extract_reads:
+    input:
+        manifest = outdir + "/sim.{hap}.sort.manifest",
+        dwg_hap = outdir + "/dwgsim/hap{hap}.12.fastq"
+    output:
+        outdir + "/sim_hap{hap}_R1_001.fastq.gz",
+        outdir + "/sim_hap{hap}_R2_001.fastq.gz"
+    params:
+        prefix = lambda wc: outdir + "/sim_hap" + wc.get("hap")
+    shell:
+        "extractReads {input} {output}"
+
+#TODO adjust python script to be not-snakemake inputs
+# add outdir to args
 rule convert_haplotag:
     input:
-        fw = outdir + "/sim_S1_L00{hap}_R1_001.fastq.gz",
-        rv = outdir + "/sim_S1_L00{hap}_R2_001.fastq.gz",
+        fw = outdir + "/sim_hap{hap}_R1_001.fastq.gz",
+        rv = outdir + "/sim_hap{hap}_R2_001.fastq.gz",
         barcodes = barcodefile
     output:
-        fw =outdir + "/hap{hap}_haplotag.R1.fq.gz",
-        rv =outdir + "/hap{hap}_haplotag.R2.fq.gz"
+        fw = outdir + "/sim_hap{hap}_haplotag.R1.fq.gz",
+        rv = outdir + "/sim_hap{hap}_haplotag.R2.fq.gz"
+    params:
+        outdir
     log:
-        conversions = outdir + "/workflow/10XtoHaplotag_{hap}.txt" 
+        outdir + "/workflow/10XtoHaplotag_{hap}.txt" 
     message:
         "Converting 10X barcodes to haplotag format"
-    script:
-        "10xtoHaplotag.py"
+    shell:
+        "10xtoHaplotag.py {input} {outdir}"
 
 rule log_workflow:
-    default_target: True
+    #default_target: True
     input:
         expand(outdir + "/hap{hap}_haplotag.R{fw}.fq.gz", hap = [1,2], fw = [1,2])
     output:
