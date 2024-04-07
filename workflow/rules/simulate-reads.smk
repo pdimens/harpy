@@ -10,7 +10,7 @@ from rich.panel import Panel
 from rich import print as rprint
 
 outdir = config["output_directory"]
-lrsim_params = f"-p {outdir}/sim"
+lrsim_params = f"-o 1 -d 2 -u 4 -p {outdir}/sim"
 lrsim_params += " -i " + str(config["outer_distance"])
 lrsim_params += " -s " + str(config["distance_sd"])
 lrsim_params += " -x " + str(config["read_pairs"])
@@ -51,7 +51,6 @@ onerror:
             ),
         file = sys.stderr
     )
-
 
 rule genome1_link:
     input:
@@ -159,7 +158,7 @@ rule lrsim:
     message:
         "Running LRSIM to generate linked reads from\nhaplotype 1: {input.hap1}\nhaplotype 2: {input.hap2}" 
     shell: 
-        "perl {params.lrsim} -r {params.proj_dir} -g {input.hap1},{input.hap2} -b {input.barcodes} {params.runoptions} -z {threads} -o -u 4 2> {log}"
+        "perl {params.lrsim} -r {params.proj_dir} -g {input.hap1},{input.hap2} -b {input.barcodes} {params.runoptions} -z {threads} 2> {log}"
 
 rule sort_manifest:
     input:

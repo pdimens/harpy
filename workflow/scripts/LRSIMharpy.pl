@@ -621,10 +621,7 @@ sub main {
         our @fragmentSizesList = ();
         our $sizesCount        = 0;
         our $readsPerMolecule =
-          int( 0.499 + ( $opts{x} * 1000 * 1000 ) /
-              ( $opts{t} * 1000 / $opts{d} ) /
-              $opts{m} /
-              $opts{d} );
+          int( 0.499 + ( $opts{x} * 1000000 ) / ( $opts{t} * 1000 / $opts{d} ) / $opts{m} / $opts{d} );
         &Log("readPairsPerMolecule: $readsPerMolecule");
 
         # For every Haplotype
@@ -712,7 +709,7 @@ sub main {
               or &LogAndDie("Error opening $opts{p}.$i.manifest");
             ++$fnToBeUnlinkAtExit{"$opts{p}.$i.manifest"};
 
-            my $readsCountDown = int( $opts{x} * 1000 * 1000 / $opts{d} );
+            my $readsCountDown = int( $opts{x} * 1000000 / $opts{d} );
             &Log("readsCountDown: $readsCountDown");
 
             while ( $readsCountDown > 0 ) {
