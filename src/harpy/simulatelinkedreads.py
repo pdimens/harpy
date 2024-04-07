@@ -52,7 +52,7 @@ def linkedreads(genome_hap1, genome_hap2, output_dir, outer_distance, distance_s
     os.makedirs(f"{workflowdir}/", exist_ok= True)
     fetch_file("simulate-reads.smk", f"{workflowdir}/")
     fetch_file("10xtoHaplotag.py", f"{workflowdir}/scripts/")
-    fetch_file("LRSIM.pl", f"{workflowdir}/scripts/")
+    fetch_file("LRSIMharpy.pl", f"{workflowdir}/scripts/")
     fetch_file("faFilter.pl", f"{workflowdir}/scripts/")
     with open(f"{workflowdir}/config.yml", "w") as config:
         config.write(f"genome_hap1: {genome_hap1}\n")

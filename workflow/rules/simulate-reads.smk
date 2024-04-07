@@ -3,7 +3,9 @@ import re
 import sys
 import glob
 import gzip
+import shutil
 from pathlib import Path
+
 from rich.panel import Panel
 from rich import print as rprint
 
@@ -25,6 +27,7 @@ else:
     barcodefile = f"{outdir}/workflow/input/4M-with-alts-february-2016.txt"
 
 onsuccess:
+    shutil.rmtree('./_Inline', ignore_errors=True)
     print("")
     rprint(
         Panel(
@@ -37,6 +40,7 @@ onsuccess:
     )
 
 onerror:
+    shutil.rmtree('./_Inline', ignore_errors=True)
     print("")
     rprint(
         Panel(
@@ -48,11 +52,12 @@ onerror:
         file = sys.stderr
     )
 
+
 rule genome1_link:
     input:
         gen_hap1
     output: 
-        f"{outdir}/workflow/input/sim.hap.0.fasta"
+        f"{outdir}/workflow/input/hap.0.fasta"
     message: 
         "Decompressing {input}" if gen_hap1.lower().endswith("gz") else "Symlinking {input}"
     run:
@@ -68,7 +73,7 @@ rule genome2_link:
     input:
         gen_hap2
     output: 
-        f"{outdir}/workflow/input/sim.hap.1.fasta"
+        f"{outdir}/workflow/input/hap.1.fasta"
     message: 
         "Decompressing {input}" if gen_hap2.lower().endswith("gz") else "Symlinking {input}"
     run:
@@ -82,11 +87,11 @@ rule genome2_link:
 
 rule genome_faidx:
     input:
-        outdir + "/workflow/input/sim.hap.{hap}.fasta"
+        outdir + "/workflow/input/hap.{hap}.fasta"
     output: 
-        outdir + "/workflow/input/sim.hap.{hap}.fasta.fai"
+        outdir + "/workflow/input/hap.{hap}.fasta.fai"
     message:
-        "Indexing {input}"
+        "Indexing haplotype {wildcards.hap}"
     shell:
         "samtools faidx --fai-idx {output} {input}"
 
@@ -102,52 +107,50 @@ if not barcodes:
 
 rule create_molecules_hap1:
     input:
-        f"{outdir}/workflow/input/sim.hap.0.fasta"
+        outdir + "/workflow/input/hap.{hap}.fasta"
     output:
-        outdir + "/dwgsim.0.12.fastq",
-        temp(multiext(f"{outdir}/dwgsim.0.mutations", ".txt", ".vcf")), 
+        temp(multiext(outdir + "/dwgsim.{hap}.12", ".bwa.read1.fastq.gz" ,".bwa.read2.fastq.gz", ".mutations.txt", ".mutations.vcf"))
     log:
-        outdir + "/logs/dwgsim.hap0.log"
+        outdir + "/logs/dwgsim.hap.{hap}.log"
     params:
-        readpairs = config["read_pairs"] * 5000000,
+        readpairs = config["read_pairs"] * 500000,
         outerdist = config["outer_distance"],
         distsd = config["distance_sd"],
-        prefix = f"{outdir}/dwgsim.0"
+        prefix = lambda wc: outdir + "/dwgsim." + wc.get("hap") + ".12"
     conda:
         os.getcwd() + "/.harpy_envs/simulations.yaml"
     message:
         "Creating reads from {input}"
     shell:
         """
-        dwgsim -N {params.readpairs} -e 0.0001,0.0016 -E 0.0001,0.0016 -d {params.outerdist} -s {params.distsd} -1 135 -2 151 -H -y 0 -S 0 -c 0 -R 0 -r 0 -F 0 -o 2 -m /dev/null {input} {params.prefix} 2> {log}
+        dwgsim -N {params.readpairs} -e 0.0001,0.0016 -E 0.0001,0.0016 -d {params.outerdist} -s {params.distsd} -1 135 -2 151 -H -y 0 -S 0 -c 0 -R 0 -r 0 -F 0 -o 1 -m /dev/null {input} {params.prefix} 2> {log}
         """
 
-use rule create_molecules_hap1 as create_molecules_hap2 with:
+rule interleave_dwgsim_output:
     input:
-        f"{outdir}/workflow/input/sim.hap.1.fasta"
+        expand(outdir + "/dwgsim.{{hap}}.12.bwa.read{rd}.fastq.gz", rd = [1,2]) 
     output:
-        outdir + "/dwgsim.1.12.fastq"
-    log:
-        outdir + "/logs/dwgsim.hap1.log"
-    params:
-        readpairs = config["read_pairs"] * 5000000,
-        outerdist = config["outer_distance"],
-        distsd = config["distance_sd"],
-        prefix = f"{outdir}/dwgsim.1"
+        outdir + "/dwgsim.{hap}.12.fastq"
+    message:
+        "Decompressing DWGSIM haplotype {wildcards.hap} output"
+    shell:
+        "seqtk mergepe {input} > {output}"
 
 rule lrsim:
     default_target: True
     input:
         hap1 = f"{outdir}/dwgsim.0.12.fastq",
         hap2 = f"{outdir}/dwgsim.1.12.fastq",
-        fai = expand(outdir + "/workflow/input/sim.hap.{hap}.fasta.fai", hap = [0,1]),
+        fai1 = outdir + "/workflow/input/hap.0.fasta.fai",
+        fai2 = outdir + "/workflow/input/hap.1.fasta.fai",
         barcodes = barcodefile
     output:
         expand(outdir + "/sim.{hap}.{ext}", hap = [0,1], ext = ["fp", "manifest"])
     log:
         f"{outdir}/logs/LRSIM.log"
     params:
-        lrsim = f"{outdir}/workflow/scripts/LRSIMtiny.pl",
+        lrsim = f"{outdir}/workflow/scripts/LRSIMharpy.pl",
+        proj_dir = outdir,
         runoptions = lrsim_params
     threads:
         workflow.cores
@@ -156,7 +159,7 @@ rule lrsim:
     message:
         "Running LRSIM to generate linked reads from\nhaplotype 1: {input.hap1}\nhaplotype 2: {input.hap2}" 
     shell: 
-        "{params.lrsim} -g {input.hap1},{input.hap2} {params.runoptions} -z {threads} -o -u 4 > {log}"
+        "perl {params.lrsim} -r {params.proj_dir} -g {input.hap1},{input.hap2} -b {input.barcodes} {params.runoptions} -z {threads} -o -u 4 2> {log}"
 
 rule sort_manifest:
     input:

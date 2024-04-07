@@ -1,4 +1,3 @@
-#!/usr/bin/perl
 use File::Basename;
 use strict;
 use warnings;
@@ -13,6 +12,8 @@ use Math::Random qw(random_poisson random_uniform_integer);
 use Inline 'C';
 
 # Check dependencies
+my %fnToBeUnlinkAtExit = ();
+
 &main;
 0;
 
@@ -26,7 +27,7 @@ sub main {
         r => undef,
         p => undef,
         c => undef,
-        b => "$absPath/4M-with-alts-february-2016.txt",
+        b => undef,
         u => 99,
         e => "0.0001,0.0016",
         E => "0.0001,0.0016",
@@ -643,9 +644,9 @@ sub main {
             my %faidx                 = ();
             my @boundary              = ();
             my $genomeSize =
-              &LoadFaidx( \%faidx, \@boundary, "$opts{p}.hap.$i.fasta" );
+              &LoadFaidx( \%faidx, \@boundary, "$opts{r}/workflow/input/hap.$i.fasta" );
             &LogAndDie(
-                "Failed loading genome index $opts{p}.hap.$i.fasta.fai")
+                "Failed loading genome index $opts{r}/workflow/input/hap.$i.fasta.fai")
               if ( $genomeSize == 0 );
             my $readPositionsInFile = mallocAry($genomeSize);
             initAryFF( $readPositionsInFile, $genomeSize );
@@ -657,8 +658,8 @@ sub main {
                 &Log("Imported $opts{p}.$i.fp");
             }
             else {
-                open my $fh, "$opts{p}/dwgsim.$i.12.fastq"
-                  or &LogAndDie("Error opening $opts{p}/dwgsim.$i.12.fastq");
+                open my $fh, "$opts{r}/dwgsim.$i.12.fastq"
+                  or &LogAndDie("Error opening $opts{r}/dwgsim.$i.12.fastq");
                 my $l1;
                 my $l2;
                 my $l3;
@@ -682,10 +683,8 @@ sub main {
                     $l7      = <$fh>;
                     $l8      = <$fh>;
                     $newFpos = tell($fh);
-
-                    unless ( $l1 =~
-/@(\S+)_(\d+)_\d+_\d_\d_\d_\d_\d+:\d+:\d+_\d+:\d+:\d+_\S+\/1/
-                      )
+#TODO THIS REGEX WAS UPDATED IN DWGSIM AT SOME POINT, FIX IT
+                    unless ( $l1 =~ /@(\S+)_(\d+)_\d+_\d_\d_\d_\d_\d+:\d+:\d+_\d+:\d+:\d+_\S+\/1/)
                     {
                         &LogAndDie(
 "Cannot find correct chromosome and position in $l1."
@@ -867,6 +866,7 @@ sub usage {
     Usage:   $0 -r\/-g <reference\/haplotypes> -p <output prefix> [options]
 
     Reference genome and variants:
+    -r STRING   Name out output project directory
     -g STRING   Haploid FASTAs separated by comma. Overrides -r and -d.
 
     Illumina reads characteristics:
