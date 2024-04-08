@@ -162,7 +162,6 @@ p <- tb %>% filter(valid == "valid BX", length_inferred > 500) %>%
     scale_x_continuous(labels = scales::comma) +
     theme(panel.grid.minor.y = element_blank())
 ggplotly(p)
-
 ```
 
 ## Interpreting the supporting data
