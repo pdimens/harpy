@@ -151,19 +151,18 @@ alignments associated with a single haplotag barcode on a given contig.
 ## Inferred
 ### Inferred molecule Lengths
 ```{r echo = FALSE, message = FALSE, warning = FALSE, out.width = '100%'}
-p <- tb %>% filter(valid == "valid BX", length_inferred > 10) %>%
-    ggplot(aes(x = length_inferred)) +
-        geom_histogram(binwidth = 2500, fill = "#70a7d9", boundary = 0.5) + #, color = "white") +
-        labs(title = "Inferred Haplotagged Molecule Lengths", subtitle = samplename) +
-        xlab("Inferred Length of Molecule (2,500 bp bins)") +
-        ylab("Number of occurrences") +
-        theme_light() +
-        scale_y_continuous(labels = scales::comma) +
-        scale_x_continuous(labels = scales::comma) +
-        theme(
-            panel.grid.minor.y = element_blank(),
-        )
+p <- tb %>% filter(valid == "valid BX", length_inferred > 500) %>%
+  arrange(length_inferred) %>% mutate(percent = 100/n() * 1:n()) %>%
+  ggplot(d, aes(x = length_inferred, y = percent)) +
+    geom_line(color = "#3b658d", linewidth = 2) +
+    labs(title = "Inferred Haplotagged Molecule Lengths", subtitle = samplename) +
+    xlab("Inferred Molecule Length (bp)") +
+    ylab("% of Molecules (>500bp)") +
+    theme_light() +
+    scale_x_continuous(labels = scales::comma) +
+    theme(panel.grid.minor.y = element_blank())
 ggplotly(p)
+
 ```
 
 ## Interpreting the supporting data
