@@ -201,7 +201,7 @@ It's common for a barcode shared by reads not originating from the same molecule
 to reappear much further along a chromosome or across multiple chromosomes. The 
 process that derives the data in this report separates those recurring barcodes
 as unique molecules when their distance is greater than a predetermined threshold. 
-If aligned with `BWA`, Harpy added a corresponding `MI:i:` (Molecular Identifier) tag
-that reflects splits given the molecule distance threshold you specified (`r mdist`).
-If aligned with `EMA`, the `EMA` software itself determines the splits and assigns
- the `MI:i` tag without user specification.
+If aligned with `BWA` or `minimap2`, Harpy added a corresponding `MI:i:` (Molecular
+Identifier) tag that reflects splits given the molecule distance threshold you
+specified (`r mdist`). If aligned with `EMA`, the `EMA` software itself 
+determines the splits and assigns the `MI:i` tag without user specification.
