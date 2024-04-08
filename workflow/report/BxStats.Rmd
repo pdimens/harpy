@@ -144,7 +144,7 @@ ggplotly(p)
 ## inferred-header
 ### inferred desc {.no-title}
 <h2> Inferred Molecule Lengths </h2>
-The chart below shows the distribution of molecule lengths (in 2500bp bins) 
+The chart below shows the cumulative frequency distribution of molecule lengths 
 inferred from the first and last alignment positions along a contig for all
 alignments associated with a single haplotag barcode on a given contig.
 
