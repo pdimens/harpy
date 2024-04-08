@@ -183,7 +183,7 @@ by Harpy using the included `bxStats.py` script.
 - `end`: the end position of the last alignment for that barcode on that contig 
 - `length_inferred`: inferred length of the molecule based on the start/end of the alignments with that barcode 
 - `aligned_bp`: number of total bp aligned for that barcode 
-- `mindist`: the minimum basepair distance between two alignments sharing a barcode (excluding read pairs)
+- `mindist`: the minimum basepair distance between two alignments sharing a barcode (excluding read pairs, kind of a sanity check)
 
 ## Interpreting this report
 ### Barcode validity {.no-title}
