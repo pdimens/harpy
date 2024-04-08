@@ -6,12 +6,18 @@ parser = argparse.ArgumentParser(
     prog='makewindows.py',
     description='Create a BED file of fixed intervals from a fasta.fai file (generated with samtools faidx). Nearly identical to bedtools makewindows, except the intervals are nonoverlapping.'
     )
-parser.add_argument("-i", dest = "infile", required = True, type=str, metavar = "<input.fasta.fai>", help="input fasta.fai file")
+parser.add_argument("-i", dest = "infile", required = True, type=str, metavar = "<input.fasta|fai>", help="input fasta or fasta.fai file")
 parser.add_argument("-o", dest = "outfile", required = True, type=str, metavar = "<output.bed>", help="output BED file name")
 parser.add_argument("-w", dest = "window", type=int, metavar = "<window_size>", default = "10000", help="interval size (default: %(default)s)")
 args = parser.parse_args()
 testname = args.infile.lower()
 outbed = open(args.outfile, "w")
+
+def readinput(infile, filestream):
+    if infile.endswith("gz"):
+        return filestream.readline().decode()
+    else:
+        return filestream.readline()
 
 def makewindows(contig, c_len, windowsize, outfile):
     start = 1
@@ -49,28 +55,28 @@ elif testname.endswith("fasta") or testname.endswith("fa") or testname.endswith(
         fopen = gzip.open(args.infile, "r")
     else:
         fopen = open(args.infile, "r")
-    c_len=0
-    contig = ""
+    line = readinput(testname, fopen)
     while True:
-        # Get next line from file
-        if testname.endswith("gz"):
-            line = fopen.readline().decode()
-        else:
-            line = fopen.readline()
-        # if line is empty
-        # end of file is reached
+        c_len=0
         if not line:
             break
-        if line[0] == ">": 
-            if c_len == 0:
-                # remove newline, > starting symbol, and any comments after name
-                contig = line.rstrip("\n").lstrip(">").split()[0]
-                continue
-            else:
-                makewindows(contig, c_len, args.window, outbed)
-                c_len = 0
-                continue
-        c_len += len(line)-1
+        if line.startswith(">"):
+            # remove newline, > starting symbol, and any comments after name
+            contig = line.rstrip("\n").lstrip(">").split()[0]
+            # keep reading until hitting another ">"
+            header = False
+            while not header:
+                line = readinput(testname, fopen)
+                if not line:
+                    break
+                line = line.rstrip("\n")
+                if line.startswith(">"):
+                    header = True
+                    break
+                else:
+                    c_len += len(line)-1
+                    header = False
+            makewindows(contig, c_len, args.window, outbed)
     outbed.close()
     fopen.close()
 else:
