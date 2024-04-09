@@ -242,7 +242,7 @@ rule bxstats_report:
     conda:
         os.getcwd() + "/.harpy_envs/r-env.yaml"
     message: 
-        "Generating summary of barcode alignment: {wildcards.sample}"
+        "Summarizing barcoded alignments: {wildcards.sample}"
     script:
         "report/BxStats.Rmd"
 
@@ -273,7 +273,7 @@ rule alignment_bxstats:
     conda:
         os.getcwd() + "/.harpy_envs/qc.yaml"
     message:
-        "Calculating barcode alignment statistics: {wildcards.sample}"
+        "Calculating barcoded alignment statistics: {wildcards.sample}"
     script:
         "scripts/bxStats.py"
 

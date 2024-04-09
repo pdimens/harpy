@@ -153,7 +153,7 @@ alignments associated with a single haplotag barcode on a given contig.
 ```{r echo = FALSE, message = FALSE, warning = FALSE, out.width = '100%'}
 p <- tb %>% filter(valid == "valid BX", length_inferred > 500) %>%
   arrange(length_inferred) %>% mutate(percent = 100/n() * 1:n()) %>%
-  ggplot(d, aes(x = length_inferred, y = percent)) +
+  ggplot(aes(x = length_inferred, y = percent)) +
     geom_line(color = "#3b658d", linewidth = 2) +
     labs(title = "Inferred Haplotagged Molecule Lengths", subtitle = samplename) +
     xlab("Inferred Molecule Length (bp)") +

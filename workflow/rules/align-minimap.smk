@@ -240,7 +240,7 @@ rule bxstats_report:
     conda:
         os.getcwd() + "/.harpy_envs/r-env.yaml"
     message: 
-        "Generating summary of barcode alignment: {wildcards.sample}"
+        "Summarizing barcoded alignments: {wildcards.sample}"
     script:
         "report/BxStats.Rmd"
 
@@ -360,4 +360,3 @@ rule log_workflow:
             _ = f.write("    samtools markdup -S --barcode-tag BX\n")
             _ = f.write("\nThe Snakemake workflow was called via command line:\n")
             _ = f.write("    " + str(config["workflow_call"]) + "\n")
-    results.append(outdir + "/reports/minimap.stats.html")
