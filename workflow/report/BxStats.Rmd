@@ -112,7 +112,8 @@ or absent haplotag barcodes.
 ### bases per desc {.no-title}
 <h2> Total Bases Aligned </h2>
 Below is a cumulative frequency distribution showing the number of base pairs aligned
-per unique molecule. These data are shown in 500 bp bins.
+per unique molecule. These data are shown in 500 bp bins. Pay attention to the Y axis,
+as it likely doesn't start at `0`.
 
 
 ## Reads per molecule
@@ -129,9 +130,11 @@ p <- filter(tb, valid == "valid BX") %>%
         y = "% of molecules",
     ) +
     theme_light() +
+    scale_y_continuous(labels = label_percent()) +
     theme(panel.grid.minor.y = element_blank())
 
 ggplotly(p)
+#TODO CALCULATE N50, N75, N90
 ```
 
 ### Bases Per Barcode {.no-title}
@@ -143,7 +146,6 @@ dat.binned <- tb %>% filter(valid == "valid BX", length_inferred > 10) %>%
 levels(dat.binned$Size_Range) <- formatBins(dat.binned$Size_Range)
 
 p <- ggplot(data = dat.binned, mapping = aes(Size_Range, Cumulative_Percent)) +  
-  #geom_bar(stat = "identity", aes(group = 1), fill = "#99cccc", color = "white") +
   geom_line(aes(group = 1), color = "#99cccc") + 
   geom_point(size = 3, shape = 21, color = "white", fill = "#99cccc") +
   labs(
@@ -152,25 +154,9 @@ p <- ggplot(data = dat.binned, mapping = aes(Size_Range, Cumulative_Percent)) +
     x = "Number of aligned bases (bp)",
     y = "% of molecules",
   ) +
-  #scale_x_discrete(labels = label_number()) +
   theme_light() +
   theme(panel.grid.minor.y = element_blank())  
 ggplotly(p) %>% layout(hovermode = "x")
-
-#p <- tb %>% filter(valid == "valid BX", length_inferred > 10) %>%
-#    ggplot(aes(x = aligned_bp)) +
-#        geom_histogram(binwidth = 500, fill = "#99cccc", color = "white", center = 0) +
-#        labs(title = "Bases Aligned Per Unique Molecule", subtitle = samplename) +
-#        xlab("Number of aligned bases (500 bp bins)") +
-#        ylab("Number of occurrences") +
-#        theme_light() +
-#        scale_y_continuous(labels = scales::comma) +
-#        #scale_x_binned() +
-#        scale_x_continuous(labels = scales::comma) +
-#        theme(
-#            panel.grid.minor.y = element_blank(),
-#        )
-#ggplotly(p)
 ```
 ## inferred-header
 ### inferred desc {.no-title}
@@ -203,19 +189,6 @@ p <- ggplot(data = dat.binned, mapping = aes(Size_Range, Cumulative_Percent)) +
   theme(panel.grid.minor.y = element_blank())  
 
 ggplotly(p) %>% layout(hovermode = "x")
-
-#mols <- tb %>% filter(valid == "valid BX") %>%
-#  arrange(desc(length_inferred)) %>% mutate(percent = round(100/n() * 1:n(), digits = 2)) %>%
-#  filter(length_inferred >= 500)
-#p <- ggplot(mols, aes(x = length_inferred, y = percent)) +
-#        geom_point(color = "#609ad1") +
-#        geom_line(color = "#609ad1", alpha = 0.3) +
-#        labs(title = "Inferred Molecule Lengths", subtitle = samplename) +
-#        xlab("Inferred Molecule Length (bp)") +
-#        ylab("% of Molecules") +
-#        theme_light() +
-#        scale_x_continuous(labels = scales::comma, trans='log10')
-#ggplotly(p)
 ```
 
 ## Interpreting the supporting data
