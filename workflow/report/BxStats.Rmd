@@ -144,7 +144,7 @@ ggplotly(p)
 ## inferred-header
 ### inferred desc {.no-title}
 <h2> Inferred Molecule Lengths </h2>
-The chart below shows the cumulative frequency distribution of molecule lengths 
+The chart below shows the **cumulative** frequency distribution of molecule lengths 
 inferred from the first and last alignment positions along a contig for all
 alignments associated with a single haplotag barcode on a given contig.
 
@@ -152,15 +152,15 @@ alignments associated with a single haplotag barcode on a given contig.
 ### Inferred molecule Lengths
 ```{r echo = FALSE, message = FALSE, warning = FALSE, out.width = '100%'}
 p <- tb %>% filter(valid == "valid BX", length_inferred > 500) %>%
-  arrange(length_inferred) %>% mutate(percent = 100/n() * 1:n()) %>%
+  arrange(desc(length_inferred)) %>% mutate(percent = round(100/n() * 1:n(), digits = 2)) %>%
   ggplot(aes(x = length_inferred, y = percent)) +
-    geom_line(color = "#3b658d", linewidth = 2) +
+    geom_line(color = "#609ad1", linewidth = 1) +
     labs(title = "Inferred Haplotagged Molecule Lengths", subtitle = samplename) +
     xlab("Inferred Molecule Length (bp)") +
     ylab("% of Molecules (>500bp)") +
     theme_light() +
     scale_x_continuous(labels = scales::comma) +
-    theme(panel.grid.minor.y = element_blank())
+    scale_x_reverse()
 ggplotly(p)
 ```
 
@@ -174,25 +174,47 @@ underlying data used to create this report.
 ### interpreting {.no-title}
 <h3> Interpreting the Supporting File </h3>
 Listed below are the descriptions of the columns in **`r basename(infile)`**, which was created
-by Harpy using the included `bxStats.py` script.
+by Harpy using the included `bxStats.py` script. The term `molecule` refers to the
+`MI:i` tag in the alignments, which is a unique molecule ID given to the original
+fragment alignments sharing a barcode are inferred to have originated from. The inference
+takes into account an [alignment distance threshold](https://pdimens.github.io/harpy/haplotagdata/#barcode-thresholds)
+and that the sequences aligned to the same contig.
 
-- `contig`: name of the contig the molecule occurs on 
-- `molecule`:  the molecule, given by `MI:i:`, that spans reads with the same barcodes 
-- `reads`:  number of alignments associated with this molecule 
-- `start`:  the start position of the first alignment for that barcode on that contig 
-- `end`: the end position of the last alignment for that barcode on that contig 
-- `length_inferred`: inferred length of the molecule based on the start/end of the alignments with that barcode 
-- `aligned_bp`: number of total bp aligned for that barcode 
-- `mindist`: the minimum basepair distance between two alignments sharing a barcode (excluding read pairs, kind of a sanity check)
+```{r cols_explained, echo=FALSE, message=FALSE, warnings=FALSE}
+knitr::kable(
+  data.frame(
+    "Column Name" = c("contig", "molecule", "reads", "start", "end", "length_inferred", "aligned_bp", "mindist"),
+    "Description" = c(
+      "name of the contig the molecule occurs on",
+      "the molecule name as given by the MI:i: tag",
+      "number of alignments associated with this molecule",
+      "the start position of the first alignment for that molecule",
+      "the end position of the last alignment for that molecule",
+      "inferred length of the molecule based on the start/end of the alignments sharing the same barcode",
+      "total number of base pairs aligned for that molecule",
+      "the minimum basepair distance between two alignments sharing a barcode (excluding read pairs, kind of a sanity check)"
+      )
+    )
+)
+```
 
 ## Interpreting this report
 ### Barcode validity {.no-title}
 <h3> Interpreting Barcode Validity </h3>
 BX barcode validity is classified into one of three categories:
 
-- `valid BX`: a complete BX barcode was present in the read (i.e. no `00` for any segments)
-- `invalid BX`: A barcode was present in the read, but it contained `00` for any of the haplotag segments
-- `no BX`: no barcode was present in the read
+```{r bx_explanation, echo=FALSE, message=FALSE, warnings=FALSE}
+knitr::kable(
+  data.frame(
+    "Classification" = c("valid BX", "invalid BX", "no BX"),
+    "Description" = c(
+      "a complete BX barcode was present in the read (i.e. no 00 for any segments)",
+      "a barcode was present in the read, but it contained 00 in at least one of the barcode segments",
+      "no barcode was present in the read"
+      )
+    )
+)
+```
 
 ### Molecule splitting {.no-title}
 <h3> Molecule Splitting, Explained </h3>
