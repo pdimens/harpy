@@ -265,9 +265,13 @@ rule phase_report:
     script:
         "report/HapCut2.Rmd"
 
-rule log_runtime:
+rule log_workflow:
+    default_target: True
+    input:
+        vcf = outdir + "/variants.phased.bcf",
+        outdir + "/reports/phase.html" if not skipreports else []
     output:
-        outdir + "/workflow/phase.workflow.summary"
+        outdir + "/workflow/phase.summary"
     params:
         prune = f"--threshold {pruning}" if pruning > 0 else "--no_prune 1",
         extra = extra
@@ -299,18 +303,3 @@ rule log_runtime:
             _ = f.write('    ##FORMAT=<ID=PD,Number=1,Type=Integer,Description="phased Read Depth">\n')
             _ = f.write("\nThe Snakemake workflow was called via command line:\n")
             _ = f.write("    " + str(config["workflow_call"]) + "\n")
-
-results = list()
-results.append(outdir + "/variants.phased.bcf")
-results.append(outdir + "/workflow/phase.workflow.summary")
-
-if not skipreports:
-    results.append(outdir + "/reports/phase.html")
-
-rule all:
-    default_target: True
-    input:
-        results
-    message:
-        "Checking for expected workflow output"
-

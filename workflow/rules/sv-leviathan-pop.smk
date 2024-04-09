@@ -247,11 +247,16 @@ rule sv_report:
     script:
         "report/LeviathanPop.Rmd"
 
-rule log_runtime:
+rule log_workflow:
+    default_target: True
+    input:
+        vcf = expand(outdir + "/{pop}.bcf", pop = populations),
+        reports = expand(outdir + "/reports/{pop}.sv.html", pop = populations),
+        agg_report = outdir + "/reports/leviathan.pop.summary.html" if not skipreports else []
     output:
-        outdir + "/workflow/sv.leviathan.workflow.summary"
+        outdir + "/workflow/sv.leviathan.summary"
     message:
-        "Creating record of relevant runtime parameters: {output}"
+        "Summarizing the workflow: {output}"
     params:
         extra = extra
     run:
@@ -265,17 +270,3 @@ rule log_runtime:
             _ = f.write(f"    LEVIATHAN -b INPUT -i INPUT.BCI -g GENOME {params}\n")
             _ = f.write("\nThe Snakemake workflow was called via command line:\n")
             _ = f.write("    " + str(config["workflow_call"]) + "\n")
-
-results = list()
-results.append(expand(outdir + "/{pop}.bcf", pop = populations))
-results.append(expand(outdir + "/reports/{pop}.sv.html", pop = populations))
-if not skipreports:
-    results.append(outdir + "/reports/leviathan.pop.summary.html")
-    results.append(outdir + "/workflow/sv.leviathan.workflow.summary")
-
-rule all_bcfs:
-    default_target: True
-    input: 
-        results
-    message:
-        "Checking for expected workflow output"

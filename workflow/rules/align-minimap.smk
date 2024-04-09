@@ -331,14 +331,19 @@ rule samtools_reports:
         multiqc {params}/reports/samtools_stats {params}/reports/samtools_flagstat --force --quiet --title "Basic Alignment Statistics" --comment "This report aggregates samtools stats and samtools flagstats results for all alignments." --no-data-dir --filename {output} 2> /dev/null
         """
 
-rule log_runtime:
+rule log_workflow:
+    default_target: True
+    input: 
+        bams = expand(outdir + "/{sample}.{ext}", sample = samplenames, ext = ["bam","bam.bai"]),
+        cov_reports = expand(outdir + "/reports/coverage/{sample}.cov.html", sample = samplenames) if not skipreports else [],
+        bx_reports = expand(outdir + "/reports/BXstats/{sample}.bxstats.html", sample = samplenames) if not skipreports else []
     output:
-        outdir + "/workflow/align.workflow.summary"
+        outdir + "/workflow/align.minimap.summary"
     params:
         quality = config["quality"],
         extra   = extra
     message:
-        "Creating record of relevant runtime parameters: {output}"
+        "Summarizing the workflow: {output}"
     run:
         with open(output[0], "w") as f:
             _ = f.write("The harpy align module ran using these parameters:\n\n")
@@ -355,21 +360,4 @@ rule log_runtime:
             _ = f.write("    samtools markdup -S --barcode-tag BX\n")
             _ = f.write("\nThe Snakemake workflow was called via command line:\n")
             _ = f.write("    " + str(config["workflow_call"]) + "\n")
-
-# conditionally add the reports to the output
-results = list()
-results.append(expand(outdir + "/{sample}.bam", sample = samplenames))
-results.append(expand(outdir + "/{sample}.bam.bai", sample = samplenames))
-results.append(outdir + "/workflow/align.workflow.summary")
-
-if not skipreports:
-    results.append(expand(outdir + "/reports/coverage/{sample}.cov.html", sample = samplenames))
-    results.append(expand(outdir + "/reports/BXstats/{sample}.bxstats.html", sample = samplenames))
     results.append(outdir + "/reports/minimap.stats.html")
-
-rule all:
-    default_target: True
-    input: 
-        results
-    message:
-        "Checking for expected workflow output"

@@ -467,13 +467,22 @@ rule collate_samtools_stats:
         multiqc {outdir}/reports/samtools_stats {outdir}/reports/samtools_flagstat --force --quiet --title "Basic Alignment Statistics" --comment "This report aggregates samtools stats and samtools flagstats results for all alignments." --no-data-dir --filename {output} 2> /dev/null
         """
 
-rule log_runtime:
+# conditionally add the reports to the output
+
+rule log_workflow:
+    default_target: True
+    input:
+        bams = expand(outdir + "/{sample}.{ext}", sample = samplenames, ext = [ "bam", "bam.bai"] ),
+        cov_report = expand(outdir + "/reports/coverage/{sample}.cov.html", sample = samplenames) if not skipreports else [],
+        bx_report = expand(outdir + "/reports/BXstats/{sample}.bxstats.html", sample = samplenames) if not skipreports else [],
+        bx_counts = f"{outdir}/reports/reads.bxcounts.html" if not skipreports else [],
+        agg_report = f"{outdir}/reports/ema.stats.html" if not skipreports else []
     output:
-        outdir + "/workflow/align.workflow.summary"
+        outdir + "/workflow/align.ema.summary"
     params:
         beadtech = "-p" if platform == "haplotag" else f"-w {whitelist}"
     message:
-        "Creating record of relevant runtime parameters: {output}"
+        "Summarizing the workflow: {output}"
     run:
         with open(output[0], "w") as f:
             _ = f.write("The harpy align module ran using these parameters:\n\n")
@@ -500,23 +509,3 @@ rule log_runtime:
             _ = f.write("    samtools sort concat.bam\n")
             _ = f.write("\nThe Snakemake workflow was called via command line:\n")
             _ = f.write("    " + str(config["workflow_call"]) + "\n")
-
-# conditionally add the reports to the output
-results = list()
-results.append(expand(outdir + "/{sample}.bam", sample = samplenames))
-results.append(expand(outdir + "/{sample}.bam.bai", sample = samplenames))
-results.append(f"{outdir}/workflow/align.workflow.summary")
-
-if not skipreports:
-    results.append(expand(outdir + "/reports/coverage/{sample}.cov.html", sample = samplenames))
-    results.append(expand(outdir + "/reports/BXstats/{sample}.bxstats.html", sample = samplenames))
-    results.append(f"{outdir}/reports/reads.bxcounts.html")
-    results.append(f"{outdir}/reports/ema.stats.html")
-
-
-rule all:
-    default_target: True
-    input:
-        results
-    message:
-        "Checking for expected workflow output"

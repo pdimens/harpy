@@ -109,17 +109,38 @@ rule beadtag_counts_summary:
         "Summarizing sample barcode validation"
     script:
         "report/BxCount.Rmd"
-
-rule log_runtime:
+   
+rule create_report:
+    input: 
+        expand(outdir + "/logs/json/{sample}.fastp.json", sample = samplenames)
     output:
-        outdir + "/workflow/qc.workflow.summary"
+        outdir + "/reports/qc.report.html"
+    params:
+        outdir
+    conda:
+        os.getcwd() + "/.harpy_envs/qc.yaml"
+    message:
+        "Aggregating fastp reports"
+    shell: 
+        """
+        multiqc {params}/logs/json -m fastp --force --filename {output} --quiet --title "QC Summary" --comment "This report aggregates trimming and quality control metrics reported by fastp" --no-data-dir 2>/dev/null
+        """
+
+rule log_workflow:
+    default_target: True
+    input:
+        fq = expand(outdir + "/{sample}.{FR}.fq.gz", FR = ["R1", "R2"], sample = samplenames),
+        bx_report = outdir + "/reports/barcode.summary.html" if not skipreports else [],
+        agg_report = outdir + "/reports/qc.report.html" if not skipreports else []
+    output:
+        output + "/workflow/qc.summary"    
     params:
         minlen = f"--length_required {min_len}",
         maxlen = f"--max_len1 {max_len}",
         tim_adapters = "--disable_adapter_trimming" if skipadapters else "--detect_adapter_for_pe",
         extra = extra
     message:
-        "Creating record of relevant runtime parameters: {output}"
+        "Summarizing the workflow: {output}"
     run:
         with open(output[0], "w") as f:
             _ = f.write("The harpy qc module ran using these parameters:\n\n")
@@ -128,27 +149,3 @@ rule log_runtime:
             _ = f.write("    fastp --trim_poly_g --cut_right " + " ".join(params) + "\n")
             _ = f.write("\nThe Snakemake workflow was called via command line:\n")
             _ = f.write("    " + str(config["workflow_call"]) + "\n")
-
-results = list()
-results.append(expand(outdir + "/logs/json/{sample}.fastp.json", sample = samplenames))
-results.append(expand(outdir + "/{sample}.{FR}.fq.gz", FR = ["R1", "R2"], sample = samplenames))
-results.append(outdir + "/workflow/qc.workflow.summary")
-if not skipreports:
-    results.append(outdir + "/reports/barcode.summary.html")
-    
-rule create_report:
-    default_target: True
-    input: 
-        results
-    output:
-        outdir + "/reports/qc.report.html"
-    params:
-        outdir
-    conda:
-        os.getcwd() + "/.harpy_envs/qc.yaml"
-    message:
-        "Sequencing quality filtering and trimming is complete!"
-    shell: 
-        """
-        multiqc {params}/logs/json -m fastp --force --filename {output} --quiet --title "QC Summary" --comment "This report aggregates trimming and quality control metrics reported by fastp" --no-data-dir 2>/dev/null
-        """

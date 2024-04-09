@@ -206,11 +206,15 @@ rule bcf_report:
     script:
         "report/BcftoolsStats.Rmd"
 
-rule log_runtime:
+rule log_workflow:
+    default_target: True
+    input:
+        vcf = expand(outdir + "/variants.{file}.bcf", file = ["raw", "normalized"]),
+        reports = expand(outdir + "/reports/variants.{file}.html", file = ["raw", "normalized"]) if not skipreports else []
     output:
-        outdir + "/workflow/snp.freebayes.workflow.summary"
+        outdir + "/workflow/snp.freebayes.summary"
     message:
-        "Creating record of relevant runtime parameters: {output}"
+        "Summarizing the workflow: {output}"
     params:
         ploidy = f"-p {ploidy}",
         populations = f"--populations {groupings}" if groupings else '',
@@ -229,16 +233,3 @@ rule log_runtime:
             _ = f.write("    bcftools norm -d exact | bcftools norm -m -any -N -Ob\n")
             _ = f.write("\nThe Snakemake workflow was called via command line:\n")
             _ = f.write("    " + str(config["workflow_call"]) + "\n")
-
-results = list()
-results.append(outdir + "/workflow/snp.freebayes.workflow.summary")
-results.append(expand(outdir + "/variants.{file}.bcf", file = ["raw", "normalized"]))
-if not skipreports:
-    results.append(expand(outdir + "/reports/variants.{file}.html", file = ["raw", "normalized"]))
-
-rule all:
-    default_target: True
-    input:
-        results
-    message:
-         "Checking for expected workflow output"

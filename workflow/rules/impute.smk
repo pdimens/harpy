@@ -254,11 +254,17 @@ rule imputation_results_reports:
     script:
         "report/Impute.Rmd"
 
-rule log_runtime:
+
+rule log_workflow:
+    default_target: True
+    input: 
+        vcf = expand(outdir + "/{stitchparams}/variants.imputed.bcf", stitchparams=paramspace.instance_patterns),
+        contig_report = expand(outdir + "/{stitchparams}/contigs/{part}/{part}.STITCH.html", stitchparams=paramspace.instance_patterns, part = contigs),
+        agg_report = expand(outdir + "/{stitchparams}/variants.imputed.html", stitchparams=paramspace.instance_patterns) if not skipreports else []
     output:
-        outdir + "/workflow/impute.workflow.summary"
+        outdir + "/workflow/impute.summary"
     message:
-        "Creating record of relevant runtime parameters: {output}"
+        "Summarizing the workflow: {output}"
     run:
         with open(output[0], "w") as f:
             _ = f.write("The harpy impute module ran using these parameters:\n\n")
@@ -294,18 +300,3 @@ rule log_runtime:
             _ = f.write("    " + config.get("extra", "None provided") + "\n")
             _ = f.write("\nThe Snakemake workflow was called via command line:\n")
             _ = f.write("    " + str(config["workflow_call"]) + "\n")
-
-results = list()
-results.append(expand(outdir + "/{stitchparams}/variants.imputed.bcf", stitchparams=paramspace.instance_patterns))
-results.append(expand(outdir + "/{stitchparams}/contigs/{part}/{part}.STITCH.html", stitchparams=paramspace.instance_patterns, part = contigs))
-results.append(outdir + "/workflow/impute.workflow.summary")
-
-if not skipreports:
-    results.append(expand(outdir + "/{stitchparams}/variants.imputed.html", stitchparams=paramspace.instance_patterns))
-
-rule all:
-    default_target: True
-    input: 
-        results
-    message: 
-        "Checking for expected workflow output"

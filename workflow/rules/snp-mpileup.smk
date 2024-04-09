@@ -224,14 +224,19 @@ rule bcf_report:
     script:
         "report/BcftoolsStats.Rmd"
 
-rule log_runtime:
+rule log_workflow:
+    default_target: True
+    input:
+        vcf = expand(outdir + "/variants.{file}.bcf", file = ["raw", "normalized"]),
+        agg_log = outdir + "/logs/mpileup.log",
+        reports = expand(outdir + "/reports/variants.{file}.html", file = ["raw", "normalized"]) if not skipreports else []
     output:
-        outdir + "/workflow/snp.mpileup.workflow.summary"
+        outdir + "/workflow/snp.mpileup.summary"
     params:
         ploidy = f"--ploidy {ploidy}",
         populations = f"--populations {groupings}" if groupings else "--populations -"
     message:
-        "Creating record of relevant runtime parameters: {output}"
+        "Summarizing the workflow: {output}"
     run:
         with open(output[0], "w") as f:
             _ = f.write("The harpy variants snp module ran using these parameters:\n\n")
@@ -248,17 +253,3 @@ rule log_runtime:
             _ = f.write("    bcftools norm -d exact | bcftools norm -m -any -N -Ob\n")
             _ = f.write("\nThe Snakemake workflow was called via command line:\n")
             _ = f.write("    " + str(config["workflow_call"]) + "\n")
-
-results = list()
-results.append(outdir + "/workflow/snp.mpileup.workflow.summary")
-results.append(expand(outdir + "/variants.{file}.bcf", file = ["raw", "normalized"]))
-results.append(outdir + "/logs/mpileup.log")
-if not skipreports:
-    results.append(expand(outdir + "/reports/variants.{file}.html", file = ["raw", "normalized"]))
-
-rule all:
-    default_target: True
-    input:
-        results
-    message:
-        "Checking for expected workflow output"

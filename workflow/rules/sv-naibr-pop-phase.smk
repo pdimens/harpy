@@ -304,12 +304,18 @@ rule report_pop:
     script:
         "report/NaibrPop.Rmd"
 
-rule log_runtime:
+rule log_workflow:
+    default_target: True
+    input:
+        bedpe = expand(outdir + "/{pop}.bedpe", pop = populations),
+        reports = expand(outdir + "/reports/{pop}.naibr.html", pop = populations) if not skipreports else [],
+        agg_report = outdir + "/reports/naibr.pop.summary.html" if not skipreports else []
     output:
-        outdir + "/workflow/sv.naibr.workflow.summary"
+        outdir + "/workflow/sv.naibr.summary"
     message:
-        "Creating record of relevant runtime parameters: {output}"
+        "Summarizing the workflow: {output}"
     run:
+        os.system(f"rm -rf {outdir}/naibrlog")
         argdict = process_args(extra)
         with open(output[0], "w") as f:
             _ = f.write("The harpy variants sv module ran using these parameters:\n\n")
@@ -326,19 +332,3 @@ rule log_runtime:
                 _ = f.write(f"    {i}={argdict[i]}\n")
             _ = f.write("\nThe Snakemake workflow was called via command line:\n")
             _ = f.write("    " + str(config["workflow_call"]) + "\n")
-
-results = list()
-results.append(expand(outdir + "/{pop}.bedpe", pop = populations))
-results.append(outdir + "/workflow/sv.naibr.workflow.summary")
-if not skipreports:
-    results.append(expand(outdir + "/reports/{pop}.naibr.html", pop = populations))
-    results.append(outdir + "/reports/naibr.pop.summary.html")
-
-rule all:
-    default_target: True
-    input:
-        results
-    message:
-        "Checking for expected workflow output"
-    shell:
-        "rm -rf Variants/naibrlog"

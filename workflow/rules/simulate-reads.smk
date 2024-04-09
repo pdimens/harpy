@@ -206,7 +206,7 @@ rule log_workflow:
     output:
         outdir + "/workflow/simulate.reads.workflow.summary"
     message:
-        "Creating record of relevant runtime parameters: {output}"
+        "Summarizing the workflow: {output}"
     run:
         with open(output[0], "w") as f:
             _ = f.write("The harpy simulate reads module ran using these parameters:\n\n")

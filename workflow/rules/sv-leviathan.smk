@@ -183,13 +183,18 @@ rule sv_report:
     script:
         "report/Leviathan.Rmd"
 
-rule log_runtime:
+
+rule log_workflow:
+    default_target: True
+    input: 
+        vcf = expand(outdir + "/{sample}.bcf", sample = samplenames),
+        reports = expand(outdir + "/reports/{sample}.SV.html", sample = samplenames) if not skipreports else []
     output:
-        outdir + "/workflow/sv.leviathan.workflow.summary"
+        outdir + "/workflow/sv.leviathan.summary"
     params:
         extra = extra
     message:
-        "Creating record of relevant runtime parameters: {output}"
+        "Summarizing the workflow: {output}"
     run:
         with open(output[0], "w") as f:
             _ = f.write("The harpy variants sv module ran using these parameters:\n\n")
@@ -201,16 +206,3 @@ rule log_runtime:
             _ = f.write(f"    LEVIATHAN -b INPUT -i INPUT.BCI -g GENOME {params}\n")
             _ = f.write("\nThe Snakemake workflow was called via command line:\n")
             _ = f.write("    " + str(config["workflow_call"]) + "\n")
-
-results = list()
-results.append(expand(outdir + "/{sample}.bcf", sample = samplenames))
-results.append(outdir + "/workflow/sv.leviathan.workflow.summary")
-if not skipreports:
-    results.append(expand(outdir + "/reports/{sample}.SV.html", sample = samplenames))
-
-rule all_bcfs:
-    default_target: True
-    input: 
-        results
-    message:
-        "Checking for expected workflow output"

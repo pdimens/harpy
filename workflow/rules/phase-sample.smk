@@ -186,14 +186,19 @@ rule phase_report:
     script:
         "report/HapCut2.Rmd"
 
-rule log_runtime:
+
+rule log_workflow:
+    default_target: True
+    input:
+        vcf = outdir + "/variants.phased.bcf",
+        report = outdir + "/reports/phase.html" if not skipreports else []
     output:
         outdir + "/workflow/phase.workflow.summary"
     params:
         prune = f"--threshold {pruning} " if pruning > 0 else "--no_prune 1 ",
         extra = extra
     message:
-        "Creating record of relevant runtime parameters: {output}"
+        "Summarizing the workflow: {output}"
     run:
         with open(output[0], "w") as f:
             _ = f.write("The harpy phase module ran using these parameters:\n\n")
@@ -207,18 +212,3 @@ rule log_runtime:
             _ = f.write(f"    HAPCUT2 --fragments sample.linked.frags --vcf sample.vcf --out sample.blocks --nf 1 --error_analysis_mode 1 --call_homozygous 1 --outvcf 1 {params[0]} {params[1]}\n")
             _ = f.write("\nThe Snakemake workflow was called via command line:\n")
             _ = f.write("    " + str(config["workflow_call"]) + "\n")
-
-results = list()
-results.append(outdir + "/variants.phased.bcf")
-results.append(outdir + "/workflow/phase.workflow.summary")
-if not skipreports:
-    results.append(outdir + "/reports/phase.html")
-
-rule all:
-    default_target: True
-    input:
-        results
-    output:
-        outdir + "/variants.phased.bcf.csi"
-    message:
-         "Checking for expected workflow output"

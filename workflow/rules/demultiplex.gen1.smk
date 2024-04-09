@@ -207,11 +207,15 @@ rule qc_report:
         multiqc {params} --force --quiet --title "QC on Demultiplexed Samples" --comment "This report aggregates the QC results created by falco." --no-data-dir --filename {output} 2> /dev/null
         """
 
-rule log_runtime:
+rule log_workflow:
+    default_target: True
+    input:
+        fq = expand(outdir + "{sample}.{FR}.fq.gz", sample = samplenames, FR = ["F", "R"]),
+        reports = outdir + "reports/demultiplex.QC.html" if not skipreports else []
     output:
-        outdir + "workflow/demultiplex.workflow.summary"
+        outdir + "workflow/demultiplex.gen1.summary"
     message:
-        "Creating record of relevant runtime parameters: {output}"
+        "Summarizing the workflow: {output}"
     run:
         with open(output[0], "w") as f:
             _ = f.write("The harpy demultiplex module ran using these parameters:\n\n")
@@ -226,19 +230,3 @@ rule log_runtime:
             _ = f.write(f"    falco -skip-report -skip-summary input.fq.gz\n")
             _ = f.write("\nThe Snakemake workflow was called via command line:\n")
             _ = f.write("    " + str(config["workflow_call"]) + "\n")
-
-# conditionally add the reports to the output
-results = list()
-results.append(expand(outdir + "{sample}.F.fq.gz", sample = samplenames))
-results.append(expand(outdir + "{sample}.R.fq.gz", sample = samplenames))
-results.append(outdir + "workflow/demultiplex.workflow.summary")
-
-if not skipreports:
-    results.append(outdir + "reports/demultiplex.QC.html")
-
-rule all:
-    default_target: True
-    input:
-        results
-    message:
-        "Checking for expected workflow output"
