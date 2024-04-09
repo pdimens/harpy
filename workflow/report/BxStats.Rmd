@@ -100,7 +100,7 @@ or absent haplotag barcodes.
 ### bases per desc {.no-title}
 <h2> Total Bases Aligned </h2>
 Below is a histogram showing the distribution of the number of base pairs aligned
-per unique barcode per contig. These data are shown in 500 bp bins, _i.e._ the Y-value
+per unique molecule. These data are shown in 500 bp bins, _i.e._ the Y-value
 at `X = 0` would represent the number of barcodes with 0-500bp aligned.
 
 

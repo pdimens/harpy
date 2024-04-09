@@ -24,7 +24,7 @@ d = dict()
 chromlast = False
 alnfile = pysam.AlignmentFile(snakemake.input[0])
 outfile = gzip.open(snakemake.output[0], "wb")
-
+#TODO ADD PERCENT MOLECULE COVERAGE
 # define write function
 # it will only be called when the current alignment's chromosome doesn't
 # match the chromosome from the previous alignment
