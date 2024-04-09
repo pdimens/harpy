@@ -177,7 +177,7 @@ dat.binned <- tb %>% filter(valid == "valid BX") %>% mutate(length_inferred = le
 levels(dat.binned$Size_Range) <- formatBins(dat.binned$Size_Range)
 p <- ggplot(data = dat.binned, mapping = aes(Size_Range, Cumulative_Percent)) +  
   geom_line(aes(group = 1), color = "#9393d2") + 
-  geom_point(data = dat.binned, size = 1, color = "#6b6b9c") +
+  geom_point(data = dat.binned, size = 3, shape = 21, color = "white", fill = "#6b6b9c") +
   labs(
     title = "Inferred Molecule Length",
     subtitle = samplename,
