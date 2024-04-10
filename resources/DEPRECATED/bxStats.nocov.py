@@ -4,29 +4,39 @@ import re
 import sys
 import gzip
 import pysam
-from itertools import chain
+#import argparse
+
+#parser = argparse.ArgumentParser(
+#    prog = 'bxStats.py',
+#    description = 'Calculate BX molecule length and reads per molecule from BAM file.',
+#    usage = "bxStats.py input.bam > output.bxstats",
+#    exit_on_error = False
+#    )
+#parser.add_argument('input', help = "Input bam/sam file. If bam, a matching index file should be in the same directory.")
+#
+#if len(sys.argv) == 1:
+#    parser.print_help(sys.stderr)
+#    sys.exit(1)
+#
+#args = parser.parse_args()
 
 d = dict()
 chromlast = False
 alnfile = pysam.AlignmentFile(snakemake.input[0])
 outfile = gzip.open(snakemake.output[0], "wb")
-outfile.write(b"contig\tmolecule\treads\tstart\tend\tlength_inferred\tpercent_coverage\taligned_bp\tmindist\n")
-
+#TODO ADD PERCENT MOLECULE COVERAGE
+# define write function
+# it will only be called when the current alignment's chromosome doesn't
+# match the chromosome from the previous alignment
 def writestats(x,chr):
-    """
-    Writes molecule stats to a file. Only gets called when the chromosome changes.
-    """
     for mi in x:
         x[mi]["inferred"] = x[mi]["end"] - x[mi]["start"] 
-        x[mi]["mindist"] = max(0, x[mi]["mindist"])
-        try:
-            mi_aln = x[mi].get("alignments", 0)
-            # converts start/end positions into ranges and merges ranges into a set, then gets the length of the unique set
-            x[mi]["covered"] = round((len(set(chain(*[range(i,j+1) for i,j in mi_aln]))) - 1) / x[mi]["inferred"], 2)
-        except:
-            x[mi]["covered"] = 0
-        outtext = f"{chr}\t{mi}\t" + "\t".join([str(x[mi][i]) for i in ["n", "start","end", "inferred", "covered", "bp", "mindist"]])
+        if x[mi]["mindist"] < 0:
+            x[mi]["mindist"] = 0
+        outtext = f"{chr}\t{mi}\t" + "\t".join([str(x[mi][i]) for i in ["n", "start","end", "inferred", "bp", "mindist"]])
         outfile.write(outtext.encode() + b"\n")
+
+outfile.write(b"contig\tmolecule\treads\tstart\tend\tlength_inferred\taligned_bp\tmindist\n")
 
 for read in alnfile.fetch():
     chrm = read.reference_name
@@ -36,12 +46,9 @@ for read in alnfile.fetch():
     if chromlast != False and chrm != chromlast:
         writestats(d, chromlast)
         d = dict()
-    
-    chromlast = chrm
-    
     if read.is_duplicate or read.is_unmapped:
+        chromlast = chrm
         continue
-    
     try:
         mi = read.get_tag("MI")
         bx = read.get_tag("BX")
@@ -56,9 +63,11 @@ for read in alnfile.fetch():
         # There is no bx tag
         mi = "noBX"
         validBX = False
+    
     aln = read.get_blocks()
     if not aln:
         # unaligned, skip
+        chromlast = chrm
         continue
 
     # if invalid/absent BX, skip the distance stuff
@@ -75,6 +84,8 @@ for read in alnfile.fetch():
         else:
             d[mi]["bp"] += bp
             d[mi]["n"] += 1
+
+        chromlast = chrm
         continue
 
     # logic to accommodate split reads 
@@ -91,24 +102,10 @@ for read in alnfile.fetch():
             "bp":   bp,
             "n":    1,
             "lastpos" : pos_end,
-            "alignments" : aln,
             "mindist" : -1
         }
+        chromlast = chrm
         continue
-
-    # update the basic alignment info of the barcode
-    d[mi]["alignments"] += aln
-    d[mi]["bp"] += bp
-    d[mi]["n"]  += 1
-    # only if low < currentlow or high > currenthigh
-    if pos_start < d[mi]["start"]:
-        d[mi]["start"] = pos_start
-    if pos_end > d[mi]["end"]:
-        d[mi]["end"] = pos_end
-
-    if read.is_reverse or (read.is_forward and not read.is_paired):
-        # set the last position to be the end of current alignment
-        d[mi]["lastpos"] = pos_end
 
     # distance from last alignment = current aln start - previous aln end
     dist = pos_start - d[mi]["lastpos"]
@@ -118,5 +115,20 @@ for read in alnfile.fetch():
     if read.is_forward or (read.is_reverse and not read.is_paired):
         if dist < d[mi]["mindist"] or d[mi]["mindist"] < 0:
             d[mi]["mindist"] = dist
+
+    # update the basic alignment info of the barcode
+    d[mi]["bp"] += bp
+    d[mi]["n"]  += 1
+    chromlast = chrm
+
+    # only if low < currentlow or high > currenthigh
+    if pos_start < d[mi]["start"]:
+        d[mi]["start"] = pos_start
+    if pos_end > d[mi]["end"]:
+        d[mi]["end"] = pos_end
+
+    if read.is_reverse or (read.is_forward and not read.is_paired):
+        # set the last position to be the end of current alignment
+        d[mi]["lastpos"] = pos_end
 
 outfile.close()

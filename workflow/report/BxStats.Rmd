@@ -65,6 +65,14 @@ formatBins <- function(x){
 }
 ```
 
+```{r nxx, echo = F, results = F, message = F}
+NX <- function(lengths, X=50){
+  lengths <- as.numeric(sort(lengths, decreasing=TRUE))
+  index <- which(cumsum(lengths) / sum(lengths) >= X/100)[1]
+  return(lengths[index])
+}
+```
+
 ## fileheader
 ### hdr {.no-title}
 <h1> Haplotag Barcode Statistics </h1>
@@ -94,12 +102,23 @@ valueBox(scales::comma(tots[tots$valid == "no BX", 2]), caption = "Missing Barco
 
 ### glob-avg
 ```{r}
-valueBox(scales::comma(avgBX), caption = "Average BX per contig", color = "info")
+valueBox(scales::comma(avgBX), caption = "Average molecules per contig", color = "info")
 ```
 
 ### glob-total
 ```{r}
 valueBox(scales::comma(totuniqBX), caption = "Total unique molecules", color = "info")
+```
+
+## N50 and N90
+### Molecule Length Metrics
+```{r echo = FALSE, message = FALSE, warning = FALSE, out.width = '70%'}
+nstats <- valids %>% 
+    group_by(contig) %>%
+    summarize(n50 = NX(length_inferred, 50), n75 = NX(length_inferred, 75), n90 = NX(length_inferred, 90)) %>% 
+    as.data.frame()
+
+knitr::kable(nstats)
 ```
 
 ## Reads per molecule dec
@@ -135,7 +154,6 @@ p <- filter(tb, valid == "valid BX") %>%
     theme(panel.grid.minor.y = element_blank())
 
 ggplotly(p)
-#TODO CALCULATE N50, N75, N90
 ```
 
 ### Bases Per molecule {.no-title}
@@ -165,9 +183,17 @@ ggplotly(p) %>% layout(hovermode = "x")
 <h2> Inferred Molecule Lengths </h2>
 The chart below shows the **cumulative** frequency distribution of molecule lengths 
 inferred from the first and last alignment positions along a contig for all
-alignments associated with a single haplotag barcode on a given contig. For
-visual clarity, molecules with inferred lengths less than 500 bp were omitted,
-therefore the Y axis will likely not reach 100%.
+alignments associated with a single haplotag barcode on a given contig. 
+Pay attention to the Y axis, as it likely doesn't start at `0`.
+
+### inferred_cov desc {.no-title}
+<h2> Inferred Molecule Read Coverage </h2>
+The chart below shows the frequency distribution of molecule coverage, meaning
+the percent of each inferred molecule that has sequences aligned to it. In other
+words, "how much of each unique long molecule is actually sequenced/aligned?"
+Keep in mind there is a disctinction between sequences and alignments, since
+some sequences belonging to a particular molecule may not align well and wouldn't
+appear in the alignment data. 
 
 ## Inferred
 ### Inferred molecule Lengths
@@ -194,6 +220,30 @@ p <- ggplot(data = dat.binned, mapping = aes(Size_Range, Cumulative_Percent)) +
 ggplotly(p) %>% layout(hovermode = "x")
 ```
 
+### Inferred Molecule Coverage
+```{r echo = FALSE, message = FALSE, warning = FALSE, out.width = '100%'}
+dat.binned <- tb %>% filter(valid == "valid BX") %>%
+    count(Marks = cut(percent_coverage*100, seq(0,max(percent_coverage*100)+5, 5))) %>%
+    mutate(pct = n/sum(n)) %>% rename("Percent_Coverage" = Marks, "Percent_Total_Molecules" = pct)
+  
+levels(dat.binned$Percent_Coverage) <- formatBins(dat.binned$Percent_Coverage)
+
+p <- dat.binned %>%
+  ggplot(aes(x = Percent_Coverage, y = Percent_Total_Molecules)) + 
+  geom_bar(stat = "identity", fill = "#e59765", color = "white") +
+  labs(
+    title = "Percent Molecule Coverage",
+    subtitle = samplename,
+    caption = paste0("Total unique molecules: ", totuniqBX),
+    x="% of Molecule Covered by Alignments",
+    y="% Unique Molecules"
+  ) +
+  scale_y_continuous(labels = scales::percent) +
+  theme_light()
+
+ggplotly(p) %>% layout(hovermode = "x")
+```
+
 ## Interpreting the supporting data
 ### interp desc {.no-title}
 <h2> Interpreting the Data </h2>
@@ -213,7 +263,7 @@ and that the sequences aligned to the same contig.
 ```{r cols_explained, echo=FALSE, message=FALSE, warnings=FALSE}
 knitr::kable(
   data.frame(
-    "Column Name" = c("contig", "molecule", "reads", "start", "end", "length_inferred", "aligned_bp", "mindist"),
+    "Column Name" = c("contig", "molecule", "reads", "start", "end", "length_inferred", "percent_coverage", "aligned_bp", "mindist"),
     "Description" = c(
       "name of the contig the molecule occurs on",
       "the molecule name as given by the MI:i: tag",
@@ -221,6 +271,7 @@ knitr::kable(
       "the start position of the first alignment for that molecule",
       "the end position of the last alignment for that molecule",
       "inferred length of the molecule based on the start/end of the alignments sharing the same barcode",
+      "what percent of the molecule is represented by sequence alignments",
       "total number of base pairs aligned for that molecule",
       "the minimum basepair distance between two alignments sharing a barcode (excluding read pairs, kind of a sanity check)"
       )
