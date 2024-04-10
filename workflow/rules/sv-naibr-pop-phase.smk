@@ -10,6 +10,8 @@ extra       = config.get("extra", "")
 groupfile   = config["groupings"]
 genomefile  = config["genomefile"]
 molecule_distance = config["molecule_distance"]
+min_sv      = config["min_sv"]
+min_bc      = config["min_barcodes"]
 outdir      = config["output_directory"]
 skipreports = config["skipreports"]
 
@@ -32,8 +34,8 @@ def process_args(args):
     argsDict = {
         "min_mapq" : 30,
         "d"        : molecule_distance,
-        "min_sv"   : 1000,
-        "k"        : 3,
+        "min_sv"   : min_sv,
+        "k"        : min_barcodes
     }
     if args:
         words = [i for i in re.split(r"\s|=", args) if len(i) > 0]

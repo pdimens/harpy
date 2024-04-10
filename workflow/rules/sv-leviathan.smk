@@ -5,7 +5,9 @@ import os
 
 bam_dir     = config["seq_directory"]
 genomefile  = config["genomefile"]
-samplenames = config["samplenames"] 
+samplenames = config["samplenames"]
+min_sv      = config["min_sv"]
+min_bc      = config["min_barcodes"]
 extra       = config.get("extra", "") 
 outdir      = config["output_directory"]
 skipreports = config["skipreports"]
@@ -128,6 +130,8 @@ rule leviathan_variantcall:
         runlog     = outdir + "/logs/{sample}.leviathan.log",
         candidates = outdir + "/logs/{sample}.candidates"
     params:
+        min_sv = f"-v {min_sv}",
+        min_bc = f"-c {min_bc}",
         extra = extra
     threads:
         3
@@ -192,6 +196,8 @@ rule log_workflow:
     output:
         outdir + "/workflow/sv.leviathan.summary"
     params:
+        min_sv = f"-v {min_sv}",
+        min_bc = f"-c {min_bc}",
         extra = extra
     message:
         "Summarizing the workflow: {output}"

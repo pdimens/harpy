@@ -8,6 +8,8 @@ genomefile 	= config["genomefile"]
 samplenames = config["samplenames"]
 extra 		= config.get("extra", "") 
 groupfile 	= config["groupings"]
+min_sv      = config["min_sv"]
+min_bc      = config["min_barcodes"]
 outdir      = config["output_directory"]
 skipreports = config["skipreports"]
 bn 			= os.path.basename(genomefile)
@@ -178,6 +180,8 @@ rule leviathan_variantcall:
         runlog     = outdir + "/logs/{population}.leviathan.log",
         candidates = outdir + "/logs/{population}.candidates"
     params:
+        min_sv = f"-v {min_sv}",
+        min_bc = f"-c {min_bc}",
         extra = extra
     threads:
         3
@@ -258,6 +262,8 @@ rule log_workflow:
     message:
         "Summarizing the workflow: {output}"
     params:
+        min_sv = f"-v {min_sv}",
+        min_bc = f"-c {min_bc}",
         extra = extra
     run:
         with open(output[0], "w") as f:
