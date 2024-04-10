@@ -287,7 +287,7 @@ click.rich_click.OPTION_GROUPS = {
     "harpy sv leviathan": [
         {
             "name": "Parameters",
-            "options": ["--genome", "--populations", "--extra-params"],
+            "options": ["--genome", "--min-sv", "--min-barcodes", "--populations", "--extra-params"],
         },
         {
             "name": "Other Options",
