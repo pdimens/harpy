@@ -99,7 +99,7 @@ valueBox(scales::comma(avgBX), caption = "Average BX per contig", color = "info"
 
 ### glob-total
 ```{r}
-valueBox(scales::comma(totuniqBX), caption = "Total unique barcodes", color = "info")
+valueBox(scales::comma(totuniqBX), caption = "Total unique molecules", color = "info")
 ```
 
 ## Reads per molecule dec
@@ -126,6 +126,7 @@ p <- filter(tb, valid == "valid BX") %>%
     labs(
         title = "Reads Per Unique Molecule",
         subtitle = samplename,
+        caption = paste0("Total unique molecules: ", totuniqBX),
         x = "Number of aligned reads",
         y = "% of molecules",
     ) +
@@ -137,7 +138,7 @@ ggplotly(p)
 #TODO CALCULATE N50, N75, N90
 ```
 
-### Bases Per Barcode {.no-title}
+### Bases Per molecule {.no-title}
 ```{r echo = FALSE, message = FALSE, warning = FALSE, out.width = '100%'}
 dat.binned <- tb %>% filter(valid == "valid BX", length_inferred > 10) %>%
     count(Marks = cut(aligned_bp, seq(0,max(aligned_bp)+500, 500))) %>%
@@ -151,6 +152,7 @@ p <- ggplot(data = dat.binned, mapping = aes(Size_Range, Cumulative_Percent)) +
   labs(
     title = "Bases Aligned Per Unique Molecule",
     subtitle = samplename,
+    caption = paste0("Total unique molecules: ", totuniqBX),
     x = "Number of aligned bases (bp)",
     y = "% of molecules",
   ) +
@@ -181,6 +183,7 @@ p <- ggplot(data = dat.binned, mapping = aes(Size_Range, Cumulative_Percent)) +
   labs(
     title = "Inferred Molecule Length",
     subtitle = samplename,
+    caption = paste0("Total unique molecules: ", totuniqBX),
     x = "Molecule Size Bin (kbp)",
     y = "% of Molecules"
   ) +

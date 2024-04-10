@@ -220,7 +220,7 @@ rule create_config:
     input:
         outdir + "/input/{population}.bam"
     output:
-        outdir + "/configs/{population}.config"
+        outdir + "/workflow/input/{population}.config"
     params:
         lambda wc: wc.get("population"),
         min(10, workflow.cores)
@@ -240,7 +240,7 @@ rule call_sv:
     input:
         bam   = outdir + "/input/{population}.bam",
         bai   = outdir + "/input/{population}.bam.bai",
-        conf  = outdir + "/configs/{population}.config"
+        conf  = outdir + "/workflow/input/{population}.config"
     output:
         bedpe = outdir + "/{population}/{population}.bedpe",
         refmt = outdir + "/{population}/{population}.reformat.bedpe",

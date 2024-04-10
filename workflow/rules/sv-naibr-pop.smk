@@ -103,11 +103,11 @@ rule bam_list:
 
 rule merge_populations:
     input: 
-        bamlist  = outdir + "/input/{population}.list",
+        bamlist  = outdir + "/workflow/input/{population}.list",
         bamfiles = lambda wc: expand("{sample}", sample = popdict[wc.population]) 
     output:
-        bam = temp(outdir + "/input/{population}.bam"),
-        bai = temp(outdir + "/input/{population}.bam.bai")
+        bam = temp(outdir + "/workflow/input/{population}.bam"),
+        bai = temp(outdir + "/workflow/input/{population}.bam.bai")
     threads:
         2
     message:
@@ -117,9 +117,9 @@ rule merge_populations:
 
 rule create_config:
     input:
-        outdir + "/input/{population}.bam"
+        outdir + "/workflow/input/{population}.bam"
     output:
-        outdir + "/configs/{population}.config"
+        outdir + "/workflow/input/{population}.config"
     params:
         lambda wc: wc.get("population"),
         min(10, workflow.cores)
@@ -137,9 +137,9 @@ rule create_config:
 
 rule call_sv:
     input:
-        bam   = outdir + "/input/{population}.bam",
-        bai   = outdir + "/input/{population}.bam.bai",
-        conf  = outdir + "/configs/{population}.config"
+        bam   = outdir + "/workflow/input/{population}.bam",
+        bai   = outdir + "/workflow/input/{population}.bam.bai",
+        conf  = outdir + "/workflow/input/{population}.config"
     output:
         bedpe = outdir + "/{population}/{population}.bedpe",
         refmt = outdir + "/{population}/{population}.reformat.bedpe",
