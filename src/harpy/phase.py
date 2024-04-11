@@ -83,3 +83,4 @@ def phase(input, output_dir, vcf, threads, molecule_distance, prune_threshold, v
         f"Input VCF: {vcf}\nSamples in VCF: {len(samplenames)}\nAlignments Provided: {len(sn)}\nOutput Directory: {output_dir}/",
         "phase"
     )
+    return command
