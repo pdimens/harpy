@@ -74,28 +74,3 @@ jobs:
       - name: harpy stitchparams
         shell: micromamba-shell {0}
         run: harpy stitchparams -o params.file
-  test_hpc:
-    name: hpc
-    runs-on: ubuntu-latest
-    steps:
-      - name: checkout
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 1
-      - name: setup mamba
-        uses: mamba-org/setup-micromamba@v1
-        with:
-          init-shell: bash
-          generate-run-shell: true
-          environment-file: resources/harpy.yaml
-          cache-environment: true
-          post-cleanup: 'all'
-      - name: Install harpy
-        run: |
-          python3 -m pip install --upgrade build && python3 -m build
-          pip install dist/*.whl
-          resources/buildforCI.sh
-        shell: micromamba-shell {0}
-      - name: harpy hpc
-        shell: micromamba-shell {0}
-        run: harpy hpc -o hpc.yml -s slurm

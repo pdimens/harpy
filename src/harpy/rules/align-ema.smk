@@ -127,7 +127,7 @@ rule genome_make_windows:
     message: 
         "Creating BED intervals from {input}"
     shell: 
-        "makewindows.py -i {input} -w 10000 -o {output}"
+        "python makeWindows.py -i {input} -w 10000 -o {output}"
 
 rule interleave:
     input:

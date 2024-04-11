@@ -274,7 +274,7 @@ rule infer_sv:
         "Inferring variants from naibr output: {wildcards.population}"
     shell:
         """
-        inferSV.py {input.bedpe} -f {output.fail} > {output.bedpe}
+        python inferSV.py {input.bedpe} -f {output.fail} > {output.bedpe}
         mv {input.refmt} {output.refmt} &&
         mv {input.vcf} {output.vcf} &&
         rm -rf {params.outdir}

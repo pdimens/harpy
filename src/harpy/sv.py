@@ -71,8 +71,8 @@ def leviathan(input, output_dir, genome, min_sv, min_barcodes, threads, populati
             config.write(f"groupings: {populations}\n")
             popgroupings += f"\nPopulations: {populations}"
         config.write(f"genomefile: {genome}\n")
-        config.write("min_barcodes: {min_barcodes}\n")
-        config.write("min_sv: {min_sv}\n")
+        config.write(f"min_barcodes: {min_barcodes}\n")
+        config.write(f"min_sv: {min_sv}\n")
         if extra_params is not None:
             config.write(f"extra: {extra_params}\n")
         config.write(f"skipreports: {skipreports}\n")
@@ -166,8 +166,8 @@ def naibr(input, output_dir, genome, vcf, min_sv, min_barcodes, threads, populat
             config.write(f"vcf: {vcf}\n")
         if genome is not None:
             config.write(f"genomefile: {genome}\n")
-        config.write("min_barcodes: {min_barcodes}\n")
-        config.write("min_sv: {min_sv}\n")
+        config.write(f"min_barcodes: {min_barcodes}\n")
+        config.write(f"min_sv: {min_sv}\n")
         if extra_params is not None:
             config.write(f"extra: {extra_params}\n")
         config.write(f"skipreports: {skipreports}\n")
