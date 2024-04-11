@@ -126,7 +126,7 @@ rule impute:
     message: 
         "Performing imputation: {wildcards.part}\nmodel: {wildcards.model}\nuseBX: {wildcards.usebx}    \nbxLimit: {wildcards.bxlimit}\n    k: {wildcards.k}\n    s: {wildcards.s}\n nGen: {wildcards.ngen}"
     script:
-        "stitch_impute.R"
+        "scripts/stitch_impute.R"
 
 rule index_vcf:
     input:

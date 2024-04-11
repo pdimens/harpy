@@ -269,7 +269,7 @@ rule log_workflow:
     default_target: True
     input:
         vcf = outdir + "/variants.phased.bcf",
-        outdir + "/reports/phase.html" if not skipreports else []
+        reports = outdir + "/reports/phase.html" if not skipreports else []
     output:
         outdir + "/workflow/phase.summary"
     params:
