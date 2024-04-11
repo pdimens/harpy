@@ -14,7 +14,7 @@ contigs     = config["contigs"]
 skipreports = config["skipreports"]
 outdir      = config["output_directory"]
 # declare a dataframe to be the paramspace
-paramspace  = Paramspace(pd.read_csv(paramfile, sep='\s+').rename(columns=str.lower), param_sep = "", filename_params="*")
+paramspace  = Paramspace(pd.read_csv(paramfile, sep=r"\s+").rename(columns=str.lower), param_sep = "", filename_params="*")
 
 wildcard_constraints:
     sample = "[a-zA-Z0-9._-]+"
