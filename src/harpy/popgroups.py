@@ -5,7 +5,6 @@ import os
 import re
 import sys
 import glob
-import subprocess
 import rich_click as click
 from rich import print
 from rich.panel import Panel
@@ -57,3 +56,4 @@ def popgroup(input, output):
         for i in samplenames:
             _ = file.write(i + '\tpop1\n') 
     print_notice(write_text + " Please review it, as all samples have been grouped into a single population")
+    return 0

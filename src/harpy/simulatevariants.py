@@ -1,8 +1,7 @@
-from .helperfunctions import generate_conda_deps, fetch_file, symlink
+from .helperfunctions import generate_conda_deps, fetch_rule, fetch_script, symlink
 from .printfunctions import print_onstart, print_error
 from .validations import validate_input_by_ext
 import rich_click as click
-import subprocess
 import os
 import sys
 
@@ -98,8 +97,8 @@ def snpindel(genome, snp_vcf, indel_vcf, output_dir, prefix, snp_count, indel_co
         exclude_link = f"{workflowdir}/input/{os.path.basename(exclude_chr)}"
         symlink(exclude_chr, exclude_link)
         printmsg += f"Excluded Chromosomes: {exclude_chr}\n"
-    fetch_file("simulate-snpindel.smk", f"{workflowdir}/")
-    fetch_file("simuG.pl", f"{workflowdir}/scripts/")
+    fetch_rule(workflowdir, "simulate-snpindel.smk")
+    fetch_script(workflowdir, "simuG.pl")
     # setup the config file depending on inputs
     with open(f"{workflowdir}/config.yml", "w") as config:
         config.write(f"input_directory: {workflowdir}/input\n")
@@ -125,13 +124,8 @@ def snpindel(genome, snp_vcf, indel_vcf, output_dir, prefix, snp_count, indel_co
         config.write(f"heterozygosity: {heterozygosity}\n")
         config.write(f"workflow_call: {call_SM}\n")
 
-    generate_conda_deps()
-    print_onstart(
-        printmsg.rstrip("\n"),
-        "simulate variants: snpindel"
-    )
-    _module = subprocess.run(command)
-    sys.exit(_module.returncode)
+    print_onstart(printmsg.rstrip("\n"), "simulate variants: snpindel")
+    return command
 
 @click.command(no_args_is_help = True, epilog = "Please read the docs for more information: https://pdimens.github.io/harpy/modules/simulate")
 @click.option('-v', '--vcf', type=click.Path(exists=True, dir_okay=False), help = 'VCF file of known inversions to simulate')
@@ -206,8 +200,8 @@ def inversion(genome, vcf, prefix, output_dir, count, min_size, max_size, centro
         exclude_link = f"{workflowdir}/input/{os.path.basename(exclude_chr)}"
         symlink(exclude_chr, exclude_link)
         printmsg += f"Excluded Chromosomes: {exclude_chr}\n"
-    fetch_file("simulate-variants.smk", f"{workflowdir}/")
-    fetch_file("simuG.pl", f"{workflowdir}/scripts/")
+    fetch_rule(workflowdir, "simulate-variants.smk")
+    fetch_script(workflowdir, "simuG.pl")
     # setup the config file depending on inputs
     with open(f"{workflowdir}/config.yml", "w") as config:
         config.write(f"input_directory: {workflowdir}/input\n")
@@ -228,13 +222,8 @@ def inversion(genome, vcf, prefix, output_dir, count, min_size, max_size, centro
         config.write(f"heterozygosity: {heterozygosity}\n")
         config.write(f"workflow_call: {call_SM}\n")
 
-    generate_conda_deps()
-    print_onstart(
-        printmsg.rstrip("\n"),
-        "simulate variants: inversion"
-    )
-    _module = subprocess.run(command)
-    sys.exit(_module.returncode)
+    print_onstart(printmsg.rstrip("\n"), "simulate variants: inversion")
+    return command
 
 @click.command(no_args_is_help = True, epilog = "Please read the docs for more information: https://pdimens.github.io/harpy/modules/simulate")
 @click.option('-v', '--vcf', type=click.Path(exists=True, dir_okay=False), help = 'VCF file of known copy number variants to simulate')
@@ -318,8 +307,8 @@ def cnv(genome, output_dir, vcf, prefix, count, min_size, max_size, dup_ratio, m
         exclude_link = f"{workflowdir}/input/{os.path.basename(exclude_chr)}"
         symlink(exclude_chr, exclude_link)
         printmsg += f"Excluded Chromosomes: {exclude_chr}\n"
-    fetch_file("simulate-variants.smk", f"{workflowdir}/")
-    fetch_file("simuG.pl", f"{workflowdir}/scripts/")
+    fetch_rule(workflowdir, "simulate-variants.smk")
+    fetch_script(workflowdir, "simuG.pl")
     # setup the config file depending on inputs
     with open(f"{workflowdir}/config.yml", "w") as config:
         config.write(f"input_directory: {workflowdir}/input\n")
@@ -343,13 +332,8 @@ def cnv(genome, output_dir, vcf, prefix, count, min_size, max_size, dup_ratio, m
         config.write(f"heterozygosity: {heterozygosity}\n")
         config.write(f"workflow_call: {call_SM}\n")
 
-    generate_conda_deps()
-    print_onstart(
-        printmsg.rstrip("\n"),
-        "simulate cnv"
-    )
-    _module = subprocess.run(command)
-    sys.exit(_module.returncode)
+    print_onstart(printmsg.rstrip("\n"),"simulate cnv")
+    return command
 
 @click.command(no_args_is_help = True, epilog = "Please read the docs for more information: https://pdimens.github.io/harpy/modules/simulate")
 @click.option('-v', '--vcf', type=click.Path(exists=True, dir_okay=False), help = 'VCF file of known translocations to simulate')
@@ -422,8 +406,8 @@ def translocation(genome, output_dir, prefix, vcf, count, centromeres, genes, he
         exclude_link = f"{workflowdir}/input/{os.path.basename(exclude_chr)}"
         symlink(exclude_chr, exclude_link)
         printmsg += f"Excluded Chromosomes: {exclude_chr}\n"
-    fetch_file("simulate-variants.smk", f"{workflowdir}/")
-    fetch_file("simuG.pl", f"{workflowdir}/scripts/")
+    fetch_rule(workflowdir, "simulate-variants.smk")
+    fetch_script(workflowdir, "simuG.pl")
     # setup the config file depending on inputs
     with open(f"{workflowdir}/config.yml", "w") as config:
         config.write(f"input_directory: {workflowdir}/input\n")
@@ -442,13 +426,5 @@ def translocation(genome, output_dir, prefix, vcf, count, centromeres, genes, he
         config.write(f"heterozygosity: {heterozygosity}\n")
         config.write(f"workflow_call: {call_SM}\n")
 
-    generate_conda_deps()
-    print_onstart(
-        printmsg.rstrip("\n"),
-        "simulate variants: translocation"
-    )
-    _module = subprocess.run(command)
-    sys.exit(_module.returncode)
-
-
-#TODO ONLY CNV WAS FIXED. OTHERS NEED FIXING
+    print_onstart(printmsg.rstrip("\n"), "simulate variants: translocation")
+    return command

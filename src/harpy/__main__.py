@@ -31,6 +31,8 @@ from .sv import leviathan, naibr
 from .impute import impute
 from .phase import phase
 import rich_click as click
+import subprocess
+from .helperfunctions import generate_conda_deps
 
 click.rich_click.USE_MARKDOWN = True
 click.rich_click.SHOW_ARGUMENTS = False
@@ -394,7 +396,16 @@ click.rich_click.OPTION_GROUPS = {
 
 
 def main():
-    cli()
+    try:
+        workflow = cli(standalone_mode = False)
+        if workflow == 0:
+            return 0
+        elif workflow is not None:
+            generate_conda_deps()
+            _module = subprocess.run(workflow)
+            return _module.returncode
+    except:
+        sys.exit(1)
 
 if __name__ == '__main__':
     sys.exit(main())

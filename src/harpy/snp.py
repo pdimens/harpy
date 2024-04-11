@@ -1,9 +1,8 @@
-from .helperfunctions import fetch_file, generate_conda_deps, createregions
+from .helperfunctions import fetch_rule, fetch_report, fetch_script, generate_conda_deps, createregions
 from .fileparsers import getnames, parse_alignment_inputs
 from .printfunctions import print_onstart
 from .validations import validate_bamfiles, validate_popfile, validate_vcfsamples, validate_input_by_ext
 import rich_click as click
-import subprocess
 import sys
 import os
 
@@ -54,8 +53,8 @@ def mpileup(input, output_dir, genome, threads, populations, ploidy, windowsize,
     samplenames = getnames(f"{workflowdir}/input", '.bam')
     validate_bamfiles(f"{workflowdir}/input", samplenames)
     validate_input_by_ext(genome, "--genome", [".fasta", ".fa", ".fasta.gz", ".fa.gz"])
-    fetch_file("snp-mpileup.smk", f"{workflowdir}/")
-    fetch_file("BcftoolsStats.Rmd", f"{workflowdir}/report/")
+    fetch_rule(workflowdir, "snp-mpileup.smk")
+    fetch_report(workflowdir, "BcftoolsStats.Rmd")
     callcoords, linkedgenome = createregions(genome, windowsize, "mpileup")
 
     with open(f"{workflowdir}/config.yml", "w") as config:
@@ -78,13 +77,11 @@ def mpileup(input, output_dir, genome, threads, populations, ploidy, windowsize,
         config.write(f"skipreports: {skipreports}\n")
         config.write(f"workflow_call: {call_SM}\n")
 
-    generate_conda_deps()
     print_onstart(
         f"Samples: {len(samplenames)}{popgroupings}\nOutput Directory: {output_dir}/",
         "snp mpileup"
     )
-    _module = subprocess.run(command)
-    sys.exit(_module.returncode)
+    return command
 
 @click.command(no_args_is_help = True, epilog = "read the docs for more information: https://pdimens.github.io/harpy/modules/snp")
 @click.option('-g', '--genome', type=click.Path(exists=True, dir_okay=False), required = True, metavar = "File Path", help = 'Genome assembly for variant calling')
@@ -133,8 +130,8 @@ def freebayes(input, output_dir, genome, threads, populations, ploidy, windowsiz
     samplenames = getnames(f"{workflowdir}/input", '.bam')
     validate_bamfiles(f"{workflowdir}/input", samplenames)
     validate_input_by_ext(genome, "--genome", [".fasta", ".fa", ".fasta.gz", ".fa.gz"])
-    fetch_file("snp-freebayes.smk", f"{workflowdir}/")
-    fetch_file("BcftoolsStats.Rmd", f"{workflowdir}/report/")
+    fetch_rule(workflowdir, "snp-freebayes.smk")
+    fetch_report(workflowdir, "BcftoolsStats.Rmd")
     callcoords, linkedgenome = createregions(genome, windowsize, "freebayes")
 
     with open(f"{workflowdir}/config.yml", "w") as config:
@@ -157,10 +154,8 @@ def freebayes(input, output_dir, genome, threads, populations, ploidy, windowsiz
         config.write(f"skipreports: {skipreports}\n")
         config.write(f"workflow_call: {call_SM}\n")
 
-    generate_conda_deps()
     print_onstart(
         f"Samples: {len(samplenames)}{popgroupings}\nOutput Directory: {output_dir}/",
         "snp freebayes"
     )
-    _module = subprocess.run(command)
-    sys.exit(_module.returncode)
+    return command

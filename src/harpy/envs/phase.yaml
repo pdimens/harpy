@@ -1,0 +1,11 @@
+name: phase
+channels:
+  - conda-forge
+  - bioconda
+  - defaults
+dependencies:
+  - bcftools=1.19
+  - hapcut2 
+  - pysam 
+  - samtools
+  - tabix

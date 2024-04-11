@@ -1,4 +1,4 @@
-from .helperfunctions import fetch_file, generate_conda_deps
+from .helperfunctions import fetch_rule, fetch_report, generate_conda_deps
 from .fileparsers import getnames, parse_alignment_inputs
 from .printfunctions import print_onstart
 from .validations import validate_popfile, validate_vcfsamples, check_phase_vcf, validate_input_by_ext
@@ -54,9 +54,9 @@ def leviathan(input, output_dir, genome, min_sv, min_barcodes, threads, populati
     samplenames = getnames(f"{workflowdir}/input", '.bam')
     validate_input_by_ext(genome, "--genome", [".fasta", ".fa", ".fasta.gz", ".fa.gz"])
     if populations is not None:
-        fetch_file("LeviathanPop.Rmd", f"{workflowdir}/report/")
-    fetch_file("Leviathan.Rmd", f"{workflowdir}/report/")
-    fetch_file(f"sv-{vcaller}.smk", f"{workflowdir}")
+        fetch_report(workflowdir, "LeviathanPop.Rmd")
+    fetch_report(workflowdir, "Leviathan.Rmd")
+    fetch_rule(workflowdir, f"sv-{vcaller}.smk")
 
     with open(f'{workflowdir}/config.yml', "w") as config:
         config.write(f"seq_directory: {workflowdir}/input\n")
@@ -78,13 +78,11 @@ def leviathan(input, output_dir, genome, min_sv, min_barcodes, threads, populati
         config.write(f"skipreports: {skipreports}\n")
         config.write(f"workflow_call: {call_SM}\n")
 
-    generate_conda_deps()
     print_onstart(
         f"Samples: {len(samplenames)}{popgroupings}\nOutput Directory: {output_dir}/",
         "sv leviathan"
     )
-    _module = subprocess.run(command)
-    sys.exit(_module.returncode)
+    return command
 
 @click.command(no_args_is_help = True, epilog = "read the docs for more information: https://pdimens.github.io/harpy/modules/sv/naibr/")
 @click.option('-g', '--genome', required = True, type=click.Path(exists=True, dir_okay=False), help = 'Genome assembly')
@@ -144,12 +142,12 @@ def naibr(input, output_dir, genome, vcf, min_sv, min_barcodes, threads, populat
     samplenames = getnames(f"{workflowdir}/input", '.bam')
     validate_input_by_ext(genome, "--genome", [".fasta", ".fa", ".fasta.gz", ".fa.gz"])
     if populations is not None:
-        fetch_file("NaibrPop.Rmd", f"{workflowdir}/report/")
-    fetch_file("Naibr.Rmd", f"{workflowdir}/report/")
+        fetch_report(workflowdir, "NaibrPop.Rmd")
+    fetch_report(workflowdir, "Naibr.Rmd")
     if vcf is not None:
         check_phase_vcf(vcf)
         #vcaller += "-phase"
-    fetch_file(f"sv-{vcaller}.smk", f"{workflowdir}/")
+    fetch_rule(workflowdir, f"sv-{vcaller}.smk")
 
     with open(f'{workflowdir}/config.yml', "w") as config:
         config.write(f"seq_directory: {workflowdir}/input\n")
@@ -175,10 +173,8 @@ def naibr(input, output_dir, genome, vcf, min_sv, min_barcodes, threads, populat
         config.write(f"skipreports: {skipreports}\n")
         config.write(f"workflow_call: {call_SM}\n")
 
-    generate_conda_deps()
     print_onstart(
         f"Samples: {len(samplenames)}{popgroupings}\nOutput Directory: {output_dir}/",
         "sv naibr"
     )
-    _module = subprocess.run(command)
-    sys.exit(_module.returncode)
+    return command

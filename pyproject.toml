@@ -16,6 +16,9 @@ license = {text = "GPL-3.0"}
 [tool.setuptools.packages.find]
 where = ["src"]
 
+[tool.setuptools.package-data]
+"*" = ["*.*"]
+
 [project.scripts]
 harpy = "harpy.__main__:main"
 

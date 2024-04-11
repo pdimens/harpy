@@ -1,8 +1,7 @@
-from .helperfunctions import generate_conda_deps, fetch_file 
+from .helperfunctions import generate_conda_deps, fetch_rule, fetch_report, fetch_script
 from .printfunctions import print_onstart
 from .validations import validate_input_by_ext
 import rich_click as click
-import subprocess
 import os
 import sys
 
@@ -50,10 +49,11 @@ def linkedreads(genome_hap1, genome_hap2, output_dir, outer_distance, distance_s
     validate_input_by_ext(genome_hap2, "GENOME_HAP2", [".fasta", ".fa", ".fasta.gz", ".fa.gz"])
 
     os.makedirs(f"{workflowdir}/", exist_ok= True)
-    fetch_file("simulate-reads.smk", f"{workflowdir}/")
-    fetch_file("10xtoHaplotag.py", f"{workflowdir}/scripts/")
-    fetch_file("LRSIMharpy.pl", f"{workflowdir}/scripts/")
-    fetch_file("faFilter.pl", f"{workflowdir}/scripts/")
+    fetch_rule(workflowdir, "simulate-reads.smk")
+    fetch_script(workflowdir, "10xtoHaplotag.py")
+    fetch_script(workflowdir, "LRSIMharpy.pl")
+    fetch_script(workflowdir, "faFilter.pl")
+
     with open(f"{workflowdir}/config.yml", "w") as config:
         config.write(f"genome_hap1: {genome_hap1}\n")
         config.write(f"genome_hap2: {genome_hap2}\n")
@@ -68,13 +68,11 @@ def linkedreads(genome_hap1, genome_hap2, output_dir, outer_distance, distance_s
         config.write(f"molecules_per_partition: {molecules_per}\n")
         config.write(f"workflow_call: {call_SM}\n")
 
-    generate_conda_deps()
     onstart_text = f"Genome Haplotype 1: {os.path.basename(genome_hap1)}\n"
     onstart_text += f"Genome Haplotype 2: {os.path.basename(genome_hap2)}\n"
     onstart_text += f"Barcodes: {os.path.basename(barcodes)}\n" if barcodes else "Barcodes: 10X Default\n"
     onstart_text += f"Output Directory: {output_dir}/"
     print_onstart(onstart_text, "simulate reads")
     
-    _module = subprocess.run(command)
-    sys.exit(_module.returncode)
+    return command
 

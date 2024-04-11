@@ -1,0 +1,10 @@
+name: variants.snp
+channels:
+  - conda-forge
+  - bioconda
+  - defaults
+dependencies:
+  - bcftools=1.19 
+  - freebayes 
+  - pysam 
+  - samtools

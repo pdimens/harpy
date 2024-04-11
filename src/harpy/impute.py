@@ -1,9 +1,8 @@
-from .helperfunctions import fetch_file, generate_conda_deps, biallelic_contigs
+from .helperfunctions import fetch_rule, fetch_report, fetch_script, generate_conda_deps, biallelic_contigs
 from .fileparsers import parse_alignment_inputs
 from .printfunctions import print_onstart
 from .validations import vcfcheck, vcf_samplematch, check_impute_params, validate_bamfiles
 import rich_click as click
-import subprocess
 import sys
 import os
 
@@ -60,10 +59,10 @@ def impute(input, output_dir, parameters, threads, vcf, vcf_samples, extra_param
     ## validate inputs ##
     vcfcheck(vcf)
     check_impute_params(parameters)
-    fetch_file("impute.smk", f"{workflowdir}/")
-    fetch_file("stitch_impute.R", f"{workflowdir}/")
+    fetch_rule(workflowdir, "impute.smk")
+    fetch_script(workflowdir, "stitch_impute.R")
     for i in ["Impute", "StitchCollate"]:
-        fetch_file(f"{i}.Rmd", f"{workflowdir}/report/")
+        fetch_report(workflowdir, f"{i}.Rmd")
 
     # generate and store list of viable contigs (minimum of 2 biallelic SNPs)
     # doing it here so it doesn't have to run each time inside the workflow
@@ -80,10 +79,8 @@ def impute(input, output_dir, parameters, threads, vcf, vcf_samples, extra_param
         config.write(f"skipreports: {skipreports}\n")
         config.write(f"workflow_call: {call_SM}\n")
 
-    generate_conda_deps()
     print_onstart(
         f"Input VCF: {vcf}\nSamples in VCF: {len(samplenames)}\nAlignments Provided: {len(sn)}\nContigs Considered: {len(contigs)}\nOutput Directory: {output_dir}/",
         "impute"
     )
-    _module = subprocess.run(command)
-    sys.exit(_module.returncode)
+    return command

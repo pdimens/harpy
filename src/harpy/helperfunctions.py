@@ -4,9 +4,13 @@ import re
 import shutil
 import subprocess
 from pathlib import Path
+from importlib_resources import files
 from .printfunctions import print_error, print_solution, print_solution_with_culprits
 from collections import Counter
 import rich_click as click
+import harpy.scripts
+import harpy.reports
+import harpy.rules
 
 def symlink(original, destination):
     """Create a symbolic link from original -> destination if the destination doesn't already exist."""
@@ -128,6 +132,30 @@ def fetch_file(file, destination, rename=None):
         destination += rename
     # copy2 to keep metadata during copy
     shutil.copy2(result, destination)
+
+def fetch_script(workdir, target):
+    """
+    Retrieve the target harpy script and write it into workdir/scripts
+    """
+    os.makedirs(f"{workdir}/scripts/", exist_ok= True)
+    with open(f"{workdir}/scripts/{target}", "w") as f:
+        f.write(files(harpy.scripts).joinpath(target).read_text())
+
+def fetch_rule(workdir, target):
+    """
+    Retrieve the target harpy rule and write it into the workdir
+    """
+    os.makedirs(f"{workdir}/", exist_ok= True)
+    with open(f"{workdir}/{target}", "w") as f:
+        f.write(files(harpy.rules).joinpath(target).read_text())
+
+def fetch_report(workdir, target):
+    """
+    Retrieve the target harpy report and write it into workdir/report
+    """
+    os.makedirs(f"{workdir}/report/", exist_ok= True)
+    with open(f"{workdir}/report/{target}", "w") as f:
+        f.write(files(harpy.reports).joinpath(target).read_text())
 
 def biallelic_contigs(vcf):
     """Identify which contigs have at least 2 biallelic SNPs"""

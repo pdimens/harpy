@@ -1,8 +1,7 @@
 import rich_click as click
 from .printfunctions import print_onstart
-from .helperfunctions import fetch_file, generate_conda_deps
+from .helperfunctions import fetch_rule, generate_conda_deps
 from .validations import validate_demuxschema, check_demux_fastq
-import subprocess
 import sys
 import os
 import re
@@ -45,7 +44,7 @@ def gen1(fastq_input, output_dir, samplesheet, threads, snakemake, skipreports, 
 
     check_demux_fastq(fastq_input)
     validate_demuxschema(samplesheet)
-    fetch_file("demultiplex.gen1.smk", f"{workflowdir}/")
+    fetch_rule(workflowdir, "demultiplex.gen1.smk")
 
     with open(f"{workflowdir}/config.yml", "w") as config:
         config.write(f"infile: {fastq_input}\n")
@@ -55,10 +54,8 @@ def gen1(fastq_input, output_dir, samplesheet, threads, snakemake, skipreports, 
         config.write(f"skipreports: {skipreports}\n")
         config.write(f"workflow_call: {call_SM}\n")
 
-    generate_conda_deps()
     print_onstart(
         f"Input Prefix: {inprefix}\nDemultiplex Schema: {samplesheet}\nOutput Directory: {output_dir}",
         "demultiplex gen1"
     )
-    _module = subprocess.run(command)
-    sys.exit(_module.returncode)
+    return command
