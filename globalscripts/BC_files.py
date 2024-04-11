@@ -1,6 +1,7 @@
-#! /usr/bin/env python3
+import sys
 
 ## Generates the BC_{ABCD}.txt files necessary to demultiplex Gen I haplotag barcodes
+outdir = sys.argv[1]
 
 BX = {
     "A": ["ACGGAA", "CCAACA", "AGATCG", "TTCTCC", "TTCCTG", "TTCGGT", "TTGTGG", "TTGCCT", "TTGGTC", "TTACGC", "TTAGCG", "TCTTCG", "TCTCTC", "TCTGGA", "TCCACT", "TCGTAC", "TCGATG", "TCACAG", "TGTTGC", "TGTCCA", "TGTGTG", "TGCTAG", "TGCATC", "TGGAGT", "TGAGAC", "TATCGG", "TATGCC", "TACCAC", "TAGGAG", "CTTCGT", "CTTGCA", "CTCTGA", "CTCAAC", "CTGCTA", "CTGGAT", "CTAAGG", "CCTCAA", "CCTGTT", "CCATTC", "CGTTCT", "CGTAGA", "CGGTAA", "CGACTT", "CATACG", "CACTTG", "CACGAA", "CACAGT", "CAGATC", "CAACGA", "CAAGCT", "GTTCAC", "GTCGTA", "GTGTCA", "GTGAAG", "GTAACC", "GCTTGT", "GCCTAA", "GCACTA", "GCAGAT", "GGTGAA", "GGCAAT", "GGATGA", "GGAATG", "GATCCT", "GATAGC", "GACACA", "GAGCAA", "GAGGTT", "ATTCCG", "ATTGGC", "ATCGAG", "ACTACC", "ACCAGA", "ACGTCT", "ACACGT", "ACAGTG", "AGCTGT", "AGCCTA", "AGGTTC", "AGGCAT", "AGGACA", "AGAAGC", "AACGTC", "AAGCTG", "CGAGTA", "GAATCC", "GAATGG", "AAGTGC", "AAGAGG", "TACAGG", "CTGACT", "CTAGTC", "CCTAAG", "CCATAG", "CGTAAC", "CAATGC"],
@@ -10,7 +11,7 @@ BX = {
 }
 
 for BC in ["A","C","B","D"]:
-    with open(f"BC_{BC}.txt", "w") as f:
+    with open(f"{outdir}/BC_{BC}.txt", "w") as f:
         ID = [f"{BC}{number:02d}" for number in range(1, 97)]
         delim = ["	".join(tup) for tup in zip(ID, BX[BC])]
         _ = [f.write(f"{i}\n") for i in delim]
