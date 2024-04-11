@@ -1,4 +1,3 @@
-#!/usr/bin/perl
 use warnings FATAL => 'all';
 use strict;
 use Getopt::Long qw(GetOptions);

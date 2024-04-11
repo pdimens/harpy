@@ -1,5 +1,3 @@
-#! /usr/bin/env python3
-
 import pysam
 import re
 import argparse

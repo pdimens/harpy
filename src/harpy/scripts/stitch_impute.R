@@ -1,5 +1,3 @@
-#!/usr/bin/env Rscript
-
 suppressWarnings(suppressPackageStartupMessages(library("STITCH")))
 
 # Params pulled in from Snakemake

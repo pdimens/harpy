@@ -1,4 +1,3 @@
-#!/usr/bin/perl
 use File::Basename;
 use strict;
 use warnings;

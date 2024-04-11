@@ -1,26 +1,6 @@
-#! /usr/bin/env python3
-
 import pysam
 import re
-#import argparse
 import sys
-
-#parser = argparse.ArgumentParser(
-#    prog = 'countBX.py',
-#    description = 'Count the number of valid Haplotag BX tags in a FASTQ file.',
-#    usage = "countBX.py fastqfile",
-#    exit_on_error = False
-#    )
-#
-#parser.add_argument("fastqfile", help = "Input FASTQ file.")
-#
-## parser.add_argument("outfile", help = "Output bam file. A corresponding index file will be created for it.")
-#
-#if len(sys.argv) == 1:
-#    parser.print_help(sys.stderr)
-#    sys.exit(1)
-#
-#args = parser.parse_args()
 
 n_reads = 0
 n_bx = 0

@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 # taken directly from HapCut2
 # https://github.com/vibansal/HapCUT2/blob/master/utilities/prune_haplotype.py
 
