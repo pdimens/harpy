@@ -76,12 +76,10 @@ jobs:
         shell: micromamba-shell {0}
         if: always()
         run: |
-          rm -rf Phase
-          harpy phase --vcf test/vcf/test.bcf -g test/genome/genome.fasta.gz -s "--show-failed-logs" test/bam
+          harpy phase --vcf test/vcf/test.bcf -o phaseindel -g test/genome/genome.fasta.gz -s "--show-failed-logs" test/bam
 
       - name: phase from vcf
         shell: micromamba-shell {0}
         if: always()
         run: |
-          rm -rf Phase
-          harpy phase --vcf-samples --vcf test/vcf/test.bcf -s "--show-failed-logs" test/bam
+          harpy phase --vcf-samples -o phasevcf --vcf test/vcf/test.bcf -s "--show-failed-logs" test/bam
