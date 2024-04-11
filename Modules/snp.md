@@ -10,7 +10,7 @@ order: 5
 ===  :icon-checklist: You will need
 - at least 4 cores/threads available
 - a genome assembly in FASTA format
-- sequence alignments, in `.bam` format
+- indexed sequence alignments, in `.bam` format and indexes in `.bam.bai` format
 - sample grouping file (optional)
 ==- :icon-file: sample grouping file
 This file is optional and useful if you want variant calling to happen on a per-population level.
@@ -47,7 +47,7 @@ harpy snp method OPTIONS... INPUTS...
 ```
 
 ```bash examples
-# call variants with mpileup
+# call s with mpileup
 harpy snp mpileup --threads 20 --genome genome.fasta Align/bwa
 
 # call variants with freebayes
