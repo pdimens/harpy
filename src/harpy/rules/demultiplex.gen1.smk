@@ -73,7 +73,7 @@ rule bx_files:
         "Creating the Gen I barcode files necessary for barcode demultiplexing"
     shell:
         """
-        python BC_files.py {params}
+        python -m BC_files.py {params}
         """
 
 rule demux_bx:

@@ -112,7 +112,7 @@ rule genome_make_windows:
     message: 
         "Creating BED intervals from {input}"
     shell: 
-        "python makeWindows.py -i {input} -w 10000 -o {output}"
+        "python -m makeWindows.py -i {input} -w 10000 -o {output}"
 
 rule genome_index:
     input: 
