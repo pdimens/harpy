@@ -16,7 +16,7 @@ order: 2
 You may want to phase your genotypes into haplotypes, as haplotypes tend to be more informative
 than unphased genotypes (higher polymorphism, captures relationship between genotypes). Phasing
 genotypes into haplotypes requires alignment files, such as those produced by `harpy align` and
-a variant call file, such as those produced by `harpy variants` or `harpy impute`. **Phasing only
+a variant call file, such as those produced by `harpy snp` or `harpy impute`. **Phasing only
 works on SNP data**, and will not work for structural variants produced by `LEVIATHAN` or `NAIBR`. You can 
 phase genotypes into haplotypes with Harpy using the `phase` module:
 
