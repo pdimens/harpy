@@ -148,7 +148,7 @@ rule lrsim:
     log:
         f"{outdir}/logs/LRSIM.log"
     params:
-        lrsim = f"{outdir}/workflow/scripts/LRSIMharpy.pl",
+        lrsim = f"{outdir}/src/harpy/scripts/LRSIMharpy.pl",
         proj_dir = outdir,
         runoptions = lrsim_params
     threads:

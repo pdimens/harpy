@@ -23,4 +23,4 @@ RUN micromamba install --yes --name base -c bioconda -c conda-forge \
     xz && \
     micromamba clean --all --yes
 ARG MAMBA_DOCKERFILE_ACTIVATE=1
-COPY --chown=$MAMBA_USER:$MAMBA_USER workflow/scripts/ workflow/report/ $CONDA_PREFIX/bin/
+COPY --chown=$MAMBA_USER:$MAMBA_USER src/harpy/scripts/ src/harpy/reports/ $CONDA_PREFIX/bin/

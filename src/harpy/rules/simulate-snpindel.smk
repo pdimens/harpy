@@ -113,7 +113,7 @@ rule simulate_variants:
         f"{outdir}/logs/{outprefix}.log"
     params:
         prefix = f"{outdir}/{outprefix}",
-        simuG = f"{outdir}/workflow/scripts/simuG.pl",
+        simuG = f"{outdir}/src/harpy/scripts/simuG.pl",
         parameters = variant_params
     conda:
         os.getcwd() + "/.harpy_envs/simulations.yaml"

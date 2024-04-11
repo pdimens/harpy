@@ -5,10 +5,8 @@ on:
     branches:
       - 'dev'
     paths:
-      - 'workflow/envs/harpy.yaml'
-      - 'workflow/envs/r-env.yaml'
-      - 'workflow/envs/phase.yaml'
-      - 'workflow/rules/phase-pop.smk'
+      - 'resources/harpy.yaml'
+      - 'src/harpy/rules/phase-pop.smk'
       - '**phase.py'
       - '**helperfunctions.py'
       - '**printfunctions.py'
@@ -17,19 +15,17 @@ on:
       - 'test/bam/**'
       - 'test/vcf/test.bcf'
       - '**phase.yml'
-      - 'workflow/report/HapCut2.Rmd'
-      - 'workflow/scripts/parsePhaseBlocks.py'
-      - 'workflow/scripts/summarizeHaplobocks.py'
+      - 'src/harpy/reports/HapCut2.Rmd'
+      - 'globalscripts/parsePhaseBlocks.py'
+      - 'globalscripts/summarizeHaplobocks.py'
       - '**__main__.py'
 
   pull_request:
     branches:
       - 'dev'
     paths:
-      - 'workflow/envs/harpy.yaml'
-      - 'workflow/envs/r-env.yaml'
-      - 'workflow/envs/phase.yaml'
-      - 'workflow/rules/phase-pop.smk'
+      - 'resources/harpy.yaml'
+      - 'src/harpy/rules/phase-pop.smk'
       - '**phase.py'
       - '**helperfunctions.py'
       - '**printfunctions.py'
@@ -38,9 +34,9 @@ on:
       - 'test/bam/**'
       - 'test/vcf/test.bcf'
       - '**phase.yml'
-      - 'workflow/report/HapCut2.Rmd'
-      - 'workflow/scripts/parsePhaseBlocks.py'
-      - 'workflow/scripts/summarizeHaplobocks.py'
+      - 'src/harpy/reports/HapCut2.Rmd'
+      - 'globalscripts/parsePhaseBlocks.py'
+      - 'globalscripts/summarizeHaplobocks.py'
       - '**__main__.py'
 
 env:
@@ -63,7 +59,7 @@ jobs:
         with:
           init-shell: bash
           generate-run-shell: true
-          environment-file: workflow/envs/harpy.yaml
+          environment-file: resources/harpy.yaml
           cache-environment: true
           post-cleanup: 'all'
           log-level: error

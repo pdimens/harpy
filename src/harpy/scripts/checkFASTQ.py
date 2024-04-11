@@ -2,24 +2,7 @@ import pysam
 import sys
 import re
 import os.path
-#import argparse
 
-#parser = argparse.ArgumentParser(
-#    prog = 'checkFASTQ.py',
-#    description = 'Do a haplotag format validity check on a FASTQ file.',
-#    usage = "checkFASTQ.py fastqfile",
-#    exit_on_error = False
-#    )
-#
-#parser.add_argument("fastqfile", help = "Input FASTQ file.")
-
-#if len(sys.argv) == 1:
-#    parser.print_help(sys.stderr)
-#    sys.exit(1)
-#
-#args = parser.parse_args()
-
-#fq_in = args.fastqfile
 fq_in = snakemake.input[0]
 
 #bxz = re.compile('BX:Z:')

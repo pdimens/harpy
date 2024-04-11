@@ -89,7 +89,7 @@ if not barcodes:
 
 rule move_extractreads_bin:
     output:
-        f"{outdir}/workflow/scripts/extractReads"
+        f"{outdir}/src/harpy/scripts/extractReads"
     conda:
         os.getcwd() + "/.harpy_envs/simulations.yaml"
     message:
@@ -106,7 +106,7 @@ rule lrsim:
         hap2 = f"{outdir}/sim.hap.1.clean.fasta",
         fai = expand(outdir + "/sim.hap.{hap}.clean.fasta.fai", hap = [0,1]),
         barcodes = barcodefile,
-        extract_bin = f"{outdir}/workflow/scripts/extractReads"
+        extract_bin = f"{outdir}/src/harpy/scripts/extractReads"
     output:
         expand(outdir + "/sim_S1_L00{hap}_R{fr}_001.fastq.gz", hap = [0,1], fr = [0,1]),
         expand(outdir + "/sim.{hap}.{ext}", hap = [0,1], ext = ["fp", "manifest", "sort.manifest"]),
@@ -114,7 +114,7 @@ rule lrsim:
     log:
         f"{outdir}/logs/LRSIM.log"
     params:
-        lrsim = f"{outdir}/workflow/scripts/LRSIM.pl",
+        lrsim = f"{outdir}/src/harpy/scripts/LRSIM.pl",
         runoptions = lrsim_params
     threads:
         workflow.cores
