@@ -251,7 +251,7 @@ rule report_pop:
 rule log_workflow:
     default_target: True
     input:
-        bedpe = expand(outdir + "/{pop}.bedpe", pop = populations)
+        bedpe = expand(outdir + "/{pop}.bedpe", pop = populations),
         reports = expand(outdir + "/reports/{pop}.naibr.html", pop = populations) if not skipreports else [],
         agg_report = outdir + "/reports/naibr.pop.summary.html" if not skipreports else []
     output:
