@@ -14,7 +14,7 @@ on:
       - '**validations.py'
       - '**demuxGen1'
       - '**demux.yml'
-      - 'BC_files.py'
+      - 'bcFiles.py'
       - 'test/data/demux/**'
       - '**__main__.py'
 
@@ -31,7 +31,7 @@ on:
       - '**demultiplex.py'
       - '**demuxGen1'
       - '**demux.yml'
-      - 'BC_files.py'
+      - 'bcFiles.py'
       - 'test/data/demux/**'
       - '**__main__.py'
 

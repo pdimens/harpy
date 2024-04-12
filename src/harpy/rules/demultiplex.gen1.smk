@@ -68,13 +68,11 @@ rule bx_files:
     output:
         temp(expand(outdir + "BC_{letter}.txt", letter = ["A","C","B","D"]))
     params:
-        outdr = outdir
+        outdir
     message:
         "Creating the Gen I barcode files necessary for barcode demultiplexing"
     shell:
-        """
-        python -m BC_files.py {params}
-        """
+        "bcFiles.py {params}"
 
 rule demux_bx:
     input:
