@@ -6,12 +6,12 @@ import re
 
 bam_dir     = config["seq_directory"]
 samplenames = config["samplenames"] 
-extra       = config.get("extra", "") 
+extra       = config.get("extra", None) 
 groupfile   = config["groupings"]
 genomefile  = config["genomefile"]
 molecule_distance = config["molecule_distance"]
 min_sv      = config["min_sv"]
-min_bc      = config["min_barcodes"]
+min_barcodes = config["min_barcodes"]
 skipreports = config["skipreports"]
 bn          = os.path.basename(genomefile)
 outdir      = config["output_directory"]
@@ -29,10 +29,11 @@ def process_args(args):
         "min_sv"   : min_sv,
         "k"        : min_barcodes
     }
-    if args != "":
+    if args:
         words = [i for i in re.split(r"\s|=", args) if len(i) > 0]
         for i in zip(words[::2], words[1::2]):
-            argsDict[i[0]] = i[1]
+            if "blacklist" in i or "candidates" in i:
+                argsDict[i[0].lstrip("-")] = i[1]
     return argsDict
 
 # create dictionary of population => filenames
