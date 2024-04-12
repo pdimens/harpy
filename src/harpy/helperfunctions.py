@@ -17,7 +17,7 @@ def symlink(original, destination):
     if not (Path(destination).is_symlink() or Path(destination).exists()):
         Path(destination).symlink_to(Path(original).absolute()) 
 
-def createregions(infile, window, method):
+def createregions(infile, window, method, outfile):
     """Create a BED file of genomic intervals of size 'window'. Uses 1- or 0- based numbering depending on mpileup or freebayes 'method'"""
     bn = os.path.basename(infile)
     os.makedirs("Genome", exist_ok = True)
@@ -54,7 +54,7 @@ def createregions(infile, window, method):
             subprocess.run(f"samtools faidx --fai-idx Genome/{bn}.fai Genome/{bn}".split(), stderr = subprocess.DEVNULL)
 
     with open(f"Genome/{bn}.fai") as fai:
-        bedregion = []
+        bedout = open(outfile, "w")
         while True:
             # Get next line from file
             line = fai.readline()
@@ -76,8 +76,9 @@ def createregions(infile, window, method):
                 start += window
                 starts.append(start)
             for (startpos, endpos) in zip (starts,ends):
-                bedregion.append(f"{contig}:{startpos}-{endpos}")
-        return bedregion, f"Genome/{bn}"
+                bedout.write(f"{contig}:{startpos}-{endpos}\n")
+        bedout.close()
+        return f"Genome/{bn}"
 
 def generate_conda_deps():
     """Create the YAML files of the workflow conda dependencies"""
