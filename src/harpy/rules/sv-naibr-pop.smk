@@ -20,7 +20,8 @@ if genome_zip:
     bn = bn[:-3]
 
 wildcard_constraints:
-    sample = "[a-zA-Z0-9._-]+"
+    sample = "[a-zA-Z0-9._-]+",
+    population = "[a-zA-Z0-9._-]+"
 
 def process_args(args):
     argsDict = {
