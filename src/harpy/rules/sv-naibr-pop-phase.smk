@@ -186,7 +186,7 @@ rule copy_groupings:
     input:
         groupfile
     output:
-        outdir + "/logs/sample.groups"
+        outdir + "/workflow/sample.groups"
     message:
         "Logging {input}"
     run:
@@ -195,25 +195,25 @@ rule copy_groupings:
 
 rule bam_list:
     input:
-        outdir + "/logs/sample.groups"
+        outdir + "/workflow/sample.groups"
     output:
-        expand(outdir + "/input/{pop}.list", pop = populations)
+        expand(outdir + "/workflow/{pop}.list", pop = populations)
     message:
         "Creating file lists for each population."
     run:
         for p in populations:
             bamlist = popdict[p]
-            with open(f"{outdir}/input/{p}.list", "w") as fout:
+            with open(f"{outdir}/workflow/{p}.list", "w") as fout:
                 for bamfile in bamlist:
                     _ = fout.write(bamfile + "\n")
 
 rule merge_populations:
     input: 
-        bamlist  = outdir + "/input/{population}.list",
+        bamlist  = outdir + "/workflow/{population}.list",
         bamfiles = lambda wc: expand("{sample}", sample = popdict[wc.population]) 
     output:
-        bam = temp(outdir + "/input/{population}.bam"),
-        bai = temp(outdir + "/input/{population}.bam.bai")
+        bam = temp(outdir + "/workflow/inputpop/{population}.bam"),
+        bai = temp(outdir + "/workflow/inputpop/{population}.bam.bai")
     threads:
         2
     message:
@@ -223,9 +223,9 @@ rule merge_populations:
 
 rule create_config:
     input:
-        outdir + "/input/{population}.bam"
+        outdir + "/workflow/inputpop/{population}.bam"
     output:
-        outdir + "/workflow/input/{population}.config"
+        outdir + "/workflow/config/{population}.naibr"
     params:
         lambda wc: wc.get("population"),
         min(10, workflow.cores)
@@ -243,9 +243,9 @@ rule create_config:
 
 rule call_sv:
     input:
-        bam   = outdir + "/input/{population}.bam",
-        bai   = outdir + "/input/{population}.bam.bai",
-        conf  = outdir + "/workflow/input/{population}.config"
+        bam   = outdir + "/workflow/inputpop/{population}.bam",
+        bai   = outdir + "/workflow/inputpop/{population}.bam.bai",
+        conf  = outdir + "/workflow/config/{population}.naibr"
     output:
         bedpe = outdir + "/{population}/{population}.bedpe",
         refmt = outdir + "/{population}/{population}.reformat.bedpe",

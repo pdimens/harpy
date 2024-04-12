@@ -119,7 +119,6 @@ def naibr(input, output_dir, genome, vcf, min_sv, min_barcodes, threads, populat
     output_dir = output_dir.rstrip("/")
     workflowdir = f"{output_dir}/workflow"
     vcaller = "naibr" if populations is None else "naibr-pop"
-    workflowdir = f"{output_dir}/workflow"
     vcaller += "-phase" if vcf is not None else ""
     
     command = (f'snakemake --rerun-incomplete --nolock --software-deployment-method conda --conda-prefix ./.snakemake/conda --cores {threads} --directory .').split()

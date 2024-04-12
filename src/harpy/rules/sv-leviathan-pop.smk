@@ -23,7 +23,7 @@ wildcard_constraints:
 # create dictionary of population => filenames
 ## this makes it easier to set the snakemake rules/wildcards
 ## exits with an error if the groupfile has samples not in the bam folder
-def pop_manifest(infile, dirn, sampnames):
+def pop_manifest(infile, dirn):
     d = dict()
     with open(infile) as f:
         for line in f:
@@ -37,7 +37,7 @@ def pop_manifest(infile, dirn, sampnames):
                 d[pop].append(samp)
     return d
 
-popdict = pop_manifest(groupfile, bam_dir, samplenames)
+popdict = pop_manifest(groupfile, bam_dir)
 populations = popdict.keys()
 
 onerror:
@@ -68,7 +68,7 @@ rule copy_groupings:
     input:
         groupfile
     output:
-        outdir + "/logs/sample.groups"
+        outdir + "/workflow/sample.groups"
     message:
         "Logging {input}"
     run:
@@ -77,25 +77,25 @@ rule copy_groupings:
 
 rule bam_list:
     input:
-        outdir + "/logs/sample.groups"
+        outdir + "/workflow/sample.groups"
     output:
-        expand(outdir + "/input/{pop}.list", pop = populations)
+        expand(outdir + "/workflow/{pop}.list", pop = populations)
     message:
         "Creating population file lists."
     run:
         for p in populations:
             bamlist = popdict[p]
-            with open(f"{outdir}/input/{p}.list", "w") as fout:
+            with open(f"{outdir}/workflow/{p}.list", "w") as fout:
                 for bamfile in bamlist:
                     _ = fout.write(bamfile + "\n")
 
 rule merge_populations:
     input: 
-        bamlist  = outdir + "/input/{population}.list",
+        bamlist  = outdir + "/workflow/{population}.list",
         bamfiles = lambda wc: expand("{sample}", sample = popdict[wc.population]) 
     output:
-        bam = temp(outdir + "/input/{population}.bam"),
-        bai = temp(outdir + "/input/{population}.bam.bai")
+        bam = temp(outdir + "/workflow/inputpop/{population}.bam"),
+        bai = temp(outdir + "/workflow/inputpop/{population}.bam.bai")
     threads:
         2
     message:
@@ -105,10 +105,10 @@ rule merge_populations:
 
 rule index_barcode:
     input: 
-        bam = outdir + "/input/{population}.bam",
-        bai = outdir + "/input/{population}.bam.bai"
+        bam = outdir + "/workflow/inputpop/{population}.bam",
+        bai = outdir + "/workflow/inputpop/{population}.bam.bai"
     output:
-        temp(outdir + "/lrezIndexed/{population}.bci")
+        temp(outdir + "/lrez_index/{population}.bci")
     message:
         "Indexing barcodes: Population {wildcards.population}"
     benchmark:
@@ -169,9 +169,9 @@ rule index_bwa_genome:
 
 rule leviathan_variantcall:
     input:
-        bam    = outdir + "/input/{population}.bam",
-        bai    = outdir + "/input/{population}.bam.bai",
-        bc_idx = outdir + "/lrezIndexed/{population}.bci",
+        bam    = outdir + "/workflow/inputpop/{population}.bam",
+        bai    = outdir + "/workflow/inputpop/{population}.bam.bai",
+        bc_idx = outdir + "/lrez_index/{population}.bci",
         genome = f"Genome/{bn}",
         genidx = multiext(f"Genome/{bn}", ".fai", ".ann", ".bwt", ".pac", ".sa", ".amb")
     output:
