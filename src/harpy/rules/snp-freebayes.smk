@@ -8,14 +8,29 @@ bam_dir 	= config["seq_directory"]
 genomefile 	= config["genomefile"]
 groupings 	= config.get("groupings", [])
 bn          = os.path.basename(genomefile)
+genome_zip  = True if bn.lower().endswith(".gz") else False
 ploidy 		= config["ploidy"]
 samplenames = config["samplenames"]
 extra 	    = config.get("extra", "") 
-chunksize   = config["windowsize"]
-intervals   = config["intervals"]
+regioninput = config["regions"]
+regiontype  = config["regiontype"]
+windowsize  = config.get("windowsize", None)
 outdir      = config["output_directory"]
-regions     = dict(zip(intervals, intervals))
 skipreports = config["skipreports"]
+
+if regiontype == "region":
+    intervals = [regioninput]
+    regions = {f"{regioninput}" : f"{regioninput}"}
+else:
+    with open(regioninput, "r") as reg_in:
+        intervals = set()
+        while True:
+            line = reg_in.readline()
+            if not line:
+                break
+            cont,startpos,endpos = line.split()
+            intervals.add(f"{cont}:{startpos}-{endpos}")
+    regions = dict(zip(intervals, intervals))
 
 wildcard_constraints:
     sample = "[a-zA-Z0-9._-]+"
@@ -54,6 +69,53 @@ rule copy_groupings:
     run:
         with open(input[0], "r") as infile, open(output[0], "w") as outfile:
             _ = [outfile.write(i) for i in infile.readlines() if not i.lstrip().startswith("#")]
+
+rule genome_link:
+    input:
+        genomefile
+    output: 
+        f"Genome/{bn}"
+    message: 
+        "Symlinking {input}"
+    shell: 
+        """
+        if (file {input} | grep -q compressed ) ;then
+            # is regular gzipped, needs to be BGzipped
+            zcat {input} | bgzip -c > {output}
+        elif (file {input} | grep -q BGZF ); then
+            # is bgzipped, just linked
+            ln -sr {input} {output}
+        else
+            # isn't compressed, just linked
+            ln -sr {input} {output}
+        fi
+        """
+
+if genome_zip:
+    rule genome_compressed_faidx:
+        input: 
+            f"Genome/{bn}"
+        output: 
+            gzi = f"Genome/{bn}.gzi",
+            fai = f"Genome/{bn}.fai"
+        log:
+            f"Genome/{bn}.faidx.gzi.log"
+        message:
+            "Indexing {input}"
+        shell: 
+            "samtools faidx --gzi-idx {output.gzi} --fai-idx {output.fai} {input} 2> {log}"
+else:
+    rule genome_faidx:
+        input: 
+            f"Genome/{bn}"
+        output: 
+            f"Genome/{bn}.fai"
+        log:
+            f"Genome/{bn}.faidx.log"
+        message:
+            "Indexing {input}"
+        shell:
+            "samtools faidx --fai-idx {output} {input} 2> {log}"
 
 rule index_alignments:
     input:

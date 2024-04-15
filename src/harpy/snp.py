@@ -1,7 +1,7 @@
 from .helperfunctions import fetch_rule, fetch_report, fetch_script, generate_conda_deps, createregions
 from .fileparsers import getnames, parse_alignment_inputs
 from .printfunctions import print_onstart, print_error
-from .validations import validate_bamfiles, validate_popfile, validate_vcfsamples, validate_input_by_ext
+from .validations import validate_bamfiles, validate_popfile, validate_vcfsamples, validate_input_by_ext, validate_regions
 import rich_click as click
 import subprocess
 import sys
@@ -11,8 +11,7 @@ import os
 @click.option('-g', '--genome', type=click.Path(exists=True, dir_okay=False), required = True, help = 'Genome assembly for variant calling')
 @click.option('-p', '--populations', type=click.Path(exists = True, dir_okay=False), help = "Tab-delimited file of sample\<tab\>population")
 @click.option('-x', '--ploidy', default = 2, show_default = True, type=int, help = 'Ploidy of samples')
-@click.option('-w', '--windowsize', type = click.IntRange(min = 10), help = "Interval size for parallel variant calling (default: 50000)")
-@click.option('-r', '--regions', type=click.Path(exists = True, dir_okay=False), help = "BED or tab-delimited text file of regions to call variants")
+@click.option('-r', '--regions', type=str, default=50000, show_default=True, help = "Regions where to call variants")
 @click.option('-x', '--extra-params', type = str, help = 'Additional variant caller parameters, in quotes')
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(min = 4, max_open = True), help = 'Number of threads to use')
 @click.option('-s', '--snakemake', type = str, help = 'Additional Snakemake parameters, in quotes')
@@ -21,7 +20,7 @@ import os
 @click.option('--skipreports',  is_flag = True, show_default = True, default = False, help = 'Don\'t generate any HTML reports')
 @click.option('--print-only',  is_flag = True, hidden = True, default = False, help = 'Print the generated snakemake command and exit')
 @click.argument('input', required=True, type=click.Path(exists=True), nargs=-1)
-def mpileup(input, output_dir, regions, genome, threads, populations, ploidy, windowsize, extra_params, snakemake, skipreports, quiet, print_only):
+def mpileup(input, output_dir, regions, genome, threads, populations, ploidy, extra_params, snakemake, skipreports, quiet, print_only):
     """
     Call variants from using bcftools mpileup
     
@@ -29,14 +28,16 @@ def mpileup(input, output_dir, regions, genome, threads, populations, ploidy, wi
     at the end of the command as individual files/folders, using shell wildcards
     (e.g. `data/scarab*.bam`), or both.
     
+    The `--regions` option specifies what genomic regions to call variants
+    with. If a BED or tab delimited file is provided, variant calling will be parallelized
+    over those regions. If a single region is provided in the format `chrom:start-end`, only
+    that region will be called. If an integer is provided (default), then Harpy will
+    call variants in parallel for intervals of that size across the entire genome.
+
     Optionally specify `--populations` for population-aware variant calling.
     Use **harpy popgroup** to create a sample grouping file to 
     use as input for `--populations`. 
-    """
-    if regions and windowsize:
-        print_error("The options [yellow bold]--regions[/yellow bold] and [yellow bold]--windowsize[/yellow bold] cannot be used together")
-        exit(1)
-    
+    """   
     output_dir = output_dir.rstrip("/")
     workflowdir = f"{output_dir}/workflow"
     command = (f'snakemake --rerun-incomplete --nolock --software-deployment-method conda --conda-prefix ./.snakemake/conda --cores {threads} --directory .').split()
@@ -59,35 +60,30 @@ def mpileup(input, output_dir, regions, genome, threads, populations, ploidy, wi
     samplenames = getnames(f"{workflowdir}/input", '.bam')
     validate_bamfiles(f"{workflowdir}/input", samplenames)
     validate_input_by_ext(genome, "--genome", [".fasta", ".fa", ".fasta.gz", ".fa.gz"])
+
+    # setup regions checks
+    regtype = validate_regions(regions, genome)
+    if regtype == "windows":
+        region = f"{workflowdir}/positions.bed"
+        print(f"makeWindows.py -m 1 -i {genome} -o {region} -w {regions}")
+        os.system(f"makeWindows.py -m 1 -i {genome} -o {region} -w {regions}")
+    elif regtype == "region":
+        region = regions
+    else:
+        region = f"{workflowdir}/positions.bed"
+        os.system(f"cp -f {regions} {region}")
+
     fetch_rule(workflowdir, "snp-mpileup.smk")
     fetch_report(workflowdir, "BcftoolsStats.Rmd")
-    if windowsize>0:
-        window_size = 50000 if windowsize==0 else windowsize
-        linkedgenome = createregions(genome, window_size, "mpileup", f"{workflowdir}/positions.bed")
-    else:
-        bn = os.path.basename(genome)
-        ftype = subprocess.run(["file", genome], stdout=subprocess.PIPE).stdout.decode('utf-8')
-        if "Blocked GNU Zip" in ftype:
-            # is bgzipped, just link it
-            subprocess.run(f"ln -sr {genome} Genome/{bn}".split())
-        elif "gzip compressed data" in ftype:
-            # is regular gzipped, needs to be bgzipped
-            subprocess.run(f"zcat {genome} | bgzip -c > Genome/{bn}".split())
-        else:
-            # not compressed, just link
-            subprocess.run(f"ln -sr {genome} Genome/{bn}".split())
-        # TODO MAKE SURE THIS FOLLOWS THE f"{contig}:{startpos}-{endpos}\n" FORMAT
-        os.system(f"cp -f {regions} {workflowdir}/positions.bed")
 
     with open(f"{workflowdir}/config.yml", "w") as config:
         config.write(f"seq_directory: {workflowdir}/input\n")
         config.write(f"output_directory: {output_dir}\n")
         config.write(f"samplenames: {samplenames}\n")
-        if regions:
-            config.write(f"regions: {regions}\n")
-        else:
-            config.write(f"windowsize: {window_size}\n")
-            config.write(f"intervals: {callcoords}\n")
+        config.write(f"regiontype: {regtype}\n")
+        if regtype == "windows":
+            config.write("windowsize: {regions}\n")
+        config.write(f"regions: {region}\n")
         popgroupings = ""
         if populations is not None:
             rows = validate_popfile(populations)
@@ -95,7 +91,7 @@ def mpileup(input, output_dir, regions, genome, threads, populations, ploidy, wi
             validate_vcfsamples(f"{workflowdir}/input", populations, samplenames, rows, quiet)
             config.write(f"groupings: {populations}\n")
             popgroupings += f"\nPopulations: {populations}"
-        config.write(f"genomefile: {linkedgenome}\n")
+        config.write(f"genomefile: {genome}\n")
         config.write(f"ploidy: {ploidy}\n")
         if extra_params is not None:
             config.write(f"extra: {extra_params}\n")
@@ -112,7 +108,7 @@ def mpileup(input, output_dir, regions, genome, threads, populations, ploidy, wi
 @click.option('-g', '--genome', type=click.Path(exists=True, dir_okay=False), required = True, help = 'Genome assembly for variant calling')
 @click.option('-p', '--populations', type=click.Path(exists = True, dir_okay=False), help = "Tab-delimited file of sample\<tab\>population")
 @click.option('-x', '--ploidy', default = 2, show_default = True, type=int, help = 'Ploidy of samples')
-@click.option('-w', '--windowsize', default = 50000, show_default = True, type = int, help = "Interval size for parallel variant calling")
+@click.option('-r', '--regions', type=str, default=50000, show_default=True, help = "Regions where to call variants")
 @click.option('-x', '--extra-params', type = str, help = 'Additional variant caller parameters, in quotes')
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(min = 4, max_open = True), help = 'Number of threads to use')
 @click.option('-s', '--snakemake', type = str, help = 'Additional Snakemake parameters, in quotes')
@@ -121,7 +117,7 @@ def mpileup(input, output_dir, regions, genome, threads, populations, ploidy, wi
 @click.option('--skipreports',  is_flag = True, show_default = True, default = False, help = 'Don\'t generate any HTML reports')
 @click.option('--print-only',  is_flag = True, hidden = True, default = False, help = 'Print the generated snakemake command and exit')
 @click.argument('input', required=True, type=click.Path(exists=True), nargs=-1)
-def freebayes(input, output_dir, genome, threads, populations, ploidy, windowsize, extra_params, snakemake, skipreports, quiet, print_only):
+def freebayes(input, output_dir, genome, threads, populations, ploidy, regions, extra_params, snakemake, skipreports, quiet, print_only):
     """
     Call variants using freebayes
     
@@ -129,6 +125,12 @@ def freebayes(input, output_dir, genome, threads, populations, ploidy, windowsiz
     at the end of the command as individual files/folders, using shell wildcards
     (e.g. `data/jellyfish*.bam`), or both.
     
+    The `--regions` option specifies what genomic regions to call variants
+    with. If a BED or tab delimited file is provided, variant calling will be parallelized
+    over those regions. If a single region is provided in the format `chrom:start-end`, only
+    that region will be called. If an integer is provided (default), then Harpy will
+    call variants in parallel for intervals of that size across the entire genome.
+
     Optionally specify `--populations` for population-aware variant calling.
     Use **harpy popgroup** to create a sample grouping file to 
     use as input for `--populations`. 
@@ -155,14 +157,30 @@ def freebayes(input, output_dir, genome, threads, populations, ploidy, windowsiz
     samplenames = getnames(f"{workflowdir}/input", '.bam')
     validate_bamfiles(f"{workflowdir}/input", samplenames)
     validate_input_by_ext(genome, "--genome", [".fasta", ".fa", ".fasta.gz", ".fa.gz"])
+
+    # setup regions checks
+    regtype = validate_regions(regions, genome)
+    if regtype == "windows":
+        region = f"{workflowdir}/positions.bed"
+        print(f"makeWindows.py -m 1 -i {genome} -o {region} -w {regions}")
+        os.system(f"makeWindows.py -m 0 -i {genome} -o {region} -w {regions}")
+    elif regtype == "region":
+        region = regions
+    else:
+        region = f"{workflowdir}/positions.bed"
+        os.system(f"cp -f {regions} {region}")
+
     fetch_rule(workflowdir, "snp-freebayes.smk")
     fetch_report(workflowdir, "BcftoolsStats.Rmd")
-    callcoords, linkedgenome = createregions(genome, windowsize, "freebayes")
 
     with open(f"{workflowdir}/config.yml", "w") as config:
         config.write(f"seq_directory: {workflowdir}/input\n")
         config.write(f"output_directory: {output_dir}\n")
         config.write(f"samplenames: {samplenames}\n")
+        config.write(f"regiontype: {regtype}\n")
+        if regtype == "windows":
+            config.write("windowsize: {regions}\n")
+        config.write(f"regions: {region}\n")
         popgroupings = ""
         if populations is not None:
             rows = validate_popfile(populations)
@@ -171,9 +189,7 @@ def freebayes(input, output_dir, genome, threads, populations, ploidy, windowsiz
             config.write(f"groupings: {populations}\n")
             popgroupings += f"\nPopulations: {populations}"
         config.write(f"ploidy: {ploidy}\n")
-        config.write(f"windowsize: {windowsize}\n")
-        config.write(f"intervals: {callcoords}\n")
-        config.write(f"genomefile: {linkedgenome}\n")
+        config.write(f"genomefile: {genome}\n")
         if extra_params is not None:
             config.write(f"extra: {extra_params}\n")
         config.write(f"skipreports: {skipreports}\n")

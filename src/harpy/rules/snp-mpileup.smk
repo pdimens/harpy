@@ -6,16 +6,30 @@ import os
 bam_dir 	= config["seq_directory"]
 genomefile 	= config["genomefile"]
 bn          = os.path.basename(genomefile)
+genome_zip  = True if bn.lower().endswith(".gz") else False
 groupings 	= config.get("groupings", [])
 ploidy 		= config["ploidy"]
 samplenames = config["samplenames"]
-mp_extra 	= config.get("extra", "") 
-chunksize   = config["windowsize"]
-regions     = config.get("regions", None)
-intervals   = config.get("intervals", None)
+mp_extra 	= config.get("extra", "")
+regioninput = config["regions"]
+regiontype  = config["regiontype"]
+windowsize  = config.get("windowsize", None)
 outdir      = config["output_directory"]
-regions     = dict(zip(intervals, intervals))
 skipreports = config["skipreports"]
+
+if regiontype == "region":
+    intervals = [regioninput]
+    regions = {f"{regioninput}" : f"{regioninput}"}
+else:
+    with open(regioninput, "r") as reg_in:
+        intervals = set()
+        while True:
+            line = reg_in.readline()
+            if not line:
+                break
+            cont,startpos,endpos = line.split()
+            intervals.add(f"{cont}:{startpos}-{endpos}")
+    regions = dict(zip(intervals, intervals))
 
 wildcard_constraints:
     sample = "[a-zA-Z0-9._-]+"
@@ -43,6 +57,53 @@ onsuccess:
             ),
         file = sys.stderr
     )
+
+rule genome_link:
+    input:
+        genomefile
+    output: 
+        f"Genome/{bn}"
+    message: 
+        "Symlinking {input}"
+    shell: 
+        """
+        if (file {input} | grep -q compressed ) ;then
+            # is regular gzipped, needs to be BGzipped
+            zcat {input} | bgzip -c > {output}
+        elif (file {input} | grep -q BGZF ); then
+            # is bgzipped, just linked
+            ln -sr {input} {output}
+        else
+            # isn't compressed, just linked
+            ln -sr {input} {output}
+        fi
+        """
+
+if genome_zip:
+    rule genome_compressed_faidx:
+        input: 
+            f"Genome/{bn}"
+        output: 
+            gzi = f"Genome/{bn}.gzi",
+            fai = f"Genome/{bn}.fai"
+        log:
+            f"Genome/{bn}.faidx.gzi.log"
+        message:
+            "Indexing {input}"
+        shell: 
+            "samtools faidx --gzi-idx {output.gzi} --fai-idx {output.fai} {input} 2> {log}"
+else:
+    rule genome_faidx:
+        input: 
+            f"Genome/{bn}"
+        output: 
+            f"Genome/{bn}.fai"
+        log:
+            f"Genome/{bn}.faidx.log"
+        message:
+            "Indexing {input}"
+        shell:
+            "samtools faidx --fai-idx {output} {input} 2> {log}"
 
 rule copy_groupings:
     input:
@@ -91,7 +152,8 @@ rule samplenames:
 rule mpileup:
     input:
         bamlist = outdir + "/logs/samples.files",
-        genome  = f"Genome/{bn}"
+        genome  = f"Genome/{bn}",
+        genome_fai = f"Genome/{bn}.fai"
     output: 
         bcf = pipe(outdir + "/{part}.mp.bcf"),
         logfile = temp(outdir + "/logs/{part}.mpileup.log")
@@ -103,7 +165,7 @@ rule mpileup:
     shell:
         "bcftools mpileup --fasta-ref {input.genome} --bam-list {input.bamlist} --annotate AD --output-type b {params} > {output.bcf} 2> {output.logfile}"
 
-rule call_genotypes_pop:
+rule call_genotypes:
     input:
         groupfile = outdir + "/logs/sample.groups" if groupings else [],
         bcf = outdir + "/{part}.mp.bcf"
@@ -156,7 +218,7 @@ rule merge_vcfs:
         vcfs     = expand(outdir + "/call/{part}.{ext}", part = intervals, ext = ["bcf", "bcf.csi"]),
         filelist = outdir + "/logs/bcf.files"
     output:
-        outdir + "/variants.raw.bcf"
+        temp(outdir + "/variants.raw.unsort.bcf")
     log:
         outdir + "/logs/concat.log"
     threads:
@@ -168,36 +230,48 @@ rule merge_vcfs:
         bcftools concat -f {input.filelist} --threads {threads} --naive -Ob -o {output} 2> {log}
         """
 
-rule index_merged:
+rule sort_vcf:
     input:
-        outdir + "/variants.raw.bcf"
+        outdir + "/variants.raw.unsort.bcf"
     output:
-        outdir + "/variants.raw.bcf.csi"
+        bcf = outdir + "/variants.raw.bcf",
+        csi = outdir + "/variants.raw.bcf.csi"
     message:
-        "Indexing {input}"
+        "Sorting and indexing final variants"
     shell:
-        "bcftools index {input} 2> /dev/null"
+        "bcftools sort --write-index -Ob -o {output.bcf} {input} 2> /dev/null"
 
-rule normalize_bcf:
-    input: 
-        genome  = f"Genome/{bn}",
-        bcf     = outdir + "/variants.raw.bcf",
-        samples = outdir + "/logs/samples.names"
-    output:
-        bcf     = outdir + "/variants.normalized.bcf",
-        idx     = outdir + "/variants.normalized.bcf.csi"
-    log:
-        outdir + "/logs/normalize.log"
-    threads:
-        2
-    message: 
-        "Normalizing the called variants"
-    shell:
-        """
-        bcftools norm -d exact -f {input.genome} {input.bcf} 2> {log}.tmp1 | 
-            bcftools norm -m -any -N -Ob --write-index -o {output.bcf} 2> {log}.tmp2
-        cat {log}.tmp1 {log}.tmp2 > {log} && rm {log}.tmp1 {log}.tmp2  
-        """
+
+#rule index_merged:
+#    input:
+#        outdir + "/variants.raw.bcf"
+#    output:
+#        outdir + "/variants.raw.bcf.csi"
+#    message:
+#        "Indexing {input}"
+#    shell:
+#        "bcftools index {input} 2> /dev/null"
+
+#rule normalize_bcf:
+#    input: 
+#        genome  = f"Genome/{bn}",
+#        bcf     = outdir + "/variants.raw.bcf",
+#        samples = outdir + "/logs/samples.names"
+#    output:
+#        bcf     = outdir + "/variants.normalized.bcf",
+#        idx     = outdir + "/variants.normalized.bcf.csi"
+#    log:
+#        outdir + "/logs/normalize.log"
+#    threads:
+#        2
+#    message: 
+#        "Normalizing the called variants"
+#    shell:
+#        """
+#        bcftools norm -d exact -f {input.genome} {input.bcf} 2> {log}.tmp1 | 
+#            bcftools norm -m -any -N -Ob --write-index -o {output.bcf} 2> {log}.tmp2
+#        cat {log}.tmp1 {log}.tmp2 > {log} && rm {log}.tmp1 {log}.tmp2  
+#        """
         
 rule variants_stats:
     input:
@@ -228,9 +302,9 @@ rule bcf_report:
 rule log_workflow:
     default_target: True
     input:
-        vcf = expand(outdir + "/variants.{file}.bcf", file = ["raw", "normalized"]),
+        vcf = expand(outdir + "/variants.{file}.bcf", file = ["raw"]),
         agg_log = outdir + "/logs/mpileup.log",
-        reports = expand(outdir + "/reports/variants.{file}.html", file = ["raw", "normalized"]) if not skipreports else []
+        reports = expand(outdir + "/reports/variants.{file}.html", file = ["raw"]) if not skipreports else []
     output:
         outdir + "/workflow/snp.mpileup.summary"
     params:
@@ -243,14 +317,17 @@ rule log_workflow:
             _ = f.write("The harpy variants snp module ran using these parameters:\n\n")
             _ = f.write(f"The provided genome: {bn}\n")
             _ = f.write(f"The directory with alignments: {bam_dir}\n")
-            _ = f.write(f"Size of intervals to split genome for variant calling: {chunksize}\n")
+            if windowsize:
+                _ = f.write(f"Size of intervals to split genome for variant calling: {windowsize}\n")
+            else:
+                _ = f.write(f"Genomic positions for which variants were called: {regioninput}\n")
             _ = f.write("The mpileup parameters:\n")
             _ = f.write("    bcftools mpileup --fasta-ref GENOME --region REGION --bam-list BAMS --annotate AD --output-type b" + mp_extra + "\n")
             _ = f.write("The bcftools call parameters:\n")
             _ = f.write("    bcftools call --multiallelic-caller " + " ".join(params) + " --variants-only --output-type b | bcftools sort -\n")
             _ = f.write("The variants identified in the intervals were merged into the final variant file using:\n")
             _ = f.write("    bcftools concat -f vcf.list -a --remove-duplicates\n")
-            _ = f.write("The variants were normalized using:\n")
-            _ = f.write("    bcftools norm -d exact | bcftools norm -m -any -N -Ob\n")
+            #_ = f.write("The variants were normalized using:\n")
+            #_ = f.write("    bcftools norm -d exact | bcftools norm -m -any -N -Ob\n")
             _ = f.write("\nThe Snakemake workflow was called via command line:\n")
             _ = f.write("    " + str(config["workflow_call"]) + "\n")

@@ -9,7 +9,9 @@ parser = argparse.ArgumentParser(
     )
 parser.add_argument("-i", dest = "infile", required = True, type=str, metavar = "<input.fasta|fai>", help="input fasta or fasta.fai file")
 parser.add_argument("-o", dest = "outfile", required = True, type=str, metavar = "<output.bed>", help="output BED file name")
-parser.add_argument("-w", dest = "window", type=int, metavar = "<window_size>", default = "10000", help="interval size (default: %(default)s)")
+parser.add_argument("-w", dest = "window", type=int, metavar = "<window_size>", default = 10000, help="interval size (default: %(default)s)")
+parser.add_argument("-m", dest = "mode", type=int, metavar = "0 or 1 based", default = 1, help="0 or 1 based intervals (default: %(default)s)")
+
 args = parser.parse_args()
 testname = args.infile.lower()
 outbed = open(args.outfile, "w")
@@ -21,9 +23,9 @@ def readinput(infile, filestream):
         return filestream.readline()
 
 def makewindows(contig, c_len, windowsize, outfile):
-    start = 1
+    start = args.mode
     end = windowsize
-    starts = [1]
+    starts = [args.mode]
     ends = [windowsize]
     while end < c_len:
         end = end + windowsize if (end + windowsize) < c_len else c_len
