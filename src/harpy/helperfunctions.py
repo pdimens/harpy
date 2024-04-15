@@ -111,7 +111,12 @@ def fetch_script(workdir, target):
     """
     os.makedirs(f"{workdir}/scripts/", exist_ok= True)
     with open(f"{workdir}/scripts/{target}", "w") as f:
-        f.write(files(harpy.scripts).joinpath(target).read_text())
+        if os.path.isfile(files(harpy.scripts).joinpath(target)):
+            f.write(files(harpy.scripts).joinpath(target).read_text())
+        else:
+            print_error(f"Bundled script [blue bold]{target}[/blue bold] was not found in the Harpy installation.")
+            print_solution("There may be an issue with your Harpy installation, which would require reinstalling Harpy. Alternatively, there may be in a issue with your conda/mamba environment or configuration.")
+            exit(1)
 
 def fetch_rule(workdir, target):
     """
@@ -119,6 +124,13 @@ def fetch_rule(workdir, target):
     """
     os.makedirs(f"{workdir}/", exist_ok= True)
     with open(f"{workdir}/{target}", "w") as f:
+        if os.path.isfile(files(harpy.rules).joinpath(target)):
+            f.write(files(harpy.rules).joinpath(target).read_text())
+        else:
+            print_error(f"Bundled script [blue bold]{target}[/blue bold] was not found in the Harpy installation.")
+            print_solution("There may be an issue with your Harpy installation, which would require reinstalling Harpy. Alternatively, there may be in a issue with your conda/mamba environment or configuration.")
+            exit(1)
+
         f.write(files(harpy.rules).joinpath(target).read_text())
 
 def fetch_report(workdir, target):
@@ -127,7 +139,12 @@ def fetch_report(workdir, target):
     """
     os.makedirs(f"{workdir}/report/", exist_ok= True)
     with open(f"{workdir}/report/{target}", "w") as f:
-        f.write(files(harpy.reports).joinpath(target).read_text())
+        if os.path.isfile(files(harpy.reports).joinpath(target)):
+            f.write(files(harpy.reports).joinpath(target).read_text())
+        else:
+            print_error(f"Bundled script [blue bold]{target}[/blue bold] was not found in the Harpy installation.")
+            print_solution("There may be an issue with your Harpy installation, which would require reinstalling Harpy. Alternatively, there may be in a issue with your conda/mamba environment or configuration.")
+            exit(1)
 
 def biallelic_contigs(vcf):
     """Identify which contigs have at least 2 biallelic SNPs"""
