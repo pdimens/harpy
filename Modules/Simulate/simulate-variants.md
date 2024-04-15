@@ -203,7 +203,9 @@ a diploid assembly with simulated variants.
 ==-
 
 ## Simulate Diploid Assembly
-Here is a simple but realistic workflow of creating a diploid assembly with simulated variants.
+Here is a simple but realistic workflow of creating a diploid assembly with simulated variants. Due
+to the roundabout complexity of the process, attempts were made to use color to help keep track of the
+original haploid genome and the resulting genome haplotypes.
 If you haven't already, please read the sections about [simulating known variants](#simulate-known-variants)
 and [heterozygosity](#heterozygosity). The idea here is that due to the limitations of `simuG`, we can
 only simulate one type of variant at a time and we will take advantage of the VCF files created by
@@ -217,6 +219,7 @@ graph LR
     geno(haploid genome)-->|simulate inversion -n 10 -z 0.5|hap(inversions.vcf)
     hap-->hap1(inversion.hap1.vcf)
     hap-->hap2(inversion.hap2.vcf)
+    style geno fill:#ebb038,stroke:#d19b2f,stroke-width:2px
 ```
 #### Step 2
 Use the resulting hap1 and hap2 VCF files to simulate those same variants, but shuffled
@@ -224,11 +227,23 @@ into homozygotes and heterozygotes, onto the original haploid genome, creating t
 genomes. 
 ```mermaid
 graph LR
-    subgraph id1 ["Inputs"]
+    subgraph id1 ["Haplotype 1 Inputs"]
     hap1(inversion.hap1.vcf)---geno(haploid genome)
     end
     id1-->|simulate inversion -v|hapgeno(haplotype-1 genome)
     style id1 fill:#f0f0f0,stroke:#e8e8e8,stroke-width:2px
+    style hapgeno fill:#90c8be,stroke:#6fb6a9,stroke-width:2px
+    style geno fill:#ebb038,stroke:#d19b2f,stroke-width:2px
+```
+```mermaid
+graph LR
+    subgraph id2 ["Haplotype 2 Inputs"]
+    hap2(inversion.hap2.vcf)---geno(haploid genome)
+    end
+    id2-->|simulate inversion -v|hapgeno2(haplotype-2 genome)
+    style id2 fill:#f0f0f0,stroke:#e8e8e8,stroke-width:2px
+    style hapgeno2 fill:#bd8fcb,stroke:#a460b7,stroke-width:2px
+    style geno fill:#ebb038,stroke:#d19b2f,stroke-width:2px
 ```
 #### Step 3
 Use the one of the new genome haplotypes for simulating other kinds of variants. 
@@ -240,6 +255,8 @@ graph LR
     geno(haplotype-1 genome)-->|simulate snpindel -n 100000 -z 0.5|hap(snpindel.vcf)
     hap-->hap1(snpindel.hap1.vcf)
     hap-->hap2(snpindel.hap2.vcf)
+    style geno fill:#90c8be,stroke:#6fb6a9,stroke-width:2px
+
 ```
 #### Step 4
 Use the resulting haplotype VCFs to simulate known variants onto the **haplotype genomes** from
@@ -251,6 +268,8 @@ graph LR
     end
     id1-->|simulate inversion -v|genohap1(haplotype-1 genome with new variants)
     style id1 fill:#f0f0f0,stroke:#e8e8e8,stroke-width:2px
+    style geno fill:#90c8be,stroke:#6fb6a9,stroke-width:2px
+    style genohap1 fill:#90c8be,stroke:#000000,stroke-width:2px
 ```
 ```mermaid
 graph LR
@@ -259,6 +278,8 @@ graph LR
     end
     id2-->|simulate inversion -v|genohap2(haplotype-2 genome with new variants)
     style id2 fill:#f0f0f0,stroke:#e8e8e8,stroke-width:2px
+    style geno fill:#bd8fcb,stroke:#a460b7,stroke-width:2px
+    style genohap2 fill:#bd8fcb,stroke:#000000,stroke-width:2px
 ```
 
 #### Step 5
