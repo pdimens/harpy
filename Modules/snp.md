@@ -61,16 +61,54 @@ In addition to the [common runtime options](../commonoptions.md), the `harpy snp
 |:-----------------|:----------:|:--------------------------------|:-------:|:--------:|:----------------------------------------------------|
 | `INPUTS`           |            | file/directory paths  |         | **yes**  | Files or directories containing [input BAM files](/commonoptions.md#input-arguments)   |
 | `--genome`       |    `-g`    | file path                       |         | **yes**  | Genome assembly for variant calling                 |
-| `--windowsize`   |    `-w`    | integer                         |  50000  |    no    | Interval size for parallel variant calling          |
-| `--populations`  |    `-p`    | file path                       |         |    no    | Tab-delimited file of sample\<*tab*\>group            |
+| `--regions`      |    `-r`    | integer/file path/string        |  50000  |    no    | Regions to call variants on (see below)             |
+| `--populations`  |    `-p`    | file path                       |         |    no    | Tab-delimited file of sample\<*tab*\>group          |
 | `--ploidy`       |    `-x`    | integer                         |    2    |    no    | Ploidy of samples                                   |
 | `--extra-params` |    `-x`    | string                          |         |    no    | Additional mpileup/freebayes arguments, in quotes   |
 
-### windowsize
-To speed things along, Harpy will call variants in parallel on different contig
-intervals, then merge everything at the end. You can control the level of parallelization by using
-the `--windowsize` option, which by default is 50 kbp. A smaller window would allow for more parallelization,
-but it's likely anything below 20 kbp will give diminishing returns. 
+### regions
+The `--regions` (`-r`) option lets you specify the genomic regions you want to call variants on. Keep in mind that
+`mpileup` uses 1-based positions for genomic intervals, whereas `freebayes` uses 0-based positions. Harpy will perform
+variant calling in parallel over these invervals and they can be specified in three ways:
+
+=== Option 1: Call variants over entire genome
+**input**: an integer to make fixed-size genomic interval
+
+**example**: `harpy snp -r 25000 -g genome.fasta data/mapped`
+
+This is the default setting (`-r 50000`), where Harpy will create 50 kbp genomic intervals across
+the entire genome. Intervals towards the end of contigs that are shorter than the specified interval
+size are still used. These invervals look like:
+```
+chromosome_1    1   50000
+chromosome_1    50001 100000
+chromosome_1    100001  121761    <- reached the end of the contig
+```
+
+==- Option 2: Call variants on exactly one genomic interval
+**input**: a single region in the format `contig:start-end`
+
+**example**: `harpy snp -r chrom1:2000-15000 -g genome.fasta data/mapped`
+
+Following the `mpileup` and `freebayes` format, you can specify a single genomic interval of interest
+to call variants on. This interval must be in the format `contig:start-end` where:
+- `contig` is the exact name of a contig in the supplied genome
+- `start` is an integer specifying the start position of the interval for that `contig`
+- `end` is an integer specifying the end position of the interval for that `contig`
+
+==- Option 3: Call variants on specific genomic intervals
+**input**: a tab (or space) delimited file of contigs and positions
+
+**example**: `harpy snp -r data/positions.txt -g genome.fasta data/mapped`
+
+A BED-like file of `contig<whitespace>start<whitespace>end` can be provided to call variants
+on only specific genomic intervals. This file will look like:
+```
+chromosome_1    1   45000
+chromosome_1    723123 999919
+chromosome_5    22421   564121
+```
+===
 
 ### populations
 Grouping samples changes the way the variant callers computes certain statistics when calling variants. If you
@@ -98,9 +136,7 @@ graph LR
     C-->D([index BCFs])
     D-->E([combine BCFs])
     C-->E
-    E-->G([normalize variants])
     E-->F([generate reports])
-    G-->F
     style Inputs fill:#f0f0f0,stroke:#e8e8e8,stroke-width:2px
 ```
 
@@ -117,9 +153,7 @@ graph LR
     A([split contigs]) --> B([freebayes])
     B-->D([index BCFs])
     D-->E([combine BCFs])
-    E-->G([normalize variants])
     E-->F([generate reports])
-    G-->F
     style Inputs fill:#f0f0f0,stroke:#e8e8e8,stroke-width:2px
 ```
 
