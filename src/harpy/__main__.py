@@ -269,7 +269,7 @@ click.rich_click.OPTION_GROUPS = {
     "harpy snp mpileup": [
         {
             "name": "Parameters",
-            "options": ["--genome", "--populations", "--ploidy", "--windowsize", "--extra-params"],
+            "options": ["--genome", "--populations", "--ploidy", "--regions", "--extra-params"],
         },
         {
             "name": "Other Options",
@@ -279,7 +279,7 @@ click.rich_click.OPTION_GROUPS = {
     "harpy snp freebayes": [
         {
             "name": "Parameters",
-            "options": ["--genome", "--populations", "--ploidy", "--windowsize", "--extra-params"],
+            "options": ["--genome", "--populations", "--ploidy", "--regions", "--extra-params"],
         },
         {
             "name": "Other Options",

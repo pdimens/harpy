@@ -10,9 +10,9 @@ import re
 @click.option('-b', '--samplesheet', required = True, type=click.Path(exists=True, dir_okay=False), metavar = "File Path", help = 'Tab-delimited file of sample\<tab\>barcode')
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(min = 1, max_open = True), metavar = "Integer", help = 'Number of threads to use')
 @click.option('-s', '--snakemake', type = str, metavar = "String", help = 'Additional Snakemake parameters, in quotes')
-@click.option('-r', '--skipreports',  is_flag = True, show_default = True, default = False, metavar = "Toggle", help = 'Don\'t generate any HTML reports')
 @click.option('-q', '--quiet',  is_flag = True, show_default = True, default = False, metavar = "Toggle", help = 'Don\'t show output text while running')
 @click.option('-o', '--output-dir', type = str, default = "Demultiplex", show_default=True, metavar = "String", help = 'Name of output directory')
+@click.option('--skipreports',  is_flag = True, show_default = True, default = False, metavar = "Toggle", help = 'Don\'t generate any HTML reports')
 @click.option('--print-only',  is_flag = True, hidden = True, default = False, metavar = "Toggle", help = 'Print the generated snakemake command and exit')
 @click.argument('FASTQ_INPUT', required=True, type=click.Path(exists=True, dir_okay=False))
 def gen1(fastq_input, output_dir, samplesheet, threads, snakemake, skipreports, quiet, print_only):

@@ -14,10 +14,10 @@ import glob
 @click.option('-x', '--extra-params', type = str, help = 'Additional Fastp parameters, in quotes')
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(min = 4, max_open = True), help = 'Number of threads to use')
 @click.option('-s', '--snakemake', type = str, metavar = "String", help = 'Additional Snakemake parameters, in quotes')
-@click.option('-r', '--skipreports',  is_flag = True, show_default = True, default = False, help = 'Don\'t generate any HTML reports')
 @click.option('-q', '--quiet',  is_flag = True, show_default = True, default = False, help = 'Don\'t show output text while running')
-@click.option('--print-only',  is_flag = True, hidden = True, show_default = True, default = False, help = 'Print the generated snakemake command and exit')
 @click.option('-o', '--output-dir', type = str, default = "QC", show_default=True, help = 'Name of output directory')
+@click.option('--skipreports',  is_flag = True, show_default = True, default = False, help = 'Don\'t generate any HTML reports')
+@click.option('--print-only',  is_flag = True, hidden = True, show_default = True, default = False, help = 'Print the generated snakemake command and exit')
 @click.argument('input', required=True, type=click.Path(exists=True), nargs=-1)
 def qc(input, output_dir, min_length, max_length, ignore_adapters, extra_params, threads, snakemake, skipreports, quiet, print_only):
     """
