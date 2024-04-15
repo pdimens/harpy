@@ -130,8 +130,7 @@ graph LR
     subgraph Inputs
         aln[BAM alignments]---gen[genome]
     end
-    Inputs --> B & A
-    A([split contigs]) --> B([bcftools mpileup])
+    Inputs --> B([freebayes])
     B-->C([bcftools call])
     C-->D([index BCFs])
     D-->E([combine BCFs])
@@ -149,8 +148,7 @@ graph LR
     subgraph Inputs
         aln[BAM alignments]---gen[genome]
     end
-    Inputs --> B & A
-    A([split contigs]) --> B([freebayes])
+    Inputs --> B([freebayes])
     B-->D([index BCFs])
     D-->E([combine BCFs])
     E-->F([generate reports])
@@ -199,7 +197,7 @@ SNP/method
 +++ :icon-code-square: mpileup parameters
 By default, Harpy runs `mpileup` with these parameters (excluding inputs and outputs):
 ```bash
-bcftools mpileup --region contigname:START-END --annotate AD --output-type b
+bcftools mpileup --region contigname:START-END --annotate AD --output-type b --ploidy ploidy
 ```
 
 The mpileup module of samtools has *a lot* of command line options. Listing them all here would be difficult to read, therefore please
@@ -208,7 +206,7 @@ refer to the [mpileup documentation](http://www.htslib.org/doc/samtools-mpileup.
 +++ :icon-code-square: freebayes parameters
 By default, Harpy runs `freebayes` with these parameters (excluding inputs and outputs):
 ```bash
-freebayes -f genome.fasta -L bam.list -p ploidy
+freebayes -f genome.fasta -r contigname:START-END -L bam.list -p ploidy
 ```
 
 Freebayes has *a lot* of command line options. Listing them all here would be difficult to read, therefore please
