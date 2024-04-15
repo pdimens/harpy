@@ -185,8 +185,8 @@ rule create_report:
 rule log_workflow:
     default_target: True
     input:
-        bedpe = expand(outdir + "/{sample}.bedpe", sample = samplenames),
-        reports =  expand(outdir + "/reports/{sample}.naibr.html", sample = samplenames) if not skipreports else []
+        bedpe = collect(outdir + "/{sample}.bedpe", sample = samplenames),
+        reports =  collect(outdir + "/reports/{sample}.naibr.html", sample = samplenames) if not skipreports else []
     output:
         outdir + "/workflow/sv.naibr.summary"
     message:

@@ -191,8 +191,8 @@ rule sv_report:
 rule log_workflow:
     default_target: True
     input: 
-        vcf = expand(outdir + "/{sample}.bcf", sample = samplenames),
-        reports = expand(outdir + "/reports/{sample}.SV.html", sample = samplenames) if not skipreports else []
+        vcf = collect(outdir + "/{sample}.bcf", sample = samplenames),
+        reports = collect(outdir + "/reports/{sample}.SV.html", sample = samplenames) if not skipreports else []
     output:
         outdir + "/workflow/sv.leviathan.summary"
     params:

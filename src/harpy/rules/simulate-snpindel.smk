@@ -108,7 +108,7 @@ rule simulate_variants:
         geno = genome
     output:
         multiext(f"{outdir}/{outprefix}", ".bed", ".fasta"),
-        expand(f"{outdir}/{outprefix}." + "{var}.vcf", var = variants)
+        collect(f"{outdir}/{outprefix}." + "{var}.vcf", var = variants)
     log:
         f"{outdir}/logs/{outprefix}.log"
     params:
@@ -193,7 +193,7 @@ rule all:
     default_target: True
     input:
         multiext(f"{outdir}/{outprefix}", ".bed", ".fasta"),
-        expand(f"{outdir}/{outprefix}." + "{var}.vcf", var = variants),
-        expand(f"{outdir}/{outprefix}" + ".{var}.hap{n}.vcf", n = [1,2], var = variants) if heterozygosity > 0 else []
+        collect(f"{outdir}/{outprefix}." + "{var}.vcf", var = variants),
+        collect(f"{outdir}/{outprefix}" + ".{var}.hap{n}.vcf", n = [1,2], var = variants) if heterozygosity > 0 else []
     message:
         "Checking for workflow outputs"

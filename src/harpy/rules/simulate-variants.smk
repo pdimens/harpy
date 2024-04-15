@@ -83,7 +83,7 @@ rule simulate_variants:
         vcf_correct if vcf else [],
         geno = genome
     output:
-        expand(f"{outdir}/{outprefix}" + "{ext}", ext = [".vcf", ".bed", ".fasta"])
+        collect(f"{outdir}/{outprefix}" + "{ext}", ext = [".vcf", ".bed", ".fasta"])
     log:
         f"{outdir}/logs/{outprefix}.log"
     params:
@@ -135,7 +135,7 @@ rule create_heterozygote_vcf:
 results = list()
 results.append(multiext(f"{outdir}/{outprefix}", ".vcf", ".bed", ".fasta"))
 if heterozygosity > 0:
-    results.append(expand(f"{outdir}/{outprefix}.hap" + "{n}.vcf", n = [1,2]))
+    results.append(collect(f"{outdir}/{outprefix}.hap" + "{n}.vcf", n = [1,2]))
 
 rule all:
     default_target: True

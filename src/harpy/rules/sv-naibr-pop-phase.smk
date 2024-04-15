@@ -167,7 +167,7 @@ rule phase_alignments:
 
 rule log_phasing:
     input:
-        expand(outdir + "/logs/whatshap-haplotag/{sample}.phase.log", sample = samplenames)
+        collect(outdir + "/logs/whatshap-haplotag/{sample}.phase.log", sample = samplenames)
     output:
         outdir + "/logs/whatshap-haplotag/phasing.log"
     message:
@@ -197,7 +197,7 @@ rule bam_list:
     input:
         outdir + "/workflow/sample.groups"
     output:
-        expand(outdir + "/workflow/{pop}.list", pop = populations)
+        collect(outdir + "/workflow/{pop}.list", pop = populations)
     message:
         "Creating file lists for each population."
     run:
@@ -210,7 +210,7 @@ rule bam_list:
 rule merge_populations:
     input: 
         bamlist  = outdir + "/workflow/{population}.list",
-        bamfiles = lambda wc: expand("{sample}", sample = popdict[wc.population]) 
+        bamfiles = lambda wc: collect("{sample}", sample = popdict[wc.population]) 
     output:
         bam = temp(outdir + "/workflow/inputpop/{population}.bam"),
         bai = temp(outdir + "/workflow/inputpop/{population}.bam.bai")
@@ -299,7 +299,7 @@ rule create_report:
 rule report_pop:
     input:
         fai   = f"Genome/{validgenome}.fai",
-        bedpe = expand(outdir + "/{pop}.bedpe", pop = populations)
+        bedpe = collect(outdir + "/{pop}.bedpe", pop = populations)
     output:
         outdir + "/reports/naibr.pop.summary.html"
     message:
@@ -312,8 +312,8 @@ rule report_pop:
 rule log_workflow:
     default_target: True
     input:
-        bedpe = expand(outdir + "/{pop}.bedpe", pop = populations),
-        reports = expand(outdir + "/reports/{pop}.naibr.html", pop = populations) if not skipreports else [],
+        bedpe = collect(outdir + "/{pop}.bedpe", pop = populations),
+        reports = collect(outdir + "/reports/{pop}.naibr.html", pop = populations) if not skipreports else [],
         agg_report = outdir + "/reports/naibr.pop.summary.html" if not skipreports else []
     output:
         outdir + "/workflow/sv.naibr.summary"

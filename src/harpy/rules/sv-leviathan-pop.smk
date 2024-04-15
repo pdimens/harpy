@@ -79,7 +79,7 @@ rule bam_list:
     input:
         outdir + "/workflow/sample.groups"
     output:
-        expand(outdir + "/workflow/{pop}.list", pop = populations)
+        collect(outdir + "/workflow/{pop}.list", pop = populations)
     message:
         "Creating population file lists."
     run:
@@ -92,7 +92,7 @@ rule bam_list:
 rule merge_populations:
     input: 
         bamlist  = outdir + "/workflow/{population}.list",
-        bamfiles = lambda wc: expand("{sample}", sample = popdict[wc.population]) 
+        bamfiles = lambda wc: collect("{sample}", sample = popdict[wc.population]) 
     output:
         bam = temp(outdir + "/workflow/inputpop/{population}.bam"),
         bai = temp(outdir + "/workflow/inputpop/{population}.bam.bai")
@@ -241,7 +241,7 @@ rule sv_report_bypop:
 rule sv_report:
     input:	
         faidx      = f"Genome/{bn}.fai",
-        statsfiles = expand(outdir + "/reports/reports/{pop}.sv.stats", pop = populations)
+        statsfiles = collect(outdir + "/reports/reports/{pop}.sv.stats", pop = populations)
     output:
         outdir + "/reports/leviathan.pop.summary.html"
     message:
@@ -254,8 +254,8 @@ rule sv_report:
 rule log_workflow:
     default_target: True
     input:
-        vcf = expand(outdir + "/{pop}.bcf", pop = populations),
-        reports = expand(outdir + "/reports/{pop}.sv.html", pop = populations),
+        vcf = collect(outdir + "/{pop}.bcf", pop = populations),
+        reports = collect(outdir + "/reports/{pop}.sv.html", pop = populations),
         agg_report = outdir + "/reports/leviathan.pop.summary.html" if not skipreports else []
     output:
         outdir + "/workflow/sv.leviathan.summary"

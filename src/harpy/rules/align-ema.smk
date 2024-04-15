@@ -166,7 +166,7 @@ rule beadtag_count:
 
 rule beadtag_summary:
     input: 
-        countlog = expand(outdir + "/logs/count/{sample}.count", sample = samplenames)
+        countlog = collect(outdir + "/logs/count/{sample}.count", sample = samplenames)
     output:
         outdir + "/reports/reads.bxcounts.html"
     conda:
@@ -181,7 +181,7 @@ rule preprocess:
         reads = outdir + "/.interleave/{sample}.interleave2.fq",
         emacounts  = outdir + "/bxcount/{sample}.ema-ncnt"
     output: 
-        bins       = temp(expand(outdir + "/preproc/{{sample}}/ema-bin-{bin}", bin = binrange)),
+        bins       = temp(collect(outdir + "/preproc/{{sample}}/ema-bin-{bin}", bin = binrange)),
         unbarcoded = temp(outdir + "/preproc/{sample}/ema-nobc")
     log:
         outdir + "/logs/preproc/{sample}.preproc.log"
@@ -203,7 +203,7 @@ rule preprocess:
 
 rule align:
     input:
-        readbin    = expand(outdir + "/preproc/{{sample}}/ema-bin-{bin}", bin = binrange),
+        readbin    = collect(outdir + "/preproc/{{sample}}/ema-bin-{bin}", bin = binrange),
         genome 	   = f"Genome/{bn}",
         geno_idx   = multiext(f"Genome/{bn}", ".ann", ".bwt", ".pac", ".sa", ".amb")
     output:
@@ -453,7 +453,7 @@ rule general_stats:
 
 rule collate_samtools_stats:
     input: 
-        expand(outdir + "/reports/samtools_{ext}/{sample}.{ext}", sample = samplenames, ext = ["stats", "flagstat"]),
+        collect(outdir + "/reports/samtools_{ext}/{sample}.{ext}", sample = samplenames, ext = ["stats", "flagstat"]),
     output: 
         outdir + "/reports/ema.stats.html"
     params:
@@ -472,9 +472,9 @@ rule collate_samtools_stats:
 rule log_workflow:
     default_target: True
     input:
-        bams = expand(outdir + "/{sample}.{ext}", sample = samplenames, ext = [ "bam", "bam.bai"] ),
-        cov_report = expand(outdir + "/reports/coverage/{sample}.cov.html", sample = samplenames) if not skipreports else [],
-        bx_report = expand(outdir + "/reports/BXstats/{sample}.bxstats.html", sample = samplenames) if not skipreports else [],
+        bams = collect(outdir + "/{sample}.{ext}", sample = samplenames, ext = [ "bam", "bam.bai"] ),
+        cov_report = collect(outdir + "/reports/coverage/{sample}.cov.html", sample = samplenames) if not skipreports else [],
+        bx_report = collect(outdir + "/reports/BXstats/{sample}.bxstats.html", sample = samplenames) if not skipreports else [],
         bx_counts = f"{outdir}/reports/reads.bxcounts.html" if not skipreports else [],
         agg_report = f"{outdir}/reports/ema.stats.html" if not skipreports else []
     output:

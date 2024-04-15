@@ -317,7 +317,7 @@ rule general_alignment_stats:
 
 rule samtools_reports:
     input: 
-        expand(outdir + "/reports/samtools_{ext}/{sample}.{ext}", sample = samplenames, ext = ["stats", "flagstat"])
+        collect(outdir + "/reports/samtools_{ext}/{sample}.{ext}", sample = samplenames, ext = ["stats", "flagstat"])
     output: 
         outdir + "/reports/minimap.stats.html"
     params:
@@ -334,9 +334,9 @@ rule samtools_reports:
 rule log_workflow:
     default_target: True
     input: 
-        bams = expand(outdir + "/{sample}.{ext}", sample = samplenames, ext = ["bam","bam.bai"]),
-        cov_reports = expand(outdir + "/reports/coverage/{sample}.cov.html", sample = samplenames) if not skipreports else [],
-        bx_reports = expand(outdir + "/reports/BXstats/{sample}.bxstats.html", sample = samplenames) if not skipreports else []
+        bams = collect(outdir + "/{sample}.{ext}", sample = samplenames, ext = ["bam","bam.bai"]),
+        cov_reports = collect(outdir + "/reports/coverage/{sample}.cov.html", sample = samplenames) if not skipreports else [],
+        bx_reports = collect(outdir + "/reports/BXstats/{sample}.bxstats.html", sample = samplenames) if not skipreports else []
     output:
         outdir + "/workflow/align.minimap.summary"
     params:

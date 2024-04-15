@@ -149,8 +149,8 @@ rule index_vcf:
 
 rule mergeSamples:
     input: 
-        vcf = expand(outdir + "/phaseBlocks/{sample}.blocks.phased.VCF.gz", sample = samplenames),
-        idx = expand(outdir + "/phaseBlocks/{sample}.blocks.phased.VCF.gz.tbi", sample = samplenames)
+        vcf = collect(outdir + "/phaseBlocks/{sample}.blocks.phased.VCF.gz", sample = samplenames),
+        idx = collect(outdir + "/phaseBlocks/{sample}.blocks.phased.VCF.gz.tbi", sample = samplenames)
     output:
         outdir + "/variants.phased.bcf"
     benchmark:
@@ -166,7 +166,7 @@ rule mergeSamples:
 
 rule merge_blocks:
     input:
-        expand(outdir + "/phaseBlocks/{sample}.blocks", sample = samplenames)
+        collect(outdir + "/phaseBlocks/{sample}.blocks", sample = samplenames)
     output:
         outdir + "/phased.blocks.gz"
     message:

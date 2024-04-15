@@ -100,7 +100,7 @@ rule count_beadtags:
 
 rule beadtag_counts_summary:
     input: 
-        countlog = expand(outdir + "/logs/bxcount/{sample}.count.log", sample = samplenames)
+        countlog = collect(outdir + "/logs/bxcount/{sample}.count.log", sample = samplenames)
     output:
         outdir + "/reports/barcode.summary.html"
     conda:
@@ -112,7 +112,7 @@ rule beadtag_counts_summary:
    
 rule create_report:
     input: 
-        expand(outdir + "/logs/json/{sample}.fastp.json", sample = samplenames)
+        collect(outdir + "/logs/json/{sample}.fastp.json", sample = samplenames)
     output:
         outdir + "/reports/qc.report.html"
     params:
@@ -129,7 +129,7 @@ rule create_report:
 rule log_workflow:
     default_target: True
     input:
-        fq = expand(outdir + "/{sample}.{FR}.fq.gz", FR = ["R1", "R2"], sample = samplenames),
+        fq = collect(outdir + "/{sample}.{FR}.fq.gz", FR = ["R1", "R2"], sample = samplenames),
         bx_report = outdir + "/reports/barcode.summary.html" if not skipreports else [],
         agg_report = outdir + "/reports/qc.report.html" if not skipreports else []
     output:
