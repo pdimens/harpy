@@ -8,15 +8,12 @@ fi
 
 mkdir -p ${CONDA_PREFIX}/bin
 
+# compilation
+g++ globalscripts/extractReads.cpp -O3 -o ${CONDA_PREFIX}/bin/extractReads
+
 # install harpy proper
 pip install . --no-deps
 
-# rules
-cp -f workflow/rules/*.smk ${CONDA_PREFIX}/bin/
-
 # associated scripts
-chmod +x workflow/scripts/* 
-cp -f workflow/scripts/* ${CONDA_PREFIX}/bin/
-
-# reports
-cp -f workflow/report/*.Rmd ${CONDA_PREFIX}/bin/
+chmod +x globalscripts/* 
+cp -f globalscripts/* ${CONDA_PREFIX}/bin/

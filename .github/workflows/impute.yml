@@ -6,8 +6,7 @@ on:
       - 'dev'
     paths:
       - '**impute.smk'
-      - 'workflow/envs/harpy.yaml'
-      - 'workflow/envs/r-env.yaml'
+      - 'resources/harpy.yaml'
       - '**impute.py'
       - '**helperfunctions.py'
       - '**printfunctions.py'
@@ -16,9 +15,9 @@ on:
       - 'test/bam/**'
       - 'test/vcf/test.bcf'
       - '**impute.yml'
-      - 'workflow/report/Impute.Rmd'
-      - 'workflow/report/StitchCollate.Rmd'
-      - 'workflow/scripts/stitch_impute.R'
+      - 'src/harpy/reports/Impute.Rmd'
+      - 'src/harpy/reports/StitchCollate.Rmd'
+      - 'src/harpy/scripts/stitch_impute.R'
       - '**__main__.py'
 
   pull_request:
@@ -26,8 +25,7 @@ on:
       - 'dev'
     paths:
       - '**impute.smk'
-      - 'workflow/envs/harpy.yaml'
-      - 'workflow/envs/r-env.yaml'
+      - 'resources/harpy.yaml'
       - '**impute.py'
       - '**helperfunctions.py'
       - '**printfunctions.py'
@@ -36,9 +34,9 @@ on:
       - 'test/bam/**'
       - 'test/vcf/test.bcf'
       - '**impute.yml'
-      - 'workflow/report/Impute.Rmd'
-      - 'workflow/report/StitchCollate.Rmd'
-      - 'workflow/scripts/stitch_impute.R'
+      - 'src/harpy/reports/Impute.Rmd'
+      - 'src/harpy/reports/StitchCollate.Rmd'
+      - 'src/harpy/scripts/stitch_impute.R'
       - '**__main__.py'
 
 env:
@@ -60,7 +58,7 @@ jobs:
         with:
           init-shell: bash
           generate-run-shell: true
-          environment-file: workflow/envs/harpy.yaml
+          environment-file: resources/harpy.yaml
           cache-environment: true
           post-cleanup: 'all'
           log-level: error

@@ -1,8 +1,7 @@
-from .helperfunctions import generate_conda_deps, fetch_file 
+from .helperfunctions import generate_conda_deps, fetch_report, fetch_rule, fetch_script
 from .fileparsers import get_samples_from_fastq, parse_fastq_inputs
 from .printfunctions import print_onstart
 import rich_click as click
-import subprocess
 import re
 import os
 import sys
@@ -49,12 +48,13 @@ def qc(input, output_dir, min_length, max_length, ignore_adapters, extra_params,
         click.echo(call_SM)
         exit(0)
 
-    os.makedirs(f"{workflowdir}/", exist_ok= True)
     _ = parse_fastq_inputs(input, f"{workflowdir}/input")
     sn = get_samples_from_fastq(f"{workflowdir}/input")
-    fetch_file("qc.smk", f"{workflowdir}/")
-    fetch_file("BxCount.Rmd", f"{workflowdir}/report/")
-    fetch_file("countBX.py", f"{workflowdir}/scripts/")
+
+    fetch_script(workflowdir, "countBX.py")    
+    fetch_rule(workflowdir, "qc.smk")
+    fetch_report(workflowdir, "BxCount.Rmd")
+
     with open(f"{workflowdir}/config.yml", "w") as config:
         config.write(f"seq_directory: {workflowdir}/input\n")
         config.write(f"output_directory: {output_dir}\n")
@@ -65,10 +65,8 @@ def qc(input, output_dir, min_length, max_length, ignore_adapters, extra_params,
         config.write(f"skipreports: {skipreports}\n")
         config.write(f"workflow_call: {call_SM}\n")
 
-    generate_conda_deps()
     print_onstart(
         f"Samples: {len(sn)}\nOutput Directory: {output_dir}/",
         "qc"
     )
-    _module = subprocess.run(command)
-    sys.exit(_module.returncode)
+    return command

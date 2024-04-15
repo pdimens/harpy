@@ -5,44 +5,40 @@ on:
     branches:
       - 'dev'
     paths:
-      - 'workflow/envs/harpy.yaml'
-      - 'workflow/envs/r-env.yaml'
-      - 'workflow/envs/variants.sv.yaml'
-      - 'workflow/rules/sv-**.smk'
+      - 'resources/harpy.yaml'
+      - 'src/harpy/rules/sv-**.smk'
       - '**sv.py'
       - '**helperfunctions.py'
       - '**printfunctions.py'
       - '**fileparsers.py'
       - '**validations.py'
-      - 'workflow/scripts/makewindows.py'
+      - 'globalscripts/makewindows.py'
       - 'test/bam/**'
       - 'test/bam_phased/**'
       - '**variants_sv.yml'
-      - 'workflow/report/Leviathan**.Rmd'
-      - 'workflow/report/Naibr**.Rmd'
-      - 'workflow/scripts/inferSV.py'
+      - 'src/harpy/reports/Leviathan**.Rmd'
+      - 'src/harpy/reports/Naibr**.Rmd'
+      - 'globalscripts/inferSV.py'
       - '**__main__.py'
 
   pull_request:
     branches:
       - 'dev'
     paths:
-      - 'workflow/envs/harpy.yaml'
-      - 'workflow/envs/r-env.yaml'
-      - 'workflow/envs/variants.sv.yaml'
-      - 'workflow/rules/sv-**.smk'
+      - 'resources/harpy.yaml'
+      - 'src/harpy/rules/sv-**.smk'
       - '**sv.py'
       - '**helperfunctions.py'
       - '**printfunctions.py'
       - '**fileparsers.py'
       - '**validations.py'
-      - 'workflow/scripts/makewindows.py'
+      - 'globalscripts/makewindows.py'
       - 'test/bam/**'
       - 'test/bam_phased/**'
       - '**variants_sv.yml'
-      - 'workflow/report/Leviathan**.Rmd'
-      - 'workflow/report/Naibr**.Rmd'
-      - 'workflow/scripts/inferSV.py'
+      - 'src/harpy/reports/Leviathan**.Rmd'
+      - 'src/harpy/reports/Naibr**.Rmd'
+      - 'globalscripts/inferSV.py'
       - '**__main__.py'
 
 env:
@@ -64,7 +60,7 @@ jobs:
         with:
           init-shell: bash
           generate-run-shell: true
-          environment-file: workflow/envs/harpy.yaml
+          environment-file: resources/harpy.yaml
           cache-environment: true
           post-cleanup: 'all'
           log-level: error
@@ -76,12 +72,12 @@ jobs:
           resources/buildforCI.sh
       - name: leviathan
         shell: micromamba-shell {0}
-        run: harpy sv leviathan -g test/genome/genome.fasta.gz -q -s "--show-failed-logs" -x "-M 2002" test/bam
+        run: harpy sv leviathan -n 100 -b 1 -g test/genome/genome.fasta.gz -q -s "--show-failed-logs" -x "-M 2002" test/bam
         continue-on-error: true
       - name: leviathan-pop
         if: always()
         shell: micromamba-shell {0}
-        run: harpy sv leviathan -g test/genome/genome.fasta.gz -o SV/leviathanpop -p test/samples.groups -q -s "--show-failed-logs" test/bam
+        run: harpy sv leviathan -n 100 -b 1 -g test/genome/genome.fasta.gz -o SV/leviathanpop -p test/samples.groups -q -s "--show-failed-logs" test/bam
   test_naibr:
     name: naibr
     runs-on: ubuntu-latest
@@ -97,7 +93,7 @@ jobs:
         with:
           init-shell: bash
           generate-run-shell: true
-          environment-file: workflow/envs/harpy.yaml
+          environment-file: resources/harpy.yaml
           cache-environment: true
           post-cleanup: 'all'
           log-level: error

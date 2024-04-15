@@ -1,4 +1,4 @@
-from .helperfunctions import fetch_file, generate_conda_deps
+from .helperfunctions import fetch_rule, fetch_report, generate_conda_deps
 from .fileparsers import getnames, parse_alignment_inputs
 from .printfunctions import print_onstart
 from .validations import validate_popfile, validate_vcfsamples, check_phase_vcf, validate_input_by_ext
@@ -10,6 +10,8 @@ import os
 @click.command(no_args_is_help = True, epilog= "read the docs for more information: https://pdimens.github.io/harpy/modules/sv/leviathan/")
 @click.option('-g', '--genome', type=click.Path(exists=True, dir_okay=False), required = True, metavar = "File Path", help = 'Genome assembly for variant calling')
 @click.option('-p', '--populations', type=click.Path(exists = True, dir_okay=False), metavar = "File Path", help = "Tab-delimited file of sample\<tab\>population")
+@click.option('-n', '--min-sv', type = click.IntRange(min = 10, max_open = True), default = 1000, show_default=True, help = 'Minimum size of SV to detect')
+@click.option('-b', '--min-barcodes', show_default = True, default=2, type = click.IntRange(min = 1, max_open = True), help = 'Minimum number of barcode overlaps supporting candidate SV')
 @click.option('-x', '--extra-params', type = str, metavar = "String", help = 'Additional variant caller parameters, in quotes')
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(min = 4, max_open = True), metavar = "Integer", help = 'Number of threads to use')
 @click.option('-s', '--snakemake', type = str, metavar = "String", help = 'Additional Snakemake parameters, in quotes')
@@ -18,7 +20,7 @@ import os
 @click.option('-o', '--output-dir', type = str, default = "SV/leviathan", show_default=True, metavar = "String", help = 'Name of output directory')
 @click.option('--print-only',  is_flag = True, hidden = True, default = False, metavar = "Toggle", help = 'Print the generated snakemake command and exit')
 @click.argument('input', required=True, type=click.Path(exists=True), nargs=-1)
-def leviathan(input, output_dir, genome, threads, populations, extra_params, snakemake, skipreports, quiet, print_only):
+def leviathan(input, output_dir, genome, min_sv, min_barcodes, threads, populations, extra_params, snakemake, skipreports, quiet, print_only):
     """
     Call structural variants using LEVIATHAN
     
@@ -52,9 +54,9 @@ def leviathan(input, output_dir, genome, threads, populations, extra_params, sna
     samplenames = getnames(f"{workflowdir}/input", '.bam')
     validate_input_by_ext(genome, "--genome", [".fasta", ".fa", ".fasta.gz", ".fa.gz"])
     if populations is not None:
-        fetch_file("LeviathanPop.Rmd", f"{workflowdir}/report/")
-    fetch_file("Leviathan.Rmd", f"{workflowdir}/report/")
-    fetch_file(f"sv-{vcaller}.smk", f"{workflowdir}")
+        fetch_report(workflowdir, "LeviathanPop.Rmd")
+    fetch_report(workflowdir, "Leviathan.Rmd")
+    fetch_rule(workflowdir, f"sv-{vcaller}.smk")
 
     with open(f'{workflowdir}/config.yml', "w") as config:
         config.write(f"seq_directory: {workflowdir}/input\n")
@@ -69,33 +71,35 @@ def leviathan(input, output_dir, genome, threads, populations, extra_params, sna
             config.write(f"groupings: {populations}\n")
             popgroupings += f"\nPopulations: {populations}"
         config.write(f"genomefile: {genome}\n")
+        config.write(f"min_barcodes: {min_barcodes}\n")
+        config.write(f"min_sv: {min_sv}\n")
         if extra_params is not None:
             config.write(f"extra: {extra_params}\n")
         config.write(f"skipreports: {skipreports}\n")
         config.write(f"workflow_call: {call_SM}\n")
 
-    generate_conda_deps()
     print_onstart(
         f"Samples: {len(samplenames)}{popgroupings}\nOutput Directory: {output_dir}/",
         "sv leviathan"
     )
-    _module = subprocess.run(command)
-    sys.exit(_module.returncode)
+    return command
 
 @click.command(no_args_is_help = True, epilog = "read the docs for more information: https://pdimens.github.io/harpy/modules/sv/naibr/")
-@click.option('-g', '--genome', required = True, type=click.Path(exists=True, dir_okay=False), metavar = "File Path", help = 'Genome assembly')
-@click.option('-v', '--vcf', type=click.Path(exists=True, dir_okay=False), metavar = "File Path", help = 'Path to phased bcf/vcf file')
-@click.option('-p', '--populations', type=click.Path(exists = True, dir_okay=False), metavar = "File Path", help = "Tab-delimited file of sample\<tab\>population")
-@click.option('-m', '--molecule-distance', default = 100000, show_default = True, type = int, metavar = "Integer", help = 'Base-pair distance delineating separate molecules')
-@click.option('-x', '--extra-params', type = str, metavar = "String", help = 'Additional variant caller parameters, in quotes')
-@click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(min = 4, max_open = True), metavar = "Integer", help = 'Number of threads to use')
-@click.option('-s', '--snakemake', type = str, metavar = "String", help = 'Additional Snakemake parameters, in quotes')
-@click.option('-r', '--skipreports',  is_flag = True, show_default = True, default = False, metavar = "Toggle", help = 'Don\'t generate any HTML reports')
-@click.option('-q', '--quiet',  is_flag = True, show_default = True, default = False, metavar = "Toggle", help = 'Don\'t show output text while running')
-@click.option('-o', '--output-dir', type = str, default = "SV/naibr", show_default=True, metavar = "String", help = 'Name of output directory')
-@click.option('--print-only',  is_flag = True, hidden = True, default = False, metavar = "Toggle", help = 'Print the generated snakemake command and exit')
+@click.option('-g', '--genome', required = True, type=click.Path(exists=True, dir_okay=False), help = 'Genome assembly')
+@click.option('-v', '--vcf', type=click.Path(exists=True, dir_okay=False),  help = 'Path to phased bcf/vcf file')
+@click.option('-p', '--populations', type=click.Path(exists = True, dir_okay=False), help = "Tab-delimited file of sample\<tab\>population")
+@click.option('-n', '--min-sv', type = click.IntRange(min = 10, max_open = True), default = 1000, show_default=True, help = 'Minimum size of SV to detect')
+@click.option('-b', '--min-barcodes', show_default = True, default=2, type = click.IntRange(min = 1, max_open = True), help = 'Minimum number of barcode overlaps supporting candidate SV')
+@click.option('-m', '--molecule-distance', default = 100000, show_default = True, type = int, help = 'Base-pair distance delineating separate molecules')
+@click.option('-x', '--extra-params', type = str, help = 'Additional variant caller parameters, in quotes')
+@click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(min = 4, max_open = True), help = 'Number of threads to use')
+@click.option('-s', '--snakemake', type = str, help = 'Additional Snakemake parameters, in quotes')
+@click.option('-r', '--skipreports',  is_flag = True, show_default = True, default = False, help = 'Don\'t generate any HTML reports')
+@click.option('-q', '--quiet',  is_flag = True, show_default = True, default = False, help = 'Don\'t show output text while running')
+@click.option('-o', '--output-dir', type = str, default = "SV/naibr", show_default=True, help = 'Name of output directory')
+@click.option('--print-only',  is_flag = True, hidden = True, default = False, help = 'Print the generated snakemake command and exit')
 @click.argument('input', required=True, type=click.Path(exists=True), nargs=-1)
-def naibr(input, output_dir, genome, vcf, threads, populations, molecule_distance, extra_params, snakemake, skipreports, quiet, print_only):
+def naibr(input, output_dir, genome, vcf, min_sv, min_barcodes, threads, populations, molecule_distance, extra_params, snakemake, skipreports, quiet, print_only):
     """
     Call structural variants using NAIBR
     
@@ -115,7 +119,6 @@ def naibr(input, output_dir, genome, vcf, threads, populations, molecule_distanc
     output_dir = output_dir.rstrip("/")
     workflowdir = f"{output_dir}/workflow"
     vcaller = "naibr" if populations is None else "naibr-pop"
-    workflowdir = f"{output_dir}/workflow"
     vcaller += "-phase" if vcf is not None else ""
     
     command = (f'snakemake --rerun-incomplete --nolock --software-deployment-method conda --conda-prefix ./.snakemake/conda --cores {threads} --directory .').split()
@@ -138,12 +141,12 @@ def naibr(input, output_dir, genome, vcf, threads, populations, molecule_distanc
     samplenames = getnames(f"{workflowdir}/input", '.bam')
     validate_input_by_ext(genome, "--genome", [".fasta", ".fa", ".fasta.gz", ".fa.gz"])
     if populations is not None:
-        fetch_file("NaibrPop.Rmd", f"{workflowdir}/report/")
-    fetch_file("Naibr.Rmd", f"{workflowdir}/report/")
+        fetch_report(workflowdir, "NaibrPop.Rmd")
+    fetch_report(workflowdir, "Naibr.Rmd")
     if vcf is not None:
         check_phase_vcf(vcf)
         #vcaller += "-phase"
-    fetch_file(f"sv-{vcaller}.smk", f"{workflowdir}/")
+    fetch_rule(workflowdir, f"sv-{vcaller}.smk")
 
     with open(f'{workflowdir}/config.yml', "w") as config:
         config.write(f"seq_directory: {workflowdir}/input\n")
@@ -162,15 +165,15 @@ def naibr(input, output_dir, genome, vcf, threads, populations, molecule_distanc
             config.write(f"vcf: {vcf}\n")
         if genome is not None:
             config.write(f"genomefile: {genome}\n")
+        config.write(f"min_barcodes: {min_barcodes}\n")
+        config.write(f"min_sv: {min_sv}\n")
         if extra_params is not None:
             config.write(f"extra: {extra_params}\n")
         config.write(f"skipreports: {skipreports}\n")
         config.write(f"workflow_call: {call_SM}\n")
 
-    generate_conda_deps()
     print_onstart(
         f"Samples: {len(samplenames)}{popgroupings}\nOutput Directory: {output_dir}/",
         "sv naibr"
     )
-    _module = subprocess.run(command)
-    sys.exit(_module.returncode)
+    return command

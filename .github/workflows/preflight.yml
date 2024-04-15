@@ -5,9 +5,9 @@ on:
     branches:
       - 'dev'
     paths:
-      - 'workflow/envs/harpy.yaml'
-      - 'workflow/rules/preflight-fastq.smk'
-      - 'workflow/rules/preflight-bam.smk'
+      - 'resources/harpy.yaml'
+      - 'src/harpy/rules/preflight-fastq.smk'
+      - 'src/harpy/rules/preflight-bam.smk'
       - '**preflight.py'
       - '**helperfunctions.py'
       - '**printfunctions.py'
@@ -15,10 +15,10 @@ on:
       - '**validations.py'
       - 'test/fastq/**'
       - 'test/bam/**'
-      - 'workflow/scripts/checkBAM.py'
-      - 'workflow/scripts/checkFASTQ.py'
-      - 'workflow/report/PreflightFastq.Rmd'
-      - 'workflow/report/PreflightBam.Rmd'
+      - 'src/harpy/scripts/checkBAM.py'
+      - 'src/harpy/scripts/checkFASTQ.py'
+      - 'src/harpy/reports/PreflightFastq.Rmd'
+      - 'src/harpy/reports/PreflightBam.Rmd'
       - '**preflight.yml'
       - '**__main__.py'
 
@@ -26,9 +26,9 @@ on:
     branches:
       - 'dev'
     paths:
-      - 'workflow/envs/harpy.yaml'
-      - 'workflow/rules/preflight-fastq.smk'
-      - 'workflow/rules/preflight-bam.smk'
+      - 'resources/harpy.yaml'
+      - 'src/harpy/rules/preflight-fastq.smk'
+      - 'src/harpy/rules/preflight-bam.smk'
       - '**preflight.py'
       - '**helperfunctions.py'
       - '**printfunctions.py'
@@ -36,10 +36,10 @@ on:
       - '**validations.py'
       - 'test/fastq/**'
       - 'test/bam/**'
-      - 'workflow/scripts/checkBAM.py'
-      - 'workflow/scripts/checkFASTQ.py'
-      - 'workflow/report/PreflightFastq.Rmd'
-      - 'workflow/report/PreflightBam.Rmd'
+      - 'src/harpy/scripts/checkBAM.py'
+      - 'src/harpy/scripts/checkFASTQ.py'
+      - 'src/harpy/reports/PreflightFastq.Rmd'
+      - 'src/harpy/reports/PreflightBam.Rmd'
       - '**preflight.yml'
       - '**__main__.py'
 
@@ -60,7 +60,7 @@ jobs:
         with:
           init-shell: bash
           generate-run-shell: true
-          environment-file: workflow/envs/harpy.yaml
+          environment-file: resources/harpy.yaml
           cache-environment: true
           post-cleanup: 'all'
       - name: Install harpy
@@ -85,7 +85,7 @@ jobs:
         with:
           init-shell: bash
           generate-run-shell: true
-          environment-file: workflow/envs/harpy.yaml
+          environment-file: resources/harpy.yaml
           cache-environment: true
           post-cleanup: 'all'
       - name: Install harpy

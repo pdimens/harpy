@@ -2,12 +2,10 @@
 
 mkdir -p ${CONDA_PREFIX}/bin
 
-# rules
-cp workflow/rules/*.smk ${CONDA_PREFIX}/bin/
+# compilation
+g++ globalscripts/extractReads.cpp -O3 -o ${CONDA_PREFIX}/bin/extractReads
 
-# associated scripts
-chmod +x workflow/scripts/*
-cp workflow/scripts/* ${CONDA_PREFIX}/bin/
+## associated scripts
+chmod +x globalscripts/*
+cp globalscripts/* ${CONDA_PREFIX}/bin/
 
-# reports
-cp workflow/report/*.Rmd ${CONDA_PREFIX}/bin/

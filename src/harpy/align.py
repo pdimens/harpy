@@ -1,10 +1,9 @@
 import rich_click as click
 from pathlib import Path
-from .helperfunctions import fetch_file, generate_conda_deps
+from .helperfunctions import generate_conda_deps, fetch_report, fetch_rule, fetch_script
 from .fileparsers import get_samples_from_fastq, parse_fastq_inputs
 from .printfunctions import print_error, print_solution, print_notice, print_onstart
 from .validations import validate_input_by_ext
-import subprocess
 import sys
 import os
 from time import sleep 
@@ -53,11 +52,11 @@ def bwa(input, output_dir, genome, threads, extra_params, quality_filter, molecu
     sn = parse_fastq_inputs(input, f"{workflowdir}/input")
     samplenames = get_samples_from_fastq(f"{workflowdir}/input")
     validate_input_by_ext(genome, "--genome", [".fasta", ".fa", ".fasta.gz", ".fa.gz"])
-    fetch_file("align-bwa.smk", f"{workflowdir}/")
-    fetch_file("assignMI.py", f"{workflowdir}/scripts/")
-    fetch_file("bxStats.py", f"{workflowdir}/scripts/")
+    fetch_rule(workflowdir, "align-bwa.smk")
+    fetch_script(workflowdir, "assignMI.py")
+    fetch_script(workflowdir, "bxStats.py")
     for i in ["BxStats", "Gencov"]:
-        fetch_file(f"{i}.Rmd", f"{workflowdir}/report/")
+        fetch_report(workflowdir, f"{i}.Rmd")
 
     with open(f"{workflowdir}/config.yml", "w") as config:
         config.write(f"genomefile: {genome}\n")
@@ -71,13 +70,11 @@ def bwa(input, output_dir, genome, threads, extra_params, quality_filter, molecu
             config.write(f"extra: {extra_params}\n")
         config.write(f"workflow_call: {call_SM}\n")
    
-    generate_conda_deps()
     print_onstart(
         f"Samples: {len(samplenames)}\nOutput Directory: {output_dir}",
         "align bwa"
     )
-    _module = subprocess.run(command)
-    sys.exit(_module.returncode)
+    return command
 
 #####----------ema--------------------
 
@@ -141,10 +138,10 @@ def ema(input, output_dir, platform, whitelist, genome, threads, ema_bins, skipr
     sn = parse_fastq_inputs(input, f"{workflowdir}/input")
     samplenames = get_samples_from_fastq(f"{workflowdir}/input")
     validate_input_by_ext(genome, "--genome", [".fasta", ".fa", ".fasta.gz", ".fa.gz"])
-    fetch_file("align-ema.smk", f"{workflowdir}/")
-    fetch_file("bxStats.py", f"{workflowdir}/scripts/")
+    fetch_rule(workflowdir, "align-ema.smk")
+    fetch_script(workflowdir, "bxStats.py")
     for i in ["EmaCount", "EmaGencov", "BxStats"]:
-        fetch_file(f"{i}.Rmd", f"{workflowdir}/report/")
+        fetch_report(workflowdir, f"{i}.Rmd")
 
     with open(f"{workflowdir}/config.yml", "w") as config:
         config.write(f"genomefile: {genome}\n")
@@ -161,13 +158,11 @@ def ema(input, output_dir, platform, whitelist, genome, threads, ema_bins, skipr
             config.write(f"extra: {extra_params}\n")
         config.write(f"workflow_call: {call_SM}\n")
 
-    generate_conda_deps()
     print_onstart(
         f"Samples: {len(samplenames)}\nPlatform: {platform}\nOutput Directory: {output_dir}/",
         "align ema"
     )
-    _module = subprocess.run(command)
-    sys.exit(_module.returncode)
+    return command
 
 #####----------minimap2--------------------
 
@@ -215,11 +210,11 @@ def minimap(input, output_dir, genome, threads, extra_params, quality_filter, mo
     sn = parse_fastq_inputs(input, f"{workflowdir}/input")
     samplenames = get_samples_from_fastq(f"{workflowdir}/input")
     validate_input_by_ext(genome, "--genome", [".fasta", ".fa", ".fasta.gz", ".fa.gz"])
-    fetch_file("align-minimap.smk", f"{workflowdir}/")
-    fetch_file("assignMI.py", f"{workflowdir}/scripts/")
-    fetch_file("bxStats.py", f"{workflowdir}/scripts/")
+    fetch_rule(workflowdir, "align-minimap.smk")
+    fetch_script(workflowdir, "assignMI.py")
+    fetch_script(workflowdir, "bxStats.py")
     for i in ["BxStats", "Gencov"]:
-        fetch_file(f"{i}.Rmd", f"{workflowdir}/report/")
+        fetch_report(workflowdir, f"{i}.Rmd")
 
     with open(f"{workflowdir}/config.yml", "w") as config:
         config.write(f"genomefile: {genome}\n")
@@ -233,10 +228,8 @@ def minimap(input, output_dir, genome, threads, extra_params, quality_filter, mo
             config.write(f"extra: {extra_params}\n")
         config.write(f"workflow_call: {call_SM}\n")
    
-    generate_conda_deps()
     print_onstart(
         f"Samples: {len(samplenames)}\nOutput Directory: {output_dir}",
         "align minimap"
     )
-    _module = subprocess.run(command)
-    sys.exit(_module.returncode)
+    return command

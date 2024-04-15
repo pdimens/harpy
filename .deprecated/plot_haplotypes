@@ -1,0 +1,117 @@
+args <- commandArgs(trailingOnly = TRUE)
+
+if (length(args) < 2){
+  cat("Plot the haplotypes of a sample from its HapCut2 block file. Outputs a .jpg with the same basename.\n\n")
+  cat("  [usage]: plot_haplotypes <n_contigs> <blockfile>\n\n")
+  cat("  [example]: plot_haplotypes 11 sample1.blocks\n")
+  cat("  [example]: plot_haplotypes all sample1.blocks\n\n")
+      cat("n_contigs: the number of largest contigs to plot or \"all\"\n")
+  cat("blockfile: the HapCut2 block file\n\n")
+  cat("Note: Requires the GenomicRanges R package, which is not provided by Harpy\n")
+  q()
+}
+if (!file.exists(args[2])){
+  cat(paste("Error: Input file", args[2], "does not exist\n"))
+  q()
+}
+
+suppressPackageStartupMessages(library(ggplot2))
+suppressPackageStartupMessages(library(dplyr))
+suppressPackageStartupMessages(library(scales))
+checkggranges <- suppressPackageStartupMessages(require(GenomicRanges)) %>% suppressWarnings()
+if (!checkggranges){
+  cat("The R package GenomicRanges is required but is not installed.\n\n")
+  cat("How to install:\n\n")
+  cat("if (!require(\"BiocManager\", quietly = TRUE))\n")
+  cat("  install.packages(\"BiocManager\")\n")
+  cat("BiocManager::install(\"GenomicRanges\"\n")
+  q()
+}
+
+outname <- gsub(".blocks", "", args[2], ignore.case = TRUE)
+bname <- gsub(".blocks", "", basename(args[2]), ignore.case = TRUE)
+
+## the number of lines
+com <- paste("wc -l ", args[2], " | awk '{ print $1 }'", sep="")
+n <- as.numeric(system(command=com, intern=TRUE))
+
+## setup storage vectors
+contig <- as.character()
+n_snp <- as.numeric()
+pos_start <- as.numeric()
+len_block <- as.numeric()
+
+## Create connection
+con <- file(description=args[2], open="r")
+
+## Loop over a file connection
+firstline <- TRUE
+for(i in 1:n) {
+  .line <- scan(file=con, nlines=1, what = character(), quiet=TRUE)
+  if (.line[1] == "BLOCK:") {
+    n_snp <- c(n_snp, as.numeric(.line[7]))
+    len_block <- c(len_block, as.numeric(.line[9]))
+    firstline <- TRUE
+  } else {
+    if (firstline) {
+      pos_start <- c(pos_start, as.numeric(.line[5]))
+      contig <- c(contig, .line[4])
+      firstline <- FALSE
+    } else {
+      next
+    }
+  }
+}
+close(con)
+pos_end <- pos_start + len_block
+
+bx <- data.frame(contig = contig, n_snp = n_snp, pos_start = pos_start, pos_end = pos_end)
+contigs <- group_by(bx, contig) %>% summarize(size = max(pos_end)) %>% arrange(desc(size))
+if(args[1] == "all"){
+  contigmax <- nrow(contigs)
+} else {
+  contigmax <- min(nrow(contigs), as.numeric(args[1]))
+}
+keepcontigs <- contigs$contig[1:contigmax]
+bx <- filter(bx, contig %in% keepcontigs, n_snp > 1)
+
+gr <- GRanges(
+  seqnames = bx$contig,
+  ranges = IRanges(start = bx$pos_start, end = bx$pos_end)
+)
+
+bx$offset <- disjointBins(gr)
+
+pdf(NULL)
+## Phased haplotypes
+ggplot(bx) +
+geom_segment(
+  linewidth = 2.5,
+  lineend = "round",
+  aes(x = pos_start, xend = pos_end, y = offset, yend = offset, color = n_snp)
+) +
+facet_wrap(~contig, ncol = 2, scales = "free") +
+theme_light() +
+theme(
+  axis.line.x = element_blank(),
+  axis.ticks.x = element_blank(),
+  axis.ticks.y = element_blank(),
+  axis.text.y = element_blank(),
+  panel.grid.major = element_blank(),
+  panel.grid.minor = element_blank(),
+  strip.background = element_rect(fill = "grey80"),
+  strip.text = element_text(color = "grey20"),
+  legend.position = "right"
+) +
+scale_colour_gradient(labels = comma,low = "dodgerblue", high = "indianred") +
+scale_x_continuous(labels = unit_format(unit = "M", scale = 1e-6))+
+xlab("Position (base pairs)") +
+ylab("") +
+labs(
+  title = paste(bname, "haplotypes"),
+  caption = "Haplotypes with 1 SNP are omitted",
+  color = "SNPs")
+suppressMessages(
+  ggsave(filename = paste0(outname, ".jpg"), device = "jpeg", height = 1 + (0.55 * length(keepcontigs)), limitsize = FALSE)
+)   
+  

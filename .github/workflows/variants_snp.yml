@@ -5,18 +5,16 @@ on:
     branches:
       - 'dev'
     paths:
-      - 'workflow/envs/r-env.yaml'
-      - 'workflow/envs/variants.snp.yaml'
-      - 'workflow/envs/harpy.yaml'
-      - 'workflow/rules/snp-mpileup.smk'
-      - 'workflow/rules/snp-freebayes.smk'
+      - 'resources/harpy.yaml'
+      - 'src/harpy/rules/snp-mpileup.smk'
+      - 'src/harpy/rules/snp-freebayes.smk'
       - '**snp.py'
       - '**helperfunctions.py'
       - '**printfunctions.py'
       - '**fileparsers.py'
       - '**validations.py'
-      - 'workflow/report/BcftoolsStats.Rmd'
-      - 'workflow/scripts/makewindows.py'
+      - 'src/harpy/reports/BcftoolsStats.Rmd'
+      - 'globalscripts/makewindows.py'
       - 'test/bam/**'
       - '**variants_snp.yml'
       - '**__main__.py'
@@ -25,18 +23,16 @@ on:
     branches:
       - 'dev'
     paths:
-      - 'workflow/envs/r-env.yaml'
-      - 'workflow/envs/variants.snp.yaml'
-      - 'workflow/envs/harpy.yaml'
-      - 'workflow/rules/snp-mpileup.smk'
-      - 'workflow/rules/snp-freebayes.smk'
+      - 'resources/harpy.yaml'
+      - 'src/harpy/rules/snp-mpileup.smk'
+      - 'src/harpy/rules/snp-freebayes.smk'
       - '**snp.py'
       - '**helperfunctions.py'
       - '**printfunctions.py'
       - '**fileparsers.py'
       - '**validations.py'
-      - 'workflow/report/BcftoolsStats.Rmd'
-      - 'workflow/scripts/makewindows.py'
+      - 'src/harpy/reports/BcftoolsStats.Rmd'
+      - 'globalscripts/makewindows.py'
       - 'test/bam/**'
       - '**variants_snp.yml'
       - '**__main__.py'
@@ -60,7 +56,7 @@ jobs:
         with:
           init-shell: bash
           generate-run-shell: true
-          environment-file: workflow/envs/harpy.yaml
+          environment-file: resources/harpy.yaml
           cache-environment: true
           post-cleanup: 'all'
           log-level: error
@@ -91,7 +87,7 @@ jobs:
         with:
           init-shell: bash
           generate-run-shell: true
-          environment-file: workflow/envs/harpy.yaml
+          environment-file: resources/harpy.yaml
           cache-environment: true
           post-cleanup: 'all'
           log-level: error

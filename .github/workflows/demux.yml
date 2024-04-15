@@ -5,9 +5,8 @@ on:
     branches:
       - 'dev'
     paths:
-      - 'workflow/envs/harpy.yaml'
-      - 'workflow/envs/qc.yaml'
-      - 'workflow/rules/demultiplex**.smk'
+      - 'resources/harpy.yaml'
+      - 'src/harpy/rules/demultiplex**.smk'
       - '**demultiplex.py'
       - '**helperfunctions.py'
       - '**printfunctions.py'
@@ -15,7 +14,7 @@ on:
       - '**validations.py'
       - '**demuxGen1'
       - '**demux.yml'
-      - 'BC_files.py'
+      - 'bcFiles.py'
       - 'test/data/demux/**'
       - '**__main__.py'
 
@@ -23,9 +22,8 @@ on:
     branches:
     - 'dev'
     paths:
-      - 'workflow/envs/harpy.yaml'
-      - 'workflow/envs/qc.yaml'
-      - 'workflow/rules/demultiplex**.smk'
+      - 'resources/harpy.yaml'
+      - 'src/harpy/rules/demultiplex**.smk'
       - '**helperfunctions.py'
       - '**printfunctions.py'
       - '**fileparsers.py'
@@ -33,7 +31,7 @@ on:
       - '**demultiplex.py'
       - '**demuxGen1'
       - '**demux.yml'
-      - 'BC_files.py'
+      - 'bcFiles.py'
       - 'test/data/demux/**'
       - '**__main__.py'
 
@@ -54,7 +52,7 @@ jobs:
         with:
           init-shell: bash
           generate-run-shell: true
-          environment-file: workflow/envs/harpy.yaml
+          environment-file: resources/harpy.yaml
           cache-environment: true
           post-cleanup: 'all'
       - name: Install harpy

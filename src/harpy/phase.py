@@ -1,4 +1,4 @@
-from .helperfunctions import fetch_file, generate_conda_deps
+from .helperfunctions import fetch_rule, fetch_report, generate_conda_deps
 from .fileparsers import parse_alignment_inputs
 from .printfunctions import print_onstart
 from .validations import vcfcheck, vcf_samplematch, validate_bamfiles, validate_input_by_ext
@@ -58,8 +58,8 @@ def phase(input, output_dir, vcf, threads, molecule_distance, prune_threshold, v
     validate_bamfiles(f"{workflowdir}/input", samplenames)
     if genome:
         validate_input_by_ext(genome, "--genome", [".fasta", ".fa", ".fasta.gz", ".fa.gz"])
-    fetch_file("phase-pop.smk", f"{workflowdir}/")
-    fetch_file("HapCut2.Rmd", f"{workflowdir}/report/")
+    fetch_rule(workflowdir, "phase-pop.smk")
+    fetch_report(workflowdir, "HapCut2.Rmd")
     prune_threshold /= 100
 
     with open(f"{workflowdir}/config.yml", "w") as config:
@@ -79,10 +79,8 @@ def phase(input, output_dir, vcf, threads, molecule_distance, prune_threshold, v
         config.write(f"skipreports: {skipreports}\n")
         config.write(f"workflow_call: {call_SM}\n")
 
-    generate_conda_deps()
     print_onstart(
         f"Input VCF: {vcf}\nSamples in VCF: {len(samplenames)}\nAlignments Provided: {len(sn)}\nOutput Directory: {output_dir}/",
         "phase"
     )
-    _module = subprocess.run(command)
-    sys.exit(_module.returncode)
+    return command

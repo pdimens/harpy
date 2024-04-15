@@ -4,9 +4,13 @@ import re
 import shutil
 import subprocess
 from pathlib import Path
+from importlib_resources import files
 from .printfunctions import print_error, print_solution, print_solution_with_culprits
 from collections import Counter
 import rich_click as click
+import harpy.scripts
+import harpy.reports
+import harpy.rules
 
 def symlink(original, destination):
     """Create a symbolic link from original -> destination if the destination doesn't already exist."""
@@ -84,7 +88,7 @@ def generate_conda_deps():
         "variants.snp": ["bcftools=1.19", "freebayes=1.3.6"],
         "variants.sv": ["leviathan", "naibr-plus"],
         "phase" : ["hapcut2", "whatshap"],
-        "simulations" : ["perl", "numpy"],
+        "simulations" : ["perl", "perl-math-random", "perl-inline-c", "perl-parse-recdescent", "numpy", "dwgsim", "alienzj::msort"],
         "r-env" : ["bioconductor-complexheatmap", "r-circlize", "r-dt", "r-flexdashboard", "r-ggplot2", "r-ggridges", "r-plotly", "r-tidyr", "r-stitch"]
     }
 
@@ -100,34 +104,29 @@ def generate_conda_deps():
                 yml.write("\ndependencies:\n  - ")
                 yml.write("\n  - ".join(environ[i]) + "\n")
 
-def fetch_file(file, destination, rename=None):
-    """Find the 'file' in the PATH and copy it to the 'destination' with the original metadata"""
-    result = None
-    try:
-        result = subprocess.check_output(["whereis", file])
-    except:
-        print_error(f"The GNU program \'whereis\', which is used to locate the file, was not found on the system and therefore unable to retrieve it. Terminating harpy.")
-        print_solution("Make sure \'whereis\' is installed on the system. It is usually provided by default in all Unix-like operating systems.")
+def fetch_script(workdir, target):
+    """
+    Retrieve the target harpy script and write it into workdir/scripts
+    """
+    os.makedirs(f"{workdir}/scripts/", exist_ok= True)
+    with open(f"{workdir}/scripts/{target}", "w") as f:
+        f.write(files(harpy.scripts).joinpath(target).read_text())
 
-    if result is None:
-        return []
+def fetch_rule(workdir, target):
+    """
+    Retrieve the target harpy rule and write it into the workdir
+    """
+    os.makedirs(f"{workdir}/", exist_ok= True)
+    with open(f"{workdir}/{target}", "w") as f:
+        f.write(files(harpy.rules).joinpath(target).read_text())
 
-    result = result.decode().splitlines()
-    for line in result:
-        if line.endswith(":"):
-            print_error(f"The file [green bold]{file}[/green bold] was not found in the [bold]PATH[/bold], cannot run Harpy module.")
-            print_solution(f"Make sure harpy was installed correctly and that you are in the conda environment where harpy was installed.")
-            click.echo("See documentation: https://pdimens.github.io/harpy/install/")
-            exit(1)
-        else:
-            result = line.split(" ")[-1]
-            break
-    
-    os.makedirs(destination, exist_ok = True)
-    if rename:
-        destination += rename
-    # copy2 to keep metadata during copy
-    shutil.copy2(result, destination)
+def fetch_report(workdir, target):
+    """
+    Retrieve the target harpy report and write it into workdir/report
+    """
+    os.makedirs(f"{workdir}/report/", exist_ok= True)
+    with open(f"{workdir}/report/{target}", "w") as f:
+        f.write(files(harpy.reports).joinpath(target).read_text())
 
 def biallelic_contigs(vcf):
     """Identify which contigs have at least 2 biallelic SNPs"""

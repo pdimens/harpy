@@ -1,8 +1,7 @@
 import rich_click as click
-from .helperfunctions import fetch_file, generate_conda_deps
+from .helperfunctions import fetch_rule, fetch_report, fetch_script, generate_conda_deps
 from .printfunctions import print_onstart
 from .fileparsers import parse_alignment_inputs, parse_fastq_inputs
-import subprocess
 import re
 import os
 import sys
@@ -47,22 +46,20 @@ def fastq(input, output_dir, threads, snakemake, quiet, print_only):
     
     os.makedirs(f"{workflowdir}/", exist_ok= True)
     sn = parse_fastq_inputs(input, f"{workflowdir}/input")
-    fetch_file("preflight-fastq.smk", f"{workflowdir}")
-    fetch_file("PreflightFastq.Rmd", f"{workflowdir}/report/")
-    fetch_file("checkFASTQ.py", f"{workflowdir}/scripts/")
+    fetch_rule(workflowdir, "preflight-fastq.smk")
+    fetch_script(workflowdir, "checkFASTQ.py")
+    fetch_report(workflowdir, "PreflightFastq.Rmd")
 
     with open(f"{workflowdir}/config.yml", "w") as config:
         config.write(f"seq_directory: {workflowdir}/input\n")
         config.write(f"output_directory: {output_dir}\n")
         config.write(f"workflow_call: {call_SM}\n")
 
-    generate_conda_deps()
     print_onstart(
         f"Files: {len(sn)}\nOutput Directory: {output_dir}/",
         "preflight fastq"
     )
-    _module = subprocess.run(command)
-    sys.exit(_module.returncode)
+    return command
 
 @click.command(no_args_is_help = True, epilog = "read the docs for more information: https://pdimens.github.io/harpy/modules/preflight/")
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(min = 1, max_open = True), metavar = "Integer", help = 'Number of threads to use')
@@ -102,19 +99,17 @@ def bam(input, output_dir, threads, snakemake, quiet, print_only):
 
     os.makedirs(f"{workflowdir}/", exist_ok= True)
     sn = parse_alignment_inputs(input, f"{workflowdir}/input")
-    fetch_file("preflight-bam.smk", f"{workflowdir}/")
-    fetch_file("PreflightBam.Rmd", f"{workflowdir}/report/")
-    fetch_file("checkBAM.py", f"{workflowdir}/scripts/")
+    fetch_rule(workflowdir, "preflight-bam.smk")
+    fetch_report(workflowdir, "PreflightBam.Rmd")
+    fetch_script(workflowdir, "checkBAM.py")
 
     with open(f"{workflowdir}/config.yml", "w") as config:
         config.write(f"seq_directory: {workflowdir}/input\n")
         config.write(f"output_directory: {output_dir}\n")
         config.write(f"workflow_call: {call_SM}\n")
 
-    generate_conda_deps()
     print_onstart(
         f"Samples: {len(sn)}\nOutput Directory: {output_dir}/",
         "preflight bam"
     )
-    _module = subprocess.run(command)
-    sys.exit(_module.returncode)
+    return command
