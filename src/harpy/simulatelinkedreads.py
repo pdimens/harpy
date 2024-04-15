@@ -32,7 +32,7 @@ def linkedreads(genome_hap1, genome_hap2, output_dir, outer_distance, distance_s
     workflowdir = f"{output_dir}/workflow"
     command = f'snakemake --rerun-incomplete --nolock  --software-deployment-method conda --conda-prefix ./.snakemake/conda --cores {threads} --directory .'.split()
     command.append('--snakefile')
-    command.append(f'{workflowdir}/simulate-reads.smk')
+    command.append(f'{workflowdir}/simulate-linkedreads.smk')
     command.append('--configfile')
     command.append(f'{workflowdir}/config.yml')
     if quiet:
@@ -49,7 +49,7 @@ def linkedreads(genome_hap1, genome_hap2, output_dir, outer_distance, distance_s
     validate_input_by_ext(genome_hap2, "GENOME_HAP2", [".fasta", ".fa", ".fasta.gz", ".fa.gz"])
 
     os.makedirs(f"{workflowdir}/", exist_ok= True)
-    fetch_rule(workflowdir, "simulate-reads.smk")
+    fetch_rule(workflowdir, "simulate-linkedreads.smk")
     fetch_script(workflowdir, "LRSIMharpy.pl")
     fetch_script(workflowdir, "faFilter.pl")
 
