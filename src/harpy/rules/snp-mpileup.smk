@@ -226,9 +226,7 @@ rule merge_vcfs:
     message:
         "Combining vcfs into a single file"
     shell:  
-        """
-        bcftools concat -f {input.filelist} --threads {threads} --naive -Ob -o {output} 2> {log}
-        """
+        "bcftools concat -f {input.filelist} --threads {threads} --naive -Ob -o {output} 2> {log}"
 
 rule sort_vcf:
     input:
