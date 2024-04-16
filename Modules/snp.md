@@ -61,7 +61,7 @@ In addition to the [common runtime options](../commonoptions.md), the `harpy snp
 |:-----------------|:----------:|:--------------------------------|:-------:|:--------:|:----------------------------------------------------|
 | `INPUTS`           |            | file/directory paths  |         | **yes**  | Files or directories containing [input BAM files](/commonoptions.md#input-arguments)   |
 | `--genome`       |    `-g`    | file path                       |         | **yes**  | Genome assembly for variant calling                 |
-| `--regions`      |    `-r`    | integer/file path/string        |  50000  |    no    | Regions to call variants on (see below)             |
+| `--regions`      |    `-r`    | integer/file path/string        |  50000  |    no    | Regions to call variants on ([see below](#regions))             |
 | `--populations`  |    `-p`    | file path                       |         |    no    | Tab-delimited file of sample\<*tab*\>group          |
 | `--ploidy`       |    `-x`    | integer                         |    2    |    no    | Ploidy of samples                                   |
 | `--extra-params` |    `-x`    | string                          |         |    no    | Additional mpileup/freebayes arguments, in quotes   |
@@ -72,11 +72,13 @@ The `--regions` (`-r`) option lets you specify the genomic regions you want to c
 variant calling in parallel over these invervals and they can be specified in three ways:
 
 === Option 1: Call variants over entire genome
-**input**: an integer to make fixed-size genomic interval
+!!!info
+**input**: an integer to make fixed-size genomic intervals
 
 **example**: `harpy snp -r 25000 -g genome.fasta data/mapped`
+!!!
 
-This is the default setting (`-r 50000`), where Harpy will create 50 kbp genomic intervals across
+This is the default method (`-r 50000`), where Harpy will create 50 kbp non-overlapping genomic intervals across
 the entire genome. Intervals towards the end of contigs that are shorter than the specified interval
 size are still used. These invervals look like:
 ```
@@ -86,9 +88,11 @@ chromosome_1    100001  121761    <- reached the end of the contig
 ```
 
 ==- Option 2: Call variants on exactly one genomic interval
+!!!info
 **input**: a single region in the format `contig:start-end`
 
 **example**: `harpy snp -r chrom1:2000-15000 -g genome.fasta data/mapped`
+!!!
 
 Following the `mpileup` and `freebayes` format, you can specify a single genomic interval of interest
 to call variants on. This interval must be in the format `contig:start-end` where:
@@ -97,9 +101,11 @@ to call variants on. This interval must be in the format `contig:start-end` wher
 - `end` is an integer specifying the end position of the interval for that `contig`
 
 ==- Option 3: Call variants on specific genomic intervals
+!!!info
 **input**: a tab (or space) delimited file of contigs and positions
 
 **example**: `harpy snp -r data/positions.txt -g genome.fasta data/mapped`
+!!!
 
 A BED-like file of `contig<whitespace>start<whitespace>end` can be provided to call variants
 on only specific genomic intervals. This file will look like:
@@ -161,8 +167,6 @@ Below, `contig1` and `contig2` are generic contig names from an imaginary `genom
 The resulting folder also includes a `workflow` directory (not shown) with workflow-relevant runtime files and information.
 ```
 SNP/method
-├── variants.normalized.bcf
-├── variants.normalized.bcf.csi
 ├── variants.raw.bcf
 ├── variants.raw.bcf.csi
 ├── logs
@@ -176,15 +180,12 @@ SNP/method
 └── reports
     ├── contig1.stats
     ├── contig2.stats
-    ├── variants.normalized.html
-    ├── variants.normalized.stats
     ├── variants.raw.html
     └── variants.raw.stats
 ```
 | item                      | description                                                                                    |
 |:--------------------------|:-----------------------------------------------------------------------------------------------|
 | `variants.raw.bcf`        | vcf file produced from variant calling, contains all samples and loci                          |
-| `variants.normalized.bcf` | left-aligned (parsimonious) variants with multiallelic sites decomposed and duplicates removed |
 | `variants.*.bcf.csi`      | index file for `variants.*.bcf`                                                                |
 | `logs/*.call.log`         | what `bcftools call` writes to `stderr`                                                        |
 | `logs/*.METHOD.log`       | what `bcftools mpileup` or `freebayes` writes to `stderr`                                      |

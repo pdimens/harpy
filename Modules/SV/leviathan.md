@@ -65,7 +65,7 @@ In addition to the [common runtime options](/commonoptions.md), the `harpy sv le
 | argument         | short name | type          | default | required | description                                        |
 |:-----------------|:----------:|:--------------|:-------:|:--------:|:---------------------------------------------------|
 | `INPUTS`         |            | file/directory paths  |         | **yes**  | Files or directories containing [input BAM files](/commonoptions.md#input-arguments)     |
-| `--genome`       |    `-g`    | file path     |         | **conditionally** | Genome assembly for phasing bam files     |
+| `--genome`       |    `-g`    | file path     |         |    yes | Genome assembly that was used to create alignments    |
 | `--populations`  |    `-p`    | file path     |         |    no             | Tab-delimited file of sample\<*tab*\>group         |
 | `--extra-params` |    `-x`    | string        |         |    no             | Additional naibr arguments, in quotes              |
 
