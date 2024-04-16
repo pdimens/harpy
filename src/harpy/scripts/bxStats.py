@@ -18,9 +18,10 @@ def writestats(x,chr):
         x[mi]["inferred"] = x[mi]["end"] - x[mi]["start"] 
         x[mi]["mindist"] = max(0, x[mi]["mindist"])
         try:
-            mi_aln = x[mi].get("alignments", 0)
+            #mi_aln = x[mi].get("alignments", 0)
             # converts start/end positions into ranges and merges ranges into a set, then gets the length of the unique set
-            x[mi]["covered"] = round((len(set(chain(*[range(i,j+1) for i,j in mi_aln]))) - 1) / x[mi]["inferred"], 2)
+            #x[mi]["covered"] = round((len(set(chain(*[range(i,j+1) for i,j in mi_aln]))) - 1) / x[mi]["inferred"], 2)
+            x[mi]["covered"] = x[mi]["insert_len"] / x[mi]["inferred"]
         except:
             x[mi]["covered"] = 0
         outtext = f"{chr}\t{mi}\t" + "\t".join([str(x[mi][i]) for i in ["n", "start","end", "inferred", "covered", "bp", "mindist"]])
@@ -66,6 +67,7 @@ for read in alnfile.fetch():
                 "start":  0,
                 "end": 0,
                 "bp":   bp,
+                "insert_len" : 0,
                 "n":    1,
                 "lastpos" : 0,
                 "mindist" : 0
@@ -77,9 +79,9 @@ for read in alnfile.fetch():
 
     # logic to accommodate split reads 
     # start position of first alignment
-    pos_start = aln[0][0]
+    pos_start = read.reference_start
     # end position of last alignment
-    pos_end   = aln[-1][1]
+    pos_end   = read.reference_end
 
     # create bx entry if it's not present
     if mi not in d.keys():
@@ -87,15 +89,17 @@ for read in alnfile.fetch():
             "start":  pos_start,
             "end": pos_end,
             "bp":   bp,
+            "insert_len" : abs(read.template_length),
             "n":    1,
             "lastpos" : pos_end,
-            "alignments" : aln,
+            #"alignments" : aln,
             "mindist" : -1
         }
         continue
 
-    # update the basic alignment info of the barcode
-    d[mi]["alignments"] += aln
+    # update the basic alignment info of the molecule
+    #d[mi]["alignments"] += aln
+    d[mi]["insert_len"] += abs(read.template_length)
     d[mi]["bp"] += bp
     d[mi]["n"]  += 1
     # only if low < currentlow or high > currenthigh
