@@ -106,17 +106,15 @@ chromlast = False
 # MI is the name of the current molecule, starting a 1 (0+1)
 MI = 0
 
-if os.path.exists(bam_input) and bam_input.lower().endswith(".sam"):
-    alnfile = pysam.AlignmentFile(bam_input)
-elif os.path.exists(bam_input) and bam_input.lower().endswith(".bam"):
-    if os.path.exists(bam_input + ".bai"):
-        alnfile = pysam.AlignmentFile(bam_input)
-    else:
-        print(f"Error: {bam_input} requires a matching {bam_input}.bai index file, but one wasn\'t found.", file = sys.stderr)
-        exit(1)
-else:
+if not os.path.exists(bam_input):
     print(f"Error: {bam_input} not found", file = sys.stderr)
     exit(1)
+
+if bam_input.lower().endswith(".bam"):
+    if not os.path.exists(bam_input + ".bai"):
+        print(f"Error: {bam_input} requires a matching {bam_input}.bai index file, but one wasn\'t found.", file = sys.stderr)
+        exit(1)
+alnfile = pysam.AlignmentFile(bam_input)
 
 # iniitalize output file
 #alnfile = pysam.AlignmentFile("/home/pdimens/Documents/harpy/test/bam/sample1.bam")
