@@ -131,8 +131,6 @@ def fetch_rule(workdir, target):
             print_solution("There may be an issue with your Harpy installation, which would require reinstalling Harpy. Alternatively, there may be in a issue with your conda/mamba environment or configuration.")
             exit(1)
 
-        f.write(files(harpy.rules).joinpath(target).read_text())
-
 def fetch_report(workdir, target):
     """
     Retrieve the target harpy report and write it into workdir/report
