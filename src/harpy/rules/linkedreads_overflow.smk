@@ -1,3 +1,54 @@
+rule genome_faidx:
+    input:
+        outdir + "/workflow/input/hap.{hap}.fasta"
+    output: 
+        outdir + "/workflow/input/hap.{hap}.fasta.fai"
+    message:
+        "Indexing haplotype {wildcards.hap}"
+    shell:
+        "samtools faidx --fai-idx {output} {input}"
+
+if not barcodes:
+    rule download_barcodes:
+        output:
+            barcodefile
+        message:
+            "Downloading list of standard 10X barcodes"
+        run:
+            from urllib.request import urlretrieve
+            _ = urlretrieve("https://raw.githubusercontent.com/aquaskyline/LRSIM/master/4M-with-alts-february-2016.txt", output[0])
+
+rule create_molecules_hap:
+    input:
+        outdir + "/workflow/input/hap.{hap}.fasta"
+    output:
+        temp(multiext(outdir + "/dwgsim.{hap}.12", ".bwa.read1.fastq.gz" ,".bwa.read2.fastq.gz", ".mutations.txt", ".mutations.vcf"))
+    log:
+        outdir + "/logs/dwgsim.hap.{hap}.log"
+    params:
+        readpairs = config["read_pairs"] * 500000,
+        outerdist = config["outer_distance"],
+        distsd = config["distance_sd"],
+        prefix = lambda wc: outdir + "/dwgsim." + wc.get("hap") + ".12"
+    conda:
+        os.getcwd() + "/.harpy_envs/simulations.yaml"
+    message:
+        "Creating reads from {input}"
+    shell:
+        """
+        dwgsim -N {params.readpairs} -e 0.0001,0.0016 -E 0.0001,0.0016 -d {params.outerdist} -s {params.distsd} -1 135 -2 151 -H -y 0 -S 0 -c 0 -R 0 -r 0 -F 0 -o 1 -m /dev/null {input} {params.prefix} 2> {log}
+        """
+
+rule interleave_dwgsim_output:
+    default_target: True
+    input:
+        collect(outdir + "/dwgsim.{{hap}}.12.bwa.read{rd}.fastq.gz", rd = [1,2]) 
+    output:
+        outdir + "/dwgsim.{hap}.12.fastq"
+    message:
+        "Decompressing DWGSIM haplotype {wildcards.hap} output"
+    shell:
+        "seqtk mergepe {input} > {output}"
 
 rule lrsim:
     default_target: True

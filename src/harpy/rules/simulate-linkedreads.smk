@@ -93,7 +93,7 @@ rule create_molecules_hap:
     log:
         outdir + "/logs/dwgsim.hap.{hap}.log"
     params:
-        readpairs = config["read_pairs"] * 500000,
+        readpairs = int(config["read_pairs"] * 500000),
         outerdist = config["outer_distance"],
         distsd = config["distance_sd"],
         prefix = lambda wc: outdir + "/dwgsim." + wc.get("hap") + ".12"
@@ -107,7 +107,6 @@ rule create_molecules_hap:
         """
 
 rule interleave_dwgsim_output:
-    default_target: True
     input:
         collect(outdir + "/dwgsim.{{hap}}.12.bwa.read{rd}.fastq.gz", rd = [1,2]) 
     output:
@@ -116,3 +115,53 @@ rule interleave_dwgsim_output:
         "Decompressing DWGSIM haplotype {wildcards.hap} output"
     shell:
         "seqtk mergepe {input} > {output}"
+
+rule lrsim:
+    default_target: True
+    input:
+        hap1 = f"{outdir}/dwgsim.0.12.fastq",
+        hap2 = f"{outdir}/dwgsim.1.12.fastq",
+        fai1 = outdir + "/workflow/input/hap.0.fasta.fai",
+        fai2 = outdir + "/workflow/input/hap.1.fasta.fai",
+        barcodes = barcodefile
+    output:
+        collect(outdir + "/sim.{hap}.{ext}", hap = [0,1], ext = ["fp", "manifest"])
+    log:
+        f"{outdir}/logs/LRSIM.log"
+    params:
+        lrsim = f"{outdir}/workflow/scripts/LRSIMharpy.pl",
+        proj_dir = f"{outdir}",
+        outdist  = config["outer_distance"],
+        dist_sd  = config["distance_sd"],
+        n_pairs  = config["read_pairs"],
+        mol_len  = config["molecule_length"],
+        parts    = config["partitions"],
+        mols_per = config["molecules_per_partition"],
+        static = "-o 1 -d 2 -u 4"
+    threads:
+        workflow.cores
+    conda:
+        os.getcwd() + "/.harpy_envs/simulations.yaml"
+    message:
+        "Running LRSIM to generate linked reads from\nhaplotype 1: {input.hap1}\nhaplotype 2: {input.hap2}" 
+    shell: 
+        """
+        perl {params.lrsim} -g {input.hap1},{input.hap2} -p {params.proj_dir}/sim \\
+            -b {input.barcodes} -r {params.proj_dir} -i {params.outdist} \\
+            -s {params.dist_sd} -x {params.n_pairs} -f {params.mol_len} \\
+            -t {params.parts} -m {params.mols_per} -z {threads} {params.static} 2> {log}
+        rm -f {params.proj_dir}/.sim.status
+        """
+
+
+
+
+
+
+
+
+
+#rule all:
+#    default_target: True
+#    input:
+#        collect(outdir + "/dwgsim.{hap}.12.fastq", hap = [0,1])

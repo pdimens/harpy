@@ -62,7 +62,7 @@ sub main {
     #Check options end
 
     #Global variables
-    &Log("$opts{p}.status");    #Initialize Log routine
+    &Log(".$opts{p}.status");    #Initialize Log routine
     our %barcodeErrorRateFromMismatchObv1 = (
         0 => {
             "A" => 0.00243200183210607,
@@ -906,7 +906,7 @@ sub Log {
 
 sub LogAndDie {
     &Log(@_);
-    die $!;
+    die;
 }
 
 # Log routine end
