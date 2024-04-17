@@ -40,7 +40,7 @@ from the sample names. A simple fix would be to use underscores (`_`) to differe
 After reads have been aligned, _e.g._, with `harpy align`, you can use those alignment files
 (`.bam`) to call variants in your data. Harpy can call SNPs and small indels using 
 [bcftools mpileup](#snp-calling-workflow) or with [freebayes](#snp-calling-workflow). 
-You can call SNPs with the ` harpy snp` module:
+You can call SNPs with the `snp` module:
 
 ```bash usage
 harpy snp method OPTIONS... INPUTS...
