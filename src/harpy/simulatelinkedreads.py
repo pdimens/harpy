@@ -55,7 +55,6 @@ def linkedreads(genome_hap1, genome_hap2, output_dir, outer_distance, distance_s
     os.makedirs(f"{workflowdir}/", exist_ok= True)
     fetch_rule(workflowdir, "simulate-linkedreads.smk")
     fetch_script(workflowdir, "LRSIMharpy.pl")
-    fetch_script(workflowdir, "faFilter.pl")
 
     with open(f"{workflowdir}/config.yml", "w") as config:
         config.write(f"genome_hap1: {genome_hap1}\n")
