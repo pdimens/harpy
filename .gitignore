@@ -7,7 +7,6 @@ src/
 .harpy_envs/
 build/
 Demultiplex/
-Simulate/
 QC/
 Align/
 SNP/
