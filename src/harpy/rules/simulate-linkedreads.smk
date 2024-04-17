@@ -89,14 +89,14 @@ rule create_molecules_hap:
     input:
         outdir + "/workflow/input/hap.{hap}.fasta"
     output:
-        temp(multiext(outdir + "/dwgsim.{hap}.12", ".bwa.read1.fastq.gz" ,".bwa.read2.fastq.gz", ".mutations.txt", ".mutations.vcf"))
+        temp(multiext(outdir + "/dwgsim_simulated/dwgsim.{hap}.12", ".bwa.read1.fastq.gz" ,".bwa.read2.fastq.gz", ".mutations.txt", ".mutations.vcf"))
     log:
         outdir + "/logs/dwgsim.hap.{hap}.log"
     params:
         readpairs = int(config["read_pairs"] * 500000),
         outerdist = config["outer_distance"],
         distsd = config["distance_sd"],
-        prefix = lambda wc: outdir + "/dwgsim." + wc.get("hap") + ".12"
+        prefix = lambda wc: outdir + "/dwgsim_simulated/dwgsim." + wc.get("hap") + ".12"
     conda:
         os.getcwd() + "/.harpy_envs/simulations.yaml"
     message:
@@ -108,23 +108,24 @@ rule create_molecules_hap:
 
 rule interleave_dwgsim_output:
     input:
-        collect(outdir + "/dwgsim.{{hap}}.12.bwa.read{rd}.fastq.gz", rd = [1,2]) 
+        collect(outdir + "/dwgsim_simulated/dwgsim.{{hap}}.12.bwa.read{rd}.fastq.gz", rd = [1,2]) 
     output:
-        outdir + "/dwgsim.{hap}.12.fastq"
+        outdir + "/dwgsim_simulated/dwgsim.{hap}.12.fastq"
     message:
-        "Decompressing DWGSIM haplotype {wildcards.hap} output"
+        "Interleaving dwgsim output: {wildcards.hap}"
     shell:
         "seqtk mergepe {input} > {output}"
 
 rule lrsim:
     input:
-        hap1 = f"{outdir}/dwgsim.0.12.fastq",
-        hap2 = f"{outdir}/dwgsim.1.12.fastq",
+        hap1 = f"{outdir}/dwgsim_simulated/dwgsim.0.12.fastq",
+        hap2 = f"{outdir}/dwgsim_simulated/dwgsim.1.12.fastq",
         fai1 = outdir + "/workflow/input/hap.0.fasta.fai",
         fai2 = outdir + "/workflow/input/hap.1.fasta.fai",
         barcodes = barcodefile
     output:
-        collect(outdir + "/sim.{hap}.{ext}", hap = [0,1], ext = ["fp", "manifest"])
+        collect(outdir + "/lrsim/sim.{hap}.{ext}", hap = [0,1], ext = ["fp", "manifest"]),
+        temp(f"{outdir}/lrsim/.status")
     log:
         f"{outdir}/logs/LRSIM.log"
     params:
@@ -142,21 +143,20 @@ rule lrsim:
     conda:
         os.getcwd() + "/.harpy_envs/simulations.yaml"
     message:
-        "Running LRSIM to generate linked reads from\nhaplotype 1: {input.hap1}\nhaplotype 2: {input.hap2}" 
+        "Running LRSIM to generate linked reads from\n    haplotype 1: {input.hap1}\n    haplotype 2: {input.hap2}" 
     shell: 
         """
-        perl {params.lrsim} -g {input.hap1},{input.hap2} -p {params.proj_dir}/sim \\
+        perl {params.lrsim} -g {input.hap1},{input.hap2} -p {params.proj_dir}/lrsim/sim \\
             -b {input.barcodes} -r {params.proj_dir} -i {params.outdist} \\
             -s {params.dist_sd} -x {params.n_pairs} -f {params.mol_len} \\
             -t {params.parts} -m {params.mols_per} -z {threads} {params.static} 2> {log}
-        rm -f {params.proj_dir}/.sim.status
         """
 
 rule sort_manifest:
     input:
-        outdir + "/sim.{hap}.manifest"
+        outdir + "/lrsim/sim.{hap}.manifest"
     output:
-        outdir + "/sim.{hap}.sort.manifest"
+        outdir + "/lrsim/sim.{hap}.sort.manifest"
     conda:
         os.getcwd() + "/.harpy_envs/simulations.yaml"
     message:
@@ -166,15 +166,15 @@ rule sort_manifest:
 
 rule extract_reads:
     input:
-        manifest = outdir + "/sim.{hap}.sort.manifest",
-        dwg_hap = outdir + "/dwgsim.{hap}.12.fastq"
+        manifest = outdir + "/lrsim/sim.{hap}.sort.manifest",
+        dwg_hap = outdir + "/dwgsim_simulated/dwgsim.{hap}.12.fastq"
     output:
-        outdir + "/sim_hap{hap}_10x_R1_001.fastq.gz",
-        outdir + "/sim_hap{hap}_10x_R2_001.fastq.gz"
+        outdir + "/10X/sim_hap{hap}_10x_R1_001.fastq.gz",
+        outdir + "/10X/sim_hap{hap}_10x_R2_001.fastq.gz"
     log:
         outdir + "/logs/extract_linkedreads.hap{hap}.log"
     params:
-        lambda wc: f"""{outdir}/sim_hap{wc.get("hap")}_10x"""
+        lambda wc: f"""{outdir}/10X/sim_hap{wc.get("hap")}_10x"""
     message:
         "Extracting linked reads for haplotype {wildcards.hap}"
     shell:
@@ -182,8 +182,8 @@ rule extract_reads:
 
 rule convert_haplotag:
     input:
-        fw = outdir + "/sim_hap{hap}_10x_R1_001.fastq.gz",
-        rv = outdir + "/sim_hap{hap}_10x_R2_001.fastq.gz",
+        fw = outdir + "/10X/sim_hap{hap}_10x_R1_001.fastq.gz",
+        rv = outdir + "/10X/sim_hap{hap}_10x_R2_001.fastq.gz",
         barcodes = barcodefile
     output:
         fw = outdir + "/sim_hap{hap}_haplotag.R1.fq.gz",
@@ -227,15 +227,3 @@ rule log_workflow:
             _ = f.write("    " + f"10xtoHaplotag.py")
             _ = f.write("\nThe Snakemake workflow was called via command line:\n")
             _ = f.write("    " + str(config["workflow_call"]) + "\n")
-
-
-
-
-
-
-
-
-#rule all:
-#    default_target: True
-#    input:
-#        collect(outdir + "/dwgsim.{hap}.12.fastq", hap = [0,1])

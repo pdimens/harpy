@@ -66,8 +66,8 @@ with open(args.barcodes, "r") as bc_file:
 fw_reads = args.forward
 rv_reads = args.reverse
 
-fw_out = gzip.open(f"{args.prefix}.R1.fq.gz", "wb", 6, "uft-8")
-rv_out = gzip.open(f"{args.prefix}.R2.fq.gz", "wb", 6, "uft-8")
+fw_out = gzip.open(f"{args.prefix}.R1.fq.gz", "wb", 6)
+rv_out = gzip.open(f"{args.prefix}.R2.fq.gz", "wb", 6)
 
 with gzip.open(fw_reads, "r") as fw_i, gzip.open(rv_reads, "r") as rv_i:
     # store the fq records here

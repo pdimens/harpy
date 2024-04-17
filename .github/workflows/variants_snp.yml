@@ -99,7 +99,7 @@ jobs:
           resources/buildforCI.sh
       - name: snp freebayes
         shell: micromamba-shell {0}
-        run: harpy snp freebayes -r test/positions.bed -g test/genome/genome.fasta.gz -x "-g 200" test/bam
+        run: harpy snp freebayes -r test/positions.bed -g test/genome/genome.fasta.gz -s "--show-failed-logs" -x "-g 200" test/bam
       - name: snp freebayes-pop
         shell: micromamba-shell {0}
-        run: harpy snp freebayes -r test/positions.bed -g test/genome/genome.fasta.gz -p test/samples.groups test/bam
+        run: harpy snp freebayes -r test/positions.bed -g test/genome/genome.fasta.gz -s "--show-failed-logs" -p test/samples.groups test/bam

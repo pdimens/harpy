@@ -69,7 +69,7 @@ def bwa(input, output_dir, genome, threads, extra_params, quality_filter, molecu
         if extra_params is not None:
             config.write(f"extra: {extra_params}\n")
         config.write(f"workflow_call: {call_SM}\n")
-   
+
     print_onstart(
         f"Samples: {len(samplenames)}\nOutput Directory: {output_dir}",
         "align bwa"
@@ -227,7 +227,7 @@ def minimap(input, output_dir, genome, threads, extra_params, quality_filter, mo
         if extra_params is not None:
             config.write(f"extra: {extra_params}\n")
         config.write(f"workflow_call: {call_SM}\n")
-   
+
     print_onstart(
         f"Samples: {len(samplenames)}\nOutput Directory: {output_dir}",
         "align minimap"
