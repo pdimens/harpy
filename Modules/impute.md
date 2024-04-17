@@ -40,7 +40,7 @@ harpy impute --threads 20 --vcf Variants/mpileup/variants.raw.bcf --parameters s
 ```
 
 ## :icon-terminal: Running Options
-In addition to the [common runtime options](/commonoptions.md), the `harpy impute` module is configured using these command-line arguments:
+In addition to the [common runtime options](/commonoptions.md), the `impute` module is configured using these command-line arguments:
 
 | argument       | short name | type        |    default    | required | description                                                                                     |
 |:---------------|:----------:|:------------|:-------------:|:--------:|:------------------------------------------------------------------------------------------------|
