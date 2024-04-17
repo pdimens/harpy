@@ -1,4 +1,4 @@
-from .helperfunctions import fetch_rule, fetch_report, fetch_script, generate_conda_deps, createregions
+from .helperfunctions import fetch_rule, fetch_report, fetch_script, generate_conda_deps
 from .fileparsers import getnames, parse_alignment_inputs
 from .printfunctions import print_onstart, print_error
 from .validations import validate_bamfiles, validate_popfile, validate_vcfsamples, validate_input_by_ext, validate_regions
@@ -40,7 +40,7 @@ def mpileup(input, output_dir, regions, genome, threads, populations, ploidy, ex
     """   
     output_dir = output_dir.rstrip("/")
     workflowdir = f"{output_dir}/workflow"
-    command = (f'snakemake --rerun-incomplete --nolock --software-deployment-method conda --conda-prefix ./.snakemake/conda --cores {threads} --directory .').split()
+    command = (f'snakemake --rerun-incomplete --rerun-triggers input mtime params --nolock --software-deployment-method conda --conda-prefix ./.snakemake/conda --cores {threads} --directory .').split()
     command.append('--snakefile')
     command.append(f'{workflowdir}/snp-mpileup.smk')
     command.append('--configfile')
@@ -137,7 +137,7 @@ def freebayes(input, output_dir, genome, threads, populations, ploidy, regions, 
     """
     output_dir = output_dir.rstrip("/")
     workflowdir = f"{output_dir}/workflow"
-    command = (f'snakemake --rerun-incomplete --nolock --software-deployment-method conda --conda-prefix ./.snakemake/conda --cores {threads} --directory .').split()
+    command = (f'snakemake --rerun-incomplete --rerun-triggers input mtime params --nolock --software-deployment-method conda --conda-prefix ./.snakemake/conda --cores {threads} --directory .').split()
     command.append('--snakefile')
     command.append(f'{workflowdir}/snp-freebayes.smk')
     command.append('--configfile')
