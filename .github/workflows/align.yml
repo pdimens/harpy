@@ -1,4 +1,4 @@
-name: Test Align
+name: Test Harpy Modules
 
 on:
   push:
@@ -36,6 +36,34 @@ jobs:
         id: filter
         with:
           filters: |
+            preflight:
+              - 'resources/harpy.yaml'
+              - 'src/harpy/rules/preflight-fastq.smk'
+              - 'src/harpy/rules/preflight-bam.smk'
+              - '**preflight.py'
+              - '**helperfunctions.py'
+              - '**printfunctions.py'
+              - '**fileparsers.py'
+              - '**validations.py'
+              - 'test/fastq/**'
+              - 'test/bam/**'
+              - 'src/harpy/scripts/checkBAM.py'
+              - 'src/harpy/scripts/checkFASTQ.py'
+              - 'src/harpy/reports/PreflightFastq.Rmd'
+              - 'src/harpy/reports/PreflightBam.Rmd'
+              - '**preflight.yml'
+              - '**__main__.py'
+            qc:
+              - 'resources/harpy.yaml'
+              - 'src/harpy/rules/qc.smk'
+              - '**qc.py'
+              - '**helperfunctions.py'
+              - '**printfunctions.py'
+              - '**fileparsers.py'
+              - '**validations.py'
+              - 'test/fastq/**'
+              - '**qc.yml'
+              - '**__main__.py'
             bwa:
               - 'resources/harpy.yaml'
               - 'src/harpy/rules/align-bwa.smk'
@@ -88,6 +116,119 @@ jobs:
               - 'test/fastq/**'
               - '**align.yml'
               - '**__main__.py'
+            mpileup:
+              - 'resources/harpy.yaml'
+              - 'src/harpy/rules/snp-mpileup.smk'
+              - '**snp.py'
+              - '**helperfunctions.py'
+              - '**printfunctions.py'
+              - '**fileparsers.py'
+              - '**validations.py'
+              - 'src/harpy/reports/BcftoolsStats.Rmd'
+              - 'globalscripts/makewindows.py'
+              - 'test/bam/**'
+              - '**variants_snp.yml'
+              - '**__main__.py'
+            freebayes:
+              - 'resources/harpy.yaml'
+              - 'src/harpy/rules/snp-mpileup.smk'
+              - 'src/harpy/rules/snp-freebayes.smk'
+              - '**snp.py'
+              - '**helperfunctions.py'
+              - '**printfunctions.py'
+              - '**fileparsers.py'
+              - '**validations.py'
+              - 'src/harpy/reports/BcftoolsStats.Rmd'
+              - 'globalscripts/makewindows.py'
+              - 'test/bam/**'
+              - '**variants_snp.yml'
+              - '**__main__.py'
+            impute:
+              - '**impute.smk'
+              - 'resources/harpy.yaml'
+              - '**impute.py'
+              - '**helperfunctions.py'
+              - '**printfunctions.py'
+              - '**fileparsers.py'
+              - '**validations.py'
+              - 'test/bam/**'
+              - 'test/vcf/test.bcf'
+              - '**impute.yml'
+              - 'src/harpy/reports/Impute.Rmd'
+              - 'src/harpy/reports/StitchCollate.Rmd'
+              - 'src/harpy/scripts/stitch_impute.R'
+              - '**__main__.py'
+            leviathan:
+              - 'resources/harpy.yaml'
+              - 'src/harpy/rules/sv-leviathan**.smk'
+              - '**sv.py'
+              - '**helperfunctions.py'
+              - '**printfunctions.py'
+              - '**fileparsers.py'
+              - '**validations.py'
+              - 'globalscripts/makewindows.py'
+              - 'test/bam/**'
+              - 'test/bam_phased/**'
+              - 'test/vcf/test.phased.bcf'
+              - '**variants_sv.yml'
+              - 'src/harpy/reports/Leviathan**.Rmd'
+              - '**__main__.py'
+            naibr:
+              - 'resources/harpy.yaml'
+              - 'src/harpy/rules/sv-naibr**.smk'
+              - '**sv.py'
+              - '**helperfunctions.py'
+              - '**printfunctions.py'
+              - '**fileparsers.py'
+              - '**validations.py'
+              - 'globalscripts/makewindows.py'
+              - 'test/bam/**'
+              - 'test/bam_phased/**'
+              - 'test/vcf/test.phased.bcf'
+              - '**variants_sv.yml'
+              - 'src/harpy/reports/Naibr**.Rmd'
+              - 'globalscripts/inferSV.py'
+              - '**__main__.py'
+            phase:
+              - 'resources/harpy.yaml'
+              - 'src/harpy/rules/phase-pop.smk'
+              - '**phase.py'
+              - '**helperfunctions.py'
+              - '**printfunctions.py'
+              - '**fileparsers.py'
+              - '**validations.py'
+              - 'test/bam/**'
+              - 'test/vcf/test.bcf'
+              - '**phase.yml'
+              - 'src/harpy/reports/HapCut2.Rmd'
+              - 'globalscripts/parsePhaseBlocks.py'
+              - '**__main__.py'
+
+  test_dmux_gen1:
+    name: test demux gen1
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+      - name: setup mamba
+        uses: mamba-org/setup-micromamba@v1
+        with:
+          init-shell: bash
+          generate-run-shell: true
+          environment-file: resources/harpy.yaml
+          cache-environment: true
+          post-cleanup: 'all'
+      - name: Install harpy
+        run: |
+          python3 -m pip install --upgrade build && python3 -m build
+          pip install dist/*.whl
+          resources/buildforCI.sh
+        shell: micromamba-shell {0}
+      - name: harpy demultiplex
+        run: harpy demultiplex gen1 --samplesheet test/demux/samples.schema test/demux/Undetermined_S0_L004_I1_001.fastq.gz
+        shell: micromamba-shell {0}
 
   test_bwa:
     needs: changes
