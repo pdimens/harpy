@@ -115,7 +115,10 @@ jobs:
       - name: naibr with phasing
         if: always()
         shell: micromamba-shell {0}
-        run: harpy sv naibr -g test/genome/genome.fasta.gz -o SV/phase -v test/vcf/test.phased.bcf -s "--show-failed-logs" test/bam    
+        run: |
+          python --version
+          whatshap --version
+          harpy sv naibr -g test/genome/genome.fasta.gz -o SV/phase -v test/vcf/test.phased.bcf -s "--show-failed-logs" test/bam    
       - name: naibr pop with phasing
         if: always()
         shell: micromamba-shell {0}
