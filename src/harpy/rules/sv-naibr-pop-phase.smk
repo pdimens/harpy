@@ -142,6 +142,16 @@ rule index_vcfgz:
     shell:
         "tabix {input}"
 
+rule index_alignments:
+    input:
+        bam_dir + "/{sample}.bam"
+    output:
+        bam_dir + "/{sample}.bam.bai"
+    message:
+        "Indexing {input}"
+    shell:
+        "samtools index {input}"
+
 rule phase_alignments:
     input:
         vcfindex,
