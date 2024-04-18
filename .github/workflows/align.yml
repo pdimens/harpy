@@ -22,8 +22,7 @@ jobs:
     name: Test BWA
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
       - name: Check for align file changes
         uses: dorny/paths-filter@latest
         id: filter
@@ -74,8 +73,7 @@ jobs:
     name: Test EMA
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
       - name: Check for align file changes
         uses: dorny/paths-filter@latest
         id: filter
@@ -127,8 +125,7 @@ jobs:
     name: Test minimap
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
       - name: Check for align file changes
         uses: dorny/paths-filter@latest
         id: filter
