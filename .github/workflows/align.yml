@@ -48,29 +48,29 @@ jobs:
               - 'test/fastq/**'
               - '**align.yml'
               - '**__main__.py'
-        - name: setup mamba
-          if: ${{ steps.filter.outputs.bwa == 'true' }}
-          uses: mamba-org/setup-micromamba@v1
-          env:
-            ACTIONS_STEP_DEBUG: true
-          with:
-            init-shell: bash
-            generate-run-shell: true
-            environment-file: resources/harpy.yaml
-            cache-environment: true
-            post-cleanup: 'all'
-            log-level: error
-        - name: Install harpy
-          if: ${{ steps.filter.outputs.bwa == 'true' }}
-          run: |
-            python3 -m pip install --upgrade build && python3 -m build
-            pip install dist/*.whl
-            resources/buildforCI.sh
-          shell: micromamba-shell {0}
-        - name: test bwa
-          if: ${{ steps.filter.outputs.bwa == 'true' }}
-          shell: micromamba-shell {0}
-          run: harpy align bwa -g test/genome/genome.fasta.gz -s "--show-failed-logs" -x "-A 2" test/fastq
+      - name: setup mamba
+        if: ${{ steps.filter.outputs.bwa == 'true' }}
+        uses: mamba-org/setup-micromamba@v1
+        env:
+          ACTIONS_STEP_DEBUG: true
+        with:
+          init-shell: bash
+          generate-run-shell: true
+          environment-file: resources/harpy.yaml
+          cache-environment: true
+          post-cleanup: 'all'
+          log-level: error
+      - name: Install harpy
+        if: ${{ steps.filter.outputs.bwa == 'true' }}
+        run: |
+          python3 -m pip install --upgrade build && python3 -m build
+          pip install dist/*.whl
+          resources/buildforCI.sh
+        shell: micromamba-shell {0}
+      - name: test bwa
+        if: ${{ steps.filter.outputs.bwa == 'true' }}
+        shell: micromamba-shell {0}
+        run: harpy align bwa -g test/genome/genome.fasta.gz -s "--show-failed-logs" -x "-A 2" test/fastq
   
   test_ema:
     name: test EMA
