@@ -19,7 +19,7 @@ env:
 
 jobs:
   test_bwa:
-    name: detect what files changed
+    name: Test BWA
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -46,31 +46,32 @@ jobs:
               - 'test/fastq/**'
               - '**align.yml'
               - '**__main__.py'
-      - name: test bwa
-        if: ${{ steps.filter.outputs.bwa == 'true' }}
-        steps:
-          - name: setup mamba
-            uses: mamba-org/setup-micromamba@v1
-            env:
-              ACTIONS_STEP_DEBUG: true
-            with:
-              init-shell: bash
-              generate-run-shell: true
-              environment-file: resources/harpy.yaml
-              cache-environment: true
-              post-cleanup: 'all'
-              log-level: error
-          - name: Install harpy
-            run: |
-              python3 -m pip install --upgrade build && python3 -m build
-              pip install dist/*.whl
-              resources/buildforCI.sh
-            shell: micromamba-shell {0}
-          - name: test bwa
-            shell: micromamba-shell {0}
-            run: harpy align bwa -g test/genome/genome.fasta.gz -s "--show-failed-logs" -x "-A 2" test/fastq
+        - name: setup mamba
+          if: ${{ steps.filter.outputs.bwa == 'true' }}
+          uses: mamba-org/setup-micromamba@v1
+          env:
+            ACTIONS_STEP_DEBUG: true
+          with:
+            init-shell: bash
+            generate-run-shell: true
+            environment-file: resources/harpy.yaml
+            cache-environment: true
+            post-cleanup: 'all'
+            log-level: error
+        - name: Install harpy
+          if: ${{ steps.filter.outputs.bwa == 'true' }}
+          run: |
+            python3 -m pip install --upgrade build && python3 -m build
+            pip install dist/*.whl
+            resources/buildforCI.sh
+          shell: micromamba-shell {0}
+        - name: test bwa
+          if: ${{ steps.filter.outputs.bwa == 'true' }}
+          shell: micromamba-shell {0}
+          run: harpy align bwa -g test/genome/genome.fasta.gz -s "--show-failed-logs" -x "-A 2" test/fastq
+  
   test_ema:
-    name: detect what files changed
+    name: Test EMA
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -98,31 +99,32 @@ jobs:
               - 'test/fastq/**'
               - '**align.yml'
               - '**__main__.py'
-      - name: test bwa
+      - name: setup mamba
         if: ${{ steps.filter.outputs.ema == 'true' }}
-        steps:
-          - name: setup mamba
-            uses: mamba-org/setup-micromamba@v1
-            env:
-              ACTIONS_STEP_DEBUG: true
-            with:
-              init-shell: bash
-              generate-run-shell: true
-              environment-file: resources/harpy.yaml
-              cache-environment: true
-              post-cleanup: 'all'
-              log-level: error
-          - name: Install harpy
-            run: |
-              python3 -m pip install --upgrade build && python3 -m build
-              pip install dist/*.whl
-              resources/buildforCI.sh
-            shell: micromamba-shell {0}
-          - name: test ema
-            shell: micromamba-shell {0}
-            run: harpy align ema --ema-bins 20 -g test/genome/genome.fasta.gz -s "--show-failed-logs" -x "-d" test/fastq
+        uses: mamba-org/setup-micromamba@v1
+        env:
+          ACTIONS_STEP_DEBUG: true
+        with:
+          init-shell: bash
+          generate-run-shell: true
+          environment-file: resources/harpy.yaml
+          cache-environment: true
+          post-cleanup: 'all'
+          log-level: error
+      - name: Install harpy
+        if: ${{ steps.filter.outputs.ema == 'true' }}
+        run: |
+          python3 -m pip install --upgrade build && python3 -m build
+          pip install dist/*.whl
+          resources/buildforCI.sh
+        shell: micromamba-shell {0}
+      - name: test ema
+        if: ${{ steps.filter.outputs.ema == 'true' }}
+        shell: micromamba-shell {0}
+        run: harpy align ema --ema-bins 20 -g test/genome/genome.fasta.gz -s "--show-failed-logs" -x "-d" test/fastq
+
   test_minimap:
-    name: detect what files changed
+    name: Test minimap
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -149,26 +151,26 @@ jobs:
               - 'test/fastq/**'
               - '**align.yml'
               - '**__main__.py'
-      - name: test bwa
+      - name: setup mamba
         if: ${{ steps.filter.outputs.minimap == 'true' }}
-        steps:
-          - name: setup mamba
-            uses: mamba-org/setup-micromamba@v1
-            env:
-              ACTIONS_STEP_DEBUG: true
-            with:
-              init-shell: bash
-              generate-run-shell: true
-              environment-file: resources/harpy.yaml
-              cache-environment: true
-              post-cleanup: 'all'
-              log-level: error
-          - name: Install harpy
-            run: |
-              python3 -m pip install --upgrade build && python3 -m build
-              pip install dist/*.whl
-              resources/buildforCI.sh
-            shell: micromamba-shell {0}
-          - name: test minimap
-            shell: micromamba-shell {0}
-            run: harpy align minimap -g test/genome/genome.fasta.gz -s "--show-failed-logs" -x "--seed 13" test/fastq
+        uses: mamba-org/setup-micromamba@v1
+        env:
+          ACTIONS_STEP_DEBUG: true
+        with:
+          init-shell: bash
+          generate-run-shell: true
+          environment-file: resources/harpy.yaml
+          cache-environment: true
+          post-cleanup: 'all'
+          log-level: error
+      - name: Install harpy
+        if: ${{ steps.filter.outputs.minimap == 'true' }}
+        run: |
+          python3 -m pip install --upgrade build && python3 -m build
+          pip install dist/*.whl
+          resources/buildforCI.sh
+        shell: micromamba-shell {0}
+      - name: test minimap
+        if: ${{ steps.filter.outputs.minimap == 'true' }}
+        shell: micromamba-shell {0}
+        run: harpy align minimap -g test/genome/genome.fasta.gz -s "--show-failed-logs" -x "--seed 13" test/fastq
