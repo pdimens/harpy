@@ -100,10 +100,10 @@ rule genome_link:
         """
         if (file {input} | grep -q compressed ) ;then
             # decompress gzipped
-            gzip -d -c {input} > {output}
+            gzip -d -c {input} | seqtk seq > {output}
         elif (file {input} | grep -q BGZF ); then
             # decompress bgzipped
-            gzip -d -c {input} > {output}
+            gzip -d -c {input} | seqtk seq > {output}
         else
             # linked uncompressed
             ln -sr {input} {output}
