@@ -151,7 +151,11 @@ rule phase_alignments:
     message:
         "Phasing: {input.aln}"
     shell:
-        "whatshap haplotag {params} --output-threads={threads} -o {output} --reference {input.ref} {input.vcf} {input.aln} 2> {log}"
+        """
+        python --version
+        whatshap --version
+        whatshap haplotag {params} --output-threads={threads} -o {output} --reference {input.ref} {input.vcf} {input.aln} 2> {log}
+        """
 
 
 rule log_phasing:
