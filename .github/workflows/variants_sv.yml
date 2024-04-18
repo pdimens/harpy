@@ -107,17 +107,17 @@ jobs:
           resources/buildforCI.sh
       - name: naibr
         shell: micromamba-shell {0}
-        run: harpy sv naibr -g test/genome/genome.fasta.gz -o SV/naibr -s "--show-failed-logs" -x "-min_sv 5000" test/bam_phased
+        run: harpy sv naibr -g test/genome/genome.fasta.gz -o SV/naibr -s "--show-failed-logs" -x "-min_sv 5000" test/bam_phased && rm -r Genome
       - name: naibr pop
         if: always()
         shell: micromamba-shell {0}
-        run: harpy sv naibr -g test/genome/genome.fasta.gz -o SV/pop -p test/samples.groups -s "--show-failed-logs" test/bam_phased
+        run: harpy sv naibr -g test/genome/genome.fasta.gz -o SV/pop -p test/samples.groups -s "--show-failed-logs" test/bam_phased && rm -r Genome
       - name: naibr with phasing
         if: always()
         shell: micromamba-shell {0}
         run: |
-          harpy sv naibr -g test/genome/genome.fasta.gz -o SV/phase -v test/vcf/test.phased.bcf -s "--show-failed-logs" test/bam    
+          harpy sv naibr -g test/genome/genome.fasta.gz -o SV/phase -v test/vcf/test.phased.bcf -s "--show-failed-logs" test/bam && rm -r Genome
       - name: naibr pop with phasing
         if: always()
         shell: micromamba-shell {0}
-        run: harpy sv naibr -g test/genome/genome.fasta.gz -o SV/phasepop -v test/vcf/test.phased.bcf -p test/samples.groups -s "--show-failed-logs" test/bam
+        run: harpy sv naibr -g test/genome/genome.fasta.gz -o SV/phasepop -v test/vcf/test.phased.bcf -p test/samples.groups -s "--show-failed-logs" test/bam && rm -r Genome
