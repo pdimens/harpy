@@ -22,28 +22,15 @@ on:
       - 'test/fastq/**'
       - '**align.yml'
       - '**__main__.py'
-
   pull_request:
     branches:
       - 'dev'
-    paths:
-      - 'resources/harpy.yaml'
-      - 'src/harpy/rules/align-**.smk'
-      - '**align.py'
-      - '**helperfunctions.py'
-      - '**printfunctions.py'
-      - '**fileparsers.py'
-      - '**validations.py'
-      - 'src/harpy/reports/**Gencov.Rmd'
-      - 'src/harpy/reports/EmaCount.Rmd'
-      - 'src/harpy/reports/BxCount.Rmd'
-      - 'src/harpy/reports/BxStats.Rmd'
-      - 'src/harpy/scripts/bxStats.py'
-      - 'src/harpy/scripts/countBX.py'
-      - 'globalscripts/makewindows.py'
-      - 'test/fastq/**'
-      - '**align.yml'
-      - '**__main__.py'
+
+# Cancel in progress workflows on pull_requests.
+# https://docs.github.com/en/actions/using-jobs/using-concurrency#example-using-a-fallback-value
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
+  cancel-in-progress: true
 
 env:
   CACHE_NUMBER: 0  # increase to reset cache manually

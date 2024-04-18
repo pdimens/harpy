@@ -19,17 +19,12 @@ on:
   pull_request:
     branches:
       - 'dev'
-    paths:
-      - 'simulate-linkedreads.smk'
-      - 'resources/harpy.yaml'
-      - '**helperfunctions.py'
-      - '**printfunctions.py'
-      - '**fileparsers.py'
-      - 'test/genome**gz'
-      - 'extractReads.cpp'
-      - '10xtoHaplotag.py'
-      - 'src/harpy/scripts/LRSIMharpy.pl'
-      - '**__main__.py'
+# Cancel in progress workflows on pull_requests.
+# https://docs.github.com/en/actions/using-jobs/using-concurrency#example-using-a-fallback-value
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
+  cancel-in-progress: true
+
 
 env:
   CACHE_NUMBER: 0  # increase to reset cache manually
