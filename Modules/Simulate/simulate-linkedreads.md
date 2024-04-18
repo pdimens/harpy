@@ -11,8 +11,7 @@ Simulate linked reads from a genome
 
 ===  :icon-checklist: You will need
 - two haplotypes of a reference genome in fasta or gzipped fasta format
-    - can be created with `harpy simulate {snpindel, inversion, cnv, translocation}`
-    - [instructions here](simulate-variants.md)
+    - can be created with [harpy simulate](simulate-variants.md)
 - [optional] a file of 16-basepair barcodes to tag linked reads with
 ==- :icon-question: LRSIM differences
 The original [LRSIM](https://github.com/aquaskyline/LRSIM) is a lengthy Perl script that, like Harpy, outsources
@@ -51,7 +50,7 @@ In addition to the [common runtime options](/commonoptions.md), the `simulate li
 | `HAP1_GENOME`       |            | file path |       | **yes**  | Haplotype 1 of the diploid genome to simulate reads   |
 | `HAP2_GENOME`       |            | file path |       | **yes**  | Haplotype 1 of the diploid genome to simulate reads   |
 | `--outer-distance`  |    `-d`    | integer   | 350   |   | Outer distance between paired-end reads (bp)                 |
-| `--distance-sd`     |    `-i`    | integer   |  15   |        | Standard deviation of read-pair distance                |
+| `--distance-sd`     |    `-i`    | integer   |  15   |   | Standard deviation of read-pair distance                |
 | `--barcodes`        |    `-b`    | file path |  [10X barcodes](https://github.com/aquaskyline/LRSIM/blob/master/4M-with-alts-february-2016.txt)   |        | File of linked-read barcodes to add to reads   |
 | `--read-pairs`      |    `-n`    | number    |  600  |   | Number of read pairs to simulate, in millions       |
 | `--molecule-length` |    `-l`    | integer   |  100  |   | Mean molecule length (kbp)                          |
@@ -68,6 +67,7 @@ GGATGTACTCATTCCA
 TCACGTACTCATACCA
 etc...
 ```
+### 10X to Haplotag conversion
 Harpy will convert the simulated 10X-style reads, where the 16-basepair barcode is at the beginning of read 1,
 to haplotag format, where the barcode is coded in the sequence header under the `BX:Z` tag with the format
 `AxxCxxBxxDxx`, where `xx` is a number between `00` and `96`. Using this format, a `00` would invalidate the
@@ -75,7 +75,8 @@ entire barcode due to a segment failing to be associated with a beadtag segment.
 10X barcodes don't feature segments, failure to associate the first 16 bases of read 1 with barcodes provided
 to `--barcodes` will appear as `BX:Z:A00C00B00D00`. The original 10X barcode (or first 16 bases of read 1)
 will be removed from the sequence and stored in the `TX:Z` sequence header tag, e.g. `TX:Z:ATATGTACTCATACCA`.
-The paired reverse read will also have these tags.
+The paired reverse read will also have these tags. The diagram below attempts to simplify this visually.
+![10X linked read barcode conversion into AxxCxxBxxDxx haplotag barcode format](/static/lr_conversion.png)
 
 ## Choosing parameters
 LRSIM does internal calculations to determine the number of reads per molecule based on `--read-pairs`,
@@ -83,5 +84,10 @@ LRSIM does internal calculations to determine the number of reads per molecule b
 decisions for these parmaters. The equation is:
 
 $$
-ReadsPerMolecule = int( 0.499 + ( X \times 1,000,000 ) / ( T \times 1,000 / D ) / M / D )
+\text{Reads Per Molecule} = 0.499 + \frac{N \times 1,000,000}{\left(\frac{P \times 1,000}{H}\right) \times M \times H}
 $$
+$$\text{where:}\\\text{N = number of reads to simulate (in millions)}\\\text{H = number of haplotypes (fixed at 2)}\\\text{P = number of partitions}\\\text{M = molecules per partition}$$
+
+### Parameter calculator
+Conveniently, we provide a calculator to help you make informed decisions for these parameters:
+[!embed](https://app.calconic.com/api/embed/calculator/662146310482ea001e7acea2)
