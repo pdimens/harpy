@@ -4,24 +4,6 @@ on:
   push:
     branches:
       - 'dev'
-    paths:
-      - 'resources/harpy.yaml'
-      - 'src/harpy/rules/align-**.smk'
-      - '**align.py'
-      - '**helperfunctions.py'
-      - '**printfunctions.py'
-      - '**fileparsers.py'
-      - '**validations.py'
-      - 'src/harpy/reports/**Gencov.Rmd'
-      - 'src/harpy/reports/EmaCount.Rmd'
-      - 'src/harpy/reports/BxCount.Rmd'
-      - 'src/harpy/reports/BxStats.Rmd'
-      - 'src/harpy/scripts/bxStats.py'
-      - 'src/harpy/scripts/countBX.py'
-      - 'globalscripts/makewindows.py'
-      - 'test/fastq/**'
-      - '**align.yml'
-      - '**__main__.py'
   pull_request:
     branches:
       - 'dev'
@@ -36,8 +18,39 @@ env:
   CACHE_NUMBER: 0  # increase to reset cache manually
 
 jobs:
+  files-changed:
+    name: detect what files changed
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Check for align file changes
+        uses: dorny/paths-filter@latest
+        id: filter
+        with:
+          filters: |
+            align:
+              - 'resources/harpy.yaml'
+              - 'src/harpy/rules/align-**.smk'
+              - '**align.py'
+              - '**helperfunctions.py'
+              - '**printfunctions.py'
+              - '**fileparsers.py'
+              - '**validations.py'
+              - 'src/harpy/reports/**Gencov.Rmd'
+              - 'src/harpy/reports/EmaCount.Rmd'
+              - 'src/harpy/reports/BxCount.Rmd'
+              - 'src/harpy/reports/BxStats.Rmd'
+              - 'src/harpy/scripts/bxStats.py'
+              - 'src/harpy/scripts/countBX.py'
+              - 'globalscripts/makewindows.py'
+              - 'test/fastq/**'
+              - '**align.yml'
+              - '**__main__.py'
+
   test_bwa:
     name: bwa
+    if: ${{ steps.filter.outputs.align == 'true' }}
     runs-on: ubuntu-latest
     steps:
       - name: checkout
@@ -66,6 +79,7 @@ jobs:
         run: harpy align bwa -g test/genome/genome.fasta.gz -s "--show-failed-logs" -x "-A 2" test/fastq
   test_ema:
     name: ema
+    if: ${{ steps.filter.outputs.align == 'true' }}
     runs-on: ubuntu-latest
     steps:
       - name: checkout
@@ -94,6 +108,7 @@ jobs:
         run: harpy align ema --ema-bins 20 -g test/genome/genome.fasta.gz -s "--show-failed-logs" -x "-d" test/fastq
   test_minimap:
     name: minimap
+    if: ${{ steps.filter.outputs.align == 'true' }}
     runs-on: ubuntu-latest
     steps:
       - name: checkout
