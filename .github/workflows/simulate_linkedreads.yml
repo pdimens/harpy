@@ -1,34 +1,34 @@
-name: Test QC
+name: Test Simulate LinkedReads
 
 on:
   push:
     branches:
       - 'dev'
     paths:
+      - 'simulate-linkedreads.smk'
       - 'resources/harpy.yaml'
-      - 'src/harpy/rules/qc.smk'
-      - '**qc.py'
       - '**helperfunctions.py'
       - '**printfunctions.py'
       - '**fileparsers.py'
-      - '**validations.py'
-      - 'test/fastq/**'
-      - '**qc.yml'
+      - 'test/genome**gz'
+      - 'extractReads.cpp'
+      - '10xtoHaplotag.py'
+      - 'src/harpy/scripts/LRSIMharpy.pl'
       - '**__main__.py'
 
   pull_request:
     branches:
       - 'dev'
     paths:
+      - 'simulate-linkedreads.smk'
       - 'resources/harpy.yaml'
-      - 'src/harpy/rules/qc.smk'
-      - '**qc.py'
       - '**helperfunctions.py'
       - '**printfunctions.py'
       - '**fileparsers.py'
-      - '**validations.py'
-      - 'test/fastq/**'
-      - '**qc.yml'
+      - 'test/genome**gz'
+      - 'extractReads.cpp'
+      - '10xtoHaplotag.py'
+      - 'src/harpy/scripts/LRSIMharpy.pl'
       - '**__main__.py'
 
 env:
@@ -36,7 +36,7 @@ env:
 
 jobs:
   build:
-    name: testQC
+    name: test simulations
     runs-on: ubuntu-latest
     steps:
       - name: checkout
@@ -45,12 +45,15 @@ jobs:
           fetch-depth: 1
       - name: setup mamba
         uses: mamba-org/setup-micromamba@v1
+        env:
+          ACTIONS_STEP_DEBUG: true
         with:
           init-shell: bash
           generate-run-shell: true
           environment-file: resources/harpy.yaml
           cache-environment: true
           post-cleanup: 'all'
+          log-level: error
       - name: Install harpy
         shell: micromamba-shell {0}
         run: |
@@ -58,11 +61,6 @@ jobs:
           pip install dist/*.whl
           resources/buildforCI.sh
 
-      - name: harpy qc
+      - name: simulate random snps/indels
         shell: micromamba-shell {0}
-        run: harpy qc -x "--trim_poly_g"  -s "--show-failed-logs" test/fastq
-      
-      - name: harpy qc skip adapter trimming
-        if: always()
-        shell: micromamba-shell {0}
-        run: harpy qc -a -s "--show-failed-logs" test/fastq
+        run: harpy simulate linkedreads -s "--show-failed-logs" -t 4 -n 2  -l 100 -p 50 test/genome/genome.fasta.gz test/genome/genome2.fasta.gz

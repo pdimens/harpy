@@ -68,8 +68,8 @@ rule index_alignments:
 
 rule bam_list:
     input:
-        bam = expand(bam_dir + "/{sample}.bam", sample = samplenames),
-        bai = expand(bam_dir + "/{sample}.bam.bai", sample = samplenames)
+        bam = collect(bam_dir + "/{sample}.bam", sample = samplenames),
+        bai = collect(bam_dir + "/{sample}.bam.bai", sample = samplenames)
     output:
         outdir + "/stitch_input/samples.list"
     message:
@@ -176,7 +176,7 @@ rule clean_stitch:
 
 rule concat_list:
     input:
-        bcf = expand(outdir + "/{{stitchparams}}/contigs/{part}/{part}.vcf.gz", part = contigs)
+        bcf = collect(outdir + "/{{stitchparams}}/contigs/{part}/{part}.vcf.gz", part = contigs)
     output:
         temp(outdir + "/{stitchparams}/bcf.files")
     message:
@@ -188,8 +188,8 @@ rule concat_list:
 rule merge_vcfs:
     input:
         files = outdir + "/{stitchparams}/bcf.files",
-        idx   = expand(outdir + "/{{stitchparams}}/contigs/{part}/{part}.vcf.gz.tbi", part = contigs),
-        clean = expand(outdir + "/{{stitchparams}}/contigs/{part}/.cleaned", part = contigs)
+        idx   = collect(outdir + "/{{stitchparams}}/contigs/{part}/{part}.vcf.gz.tbi", part = contigs),
+        clean = collect(outdir + "/{{stitchparams}}/contigs/{part}/.cleaned", part = contigs)
     output:
         outdir + "/{stitchparams}/variants.imputed.bcf"
     threads:
@@ -258,9 +258,9 @@ rule imputation_results_reports:
 rule log_workflow:
     default_target: True
     input: 
-        vcf = expand(outdir + "/{stitchparams}/variants.imputed.bcf", stitchparams=paramspace.instance_patterns),
-        contig_report = expand(outdir + "/{stitchparams}/contigs/{part}/{part}.STITCH.html", stitchparams=paramspace.instance_patterns, part = contigs),
-        agg_report = expand(outdir + "/{stitchparams}/variants.imputed.html", stitchparams=paramspace.instance_patterns) if not skipreports else []
+        vcf = collect(outdir + "/{stitchparams}/variants.imputed.bcf", stitchparams=paramspace.instance_patterns),
+        contig_report = collect(outdir + "/{stitchparams}/contigs/{part}/{part}.STITCH.html", stitchparams=paramspace.instance_patterns, part = contigs),
+        agg_report = collect(outdir + "/{stitchparams}/variants.imputed.html", stitchparams=paramspace.instance_patterns) if not skipreports else []
     output:
         outdir + "/workflow/impute.summary"
     message:

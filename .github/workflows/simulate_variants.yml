@@ -5,7 +5,8 @@ on:
     branches:
       - 'dev'
     paths:
-      - 'simulate**.smk'
+      - 'simulate-snpindel.smk'
+      - 'simulate-variants.smk'
       - 'resources/harpy.yaml'
       - '**helperfunctions.py'
       - '**printfunctions.py'
@@ -18,7 +19,8 @@ on:
     branches:
       - 'dev'
     paths:
-      - 'simulate**.smk'
+      - 'simulate-snpindel.smk'
+      - 'simulate-variants.smk'
       - 'resources/harpy.yaml'
       - '**helperfunctions.py'
       - '**printfunctions.py'
@@ -60,22 +62,22 @@ jobs:
       - name: simulate random snps/indels
         shell: micromamba-shell {0}
         run: |
-          harpy simulate snpindel --snp-count 10 --indel-count 10 -z 0.5 test/genome/genome.fasta.gz
-          harpy simulate snpindel --prefix Simulate/snpvcf --snp-vcf Simulate/snpindel/sim.snpindel.snp.hap1.vcf --indel-vcf Simulate/snpindel/sim.snpindel.indel.hap1.vcf test/genome/genome.fasta.gz
+          harpy simulate snpindel --snp-count 10 --indel-count 10 -z 0.5 -s "--show-failed-logs" test/genome/genome.fasta.gz
+          harpy simulate snpindel --prefix Simulate/snpvcf --snp-vcf Simulate/snpindel/sim.snpindel.snp.hap1.vcf --indel-vcf Simulate/snpindel/sim.snpindel.indel.hap1.vcf -s "--show-failed-logs" test/genome/genome.fasta.gz
 
       - name: simulate inversions
         shell: micromamba-shell {0}
         if: always()
         run: |
           harpy simulate inversion --count 10 -z 0.5 test/genome/genome.fasta.gz
-          harpy simulate inversion --prefix Simulate/invvcf --vcf Simulate/inversion/sim.inversion.hap1.vcf test/genome/genome.fasta.gz
+          harpy simulate inversion --prefix Simulate/invvcf --vcf Simulate/inversion/sim.inversion.hap1.vcf -s "--show-failed-logs" test/genome/genome.fasta.gz
 
       - name: simulate cnv
         shell: micromamba-shell {0}
         if: always()
         run: |
           harpy simulate cnv --count 10 -z 0.5 test/genome/genome.fasta.gz
-          harpy simulate cnv --prefix Simulate/cnvvcf --vcf Simulate/cnv/sim.cnv.hap1.vcf test/genome/genome.fasta.gz
+          harpy simulate cnv --prefix Simulate/cnvvcf --vcf Simulate/cnv/sim.cnv.hap1.vcf -s "--show-failed-logs" test/genome/genome.fasta.gz
 
 
       - name: simulate translocations
@@ -83,5 +85,5 @@ jobs:
         if: always()
         run: |
           harpy simulate translocation --count 10 -z 0.5 test/genome/genome.fasta.gz
-          harpy simulate translocation --prefix Simulate/transvcf --vcf Simulate/translocation/sim.translocation.hap1.vcf test/genome/genome.fasta.gz
+          harpy simulate translocation --prefix Simulate/transvcf --vcf Simulate/translocation/sim.translocation.hap1.vcf -s "--show-failed-logs" test/genome/genome.fasta.gz
 

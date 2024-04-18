@@ -8,11 +8,11 @@ import sys
 @click.command(no_args_is_help = True, epilog = "read the docs for more information: https://pdimens.github.io/harpy/modules/simulate")
 @click.option('-d', '--outer-distance', type = click.IntRange(min = 100), default = 350, show_default= True, help = "Outer distance between paired-end reads (bp)")
 @click.option('-i', '--distance-sd', type = click.IntRange(min = 1), default = 15, show_default=True,  help = "Standard deviation of read-pair distance")
-@click.option('-b', '--barcodes', type = click.Path(exists=True, dir_okay=False), help = "File of linked-read barcodes")
-@click.option('-n', '--read-pairs', type = click.IntRange(min = 1), default = 600, show_default=True,  help = "Number of read pairs to simulate, in millions")
+@click.option('-b', '--barcodes', type = click.Path(exists=True, dir_okay=False), help = "File of linked-read barcodes to add to reads")
+@click.option('-n', '--read-pairs', type = click.FloatRange(min = 0.001), default = 600, show_default=True,  help = "Number of read pairs to simulate, in millions")
 @click.option('-l', '--molecule-length', type = click.IntRange(min = 10), default = 100, show_default=True,  help = "Mean molecule length (kbp)")
 @click.option('-p', '--partitions', type = click.IntRange(min = 1), default=1500, show_default=True,  help = "How many partitions to generate (×1000)")
-@click.option('-m', '--molecules-per', type = click.IntRange(min = 1), default = 100, show_default=True,  help = "Average number of molecules per partition")
+@click.option('-m', '--molecules-per', type = click.IntRange(min = 1), default = 10, show_default=True,  help = "Average number of molecules per partition")
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(min = 1, max_open = True), help = 'Number of threads to use')
 @click.option('-s', '--snakemake', type = str, help = 'Additional Snakemake parameters, in quotes')
 @click.option('-q', '--quiet',  is_flag = True, show_default = True, default = False, help = 'Don\'t show output text while running')
@@ -24,15 +24,19 @@ def linkedreads(genome_hap1, genome_hap2, output_dir, outer_distance, distance_s
     """
     Create linked reads from a genome
  
-    If not providing a text file of `--barcodes` to use for the simulated linked reads, Harpy will
-    download the `4M-with-alts-february-2016.txt` file containing the standard 10X barcodes, which
-    is available from 10X genomics and the LRSIM [GitHub repository](https://github.com/aquaskyline/LRSIM/).  
+    Two haplotype genomes (fasta or gzipped fasta) need to be provided as inputs at the end of the command. If
+    you don't have a diploid genome, you can simulate one with `harpy simulate` as described [in the documentation](https://pdimens.github.io/harpy/modules/simulate/simulate-variants/#simulate-diploid-assembly).
+
+    If not providing a text file of `--barcodes`, Harpy will download the `4M-with-alts-february-2016.txt`
+    file containing the standard 16-basepair 10X barcodes, which is available from 10X genomics and the
+    LRSIM [GitHub repository](https://github.com/aquaskyline/LRSIM/). Barcodes in the `--barcodes` file
+    are expected to be one barcode per line and the barcodes as 16-basepair nucleotide sequences.
     """
     output_dir = output_dir.rstrip("/")
     workflowdir = f"{output_dir}/workflow"
-    command = f'snakemake --rerun-incomplete --nolock  --software-deployment-method conda --conda-prefix ./.snakemake/conda --cores {threads} --directory .'.split()
+    command = f'snakemake --rerun-incomplete --rerun-triggers input mtime params --nolock  --software-deployment-method conda --conda-prefix ./.snakemake/conda --cores {threads} --directory .'.split()
     command.append('--snakefile')
-    command.append(f'{workflowdir}/simulate-reads.smk')
+    command.append(f'{workflowdir}/simulate-linkedreads.smk')
     command.append('--configfile')
     command.append(f'{workflowdir}/config.yml')
     if quiet:
@@ -49,10 +53,8 @@ def linkedreads(genome_hap1, genome_hap2, output_dir, outer_distance, distance_s
     validate_input_by_ext(genome_hap2, "GENOME_HAP2", [".fasta", ".fa", ".fasta.gz", ".fa.gz"])
 
     os.makedirs(f"{workflowdir}/", exist_ok= True)
-    fetch_rule(workflowdir, "simulate-reads.smk")
-    fetch_script(workflowdir, "10xtoHaplotag.py")
+    fetch_rule(workflowdir, "simulate-linkedreads.smk")
     fetch_script(workflowdir, "LRSIMharpy.pl")
-    fetch_script(workflowdir, "faFilter.pl")
 
     with open(f"{workflowdir}/config.yml", "w") as config:
         config.write(f"genome_hap1: {genome_hap1}\n")

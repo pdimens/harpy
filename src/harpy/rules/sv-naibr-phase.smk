@@ -156,7 +156,7 @@ rule phase_alignments:
 
 rule log_phasing:
     input:
-        expand(outdir + "/logs/whatshap-haplotag/{sample}.phase.log", sample = samplenames)
+        collect(outdir + "/logs/whatshap-haplotag/{sample}.phase.log", sample = samplenames)
     output:
         outdir + "/logs/whatshap-haplotag/phasing.log"
     message:
@@ -259,9 +259,9 @@ rule create_report:
 rule log_workflow:
     default_target: True
     input:
-        bedpe = expand(outdir + "/{sample}.bedpe", sample = samplenames),
+        bedpe = collect(outdir + "/{sample}.bedpe", sample = samplenames),
         phaselog = outdir + "/logs/whatshap-haplotag/phasing.log",
-        reports =  expand(outdir + "/reports/{sample}.naibr.html", sample = samplenames) if not skipreports else []
+        reports =  collect(outdir + "/reports/{sample}.naibr.html", sample = samplenames) if not skipreports else []
     output:
         outdir + "/workflow/sv.naibr.summary"
     message:

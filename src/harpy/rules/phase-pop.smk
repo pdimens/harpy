@@ -214,8 +214,8 @@ rule merge_annotations:
 
 rule merge_samples:
     input: 
-        bcf = expand(outdir + "/annotations_merge/{sample}.phased.annot.bcf", sample = samplenames),
-        idx = expand(outdir + "/annotations_merge/{sample}.phased.annot.bcf.csi", sample = samplenames)
+        bcf = collect(outdir + "/annotations_merge/{sample}.phased.annot.bcf", sample = samplenames),
+        idx = collect(outdir + "/annotations_merge/{sample}.phased.annot.bcf.csi", sample = samplenames)
     output:
         bcf = outdir + "/variants.phased.bcf",
         idx = outdir + "/variants.phased.bcf.csi"
@@ -237,7 +237,7 @@ rule merge_samples:
 
 rule summarize_blocks:
     input:
-        expand(outdir + "/phaseBlocks/{sample}.blocks", sample = samplenames)
+        collect(outdir + "/phaseBlocks/{sample}.blocks", sample = samplenames)
     output:
         outdir + "/reports/blocks.summary.gz"
     params:

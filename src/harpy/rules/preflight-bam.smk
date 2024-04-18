@@ -63,7 +63,7 @@ rule check_bam:
 
 rule merge_checks:
     input:
-        expand(out_dir + "{sample}.log", sample = samplenames)
+        collect(out_dir + "{sample}.log", sample = samplenames)
     output:
         tmp = temp(out_dir + "filecheck.tmp"),
         final = out_dir + "filecheck.bam.tsv"

@@ -7,10 +7,27 @@
 # 4 barcode conversion output file name
 import gzip
 import sys
+import argparse
 from itertools import zip_longest, product
 
+parser = argparse.ArgumentParser(
+    prog = '10xtoHaplotag.py',
+    description = 'Converts 10x linked reads to haplotag linked reads with barcodes in BX:Z: and TX:Z: header tags.',
+    usage = "10xtoHaplotag.py -f <forward.fq.gz> -r <reverse.fq.gz> -b <barcodes.txt> -p <prefix> > barcodes.conversion.txt",
+    exit_on_error = False
+    )
+
+parser.add_argument("-f", "--forward", required = True, type = str, help = "Forward reads of paired-end FASTQ file pair (gzipped)")
+parser.add_argument("-r", "--reverse", required = True, type = str, help = "Reverse reads of paired-end FASTQ file pair (gzipped)")
+parser.add_argument("-p", "--prefix", required = True, type = str, help = "Prefix for outfile FASTQ files (e.g. <prefix>.R1.fq.gz)")
+parser.add_argument("-b", "--barcodes", required = True, type=str, help="File listing the 10X barcodes to convert to haplotag format, one barcode per line")
+if len(sys.argv) == 1:
+    parser.print_help(sys.stderr)
+    sys.exit(1)
+args = parser.parse_args()
+
 def process_record(fw_entry, rv_entry):
-    # [0] = header, [1] = seq,[2] = +, [3] = qual
+    # [0] = header, [1] = seq, [2] = +, [3] = qual
     bc10x = fw_entry[1][:16]
     bchap = bc_dict.get(bc10x, "A00C00B00D00")
     if not bchap:
@@ -30,10 +47,10 @@ bc_generator = product("A", bc_range, "C", bc_range, "B", bc_range, "D", bc_rang
 bc_dict = dict()
 
 # read in barcodes
-with open(snakemake.input[2], "r") as bc_file:
+with open(args.barcodes, "r") as bc_file:
     while True:
         # Get next line from file
-        if snakemake.input[2].endswith("gz"):
+        if args.barcodes.endswith("gz"):
             line = bc_file.readline().decode()
         else:
             line = bc_file.readline()
@@ -46,11 +63,11 @@ with open(snakemake.input[2], "r") as bc_file:
         bc_dict[_10x] = None
 
 # simultaneously iterate the forward and reverse fastq files
-fw_reads = snakemake.input[0]
-rv_reads = snakemake.input[1]
+fw_reads = args.forward
+rv_reads = args.reverse
 
-fw_out = gzip.open(snakemake.output[0], "w")
-rv_out = gzip.open(snakemake.output[1], "w")
+fw_out = gzip.open(f"{args.prefix}.R1.fq.gz", "wb", 6)
+rv_out = gzip.open(f"{args.prefix}.R2.fq.gz", "wb", 6)
 
 with gzip.open(fw_reads, "r") as fw_i, gzip.open(rv_reads, "r") as rv_i:
     # store the fq records here
@@ -61,12 +78,12 @@ with gzip.open(fw_reads, "r") as fw_i, gzip.open(rv_reads, "r") as rv_i:
         fw_line = fw.decode().rstrip("\n")
         rv_line = rv.decode().rstrip("\n")
         if fw_line.startswith("@") and i > 0:
-            itera += 1
+            i += 1
             # process the full record
             new_fw, new_rv = process_record(fw_record, rv_record)
             # write new record to files
-            fw_out.write(new_fw.encode())
-            rv_out.write(new_rv.encode())
+            fw_out.write(new_fw.encode("utf-8"))
+            rv_out.write(new_rv.encode("utf-8"))
             # reset the record
             fw_record = [fw_line]
             rv_record = [rv_line]
@@ -83,6 +100,5 @@ with gzip.open(fw_reads, "r") as fw_i, gzip.open(rv_reads, "r") as rv_i:
 fw_out.close()
 rv_out.close()
 
-with open(snakemake.log[0], "w") as bc_out:
-    for i in bc_dict:
-        bc_out.write(i + "\t" + bc_dict[i] + "\n") if bc_dict[i] else None
+for i in bc_dict:
+    print(i + "\t" + bc_dict[i], file = sys.stdout) if bc_dict[i] else None

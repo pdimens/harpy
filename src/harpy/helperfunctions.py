@@ -17,69 +17,6 @@ def symlink(original, destination):
     if not (Path(destination).is_symlink() or Path(destination).exists()):
         Path(destination).symlink_to(Path(original).absolute()) 
 
-def createregions(infile, window, method, outfile):
-    """Create a BED file of genomic intervals of size 'window'. Uses 1- or 0- based numbering depending on mpileup or freebayes 'method'"""
-    bn = os.path.basename(infile)
-    os.makedirs("Genome", exist_ok = True)
-    base = 0 if method == "freebayes" else 1
-    gen_zip = True if bn.lower().endswith(".gz") else False
-    if method == "freebayes":
-        # freebayes requires uncompressed genome
-        if gen_zip:
-            # remove .gz extension
-            bn = bn[:-3]
-            if not os.path.exists(f"Genome/{bn}"):
-                with open(f"Genome/{bn}", "w") as fo:
-                    subprocess.run(f"gzip -dc {infile}".split(), stdout = fo)
-        else:
-            if not os.path.exists(f"Genome/{bn}"):
-                subprocess.run(f"ln -sr {infile} Genome/{bn}".split())
-    else:
-        if not os.path.exists(f"Genome/{bn}"):
-            ftype = subprocess.run(["file", infile], stdout=subprocess.PIPE).stdout.decode('utf-8')
-            if "Blocked GNU Zip" in ftype:
-                # is bgzipped, just link it
-                subprocess.run(f"ln -sr {infile} Genome/{bn}".split())
-            elif "gzip compressed data" in ftype:
-                # is regular gzipped, needs to be bgzipped
-                subprocess.run(f"zcat {infile} | bgzip -c > Genome/{bn}".split())
-            else:
-                # not compressed, just link
-                subprocess.run(f"ln -sr {infile} Genome/{bn}".split())
-
-    if not os.path.exists(f"Genome/{bn}.fai"):
-        try:
-            subprocess.run(f"samtools faidx --fai-idx Genome/{bn}.fai --gzi-idx Genome/{bn}.gzi Genome/{bn}".split(), stderr = subprocess.DEVNULL)
-        except:
-            subprocess.run(f"samtools faidx --fai-idx Genome/{bn}.fai Genome/{bn}".split(), stderr = subprocess.DEVNULL)
-
-    with open(f"Genome/{bn}.fai") as fai:
-        bedout = open(outfile, "w")
-        while True:
-            # Get next line from file
-            line = fai.readline()
-            # if line is empty, end of file is reached
-            if not line:
-                break
-            # split the line by tabs
-            lsplit = line.split()
-            contig = lsplit[0]
-            c_len = int(lsplit[1])
-            c_len = c_len - 1 if base == 0 else c_len
-            start = base
-            end = window
-            starts = [base]
-            ends = [window]
-            while end < c_len:
-                end = end + window if (end + window) < c_len else c_len
-                ends.append(end)
-                start += window
-                starts.append(start)
-            for (startpos, endpos) in zip (starts,ends):
-                bedout.write(f"{contig}:{startpos}-{endpos}\n")
-        bedout.close()
-        return f"Genome/{bn}"
-
 def generate_conda_deps():
     """Create the YAML files of the workflow conda dependencies"""
     condachannels = ["conda-forge", "bioconda", "defaults"]
@@ -111,7 +48,12 @@ def fetch_script(workdir, target):
     """
     os.makedirs(f"{workdir}/scripts/", exist_ok= True)
     with open(f"{workdir}/scripts/{target}", "w") as f:
-        f.write(files(harpy.scripts).joinpath(target).read_text())
+        if os.path.isfile(files(harpy.scripts).joinpath(target)):
+            f.write(files(harpy.scripts).joinpath(target).read_text())
+        else:
+            print_error(f"Bundled script [blue bold]{target}[/blue bold] was not found in the Harpy installation.")
+            print_solution("There may be an issue with your Harpy installation, which would require reinstalling Harpy. Alternatively, there may be in a issue with your conda/mamba environment or configuration.")
+            exit(1)
 
 def fetch_rule(workdir, target):
     """
@@ -119,7 +61,12 @@ def fetch_rule(workdir, target):
     """
     os.makedirs(f"{workdir}/", exist_ok= True)
     with open(f"{workdir}/{target}", "w") as f:
-        f.write(files(harpy.rules).joinpath(target).read_text())
+        if os.path.isfile(files(harpy.rules).joinpath(target)):
+            f.write(files(harpy.rules).joinpath(target).read_text())
+        else:
+            print_error(f"Bundled script [blue bold]{target}[/blue bold] was not found in the Harpy installation.")
+            print_solution("There may be an issue with your Harpy installation, which would require reinstalling Harpy. Alternatively, there may be in a issue with your conda/mamba environment or configuration.")
+            exit(1)
 
 def fetch_report(workdir, target):
     """
@@ -127,7 +74,12 @@ def fetch_report(workdir, target):
     """
     os.makedirs(f"{workdir}/report/", exist_ok= True)
     with open(f"{workdir}/report/{target}", "w") as f:
-        f.write(files(harpy.reports).joinpath(target).read_text())
+        if os.path.isfile(files(harpy.reports).joinpath(target)):
+            f.write(files(harpy.reports).joinpath(target).read_text())
+        else:
+            print_error(f"Bundled script [blue bold]{target}[/blue bold] was not found in the Harpy installation.")
+            print_solution("There may be an issue with your Harpy installation, which would require reinstalling Harpy. Alternatively, there may be in a issue with your conda/mamba environment or configuration.")
+            exit(1)
 
 def biallelic_contigs(vcf):
     """Identify which contigs have at least 2 biallelic SNPs"""

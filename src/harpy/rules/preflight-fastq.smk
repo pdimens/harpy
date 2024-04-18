@@ -81,7 +81,7 @@ rule check_reverse:
 
 rule merge_checks:
     input:
-        expand(out_dir + "{sample}.{FR}.log", sample = samplenames, FR = ["F","R"])
+        collect(out_dir + "{sample}.{FR}.log", sample = samplenames, FR = ["F","R"])
     output:
         tmp = temp(out_dir + "filecheck.tmp"),
         final = out_dir + "filecheck.fastq.tsv"

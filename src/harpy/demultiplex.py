@@ -25,7 +25,7 @@ def gen1(fastq_input, output_dir, samplesheet, threads, snakemake, skipreports, 
     inprefix = re.sub(r"[\_\.][IR][12]?(?:\_00[0-9])*\.f(?:ast)?q(?:\.gz)?$", "", os.path.basename(fastq_input))
     output_dir = output_dir.rstrip("/") + f"/{inprefix}"
     workflowdir = f"{output_dir}/workflow"
-    command = f'snakemake --rerun-incomplete --nolock --software-deployment-method conda --conda-prefix ./.snakemake/conda --cores {threads} --directory .'.split()
+    command = f'snakemake --rerun-incomplete --rerun-triggers input mtime params --nolock --software-deployment-method conda --conda-prefix ./.snakemake/conda --cores {threads} --directory .'.split()
     command.append('--snakefile')
     command.append(f'{workflowdir}/demultiplex.gen1.smk')
     command.append("--configfile")

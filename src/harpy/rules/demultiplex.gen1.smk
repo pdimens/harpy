@@ -66,7 +66,7 @@ rule link_files:
 
 rule bx_files:
     output:
-        temp(expand(outdir + "BC_{letter}.txt", letter = ["A","C","B","D"]))
+        temp(collect(outdir + "BC_{letter}.txt", letter = ["A","C","B","D"]))
     params:
         outdir
     message:
@@ -76,10 +76,10 @@ rule bx_files:
 
 rule demux_bx:
     input:
-        expand(outdir + "DATA_{IR}{ext}_001.fastq.gz", IR = ["R","I"], ext = [1,2]),
-        expand(outdir + "BC_{letter}.txt", letter = ["A","C","B","D"])
+        collect(outdir + "DATA_{IR}{ext}_001.fastq.gz", IR = ["R","I"], ext = [1,2]),
+        collect(outdir + "BC_{letter}.txt", letter = ["A","C","B","D"])
     output:
-        temp(expand(outdir + inprefix + "_R{ext}_001.fastq.gz", ext = [1,2]))
+        temp(collect(outdir + inprefix + "_R{ext}_001.fastq.gz", ext = [1,2]))
     params:
         outdr = outdir,
         outprfx = inprefix,
@@ -190,7 +190,7 @@ rule fastqc_R:
 
 rule qc_report:
     input:
-        expand(outdir + "logs/.QC/{sample}_{FR}/fastqc_data.txt", sample = samplenames, FR = ["F","R"])
+        collect(outdir + "logs/.QC/{sample}_{FR}/fastqc_data.txt", sample = samplenames, FR = ["F","R"])
     output:
         outdir + "reports/demultiplex.QC.html"
     params:
@@ -207,7 +207,7 @@ rule qc_report:
 rule log_workflow:
     default_target: True
     input:
-        fq = expand(outdir + "{sample}.{FR}.fq.gz", sample = samplenames, FR = ["F", "R"]),
+        fq = collect(outdir + "{sample}.{FR}.fq.gz", sample = samplenames, FR = ["F", "R"]),
         reports = outdir + "reports/demultiplex.QC.html" if not skipreports else []
     output:
         outdir + "workflow/demultiplex.gen1.summary"

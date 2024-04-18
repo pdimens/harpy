@@ -1,3 +1,17 @@
+####
+# LRSIM for Harpy
+# Originally from https://github.com/aquaskyline/LRSIM
+# This file was forked from commit 9ad7e54 for Harpy (https://github.com/pdimens/harpy)
+# Summary:
+# This fork removes everything from LRSIM except where it creates linked reads and modifies the inputs/outputs to be friendlier for Harpy
+# Detailed explanation:
+# LRSIM first created two haplotypes of a genome by introducing variants via SURVIVOR --REMOVED
+# Sections that called external tools (samtools, dwgsim, SURVIVOR) --REMOVED
+# The input now expects two haplotypes of a genome (-g) that were created separately, and LRSIMharpy.pl will just
+# create linked reads from them. No more, no less.
+# The -r option is now a folder prefix to make like easier in the larger Harpy workflow --CHANGED
+####
+
 use File::Basename;
 use strict;
 use warnings;
@@ -62,7 +76,7 @@ sub main {
     #Check options end
 
     #Global variables
-    &Log("$opts{p}.status");    #Initialize Log routine
+    &Log("$opts{r}/lrsim/.status");    #Initialize Log routine
     our %barcodeErrorRateFromMismatchObv1 = (
         0 => {
             "A" => 0.00243200183210607,
@@ -581,13 +595,8 @@ sub main {
     #Global variables end
 
     #Goto checkpoint
-    if    ( $opts{u} == 1 ) { goto CHKPOINT1; }
+    if    ( $opts{u} == 1 ) { goto CHKPOINT4; }
     elsif ( $opts{u} == 4 ) { goto CHKPOINT4; }
-    elsif ( $opts{u} == 5 ) { goto CHKPOINT5; }
-    elsif ( $opts{u} == 6 ) { goto CHKPOINT6; }
-
-
-    #Generate reads for haplotypes end
 
     #Simulate reads
   CHKPOINT4:
@@ -655,8 +664,8 @@ sub main {
                 &Log("Imported $opts{p}.$i.fp");
             }
             else {
-                open my $fh, "$opts{r}/dwgsim.$i.12.fastq"
-                  or &LogAndDie("Error opening $opts{r}/dwgsim.$i.12.fastq");
+                open my $fh, "$opts{r}/dwgsim_simulated/dwgsim.$i.12.fastq"
+                  or &LogAndDie("Error opening $opts{r}/dwgsim_simulated/dwgsim.$i.12.fastq");
                 my $l1;
                 my $l2;
                 my $l3;
@@ -680,12 +689,9 @@ sub main {
                     $l7      = <$fh>;
                     $l8      = <$fh>;
                     $newFpos = tell($fh);
-#TODO THIS REGEX WAS UPDATED IN DWGSIM AT SOME POINT, FIX IT
                     unless ( $l1 =~ /@(\S+)_(\d+)_\d+_\d_\d_\d_\d_\d+:\d+:\d+_\d+:\d+:\d+_\S+\/1/)
                     {
-                        &LogAndDie(
-"Cannot find correct chromosome and position in $l1."
-                        );
+                        &LogAndDie("Cannot find correct chromosome and position in $l1.");
                     }
                     my $gCoord = &GenomeCoord2Idx( \%faidx, "$1", $2 );
                     if ( $gCoord < 0 || $gCoord >= $genomeSize ) {
@@ -845,7 +851,6 @@ sub main {
         }
 
         for ( my $i = 0 ; $i < $opts{d} ; ++$i ) {
-
             simReads($i);
             sleep( 2 + int( rand(3) ) );
         }
@@ -864,7 +869,7 @@ sub usage {
 
     Reference genome and variants:
     -r STRING   Name out output project directory
-    -g STRING   Haploid FASTAs separated by comma. Overrides -r and -d.
+    -g STRING   Haploid FASTAs separated by comma.
 
     Illumina reads characteristics:
     -e FLOAT    Per base error rate of the first read [$$opts{e}]
@@ -884,9 +889,6 @@ sub usage {
     -u INT      Continue from a step [auto]
                   4. Simulate reads
                   5. Sort reads extraction manifest
-                  6. Extract reads
-    -z INT      # of threads to run DWGSIM [$$opts{z}]
-    -o          Disable parameter checking
     -h          Show this help
 
     /
@@ -906,7 +908,7 @@ sub Log {
 
 sub LogAndDie {
     &Log(@_);
-    die $!;
+    die;
 }
 
 # Log routine end

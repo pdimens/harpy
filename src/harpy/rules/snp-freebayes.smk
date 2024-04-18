@@ -125,8 +125,8 @@ rule samplenames:
 
 rule bam_list:
     input: 
-        bam = expand(bam_dir + "/{sample}.bam", sample = samplenames),
-        bai = expand(bam_dir + "/{sample}.bam.bai", sample = samplenames)
+        bam = collect(bam_dir + "/{sample}.bam", sample = samplenames),
+        bai = collect(bam_dir + "/{sample}.bam.bai", sample = samplenames)
     output:
         outdir + "/logs/samples.files"
     message:
@@ -138,8 +138,8 @@ rule bam_list:
 
 rule call_variants:
     input:
-        bam = expand(bam_dir + "/{sample}.bam", sample = samplenames),
-        bai = expand(bam_dir + "/{sample}.bam.bai", sample = samplenames),
+        bam = collect(bam_dir + "/{sample}.bam", sample = samplenames),
+        bai = collect(bam_dir + "/{sample}.bam.bai", sample = samplenames),
         groupfile = outdir + "/logs/sample.groups" if groupings else [],
         ref     = f"Genome/{bn}",
         ref_idx = f"Genome/{bn}.fai",
@@ -171,7 +171,7 @@ rule sort_variants:
 
 rule concat_list:
     input:
-        bcfs = expand(outdir + "/regions/{part}.bcf", part = intervals),
+        bcfs = collect(outdir + "/regions/{part}.bcf", part = intervals),
     output:
         outdir + "/logs/bcf.files"
     message:
@@ -183,7 +183,7 @@ rule concat_list:
 
 rule merge_vcfs:
     input:
-        bcfs = expand(outdir + "/regions/{part}.{ext}", part = intervals, ext = ["bcf", "bcf.csi"]),
+        bcfs = collect(outdir + "/regions/{part}.{ext}", part = intervals, ext = ["bcf", "bcf.csi"]),
         filelist = outdir + "/logs/bcf.files"
     output:
         temp(outdir + "/variants.raw.unsort.bcf")
@@ -259,8 +259,8 @@ rule bcf_report:
 rule log_workflow:
     default_target: True
     input:
-        vcf = expand(outdir + "/variants.{file}.bcf", file = ["raw"]),
-        reports = expand(outdir + "/reports/variants.{file}.html", file = ["raw"]) if not skipreports else []
+        vcf = collect(outdir + "/variants.{file}.bcf", file = ["raw"]),
+        reports = collect(outdir + "/reports/variants.{file}.html", file = ["raw"]) if not skipreports else []
     output:
         outdir + "/workflow/snp.freebayes.summary"
     message:

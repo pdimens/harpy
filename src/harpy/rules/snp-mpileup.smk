@@ -128,8 +128,8 @@ rule index_alignments:
 
 rule bam_list:
     input: 
-        bam = expand(bam_dir + "/{sample}.bam", sample = samplenames),
-        bai = expand(bam_dir + "/{sample}.bam.bai", sample = samplenames)
+        bam = collect(bam_dir + "/{sample}.bam", sample = samplenames),
+        bai = collect(bam_dir + "/{sample}.bam.bai", sample = samplenames)
     output:
         outdir + "/logs/samples.files"
     message:
@@ -187,7 +187,7 @@ rule call_genotypes:
 
 rule concat_list:
     input:
-        bcfs = expand(outdir + "/call/{part}.bcf", part = intervals),
+        bcfs = collect(outdir + "/call/{part}.bcf", part = intervals),
     output:
         outdir + "/logs/bcf.files"
     message:
@@ -199,7 +199,7 @@ rule concat_list:
 
 rule concat_logs:
     input:
-        expand(outdir + "/logs/{part}.mpileup.log", part = intervals)
+        collect(outdir + "/logs/{part}.mpileup.log", part = intervals)
     output:
         outdir + "/logs/mpileup.log"
     message:
@@ -215,7 +215,7 @@ rule concat_logs:
 
 rule merge_vcfs:
     input:
-        vcfs     = expand(outdir + "/call/{part}.{ext}", part = intervals, ext = ["bcf", "bcf.csi"]),
+        vcfs     = collect(outdir + "/call/{part}.{ext}", part = intervals, ext = ["bcf", "bcf.csi"]),
         filelist = outdir + "/logs/bcf.files"
     output:
         temp(outdir + "/variants.raw.unsort.bcf")
@@ -300,9 +300,9 @@ rule bcf_report:
 rule log_workflow:
     default_target: True
     input:
-        vcf = expand(outdir + "/variants.{file}.bcf", file = ["raw"]),
+        vcf = collect(outdir + "/variants.{file}.bcf", file = ["raw"]),
         agg_log = outdir + "/logs/mpileup.log",
-        reports = expand(outdir + "/reports/variants.{file}.html", file = ["raw"]) if not skipreports else []
+        reports = collect(outdir + "/reports/variants.{file}.html", file = ["raw"]) if not skipreports else []
     output:
         outdir + "/workflow/snp.mpileup.summary"
     params:

@@ -1,89 +1,3 @@
-import os
-import re
-import sys
-import glob
-import gzip
-import shutil
-from pathlib import Path
-
-from rich.panel import Panel
-from rich import print as rprint
-
-outdir = config["output_directory"]
-lrsim_params = f"-o 1 -d 2 -u 4 -p {outdir}/sim"
-lrsim_params += " -i " + str(config["outer_distance"])
-lrsim_params += " -s " + str(config["distance_sd"])
-lrsim_params += " -x " + str(config["read_pairs"])
-lrsim_params += " -f " + str(config["molecule_length"])
-lrsim_params += " -t " + str(config["partitions"])
-lrsim_params += " -m " + str(config["molecules_per_partition"])
-gen_hap1 = config["genome_hap1"]
-gen_hap2 = config["genome_hap2"]
-
-barcodes = config.get("barcodes", None)
-if barcodes:
-    barcodefile = barcodes
-else:
-    barcodefile = f"{outdir}/workflow/input/4M-with-alts-february-2016.txt"
-
-onsuccess:
-    shutil.rmtree('./_Inline', ignore_errors=True)
-    print("")
-    rprint(
-        Panel(
-            f"The workflow has finished successfully! Find the results in [bold]{outdir}/[/bold]. If you want to combine both haplotypes of the forward (or reverse) reads together, you can do so with:\n[blue bold]cat reads_hap{{1..2}}.R1.fq.gz > simulations.R1.fq.gz[/blue bold]",
-            title = "[bold]harpy simulate reads",
-            title_align = "left",
-            border_style = "green"
-            ),
-        file = sys.stderr
-    )
-
-onerror:
-    shutil.rmtree('./_Inline', ignore_errors=True)
-    print("")
-    rprint(
-        Panel(
-            f"The workflow has terminated due to an error. See the log file below for more details.",
-            title = "[bold]harpy simulate reads",
-            title_align = "left",
-            border_style = "red"
-            ),
-        file = sys.stderr
-    )
-
-rule genome1_link:
-    input:
-        gen_hap1
-    output: 
-        f"{outdir}/workflow/input/hap.0.fasta"
-    message: 
-        "Decompressing {input}" if gen_hap1.lower().endswith("gz") else "Symlinking {input}"
-    run:
-        if input[0].lower().endswith("gz"):
-            with open(input[0], 'rb') as inf, open(output[0], 'w', encoding='utf8') as outf:
-                decom_str = gzip.decompress(inf.read()).decode('utf-8')
-                outf.write(decom_str)        
-        else:
-            if not (Path(output[0]).is_symlink() or Path(output[0]).exists()):
-                Path(output[0]).symlink_to(Path(input[0]).absolute()) 
-
-rule genome2_link:
-    input:
-        gen_hap2
-    output: 
-        f"{outdir}/workflow/input/hap.1.fasta"
-    message: 
-        "Decompressing {input}" if gen_hap2.lower().endswith("gz") else "Symlinking {input}"
-    run:
-        if input[0].lower().endswith("gz"):
-            with open(input[0], 'rb') as inf, open(output[0], 'w', encoding='utf8') as outf:
-                decom_str = gzip.decompress(inf.read()).decode('utf-8')
-                outf.write(decom_str)        
-        else:
-            if not (Path(output[0]).is_symlink() or Path(output[0]).exists()):
-                Path(output[0]).symlink_to(Path(input[0]).absolute()) 
-
 rule genome_faidx:
     input:
         outdir + "/workflow/input/hap.{hap}.fasta"
@@ -104,7 +18,7 @@ if not barcodes:
             from urllib.request import urlretrieve
             _ = urlretrieve("https://raw.githubusercontent.com/aquaskyline/LRSIM/master/4M-with-alts-february-2016.txt", output[0])
 
-rule create_molecules_hap1:
+rule create_molecules_hap:
     input:
         outdir + "/workflow/input/hap.{hap}.fasta"
     output:
@@ -126,8 +40,9 @@ rule create_molecules_hap1:
         """
 
 rule interleave_dwgsim_output:
+    default_target: True
     input:
-        expand(outdir + "/dwgsim.{{hap}}.12.bwa.read{rd}.fastq.gz", rd = [1,2]) 
+        collect(outdir + "/dwgsim.{{hap}}.12.bwa.read{rd}.fastq.gz", rd = [1,2]) 
     output:
         outdir + "/dwgsim.{hap}.12.fastq"
     message:
@@ -144,13 +59,20 @@ rule lrsim:
         fai2 = outdir + "/workflow/input/hap.1.fasta.fai",
         barcodes = barcodefile
     output:
-        expand(outdir + "/sim.{hap}.{ext}", hap = [0,1], ext = ["fp", "manifest"])
+        collect(outdir + "/sim.{hap}.{ext}", hap = [0,1], ext = ["fp", "manifest"])
     log:
         f"{outdir}/logs/LRSIM.log"
     params:
         lrsim = f"{outdir}/src/harpy/scripts/LRSIMharpy.pl",
-        proj_dir = outdir,
-        runoptions = lrsim_params
+        static = "-o 1 -d 2 -u 4",
+        proj_dir = f"-r {outdir}",
+        prefix = f"-p {outdir}/sim",
+        outdist  = f"""-i {config["outer_distance"]}""",
+        dist_sd  = f"""-s {config["distance_sd"]}""",
+        n_pairs  = f"""-x {config["read_pairs"]}""",
+        mol_len  = f"""-f {config["molecule_length"]}""",
+        parts    = f"""-t {config["partitions"]}""",
+        mols_per = f"""-m {config["molecules_per_partition"]}"""
     threads:
         workflow.cores
     conda:
@@ -158,7 +80,7 @@ rule lrsim:
     message:
         "Running LRSIM to generate linked reads from\nhaplotype 1: {input.hap1}\nhaplotype 2: {input.hap2}" 
     shell: 
-        "perl {params.lrsim} -r {params.proj_dir} -g {input.hap1},{input.hap2} -b {input.barcodes} {params.runoptions} -z {threads} 2> {log}"
+        "perl {params} -g {input.hap1},{input.hap2} -b {input.barcodes} -z {threads} 2> {log}"
 
 rule sort_manifest:
     input:
@@ -176,12 +98,10 @@ rule extract_reads:
         outdir + "/sim_hap{hap}_R1_001.fastq.gz",
         outdir + "/sim_hap{hap}_R2_001.fastq.gz"
     params:
-        prefix = lambda wc: outdir + "/sim_hap" + wc.get("hap")
+        lambda wc: outdir + "/sim_hap" + wc.get("hap")
     shell:
         "extractReads {input} {output}"
 
-#TODO adjust python script to be not-snakemake inputs
-# add outdir to args
 rule convert_haplotag:
     input:
         fw = outdir + "/sim_hap{hap}_R1_001.fastq.gz",
@@ -190,21 +110,28 @@ rule convert_haplotag:
     output:
         fw = outdir + "/sim_hap{hap}_haplotag.R1.fq.gz",
         rv = outdir + "/sim_hap{hap}_haplotag.R2.fq.gz"
-    params:
-        outdir
     log:
         outdir + "/workflow/10XtoHaplotag_{hap}.txt" 
     message:
         "Converting 10X barcodes to haplotag format"
     shell:
-        "10xtoHaplotag.py {input} {outdir}"
+        "10xtoHaplotag.py -f {input.fw} -r {input.rv} -b {input.barcodes} -l {log}"
 
 rule log_workflow:
-    #default_target: True
     input:
-        expand(outdir + "/hap{hap}_haplotag.R{fw}.fq.gz", hap = [1,2], fw = [1,2])
+        collect(outdir + "/hap{hap}_haplotag.R{fw}.fq.gz", hap = [1,2], fw = [1,2])
     output:
         outdir + "/workflow/simulate.reads.workflow.summary"
+    params:
+        static = "-o 1 -d 2 -u 4",
+        proj_dir = f"-r {outdir}",
+        prefix = f"-p {outdir}/sim",
+        outdist  = f"""-i {config["outer_distance"]}""",
+        dist_sd  = f"""-s {config["distance_sd"]}""",
+        n_pairs  = f"""-x {config["read_pairs"]}""",
+        mol_len  = f"""-f {config["molecule_length"]}""",
+        parts    = f"""-t {config["partitions"]}""",
+        mols_per = f"""-m {config["molecules_per_partition"]}"""
     message:
         "Summarizing the workflow: {output}"
     run:
@@ -214,7 +141,7 @@ rule log_workflow:
             _ = f.write(f"Genome haplotype 2: {gen_hap2}\n")
             _ = f.write(f"Barcode file: {barcodefile}\n")
             _ = f.write("LRSIM was started from step 3 (-u 3) with these parameters:\n")
-            _ = f.write("    " + f"LRSIM.pl -g genome1,genome2 -o -u 3 {lrsim_params}\n")
+            _ = f.write("    " + f"LRSIMharpy.pl -g genome1,genome2 " + " ".join(params) + "\n")
             _ = f.write("10X style barcodes were converted in haplotag BX:Z tags using:\n")
             _ = f.write("    " + f"10xtoHaplotag.py")
             _ = f.write("\nThe Snakemake workflow was called via command line:\n")

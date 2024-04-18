@@ -104,13 +104,13 @@ rule lrsim:
     input:
         hap1 = f"{outdir}/sim.hap.0.clean.fasta",
         hap2 = f"{outdir}/sim.hap.1.clean.fasta",
-        fai = expand(outdir + "/sim.hap.{hap}.clean.fasta.fai", hap = [0,1]),
+        fai = collect(outdir + "/sim.hap.{hap}.clean.fasta.fai", hap = [0,1]),
         barcodes = barcodefile,
         extract_bin = f"{outdir}/src/harpy/scripts/extractReads"
     output:
-        expand(outdir + "/sim_S1_L00{hap}_R{fr}_001.fastq.gz", hap = [0,1], fr = [0,1]),
-        expand(outdir + "/sim.{hap}.{ext}", hap = [0,1], ext = ["fp", "manifest", "sort.manifest"]),
-        temp(expand(outdir + "/sim.dwgsim.{hap}.12.fastq", hap = [0,1]))
+        collect(outdir + "/sim_S1_L00{hap}_R{fr}_001.fastq.gz", hap = [0,1], fr = [0,1]),
+        collect(outdir + "/sim.{hap}.{ext}", hap = [0,1], ext = ["fp", "manifest", "sort.manifest"]),
+        temp(collect(outdir + "/sim.dwgsim.{hap}.12.fastq", hap = [0,1]))
     log:
         f"{outdir}/logs/LRSIM.log"
     params:
@@ -143,7 +143,7 @@ rule convert_haplotag:
 rule log_workflow:
     default_target: True
     input:
-        expand(outdir + "/hap{hap}_haplotag.R{fw}.fq.gz", hap = [1,2], fw = [1,2])
+        collect(outdir + "/hap{hap}_haplotag.R{fw}.fq.gz", hap = [1,2], fw = [1,2])
     output:
         outdir + "/workflow/simulate.reads.workflow.summary"
     message:
