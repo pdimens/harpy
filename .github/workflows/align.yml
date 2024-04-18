@@ -19,10 +19,13 @@ env:
 
 jobs:
   test_bwa:
-    name: Test BWA
+    name: test BWA
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
       - name: Check for align file changes
         uses: dorny/paths-filter@latest
         id: filter
@@ -70,10 +73,13 @@ jobs:
           run: harpy align bwa -g test/genome/genome.fasta.gz -s "--show-failed-logs" -x "-A 2" test/fastq
   
   test_ema:
-    name: Test EMA
+    name: test EMA
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
       - name: Check for align file changes
         uses: dorny/paths-filter@latest
         id: filter
@@ -122,10 +128,13 @@ jobs:
         run: harpy align ema --ema-bins 20 -g test/genome/genome.fasta.gz -s "--show-failed-logs" -x "-d" test/fastq
 
   test_minimap:
-    name: Test minimap
+    name: test minimap
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
       - name: Check for align file changes
         uses: dorny/paths-filter@latest
         id: filter
