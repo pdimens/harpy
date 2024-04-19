@@ -90,7 +90,7 @@ for read in alnfile.fetch():
         ins_len = abs(pos_end - pos_start)
     elif tlen < 0:
         # if TLEN < 0, it's a reverse read
-        if read.is_paired:
+        if read.is_proper_pair:
             # then it was already counted in the forward read
             ins_len = 0
         else:
