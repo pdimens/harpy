@@ -5,7 +5,7 @@ common: &common
   - '**validations.py'
   - '**__main__.py'
   - 'resources/harpy.yaml'
-  - '**tests.yml'
+  - '.github/workflows/tests.yml'
   - 'resources/buildforCI.sh'
 preflight:
   - *common
