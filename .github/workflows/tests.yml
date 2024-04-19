@@ -38,7 +38,7 @@ jobs:
       naibr: ${{ steps.filter.outputs.naibr }}
       impute: ${{ steps.filter.outputs.impute }}
       phase: ${{ steps.filter.outputs.phase }}
-      simvar: ${{ steps.filter.outputs.simvar }}
+      simvars: ${{ steps.filter.outputs.simvar }}
       simreads: ${{ steps.filter.outputs.simreads }}
     steps:
       - name: checkout
