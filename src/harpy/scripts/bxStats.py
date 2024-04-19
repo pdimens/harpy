@@ -83,13 +83,26 @@ for read in alnfile.fetch():
     # end position of last alignment
     pos_end   = read.reference_end
 
+    tlen = read.template_length
+    if tlen == 0:
+        # if the TLEN is zero, infer the insert as
+        # the distance between alignment end/start
+        ins_len = abs(pos_end - pos_start)
+    elif tlen < 0:
+        # if TLEN < 0, it's a reverse read
+        if read.is_paired:
+            # then it was already counted in the forward read
+            ins_len = 0
+        else:
+            ins_len = abs(ins_len)
+
     # create bx entry if it's not present
     if mi not in d.keys():
         d[mi] = {
             "start":  pos_start,
             "end": pos_end,
             "bp":   bp,
-            "insert_len" : abs(read.template_length),
+            "insert_len" : ins_len,
             "n":    1,
             "lastpos" : pos_end,
             #"alignments" : aln,
@@ -99,7 +112,7 @@ for read in alnfile.fetch():
 
     # update the basic alignment info of the molecule
     #d[mi]["alignments"] += aln
-    d[mi]["insert_len"] += abs(read.template_length)
+    d[mi]["insert_len"] += ins_len
     d[mi]["bp"] += bp
     d[mi]["n"]  += 1
     # only if low < currentlow or high > currenthigh
