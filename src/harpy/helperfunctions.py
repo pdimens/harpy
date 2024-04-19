@@ -27,7 +27,7 @@ def generate_conda_deps():
         "variants.sv": ["leviathan", "naibr-plus"],
         "phase" : ["hapcut2", "whatshap"],
         "simulations" : ["perl", "perl-math-random", "perl-inline-c", "perl-parse-recdescent", "numpy", "dwgsim", "alienzj::msort"],
-        "r-env" : ["bioconductor-complexheatmap", "r-circlize", "r-dt", "r-flexdashboard", "r-ggplot2", "r-ggridges", "r-plotly", "r-tidyr", "r-stitch"]
+        "r-env" : ["bioconductor-complexheatmap", "r-highcharter", "r-circlize", "r-dt", "r-flexdashboard", "r-ggplot2", "r-ggridges", "r-plotly", "r-tidyr", "r-stitch"]
     }
 
     os.makedirs(".harpy_envs", exist_ok = True)

@@ -13,11 +13,9 @@ output:
 ```{r echo = F, results = F, message = F}
 library(flexdashboard)
 library(dplyr)
-library(ggplot2)
-library(plotly)
+library(highcharter)
 library(magrittr)
 library(DT)
-library(scales)
 ```
 
 ```{r echo = F, results = F, message = F}
@@ -136,44 +134,28 @@ as it likely doesn't start at `0`.
 ## Reads per molecule
 ### Reads per mol {.no-title}
 ```{r echo = FALSE, message = FALSE, warning = FALSE, out.width = '100%'}
-p <- ggplot(valids, aes(reads)) +
-    stat_ecdf(aes(group=1), geom="line", pad = F, color = "#8484bd") +
-    stat_ecdf(aes(group=1), geom="point", pad = F, shape = 21, size = 3, fill = "#8484bd", color = "white") +
-    labs(
-        title = "Reads Per Unique Molecule",
-        subtitle = samplename,
-        caption = paste0("Total unique molecules: ", totuniqBX),
-        x = "Number of aligned reads",
-        y = "% of molecules",
-    ) +
-    theme_light() +
-    scale_y_continuous(labels = label_percent()) +
-    theme(panel.grid.minor.y = element_blank())
-
-ggplotly(p)
+h <- hist(valids$reads, plot = F)
+h$density = h$counts/sum(h$counts)*100
+df <- data.frame(x = factor(h$breaks[-1]), y = h$density)
+hchart(df, "spline",  hcaes(x = x , y = y), color = "#8484bd", name = "% of all molecules") |>
+  hc_title(text = "Reads Per Molecule") |>
+  hc_caption(text = paste0("Total unique molecules: ", totuniqBX)) |>
+  hc_xAxis(title = list(text = "Number of Reads")) |>
+  hc_yAxis(title = list(text = "% of All Molecules")) |>
+  hc_tooltip(crosshairs = TRUE)
 ```
 
 ### Bases Per molecule {.no-title}
 ```{r echo = FALSE, message = FALSE, warning = FALSE, out.width = '100%'}
-dat.binned <- valids %>%
-    count(Marks = cut(aligned_bp, seq(0,max(aligned_bp)+500, 500))) %>%
-    mutate(pct = n/sum(n)) %>% mutate("Cumulative_Percent" = round(cumsum(pct) * 100,2), "Size_Range" = Marks)
-
-levels(dat.binned$Size_Range) <- formatBins(dat.binned$Size_Range)
-
-p <- ggplot(data = dat.binned, mapping = aes(Size_Range, Cumulative_Percent)) +  
-  geom_line(aes(group = 1), color = "#99cccc") + 
-  geom_point(size = 3, shape = 21, color = "white", fill = "#99cccc") +
-  labs(
-    title = "Bases Aligned Per Unique Molecule",
-    subtitle = samplename,
-    caption = paste0("Total unique molecules: ", totuniqBX),
-    x = "Number of aligned bases (bp)",
-    y = "% of molecules",
-  ) +
-  theme_light() +
-  theme(panel.grid.minor.y = element_blank())  
-ggplotly(p) %>% layout(hovermode = "x")
+h <- hist(valids$aligned_bp, breaks = seq(0,max(aligned_bp)+500, 500), plot = F)
+h$density = h$counts/sum(h$counts)*100
+df <- data.frame(x = factor(h$breaks[-1]), y = h$density)
+hchart(df, "spline",  hcaes(x = x , y = y), color = "#99cccc", name = "% of all molecules") |>
+  hc_title(text = "Bases Aligned Per Unique Molecule") |>
+  hc_caption(text = paste0("Total unique molecules: ", totuniqBX)) |>
+  hc_xAxis(title = list(text = "Number of aligned bases (bp)")) |>
+  hc_yAxis(title = list(text = "% of All Molecules")) |>
+  hc_tooltip(crosshairs = TRUE)
 ```
 ## inferred-header
 ### inferred desc {.no-title}
@@ -195,50 +177,28 @@ appear in the alignment data.
 ## Inferred
 ### Inferred molecule Lengths
 ```{r echo = FALSE, message = FALSE, warning = FALSE, out.width = '100%'}
-dat.binned <- valids %>% mutate(length_inferred = length_inferred/1000) %>%
-    count(Marks = cut(length_inferred, seq(0,max(length_inferred)+5, 5))) %>%
-    mutate(pct = n/sum(n)) %>% mutate("Cumulative_Percent" = round(cumsum(pct) * 100,2), "Size_Range" = Marks)
-
-levels(dat.binned$Size_Range) <- formatBins(dat.binned$Size_Range)
-p <- ggplot(data = dat.binned, mapping = aes(Size_Range, Cumulative_Percent)) +  
-  geom_line(aes(group = 1), color = "#9393d2") + 
-  geom_point(data = dat.binned, size = 3, shape = 21, color = "white", fill = "#6b6b9c") +
-  labs(
-    title = "Inferred Molecule Length",
-    subtitle = samplename,
-    caption = paste0("Total unique molecules: ", totuniqBX),
-    x = "Molecule Size Bin (kbp)",
-    y = "% of Molecules"
-  ) +
-  scale_y_continuous(trans = "log10") +
-  theme_light() +
-  theme(panel.grid.minor.y = element_blank())  
-
-ggplotly(p) %>% layout(hovermode = "x")
+h <- hist(valids$length_inferred/1000, breaks = seq(0,max(length_inferred)+5, 5), plot = F)
+h$density = h$counts/sum(h$counts)*100
+df <- data.frame(x = factor(h$breaks[-1]), y = h$density)
+hchart(df, "spline",  hcaes(x = x , y = y), color = "#9393d2", name = "% of all molecules") |>
+  hc_title(text = "Inferred Molecule Length") |>
+  hc_caption(text = paste0("Total unique molecules: ", totuniqBX)) |>
+  hc_xAxis(title = list(text = "Molecule Size Bin (kbp)")) |>
+  hc_yAxis(title = list(text = "% of All Molecules"), type = "logarithmic") |>
+  hc_tooltip(crosshairs = TRUE)
 ```
 
 ### Inferred Molecule Coverage
 ```{r echo = FALSE, message = FALSE, warning = FALSE, out.width = '100%'}
-dat.binned <- valids %>%
-    count(Marks = cut(percent_coverage*100, seq(0,max(percent_coverage*100)+5, 5))) %>%
-    mutate(pct = n/sum(n)) %>% rename("Percent_Coverage" = Marks, "Percent_Total_Molecules" = pct)
-  
-levels(dat.binned$Percent_Coverage) <- formatBins(dat.binned$Percent_Coverage)
-
-p <- dat.binned %>%
-  ggplot(aes(x = Percent_Coverage, y = Percent_Total_Molecules)) + 
-  geom_bar(stat = "identity", fill = "#e59765", color = "white") +
-  labs(
-    title = "Percent Molecule Coverage",
-    subtitle = samplename,
-    caption = paste0("Total unique molecules: ", totuniqBX),
-    x="% of Molecule Covered by Alignments",
-    y="% Unique Molecules"
-  ) +
-  scale_y_continuous(labels = scales::percent) +
-  theme_light()
-
-ggplotly(p) %>% layout(hovermode = "x")
+h <- hist(valids$percent_coverage * 100, breaks = seq(0,max(percent_coverage*100)+5, 5), plot = F)
+h$density = h$counts/sum(h$counts)*100
+df <- data.frame(x = factor(h$breaks[-1]), y = h$density)
+hchart(df, "spline",  hcaes(x = x , y = y), color = "#e59765", name = "% of all molecules") |>
+  hc_title(text = "Percent Molecule Coverage") |>
+  hc_caption(text = paste0("Total unique molecules: ", totuniqBX)) |>
+  hc_xAxis(title = list(text = "% of Molecule Covered by Alignments")) |>
+  hc_yAxis(title = list(text = "% Unique Molecules")) |>
+  hc_tooltip(crosshairs = TRUE)
 ```
 
 ## Interpreting the supporting data
