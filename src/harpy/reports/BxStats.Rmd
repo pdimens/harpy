@@ -29,12 +29,12 @@ bamfile <- gsub(".bxstats.gz", ".bam", infile)
 samplename <- gsub(".bxstats.gz", "", basename(infile))
 tb <- read.table(infile, header = T, sep = "\t") %>% select(-start, -end)
 tb$valid <- tb$molecule
-tb[!(tb$valid %in% c("noBX", "invalidBX")), "valid"] <- "validBX"
+tb[!(tb$valid %in% c("noBX", "invalidBX")), "valid"] <- "valid BX"
 tb$valid <- gsub("BX", " BX", tb$valid)
 ```
 
 ```{r bxper, echo = F, results = F, message = F}
-valids <- tb[!(tb$valid %in% c("no BX", "invalid BX")),]
+valids <- filter(tb, valid == "valid BX")
 nBX <- group_by(valids, contig) %>% 
   summarize(nBX = length(molecule))
 
@@ -113,12 +113,10 @@ valueBox(scales::comma(totuniqBX), caption = "Total unique molecules", color = "
 ## N50 and N90
 ### Molecule Length Metrics
 ```{r echo = FALSE, message = FALSE, warning = FALSE, out.width = '70%'}
-nstats <- valids %>% 
+valids %>% 
     group_by(contig) %>%
     summarize(n50 = NX(length_inferred, 50), n75 = NX(length_inferred, 75), n90 = NX(length_inferred, 90)) %>% 
-    as.data.frame()
-
-knitr::kable(nstats)
+    as.data.frame() %>% knitr::kable()
 ```
 
 ## Reads per molecule dec
@@ -138,8 +136,7 @@ as it likely doesn't start at `0`.
 ## Reads per molecule
 ### Reads per mol {.no-title}
 ```{r echo = FALSE, message = FALSE, warning = FALSE, out.width = '100%'}
-p <- filter(tb, valid == "valid BX") %>%
-    ggplot(aes(reads)) +
+p <- ggplot(valids, aes(reads)) +
     stat_ecdf(aes(group=1), geom="line", pad = F, color = "#8484bd") +
     stat_ecdf(aes(group=1), geom="point", pad = F, shape = 21, size = 3, fill = "#8484bd", color = "white") +
     labs(
@@ -158,7 +155,7 @@ ggplotly(p)
 
 ### Bases Per molecule {.no-title}
 ```{r echo = FALSE, message = FALSE, warning = FALSE, out.width = '100%'}
-dat.binned <- tb %>% filter(valid == "valid BX", length_inferred > 10) %>%
+dat.binned <- valids %>%
     count(Marks = cut(aligned_bp, seq(0,max(aligned_bp)+500, 500))) %>%
     mutate(pct = n/sum(n)) %>% mutate("Cumulative_Percent" = round(cumsum(pct) * 100,2), "Size_Range" = Marks)
 
@@ -198,7 +195,7 @@ appear in the alignment data.
 ## Inferred
 ### Inferred molecule Lengths
 ```{r echo = FALSE, message = FALSE, warning = FALSE, out.width = '100%'}
-dat.binned <- tb %>% filter(valid == "valid BX") %>% mutate(length_inferred = length_inferred/1000) %>%
+dat.binned <- valids %>% mutate(length_inferred = length_inferred/1000) %>%
     count(Marks = cut(length_inferred, seq(0,max(length_inferred)+5, 5))) %>%
     mutate(pct = n/sum(n)) %>% mutate("Cumulative_Percent" = round(cumsum(pct) * 100,2), "Size_Range" = Marks)
 
@@ -222,7 +219,7 @@ ggplotly(p) %>% layout(hovermode = "x")
 
 ### Inferred Molecule Coverage
 ```{r echo = FALSE, message = FALSE, warning = FALSE, out.width = '100%'}
-dat.binned <- tb %>% filter(valid == "valid BX") %>%
+dat.binned <- valids %>%
     count(Marks = cut(percent_coverage*100, seq(0,max(percent_coverage*100)+5, 5))) %>%
     mutate(pct = n/sum(n)) %>% rename("Percent_Coverage" = Marks, "Percent_Total_Molecules" = pct)
   
