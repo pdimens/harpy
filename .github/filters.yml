@@ -1,0 +1,129 @@
+common: &common
+  - '**helperfunctions.py'
+  - '**printfunctions.py'
+  - '**fileparsers.py'
+  - '**validations.py'
+  - '**__main__.py'
+  - 'resources/harpy.yaml'
+  - 'resources/buildforCI.sh'
+preflight:
+  - *common
+  - 'src/harpy/rules/preflight-fastq.smk'
+  - 'src/harpy/rules/preflight-bam.smk'
+  - '**preflight.py'
+  - 'test/fastq/**'
+  - 'test/bam/**'
+  - 'src/harpy/scripts/checkBAM.py'
+  - 'src/harpy/scripts/checkFASTQ.py'
+  - 'src/harpy/reports/PreflightFastq.Rmd'
+  - 'src/harpy/reports/PreflightBam.Rmd'
+dmux:
+  - *common
+  - 'src/harpy/rules/demultiplex**.smk'
+  - '**demultiplex.py'
+  - '**demuxGen1'
+  - '**demux.yml'
+  - 'bcFiles.py'
+  - 'test/data/demux/**'
+qc:
+  - *common
+  - 'src/harpy/rules/qc.smk'
+  - '**qc.py'
+  - 'test/fastq/**'
+bwa:
+  - *common
+  - 'src/harpy/rules/align-bwa.smk'
+  - '**align.py'
+  - 'src/harpy/reports/Gencov.Rmd'
+  - 'src/harpy/reports/BxCount.Rmd'
+  - 'src/harpy/reports/BxStats.Rmd'
+  - 'src/harpy/scripts/bxStats.py'
+  - 'src/harpy/scripts/countBX.py'
+  - 'globalscripts/makeWindows.py'
+  - 'test/fastq/**'
+ema:
+  - *common
+  - 'src/harpy/rules/align-ema.smk'
+  - '**align.py'
+  - 'src/harpy/reports/EmaGencov.Rmd'
+  - 'src/harpy/reports/EmaCount.Rmd'
+  - 'src/harpy/reports/BxCount.Rmd'
+  - 'src/harpy/reports/BxStats.Rmd'
+  - 'src/harpy/scripts/bxStats.py'
+  - 'src/harpy/scripts/countBX.py'
+  - 'globalscripts/makewindows.py'
+  - 'test/fastq/**'
+minimap:
+  - *common
+  - 'src/harpy/rules/align-minimap.smk'
+  - '**align.py'
+  - 'src/harpy/reports/Gencov.Rmd'
+  - 'src/harpy/reports/BxCount.Rmd'
+  - 'src/harpy/reports/BxStats.Rmd'
+  - 'src/harpy/scripts/bxStats.py'
+  - 'src/harpy/scripts/countBX.py'
+  - 'globalscripts/makewindows.py'
+  - 'test/fastq/**'
+mpileup:
+  - *common
+  - 'src/harpy/rules/snp-mpileup.smk'
+  - '**snp.py'
+  - 'src/harpy/reports/BcftoolsStats.Rmd'
+  - 'globalscripts/makewindows.py'
+  - 'test/bam/**'
+freebayes:
+  - *common
+  - 'src/harpy/rules/snp-mpileup.smk'
+  - 'src/harpy/rules/snp-freebayes.smk'
+  - '**snp.py'
+  - 'src/harpy/reports/BcftoolsStats.Rmd'
+  - 'globalscripts/makewindows.py'
+  - 'test/bam/**'
+impute:
+  - *common
+  - '**impute.smk'
+  - '**impute.py'
+  - 'test/bam/**'
+  - 'test/vcf/test.bcf'
+  - 'src/harpy/reports/Impute.Rmd'
+  - 'src/harpy/reports/StitchCollate.Rmd'
+  - 'src/harpy/scripts/stitch_impute.R'
+leviathan:
+  - *common
+  - 'src/harpy/rules/sv-leviathan**.smk'
+  - '**sv.py'
+  - 'test/bam/**'
+  - 'src/harpy/reports/Leviathan**.Rmd'
+naibr:
+  - *common
+  - 'src/harpy/rules/sv-naibr**.smk'
+  - '**sv.py'
+  - 'test/bam/**'
+  - 'test/bam_phased/**'
+  - 'test/vcf/test.phased.bcf'
+  - 'src/harpy/reports/Naibr**.Rmd'
+  - 'globalscripts/inferSV.py'
+phase:
+  - *common
+  - 'src/harpy/rules/phase-pop.smk'
+  - '**phase.py'
+  - 'test/bam/**'
+  - 'test/vcf/test.bcf'
+  - 'src/harpy/reports/HapCut2.Rmd'
+  - 'globalscripts/parsePhaseBlocks.py'
+simvars:
+  - *common
+  - 'simulate-snpindel.smk'
+  - 'simulate-variants.smk'
+  - 'test/vcf/test.bcf'
+  - 'src/harpy/scripts/simuG.pl'
+simreads:
+  - *common
+  - 'simulate-linkedreads.smk'
+  - 'test/genome**gz'
+  - 'extractReads.cpp'
+  - 'globalscripts/10xtoHaplotag.py'
+  - 'src/harpy/scripts/LRSIMharpy.pl'
+extras:
+  - '**stitchparams.py'
+  - '**popgroup.py'

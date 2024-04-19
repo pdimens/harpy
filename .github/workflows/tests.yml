@@ -1,0 +1,474 @@
+name: Test Harpy Modules
+
+on:
+  push:
+    branches:
+      - 'dev'
+  pull_request:
+    branches:
+      - 'dev'
+
+# Cancel in progress workflows on pull_requests.
+# https://docs.github.com/en/actions/using-jobs/using-concurrency#example-using-a-fallback-value
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
+  cancel-in-progress: true
+
+env:
+  CACHE_NUMBER: 0  # increase to reset cache manually
+
+jobs:
+  changes:
+    name: Detect File Changes
+    runs-on: ubuntu-latest
+      # Required permissions
+    permissions:
+      pull-requests: read
+    # Set job outputs to values from filter step
+    outputs:
+      preflight: ${{ steps.filter.outputs.qc }}
+      demux: ${{ steps.filter.outputs.dmux }}
+      qc: ${{ steps.filter.outputs.qc }}
+      bwa: ${{ steps.filter.outputs.bwa }}
+      ema: ${{ steps.filter.outputs.ema }}
+      minimap: ${{ steps.filter.outputs.minimap }}
+      mpileup: ${{ steps.filter.outputs.mpileup }}
+      freebayes: ${{ steps.filter.outputs.freebayes }}
+      leviathan: ${{ steps.filter.outputs.leviathan }}
+      naibr: ${{ steps.filter.outputs.naibr }}
+      impute: ${{ steps.filter.outputs.impute }}
+      phase: ${{ steps.filter.outputs.phase }}
+      simvar: ${{ steps.filter.outputs.simvar }}
+      simreads: ${{ steps.filter.outputs.simreads }}
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: .github/filters.yaml
+
+  test_dmux_gen1:
+    name: test demux gen1
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+      - name: setup mamba
+        uses: mamba-org/setup-micromamba@v1
+        with:
+          init-shell: bash
+          generate-run-shell: true
+          environment-file: resources/harpy.yaml
+          cache-environment: true
+          post-cleanup: 'all'
+      - name: Install harpy
+        shell: micromamba-shell {0}
+        run: |
+          python3 -m pip install --upgrade build && python3 -m build
+          pip install dist/*.whl
+          resources/buildforCI.sh
+      - name: harpy demultiplex
+        run: harpy demultiplex gen1 --samplesheet test/demux/samples.schema test/demux/Undetermined_S0_L004_I1_001.fastq.gz
+        shell: micromamba-shell {0}
+
+  test_qc:
+    needs: changes
+    if: ${{ needs.changes.outputs.qc == 'true' }}
+    name: test qc
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+      - name: setup mamba
+        uses: mamba-org/setup-micromamba@v1
+        env:
+          ACTIONS_STEP_DEBUG: true
+        with:
+          init-shell: bash
+          generate-run-shell: true
+          environment-file: resources/harpy.yaml
+          cache-environment: true
+          post-cleanup: 'all'
+          log-level: error
+      - name: Install harpy
+        shell: micromamba-shell {0}
+        run: |
+          python3 -m pip install --upgrade build && python3 -m build
+          pip install dist/*.whl
+          resources/buildforCI.sh
+      - name: harpy qc
+        shell: micromamba-shell {0}
+        run: harpy qc -x "--trim_poly_g"  -s "--show-failed-logs" test/fastq
+      - name: harpy qc skip adapter trimming
+        if: always()
+        shell: micromamba-shell {0}
+        run: harpy qc -a -s "--show-failed-logs" test/fastq
+  
+  test_bwa:
+    needs: changes
+    if: ${{ needs.changes.outputs.bwa == 'true' }}
+    name: test align BWA
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+      - name: setup mamba
+        uses: mamba-org/setup-micromamba@v1
+        env:
+          ACTIONS_STEP_DEBUG: true
+        with:
+          init-shell: bash
+          generate-run-shell: true
+          environment-file: resources/harpy.yaml
+          cache-environment: true
+          post-cleanup: 'all'
+          log-level: error
+      - name: Install harpy
+        shell: micromamba-shell {0}
+        run: |
+          python3 -m pip install --upgrade build && python3 -m build
+          pip install dist/*.whl
+          resources/buildforCI.sh
+      - name: test bwa
+        shell: micromamba-shell {0}
+        run: harpy align bwa -g test/genome/genome.fasta.gz -s "--show-failed-logs" -x "-A 2" test/fastq
+  
+  test_ema:
+    needs: changes
+    if: ${{ needs.changes.outputs.ema == 'true' }}
+    name: test align EMA
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+      - name: setup mamba
+        uses: mamba-org/setup-micromamba@v1
+        env:
+          ACTIONS_STEP_DEBUG: true
+        with:
+          init-shell: bash
+          generate-run-shell: true
+          environment-file: resources/harpy.yaml
+          cache-environment: true
+          post-cleanup: 'all'
+          log-level: error
+      - name: Install harpy
+        shell: micromamba-shell {0}
+        run: |
+          python3 -m pip install --upgrade build && python3 -m build
+          pip install dist/*.whl
+          resources/buildforCI.sh
+      - name: test ema
+        shell: micromamba-shell {0}
+        run: harpy align ema --ema-bins 20 -g test/genome/genome.fasta.gz -s "--show-failed-logs" -x "-d" test/fastq
+
+  test_minimap:
+    needs: changes
+    if: ${{ needs.changes.outputs.minimap == 'true' }}
+    name: test align minimap
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+      - name: setup mamba
+        uses: mamba-org/setup-micromamba@v1
+        env:
+          ACTIONS_STEP_DEBUG: true
+        with:
+          init-shell: bash
+          generate-run-shell: true
+          environment-file: resources/harpy.yaml
+          cache-environment: true
+          post-cleanup: 'all'
+          log-level: error
+      - name: Install harpy
+        shell: micromamba-shell {0}
+        run: |
+          python3 -m pip install --upgrade build && python3 -m build
+          pip install dist/*.whl
+          resources/buildforCI.sh
+      - name: test minimap
+        shell: micromamba-shell {0}
+        run: harpy align minimap -g test/genome/genome.fasta.gz -s "--show-failed-logs" -x "--seed 13" test/fastq
+
+  test_impute:
+    needs: changes
+    if: ${{ needs.changes.outputs.impute == 'true' }}
+    name: test impute
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+      - name: setup mamba
+        uses: mamba-org/setup-micromamba@v1
+        env:
+          ACTIONS_STEP_DEBUG: true
+        with:
+          init-shell: bash
+          generate-run-shell: true
+          environment-file: resources/harpy.yaml
+          cache-environment: true
+          post-cleanup: 'all'
+          log-level: error
+      - name: Install harpy
+        shell: micromamba-shell {0}
+        run: |
+          python3 -m pip install --upgrade build && python3 -m build
+          pip install dist/*.whl
+          resources/buildforCI.sh
+      - name: impute
+        shell: micromamba-shell {0}
+        run: harpy impute --vcf test/vcf/test.bcf -p test/stitch.params -s "--show-failed-logs" test/bam
+      - name: impute from vcf
+        shell: micromamba-shell {0}
+        if: always()
+        run: harpy impute --vcf-samples -o vcfImpute --vcf test/vcf/test.bcf -p test/stitch.params -s "--show-failed-logs" test/bam
+
+  test_phase:
+    needs: changes
+    if: ${{ needs.changes.outputs.phase == 'true' }}
+    name: test phase
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+      - name: setup mamba
+        uses: mamba-org/setup-micromamba@v1
+        env:
+          ACTIONS_STEP_DEBUG: true
+        with:
+          init-shell: bash
+          generate-run-shell: true
+          environment-file: resources/harpy.yaml
+          cache-environment: true
+          post-cleanup: 'all'
+          log-level: error
+      - name: Install harpy
+        shell: micromamba-shell {0}
+        run: |
+          python3 -m pip install --upgrade build && python3 -m build
+          pip install dist/*.whl
+          resources/buildforCI.sh
+      - name: phase
+        shell: micromamba-shell {0}
+        run: harpy phase --vcf test/vcf/test.bcf -s "--show-failed-logs" -x "--max_iter 10001" test/bam
+      - name: phase with indels
+        shell: micromamba-shell {0}
+        if: always()
+        run: harpy phase --vcf test/vcf/test.bcf -o phaseindel -g test/genome/genome.fasta.gz -s "--show-failed-logs" test/bam
+      - name: phase from vcf
+        shell: micromamba-shell {0}
+        if: always()
+        run: harpy phase --vcf-samples -o phasevcf --vcf test/vcf/test.bcf -s "--show-failed-logs" test/bam
+
+  test_leviathan:
+    needs: changes
+    if: ${{ needs.changes.outputs.leviathan == 'true' }}
+    name: test sv leviathan
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+      - name: setup mamba
+        uses: mamba-org/setup-micromamba@v1
+        env:
+          ACTIONS_STEP_DEBUG: true
+        with:
+          init-shell: bash
+          generate-run-shell: true
+          environment-file: resources/harpy.yaml
+          cache-environment: true
+          post-cleanup: 'all'
+          log-level: error
+      - name: Install harpy
+        shell: micromamba-shell {0}
+        run: |
+          python3 -m pip install --upgrade build && python3 -m build
+          pip install dist/*.whl
+          resources/buildforCI.sh
+      - name: leviathan
+        shell: micromamba-shell {0}
+        run: harpy sv leviathan -n 100 -b 1 -g test/genome/genome.fasta.gz -q -s "--show-failed-logs" -x "-M 2002" test/bam
+        continue-on-error: true
+      - name: leviathan-pop
+        if: always()
+        shell: micromamba-shell {0}
+        run: harpy sv leviathan -n 100 -b 1 -g test/genome/genome.fasta.gz -o SV/leviathanpop -p test/samples.groups -q -s "--show-failed-logs" test/bam
+
+  test_naibr:
+    needs: changes
+    if: ${{ needs.changes.outputs.leviathan == 'true' }}
+    name: test sv naibr
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+      - name: setup mamba
+        uses: mamba-org/setup-micromamba@v1
+        env:
+          ACTIONS_STEP_DEBUG: true
+        with:
+          init-shell: bash
+          generate-run-shell: true
+          environment-file: resources/harpy.yaml
+          cache-environment: true
+          post-cleanup: 'all'
+          log-level: error
+      - name: Install harpy
+        shell: micromamba-shell {0}
+        run: |
+          python3 -m pip install --upgrade build && python3 -m build
+          pip install dist/*.whl
+          resources/buildforCI.sh
+      - name: naibr
+        shell: micromamba-shell {0}
+        run: harpy sv naibr -g test/genome/genome.fasta.gz -o SV/naibr -s "--show-failed-logs" -x "-min_sv 5000" test/bam_phased && rm -r Genome
+      - name: naibr pop
+        if: always()
+        shell: micromamba-shell {0}
+        run: harpy sv naibr -g test/genome/genome.fasta.gz -o SV/pop -p test/samples.groups -s "--show-failed-logs" test/bam_phased && rm -r Genome
+      - name: naibr with phasing
+        if: always()
+        shell: micromamba-shell {0}
+        run: |
+          harpy sv naibr -g test/genome/genome.fasta.gz -o SV/phase -v test/vcf/test.phased.bcf -s "--show-failed-logs" test/bam && rm -r Genome
+      - name: naibr pop with phasing
+        if: always()
+        shell: micromamba-shell {0}
+        run: harpy sv naibr -g test/genome/genome.fasta.gz -o SV/phasepop -v test/vcf/test.phased.bcf -p test/samples.groups -s "--show-failed-logs" test/bam && rm -r Genome
+
+
+  test_simulate_variants:
+    needs: changes
+    if: ${{ needs.changes.outputs.simvars == 'true' }}
+    name: test simulate variants
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+      - name: setup mamba
+        uses: mamba-org/setup-micromamba@v1
+        env:
+          ACTIONS_STEP_DEBUG: true
+        with:
+          init-shell: bash
+          generate-run-shell: true
+          environment-file: resources/harpy.yaml
+          cache-environment: true
+          post-cleanup: 'all'
+          log-level: error
+      - name: Install harpy
+        run: |
+          python3 -m pip install --upgrade build && python3 -m build
+          pip install dist/*.whl
+          resources/buildforCI.sh
+        shell: micromamba-shell {0}
+      - name: simulate random snps/indels
+        shell: micromamba-shell {0}
+        run: |
+          harpy simulate snpindel --snp-count 10 --indel-count 10 -z 0.5 -s "--show-failed-logs" test/genome/genome.fasta.gz
+          harpy simulate snpindel --prefix Simulate/snpvcf --snp-vcf Simulate/snpindel/sim.snpindel.snp.hap1.vcf --indel-vcf Simulate/snpindel/sim.snpindel.indel.hap1.vcf -s "--show-failed-logs" test/genome/genome.fasta.gz
+      - name: simulate inversions
+        shell: micromamba-shell {0}
+        if: always()
+        run: |
+          harpy simulate inversion --count 10 -z 0.5 test/genome/genome.fasta.gz
+          harpy simulate inversion --prefix Simulate/invvcf --vcf Simulate/inversion/sim.inversion.hap1.vcf -s "--show-failed-logs" test/genome/genome.fasta.gz
+      - name: simulate cnv
+        shell: micromamba-shell {0}
+        if: always()
+        run: |
+          harpy simulate cnv --count 10 -z 0.5 test/genome/genome.fasta.gz
+          harpy simulate cnv --prefix Simulate/cnvvcf --vcf Simulate/cnv/sim.cnv.hap1.vcf -s "--show-failed-logs" test/genome/genome.fasta.gz
+      - name: simulate translocations
+        shell: micromamba-shell {0}
+        if: always()
+        run: |
+          harpy simulate translocation --count 10 -z 0.5 test/genome/genome.fasta.gz
+          harpy simulate translocation --prefix Simulate/transvcf --vcf Simulate/translocation/sim.translocation.hap1.vcf -s "--show-failed-logs" test/genome/genome.fasta.gz
+
+  test_simulate_variants:
+    needs: changes
+    if: ${{ needs.changes.outputs.simreads == 'true' }}
+    name: test simulate linkedreads
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+      - name: setup mamba
+        uses: mamba-org/setup-micromamba@v1
+        env:
+          ACTIONS_STEP_DEBUG: true
+        with:
+          init-shell: bash
+          generate-run-shell: true
+          environment-file: resources/harpy.yaml
+          cache-environment: true
+          post-cleanup: 'all'
+          log-level: error
+      - name: Install harpy
+        shell: micromamba-shell {0}
+        run: |
+          python3 -m pip install --upgrade build && python3 -m build
+          pip install dist/*.whl
+          resources/buildforCI.sh
+      - name: simulate linked reads
+        shell: micromamba-shell {0}
+        run: harpy simulate linkedreads -s "--show-failed-logs" -t 4 -n 2  -l 100 -p 50 test/genome/genome.fasta.gz test/genome/genome2.fasta.gz
+
+  test_extras:
+    needs: changes
+    if: ${{ needs.changes.outputs.extras == 'true' }}
+    name: test harpy extras
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+      - name: setup mamba
+        uses: mamba-org/setup-micromamba@v1
+        env:
+          ACTIONS_STEP_DEBUG: true
+        with:
+          init-shell: bash
+          generate-run-shell: true
+          environment-file: resources/harpy.yaml
+          cache-environment: true
+          post-cleanup: 'all'
+          log-level: error
+      - name: Install harpy
+        shell: micromamba-shell {0}
+        run: |
+          python3 -m pip install --upgrade build && python3 -m build
+          pip install dist/*.whl
+          resources/buildforCI.sh
+      - name: harpy stitchparams
+        shell: micromamba-shell {0}
+        run: harpy stitchparams -o params.file
+      - name: harpy popgroup
+        shell: micromamba-shell {0}
+        run: harpy popgroup test/fastq
