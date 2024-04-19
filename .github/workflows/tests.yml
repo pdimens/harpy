@@ -6,7 +6,7 @@ on:
       - 'dev'
   pull_request:
     branches:
-      - 'dev'
+      - dev
 
 # Cancel in progress workflows on pull_requests.
 # https://docs.github.com/en/actions/using-jobs/using-concurrency#example-using-a-fallback-value
