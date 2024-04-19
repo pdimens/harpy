@@ -48,9 +48,32 @@ jobs:
         with:
           filters: .github/filters.yml
 
+  pkgbuild:
+    name: harpy installation
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+      - name: setup mamba
+        uses: mamba-org/setup-micromamba@v1
+        with:
+          init-shell: bash
+          generate-run-shell: true
+          environment-file: resources/harpy.yaml
+          cache-environment: true
+          post-cleanup: 'all'
+      - name: Install harpy
+        shell: micromamba-shell {0}
+        run: |
+          python3 -m pip install --upgrade build && python3 -m build
+          pip install dist/*.whl
+          resources/buildforCI.sh
+
   test_dmux_gen1:
-    needs: changes
-    if: ${{ needs.changes.outputs.dmux == 'true' }}
+    needs: [changes, pkgbuild]
+    if: ${{ needs.changes.outputs.dmux == 'true' && needs.pkgbuild.result == 'success' }}
     name: test demux gen1
     runs-on: ubuntu-latest
     steps:
@@ -77,8 +100,8 @@ jobs:
         shell: micromamba-shell {0}
 
   test_qc:
-    needs: changes
-    if: ${{ needs.changes.outputs.qc == 'true' }}
+    needs: [changes, pkgbuild]
+    if: ${{ needs.changes.outputs.qc == 'true' && needs.pkgbuild.result == 'success' }}
     name: test qc
     runs-on: ubuntu-latest
     steps:
@@ -112,8 +135,8 @@ jobs:
         run: harpy qc -a -s "--show-failed-logs" test/fastq
   
   test_bwa:
-    needs: changes
-    if: ${{ needs.changes.outputs.bwa == 'true' }}
+    needs: [changes, pkgbuild]
+    if: ${{ needs.changes.outputs.bwa == 'true' && needs.pkgbuild.result == 'success' }}
     name: test align BWA
     runs-on: ubuntu-latest
     steps:
@@ -143,8 +166,8 @@ jobs:
         run: harpy align bwa -g test/genome/genome.fasta.gz -s "--show-failed-logs" -x "-A 2" test/fastq
   
   test_ema:
-    needs: changes
-    if: ${{ needs.changes.outputs.ema == 'true' }}
+    needs: [changes, pkgbuild]
+    if: ${{ needs.changes.outputs.ema == 'true' && needs.pkgbuild.result == 'success' }}
     name: test align EMA
     runs-on: ubuntu-latest
     steps:
@@ -174,8 +197,8 @@ jobs:
         run: harpy align ema --ema-bins 20 -g test/genome/genome.fasta.gz -s "--show-failed-logs" -x "-d" test/fastq
 
   test_minimap:
-    needs: changes
-    if: ${{ needs.changes.outputs.minimap == 'true' }}
+    needs: [changes, pkgbuild]
+    if: ${{ needs.changes.outputs.minimap == 'true' && needs.pkgbuild.result == 'success' }}
     name: test align minimap
     runs-on: ubuntu-latest
     steps:
@@ -205,8 +228,8 @@ jobs:
         run: harpy align minimap -g test/genome/genome.fasta.gz -s "--show-failed-logs" -x "--seed 13" test/fastq
 
   test_impute:
-    needs: changes
-    if: ${{ needs.changes.outputs.impute == 'true' }}
+    needs: [changes, pkgbuild]
+    if: ${{ needs.changes.outputs.impute == 'true' && needs.pkgbuild.result == 'success' }}
     name: test impute
     runs-on: ubuntu-latest
     steps:
@@ -240,8 +263,8 @@ jobs:
         run: harpy impute --vcf-samples -o vcfImpute --vcf test/vcf/test.bcf -p test/stitch.params -s "--show-failed-logs" test/bam
 
   test_phase:
-    needs: changes
-    if: ${{ needs.changes.outputs.phase == 'true' }}
+    needs: [changes, pkgbuild]
+    if: ${{ needs.changes.outputs.phase == 'true' && needs.pkgbuild.result == 'success' }}
     name: test phase
     runs-on: ubuntu-latest
     steps:
@@ -279,8 +302,8 @@ jobs:
         run: harpy phase --vcf-samples -o phasevcf --vcf test/vcf/test.bcf -s "--show-failed-logs" test/bam
 
   test_leviathan:
-    needs: changes
-    if: ${{ needs.changes.outputs.leviathan == 'true' }}
+    needs: [changes, pkgbuild]
+    if: ${{ needs.changes.outputs.leviathan == 'true' && needs.pkgbuild.result == 'success' }}
     name: test sv leviathan
     runs-on: ubuntu-latest
     steps:
@@ -315,8 +338,8 @@ jobs:
         run: harpy sv leviathan -n 100 -b 1 -g test/genome/genome.fasta.gz -o SV/leviathanpop -p test/samples.groups -q -s "--show-failed-logs" test/bam
 
   test_naibr:
-    needs: changes
-    if: ${{ needs.changes.outputs.leviathan == 'true' }}
+    needs: [changes, pkgbuild]
+    if: ${{ needs.changes.outputs.leviathan == 'true' && needs.pkgbuild.result == 'success' }}
     name: test sv naibr
     runs-on: ubuntu-latest
     steps:
@@ -360,8 +383,8 @@ jobs:
 
 
   test_simulate_variants:
-    needs: changes
-    if: ${{ needs.changes.outputs.simvars == 'true' }}
+    needs: [changes, pkgbuild]
+    if: ${{ needs.changes.outputs.simvars == 'true' && needs.pkgbuild.result == 'success' }}
     name: test simulate variants
     runs-on: ubuntu-latest
     steps:
@@ -411,8 +434,8 @@ jobs:
           harpy simulate translocation --prefix Simulate/transvcf --vcf Simulate/translocation/sim.translocation.hap1.vcf -s "--show-failed-logs" test/genome/genome.fasta.gz
 
   test_simulate_linkedreads:
-    needs: changes
-    if: ${{ needs.changes.outputs.simreads == 'true' }}
+    needs: [changes, pkgbuild]
+    if: ${{ needs.changes.outputs.simreads == 'true' && needs.pkgbuild.result == 'success' }}
     name: test simulate linkedreads
     runs-on: ubuntu-latest
     steps:
@@ -442,8 +465,8 @@ jobs:
         run: harpy simulate linkedreads -s "--show-failed-logs" -t 4 -n 2  -l 100 -p 50 test/genome/genome.fasta.gz test/genome/genome2.fasta.gz
 
   test_extras:
-    needs: changes
-    if: ${{ needs.changes.outputs.extras == 'true' }}
+    needs: [changes, pkgbuild]
+    if: ${{ needs.changes.outputs.extras == 'true' && needs.pkgbuild.result == 'success' }}
     name: test harpy extras
     runs-on: ubuntu-latest
     steps:
