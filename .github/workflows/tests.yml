@@ -46,9 +46,11 @@ jobs:
       - uses: dorny/paths-filter@v3
         id: filter
         with:
-          filters: .github/filters.yaml
+          filters: .github/filters.yml
 
   test_dmux_gen1:
+    needs: changes
+    if: ${{ needs.changes.outputs.dmux == 'true' }}
     name: test demux gen1
     runs-on: ubuntu-latest
     steps:
