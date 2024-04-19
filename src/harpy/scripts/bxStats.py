@@ -94,7 +94,7 @@ for read in alnfile.fetch():
             # then it was already counted in the forward read
             ins_len = 0
         else:
-            ins_len = abs(ins_len)
+            ins_len = abs(tlen)
 
     # create bx entry if it's not present
     if mi not in d.keys():
