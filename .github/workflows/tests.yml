@@ -19,7 +19,7 @@ env:
 
 jobs:
   changes:
-    name: Detect File Changes
+    name: detect file changes
     runs-on: ubuntu-latest
       # Required permissions
     permissions:
