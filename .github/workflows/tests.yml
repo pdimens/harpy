@@ -43,7 +43,8 @@ jobs:
     steps:
       - name: checkout
         uses: actions/checkout@v4
-      - uses: dorny/paths-filter@v3
+      - name: check which files changed
+        uses: dorny/paths-filter@v3
         id: filter
         with:
           base: 'dev'
