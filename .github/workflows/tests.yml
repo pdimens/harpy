@@ -194,7 +194,7 @@ jobs:
           resources/buildforCI.sh
       - name: test ema
         shell: micromamba-shell {0}
-        run: harpy align ema --ema-bins 20 -g test/genome/genome.fasta.gz -s "--show-failed-logs" -x "-d" test/fastq
+        run: harpy align ema --ema-bins 150 -g test/genome/genome.fasta.gz -s "--show-failed-logs" -x "-d" test/fastq
 
   test_minimap:
     needs: [changes, pkgbuild]
