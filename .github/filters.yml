@@ -126,5 +126,6 @@ simreads:
   - 'globalscripts/10xtoHaplotag.py'
   - 'src/harpy/scripts/LRSIMharpy.pl'
 extras:
+  - '.github/workflows/tests.yml'
   - '**stitchparams.py'
   - '**popgroup.py'
