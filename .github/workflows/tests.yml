@@ -408,7 +408,7 @@ jobs:
           harpy simulate translocation --count 10 -z 0.5 test/genome/genome.fasta.gz
           harpy simulate translocation --prefix Simulate/transvcf --vcf Simulate/translocation/sim.translocation.hap1.vcf -s "--show-failed-logs" test/genome/genome.fasta.gz
 
-  test_simulate_variants:
+  test_simulate_linkedreads:
     needs: changes
     if: ${{ needs.changes.outputs.simreads == 'true' }}
     name: test simulate linkedreads
