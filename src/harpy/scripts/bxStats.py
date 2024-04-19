@@ -95,6 +95,8 @@ for read in alnfile.fetch():
             ins_len = 0
         else:
             ins_len = abs(tlen)
+    else:
+        ins_len = tlen
 
     # create bx entry if it's not present
     if mi not in d.keys():
