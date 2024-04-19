@@ -76,8 +76,6 @@ def bwa(input, output_dir, genome, threads, extra_params, quality_filter, molecu
     )
     return command
 
-#####----------ema--------------------
-
 @click.command(no_args_is_help = True, epilog = "read the docs for more information: https://pdimens.github.io/harpy/modules/align/ema")
 @click.option('-p', '--platform', type = click.Choice(['haplotag', '10x'], case_sensitive=False), default = "haplotag", show_default=True, help = "Linked read bead technology\n[haplotag, 10x]")
 @click.option('-w', '--whitelist', type = click.Path(exists=True, dir_okay=False), help = "Barcode whitelist file for tellseq/10x")
@@ -163,8 +161,6 @@ def ema(input, output_dir, platform, whitelist, genome, threads, ema_bins, skipr
         "align ema"
     )
     return command
-
-#####----------minimap2--------------------
 
 @click.command(no_args_is_help = True, epilog= "read the docs for more information: https://pdimens.github.io/harpy/modules/align/bwa/")
 @click.option('-g', '--genome', type=click.Path(exists=True, dir_okay=False), required = True, metavar = "File Path", help = 'Genome assembly for read mapping')
