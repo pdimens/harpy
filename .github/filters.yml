@@ -18,7 +18,7 @@ preflight:
   - 'src/harpy/scripts/checkFASTQ.py'
   - 'src/harpy/reports/PreflightFastq.Rmd'
   - 'src/harpy/reports/PreflightBam.Rmd'
-dmux:
+demux:
   - *common
   - 'src/harpy/rules/demultiplex**.smk'
   - '**demultiplex.py'

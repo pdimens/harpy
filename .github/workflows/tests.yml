@@ -27,7 +27,7 @@ jobs:
     # Set job outputs to values from filter step
     outputs:
       preflight: ${{ steps.filter.outputs.qc }}
-      demux: ${{ steps.filter.outputs.dmux }}
+      demux: ${{ steps.filter.outputs.demux }}
       qc: ${{ steps.filter.outputs.qc }}
       bwa: ${{ steps.filter.outputs.bwa }}
       ema: ${{ steps.filter.outputs.ema }}
@@ -75,7 +75,7 @@ jobs:
 
   test_dmux_gen1:
     needs: [changes, pkgbuild]
-    if: ${{ needs.changes.outputs.dmux == 'true' && needs.pkgbuild.result == 'success' }}
+    if: ${{ needs.changes.outputs.demux == 'true' && needs.pkgbuild.result == 'success' }}
     name: test demux gen1
     runs-on: ubuntu-latest
     steps:
