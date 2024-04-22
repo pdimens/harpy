@@ -133,7 +133,7 @@ hchart(density(valids$reads), color = "#8484bd", name = "density") |>
   hc_yAxis(title = list(text = "density")) |>
   hc_caption(text = paste0("Total unique molecules: ", totuniqBX)) |>
   hc_tooltip(crosshairs = TRUE) |>
-  hc_exporting(enabled = T, filename = samplename)
+  hc_exporting(enabled = T, filename = paste0(samplename, ".readsper")
 
 ```
 
@@ -152,7 +152,7 @@ hchart(density(valids$aligned_bp), color = "#75b89e", name = "density") |>
   hc_yAxis(title = list(text = "density")) |>
   hc_caption(text = paste0("Total unique molecules: ", totuniqBX)) |>
   hc_tooltip(crosshairs = TRUE) |>
-  hc_exporting(enabled = T, filename = samplename)
+  hc_exporting(enabled = T, filename = paste0(samplename, ".basesper")
 ```
 
 
@@ -190,7 +190,7 @@ hchart(df, type = "spline", hcaes(x = var, y = freq), color = "#b3519d", name = 
   hc_yAxis(title = list(text = "% of molecules")) |>
   hc_caption(text = paste0("Total unique molecules: ", totuniqBX)) |>
   hc_tooltip(crosshairs = TRUE) |>
-  hc_exporting(enabled = T, filename = samplename)
+  hc_exporting(enabled = T, filename = paste0(samplename, ".mollen")
 ```
 
 ### inferred_covplot {.no-title}
@@ -208,7 +208,7 @@ hchart(df, type = "spline", hcaes(x = var, y = freq), color = "#e59765", name = 
   hc_yAxis(title = list(text = "% of molecules")) |>
   hc_caption(text = paste0("Total unique molecules: ", totuniqBX)) |>
   hc_tooltip(crosshairs = TRUE) |>
-  hc_exporting(enabled = T, filename = samplename)
+  hc_exporting(enabled = T, filename = paste0(samplename, ".molcov")
 ```
 
 ## Interpreting the supporting data
@@ -370,7 +370,7 @@ hchart(density(tb$depth[tb$depth <= q99]), color = "#9393d2", name = "density", 
   hc_xAxis(ceiling = q99, title = list(text = "depth")) |>
   hc_yAxis(title = list(text = "density"))  |>
   hc_title(text = "Distribution of Alignment Depths")  |>
-  hc_exporting(enabled = T, filename = samplename)
+  hc_exporting(enabled = T, filename = paste0(samplename, ".cov")
 ```
 
 ## Sumheader
