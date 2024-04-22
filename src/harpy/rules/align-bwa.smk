@@ -126,7 +126,7 @@ rule genome_make_windows:
     message: 
         "Creating BED intervals from {input}"
     shell: 
-        "makeWindows.py -i {input} -w 10000 -o {output}"
+        "makeWindows.py -i {input} -w 50000 -o {output}"
 
 rule align:
     input:
@@ -232,20 +232,6 @@ rule index_markdups:
     shell:
         "samtools index {input}"
 
-rule bxstats_report:
-    input:
-        outdir + "/reports/BXstats/data/{sample}.bxstats.gz"
-    output:	
-        outdir + "/reports/BXstats/{sample}.bxstats.html"
-    params:
-        molecule_distance
-    conda:
-        os.getcwd() + "/.harpy_envs/r-env.yaml"
-    message: 
-        "Summarizing barcoded alignments: {wildcards.sample}"
-    script:
-        "report/BxStats.Rmd"
-
 rule assign_molecules:
     input:
         bam = outdir + "/samples/{sample}/{sample}.markdup.bam",
@@ -267,7 +253,7 @@ rule alignment_bxstats:
         bam = outdir + "/{sample}.bam",
         bai = outdir + "/{sample}.bam.bai"
     output: 
-        outdir + "/reports/BXstats/data/{sample}.bxstats.gz"
+        outdir + "/reports/data/bxstats/{sample}.bxstats.gz"
     params:
         sample = lambda wc: d[wc.sample]
     conda:
@@ -282,7 +268,7 @@ rule alignment_coverage:
         bed = f"Genome/{bn}.bed",
         bam = outdir + "/{sample}.bam"
     output: 
-        outdir + "/reports/coverage/data/{sample}.cov.gz"
+        outdir + "/reports/data/coverage/{sample}.cov.gz"
     threads: 
         2
     message:
@@ -290,18 +276,21 @@ rule alignment_coverage:
     shell:
         "samtools bedcov -c {input} | gzip > {output}"
 
-rule coverage_report:
+rule reports:
     input:
-        outdir + "/reports/coverage/data/{sample}.cov.gz"
-    output:
-        outdir + "/reports/coverage/{sample}.cov.html"
+        outdir + "/reports/data/bxstats/{sample}.bxstats.gz",
+        outdir + "/reports/data/coverage/{sample}.cov.gz"
+    output:	
+        outdir + "/reports/{sample}.html"
+    params:
+        molecule_distance
     conda:
         os.getcwd() + "/.harpy_envs/r-env.yaml"
-    message:
-        "Summarizing alignment coverage: {wildcards.sample}"
+    message: 
+        "Creating alignment report: {wildcards.sample}"
     script:
-        "report/Gencov.Rmd"
-    
+        "report/BxStats.Rmd"
+   
 rule general_alignment_stats:
     input:
         bam      = outdir + "/{sample}.bam",
@@ -337,8 +326,7 @@ rule log_workflow:
     default_target: True
     input:
         bams = collect(outdir + "/{sample}.{ext}", sample = samplenames, ext = ["bam", "bam.bai"]),
-        cov_reports = collect(outdir + "/reports/coverage/{sample}.cov.html", sample = samplenames) if not skipreports else [],
-        bx_reports = collect(outdir + "/reports/BXstats/{sample}.bxstats.html", sample = samplenames) if not skipreports else [],
+        reports = collect(outdir + "/reports/{sample}.html", sample = samplenames) if not skipreports else [],
         agg_report = outdir + "/reports/bwa.stats.html" if not skipreports else []
     output:
         outdir + "/workflow/align.bwa.summary"

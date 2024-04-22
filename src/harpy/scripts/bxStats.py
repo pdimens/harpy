@@ -2,138 +2,88 @@ import re
 import sys
 import gzip
 import pysam
-from itertools import chain
+
+alnfile = pysam.AlignmentFile(snakemake.input[0])
+outfile = gzip.open(snakemake.output[0], "wb", 6)
+outfile.write(b"contig\tmolecule\treads\tstart\tend\tlength_inferred\tpercent_coverage\taligned_bp\n")
 
 d = dict()
-chromlast = False
-alnfile = pysam.AlignmentFile(snakemake.input[0])
-outfile = gzip.open(snakemake.output[0], "wb")
-outfile.write(b"contig\tmolecule\treads\tstart\tend\tlength_inferred\tpercent_coverage\taligned_bp\tmindist\n")
+chromlast = None
 
-def writestats(x,chr):
-    """
-    Writes molecule stats to a file. Only gets called when the chromosome changes.
-    """
+def writestats(x, contig):
     for mi in x:
-        x[mi]["inferred"] = x[mi]["end"] - x[mi]["start"] 
-        x[mi]["mindist"] = max(0, x[mi]["mindist"])
+        x[mi]["inferred"] =x[mi]["end"] - x[mi]["start"] 
+        x[mi]["bp"] = x[mi]["bp"] // 2
         try:
-            #mi_aln = x[mi].get("alignments", 0)
-            # converts start/end positions into ranges and merges ranges into a set, then gets the length of the unique set
-            #x[mi]["covered"] = round((len(set(chain(*[range(i,j+1) for i,j in mi_aln]))) - 1) / x[mi]["inferred"], 2)
-            x[mi]["covered"] = x[mi]["insert_len"] / x[mi]["inferred"]
+            x[mi]["covered"] = x[mi]["bp"] / X[mi]["inferred"]
         except:
             x[mi]["covered"] = 0
-        outtext = f"{chr}\t{mi}\t" + "\t".join([str(x[mi][i]) for i in ["n", "start","end", "inferred", "covered", "bp", "mindist"]])
+        outtext = f"{chromlast}\t{mi}\t" + "\t".join([str(x[mi][i]) for i in ["n", "start","end", "inferred", "covered", "bp"]])
         outfile.write(outtext.encode() + b"\n")
 
 for read in alnfile.fetch():
-    chrm = read.reference_name
-    bp   = read.query_alignment_length
+    chrom = read.reference_name
     # check if the current chromosome is different from the previous one
     # if so, print the dict to file and empty it (a consideration for RAM usage)
-    if chromlast != False and chrm != chromlast:
-        writestats(d, chromlast)
-        d = dict()
-    
-    chromlast = chrm
-    
-    if read.is_duplicate or read.is_unmapped:
+    if chromlast is not None:
+        if chrom != chromlast:
+            writestats(d, chromlast)
+            d = dict()
+    chromlast = chrom
+    bp = read.query_alignment_length
+    if read.is_duplicate or read.is_unmapped or read.is_supplementary:
         continue
-    
-    try:
-        mi = read.get_tag("MI")
-        bx = read.get_tag("BX")
-        validBX = True
-        # do a regex search to find X00 pattern in the BX
-        if re.search("[ABCD]0{2,4}", bx):
-            # if found, invalid
-            bx = "invalidBX"
-            mi = "invalidBX"
-            validBX = False
-    except:
-        # There is no bx tag
-        mi = "noBX"
-        validBX = False
     aln = read.get_blocks()
     if not aln:
-        # unaligned, skip
         continue
 
-    # if invalid/absent BX, skip the distance stuff
-    if mi in ["noBX", "invalidBX"]:
-        if mi not in d.keys():
-            d[mi] = {
-                "start":  0,
-                "end": 0,
-                "bp":   bp,
-                "insert_len" : 0,
-                "n":    1,
-                "lastpos" : 0,
-                "mindist" : 0
-            }
-        else:
-            d[mi]["bp"] += bp
-            d[mi]["n"] += 1
+    try:
+        mi = read.get_tag("MI")
+        # do a regex search to find X00 pattern in the BX
+        if re.search("[ABCD]0{2,4}", read.get_tag("BX")):
+            # if found, invalid
+            if "invalidBX" not in d.keys():
+                d["invalidBX"] = {
+                    "start":  0,
+                    "end": 0,
+                    "bp":   bp,
+                    "insert_len" : 0,
+                    "n":    1,
+                }
+            else:
+                d["invalidBX"]["bp"] += bp
+                d["invalidBX"]["n"] += 1
+            continue
+    except:
+        # There is no bx/MI tag
         continue
 
-    # logic to accommodate split reads 
     # start position of first alignment
-    pos_start = read.reference_start
+    start_end = [read.reference_start, read.reference_end]
+    pos_start = min(start_end)
     # end position of last alignment
-    pos_end   = read.reference_end
-
-    tlen = read.template_length
-    if tlen == 0:
-        # if the TLEN is zero, infer the insert as
-        # the distance between alignment end/start
-        ins_len = abs(pos_end - pos_start)
-    elif tlen < 0:
-        # if TLEN < 0, it's a reverse read
-        if read.is_proper_pair:
-            # then it was already counted in the forward read
-            ins_len = 0
-        else:
-            ins_len = abs(tlen)
+    pos_end   = max(start_end)
+    if read.is_paired:
+        isize = read.reference_length // 2
     else:
-        ins_len = tlen
-
+        isize = read.reference_length
     # create bx entry if it's not present
     if mi not in d.keys():
         d[mi] = {
-            "start":  pos_start,
+            "start": pos_start,
             "end": pos_end,
-            "bp":   bp,
-            "insert_len" : ins_len,
-            "n":    1,
-            "lastpos" : pos_end,
-            #"alignments" : aln,
-            "mindist" : -1
+            "bp": bp,
+            "insert_len": isize,
+            "n": 1,
         }
-        continue
+    else:
+        # update the basic alignment info of the molecule
+        d[mi]["bp"] += bp
+        d[mi]["n"]  += 1
+        d[mi]["insert_len"] += isize
+        d[mi]["start"] = min(pos_start, d[mi]["start"])
+        d[mi]["end"] = max(pos_end, d[mi]["end"])
 
-    # update the basic alignment info of the molecule
-    #d[mi]["alignments"] += aln
-    d[mi]["insert_len"] += ins_len
-    d[mi]["bp"] += bp
-    d[mi]["n"]  += 1
-    # only if low < currentlow or high > currenthigh
-    if pos_start < d[mi]["start"]:
-        d[mi]["start"] = pos_start
-    if pos_end > d[mi]["end"]:
-        d[mi]["end"] = pos_end
-
-    if read.is_reverse or (read.is_forward and not read.is_paired):
-        # set the last position to be the end of current alignment
-        d[mi]["lastpos"] = pos_end
-
-    # distance from last alignment = current aln start - previous aln end
-    dist = pos_start - d[mi]["lastpos"]
-
-    # only calculate the minimum distance between alignments
-    # if it's a forward read or an unpaired reverse read
-    if read.is_forward or (read.is_reverse and not read.is_paired):
-        if dist < d[mi]["mindist"] or d[mi]["mindist"] < 0:
-            d[mi]["mindist"] = dist
-
+# print the last entry
+writestats(d, chrom)
 outfile.close()

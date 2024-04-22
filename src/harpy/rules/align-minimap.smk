@@ -335,6 +335,7 @@ rule log_workflow:
     default_target: True
     input: 
         bams = collect(outdir + "/{sample}.{ext}", sample = samplenames, ext = ["bam","bam.bai"]),
+        samtools =  outdir + "/reports/minimap.stats.html" if not skipreports else [] ,
         cov_reports = collect(outdir + "/reports/coverage/{sample}.cov.html", sample = samplenames) if not skipreports else [],
         bx_reports = collect(outdir + "/reports/BXstats/{sample}.bxstats.html", sample = samplenames) if not skipreports else []
     output:
