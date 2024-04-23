@@ -17,7 +17,7 @@ if config["noBX"]:
 else:
     fragfile =  outdir + "/linkFragments/{sample}.linked.frags"
 
-linkarg           = "--10x 0" if config["noBX"] else "--10x 1"
+linkarg     = "--10x 0" if config["noBX"] else "--10x 1"
 skipreports = config["skipreports"]
 
 try:
