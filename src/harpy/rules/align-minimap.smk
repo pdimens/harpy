@@ -276,7 +276,8 @@ rule alignment_coverage:
 
 rule alignment_report:
     input:
-        outdir + "/reports/data/bxstats/{sample}.bxstats.gz"
+        outdir + "/reports/data/bxstats/{sample}.bxstats.gz",
+        outdir + "/reports/data/coverage/{sample}.cov.gz"
     output:	
         outdir + "/reports/{sample}.html"
     params:
