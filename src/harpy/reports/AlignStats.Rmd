@@ -427,23 +427,25 @@ DT::datatable(
 ```
 
 
-## Plotdesc {.no-title}
-### pltdsc {.no-title}
+## Circleplot {.no-title data-height=900}
+### pltdsc {.no-title data-width=150}
 <h2> Depth and Coverage Across the Genome </h2>
-Below is a circular plot summarizing the depth information across up to 30 of the largest contigs.
+To the right is a circular plot summarizing the depth information across up to 30 of the largest contigs.
 For clarity, this visualization truncates coverage at the 99th percentile (`r q99`).
 Each bar represents the alignment depth at a 50kb genomic interval, that is, the
 number of reads that had a _proper_ alignment in the 50kb interval. "Proper" refers to a read
 not marked as a duplicate or flagged with the SAM `UNMAP`, `SECONDARY`,  or `QCFAIL` flags.
-These values are derived by using `samtools bedcov -c`. 
+These values are derived using
+```bash
+samtools bedcov -c windows.bed sample.bam 
+```
 
 This plot allows yout to hover regions to view their coverage, pan by clicking and dragging,
 and zoom. In case you become unable to scroll up from the plot due to these interactive 
-features, place your cursor over the navigation bar at the top of this report and you will
+features, place your cursor over this left column or the navigation bar at the top of this report and you will
 be able to scroll the report instead of zooming on the plot.
 
-## Alignment Summary {data-height=900}
-### Summary {.no-title}
+### Coverage across the genome
 ```{r echo = FALSE, message = FALSE, warning = FALSE}
 # Find the 30 largest contigs
 contigs <- group_by(tb, contig) %>%

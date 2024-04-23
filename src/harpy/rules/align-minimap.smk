@@ -324,7 +324,7 @@ rule log_workflow:
     input: 
         bams = collect(outdir + "/{sample}.{ext}", sample = samplenames, ext = ["bam","bam.bai"]),
         samtools =  outdir + "/reports/minimap.stats.html" if not skipreports else [] ,
-        bx_reports = collect(outdir + "/reports/BXstats/{sample}.html", sample = samplenames) if not skipreports else []
+        bx_reports = collect(outdir + "/reports/{sample}.html", sample = samplenames) if not skipreports else []
     output:
         outdir + "/workflow/align.minimap.summary"
     params:

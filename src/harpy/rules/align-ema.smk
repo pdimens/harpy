@@ -414,7 +414,7 @@ rule report:
         outdir + "/reports/data/bxstats/{sample}.bxstats.gz",
         outdir + "/reports/data/coverage/{sample}.cov.gz"
     output:	
-        outdir + "/reports/BXstats/{sample}.bxstats.html"
+        outdir + "/reports/{sample}.html"
     conda:
         os.getcwd() + "/.harpy_envs/r-env.yaml"
     message: 
