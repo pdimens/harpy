@@ -55,8 +55,7 @@ def bwa(input, output_dir, genome, threads, extra_params, quality_filter, molecu
     fetch_rule(workflowdir, "align-bwa.smk")
     fetch_script(workflowdir, "assignMI.py")
     fetch_script(workflowdir, "bxStats.py")
-    for i in ["BxStats", "Gencov"]:
-        fetch_report(workflowdir, f"{i}.Rmd")
+    fetch_report(workflowdir, "AlignStats.Rmd")
 
     with open(f"{workflowdir}/config.yml", "w") as config:
         config.write(f"genomefile: {genome}\n")
@@ -138,7 +137,7 @@ def ema(input, output_dir, platform, whitelist, genome, threads, ema_bins, skipr
     validate_input_by_ext(genome, "--genome", [".fasta", ".fa", ".fasta.gz", ".fa.gz"])
     fetch_rule(workflowdir, "align-ema.smk")
     fetch_script(workflowdir, "bxStats.py")
-    for i in ["EmaCount", "EmaGencov", "BxStats"]:
+    for i in ["EmaCount", "AlignStats"]:
         fetch_report(workflowdir, f"{i}.Rmd")
 
     with open(f"{workflowdir}/config.yml", "w") as config:
@@ -209,8 +208,7 @@ def minimap(input, output_dir, genome, threads, extra_params, quality_filter, mo
     fetch_rule(workflowdir, "align-minimap.smk")
     fetch_script(workflowdir, "assignMI.py")
     fetch_script(workflowdir, "bxStats.py")
-    for i in ["BxStats", "Gencov"]:
-        fetch_report(workflowdir, f"{i}.Rmd")
+    fetch_report(workflowdir, "AlignStats.Rmd")
 
     with open(f"{workflowdir}/config.yml", "w") as config:
         config.write(f"genomefile: {genome}\n")

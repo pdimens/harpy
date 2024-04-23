@@ -112,7 +112,7 @@ rule genome_make_windows:
     message: 
         "Creating BED intervals from {input}"
     shell: 
-        "makeWindows.py -i {input} -w 10000 -o {output}"
+        "makeWindows.py -i {input} -w 50000 -o {output}"
 
 rule genome_index:
     input: 
@@ -232,7 +232,7 @@ rule index_markdups:
 
 rule bxstats_report:
     input:
-        outdir + "/reports/BXstats/data/{sample}.bxstats.gz"
+        outdir + "/reports/data/bxstats/{sample}.bxstats.gz"
     output:	
         outdir + "/reports/BXstats/{sample}.bxstats.html"
     params:
@@ -242,7 +242,7 @@ rule bxstats_report:
     message: 
         "Summarizing barcoded alignments: {wildcards.sample}"
     script:
-        "report/BxStats.Rmd"
+        "report/AlignStats.Rmd"
 
 rule assign_molecules:
     input:
@@ -265,7 +265,7 @@ rule alignment_bxstats:
         bam = outdir + "/{sample}.bam",
         bai = outdir + "/{sample}.bam.bai"
     output: 
-        outdir + "/reports/BXstats/data/{sample}.bxstats.gz"
+        outdir + "/reports/data/bxstats/{sample}.bxstats.gz"
     params:
         sample = lambda wc: d[wc.sample]
     conda:
@@ -280,33 +280,21 @@ rule alignment_coverage:
         bed = f"Genome/{bn}.bed",
         bam = outdir + "/{sample}.bam"
     output: 
-        outdir + "/reports/coverage/data/{sample}.cov.gz"
+        outdir + "/reports/data/coverage/{sample}.cov.gz"
     threads: 
         2
     message:
         "Calculating genomic coverage: {wildcards.sample}"
     shell:
         "samtools bedcov -c {input} | gzip > {output}"
-
-rule coverage_report:
-    input:
-        outdir + "/reports/coverage/data/{sample}.cov.gz"
-    output:
-        outdir + "/reports/coverage/{sample}.cov.html"
-    conda:
-        os.getcwd() + "/.harpy_envs/r-env.yaml"
-    message:
-        "Summarizing alignment coverage: {wildcards.sample}"
-    script:
-        "report/Gencov.Rmd"
-    
+   
 rule general_alignment_stats:
     input:
         bam      = outdir + "/{sample}.bam",
         bai      = outdir + "/{sample}.bam.bai"
     output: 
-        stats    = temp(outdir + "/reports/samtools_stats/{sample}.stats"),
-        flagstat = temp(outdir + "/reports/samtools_flagstat/{sample}.flagstat")
+        stats    = temp(outdir + "/reports/data/samtools_stats/{sample}.stats"),
+        flagstat = temp(outdir + "/reports/data/samtools_flagstat/{sample}.flagstat")
     message:
         "Calculating alignment stats: {wildcards.sample}"
     shell:
@@ -317,7 +305,7 @@ rule general_alignment_stats:
 
 rule samtools_reports:
     input: 
-        collect(outdir + "/reports/samtools_{ext}/{sample}.{ext}", sample = samplenames, ext = ["stats", "flagstat"])
+        collect(outdir + "/reports/data/samtools_{ext}/{sample}.{ext}", sample = samplenames, ext = ["stats", "flagstat"])
     output: 
         outdir + "/reports/minimap.stats.html"
     params:
@@ -328,7 +316,7 @@ rule samtools_reports:
         "Summarizing samtools stats and flagstat"
     shell:
         """
-        multiqc {params}/reports/samtools_stats {params}/reports/samtools_flagstat --force --quiet --title "Basic Alignment Statistics" --comment "This report aggregates samtools stats and samtools flagstats results for all alignments." --no-data-dir --filename {output} 2> /dev/null
+        multiqc {params}/reports/data/samtools_stats {params}/reports/data/samtools_flagstat --force --quiet --title "Basic Alignment Statistics" --comment "This report aggregates samtools stats and samtools flagstats results for all alignments." --no-data-dir --filename {output} 2> /dev/null
         """
 
 rule log_workflow:
@@ -336,8 +324,7 @@ rule log_workflow:
     input: 
         bams = collect(outdir + "/{sample}.{ext}", sample = samplenames, ext = ["bam","bam.bai"]),
         samtools =  outdir + "/reports/minimap.stats.html" if not skipreports else [] ,
-        cov_reports = collect(outdir + "/reports/coverage/{sample}.cov.html", sample = samplenames) if not skipreports else [],
-        bx_reports = collect(outdir + "/reports/BXstats/{sample}.bxstats.html", sample = samplenames) if not skipreports else []
+        bx_reports = collect(outdir + "/reports/BXstats/{sample}.html", sample = samplenames) if not skipreports else []
     output:
         outdir + "/workflow/align.minimap.summary"
     params:

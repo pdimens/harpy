@@ -127,7 +127,7 @@ rule genome_make_windows:
     message: 
         "Creating BED intervals from {input}"
     shell: 
-        "makeWindows.py -i {input} -w 10000 -o {output}"
+        "makeWindows.py -i {input} -w 50000 -o {output}"
 
 rule interleave:
     input:
@@ -352,34 +352,6 @@ rule index_markdups:
     shell:
         "samtools index {input}"
 
-rule coverage_stats:
-    input: 
-        bed     = f"Genome/{bn}.bed",
-        nobx    = outdir + "/align/{sample}.markdup.nobc.bam",
-        nobxbai = outdir + "/align/{sample}.markdup.nobc.bam.bai",
-        bx      = outdir + "/align/{sample}.bc.bam",
-        bxbai   = outdir + "/align/{sample}.bc.bam.bai"
-    output: 
-        outdir + "/reports/coverage/data/{sample}.cov.gz"
-    threads:
-        2
-    message:
-        "Calculating genomic coverage: {wildcards.sample}"
-    shell:
-        "samtools bedcov -c {input.bed} {input.bx} {input.nobx} | gzip > {output}"
-
-rule coverage_report:
-    input: 
-        outdir + "/reports/coverage/data/{sample}.cov.gz",
-    output:
-        outdir + "/reports/coverage/{sample}.cov.html"
-    conda:
-        os.getcwd() + "/.harpy_envs/r-env.yaml"
-    message:
-        "Creating report of alignment coverage: {wildcards.sample}"
-    script:
-        "report/EmaGencov.Rmd"
-
 rule concatenate_alignments:
     input:
         aln_bc   = outdir + "/align/{sample}.bc.bam",
@@ -409,12 +381,27 @@ rule sort_concatenated:
     shell:
         "samtools sort -@ {threads} -O bam --reference {input.genome} -m 4G --write-index -o {output.bam}##idx##{output.bai} {input.bam} 2> /dev/null"
 
+rule coverage_stats:
+    input: 
+        bed     = f"Genome/{bn}.bed",
+        bam = outdir + "/{sample}.bam",
+        bai = outdir + "/{sample}.bam.bai"
+    output: 
+        outdir + "/reports/data/coverage/{sample}.cov.gz"
+    threads:
+        2
+    message:
+        "Calculating genomic coverage: {wildcards.sample}"
+    shell:
+        "samtools bedcov -c {input.bed} {input.bam} | gzip > {output}"
+
+
 rule bx_stats_alignments:
     input:
         bam = outdir + "/{sample}.bam",
         bai = outdir + "/{sample}.bam.bai"
     output: 
-        outdir + "/reports/BXstats/data/{sample}.bxstats.gz"
+        outdir + "/reports/data/bxstats/{sample}.bxstats.gz"
     conda:
         os.getcwd() + "/.harpy_envs/qc.yaml"
     message:
@@ -422,27 +409,26 @@ rule bx_stats_alignments:
     script:
         "scripts/bxStats.py"
 
-rule bx_stats_report:
+rule report:
     input:
-        outdir + "/reports/BXstats/data/{sample}.bxstats.gz"
+        outdir + "/reports/data/bxstats/{sample}.bxstats.gz",
+        outdir + "/reports/data/coverage/{sample}.cov.gz"
     output:	
         outdir + "/reports/BXstats/{sample}.bxstats.html"
-    params:
-        "none"
     conda:
         os.getcwd() + "/.harpy_envs/r-env.yaml"
     message: 
         "Generating summary of barcode alignment: {wildcards.sample}"
     script:
-        "report/BxStats.Rmd"
+        "report/AlignStats.Rmd"
 
 rule general_stats:
     input: 		
         bam      = outdir + "/{sample}.bam",
         bai      = outdir + "/{sample}.bam.bai"
     output:
-        stats    = temp(outdir + "/reports/samtools_stats/{sample}.stats"),
-        flagstat = temp(outdir + "/reports/samtools_flagstat/{sample}.flagstat")
+        stats    = temp(outdir + "/reports/data/samtools_stats/{sample}.stats"),
+        flagstat = temp(outdir + "/reports/data/samtools_flagstat/{sample}.flagstat")
     message:
         "Calculating alignment stats: {wildcards.sample}"
     shell:
@@ -453,7 +439,7 @@ rule general_stats:
 
 rule collate_samtools_stats:
     input: 
-        collect(outdir + "/reports/samtools_{ext}/{sample}.{ext}", sample = samplenames, ext = ["stats", "flagstat"]),
+        collect(outdir + "/reports/data/samtools_{ext}/{sample}.{ext}", sample = samplenames, ext = ["stats", "flagstat"]),
     output: 
         outdir + "/reports/ema.stats.html"
     params:
@@ -464,17 +450,14 @@ rule collate_samtools_stats:
         "Summarizing samtools stats and flagstat"
     shell:
         """
-        multiqc {outdir}/reports/samtools_stats {outdir}/reports/samtools_flagstat --force --quiet --title "Basic Alignment Statistics" --comment "This report aggregates samtools stats and samtools flagstats results for all alignments." --no-data-dir --filename {output} 2> /dev/null
+        multiqc {outdir}/reports/data/samtools_stats {outdir}/reports/data/samtools_flagstat --force --quiet --title "General Alignment Statistics" --comment "This report aggregates samtools stats and samtools flagstats results for all alignments." --no-data-dir --filename {output} 2> /dev/null
         """
-
-# conditionally add the reports to the output
 
 rule log_workflow:
     default_target: True
     input:
         bams = collect(outdir + "/{sample}.{ext}", sample = samplenames, ext = [ "bam", "bam.bai"] ),
-        cov_report = collect(outdir + "/reports/coverage/{sample}.cov.html", sample = samplenames) if not skipreports else [],
-        bx_report = collect(outdir + "/reports/BXstats/{sample}.bxstats.html", sample = samplenames) if not skipreports else [],
+        cov_report = collect(outdir + "/reports/{sample}.html", sample = samplenames) if not skipreports else [],
         bx_counts = f"{outdir}/reports/reads.bxcounts.html" if not skipreports else [],
         agg_report = f"{outdir}/reports/ema.stats.html" if not skipreports else []
     output:

@@ -289,15 +289,15 @@ rule reports:
     message: 
         "Creating alignment report: {wildcards.sample}"
     script:
-        "report/BxStats.Rmd"
+        "report/AlignStats.Rmd"
    
 rule general_alignment_stats:
     input:
         bam      = outdir + "/{sample}.bam",
         bai      = outdir + "/{sample}.bam.bai"
     output: 
-        stats    = temp(outdir + "/reports/samtools_stats/{sample}.stats"),
-        flagstat = temp(outdir + "/reports/samtools_flagstat/{sample}.flagstat")
+        stats    = temp(outdir + "/reports/data/samtools_stats/{sample}.stats"),
+        flagstat = temp(outdir + "/reports/data/samtools_flagstat/{sample}.flagstat")
     message:
         "Calculating alignment stats: {wildcards.sample}"
     shell:
@@ -308,7 +308,7 @@ rule general_alignment_stats:
 
 rule samtools_reports:
     input: 
-        collect(outdir + "/reports/samtools_{ext}/{sample}.{ext}", sample = samplenames, ext = ["stats", "flagstat"])
+        collect(outdir + "/reports/data/samtools_{ext}/{sample}.{ext}", sample = samplenames, ext = ["stats", "flagstat"])
     output: 
         outdir + "/reports/bwa.stats.html"
     params:
@@ -319,7 +319,7 @@ rule samtools_reports:
         "Summarizing samtools stats and flagstat"
     shell:
         """
-        multiqc {params}/reports/samtools_stats {params}/reports/samtools_flagstat --force --quiet --title "Basic Alignment Statistics" --comment "This report aggregates samtools stats and samtools flagstats results for all alignments." --no-data-dir --filename {output} 2> /dev/null
+        multiqc {params}/reports/data/samtools_stats {params}/reports/data/samtools_flagstat --force --quiet --title "General Alignment Statistics" --comment "This report aggregates samtools stats and samtools flagstats results for all alignments." --no-data-dir --filename {output} 2> /dev/null
         """
 
 rule log_workflow:
