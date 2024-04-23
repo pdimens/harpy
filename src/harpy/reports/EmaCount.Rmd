@@ -14,11 +14,9 @@ output:
 library(flexdashboard)
 library(dplyr)
 library(tidyr)
-library(ggplot2)
 library(scales)
-library(magrittr)
 library(DT)
-library(plotly)
+library(highcharter)
 ```
 
 This report details the counts of valid and invalid haplotag barcodes in the sample read headers.
@@ -108,7 +106,7 @@ with the format of your FASTQ headers. Please refer to the top of this report fo
 guidance on proper FASTQ read headers to hopefully remedy that issue.
 
 ## Per Sample Plot
-### the plot {.no-title}
+### count of valid barcodes
 ```{r echo = FALSE, message = FALSE, warning = FALSE}
 plotdata <- BXstats %>%
   mutate(Invalid = TotalBarcodes - ValidBarcodes) %>%
@@ -122,21 +120,31 @@ percdata <- BXstats %>%
 ```
 
 ```{r echo = FALSE, message = FALSE, warning = FALSE, out.width = '100%'}
-p <-  plotdata %>%
-  pivot_longer(-Sample, names_to = "Barcode", values_to = "Count") %>%
-  ggplot(aes(y = Sample, x = Count, fill = Barcode)) +
-    geom_col() +
-    theme_minimal() +
-    theme(panel.grid.major.y = element_blank(), axis.title.y = element_blank()) +
-    scale_fill_manual(values = c(Valid = "#afd5e7", Invalid = "#c02554")) +
-    scale_x_continuous(labels = scales::comma) +
-    labs(title = "Valid vs Invalid Barcodes")
-
-pltheight <- 150 + (30 * length(unique(plotdata$Sample)))
-
-ggplotly(p, height = pltheight)
+tb<- plotdata %>% pivot_longer(-Sample, names_to = "Barcode", values_to = "Count")
+hchart(tb, "bar", hcaes(x = Sample, y = Count, group = Barcode), stacking = "normal") |>
+  hc_colors(c("#707070", "#b88ace")) |>
+  hc_title(text = "Valid vs Invalid Barcodes") |>
+  hc_subtitle(text = "Given as counts") |>
+  hc_xAxis(title = list(text = "count")) |>
+  hc_yAxis(title = list(text = "")) |>
+  hc_caption(text = "As determined by ema count") |>
+  hc_tooltip(crosshairs = TRUE) |>
+  hc_exporting(enabled = T, filename = "ema.bxcount")
+```
+### proportional valid barcodes
+```{r echo = FALSE, message = FALSE, warning = FALSE, out.width = '100%'}
+hchart(tb, "bar", hcaes(x = Sample, y = Count, group = Barcode), stacking = "percent") |>
+  hc_colors(c("#707070", "#b88ace")) |>
+  hc_title(text = "Valid vs Invalid Barcodes") |>
+  hc_subtitle(text = "Given as percents") |>
+  hc_xAxis(title = list(text = "count")) |>
+  hc_yAxis(title = list(text = "")) |>
+  hc_caption(text = "As determined by ema count") |>
+  hc_tooltip(crosshairs = TRUE) |>
+  hc_exporting(enabled = T, filename = "ema.bxcount")
 ```
 
+## Table
 ### the table {.no-title}
 ```{r echo = FALSE, message = FALSE, warning = FALSE}
 DT::datatable(
