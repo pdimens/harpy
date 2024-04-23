@@ -12,13 +12,14 @@ output:
 
 ```{r load environment, echo=FALSE, message=FALSE, warning=FALSE}
 library(flexdashboard)
-library(ggplot2)
 library(magrittr)
 library(tidyr)
 library(DT)
-library(plotly)
+library(highcharter)
 library(RColorBrewer)
 library(scales)
+#library(plotly)
+#library(ggplot2)
 #dataL <- readLines("~/checkstats.txt")
 #bcf <- "filename.bcf"
 dataL <- readLines(snakemake@input[[1]])
@@ -82,7 +83,7 @@ These are per-locus statistics, which correspond to the Per-Sample Counts (`PSC`
 
 ## Individual Statistics  {.tabset}
 ### Individual Statistics
-```{r Individual plot, echo=FALSE, message=FALSE, warning=FALSE, paged.print=TRUE, out.width="100%"}
+```{r Individual plot, echo=FALSE, message=FALSE, warning=FALSE, out.width="100%"}
 .pscL <- grepl("^PSC", dataL)
 psc <- read.table(text=dataL[.pscL])[ ,3:14]
 names(psc) <- c("Sample", "HomozygousRef", "HomozygousAtl", "Heterozygotes", "Transitions", "Transversions", "Indels",	"MeanDepth", "Singletons",	"HapRef", "HapAlt", "Missing")
@@ -90,16 +91,24 @@ psc$Homozygotes <- psc$HomozygousRef + psc$HomozygousAtl
 tidy_psc <- pivot_longer(psc[,c(1,4,5,6,7,9,12,13)], -Sample , names_to = "Metric", values_to = "Count")
 psc <- psc[,c(1,8,12,2,3,13,4,5,6,7,9,10,11)]
 
-pscplot <- ggplot(data = tidy_psc, mapping = aes(x = Count, y = Sample, color = Metric)) +
-  geom_point(size = 2) +
-  labs(title = "Individual Statistics") +
-  theme_bw() +
-  scale_x_continuous(n.breaks=9, labels = comma) +
-  xlab("Count") +
-  scale_color_brewer(palette = "Dark2") +
-  theme(panel.grid.minor = element_blank(), panel.grid.major.y = element_blank(), axis.title.y = element_blank())
+hchart(tidy_psc, "scatter", hcaes(x = Count, y = Sample, group = Metric)) |>
+  hc_colors(RColorBrewer::brewer.pal(7, "Dark2")) |>
+  hc_title(text = "Individual Statistics") |>
+  hc_xAxis(title = list(text = "count")) |>
+  hc_yAxis(title = list(text = "")) |>
+  hc_tooltip(crosshairs = TRUE) |>
+  hc_exporting(enabled = T, filename = "bcftools.stats")
 
-ggplotly(pscplot)
+#pscplot <- ggplot(data = tidy_psc, mapping = aes(x = Count, y = Sample, color = Metric)) +
+#  geom_point(size = 2) +
+#  labs(title = "Individual Statistics") +
+#  theme_bw() +
+#  scale_x_continuous(n.breaks=9, labels = comma) +
+#  xlab("Count") +
+#  scale_color_brewer(palette = "Dark2") +
+#  theme(panel.grid.minor = element_blank(), panel.grid.major.y = element_blank(), axis.title.y = element_blank())
+#
+#ggplotly(pscplot)
 ```
 
 ### Individual Data
@@ -119,7 +128,7 @@ greater than or equal to `0` and less than `10`".
 .qual <- grepl("^QUAL", dataL)
 if(sum(.qual) == 0){
   do_qual <- FALSE
-  cat(paste0("No QUAL section in", snakemake@input[[1]], " found\n"))
+  cat(paste0("No QUAL section in ", snakemake@input[[1]], " found\n"))
 } else {
   do_qual <- TRUE
 }
@@ -156,33 +165,52 @@ mergebins <- function(x){
 ### SNP Quality {.no-title}
 ```{r snpqual plot, echo=FALSE, message=FALSE, warning=FALSE}
 if(do_qual){
-  qualsnpplot <- ggplot(data = mergebins(qual[,-3]), mapping = aes(x = QualityScore, y = SNPs)) +
-    geom_col(fill = "#8fbbbc") +
-    scale_y_continuous(labels = scales::comma) +
-    scale_x_continuous(labels = scales::comma) +
-    labs(title = "SNP Genotype Quality") +
-    ylab("Count") +
-    theme_minimal() +
-    theme(panel.grid.minor.y = element_blank())
+  hchart(mergebins(qual[,-3]), "column", hcaes(x = QualityScore, y = SNPs), color = "#8fbbbc") |>
+    hc_title(text = "SNP Genotype Quality") |>
+    hc_xAxis(title = list(text = "quality score")) |>
+    hc_yAxis(title = list(text = "count")) |>
+    hc_tooltip(crosshairs = TRUE) |>
+    hc_exporting(enabled = T, filename = "snp.quality")
 
-  ggplotly(qualsnpplot)
+
+#  qualsnpplot <- ggplot(data = mergebins(qual[,-3]), mapping = aes(x = QualityScore, y = SNPs)) +
+#    geom_col(fill = "#8fbbbc") +
+#    scale_y_continuous(labels = scales::comma) +
+#    scale_x_continuous(labels = scales::comma) +
+#    labs(title = "SNP Genotype Quality") +
+#    ylab("Count") +
+#    theme_minimal() +
+#    theme(panel.grid.minor.y = element_blank())
+#
+#  ggplotly(qualsnpplot)
 } else {
-  cat(paste0("No QUAL section in", snakemake@input[[1]], " found\n"))
+  cat(paste0("No QUAL section in ", snakemake@input[[1]], " found\n"))
 }
 ```
 
 ### Indel Quality {.no-title}
 ```{r indelqual plot, echo=FALSE, message=FALSE, warning=FALSE}
-qualindelplot <- ggplot(data = mergebins(qual[,-2]), mapping = aes(x = QualityScore, y = Indels)) +
-  geom_col(fill = "#9393d2") +
-  scale_y_continuous(labels = scales::comma) +
-  scale_x_continuous(labels = scales::comma) +
-  labs(title = "Indel Genotype Quality") +
-  ylab("Count") +
-  theme_minimal() +
-  theme(panel.grid.minor.y = element_blank())
+if(do_qual){
+  hchart(mergebins(qual[,-2]), "column", hcaes(x = QualityScore, y = Indels), color = "#9393d2") |>
+    hc_title(text = "Indel Genotype Quality") |>
+    hc_xAxis(title = list(text = "quality score")) |>
+    hc_yAxis(title = list(text = "count")) |>
+    hc_tooltip(crosshairs = TRUE) |>
+    hc_exporting(enabled = T, filename = "indel.quality")
 
-ggplotly(qualindelplot)
+#qualindelplot <- ggplot(data = mergebins(qual[,-2]), mapping = aes(x = QualityScore, y = Indels)) +
+#  geom_col(fill = "#9393d2") +
+#  scale_y_continuous(labels = scales::comma) +
+#  scale_x_continuous(labels = scales::comma) +
+#  labs(title = "Indel Genotype Quality") +
+#  ylab("Count") +
+#  theme_minimal() +
+#  theme(panel.grid.minor.y = element_blank())
+#
+#ggplotly(qualindelplot)
+} else {
+  cat(paste0("No QUAL section in ", snakemake@input[[1]], " found\n"))
+}
 ```
 
 ## Depth Desc
@@ -197,22 +225,30 @@ The table reflects the data visualized in the plot tab.
 ```{r depth plot, echo=FALSE, message=FALSE, warning=FALSE, paged.print=TRUE, out.width="100%"}
 .dpL <- grepl("^DP", dataL)
 if(sum(.dpL) == 0){
-  cat(paste0("No DP section in", snakemake@input[[1]], " found\n"))
+  cat(paste0("No DP section in ", snakemake@input[[1]], " found\n"))
 } else {
   dp <- read.table(text=dataL[.dpL])[ , 3:7]
   names(dp) <- c("Bin", "Genotypes", "PercentGenotypes", "NumberSites", "PercentSites")
   dp$Bin <- as.numeric(dp$Bin)
   dp$PercentGenotypes <- round(dp$PercentGenotypes, digits = 3)
   dp$PercentSites <- round(dp$PercentSites, digits = 3)
-  dpplot <- ggplot(data = dp, mapping = aes(x = Bin, y = NumberSites)) +
-    geom_bar(stat = "identity", color = "#F28500", fill = "#F28500") +
-    scale_y_continuous(n.breaks=10) +
-    labs(title = "Depth per Site") +
-    ylab("Number of Sites") +
-    theme_minimal() +
-    theme(panel.grid.minor.y = element_blank())
 
-  ggplotly(dpplot)
+  hchart(dp, "column", hcaes(x = Bin, y = NumberSites), color = "#F28500") |>
+    hc_title(text = "Depth per Site") |>
+    hc_xAxis(title = list(text = "bin")) |>
+    hc_yAxis(title = list(text = "number of sites")) |>
+    hc_tooltip(crosshairs = TRUE) |>
+    hc_exporting(enabled = T, filename = "indel.quality")
+
+#  dpplot <- ggplot(data = dp, mapping = aes(x = Bin, y = NumberSites)) +
+#    geom_bar(stat = "identity", color = "#F28500", fill = "#F28500") +
+#    scale_y_continuous(n.breaks=10) +
+#    labs(title = "Depth per Site") +
+#    ylab("Number of Sites") +
+#    theme_minimal() +
+#    theme(panel.grid.minor.y = element_blank())
+#
+#  ggplotly(dpplot)
 }
 ```
 
@@ -220,7 +256,7 @@ if(sum(.dpL) == 0){
 
 ```{r depth table, echo=FALSE, message=FALSE, warning=FALSE, paged.print=TRUE, out.width="100%"}
 if(sum(.dpL) == 0){
-  cat(paste0("No DP section in", snakemake@input[[1]], " found\n"))
+  cat(paste0("No DP section in ", snakemake@input[[1]], " found\n"))
 } else {
   DT::datatable(
     dp,
@@ -244,22 +280,32 @@ length is presented here as negative values for visual clarity.
 ```{r Indel Stats, echo=FALSE, message=FALSE, warning=FALSE, paged.print=TRUE, out.width="100%"}
 .iddL <- grepl("^IDD", dataL)
 if(sum(.iddL) == 0){
-  cat(paste0("No IDD section in", snakemake@input[[1]], " found\n"))
+  cat(paste0("No IDD section in ", snakemake@input[[1]], " found\n"))
 } else {
   idd <- read.table(text=dataL[.iddL])[ ,3:4]
   names(idd) <- c("Length", "Count")
   idd$Type <- idd$Length > 0
   idd$Type <-  gsub(TRUE, "Insertion", idd$Type)
   idd$Type <-  gsub(FALSE, "Deletion", idd$Type)
-  iddplot <- ggplot(data = idd, mapping = aes(x = Length, y = Count,  color = Type)) +
-    geom_point() +
-    scale_color_manual(values=c("indianred","#56B4E9"))+
-    labs(title = "Insertion-Deletion Distribution") +
-    xlab("indel length") +
-    ylab("number of sites") +
-    theme_minimal()
 
-  ggplotly(iddplot)
+  hchart(idd, "spline", hcaes(x = Length, y = Count, group = Type), color = "#F28500") |>
+    hc_colors("#e6a037","#6daace") |>
+    hc_title(text = "Insertion-Deletion Distribution") |>
+    hc_xAxis(title = list(text = "indel length")) |>
+    hc_yAxis(title = list(text = "number of sites")) |>
+    hc_tooltip(crosshairs = TRUE) |>
+    hc_exporting(enabled = T, filename = "indel.distribution")
+
+
+#  iddplot <- ggplot(data = idd, mapping = aes(x = Length, y = Count,  color = Type)) +
+#    geom_point() +
+#    scale_color_manual(values=c("indianred","#56B4E9"))+
+#    labs(title = "Insertion-Deletion Distribution") +
+#    xlab("indel length") +
+#    ylab("number of sites") +
+#    theme_minimal()
+#
+#  ggplotly(iddplot)
 }
 ```
 

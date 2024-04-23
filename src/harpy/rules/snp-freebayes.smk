@@ -8,7 +8,12 @@ bam_dir 	= config["seq_directory"]
 genomefile 	= config["genomefile"]
 groupings 	= config.get("groupings", [])
 bn          = os.path.basename(genomefile)
-genome_zip  = True if bn.lower().endswith(".gz") else False
+if bn.lower().endswith(".gz"):
+    genome_zip  = True
+    bn = bn[:-3]
+else:
+    genome_zip  = False
+
 ploidy 		= config["ploidy"]
 samplenames = config["samplenames"]
 extra 	    = config.get("extra", "") 
