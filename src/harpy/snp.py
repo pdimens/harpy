@@ -65,7 +65,6 @@ def mpileup(input, output_dir, regions, genome, threads, populations, ploidy, ex
     regtype = validate_regions(regions, genome)
     if regtype == "windows":
         region = f"{workflowdir}/positions.bed"
-        print(f"makeWindows.py -m 1 -i {genome} -o {region} -w {regions}")
         os.system(f"makeWindows.py -m 1 -i {genome} -o {region} -w {regions}")
     elif regtype == "region":
         region = regions
@@ -162,7 +161,6 @@ def freebayes(input, output_dir, genome, threads, populations, ploidy, regions, 
     regtype = validate_regions(regions, genome)
     if regtype == "windows":
         region = f"{workflowdir}/positions.bed"
-        print(f"makeWindows.py -m 1 -i {genome} -o {region} -w {regions}")
         os.system(f"makeWindows.py -m 0 -i {genome} -o {region} -w {regions}")
     elif regtype == "region":
         region = regions
