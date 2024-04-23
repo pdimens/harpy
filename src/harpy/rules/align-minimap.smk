@@ -230,20 +230,6 @@ rule index_markdups:
     shell:
         "samtools index {input}"
 
-rule bxstats_report:
-    input:
-        outdir + "/reports/data/bxstats/{sample}.bxstats.gz"
-    output:	
-        outdir + "/reports/BXstats/{sample}.bxstats.html"
-    params:
-        molecule_distance
-    conda:
-        os.getcwd() + "/.harpy_envs/r-env.yaml"
-    message: 
-        "Summarizing barcoded alignments: {wildcards.sample}"
-    script:
-        "report/AlignStats.Rmd"
-
 rule assign_molecules:
     input:
         bam = outdir + "/samples/{sample}/{sample}.markdup.bam",
@@ -287,7 +273,21 @@ rule alignment_coverage:
         "Calculating genomic coverage: {wildcards.sample}"
     shell:
         "samtools bedcov -c {input} | gzip > {output}"
-   
+
+rule alignment_report:
+    input:
+        outdir + "/reports/data/bxstats/{sample}.bxstats.gz"
+    output:	
+        outdir + "/reports/{sample}.html"
+    params:
+        molecule_distance
+    conda:
+        os.getcwd() + "/.harpy_envs/r-env.yaml"
+    message: 
+        "Summarizing barcoded alignments: {wildcards.sample}"
+    script:
+        "report/AlignStats.Rmd"
+
 rule general_alignment_stats:
     input:
         bam      = outdir + "/{sample}.bam",

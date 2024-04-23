@@ -396,7 +396,7 @@ rule coverage_stats:
         "samtools bedcov -c {input.bed} {input.bam} | gzip > {output}"
 
 
-rule bx_stats_alignments:
+rule bx_stats:
     input:
         bam = outdir + "/{sample}.bam",
         bai = outdir + "/{sample}.bam.bai"
@@ -409,7 +409,7 @@ rule bx_stats_alignments:
     script:
         "scripts/bxStats.py"
 
-rule report:
+rule alignment_report:
     input:
         outdir + "/reports/data/bxstats/{sample}.bxstats.gz",
         outdir + "/reports/data/coverage/{sample}.cov.gz"

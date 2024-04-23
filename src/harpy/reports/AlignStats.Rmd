@@ -23,9 +23,7 @@ library(BioCircos)
 
 ```{r echo = F, results = F, message = F}
 #infile <- "~/file.bxstats.gz"
-#mdist <- scales::comma(200000)
 infile <- snakemake@input[[1]]
-mdist <- snakemake@params[[1]]
 bamfile <- gsub(".bxstats.gz", ".bam", infile)
 samplename <- gsub(".bxstats.gz", "", basename(infile))
 tb <- read.table(infile, header = T, sep = "\t") %>% select(-start, -end)

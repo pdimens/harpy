@@ -291,7 +291,7 @@ rule reports:
     script:
         "report/AlignStats.Rmd"
    
-rule general_alignment_stats:
+rule alignment_report:
     input:
         bam      = outdir + "/{sample}.bam",
         bai      = outdir + "/{sample}.bam.bai"
