@@ -1,6 +1,7 @@
 import os
 import re
 import glob
+import shutil
 from pathlib import Path
 from rich.panel import Panel
 from rich import print as rprint
@@ -45,6 +46,7 @@ onerror:
 
 onsuccess:
     print("")
+    shutil.rmtree(f'{outdir}/bxcount', ignore_errors=True)
     rprint(
         Panel(
             f"The workflow has finished successfully! Find the results in [bold]{outdir}[/bold]",
