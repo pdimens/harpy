@@ -49,6 +49,8 @@ if testname.endswith("fai"):
             lsplit = line.split("\t")
             contig = lsplit[0]
             c_len = int(lsplit[1])
+            if args.mode == 0:
+                c_len -= 1
             makewindows(contig, c_len, args.window, outbed)
         outbed.close()
 
@@ -79,6 +81,8 @@ elif testname.endswith("fasta") or testname.endswith("fa") or testname.endswith(
                 else:
                     c_len += len(line)-1
                     header = False
+            if args.mode == 0:
+                c_len -= 1
             makewindows(contig, c_len, args.window, outbed)
     outbed.close()
     fopen.close()
