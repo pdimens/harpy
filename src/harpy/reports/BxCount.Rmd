@@ -201,7 +201,7 @@ invalids_long$Segment <- as.factor(paste0("segment " , invalids_long$Segment))
 ```
 
 ### segment dist {.no-title}
-```{r}
+```{r echo = FALSE, message = FALSE, warning = FALSE}
 inv_hist <- data.frame(Segment = character(), Bin = numeric(), Count = numeric())
 inv_breaks <- hist(invalids_long$Count, plot = F)
 inv_breaks <- inv_breaks$breaks

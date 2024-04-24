@@ -479,7 +479,7 @@ tracks = BioCircosTracklist()
 for (i in names(genomeChr)){
   # Define histogram/bars to be displayed
   chrcov <- tb[tb$contig == i,]
-  chrcov$depth
+  #chrcov$depth
   # Add a track with bars on the i-th chromosome
   tracks = tracks + BioCircosBarTrack(
     paste0("bars", i),
