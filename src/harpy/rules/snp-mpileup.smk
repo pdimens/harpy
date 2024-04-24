@@ -277,7 +277,7 @@ rule variants_stats:
         bcf     = outdir + "/variants.{type}.bcf",
         idx     = outdir + "/variants.{type}.bcf.csi"
     output:
-        outdir + "/reports/variants.{type}.stats"
+        outdir + "/reports/data/variants.{type}.stats"
     message:
         "Calculating variant stats: variants.{wildcards.type}.bcf"
     shell:
@@ -287,7 +287,7 @@ rule variants_stats:
 
 rule bcf_report:
     input:
-        outdir + "/reports/variants.{type}.stats"
+        outdir + "/reports/data/variants.{type}.stats"
     output:
         outdir + "/reports/variants.{type}.html"
     conda:

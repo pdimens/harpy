@@ -20,10 +20,10 @@ library(RColorBrewer)
 library(scales)
 #library(plotly)
 #library(ggplot2)
-#dataL <- readLines("~/checkstats.txt")
-#bcf <- "filename.bcf"
-dataL <- readLines(snakemake@input[[1]])
-bcf <- gsub(".stats$", ".bcf", snakemake@input[[1]])
+dataL <- readLines("~/variants.raw.stats")
+bcf <- "filename.bcf"
+#dataL <- readLines(snakemake@input[[1]])
+#bcf <- gsub(".stats$", ".bcf", snakemake@input[[1]])
 ```
 <h1> `r bcf` </h1>
 
@@ -90,25 +90,23 @@ names(psc) <- c("Sample", "HomozygousRef", "HomozygousAtl", "Heterozygotes", "Tr
 psc$Homozygotes <- psc$HomozygousRef + psc$HomozygousAtl
 tidy_psc <- pivot_longer(psc[,c(1,4,5,6,7,9,12,13)], -Sample , names_to = "Metric", values_to = "Count")
 psc <- psc[,c(1,8,12,2,3,13,4,5,6,7,9,10,11)]
+tidy_psc$Sample <- as.factor(tidy_psc$Sample)
 
-hchart(tidy_psc, "scatter", hcaes(x = Count, y = Sample, group = Metric)) |>
+highchart() |>
+  hc_chart(inverted=TRUE) |>
+  hc_add_series(data = tidy_psc, type = "scatter", hcaes(y = Count, x = Sample, group = Metric), marker = list(symbol = "circle")) |>
   hc_colors(RColorBrewer::brewer.pal(7, "Dark2")) |>
   hc_title(text = "Individual Statistics") |>
-  hc_xAxis(title = list(text = "count")) |>
-  hc_yAxis(title = list(text = "")) |>
-  hc_tooltip(crosshairs = TRUE) |>
-  hc_exporting(enabled = T, filename = "bcftools.stats")
-
-#pscplot <- ggplot(data = tidy_psc, mapping = aes(x = Count, y = Sample, color = Metric)) +
-#  geom_point(size = 2) +
-#  labs(title = "Individual Statistics") +
-#  theme_bw() +
-#  scale_x_continuous(n.breaks=9, labels = comma) +
-#  xlab("Count") +
-#  scale_color_brewer(palette = "Dark2") +
-#  theme(panel.grid.minor = element_blank(), panel.grid.major.y = element_blank(), axis.title.y = element_blank())
-#
-#ggplotly(pscplot)
+  hc_xAxis(type = "category", title = list(text = ""), categories = levels(tidy_psc$Sample)) |>
+  hc_yAxis(title = list(text = "count")) |>
+  hc_tooltip(
+    crosshairs = TRUE, animation = F,
+    pointFormat= '<b>{point.category}</b><br>Count: <b>{point.y:.0f}</b>',
+    animation = FALSE
+  ) |>
+  hc_exporting(enabled = T, filename = "bcftools.stats",
+   buttons = list(contextButton = list(menuItems = c("viewFullscreen", "separator", "downloadPNG", "downloadJPEG", "downloadPDF", "downloadSVG")))
+  )
 ```
 
 ### Individual Data
@@ -141,7 +139,7 @@ if(do_qual){
 ```{r resizehist, echo=F}
 # function to merge QUAL bins into a width of 10
 mergebins <- function(x){
-  bins <- seq(min(x[,1]), max(x[,1]), 10)
+  bins <- seq(0, max(x[,1]), 10)
   lastbin <- max(x[,1])
   bins <- c(bins, lastbin)
   dict <- vector(mode="list", length=length(bins))
@@ -165,24 +163,18 @@ mergebins <- function(x){
 ### SNP Quality {.no-title}
 ```{r snpqual plot, echo=FALSE, message=FALSE, warning=FALSE}
 if(do_qual){
-  hchart(mergebins(qual[,-3]), "column", hcaes(x = QualityScore, y = SNPs), color = "#8fbbbc") |>
+  hchart(mergebins(qual[,-3]), "areaspline", hcaes(x = QualityScore, y = SNPs), color = "#8fbbbc", name = "count") |>
     hc_title(text = "SNP Genotype Quality") |>
+    hc_subtitle(text = "Shown in bins of width 10") |>
     hc_xAxis(title = list(text = "quality score")) |>
     hc_yAxis(title = list(text = "count")) |>
-    hc_tooltip(crosshairs = TRUE) |>
-    hc_exporting(enabled = T, filename = "snp.quality")
+    hc_tooltip(crosshairs = TRUE,
+      formatter = JS("function () {return '<b>Quality ' + this.x + '</b><br>Count: <b>' + this.y + '</b>';}") 
+    ) |>
+    hc_exporting(enabled = T, filename = "snp.quality",
+      buttons = list(contextButton = list(menuItems = c("viewFullscreen", "separator", "downloadPNG", "downloadJPEG", "downloadPDF", "downloadSVG")))
+    )
 
-
-#  qualsnpplot <- ggplot(data = mergebins(qual[,-3]), mapping = aes(x = QualityScore, y = SNPs)) +
-#    geom_col(fill = "#8fbbbc") +
-#    scale_y_continuous(labels = scales::comma) +
-#    scale_x_continuous(labels = scales::comma) +
-#    labs(title = "SNP Genotype Quality") +
-#    ylab("Count") +
-#    theme_minimal() +
-#    theme(panel.grid.minor.y = element_blank())
-#
-#  ggplotly(qualsnpplot)
 } else {
   cat(paste0("No QUAL section in ", snakemake@input[[1]], " found\n"))
 }
@@ -191,23 +183,18 @@ if(do_qual){
 ### Indel Quality {.no-title}
 ```{r indelqual plot, echo=FALSE, message=FALSE, warning=FALSE}
 if(do_qual){
-  hchart(mergebins(qual[,-2]), "column", hcaes(x = QualityScore, y = Indels), color = "#9393d2") |>
+  hchart(mergebins(qual[,-2]), "areaspline", hcaes(x = QualityScore, y = Indels), name = "count", color = "#9393d2") |>
     hc_title(text = "Indel Genotype Quality") |>
+    hc_subtitle(text = "Shown in bins of width 10") |>
     hc_xAxis(title = list(text = "quality score")) |>
     hc_yAxis(title = list(text = "count")) |>
-    hc_tooltip(crosshairs = TRUE) |>
-    hc_exporting(enabled = T, filename = "indel.quality")
+    hc_tooltip(crosshairs = TRUE,
+      formatter = JS("function () {return '<b>Quality ' + this.x + '</b><br>Count: <b>' + this.y + '</b>';}") 
+    ) |>
+    hc_exporting(enabled = T, filename = "indel.quality",
+      buttons = list(contextButton = list(menuItems = c("viewFullscreen", "separator", "downloadPNG", "downloadJPEG", "downloadPDF", "downloadSVG")))
+    )
 
-#qualindelplot <- ggplot(data = mergebins(qual[,-2]), mapping = aes(x = QualityScore, y = Indels)) +
-#  geom_col(fill = "#9393d2") +
-#  scale_y_continuous(labels = scales::comma) +
-#  scale_x_continuous(labels = scales::comma) +
-#  labs(title = "Indel Genotype Quality") +
-#  ylab("Count") +
-#  theme_minimal() +
-#  theme(panel.grid.minor.y = element_blank())
-#
-#ggplotly(qualindelplot)
 } else {
   cat(paste0("No QUAL section in ", snakemake@input[[1]], " found\n"))
 }
@@ -233,22 +220,16 @@ if(sum(.dpL) == 0){
   dp$PercentGenotypes <- round(dp$PercentGenotypes, digits = 3)
   dp$PercentSites <- round(dp$PercentSites, digits = 3)
 
-  hchart(dp, "column", hcaes(x = Bin, y = NumberSites), color = "#F28500") |>
+  hchart(dp, "areaspline", hcaes(x = Bin, y = NumberSites), name = "count", color = "#F28500") |>
     hc_title(text = "Depth per Site") |>
-    hc_xAxis(title = list(text = "bin")) |>
+    hc_xAxis(title = list(text = "bin"), type = "logarithmic") |>
     hc_yAxis(title = list(text = "number of sites")) |>
-    hc_tooltip(crosshairs = TRUE) |>
-    hc_exporting(enabled = T, filename = "indel.quality")
-
-#  dpplot <- ggplot(data = dp, mapping = aes(x = Bin, y = NumberSites)) +
-#    geom_bar(stat = "identity", color = "#F28500", fill = "#F28500") +
-#    scale_y_continuous(n.breaks=10) +
-#    labs(title = "Depth per Site") +
-#    ylab("Number of Sites") +
-#    theme_minimal() +
-#    theme(panel.grid.minor.y = element_blank())
-#
-#  ggplotly(dpplot)
+    hc_tooltip(crosshairs = TRUE,
+      formatter = JS("function () {return '<b>bin ' + this.x + '</b><br>Count: <b>' + this.y + '</b>';}") 
+    ) |>
+    hc_exporting(enabled = T, filename = "indel.quality",
+      buttons = list(contextButton = list(menuItems = c("viewFullscreen", "separator", "downloadPNG", "downloadJPEG", "downloadPDF", "downloadSVG")))
+  )
 }
 ```
 
@@ -288,24 +269,19 @@ if(sum(.iddL) == 0){
   idd$Type <-  gsub(TRUE, "Insertion", idd$Type)
   idd$Type <-  gsub(FALSE, "Deletion", idd$Type)
 
-  hchart(idd, "spline", hcaes(x = Length, y = Count, group = Type), color = "#F28500") |>
-    hc_colors("#e6a037","#6daace") |>
+  hchart(idd, "areaspline", hcaes(x = Length, y = Count, group = Type)) |>
+    hc_colors(c("#e6a037","#6daace")) |>
     hc_title(text = "Insertion-Deletion Distribution") |>
-    hc_xAxis(title = list(text = "indel length")) |>
+    hc_xAxis(title = list(text = "indel length"),
+      labels = list(formatter = JS("function () {return Math.abs(this.value);}"))
+    ) |>
     hc_yAxis(title = list(text = "number of sites")) |>
-    hc_tooltip(crosshairs = TRUE) |>
-    hc_exporting(enabled = T, filename = "indel.distribution")
-
-
-#  iddplot <- ggplot(data = idd, mapping = aes(x = Length, y = Count,  color = Type)) +
-#    geom_point() +
-#    scale_color_manual(values=c("indianred","#56B4E9"))+
-#    labs(title = "Insertion-Deletion Distribution") +
-#    xlab("indel length") +
-#    ylab("number of sites") +
-#    theme_minimal()
-#
-#  ggplotly(iddplot)
+    hc_tooltip(crosshairs = TRUE,
+      formatter = JS("function () {return '<b>' + this.series.name + '</b><br>Length: <b>' + Math.abs(this.x) + '</b><br/>Count: <b>' + this.y + '</b>';}") 
+) |>
+    hc_exporting(enabled = T, filename = "indel.distribution",
+      buttons = list(contextButton = list(menuItems = c("viewFullscreen", "separator", "downloadPNG", "downloadJPEG", "downloadPDF", "downloadSVG")))
+    )
 }
 ```
 
