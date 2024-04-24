@@ -11,32 +11,13 @@ output:
 
 # General Stats
 ## header row
-```{css zoom-lib-src, echo = FALSE, message = FALSE, warning = FALSE}
-script src = "https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"
-```
-```{js zoom-jquery, echo = FALSE, message = FALSE, warning = FALSE}
- $(document).ready(function() {
-    $('body').prepend('<div class=\"zoomDiv\"><img src=\"\" class=\"zoomImg\"></div>');
-    // onClick function for all plots (img's)
-    $('img:not(.zoomImg)').click(function() {
-      $('.zoomImg').attr('src', $(this).attr('src')).css({width: '100%'});
-      $('.zoomDiv').css({opacity: '1', width: 'auto', border: '1px solid white', borderRadius: '5px', position: 'fixed', top: '50%', left: '50%', marginRight: '-50%', transform: 'translate(-50%, -50%)', boxShadow: '0px 0px 50px #888888', zIndex: '50', overflow: 'auto', maxHeight: '90%'});
-    });
-    // onClick function for zoomImg
-    $('img.zoomImg').click(function() {
-      $('.zoomDiv').css({opacity: '0', width: '0%'}); 
-    });
-  });
-```
-
 ```{r load environment, echo=FALSE, message=FALSE, warning=FALSE}
 library(flexdashboard)
-library(ggplot2)
-library(magrittr)
 library(tidyr)
 library(dplyr)
 library(DT)
 library(scales)
+library(highcharter)
 modelparams <- paste(snakemake@params[[1]])
 #modelparams <- "Filler Text"
 ```
@@ -48,7 +29,7 @@ tryCatch(
     gcts <- read.table(comparefile, header = F)[, c(2, 23, 25, 24, 27)]
   },
   error = function(e){ 
-    print("Stats file is empty. Perhaps there were no SNPs that bcftools identified.")
+    print("Stats file is empty. Perhaps there were no biallelelic SNPs that bcftools identified.")
     knitr::knit_exit()
   }
 )
@@ -128,39 +109,28 @@ out of the zoomed view.
 ## distributions
 ### Overall distribution {.no-title}
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
-maxsizes <- infos %>% group_by(contig) %>% summarise(maxsize = max(position)) %>% arrange(desc(maxsize))
-maxsizes <- maxsizes[1:min(nrow(maxsizes), 30), ]
-
-ncontig <- nrow(maxsizes)
-pltheight <- round(1.1 * ncontig, digits = 0)
-```
-
-```{r infoscore histogram, echo = FALSE, message = FALSE, warning = FALSE, fig.height=2.5, out.width= "100%"}
-ggplot(infos, aes(x = info)) +
-  geom_histogram(fill = "grey60", color = "grey40", linewidth = 0.25, bins = 100, boundary = 0.5) +
-  theme_minimal() +
-  theme(
-    panel.grid.minor = element_blank()
-  ) +
-  scale_y_continuous(labels = scales::comma) +
-  xlab("INFO_SCORE") +
-  ylab("Count") +
-  labs(title = "Distribution of imputation INFO_SCORE")
+h <- hist(infos$info, breaks = 20, plot = F)
+h <- data.frame(info = round(h$breaks[1:length(h$breaks)-1], 2), freq = round(h$counts / sum(h$counts)  * 100, 2))
+hchart(h, "areaspline", hcaes(x = info, y = freq), name = "% sites") |>
+  hc_yAxis(title = list(text = "% of sites")) |>
+  hc_xAxis(title = list(text = "INFO_SCORE")) |>
+  hc_title(text = "Distribution of imputation INFO_SCORE values") |>
+  hc_tooltip(crosshairs = TRUE, animation = FALSE,
+    formatter = JS("function () {return 'INFO_SCORE <b>' + this.x + '</b><br><b>' + this.y + '% of sites</b>';}") 
+  ) |>
+  hc_exporting(enabled = T, filename = "impute.infoscores",
+    buttons = list(contextButton = list(menuItems = c("viewFullscreen", "separator", "downloadPNG", "downloadJPEG", "downloadPDF", "downloadSVG")))
+)
 ```
 
 ### Per-contig distribution {.no-title}
-```{r percontig dist, echo = FALSE, message = FALSE, warning = FALSE, fig.height=pltheight, fig.align='center', out.width = "100%"}
-ggplot(infos[infos$contig %in% maxsizes$contig, ], aes(x = info)) +
-  geom_histogram(fill = "grey60", color = "grey40", linewidth = 0.25, bins = 100, boundary = 0.5) +
-  facet_wrap(~contig, ncol = 2, scales = "free_y") +
-  theme_minimal() +
-  theme(
-    panel.grid.minor = element_blank()
-  ) +
-  scale_y_continuous(labels = comma) +
-  xlab("INFO_SCORE") +
-  ylab("Count") +
-  labs(title = "Distribution of imputation INFO_SCORE")
+```{r echo = FALSE, message = FALSE, warning = FALSE}
+dat <- data_to_boxplot(infos, info, contig, name = "INFO_SCORE", animation = FALSE)
+
+highchart() |>
+  hc_xAxis(type = "category") |>
+  hc_colors("#8487bb") |>
+  hc_add_series_list(dat)
 ```
 
 ## filtering
@@ -169,6 +139,7 @@ ggplot(infos[infos$contig %in% maxsizes$contig, ], aes(x = info)) +
 You will want to filter the resulting variants
 based on this `INFO/INFO_SCORE` tag, which can be done that simply with `bcftools`.
 Here is an example snippet of keeping loci with an `INFO_SCORE` of at least `0.2`: 
+
 ```
 # use -Ob to output to bcf instead of vcf to save on disk space
 
@@ -211,7 +182,6 @@ filterthresh <- rbind(c("all", tots), filterthresh)
       buttons = c("csv"),
       scrollX = TRUE
     ),
-    autoHideNavigation = T,
     fillContainer = T
   )
 #}
@@ -234,18 +204,23 @@ out of the zoomed view.
 
 ## ind stats plt
 ### Individuals Plot {.no-title}
-```{r indiv stats, echo = FALSE, message = FALSE, warning = FALSE, fig.height=conv_height, out.width= "100%"}
-ggplot(gcts_long, aes(y = sample, x = Count, fill = Conversion)) +
-  geom_col(position = "stack") +
-  scale_x_continuous(expand = c(0,0), labels = comma) +
-  ylab("") +
-  theme_minimal() +
-  theme(panel.grid.major.y = element_blank(), axis.ticks.y = element_line(size = 0.5)) +
-  scale_fill_manual(
-    labels = c("→ Homozygous Alt", "→ Heterozygote", "→ Missing", "→ Homozygous Ref"),
-    values = c("#93d2fa", "#83afa8", "#424043", "#ffd75f")
-  ) +
-  labs(title = "Missing Genotype Imputations")
+```{r percontig dist, echo = FALSE, message = FALSE, warning = FALSE, out.width = "100%"}
+gcts_long$Conversion <- gsub("AltHom","Homozygous Alt", gcts_long$Conversion)
+gcts_long$Conversion <- gsub("Het","Heterozygote", gcts_long$Conversion)
+gcts_long$Conversion <- gsub("RefHom","Homozygous Ref", gcts_long$Conversion)
+gcts_long$Conversion <- gsub("missing","not imputed", gcts_long$Conversion)
+```
+```{r percontig dist, echo = FALSE, message = FALSE, warning = FALSE, out.width = "100%"}
+hchart(gcts_long, "bar", hcaes(x = sample, y = Count, group = Conversion), stacking = "normal") |>
+  hc_colors(c("#7cb3d4", "#b18ad1", "#ffd75f", "#6f6c70")) |>
+  hc_title(text = "Missing Genotype Imputations") |>
+  hc_caption(text = "Values indicate how many missing genotypes were imputed into that kind of genotype") |>
+  hc_xAxis(title = list(text = "")) |>
+  hc_yAxis(title = list(text = "count")) |>
+  hc_tooltip(crosshairs = TRUE) |>
+  hc_exporting(enabled = T, filename = "impute.samples",
+    buttons = list(contextButton = list(menuItems = c("viewFullscreen", "separator", "downloadPNG", "downloadJPEG", "downloadPDF", "downloadSVG")))
+  )
 ```
 
 ### Imputation Results Table {.no-title}

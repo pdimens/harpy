@@ -229,8 +229,8 @@ rule compare_stats:
         impute  = outdir + "/{stitchparams}/variants.imputed.bcf",
         idx     = outdir + "/{stitchparams}/variants.imputed.bcf.csi"
     output:
-        compare = outdir + "/{stitchparams}/reports/impute.compare.stats",
-        info_sc = temp(outdir + "/{stitchparams}/reports/impute.infoscore")
+        compare = outdir + "/{stitchparams}/reports/data/impute.compare.stats",
+        info_sc = temp(outdir + "/{stitchparams}/reports/data/impute.infoscore")
     message:
         "Computing post-imputation stats: {wildcards.stitchparams}"
     shell:
@@ -241,10 +241,10 @@ rule compare_stats:
 
 rule imputation_results_reports:
     input: 
-        outdir + "/{stitchparams}/reports/impute.compare.stats",
-        outdir + "/{stitchparams}/reports/impute.infoscore"
+        outdir + "/{stitchparams}/reports/data/impute.compare.stats",
+        outdir + "/{stitchparams}/reports/data/impute.infoscore"
     output:
-        outdir + "/{stitchparams}/variants.imputed.html"
+        outdir + "/{stitchparams}/reports/variants.imputed.html"
     params:
         lambda wc: wc.get("stitchparams")
     conda:
@@ -260,7 +260,7 @@ rule log_workflow:
     input: 
         vcf = collect(outdir + "/{stitchparams}/variants.imputed.bcf", stitchparams=paramspace.instance_patterns),
         contig_report = collect(outdir + "/{stitchparams}/contigs/{part}/{part}.STITCH.html", stitchparams=paramspace.instance_patterns, part = contigs),
-        agg_report = collect(outdir + "/{stitchparams}/variants.imputed.html", stitchparams=paramspace.instance_patterns) if not skipreports else []
+        agg_report = collect(outdir + "/{stitchparams}/reports/variants.imputed.html", stitchparams=paramspace.instance_patterns) if not skipreports else []
     output:
         outdir + "/workflow/impute.summary"
     message:
