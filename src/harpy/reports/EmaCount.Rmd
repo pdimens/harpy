@@ -124,24 +124,26 @@ tb<- plotdata %>% pivot_longer(-Sample, names_to = "Barcode", values_to = "Count
 hchart(tb, "bar", hcaes(x = Sample, y = Count, group = Barcode), stacking = "normal") |>
   hc_colors(c("#707070", "#b88ace")) |>
   hc_title(text = "Valid vs Invalid Barcodes") |>
-  hc_subtitle(text = "Given as counts") |>
-  hc_xAxis(title = list(text = "count")) |>
-  hc_yAxis(title = list(text = "")) |>
-  hc_caption(text = "As determined by ema count") |>
+  hc_xAxis(title = list(text = "")) |>
+  hc_yAxis(title = list(text = "count")) |>
+  hc_caption(text = "As determined by ema count, given as counts") |>
   hc_tooltip(crosshairs = TRUE) |>
-  hc_exporting(enabled = T, filename = "ema.bxcount")
+  hc_exporting(enabled = T, filename = "ema.bxcount",
+    buttons = list(contextButton = list(menuItems = c("viewFullscreen", "separator", "downloadPNG", "downloadJPEG", "downloadPDF", "downloadSVG")))
+  )
 ```
 ### proportional valid barcodes
 ```{r echo = FALSE, message = FALSE, warning = FALSE, out.width = '100%'}
 hchart(tb, "bar", hcaes(x = Sample, y = Count, group = Barcode), stacking = "percent") |>
   hc_colors(c("#707070", "#b88ace")) |>
   hc_title(text = "Valid vs Invalid Barcodes") |>
-  hc_subtitle(text = "Given as percents") |>
-  hc_xAxis(title = list(text = "count")) |>
-  hc_yAxis(title = list(text = "")) |>
-  hc_caption(text = "As determined by ema count") |>
+  hc_xAxis(title = list(text = "")) |>
+  hc_yAxis(title = list(text = "percent")) |>
+  hc_caption(text = "As determined by ema count, given as percents") |>
   hc_tooltip(crosshairs = TRUE) |>
-  hc_exporting(enabled = T, filename = "ema.bxcount")
+  hc_exporting(enabled = T, filename = "ema.bxpercent",
+    buttons = list(contextButton = list(menuItems = c("viewFullscreen", "separator", "downloadPNG", "downloadJPEG", "downloadPDF", "downloadSVG")))
+)
 ```
 
 ## Table

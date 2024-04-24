@@ -99,11 +99,10 @@ highchart() |>
   hc_yAxis(title = list(text = "count")) |>
   hc_tooltip(
     crosshairs = TRUE, animation = F,
-    pointFormat= '<b>{point.category}</b><br>Count: <b>{point.y:.0f}</b>',
-    animation = FALSE
+    pointFormat= '<b>{point.category}</b><br>Count: <b>{point.y:.0f}</b>'
   ) |>
   hc_exporting(enabled = T, filename = "bcftools.stats",
-   buttons = list(contextButton = list(menuItems = c("viewFullscreen", "separator", "downloadPNG", "downloadJPEG", "downloadPDF", "downloadSVG")))
+    buttons = list(contextButton = list(menuItems = c("viewFullscreen", "separator", "downloadPNG", "downloadJPEG", "downloadPDF", "downloadSVG")))
   )
 ```
 

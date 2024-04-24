@@ -13,11 +13,10 @@ output:
 library(flexdashboard)
 library(dplyr)
 library(tidyr)
-library(ggplot2)
 library(scales)
-library(magrittr)
 library(DT)
-library(plotly)
+library(ggplot2)
+library(highcharter)
 ```
 
 This report details the counts of valid and invalid haplotag barcodes in the 
@@ -62,8 +61,8 @@ invalids <- data.frame(
 ```
 
 ```{r fill_df, echo = FALSE, message = FALSE, warning = FALSE}
-#for (i in list.files("~/Documents/harpy/test/QC/logs/bxcount/", ".count.log", full.names = TRUE)) {
-for (i in snakemake@input[["countlog"]]) {
+for (i in list.files("~/Documents/harpy/bananas/logs/bxcount/", ".count.log", full.names = TRUE)) {
+#for (i in snakemake@input[["countlog"]]) {
   samplename <- gsub(".count.log", "", basename(i))
   s_df <- read.table(i, header = F)
   total <- s_df$V2[1]
@@ -161,7 +160,6 @@ DT::datatable(
     scrollX = TRUE
   ),
   caption = "Overall barcode quality per sample",
-  autoHideNavigation = T,
   fillContainer = T
 )
 ```
@@ -193,13 +191,14 @@ These data are visualized in the scatterplot below this section.
 ## Segment
 ```{r echo = FALSE, message = FALSE, warning = FALSE}
 invalids_percent <- data.frame(
-  Sample = invalids$Sample,
+  Sample = as.factor(invalids$Sample),
   A = round(invalids$A/invalids$TotalBarcodes * 100, digits = 3),
   C = round(invalids$C/invalids$TotalBarcodes * 100, digits = 3),
   B = round(invalids$B/invalids$TotalBarcodes * 100, digits = 3),
   D = round(invalids$D/invalids$TotalBarcodes * 100, digits = 3)
 )
 invalids_long <- pivot_longer(invalids_percent, -1, names_to = "Segment", values_to = "Count")
+invalids_long$Segment <- as.factor(paste0("segment " , invalids_long$Segment))
 ```
 
 ### segment dist {.no-title}
@@ -228,7 +227,6 @@ DT::datatable(
   ),
   colnames = c("Sample","A", "C","B","D"),
   caption = "Invalid segments relative to total barcodes",
-  autoHideNavigation = T,
   fillContainer = T
 )
 ```
@@ -249,29 +247,53 @@ frameheight <- 1.2 + (0.166 * nrow(invalids))
 ```
 
 ## segment plots {data-height=pltheight}
-### general {.no-title}
-```{r echo = FALSE, message = FALSE, warning = FALSE, fig.height = frameheight, out.width = '100%'}
-p <-  plotdata %>%
-  pivot_longer(-Sample, names_to = "Barcode", values_to = "Count") %>%
-  ggplot(aes(y = Sample, x = Count, fill = Barcode)) +
-    geom_col() +
-    theme_minimal() +
-    theme(panel.grid.major.y = element_blank(), axis.title.y = element_blank()) +
-    scale_fill_manual(values = c(Valid = "#afd5e7", Invalid = "#c02554")) +
-    scale_x_continuous(labels = scales::comma) +
-    labs(title = "Barcode Count and Validity")
+### count of valid barcodes
+```{r echo = FALSE, message = FALSE, warning = FALSE, out.width = '100%'}
+tb<-plotdata %>%
+  pivot_longer(-Sample, names_to = "Barcode", values_to = "Count")
 
-ggplotly(p, height = pltheight)
+hchart(tb, "bar", hcaes(x = Sample, y = Count, group = Barcode), stacking = "normal") |>
+  hc_colors(c("#707070", "#b88ace")) |>
+  hc_title(text = "Valid vs Invalid Barcodes") |>
+  hc_caption(text = "Given as counts") |>
+  hc_xAxis(title = list(text = "")) |>
+  hc_yAxis(title = list(text = "count")) |>
+  hc_tooltip(crosshairs = TRUE) |>
+  hc_exporting(enabled = T, filename = "bxcount",
+    buttons = list(contextButton = list(menuItems = c("viewFullscreen", "separator", "downloadPNG", "downloadJPEG", "downloadPDF", "downloadSVG")))
+  )
 ```
+### proportional valid barcodes
+```{r echo = FALSE, message = FALSE, warning = FALSE, out.width = '100%'}
+hchart(tb, "bar", hcaes(x = Sample, y = Count, group = Barcode), stacking = "percent") |>
+  hc_colors(c("#707070", "#b88ace")) |>
+  hc_title(text = "Valid vs Invalid Barcodes") |>
+  hc_caption(text = "Given as percents") |>
+  hc_xAxis(title = list(text = "")) |>
+  hc_yAxis(title = list(text = "percent")) |>
+  hc_tooltip(crosshairs = TRUE) |>
+  hc_exporting(enabled = T, filename = "bxpercent",
+    buttons = list(contextButton = list(menuItems = c("viewFullscreen", "separator", "downloadPNG", "downloadJPEG", "downloadPDF", "downloadSVG")))
+)
+```
+
+## Individual Segment Invalidations
+The plot below categorizes which barcode segments are invalid, which may help troubleshoot
+sample prepartion.
+
 ### indiv segments {.no-title}
-```{r fig.height=frameheight}
-p <- ggplot(invalids_long, aes(x = Count, y = Sample, color = Segment)) +
-  geom_point(size = 2) +
-  theme_minimal() +
-  #theme(panel.grid.major.y = element_blank()) +
-  scale_color_manual(values = c("#4a9fea", "#5a8c84", "#ffd75f", "#df487f")) +
-  scale_x_continuous(labels = scales::comma) +
-  ylab("") +
-  labs(title = "Percent Invalid Beadtag Segments")
-ggplotly(p, height = pltheight)
+```{r echo = FALSE, message = FALSE, warning = FALSE, out.width = '100%'}
+highchart() |>
+  hc_chart(inverted=TRUE) |>
+  hc_add_series(data = invalids_long,  type = "scatter", hcaes(x = Sample, y = Count, group = Segment), marker = list(symbol = "circle")) |>
+  hc_colors(c("#4a9fea", "#5a8c84", "#ffd75f", "#df487f")) |>
+  hc_title(text = "Percent Invalid Beadtag Segments") |>
+  hc_xAxis(type = "category", title = list(text = ""), categories = levels(invalids_long$Sample)) |>
+  hc_yAxis(title = list(text = "percent invalid")) |>
+  hc_tooltip(crosshairs = TRUE,
+    formatter = JS("function () {return '<b>' + this.x + '</b><br><b>' + this.series.name + '</b><br/>Percent: <b>' + this.y + '</b>';}") 
+  ) |>
+  hc_exporting(enabled = T, filename = "invalid.segments",
+    buttons = list(contextButton = list(menuItems = c("viewFullscreen", "separator", "downloadPNG", "downloadJPEG", "downloadPDF", "downloadSVG")))
+)
 ```
