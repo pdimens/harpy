@@ -132,8 +132,9 @@ hchart(hs, "areaspline", hcaes(x = val, y = freq), color = "#8484bd", name = "% 
   hc_yAxis(title = list(text = "% molecules")) |>
   hc_caption(text = paste0("Total unique molecules: ", totuniqBX)) |>
   hc_tooltip(crosshairs = TRUE) |>
-  hc_exporting(enabled = T, filename = paste0(samplename, ".readsper"))
-
+  hc_exporting(enabled = T, filename = paste0(samplename, ".readsper"),
+    buttons = list(contextButton = list(menuItems = c("viewFullscreen", "separator", "downloadPNG", "downloadJPEG", "downloadPDF", "downloadSVG")))
+  )
 ```
 
 ### bases per {.no-title}
@@ -148,7 +149,9 @@ hchart(hs, "areaspline", hcaes(x = val, y = freq), color = "#75b89e", name = "% 
   hc_yAxis(title = list(text = "% molecules")) |>
   hc_caption(text = paste0("Total unique molecules: ", totuniqBX)) |>
   hc_tooltip(crosshairs = TRUE) |>
-  hc_exporting(enabled = T, filename = paste0(samplename, ".basesper"))
+  hc_exporting(enabled = T, filename = paste0(samplename, ".basesper"),
+    buttons = list(contextButton = list(menuItems = c("viewFullscreen", "separator", "downloadPNG", "downloadJPEG", "downloadPDF", "downloadSVG")))
+  )
 ```
 
 
@@ -188,7 +191,9 @@ hchart(hs, "areaspline", hcaes(x = val, y = freq), color = "#b3519d", name = "% 
   hc_yAxis(title = list(text = "% of molecules")) |>
   hc_caption(text = paste0("Total unique molecules: ", totuniqBX)) |>
   hc_tooltip(crosshairs = TRUE) |>
-  hc_exporting(enabled = T, filename = paste0(samplename, ".mollen"))
+  hc_exporting(enabled = T, filename = paste0(samplename, ".mollen"),
+    buttons = list(contextButton = list(menuItems = c("viewFullscreen", "separator", "downloadPNG", "downloadJPEG", "downloadPDF", "downloadSVG")))
+  )
 ```
 
 ### inferred_covplot {.no-title}
@@ -207,7 +212,9 @@ hchart(hs, "areaspline", hcaes(x = val, y = freq), color = "#e59765", name = "% 
   hc_yAxis(title = list(text = "% of molecules")) |>
   hc_caption(text = paste0("Total unique molecules: ", totuniqBX)) |>
   hc_tooltip(crosshairs = TRUE) |>
-  hc_exporting(enabled = T, filename = paste0(samplename, ".molcov"))
+  hc_exporting(enabled = T, filename = paste0(samplename, ".molcov"),
+    buttons = list(contextButton = list(menuItems = c("viewFullscreen", "separator", "downloadPNG", "downloadJPEG", "downloadPDF", "downloadSVG")))
+  )
 ```
 
 ## Interpreting the supporting data {.data-height=50}
@@ -357,7 +364,9 @@ hchart(hs, "areaspline", hcaes(x = val, y = freq), color = "#9393d2", name = "% 
   hc_xAxis(ceiling = q99, title = list(text = "depth")) |>
   hc_yAxis(title = list(text = "% molecules"))  |>
   hc_title(text = "Distribution of Alignment Depths")  |>
-  hc_exporting(enabled = T, filename = paste0(samplename, ".cov"))
+  hc_exporting(enabled = T, filename = paste0(samplename, ".cov"),
+    buttons = list(contextButton = list(menuItems = c("viewFullscreen", "separator", "downloadPNG", "downloadJPEG", "downloadPDF", "downloadSVG")))
+  )
 ```
 
 ## Sumheader
