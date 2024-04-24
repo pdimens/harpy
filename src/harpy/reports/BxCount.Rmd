@@ -60,8 +60,8 @@ invalids <- data.frame(
 ```
 
 ```{r fill_df, echo = FALSE, message = FALSE, warning = FALSE}
-for (i in list.files("~/Documents/harpy/bananas/logs/bxcount/", ".count.log", full.names = TRUE)) {
-#for (i in snakemake@input[["countlog"]]) {
+#for (i in list.files("~/Documents/harpy/bananas/logs/bxcount/", ".count.log", full.names = TRUE)) {
+for (i in snakemake@input[["countlog"]]) {
   samplename <- gsub(".count.log", "", basename(i))
   s_df <- read.table(i, header = F)
   total <- s_df$V2[1]
