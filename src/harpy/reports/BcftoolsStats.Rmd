@@ -18,12 +18,10 @@ library(DT)
 library(highcharter)
 library(RColorBrewer)
 library(scales)
-#library(plotly)
-#library(ggplot2)
-dataL <- readLines("~/variants.raw.stats")
-bcf <- "filename.bcf"
-#dataL <- readLines(snakemake@input[[1]])
-#bcf <- gsub(".stats$", ".bcf", snakemake@input[[1]])
+#dataL <- readLines("~/variants.raw.stats")
+#bcf <- "filename.bcf"
+dataL <- readLines(snakemake@input[[1]])
+bcf <- gsub(".stats$", ".bcf", snakemake@input[[1]])
 ```
 <h1> `r bcf` </h1>
 
