@@ -53,9 +53,9 @@ def impute(input, output_dir, parameters, threads, vcf, vcf_samples, extra_param
         exit(0)
 
     os.makedirs(f"{workflowdir}/", exist_ok= True)
-    sn = parse_alignment_inputs(input, f"{workflowdir}/input")
-    samplenames = vcf_samplematch(vcf, f"{workflowdir}/input", vcf_samples)
-    validate_bamfiles(f"{workflowdir}/input", samplenames)
+    sn = parse_alignment_inputs(input, f"{workflowdir}/input/alignments")
+    samplenames = vcf_samplematch(vcf, f"{workflowdir}/input/alignments", vcf_samples)
+    validate_bamfiles(f"{workflowdir}/input/alignments", samplenames)
     ## validate inputs ##
     vcfcheck(vcf)
     check_impute_params(parameters)
@@ -68,7 +68,6 @@ def impute(input, output_dir, parameters, threads, vcf, vcf_samples, extra_param
     # doing it here so it doesn't have to run each time inside the workflow
     contigs = biallelic_contigs(vcf)
     with open(f"{workflowdir}/config.yml", "w") as config:
-        config.write(f"seq_directory: {workflowdir}/input\n")
         config.write(f"output_directory: {output_dir}\n")
         config.write(f"samplenames: {samplenames}\n")
         config.write(f"variantfile: {vcf}\n")

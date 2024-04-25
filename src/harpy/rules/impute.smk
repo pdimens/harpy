@@ -2,17 +2,17 @@ from snakemake.utils import Paramspace
 from rich import print as rprint
 from rich.panel import Panel
 import pandas as pd
-import subprocess
+import shutil
 import sys
 import os
 
-bam_dir     = config["seq_directory"]
 samplenames = config["samplenames"]
 variantfile = config["variantfile"]
 paramfile   = config["paramfile"]
 contigs     = config["contigs"]
 skipreports = config["skipreports"]
 outdir      = config["output_directory"]
+bam_dir     = f"{outdir}/workflow/input/alignments"
 # declare a dataframe to be the paramspace
 paramspace  = Paramspace(pd.read_csv(paramfile, sep=r"\s+").rename(columns=str.lower), param_sep = "", filename_params="*")
 
@@ -32,6 +32,7 @@ onerror:
     )
 
 onsuccess:
+    shutil.rmtree(f'{outdir}/input', ignore_errors=True)
     print("")
     rprint(
         Panel(
@@ -47,10 +48,10 @@ rule sort_bcf:
     input:
         variantfile
     output:
-        bcf = temp(outdir + "/stitch_input/input.sorted.bcf"),
-        idx = temp(outdir + "/stitch_input/input.sorted.bcf.csi")
+        bcf = temp(f"{outdir}/workflow/input/vcf/input.sorted.bcf"),
+        idx = temp(f"{outdir}/workflow/input/vcf/input.sorted.bcf.csi")
     log:
-        outdir + "/stitch_input/input.sorted.log"
+        f"{outdir}/workflow/input/vcf/input.sorted.log"
     message:
         "Sorting input variant call file"
     shell:
@@ -71,27 +72,18 @@ rule bam_list:
         bam = collect(bam_dir + "/{sample}.bam", sample = samplenames),
         bai = collect(bam_dir + "/{sample}.bam.bai", sample = samplenames)
     output:
-        outdir + "/stitch_input/samples.list"
+        outdir + "/workflow/input/samples.list"
     message:
         "Creating list of alignment files"
     run:
         with open(output[0], "w") as fout:
             _ = [fout.write(f"{bamfile}\n") for bamfile in input["bam"]]
 
-rule samples_file:
-    output:
-        outdir + "/stitch_input/samples.names"
-    message:
-        "Creating file of sample names"
-    run:
-        with open(output[0], "w") as fout:
-            _ = [fout.write(f"{i}\n") for i in samplenames]
-
 rule convert_stitch:
     input:
-        outdir + "/stitch_input/input.sorted.bcf"
+        f"{outdir}/workflow/input/vcf/input.sorted.bcf"
     output:
-        outdir + "/stitch_input/{part}.stitch"
+        outdir + "/workflow/input/vcf/{part}.stitch"
     threads: 
         3
     message:
@@ -104,8 +96,8 @@ rule convert_stitch:
 
 rule impute:
     input:
-        bamlist = outdir + "/stitch_input/samples.list",
-        infile  = outdir + "/stitch_input/{part}.stitch"
+        bamlist = outdir + "/workflow/input/samples.list",
+        infile  = outdir + "/workflow/input/vcf/{part}.stitch"
     output:
         # format a wildcard pattern like "k{k}/s{s}/ngen{ngen}"
         # into a file path, with k, s, ngen being the columns of the data frame
@@ -224,8 +216,8 @@ rule stats:
 
 rule compare_stats:
     input:
-        orig    = outdir + "/stitch_input/input.sorted.bcf",
-        origidx = outdir + "/stitch_input/input.sorted.bcf.csi",
+        orig    = outdir + "/workflow/input/vcf/input.sorted.bcf",
+        origidx = outdir + "/workflow/input/vcf/input.sorted.bcf.csi",
         impute  = outdir + "/{stitchparams}/variants.imputed.bcf",
         idx     = outdir + "/{stitchparams}/variants.imputed.bcf.csi"
     output:
