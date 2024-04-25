@@ -204,7 +204,7 @@ out of the zoomed view.
 
 ## ind stats plt
 ### Individuals Plot {.no-title}
-```{r percontig dist, echo = FALSE, message = FALSE, warning = FALSE, out.width = "100%"}
+```{r preprocess fields, echo = FALSE, message = FALSE, warning = FALSE, out.width = "100%"}
 gcts_long$Conversion <- gsub("AltHom","Homozygous Alt", gcts_long$Conversion)
 gcts_long$Conversion <- gsub("Het","Heterozygote", gcts_long$Conversion)
 gcts_long$Conversion <- gsub("RefHom","Homozygous Ref", gcts_long$Conversion)
