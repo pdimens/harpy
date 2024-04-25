@@ -462,14 +462,12 @@ rule log_workflow:
         cov_report = collect(outdir + "/reports/{sample}.html", sample = samplenames) if not skipreports else [],
         bx_counts = f"{outdir}/reports/reads.bxcounts.html" if not skipreports else [],
         agg_report = f"{outdir}/reports/ema.stats.html" if not skipreports else []
-    output:
-        outdir + "/workflow/align.ema.summary"
     params:
         beadtech = "-p" if platform == "haplotag" else f"-w {whitelist}"
     message:
         "Summarizing the workflow: {output}"
     run:
-        with open(output[0], "w") as f:
+        with open(outdir + "/workflow/align.ema.summary", "w") as f:
             _ = f.write("The harpy align module ran using these parameters:\n\n")
             _ = f.write(f"The provided genome: {bn}\n")
             _ = f.write(f"The directory with sequences: {seq_dir}\n")

@@ -270,15 +270,13 @@ rule log_workflow:
     input:
         vcf = outdir + "/variants.phased.bcf",
         reports = outdir + "/reports/phase.html" if not skipreports else []
-    output:
-        outdir + "/workflow/phase.summary"
     params:
         prune = f"--threshold {pruning}" if pruning > 0 else "--no_prune 1",
         extra = extra
     message:
         "Creating record of relevant runtime parameters"
     run:
-        with open(output[0], "w") as f:
+        with open(outdir + "/workflow/phase.summary", "w") as f:
             _ = f.write("The harpy phase module ran using these parameters:\n\n")
             _ = f.write(f"The provided variant file: {variantfile}\n")
             _ = f.write(f"The directory with alignments: {bam_dir}\n")

@@ -131,9 +131,7 @@ rule log_workflow:
     input:
         fq = collect(outdir + "/{sample}.{FR}.fq.gz", FR = ["R1", "R2"], sample = samplenames),
         bx_report = outdir + "/reports/barcode.summary.html" if not skipreports else [],
-        agg_report = outdir + "/reports/qc.report.html" if not skipreports else []
-    output:
-        outdir + "/workflow/qc.summary"    
+        agg_report = outdir + "/reports/qc.report.html" if not skipreports else []    
     params:
         minlen = f"--length_required {min_len}",
         maxlen = f"--max_len1 {max_len}",
@@ -142,7 +140,7 @@ rule log_workflow:
     message:
         "Summarizing the workflow: {output}"
     run:
-        with open(output[0], "w") as f:
+        with open(outdir + "/workflow/qc.summary", "w") as f:
             _ = f.write("The harpy qc module ran using these parameters:\n\n")
             _ = f.write(f"The directory with sequences: {seq_dir}\n")
             _ = f.write("fastp trimming ran using:\n")

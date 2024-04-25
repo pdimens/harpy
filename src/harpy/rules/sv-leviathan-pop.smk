@@ -22,7 +22,6 @@ wildcard_constraints:
     
 # create dictionary of population => filenames
 ## this makes it easier to set the snakemake rules/wildcards
-## exits with an error if the groupfile has samples not in the bam folder
 def pop_manifest(infile, dirn):
     d = dict()
     with open(infile) as f:
@@ -257,8 +256,6 @@ rule log_workflow:
         vcf = collect(outdir + "/{pop}.bcf", pop = populations),
         reports = collect(outdir + "/reports/{pop}.sv.html", pop = populations),
         agg_report = outdir + "/reports/leviathan.pop.summary.html" if not skipreports else []
-    output:
-        outdir + "/workflow/sv.leviathan.summary"
     message:
         "Summarizing the workflow: {output}"
     params:
@@ -266,7 +263,7 @@ rule log_workflow:
         min_bc = f"-c {min_bc}",
         extra = extra
     run:
-        with open(output[0], "w") as f:
+        with open(outdir + "/workflow/sv.leviathan.summary", "w") as f:
             _ = f.write("The harpy variants sv module ran using these parameters:\n\n")
             _ = f.write(f"The provided genome: {bn}\n")
             _ = f.write(f"The directory with alignments: {bam_dir}\n")

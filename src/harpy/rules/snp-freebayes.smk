@@ -266,8 +266,6 @@ rule log_workflow:
     input:
         vcf = collect(outdir + "/variants.{file}.bcf", file = ["raw"]),
         reports = collect(outdir + "/reports/variants.{file}.html", file = ["raw"]) if not skipreports else []
-    output:
-        outdir + "/workflow/snp.freebayes.summary"
     message:
         "Summarizing the workflow: {output}"
     params:
@@ -275,7 +273,7 @@ rule log_workflow:
         populations = f"--populations {groupings}" if groupings else '',
         extra = extra
     run:
-        with open(output[0], "w") as f:
+        with open(outdir + "/workflow/snp.freebayes.summary", "w") as f:
             _ = f.write("The harpy variants snp module ran using these parameters:\n\n")
             _ = f.write(f"The provided genome: {bn}\n")
             _ = f.write(f"The directory with alignments: {bam_dir}\n")

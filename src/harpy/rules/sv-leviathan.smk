@@ -193,8 +193,6 @@ rule log_workflow:
     input: 
         vcf = collect(outdir + "/{sample}.bcf", sample = samplenames),
         reports = collect(outdir + "/reports/{sample}.SV.html", sample = samplenames) if not skipreports else []
-    output:
-        outdir + "/workflow/sv.leviathan.summary"
     params:
         min_sv = f"-v {min_sv}",
         min_bc = f"-c {min_bc}",
@@ -202,7 +200,7 @@ rule log_workflow:
     message:
         "Summarizing the workflow: {output}"
     run:
-        with open(output[0], "w") as f:
+        with open(outdir + "/workflow/sv.leviathan.summary", "w") as f:
             _ = f.write("The harpy variants sv module ran using these parameters:\n\n")
             _ = f.write(f"The provided genome: {bn}\n")
             _ = f.write(f"The directory with alignments: {bam_dir}\n")

@@ -79,31 +79,26 @@ rule genome_link:
         fi
         """
 
-if genome_zip:
-    rule genome_compressed_faidx:
-        input: 
-            f"Genome/{bn}"
-        output: 
-            gzi = f"Genome/{bn}.gzi",
-            fai = f"Genome/{bn}.fai"
-        log:
-            f"Genome/{bn}.faidx.gzi.log"
-        message:
-            "Indexing {input}"
-        shell: 
-            "samtools faidx --gzi-idx {output.gzi} --fai-idx {output.fai} {input} 2> {log}"
-else:
-    rule genome_faidx:
-        input: 
-            f"Genome/{bn}"
-        output: 
-            f"Genome/{bn}.fai"
-        log:
-            f"Genome/{bn}.faidx.log"
-        message:
-            "Indexing {input}"
-        shell:
-            "samtools faidx --fai-idx {output} {input} 2> {log}"
+rule genome_faidx:
+    input: 
+        f"Genome/{bn}"
+    output: 
+        fai = f"Genome/{bn}.fai",
+        gzi = f"Genome/{bn}.gzi" if genome_zip else []
+    log:
+        f"Genome/{bn}.faidx.log"
+    params:
+        genome_zip
+    message:
+        "Indexing {input}"
+    shell: 
+        """
+        if [ "{params}" = "True" ]; then
+            samtools faidx --gzi-idx {output.gzi} --fai-idx {output.fai} {input} 2> {log}
+        else
+            samtools faidx --fai-idx {output.fai} {input} 2> {log}
+        fi
+        """
 
 rule copy_groupings:
     input:
@@ -303,15 +298,13 @@ rule log_workflow:
         vcf = collect(outdir + "/variants.{file}.bcf", file = ["raw"]),
         agg_log = outdir + "/logs/mpileup.log",
         reports = collect(outdir + "/reports/variants.{file}.html", file = ["raw"]) if not skipreports else []
-    output:
-        outdir + "/workflow/snp.mpileup.summary"
     params:
         ploidy = f"--ploidy {ploidy}",
         populations = f"--populations {groupings}" if groupings else "--populations -"
     message:
         "Summarizing the workflow: {output}"
     run:
-        with open(output[0], "w") as f:
+        with open(outdir + "/workflow/snp.mpileup.summary", "w") as f:
             _ = f.write("The harpy variants snp module ran using these parameters:\n\n")
             _ = f.write(f"The provided genome: {bn}\n")
             _ = f.write(f"The directory with alignments: {bam_dir}\n")

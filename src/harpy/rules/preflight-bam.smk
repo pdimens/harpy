@@ -93,12 +93,10 @@ rule log_workflow:
     default_target: True
     input:
         out_dir + "filecheck.bam.html"
-    output:
-        out_dir + "workflow/preflight.bam.summary"
     message:
         "Summarizing the workflow: {output}"
     run:
-        with open(output[0], "w") as f:
+        with open(out_dir + "workflow/preflight.bam.summary", "w") as f:
             _ = f.write("The harpy preflight module ran using these parameters:\n\n")
             _ = f.write(f"The directory with sequences: {seq_dir}\n")
             _ = f.write("validations were performed with:\n")

@@ -325,14 +325,12 @@ rule log_workflow:
         bedpe = collect(outdir + "/{pop}.bedpe", pop = populations),
         reports = collect(outdir + "/reports/{pop}.naibr.html", pop = populations) if not skipreports else [],
         agg_report = outdir + "/reports/naibr.pop.summary.html" if not skipreports else []
-    output:
-        outdir + "/workflow/sv.naibr.summary"
     message:
         "Summarizing the workflow: {output}"
     run:
         os.system(f"rm -rf {outdir}/naibrlog")
         argdict = process_args(extra)
-        with open(output[0], "w") as f:
+        with open(outdir + "/workflow/sv.naibr.summary", "w") as f:
             _ = f.write("The harpy variants sv module ran using these parameters:\n\n")
             _ = f.write(f"The provided genome: {bn}\n")
             _ = f.write(f"The directory with alignments: {bam_dir}\n")

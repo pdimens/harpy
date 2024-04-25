@@ -201,8 +201,6 @@ rule log_workflow:
     default_target: True
     input:
         collect(outdir + "/sim_hap{hap}_haplotag.R{fw}.fq.gz", hap = [0,1], fw = [1,2])
-    output:
-        outdir + "/workflow/simulate.reads.workflow.summary"
     params:
         static = "-o 1 -d 2 -u 4",
         proj_dir = f"-r {outdir}",
@@ -216,7 +214,7 @@ rule log_workflow:
     message:
         "Summarizing the workflow: {output}"
     run:
-        with open(output[0], "w") as f:
+        with open(outdir + "/workflow/simulate.reads.summary", "w") as f:
             _ = f.write("The harpy simulate reads module ran using these parameters:\n\n")
             _ = f.write(f"Genome haplotype 1: {gen_hap1}\n")
             _ = f.write(f"Genome haplotype 2: {gen_hap2}\n")

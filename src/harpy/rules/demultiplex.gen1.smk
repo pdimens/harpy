@@ -209,12 +209,10 @@ rule log_workflow:
     input:
         fq = collect(outdir + "{sample}.{FR}.fq.gz", sample = samplenames, FR = ["F", "R"]),
         reports = outdir + "reports/demultiplex.QC.html" if not skipreports else []
-    output:
-        outdir + "workflow/demultiplex.gen1.summary"
     message:
         "Summarizing the workflow: {output}"
     run:
-        with open(output[0], "w") as f:
+        with open(outdir + "workflow/demux.gen1.summary", "w") as f:
             _ = f.write("The harpy demultiplex module ran using these parameters:\n\n")
             _ = f.write("Haplotag technology: Generation I\n")
             _ = f.write(f"The multiplexed input file: {infile}\n")

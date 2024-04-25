@@ -328,15 +328,13 @@ rule log_workflow:
         bams = collect(outdir + "/{sample}.{ext}", sample = samplenames, ext = ["bam", "bam.bai"]),
         reports = collect(outdir + "/reports/{sample}.html", sample = samplenames) if not skipreports else [],
         agg_report = outdir + "/reports/bwa.stats.html" if not skipreports else []
-    output:
-        outdir + "/workflow/align.bwa.summary"
     params:
         quality = config["quality"],
         extra   = extra
     message:
         "Summarizing the workflow: {output}"
     run:
-        with open(output[0], "w") as f:
+        with open(outdir + "/workflow/align.bwa.summary", "w") as f:
             _ = f.write("The harpy align module ran using these parameters:\n\n")
             _ = f.write(f"The provided genome: {bn}\n")
             _ = f.write(f"The directory with sequences: {seq_dir}\n\n")
