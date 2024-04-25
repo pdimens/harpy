@@ -44,8 +44,7 @@ After reads have been aligned, _e.g._ with `harpy align`, you can use those alig
 (`.bam`) to call structural variants in your data using NAIBR. While our testing shows that
 NAIBR tends to find known inversions that LEVIATHAN misses, the program requires haplotype 
 **phased** bam files as input. That means the alignments have a `PS` or `HP` tag that indicate
-which haplotype the read/alignment belongs to. If you used the `EMA` aligner, then the alignments
-should already have that information (yay!). If your alignments don't have phasing tags (e.g. aligned with BWA),
+which haplotype the read/alignment belongs to. If your alignments don't have phasing tags (none of the current aligners in Harpy do this),
 then you will need to do a little extra work for NAIBR to work best with your data. This process is described below.
 
 ```bash usage
