@@ -229,6 +229,74 @@ jobs:
         shell: micromamba-shell {0}
         run: harpy align minimap -g test/genome/genome.fasta.gz -s "--show-failed-logs" -x "--seed 13" test/fastq
 
+  test_mpileup:
+    needs: [changes, pkgbuild]
+    if: ${{ needs.changes.outputs.mpileup == 'true' && needs.pkgbuild.result == 'success' }}
+    name: test mpileup
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+      - name: setup mamba
+        uses: mamba-org/setup-micromamba@v1
+        env:
+          ACTIONS_STEP_DEBUG: true
+        with:
+          init-shell: bash
+          generate-run-shell: true
+          environment-file: workflow/envs/harpy.yaml
+          cache-environment: true
+          post-cleanup: 'all'
+          log-level: error
+      - name: Install harpy
+        shell: micromamba-shell {0}
+        run: |
+          python3 -m pip install --upgrade build && python3 -m build
+          pip install dist/*.whl
+          resources/buildforCI.sh
+      - name: snp mpileup
+        shell: micromamba-shell {0}
+        run: harpy snp mpileup -w 150000 -g test/genome/genome.fasta.gz -q -x "--ignore-RG" test/bam
+      - name: snp mpileup-pop
+        shell: micromamba-shell {0}
+        run: harpy snp mpileup -w 150000 -g test/genome/genome.fasta.gz -p test/samples.groups -q test/bam
+  
+  test_freebayes:
+    needs: [changes, pkgbuild]
+    if: ${{ needs.changes.outputs.freebayes == 'true' && needs.pkgbuild.result == 'success' }}
+    name: test freebayes
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+      - name: setup mamba
+        uses: mamba-org/setup-micromamba@v1
+        env:
+          ACTIONS_STEP_DEBUG: true
+        with:
+          init-shell: bash
+          generate-run-shell: true
+          environment-file: workflow/envs/harpy.yaml
+          cache-environment: true
+          post-cleanup: 'all'
+          log-level: error
+      - name: Install harpy
+        shell: micromamba-shell {0}
+        run: |
+          python3 -m pip install --upgrade build && python3 -m build
+          pip install dist/*.whl
+          resources/buildforCI.sh
+      - name: snp freebayes
+        shell: micromamba-shell {0}
+        run: harpy snp freebayes -w 150000 -g test/genome/genome.fasta.gz -q -x "-g 200" test/bam
+      - name: snp freebayes-pop
+        shell: micromamba-shell {0}
+        run: harpy snp freebayes -w 150000 -g test/genome/genome.fasta.gz -p test/samples.groups -q test/bam
+
   test_impute:
     needs: [changes, pkgbuild]
     if: ${{ needs.changes.outputs.impute == 'true' && needs.pkgbuild.result == 'success' }}

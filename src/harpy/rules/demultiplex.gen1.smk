@@ -212,6 +212,7 @@ rule log_workflow:
     message:
         "Summarizing the workflow: {output}"
     run:
+        os.makedirs(f"{outdir}workflow/", exist_ok= True)
         with open(outdir + "workflow/demux.gen1.summary", "w") as f:
             _ = f.write("The harpy demultiplex module ran using these parameters:\n\n")
             _ = f.write("Haplotag technology: Generation I\n")
