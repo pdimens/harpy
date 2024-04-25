@@ -160,7 +160,7 @@ mergebins <- function(x){
 ### SNP Quality {.no-title}
 ```{r snpqual plot, echo=FALSE, message=FALSE, warning=FALSE}
 if(do_qual){
-  hchart(mergebins(qual[,-3]), "areaspline", hcaes(x = QualityScore, y = SNPs), color = "#8fbbbc", name = "count") |>
+  hchart(mergebins(qual[,-3]), "areaspline", hcaes(x = QualityScore, y = SNPs), color = "#8fbbbc", name = "count", marker = list(enabled = FALSE)) |>
     hc_title(text = "SNP Genotype Quality") |>
     hc_subtitle(text = "Shown in bins of width 10") |>
     hc_xAxis(title = list(text = "quality score")) |>
@@ -180,7 +180,7 @@ if(do_qual){
 ### Indel Quality {.no-title}
 ```{r indelqual plot, echo=FALSE, message=FALSE, warning=FALSE}
 if(do_qual){
-  hchart(mergebins(qual[,-2]), "areaspline", hcaes(x = QualityScore, y = Indels), name = "count", color = "#9393d2") |>
+  hchart(mergebins(qual[,-2]), "areaspline", hcaes(x = QualityScore, y = Indels), name = "count", color = "#9393d2", marker = list(enabled = FALSE)) |>
     hc_title(text = "Indel Genotype Quality") |>
     hc_subtitle(text = "Shown in bins of width 10") |>
     hc_xAxis(title = list(text = "quality score")) |>
@@ -217,7 +217,7 @@ if(sum(.dpL) == 0){
   dp$PercentGenotypes <- round(dp$PercentGenotypes, digits = 3)
   dp$PercentSites <- round(dp$PercentSites, digits = 3)
 
-  hchart(dp, "areaspline", hcaes(x = Bin, y = NumberSites), name = "count", color = "#F28500") |>
+  hchart(dp, "areaspline", hcaes(x = Bin, y = NumberSites), name = "count", color = "#F28500", marker = list(enabled = FALSE)) |>
     hc_title(text = "Depth per Site") |>
     hc_xAxis(title = list(text = "bin"), type = "logarithmic") |>
     hc_yAxis(title = list(text = "number of sites")) |>
@@ -266,7 +266,7 @@ if(sum(.iddL) == 0){
   idd$Type <-  gsub(TRUE, "Insertion", idd$Type)
   idd$Type <-  gsub(FALSE, "Deletion", idd$Type)
 
-  hchart(idd, "areaspline", hcaes(x = Length, y = Count, group = Type)) |>
+  hchart(idd, "areaspline", hcaes(x = Length, y = Count, group = Type, marker = list(enabled = FALSE))) |>
     hc_colors(c("#e6a037","#6daace")) |>
     hc_title(text = "Insertion-Deletion Distribution") |>
     hc_xAxis(title = list(text = "indel length"),

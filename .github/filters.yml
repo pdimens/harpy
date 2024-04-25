@@ -40,7 +40,7 @@ bwa:
   - 'src/harpy/reports/BxStats.Rmd'
   - 'src/harpy/scripts/bxStats.py'
   - 'src/harpy/scripts/countBX.py'
-  - 'globalscripts/makeWindows.py'
+  - 'src/harpy/globalscripts/makeWindows.py'
   - 'test/fastq/**'
 ema:
   - *common
@@ -52,7 +52,7 @@ ema:
   - 'src/harpy/reports/BxStats.Rmd'
   - 'src/harpy/scripts/bxStats.py'
   - 'src/harpy/scripts/countBX.py'
-  - 'globalscripts/makewindows.py'
+  - 'src/harpy/globalscripts/makewindows.py'
   - 'test/fastq/**'
 minimap:
   - *common
@@ -63,14 +63,14 @@ minimap:
   - 'src/harpy/reports/BxStats.Rmd'
   - 'src/harpy/scripts/bxStats.py'
   - 'src/harpy/scripts/countBX.py'
-  - 'globalscripts/makewindows.py'
+  - 'src/harpy/globalscripts/makewindows.py'
   - 'test/fastq/**'
 mpileup:
   - *common
   - 'src/harpy/rules/snp-mpileup.smk'
   - '**snp.py'
   - 'src/harpy/reports/BcftoolsStats.Rmd'
-  - 'globalscripts/makewindows.py'
+  - 'src/harpy/globalscripts/makewindows.py'
   - 'test/bam/**'
 freebayes:
   - *common
@@ -78,7 +78,7 @@ freebayes:
   - 'src/harpy/rules/snp-freebayes.smk'
   - '**snp.py'
   - 'src/harpy/reports/BcftoolsStats.Rmd'
-  - 'globalscripts/makewindows.py'
+  - 'src/harpy/globalscripts/makewindows.py'
   - 'test/bam/**'
 impute:
   - *common
@@ -103,7 +103,7 @@ naibr:
   - 'test/bam_phased/**'
   - 'test/vcf/test.phased.bcf'
   - 'src/harpy/reports/Naibr**.Rmd'
-  - 'globalscripts/inferSV.py'
+  - 'src/harpy/globalscripts/inferSV.py'
 phase:
   - *common
   - 'src/harpy/rules/phase-pop.smk'
@@ -111,7 +111,7 @@ phase:
   - 'test/bam/**'
   - 'test/vcf/test.bcf'
   - 'src/harpy/reports/HapCut2.Rmd'
-  - 'globalscripts/parsePhaseBlocks.py'
+  - 'src/harpy/globalscripts/parsePhaseBlocks.py'
 simvars:
   - *common
   - 'simulate-snpindel.smk'
@@ -123,7 +123,7 @@ simreads:
   - 'simulate-linkedreads.smk'
   - 'test/genome**gz'
   - 'extractReads.cpp'
-  - 'globalscripts/10xtoHaplotag.py'
+  - 'src/harpy/globalscripts/10xtoHaplotag.py'
   - 'src/harpy/scripts/LRSIMharpy.pl'
 extras:
   - '.github/workflows/tests.yml'

@@ -126,7 +126,7 @@ hs <- hist(
 hs$counts <- round(hs$counts / sum(hs$counts) * 100, 2)
 hs <- data.frame(val = hs$breaks[-1], freq = hs$counts)
 
-hchart(hs, "areaspline", hcaes(x = val, y = freq), color = "#8484bd", name = "% of molecules") |>
+hchart(hs, "areaspline", hcaes(x = val, y = freq), color = "#8484bd", name = "% of molecules", marker = list(enabled = FALSE)) |>
   hc_title(text = "Reads Per Molecule") |>
   hc_xAxis(title = list(text = "reads per molecule")) |>
   hc_yAxis(title = list(text = "% molecules")) |>
@@ -143,7 +143,7 @@ hs <- hist(round(valids$aligned_bp, -2), breaks = 50,  plot = F)
 hs$counts <- round(hs$counts / sum(hs$counts)*100,2)
 hs <- data.frame(val = hs$breaks[-1], freq = hs$counts)
 
-hchart(hs, "areaspline", hcaes(x = val, y = freq), color = "#75b89e", name = "% of molecules") |>
+hchart(hs, "areaspline", hcaes(x = val, y = freq), color = "#75b89e", name = "% of molecules", marker = list(enabled = FALSE)) |>
   hc_title(text = "Bases Aligned Per Molecule") |>
   hc_xAxis(title = list(text = "aligned bases per molecule")) |>
   hc_yAxis(title = list(text = "% molecules")) |>
@@ -184,7 +184,7 @@ hs <- hist(
 hs$counts <- round(hs$counts / sum(hs$counts)*100,2)
 hs <- data.frame(val = hs$breaks[-1], freq = hs$counts)
 
-hchart(hs, "areaspline", hcaes(x = val, y = freq), color = "#b3519d", name = "% of molecules") |>
+hchart(hs, "areaspline", hcaes(x = val, y = freq), color = "#b3519d", name = "% of molecules", marker = list(enabled = FALSE)) |>
   hc_title(text = "Inferred Molecule Length") |>
   hc_subtitle(text = "lengths reported as kilobases (kbp)") |>
   hc_xAxis(title = list(text = "Inferred Molecule length (kbp)"), type = "logarithmic") |>
@@ -206,7 +206,7 @@ hs <- hist(
 hs$counts <- round(hs$counts / sum(hs$counts)*100,2)
 hs <- data.frame(val = hs$breaks[-1], freq = hs$counts)
 
-hchart(hs, "areaspline", hcaes(x = val, y = freq), color = "#e59765", name = "% of molecules") |>
+hchart(hs, "areaspline", hcaes(x = val, y = freq), color = "#e59765", name = "% of molecules", marker = list(enabled = FALSE)) |>
   hc_title(text = "Percent Molecule Coverage") |>
   hc_xAxis(title = list(text = "% molecule covered")) |>
   hc_yAxis(title = list(text = "% of molecules")) |>
@@ -360,7 +360,7 @@ hs$counts <- round(hs$counts / sum(hs$counts)*100,2)
 hs <- data.frame(val = hs$breaks[-1], freq = hs$counts)
 hs <- hs[hs$val %% 2 == 0, ]
 
-hchart(hs, "areaspline", hcaes(x = val, y = freq), color = "#9393d2", name = "% of molecules") |>
+hchart(hs, "areaspline", hcaes(x = val, y = freq), color = "#9393d2", name = "% of molecules", marker = list(enabled = FALSE)) |>
   hc_xAxis(ceiling = q99, title = list(text = "depth")) |>
   hc_yAxis(title = list(text = "% molecules"))  |>
   hc_title(text = "Distribution of Alignment Depths")  |>

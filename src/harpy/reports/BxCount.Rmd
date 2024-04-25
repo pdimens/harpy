@@ -211,7 +211,7 @@ for(j in c("A", "B","C","D")){
   inv_hist <- rbind(inv_hist, data.frame(Segment = rep(segment, length(inv_breaks)-1), Bin = h$breaks[-1], Count = h$counts))
 }
 
-hchart(inv_hist, "areaspline", hcaes(x = Bin, y = Count, group = Segment), stack = "overlap", marker = list(symbol = "circle")) |>
+hchart(inv_hist, "areaspline", hcaes(x = Bin, y = Count, group = Segment), stack = "overlap", marker = list(enabled = FALSE)) |>
   hc_colors(c("#4a9fea", "#5a8c84", "#ffd75f", "#df487f")) |>
   hc_title(text = "Distribution of Percent Invalid Beadtag Segments") |>
   hc_xAxis(title = list(text = "Percent Invalid"), type = "linear") |>

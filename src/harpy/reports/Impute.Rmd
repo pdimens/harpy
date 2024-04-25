@@ -111,7 +111,7 @@ out of the zoomed view.
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
 h <- hist(infos$info, breaks = 20, plot = F)
 h <- data.frame(info = round(h$breaks[1:length(h$breaks)-1], 2), freq = round(h$counts / sum(h$counts)  * 100, 2))
-hchart(h, "areaspline", hcaes(x = info, y = freq), name = "% sites") |>
+hchart(h, "areaspline", hcaes(x = info, y = freq), name = "% sites", marker = list(enabled = FALSE)) |>
   hc_yAxis(title = list(text = "% of sites")) |>
   hc_xAxis(title = list(text = "INFO_SCORE")) |>
   hc_title(text = "Distribution of imputation INFO_SCORE values") |>
@@ -146,10 +146,10 @@ Here is an example snippet of keeping loci with an `INFO_SCORE` of at least `0.2
 bcftools view -i 'INFO/INFO_SCORE >= 0.2' -Ob file.vcf > filtered.file.bcf
 ```
 
-Below is a table of the number of variants sites that may remain if filtering
-at different minimum `INFO/INFO_SCORE` thresholds. Each column after `Total Variants`
+Below is a table of the number of variants sites that may remain (left) or removed (right)
+if filtering at different minimum `INFO/INFO_SCORE` thresholds. Each column after `Total Variants`
 refers to a filtering threshold and the numbers within that column are the number of 
-SNPs that would be kept if filtering out SNPs with an `INFO/INFO_SCORE` value below 
+SNPs that would be kept (or lost) if filtering out SNPs with an `INFO/INFO_SCORE` value below 
 it (_i.e._ `0.2` is the number of SNPs with a score `>= 0.2` ).
 
 ## filtering table
@@ -169,22 +169,51 @@ filterthresh <- infos %>% group_by(contig) %>%
 
 tots <- colSums(filterthresh[, -1])
 filterthresh <- rbind(c("all", tots), filterthresh) 
-#if(nrow(filterthresh)) < 1 {
-#  cat("No variants retained")
-#} else {
-  DT::datatable(
-    filterthresh,
-    rownames = FALSE,
-    extensions = "Buttons",
-    colnames = c("Contigs", "Total Variants", "0.20", "0.25", "0.30", "0.4", "0.5", "0.75", "0.90"),
-    options = list(
-      dom = "Brtip",
-      buttons = c("csv"),
-      scrollX = TRUE
-    ),
-    fillContainer = T
-  )
-#}
+DT::datatable(
+  filterthresh,
+  rownames = FALSE,
+  extensions = "Buttons",
+  colnames = c("Contigs", "Total Variants", "0.20", "0.25", "0.30", "0.4", "0.5", "0.75", "0.90"),
+  options = list(
+    dom = "Brtip",
+    buttons = c("csv"),
+    scrollX = TRUE
+  ),
+  fillContainer = T,
+  caption = 'Number of SNPs to be KEPT by filtering'
+)
+```
+
+### filt loss table {.no-title}
+```{r filttable_loss, echo = FALSE, message = FALSE, warning = FALSE}
+filterthresh <- infos %>% group_by(contig) %>%
+  summarise(
+    totals = length(info),
+    twenty = sum(info < 0.2),
+    twentyfive = sum(info < 0.25),
+    thirty = sum(info < 0.30),
+    forty = sum(info < 0.40),
+    fifty = sum(info < 0.50),
+    seventyfive = sum(info < 0.75),
+    ninety = sum(info < 0.90),
+    )
+
+tots <- colSums(filterthresh[, -1])
+filterthresh <- rbind(c("all", tots), filterthresh) 
+DT::datatable(
+  filterthresh,
+  rownames = FALSE,
+  extensions = "Buttons",
+  colnames = c("Contigs", "Total Variants", '<span style="color:red">0.2</span>','<span style="color:red">0.25</span>','<span style="color:red">0.30</span>','<span style="color:red">0.5</span>','<span style="color:red">0.75</span>','<span style="color:red">0.9</span>'),
+  options = list(
+    dom = "Brtip",
+    buttons = c("csv"),
+    scrollX = TRUE
+  ),
+  fillContainer = T,
+  caption = 'Number of SNPs to be REMOVED by filtering',
+  escape = F
+)
 ```
 
 # Individual Statistics
@@ -211,13 +240,13 @@ gcts_long$Conversion <- gsub("RefHom","Homozygous Ref", gcts_long$Conversion)
 gcts_long$Conversion <- gsub("missing","not imputed", gcts_long$Conversion)
 ```
 ```{r percontig dist, echo = FALSE, message = FALSE, warning = FALSE, out.width = "100%"}
-hchart(gcts_long, "bar", hcaes(x = sample, y = Count, group = Conversion), stacking = "normal") |>
+hchart(gcts_long, "bar", hcaes(x = sample, y = Count, group = Conversion), stacking = "normal", animation = F) |>
   hc_colors(c("#7cb3d4", "#b18ad1", "#ffd75f", "#6f6c70")) |>
   hc_title(text = "Missing Genotype Imputations") |>
   hc_caption(text = "Values indicate how many missing genotypes were imputed into that kind of genotype") |>
   hc_xAxis(title = list(text = "")) |>
   hc_yAxis(title = list(text = "count")) |>
-  hc_tooltip(crosshairs = TRUE) |>
+  hc_tooltip(crosshairs = TRUE, animation = F) |>
   hc_exporting(enabled = T, filename = "impute.samples",
     buttons = list(contextButton = list(menuItems = c("viewFullscreen", "separator", "downloadPNG", "downloadJPEG", "downloadPDF", "downloadSVG")))
   )
