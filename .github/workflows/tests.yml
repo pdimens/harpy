@@ -246,7 +246,7 @@ jobs:
         with:
           init-shell: bash
           generate-run-shell: true
-          environment-file: workflow/envs/harpy.yaml
+          environment-file: resources/harpy.yaml
           cache-environment: true
           post-cleanup: 'all'
           log-level: error
@@ -280,7 +280,7 @@ jobs:
         with:
           init-shell: bash
           generate-run-shell: true
-          environment-file: workflow/envs/harpy.yaml
+          environment-file: resources/harpy.yaml
           cache-environment: true
           post-cleanup: 'all'
           log-level: error
