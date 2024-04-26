@@ -178,12 +178,10 @@ names(genomeChr) <- fa.sizes$contig
 genomeChr <- as.list(genomeChr)
 tracks = BioCircosTracklist()
 fullnames = list(BND = c("Breakend","#df487f") , DEL = c("Deletion", "#5a8c84"), DUP = c("Duplication", "#ffd75f"), INV = c("Inversion", "#4a9fea"))
-existing_sv <- unique(sv3$type)
+existing_sv <- unique(sv$type)
 plot_position <- 0.15
-
-#for (i in existing_sv){
 for (i in c("BND","DEL","DUP","INV")){
-  .svdata <- sv3[sv3$type == i, ]
+  .svdata <- sv[sv$type == i, ]
   if(i %in% existing_sv){
     tracks = tracks + BioCircosArcTrack(
       paste0(i,"arcs"),
@@ -197,8 +195,6 @@ for (i in c("BND","DEL","DUP","INV")){
       colors = fullnames[[i]][2]
     )
   }
-  tracks = tracks + BioCircosTextTrack(paste0(i,"Text"), fullnames[[i]][1], weight = "lighter", size = "0.8em",  y = plot_position + 0.19)
-
   tracks = tracks + BioCircosBackgroundTrack(
     paste0(i, "background"),
     fillColors = "#fafafa",
@@ -208,6 +204,11 @@ for (i in c("BND","DEL","DUP","INV")){
   )
   plot_position <- plot_position + 0.21
 }
+# add the "legend"
+tracks = tracks + BioCircosTextTrack("InvText", "Inversion", size = "1.5em", x = 1.4,  y = 0.8, color = "#4a9fea")
+tracks = tracks + BioCircosTextTrack("DupText", "Duplication", size = "1.5em", x = 1.4,  y = 0.6, color = "#ffd75f")
+tracks = tracks + BioCircosTextTrack("DelText", "Deletion", size = "1.5em", x = 1.4,  y = 0.4, color = "#5a8c84")
+tracks = tracks + BioCircosTextTrack("BndText", "Breakend", size = "1.5em", x = 1.4,  y = 0.2, color = "#df487f")
 
 BioCircos(
   tracks,
@@ -216,8 +217,8 @@ BioCircos(
   chrPad = 0.02,
   genomeTicksLen = 0,
   genomeTicksTextSize = 0,
-  ARCMouseOverColor = "#91ff76", ARCMouseOverArcOpacity = 1.0,
-  genomeLabelDy = 7,
+  ARCMouseOverColor = "#f76808", ARCMouseOverArcOpacity = 1.0,
+  genomeLabelDy = 0,
   width = "100%"
 )
 ```
