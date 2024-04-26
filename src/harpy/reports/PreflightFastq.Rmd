@@ -9,28 +9,10 @@ output:
     favicon: "https://raw.githubusercontent.com/pdimens/harpy/docs/static/favicon_dark.png"
 ---
 
-
-```{css zoom-lib-src, echo = FALSE, message = FALSE, warning = FALSE}
-script src = "https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"
-```
-```{js zoom-jquery, echo = FALSE, message = FALSE, warning = FALSE}
- $(document).ready(function() {
-    $('body').prepend('<div class=\"zoomDiv\"><img src=\"\" class=\"zoomImg\"></div>');
-    // onClick function for all plots (img's)
-    $('img:not(.zoomImg)').click(function() {
-      $('.zoomImg').attr('src', $(this).attr('src')).css({width: '100%'});
-      $('.zoomDiv').css({opacity: '1', width: 'auto', border: '1px solid white', borderRadius: '5px', position: 'fixed', top: '50%', left: '50%', marginRight: '-50%', transform: 'translate(-50%, -50%)', boxShadow: '0px 0px 50px #888888', zIndex: '50', overflow: 'auto', maxHeight: '90%'});
-    });
-    // onClick function for zoomImg
-    $('img.zoomImg').click(function() {
-      $('.zoomDiv').css({opacity: '0', width: '0%'}); 
-    });
-  });
-```
-
 ```{r load environment, echo=FALSE, message=FALSE, warning=FALSE}
 library(flexdashboard)
-library(ggplot2)
+#library(ggplot2)
+library(highcharter)
 library(dplyr)
 library(tidyr)
 library(DT)
@@ -38,7 +20,6 @@ library(scales)
 #infile <- "~/Documents/harpy/test/fastq/Preflight/filecheck.fastq.tsv"
 infile <- snakemake@input[[1]]
 #dirname <- "filler text"
-dirname <- snakemake@params[[1]]
 data <- read.table(infile, header = T)
 attention_df <- data %>% 
   mutate(allmissing = (reads == noBX)) %>% 
@@ -47,12 +28,13 @@ attention_df <- data %>%
   summarise(count = sum(c(badBX,badSamSpec, allmissing)))
 attention <- sum(attention_df$count > 0)
 ```
+
 ## filetop
 ### fltop {.no-title}
-<h1> Directory: `r dirname` </h1>
+<h1> Preflight checks for FASTQ files </h1>
 
-This report reflects the FASTQ files identified in `r dirname`. Harpy has processed
-the files in this folder to identify formatting issues that may require your attention.
+This report reflects the FASTQ files provided. Harpy has processed
+the files to identify formatting issues that may require your attention.
 
 ## General Information {data-height=100}
 ### nfiles
@@ -141,41 +123,41 @@ knitr::kable(
 )
 ```
 
-You may click on the plot to expand it in your browser window. Clicking it again will exit
-out of the zoomed view.
+If the heatmap appears to be completely green, then all of your samples have passed all the preflight checks.
+If any sample fails at least one check, fails will appear in yellow and passes will appear in blue.
 
 ## datarow 
 ### plot {.no-title}
 ```{r status_df}
 data2 <- data %>% 
   mutate(
-    noBX = ifelse(noBX == reads, "fail", "pass"),
-    badBX = ifelse(badBX > 0, "fail", "pass"),
-    badSamSpec = ifelse(badSamSpec > 0, "fail", "pass"),
-    bxNotLast = ifelse(bxNotLast > 0, "fail", "pass")
+    noBX = ifelse(noBX == reads, 0, 1),
+    badBX = ifelse(badBX > 0, 0, 1),
+    badSamSpec = ifelse(badSamSpec > 0, 0, 1),
+    bxNotLast = ifelse(bxNotLast > 0, 0, 1)
     ) %>% 
-  select(-2) %>% 
-  rename("1" = "badBX", "2" = "badSamSpec", "3" = "bxNotLast", "4" = "noBX") %>% 
-  pivot_longer(-1, names_to = "category", values_to = "Status")
-
-data2$category <- as.integer(data2$category)
+  select(-2)
+  m <- as.matrix(data2[,-1]) * 1
+  colnames(m) <- c("AxxCxxBxxDxx format", "follows SAM Spec", "BX:Z: last comment", "BX:Z: tag")
+  rownames(m) <- data$file
 ```
 
-```{r fig.width=6.5}
-ggplot(data2, aes(x = category, y = file, fill = Status)) +
-  geom_tile(color = "white", size = 1) +
-  theme_minimal() +
-  theme(panel.grid.major.x = element_blank()) +
-  scale_fill_manual(values = c("fail" = "#feda75", "pass" = "#71c7ec")) +
-  ylab("") + xlab("") +
-  #scale_x_discrete(position = "top")
-  scale_x_continuous(
-    guide = guide_axis(n.dodge=2),
-    breaks = 1:4,
-    labels = c("AxxCxxBxxDxx format", "follows SAM Spec", "BX:Z: last comment", "BX:Z: tag"),
-    sec.axis = dup_axis()
-  ) +
-  labs(title = "FASTQ Preflight Check")
+
+```{r readsper, echo = FALSE, message = FALSE, warning = FALSE, out.width = '100%'}
+hchart(m) |>
+  hc_colorAxis(stops = list(c(0, "#feda75"), c(1, "#4faad1")), tickAmount = 2) |>
+  hc_title(text = "FASTQ file preflight QC") |>
+  hc_xAxis(labels = list(style = list(fontSize = '16px')) )|>
+  hc_yAxis(labels = list(style = list(fontSize = '16px')) )|>
+  hc_plotOptions(heatmap = list(borderWidth = 1, borderColor = "white", animated = F)) |>
+  hc_legend(enabled = F) |>
+  hc_tooltip(
+    animation = FALSE,
+    formatter = JS("function () {return '<b>' + this.series.xAxis.categories[this.point.x] + '</b><br>' + this.series.yAxis.categories[this.point.y] + '<br/>QC: <b>' + (this.point.value<1 ? 'FAIL' : 'PASS') + '</b>';}") 
+  ) |>
+  hc_exporting(enabled = T, filename = "fastq.preflight",
+    buttons = list(contextButton = list(menuItems = c("viewFullscreen", "separator", "downloadPNG", "downloadJPEG", "downloadPDF", "downloadSVG")))
+  )
 ```
 
 ### table {.no-title}
@@ -186,7 +168,6 @@ DT::datatable(
   filter = "top",
   extensions = 'Buttons',
   options = list(dom = 'Brtip', buttons = c('csv'), scrollX = T),
-  autoHideNavigation = T,
   fillContainer = T
 )
 ```

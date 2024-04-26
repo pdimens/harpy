@@ -59,7 +59,7 @@ rule check_forward:
     input:
         get_fq1
     output:
-        temp(out_dir + "{sample}.F.log")
+        temp(out_dir + "/{sample}.F.log")
     conda:
         os.getcwd() + "/.harpy_envs/qc.yaml"
     message:
@@ -71,7 +71,7 @@ rule check_reverse:
     input:
         get_fq2
     output:
-        temp(out_dir + "{sample}.R.log")
+        temp(out_dir + "/{sample}.R.log")
     message:
         "Processing reverse reads: {wildcards.sample}"
     conda:
@@ -81,10 +81,10 @@ rule check_reverse:
 
 rule merge_checks:
     input:
-        collect(out_dir + "{sample}.{FR}.log", sample = samplenames, FR = ["F","R"])
+        collect(out_dir + "/{sample}.{FR}.log", sample = samplenames, FR = ["F","R"])
     output:
-        tmp = temp(out_dir + "filecheck.tmp"),
-        final = out_dir + "filecheck.fastq.tsv"
+        tmp = temp(out_dir + "/filecheck.tmp"),
+        final = out_dir + "/filecheck.fastq.tsv"
     message:
         "Concatenating results"
     shell:
@@ -95,9 +95,9 @@ rule merge_checks:
 
 rule create_report:
     input:
-        out_dir + "filecheck.fastq.tsv"
+        out_dir + "/filecheck.fastq.tsv"
     output:
-        out_dir + "filecheck.fastq.html"
+        out_dir + "/filecheck.fastq.html"
     params:
         seq_dir
     conda:
@@ -110,10 +110,11 @@ rule create_report:
 rule log_workflow:
     default_target: True
     input:
-        out_dir + "filecheck.fastq.html"
+        out_dir + "/filecheck.fastq.html"
     message:
         "Summarizing the workflow: {output}"
     run:
+        os.makedirs(f"{out_dir}/workflow/", exist_ok= True)
         with open(out_dir + "workflow/preflight.fastq.summary", "w") as f:
             _ = f.write("The harpy preflight module ran using these parameters:\n\n")
             _ = f.write(f"The directory with sequences: {seq_dir}\n")

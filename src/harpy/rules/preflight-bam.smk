@@ -53,7 +53,7 @@ rule check_bam:
         bam = seq_dir + "/{sample}.bam",
         bai = seq_dir + "/{sample}.bam.bai"
     output:
-        temp(out_dir + "{sample}.log")
+        temp(out_dir + "/{sample}.log")
     conda:
         os.getcwd() + "/.harpy_envs/qc.yaml"
     message:
@@ -63,10 +63,10 @@ rule check_bam:
 
 rule merge_checks:
     input:
-        collect(out_dir + "{sample}.log", sample = samplenames)
+        collect(out_dir + "/{sample}.log", sample = samplenames)
     output:
-        tmp = temp(out_dir + "filecheck.tmp"),
-        final = out_dir + "filecheck.bam.tsv"
+        tmp = temp(out_dir + "/filecheck.tmp"),
+        final = out_dir + "/filecheck.bam.tsv"
     message:
         "Concatenating results"
     shell:
@@ -77,9 +77,9 @@ rule merge_checks:
 
 rule create_report:
     input:
-        out_dir + "filecheck.bam.tsv"
+        out_dir + "/filecheck.bam.tsv"
     output:
-        out_dir + "filecheck.bam.html"
+        out_dir + "/filecheck.bam.html"
     params:
         seq_dir
     conda:
@@ -92,10 +92,11 @@ rule create_report:
 rule log_workflow:
     default_target: True
     input:
-        out_dir + "filecheck.bam.html"
+        out_dir + "/filecheck.bam.html"
     message:
         "Summarizing the workflow: {output}"
     run:
+        os.makedirs(f"{out_dir}/workflow/", exist_ok= True)
         with open(out_dir + "workflow/preflight.bam.summary", "w") as f:
             _ = f.write("The harpy preflight module ran using these parameters:\n\n")
             _ = f.write(f"The directory with sequences: {seq_dir}\n")
