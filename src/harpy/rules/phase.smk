@@ -219,12 +219,21 @@ rule merge_samples:
     output:
         bcf = outdir + "/variants.phased.bcf",
         idx = outdir + "/variants.phased.bcf.csi"
+    params:
+        "true" if len(samplenames) > 1 else "false"
     threads:
         30
     message:
         "Combining results into {output.bcf}" if len(samplenames) > 1 else "Copying results to {output.bcf}"
     shell:
-        "bcftools merge --threads {threads} -Ob -o {output.bcf} --force-single --write-index {input.bcf}"
+        """
+        if [ "{params}" = true ]; then
+            bcftools merge --threads {threads} -Ob -o {output.bcf} --force-single --write-index {input.bcf}
+        else
+           cp {input.bcf} {output.bcf}
+           cp {input.idx} {output.idx}
+        fi
+        """
 
 rule summarize_blocks:
     input:
@@ -283,7 +292,7 @@ rule log_workflow:
             _ = f.write("        awk '!/<ID=GX/' |\n")
             _ = f.write("        sed 's/:GX:/:GT:/' |\n")
             _ = f.write("        bcftools view -Ob -o sample.annot.bcf -\n")
-            _ = f.write("    bcftools merge --output-type b samples*.annot.bcf\n\n")
+            _ = f.write("    bcftools merge --output-type b samples.annot.bcf\n\n")
             _ = f.write("The header.file of extra vcf tags:\n")
             _ = f.write('    ##INFO=<ID=HAPCUT,Number=0,Type=Flag,Description="The haplotype was created with Hapcut2">\n')
             _ = f.write('    ##FORMAT=<ID=GX,Number=1,Type=String,Description="Haplotype">\n')
