@@ -1,5 +1,5 @@
 ---
-title: "Leviathan Structural Variants Summary"
+title: "Leviathan Structural Variant Summary"
 date: "`r format(Sys.time(), '%d %B, %Y')`"
 output:
   flexdashboard::flex_dashboard:
