@@ -106,7 +106,7 @@ naibr:
   - 'src/harpy/globalscripts/inferSV.py'
 phase:
   - *common
-  - 'src/harpy/rules/phase-pop.smk'
+  - 'src/harpy/rules/phase.smk'
   - '**phase.py'
   - 'test/bam/**'
   - 'test/vcf/test.bcf'

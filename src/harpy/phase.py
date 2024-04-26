@@ -38,7 +38,7 @@ def phase(input, output_dir, vcf, threads, molecule_distance, prune_threshold, v
     workflowdir = f"{output_dir}/workflow"
     command = f'snakemake --rerun-incomplete --rerun-triggers input mtime params --nolock --software-deployment-method conda --conda-prefix ./.snakemake/conda --cores {threads} --directory .'.split()
     command.append('--snakefile')
-    command.append(f"{workflowdir}/phase-pop.smk")
+    command.append(f"{workflowdir}/phase.smk")
     command.append("--configfile")
     command.append(f"{workflowdir}/config.yml")
     if quiet:
@@ -58,7 +58,7 @@ def phase(input, output_dir, vcf, threads, molecule_distance, prune_threshold, v
     validate_bamfiles(f"{workflowdir}/input", samplenames)
     if genome:
         validate_input_by_ext(genome, "--genome", [".fasta", ".fa", ".fasta.gz", ".fa.gz"])
-    fetch_rule(workflowdir, "phase-pop.smk")
+    fetch_rule(workflowdir, "phase.smk")
     fetch_report(workflowdir, "HapCut2.Rmd")
     prune_threshold /= 100
 
