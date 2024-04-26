@@ -234,17 +234,6 @@ rule sort_vcf:
     shell:
         "bcftools sort --write-index -Ob -o {output.bcf} {input} 2> /dev/null"
 
-
-#rule index_merged:
-#    input:
-#        outdir + "/variants.raw.bcf"
-#    output:
-#        outdir + "/variants.raw.bcf.csi"
-#    message:
-#        "Indexing {input}"
-#    shell:
-#        "bcftools index {input} 2> /dev/null"
-
 #rule normalize_bcf:
 #    input: 
 #        genome  = f"Genome/{bn}",
