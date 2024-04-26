@@ -228,7 +228,7 @@ rule merge_samples:
     shell:
         """
         if [ "{params}" = true ]; then
-            bcftools merge --threads {threads} -Ob -o {output.bcf} --force-single --write-index {input.bcf}
+            bcftools merge --threads {threads} -Ob -o {output.bcf} --write-index {input.bcf}
         else
            cp {input.bcf} {output.bcf}
            cp {input.idx} {output.idx}
