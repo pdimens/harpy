@@ -52,8 +52,6 @@ in the navigation bar at the top of this page will show you interactive
 plots detailing all variants identified.
 
 ```{r}
-statsfile <- snakemake@input[["statsfile"]]
-#statsfile <- "/home/pdimens/test.stats"
 sv <- read.table(statsfile, header = T,
   colClasses = c("factor", "factor", "integer", "integer", "character", "factor", "integer", "integer")
 )
@@ -63,17 +61,17 @@ if (nrow(sv) == 0) {
 }
 ```
 ```{r contigSizes, echo = FALSE}
-bcf <- snakemake@input[["bcf"]]
 faidx <- snakemake@input[["faidx"]]
-#bcf <- "/home/pdimens/test.bcf"
 fa.sizes <- read.table(faidx, header = F)[,1:2] %>% arrange(desc(2))
 colnames(fa.sizes) <- c("contig", "size")
 
+# DEPRECATED
 # make sure that the contigs with SV are the ones being plotted, not the others
-fa.sizes <- fa.sizes[fa.sizes$contig %in% unique(sv$contig), ]
+#fa.sizes <- fa.sizes[fa.sizes$contig %in% unique(sv$contig), ]
 
-# limit the data to only the 30 of the largest present contigs
-fa.sizes <- fa.sizes[1:min(nrow(fa.sizes), 30), ]
+# limit the data to up to 30 of the largest contigs
+#fa.sizes <- fa.sizes[1:min(nrow(fa.sizes), 30), ]
+fa.sizes <- arrange(fa.sizes, size)[1:min(nrow(fa.sizes), 30), ]
 ```
 
 ## General Information {data-height=100}
@@ -140,6 +138,7 @@ DT::datatable(
 
 ### Per-contig info
 ```{r echo = FALSE, message = FALSE}
+# breakends are written as ".", so make them length = 1 for plotting
 sv$length <- gsub("\\.", "1", sv$length) %>%  as.numeric()
 ```
 
@@ -154,195 +153,71 @@ DT::datatable(
   filter = "top", 
   extensions = 'Buttons', 
   options = list(dom = 'Brtip', buttons = c('csv'), scrollX = TRUE),
-  autoHideNavigation = T,
   fillContainer = T
 )
 ```
-
-## SV size and location
-```{r colors, echo = FALSE, warning = FALSE, message = FALSE}
-col.palette <- c(
-  "DEL" = "#5a8c84",
-  "DUP" = "#ffd75f",
-  "INV" = "#4a9fea",
-  "BND" = "#df487f"
-  )
-```
-### legend {.no-title data-width=200}
-To the right is a circular plot to visualize the distribution of structural variants
-across (up to) 30 of the largest contigs. This should help you assess
-the presence/absence of expected variants. The legend below shows which
-colors correspond to which type of variant.
-You may click on the plot to expand it in your browser window. Clicking it again will exit
-out of the zoomed view.
-
-```{r plot legend, echo = FALSE, warning = FALSE, message = FALSE}
-justcolors <- c("#df487f", "#5a8c84", "#ffd75f", "#4a9fea")
-
-data.frame(x = 1, y = 1:4, colour = c("Breakend","Deletion","Duplication", "Inversion")) %>% 
-ggplot(aes(x, y, fill = colour))+
-  geom_point(alpha=0, shape = 22, color = "white")+ # completely transparent rectangular point 
-  scale_fill_manual(values=justcolors, drop=FALSE) +
-  guides(fill = guide_legend(override.aes = list(alpha=1, size = 25)))+ # showing the point in the legend
-  theme(axis.title = element_blank(),
-        axis.text = element_blank(),
-        axis.ticks = element_blank(),
-        legend.position = c(0.3, 0.5),
-        legend.text = element_text(size = 25),
-        legend.title=element_text(size=25),
-        legend.key = element_rect(fill='NA'),
-        panel.grid = element_blank(),
-        panel.border = element_rect(colour = "white", fill='white', linewidth=1)
-  ) +
-  labs(fill="Variant Type")
-```
-
 
 ## Circleplot {.no-title data-height=900}
 ### pltdsc {.no-title data-width=150}
 <h2> Variant size and position </h2>
 To the right is a circular plot to visualize the distribution of structural variants
-across (up to) 30 of the largest contigs. This should help you assess
-the presence/absence of expected variants. The legend below shows which
-colors correspond to which type of variant.
+across (up to) 30 of the largest contigs.
+This should help you assess the presence/absence of expected variants. There are 4 labelled "rings" in this plot, each corresponding
+to a type of structural variant (inversions in the outer ring, then deletions, etc.). All four rings
+are going to be shown, even if there are not variants of that type.
 
-This plot allows yout to hover regions to view their coverage, pan by clicking and dragging,
-and zoom. In case you become unable to scroll up from the plot due to these interactive 
+This plot allows you to hover your mouse over variants to display specific information for that variant,
+pan by clicking and dragging, and zoom. In case you become unable to scroll up from the plot due to these interactive 
 features, place your cursor over this left column or the navigation bar at the top of this report and you will
 be able to scroll the report instead of zooming on the plot.
 
 ### circosSV {.no-title}
 ```{r fig.align='center', out.width= "80%", out.height="900px"}
-genomeChr <- .contigs$size
-names(genomeChr) <- .contigs$contig
+genomeChr <- fa.sizes$size
+names(genomeChr) <- fa.sizes$contig
 genomeChr <- as.list(genomeChr)
-fullnames = c(BND = "Breakend", DEL = "Deletion", DUP = "Duplication", INV = "Inversion")
 tracks = BioCircosTracklist()
+fullnames = list(BND = c("Breakend","#df487f") , DEL = c("Deletion", "#5a8c84"), DUP = c("Duplication", "#ffd75f"), INV = c("Inversion", "#4a9fea"))
+existing_sv <- unique(sv3$type)
+plot_position <- 0.15
 
-for(i in c("INV","DEL","DUP","BND")){
-  .svdata <- sv[sv$type == i, -1]
-  tracks = tracks + BioCircosArcTrack(
-    'myArcTrack',
-    .svdata$,
-    arcs_begin,
-    arcs_end,
-    minRadius = 1.18,
-    maxRadius = 1.25,
-    opacities = 0.5,
-    labels = fullnames[i]
-  )
-  # Add background
+#for (i in existing_sv){
+for (i in c("BND","DEL","DUP","INV")){
+  .svdata <- sv3[sv3$type == i, ]
+  if(i %in% existing_sv){
+    tracks = tracks + BioCircosArcTrack(
+      paste0(i,"arcs"),
+      as.character(.svdata$contig),
+      starts = .svdata$position_start,
+      ends = .svdata$position_end,
+      opacities = 0.5,
+      minRadius = plot_position,
+      maxRadius = plot_position + 0.14,
+      labels = fullnames[[i]][1],
+      colors = fullnames[[i]][2]
+    )
+  }
+  tracks = tracks + BioCircosTextTrack(paste0(i,"Text"), fullnames[[i]][1], weight = "lighter", size = "0.8em",  y = plot_position + 0.19)
+
   tracks = tracks + BioCircosBackgroundTrack(
-    "bars_background",
-    fillColors = "#f3f3f3",
-    borderColors = "#C9C9C9"
+    paste0(i, "background"),
+    fillColors = "#fafafa",
+    borderColors = "#C9C9C9",
+    minRadius = plot_position,
+    maxRadius = plot_position + 0.14,
   )
+  plot_position <- plot_position + 0.21
 }
-
 
 BioCircos(
   tracks,
   displayGenomeBorder = F,
   genome = genomeChr,
   chrPad = 0.02,
-  genomeTicksDisplay = T,
-  genomeLabelDy = 0,
+  genomeTicksLen = 0,
+  genomeTicksTextSize = 0,
+  ARCMouseOverColor = "#91ff76", ARCMouseOverArcOpacity = 1.0,
+  genomeLabelDy = 7,
   width = "100%"
-)
-```
-
-
-### Summary {.no-title data-height=700}
-```{r circos, echo = FALSE, message = FALSE, warning = FALSE, dev = "jpeg", out.width= "100%"}
-circos.clear()
-col_text <- "grey40"
-circos.par("track.height" = 0.8, gap.degree = 3, cell.padding = c(0, 0, 0, 0))
-circos.initialize(
-  factors = fa.sizes$contig,
-  xlim = matrix(c(rep(0, nrow(fa.sizes)), fa.sizes$size), ncol = 2)
-)
-
-# contigs
-circos.track(
-  ylim = c(0, 1),
-  bg.col = "grey90",
-  bg.border = F,
-  track.height = 0.06,
-  panel.fun = function(x, y) {
-    chr = CELL_META$sector.index
-    xlim = CELL_META$xlim
-    ylim = CELL_META$ylim
-    circos.text(
-      mean(xlim),
-      mean(ylim),
-      chr,
-      cex = 0.35,
-      col = col_text,
-      facing="bending.inside",
-      niceFacing = T
-    )
-  }
-)
-
-# x axis
-brk <- seq(0, 10, 0.5) * 10^7
-circos.track(
-  ylim = c(0,1),
-  track.index = get.current.track.index(),
-  bg.border = F,
-  panel.fun = function(x, y) {
-    circos.axis(
-      h = "top",
-      major.at = brk,
-      labels = round(brk/10^6, 1),
-      labels.cex = 0.4,
-      col = col_text,
-      labels.col = col_text,
-      lwd = 0.7,
-      labels.facing = "clockwise"
-    )
-  }
-)
-
-# INV
-circos.genomicTrack(
-  ylim = c(0,1),
-  data = sv[sv$type == "INV", -1],
-  track.height = 0.2,
-  bg.border = F,
-  panel.fun = function(region, value, ...) {
-    circos.genomicRect(region, value, ybottom = 0, ytop = 1, col = "#4a9fea", border = "#4a9fea")
-  }
-)
-
-
-circos.genomicTrack(
-  ylim = c(0,1),
-  data = sv[sv$type == "DEL", -1],
-  track.height = 0.2,
-  bg.border = F,
-  panel.fun = function(region, value, ...) {
-    circos.genomicRect(region, value, ybottom = 0, ytop = 1, col = "#5a8c84", border = "#5a8c84")
-  }
-)
-
-circos.genomicTrack(
-  ylim = c(0,1),
-  data = sv[sv$type == "DUP", -1],
-  track.height = 0.2,
-  bg.border = F,
-  panel.fun = function(region, value, ...) {
-    circos.genomicRect(region, value, ybottom = 0, ytop = 1, col = "#ffd75f", border =  "#ffd75f")
-  }
-)
-
-circos.genomicTrack(
-  ylim = c(0,1),
-  data = sv[sv$type == "BND", -1],
-  track.height = 0.2,
-  bg.border = F,
-  panel.fun = function(region, value, ...) {
-    circos.genomicRect(region, value, ybottom = 0, ytop = 1, col = "#df487f", border = "#df487f")
-  }
 )
 ```
