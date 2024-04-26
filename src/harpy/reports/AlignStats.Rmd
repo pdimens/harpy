@@ -447,7 +447,7 @@ These values are derived using
 samtools bedcov -c windows.bed sample.bam 
 ```
 
-This plot allows yout to hover regions to view their coverage, pan by clicking and dragging,
+This plot allows you to hover regions to view their coverage, pan by clicking and dragging,
 and zoom. In case you become unable to scroll up from the plot due to these interactive 
 features, place your cursor over this left column or the navigation bar at the top of this report and you will
 be able to scroll the report instead of zooming on the plot.
