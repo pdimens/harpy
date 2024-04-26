@@ -14,17 +14,36 @@ library(flexdashboard)
 library(dplyr)
 library(DT)
 library(BioCircos)
-#library(ComplexHeatmap)
-#library(ggplot2)
-#library(magrittr)
-#library(plotly)
-#library(circlize)
+library(ComplexHeatmap)
+library(ggplot2)
+library(plotly)
+library(circlize)
 ```
+
+```{css zoom-lib-src, echo = FALSE, message = FALSE, warning = FALSE}
+script src = "https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"
+```
+```{js zoom-jquery, echo = FALSE, message = FALSE, warning = FALSE}
+ $(document).ready(function() {
+    $('body').prepend('<div class=\"zoomDiv\"><img src=\"\" class=\"zoomImg\"></div>');
+    // onClick function for all plots (img's)
+    $('img:not(.zoomImg)').click(function() {
+      $('.zoomImg').attr('src', $(this).attr('src')).css({width: '100%'});
+      $('.zoomDiv').css({opacity: '1', width: 'auto', border: '1px solid white', borderRadius: '5px', position: 'fixed', top: '50%', left: '50%', marginRight: '-50%', transform: 'translate(-50%, -50%)', boxShadow: '0px 0px 50px #888888', zIndex: '50', overflow: 'auto', maxHeight: '100%'});
+    });
+    // onClick function for zoomImg
+    $('img.zoomImg').click(function() {
+      $('.zoomDiv').css({opacity: '0', width: '0%'}); 
+    });
+  });
+```
+
 # General Stats
 ## Intro
 ### introtext {.no-title}
 ```{r}
-statsfile <- snakemake@input[["statsfile"]]
+#statsfile <- snakemake@input[["statsfile"]]
+statsfile <- "/home/pdimens/Documents/harpy/SV/leviathanpop/reports/data/pop1.sv.stats"
 samplename <- gsub(".sv.stats", "", basename(statsfile))
 ```
 
@@ -61,7 +80,8 @@ if (nrow(sv) == 0) {
 }
 ```
 ```{r contigSizes, echo = FALSE}
-faidx <- snakemake@input[["faidx"]]
+#faidx <- snakemake@input[["faidx"]]
+faidx <- "/home/pdimens/Documents/harpy/Genome/genome.fasta.fai"
 fa.sizes <- read.table(faidx, header = F)[,1:2] %>% arrange(desc(2))
 colnames(fa.sizes) <- c("contig", "size")
 
@@ -156,70 +176,215 @@ DT::datatable(
   fillContainer = T
 )
 ```
-
-## Circleplot {.no-title data-height=900}
-### pltdsc {.no-title data-width=150}
-<h2> Variant size and position </h2>
+## SV size and location
+```{r colors, echo = FALSE, warning = FALSE, message = FALSE}
+col.palette <- c(
+  "DEL" = "#5a8c84",
+  "DUP" = "#ffd75f",
+  "INV" = "#4a9fea",
+  "BND" = "#df487f"
+  )
+```
+### legend {.no-title data-width=200}
 To the right is a circular plot to visualize the distribution of structural variants
-across (up to) 30 of the largest contigs.
-This should help you assess the presence/absence of expected variants. There are 4 "rings" in this plot, each corresponding
-to a type of structural variant (inversions in the outer ring, then deletions, etc.). All four rings
-are going to be shown, even if there are not variants of that type.  Refer to the legend on the bottom right, which is
-labelled by color and ordered by corresponding ring.
+across (up to) 30 of the largest contigs. This should help you assess
+the presence/absence of expected variants. The legend below shows which
+colors correspond to which type of variant.
+You may click on the plot to expand it in your browser window. Clicking it again will exit
+out of the zoomed view.
 
-This plot allows you to hover your mouse over variants to display specific information for that variant,
-pan by clicking and dragging, and zoom. In case you become unable to scroll up from the plot due to these interactive 
-features, place your cursor over this left column or the navigation bar at the top of this report and you will
-be able to scroll the report instead of zooming on the plot.
+```{r plot legend, echo = FALSE, warning = FALSE, message = FALSE}
+justcolors <- c("#df487f", "#5a8c84", "#ffd75f", "#4a9fea")
 
-### circosSV {.no-title}
-```{r fig.align='center', out.width= "80%", out.height="900px"}
-genomeChr <- fa.sizes$size
-names(genomeChr) <- fa.sizes$contig
-genomeChr <- as.list(genomeChr)
-tracks = BioCircosTracklist()
-fullnames = list(BND = c("Breakend","#df487f") , DEL = c("Deletion", "#5a8c84"), DUP = c("Duplication", "#ffd75f"), INV = c("Inversion", "#4a9fea"))
-existing_sv <- unique(sv$type)
-plot_position <- 0.15
-for (i in c("BND","DEL","DUP","INV")){
-  .svdata <- sv[sv$type == i, ]
-  if(i %in% existing_sv){
-    tracks = tracks + BioCircosArcTrack(
-      paste0(i,"arcs"),
-      as.character(.svdata$contig),
-      starts = .svdata$position_start,
-      ends = .svdata$position_end,
-      opacities = 0.5,
-      minRadius = plot_position,
-      maxRadius = plot_position + 0.14,
-      labels = fullnames[[i]][1],
-      colors = fullnames[[i]][2]
+data.frame(x = 1, y = 1:4, colour = c("Breakend","Deletion","Duplication", "Inversion")) %>% 
+ggplot(aes(x, y, fill = colour))+
+  geom_point(alpha=0, shape = 22, color = "white")+ # completely transparent rectangular point 
+  scale_fill_manual(values=justcolors, drop=FALSE) +
+  guides(fill = guide_legend(override.aes = list(alpha=1, size = 25)))+ # showing the point in the legend
+  theme(axis.title = element_blank(),
+        axis.text = element_blank(),
+        axis.ticks = element_blank(),
+        legend.position = c(0.3, 0.5),
+        legend.text = element_text(size = 25),
+        legend.title=element_text(size=25),
+        legend.key = element_rect(fill='NA'),
+        panel.grid = element_blank(),
+        panel.border = element_rect(colour = "white", fill='white', linewidth=1)
+  ) +
+  labs(fill="Variant Type")
+```
+
+### Summary {.no-title data-height=700}
+```{r circos, echo = FALSE, message = FALSE, warning = FALSE, dev = "jpeg", out.width= "100%"}
+circos.clear()
+col_text <- "grey40"
+circos.par("track.height" = 0.8, gap.degree = 3, cell.padding = c(0, 0, 0, 0))
+circos.initialize(
+  factors = fa.sizes$contig,
+  xlim = matrix(c(rep(0, nrow(fa.sizes)), fa.sizes$size), ncol = 2)
+)
+
+# contigs
+circos.track(
+  ylim = c(0, 1),
+  bg.col = "grey90",
+  bg.border = F,
+  track.height = 0.06,
+  panel.fun = function(x, y) {
+    chr = CELL_META$sector.index
+    xlim = CELL_META$xlim
+    ylim = CELL_META$ylim
+    circos.text(
+      mean(xlim),
+      mean(ylim),
+      chr,
+      cex = 0.35,
+      col = col_text,
+      facing="bending.inside",
+      niceFacing = T
     )
   }
-  tracks = tracks + BioCircosBackgroundTrack(
-    paste0(i, "background"),
-    fillColors = "#fafafa",
-    borderColors = "#C9C9C9",
-    minRadius = plot_position,
-    maxRadius = plot_position + 0.14,
-  )
-  plot_position <- plot_position + 0.21
-}
-# add the "legend"
-tracks = tracks + BioCircosTextTrack("InvText", "Inversion", size = "1.5em", x = 1.4,  y = 0.8, color = "#4a9fea")
-tracks = tracks + BioCircosTextTrack("DupText", "Duplication", size = "1.5em", x = 1.4,  y = 0.6, color = "#ffd75f")
-tracks = tracks + BioCircosTextTrack("DelText", "Deletion", size = "1.5em", x = 1.4,  y = 0.4, color = "#5a8c84")
-tracks = tracks + BioCircosTextTrack("BndText", "Breakend", size = "1.5em", x = 1.4,  y = 0.2, color = "#df487f")
-
-BioCircos(
-  tracks,
-  displayGenomeBorder = F,
-  genome = genomeChr,
-  chrPad = 0.02,
-  genomeTicksLen = 0,
-  genomeTicksTextSize = 0,
-  ARCMouseOverColor = "#f76808", ARCMouseOverArcOpacity = 1.0,
-  genomeLabelDy = 0,
-  width = "100%"
 )
+
+# x axis
+brk <- seq(0, 10, 0.5) * 10^7
+circos.track(
+  ylim = c(0,1),
+  track.index = get.current.track.index(),
+  bg.border = F,
+  panel.fun = function(x, y) {
+    circos.axis(
+      h = "top",
+      major.at = brk,
+      labels = round(brk/10^6, 1),
+      labels.cex = 0.4,
+      col = col_text,
+      labels.col = col_text,
+      lwd = 0.7,
+      labels.facing = "clockwise"
+    )
+  }
+)
+
+# INV
+circos.genomicTrack(
+  ylim = c(0,1),
+  data = sv[sv$type == "INV", -1],
+  track.height = 0.2,
+  bg.border = F,
+  panel.fun = function(region, value, ...) {
+    circos.genomicRect(region, value, ybottom = 0, ytop = 1, col = "#4a9fea", border = "#4a9fea")
+  }
+)
+
+
+circos.genomicTrack(
+  ylim = c(0,1),
+  data = sv[sv$type == "DEL", -1],
+  track.height = 0.2,
+  bg.border = F,
+  panel.fun = function(region, value, ...) {
+    circos.genomicRect(region, value, ybottom = 0, ytop = 1, col = "#5a8c84", border = "#5a8c84")
+  }
+)
+
+circos.genomicTrack(
+  ylim = c(0,1),
+  data = sv[sv$type == "DUP", -1],
+  track.height = 0.2,
+  bg.border = F,
+  panel.fun = function(region, value, ...) {
+    circos.genomicRect(region, value, ybottom = 0, ytop = 1, col = "#ffd75f", border =  "#ffd75f")
+  }
+)
+
+circos.genomicTrack(
+  ylim = c(0,1),
+  data = sv[sv$type == "BND", -1],
+  track.height = 0.2,
+  bg.border = F,
+  panel.fun = function(region, value, ...) {
+    circos.genomicRect(region, value, ybottom = 0, ytop = 1, col = "#df487f", border = "#df487f")
+  }
+)
+```
+
+# Per-Contig Plots
+## contig plots
+```{r percontig palette}
+color.palette <- c("DEL"="#5a8c84", "DUP"="#ffd75f", "INV"="#4a9fea","BND"="#df487f")
+sv$ystart <- case_when(
+  sv$type == "INV" ~ 0.1,
+  sv$type == "DUP" ~ 1.1,
+  sv$type == "DEL" ~ 2.1,
+  sv$type == "BND" ~ 3.1,
+)
+sv$ystop <- sv$ystart + 0.8
+```
+### Per-contig {.no-title data-height=7000}
+<h1> Structural Variants Per Contig </h1>
+Below is a plot to help you assess what structural variants were detected by LEVIATHAN. These plots are interactive,
+allowing you to hover over a variant to provide additional information, including the genomic interval in which it occurs and the
+number of haplotag barcodes supporting the variant.
+
+```{r percontig plotly}
+l <- list()
+nplotrows <- 0
+
+for (i in 1:nrow(fa.sizes)) {
+  sv.filt <- sv %>% filter(contig == fa.sizes$contig[i])
+  sv_stats <- group_by(sv.filt, type) %>% summarise(n = length(type))
+  if (nrow(sv_stats) == 0) {
+    next
+  }
+  nplotrows <- nplotrows + 1
+  plt <- sv.filt %>%
+    ggplot() +
+    geom_rect(
+      alpha = 0.7,
+      aes(
+        ymin = ystart,
+        ymax = ystop,
+        xmin = position_start,
+        xmax = position_end,
+        fill = type,
+        color = type,
+        text = sprintf("Type: %s<br>Position: %s-%s<br>barcodes: %s", type, position_start, position_end, n_barcodes)
+        )
+      ) +
+    geom_hline(yintercept = 1:3, color = "grey96") +
+    scale_color_manual(values = color.palette) +
+    scale_fill_manual(values = color.palette) +
+    facet_grid(rows = vars(contig)) +
+    theme_light() +
+    theme(
+      axis.line.y = element_blank(),
+      axis.ticks.y = element_blank(),
+      panel.grid.major = element_blank(),
+      panel.grid.minor = element_blank(),
+      strip.background = element_rect(fill = "grey80"),
+      strip.text = element_text(color = "grey20"),
+      legend.position = "none",
+    ) +
+    scale_x_continuous(labels = scales::comma) +
+    coord_cartesian(xlim = c(0, fa.sizes$size[i] + 1), expand = F) +
+    scale_y_continuous(
+      breaks = c(0.5, 1.5, 2.5, 3.5),
+      labels = c("INV", "DUP", "DEL", "BND"),
+      limits = c(0,4)
+    ) +
+    xlab("Position (bp)")
+    annotations <- list( 
+      x = 0.5,
+      y = 1.05,  
+      text = as.character(fa.sizes$contig[i]),  
+      xref = "paper",  
+      yref = "paper",  
+      xanchor = "center",  
+      yanchor = "bottom",  
+      showarrow = FALSE 
+    )
+    l[[i]] <- subplot(ggplotly(plt, height = 800, tooltip = "text"))
+}
+subplot(l, nrows = nplotrows, shareX = FALSE, titleX = TRUE)
 ```
