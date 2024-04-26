@@ -59,14 +59,14 @@ rule index_barcode:
         bai = bam_dir + "/{sample}.bam.bai"
     output:
         temp(outdir + "/lrezIndexed/{sample}.bci")
+    benchmark:
+        ".Benchmark/leviathan/{sample}.lrez"
     threads:
         4
-    message:
-        "Indexing barcodes: {wildcards.sample}"
-    benchmark:
-        ".Benchmark/Variants/leviathan/indexbc.{sample}.txt"
     conda:
         os.getcwd() + "/.harpy_envs/variants.sv.yaml"
+    message:
+        "Indexing barcodes: {wildcards.sample}"
     shell:
         "LRez index bam --threads {threads} -p -b {input.bam} -o {output}"
 
@@ -137,10 +137,10 @@ rule leviathan_variantcall:
         3
     conda:
         os.getcwd() + "/.harpy_envs/variants.sv.yaml"
+    benchmark:
+        ".Benchmark/leviathan/{sample}.variantcall"
     message:
         "Calling variants: {wildcards.sample}"
-    benchmark:
-        ".Benchmark/Variants/leviathan/variantcall.{sample}.txt"
     shell:
         "LEVIATHAN -b {input.bam} -i {input.bc_idx} {params} -g {input.genome} -o {output} -t {threads} --candidates {log.candidates} 2> {log.runlog}"
 
@@ -153,8 +153,6 @@ rule sort_bcf:
         "{wildcards.sample}"
     message:
         "Sorting and converting to BCF: {wildcards.sample}"
-    benchmark:
-        ".Benchmark/Variants/leviathan/sortbcf.{sample}.txt"
     shell:        
         "bcftools sort -Ob --output {output} {input} 2> /dev/null"
 
@@ -162,11 +160,9 @@ rule sv_stats:
     input: 
         outdir + "/{sample}.bcf"
     output: 
-        outdir + "/reports/stats/{sample}.sv.stats"
+        outdir + "/reports/data/{sample}.sv.stats"
     message:
         "Getting SV stats for {wildcards.sample}"
-    benchmark:
-        ".Benchmark/Variants/leviathan/stats.{sample}.txt"
     shell:
         """
         echo -e "sample\\tcontig\\tposition_start\\tposition_end\\tlength\\ttype\\tn_barcodes\\tn_pairs" > {output}
@@ -177,7 +173,7 @@ rule sv_report:
     input:	
         bcf       = outdir + "/{sample}.bcf",
         faidx     = f"Genome/{bn}.fai",
-        statsfile = outdir + "/reports/stats/{sample}.sv.stats"
+        statsfile = outdir + "/reports/data/{sample}.sv.stats"
     output:	
         outdir + "/reports/{sample}.SV.html"
     conda:

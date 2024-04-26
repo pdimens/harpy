@@ -108,14 +108,14 @@ rule index_barcode:
         bai = outdir + "/workflow/inputpop/{population}.bam.bai"
     output:
         temp(outdir + "/lrez_index/{population}.bci")
-    message:
-        "Indexing barcodes: Population {wildcards.population}"
     benchmark:
-        ".Benchmark/Variants/leviathan-pop/indexbc.{population}.txt"
+        ".Benchmark/leviathan-pop/{population}.lrez"
     threads:
         4
     conda:
         os.getcwd() + "/.harpy_envs/variants.sv.yaml"
+    message:
+        "Indexing barcodes: Population {wildcards.population}"
     shell:
         "LRez index bam -p -b {input.bam} -o {output} --threads {threads}"
 
@@ -189,7 +189,7 @@ rule leviathan_variantcall:
     message:
         "Calling variants: Population {wildcards.population}"
     benchmark:
-        ".Benchmark/Variants/leviathan-pop/variantcall.{population}.txt"
+        ".Benchmark/leviathan-pop/{population}.variantcall"
     shell:
         "LEVIATHAN -b {input.bam} -i {input.bc_idx} {params} -g {input.genome} -o {output} -t {threads} --candidates {log.candidates} 2> {log.runlog}"
 
@@ -202,8 +202,6 @@ rule sort_bcf:
         "Sorting and converting to BCF: Population {wildcards.population}"
     params:
         "{wildcards.population}"
-    benchmark:
-        ".Benchmark/Variants/leviathan-pop/sortbcf.{population}.txt"
     shell:        
         "bcftools sort -Ob --output {output} {input} 2> /dev/null"
 
@@ -211,11 +209,9 @@ rule sv_stats:
     input: 
         outdir + "/{population}.bcf"
     output:
-        outdir + "/reports/reports/{population}.sv.stats"
+        outdir + "/reports/data/{population}.sv.stats"
     message:
         "Getting stats: Population {input}"
-    benchmark:
-        ".Benchmark/Variants/leviathan-pop/stats.{population}.txt"
     shell:
         """
         echo -e "population\\tcontig\\tposition_start\\tposition_end\\tlength\\ttype\\tn_barcodes\\tn_pairs" > {output}
@@ -224,7 +220,7 @@ rule sv_stats:
 
 rule sv_report_bypop:
     input:	
-        statsfile = outdir + "/reports/reports/{population}.sv.stats",
+        statsfile = outdir + "/reports/data/{population}.sv.stats",
         bcf       = outdir + "/{population}.bcf",
         faidx     = f"Genome/{bn}.fai"
     output:
@@ -240,9 +236,9 @@ rule sv_report_bypop:
 rule sv_report:
     input:	
         faidx      = f"Genome/{bn}.fai",
-        statsfiles = collect(outdir + "/reports/reports/{pop}.sv.stats", pop = populations)
+        statsfiles = collect(outdir + "/reports/data/{pop}.sv.stats", pop = populations)
     output:
-        outdir + "/reports/leviathan.pop.summary.html"
+        outdir + "/reports/leviathan.summary.html"
     message:
         "Generating SV report for all populations"
     conda:
@@ -254,8 +250,8 @@ rule log_workflow:
     default_target: True
     input:
         vcf = collect(outdir + "/{pop}.bcf", pop = populations),
-        reports = collect(outdir + "/reports/{pop}.sv.html", pop = populations),
-        agg_report = outdir + "/reports/leviathan.pop.summary.html" if not skipreports else []
+        reports = collect(outdir + "/reports/{pop}.sv.html", pop = populations) if not skipreports else [],
+        agg_report = outdir + "/reports/leviathan.summary.html" if not skipreports else []
     message:
         "Summarizing the workflow: {output}"
     params:

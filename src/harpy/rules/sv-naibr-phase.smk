@@ -139,11 +139,8 @@ rule phase_alignments:
         aln = bam_dir + "/{sample}.bam",
         ref = f"Genome/{validgenome}"
     output:
-        outdir + "/phasedbam/{sample}.bam"
-    log:
-        outdir + "/logs/whatshap-haplotag/{sample}.phase.log"
-    params:
-        extra = lambda wc: "--ignore-read-groups --sample " + wc.get("sample") +" --tag-supplementary"
+        bam = outdir + "/phasedbam/{sample}.bam",
+        log = outdir + "/logs/whatshap-haplotag/{sample}.phase.log"
     conda:
         os.getcwd() + "/.harpy_envs/phase.yaml"
     threads:
@@ -151,10 +148,7 @@ rule phase_alignments:
     message:
         "Phasing: {input.aln}"
     shell:
-        """
-        whatshap haplotag {params} --output-threads={threads} -o {output} --reference {input.ref} {input.vcf} {input.aln} 2> {log}
-        """
-
+        "whatshap haplotag --sample {wildcards.sample} --ignore-read-groups --tag-supplementary --output-threads={threads} -o {output.bam} --reference {input.ref} {input.vcf} {input.aln} 2> {output.log}"
 
 rule log_phasing:
     input:
