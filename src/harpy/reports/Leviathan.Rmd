@@ -162,9 +162,10 @@ DT::datatable(
 <h2> Variant size and position </h2>
 To the right is a circular plot to visualize the distribution of structural variants
 across (up to) 30 of the largest contigs.
-This should help you assess the presence/absence of expected variants. There are 4 labelled "rings" in this plot, each corresponding
+This should help you assess the presence/absence of expected variants. There are 4 "rings" in this plot, each corresponding
 to a type of structural variant (inversions in the outer ring, then deletions, etc.). All four rings
-are going to be shown, even if there are not variants of that type.
+are going to be shown, even if there are not variants of that type.  Refer to the legend on the bottom right, which is
+labelled by color and ordered by corresponding ring.
 
 This plot allows you to hover your mouse over variants to display specific information for that variant,
 pan by clicking and dragging, and zoom. In case you become unable to scroll up from the plot due to these interactive 
