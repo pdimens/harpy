@@ -112,9 +112,18 @@ rule impute:
     benchmark:
         f".Benchmark/{outdir}/stitch.{paramspace.wildcard_pattern}" + ".{part}.txt"
     threads:
-        50
+        workflow.cores
     message: 
-        "Performing imputation: {wildcards.part}\nmodel: {wildcards.model}\nuseBX: {wildcards.usebx}    \nbxLimit: {wildcards.bxlimit}\n    k: {wildcards.k}\n    s: {wildcards.s}\n nGen: {wildcards.ngen}"
+        """Performing imputation: {wildcards.part}
+    Parameter |   Value
+    ----------┼--------------
+        model | {wildcards.model}
+        useBX | {wildcards.usebx}
+            k | {wildcards.k}
+      bxLimit | {wildcards.bxlimit}
+            s | {wildcards.s}
+         nGen | {wildcards.ngen}
+        """
     script:
         "scripts/stitch_impute.R"
 
@@ -148,7 +157,7 @@ rule clean_stitch:
     input:
         outdir + "/{stitchparams}/contigs/{part}/{part}.STITCH.html"
     output:
-        temp(outdir + "/{stitchparams}/contigs/{part}/.cleaned")
+        temp(touch(outdir + "/{stitchparams}/contigs/{part}/.cleaned"))
     params:
         stitch = lambda wc: wc.get("stitchparams"),
         outdir = outdir
@@ -161,7 +170,6 @@ rule clean_stitch:
         rm -rf {params.outdir}/{params.stitch}/contigs/{wildcards.part}/input
         rm -rf {params.outdir}/{params.stitch}/contigs/{wildcards.part}/RData
         rm -rf {params.outdir}/{params.stitch}/contigs/{wildcards.part}/plots
-        touch {output}
         """
 
 rule concat_list:
