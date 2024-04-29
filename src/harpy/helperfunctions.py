@@ -33,14 +33,13 @@ def generate_conda_deps():
     os.makedirs(".harpy_envs", exist_ok = True)
 
     for i in environ:
-        # don't overwrite existing
-        if not os.path.isfile(f".harpy_envs/{i}.yaml"):
-            with open(f".harpy_envs/{i}.yaml", "w") as yml:
-                yml.write(f"name: {i}\n")
-                yml.write("channels:\n  - ")
-                yml.write("\n  - ".join(condachannels))
-                yml.write("\ndependencies:\n  - ")
-                yml.write("\n  - ".join(environ[i]) + "\n")
+        # overwrites existing
+        with open(f".harpy_envs/{i}.yaml", "w") as yml:
+            yml.write(f"name: {i}\n")
+            yml.write("channels:\n  - ")
+            yml.write("\n  - ".join(condachannels))
+            yml.write("\ndependencies:\n  - ")
+            yml.write("\n  - ".join(environ[i]) + "\n")
 
 def fetch_script(workdir, target):
     """

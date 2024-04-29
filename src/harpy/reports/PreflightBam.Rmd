@@ -141,21 +141,6 @@ out of the zoomed view.
 ```{r status_df}
 data2 <- data %>% 
   mutate(
-    nameMismatch = ifelse(nameMismatch > 0, "fail", "pass"),
-    noMI = ifelse(noMI == alignments, "fail", "pass"),
-    noBX = ifelse(noBX == alignments, "fail", "pass"),
-    badBX = ifelse(badBX > 0, "fail", "pass"),
-    bxNotLast = ifelse(bxNotLast > 0, "fail", "pass")
-    ) %>% 
-  select(-3) %>% 
-  #rename("1" = "nameMismatch", "2" = "noMI", "3" = "noBX", "4" = "badBX", "5" = "bxNotLast") %>% 
-  pivot_longer(-1, names_to = "category", values_to = "Status")
-#data2$category <- as.integer(data2$category)
-```
-
-```{r status_df}
-data2 <- data %>% 
-  mutate(
     nameMismatch = ifelse(nameMismatch > 0, F, T),
     noMI = ifelse(noMI == alignments, F, T),
     noBX = ifelse(noBX == alignments, F, T),
