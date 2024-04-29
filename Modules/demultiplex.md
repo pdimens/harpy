@@ -10,7 +10,7 @@ order: 6
 
 ===  :icon-checklist: You will need
 - at least 2 cores/threads available
-- paired-end reads from an Illumina sequencer (gzipped recommended)
+- paired-end reads from an Illumina sequencer [!badge variant="secondary" text="gzipped recommended"]
 ===
 
 When pooling samples and sequencing them in parallel on an Illumina sequencer, you will be given large multiplexed FASTQ
@@ -26,7 +26,7 @@ harpy demultiplex OPTIONS... INPUT
 harpy demultiplex --threads 20 --samplesheet demux.schema Plate_1_S001_R1.fastq.gz
 ```
 ## :icon-terminal: Running Options
-In addition to the [common runtime options](/commonoptions.md), the `harpy demultiplex` module is configured using these command-line arguments:
+In addition to the [!badge variant="info" corners="pill" text="common runtime options"](/commonoptions.md), the [!badge corners="pill" text="demultiplex"] module is configured using these command-line arguments:
 
 | argument          | short name | type       | default | required | description                                                                          |
 |:------------------|:----------:|:-----------|:-------:|:--------:|:-------------------------------------------------------------------------------------|

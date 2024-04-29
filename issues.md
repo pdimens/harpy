@@ -14,11 +14,12 @@ out conda trying to install it. Use mamba instead-- it'll work where conda fails
 
 
 ## Failures during imputation or phasing
-If you use `bamutils clipOverlap` on alignments that are used for the `impute` or
-`phase` modules, they will cause both programs to error. We don't know why, but they do.
+If you use `bamutils clipOverlap` on alignments that are used for the [!badge corners="pill" text="impute"](Modules/impute.md) or
+[!badge corners="pill" text="phase"](Modules/phase.md) modules, they will cause both programs to error. We don't know why, but they do.
 
 **Solution**: Do not clip overlapping alignments for bam files you intend to use for
-the `impute` or `phase` modules. Harpy does not clip overlapping alignments, so
+the [!badge corners="pill" text="impute"](Modules/impute.md) or
+[!badge corners="pill" text="phase"](Modules/phase.md) modules. Harpy does not clip overlapping alignments, so
 alignments produced by Harpy should work just fine.
 
 ## Alignment file name and ID: tag mismatch

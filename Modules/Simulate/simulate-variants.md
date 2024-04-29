@@ -10,7 +10,7 @@ order: 6
 Simulate snps, indels, inversions, cnv, translocations
 
 ===  :icon-checklist: You will need
-- a reference genome in fasta or gzipped fasta format
+- a reference genome in fasta or gzipped fasta format: [!badge variant="success" text=".fasta"] [!badge variant="success" text=".fa"] [!badge variant="success" text=".fasta.gz"] [!badge variant="success" text=".fa.gz"]
 ===
 
 You may want to benchmark haplotag data on different kinds of genomic variants. To
@@ -33,14 +33,14 @@ There are 4 submodules with very obvious names:
 
 | submodule | what it does |
 |:----------|:-------------|
-|`snpindel` | simulates single nucleotide polymorphisms (snps) and insertion-deletions (indels) |
-| `inversion` | simulates inversions |
-| `cnv` | simulates copy number variants |
-| `translocation` | simulates translocations |
+| [!badge corners="pill" text="snpindel"](#snpindel) | simulates single nucleotide polymorphisms (snps) and insertion-deletions (indels) |
+| [!badge corners="pill" text="inversion"](#inversion) | simulates inversions |
+| [!badge corners="pill" text="cnv"](#cnv) | simulates copy number variants |
+| [!badge corners="pill" text="translocation"](#translocation) | simulates translocations |
 
 ## :icon-terminal: Running Options
 While there are serveral differences between the submodule command line options, each has available all the
-[common runtime options](/commonoptions.md) like other Harpy modules. Each requires and input genome at the
+[!badge variant="info" corners="pill" text="common runtime options"](/commonoptions.md) like other Harpy modules. Each requires and input genome at the
 end of the command line, and each requires either a `--count` of variants to randomly simulate, or a `--vcf` of
 specific variants to simulate. There are also these unifying options among the different variant types:
 

@@ -10,23 +10,23 @@ order: 1
 
 ===  :icon-checklist: You will need
 - at least 4 cores/threads available
-- sequence alignments, in `.bam` format
-- genome assembly in FASTA format
-- (optional) sample grouping file ([see below](#pooled-sample-variant-calling))
+- sequence alignments, in BAM format: [!badge variant="success" text=".bam"]
+- genome assembly in FASTA format: [!badge variant="success" text=".fasta"] [!badge variant="success" text=".fa"] [!badge variant="success" text=".fasta.gz"] [!badge variant="success" text=".fa.gz"]
+- [!badge variant="ghost" text="optional"] sample grouping file ([see below](#pooled-sample-variant-calling))
 
 !!!warning EMA-mapped reads
 Leviathan relies on split-read information in the sequence alignments to call variants. The EMA aligner
 does not report split read alignments, instead it reports secondary alignments. It is recommended to use
-BWA-generated alignments if intending to call variants with leviathan. 
+BWA- or Minimap2-generated alignments if intending to call variants with leviathan. 
 !!!
-==- :icon-file: sample grouping file
+==- :icon-file: sample grouping file  [!badge variant="ghost" text="optional"]
 This file is optional and only useful if you want variant calling to happen on a per-population level.
-- takes the format of sample\<*tab*\>group
+- takes the format of sample[!badge variant="ghost" text="tab"]group
     - spaces can be used as delimeters too
 - the groups can be numbers or text (_i.e._ meaningful population names)
 - you can comment out lines with `#` for Harpy to ignore them
-- create with `harpy popgroup -d <samplefolder>` or manually
-- if created with `harpy popgroup`, all the samples will be assigned to group `pop1`
+- create with [!badge corners="pill" text="harpy popgroup"](../othermodules.md#popgroup) or manually
+- if created with [!badge corners="pill" text="harpy popgroup"](../othermodules.md#popgroup), all the samples will be assigned to group `pop1`
     - make sure to edit the second column to reflect your data correctly.
 
 ``` example file for --populations
@@ -45,10 +45,10 @@ from the sample names. A simple fix would be to use underscores (`_`) to differe
 !!!
 ===
 
-After reads have been aligned, _e.g._ with `harpy align`, you can use those alignment files
+After reads have been aligned, _e.g._ with [!badge corners="pill" text="align bwa"](../Align/bwa.md), you can use those alignment files
 (`.bam`) to call structural variants in your data using LEVIATHAN. To make sure your data
 will work seemlessly with LEVIATHAN, the alignments in the [input BAM files](/commonoptions.md) should **end**
-with a `BX:Z:AxxCxxBxxDxx` tag. Use `harpy preflight bam` if you want to double-check file
+with a `BX:Z:AxxCxxBxxDxx` tag. Use [!badge corners="pill" text="preflight bam"](../preflight.md) if you want to double-check file
 format validity.
 
 ```bash usage
@@ -60,7 +60,7 @@ harpy sv leviathan --threads 20 -g genome.fasta Align/bwa
 ```
 
 ## :icon-terminal: Running Options
-In addition to the [common runtime options](/commonoptions.md), the `harpy sv leviathan` module is configured using these command-line arguments:
+In addition to the [!badge variant="info" corners="pill" text="common runtime options"](/commonoptions.md), the [!badge corners="pill" text="sv leviathan"] module is configured using these command-line arguments:
 
 | argument         | short name | type          | default | required | description                                        |
 |:-----------------|:----------:|:--------------|:-------:|:--------:|:---------------------------------------------------|

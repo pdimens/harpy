@@ -8,13 +8,13 @@ order: 6
 # :icon-codescan-checkmark: Quality Trim Sequences
 ===  :icon-checklist: You will need
 - at least 2 cores/threads available
-- paired-end fastq sequence files (gzipped recommended)
+- paired-end fastq sequence files [!badge variant="secondary" text="gzipped recommended"]
 ===
 
 Raw sequences are not suitable for downstream analyses. They have sequencing adapters,
 index sequences, regions of poor quality, etc. The first step of any genetic sequence
 analyses is to remove these adapters and trim poor quality data. You can remove adapters
-and quality trim sequences using the `qc` module:
+and quality trim sequences using the [!badge corners="pill" text="qc"]` module:
 
 ```bash usage
 harpy qc OPTIONS... INPUTS...
@@ -25,7 +25,7 @@ harpy qc --threads 20 Sequences_Raw/
 ```
 
 ## :icon-terminal: Running Options
-In addition to the [common runtime options](/commonoptions.md), the `harpy qc` module is configured using these command-line arguments:
+In addition to the [!badge variant="info" corners="pill" text="common runtime options"](/commonoptions.md), the [!badge corners="pill" text="qc"] module is configured using these command-line arguments:
 
 | argument         | short name | type        | default | required | description                                                                                     |
 |:-----------------|:----------:|:------------|:-------:|:-------:|:------------------------------------------------------------------------------------------------|

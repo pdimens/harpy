@@ -9,17 +9,17 @@ order: 5
 
 ===  :icon-checklist: You will need
 - at least 4 cores/threads available
-- a genome assembly in FASTA format
-- sequence alignments, in `.bam` format
-- sample grouping file (optional)
-==- :icon-file: sample grouping file
+- sequence alignments, in BAM format: [!badge variant="success" text=".bam"]
+- genome assembly in FASTA format: [!badge variant="success" text=".fasta"] [!badge variant="success" text=".fa"] [!badge variant="success" text=".fasta.gz"] [!badge variant="success" text=".fa.gz"]
+- [!badge variant="ghost" text="optional"] sample grouping file
+==- :icon-file: sample grouping file [!badge variant="ghost" text="optional"]
 This file is optional and useful if you want variant calling to happen on a per-population level.
-- takes the format of sample\<*tab*\>group
+- takes the format of sample[!badge variant="ghost" text="tab"]group
     - spaces can be used as delimeters too
 - the groups can be numbers or text (_i.e._ meaningful population names)
 - you can comment out lines with `#` for Harpy to ignore them
-- create with `harpy popgroup <samplefolder>` or manually
-- if created with `harpy popgroup`, all the samples will be assigned to group `pop1`, so make sure to edit the second column to reflect your data correctly.
+- create with [!badge corners="pill" text="harpy popgroup"](othermodules.md/#popgroup) or manually
+- if created with [!badge corners="pill" text="harpy popgroup"](othermodules.md/#popgroup), all the samples will be assigned to group `pop1`, so make sure to edit the second column to reflect your data correctly.
 
 ``` example file for --populations
 sample1 pop1
@@ -37,10 +37,10 @@ from the sample names. A simple fix would be to use underscores (`_`) to differe
 !!!
 ===
 
-After reads have been aligned, _e.g._, with `harpy align`, you can use those alignment files
+After reads have been aligned, _e.g._, with [!badge corners="pill" text="harpy align"](Align/bwa.md), you can use those alignment files
 (`.bam`) to call variants in your data. Harpy can call SNPs and small indels using 
 [bcftools mpileup](#snp-calling-workflow) or with [freebayes](#snp-calling-workflow). 
-You can call SNPs with the `snp` module:
+You can call SNPs with the [!badge corners="pill" text="snp"] module:
 
 ```bash usage
 harpy snp method OPTIONS... INPUTS...
@@ -55,7 +55,7 @@ harpy snp freebayes --threads 20 --genome genome.fasta Align/bwa
 ```
 
 ## :icon-terminal: Running Options
-In addition to the [common runtime options](../commonoptions.md), the `harpy snp` module is configured using these command-line arguments:
+In addition to the [!badge variant="info" corners="pill" text="common runtime options"](../commonoptions.md), the [!badge corners="pill" text="snp"] module is configured using these command-line arguments:
 
 | argument         | short name | type                            | default | required | description                                         |
 |:-----------------|:----------:|:--------------------------------|:-------:|:--------:|:----------------------------------------------------|
@@ -124,7 +124,7 @@ it.
 ----
 ## :icon-git-pull-request: SNP calling workflow
 +++ :icon-git-merge: details
-The workflow is parallelized over genomic intervals (`--windowsize`). All intermediate outputs are removed, leaving 
+The workflow is parallelized over genomic intervals (`--`). All intermediate outputs are removed, leaving 
 you only the raw variants file (in `.bcf` format), the index of that file, and some stats about it.
 
 ### mpileup

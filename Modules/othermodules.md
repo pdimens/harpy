@@ -19,15 +19,16 @@ The arguments represent different sub-commands and can be run in any order or co
 ### popgroup
 #### Sample grouping file for variant calling
 
-```bash
+```bash usage example
 harpy popgroup -o samples.groups data/
 ```
 ##### arguments
 - `-o`, `--output`: name of the output file
 
 This file is entirely optional and useful if you want SNP variant calling to happen on a
-per-population level via `harpy snp ... -p` or on samples pooled-as-populations via `harpy sv ... -p`.
-- takes the format of sample\<tab\>group
+per-population level via  [!badge corners="pill" text="harpy snp"](snp.md/#populations) or on samples
+pooled-as-populations via [!badge corners="pill" text="harpy sv"](SV/naibr.md/#pooled-sample-variant-calling).
+- takes the format of sample[!badge variant="ghost" text="tab"]group
 - all the samples will be assigned to group `pop1` since file names don't always provide grouping information
     - so make sure to edit the second column to reflect your data correctly.
 - the file will look like:
@@ -41,6 +42,9 @@ sample5 pop3
 
 ### stitchparams
 #### STITCH parameter file
+```bash usage example
+harpy stitchparams -o params.stitch
+```
 ##### arguments
 - `-o`, `--output`: name of the output file
 
@@ -49,24 +53,5 @@ different model parameters. The solution Harpy uses for this is to have the user
 provide a tab-delimited dataframe file where the columns are the 6 STITCH model 
 parameters and the rows are the values for those parameters. To make formatting
 easier, a template file is generated for you, just replace the values and add/remove
-rows as necessary. See the [Imputation section](/Modules/impute.md) for details on these parameters.
-
-### hpc
-#### HPC cluster profile
-!!!warning
-HPC support is not yet natively integrated into Harpy. Until then, you can manually
-use the [Snakemake HPC infrastructure](https://snakemake.readthedocs.io/en/stable/executing/cluster.html) with the `-s` flag.
-!!!
-##### arguments
-- `-o`, `--output`: name of the output file
-- `-s`, `--system`: name of the scheduling system
-    - options: `slurm` (more to come)
-
-For snakemake to work in harmony with an HPC scheduler, a "profile" needs to
-be provided that tells Snakemake how it needs to interact with the HPC scheduler
-to submit your jobs to the cluster. Using `harpy hpc -s <hpc-type>` will create
-the necessary folder and profile yaml file for you to use. To use the profile, call
-the intended Harpy module with an additional ``--snakemake` argument:
-```bash use the slurm profile
-harpy module --option1 <value1> --option2 <value2> --snakemake "--profile slurm.profile"
-```
+rows as necessary. See the section for the [!badge corners="pill" text="impute"](/Modules/impute.md)
+ module for details on these parameters.

@@ -60,7 +60,7 @@ Compressed files are expected to end with the extension `.gz`.
 Unfortunately, there are many different ways of naming FASTQ files, which makes it 
 difficult to accomodate every wacky iteration currently in circulation.
 While Harpy tries its best to be flexible, there are limitations. 
-To that end, for the `demultiplex`, `qc`, and `align` modules, the 
+To that end, for the [!badge corners="pill" text="deumultiplex"](Modules/demultiplex.md), [!badge corners="pill" text="qc"](Modules/qc.md), and [!badge corners="pill" text="align"](Modules/Align/bwa.md) modules, the 
 most common FASTQ naming styles are supported:
 - **sample names**: Alphanumeric and `.`, `-`, `_`
     - you can mix and match special characters, but that's bad practice and not recommended

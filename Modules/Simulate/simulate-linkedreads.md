@@ -10,15 +10,14 @@ order: 6
 Simulate linked reads from a genome
 
 ===  :icon-checklist: You will need
-- two haplotypes of a reference genome in fasta or gzipped fasta format
-    - can be created with [harpy simulate](simulate-variants.md)
-- [optional] a file of 16-basepair barcodes to tag linked reads with
+- two haplotypes of a reference genome in fasta format: [!badge variant="success" text=".fasta"] [!badge variant="success" text=".fa"] [!badge variant="success" text=".fasta.gz"] [!badge variant="success" text=".fa.gz"]
+    - can be created with [!badge corners="pill" text="simulate {snpindel,inversion,...}"](simulate-variants.md)
+- [!badge variant="ghost" text="optional"] a file of 16-basepair barcodes to tag linked reads with
 ==- :icon-question: LRSIM differences
 The original [LRSIM](https://github.com/aquaskyline/LRSIM) is a lengthy Perl script that, like Harpy, outsources
 to various other programs (SURVIVOR, DWGSIM, samtools, msort) and acts as a workflow through these programs. The Harpy
 version of LRSIM keeps only the novel LRSIM code that creates linked reads from reads simulated by DWGSIM. The
-rest of LRSIM's components are reincorporated into the Snakemake workflow governing the `simulate linkedreads`
-module, while removing the SURVIVOR part since `harpy simulate {snpindel,inversion,...}` are used for that purpose.
+rest of LRSIM's components are reincorporated into the Snakemake workflow governing the [!badge corners="pill" text="simulate linkedreads"]module, while removing the SURVIVOR part since [!badge corners="pill" text="simulate {snpindel,...}"](simulate-variants.md) are used for that purpose.
 #### Notable differences
 - dependencies are expected to be on the `PATH`, not hardcoded to the folder LRSIM is running from
 - `-r` parameter changed to folder prefix since Harpy uses `-g` for the haplotypes
@@ -30,7 +29,7 @@ module, while removing the SURVIVOR part since `harpy simulate {snpindel,inversi
 ===
 
 You may want to benchmark haplotag data on different kinds of genomic variants. To
-do that, you'll need *known* variants (like those created by `harpy simulate`) and
+do that, you'll need *known* variants (like those created by  [!badge corners="pill" text="simulate {snpindel,...}"](simulate-variants.md)) and
 linked-read sequences. This module will create (diploid) linked-read sequences from two genome haplotypes.
 To accomplish this, Harpy uses a modified version of [LRSIM](https://github.com/aquaskyline/LRSIM),
 and converts the LRSIM 10X-style output into Haplotag-style reads. To simulate linked reads, use:
@@ -43,7 +42,7 @@ harpy simulate linkedreads -t 4 -n 2  -l 100 -p 50  data/genome.hap1.fasta data/
 ```
 
 ## :icon-terminal: Running Options
-In addition to the [common runtime options](/commonoptions.md), the `simulate linkedreads` module is configured using these command-line arguments:
+In addition to the [!badge variant="info" corners="pill" text="common runtime options"](/commonoptions.md), the  [!badge corners="pill" text="simulate linkedreads"] module is configured using these command-line arguments:
 
 | argument       | short name | type        |    default    | required | description                                                                                     |
 |:---------------|:----------:|:------------|:-------------:|:--------:|:------------------------------------------------------------------------------------------------|
@@ -52,15 +51,28 @@ In addition to the [common runtime options](/commonoptions.md), the `simulate li
 | `--outer-distance`  |    `-d`    | integer   | 350   |   | Outer distance between paired-end reads (bp)                 |
 | `--distance-sd`     |    `-i`    | integer   |  15   |   | Standard deviation of read-pair distance                |
 | `--barcodes`        |    `-b`    | file path |  [10X barcodes](https://github.com/aquaskyline/LRSIM/blob/master/4M-with-alts-february-2016.txt)   |        | File of linked-read barcodes to add to reads   |
-| `--read-pairs`      |    `-n`    | number    |  600  |   | Number of read pairs to simulate, in millions       |
+| `--read-pairs`      |    `-n`    | number    |  600  |   | Number (in millions) of read pairs to simulate       |
 | `--molecule-length` |    `-l`    | integer   |  100  |   | Mean molecule length (kbp)                          |
-| `--patitions`       |    `-p`    | integer   |  1500 |   | How many partitions to generate (×1000)             |
+| `--patitions`       |    `-p`    | integer   |  1500 |   | Number (in thousands) of partitions/beads to generate        |
 | `--molecules-per`   |    `-m`    | integer   |   10  |   | Average number of molecules per partition           |
+
+## Partitions
+**TL;DR**: 10X partitions = haplotag beads
+
+The option `--partitions` refers to the reaction "bubbles" in the original 10X linked-read chemistry. The 10X
+protocol involved emulsion reactions where microscopic bubbles resulting from emulsion were each their own
+reaction micro-environment. Each of these "partitions" (_aka_ bubbles, etc.) was to contain a unique linked-read
+barcode that would be ligated onto the sample DNA, thus creating the linked read barcoding. In an ideal situation,
+there would be a single molecule per emulsion partition, which was rarely the case because it's really
+difficult to achieve that. In haplotag terms, think of partitions as being synonymous with tagmentation beads. In
+both 10X and haplotag simulation cases, you're controlling for how many clashing barcodes there might be where
+reads that aren't from the same molecule have the same linked-read barcode. This is why linked-read software (and
+corresponding Harpy modules) have an option to set the [barcode threshold](../../haplotagdata.md/#barcode-thresholds). 
 
 ## Barcodes
 Barcodes, if provided, must be given as 16-basepair nucleotide sequences, one per line. If not provided,
-Harpy will download the standard 10X Genomics `4M-with-alts-february-2016.txt` barcode set from the LRSIM
-repository and use those. The barcode file should look like:
+Harpy will download the standard 10X Genomics `4M-with-alts-february-2016.txt` barcode set from the [LRSIM
+repository](https://github.com/aquaskyline/LRSIM/blob/master/4M-with-alts-february-2016.txt) and use those. The barcode file should look like:
 ``` input.barcodes.txt
 ATATGTACTCATACCA
 GGATGTACTCATTCCA
@@ -86,7 +98,7 @@ decisions for these parmaters. The equation is:
 $$
 \text{Reads Per Molecule} = 0.499 + \frac{N \times 1,000,000}{\left(\frac{P \times 1,000}{H}\right) \times M \times H}
 $$
-$$\text{where:}\\\text{N = number of reads to simulate (in millions)}\\\text{H = number of haplotypes (fixed at 2)}\\\text{P = number of partitions}\\\text{M = molecules per partition}$$
+$$\text{where:}\\\text{N = number of reads to simulate (in millions)}\\\text{H = number of haplotypes (fixed at 2)}\\\text{P = number of partitions (in thousands)}\\\text{M = molecules per partition}$$
 
 ### Parameter calculator
 Conveniently, we provide a calculator to help you make informed decisions for these parameters:

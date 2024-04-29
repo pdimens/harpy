@@ -10,18 +10,18 @@ order: 1
 
 ===  :icon-checklist: You will need
 - at least 4 cores/threads available
-- sequence alignments, in `.bam` format
-- genome assembly in FASTA format
-- (optional) phased VCF file
-- (optional) sample grouping file ([see below](#pooled-sample-variant-calling))
-==- :icon-file: sample grouping file
+- sequence alignments, in BAM format: [!badge variant="success" text=".bam"]
+- genome assembly in FASTA format: [!badge variant="success" text=".fasta"] [!badge variant="success" text=".fa"] [!badge variant="success" text=".fasta.gz"] [!badge variant="success" text=".fa.gz"]
+- [!badge variant="ghost" text="optional"] phased VCF file
+- [!badge variant="ghost" text="optional"] sample grouping file ([see below](#pooled-sample-variant-calling))
+==- :icon-file: sample grouping file [!badge variant="ghost" text="optional"]
 This file is optional and only useful if you want variant calling to happen on a per-population level.
-- takes the format of sample\<*tab*\>group
+- takes the format of sample[!badge variant="ghost" text="tab"]group
     - spaces can be used as delimeters too
 - the groups can be numbers or text (_i.e._ meaningful population names)
 - you can comment out lines with `#` for Harpy to ignore them
-- create with `harpy popgroup -d <samplefolder>` or manually
-- if created with `harpy popgroup`, all the samples will be assigned to group `pop1`
+- create with [!badge corners="pill" text="harpy popgroup"](../othermodules.md#popgroup) or manually
+- if created with [!badge corners="pill" text="harpy popgroup"](../othermodules.md#popgroup), all the samples will be assigned to group `pop1`
     - make sure to edit the second column to reflect your data correctly.
 
 ``` example file for --populations
@@ -40,12 +40,11 @@ from the sample names. A simple fix would be to use underscores (`_`) to differe
 !!!
 ===
 
-After reads have been aligned, _e.g._ with `harpy align`, you can use those alignment files
+After reads have been aligned, _e.g._ with [!badge corners="pill" text="align bwa"](../Align/bwa.md), you can use those alignment files
 (`.bam`) to call structural variants in your data using NAIBR. While our testing shows that
 NAIBR tends to find known inversions that LEVIATHAN misses, the program requires haplotype 
 **phased** bam files as input. That means the alignments have a `PS` or `HP` tag that indicate
-which haplotype the read/alignment belongs to. If you used the `EMA` aligner, then the alignments
-should already have that information (yay!). If your alignments don't have phasing tags (e.g. aligned with BWA),
+which haplotype the read/alignment belongs to. If your alignments don't have phasing tags (none of the current aligners in Harpy do this),
 then you will need to do a little extra work for NAIBR to work best with your data. This process is described below.
 
 ```bash usage
@@ -61,7 +60,7 @@ harpy sv naibr --threads 20 --genome genome.fasta --vcf Variants/data.vcf.gz Ali
 ```
 
 ## :icon-terminal: Running Options
-In addition to the [common runtime options](/commonoptions.md), the `harpy sv naibr` module is configured using these command-line arguments:
+In addition to the [!badge variant="info" corners="pill" text="common runtime options"](/commonoptions.md), the [!badge corners="pill" text="sv naibr"] module is configured using these command-line arguments:
 
 | argument         | short name | type          | default | required | description                                        |
 |:-----------------|:----------:|:--------------|:-------:|:--------:|:---------------------------------------------------|
@@ -97,18 +96,15 @@ it too well.
 
 ### optional vcf file
 In order to get the best variant calling performance out of NAIBR, it requires _phased_ bam files as input. 
-The `--vcf` option is optional and not used by NAIBR. However, to use `harpy sv naibr` with
+The `--vcf` option is optional and not used by NAIBR. However, to use [!badge corners="pill" text="sv naibr"] with
 bam files that are not phased, you will need to include `--vcf`, which Harpy uses with 
 `whatshap haplotag` to phase your input BAM files prior to variant calling. See the [whatshap documentation](https://whatshap.readthedocs.io/en/latest/guide.html#whatshap-haplotag)
 for more details on that process.
 
 #### a phased input --vcf
 This file can be in vcf/vcf.gz/bcf format and most importantly **it must be phased haplotypes**. There are various
-ways to haplotype SNPs, but you can use `harpy phase` to phase your SNPs into haplotypes using the haplotag barcode
-information. The resulting phased VCF file can then be used as input here. For reasons unclear to us, we have found
-NAIBR to have better detection of known structural variants when using BWA alignments that have been back-phased with
-a phased VCF file than using alignments that were phased when mapped with EMA. That makes this process longer and more
-circuitous (see the workflow diagram), but the results were noticeably better.
+ways to haplotype SNPs, but you can use [!badge corners="pill" text="harpy phase"](../phase.md) to phase your SNPs
+into haplotypes using the haplotag barcode information. The resulting phased VCF file can then be used as input here.
 
 ```mermaid
 ---
@@ -117,9 +113,13 @@ title: Calling variants with NAIBR, starting with unphased alignments
 graph LR
     aln[alignments]-->|harpy snp|snps([SNPs])
     snps-->|bcftools filter -i 'QUAL>95' ...|filt([filtered SNPs])
-    filt-->|harpy phase|phasesnp([phased haplotypes])
+    filt-->|harpy phase|phasesnp([phased haplotypes])  
+    subgraph id1 ["Harpy does this part"]
     phasesnp-->|whatshap haplotag|aln2
     aln2([phased alignments])-->|NAIBR|results((structural variants))
+    end
+    style id1 fill:#f0f0f0,stroke:#e8e8e8,stroke-width:2px
+
 ```
 
 ----

@@ -6,11 +6,11 @@ order: 4
 
 # :icon-list-unordered: Common Harpy Options
 ## Input Arguments
-Each of the main Harpy modules (e.g. `qc` or `phase`) follows the format of
+Each of the main Harpy modules (e.g. [!badge corners="pill" text="qc"](Modules/qc.md) or [!badge corners="pill" text="phase"](Modules/phase.md)) follows the format of
 ```bash
 harpy module options arguments
 ```
-where `module` is something like `impute` or `snp mpileup` and `options` are the runtime parameters,
+where `module` is something like [!badge corners="pill" text="impute"](Modules/impute.md) or [!badge corners="pill" text="snp mpileup"](Modules/snp.md) and `options` are the runtime parameters,
 which can include things like an input `--vcf` file, `--molecule-distance`, etc. After the options
 is where you provide the input files/directories without flags and following standard BASH expansion
 rules (e.g. wildcards). You can mix and match entire directories, individual files, and wildcard expansions.
@@ -37,7 +37,7 @@ this behavior.
 ## Common command-line options
 Every Harpy module has a series of configuration parameters. These are arguments you need to input
 to configure the module to run on your data, such as the directory with the reads/alignments,
-the genome assembly, etc. All main modules (e.g. `qc`) also share a series of common runtime
+the genome assembly, etc. All main modules (e.g. [!badge corners="pill" text="qc"](Modules/qc.md)) also share a series of common runtime
 parameters that don't impact the results of the module, but instead control the speed/verbosity/etc.
 of calling the module. These runtime parameters are listed in the modules' help strings and can be 
 configured using these arguments:
@@ -51,14 +51,14 @@ configured using these arguments:
 | `--quiet`       | `-q`       | toggle  |         | no       | Supressing Snakemake printing to console                                          |
 | `--help`        |            |         |         |          | Show the module docstring                                                         |
 
-As as example, you could call the `harpy align` module and specify 20 threads with no output to console:
+As as example, you could call [!badge corners="pill" text="align minimap"](Modules/Align/minimap.md) and specify 20 threads with no output to console:
 
 ```bash
-harpy align bwa --threads 20 --quiet samples/trimmedreads
+harpy align minimap --threads 20 --quiet samples/trimmedreads
 
 # identical to #
 
-harpy align bwa -t 20 -q samples/trimmedreads
+harpy align minimap -t 20 -q samples/trimmedreads
 ```
 ---
 
