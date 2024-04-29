@@ -19,19 +19,17 @@ def symlink(original, destination):
 
 def generate_conda_deps():
     """Create the YAML files of the workflow conda dependencies"""
-    condachannels = ["conda-forge", "bioconda", "defaults"]
+    condachannels = ["bioconda","conda-forge","defaults"]
     environ = {
-        "qc" : ["falco", "fastp", "multiqc", "pysam=0.22"],
-        "align": ["bwa", "ema","icu","libzlib", "minimap2", "samtools=1.19", "seqtk", "xz"],
-        "variants.snp": ["bcftools=1.20", "freebayes=1.3.6"],
-        "variants.sv": ["leviathan", "naibr-plus"],
-        "phase" : ["hapcut2", "whatshap"],
-        "simulations" : ["perl", "perl-math-random", "perl-inline-c", "perl-parse-recdescent", "numpy", "dwgsim", "alienzj::msort"],
-        "r-env" : ["bioconductor-complexheatmap", "r-highcharter", "r-circlize", "r-biocircos", "r-dt", "r-flexdashboard", "r-ggplot2", "r-ggridges", "r-plotly", "r-tidyr", "r-stitch"]
+        "qc" : ["bioconda::falco", "bioconda::fastp", "bioconda::multiqc", "bioconda::pysam=0.22"],
+        "align": ["bioconda::bwa", "bioconda::ema","conda-forge::icu","conda-forge::libzlib", "bioconda::minimap2", "bioconda::samtools=1.19", "bioconda::seqtk", "conda-forge::xz"],
+        "variants.snp": ["bioconda::bcftools=1.20", "bioconda::freebayes=1.3.6"],
+        "variants.sv": ["bioconda::leviathan", "bioconda::naibr-plus"],
+        "phase" : ["bioconda::hapcut2", "bioconda::whatshap"],
+        "simulations" : ["conda-forge::perl", "bioconda::perl-math-random", "bioconda::perl-inline-c", "bioconda::perl-parse-recdescent", "conda-forge::numpy", "bioconda::dwgsim", "alienzj::msort"],
+        "r-env" : ["bioconda::bioconductor-complexheatmap", "conda-forge::r-highcharter", "conda-forge::r-circlize", "r::r-biocircos", "conda-forge::r-dt", "conda-forge::r-flexdashboard", "conda-forge::r-ggplot2", "conda-forge::r-ggridges", "conda-forge::r-plotly", "conda-forge::r-tidyr", "bioconda::r-stitch"]
     }
-
     os.makedirs(".harpy_envs", exist_ok = True)
-
     for i in environ:
         # overwrites existing
         with open(f".harpy_envs/{i}.yaml", "w") as yml:
@@ -80,19 +78,19 @@ def fetch_report(workdir, target):
             print_solution("There may be an issue with your Harpy installation, which would require reinstalling Harpy. Alternatively, there may be in a issue with your conda/mamba environment or configuration.")
             exit(1)
 
-def biallelic_contigs(vcf):
+def biallelic_contigs(vcf, workdir):
     """Identify which contigs have at least 2 biallelic SNPs"""
     vbn = os.path.basename(vcf)
-    if not os.path.exists(f"Impute/input/_{vbn}.list"):
-        os.makedirs("Impute/input/", exist_ok = True)
+    if not os.path.exists(f"{workdir}/{vbn}.biallelic"):
+        os.makedirs(f"{workdir}/", exist_ok = True)
         biallelic = subprocess.Popen(f"bcftools view -M2 -v snps {vcf} -Ob".split(), stdout = subprocess.PIPE)
         contigs = subprocess.run("""bcftools query -f '%CHROM\\n'""".split(), stdin = biallelic.stdout, stdout = subprocess.PIPE).stdout.decode().splitlines()
         counts = Counter(contigs)
         contigs = [i.replace("\'", "") for i in counts if counts[i] > 1]
-        with open(f"Impute/input/_{vbn}.list", "w") as f:
+        with open(f"{workdir}/{vbn}.biallelic", "w") as f:
             _ = [f.write(f"{i}\n") for i in contigs]
     else:
-        with open(f"Impute/input/_{vbn}.list", "r") as f:
+        with open(f"{workdir}/{vbn}.biallelic", "r") as f:
             contigs = [line.rstrip() for line in f]
     
     if len(contigs) == 0:
