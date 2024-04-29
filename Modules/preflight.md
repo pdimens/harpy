@@ -10,8 +10,8 @@ order: 6
 
 ===  :icon-checklist: You will need
 - at least 2 cores/threads available
-- `fastq`: paired-end reads from an Illumina sequencer [!badge variant="secondary" text="gzipped recommended"]
 - `bam`: SAM/BAM alignment files [!badge variant="secondary" text="BAM recommended"]
+- `fastq`: paired-end reads from an Illumina sequencer in FASTQ format [!badge variant="secondary" text="gzip recommended"]
 ===
 
 Harpy does a lot of stuff with a lot of software and each of these programs expect the incoming data to follow particular formats (plural, unfortunately).

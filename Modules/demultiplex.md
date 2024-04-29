@@ -10,7 +10,7 @@ order: 6
 
 ===  :icon-checklist: You will need
 - at least 2 cores/threads available
-- paired-end reads from an Illumina sequencer [!badge variant="secondary" text="gzipped recommended"]
+- paired-end reads from an Illumina sequencer in FASTQ format [!badge variant="secondary" text="gzip recommended"]
 ===
 
 When pooling samples and sequencing them in parallel on an Illumina sequencer, you will be given large multiplexed FASTQ

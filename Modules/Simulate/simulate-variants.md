@@ -10,7 +10,7 @@ order: 6
 Simulate snps, indels, inversions, cnv, translocations
 
 ===  :icon-checklist: You will need
-- a reference genome in fasta or gzipped fasta format: [!badge variant="success" text=".fasta"] [!badge variant="success" text=".fa"] [!badge variant="success" text=".fasta.gz"] [!badge variant="success" text=".fa.gz"]
+- a reference genome in FASTA format: [!badge variant="success" text=".fasta"] [!badge variant="success" text=".fa"] [!badge variant="success" text=".fasta.gz"] [!badge variant="success" text=".fa.gz"]
 ===
 
 You may want to benchmark haplotag data on different kinds of genomic variants. To

@@ -10,7 +10,7 @@ order: 6
 Simulate linked reads from a genome
 
 ===  :icon-checklist: You will need
-- two haplotypes of a reference genome in fasta format: [!badge variant="success" text=".fasta"] [!badge variant="success" text=".fa"] [!badge variant="success" text=".fasta.gz"] [!badge variant="success" text=".fa.gz"]
+- two haplotypes of a reference genome in FASTA format: [!badge variant="success" text=".fasta"] [!badge variant="success" text=".fa"] [!badge variant="success" text=".fasta.gz"] [!badge variant="success" text=".fa.gz"]
     - can be created with [!badge corners="pill" text="simulate {snpindel,inversion,...}"](simulate-variants.md)
 - [!badge variant="ghost" text="optional"] a file of 16-basepair barcodes to tag linked reads with
 ==- :icon-question: LRSIM differences

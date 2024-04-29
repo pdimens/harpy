@@ -11,6 +11,8 @@ order: 2
 - at least 2 cores/threads available
 - sequence alignments, in BAM format: [!badge variant="success" text=".bam"]
 - a variant call format file of genotypes: [!badge variant="success" text=".vcf"] [!badge variant="success" text=".bcf"]
+- [!badge variant="ghost" text="optional"] a reference genome in FASTA format: [!badge variant="success" text=".fasta"] [!badge variant="success" text=".fa"] [!badge variant="success" text=".fasta.gz"] [!badge variant="success" text=".fa.gz"]
+
 ===
 
 You may want to phase your genotypes into haplotypes, as haplotypes tend to be more informative

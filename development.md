@@ -37,7 +37,7 @@ we _want_ to, not because we need to.
 ===
 
 ## Installing Harpy for development
-The process follows cloning the harpy repository, installing the preconfigured conda environment, and running the `misc/buildlocal.sh`
+The process follows cloning the harpy repository, installing the preconfigured conda environment, and running the `resources/buildlocal.sh`
 script to move all the necessary files to the `/bin/` path within your active conda environment.
 
 ==- Step 1: clone the repository
@@ -48,7 +48,7 @@ git clone https://github.com/pdimens/harpy.git
 
 ==- Step 2: install the conda environment dependencies
 ```bash install the dependencies with conda/mamba
-mamba env create --name harpy --file misc/harpyenv.yaml
+mamba env create --name harpy --file resources/harpy.yaml
 ```
 This will create a conda environment named `harpy` with all the bits necessary to successfully run Harpy. You can change the name of this environment by specifying
 `--name something`. 
@@ -61,11 +61,11 @@ mamba activate harpy
 ```
 ==- Step 4: install the Harpy files
 
-Call the `misc/buildlocal.sh` bash script to finish the installation.
+Call the `resources/buildlocal.sh` bash script to finish the installation.
 This will build the `harpy` python program, and copy all the additional files Harpy needs to run
 to the `bin/` directory of your active conda environment.
 ```bash install harpy and the necessary files
-bash misc/buildlocal.sh
+bash resources/buildlocal.sh
 ```
 ===
 
@@ -108,8 +108,7 @@ table below:
 
 | branch | purpose |
 |:---| :---|
-| `main` | the source code of the current release and used for new bioconda releases |
-| `dev`  | staging and testing area for new code prior to merging with `main` for release |
+| `main` | staging and testing area for new code prior to creating the next release  |
 | `docs` | the source documentation files (markdown and configs) that are deployed for the current documentation |
 | `docs_dev` | the updated documentation intended for the next release and is not deployed |
 | `retype` | the branch that `docs` deploys to and contains the current rendered documentation and is not to be touched |
@@ -118,16 +117,14 @@ table below:
 The dev workflow is reasonably standard:
 1. [create a fork](https://github.com/pdimens/harpy/fork) of Harpy
 2. within your fork, create a new branch, name it something relevant to what you intend to do (_e.g._, `naibr_bugfix`, `add_deepvariant`)
-    - create a branch off of `main` if you are trying to fix a bug in the release version
-    - create a branch off of `dev` if you are adding a new feature or breaking change
 3. add and modify code with your typical coding workflow, pushing your changes to your Harpy fork
-4. when it's ready for inclusion into Harpy (and testing), create a Pull Request to merge your changes into the Harpy `dev` branch
+4. when it's ready for inclusion into Harpy (and testing), create a Pull Request to merge your changes into the Harpy `main` branch
 
 ## Automations
 ### Testing
 CI (**C**ontinuous **I**ntegration) is a term describing automated actions that do
 things to/with your code and are triggered by how you interact with a repository.
-Harpy has a series of GitHub Actions triggered by interactions with the `dev` branch (in `.github/workflows`) 
+Harpy has a series of GitHub Actions triggered by interactions with the `main` branch (in `.github/workflows`) 
 to test the Harpy modules depending on which files are being changed by the push or
 pull request. It's setup such that, for example, when files associated with 
 demultiplexing are altered, it will run `harpy demultiplex` on the test data 

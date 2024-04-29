@@ -8,7 +8,7 @@ order: 6
 # :icon-codescan-checkmark: Quality Trim Sequences
 ===  :icon-checklist: You will need
 - at least 2 cores/threads available
-- paired-end fastq sequence files [!badge variant="secondary" text="gzipped recommended"]
+- paired-end fastq sequence files [!badge variant="secondary" text="gzip recommended"]
 ===
 
 Raw sequences are not suitable for downstream analyses. They have sequencing adapters,
