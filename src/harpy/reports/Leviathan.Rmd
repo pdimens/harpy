@@ -1,5 +1,5 @@
 ---
-title: "Leviathan Structural Variant Summary"
+title: "Leviathan Variant Calling Summary"
 date: "`r format(Sys.time(), '%d %B, %Y')`"
 output:
   flexdashboard::flex_dashboard:
@@ -12,14 +12,13 @@ output:
 ```{r load environment, echo=FALSE, message=FALSE, warning=FALSE}
 library(flexdashboard)
 library(dplyr)
-library(DT)
-library(BioCircos)
-library(ComplexHeatmap)
 library(ggplot2)
+library(magrittr)
+library(DT)
 library(plotly)
 library(circlize)
+library(ComplexHeatmap)
 ```
-
 ```{css zoom-lib-src, echo = FALSE, message = FALSE, warning = FALSE}
 script src = "https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"
 ```
@@ -43,8 +42,7 @@ script src = "https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"
 ### introtext {.no-title}
 ```{r}
 statsfile <- snakemake@input[["statsfile"]]
-#statsfile <- "/home/pdimens/Documents/harpy/SV/leviathanpop/reports/data/pop1.sv.stats"
-samplename <- gsub(".sv.stats", "", basename(statsfile))
+samplename <- gsub(".stats", "", basename(statsfile))
 ```
 
 <h1> Structural Variants: `r samplename`</h1>
@@ -81,17 +79,14 @@ if (nrow(sv) == 0) {
 ```
 ```{r contigSizes, echo = FALSE}
 faidx <- snakemake@input[["faidx"]]
-#faidx <- "/home/pdimens/Documents/harpy/Genome/genome.fasta.fai"
 fa.sizes <- read.table(faidx, header = F)[,1:2] %>% arrange(desc(2))
 colnames(fa.sizes) <- c("contig", "size")
 
-# DEPRECATED
 # make sure that the contigs with SV are the ones being plotted, not the others
-#fa.sizes <- fa.sizes[fa.sizes$contig %in% unique(sv$contig), ]
+fa.sizes <- fa.sizes[fa.sizes$contig %in% unique(sv$contig), ]
 
-# limit the data to up to 30 of the largest contigs
-#fa.sizes <- fa.sizes[1:min(nrow(fa.sizes), 30), ]
-fa.sizes <- arrange(fa.sizes, size)[1:min(nrow(fa.sizes), 30), ]
+# limit the data to only the 30 of the largest present contigs
+fa.sizes <- fa.sizes[1:min(nrow(fa.sizes), 30), ]
 ```
 
 ## General Information {data-height=100}
@@ -158,7 +153,6 @@ DT::datatable(
 
 ### Per-contig info
 ```{r echo = FALSE, message = FALSE}
-# breakends are written as ".", so make them length = 1 for plotting
 sv$length <- gsub("\\.", "1", sv$length) %>%  as.numeric()
 ```
 
@@ -173,9 +167,11 @@ DT::datatable(
   filter = "top", 
   extensions = 'Buttons', 
   options = list(dom = 'Brtip', buttons = c('csv'), scrollX = TRUE),
+  autoHideNavigation = T,
   fillContainer = T
 )
 ```
+
 ## SV size and location
 ```{r colors, echo = FALSE, warning = FALSE, message = FALSE}
 col.palette <- c(
