@@ -409,7 +409,7 @@ jobs:
 
   test_naibr:
     needs: [changes, pkgbuild]
-    if: ${{ needs.changes.outputs.leviathan == 'true' && needs.pkgbuild.result == 'success' }}
+    if: ${{ needs.changes.outputs.naibr == 'true' && needs.pkgbuild.result == 'success' }}
     name: test sv naibr
     runs-on: ubuntu-latest
     steps:
