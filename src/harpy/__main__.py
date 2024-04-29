@@ -197,9 +197,13 @@ click.rich_click.COMMAND_GROUPS = {
     "harpy simulate":
         [
             {
-                "name": "Genomic Variants",
-                "commands": ["linkedreads", "snpindel","inversion", "cnv", "translocation"],
+                "name": "Linked Read Sequences",
+                "commands": ["linkedreads"],
             },
+            {
+                "name": "Genomic Variants",
+                "commands": ["snpindel","inversion", "cnv", "translocation"],
+            }
         ]
 }
 
