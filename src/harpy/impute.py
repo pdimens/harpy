@@ -66,7 +66,7 @@ def impute(input, output_dir, parameters, threads, vcf, vcf_samples, extra_param
 
     # generate and store list of viable contigs (minimum of 2 biallelic SNPs)
     # doing it here so it doesn't have to run each time inside the workflow
-    contigs = biallelic_contigs(vcf)
+    contigs = biallelic_contigs(vcf, workflowdir)
     with open(f"{workflowdir}/config.yml", "w") as config:
         config.write(f"output_directory: {output_dir}\n")
         config.write(f"samplenames: {samplenames}\n")

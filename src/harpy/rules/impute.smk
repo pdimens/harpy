@@ -2,7 +2,6 @@ from snakemake.utils import Paramspace
 from rich import print as rprint
 from rich.panel import Panel
 import pandas as pd
-import shutil
 import sys
 import os
 
@@ -32,7 +31,6 @@ onerror:
     )
 
 onsuccess:
-    shutil.rmtree(f'{outdir}/input', ignore_errors=True)
     print("")
     rprint(
         Panel(
