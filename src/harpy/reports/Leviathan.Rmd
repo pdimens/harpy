@@ -42,8 +42,8 @@ script src = "https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"
 ## Intro
 ### introtext {.no-title}
 ```{r}
-#statsfile <- snakemake@input[["statsfile"]]
-statsfile <- "/home/pdimens/Documents/harpy/SV/leviathanpop/reports/data/pop1.sv.stats"
+statsfile <- snakemake@input[["statsfile"]]
+#statsfile <- "/home/pdimens/Documents/harpy/SV/leviathanpop/reports/data/pop1.sv.stats"
 samplename <- gsub(".sv.stats", "", basename(statsfile))
 ```
 
@@ -80,8 +80,8 @@ if (nrow(sv) == 0) {
 }
 ```
 ```{r contigSizes, echo = FALSE}
-#faidx <- snakemake@input[["faidx"]]
-faidx <- "/home/pdimens/Documents/harpy/Genome/genome.fasta.fai"
+faidx <- snakemake@input[["faidx"]]
+#faidx <- "/home/pdimens/Documents/harpy/Genome/genome.fasta.fai"
 fa.sizes <- read.table(faidx, header = F)[,1:2] %>% arrange(desc(2))
 colnames(fa.sizes) <- c("contig", "size")
 
