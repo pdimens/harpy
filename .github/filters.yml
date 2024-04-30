@@ -9,9 +9,9 @@ common: &common
   - 'resources/buildforCI.sh'
 preflight:
   - *common
+  - 'src/harpy/preflight.py'
   - 'src/harpy/rules/preflight-fastq.smk'
   - 'src/harpy/rules/preflight-bam.smk'
-  - '**preflight.py'
   - 'test/fastq/**'
   - 'test/bam/**'
   - 'src/harpy/scripts/checkBAM.py'
@@ -20,21 +20,20 @@ preflight:
   - 'src/harpy/reports/PreflightBam.Rmd'
 demux:
   - *common
+  - 'src/harpy/demultiplex.py'
   - 'src/harpy/rules/demultiplex**.smk'
-  - '**demultiplex.py'
   - '**demuxGen1'
-  - '**demux.yml'
   - 'bcFiles.py'
   - 'test/data/demux/**'
 qc:
   - *common
+  - 'src/harpy/qc.py'
   - 'src/harpy/rules/qc.smk'
-  - '**qc.py'
   - 'test/fastq/**'
 bwa:
   - *common
+  - 'src/harpy/align.py'
   - 'src/harpy/rules/align-bwa.smk'
-  - '**align.py'
   - 'src/harpy/reports/AlignStats.Rmd'
   - 'src/harpy/reports/BxCount.Rmd'
   - 'src/harpy/scripts/bxStats.py'
@@ -43,8 +42,8 @@ bwa:
   - 'test/fastq/**'
 ema:
   - *common
+  - 'src/harpy/align.py'
   - 'src/harpy/rules/align-ema.smk'
-  - '**align.py'
   - 'src/harpy/reports/AlignStats.Rmd'
   - 'src/harpy/reports/EmaCount.Rmd'
   - 'src/harpy/reports/BxCount.Rmd'
@@ -54,34 +53,32 @@ ema:
   - 'test/fastq/**'
 minimap:
   - *common
+  - 'src/harpy/align.py'
   - 'src/harpy/rules/align-minimap.smk'
-  - '**align.py'
-  - 'src/harpy/reports/Gencov.Rmd'
+  - 'src/harpy/reports/AlignStats.Rmd'
   - 'src/harpy/reports/BxCount.Rmd'
-  - 'src/harpy/reports/BxStats.Rmd'
   - 'src/harpy/scripts/bxStats.py'
   - 'src/harpy/scripts/countBX.py'
   - 'src/harpy/globalscripts/makewindows.py'
   - 'test/fastq/**'
 mpileup:
   - *common
+  - 'src/harpy/snp.py'
   - 'src/harpy/rules/snp-mpileup.smk'
-  - '**snp.py'
   - 'src/harpy/reports/BcftoolsStats.Rmd'
   - 'src/harpy/globalscripts/makewindows.py'
   - 'test/bam/**'
 freebayes:
   - *common
-  - 'src/harpy/rules/snp-mpileup.smk'
+  - 'src/harpy/snp.py'
   - 'src/harpy/rules/snp-freebayes.smk'
-  - '**snp.py'
   - 'src/harpy/reports/BcftoolsStats.Rmd'
   - 'src/harpy/globalscripts/makewindows.py'
   - 'test/bam/**'
 impute:
   - *common
-  - '**impute.smk'
-  - '**impute.py'
+  - 'src/harpy/impute.py'
+  - 'src/harpy/rules/impute.smk'
   - 'test/bam/**'
   - 'test/vcf/test.bcf'
   - 'src/harpy/reports/Impute.Rmd'
@@ -89,14 +86,14 @@ impute:
   - 'src/harpy/scripts/stitch_impute.R'
 leviathan:
   - *common
+  - 'src/harpy/sv.py'
   - 'src/harpy/rules/sv-leviathan**.smk'
-  - '**sv.py'
   - 'test/bam/**'
   - 'src/harpy/reports/Leviathan**.Rmd'
 naibr:
   - *common
+  - 'src/harpy/sv.py'
   - 'src/harpy/rules/sv-naibr**.smk'
-  - '**sv.py'
   - 'test/bam/**'
   - 'test/bam_phased/**'
   - 'test/vcf/test.phased.bcf'
@@ -104,20 +101,22 @@ naibr:
   - 'src/harpy/globalscripts/inferSV.py'
 phase:
   - *common
+  - 'src/harpy/phase.py'
   - 'src/harpy/rules/phase.smk'
-  - '**phase.py'
   - 'test/bam/**'
   - 'test/vcf/test.bcf'
   - 'src/harpy/reports/HapCut2.Rmd'
   - 'src/harpy/globalscripts/parsePhaseBlocks.py'
 simvars:
   - *common
+  - 'src/harpy/simulatevariants.py'
   - 'simulate-snpindel.smk'
   - 'simulate-variants.smk'
   - 'test/vcf/test.bcf'
   - 'src/harpy/scripts/simuG.pl'
 simreads:
   - *common
+  - 'src/harpy/simulatelinkedreads.py'
   - 'simulate-linkedreads.smk'
   - 'test/genome**gz'
   - 'extractReads.cpp'
@@ -125,5 +124,5 @@ simreads:
   - 'src/harpy/scripts/LRSIMharpy.pl'
 extras:
   - '.github/workflows/tests.yml'
-  - '**stitchparams.py'
-  - '**popgroup.py'
+  - 'src/harpy/stitchparams.py'
+  - 'src/harpy/popgroup.py'
