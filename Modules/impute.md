@@ -12,7 +12,7 @@ order: 3
 - sequence alignments in BAM format: [!badge variant="success" text=".bam"]
 - a variant call format file: [!badge variant="success" text=".vcf"] [!badge variant="success" text=".vcf.gz"] [!badge variant="success" text=".bcf"]
 ==- :icon-codescan: Curation of input VCF file
-STITCH needs the input VCF to meet specific criteria:
+To work well with STITCH, Harpy needs the input variant call file to meet specific criteria:
 1. Biallelic SNPs only         [!badge variant="secondary" text="automatic"]
 2. VCF is sorted by position   [!badge variant="secondary" text="automatic"]
 3. No duplicate positions
