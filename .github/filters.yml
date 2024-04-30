@@ -35,9 +35,8 @@ bwa:
   - *common
   - 'src/harpy/rules/align-bwa.smk'
   - '**align.py'
-  - 'src/harpy/reports/Gencov.Rmd'
+  - 'src/harpy/reports/AlignStats.Rmd'
   - 'src/harpy/reports/BxCount.Rmd'
-  - 'src/harpy/reports/BxStats.Rmd'
   - 'src/harpy/scripts/bxStats.py'
   - 'src/harpy/scripts/countBX.py'
   - 'src/harpy/globalscripts/makeWindows.py'
@@ -46,10 +45,9 @@ ema:
   - *common
   - 'src/harpy/rules/align-ema.smk'
   - '**align.py'
-  - 'src/harpy/reports/EmaGencov.Rmd'
+  - 'src/harpy/reports/AlignStats.Rmd'
   - 'src/harpy/reports/EmaCount.Rmd'
   - 'src/harpy/reports/BxCount.Rmd'
-  - 'src/harpy/reports/BxStats.Rmd'
   - 'src/harpy/scripts/bxStats.py'
   - 'src/harpy/scripts/countBX.py'
   - 'src/harpy/globalscripts/makewindows.py'

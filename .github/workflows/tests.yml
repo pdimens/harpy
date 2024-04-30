@@ -101,6 +101,40 @@ jobs:
         run: harpy demultiplex gen1 --samplesheet test/demux/samples.schema test/demux/Undetermined_S0_L004_I1_001.fastq.gz
         shell: micromamba-shell {0}
 
+  test_preflight:
+    needs: [changes, pkgbuild]
+    if: ${{ needs.changes.outputs.preflight == 'true' && needs.pkgbuild.result == 'success' }}
+    name: test preflight
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+      - name: setup mamba
+        uses: mamba-org/setup-micromamba@v1
+        env:
+          ACTIONS_STEP_DEBUG: true
+        with:
+          init-shell: bash
+          generate-run-shell: true
+          environment-file: resources/harpy.yaml
+          cache-environment: true
+          post-cleanup: 'all'
+          log-level: error
+      - name: Install harpy
+        shell: micromamba-shell {0}
+        run: |
+          python3 -m pip install --upgrade build && python3 -m build
+          pip install dist/*.whl
+          resources/buildforCI.sh
+      - name: test preflight fastq
+        shell: micromamba-shell {0}
+        run: harpy preflight fastq test/fastq
+      - name: test preflight fastq
+        shell: micromamba-shell {0}
+        run: harpy preflight bam test/bam
+
   test_qc:
     needs: [changes, pkgbuild]
     if: ${{ needs.changes.outputs.qc == 'true' && needs.pkgbuild.result == 'success' }}
