@@ -4,16 +4,18 @@ import sys
 from rich.panel import Panel
 from rich import print as rprint
 
-infile = config["infile"]
+R1 = config["R1"]
+R2 = config["R2"]
+I1 = config["I1"]
+I2 = config["I2"]
 samplefile = config["samplefile"]
 skipreports = config["skipreports"]
-bn = os.path.basename(infile)
-fq_extension = re.search(r"(?:\_00[0-9])*\.f(.*?)q(?:\.gz)?$", infile, re.IGNORECASE).group(0)
-inprefix = config["infile_prefix"]
-inprefixfull = re.sub(r"[\_\.][IR][12]?(?:\_00[0-9])*\.f(?:ast)?q(?:\.gz)?$", "", infile)
-infiles = [f"{inprefixfull}_{i}{fq_extension}" for i in ["I1", "I2","R1","R2"]]
-indir = os.path.dirname(infile)
-outdir = config["output_directory"] + f"/{inprefix}/"
+outdir = config["output_directory"]
+#bn = os.path.basename(infile)
+#fq_extension = re.search(r"(?:\_00[0-9])*\.f(.*?)q(?:\.gz)?$", infile, re.IGNORECASE).group(0)
+#inprefix = config["infile_prefix"]
+#inprefix = re.sub(r"[\_\.][IR][12]?(?:\_00[0-9])*\.f(?:ast)?q(?:\.gz)?$", "", os.path.basename(R1))
+#indir = os.path.dirname(infile)
 
 def barcodedict(smpl):
     d = dict()
@@ -54,51 +56,62 @@ onsuccess:
         file = sys.stderr
     )
 
-rule link_files:
+rule link_R1:
     input:
-        indir + "/" + inprefix + "_{part}" + fq_extension
+        R1
     output:
-        temp(outdir + "DATA_{part}_001.fastq.gz")
+        temp(outdir + "/DATA_R1_001.fastq.gz")
     message:
-        f"Linking {inprefix}" + "{wildcards.part} to output directory"
+        "Linking {input} to output directory"
     shell:
         "ln -sr {input} {output}"
 
+use rule link_R1 as link_R2 with:
+    input: R2
+    output: temp(outdir + "/DATA_R2_001.fastq.gz")
+
+use rule link_R1 as link_I1 with:
+    input: I1
+    output: temp(outdir + "/DATA_I1_001.fastq.gz")
+
+use rule link_R1 as link_I2 with:
+    input: I2
+    output: temp(outdir + "/DATA_I2_001.fastq.gz")
+
 rule bx_files:
     output:
-        temp(collect(outdir + "BC_{letter}.txt", letter = ["A","C","B","D"]))
+        temp(collect(outdir + "/BC_{letter}.txt", letter = ["A","C","B","D"]))
     params:
         outdir
     message:
-        "Creating the Gen I barcode files necessary for barcode demultiplexing"
+        "Creating the Gen I barcode files for barcode demultiplexing"
     shell:
         "bcFiles.py {params}"
 
 rule demux_bx:
     input:
-        collect(outdir + "DATA_{IR}{ext}_001.fastq.gz", IR = ["R","I"], ext = [1,2]),
-        collect(outdir + "BC_{letter}.txt", letter = ["A","C","B","D"])
+        collect(outdir + "/DATA_{IR}{ext}_001.fastq.gz", IR = ["R","I"], ext = [1,2]),
+        collect(outdir + "/BC_{letter}.txt", letter = ["A","C","B","D"])
     output:
-        temp(collect(outdir + inprefix + "_R{ext}_001.fastq.gz", ext = [1,2]))
+        temp(collect(outdir + "/demux_R{ext}_001.fastq.gz", ext = [1,2]))
     params:
         outdr = outdir,
-        outprfx = inprefix,
-        logdir = outdir +"logs/.QC"
+        logdir = outdir +"/logs/demux"
     message:
         "Moving barcodes into read headers"
     shell:
         """
         mkdir -p {params.logdir}
         cd {params.outdr}
-        demuxGen1 DATA_ {params.outprfx}
-        mv {params.outprfx}*BC.log logs
+        demuxGen1 DATA_ demux
+        mv demux*BC.log logs
         """
 
 rule split_samples_fw:
     input:
-        f"{outdir}{inprefix}_R1_001.fastq.gz"
+        f"{outdir}/demux_R1_001.fastq.gz"
     output:
-        outdir + "{sample}.F.fq.gz"
+        outdir + "/{sample}.F.fq.gz"
     params:
         c_barcode = lambda wc: samples[wc.get("sample")]
     message:
@@ -110,9 +123,9 @@ rule split_samples_fw:
 
 rule split_samples_rv:
     input:
-        f"{outdir}{inprefix}_R2_001.fastq.gz"
+        f"{outdir}/demux_R2_001.fastq.gz"
     output:
-        outdir + "{sample}.R.fq.gz"
+        outdir + "/{sample}.R.fq.gz"
     params:
         c_barcode = lambda wc: samples[wc.get("sample")]
     message:
@@ -124,11 +137,11 @@ rule split_samples_rv:
 
 rule fastqc_F:
     input:
-        outdir + "{sample}.F.fq.gz"
+        outdir + "/{sample}.F.fq.gz"
     output: 
-        temp(outdir + "logs/.QC/{sample}_F/fastqc_data.txt")
+        temp(outdir + "/logs/{sample}_F/fastqc_data.txt")
     params:
-        lambda wc: outdir + "logs/.QC/" + wc.get("sample") + "_F"
+        lambda wc: f"{outdir}/logs/" + wc.get("sample") + "_F"
     threads:
         1
     conda:
@@ -157,11 +170,11 @@ rule fastqc_F:
 
 rule fastqc_R:
     input:
-        outdir + "{sample}.R.fq.gz"
+        outdir + "/{sample}.R.fq.gz"
     output: 
-        temp(outdir + "logs/.QC/{sample}_R/fastqc_data.txt")
+        temp(outdir + "/logs/{sample}_R/fastqc_data.txt")
     params:
-        lambda wc: outdir + "logs/.QC/" + wc.get("sample") + "_R"
+        lambda wc: f"{outdir}/logs/" + wc.get("sample") + "_R"
     threads:
         1
     conda:
@@ -190,38 +203,37 @@ rule fastqc_R:
 
 rule qc_report:
     input:
-        collect(outdir + "logs/.QC/{sample}_{FR}/fastqc_data.txt", sample = samplenames, FR = ["F","R"])
+        collect(outdir + "/logs/{sample}_{FR}/fastqc_data.txt", sample = samplenames, FR = ["F","R"])
     output:
-        outdir + "reports/demultiplex.QC.html"
+        outdir + "/reports/demultiplex.QC.html"
     params:
-        outdir + "logs/.QC"
+        outdir + "/logs/"
     conda:
         os.getcwd() + "/.harpy_envs/qc.yaml"
     message:
         "Creating final demultiplexing QC report"
     shell:
         """
-        multiqc {params} --force --quiet --title "QC on Demultiplexed Samples" --comment "This report aggregates the QC results created by falco." --no-data-dir --filename {output} 2> /dev/null
+        multiqc {params} --force --quiet --title "QC for Demultiplexed Samples" --comment "This report aggregates the QC results created by falco." --no-data-dir --filename {output} 2> /dev/null
         """
 
 rule log_workflow:
     default_target: True
     input:
-        fq = collect(outdir + "{sample}.{FR}.fq.gz", sample = samplenames, FR = ["F", "R"]),
-        reports = outdir + "reports/demultiplex.QC.html" if not skipreports else []
+        fq = collect(outdir + "/{sample}.{FR}.fq.gz", sample = samplenames, FR = ["F", "R"]),
+        reports = outdir + "/reports/demultiplex.QC.html" if not skipreports else []
     message:
         "Summarizing the workflow: {output}"
     run:
-        os.makedirs(f"{outdir}workflow/", exist_ok= True)
-        with open(outdir + "workflow/demux.gen1.summary", "w") as f:
+        os.makedirs(f"{outdir}/workflow/", exist_ok= True)
+        with open(outdir + "/workflow/demux.gen1.summary", "w") as f:
             _ = f.write("The harpy demultiplex module ran using these parameters:\n\n")
             _ = f.write("Haplotag technology: Generation I\n")
-            _ = f.write(f"The multiplexed input file: {infile}\n")
-            _ = f.write(f"The associated files inferred from {infile}:\n")
-            _ = f.write("    " + "\n    ".join(infiles) + "\n")
+            _ = f.write(f"The multiplexed input files:\n    -")
+            _ = f.write("\n    -".join([R1,R2,I1,I2]) + "\n")
             _ = f.write("Barcodes were moved into the read headers using the command:\n")
-            _ = f.write(f"    demuxGen1 DATA_ {inprefix}\n")
-            _ = f.write(f"The delimited file associating CXX barcodes with samplenames: {samplefile}\n")
+            _ = f.write(f"    demuxGen1 DATA_ demux\n")
+            _ = f.write(f"The delimited file associating CXX barcodes with samplenames:\n    {samplefile}\n")
             _ = f.write(f"QC checks were performed on demultiplexed FASTQ files using:\n")
             _ = f.write(f"    falco -skip-report -skip-summary input.fq.gz\n")
             _ = f.write("\nThe Snakemake workflow was called via command line:\n")
