@@ -15,7 +15,9 @@ order: 3
 To work well with STITCH, Harpy needs the input variant call file to meet specific criteria.
 Where labelled with [!badge variant="secondary" text="automatic"], Harpy will perform those curation steps on your input
 variant call file. Where labelled with [!badge variant="warning" text="manual"], you will need to perform these curation
-tasks yourself prior to running the [!badge corners="pill" text="impute"] module. The variant call file criteria are:
+tasks yourself prior to running the [!badge corners="pill" text="impute"] module. 
+
+#### Variant call file criteria
 
 1. [!badge variant="secondary" text="automatic"] Biallelic SNPs only
 2. [!badge variant="secondary" text="automatic"] VCF is sorted by position
