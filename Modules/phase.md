@@ -34,6 +34,7 @@ harpy phase --threads 20 --vcf Variants/variants.raw.bcf Align/ema
 ## :icon-terminal: Running Options
 In addition to the [!badge variant="info" corners="pill" text="common runtime options"](/commonoptions.md), the [!badge corners="pill" text="phase"] module is configured using these command-line arguments:
 
+{.compact}
 | argument              | short name | type            | default | required | description                                                          |
 |:----------------------|:----------:|:----------------|:-------:|:--------:|:---------------------------------------------------------------------|
 | `INPUTS`           |            | file/directory paths  |         | **yes**  | Files or directories containing [input BAM files](/commonoptions.md#input-arguments)     |
@@ -139,7 +140,7 @@ Phase/
         └── Sample1.blocks.phased.log
 
 ```
-
+{.compact}
 | item | description |
 |:---|:---|
 | `variants.phased.bcf*` | final vcf output of HapCut2 with all samples merged into a single file (with .csi index) |

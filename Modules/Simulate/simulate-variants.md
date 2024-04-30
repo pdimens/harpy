@@ -31,6 +31,7 @@ harpy simulate inversion -n 10 --min-size 1000 --max-size 50000  path/to/genome.
 ## Modules
 There are 4 submodules with very obvious names:
 
+{.compact}
 | submodule | what it does |
 |:----------|:-------------|
 | [!badge corners="pill" text="snpindel"](#snpindel) | simulates single nucleotide polymorphisms (snps) and insertion-deletions (indels) |
@@ -44,6 +45,7 @@ While there are serveral differences between the submodule command line options,
 end of the command line, and each requires either a `--count` of variants to randomly simulate, or a `--vcf` of
 specific variants to simulate. There are also these unifying options among the different variant types:
 
+{.compact}
 | argument | short name | type |  description |
 | :-----|:-----|:-----|:-----|
 | `INPUT_GENOME`           |    | file path  |  The haploid genome to simulate variants onto. **REQUIRED**   |
@@ -72,6 +74,7 @@ the value to either `9999` or `0` :
     - `9999`: insertions only
     - `0`: deletions only
 
+{.compact}
 | argument          | short name | type       | default |  description                                                 |
 |:------------------|:----------:|:-----------|:-------:|:-------------------------------------------------------------|
 | `--snp-vcf`| `-s` | file path | | VCF file of known snps to simulate |
@@ -88,6 +91,7 @@ the value to either `9999` or `0` :
 ### inversion
 Inversions are when a section of a chromosome appears in the reverse orientation ([source](https://www.genome.gov/genetics-glossary/Inversion)).
 
+{.compact}
 | argument          | short name | type       | default |  description     |
 |:------------------|:----------:|:-----------|:-------:|:----------------|
 | `--vcf` | `-v` | file path |  |  VCF file of known inversions to simulate |
@@ -108,6 +112,7 @@ the value to either `9999` or `0` :
     - `9999`: gain only
     - `0`: loss only
 
+{.compact}
 | argument          | short name | type       | default |  description     |
 |:------------------|:----------:|:-----------|:-------:|:----------------|
 | `--vcf` | `-v` | file path | | VCF file of known copy number variants to simulate |
@@ -123,6 +128,7 @@ the value to either `9999` or `0` :
 ### translocation
 A translocation occurs when a chromosome breaks and the fragmented pieces re-attach to different chromosomes ([source](https://www.genome.gov/genetics-glossary/Translocation)). 
 
+{.compact}
 | argument          | short name | type       | default |  description     |
 |:------------------|:----------:|:-----------|:-------:|:----------------|
 | `--vcf` | `-v` | file path |  |  VCF file of known inversions to simulate |

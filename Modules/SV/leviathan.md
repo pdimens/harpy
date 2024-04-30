@@ -62,6 +62,7 @@ harpy sv leviathan --threads 20 -g genome.fasta Align/bwa
 ## :icon-terminal: Running Options
 In addition to the [!badge variant="info" corners="pill" text="common runtime options"](/commonoptions.md), the [!badge corners="pill" text="sv leviathan"] module is configured using these command-line arguments:
 
+{.compact}
 | argument         | short name | type          | default | required | description                                        |
 |:-----------------|:----------:|:--------------|:-------:|:--------:|:---------------------------------------------------|
 | `INPUTS`         |            | file/directory paths  |         | **yes**  | Files or directories containing [input BAM files](/commonoptions.md#input-arguments)     |
@@ -130,7 +131,7 @@ SV/leviathan
     ├── sample1.sv.stats
     └── sample2.sv.stats
 ```
-
+{.compact}
 | item                   | description                                              |
 |:-----------------------|:---------------------------------------------------------|
 | `*.bcf`                | structural variants identified by LEVIATHAN              |

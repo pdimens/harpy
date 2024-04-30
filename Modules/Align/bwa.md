@@ -27,13 +27,13 @@ harpy align bwa --genome genome.fasta Sequences/
 ## :icon-terminal: Running Options
 In addition to the [!badge variant="info" corners="pill" text="common runtime options"](/commonoptions.md), the [!badge corners="pill" text="align bwa"] module is configured using these command-line arguments:
 
+{.compact}
 | argument           | short name | type                  | default | required | description                                           |
 |:-------------------|:----------:|:----------------------|:-------:|:--------:|:------------------------------------------------------|
 | `INPUTS`           |            | file/directory paths  |         | **yes**  | Files or directories containing [input FASTQ files](/commonoptions.md#input-arguments)     |
 | `--genome`         |    `-g`    | file path             |         | **yes**  | Genome assembly for read mapping                      |
 | `--molecule-distance` |    `-m`    | integer         |  100000  |    no    | Base-pair distance threshold to separate molecules      |
 | `--quality-filter` |    `-f`    | integer (0-40)        |   30    |    no    | Minimum `MQ` (SAM mapping quality) to pass filtering  |
-| `--method`         |    `-m`    | choice [`bwa`, `ema`] |   bwa   |    no    | Which aligning software to use                        |
 | `--extra-params`   |    `-x`    | string                |         |    no    | Additional EMA-align/BWA arguments, in quotes         |
 
 ### Molecule distance
@@ -132,7 +132,7 @@ Align/bwa
 
 
 ```
-
+{.compact}
 | item     | description                                                                                                 |
 |:---------|:------------------------------------------------------------------------------------------------------------|
 | `*.bam`                             | sequence alignments for each sample                                              |

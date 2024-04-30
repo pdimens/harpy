@@ -43,6 +43,7 @@ harpy preflight bam --threads 20 Align/bwa
 ## :icon-terminal: Running Options
 In addition to the [!badge variant="info" corners="pill" text="common runtime options"](/commonoptions.md), the [!badge corners="pill" text="preflight fastq"] and [!badge corners="pill" text="preflight bam"] modules are configured using only command-line input arguments:
 
+{.compact}
 | argument          | short name | type       | default | required | description                                                                          |
 |:------------------|:----------:|:-----------|:-------:|:--------:|:-------------------------------------------------------------------------------------|
 | `INPUTS`           |            | file/directory paths  |         | **yes**  | Files or directories containing [input fastq or bam files](/commonoptions.md#input-arguments)     |
@@ -54,6 +55,7 @@ Below is a table of the format specifics [!badge corners="pill" text="preflight 
 the haplotagging data format, you will find little value in running [!badge corners="pill" text="preflight fastq"] on 10X FASTQ files. Take note
 of the language such as when "any" and "all" are written.
 
+{.compact}
 | Criteria | Pass Condition | Fail Condition |
 |:---|:---|:---|
 |AxxCxxBxxDxx format| **all** reads with BX:Z: tag have properly formatted `AxxCxxBxxDxx` barcodes | **any** BX:Z: barcodes have incorrect format|
@@ -65,6 +67,7 @@ of the language such as when "any" and "all" are written.
 Below is a table of the format specifics [!badge corners="pill" text="preflight bam"] checks for SAM/BAM files. Take note
 of the language such as when "any" and "all" are written.
 
+{.compact}
 | Criteria | Pass Condition | Fail Condition |
 |:---|:---|:---|
 |name matches| the file name matches the `@RG ID:` tag in the header| file name does not match `@RG ID:` in the header|

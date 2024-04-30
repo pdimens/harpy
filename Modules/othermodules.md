@@ -10,6 +10,7 @@ Some parts of Harpy (variant calling, imputation) want or need extra files. You 
 The arguments represent different sub-commands and can be run in any order or combination to generate the files you need.
 
 ## :icon-terminal: Other modules
+{.compact}
 | module         | description                                                                      |
 |:---------------|:---------------------------------------------------------------------------------|
 | `popgroup`     | Create generic sample-group file using existing sample file names (fq.gz or bam) |

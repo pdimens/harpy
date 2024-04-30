@@ -28,6 +28,7 @@ harpy demultiplex gen1 --threads 20 --schema demux.schema Plate_1_S001_R*.fastq.
 ## :icon-terminal: Running Options
 In addition to the [!badge variant="info" corners="pill" text="common runtime options"](/commonoptions.md), the [!badge corners="pill" text="demultiplex"] module is configured using these command-line arguments:
 
+{.compact}
 | argument          | short name | type       | default | required | description                                                             |
 |:------------------|:----------:|:-----------|:-------:|:--------:|:------------------------------------------------------------------------|
 | `R1_FQ`           |            | file path  |         | **yes**  | The forward multiplexed FASTQ file                                      |
@@ -99,7 +100,7 @@ Demultiplex/
 └── reports
     └── demultiplex.QC.html
 ```
-
+{.compact}
 | item | description |
 |:---|:---|
 | `*.F.fq.gz` | Forward-reads from multiplexed input `--file` belonging to samples from the `samplesheet` |

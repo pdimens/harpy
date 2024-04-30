@@ -57,6 +57,7 @@ harpy snp freebayes --threads 20 --genome genome.fasta Align/bwa
 ## :icon-terminal: Running Options
 In addition to the [!badge variant="info" corners="pill" text="common runtime options"](../commonoptions.md), the [!badge corners="pill" text="snp"] module is configured using these command-line arguments:
 
+{.compact}
 | argument         | short name | type                            | default | required | description                                         |
 |:-----------------|:----------:|:--------------------------------|:-------:|:--------:|:----------------------------------------------------|
 | `INPUTS`           |            | file/directory paths  |         | **yes**  | Files or directories containing [input BAM files](/commonoptions.md#input-arguments)   |
@@ -183,6 +184,7 @@ SNP/method
     ├── variants.raw.html
     └── variants.raw.stats
 ```
+{.compact}
 | item                      | description                                                                                    |
 |:--------------------------|:-----------------------------------------------------------------------------------------------|
 | `variants.raw.bcf`        | vcf file produced from variant calling, contains all samples and loci                          |

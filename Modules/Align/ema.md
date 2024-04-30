@@ -36,6 +36,7 @@ harpy align ema --genome genome.fasta Sequences/
 ## :icon-terminal: Running Options
 In addition to the [!badge variant="info" corners="pill" text="common runtime options"](/commonoptions.md), the [!badge corners="pill" text="align ema"] module is configured using these command-line arguments:
 
+{.compact}
 | argument           | short name | type                  | default | required | description                                                        |
 |:-------------------|:----------:|:----------------------|:-------:|:--------:|:-------------------------------------------------------------------|
 | `INPUTS`           |            | file/directory paths  |         | **yes**  | Files or directories containing [input FASTQ files](/commonoptions.md#input-arguments)                  |
@@ -155,6 +156,7 @@ Align/ema
             └── Sample1.bx.gencov.gz
 
 ```
+{.compact}
 | item                                           | description                                                                                                   |
 |:-----------------------------------------------|:--------------------------------------------------------------------------------------------------------------|
 | `*.bam`                                        | sequence alignments for each sample                                                                           |

@@ -12,19 +12,22 @@ order: 3
 - sequence alignments in BAM format: [!badge variant="success" text=".bam"]
 - a variant call format file: [!badge variant="success" text=".vcf"] [!badge variant="success" text=".vcf.gz"] [!badge variant="success" text=".bcf"]
 ==- :icon-codescan: Curation of input VCF file
-To work well with STITCH, Harpy needs the input variant call file to meet specific criteria:
-1. Biallelic SNPs only         [!badge variant="secondary" text="automatic"]
-2. VCF is sorted by position   [!badge variant="secondary" text="automatic"]
-3. No duplicate positions
-- ```bash example to remove duplicate positions
-    bcftools norm -D in.vcf -o out.vcf
-    ```
-4. No duplicate sample names
-    - requires manual review
+To work well with STITCH, Harpy needs the input variant call file to meet specific criteria.
+Where labelled with [!badge variant="secondary" text="automatic"], Harpy will perform those curation steps on your input
+variant call file. Where labelled with [!badge variant="warning" text="manual"], you will need to perform these curation
+tasks yourself prior to running the [!badge corners="pill" text="impute"] module. The variant call file criteria are:
 
-Harpy will automatically extract biallelic SNPs and sort the input VCF file (1 and 2), but it will not
-do any further assessments for your input VCF file regarding duplicate sample names or positions. Please
-curate your input VCF to meet criteria 3 and 4 prior to running the [!badge corners="pill" text="impute"] module.  
+1. [!badge variant="secondary" text="automatic"] Biallelic SNPs only
+2. [!badge variant="secondary" text="automatic"] VCF is sorted by position
+3. [!badge variant="warning" text="manual"] No duplicate positions
+    - ```bash example to remove duplicate positions
+        bcftools norm -D in.vcf -o out.vcf
+        ```
+4. [!badge variant="warning" text="manual"] No duplicate sample names
+    - ```bash count the occurrence of samples
+        bcftools query -l file.bcf | sort | uniq -c
+        ```
+    - you will need to remove duplicate samples how you see fit
 ===
 
 After variants have been called, you may want to impute missing genotypes to get the
@@ -46,6 +49,7 @@ harpy impute --threads 20 --vcf Variants/mpileup/variants.raw.bcf --parameters s
 ## :icon-terminal: Running Options
 In addition to the [!badge variant="info" corners="pill" text="common runtime options"](/commonoptions.md), the [!badge corners="pill" text="impute"] module is configured using these command-line arguments:
 
+{.compact}
 | argument       | short name | type        |    default    | required | description                                                                                     |
 |:---------------|:----------:|:------------|:-------------:|:--------:|:------------------------------------------------------------------------------------------------|
 | `INPUTS`       |            | file/directory paths  |         | **yes**  | Files or directories containing [input BAM files](/commonoptions.md)     |
@@ -96,6 +100,7 @@ pseudoHaploid   TRUE    50000   10      1       50
 See the section below for detailed information on each parameter. This
 table serves as an overview of the parameters.
 
+{.compact}
 | column name |  value type  |             accepted values             | description                                                           |
 |:------------|:------------:|:---------------------------------------:|:----------------------------------------------------------------------|
 | model       |     text     | pseudoHaploid, diploid, diploid-inbred  | The STITCH model/method to use                                        |
@@ -108,6 +113,7 @@ table serves as an overview of the parameters.
 +++example file  (as a table)
 This is the table view of the tab-delimited file, shown here for clarity.
 
+{.compact}
 | model         | useBX | bxlimit  | k  | s  | nGen |
 |:--------------|:------|:---------|:---|:---|:-----|
 | diploid | TRUE  |   50000  | 10 | 5  | 50   |
@@ -234,6 +240,7 @@ Impute/
             └── impute.compare.stats
 
 ```
+{.compact}
 | item                                | description                                                               |
 |:------------------------------------|:--------------------------------------------------------------------------|
 | `logs/harpy.impute.log`             | relevant runtime parameters for the phase module                          |

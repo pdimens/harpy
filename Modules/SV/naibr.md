@@ -62,6 +62,7 @@ harpy sv naibr --threads 20 --genome genome.fasta --vcf Variants/data.vcf.gz Ali
 ## :icon-terminal: Running Options
 In addition to the [!badge variant="info" corners="pill" text="common runtime options"](/commonoptions.md), the [!badge corners="pill" text="sv naibr"] module is configured using these command-line arguments:
 
+{.compact}
 | argument         | short name | type          | default | required | description                                        |
 |:-----------------|:----------:|:--------------|:-------:|:--------:|:---------------------------------------------------|
 | `INPUTS`         |            | file/directory paths  |         | **yes**  | Files or directories containing [input BAM files](/commonoptions.md#input-arguments)     |
@@ -180,6 +181,7 @@ SV/naibr
     └── sample2.vcf
 ```
 
+{.compact}
 | item          | description                                                      |
 |:--------------|:-----------------------------------------------------------------|
 | `*.bedpe`     | structural variants identified by NAIBR                          |

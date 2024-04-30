@@ -27,6 +27,7 @@ harpy qc --threads 20 Sequences_Raw/
 ## :icon-terminal: Running Options
 In addition to the [!badge variant="info" corners="pill" text="common runtime options"](/commonoptions.md), the [!badge corners="pill" text="qc"] module is configured using these command-line arguments:
 
+{.compact}
 | argument         | short name | type        | default | required | description                                                                                     |
 |:-----------------|:----------:|:------------|:-------:|:-------:|:------------------------------------------------------------------------------------------------|
 | `INPUTS`         |            | file/directory paths  |         | **yes**  | Files or directories containing [input FASTQ files](/commonoptions.md#input-arguments)     |
@@ -75,6 +76,7 @@ QC/
         ├── Sample1.fastp.json
         └── Sample2.fastp.json
 ```
+{.compact}
 | item                            | description                                                                        |
 |:--------------------------------|:-----------------------------------------------------------------------------------|
 | `*.R1.fq.gz`                    | quality trimmed forward reads of the samples                                       |
