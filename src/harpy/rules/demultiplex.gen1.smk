@@ -121,19 +121,13 @@ rule split_samples_fw:
         ( zgrep -A3 "A..{params}B..D" {input} | grep -v "^--$" | gzip -q > {output} ) || touch {output}
         """
 
-rule split_samples_rv:
+use rule split_samples_fw as split_samples_rv with:
     input:
         f"{outdir}/demux_R2_001.fastq.gz"
     output:
         outdir + "/{sample}.R.fq.gz"
-    params:
-        c_barcode = lambda wc: samples[wc.get("sample")]
     message:
         "Extracting reverse reads:\n sample: {wildcards.sample}\n barcode: {params}"
-    shell:
-        """
-        ( zgrep -A3 "A..{params}B..D" {input} | grep -v "^--$" | gzip -q > {output} ) || touch {output}
-        """
 
 rule fastqc_F:
     input:
@@ -168,38 +162,15 @@ rule fastqc_F:
         fi
         """
 
-rule fastqc_R:
+use rule fastqc_F as fastqc_R with:
     input:
         outdir + "/{sample}.R.fq.gz"
     output: 
         temp(outdir + "/logs/{sample}_R/fastqc_data.txt")
     params:
         lambda wc: f"{outdir}/logs/" + wc.get("sample") + "_R"
-    threads:
-        1
-    conda:
-        os.getcwd() + "/.harpy_envs/qc.yaml"
     message:
         "Performing quality assessment: {wildcards.sample}.R.fq.gz"
-    shell:
-        """
-        mkdir -p {params}
-        if [ -z $(gzip -cd {input} | head -c1) ]; then
-            echo "##Falco	1.2.1" > {output}
-            echo ">>Basic Statistics	fail" >> {output}
-            echo "#Measure	Value" >> {output}
-            echo "Filename	{wildcards.sample}.F.fq.gz" >> {output}
-            echo "File type	Conventional base calls" >> {output}
-            echo "Encoding	Sanger / Illumina 1.9" >> {output}
-            echo "Total Sequences	0" >> {output}
-            echo "Sequences flagged as poor quality	0" >> {output}
-            echo "Sequence length	0" >> {output}
-            echo "%GC	0" >> {output}
-            echo ">>END_MODULE" >> {output}
-        else
-            falco -q --threads {threads} -skip-report -skip-summary -o {params} {input}
-        fi
-        """
 
 rule qc_report:
     input:
