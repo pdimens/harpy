@@ -74,7 +74,7 @@ the value to either `9999` or `0` :
 
 | argument          | short name | type       | default |  description                                                 |
 |:------------------|:----------:|:-----------|:-------:|:-------------------------------------------------------------|
-| `--snp-vcf`| `-v` | file path | | VCF file of known snps to simulate |
+| `--snp-vcf`| `-s` | file path | | VCF file of known snps to simulate |
 | `--indel-vcf` | `-i` | file path | | VCF file of known indels to simulate |
 | `--snp-count` | `-n` | integer | 0 | Number of random snps to simluate |
 | `--indel-count` |  `-m` | integer | 0 | Number of random indels to simluate |
