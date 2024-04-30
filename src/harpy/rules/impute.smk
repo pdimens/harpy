@@ -65,7 +65,7 @@ rule index_alignments:
     shell:
         "samtools index {input} {output} 2> /dev/null"
 
-rule bam_list:
+rule alignment_list:
     input:
         bam = collect(bam_dir + "/{sample}.bam", sample = samplenames),
         bai = collect(bam_dir + "/{sample}.bam.bai", sample = samplenames)
@@ -79,23 +79,24 @@ rule bam_list:
 
 rule convert_stitch:
     input:
-        f"{outdir}/workflow/input/vcf/input.sorted.bcf"
+        bcf = f"{outdir}/workflow/input/vcf/input.sorted.bcf",
+        idx = f"{outdir}/workflow/input/vcf/input.sorted.bcf.csi"
     output:
-        outdir + "/workflow/input/vcf/{part}.stitch"
+        outdir + "/workflow/input/stitch/{part}.stitch"
     threads: 
         3
     message:
         "Converting data to biallelic STITCH format: {wildcards.part}"
     shell:
         """
-        bcftools view --types snps -M2 --regions {wildcards.part} {input} |
+        bcftools view --types snps -M2 --regions {wildcards.part} {input.bcf} |
             bcftools query -i '(STRLEN(REF)==1) & (STRLEN(ALT[0])==1) & (REF!="N")' -f '%CHROM\\t%POS\\t%REF\\t%ALT\\n' > {output}
         """
 
 rule impute:
     input:
         bamlist = outdir + "/workflow/input/samples.list",
-        infile  = outdir + "/workflow/input/vcf/{part}.stitch"
+        infile  = outdir + "/workflow/input/stitch/{part}.stitch"
     output:
         # format a wildcard pattern like "k{k}/s{s}/ngen{ngen}"
         # into a file path, with k, s, ngen being the columns of the data frame
