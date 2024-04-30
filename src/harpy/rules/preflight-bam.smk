@@ -97,7 +97,7 @@ rule log_workflow:
         "Summarizing the workflow: {output}"
     run:
         os.makedirs(f"{out_dir}/workflow/", exist_ok= True)
-        with open(out_dir + "workflow/preflight.bam.summary", "w") as f:
+        with open(out_dir + "/workflow/preflight.bam.summary", "w") as f:
             _ = f.write("The harpy preflight module ran using these parameters:\n\n")
             _ = f.write(f"The directory with sequences: {seq_dir}\n")
             _ = f.write("validations were performed with:\n")
