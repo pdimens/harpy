@@ -44,12 +44,12 @@ configured using these arguments:
 
 | argument        | short name | type    | default | required | description                                                                       |
 |:--------------- |:----------:|:------- |:-------:|:--------:|:--------------------------------------------------------------------------------- |
-| `--output-dir`  | `-o`       | string  | varies  | no       | Name of output directory                                                          |
-| `--threads`     | `-t`       | integer | 4       | no       | Number of threads to use                                                          |
-| `--skipreports` | `-r`       | toggle  |         | no       | Skip the processing and generation of HTML reports in a workflow                  |
-| `--snakemake`   | `-s`       | string  |         | no       | Additional [Snakemake](snakemake/#adding-snakamake-parameters) options, in quotes |
-| `--quiet`       | `-q`       | toggle  |         | no       | Supressing Snakemake printing to console                                          |
-| `--help`        |            |         |         |          | Show the module docstring                                                         |
+| `--output-dir`  |   `-o`     | string  | varies  | no       | Name of output directory                                                          |
+| `--threads`     |   `-t`     | integer | 4       | no       | Number of threads to use                                                          |
+| `--skipreports` |            | toggle  |         | no       | Skip the processing and generation of HTML reports in a workflow                  |
+| `--snakemake`   |            | string  |         | no       | Additional [Snakemake](snakemake/#adding-snakamake-parameters) options, in quotes |
+| `--quiet`       |   `-q`     | toggle  |         | no       | Supressing Snakemake printing to console                                          |
+| `--help`        |   `-h`     |         |         |          | Show the module docstring                                                         |
 
 As as example, you could call [!badge corners="pill" text="align minimap"](Modules/Align/minimap.md) and specify 20 threads with no output to console:
 
@@ -74,12 +74,13 @@ and the contents therein also allow you to rerun the workflow manually. The `wor
 | `config.yml`         | Configuration file generated from command-line arguments and consumed by the Snakefile | useful for bookkeeping | 
 | `input/`             | Symlinks to all of the provided input files with standardized extensions |
 | `report/*.Rmd`       | RMarkdown files used to generate the fancy reports | useful to understand math behind plots/tables or borrow code from |
-| `*.workflow.summary` | Plain-text overview of the important parts of the workflow | useful for bookkeeping and writing Methods |
+| `*.summary` | Plain-text overview of the important parts of the workflow | useful for bookkeeping and writing Methods |
 
 ---
 
 ## The `Genome` folder
 You will notice that many of the workflows will create a `Genome` folder in the working 
 directory. This folder is to make it easier for Harpy to store the genome and the associated
-indexing/etc. files. Your input genome will be symlinked into that directory (not copied), but
-all the other files (`.fai`, `.bwt`, `.bed`, etc.) will be created in that directory.
+indexing/etc. files across workflows without having to redo things unnecessarily. Your input 
+genome will be symlinked into that directory (not copied, unless a workflow requires gzipping/decompressing),
+but all the other files (`.fai`, `.bwt`, `.bed`, etc.) will be created in that directory.

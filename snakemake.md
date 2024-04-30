@@ -7,15 +7,15 @@ order: 2
 # :icon-terminal: Adding Snakamake parameters
 Harpy relies on Snakemake under the hood to handle file and job dependencies.
 Most of these details have been abstracted away from the end-user, but every
-module of Harpy (except `hpc`, `popgroup`, and `stitchparams`) has an optional flag `-s` (`--snakemake`) 
+module of Harpy (except `popgroup`, and `stitchparams`) has an optional flag`--snakemake` 
 that you can use to augment the Snakemake workflow if necessary. Whenever you
 use this flag, your argument must be enclosed in quotation marks, for example:
 ```bash
-harpy qc -s "--dry-run" rawseq
+harpy qc --snakemake "--dry-run" rawseq
 ```
 This means you can add several Snakemake arguments at once, as long as the entire thing is enclosed in quotes:
 ```bash
-harpy qc -s "--dry-run --debug --shadow-prefix /scratch" rawseq
+harpy qc --snakemake "--dry-run --debug --shadow-prefix /scratch" rawseq
 ```
 
 !!!danger reserved/forbidden arguments
@@ -45,14 +45,14 @@ run the Harpy workflow. Useful for knowing what you're getting yourself into
 ahead of time. It's also useful for debugging during development. Here is an 
 example of dry-running variant calling:
 ```bash
-harpy snp mpileup -g genome.fasta -s "--dry-run" Align/ema
+harpy snp mpileup -g genome.fasta --snakemake "--dry-run" Align/ema
 ```
 ==- Specific file target
 Sometimes you want to generate a specific intermediate file (or files) rather than running the entire module to completion. For example,
 you want the beadtag report Harpy makes from the output of `EMA count`. To do this, just list the file/files (relative
 to your working directory) without any flags. Example for the beadtag report:
 ```bash
-harpy align bwa -g genome.fasta -t 4 -s "Align/ema/stats/reads.bxstats.html" QC/
+harpy align bwa -g genome.fasta -t 4 --snakemake "Align/ema/stats/reads.bxstats.html" QC/
 ```
 This of course necessitates knowing the names of the files ahead of time. See the individual modules for a breakdown of expected outputs. 
 
@@ -65,6 +65,6 @@ your files into that workspace storage to make sure you keep the output of your 
 you may use `--shadow-prefix <dirname>` where `<dirname>` is the path to the mandatory directory you need to work out of. By 
 configuring this "shadow directory" setting, Snakemake will automatically move the files in/out of that directory for you:
 ```bash
-harpy sv leviathan -g genome.fasta --threads 8 -p samples.groups -s "--shadow-prefix /SCRATCH/username/" Align/bwa
+harpy sv leviathan -g genome.fasta --threads 8 -p samples.groups --snakemake "--shadow-prefix /SCRATCH/username/" Align/bwa
 ```
 ===
