@@ -6,7 +6,7 @@ import os
 import sys
 
 @click.command(no_args_is_help = True, epilog = "This workflow can be quite technical, please read the docs for more information: https://pdimens.github.io/harpy/modules/simulate/simulate-variants")
-@click.option('-v', '--snp-vcf', type=click.Path(exists=True, dir_okay=False), help = 'VCF file of known snps to simulate')
+@click.option('-s', '--snp-vcf', type=click.Path(exists=True, dir_okay=False), help = 'VCF file of known snps to simulate')
 @click.option('-i', '--indel-vcf', type=click.Path(exists=True, dir_okay=False), help = 'VCF file of known indels to simulate')
 @click.option('-n', '--snp-count', type = click.IntRange(min = 0), default=0, show_default=False, help = "Number of random snps to simluate")
 @click.option('-m', '--indel-count', type = click.IntRange(min = 0), default=0, show_default=False, help = "Number of random indels to simluate")
@@ -19,12 +19,12 @@ import sys
 @click.option('-g', '--genes', type = click.Path(exists=True), help = "GFF3 file of genes to use with `--snp-gene-constraints`")
 @click.option('-z', '--heterozygosity', type = click.FloatRange(0,1), default = 0, show_default=True, help = '% heterozygosity to simulate diploid later')
 @click.option('-e', '--exclude-chr', type = click.Path(exists=True, dir_okay=False), help = "Text file of chromosomes to avoid")
-@click.option('--randomseed', type = click.IntRange(min = 1), help = "Random seed for simulation")
-@click.option('-p', '--prefix', type = str, default= "sim.snpindel", show_default=True, help = "Naming prefix for output files")
-@click.option('-s', '--snakemake', type = str, metavar = "String", help = 'Additional Snakemake parameters, in quotes')
-@click.option('-q', '--quiet',  is_flag = True, show_default = True, default = False, metavar = "Toggle", help = 'Don\'t show output text while running')
-@click.option('--print-only',  is_flag = True, hidden = True, show_default = True, default = False, metavar = "Toggle", help = 'Print the generated snakemake command and exit')
 @click.option('-o', '--output-dir', type = str, default = "Simulate/snpindel", show_default=True, help = 'Name of output directory')
+@click.option('-p', '--prefix', type = str, default= "sim.snpindel", show_default=True, help = "Naming prefix for output files")
+@click.option('-q', '--quiet',  is_flag = True, show_default = True, default = False, metavar = "Toggle", help = 'Don\'t show output text while running')
+@click.option('--randomseed', type = click.IntRange(min = 1), help = "Random seed for simulation")
+@click.option('--snakemake', type = str, metavar = "String", help = 'Additional Snakemake parameters, in quotes')
+@click.option('--print-only',  is_flag = True, hidden = True, show_default = True, default = False, metavar = "Toggle", help = 'Print the generated snakemake command and exit')
 @click.argument('genome', required=True, type=click.Path(exists=True, dir_okay=False), nargs=1)
 def snpindel(genome, snp_vcf, indel_vcf, output_dir, prefix, snp_count, indel_count, titv_ratio, indel_ratio, indel_size_alpha, indel_size_constant, centromeres, genes, snp_gene_constraints, heterozygosity, exclude_chr, randomseed, snakemake, quiet, print_only):
     """
@@ -136,12 +136,12 @@ def snpindel(genome, snp_vcf, indel_vcf, output_dir, prefix, snp_count, indel_co
 @click.option('-g', '--genes', type = click.Path(exists=True, dir_okay=False), help = "GFF3 file of genes to avoid when simulating")
 @click.option('-z', '--heterozygosity', type = click.FloatRange(0,1), default = 0, show_default=True, help = '% heterozygosity to simulate diploid later')
 @click.option('-e', '--exclude-chr', type = click.Path(exists=True, dir_okay=False), help = "Text file of chromosomes to avoid")
-@click.option('--randomseed', type = click.IntRange(min = 1), help = "Random seed for simulation")
 @click.option('-p', '--prefix', type = str, default= "sim.inversion", show_default=True, help = "Naming prefix for output files")
-@click.option('-s', '--snakemake', type = str, metavar = "String", help = 'Additional Snakemake parameters, in quotes')
 @click.option('-q', '--quiet',  is_flag = True, show_default = True, default = False, metavar = "Toggle", help = 'Don\'t show output text while running')
-@click.option('--print-only',  is_flag = True, hidden = True, show_default = True, default = False, metavar = "Toggle", help = 'Print the generated snakemake command and exit')
 @click.option('-o', '--output-dir', type = str, default = "Simulate/inversion", show_default=True, help = 'Name of output directory')
+@click.option('--randomseed', type = click.IntRange(min = 1), help = "Random seed for simulation")
+@click.option('--snakemake', type = str, metavar = "String", help = 'Additional Snakemake parameters, in quotes')
+@click.option('--print-only',  is_flag = True, hidden = True, show_default = True, default = False, metavar = "Toggle", help = 'Print the generated snakemake command and exit')
 @click.argument('genome', required=True, type=click.Path(exists=True, dir_okay=False), nargs=1)
 def inversion(genome, vcf, prefix, output_dir, count, min_size, max_size, centromeres, genes, heterozygosity, exclude_chr, randomseed, snakemake, quiet, print_only):
     """
@@ -237,12 +237,12 @@ def inversion(genome, vcf, prefix, output_dir, count, min_size, max_size, centro
 @click.option('-g', '--genes', type = click.Path(exists=True, dir_okay=False), help = "GFF3 file of genes to avoid when simulating (requires `--snp-coding-partition` for SNPs)")
 @click.option('-z', '--heterozygosity', type = click.FloatRange(0,1), default = 0, show_default=True, help = '% heterozygosity to simulate diploid later')
 @click.option('-e', '--exclude-chr', type = click.Path(exists=True, dir_okay=False), help = "Text file of chromosomes to avoid")
-@click.option('--randomseed', type = click.IntRange(min = 1), help = "Random seed for simulation")
-@click.option('-p', '--prefix', type = str, default= "sim.cnv", show_default=True, help = "Naming prefix for output files")
-@click.option('-s', '--snakemake', type = str, metavar = "String", help = 'Additional Snakemake parameters, in quotes')
-@click.option('-q', '--quiet',  is_flag = True, show_default = True, default = False, metavar = "Toggle", help = 'Don\'t show output text while running')
-@click.option('--print-only',  is_flag = True, hidden = True, show_default = True, default = False, metavar = "Toggle", help = 'Print the generated snakemake command and exit')
 @click.option('-o', '--output-dir', type = str, default = "Simulate/cnv", show_default=True, help = 'Name of output directory')
+@click.option('-p', '--prefix', type = str, default= "sim.cnv", show_default=True, help = "Naming prefix for output files")
+@click.option('-q', '--quiet',  is_flag = True, show_default = True, default = False, metavar = "Toggle", help = 'Don\'t show output text while running')
+@click.option('--randomseed', type = click.IntRange(min = 1), help = "Random seed for simulation")
+@click.option('--snakemake', type = str, metavar = "String", help = 'Additional Snakemake parameters, in quotes')
+@click.option('--print-only',  is_flag = True, hidden = True, show_default = True, default = False, metavar = "Toggle", help = 'Print the generated snakemake command and exit')
 @click.argument('genome', required=True, type=click.Path(exists=True, dir_okay=False), nargs=1)
 def cnv(genome, output_dir, vcf, prefix, count, min_size, max_size, dup_ratio, max_copy, gain_ratio, centromeres, genes, heterozygosity, exclude_chr, randomseed, snakemake, quiet, print_only):
     """
@@ -342,12 +342,12 @@ def cnv(genome, output_dir, vcf, prefix, count, min_size, max_size, dup_ratio, m
 @click.option('-g', '--genes', type = click.Path(exists=True, dir_okay=False), help = "GFF3 file of genes to avoid when simulating")
 @click.option('-z', '--heterozygosity', type = click.FloatRange(0,1), default = 0, show_default=True, help = '% heterozygosity to simulate diploid later')
 @click.option('-e', '--exclude-chr', type = click.Path(exists=True, dir_okay=False), help = "Text file of chromosomes to avoid")
-@click.option('--randomseed', type = click.IntRange(min = 1), help = "Random seed for simulation")
-@click.option('-p', '--prefix', type = str, default= "sim.translocation", show_default=True, help = "Naming prefix for output files")
-@click.option('-s', '--snakemake', type = str, metavar = "String", help = 'Additional Snakemake parameters, in quotes')
-@click.option('-q', '--quiet',  is_flag = True, show_default = True, default = False, metavar = "Toggle", help = 'Don\'t show output text while running')
-@click.option('--print-only',  is_flag = True, hidden = True, show_default = True, default = False, metavar = "Toggle", help = 'Print the generated snakemake command and exit')
 @click.option('-o', '--output-dir', type = str, default = "Simulate/translocation", show_default=True, help = 'Name of output directory')
+@click.option('-p', '--prefix', type = str, default= "sim.translocation", show_default=True, help = "Naming prefix for output files")
+@click.option('-q', '--quiet',  is_flag = True, show_default = True, default = False, metavar = "Toggle", help = 'Don\'t show output text while running')
+@click.option('--randomseed', type = click.IntRange(min = 1), help = "Random seed for simulation")
+@click.option('--snakemake', type = str, metavar = "String", help = 'Additional Snakemake parameters, in quotes')
+@click.option('--print-only',  is_flag = True, hidden = True, show_default = True, default = False, metavar = "Toggle", help = 'Print the generated snakemake command and exit')
 @click.argument('genome', required=True, type=click.Path(exists=True, dir_okay=False), nargs=1)
 def translocation(genome, output_dir, prefix, vcf, count, centromeres, genes, heterozygosity, exclude_chr, randomseed, snakemake, quiet, print_only):
     """
