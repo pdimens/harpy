@@ -39,15 +39,26 @@ if (nrow(variants) == 0) {
 }
 ```
 ```{r load environment, echo=FALSE, message=FALSE, warning=FALSE}
-library(flexdashboard)
-library(dplyr)
-library(tidyr)
-library(ggplot2)
-library(magrittr)
-library(DT)
-library(plotly)
-library(circlize)
-library(ComplexHeatmap)
+using<-function(...) {
+    libs<-unlist(list(...))
+    req<-unlist(lapply(libs,require,character.only=TRUE))
+    need<-libs[req==FALSE]
+    if(length(need)>0){ 
+        install.packages(need)
+        lapply(need,require,character.only=TRUE)
+    }
+}
+using("flexdashboard","dplyr","tidyr", "ggplot2","DT","plotly","circlize")
+
+#library(flexdashboard)
+#library(dplyr)
+#library(tidyr)
+#library(ggplot2)
+#library(magrittr)
+#library(DT)
+#library(plotly)
+#library(circlize)
+#library(ComplexHeatmap)
 ```
 
 Below is a series of tables and plots detailing the structural variants

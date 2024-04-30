@@ -32,13 +32,24 @@ script src = "https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"
 ```
 
 ```{r setup environment}
-library(flexdashboard)
-library(ggplot2)
-library(magrittr)
-library(tidyr)
-library(DT)
-library(plotly)
-library(RColorBrewer)
+using<-function(...) {
+    libs<-unlist(list(...))
+    req<-unlist(lapply(libs,require,character.only=TRUE))
+    need<-libs[req==FALSE]
+    if(length(need)>0){ 
+        install.packages(need)
+        lapply(need,require,character.only=TRUE)
+    }
+}
+using("flexdashboard","tidyr","magrittr","DT","ggplot2","plotly","RColorBrewer")
+
+#library(flexdashboard)
+#library(tidyr)
+#library(magrittr)
+#library(DT)
+#library(ggplot2)
+#library(plotly)
+#library(RColorBrewer)
 ```
 
 ```{r load data}

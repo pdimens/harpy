@@ -10,13 +10,25 @@ output:
 ---
 
 ```{r load environment, echo=FALSE, message=FALSE, warning=FALSE}
-library(flexdashboard)
-library(highcharter)
+using<-function(...) {
+    libs<-unlist(list(...))
+    req<-unlist(lapply(libs,require,character.only=TRUE))
+    need<-libs[req==FALSE]
+    if(length(need)>0){ 
+        install.packages(need)
+        lapply(need,require,character.only=TRUE)
+    }
+}
+using("flexdashboard","dplyr","tidyr","DT","highcharter","scales")
+
+#library(flexdashboard)
+#library(dplyr)
+#library(tidyr)
+#library(DT)
+#library(highcharter)
+#library(scales)
 #library(ggplot2)
-library(dplyr)
-library(tidyr)
-library(DT)
-library(scales)
+
 #infile <- "/home/pdimens/Documents/harpy/Preflight/bamfilecheck.bam.tsv"
 infile <- snakemake@input[[1]]
 data <- read.table(infile, header = T)

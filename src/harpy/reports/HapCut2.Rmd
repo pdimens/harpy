@@ -11,13 +11,23 @@ output:
 ---
 
 ```{r echo= FALSE, message = FALSE, warning = FALSE}
-library(flexdashboard)
-library(ggplot2)
-library(DT)
-library(dplyr)
-library(magrittr)
-library(scales)
-library(ggridges)
+using<-function(...) {
+    libs<-unlist(list(...))
+    req<-unlist(lapply(libs,require,character.only=TRUE))
+    need<-libs[req==FALSE]
+    if(length(need)>0){ 
+        install.packages(need)
+        lapply(need,require,character.only=TRUE)
+    }
+}
+using("flexdashboard","dplyr","ggplot2","DT","scales", "ggridges")
+
+#library(flexdashboard)
+#library(dplyr)
+#library(ggplot2)
+#library(DT)
+#library(scales)
+#library(ggridges)
 ```
 
 ```{css zoom-lib-src, echo = FALSE, message = FALSE, warning = FALSE}

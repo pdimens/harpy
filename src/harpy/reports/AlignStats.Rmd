@@ -13,12 +13,24 @@ output:
 # Barcode Stats
 
 ```{r echo = F, results = F, message = F}
-library(flexdashboard)
-library(dplyr)
-library(highcharter)
-library(magrittr)
-library(DT)
-library(BioCircos)
+using<-function(...) {
+    libs<-unlist(list(...))
+    req<-unlist(lapply(libs,require,character.only=TRUE))
+    need<-libs[req==FALSE]
+    if(length(need)>0){ 
+        install.packages(need)
+        lapply(need,require,character.only=TRUE)
+    }
+}
+
+using("flexdashboard","dplyr","highcharter","DT","BioCircos")
+
+#library(flexdashboard)
+#library(dplyr)
+#library(highcharter)
+#library(magrittr)
+#library(DT)
+#library(BioCircos)
 ```
 
 ```{r echo = F, results = F, message = F}

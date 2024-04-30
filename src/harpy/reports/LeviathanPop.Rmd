@@ -10,17 +10,27 @@ output:
 ---
 
 ```{r load environment, echo=FALSE, message=FALSE, warning=FALSE}
-library(flexdashboard)
-library(dplyr)
-library(ggplot2)
-library(magrittr)
-library(tidyr)
-library(DT)
-library(plotly)
-library(circlize)
-library(viridisLite)
-library(tools)
-library(ComplexHeatmap)
+using<-function(...) {
+    libs<-unlist(list(...))
+    req<-unlist(lapply(libs,require,character.only=TRUE))
+    need<-libs[req==FALSE]
+    if(length(need)>0){ 
+        install.packages(need)
+        lapply(need,require,character.only=TRUE)
+    }
+}
+using("flexdashboard","dplyr", "tidyr", "ggplot2","DT","plotly","circlize", "viridisLite", "tools")
+
+#library(flexdashboard)
+#library(dplyr)
+#library(ggplot2)
+#library(tidyr)
+#library(DT)
+#library(plotly)
+#library(circlize)
+#library(viridisLite)
+#library(tools)
+#library(ComplexHeatmap)
 ```
 
 ```{css zoom-lib-src, echo = FALSE, message = FALSE, warning = FALSE}
