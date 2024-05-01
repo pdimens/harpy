@@ -154,11 +154,11 @@ rule collate_stitch_reports:
     script:
         "report/StitchCollate.Rmd"
 
-rule clean_stitch:
+rule clean_stitch_intermediates:
     input:
-        outdir + "/{stitchparams}/contigs/{part}/{part}.STITCH.html"
+        outdir + "/{stitchparams}/contigs/{part}/{part}.stats"
     output:
-        temp(touch(outdir + "/{stitchparams}/contigs/{part}/.cleaned"))
+        temp(touch(outdir + "/{stitchparams}/contigs/{part}/.intermediates.cleaned"))
     params:
         stitch = lambda wc: wc.get("stitchparams"),
         outdir = outdir
@@ -170,8 +170,22 @@ rule clean_stitch:
         """
         rm -rf {params.outdir}/{params.stitch}/contigs/{wildcards.part}/input
         rm -rf {params.outdir}/{params.stitch}/contigs/{wildcards.part}/RData
-        rm -rf {params.outdir}/{params.stitch}/contigs/{wildcards.part}/plots
         """
+
+rule clean_stitch_plots:
+    input:
+        outdir + "/{stitchparams}/contigs/{part}/{part}.STITCH.html"
+    output:
+        temp(touch(outdir + "/{stitchparams}/contigs/{part}/.plots.cleaned"))
+    params:
+        stitch = lambda wc: wc.get("stitchparams"),
+        outdir = outdir
+    priority:
+        2
+    message:
+        "Cleaning up {wildcards.stitchparams}: {wildcards.part}"
+    shell: 
+        "rm -rf {params.outdir}/{params.stitch}/contigs/{wildcards.part}/plots"
 
 rule concat_list:
     input:
@@ -188,7 +202,7 @@ rule merge_vcfs:
     input:
         files = outdir + "/{stitchparams}/bcf.files",
         idx   = collect(outdir + "/{{stitchparams}}/contigs/{part}/{part}.vcf.gz.tbi", part = contigs),
-        clean = collect(outdir + "/{{stitchparams}}/contigs/{part}/.cleaned", part = contigs)
+        clean = collect(outdir + "/{{stitchparams}}/contigs/{part}/.intermediates.cleaned", part = contigs)
     output:
         outdir + "/{stitchparams}/variants.imputed.bcf"
     threads:
@@ -258,8 +272,9 @@ rule log_workflow:
     default_target: True
     input: 
         vcf = collect(outdir + "/{stitchparams}/variants.imputed.bcf", stitchparams=paramspace.instance_patterns),
-        contig_report = collect(outdir + "/{stitchparams}/contigs/{part}/{part}.STITCH.html", stitchparams=paramspace.instance_patterns, part = contigs),
-        agg_report = collect(outdir + "/{stitchparams}/reports/variants.imputed.html", stitchparams=paramspace.instance_patterns) if not skipreports else []
+        agg_report = collect(outdir + "/{stitchparams}/reports/variants.imputed.html", stitchparams=paramspace.instance_patterns) if not skipreports else [],
+        contig_report = collect(outdir + "/{stitchparams}/contigs/{part}/{part}.STITCH.html", stitchparams=paramspace.instance_patterns, part = contigs) if not skipreports else [],
+        cleanedplots = collect(outdir + "/{stitchparams}/contigs/{part}/.plots.cleaned", stitchparams=paramspace.instance_patterns, part = contigs) if not skipreports else []
     message:
         "Summarizing the workflow: {output}"
     run:
