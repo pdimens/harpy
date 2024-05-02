@@ -49,8 +49,8 @@ script src = "https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"
 ```
 
 ```{r echo= FALSE, message = FALSE, warning = FALSE}
-file <- "/home/pdimens/Documents/harpy/Phase/reports/blocks.summary.gz"
-#file <- snakemake@input[[1]]
+#file <- "/home/pdimens/Documents/harpy/Phase/reports/blocks.summary.gz"
+file <- snakemake@input[[1]]
 df <- read.table(
   file, header = T,
   colClasses = c("factor","factor","integer","integer", "integer")
