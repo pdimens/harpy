@@ -26,7 +26,7 @@ jobs:
       pull-requests: read
     # Set job outputs to values from filter step
     outputs:
-      preflight: ${{ steps.filter.outputs.qc }}
+      preflight: ${{ steps.filter.outputs.preflight }}
       demux: ${{ steps.filter.outputs.demux }}
       qc: ${{ steps.filter.outputs.qc }}
       bwa: ${{ steps.filter.outputs.bwa }}
@@ -293,7 +293,7 @@ jobs:
           resources/buildforCI.sh
       - name: snp mpileup
         shell: micromamba-shell {0}
-        run: harpy snp mpileup -r test/positions.bed -g test/genome/genome.fasta.gz -q -x "--ignore-RG" test/bam
+        run: harpy snp mpileup -r test/positions.bed -g test/genome/genome.fasta.gz -x "--ignore-RG" test/bam
       - name: snp mpileup-pop
         shell: micromamba-shell {0}
         run: harpy snp mpileup -r test/positions.bed -o SNP/poptest -g test/genome/genome.fasta.gz -p test/samples.groups test/bam
@@ -327,7 +327,7 @@ jobs:
           resources/buildforCI.sh
       - name: snp freebayes
         shell: micromamba-shell {0}
-        run: harpy snp freebayes -r test/positions.bed -g test/genome/genome.fasta.gz -q -x "-g 200" test/bam
+        run: harpy snp freebayes -r test/positions.bed -g test/genome/genome.fasta.gz -x "-g 200" test/bam
       - name: snp freebayes-pop
         shell: micromamba-shell {0}
         run: harpy snp freebayes -r test/positions.bed -o SNP/poptest -g test/genome/genome.fasta.gz -p test/samples.groups test/bam
@@ -435,12 +435,12 @@ jobs:
           resources/buildforCI.sh
       - name: leviathan
         shell: micromamba-shell {0}
-        run: harpy sv leviathan -n 100 -b 1 -g test/genome/genome.fasta.gz -q --snakemake "--show-failed-logs" -x "-M 2002" test/bam
+        run: harpy sv leviathan -n 100 -b 1 -g test/genome/genome.fasta.gz --snakemake "--show-failed-logs" -x "-M 2002" test/bam
         continue-on-error: true
       - name: leviathan-pop
         if: always()
         shell: micromamba-shell {0}
-        run: harpy sv leviathan -n 100 -b 1 -g test/genome/genome.fasta.gz -o SV/leviathanpop -p test/samples.groups -q --snakemake "--show-failed-logs" test/bam
+        run: harpy sv leviathan -n 100 -b 1 -g test/genome/genome.fasta.gz -o SV/leviathanpop -p test/samples.groups --snakemake "--show-failed-logs" test/bam
 
   test_naibr:
     needs: [changes, pkgbuild]
