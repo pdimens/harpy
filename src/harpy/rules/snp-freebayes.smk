@@ -256,7 +256,7 @@ rule bcf_report:
     output:
         outdir + "/reports/variants.{type}.html"
     conda:
-        f"{envdir}/r-env.yaml"
+        f"{envdir}/r.yaml"
     message:
         "Generating bcftools report: variants.{wildcards.type}.bcf"
     script:

@@ -247,7 +247,7 @@ rule create_report:
     output:
         outdir + "/reports/{sample}.naibr.html"
     conda:
-        f"{envdir}/r-env.yaml"
+        f"{envdir}/r.yaml"
     message:
         "Creating report: {wildcards.sample}"
     script:

@@ -16,8 +16,8 @@ extra 		= config.get("extra", "")
 bn 			= os.path.basename(genomefile)
 genome_zip  = True if bn.lower().endswith(".gz") else False
 bn_idx      = f"{bn}.gzi" if genome_zip else f"{bn}.fai"
-envdir      = os.getcwd() + "/.harpy_envs"
 skipreports = config["skipreports"]
+envdir      = os.getcwd() + "/.harpy_envs"
 
 d = dict(zip(samplenames, samplenames))
 
@@ -61,11 +61,11 @@ wildcard_constraints:
     sample = "[a-zA-Z0-9._-]+"
 
 rule genome_link:
+    container: None
     input:
         genomefile
     output: 
         f"Genome/{bn}"
-    container: None
     message: 
         "Symlinking {input}"
     shell: 
@@ -77,7 +77,7 @@ rule genome_link:
             # is bgzipped, just linked
             ln -sr {input} {output}
         else
-            # isn't compressed, just linked
+            # isnt compressed, just linked
             ln -sr {input} {output}
         fi
         """
@@ -92,7 +92,6 @@ rule genome_faidx:
         f"Genome/{bn}.faidx.log"
     params:
         genome_zip
-    container: None
     message:
         "Indexing {input}"
     shell: 
@@ -112,20 +111,20 @@ rule genome_bwa_index:
     log:
         f"Genome/{bn}.idx.log"
     conda:
-        ".harpy_envs/align.yaml"
+        f"{envdir}/align.yaml"
     message:
         "Indexing {input}"
     shell: 
         "bwa index {input} 2> {log}"
 
 rule genome_make_windows:
+    container: None
     input:
         f"Genome/{bn}"
     output: 
         f"Genome/{bn}.bed"
     message: 
         "Creating BED intervals from {input}"
-    container: None
     shell: 
         "makeWindows.py -i {input} -w 50000 -o {output}"
 
@@ -147,7 +146,7 @@ rule align:
     threads:
         min(10, workflow.cores) - 2
     conda:
-        ".harpy_envs/align.yaml"
+        f"{envdir}/align.yaml"
     message:
         "Aligning sequences: {wildcards.sample}"
     shell:
@@ -163,7 +162,7 @@ rule quality_filter:
     params: 
         quality = config["quality"]
     conda:
-        harpy_envs/align.yaml"
+        f"{envdir}/align.yaml"
     message:
         "Quality filtering alignments: {wildcards.sample}"
     shell:
@@ -300,7 +299,7 @@ rule reports:
     params:
         molecule_distance
     conda:
-        f"{envdir}/r-env.yaml"
+        f"{envdir}/r.yaml"
     message: 
         "Creating alignment report: {wildcards.sample}"
     script:

@@ -84,7 +84,7 @@ rule create_report:
     params:
         seq_dir
     conda:
-        f"{envdir}/r-env.yaml"
+        f"{envdir}/r.yaml"
     message:
         "Producing report"
     script:

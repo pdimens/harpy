@@ -231,7 +231,7 @@ rule create_report:
     output:
         outdir + "/reports/{population}.naibr.html"
     conda:
-        f"{envdir}/r-env.yaml"
+        f"{envdir}/r.yaml"
     message:
         "Creating report: {wildcards.population}"
     script:
@@ -244,7 +244,7 @@ rule report_pop:
     output:
         outdir + "/reports/naibr.pop.summary.html"
     conda:
-        f"{envdir}/r-env.yaml"
+        f"{envdir}/r.yaml"
     message:
         "Creating summary report"
     script:

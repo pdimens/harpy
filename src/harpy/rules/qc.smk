@@ -1,3 +1,5 @@
+containerized: "docker://pdimens/harpy:latest"
+
 import os
 import re
 import sys
@@ -105,7 +107,7 @@ rule beadtag_counts_summary:
     output:
         outdir + "/reports/barcode.summary.html"
     conda:
-        f"{envdir}/r-env.yaml"
+        f"{envdir}/r.yaml"
     message:
         "Summarizing sample barcode validation"
     script:

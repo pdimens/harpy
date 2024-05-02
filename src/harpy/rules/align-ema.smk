@@ -173,7 +173,7 @@ rule beadtag_summary:
     output:
         outdir + "/reports/reads.bxcounts.html"
     conda:
-        f"{envdir}/r-env.yaml"
+        f"{envdir}/r.yaml"
     message:
         "Creating sample barcode validation report"
     script:
@@ -419,7 +419,7 @@ rule alignment_report:
     output:	
         outdir + "/reports/{sample}.html"
     conda:
-        f"{envdir}/r-env.yaml"
+        f"{envdir}/r.yaml"
     message: 
         "Generating summary of barcode alignment: {wildcards.sample}"
     script:

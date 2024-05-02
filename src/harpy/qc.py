@@ -33,7 +33,7 @@ def qc(input, output_dir, min_length, max_length, ignore_adapters, extra_params,
     """
     output_dir = output_dir.rstrip("/")
     workflowdir = f"{output_dir}/workflow"
-    command = f'snakemake --rerun-incomplete --rerun-triggers input mtime params --nolock  --software-deployment-method conda --conda-prefix ./.snakemake/conda --cores {threads} --directory .'.split()
+    command = f'snakemake --rerun-incomplete --rerun-triggers input mtime params --nolock  --software-deployment-method conda apptainer --conda-prefix .snakemake/conda --cores {threads} --directory .'.split()
     command.append('--snakefile')
     command.append(f'{workflowdir}/qc.smk')
     command.append('--configfile')

@@ -55,7 +55,7 @@ RUN mkdir -p /conda-envs/6e3a7dc7152f45301056861193dd3db5
 COPY .harpy_envs/qc.yaml /conda-envs/6e3a7dc7152f45301056861193dd3db5/environment.yaml
 
 # Conda environment:
-#   source: .harpy_envs/r-env.yaml
+#   source: .harpy_envs/r.yaml
 #   prefix: /conda-envs/bf0428de97e90aa8f633399c691d8c45
 #   name: r-env
 #   channels:
@@ -76,7 +76,7 @@ COPY .harpy_envs/qc.yaml /conda-envs/6e3a7dc7152f45301056861193dd3db5/environmen
 #     - conda-forge::r-tidyr
 #     - bioconda::r-stitch
 RUN mkdir -p /conda-envs/bf0428de97e90aa8f633399c691d8c45
-COPY .harpy_envs/r-env.yaml /conda-envs/bf0428de97e90aa8f633399c691d8c45/environment.yaml
+COPY .harpy_envs/r.yaml /conda-envs/bf0428de97e90aa8f633399c691d8c45/environment.yaml
 
 # Conda environment:
 #   source: .harpy_envs/simulations.yaml

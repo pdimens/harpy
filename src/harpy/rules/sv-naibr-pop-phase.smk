@@ -300,7 +300,7 @@ rule create_report:
     message:
         "Creating report: {wildcards.population}"
     conda:
-        f"{envdir}/r-env.yaml"
+        f"{envdir}/r.yaml"
     script:
         "report/Naibr.Rmd"
 
@@ -313,7 +313,7 @@ rule report_pop:
     message:
         "Creating summary report"
     conda:
-        f"{envdir}/r-env.yaml"
+        f"{envdir}/r.yaml"
     script:
         "report/NaibrPop.Rmd"
 

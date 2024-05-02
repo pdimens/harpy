@@ -261,7 +261,7 @@ rule phase_report:
     output:
         outdir + "/reports/phase.html"
     conda:
-        f"{envdir}/r-env.yaml"
+        f"{envdir}/r.yaml"
     message:
         "Summarizing phasing results"
     script:

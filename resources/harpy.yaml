@@ -3,6 +3,7 @@ channels:
   - conda-forge
   - bioconda
 dependencies:
+  - apptainer
   - bcftools =1.20
   - mamba
   - pandas

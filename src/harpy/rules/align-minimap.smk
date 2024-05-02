@@ -284,7 +284,7 @@ rule alignment_report:
     params:
         molecule_distance
     conda:
-        f"{envdir}/r-env.yaml"
+        f"{envdir}/r.yaml"
     message: 
         "Summarizing barcoded alignments: {wildcards.sample}"
     script:

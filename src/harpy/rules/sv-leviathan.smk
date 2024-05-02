@@ -177,7 +177,7 @@ rule sv_report:
     output:	
         outdir + "/reports/{sample}.SV.html"
     conda:
-        f"{envdir}/r-env.yaml"
+        f"{envdir}/r.yaml"
     message:
         "Generating SV report: {wildcards.sample}"
     script:

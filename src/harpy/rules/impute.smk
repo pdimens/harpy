@@ -110,7 +110,7 @@ rule impute:
         parameters = paramspace.instance,
         extra = config.get("extra", "")
     conda:
-        f"{envdir}/r-env.yaml"
+        f"{envdir}/r.yaml"
     benchmark:
         f".Benchmark/{outdir}/stitch.{paramspace.wildcard_pattern}" + ".{part}.txt"
     threads:
@@ -151,7 +151,7 @@ rule collate_stitch_reports:
     message:
         "Generating STITCH report: {wildcards.part}"
     conda:
-        f"{envdir}/r-env.yaml"
+        f"{envdir}/r.yaml"
     script:
         "report/StitchCollate.Rmd"
 
@@ -262,7 +262,7 @@ rule imputation_results_reports:
     params:
         lambda wc: wc.get("stitchparams")
     conda:
-        f"{envdir}/r-env.yaml"
+        f"{envdir}/r.yaml"
     message:
         "Generating imputation success report: {output}"
     script:

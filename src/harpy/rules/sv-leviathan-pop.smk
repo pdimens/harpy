@@ -229,7 +229,7 @@ rule sv_report_bypop:
     message:
         "Generating SV report: population {wildcards.population}"
     conda:
-        f"{envdir}/r-env.yaml"
+        f"{envdir}/r.yaml"
     script:
         "report/Leviathan.Rmd"
 
@@ -243,7 +243,7 @@ rule sv_report:
     message:
         "Generating SV report for all populations"
     conda:
-        f"{envdir}/r-env.yaml"
+        f"{envdir}/r.yaml"
     script:
         "report/LeviathanPop.Rmd"
 

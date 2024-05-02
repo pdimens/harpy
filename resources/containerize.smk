@@ -29,7 +29,7 @@ rule phase:
 
 rule r_env:
     output: "r.env"
-    conda: os.getcwd() + "/.harpy_envs/r-env.yaml"
+    conda: os.getcwd() + "/.harpy_envs/r.yaml"
     shell: "touch {output}"
 
 rule simulations:
