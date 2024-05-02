@@ -21,12 +21,12 @@ using<-function(...) {
 }
 using("flexdashboard","dplyr","tidyr","DT","highcharter","scales")
 
-library(flexdashboard)
-library(dplyr)
-library(tidyr)
-library(DT)
-library(highcharter)
-library(scales)
+#library(flexdashboard)
+#library(dplyr)
+#library(tidyr)
+#library(DT)
+#library(highcharter)
+#library(scales)
 #library(ggplot2)
 
 #infile <- "~/Documents/harpy/test/fastq/Preflight/filecheck.fastq.tsv"
