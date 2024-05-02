@@ -57,7 +57,7 @@ rule split_by_samplehet:
         vcf = variantfile,
         bam = bam_dir + "/{sample}.bam"
     output:
-        outdir + "/input/{sample}.het.bcf"
+        outdir + "/workflow/input/vcf/{sample}.het.bcf"
     benchmark:
         ".Benchmark/Phase/splithet.{sample}.txt"
     message:
@@ -73,7 +73,7 @@ rule split_by_sample:
         vcf = variantfile,
         bam = bam_dir + "/{sample}.bam"
     output:
-        outdir + "/input/{sample}.bcf"
+        outdir + "/workflow/input/vcf/{sample}.bcf"
     benchmark:
         ".Benchmark/Phase/split.{sample}.txt"
     message:
@@ -96,7 +96,7 @@ rule index_alignment:
 
 rule extract_hairs:
     input:
-        vcf = outdir + "/input/{sample}.het.bcf",
+        vcf = outdir + "/workflow/input/vcf/{sample}.het.bcf",
         bam = bam_dir + "/{sample}.bam",
         bai = bam_dir + "/{sample}.bam.bai"
     output:
@@ -118,7 +118,7 @@ rule extract_hairs:
 rule link_fragments:
     input: 
         bam       = bam_dir + "/{sample}.bam",
-        vcf       = outdir + "/input/{sample}.het.bcf",
+        vcf       = outdir + "/workflow/input/vcf/{sample}.het.bcf",
         fragments = outdir + "/extractHairs/{sample}.unlinked.frags"
     output:
         outdir + "/linkFragments/{sample}.linked.frags"
@@ -137,7 +137,7 @@ rule link_fragments:
 
 rule phase_blocks:
     input:
-        vcf       = outdir + "/input/{sample}.het.bcf",
+        vcf       = outdir + "/workflow/input/vcf/{sample}.het.bcf",
         fragments = fragfile
     output: 
         blocks    = outdir + "/phaseBlocks/{sample}.blocks",
@@ -193,7 +193,7 @@ rule merge_annotations:
     input:
         annot   = outdir + "/annotations/{sample}.annot.gz",
         idx     = outdir + "/annotations/{sample}.annot.gz.tbi",
-        orig    = outdir + "/input/{sample}.bcf",
+        orig    = outdir + "/workflow/input/vcf/{sample}.bcf",
         headers = outdir + "/input/header.names"
     output:
         bcf = outdir + "/annotations_merge/{sample}.phased.annot.bcf",

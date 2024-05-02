@@ -51,11 +51,11 @@ def phase(input, output_dir, vcf, threads, molecule_distance, prune_threshold, v
         click.echo(call_SM)
         exit(0)
 
-    os.makedirs(f"{workflowdir}/", exist_ok= True)
-    sn = parse_alignment_inputs(input, f"{workflowdir}/input")
-    samplenames = vcf_samplematch(vcf, f"{workflowdir}/input", vcf_samples)
+    os.makedirs(f"{workflowdir}/input/alignments", exist_ok= True)
+    sn = parse_alignment_inputs(input, f"{workflowdir}/input/alignments")
+    samplenames = vcf_samplematch(vcf, f"{workflowdir}/input/alignments", vcf_samples)
     vcfcheck(vcf)
-    validate_bamfiles(f"{workflowdir}/input", samplenames)
+    validate_bamfiles(f"{workflowdir}/input/alignments", samplenames)
     if genome:
         validate_input_by_ext(genome, "--genome", [".fasta", ".fa", ".fasta.gz", ".fa.gz"])
     fetch_rule(workflowdir, "phase.smk")
@@ -63,7 +63,7 @@ def phase(input, output_dir, vcf, threads, molecule_distance, prune_threshold, v
     prune_threshold /= 100
 
     with open(f"{workflowdir}/config.yml", "w") as config:
-        config.write(f"seq_directory: {workflowdir}/input\n")
+        config.write(f"seq_directory: {workflowdir}/input/alignments\n")
         config.write(f"output_directory: {output_dir}\n")
         config.write(f"samplenames: {samplenames}\n")
         config.write(f"variantfile: {vcf}\n")
