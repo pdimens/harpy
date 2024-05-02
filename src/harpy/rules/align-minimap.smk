@@ -14,6 +14,7 @@ extra 		= config.get("extra", "")
 bn 			= os.path.basename(genomefile)
 genome_zip  = True if bn.lower().endswith(".gz") else False
 bn_idx      = f"{bn}.gzi" if genome_zip else f"{bn}.fai"
+envdir      = os.getcwd() + "/.harpy_envs"
 skipreports = config["skipreports"]
 
 d = dict(zip(samplenames, samplenames))
@@ -122,7 +123,7 @@ rule genome_index:
     log:
         f"Genome/{bn}.mmi.log"
     conda:
-        os.getcwd() + "/.harpy_envs/align.yaml"
+        f"{envdir}/align.yaml"
     message:
         "Indexing {input}"
     shell: 
@@ -145,7 +146,7 @@ rule align:
     threads:
         min(10, workflow.cores) - 2
     conda:
-        os.getcwd() + "/.harpy_envs/align.yaml"
+        f"{envdir}/align.yaml"
     message:
         "Aligning sequences: {wildcards.sample}"
     shell:
@@ -240,7 +241,7 @@ rule assign_molecules:
     params:
         molecule_distance
     conda:
-        os.getcwd() + "/.harpy_envs/qc.yaml"
+        f"{envdir}/qc.yaml"
     message:
         "Assigning barcodes to molecules: {wildcards.sample}"
     script:
@@ -255,7 +256,7 @@ rule alignment_bxstats:
     params:
         sample = lambda wc: d[wc.sample]
     conda:
-        os.getcwd() + "/.harpy_envs/qc.yaml"
+        f"{envdir}/qc.yaml"
     message:
         "Calculating barcode alignment statistics: {wildcards.sample}"
     script:
@@ -283,7 +284,7 @@ rule alignment_report:
     params:
         molecule_distance
     conda:
-        os.getcwd() + "/.harpy_envs/r-env.yaml"
+        f"{envdir}/r-env.yaml"
     message: 
         "Summarizing barcoded alignments: {wildcards.sample}"
     script:
@@ -312,7 +313,7 @@ rule samtools_reports:
     params:
         outdir
     conda:
-        os.getcwd() + "/.harpy_envs/qc.yaml"
+        f"{envdir}/qc.yaml"
     message:
         "Summarizing samtools stats and flagstat"
     shell:

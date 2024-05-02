@@ -5,6 +5,7 @@ import os
 import re
 
 bam_dir     = config["seq_directory"]
+envdir      = os.getcwd() + "/.harpy_envs"
 samplenames = config["samplenames"] 
 extra       = config.get("extra", None) 
 groupfile   = config["groupings"]
@@ -166,7 +167,7 @@ rule phase_alignments:
     threads:
         4
     conda:
-        os.getcwd() + "/.harpy_envs/phase.yaml"
+        f"{envdir}/phase.yaml"
     message:
         "Phasing: {input.aln}"
     shell:
@@ -262,7 +263,7 @@ rule call_sv:
     threads:
         min(10, workflow.cores)
     conda:
-        os.getcwd() + "/.harpy_envs/variants.sv.yaml"
+        f"{envdir}/sv.yaml"
     message:
         "Calling variants: {wildcards.population}"
     shell:
@@ -299,7 +300,7 @@ rule create_report:
     message:
         "Creating report: {wildcards.population}"
     conda:
-        os.getcwd() + "/.harpy_envs/r-env.yaml"
+        f"{envdir}/r-env.yaml"
     script:
         "report/Naibr.Rmd"
 
@@ -312,7 +313,7 @@ rule report_pop:
     message:
         "Creating summary report"
     conda:
-        os.getcwd() + "/.harpy_envs/r-env.yaml"
+        f"{envdir}/r-env.yaml"
     script:
         "report/NaibrPop.Rmd"
 

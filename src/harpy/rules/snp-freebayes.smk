@@ -5,6 +5,7 @@ import sys
 import gzip
 
 bam_dir 	= config["seq_directory"]
+envdir      = os.getcwd() + "/.harpy_envs"
 genomefile 	= config["genomefile"]
 groupings 	= config.get("groupings", [])
 bn          = os.path.basename(genomefile)
@@ -157,7 +158,7 @@ rule call_variants:
         populations = "--populations " + rules.copy_groupings.output[0] if groupings else "",
         extra = extra
     conda:
-        os.getcwd() + "/.harpy_envs/variants.snp.yaml"
+        f"{envdir}/snp.yaml"
     message:
         "Calling variants: {wildcards.part}"
     shell:
@@ -255,7 +256,7 @@ rule bcf_report:
     output:
         outdir + "/reports/variants.{type}.html"
     conda:
-        os.getcwd() + "/.harpy_envs/r-env.yaml"
+        f"{envdir}/r-env.yaml"
     message:
         "Generating bcftools report: variants.{wildcards.type}.bcf"
     script:

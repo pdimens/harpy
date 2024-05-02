@@ -1,4 +1,4 @@
-name: variants.sv
+name: sv
 channels:
   - conda-forge
   - bioconda

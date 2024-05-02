@@ -12,6 +12,8 @@ pruning           = config["prune"]
 molecule_distance = config["molecule_distance"]
 extra             = config.get("extra", "") 
 outdir 			  = config["output_directory"]
+envdir      = os.getcwd() + "/.harpy_envs"
+
 if config["noBX"]:
     fragfile = outdir + "/extractHairs/{sample}.unlinked.frags"
 else:
@@ -107,7 +109,7 @@ rule extract_hairs:
         indels = indelarg,
         bx = linkarg
     conda:
-        os.getcwd() + "/.harpy_envs/phase.yaml"
+        f"{envdir}/phase.yaml"
     benchmark:
         ".Benchmark/Phase/extracthairs.{sample}.txt"
     message:
@@ -127,7 +129,7 @@ rule link_fragments:
     params:
         d = molecule_distance
     conda:
-        os.getcwd() + "/.harpy_envs/phase.yaml"
+        f"{envdir}/phase.yaml"
     benchmark:
         ".Benchmark/Phase/linkfrag.{sample}.txt"
     message:
@@ -148,7 +150,7 @@ rule phase_blocks:
         prune = f"--threshold {pruning}" if pruning > 0 else "--no_prune 1",
         extra = extra
     conda:
-        os.getcwd() + "/.harpy_envs/phase.yaml"
+        f"{envdir}/phase.yaml"
     benchmark:
         ".Benchmark/Phase/phase.{sample}.txt"
     message:
@@ -259,7 +261,7 @@ rule phase_report:
     output:
         outdir + "/reports/phase.html"
     conda:
-        os.getcwd() + "/.harpy_envs/r-env.yaml"
+        f"{envdir}/r-env.yaml"
     message:
         "Summarizing phasing results"
     script:

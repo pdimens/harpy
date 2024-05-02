@@ -4,6 +4,7 @@ import sys
 import os
 
 bam_dir 	= config["seq_directory"]
+envdir      = os.getcwd() + "/.harpy_envs"
 genomefile 	= config["genomefile"]
 samplenames = config["samplenames"]
 extra 		= config.get("extra", "") 
@@ -113,7 +114,7 @@ rule index_barcode:
     threads:
         4
     conda:
-        os.getcwd() + "/.harpy_envs/variants.sv.yaml"
+        f"{envdir}/sv.yaml"
     message:
         "Indexing barcodes: Population {wildcards.population}"
     shell:
@@ -162,7 +163,7 @@ rule index_bwa_genome:
     message:
         "Indexing {input}"
     conda:
-        os.getcwd() + "/.harpy_envs/align.yaml"
+        f"{envdir}/align.yaml"
     shell: 
         "bwa index {input} 2> {log}"
 
@@ -185,7 +186,7 @@ rule leviathan_variantcall:
     threads:
         3
     conda:
-        os.getcwd() + "/.harpy_envs/variants.sv.yaml"
+        f"{envdir}/sv.yaml"
     message:
         "Calling variants: Population {wildcards.population}"
     benchmark:
@@ -228,7 +229,7 @@ rule sv_report_bypop:
     message:
         "Generating SV report: population {wildcards.population}"
     conda:
-        os.getcwd() + "/.harpy_envs/r-env.yaml"
+        f"{envdir}/r-env.yaml"
     script:
         "report/Leviathan.Rmd"
 
@@ -242,7 +243,7 @@ rule sv_report:
     message:
         "Generating SV report for all populations"
     conda:
-        os.getcwd() + "/.harpy_envs/r-env.yaml"
+        f"{envdir}/r-env.yaml"
     script:
         "report/LeviathanPop.Rmd"
 

@@ -12,6 +12,7 @@ contigs     = config["contigs"]
 skipreports = config["skipreports"]
 outdir      = config["output_directory"]
 bam_dir     = f"{outdir}/workflow/input/alignments"
+envdir      = os.getcwd() + "/.harpy_envs"
 # declare a dataframe to be the paramspace
 paramspace  = Paramspace(pd.read_csv(paramfile, sep=r"\s+").rename(columns=str.lower), param_sep = "", filename_params="*")
 
@@ -109,7 +110,7 @@ rule impute:
         parameters = paramspace.instance,
         extra = config.get("extra", "")
     conda:
-        os.getcwd() + "/.harpy_envs/r-env.yaml"
+        f"{envdir}/r-env.yaml"
     benchmark:
         f".Benchmark/{outdir}/stitch.{paramspace.wildcard_pattern}" + ".{part}.txt"
     threads:
@@ -150,7 +151,7 @@ rule collate_stitch_reports:
     message:
         "Generating STITCH report: {wildcards.part}"
     conda:
-        os.getcwd() + "/.harpy_envs/r-env.yaml"
+        f"{envdir}/r-env.yaml"
     script:
         "report/StitchCollate.Rmd"
 
@@ -261,7 +262,7 @@ rule imputation_results_reports:
     params:
         lambda wc: wc.get("stitchparams")
     conda:
-        os.getcwd() + "/.harpy_envs/r-env.yaml"
+        f"{envdir}/r-env.yaml"
     message:
         "Generating imputation success report: {output}"
     script:

@@ -4,6 +4,7 @@ import sys
 import os
 
 bam_dir     = config["seq_directory"]
+envdir      = os.getcwd() + "/.harpy_envs"
 genomefile  = config["genomefile"]
 samplenames = config["samplenames"]
 min_sv      = config["min_sv"]
@@ -64,7 +65,7 @@ rule index_barcode:
     threads:
         4
     conda:
-        os.getcwd() + "/.harpy_envs/variants.sv.yaml"
+        f"{envdir}/sv.yaml"
     message:
         "Indexing barcodes: {wildcards.sample}"
     shell:
@@ -111,7 +112,7 @@ rule index_bwa_genome:
     log:
         f"Genome/{bn}.idx.log"
     conda:
-        os.getcwd() + "/.harpy_envs/align.yaml"
+        f"{envdir}/align.yaml"
     message:
         "Indexing {input}"
     shell: 
@@ -136,7 +137,7 @@ rule leviathan_variantcall:
     threads:
         3
     conda:
-        os.getcwd() + "/.harpy_envs/variants.sv.yaml"
+        f"{envdir}/sv.yaml"
     benchmark:
         ".Benchmark/leviathan/{sample}.variantcall"
     message:
@@ -176,7 +177,7 @@ rule sv_report:
     output:	
         outdir + "/reports/{sample}.SV.html"
     conda:
-        os.getcwd() + "/.harpy_envs/r-env.yaml"
+        f"{envdir}/r-env.yaml"
     message:
         "Generating SV report: {wildcards.sample}"
     script:

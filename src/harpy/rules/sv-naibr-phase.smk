@@ -5,6 +5,7 @@ import os
 import re
 
 bam_dir     = config["seq_directory"]
+envdir      = os.getcwd() + "/.harpy_envs"
 samplenames = config["samplenames"] 
 extra       = config.get("extra", None) 
 genomefile  = config["genomefile"]
@@ -142,7 +143,7 @@ rule phase_alignments:
         bam = outdir + "/phasedbam/{sample}.bam",
         log = outdir + "/logs/whatshap-haplotag/{sample}.phase.log"
     conda:
-        os.getcwd() + "/.harpy_envs/phase.yaml"
+        f"{envdir}/phase.yaml"
     threads:
         4
     message:
@@ -211,7 +212,7 @@ rule call_sv:
     threads:
         min(10, workflow.cores)
     conda:
-        os.getcwd() + "/.harpy_envs/variants.sv.yaml"
+        f"{envdir}/sv.yaml"
     message:
         "Calling variants: {wildcards.sample}"
     shell:
@@ -246,7 +247,7 @@ rule create_report:
     output:
         outdir + "/reports/{sample}.naibr.html"
     conda:
-        os.getcwd() + "/.harpy_envs/r-env.yaml"
+        f"{envdir}/r-env.yaml"
     message:
         "Creating report: {wildcards.sample}"
     script:

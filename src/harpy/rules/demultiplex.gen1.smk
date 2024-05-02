@@ -11,11 +11,7 @@ I2 = config["I2"]
 samplefile = config["samplefile"]
 skipreports = config["skipreports"]
 outdir = config["output_directory"]
-#bn = os.path.basename(infile)
-#fq_extension = re.search(r"(?:\_00[0-9])*\.f(.*?)q(?:\.gz)?$", infile, re.IGNORECASE).group(0)
-#inprefix = config["infile_prefix"]
-#inprefix = re.sub(r"[\_\.][IR][12]?(?:\_00[0-9])*\.f(?:ast)?q(?:\.gz)?$", "", os.path.basename(R1))
-#indir = os.path.dirname(infile)
+envdir      = os.getcwd() + "/.harpy_envs"
 
 def barcodedict(smpl):
     d = dict()
@@ -139,7 +135,7 @@ rule fastqc_F:
     threads:
         1
     conda:
-        os.getcwd() + "/.harpy_envs/qc.yaml"
+        f"{envdir}/qc.yaml"
     message:
         "Performing quality assessment: {wildcards.sample}.F.fq.gz"
     shell:
@@ -180,7 +176,7 @@ rule qc_report:
     params:
         outdir + "/logs/"
     conda:
-        os.getcwd() + "/.harpy_envs/qc.yaml"
+        f"{envdir}/qc.yaml"
     message:
         "Creating final demultiplexing QC report"
     shell:

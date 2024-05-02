@@ -17,6 +17,7 @@ r = re.compile(r".*\.f(?:ast)?q(?:\.gz)?$", flags=re.IGNORECASE)
 fqlist = list(filter(r.match, flist))
 bn_r = r"[\.\_][RF](?:[12])?(?:\_00[1-9])*\.f(?:ast)?q(?:\.gz)?$"
 samplenames = set([re.sub(bn_r, "", i, flags = re.IGNORECASE) for i in fqlist])
+envdir      = os.getcwd() + "/.harpy_envs"
 
 wildcard_constraints:
     sample = "[a-zA-Z0-9._-]+"
@@ -78,7 +79,7 @@ rule qc_fastp:
     threads:
         2
     conda:
-        os.getcwd() + "/.harpy_envs/qc.yaml"
+        f"{envdir}/qc.yaml"
     message:
         "Removing adapters + quality trimming: {wildcards.sample}" if not skipadapters else "Quality trimming: {wildcards.sample}" 
     shell: 
@@ -94,7 +95,7 @@ rule count_beadtags:
     message:
         "Counting barcode frequency: {wildcards.sample}"
     conda:
-        os.getcwd() + "/.harpy_envs/qc.yaml"
+        f"{envdir}/qc.yaml"
     script:
         "scripts/countBX.py"
 
@@ -104,7 +105,7 @@ rule beadtag_counts_summary:
     output:
         outdir + "/reports/barcode.summary.html"
     conda:
-        os.getcwd() + "/.harpy_envs/r-env.yaml"
+        f"{envdir}/r-env.yaml"
     message:
         "Summarizing sample barcode validation"
     script:
@@ -118,7 +119,7 @@ rule create_report:
     params:
         outdir
     conda:
-        os.getcwd() + "/.harpy_envs/qc.yaml"
+        f"{envdir}/qc.yaml"
     message:
         "Aggregating fastp reports"
     shell: 

@@ -22,9 +22,9 @@ def generate_conda_deps():
     condachannels = ["bioconda","conda-forge","defaults"]
     environ = {
         "qc" : ["bioconda::falco", "bioconda::fastp", "bioconda::multiqc", "bioconda::pysam=0.22"],
-        "align": ["bioconda::bwa", "bioconda::ema","conda-forge::icu","conda-forge::libzlib", "bioconda::minimap2", "bioconda::samtools=1.19", "bioconda::seqtk", "conda-forge::xz"],
-        "variants.snp": ["bioconda::bcftools=1.20", "bioconda::freebayes=1.3.6"],
-        "variants.sv": ["bioconda::leviathan", "bioconda::naibr-plus"],
+        "align": ["bioconda::bwa", "bioconda::ema","conda-forge::icu","conda-forge::libzlib", "bioconda::minimap2", "bioconda::samtools=1.20", "bioconda::seqtk", "bioconda::tabix", "conda-forge::xz"],
+        "snp": ["bioconda::bcftools=1.20", "bioconda::freebayes=1.3.6"],
+        "sv": ["bioconda::leviathan", "bioconda::naibr-plus"],
         "phase" : ["bioconda::hapcut2", "bioconda::whatshap"],
         "simulations" : ["conda-forge::perl", "bioconda::perl-math-random", "bioconda::perl-inline-c", "bioconda::perl-parse-recdescent", "conda-forge::numpy", "bioconda::dwgsim", "alienzj::msort"],
         "r-env" : ["conda-forge::r-xml", "bioconda::bioconductor-complexheatmap", "conda-forge::r-highcharter", "conda-forge::r-circlize", "r::r-biocircos", "conda-forge::r-dt", "conda-forge::r-flexdashboard", "conda-forge::r-ggplot2", "conda-forge::r-ggridges", "conda-forge::r-plotly", "conda-forge::r-tidyr", "bioconda::r-stitch"]

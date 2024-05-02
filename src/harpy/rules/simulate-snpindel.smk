@@ -7,6 +7,7 @@ from rich import print as rprint
 indir = config["input_directory"]
 outdir = config["output_directory"]
 genome = config["genome"]
+envdir = os.getcwd() + "/.harpy_envs"
 snp_vcf = config.get("snp_vcf", None)
 indel_vcf = config.get("indel_vcf", None)
 heterozygosity = config["heterozygosity"]
@@ -116,7 +117,7 @@ rule simulate_variants:
         simuG = f"{outdir}/workflow/scripts/simuG.pl",
         parameters = variant_params
     conda:
-        os.getcwd() + "/.harpy_envs/simulations.yaml"
+        f"{envdir}/simulations.yaml"
     message:
         "Simulating snps and/or indels"
     shell:
