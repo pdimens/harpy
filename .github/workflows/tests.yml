@@ -72,6 +72,16 @@ jobs:
           python3 -m pip install --upgrade build && python3 -m build
           pip install dist/*.whl
           resources/buildforCI.sh
+      - name: Clear space
+        run: rm -rf /opt/hostedtoolcache
+      - name: pull image
+        shell: micromamba-shell {0}
+        run: snakemake -s resources/container/pullcontainerCI.smk --sdm conda apptainer -q
+      - name: upload singularity
+        uses: actions/upload-artifact@v4
+        with:
+          name: deps-image
+          path: .snakemake/singularity
 
   dmux_gen1:
     needs: [changes, pkgbuild]
@@ -99,6 +109,10 @@ jobs:
           resources/buildforCI.sh
       - name: Clear space
         run: rm -rf /opt/hostedtoolcache
+      - name: Download a single artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: deps-image
       - name: harpy demultiplex
         shell: micromamba-shell {0}
         run: harpy demultiplex gen1  --schema test/demux/samples.schema test/demux/Undetermined_S0_L004_R* test/demux/Undetermined_S0_L004_I*
