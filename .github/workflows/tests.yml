@@ -77,7 +77,7 @@ jobs:
       - name: pull image
         shell: micromamba-shell {0}
         run: harpy qc --skipreports -a test/fastq/sample1.*.fq.gz
-      - name: upload singularity
+      - name: create singularity artifact
         uses: actions/upload-artifact@v4
         with:
           name: deps-image
@@ -110,13 +110,11 @@ jobs:
           resources/buildforCI.sh
       - name: Clear space
         run: rm -rf /opt/hostedtoolcache && mkdir -p .snakemake/singularity
-      - name: Download singularity
+      - name: Download singularity artifact
         uses: actions/download-artifact@v4
         with:
           name: deps-image
           path: .snakemake/singularity
-      - name: sanity check
-        run: ls .snakemake && ls .snakemake/singularity
       - name: harpy demultiplex
         shell: micromamba-shell {0}
         run: harpy demultiplex gen1 --schema test/demux/samples.schema test/demux/Undetermined_S0_L004_R* test/demux/Undetermined_S0_L004_I*
@@ -149,7 +147,12 @@ jobs:
           pip install dist/*.whl
           resources/buildforCI.sh
       - name: Clear space
-        run: rm -rf /opt/hostedtoolcache
+        run: rm -rf /opt/hostedtoolcache && mkdir -p .snakemake/singularity
+      - name: Download singularity artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: deps-image
+          path: .snakemake/singularity
       - name: test preflight fastq
         shell: micromamba-shell {0}
         run: harpy preflight fastq test/fastq
@@ -186,7 +189,12 @@ jobs:
           pip install dist/*.whl
           resources/buildforCI.sh
       - name: Clear space
-        run: rm -rf /opt/hostedtoolcache
+        run: rm -rf /opt/hostedtoolcache && mkdir -p .snakemake/singularity
+      - name: Download singularity artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: deps-image
+          path: .snakemake/singularity
       - name: harpy qc
         shell: micromamba-shell {0}
         run: harpy qc -x "--trim_poly_g"  --snakemake "--show-failed-logs" test/fastq
@@ -223,7 +231,12 @@ jobs:
           pip install dist/*.whl
           resources/buildforCI.sh
       - name: Clear space
-        run: rm -rf /opt/hostedtoolcache
+        run: rm -rf /opt/hostedtoolcache && mkdir -p .snakemake/singularity
+      - name: Download singularity artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: deps-image
+          path: .snakemake/singularity
       - name: test bwa
         shell: micromamba-shell {0}
         run: harpy align bwa -g test/genome/genome.fasta.gz --snakemake "--show-failed-logs" -x "-A 2" test/fastq
@@ -256,7 +269,12 @@ jobs:
           pip install dist/*.whl
           resources/buildforCI.sh
       - name: Clear space
-        run: rm -rf /opt/hostedtoolcache
+        run: rm -rf /opt/hostedtoolcache && mkdir -p .snakemake/singularity
+      - name: Download singularity artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: deps-image
+          path: .snakemake/singularity
       - name: test ema
         shell: micromamba-shell {0}
         run: harpy align ema --ema-bins 150 -g test/genome/genome.fasta.gz --snakemake "--show-failed-logs" -x "-d" test/fastq
@@ -289,7 +307,12 @@ jobs:
           pip install dist/*.whl
           resources/buildforCI.sh
       - name: Clear space
-        run: rm -rf /opt/hostedtoolcache
+        run: rm -rf /opt/hostedtoolcache && mkdir -p .snakemake/singularity
+      - name: Download singularity artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: deps-image
+          path: .snakemake/singularity
       - name: test minimap
         shell: micromamba-shell {0}
         run: harpy align minimap -g test/genome/genome.fasta.gz --snakemake "--show-failed-logs" -x "--seed 13" test/fastq
@@ -322,7 +345,12 @@ jobs:
           pip install dist/*.whl
           resources/buildforCI.sh
       - name: Clear space
-        run: rm -rf /opt/hostedtoolcache
+        run: rm -rf /opt/hostedtoolcache && mkdir -p .snakemake/singularity
+      - name: Download singularity artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: deps-image
+          path: .snakemake/singularity
       - name: snp mpileup
         shell: micromamba-shell {0}
         run: harpy snp mpileup -r test/positions.bed -g test/genome/genome.fasta.gz -x "--ignore-RG" test/bam
@@ -358,7 +386,12 @@ jobs:
           pip install dist/*.whl
           resources/buildforCI.sh
       - name: Clear space
-        run: rm -rf /opt/hostedtoolcache
+        run: rm -rf /opt/hostedtoolcache && mkdir -p .snakemake/singularity
+      - name: Download singularity artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: deps-image
+          path: .snakemake/singularity
       - name: snp freebayes
         shell: micromamba-shell {0}
         run: harpy snp freebayes -r test/positions.bed -g test/genome/genome.fasta.gz -x "-g 200" test/bam
@@ -394,7 +427,12 @@ jobs:
           pip install dist/*.whl
           resources/buildforCI.sh
       - name: Clear space
-        run: rm -rf /opt/hostedtoolcache
+        run: rm -rf /opt/hostedtoolcache && mkdir -p .snakemake/singularity
+      - name: Download singularity artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: deps-image
+          path: .snakemake/singularity
       - name: impute
         shell: micromamba-shell {0}
         run: harpy impute --vcf test/vcf/test.bcf -p test/stitch.params --snakemake "--show-failed-logs" test/bam
@@ -431,7 +469,12 @@ jobs:
           pip install dist/*.whl
           resources/buildforCI.sh
       - name: Clear space
-        run: rm -rf /opt/hostedtoolcache
+        run: rm -rf /opt/hostedtoolcache && mkdir -p .snakemake/singularity
+      - name: Download singularity artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: deps-image
+          path: .snakemake/singularity
       - name: phase
         shell: micromamba-shell {0}
         run: harpy phase --vcf test/vcf/test.bcf --snakemake "--show-failed-logs" -x "--max_iter 10001" test/bam
@@ -472,7 +515,12 @@ jobs:
           pip install dist/*.whl
           resources/buildforCI.sh
       - name: Clear space
-        run: rm -rf /opt/hostedtoolcache
+        run: rm -rf /opt/hostedtoolcache && mkdir -p .snakemake/singularity
+      - name: Download singularity artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: deps-image
+          path: .snakemake/singularity
       - name: leviathan
         shell: micromamba-shell {0}
         run: harpy sv leviathan -n 100 -b 1 -g test/genome/genome.fasta.gz --snakemake "--show-failed-logs" -x "-M 2002" test/bam
@@ -510,7 +558,12 @@ jobs:
           pip install dist/*.whl
           resources/buildforCI.sh
       - name: Clear space
-        run: rm -rf /opt/hostedtoolcache
+        run: rm -rf /opt/hostedtoolcache && mkdir -p .snakemake/singularity
+      - name: Download singularity artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: deps-image
+          path: .snakemake/singularity
       - name: naibr
         shell: micromamba-shell {0}
         run: harpy sv naibr -g test/genome/genome.fasta.gz -o SV/naibr --snakemake "--show-failed-logs" -x "-min_sv 5000" test/bam_phased && rm -r Genome
@@ -551,13 +604,18 @@ jobs:
           post-cleanup: 'all'
           log-level: error
       - name: Install harpy
+        shell: micromamba-shell {0}
         run: |
           python3 -m pip install --upgrade build && python3 -m build
           pip install dist/*.whl
           resources/buildforCI.sh
       - name: Clear space
-        run: rm -rf /opt/hostedtoolcache
-        shell: micromamba-shell {0}
+        run: rm -rf /opt/hostedtoolcache && mkdir -p .snakemake/singularity
+      - name: Download singularity artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: deps-image
+          path: .snakemake/singularity
       - name: simulate random snps/indels
         shell: micromamba-shell {0}
         run: |
@@ -610,7 +668,12 @@ jobs:
           pip install dist/*.whl
           resources/buildforCI.sh
       - name: Clear space
-        run: rm -rf /opt/hostedtoolcache
+        run: rm -rf /opt/hostedtoolcache && mkdir -p .snakemake/singularity
+      - name: Download singularity artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: deps-image
+          path: .snakemake/singularity
       - name: simulate linked reads
         shell: micromamba-shell {0}
         run: harpy simulate linkedreads --snakemake "--show-failed-logs" -t 4 -n 2  -l 100 -p 50 test/genome/genome.fasta.gz test/genome/genome2.fasta.gz
@@ -643,7 +706,7 @@ jobs:
           pip install dist/*.whl
           resources/buildforCI.sh
       - name: Clear space
-        run: rm -rf /opt/hostedtoolcache
+        run: rm -rf /opt/hostedtoolcache && mkdir -p .snakemake/singularity
       - name: harpy stitchparams
         shell: micromamba-shell {0}
         run: harpy stitchparams -o params.file
