@@ -109,11 +109,13 @@ jobs:
           pip install dist/*.whl
           resources/buildforCI.sh
       - name: Clear space
-        run: rm -rf /opt/hostedtoolcache
+        run: rm -rf /opt/hostedtoolcache && mkdir -p .snakemake/singularity
       - name: Download singularity
         uses: actions/download-artifact@v4
-      - name: move image to .snakemake folder
-        run: mkdir -p .snakemake/singularity && mv etc/usr/artifacts/*/* .snakemake/singularity
+          name: deps-image
+          path: .snakemake/singularity
+      - name: sanity check
+        run: ls .snakemake && ls .snakemake/singularity
       - name: harpy demultiplex
         shell: micromamba-shell {0}
         run: harpy demultiplex gen1 --schema test/demux/samples.schema test/demux/Undetermined_S0_L004_R* test/demux/Undetermined_S0_L004_I*
