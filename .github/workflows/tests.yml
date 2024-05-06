@@ -112,6 +112,7 @@ jobs:
         run: rm -rf /opt/hostedtoolcache && mkdir -p .snakemake/singularity
       - name: Download singularity
         uses: actions/download-artifact@v4
+        with:
           name: deps-image
           path: .snakemake/singularity
       - name: sanity check
