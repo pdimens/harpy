@@ -98,7 +98,7 @@ jobs:
           pip install dist/*.whl
           resources/buildforCI.sh
       - name: harpy demultiplex
-        run: harpy demultiplex gen1 --snakemake "--apptainer-args --sandbox" --schema test/demux/samples.schema test/demux/Undetermined_S0_L004_R* test/demux/Undetermined_S0_L004_I*
+        run: harpy demultiplex gen1 --snakemake "--apptainer-args sandbox" --schema test/demux/samples.schema test/demux/Undetermined_S0_L004_R* test/demux/Undetermined_S0_L004_I*
         shell: micromamba-shell {0}
 
   test_preflight:
@@ -296,7 +296,7 @@ jobs:
         run: harpy snp mpileup -r test/positions.bed -g test/genome/genome.fasta.gz -x "--ignore-RG" test/bam
       - name: snp mpileup-pop
         shell: micromamba-shell {0}
-        run: harpy snp mpileup -r test/positions.bed -o SNP/poptest -g test/genome/genome.fasta.gz -p test/samples.groups -s "--apptainer-args --sandbox" test/bam
+        run: harpy snp mpileup -r test/positions.bed -o SNP/poptest -g test/genome/genome.fasta.gz -p test/samples.groups -s "--apptainer-args sandbox" test/bam
   
   test_freebayes:
     needs: [changes, pkgbuild]
