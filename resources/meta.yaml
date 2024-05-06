@@ -23,6 +23,7 @@ requirements:
     - python =3.12
     - pip
   run:
+    - apptainer
     - bcftools =1.20
     - pandas
     - python >3.10

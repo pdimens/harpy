@@ -48,7 +48,7 @@ def snpindel(genome, snp_vcf, indel_vcf, output_dir, prefix, snp_count, indel_co
         print_error("You must either provide a vcf file of known variants to simulate or a count of that variant to randomly simulate.")
     output_dir = output_dir.rstrip("/")
     workflowdir = f"{output_dir}/workflow"
-    command = f'snakemake --rerun-incomplete --rerun-triggers input mtime params --nolock --software-deployment-method conda apptainer --use-apptainer --conda-prefix ./.snakemake/conda --cores 1 --directory .'.split()
+    command = f'snakemake --rerun-incomplete --rerun-triggers input mtime params --nolock --software-deployment-method conda apptainer --conda-prefix ./.snakemake/conda --cores 1 --directory .'.split()
     command.append('--snakefile')
     command.append(f'{workflowdir}/simulate-snpindel.smk')
     command.append("--configfile")
@@ -157,7 +157,7 @@ def inversion(genome, vcf, prefix, output_dir, count, min_size, max_size, centro
 
     output_dir = output_dir.rstrip("/")
     workflowdir = f"{output_dir}/workflow"
-    command = f'snakemake --rerun-incomplete --rerun-triggers input mtime params --nolock --software-deployment-method conda apptainer --use-apptainer --conda-prefix ./.snakemake/conda --cores 1 --directory .'.split()
+    command = f'snakemake --rerun-incomplete --rerun-triggers input mtime params --nolock --software-deployment-method conda apptainer --conda-prefix ./.snakemake/conda --cores 1 --directory .'.split()
     command.append('--snakefile')
     command.append(f'{workflowdir}/simulate-variants.smk')
     command.append("--configfile")
@@ -264,7 +264,7 @@ def cnv(genome, output_dir, vcf, prefix, count, min_size, max_size, dup_ratio, m
         print_error("Provide either a `--count` of cnv to randomly simulate or a `--vcf` of known cnv to simulate.")
     output_dir = output_dir.rstrip("/")
     workflowdir = f"{output_dir}/workflow"
-    command = f'snakemake --rerun-incomplete --rerun-triggers input mtime params --nolock --software-deployment-method conda apptainer --use-apptainer --conda-prefix ./.snakemake/conda --cores 1 --directory .'.split()
+    command = f'snakemake --rerun-incomplete --rerun-triggers input mtime params --nolock --software-deployment-method conda apptainer --conda-prefix ./.snakemake/conda --cores 1 --directory .'.split()
     command.append('--snakefile')
     command.append(f'{workflowdir}/simulate-variants.smk')
     command.append("--configfile")
@@ -363,7 +363,7 @@ def translocation(genome, output_dir, prefix, vcf, count, centromeres, genes, he
         print_error("Provide either a `--count` of cnv to randomly simulate or a `--vcf` of known cnv to simulate.")
     output_dir = output_dir.rstrip("/")
     workflowdir = f"{output_dir}/workflow"
-    command = f'snakemake --rerun-incomplete --rerun-triggers input mtime params --nolock --software-deployment-method conda apptainer --use-apptainer --conda-prefix ./.snakemake/conda --cores 1 --directory .'.split()
+    command = f'snakemake --rerun-incomplete --rerun-triggers input mtime params --nolock --software-deployment-method conda apptainer --conda-prefix ./.snakemake/conda --cores 1 --directory .'.split()
     command.append('--snakefile')
     command.append(f'{workflowdir}/simulate-variants.smk')
     command.append("--configfile")
