@@ -1,3 +1,5 @@
+containerized: "docker://pdimens/harpy:latest"
+
 from rich import print as rprint
 from rich.panel import Panel
 import sys
@@ -62,6 +64,8 @@ rule split_by_samplehet:
         outdir + "/workflow/input/vcf/{sample}.het.bcf"
     benchmark:
         ".Benchmark/Phase/splithet.{sample}.txt"
+    container:
+        None
     message:
         "Extracting heterozygous variants: {wildcards.sample}"
     shell:
@@ -78,6 +82,8 @@ rule split_by_sample:
         outdir + "/workflow/input/vcf/{sample}.bcf"
     benchmark:
         ".Benchmark/Phase/split.{sample}.txt"
+    container:
+        None
     message:
         "Extracting variants: {wildcards.sample}"
     shell:
@@ -91,6 +97,8 @@ rule index_alignment:
         bam_dir + "/{sample}.bam"
     output:
         bam_dir + "/{sample}.bam.bai"
+    container:
+        None
     message:
         "Indexing alignment: {wildcards.sample}"
     shell:
@@ -163,6 +171,8 @@ rule create_annotations:
         outdir + "/phaseBlocks/{sample}.blocks.phased.VCF"
     output:
         outdir + "/annotations/{sample}.annot.gz"
+    container:
+        None
     message:
         "Creating annotation files: {wildcards.sample}"
     shell:
@@ -173,6 +183,8 @@ rule index_annotations:
         outdir + "/annotations/{sample}.annot.gz"
     output:
         outdir + "/annotations/{sample}.annot.gz.tbi"
+    container:
+        None
     message:
         "Indexing {wildcards.sample}.annot.gz"
     shell: 
@@ -204,6 +216,8 @@ rule merge_annotations:
         2
     benchmark:
         ".Benchmark/Phase/mergeAnno.{sample}.txt"
+    container:
+        None
     message:
         "Merging annotations: {wildcards.sample}"
     shell:
@@ -224,7 +238,9 @@ rule merge_samples:
     params:
         "true" if len(samplenames) > 1 else "false"
     threads:
-        30
+        workflow.cores
+    container:
+        None
     message:
         "Combining results into {output.bcf}" if len(samplenames) > 1 else "Copying results to {output.bcf}"
     shell:
@@ -244,6 +260,8 @@ rule summarize_blocks:
         outdir + "/reports/blocks.summary.gz"
     params:
         outdir + "/reports/blocks.summary"
+    container:
+        None
     message:
         "Summarizing phasing results"
     shell:

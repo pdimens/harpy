@@ -9,6 +9,7 @@ from rich import print as rprint
 
 outdir      = config["output_directory"]
 seq_dir		= config["seq_directory"]
+envdir      = os.getcwd() + "/.harpy_envs"
 genomefile 	= config["genomefile"]
 samplenames = config["samplenames"]
 molecule_distance = config["molecule_distance"]
@@ -17,7 +18,6 @@ bn 			= os.path.basename(genomefile)
 genome_zip  = True if bn.lower().endswith(".gz") else False
 bn_idx      = f"{bn}.gzi" if genome_zip else f"{bn}.fai"
 skipreports = config["skipreports"]
-envdir      = os.getcwd() + "/.harpy_envs"
 
 d = dict(zip(samplenames, samplenames))
 
@@ -61,11 +61,12 @@ wildcard_constraints:
     sample = "[a-zA-Z0-9._-]+"
 
 rule genome_link:
-    container: None
     input:
         genomefile
     output: 
         f"Genome/{bn}"
+    container:
+        None
     message: 
         "Symlinking {input}"
     shell: 
@@ -92,6 +93,8 @@ rule genome_faidx:
         f"Genome/{bn}.faidx.log"
     params:
         genome_zip
+    container:
+        None
     message:
         "Indexing {input}"
     shell: 
@@ -123,6 +126,8 @@ rule genome_make_windows:
         f"Genome/{bn}"
     output: 
         f"Genome/{bn}.bed"
+    container:
+        None
     message: 
         "Creating BED intervals from {input}"
     shell: 

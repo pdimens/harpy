@@ -1,3 +1,5 @@
+containerized: "docker://pdimens/harpy:latest"
+
 import os
 import re
 import glob
@@ -66,6 +68,8 @@ rule genome_link:
         genomefile
     output: 
         f"Genome/{bn}"
+    container:
+        None
     message: 
         "Symlinking {input}"
     shell: 
@@ -82,31 +86,28 @@ rule genome_link:
         fi
         """
 
-if genome_zip:
-    rule genome_compressed_faidx:
-        input: 
-            f"Genome/{bn}"
-        output: 
-            gzi = f"Genome/{bn}.gzi",
-            fai = f"Genome/{bn}.fai"
-        log:
-            f"Genome/{bn}.faidx.gzi.log"
-        message:
-            "Indexing {input}"
-        shell: 
-            "samtools faidx --gzi-idx {output.gzi} --fai-idx {output.fai} {input} 2> {log}"
-else:
-    rule genome_faidx:
-        input: 
-            f"Genome/{bn}"
-        output: 
-            f"Genome/{bn}.fai"
-        log:
-            f"Genome/{bn}.faidx.log"
-        message:
-            "Indexing {input}"
-        shell:
-            "samtools faidx --fai-idx {output} {input} 2> {log}"
+rule genome_faidx:
+    input: 
+        f"Genome/{bn}"
+    output: 
+        fai = f"Genome/{bn}.fai",
+        gzi = f"Genome/{bn}.gzi" if genome_zip else []
+    log:
+        f"Genome/{bn}.faidx.log"
+    params:
+        genome_zip
+    container:
+        None
+    message:
+        "Indexing {input}"
+    shell: 
+        """
+        if [ "{params}" = "True" ]; then
+            samtools faidx --gzi-idx {output.gzi} --fai-idx {output.fai} {input} 2> {log}
+        else
+            samtools faidx --fai-idx {output.fai} {input} 2> {log}
+        fi
+        """
 
 rule genome_bwa_index:
     input: 
@@ -127,6 +128,8 @@ rule genome_make_windows:
         f"Genome/{bn}"
     output: 
         f"Genome/{bn}.bed"
+    container:
+        None
     message: 
         "Creating BED intervals from {input}"
     shell: 
@@ -138,6 +141,8 @@ rule interleave:
         rv_reads = get_fq2
     output:
         pipe(outdir + "/.interleave/{sample}.interleave.fq")
+    container:
+        None
     message:
         "Interleaving input fastq files: {wildcards.sample}"
     shell:
@@ -244,6 +249,8 @@ rule sort_raw_ema:
         extra = extra
     threads:
         2
+    container:
+        None
     message:
         "Sorting and quality filtering alignments: {wildcards.sample}"
     shell:
@@ -283,6 +290,8 @@ rule quality_filter:
         temp(outdir + "/align/{sample}.bwa.nobc.sam")
     params: 
         quality = config["quality"]
+    container:
+        None
     message:
         "Quality filtering alignments: {wildcards.sample}"
     shell:
@@ -293,6 +302,8 @@ rule collate:
         outdir + "/align/{sample}.bwa.nobc.sam"
     output:
         temp(outdir + "/align/{sample}.collate.nobc.bam")
+    container:
+        None
     message:
         "Collating alignments: {wildcards.sample}"
     shell:
@@ -303,6 +314,8 @@ rule fix_mates:
         outdir + "/align/{sample}.collate.nobc.bam"
     output:
         temp(outdir + "/align/{sample}.fixmate.nobc.bam")
+    container:
+        None
     message:
         "Fixing mates in alignments: {wildcards.sample}"
     shell:
@@ -322,6 +335,8 @@ rule sort_nobc_alignments:
     params: 
         quality = config["quality"],
         tmpdir = lambda wc: outdir + "/." + d[wc.sample]
+    container:
+        None
     message:
         "Sorting alignments: {wildcards.sample}"
     shell:
@@ -340,6 +355,8 @@ rule mark_duplicates:
         outdir + "/logs/{sample}.markdup.log"
     threads:
         2
+    container:
+        None
     message:
         "Marking duplicates in alignments alignment: {wildcards.sample}"
     shell:
@@ -350,6 +367,8 @@ rule index_markdups:
         outdir + "/align/{sample}.markdup.nobc.bam"
     output:
         temp(outdir + "/align/{sample}.markdup.nobc.bam.bai")
+    container:
+        None
     message:
         "Indexing duplicate-marked alignments: {wildcards.sample}"
     shell:
@@ -365,6 +384,8 @@ rule concatenate_alignments:
         bam 	 = temp(outdir + "/align/{sample}.concat.unsort.bam")
     threads:
         2
+    container:
+        None
     message:
         "Concatenating barcoded and unbarcoded alignments: {wildcards.sample}"
     shell:
@@ -379,6 +400,8 @@ rule sort_concatenated:
         bai = outdir + "/{sample}.bam.bai"
     threads:
         2
+    container:
+        None
     message:
         "Sorting merged barcoded alignments: {wildcards.sample}"
     shell:
@@ -393,6 +416,8 @@ rule coverage_stats:
         outdir + "/reports/data/coverage/{sample}.cov.gz"
     threads:
         2
+    container:
+        None
     message:
         "Calculating genomic coverage: {wildcards.sample}"
     shell:
@@ -432,6 +457,8 @@ rule general_stats:
     output:
         stats    = temp(outdir + "/reports/data/samtools_stats/{sample}.stats"),
         flagstat = temp(outdir + "/reports/data/samtools_flagstat/{sample}.flagstat")
+    container:
+        None
     message:
         "Calculating alignment stats: {wildcards.sample}"
     shell:

@@ -1,3 +1,5 @@
+containerized: "docker://pdimens/harpy:latest"
+
 from rich import print as rprint
 from rich.panel import Panel
 import sys
@@ -115,6 +117,8 @@ rule merge_populations:
         bai = temp(outdir + "/workflow/inputpop/{population}.bam.bai")
     threads:
         2
+    container:
+        None
     message:
         "Merging alignments: Population {wildcards.population}"
     shell:
@@ -172,6 +176,8 @@ rule infer_sv:
         vcf   = outdir + "/vcf/{population}.vcf" 
     params:
         outdir = lambda wc: outdir + "/" + wc.get("population")
+    container:
+        None
     message:
         "Inferring variants from naibr output: {wildcards.population}"
     shell:
@@ -187,6 +193,8 @@ rule genome_link:
         genomefile
     output: 
         f"Genome/{bn}"
+    container:
+        None
     message: 
         "Symlinking {input}"
     shell: 
@@ -213,6 +221,8 @@ rule genome_faidx:
         f"Genome/{bn}.faidx.log"
     params:
         genome_zip
+    container:
+        None
     message:
         "Indexing {input}"
     shell: 

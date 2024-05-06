@@ -1,12 +1,12 @@
 FROM condaforge/mambaforge:latest
 LABEL io.github.snakemake.containerized="true"
-LABEL io.github.snakemake.conda_env_hash="a898a99be819043269d0f8460b2029822df387bedbfeea6e5a36da780017d35c"
+LABEL io.github.snakemake.conda_env_hash="d1f47fc29da7b5a95fe4d2add88c3a7dd6977254e24239fe934fd3f681c0a6fd"
 
 # Step 1: Retrieve conda environments
 
 # Conda environment:
 #   source: .harpy_envs/align.yaml
-#   prefix: /conda-envs/3fd5f83875a7577d1e08ac23e6d24ab2
+#   prefix: /conda-envs/4538a63544ffaad3a6e49e8d25bfc6cb
 #   name: align
 #   channels:
 #     - bioconda
@@ -20,9 +20,10 @@ LABEL io.github.snakemake.conda_env_hash="a898a99be819043269d0f8460b2029822df387
 #     - bioconda::minimap2
 #     - bioconda::samtools=1.20
 #     - bioconda::seqtk
+#     - bioconda::tabix
 #     - conda-forge::xz
-RUN mkdir -p /conda-envs/3fd5f83875a7577d1e08ac23e6d24ab2
-COPY .harpy_envs/align.yaml /conda-envs/3fd5f83875a7577d1e08ac23e6d24ab2/environment.yaml
+RUN mkdir -p /conda-envs/4538a63544ffaad3a6e49e8d25bfc6cb
+COPY .harpy_envs/align.yaml /conda-envs/4538a63544ffaad3a6e49e8d25bfc6cb/environment.yaml
 
 # Conda environment:
 #   source: .harpy_envs/phase.yaml
@@ -56,14 +57,14 @@ COPY .harpy_envs/qc.yaml /conda-envs/6e3a7dc7152f45301056861193dd3db5/environmen
 
 # Conda environment:
 #   source: .harpy_envs/r.yaml
-#   prefix: /conda-envs/bf0428de97e90aa8f633399c691d8c45
-#   name: r-env
+#   prefix: /conda-envs/f769d2b509f06bc58137776df3f21936
+#   name: r
 #   channels:
 #     - bioconda
 #     - conda-forge
 #     - defaults
 #   dependencies:
-#     - conda-forge::r-xml
+#     - conda-forge::r-xml2
 #     - bioconda::bioconductor-complexheatmap
 #     - conda-forge::r-highcharter
 #     - conda-forge::r-circlize
@@ -75,8 +76,8 @@ COPY .harpy_envs/qc.yaml /conda-envs/6e3a7dc7152f45301056861193dd3db5/environmen
 #     - conda-forge::r-plotly
 #     - conda-forge::r-tidyr
 #     - bioconda::r-stitch
-RUN mkdir -p /conda-envs/bf0428de97e90aa8f633399c691d8c45
-COPY .harpy_envs/r.yaml /conda-envs/bf0428de97e90aa8f633399c691d8c45/environment.yaml
+RUN mkdir -p /conda-envs/f769d2b509f06bc58137776df3f21936
+COPY .harpy_envs/r.yaml /conda-envs/f769d2b509f06bc58137776df3f21936/environment.yaml
 
 # Conda environment:
 #   source: .harpy_envs/simulations.yaml
@@ -127,10 +128,10 @@ COPY .harpy_envs/sv.yaml /conda-envs/6f7bf3772ef42cc35bb95f8f02843984/environmen
 
 # Step 2: Generate conda environments
 
-RUN mamba env create --prefix /conda-envs/3fd5f83875a7577d1e08ac23e6d24ab2 --file /conda-envs/3fd5f83875a7577d1e08ac23e6d24ab2/environment.yaml && \
+RUN mamba env create --prefix /conda-envs/4538a63544ffaad3a6e49e8d25bfc6cb --file /conda-envs/4538a63544ffaad3a6e49e8d25bfc6cb/environment.yaml && \
     mamba env create --prefix /conda-envs/4914663d751c6d6b4e3b0b349fc0b652 --file /conda-envs/4914663d751c6d6b4e3b0b349fc0b652/environment.yaml && \
     mamba env create --prefix /conda-envs/6e3a7dc7152f45301056861193dd3db5 --file /conda-envs/6e3a7dc7152f45301056861193dd3db5/environment.yaml && \
-    mamba env create --prefix /conda-envs/bf0428de97e90aa8f633399c691d8c45 --file /conda-envs/bf0428de97e90aa8f633399c691d8c45/environment.yaml && \
+    mamba env create --prefix /conda-envs/f769d2b509f06bc58137776df3f21936 --file /conda-envs/f769d2b509f06bc58137776df3f21936/environment.yaml && \
     mamba env create --prefix /conda-envs/6b5e3ed520a8389d84dfb0a12d5f07d4 --file /conda-envs/6b5e3ed520a8389d84dfb0a12d5f07d4/environment.yaml && \
     mamba env create --prefix /conda-envs/b6f3d64eb4a83d06bc8a2731a1f32414 --file /conda-envs/b6f3d64eb4a83d06bc8a2731a1f32414/environment.yaml && \
     mamba env create --prefix /conda-envs/6f7bf3772ef42cc35bb95f8f02843984 --file /conda-envs/6f7bf3772ef42cc35bb95f8f02843984/environment.yaml && \

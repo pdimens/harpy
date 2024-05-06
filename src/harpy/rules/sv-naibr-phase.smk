@@ -1,3 +1,5 @@
+containerized: "docker://pdimens/harpy:latest"
+
 from rich import print as rprint
 from rich.panel import Panel
 import sys
@@ -73,6 +75,8 @@ rule genome_link:
         genomefile
     output: 
         f"Genome/{validgenome}"
+    container:
+        None
     message: 
         "Preprocessing {input}"
     shell: 
@@ -96,6 +100,8 @@ rule genome_faidx:
         f"Genome/{validgenome}.fai"
     log:
         f"Genome/{validgenome}.faidx.log"
+    container:
+        None
     message:
         "Indexing {input}"
     shell:
@@ -106,6 +112,8 @@ rule index_original_alignment:
         bam_dir + "/{sample}.bam"
     output:
         bam_dir + "/{sample}.bam.bai"
+    container:
+        None
     message:
         "Indexing alignment: {wildcards.sample}"
     shell:
@@ -116,6 +124,8 @@ rule index_bcf:
         vcffile
     output:
         vcffile + ".csi"
+    container:
+        None
     message:
         "Indexing {input}"
     shell:
@@ -126,6 +136,8 @@ rule index_vcfgz:
         vcffile
     output:
         vcffile + ".tbi"
+    container:
+        None
     message:
         "Indexing {input}"
     shell:
@@ -156,6 +168,8 @@ rule log_phasing:
         collect(outdir + "/logs/whatshap-haplotag/{sample}.phase.log", sample = samplenames)
     output:
         outdir + "/logs/whatshap-haplotag/phasing.log"
+    container:
+        None
     message:
         "Creating log of alignment phasing"
     shell:
@@ -193,6 +207,8 @@ rule index_phased_alignment:
         outdir + "/phasedbam/{sample}.bam"
     output:
         outdir + "/phasedbam/{sample}.bam.bai"
+    container:
+        None
     message:
         "Indexing alignment: {wildcards.sample}"
     shell:
@@ -230,6 +246,8 @@ rule infer_sv:
         vcf   = outdir + "/vcf/{sample}.vcf" 
     params:
         outdir = lambda wc: outdir + "/" + wc.get("sample")
+    container:
+        None
     message:
         "Inferring variants from naibr output: {wildcards.sample}"
     shell:

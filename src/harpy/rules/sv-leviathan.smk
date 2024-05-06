@@ -1,3 +1,5 @@
+containerized: "docker://pdimens/harpy:latest"
+
 from rich import print as rprint
 from rich.panel import Panel
 import sys
@@ -49,6 +51,8 @@ rule index_alignment:
         bam_dir + "/{sample}.bam"
     output:
         bam_dir + "/{sample}.bam.bai"
+    container:
+        None
     message:
         "Indexing alignment: {wildcards.sample}"
     shell:
@@ -76,6 +80,8 @@ rule genome_link:
         genomefile
     output: 
         f"Genome/{bn}"
+    container:
+        None
     message: 
         "Creating {output}"
     shell: 
@@ -99,6 +105,8 @@ rule genome_faidx:
         f"Genome/{bn}.fai"
     log:
         f"Genome/{bn}.faidx.log"
+    container:
+        None
     message:
         "Indexing {input}"
     shell:
@@ -152,6 +160,8 @@ rule sort_bcf:
         outdir + "/{sample}.bcf"
     params:
         "{wildcards.sample}"
+    container:
+        None
     message:
         "Sorting and converting to BCF: {wildcards.sample}"
     shell:        
@@ -162,6 +172,8 @@ rule sv_stats:
         outdir + "/{sample}.bcf"
     output: 
         outdir + "/reports/data/{sample}.sv.stats"
+    container:
+        None
     message:
         "Getting SV stats for {wildcards.sample}"
     shell:

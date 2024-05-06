@@ -1,3 +1,5 @@
+containerized: "docker://pdimens/harpy:latest"
+
 import sys
 import os
 import random
@@ -87,6 +89,8 @@ if snp_vcf:
             snp_vcf
         output:
             snp_vcf_correct
+        container:
+            None
         message:
             "Converting {input} to compressed VCF format"
         shell:
@@ -98,6 +102,8 @@ if indel_vcf:
             indel_vcf
         output:
             indel_vcf_correct
+        container:
+            None
         message:
             "Converting {input} to compressed VCF format"
         shell:

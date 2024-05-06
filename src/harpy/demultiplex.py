@@ -28,7 +28,7 @@ def gen1(r1_fq, r2_fq, i1_fq, i2_fq, output_dir, schema, threads, snakemake, ski
     """
     output_dir = output_dir.rstrip("/")
     workflowdir = f"{output_dir}/workflow"
-    command = f'snakemake --rerun-incomplete --rerun-triggers input mtime params --nolock --software-deployment-method conda --conda-prefix ./.snakemake/conda --cores {threads} --directory .'.split()
+    command = f'snakemake --rerun-incomplete --rerun-triggers input mtime params --nolock --software-deployment-method conda apptainer --conda-prefix ./.snakemake/conda --cores {threads} --directory .'.split()
     command.append('--snakefile')
     command.append(f'{workflowdir}/demultiplex.gen1.smk')
     command.append("--configfile")

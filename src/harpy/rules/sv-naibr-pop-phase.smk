@@ -1,3 +1,5 @@
+containerized: "docker://pdimens/harpy:latest"
+
 from rich import print as rprint
 from rich.panel import Panel
 import sys
@@ -95,6 +97,8 @@ rule genome_link:
         genomefile
     output: 
         f"Genome/{validgenome}"
+    container:
+        None
     message: 
         "Preprocessing {input}"
     shell: 
@@ -116,6 +120,8 @@ rule genome_faidx:
         f"Genome/{validgenome}"
     output: 
         f"Genome/{validgenome}.fai"
+    container:
+        None
     message:
         "Indexing {input}"
     log:
@@ -128,6 +134,8 @@ rule index_bcf:
         vcffile
     output:
         vcffile + ".csi"
+    container:
+        None
     message:
         "Indexing {input}"
     shell:
@@ -138,6 +146,8 @@ rule index_vcfgz:
         vcffile
     output:
         vcffile + ".tbi"
+    container:
+        None
     message:
         "Indexing {input}"
     shell:
@@ -148,6 +158,8 @@ rule index_alignments:
         bam_dir + "/{sample}.bam"
     output:
         bam_dir + "/{sample}.bam.bai"
+    container:
+        None
     message:
         "Indexing {input}"
     shell:
@@ -178,6 +190,8 @@ rule log_phasing:
         collect(outdir + "/logs/whatshap-haplotag/{sample}.phase.log", sample = samplenames)
     output:
         outdir + "/logs/whatshap-haplotag/phasing.log"
+    container:
+        None
     message:
         "Creating log of alignment phasing"
     shell:
@@ -224,6 +238,8 @@ rule merge_populations:
         bai = temp(outdir + "/workflow/inputpop/{population}.bam.bai")
     threads:
         2
+    container:
+        None
     message:
         "Merging alignments: Population {wildcards.population}"
     shell:
@@ -281,6 +297,8 @@ rule infer_sv:
         vcf   = outdir + "/vcf/{population}.vcf" 
     params:
         outdir = lambda wc: outdir + "/" + wc.get("population")
+    container:
+        None
     message:
         "Inferring variants from naibr output: {wildcards.population}"
     shell:

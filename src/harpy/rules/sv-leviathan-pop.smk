@@ -1,3 +1,5 @@
+containerized: "docker://pdimens/harpy:latest"
+
 from rich import print as rprint
 from rich.panel import Panel
 import sys
@@ -98,6 +100,8 @@ rule merge_populations:
         bai = temp(outdir + "/workflow/inputpop/{population}.bam.bai")
     threads:
         2
+    container:
+        None
     message:
         "Merging alignments: Population {wildcards.population}"
     shell:
@@ -125,6 +129,8 @@ rule genome_link:
         genomefile
     output: 
         f"Genome/{bn}"
+    container:
+        None
     message: 
         "Creating {output}"
     shell: 
@@ -148,6 +154,8 @@ rule genome_faidx:
         f"Genome/{bn}.fai"
     log:
         f"Genome/{bn}.faidx.log"
+    container:
+        None
     message:
         "Indexing {input}"
     shell:
@@ -199,10 +207,12 @@ rule sort_bcf:
         outdir + "/{population}.vcf"
     output:
         outdir + "/{population}.bcf"
-    message:
-        "Sorting and converting to BCF: Population {wildcards.population}"
     params:
         "{wildcards.population}"
+    container:
+        None
+    message:
+        "Sorting and converting to BCF: Population {wildcards.population}"
     shell:        
         "bcftools sort -Ob --output {output} {input} 2> /dev/null"
 
@@ -211,6 +221,8 @@ rule sv_stats:
         outdir + "/{population}.bcf"
     output:
         outdir + "/reports/data/{population}.sv.stats"
+    container:
+        None
     message:
         "Getting stats: Population {input}"
     shell:
@@ -232,7 +244,6 @@ rule sv_report_bypop:
         f"{envdir}/r.yaml"
     script:
         "report/Leviathan.Rmd"
-
 
 rule sv_report:
     input:	

@@ -1,3 +1,5 @@
+containerized: "docker://pdimens/harpy:latest"
+
 from rich import print as rprint
 from rich.panel import Panel
 import os
@@ -86,6 +88,8 @@ rule merge_checks:
     output:
         tmp = temp(out_dir + "/filecheck.tmp"),
         final = out_dir + "/filecheck.fastq.tsv"
+    container:
+        None
     message:
         "Concatenating results"
     shell:

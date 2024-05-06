@@ -1,3 +1,5 @@
+containerized: "docker://pdimens/harpy:latest"
+
 from rich import print as rprint
 from rich.panel import Panel
 import sys
@@ -64,6 +66,8 @@ rule index_alignment:
         bam_dir + "/{sample}.bam"
     output:
         bam_dir + "/{sample}.bam.bai"
+    container:
+        None
     message:
         "Indexing alignment: {wildcards.sample}"
     shell:
@@ -121,6 +125,8 @@ rule infer_sv:
         vcf   = outdir + "/vcf/{sample}.vcf" 
     params:
         outdir = lambda wc: outdir + "/" + wc.get("sample")
+    container:
+        None
     message:
         "Inferring variants from naibr output: {wildcards.sample}"
     shell:
@@ -136,6 +142,8 @@ rule genome_link:
         genomefile
     output: 
         f"Genome/{bn}"
+    container:
+        None
     message: 
         "Symlinking {input}"
     shell: 
@@ -159,6 +167,8 @@ rule genome_faidx:
         f"Genome/{bn}.faidx.log"
     params:
         genome_zip
+    container:
+        None
     message:
         "Indexing {input}"
     shell: 

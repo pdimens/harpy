@@ -7,19 +7,19 @@ import glob
 from rich.panel import Panel
 from rich import print as rprint
 
+seq_dir   = config["seq_directory"]
+envdir      = os.getcwd() + "/.harpy_envs"
+outdir      = config["output_directory"]
 min_len 	  = config["min_len"]
 max_len 	  = config["max_len"]
 extra 	  = config.get("extra", "") 
-seq_dir   = config["seq_directory"]
 skipadapters  = config["adapters"]
 skipreports = config["skipreports"]
-outdir      = config["output_directory"]
 flist = [os.path.basename(i) for i in glob.iglob(f"{seq_dir}/*") if not os.path.isdir(i)]
 r = re.compile(r".*\.f(?:ast)?q(?:\.gz)?$", flags=re.IGNORECASE)
 fqlist = list(filter(r.match, flist))
 bn_r = r"[\.\_][RF](?:[12])?(?:\_00[1-9])*\.f(?:ast)?q(?:\.gz)?$"
 samplenames = set([re.sub(bn_r, "", i, flags = re.IGNORECASE) for i in fqlist])
-envdir      = os.getcwd() + "/.harpy_envs"
 
 wildcard_constraints:
     sample = "[a-zA-Z0-9._-]+"

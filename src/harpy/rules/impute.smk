@@ -1,3 +1,5 @@
+containerized: "docker://pdimens/harpy:latest"
+
 from snakemake.utils import Paramspace
 from rich import print as rprint
 from rich.panel import Panel
@@ -51,6 +53,8 @@ rule sort_bcf:
         idx = temp(f"{outdir}/workflow/input/vcf/input.sorted.bcf.csi")
     log:
         f"{outdir}/workflow/input/vcf/input.sorted.log"
+    container:
+        None
     message:
         "Sorting input variant call file"
     shell:
@@ -61,6 +65,8 @@ rule index_alignments:
         bam_dir + "/{sample}.bam"
     output:
         bam_dir + "/{sample}.bam.bai"
+    container:
+        None
     message:
         "Indexing: {wildcards.sample}"
     shell:
@@ -86,6 +92,8 @@ rule convert_stitch:
         outdir + "/workflow/input/stitch/{part}.stitch"
     threads: 
         3
+    container:
+        None
     message:
         "Converting data to biallelic STITCH format: {wildcards.part}"
     shell:
@@ -135,6 +143,8 @@ rule index_vcf:
     output: 
         idx   = outdir + "/{stitchparams}/contigs/{part}/{part}.vcf.gz.tbi",
         stats = outdir + "/{stitchparams}/contigs/{part}/{part}.stats"
+    container:
+        None
     message:
         "Indexing: {wildcards.stitchparams}/{wildcards.part}"
     shell:
@@ -163,6 +173,8 @@ rule clean_stitch_intermediates:
     params:
         stitch = lambda wc: wc.get("stitchparams"),
         outdir = outdir
+    container:
+        None
     priority:
         2
     message:
@@ -181,6 +193,8 @@ rule clean_stitch_plots:
     params:
         stitch = lambda wc: wc.get("stitchparams"),
         outdir = outdir
+    container:
+        None
     priority:
         2
     message:
@@ -208,6 +222,8 @@ rule merge_vcfs:
         outdir + "/{stitchparams}/variants.imputed.bcf"
     threads:
         workflow.cores
+    container:
+        None
     message:
         "Merging VCFs: {wildcards.stitchparams}"
     shell:
@@ -218,6 +234,8 @@ rule index_merged:
         outdir + "/{stitchparams}/variants.imputed.bcf"
     output:
         outdir + "/{stitchparams}/variants.imputed.bcf.csi"
+    container:
+        None
     message:
         "Indexing resulting file: {output}"
     shell:
@@ -229,6 +247,8 @@ rule stats:
         idx = outdir + "/{stitchparams}/variants.imputed.bcf.csi"
     output:
         outdir + "/{stitchparams}/reports/variants.imputed.stats"
+    container:
+        None
     message:
         "Calculating stats: {wildcards.stitchparams}/variants.imputed.bcf"
     shell:
@@ -245,6 +265,8 @@ rule compare_stats:
     output:
         compare = outdir + "/{stitchparams}/reports/data/impute.compare.stats",
         info_sc = temp(outdir + "/{stitchparams}/reports/data/impute.infoscore")
+    container:
+        None
     message:
         "Computing post-imputation stats: {wildcards.stitchparams}"
     shell:

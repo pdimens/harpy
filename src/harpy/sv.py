@@ -34,7 +34,7 @@ def leviathan(input, output_dir, genome, min_sv, min_barcodes, threads, populati
     output_dir = output_dir.rstrip("/")
     workflowdir = f"{output_dir}/workflow"
     vcaller = "leviathan" if populations is None else "leviathan-pop"
-    command = f'snakemake --rerun-incomplete --rerun-triggers input mtime params --nolock --software-deployment-method conda --conda-prefix ./.snakemake/conda --cores {threads} --directory .'.split()
+    command = f'snakemake --rerun-incomplete --rerun-triggers input mtime params --nolock --software-deployment-method conda apptainer --conda-prefix ./.snakemake/conda --cores {threads} --directory .'.split()
     command.append('--snakefile')
     command.append(f'{workflowdir}/sv-{vcaller}.smk')
     command.append('--configfile')
@@ -121,7 +121,7 @@ def naibr(input, output_dir, genome, vcf, min_sv, min_barcodes, threads, populat
     vcaller = "naibr" if populations is None else "naibr-pop"
     vcaller += "-phase" if vcf is not None else ""
     
-    command = (f'snakemake --rerun-incomplete --rerun-triggers input mtime params --nolock --software-deployment-method conda --conda-prefix ./.snakemake/conda --cores {threads} --directory .').split()
+    command = (f'snakemake --rerun-incomplete --rerun-triggers input mtime params --nolock --software-deployment-method conda apptainer --conda-prefix ./.snakemake/conda --cores {threads} --directory .').split()
     command.append('--snakefile')
     command.append(f"{workflowdir}/sv-{vcaller}.smk")
     command.append("--configfile")

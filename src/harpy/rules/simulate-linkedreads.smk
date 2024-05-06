@@ -1,3 +1,5 @@
+containerized: "docker://pdimens/harpy:latest"
+
 import os
 import sys
 import gzip
@@ -71,6 +73,8 @@ rule genome_faidx:
         outdir + "/workflow/input/hap.{hap}.fasta"
     output: 
         outdir + "/workflow/input/hap.{hap}.fasta.fai"
+    container:
+        None
     message:
         "Indexing haplotype {wildcards.hap}"
     shell:
@@ -112,6 +116,8 @@ rule interleave_dwgsim_output:
         collect(outdir + "/dwgsim_simulated/dwgsim.{{hap}}.12.bwa.read{rd}.fastq.gz", rd = [1,2]) 
     output:
         outdir + "/dwgsim_simulated/dwgsim.{hap}.12.fastq"
+    container:
+        None
     message:
         "Interleaving dwgsim output: {wildcards.hap}"
     shell:
@@ -176,6 +182,8 @@ rule extract_reads:
         outdir + "/logs/extract_linkedreads.hap{hap}.log"
     params:
         lambda wc: f"""{outdir}/10X/sim_hap{wc.get("hap")}_10x"""
+    container:
+        None
     message:
         "Extracting linked reads for haplotype {wildcards.hap}"
     shell:
@@ -193,6 +201,8 @@ rule convert_haplotag:
         outdir + "/logs/10XtoHaplotag/hap{hap}"
     params:
         lambda wc: f"""{outdir}/sim_hap{wc.get("hap")}_haplotag"""
+    container:
+        None
     message:
         "Converting 10X barcodes to haplotag format: haplotype {wildcards.hap}"
     shell:

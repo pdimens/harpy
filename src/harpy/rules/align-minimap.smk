@@ -1,3 +1,5 @@
+containerized: "docker://pdimens/harpy:latest"
+
 import os
 import re
 import glob
@@ -63,6 +65,8 @@ rule genome_link:
         genomefile
     output: 
         f"Genome/{bn}"
+    container:
+        None
     message: 
         "Symlinking {input}"
     shell: 
@@ -79,37 +83,36 @@ rule genome_link:
         fi
         """
 
-if genome_zip:
-    rule genome_compressed_faidx:
-        input: 
-            f"Genome/{bn}"
-        output: 
-            gzi = f"Genome/{bn}.gzi",
-            fai = f"Genome/{bn}.fai"
-        log:
-            f"Genome/{bn}.faidx.gzi.log"
-        message:
-            "Indexing {input}"
-        shell: 
-            "samtools faidx --gzi-idx {output.gzi} --fai-idx {output.fai} {input} 2> {log}"
-else:
-    rule genome_faidx:
-        input: 
-            f"Genome/{bn}"
-        output: 
-            f"Genome/{bn}.fai"
-        log:
-            f"Genome/{bn}.faidx.log"
-        message:
-            "Indexing {input}"
-        shell:
-            "samtools faidx --fai-idx {output} {input} 2> {log}"
+rule genome_faidx:
+    input: 
+        f"Genome/{bn}"
+    output: 
+        fai = f"Genome/{bn}.fai",
+        gzi = f"Genome/{bn}.gzi" if genome_zip else []
+    log:
+        f"Genome/{bn}.faidx.log"
+    params:
+        genome_zip
+    container:
+        None
+    message:
+        "Indexing {input}"
+    shell: 
+        """
+        if [ "{params}" = "True" ]; then
+            samtools faidx --gzi-idx {output.gzi} --fai-idx {output.fai} {input} 2> {log}
+        else
+            samtools faidx --fai-idx {output.fai} {input} 2> {log}
+        fi
+        """
 
 rule genome_make_windows:
     input:
         f"Genome/{bn}"
     output: 
         f"Genome/{bn}.bed"
+    container:
+        None
     message: 
         "Creating BED intervals from {input}"
     shell: 
@@ -161,6 +164,8 @@ rule quality_filter:
         temp(outdir + "/samples/{sample}/{sample}.mm2.sam")
     params: 
         quality = config["quality"]
+    container:
+        None
     message:
         "Quality filtering alignments: {wildcards.sample}"
     shell:
@@ -171,6 +176,8 @@ rule collate:
         outdir + "/samples/{sample}/{sample}.mm2.sam"
     output:
         temp(outdir + "/samples/{sample}/{sample}.collate.bam")
+    container:
+        None
     message:
         "Collating alignments: {wildcards.sample}"
     shell:
@@ -181,6 +188,8 @@ rule fix_mates:
         outdir + "/samples/{sample}/{sample}.collate.bam"
     output:
         temp(outdir + "/samples/{sample}/{sample}.fixmate.bam")
+    container:
+        None
     message:
         "Fixing mates in alignments: {wildcards.sample}"
     shell:
@@ -199,6 +208,8 @@ rule sort_alignments:
     params: 
         quality = config["quality"],
         tmpdir = lambda wc: outdir + "/." + d[wc.sample]
+    container:
+        None
     message:
         "Sorting alignments: {wildcards.sample}"
     shell:
@@ -216,6 +227,8 @@ rule mark_duplicates:
         outdir + "/logs/{sample}.markdup.log"
     threads:
         2
+    container:
+        None
     message:
         "Marking duplicates in alignments alignment: {wildcards.sample}"
     shell:
@@ -226,6 +239,8 @@ rule index_markdups:
         outdir + "/samples/{sample}/{sample}.markdup.bam"
     output:
         temp(outdir + "/samples/{sample}/{sample}.markdup.bam.bai")
+    container:
+        None
     message:
         "Indexing duplicate-marked alignments: {wildcards.sample}"
     shell:
@@ -270,6 +285,8 @@ rule alignment_coverage:
         outdir + "/reports/data/coverage/{sample}.cov.gz"
     threads: 
         2
+    container:
+        None
     message:
         "Calculating genomic coverage: {wildcards.sample}"
     shell:
@@ -297,6 +314,8 @@ rule general_alignment_stats:
     output: 
         stats    = temp(outdir + "/reports/data/samtools_stats/{sample}.stats"),
         flagstat = temp(outdir + "/reports/data/samtools_flagstat/{sample}.flagstat")
+    container:
+        None
     message:
         "Calculating alignment stats: {wildcards.sample}"
     shell:

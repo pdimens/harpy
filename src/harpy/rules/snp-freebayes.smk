@@ -1,3 +1,5 @@
+containerized: "docker://pdimens/harpy:latest"
+
 from rich import print as rprint
 from rich.panel import Panel
 import os
@@ -81,6 +83,8 @@ rule genome_link:
         genomefile
     output: 
         f"Genome/{bn}"
+    container:
+        None
     message: 
         "Symlinking {input}"
     shell: 
@@ -104,6 +108,8 @@ rule genome_faidx:
         f"Genome/{bn}.fai"
     log:
         f"Genome/{bn}.faidx.log"
+    container:
+        None
     message:
         "Indexing {input}"
     shell:
@@ -114,6 +120,8 @@ rule index_alignments:
         bam_dir + "/{sample}.bam"
     output:
         bam_dir + "/{sample}.bam.bai"
+    container:
+        None
     message:
         "Indexing alignments: {wildcards.sample}"
     shell:
@@ -170,6 +178,8 @@ rule sort_variants:
     output:
         bcf = temp(outdir + "/regions/{part}.bcf"),
         idx = temp(outdir + "/regions/{part}.bcf.csi")
+    container:
+        None
     message:
         "Sorting: {wildcards.part}"
     shell:
@@ -197,6 +207,8 @@ rule merge_vcfs:
         outdir + "/logs/concat.log"
     threads:
         workflow.cores
+    container:
+        None
     message:
         "Combining vcfs into a single file"
     shell:  
@@ -208,6 +220,8 @@ rule sort_vcf:
     output:
         bcf = outdir + "/variants.raw.bcf",
         csi = outdir + "/variants.raw.bcf.csi"
+    container:
+        None
     message:
         "Sorting and indexing final variants"
     shell:
@@ -243,6 +257,8 @@ rule variants_stats:
         idx     = outdir + "/variants.{type}.bcf.csi"
     output:
         outdir + "/reports/variants.{type}.stats",
+    container:
+        None
     message:
         "Calculating variant stats: variants.{wildcards.type}.bcf"
     shell:
