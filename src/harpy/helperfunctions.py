@@ -10,7 +10,7 @@ from collections import Counter
 import rich_click as click
 import harpy.scripts
 import harpy.reports
-import harpy.rules
+import harpy.snakefiles
 
 def symlink(original, destination):
     """Create a symbolic link from original -> destination if the destination doesn't already exist."""
@@ -58,8 +58,8 @@ def fetch_rule(workdir, target):
     """
     os.makedirs(f"{workdir}/", exist_ok= True)
     with open(f"{workdir}/{target}", "w") as f:
-        if os.path.isfile(files(harpy.rules).joinpath(target)):
-            f.write(files(harpy.rules).joinpath(target).read_text())
+        if os.path.isfile(files(harpy.snakefiles).joinpath(target)):
+            f.write(files(harpy.snakefiles).joinpath(target).read_text())
         else:
             print_error(f"Bundled script [blue bold]{target}[/blue bold] was not found in the Harpy installation.")
             print_solution("There may be an issue with your Harpy installation, which would require reinstalling Harpy. Alternatively, there may be in a issue with your conda/mamba environment or configuration.")
