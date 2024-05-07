@@ -1,10 +1,37 @@
 import rich_click as click
 from .printfunctions import print_onstart
-from .helperfunctions import fetch_rule, generate_conda_deps
+from .helperfunctions import fetch_rule
 from .validations import validate_demuxschema
 import sys
 import os
 import re
+
+
+@click.group(options_metavar='', context_settings=dict(help_option_names=["-h", "--help"]))
+def demultiplex():
+    """
+    Demultiplex haplotagged FASTQ files
+
+    Check that you are using the correct haplotag method/technology, since the different
+    barcoding approaches have very different demultiplexing strategies.
+
+    **Haplotag Technologies**
+    - `gen1`: the original haplotagging barcode strategy developed by Meier _et al._ (2021)
+    """
+
+docstring = {
+    "harpy demultiplex gen1": [
+        {
+            "name": "Parameters",
+            "options": ["--schema"],
+        },
+        {
+            "name": "Other Options",
+            "options": ["--output-dir", "--threads", "--skipreports", "--snakemake", "--quiet", "--help"],
+        },
+    ]
+
+}
 
 @click.command(no_args_is_help = True, epilog = "read the docs for more information: https://pdimens.github.io/harpy/modules/demultiplex/")
 @click.option('-s', '--schema', required = True, type=click.Path(exists=True, dir_okay=False), help = 'Tab-delimited file of sample\<tab\>barcode')
@@ -28,7 +55,7 @@ def gen1(r1_fq, r2_fq, i1_fq, i2_fq, output_dir, schema, threads, snakemake, ski
     """
     output_dir = output_dir.rstrip("/")
     workflowdir = f"{output_dir}/workflow"
-    command = f'snakemake --rerun-incomplete --rerun-triggers input mtime params --nolock --software-deployment-method conda --conda-prefix ./.snakemake/conda --cores {threads} --directory .'.split()
+    command = f'snakemake --rerun-incomplete --rerun-triggers input mtime params --nolock --software-deployment-method conda apptainer --conda-prefix ./.snakemake/conda --cores {threads} --directory .'.split()
     command.append('--snakefile')
     command.append(f'{workflowdir}/demultiplex.gen1.smk')
     command.append("--configfile")

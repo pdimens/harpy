@@ -1,3 +1,5 @@
+containerized: "docker://pdimens/harpy:latest"
+
 from rich import print as rprint
 from rich.panel import Panel
 import os
@@ -7,6 +9,7 @@ import glob
 
 seq_dir = config["seq_directory"]
 out_dir = config["output_directory"]
+envdir      = os.getcwd() + "/.harpy_envs"
 
 bamlist = [os.path.basename(i) for i in glob.iglob(f"{seq_dir}/*") if not os.path.isdir(i) and i.lower().endswith(".bam")]
 samplenames = set([os.path.splitext(i)[0] for i in bamlist])  
@@ -43,6 +46,8 @@ rule index_bam:
         seq_dir + "/{sample}.bam"
     output:
         seq_dir + "/{sample}.bam.bai"
+    container:
+        None
     message:
         "Indexing {input}"
     shell:
@@ -55,7 +60,7 @@ rule check_bam:
     output:
         temp(out_dir + "/{sample}.log")
     conda:
-        os.getcwd() + "/.harpy_envs/qc.yaml"
+        f"{envdir}/qc.yaml"
     message:
         "Processing: {wildcards.sample}"
     script: 
@@ -67,6 +72,8 @@ rule merge_checks:
     output:
         tmp = temp(out_dir + "/filecheck.tmp"),
         final = out_dir + "/filecheck.bam.tsv"
+    container:
+        None
     message:
         "Concatenating results"
     shell:
@@ -83,7 +90,7 @@ rule create_report:
     params:
         seq_dir
     conda:
-        os.getcwd() + "/.harpy_envs/r-env.yaml"
+        f"{envdir}/r.yaml"
     message:
         "Producing report"
     script:

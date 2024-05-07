@@ -1,9 +1,12 @@
+containerized: "docker://pdimens/harpy:latest"
+
 from rich import print as rprint
 from rich.panel import Panel
 import sys
 import os
 
 bam_dir     = config["seq_directory"]
+envdir      = os.getcwd() + "/.harpy_envs"
 genomefile  = config["genomefile"]
 samplenames = config["samplenames"]
 min_sv      = config["min_sv"]
@@ -48,6 +51,8 @@ rule index_alignment:
         bam_dir + "/{sample}.bam"
     output:
         bam_dir + "/{sample}.bam.bai"
+    container:
+        None
     message:
         "Indexing alignment: {wildcards.sample}"
     shell:
@@ -64,7 +69,7 @@ rule index_barcode:
     threads:
         4
     conda:
-        os.getcwd() + "/.harpy_envs/variants.sv.yaml"
+        f"{envdir}/sv.yaml"
     message:
         "Indexing barcodes: {wildcards.sample}"
     shell:
@@ -75,6 +80,8 @@ rule genome_link:
         genomefile
     output: 
         f"Genome/{bn}"
+    container:
+        None
     message: 
         "Creating {output}"
     shell: 
@@ -98,6 +105,8 @@ rule genome_faidx:
         f"Genome/{bn}.fai"
     log:
         f"Genome/{bn}.faidx.log"
+    container:
+        None
     message:
         "Indexing {input}"
     shell:
@@ -111,7 +120,7 @@ rule index_bwa_genome:
     log:
         f"Genome/{bn}.idx.log"
     conda:
-        os.getcwd() + "/.harpy_envs/align.yaml"
+        f"{envdir}/align.yaml"
     message:
         "Indexing {input}"
     shell: 
@@ -136,7 +145,7 @@ rule leviathan_variantcall:
     threads:
         3
     conda:
-        os.getcwd() + "/.harpy_envs/variants.sv.yaml"
+        f"{envdir}/sv.yaml"
     benchmark:
         ".Benchmark/leviathan/{sample}.variantcall"
     message:
@@ -151,6 +160,8 @@ rule sort_bcf:
         outdir + "/{sample}.bcf"
     params:
         "{wildcards.sample}"
+    container:
+        None
     message:
         "Sorting and converting to BCF: {wildcards.sample}"
     shell:        
@@ -161,6 +172,8 @@ rule sv_stats:
         outdir + "/{sample}.bcf"
     output: 
         outdir + "/reports/data/{sample}.sv.stats"
+    container:
+        None
     message:
         "Getting SV stats for {wildcards.sample}"
     shell:
@@ -176,7 +189,7 @@ rule sv_report:
     output:	
         outdir + "/reports/{sample}.SV.html"
     conda:
-        os.getcwd() + "/.harpy_envs/r-env.yaml"
+        f"{envdir}/r.yaml"
     message:
         "Generating SV report: {wildcards.sample}"
     script:

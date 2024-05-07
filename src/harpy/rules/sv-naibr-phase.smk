@@ -1,3 +1,5 @@
+containerized: "docker://pdimens/harpy:latest"
+
 from rich import print as rprint
 from rich.panel import Panel
 import sys
@@ -5,6 +7,7 @@ import os
 import re
 
 bam_dir     = config["seq_directory"]
+envdir      = os.getcwd() + "/.harpy_envs"
 samplenames = config["samplenames"] 
 extra       = config.get("extra", None) 
 genomefile  = config["genomefile"]
@@ -72,6 +75,8 @@ rule genome_link:
         genomefile
     output: 
         f"Genome/{validgenome}"
+    container:
+        None
     message: 
         "Preprocessing {input}"
     shell: 
@@ -95,6 +100,8 @@ rule genome_faidx:
         f"Genome/{validgenome}.fai"
     log:
         f"Genome/{validgenome}.faidx.log"
+    container:
+        None
     message:
         "Indexing {input}"
     shell:
@@ -105,6 +112,8 @@ rule index_original_alignment:
         bam_dir + "/{sample}.bam"
     output:
         bam_dir + "/{sample}.bam.bai"
+    container:
+        None
     message:
         "Indexing alignment: {wildcards.sample}"
     shell:
@@ -115,6 +124,8 @@ rule index_bcf:
         vcffile
     output:
         vcffile + ".csi"
+    container:
+        None
     message:
         "Indexing {input}"
     shell:
@@ -125,6 +136,8 @@ rule index_vcfgz:
         vcffile
     output:
         vcffile + ".tbi"
+    container:
+        None
     message:
         "Indexing {input}"
     shell:
@@ -142,7 +155,7 @@ rule phase_alignments:
         bam = outdir + "/phasedbam/{sample}.bam",
         log = outdir + "/logs/whatshap-haplotag/{sample}.phase.log"
     conda:
-        os.getcwd() + "/.harpy_envs/phase.yaml"
+        f"{envdir}/phase.yaml"
     threads:
         4
     message:
@@ -155,6 +168,8 @@ rule log_phasing:
         collect(outdir + "/logs/whatshap-haplotag/{sample}.phase.log", sample = samplenames)
     output:
         outdir + "/logs/whatshap-haplotag/phasing.log"
+    container:
+        None
     message:
         "Creating log of alignment phasing"
     shell:
@@ -192,6 +207,8 @@ rule index_phased_alignment:
         outdir + "/phasedbam/{sample}.bam"
     output:
         outdir + "/phasedbam/{sample}.bam.bai"
+    container:
+        None
     message:
         "Indexing alignment: {wildcards.sample}"
     shell:
@@ -211,7 +228,7 @@ rule call_sv:
     threads:
         min(10, workflow.cores)
     conda:
-        os.getcwd() + "/.harpy_envs/variants.sv.yaml"
+        f"{envdir}/sv.yaml"
     message:
         "Calling variants: {wildcards.sample}"
     shell:
@@ -229,6 +246,8 @@ rule infer_sv:
         vcf   = outdir + "/vcf/{sample}.vcf" 
     params:
         outdir = lambda wc: outdir + "/" + wc.get("sample")
+    container:
+        None
     message:
         "Inferring variants from naibr output: {wildcards.sample}"
     shell:
@@ -246,7 +265,7 @@ rule create_report:
     output:
         outdir + "/reports/{sample}.naibr.html"
     conda:
-        os.getcwd() + "/.harpy_envs/r-env.yaml"
+        f"{envdir}/r.yaml"
     message:
         "Creating report: {wildcards.sample}"
     script:

@@ -1,9 +1,12 @@
+containerized: "docker://pdimens/harpy:latest"
+
 from rich import print as rprint
 from rich.panel import Panel
 import sys
 import os
 
 bam_dir 	= config["seq_directory"]
+envdir      = os.getcwd() + "/.harpy_envs"
 genomefile 	= config["genomefile"]
 samplenames = config["samplenames"]
 extra 		= config.get("extra", "") 
@@ -97,6 +100,8 @@ rule merge_populations:
         bai = temp(outdir + "/workflow/inputpop/{population}.bam.bai")
     threads:
         2
+    container:
+        None
     message:
         "Merging alignments: Population {wildcards.population}"
     shell:
@@ -113,7 +118,7 @@ rule index_barcode:
     threads:
         4
     conda:
-        os.getcwd() + "/.harpy_envs/variants.sv.yaml"
+        f"{envdir}/sv.yaml"
     message:
         "Indexing barcodes: Population {wildcards.population}"
     shell:
@@ -124,6 +129,8 @@ rule genome_link:
         genomefile
     output: 
         f"Genome/{bn}"
+    container:
+        None
     message: 
         "Creating {output}"
     shell: 
@@ -147,6 +154,8 @@ rule genome_faidx:
         f"Genome/{bn}.fai"
     log:
         f"Genome/{bn}.faidx.log"
+    container:
+        None
     message:
         "Indexing {input}"
     shell:
@@ -162,7 +171,7 @@ rule index_bwa_genome:
     message:
         "Indexing {input}"
     conda:
-        os.getcwd() + "/.harpy_envs/align.yaml"
+        f"{envdir}/align.yaml"
     shell: 
         "bwa index {input} 2> {log}"
 
@@ -185,7 +194,7 @@ rule leviathan_variantcall:
     threads:
         3
     conda:
-        os.getcwd() + "/.harpy_envs/variants.sv.yaml"
+        f"{envdir}/sv.yaml"
     message:
         "Calling variants: Population {wildcards.population}"
     benchmark:
@@ -198,10 +207,12 @@ rule sort_bcf:
         outdir + "/{population}.vcf"
     output:
         outdir + "/{population}.bcf"
-    message:
-        "Sorting and converting to BCF: Population {wildcards.population}"
     params:
         "{wildcards.population}"
+    container:
+        None
+    message:
+        "Sorting and converting to BCF: Population {wildcards.population}"
     shell:        
         "bcftools sort -Ob --output {output} {input} 2> /dev/null"
 
@@ -210,6 +221,8 @@ rule sv_stats:
         outdir + "/{population}.bcf"
     output:
         outdir + "/reports/data/{population}.sv.stats"
+    container:
+        None
     message:
         "Getting stats: Population {input}"
     shell:
@@ -228,10 +241,9 @@ rule sv_report_bypop:
     message:
         "Generating SV report: population {wildcards.population}"
     conda:
-        os.getcwd() + "/.harpy_envs/r-env.yaml"
+        f"{envdir}/r.yaml"
     script:
         "report/Leviathan.Rmd"
-
 
 rule sv_report:
     input:	
@@ -242,7 +254,7 @@ rule sv_report:
     message:
         "Generating SV report for all populations"
     conda:
-        os.getcwd() + "/.harpy_envs/r-env.yaml"
+        f"{envdir}/r.yaml"
     script:
         "report/LeviathanPop.Rmd"
 

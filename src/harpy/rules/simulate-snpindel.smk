@@ -1,3 +1,5 @@
+containerized: "docker://pdimens/harpy:latest"
+
 import sys
 import os
 import random
@@ -7,6 +9,7 @@ from rich import print as rprint
 indir = config["input_directory"]
 outdir = config["output_directory"]
 genome = config["genome"]
+envdir = os.getcwd() + "/.harpy_envs"
 snp_vcf = config.get("snp_vcf", None)
 indel_vcf = config.get("indel_vcf", None)
 heterozygosity = config["heterozygosity"]
@@ -86,6 +89,8 @@ if snp_vcf:
             snp_vcf
         output:
             snp_vcf_correct
+        container:
+            None
         message:
             "Converting {input} to compressed VCF format"
         shell:
@@ -97,6 +102,8 @@ if indel_vcf:
             indel_vcf
         output:
             indel_vcf_correct
+        container:
+            None
         message:
             "Converting {input} to compressed VCF format"
         shell:
@@ -116,7 +123,7 @@ rule simulate_variants:
         simuG = f"{outdir}/workflow/scripts/simuG.pl",
         parameters = variant_params
     conda:
-        os.getcwd() + "/.harpy_envs/simulations.yaml"
+        f"{envdir}/simulations.yaml"
     message:
         "Simulating snps and/or indels"
     shell:

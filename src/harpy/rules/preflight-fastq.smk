@@ -1,3 +1,5 @@
+containerized: "docker://pdimens/harpy:latest"
+
 from rich import print as rprint
 from rich.panel import Panel
 import os
@@ -7,6 +9,7 @@ import glob
 
 seq_dir = config["seq_directory"]
 out_dir = config["output_directory"]
+envdir      = os.getcwd() + "/.harpy_envs"
 
 wildcard_constraints:
     sample = "[a-zA-Z0-9._-]+"
@@ -61,7 +64,7 @@ rule check_forward:
     output:
         temp(out_dir + "/{sample}.F.log")
     conda:
-        os.getcwd() + "/.harpy_envs/qc.yaml"
+        f"{envdir}/qc.yaml"
     message:
         "Processing forward reads: {wildcards.sample}"
     script: 
@@ -75,7 +78,7 @@ rule check_reverse:
     message:
         "Processing reverse reads: {wildcards.sample}"
     conda:
-        os.getcwd() + "/.harpy_envs/qc.yaml"
+        f"{envdir}/qc.yaml"
     script: 
         "scripts/checkFASTQ.py"
 
@@ -85,6 +88,8 @@ rule merge_checks:
     output:
         tmp = temp(out_dir + "/filecheck.tmp"),
         final = out_dir + "/filecheck.fastq.tsv"
+    container:
+        None
     message:
         "Concatenating results"
     shell:
@@ -101,7 +106,7 @@ rule create_report:
     params:
         seq_dir
     conda:
-        os.getcwd() + "/.harpy_envs/r-env.yaml"
+        f"{envdir}/r.yaml"
     message:
         "Producing report"
     script:

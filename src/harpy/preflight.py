@@ -1,11 +1,37 @@
 import rich_click as click
-from .helperfunctions import fetch_rule, fetch_report, fetch_script, generate_conda_deps
+from .helperfunctions import fetch_rule, fetch_report, fetch_script
 from .printfunctions import print_onstart
 from .fileparsers import parse_alignment_inputs, parse_fastq_inputs
 import re
 import os
 import sys
 import glob
+
+@click.group(options_metavar='', context_settings=dict(help_option_names=["-h", "--help"]))
+def preflight():
+    """
+    Run file format checks on haplotag data
+
+    This is useful to make sure your input files are formatted correctly for the processing pipeline 
+    before you are surprised by errors hours into an analysis. Provide an additional command `fastq`
+    or `bam` to see more information and options.
+    """
+    pass
+
+docstring = {
+    "harpy preflight bam": [
+        {
+            "name": "Options",
+            "options": ["--output-dir", "--threads", "--snakemake", "--quiet", "--help"],
+        },
+    ],
+    "harpy preflight fastq": [
+        {
+            "name": "Options",
+            "options": ["--output-dir", "--threads", "--snakemake", "--quiet", "--help"],
+        },
+    ]
+}
 
 @click.command(no_args_is_help = True, epilog = "read the docs for more information: https://pdimens.github.io/harpy/modules/preflight/")
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(min = 1, max_open = True), metavar = "Integer", help = 'Number of threads to use')
@@ -29,7 +55,7 @@ def fastq(input, output_dir, threads, snakemake, quiet, print_only):
     """
     output_dir = output_dir.rstrip("/")
     workflowdir = f"{output_dir}/workflow"
-    command = f'snakemake --rerun-incomplete --rerun-triggers input mtime params --nolock --software-deployment-method conda --conda-prefix ./.snakemake/conda --cores {threads} --directory .'.split()
+    command = f'snakemake --rerun-incomplete --rerun-triggers input mtime params --nolock --software-deployment-method conda apptainer --conda-prefix ./.snakemake/conda --cores {threads} --directory .'.split()
     command.append('--snakefile')
     command.append(f'{workflowdir}/preflight-fastq.smk')
     command.append('--configfile')
@@ -82,7 +108,7 @@ def bam(input, output_dir, threads, snakemake, quiet, print_only):
     """
     output_dir = output_dir.rstrip("/")
     workflowdir = f"{output_dir}/workflow"
-    command = f'snakemake --rerun-incomplete --rerun-triggers input mtime params --nolock --software-deployment-method conda --conda-prefix ./.snakemake/conda --cores {threads} --directory .'.split()
+    command = f'snakemake --rerun-incomplete --rerun-triggers input mtime params --nolock --software-deployment-method conda apptainer --conda-prefix ./.snakemake/conda --cores {threads} --directory .'.split()
     command.append('--snakefile')
     command.append(f'{workflowdir}/preflight-bam.smk')
     command.append('--configfile')

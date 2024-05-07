@@ -1,4 +1,4 @@
-from .helperfunctions import fetch_rule, fetch_report, generate_conda_deps
+from .helperfunctions import fetch_rule, fetch_report
 from .fileparsers import parse_alignment_inputs
 from .printfunctions import print_onstart
 from .validations import vcfcheck, vcf_samplematch, validate_bamfiles, validate_input_by_ext
@@ -6,6 +6,19 @@ import sys
 import os
 import subprocess
 import rich_click as click
+
+docstring = {
+        "harpy phase": [
+        {
+            "name": "Parameters",
+            "options": ["--vcf", "--molecule-distance", "--genome", "--prune-threshold", "--ignore-bx", "--extra-params", "--vcf-samples"],
+        },
+        {
+            "name": "Other Options",
+            "options": ["--output-dir", "--threads", "--skipreports", "--snakemake", "--quiet", "--help"],
+        },     
+    ]
+}
 
 @click.command(no_args_is_help = True, epilog = "read the docs for more information: https://pdimens.github.io/harpy/modules/phase")
 @click.option('-v', '--vcf', required = True, type=click.Path(exists=True, dir_okay=False), metavar = "File Path", help = 'Path to BCF/VCF file')
@@ -36,7 +49,7 @@ def phase(input, output_dir, vcf, threads, molecule_distance, prune_threshold, v
     """
     output_dir = output_dir.rstrip("/")
     workflowdir = f"{output_dir}/workflow"
-    command = f'snakemake --rerun-incomplete --rerun-triggers input mtime params --nolock --software-deployment-method conda --conda-prefix ./.snakemake/conda --cores {threads} --directory .'.split()
+    command = f'snakemake --rerun-incomplete --rerun-triggers input mtime params --nolock --software-deployment-method conda apptainer --conda-prefix ./.snakemake/conda --cores {threads} --directory .'.split()
     command.append('--snakefile')
     command.append(f"{workflowdir}/phase.smk")
     command.append("--configfile")

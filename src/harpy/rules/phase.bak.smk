@@ -56,7 +56,7 @@ onsuccess:
         file = sys.stderr
     )
 
-rule extract_heterozygous:
+rule split_by_samplehet:
     input: 
         vcf = variantfile,
         bam = bam_dir + "/{sample}.bam"
@@ -70,15 +70,16 @@ rule extract_heterozygous:
         "Extracting heterozygous variants: {wildcards.sample}"
     shell:
         """
-        bcftools view -s {wildcards.sample} -Ou {input.vcf} | bcftools view -i 'GT="het"' > {output}
+        bcftools view -s {wildcards.sample} {input.vcf} |
+        awk '/^#/;/CHROM/ {{OFS="\\t"}}; !/^#/ && $10~/^0\\/1/' > {output}
         """
 
-rule extract_homozygous:
+rule split_by_sample:
     input: 
         vcf = variantfile,
         bam = bam_dir + "/{sample}.bam"
     output:
-        outdir + "/workflow/input/vcf/{sample}.hom.vcf"
+        outdir + "/workflow/input/vcf/{sample}.vcf"
     benchmark:
         ".Benchmark/Phase/split.{sample}.txt"
     container:
@@ -87,7 +88,8 @@ rule extract_homozygous:
         "Extracting variants: {wildcards.sample}"
     shell:
         """
-        bcftools view -s {wildcards.sample} -Ou {input.vcf} | bcftools view -i 'GT="hom"' > {output}
+        bcftools view -s {wildcards.sample} {input.vcf} |
+        awk '/^#/;/CHROM/ {{OFS="\\t"}}; !/^#/ &&  $10~/^0\\/0/ {{$10="0|0:"substr($10,5);print $0}}; !/^#/ && $10~/^0\\/1/; !/^#/ &&  $10~/^1\\/1/ {{$10="1|1:"substr($10,5);print $0}}; !/^#/ {{print $0}}' > {output}
         """
 
 rule index_alignment:
@@ -149,7 +151,7 @@ rule phase_blocks:
         fragments = fragfile
     output: 
         blocks    = outdir + "/phaseBlocks/{sample}.blocks",
-        vcf       = temp(outdir + "/phaseBlocks/{sample}.blocks.phased.VCF")
+        vcf       = outdir + "/phaseBlocks/{sample}.blocks.phased.VCF"
     log:
         outdir + "/phaseBlocks/logs/{sample}.blocks.phased.log"
     params: 
@@ -164,31 +166,52 @@ rule phase_blocks:
     shell:
         "HAPCUT2 --fragments {input.fragments} --vcf {input.vcf} {params} --out {output.blocks} --nf 1 --error_analysis_mode 1 --call_homozygous 1 --outvcf 1 > {log} 2>&1"
 
-rule compress_phaseblock:
+rule create_annotations:
     input:
         outdir + "/phaseBlocks/{sample}.blocks.phased.VCF"
     output:
-        outdir + "/phaseBlocks/{sample}.phased.vcf.gz"
+        outdir + "/annotations/{sample}.annot.gz"
     container:
         None
     message:
-        "Compressing vcf: {wildcards.sample}"
+        "Creating annotation files: {wildcards.sample}"
     shell:
-        "bcftools view -Oz6 -o {output} --write-index {input}"
+        "bcftools query -f \"%CHROM\\t%POS[\\t%GT\\t%PS\\t%PQ\\t%PD]\\n\" {input} | bgzip -c > {output}"
 
-use rule compress_phaseblock as compress vcf with:
+rule index_annotations:
     input:
-        outdir + "/workflow/input/vcf/{sample}.hom.vcf"
+        outdir + "/annotations/{sample}.annot.gz"
     output:
-        outdir + "/workflow/input/gzvcf/{sample}.hom.vcf.gz"
+        outdir + "/annotations/{sample}.annot.gz.tbi"
+    container:
+        None
+    message:
+        "Indexing {wildcards.sample}.annot.gz"
+    shell: 
+        "tabix -b 2 -e 2 {input}"
+
+rule headerfile:
+    output:
+        outdir + "/workflow/input/header.names"
+    message:
+        "Creating additional header file"
+    run:
+        with open(output[0], "w") as fout:
+            _ = fout.write('##INFO=<ID=HAPCUT,Number=0,Type=Flag,Description="The haplotype was created with Hapcut2">\n')
+            _ = fout.write('##FORMAT=<ID=GT,Number=1,Type=String,Description="Genotype/Haplotype">\n')
+            _ = fout.write('##FORMAT=<ID=PS,Number=1,Type=Integer,Description="ID of Phase Set for Variant">\n')
+            _ = fout.write('##FORMAT=<ID=PQ,Number=1,Type=Integer,Description="Phred QV indicating probability that this variant is incorrectly phased relative to the haplotype">\n')
+            _ = fout.write('##FORMAT=<ID=PD,Number=1,Type=Integer,Description="phased Read Depth">')
 
 rule merge_annotations:
     input:
-        phase = outdir + "/phaseBlocks/{sample}.phased.vcf.gz",
-        orig  = outdir + "/workflow/input/gzvcf/{sample}.hom.vcf.gz"
+        annot   = outdir + "/annotations/{sample}.annot.gz",
+        idx     = outdir + "/annotations/{sample}.annot.gz.tbi",
+        orig    = outdir + "/workflow/input/vcf/{sample}.vcf",
+        headers = outdir + "/workflow/input/header.names"
     output:
-        bcf = outdir + "/annotations/{sample}.phased.annot.bcf",
-        idx = outdir + "/annotations/{sample}.phased.annot.bcf.csi"
+        bcf = outdir + "/annotations_merge/{sample}.phased.annot.bcf",
+        idx = outdir + "/annotations_merge/{sample}.phased.annot.bcf.csi"
     threads:
         2
     benchmark:
@@ -198,12 +221,17 @@ rule merge_annotations:
     message:
         "Merging annotations: {wildcards.sample}"
     shell:
-        "bcftools annotate -Ob -o {output.bcf} --write-index -a {input.phase} -c CHROM,POS,FMT/GT,FMT/PS,FMT/PQ,FMT/PD -m +HAPCUT {input.orig}"
+        """
+        bcftools annotate -h {input.headers} -a {input.annot} {input.orig} -c CHROM,POS,FMT/GT,FMT/PS,FMT/PQ,FMT/PD -m +HAPCUT |
+            awk '!/<ID=GX/' |
+            sed 's/:GX:/:GT:/' |
+            bcftools view -Ob --write-index -o {output.bcf} -
+        """
 
 rule merge_samples:
     input: 
-        bcf = collect(outdir + "/annotations/{sample}.phased.annot.bcf", sample = samplenames),
-        idx = collect(outdir + "/annotations/{sample}.phased.annot.bcf.csi", sample = samplenames)
+        bcf = collect(outdir + "/annotations_merge/{sample}.phased.annot.bcf", sample = samplenames),
+        idx = collect(outdir + "/annotations_merge/{sample}.phased.annot.bcf.csi", sample = samplenames)
     output:
         bcf = outdir + "/variants.phased.bcf",
         idx = outdir + "/variants.phased.bcf.csi"
@@ -272,14 +300,24 @@ rule log_workflow:
             _ = f.write("The harpy phase module ran using these parameters:\n\n")
             _ = f.write(f"The provided variant file: {variantfile}\n")
             _ = f.write(f"The directory with alignments: {bam_dir}\n")
-            _ = f.write("The variant file was split by sample and filtered for heterozygous sites using:\n")
-            _ = f.write("""    bcftools view -s SAMPLE | bcftools view -i 'GT="het"' \n""")
+            _ = f.write("The variant file was split by sample and preprocessed using:\n")
+            _ = f.write("""    bcftools view -s SAMPLE | awk '/^#/;/CHROM/ OFS="\\t"; !/^#/ && $10~/^0\\/1/'\n\n""")
             _ = f.write("Phasing was performed using the components of HapCut2:\n")
             _ = f.write("    extractHAIRS " + linkarg + " --nf 1 --bam sample.bam --VCF sample.vcf --out sample.unlinked.frags\n")
             _ = f.write("    LinkFragments.py --bam sample.bam --VCF sample.vcf --fragments sample.unlinked.frags --out sample.linked.frags -d " + f"{molecule_distance}" + "\n")
             _ = f.write("    HAPCUT2 --fragments sample.linked.frags --vcf sample.vcf --out sample.blocks --nf 1 --error_analysis_mode 1 --call_homozygous 1 --outvcf 1" + f" {params[0]} {params[1]}" + "\n\n")
             _ = f.write("Variant annotation was performed using:\n")
-            _ = f.write("    bcftools annotate -a sample.phased.vcf -c CHROM,POS,FMT/GT,FMT/PS,FMT/PQ,FMT/PD -m +HAPCUT \n")
+            _ = f.write("    bcftools query -f \"%CHROM\\t%POS[\\t%GT\\t%PS\\t%PQ\\t%PD]\\n\" sample.vcf | bgzip -c\n")
+            _ = f.write("    bcftools annotate -h header.file -a sample.annot sample.bcf -c CHROM,POS,FMT/GX,FMT/PS,FMT/PQ,FMT/PD -m +HAPCUT |\n")
+            _ = f.write("        awk '!/<ID=GX/' |\n")
+            _ = f.write("        sed 's/:GX:/:GT:/' |\n")
+            _ = f.write("        bcftools view -Ob -o sample.annot.bcf -\n")
             _ = f.write("    bcftools merge --output-type b samples.annot.bcf\n\n")
+            _ = f.write("The header.file of extra vcf tags:\n")
+            _ = f.write('    ##INFO=<ID=HAPCUT,Number=0,Type=Flag,Description="The haplotype was created with Hapcut2">\n')
+            _ = f.write('    ##FORMAT=<ID=GX,Number=1,Type=String,Description="Haplotype">\n')
+            _ = f.write('    ##FORMAT=<ID=PS,Number=1,Type=Integer,Description="ID of Phase Set for Variant">\n')
+            _ = f.write('    ##FORMAT=<ID=PQ,Number=1,Type=Integer,Description="Phred QV indicating probability that this variant is incorrectly phased relative to the haplotype">\n')
+            _ = f.write('    ##FORMAT=<ID=PD,Number=1,Type=Integer,Description="phased Read Depth">\n')
             _ = f.write("\nThe Snakemake workflow was called via command line:\n")
             _ = f.write("    " + str(config["workflow_call"]) + "\n")

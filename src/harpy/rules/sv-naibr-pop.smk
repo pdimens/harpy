@@ -1,3 +1,5 @@
+containerized: "docker://pdimens/harpy:latest"
+
 from rich import print as rprint
 from rich.panel import Panel
 import sys
@@ -5,6 +7,7 @@ import os
 import re
 
 bam_dir     = config["seq_directory"]
+envdir      = os.getcwd() + "/.harpy_envs"
 samplenames = config["samplenames"] 
 extra       = config.get("extra", None) 
 groupfile   = config["groupings"]
@@ -114,6 +117,8 @@ rule merge_populations:
         bai = temp(outdir + "/workflow/inputpop/{population}.bam.bai")
     threads:
         2
+    container:
+        None
     message:
         "Merging alignments: Population {wildcards.population}"
     shell:
@@ -153,7 +158,7 @@ rule call_sv:
     threads:
         min(10, workflow.cores)
     conda:
-        os.getcwd() + "/.harpy_envs/variants.sv.yaml"
+        f"{envdir}/sv.yaml"
     message:
         "Calling variants: {wildcards.population}"
     shell:
@@ -171,6 +176,8 @@ rule infer_sv:
         vcf   = outdir + "/vcf/{population}.vcf" 
     params:
         outdir = lambda wc: outdir + "/" + wc.get("population")
+    container:
+        None
     message:
         "Inferring variants from naibr output: {wildcards.population}"
     shell:
@@ -186,6 +193,8 @@ rule genome_link:
         genomefile
     output: 
         f"Genome/{bn}"
+    container:
+        None
     message: 
         "Symlinking {input}"
     shell: 
@@ -212,6 +221,8 @@ rule genome_faidx:
         f"Genome/{bn}.faidx.log"
     params:
         genome_zip
+    container:
+        None
     message:
         "Indexing {input}"
     shell: 
@@ -230,7 +241,7 @@ rule create_report:
     output:
         outdir + "/reports/{population}.naibr.html"
     conda:
-        os.getcwd() + "/.harpy_envs/r-env.yaml"
+        f"{envdir}/r.yaml"
     message:
         "Creating report: {wildcards.population}"
     script:
@@ -243,7 +254,7 @@ rule report_pop:
     output:
         outdir + "/reports/naibr.pop.summary.html"
     conda:
-        os.getcwd() + "/.harpy_envs/r-env.yaml"
+        f"{envdir}/r.yaml"
     message:
         "Creating summary report"
     script:

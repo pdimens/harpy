@@ -1,3 +1,5 @@
+containerized: "docker://pdimens/harpy:latest"
+
 import os
 import re
 import sys
@@ -11,11 +13,7 @@ I2 = config["I2"]
 samplefile = config["samplefile"]
 skipreports = config["skipreports"]
 outdir = config["output_directory"]
-#bn = os.path.basename(infile)
-#fq_extension = re.search(r"(?:\_00[0-9])*\.f(.*?)q(?:\.gz)?$", infile, re.IGNORECASE).group(0)
-#inprefix = config["infile_prefix"]
-#inprefix = re.sub(r"[\_\.][IR][12]?(?:\_00[0-9])*\.f(?:ast)?q(?:\.gz)?$", "", os.path.basename(R1))
-#indir = os.path.dirname(infile)
+envdir      = os.getcwd() + "/.harpy_envs"
 
 def barcodedict(smpl):
     d = dict()
@@ -61,6 +59,8 @@ rule link_R1:
         R1
     output:
         temp(outdir + "/DATA_R1_001.fastq.gz")
+    container:
+        None
     message:
         "Linking {input} to output directory"
     shell:
@@ -83,6 +83,8 @@ rule bx_files:
         temp(collect(outdir + "/BC_{letter}.txt", letter = ["A","C","B","D"]))
     params:
         outdir
+    container:
+        None
     message:
         "Creating the Gen I barcode files for barcode demultiplexing"
     shell:
@@ -97,6 +99,8 @@ rule demux_bx:
     params:
         outdr = outdir,
         logdir = outdir +"/logs/demux"
+    container:
+        None
     message:
         "Moving barcodes into read headers"
     shell:
@@ -114,6 +118,8 @@ rule split_samples_fw:
         outdir + "/{sample}.F.fq.gz"
     params:
         c_barcode = lambda wc: samples[wc.get("sample")]
+    container:
+        None
     message:
         "Extracting forward reads:\n sample: {wildcards.sample}\n barcode: {params}"
     shell:
@@ -139,7 +145,7 @@ rule fastqc_F:
     threads:
         1
     conda:
-        os.getcwd() + "/.harpy_envs/qc.yaml"
+        f"{envdir}/qc.yaml"
     message:
         "Performing quality assessment: {wildcards.sample}.F.fq.gz"
     shell:
@@ -180,7 +186,7 @@ rule qc_report:
     params:
         outdir + "/logs/"
     conda:
-        os.getcwd() + "/.harpy_envs/qc.yaml"
+        f"{envdir}/qc.yaml"
     message:
         "Creating final demultiplexing QC report"
     shell:

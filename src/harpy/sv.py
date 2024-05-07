@@ -1,4 +1,4 @@
-from .helperfunctions import fetch_rule, fetch_report, generate_conda_deps
+from .helperfunctions import fetch_rule, fetch_report
 from .fileparsers import getnames, parse_alignment_inputs
 from .printfunctions import print_onstart
 from .validations import validate_popfile, validate_vcfsamples, check_phase_vcf, validate_input_by_ext
@@ -6,6 +6,43 @@ import rich_click as click
 import subprocess
 import sys
 import os
+
+@click.group(options_metavar='', context_settings=dict(help_option_names=["-h", "--help"]))
+def sv():
+    """
+    Call large structural variants
+ 
+    **Structural Variant Callers**
+    - `naibr`: calls inversions, duplicates, deletions
+    - `leviathan`: calls inversions, duplicates, deletions, misc breakends
+
+    Provide an additional subcommand `leviathan` or `naibr` to get more information on using
+    those variant callers. NAIBR tends to call variants better, but requires more user preprocessing.
+    """
+    pass
+
+docstring = {
+    "harpy sv leviathan": [
+        {
+            "name": "Parameters",
+            "options": ["--genome", "--min-sv", "--min-barcodes", "--populations", "--extra-params"],
+        },
+        {
+            "name": "Other Options",
+            "options": ["--output-dir", "--threads", "--skipreports", "--snakemake", "--quiet", "--help"],
+        },
+    ],
+    "harpy sv naibr": [
+        {
+            "name": "Module Parameters",
+            "options": ["--genome", "--vcf", "--min-sv", "--min-barcodes", "--molecule-distance", "--populations", "--extra-params"],
+        },
+        {
+            "name": "Other Options",
+            "options": ["--output-dir", "--threads", "--skipreports", "--snakemake", "--quiet", "--help"],
+        },
+    ]
+}
 
 @click.command(no_args_is_help = True, epilog= "read the docs for more information: https://pdimens.github.io/harpy/modules/sv/leviathan/")
 @click.option('-g', '--genome', type=click.Path(exists=True, dir_okay=False), required = True, metavar = "File Path", help = 'Genome assembly for variant calling')
@@ -34,7 +71,7 @@ def leviathan(input, output_dir, genome, min_sv, min_barcodes, threads, populati
     output_dir = output_dir.rstrip("/")
     workflowdir = f"{output_dir}/workflow"
     vcaller = "leviathan" if populations is None else "leviathan-pop"
-    command = f'snakemake --rerun-incomplete --rerun-triggers input mtime params --nolock --software-deployment-method conda --conda-prefix ./.snakemake/conda --cores {threads} --directory .'.split()
+    command = f'snakemake --rerun-incomplete --rerun-triggers input mtime params --nolock --software-deployment-method conda apptainer --conda-prefix ./.snakemake/conda --cores {threads} --directory .'.split()
     command.append('--snakefile')
     command.append(f'{workflowdir}/sv-{vcaller}.smk')
     command.append('--configfile')
@@ -121,7 +158,7 @@ def naibr(input, output_dir, genome, vcf, min_sv, min_barcodes, threads, populat
     vcaller = "naibr" if populations is None else "naibr-pop"
     vcaller += "-phase" if vcf is not None else ""
     
-    command = (f'snakemake --rerun-incomplete --rerun-triggers input mtime params --nolock --software-deployment-method conda --conda-prefix ./.snakemake/conda --cores {threads} --directory .').split()
+    command = (f'snakemake --rerun-incomplete --rerun-triggers input mtime params --nolock --software-deployment-method conda apptainer --conda-prefix ./.snakemake/conda --cores {threads} --directory .').split()
     command.append('--snakefile')
     command.append(f"{workflowdir}/sv-{vcaller}.smk")
     command.append("--configfile")

@@ -1,3 +1,5 @@
+containerized: "docker://pdimens/harpy:latest"
+
 from rich import print as rprint
 from rich.panel import Panel
 import os
@@ -5,6 +7,7 @@ import sys
 import gzip
 
 bam_dir 	= config["seq_directory"]
+envdir      = os.getcwd() + "/.harpy_envs"
 genomefile 	= config["genomefile"]
 groupings 	= config.get("groupings", [])
 bn          = os.path.basename(genomefile)
@@ -80,6 +83,8 @@ rule genome_link:
         genomefile
     output: 
         f"Genome/{bn}"
+    container:
+        None
     message: 
         "Symlinking {input}"
     shell: 
@@ -103,6 +108,8 @@ rule genome_faidx:
         f"Genome/{bn}.fai"
     log:
         f"Genome/{bn}.faidx.log"
+    container:
+        None
     message:
         "Indexing {input}"
     shell:
@@ -113,6 +120,8 @@ rule index_alignments:
         bam_dir + "/{sample}.bam"
     output:
         bam_dir + "/{sample}.bam.bai"
+    container:
+        None
     message:
         "Indexing alignments: {wildcards.sample}"
     shell:
@@ -157,7 +166,7 @@ rule call_variants:
         populations = "--populations " + rules.copy_groupings.output[0] if groupings else "",
         extra = extra
     conda:
-        os.getcwd() + "/.harpy_envs/variants.snp.yaml"
+        f"{envdir}/snp.yaml"
     message:
         "Calling variants: {wildcards.part}"
     shell:
@@ -169,6 +178,8 @@ rule sort_variants:
     output:
         bcf = temp(outdir + "/regions/{part}.bcf"),
         idx = temp(outdir + "/regions/{part}.bcf.csi")
+    container:
+        None
     message:
         "Sorting: {wildcards.part}"
     shell:
@@ -196,6 +207,8 @@ rule merge_vcfs:
         outdir + "/logs/concat.log"
     threads:
         workflow.cores
+    container:
+        None
     message:
         "Combining vcfs into a single file"
     shell:  
@@ -207,6 +220,8 @@ rule sort_vcf:
     output:
         bcf = outdir + "/variants.raw.bcf",
         csi = outdir + "/variants.raw.bcf.csi"
+    container:
+        None
     message:
         "Sorting and indexing final variants"
     shell:
@@ -242,6 +257,8 @@ rule variants_stats:
         idx     = outdir + "/variants.{type}.bcf.csi"
     output:
         outdir + "/reports/variants.{type}.stats",
+    container:
+        None
     message:
         "Calculating variant stats: variants.{wildcards.type}.bcf"
     shell:
@@ -255,7 +272,7 @@ rule bcf_report:
     output:
         outdir + "/reports/variants.{type}.html"
     conda:
-        os.getcwd() + "/.harpy_envs/r-env.yaml"
+        f"{envdir}/r.yaml"
     message:
         "Generating bcftools report: variants.{wildcards.type}.bcf"
     script:

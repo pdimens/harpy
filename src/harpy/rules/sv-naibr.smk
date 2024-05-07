@@ -1,3 +1,5 @@
+containerized: "docker://pdimens/harpy:latest"
+
 from rich import print as rprint
 from rich.panel import Panel
 import sys
@@ -5,6 +7,7 @@ import os
 import re
 
 bam_dir     = config["seq_directory"]
+envdir      = os.getcwd() + "/.harpy_envs"
 samplenames = config["samplenames"] 
 extra       = config.get("extra", None) 
 genomefile  = config["genomefile"]
@@ -63,6 +66,8 @@ rule index_alignment:
         bam_dir + "/{sample}.bam"
     output:
         bam_dir + "/{sample}.bam.bai"
+    container:
+        None
     message:
         "Indexing alignment: {wildcards.sample}"
     shell:
@@ -102,7 +107,7 @@ rule call_sv:
     threads:
         min(10, workflow.cores)
     conda:
-        os.getcwd() + "/.harpy_envs/variants.sv.yaml"     
+        f"{envdir}/sv.yaml"     
     message:
         "Calling variants: {wildcards.sample}"
     shell:
@@ -120,6 +125,8 @@ rule infer_sv:
         vcf   = outdir + "/vcf/{sample}.vcf" 
     params:
         outdir = lambda wc: outdir + "/" + wc.get("sample")
+    container:
+        None
     message:
         "Inferring variants from naibr output: {wildcards.sample}"
     shell:
@@ -135,6 +142,8 @@ rule genome_link:
         genomefile
     output: 
         f"Genome/{bn}"
+    container:
+        None
     message: 
         "Symlinking {input}"
     shell: 
@@ -158,6 +167,8 @@ rule genome_faidx:
         f"Genome/{bn}.faidx.log"
     params:
         genome_zip
+    container:
+        None
     message:
         "Indexing {input}"
     shell: 
@@ -176,7 +187,7 @@ rule create_report:
     output:
         outdir + "/reports/{sample}.naibr.html"
     conda:
-        os.getcwd() + "/.harpy_envs/r-env.yaml"
+        f"{envdir}/r.yaml"
     message:
         "Creating report: {wildcards.sample}"
     script:

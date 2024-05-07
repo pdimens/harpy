@@ -1,3 +1,5 @@
+containerized: "docker://pdimens/harpy:latest"
+
 import sys
 import os
 import random
@@ -6,12 +8,14 @@ from rich import print as rprint
 
 indir = config["input_directory"]
 outdir = config["output_directory"]
+envdir = os.getcwd() + "/.harpy_envs"
 variant = config["variant_type"]
 outprefix = config["prefix"]
 genome = config["genome"]
 vcf = config.get("vcf", None)
 heterozygosity = float(config["heterozygosity"])
 vcf_correct = "None"
+
 if vcf:
     vcf_correct = vcf[:-4] + ".vcf.gz" if vcf.lower().endswith("bcf") else vcf
     variant_params = f"-{variant}_vcf {vcf_correct}"
@@ -73,6 +77,8 @@ if vcf:
             vcf
         output:
             vcf_correct
+        container:
+            None
         message:
             "Converting {input} to compressed VCF format"
         shell:
@@ -91,7 +97,7 @@ rule simulate_variants:
         simuG = f"{outdir}/workflow/scripts/simuG.pl",
         parameters = variant_params
     conda:
-        os.getcwd() + "/.harpy_envs/simulations.yaml"
+        f"{envdir}/simulations.yaml"
     message:
         f"Simulating {variant}s onto genome"
     shell:

@@ -299,10 +299,8 @@ hchart(tb, "bar", hcaes(x = Sample, y = Count, group = Barcode), stacking = "per
 ```
 
 ## Individual Segment Invalidations
-The plot below categorizes which barcode segments are invalid, which may help troubleshoot
+### Which barcode segments are invalid (may help troubleshooting)
 sample prepartion.
-
-### indiv segments {.no-title}
 ```{r echo = FALSE, message = FALSE, warning = FALSE, out.width = '100%'}
 highchart() |>
   hc_chart(inverted=TRUE) |>

@@ -1,3 +1,5 @@
+containerized: "docker://pdimens/harpy:latest"
+
 from rich import print as rprint
 from rich.panel import Panel
 import sys
@@ -5,6 +7,7 @@ import os
 import re
 
 bam_dir     = config["seq_directory"]
+envdir      = os.getcwd() + "/.harpy_envs"
 samplenames = config["samplenames"] 
 extra       = config.get("extra", None) 
 groupfile   = config["groupings"]
@@ -94,6 +97,8 @@ rule genome_link:
         genomefile
     output: 
         f"Genome/{validgenome}"
+    container:
+        None
     message: 
         "Preprocessing {input}"
     shell: 
@@ -115,6 +120,8 @@ rule genome_faidx:
         f"Genome/{validgenome}"
     output: 
         f"Genome/{validgenome}.fai"
+    container:
+        None
     message:
         "Indexing {input}"
     log:
@@ -127,6 +134,8 @@ rule index_bcf:
         vcffile
     output:
         vcffile + ".csi"
+    container:
+        None
     message:
         "Indexing {input}"
     shell:
@@ -137,6 +146,8 @@ rule index_vcfgz:
         vcffile
     output:
         vcffile + ".tbi"
+    container:
+        None
     message:
         "Indexing {input}"
     shell:
@@ -147,6 +158,8 @@ rule index_alignments:
         bam_dir + "/{sample}.bam"
     output:
         bam_dir + "/{sample}.bam.bai"
+    container:
+        None
     message:
         "Indexing {input}"
     shell:
@@ -166,7 +179,7 @@ rule phase_alignments:
     threads:
         4
     conda:
-        os.getcwd() + "/.harpy_envs/phase.yaml"
+        f"{envdir}/phase.yaml"
     message:
         "Phasing: {input.aln}"
     shell:
@@ -177,6 +190,8 @@ rule log_phasing:
         collect(outdir + "/logs/whatshap-haplotag/{sample}.phase.log", sample = samplenames)
     output:
         outdir + "/logs/whatshap-haplotag/phasing.log"
+    container:
+        None
     message:
         "Creating log of alignment phasing"
     shell:
@@ -223,6 +238,8 @@ rule merge_populations:
         bai = temp(outdir + "/workflow/inputpop/{population}.bam.bai")
     threads:
         2
+    container:
+        None
     message:
         "Merging alignments: Population {wildcards.population}"
     shell:
@@ -262,7 +279,7 @@ rule call_sv:
     threads:
         min(10, workflow.cores)
     conda:
-        os.getcwd() + "/.harpy_envs/variants.sv.yaml"
+        f"{envdir}/sv.yaml"
     message:
         "Calling variants: {wildcards.population}"
     shell:
@@ -280,6 +297,8 @@ rule infer_sv:
         vcf   = outdir + "/vcf/{population}.vcf" 
     params:
         outdir = lambda wc: outdir + "/" + wc.get("population")
+    container:
+        None
     message:
         "Inferring variants from naibr output: {wildcards.population}"
     shell:
@@ -299,7 +318,7 @@ rule create_report:
     message:
         "Creating report: {wildcards.population}"
     conda:
-        os.getcwd() + "/.harpy_envs/r-env.yaml"
+        f"{envdir}/r.yaml"
     script:
         "report/Naibr.Rmd"
 
@@ -312,7 +331,7 @@ rule report_pop:
     message:
         "Creating summary report"
     conda:
-        os.getcwd() + "/.harpy_envs/r-env.yaml"
+        f"{envdir}/r.yaml"
     script:
         "report/NaibrPop.Rmd"
 

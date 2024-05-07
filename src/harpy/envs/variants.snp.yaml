@@ -1,4 +1,4 @@
-name: variants.snp
+name: snp
 channels:
   - conda-forge
   - bioconda

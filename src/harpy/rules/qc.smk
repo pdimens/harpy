@@ -1,3 +1,5 @@
+containerized: "docker://pdimens/harpy:latest"
+
 import os
 import re
 import sys
@@ -5,13 +7,14 @@ import glob
 from rich.panel import Panel
 from rich import print as rprint
 
+seq_dir   = config["seq_directory"]
+envdir      = os.getcwd() + "/.harpy_envs"
+outdir      = config["output_directory"]
 min_len 	  = config["min_len"]
 max_len 	  = config["max_len"]
 extra 	  = config.get("extra", "") 
-seq_dir   = config["seq_directory"]
 skipadapters  = config["adapters"]
 skipreports = config["skipreports"]
-outdir      = config["output_directory"]
 flist = [os.path.basename(i) for i in glob.iglob(f"{seq_dir}/*") if not os.path.isdir(i)]
 r = re.compile(r".*\.f(?:ast)?q(?:\.gz)?$", flags=re.IGNORECASE)
 fqlist = list(filter(r.match, flist))
@@ -78,7 +81,7 @@ rule qc_fastp:
     threads:
         2
     conda:
-        os.getcwd() + "/.harpy_envs/qc.yaml"
+        f"{envdir}/qc.yaml"
     message:
         "Removing adapters + quality trimming: {wildcards.sample}" if not skipadapters else "Quality trimming: {wildcards.sample}" 
     shell: 
@@ -94,7 +97,7 @@ rule count_beadtags:
     message:
         "Counting barcode frequency: {wildcards.sample}"
     conda:
-        os.getcwd() + "/.harpy_envs/qc.yaml"
+        f"{envdir}/qc.yaml"
     script:
         "scripts/countBX.py"
 
@@ -104,7 +107,7 @@ rule beadtag_counts_summary:
     output:
         outdir + "/reports/barcode.summary.html"
     conda:
-        os.getcwd() + "/.harpy_envs/r-env.yaml"
+        f"{envdir}/r.yaml"
     message:
         "Summarizing sample barcode validation"
     script:
@@ -118,7 +121,7 @@ rule create_report:
     params:
         outdir
     conda:
-        os.getcwd() + "/.harpy_envs/qc.yaml"
+        f"{envdir}/qc.yaml"
     message:
         "Aggregating fastp reports"
     shell: 

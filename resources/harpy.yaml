@@ -3,12 +3,13 @@ channels:
   - conda-forge
   - bioconda
 dependencies:
-  - bcftools =1.19
+  - apptainer
+  - bcftools =1.20
   - mamba
   - pandas
   - python
   - rich-click
   - snakemake-minimal >7
-  - samtools
+  - samtools =1.20
   - seqtk
   - tabix
