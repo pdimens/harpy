@@ -122,7 +122,7 @@ simreads:
   - 'extractReads.cpp'
   - 'src/harpy/globalscripts/10xtoHaplotag.py'
   - 'src/harpy/scripts/LRSIMharpy.pl'
-extras:
+other:
   - '.github/workflows/tests.yml'
   - 'src/harpy/stitchparams.py'
   - 'src/harpy/popgroup.py'

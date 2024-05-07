@@ -40,6 +40,7 @@ jobs:
       phase: ${{ steps.filter.outputs.phase }}
       simvars: ${{ steps.filter.outputs.simvars }}
       simreads: ${{ steps.filter.outputs.simreads }}
+      other: ${{ steps.filter.outputs.other }}
     steps:
       - name: checkout
         uses: actions/checkout@v4
@@ -51,7 +52,31 @@ jobs:
           filters: .github/filters.yml
 
   pkgbuild:
-    name: harpy installation
+    name: build harpy
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+      - name: setup mamba
+        uses: mamba-org/setup-micromamba@v1
+        with:
+          init-shell: bash
+          generate-run-shell: true
+          environment-file: resources/harpy.yaml
+          cache-environment: true
+          post-cleanup: 'all'
+      - name: Install harpy
+        shell: micromamba-shell {0}
+        run: |
+          python3 -m pip install --upgrade build && python3 -m build
+          pip install dist/*.whl
+          resources/buildforCI.sh
+
+  containerize:
+    name: cache container
+    if: ${{ needs.changes.outputs.demux == 'true' || needs.changes.outputs.preflight == 'true' || needs.changes.outputs.qc == 'true' || needs.changes.outputs.bwa == 'true' || needs.changes.outputs.ema == 'true' || needs.changes.outputs.minimap == 'true' || needs.changes.outputs.mpileup == 'true' || needs.changes.outputs.freebayes == 'true' || needs.changes.outputs.leviathan == 'true' || needs.changes.outputs.naibr == 'true' || needs.changes.outputs.impute == 'true' || needs.changes.outputs.phase == 'true' || needs.changes.outputs.simvars == 'true' || needs.changes.outputs.simreads == 'true' || needs.changes.outputs.other == 'true' }}
     runs-on: ubuntu-latest
     steps:
       - name: checkout
@@ -86,7 +111,7 @@ jobs:
 
   dmux_gen1:
     needs: [changes, pkgbuild]
-    if: ${{ needs.changes.outputs.demux == 'true' && needs.pkgbuild.result == 'success' }}
+    if: ${{ needs.changes.outputs.demux == 'true' && needs.pkgbuild.result == 'success' && needs.containerize.result == 'success' }}
     name: demux gen1
     runs-on: ubuntu-latest
     steps:
@@ -121,7 +146,7 @@ jobs:
 
   preflight:
     needs: [changes, pkgbuild]
-    if: ${{ needs.changes.outputs.preflight == 'true' && needs.pkgbuild.result == 'success' }}
+    if: ${{ needs.changes.outputs.preflight == 'true' && needs.pkgbuild.result == 'success' && needs.containerize.result == 'success' }}
     name: preflight
     runs-on: ubuntu-latest
     steps:
@@ -163,7 +188,7 @@ jobs:
 
   qc:
     needs: [changes, pkgbuild]
-    if: ${{ needs.changes.outputs.qc == 'true' && needs.pkgbuild.result == 'success' }}
+    if: ${{ needs.changes.outputs.qc == 'true' && needs.pkgbuild.result == 'success' && needs.containerize.result == 'success' }}
     name: qc
     runs-on: ubuntu-latest
     steps:
@@ -205,7 +230,7 @@ jobs:
   
   bwa:
     needs: [changes, pkgbuild]
-    if: ${{ needs.changes.outputs.bwa == 'true' && needs.pkgbuild.result == 'success' }}
+    if: ${{ needs.changes.outputs.bwa == 'true' && needs.pkgbuild.result == 'success' && needs.containerize.result == 'success' }}
     name: align BWA
     runs-on: ubuntu-latest
     steps:
@@ -243,7 +268,7 @@ jobs:
   
   ema:
     needs: [changes, pkgbuild]
-    if: ${{ needs.changes.outputs.ema == 'true' && needs.pkgbuild.result == 'success' }}
+    if: ${{ needs.changes.outputs.ema == 'true' && needs.pkgbuild.result == 'success' && needs.containerize.result == 'success' }}
     name: align EMA
     runs-on: ubuntu-latest
     steps:
@@ -281,7 +306,7 @@ jobs:
 
   minimap:
     needs: [changes, pkgbuild]
-    if: ${{ needs.changes.outputs.minimap == 'true' && needs.pkgbuild.result == 'success' }}
+    if: ${{ needs.changes.outputs.minimap == 'true' && needs.pkgbuild.result == 'success' && needs.containerize.result == 'success' }}
     name: align minimap
     runs-on: ubuntu-latest
     steps:
@@ -319,7 +344,7 @@ jobs:
 
   mpileup:
     needs: [changes, pkgbuild]
-    if: ${{ needs.changes.outputs.mpileup == 'true' && needs.pkgbuild.result == 'success' }}
+    if: ${{ needs.changes.outputs.mpileup == 'true' && needs.pkgbuild.result == 'success' && needs.containerize.result == 'success' }}
     name: mpileup
     runs-on: ubuntu-latest
     steps:
@@ -360,7 +385,7 @@ jobs:
   
   freebayes:
     needs: [changes, pkgbuild]
-    if: ${{ needs.changes.outputs.freebayes == 'true' && needs.pkgbuild.result == 'success' }}
+    if: ${{ needs.changes.outputs.freebayes == 'true' && needs.pkgbuild.result == 'success' && needs.containerize.result == 'success' }}
     name: freebayes
     runs-on: ubuntu-latest
     steps:
@@ -401,7 +426,7 @@ jobs:
 
   impute:
     needs: [changes, pkgbuild]
-    if: ${{ needs.changes.outputs.impute == 'true' && needs.pkgbuild.result == 'success' }}
+    if: ${{ needs.changes.outputs.impute == 'true' && needs.pkgbuild.result == 'success' && needs.containerize.result == 'success' }}
     name: impute
     runs-on: ubuntu-latest
     steps:
@@ -443,7 +468,7 @@ jobs:
 
   phase:
     needs: [changes, pkgbuild]
-    if: ${{ needs.changes.outputs.phase == 'true' && needs.pkgbuild.result == 'success' }}
+    if: ${{ needs.changes.outputs.phase == 'true' && needs.pkgbuild.result == 'success' && needs.containerize.result == 'success' }}
     name: phase
     runs-on: ubuntu-latest
     steps:
@@ -489,7 +514,7 @@ jobs:
 
   leviathan:
     needs: [changes, pkgbuild]
-    if: ${{ needs.changes.outputs.leviathan == 'true' && needs.pkgbuild.result == 'success' }}
+    if: ${{ needs.changes.outputs.leviathan == 'true' && needs.pkgbuild.result == 'success' && needs.containerize.result == 'success' }}
     name: sv leviathan
     runs-on: ubuntu-latest
     steps:
@@ -532,7 +557,7 @@ jobs:
 
   naibr:
     needs: [changes, pkgbuild]
-    if: ${{ needs.changes.outputs.naibr == 'true' && needs.pkgbuild.result == 'success' }}
+    if: ${{ needs.changes.outputs.naibr == 'true' && needs.pkgbuild.result == 'success' && needs.containerize.result == 'success' }}
     name: sv naibr
     runs-on: ubuntu-latest
     steps:
@@ -584,7 +609,7 @@ jobs:
 
   simulate_variants:
     needs: [changes, pkgbuild]
-    if: ${{ needs.changes.outputs.simvars == 'true' && needs.pkgbuild.result == 'success' }}
+    if: ${{ needs.changes.outputs.simvars == 'true' && needs.pkgbuild.result == 'success' && needs.containerize.result == 'success' }}
     name: simulate variants
     runs-on: ubuntu-latest
     steps:
@@ -642,7 +667,7 @@ jobs:
 
   simulate_linkedreads:
     needs: [changes, pkgbuild]
-    if: ${{ needs.changes.outputs.simreads == 'true' && needs.pkgbuild.result == 'success' }}
+    if: ${{ needs.changes.outputs.simreads == 'true' && needs.pkgbuild.result == 'success' && needs.containerize.result == 'success' }}
     name: simulate linkedreads
     runs-on: ubuntu-latest
     steps:
@@ -680,7 +705,7 @@ jobs:
 
   extras:
     needs: [changes, pkgbuild]
-    if: ${{ needs.changes.outputs.extras == 'true' && needs.pkgbuild.result == 'success' }}
+    if: ${{ needs.changes.outputs.other == 'true' && needs.pkgbuild.result == 'success' && needs.containerize.result == 'success' }}
     name: harpy extras
     runs-on: ubuntu-latest
     steps:
