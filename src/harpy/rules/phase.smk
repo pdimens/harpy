@@ -70,8 +70,7 @@ rule split_by_samplehet:
         "Extracting heterozygous variants: {wildcards.sample}"
     shell:
         """
-        bcftools view -s {wildcards.sample} {input.vcf} |
-        awk '/^#/;/CHROM/ {{OFS="\\t"}}; !/^#/ && $10~/^0\\/1/' > {output}
+        bcftools view -s {wildcards.sample} -Ou {input.vcf} | bcftools view -i 'GT="het"' > {output}
         """
 
 rule split_by_sample:
@@ -88,8 +87,7 @@ rule split_by_sample:
         "Extracting variants: {wildcards.sample}"
     shell:
         """
-        bcftools view -s {wildcards.sample} {input.vcf} |
-        awk '/^#/;/CHROM/ {{OFS="\\t"}}; !/^#/ &&  $10~/^0\\/0/ {{$10="0|0:"substr($10,5);print $0}}; !/^#/ && $10~/^0\\/1/; !/^#/ &&  $10~/^1\\/1/ {{$10="1|1:"substr($10,5);print $0}}; !/^#/ {{print $0}}' > {output}
+        bcftools view -s {wildcards.sample} -Ou {input.vcf} | bcftools view -i 'GT="hom"' > {output}
         """
 
 rule index_alignment:
