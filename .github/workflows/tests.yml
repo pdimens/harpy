@@ -52,6 +52,7 @@ jobs:
           filters: .github/filters.yml
 
   pkgbuild:
+    needs: changes
     name: cache container
     runs-on: ubuntu-latest
     steps:
@@ -77,7 +78,7 @@ jobs:
         run: rm -rf /opt/hostedtoolcache
       - name: pull image
         shell: micromamba-shell {0}
-        if: ${{ needs.changes.outputs.demux == 'true' || needs.changes.outputs.preflight == 'true' || needs.changes.outputs.qc == 'true' || needs.changes.outputs.bwa == 'true' || needs.changes.outputs.ema == 'true' || needs.changes.outputs.minimap == 'true' || needs.changes.outputs.mpileup == 'true' || needs.changes.outputs.freebayes == 'true' || needs.changes.outputs.leviathan == 'true' || needs.changes.outputs.naibr == 'true' || needs.changes.outputs.impute == 'true' || needs.changes.outputs.phase == 'true' || needs.changes.outputs.simvars == 'true' || needs.changes.outputs.simreads == 'true' || needs.changes.outputs.other == 'true' }}
+        if: ${{ contains(needs.changes.outputs.*, 'true') }}
         run: harpy qc --skipreports -a test/fastq/sample1.*.fq.gz
       - name: create singularity artifact
         uses: actions/upload-artifact@v4
