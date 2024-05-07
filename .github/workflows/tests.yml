@@ -53,7 +53,7 @@ jobs:
 
   pkgbuild:
     needs: changes
-    name: cache container
+    name: build harpy and cache container
     runs-on: ubuntu-latest
     steps:
       - name: checkout
