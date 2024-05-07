@@ -101,14 +101,15 @@ rule create_molecules_hap:
         readpairs = int(config["read_pairs"] * 500000),
         outerdist = config["outer_distance"],
         distsd = config["distance_sd"],
+        mutationrate = config["mutation_rate"],
         prefix = lambda wc: outdir + "/dwgsim_simulated/dwgsim." + wc.get("hap") + ".12"
     conda:
         f"{envdir}/simulations.yaml"
     message:
-        "Creating reads from {input}"
+        "Simulating reads reads from {input}"
     shell:
         """
-        dwgsim -N {params.readpairs} -e 0.0001,0.0016 -E 0.0001,0.0016 -d {params.outerdist} -s {params.distsd} -1 135 -2 151 -H -y 0 -S 0 -c 0 -R 0 -r 0 -F 0 -o 1 -m /dev/null {input} {params.prefix} 2> {log}
+        dwgsim -N {params.readpairs} -e 0.0001,0.0016 -E 0.0001,0.0016 -d {params.outerdist} -s {params.distsd} -1 135 -2 151 -H -y 0 -S 0 -c 0 -R 0 -r {params.mutationrate} -F 0 -o 1 -m /dev/null {input} {params.prefix} 2> {log}
         """
 
 rule interleave_dwgsim_output:
@@ -213,15 +214,19 @@ rule log_workflow:
     input:
         collect(outdir + "/sim_hap{hap}_haplotag.R{fw}.fq.gz", hap = [0,1], fw = [1,2])
     params:
-        static = "-o 1 -d 2 -u 4",
-        proj_dir = f"-r {outdir}",
-        prefix = f"-p {outdir}/sim",
-        outdist  = f"""-i {config["outer_distance"]}""",
-        dist_sd  = f"""-s {config["distance_sd"]}""",
-        n_pairs  = f"""-x {config["read_pairs"]}""",
-        mol_len  = f"""-f {config["molecule_length"]}""",
-        parts    = f"""-t {config["partitions"]}""",
-        mols_per = f"""-m {config["molecules_per_partition"]}"""
+        lrsproj_dir = f"{outdir}",
+        lrsoutdist  = config["outer_distance"],
+        lrsdist_sd  = config["distance_sd"],
+        lrsn_pairs  = config["read_pairs"],
+        lrsmol_len  = config["molecule_length"],
+        lrsparts    = config["partitions"],
+        lrsmols_per = config["molecules_per_partition"],
+        lrsstatic = "-o 1 -d 2 -u 4"
+        dwgreadpairs = int(config["read_pairs"] * 500000),
+        dwgouterdist = config["outer_distance"],
+        dwgdistsd = config["distance_sd"],
+        dwgmutationrate = config["mutation_rate"],
+        dwgprefix = lambda wc: outdir + "/dwgsim_simulated/dwgsim." + wc.get("hap") + ".12"
     message:
         "Summarizing the workflow: {output}"
     run:
@@ -230,8 +235,10 @@ rule log_workflow:
             _ = f.write(f"Genome haplotype 1: {gen_hap1}\n")
             _ = f.write(f"Genome haplotype 2: {gen_hap2}\n")
             _ = f.write(f"Barcode file: {barcodefile}\n")
+            _ = f.write("Reads were simulated from the provided genomes using:\n")
+            _ = f.write("    " + f"dwgsim -N {params.dwgreadpairs} -e 0.0001,0.0016 -E 0.0001,0.0016 -d {params.dwgouterdist} -s {params.dwgdistsd} -1 135 -2 151 -H -y 0 -S 0 -c 0 -R 0 -r {params.dwgmutationrate} -F 0 -o 1 -m /dev/null GENO PREFIX\n")
             _ = f.write("LRSIM was started from step 3 (-u 3) with these parameters:\n")
-            _ = f.write("    " + f"LRSIMharpy.pl -g genome1,genome2 " + " ".join(params) + "\n")
+            _ = f.write("    " + f"LRSIMharpy.pl -g genome1,genome2 -p {params.lrsproj_dir}/lrsim/sim -b BARCODES -r {params.lrsproj_dir} -i {params.lrsoutdist} -s {params.lrsdist_sd} -x {params.lrsn_pairs} -f {params.lrsmol_len} -t {params.lrsparts} -m {params.lrsmols_per} -z THREADS {params.lrsstatic}" + "\n")
             _ = f.write("10X style barcodes were converted in haplotag BX:Z tags using:\n")
             _ = f.write("    " + f"10xtoHaplotag.py")
             _ = f.write("\nThe Snakemake workflow was called via command line:\n")

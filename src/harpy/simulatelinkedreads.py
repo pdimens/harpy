@@ -11,6 +11,7 @@ import sys
 @click.option('-b', '--barcodes', type = click.Path(exists=True, dir_okay=False), help = "File of linked-read barcodes to add to reads")
 @click.option('-n', '--read-pairs', type = click.FloatRange(min = 0.001), default = 600, show_default=True,  help = "Number (in millions) of read pairs to simulate")
 @click.option('-l', '--molecule-length', type = click.IntRange(min = 2), default = 100, show_default=True,  help = "Mean molecule length (kbp)")
+@click.option('-r', '--mutation-rate', type = click.FloatRange(min = 0), default=0.001, show_default=True,  help = "Random mutation rate for simulating reads")
 @click.option('-p', '--partitions', type = click.IntRange(min = 1), default=1500, show_default=True,  help = "Number (in thousands) of partitions/beads to generate")
 @click.option('-m', '--molecules-per', type = click.IntRange(min = 1), default = 10, show_default=True,  help = "Average number of molecules per partition")
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(min = 1, max_open = True), help = 'Number of threads to use')
@@ -20,11 +21,11 @@ import sys
 @click.option('-o', '--output-dir', type = str, default = "Simulate/linkedreads", help = 'Name of output directory')
 @click.argument('genome_hap1', required=True, type=click.Path(exists=True, dir_okay=False), nargs=1)
 @click.argument('genome_hap2', required=True, type=click.Path(exists=True, dir_okay=False), nargs=1)
-def linkedreads(genome_hap1, genome_hap2, output_dir, outer_distance, distance_sd, barcodes, read_pairs, molecule_length, partitions, molecules_per, threads, snakemake, quiet, print_only):
+def linkedreads(genome_hap1, genome_hap2, output_dir, outer_distance, mutation_rate, distance_sd, barcodes, read_pairs, molecule_length, partitions, molecules_per, threads, snakemake, quiet, print_only):
     """
     Create linked reads from a genome
  
-    Two haplotype genomes (fasta or gzipped fasta) need to be provided as inputs at the end of the command. If
+    Two haplotype genomes (un/compressed fasta) need to be provided as inputs at the end of the command. If
     you don't have a diploid genome, you can simulate one with `harpy simulate` as described [in the documentation](https://pdimens.github.io/harpy/modules/simulate/simulate-variants/#simulate-diploid-assembly).
 
     If not providing a text file of `--barcodes`, Harpy will download the `4M-with-alts-february-2016.txt`
@@ -65,6 +66,7 @@ def linkedreads(genome_hap1, genome_hap2, output_dir, outer_distance, distance_s
         config.write(f"outer_distance: {outer_distance}\n")
         config.write(f"distance_sd: {distance_sd}\n")
         config.write(f"read_pairs: {read_pairs}\n")
+        config.write(f"mutation_rate: {mutation_rate}\n")
         config.write(f"molecule_length: {molecule_length}\n")
         config.write(f"partitions: {partitions}\n")
         config.write(f"molecules_per_partition: {molecules_per}\n")
