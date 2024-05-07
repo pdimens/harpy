@@ -221,7 +221,7 @@ rule log_workflow:
         lrsmol_len  = config["molecule_length"],
         lrsparts    = config["partitions"],
         lrsmols_per = config["molecules_per_partition"],
-        lrsstatic = "-o 1 -d 2 -u 4"
+        lrsstatic = "-o 1 -d 2 -u 4",
         dwgreadpairs = int(config["read_pairs"] * 500000),
         dwgouterdist = config["outer_distance"],
         dwgdistsd = config["distance_sd"],
