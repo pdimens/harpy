@@ -1,7 +1,8 @@
 .snakemake/
 .vscode/
 .harpy_envs/
-Seqs/
+.condarc
+.cache/
 QC/
 Demultiplex/
 Genome/
