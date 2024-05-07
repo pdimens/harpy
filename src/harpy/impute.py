@@ -1,10 +1,23 @@
-from .helperfunctions import fetch_rule, fetch_report, fetch_script, generate_conda_deps, biallelic_contigs
+from .helperfunctions import fetch_rule, fetch_report, fetch_script, biallelic_contigs
 from .fileparsers import parse_alignment_inputs
 from .printfunctions import print_onstart
 from .validations import vcfcheck, vcf_samplematch, check_impute_params, validate_bamfiles
 import rich_click as click
 import sys
 import os
+
+docstring = {
+        "harpy impute": [
+        {
+            "name": "Parameters",
+            "options": ["--vcf", "--parameters", "--extra-params", "--vcf-samples"],
+        },
+        {
+            "name": "Other Options",
+            "options": ["--output-dir", "--threads", "--skipreports", "--snakemake", "--quiet", "--help"],
+        },
+    ]
+}
 
 @click.command(no_args_is_help = True, epilog = "read the docs for more information: https://pdimens.github.io/harpy/modules/impute/")
 @click.option('-v', '--vcf', required = True, type=click.Path(exists=True, dir_okay=False),metavar = "File Path", help = 'Path to BCF/VCF file')

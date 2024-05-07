@@ -1,12 +1,66 @@
 import rich_click as click
 from pathlib import Path
-from .helperfunctions import generate_conda_deps, fetch_report, fetch_rule, fetch_script
+from .helperfunctions import fetch_report, fetch_rule, fetch_script
 from .fileparsers import get_samples_from_fastq, parse_fastq_inputs
 from .printfunctions import print_error, print_solution, print_notice, print_onstart
 from .validations import validate_input_by_ext
 import sys
 import os
 from time import sleep 
+
+@click.group(options_metavar='', context_settings=dict(help_option_names=["-h", "--help"]))
+def align():
+    """
+    Align sample sequences to a reference genome
+
+    The three available aligners all retain the linked-read barcode information in the
+    resulting output, however `EMA` is the only aligner to use the barcode information
+    to facilitate the aligning process and can be prohibitively slow. The `minimap2`
+    aligner is the fastest of the three and is comparable in accuracy to `bwa` for
+    sequences >100bp.
+
+    **Aligners**
+    - `bwa`: uses BWA MEM to align reads (fast)
+    - `ema`: uses the BX barcode-aware EMA aligner (very slow)
+    - `minimap`: uses minimap2 to align reads (ultra fast)
+
+    Provide an additional subcommand `bwa`, `ema`, or `minimap` to get more information on using
+    those aligners.
+    """
+    pass
+
+docstring = {
+    "harpy align bwa": [
+        {
+            "name": "Parameters",
+            "options": ["--genome", "--quality-filter", "--molecule-distance", "--extra-params"],
+        },
+        {
+            "name": "Other Options",
+            "options": ["--output-dir", "--threads", "--skipreports", "--snakemake", "--quiet", "--help"],
+        },
+    ],
+    "harpy align ema": [
+        {
+            "name": "Parameters",
+            "options": ["--platform", "--whitelist", "--genome", "--quality-filter", "--ema-bins", "--extra-params"],
+        },
+        {
+            "name": "Other Options",
+            "options": ["--output-dir", "--threads", "--skipreports", "--snakemake", "--quiet", "--help"],
+        },
+    ],
+    "harpy align minimap": [
+        {
+            "name": "Parameters",
+            "options": ["--genome", "--quality-filter", "--molecule-distance", "--extra-params"],
+        },
+        {
+            "name": "Other Options",
+            "options": ["--output-dir", "--threads", "--skipreports", "--snakemake", "--quiet", "--help"],
+        },
+    ]
+}
 
 @click.command(no_args_is_help = True, epilog= "read the docs for more information: https://pdimens.github.io/harpy/modules/align/bwa/")
 @click.option('-g', '--genome', type=click.Path(exists=True, dir_okay=False), required = True, metavar = "File Path", help = 'Genome assembly for read mapping')

@@ -1,4 +1,4 @@
-from .helperfunctions import fetch_rule, fetch_report, fetch_script, generate_conda_deps
+from .helperfunctions import fetch_rule, fetch_report, fetch_script
 from .fileparsers import getnames, parse_alignment_inputs
 from .printfunctions import print_onstart, print_error
 from .validations import validate_bamfiles, validate_popfile, validate_vcfsamples, validate_input_by_ext, validate_regions
@@ -6,6 +6,43 @@ import rich_click as click
 import subprocess
 import sys
 import os
+
+@click.group(options_metavar='', context_settings=dict(help_option_names=["-h", "--help"]))
+def snp():
+    """
+    Call SNPs and small indels
+    
+    **Variant Callers**
+    - `mpileup`: call variants using bcftools mpileup
+    - `freebayes`: call variants using freebayes
+
+    Provide an additional subcommand `mpileup` or `freebayes` to get more information on using
+    those variant callers. They are both robust variant callers and neither is recommended over the other.
+    """
+    pass
+
+docstring = {
+    "harpy snp mpileup": [
+        {
+            "name": "Parameters",
+            "options": ["--genome", "--populations", "--ploidy", "--regions", "--extra-params"],
+        },
+        {
+            "name": "Other Options",
+            "options": ["--output-dir", "--threads", "--skipreports", "--snakemake", "--quiet", "--help"],
+        },
+    ],
+    "harpy snp freebayes": [
+        {
+            "name": "Parameters",
+            "options": ["--genome", "--populations", "--ploidy", "--regions", "--extra-params"],
+        },
+        {
+            "name": "Other Options",
+            "options": ["--output-dir", "--threads", "--skipreports", "--snakemake", "--quiet", "--help"],
+        },
+    ]
+}
 
 @click.command(no_args_is_help = True, epilog = "read the docs for more information: https://pdimens.github.io/harpy/modules/snp")
 @click.option('-g', '--genome', type=click.Path(exists=True, dir_okay=False), required = True, help = 'Genome assembly for variant calling')

@@ -1,4 +1,4 @@
-from .helperfunctions import generate_conda_deps, fetch_report, fetch_rule, fetch_script
+from .helperfunctions import fetch_report, fetch_rule, fetch_script
 from .fileparsers import get_samples_from_fastq, parse_fastq_inputs
 from .printfunctions import print_onstart
 import rich_click as click
@@ -6,6 +6,19 @@ import re
 import os
 import sys
 import glob
+
+docstring = {
+    "harpy qc": [
+        {
+            "name": "Parameters",
+            "options": ["--max-length", "--ignore-adapters", "--extra-params"],
+        },
+        {
+            "name": "Other Options",
+            "options": ["--output-dir", "--threads", "--skipreports", "--snakemake", "--quiet", "--help"],
+        },
+    ]
+}
 
 @click.command(no_args_is_help = True, epilog = "read the docs for more information: https://pdimens.github.io/harpy/modules/qc")
 @click.option('-n', '--min-length', default = 30, show_default = True, type=int, help = 'Discard reads shorter than this length')
