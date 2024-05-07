@@ -151,7 +151,7 @@ rule phase_blocks:
         fragments = fragfile
     output: 
         blocks    = outdir + "/phaseBlocks/{sample}.blocks",
-        vcf       = temp(outdir + "/phaseBlocks/{sample}.blocks.phased.VCF")
+        vcf       = outdir + "/phaseBlocks/{sample}.blocks.phased.VCF"
     log:
         outdir + "/phaseBlocks/logs/{sample}.blocks.phased.log"
     params: 
@@ -166,68 +166,52 @@ rule phase_blocks:
     shell:
         "HAPCUT2 --fragments {input.fragments} --vcf {input.vcf} {params} --out {output.blocks} --nf 1 --error_analysis_mode 1 --call_homozygous 1 --outvcf 1 > {log} 2>&1"
 
-rule compress_phaseblock:
+rule create_annotations:
     input:
         outdir + "/phaseBlocks/{sample}.blocks.phased.VCF"
     output:
-        outdir + "/phaseBlocks/{sample}.phased.vcf.gz"
+        outdir + "/annotations/{sample}.annot.gz"
     container:
         None
     message:
-        "Compressing vcf: {wildcards.sample}"
+        "Creating annotation files: {wildcards.sample}"
     shell:
-        "bcftools view -Oz6 -o {output} --write-index {input}"
+        "bcftools query -f \"%CHROM\\t%POS[\\t%GT\\t%PS\\t%PQ\\t%PD]\\n\" {input} | bgzip -c > {output}"
 
-#rule create_annotations:
-#    input:
-#        outdir + "/phaseBlocks/{sample}.blocks.phased.VCF"
-#    output:
-#        outdir + "/annotations/{sample}.annot.gz"
-#    container:
-#        None
-#    message:
-#        "Creating annotation files: {wildcards.sample}"
-#    shell:
-#        "bcftools query -f \"%CHROM\\t%POS[\\t%GT\\t%PS\\t%PQ\\t%PD]\\n\" {input} | bgzip -c > {output}"
-#
-#rule index_annotations:
-#    input:
-#        outdir + "/annotations/{sample}.annot.gz"
-#    output:
-#        outdir + "/annotations/{sample}.annot.gz.tbi"
-#    container:
-#        None
-#    message:
-#        "Indexing {wildcards.sample}.annot.gz"
-#    shell: 
-#        "tabix -b 2 -e 2 {input}"
-#
-#rule headerfile:
-#    output:
-#        outdir + "/workflow/input/header.names"
-#    message:
-#        "Creating additional header file"
-#    run:
-#        with open(output[0], "w") as fout:
-#            _ = fout.write('##INFO=<ID=HAPCUT,Number=0,Type=Flag,Description="The haplotype was created with Hapcut2">\n')
-#            _ = fout.write('##FORMAT=<ID=GT,Number=1,Type=String,Description="Genotype/Haplotype">\n')
-#            _ = fout.write('##FORMAT=<ID=PS,Number=1,Type=Integer,Description="ID of Phase Set for Variant">\n')
-#            _ = fout.write('##FORMAT=<ID=PQ,Number=1,Type=Integer,Description="Phred QV indicating probability that this variant is incorrectly phased relative to the haplotype">\n')
-#            _ = fout.write('##FORMAT=<ID=PD,Number=1,Type=Integer,Description="phased Read Depth">')
-#
-use rule compress_phaseblock as compress vcf with:
+rule index_annotations:
     input:
-        outdir + "/workflow/input/vcf/{sample}.vcf"
+        outdir + "/annotations/{sample}.annot.gz"
     output:
-        outdir + "/workflow/input/gzvcf/{sample}.vcf.gz"
+        outdir + "/annotations/{sample}.annot.gz.tbi"
+    container:
+        None
+    message:
+        "Indexing {wildcards.sample}.annot.gz"
+    shell: 
+        "tabix -b 2 -e 2 {input}"
+
+rule headerfile:
+    output:
+        outdir + "/workflow/input/header.names"
+    message:
+        "Creating additional header file"
+    run:
+        with open(output[0], "w") as fout:
+            _ = fout.write('##INFO=<ID=HAPCUT,Number=0,Type=Flag,Description="The haplotype was created with Hapcut2">\n')
+            _ = fout.write('##FORMAT=<ID=GT,Number=1,Type=String,Description="Genotype/Haplotype">\n')
+            _ = fout.write('##FORMAT=<ID=PS,Number=1,Type=Integer,Description="ID of Phase Set for Variant">\n')
+            _ = fout.write('##FORMAT=<ID=PQ,Number=1,Type=Integer,Description="Phred QV indicating probability that this variant is incorrectly phased relative to the haplotype">\n')
+            _ = fout.write('##FORMAT=<ID=PD,Number=1,Type=Integer,Description="phased Read Depth">')
 
 rule merge_annotations:
     input:
-        phase = outdir + "/phaseBlocks/{sample}.phased.vcf.gz",
-        orig  = outdir + "/workflow/input/gzvcf/{sample}.vcf.gz"
+        annot   = outdir + "/annotations/{sample}.annot.gz",
+        idx     = outdir + "/annotations/{sample}.annot.gz.tbi",
+        orig    = outdir + "/workflow/input/vcf/{sample}.vcf",
+        headers = outdir + "/workflow/input/header.names"
     output:
-        bcf = outdir + "/annotations/{sample}.phased.annot.bcf",
-        idx = outdir + "/annotations/{sample}.phased.annot.bcf.csi"
+        bcf = outdir + "/annotations_merge/{sample}.phased.annot.bcf",
+        idx = outdir + "/annotations_merge/{sample}.phased.annot.bcf.csi"
     threads:
         2
     benchmark:
@@ -237,12 +221,17 @@ rule merge_annotations:
     message:
         "Merging annotations: {wildcards.sample}"
     shell:
-        "bcftools annotate -Ob -o {output.bcf} --write-index -a {input.phase} -c CHROM,POS,FMT/GT,FMT/PS,FMT/PQ,FMT/PD -m +HAPCUT {input.orig}"
+        """
+        bcftools annotate -h {input.headers} -a {input.annot} {input.orig} -c CHROM,POS,FMT/GT,FMT/PS,FMT/PQ,FMT/PD -m +HAPCUT |
+            awk '!/<ID=GX/' |
+            sed 's/:GX:/:GT:/' |
+            bcftools view -Ob --write-index -o {output.bcf} -
+        """
 
 rule merge_samples:
     input: 
-        bcf = collect(outdir + "/annotations/{sample}.phased.annot.bcf", sample = samplenames),
-        idx = collect(outdir + "/annotations/{sample}.phased.annot.bcf.csi", sample = samplenames)
+        bcf = collect(outdir + "/annotations_merge/{sample}.phased.annot.bcf", sample = samplenames),
+        idx = collect(outdir + "/annotations_merge/{sample}.phased.annot.bcf.csi", sample = samplenames)
     output:
         bcf = outdir + "/variants.phased.bcf",
         idx = outdir + "/variants.phased.bcf.csi"
