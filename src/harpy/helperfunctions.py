@@ -15,7 +15,7 @@ import harpy.snakefiles
 def symlink(original, destination):
     """Create a symbolic link from original -> destination if the destination doesn't already exist."""
     if not (Path(destination).is_symlink() or Path(destination).exists()):
-        Path(destination).symlink_to(Path(original).absolute()) 
+        Path(destination).symlink_to(Path(original).resolve()) 
 
 def generate_conda_deps():
     """Create the YAML files of the workflow conda dependencies"""

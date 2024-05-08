@@ -55,7 +55,7 @@ def parse_fastq_inputs(input, outdir):
     Path(outdir).mkdir(parents=True, exist_ok=True)
     for (i,o) in zip(infiles, outfiles):
         Path(o).unlink(missing_ok=True)
-        _ = Path(o).symlink_to(Path(i).absolute())
+        _ = Path(o).symlink_to(Path(i).resolve())
     return infiles
 
 def parse_alignment_inputs(input, outdir):
@@ -115,10 +115,10 @@ def parse_alignment_inputs(input, outdir):
     Path(outdir).mkdir(parents=True, exist_ok=True)
     for (i,o) in zip(bam_infiles, bam_outfiles):
         Path(o).unlink(missing_ok=True)
-        _ = Path(o).symlink_to(Path(i).absolute())
+        _ = Path(o).symlink_to(Path(i).resolve())
     for (i,o) in zip(bai_infiles, bai_outfiles):
         Path(o).unlink(missing_ok=True)
-        _ = Path(o).symlink_to(Path(i).absolute())
+        _ = Path(o).symlink_to(Path(i).resolve())
     return bam_infiles
 
 def get_samples_from_fastq(directory):

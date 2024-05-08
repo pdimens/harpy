@@ -25,7 +25,7 @@ def sanitize_fastq(full_fqlist, linkdir):
         bn = re.sub(bn_r, "", os.path.basename(seqfile), flags = re.IGNORECASE)
         bn = bn.replace(".", "_")
         samplenames.add(bn)
-        target = Path(seqfile).absolute()
+        target = Path(seqfile).resolve()
         linkedfile = f"{linkdir}/{bn}.{FR}.fq{gz_ext}"
         try:
             _ = Path(linkedfile).symlink_to(target)

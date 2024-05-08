@@ -60,7 +60,7 @@ rule link_haplotype:
                 outf.write(decom_str)
         else:
             if not (Path(output[0]).is_symlink() or Path(output[0]).exists()):
-                Path(output[0]).symlink_to(Path(input[0]).absolute()) 
+                Path(output[0]).symlink_to(Path(input[0]).resolve()) 
 
 use rule link_haplotype as link_second_haplotype with:
     input:
