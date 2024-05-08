@@ -120,6 +120,32 @@ The dev workflow is reasonably standard:
 3. add and modify code with your typical coding workflow, pushing your changes to your Harpy fork
 4. when it's ready for inclusion into Harpy (and testing), create a Pull Request to merge your changes into the Harpy `main` branch
 
+### containerization
+As of Harpy v1.0, the software dependencies that the Snakemake workflows use are pre-configured as a Docker image
+that is uploaded to Dockerhub. The dockerfile for that container is created by running
+```bash auto-generate Dockerfile
+snakemake -s resources/containerize.smk --containerize > resources/Dockerfile
+```
+which does all of the work for us. The result is a `Dockerfile` that has all of the conda environments
+build into it. After creating the `Dockerfile`, the image must then be built:
+```bash build the Docker image
+cd resources
+docker build -t pdimens/harpy .
+```
+This will take a bit because the R dependencies are hefty. Once that's done, the image can be pushed to Dockerhub:
+```bash push image to Dockerhub
+docker push pdimens/harpy
+```
+This containerize -> dockerfile -> build -> process will push the changes to Dockerhub with the `latest` tag, which is suitable for
+the development cycle. When the container needs to be tagged to be associated with the release of a new Harpy version, you will need to
+add a tag to the `docker build` step:
+```bash build tagged Docker image
+cd resources
+docker build -t pdimens/harpy:TAG
+```
+where `TAG` is the Harpy version, such as `1.0`, `1.4.1`, `2.1`, etc. As such, during development, the `containerized: docker://pdimens/harpy:TAG` declaration at the top of the snakefiles should use the `latest` tag, and when ready for release, changed to match the Harpy
+version. So, if the Harpy version is `1.4.12`, then the associated docker image should also be tagged with `1.4.12`.
+
 ## Automations
 ### Testing
 CI (**C**ontinuous **I**ntegration) is a term describing automated actions that do

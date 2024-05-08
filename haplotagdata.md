@@ -22,9 +22,9 @@ of the beadtags will appear, each likely with their own way of properly demultip
 demultiplexing these beadtag variants as they become available.
 
 #### where the barcodes go
-Chromium 10X linked-reads have a particular format where the barcode is the leading 16 bases 
-of the read. However, haplotagging data **does not use that format**, nor do the tools 
-implemented in Harpy work correctly with it. Once demultiplexed, haplotagging sequences should look 
+Chromium 10X linked-reads use a format where the barcode is the leading 16 bases 
+of the forward (R1) read. However, haplotagging data **does not use that format** and many of the tools 
+implemented in Harpy **won't work correctly** with the 10X format. Once demultiplexed, haplotagging sequences should look 
 like regular FASTQ files of inserts and the barcode is stored in a `BX:Z:AxxCxxBxxDxx` tag 
 in the read header. Again, **do not include the barcode in the sequence**.
 
@@ -45,12 +45,13 @@ Read comments that aren't following the `TAG:TYPE:VALUE` SAM spec may cause down
 !!!warning A caveat
 The Leviathan structural variant caller expects the `BX:Z:` tag at the end of the alignment 
 record, so if you intend on using that variant caller, you will need to make sure the `BX:Z:`
-tag is the last one in the _sequence alignment_ (BAM file). If you use Harpy to align the 
-sequences, then it will make sure the `BX:Z:` tag is moved to the end of the alignment.
+tag is the last one in the _sequence alignment_ (BAM file). If you use any method within 
+[!badge corners="pill" text="harpy align"](Modules/Align/bwa.md), the `BX:Z:` tag is guaranteed to be at
+the end of the alignment record.
 !!!
 
 ### Read length
-Reads must be at least 30 base pairs in length for alignment. The [!badge corners="pill" text="qc"](Modules/qc.md) module removes reads <50bp.
+Reads must be at least 30 base pairs in length for alignment. By default, the [!badge corners="pill" text="qc"](Modules/qc.md) module removes reads <30bp.
 
 ### Compression
 Harpy generally doesn't require the input sequences to be in gzipped/bgzipped format, but it's good practice to compress your reads anyway.
