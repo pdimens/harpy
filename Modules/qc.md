@@ -31,7 +31,9 @@ In addition to the [!badge variant="info" corners="pill" text="common runtime op
 | argument         | short name | type        | default | required | description                                                                                     |
 |:-----------------|:----------:|:------------|:-------:|:-------:|:------------------------------------------------------------------------------------------------|
 | `INPUTS`         |            | file/directory paths  |         | **yes**  | Files or directories containing [input FASTQ files](/commonoptions.md#input-arguments)     |
-| `--max-length`   |    `-l`    | integer     |   150   |    no   | Maximum length to trim sequences down to                                                        |
+| `--min-length`   |    `-n`    | integer     |   30    |    no   | Discard reads shorter than this length                                                          |
+| `--max-length`   |    `-m`    | integer     |   150   |    no   | Maximum length to trim sequences down to                                                        |
+| `--ignore-adapters` | `-x`    | toggle      |         |    no   | Skip adapter trimming                                                                           |
 | `--extra-params` |    `-x`    | string      |         |    no   | Additional fastp arguments, in quotes                                                           |
 
 ---
