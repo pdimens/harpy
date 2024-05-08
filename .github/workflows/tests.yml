@@ -77,10 +77,12 @@ jobs:
       - name: Clear space
         run: rm -rf /opt/hostedtoolcache
       - name: pull image
+        id: singularity
         shell: micromamba-shell {0}
         if: ${{ contains(needs.changes.outputs.*, 'true') }}
         run: harpy qc --skipreports -a test/fastq/sample1.*.fq.gz
       - name: create singularity artifact
+        if: ${{ steps.singularity.outcome == 'success' }}
         uses: actions/upload-artifact@v4
         with:
           name: deps-image
