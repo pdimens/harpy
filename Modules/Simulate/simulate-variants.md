@@ -56,7 +56,7 @@ specific variants to simulate. There are also these unifying options among the d
 | `--heterozygosity` | `-z` | float between [0,1] |  [% heterozygosity to simulate diploid later](#heterozygosity) (default: `0`) |
 | `--randomseed` |  | integer |   Random seed for simulation |
 
-==- snps and indels
+==- 🟣 snps and indels
 ### snpindel
 !!!warning SNPs can be slow
 Given software limitations, simulating many SNPs (>10,000) will be noticeably slower than the other variant types.
@@ -87,7 +87,7 @@ the value to either `9999` or `0` :
 | `--indel-size-constant` | `-l` | float | 0.5 | Exponent constant for power-law-fitted indel size distribution |
 | `--snp-gene-constraints` | `-y` | string | | How to constrain randomly simulated SNPs {`noncoding`,`coding`,`2d`,`4d`} when using `--genes`|
 
-==- inversions
+==- 🔵 inversions
 ### inversion
 Inversions are when a section of a chromosome appears in the reverse orientation ([source](https://www.genome.gov/genetics-glossary/Inversion)).
 
@@ -99,7 +99,7 @@ Inversions are when a section of a chromosome appears in the reverse orientation
 | `--min-size` | `-m` | integer | 1000 | Minimum inversion size (bp) |
 | `--max-size` | `-x` | integer | 100000 | Maximum inversion size (bp) |
 
-==- copy number variants
+==- 🟢 copy number variants
 ### cnv
 A copy number variation (CNV) is when the number of copies of a particular gene varies
 between individuals ([source](https://www.genome.gov/genetics-glossary/Copy-Number-Variation))
@@ -124,7 +124,7 @@ the value to either `9999` or `0` :
 | `--gain-ratio` |`-l` | float |  1 | Relative ratio of DNA gain over DNA loss |
 
 
-==- translocations
+==- 🟡 translocations
 ### translocation
 A translocation occurs when a chromosome breaks and the fragmented pieces re-attach to different chromosomes ([source](https://www.genome.gov/genetics-glossary/Translocation)). 
 

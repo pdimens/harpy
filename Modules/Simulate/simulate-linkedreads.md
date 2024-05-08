@@ -50,15 +50,30 @@ In addition to the [!badge variant="info" corners="pill" text="common runtime op
 | `HAP1_GENOME`       |            | file path |       | **yes**  | Haplotype 1 of the diploid genome to simulate reads   |
 | `HAP2_GENOME`       |            | file path |       | **yes**  | Haplotype 1 of the diploid genome to simulate reads   |
 | `--outer-distance`  |    `-d`    | integer   | 350   |   | Outer distance between paired-end reads (bp)                 |
-| `--distance-sd`     |    `-i`    | integer   |  15   |   | Standard deviation of read-pair distance                |
+| `--distance-sd`     |    `-i`    | integer   |  15   |   | Standard deviation of read-pair distance                     |
 | `--barcodes`        |    `-b`    | file path |  [10X barcodes](https://github.com/aquaskyline/LRSIM/blob/master/4M-with-alts-february-2016.txt)   |        | File of linked-read barcodes to add to reads   |
-| `--read-pairs`      |    `-n`    | number    |  600  |   | Number (in millions) of read pairs to simulate       |
-| `--molecule-length` |    `-l`    | integer   |  100  |   | Mean molecule length (kbp)                          |
+| `--read-pairs`      |    `-n`    | number    |  600  |   | Number (in millions) of read pairs to simulate               |
+| `--mutation-rate`   |    `-r`    | number    | 0.001 |   | Random mutation rate for simulating reads (0 - 1.0)          |
+| `--molecule-length` |    `-l`    | integer   |  100  |   | Mean molecule length (kbp)                                   |
 | `--patitions`       |    `-p`    | integer   |  1500 |   | Number (in thousands) of partitions/beads to generate        |
-| `--molecules-per`   |    `-m`    | integer   |   10  |   | Average number of molecules per partition           |
+| `--molecules-per`   |    `-m`    | integer   |   10  |   | Average number of molecules per partition                    |
+
+## Mutation Rate
+The read simulation is two-part: first `dwgsim` generates forward and reverse FASTQ files from the provided genome haplotypes
+(`HAP1_GENOME` and `HAP2_GENOME`), then `LRSIM` takes over and creates linked-reads from that. The `--mutation-rate`
+option controls random mutation rate `dwgsim` uses when creating FASTQ files from your provided genome haplotypes. This parameter
+adds SNPs/variation in addition to the error rate assumed for the Illumina platform. If you don't want any more SNPs added to the
+reads beyond sequencing error, set this value to `--mutation-rate 0`.
+#### Simulating a single sample
+If you intend to simulate a "single individual" (i.e. use this module once), then you might want no additonal SNPs beyond the variants
+you may have already introduced into the genome and set `--mutation-rate 0`.
+
+#### Simulating multiple samples
+If you intend on simulating "multiple individuals" (i.e. use this module multiple times on the same genome haplotypes),
+it may make sense to set this value larger than 0 so there is some "natural" variation between your simulated individuals.
 
 ## Partitions
-**TL;DR**: 10X partitions = haplotag beads
+**TL;DR**: 10X partitions ≈ haplotag beads
 
 The option `--partitions` refers to the reaction "bubbles" in the original 10X linked-read chemistry. The 10X
 protocol involved emulsion reactions where microscopic bubbles resulting from emulsion were each their own
@@ -93,8 +108,8 @@ The paired reverse read will also have these tags. The diagram below attempts to
 
 ## Choosing parameters
 LRSIM does internal calculations to determine the number of reads per molecule based on `--read-pairs`,
-`--partitions`, and `--molecules-per`. It would be helpful to see this equation so as to guide your
-decisions for these parmaters. The equation is:
+`--partitions`, and `--molecules-per`. Understanding how these parameters affect the resulting sequences
+will help inform your decisions for those parameters:
 
 $$
 \text{Reads Per Molecule} = 0.499 + \frac{N \times 1,000,000}{\left(\frac{P \times 1,000}{H}\right) \times M \times H}
@@ -104,3 +119,17 @@ $$\text{where:}\\\text{N = number of reads to simulate (in millions)}\\\text{H =
 ### Parameter calculator
 Conveniently, we provide a calculator to help you make informed decisions for these parameters:
 [!embed](https://app.calconic.com/api/embed/calculator/662146310482ea001e7acea2)
+
+## :icon-git-pull-request: Simulate Linkedreads Workflow
+
+```mermaid
+graph LR
+    subgraph Inputs
+        A[genome haplotype 1]
+        B[genome haplotype 2]
+    end
+    Inputs-->D([dwgsim])
+    D-->L([LRSIM])
+    L-->H([convert to haplotag])
+    style Inputs fill:#f0f0f0,stroke:#e8e8e8,stroke-width:2px
+```
