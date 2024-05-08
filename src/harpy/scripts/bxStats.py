@@ -5,20 +5,23 @@ import pysam
 
 alnfile = pysam.AlignmentFile(snakemake.input[0])
 outfile = gzip.open(snakemake.output[0], "wb", 6)
-outfile.write(b"contig\tmolecule\treads\tstart\tend\tlength_inferred\tpercent_coverage\taligned_bp\n")
+outfile.write(b"contig\tmolecule\treads\tstart\tend\tlength_inferred\taligned_bp\tcoverage_bp\tcoverage_inserts\n")
 
 d = dict()
 chromlast = None
 
 def writestats(x, contig):
     for mi in x:
-        x[mi]["inferred"] =x[mi]["end"] - x[mi]["start"] 
-        x[mi]["bp"] = x[mi]["bp"] // 2
+        x[mi]["inferred"] = x[mi]["end"] - x[mi]["start"] 
         try:
-            x[mi]["covered"] = x[mi]["bp"] / X[mi]["inferred"]
+            x[mi]["covered_bp"] = x[mi]["bp"] / x[mi]["inferred"]
         except:
-            x[mi]["covered"] = 0
-        outtext = f"{chromlast}\t{mi}\t" + "\t".join([str(x[mi][i]) for i in ["n", "start","end", "inferred", "covered", "bp"]])
+            x[mi]["covered_bp"] = 0
+        try:
+            x[mi]["covered_inserts"] = x[mi]["insert_len"] / x[mi]["inferred"]
+        except:
+            x[mi]["covered_inferred"] = 0
+        outtext = f"{chromlast}\t{mi}\t" + "\t".join([str(x[mi][i]) for i in ["n", "start","end", "inferred", "bp", "covered_bp", "covered_inserts"]])
         outfile.write(outtext.encode() + b"\n")
 
 for read in alnfile.fetch():
@@ -30,12 +33,17 @@ for read in alnfile.fetch():
             writestats(d, chromlast)
             d = dict()
     chromlast = chrom
-    bp = read.query_alignment_length
-    if read.is_duplicate or read.is_unmapped or read.is_supplementary:
+    # skip duplicates, unmapped, and secondary alignments
+    if read.is_duplicate or read.is_unmapped or read.is_secondary:
         continue
-    aln = read.get_blocks()
-    if not aln:
+    # skip chimeric alignments that map to different contigs
+    if read.is_supplementary and read.reference_name != read.next_reference_name:
         continue
+    if not read.get_blocks():
+        continue
+
+    # numer of bases aligned
+    bp = read.reference_length
 
     try:
         mi = read.get_tag("MI")
@@ -64,9 +72,14 @@ for read in alnfile.fetch():
     # end position of last alignment
     pos_end   = max(start_end)
     if read.is_paired:
-        isize = read.reference_length // 2
+        # by using max(), will either add 0 or positive TLEN to avoid double-counting
+        isize = max(0, read.template_length)
+    elif read.is_supplementary:
+        # if it's a supplementary alignment, just use the alignment length
+        isize = bp
     else:
-        isize = read.reference_length
+        # if it's unpaired, use the TLEN or query length, whichever is bigger
+        isize = max(abs(read.template_length), read.infer_query_length())
     # create bx entry if it's not present
     if mi not in d.keys():
         d[mi] = {

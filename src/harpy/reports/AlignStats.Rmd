@@ -24,13 +24,6 @@ using<-function(...) {
 }
 
 using("flexdashboard","dplyr","highcharter","DT","BioCircos")
-
-#library(flexdashboard)
-#library(dplyr)
-#library(highcharter)
-#library(magrittr)
-#library(DT)
-#library(BioCircos)
 ```
 
 ```{r echo = F, results = F, message = F}
@@ -175,18 +168,7 @@ inferred from the first and last alignment positions along a contig for all
 alignments associated with a single haplotag barcode on a given contig. 
 Pay attention to the Y axis, as it likely doesn't start at `0`.
 
-### inferred_cov desc {.no-title}
-<h2> Inferred Molecule Read Coverage </h2>
-The chart below shows the frequency distribution of molecule coverage, meaning
-the percent of each inferred molecule that has sequences aligned to it. In other
-words, "how much of each unique long molecule is actually sequenced/aligned?"
-Keep in mind there is a disctinction between sequences and alignments, since
-some sequences belonging to a particular molecule may not align well and wouldn't
-appear in the alignment data. 
-
-## inferred
 ### inferredplot {.no-title}
-
 ```{r inferred, echo = FALSE, message = FALSE, warning = FALSE, out.width = '100%'}
 hs <- hist(
   round(valids$length_inferred / 1000,0),
@@ -208,18 +190,59 @@ hchart(hs, "areaspline", hcaes(x = val, y = freq), color = "#b3519d", name = "% 
   )
 ```
 
-### inferred_covplot {.no-title}
+## breadth
+### inferred_cov desc {.no-title}
+<h2> Inferred Molecule Read Coverage </h2>
+The charts below show the frequency distribution of molecule coverage, meaning
+the percent of each inferred molecule that has sequences aligned to it. In other
+words, "how much of each unique long molecule is actually sequenced/aligned?"
+Keep in mind there is a disctinction between sequences and alignments, since
+some sequences belonging to a particular molecule may not align well and wouldn't
+appear in the alignment data. The chart on the left shows molecule coverage as computed
+by the number of bases aligned to that molecule. The chart on the right shows molecule
+coverage as computed by the inferred fragment length from which the aligned sequences originate.
+In other words, this computation considers the length of the original DNA fragment that was put
+on the sequencer, which may be longer than the 150bp (x2) inserts that actually got sequenced.
+
+If it helps, imagine a 500bp haplotagged DNA fragment being sequenced as a 150bp paired-end
+sequence and all 300bp aligned to your reference genome. The plot on the left calculates the proportion of
+molecule coverage as `300bp ÷ molecule_length`, whereas the plot on the right calculates this proportion as
+`500bp ÷ molecule_length`, which is the 300bp that aligned + the 200bp between the paired-end reads that were not sequenced.
+
+
+### coverage by aligned bp {.no-title}
 ```{r inferred_cov, echo = FALSE, message = FALSE, warning = FALSE, out.width = '100%'}
 hs <- hist(
   round(valids$percent_coverage, 0),
-  breaks = seq(0, round(max(valids$percent_coverage + 1, 0)), by = 1),
+  breaks = seq(0, round(max(valids$coverage_bp + 1, 0)), by = 1),
   plot = F
 )
 hs$counts <- round(hs$counts / sum(hs$counts)*100,2)
 hs <- data.frame(val = hs$breaks[-1], freq = hs$counts)
 
 hchart(hs, "areaspline", hcaes(x = val, y = freq), color = "#e59765", name = "% of molecules", marker = list(enabled = FALSE)) |>
-  hc_title(text = "Percent Molecule Coverage") |>
+  hc_title(text = "Percent Molecule Coverage by Aligned Bases") |>
+  hc_xAxis(title = list(text = "% molecule covered")) |>
+  hc_yAxis(title = list(text = "% of molecules")) |>
+  hc_caption(text = paste0("Total unique molecules: ", totuniqBX)) |>
+  hc_tooltip(crosshairs = TRUE) |>
+  hc_exporting(enabled = T, filename = paste0(samplename, ".molcov"),
+    buttons = list(contextButton = list(menuItems = c("viewFullscreen", "separator", "downloadPNG", "downloadJPEG", "downloadPDF", "downloadSVG")))
+  )
+```
+
+### coverage by inserts {.no-title}
+```{r inferred_cov, echo = FALSE, message = FALSE, warning = FALSE, out.width = '100%'}
+hs <- hist(
+  round(valids$percent_coverage, 0),
+  breaks = seq(0, round(max(valids$coverage_inserts + 1, 0)), by = 1),
+  plot = F
+)
+hs$counts <- round(hs$counts / sum(hs$counts)*100,2)
+hs <- data.frame(val = hs$breaks[-1], freq = hs$counts)
+
+hchart(hs, "areaspline", hcaes(x = val, y = freq), color = "#dbe465", name = "% of molecules", marker = list(enabled = FALSE)) |>
+  hc_title(text = "Percent Molecule Coverage by Inferred Insert Size") |>
   hc_xAxis(title = list(text = "% molecule covered")) |>
   hc_yAxis(title = list(text = "% of molecules")) |>
   hc_caption(text = paste0("Total unique molecules: ", totuniqBX)) |>
