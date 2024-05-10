@@ -18,6 +18,7 @@ bn 			= os.path.basename(genomefile)
 genome_zip  = True if bn.lower().endswith(".gz") else False
 bn_idx      = f"{bn}.gzi" if genome_zip else f"{bn}.fai"
 skipreports = config["skipreports"]
+windowsize  = config["depth_windowsize"]
 
 d = dict(zip(samplenames, samplenames))
 
@@ -126,12 +127,14 @@ rule genome_make_windows:
         f"Genome/{bn}"
     output: 
         f"Genome/{bn}.bed"
+    params:
+        windowsize
     container:
         None
     message: 
         "Creating BED intervals from {input}"
     shell: 
-        "makeWindows.py -i {input} -w 50000 -o {output}"
+        "makeWindows.py -i {input} -w {params} -o {output}"
 
 rule align:
     input:
