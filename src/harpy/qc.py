@@ -30,7 +30,7 @@ docstring = {
 @click.option('-o', '--output-dir', type = str, default = "QC", show_default=True, help = 'Name of output directory')
 @click.option('--snakemake', type = str, help = 'Additional Snakemake parameters, in quotes')
 @click.option('--conda',  is_flag = True, default = False, help = 'Use conda/mamba instead of container')
-@click.option('--skipreports',  is_flag = True, show_default = True, default = False, help = 'Don\'t generate any HTML reports')
+@click.option('--skipreports',  is_flag = True, show_default = True, default = False, help = 'Don\'t generate HTML reports')
 @click.option('--print-only',  is_flag = True, hidden = True, show_default = True, default = False, help = 'Print the generated snakemake command and exit')
 @click.argument('input', required=True, type=click.Path(exists=True), nargs=-1)
 def qc(input, output_dir, min_length, max_length, ignore_adapters, extra_params, threads, snakemake, skipreports, quiet, conda, print_only):

@@ -40,7 +40,7 @@ docstring = {
 @click.option('-o', '--output-dir', type = str, default = "Demultiplex", show_default=True, help = 'Name of output directory')
 @click.option('--snakemake', type = str, help = 'Additional Snakemake parameters, in quotes')
 @click.option('--conda',  is_flag = True, default = False, help = 'Use conda/mamba instead of container')
-@click.option('--skipreports',  is_flag = True, show_default = True, default = False, help = 'Don\'t generate any HTML reports')
+@click.option('--skipreports',  is_flag = True, show_default = True, default = False, help = 'Don\'t generate HTML reports')
 @click.option('--print-only',  is_flag = True, hidden = True, default = False,  help = 'Print the generated snakemake command and exit')
 @click.argument('R1_FQ', required=True, type=click.Path(exists=True, dir_okay=False))
 @click.argument('R2_FQ', required=True, type=click.Path(exists=True, dir_okay=False))

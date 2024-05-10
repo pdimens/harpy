@@ -55,7 +55,7 @@ docstring = {
 @click.option('-q', '--quiet',  is_flag = True, show_default = True, default = False, help = 'Don\'t show output text while running')
 @click.option('--snakemake', type = str, help = 'Additional Snakemake parameters, in quotes')
 @click.option('--conda',  is_flag = True, default = False, help = 'Use conda/mamba instead of container')
-@click.option('--skipreports',  is_flag = True, show_default = True, default = False, help = 'Don\'t generate any HTML reports')
+@click.option('--skipreports',  is_flag = True, show_default = True, default = False, help = 'Don\'t generate HTML reports')
 @click.option('--print-only',  is_flag = True, hidden = True, default = False, help = 'Print the generated snakemake command and exit')
 @click.argument('input', required=True, type=click.Path(exists=True), nargs=-1)
 def leviathan(input, output_dir, genome, min_sv, min_barcodes, threads, populations, extra_params, snakemake, skipreports, quiet, conda, print_only):
@@ -136,7 +136,7 @@ def leviathan(input, output_dir, genome, min_sv, min_barcodes, threads, populati
 @click.option('-q', '--quiet',  is_flag = True, show_default = True, default = False, help = 'Don\'t show output text while running')
 @click.option('--snakemake', type = str, help = 'Additional Snakemake parameters, in quotes')
 @click.option('--conda',  is_flag = True, default = False, help = 'Use conda/mamba instead of container')
-@click.option('--skipreports',  is_flag = True, show_default = True, default = False, help = 'Don\'t generate any HTML reports')
+@click.option('--skipreports',  is_flag = True, show_default = True, default = False, help = 'Don\'t generate HTML reports')
 @click.option('--print-only',  is_flag = True, hidden = True, default = False, help = 'Print the generated snakemake command and exit')
 @click.argument('input', required=True, type=click.Path(exists=True), nargs=-1)
 def naibr(input, output_dir, genome, vcf, min_sv, min_barcodes, threads, populations, molecule_distance, extra_params, snakemake, skipreports, quiet, conda, print_only):

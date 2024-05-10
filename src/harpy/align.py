@@ -37,7 +37,7 @@ docstring = {
         },
         {
             "name": "Other Options",
-            "options": ["--output-dir", "--threads", "--skipreports", "--conda", "--snakemake", "--quiet", "--help"],
+            "options": ["--output-dir", "--threads", "--depth-window", "--skipreports", "--conda", "--snakemake", "--quiet", "--help"],
         },
     ],
     "harpy align ema": [
@@ -47,7 +47,7 @@ docstring = {
         },
         {
             "name": "Other Options",
-            "options": ["--output-dir", "--threads", "--skipreports", "--conda", "--snakemake", "--quiet", "--help"],
+            "options": ["--output-dir", "--threads", "--depth-window", "--skipreports", "--conda", "--snakemake", "--quiet", "--help"],
         },
     ],
     "harpy align minimap": [
@@ -57,7 +57,7 @@ docstring = {
         },
         {
             "name": "Other Options",
-            "options": ["--output-dir", "--threads", "--skipreports", "--conda", "--snakemake", "--quiet", "--help"],
+            "options": ["--output-dir", "--threads", "--depth-window", "--skipreports", "--conda", "--snakemake", "--quiet", "--help"],
         },
     ]
 }
@@ -66,16 +66,17 @@ docstring = {
 @click.option('-g', '--genome', type=click.Path(exists=True, dir_okay=False), required = True, help = 'Genome assembly for read mapping')
 @click.option('-m', '--molecule-distance', default = 100000, show_default = True, type = int, help = 'Base-pair distance threshold to separate molecules')
 @click.option('-f', '--quality-filter', default = 30, show_default = True, type = click.IntRange(min = 0, max = 40), help = 'Minimum mapping quality to pass filtering')
-@click.option('-x', '--extra-params', type = str, help = 'Additional aligner parameters, in quotes')
+@click.option('-d', '--depth-window', default = 50000, show_default = True, type = int, help = 'Interval size (in bp) for depth stats')
+@click.option('-x', '--extra-params', type = str, help = 'Additional bwa mem parameters, in quotes')
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(min = 4, max_open = True), help = 'Number of threads to use')
 @click.option('-q', '--quiet',  is_flag = True, show_default = True, default = False, help = 'Don\'t show output text while running')
 @click.option('-o', '--output-dir', type = str, default = "Align/bwa", show_default=True, help = 'Name of output directory')
 @click.option('--snakemake', type = str, help = 'Additional Snakemake parameters, in quotes')
 @click.option('--conda',  is_flag = True, default = False, help = 'Use conda/mamba instead of container')
-@click.option('--skipreports',  is_flag = True, show_default = True, default = False, help = 'Don\'t generate any HTML reports')
+@click.option('--skipreports',  is_flag = True, show_default = True, default = False, help = 'Don\'t generate HTML reports')
 @click.option('--print-only',  is_flag = True, hidden = True, default = False, help = 'Print the generated snakemake command and exit')
 @click.argument('input', required=True, type=click.Path(exists=True), nargs=-1)
-def bwa(input, output_dir, genome, threads, extra_params, quality_filter, molecule_distance, snakemake, skipreports, quiet, conda, print_only):
+def bwa(input, output_dir, genome, depth_window, threads, extra_params, quality_filter, molecule_distance, snakemake, skipreports, quiet, conda, print_only):
     """
     Align sequences to genome using BWA MEM
  
@@ -120,6 +121,7 @@ def bwa(input, output_dir, genome, threads, extra_params, quality_filter, molecu
         config.write(f"samplenames: {samplenames}\n")
         config.write(f"quality: {quality_filter}\n")
         config.write(f"molecule_distance: {molecule_distance}\n")
+        config.write(f"depth_windowsize: {depth_window}\n")
         config.write(f"skipreports: {skipreports}\n")
         if extra_params is not None:
             config.write(f"extra: {extra_params}\n")
@@ -136,17 +138,18 @@ def bwa(input, output_dir, genome, threads, extra_params, quality_filter, molecu
 @click.option('-w', '--whitelist', type = click.Path(exists=True, dir_okay=False), help = "Barcode whitelist file for tellseq/10x")
 @click.option('-g', '--genome', type=click.Path(exists=True, dir_okay=False), required = True, help = 'Genome assembly for read mapping')
 @click.option('-b', '--ema-bins', default = 500, show_default = True, type = click.IntRange(1,1000), help="Number of barcode bins")
+@click.option('-d', '--depth-window', default = 50000, show_default = True, type = int, help = 'Interval size (in bp) for depth stats')
 @click.option('-f', '--quality-filter', default = 30, show_default = True, type = click.IntRange(min = 0, max = 40), help = 'Minimum mapping quality to pass filtering')
-@click.option('-x', '--extra-params', type = str, help = 'Additional aligner parameters, in quotes')
+@click.option('-x', '--extra-params', type = str, help = 'Additional ema align parameters, in quotes')
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(min = 4, max_open = True), help = 'Number of threads to use')
 @click.option('-q', '--quiet',  is_flag = True, show_default = True, default = False, help = 'Don\'t show output text while running')
 @click.option('-o', '--output-dir', type = str, default = "Align/ema", show_default=True, help = 'Name of output directory')
 @click.option('--snakemake', type = str, help = 'Additional Snakemake parameters, in quotes')
 @click.option('--conda',  is_flag = True, default = False, help = 'Use conda/mamba instead of container')
-@click.option('--skipreports',  is_flag = True, show_default = True, default = False, help = 'Don\'t generate any HTML reports')
+@click.option('--skipreports',  is_flag = True, show_default = True, default = False, help = 'Don\'t generate HTML reports')
 @click.option('--print-only',  is_flag = True, hidden = True, default = False, help = 'Print the generated snakemake command and exit')
 @click.argument('input', required=True, type=click.Path(exists=True), nargs=-1)
-def ema(input, output_dir, platform, whitelist, genome, threads, ema_bins, skipreports, extra_params, quality_filter, snakemake, quiet, conda, print_only):
+def ema(input, output_dir, platform, whitelist, genome, depth_window, threads, ema_bins, skipreports, extra_params, quality_filter, snakemake, quiet, conda, print_only):
     """
     Align sequences to a genome using EMA
 
@@ -208,6 +211,7 @@ def ema(input, output_dir, platform, whitelist, genome, threads, ema_bins, skipr
         config.write(f"quality: {quality_filter}\n")
         config.write(f"platform: {platform}\n")
         config.write(f"EMA_bins: {ema_bins}\n")
+        config.write(f"depth_windowsize: {depth_window}\n")
         config.write(f"skipreports: {skipreports}\n")
         if whitelist:
             config.write(f"whitelist: {whitelist}\n")
@@ -225,16 +229,17 @@ def ema(input, output_dir, platform, whitelist, genome, threads, ema_bins, skipr
 @click.option('-g', '--genome', type=click.Path(exists=True, dir_okay=False), required = True, help = 'Genome assembly for read mapping')
 @click.option('-m', '--molecule-distance', default = 100000, show_default = True, type = int, help = 'Base-pair distance threshold to separate molecules')
 @click.option('-f', '--quality-filter', default = 30, show_default = True, type = click.IntRange(min = 0, max = 40), help = 'Minimum mapping quality to pass filtering')
+@click.option('-d', '--depth-window', default = 50000, show_default = True, type = int, help = 'Interval size (in bp) for depth stats')
 @click.option('-x', '--extra-params', type = str, help = 'Additional aligner parameters, in quotes')
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(min = 4, max_open = True), help = 'Number of threads to use')
 @click.option('-q', '--quiet',  is_flag = True, show_default = True, default = False, help = 'Don\'t show output text while running')
 @click.option('-o', '--output-dir', type = str, default = "Align/minimap", show_default=True, help = 'Name of output directory')
 @click.option('--snakemake', type = str, help = 'Additional Snakemake parameters, in quotes')
 @click.option('--conda',  is_flag = True, default = False, help = 'Use conda/mamba instead of container')
-@click.option('--skipreports',  is_flag = True, show_default = True, default = False, help = 'Don\'t generate any HTML reports')
+@click.option('--skipreports',  is_flag = True, show_default = True, default = False, help = 'Don\'t generate HTML reports')
 @click.option('--print-only',  is_flag = True, hidden = True, default = False, help = 'Print the generated snakemake command and exit')
 @click.argument('input', required=True, type=click.Path(exists=True), nargs=-1)
-def minimap(input, output_dir, genome, threads, extra_params, quality_filter, molecule_distance, snakemake, skipreports, quiet, conda, print_only):
+def minimap(input, output_dir, genome, depth_window, threads, extra_params, quality_filter, molecule_distance, snakemake, skipreports, quiet, conda, print_only):
     """
     Align sequences to genome using Minimap2
  
@@ -279,6 +284,7 @@ def minimap(input, output_dir, genome, threads, extra_params, quality_filter, mo
         config.write(f"samplenames: {samplenames}\n")
         config.write(f"quality: {quality_filter}\n")
         config.write(f"molecule_distance: {molecule_distance}\n")
+        config.write(f"depth_windowsize: {depth_window}\n")
         config.write(f"skipreports: {skipreports}\n")
         if extra_params is not None:
             config.write(f"extra: {extra_params}\n")

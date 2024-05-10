@@ -55,7 +55,7 @@ docstring = {
 @click.option('-q', '--quiet',  is_flag = True, show_default = True, default = False, help = 'Don\'t show output text while running')
 @click.option('--snakemake', type = str, help = 'Additional Snakemake parameters, in quotes')
 @click.option('--conda',  is_flag = True, default = False, help = 'Use conda/mamba instead of container')
-@click.option('--skipreports',  is_flag = True, show_default = True, default = False, help = 'Don\'t generate any HTML reports')
+@click.option('--skipreports',  is_flag = True, show_default = True, default = False, help = 'Don\'t generate HTML reports')
 @click.option('--print-only',  is_flag = True, hidden = True, default = False, help = 'Print the generated snakemake command and exit')
 @click.argument('input', required=True, type=click.Path(exists=True), nargs=-1)
 def mpileup(input, output_dir, regions, genome, threads, populations, ploidy, extra_params, snakemake, skipreports, quiet, conda, print_only):
@@ -153,7 +153,7 @@ def mpileup(input, output_dir, regions, genome, threads, populations, ploidy, ex
 @click.option('-q', '--quiet',  is_flag = True, show_default = True, default = False, help = 'Don\'t show output text while running')
 @click.option('--snakemake', type = str, help = 'Additional Snakemake parameters, in quotes')
 @click.option('--conda',  is_flag = True, default = False, help = 'Use conda/mamba instead of container')
-@click.option('--skipreports',  is_flag = True, show_default = True, default = False, help = 'Don\'t generate any HTML reports')
+@click.option('--skipreports',  is_flag = True, show_default = True, default = False, help = 'Don\'t generate HTML reports')
 @click.option('--print-only',  is_flag = True, hidden = True, default = False, help = 'Print the generated snakemake command and exit')
 @click.argument('input', required=True, type=click.Path(exists=True), nargs=-1)
 def freebayes(input, output_dir, genome, threads, populations, ploidy, regions, extra_params, snakemake, skipreports, quiet, conda, print_only):
