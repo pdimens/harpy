@@ -83,7 +83,7 @@ def bwa(input, output_dir, genome, threads, extra_params, quality_filter, molecu
     files/folders, using shell wildcards (e.g. `data/echidna*.fastq.gz`), or both.
     
     BWA is a fast, robust, and reliable aligner that does not use barcodes when mapping.
-    Instead, Harpy post-processes the alignments using the specified `--molecule-distance`
+    Harpy will post-processes the alignments using the specified `--molecule-distance`
     to assign alignments to unique molecules. 
     """
     output_dir = output_dir.rstrip("/")
@@ -242,7 +242,7 @@ def minimap(input, output_dir, genome, threads, extra_params, quality_filter, mo
     files/folders, using shell wildcards (e.g. `data/echidna*.fastq.gz`), or both.
     
     Minimap2 is an ultra-fast aligner comparable to bwa for sequences >100bp. This aligner does 
-    not use barcodes when mapping. Instead, Harpy post-processes the alignments using the
+    not use barcodes when mapping. Harpy will post-processes the alignments using the
     specified `--molecule-distance` to assign alignments to unique molecules. 
     """
     output_dir = output_dir.rstrip("/")
