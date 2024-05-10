@@ -27,7 +27,7 @@ docstring = {
         },
         {
             "name": "Other Options",
-            "options": ["--output-dir", "--threads", "--skipreports", "--snakemake", "--quiet", "--help"],
+            "options": ["--output-dir", "--threads", "--skipreports", "--conda", "--snakemake", "--quiet", "--help"],
         },
     ]
 
@@ -39,13 +39,14 @@ docstring = {
 @click.option('-q', '--quiet',  is_flag = True, show_default = True, default = False, help = 'Don\'t show output text while running')
 @click.option('-o', '--output-dir', type = str, default = "Demultiplex", show_default=True, help = 'Name of output directory')
 @click.option('--snakemake', type = str, help = 'Additional Snakemake parameters, in quotes')
+@click.option('--conda',  is_flag = True, default = False, help = 'Use conda/mamba instead of container')
 @click.option('--skipreports',  is_flag = True, show_default = True, default = False, help = 'Don\'t generate any HTML reports')
 @click.option('--print-only',  is_flag = True, hidden = True, default = False,  help = 'Print the generated snakemake command and exit')
 @click.argument('R1_FQ', required=True, type=click.Path(exists=True, dir_okay=False))
 @click.argument('R2_FQ', required=True, type=click.Path(exists=True, dir_okay=False))
 @click.argument('I1_FQ', required=True, type=click.Path(exists=True, dir_okay=False))
 @click.argument('I2_FQ', required=True, type=click.Path(exists=True, dir_okay=False))
-def gen1(r1_fq, r2_fq, i1_fq, i2_fq, output_dir, schema, threads, snakemake, skipreports, quiet, print_only):
+def gen1(r1_fq, r2_fq, i1_fq, i2_fq, output_dir, schema, threads, snakemake, skipreports, quiet, conda, print_only):
     """
     Demultiplex Generation I haplotagged FASTQ files
 
@@ -55,7 +56,8 @@ def gen1(r1_fq, r2_fq, i1_fq, i2_fq, output_dir, schema, threads, snakemake, ski
     """
     output_dir = output_dir.rstrip("/")
     workflowdir = f"{output_dir}/workflow"
-    command = f'snakemake --rerun-incomplete --rerun-triggers input mtime params --nolock --software-deployment-method conda apptainer --conda-prefix ./.snakemake/conda --cores {threads} --directory .'.split()
+    sdm = "conda" if conda else "conda apptainer"
+    command = f'snakemake --rerun-incomplete --rerun-triggers input mtime params --nolock --software-deployment-method {sdm} --conda-prefix ./.snakemake/conda --cores {threads} --directory .'.split()
     command.append('--snakefile')
     command.append(f'{workflowdir}/demultiplex.gen1.smk')
     command.append("--configfile")

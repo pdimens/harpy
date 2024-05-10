@@ -15,7 +15,7 @@ docstring = {
         },
         {
             "name": "Other Options",
-            "options": ["--output-dir", "--threads", "--skipreports", "--snakemake", "--quiet", "--help"],
+            "options": ["--output-dir", "--threads", "--skipreports", "--conda", "--snakemake", "--quiet", "--help"],
         },     
     ]
 }
@@ -32,10 +32,11 @@ docstring = {
 @click.option('-q', '--quiet',  is_flag = True, show_default = True, default = False, help = 'Don\'t show output text while running')
 @click.option('-o', '--output-dir', type = str, default = "Phase", show_default=True, help = 'Name of output directory')
 @click.option('--snakemake',  type = str, help = 'Additional Snakemake parameters, in quotes')
+@click.option('--conda',  is_flag = True, default = False, help = 'Use conda/mamba instead of container')
 @click.option('--skipreports',  is_flag = True, show_default = True, default = False, help = 'Don\'t generate any HTML reports')
 @click.option('--print-only',  is_flag = True, hidden = True, default = False, help = 'Print the generated snakemake command and exit')
 @click.argument('input', required=True, type=click.Path(exists=True), nargs=-1)
-def phase(input, output_dir, vcf, threads, molecule_distance, prune_threshold, vcf_samples, genome, snakemake, extra_params, ignore_bx, skipreports, quiet, print_only):
+def phase(input, output_dir, vcf, threads, molecule_distance, prune_threshold, vcf_samples, genome, snakemake, extra_params, ignore_bx, skipreports, quiet, conda, print_only):
     """
     Phase SNPs into haplotypes
 
@@ -49,7 +50,8 @@ def phase(input, output_dir, vcf, threads, molecule_distance, prune_threshold, v
     """
     output_dir = output_dir.rstrip("/")
     workflowdir = f"{output_dir}/workflow"
-    command = f'snakemake --rerun-incomplete --rerun-triggers input mtime params --nolock --software-deployment-method conda apptainer --conda-prefix ./.snakemake/conda --cores {threads} --directory .'.split()
+    sdm = "conda" if conda else "conda apptainer"
+    command = f'snakemake --rerun-incomplete --rerun-triggers input mtime params --nolock --software-deployment-method {sdm} --conda-prefix ./.snakemake/conda --cores {threads} --directory .'.split()
     command.append('--snakefile')
     command.append(f"{workflowdir}/phase.smk")
     command.append("--configfile")

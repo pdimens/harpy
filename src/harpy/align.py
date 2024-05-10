@@ -37,7 +37,7 @@ docstring = {
         },
         {
             "name": "Other Options",
-            "options": ["--output-dir", "--threads", "--skipreports", "--snakemake", "--quiet", "--help"],
+            "options": ["--output-dir", "--threads", "--skipreports", "--conda", "--snakemake", "--quiet", "--help"],
         },
     ],
     "harpy align ema": [
@@ -47,7 +47,7 @@ docstring = {
         },
         {
             "name": "Other Options",
-            "options": ["--output-dir", "--threads", "--skipreports", "--snakemake", "--quiet", "--help"],
+            "options": ["--output-dir", "--threads", "--skipreports", "--conda", "--snakemake", "--quiet", "--help"],
         },
     ],
     "harpy align minimap": [
@@ -57,7 +57,7 @@ docstring = {
         },
         {
             "name": "Other Options",
-            "options": ["--output-dir", "--threads", "--skipreports", "--snakemake", "--quiet", "--help"],
+            "options": ["--output-dir", "--threads", "--skipreports", "--conda", "--snakemake", "--quiet", "--help"],
         },
     ]
 }
@@ -71,11 +71,11 @@ docstring = {
 @click.option('-q', '--quiet',  is_flag = True, show_default = True, default = False, help = 'Don\'t show output text while running')
 @click.option('-o', '--output-dir', type = str, default = "Align/bwa", show_default=True, help = 'Name of output directory')
 @click.option('--snakemake', type = str, help = 'Additional Snakemake parameters, in quotes')
-@click.option('--nocontainer', type = str, help = 'Additional Snakemake parameters, in quotes')
+@click.option('--conda',  is_flag = True, default = False, help = 'Use conda/mamba instead of container')
 @click.option('--skipreports',  is_flag = True, show_default = True, default = False, help = 'Don\'t generate any HTML reports')
 @click.option('--print-only',  is_flag = True, hidden = True, default = False, help = 'Print the generated snakemake command and exit')
 @click.argument('input', required=True, type=click.Path(exists=True), nargs=-1)
-def bwa(input, output_dir, genome, threads, extra_params, quality_filter, molecule_distance, snakemake, skipreports, quiet, print_only):
+def bwa(input, output_dir, genome, threads, extra_params, quality_filter, molecule_distance, snakemake, skipreports, quiet, conda, print_only):
     """
     Align sequences to genome using BWA MEM
  
@@ -88,7 +88,8 @@ def bwa(input, output_dir, genome, threads, extra_params, quality_filter, molecu
     """
     output_dir = output_dir.rstrip("/")
     workflowdir = f"{output_dir}/workflow"
-    command = f'snakemake --rerun-incomplete --rerun-triggers input mtime params --nolock --software-deployment-method conda apptainer --conda-prefix ./.snakemake/conda --cores {threads} --directory .'.split()
+    sdm = "conda" if conda else "conda apptainer"
+    command = f'snakemake --rerun-incomplete --rerun-triggers input mtime params --nolock --software-deployment-method {sdm} --conda-prefix ./.snakemake/conda --cores {threads} --directory .'.split()
     command.append('--snakefile')
     command.append(f'{workflowdir}/align-bwa.smk')
     command.append("--configfile")
@@ -141,10 +142,11 @@ def bwa(input, output_dir, genome, threads, extra_params, quality_filter, molecu
 @click.option('-q', '--quiet',  is_flag = True, show_default = True, default = False, help = 'Don\'t show output text while running')
 @click.option('-o', '--output-dir', type = str, default = "Align/ema", show_default=True, help = 'Name of output directory')
 @click.option('--snakemake', type = str, help = 'Additional Snakemake parameters, in quotes')
+@click.option('--conda',  is_flag = True, default = False, help = 'Use conda/mamba instead of container')
 @click.option('--skipreports',  is_flag = True, show_default = True, default = False, help = 'Don\'t generate any HTML reports')
 @click.option('--print-only',  is_flag = True, hidden = True, default = False, help = 'Print the generated snakemake command and exit')
 @click.argument('input', required=True, type=click.Path(exists=True), nargs=-1)
-def ema(input, output_dir, platform, whitelist, genome, threads, ema_bins, skipreports, extra_params, quality_filter, snakemake, quiet, print_only):
+def ema(input, output_dir, platform, whitelist, genome, threads, ema_bins, skipreports, extra_params, quality_filter, snakemake, quiet, conda, print_only):
     """
     Align sequences to a genome using EMA
 
@@ -159,7 +161,8 @@ def ema(input, output_dir, platform, whitelist, genome, threads, ema_bins, skipr
     """
     output_dir = output_dir.rstrip("/")
     workflowdir = f"{output_dir}/workflow"
-    command = f'snakemake --rerun-incomplete --rerun-triggers input mtime params --nolock --software-deployment-method conda apptainer --cores {threads} --directory .'.split()
+    sdm = "conda" if conda else "conda apptainer"
+    command = f'snakemake --rerun-incomplete --rerun-triggers input mtime params --nolock --software-deployment-method {sdm} --cores {threads} --directory .'.split()
     command.append('--snakefile')
     command.append(f'{workflowdir}/align-ema.smk')
     command.append("--configfile")
@@ -227,10 +230,11 @@ def ema(input, output_dir, platform, whitelist, genome, threads, ema_bins, skipr
 @click.option('-q', '--quiet',  is_flag = True, show_default = True, default = False, help = 'Don\'t show output text while running')
 @click.option('-o', '--output-dir', type = str, default = "Align/minimap", show_default=True, help = 'Name of output directory')
 @click.option('--snakemake', type = str, help = 'Additional Snakemake parameters, in quotes')
+@click.option('--conda',  is_flag = True, default = False, help = 'Use conda/mamba instead of container')
 @click.option('--skipreports',  is_flag = True, show_default = True, default = False, help = 'Don\'t generate any HTML reports')
 @click.option('--print-only',  is_flag = True, hidden = True, default = False, help = 'Print the generated snakemake command and exit')
 @click.argument('input', required=True, type=click.Path(exists=True), nargs=-1)
-def minimap(input, output_dir, genome, threads, extra_params, quality_filter, molecule_distance, snakemake, skipreports, quiet, print_only):
+def minimap(input, output_dir, genome, threads, extra_params, quality_filter, molecule_distance, snakemake, skipreports, quiet, conda, print_only):
     """
     Align sequences to genome using Minimap2
  
@@ -243,7 +247,8 @@ def minimap(input, output_dir, genome, threads, extra_params, quality_filter, mo
     """
     output_dir = output_dir.rstrip("/")
     workflowdir = f"{output_dir}/workflow"
-    command = f'snakemake --rerun-incomplete --rerun-triggers input mtime params --nolock --software-deployment-method conda apptainer --conda-prefix ./.snakemake/conda --cores {threads} --directory .'.split()
+    sdm = "conda" if conda else "conda apptainer"
+    command = f'snakemake --rerun-incomplete --rerun-triggers input mtime params --nolock --software-deployment-method {sdm} --conda-prefix ./.snakemake/conda --cores {threads} --directory .'.split()
     command.append('--snakefile')
     command.append(f'{workflowdir}/align-minimap.smk')
     command.append("--configfile")
