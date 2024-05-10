@@ -14,11 +14,11 @@ def writestats(x, contig):
     for mi in x:
         x[mi]["inferred"] = x[mi]["end"] - x[mi]["start"] 
         try:
-            x[mi]["covered_bp"] = x[mi]["bp"] / x[mi]["inferred"]
+            x[mi]["covered_bp"] = min(x[mi]["bp"] / x[mi]["inferred"], 1.0)
         except:
             x[mi]["covered_bp"] = 0
         try:
-            x[mi]["covered_inserts"] = x[mi]["insert_len"] / x[mi]["inferred"]
+            x[mi]["covered_inserts"] = min(x[mi]["insert_len"] / x[mi]["inferred"], 1.0)
         except:
             x[mi]["covered_inferred"] = 0
         outtext = f"{chromlast}\t{mi}\t" + "\t".join([str(x[mi][i]) for i in ["n", "start","end", "inferred", "bp", "covered_bp", "covered_inserts"]])
