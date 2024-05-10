@@ -211,7 +211,7 @@ molecule coverage as `300bp ÷ molecule_length`, whereas the plot on the right c
 
 
 ### coverage by aligned bp {.no-title}
-```{r inferred_cov, echo = FALSE, message = FALSE, warning = FALSE, out.width = '100%'}
+```{r inferred_cov_bp, echo = FALSE, message = FALSE, warning = FALSE, out.width = '100%'}
 hs <- hist(
   round(valids$percent_coverage, 0),
   breaks = seq(0, round(max(valids$coverage_bp + 1, 0)), by = 1),
@@ -232,7 +232,7 @@ hchart(hs, "areaspline", hcaes(x = val, y = freq), color = "#e59765", name = "% 
 ```
 
 ### coverage by inserts {.no-title}
-```{r inferred_cov, echo = FALSE, message = FALSE, warning = FALSE, out.width = '100%'}
+```{r inferred_cov_insert, echo = FALSE, message = FALSE, warning = FALSE, out.width = '100%'}
 hs <- hist(
   round(valids$percent_coverage, 0),
   breaks = seq(0, round(max(valids$coverage_inserts + 1, 0)), by = 1),
@@ -383,7 +383,7 @@ valueBox(scales::comma(nrow(outliers)), caption = "regions >Q99", color = "warni
 ## Distdesc header
 ### distdesc {.no-title}
 <h2> Alignment Depth Distribution </h2>
-Below are the frequencies of interval coverage across all 10kbp intervals for all contigs.
+Below are the frequencies of interval coverage across all 50kbp intervals for all contigs.
 For visual clarity, the X-axis of this plot is truncated at the 99% quantile of depth
 values, which is **`r q99`** for these data.
 
