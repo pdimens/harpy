@@ -6,4 +6,4 @@ if [[ -z "$1" ]]; then
     exit
 fi
 
-samtools view -e '[BX]!~"[ABCD]0{2,4}"' --unoutput /dev/stderr $1 
+samtools view -e '[BX]!~"[ABCD]0{2,4}"' --unoutput /dev/stderr $1
