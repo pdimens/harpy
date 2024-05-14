@@ -107,20 +107,6 @@ rule genome_faidx:
         fi
         """
 
-rule genome_make_windows:
-    input:
-        f"Genome/{bn}"
-    output: 
-        f"Genome/{bn}.bed"
-    params:
-        windowsize
-    container:
-        None
-    message: 
-        "Creating BED intervals from {input}"
-    shell: 
-        "makeWindows.py -i {input} -w {params} -o {output}"
-
 rule genome_index:
     input: 
         f"Genome/{bn}"
@@ -282,18 +268,19 @@ rule alignment_bxstats:
 
 rule alignment_coverage:
     input: 
-        bed = f"Genome/{bn}.bed",
-        bam = outdir + "/{sample}.bam"
+        bam = outdir + "/{sample}.bam",
+        bai = outdir + "/{sample}.bam.bai"
     output: 
         outdir + "/reports/data/coverage/{sample}.cov.gz"
-    threads: 
-        2
+    params:
+        windowsize
     container:
         None
     message:
         "Calculating genomic coverage: {wildcards.sample}"
     shell:
-        "samtools bedcov -c {input} | gzip > {output}"
+        "samtools depth -a {input.bam} | depthWindows.py {params} | gzip > {output}"
+
 
 rule alignment_report:
     input:

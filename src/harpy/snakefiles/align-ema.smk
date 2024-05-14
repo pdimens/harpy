@@ -124,20 +124,6 @@ rule genome_bwa_index:
     shell: 
         "bwa index {input} 2> {log}"
 
-rule genome_make_windows:
-    input:
-        f"Genome/{bn}"
-    output: 
-        f"Genome/{bn}.bed"
-    params:
-        windowsize
-    container:
-        None
-    message: 
-        "Creating BED intervals from {input}"
-    shell: 
-        "makeWindows.py -i {input} -w {params} -o {output}"
-
 rule interleave:
     input:
         fw_reads = get_fq1,
@@ -410,22 +396,20 @@ rule sort_concatenated:
     shell:
         "samtools sort -@ {threads} -O bam --reference {input.genome} -m 4G --write-index -o {output.bam}##idx##{output.bai} {input.bam} 2> /dev/null"
 
-rule coverage_stats:
+rule alignment_coverage:
     input: 
-        bed     = f"Genome/{bn}.bed",
         bam = outdir + "/{sample}.bam",
         bai = outdir + "/{sample}.bam.bai"
     output: 
         outdir + "/reports/data/coverage/{sample}.cov.gz"
-    threads:
-        2
+    params:
+        windowsize
     container:
         None
     message:
         "Calculating genomic coverage: {wildcards.sample}"
     shell:
-        "samtools bedcov -c {input.bed} {input.bam} | gzip > {output}"
-
+        "samtools depth -a {input.bam} | depthWindows.py {params} | gzip > {output}"
 
 rule bx_stats:
     input:
