@@ -301,25 +301,27 @@ knitr::kable(
 )
 ```
 
-
 # Coverage Stats
 
 ```{r echo = FALSE, message = FALSE, warning = FALSE}
 covfile <- snakemake@input[[2]]
 #covfile <- "~/test.cov.gz"
 tb <- read.table(covfile, header = F)
-tb <- tb[, c(1, 2, 3, 5)]
-colnames(tb) <- c("contig", "start", "end", "depth")
-tb$depth <- as.integer(tb$depth)
+colnames(tb) <- c("contig", "position", "depth")
 q99 <- quantile(tb$depth, 0.99)
+Mode <- function(x) {
+  ux <- unique(x)
+  ux[which.max(tabulate(match(x, ux)))]
+}
+windowsize <- Mode(tb$position[-1] - tb$position[1:nrow(tb)-1])
 ```
 
 ```{r echo = FALSE, message = FALSE, warning = FALSE}
 global_avg <- mean(tb$depth)
 global_sd <- sd(tb$depth)
 tb$outlier <- tb$depth > q99
-outliers <- tb[tb$outlier, -5]
-nonoutliers <- tb[!(tb$outlier), -5]
+outliers <- tb[tb$outlier, -4]
+nonoutliers <- tb[!(tb$outlier), -4]
 contig_avg <- group_by(tb, contig) %>%
   summarize(average = mean(depth), sdv = sd(depth))
 contig_avg <- rbind(data.frame(contig = "global", average = global_avg, sdv = global_sd), contig_avg) %>% 
@@ -390,10 +392,9 @@ values, which is **`r q99`** for these data.
 ## distributionplot
 ### distplot {.no-title}
 ```{r echo=F, warning=F, message=F}
-hs <- hist(tb$depth[tb$depth <= q99], breaks = 0:(q99+1), plot = F)
+hs <- hist(tb$depth[tb$depth <= q99], breaks = 30, plot = F)
 hs$counts <- round(hs$counts / sum(hs$counts)*100,2)
 hs <- data.frame(val = hs$breaks[-1], freq = hs$counts)
-hs <- hs[hs$val %% 2 == 0, ]
 
 hchart(hs, "areaspline", hcaes(x = val, y = freq), color = "#9393d2", name = "% of molecules", marker = list(enabled = FALSE)) |>
   hc_xAxis(ceiling = q99, title = list(text = "depth")) |>
@@ -491,7 +492,7 @@ be able to scroll the report instead of zooming on the plot.
 ```{r echo = FALSE, message = FALSE, warning = FALSE}
 # Find the 30 largest contigs
 contigs <- group_by(tb, contig) %>%
-  summarize(size = max(end)) %>%
+  summarize(size = max(position)) %>%
   arrange(desc(size))
 
 # limit the data to only the 30 largest contigs
@@ -519,7 +520,7 @@ for (i in names(genomeChr)){
   tracks = tracks + BioCircosBarTrack(
     paste0("bars", i),
     chromosome = i, 
-    starts = chrcov$start, ends = chrcov$end,
+    starts = chrcov$position - windowsize, ends = chrcov$position,
     values = pmin(chrcov$depth, q99),
     color = "#56486d"
   )
@@ -538,7 +539,7 @@ BioCircos(
   chrPad = 0.02,
   genomeTicksDisplay = F,
   BARMouseOverColor = "#1cff42",
-  BARMouseOverTooltipsHtml05 = "Depth: ",
+  BARMouseOverTooltipsHtml05 = "Mean Depth: ",
   genomeLabelDy = 0,
   width = "100%"
 )
