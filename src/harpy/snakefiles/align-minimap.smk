@@ -281,7 +281,6 @@ rule alignment_coverage:
     shell:
         "samtools depth -a {input.bam} | depthWindows.py {params} | gzip > {output}"
 
-
 rule alignment_report:
     input:
         outdir + "/reports/data/bxstats/{sample}.bxstats.gz",
