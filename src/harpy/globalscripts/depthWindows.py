@@ -9,7 +9,7 @@ parser.add_argument('windowsize', type= int, help = "The window size to use to c
 args = parser.parse_args()
 _sum = 0
 start = 1
-end = start + args.windowsize - 1
+end = args.windowsize
 lastcontig = None
 for line in sys.stdin:
     # Remove the newline character at the end of the line
@@ -20,15 +20,17 @@ for line in sys.stdin:
         winsize = (position + 1) - start
         print(f"{lastcontig}\t{position}\t{_sum / winsize}", file = sys.stdout)
         # reset the window start/end and sum
-        start = 1
-        end = start + args.windowsize - 1
         _sum = 0
+        start = 1
+        end = args.windowsize
 
     position = int(line[1])
     _sum += int(line[2])
 
     if position == end:
         print(f"{contig}\t{end}\t{_sum / args.windowsize}", file = sys.stdout)
+        # reset the window start/end and sum
+        _sum = 0
         start = end + 1
-        end = start + args.windowsize - 1
+        end += args.windowsize
     lastcontig = contig
