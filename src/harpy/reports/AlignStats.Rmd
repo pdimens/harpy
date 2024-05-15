@@ -128,7 +128,7 @@ hs <- hist(
   breaks = min(valids$reads):max(valids$reads),
   plot = F
 )
-hs$counts <- round(hs$counts / sum(hs$counts) * 100, 2)
+hs$counts <- round(hs$counts / sum(hs$counts) * 100, 4)
 hs <- data.frame(val = hs$breaks[-1], freq = hs$counts)
 
 hchart(hs, "areaspline", hcaes(x = val, y = freq), color = "#8484bd", name = "% of molecules", marker = list(enabled = FALSE)) |>
@@ -145,7 +145,7 @@ hchart(hs, "areaspline", hcaes(x = val, y = freq), color = "#8484bd", name = "% 
 ### bases per {.no-title}
 ```{r basesper, echo = FALSE, message = FALSE, warning = FALSE, out.width="100%"}
 hs <- hist(round(valids$aligned_bp, -2), breaks = 50,  plot = F)
-hs$counts <- round(hs$counts / sum(hs$counts)*100,2)
+hs$counts <- round(hs$counts / sum(hs$counts)*100,4)
 hs <- data.frame(val = hs$breaks[-1], freq = hs$counts)
 
 hchart(hs, "areaspline", hcaes(x = val, y = freq), color = "#75b89e", name = "% of molecules", marker = list(enabled = FALSE)) |>
@@ -158,7 +158,6 @@ hchart(hs, "areaspline", hcaes(x = val, y = freq), color = "#75b89e", name = "% 
     buttons = list(contextButton = list(menuItems = c("viewFullscreen", "separator", "downloadPNG", "downloadJPEG", "downloadPDF", "downloadSVG")))
   )
 ```
-
 
 ## inferred-header
 ### inferred desc {.no-title}
@@ -212,12 +211,13 @@ molecule coverage as `300bp ÷ molecule_length`, whereas the plot on the right c
 
 ### coverage by aligned bp {.no-title}
 ```{r inferred_cov_bp, echo = FALSE, message = FALSE, warning = FALSE, out.width = '100%'}
+#TODO THIS IS BROKEN
 hs <- hist(
-  round(valids$percent_coverage, 0),
-  breaks = seq(0, round(max(valids$coverage_bp + 1, 0)), by = 1),
+  round(valids$coverage_bp, 0),
+  breaks = seq(0, 1, by = 0.05),
   plot = F
 )
-hs$counts <- round(hs$counts / sum(hs$counts)*100,2)
+hs$counts <- round(hs$counts / sum(hs$counts)*100,4)
 hs <- data.frame(val = hs$breaks[-1], freq = hs$counts)
 
 hchart(hs, "areaspline", hcaes(x = val, y = freq), color = "#e59765", name = "% of molecules", marker = list(enabled = FALSE)) |>
@@ -234,8 +234,8 @@ hchart(hs, "areaspline", hcaes(x = val, y = freq), color = "#e59765", name = "% 
 ### coverage by inserts {.no-title}
 ```{r inferred_cov_insert, echo = FALSE, message = FALSE, warning = FALSE, out.width = '100%'}
 hs <- hist(
-  round(valids$percent_coverage, 0),
-  breaks = seq(0, round(max(valids$coverage_inserts + 1, 0)), by = 1),
+  round(valids$coverage_inserts, 0),
+  breaks = seq(0, 1, by = 0.05),
   plot = F
 )
 hs$counts <- round(hs$counts / sum(hs$counts)*100,2)
