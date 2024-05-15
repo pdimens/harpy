@@ -21,21 +21,14 @@ using<-function(...) {
     }
 }
 
-using("flexdashboard","magrittr","tidyr","DT","highcharter","RColorBrewer","scales")
-
-#library(flexdashboard)
-#library(magrittr)
-#library(tidyr)
-#library(DT)
-#library(highcharter)
-#library(RColorBrewer)
-#library(scales)
-#dataL <- readLines("~/variants.raw.stats")
-#bcf <- "filename.bcf"
-dataL <- readLines(snakemake@input[[1]])
-bcf <- gsub(".stats$", ".bcf", snakemake@input[[1]])
+using("flexdashboard","magrittr","tidyr","DT","highcharter","scales")
+#statsfile <- snakemake@input[[1]]
+statsfile <- "~/variants.raw.stats"
+dataL <- readLines(statsfile)
+bcf <- gsub(".stats$", ".bcf", statsfile)
 ```
-<h1> `r bcf` </h1>
+# General Information
+<h2> `r bcf` </h2>
 
 This reflects the general information stored in the records of `r bcf`.
 
@@ -47,7 +40,7 @@ sn$Metric <- gsub("number of ", "", sn$Metric)
 rownames(sn) <- sn$Metric
 sn <- as.data.frame(t(sn[2]))
 ```
-## General Information {data-height=100}
+## Metrics {data-height=100}
 
 ### general-samples
 ```{r}
@@ -85,44 +78,6 @@ valueBox(scales::comma(sn[1,3]), caption = "No-ALTs", color = "info")
 ```{r}
 valueBox(scales::comma(sn[1,7]), caption = "Others", color = "info")
 ```
-
-## Ind Statistics Desc
-### Ind Desc {.no-title}
-<h2> Individual Statistics </h2>
-These are per-locus statistics, which correspond to the Per-Sample Counts (`PSC`) calculations of `bcftools stats`. The table reflects the data visualized in the plot tab.
-
-## Individual Statistics  {.tabset}
-### Individual Statistics
-```{r Individual plot, echo=FALSE, message=FALSE, warning=FALSE, out.width="100%"}
-.pscL <- grepl("^PSC", dataL)
-psc <- read.table(text=dataL[.pscL])[ ,3:14]
-names(psc) <- c("Sample", "HomozygousRef", "HomozygousAtl", "Heterozygotes", "Transitions", "Transversions", "Indels",	"MeanDepth", "Singletons",	"HapRef", "HapAlt", "Missing")
-psc$Homozygotes <- psc$HomozygousRef + psc$HomozygousAtl
-tidy_psc <- pivot_longer(psc[,c(1,4,5,6,7,9,12,13)], -Sample , names_to = "Metric", values_to = "Count")
-psc <- psc[,c(1,8,12,2,3,13,4,5,6,7,9,10,11)]
-tidy_psc$Sample <- as.factor(tidy_psc$Sample)
-
-highchart() |>
-  hc_chart(inverted=TRUE) |>
-  hc_add_series(data = tidy_psc, type = "scatter", hcaes(y = Count, x = Sample, group = Metric), marker = list(symbol = "circle")) |>
-  hc_colors(RColorBrewer::brewer.pal(7, "Dark2")) |>
-  hc_title(text = "Individual Statistics") |>
-  hc_xAxis(type = "category", title = list(text = ""), categories = levels(tidy_psc$Sample)) |>
-  hc_yAxis(title = list(text = "count")) |>
-  hc_tooltip(
-    crosshairs = TRUE, animation = F,
-    pointFormat= '<b>{point.category}</b><br>Count: <b>{point.y:.0f}</b>'
-  ) |>
-  hc_exporting(enabled = T, filename = "bcftools.stats",
-    buttons = list(contextButton = list(menuItems = c("viewFullscreen", "separator", "downloadPNG", "downloadJPEG", "downloadPDF", "downloadSVG")))
-  )
-```
-
-### Individual Data
-```{r Individual table, echo=FALSE, message=FALSE, warning=FALSE}
-DT::datatable(psc, rownames = F, filter = "top", extensions = 'Buttons', options = list(dom = 'Brtip', buttons = c('csv'), scrollX = TRUE))
-```
-
 ## Quality Statistics Desc
 ### Desc {.no-title}
 <h2> Quality Statistics </h2>
@@ -135,7 +90,7 @@ greater than or equal to `0` and less than `10`".
 .qual <- grepl("^QUAL", dataL)
 if(sum(.qual) == 0){
   do_qual <- FALSE
-  cat(paste0("No QUAL section in ", snakemake@input[[1]], " found\n"))
+  cat(paste0("No QUAL section in ", statsfile, " found\n"))
 } else {
   do_qual <- TRUE
 }
@@ -216,31 +171,48 @@ These are per-locus statistics, which correspond to the Depth (`DP`) calculation
 The table reflects the data visualized in the plot tab.
 
 ## Depth Statistics
-
 ### Depth Statistics {.no-title}
-```{r depth plot, echo=FALSE, message=FALSE, warning=FALSE, paged.print=TRUE, out.width="100%"}
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+# find index when the values are consistently 0 to hopefully remove an uninformative tail from the plot
+find_zero_runs <- function(vec) {
+  rle_result <- rle(vec)
+  zero_runs <- which(rle_result$values == 0 & rle_result$lengths >= 20)
+  if (length(zero_runs) > 0) {
+    return(sum(rle_result$lengths[1:(zero_runs[1]-1)]) + 1)
+  } else {
+    return(NA)
+  }
+}
+```
+
+```{r depth plot, echo=FALSE, message=FALSE, warning=FALSE, out.width="100%"}
 .dpL <- grepl("^DP", dataL)
 if(sum(.dpL) == 0){
   cat(paste0("No DP section in ", snakemake@input[[1]], " found\n"))
 } else {
   dp <- read.table(text=dataL[.dpL])[ , 3:7]
   names(dp) <- c("Bin", "Genotypes", "PercentGenotypes", "NumberSites", "PercentSites")
-  dp$Bin <- as.numeric(dp$Bin)
-  dp$PercentGenotypes <- round(dp$PercentGenotypes, digits = 3)
-  dp$PercentSites <- round(dp$PercentSites, digits = 3)
-
-  hchart(dp, "areaspline", hcaes(x = Bin, y = NumberSites), name = "count", color = "#F28500", marker = list(enabled = FALSE)) |>
-    hc_title(text = "Depth per Site") |>
-    hc_xAxis(title = list(text = "bin"), type = "logarithmic") |>
-    hc_yAxis(title = list(text = "number of sites")) |>
+  dp$PercentGenotypes <- round(dp$PercentGenotypes, digits = 6)
+  not_low <- dp$PercentGenotypes > 0.01
+  dp$PercentGenotypes[not_low] <- round(dp$PercentGenotypes[not_low], digits = 2)
+  dp$PercentSites <- round(dp$PercentSites, digits = 4)
+  # cut off at trailing zeroes
+  cutoff <- find_zero_runs(dp$PercentGenotypes) - 1
+  hchart(dp[1:cutoff,], "areaspline", hcaes(x = Bin, y = PercentGenotypes), name = "percent", color = "#F28500", marker = list(enabled = FALSE)) |>
+    hc_title(text = "Depth per Genotype") |>
+    hc_xAxis(title = list(text = "depth bin"), type = "logarithmic") |>
+    hc_yAxis(title = list(text = "% of genotypes")) |>
     hc_tooltip(crosshairs = TRUE,
-      formatter = JS("function () {return '<b>bin ' + this.x + '</b><br>Count: <b>' + this.y + '</b>';}") 
+      formatter = JS("function () {return '<b>depth: ' + this.x + '</b><br>Percent: <b>' + this.y + '</b>';}") 
     ) |>
-    hc_exporting(enabled = T, filename = "indel.quality",
+    hc_exporting(enabled = T, filename = "site.depth",
       buttons = list(contextButton = list(menuItems = c("viewFullscreen", "separator", "downloadPNG", "downloadJPEG", "downloadPDF", "downloadSVG")))
   )
 }
 ```
+
+
 
 ### Depth Data  {data-width=350 .no-title}
 
@@ -294,3 +266,40 @@ if(sum(.iddL) == 0){
 }
 ```
 
+
+# Per-Sample
+## Ind Statistics Desc {.data-height=900}
+### Ind Desc {.no-title}
+<h2> Individual Statistics </h2>
+These are per-locus statistics, which correspond to the Per-Sample Counts (`PSC`) calculations of `bcftools stats`. The table reflects the data visualized in the plot tab.
+## Individual Statistics  {.tabset}
+### Individual Statistics
+```{r Individual plot, echo=FALSE, message=FALSE, warning=FALSE, out.width="100%"}
+.pscL <- grepl("^PSC", dataL)
+psc <- read.table(text=dataL[.pscL])[ ,3:14]
+names(psc) <- c("Sample", "HomozygousRef", "HomozygousAtl", "Heterozygotes", "Transitions", "Transversions", "Indels",	"MeanDepth", "Singletons",	"HapRef", "HapAlt", "Missing")
+psc$Homozygotes <- psc$HomozygousRef + psc$HomozygousAtl
+tidy_psc <- pivot_longer(psc[,c(1,4,5,6,7,9,12,13)], -Sample , names_to = "Metric", values_to = "Count")
+psc <- psc[,c(1,8,12,2,3,13,4,5,6,7,9,10,11)]
+tidy_psc$Sample <- as.factor(tidy_psc$Sample)
+
+highchart() |>
+  hc_chart(inverted=TRUE) |>
+  hc_add_series(data = tidy_psc, type = "scatter", hcaes(y = Count, x = Sample, group = Metric), marker = list(symbol = "circle")) |>
+  hc_colors(c("#41739c", "#eb7e2b", "#837fbd", "#8d8d8d", "#9dc96c", "#E6AB02", "#c7739d")) |>
+  hc_title(text = "Individual Statistics") |>
+  hc_xAxis(type = "category", title = list(text = ""), categories = levels(tidy_psc$Sample)) |>
+  hc_yAxis(title = list(text = "count")) |>
+  hc_tooltip(
+    crosshairs = TRUE, animation = F,
+    pointFormat= '<b>{point.category}</b><br>Count: <b>{point.y:.0f}</b>'
+  ) |>
+  hc_exporting(enabled = T, filename = "bcftools.stats",
+    buttons = list(contextButton = list(menuItems = c("viewFullscreen", "separator", "downloadPNG", "downloadJPEG", "downloadPDF", "downloadSVG")))
+  )
+```
+
+### Individual Data
+```{r Individual table, echo=FALSE, message=FALSE, warning=FALSE}
+DT::datatable(psc, rownames = F, filter = "top", extensions = 'Buttons', options = list(dom = 'Brtip', buttons = c('csv'), scrollX = TRUE))
+```
