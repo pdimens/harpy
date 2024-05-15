@@ -21,7 +21,7 @@ genotypes into haplotypes requires alignment files, such as those produced by [!
 and a variant call file, such as one produced by [!badge corners="pill" text="snp freebayes"](snp.md)
 or [!badge corners="pill" text="impute"](impute.md). **Phasing only works on SNP data**, and will not
 work for structural variants produced by [!badge corners="pill" text="sv leviathan"](SV/leviathan.md)
-or [!badge corners="pill" text="sv naibr"](SV/naibr.md). You can phase genotypes into haplotypes with
+or [!badge corners="pill" text="sv naibr"](SV/naibr.md), preferably [filtered in some capacity](snp.md/#filtering-variants). You can phase genotypes into haplotypes with
 Harpy using the [!badge corners="pill" text="phase"] module:
 
 ```bash usage
