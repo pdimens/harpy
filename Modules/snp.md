@@ -164,7 +164,17 @@ are likely repetitive ones mapping to multiple parts of the genome. You could us
 One scalable approach is to define the thresholds as quantiles, such as the `0.01` and `0.99` quantiles of read depths, which would remove the
 sites with the lowest 1% and highest 1% read depths. These are example quantiles and they don't need to be symmetric. It would be best to
 plot the distribution of site depths to assess what makes sense for your data. Unfortunately, `bcftools` does not have internal routines to calculate
-quantiles
+quantiles, but you can do it all from the command line using a combination of `bcftools query` and `awk` (separated onto 3 lines here for demonstration purposes):
+```bash # find a specific depth quantile
+bcftools query -f "%DP\n" input.bcf |\
+  sort -n |\
+  awk '{all[NR] = $0} END{print all[int(NR*0.95 - 0.5)]}'
+```
+- **line 1**: extract the depth for every site in the vcf file, one per line
+- **line 2**: sort the values numerically
+- **line 3**: find the 95th quantile
+    - change the `0.95` in `NR*0.95` to whatever quantile you want
+    - the `- 0.5` part rounds down and may need to be adjusted for your quantile
 
 #### minor allele frequency (MAF)
 It's usually advisable to set a minor allele frequency threshold with which to remove sites below that threshold. The reasoning
