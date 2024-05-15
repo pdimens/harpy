@@ -46,7 +46,7 @@ def phase(input, output_dir, vcf, threads, molecule_distance, prune_threshold, v
     You may choose to omit barcode information with `--ignore-bx`, although it's usually
     better to include that information. Use `--vcf-samples` to phase only
     the samples present in your input `--vcf` file rather than all the samples present in
-    the input alignments.
+    the `INPUT` alignments.
     """
     output_dir = output_dir.rstrip("/")
     workflowdir = f"{output_dir}/workflow"

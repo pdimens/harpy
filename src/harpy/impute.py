@@ -40,8 +40,8 @@ def impute(input, output_dir, parameters, threads, vcf, vcf_samples, extra_param
     individual files/folders, using shell wildcards (e.g. `data/drosophila*.bam`), or both.
     
     Requires a parameter file, use **harpy stitchparams** to generate one and adjust it for your study.
-    Use the `--vcf-samples` toggle to phase only the samples present in your input `--vcf` file rather than all
-    the samples present in the `--directory`. Additional STITCH arguments, if provided, must be in quotes and 
+    The `--vcf-samples` flag toggles to phase only the samples present in your input `--vcf` file rather than all
+    the samples identified in `INPUT`. If providing additional STITCH arguments, they must be in quotes and 
     in R language style. The extra parameters will remain constant across different models.
     Use single-quotes (string literals) if supplying an argument that requires quotes. For example:
     
