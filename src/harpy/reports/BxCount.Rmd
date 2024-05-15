@@ -264,7 +264,7 @@ failure than others.
 
 ```{r}
 pltheight <- 150 + (15 * nrow(invalids))
-frameheight <- 1.2 + (0.166 * nrow(invalids))
+#frameheight <- 1.2 + (0.166 * nrow(invalids))
 ```
 
 ## segment plots {data-height=pltheight}
