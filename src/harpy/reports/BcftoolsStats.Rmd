@@ -22,8 +22,8 @@ using<-function(...) {
 }
 
 using("flexdashboard","magrittr","tidyr","DT","highcharter","scales")
-#statsfile <- snakemake@input[[1]]
-statsfile <- "~/variants.raw.stats"
+statsfile <- snakemake@input[[1]]
+#statsfile <- "~/variants.raw.stats"
 dataL <- readLines(statsfile)
 bcf <- gsub(".stats$", ".bcf", statsfile)
 ```
@@ -83,7 +83,8 @@ valueBox(scales::comma(sn[1,7]), caption = "Others", color = "info")
 <h2> Quality Statistics </h2>
 These are per-locus statistics, which correspond to the Quality (`QUAL`) statistics of `bcftools stats`. 
 Each quality score is has a semi-open bin width of 10, where `0` would be considered "a QUAL score
-greater than or equal to `0` and less than `10`".
+greater than or equal to `0` and less than `10`". The histograms are truncated at the 99th percentile
+for visual clarity.
 
 ## Quality Statistics
 ```{r qual data, echo=FALSE, message=FALSE, warning=FALSE}
@@ -124,13 +125,31 @@ mergebins <- function(x){
 }
 
 ```
+
+```{r}
+  hist_quantile <- function(x, q){
+  # find the qth percentile of the histogram x
+  # Calculate the cumulative sum of the counts
+  cumulative_counts <- cumsum(x[,2])
+  # Normalize to create a cumulative distribution function (CDF)
+  cdf <- cumulative_counts / max(cumulative_counts)
+  # Find the bin that is closest to the qth percentile
+  index <- which.min(abs(cdf - q))
+  # The qth percentile value is the right edge of this bin
+  return(x[index + 1,1])
+}
+```
 ### SNP Quality {.no-title}
 ```{r snpqual plot, echo=FALSE, message=FALSE, warning=FALSE}
 if(do_qual){
-  hchart(mergebins(qual[,-3]), "areaspline", hcaes(x = QualityScore, y = SNPs), color = "#8fbbbc", name = "count", marker = list(enabled = FALSE)) |>
+  rebinned_qual <- mergebins(qual[,-3])
+  q99 <- hist_quantile(rebinned_qual, 0.99)
+  rebinned_qual <- rebinned_qual[rebinned_qual$QualityScore < q99, ]
+  hchart(rebinned_qual, "areaspline", hcaes(x = QualityScore, y = SNPs), color = "#8fbbbc", name = "count", marker = list(enabled = FALSE)) |>
     hc_title(text = "SNP Genotype Quality") |>
     hc_subtitle(text = "Shown in bins of width 10") |>
-    hc_xAxis(title = list(text = "quality score")) |>
+    hc_caption(text = paste("99th percentile:", q99)) |>
+    hc_xAxis(title = list(text = "quality score"), type = "logarithmic") |>
     hc_yAxis(title = list(text = "count")) |>
     hc_tooltip(crosshairs = TRUE,
       formatter = JS("function () {return '<b>Quality ' + this.x + '</b><br>Count: <b>' + this.y + '</b>';}") 
@@ -140,17 +159,21 @@ if(do_qual){
     )
 
 } else {
-  cat(paste0("No QUAL section in ", snakemake@input[[1]], " found\n"))
+  cat(paste0("No QUAL section in ", statsfile, " found\n"))
 }
 ```
 
 ### Indel Quality {.no-title}
 ```{r indelqual plot, echo=FALSE, message=FALSE, warning=FALSE}
 if(do_qual){
-  hchart(mergebins(qual[,-2]), "areaspline", hcaes(x = QualityScore, y = Indels), name = "count", color = "#9393d2", marker = list(enabled = FALSE)) |>
+  rebinned_qual <- mergebins(qual[,-2])
+  q99 <- hist_quantile(rebinned_qual, 0.99)
+  rebinned_qual <- rebinned_qual[rebinned_qual$QualityScore < q99, ]
+  hchart(rebinned_qual, "areaspline", hcaes(x = QualityScore, y = Indels), name = "count", color = "#9393d2", marker = list(enabled = FALSE)) |>
     hc_title(text = "Indel Genotype Quality") |>
     hc_subtitle(text = "Shown in bins of width 10") |>
-    hc_xAxis(title = list(text = "quality score")) |>
+    hc_caption(text = paste("99th percentile:", q99)) |>
+    hc_xAxis(title = list(text = "quality score"), type = "logarithmic") |>
     hc_yAxis(title = list(text = "count")) |>
     hc_tooltip(crosshairs = TRUE,
       formatter = JS("function () {return '<b>Quality ' + this.x + '</b><br>Count: <b>' + this.y + '</b>';}") 
@@ -160,7 +183,7 @@ if(do_qual){
     )
 
 } else {
-  cat(paste0("No QUAL section in ", snakemake@input[[1]], " found\n"))
+  cat(paste0("No QUAL section in ", statsfile, " found\n"))
 }
 ```
 
@@ -189,7 +212,7 @@ find_zero_runs <- function(vec) {
 ```{r depth plot, echo=FALSE, message=FALSE, warning=FALSE, out.width="100%"}
 .dpL <- grepl("^DP", dataL)
 if(sum(.dpL) == 0){
-  cat(paste0("No DP section in ", snakemake@input[[1]], " found\n"))
+  cat(paste0("No DP section in ", statsfile, " found\n"))
 } else {
   dp <- read.table(text=dataL[.dpL])[ , 3:7]
   names(dp) <- c("Bin", "Genotypes", "PercentGenotypes", "NumberSites", "PercentSites")
@@ -206,7 +229,7 @@ if(sum(.dpL) == 0){
     hc_tooltip(crosshairs = TRUE,
       formatter = JS("function () {return '<b>depth: ' + this.x + '</b><br>Percent: <b>' + this.y + '</b>';}") 
     ) |>
-    hc_exporting(enabled = T, filename = "site.depth",
+    hc_exporting(enabled = T, filename = "genotype.depth",
       buttons = list(contextButton = list(menuItems = c("viewFullscreen", "separator", "downloadPNG", "downloadJPEG", "downloadPDF", "downloadSVG")))
   )
 }
@@ -215,7 +238,7 @@ if(sum(.dpL) == 0){
 ### Depth Data  {data-width=350 .no-title}
 ```{r depth table, echo=FALSE, message=FALSE, warning=FALSE, paged.print=TRUE, out.width="100%"}
 if(sum(.dpL) == 0){
-  cat(paste0("No DP section in ", snakemake@input[[1]], " found\n"))
+  cat(paste0("No DP section in ", statsfile, " found\n"))
 } else {
   DT::datatable(
     dp,
@@ -223,7 +246,7 @@ if(sum(.dpL) == 0){
     filter = "top",
     extensions = 'Buttons',
     options = list(dom = 'Brtip', buttons = c('csv')),
-    colnames = c("Bin", "Genotypes", "% Genotypes", "Sites", "% Sites")
+    colnames = c("Depth Bin", "Genotypes", "% Genotypes", "Sites", "% Sites")
     )
 }
 ```
@@ -239,7 +262,7 @@ length is presented here as negative values for visual clarity.
 ```{r Indel Stats, echo=FALSE, message=FALSE, warning=FALSE, paged.print=TRUE, out.width="100%"}
 .iddL <- grepl("^IDD", dataL)
 if(sum(.iddL) == 0){
-  cat(paste0("No IDD section in ", snakemake@input[[1]], " found\n"))
+  cat(paste0("No IDD section in ", statsfile, " found\n"))
 } else {
   idd <- read.table(text=dataL[.iddL])[ ,3:4]
   names(idd) <- c("Length", "Count")
@@ -250,7 +273,8 @@ if(sum(.iddL) == 0){
   hchart(idd, "areaspline", hcaes(x = Length, y = Count, group = Type, marker = list(enabled = FALSE))) |>
     hc_colors(c("#e6a037","#6daace")) |>
     hc_title(text = "Insertion-Deletion Distribution") |>
-    hc_xAxis(title = list(text = "indel length"),
+    hc_xAxis(
+      title = list(text = "indel length"),
       labels = list(formatter = JS("function () {return Math.abs(this.value);}"))
     ) |>
     hc_yAxis(title = list(text = "number of sites")) |>
@@ -265,13 +289,10 @@ if(sum(.iddL) == 0){
 
 
 # Per-Sample
-## Ind Statistics Desc {.data-height=900}
-### Ind Desc {.no-title}
 <h2> Individual Statistics </h2>
-These are per-locus statistics, which correspond to the Per-Sample Counts (`PSC`) calculations of `bcftools stats`. The table reflects the data visualized in the plot tab.
-## Individual Statistics  {.tabset}
-### Individual Statistics
-```{r Individual plot, echo=FALSE, message=FALSE, warning=FALSE, out.width="100%"}
+<br>These are per-locus statistics, which correspond to the Per-Sample Counts (`PSC`) calculations of `bcftools stats`. The table reflects the data visualized in the plot tab.</br>
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
 .pscL <- grepl("^PSC", dataL)
 psc <- read.table(text=dataL[.pscL])[ ,3:14]
 names(psc) <- c("Sample", "HomozygousRef", "HomozygousAtl", "Heterozygotes", "Transitions", "Transversions", "Indels",	"MeanDepth", "Singletons",	"HapRef", "HapAlt", "Missing")
@@ -279,7 +300,13 @@ psc$Homozygotes <- psc$HomozygousRef + psc$HomozygousAtl
 tidy_psc <- pivot_longer(psc[,c(1,4,5,6,7,9,12,13)], -Sample , names_to = "Metric", values_to = "Count")
 psc <- psc[,c(1,8,12,2,3,13,4,5,6,7,9,10,11)]
 tidy_psc$Sample <- as.factor(tidy_psc$Sample)
+plotheight <- 150 + (15 * nrow(psc))
+figheight <- 1 + (0.2 * nrow(psc))
+```
 
+## Individual Statistics {.tabset data-height=plotheight}
+### Individual Statistics
+```{r Individual plot, echo=FALSE, message=FALSE, warning=FALSE, fig.height=figheight, out.width="100%"}
 highchart() |>
   hc_chart(inverted=TRUE) |>
   hc_add_series(data = tidy_psc, type = "scatter", hcaes(y = Count, x = Sample, group = Metric), marker = list(symbol = "circle")) |>
@@ -291,12 +318,12 @@ highchart() |>
     crosshairs = TRUE, animation = F,
     pointFormat= '<b>{point.category}</b><br>Count: <b>{point.y:.0f}</b>'
   ) |>
-  hc_exporting(enabled = T, filename = "bcftools.stats",
+  hc_exporting(enabled = T, filename = "samples.variantstats",
     buttons = list(contextButton = list(menuItems = c("viewFullscreen", "separator", "downloadPNG", "downloadJPEG", "downloadPDF", "downloadSVG")))
   )
 ```
 
 ### Individual Data
 ```{r Individual table, echo=FALSE, message=FALSE, warning=FALSE}
-DT::datatable(psc, rownames = F, filter = "top", extensions = 'Buttons', options = list(dom = 'Brtip', buttons = c('csv'), scrollX = TRUE))
+DT::datatable(psc, rownames = F, fillContainer = T, filter = "top", extensions = 'Buttons', options = list(dom = 'Brtip', buttons = c('csv'), scrollX = TRUE, paging = F))
 ```
