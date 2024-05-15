@@ -212,10 +212,7 @@ if(sum(.dpL) == 0){
 }
 ```
 
-
-
 ### Depth Data  {data-width=350 .no-title}
-
 ```{r depth table, echo=FALSE, message=FALSE, warning=FALSE, paged.print=TRUE, out.width="100%"}
 if(sum(.dpL) == 0){
   cat(paste0("No DP section in ", snakemake@input[[1]], " found\n"))
