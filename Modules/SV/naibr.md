@@ -20,8 +20,8 @@ This file is optional and only useful if you want variant calling to happen on a
     - spaces can be used as delimeters too
 - the groups can be numbers or text (_i.e._ meaningful population names)
 - you can comment out lines with `#` for Harpy to ignore them
-- create with [!badge corners="pill" text="harpy popgroup"](../othermodules.md#popgroup) or manually
-- if created with [!badge corners="pill" text="harpy popgroup"](../othermodules.md#popgroup), all the samples will be assigned to group `pop1`
+- create with [!badge corners="pill" text="harpy popgroup"](../other.md#popgroup) or manually
+- if created with [!badge corners="pill" text="harpy popgroup"](../other.md#popgroup), all the samples will be assigned to group `pop1`
     - make sure to edit the second column to reflect your data correctly.
 
 ``` example file for --populations
@@ -137,18 +137,19 @@ This fork includes improved accuracy as well as quality-of-life updates.
 ```mermaid
 graph LR
     subgraph id1 ["Phase"]
-    aln[unphased BAM alignments]-->phased([phased alignments])
+    aln[unphased alignments]---vcf[phased VCF]
     end
+    id1-->phased([phased alignments])
     subgraph id2 ["Population calling"]
     popsplit([merge by population])
     end
-    id1-->id2
+    phased-->id2
     popsplit-->A
-    id1-->A
+    phased-->A
     A([index alignments]) --> B([NAIBR])
     Z([create config file]) --> B
     popsplit --> Z
-    id1 --> Z
+    phased --> Z
     B-->C([generate reports])
     style id2 fill:#f0f0f0,stroke:#e8e8e8,stroke-width:2px
     style id1 fill:#f0f0f0,stroke:#e8e8e8,stroke-width:2px

@@ -18,8 +18,8 @@ This file is optional and useful if you want variant calling to happen on a per-
     - spaces can be used as delimeters too
 - the groups can be numbers or text (_i.e._ meaningful population names)
 - you can comment out lines with `#` for Harpy to ignore them
-- create with [!badge corners="pill" text="harpy popgroup"](othermodules.md/#popgroup) or manually
-- if created with [!badge corners="pill" text="harpy popgroup"](othermodules.md/#popgroup), all the samples will be assigned to group `pop1`, so make sure to edit the second column to reflect your data correctly.
+- create with [!badge corners="pill" text="harpy popgroup"](other.md/#popgroup) or manually
+- if created with [!badge corners="pill" text="harpy popgroup"](other.md/#popgroup), all the samples will be assigned to group `pop1`, so make sure to edit the second column to reflect your data correctly.
 
 ``` example file for --populations
 sample1 pop1

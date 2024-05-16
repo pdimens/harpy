@@ -42,14 +42,16 @@ parameters that don't impact the results of the module, but instead control the 
 of calling the module. These runtime parameters are listed in the modules' help strings and can be 
 configured using these arguments:
 
-| argument        | short name | type    | default | required | description                                                                       |
-|:--------------- |:----------:|:------- |:-------:|:--------:|:--------------------------------------------------------------------------------- |
-| `--output-dir`  |   `-o`     | string  | varies  | no       | Name of output directory                                                          |
-| `--threads`     |   `-t`     | integer | 4       | no       | Number of threads to use                                                          |
-| `--skipreports` |            | toggle  |         | no       | Skip the processing and generation of HTML reports in a workflow                  |
-| `--snakemake`   |            | string  |         | no       | Additional [Snakemake](snakemake/#adding-snakamake-parameters) options, in quotes |
-| `--quiet`       |   `-q`     | toggle  |         | no       | Supressing Snakemake printing to console                                          |
-| `--help`        |   `-h`     |         |         |          | Show the module docstring                                                         |
+{.compact}
+| argument        | short name | type    | default | description                                                                       |
+|:--------------- |:----------:|:------- |:-------:|:--------------------------------------------------------------------------------- |
+| `--output-dir`  |   `-o`     | string  | varies  | Name of output directory                                                          |
+| `--threads`     |   `-t`     | integer | 4       | Number of threads to use                                                          |
+| `--conda`       |            | toggle  |         | Use local conda environments instead of preconfigured Singularity container       |
+| `--skipreports` |            | toggle  |         | Skip the processing and generation of HTML reports in a workflow                  |
+| `--snakemake`   |            | string  |         | Additional [Snakemake](snakemake/#adding-snakamake-parameters) options, in quotes |
+| `--quiet`       |   `-q`     | toggle  |         | Suppress Snakemake printing to console                                            |
+| `--help`        |   `-h`     |         |         | Show the module docstring                                                         |
 
 As as example, you could call [!badge corners="pill" text="align minimap"](Modules/Align/minimap.md) and specify 20 threads with no output to console:
 
@@ -68,6 +70,7 @@ both necessary for the module to run and is very useful to understand what the m
 understanding or as a point of reference when writing the Methods within a manuscript. The presence of the folder
 and the contents therein also allow you to rerun the workflow manually. The `workflow` folder may contain the following:
 
+{.compact}
 | item | contents | utility |
 |:-----|:---------|:--------|
 |`*.smk`               | Snakefile with the full recipe of the workflow | useful for understanding the workflow |

@@ -24,7 +24,6 @@ rest of LRSIM's components are reincorporated into the Snakemake workflow govern
 - outputs are coded a little differently for flexibility (and use the `-r` parameter for some parts)
 - SURVIVOR variant simulation functionality removed entirely
 - DWGSIM, samtools, msort, and extractReads functionality moved into Harpy workflow
-- DWGSIM call does not add additional variants
 - uses newer version of DWGSIM
 ===
 

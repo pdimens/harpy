@@ -7,7 +7,6 @@ description: Generate extra files for analysis with Harpy
 
 # :icon-file-diff: Other Harpy modules
 Some parts of Harpy (variant calling, imputation) want or need extra files. You can create various files necessary for different modules using these extra modules:
-The arguments represent different sub-commands and can be run in any order or combination to generate the files you need.
 
 ## :icon-terminal: Other modules
 {.compact}
@@ -15,18 +14,25 @@ The arguments represent different sub-commands and can be run in any order or co
 |:---------------|:---------------------------------------------------------------------------------|
 | `popgroup`     | Create generic sample-group file using existing sample file names (fq.gz or bam) |
 | `stitchparams` | Create template STITCH parameter file                                            |
-| `hpc`          | Create HPC scheduling profile for cluster submission                             |
 
 ### popgroup
-#### Sample grouping file for variant calling
+Creates a sample grouping file for variant calling
+
+```bash usage
+harpy popgroup -o OUTPUTFILE INPUTS
+```
 
 ```bash usage example
 harpy popgroup -o samples.groups data/
 ```
-##### arguments
-- `-o`, `--output`: name of the output file
+#### arguments
+{.compact}
+| argument              | short name | type            | default | required | description                                                          |
+|:----------------------|:----------:|:----------------|:-------:|:--------:|:---------------------------------------------------------------------|
+| `INPUTS`           |            | file/directory paths  |         | **yes**  | Files or directories containing input FASTQ/BAM files             |
+| `--output`               |    `-o`    | file path       |         | **yes**  | name of the output file                                             |
 
-This file is entirely optional and useful if you want SNP variant calling to happen on a
+This optional file is useful if you want SNP variant calling to happen on a
 per-population level via  [!badge corners="pill" text="harpy snp"](snp.md/#populations) or on samples
 pooled-as-populations via [!badge corners="pill" text="harpy sv"](SV/naibr.md/#pooled-sample-variant-calling).
 - takes the format of sample[!badge variant="ghost" text="tab"]group
@@ -40,14 +46,24 @@ sample3 pop2
 sample4 pop1
 sample5 pop3
 ```
-
+---
 ### stitchparams
-#### STITCH parameter file
-```bash usage example
+Create a template parameter file for the [!badge corners="pill" text="impute"](/Modules/impute.md) module. The file is formatted correctly and serves
+as a starting point for using parameters that make sense for your study.
+
+```bash usage
+harpy stitchparams -o OUTPUTFILE
+```
+
+```bash example
 harpy stitchparams -o params.stitch
 ```
-##### arguments
-- `-o`, `--output`: name of the output file
+
+#### arguments
+{.compact}
+| argument              | short name | type            | default | required | description                                                          |
+|:----------------------|:----------:|:----------------|:-------:|:--------:|:---------------------------------------------------------------------|
+| `--output`               |    `-o`    | file path       |         | **yes**  | name of the output file                                             |
 
 Typically, one runs STITCH multiple times, exploring how results vary with
 different model parameters. The solution Harpy uses for this is to have the user
@@ -55,4 +71,10 @@ provide a tab-delimited dataframe file where the columns are the 6 STITCH model
 parameters and the rows are the values for those parameters. To make formatting
 easier, a template file is generated for you, just replace the values and add/remove
 rows as necessary. See the section for the [!badge corners="pill" text="impute"](/Modules/impute.md)
- module for details on these parameters.
+module for details on these parameters. The template file will look like:
+
+``` params.stitch
+model	usebx	bxlimit	k	s	ngen
+diploid	TRUE	50000	3	2	10
+diploid	TRUE	50000	3	1	5
+```
