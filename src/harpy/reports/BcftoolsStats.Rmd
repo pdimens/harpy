@@ -127,7 +127,7 @@ mergebins <- function(x){
 ```
 
 ```{r}
-  hist_quantile <- function(x, q){
+hist_quantile <- function(x, q){
   # find the qth percentile of the histogram x
   # Calculate the cumulative sum of the counts
   cumulative_counts <- cumsum(x[,2])
@@ -136,7 +136,9 @@ mergebins <- function(x){
   # Find the bin that is closest to the qth percentile
   index <- which.min(abs(cdf - q))
   # The qth percentile value is the right edge of this bin
-  return(x[index + 1,1])
+  # cap it at the last index if it exceeds
+  index <- min(nrow(x), index + 1)
+  return(x[index,1])
 }
 ```
 ### SNP Quality {.no-title}
@@ -222,6 +224,9 @@ if(sum(.dpL) == 0){
   dp$PercentSites <- round(dp$PercentSites, digits = 4)
   # cut off at trailing zeroes
   cutoff <- find_zero_runs(dp$PercentGenotypes) - 1
+  if(is.na(cutoff)){
+    cutoff <- nrow(dp)
+  }
   hchart(dp[1:cutoff,], "areaspline", hcaes(x = Bin, y = PercentGenotypes), name = "percent", color = "#F28500", marker = list(enabled = FALSE)) |>
     hc_title(text = "Depth per Genotype") |>
     hc_xAxis(title = list(text = "depth bin"), type = "logarithmic") |>
@@ -262,7 +267,7 @@ length is presented here as negative values for visual clarity.
 ```{r Indel Stats, echo=FALSE, message=FALSE, warning=FALSE, paged.print=TRUE, out.width="100%"}
 .iddL <- grepl("^IDD", dataL)
 if(sum(.iddL) == 0){
-  cat(paste0("No IDD section in ", statsfile, " found\n"))
+  cat(paste0("No IDD section in ", statsfile, " found, suggesting no indels are present\n"))
 } else {
   idd <- read.table(text=dataL[.iddL])[ ,3:4]
   names(idd) <- c("Length", "Count")
@@ -290,16 +295,16 @@ if(sum(.iddL) == 0){
 
 # Per-Sample
 <h2> Individual Statistics </h2>
-<br>These are per-locus statistics, which correspond to the Per-Sample Counts (`PSC`) calculations of `bcftools stats`. The table reflects the data visualized in the plot tab.</br>
+<br>These are per-locus statistics, which correspond to the Per-Sample Counts (`PSC`) calculations of `bcftools stats`. The table reflects the data visualized in the plot tab. `HomAlt` and `HomRef` refer to homozygous for the Reference and Alternative alleles, respectively.</br>
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
 .pscL <- grepl("^PSC", dataL)
 psc <- read.table(text=dataL[.pscL])[ ,3:14]
-names(psc) <- c("Sample", "HomozygousRef", "HomozygousAtl", "Heterozygotes", "Transitions", "Transversions", "Indels",	"MeanDepth", "Singletons",	"HapRef", "HapAlt", "Missing")
-psc$Homozygotes <- psc$HomozygousRef + psc$HomozygousAtl
-tidy_psc <- pivot_longer(psc[,c(1,4,5,6,7,9,12,13)], -Sample , names_to = "Metric", values_to = "Count")
-psc <- psc[,c(1,8,12,2,3,13,4,5,6,7,9,10,11)]
-tidy_psc$Sample <- as.factor(tidy_psc$Sample)
+names(psc) <- c("Sample", "HomRef", "HomAtl", "Het", "Transitions", "Transversions", "Indels",	"MeanDepth", "Singletons",	"HapRef", "HapAlt", "Missing")
+#psc$Homozygotes <- psc$HomozygousRef + psc$HomozygousAtl
+tidy_psc <- pivot_longer(psc[,c(1,2,3,4,5,6,7,9,12)], -Sample , names_to = "Metric", values_to = "Count")
+#psc <- psc[,c(1,8,12,2,3,13,4,5,6,7,9,10,11)]
+tidy_psc$Sample <- as.factor(basename(tidy_psc$Sample))
 plotheight <- 150 + (15 * nrow(psc))
 figheight <- 1 + (0.2 * nrow(psc))
 ```
@@ -309,8 +314,8 @@ figheight <- 1 + (0.2 * nrow(psc))
 ```{r Individual plot, echo=FALSE, message=FALSE, warning=FALSE, fig.height=figheight, out.width="100%"}
 highchart() |>
   hc_chart(inverted=TRUE) |>
-  hc_add_series(data = tidy_psc, type = "scatter", hcaes(y = Count, x = Sample, group = Metric), marker = list(symbol = "circle")) |>
-  hc_colors(c("#41739c", "#eb7e2b", "#837fbd", "#8d8d8d", "#9dc96c", "#E6AB02", "#c7739d")) |>
+  hc_add_series(data = tidy_psc, type = "scatter", hcaes(y = Count, x = Sample, group = Metric)) |>
+  hc_colors(c("#41739c", "#eb7e2b", "#aa042e", "#837fbd", "#202020", "#9dc96c", "#E6AB02", "#d39ab7")) |>
   hc_title(text = "Individual Statistics") |>
   hc_xAxis(type = "category", title = list(text = ""), categories = levels(tidy_psc$Sample)) |>
   hc_yAxis(title = list(text = "count")) |>
