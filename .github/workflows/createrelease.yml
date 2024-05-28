@@ -23,7 +23,7 @@ jobs:
           init-shell: bash
           generate-run-shell: true
           environment-file: resources/harpy.yaml
-          cache-environment: true
+          cache-environment: false
           post-cleanup: 'all'
       - name: Install harpy
         shell: micromamba-shell {0}
