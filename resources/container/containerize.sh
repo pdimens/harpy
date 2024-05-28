@@ -1,5 +1,7 @@
 #! /usr/bin/env bash
 
-snakemake -s containerize.smk --containerize > Dockerfile
+snakemake -s resources/container/containerize.smk --directory . --containerize > Dockerfile
 
-docker build -t pdimens/harpy:1.0 .
+docker build -t pdimens/harpy .
+
+mv Dockerfile resources/container/
