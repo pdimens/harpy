@@ -11,7 +11,7 @@ environ = {
     "simulations" : ["conda-forge::perl", "bioconda::perl-math-random", "bioconda::perl-inline-c", "bioconda::perl-parse-recdescent", "conda-forge::numpy", "bioconda::dwgsim", "alienzj::msort"],
     "r" : ["conda-forge::r-xml2", "bioconda::bioconductor-complexheatmap", "conda-forge::r-highcharter", "conda-forge::r-circlize", "r::r-biocircos", "conda-forge::r-dt", "conda-forge::r-flexdashboard", "conda-forge::r-ggplot2", "conda-forge::r-ggridges", "conda-forge::r-plotly", "conda-forge::r-tidyr", "bioconda::r-stitch"]
 }
-os.makedirs(os.getcwd() + ".harpy_envs", exist_ok = True)
+os.makedirs(os.getcwd() + "/.harpy_envs", exist_ok = True)
 for i in environ:
     # overwrites existing
     with open(os.getcwd() + f"/.harpy_envs/{i}.yaml", "w") as yml:
