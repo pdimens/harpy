@@ -33,9 +33,7 @@ jobs:
           resources/buildforCI.sh
       - name: recreate container
         shell: micromamba-shell {0}
-        run: |
-          cd resources/container
-          bash ./containerize.sh
+        run: snakemake -s resources/container/containerize.smk --containerize > Dockerfile
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
       - name: Login to Docker Hub
@@ -46,7 +44,7 @@ jobs:
       - name: Build and push
         uses: docker/build-push-action@v5
         with:
-          context: ./resources/container
+          context: .
           push: true
           tags: pdimens/harpy:${{ github.ref }}
   build_tarball:
