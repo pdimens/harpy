@@ -13,11 +13,11 @@ jobs:
       contents: write
       pull-requests: write
     steps:
-      - name: checkout
+      - name: Checkout
         uses: actions/checkout@v4
         with:
           fetch-depth: 1
-      - name: setup mamba
+      - name: Setup mamba
         uses: mamba-org/setup-micromamba@v1
         with:
           init-shell: bash
@@ -31,7 +31,7 @@ jobs:
           python3 -m pip install --upgrade build && python3 -m build
           pip install dist/*.whl
           resources/buildforCI.sh
-      - name: recreate container
+      - name: Recreate container
         shell: micromamba-shell {0}
         run: snakemake -s resources/container/containerize.smk --containerize > Dockerfile
       - name: Set up Docker Buildx
