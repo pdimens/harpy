@@ -5,7 +5,7 @@ import pysam
 
 alnfile = pysam.AlignmentFile(snakemake.input[0])
 outfile = gzip.open(snakemake.output[0], "wb", 6)
-outfile.write(b"contig\tmolecule\treads\tstart\tend\tlength_inferred\taligned_bp\tcoverage_bp\tcoverage_inserts\n")
+outfile.write(b"contig\tmolecule\treads\tstart\tend\tlength_inferred\taligned_bp\tinsert_len\tcoverage_bp\tcoverage_inserts\n")
 
 d = dict()
 chromlast = None
@@ -21,17 +21,16 @@ def writestats(x, contig):
             x[mi]["covered_inserts"] = min(x[mi]["insert_len"] / x[mi]["inferred"], 1.0)
         except:
             x[mi]["covered_inferred"] = 0
-        outtext = f"{chromlast}\t{mi}\t" + "\t".join([str(x[mi][i]) for i in ["n", "start","end", "inferred", "bp", "covered_bp", "covered_inserts"]])
+        outtext = f"{chromlast}\t{mi}\t" + "\t".join([str(x[mi][i]) for i in ["n", "start","end", "inferred", "bp", "insert_len", "covered_bp", "covered_inserts"]])
         outfile.write(outtext.encode() + b"\n")
 
 for read in alnfile.fetch():
     chrom = read.reference_name
     # check if the current chromosome is different from the previous one
     # if so, print the dict to file and empty it (a consideration for RAM usage)
-    if chromlast is not None:
-        if chrom != chromlast:
-            writestats(d, chromlast)
-            d = dict()
+    if chromlast and chrom != chromlast:
+        writestats(d, chromlast)
+        d = dict()
     chromlast = chrom
     # skip duplicates, unmapped, and secondary alignments
     if read.is_duplicate or read.is_unmapped or read.is_secondary:
@@ -43,6 +42,7 @@ for read in alnfile.fetch():
         continue
 
     # numer of bases aligned
+    #TODO MAYBE THIS SHOULD BE THE INFERRED INSERT SIZE
     bp = read.reference_length
 
     try:
@@ -67,13 +67,15 @@ for read in alnfile.fetch():
         continue
 
     # start position of first alignment
-    start_end = [read.reference_start, read.reference_end]
-    pos_start = min(start_end)
+    ref_positions = [read.reference_start, read.reference_end]
+    pos_start = min(ref_positions)
     # end position of last alignment
-    pos_end   = max(start_end)
+    pos_end   = max(ref_positions)
     if read.is_paired:
         # by using max(), will either add 0 or positive TLEN to avoid double-counting
         isize = max(0, read.template_length)
+        # only count the bp of the first read of paired end reads
+        bp = bp if read.is_read1 else 0
     elif read.is_supplementary:
         # if it's a supplementary alignment, just use the alignment length
         isize = bp
