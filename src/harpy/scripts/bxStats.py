@@ -42,7 +42,6 @@ for read in alnfile.fetch():
         continue
 
     # numer of bases aligned
-    #TODO MAYBE THIS SHOULD BE THE INFERRED INSERT SIZE
     bp = read.reference_length
 
     try:
