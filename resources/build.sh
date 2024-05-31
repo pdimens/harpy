@@ -3,11 +3,11 @@
 mkdir -p ${PREFIX}/bin
 
 # compilation
-g++ src/harpy/globalscripts/extractReads.cpp -O3 -o ${PREFIX}/bin/extractReads
+g++ src/harpy/bin/extractReads.cpp -O3 -o ${PREFIX}/bin/extractReads
 
 # install harpy proper
 ${PYTHON} -m pip install . --no-deps -vvv
 
 # associated scripts
-chmod +x src/harpy/globalscripts/* 
-cp src/harpy/globalscripts/* ${PREFIX}/bin/
+chmod +x src/harpy/bin/* 
+cp src/harpy/bin/* ${PREFIX}/bin/

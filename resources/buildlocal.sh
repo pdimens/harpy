@@ -9,11 +9,11 @@ fi
 mkdir -p ${CONDA_PREFIX}/bin
 
 # compilation
-g++ src/harpy/globalscripts/extractReads.cpp -O3 -o ${CONDA_PREFIX}/bin/extractReads
+g++ src/harpy/bin/extractReads.cpp -O3 -o ${CONDA_PREFIX}/bin/extractReads
 
 # install harpy proper
 pip install . --no-deps
 
 # associated scripts
-chmod +x src/harpy/globalscripts/* 
-cp -f src/harpy/globalscripts/* ${CONDA_PREFIX}/bin/
+chmod +x src/harpy/bin/* 
+cp -f src/harpy/bin/* ${CONDA_PREFIX}/bin/

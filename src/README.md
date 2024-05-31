@@ -8,7 +8,7 @@ This part of Harpy only has a dependency on `snakemake`, `rich-click` (and by
 extension, `rich` and `click`), samtools, and bcftools.
 
 ## Contents
-- `globalscripts`: scripts that are not expected to be run inside a container and copied to the conda PATH
+- `bin`: scripts that are not expected to be run inside a container and copied to the conda PATH
 - `reports`: RMarkdown files that are used to create the nice flexdashboard reports
 - `scripts`: scripts with dependencies that require a conda/container to have its dependencies available. these get copied into the `workdir/scripts` folder of a workflow
 - `snakefiles`: the snakefiles that govern the workflows for most harpy modules
