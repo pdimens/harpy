@@ -314,6 +314,7 @@ Mode <- function(x) {
   ux[which.max(tabulate(match(x, ux)))]
 }
 windowsize <- Mode(tb$position[-1] - tb$position[1:nrow(tb)-1])
+windowskb <- round(windowsize/1000, 0)
 ```
 
 ```{r echo = FALSE, message = FALSE, warning = FALSE}
@@ -385,7 +386,7 @@ valueBox(scales::comma(nrow(outliers)), caption = "regions >Q99", color = "warni
 ## Distdesc header
 ### distdesc {.no-title}
 <h2> Alignment Depth Distribution </h2>
-Below are the frequencies of interval coverage across all 50kbp intervals for all contigs.
+Below are the frequencies of interval coverage across all **`r windowskb` kilobase** intervals for all contigs.
 For visual clarity, the X-axis of this plot is truncated at the 99% quantile of depth
 values, which is **`r q99`** for these data.
 
@@ -413,18 +414,18 @@ These tables will help you understand the sequence coverage of the sample.
 ## Tableheaders
 ### Sumdesc {.no-title}
 The table below shows the global and per-contig average depth and standard 
-deviation per 50kbp intervals **including** intervals whose depth is flagged
+deviation per `r windowskb`kbp intervals **including** intervals whose depth is flagged
 an outlier in the data. 
 
 
 ### filtdesc {.no-title}
 The table below shows the global and per-contig average depth and standard 
-deviation per 50kbp intervals, **excluding** intervals whose depth is flagged
+deviation per `r windowskb`kbp intervals, **excluding** intervals whose depth is flagged
 an outlier in the data, as determined by being greater than 3 standard deviations
 above the mean depth. This should be a more accurate representation of read coverage.
 
 ### outlierdesc {.no-title}
-The table below shows the 50kbp intervals considered outliers, as determined by 
+The table below shows the `r windowskb`kbp intervals considered outliers, as determined by 
 having coverage greater than the 99th percentile (`r q99`). 
 
 ## Summary information 
@@ -474,8 +475,8 @@ DT::datatable(
 <h2> Depth and Coverage Across the Genome </h2>
 To the right is a circular plot summarizing the depth information across up to 30 of the largest contigs.
 For clarity, this visualization truncates coverage at the 99th percentile (`r q99`).
-Each bar represents the alignment depth at a 50kb genomic interval, that is, the
-number of reads that had a _proper_ alignment in the 50kb interval. "Proper" refers to a read
+Each bar represents the alignment depth at a `r windowskb` kilobase genomic interval, that is, the
+number of reads that had a _proper_ alignment in the `r windowskb` kilobase interval. "Proper" refers to a read
 not marked as a duplicate or flagged with the SAM `UNMAP`, `SECONDARY`,  or `QCFAIL` flags.
 These values are derived using
 ```bash
