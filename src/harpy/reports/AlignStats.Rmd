@@ -115,7 +115,7 @@ or absent haplotag barcodes.
 
 ### bases per desc {.no-title}
 <h2> Total Bases Aligned </h2>
-Below is a cumulative frequency distribution showing the number of base pairs aligned
+Below is a frequency distribution showing the number of base pairs aligned
 per unique molecule. These data are shown in 500 bp bins. Pay attention to the Y axis,
 as it likely doesn't start at `0`.
 
@@ -162,11 +162,12 @@ hchart(hs, "areaspline", hcaes(x = val, y = freq), color = "#75b89e", name = "% 
 ## inferred-header
 ### inferred desc {.no-title}
 <h2> Inferred Molecule Lengths </h2>
-The chart below shows the **cumulative** frequency distribution of molecule lengths 
+The chart below shows the frequency distribution of molecule lengths 
 inferred from the first and last alignment positions along a contig for all
 alignments associated with a single haplotag barcode on a given contig. 
-Pay attention to the Y axis, as it likely doesn't start at `0`.
+Pay attention to the Y axis, as it may not start at `0`.
 
+## inferred-plot
 ### inferredplot {.no-title}
 ```{r inferred, echo = FALSE, message = FALSE, warning = FALSE, out.width = '100%'}
 hs <- hist(
@@ -208,10 +209,9 @@ sequence and all 300bp aligned to your reference genome. The plot on the left ca
 molecule coverage as `300bp ÷ molecule_length`, whereas the plot on the right calculates this proportion as
 `500bp ÷ molecule_length`, which is the 300bp that aligned + the 200bp between the paired-end reads that were not sequenced.
 
-
+## breadthplot
 ### coverage by aligned bp {.no-title}
 ```{r inferred_cov_bp, echo = FALSE, message = FALSE, warning = FALSE, out.width = '100%'}
-#TODO THIS IS BROKEN
 hs <- hist(
   round(valids$coverage_bp, 0),
   breaks = seq(0, 1, by = 0.05),
@@ -463,12 +463,11 @@ DT::datatable(
   rownames = F, 
   extensions = 'Buttons', 
   options = list(dom = 'Brtip', buttons = c('csv'), scrollX = TRUE),
-  colnames = c('Contig', 'Position Start', 'Position End', 'Depth'),
+  colnames = c('Contig', 'Position', 'Depth'),
   autoHideNavigation = T,
   fillContainer = T
   )
 ```
-
 
 ## Circleplot {.no-title data-height=900}
 ### pltdsc {.no-title data-width=150}
@@ -480,7 +479,7 @@ number of reads that had a _proper_ alignment in the 50kb interval. "Proper" ref
 not marked as a duplicate or flagged with the SAM `UNMAP`, `SECONDARY`,  or `QCFAIL` flags.
 These values are derived using
 ```bash
-samtools bedcov -c windows.bed sample.bam 
+samtools depth -a <input.bam> | depthWindows.py <windowsize>
 ```
 
 This plot allows you to hover regions to view their coverage, pan by clicking and dragging,
