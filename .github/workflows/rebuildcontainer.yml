@@ -57,7 +57,7 @@ jobs:
         run: rm -rf /opt/hostedtoolcache
       - name: Rebuild dockerfile
         shell: micromamba-shell {0}
-        run: snakemake -s resources/container/containerize.smk --containerize > Dockerfile
+        run: snakemake -s src/harpy/containerize.smk --containerize > Dockerfile
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
       - name: Login to Docker Hub
