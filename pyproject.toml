@@ -20,10 +20,7 @@ where = ["src"]
 "*" = ["*.*"]
 
 [project.scripts]
-harpy = "harpy.__main__:main"
-
-[project.optional-dependencies]
-test = ["pytest"]
+harpy = "harpy.__main__:cli"
 
 [tool.setuptools_scm]
 
