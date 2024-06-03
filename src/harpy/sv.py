@@ -59,7 +59,7 @@ docstring = {
 @click.option('--conda',  is_flag = True, default = False, help = 'Use conda/mamba instead of container')
 @click.option('--skipreports',  is_flag = True, show_default = True, default = False, help = 'Don\'t generate HTML reports')
 @click.option('--print-only',  is_flag = True, hidden = True, default = False, help = 'Print the generated snakemake command and exit')
-@click.argument('input', required=True, type=click.Path(exists=True), nargs=-1)
+@click.argument('inputs', required=True, type=click.Path(exists=True), nargs=-1)
 def leviathan(inputs, output_dir, genome, min_sv, min_barcodes, threads, populations, extra_params, snakemake, skipreports, quiet, conda, print_only):
     """
     Call structural variants using LEVIATHAN
@@ -142,7 +142,7 @@ def leviathan(inputs, output_dir, genome, min_sv, min_barcodes, threads, populat
 @click.option('--conda',  is_flag = True, default = False, help = 'Use conda/mamba instead of container')
 @click.option('--skipreports',  is_flag = True, show_default = True, default = False, help = 'Don\'t generate HTML reports')
 @click.option('--print-only',  is_flag = True, hidden = True, default = False, help = 'Print the generated snakemake command and exit')
-@click.argument('input', required=True, type=click.Path(exists=True), nargs=-1)
+@click.argument('inputs', required=True, type=click.Path(exists=True), nargs=-1)
 def naibr(inputs, output_dir, genome, vcf, min_sv, min_barcodes, threads, populations, molecule_distance, extra_params, snakemake, skipreports, quiet, conda, print_only):
     """
     Call structural variants using NAIBR

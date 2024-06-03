@@ -77,7 +77,7 @@ docstring = {
 @click.option('--conda',  is_flag = True, default = False, help = 'Use conda/mamba instead of container')
 @click.option('--skipreports',  is_flag = True, show_default = True, default = False, help = 'Don\'t generate HTML reports')
 @click.option('--print-only',  is_flag = True, hidden = True, default = False, help = 'Print the generated snakemake command and exit')
-@click.argument('input', required=True, type=click.Path(exists=True), nargs=-1)
+@click.argument('inputs', required=True, type=click.Path(exists=True), nargs=-1)
 def bwa(inputs, output_dir, genome, depth_window, threads, extra_params, quality_filter, molecule_distance, snakemake, skipreports, quiet, conda, print_only):
     """
     Align sequences to genome using BWA MEM
@@ -152,7 +152,7 @@ def bwa(inputs, output_dir, genome, depth_window, threads, extra_params, quality
 @click.option('--conda',  is_flag = True, default = False, help = 'Use conda/mamba instead of container')
 @click.option('--skipreports',  is_flag = True, show_default = True, default = False, help = 'Don\'t generate HTML reports')
 @click.option('--print-only',  is_flag = True, hidden = True, default = False, help = 'Print the generated snakemake command and exit')
-@click.argument('input', required=True, type=click.Path(exists=True), nargs=-1)
+@click.argument('inputs', required=True, type=click.Path(exists=True), nargs=-1)
 def ema(inputs, output_dir, platform, whitelist, genome, depth_window, threads, ema_bins, skipreports, extra_params, quality_filter, snakemake, quiet, conda, print_only):
     """
     Align sequences to a genome using EMA
@@ -244,7 +244,7 @@ def ema(inputs, output_dir, platform, whitelist, genome, depth_window, threads, 
 @click.option('--conda',  is_flag = True, default = False, help = 'Use conda/mamba instead of container')
 @click.option('--skipreports',  is_flag = True, show_default = True, default = False, help = 'Don\'t generate HTML reports')
 @click.option('--print-only',  is_flag = True, hidden = True, default = False, help = 'Print the generated snakemake command and exit')
-@click.argument('input', required=True, type=click.Path(exists=True), nargs=-1)
+@click.argument('inputs', required=True, type=click.Path(exists=True), nargs=-1)
 def minimap(inputs, output_dir, genome, depth_window, threads, extra_params, quality_filter, molecule_distance, snakemake, skipreports, quiet, conda, print_only):
     """
     Align sequences to genome using Minimap2

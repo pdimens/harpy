@@ -59,7 +59,7 @@ docstring = {
 @click.option('--conda',  is_flag = True, default = False, help = 'Use conda/mamba instead of container')
 @click.option('--skipreports',  is_flag = True, show_default = True, default = False, help = 'Don\'t generate HTML reports')
 @click.option('--print-only',  is_flag = True, hidden = True, default = False, help = 'Print the generated snakemake command and exit')
-@click.argument('input', required=True, type=click.Path(exists=True), nargs=-1)
+@click.argument('inputs', required=True, type=click.Path(exists=True), nargs=-1)
 def mpileup(inputs, output_dir, regions, genome, threads, populations, ploidy, extra_params, snakemake, skipreports, quiet, conda, print_only):
     """
     Call variants from using bcftools mpileup
@@ -159,7 +159,7 @@ def mpileup(inputs, output_dir, regions, genome, threads, populations, ploidy, e
 @click.option('--conda',  is_flag = True, default = False, help = 'Use conda/mamba instead of container')
 @click.option('--skipreports',  is_flag = True, show_default = True, default = False, help = 'Don\'t generate HTML reports')
 @click.option('--print-only',  is_flag = True, hidden = True, default = False, help = 'Print the generated snakemake command and exit')
-@click.argument('input', required=True, type=click.Path(exists=True), nargs=-1)
+@click.argument('inputs', required=True, type=click.Path(exists=True), nargs=-1)
 def freebayes(inputs, output_dir, genome, threads, populations, ploidy, regions, extra_params, snakemake, skipreports, quiet, conda, print_only):
     """
     Call variants using freebayes
