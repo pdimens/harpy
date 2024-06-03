@@ -127,7 +127,7 @@ def main():
             return 0
         elif workflow is not None:
             generate_conda_deps()
-            _module = subprocess.run(workflow, check = True)
+            _module = subprocess.run(workflow, check = False)
             return _module.returncode
     except:
         sys.exit(1)

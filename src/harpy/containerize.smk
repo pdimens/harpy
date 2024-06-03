@@ -1,6 +1,6 @@
 import os
 import shutil
-from .conda_deps import generate_conda_deps
+from conda_deps import generate_conda_deps
 
 generate_conda_deps()
 

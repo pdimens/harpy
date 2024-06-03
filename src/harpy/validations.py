@@ -133,7 +133,7 @@ def validate_bamfiles(dir, namelist):
     for i in namelist:
         fname = f"{dir}/{i}.bam"
         samview = subprocess.Popen(f"samtools view -H {fname}".split(), stdout = subprocess.PIPE)
-        IDtag = subprocess.run("grep ^@RG".split(), stdin = samview.stdout, stdout=subprocess.PIPE, check = True).stdout.decode('utf-8')
+        IDtag = subprocess.run("grep ^@RG".split(), stdin = samview.stdout, stdout=subprocess.PIPE, check = False).stdout.decode('utf-8')
         r = re.compile("(\t)(ID:.*?)(\t)")
         IDsearch = r.search(IDtag)
         if IDsearch:
@@ -159,7 +159,7 @@ def validate_bamfiles(dir, namelist):
 
 def check_phase_vcf(infile):
     """Check to see if the input VCf file is phased or not, govered by the presence of ID=PS or ID=HP tags"""
-    vcfheader = subprocess.run(f"bcftools view -h {infile}".split(), stdout = subprocess.PIPE, check = True).stdout.decode('utf-8')
+    vcfheader = subprocess.run(f"bcftools view -h {infile}".split(), stdout = subprocess.PIPE, check = False).stdout.decode('utf-8')
     if ("##FORMAT=<ID=PS" in vcfheader) or ("##FORMAT=<ID=HP" in vcfheader):
         return
     else:

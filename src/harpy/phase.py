@@ -90,7 +90,7 @@ def phase(inputs, output_dir, vcf, threads, molecule_distance, prune_threshold, 
         if genome is not None:
             config.write(f"indels: {genome}\n")
             if not os.path.exists(f"{genome}.fai"):
-                subprocess.run(f"samtools faidx --fai-idx {genome}.fai {genome}".split(), check = True)
+                subprocess.run(f"samtools faidx --fai-idx {genome}.fai {genome}".split(), check = False)
         if extra_params is not None:
             config.write(f"extra: {extra_params}\n")
         config.write(f"skipreports: {skipreports}\n")

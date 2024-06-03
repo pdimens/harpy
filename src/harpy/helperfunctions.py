@@ -61,7 +61,7 @@ def biallelic_contigs(vcf, workdir):
     if not os.path.exists(f"{workdir}/{vbn}.biallelic"):
         os.makedirs(f"{workdir}/", exist_ok = True)
         biallelic = subprocess.Popen(f"bcftools view -M2 -v snps {vcf} -Ob".split(), stdout = subprocess.PIPE)
-        contigs = subprocess.run("""bcftools query -f '%CHROM\\n'""".split(), stdin = biallelic.stdout, stdout = subprocess.PIPE, check = True).stdout.decode().splitlines()
+        contigs = subprocess.run("""bcftools query -f '%CHROM\\n'""".split(), stdin = biallelic.stdout, stdout = subprocess.PIPE, check = False).stdout.decode().splitlines()
         counts = Counter(contigs)
         contigs = [i.replace("\'", "") for i in counts if counts[i] > 1]
         with open(f"{workdir}/{vbn}.biallelic", "w", encoding="utf-8") as f:

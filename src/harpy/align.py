@@ -1,7 +1,8 @@
 """Harpy align workflows"""
 
 import os
-from time import sleep 
+import sys
+from time import sleep
 import rich_click as click
 from .helperfunctions import fetch_report, fetch_rule, fetch_script
 from .fileparsers import get_samples_from_fastq, parse_fastq_inputs
@@ -75,7 +76,7 @@ docstring = {
 @click.option('--skipreports',  is_flag = True, show_default = True, default = False, help = 'Don\'t generate HTML reports')
 @click.option('--print-only',  is_flag = True, hidden = True, default = False, help = 'Print the generated snakemake command and exit')
 @click.argument('input', required=True, type=click.Path(exists=True), nargs=-1)
-def bwa(input, output_dir, genome, depth_window, threads, extra_params, quality_filter, molecule_distance, snakemake, skipreports, quiet, conda, print_only):
+def bwa(inputs, output_dir, genome, depth_window, threads, extra_params, quality_filter, molecule_distance, snakemake, skipreports, quiet, conda, print_only):
     """
     Align sequences to genome using BWA MEM
  
@@ -98,14 +99,14 @@ def bwa(input, output_dir, genome, depth_window, threads, extra_params, quality_
         command.append("--quiet")
         command.append("all")
     if snakemake is not None:
-        [command.append(i) for i in snakemake.split()]
+        _ = [command.append(i) for i in snakemake.split()]
     call_SM = " ".join(command)
     if print_only:
         click.echo(call_SM)
-        exit(0)
+        sys.exit(0)
 
     os.makedirs(f"{workflowdir}/", exist_ok= True)
-    sn = parse_fastq_inputs(input, f"{workflowdir}/input")
+    sn = parse_fastq_inputs(inputs, f"{workflowdir}/input")
     samplenames = get_samples_from_fastq(f"{workflowdir}/input")
     validate_input_by_ext(genome, "--genome", [".fasta", ".fa", ".fasta.gz", ".fa.gz"])
     fetch_rule(workflowdir, "align-bwa.smk")
@@ -113,7 +114,7 @@ def bwa(input, output_dir, genome, depth_window, threads, extra_params, quality_
     fetch_script(workflowdir, "bxStats.py")
     fetch_report(workflowdir, "AlignStats.Rmd")
 
-    with open(f"{workflowdir}/config.yml", "w") as config:
+    with open(f"{workflowdir}/config.yml", "w", encoding="uft-8") as config:
         config.write(f"genomefile: {genome}\n")
         config.write(f"seq_directory: {workflowdir}/input\n")
         config.write(f"output_directory: {output_dir}\n")
@@ -148,7 +149,7 @@ def bwa(input, output_dir, genome, depth_window, threads, extra_params, quality_
 @click.option('--skipreports',  is_flag = True, show_default = True, default = False, help = 'Don\'t generate HTML reports')
 @click.option('--print-only',  is_flag = True, hidden = True, default = False, help = 'Print the generated snakemake command and exit')
 @click.argument('input', required=True, type=click.Path(exists=True), nargs=-1)
-def ema(input, output_dir, platform, whitelist, genome, depth_window, threads, ema_bins, skipreports, extra_params, quality_filter, snakemake, quiet, conda, print_only):
+def ema(inputs, output_dir, platform, whitelist, genome, depth_window, threads, ema_bins, skipreports, extra_params, quality_filter, snakemake, quiet, conda, print_only):
     """
     Align sequences to a genome using EMA
 
@@ -173,7 +174,7 @@ def ema(input, output_dir, platform, whitelist, genome, depth_window, threads, e
         command.append("--quiet")
         command.append("all")
     if snakemake is not None:
-        [command.append(i) for i in snakemake.split()]
+        _ = [command.append(i) for i in snakemake.split()]
     
     call_SM = " ".join(command)
     if print_only:
@@ -194,7 +195,7 @@ def ema(input, output_dir, platform, whitelist, genome, depth_window, threads, e
         sleep(3)
 
     os.makedirs(f"{workflowdir}/", exist_ok= True)
-    sn = parse_fastq_inputs(input, f"{workflowdir}/input")
+    sn = parse_fastq_inputs(inputs, f"{workflowdir}/input")
     samplenames = get_samples_from_fastq(f"{workflowdir}/input")
     validate_input_by_ext(genome, "--genome", [".fasta", ".fa", ".fasta.gz", ".fa.gz"])
     fetch_rule(workflowdir, "align-ema.smk")
@@ -202,7 +203,7 @@ def ema(input, output_dir, platform, whitelist, genome, depth_window, threads, e
     for i in ["EmaCount", "AlignStats"]:
         fetch_report(workflowdir, f"{i}.Rmd")
 
-    with open(f"{workflowdir}/config.yml", "w") as config:
+    with open(f"{workflowdir}/config.yml", "w", encoding="utf-8") as config:
         config.write(f"genomefile: {genome}\n")
         config.write(f"seq_directory: {workflowdir}/input\n")
         config.write(f"output_directory: {output_dir}\n")
@@ -238,7 +239,7 @@ def ema(input, output_dir, platform, whitelist, genome, depth_window, threads, e
 @click.option('--skipreports',  is_flag = True, show_default = True, default = False, help = 'Don\'t generate HTML reports')
 @click.option('--print-only',  is_flag = True, hidden = True, default = False, help = 'Print the generated snakemake command and exit')
 @click.argument('input', required=True, type=click.Path(exists=True), nargs=-1)
-def minimap(input, output_dir, genome, depth_window, threads, extra_params, quality_filter, molecule_distance, snakemake, skipreports, quiet, conda, print_only):
+def minimap(inputs, output_dir, genome, depth_window, threads, extra_params, quality_filter, molecule_distance, snakemake, skipreports, quiet, conda, print_only):
     """
     Align sequences to genome using Minimap2
  
@@ -261,14 +262,14 @@ def minimap(input, output_dir, genome, depth_window, threads, extra_params, qual
         command.append("--quiet")
         command.append("all")
     if snakemake is not None:
-        [command.append(i) for i in snakemake.split()]
+        _ = [command.append(i) for i in snakemake.split()]
     call_SM = " ".join(command)
     if print_only:
         click.echo(call_SM)
         exit(0)
 
     os.makedirs(f"{workflowdir}/", exist_ok= True)
-    sn = parse_fastq_inputs(input, f"{workflowdir}/input")
+    sn = parse_fastq_inputs(inputs, f"{workflowdir}/input")
     samplenames = get_samples_from_fastq(f"{workflowdir}/input")
     validate_input_by_ext(genome, "--genome", [".fasta", ".fa", ".fasta.gz", ".fa.gz"])
     fetch_rule(workflowdir, "align-minimap.smk")
@@ -276,7 +277,7 @@ def minimap(input, output_dir, genome, depth_window, threads, extra_params, qual
     fetch_script(workflowdir, "bxStats.py")
     fetch_report(workflowdir, "AlignStats.Rmd")
 
-    with open(f"{workflowdir}/config.yml", "w") as config:
+    with open(f"{workflowdir}/config.yml", "w", encoding="utf-8") as config:
         config.write(f"genomefile: {genome}\n")
         config.write(f"seq_directory: {workflowdir}/input\n")
         config.write(f"output_directory: {output_dir}\n")
