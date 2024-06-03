@@ -23,12 +23,6 @@ using<-function(...) {
 }
 using("flexdashboard","dplyr","tidyr","DT","highcharter","scales")
 
-#library(flexdashboard)
-#library(tidyr)
-#library(dplyr)
-#library(DT)
-#library(scales)
-#library(highcharter)
 modelparams <- paste(snakemake@params[[1]])
 #modelparams <- "Filler Text"
 ```
@@ -151,10 +145,10 @@ You will want to filter the resulting variants
 based on this `INFO/INFO_SCORE` tag, which can be done that simply with `bcftools`.
 Here is an example snippet of keeping loci with an `INFO_SCORE` of at least `0.2`: 
 
-```
+```bash
 # use -Ob to output to bcf instead of vcf to save on disk space
 
-bcftools view -i 'INFO/INFO_SCORE >= 0.2' -Ob file.vcf > filtered.file.bcf
+bcftools view -Ob -i 'INFO/INFO_SCORE >= 0.2' file.vcf > filtered.file.bcf
 ```
 
 Below is a table of the number of variants sites that may remain (left) or removed (right)

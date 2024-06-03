@@ -20,17 +20,6 @@ using<-function(...) {
     }
 }
 using("flexdashboard","dplyr", "tidyr", "ggplot2","DT","plotly","circlize", "viridisLite", "tools")
-
-#library(flexdashboard)
-#library(dplyr)
-#library(ggplot2)
-#library(tidyr)
-#library(DT)
-#library(plotly)
-#library(circlize)
-#library(viridisLite)
-#library(tools)
-#library(ComplexHeatmap)
 ```
 
 ```{css zoom-lib-src, echo = FALSE, message = FALSE, warning = FALSE}

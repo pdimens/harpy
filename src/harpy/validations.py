@@ -1,13 +1,15 @@
+"""Harpy helper functions for validating inputs files to workflows"""
+
 import sys
 import os
 import re
+import gzip
 import subprocess
+from rich import box, print
+from rich.table import Table
+import rich_click as click
 from .fileparsers import getnames
 from .printfunctions import print_error, print_notice, print_solution, print_solution_with_culprits
-from pathlib import Path
-from rich.table import Table
-from rich import box, print
-import rich_click as click
 
 def validate_input_by_ext(input, option, ext):
     """Check that the input file for a given option matches the acceptable extensions """
@@ -16,11 +18,11 @@ def validate_input_by_ext(input, option, ext):
         if all(test):
             ext_text = " | ".join(ext)
             print_error(f"The input file for [bold]{option}[/bold] must end in one of:\n[green bold]{ext_text}[/green bold]")
-            exit(1)
+            sys.exit(1)
     else:
         if not input.lower().endswith(ext):
             print_error(f"The input file for [bold]{option}[/bold] must end in [green bold]{ext}[/green bold]")
-            exit(1)
+            sys.exit(1)
 
 def vcfcheck(vcf):
     """Check that a file ends with one of .vcf, .bcf, or .vcf.gz. Is case insensitive."""
@@ -29,11 +31,11 @@ def vcfcheck(vcf):
         pass
     else:
         print_error(f"Supplied variant call file [bold]{vcf}[/bold] must end in one of:\n[green bold].vcf | .vcf.gz | .bcf[/green bold]")
-        exit(1)
+        sys.exit(1)
 
 def check_impute_params(parameters):
     """Validate the STITCH parameter file for column names, order, types, missing values, etc."""
-    with open(parameters, "r") as fp:
+    with open(parameters, "r", encoding="utf-8") as fp:
         header = fp.readline().rstrip().lower()
         headersplt = header.split()
         correct_header = sorted(["model", "usebx", "bxlimit", "k", "s", "ngen"])
@@ -50,7 +52,7 @@ def check_impute_params(parameters):
             click.echo(" ".join(culprits), file = sys.stderr)
             sys.exit(1)
         # instantiate dict with colnames
-        data = dict()
+        data = {}
         for i in headersplt:
             data[i] = []
         while True:
@@ -83,7 +85,7 @@ def check_impute_params(parameters):
             sys.exit(1)
         
         # Validate each column
-        culprits = dict()
+        culprits = {}
         colerr = 0
         errtable = Table(show_footer=True, box=box.SIMPLE)
         errtable.add_column("Column", justify="right", style="white", no_wrap=True)
@@ -122,7 +124,7 @@ def check_impute_params(parameters):
                 "Formatting Errors:"
             )
             print(errtable, file = sys.stderr)
-            exit(1)
+            sys.exit(1)
 
 def validate_bamfiles(dir, namelist):
     """Validate BAM files in directory 'dir' to make sure the sample name inferred from the file matches the @RG tag within the file"""
@@ -131,7 +133,7 @@ def validate_bamfiles(dir, namelist):
     for i in namelist:
         fname = f"{dir}/{i}.bam"
         samview = subprocess.Popen(f"samtools view -H {fname}".split(), stdout = subprocess.PIPE)
-        IDtag = subprocess.run("grep ^@RG".split(), stdin = samview.stdout, stdout=subprocess.PIPE).stdout.decode('utf-8')
+        IDtag = subprocess.run("grep ^@RG".split(), stdin = samview.stdout, stdout=subprocess.PIPE, check = True).stdout.decode('utf-8')
         r = re.compile("(\t)(ID:.*?)(\t)")
         IDsearch = r.search(IDtag)
         if IDsearch:
@@ -148,27 +150,27 @@ def validate_bamfiles(dir, namelist):
     if len(culpritfiles) > 0:
         print_error(f"There are [bold]{len(culpritfiles)}[/bold] alignment files whose ID tags do not match their filenames.")
         print_solution_with_culprits(
-            f"For alignment files (sam/bam), the base of the file name must be identical to the [green bold]@RD ID:[/green bold] tag in the file header. For example, a file named \'sample_001.bam\' should have the [green bold]@RG ID:sample_001[/green bold] tag. Use the [blue bold]renamebam[/blue bold] script to properly rename alignment files so as to also update the @RG header.",
+            "For alignment files (sam/bam), the base of the file name must be identical to the [green bold]@RD ID:[/green bold] tag in the file header. For example, a file named \'sample_001.bam\' should have the [green bold]@RG ID:sample_001[/green bold] tag. Use the [blue bold]renamebam[/blue bold] script to properly rename alignment files so as to also update the @RG header.",
             "File causing error and their ID tags:"
         )
         for i,j in zip(culpritfiles,culpritIDs):
             click.echo(f"{i}\t{j}", file = sys.stderr)
-        exit(1)
+        sys.exit(1)
 
 def check_phase_vcf(infile):
     """Check to see if the input VCf file is phased or not, govered by the presence of ID=PS or ID=HP tags"""
-    vcfheader = subprocess.run(f"bcftools view -h {infile}".split(), stdout = subprocess.PIPE).stdout.decode('utf-8')
+    vcfheader = subprocess.run(f"bcftools view -h {infile}".split(), stdout = subprocess.PIPE, check = True).stdout.decode('utf-8')
     if ("##FORMAT=<ID=PS" in vcfheader) or ("##FORMAT=<ID=HP" in vcfheader):
         return
     else:
         bn = os.path.basename(infile)
-        print_error(f"The input variant file needs to be phased into haplotypes, but no FORMAT/PS or FORMAT/HP fields were found.")
+        print_error("The input variant file needs to be phased into haplotypes, but no FORMAT/PS or FORMAT/HP fields were found.")
         print_solution(f"Phase [bold]{bn}[/bold] into haplotypes using [blue bold]harpy phase[/blue bold] or another manner of your choosing and use the phased vcf file as input. If you are confident this file is phased, then the phasing does not follow standard convention and you will need to make sure the phasing information appears as either [bold]FORMAT/PS[/bold] or [bold]FORMAT/HP[/bold] tags.")
-        exit(1)
+        sys.exit(1)
 
 def validate_popfile(infile):
     """Validate the input population file to make sure there are two entries per row"""
-    with open(infile, "r") as f:
+    with open(infile, "r", encoding="utf-8") as f:
         rows = [i for i in f.readlines() if i != "\n" and not i.lstrip().startswith("#")]
         invalids = [(i,j) for i,j in enumerate(rows) if len(j.split()) < 2]
         if invalids:
@@ -224,7 +226,7 @@ def validate_vcfsamples(directory, populations, samplenames, rows, quiet):
 
 def validate_demuxschema(infile):
     """Validate the file format of the demultiplex schema"""
-    with open(infile, "r") as f:
+    with open(infile, "r", encoding="utf-8") as f:
         rows = [i for i in f.readlines() if i != "\n" and not i.lstrip().startswith("#")]
         invalids = [(i,j) for i,j in enumerate(rows) if len(j.split()) < 2]
         if invalids:
@@ -242,7 +244,7 @@ def check_demux_fastq(file):
     if not bn.lower().endswith("fq") and not bn.lower().endswith("fastq") and not bn.lower().endswith("fastq.gz") and not bn.lower().endswith("fq.gz"):     
         print_error(f"The file {bn} is not recognized as a FASTQ file by the file extension.")
         print_solution("Make sure the input file ends with a standard FASTQ extension. These are not case-sensitive.\nAccepted extensions: [green bold].fq .fastq .fq.gz .fastq.gz[/green bold]")
-        exit(1)
+        sys.exit(1)
     ext = re.search(r"(?:\_00[0-9])*\.f(.*?)q(?:\.gz)?$", file, re.IGNORECASE).group(0)
     prefix     = re.sub(r"[\_\.][IR][12]?(?:\_00[0-9])*\.f(?:ast)?q(?:\.gz)?$", "", bn)
     prefixfull = re.sub(r"[\_\.][IR][12]?(?:\_00[0-9])*\.f(?:ast)?q(?:\.gz)?$", "", file)
@@ -261,7 +263,7 @@ def check_demux_fastq(file):
             "Necessary/expected files:"
         )
         _ = [click.echo(i, file = sys.stderr) for i in filelist]
-        exit(1)
+        sys.exit(1)
 
 def validate_regions(regioninput, genome):
     """validates the --regions input of harpy snp to infer whether it's an integer, region, or file"""
@@ -270,10 +272,10 @@ def validate_regions(regioninput, genome):
         region = int(regioninput)
     except:
         region = regioninput
-    if type(region) == int and region < 10:
+    if isinstance(region, int) and region < 10:
         print_error("Input for [green bold]--regions[/green bold] was interpreted as an integer to create equal windows to call variants. Integer input for [green bold]--regions[/green bold] must be greater than or equal to [blue bold]10[/blue bold].")
-        exit(1)
-    elif type(region) == int and region >= 10:
+        sys.exit(1)
+    elif isinstance(region, int) and region >= 10:
         return "windows"
     else:
         pass
@@ -293,12 +295,11 @@ def validate_regions(regioninput, genome):
         if err != "":
             print_error("Input for [green bold]--regions[/green bold] was interpreted as a single region. " + err)
             print_solution("If providing a single region to call variants, it should be in the format [yellow bold]contig:start-end[/yellow bold], where [yellow bold]start[/yellow bold] and [yellow bold]end[/yellow bold] are integers. If the input is a file and was incorrectly interpreted as a region, try changing the name to avoid using colons ([yellow bold]:[/yellow bold]) or dashes ([yellow bold]-[/yellow bold]).")
-            exit(1)
+            sys.exit(1)
         # check if the region is in the genome
 
         contigs = dict()
         if genome.lower().endswith("gz"):
-            import gzip
             with gzip.open(genome, "r") as fopen:
                 for line in fopen:
                     line = line.decode()
@@ -308,7 +309,7 @@ def validate_regions(regioninput, genome):
                     else:
                         contigs[cn] += len(line.rstrip("\n")) - 1
         else:
-            with open(genome, "r") as fout:
+            with open(genome, "r", encoding="utf-8") as fout:
                 for line in fopen:
                     if line.startswith(">"):
                         cn = line.rstrip("\n").lstrip(">").split()[0]
@@ -316,48 +317,47 @@ def validate_regions(regioninput, genome):
                     else:
                         contigs[cn] += len(line.rstrip("\n")) - 1
         err = ""
-        if reg[0] not in contigs.keys():
+        if reg[0] not in contigs:
             print_error(f"The contig ([bold yellow]{reg[0]})[/bold yellow]) of the input region [yellow bold]{regioninput}[/yellow bold] was not found in [bold]{genome}[/bold].")
-            exit(1)
+            sys.exit(1)
         if reg[1] > contigs[reg[0]]:
             err += f"- start position: [bold yellow]{reg[1]}[/bold yellow]\n"
         if reg[2] > contigs[reg[0]]:
             err += f"- end position: [bold yellow]{reg[2]}[/bold yellow]"
         if err != "":
             print_error(f"Components of the input region [yellow bold]{regioninput}[/yellow bold] were not found in [bold]{genome}[/bold]:\n" + err)
-            exit(1)
+            sys.exit(1)
         return "region"
-    else:
-        # is a file specifying regions
-        if not os.path.isfile(regioninput):
-            print_error(f"Input for [green bold]--regions[/green bold] was interpreted as a file of regions to call variants over and this file was not found.")
-            print_solution(f"Check that the path to [bold]{regioninput}[/bold] is correct.")
-            exit(1)
-        with open(regioninput, "r") as fin:
-            badrows = []
-            idx = 0
-            while True:
-                line = fin.readline()
-                if not line:
-                    break
-                else:
-                    idx += 1
-                row = line.split()
-                if len(row) != 3:
+    # is a file specifying regions
+    if not os.path.isfile(regioninput):
+        print_error("Input for [green bold]--regions[/green bold] was interpreted as a file of regions to call variants over and this file was not found.")
+        print_solution(f"Check that the path to [bold]{regioninput}[/bold] is correct.")
+        sys.exit(1)
+    with open(regioninput, "r", encoding="utf-8") as fin:
+        badrows = []
+        idx = 0
+        while True:
+            line = fin.readline()
+            if not line:
+                break
+            else:
+                idx += 1
+            row = line.split()
+            if len(row) != 3:
+                badrows.append(idx)
+            else:
+                try:
+                    int(row[1])
+                    int(row[2])
+                except:
                     badrows.append(idx)
-                else:
-                    try:
-                        int(row[1])
-                        int(row[2])
-                    except:
-                        badrows.append(idx)
 
-            if badrows:
-                print_error("The input file is formatted incorrectly.")
-                print_solution_with_culprits(
-                    "Rows in the provided file need to be [bold]space[/bold] or [bold]tab[/bold] delimited with the format [yellow bold]contig start end[/yellow bold] where [yellow bold]start[/yellow bold] and [yellow bold]end[/yellow bold] are integers.",
-                    "Rows triggering this error:"
-                    )
-                click.echo(",".join([i for i in badrows]), file = sys.stderr)
-                exit(1)
-        return "file"
+        if badrows:
+            print_error("The input file is formatted incorrectly.")
+            print_solution_with_culprits(
+                "Rows in the provided file need to be [bold]space[/bold] or [bold]tab[/bold] delimited with the format [yellow bold]contig start end[/yellow bold] where [yellow bold]start[/yellow bold] and [yellow bold]end[/yellow bold] are integers.",
+                "Rows triggering this error:"
+                )
+            click.echo(",".join([i for i in badrows]), file = sys.stderr)
+            sys.exit(1)
+    return "file"

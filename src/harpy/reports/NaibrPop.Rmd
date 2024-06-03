@@ -22,18 +22,6 @@ using<-function(...) {
     }
 }
 using("flexdashboard","dplyr", "ggplot2", "tidyr","DT","plotly","circlize", "viridisLite", "tools")
-
-#library(flexdashboard)
-#library(dplyr)
-#library(ggplot2)
-#library(magrittr)
-#library(tidyr)
-#library(DT)
-#library(plotly)
-#library(circlize)
-#library(viridisLite)
-#library(tools)
-#library(ComplexHeatmap)
 ```
 ```{css zoom-lib-src, echo = FALSE, message = FALSE, warning = FALSE}
 script src = "https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"

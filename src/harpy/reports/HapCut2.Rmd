@@ -21,13 +21,6 @@ using<-function(...) {
     }
 }
 using("flexdashboard","dplyr","ggplot2","DT","scales", "highcharter","ggridges")
-
-#library(flexdashboard)
-#library(dplyr)
-#library(ggplot2)
-#library(DT)
-#library(scales)
-#library(ggridges)
 ```
 
 ```{css zoom-lib-src, echo = FALSE, message = FALSE, warning = FALSE}

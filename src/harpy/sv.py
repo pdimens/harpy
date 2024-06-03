@@ -1,11 +1,12 @@
+"""Harpy workflows to detect structural variants"""
+
+import os
+import sys
+import rich_click as click
 from .helperfunctions import fetch_rule, fetch_report
 from .fileparsers import getnames, parse_alignment_inputs
 from .printfunctions import print_onstart
 from .validations import validate_popfile, validate_vcfsamples, check_phase_vcf, validate_input_by_ext
-import rich_click as click
-import subprocess
-import sys
-import os
 
 @click.group(options_metavar='', context_settings=dict(help_option_names=["-h", "--help"]))
 def sv():
@@ -19,7 +20,6 @@ def sv():
     Provide an additional subcommand `leviathan` or `naibr` to get more information on using
     those variant callers. NAIBR tends to call variants better, but requires more user preprocessing.
     """
-    pass
 
 docstring = {
     "harpy sv leviathan": [
@@ -58,7 +58,7 @@ docstring = {
 @click.option('--skipreports',  is_flag = True, show_default = True, default = False, help = 'Don\'t generate HTML reports')
 @click.option('--print-only',  is_flag = True, hidden = True, default = False, help = 'Print the generated snakemake command and exit')
 @click.argument('input', required=True, type=click.Path(exists=True), nargs=-1)
-def leviathan(input, output_dir, genome, min_sv, min_barcodes, threads, populations, extra_params, snakemake, skipreports, quiet, conda, print_only):
+def leviathan(inputs, output_dir, genome, min_sv, min_barcodes, threads, populations, extra_params, snakemake, skipreports, quiet, conda, print_only):
     """
     Call structural variants using LEVIATHAN
     
@@ -82,14 +82,14 @@ def leviathan(input, output_dir, genome, min_sv, min_barcodes, threads, populati
         command.append("--quiet")
         command.append("all")
     if snakemake is not None:
-        [command.append(i) for i in snakemake.split()]
+        _ = [command.append(i) for i in snakemake.split()]
     call_SM = " ".join(command)
     if print_only:
         click.echo(call_SM)
-        exit(0)
+        sys.exit(0)
 
     os.makedirs(f"{workflowdir}/", exist_ok= True)
-    _ = parse_alignment_inputs(input, f"{workflowdir}/input")
+    _ = parse_alignment_inputs(inputs, f"{workflowdir}/input")
     samplenames = getnames(f"{workflowdir}/input", '.bam')
     validate_input_by_ext(genome, "--genome", [".fasta", ".fa", ".fasta.gz", ".fa.gz"])
     if populations is not None:
@@ -97,7 +97,7 @@ def leviathan(input, output_dir, genome, min_sv, min_barcodes, threads, populati
     fetch_report(workflowdir, "Leviathan.Rmd")
     fetch_rule(workflowdir, f"sv-{vcaller}.smk")
 
-    with open(f'{workflowdir}/config.yml', "w") as config:
+    with open(f'{workflowdir}/config.yml', "w", encoding="utf-8") as config:
         config.write(f"seq_directory: {workflowdir}/input\n")
         config.write(f"output_directory: {output_dir}\n")
         config.write(f"samplenames: {samplenames}\n")
@@ -139,7 +139,7 @@ def leviathan(input, output_dir, genome, min_sv, min_barcodes, threads, populati
 @click.option('--skipreports',  is_flag = True, show_default = True, default = False, help = 'Don\'t generate HTML reports')
 @click.option('--print-only',  is_flag = True, hidden = True, default = False, help = 'Print the generated snakemake command and exit')
 @click.argument('input', required=True, type=click.Path(exists=True), nargs=-1)
-def naibr(input, output_dir, genome, vcf, min_sv, min_barcodes, threads, populations, molecule_distance, extra_params, snakemake, skipreports, quiet, conda, print_only):
+def naibr(inputs, output_dir, genome, vcf, min_sv, min_barcodes, threads, populations, molecule_distance, extra_params, snakemake, skipreports, quiet, conda, print_only):
     """
     Call structural variants using NAIBR
     
@@ -171,14 +171,14 @@ def naibr(input, output_dir, genome, vcf, min_sv, min_barcodes, threads, populat
         command.append("--quiet")
         command.append("all")
     if snakemake is not None:
-        [command.append(i) for i in snakemake.split()]
-    call_SM = " ".join(command)
+        _ = [command.append(i) for i in snakemake.split()]
+    _ = call_SM = " ".join(command)
     if print_only:
         click.echo(call_SM)
-        exit(0)
+        sys.exit(0)
 
     os.makedirs(f"{workflowdir}/", exist_ok= True)
-    _ = parse_alignment_inputs(input, f"{workflowdir}/input")
+    _ = parse_alignment_inputs(inputs, f"{workflowdir}/input")
     samplenames = getnames(f"{workflowdir}/input", '.bam')
     validate_input_by_ext(genome, "--genome", [".fasta", ".fa", ".fasta.gz", ".fa.gz"])
     if populations is not None:
@@ -189,7 +189,7 @@ def naibr(input, output_dir, genome, vcf, min_sv, min_barcodes, threads, populat
         #vcaller += "-phase"
     fetch_rule(workflowdir, f"sv-{vcaller}.smk")
 
-    with open(f'{workflowdir}/config.yml', "w") as config:
+    with open(f'{workflowdir}/config.yml', "w", encoding="utf-8") as config:
         config.write(f"seq_directory: {workflowdir}/input\n")
         config.write(f"output_directory: {output_dir}\n")
         config.write(f"samplenames: {samplenames}\n")

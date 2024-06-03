@@ -1,9 +1,11 @@
-from .helperfunctions import fetch_rule, fetch_report, fetch_script, symlink
-from .printfunctions import print_onstart, print_error
-from .validations import validate_input_by_ext
-import rich_click as click
+"""Harpy workflows to simulate genomic variants and linked-reads"""
+
 import os
 import sys
+import rich_click as click
+from .helperfunctions import fetch_rule, fetch_script, symlink
+from .printfunctions import print_onstart, print_error
+from .validations import validate_input_by_ext
 
 @click.group(options_metavar='', context_settings=dict(help_option_names=["-h", "--help"]))
 def simulate():
@@ -17,7 +19,6 @@ def simulate():
     to simulate haplotag linked-reads from a diploid genome, which you can create by simulating
     genomic variants.
     """
-    pass
 
 docstring = {
         "harpy simulate linkedreads": [
@@ -129,11 +130,11 @@ def linkedreads(genome_hap1, genome_hap2, output_dir, outer_distance, mutation_r
         command.append("--quiet")
         command.append("all")
     if snakemake is not None:
-        [command.append(i) for i in snakemake.split()]
+        _ = [command.append(i) for i in snakemake.split()]
     call_SM = " ".join(command)
     if print_only:
         click.echo(call_SM)
-        exit(0)
+        sys.exit(0)
 
     validate_input_by_ext(genome_hap1, "GENOME_HAP1", [".fasta", ".fa", ".fasta.gz", ".fa.gz"])
     validate_input_by_ext(genome_hap2, "GENOME_HAP2", [".fasta", ".fa", ".fasta.gz", ".fa.gz"])
@@ -142,7 +143,7 @@ def linkedreads(genome_hap1, genome_hap2, output_dir, outer_distance, mutation_r
     fetch_rule(workflowdir, "simulate-linkedreads.smk")
     fetch_script(workflowdir, "LRSIMharpy.pl")
 
-    with open(f"{workflowdir}/config.yml", "w") as config:
+    with open(f"{workflowdir}/config.yml", "w", encoding="utf-8") as config:
         config.write(f"genome_hap1: {genome_hap1}\n")
         config.write(f"genome_hap2: {genome_hap2}\n")
         config.write(f"output_directory: {output_dir}\n")
@@ -220,11 +221,11 @@ def snpindel(genome, snp_vcf, indel_vcf, output_dir, prefix, snp_count, indel_co
         command.append("--quiet")
         command.append("all")
     if snakemake is not None:
-        [command.append(i) for i in snakemake.split()]
+        _ = [command.append(i) for i in snakemake.split()]
     call_SM = " ".join(command)
     if print_only:
         click.echo(call_SM)
-        exit(0)
+        sys.exit(0)
     # instantiate workflow directory
     # move necessary files to workflow dir
     os.makedirs(f"{workflowdir}/input/", exist_ok= True)   
@@ -238,14 +239,14 @@ def snpindel(genome, snp_vcf, indel_vcf, output_dir, prefix, snp_count, indel_co
         symlink(snp_vcf, snp_vcf_link)
         printmsg += f"SNPs: from vcf ({snp_vcf})\n"
     elif snp_count > 0:
-        printmsg += f"SNPs: random\n"
+        printmsg += "SNPs: random\n"
     if indel_vcf:
         validate_input_by_ext(indel_vcf, "--indel-vcf", ["vcf","vcf.gz","bcf"])
         indel_vcf_link = f"{workflowdir}/input/{os.path.basename(indel_vcf)}"
         symlink(indel_vcf, indel_vcf_link)
         printmsg += f"Indels: from vcf: ({indel_vcf})\n"
     elif indel_count > 0:
-        printmsg += f"Indels: random\n"
+        printmsg += "Indels: random\n"
     if centromeres:
         validate_input_by_ext(centromeres, "--centromeres", [".gff",".gff3",".gff.gz", ".gff3.gz"])
         centromeres_link = f"{workflowdir}/input/{os.path.basename(centromeres)}"
@@ -263,7 +264,7 @@ def snpindel(genome, snp_vcf, indel_vcf, output_dir, prefix, snp_count, indel_co
     fetch_rule(workflowdir, "simulate-snpindel.smk")
     fetch_script(workflowdir, "simuG.pl")
     # setup the config file depending on inputs
-    with open(f"{workflowdir}/config.yml", "w") as config:
+    with open(f"{workflowdir}/config.yml", "w", encoding="utf-8") as config:
         config.write(f"input_directory: {workflowdir}/input\n")
         config.write(f"output_directory: {output_dir}\n")
         config.write(f"genome: {genome_link}\n")
@@ -331,11 +332,11 @@ def inversion(genome, vcf, prefix, output_dir, count, min_size, max_size, centro
         command.append("--quiet")
         command.append("all")
     if snakemake is not None:
-        [command.append(i) for i in snakemake.split()]
+        _ = [command.append(i) for i in snakemake.split()]
     call_SM = " ".join(command)
     if print_only:
         click.echo(call_SM)
-        exit(0)
+        sys.exit(0)
     # instantiate workflow directory
     # move necessary files to workflow dir
     os.makedirs(f"{workflowdir}/input/", exist_ok= True)
@@ -350,7 +351,7 @@ def inversion(genome, vcf, prefix, output_dir, count, min_size, max_size, centro
         symlink(vcf, vcf_link)
         printmsg += f"Input VCF: {vcf}\n"
     else:
-        printmsg += f"Mode: Random variants\n"
+        printmsg += "Mode: Random variants\n"
     if centromeres:
         validate_input_by_ext(centromeres, "--centromeres", [".gff",".gff3",".gff.gz", ".gff3.gz"])
         centromeres_link = f"{workflowdir}/input/{os.path.basename(centromeres)}"
@@ -368,10 +369,10 @@ def inversion(genome, vcf, prefix, output_dir, count, min_size, max_size, centro
     fetch_rule(workflowdir, "simulate-variants.smk")
     fetch_script(workflowdir, "simuG.pl")
     # setup the config file depending on inputs
-    with open(f"{workflowdir}/config.yml", "w") as config:
+    with open(f"{workflowdir}/config.yml", "w", encoding="utf-8") as config:
         config.write(f"input_directory: {workflowdir}/input\n")
         config.write(f"output_directory: {output_dir}\n")
-        config.write(f"variant_type: inversion\n")
+        config.write("variant_type: inversion\n")
         config.write(f"genome: {genome_link}\n")
         config.write(f"prefix: {prefix}\n")
         if vcf:
@@ -440,11 +441,11 @@ def cnv(genome, output_dir, vcf, prefix, count, min_size, max_size, dup_ratio, m
         command.append("--quiet")
         command.append("all")
     if snakemake is not None:
-        [command.append(i) for i in snakemake.split()]
+        _ = [command.append(i) for i in snakemake.split()]
     call_SM = " ".join(command)
     if print_only:
         click.echo(call_SM)
-        exit(0)
+        sys.exit(0)
     # instantiate workflow directory
     # move necessary files to workflow dir
     os.makedirs(f"{workflowdir}/input/", exist_ok= True)
@@ -459,7 +460,7 @@ def cnv(genome, output_dir, vcf, prefix, count, min_size, max_size, dup_ratio, m
         symlink(vcf, vcf_link)
         printmsg += f"Input VCF: {vcf}\n"
     else:
-        printmsg += f"Mode: Random variants\n"
+        printmsg += "Mode: Random variants\n"
     if centromeres:
         validate_input_by_ext(centromeres, "--centromeres", [".gff",".gff3",".gff.gz", ".gff3.gz"])
         centromeres_link = f"{workflowdir}/input/{os.path.basename(centromeres)}"
@@ -477,10 +478,10 @@ def cnv(genome, output_dir, vcf, prefix, count, min_size, max_size, dup_ratio, m
     fetch_rule(workflowdir, "simulate-variants.smk")
     fetch_script(workflowdir, "simuG.pl")
     # setup the config file depending on inputs
-    with open(f"{workflowdir}/config.yml", "w") as config:
+    with open(f"{workflowdir}/config.yml", "w", encoding="utf-8") as config:
         config.write(f"input_directory: {workflowdir}/input\n")
         config.write(f"output_directory: {output_dir}\n")
-        config.write(f"variant_type: cnv\n")
+        config.write("variant_type: cnv\n")
         config.write(f"genome: {genome_link}\n")
         config.write(f"prefix: {prefix}\n")
         if vcf:
@@ -541,11 +542,11 @@ def translocation(genome, output_dir, prefix, vcf, count, centromeres, genes, he
         command.append("--quiet")
         command.append("all")
     if snakemake is not None:
-        [command.append(i) for i in snakemake.split()]
+        _ = [command.append(i) for i in snakemake.split()]
     call_SM = " ".join(command)
     if print_only:
         click.echo(call_SM)
-        exit(0)
+        sys.exit(0)
     # instantiate workflow directory
     # move necessary files to workflow dir
     os.makedirs(f"{workflowdir}/input/", exist_ok= True)
@@ -560,7 +561,7 @@ def translocation(genome, output_dir, prefix, vcf, count, centromeres, genes, he
         symlink(vcf, vcf_link)
         printmsg += f"Input VCF: {vcf}\n"
     else:
-        printmsg += f"Mode: Random variants\n"
+        printmsg += "Mode: Random variants\n"
     if centromeres:
         validate_input_by_ext(centromeres, "--centromeres", [".gff",".gff3",".gff.gz", ".gff3.gz"])
         centromeres_link = f"{workflowdir}/input/{os.path.basename(centromeres)}"
@@ -578,10 +579,10 @@ def translocation(genome, output_dir, prefix, vcf, count, centromeres, genes, he
     fetch_rule(workflowdir, "simulate-variants.smk")
     fetch_script(workflowdir, "simuG.pl")
     # setup the config file depending on inputs
-    with open(f"{workflowdir}/config.yml", "w") as config:
+    with open(f"{workflowdir}/config.yml", "w", encoding="utf-8") as config:
         config.write(f"input_directory: {workflowdir}/input\n")
         config.write(f"output_directory: {output_dir}\n")
-        config.write(f"variant_type: translocation\n")
+        config.write("variant_type: translocation\n")
         config.write(f"genome: {genome_link}\n")
         config.write(f"prefix: {prefix}\n")
         if vcf:

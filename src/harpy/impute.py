@@ -1,10 +1,12 @@
+"""Harpy imputation workflow"""
+
+import os
+import sys
+import rich_click as click
 from .helperfunctions import fetch_rule, fetch_report, fetch_script, biallelic_contigs
 from .fileparsers import parse_alignment_inputs
 from .printfunctions import print_onstart
 from .validations import vcfcheck, vcf_samplematch, check_impute_params, validate_bamfiles
-import rich_click as click
-import sys
-import os
 
 docstring = {
         "harpy impute": [
@@ -31,8 +33,8 @@ docstring = {
 @click.option('--conda',  is_flag = True, default = False, help = 'Use conda/mamba instead of container')
 @click.option('--skipreports',  is_flag = True, show_default = True, default = False, help = 'Don\'t generate HTML reports')
 @click.option('--print-only',  is_flag = True, hidden = True, default = False, help = 'Print the generated snakemake command and exit')
-@click.argument('input', required=True, type=click.Path(exists=True), nargs=-1)
-def impute(input, output_dir, parameters, threads, vcf, vcf_samples, extra_params, snakemake, skipreports, quiet, conda, print_only):
+@click.argument('inputs', required=True, type=click.Path(exists=True), nargs=-1)
+def impute(inputs, output_dir, parameters, threads, vcf, vcf_samples, extra_params, snakemake, skipreports, quiet, conda, print_only):
     """
     Impute genotypes using variants and sequences
     
@@ -61,14 +63,14 @@ def impute(input, output_dir, parameters, threads, vcf, vcf_samples, extra_param
         command.append("--quiet")
         command.append("all")
     if snakemake is not None:
-        [command.append(i) for i in snakemake.split()]
+        _ = [command.append(i) for i in snakemake.split()]
     call_SM = " ".join(command)
     if print_only:
         click.echo(call_SM)
-        exit(0)
+        sys.exit(0)
 
     os.makedirs(f"{workflowdir}/", exist_ok= True)
-    sn = parse_alignment_inputs(input, f"{workflowdir}/input/alignments")
+    sn = parse_alignment_inputs(inputs, f"{workflowdir}/input/alignments")
     samplenames = vcf_samplematch(vcf, f"{workflowdir}/input/alignments", vcf_samples)
     validate_bamfiles(f"{workflowdir}/input/alignments", samplenames)
     ## validate inputs ##
@@ -82,7 +84,7 @@ def impute(input, output_dir, parameters, threads, vcf, vcf_samples, extra_param
     # generate and store list of viable contigs (minimum of 2 biallelic SNPs)
     # doing it here so it doesn't have to run each time inside the workflow
     contigs = biallelic_contigs(vcf, workflowdir)
-    with open(f"{workflowdir}/config.yml", "w") as config:
+    with open(f"{workflowdir}/config.yml", "w", encoding="utf-8") as config:
         config.write(f"output_directory: {output_dir}\n")
         config.write(f"samplenames: {samplenames}\n")
         config.write(f"variantfile: {vcf}\n")

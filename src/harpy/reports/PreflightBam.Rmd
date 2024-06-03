@@ -1,5 +1,5 @@
 ---
-title: "BAM File Format Check"
+title: "BAM Haplotag Format Check"
 date: "`r format(Sys.time(), '%m-%d-%y %X')`"
 output:
   flexdashboard::flex_dashboard:
@@ -21,15 +21,7 @@ using<-function(...) {
 }
 using("flexdashboard","dplyr","tidyr","DT","highcharter","scales")
 
-#library(flexdashboard)
-#library(dplyr)
-#library(tidyr)
-#library(DT)
-#library(highcharter)
-#library(scales)
-#library(ggplot2)
-
-#infile <- "/home/pdimens/Documents/harpy/Preflight/bamfilecheck.bam.tsv"
+#infile <- "~/bamfilecheck.bam.tsv"
 infile <- snakemake@input[[1]]
 data <- read.table(infile, header = T)
 attention_df <- data %>% select(-1,-3) %>% rowwise() %>% summarise(count = sum(c(nameMismatch, noBX, badBX)))

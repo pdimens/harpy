@@ -1,3 +1,5 @@
+"""Module of pretty-printing for errors and prompts"""
+
 import sys
 from rich import print
 from rich.panel import Panel

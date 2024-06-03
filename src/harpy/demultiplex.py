@@ -1,11 +1,10 @@
+"""Harpy demultiplex workflows"""
+
+import sys
 import rich_click as click
 from .printfunctions import print_onstart
 from .helperfunctions import fetch_rule
 from .validations import validate_demuxschema
-import sys
-import os
-import re
-
 
 @click.group(options_metavar='', context_settings=dict(help_option_names=["-h", "--help"]))
 def demultiplex():
@@ -66,13 +65,13 @@ def gen1(r1_fq, r2_fq, i1_fq, i2_fq, output_dir, schema, threads, snakemake, ski
         command.append("--quiet")
         command.append("all")
     if snakemake is not None:
-        [command.append(i) for i in snakemake.split()]
+        _ = [command.append(i) for i in snakemake.split()]
 
     call_SM = " ".join(command)
 
     if print_only:
         click.echo(call_SM)
-        exit()
+        sys.exit(0)
 
     #check_demux_fastq(fastq_input)
     validate_demuxschema(schema)

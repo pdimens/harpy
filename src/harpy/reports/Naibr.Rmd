@@ -13,8 +13,8 @@ output:
 ```{r echo = FALSE, warnings = FALSE, message = FALSE}
 infile <- snakemake@input[["bedpe"]]
 fai <- snakemake@input[["fai"]]
-#infile <- "/home/pdimens/test.bedpe"
-#fai <- "/home/pdimens/test.fai"
+#infile <- "~/test.bedpe"
+#fai <- "~/test.fai"
 samplename <- gsub(".bedpe", "", basename(infile))
 ```
 # General Stats
@@ -49,16 +49,6 @@ using<-function(...) {
     }
 }
 using("flexdashboard","dplyr","tidyr", "ggplot2","DT","plotly","circlize")
-
-#library(flexdashboard)
-#library(dplyr)
-#library(tidyr)
-#library(ggplot2)
-#library(magrittr)
-#library(DT)
-#library(plotly)
-#library(circlize)
-#library(ComplexHeatmap)
 ```
 
 Below is a series of tables and plots detailing the structural variants

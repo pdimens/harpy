@@ -1,5 +1,5 @@
 ---
-title: "FASTQ File Format Check"
+title: "FASTQ Haplotag Format Check"
 date: "`r format(Sys.time(), '%m-%d-%y %X')`"
 output:
   flexdashboard::flex_dashboard:
@@ -20,14 +20,6 @@ using<-function(...) {
     }
 }
 using("flexdashboard","dplyr","tidyr","DT","highcharter","scales")
-
-#library(flexdashboard)
-#library(dplyr)
-#library(tidyr)
-#library(DT)
-#library(highcharter)
-#library(scales)
-#library(ggplot2)
 
 #infile <- "~/Documents/harpy/test/fastq/Preflight/filecheck.fastq.tsv"
 infile <- snakemake@input[[1]]

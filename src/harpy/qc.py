@@ -1,11 +1,10 @@
+"""Harpy sequence adapter trimming and quality control"""
+
+import sys
+import rich_click as click
 from .helperfunctions import fetch_report, fetch_rule, fetch_script
 from .fileparsers import get_samples_from_fastq, parse_fastq_inputs
 from .printfunctions import print_onstart
-import rich_click as click
-import re
-import os
-import sys
-import glob
 
 docstring = {
     "harpy qc": [
@@ -33,7 +32,7 @@ docstring = {
 @click.option('--skipreports',  is_flag = True, show_default = True, default = False, help = 'Don\'t generate HTML reports')
 @click.option('--print-only',  is_flag = True, hidden = True, show_default = True, default = False, help = 'Print the generated snakemake command and exit')
 @click.argument('input', required=True, type=click.Path(exists=True), nargs=-1)
-def qc(input, output_dir, min_length, max_length, ignore_adapters, extra_params, threads, snakemake, skipreports, quiet, conda, print_only):
+def qc(inputs, output_dir, min_length, max_length, ignore_adapters, extra_params, threads, snakemake, skipreports, quiet, conda, print_only):
     """
     Remove adapters and quality trim sequences
 
@@ -57,20 +56,20 @@ def qc(input, output_dir, min_length, max_length, ignore_adapters, extra_params,
         command.append("--quiet")
         command.append("all")
     if snakemake is not None:
-        [command.append(i) for i in snakemake.split()]
+        _ = [command.append(i) for i in snakemake.split()]
     call_SM = " ".join(command)
     if print_only:
         click.echo(call_SM)
-        exit(0)
+        sys.exit(0)
 
-    _ = parse_fastq_inputs(input, f"{workflowdir}/input")
+    _ = parse_fastq_inputs(inputs, f"{workflowdir}/input")
     sn = get_samples_from_fastq(f"{workflowdir}/input")
 
-    fetch_script(workflowdir, "countBX.py")    
+    fetch_script(workflowdir, "countBX.py")
     fetch_rule(workflowdir, "qc.smk")
     fetch_report(workflowdir, "BxCount.Rmd")
 
-    with open(f"{workflowdir}/config.yml", "w") as config:
+    with open(f"{workflowdir}/config.yml", "w", encoding="uft-8") as config:
         config.write(f"seq_directory: {workflowdir}/input\n")
         config.write(f"output_directory: {output_dir}\n")
         config.write(f"adapters: {ignore_adapters}\n")

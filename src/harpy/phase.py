@@ -1,11 +1,13 @@
+"""Harpy haplotype phasing workflow"""
+
+import os
+import sys
+import subprocess
+import rich_click as click
 from .helperfunctions import fetch_rule, fetch_report
 from .fileparsers import parse_alignment_inputs
 from .printfunctions import print_onstart
 from .validations import vcfcheck, vcf_samplematch, validate_bamfiles, validate_input_by_ext
-import sys
-import os
-import subprocess
-import rich_click as click
 
 docstring = {
         "harpy phase": [
@@ -35,8 +37,8 @@ docstring = {
 @click.option('--conda',  is_flag = True, default = False, help = 'Use conda/mamba instead of container')
 @click.option('--skipreports',  is_flag = True, show_default = True, default = False, help = 'Don\'t generate HTML reports')
 @click.option('--print-only',  is_flag = True, hidden = True, default = False, help = 'Print the generated snakemake command and exit')
-@click.argument('input', required=True, type=click.Path(exists=True), nargs=-1)
-def phase(input, output_dir, vcf, threads, molecule_distance, prune_threshold, vcf_samples, genome, snakemake, extra_params, ignore_bx, skipreports, quiet, conda, print_only):
+@click.argument('inputs', required=True, type=click.Path(exists=True), nargs=-1)
+def phase(inputs, output_dir, vcf, threads, molecule_distance, prune_threshold, vcf_samples, genome, snakemake, extra_params, ignore_bx, skipreports, quiet, conda, print_only):
     """
     Phase SNPs into haplotypes
 
@@ -60,14 +62,14 @@ def phase(input, output_dir, vcf, threads, molecule_distance, prune_threshold, v
         command.append("--quiet")
         command.append("all")
     if snakemake is not None:
-        [command.append(i) for i in snakemake.split()]
+        _ = [command.append(i) for i in snakemake.split()]
     call_SM = " ".join(command)
     if print_only:
         click.echo(call_SM)
-        exit(0)
+        sys.exit(0)
 
     os.makedirs(f"{workflowdir}/input/alignments", exist_ok= True)
-    sn = parse_alignment_inputs(input, f"{workflowdir}/input/alignments")
+    sn = parse_alignment_inputs(inputs, f"{workflowdir}/input/alignments")
     samplenames = vcf_samplematch(vcf, f"{workflowdir}/input/alignments", vcf_samples)
     vcfcheck(vcf)
     validate_bamfiles(f"{workflowdir}/input/alignments", samplenames)
@@ -77,7 +79,7 @@ def phase(input, output_dir, vcf, threads, molecule_distance, prune_threshold, v
     fetch_report(workflowdir, "HapCut2.Rmd")
     prune_threshold /= 100
 
-    with open(f"{workflowdir}/config.yml", "w") as config:
+    with open(f"{workflowdir}/config.yml", "w", encoding="utf-8") as config:
         config.write(f"seq_directory: {workflowdir}/input/alignments\n")
         config.write(f"output_directory: {output_dir}\n")
         config.write(f"samplenames: {samplenames}\n")
@@ -88,7 +90,7 @@ def phase(input, output_dir, vcf, threads, molecule_distance, prune_threshold, v
         if genome is not None:
             config.write(f"indels: {genome}\n")
             if not os.path.exists(f"{genome}.fai"):
-                subprocess.run(f"samtools faidx --fai-idx {genome}.fai {genome}".split())
+                subprocess.run(f"samtools faidx --fai-idx {genome}.fai {genome}".split(), check = True)
         if extra_params is not None:
             config.write(f"extra: {extra_params}\n")
         config.write(f"skipreports: {skipreports}\n")

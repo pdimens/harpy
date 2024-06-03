@@ -42,14 +42,6 @@ using<-function(...) {
     }
 }
 using("flexdashboard","tidyr","magrittr","DT","ggplot2","plotly","RColorBrewer")
-
-#library(flexdashboard)
-#library(tidyr)
-#library(magrittr)
-#library(DT)
-#library(ggplot2)
-#library(plotly)
-#library(RColorBrewer)
 ```
 
 ```{r load data}
@@ -58,7 +50,7 @@ dataL <- readLines(snakemake@input[[1]])
 #bcf <- "filename.bcf"
 bcf <- gsub(".stats$", ".bcf", snakemake@input[[1]])
 basedir <- dirname(normalizePath(snakemake@input[[1]]))
-#basedir <- "/home/pdimens/Documents/harpy/test/Impute/modeldiploid_usebxTrue_bxlimit50000_k3_s1_ngen5/contigs/contig1/"
+#basedir <- "~/Documents/harpy/test/Impute/modeldiploid_usebxTrue_bxlimit50000_k3_s1_ngen5/contigs/contig1/"
 chrom <- basename(basedir)
 plotdir <- paste(basedir, "plots/", sep = "/")
 ```
@@ -119,7 +111,6 @@ valueBox(scales::comma(sn$MNPs[1]), caption = "MNPs", color = "info")
 # scale plot height to sample count
 n <- as.numeric(sn$samples[1])
 pltheight <- 330 + (15 * n)
-
 pheight <- 1.2 + (0.166 * n)
 ```
 

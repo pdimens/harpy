@@ -1,7 +1,9 @@
+"""Harpy module to create STITCH parameter template file"""
+
 import os
 import sys
-from .printfunctions import print_notice
 import rich_click as click
+from .printfunctions import print_notice
 
 @click.command(no_args_is_help = True, epilog = "read the docs for more information: https://pdimens.github.io/harpy/modules/impute/#parameter-file")
 @click.option('-o', '--output', type=str, required = True, metavar = "Output file name", help = 'Name of output STITCH parameter file')
@@ -18,8 +20,8 @@ def stitchparams(output):
         overwrite = input(f"File {output} already exists, overwrite (no|yes)?  ").lower()
         if overwrite not in ["yes", "y"]:
             click.echo("Please suggest a different name for the output file")
-            exit(0)
-    with open(output, "w") as file:
+            sys.exit(0)
+    with open(output, "w", encoding="utf-8") as file:
         _ = file.write('model\tusebx\tbxlimit\tk\ts\tngen\n')
         _ = file.write('diploid\tTRUE\t50000\t10\t5\t50\n')
         _ = file.write('diploid\tTRUE\t50000\t10\t1\t50\n')

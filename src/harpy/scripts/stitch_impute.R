@@ -16,8 +16,7 @@ parameters <- snakemake@params[["parameters"]]
 modeltype <- parameters$model
 K <- parameters$k
 S <- parameters$s
-.bx <- toupper(parameters$usebx)
-bx <- .bx == "TRUE" || .bx == "YES" || .bx == "Y"
+bx <- toupper(parameters$usebx) %in% c("TRUE", "YES", "Y")
 bxlim <- parameters$bxlimit
 nGenerations <- parameters$ngen
 nCores <- snakemake@threads

@@ -20,18 +20,12 @@ using<-function(...) {
     }
 }
 using("flexdashboard","dplyr","ggplot2","DT","plotly","circlize")
-
-#library(flexdashboard)
-#library(dplyr)
-#library(ggplot2)
-#library(DT)
-#library(plotly)
-#library(circlize)
-#library(ComplexHeatmap)
 ```
+
 ```{css zoom-lib-src, echo = FALSE, message = FALSE, warning = FALSE}
 script src = "https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"
 ```
+
 ```{js zoom-jquery, echo = FALSE, message = FALSE, warning = FALSE}
  $(document).ready(function() {
     $('body').prepend('<div class=\"zoomDiv\"><img src=\"\" class=\"zoomImg\"></div>');

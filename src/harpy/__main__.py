@@ -27,7 +27,7 @@ from . import snp
 from . import sv
 from .popgroups import popgroup
 from .stitchparams import stitchparams
-from .helperfunctions import generate_conda_deps
+from .conda_deps import generate_conda_deps
 import rich_click as click
 import subprocess
 
@@ -127,7 +127,7 @@ def main():
             return 0
         elif workflow is not None:
             generate_conda_deps()
-            _module = subprocess.run(workflow)
+            _module = subprocess.run(workflow, check = True)
             return _module.returncode
     except:
         sys.exit(1)

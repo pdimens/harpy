@@ -1,11 +1,11 @@
+"""Harpy preflight-check workflows for FASTQ and BAM files"""
+
+import os
+import sys
 import rich_click as click
 from .helperfunctions import fetch_rule, fetch_report, fetch_script
 from .printfunctions import print_onstart
 from .fileparsers import parse_alignment_inputs, parse_fastq_inputs
-import re
-import os
-import sys
-import glob
 
 @click.group(options_metavar='', context_settings=dict(help_option_names=["-h", "--help"]))
 def preflight():
@@ -16,7 +16,6 @@ def preflight():
     before you are surprised by errors hours into an analysis. Provide an additional command `fastq`
     or `bam` to see more information and options.
     """
-    pass
 
 docstring = {
     "harpy preflight bam": [
@@ -40,8 +39,8 @@ docstring = {
 @click.option('--snakemake', type = str, help = 'Additional Snakemake parameters, in quotes')
 @click.option('--conda',  is_flag = True, default = False, help = 'Use conda/mamba instead of container')
 @click.option('--print-only',  is_flag = True, hidden = True, default = False, help = 'Print the generated snakemake command and exit')
-@click.argument('input', required=True, type=click.Path(exists=True), nargs=-1)
-def fastq(input, output_dir, threads, snakemake, quiet, conda, print_only):
+@click.argument('inputs', required=True, type=click.Path(exists=True), nargs=-1)
+def fastq(inputs, output_dir, threads, snakemake, quiet, conda, print_only):
     """
     Run validity checks on haplotagged FASTQ files.
 
@@ -66,19 +65,19 @@ def fastq(input, output_dir, threads, snakemake, quiet, conda, print_only):
         command.append("--quiet")
         command.append("all")
     if snakemake is not None:
-        [command.append(i) for i in snakemake.split()]
+        _ = [command.append(i) for i in snakemake.split()]
     call_SM = " ".join(command)
     if print_only:
         click.echo(call_SM)
-        exit()
+        sys.exit()
     
     os.makedirs(f"{workflowdir}/", exist_ok= True)
-    sn = parse_fastq_inputs(input, f"{workflowdir}/input")
+    sn = parse_fastq_inputs(inputs, f"{workflowdir}/input")
     fetch_rule(workflowdir, "preflight-fastq.smk")
     fetch_script(workflowdir, "checkFASTQ.py")
     fetch_report(workflowdir, "PreflightFastq.Rmd")
 
-    with open(f"{workflowdir}/config.yml", "w") as config:
+    with open(f"{workflowdir}/config.yml", "w", encoding="utf-8") as config:
         config.write(f"seq_directory: {workflowdir}/input\n")
         config.write(f"output_directory: {output_dir}\n")
         config.write(f"workflow_call: {call_SM}\n")
@@ -96,8 +95,8 @@ def fastq(input, output_dir, threads, snakemake, quiet, conda, print_only):
 @click.option('--snakemake', type = str, help = 'Additional Snakemake parameters, in quotes')
 @click.option('--conda',  is_flag = True, default = False, help = 'Use conda/mamba instead of container')
 @click.option('--print-only',  is_flag = True, hidden = True, default = False, help = 'Print the generated snakemake command and exit')
-@click.argument('input', required=True, type=click.Path(exists=True), nargs=-1)
-def bam(input, output_dir, threads, snakemake, quiet, conda, print_only):
+@click.argument('inputs', required=True, type=click.Path(exists=True), nargs=-1)
+def bam(inputs, output_dir, threads, snakemake, quiet, conda, print_only):
     """
     Run validity checks on haplotagged BAM files
 
@@ -121,19 +120,19 @@ def bam(input, output_dir, threads, snakemake, quiet, conda, print_only):
         command.append("--quiet")
         command.append("all")
     if snakemake is not None:
-        [command.append(i) for i in snakemake.split()]
+        _ = [command.append(i) for i in snakemake.split()]
     call_SM = " ".join(command)
     if print_only:
         click.echo(call_SM)
-        exit()
+        sys.exit()
 
     os.makedirs(f"{workflowdir}/", exist_ok= True)
-    sn = parse_alignment_inputs(input, f"{workflowdir}/input")
+    sn = parse_alignment_inputs(inputs, f"{workflowdir}/input")
     fetch_rule(workflowdir, "preflight-bam.smk")
     fetch_report(workflowdir, "PreflightBam.Rmd")
     fetch_script(workflowdir, "checkBAM.py")
 
-    with open(f"{workflowdir}/config.yml", "w") as config:
+    with open(f"{workflowdir}/config.yml", "w", encoding="utf-8") as config:
         config.write(f"seq_directory: {workflowdir}/input\n")
         config.write(f"output_directory: {output_dir}\n")
         config.write(f"workflow_call: {call_SM}\n")

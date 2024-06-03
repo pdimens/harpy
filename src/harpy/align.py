@@ -1,12 +1,12 @@
+"""Harpy align workflows"""
+
+import os
+from time import sleep 
 import rich_click as click
-from pathlib import Path
 from .helperfunctions import fetch_report, fetch_rule, fetch_script
 from .fileparsers import get_samples_from_fastq, parse_fastq_inputs
 from .printfunctions import print_error, print_solution, print_notice, print_onstart
 from .validations import validate_input_by_ext
-import sys
-import os
-from time import sleep 
 
 @click.group(options_metavar='', context_settings=dict(help_option_names=["-h", "--help"]))
 def align():
@@ -27,7 +27,6 @@ def align():
     Provide an additional subcommand `bwa`, `ema`, or `minimap` to get more information on using
     those aligners.
     """
-    pass
 
 docstring = {
     "harpy align bwa": [
