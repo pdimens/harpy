@@ -55,4 +55,3 @@ def popgroup(inputdir, output):
         for i in samplenames:
             _ = file.write(i + '\tpop1\n')
     print_notice(write_text + " Please review it, as all samples have been grouped into a single population")
-    return 0

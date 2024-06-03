@@ -1,8 +1,5 @@
 import os
 import shutil
-from conda_deps import generate_conda_deps
-
-generate_conda_deps()
 
 onsuccess:
     shutil.rmtree(f'.harpy_envs', ignore_errors=True)

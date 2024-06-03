@@ -2,8 +2,10 @@
 
 import os
 import sys
+import subprocess
 from time import sleep
 import rich_click as click
+from .conda_deps import generate_conda_deps
 from .helperfunctions import fetch_report, fetch_rule, fetch_script
 from .fileparsers import get_samples_from_fastq, parse_fastq_inputs
 from .printfunctions import print_error, print_solution, print_notice, print_onstart
@@ -114,7 +116,7 @@ def bwa(inputs, output_dir, genome, depth_window, threads, extra_params, quality
     fetch_script(workflowdir, "bxStats.py")
     fetch_report(workflowdir, "AlignStats.Rmd")
 
-    with open(f"{workflowdir}/config.yml", "w", encoding="uft-8") as config:
+    with open(f"{workflowdir}/config.yml", "w", encoding="utf-8") as config:
         config.write(f"genomefile: {genome}\n")
         config.write(f"seq_directory: {workflowdir}/input\n")
         config.write(f"output_directory: {output_dir}\n")
@@ -131,7 +133,9 @@ def bwa(inputs, output_dir, genome, depth_window, threads, extra_params, quality
         f"Samples: {len(samplenames)}\nOutput Directory: {output_dir}",
         "align bwa"
     )
-    return command
+    generate_conda_deps()
+    _module = subprocess.run(command)
+    sys.exit(_module.returncode)
 
 @click.command(no_args_is_help = True, epilog = "read the docs for more information: https://pdimens.github.io/harpy/modules/align/ema")
 @click.option('-p', '--platform', type = click.Choice(['haplotag', '10x'], case_sensitive=False), default = "haplotag", show_default=True, help = "Linked read bead technology\n[haplotag, 10x]")
@@ -223,7 +227,9 @@ def ema(inputs, output_dir, platform, whitelist, genome, depth_window, threads, 
         f"Samples: {len(samplenames)}\nPlatform: {platform}\nOutput Directory: {output_dir}/",
         "align ema"
     )
-    return command
+    generate_conda_deps()
+    _module = subprocess.run(command)
+    sys.exit(_module.returncode)
 
 @click.command(no_args_is_help = True, epilog= "read the docs for more information: https://pdimens.github.io/harpy/modules/align/minimap/")
 @click.option('-g', '--genome', type=click.Path(exists=True, dir_okay=False), required = True, help = 'Genome assembly for read mapping')
@@ -294,4 +300,6 @@ def minimap(inputs, output_dir, genome, depth_window, threads, extra_params, qua
         f"Samples: {len(samplenames)}\nOutput Directory: {output_dir}",
         "align minimap"
     )
-    return command
+    generate_conda_deps()
+    _module = subprocess.run(command)
+    sys.exit(_module.returncode)

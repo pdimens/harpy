@@ -2,7 +2,9 @@
 
 import os
 import sys
+import subprocess
 import rich_click as click
+from .conda_deps import generate_conda_deps
 from .helperfunctions import fetch_rule, fetch_script, symlink
 from .printfunctions import print_onstart, print_error
 from .validations import validate_input_by_ext
@@ -164,8 +166,9 @@ def linkedreads(genome_hap1, genome_hap2, output_dir, outer_distance, mutation_r
     onstart_text += f"Output Directory: {output_dir}/"
     print_onstart(onstart_text, "simulate reads")
     
-    return command
-
+    generate_conda_deps()
+    _module = subprocess.run(command)
+    sys.exit(_module.returncode)
 
 @click.command(no_args_is_help = True, epilog = "This workflow can be quite technical, please read the docs for more information: https://pdimens.github.io/harpy/modules/simulate/simulate-variants")
 @click.option('-s', '--snp-vcf', type=click.Path(exists=True, dir_okay=False), help = 'VCF file of known snps to simulate')
@@ -289,7 +292,9 @@ def snpindel(genome, snp_vcf, indel_vcf, output_dir, prefix, snp_count, indel_co
         config.write(f"workflow_call: {call_SM}\n")
 
     print_onstart(printmsg.rstrip("\n"), "simulate variants: snpindel")
-    return command
+    generate_conda_deps()
+    _module = subprocess.run(command)
+    sys.exit(_module.returncode)
 
 @click.command(no_args_is_help = True, epilog = "Please read the docs for more information: https://pdimens.github.io/harpy/modules/simulate/simulate-variants")
 @click.option('-v', '--vcf', type=click.Path(exists=True, dir_okay=False), help = 'VCF file of known inversions to simulate')
@@ -389,7 +394,9 @@ def inversion(genome, vcf, prefix, output_dir, count, min_size, max_size, centro
         config.write(f"workflow_call: {call_SM}\n")
 
     print_onstart(printmsg.rstrip("\n"), "simulate variants: inversion")
-    return command
+    generate_conda_deps()
+    _module = subprocess.run(command)
+    sys.exit(_module.returncode)
 
 @click.command(no_args_is_help = True, epilog = "Please read the docs for more information: https://pdimens.github.io/harpy/modules/simulate/simulate-variants")
 @click.option('-v', '--vcf', type=click.Path(exists=True, dir_okay=False), help = 'VCF file of known copy number variants to simulate')
@@ -501,7 +508,9 @@ def cnv(genome, output_dir, vcf, prefix, count, min_size, max_size, dup_ratio, m
         config.write(f"workflow_call: {call_SM}\n")
 
     print_onstart(printmsg.rstrip("\n"),"simulate cnv")
-    return command
+    generate_conda_deps()
+    _module = subprocess.run(command)
+    sys.exit(_module.returncode)
 
 @click.command(no_args_is_help = True, epilog = "Please read the docs for more information: https://pdimens.github.io/harpy/modules/simulate/simulate-variants")
 @click.option('-v', '--vcf', type=click.Path(exists=True, dir_okay=False), help = 'VCF file of known translocations to simulate')
@@ -597,4 +606,6 @@ def translocation(genome, output_dir, prefix, vcf, count, centromeres, genes, he
         config.write(f"workflow_call: {call_SM}\n")
 
     print_onstart(printmsg.rstrip("\n"), "simulate variants: translocation")
-    return command
+    generate_conda_deps()
+    _module = subprocess.run(command)
+    sys.exit(_module.returncode)

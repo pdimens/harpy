@@ -53,11 +53,17 @@ jobs:
           environment-file: resources/harpy.yaml
           cache-environment: true
           post-cleanup: 'all'
+      - name: Install harpy
+        shell: micromamba-shell {0}
+        run: |
+          python3 -m pip install --upgrade build && python3 -m build
+          pip install dist/*.whl
+          resources/buildforCI.sh
       - name: Clear space
         run: rm -rf /opt/hostedtoolcache
       - name: Rebuild dockerfile
         shell: micromamba-shell {0}
-        run: snakemake -s src/harpy/containerize.smk --containerize > Dockerfile
+        run: harpy containerize
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
       - name: Login to Docker Hub

@@ -2,7 +2,9 @@
 
 import os
 import sys
+import subprocess
 import rich_click as click
+from .conda_deps import generate_conda_deps
 from .helperfunctions import fetch_rule, fetch_report
 from .fileparsers import getnames, parse_alignment_inputs
 from .printfunctions import print_onstart
@@ -121,7 +123,9 @@ def leviathan(inputs, output_dir, genome, min_sv, min_barcodes, threads, populat
         f"Samples: {len(samplenames)}{popgroupings}\nOutput Directory: {output_dir}/",
         "sv leviathan"
     )
-    return command
+    generate_conda_deps()
+    _module = subprocess.run(command)
+    sys.exit(_module.returncode)
 
 @click.command(no_args_is_help = True, epilog = "read the docs for more information: https://pdimens.github.io/harpy/modules/sv/naibr/")
 @click.option('-g', '--genome', required = True, type=click.Path(exists=True, dir_okay=False), help = 'Genome assembly')
@@ -217,4 +221,6 @@ def naibr(inputs, output_dir, genome, vcf, min_sv, min_barcodes, threads, popula
         f"Samples: {len(samplenames)}{popgroupings}\nOutput Directory: {output_dir}/",
         "sv naibr"
     )
-    return command
+    generate_conda_deps()
+    _module = subprocess.run(command)
+    sys.exit(_module.returncode)

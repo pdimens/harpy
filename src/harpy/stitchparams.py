@@ -30,4 +30,3 @@ def stitchparams(output):
         f"Created STITCH parameter file: {output}\n" +
         "Modify the model parameters as needed, but " + '\033[1m' + "DO NOT" + '\033[0m' + " add/remove columns."
     )
-    return 0

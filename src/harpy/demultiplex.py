@@ -1,7 +1,9 @@
 """Harpy demultiplex workflows"""
 
 import sys
+import subprocess
 import rich_click as click
+from .conda_deps import generate_conda_deps
 from .printfunctions import print_onstart
 from .helperfunctions import fetch_rule
 from .validations import validate_demuxschema
@@ -91,4 +93,6 @@ def gen1(r1_fq, r2_fq, i1_fq, i2_fq, output_dir, schema, threads, snakemake, ski
         f"Haplotag Type: Generation I\nDemultiplex Schema: {schema}\nOutput Directory: {output_dir}",
         "demultiplex gen1"
     )
-    return command
+    generate_conda_deps()
+    _module = subprocess.run(command)
+    sys.exit(_module.returncode)

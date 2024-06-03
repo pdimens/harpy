@@ -4,6 +4,7 @@ import os
 import sys
 import subprocess
 import rich_click as click
+from .conda_deps import generate_conda_deps
 from .helperfunctions import fetch_rule, fetch_report
 from .fileparsers import parse_alignment_inputs
 from .printfunctions import print_onstart
@@ -100,4 +101,6 @@ def phase(inputs, output_dir, vcf, threads, molecule_distance, prune_threshold, 
         f"Input VCF: {vcf}\nSamples in VCF: {len(samplenames)}\nAlignments Provided: {len(sn)}\nOutput Directory: {output_dir}/",
         "phase"
     )
-    return command
+    generate_conda_deps()
+    _module = subprocess.run(command)
+    sys.exit(_module.returncode)

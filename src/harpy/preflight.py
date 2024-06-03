@@ -2,7 +2,9 @@
 
 import os
 import sys
+import subprocess
 import rich_click as click
+from .conda_deps import generate_conda_deps
 from .helperfunctions import fetch_rule, fetch_report, fetch_script
 from .printfunctions import print_onstart
 from .fileparsers import parse_alignment_inputs, parse_fastq_inputs
@@ -86,7 +88,9 @@ def fastq(inputs, output_dir, threads, snakemake, quiet, conda, print_only):
         f"Files: {len(sn)}\nOutput Directory: {output_dir}/",
         "preflight fastq"
     )
-    return command
+    generate_conda_deps()
+    _module = subprocess.run(command)
+    sys.exit(_module.returncode)
 
 @click.command(no_args_is_help = True, epilog = "read the docs for more information: https://pdimens.github.io/harpy/modules/preflight/")
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(min = 1, max_open = True), help = 'Number of threads to use')
@@ -141,4 +145,6 @@ def bam(inputs, output_dir, threads, snakemake, quiet, conda, print_only):
         f"Samples: {len(sn)}\nOutput Directory: {output_dir}/",
         "preflight bam"
     )
-    return command
+    generate_conda_deps()
+    _module = subprocess.run(command)
+    sys.exit(_module.returncode)

@@ -9,12 +9,11 @@ except:
     enverror = "\033[1;33mERROR:\033[00m Harpy expects to run from within an active conda environment, but one was not detected."
     print(enverror, file = sys.stderr)
     fix = "\033[1;34mSOLUTION:\033[00m Activate the conda environment Harpy was installed into and run Harpy again."
-    print()
-    print(fix, file = sys.stderr)
+    print("\n" + fix, file = sys.stderr)
     print(f"\n\033[1mDetails:\033[00m")
     details = "In order to work correctly, Harpy expects several software packages to be available in the PATH, which are provided automatically with Harpy's conda-based installation. It also expects snakefiles, scripts, utilities, etc. to be in the /bin/ folder within that conda environment. If you're seeing this message, no active conda environment was detected upon execution, and Harpy exited as an early failsafe against unexpected runtime errors associated with \"missing\" files and packages."
     print(details, file = sys.stderr)
-    exit(1)
+    sys.exit(1)
 
 from . import align
 from . import demultiplex
@@ -25,11 +24,10 @@ from . import qc
 from . import simulate
 from . import snp
 from . import sv
+from . import container
 from .popgroups import popgroup
 from .stitchparams import stitchparams
-from .conda_deps import generate_conda_deps
 import rich_click as click
-import subprocess
 
 click.rich_click.USE_MARKDOWN = True
 click.rich_click.SHOW_ARGUMENTS = False
@@ -54,7 +52,6 @@ def cli():
     
     **Documentation**: [https://pdimens.github.io/harpy/](https://pdimens.github.io/harpy/)
     """
-    pass
 
 # main program
 #cli.add_command(hpc)
@@ -69,6 +66,7 @@ cli.add_command(sv.sv)
 cli.add_command(impute.impute)
 cli.add_command(phase.phase)
 cli.add_command(simulate.simulate)
+cli.add_command(container.containerize)
 # demultiplex submodules
 demultiplex.demultiplex.add_command(demultiplex.gen1)
 # preflight submodules
@@ -119,18 +117,3 @@ click.rich_click.COMMAND_GROUPS = {
 }
 
 click.rich_click.OPTION_GROUPS = demultiplex.docstring | preflight.docstring | qc.docstring | align.docstring | snp.docstring | sv.docstring | impute.docstring | phase.docstring | simulate.docstring
-
-def main():
-    try:
-        workflow = cli(standalone_mode = False)
-        if workflow == 0:
-            return 0
-        elif workflow is not None:
-            generate_conda_deps()
-            _module = subprocess.run(workflow, check = False)
-            return _module.returncode
-    except:
-        sys.exit(1)
-
-if __name__ == '__main__':
-    sys.exit(main())

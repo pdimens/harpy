@@ -2,7 +2,9 @@
 
 import os
 import sys
+import subprocess
 import rich_click as click
+from .conda_deps import generate_conda_deps
 from .helperfunctions import fetch_rule, fetch_report
 from .fileparsers import getnames, parse_alignment_inputs
 from .printfunctions import print_onstart
@@ -140,7 +142,9 @@ def mpileup(inputs, output_dir, regions, genome, threads, populations, ploidy, e
         f"Samples: {len(samplenames)}{popgroupings}\nOutput Directory: {output_dir}/",
         "snp mpileup"
     )
-    return command
+    generate_conda_deps()
+    _module = subprocess.run(command)
+    sys.exit(_module.returncode)
 
 @click.command(no_args_is_help = True, epilog = "read the docs for more information: https://pdimens.github.io/harpy/modules/snp")
 @click.option('-g', '--genome', type=click.Path(exists=True, dir_okay=False), required = True, help = 'Genome assembly for variant calling')
@@ -238,4 +242,6 @@ def freebayes(inputs, output_dir, genome, threads, populations, ploidy, regions,
         f"Samples: {len(samplenames)}{popgroupings}\nOutput Directory: {output_dir}/",
         "snp freebayes"
     )
-    return command
+    generate_conda_deps()
+    _module = subprocess.run(command)
+    sys.exit(_module.returncode)
