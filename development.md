@@ -122,12 +122,23 @@ The dev workflow is reasonably standard:
 
 ### containerization
 As of Harpy v1.0, the software dependencies that the Snakemake workflows use are pre-configured as a Docker image
-that is uploaded to Dockerhub. The dockerfile for that container is created by running
+that is uploaded to Dockerhub. Updating or editing this container can be done automatically or manually.
+
+#### automatically
+The [rebuildcontainer.yml](https://github.com/pdimens/harpy/blob/main/.github/workflows/rebuildcontainer.yml)
+GitHub Action will automatically create a Dockerfile with [!badge corners="pill" text="harpy containerize"] (a hidden harpy command)
+ and build a new Docker container, then upload it to [dockerhub](https://hub.docker.com/repository/docker/pdimens/harpy/general)
+with the `latest` tag. This action is triggered on `push` or `pull request` with changes to either
+`src/harpy/conda_deps` or `src/harpy/snakefiles/containerize.smk`.
+
+#### manually
+The dockerfile for that container is created by using a hidden harpy command [!badge corners="pill" text="harpy containerize"]
 ```bash auto-generate Dockerfile
-snakemake -s resources/containerize.smk --containerize > resources/Dockerfile
+harpy containerize
 ```
 which does all of the work for us. The result is a `Dockerfile` that has all of the conda environments
-build into it. After creating the `Dockerfile`, the image must then be built:
+written into it. After creating the `Dockerfile`, the image must then be built.
+
 ```bash build the Docker image
 cd resources
 docker build -t pdimens/harpy .
@@ -144,7 +155,8 @@ cd resources
 docker build -t pdimens/harpy:TAG
 ```
 where `TAG` is the Harpy version, such as `1.0`, `1.4.1`, `2.1`, etc. As such, during development, the `containerized: docker://pdimens/harpy:TAG` declaration at the top of the snakefiles should use the `latest` tag, and when ready for release, changed to match the Harpy
-version. So, if the Harpy version is `1.4.12`, then the associated docker image should also be tagged with `1.4.12`.
+version. So, if the Harpy version is `1.4.12`, then the associated docker image should also be tagged with `1.4.12`. The tag should remain `latest`
+(unless there is a very good reason otherwise) since automatic Docker tagging happens upon releases of new Harpy versions.
 
 ## Automations
 ### Testing
@@ -159,8 +171,13 @@ could not run successfully to completion. These tests do not test for accuracy,
 but test for breaking behavior. You'd be shocked to find out how many errors
 crop up this way and require more development so Harpy can be resilient to more use cases.
 ### Releases
-To save on disk space, there is an automation to strip out the unnecessary files and upload a
-cleaned tarball to the new release. This is triggered automatically when a new version is tagged.
+There is [an automation](https://github.com/pdimens/harpy/blob/dev/.github/workflows/createrelease.yml)
+that gets triggered every time Harpy is tagged with the new version. It strips out the unnecessary files and will
+upload a cleaned tarball to the new release (reducing filesize by orders of magnitude). The automation will also
+build a new Dockerfile and tag it with the same git tag for Harpy's next release and push it to Dockerhub.
+In doing so, it will also replace the tag of the container in all of Harpy's snakefiles from `latest` to the
+current Harpy version. In other words, during development the top of every snakefile reads
+`containerized: docker://pdimens/harpy:latest` and the automation replaces it with (e.g.) `containerized: docker://pdimens/harpy:1.17`.
 Tagging is easily accomplished with Git commands in the command line:
 ```bash
 # make sure you're on the main branch
@@ -171,4 +188,4 @@ $ git tag X.X.X
 
 # push the new tag to the repository
 $ git push origin X.X.X
-``` 
+```
