@@ -20,8 +20,6 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       pull-requests: read
-    outputs:
-      preflight: ${{ steps.filter.outputs.preflight }}
     steps:
       - name: checkout
         uses: actions/checkout@v4
@@ -34,6 +32,8 @@ jobs:
             src:
               - 'src/harpy/conda_deps.py'
               - 'src/harpy/containerize.smk'
+    outputs:
+      src: ${{ steps.changes.outputs.src }}
 
   pkgbuild:
     needs: changes
