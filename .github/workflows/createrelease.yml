@@ -63,7 +63,7 @@ jobs:
         # this removes the :latest tag and replaces with versioned container
         run: |
           for i in src/harpy/snakefiles/*.smk; do
-            sed -i "s/harpy\:latest/harpy\:${{ github.ref }}/g" $i
+            sed -i "s/harpy\:latest/harpy\:${{ github.ref_name }}/g" $i
           done
       - name: Build project
         # This builds the release tarball, stripped of unneccessary things
