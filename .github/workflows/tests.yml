@@ -19,7 +19,7 @@ env:
 
 jobs:
   changes:
-    name: detect file changes
+    name: Detect File Changes
     runs-on: ubuntu-latest
       # Required permissions
     permissions:
@@ -41,10 +41,12 @@ jobs:
       simvars: ${{ steps.filter.outputs.simvars }}
       simreads: ${{ steps.filter.outputs.simreads }}
       other: ${{ steps.filter.outputs.other }}
+      container: ${{ steps.filter.outputs.container }}
+      modules: ${{ steps.filter.outputs.modules }}
     steps:
-      - name: checkout
+      - name: Checkout
         uses: actions/checkout@v4
-      - name: check which files changed
+      - name: Check Which Files Have Changes
         uses: dorny/paths-filter@v3
         id: filter
         with:
@@ -53,14 +55,14 @@ jobs:
 
   pkgbuild:
     needs: changes
-    name: build harpy and cache container
+    name: Build/Cache Container
     runs-on: ubuntu-latest
     steps:
-      - name: checkout
+      - name: Checkout
         uses: actions/checkout@v4
         with:
           fetch-depth: 1
-      - name: setup mamba
+      - name: Setup Mamba
         uses: mamba-org/setup-micromamba@v1
         with:
           init-shell: bash
@@ -68,20 +70,37 @@ jobs:
           environment-file: resources/harpy.yaml
           cache-environment: true
           post-cleanup: 'all'
-      - name: Install harpy
+      - name: Install Harpy
         shell: micromamba-shell {0}
         run: |
           python3 -m pip install --upgrade build && python3 -m build
           pip install dist/*.whl
           resources/buildforCI.sh
-      - name: Clear space
+      - name: Clear Space
         run: rm -rf /opt/hostedtoolcache
-      - name: pull image
+      - name: Rebuild Dockerfile
+        if: ${{ needs.changes.outputs.container == 'true' }}
+        shell: micromamba-shell {0}
+        run: harpy containerize
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: Build and Push to Dockerhub
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: pdimens/harpy:latest
+      - name: Pull Image Locally
         id: singularity
         shell: micromamba-shell {0}
-        if: ${{ contains(needs.changes.outputs.*, 'true') }}
+        if: ${{ needs.changes.outputs.modules == 'true' }}
         run: harpy qc --skipreports -a test/fastq/sample1.*.fq.gz
-      - name: create singularity artifact
+      - name: Create Singularity Artifact
         if: ${{ steps.singularity.outcome == 'success' }}
         uses: actions/upload-artifact@v4
         with:
@@ -95,11 +114,11 @@ jobs:
     name: demux gen1
     runs-on: ubuntu-latest
     steps:
-      - name: checkout
+      - name: Checkout
         uses: actions/checkout@v4
         with:
           fetch-depth: 1
-      - name: setup mamba
+      - name: Setup Mamba
         uses: mamba-org/setup-micromamba@v1
         with:
           init-shell: bash
@@ -107,15 +126,15 @@ jobs:
           environment-file: resources/harpy.yaml
           cache-environment: true
           post-cleanup: 'all'
-      - name: Install harpy
+      - name: Install Harpy
         shell: micromamba-shell {0}
         run: |
           python3 -m pip install --upgrade build && python3 -m build
           pip install dist/*.whl
           resources/buildforCI.sh
-      - name: Clear space
+      - name: Clear Space
         run: rm -rf /opt/hostedtoolcache && mkdir -p .snakemake/singularity
-      - name: Download singularity artifact
+      - name: Download Singularity Artifact
         uses: actions/download-artifact@v4
         with:
           name: deps-image
@@ -130,11 +149,11 @@ jobs:
     name: preflight
     runs-on: ubuntu-latest
     steps:
-      - name: checkout
+      - name: Checkout
         uses: actions/checkout@v4
         with:
           fetch-depth: 1
-      - name: setup mamba
+      - name: Setup Mamba
         uses: mamba-org/setup-micromamba@v1
         env:
           ACTIONS_STEP_DEBUG: true
@@ -145,15 +164,15 @@ jobs:
           cache-environment: true
           post-cleanup: 'all'
           log-level: error
-      - name: Install harpy
+      - name: Install Harpy
         shell: micromamba-shell {0}
         run: |
           python3 -m pip install --upgrade build && python3 -m build
           pip install dist/*.whl
           resources/buildforCI.sh
-      - name: Clear space
+      - name: Clear Space
         run: rm -rf /opt/hostedtoolcache && mkdir -p .snakemake/singularity
-      - name: Download singularity artifact
+      - name: Download Singularity Artifact
         uses: actions/download-artifact@v4
         with:
           name: deps-image
@@ -172,11 +191,11 @@ jobs:
     name: qc
     runs-on: ubuntu-latest
     steps:
-      - name: checkout
+      - name: Checkout
         uses: actions/checkout@v4
         with:
           fetch-depth: 1
-      - name: setup mamba
+      - name: Setup Mamba
         uses: mamba-org/setup-micromamba@v1
         env:
           ACTIONS_STEP_DEBUG: true
@@ -187,15 +206,15 @@ jobs:
           cache-environment: true
           post-cleanup: 'all'
           log-level: error
-      - name: Install harpy
+      - name: Install Harpy
         shell: micromamba-shell {0}
         run: |
           python3 -m pip install --upgrade build && python3 -m build
           pip install dist/*.whl
           resources/buildforCI.sh
-      - name: Clear space
+      - name: Clear Space
         run: rm -rf /opt/hostedtoolcache && mkdir -p .snakemake/singularity
-      - name: Download singularity artifact
+      - name: Download Singularity Artifact
         uses: actions/download-artifact@v4
         with:
           name: deps-image
@@ -214,11 +233,11 @@ jobs:
     name: align BWA
     runs-on: ubuntu-latest
     steps:
-      - name: checkout
+      - name: Checkout
         uses: actions/checkout@v4
         with:
           fetch-depth: 1
-      - name: setup mamba
+      - name: Setup Mamba
         uses: mamba-org/setup-micromamba@v1
         env:
           ACTIONS_STEP_DEBUG: true
@@ -229,15 +248,15 @@ jobs:
           cache-environment: true
           post-cleanup: 'all'
           log-level: error
-      - name: Install harpy
+      - name: Install Harpy
         shell: micromamba-shell {0}
         run: |
           python3 -m pip install --upgrade build && python3 -m build
           pip install dist/*.whl
           resources/buildforCI.sh
-      - name: Clear space
+      - name: Clear Space
         run: rm -rf /opt/hostedtoolcache && mkdir -p .snakemake/singularity
-      - name: Download singularity artifact
+      - name: Download Singularity Artifact
         uses: actions/download-artifact@v4
         with:
           name: deps-image
@@ -252,11 +271,11 @@ jobs:
     name: align EMA
     runs-on: ubuntu-latest
     steps:
-      - name: checkout
+      - name: Checkout
         uses: actions/checkout@v4
         with:
           fetch-depth: 1
-      - name: setup mamba
+      - name: Setup Mamba
         uses: mamba-org/setup-micromamba@v1
         env:
           ACTIONS_STEP_DEBUG: true
@@ -267,15 +286,15 @@ jobs:
           cache-environment: true
           post-cleanup: 'all'
           log-level: error
-      - name: Install harpy
+      - name: Install Harpy
         shell: micromamba-shell {0}
         run: |
           python3 -m pip install --upgrade build && python3 -m build
           pip install dist/*.whl
           resources/buildforCI.sh
-      - name: Clear space
+      - name: Clear Space
         run: rm -rf /opt/hostedtoolcache && mkdir -p .snakemake/singularity
-      - name: Download singularity artifact
+      - name: Download Singularity Artifact
         uses: actions/download-artifact@v4
         with:
           name: deps-image
@@ -290,11 +309,11 @@ jobs:
     name: align minimap
     runs-on: ubuntu-latest
     steps:
-      - name: checkout
+      - name: Checkout
         uses: actions/checkout@v4
         with:
           fetch-depth: 1
-      - name: setup mamba
+      - name: Setup Mamba
         uses: mamba-org/setup-micromamba@v1
         env:
           ACTIONS_STEP_DEBUG: true
@@ -305,15 +324,15 @@ jobs:
           cache-environment: true
           post-cleanup: 'all'
           log-level: error
-      - name: Install harpy
+      - name: Install Harpy
         shell: micromamba-shell {0}
         run: |
           python3 -m pip install --upgrade build && python3 -m build
           pip install dist/*.whl
           resources/buildforCI.sh
-      - name: Clear space
+      - name: Clear Space
         run: rm -rf /opt/hostedtoolcache && mkdir -p .snakemake/singularity
-      - name: Download singularity artifact
+      - name: Download Singularity Artifact
         uses: actions/download-artifact@v4
         with:
           name: deps-image
@@ -328,11 +347,11 @@ jobs:
     name: mpileup
     runs-on: ubuntu-latest
     steps:
-      - name: checkout
+      - name: Checkout
         uses: actions/checkout@v4
         with:
           fetch-depth: 1
-      - name: setup mamba
+      - name: Setup Mamba
         uses: mamba-org/setup-micromamba@v1
         env:
           ACTIONS_STEP_DEBUG: true
@@ -343,15 +362,15 @@ jobs:
           cache-environment: true
           post-cleanup: 'all'
           log-level: error
-      - name: Install harpy
+      - name: Install Harpy
         shell: micromamba-shell {0}
         run: |
           python3 -m pip install --upgrade build && python3 -m build
           pip install dist/*.whl
           resources/buildforCI.sh
-      - name: Clear space
+      - name: Clear Space
         run: rm -rf /opt/hostedtoolcache && mkdir -p .snakemake/singularity
-      - name: Download singularity artifact
+      - name: Download Singularity Artifact
         uses: actions/download-artifact@v4
         with:
           name: deps-image
@@ -369,11 +388,11 @@ jobs:
     name: freebayes
     runs-on: ubuntu-latest
     steps:
-      - name: checkout
+      - name: Checkout
         uses: actions/checkout@v4
         with:
           fetch-depth: 1
-      - name: setup mamba
+      - name: Setup Mamba
         uses: mamba-org/setup-micromamba@v1
         env:
           ACTIONS_STEP_DEBUG: true
@@ -384,15 +403,15 @@ jobs:
           cache-environment: true
           post-cleanup: 'all'
           log-level: error
-      - name: Install harpy
+      - name: Install Harpy
         shell: micromamba-shell {0}
         run: |
           python3 -m pip install --upgrade build && python3 -m build
           pip install dist/*.whl
           resources/buildforCI.sh
-      - name: Clear space
+      - name: Clear Space
         run: rm -rf /opt/hostedtoolcache && mkdir -p .snakemake/singularity
-      - name: Download singularity artifact
+      - name: Download Singularity Artifact
         uses: actions/download-artifact@v4
         with:
           name: deps-image
@@ -410,11 +429,11 @@ jobs:
     name: impute
     runs-on: ubuntu-latest
     steps:
-      - name: checkout
+      - name: Checkout
         uses: actions/checkout@v4
         with:
           fetch-depth: 1
-      - name: setup mamba
+      - name: Setup Mamba
         uses: mamba-org/setup-micromamba@v1
         env:
           ACTIONS_STEP_DEBUG: true
@@ -425,15 +444,15 @@ jobs:
           cache-environment: true
           post-cleanup: 'all'
           log-level: error
-      - name: Install harpy
+      - name: Install Harpy
         shell: micromamba-shell {0}
         run: |
           python3 -m pip install --upgrade build && python3 -m build
           pip install dist/*.whl
           resources/buildforCI.sh
-      - name: Clear space
+      - name: Clear Space
         run: rm -rf /opt/hostedtoolcache && mkdir -p .snakemake/singularity
-      - name: Download singularity artifact
+      - name: Download Singularity Artifact
         uses: actions/download-artifact@v4
         with:
           name: deps-image
@@ -452,11 +471,11 @@ jobs:
     name: phase
     runs-on: ubuntu-latest
     steps:
-      - name: checkout
+      - name: Checkout
         uses: actions/checkout@v4
         with:
           fetch-depth: 1
-      - name: setup mamba
+      - name: Setup Mamba
         uses: mamba-org/setup-micromamba@v1
         env:
           ACTIONS_STEP_DEBUG: true
@@ -467,15 +486,15 @@ jobs:
           cache-environment: true
           post-cleanup: 'all'
           log-level: error
-      - name: Install harpy
+      - name: Install Harpy
         shell: micromamba-shell {0}
         run: |
           python3 -m pip install --upgrade build && python3 -m build
           pip install dist/*.whl
           resources/buildforCI.sh
-      - name: Clear space
+      - name: Clear Space
         run: rm -rf /opt/hostedtoolcache && mkdir -p .snakemake/singularity
-      - name: Download singularity artifact
+      - name: Download Singularity Artifact
         uses: actions/download-artifact@v4
         with:
           name: deps-image
@@ -498,11 +517,11 @@ jobs:
     name: sv leviathan
     runs-on: ubuntu-latest
     steps:
-      - name: checkout
+      - name: Checkout
         uses: actions/checkout@v4
         with:
           fetch-depth: 1
-      - name: setup mamba
+      - name: Setup Mamba
         uses: mamba-org/setup-micromamba@v1
         env:
           ACTIONS_STEP_DEBUG: true
@@ -513,15 +532,15 @@ jobs:
           cache-environment: true
           post-cleanup: 'all'
           log-level: error
-      - name: Install harpy
+      - name: Install Harpy
         shell: micromamba-shell {0}
         run: |
           python3 -m pip install --upgrade build && python3 -m build
           pip install dist/*.whl
           resources/buildforCI.sh
-      - name: Clear space
+      - name: Clear Space
         run: rm -rf /opt/hostedtoolcache && mkdir -p .snakemake/singularity
-      - name: Download singularity artifact
+      - name: Download Singularity Artifact
         uses: actions/download-artifact@v4
         with:
           name: deps-image
@@ -541,11 +560,11 @@ jobs:
     name: sv naibr
     runs-on: ubuntu-latest
     steps:
-      - name: checkout
+      - name: Checkout
         uses: actions/checkout@v4
         with:
           fetch-depth: 1
-      - name: setup mamba
+      - name: Setup Mamba
         uses: mamba-org/setup-micromamba@v1
         env:
           ACTIONS_STEP_DEBUG: true
@@ -556,15 +575,15 @@ jobs:
           cache-environment: true
           post-cleanup: 'all'
           log-level: error
-      - name: Install harpy
+      - name: Install Harpy
         shell: micromamba-shell {0}
         run: |
           python3 -m pip install --upgrade build && python3 -m build
           pip install dist/*.whl
           resources/buildforCI.sh
-      - name: Clear space
+      - name: Clear Space
         run: rm -rf /opt/hostedtoolcache && mkdir -p .snakemake/singularity
-      - name: Download singularity artifact
+      - name: Download Singularity Artifact
         uses: actions/download-artifact@v4
         with:
           name: deps-image
@@ -593,11 +612,11 @@ jobs:
     name: simulate variants
     runs-on: ubuntu-latest
     steps:
-      - name: checkout
+      - name: Checkout
         uses: actions/checkout@v4
         with:
           fetch-depth: 1
-      - name: setup mamba
+      - name: Setup Mamba
         uses: mamba-org/setup-micromamba@v1
         env:
           ACTIONS_STEP_DEBUG: true
@@ -608,15 +627,15 @@ jobs:
           cache-environment: true
           post-cleanup: 'all'
           log-level: error
-      - name: Install harpy
+      - name: Install Harpy
         shell: micromamba-shell {0}
         run: |
           python3 -m pip install --upgrade build && python3 -m build
           pip install dist/*.whl
           resources/buildforCI.sh
-      - name: Clear space
+      - name: Clear Space
         run: rm -rf /opt/hostedtoolcache && mkdir -p .snakemake/singularity
-      - name: Download singularity artifact
+      - name: Download Singularity Artifact
         uses: actions/download-artifact@v4
         with:
           name: deps-image
@@ -651,11 +670,11 @@ jobs:
     name: simulate linkedreads
     runs-on: ubuntu-latest
     steps:
-      - name: checkout
+      - name: Checkout
         uses: actions/checkout@v4
         with:
           fetch-depth: 1
-      - name: setup mamba
+      - name: Setup Mamba
         uses: mamba-org/setup-micromamba@v1
         env:
           ACTIONS_STEP_DEBUG: true
@@ -666,15 +685,15 @@ jobs:
           cache-environment: true
           post-cleanup: 'all'
           log-level: error
-      - name: Install harpy
+      - name: Install Harpy
         shell: micromamba-shell {0}
         run: |
           python3 -m pip install --upgrade build && python3 -m build
           pip install dist/*.whl
           resources/buildforCI.sh
-      - name: Clear space
+      - name: Clear Space
         run: rm -rf /opt/hostedtoolcache && mkdir -p .snakemake/singularity
-      - name: Download singularity artifact
+      - name: Download Singularity Artifact
         uses: actions/download-artifact@v4
         with:
           name: deps-image
@@ -689,11 +708,11 @@ jobs:
     name: harpy extras
     runs-on: ubuntu-latest
     steps:
-      - name: checkout
+      - name: Checkout
         uses: actions/checkout@v4
         with:
           fetch-depth: 1
-      - name: setup mamba
+      - name: Setup Mamba
         uses: mamba-org/setup-micromamba@v1
         env:
           ACTIONS_STEP_DEBUG: true
@@ -704,13 +723,13 @@ jobs:
           cache-environment: true
           post-cleanup: 'all'
           log-level: error
-      - name: Install harpy
+      - name: Install Harpy
         shell: micromamba-shell {0}
         run: |
           python3 -m pip install --upgrade build && python3 -m build
           pip install dist/*.whl
           resources/buildforCI.sh
-      - name: Clear space
+      - name: Clear Space
         run: rm -rf /opt/hostedtoolcache && mkdir -p .snakemake/singularity
       - name: harpy stitchparams
         shell: micromamba-shell {0}
