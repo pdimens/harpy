@@ -79,17 +79,23 @@ jobs:
       - name: Clear Space
         run: rm -rf /opt/hostedtoolcache
       - name: Rebuild Dockerfile
+        id: rebuild
         if: ${{ needs.changes.outputs.container == 'true' }}
         shell: micromamba-shell {0}
         run: harpy containerize
       - name: Set up Docker Buildx
+        id: buildx
+        if: ${{ steps.rebuild.outcome == 'success' }}
         uses: docker/setup-buildx-action@v3
       - name: Login to Docker Hub
+        id: dockerhub
+        if: ${{ steps.buildx.outcome == 'success' }}
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
       - name: Build and Push to Dockerhub
+        if: ${{ steps.dockerhub.outcome == 'success' }}
         uses: docker/build-push-action@v5
         with:
           context: .
