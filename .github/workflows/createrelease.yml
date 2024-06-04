@@ -70,7 +70,7 @@ jobs:
         run: |
           mkdir artifacts
           tar --exclude="test" --exclude=".deprecated" --exclude="artifacts" --exclude=".git" --exclude=".github" -zcvf artifacts/harpy.${{ github.ref_name }}.tar.gz .
-      - name: Release
+      - name: Create Release with Assets
         uses: softprops/action-gh-release@v2
         with:
           files: ./artifacts/harpy.${{ github.ref_name }}.tar.gz
