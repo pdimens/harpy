@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="turbo-root" content="/HARPY">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="3.5.0.767378786429">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="3.5.0.770859684227">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 3.5.0">
@@ -34,11 +34,11 @@
     <script data-cfasync="false">(function () { var el = document.documentElement, m = localStorage.getItem("doc_theme"), wm = window.matchMedia; if (m === "dark" || (!m && wm && wm("(prefers-color-scheme: dark)").matches)) { el.classList.add("dark") } else { el.classList.remove("dark") } })();</script>
 
     <link href="../static/favicon.png" rel="icon">
-    <link href="../resources/css/retype.css?v=3.5.0.767378786429" rel="stylesheet">
+    <link href="../resources/css/retype.css?v=3.5.0.770859684227" rel="stylesheet">
 
-    <script data-cfasync="false" src="../resources/js/config.js?v=3.5.0.767378786429" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../resources/js/config.js?v=3.5.0.770859684227" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../resources/js/retype.js?v=3.5.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../resources/js/lunr.js?v=3.5.0.767378786429" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../resources/js/lunr.js?v=3.5.0.770859684227" data-turbo-eval="false" defer></script>
     <link href="../resources/css/katex.css?v=3.5.0" rel="stylesheet">
     <script id="katex-js" data-cfasync="false" src="../resources/js/katex.js?v=3.5.0" defer></script>
 </head>
@@ -268,9 +268,9 @@ demultiplexing these beadtag variants as they become available.</p>
         <span>where the barcodes go</span>
     </h4>
 </doc-anchor-target>
-<p>Chromium 10X linked-reads have a particular format where the barcode is the leading 16 bases
-of the read. However, haplotagging data <strong>does not use that format</strong>, nor do the tools
-implemented in Harpy work correctly with it. Once demultiplexed, haplotagging sequences should look
+<p>Chromium 10X linked-reads use a format where the barcode is the leading 16 bases
+of the forward (R1) read. However, haplotagging data <strong>does not use that format</strong> and many of the tools
+implemented in Harpy <strong>won&#x27;t work correctly</strong> with the 10X format. Once demultiplexed, haplotagging sequences should look
 like regular FASTQ files of inserts and the barcode is stored in a <code v-pre>BX:Z:AxxCxxBxxDxx</code> tag
 in the read header. Again, <strong>do not include the barcode in the sequence</strong>.</p>
 <doc-anchor-target id="read-headers">
@@ -307,8 +307,11 @@ Read comments that aren&#x27;t following the <code v-pre>TAG:TYPE:VALUE</code> S
             <h5>A caveat</h5>
 <p>The Leviathan structural variant caller expects the <code v-pre>BX:Z:</code> tag at the end of the alignment
 record, so if you intend on using that variant caller, you will need to make sure the <code v-pre>BX:Z:</code>
-tag is the last one in the <em>sequence alignment</em> (BAM file). If you use Harpy to align the
-sequences, then it will make sure the <code v-pre>BX:Z:</code> tag is moved to the end of the alignment.</p>
+tag is the last one in the <em>sequence alignment</em> (BAM file). If you use any method within
+<a href="../modules/align/bwa/" class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-blue-600 bg-blue-100 border border-blue-100 hover:border-blue-300 dark:hover:bg-blue-200 transition-colors duration-200 ease-out h-6 px-2 text-xs rounded-full">
+    <span>harpy align</span>
+</a>, the <code v-pre>BX:Z:</code> tag is guaranteed to be at
+the end of the alignment record.</p>
         </div>
     </div>
 </div>
@@ -318,7 +321,9 @@ sequences, then it will make sure the <code v-pre>BX:Z:</code> tag is moved to t
         <span>Read length</span>
     </h3>
 </doc-anchor-target>
-<p>Reads must be at least 30 base pairs in length for alignment. The <code v-pre>qc</code> module removes reads &lt;50bp.</p>
+<p>Reads must be at least 30 base pairs in length for alignment. By default, the <a href="../modules/qc/" class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-blue-600 bg-blue-100 border border-blue-100 hover:border-blue-300 dark:hover:bg-blue-200 transition-colors duration-200 ease-out h-6 px-2 text-xs rounded-full">
+    <span>qc</span>
+</a> module removes reads &lt;30bp.</p>
 <doc-anchor-target id="compression">
     <h3>
         <doc-anchor-trigger class="header-anchor-trigger" to="#compression">#</doc-anchor-trigger>
@@ -326,7 +331,9 @@ sequences, then it will make sure the <code v-pre>BX:Z:</code> tag is moved to t
     </h3>
 </doc-anchor-target>
 <p>Harpy generally doesn&#x27;t require the input sequences to be in gzipped/bgzipped format, but it&#x27;s good practice to compress your reads anyway.
-Compressed files are expected to end with the extension <code v-pre>.gz</code>.</p>
+Compressed files are expected to end with the extension <span class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-green-700 bg-green-100 h-6 px-2 text-xs rounded-md">
+    <span>.gz</span>
+</span>.</p>
 <doc-anchor-target id="naming-conventions">
     <h3>
         <doc-anchor-trigger class="header-anchor-trigger" to="#naming-conventions">#</doc-anchor-trigger>
@@ -336,21 +343,70 @@ Compressed files are expected to end with the extension <code v-pre>.gz</code>.<
 <p>Unfortunately, there are many different ways of naming FASTQ files, which makes it
 difficult to accomodate every wacky iteration currently in circulation.
 While Harpy tries its best to be flexible, there are limitations.
-To that end, for the <code v-pre>demultiplex</code>, <code v-pre>qc</code>, and <code v-pre>align</code> modules, the
+To that end, for the <a href="../modules/demultiplex/" class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-blue-600 bg-blue-100 border border-blue-100 hover:border-blue-300 dark:hover:bg-blue-200 transition-colors duration-200 ease-out h-6 px-2 text-xs rounded-full">
+    <span>deumultiplex</span>
+</a>, <a href="../modules/qc/" class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-blue-600 bg-blue-100 border border-blue-100 hover:border-blue-300 dark:hover:bg-blue-200 transition-colors duration-200 ease-out h-6 px-2 text-xs rounded-full">
+    <span>qc</span>
+</a>, and <a href="../modules/align/bwa/" class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-blue-600 bg-blue-100 border border-blue-100 hover:border-blue-300 dark:hover:bg-blue-200 transition-colors duration-200 ease-out h-6 px-2 text-xs rounded-full">
+    <span>align</span>
+</a> modules, the
 most common FASTQ naming styles are supported:</p>
 <ul>
-<li><strong>sample names</strong>: Alphanumeric and <code v-pre>.</code>, <code v-pre>-</code>, <code v-pre>_</code>
+<li><strong>sample names</strong>: Alphanumeric and <span class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-green-700 bg-green-100 h-6 px-2 text-xs rounded-md">
+    <span>.</span>
+</span> <span class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-green-700 bg-green-100 h-6 px-2 text-xs rounded-md">
+    <span>_</span>
+</span> <span class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-green-700 bg-green-100 h-6 px-2 text-xs rounded-md">
+    <span>-</span>
+</span>
 <ul>
 <li>you can mix and match special characters, but that&#x27;s bad practice and not recommended</li>
 <li>examples: <code v-pre>Sample.001</code>, <code v-pre>Sample_001_year4</code>, <code v-pre>Sample-001_population1.year2</code> &lt;- not recommended</li>
 </ul>
 </li>
-<li><strong>forward/reverse</strong>: <code v-pre>_F</code>, <code v-pre>.F</code>, <code v-pre>_R1</code>, <code v-pre>.R1</code>, <code v-pre>_R1_001</code>, <code v-pre>.R1_001</code>, <em>etc.</em>
+<li><strong>forward</strong>: <span class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-green-700 bg-green-100 h-6 px-2 text-xs rounded-md">
+    <span>_F</span>
+</span> <span class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-green-700 bg-green-100 h-6 px-2 text-xs rounded-md">
+    <span>.F</span>
+</span> <span class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-green-700 bg-green-100 h-6 px-2 text-xs rounded-md">
+    <span>_R1_001</span>
+</span> <span class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-green-700 bg-green-100 h-6 px-2 text-xs rounded-md">
+    <span>.R1_001</span>
+</span> <span class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-green-700 bg-green-100 h-6 px-2 text-xs rounded-md">
+    <span>_R1</span>
+</span> <span class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-green-700 bg-green-100 h-6 px-2 text-xs rounded-md">
+    <span>.R1</span>
+</span></li>
+<li><strong>reverse</strong>: <span class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-green-700 bg-green-100 h-6 px-2 text-xs rounded-md">
+    <span>_R</span>
+</span> <span class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-green-700 bg-green-100 h-6 px-2 text-xs rounded-md">
+    <span>.R</span>
+</span> <span class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-green-700 bg-green-100 h-6 px-2 text-xs rounded-md">
+    <span>_R2_001</span>
+</span> <span class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-green-700 bg-green-100 h-6 px-2 text-xs rounded-md">
+    <span>.R2_001</span>
+</span> <span class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-green-700 bg-green-100 h-6 px-2 text-xs rounded-md">
+    <span>_R2</span>
+</span> <span class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-green-700 bg-green-100 h-6 px-2 text-xs rounded-md">
+    <span>.R2</span>
+</span>
 <ul>
-<li>note that this <strong>does not include</strong> <code v-pre>.1</code> or <code v-pre>_1</code> conventions for forward/reverse</li>
+<li>note that this <strong>does not include</strong>  <span class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-red-600 bg-red-100 h-6 px-2 text-xs rounded-md">
+    <span>.1</span>
+</span> or <span class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-red-600 bg-red-100 h-6 px-2 text-xs rounded-md">
+    <span>_1</span>
+</span> conventions for forward/reverse</li>
 </ul>
 </li>
-<li><strong>fastq extension</strong>: <code v-pre>.fastq</code>, <code v-pre>.FASTQ</code>, <code v-pre>.fq</code>, <code v-pre>.FQ</code></li>
+<li><strong>fastq extension</strong>: <span class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-green-700 bg-green-100 h-6 px-2 text-xs rounded-md">
+    <span>.fq</span>
+</span> <span class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-green-700 bg-green-100 h-6 px-2 text-xs rounded-md">
+    <span>.fastq</span>
+</span>
+<ul>
+<li>or uppercase variants</li>
+</ul>
+</li>
 <li><strong>gzipped</strong>: supported and recommended</li>
 <li><strong>not gzipped</strong>: supported</li>
 </ul>
@@ -411,7 +467,7 @@ larger/smaller values if you have evidence to support them.</p>
                             
                                 <nav class="flex mt-14">
                                     <div class="w-1/2">
-                                        <a class="px-5 py-4 h-full flex items-center break-normal font-medium text-blue-500 dark:text-blue-400 border border-gray-300 hover:border-gray-400 dark:border-dark-650 dark:hover:border-dark-450 rounded-l-lg transition-colors duration-150 relative hover:z-5" href="../modules/othermodules/">
+                                        <a class="px-5 py-4 h-full flex items-center break-normal font-medium text-blue-500 dark:text-blue-400 border border-gray-300 hover:border-gray-400 dark:border-dark-650 dark:hover:border-dark-450 rounded-l-lg transition-colors duration-150 relative hover:z-5" href="../modules/other/">
                                             <svg xmlns="http://www.w3.org/2000/svg" class="mr-3" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" overflow="visible"><path d="M19 11H7.41l5.29-5.29a.996.996 0 10-1.41-1.41l-7 7a1 1 0 000 1.42l7 7a1.024 1.024 0 001.42-.01.996.996 0 000-1.41L7.41 13H19c.55 0 1-.45 1-1s-.45-1-1-1z" /><path fill="none" d="M0 0h24v24H0z" /></svg>
                                             <span>
                                                 <span class="block text-xs font-normal text-gray-400 dark:text-dark-400">Previous</span>

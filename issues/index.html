@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="turbo-root" content="/HARPY">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="3.5.0.767378786429">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="3.5.0.770859684227">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 3.5.0">
@@ -32,12 +32,12 @@
     <script data-cfasync="false">(function () { var el = document.documentElement, m = localStorage.getItem("doc_theme"), wm = window.matchMedia; if (m === "dark" || (!m && wm && wm("(prefers-color-scheme: dark)").matches)) { el.classList.add("dark") } else { el.classList.remove("dark") } })();</script>
 
     <link href="../static/favicon.png" rel="icon">
-    <link href="../resources/css/retype.css?v=3.5.0.767378786429" rel="stylesheet">
+    <link href="../resources/css/retype.css?v=3.5.0.770859684227" rel="stylesheet">
 
-    <script data-cfasync="false" src="../resources/js/config.js?v=3.5.0.767378786429" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../resources/js/config.js?v=3.5.0.770859684227" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../resources/js/retype.js?v=3.5.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../resources/js/lunr.js?v=3.5.0.767378786429" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../resources/js/prism.js?v=3.5.0.767378786429" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../resources/js/lunr.js?v=3.5.0.770859684227" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../resources/js/prism.js?v=3.5.0.770859684227" defer></script>
 </head>
 <body>
     <div id="docs-app" class="relative text-base antialiased text-gray-700 bg-white font-body dark:bg-dark-850 dark:text-dark-300">
@@ -247,10 +247,19 @@ out conda trying to install it. Use mamba instead-- it&#x27;ll work where conda 
         <span>Failures during imputation or phasing</span>
     </h2>
 </doc-anchor-target>
-<p>If you use <code v-pre>bamutils clipOverlap</code> on alignments that are used for the <code v-pre>impute</code> or
-<code v-pre>phase</code> modules, they will cause both programs to error. We don&#x27;t know why, but they do.</p>
+<p>If you use <code v-pre>bamutils clipOverlap</code> on alignments that are used for the <a href="../modules/impute/" class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-blue-600 bg-blue-100 border border-blue-100 hover:border-blue-300 dark:hover:bg-blue-200 transition-colors duration-200 ease-out h-6 px-2 text-xs rounded-full">
+    <span>impute</span>
+</a> or
+<a href="../modules/phase/" class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-blue-600 bg-blue-100 border border-blue-100 hover:border-blue-300 dark:hover:bg-blue-200 transition-colors duration-200 ease-out h-6 px-2 text-xs rounded-full">
+    <span>phase</span>
+</a> modules, they will cause both programs to error. We don&#x27;t know why, but they do.</p>
 <p><strong>Solution</strong>: Do not clip overlapping alignments for bam files you intend to use for
-the <code v-pre>impute</code> or <code v-pre>phase</code> modules. Harpy does not clip overlapping alignments, so
+the <a href="../modules/impute/" class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-blue-600 bg-blue-100 border border-blue-100 hover:border-blue-300 dark:hover:bg-blue-200 transition-colors duration-200 ease-out h-6 px-2 text-xs rounded-full">
+    <span>impute</span>
+</a> or
+<a href="../modules/phase/" class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-blue-600 bg-blue-100 border border-blue-100 hover:border-blue-300 dark:hover:bg-blue-200 transition-colors duration-200 ease-out h-6 px-2 text-xs rounded-full">
+    <span>phase</span>
+</a> modules. Harpy does not clip overlapping alignments, so
 alignments produced by Harpy should work just fine.</p>
 <doc-anchor-target id="alignment-file-name-and-id-tag-mismatch">
     <h2>

@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="turbo-root" content="/HARPY">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="3.5.0.767378786429">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="3.5.0.770859684227">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 3.5.0">
@@ -34,12 +34,12 @@
     <script data-cfasync="false">(function () { var el = document.documentElement, m = localStorage.getItem("doc_theme"), wm = window.matchMedia; if (m === "dark" || (!m && wm && wm("(prefers-color-scheme: dark)").matches)) { el.classList.add("dark") } else { el.classList.remove("dark") } })();</script>
 
     <link href="../static/favicon.png" rel="icon">
-    <link href="../resources/css/retype.css?v=3.5.0.767378786429" rel="stylesheet">
+    <link href="../resources/css/retype.css?v=3.5.0.770859684227" rel="stylesheet">
 
-    <script data-cfasync="false" src="../resources/js/config.js?v=3.5.0.767378786429" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../resources/js/config.js?v=3.5.0.770859684227" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../resources/js/retype.js?v=3.5.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../resources/js/lunr.js?v=3.5.0.767378786429" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../resources/js/prism.js?v=3.5.0.767378786429" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../resources/js/lunr.js?v=3.5.0.770859684227" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../resources/js/prism.js?v=3.5.0.770859684227" defer></script>
 </head>
 <body>
     <div id="docs-app" class="relative text-base antialiased text-gray-700 bg-white font-body dark:bg-dark-850 dark:text-dark-300">
@@ -273,7 +273,7 @@ we <em>want</em> to, not because we need to.</li>
         <span>Installing Harpy for development</span>
     </h2>
 </doc-anchor-target>
-<p>The process follows cloning the harpy repository, installing the preconfigured conda environment, and running the <code v-pre>misc/buildlocal.sh</code>
+<p>The process follows cloning the harpy repository, installing the preconfigured conda environment, and running the <code v-pre>resources/buildlocal.sh</code>
 script to move all the necessary files to the <code v-pre>/bin/</code> path within your active conda environment.</p>
 <doc-panels>
    <doc-panel id="step-1-clone-the-repository" collapsed>
@@ -287,7 +287,7 @@ script to move all the necessary files to the <code v-pre>/bin/</code> path with
        <template #title>Step 2: install the conda environment dependencies</template>
 <div class="codeblock-wrapper"><doc-codeblock>
 <div class="codeblock-title">install the dependencies with conda/mamba</div>
-<pre class="language-bash"><code v-pre class="language-bash">mamba env create --name harpy --file misc/harpyenv.yaml</code></pre>
+<pre class="language-bash"><code v-pre class="language-bash">mamba env create --name harpy --file resources/harpy.yaml</code></pre>
 </doc-codeblock></div>
 <p>This will create a conda environment named <code v-pre>harpy</code> with all the bits necessary to successfully run Harpy. You can change the name of this environment by specifying
 <code v-pre>--name something</code>.</p>
@@ -303,12 +303,12 @@ mamba activate harpy</code></pre>
    </doc-panel>
    <doc-panel id="step-4-install-the-harpy-files" collapsed>
        <template #title>Step 4: install the Harpy files</template>
-<p>Call the <code v-pre>misc/buildlocal.sh</code> bash script to finish the installation.
+<p>Call the <code v-pre>resources/buildlocal.sh</code> bash script to finish the installation.
 This will build the <code v-pre>harpy</code> python program, and copy all the additional files Harpy needs to run
 to the <code v-pre>bin/</code> directory of your active conda environment.</p>
 <div class="codeblock-wrapper"><doc-codeblock>
 <div class="codeblock-title">install harpy and the necessary files</div>
-<pre class="language-bash"><code v-pre class="language-bash">bash misc/buildlocal.sh</code></pre>
+<pre class="language-bash"><code v-pre class="language-bash">bash resources/buildlocal.sh</code></pre>
 </doc-codeblock></div>
    </doc-panel>
 </doc-panels>
@@ -382,11 +382,7 @@ table below:</p>
 <tbody>
 <tr>
 <td style="text-align: left;"><code v-pre>main</code></td>
-<td style="text-align: left;">the source code of the current release and used for new bioconda releases</td>
-</tr>
-<tr>
-<td style="text-align: left;"><code v-pre>dev</code></td>
-<td style="text-align: left;">staging and testing area for new code prior to merging with <code v-pre>main</code> for release</td>
+<td style="text-align: left;">staging and testing area for new code prior to creating the next release</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code v-pre>docs</code></td>
@@ -412,15 +408,66 @@ table below:</p>
 <p>The dev workflow is reasonably standard:</p>
 <ol>
 <li><a href="https://github.com/pdimens/harpy/fork">create a fork</a> of Harpy</li>
-<li>within your fork, create a new branch, name it something relevant to what you intend to do (<em>e.g.</em>, <code v-pre>naibr_bugfix</code>, <code v-pre>add_deepvariant</code>)
-<ul>
-<li>create a branch off of <code v-pre>main</code> if you are trying to fix a bug in the release version</li>
-<li>create a branch off of <code v-pre>dev</code> if you are adding a new feature or breaking change</li>
-</ul>
-</li>
+<li>within your fork, create a new branch, name it something relevant to what you intend to do (<em>e.g.</em>, <code v-pre>naibr_bugfix</code>, <code v-pre>add_deepvariant</code>)</li>
 <li>add and modify code with your typical coding workflow, pushing your changes to your Harpy fork</li>
-<li>when it&#x27;s ready for inclusion into Harpy (and testing), create a Pull Request to merge your changes into the Harpy <code v-pre>dev</code> branch</li>
+<li>when it&#x27;s ready for inclusion into Harpy (and testing), create a Pull Request to merge your changes into the Harpy <code v-pre>main</code> branch</li>
 </ol>
+<doc-anchor-target id="containerization">
+    <h3>
+        <doc-anchor-trigger class="header-anchor-trigger" to="#containerization">#</doc-anchor-trigger>
+        <span>containerization</span>
+    </h3>
+</doc-anchor-target>
+<p>As of Harpy v1.0, the software dependencies that the Snakemake workflows use are pre-configured as a Docker image
+that is uploaded to Dockerhub. Updating or editing this container can be done automatically or manually.</p>
+<doc-anchor-target id="automatically">
+    <h4>
+        <doc-anchor-trigger class="header-anchor-trigger" to="#automatically">#</doc-anchor-trigger>
+        <span>automatically</span>
+    </h4>
+</doc-anchor-target>
+<p>The testing GitHub Action will automatically create a Dockerfile with <span class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-blue-600 bg-blue-100 h-6 px-2 text-xs rounded-full">
+    <span>harpy containerize</span>
+</span> (a hidden harpy command)
+and build a new Docker container, then upload it to <a href="https://hub.docker.com/repository/docker/pdimens/harpy/general">dockerhub</a>
+with the <code v-pre>latest</code> tag. This process is triggered on <code v-pre>push</code> or <code v-pre>pull request</code> with changes to either
+<code v-pre>src/harpy/conda_deps</code> or <code v-pre>src/harpy/snakefiles/containerize.smk</code> on <code v-pre>main</code>.</p>
+<doc-anchor-target id="manually">
+    <h4>
+        <doc-anchor-trigger class="header-anchor-trigger" to="#manually">#</doc-anchor-trigger>
+        <span>manually</span>
+    </h4>
+</doc-anchor-target>
+<p>The dockerfile for that container is created by using a hidden harpy command <span class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-blue-600 bg-blue-100 h-6 px-2 text-xs rounded-full">
+    <span>harpy containerize</span>
+</span></p>
+<div class="codeblock-wrapper"><doc-codeblock>
+<div class="codeblock-title">auto-generate Dockerfile</div>
+<pre class="language-bash"><code v-pre class="language-bash">harpy containerize</code></pre>
+</doc-codeblock></div>
+<p>which does all of the work for us. The result is a <code v-pre>Dockerfile</code> that has all of the conda environments
+written into it. After creating the <code v-pre>Dockerfile</code>, the image must then be built.</p>
+<div class="codeblock-wrapper"><doc-codeblock>
+<div class="codeblock-title">build the Docker image</div>
+<pre class="language-bash"><code v-pre class="language-bash">cd resources
+docker build -t pdimens/harpy .</code></pre>
+</doc-codeblock></div>
+<p>This will take a bit because the R dependencies are hefty. Once that&#x27;s done, the image can be pushed to Dockerhub:</p>
+<div class="codeblock-wrapper"><doc-codeblock>
+<div class="codeblock-title">push image to Dockerhub</div>
+<pre class="language-bash"><code v-pre class="language-bash">docker push pdimens/harpy</code></pre>
+</doc-codeblock></div>
+<p>This containerize -&gt; dockerfile -&gt; build -&gt; process will push the changes to Dockerhub with the <code v-pre>latest</code> tag, which is suitable for
+the development cycle. When the container needs to be tagged to be associated with the release of a new Harpy version, you will need to
+add a tag to the <code v-pre>docker build</code> step:</p>
+<div class="codeblock-wrapper"><doc-codeblock>
+<div class="codeblock-title">build tagged Docker image</div>
+<pre class="language-bash"><code v-pre class="language-bash">cd resources
+docker build -t pdimens/harpy:TAG</code></pre>
+</doc-codeblock></div>
+<p>where <code v-pre>TAG</code> is the Harpy version, such as <code v-pre>1.0</code>, <code v-pre>1.4.1</code>, <code v-pre>2.1</code>, etc. As such, during development, the <code v-pre>containerized: docker://pdimens/harpy:TAG</code> declaration at the top of the snakefiles should use the <code v-pre>latest</code> tag, and when ready for release, changed to match the Harpy
+version. So, if the Harpy version is <code v-pre>1.4.12</code>, then the associated docker image should also be tagged with <code v-pre>1.4.12</code>. The tag should remain <code v-pre>latest</code>
+(unless there is a very good reason otherwise) since automatic Docker tagging happens upon releases of new Harpy versions.</p>
 <doc-anchor-target id="automations">
     <h2>
         <doc-anchor-trigger class="header-anchor-trigger" to="#automations">#</doc-anchor-trigger>
@@ -435,7 +482,7 @@ table below:</p>
 </doc-anchor-target>
 <p>CI (<strong>C</strong>ontinuous <strong>I</strong>ntegration) is a term describing automated actions that do
 things to/with your code and are triggered by how you interact with a repository.
-Harpy has a series of GitHub Actions triggered by interactions with the <code v-pre>dev</code> branch (in <code v-pre>.github/workflows</code>)
+Harpy has a series of GitHub Actions triggered by interactions with the <code v-pre>main</code> branch (in <code v-pre>.github/workflows</code>)
 to test the Harpy modules depending on which files are being changed by the push or
 pull request. It&#x27;s setup such that, for example, when files associated with
 demultiplexing are altered, it will run <code v-pre>harpy demultiplex</code> on the test data
@@ -449,8 +496,13 @@ crop up this way and require more development so Harpy can be resilient to more 
         <span>Releases</span>
     </h3>
 </doc-anchor-target>
-<p>To save on disk space, there is an automation to strip out the unnecessary files and upload a
-cleaned tarball to the new release. This is triggered automatically when a new version is tagged.
+<p>There is <a href="https://github.com/pdimens/harpy/blob/dev/.github/workflows/createrelease.yml">an automation</a>
+that gets triggered every time Harpy is tagged with the new version. It strips out the unnecessary files and will
+upload a cleaned tarball to the new release (reducing filesize by orders of magnitude). The automation will also
+build a new Dockerfile and tag it with the same git tag for Harpy&#x27;s next release and push it to Dockerhub.
+In doing so, it will also replace the tag of the container in all of Harpy&#x27;s snakefiles from <code v-pre>latest</code> to the
+current Harpy version. In other words, during development the top of every snakefile reads
+<code v-pre>containerized: docker://pdimens/harpy:latest</code> and the automation replaces it with (e.g.) <code v-pre>containerized: docker://pdimens/harpy:1.17</code>.
 Tagging is easily accomplished with Git commands in the command line:</p>
 <div class="codeblock-wrapper"><doc-codeblock>
 <pre class="language-bash"><code v-pre class="language-bash"># make sure you're on the main branch
