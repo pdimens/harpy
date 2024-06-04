@@ -8,13 +8,13 @@ order: 6
 # :icon-codescan-checkmark: Quality Trim Sequences
 ===  :icon-checklist: You will need
 - at least 2 cores/threads available
-- paired-end fastq sequence files (gzipped recommended)
+- paired-end fastq sequence files [!badge variant="secondary" text="gzip recommended"]
 ===
 
 Raw sequences are not suitable for downstream analyses. They have sequencing adapters,
 index sequences, regions of poor quality, etc. The first step of any genetic sequence
 analyses is to remove these adapters and trim poor quality data. You can remove adapters
-and quality trim sequences using the `qc` module:
+and quality trim sequences using the [!badge corners="pill" text="qc"]` module:
 
 ```bash usage
 harpy qc OPTIONS... INPUTS...
@@ -25,12 +25,15 @@ harpy qc --threads 20 Sequences_Raw/
 ```
 
 ## :icon-terminal: Running Options
-In addition to the [common runtime options](/commonoptions.md), the `harpy qc` module is configured using these command-line arguments:
+In addition to the [!badge variant="info" corners="pill" text="common runtime options"](/commonoptions.md), the [!badge corners="pill" text="qc"] module is configured using these command-line arguments:
 
+{.compact}
 | argument         | short name | type        | default | required | description                                                                                     |
 |:-----------------|:----------:|:------------|:-------:|:-------:|:------------------------------------------------------------------------------------------------|
 | `INPUTS`         |            | file/directory paths  |         | **yes**  | Files or directories containing [input FASTQ files](/commonoptions.md#input-arguments)     |
-| `--max-length`   |    `-l`    | integer     |   150   |    no   | Maximum length to trim sequences down to                                                        |
+| `--min-length`   |    `-n`    | integer     |   30    |    no   | Discard reads shorter than this length                                                          |
+| `--max-length`   |    `-m`    | integer     |   150   |    no   | Maximum length to trim sequences down to                                                        |
+| `--ignore-adapters` | `-x`    | toggle      |         |    no   | Skip adapter trimming                                                                           |
 | `--extra-params` |    `-x`    | string      |         |    no   | Additional fastp arguments, in quotes                                                           |
 
 ---
@@ -75,6 +78,7 @@ QC/
         ├── Sample1.fastp.json
         └── Sample2.fastp.json
 ```
+{.compact}
 | item                            | description                                                                        |
 |:--------------------------------|:-----------------------------------------------------------------------------------|
 | `*.R1.fq.gz`                    | quality trimmed forward reads of the samples                                       |

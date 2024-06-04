@@ -10,7 +10,7 @@ order: 6
 Simulate snps, indels, inversions, cnv, translocations
 
 ===  :icon-checklist: You will need
-- a reference genome in fasta or gzipped fasta format
+- a reference genome in FASTA format: [!badge variant="success" text=".fasta"] [!badge variant="success" text=".fa"] [!badge variant="success" text=".fasta.gz"] [!badge variant="success" text=".fa.gz"]
 ===
 
 You may want to benchmark haplotag data on different kinds of genomic variants. To
@@ -31,19 +31,21 @@ harpy simulate inversion -n 10 --min-size 1000 --max-size 50000  path/to/genome.
 ## Modules
 There are 4 submodules with very obvious names:
 
+{.compact}
 | submodule | what it does |
 |:----------|:-------------|
-|`snpindel` | simulates single nucleotide polymorphisms (snps) and insertion-deletions (indels) |
-| `inversion` | simulates inversions |
-| `cnv` | simulates copy number variants |
-| `translocation` | simulates translocations |
+| [!badge corners="pill" text="snpindel"](#snpindel) | simulates single nucleotide polymorphisms (snps) and insertion-deletions (indels) |
+| [!badge corners="pill" text="inversion"](#inversion) | simulates inversions |
+| [!badge corners="pill" text="cnv"](#cnv) | simulates copy number variants |
+| [!badge corners="pill" text="translocation"](#translocation) | simulates translocations |
 
 ## :icon-terminal: Running Options
 While there are serveral differences between the submodule command line options, each has available all the
-[common runtime options](/commonoptions.md) like other Harpy modules. Each requires and input genome at the
+[!badge variant="info" corners="pill" text="common runtime options"](/commonoptions.md) like other Harpy modules. Each requires and input genome at the
 end of the command line, and each requires either a `--count` of variants to randomly simulate, or a `--vcf` of
 specific variants to simulate. There are also these unifying options among the different variant types:
 
+{.compact}
 | argument | short name | type |  description |
 | :-----|:-----|:-----|:-----|
 | `INPUT_GENOME`           |    | file path  |  The haploid genome to simulate variants onto. **REQUIRED**   |
@@ -54,7 +56,7 @@ specific variants to simulate. There are also these unifying options among the d
 | `--heterozygosity` | `-z` | float between [0,1] |  [% heterozygosity to simulate diploid later](#heterozygosity) (default: `0`) |
 | `--randomseed` |  | integer |   Random seed for simulation |
 
-==- snps and indels
+==- 🟣 snps and indels
 ### snpindel
 !!!warning SNPs can be slow
 Given software limitations, simulating many SNPs (>10,000) will be noticeably slower than the other variant types.
@@ -72,9 +74,10 @@ the value to either `9999` or `0` :
     - `9999`: insertions only
     - `0`: deletions only
 
+{.compact}
 | argument          | short name | type       | default |  description                                                 |
 |:------------------|:----------:|:-----------|:-------:|:-------------------------------------------------------------|
-| `--snp-vcf`| `-v` | file path | | VCF file of known snps to simulate |
+| `--snp-vcf`| `-s` | file path | | VCF file of known snps to simulate |
 | `--indel-vcf` | `-i` | file path | | VCF file of known indels to simulate |
 | `--snp-count` | `-n` | integer | 0 | Number of random snps to simluate |
 | `--indel-count` |  `-m` | integer | 0 | Number of random indels to simluate |
@@ -84,10 +87,11 @@ the value to either `9999` or `0` :
 | `--indel-size-constant` | `-l` | float | 0.5 | Exponent constant for power-law-fitted indel size distribution |
 | `--snp-gene-constraints` | `-y` | string | | How to constrain randomly simulated SNPs {`noncoding`,`coding`,`2d`,`4d`} when using `--genes`|
 
-==- inversions
+==- 🔵 inversions
 ### inversion
 Inversions are when a section of a chromosome appears in the reverse orientation ([source](https://www.genome.gov/genetics-glossary/Inversion)).
 
+{.compact}
 | argument          | short name | type       | default |  description     |
 |:------------------|:----------:|:-----------|:-------:|:----------------|
 | `--vcf` | `-v` | file path |  |  VCF file of known inversions to simulate |
@@ -95,7 +99,7 @@ Inversions are when a section of a chromosome appears in the reverse orientation
 | `--min-size` | `-m` | integer | 1000 | Minimum inversion size (bp) |
 | `--max-size` | `-x` | integer | 100000 | Maximum inversion size (bp) |
 
-==- copy number variants
+==- 🟢 copy number variants
 ### cnv
 A copy number variation (CNV) is when the number of copies of a particular gene varies
 between individuals ([source](https://www.genome.gov/genetics-glossary/Copy-Number-Variation))
@@ -108,6 +112,7 @@ the value to either `9999` or `0` :
     - `9999`: gain only
     - `0`: loss only
 
+{.compact}
 | argument          | short name | type       | default |  description     |
 |:------------------|:----------:|:-----------|:-------:|:----------------|
 | `--vcf` | `-v` | file path | | VCF file of known copy number variants to simulate |
@@ -119,10 +124,11 @@ the value to either `9999` or `0` :
 | `--gain-ratio` |`-l` | float |  1 | Relative ratio of DNA gain over DNA loss |
 
 
-==- translocations
+==- 🟡 translocations
 ### translocation
 A translocation occurs when a chromosome breaks and the fragmented pieces re-attach to different chromosomes ([source](https://www.genome.gov/genetics-glossary/Translocation)). 
 
+{.compact}
 | argument          | short name | type       | default |  description     |
 |:------------------|:----------:|:-----------|:-------:|:----------------|
 | `--vcf` | `-v` | file path |  |  VCF file of known inversions to simulate |
@@ -203,7 +209,9 @@ a diploid assembly with simulated variants.
 ==-
 
 ## Simulate Diploid Assembly
-Here is a simple but realistic workflow of creating a diploid assembly with simulated variants.
+Here is a simple but realistic workflow of creating a diploid assembly with simulated variants. Due
+to the roundabout complexity of the process, attempts were made to use color to help keep track of the
+original haploid genome and the resulting genome haplotypes.
 If you haven't already, please read the sections about [simulating known variants](#simulate-known-variants)
 and [heterozygosity](#heterozygosity). The idea here is that due to the limitations of `simuG`, we can
 only simulate one type of variant at a time and we will take advantage of the VCF files created by
@@ -217,6 +225,7 @@ graph LR
     geno(haploid genome)-->|simulate inversion -n 10 -z 0.5|hap(inversions.vcf)
     hap-->hap1(inversion.hap1.vcf)
     hap-->hap2(inversion.hap2.vcf)
+    style geno fill:#ebb038,stroke:#d19b2f,stroke-width:2px
 ```
 #### Step 2
 Use the resulting hap1 and hap2 VCF files to simulate those same variants, but shuffled
@@ -224,11 +233,23 @@ into homozygotes and heterozygotes, onto the original haploid genome, creating t
 genomes. 
 ```mermaid
 graph LR
-    subgraph id1 ["Inputs"]
+    subgraph id1 ["Haplotype 1 Inputs"]
     hap1(inversion.hap1.vcf)---geno(haploid genome)
     end
     id1-->|simulate inversion -v|hapgeno(haplotype-1 genome)
     style id1 fill:#f0f0f0,stroke:#e8e8e8,stroke-width:2px
+    style hapgeno fill:#90c8be,stroke:#6fb6a9,stroke-width:2px
+    style geno fill:#ebb038,stroke:#d19b2f,stroke-width:2px
+```
+```mermaid
+graph LR
+    subgraph id2 ["Haplotype 2 Inputs"]
+    hap2(inversion.hap2.vcf)---geno(haploid genome)
+    end
+    id2-->|simulate inversion -v|hapgeno2(haplotype-2 genome)
+    style id2 fill:#f0f0f0,stroke:#e8e8e8,stroke-width:2px
+    style hapgeno2 fill:#bd8fcb,stroke:#a460b7,stroke-width:2px
+    style geno fill:#ebb038,stroke:#d19b2f,stroke-width:2px
 ```
 #### Step 3
 Use the one of the new genome haplotypes for simulating other kinds of variants. 
@@ -240,6 +261,8 @@ graph LR
     geno(haplotype-1 genome)-->|simulate snpindel -n 100000 -z 0.5|hap(snpindel.vcf)
     hap-->hap1(snpindel.hap1.vcf)
     hap-->hap2(snpindel.hap2.vcf)
+    style geno fill:#90c8be,stroke:#6fb6a9,stroke-width:2px
+
 ```
 #### Step 4
 Use the resulting haplotype VCFs to simulate known variants onto the **haplotype genomes** from
@@ -251,6 +274,8 @@ graph LR
     end
     id1-->|simulate inversion -v|genohap1(haplotype-1 genome with new variants)
     style id1 fill:#f0f0f0,stroke:#e8e8e8,stroke-width:2px
+    style geno fill:#90c8be,stroke:#6fb6a9,stroke-width:2px
+    style genohap1 fill:#90c8be,stroke:#000000,stroke-width:2px
 ```
 ```mermaid
 graph LR
@@ -259,6 +284,8 @@ graph LR
     end
     id2-->|simulate inversion -v|genohap2(haplotype-2 genome with new variants)
     style id2 fill:#f0f0f0,stroke:#e8e8e8,stroke-width:2px
+    style geno fill:#bd8fcb,stroke:#a460b7,stroke-width:2px
+    style genohap2 fill:#bd8fcb,stroke:#000000,stroke-width:2px
 ```
 
 #### Step 5

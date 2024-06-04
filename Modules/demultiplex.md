@@ -10,7 +10,7 @@ order: 6
 
 ===  :icon-checklist: You will need
 - at least 2 cores/threads available
-- paired-end reads from an Illumina sequencer (gzipped recommended)
+- paired-end reads from an Illumina sequencer in FASTQ format [!badge variant="secondary" text="gzip recommended"]
 ===
 
 When pooling samples and sequencing them in parallel on an Illumina sequencer, you will be given large multiplexed FASTQ
@@ -20,19 +20,23 @@ should have been added during the sample DNA preparation in a laboratory. The de
 haplotag technology you are using (read [Haplotag Types](#haplotag-types)).
 
 ```bash usage
-harpy demultiplex OPTIONS... INPUT
+harpy demultiplex METHOD OPTIONS... R1_FQ R2_FQ I1_FQ I2_FQ
 ```
-```bash example
-harpy demultiplex --threads 20 --samplesheet demux.schema Plate_1_S001_R1.fastq.gz
+```bash example using wildcards
+harpy demultiplex gen1 --threads 20 --schema demux.schema Plate_1_S001_R*.fastq.gz Plate_1_S001_I*.fastq.gz
 ```
 ## :icon-terminal: Running Options
-In addition to the [common runtime options](/commonoptions.md), the `harpy demultiplex` module is configured using these command-line arguments:
+In addition to the [!badge variant="info" corners="pill" text="common runtime options"](/commonoptions.md), the [!badge corners="pill" text="demultiplex"] module is configured using these command-line arguments:
 
-| argument          | short name | type       | default | required | description                                                                          |
-|:------------------|:----------:|:-----------|:-------:|:--------:|:-------------------------------------------------------------------------------------|
-| `INPUT`           |            | file path  |         | **yes**  | The forward (or reverse) multiplexed FASTQ file                                      |
-| `--samplesheet`   |    `-b`    | file path  |         | **yes**  | Tab-delimited file of sample\<tab\>barcode                                           |
-| `--method`        |    `-m`    | choice     | `gen1`  | **yes**  | Haplotag technology of the sequences                                                 |
+{.compact}
+| argument          | short name | type       | default | required | description                                                             |
+|:------------------|:----------:|:-----------|:-------:|:--------:|:------------------------------------------------------------------------|
+| `R1_FQ`           |            | file path  |         | **yes**  | The forward multiplexed FASTQ file                                      |
+| `R2_FQ`           |            | file path  |         | **yes**  | The reverse multiplexed FASTQ file                                      |
+| `I1_FQ`           |            | file path  |         | **yes**  | The forward FASTQ index file provided by the sequencing facility        |
+| `I2_FQ`           |            | file path  |         | **yes**  | The reverse FASTQ index file provided by the sequencing facility        |
+| `METHOD`          |            | choice     |         | **yes**  | Haplotag technology of the sequences  [`gen1`]                          |
+| `--schema`        |    `-s`    | file path  |         | **yes**  | Tab-delimited file of sample\<tab\>barcode                              |
 
 ## Haplotag Types
 ==- Generation 1 - `gen1`
@@ -46,10 +50,10 @@ do **not** demultiplex the sequences. Requires the use of [bcl2fastq](https://su
 `--use-bases-mask=Y151,I13,I13,Y151` and `--create-fastq-for-index-reads`. With Generation I beadtags, the `C` barcode is sample-specific,
 meaning a single sample should have the same `C` barcode for all of its sequences.
 
-### sample sheet
+### demultiplexing schema
 Since Generation I haplotags use a unique `Cxx` barcode per sample, that's the barcode
 that will be used to identify sequences by sample. You will need to provide a simple text
-file to `--samplesheet` (`-b`) with two columns, the first being the sample name, the second being
+file to `--schema` (`-s`) with two columns, the first being the sample name, the second being
 the `Cxx` barcode (e.g., `C19`). This file is to be `tab` or `space` delimited and must have **no column names**.
 ``` example sample sheet
 Sample01    C01
@@ -84,11 +88,11 @@ graph LR
 ```
 
 +++ :icon-file-directory: demultiplexing output
-The default output directory is `Demultiplex/PREFIX` with the folder structure below, where `PREFIX` is the prefix of your input file that Harpy
-infers by removing the file extension and forward/reverse distinction. `Sample1` and `Sample2` are generic sample names for demonstration purposes.
-The resulting folder also includes a `workflow` directory (not shown) with workflow-relevant runtime files and information.
+The default output directory is `Demultiplex` with the folder structure below. `Sample1` and `Sample2` are
+generic sample names for demonstration purposes. The resulting folder also includes a `workflow` directory
+(not shown) with workflow-relevant runtime files and information.
 ```
-Demultiplex/PREFIX
+Demultiplex/
 ├── Sample1.F.fq.gz
 ├── Sample1.R.fq.gz
 ├── Sample2.F.fq.gz
@@ -96,7 +100,7 @@ Demultiplex/PREFIX
 └── reports
     └── demultiplex.QC.html
 ```
-
+{.compact}
 | item | description |
 |:---|:---|
 | `*.F.fq.gz` | Forward-reads from multiplexed input `--file` belonging to samples from the `samplesheet` |

@@ -10,15 +10,15 @@ order: 6
 
 ===  :icon-checklist: You will need
 - at least 2 cores/threads available
-- `fastq`: paired-end reads from an Illumina sequencer (gzipped recommended)
-- `bam`: SAM/BAM alignment files
+- `bam`: SAM/BAM alignment files [!badge variant="secondary" text="BAM recommended"]
+- `fastq`: paired-end reads from an Illumina sequencer in FASTQ format [!badge variant="secondary" text="gzip recommended"]
 ===
 
 Harpy does a lot of stuff with a lot of software and each of these programs expect the incoming data to follow particular formats (plural, unfortunately).
 These formatting opinions/specifics are at the mercy of the original developers and while there are times when Harpy can (and does)
 modify input/output files for format compatability, it's not always feasible or practical to handle all possible cases. So, our
 solution is perform what we lovingly call "pre-flight checks" to assess if your input FASTQ or BAM files are formatted correctly
-for the pipeline. There are separate `fastq` and `bam` submodules and the result of each is a report detailing "file format QC." 
+for the pipeline. There are separate [!badge corners="pill" text="preflight fastq"] and [!badge corners="pill" text="preflight bam"] submodules and the result of each is a report detailing file format quality checks. 
 
 #### when to run
 - **FASTQ**: the preflight checks for FASTQ files are best performed _after_ demultiplexing (or trimming/QC) and _before_ sequence alignment
@@ -41,19 +41,21 @@ harpy preflight bam --threads 20 Align/bwa
 ```
 
 ## :icon-terminal: Running Options
-In addition to the [common runtime options](/commonoptions.md), the `harpy preflight fastq|bam` module is configured using these command-line arguments:
+In addition to the [!badge variant="info" corners="pill" text="common runtime options"](/commonoptions.md), the [!badge corners="pill" text="preflight fastq"] and [!badge corners="pill" text="preflight bam"] modules are configured using only command-line input arguments:
 
+{.compact}
 | argument          | short name | type       | default | required | description                                                                          |
 |:------------------|:----------:|:-----------|:-------:|:--------:|:-------------------------------------------------------------------------------------|
 | `INPUTS`           |            | file/directory paths  |         | **yes**  | Files or directories containing [input fastq or bam files](/commonoptions.md#input-arguments)     |
 
 ## Workflow
 
-+++ `fastq` checks
-Below is a table of the format specifics `harpy preflight` checks for FASTQ files. Since 10X data doesn't use
-the haplotagging data format, you will find little value in running `preflight` on 10X FASTQ files. Take note
++++ fastq checks
+Below is a table of the format specifics [!badge corners="pill" text="preflight fastq"] checks for FASTQ files. Since 10X data doesn't use
+the haplotagging data format, you will find little value in running [!badge corners="pill" text="preflight fastq"] on 10X FASTQ files. Take note
 of the language such as when "any" and "all" are written.
 
+{.compact}
 | Criteria | Pass Condition | Fail Condition |
 |:---|:---|:---|
 |AxxCxxBxxDxx format| **all** reads with BX:Z: tag have properly formatted `AxxCxxBxxDxx` barcodes | **any** BX:Z: barcodes have incorrect format|
@@ -61,10 +63,11 @@ of the language such as when "any" and "all" are written.
 |BX:Z: last comment | **all** reads have `BX:Z`: as final comment| **at least 1 read** doesn't have `BX:Z:` tag as final comment|
 |BX:Z: tag | any `BX:Z:` tags present | **all** reads lack `BX:Z:` tag|
 
-+++ `bam` checks
-Below is a table of the format specifics `harpy preflight` checks for SAM/BAM files. Take note
++++ bam checks
+Below is a table of the format specifics [!badge corners="pill" text="preflight bam"] checks for SAM/BAM files. Take note
 of the language such as when "any" and "all" are written.
 
+{.compact}
 | Criteria | Pass Condition | Fail Condition |
 |:---|:---|:---|
 |name matches| the file name matches the `@RG ID:` tag in the header| file name does not match `@RG ID:` in the header|

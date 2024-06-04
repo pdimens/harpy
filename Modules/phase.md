@@ -9,16 +9,20 @@ order: 2
 
 ===  :icon-checklist: You will need
 - at least 2 cores/threads available
-- a vcf/bcf file of genotypes
-- sequence alignments, in `.bam` format
+- sequence alignments, in BAM format: [!badge variant="success" text=".bam"]
+- a variant call format file of genotypes: [!badge variant="success" text=".vcf"] [!badge variant="success" text=".bcf"]
+- [!badge variant="ghost" text="optional"] a reference genome in FASTA format: [!badge variant="success" text=".fasta"] [!badge variant="success" text=".fa"] [!badge variant="success" text=".fasta.gz"] [!badge variant="success" text=".fa.gz"]
+
 ===
 
 You may want to phase your genotypes into haplotypes, as haplotypes tend to be more informative
 than unphased genotypes (higher polymorphism, captures relationship between genotypes). Phasing
-genotypes into haplotypes requires alignment files, such as those produced by `harpy align` and
-a variant call file, such as those produced by `harpy snp` or `harpy impute`. **Phasing only
-works on SNP data**, and will not work for structural variants produced by `LEVIATHAN` or `NAIBR`. You can 
-phase genotypes into haplotypes with Harpy using the `phase` module:
+genotypes into haplotypes requires alignment files, such as those produced by [!badge corners="pill" text="align bwa"](Align/bwa.md)
+and a variant call file, such as one produced by [!badge corners="pill" text="snp freebayes"](snp.md)
+or [!badge corners="pill" text="impute"](impute.md). **Phasing only works on SNP data**, and will not
+work for structural variants produced by [!badge corners="pill" text="sv leviathan"](SV/leviathan.md)
+or [!badge corners="pill" text="sv naibr"](SV/naibr.md), preferably [filtered in some capacity](snp.md/#filtering-variants). You can phase genotypes into haplotypes with
+Harpy using the [!badge corners="pill" text="phase"] module:
 
 ```bash usage
 harpy phase OPTIONS... INPUTS...
@@ -28,8 +32,9 @@ harpy phase --threads 20 --vcf Variants/variants.raw.bcf Align/ema
 ```
 
 ## :icon-terminal: Running Options
-In addition to the [common runtime options](/commonoptions.md), the `harpy phase` module is configured using these command-line arguments:
+In addition to the [!badge variant="info" corners="pill" text="common runtime options"](/commonoptions.md), the [!badge corners="pill" text="phase"] module is configured using these command-line arguments:
 
+{.compact}
 | argument              | short name | type            | default | required | description                                                          |
 |:----------------------|:----------:|:----------------|:-------:|:--------:|:---------------------------------------------------------------------|
 | `INPUTS`           |            | file/directory paths  |         | **yes**  | Files or directories containing [input BAM files](/commonoptions.md#input-arguments)     |
@@ -42,12 +47,12 @@ In addition to the [common runtime options](/commonoptions.md), the `harpy phase
 | `--extra-params`      |    `-x`    | string          |         |    no    | Additional Hapcut2 arguments, in quotes                              |
 
 ### Prioritize the vcf file
-Sometimes you want to run imputation on all the samples present in the `--directory`, but other times you may want
+Sometimes you want to run imputation on all the samples present in the `INPUTS`, but other times you may want
 to only impute the samples present in the `--vcf` file. By default, Harpy assumes you want to use all the samples
-present in the `--directory` and will inform you of errors when there is a mismatch between the sample files
+present in the `INPUTS` and will inform you of errors when there is a mismatch between the sample files
 present and those listed in the `--vcf` file. You can instead use the `--vcf-samples` flag if you want Harpy to build a workflow
 around the samples present in the `--vcf` file. When using this toggle, Harpy will inform you when samples in the `--vcf` file
-are missing from the provided `--directory`.  
+are missing from the provided `INPUTS`.  
 
 The molecule distance and pruning thresholds are considered the most impactful parameters
 for running HapCut2.
@@ -135,7 +140,7 @@ Phase/
         └── Sample1.blocks.phased.log
 
 ```
-
+{.compact}
 | item | description |
 |:---|:---|
 | `variants.phased.bcf*` | final vcf output of HapCut2 with all samples merged into a single file (with .csi index) |

@@ -33,19 +33,16 @@ for more information about haplotagging and why you might consider it for your s
 Harpy is modular, meaning you can use different parts of it independent from each other. Need to only align reads?
 Great! Only want to call variants? Awesome! All modules are called by `harpy <module>`. For example, use `harpy align` to align reads.
 
-| Module        | Description                                   |
-|:--------------|:----------------------------------------------|
-| `preflight`   | Run various format checks for FASTQ and BAM files |
-| `demultiplex` | Demultiplex haplotagged FASTQ files           |
-| `qc`          | Remove adapters and quality trim sequences    |
-| `align`       | Align sample sequences to a reference genome  |
-| `snp`         | Call SNPs and small indels                    |
-| `sv`          | Call large structural variants                |
-| `impute`      | Impute genotypes using variants and sequences |
-| `phase`       | Phase SNPs into haplotypes                    |
-| `popgroup`      | Create a sample grouping file               |
-| `stitchparams`  | Create a template STITCH parameter file     |
-| `hpc`           | Create a config file to run Harpy on an HPC |
+|      Module                                                        | Description                                   |
+|:-------------------------------------------------------------------|:----------------------------------------------|
+| [!badge corners="pill" text="preflight"](Modules/preflight.md)     | Run various format checks for FASTQ and BAM files |
+| [!badge corners="pill" text="demultiplex"](Modules/demultiplex.md) | Demultiplex haplotagged FASTQ files           |
+| [!badge corners="pill" text="qc"](Modules/qc.md)                   | Remove adapters and quality trim sequences    |
+| [!badge corners="pill" text="align"](Modules/Align/bwa.md)         | Align sample sequences to a reference genome  |
+| [!badge corners="pill" text="snp"](Modules/snp.md)                 | Call SNPs and small indels                    |
+| [!badge corners="pill" text="sv"](Modules/SV/naibr.md)             | Call large structural variants                |
+| [!badge corners="pill" text="impute"](Modules/impute.md)           | Impute genotypes using variants and sequences |
+| [!badge corners="pill" text="phase"](Modules/phase.md)             | Phase SNPs into haplotypes                    |
 
 ## Using Harpy
 You can call `harpy` without any arguments (or with `--help`) to print the docstring to your terminal. You can likewise call any of the modules without arguments or with `--help` to see their usage  (e.g. `harpy align --help`).

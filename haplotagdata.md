@@ -22,9 +22,9 @@ of the beadtags will appear, each likely with their own way of properly demultip
 demultiplexing these beadtag variants as they become available.
 
 #### where the barcodes go
-Chromium 10X linked-reads have a particular format where the barcode is the leading 16 bases 
-of the read. However, haplotagging data **does not use that format**, nor do the tools 
-implemented in Harpy work correctly with it. Once demultiplexed, haplotagging sequences should look 
+Chromium 10X linked-reads use a format where the barcode is the leading 16 bases 
+of the forward (R1) read. However, haplotagging data **does not use that format** and many of the tools 
+implemented in Harpy **won't work correctly** with the 10X format. Once demultiplexed, haplotagging sequences should look 
 like regular FASTQ files of inserts and the barcode is stored in a `BX:Z:AxxCxxBxxDxx` tag 
 in the read header. Again, **do not include the barcode in the sequence**.
 
@@ -45,29 +45,32 @@ Read comments that aren't following the `TAG:TYPE:VALUE` SAM spec may cause down
 !!!warning A caveat
 The Leviathan structural variant caller expects the `BX:Z:` tag at the end of the alignment 
 record, so if you intend on using that variant caller, you will need to make sure the `BX:Z:`
-tag is the last one in the _sequence alignment_ (BAM file). If you use Harpy to align the 
-sequences, then it will make sure the `BX:Z:` tag is moved to the end of the alignment.
+tag is the last one in the _sequence alignment_ (BAM file). If you use any method within 
+[!badge corners="pill" text="harpy align"](Modules/Align/bwa.md), the `BX:Z:` tag is guaranteed to be at
+the end of the alignment record.
 !!!
 
 ### Read length
-Reads must be at least 30 base pairs in length for alignment. The `qc` module removes reads <50bp.
+Reads must be at least 30 base pairs in length for alignment. By default, the [!badge corners="pill" text="qc"](Modules/qc.md) module removes reads <30bp.
 
 ### Compression
 Harpy generally doesn't require the input sequences to be in gzipped/bgzipped format, but it's good practice to compress your reads anyway.
-Compressed files are expected to end with the extension `.gz`.
+Compressed files are expected to end with the extension [!badge variant="success" text=".gz"].
 
 ### Naming conventions
 Unfortunately, there are many different ways of naming FASTQ files, which makes it 
 difficult to accomodate every wacky iteration currently in circulation.
 While Harpy tries its best to be flexible, there are limitations. 
-To that end, for the `demultiplex`, `qc`, and `align` modules, the 
+To that end, for the [!badge corners="pill" text="deumultiplex"](Modules/demultiplex.md), [!badge corners="pill" text="qc"](Modules/qc.md), and [!badge corners="pill" text="align"](Modules/Align/bwa.md) modules, the 
 most common FASTQ naming styles are supported:
-- **sample names**: Alphanumeric and `.`, `-`, `_`
+- **sample names**: Alphanumeric and [!badge variant="success" text="."] [!badge variant="success" text="_"] [!badge variant="success" text="-"]
     - you can mix and match special characters, but that's bad practice and not recommended
     - examples: `Sample.001`, `Sample_001_year4`, `Sample-001_population1.year2` <- not recommended
-- **forward/reverse**: `_F`, `.F`, `_R1`, `.R1`, `_R1_001`, `.R1_001`, *etc.*
-    - note that this **does not include** `.1` or `_1` conventions for forward/reverse
-- **fastq extension**: `.fastq`, `.FASTQ`, `.fq`, `.FQ`
+- **forward**: [!badge variant="success" text="_F"] [!badge variant="success" text=".F"] [!badge variant="success" text="_R1_001"] [!badge variant="success" text=".R1_001"] [!badge variant="success" text="_R1"] [!badge variant="success" text=".R1"] 
+- **reverse**: [!badge variant="success" text="_R"] [!badge variant="success" text=".R"] [!badge variant="success" text="_R2_001"] [!badge variant="success" text=".R2_001"] [!badge variant="success" text="_R2"] [!badge variant="success" text=".R2"] 
+    - note that this **does not include**  [!badge variant="danger" text=".1"] or [!badge variant="danger" text="_1"] conventions for forward/reverse
+- **fastq extension**: [!badge variant="success" text=".fq"] [!badge variant="success" text=".fastq"]
+    - or uppercase variants
 - **gzipped**: supported and recommended
 - **not gzipped**: supported
 

@@ -8,14 +8,14 @@ order: 5
 # :icon-quote: Map Reads onto a genome with Minimap2
 ===  :icon-checklist: You will need
 - at least 4 cores/threads available
-- a genome assembly in FASTA format
-- paired-end fastq sequence file with the [proper naming convention](/haplotagdata/#naming-conventions) (gzipped recommended)
+- a genome assembly in FASTA format: [!badge variant="success" text=".fasta"] [!badge variant="success" text=".fa"] [!badge variant="success" text=".fasta.gz"] [!badge variant="success" text=".fa.gz"]
+- paired-end fastq sequence file with the [proper naming convention](/haplotagdata/#naming-conventions) [!badge variant="secondary" text="gzipped recommended"]
 ===
 
 Once sequences have been trimmed and passed through other QC filters, they will need to
 be aligned to a reference genome. This module within Harpy expects filtered reads as input,
-such as those derived using `harpy qc`. You can map reads onto a genome assembly with Harpy 
-using the `align` module:
+such as those derived using [!badge corners="pill" text="harpy qc"](../qc.md). You can map reads onto a genome assembly with Harpy 
+using the [!badge corners="pill" text="align minimap"] module:
 
 ```bash usage
 harpy align minimap OPTIONS... INPUTS...
@@ -25,15 +25,15 @@ harpy align minimap --genome genome.fasta Sequences/
 ```
 
 ## :icon-terminal: Running Options
-In addition to the [common runtime options](/commonoptions.md), the `harpy align minimap` module is configured using these command-line arguments:
+In addition to the [!badge variant="info" corners="pill" text="common runtime options"](/commonoptions.md), the [!badge corners="pill" text="align minimap"] module is configured using these command-line arguments:
 
+{.compact}
 | argument           | short name | type                  | default | required | description                                           |
 |:-------------------|:----------:|:----------------------|:-------:|:--------:|:------------------------------------------------------|
 | `INPUTS`           |            | file/directory paths  |         | **yes**  | Files or directories containing [input FASTQ files](/commonoptions.md#input-arguments)     |
 | `--genome`         |    `-g`    | file path             |         | **yes**  | Genome assembly for read mapping                      |
 | `--molecule-distance` |    `-m`    | integer         |  100000  |    no    | Base-pair distance threshold to separate molecules      |
 | `--quality-filter` |    `-f`    | integer (0-40)        |   30    |    no    | Minimum `MQ` (SAM mapping quality) to pass filtering  |
-| `--method`         |    `-m`    | choice [`bwa`, `ema`] |   bwa   |    no    | Which aligning software to use                        |
 | `--extra-params`   |    `-x`    | string                |         |    no    | Additional EMA-align/BWA arguments, in quotes         |
 
 ### Molecule distance
@@ -134,7 +134,7 @@ Align/bwa
 
 
 ```
-
+{.compact}
 | item     | description                                                                                                 |
 |:---------|:------------------------------------------------------------------------------------------------------------|
 | `*.bam`                             | sequence alignments for each sample                                              |

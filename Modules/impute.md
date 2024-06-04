@@ -9,24 +9,34 @@ order: 3
 
 ===  :icon-checklist: You will need
 - a tab-delimited parameter file 
-- a variant call format file (`.vcf`, `.vcf.gz`, `.bcf`)
-- sequence alignments in `.bam` format
+- sequence alignments in BAM format: [!badge variant="success" text=".bam"]
+- a variant call format file: [!badge variant="success" text=".vcf"] [!badge variant="success" text=".vcf.gz"] [!badge variant="success" text=".bcf"]
 ==- :icon-codescan: Curation of input VCF file
-STITCH needs the input VCF to meet specific criteria:
-1. Biallelic SNPs only
-2. VCF is sorted by position
-3. No duplicate positions
-4. No duplicate sample names
+To work well with STITCH, Harpy needs the input variant call file to meet specific criteria.
+Where labelled with [!badge variant="secondary" text="automatic"], Harpy will perform those curation steps on your input
+variant call file. Where labelled with [!badge variant="warning" text="manual"], you will need to perform these curation
+tasks yourself prior to running the [!badge corners="pill" text="impute"] module. 
 
-Harpy will automatically extract biallelic SNPs and sort the input VCF file (1 and 2), but it will not
-do any further assessments for your input VCF file regarding duplicate sample names or positions. Please
-curate your input VCF to meet criteria 3 and 4 prior to running the `impute` module.  
+#### Variant call file criteria
+
+1. [!badge variant="secondary" text="automatic"] Biallelic SNPs only
+2. [!badge variant="secondary" text="automatic"] VCF is sorted by position
+3. [!badge variant="warning" text="manual"] No duplicate positions
+    - ```bash example to remove duplicate positions
+        bcftools norm -D in.vcf -o out.vcf
+        ```
+4. [!badge variant="warning" text="manual"] No duplicate sample names
+    - ```bash count the occurrence of samples
+        bcftools query -l file.bcf | sort | uniq -c
+        ```
+    - you will need to remove duplicate samples how you see fit
 ===
 
 After variants have been called, you may want to impute missing genotypes to get the
 most from your data. Harpy uses `STITCH` to impute genotypes, a haplotype-based
 method that is linked-read aware. Imputing genotypes requires a variant call file 
-**containing SNPs**, such as that produced by `harpy snp`. You can impute genotypes with Harpy using the `impute` module:
+**containing SNPs**, such as that produced by [!badge corners="pill" text="harpy snp"](snp.md) and preferably [filtered in some capacity](snp.md/#filtering-variants).
+You can impute genotypes with Harpy using the [!badge corners="pill" text="impute"] module:
 ```bash usage
 harpy impute OPTIONS... INPUTS...
 ```
@@ -40,8 +50,9 @@ harpy impute --threads 20 --vcf Variants/mpileup/variants.raw.bcf --parameters s
 ```
 
 ## :icon-terminal: Running Options
-In addition to the [common runtime options](/commonoptions.md), the `harpy impute` module is configured using these command-line arguments:
+In addition to the [!badge variant="info" corners="pill" text="common runtime options"](/commonoptions.md), the [!badge corners="pill" text="impute"] module is configured using these command-line arguments:
 
+{.compact}
 | argument       | short name | type        |    default    | required | description                                                                                     |
 |:---------------|:----------:|:------------|:-------------:|:--------:|:------------------------------------------------------------------------------------------------|
 | `INPUTS`       |            | file/directory paths  |         | **yes**  | Files or directories containing [input BAM files](/commonoptions.md)     |
@@ -61,19 +72,19 @@ harpy impute -v file.vcf -p stitch.params -t 15 -x 'regionStart=20, regionEnd=50
 ```
 
 ### Prioritize the vcf file
-Sometimes you want to run imputation on all the samples present in the `--directory`, but other times you may want
+Sometimes you want to run imputation on all the samples present in the `INPUTS`, but other times you may want
 to only impute the samples present in the `--vcf` file. By default, Harpy assumes you want to use all the samples
-present in the `--directory` and will inform you of errors when there is a mismatch between the sample files
+present in the `INPUTS` and will inform you of errors when there is a mismatch between the sample files
 present and those listed in the `--vcf` file. You can instead use the `--vcf-samples` flag if you want Harpy to build a workflow
 around the samples present in the `--vcf` file. When using this toggle, Harpy will inform you when samples in the `--vcf` file
-are missing from the provided `--directory`.   
+are missing from the provided `INPUTS`.   
 
 ## :icon-file: Parameter file
 Typically, one runs STITCH multiple times, exploring how results vary with
 different model parameters (explained in next section). The solution Harpy uses for this is to have the user
 provide a tab-delimited dataframe file where the columns are the 6 STITCH model 
 parameters and the rows are the values for those parameters. The parameter file 
-is required and can be created manually or with `harpy stitchparams -o <filename>`.
+is required and can be created manually or with [!badge corners="pill" text="harpy stitchparams"](other.md/#stitchparams).
 If created using harpy, the resulting file includes largely meaningless values 
 that you will need to adjust for your study. The parameter must follow a particular format:
 - tab or comma delimited
@@ -92,6 +103,7 @@ pseudoHaploid   TRUE    50000   10      1       50
 See the section below for detailed information on each parameter. This
 table serves as an overview of the parameters.
 
+{.compact}
 | column name |  value type  |             accepted values             | description                                                           |
 |:------------|:------------:|:---------------------------------------:|:----------------------------------------------------------------------|
 | model       |     text     | pseudoHaploid, diploid, diploid-inbred  | The STITCH model/method to use                                        |
@@ -104,6 +116,7 @@ table serves as an overview of the parameters.
 +++example file  (as a table)
 This is the table view of the tab-delimited file, shown here for clarity.
 
+{.compact}
 | model         | useBX | bxlimit  | k  | s  | nGen |
 |:--------------|:------|:---------|:---|:---|:-----|
 | diploid | TRUE  |   50000  | 10 | 5  | 50   |
@@ -230,6 +243,7 @@ Impute/
             └── impute.compare.stats
 
 ```
+{.compact}
 | item                                | description                                                               |
 |:------------------------------------|:--------------------------------------------------------------------------|
 | `logs/harpy.impute.log`             | relevant runtime parameters for the phase module                          |
