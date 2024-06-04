@@ -125,11 +125,10 @@ As of Harpy v1.0, the software dependencies that the Snakemake workflows use are
 that is uploaded to Dockerhub. Updating or editing this container can be done automatically or manually.
 
 #### automatically
-The [rebuildcontainer.yml](https://github.com/pdimens/harpy/blob/main/.github/workflows/rebuildcontainer.yml)
-GitHub Action will automatically create a Dockerfile with [!badge corners="pill" text="harpy containerize"] (a hidden harpy command)
- and build a new Docker container, then upload it to [dockerhub](https://hub.docker.com/repository/docker/pdimens/harpy/general)
-with the `latest` tag. This action is triggered on `push` or `pull request` with changes to either
-`src/harpy/conda_deps` or `src/harpy/snakefiles/containerize.smk`.
+The testing GitHub Action will automatically create a Dockerfile with [!badge corners="pill" text="harpy containerize"] (a hidden harpy command)
+and build a new Docker container, then upload it to [dockerhub](https://hub.docker.com/repository/docker/pdimens/harpy/general)
+with the `latest` tag. This process is triggered on `push` or `pull request` with changes to either
+`src/harpy/conda_deps` or `src/harpy/snakefiles/containerize.smk` on `main`.
 
 #### manually
 The dockerfile for that container is created by using a hidden harpy command [!badge corners="pill" text="harpy containerize"]
