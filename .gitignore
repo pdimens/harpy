@@ -1,7 +1,8 @@
 .snakemake/
 .vscode/
 .harpy_envs/
-Seqs/
+.condarc
+.cache/
 QC/
 Demultiplex/
 Genome/
@@ -20,3 +21,5 @@ build/
 src/harpy.egg-info
 src/harpy/__pycache__
 .Benchmark/
+extractReads
+_Inline

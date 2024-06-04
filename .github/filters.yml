@@ -1,0 +1,162 @@
+common: &common
+  - 'src/harpy/helperfunctions.py'
+  - 'src/harpy/printfunctions.py'
+  - 'src/harpy/fileparsers.py'
+  - 'src/harpy/validations.py'
+  - 'src/harpy/__main__.py'
+  - 'resources/harpy.yaml'
+  - '.github/workflows/tests.yml'
+  - 'resources/buildforCI.sh'
+container: &container
+  - 'src/harpy/conda_deps.py'
+  - 'src/harpy/containerize.smk'
+preflight: &preflight
+  - *common
+  - *container
+  - 'src/harpy/preflight.py'
+  - 'src/harpy/rules/preflight-fastq.smk'
+  - 'src/harpy/rules/preflight-bam.smk'
+  - 'test/fastq/**'
+  - 'test/bam/**'
+  - 'src/harpy/scripts/checkBAM.py'
+  - 'src/harpy/scripts/checkFASTQ.py'
+  - 'src/harpy/reports/PreflightFastq.Rmd'
+  - 'src/harpy/reports/PreflightBam.Rmd'
+demux: &demux
+  - *common
+  - *container
+  - 'src/harpy/demultiplex.py'
+  - 'src/harpy/rules/demultiplex**.smk'
+  - '**demuxGen1'
+  - 'bcFiles.py'
+  - 'test/data/demux/**'
+qc: &qc
+  - *common
+  - *container
+  - 'src/harpy/qc.py'
+  - 'src/harpy/rules/qc.smk'
+  - 'test/fastq/**'
+bwa: &bwa
+  - *common
+  - *container
+  - 'src/harpy/align.py'
+  - 'src/harpy/rules/align-bwa.smk'
+  - 'src/harpy/reports/AlignStats.Rmd'
+  - 'src/harpy/reports/BxCount.Rmd'
+  - 'src/harpy/scripts/bxStats.py'
+  - 'src/harpy/scripts/countBX.py'
+  - 'src/harpy/bin/makeWindows.py'
+  - 'test/fastq/**'
+ema: &ema
+  - *common
+  - *container
+  - 'src/harpy/align.py'
+  - 'src/harpy/rules/align-ema.smk'
+  - 'src/harpy/reports/AlignStats.Rmd'
+  - 'src/harpy/reports/EmaCount.Rmd'
+  - 'src/harpy/reports/BxCount.Rmd'
+  - 'src/harpy/scripts/bxStats.py'
+  - 'src/harpy/scripts/countBX.py'
+  - 'src/harpy/bin/makewindows.py'
+  - 'test/fastq/**'
+minimap: &minimap
+  - *common
+  - *container
+  - 'src/harpy/align.py'
+  - 'src/harpy/rules/align-minimap.smk'
+  - 'src/harpy/reports/AlignStats.Rmd'
+  - 'src/harpy/reports/BxCount.Rmd'
+  - 'src/harpy/scripts/bxStats.py'
+  - 'src/harpy/scripts/countBX.py'
+  - 'src/harpy/bin/makewindows.py'
+  - 'test/fastq/**'
+mpileup: &mpileup
+  - *common
+  - *container
+  - 'src/harpy/snp.py'
+  - 'src/harpy/rules/snp-mpileup.smk'
+  - 'src/harpy/reports/BcftoolsStats.Rmd'
+  - 'src/harpy/bin/makewindows.py'
+  - 'test/bam/**'
+freebayes: &freebayes
+  - *common
+  - *container
+  - 'src/harpy/snp.py'
+  - 'src/harpy/rules/snp-freebayes.smk'
+  - 'src/harpy/reports/BcftoolsStats.Rmd'
+  - 'src/harpy/bin/makewindows.py'
+  - 'test/bam/**'
+impute: &impute
+  - *common
+  - *container
+  - 'src/harpy/impute.py'
+  - 'src/harpy/rules/impute.smk'
+  - 'test/bam/**'
+  - 'test/vcf/test.bcf'
+  - 'src/harpy/reports/Impute.Rmd'
+  - 'src/harpy/reports/StitchCollate.Rmd'
+  - 'src/harpy/scripts/stitch_impute.R'
+leviathan: &leviathan
+  - *common
+  - *container
+  - 'src/harpy/sv.py'
+  - 'src/harpy/rules/sv-leviathan**.smk'
+  - 'test/bam/**'
+  - 'src/harpy/reports/Leviathan**.Rmd'
+naibr: &naibr
+  - *common
+  - *container
+  - 'src/harpy/sv.py'
+  - 'src/harpy/rules/sv-naibr**.smk'
+  - 'test/bam/**'
+  - 'test/bam_phased/**'
+  - 'test/vcf/test.phased.bcf'
+  - 'src/harpy/reports/Naibr**.Rmd'
+  - 'src/harpy/bin/inferSV.py'
+phase: &phase
+  - *common
+  - *container
+  - 'src/harpy/phase.py'
+  - 'src/harpy/rules/phase.smk'
+  - 'test/bam/**'
+  - 'test/vcf/test.bcf'
+  - 'src/harpy/reports/HapCut2.Rmd'
+  - 'src/harpy/bin/parsePhaseBlocks.py'
+simvars: &simvars
+  - *common
+  - *container
+  - 'src/harpy/simulatevariants.py'
+  - 'simulate-snpindel.smk'
+  - 'simulate-variants.smk'
+  - 'test/vcf/test.bcf'
+  - 'src/harpy/scripts/simuG.pl'
+simreads: &simreads
+  - *common
+  - *container
+  - 'src/harpy/simulatelinkedreads.py'
+  - 'simulate-linkedreads.smk'
+  - 'test/genome**gz'
+  - 'extractReads.cpp'
+  - 'src/harpy/bin/10xtoHaplotag.py'
+  - 'src/harpy/scripts/LRSIMharpy.pl'
+other: &other
+  - '.github/workflows/tests.yml'
+  - 'src/harpy/stitchparams.py'
+  - 'src/harpy/popgroup.py'
+modules:
+  - *common
+  - *demux
+  - *preflight
+  - *qc
+  - *bwa
+  - *ema
+  - *minimap
+  - *mpileup
+  - *freebayes
+  - *impute
+  - *phase
+  - *leviathan
+  - *naibr
+  - *simvars
+  - *simreads
+  - *other

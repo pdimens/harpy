@@ -1,25 +1,42 @@
-from .helperfunctions import fetch_file, generate_conda_deps, biallelic_contigs
+"""Harpy imputation workflow"""
+
+import os
+import sys
+import subprocess
+import rich_click as click
+from .conda_deps import generate_conda_deps
+from .helperfunctions import fetch_rule, fetch_report, fetch_script, biallelic_contigs
 from .fileparsers import parse_alignment_inputs
 from .printfunctions import print_onstart
 from .validations import vcfcheck, vcf_samplematch, check_impute_params, validate_bamfiles
-import rich_click as click
-import subprocess
-import sys
-import os
+
+docstring = {
+        "harpy impute": [
+        {
+            "name": "Parameters",
+            "options": ["--vcf", "--parameters", "--extra-params", "--vcf-samples"],
+        },
+        {
+            "name": "Other Options",
+            "options": ["--output-dir", "--threads", "--skipreports", "--conda", "--snakemake", "--quiet", "--help"],
+        },
+    ]
+}
 
 @click.command(no_args_is_help = True, epilog = "read the docs for more information: https://pdimens.github.io/harpy/modules/impute/")
 @click.option('-v', '--vcf', required = True, type=click.Path(exists=True, dir_okay=False),metavar = "File Path", help = 'Path to BCF/VCF file')
-@click.option('-p', '--parameters', required = True, type=click.Path(exists=True, dir_okay=False), metavar = "File Path", help = 'STITCH parameter file (tab-delimited)')
-@click.option('-x', '--extra-params', type = str, metavar = "String", help = 'Additional STITCH parameters, in quotes')
-@click.option('--vcf-samples',  is_flag = True, show_default = True, default = False, metavar = "Toggle", help = 'Use samples present in vcf file for imputation rather than those found the directory')
-@click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(min = 4, max_open = True), metavar = "Integer", help = 'Number of threads to use')
-@click.option('-s', '--snakemake', type = str, metavar = "String", help = 'Additional Snakemake parameters, in quotes')
-@click.option('-r', '--skipreports',  is_flag = True, show_default = True, default = False, metavar = "Toggle", help = 'Don\'t generate any HTML reports')
-@click.option('-q', '--quiet',  is_flag = True, show_default = True, default = False, metavar = "Toggle", help = 'Don\'t show output text while running')
-@click.option('-o', '--output-dir', type = str, default = "Impute", show_default=True, metavar = "String", help = 'Name of output directory')
-@click.option('--print-only',  is_flag = True, hidden = True, default = False, metavar = "Toggle", help = 'Print the generated snakemake command and exit')
-@click.argument('input', required=True, type=click.Path(exists=True), nargs=-1)
-def impute(input, output_dir, parameters, threads, vcf, vcf_samples, extra_params, snakemake, skipreports, quiet, print_only):
+@click.option('-p', '--parameters', required = True, type=click.Path(exists=True, dir_okay=False), help = 'STITCH parameter file (tab-delimited)')
+@click.option('-x', '--extra-params', type = str, help = 'Additional STITCH parameters, in quotes')
+@click.option('--vcf-samples',  is_flag = True, show_default = True, default = False, help = 'Use samples present in vcf file for imputation rather than those found the directory')
+@click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(min = 4, max_open = True), help = 'Number of threads to use')
+@click.option('-q', '--quiet',  is_flag = True, show_default = True, default = False, help = 'Don\'t show output text while running')
+@click.option('-o', '--output-dir', type = str, default = "Impute", show_default=True, help = 'Name of output directory')
+@click.option('--snakemake', type = str, help = 'Additional Snakemake parameters, in quotes')
+@click.option('--conda',  is_flag = True, default = False, help = 'Use conda/mamba instead of container')
+@click.option('--skipreports',  is_flag = True, show_default = True, default = False, help = 'Don\'t generate HTML reports')
+@click.option('--print-only',  is_flag = True, hidden = True, default = False, help = 'Print the generated snakemake command and exit')
+@click.argument('inputs', required=True, type=click.Path(exists=True), nargs=-1)
+def impute(inputs, output_dir, parameters, threads, vcf, vcf_samples, extra_params, snakemake, skipreports, quiet, conda, print_only):
     """
     Impute genotypes using variants and sequences
     
@@ -27,8 +44,8 @@ def impute(input, output_dir, parameters, threads, vcf, vcf_samples, extra_param
     individual files/folders, using shell wildcards (e.g. `data/drosophila*.bam`), or both.
     
     Requires a parameter file, use **harpy stitchparams** to generate one and adjust it for your study.
-    Use the `--vcf-samples` toggle to phase only the samples present in your input `--vcf` file rather than all
-    the samples present in the `--directory`. Additional STITCH arguments, if provided, must be in quotes and 
+    The `--vcf-samples` flag toggles to phase only the samples present in your input `--vcf` file rather than all
+    the samples identified in `INPUT`. If providing additional STITCH arguments, they must be in quotes and 
     in R language style. The extra parameters will remain constant across different models.
     Use single-quotes (string literals) if supplying an argument that requires quotes. For example:
     
@@ -38,7 +55,8 @@ def impute(input, output_dir, parameters, threads, vcf, vcf_samples, extra_param
     """
     output_dir = output_dir.rstrip("/")
     workflowdir = f"{output_dir}/workflow"
-    command = f'snakemake --rerun-incomplete --nolock --software-deployment-method conda --conda-prefix ./.snakemake/conda --cores {threads} --directory .'.split()
+    sdm = "conda" if conda else "conda apptainer"
+    command = f'snakemake --rerun-incomplete --rerun-triggers input mtime params --nolock --software-deployment-method {sdm} --conda-prefix ./.snakemake/conda --cores {threads} --directory .'.split()
     command.append('--snakefile')
     command.append(f'{workflowdir}/impute.smk')
     command.append("--configfile")
@@ -47,29 +65,28 @@ def impute(input, output_dir, parameters, threads, vcf, vcf_samples, extra_param
         command.append("--quiet")
         command.append("all")
     if snakemake is not None:
-        [command.append(i) for i in snakemake.split()]
+        _ = [command.append(i) for i in snakemake.split()]
     call_SM = " ".join(command)
     if print_only:
         click.echo(call_SM)
-        exit(0)
+        sys.exit(0)
 
     os.makedirs(f"{workflowdir}/", exist_ok= True)
-    sn = parse_alignment_inputs(input, f"{workflowdir}/input")
-    samplenames = vcf_samplematch(vcf, f"{workflowdir}/input", vcf_samples)
-    validate_bamfiles(f"{workflowdir}/input", samplenames)
+    sn = parse_alignment_inputs(inputs, f"{workflowdir}/input/alignments")
+    samplenames = vcf_samplematch(vcf, f"{workflowdir}/input/alignments", vcf_samples)
+    validate_bamfiles(f"{workflowdir}/input/alignments", samplenames)
     ## validate inputs ##
     vcfcheck(vcf)
     check_impute_params(parameters)
-    fetch_file("impute.smk", f"{workflowdir}/")
-    fetch_file("stitch_impute.R", f"{workflowdir}/")
+    fetch_rule(workflowdir, "impute.smk")
+    fetch_script(workflowdir, "stitch_impute.R")
     for i in ["Impute", "StitchCollate"]:
-        fetch_file(f"{i}.Rmd", f"{workflowdir}/report/")
+        fetch_report(workflowdir, f"{i}.Rmd")
 
     # generate and store list of viable contigs (minimum of 2 biallelic SNPs)
     # doing it here so it doesn't have to run each time inside the workflow
-    contigs = biallelic_contigs(vcf)
-    with open(f"{workflowdir}/config.yml", "w") as config:
-        config.write(f"seq_directory: {workflowdir}/input\n")
+    contigs = biallelic_contigs(vcf, workflowdir)
+    with open(f"{workflowdir}/config.yml", "w", encoding="utf-8") as config:
         config.write(f"output_directory: {output_dir}\n")
         config.write(f"samplenames: {samplenames}\n")
         config.write(f"variantfile: {vcf}\n")
@@ -80,10 +97,10 @@ def impute(input, output_dir, parameters, threads, vcf, vcf_samples, extra_param
         config.write(f"skipreports: {skipreports}\n")
         config.write(f"workflow_call: {call_SM}\n")
 
-    generate_conda_deps()
     print_onstart(
         f"Input VCF: {vcf}\nSamples in VCF: {len(samplenames)}\nAlignments Provided: {len(sn)}\nContigs Considered: {len(contigs)}\nOutput Directory: {output_dir}/",
         "impute"
     )
+    generate_conda_deps()
     _module = subprocess.run(command)
     sys.exit(_module.returncode)

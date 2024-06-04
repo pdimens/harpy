@@ -1,8 +1,9 @@
 [![logo](https://github.com/pdimens/harpy/blob/docs/static/logo_trans.png?raw=true)](https://pdimens.github.io/harpy)
 
-![GitHub Release](https://img.shields.io/github/v/release/pdimens/harpy?style=for-the-badge)
-[![documentation badge](https://img.shields.io/badge/read%20the-documentation-fbab3a?style=for-the-badge&logo=Read%20The%20Docs)](https://pdimens.github.io/harpy) 
-[![Anaconda-Server Badge](https://img.shields.io/conda/dn/bioconda/harpy.svg?style=for-the-badge)](https://anaconda.org/bioconda/harpy)
+![GitHub Release](https://img.shields.io/github/v/release/pdimens/harpy?style=for-the-badge&logo=hackthebox&logoColor=ffffff)
+[![documentation badge](https://img.shields.io/badge/read%20the-documentation-fbab3a?style=for-the-badge&logo=searxng&logoColor=ffffff)](https://pdimens.github.io/harpy) 
+[![Anaconda-Server Badge](https://img.shields.io/conda/dn/bioconda/harpy.svg?style=for-the-badge&logo=docusign&logoColor=ffffff)](https://anaconda.org/bioconda/harpy)
+![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/pdimens/harpy/tests.yml?style=for-the-badge&logo=cachet&logoColor=ffffff)
 
 [Haplotag](https://doi.org/10.1073/pnas.2015005118) Data Processing Pipeline. Getting you from raw reads to genotypes/phased haplotypes or your money back.
 

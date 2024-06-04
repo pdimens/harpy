@@ -1,11 +1,12 @@
+"""Module for workflow file parsers"""
+
 import sys
 import os
 import re
 import glob
-import gzip
 from pathlib import Path
-from .printfunctions import print_error, print_solution_with_culprits, print_solution
 import rich_click as click
+from .printfunctions import print_error, print_solution_with_culprits, print_solution
 
 def getnames(directory, ext):
     """Find all files in 'directory' that end with 'ext'"""
@@ -15,14 +16,14 @@ def getnames(directory, ext):
         sys.exit(1)
     return samplenames
 
-def parse_fastq_inputs(input, outdir):
+def parse_fastq_inputs(inputs, outdir):
     """
     Parse the command line input FASTQ arguments to generate a clean list of input files
     and create symlinks of those files to a target destination folder.
     """
     infiles = []
     outfiles = []
-    for i in input:
+    for i in inputs:
         if os.path.isdir(i):
             for j in os.listdir(i):
                 if j.lower().endswith("gz") or j.lower().endswith("fastq") or j.lower().endswith("fq"):
@@ -30,11 +31,11 @@ def parse_fastq_inputs(input, outdir):
         else:
             if i.lower().endswith("gz") or i.lower().endswith("fastq") or i.lower().endswith("fq"):
                 infiles.append(i)
-    re_fq = re.compile("\.(fq|fastq)", re.IGNORECASE)
-    re_gz = re.compile("\.gz$", re.IGNORECASE)
-    re_ext = re.compile("\.(fq|fastq)(?:\.gz)?$", re.IGNORECASE)
+    re_fq = re.compile(r"\.(fq|fastq)", re.IGNORECASE)
+    re_gz = re.compile(r"\.gz$", re.IGNORECASE)
+    re_ext = re.compile(r"\.(fq|fastq)(?:\.gz)?$", re.IGNORECASE)
     if len(infiles) < 1:
-        print_error(f"There were no files found in the provided inputs that end with the accepted fastq extensions [blue].fq .fastq .fq.gz .fastq.gz[/blue]")
+        print_error("There were no files found in the provided inputs that end with the accepted fastq extensions [blue].fq .fastq .fq.gz .fastq.gz[/blue]")
         exit(1)
     for i in infiles:
         destination = os.path.join(outdir,os.path.basename(i))
@@ -55,10 +56,10 @@ def parse_fastq_inputs(input, outdir):
     Path(outdir).mkdir(parents=True, exist_ok=True)
     for (i,o) in zip(infiles, outfiles):
         Path(o).unlink(missing_ok=True)
-        _ = Path(o).symlink_to(Path(i).absolute())
+        Path(o).symlink_to(Path(i).resolve())
     return infiles
 
-def parse_alignment_inputs(input, outdir):
+def parse_alignment_inputs(inputs, outdir):
     """
     Parse the command line input sam/bam arguments to generate a clean list of input files
     and create symlinks of those files to a target destination folder.
@@ -67,7 +68,7 @@ def parse_alignment_inputs(input, outdir):
     bai_infiles = []
     bam_outfiles = []
     bai_outfiles = []
-    for i in input:
+    for i in inputs:
         if os.path.isdir(i):
             for j in os.listdir(i):
                 if j.lower().endswith("bam") or j.lower().endswith("sam"):
@@ -80,12 +81,11 @@ def parse_alignment_inputs(input, outdir):
             elif i.lower().endswith("bai"):
                 bai_infiles.append(i)
     if len(bam_infiles) < 1:
-        print_error(f"There were no files found in the provided inputs that end with the [blue].bam[/blue] extension.")
-        exit(1)
-    re_bam = re.compile("\.bam$", re.IGNORECASE)
-    re_bai = re.compile("\.bam\.bai$", re.IGNORECASE)
-    re_sam = re.compile("\.sam$", re.IGNORECASE)
-    re_ext = re.compile("\.(bam|sam)$", re.IGNORECASE)
+        print_error("There were no files found in the provided inputs that end with the [blue].bam[/blue] extension.")
+        sys.exit(1)
+    re_bam = re.compile(r"\.bam$", re.IGNORECASE)
+    re_sam = re.compile(r"\.sam$", re.IGNORECASE)
+    re_ext = re.compile(r"\.(bam|sam)$", re.IGNORECASE)
     for i in bam_infiles:
         destination = os.path.join(outdir,os.path.basename(i))
         # clean up extensions for consistency
@@ -98,7 +98,7 @@ def parse_alignment_inputs(input, outdir):
     for i in bam_infiles:
         bn = os.path.basename(re_ext.sub("", i))
         if bn in uniqs:
-            dupes.append(bn) 
+            dupes.append(bn)
         else:
             uniqs.add(bn)
     if dupes:
@@ -115,10 +115,10 @@ def parse_alignment_inputs(input, outdir):
     Path(outdir).mkdir(parents=True, exist_ok=True)
     for (i,o) in zip(bam_infiles, bam_outfiles):
         Path(o).unlink(missing_ok=True)
-        _ = Path(o).symlink_to(Path(i).absolute())
+        Path(o).symlink_to(Path(i).resolve())
     for (i,o) in zip(bai_infiles, bai_outfiles):
         Path(o).unlink(missing_ok=True)
-        _ = Path(o).symlink_to(Path(i).absolute())
+        Path(o).symlink_to(Path(i).resolve())
     return bam_infiles
 
 def get_samples_from_fastq(directory):

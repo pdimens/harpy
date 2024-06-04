@@ -1,0 +1,187 @@
+---
+title: "BAM Haplotag Format Check"
+date: "`r format(Sys.time(), '%m-%d-%y %X')`"
+output:
+  flexdashboard::flex_dashboard:
+    theme: lumen
+    orientation: rows  
+    vertical_layout: scroll
+    favicon: "https://raw.githubusercontent.com/pdimens/harpy/docs/static/favicon_dark.png"
+---
+
+```{r load environment, echo=FALSE, message=FALSE, warning=FALSE}
+using<-function(...) {
+    libs<-unlist(list(...))
+    req<-unlist(lapply(libs,require,character.only=TRUE))
+    need<-libs[req==FALSE]
+    if(length(need)>0){ 
+        install.packages(need, repos = "https://cloud.r-project.org/")
+        lapply(need,require,character.only=TRUE)
+    }
+}
+using("flexdashboard","dplyr","tidyr","DT","highcharter","scales")
+
+#infile <- "~/bamfilecheck.bam.tsv"
+infile <- snakemake@input[[1]]
+data <- read.table(infile, header = T)
+attention_df <- data %>% select(-1,-3) %>% rowwise() %>% summarise(count = sum(c(nameMismatch, noBX, badBX)))
+attention <- sum(attention_df$count > 0)
+```
+## filetop
+### fltop {.no-title}
+<h1> Preflight checks for BAM files </h1>
+
+This report reflects the BAM files provided. Harpy has processed
+the files to identify formatting conformity and issues that may require your attention.
+
+## General Information {data-height=100}
+### nfiles
+```{r}
+valueBox(scales::comma(nrow(data)), caption = "Files", color = "info")
+```
+
+### fileformat
+```{r}
+valueBox("BAM", caption = "File Format", color = "info")
+```
+
+### no MI tag
+```{r}
+noMItag <- sum(data$noMI > 0)
+valueBox(scales::comma(noMItag), caption = "No MI: tag", color = ifelse(noMItag > 0, "warning", "success"))
+```
+
+### bxnotlast
+```{r}
+bxnotlast <- sum(data$bxNotLast > 0)
+valueBox(scales::comma(bxnotlast), caption = "BX:Z: tag not last", color = ifelse(bxnotlast > 0, "warning", "success"))
+```
+
+### issues
+```{r}
+valueBox(scales::comma(attention), caption = "Files With Issues", color = ifelse(attention > 0, "warning", "success"))
+```
+
+## interpret
+### interpcol {.no-title}
+<h2> Interpreting the Data </h2>
+
+The `harpy preflight bam -d ...` created a `Preflight` folder within
+the supplied directory and within it you will find this report, along with the
+`filecheck.bam.tsv` file summing the results that are included in this report.
+This file contains a tab-delimited table with the columns: `file`,	`nameMismatch`, `alignments`,	`noBX`, and	`badBX`. These columns are defined by:
+
+- `file`: the name of the BAM file
+- `nameMismatch`: the sample name of the file inferred from name of the file (i.e. Harpy assumes `sample1.bam` to be `sample1`) does not match the `@RG ID` tag in the alignment file.
+  - severity: <strong style='color:red;'>critical</strong> and will likely cause downstream issues and errors
+- `alignments`: the total number of alignment records in the file
+- `noMI`: alignment records lack `MI:` tag (`MI:Z:` or `MI:i:`)
+  - severity: <strong style='color:red;'>critical</strong> and will prevent HapCut2 phasing
+  - the `MI` tag is the "molecular identifier", meaning it's the unique name of a molecule from which are series of alignments share a barcode. 
+    - `EMA` adds these to alignments, `BWA` does not, but `harpy align` will add them when using `BWA`
+- `noBX`: the number of alignments that do not have a `BX:Z:` tag in the record
+  - severity: <strong style='color:#c0c0c0;'>minimal</strong> and likely won't cause issues unless no alignments have `BX:Z:` tags
+  - if you expect all of your alignments should have `BX:Z:` tags, then further investigation is necessary
+- `badBX`: the haplotag barcode in the `BX:Z:` tag does not adhere to the proper `AxxCxxBxxDxx` format
+  - severity: <strong style='color:red;'>critical</strong> and will cause downstream issues and errors
+- `bxNotLast`: the `BX:Z:` tag in the alignment record is not the last tag
+  - severity: <strong style='color:orange;'>conditional</strong> and only relevant for LEVIATHAN variant calling 
+  - can be ignored if not intending to call structural variants with LEVIATHAN
+  - if intending to use LEVIATHAN, the `BX:Z:` tag must be the last tag in the alignment records
+    - can be fixed by editing the BAM file, or fixing FASTQ files prior to alignment
+    - `harpy align -m bwa` automatically moves the `BX:Z:` tag to the end of the alignment record
+
+
+### Proper format {.no-title}
+<h2> Proper BAM file format </h2>
+
+A proper BAM file will contain a `BX:Z:` tag with an alignment that features a
+properly-formatted haplotag barcode `AxxCxxBxxDxx`. If this barcode is not in that
+format, then it's likely the input FASTQ used for read mapping is the source of the
+issue. You can check those FASTQ files for errors with `harpy preflight fastq ...`. 
+
+Below is an example of a proper alignment record for a file named `sample1.bam`.
+Note the tag `RG:Z:sample1`, indicating this alignment is associated with `sample1` and
+matches the file name. Also note the correctly formatted haplotag barcode `BX:Z:A19C01B86D78`
+and the presence of a `MI:` tag.
+```
+A00814:267:HTMH3DRXX:2:1132:26268:10316 113     contig1 6312    60      4S47M1D86M      =       6312    0       TAACCCTAACCCTAACCCTAACCCTAAACCTAACCCTAACCCTAACCCTAACCCTATTCCTATTCCTAACCCTAACCCTAAAAACCAACTGCACCCCGGTGCACTTTTGGCTATTACCCCCTATCATACCCTTGTCC     FFFF,FFFF:FFFF:FF:FFF:FFFF,,FFFFFFFFFFF:FFFFF:FFFFFFFFFFFFF:FFFF,FFFFFFFFF:FF:F:FFFFF,F:,FFFFFFFFFF:FFF,FFFFFF:FFFFFF:FFFF:FFFFFFFFFF:FFF     NM:i:2  MD:Z:23C23^C86  MC:Z:4S47M1D86M AS:i:121        XS:i:86 RG:Z:sample1   MI:i:4040669       RX:Z:GAAACGATGTTGC+CCTAAGCCGAATC        QX:Z:FFFFFFFFFFFFF+FFFFF:FFFFFFF    BX:Z:A19C01B86D78
+```
+
+## viz desc
+### desc {.no-title}
+<h2> BAM file format Check </h2>
+Below are a plot and corresponding table of the results of the preflight checks.
+The plot renames the parameters for clarity and they are:
+
+```{r}
+knitr::kable(
+  data.frame(
+    "data column" = c("`nameMismatch`", "`noMI`", "`noBX`", "`badBX`", "`bxNotLast`"),
+    "name in plot" = c("name matches", "MI: tag", "BX:Z: tag", "AxxCxxBxxDxx format", "BX:Z: last tag"),
+    "pass condition" = c(
+      "the file name matches the `@RG ID:` tag in the header",
+      "**any** alignments with `BX:Z:` tags also have `MI:i:` (or `MI:Z:`) tags",
+      "any `BX:Z:` tags present",
+      "**all** alignments with BX:Z: tag have properly formatted `AxxCxxBxxDxx` barcodes",
+      "**all** reads have `BX:Z`: as final tag in alignment records"
+      ),
+    "fail condition" = c(
+        "file name does not match `@RG ID:` in the header",
+        "**all** reads have `BX:Z:` tag present but `MI:i:` tag absent",
+        "**all** alignments lack `BX:Z:` tag",
+        "**any** `BX:Z:` barcodes have incorrect format",
+        "**at least 1 read** doesn't have `BX:Z:` tag as final tag"
+      )
+  ), col.names = c("data column", "name in plot", "pass condition", "fail condition")
+)
+```
+
+You may click on the plot to expand it in your browser window. Clicking it again will exit
+out of the zoomed view.
+
+## datarow
+### plot {.no-title}
+```{r status_df}
+data2 <- data %>% 
+  mutate(
+    nameMismatch = ifelse(nameMismatch > 0, F, T),
+    noMI = ifelse(noMI == alignments, F, T),
+    noBX = ifelse(noBX == alignments, F, T),
+    badBX = ifelse(badBX > 0, F, T),
+    bxNotLast = ifelse(bxNotLast > 0, F, T)
+    ) %>% 
+  select(-3)
+m <- as.matrix(data2[,-1]) * 1
+colnames(m) <- c("Name matches", "MI: tag present", "BX:Z: tag present", "AxxCxxBxxDxx format", "BX:Z: last tag")
+rownames(m) <- gsub(".bam", "", data$file)
+```
+
+```{r readsper, echo = FALSE, message = FALSE, warning = FALSE, out.width = '100%'}
+hchart(m) |>
+  hc_colorAxis(stops = list(c(0, "#feda75"), c(1, "#4faad1")), tickAmount = 2) |>
+  hc_title(text = "BAM file preflight QC") |>
+  hc_xAxis(labels = list(style = list(fontSize = '16px')) )|>
+  hc_yAxis(labels = list(style = list(fontSize = '16px')) )|>
+  hc_plotOptions(heatmap = list(borderWidth = 1, borderColor = "white", animated = F)) |>
+  hc_legend(enabled = F) |>
+  hc_tooltip(
+    animation = FALSE,
+    formatter = JS("function () {return '<b>' + this.series.xAxis.categories[this.point.x] + '</b><br>' + this.series.yAxis.categories[this.point.y] + '<br/>QC: <b>' + (this.point.value<1 ? 'FAIL' : 'PASS') + '</b>';}") 
+  ) |>
+  hc_exporting(enabled = T, filename = "bam.preflight",
+    buttons = list(contextButton = list(menuItems = c("viewFullscreen", "separator", "downloadPNG", "downloadJPEG", "downloadPDF", "downloadSVG")))
+  )
+```
+
+### table {.no-title}
+```{r dtable, echo=FALSE, message=FALSE, warning=FALSE}
+DT::datatable(
+  data,
+  rownames = F,
+  filter = "top",
+  extensions = 'Buttons',
+  options = list(dom = 'Brtip', buttons = c('csv'), scrollX = T),
+  fillContainer = T
+)
+```

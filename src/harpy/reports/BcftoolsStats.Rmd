@@ -1,0 +1,334 @@
+---
+title: "BCFtools Stats Report"
+date: "`r format(Sys.time(), '%m-%d-%y %X')`"
+output:
+  flexdashboard::flex_dashboard:
+    theme: lumen
+    orientation: rows
+    vertical_layout: scroll
+    horizontal_layout: fill
+    favicon: "https://raw.githubusercontent.com/pdimens/harpy/docs/static/favicon_dark.png"
+---
+
+```{r load environment, echo=FALSE, message=FALSE, warning=FALSE}
+using<-function(...) {
+    libs<-unlist(list(...))
+    req<-unlist(lapply(libs,require,character.only=TRUE))
+    need<-libs[req==FALSE]
+    if(length(need)>0){ 
+        install.packages(need, repos = "https://cloud.r-project.org/")
+        lapply(need,require,character.only=TRUE)
+    }
+}
+
+using("flexdashboard","magrittr","tidyr","DT","highcharter","scales")
+statsfile <- snakemake@input[[1]]
+#statsfile <- "~/variants.raw.stats"
+dataL <- readLines(statsfile)
+bcf <- gsub(".stats$", ".bcf", statsfile)
+```
+# General Information
+<h2> `r bcf` </h2>
+
+This reflects the general information stored in the records of `r bcf`.
+
+```{r General Stats, echo = FALSE, message = FALSE, warning = FALSE}
+.snL <- grepl("^SN", dataL)
+sn <- read.table(text=dataL[.snL], sep = "\t")[,3:4]
+names(sn) <- c("Metric", "Number")
+sn$Metric <- gsub("number of ", "", sn$Metric)
+rownames(sn) <- sn$Metric
+sn <- as.data.frame(t(sn[2]))
+```
+## Metrics {data-height=100}
+
+### general-samples
+```{r}
+valueBox(scales::comma(sn[1,1]), caption = "Samples", color = "success")
+```
+### general-records
+```{r}
+valueBox(scales::comma(sn[1,2]), caption = "Records", color = "info")
+```
+### general-snps
+```{r}
+valueBox(scales::comma(sn[1,4]), caption = "SNPs", color = "info")
+```
+### general-mnps
+```{r}
+valueBox(scales::comma(sn[1,5]), caption = "MNPs", color = "info")
+```
+### general-indels
+```{r}
+valueBox(scales::comma(sn[1,6]), caption = "Indels", color = "info")
+```
+### general-multisites
+```{r}
+valueBox(scales::comma(sn[1,8]), caption = "Multiallelic Sites", color = "info")
+```
+### general-multisnps
+```{r}
+valueBox(scales::comma(sn[1,9]), caption = "Multiallelic SNPs", color = "info")
+```
+### general-noalts
+```{r}
+valueBox(scales::comma(sn[1,3]), caption = "No-ALTs", color = "info")
+```
+### general-other
+```{r}
+valueBox(scales::comma(sn[1,7]), caption = "Others", color = "info")
+```
+## Quality Statistics Desc
+### Desc {.no-title}
+<h2> Quality Statistics </h2>
+These are per-locus statistics, which correspond to the Quality (`QUAL`) statistics of `bcftools stats`. 
+Each quality score is has a semi-open bin width of 10, where `0` would be considered "a QUAL score
+greater than or equal to `0` and less than `10`". The histograms are truncated at the 99th percentile
+for visual clarity.
+
+## Quality Statistics
+```{r qual data, echo=FALSE, message=FALSE, warning=FALSE}
+.qual <- grepl("^QUAL", dataL)
+if(sum(.qual) == 0){
+  do_qual <- FALSE
+  cat(paste0("No QUAL section in ", statsfile, " found\n"))
+} else {
+  do_qual <- TRUE
+}
+if(do_qual){
+  qual <- read.table(text=dataL[.qual])[ , c(3,4,7)]
+  names(qual) <- c("QualityScore", "SNPs", "Indels")
+  qual[names(qual)] <- sapply(qual[names(qual)],as.numeric)
+}
+```
+```{r resizehist, echo=F}
+# function to merge QUAL bins into a width of 10
+mergebins <- function(x){
+  bins <- seq(0, max(x[,1]), 10)
+  lastbin <- max(x[,1])
+  bins <- c(bins, lastbin)
+  dict <- vector(mode="list", length=length(bins))
+  names(dict) <- as.character(bins)
+  for(i in 1:nrow(x)){
+    databin <- x[i,1]
+    key <- max(which(databin >= bins))
+    dict[[key]] <- c(dict[[key]], x[i,2])
+  }
+  dict <- lapply(dict, sum)
+  df <- as.data.frame(t(as.data.frame(dict)))
+  df$V2 <- as.integer(gsub("X", "", row.names(df)))
+
+  df <- df[,c(2,1)]
+  names(df) <- names(x)
+  row.names(df) <- NULL
+  return(df)
+}
+
+```
+
+```{r}
+hist_quantile <- function(x, q){
+  # find the qth percentile of the histogram x
+  # Calculate the cumulative sum of the counts
+  cumulative_counts <- cumsum(x[,2])
+  # Normalize to create a cumulative distribution function (CDF)
+  cdf <- cumulative_counts / max(cumulative_counts)
+  # Find the bin that is closest to the qth percentile
+  index <- which.min(abs(cdf - q))
+  # The qth percentile value is the right edge of this bin
+  # cap it at the last index if it exceeds
+  index <- min(nrow(x), index + 1)
+  return(x[index,1])
+}
+```
+### SNP Quality {.no-title}
+```{r snpqual plot, echo=FALSE, message=FALSE, warning=FALSE}
+if(do_qual){
+  rebinned_qual <- mergebins(qual[,-3])
+  q99 <- hist_quantile(rebinned_qual, 0.99)
+  rebinned_qual <- rebinned_qual[rebinned_qual$QualityScore < q99, ]
+  hchart(rebinned_qual, "areaspline", hcaes(x = QualityScore, y = SNPs), color = "#8fbbbc", name = "count", marker = list(enabled = FALSE)) |>
+    hc_title(text = "SNP Genotype Quality") |>
+    hc_subtitle(text = "Shown in bins of width 10") |>
+    hc_caption(text = paste("99th percentile:", q99)) |>
+    hc_xAxis(title = list(text = "quality score"), type = "logarithmic") |>
+    hc_yAxis(title = list(text = "count")) |>
+    hc_tooltip(crosshairs = TRUE,
+      formatter = JS("function () {return '<b>Quality ' + this.x + '</b><br>Count: <b>' + this.y + '</b>';}") 
+    ) |>
+    hc_exporting(enabled = T, filename = "snp.quality",
+      buttons = list(contextButton = list(menuItems = c("viewFullscreen", "separator", "downloadPNG", "downloadJPEG", "downloadPDF", "downloadSVG")))
+    )
+
+} else {
+  cat(paste0("No QUAL section in ", statsfile, " found\n"))
+}
+```
+
+### Indel Quality {.no-title}
+```{r indelqual plot, echo=FALSE, message=FALSE, warning=FALSE}
+if(do_qual){
+  rebinned_qual <- mergebins(qual[,-2])
+  q99 <- hist_quantile(rebinned_qual, 0.99)
+  rebinned_qual <- rebinned_qual[rebinned_qual$QualityScore < q99, ]
+  hchart(rebinned_qual, "areaspline", hcaes(x = QualityScore, y = Indels), name = "count", color = "#9393d2", marker = list(enabled = FALSE)) |>
+    hc_title(text = "Indel Genotype Quality") |>
+    hc_subtitle(text = "Shown in bins of width 10") |>
+    hc_caption(text = paste("99th percentile:", q99)) |>
+    hc_xAxis(title = list(text = "quality score"), type = "logarithmic") |>
+    hc_yAxis(title = list(text = "count")) |>
+    hc_tooltip(crosshairs = TRUE,
+      formatter = JS("function () {return '<b>Quality ' + this.x + '</b><br>Count: <b>' + this.y + '</b>';}") 
+    ) |>
+    hc_exporting(enabled = T, filename = "indel.quality",
+      buttons = list(contextButton = list(menuItems = c("viewFullscreen", "separator", "downloadPNG", "downloadJPEG", "downloadPDF", "downloadSVG")))
+    )
+
+} else {
+  cat(paste0("No QUAL section in ", statsfile, " found\n"))
+}
+```
+
+## Depth Desc
+### DepthDesc {.no-title}
+<h2> Depth Statistics </h2>
+These are per-locus statistics, which correspond to the Depth (`DP`) calculations of `bcftools stats`
+The table reflects the data visualized in the plot tab.
+
+## Depth Statistics
+### Depth Statistics {.no-title}
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+# find index when the values are consistently 0 to hopefully remove an uninformative tail from the plot
+find_zero_runs <- function(vec) {
+  rle_result <- rle(vec)
+  zero_runs <- which(rle_result$values == 0 & rle_result$lengths >= 20)
+  if (length(zero_runs) > 0) {
+    return(sum(rle_result$lengths[1:(zero_runs[1]-1)]) + 1)
+  } else {
+    return(NA)
+  }
+}
+```
+
+```{r depth plot, echo=FALSE, message=FALSE, warning=FALSE, out.width="100%"}
+.dpL <- grepl("^DP", dataL)
+if(sum(.dpL) == 0){
+  cat(paste0("No DP section in ", statsfile, " found\n"))
+} else {
+  dp <- read.table(text=dataL[.dpL])[ , 3:7]
+  names(dp) <- c("Bin", "Genotypes", "PercentGenotypes", "NumberSites", "PercentSites")
+  dp$PercentGenotypes <- round(dp$PercentGenotypes, digits = 6)
+  not_low <- dp$PercentGenotypes > 0.01
+  dp$PercentGenotypes[not_low] <- round(dp$PercentGenotypes[not_low], digits = 2)
+  dp$PercentSites <- round(dp$PercentSites, digits = 4)
+  # cut off at trailing zeroes
+  cutoff <- find_zero_runs(dp$PercentGenotypes) - 1
+  if(is.na(cutoff)){
+    cutoff <- nrow(dp)
+  }
+  hchart(dp[1:cutoff,], "areaspline", hcaes(x = Bin, y = PercentGenotypes), name = "percent", color = "#F28500", marker = list(enabled = FALSE)) |>
+    hc_title(text = "Depth per Genotype") |>
+    hc_xAxis(title = list(text = "depth bin"), type = "logarithmic") |>
+    hc_yAxis(title = list(text = "% of genotypes")) |>
+    hc_tooltip(crosshairs = TRUE,
+      formatter = JS("function () {return '<b>depth: ' + this.x + '</b><br>Percent: <b>' + this.y + '</b>';}") 
+    ) |>
+    hc_exporting(enabled = T, filename = "genotype.depth",
+      buttons = list(contextButton = list(menuItems = c("viewFullscreen", "separator", "downloadPNG", "downloadJPEG", "downloadPDF", "downloadSVG")))
+  )
+}
+```
+
+### Depth Data  {data-width=350 .no-title}
+```{r depth table, echo=FALSE, message=FALSE, warning=FALSE, paged.print=TRUE, out.width="100%"}
+if(sum(.dpL) == 0){
+  cat(paste0("No DP section in ", statsfile, " found\n"))
+} else {
+  DT::datatable(
+    dp,
+    rownames = F,
+    filter = "top",
+    extensions = 'Buttons',
+    options = list(dom = 'Brtip', buttons = c('csv')),
+    colnames = c("Depth Bin", "Genotypes", "% Genotypes", "Sites", "% Sites")
+    )
+}
+```
+
+## Indels
+### indelDesc {.no-title}
+<h2> Insertions and Deletions </h2>
+Below is the distribution of insertions and deletions based on length and frequency. The deletion
+length is presented here as negative values for visual clarity.
+
+## Insertions and Deletions
+### Insertions and Deletions {.no-title}
+```{r Indel Stats, echo=FALSE, message=FALSE, warning=FALSE, paged.print=TRUE, out.width="100%"}
+.iddL <- grepl("^IDD", dataL)
+if(sum(.iddL) == 0){
+  cat(paste0("No IDD section in ", statsfile, " found, suggesting no indels are present\n"))
+} else {
+  idd <- read.table(text=dataL[.iddL])[ ,3:4]
+  names(idd) <- c("Length", "Count")
+  idd$Type <- idd$Length > 0
+  idd$Type <-  gsub(TRUE, "Insertion", idd$Type)
+  idd$Type <-  gsub(FALSE, "Deletion", idd$Type)
+
+  hchart(idd, "areaspline", hcaes(x = Length, y = Count, group = Type, marker = list(enabled = FALSE))) |>
+    hc_colors(c("#e6a037","#6daace")) |>
+    hc_title(text = "Insertion-Deletion Distribution") |>
+    hc_xAxis(
+      title = list(text = "indel length"),
+      labels = list(formatter = JS("function () {return Math.abs(this.value);}"))
+    ) |>
+    hc_yAxis(title = list(text = "number of sites")) |>
+    hc_tooltip(crosshairs = TRUE,
+      formatter = JS("function () {return '<b>' + this.series.name + '</b><br>Length: <b>' + Math.abs(this.x) + '</b><br/>Count: <b>' + this.y + '</b>';}") 
+) |>
+    hc_exporting(enabled = T, filename = "indel.distribution",
+      buttons = list(contextButton = list(menuItems = c("viewFullscreen", "separator", "downloadPNG", "downloadJPEG", "downloadPDF", "downloadSVG")))
+    )
+}
+```
+
+
+# Per-Sample
+<h2> Individual Statistics </h2>
+<br>These are per-locus statistics, which correspond to the Per-Sample Counts (`PSC`) calculations of `bcftools stats`. The table reflects the data visualized in the plot tab. `HomAlt` and `HomRef` refer to homozygous for the Reference and Alternative alleles, respectively.</br>
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+.pscL <- grepl("^PSC", dataL)
+psc <- read.table(text=dataL[.pscL])[ ,3:14]
+names(psc) <- c("Sample", "HomRef", "HomAtl", "Het", "Transitions", "Transversions", "Indels",	"MeanDepth", "Singletons",	"HapRef", "HapAlt", "Missing")
+#psc$Homozygotes <- psc$HomozygousRef + psc$HomozygousAtl
+tidy_psc <- pivot_longer(psc[,c(1,2,3,4,5,6,7,9,12)], -Sample , names_to = "Metric", values_to = "Count")
+#psc <- psc[,c(1,8,12,2,3,13,4,5,6,7,9,10,11)]
+tidy_psc$Sample <- as.factor(basename(tidy_psc$Sample))
+plotheight <- 150 + (15 * nrow(psc))
+figheight <- 1 + (0.2 * nrow(psc))
+```
+
+## Individual Statistics {.tabset data-height=plotheight}
+### Individual Statistics
+```{r Individual plot, echo=FALSE, message=FALSE, warning=FALSE, fig.height=figheight, out.width="100%"}
+highchart() |>
+  hc_chart(inverted=TRUE) |>
+  hc_add_series(data = tidy_psc, type = "scatter", hcaes(y = Count, x = Sample, group = Metric)) |>
+  hc_colors(c("#41739c", "#eb7e2b", "#aa042e", "#837fbd", "#202020", "#9dc96c", "#E6AB02", "#d39ab7")) |>
+  hc_title(text = "Individual Statistics") |>
+  hc_xAxis(type = "category", title = list(text = ""), categories = levels(tidy_psc$Sample)) |>
+  hc_yAxis(title = list(text = "count")) |>
+  hc_tooltip(
+    crosshairs = TRUE, animation = F,
+    pointFormat= '<b>{point.category}</b><br>Count: <b>{point.y:.0f}</b>'
+  ) |>
+  hc_exporting(enabled = T, filename = "samples.variantstats",
+    buttons = list(contextButton = list(menuItems = c("viewFullscreen", "separator", "downloadPNG", "downloadJPEG", "downloadPDF", "downloadSVG")))
+  )
+```
+
+### Individual Data
+```{r Individual table, echo=FALSE, message=FALSE, warning=FALSE}
+DT::datatable(psc, rownames = F, fillContainer = T, filter = "top", extensions = 'Buttons', options = list(dom = 'Brtip', buttons = c('csv'), scrollX = TRUE, paging = F))
+```

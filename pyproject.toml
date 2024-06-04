@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "harpy"
-version = "0.9.1"
+version = "1.0.0"
 authors = [
     {name = "Pavel Dimens"}
 ]
@@ -16,11 +16,11 @@ license = {text = "GPL-3.0"}
 [tool.setuptools.packages.find]
 where = ["src"]
 
-[project.scripts]
-harpy = "harpy.__main__:main"
+[tool.setuptools.package-data]
+"*" = ["*.*"]
 
-[project.optional-dependencies]
-test = ["pytest"]
+[project.scripts]
+harpy = "harpy.__main__:cli"
 
 [tool.setuptools_scm]
 

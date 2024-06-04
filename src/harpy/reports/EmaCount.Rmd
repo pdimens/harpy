@@ -1,0 +1,164 @@
+---
+title: "EMA Count Barcode Summary"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output:
+  flexdashboard::flex_dashboard:
+    theme: lumen
+    orientation: rows
+    vertical_layout: scroll
+    favicon: "https://raw.githubusercontent.com/pdimens/harpy/docs/static/favicon_dark.png"
+---
+
+```{r echo = FALSE, message = FALSE}
+using<-function(...) {
+    libs<-unlist(list(...))
+    req<-unlist(lapply(libs,require,character.only=TRUE))
+    need<-libs[req==FALSE]
+    if(length(need)>0){ 
+        install.packages(need, repos = "https://cloud.r-project.org/")
+        lapply(need,require,character.only=TRUE)
+    }
+}
+using("flexdashboard","dplyr","tidyr","DT","highcharter","scales")
+```
+
+This report details the counts of valid and invalid haplotag barcodes in the sample read headers.
+The correct haplotag format is `BX:Z:AxxCxxBxxDxx`, where there is a whitespace/tab before `BX:Z:` 
+and `xx` is a 2-digit number between `00` and `96`. A valid FASTQ read header would then look like:
+```
+@A00814:267:HTMH3DRXX:2:1101:4580:1000 BX:Z:A02C01B11D46        RX:Z:GAAACGACCAACA+CGAACACGTTAGC   QX:Z:F,FFFFFFFFFFF+FF,FFF:FFFFFF
+```
+Notably, only the sequence ID (`@...`) and `BX:Z:` tag are required. In the example above, there are additional tags 
+(`RX:Z:` and `QX:Z:`) which arent used by Harpy, but they conform to the 
+[SAM comment spec (section 1.5)](https://samtools.github.io/hts-specs/SAMv1.pdf) of `TAG:TYPE:VALUE`. The takeaway 
+is that the `BX:Z` tag can be anywhere in the read header after the sequence ID as long as any tags after it conform to the SAM spec `TAG:TYPE:VALUE`. 
+
+```{r echo = FALSE, message = FALSE, warning = FALSE}
+BXstats <- data.frame(
+  Sample = character(),
+  TotalBarcodes = integer(),
+  ValidBarcodes = integer(),
+  ValidPercent = numeric(),
+  IgnoredReads = integer(),
+  IgnoredPercent = numeric()
+)
+
+#for (i in list.files("~/Documents/harpy/test/Align/ema/logs/count/", ".count", full.names = TRUE)) {
+for (i in snakemake@input[["countlog"]]) {
+  samplename <- gsub(".count", "", basename(i))
+  filetext <- readLines(i)
+  bc_line <- gsub(",", "", filetext[2])
+  matches <- gregexpr("[0-9]+", bc_line)
+  counts <- as.numeric(unlist(regmatches(bc_line, matches)))
+  bc_ok <- counts[1]
+  bc_total <- counts[2]
+  ignored <- as.numeric(gsub("[^0-9]", "", filetext[3]))
+  if (bc_total == 0) {
+    bc_percent <- 0
+    ig_percent <- 0
+  } else {
+    bc_percent <- trunc((bc_ok / bc_total) * 10000) / 100
+    ig_percent <- trunc((ignored / bc_total) * 10000) / 100
+  }
+
+  BXstats <- rbind(
+    BXstats,
+    data.frame(
+      Sample = samplename,
+      TotalBarcodes = bc_total,
+      ValidBarcodes = bc_ok,
+      ValidPercent = bc_percent,
+      IgnoredReads = ignored,
+      IgnoredPercent = ig_percent)
+  )
+}
+```
+
+## genstats {data-height=100}
+### filerow {.no-title}
+```{r}
+valueBox(scales::comma(nrow(BXstats)), caption = "Samples", color = "success")
+```
+### mininv {.no-title}
+```{r}
+valueBox(min(BXstats$ValidPercent), caption = "Min Percent Valid", color = "info")
+```
+### maxinv {.no-title}
+```{r}
+valueBox(max(BXstats$ValidPercent), caption = "Max Percent Valid", color = "info")
+```
+
+### minign {.no-title}
+```{r}
+valueBox(min(BXstats$IgnoredPercent), caption = "Min Percent Ignored", color = "info")
+```
+### maxign {.no-title}
+```{r}
+valueBox(max(BXstats$IgnoredPercent), caption = "Max Percent Ignored", color = "info")
+```
+
+## Viz desc
+### plot desc {.no-title}
+Below is a plot summarizing the number of valid vs invalid barcodes per sample as
+determined by `ema count` with a corresponding table
+of those data with additional metrics. The plot is interactive and
+hovering over the bars will display tooltips with the sample name and counts.
+
+**Troubleshooting**: If for some reason `TotalBarcodes` equals `0`, then there may be an issue
+with the format of your FASTQ headers. Please refer to the top of this report for
+guidance on proper FASTQ read headers to hopefully remedy that issue.
+
+## Per Sample Plot
+### count of valid barcodes
+```{r echo = FALSE, message = FALSE, warning = FALSE}
+plotdata <- BXstats %>%
+  mutate(Invalid = TotalBarcodes - ValidBarcodes) %>%
+  rename(Valid = ValidBarcodes) %>%
+  select(Sample, Valid, Invalid)
+
+percdata <- BXstats %>%
+  mutate(Valid = round(ValidBarcodes / TotalBarcodes * 100, 2)) %>%
+  mutate(Invalid = 100.0 - Valid) %>%
+  select(Sample, Valid, Invalid)
+```
+
+```{r echo = FALSE, message = FALSE, warning = FALSE, out.width = '100%'}
+tb<- plotdata %>% pivot_longer(-Sample, names_to = "Barcode", values_to = "Count")
+hchart(tb, "bar", hcaes(x = Sample, y = Count, group = Barcode), stacking = "normal") |>
+  hc_colors(c("#707070", "#b88ace")) |>
+  hc_title(text = "Valid vs Invalid Barcodes") |>
+  hc_xAxis(title = list(text = "")) |>
+  hc_yAxis(title = list(text = "count")) |>
+  hc_caption(text = "As determined by ema count, given as counts") |>
+  hc_tooltip(crosshairs = TRUE) |>
+  hc_exporting(enabled = T, filename = "ema.bxcount",
+    buttons = list(contextButton = list(menuItems = c("viewFullscreen", "separator", "downloadPNG", "downloadJPEG", "downloadPDF", "downloadSVG")))
+  )
+```
+### proportional valid barcodes
+```{r echo = FALSE, message = FALSE, warning = FALSE, out.width = '100%'}
+hchart(tb, "bar", hcaes(x = Sample, y = Count, group = Barcode), stacking = "percent") |>
+  hc_colors(c("#707070", "#b88ace")) |>
+  hc_title(text = "Valid vs Invalid Barcodes") |>
+  hc_xAxis(title = list(text = "")) |>
+  hc_yAxis(title = list(text = "percent")) |>
+  hc_caption(text = "As determined by ema count, given as percents") |>
+  hc_tooltip(crosshairs = TRUE) |>
+  hc_exporting(enabled = T, filename = "ema.bxpercent",
+    buttons = list(contextButton = list(menuItems = c("viewFullscreen", "separator", "downloadPNG", "downloadJPEG", "downloadPDF", "downloadSVG")))
+)
+```
+
+## Table
+### the table {.no-title}
+```{r echo = FALSE, message = FALSE, warning = FALSE}
+DT::datatable(
+  BXstats,
+  rownames = FALSE,
+  filter = "top",
+  extensions = "Buttons",
+  options = list(dom = "Brtip", buttons = c("csv"), scrollX = TRUE),
+  autoHideNavigation = T,
+  fillContainer = T
+)
+```

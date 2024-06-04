@@ -1,0 +1,275 @@
+---
+title: "Imputation Assessment"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output:
+  flexdashboard::flex_dashboard:
+    theme: lumen
+    orientation: rows
+    vertical_layout: scroll
+    favicon: "https://raw.githubusercontent.com/pdimens/harpy/docs/static/favicon_dark.png"
+---
+
+# General Stats
+## header row
+```{r load environment, echo=FALSE, message=FALSE, warning=FALSE}
+using<-function(...) {
+    libs<-unlist(list(...))
+    req<-unlist(lapply(libs,require,character.only=TRUE))
+    need<-libs[req==FALSE]
+    if(length(need)>0){ 
+        install.packages(need, repos = "https://cloud.r-project.org/")
+        lapply(need,require,character.only=TRUE)
+    }
+}
+using("flexdashboard","dplyr","tidyr","DT","highcharter","scales")
+
+modelparams <- paste(snakemake@params[[1]])
+#modelparams <- "Filler Text"
+```
+```{r echo = FALSE, message = FALSE, warning = FALSE}
+comparefile <- snakemake@input[[1]]
+#comparefile <- "~/impute.compare.stats"
+tryCatch(
+  expr = {
+    gcts <- read.table(comparefile, header = F)[, c(2, 23, 25, 24, 27)]
+  },
+  error = function(e){ 
+    print("Stats file is empty. Perhaps there were no biallelelic SNPs that bcftools identified.")
+    knitr::knit_exit()
+  }
+)
+names(gcts) <- c("sample","RefHom", "Het",	"AltHom", "missing")
+
+conv_height <- 1.4 + (0.12 * nrow(gcts))
+#frameheight <- 1.2 + (0.166 * nrow(invalids))
+
+gcts_long <- pivot_longer(gcts, -1, names_to = "Conversion", values_to = "Count")
+```
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+infofile <- snakemake@input[[2]]
+#infofile <- "~/impute.infoscore"
+
+tryCatch(
+  expr = {
+    infos <- read.table(infofile, header = F, col.names = c("contig", "position", "info"))
+  },
+  error = function(e){ 
+    print("Info score file is empty. Perhaps there were no SNPs that bcftools identified.")
+    knitr::knit_exit()
+  }
+)
+```
+
+### reportheader {.no-title}
+<h2> `r comparefile` </h2>
+This report details the results of genotype imputation using STITCH with the model parameters:
+`r modelparams`.
+
+This page displays various information and general statistics and clicking the `Individual Statistics` tab 
+in the navigation menu above will display imputation results per individual.
+
+## General Information {data-height=100}
+```{r}
+gcts_minmax <- filter(gcts_long, Conversion != "missing") %>% summarise(min = min(Count), max = max(Count))
+```
+
+### nsamples
+```{r}
+valueBox(scales::comma(nrow(gcts)), caption = "Samples", color = "success")
+```
+
+### min impute
+```{r}
+valueBox(scales::comma(gcts_minmax$min), caption = "Minimum Imputations", color = "info")
+```
+### maximpute
+```{r}
+valueBox(scales::comma(gcts_minmax$max), caption = "Maximum Imputations", color = "info")
+```
+
+### mean infoscore
+```{r}
+valueBox(round(mean(infos$info), digits = 2), caption = "Average INFO_SCORE", color = "info")
+```
+
+### sd infoscore
+```{r}
+valueBox(round(sd(infos$info), digits = 2), caption = "StDev INFO_SCORE", color = "info")
+```
+
+
+## INFO Scores
+### INFO desc {.no-title}
+<h3> Distribution of INFO_SCORE </h3>
+`STITCH` outputs a novel `INFO/INFO_SCORE` tag in the resulting VCF files that represents the
+"quality" of the imputation. This value ranges from `0` to `1.0`, with `0` being
+very poor, and `1.0` being very good. You will want to filter this file to remove
+genotypes with a low `INFO_SCORE`. Below is the frequency distribution of the global
+and per-contig `INFO_SCORE` values for the variants in the VCF file.  The  per-contig
+plot shows up to 30 of the largest contigs present in the VCF file. Clicking
+on a plot will expand it to fill your browser window. Clicking it again will exit
+out of the zoomed view.
+
+## distributions
+### Overall distribution {.no-title}
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+h <- hist(infos$info, breaks = 20, plot = F)
+h <- data.frame(info = round(h$breaks[1:length(h$breaks)-1], 2), freq = round(h$counts / sum(h$counts)  * 100, 2))
+hchart(h, "areaspline", hcaes(x = info, y = freq), name = "% sites", marker = list(enabled = FALSE)) |>
+  hc_yAxis(title = list(text = "% of sites")) |>
+  hc_xAxis(title = list(text = "INFO_SCORE")) |>
+  hc_title(text = "Distribution of imputation INFO_SCORE values") |>
+  hc_tooltip(crosshairs = TRUE, animation = FALSE,
+    formatter = JS("function () {return 'INFO_SCORE <b>' + this.x + '</b><br><b>' + this.y + '% of sites</b>';}") 
+  ) |>
+  hc_exporting(enabled = T, filename = "impute.infoscores",
+    buttons = list(contextButton = list(menuItems = c("viewFullscreen", "separator", "downloadPNG", "downloadJPEG", "downloadPDF", "downloadSVG")))
+)
+```
+
+### Per-contig distribution {.no-title}
+```{r echo = FALSE, message = FALSE, warning = FALSE}
+dat <- data_to_boxplot(infos, info, contig, name = "INFO_SCORE", animation = FALSE)
+
+highchart() |>
+  hc_xAxis(type = "category") |>
+  hc_colors("#8487bb") |>
+  hc_add_series_list(dat)
+```
+
+## filtering
+### Filtering Expectations desc {.no-title}
+<h3> Filtering Expectations </h3>
+You will want to filter the resulting variants
+based on this `INFO/INFO_SCORE` tag, which can be done that simply with `bcftools`.
+Here is an example snippet of keeping loci with an `INFO_SCORE` of at least `0.2`: 
+
+```bash
+# use -Ob to output to bcf instead of vcf to save on disk space
+
+bcftools view -Ob -i 'INFO/INFO_SCORE >= 0.2' file.vcf > filtered.file.bcf
+```
+
+Below is a table of the number of variants sites that may remain (left) or removed (right)
+if filtering at different minimum `INFO/INFO_SCORE` thresholds. Each column after `Total Variants`
+refers to a filtering threshold and the numbers within that column are the number of 
+SNPs that would be kept (or lost) if filtering out SNPs with an `INFO/INFO_SCORE` value below 
+it (_i.e._ `0.2` is the number of SNPs with a score `>= 0.2` ).
+
+## filtering table
+### filt table {.no-title}
+```{r filttable, echo = FALSE, message = FALSE, warning = FALSE}
+filterthresh <- infos %>% group_by(contig) %>%
+  summarise(
+    totals = length(info),
+    twenty = sum(info >= 0.2),
+    twentyfive = sum(info >= 0.25),
+    thirty = sum(info >= 0.30),
+    forty = sum(info >= 0.40),
+    fifty = sum(info >= 0.50),
+    seventyfive = sum(info >= 0.75),
+    ninety = sum(info >= 0.90),
+    )
+
+tots <- colSums(filterthresh[, -1])
+filterthresh <- rbind(c("all", tots), filterthresh) 
+DT::datatable(
+  filterthresh,
+  rownames = FALSE,
+  extensions = "Buttons",
+  colnames = c("Contigs", "Total Variants", "0.20", "0.25", "0.30", "0.4", "0.5", "0.75", "0.90"),
+  options = list(
+    dom = "Brtip",
+    buttons = c("csv"),
+    scrollX = TRUE
+  ),
+  fillContainer = T,
+  caption = 'Number of SNPs to be KEPT by filtering'
+)
+```
+
+### filt loss table {.no-title}
+```{r filttable_loss, echo = FALSE, message = FALSE, warning = FALSE}
+filterthresh <- infos %>% group_by(contig) %>%
+  summarise(
+    totals = length(info),
+    twenty = sum(info < 0.2),
+    twentyfive = sum(info < 0.25),
+    thirty = sum(info < 0.30),
+    forty = sum(info < 0.40),
+    fifty = sum(info < 0.50),
+    seventyfive = sum(info < 0.75),
+    ninety = sum(info < 0.90),
+    )
+
+tots <- colSums(filterthresh[, -1])
+filterthresh <- rbind(c("all", tots), filterthresh) 
+DT::datatable(
+  filterthresh,
+  rownames = FALSE,
+  extensions = "Buttons",
+  colnames = c("Contigs", "Total Variants", '<span style="color:red">0.2</span>','<span style="color:red">0.25</span>','<span style="color:red">0.30</span>','<span style="color:red">0.5</span>','<span style="color:red">0.75</span>','<span style="color:red">0.9</span>'),
+  options = list(
+    dom = "Brtip",
+    buttons = c("csv"),
+    scrollX = TRUE
+  ),
+  fillContainer = T,
+  caption = 'Number of SNPs to be REMOVED by filtering',
+  escape = F
+)
+```
+
+# Individual Statistics
+## Ind stats desc
+### plotdesc {.no-title}
+<h3> Imputations Per Sample </h3>
+This chart visualizes the count and proportion of `missing` genotypes per sample imputed
+into other genotypes. Following standard VCF convention, `Ref` refers to
+the reference allele (from the reference genome), `Alt` refers to the alternative 
+allele, and `Missing` details how many SNPs remain missing
+(failed to impute) for that individual. As an example, the `Homozygous Ref` is 
+the number of missing genotypes that were imputed into
+a homozygous genotype for the reference allele. The table on the right is the
+underlying data used to create the visualization. Clicking
+on a plot will expand it to fill your browser window. Clicking it again will exit
+out of the zoomed view.
+
+## ind stats plt
+### Individuals Plot {.no-title}
+```{r preprocess fields, echo = FALSE, message = FALSE, warning = FALSE, out.width = "100%"}
+gcts_long$Conversion <- gsub("AltHom","Homozygous Alt", gcts_long$Conversion)
+gcts_long$Conversion <- gsub("Het","Heterozygote", gcts_long$Conversion)
+gcts_long$Conversion <- gsub("RefHom","Homozygous Ref", gcts_long$Conversion)
+gcts_long$Conversion <- gsub("missing","not imputed", gcts_long$Conversion)
+```
+```{r percontig dist, echo = FALSE, message = FALSE, warning = FALSE, out.width = "100%"}
+hchart(gcts_long, "bar", hcaes(x = sample, y = Count, group = Conversion), stacking = "normal", animation = F) |>
+  hc_colors(c("#7cb3d4", "#b18ad1", "#ffd75f", "#6f6c70")) |>
+  hc_title(text = "Missing Genotype Imputations") |>
+  hc_caption(text = "Values indicate how many missing genotypes were imputed into that kind of genotype") |>
+  hc_xAxis(title = list(text = "")) |>
+  hc_yAxis(title = list(text = "count")) |>
+  hc_tooltip(crosshairs = TRUE, animation = F) |>
+  hc_exporting(enabled = T, filename = "impute.samples",
+    buttons = list(contextButton = list(menuItems = c("viewFullscreen", "separator", "downloadPNG", "downloadJPEG", "downloadPDF", "downloadSVG")))
+  )
+```
+
+### Imputation Results Table {.no-title}
+```{r success table, echo=FALSE, message=FALSE, warning=FALSE}
+DT::datatable(
+  gcts,
+  rownames = FALSE,
+  extensions = "Buttons",
+  colnames = c("Sample", "Homozygous Ref", "Homozygous Alt", "Heterozygote", "Missing"),
+  options = list(
+    dom = "Brtip",
+    buttons = c("csv"),
+    scrollX = TRUE
+  ),
+  autoHideNavigation = T,
+  fillContainer = T
+)
+```

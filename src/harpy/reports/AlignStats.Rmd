@@ -1,0 +1,546 @@
+---
+title: "Harpy Alignment Report"
+date: "`r format(Sys.time(), '%m-%d-%y %X')`"
+output:
+  flexdashboard::flex_dashboard:
+    theme: lumen
+    orientation: rows
+    vertical_layout: scroll
+    horizontal_layout: fill
+    favicon: "https://raw.githubusercontent.com/pdimens/harpy/docs/static/favicon_dark.png"
+---
+
+# Barcode Stats
+
+```{r echo = F, results = F, message = F}
+using<-function(...) {
+    libs<-unlist(list(...))
+    req<-unlist(lapply(libs,require,character.only=TRUE))
+    need<-libs[req==FALSE]
+    if(length(need)>0){ 
+        install.packages(need, repos = "https://cloud.r-project.org/")
+        lapply(need,require,character.only=TRUE)
+    }
+}
+
+using("flexdashboard","dplyr","highcharter","DT","BioCircos")
+```
+
+```{r echo = F, results = F, message = F}
+#infile <- "~/file.bxstats.gz"
+infile <- snakemake@input[[1]]
+bamfile <- gsub(".bxstats.gz", ".bam", infile)
+samplename <- gsub(".bxstats.gz", "", basename(infile))
+tb <- read.table(infile, header = T, sep = "\t") %>% select(-start, -end)
+tb$valid <- tb$molecule
+tb[!(tb$valid %in% c("noBX", "invalidBX")), "valid"] <- "validBX"
+tb$valid <- gsub("BX", " BX", tb$valid)
+```
+
+```{r bxper, echo = F, results = F, message = F}
+valids <- filter(tb, valid == "valid BX")
+nBX <- group_by(valids, contig) %>% 
+  summarize(nBX = length(molecule))
+
+avgBX <- round(mean(nBX$nBX), digits = 2)
+
+totuniqBX <- length(unique(valids$molecule))
+
+tots <- tb %>% 
+    group_by(valid) %>%
+    summarize(total = length(molecule)) %>% 
+    as.data.frame()
+for(i in c("no BX", "invalid BX", "valid BX")){
+  if (!(i %in% tots$valid)){
+    tots <- rbind(tots, data.frame("valid" = i, total = 0))
+  }
+}
+```
+
+```{r nxx, echo = F, results = F, message = F}
+NX <- function(lengths, X=50){
+  lengths <- as.numeric(sort(lengths, decreasing=TRUE))
+  index <- which(cumsum(lengths) / sum(lengths) >= X/100)[1]
+  return(lengths[index])
+}
+```
+
+## fileheader
+### hdr {.no-title}
+<h1> Haplotag Barcode Statistics </h1>
+The information presented below were gathered from the alignments within **`r basename(bamfile)`**.
+
+
+## General Information {data-height=100}
+### ncontigs
+```{r}
+valueBox(scales::comma(length(unique(tb$contig))), caption = "Contigs")
+```
+
+### validBX
+```{r}
+valueBox(scales::comma(tots[tots$valid == "valid BX", 2]), caption = "Valid Barcodes", color = "success", icon = "fa-vial-circle-check")
+```
+
+### invalidBX
+```{r}
+valueBox(scales::comma(tots[tots$valid == "invalid BX", 2]), caption = "Invalid Barcodes", color = "warning", icon = "fa-x")
+```
+
+### glob-avg
+```{r}
+valueBox(scales::comma(avgBX), caption = "Average molecules per contig", color = "info")
+```
+
+### glob-total
+```{r}
+valueBox(scales::comma(totuniqBX), caption = "Total unique molecules", color = "info")
+```
+
+## N50 and N90
+### Molecule NXX Length Metrics
+```{r echo = FALSE, message = FALSE, warning = FALSE}
+valids %>% 
+    group_by(contig) %>%
+    summarize(n50 = NX(length_inferred, 50), n75 = NX(length_inferred, 75), n90 = NX(length_inferred, 90)) %>%    
+    DT::datatable(rownames = F, options = list(dom = 'Brtip', buttons = c('csv')), fillContainer = T)
+```
+
+## Reads per molecule dec
+### Reads per mol dec {.no-title}
+<h2> Reads per Molecule </h2>
+The chart below shows the distribution of the number of reads per haplotag molecule. That is, how many alignments
+are associated with a unique molecule. This excludes the number of reads associated with invalid
+or absent haplotag barcodes.
+
+### bases per desc {.no-title}
+<h2> Total Bases Aligned </h2>
+Below is a frequency distribution showing the number of base pairs aligned
+per unique molecule. These data are shown in 500 bp bins. Pay attention to the Y axis,
+as it likely doesn't start at `0`.
+
+## the plots
+### reads per {.no-title}
+
+```{r readsper, echo = FALSE, message = FALSE, warning = FALSE, out.width = '100%'}
+hs <- hist(
+  valids$reads,
+  breaks = min(valids$reads):max(valids$reads),
+  plot = F
+)
+hs$counts <- round(hs$counts / sum(hs$counts) * 100, 4)
+hs <- data.frame(val = hs$breaks[-1], freq = hs$counts)
+
+hchart(hs, "areaspline", hcaes(x = val, y = freq), color = "#8484bd", name = "% of molecules", marker = list(enabled = FALSE)) |>
+  hc_title(text = "Reads Per Molecule") |>
+  hc_xAxis(title = list(text = "reads per molecule")) |>
+  hc_yAxis(title = list(text = "% molecules")) |>
+  hc_caption(text = paste0("Total unique molecules: ", totuniqBX)) |>
+  hc_tooltip(crosshairs = TRUE) |>
+  hc_exporting(enabled = T, filename = paste0(samplename, ".readsper"),
+    buttons = list(contextButton = list(menuItems = c("viewFullscreen", "separator", "downloadPNG", "downloadJPEG", "downloadPDF", "downloadSVG")))
+  )
+```
+
+### bases per {.no-title}
+```{r basesper, echo = FALSE, message = FALSE, warning = FALSE, out.width="100%"}
+hs <- hist(round(valids$aligned_bp, -2), breaks = 50,  plot = F)
+hs$counts <- round(hs$counts / sum(hs$counts)*100,4)
+hs <- data.frame(val = hs$breaks[-1], freq = hs$counts)
+
+hchart(hs, "areaspline", hcaes(x = val, y = freq), color = "#75b89e", name = "% of molecules", marker = list(enabled = FALSE)) |>
+  hc_title(text = "Bases Aligned Per Molecule") |>
+  hc_xAxis(title = list(text = "aligned bases per molecule")) |>
+  hc_yAxis(title = list(text = "% molecules")) |>
+  hc_caption(text = paste0("Total unique molecules: ", totuniqBX)) |>
+  hc_tooltip(crosshairs = TRUE) |>
+  hc_exporting(enabled = T, filename = paste0(samplename, ".basesper"),
+    buttons = list(contextButton = list(menuItems = c("viewFullscreen", "separator", "downloadPNG", "downloadJPEG", "downloadPDF", "downloadSVG")))
+  )
+```
+
+## inferred-header
+### inferred desc {.no-title}
+<h2> Inferred Molecule Lengths </h2>
+The chart below shows the frequency distribution of molecule lengths 
+inferred from the first and last alignment positions along a contig for all
+alignments associated with a single haplotag barcode on a given contig. 
+Pay attention to the Y axis, as it may not start at `0`.
+
+## inferred-plot
+### inferredplot {.no-title}
+```{r inferred, echo = FALSE, message = FALSE, warning = FALSE, out.width = '100%'}
+hs <- hist(
+  round(valids$length_inferred / 1000,0),
+  breaks = 25,
+  plot = F
+)
+hs$counts <- round(hs$counts / sum(hs$counts)*100,2)
+hs <- data.frame(val = hs$breaks[-1], freq = hs$counts)
+
+hchart(hs, "areaspline", hcaes(x = val, y = freq), color = "#b3519d", name = "% of molecules", marker = list(enabled = FALSE)) |>
+  hc_title(text = "Inferred Molecule Length") |>
+  hc_subtitle(text = "lengths reported as kilobases (kbp)") |>
+  hc_xAxis(title = list(text = "Inferred Molecule length (kbp)"), type = "logarithmic") |>
+  hc_yAxis(title = list(text = "% of molecules")) |>
+  hc_caption(text = paste0("Total unique molecules: ", totuniqBX)) |>
+  hc_tooltip(crosshairs = TRUE) |>
+  hc_exporting(enabled = T, filename = paste0(samplename, ".mollen"),
+    buttons = list(contextButton = list(menuItems = c("viewFullscreen", "separator", "downloadPNG", "downloadJPEG", "downloadPDF", "downloadSVG")))
+  )
+```
+
+## breadth
+### inferred_cov desc {.no-title}
+<h2> Inferred Molecule Read Coverage </h2>
+The charts below show the frequency distribution of molecule coverage, meaning
+the percent of each inferred molecule that has sequences aligned to it. In other
+words, "how much of each unique long molecule is actually sequenced/aligned?"
+Keep in mind there is a disctinction between sequences and alignments, since
+some sequences belonging to a particular molecule may not align well and wouldn't
+appear in the alignment data. The chart on the left shows molecule coverage as computed
+by the number of bases aligned to that molecule. The chart on the right shows molecule
+coverage as computed by the inferred fragment length from which the aligned sequences originate.
+In other words, this computation considers the length of the original DNA fragment that was put
+on the sequencer, which may be longer than the 150bp (x2) inserts that actually got sequenced.
+
+If it helps, imagine a 500bp haplotagged DNA fragment being sequenced as a 150bp paired-end
+sequence and all 300bp aligned to your reference genome. The plot on the left calculates the proportion of
+molecule coverage as `300bp ÷ molecule_length`, whereas the plot on the right calculates this proportion as
+`500bp ÷ molecule_length`, which is the 300bp that aligned + the 200bp between the paired-end reads that were not sequenced.
+
+## breadthplot
+### coverage by aligned bp {.no-title}
+```{r inferred_cov_bp, echo = FALSE, message = FALSE, warning = FALSE, out.width = '100%'}
+hs <- hist(
+  round(valids$coverage_bp, 0),
+  breaks = seq(0, 1, by = 0.05),
+  plot = F
+)
+hs$counts <- round(hs$counts / sum(hs$counts)*100,4)
+hs <- data.frame(val = hs$breaks[-1], freq = hs$counts)
+
+hchart(hs, "areaspline", hcaes(x = val, y = freq), color = "#e59765", name = "% of molecules", marker = list(enabled = FALSE)) |>
+  hc_title(text = "Percent Molecule Coverage by Aligned Bases") |>
+  hc_xAxis(title = list(text = "% molecule covered")) |>
+  hc_yAxis(title = list(text = "% of molecules")) |>
+  hc_caption(text = paste0("Total unique molecules: ", totuniqBX)) |>
+  hc_tooltip(crosshairs = TRUE) |>
+  hc_exporting(enabled = T, filename = paste0(samplename, ".molcov"),
+    buttons = list(contextButton = list(menuItems = c("viewFullscreen", "separator", "downloadPNG", "downloadJPEG", "downloadPDF", "downloadSVG")))
+  )
+```
+
+### coverage by inserts {.no-title}
+```{r inferred_cov_insert, echo = FALSE, message = FALSE, warning = FALSE, out.width = '100%'}
+hs <- hist(
+  round(valids$coverage_inserts, 0),
+  breaks = seq(0, 1, by = 0.05),
+  plot = F
+)
+hs$counts <- round(hs$counts / sum(hs$counts)*100,2)
+hs <- data.frame(val = hs$breaks[-1], freq = hs$counts)
+
+hchart(hs, "areaspline", hcaes(x = val, y = freq), color = "#dbe465", name = "% of molecules", marker = list(enabled = FALSE)) |>
+  hc_title(text = "Percent Molecule Coverage by Inferred Insert Size") |>
+  hc_xAxis(title = list(text = "% molecule covered")) |>
+  hc_yAxis(title = list(text = "% of molecules")) |>
+  hc_caption(text = paste0("Total unique molecules: ", totuniqBX)) |>
+  hc_tooltip(crosshairs = TRUE) |>
+  hc_exporting(enabled = T, filename = paste0(samplename, ".molcov"),
+    buttons = list(contextButton = list(menuItems = c("viewFullscreen", "separator", "downloadPNG", "downloadJPEG", "downloadPDF", "downloadSVG")))
+  )
+```
+
+## Interpreting the supporting data {.data-height=50}
+### interp desc {.no-title}
+<h2> Interpreting the Data </h2>
+These descriptions should help you understand the underlying data.
+
+## inttable
+### interpreting {.no-title}
+<h3> Interpreting the Supporting File </h3>
+Listed below are the descriptions of the columns in **`r basename(infile)`**, which was created
+by Harpy using the included `bxStats.py` script. The term `molecule` refers to the
+`MI:i` tag in the alignments, which is a unique molecule ID given to the original
+fragment alignments sharing a barcode are inferred to have originated from. The inference
+takes into account an [alignment distance threshold](https://pdimens.github.io/harpy/haplotagdata/#barcode-thresholds)
+and that the sequences aligned to the same contig.
+
+```{r cols_explained, echo=FALSE, message=FALSE, warnings=FALSE}
+knitr::kable(
+  data.frame(
+    "Column Name" = c("contig", "molecule", "reads", "start", "end", "length_inferred", "percent_coverage", "aligned_bp"),
+    "Description" = c(
+      "name of the contig the molecule occurs on",
+      "the molecule name as given by the MI:i: tag",
+      "number of alignments associated with this molecule",
+      "the start position of the first alignment for that molecule",
+      "the end position of the last alignment for that molecule",
+      "inferred length of the molecule based on the start/end of the alignments sharing the same barcode",
+      "what percent of the molecule is represented by sequence alignments",
+      "total number of base pairs aligned for that molecule"
+      )
+    )
+)
+```
+
+### Barcode validity {.no-title}
+<h3> Interpreting Barcode Validity </h3>
+BX barcode validity is classified into one of two categories:
+
+```{r bx_explanation, echo=FALSE, message=FALSE, warnings=FALSE}
+knitr::kable(
+  data.frame(
+    "Classification" = c("valid BX", "invalid BX"),
+    "Description" = c(
+      "a complete BX barcode was present in the read (i.e. no 00 for any segments)",
+      "a barcode was present in the read, but it contained 00 in at least one of the barcode segments"
+      )
+    )
+)
+```
+
+# Coverage Stats
+
+```{r echo = FALSE, message = FALSE, warning = FALSE}
+covfile <- snakemake@input[[2]]
+#covfile <- "~/test.cov.gz"
+tb <- read.table(covfile, header = F)
+colnames(tb) <- c("contig", "position", "depth")
+q99 <- quantile(tb$depth, 0.99)
+Mode <- function(x) {
+  ux <- unique(x)
+  ux[which.max(tabulate(match(x, ux)))]
+}
+windowsize <- Mode(tb$position[-1] - tb$position[1:nrow(tb)-1])
+windowskb <- round(windowsize/1000, 0)
+```
+
+```{r echo = FALSE, message = FALSE, warning = FALSE}
+global_avg <- mean(tb$depth)
+global_sd <- sd(tb$depth)
+tb$outlier <- tb$depth > q99
+outliers <- tb[tb$outlier, -4]
+nonoutliers <- tb[!(tb$outlier), -4]
+contig_avg <- group_by(tb, contig) %>%
+  summarize(average = mean(depth), sdv = sd(depth))
+contig_avg <- rbind(data.frame(contig = "global", average = global_avg, sdv = global_sd), contig_avg) %>% 
+  mutate(average = round(average, 2), sdv = round(sdv, 2))
+
+global_avg_filt <- mean(nonoutliers$depth)
+global_sd_filt <- sd(nonoutliers$depth)
+contig_avg_filt <- group_by(nonoutliers, contig) %>%
+  summarize(average = mean(depth), sdv = sd(depth))
+contig_avg_filt <- rbind(
+  data.frame(contig = "global", average = global_avg_filt, sdv = global_sd_filt), contig_avg_filt) %>% 
+  mutate(average = round(average, 2), sdv = round(sdv, 2))
+```
+
+
+## covfileheader
+### hdrcov {.no-title}
+<h1> Alignment Coverage Statistics </h1>
+
+This report contains information regarding the sequence alignment coverage
+and depth for the file **`r paste0(samplename, ".bam")`**. The term `<Q99` here and
+elsewhere in this report refers to keeping intervals whose depth is below  the 99th
+depth percentile (`r q99`). The Q99 described is shown for diagnostic purposes, the
+alignments above this depth were not removed from the file.
+
+## General Information {data-height=100}
+### ncontigs
+```{r}
+valueBox(scales::comma(length(unique(tb$contig))), caption = "Contigs", color = "success")
+```
+
+### general-samples
+```{r}
+valueBox("50 kbp", caption = "Intervals", color = "info")
+```
+### glob-avg
+```{r}
+valueBox(scales::comma(global_avg), caption = "Average depth", color = "info")
+```
+
+### glob-sd
+```{r}
+valueBox(scales::comma(global_sd), caption = "Stdev depth", color = "info")
+```
+
+### filt-avg
+```{r}
+valueBox(scales::comma(global_avg_filt), caption = '↓Q99 avg', color = "info")
+```
+
+### filt-sd
+```{r}
+valueBox(scales::comma(global_sd_filt), caption = '↓Q99 stdev', color = "info")
+```
+
+### n-outliers
+```{r}
+valueBox(scales::comma(nrow(outliers)), caption = "regions >Q99", color = "warning")
+```
+
+## Distdesc header
+### distdesc {.no-title}
+<h2> Alignment Depth Distribution </h2>
+Below are the frequencies of interval coverage across all **`r windowskb` kilobase** intervals for all contigs.
+For visual clarity, the X-axis of this plot is truncated at the 99% quantile of depth
+values, which is **`r q99`** for these data.
+
+## distributionplot
+### distplot {.no-title}
+```{r echo=F, warning=F, message=F}
+hs <- hist(tb$depth[tb$depth <= q99], breaks = 30, plot = F)
+hs$counts <- round(hs$counts / sum(hs$counts)*100,2)
+hs <- data.frame(val = hs$breaks[-1], freq = hs$counts)
+
+hchart(hs, "areaspline", hcaes(x = val, y = freq), color = "#9393d2", name = "% of molecules", marker = list(enabled = FALSE)) |>
+  hc_xAxis(ceiling = q99, title = list(text = "depth")) |>
+  hc_yAxis(title = list(text = "% molecules"))  |>
+  hc_title(text = "Distribution of Alignment Depths")  |>
+  hc_exporting(enabled = T, filename = paste0(samplename, ".cov"),
+    buttons = list(contextButton = list(menuItems = c("viewFullscreen", "separator", "downloadPNG", "downloadJPEG", "downloadPDF", "downloadSVG")))
+  )
+```
+
+## Sumheader
+### sumhead {.no-title}
+<h2> Coverage Summary Information </h2>
+These tables will help you understand the sequence coverage of the sample.
+
+## Tableheaders
+### Sumdesc {.no-title}
+The table below shows the global and per-contig average depth and standard 
+deviation per `r windowskb`kbp intervals **including** intervals whose depth is flagged
+an outlier in the data. 
+
+
+### filtdesc {.no-title}
+The table below shows the global and per-contig average depth and standard 
+deviation per `r windowskb`kbp intervals, **excluding** intervals whose depth is flagged
+an outlier in the data, as determined by being greater than 3 standard deviations
+above the mean depth. This should be a more accurate representation of read coverage.
+
+### outlierdesc {.no-title}
+The table below shows the `r windowskb`kbp intervals considered outliers, as determined by 
+having coverage greater than the 99th percentile (`r q99`). 
+
+## Summary information 
+### Averages
+```{r}
+DT::datatable(
+  contig_avg, 
+  rownames = F, 
+  extensions = 'Buttons', 
+  options = list(dom = 'Brtip', buttons = c('csv'), scrollX = TRUE), 
+  colnames = c('Contig', 'Average Depth', 'Standard Deviation'),
+  autoHideNavigation = T,
+  fillContainer = T,
+  height = "fit-content"
+)
+```
+
+### Filtered Averages
+```{r echo = FALSE, message = FALSE, warning = FALSE}
+DT::datatable(
+  contig_avg_filt,
+  rownames = F, 
+  extensions = 'Buttons', 
+  options = list(dom = 'Brtip', buttons = c('csv'), scrollX = TRUE),
+  colnames = c('Contig', 'Average Depth', 'Standard Deviation'),
+  autoHideNavigation = T,
+  fillContainer = T,
+  height = "fit-content"
+)
+```
+
+### Outliers
+```{r echo = FALSE, message = FALSE, warning = FALSE}
+DT::datatable(
+  outliers, 
+  rownames = F, 
+  extensions = 'Buttons', 
+  options = list(dom = 'Brtip', buttons = c('csv'), scrollX = TRUE),
+  colnames = c('Contig', 'Position', 'Depth'),
+  autoHideNavigation = T,
+  fillContainer = T
+  )
+```
+
+## Circleplot {.no-title data-height=900}
+### pltdsc {.no-title data-width=150}
+<h2> Depth and Coverage Across the Genome </h2>
+To the right is a circular plot summarizing the depth information across up to 30 of the largest contigs.
+For clarity, this visualization truncates coverage at the 99th percentile (`r q99`).
+Each bar represents the alignment depth at a `r windowskb` kilobase genomic interval, that is, the
+number of reads that had a _proper_ alignment in the `r windowskb` kilobase interval. "Proper" refers to a read
+not marked as a duplicate or flagged with the SAM `UNMAP`, `SECONDARY`,  or `QCFAIL` flags.
+These values are derived using
+```bash
+samtools depth -a <input.bam> | depthWindows.py <windowsize>
+```
+
+This plot allows you to hover regions to view their coverage, pan by clicking and dragging,
+and zoom. In case you become unable to scroll up from the plot due to these interactive 
+features, place your cursor over this left column or the navigation bar at the top of this report and you will
+be able to scroll the report instead of zooming on the plot.
+
+### Coverage across the genome
+```{r echo = FALSE, message = FALSE, warning = FALSE}
+# Find the 30 largest contigs
+contigs <- group_by(tb, contig) %>%
+  summarize(size = max(position)) %>%
+  arrange(desc(size))
+
+# limit the data to only the 30 largest contigs
+if (nrow(contigs) > 30){
+    .contigs <- contigs[1:30, ]
+    tb <- filter(tb, contig %in% .contigs$contig)
+} else {
+    .contigs <- contigs
+}
+```
+
+```{r fig.align='center', out.width= "80%", out.height="900px"}
+genomeChr <- .contigs$size
+names(genomeChr) <- .contigs$contig
+genomeChr <- as.list(genomeChr)
+
+tracks = BioCircosTracklist()
+
+# Add one track for each chromosome
+for (i in names(genomeChr)){
+  # Define histogram/bars to be displayed
+  chrcov <- tb[tb$contig == i,]
+  #chrcov$depth
+  # Add a track with bars on the i-th chromosome
+  tracks = tracks + BioCircosBarTrack(
+    paste0("bars", i),
+    chromosome = i, 
+    starts = chrcov$position - windowsize, ends = chrcov$position,
+    values = pmin(chrcov$depth, q99),
+    color = "#56486d"
+  )
+}
+# Add background
+tracks = tracks + BioCircosBackgroundTrack(
+  "bars_background",
+  fillColors = "#f3f3f3",
+  borderColors = "#C9C9C9"
+)
+
+BioCircos(
+  tracks,
+  displayGenomeBorder = F,
+  genome = genomeChr,
+  chrPad = 0.02,
+  genomeTicksDisplay = F,
+  BARMouseOverColor = "#1cff42",
+  BARMouseOverTooltipsHtml05 = "Mean Depth: ",
+  genomeLabelDy = 0,
+  width = "100%"
+)
+```
