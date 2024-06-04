@@ -3,10 +3,10 @@ name: Test Harpy Modules
 on:
   push:
     branches:
-      - 'dev'
+      - 'main'
   pull_request:
     branches:
-      - dev
+      - main
 
 # Cancel in progress workflows on pull_requests.
 # https://docs.github.com/en/actions/using-jobs/using-concurrency#example-using-a-fallback-value
@@ -50,7 +50,7 @@ jobs:
         uses: dorny/paths-filter@v3
         id: filter
         with:
-          base: 'dev'
+          base: 'main'
           filters: .github/filters.yml
 
   pkgbuild:
