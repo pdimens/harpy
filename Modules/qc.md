@@ -8,13 +8,17 @@ order: 6
 # :icon-codescan-checkmark: Quality Trim Sequences
 ===  :icon-checklist: You will need
 - at least 2 cores/threads available
-- paired-end fastq sequence files [!badge variant="secondary" text="gzip recommended"]
+- paired-end [fastq](../haplotagdata.md/#naming-conventions) sequence files [!badge variant="secondary" text="gzip recommended"]
+    - **forward**: [!badge variant="success" text="_F"] [!badge variant="success" text=".F"] [!badge variant="success" text="_R1_001"] [!badge variant="success" text=".R1_001"] [!badge variant="success" text="_R1"] [!badge variant="success" text=".R1"] 
+    - **reverse**: [!badge variant="success" text="_R"] [!badge variant="success" text=".R"] [!badge variant="success" text="_R2_001"] [!badge variant="success" text=".R2_001"] [!badge variant="success" text="_R2"] [!badge variant="success" text=".R2"] 
+        - note that this **does not include**  [!badge variant="danger" text=".1"] or [!badge variant="danger" text="_1"] conventions for forward/reverse
+    - **fastq extension**: [!badge variant="success" text=".fq"] [!badge variant="success" text=".fastq"] [!badge variant="success" text=".FQ"] [!badge variant="success" text=".FASTQ"]
 ===
 
 Raw sequences are not suitable for downstream analyses. They have sequencing adapters,
 index sequences, regions of poor quality, etc. The first step of any genetic sequence
 analyses is to remove these adapters and trim poor quality data. You can remove adapters
-and quality trim sequences using the [!badge corners="pill" text="qc"]` module:
+and quality trim sequences using the [!badge corners="pill" text="qc"] module:
 
 ```bash usage
 harpy qc OPTIONS... INPUTS...

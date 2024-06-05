@@ -69,8 +69,7 @@ most common FASTQ naming styles are supported:
 - **forward**: [!badge variant="success" text="_F"] [!badge variant="success" text=".F"] [!badge variant="success" text="_R1_001"] [!badge variant="success" text=".R1_001"] [!badge variant="success" text="_R1"] [!badge variant="success" text=".R1"] 
 - **reverse**: [!badge variant="success" text="_R"] [!badge variant="success" text=".R"] [!badge variant="success" text="_R2_001"] [!badge variant="success" text=".R2_001"] [!badge variant="success" text="_R2"] [!badge variant="success" text=".R2"] 
     - note that this **does not include**  [!badge variant="danger" text=".1"] or [!badge variant="danger" text="_1"] conventions for forward/reverse
-- **fastq extension**: [!badge variant="success" text=".fq"] [!badge variant="success" text=".fastq"]
-    - or uppercase variants
+- **fastq extension**: [!badge variant="success" text=".fq"] [!badge variant="success" text=".fastq"] [!badge variant="success" text=".FQ"] [!badge variant="success" text=".FASTQ"]
 - **gzipped**: supported and recommended
 - **not gzipped**: supported
 

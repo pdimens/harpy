@@ -10,8 +10,8 @@ order: 6
 
 ===  :icon-checklist: You will need
 - at least 2 cores/threads available
-- `bam`: SAM/BAM alignment files [!badge variant="secondary" text="BAM recommended"]
-- `fastq`: paired-end reads from an Illumina sequencer in FASTQ format [!badge variant="secondary" text="gzip recommended"]
+- [!badge corners="pill" text="preflight bam"]: SAM/BAM alignment files [!badge variant="secondary" text="BAM recommended"]
+- [!badge corners="pill" text="preflight fastq"]: paired-end reads from an Illumina sequencer in FASTQ format [!badge variant="secondary" text="gzip recommended"]
 ===
 
 Harpy does a lot of stuff with a lot of software and each of these programs expect the incoming data to follow particular formats (plural, unfortunately).
@@ -20,9 +20,9 @@ modify input/output files for format compatability, it's not always feasible or 
 solution is perform what we lovingly call "pre-flight checks" to assess if your input FASTQ or BAM files are formatted correctly
 for the pipeline. There are separate [!badge corners="pill" text="preflight fastq"] and [!badge corners="pill" text="preflight bam"] submodules and the result of each is a report detailing file format quality checks. 
 
-#### when to run
-- **FASTQ**: the preflight checks for FASTQ files are best performed _after_ demultiplexing (or trimming/QC) and _before_ sequence alignment
-- **BAM**: the preflight checks for BAM files should be run _after_ sequence alignment and _before_ consuming those files for other purposes
+## When to run
+- [!badge corners="pill" text="preflight fastq"]: the preflight checks for FASTQ files are best performed _after_ demultiplexing (or trimming/QC) and _before_ sequence alignment
+- [!badge corners="pill" text="preflight bam"]: the preflight checks for BAM files should be run _after_ sequence alignment and _before_ consuming those files for other purposes
 (e.g. variant calling, phasing, imputation)
 
 

@@ -119,35 +119,31 @@ Align/bwa
 ├── Sample1.bam
 ├── Sample1.bam.bai
 ├── logs
-│   └── markduplicates
-│       └── Sample1.markdup.log
+│   ├── sample1.bwa.log
+│   ├── sample1.markdup.log
+│   │── sample1.sort.log
 └── reports
     ├── bwa.stats.html
-    ├── BXstats
-    │   ├── Sample1.bxstats.html
-    │   └── data
-    │       └── Sample1.bxstats.gz
-    └── coverage
-        ├── Sample1.gencov.html
-        └── data
-            └── Sample1.gencov.gz
-
-
+    ├── Sample1.html
+    └── data
+        ├── bxstats
+        │   └── Sample1.bxstats.gz
+        └── coverage
+            └── Sample1.cov.gz
 ```
 {.compact}
 | item     | description                                                                                                 |
 |:---------|:------------------------------------------------------------------------------------------------------------|
 | `*.bam`                             | sequence alignments for each sample                                              |
 | `*.bai`                             | sequence alignment indexes for each sample                                       |
-| `logs/markduplicates`               | stats provided by `samtools markdup`                                             |
+| `logs/*bwa.log`                     | output of BWA during run                                                         |
+| `logs/*markdup.log`                 | stats provided by `samtools markdup`                                             |
+| `logs/*sort.log`                    | output of `samtools sort`                                                        |
 | `reports/`                          | various counts/statistics/reports relating to sequence alignment                 |
 | `reports/bwa.stats.html`            | report summarizing `samtools flagstat and stats` results across all samples from `multiqc` |
-| `reports/reads.bxstats.html`        | interactive html report summarizing valid vs invalid barcodes across all samples | 
-| `reports/BXstats/*.bxstats.html`    | interactive html report summarizing inferred molecule size                       | 
-| `reports/coverage/*.html`           | summary plots of alignment coverage per contig                                   |
-| `reports/coverage/data/*.gencov.gz` | output from samtools bedcov from all alignments, used for plots                  |
-| `reports/BXstats/`                  | reports summarizing molecule size and reads per molecule                         |
-| `reports/BXstats/data/`             | tabular data containing the information used to generate the BXstats reports     |
+| `reports/Sample1.html`              | interactive html report summarizing BX tag metrics and alignment coverage        | 
+| `reports/data/coverage/*.cov.gz`    | output from samtools cov, used for plots                                         |
+| `reports/data/bxstats`              | tabular data containing the information used to generate the BX stats in reports |
 
 +++ :icon-code-square: BWA parameters
 By default, Harpy runs `bwa` with these parameters (excluding inputs and outputs):

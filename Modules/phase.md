@@ -115,9 +115,6 @@ Phase/
 ├── annotations
 │   ├── Sample1.annot.gz
 │   └── Sample1.annot.gz.tbi
-├── annotations_merge
-│   ├── Sample1.phased.annot.bcf
-│   └── Sample1.phased.annot.bcf.csi
 ├── extractHairs
 │   ├── Sample1.unlinked.frags
 │   └── logs

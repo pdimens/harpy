@@ -135,25 +135,23 @@ The resulting folder also includes a `workflow` directory (not shown) with workf
 Align/ema
 ├── Sample1.bam
 ├── Sample1.bam.bai
-├── count
-│   └── Sample1.ema-ncnt
 ├── logs
-│   ├── markduplicates
-│   │   └── Sample1.markdup.nobarcode.log
+│   ├── Sample1.bwa.align.log
+│   ├── Sample1.bwa.sort.log
+│   ├── Sample1.ema.align.log
+│   ├── Sample1.ema.sort.log
+│   ├── Sample1.markdup.log
 │   └── preproc
 │       └── Sample1.preproc.log
 └── reports
     ├── ema.stats.html
     ├── reads.bxcounts.html
-    ├── BXstats
-    │   ├── Sample1.bxstats.html
-    │   └── data
-    │       └── Sample1.bxstats.gz
-    └── coverage
-        ├── Sample1.gencov.html
-        └── data
-            ├── Sample1.all.gencov.gz
-            └── Sample1.bx.gencov.gz
+    ├── Sample1.html
+    └── data
+        ├── bxstats
+        │   └── Sample1.bxstats.gz
+        └── coverage
+            └── Sample1.cov.gz
 
 ```
 {.compact}
@@ -161,18 +159,13 @@ Align/ema
 |:-----------------------------------------------|:--------------------------------------------------------------------------------------------------------------|
 | `*.bam`                                        | sequence alignments for each sample                                                                           |
 | `*.bai`                                        | sequence alignment indexes for each sample                                                                    |
-| `count/`                                       | output of `ema count`                                                                                         |
-| `logs/markduplicates/`                         | stats provided by `samtools markdup` for alignments with invalid/missing barcodes                             |
 | `logs/preproc/*.preproc.log`                   | everything `ema preproc` writes to `stderr` during operation                                                  |
 | `reports/`                                     | various counts/statistics/reports relating to sequence alignment                                              |
 | `reports/ema.stats.html`                       | report summarizing `samtools flagstat and stats` results across all samples from `multiqc`                    |
-| `reports/reads.bxstats.html`                   | interactive html report summarizing `ema count` across all samples                                            |
-| `reports/coverage/*.html`                      | summary plots of alignment coverage per contig                                                                |
-| `reports/coverage/data/*.all.gencov.gz`        | output from samtools bedcov from all alignments, used for plots                                               |
-| `reports/coverage/data/*.bx.gencov.gz`         | output from samtools bedcov from alignments with valid BX barcodes, used for plots                            |
-| `reports/BXstats/`                             | reports summarizing molecule size and reads per molecule                                                      |
-| `reports/BXstats/*.bxstats.html`               | interactive html report summarizing inferred molecule size                                                    | 
-| `reports/BXstats/data/`                        | tabular data containing the information used to generate the BXstats reports                                  |
+| `reports/reads.bxcounts.html`                  | interactive html report summarizing `ema count` across all samples                                            |
+| `reports/Sample1.html`              | interactive html report summarizing BX tag metrics and alignment coverage        | 
+| `reports/data/coverage/*.cov.gz`    | output from samtools cov, used for plots                                         |
+| `reports/data/bxstats`              | tabular data containing the information used to generate the BX stats in reports |
 
 +++ :icon-code-square: EMA parameters
 By default, Harpy runs `ema` with these parameters (excluding inputs and outputs):
