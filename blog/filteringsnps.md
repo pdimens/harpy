@@ -2,7 +2,7 @@
 author: Pavel Dimens
 date: 2024-06-05
 category: guides
-layout: blog
+description: A gentle introduction to the wild world of filtering SNPs
 icon: filter
 image: https://vre.eucanshare.bsc.es/vre/tools/SNP_Filtering/assets/home/logo.png
 ---

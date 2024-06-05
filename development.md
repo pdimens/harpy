@@ -86,15 +86,12 @@ we can keep the source code modular, installable, and have the flexibility of
 using non-python code.
 
 ### Bioconda recipe
-For the ease of installation for end-users, Harpy has a [recipe](https://github.com/bioconda/bioconda-recipes/blob/master/recipes/harpy/meta.yaml) 
-and [build script](https://github.com/bioconda/bioconda-recipes/blob/master/recipes/harpy/build.sh) in Bioconda,
-which makes it available for download and installation. A copy of the recipe and
-build script is also stored in `resources/meta.yml` and `resources/build.sh`. The yaml file
-is the metadata of the package, including software deps and their versions. The
-build script is how conda will install all of Harpy's parts. Now that Harpy is hosted on
-bioconda, when a new version is tagged with a release, Bioconda will automatically create
-a pull request (after a delay), typically not requiring any intervention on the development side
-for the newest Harpy version to be released for conda installation.
+For the ease of installation for end-users, Harpy has a [recipe and build script](https://github.com/bioconda/bioconda-recipes/blob/master/recipes/harpy/meta.yaml) in Bioconda,
+which makes it available for download and installation. A copy of the recipe is also
+stored in `resources/meta.yml`. The yaml file is the metadata of the package, including software 
+deps and their versions. Now that Harpy is hosted on bioconda, when a new version is tagged with
+a release, Bioconda will automatically create a pull request (after a delay), typically not
+requiring any intervention on the development side for the newest Harpy version to be released for conda installation.
 
 
 ## The Harpy repository
@@ -106,6 +103,7 @@ shortage of [great resources](https://www.youtube.com/watch?v=8Dd7KRpKeaE) to ge
 you started. The 5 standard branches in the Harpy repository are outlined in the 
 table below:
 
+{.compact}
 | branch | purpose |
 |:---| :---|
 | `main` | staging and testing area for new code prior to creating the next release  |
@@ -128,7 +126,7 @@ that is uploaded to Dockerhub. Updating or editing this container can be done au
 The testing GitHub Action will automatically create a Dockerfile with [!badge corners="pill" text="harpy containerize"] (a hidden harpy command)
 and build a new Docker container, then upload it to [dockerhub](https://hub.docker.com/repository/docker/pdimens/harpy/general)
 with the `latest` tag. This process is triggered on `push` or `pull request` with changes to either
-`src/harpy/conda_deps` or `src/harpy/snakefiles/containerize.smk` on `main`.
+`src/harpy/conda_deps.py` or `src/harpy/snakefiles/containerize.smk` on `main`.
 
 #### manually
 The dockerfile for that container is created by using a hidden harpy command [!badge corners="pill" text="harpy containerize"]
