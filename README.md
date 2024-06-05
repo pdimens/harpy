@@ -45,3 +45,8 @@ Just call `harpy` or `harpy --help` on the command line to get started!
 ```bash
 harpy
 ```
+
+## 🌈 Get Started
+No data? No problem! Harpy lets you [simulate genomic variants](https://pdimens.github.io/harpy/modules/simulate/simulate-variants/)
+from an existing genome and can also [create haplotag data](https://pdimens.github.io/harpy/modules/simulate/simulate-linkedreads/)
+from an existing genome! You can see what haplotag data (and Harpy) are like without paying a single cent!
