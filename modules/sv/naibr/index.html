@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="turbo-root" content="/HARPY">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="3.5.0.770859923353">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="3.5.0.770910636470">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 3.5.0">
@@ -34,12 +34,12 @@
     <script data-cfasync="false">(function () { var el = document.documentElement, m = localStorage.getItem("doc_theme"), wm = window.matchMedia; if (m === "dark" || (!m && wm && wm("(prefers-color-scheme: dark)").matches)) { el.classList.add("dark") } else { el.classList.remove("dark") } })();</script>
 
     <link href="../../../static/favicon.png" rel="icon">
-    <link href="../../../resources/css/retype.css?v=3.5.0.770859923353" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=3.5.0.770910636470" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=3.5.0.770859923353" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=3.5.0.770910636470" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=3.5.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=3.5.0.770859923353" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=3.5.0.770859923353" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=3.5.0.770910636470" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=3.5.0.770910636470" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../../resources/js/mermaid.js?v=3.5.0" defer></script>
 </head>
 <body>
@@ -488,15 +488,20 @@ Your VCF file should be <a href="../../snp/#filtering-variants">filtered in some
 title: Calling variants with NAIBR, starting with unphased alignments
 ---
 graph LR
-    aln[alignments]--&gt;|harpy snp|snps([SNPs])
-    snps--&gt;|bcftools filter -i 'QUAL&gt;95' ...|filt([filtered SNPs])
-    filt--&gt;|harpy phase|phasesnp([phased haplotypes])  
+    subgraph id2 [&quot;You do this part&quot;]
+        aln[alignments]:::clean--&gt;|harpy snp|snps([SNPs]):::clean
+        snps--&gt;|bcftools filter -i 'QUAL&gt;95' ...|filt([filtered SNPs]):::clean
+        filt--&gt;|harpy phase|phase([phased haplotypes]):::phase
+    end
+    id2--&gt;|harpy sv naibr|id1
     subgraph id1 [&quot;Harpy does this part&quot;]
-    phasesnp--&gt;|whatshap haplotag|aln2
-    aln2([phased alignments])--&gt;|NAIBR|results((structural variants))
+        phase2([phased haplotypes]):::phase--&gt;|whatshap haplotag|aln2:::clean
+        aln2([phased alignments])--&gt;|NAIBR|results((structural variants)):::clean
     end
     style id1 fill:#f0f0f0,stroke:#e8e8e8,stroke-width:2px
-</pre></div>
+    style id2 fill:#dfe3ee,stroke:#c8ccd6,stroke-width:2px
+    classDef phase fill:#b7c9ef,stroke:#dfe3ee,stroke-width:2px
+    classDef clean fill:#f5f6f9,stroke:#b7c9ef,stroke-width:2px</pre></div>
 <hr>
 <doc-anchor-target id="naibr-workflow">
     <h2>
@@ -514,22 +519,23 @@ of it that is available on <a href="https://anaconda.org/bioconda/naibr-plus">Bi
 This fork includes improved accuracy as well as quality-of-life updates.</p>
 <div class="overflow-hidden mb-6 py-4 dark:px-5 dark:bg-white rounded-md"><pre class="mermaid w-full">graph LR
     subgraph id1 [&quot;Phase&quot;]
-    aln[unphased alignments]---vcf[phased VCF]
+        aln[unphased alignments]:::clean---vcf[phased VCF]:::clean
     end
-    id1--&gt;phased([phased alignments])
+    id1--&gt;phased([phased alignments]):::clean
     subgraph id2 [&quot;Population calling&quot;]
-    popsplit([merge by population])
+        popsplit([merge by population]):::clean
     end
     phased--&gt;id2
     popsplit--&gt;A
     phased--&gt;A
-    A([index alignments]) --&gt; B([NAIBR])
-    Z([create config file]) --&gt; B
+    A([index alignments]):::clean --&gt; B([NAIBR]):::clean
+    Z([create config file]):::clean --&gt; B
     popsplit --&gt; Z
     phased --&gt; Z
-    B--&gt;C([generate reports])
+    
     style id2 fill:#f0f0f0,stroke:#e8e8e8,stroke-width:2px
-    style id1 fill:#f0f0f0,stroke:#e8e8e8,stroke-width:2px</pre></div>
+    style id1 fill:#f0f0f0,stroke:#e8e8e8,stroke-width:2px
+    classDef clean fill:#f5f6f9,stroke:#b7c9ef,stroke-width:2px</pre></div>
 </doc-tab>
 <doc-tab v-cloak id="naibr-output">
 <template #title><svg xmlns="http://www.w3.org/2000/svg" class="docs-icon" viewBox="0 0 24 24" role="presentation"><g fill="currentColor"><g><path d="M2 4.75C2 3.784 2.784 3 3.75 3h4.971c.58 0 1.12.286 1.447.765l1.404 2.063c.046.069.124.11.207.11h8.471c.966 0 1.75.783 1.75 1.75V19.25A1.75 1.75 0 0 1 20.25 21H3.75A1.75 1.75 0 0 1 2 19.25Zm1.75-.25a.25.25 0 0 0-.25.25v14.5c0 .138.112.25.25.25h16.5a.25.25 0 0 0 .25-.25V7.687a.25.25 0 0 0-.25-.25h-8.471a1.75 1.75 0 0 1-1.447-.765L8.928 4.61a.252.252 0 0 0-.208-.11Z"/></g></g></svg> naibr output</template>

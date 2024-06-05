@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="turbo-root" content="/HARPY">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="3.5.0.770859923353">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="3.5.0.770910636470">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 3.5.0">
@@ -34,12 +34,12 @@
     <script data-cfasync="false">(function () { var el = document.documentElement, m = localStorage.getItem("doc_theme"), wm = window.matchMedia; if (m === "dark" || (!m && wm && wm("(prefers-color-scheme: dark)").matches)) { el.classList.add("dark") } else { el.classList.remove("dark") } })();</script>
 
     <link href="../../static/favicon.png" rel="icon">
-    <link href="../../resources/css/retype.css?v=3.5.0.770859923353" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=3.5.0.770910636470" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=3.5.0.770859923353" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=3.5.0.770910636470" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=3.5.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=3.5.0.770859923353" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=3.5.0.770859923353" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=3.5.0.770910636470" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=3.5.0.770910636470" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=3.5.0" defer></script>
 </head>
 <body>
@@ -432,23 +432,23 @@ be parallelized, but HapCut2 operates on a per-sample basis, so the workflow is 
 across all of your samples to speed things along.</p>
 <div class="overflow-hidden mb-6 py-4 dark:px-5 dark:bg-white rounded-md"><pre class="mermaid w-full">graph LR
     subgraph Inputs
-    Z([sample alignments])---gen[&quot;genome (optional)&quot;]
+        Z([sample alignments]):::clean---gen[&quot;genome (optional)&quot;]:::clean
     end
-    Inputs --&gt; B([extractHAIRS])
-    Inputs---&gt;A([split samples])
-    Inputs--&gt;C([LinkFragments])
-    C--&gt;D([phase blocks])
+    Inputs---&gt;A([isolate heterozygotes]):::clean
+    A ---&gt; B([extractHAIRS]):::clean
+    B--&gt;C([LinkFragments]):::clean
+    C--&gt;D([phase blocks]):::clean
     B--&gt;D
     A--&gt;D
-    D--&gt;E([annotate BCFs])
-    E--&gt;F([index annotations])
-    F--&gt;G([merge annotations])
+    D--&gt;E([annotate BCFs]):::clean
+    E--&gt;F([index annotations]):::clean
+    F--&gt;G([merge annotations]):::clean
     E--&gt;G
     A--&gt;G
     D--&gt;G
-    G--&gt;H([index merged annotations])
-    H--&gt;I([merge phased samples])
-    style Inputs fill:#f0f0f0,stroke:#e8e8e8,stroke-width:2px</pre></div>
+    G--&gt;I([merge phased samples]):::clean
+    style Inputs fill:#f0f0f0,stroke:#e8e8e8,stroke-width:2px
+    classDef clean fill:#f5f6f9,stroke:#b7c9ef,stroke-width:2px</pre></div>
 </doc-tab>
 <doc-tab v-cloak id="phasing-output">
 <template #title><svg xmlns="http://www.w3.org/2000/svg" class="docs-icon" viewBox="0 0 24 24" role="presentation"><g fill="currentColor"><g><path d="M2 4.75C2 3.784 2.784 3 3.75 3h4.971c.58 0 1.12.286 1.447.765l1.404 2.063c.046.069.124.11.207.11h8.471c.966 0 1.75.783 1.75 1.75V19.25A1.75 1.75 0 0 1 20.25 21H3.75A1.75 1.75 0 0 1 2 19.25Zm1.75-.25a.25.25 0 0 0-.25.25v14.5c0 .138.112.25.25.25h16.5a.25.25 0 0 0 .25-.25V7.687a.25.25 0 0 0-.25-.25h-8.471a1.75 1.75 0 0 1-1.447-.765L8.928 4.61a.252.252 0 0 0-.208-.11Z"/></g></g></svg> phasing output</template>
@@ -468,7 +468,7 @@ The resulting folder also includes a <code v-pre>workflow</code> directory (not 
 │   ├── Sample1.unlinked.frags
 │   └── logs
 │       └── Sample1.unlinked.log
-├── input
+├── workflow/input
 │   ├── header.names
 │   ├── Sample1.bcf
 │   └── Sample1.het.bcf
