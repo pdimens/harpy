@@ -70,7 +70,7 @@ You can call `harpy` without any arguments (or with `--help`) to print the docst
 │ sv           Call large structural variants                  │
 │ impute       Impute genotypes using variants and sequences   │
 │ phase        Phase SNPs into haplotypes                      │
-│ simulate     Simulate variants or linked reads from a genome │           │
+│ simulate     Simulate variants or linked reads from a genome │
 ╰──────────────────────────────────────────────────────────────╯
 ╭─ Other Commands ─────────────────────────────────────────────╮
 │ preflight     Run file format checks on haplotag data        │
