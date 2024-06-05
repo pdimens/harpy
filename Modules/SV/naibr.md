@@ -106,7 +106,7 @@ for more details on that process.
 This file can be in vcf/vcf.gz/bcf format and most importantly **it must be phased haplotypes**. There are various
 ways to haplotype SNPs, but you can use [!badge corners="pill" text="harpy phase"](../phase.md) to phase your SNPs
 into haplotypes using the haplotag barcode information. The resulting phased VCF file can then be used as input here.
-Your VCF file should be [filtered in some capacity](../snp.md/#filtering-variants) to keep high quality data.
+Your VCF file should be [filtered in some capacity](/blog/filteringsnps.md) to keep high quality data.
 
 ```mermaid
 ---

@@ -124,12 +124,12 @@ SV/leviathan
 │   ├── sample1.candidates
 │   ├── sample2.leviathan.log
 │   └── sample2.candidates
-├── reports
-│   ├── sample1.SV.html
-│   └── sample2.SV.html
-└── stats
-    ├── sample1.sv.stats
-    └── sample2.sv.stats
+└── reports
+    ├── sample1.SV.html
+    ├── sample2.SV.html
+    └── data
+        ├── sample1.sv.stats
+        └── sample2.sv.stats
 ```
 {.compact}
 | item                   | description                                              |

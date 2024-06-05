@@ -35,7 +35,7 @@ tasks yourself prior to running the [!badge corners="pill" text="impute"] module
 After variants have been called, you may want to impute missing genotypes to get the
 most from your data. Harpy uses `STITCH` to impute genotypes, a haplotype-based
 method that is linked-read aware. Imputing genotypes requires a variant call file 
-**containing SNPs**, such as that produced by [!badge corners="pill" text="harpy snp"](snp.md) and preferably [filtered in some capacity](snp.md/#filtering-variants).
+**containing SNPs**, such as that produced by [!badge corners="pill" text="harpy snp"](snp.md) and preferably [filtered in some capacity](/blog/filteringsnps.md).
 You can impute genotypes with Harpy using the [!badge corners="pill" text="impute"] module:
 ```bash usage
 harpy impute OPTIONS... INPUTS...
