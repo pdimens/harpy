@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="turbo-root" content="/HARPY">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="3.5.0.770910636470">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="3.5.0.770922744545">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 3.5.0">
@@ -34,12 +34,12 @@
     <script data-cfasync="false">(function () { var el = document.documentElement, m = localStorage.getItem("doc_theme"), wm = window.matchMedia; if (m === "dark" || (!m && wm && wm("(prefers-color-scheme: dark)").matches)) { el.classList.add("dark") } else { el.classList.remove("dark") } })();</script>
 
     <link href="../../../static/favicon.png" rel="icon">
-    <link href="../../../resources/css/retype.css?v=3.5.0.770910636470" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=3.5.0.770922744545" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=3.5.0.770910636470" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=3.5.0.770922744545" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=3.5.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=3.5.0.770910636470" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=3.5.0.770910636470" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=3.5.0.770922744545" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=3.5.0.770922744545" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../../resources/js/mermaid.js?v=3.5.0" defer></script>
     <link href="../../../resources/css/katex.css?v=3.5.0" rel="stylesheet">
     <script id="katex-js" data-cfasync="false" src="../../../resources/js/katex.js?v=3.5.0" defer></script>
@@ -438,20 +438,17 @@ The resulting folder also includes a <code v-pre>workflow</code> directory (not 
 ├── Sample1.bam
 ├── Sample1.bam.bai
 ├── logs
-│   └── markduplicates
-│       └── Sample1.markdup.log
+│   ├── sample1.bwa.log
+│   ├── sample1.markdup.log
+│   │── sample1.sort.log
 └── reports
     ├── bwa.stats.html
-    ├── BXstats
-    │   ├── Sample1.bxstats.html
-    │   └── data
-    │       └── Sample1.bxstats.gz
-    └── coverage
-        ├── Sample1.gencov.html
-        └── data
-            └── Sample1.gencov.gz
-
-</code></pre>
+    ├── Sample1.html
+    └── data
+        ├── bxstats
+        │   └── Sample1.bxstats.gz
+        └── coverage
+            └── Sample1.cov.gz</code></pre>
 </doc-codeblock></div>
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="compact">
@@ -471,8 +468,16 @@ The resulting folder also includes a <code v-pre>workflow</code> directory (not 
 <td style="text-align: left;">sequence alignment indexes for each sample</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code v-pre>logs/markduplicates</code></td>
+<td style="text-align: left;"><code v-pre>logs/*bwa.log</code></td>
+<td style="text-align: left;">output of BWA during run</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code v-pre>logs/*markdup.log</code></td>
 <td style="text-align: left;">stats provided by <code v-pre>samtools markdup</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code v-pre>logs/*sort.log</code></td>
+<td style="text-align: left;">output of <code v-pre>samtools sort</code></td>
 </tr>
 <tr>
 <td style="text-align: left;"><code v-pre>reports/</code></td>
@@ -483,28 +488,16 @@ The resulting folder also includes a <code v-pre>workflow</code> directory (not 
 <td style="text-align: left;">report summarizing <code v-pre>samtools flagstat and stats</code> results across all samples from <code v-pre>multiqc</code></td>
 </tr>
 <tr>
-<td style="text-align: left;"><code v-pre>reports/reads.bxstats.html</code></td>
-<td style="text-align: left;">interactive html report summarizing valid vs invalid barcodes across all samples</td>
+<td style="text-align: left;"><code v-pre>reports/Sample1.html</code></td>
+<td style="text-align: left;">interactive html report summarizing BX tag metrics and alignment coverage</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code v-pre>reports/BXstats/*.bxstats.html</code></td>
-<td style="text-align: left;">interactive html report summarizing inferred molecule size</td>
+<td style="text-align: left;"><code v-pre>reports/data/coverage/*.cov.gz</code></td>
+<td style="text-align: left;">output from samtools cov, used for plots</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code v-pre>reports/coverage/*.html</code></td>
-<td style="text-align: left;">summary plots of alignment coverage per contig</td>
-</tr>
-<tr>
-<td style="text-align: left;"><code v-pre>reports/coverage/data/*.gencov.gz</code></td>
-<td style="text-align: left;">output from samtools bedcov from all alignments, used for plots</td>
-</tr>
-<tr>
-<td style="text-align: left;"><code v-pre>reports/BXstats/</code></td>
-<td style="text-align: left;">reports summarizing molecule size and reads per molecule</td>
-</tr>
-<tr>
-<td style="text-align: left;"><code v-pre>reports/BXstats/data/</code></td>
-<td style="text-align: left;">tabular data containing the information used to generate the BXstats reports</td>
+<td style="text-align: left;"><code v-pre>reports/data/bxstats</code></td>
+<td style="text-align: left;">tabular data containing the information used to generate the BX stats in reports</td>
 </tr>
 </tbody>
 </table>
