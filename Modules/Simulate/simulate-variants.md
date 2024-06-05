@@ -222,10 +222,13 @@ Simulate random variants onto your haploid assembly with `--heterozygosity` (`-z
 We aren't interested in the resulting genome, but rather the positions of the variants `simuG` created.
 ```mermaid
 graph LR
-    geno(haploid genome)-->|simulate inversion -n 10 -z 0.5|hap(inversions.vcf)
+    geno(haploid genome)-->|simulate inversion -n 10 -z 0.5|hap(inversions.vcf):::clean
     hap-->hap1(inversion.hap1.vcf)
     hap-->hap2(inversion.hap2.vcf)
     style geno fill:#ebb038,stroke:#d19b2f,stroke-width:2px
+    style hap1 fill:#f5f6f9,stroke:#90c8be,stroke-width:2px
+    style hap2 fill:#f5f6f9,stroke:#bd8fcb,stroke-width:2px
+    classDef clean fill:#f5f6f9,stroke:#b7c9ef,stroke-width:2px
 ```
 #### Step 2
 Use the resulting hap1 and hap2 VCF files to simulate those same variants, but shuffled
@@ -238,6 +241,7 @@ graph LR
     end
     id1-->|simulate inversion -v|hapgeno(haplotype-1 genome)
     style id1 fill:#f0f0f0,stroke:#e8e8e8,stroke-width:2px
+    style hap1 fill:#f5f6f9,stroke:#90c8be,stroke-width:2px
     style hapgeno fill:#90c8be,stroke:#6fb6a9,stroke-width:2px
     style geno fill:#ebb038,stroke:#d19b2f,stroke-width:2px
 ```
@@ -248,6 +252,7 @@ graph LR
     end
     id2-->|simulate inversion -v|hapgeno2(haplotype-2 genome)
     style id2 fill:#f0f0f0,stroke:#e8e8e8,stroke-width:2px
+    style hap2 fill:#f5f6f9,stroke:#bd8fcb,stroke-width:2px
     style hapgeno2 fill:#bd8fcb,stroke:#a460b7,stroke-width:2px
     style geno fill:#ebb038,stroke:#d19b2f,stroke-width:2px
 ```
@@ -258,11 +263,13 @@ we're only interested in the haplotype VCF files (positions of variants) and not
 genome.
 ```mermaid
 graph LR
-    geno(haplotype-1 genome)-->|simulate snpindel -n 100000 -z 0.5|hap(snpindel.vcf)
+    geno(haplotype-1 genome)-->|simulate snpindel -n 100000 -z 0.5|hap(snpindel.vcf):::clean
     hap-->hap1(snpindel.hap1.vcf)
     hap-->hap2(snpindel.hap2.vcf)
     style geno fill:#90c8be,stroke:#6fb6a9,stroke-width:2px
-
+    style hap1 fill:#f5f6f9,stroke:#90c8be,stroke-width:2px
+    style hap2 fill:#f5f6f9,stroke:#bd8fcb,stroke-width:2px
+    classDef clean fill:#f5f6f9,stroke:#b7c9ef,stroke-width:2px
 ```
 #### Step 4
 Use the resulting haplotype VCFs to simulate known variants onto the **haplotype genomes** from
@@ -275,16 +282,18 @@ graph LR
     id1-->|simulate inversion -v|genohap1(haplotype-1 genome with new variants)
     style id1 fill:#f0f0f0,stroke:#e8e8e8,stroke-width:2px
     style geno fill:#90c8be,stroke:#6fb6a9,stroke-width:2px
+    style hap1 fill:#f5f6f9,stroke:#90c8be,stroke-width:2px
     style genohap1 fill:#90c8be,stroke:#000000,stroke-width:2px
 ```
 ```mermaid
 graph LR
     subgraph id2 ["Haplotype 2 inputs"]
-    hap1(snpindel.hap2.vcf)---geno(haplotype-2 genome)
+    hap2(snpindel.hap2.vcf)---geno(haplotype-2 genome)
     end
     id2-->|simulate inversion -v|genohap2(haplotype-2 genome with new variants)
     style id2 fill:#f0f0f0,stroke:#e8e8e8,stroke-width:2px
     style geno fill:#bd8fcb,stroke:#a460b7,stroke-width:2px
+    style hap2 fill:#f5f6f9,stroke:#bd8fcb,stroke-width:2px
     style genohap2 fill:#bd8fcb,stroke:#000000,stroke-width:2px
 ```
 

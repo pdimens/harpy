@@ -85,23 +85,23 @@ across all of your samples to speed things along.
 ```mermaid
 graph LR
     subgraph Inputs
-    Z([sample alignments])---gen["genome (optional)"]
+        Z([sample alignments]):::clean---gen["genome (optional)"]:::clean
     end
-    Inputs --> B([extractHAIRS])
-    Inputs--->A([split samples])
-    Inputs-->C([LinkFragments])
-    C-->D([phase blocks])
+    Inputs--->A([isolate heterozygotes]):::clean
+    A ---> B([extractHAIRS]):::clean
+    B-->C([LinkFragments]):::clean
+    C-->D([phase blocks]):::clean
     B-->D
     A-->D
-    D-->E([annotate BCFs])
-    E-->F([index annotations])
-    F-->G([merge annotations])
+    D-->E([annotate BCFs]):::clean
+    E-->F([index annotations]):::clean
+    F-->G([merge annotations]):::clean
     E-->G
     A-->G
     D-->G
-    G-->H([index merged annotations])
-    H-->I([merge phased samples])
+    G-->I([merge phased samples]):::clean
     style Inputs fill:#f0f0f0,stroke:#e8e8e8,stroke-width:2px
+    classDef clean fill:#f5f6f9,stroke:#b7c9ef,stroke-width:2px
 ```
 
 +++ :icon-file-directory: phasing output
@@ -122,7 +122,7 @@ Phase/
 │   ├── Sample1.unlinked.frags
 │   └── logs
 │       └── Sample1.unlinked.log
-├── input
+├── workflow/input
 │   ├── header.names
 │   ├── Sample1.bcf
 │   └── Sample1.het.bcf

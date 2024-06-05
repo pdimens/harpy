@@ -193,17 +193,17 @@ contigs have at least 2 biallelic SNPs, then performs imputation on only those c
 ```mermaid
 graph LR
     subgraph Inputs
-        v[VCF file]---gen[genome]
-        gen---bam[BAM alignments]
+        v[VCF file]:::clean---gen[genome]:::clean
+        gen---bam[BAM alignments]:::clean
     end
-    B([split contigs])-->C([keep biallelic SNPs])
+    B([split contigs]):::clean-->C([keep biallelic SNPs]):::clean
     Inputs-->B & C & G
-    C-->D([convert to STITCH format])
-    D-->E([STITCH imputation])
-    E-->F([merge output])
-    G([create file list])-->E
+    C-->D([convert to STITCH format]):::clean
+    D-->E([STITCH imputation]):::clean
+    E-->F([merge output]):::clean
+    G([create file list]):::clean-->E
     style Inputs fill:#f0f0f0,stroke:#e8e8e8,stroke-width:2px
-
+    classDef clean fill:#f5f6f9,stroke:#b7c9ef,stroke-width:2px
 ```
 +++ :icon-file-directory: impute output
 The default output directory is `Impute` with the folder structure below. `contig1` and `contig2` 

@@ -91,25 +91,26 @@ are not used to inform mapping. The `-m` threshold is used for alignment molecul
 
 ```mermaid
 graph LR
-    A([index genome]) --> B([align to genome])
-    B-->C([sort alignments])
-    C-->D([mark duplicates])
-    D-->E([assign molecules])
-    E-->F([alignment metrics])
-    D-->G([barcode stats])
+    A([index genome]):::clean --> B([align to genome]):::clean
+    B-->C([sort alignments]):::clean
+    C-->D([mark duplicates]):::clean
+    D-->E([assign molecules]):::clean
+    E-->F([alignment metrics]):::clean
+    D-->G([barcode stats]):::clean
     G-->F
     subgraph aln [Inputs]
-        Z[FASTQ files]---genome[genome]
+        Z[FASTQ files]:::clean---genome[genome]:::clean
     end
     aln-->B & A
     subgraph markdp [mark duplicates via `samtools`]
         direction LR
-        collate-->fixmate
-        fixmate-->sort
-        sort-->markdup
+        collate:::clean-->fixmate:::clean
+        fixmate-->sort:::clean
+        sort-->markdup:::clean
     end
     style markdp fill:#f0f0f0,stroke:#e8e8e8,stroke-width:2px
     style aln fill:#f0f0f0,stroke:#e8e8e8,stroke-width:2px
+    classDef clean fill:#f5f6f9,stroke:#b7c9ef,stroke-width:2px
 ```
 +++ :icon-file-directory: minimap2 output
 The default output directory is `Align/minimap` with the folder structure below. `Sample1` is a generic sample name for demonstration purposes.

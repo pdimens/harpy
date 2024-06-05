@@ -124,11 +124,13 @@ Conveniently, we provide a calculator to help you make informed decisions for th
 ```mermaid
 graph LR
     subgraph Inputs
-        A[genome haplotype 1]
-        B[genome haplotype 2]
+        direction BT
+        A[genome haplotype 1]:::clean
+        B[genome haplotype 2]:::clean
     end
-    Inputs-->D([dwgsim])
-    D-->L([LRSIM])
-    L-->H([convert to haplotag])
+    Inputs-->D([dwgsim]):::clean
+    D-->L([LRSIM]):::clean
+    L-->H([convert to haplotag]):::clean
     style Inputs fill:#f0f0f0,stroke:#e8e8e8,stroke-width:2px
+    classDef clean fill:#f5f6f9,stroke:#b7c9ef,stroke-width:2px
 ```

@@ -105,28 +105,28 @@ within alignments, but the BWA alignments need duplicates marked manually using
 ```mermaid
 graph LR
     subgraph Inputs
-        trm[FASTQ files]---geno[genome]
+        trm[FASTQ files]:::clean---geno[genome]:::clean
     end
     Inputs-->A & IDX
-    A([EMA count]) --> B([EMA preprocess])
-    B-->C([EMA align barcoded])
-    C-->D([sort BX alignments])
-    D-->F([merge all alignments])
-    IDX([index genome])-->C
-    IDX-->Z([BWA align unbarcoded])
-    Z-->Y([sort alignments])
-    Y-->X([mark duplicates])
+    A([EMA count]):::clean --> B([EMA preprocess]):::clean
+    B-->C([EMA align barcoded]):::clean
+    C-->D([sort BX alignments]):::clean
+    D-->F([merge all alignments]):::clean
+    IDX([index genome]):::clean-->C
+    IDX-->Z([BWA align unbarcoded]):::clean
+    Z-->Y([sort alignments]):::clean
+    Y-->X([mark duplicates]):::clean
     X-->F
-    F-->J([alignment stats])
+    F-->J([alignment stats]):::clean
     subgraph markdp [mark duplicates via `samtools`]
         direction LR
-        collate-->fixmate
-        fixmate-->sort
-        sort-->markdup
+        collate:::clean-->fixmate:::clean
+        fixmate-->sort:::clean
+        sort-->markdup:::clean
     end
     style markdp fill:#f0f0f0,stroke:#e8e8e8,stroke-width:2px
     style Inputs fill:#f0f0f0,stroke:#e8e8e8,stroke-width:2px
-
+    classDef clean fill:#f5f6f9,stroke:#b7c9ef,stroke-width:2px
 ```
 +++ :icon-file-directory: EMA output
 The default output directory is `Align/ema` with the folder structure below. `Sample1` is a generic sample name for demonstration purposes. 

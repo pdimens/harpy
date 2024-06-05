@@ -202,15 +202,15 @@ are used to call variants from alignments.
 ```mermaid
 graph LR
     subgraph Inputs
-        aln[BAM alignments]---gen[genome]
+        aln[BAM alignments]:::clean---gen[genome]:::clean
     end
-    Inputs --> B([freebayes])
-    B-->C([bcftools call])
-    C-->D([index BCFs])
-    D-->E([combine BCFs])
+    Inputs --> B([freebayes]):::clean
+    B-->C([bcftools call]):::clean
+    C-->D([index BCFs]):::clean
+    D-->E([combine BCFs]):::clean
     C-->E
-    E-->F([generate reports])
     style Inputs fill:#f0f0f0,stroke:#e8e8e8,stroke-width:2px
+    classDef clean fill:#f5f6f9,stroke:#b7c9ef,stroke-width:2px
 ```
 
 ### freebayes
@@ -220,13 +220,13 @@ call SNPs and small indels. Like mpileup, this method is ubiquitous in bioinform
 ```mermaid
 graph LR
     subgraph Inputs
-        aln[BAM alignments]---gen[genome]
+        aln[BAM alignments]:::clean---gen[genome]:::clean
     end
-    Inputs --> B([freebayes])
-    B-->D([index BCFs])
-    D-->E([combine BCFs])
-    E-->F([generate reports])
+    Inputs --> B([freebayes]):::clean
+    B-->D([index BCFs]):::clean
+    D-->E([combine BCFs]):::clean
     style Inputs fill:#f0f0f0,stroke:#e8e8e8,stroke-width:2px
+    classDef clean fill:#f5f6f9,stroke:#b7c9ef,stroke-width:2px
 ```
 
 +++ :icon-file-directory: snp output

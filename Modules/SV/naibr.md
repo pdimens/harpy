@@ -113,15 +113,20 @@ Your VCF file should be [filtered in some capacity](../snp.md/#filtering-variant
 title: Calling variants with NAIBR, starting with unphased alignments
 ---
 graph LR
-    aln[alignments]-->|harpy snp|snps([SNPs])
-    snps-->|bcftools filter -i 'QUAL>95' ...|filt([filtered SNPs])
-    filt-->|harpy phase|phasesnp([phased haplotypes])  
+    subgraph id2 ["You do this part"]
+        aln[alignments]:::clean-->|harpy snp|snps([SNPs]):::clean
+        snps-->|bcftools filter -i 'QUAL>95' ...|filt([filtered SNPs]):::clean
+        filt-->|harpy phase|phase([phased haplotypes]):::phase
+    end
+    id2-->|harpy sv naibr|id1
     subgraph id1 ["Harpy does this part"]
-    phasesnp-->|whatshap haplotag|aln2
-    aln2([phased alignments])-->|NAIBR|results((structural variants))
+        phase2([phased haplotypes]):::phase-->|whatshap haplotag|aln2:::clean
+        aln2([phased alignments])-->|NAIBR|results((structural variants)):::clean
     end
     style id1 fill:#f0f0f0,stroke:#e8e8e8,stroke-width:2px
-
+    style id2 fill:#dfe3ee,stroke:#c8ccd6,stroke-width:2px
+    classDef phase fill:#b7c9ef,stroke:#dfe3ee,stroke-width:2px
+    classDef clean fill:#f5f6f9,stroke:#b7c9ef,stroke-width:2px
 ```
 
 ----
@@ -137,22 +142,23 @@ This fork includes improved accuracy as well as quality-of-life updates.
 ```mermaid
 graph LR
     subgraph id1 ["Phase"]
-    aln[unphased alignments]---vcf[phased VCF]
+        aln[unphased alignments]:::clean---vcf[phased VCF]:::clean
     end
-    id1-->phased([phased alignments])
+    id1-->phased([phased alignments]):::clean
     subgraph id2 ["Population calling"]
-    popsplit([merge by population])
+        popsplit([merge by population]):::clean
     end
     phased-->id2
     popsplit-->A
     phased-->A
-    A([index alignments]) --> B([NAIBR])
-    Z([create config file]) --> B
+    A([index alignments]):::clean --> B([NAIBR]):::clean
+    Z([create config file]):::clean --> B
     popsplit --> Z
     phased --> Z
-    B-->C([generate reports])
+    
     style id2 fill:#f0f0f0,stroke:#e8e8e8,stroke-width:2px
     style id1 fill:#f0f0f0,stroke:#e8e8e8,stroke-width:2px
+    classDef clean fill:#f5f6f9,stroke:#b7c9ef,stroke-width:2px
 ```
 +++ :icon-file-directory: naibr output
 The default output directory is `SV/naibr` with the folder structure below. `sample1` and `sample2` are generic sample 
