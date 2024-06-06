@@ -96,3 +96,5 @@ def gen1(r1_fq, r2_fq, i1_fq, i2_fq, output_dir, schema, threads, snakemake, ski
     generate_conda_deps()
     _module = subprocess.run(command)
     sys.exit(_module.returncode)
+
+demultiplex.add_command(gen1)

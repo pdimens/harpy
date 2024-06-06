@@ -22,8 +22,21 @@ def simulate():
     genomic variants.
     """
 
+commandstring = {
+    "harpy simulate": [
+        {
+            "name": "Linked Read Sequences",
+            "commands": ["linkedreads"],
+        },
+        {
+            "name": "Genomic Variants",
+            "commands": ["snpindel","inversion", "cnv", "translocation"],
+        }
+    ]
+}
+
 docstring = {
-        "harpy simulate linkedreads": [
+    "harpy simulate linkedreads": [
         {
             "name": "Parameters",
             "options": ["--barcodes", "--read-pairs", "--outer-distance", "--distance-sd", "--mutation-rate", "--molecule-length", "--partitions", "--molecules-per"],
@@ -609,3 +622,10 @@ def translocation(genome, output_dir, prefix, vcf, count, centromeres, genes, he
     generate_conda_deps()
     _module = subprocess.run(command)
     sys.exit(_module.returncode)
+
+
+simulate.add_command(snpindel)
+simulate.add_command(inversion)
+simulate.add_command(cnv)
+simulate.add_command(translocation)
+simulate.add_command(linkedreads)

@@ -224,3 +224,7 @@ def naibr(inputs, output_dir, genome, vcf, min_sv, min_barcodes, threads, popula
     generate_conda_deps()
     _module = subprocess.run(command)
     sys.exit(_module.returncode)
+
+
+sv.add_command(leviathan)
+sv.add_command(naibr)

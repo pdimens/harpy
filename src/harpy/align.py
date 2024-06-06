@@ -303,3 +303,7 @@ def minimap(inputs, output_dir, genome, depth_window, threads, extra_params, qua
     generate_conda_deps()
     _module = subprocess.run(command)
     sys.exit(_module.returncode)
+
+align.add_command(bwa)
+align.add_command(ema)
+align.add_command(minimap)

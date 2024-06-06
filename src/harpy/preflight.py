@@ -148,3 +148,6 @@ def bam(inputs, output_dir, threads, snakemake, quiet, conda, print_only):
     generate_conda_deps()
     _module = subprocess.run(command)
     sys.exit(_module.returncode)
+
+preflight.add_command(fastq)
+preflight.add_command(bam)

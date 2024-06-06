@@ -245,3 +245,6 @@ def freebayes(inputs, output_dir, genome, threads, populations, ploidy, regions,
     generate_conda_deps()
     _module = subprocess.run(command)
     sys.exit(_module.returncode)
+
+snp.add_command(mpileup)
+snp.add_command(freebayes)
