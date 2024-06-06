@@ -3,7 +3,6 @@
 import argparse
 import sys
 import os
-import subprocess
 
 parser = argparse.ArgumentParser(
     prog='renamebam',
@@ -21,7 +20,7 @@ args = parser.parse_args()
 
 if not os.path.exists(args.input):
     parser.error("The file %s does not exist :(" % args.input)
-    exit(1)
+    sys.exit(1)
 
 jobstatus = os.system(f"samtools addreplacerg -r \"ID:{args.name}\\tSM:{args.name}\" -o {args.name}.bam {args.input}")
 

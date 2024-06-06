@@ -18,7 +18,7 @@ docstring = {
         },
         {
             "name": "Other Options",
-            "options": ["--output-dir", "--threads", "--skipreports", "--conda", "--snakemake", "--quiet", "--help"],
+            "options": ["--output-dir", "--threads", "--skipreports", "--hpc", "--conda", "--snakemake", "--quiet", "--help"],
         },
     ]
 }
@@ -32,11 +32,12 @@ docstring = {
 @click.option('-q', '--quiet',  is_flag = True, show_default = True, default = False, help = 'Don\'t show output text while running')
 @click.option('-o', '--output-dir', type = str, default = "Impute", show_default=True, help = 'Name of output directory')
 @click.option('--snakemake', type = str, help = 'Additional Snakemake parameters, in quotes')
+@click.option('--hpc',  type = click.Path(exists = True, file_okay = False), help = 'Config dir for automatic HPC submission')
 @click.option('--conda',  is_flag = True, default = False, help = 'Use conda/mamba instead of container')
 @click.option('--skipreports',  is_flag = True, show_default = True, default = False, help = 'Don\'t generate HTML reports')
 @click.option('--print-only',  is_flag = True, hidden = True, default = False, help = 'Print the generated snakemake command and exit')
 @click.argument('inputs', required=True, type=click.Path(exists=True), nargs=-1)
-def impute(inputs, output_dir, parameters, threads, vcf, vcf_samples, extra_params, snakemake, skipreports, quiet, conda, print_only):
+def impute(inputs, output_dir, parameters, threads, vcf, vcf_samples, extra_params, snakemake, skipreports, quiet, hpc, conda, print_only):
     """
     Impute genotypes using variants and sequences
     
@@ -56,19 +57,17 @@ def impute(inputs, output_dir, parameters, threads, vcf, vcf_samples, extra_para
     output_dir = output_dir.rstrip("/")
     workflowdir = f"{output_dir}/workflow"
     sdm = "conda" if conda else "conda apptainer"
-    command = f'snakemake --rerun-incomplete --rerun-triggers input mtime params --nolock --software-deployment-method {sdm} --conda-prefix ./.snakemake/conda --cores {threads} --directory .'.split()
-    command.append('--snakefile')
-    command.append(f'{workflowdir}/impute.smk')
-    command.append("--configfile")
-    command.append(f"{workflowdir}/config.yml")
+    command = f'snakemake --rerun-incomplete --rerun-triggers input mtime params --nolock --software-deployment-method {sdm} --conda-prefix ./.snakemake/conda --cores {threads} --directory . '
+    command += f"--snakefile {workflowdir}/impute.smk "
+    command += "--configfile {workflowdir}/config.yml "
+    if hpc:
+        command += f"--workflow-profile {hpc} "
     if quiet:
-        command.append("--quiet")
-        command.append("all")
+        command += "--quiet all "
     if snakemake is not None:
-        _ = [command.append(i) for i in snakemake.split()]
-    call_SM = " ".join(command)
+        command += snakemake
     if print_only:
-        click.echo(call_SM)
+        click.echo(command)
         sys.exit(0)
 
     os.makedirs(f"{workflowdir}/", exist_ok= True)
@@ -95,12 +94,12 @@ def impute(inputs, output_dir, parameters, threads, vcf, vcf_samples, extra_para
         if extra_params is not None:
             config.write(f"extra: {extra_params}\n")
         config.write(f"skipreports: {skipreports}\n")
-        config.write(f"workflow_call: {call_SM}\n")
+        config.write(f"workflow_call: {command}\n")
 
     print_onstart(
         f"Input VCF: {vcf}\nSamples in VCF: {len(samplenames)}\nAlignments Provided: {len(sn)}\nContigs Considered: {len(contigs)}\nOutput Directory: {output_dir}/",
         "impute"
     )
     generate_conda_deps()
-    _module = subprocess.run(command)
+    _module = subprocess.run(command.split())
     sys.exit(_module.returncode)

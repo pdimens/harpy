@@ -86,4 +86,4 @@ elif testname.endswith("fasta") or testname.endswith("fa") or testname.endswith(
     fopen.close()
 else:
     print("Input file not recognized as ending in one of .fai, .fasta, .fa, or .gz (case insensitive).", file = sys.stderr)
-    exit(1)
+    sys.exit(1)

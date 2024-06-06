@@ -4,7 +4,7 @@ import os
 import rich_click as click
 from .printfunctions import print_notice
 
-@click.group(options_metavar='', context_settings=dict(help_option_names=["-h", "--help"]))
+@click.group(options_metavar='', context_settings={"help_option_names" : ["-h", "--help"]})
 def hpc():
     """
     Profile templates for cluster job submissions
