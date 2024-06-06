@@ -62,10 +62,10 @@ mamba install -c bioconda -c conda-forge snakemake-executor-plugin-cluster-gener
         yml.write("#default-storage-provider: fs\n")
         yml.write("#local-storage-prefix: /home2/$USER\n")
         yml.write("#shared-fs-usage:\n")
-        yml.write("#- persistence\n")
-        yml.write("#- software-deployment\n")
-        yml.write("#- sources\n")
-        yml.write("#- source-cache\n")
+        yml.write("#\t- persistence\n")
+        yml.write("#\t- software-deployment\n")
+        yml.write("#\t- sources\n")
+        yml.write("#\t- source-cache\n")
 
 @click.command()
 def lsf():
@@ -97,10 +97,10 @@ mamba install -c bioconda -c conda-forge snakemake-executor-plugin-lsf
         yml.write("#default-storage-provider: fs\n")
         yml.write("#local-storage-prefix: /home2/$USER\n")
         yml.write("#shared-fs-usage:\n")
-        yml.write("#- persistence\n")
-        yml.write("#- software-deployment\n")
-        yml.write("#- sources\n")
-        yml.write("#- source-cache\n")
+        yml.write("#\t- persistence\n")
+        yml.write("#\t- software-deployment\n")
+        yml.write("#\t- sources\n")
+        yml.write("#\t- source-cache\n")
 
 @click.command()
 def htcondor():
@@ -131,10 +131,10 @@ mamba install -c bioconda -c conda-forge snakemake-executor-plugin-htcondor
         yml.write("#default-storage-provider: fs\n")
         yml.write("#local-storage-prefix: /home2/$USER\n")
         yml.write("#shared-fs-usage:\n")
-        yml.write("#- persistence\n")
-        yml.write("#- software-deployment\n")
-        yml.write("#- sources\n")
-        yml.write("#- source-cache\n")
+        yml.write("#\t- persistence\n")
+        yml.write("#\t- software-deployment\n")
+        yml.write("#\t- sources\n")
+        yml.write("#\t- source-cache\n")
 
 @click.command()
 def slurm():
@@ -164,10 +164,10 @@ mamba install -c bioconda -c conda-forge snakemake-executor-plugin-slurm
         yml.write("#default-storage-provider: fs\n")
         yml.write("#local-storage-prefix: /home2/$USER\n")
         yml.write("#shared-fs-usage:\n")
-        yml.write("#- persistence\n")
-        yml.write("#- software-deployment\n")
-        yml.write("#- sources\n")
-        yml.write("#- source-cache\n")
+        yml.write("#\t- persistence\n")
+        yml.write("#\t- software-deployment\n")
+        yml.write("#\t- sources\n")
+        yml.write("#\t- source-cache\n")
 
 @click.command()
 def googlebatch():
@@ -241,6 +241,3 @@ hpc.add_command(htcondor)
 hpc.add_command(lsf)
 hpc.add_command(generic)
 hpc.add_command(googlebatch)
-
-
-
