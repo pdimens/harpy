@@ -2,6 +2,7 @@
 
 import os
 import rich_click as click
+from rich.markdown import Markdown
 from .printfunctions import print_notice
 
 @click.group(options_metavar='', context_settings={"help_option_names" : ["-h", "--help"]})
@@ -12,14 +13,15 @@ def hpc():
     If running Harpy on an HPC system (or cluster), you can leverage Snakemake
     to handle all the job submissions on your behalf. This command creates templates
     for common HPC schedulers so you can run Harpy on a cluster with minimal friction.
-    The subcommands create a `config.yml` in an `hpc/` directory.
+    The subcommands create a `config.yml` in an `hpc/` directory. You will to install
+    the associated Snakemake executor plugin for HPC job submission to work.
     """
 
 docstring = {
     "harpy hpc": [
         {
             "name": "Submission Systems",
-            "commands": ["slurm", "htcondor", "lsf", "googlelifesci", "generic"],
+            "commands": ["slurm", "htcondor", "lsf", "googlebatch", "generic"],
         },
     ]
 }
@@ -30,7 +32,14 @@ def generic():
     outfile = "hpc/generic/config.yaml"
     os.makedirs("hpc/generic", exist_ok=True)
     if os.path.exists(outfile):
-        print_notice(f"[blue bold]{outfile}[/blue bold] exists, overwriting.")
+        click.echo(f"{outfile} exists, overwriting.")
+    print_notice(Markdown("""
+Using a scheduler requires installing an additional Snakemake plugin. If you haven't already, install the `generic-cluster` plugin with:
+    
+```bash
+mamba install -c bioconda -c conda-forge snakemake-executor-plugin-cluster-generic
+```
+                """))
     with open(outfile, "w", encoding = "utf-8") as yml:
         yml.write("__use_yte__: true\n")
         yml.write("executor: cluster-generic\n")
@@ -64,7 +73,14 @@ def lsf():
     outfile = "hpc/lsf/config.yaml"
     os.makedirs("hpc/lsf", exist_ok=True)
     if os.path.exists(outfile):
-        print_notice(f"[blue bold]{outfile}[/blue bold] exists, overwriting.")
+        click.echo(f"{outfile} exists, overwriting.")
+    print_notice(Markdown("""
+Using a scheduler requires installing an additional Snakemake plugin. If you haven't already, install the `generic-cluster` plugin with:
+    
+```bash
+mamba install -c bioconda -c conda-forge snakemake-executor-plugin-lsf
+```
+                """))
     with open(outfile, "w", encoding = "utf-8") as yml:
         yml.write("__use_yte__: true\n")
         yml.write("executor: lsf\n")
@@ -92,7 +108,14 @@ def htcondor():
     os.makedirs("hpc/htcondor", exist_ok=True)
     outfile = "hpc/htcondor/config.yaml"
     if os.path.exists(outfile):
-        print_notice(f"[blue bold]{outfile}[/blue bold] exists, overwriting.")
+        click.echo(f"{outfile} exists, overwriting.")
+    print_notice(Markdown("""
+Using a scheduler requires installing an additional Snakemake plugin. If you haven't already, install the `generic-cluster` plugin with:
+    
+```bash
+mamba install -c bioconda -c conda-forge snakemake-executor-plugin-htcondor
+```
+                """))
     with open(outfile, "w", encoding = "utf-8") as yml:
         yml.write("__use_yte__: true\n")
         yml.write("executor: htcondor\n")
@@ -119,7 +142,14 @@ def slurm():
     os.makedirs("hpc/slurm", exist_ok=True)
     outfile = "hpc/slurm/config.yaml"
     if os.path.exists(outfile):
-        print_notice(f"[blue bold]{outfile}[/blue bold] exists, overwriting.")
+        click.echo(f"{outfile} exists, overwriting.")
+    print_notice(Markdown("""
+Using a scheduler requires installing an additional Snakemake plugin. If you haven't already, install the `generic-cluster` plugin with:
+    
+```bash
+mamba install -c bioconda -c conda-forge snakemake-executor-plugin-slurm
+```
+                """))
     with open(outfile, "w", encoding = "utf-8") as yml:
         yml.write("__use_yte__: true\n")
         yml.write("executor: slurm\n")
@@ -140,24 +170,77 @@ def slurm():
         yml.write("#- source-cache\n")
 
 @click.command()
-def googlelifesci():
-    """Configuration for Google Life Sciences"""
-    os.makedirs("hpc/googlelifesci", exist_ok=True)
-    outfile = "hpc/googlelifesci/config.yaml"
+def googlebatch():
+    """Configuration for Google Batch"""
+    os.makedirs("hpc/googlebatch", exist_ok=True)
+    outfile = "hpc/googlebatch/config.yaml"
     if os.path.exists(outfile):
-        print_notice(f"[blue bold]{outfile}[/blue bold] exists, overwriting.")
+        click.echo(f"{outfile} exists, overwriting.")
+    print_notice(Markdown("""
+Using a scheduler requires installing an additional Snakemake plugin. If you haven't already, install the `generic-cluster` plugin with:
+    
+```bash
+mamba install -c bioconda -c conda-forge snakemake-executor-plugin-googlebatch
+```
+                """))
     with open(outfile, "w", encoding = "utf-8") as yml:
-        yml.write("google-lifesciences: True\n")
+        yml.write("__use_yte__: true\n")
+        yml.write("executor: googlebatch\n")
         yml.write("jobs: 50\n")
         yml.write("latency-wait: 45\n")
         yml.write("retries: 1\n")
         yml.write("default-resources:\n")
-        yml.write("\tmem_mb: attempt * 4000\n")
-        yml.write("\tmem_mb_reduced: (attempt * 2000) * 0.9\n")
-        yml.write("\tmachine_type: \"n2-standard-4\"\n")
+        yml.write("## YOU MAY NOT NEED ALL OF THESE! ##\n")
+        yml.write("# The name of the Google Project\n")
+        yml.write("\tgooglebatch_project: Harpy\n")
+        yml.write("# The name of the Google Project region (e.g., 'us-central1')\n")
+        yml.write("\tgooglebatch_region: 'us-central1'\n")
+        yml.write("# Retry count\n")
+        yml.write("\tgooglebatch_retry_count: 1\n")
+        yml.write("# Maximum run duration, string (e.g., '3600s')\n")
+        yml.write("\tgooglebatch_max_run_duration: '3600s'\n")
+        yml.write("# Memory in MiB\n")
+        yml.write("\tgooglebatch_memory: attempt * 2000\n")
+        yml.write("# The default number of work tasks (these are NOT MPI ranks)\n")
+        yml.write("\tgooglebatch_work_tasks: 50\n")
+        yml.write("# The default number of work tasks per node (NOT MPI ranks)\n")
+        yml.write("\tgooglebatch_work_tasks_per_node: 10\n")
+        yml.write("# Milliseconds per cpu-second\n")
+        yml.write("\tgooglebatch_cpu_milli: 1000\n")
+        yml.write("# A custom container for use with Google Batch COS\n")
+        yml.write("\tgooglebatch_container: VALUE\n")
+        yml.write("# A docker registry password for COS if credentials are required\n")
+        yml.write("\tgooglebatch_docker_password: VALUE\n")
+        yml.write("# A docker registry username for COS if credentials are required\n")
+        yml.write("\tgooglebatch_docker_username: VALUE\n")
+        yml.write("# Google Cloud machine type or VM (mpitune on c2 and c2d family)\n")
+        yml.write("\tgooglebatch_machine_type: 'c2-standard-4'\n")
+        yml.write("# Comma separated key value pairs to label job (e.g., model=a3,stage=test)\n")
+        yml.write("\tgooglebatch_labels: VALUE\n")
+        yml.write("# Google Cloud image family (defaults to hpc-centos-7)\n")
+        yml.write("\tgooglebatch_image_family: 'hpc-centos-7'\n")
+        yml.write("# Selected image project\n")
+        yml.write("\tgooglebatch_image_project: 'cloud-hpc-image-public'\n")
+        yml.write("# Boot disk size (GB)\n")
+        yml.write("\tgooglebatch_boot_disk_gb: VALUE\n")
+        yml.write("# The URL of an existing network resource\n")
+        yml.write("\tgooglebatch_network: VALUE\n")
+        yml.write("# The URL of an existing subnetwork resource\n")
+        yml.write("\tgooglebatch_subnetwork: VALUE\n")
+        yml.write("# Boot disk type. (e.g., gcloud compute disk-types list)\n")
+        yml.write("\tgooglebatch_boot_disk_type: VALUE\n")
+        yml.write("# Boot disk image (e.g., batch-debian, bath-centos)\n")
+        yml.write("\tgooglebatch_boot_disk_image: VALUE\n")
+        yml.write("# Mount path for Google bucket (if defined)\n")
+        yml.write("\tgooglebatch_mount_path: '/mnt/share'\n")
+        yml.write("# One or more snippets to add to the Google Batch task setup\n")
+        yml.write("\tgooglebatch_snippets: VALUE\n")
 
 hpc.add_command(slurm)
 hpc.add_command(htcondor)
 hpc.add_command(lsf)
 hpc.add_command(generic)
-hpc.add_command(googlelifesci)
+hpc.add_command(googlebatch)
+
+
+
