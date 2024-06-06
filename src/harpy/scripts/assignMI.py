@@ -217,6 +217,3 @@ outfile.close()
 
 # index the output file
 pysam.index(snakemake.output[0])
-
-# exit gracefully
-exit(0)
