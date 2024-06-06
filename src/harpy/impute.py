@@ -59,7 +59,7 @@ def impute(inputs, output_dir, parameters, threads, vcf, vcf_samples, extra_para
     sdm = "conda" if conda else "conda apptainer"
     command = f'snakemake --rerun-incomplete --rerun-triggers input mtime params --nolock --software-deployment-method {sdm} --conda-prefix ./.snakemake/conda --cores {threads} --directory . '
     command += f"--snakefile {workflowdir}/impute.smk "
-    command += "--configfile {workflowdir}/config.yml "
+    command += f"--configfile {workflowdir}/config.yml "
     if hpc:
         command += f"--workflow-profile {hpc} "
     if quiet:

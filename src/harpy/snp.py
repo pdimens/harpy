@@ -82,7 +82,7 @@ def mpileup(inputs, output_dir, regions, genome, threads, populations, ploidy, e
     output_dir = output_dir.rstrip("/")
     workflowdir = f"{output_dir}/workflow"
     sdm = "conda" if conda else "conda apptainer"
-    command = (f'snakemake --rerun-incomplete --rerun-triggers input mtime params --nolock --software-deployment-method {sdm} --conda-prefix ./.snakemake/conda --cores {threads} --directory . ').split()
+    command = f'snakemake --rerun-incomplete --rerun-triggers input mtime params --nolock --software-deployment-method {sdm} --conda-prefix ./.snakemake/conda --cores {threads} --directory . '
     command += f"--snakefile {workflowdir}/snp-mpileup.smk "
     command += f"--configfile {workflowdir}/config.yml "
     if hpc:
@@ -182,7 +182,7 @@ def freebayes(inputs, output_dir, genome, threads, populations, ploidy, regions,
     output_dir = output_dir.rstrip("/")
     workflowdir = f"{output_dir}/workflow"
     sdm = "conda" if conda else "conda apptainer"
-    command = (f'snakemake --rerun-incomplete --rerun-triggers input mtime params --nolock --software-deployment-method {sdm} --conda-prefix ./.snakemake/conda --cores {threads} --directory . ').split()
+    command = f'snakemake --rerun-incomplete --rerun-triggers input mtime params --nolock --software-deployment-method {sdm} --conda-prefix ./.snakemake/conda --cores {threads} --directory . '
     command += f"--snakefile {workflowdir}/snp-freebayes.smk "
     command += f"--configfile {workflowdir}/config.yml "
     if hpc:
