@@ -3,6 +3,7 @@
 .harpy_envs/
 .condarc
 .cache/
+hpc/
 QC/
 Demultiplex/
 Genome/
