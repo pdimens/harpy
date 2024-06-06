@@ -16,7 +16,7 @@ docstring = {
         },
         {
             "name": "Other Options",
-            "options": ["--output-dir", "--threads", "--skipreports", "--conda", "--snakemake", "--quiet", "--help"],
+            "options": ["--output-dir", "--threads", "--skipreports", "--hpc", "--conda", "--snakemake", "--quiet", "--help"],
         },
     ]
 }
@@ -29,12 +29,13 @@ docstring = {
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(min = 4, max_open = True), help = 'Number of threads to use')
 @click.option('-q', '--quiet',  is_flag = True, show_default = True, default = False, help = 'Don\'t show output text while running')
 @click.option('-o', '--output-dir', type = str, default = "QC", show_default=True, help = 'Name of output directory')
-@click.option('--snakemake', type = str, help = 'Additional Snakemake parameters, in quotes')
+@click.option('--hpc',  type = click.Path(exists = True, file_okay = False), help = 'Config dir for automatic HPC submission')
 @click.option('--conda',  is_flag = True, default = False, help = 'Use conda/mamba instead of container')
+@click.option('--snakemake', type = str, help = 'Additional Snakemake parameters, in quotes')
 @click.option('--skipreports',  is_flag = True, show_default = True, default = False, help = 'Don\'t generate HTML reports')
 @click.option('--print-only',  is_flag = True, hidden = True, show_default = True, default = False, help = 'Print the generated snakemake command and exit')
 @click.argument('inputs', required=True, type=click.Path(exists=True), nargs=-1)
-def qc(inputs, output_dir, min_length, max_length, ignore_adapters, extra_params, threads, snakemake, skipreports, quiet, conda, print_only):
+def qc(inputs, output_dir, min_length, max_length, ignore_adapters, extra_params, threads, snakemake, skipreports, quiet, hpc, conda, print_only):
     """
     Remove adapters and quality trim sequences
 
@@ -49,19 +50,18 @@ def qc(inputs, output_dir, min_length, max_length, ignore_adapters, extra_params
     output_dir = output_dir.rstrip("/")
     workflowdir = f"{output_dir}/workflow"
     sdm = "conda" if conda else "conda apptainer"
-    command = f'snakemake --rerun-incomplete --rerun-triggers input mtime params --nolock  --software-deployment-method {sdm} --conda-prefix .snakemake/conda --cores {threads} --directory .'.split()
-    command.append('--snakefile')
-    command.append(f'{workflowdir}/qc.smk')
-    command.append('--configfile')
-    command.append(f'{workflowdir}/config.yml')
+    command = f'snakemake --rerun-incomplete --rerun-triggers input mtime params --nolock  --software-deployment-method {sdm} --conda-prefix .snakemake/conda --cores {threads} --directory . '
+    command += f"--snakefile {workflowdir}/qc.smk "
+    command += f"--configfile {workflowdir}/config.yml "
+    if hpc:
+        command += f"--workflow-profile {hpc} "
     if quiet:
-        command.append("--quiet")
-        command.append("all")
+        command += "--quiet all "
     if snakemake is not None:
-        _ = [command.append(i) for i in snakemake.split()]
-    call_SM = " ".join(command)
+        command += snakemake
+
     if print_only:
-        click.echo(call_SM)
+        click.echo(command)
         sys.exit(0)
 
     _ = parse_fastq_inputs(inputs, f"{workflowdir}/input")
@@ -79,12 +79,12 @@ def qc(inputs, output_dir, min_length, max_length, ignore_adapters, extra_params
         config.write(f"max_len: {max_length}\n")
         config.write(f"extra: {extra_params}\n") if extra_params else None
         config.write(f"skipreports: {skipreports}\n")
-        config.write(f"workflow_call: {call_SM}\n")
+        config.write(f"workflow_call: {command}\n")
 
     print_onstart(
         f"Samples: {len(sn)}\nOutput Directory: {output_dir}/",
         "qc"
     )
     generate_conda_deps()
-    _module = subprocess.run(command)
+    _module = subprocess.run(command.split())
     sys.exit(_module.returncode)

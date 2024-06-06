@@ -36,7 +36,7 @@ def parse_fastq_inputs(inputs, outdir):
     re_ext = re.compile(r"\.(fq|fastq)(?:\.gz)?$", re.IGNORECASE)
     if len(infiles) < 1:
         print_error("There were no files found in the provided inputs that end with the accepted fastq extensions [blue].fq .fastq .fq.gz .fastq.gz[/blue]")
-        exit(1)
+        sys.exit(1)
     for i in infiles:
         destination = os.path.join(outdir,os.path.basename(i))
         # clean up extensions for consistency
@@ -51,7 +51,7 @@ def parse_fastq_inputs(inputs, outdir):
         print_solution_with_culprits("Make sure all input files have unique names.", "Files with clashing names:")
         for i in dupes:
             click.echo(" ".join([j for j in infiles if i in j]), file = sys.stderr)
-        exit(1)
+        sys.exit(1)
 
     Path(outdir).mkdir(parents=True, exist_ok=True)
     for (i,o) in zip(infiles, outfiles):
@@ -106,7 +106,7 @@ def parse_alignment_inputs(inputs, outdir):
         print_solution_with_culprits("Make sure all input files have unique names.", "Files with clashing names:")
         for i in dupes:
             click.echo(" ".join([j for j in bam_infiles if i in j]), file = sys.stderr)
-        exit(1)
+        sys.exit(1)
     for i in bai_infiles:
         destination = os.path.join(outdir,os.path.basename(i))
         # clean up extensions for consistency

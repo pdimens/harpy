@@ -9,7 +9,7 @@ from .helperfunctions import fetch_rule, fetch_script, symlink
 from .printfunctions import print_onstart, print_error
 from .validations import validate_input_by_ext
 
-@click.group(options_metavar='', context_settings=dict(help_option_names=["-h", "--help"]))
+@click.group(options_metavar='', context_settings={"help_option_names" : ["-h", "--help"]})
 def simulate():
     """
     Simulate variants or linked reads from a genome
@@ -22,15 +22,28 @@ def simulate():
     genomic variants.
     """
 
+commandstring = {
+    "harpy simulate": [
+        {
+            "name": "Linked Read Sequences",
+            "commands": ["linkedreads"],
+        },
+        {
+            "name": "Genomic Variants",
+            "commands": ["snpindel","inversion", "cnv", "translocation"],
+        }
+    ]
+}
+
 docstring = {
-        "harpy simulate linkedreads": [
+    "harpy simulate linkedreads": [
         {
             "name": "Parameters",
             "options": ["--barcodes", "--read-pairs", "--outer-distance", "--distance-sd", "--mutation-rate", "--molecule-length", "--partitions", "--molecules-per"],
         },
         {
             "name": "Other Options",
-            "options": ["--output-dir", "--threads", "--conda", "--snakemake", "--quiet", "--help"],
+            "options": ["--output-dir", "--threads", "--hpc", "--conda", "--snakemake", "--quiet", "--help"],
         },     
     ],
     "harpy simulate snpindel": [
@@ -44,7 +57,7 @@ docstring = {
         },
         {
             "name": "Other Options",
-            "options": ["--output-dir", "--prefix", "--heterozygosity", "--randomseed", "--conda", "--snakemake", "--quiet", "--help"],
+            "options": ["--output-dir", "--prefix", "--heterozygosity", "--randomseed", "--hpc", "--conda", "--snakemake", "--quiet", "--help"],
         },
     ],
     "harpy simulate inversion": [
@@ -58,7 +71,7 @@ docstring = {
         },
         {
             "name": "Other Options",
-            "options": ["--output-dir", "--prefix", "--heterozygosity", "--randomseed", "--conda", "--snakemake", "--quiet", "--help"],
+            "options": ["--output-dir", "--prefix", "--heterozygosity", "--randomseed", "--hpc", "--conda", "--snakemake", "--quiet", "--help"],
         },
     ],
     "harpy simulate cnv": [
@@ -72,7 +85,7 @@ docstring = {
         },
         {
             "name": "Other Options",
-            "options": ["--output-dir", "--prefix", "--heterozygosity", "--randomseed", "--conda", "--snakemake", "--quiet", "--help"],
+            "options": ["--output-dir", "--prefix", "--heterozygosity", "--randomseed", "--hpc", "--conda", "--snakemake", "--quiet", "--help"],
         },
     ],
     "harpy simulate translocation": [
@@ -86,7 +99,7 @@ docstring = {
         },
         {
             "name": "Other Options",
-            "options": ["--output-dir","--prefix","--heterozygosity", "--randomseed", "--conda", "--snakemake", "--quiet", "--help"],
+            "options": ["--output-dir","--prefix","--heterozygosity", "--randomseed", "--hpc", "--conda", "--snakemake", "--quiet", "--help"],
         },
     ]
 }
@@ -102,13 +115,14 @@ docstring = {
 @click.option('-m', '--molecules-per', type = click.IntRange(min = 1), default = 10, show_default=True,  help = "Average number of molecules per partition")
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(min = 1, max_open = True), help = 'Number of threads to use')
 @click.option('-q', '--quiet',  is_flag = True, show_default = True, default = False, help = 'Don\'t show output text while running')
-@click.option('--snakemake', type = str, help = 'Additional Snakemake parameters, in quotes')
+@click.option('--hpc',  type = click.Path(exists = True, file_okay = False), help = 'Config dir for automatic HPC submission')
 @click.option('--conda',  is_flag = True, default = False, help = 'Use conda/mamba instead of container')
+@click.option('--snakemake', type = str, help = 'Additional Snakemake parameters, in quotes')
 @click.option('--print-only',  is_flag = True, hidden = True, show_default = True, default = False, help = 'Print the generated snakemake command and exit')
 @click.option('-o', '--output-dir', type = str, default = "Simulate/linkedreads", help = 'Name of output directory')
 @click.argument('genome_hap1', required=True, type=click.Path(exists=True, dir_okay=False), nargs=1)
 @click.argument('genome_hap2', required=True, type=click.Path(exists=True, dir_okay=False), nargs=1)
-def linkedreads(genome_hap1, genome_hap2, output_dir, outer_distance, mutation_rate, distance_sd, barcodes, read_pairs, molecule_length, partitions, molecules_per, threads, snakemake, quiet, conda, print_only):
+def linkedreads(genome_hap1, genome_hap2, output_dir, outer_distance, mutation_rate, distance_sd, barcodes, read_pairs, molecule_length, partitions, molecules_per, threads, snakemake, quiet, hpc, conda, print_only):
     """
     Create linked reads from a genome
  
@@ -123,19 +137,17 @@ def linkedreads(genome_hap1, genome_hap2, output_dir, outer_distance, mutation_r
     output_dir = output_dir.rstrip("/")
     workflowdir = f"{output_dir}/workflow"
     sdm = "conda" if conda else "conda apptainer"
-    command = f'snakemake --rerun-incomplete --rerun-triggers input mtime params --nolock  --software-deployment-method {sdm} --conda-prefix ./.snakemake/conda --cores {threads} --directory .'.split()
-    command.append('--snakefile')
-    command.append(f'{workflowdir}/simulate-linkedreads.smk')
-    command.append('--configfile')
-    command.append(f'{workflowdir}/config.yml')
+    command = f'snakemake --rerun-incomplete --rerun-triggers input mtime params --nolock  --software-deployment-method {sdm} --conda-prefix ./.snakemake/conda --cores {threads} --directory . '
+    command += f"--snakefile {workflowdir}/simulate-linkedreads.smk "
+    command += f"--configfile {workflowdir}/config.yml "
+    if hpc:
+        command += f"--workflow-profile {hpc} "
     if quiet:
-        command.append("--quiet")
-        command.append("all")
+        command += "--quiet all "
     if snakemake is not None:
-        _ = [command.append(i) for i in snakemake.split()]
-    call_SM = " ".join(command)
+        command += snakemake
     if print_only:
-        click.echo(call_SM)
+        click.echo(command)
         sys.exit(0)
 
     validate_input_by_ext(genome_hap1, "GENOME_HAP1", [".fasta", ".fa", ".fasta.gz", ".fa.gz"])
@@ -158,7 +170,7 @@ def linkedreads(genome_hap1, genome_hap2, output_dir, outer_distance, mutation_r
         config.write(f"molecule_length: {molecule_length}\n")
         config.write(f"partitions: {partitions}\n")
         config.write(f"molecules_per_partition: {molecules_per}\n")
-        config.write(f"workflow_call: {call_SM}\n")
+        config.write(f"workflow_call: {command}\n")
 
     onstart_text = f"Genome Haplotype 1: {os.path.basename(genome_hap1)}\n"
     onstart_text += f"Genome Haplotype 2: {os.path.basename(genome_hap2)}\n"
@@ -167,7 +179,7 @@ def linkedreads(genome_hap1, genome_hap2, output_dir, outer_distance, mutation_r
     print_onstart(onstart_text, "simulate reads")
     
     generate_conda_deps()
-    _module = subprocess.run(command)
+    _module = subprocess.run(command.split())
     sys.exit(_module.returncode)
 
 @click.command(no_args_is_help = True, epilog = "This workflow can be quite technical, please read the docs for more information: https://pdimens.github.io/harpy/modules/simulate/simulate-variants")
@@ -188,11 +200,12 @@ def linkedreads(genome_hap1, genome_hap2, output_dir, outer_distance, mutation_r
 @click.option('-p', '--prefix', type = str, default= "sim.snpindel", show_default=True, help = "Naming prefix for output files")
 @click.option('-q', '--quiet',  is_flag = True, show_default = True, default = False, help = 'Don\'t show output text while running')
 @click.option('--randomseed', type = click.IntRange(min = 1), help = "Random seed for simulation")
-@click.option('--snakemake', type = str, help = 'Additional Snakemake parameters, in quotes')
+@click.option('--hpc',  type = click.Path(exists = True, file_okay = False), help = 'Config dir for automatic HPC submission')
 @click.option('--conda',  is_flag = True, default = False, help = 'Use conda/mamba instead of container')
+@click.option('--snakemake', type = str, help = 'Additional Snakemake parameters, in quotes')
 @click.option('--print-only',  is_flag = True, hidden = True, show_default = True, default = False, help = 'Print the generated snakemake command and exit')
 @click.argument('genome', required=True, type=click.Path(exists=True, dir_okay=False), nargs=1)
-def snpindel(genome, snp_vcf, indel_vcf, output_dir, prefix, snp_count, indel_count, titv_ratio, indel_ratio, indel_size_alpha, indel_size_constant, centromeres, genes, snp_gene_constraints, heterozygosity, exclude_chr, randomseed, snakemake, quiet, conda, print_only):
+def snpindel(genome, snp_vcf, indel_vcf, output_dir, prefix, snp_count, indel_count, titv_ratio, indel_ratio, indel_size_alpha, indel_size_constant, centromeres, genes, snp_gene_constraints, heterozygosity, exclude_chr, randomseed, snakemake, quiet, hpc, conda, print_only):
     """
     Introduce snps and/or indels into a genome
  
@@ -215,19 +228,17 @@ def snpindel(genome, snp_vcf, indel_vcf, output_dir, prefix, snp_count, indel_co
     output_dir = output_dir.rstrip("/")
     workflowdir = f"{output_dir}/workflow"
     sdm = "conda" if conda else "conda apptainer"
-    command = f'snakemake --rerun-incomplete --rerun-triggers input mtime params --nolock --software-deployment-method {sdm} --conda-prefix ./.snakemake/conda --cores 1 --directory .'.split()
-    command.append('--snakefile')
-    command.append(f'{workflowdir}/simulate-snpindel.smk')
-    command.append("--configfile")
-    command.append(f"{workflowdir}/config.yml")
+    command = f'snakemake --rerun-incomplete --rerun-triggers input mtime params --nolock --software-deployment-method {sdm} --conda-prefix ./.snakemake/conda --cores 1 --directory . '
+    command += f"--snakefile {workflowdir}/simulate-snpindel.smk "
+    command += f"--configfile {workflowdir}/config.yml "
+    if hpc:
+        command += f"--workflow-profile {hpc} "
     if quiet:
-        command.append("--quiet")
-        command.append("all")
+        command += "--quiet all "
     if snakemake is not None:
-        _ = [command.append(i) for i in snakemake.split()]
-    call_SM = " ".join(command)
+        command += snakemake
     if print_only:
-        click.echo(call_SM)
+        click.echo(command)
         sys.exit(0)
     # instantiate workflow directory
     # move necessary files to workflow dir
@@ -289,11 +300,11 @@ def snpindel(genome, snp_vcf, indel_vcf, output_dir, prefix, snp_count, indel_co
             config.write(f"exclude_chr: {exclude_link}\n") if exclude_chr else None
             config.write(f"randomseed: {randomseed}\n") if randomseed else None
         config.write(f"heterozygosity: {heterozygosity}\n")
-        config.write(f"workflow_call: {call_SM}\n")
+        config.write(f"workflow_call: {command}\n")
 
     print_onstart(printmsg.rstrip("\n"), "simulate variants: snpindel")
     generate_conda_deps()
-    _module = subprocess.run(command)
+    _module = subprocess.run(command.split())
     sys.exit(_module.returncode)
 
 @click.command(no_args_is_help = True, epilog = "Please read the docs for more information: https://pdimens.github.io/harpy/modules/simulate/simulate-variants")
@@ -309,11 +320,12 @@ def snpindel(genome, snp_vcf, indel_vcf, output_dir, prefix, snp_count, indel_co
 @click.option('-q', '--quiet',  is_flag = True, show_default = True, default = False, help = 'Don\'t show output text while running')
 @click.option('-o', '--output-dir', type = str, default = "Simulate/inversion", show_default=True, help = 'Name of output directory')
 @click.option('--randomseed', type = click.IntRange(min = 1), help = "Random seed for simulation")
-@click.option('--snakemake', type = str, help = 'Additional Snakemake parameters, in quotes')
+@click.option('--hpc',  type = click.Path(exists = True, file_okay = False), help = 'Config dir for automatic HPC submission')
 @click.option('--conda',  is_flag = True, default = False, help = 'Use conda/mamba instead of container')
+@click.option('--snakemake', type = str, help = 'Additional Snakemake parameters, in quotes')
 @click.option('--print-only',  is_flag = True, hidden = True, show_default = True, default = False, help = 'Print the generated snakemake command and exit')
 @click.argument('genome', required=True, type=click.Path(exists=True, dir_okay=False), nargs=1)
-def inversion(genome, vcf, prefix, output_dir, count, min_size, max_size, centromeres, genes, heterozygosity, exclude_chr, randomseed, snakemake, quiet, conda, print_only):
+def inversion(genome, vcf, prefix, output_dir, count, min_size, max_size, centromeres, genes, heterozygosity, exclude_chr, randomseed, snakemake, quiet, hpc, conda, print_only):
     """
     Introduce inversions into a genome
  
@@ -328,19 +340,17 @@ def inversion(genome, vcf, prefix, output_dir, count, min_size, max_size, centro
     output_dir = output_dir.rstrip("/")
     workflowdir = f"{output_dir}/workflow"
     sdm = "conda" if conda else "conda apptainer"
-    command = f'snakemake --rerun-incomplete --rerun-triggers input mtime params --nolock --software-deployment-method {sdm} --conda-prefix ./.snakemake/conda --cores 1 --directory .'.split()
-    command.append('--snakefile')
-    command.append(f'{workflowdir}/simulate-variants.smk')
-    command.append("--configfile")
-    command.append(f"{workflowdir}/config.yml")
+    command = f'snakemake --rerun-incomplete --rerun-triggers input mtime params --nolock --software-deployment-method {sdm} --conda-prefix ./.snakemake/conda --cores 1 --directory . '
+    command += f"--snakefile {workflowdir}/simulate-variants.smk "
+    command += f"--configfile {workflowdir}/config.yml "
+    if hpc:
+        command += f"--workflow-profile {hpc} "
     if quiet:
-        command.append("--quiet")
-        command.append("all")
+        command += "--quiet all "
     if snakemake is not None:
-        _ = [command.append(i) for i in snakemake.split()]
-    call_SM = " ".join(command)
+        command += snakemake
     if print_only:
-        click.echo(call_SM)
+        click.echo(command)
         sys.exit(0)
     # instantiate workflow directory
     # move necessary files to workflow dir
@@ -391,11 +401,11 @@ def inversion(genome, vcf, prefix, output_dir, count, min_size, max_size, centro
             config.write(f"exclude_chr: {exclude_link}\n") if exclude_chr else None
             config.write(f"randomseed: {randomseed}\n") if randomseed else None
         config.write(f"heterozygosity: {heterozygosity}\n")
-        config.write(f"workflow_call: {call_SM}\n")
+        config.write(f"workflow_call: {command}\n")
 
     print_onstart(printmsg.rstrip("\n"), "simulate variants: inversion")
     generate_conda_deps()
-    _module = subprocess.run(command)
+    _module = subprocess.run(command.split())
     sys.exit(_module.returncode)
 
 @click.command(no_args_is_help = True, epilog = "Please read the docs for more information: https://pdimens.github.io/harpy/modules/simulate/simulate-variants")
@@ -414,11 +424,12 @@ def inversion(genome, vcf, prefix, output_dir, count, min_size, max_size, centro
 @click.option('-p', '--prefix', type = str, default= "sim.cnv", show_default=True, help = "Naming prefix for output files")
 @click.option('-q', '--quiet',  is_flag = True, show_default = True, default = False, help = 'Don\'t show output text while running')
 @click.option('--randomseed', type = click.IntRange(min = 1), help = "Random seed for simulation")
-@click.option('--snakemake', type = str, help = 'Additional Snakemake parameters, in quotes')
+@click.option('--hpc',  type = click.Path(exists = True, file_okay = False), help = 'Config dir for automatic HPC submission')
 @click.option('--conda',  is_flag = True, default = False, help = 'Use conda/mamba instead of container')
+@click.option('--snakemake', type = str, help = 'Additional Snakemake parameters, in quotes')
 @click.option('--print-only',  is_flag = True, hidden = True, show_default = True, default = False, help = 'Print the generated snakemake command and exit')
 @click.argument('genome', required=True, type=click.Path(exists=True, dir_okay=False), nargs=1)
-def cnv(genome, output_dir, vcf, prefix, count, min_size, max_size, dup_ratio, max_copy, gain_ratio, centromeres, genes, heterozygosity, exclude_chr, randomseed, snakemake, quiet, conda, print_only):
+def cnv(genome, output_dir, vcf, prefix, count, min_size, max_size, dup_ratio, max_copy, gain_ratio, centromeres, genes, heterozygosity, exclude_chr, randomseed, snakemake, quiet, hpc, conda, print_only):
     """
     Introduce copy number variants into a genome
  
@@ -439,19 +450,17 @@ def cnv(genome, output_dir, vcf, prefix, count, min_size, max_size, dup_ratio, m
     output_dir = output_dir.rstrip("/")
     workflowdir = f"{output_dir}/workflow"
     sdm = "conda" if conda else "conda apptainer"
-    command = f'snakemake --rerun-incomplete --rerun-triggers input mtime params --nolock --software-deployment-method {sdm} --conda-prefix ./.snakemake/conda --cores 1 --directory .'.split()
-    command.append('--snakefile')
-    command.append(f'{workflowdir}/simulate-variants.smk')
-    command.append("--configfile")
-    command.append(f"{workflowdir}/config.yml")
+    command = f'snakemake --rerun-incomplete --rerun-triggers input mtime params --nolock --software-deployment-method {sdm} --conda-prefix ./.snakemake/conda --cores 1 --directory . '
+    command += f"--snakefile {workflowdir}/simulate-variants.smk "
+    command += f"--configfile {workflowdir}/config.yml "
+    if hpc:
+        command += f"--workflow-profile {hpc} "
     if quiet:
-        command.append("--quiet")
-        command.append("all")
+        command += "--quiet all "
     if snakemake is not None:
-        _ = [command.append(i) for i in snakemake.split()]
-    call_SM = " ".join(command)
+        command += snakemake
     if print_only:
-        click.echo(call_SM)
+        click.echo(command)
         sys.exit(0)
     # instantiate workflow directory
     # move necessary files to workflow dir
@@ -505,11 +514,11 @@ def cnv(genome, output_dir, vcf, prefix, count, min_size, max_size, dup_ratio, m
             config.write(f"exclude_chr: {exclude_link}\n") if exclude_chr else None
             config.write(f"randomseed: {randomseed}\n") if randomseed else None
         config.write(f"heterozygosity: {heterozygosity}\n")
-        config.write(f"workflow_call: {call_SM}\n")
+        config.write(f"workflow_call: {command}\n")
 
     print_onstart(printmsg.rstrip("\n"),"simulate cnv")
     generate_conda_deps()
-    _module = subprocess.run(command)
+    _module = subprocess.run(command.split())
     sys.exit(_module.returncode)
 
 @click.command(no_args_is_help = True, epilog = "Please read the docs for more information: https://pdimens.github.io/harpy/modules/simulate/simulate-variants")
@@ -523,11 +532,12 @@ def cnv(genome, output_dir, vcf, prefix, count, min_size, max_size, dup_ratio, m
 @click.option('-p', '--prefix', type = str, default= "sim.translocation", show_default=True, help = "Naming prefix for output files")
 @click.option('-q', '--quiet',  is_flag = True, show_default = True, default = False, help = 'Don\'t show output text while running')
 @click.option('--randomseed', type = click.IntRange(min = 1), help = "Random seed for simulation")
-@click.option('--snakemake', type = str, help = 'Additional Snakemake parameters, in quotes')
+@click.option('--hpc',  type = click.Path(exists = True, file_okay = False), help = 'Config dir for automatic HPC submission')
 @click.option('--conda',  is_flag = True, default = False, help = 'Use conda/mamba instead of container')
+@click.option('--snakemake', type = str, help = 'Additional Snakemake parameters, in quotes')
 @click.option('--print-only',  is_flag = True, hidden = True, show_default = True, default = False, help = 'Print the generated snakemake command and exit')
 @click.argument('genome', required=True, type=click.Path(exists=True, dir_okay=False), nargs=1)
-def translocation(genome, output_dir, prefix, vcf, count, centromeres, genes, heterozygosity, exclude_chr, randomseed, snakemake, quiet, conda, print_only):
+def translocation(genome, output_dir, prefix, vcf, count, centromeres, genes, heterozygosity, exclude_chr, randomseed, snakemake, quiet, hpc, conda, print_only):
     """
     Introduce transolcations into a genome
  
@@ -542,19 +552,17 @@ def translocation(genome, output_dir, prefix, vcf, count, centromeres, genes, he
     output_dir = output_dir.rstrip("/")
     workflowdir = f"{output_dir}/workflow"
     sdm = "conda" if conda else "conda apptainer"
-    command = f'snakemake --rerun-incomplete --rerun-triggers input mtime params --nolock --software-deployment-method {sdm} --conda-prefix ./.snakemake/conda --cores 1 --directory .'.split()
-    command.append('--snakefile')
-    command.append(f'{workflowdir}/simulate-variants.smk')
-    command.append("--configfile")
-    command.append(f"{workflowdir}/config.yml")
+    command = f'snakemake --rerun-incomplete --rerun-triggers input mtime params --nolock --software-deployment-method {sdm} --conda-prefix ./.snakemake/conda --cores 1 --directory . '
+    command += f"--snakefile {workflowdir}/simulate-variants.smk "
+    command += f"--configfile {workflowdir}/config.yml "
+    if hpc:
+        command += f"--workflow-profile {hpc} "
     if quiet:
-        command.append("--quiet")
-        command.append("all")
+        command += "--quiet all "
     if snakemake is not None:
-        _ = [command.append(i) for i in snakemake.split()]
-    call_SM = " ".join(command)
+        command += snakemake
     if print_only:
-        click.echo(call_SM)
+        click.echo(command)
         sys.exit(0)
     # instantiate workflow directory
     # move necessary files to workflow dir
@@ -603,9 +611,16 @@ def translocation(genome, output_dir, prefix, vcf, count, centromeres, genes, he
             config.write(f"exclude_chr: {exclude_link}\n") if exclude_chr else None
             config.write(f"randomseed: {randomseed}\n") if randomseed else None
         config.write(f"heterozygosity: {heterozygosity}\n")
-        config.write(f"workflow_call: {call_SM}\n")
+        config.write(f"workflow_call: {command}\n")
 
     print_onstart(printmsg.rstrip("\n"), "simulate variants: translocation")
     generate_conda_deps()
-    _module = subprocess.run(command)
+    _module = subprocess.run(command.split())
     sys.exit(_module.returncode)
+
+
+simulate.add_command(linkedreads)
+simulate.add_command(snpindel)
+simulate.add_command(inversion)
+simulate.add_command(cnv)
+simulate.add_command(translocation)

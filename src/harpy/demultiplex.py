@@ -8,7 +8,7 @@ from .printfunctions import print_onstart
 from .helperfunctions import fetch_rule
 from .validations import validate_demuxschema
 
-@click.group(options_metavar='', context_settings=dict(help_option_names=["-h", "--help"]))
+@click.group(options_metavar='', context_settings={"help_option_names" : ["-h", "--help"]})
 def demultiplex():
     """
     Demultiplex haplotagged FASTQ files
@@ -28,7 +28,7 @@ docstring = {
         },
         {
             "name": "Other Options",
-            "options": ["--output-dir", "--threads", "--skipreports", "--conda", "--snakemake", "--quiet", "--help"],
+            "options": ["--output-dir", "--threads", "--skipreports", "--hpc", "--conda", "--snakemake", "--quiet", "--help"],
         },
     ]
 
@@ -40,6 +40,7 @@ docstring = {
 @click.option('-q', '--quiet',  is_flag = True, show_default = True, default = False, help = 'Don\'t show output text while running')
 @click.option('-o', '--output-dir', type = str, default = "Demultiplex", show_default=True, help = 'Name of output directory')
 @click.option('--snakemake', type = str, help = 'Additional Snakemake parameters, in quotes')
+@click.option('--hpc',  type = click.Path(exists = True, file_okay = False), help = 'Config dir for automatic HPC submission')
 @click.option('--conda',  is_flag = True, default = False, help = 'Use conda/mamba instead of container')
 @click.option('--skipreports',  is_flag = True, show_default = True, default = False, help = 'Don\'t generate HTML reports')
 @click.option('--print-only',  is_flag = True, hidden = True, default = False,  help = 'Print the generated snakemake command and exit')
@@ -47,7 +48,7 @@ docstring = {
 @click.argument('R2_FQ', required=True, type=click.Path(exists=True, dir_okay=False))
 @click.argument('I1_FQ', required=True, type=click.Path(exists=True, dir_okay=False))
 @click.argument('I2_FQ', required=True, type=click.Path(exists=True, dir_okay=False))
-def gen1(r1_fq, r2_fq, i1_fq, i2_fq, output_dir, schema, threads, snakemake, skipreports, quiet, conda, print_only):
+def gen1(r1_fq, r2_fq, i1_fq, i2_fq, output_dir, schema, threads, snakemake, skipreports, quiet, hpc, conda, print_only):
     """
     Demultiplex Generation I haplotagged FASTQ files
 
@@ -58,21 +59,18 @@ def gen1(r1_fq, r2_fq, i1_fq, i2_fq, output_dir, schema, threads, snakemake, ski
     output_dir = output_dir.rstrip("/")
     workflowdir = f"{output_dir}/workflow"
     sdm = "conda" if conda else "conda apptainer"
-    command = f'snakemake --rerun-incomplete --rerun-triggers input mtime params --nolock --software-deployment-method {sdm} --conda-prefix ./.snakemake/conda --cores {threads} --directory .'.split()
-    command.append('--snakefile')
-    command.append(f'{workflowdir}/demultiplex.gen1.smk')
-    command.append("--configfile")
-    command.append(f"{workflowdir}/config.yml")
+    command = f'snakemake --rerun-incomplete --rerun-triggers input mtime params --nolock --software-deployment-method {sdm} --conda-prefix ./.snakemake/conda --cores {threads} --directory . '
+    command += f"--snakefile {workflowdir}/demultiplex.gen1.smk "
+    command += f"--configfile {workflowdir}/config.yml "
+    if hpc:
+        command += f"--workflow-profile {hpc} "
     if quiet:
-        command.append("--quiet")
-        command.append("all")
+        command += "--quiet all "
     if snakemake is not None:
-        _ = [command.append(i) for i in snakemake.split()]
-
-    call_SM = " ".join(command)
+        command += snakemake
 
     if print_only:
-        click.echo(call_SM)
+        click.echo(command)
         sys.exit(0)
 
     #check_demux_fastq(fastq_input)
@@ -87,12 +85,14 @@ def gen1(r1_fq, r2_fq, i1_fq, i2_fq, output_dir, schema, threads, snakemake, ski
         config.write(f"output_directory: {output_dir}\n")
         config.write(f"samplefile: {schema}\n")
         config.write(f"skipreports: {skipreports}\n")
-        config.write(f"workflow_call: {call_SM}\n")
+        config.write(f"workflow_call: {command}\n")
 
     print_onstart(
         f"Haplotag Type: Generation I\nDemultiplex Schema: {schema}\nOutput Directory: {output_dir}",
         "demultiplex gen1"
     )
     generate_conda_deps()
-    _module = subprocess.run(command)
+    _module = subprocess.run(command.split())
     sys.exit(_module.returncode)
+
+demultiplex.add_command(gen1)

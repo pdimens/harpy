@@ -10,7 +10,7 @@ from .fileparsers import getnames, parse_alignment_inputs
 from .printfunctions import print_onstart
 from .validations import validate_popfile, validate_vcfsamples, check_phase_vcf, validate_input_by_ext
 
-@click.group(options_metavar='', context_settings=dict(help_option_names=["-h", "--help"]))
+@click.group(options_metavar='', context_settings={"help_option_names" : ["-h", "--help"]})
 def sv():
     """
     Call large structural variants
@@ -31,7 +31,7 @@ docstring = {
         },
         {
             "name": "Other Options",
-            "options": ["--output-dir", "--threads", "--skipreports", "--conda", "--snakemake", "--quiet", "--help"],
+            "options": ["--output-dir", "--threads", "--skipreports", "--hpc", "--conda", "--snakemake", "--quiet", "--help"],
         },
     ],
     "harpy sv naibr": [
@@ -41,7 +41,7 @@ docstring = {
         },
         {
             "name": "Other Options",
-            "options": ["--output-dir", "--threads", "--skipreports", "--conda", "--snakemake", "--quiet", "--help"],
+            "options": ["--output-dir", "--threads", "--skipreports", "--hpc", "--conda", "--snakemake", "--quiet", "--help"],
         },
     ]
 }
@@ -55,12 +55,13 @@ docstring = {
 @click.option('-o', '--output-dir', type = str, default = "SV/leviathan", show_default=True, help = 'Name of output directory')
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(min = 4, max_open = True), help = 'Number of threads to use')
 @click.option('-q', '--quiet',  is_flag = True, show_default = True, default = False, help = 'Don\'t show output text while running')
-@click.option('--snakemake', type = str, help = 'Additional Snakemake parameters, in quotes')
+@click.option('--hpc',  type = click.Path(exists = True, file_okay = False), help = 'Config dir for automatic HPC submission')
 @click.option('--conda',  is_flag = True, default = False, help = 'Use conda/mamba instead of container')
+@click.option('--snakemake', type = str, help = 'Additional Snakemake parameters, in quotes')
 @click.option('--skipreports',  is_flag = True, show_default = True, default = False, help = 'Don\'t generate HTML reports')
 @click.option('--print-only',  is_flag = True, hidden = True, default = False, help = 'Print the generated snakemake command and exit')
 @click.argument('inputs', required=True, type=click.Path(exists=True), nargs=-1)
-def leviathan(inputs, output_dir, genome, min_sv, min_barcodes, threads, populations, extra_params, snakemake, skipreports, quiet, conda, print_only):
+def leviathan(inputs, output_dir, genome, min_sv, min_barcodes, threads, populations, extra_params, snakemake, skipreports, quiet, hpc, conda, print_only):
     """
     Call structural variants using LEVIATHAN
     
@@ -75,19 +76,18 @@ def leviathan(inputs, output_dir, genome, min_sv, min_barcodes, threads, populat
     workflowdir = f"{output_dir}/workflow"
     sdm = "conda" if conda else "conda apptainer"
     vcaller = "leviathan" if populations is None else "leviathan-pop"
-    command = f'snakemake --rerun-incomplete --rerun-triggers input mtime params --nolock --software-deployment-method {sdm} --conda-prefix ./.snakemake/conda --cores {threads} --directory .'.split()
-    command.append('--snakefile')
-    command.append(f'{workflowdir}/sv-{vcaller}.smk')
-    command.append('--configfile')
-    command.append(f'{workflowdir}/config.yml')
+    command = f'snakemake --rerun-incomplete --rerun-triggers input mtime params --nolock --software-deployment-method {sdm} --conda-prefix ./.snakemake/conda --cores {threads} --directory . '
+    command += f"--snakefile {workflowdir}/sv-{vcaller}.smk "
+    command += f"--configfile {workflowdir}/config.yml "
+    if hpc:
+        command += f"--workflow-profile {hpc} "
     if quiet:
-        command.append("--quiet")
-        command.append("all")
+        command += "--quiet all "
     if snakemake is not None:
-        _ = [command.append(i) for i in snakemake.split()]
-    call_SM = " ".join(command)
+        command += snakemake
+
     if print_only:
-        click.echo(call_SM)
+        click.echo(command)
         sys.exit(0)
 
     os.makedirs(f"{workflowdir}/", exist_ok= True)
@@ -117,14 +117,14 @@ def leviathan(inputs, output_dir, genome, min_sv, min_barcodes, threads, populat
         if extra_params is not None:
             config.write(f"extra: {extra_params}\n")
         config.write(f"skipreports: {skipreports}\n")
-        config.write(f"workflow_call: {call_SM}\n")
+        config.write(f"workflow_call: {command}\n")
 
     print_onstart(
         f"Samples: {len(samplenames)}{popgroupings}\nOutput Directory: {output_dir}/",
         "sv leviathan"
     )
     generate_conda_deps()
-    _module = subprocess.run(command)
+    _module = subprocess.run(command.split())
     sys.exit(_module.returncode)
 
 @click.command(no_args_is_help = True, epilog = "read the docs for more information: https://pdimens.github.io/harpy/modules/sv/naibr/")
@@ -138,12 +138,13 @@ def leviathan(inputs, output_dir, genome, min_sv, min_barcodes, threads, populat
 @click.option('-o', '--output-dir', type = str, default = "SV/naibr", show_default=True, help = 'Name of output directory')
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(min = 4, max_open = True), help = 'Number of threads to use')
 @click.option('-q', '--quiet',  is_flag = True, show_default = True, default = False, help = 'Don\'t show output text while running')
-@click.option('--snakemake', type = str, help = 'Additional Snakemake parameters, in quotes')
+@click.option('--hpc',  type = click.Path(exists = True, file_okay = False), help = 'Config dir for automatic HPC submission')
 @click.option('--conda',  is_flag = True, default = False, help = 'Use conda/mamba instead of container')
+@click.option('--snakemake', type = str, help = 'Additional Snakemake parameters, in quotes')
 @click.option('--skipreports',  is_flag = True, show_default = True, default = False, help = 'Don\'t generate HTML reports')
 @click.option('--print-only',  is_flag = True, hidden = True, default = False, help = 'Print the generated snakemake command and exit')
 @click.argument('inputs', required=True, type=click.Path(exists=True), nargs=-1)
-def naibr(inputs, output_dir, genome, vcf, min_sv, min_barcodes, threads, populations, molecule_distance, extra_params, snakemake, skipreports, quiet, conda, print_only):
+def naibr(inputs, output_dir, genome, vcf, min_sv, min_barcodes, threads, populations, molecule_distance, extra_params, snakemake, skipreports, quiet, hpc, conda, print_only):
     """
     Call structural variants using NAIBR
     
@@ -165,20 +166,17 @@ def naibr(inputs, output_dir, genome, vcf, min_sv, min_barcodes, threads, popula
     sdm = "conda" if conda else "conda apptainer"
     vcaller = "naibr" if populations is None else "naibr-pop"
     vcaller += "-phase" if vcf is not None else ""
-    
-    command = (f'snakemake --rerun-incomplete --rerun-triggers input mtime params --nolock --software-deployment-method {sdm} --conda-prefix ./.snakemake/conda --cores {threads} --directory .').split()
-    command.append('--snakefile')
-    command.append(f"{workflowdir}/sv-{vcaller}.smk")
-    command.append("--configfile")
-    command.append(f"{workflowdir}/config.yml")
+    command = f'snakemake --rerun-incomplete --rerun-triggers input mtime params --nolock --software-deployment-method {sdm} --conda-prefix ./.snakemake/conda --cores {threads} --directory . '
+    command += f"--snakefile {workflowdir}/sv-{vcaller}.smk "
+    command += f"--configfile {workflowdir}/config.yml "
+    if hpc:
+        command += f"--workflow-profile {hpc} "
     if quiet:
-        command.append("--quiet")
-        command.append("all")
+        command += "--quiet all "
     if snakemake is not None:
-        _ = [command.append(i) for i in snakemake.split()]
-    _ = call_SM = " ".join(command)
+        command += snakemake
     if print_only:
-        click.echo(call_SM)
+        click.echo(command)
         sys.exit(0)
 
     os.makedirs(f"{workflowdir}/", exist_ok= True)
@@ -215,12 +213,16 @@ def naibr(inputs, output_dir, genome, vcf, min_sv, min_barcodes, threads, popula
         if extra_params is not None:
             config.write(f"extra: {extra_params}\n")
         config.write(f"skipreports: {skipreports}\n")
-        config.write(f"workflow_call: {call_SM}\n")
+        config.write(f"workflow_call: {command}\n")
 
     print_onstart(
         f"Samples: {len(samplenames)}{popgroupings}\nOutput Directory: {output_dir}/",
         "sv naibr"
     )
     generate_conda_deps()
-    _module = subprocess.run(command)
+    _module = subprocess.run(command.split())
     sys.exit(_module.returncode)
+
+
+sv.add_command(leviathan)
+sv.add_command(naibr)

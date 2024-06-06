@@ -1,5 +1,6 @@
 """Harpy align workflows"""
 
+from genericpath import exists, isfile
 import os
 import sys
 import subprocess
@@ -11,7 +12,7 @@ from .fileparsers import get_samples_from_fastq, parse_fastq_inputs
 from .printfunctions import print_error, print_solution, print_notice, print_onstart
 from .validations import validate_input_by_ext
 
-@click.group(options_metavar='', context_settings=dict(help_option_names=["-h", "--help"]))
+@click.group(options_metavar='', context_settings={"help_option_names" : ["-h", "--help"]})
 def align():
     """
     Align sample sequences to a reference genome
@@ -39,7 +40,7 @@ docstring = {
         },
         {
             "name": "Other Options",
-            "options": ["--output-dir", "--threads", "--depth-window", "--skipreports", "--conda", "--snakemake", "--quiet", "--help"],
+            "options": ["--output-dir", "--threads", "--depth-window", "--skipreports", "--hpc", "--conda", "--snakemake", "--quiet", "--help"],
         },
     ],
     "harpy align ema": [
@@ -74,11 +75,12 @@ docstring = {
 @click.option('-q', '--quiet',  is_flag = True, show_default = True, default = False, help = 'Don\'t show output text while running')
 @click.option('-o', '--output-dir', type = str, default = "Align/bwa", show_default=True, help = 'Name of output directory')
 @click.option('--snakemake', type = str, help = 'Additional Snakemake parameters, in quotes')
+@click.option('--hpc',  type = click.Path(exists = True, file_okay = False), help = 'Config dir for automatic HPC submission')
 @click.option('--conda',  is_flag = True, default = False, help = 'Use conda/mamba instead of container')
 @click.option('--skipreports',  is_flag = True, show_default = True, default = False, help = 'Don\'t generate HTML reports')
 @click.option('--print-only',  is_flag = True, hidden = True, default = False, help = 'Print the generated snakemake command and exit')
 @click.argument('inputs', required=True, type=click.Path(exists=True), nargs=-1)
-def bwa(inputs, output_dir, genome, depth_window, threads, extra_params, quality_filter, molecule_distance, snakemake, skipreports, quiet, conda, print_only):
+def bwa(inputs, output_dir, genome, depth_window, threads, extra_params, quality_filter, molecule_distance, snakemake, skipreports, quiet, hpc, conda, print_only):
     """
     Align sequences to genome using BWA MEM
  
@@ -92,19 +94,17 @@ def bwa(inputs, output_dir, genome, depth_window, threads, extra_params, quality
     output_dir = output_dir.rstrip("/")
     workflowdir = f"{output_dir}/workflow"
     sdm = "conda" if conda else "conda apptainer"
-    command = f'snakemake --rerun-incomplete --rerun-triggers input mtime params --nolock --software-deployment-method {sdm} --conda-prefix ./.snakemake/conda --cores {threads} --directory .'.split()
-    command.append('--snakefile')
-    command.append(f'{workflowdir}/align-bwa.smk')
-    command.append("--configfile")
-    command.append(f"{workflowdir}/config.yml")
+    command = f'snakemake --rerun-incomplete --rerun-triggers input mtime params --nolock --software-deployment-method {sdm} --conda-prefix ./.snakemake/conda --cores {threads} --directory . '
+    command += f"--snakefile {workflowdir}/align-bwa.smk "
+    command += f"--configfile {workflowdir}/config.yml "
+    if hpc:
+        command += f"--workflow-profile {hpc} "
     if quiet:
-        command.append("--quiet")
-        command.append("all")
+        command += "--quiet all "
     if snakemake is not None:
-        _ = [command.append(i) for i in snakemake.split()]
-    call_SM = " ".join(command)
+        command += snakemake
     if print_only:
-        click.echo(call_SM)
+        click.echo(command)
         sys.exit(0)
 
     os.makedirs(f"{workflowdir}/", exist_ok= True)
@@ -127,14 +127,14 @@ def bwa(inputs, output_dir, genome, depth_window, threads, extra_params, quality
         config.write(f"skipreports: {skipreports}\n")
         if extra_params is not None:
             config.write(f"extra: {extra_params}\n")
-        config.write(f"workflow_call: {call_SM}\n")
+        config.write(f"workflow_call: {command}\n")
 
     print_onstart(
         f"Samples: {len(samplenames)}\nOutput Directory: {output_dir}",
         "align bwa"
     )
     generate_conda_deps()
-    _module = subprocess.run(command)
+    _module = subprocess.run(command.split())
     sys.exit(_module.returncode)
 
 @click.command(no_args_is_help = True, epilog = "read the docs for more information: https://pdimens.github.io/harpy/modules/align/ema")
@@ -149,11 +149,12 @@ def bwa(inputs, output_dir, genome, depth_window, threads, extra_params, quality
 @click.option('-q', '--quiet',  is_flag = True, show_default = True, default = False, help = 'Don\'t show output text while running')
 @click.option('-o', '--output-dir', type = str, default = "Align/ema", show_default=True, help = 'Name of output directory')
 @click.option('--snakemake', type = str, help = 'Additional Snakemake parameters, in quotes')
+@click.option('--hpc',  type = click.Path(exists = True, file_okay = False), help = 'Config dir for automatic HPC submission')
 @click.option('--conda',  is_flag = True, default = False, help = 'Use conda/mamba instead of container')
 @click.option('--skipreports',  is_flag = True, show_default = True, default = False, help = 'Don\'t generate HTML reports')
 @click.option('--print-only',  is_flag = True, hidden = True, default = False, help = 'Print the generated snakemake command and exit')
 @click.argument('inputs', required=True, type=click.Path(exists=True), nargs=-1)
-def ema(inputs, output_dir, platform, whitelist, genome, depth_window, threads, ema_bins, skipreports, extra_params, quality_filter, snakemake, quiet, conda, print_only):
+def ema(inputs, output_dir, platform, whitelist, genome, depth_window, threads, ema_bins, skipreports, extra_params, quality_filter, snakemake, quiet, hpc, conda, print_only):
     """
     Align sequences to a genome using EMA
 
@@ -169,21 +170,18 @@ def ema(inputs, output_dir, platform, whitelist, genome, depth_window, threads, 
     output_dir = output_dir.rstrip("/")
     workflowdir = f"{output_dir}/workflow"
     sdm = "conda" if conda else "conda apptainer"
-    command = f'snakemake --rerun-incomplete --rerun-triggers input mtime params --nolock --software-deployment-method {sdm} --cores {threads} --directory .'.split()
-    command.append('--snakefile')
-    command.append(f'{workflowdir}/align-ema.smk')
-    command.append("--configfile")
-    command.append(f"{workflowdir}/config.yml")
+    command = f'snakemake --rerun-incomplete --rerun-triggers input mtime params --nolock --software-deployment-method {sdm} --conda-prefix ./.snakemake/conda --cores {threads} --directory . '
+    command += f"--snakefile {workflowdir}/align-ema.smk "
+    command += f"--configfile {workflowdir}/config.yml "
+    if hpc:
+        command += f"--workflow-profile {hpc} "
     if quiet:
-        command.append("--quiet")
-        command.append("all")
+        command += "--quiet all "
     if snakemake is not None:
-        _ = [command.append(i) for i in snakemake.split()]
-    
-    call_SM = " ".join(command)
+        command += snakemake
     if print_only:
-        click.echo(call_SM)
-        exit(0)
+        click.echo(command)
+        sys.exit(0)
 
     platform = platform.lower()
     # the tellseq stuff isn't impremented yet, but this is a placeholder for that... wishful thinking
@@ -193,7 +191,7 @@ def ema(inputs, output_dir, platform, whitelist, genome, depth_window, threads, 
             print_solution("Running EMA requires 10X barcodes provided to [green]--whitelist[/green]. A standard 10X barcode whitelist can be downloaded from [dim]https://github.com/10XGenomics/cellranger/tree/master/lib/python/cellranger/barcodes[/dim]")
         else:
             print_solution("Running EMA requires TELLseq barcodes provided to [green]--whitelist[/green]. They can be acquired from the TELL-read software [dim]https://www.illumina.com/products/by-type/informatics-products/basespace-sequence-hub/apps/universal-sequencing-tell-seq-data-analysis-pipeline.html[/dim]")
-        exit(1)
+        sys.exit(1)
     if platform == "haplotag" and whitelist:
         print_notice("Haplotag data does not require barcode whitelists and the whitelist provided as input will be ignored.")
         sleep(3)
@@ -221,14 +219,14 @@ def ema(inputs, output_dir, platform, whitelist, genome, depth_window, threads, 
             config.write(f"whitelist: {whitelist}\n")
         if extra_params is not None:
             config.write(f"extra: {extra_params}\n")
-        config.write(f"workflow_call: {call_SM}\n")
+        config.write(f"workflow_call: {command}\n")
 
     print_onstart(
         f"Samples: {len(samplenames)}\nPlatform: {platform}\nOutput Directory: {output_dir}/",
         "align ema"
     )
     generate_conda_deps()
-    _module = subprocess.run(command)
+    _module = subprocess.run(command.split())
     sys.exit(_module.returncode)
 
 @click.command(no_args_is_help = True, epilog= "read the docs for more information: https://pdimens.github.io/harpy/modules/align/minimap/")
@@ -241,11 +239,12 @@ def ema(inputs, output_dir, platform, whitelist, genome, depth_window, threads, 
 @click.option('-q', '--quiet',  is_flag = True, show_default = True, default = False, help = 'Don\'t show output text while running')
 @click.option('-o', '--output-dir', type = str, default = "Align/minimap", show_default=True, help = 'Name of output directory')
 @click.option('--snakemake', type = str, help = 'Additional Snakemake parameters, in quotes')
+@click.option('--hpc',  type = click.Path(exists = True, file_okay = False), help = 'Config dir for automatic HPC submission')
 @click.option('--conda',  is_flag = True, default = False, help = 'Use conda/mamba instead of container')
 @click.option('--skipreports',  is_flag = True, show_default = True, default = False, help = 'Don\'t generate HTML reports')
 @click.option('--print-only',  is_flag = True, hidden = True, default = False, help = 'Print the generated snakemake command and exit')
 @click.argument('inputs', required=True, type=click.Path(exists=True), nargs=-1)
-def minimap(inputs, output_dir, genome, depth_window, threads, extra_params, quality_filter, molecule_distance, snakemake, skipreports, quiet, conda, print_only):
+def minimap(inputs, output_dir, genome, depth_window, threads, extra_params, quality_filter, molecule_distance, snakemake, skipreports, quiet, hpc, conda, print_only):
     """
     Align sequences to genome using Minimap2
  
@@ -259,20 +258,18 @@ def minimap(inputs, output_dir, genome, depth_window, threads, extra_params, qua
     output_dir = output_dir.rstrip("/")
     workflowdir = f"{output_dir}/workflow"
     sdm = "conda" if conda else "conda apptainer"
-    command = f'snakemake --rerun-incomplete --rerun-triggers input mtime params --nolock --software-deployment-method {sdm} --conda-prefix ./.snakemake/conda --cores {threads} --directory .'.split()
-    command.append('--snakefile')
-    command.append(f'{workflowdir}/align-minimap.smk')
-    command.append("--configfile")
-    command.append(f"{workflowdir}/config.yml")
+    command = f'snakemake --rerun-incomplete --rerun-triggers input mtime params --nolock --software-deployment-method {sdm} --conda-prefix ./.snakemake/conda --cores {threads} --directory . '
+    command += f"--snakefile {workflowdir}/align-minimap.smk "
+    command += f"--configfile {workflowdir}/config.yml "
+    if hpc:
+        command += f"--workflow-profile {hpc} "
     if quiet:
-        command.append("--quiet")
-        command.append("all")
+        command += "--quiet all "
     if snakemake is not None:
-        _ = [command.append(i) for i in snakemake.split()]
-    call_SM = " ".join(command)
+        command +=  snakemake
     if print_only:
-        click.echo(call_SM)
-        exit(0)
+        click.echo(command)
+        sys.exit(0)
 
     os.makedirs(f"{workflowdir}/", exist_ok= True)
     sn = parse_fastq_inputs(inputs, f"{workflowdir}/input")
@@ -294,12 +291,16 @@ def minimap(inputs, output_dir, genome, depth_window, threads, extra_params, qua
         config.write(f"skipreports: {skipreports}\n")
         if extra_params is not None:
             config.write(f"extra: {extra_params}\n")
-        config.write(f"workflow_call: {call_SM}\n")
+        config.write(f"workflow_call: {command}\n")
 
     print_onstart(
         f"Samples: {len(samplenames)}\nOutput Directory: {output_dir}",
         "align minimap"
     )
     generate_conda_deps()
-    _module = subprocess.run(command)
+    _module = subprocess.run(command.split())
     sys.exit(_module.returncode)
+
+align.add_command(bwa)
+align.add_command(ema)
+align.add_command(minimap)
