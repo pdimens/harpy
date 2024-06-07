@@ -1,11 +1,15 @@
 """Harpy demultiplex workflows"""
 
+import os
 import sys
+import shutil
 import subprocess
+from pathlib import Path
 import rich_click as click
+from rich.markdown import Markdown
 from .conda_deps import generate_conda_deps
-from .printfunctions import print_onstart
-from .helperfunctions import fetch_rule
+from .printfunctions import print_onstart, print_notice
+from .helperfunctions import fetch_rule, symlink
 from .validations import validate_demuxschema
 
 @click.group(options_metavar='', context_settings={"help_option_names" : ["-h", "--help"]})
@@ -68,20 +72,37 @@ def gen1(r1_fq, r2_fq, i1_fq, i2_fq, output_dir, schema, threads, snakemake, ski
         command += "--quiet all "
     if snakemake is not None:
         command += snakemake
-
     if print_only:
         click.echo(command)
         sys.exit(0)
 
-    #check_demux_fastq(fastq_input)
     validate_demuxschema(schema)
     fetch_rule(workflowdir, "demultiplex.gen1.smk")
+    os.makedirs(f"{workflowdir}/input", exist_ok=True)
 
-    with open(f"{workflowdir}/config.yml", "w") as config:
-        config.write(f"R1: {r1_fq}\n")
-        config.write(f"R2: {r2_fq}\n")
-        config.write(f"I1: {i1_fq}\n")
-        config.write(f"I2: {i2_fq}\n")
+    # copy or symlink
+    Path(f"{workflowdir}/input/DATA_R1_001.fastq.gz").unlink(missing_ok=True)
+    Path(f"{workflowdir}/input/DATA_R2_001.fastq.gz").unlink(missing_ok=True)
+    Path(f"{workflowdir}/input/DATA_I1_001.fastq.gz").unlink(missing_ok=True)
+    Path(f"{workflowdir}/input/DATA_I2_001.fastq.gz").unlink(missing_ok=True)
+    if hpc:
+        print_notice(Markdown(f"Copying input files into `{workflowdir}/input/`, which will delay starting the workflow."))
+        shutil.copy(r1_fq, f"{workflowdir}/input/DATA_R1_001.fastq.gz")
+        shutil.copy(r2_fq, f"{workflowdir}/input/DATA_R2_001.fastq.gz")
+        shutil.copy(i1_fq, f"{workflowdir}/input/DATA_I1_001.fastq.gz")
+        shutil.copy(i2_fq, f"{workflowdir}/input/DATA_I2_001.fastq.gz")
+    else:
+        symlink(r1_fq, f"{workflowdir}/input/DATA_R1_001.fastq.gz")
+        symlink(r2_fq, f"{workflowdir}/input/DATA_R2_001.fastq.gz")
+        symlink(i1_fq, f"{workflowdir}/input/DATA_I1_001.fastq.gz")
+        symlink(i2_fq, f"{workflowdir}/input/DATA_I2_001.fastq.gz")
+        
+    with open(f"{workflowdir}/config.yml", "w", encoding= "utf-8") as config:
+        config.write(f"R1: {workflowdir}/input/DATA_R1_001.fastq.gz\n")
+        config.write(f"R2: {workflowdir}/input/DATA_R2_001.fastq.gz\n")
+        config.write(f"I1: {workflowdir}/input/DATA_I1_001.fastq.gz\n")
+        config.write(f"I2: {workflowdir}/input/DATA_I2_001.fastq.gz\n")
+        #config.write(f"hpc: {bool(hpc)}")
         config.write(f"output_directory: {output_dir}\n")
         config.write(f"samplefile: {schema}\n")
         config.write(f"skipreports: {skipreports}\n")
