@@ -37,7 +37,7 @@ def generic():
 Using a scheduler requires installing an additional Snakemake plugin. If you haven't already, install the `generic-cluster` plugin with:
     
 ```bash
-mamba install -c bioconda -c conda-forge snakemake-executor-plugin-cluster-generic
+mamba install bioconda::snakemake-executor-plugin-cluster-generic
 ```
                 """))
     with open(outfile, "w", encoding = "utf-8") as yml:
@@ -59,6 +59,7 @@ mamba install -c bioconda -c conda-forge snakemake-executor-plugin-cluster-gener
         yml.write("# [optional] command for sidecar process\n")
         yml.write("cluster-generic-sidecar-cmd VALUE\n")
         yml.write("\n# This section is for advanced copying into a scratch directory #\n")
+        yml.write("## requires snakemake-storage-plugin-fs, which can be installed via conda\n")
         yml.write("#default-storage-provider: fs\n")
         yml.write("#local-storage-prefix: /home2/$USER\n")
         yml.write("#shared-fs-usage:\n")
@@ -78,7 +79,7 @@ def lsf():
 Using a scheduler requires installing an additional Snakemake plugin. If you haven't already, install the `lsf` plugin with:
     
 ```bash
-mamba install -c bioconda -c conda-forge snakemake-executor-plugin-lsf
+mamba install bioconda::snakemake-executor-plugin-lsf
 ```
                 """))
     with open(outfile, "w", encoding = "utf-8") as yml:
@@ -94,6 +95,7 @@ mamba install -c bioconda -c conda-forge snakemake-executor-plugin-lsf
         yml.write("latency-wait: 60\n")
         yml.write("retries: 1\n")
         yml.write("\n# This section is for advanced copying into a scratch directory #\n")
+        yml.write("## requires snakemake-storage-plugin-fs, which can be installed via conda\n")
         yml.write("#default-storage-provider: fs\n")
         yml.write("#local-storage-prefix: /home2/$USER\n")
         yml.write("#shared-fs-usage:\n")
@@ -113,7 +115,7 @@ def htcondor():
 Using a scheduler requires installing an additional Snakemake plugin. If you haven't already, install the `htcondor` plugin with:
     
 ```bash
-mamba install -c bioconda -c conda-forge snakemake-executor-plugin-htcondor
+mamba install bioconda::snakemake-executor-plugin-htcondor
 ```
                 """))
     with open(outfile, "w", encoding = "utf-8") as yml:
@@ -128,6 +130,7 @@ mamba install -c bioconda -c conda-forge snakemake-executor-plugin-htcondor
         yml.write("latency-wait: 60\n")
         yml.write("retries: 1\n")
         yml.write("\n# This section is for advanced copying into a scratch directory #\n")
+        yml.write("## requires snakemake-storage-plugin-fs, which can be installed via conda\n")
         yml.write("#default-storage-provider: fs\n")
         yml.write("#local-storage-prefix: /home2/$USER\n")
         yml.write("#shared-fs-usage:\n")
@@ -147,7 +150,7 @@ def slurm():
 Using a scheduler requires installing an additional Snakemake plugin. If you haven't already, install the `slurm` plugin with:
     
 ```bash
-mamba install -c bioconda -c conda-forge snakemake-executor-plugin-slurm
+mamba install bioconda::snakemake-executor-plugin-slurm
 ```
                 """))
     with open(outfile, "w", encoding = "utf-8") as yml:
@@ -161,6 +164,7 @@ mamba install -c bioconda -c conda-forge snakemake-executor-plugin-slurm
         yml.write("latency-wait: 60\n")
         yml.write("retries: 1\n")
         yml.write("\n# This section is for advanced copying into a scratch directory #\n")
+        yml.write("## requires snakemake-storage-plugin-fs, which can be installed via conda\n")
         yml.write("#default-storage-provider: fs\n")
         yml.write("#local-storage-prefix: /home2/$USER\n")
         yml.write("#shared-fs-usage:\n")
@@ -180,7 +184,7 @@ def googlebatch():
 Using a scheduler requires installing an additional Snakemake plugin. If you haven't already, install the `googlebatch` plugin with:
     
 ```bash
-mamba install -c bioconda -c conda-forge snakemake-executor-plugin-googlebatch
+mamba install bioconda::snakemake-executor-plugin-googlebatch
 ```
                 """))
     with open(outfile, "w", encoding = "utf-8") as yml:
