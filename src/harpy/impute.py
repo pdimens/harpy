@@ -71,7 +71,7 @@ def impute(inputs, output_dir, parameters, threads, vcf, vcf_samples, extra_para
         sys.exit(0)
 
     os.makedirs(f"{workflowdir}/", exist_ok= True)
-    sn = parse_alignment_inputs(inputs, f"{workflowdir}/input/alignments")
+    sn = parse_alignment_inputs(inputs, f"{workflowdir}/input/alignments", hpc)
     samplenames = vcf_samplematch(vcf, f"{workflowdir}/input/alignments", vcf_samples)
     validate_bamfiles(f"{workflowdir}/input/alignments", samplenames)
     ## validate inputs ##

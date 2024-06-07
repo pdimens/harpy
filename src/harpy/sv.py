@@ -91,7 +91,7 @@ def leviathan(inputs, output_dir, genome, min_sv, min_barcodes, threads, populat
         sys.exit(0)
 
     os.makedirs(f"{workflowdir}/", exist_ok= True)
-    _ = parse_alignment_inputs(inputs, f"{workflowdir}/input")
+    _ = parse_alignment_inputs(inputs, f"{workflowdir}/input", hpc)
     samplenames = getnames(f"{workflowdir}/input", '.bam')
     validate_input_by_ext(genome, "--genome", [".fasta", ".fa", ".fasta.gz", ".fa.gz"])
     if populations is not None:
@@ -180,7 +180,7 @@ def naibr(inputs, output_dir, genome, vcf, min_sv, min_barcodes, threads, popula
         sys.exit(0)
 
     os.makedirs(f"{workflowdir}/", exist_ok= True)
-    _ = parse_alignment_inputs(inputs, f"{workflowdir}/input")
+    _ = parse_alignment_inputs(inputs, f"{workflowdir}/input", hpc)
     samplenames = getnames(f"{workflowdir}/input", '.bam')
     validate_input_by_ext(genome, "--genome", [".fasta", ".fa", ".fasta.gz", ".fa.gz"])
     if populations is not None:

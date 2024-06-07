@@ -97,7 +97,7 @@ def mpileup(inputs, output_dir, regions, genome, threads, populations, ploidy, e
         sys.exit(0)
 
     os.makedirs(f"{workflowdir}/", exist_ok= True)
-    sn = parse_alignment_inputs(inputs, f"{workflowdir}/input")
+    sn = parse_alignment_inputs(inputs, f"{workflowdir}/input", hpc)
     samplenames = getnames(f"{workflowdir}/input", '.bam')
     validate_bamfiles(f"{workflowdir}/input", samplenames)
     validate_input_by_ext(genome, "--genome", [".fasta", ".fa", ".fasta.gz", ".fa.gz"])
@@ -196,7 +196,7 @@ def freebayes(inputs, output_dir, genome, threads, populations, ploidy, regions,
         sys.exit(0)
 
     os.makedirs(f"{workflowdir}/", exist_ok= True)
-    sn = parse_alignment_inputs(inputs, f"{workflowdir}/input")
+    sn = parse_alignment_inputs(inputs, f"{workflowdir}/input", hpc)
     samplenames = getnames(f"{workflowdir}/input", '.bam')
     validate_bamfiles(f"{workflowdir}/input", samplenames)
     validate_input_by_ext(genome, "--genome", [".fasta", ".fa", ".fasta.gz", ".fa.gz"])

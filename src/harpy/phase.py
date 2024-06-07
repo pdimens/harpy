@@ -69,7 +69,7 @@ def phase(inputs, output_dir, vcf, threads, molecule_distance, prune_threshold, 
         sys.exit(0)
 
     os.makedirs(f"{workflowdir}/input/alignments", exist_ok= True)
-    sn = parse_alignment_inputs(inputs, f"{workflowdir}/input/alignments")
+    sn = parse_alignment_inputs(inputs, f"{workflowdir}/input/alignments", hpc)
     samplenames = vcf_samplematch(vcf, f"{workflowdir}/input/alignments", vcf_samples)
     vcfcheck(vcf)
     validate_bamfiles(f"{workflowdir}/input/alignments", samplenames)

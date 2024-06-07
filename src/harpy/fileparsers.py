@@ -4,6 +4,7 @@ import sys
 import os
 import re
 import glob
+import shutil
 from pathlib import Path
 import rich_click as click
 from .printfunctions import print_error, print_solution_with_culprits, print_solution
@@ -16,10 +17,11 @@ def getnames(directory, ext):
         sys.exit(1)
     return samplenames
 
-def parse_fastq_inputs(inputs, outdir):
+def parse_fastq_inputs(inputs, outdir, hpc):
     """
     Parse the command line input FASTQ arguments to generate a clean list of input files
-    and create symlinks of those files to a target destination folder.
+    and create symlinks of those files to a target destination folder. If hpc is not None, will copy
+    the files instead of symlinking.
     """
     infiles = []
     outfiles = []
@@ -56,10 +58,13 @@ def parse_fastq_inputs(inputs, outdir):
     Path(outdir).mkdir(parents=True, exist_ok=True)
     for (i,o) in zip(infiles, outfiles):
         Path(o).unlink(missing_ok=True)
-        Path(o).symlink_to(Path(i).resolve())
+        if hpc:
+            shutil.copy(Path(i).resolve(), Path(o))
+        else:
+            Path(o).symlink_to(Path(i).resolve())
     return infiles
 
-def parse_alignment_inputs(inputs, outdir):
+def parse_alignment_inputs(inputs, outdir, hpc):
     """
     Parse the command line input sam/bam arguments to generate a clean list of input files
     and create symlinks of those files to a target destination folder.
@@ -115,10 +120,16 @@ def parse_alignment_inputs(inputs, outdir):
     Path(outdir).mkdir(parents=True, exist_ok=True)
     for (i,o) in zip(bam_infiles, bam_outfiles):
         Path(o).unlink(missing_ok=True)
-        Path(o).symlink_to(Path(i).resolve())
+        if hpc:
+            shutil.copy(Path(i).resolve(), Path(o))
+        else:
+            Path(o).symlink_to(Path(i).resolve())
     for (i,o) in zip(bai_infiles, bai_outfiles):
         Path(o).unlink(missing_ok=True)
-        Path(o).symlink_to(Path(i).resolve())
+        if hpc:
+            shutil.copy(Path(i).resolve(), Path(o))
+        else:
+            Path(o).symlink_to(Path(i).resolve())
     return bam_infiles
 
 def get_samples_from_fastq(directory):

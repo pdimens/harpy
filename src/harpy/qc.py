@@ -64,7 +64,7 @@ def qc(inputs, output_dir, min_length, max_length, ignore_adapters, extra_params
         click.echo(command)
         sys.exit(0)
 
-    _ = parse_fastq_inputs(inputs, f"{workflowdir}/input")
+    _ = parse_fastq_inputs(inputs, f"{workflowdir}/input", hpc)
     sn = get_samples_from_fastq(f"{workflowdir}/input")
 
     fetch_script(workflowdir, "countBX.py")

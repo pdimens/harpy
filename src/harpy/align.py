@@ -108,7 +108,7 @@ def bwa(inputs, output_dir, genome, depth_window, threads, extra_params, quality
         sys.exit(0)
 
     os.makedirs(f"{workflowdir}/", exist_ok= True)
-    sn = parse_fastq_inputs(inputs, f"{workflowdir}/input")
+    sn = parse_fastq_inputs(inputs, f"{workflowdir}/input", hpc)
     samplenames = get_samples_from_fastq(f"{workflowdir}/input")
     validate_input_by_ext(genome, "--genome", [".fasta", ".fa", ".fasta.gz", ".fa.gz"])
     fetch_rule(workflowdir, "align-bwa.smk")
@@ -197,7 +197,7 @@ def ema(inputs, output_dir, platform, whitelist, genome, depth_window, threads, 
         sleep(3)
 
     os.makedirs(f"{workflowdir}/", exist_ok= True)
-    sn = parse_fastq_inputs(inputs, f"{workflowdir}/input")
+    sn = parse_fastq_inputs(inputs, f"{workflowdir}/input", hpc)
     samplenames = get_samples_from_fastq(f"{workflowdir}/input")
     validate_input_by_ext(genome, "--genome", [".fasta", ".fa", ".fasta.gz", ".fa.gz"])
     fetch_rule(workflowdir, "align-ema.smk")
@@ -272,7 +272,7 @@ def minimap(inputs, output_dir, genome, depth_window, threads, extra_params, qua
         sys.exit(0)
 
     os.makedirs(f"{workflowdir}/", exist_ok= True)
-    sn = parse_fastq_inputs(inputs, f"{workflowdir}/input")
+    sn = parse_fastq_inputs(inputs, f"{workflowdir}/input", hpc)
     samplenames = get_samples_from_fastq(f"{workflowdir}/input")
     validate_input_by_ext(genome, "--genome", [".fasta", ".fa", ".fasta.gz", ".fa.gz"])
     fetch_rule(workflowdir, "align-minimap.smk")
