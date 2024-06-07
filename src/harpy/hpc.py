@@ -75,7 +75,7 @@ def lsf():
     if os.path.exists(outfile):
         click.echo(f"{outfile} exists, overwriting.")
     print_notice(Markdown("""
-Using a scheduler requires installing an additional Snakemake plugin. If you haven't already, install the `generic-cluster` plugin with:
+Using a scheduler requires installing an additional Snakemake plugin. If you haven't already, install the `lsf` plugin with:
     
 ```bash
 mamba install -c bioconda -c conda-forge snakemake-executor-plugin-lsf
@@ -110,7 +110,7 @@ def htcondor():
     if os.path.exists(outfile):
         click.echo(f"{outfile} exists, overwriting.")
     print_notice(Markdown("""
-Using a scheduler requires installing an additional Snakemake plugin. If you haven't already, install the `generic-cluster` plugin with:
+Using a scheduler requires installing an additional Snakemake plugin. If you haven't already, install the `htcondor` plugin with:
     
 ```bash
 mamba install -c bioconda -c conda-forge snakemake-executor-plugin-htcondor
@@ -144,7 +144,7 @@ def slurm():
     if os.path.exists(outfile):
         click.echo(f"{outfile} exists, overwriting.")
     print_notice(Markdown("""
-Using a scheduler requires installing an additional Snakemake plugin. If you haven't already, install the `generic-cluster` plugin with:
+Using a scheduler requires installing an additional Snakemake plugin. If you haven't already, install the `slurm` plugin with:
     
 ```bash
 mamba install -c bioconda -c conda-forge snakemake-executor-plugin-slurm
@@ -177,7 +177,7 @@ def googlebatch():
     if os.path.exists(outfile):
         click.echo(f"{outfile} exists, overwriting.")
     print_notice(Markdown("""
-Using a scheduler requires installing an additional Snakemake plugin. If you haven't already, install the `generic-cluster` plugin with:
+Using a scheduler requires installing an additional Snakemake plugin. If you haven't already, install the `googlebatch` plugin with:
     
 ```bash
 mamba install -c bioconda -c conda-forge snakemake-executor-plugin-googlebatch
