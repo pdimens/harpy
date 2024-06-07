@@ -28,5 +28,5 @@ def stitchparams(output):
         _ = file.write('diploid\tTRUE\t50000\t15\t10\t100')
     print_notice(
         f"Created STITCH parameter file: {output}\n" +
-        "Modify the model parameters as needed, but " + '\033[1m' + "DO NOT" + '\033[0m' + " add/remove columns."
+        "Modify the model parameters as needed, but DO NOT add/remove columns."
     )
