@@ -160,6 +160,7 @@ mamba install bioconda::snakemake-executor-plugin-slurm
         yml.write("  slurm_account: $USER\n")
         yml.write("  slurm_partition: regular\n")
         yml.write("  mem_mb: attempt * 2000\n")
+        yml.write("  runtime: 10\n")
         yml.write("jobs: 50\n")
         yml.write("latency-wait: 60\n")
         yml.write("retries: 1\n")
