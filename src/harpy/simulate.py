@@ -1,7 +1,8 @@
 """Harpy workflows to simulate genomic variants and linked-reads"""
-
+#TODO REPLACE SYMLINK CODE WITH HPC CONDITIONAL
 import os
 import sys
+import shutil
 import subprocess
 import rich_click as click
 from .conda_deps import generate_conda_deps
@@ -245,7 +246,10 @@ def snpindel(genome, snp_vcf, indel_vcf, output_dir, prefix, snp_count, indel_co
     os.makedirs(f"{workflowdir}/input/", exist_ok= True)   
     validate_input_by_ext(genome, "GENOME", [".fasta", ".fa", ".fasta.gz", ".fa.gz"])
     genome_link = f"{workflowdir}/input/{os.path.basename(genome)}"
-    symlink(genome, genome_link)
+    if hpc:
+        shutil.copy(genome, genome_link)
+    else:
+        symlink(genome, genome_link)
     printmsg = f"Inpute Genome: {genome}\nOutput Directory: {output_dir}/\n"
     if snp_vcf:
         validate_input_by_ext(snp_vcf, "--snp-vcf", ["vcf","vcf.gz","bcf"])
@@ -357,9 +361,12 @@ def inversion(genome, vcf, prefix, output_dir, count, min_size, max_size, centro
     os.makedirs(f"{workflowdir}/input/", exist_ok= True)
     validate_input_by_ext(genome, "GENOME", [".fasta", ".fa", ".fasta.gz", ".fa.gz"])
     genome_link = f"{workflowdir}/input/{os.path.basename(genome)}"
-    symlink(genome, genome_link)
+    if hpc:
+        shutil.copy(genome, genome_link)
+    else:
+        symlink(genome, genome_link)
     printmsg = f"Inpute Genome: {genome}\nOutput Directory: {output_dir}/\n"
-    symlink(genome, genome_link)
+
     if vcf:
         validate_input_by_ext(vcf, "--vcf", ["vcf","vcf.gz","bcf"])
         vcf_link = f"{workflowdir}/input/{os.path.basename(vcf)}"
@@ -467,9 +474,12 @@ def cnv(genome, output_dir, vcf, prefix, count, min_size, max_size, dup_ratio, m
     os.makedirs(f"{workflowdir}/input/", exist_ok= True)
     validate_input_by_ext(genome, "GENOME", [".fasta", ".fa", ".fasta.gz", ".fa.gz"])
     genome_link = f"{workflowdir}/input/{os.path.basename(genome)}"
-    symlink(genome, genome_link)
+    if hpc:
+        shutil.copy(genome, genome_link)
+    else:
+        symlink(genome, genome_link)
     printmsg = f"Inpute Genome: {genome}\nOutput Directory: {output_dir}/\n"
-    symlink(genome, genome_link)
+
     if vcf:
         validate_input_by_ext(vcf, "--vcf", ["vcf","vcf.gz","bcf"])
         vcf_link = f"{workflowdir}/input/{os.path.basename(vcf)}"
@@ -569,9 +579,12 @@ def translocation(genome, output_dir, prefix, vcf, count, centromeres, genes, he
     os.makedirs(f"{workflowdir}/input/", exist_ok= True)
     validate_input_by_ext(genome, "GENOME", [".fasta", ".fa", ".fasta.gz", ".fa.gz"])
     genome_link = f"{workflowdir}/input/{os.path.basename(genome)}"
-    symlink(genome, genome_link)
+    if hpc:
+        shutil.copy(genome, genome_link)
+    else:
+        symlink(genome, genome_link)
     printmsg = f"Inpute Genome: {genome}\nOutput Directory: {output_dir}/\n"
-    symlink(genome, genome_link)
+    
     if vcf:
         validate_input_by_ext(vcf, "--vcf", ["vcf","vcf.gz","bcf"])
         vcf_link = f"{workflowdir}/input/{os.path.basename(vcf)}"
