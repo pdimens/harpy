@@ -39,7 +39,7 @@ docstring = {
 @click.argument('inputs', required=True, type=click.Path(exists=True), nargs=-1)
 def impute(inputs, output_dir, parameters, threads, vcf, vcf_samples, extra_params, snakemake, skipreports, quiet, hpc, conda, print_only):
     """
-    Impute genotypes using variants and sequences
+    Impute genotypes using variants and alignments
     
     Provide the input alignment (`.bam`) files and/or directories at the end of the command as 
     individual files/folders, using shell wildcards (e.g. `data/drosophila*.bam`), or both.

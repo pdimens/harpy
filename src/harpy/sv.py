@@ -13,7 +13,7 @@ from .validations import validate_popfile, validate_vcfsamples, check_phase_vcf,
 @click.group(options_metavar='', context_settings={"help_option_names" : ["-h", "--help"]})
 def sv():
     """
-    Call large structural variants
+    Call large structural variants on alignments
  
     **Structural Variant Callers**
     - `naibr`: calls inversions, duplicates, deletions

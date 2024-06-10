@@ -13,7 +13,7 @@ from .validations import validate_input_by_ext
 @click.group(options_metavar='', context_settings={"help_option_names" : ["-h", "--help"]})
 def simulate():
     """
-    Simulate variants or linked reads from a genome
+    Simulate variants or linked-reads from a genome
 
     To simulate genomic variants, provide an additional subcommand {`snpindel`,`inversion`,`cnv`,`translocation`} 
     to get more information about that workflow. The limitations of the simulator

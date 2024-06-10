@@ -13,7 +13,7 @@ from .validations import validate_bamfiles, validate_popfile, validate_vcfsample
 @click.group(options_metavar='', context_settings={"help_option_names" : ["-h", "--help"]})
 def snp():
     """
-    Call SNPs and small indels
+    Call SNPs and small indels on alignments
     
     **Variant Callers**
     - `mpileup`: call variants using bcftools mpileup
