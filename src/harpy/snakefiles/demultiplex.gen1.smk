@@ -6,11 +6,11 @@ import sys
 from rich.panel import Panel
 from rich import print as rprint
 
-R1 = config["R1"]
-R2 = config["R2"]
-I1 = config["I1"]
-I2 = config["I2"]
-samplefile = config["samplefile"]
+R1 = config["inputs"]["R1"]
+R2 = config["inputs"]["R2"]
+I1 = config["inputs"]["I1"]
+I2 = config["inputs"]["I2"]
+samplefile = config["inputs"]["demultiplex_schema"]
 skipreports = config["skipreports"]
 outdir = config["output_directory"]
 envdir      = os.getcwd() + "/.harpy_envs"

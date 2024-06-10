@@ -2,14 +2,12 @@
 
 import os
 import sys
-import shutil
 import subprocess
 from pathlib import Path
 import rich_click as click
-from rich.markdown import Markdown
 from .conda_deps import generate_conda_deps
-from .printfunctions import print_onstart, print_notice
-from .helperfunctions import fetch_rule, symlink
+from .printfunctions import print_onstart
+from .helperfunctions import fetch_rule
 from .validations import validate_demuxschema
 
 @click.group(options_metavar='', context_settings={"help_option_names" : ["-h", "--help"]})
@@ -77,37 +75,20 @@ def gen1(r1_fq, r2_fq, i1_fq, i2_fq, output_dir, schema, threads, snakemake, ski
         sys.exit(0)
 
     validate_demuxschema(schema)
+    os.makedirs(f"{workflowdir}", exist_ok=True)
     fetch_rule(workflowdir, "demultiplex.gen1.smk")
-    os.makedirs(f"{workflowdir}/input", exist_ok=True)
-
-    # copy or symlink
-    Path(f"{workflowdir}/input/DATA_R1_001.fastq.gz").unlink(missing_ok=True)
-    Path(f"{workflowdir}/input/DATA_R2_001.fastq.gz").unlink(missing_ok=True)
-    Path(f"{workflowdir}/input/DATA_I1_001.fastq.gz").unlink(missing_ok=True)
-    Path(f"{workflowdir}/input/DATA_I2_001.fastq.gz").unlink(missing_ok=True)
-    if hpc:
-        print_notice(Markdown(f"Copying input files into `{workflowdir}/input/`, which will delay starting the workflow."))
-        shutil.copy(r1_fq, f"{workflowdir}/input/DATA_R1_001.fastq.gz")
-        shutil.copy(r2_fq, f"{workflowdir}/input/DATA_R2_001.fastq.gz")
-        shutil.copy(i1_fq, f"{workflowdir}/input/DATA_I1_001.fastq.gz")
-        shutil.copy(i2_fq, f"{workflowdir}/input/DATA_I2_001.fastq.gz")
-    else:
-        symlink(r1_fq, f"{workflowdir}/input/DATA_R1_001.fastq.gz")
-        symlink(r2_fq, f"{workflowdir}/input/DATA_R2_001.fastq.gz")
-        symlink(i1_fq, f"{workflowdir}/input/DATA_I1_001.fastq.gz")
-        symlink(i2_fq, f"{workflowdir}/input/DATA_I2_001.fastq.gz")
         
     with open(f"{workflowdir}/config.yaml", "w", encoding= "utf-8") as config:
         config.write("workflow: demultiplex gen1\n")
-        config.write(f"R1: {workflowdir}/input/DATA_R1_001.fastq.gz\n")
-        config.write(f"R2: {workflowdir}/input/DATA_R2_001.fastq.gz\n")
-        config.write(f"I1: {workflowdir}/input/DATA_I1_001.fastq.gz\n")
-        config.write(f"I2: {workflowdir}/input/DATA_I2_001.fastq.gz\n")
-        #config.write(f"hpc: {bool(hpc)}")
         config.write(f"output_directory: {output_dir}\n")
-        config.write(f"samplefile: {schema}\n")
         config.write(f"skipreports: {skipreports}\n")
         config.write(f"workflow_call: {command}\n")
+        config.write("inputs:\n")
+        config.write(f"  demultiplex_schema: {Path(schema).resolve()}\n")
+        config.write(f"  R1: {Path(r1_fq).resolve()}\n")
+        config.write(f"  R2: {Path(r2_fq).resolve()}\n")
+        config.write(f"  I1: {Path(i1_fq).resolve()}\n")
+        config.write(f"  I2: {Path(i2_fq).resolve()}\n")
 
     print_onstart(
         f"Haplotag Type: Generation I\nDemultiplex Schema: {schema}\nOutput Directory: {output_dir}",
