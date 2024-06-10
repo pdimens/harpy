@@ -44,11 +44,9 @@ click.rich_click.ERRORS_EPILOGUE = "See the documentation: [link=https://pdimens
 @click.version_option("1.1.0", prog_name="Harpy")
 def cli():
     """
-    ## Harpy haplotagging pipeline
-    
-    An automated workflow to demultiplex sequences, trim and qc reads, 
-    map sequences, call variants, impute genotypes, and phase 
-    haplotypes of Haplotagging data. Batteries included.
+    An automated workflow for haplotagging linked-read data
+    to go from raw data to genotypes (or phased haplotypes).
+    Batteries included.
     
     **demultiplex >> qc >> align >> snp >> impute >> phase >> sv**
     
