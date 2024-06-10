@@ -66,10 +66,10 @@ rule qc_fastp:
     output:
         fw   = outdir + "/{sample}.R1.fq.gz",
         rv   = outdir + "/{sample}.R2.fq.gz",
-        json = outdir + "/logs/json/{sample}.fastp.json"
+        json = outdir + "/reports/data/fastp/{sample}.fastp.json"
     log:
-        html = outdir + "/reports/fastp_reports/{sample}.html",
-        serr = outdir + "/logs/fastp_logs/{sample}.log"
+        html = outdir + "/reports/{sample}.html",
+        serr = outdir + "/logs/fastp/{sample}.log"
     params:
         minlen = f"--length_required {min_len}",
         maxlen = f"--max_len1 {max_len}",
@@ -112,7 +112,7 @@ rule beadtag_counts_summary:
    
 rule create_report:
     input: 
-        collect(outdir + "/logs/json/{sample}.fastp.json", sample = samplenames)
+        collect(outdir + "/reports/data/fastp/{sample}.fastp.json", sample = samplenames)
     output:
         outdir + "/reports/qc.report.html"
     params:
