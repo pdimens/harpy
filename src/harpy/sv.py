@@ -78,7 +78,7 @@ def leviathan(inputs, output_dir, genome, min_sv, min_barcodes, threads, populat
     vcaller = "leviathan" if populations is None else "leviathan-pop"
     command = f'snakemake --rerun-incomplete --rerun-triggers input mtime params --nolock --software-deployment-method {sdm} --conda-prefix ./.snakemake/conda --cores {threads} --directory . '
     command += f"--snakefile {workflowdir}/sv-{vcaller}.smk "
-    command += f"--configfile {workflowdir}/config.yml "
+    command += f"--configfile {workflowdir}/config.yaml "
     if hpc:
         command += f"--workflow-profile {hpc} "
     if quiet:
@@ -99,7 +99,8 @@ def leviathan(inputs, output_dir, genome, min_sv, min_barcodes, threads, populat
     fetch_report(workflowdir, "Leviathan.Rmd")
     fetch_rule(workflowdir, f"sv-{vcaller}.smk")
 
-    with open(f'{workflowdir}/config.yml', "w", encoding="utf-8") as config:
+    with open(f'{workflowdir}/config.yaml', "w", encoding="utf-8") as config:
+        config.write("workflow: sv leviathan\n")
         config.write(f"seq_directory: {workflowdir}/input\n")
         config.write(f"output_directory: {output_dir}\n")
         config.write(f"samplenames: {samplenames}\n")
@@ -168,7 +169,7 @@ def naibr(inputs, output_dir, genome, vcf, min_sv, min_barcodes, threads, popula
     vcaller += "-phase" if vcf is not None else ""
     command = f'snakemake --rerun-incomplete --rerun-triggers input mtime params --nolock --software-deployment-method {sdm} --conda-prefix ./.snakemake/conda --cores {threads} --directory . '
     command += f"--snakefile {workflowdir}/sv-{vcaller}.smk "
-    command += f"--configfile {workflowdir}/config.yml "
+    command += f"--configfile {workflowdir}/config.yaml "
     if hpc:
         command += f"--workflow-profile {hpc} "
     if quiet:
@@ -191,7 +192,8 @@ def naibr(inputs, output_dir, genome, vcf, min_sv, min_barcodes, threads, popula
         #vcaller += "-phase"
     fetch_rule(workflowdir, f"sv-{vcaller}.smk")
 
-    with open(f'{workflowdir}/config.yml', "w", encoding="utf-8") as config:
+    with open(f'{workflowdir}/config.yaml', "w", encoding="utf-8") as config:
+        config.write("workflow: sv naibr\n")
         config.write(f"seq_directory: {workflowdir}/input\n")
         config.write(f"output_directory: {output_dir}\n")
         config.write(f"samplenames: {samplenames}\n")

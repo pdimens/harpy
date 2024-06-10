@@ -13,7 +13,7 @@ def hpc():
     If running Harpy on an HPC system, you can leverage Snakemake
     to handle all the job submissions on your behalf. This command creates templates
     for common HPC schedulers so you can run Harpy on a cluster with minimal friction.
-    The subcommands create a `config.yml` in an `hpc/` directory. You will also need
+    The subcommands create a `config.yaml` in an `hpc/` directory. You will also need
     to install the associated Snakemake executor plugin for HPC job submission to work.
     """
 

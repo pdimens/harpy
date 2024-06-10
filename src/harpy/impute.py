@@ -59,7 +59,7 @@ def impute(inputs, output_dir, parameters, threads, vcf, vcf_samples, extra_para
     sdm = "conda" if conda else "conda apptainer"
     command = f'snakemake --rerun-incomplete --rerun-triggers input mtime params --nolock --software-deployment-method {sdm} --conda-prefix ./.snakemake/conda --cores {threads} --directory . '
     command += f"--snakefile {workflowdir}/impute.smk "
-    command += f"--configfile {workflowdir}/config.yml "
+    command += f"--configfile {workflowdir}/config.yaml "
     if hpc:
         command += f"--workflow-profile {hpc} "
     if quiet:
@@ -85,7 +85,8 @@ def impute(inputs, output_dir, parameters, threads, vcf, vcf_samples, extra_para
     # generate and store list of viable contigs (minimum of 2 biallelic SNPs)
     # doing it here so it doesn't have to run each time inside the workflow
     contigs = biallelic_contigs(vcf, workflowdir)
-    with open(f"{workflowdir}/config.yml", "w", encoding="utf-8") as config:
+    with open(f"{workflowdir}/config.yaml", "w", encoding="utf-8") as config:
+        config.write("workflow: impute\n")
         config.write(f"output_directory: {output_dir}\n")
         config.write(f"samplenames: {samplenames}\n")
         config.write(f"variantfile: {vcf}\n")

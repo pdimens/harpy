@@ -26,6 +26,7 @@ from . import snp
 from . import sv
 from . import container
 from . import hpc
+from . import run
 from .popgroups import popgroup
 from .stitchparams import stitchparams
 import rich_click as click
@@ -69,6 +70,7 @@ cli.add_command(phase.phase)
 cli.add_command(simulate.simulate)
 cli.add_command(container.containerize)
 cli.add_command(hpc.hpc)
+cli.add_command(run.run)
 
 ## the modules ##
 click.rich_click.COMMAND_GROUPS = {
@@ -80,7 +82,7 @@ click.rich_click.COMMAND_GROUPS = {
             },
             {
                 "name": "Other Commands",
-                "commands": ["hpc", "preflight", "popgroup", "stitchparams"]
+                "commands": ["run", "hpc", "preflight", "popgroup", "stitchparams"]
             }
         ],
  } | simulate.commandstring | hpc.docstring

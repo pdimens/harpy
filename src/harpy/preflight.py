@@ -61,7 +61,7 @@ def fastq(inputs, output_dir, threads, snakemake, quiet, hpc, conda, print_only)
     sdm = "conda" if conda else "conda apptainer"
     command = f'snakemake --rerun-incomplete --rerun-triggers input mtime params --nolock --software-deployment-method {sdm} --conda-prefix ./.snakemake/conda --cores {threads} --directory . '
     command += f"--snakefile {workflowdir}/preflight-fastq.smk "
-    command += f"--configfile {workflowdir}/config.yml "
+    command += f"--configfile {workflowdir}/config.yaml "
     if hpc:
         command += f"--workflow-profile {hpc} "
     if quiet:
@@ -79,7 +79,8 @@ def fastq(inputs, output_dir, threads, snakemake, quiet, hpc, conda, print_only)
     fetch_script(workflowdir, "checkFASTQ.py")
     fetch_report(workflowdir, "PreflightFastq.Rmd")
 
-    with open(f"{workflowdir}/config.yml", "w", encoding="utf-8") as config:
+    with open(f"{workflowdir}/config.yaml", "w", encoding="utf-8") as config:
+        config.write("workflow: preflight fastq\n")
         config.write(f"seq_directory: {workflowdir}/input\n")
         config.write(f"output_directory: {output_dir}\n")
         config.write(f"workflow_call: {command}\n")
@@ -118,7 +119,7 @@ def bam(inputs, output_dir, threads, snakemake, quiet, hpc, conda, print_only):
     sdm = "conda" if conda else "conda apptainer"
     command = f'snakemake --rerun-incomplete --rerun-triggers input mtime params --nolock --software-deployment-method {sdm} --conda-prefix ./.snakemake/conda --cores {threads} --directory . '
     command += f"--snakefile {workflowdir}/preflight-bam.smk "
-    command += f"--configfile {workflowdir}/config.yml "
+    command += f"--configfile {workflowdir}/config.yaml "
     if hpc:
         command += f"--workflow-profile {hpc} "
     if quiet:
@@ -136,7 +137,8 @@ def bam(inputs, output_dir, threads, snakemake, quiet, hpc, conda, print_only):
     fetch_report(workflowdir, "PreflightBam.Rmd")
     fetch_script(workflowdir, "checkBAM.py")
 
-    with open(f"{workflowdir}/config.yml", "w", encoding="utf-8") as config:
+    with open(f"{workflowdir}/config.yaml", "w", encoding="utf-8") as config:
+        config.write("workflow: preflight bam\n")
         config.write(f"seq_directory: {workflowdir}/input\n")
         config.write(f"output_directory: {output_dir}\n")
         config.write(f"workflow_call: {command}\n")

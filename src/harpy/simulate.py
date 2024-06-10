@@ -140,7 +140,7 @@ def linkedreads(genome_hap1, genome_hap2, output_dir, outer_distance, mutation_r
     sdm = "conda" if conda else "conda apptainer"
     command = f'snakemake --rerun-incomplete --rerun-triggers input mtime params --nolock  --software-deployment-method {sdm} --conda-prefix ./.snakemake/conda --cores {threads} --directory . '
     command += f"--snakefile {workflowdir}/simulate-linkedreads.smk "
-    command += f"--configfile {workflowdir}/config.yml "
+    command += f"--configfile {workflowdir}/config.yaml "
     if hpc:
         command += f"--workflow-profile {hpc} "
     if quiet:
@@ -158,7 +158,8 @@ def linkedreads(genome_hap1, genome_hap2, output_dir, outer_distance, mutation_r
     fetch_rule(workflowdir, "simulate-linkedreads.smk")
     fetch_script(workflowdir, "LRSIMharpy.pl")
 
-    with open(f"{workflowdir}/config.yml", "w", encoding="utf-8") as config:
+    with open(f"{workflowdir}/config.yaml", "w", encoding="utf-8") as config:
+        config.write("workflow: simulate linkedreads\n")
         config.write(f"genome_hap1: {genome_hap1}\n")
         config.write(f"genome_hap2: {genome_hap2}\n")
         config.write(f"output_directory: {output_dir}\n")
@@ -231,7 +232,7 @@ def snpindel(genome, snp_vcf, indel_vcf, output_dir, prefix, snp_count, indel_co
     sdm = "conda" if conda else "conda apptainer"
     command = f'snakemake --rerun-incomplete --rerun-triggers input mtime params --nolock --software-deployment-method {sdm} --conda-prefix ./.snakemake/conda --cores 1 --directory . '
     command += f"--snakefile {workflowdir}/simulate-snpindel.smk "
-    command += f"--configfile {workflowdir}/config.yml "
+    command += f"--configfile {workflowdir}/config.yaml "
     if hpc:
         command += f"--workflow-profile {hpc} "
     if quiet:
@@ -282,7 +283,8 @@ def snpindel(genome, snp_vcf, indel_vcf, output_dir, prefix, snp_count, indel_co
     fetch_rule(workflowdir, "simulate-snpindel.smk")
     fetch_script(workflowdir, "simuG.pl")
     # setup the config file depending on inputs
-    with open(f"{workflowdir}/config.yml", "w", encoding="utf-8") as config:
+    with open(f"{workflowdir}/config.yaml", "w", encoding="utf-8") as config:
+        config.write("workflow: simulate snpindel\n")
         config.write(f"input_directory: {workflowdir}/input\n")
         config.write(f"output_directory: {output_dir}\n")
         config.write(f"genome: {genome_link}\n")
@@ -346,7 +348,7 @@ def inversion(genome, vcf, prefix, output_dir, count, min_size, max_size, centro
     sdm = "conda" if conda else "conda apptainer"
     command = f'snakemake --rerun-incomplete --rerun-triggers input mtime params --nolock --software-deployment-method {sdm} --conda-prefix ./.snakemake/conda --cores 1 --directory . '
     command += f"--snakefile {workflowdir}/simulate-variants.smk "
-    command += f"--configfile {workflowdir}/config.yml "
+    command += f"--configfile {workflowdir}/config.yaml "
     if hpc:
         command += f"--workflow-profile {hpc} "
     if quiet:
@@ -391,7 +393,8 @@ def inversion(genome, vcf, prefix, output_dir, count, min_size, max_size, centro
     fetch_rule(workflowdir, "simulate-variants.smk")
     fetch_script(workflowdir, "simuG.pl")
     # setup the config file depending on inputs
-    with open(f"{workflowdir}/config.yml", "w", encoding="utf-8") as config:
+    with open(f"{workflowdir}/config.yaml", "w", encoding="utf-8") as config:
+        config.write("workflow: simulate inversion\n")
         config.write(f"input_directory: {workflowdir}/input\n")
         config.write(f"output_directory: {output_dir}\n")
         config.write("variant_type: inversion\n")
@@ -459,7 +462,7 @@ def cnv(genome, output_dir, vcf, prefix, count, min_size, max_size, dup_ratio, m
     sdm = "conda" if conda else "conda apptainer"
     command = f'snakemake --rerun-incomplete --rerun-triggers input mtime params --nolock --software-deployment-method {sdm} --conda-prefix ./.snakemake/conda --cores 1 --directory . '
     command += f"--snakefile {workflowdir}/simulate-variants.smk "
-    command += f"--configfile {workflowdir}/config.yml "
+    command += f"--configfile {workflowdir}/config.yaml "
     if hpc:
         command += f"--workflow-profile {hpc} "
     if quiet:
@@ -504,7 +507,8 @@ def cnv(genome, output_dir, vcf, prefix, count, min_size, max_size, dup_ratio, m
     fetch_rule(workflowdir, "simulate-variants.smk")
     fetch_script(workflowdir, "simuG.pl")
     # setup the config file depending on inputs
-    with open(f"{workflowdir}/config.yml", "w", encoding="utf-8") as config:
+    with open(f"{workflowdir}/config.yaml", "w", encoding="utf-8") as config:
+        config.write("workflow: simulate cnv\n")
         config.write(f"input_directory: {workflowdir}/input\n")
         config.write(f"output_directory: {output_dir}\n")
         config.write("variant_type: cnv\n")
@@ -564,7 +568,7 @@ def translocation(genome, output_dir, prefix, vcf, count, centromeres, genes, he
     sdm = "conda" if conda else "conda apptainer"
     command = f'snakemake --rerun-incomplete --rerun-triggers input mtime params --nolock --software-deployment-method {sdm} --conda-prefix ./.snakemake/conda --cores 1 --directory . '
     command += f"--snakefile {workflowdir}/simulate-variants.smk "
-    command += f"--configfile {workflowdir}/config.yml "
+    command += f"--configfile {workflowdir}/config.yaml "
     if hpc:
         command += f"--workflow-profile {hpc} "
     if quiet:
@@ -609,7 +613,8 @@ def translocation(genome, output_dir, prefix, vcf, count, centromeres, genes, he
     fetch_rule(workflowdir, "simulate-variants.smk")
     fetch_script(workflowdir, "simuG.pl")
     # setup the config file depending on inputs
-    with open(f"{workflowdir}/config.yml", "w", encoding="utf-8") as config:
+    with open(f"{workflowdir}/config.yaml", "w", encoding="utf-8") as config:
+        config.write("workflow: simulate translocation\n")
         config.write(f"input_directory: {workflowdir}/input\n")
         config.write(f"output_directory: {output_dir}\n")
         config.write("variant_type: translocation\n")

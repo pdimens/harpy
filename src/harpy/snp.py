@@ -84,7 +84,7 @@ def mpileup(inputs, output_dir, regions, genome, threads, populations, ploidy, e
     sdm = "conda" if conda else "conda apptainer"
     command = f'snakemake --rerun-incomplete --rerun-triggers input mtime params --nolock --software-deployment-method {sdm} --conda-prefix ./.snakemake/conda --cores {threads} --directory . '
     command += f"--snakefile {workflowdir}/snp-mpileup.smk "
-    command += f"--configfile {workflowdir}/config.yml "
+    command += f"--configfile {workflowdir}/config.yaml "
     if hpc:
         command += f"--workflow-profile {hpc} "
     if quiet:
@@ -116,7 +116,8 @@ def mpileup(inputs, output_dir, regions, genome, threads, populations, ploidy, e
     fetch_rule(workflowdir, "snp-mpileup.smk")
     fetch_report(workflowdir, "BcftoolsStats.Rmd")
 
-    with open(f"{workflowdir}/config.yml", "w", encoding="utf-8") as config:
+    with open(f"{workflowdir}/config.yaml", "w", encoding="utf-8") as config:
+        config.write("workflow: snp mpileup\n")
         config.write(f"seq_directory: {workflowdir}/input\n")
         config.write(f"output_directory: {output_dir}\n")
         config.write(f"samplenames: {samplenames}\n")
@@ -184,7 +185,7 @@ def freebayes(inputs, output_dir, genome, threads, populations, ploidy, regions,
     sdm = "conda" if conda else "conda apptainer"
     command = f'snakemake --rerun-incomplete --rerun-triggers input mtime params --nolock --software-deployment-method {sdm} --conda-prefix ./.snakemake/conda --cores {threads} --directory . '
     command += f"--snakefile {workflowdir}/snp-freebayes.smk "
-    command += f"--configfile {workflowdir}/config.yml "
+    command += f"--configfile {workflowdir}/config.yaml "
     if hpc:
         command += f"--workflow-profile {hpc} "
     if quiet:
@@ -215,7 +216,8 @@ def freebayes(inputs, output_dir, genome, threads, populations, ploidy, regions,
     fetch_rule(workflowdir, "snp-freebayes.smk")
     fetch_report(workflowdir, "BcftoolsStats.Rmd")
 
-    with open(f"{workflowdir}/config.yml", "w", encoding="utf-8") as config:
+    with open(f"{workflowdir}/config.yaml", "w", encoding="utf-8") as config:
+        config.write("workflow: snp freebayes\n")
         config.write(f"seq_directory: {workflowdir}/input\n")
         config.write(f"output_directory: {output_dir}\n")
         config.write(f"samplenames: {samplenames}\n")

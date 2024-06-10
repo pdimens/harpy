@@ -96,7 +96,7 @@ def bwa(inputs, output_dir, genome, depth_window, threads, extra_params, quality
     sdm = "conda" if conda else "conda apptainer"
     command = f'snakemake --rerun-incomplete --rerun-triggers input mtime params --nolock --software-deployment-method {sdm} --conda-prefix ./.snakemake/conda --cores {threads} --directory . '
     command += f"--snakefile {workflowdir}/align-bwa.smk "
-    command += f"--configfile {workflowdir}/config.yml "
+    command += f"--configfile {workflowdir}/config.yaml "
     if hpc:
         command += f"--workflow-profile {hpc} "
     if quiet:
@@ -116,7 +116,8 @@ def bwa(inputs, output_dir, genome, depth_window, threads, extra_params, quality
     fetch_script(workflowdir, "bxStats.py")
     fetch_report(workflowdir, "AlignStats.Rmd")
 
-    with open(f"{workflowdir}/config.yml", "w", encoding="utf-8") as config:
+    with open(f"{workflowdir}/config.yaml", "w", encoding="utf-8") as config:
+        config.write("workflow: align bwa\n")
         config.write(f"genomefile: {genome}\n")
         config.write(f"seq_directory: {workflowdir}/input\n")
         config.write(f"output_directory: {output_dir}\n")
@@ -172,7 +173,7 @@ def ema(inputs, output_dir, platform, whitelist, genome, depth_window, threads, 
     sdm = "conda" if conda else "conda apptainer"
     command = f'snakemake --rerun-incomplete --rerun-triggers input mtime params --nolock --software-deployment-method {sdm} --conda-prefix ./.snakemake/conda --cores {threads} --directory . '
     command += f"--snakefile {workflowdir}/align-ema.smk "
-    command += f"--configfile {workflowdir}/config.yml "
+    command += f"--configfile {workflowdir}/config.yaml "
     if hpc:
         command += f"--workflow-profile {hpc} "
     if quiet:
@@ -205,7 +206,8 @@ def ema(inputs, output_dir, platform, whitelist, genome, depth_window, threads, 
     for i in ["EmaCount", "AlignStats"]:
         fetch_report(workflowdir, f"{i}.Rmd")
 
-    with open(f"{workflowdir}/config.yml", "w", encoding="utf-8") as config:
+    with open(f"{workflowdir}/config.yaml", "w", encoding="utf-8") as config:
+        config.write("workflow: align ema\n")
         config.write(f"genomefile: {genome}\n")
         config.write(f"seq_directory: {workflowdir}/input\n")
         config.write(f"output_directory: {output_dir}\n")
@@ -260,7 +262,7 @@ def minimap(inputs, output_dir, genome, depth_window, threads, extra_params, qua
     sdm = "conda" if conda else "conda apptainer"
     command = f'snakemake --rerun-incomplete --rerun-triggers input mtime params --nolock --software-deployment-method {sdm} --conda-prefix ./.snakemake/conda --cores {threads} --directory . '
     command += f"--snakefile {workflowdir}/align-minimap.smk "
-    command += f"--configfile {workflowdir}/config.yml "
+    command += f"--configfile {workflowdir}/config.yaml "
     if hpc:
         command += f"--workflow-profile {hpc} "
     if quiet:
@@ -280,7 +282,8 @@ def minimap(inputs, output_dir, genome, depth_window, threads, extra_params, qua
     fetch_script(workflowdir, "bxStats.py")
     fetch_report(workflowdir, "AlignStats.Rmd")
 
-    with open(f"{workflowdir}/config.yml", "w", encoding="utf-8") as config:
+    with open(f"{workflowdir}/config.yaml", "w", encoding="utf-8") as config:
+        config.write("workflow: align minimap\n")
         config.write(f"genomefile: {genome}\n")
         config.write(f"seq_directory: {workflowdir}/input\n")
         config.write(f"output_directory: {output_dir}\n")

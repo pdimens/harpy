@@ -65,7 +65,7 @@ def gen1(r1_fq, r2_fq, i1_fq, i2_fq, output_dir, schema, threads, snakemake, ski
     sdm = "conda" if conda else "conda apptainer"
     command = f'snakemake --rerun-incomplete --rerun-triggers input mtime params --nolock --software-deployment-method {sdm} --conda-prefix ./.snakemake/conda --cores {threads} --directory . '
     command += f"--snakefile {workflowdir}/demultiplex.gen1.smk "
-    command += f"--configfile {workflowdir}/config.yml "
+    command += f"--configfile {workflowdir}/config.yaml "
     if hpc:
         command += f"--workflow-profile {hpc} "
     if quiet:
@@ -97,7 +97,8 @@ def gen1(r1_fq, r2_fq, i1_fq, i2_fq, output_dir, schema, threads, snakemake, ski
         symlink(i1_fq, f"{workflowdir}/input/DATA_I1_001.fastq.gz")
         symlink(i2_fq, f"{workflowdir}/input/DATA_I2_001.fastq.gz")
         
-    with open(f"{workflowdir}/config.yml", "w", encoding= "utf-8") as config:
+    with open(f"{workflowdir}/config.yaml", "w", encoding= "utf-8") as config:
+        config.write("workflow: demultiplex gen1\n")
         config.write(f"R1: {workflowdir}/input/DATA_R1_001.fastq.gz\n")
         config.write(f"R2: {workflowdir}/input/DATA_R2_001.fastq.gz\n")
         config.write(f"I1: {workflowdir}/input/DATA_I1_001.fastq.gz\n")

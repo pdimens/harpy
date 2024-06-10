@@ -52,7 +52,7 @@ def qc(inputs, output_dir, min_length, max_length, ignore_adapters, extra_params
     sdm = "conda" if conda else "conda apptainer"
     command = f'snakemake --rerun-incomplete --rerun-triggers input mtime params --nolock  --software-deployment-method {sdm} --conda-prefix .snakemake/conda --cores {threads} --directory . '
     command += f"--snakefile {workflowdir}/qc.smk "
-    command += f"--configfile {workflowdir}/config.yml "
+    command += f"--configfile {workflowdir}/config.yaml "
     if hpc:
         command += f"--workflow-profile {hpc} "
     if quiet:
@@ -71,7 +71,8 @@ def qc(inputs, output_dir, min_length, max_length, ignore_adapters, extra_params
     fetch_rule(workflowdir, "qc.smk")
     fetch_report(workflowdir, "BxCount.Rmd")
 
-    with open(f"{workflowdir}/config.yml", "w", encoding="utf-8") as config:
+    with open(f"{workflowdir}/config.yaml", "w", encoding="utf-8") as config:
+        config.write("workflow: qc\n")
         config.write(f"seq_directory: {workflowdir}/input\n")
         config.write(f"output_directory: {output_dir}\n")
         config.write(f"adapters: {ignore_adapters}\n")

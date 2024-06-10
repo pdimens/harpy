@@ -57,7 +57,7 @@ def phase(inputs, output_dir, vcf, threads, molecule_distance, prune_threshold, 
     sdm = "conda" if conda else "conda apptainer"
     command = f'snakemake --rerun-incomplete --rerun-triggers input mtime params --nolock --software-deployment-method {sdm} --conda-prefix ./.snakemake/conda --cores {threads} --directory . '
     command += f"--snakefile {workflowdir}/phase.smk "
-    command += f"--configfile {workflowdir}/config.yml "
+    command += f"--configfile {workflowdir}/config.yaml "
     if hpc:
         command += f"--workflow-profile {hpc} "
     if quiet:
@@ -79,7 +79,8 @@ def phase(inputs, output_dir, vcf, threads, molecule_distance, prune_threshold, 
     fetch_report(workflowdir, "HapCut2.Rmd")
     prune_threshold /= 100
 
-    with open(f"{workflowdir}/config.yml", "w", encoding="utf-8") as config:
+    with open(f"{workflowdir}/config.yaml", "w", encoding="utf-8") as config:
+        config.write("workflow: phase\n")
         config.write(f"seq_directory: {workflowdir}/input/alignments\n")
         config.write(f"output_directory: {output_dir}\n")
         config.write(f"samplenames: {samplenames}\n")
