@@ -2,20 +2,18 @@ containerized: "docker://pdimens/harpy:latest"
 
 import os
 import re
-import glob
 import shutil
 from pathlib import Path
 from rich.panel import Panel
 from rich import print as rprint
 
 outdir      = config["output_directory"]
-seq_dir 	= config["seq_directory"]
 nbins 		= config["EMA_bins"]
 binrange    = ["%03d" % i for i in range(nbins)]
-genomefile 	= config["genomefile"]
-samplenames = config["samplenames"]
+fqlist       = config["inputs"]["fastq"]
+genomefile 	= config["inputs"]["genome"]
 platform    = config["platform"]
-whitelist   = config.get("whitelist", "") 
+whitelist   = config["inputs"].get("whitelist", "") 
 extra 		= config.get("extra", "") 
 bn 			= os.path.basename(genomefile)
 genome_zip  = True if bn.lower().endswith(".gz") else False
@@ -24,17 +22,14 @@ envdir      = os.getcwd() + "/.harpy_envs"
 windowsize  = config["depth_windowsize"]
 skipreports = config["skipreports"]
 
+bn_r = r"[\.\_](?:[RF])?(?:[12])?(?:\_00[1-9])*\.f(?:ast)?q(?:\.gz)?$"
+samplenames = set([re.sub(bn_r, "", os.path.basename(i), flags = re.IGNORECASE) for i in fqlist])
 d = dict(zip(samplenames, samplenames))
 
-def get_fq1(wildcards):
-    # code that returns a list of fastq files for read 1 based on *wildcards.sample* e.g.
-    lst = glob.glob(seq_dir + "/" + wildcards.sample + "*")
-    return lst[0]
-
-def get_fq2(wildcards):
-    # code that returns a list of fastq files for read 2 based on *wildcards.sample*, e.g.
-    lst = sorted(glob.glob(seq_dir + "/" + wildcards.sample + "*"))
-    return lst[1]
+def get_fq(wildcards):
+    # returns a list of forward/reverse based on *wildcards.sample* e.g.
+    sample_FR = sorted([i for i in fqlist if wildcards.sample in i])
+    return sample_FR
 
 onerror:
     print("")
@@ -64,7 +59,7 @@ onsuccess:
 wildcard_constraints:
     sample = "[a-zA-Z0-9._-]+"
 
-rule genome_link:
+rule genome_setup:
     input:
         genomefile
     output: 
@@ -72,18 +67,14 @@ rule genome_link:
     container:
         None
     message: 
-        "Symlinking {input}"
+        "copying {input} to Genome/"
     shell: 
         """
         if (file {input} | grep -q compressed ) ;then
             # is regular gzipped, needs to be BGzipped
             zcat {input} | bgzip -c > {output}
-        elif (file {input} | grep -q BGZF ); then
-            # is bgzipped, just linked
-            ln -sr {input} {output}
         else
-            # isn't compressed, just linked
-            ln -sr {input} {output}
+            cp -f {input} {output}
         fi
         """
 
@@ -126,8 +117,7 @@ rule genome_bwa_index:
 
 rule interleave:
     input:
-        fw_reads = get_fq1,
-        rv_reads = get_fq2
+        fastq = get_fq
     output:
         pipe(outdir + "/.interleave/{sample}.interleave.fq")
     container:
@@ -236,6 +226,8 @@ rule sort_raw_ema:
         quality = config["quality"],
         tmpdir = lambda wc: outdir + "/align/." + d[wc.sample],
         extra = extra
+    resources:
+        mem_mb = 2000
     threads:
         2
     container:
@@ -245,7 +237,7 @@ rule sort_raw_ema:
     shell:
         """
         samtools view -h -F 4 -q {params.quality} {input.sam} | 
-            samtools sort -T {params.tmpdir} --reference {input.genome} -O bam --write-index -m 4G -o {output.aln}##idx##{output.idx} - 2> {log}
+            samtools sort -T {params.tmpdir} --reference {input.genome} -O bam --write-index -m {resources.mem_mb}M -o {output.aln}##idx##{output.idx} - 2> {log}
         rm -rf {params.tmpdir}
         """
 
@@ -269,7 +261,7 @@ rule align_nobarcode:
         "Aligning unbarcoded sequences: {wildcards.sample}"
     shell:
         """
-        bwa mem -t {threads} -C -R \"@RG\\tID:{wildcards.sample}\\tSM:{wildcards.sample}\" {input.genome} {input.reads} > {output} 2> {log}
+        bwa mem -t {threads} -v2 -C -R \"@RG\\tID:{wildcards.sample}\\tSM:{wildcards.sample}\" {input.genome} {input.reads} > {output} 2> {log}
         """
 
 rule quality_filter:
@@ -324,13 +316,15 @@ rule sort_nobc_alignments:
     params: 
         quality = config["quality"],
         tmpdir = lambda wc: outdir + "/." + d[wc.sample]
+    resources:
+        mem_mb = 2000
     container:
         None
     message:
         "Sorting alignments: {wildcards.sample}"
     shell:
         """
-        samtools sort -T {params.tmpdir} --reference {input.genome} -O bam -l 0 -m 4G --write-index -o {output.bam}##idx##{output.bai} {input.sam} 2> {log}
+        samtools sort -T {params.tmpdir} --reference {input.genome} -O bam -l 0 -m {resources.mem_mb}M --write-index -o {output.bam}##idx##{output.bai} {input.sam} 2> {log}
         rm -rf {params.tmpdir}
         """
 
@@ -389,12 +383,14 @@ rule sort_concatenated:
         bai = outdir + "/{sample}.bam.bai"
     threads:
         2
+    resources:
+        mem_mb = 2000
     container:
         None
     message:
         "Sorting merged barcoded alignments: {wildcards.sample}"
     shell:
-        "samtools sort -@ {threads} -O bam --reference {input.genome} -m 4G --write-index -o {output.bam}##idx##{output.bai} {input.bam} 2> /dev/null"
+        "samtools sort -@ {threads} -O bam --reference {input.genome} -m {resources.mem_mb}M --write-index -o {output.bam}##idx##{output.bai} {input.bam} 2> /dev/null"
 
 rule alignment_coverage:
     input: 
@@ -485,7 +481,6 @@ rule log_workflow:
         with open(outdir + "/workflow/align.ema.summary", "w") as f:
             _ = f.write("The harpy align module ran using these parameters:\n\n")
             _ = f.write(f"The provided genome: {bn}\n")
-            _ = f.write(f"The directory with sequences: {seq_dir}\n")
             _ = f.write("Barcodes were counted and validated with EMA using:\n")
             _ = f.write(f"    seqtk mergepe forward.fq.gz reverse.fq.gz | ema count {params.beadtech}\n")
             _ = f.write("Barcoded sequences were binned with EMA using:\n")
@@ -493,17 +488,17 @@ rule log_workflow:
             _ = f.write("Barcoded bins were aligned with ema align using:\n")
             _ = f.write(f"    ema align " + extra + " -d -p " + platform + " -R \"@RG\\tID:SAMPLE\\tSM:SAMPLE\" |\n")
             _ = f.write("    samtools view -h -F 4 -q " + str(config["quality"]) + " - |\n") 
-            _ = f.write("    samtools sort --reference genome -m 4G\n\n")
+            _ = f.write("    samtools sort --reference genome -m 2000M\n\n")
             _ = f.write("Invalid/non barcoded sequences were aligned with BWA using:\n")
-            _ = f.write("    bwa mem -C -R \"@RG\\tID:SAMPLE\\tSM:SAMPLE\" genome forward_reads reverse_reads\n")
+            _ = f.write("    bwa mem -C -v2 -R \"@RG\\tID:SAMPLE\\tSM:SAMPLE\" genome forward_reads reverse_reads\n")
             _ = f.write("Duplicates in non-barcoded alignments were marked following:\n")
             _ = f.write("    samtools collate \n")
             _ = f.write("    samtools fixmate\n")
-            _ = f.write("    samtools sort \n")
+            _ = f.write("    samtools sort -m 2000M \n")
             _ = f.write("    samtools markdup -S\n")
             _ = f.write("Alignments were merged using:\n")
             _ = f.write("    samtools cat barcode.bam nobarcode.bam > concat.bam\n")
             _ = f.write("Merged alignments were sorted using:\n")
-            _ = f.write("    samtools sort concat.bam\n")
+            _ = f.write("    samtools sort -m 2000M concat.bam\n")
             _ = f.write("\nThe Snakemake workflow was called via command line:\n")
             _ = f.write("    " + str(config["workflow_call"]) + "\n")

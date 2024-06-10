@@ -64,7 +64,7 @@ rule genome_setup:
     container:
         None
     message: 
-        "Moving {input} in Genome/"
+        "copying {input} to Genome/"
     shell: 
         """
         if (file {input} | grep -q compressed ) ;then
