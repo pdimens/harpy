@@ -11,16 +11,19 @@ import rich_click as click
 from .fileparsers import getnames
 from .printfunctions import print_error, print_notice, print_solution, print_solution_with_culprits
 
-def validate_input_by_ext(input, option, ext):
-    """Check that the input file for a given option matches the acceptable extensions """
+def validate_input_by_ext(inputfile, option, ext):
+    """Check that the input file for a given option has read permissions and matches the acceptable extensions """
+    if not os.access(inputfile, os.R_OK):
+        print_error(f"The {inputfile} does not have Read permissions. These will create errors and terminate workflows prematurely. Please make sure this file has Read permissions")
+        sys.exit(1)
     if isinstance(ext, list):
-        test = [not(input.lower().endswith(i)) for i in ext]
+        test = [not(inputfile.lower().endswith(i)) for i in ext]
         if all(test):
             ext_text = " | ".join(ext)
             print_error(f"The input file for [bold]{option}[/bold] must end in one of:\n[green bold]{ext_text}[/green bold]")
             sys.exit(1)
     else:
-        if not input.lower().endswith(ext):
+        if not inputfile.lower().endswith(ext):
             print_error(f"The input file for [bold]{option}[/bold] must end in [green bold]{ext}[/green bold]")
             sys.exit(1)
 

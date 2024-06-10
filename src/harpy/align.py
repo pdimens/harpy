@@ -1,14 +1,14 @@
 """Harpy align workflows"""
 
-from genericpath import exists, isfile
 import os
 import sys
 import subprocess
 from time import sleep
+from pathlib import Path
 import rich_click as click
 from .conda_deps import generate_conda_deps
 from .helperfunctions import fetch_report, fetch_rule, fetch_script
-from .fileparsers import get_samples_from_fastq, parse_fastq_inputs
+from .fileparsers import parse_fastq_inputs
 from .printfunctions import print_error, print_solution, print_notice, print_onstart
 from .validations import validate_input_by_ext
 
@@ -108,8 +108,7 @@ def bwa(inputs, output_dir, genome, depth_window, threads, extra_params, quality
         sys.exit(0)
 
     os.makedirs(f"{workflowdir}/", exist_ok= True)
-    sn = parse_fastq_inputs(inputs, f"{workflowdir}/input", hpc)
-    samplenames = get_samples_from_fastq(f"{workflowdir}/input")
+    fqlist, sample_count = parse_fastq_inputs(inputs)
     validate_input_by_ext(genome, "--genome", [".fasta", ".fa", ".fasta.gz", ".fa.gz"])
     fetch_rule(workflowdir, "align-bwa.smk")
     fetch_script(workflowdir, "assignMI.py")
@@ -118,20 +117,22 @@ def bwa(inputs, output_dir, genome, depth_window, threads, extra_params, quality
 
     with open(f"{workflowdir}/config.yaml", "w", encoding="utf-8") as config:
         config.write("workflow: align bwa\n")
-        config.write(f"genomefile: {genome}\n")
-        config.write(f"seq_directory: {workflowdir}/input\n")
         config.write(f"output_directory: {output_dir}\n")
-        config.write(f"samplenames: {samplenames}\n")
-        config.write(f"quality: {quality_filter}\n")
+        config.write(f"alignment_quality: {quality_filter}\n")
         config.write(f"molecule_distance: {molecule_distance}\n")
         config.write(f"depth_windowsize: {depth_window}\n")
         config.write(f"skipreports: {skipreports}\n")
         if extra_params is not None:
             config.write(f"extra: {extra_params}\n")
         config.write(f"workflow_call: {command}\n")
+        config.write("inputs:\n")
+        config.write(f"  genome: {Path(genome).resolve()}\n")
+        config.write("  fastq:\n")
+        for i in fqlist:
+            config.write(f"    - {i}\n")
 
     print_onstart(
-        f"Samples: {len(samplenames)}\nOutput Directory: {output_dir}",
+        f"Samples: {sample_count}\nOutput Directory: {output_dir}",
         "align bwa"
     )
     generate_conda_deps()
@@ -198,8 +199,7 @@ def ema(inputs, output_dir, platform, whitelist, genome, depth_window, threads, 
         sleep(3)
 
     os.makedirs(f"{workflowdir}/", exist_ok= True)
-    sn = parse_fastq_inputs(inputs, f"{workflowdir}/input", hpc)
-    samplenames = get_samples_from_fastq(f"{workflowdir}/input")
+    fqlist, sample_count = parse_fastq_inputs(inputs)
     validate_input_by_ext(genome, "--genome", [".fasta", ".fa", ".fasta.gz", ".fa.gz"])
     fetch_rule(workflowdir, "align-ema.smk")
     fetch_script(workflowdir, "bxStats.py")
@@ -208,23 +208,25 @@ def ema(inputs, output_dir, platform, whitelist, genome, depth_window, threads, 
 
     with open(f"{workflowdir}/config.yaml", "w", encoding="utf-8") as config:
         config.write("workflow: align ema\n")
-        config.write(f"genomefile: {genome}\n")
-        config.write(f"seq_directory: {workflowdir}/input\n")
         config.write(f"output_directory: {output_dir}\n")
-        config.write(f"samplenames: {samplenames}\n")
         config.write(f"quality: {quality_filter}\n")
         config.write(f"platform: {platform}\n")
         config.write(f"EMA_bins: {ema_bins}\n")
         config.write(f"depth_windowsize: {depth_window}\n")
         config.write(f"skipreports: {skipreports}\n")
-        if whitelist:
-            config.write(f"whitelist: {whitelist}\n")
         if extra_params is not None:
             config.write(f"extra: {extra_params}\n")
         config.write(f"workflow_call: {command}\n")
+        config.write("inputs:\n")
+        config.write(f"  genome: {Path(genome).resolve()}\n")
+        if whitelist:
+            config.write(f"  whitelist: {Path(whitelist).resolve()}\n")
+        config.write("  fastq:\n")
+        for i in fqlist:
+            config.write(f"    - {i}\n")
 
     print_onstart(
-        f"Samples: {len(samplenames)}\nPlatform: {platform}\nOutput Directory: {output_dir}/",
+        f"Samples: {sample_count}\nPlatform: {platform}\nOutput Directory: {output_dir}/",
         "align ema"
     )
     generate_conda_deps()
@@ -274,8 +276,7 @@ def minimap(inputs, output_dir, genome, depth_window, threads, extra_params, qua
         sys.exit(0)
 
     os.makedirs(f"{workflowdir}/", exist_ok= True)
-    sn = parse_fastq_inputs(inputs, f"{workflowdir}/input", hpc)
-    samplenames = get_samples_from_fastq(f"{workflowdir}/input")
+    fqlist, sample_count = parse_fastq_inputs(inputs)
     validate_input_by_ext(genome, "--genome", [".fasta", ".fa", ".fasta.gz", ".fa.gz"])
     fetch_rule(workflowdir, "align-minimap.smk")
     fetch_script(workflowdir, "assignMI.py")
@@ -287,7 +288,6 @@ def minimap(inputs, output_dir, genome, depth_window, threads, extra_params, qua
         config.write(f"genomefile: {genome}\n")
         config.write(f"seq_directory: {workflowdir}/input\n")
         config.write(f"output_directory: {output_dir}\n")
-        config.write(f"samplenames: {samplenames}\n")
         config.write(f"quality: {quality_filter}\n")
         config.write(f"molecule_distance: {molecule_distance}\n")
         config.write(f"depth_windowsize: {depth_window}\n")
@@ -295,9 +295,14 @@ def minimap(inputs, output_dir, genome, depth_window, threads, extra_params, qua
         if extra_params is not None:
             config.write(f"extra: {extra_params}\n")
         config.write(f"workflow_call: {command}\n")
+        config.write("inputs:\n")
+        config.write(f"  genome: {Path(genome).resolve()}\n")
+        config.write("  fastq:\n")
+        for i in fqlist:
+            config.write(f"    - {i}\n")
 
     print_onstart(
-        f"Samples: {len(samplenames)}\nOutput Directory: {output_dir}",
+        f"Samples: {sample_count}\nOutput Directory: {output_dir}",
         "align minimap"
     )
     generate_conda_deps()
