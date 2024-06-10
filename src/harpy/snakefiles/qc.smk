@@ -50,14 +50,14 @@ def get_fq1(wildcards):
     samples_FR = [i for i in fqlist if wildcards.sample in i]
     r = re.compile(r".*[\_\.][FR]?[1]?(?:\_00[0-9])*\.f(?:ast)?q(?:\.gz)?$", flags=re.IGNORECASE)
     sample_F = list(filter(r.match, samples_FR))
-    return sample_F
+    return sample_F[0]
 
 def get_fq2(wildcards):
     # returns a list of fastq files for read 2 based on *wildcards.sample*, e.g.
     samples_FR = [i for i in fqlist if wildcards.sample in i]
     r = re.compile(r".*[\_\.][R]?[2]?(?:\_00[0-9])*\.f(?:ast)?q(?:\.gz)?$", flags=re.IGNORECASE)
     sample_R = list(filter(r.match, samples_FR))
-    return sample_R
+    return sample_R[0]
 
 rule qc_fastp:
     input:
