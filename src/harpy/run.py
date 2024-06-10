@@ -23,7 +23,7 @@ from .conda_deps import generate_conda_deps
 @click.argument('directory', required=True, type=click.Path(exists=True, file_okay=False), nargs=1)
 def run(directory, conda):
     """
-    Run Harpy from an existing directory
+    Run a workflow from an existing Harpy directory
 
     In the event you need to run the Snakemake workflow present in a Harpy output directory
     (e.g. `Align/bwa`) without Harpy rewriting any of the configuration files, this command
