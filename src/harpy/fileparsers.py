@@ -16,27 +16,24 @@ def getnames(directory, ext):
         sys.exit(1)
     return samplenames
 
-def parse_fastq_inputs(inputs, outfile):
+def parse_fastq_inputs(inputs):
     """
     Parse the command line input FASTQ arguments to generate a clean list of input files. Returns the number of unique samples,
     i.e. forward and reverse reads for one sample = 1 sample.
     """
     infiles = []
     unreadable = 0
-    #outfiles = []
     re_ext = re.compile(r"\.(fq|fastq)(?:\.gz)?$", re.IGNORECASE)
     for i in inputs:
         if os.path.isdir(i):
             for j in os.listdir(i):
                 if re.search(re_ext, j):
-                #if j.lower().endswith("fastq.gz") or j.lower().endswith("fq.gz") or j.lower().endswith("fastq") or j.lower().endswith("fq"):
-                    infiles.append(os.path.join(i, j))
+                    infiles.append(Path(os.path.join(i, j)).resolve())
                     # check if the file has read access
                     unreadable += not os.access(os.path.join(i, j), os.R_OK)
         else:
             if re.search(i, re_ext):
-            #if i.lower().endswith("fastq.gz") or i.lower().endswith("fq.gz") or i.lower().endswith("fastq") or i.lower().endswith("fq"):
-                infiles.append(i)
+                infiles.append(Path(i).resolve())
                 unreadable += not os.access(i, os.R_OK)
 
     if len(infiles) < 1:
@@ -51,7 +48,7 @@ def parse_fastq_inputs(inputs, outfile):
     uniqs = set()
     dupes = []
     for i in infiles:
-        sans_ext = os.path.basename(re_ext.sub("", i))
+        sans_ext = os.path.basename(re_ext.sub("", str(i)))
         if sans_ext in uniqs:
             dupes.append(sans_ext)
         else:
@@ -62,14 +59,10 @@ def parse_fastq_inputs(inputs, outfile):
         for i in dupes:
             click.echo(" ".join([j for j in infiles if i in j]), file = sys.stderr)
         sys.exit(1)
-    with open(outfile, "w", encoding="utf-8") as yaml:
-        yaml.write("fastq:\n")
-        for i in infiles:
-            yaml.write(f"  - {Path(i).resolve()}\n")
 
-    # return the # of unique samplenames
     n = len({re.sub(bn_r, "", i, flags = re.IGNORECASE) for i in uniqs})
-    return n
+    # return the filenames and # of unique samplenames
+    return infiles, n
 
 def parse_alignment_inputs(inputs, outfile):
     """
@@ -84,16 +77,16 @@ def parse_alignment_inputs(inputs, outfile):
             for j in os.listdir(i):
                 if j.lower().endswith("bam") or j.lower().endswith("sam"):
                     bam_infiles.append(os.path.join(i, j))
-                    unreadable += not os.access(os.path.join(i, j), os.R_OK)
+                    unreadable += not os.access(Path(os.path.join(i, j)).resolve(), os.R_OK)
                 elif j.lower().endswith("bai"):
-                    bai_infiles.append(os.path.join(i, j))
+                    bai_infiles.append(Path(os.path.join(i, j)).resolve())
                     unreadable += not os.access(os.path.join(i, j), os.R_OK)
         else:
             if i.lower().endswith("bam") or i.lower().endswith("sam"):
-                bam_infiles.append(i)
+                bam_infiles.append(Path(i).resolve())
                 unreadable += not os.access(i, os.R_OK)
             elif i.lower().endswith("bai"):
-                bai_infiles.append(i)
+                bai_infiles.append(Path(i).resolve())
                 unreadable += not os.access(i, os.R_OK)
     if len(bam_infiles) < 1:
         print_error("There were no files found in the provided inputs that end with the [blue].bam[/blue] or [blue].sam[/blue] extensions.")
@@ -107,7 +100,7 @@ def parse_alignment_inputs(inputs, outfile):
     uniqs = set()
     dupes = []
     for i in bam_infiles:
-        bn = os.path.basename(re_ext.sub("", i))
+        bn = os.path.basename(re_ext.sub("", str(i)))
         if bn in uniqs:
             dupes.append(bn)
         else:

@@ -66,14 +66,13 @@ def qc(inputs, output_dir, min_length, max_length, ignore_adapters, extra_params
         sys.exit(0)
 
     os.makedirs(workflowdir, exist_ok=True)
-    sample_count = parse_fastq_inputs(inputs, f"{workflowdir}/input.yaml")
+    fqlist, sample_count = parse_fastq_inputs(inputs)
     fetch_script(workflowdir, "countBX.py")
     fetch_rule(workflowdir, "qc.smk")
     fetch_report(workflowdir, "BxCount.Rmd")
 
     with open(f"{workflowdir}/config.yaml", "w", encoding="utf-8") as config:
         config.write("workflow: qc\n")
-        config.write(f"inputs: {workflowdir}/input.yaml\n")
         config.write(f"output_directory: {output_dir}\n")
         config.write(f"skip_adapter_trim: {ignore_adapters}\n")
         config.write(f"min_len: {min_length}\n")        
@@ -81,6 +80,9 @@ def qc(inputs, output_dir, min_length, max_length, ignore_adapters, extra_params
         config.write(f"extra: {extra_params}\n") if extra_params else None
         config.write(f"skipreports: {skipreports}\n")
         config.write(f"workflow_call: {command}\n")
+        config.write("inputs:\n")
+        for i in fqlist:
+            config.write(f"  - {i}\n")
 
     print_onstart(
         f"Samples: {sample_count}\nOutput Directory: {output_dir}/",

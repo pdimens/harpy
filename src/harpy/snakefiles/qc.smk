@@ -4,20 +4,18 @@ import os
 import re
 import sys
 import glob
-import yaml
 from rich.panel import Panel
 from rich import print as rprint
 
-with open(config["inputs"], 'r', encoding="utf-8") as f:
-    fqlist = sorted(yaml.full_load(f)["fastq"])
+fqlist       = config["inputs"]
+envdir       = os.getcwd() + "/.harpy_envs"
+outdir       = config["output_directory"]
+min_len 	 = config["min_len"]
+max_len 	 = config["max_len"]
+extra 	     = config.get("extra", "") 
+skipadapters = config["skip_adapter_trim"]
+skipreports  = config["skipreports"]
 
-envdir      = os.getcwd() + "/.harpy_envs"
-outdir      = config["output_directory"]
-min_len 	  = config["min_len"]
-max_len 	  = config["max_len"]
-extra 	  = config.get("extra", "") 
-skipadapters  = config["skip_adapter_trim"]
-skipreports = config["skipreports"]
 bn_r = r"[\.\_](?:[RF])?(?:[12])?(?:\_00[1-9])*\.f(?:ast)?q(?:\.gz)?$"
 samplenames = set([re.sub(bn_r, "", os.path.basename(i), flags = re.IGNORECASE) for i in fqlist])
 wildcard_constraints:
@@ -144,7 +142,6 @@ rule log_workflow:
     run:
         with open(outdir + "/workflow/qc.summary", "w") as f:
             _ = f.write("The harpy qc module ran using these parameters:\n\n")
-            _ = f.write("List of input files: " + config["inputs"] + "\n")
             _ = f.write("fastp trimming ran using:\n")
             _ = f.write("    fastp --trim_poly_g --cut_right " + " ".join(params) + "\n")
             _ = f.write("\nThe Snakemake workflow was called via command line:\n")
