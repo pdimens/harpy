@@ -4,23 +4,22 @@ import os
 import re
 import sys
 import glob
+import yaml
 from rich.panel import Panel
 from rich import print as rprint
 
-seq_dir   = config["seq_directory"]
+with open(config["inputs"], 'r', encoding="utf-8") as f:
+    fqlist = sorted(yaml.full_load(f)["fastq"])
+
 envdir      = os.getcwd() + "/.harpy_envs"
 outdir      = config["output_directory"]
 min_len 	  = config["min_len"]
 max_len 	  = config["max_len"]
 extra 	  = config.get("extra", "") 
-skipadapters  = config["adapters"]
+skipadapters  = config["skip_adapter_trim"]
 skipreports = config["skipreports"]
-flist = [os.path.basename(i) for i in glob.iglob(f"{seq_dir}/*") if not os.path.isdir(i)]
-r = re.compile(r".*\.f(?:ast)?q(?:\.gz)?$", flags=re.IGNORECASE)
-fqlist = list(filter(r.match, flist))
-bn_r = r"[\.\_][RF](?:[12])?(?:\_00[1-9])*\.f(?:ast)?q(?:\.gz)?$"
-samplenames = set([re.sub(bn_r, "", i, flags = re.IGNORECASE) for i in fqlist])
-
+bn_r = r"[\.\_](?:[RF])?(?:[12])?(?:\_00[1-9])*\.f(?:ast)?q(?:\.gz)?$"
+samplenames = set([re.sub(bn_r, "", os.path.basename(i), flags = re.IGNORECASE) for i in fqlist])
 wildcard_constraints:
     sample = "[a-zA-Z0-9._-]+"
 
@@ -49,18 +48,18 @@ onerror:
     )
 
 def get_fq1(wildcards):
-    # code that returns a list of fastq files for read 1 based on *wildcards.sample* e.g.
-    lst = sorted(glob.glob(seq_dir + "/" + wildcards.sample + "*"))
-    r = re.compile(r".*[\_\.][FR][1]?(?:\_00[0-9])*\.f(?:ast)?q(?:\.gz)?$", flags=re.IGNORECASE)
-    fqlist = list(filter(r.match, lst))
-    return fqlist
+    # returns a list of fastq files for read 1 based on *wildcards.sample* e.g.
+    samples_FR = [i for i in fqlist if wildcards.sample in i]
+    r = re.compile(r".*[\_\.][FR]?[1]?(?:\_00[0-9])*\.f(?:ast)?q(?:\.gz)?$", flags=re.IGNORECASE)
+    sample_F = list(filter(r.match, samples_FR))
+    return sample_F
 
 def get_fq2(wildcards):
-    # code that returns a list of fastq files for read 2 based on *wildcards.sample*, e.g.
-    lst = sorted(glob.glob(seq_dir + "/" + wildcards.sample + "*"))
-    r = re.compile(r".*[\_\.][R][2]?(?:\_00[0-9])*\.f(?:ast)?q(?:\.gz)?$", flags=re.IGNORECASE)
-    fqlist = list(filter(r.match, lst))
-    return fqlist
+    # returns a list of fastq files for read 2 based on *wildcards.sample*, e.g.
+    samples_FR = [i for i in fqlist if wildcards.sample in i]
+    r = re.compile(r".*[\_\.][R]?[2]?(?:\_00[0-9])*\.f(?:ast)?q(?:\.gz)?$", flags=re.IGNORECASE)
+    sample_R = list(filter(r.match, samples_FR))
+    return sample_R
 
 rule qc_fastp:
     input:
@@ -145,7 +144,7 @@ rule log_workflow:
     run:
         with open(outdir + "/workflow/qc.summary", "w") as f:
             _ = f.write("The harpy qc module ran using these parameters:\n\n")
-            _ = f.write(f"The directory with sequences: {seq_dir}\n")
+            _ = f.write("List of input files: " + config["inputs"] + "\n")
             _ = f.write("fastp trimming ran using:\n")
             _ = f.write("    fastp --trim_poly_g --cut_right " + " ".join(params) + "\n")
             _ = f.write("\nThe Snakemake workflow was called via command line:\n")

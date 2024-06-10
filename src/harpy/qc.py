@@ -1,11 +1,12 @@
 """Harpy sequence adapter trimming and quality control"""
 
+import os
 import sys
 import subprocess
 import rich_click as click
 from .conda_deps import generate_conda_deps
 from .helperfunctions import fetch_report, fetch_rule, fetch_script
-from .fileparsers import get_samples_from_fastq, parse_fastq_inputs
+from .fileparsers import parse_fastq_inputs
 from .printfunctions import print_onstart
 
 docstring = {
@@ -64,18 +65,17 @@ def qc(inputs, output_dir, min_length, max_length, ignore_adapters, extra_params
         click.echo(command)
         sys.exit(0)
 
-    _ = parse_fastq_inputs(inputs, f"{workflowdir}/input", hpc)
-    sn = get_samples_from_fastq(f"{workflowdir}/input")
-
+    os.makedirs(workflowdir, exist_ok=True)
+    sample_count = parse_fastq_inputs(inputs, f"{workflowdir}/input.yaml")
     fetch_script(workflowdir, "countBX.py")
     fetch_rule(workflowdir, "qc.smk")
     fetch_report(workflowdir, "BxCount.Rmd")
 
     with open(f"{workflowdir}/config.yaml", "w", encoding="utf-8") as config:
         config.write("workflow: qc\n")
-        config.write(f"seq_directory: {workflowdir}/input\n")
+        config.write(f"inputs: {workflowdir}/input.yaml\n")
         config.write(f"output_directory: {output_dir}\n")
-        config.write(f"adapters: {ignore_adapters}\n")
+        config.write(f"skip_adapter_trim: {ignore_adapters}\n")
         config.write(f"min_len: {min_length}\n")        
         config.write(f"max_len: {max_length}\n")
         config.write(f"extra: {extra_params}\n") if extra_params else None
@@ -83,7 +83,7 @@ def qc(inputs, output_dir, min_length, max_length, ignore_adapters, extra_params
         config.write(f"workflow_call: {command}\n")
 
     print_onstart(
-        f"Samples: {len(sn)}\nOutput Directory: {output_dir}/",
+        f"Samples: {sample_count}\nOutput Directory: {output_dir}/",
         "qc"
     )
     generate_conda_deps()
