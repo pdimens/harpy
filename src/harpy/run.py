@@ -45,7 +45,7 @@ def run(directory, conda):
         print_error(Markdown("\n".join(errtext)))
         sys.exit(1)
     
-    with open(f"{directory}/workflow/config.yaml", 'r') as f:
+    with open(f"{directory}/workflow/config.yaml", 'r', encoding="utf-8") as f:
         harpy_config = yaml.full_load(f)
         command = harpy_config["workflow_call"]
     
