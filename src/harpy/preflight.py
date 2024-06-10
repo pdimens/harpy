@@ -12,7 +12,7 @@ from .fileparsers import parse_alignment_inputs, parse_fastq_inputs
 @click.group(options_metavar='', context_settings={"help_option_names" : ["-h", "--help"]})
 def preflight():
     """
-    Run file format checks on haplotag data
+    File format checks for haplotag data
 
     This is useful to make sure your input files are formatted correctly for the processing pipeline 
     before you are surprised by errors hours into an analysis. Provide an additional command `fastq`
