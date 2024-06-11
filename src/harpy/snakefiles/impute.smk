@@ -1,22 +1,60 @@
 containerized: "docker://pdimens/harpy:latest"
 
-from snakemake.utils import Paramspace
-from rich import print as rprint
-from rich.panel import Panel
-import pandas as pd
-import sys
 import os
+import sys
+import subprocess
+import pandas as pd
+from rich.panel import Panel
+from rich import print as rprint
+from snakemake.utils import Paramspace
 
-samplenames = config["samplenames"]
-variantfile = config["variantfile"]
-paramfile   = config["paramfile"]
-contigs     = config["contigs"]
+#samplenames = config["samplenames"]
+bamlist     = config["inputs"]["alignments"]
+variantfile = config["inputs"]["variantfile"]
+paramfile   = config["inputs"]["paramfile"]
 skipreports = config["skipreports"]
 outdir      = config["output_directory"]
-bam_dir     = f"{outdir}/workflow/input/alignments"
 envdir      = os.getcwd() + "/.harpy_envs"
-# declare a dataframe to be the paramspace
 paramspace  = Paramspace(pd.read_csv(paramfile, sep=r"\s+").rename(columns=str.lower), param_sep = "", filename_params="*")
+
+def get_alignments:
+    # returns a list with the bam file for the sample based on *wildcards.sample* e.g.
+    r = re.compile(f"({wildcards.sample})" + r"\.(bam|sam)$", flags = re.IGNORECASE)
+    aln = list(filter(r.match, fqlist))
+    return aln[0]
+
+def biallelic_contigs(vcf, workdir):
+    """Identify which contigs have at least 2 biallelic SNPs"""
+    vbn = os.path.basename(vcf)
+    if os.path.exists(f"{workdir}/{vbn}.biallelic"):
+        rprint(f"{workdir}/{vbn}.biallelic exists, using the contigs listed in it.")
+        with open(f"{workdir}/{vbn}.biallelic", "r", encoding="utf-8") as f:
+            contigs = [line.rstrip() for line in f]
+    else:
+        rprint("Identifying which contigs have at least 2 biallelic SNPs", file = sys.stderr)
+        os.makedirs(f"{workdir}/", exist_ok = True)
+        biallelic = subprocess.Popen(f"bcftools view -M2 -v snps {vcf} -Ob".split(), stdout = subprocess.PIPE)
+        contigs = subprocess.run("""bcftools query -f '%CHROM\\n'""".split(), stdin = biallelic.stdout, stdout = subprocess.PIPE, check = False).stdout.decode().splitlines()
+        counts = Counter(contigs)
+        contigs = [i.replace("\'", "") for i in counts if counts[i] > 1]
+        with open(f"{workdir}/{vbn}.biallelic", "w", encoding="utf-8") as f:
+            _ = [f.write(f"{i}\n") for i in contigs]
+
+    if len(contigs) == 0:
+        rprint(
+            Panel(
+                "No contigs with at least 2 biallelic SNPs identified. Cannot continue with imputation.",
+                title = "[bold]Error",
+                title_align = "left",
+                border_style = "yellow"
+                ),
+            file = sys.stderr
+        )
+        sys.exit(1)
+    else:
+        return contigs
+
+contigs = biallelic_contigs(vcf=variantfile, f"{outdir}/workflow")
 
 wildcard_constraints:
     sample = "[a-zA-Z0-9._-]+"
@@ -25,7 +63,7 @@ onerror:
     print("")
     rprint(
         Panel(
-            f"The workflow has terminated due to an error. See the log file below for more details.",
+            "The workflow has terminated due to an error. See the log file below for more details.",
             title = "[bold]harpy impute",
             title_align = "left",
             border_style = "red"
@@ -59,10 +97,10 @@ rule sort_bcf:
         "Sorting input variant call file"
     shell:
         "bcftools sort -Ob --write-index -o {output.bcf} {input} 2> {log}"
-
+#TODO figure out this output function
 rule index_alignments:
     input:
-        bam_dir + "/{sample}.bam"
+        get_alignments
     output:
         bam_dir + "/{sample}.bam.bai"
     container:
@@ -74,8 +112,8 @@ rule index_alignments:
 
 rule alignment_list:
     input:
-        bam = collect(bam_dir + "/{sample}.bam", sample = samplenames),
-        bai = collect(bam_dir + "/{sample}.bam.bai", sample = samplenames)
+        bam = bamlist
+        bai = bailist
     output:
         outdir + "/workflow/input/samples.list"
     message:

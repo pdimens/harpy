@@ -4,6 +4,7 @@ import os
 import sys
 import subprocess
 import rich_click as click
+from pathlib import Path
 from .conda_deps import generate_conda_deps
 from .helperfunctions import fetch_rule, fetch_report, fetch_script, biallelic_contigs
 from .fileparsers import parse_alignment_inputs
@@ -71,9 +72,10 @@ def impute(inputs, output_dir, parameters, threads, vcf, vcf_samples, extra_para
         sys.exit(0)
 
     os.makedirs(f"{workflowdir}/", exist_ok= True)
-    sn = parse_alignment_inputs(inputs, f"{workflowdir}/input/alignments", hpc)
-    samplenames = vcf_samplematch(vcf, f"{workflowdir}/input/alignments", vcf_samples)
-    validate_bamfiles(f"{workflowdir}/input/alignments", samplenames)
+    bamlist, n = parse_alignment_inputs(inputs)
+    # TODO better logic to parse input file list based on VCF samples
+    samplenames = vcf_samplematch(vcf, bamlist, vcf_samples)
+    validate_bamfiles(bamlist, samplenames)
     ## validate inputs ##
     vcfcheck(vcf)
     check_impute_params(parameters)
@@ -84,21 +86,26 @@ def impute(inputs, output_dir, parameters, threads, vcf, vcf_samples, extra_para
 
     # generate and store list of viable contigs (minimum of 2 biallelic SNPs)
     # doing it here so it doesn't have to run each time inside the workflow
-    contigs = biallelic_contigs(vcf, workflowdir)
+    # TODO MOVE THIS INTO THE SNAKEFILE
+    contigs = biallelic_contigs(vcf=vcf, workflowdir)
+
     with open(f"{workflowdir}/config.yaml", "w", encoding="utf-8") as config:
         config.write("workflow: impute\n")
         config.write(f"output_directory: {output_dir}\n")
-        config.write(f"samplenames: {samplenames}\n")
-        config.write(f"variantfile: {vcf}\n")
-        config.write(f"paramfile: {parameters}\n")
-        config.write(f"contigs: {contigs}\n")
+        config.write(f"samples_from_vcf: {vcf_samples}\n")
         if extra_params is not None:
             config.write(f"extra: {extra_params}\n")
         config.write(f"skipreports: {skipreports}\n")
         config.write(f"workflow_call: {command}\n")
+        config.write("inputs:\n")
+        config.write(f"  paramfile: {parameters}\n")
+        config.write(f"  variantfile: {Path(vcf).resolve()}\n")
+        config.write("  alignments:\n")
+        for i in bamlist:
+            config.write(f"    - {i}\n")
 
     print_onstart(
-        f"Input VCF: {vcf}\nSamples in VCF: {len(samplenames)}\nAlignments Provided: {len(sn)}\nContigs Considered: {len(contigs)}\nOutput Directory: {output_dir}/",
+        f"Input VCF: {vcf}\nSamples in VCF: {len(samplenames)}\nAlignments Provided: {n}\nOutput Directory: {output_dir}/",
         "impute"
     )
     generate_conda_deps()

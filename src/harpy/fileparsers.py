@@ -64,7 +64,7 @@ def parse_fastq_inputs(inputs):
     # return the filenames and # of unique samplenames
     return infiles, n
 
-def parse_alignment_inputs(inputs, outfile):
+def parse_alignment_inputs(inputs):
     """
     Parse the command line input sam/bam arguments to generate a clean list of input files
     and return the number of unique samples.
@@ -72,20 +72,22 @@ def parse_alignment_inputs(inputs, outfile):
     bam_infiles = []
     bai_infiles = []
     unreadable = 0
+    re_bam = re.compile(r".*\.(bam|sam)$", flags = re.IGNORECASE)
+    re_bai = re.compile(r".*\.bam\.bai$", flags = re.IGNORECASE)
     for i in inputs:
         if os.path.isdir(i):
             for j in os.listdir(i):
-                if j.lower().endswith("bam") or j.lower().endswith("sam"):
+                if re_bam.match(j):
                     bam_infiles.append(os.path.join(i, j))
                     unreadable += not os.access(Path(os.path.join(i, j)).resolve(), os.R_OK)
-                elif j.lower().endswith("bai"):
+                elif re_bai.match(j):
                     bai_infiles.append(Path(os.path.join(i, j)).resolve())
                     unreadable += not os.access(os.path.join(i, j), os.R_OK)
         else:
-            if i.lower().endswith("bam") or i.lower().endswith("sam"):
+            if re_bam.match(i):
                 bam_infiles.append(Path(i).resolve())
                 unreadable += not os.access(i, os.R_OK)
-            elif i.lower().endswith("bai"):
+            elif re_bai.match(i):
                 bai_infiles.append(Path(i).resolve())
                 unreadable += not os.access(i, os.R_OK)
     if len(bam_infiles) < 1:
@@ -111,12 +113,7 @@ def parse_alignment_inputs(inputs, outfile):
         for i in dupes:
             click.echo(" ".join([j for j in bam_infiles if i in j]), file = sys.stderr)
         sys.exit(1)
-    # write input.yaml
-    with open(outfile, "w", encoding="utf-8") as yaml:
-        yaml.write("alignments:\n")
-        for i in bam_infiles:
-            yaml.write(f"  - {Path(i).resolve()}\n")
-    return len(uniqs)
+    return bam_infiles, len(uniqs)
 
 #def get_samples_from_fastq(directory):
 #    """Identify the sample names from a directory containing FASTQ files"""
