@@ -27,9 +27,10 @@ samplenames = set([re.sub(bn_r, "", os.path.basename(i), flags = re.IGNORECASE) 
 d = dict(zip(samplenames, samplenames))
 
 def get_fq(wildcards):
-    # returns a list of forward/reverse based on *wildcards.sample* e.g.
-    sample_FR = sorted([i for i in fqlist if wildcards.sample in i])
-    return sample_FR
+    # returns a list of fastq files for read 1 based on *wildcards.sample* e.g.
+    r = re.compile(f"({wildcards.sample})" + r"([_\.][12]|[_\.][FR]|[_\.]R[12](?:\_00[0-9])*)?\.((fastq|fq)(\.gz)?)$", flags = re.IGNORECASE)
+    sample_F = list(filter(r.match, fqlist))
+    return sample_F[:2]
 
 onerror:
     print("")

@@ -47,17 +47,19 @@ onerror:
 
 def get_fq1(wildcards):
     # returns a list of fastq files for read 1 based on *wildcards.sample* e.g.
-    samples_FR = [i for i in fqlist if wildcards.sample in i]
-    r = re.compile(r".*[\_\.][FR]?[1]?(?:\_00[0-9])*\.f(?:ast)?q(?:\.gz)?$", flags=re.IGNORECASE)
-    sample_F = list(filter(r.match, samples_FR))
+    #samples_FR = [i for i in fqlist if wildcards.sample in i]
+    r = re.compile(f"({wildcards.sample})" + r"([_\.]1|[_\.]F|[_\.]R1(?:\_00[0-9])*)?\.((fastq|fq)(\.gz)?)$", flags = re.IGNORECASE)
+    sample_F = list(filter(r.match, fqlist))
     return sample_F[0]
 
 def get_fq2(wildcards):
     # returns a list of fastq files for read 2 based on *wildcards.sample*, e.g.
-    samples_FR = [i for i in fqlist if wildcards.sample in i]
-    r = re.compile(r".*[\_\.][R]?[2]?(?:\_00[0-9])*\.f(?:ast)?q(?:\.gz)?$", flags=re.IGNORECASE)
-    sample_R = list(filter(r.match, samples_FR))
+    #samples_FR = [i for i in fqlist if wildcards.sample in i]
+    r = re.compile(f"({wildcards.sample})" + r"([_\.]2|[_\.]R|[_\.]R2(?:\_00[0-9])*)?\.((fastq|fq)(\.gz)?)$", flags = re.IGNORECASE)
+    sample_R = list(filter(r.match, fqlist))
     return sample_R[0]
+
+r5 = re.compile(f"(sample_001)" + r"([_\.][12]|[_\.][FR]|[_\.]R[12](?:\_00[0-9])*)?\.((fastq|fq)(\.gz)?)$", flags = re.IGNORECASE)
 
 rule qc_fastp:
     input:
