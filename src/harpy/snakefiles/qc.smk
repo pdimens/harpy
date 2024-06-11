@@ -59,8 +59,6 @@ def get_fq2(wildcards):
     sample_R = list(filter(r.match, fqlist))
     return sample_R[0]
 
-r5 = re.compile(f"(sample_001)" + r"([_\.][12]|[_\.][FR]|[_\.]R[12](?:\_00[0-9])*)?\.((fastq|fq)(\.gz)?)$", flags = re.IGNORECASE)
-
 rule qc_fastp:
     input:
         fw   = get_fq1,
