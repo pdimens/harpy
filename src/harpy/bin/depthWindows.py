@@ -11,6 +11,8 @@ _sum = 0
 start = 1
 end = args.windowsize
 lastcontig = None
+position = 0
+
 for line in sys.stdin:
     # Remove the newline character at the end of the line
     line = line.rstrip().split()
