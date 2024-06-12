@@ -9,15 +9,6 @@ from rich.markdown import Markdown
 from .printfunctions import print_error, print_onstart
 from .conda_deps import generate_conda_deps
 
-#docstring = {
-#    "harpy run": [
-#        {
-#            "name": "Submission Systems",
-#            "commands": ["slurm", "htcondor", "lsf", "googlebatch", "generic"],
-#        },
-#    ]
-#}
-
 @click.command(no_args_is_help = True, epilog = "read the docs for more information: https://pdimens.github.io/harpy/modules/other")
 @click.option('-c', '--conda',  is_flag = True, default = False, help = 'Recreate the conda environments into .harpy_envs/')
 @click.argument('directory', required=True, type=click.Path(exists=True, file_okay=False), nargs=1)
