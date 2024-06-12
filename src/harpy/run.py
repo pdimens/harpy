@@ -52,6 +52,6 @@ def run(directory, conda):
     if conda:
         generate_conda_deps()
     
-    print_onstart(f"Output Directory: {directory}", harpy_config["workflow"])
+    print_onstart(f"Output Directory: {directory}", "harpy " + harpy_config["workflow"])
     _module = subprocess.run(command.split())
     sys.exit(_module.returncode)
