@@ -47,13 +47,13 @@ onerror:
 def get_fq1(wildcards):
     # returns a list of fastq files for read 1 based on *wildcards.sample* e.g.
     #samples_FR = [i for i in fqlist if wildcards.sample in i]
-    r = re.compile(fr"({re.escape(wildcards.sample)})([_\.]1|[_\.]F|[_\.]R1(?:\_00[0-9])*)?\.((fastq|fq)(\.gz)?)$", flags = re.IGNORECASE)
+    r = re.compile(fr"(.*/{re.escape(wildcards.sample)})([_\.]1|[_\.]F|[_\.]R1(?:\_00[0-9])*)?\.((fastq|fq)(\.gz)?)$", flags = re.IGNORECASE)
     return list(filter(r.match, fqlist))
 
 def get_fq2(wildcards):
     # returns a list of fastq files for read 2 based on *wildcards.sample*, e.g.
     #samples_FR = [i for i in fqlist if wildcards.sample in i]
-    r = re.compile(fr"({re.escape(wildcards.sample)})([_\.]2|[_\.]R|[_\.]R2(?:\_00[0-9])*)?\.((fastq|fq)(\.gz)?)$", flags = re.IGNORECASE)
+    r = re.compile(fr"(.*/{re.escape(wildcards.sample)})([_\.]2|[_\.]R|[_\.]R2(?:\_00[0-9])*)?\.((fastq|fq)(\.gz)?)$", flags = re.IGNORECASE)
     return list(filter(r.match, fqlist))
 
 rule qc_fastp:
