@@ -112,6 +112,8 @@ rule create_report:
         collect(outdir + "/reports/data/fastp/{sample}.fastp.json", sample = samplenames)
     output:
         outdir + "/reports/qc.report.html"
+    log:
+        outdir + "/logs/mutliqc.log"
     params:
         outdir
     conda:
@@ -120,7 +122,7 @@ rule create_report:
         "Aggregating fastp reports"
     shell: 
         """
-        multiqc {params}/reports/data/fastp/ -m fastp --force --filename {output} --quiet --title "QC Summary" --comment "This report aggregates trimming and quality control metrics reported by fastp" --no-data-dir 2>/dev/null
+        multiqc {params}/reports/data/fastp/ -m fastp --force --filename {output} --quiet --title "QC Summary" --comment "This report aggregates trimming and quality control metrics reported by fastp" --no-data-dir 2> {log}
         """
 
 rule log_workflow:
