@@ -27,9 +27,9 @@ def biallelic_contigs(vcf, workdir):
     """Identify which contigs have at least 2 biallelic SNPs"""
     vbn = os.path.basename(vcf)
     if os.path.exists(f"{workdir}/{vbn}.biallelic"):
-        rprint(f"{workdir}/{vbn}.biallelic exists, using the contigs listed in it.")
         with open(f"{workdir}/{vbn}.biallelic", "r", encoding="utf-8") as f:
             contigs = [line.rstrip() for line in f]
+        rprint(f"{workdir}/{vbn}.biallelic exists, using the {len(contigs)} contigs listed in it.")
     else:
         rprint("Identifying which contigs have at least 2 biallelic SNPs", file = sys.stderr)
         os.makedirs(f"{workdir}/", exist_ok = True)
@@ -97,12 +97,12 @@ rule sort_bcf:
         "Sorting input variant call file"
     shell:
         "bcftools sort -Ob --write-index -o {output.bcf} {input} 2> {log}"
-#TODO figure out this output function
+
 rule index_alignments:
     input:
         get_alignments
     output:
-        bam_dir + "/{sample}.bam.bai"
+        f"{input}.bai"
     container:
         None
     message:
@@ -113,7 +113,6 @@ rule index_alignments:
 rule alignment_list:
     input:
         bam = bamlist
-        bai = bailist
     output:
         outdir + "/workflow/input/samples.list"
     message:
