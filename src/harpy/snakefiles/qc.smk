@@ -120,7 +120,7 @@ rule create_report:
         "Aggregating fastp reports"
     shell: 
         """
-        multiqc {params}/logs/json -m fastp --force --filename {output} --quiet --title "QC Summary" --comment "This report aggregates trimming and quality control metrics reported by fastp" --no-data-dir 2>/dev/null
+        multiqc {params}/reports/data/fastp/ -m fastp --force --filename {output} --quiet --title "QC Summary" --comment "This report aggregates trimming and quality control metrics reported by fastp" --no-data-dir 2>/dev/null
         """
 
 rule log_workflow:
