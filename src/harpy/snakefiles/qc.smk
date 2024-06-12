@@ -3,12 +3,11 @@ containerized: "docker://pdimens/harpy:latest"
 import os
 import re
 import sys
-import glob
 from rich.panel import Panel
 from rich import print as rprint
 
-fqlist       = config["inputs"]
 envdir       = os.getcwd() + "/.harpy_envs"
+fqlist       = config["inputs"]
 outdir       = config["output_directory"]
 min_len 	 = config["min_len"]
 max_len 	 = config["max_len"]
@@ -16,8 +15,8 @@ extra 	     = config.get("extra", "")
 skipadapters = config["skip_adapter_trim"]
 skipreports  = config["skipreports"]
 
-bn_r = r"[\.\_](?:[RF])?(?:[12])?(?:\_00[1-9])*\.f(?:ast)?q(?:\.gz)?$"
-samplenames = set([re.sub(bn_r, "", os.path.basename(i), flags = re.IGNORECASE) for i in fqlist])
+bn_r = r"([_\.][12]|[_\.][FR]|[_\.]R[12](?:\_00[0-9])*)?\.((fastq|fq)(\.gz)?)$"
+samplenames = {re.sub(bn_r, "", os.path.basename(i), flags = re.IGNORECASE) for i in fqlist}
 wildcard_constraints:
     sample = "[a-zA-Z0-9._-]+"
 
