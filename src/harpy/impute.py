@@ -87,7 +87,7 @@ def impute(inputs, output_dir, parameters, threads, vcf, vcf_samples, extra_para
     # generate and store list of viable contigs (minimum of 2 biallelic SNPs)
     # doing it here so it doesn't have to run each time inside the workflow
     # TODO MOVE THIS INTO THE SNAKEFILE
-    contigs = biallelic_contigs(vcf=vcf, workflowdir)
+    #contigs = biallelic_contigs(vcf, workflowdir)
 
     with open(f"{workflowdir}/config.yaml", "w", encoding="utf-8") as config:
         config.write("workflow: impute\n")
