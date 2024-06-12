@@ -73,7 +73,7 @@ rule qc_fastp:
         tim_adapters = "--disable_adapter_trimming" if skipadapters else "--detect_adapter_for_pe",
         extra = extra
     threads:
-        2
+        min(4, workflow.cores // 2)
     conda:
         f"{envdir}/qc.yaml"
     message:
