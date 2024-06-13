@@ -7,9 +7,36 @@ import gzip
 import subprocess
 from rich import box, print
 from rich.table import Table
+from rich.markdown import Markdown
 import rich_click as click
 from .fileparsers import getnames
 from .printfunctions import print_error, print_notice, print_solution, print_solution_with_culprits
+
+def check_envdir(dirpath):
+    """Check that the provided dir exists and contains the necessary environment definitions"""
+    if not os.path.exists(dirpath):
+        print_error("This working directory does not contain the expected directory of conda environment definitions ([blue bold].harpy_envs/[/blue bold])\n  - use [green bold]--conda[/green bold] to recreate it")
+        sys.exit(1)
+    envlist = os.listdir(dirpath)
+    envs = ["qc", "align", "snp", "sv", "phase", "simulations", "r"]
+    errcount = 0
+    errtable = Table(show_footer=True, box=box.SIMPLE)
+    errtable.add_column("File", justify="left", style="blue", no_wrap=True)
+    errtable.add_column("Exists", justify="center")
+    for i in envs:
+        if f"{i}.yaml" in envlist:
+            errtable.add_row(f"{i}.yaml", "[blue]✓")
+        else:
+            errcount += 1
+            errtable.add_row(f"{i}.yaml", "[yellow]🗙")
+    if errcount > 0:
+        print_error(f"The conda environment definition directory ([blue bold]{dirpath}[/blue bold]) is missing [yellow bold]{errcount}[/yellow bold] of the expected definition files. All of the environment files are expected to be present, even if a particular workflow doesn't use it.")
+        print_solution_with_culprits(
+            "Check that the names conform to Harpy's expectations, otheriwse you can recreate this directory using the [green bold]--conda[/green bold] option.",
+            "Expected environment files:"
+            )
+        print(errtable, file = sys.stderr)
+        sys.exit(1)
 
 def validate_input_by_ext(inputfile, option, ext):
     """Check that the input file for a given option has read permissions and matches the acceptable extensions """
