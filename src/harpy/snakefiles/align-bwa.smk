@@ -302,7 +302,7 @@ rule alignment_report:
         "Calculating alignment stats: {wildcards.sample}"
     shell:
         """
-        samtools stats {input.bam} > {output.stats}
+        samtools stats -d {input.bam} > {output.stats}
         samtools flagstat {input.bam} > {output.flagstat}
         """
 
@@ -319,7 +319,7 @@ rule samtools_reports:
         "Summarizing samtools stats and flagstat"
     shell:
         """
-        multiqc {params}/reports/data/samtools_stats {params}/reports/data/samtools_flagstat --force --quiet --title "General Alignment Statistics" --comment "This report aggregates samtools stats and samtools flagstats results for all alignments." --no-data-dir --filename {output} 2> /dev/null
+        multiqc {params}/reports/data/samtools_stats {params}/reports/data/samtools_flagstat --force --quiet --title "General Alignment Statistics" --comment "This report aggregates samtools stats and samtools flagstats results for all alignments. Samtools stats ignores alignments marked as duplicates." --no-data-dir --filename {output} 2> /dev/null
         """
 
 rule log_workflow:
