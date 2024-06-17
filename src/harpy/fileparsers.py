@@ -3,7 +3,9 @@
 import sys
 import os
 import re
+import subprocess
 from pathlib import Path
+from collections import Counter
 from rich.markdown import Markdown
 import rich_click as click
 from .printfunctions import print_error, print_solution_with_culprits
@@ -78,7 +80,7 @@ def parse_alignment_inputs(inputs):
         if os.path.isdir(i):
             for j in os.listdir(i):
                 if re_bam.match(j):
-                    bam_infiles.append(os.path.join(i, j))
+                    bam_infiles.append(Path(os.path.join(i, j)).resolve())
                     unreadable += not os.access(Path(os.path.join(i, j)).resolve(), os.R_OK)
                 elif re_bai.match(j):
                     bai_infiles.append(Path(os.path.join(i, j)).resolve())
@@ -128,3 +130,27 @@ def parse_alignment_inputs(inputs):
 #        sys.exit(1)
 #
 #    return set([re.sub(bn_r, "", i, flags = re.IGNORECASE) for i in fqlist])
+
+
+def biallelic_contigs(vcf, workdir):
+    """Identify which contigs have at least 2 biallelic SNPs"""
+    vbn = os.path.basename(vcf)
+    if os.path.exists(f"{workdir}/{vbn}.biallelic"):
+        with open(f"{workdir}/{vbn}.biallelic", "r", encoding="utf-8") as f:
+            contigs = [line.rstrip() for line in f]
+        click.echo(f"{workdir}/{vbn}.biallelic exists, using the {len(contigs)} contigs listed in it.", file = sys.stderr)
+    else:
+        click.echo("Identifying which contigs have at least 2 biallelic SNPs", file = sys.stderr)
+        os.makedirs(f"{workdir}/", exist_ok = True)
+        biallelic = subprocess.Popen(f"bcftools view -M2 -v snps {vcf} -Ob".split(), stdout = subprocess.PIPE)
+        contigs = subprocess.run("""bcftools query -f '%CHROM\\n'""".split(), stdin = biallelic.stdout, stdout = subprocess.PIPE, check = False).stdout.decode().splitlines()
+        counts = Counter(contigs)
+        contigs = [i.replace("\'", "") for i in counts if counts[i] > 1]
+        with open(f"{workdir}/{vbn}.biallelic", "w", encoding="utf-8") as f:
+            _ = [f.write(f"{i}\n") for i in contigs]
+
+    if len(contigs) == 0:
+        print_error("No contigs with at least 2 biallelic SNPs identified. Cannot continue with imputation.")
+        sys.exit(1)
+    else:
+        return f"{workdir}/{vbn}.biallelic"

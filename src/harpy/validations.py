@@ -5,11 +5,11 @@ import os
 import re
 import gzip
 import subprocess
+from pathlib import Path
 from rich import box, print
 from rich.table import Table
-from rich.markdown import Markdown
 import rich_click as click
-from .fileparsers import getnames
+#from .fileparsers import getnames
 from .printfunctions import print_error, print_notice, print_solution, print_solution_with_culprits
 
 def check_envdir(dirpath):
@@ -44,24 +44,26 @@ def validate_input_by_ext(inputfile, option, ext):
         print_error(f"The {inputfile} does not have Read permissions. These will create errors and terminate workflows prematurely. Please make sure this file has Read permissions")
         sys.exit(1)
     if isinstance(ext, list):
-        test = [not(inputfile.lower().endswith(i)) for i in ext]
+        test = [not(inputfile.lower().endswith(i.lower())) for i in ext]
         if all(test):
             ext_text = " | ".join(ext)
             print_error(f"The input file for [bold]{option}[/bold] must end in one of:\n[green bold]{ext_text}[/green bold]")
             sys.exit(1)
     else:
-        if not inputfile.lower().endswith(ext):
+        if not inputfile.lower().endswith(ext.lower()):
             print_error(f"The input file for [bold]{option}[/bold] must end in [green bold]{ext}[/green bold]")
             sys.exit(1)
 
-def vcfcheck(vcf):
-    """Check that a file ends with one of .vcf, .bcf, or .vcf.gz. Is case insensitive."""
-    vfile = vcf.lower()
-    if vfile.endswith(".vcf") or vfile.endswith(".bcf") or vfile.endswith(".vcf.gz"):
-        pass
-    else:
-        print_error(f"Supplied variant call file [bold]{vcf}[/bold] must end in one of:\n[green bold].vcf | .vcf.gz | .bcf[/green bold]")
-        sys.exit(1)
+# DEPRECATE
+#def vcfcheck(vcf):
+#    """Check that a file ends with one of .vcf, .bcf, or .vcf.gz. Is case insensitive."""
+#    vfile = vcf.lower()
+#    if vfile.endswith(".vcf") or vfile.endswith(".bcf") or vfile.endswith(".vcf.gz"):
+#        pass
+#    else:
+#        print_error(f"Supplied variant call file [bold]{vcf}[/bold] must end in one of:\n[green bold].vcf | .vcf.gz | .bcf[/green bold]")
+#        sys.exit(1)
+###
 
 def check_impute_params(parameters):
     """Validate the STITCH parameter file for column names, order, types, missing values, etc."""
@@ -156,26 +158,16 @@ def check_impute_params(parameters):
             print(errtable, file = sys.stderr)
             sys.exit(1)
 
-def validate_bamfiles(dir, namelist):
-    """Validate BAM files in directory 'dir' to make sure the sample name inferred from the file matches the @RG tag within the file"""
+def validate_bam_RG(bamlist):
+    """Validate BAM files bamlist to make sure the sample name inferred from the file matches the @RG tag within the file"""
     culpritfiles = []
     culpritIDs   = []
-    for i in namelist:
-        fname = f"{dir}/{i}.bam"
-        samview = subprocess.Popen(f"samtools view -H {fname}".split(), stdout = subprocess.PIPE)
-        IDtag = subprocess.run("grep ^@RG".split(), stdin = samview.stdout, stdout=subprocess.PIPE, check = False).stdout.decode('utf-8')
-        r = re.compile("(\t)(ID:.*?)(\t)")
-        IDsearch = r.search(IDtag)
-        if IDsearch:
-            # strip right and left whitespaces and rm "ID:"
-            IDval = IDsearch.group(0).rstrip().lstrip()[3:]
-            # does the ID: tag match the sample name?
-            if IDval != i:
-                culpritfiles.append(os.path.basename(fname))
-                culpritIDs.append(IDval)
-        else:
-            culpritfiles.append(os.path.basename)
-            culpritIDs.append("missing @RG ID:")
+    for i in bamlist:
+        samplename = Path(i).stem
+        samview = subprocess.run(f"samtools samples {i}".split(), stdout = subprocess.PIPE).stdout.decode('utf-8').split()
+        if samplename != samview[0]:
+            culpritfiles.append(os.path.basename(i))
+            culpritIDs.append(samview[0])
         
     if len(culpritfiles) > 0:
         print_error(f"There are [bold]{len(culpritfiles)}[/bold] alignment files whose ID tags do not match their filenames.")
@@ -183,7 +175,7 @@ def validate_bamfiles(dir, namelist):
             "For alignment files (sam/bam), the base of the file name must be identical to the [green bold]@RD ID:[/green bold] tag in the file header. For example, a file named \'sample_001.bam\' should have the [green bold]@RG ID:sample_001[/green bold] tag. Use the [blue bold]renamebam[/blue bold] script to properly rename alignment files so as to also update the @RG header.",
             "File causing error and their ID tags:"
         )
-        for i,j in zip(culpritfiles,culpritIDs):
+        for i,j in zip(culpritIDs,culpritfiles):
             click.echo(f"{i}\t{j}", file = sys.stderr)
         sys.exit(1)
 
@@ -214,24 +206,24 @@ def validate_popfile(infile):
         else:
             return rows
 
-def vcf_samplematch(vcf, directory, vcf_samples):
-    """Validate that the input VCF file and the samples in the 'directory' (BAM files). The directionality of this check is determined by 'vcf_samples', which prioritizes the sample list in the file, rather that directory."""
+def vcf_samplematch(vcf, bamlist, vcf_samples):
+    """Validate that the input VCF file and the samples in the list of BAM files. The directionality of this check is determined by 'vcf_samples', which prioritizes the sample list in the vcf file, rather than bamlist."""
     bcfquery = subprocess.Popen(["bcftools", "query", "-l", vcf], stdout=subprocess.PIPE)
-    filesamples = bcfquery.stdout.read().decode().split()
-    dirsamples  = getnames(directory, '.bam')
+    vcfsamples = bcfquery.stdout.read().decode().split()
+    filesamples = [Path(i).stem for i in bamlist]
     if vcf_samples:
-        fromthis, query = vcf, filesamples
-        inthis, search = directory, dirsamples
+        fromthis, query = vcf, vcfsamples
+        inthis, search = "the input files", filesamples
     else:
-        fromthis, query = directory, dirsamples
-        inthis, search = vcf, filesamples
+        fromthis, query = "the input files", filesamples
+        inthis, search = vcf, vcfsamples
 
     missing_samples = [x for x in query if x not in search]
     # check that samples in VCF match input directory
     if len(missing_samples) > 0:
         print_error(f"There are [bold]{len(missing_samples)}[/bold] samples found in [bold]{fromthis}[/bold] that are not in [bold]{inthis}[/bold]. Terminating Harpy to avoid downstream errors.")
         print_solution_with_culprits(
-            f"[bold]{fromthis}[/bold] cannot contain samples that are absent in [bold]{inthis}[/bold]. Check the spelling or remove those samples from [bold]{fromthis}[/bold] or remake the vcf file to include/omit these samples. Alternatively, toggle [green]--vcf-samples[/green] to aggregate the sample list from [bold]{directory}[/bold] or [bold]{vcf}[/bold].",
+            f"[bold]{fromthis}[/bold] cannot contain samples that are absent in [bold]{inthis}[/bold]. Check the spelling or remove those samples from [bold]{fromthis}[/bold] or remake the vcf file to include/omit these samples. Alternatively, toggle [green]--vcf-samples[/green] to aggregate the sample list from [bold]the input files[/bold] or [bold]{vcf}[/bold].",
             "The samples causing this error are:"
         )
         click.echo(", ".join(sorted(missing_samples)), file = sys.stderr)

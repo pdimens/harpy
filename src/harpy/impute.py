@@ -6,10 +6,10 @@ import subprocess
 import rich_click as click
 from pathlib import Path
 from .conda_deps import generate_conda_deps
-from .helperfunctions import fetch_rule, fetch_report, fetch_script, biallelic_contigs
-from .fileparsers import parse_alignment_inputs
+from .helperfunctions import fetch_rule, fetch_report, fetch_script
+from .fileparsers import parse_alignment_inputs, biallelic_contigs
 from .printfunctions import print_onstart
-from .validations import vcfcheck, vcf_samplematch, check_impute_params, validate_bamfiles
+from .validations import validate_input_by_ext, vcf_samplematch, check_impute_params, validate_bam_RG
 
 docstring = {
         "harpy impute": [
@@ -73,21 +73,16 @@ def impute(inputs, output_dir, parameters, threads, vcf, vcf_samples, extra_para
 
     os.makedirs(f"{workflowdir}/", exist_ok= True)
     bamlist, n = parse_alignment_inputs(inputs)
-    # TODO better logic to parse input file list based on VCF samples
+    validate_input_by_ext(vcf, "--vcf", ["vcf", "bcf", "vcf.gz"])
     samplenames = vcf_samplematch(vcf, bamlist, vcf_samples)
-    validate_bamfiles(bamlist, samplenames)
-    ## validate inputs ##
-    vcfcheck(vcf)
+    validate_bam_RG(bamlist)
     check_impute_params(parameters)
+    biallelic = biallelic_contigs(vcf, f"{workflowdir}")
+
     fetch_rule(workflowdir, "impute.smk")
     fetch_script(workflowdir, "stitch_impute.R")
     for i in ["Impute", "StitchCollate"]:
         fetch_report(workflowdir, f"{i}.Rmd")
-
-    # generate and store list of viable contigs (minimum of 2 biallelic SNPs)
-    # doing it here so it doesn't have to run each time inside the workflow
-    # TODO MOVE THIS INTO THE SNAKEFILE
-    #contigs = biallelic_contigs(vcf, workflowdir)
 
     with open(f"{workflowdir}/config.yaml", "w", encoding="utf-8") as config:
         config.write("workflow: impute\n")
@@ -98,8 +93,9 @@ def impute(inputs, output_dir, parameters, threads, vcf, vcf_samples, extra_para
         config.write(f"skipreports: {skipreports}\n")
         config.write(f"workflow_call: {command}\n")
         config.write("inputs:\n")
-        config.write(f"  paramfile: {parameters}\n")
+        config.write(f"  paramfile: {Path(parameters).resolve()}\n")
         config.write(f"  variantfile: {Path(vcf).resolve()}\n")
+        config.write(f"  biallelic_contigs: {Path(biallelic).resolve()}\n")
         config.write("  alignments:\n")
         for i in bamlist:
             config.write(f"    - {i}\n")

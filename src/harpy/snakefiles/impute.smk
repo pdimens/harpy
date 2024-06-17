@@ -1,63 +1,39 @@
 containerized: "docker://pdimens/harpy:latest"
 
 import os
+import re
 import sys
 import subprocess
 import pandas as pd
+import multiprocessing
 from rich.panel import Panel
 from rich import print as rprint
 from snakemake.utils import Paramspace
 
-#samplenames = config["samplenames"]
 bamlist     = config["inputs"]["alignments"]
 variantfile = config["inputs"]["variantfile"]
 paramfile   = config["inputs"]["paramfile"]
+biallelic   = config["inputs"]["biallelic_contigs"]
 skipreports = config["skipreports"]
 outdir      = config["output_directory"]
 envdir      = os.getcwd() + "/.harpy_envs"
 paramspace  = Paramspace(pd.read_csv(paramfile, sep=r"\s+").rename(columns=str.lower), param_sep = "", filename_params="*")
 
-def get_alignments:
-    # returns a list with the bam file for the sample based on *wildcards.sample* e.g.
-    r = re.compile(f"({wildcards.sample})" + r"\.(bam|sam)$", flags = re.IGNORECASE)
-    aln = list(filter(r.match, fqlist))
-    return aln[0]
-
-def biallelic_contigs(vcf, workdir):
-    """Identify which contigs have at least 2 biallelic SNPs"""
-    vbn = os.path.basename(vcf)
-    if os.path.exists(f"{workdir}/{vbn}.biallelic"):
-        with open(f"{workdir}/{vbn}.biallelic", "r", encoding="utf-8") as f:
-            contigs = [line.rstrip() for line in f]
-        rprint(f"{workdir}/{vbn}.biallelic exists, using the {len(contigs)} contigs listed in it.")
-    else:
-        rprint("Identifying which contigs have at least 2 biallelic SNPs", file = sys.stderr)
-        os.makedirs(f"{workdir}/", exist_ok = True)
-        biallelic = subprocess.Popen(f"bcftools view -M2 -v snps {vcf} -Ob".split(), stdout = subprocess.PIPE)
-        contigs = subprocess.run("""bcftools query -f '%CHROM\\n'""".split(), stdin = biallelic.stdout, stdout = subprocess.PIPE, check = False).stdout.decode().splitlines()
-        counts = Counter(contigs)
-        contigs = [i.replace("\'", "") for i in counts if counts[i] > 1]
-        with open(f"{workdir}/{vbn}.biallelic", "w", encoding="utf-8") as f:
-            _ = [f.write(f"{i}\n") for i in contigs]
-
-    if len(contigs) == 0:
-        rprint(
-            Panel(
-                "No contigs with at least 2 biallelic SNPs identified. Cannot continue with imputation.",
-                title = "[bold]Error",
-                title_align = "left",
-                border_style = "yellow"
-                ),
-            file = sys.stderr
-        )
-        sys.exit(1)
-    else:
-        return contigs
-
-contigs = biallelic_contigs(vcf=variantfile, f"{outdir}/workflow")
+with open(biallelic, "r") as f_open:
+    contigs = [i.rstrip() for i in f_open.readlines()]
 
 wildcard_constraints:
     sample = "[a-zA-Z0-9._-]+"
+
+#def get_alignments(wildcards):
+#    """returns a list with the bam file for the sample based on wildcards.sample"""
+#    r = re.compile(fr"({wildcards.sample})\.(bam|sam)$", flags = re.IGNORECASE)
+#    aln = list(filter(r.match, bamlist))
+#    return aln[0]
+
+def sam_index(infile):
+    if not os.path.exists(f"{infile}.bai"):
+        subprocess.run(f"samtools index {infile} {infile}.bai".split())
 
 onerror:
     print("")
@@ -98,21 +74,24 @@ rule sort_bcf:
     shell:
         "bcftools sort -Ob --write-index -o {output.bcf} {input} 2> {log}"
 
+# not the ideal way of doing this, but it works
 rule index_alignments:
     input:
-        get_alignments
+        bamlist
     output:
-        f"{input}.bai"
-    container:
-        None
+        [f"{i}.bai" for i in bamlist]
+    threads:
+        workflow.cores
     message:
-        "Indexing: {wildcards.sample}"
-    shell:
-        "samtools index {input} {output} 2> /dev/null"
+        "Indexing alignment files"
+    run:
+        with multiprocessing.Pool(processes=threads) as pool:
+            pool.map(sam_index, input)
 
 rule alignment_list:
     input:
-        bam = bamlist
+        bam = bamlist,
+        bailist = [f"{i}.bai" for i in bamlist]
     output:
         outdir + "/workflow/input/samples.list"
     message:
@@ -332,12 +311,11 @@ rule log_workflow:
         with open(outdir + "/workflow/impute.summary", "w") as f:
             _ = f.write("The harpy impute module ran using these parameters:\n\n")
             _ = f.write(f"The provided variant file: {variantfile}\n")
-            _ = f.write(f"The directory with alignments: {bam_dir}\n")
             _ = f.write("Preprocessing was performed with:\n")
             _ = f.write("    bcftools view -M2 -v snps --regions CONTIG INFILE |\n")
             _ = f.write("""    bcftools query -i '(STRLEN(REF)==1) & (STRLEN(ALT[0])==1) & (REF!="N")' -f '%CHROM\\t%POS\\t%REF\\t%ALT\\n'\n""")
             _ = f.write("\nThe STITCH parameters were governed by the rows of the input parameter table:\n")
-            with open(config["paramfile"], "r") as f1:
+            with open(config["inputs"]["paramfile"], "r") as f1:
                 for line in f1:
                     _ = f.write("    " + line)
             _ = f.write("\nWithin R, STITCH was invoked with the following parameters:\n")
