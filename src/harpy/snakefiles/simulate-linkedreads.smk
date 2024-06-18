@@ -10,8 +10,8 @@ from rich.panel import Panel
 from rich import print as rprint
 
 outdir = config["output_directory"]
-gen_hap1 = config["genome_hap1"]
-gen_hap2 = config["genome_hap2"]
+gen_hap1 = config["inputs"]["genome_hap1"]
+gen_hap2 = config["inputs"]["genome_hap2"]
 envdir      = os.getcwd() + "/.harpy_envs"
 
 barcodes = config.get("barcodes", None)
