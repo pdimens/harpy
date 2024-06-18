@@ -3,12 +3,13 @@
 import os
 import sys
 import subprocess
+from pathlib import Path
 import rich_click as click
 from .conda_deps import generate_conda_deps
 from .helperfunctions import fetch_rule, fetch_report
 from .fileparsers import getnames, parse_alignment_inputs
 from .printfunctions import print_onstart
-from .validations import validate_bam_RG, validate_popfile, validate_vcfsamples, validate_input_by_ext, validate_regions
+from .validations import validate_bam_RG, validate_popfile, validate_popsamples, validate_vcfsamples, validate_input_by_ext, validate_regions
 
 @click.group(options_metavar='', context_settings={"help_option_names" : ["-h", "--help"]})
 def snp():
@@ -97,20 +98,19 @@ def mpileup(inputs, output_dir, regions, genome, threads, populations, ploidy, e
         sys.exit(0)
 
     os.makedirs(f"{workflowdir}/", exist_ok= True)
-    sn = parse_alignment_inputs(inputs, f"{workflowdir}/input", hpc)
-    samplenames = getnames(f"{workflowdir}/input", '.bam')
-    validate_bam_RG(f"{workflowdir}/input", samplenames)
+    bamlist, n = parse_alignment_inputs(inputs)
+    validate_bam_RG(bamlist)
     validate_input_by_ext(genome, "--genome", [".fasta", ".fa", ".fasta.gz", ".fa.gz"])
 
     # setup regions checks
     regtype = validate_regions(regions, genome)
     if regtype == "windows":
-        region = f"{workflowdir}/positions.bed"
+        region = Path(f"{workflowdir}/positions.bed").resolve()
         os.system(f"makeWindows.py -m 1 -i {genome} -o {region} -w {regions}")
     elif regtype == "region":
         region = regions
     else:
-        region = f"{workflowdir}/positions.bed"
+        region = Path(f"{workflowdir}/positions.bed").resolve()
         os.system(f"cp -f {regions} {region}")
 
     fetch_rule(workflowdir, "snp-mpileup.smk")
@@ -118,29 +118,31 @@ def mpileup(inputs, output_dir, regions, genome, threads, populations, ploidy, e
 
     with open(f"{workflowdir}/config.yaml", "w", encoding="utf-8") as config:
         config.write("workflow: snp mpileup\n")
-        config.write(f"seq_directory: {workflowdir}/input\n")
         config.write(f"output_directory: {output_dir}\n")
-        config.write(f"samplenames: {samplenames}\n")
+        config.write(f"ploidy: {ploidy}\n")
         config.write(f"regiontype: {regtype}\n")
         if regtype == "windows":
             config.write("windowsize: {regions}\n")
-        config.write(f"regions: {region}\n")
-        popgroupings = ""
-        if populations is not None:
-            rows = validate_popfile(populations)
-            # check that samplenames and populations line up
-            validate_vcfsamples(f"{workflowdir}/input", populations, samplenames, rows, quiet)
-            config.write(f"groupings: {populations}\n")
-            popgroupings += f"\nPopulations: {populations}"
-        config.write(f"genomefile: {genome}\n")
-        config.write(f"ploidy: {ploidy}\n")
         if extra_params is not None:
             config.write(f"extra: {extra_params}\n")
         config.write(f"skipreports: {skipreports}\n")
         config.write(f"workflow_call: {command}\n")
+        config.write("inputs:\n")
+        config.write(f"  genome: {Path(genome).resolve()}\n")
+        config.write(f"  regions: {region}\n")
+        popgroupings = ""
+        if populations is not None:
+            validate_popfile(populations)
+            # check that samplenames and populations line up
+            validate_popsamples(bamlist, populations, quiet)
+            config.write(f"  groupings: {populations}\n")
+            popgroupings += f"\nPopulations: {populations}"
+        config.write("  alignments:\n")
+        for i in bamlist:
+            config.write(f"    - {i}\n")
 
     print_onstart(
-        f"Samples: {len(samplenames)}{popgroupings}\nOutput Directory: {output_dir}/",
+        f"Samples: {n}{popgroupings}\nOutput Directory: {output_dir}/",
         "snp mpileup"
     )
     generate_conda_deps()
@@ -197,20 +199,19 @@ def freebayes(inputs, output_dir, genome, threads, populations, ploidy, regions,
         sys.exit(0)
 
     os.makedirs(f"{workflowdir}/", exist_ok= True)
-    sn = parse_alignment_inputs(inputs, f"{workflowdir}/input", hpc)
-    samplenames = getnames(f"{workflowdir}/input", '.bam')
-    validate_bam_RG(f"{workflowdir}/input", samplenames)
+    bamlist, n = parse_alignment_inputs(inputs)
+    validate_bam_RG(bamlist)
     validate_input_by_ext(genome, "--genome", [".fasta", ".fa", ".fasta.gz", ".fa.gz"])
 
     # setup regions checks
     regtype = validate_regions(regions, genome)
     if regtype == "windows":
-        region = f"{workflowdir}/positions.bed"
+        region = Path(f"{workflowdir}/positions.bed").resolve()
         os.system(f"makeWindows.py -m 0 -i {genome} -o {region} -w {regions}")
     elif regtype == "region":
         region = regions
     else:
-        region = f"{workflowdir}/positions.bed"
+        region = Path(f"{workflowdir}/positions.bed").resolve()
         os.system(f"cp -f {regions} {region}")
 
     fetch_rule(workflowdir, "snp-freebayes.smk")
@@ -218,29 +219,31 @@ def freebayes(inputs, output_dir, genome, threads, populations, ploidy, regions,
 
     with open(f"{workflowdir}/config.yaml", "w", encoding="utf-8") as config:
         config.write("workflow: snp freebayes\n")
-        config.write(f"seq_directory: {workflowdir}/input\n")
         config.write(f"output_directory: {output_dir}\n")
-        config.write(f"samplenames: {samplenames}\n")
+        config.write(f"ploidy: {ploidy}\n")
         config.write(f"regiontype: {regtype}\n")
         if regtype == "windows":
             config.write("windowsize: {regions}\n")
-        config.write(f"regions: {region}\n")
-        popgroupings = ""
-        if populations is not None:
-            rows = validate_popfile(populations)
-            # check that samplenames and populations line up
-            validate_vcfsamples(f"{workflowdir}/input", populations, samplenames, rows, quiet)
-            config.write(f"groupings: {populations}\n")
-            popgroupings += f"\nPopulations: {populations}"
-        config.write(f"ploidy: {ploidy}\n")
-        config.write(f"genomefile: {genome}\n")
         if extra_params is not None:
             config.write(f"extra: {extra_params}\n")
         config.write(f"skipreports: {skipreports}\n")
         config.write(f"workflow_call: {command}\n")
+        config.write("inputs:\n")
+        config.write(f"  genome: {Path(genome).resolve()}\n")
+        config.write(f"  regions: {region}\n")
+        popgroupings = ""
+        if populations is not None:
+            validate_popfile(populations)
+            # check that samplenames and populations line up
+            validate_popsamples(bamlist, populations, quiet)
+            config.write(f"  groupings: {populations}\n")
+            popgroupings += f"\nPopulations: {populations}"
+        config.write("  alignments:\n")
+        for i in bamlist:
+            config.write(f"    - {i}\n")
 
     print_onstart(
-        f"Samples: {len(samplenames)}{popgroupings}\nOutput Directory: {output_dir}/",
+        f"Samples: {n}{popgroupings}\nOutput Directory: {output_dir}/",
         "snp freebayes"
     )
     generate_conda_deps()

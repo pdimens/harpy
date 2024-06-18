@@ -1,24 +1,26 @@
 containerized: "docker://pdimens/harpy:latest"
 
+import os
+import sys
+import multiprocessing
+from pathlib import Path
 from rich import print as rprint
 from rich.panel import Panel
-import sys
-import os
 
-bam_dir 	= config["seq_directory"]
 envdir      = os.getcwd() + "/.harpy_envs"
-genomefile 	= config["genomefile"]
-bn          = os.path.basename(genomefile)
-genome_zip  = True if bn.lower().endswith(".gz") else False
-groupings 	= config.get("groupings", [])
 ploidy 		= config["ploidy"]
-samplenames = config["samplenames"]
 mp_extra 	= config.get("extra", "")
-regioninput = config["regions"]
 regiontype  = config["regiontype"]
 windowsize  = config.get("windowsize", None)
 outdir      = config["output_directory"]
 skipreports = config["skipreports"]
+bamlist     = config["inputs"]["alignments"]
+genomefile 	= config["inputs"]["genome"]
+bn          = os.path.basename(genomefile)
+genome_zip  = True if bn.lower().endswith(".gz") else False
+groupings 	= config["inputs"].get("groupings", [])
+regioninput = config["inputs"]["regions"]
+samplenames = {Path(i).stem for i in bamlist}
 
 if regiontype == "region":
     intervals = [regioninput]
@@ -61,6 +63,11 @@ onsuccess:
         file = sys.stderr
     )
 
+def sam_index(infile):
+    """Use Samtools to index an input file, adding .bai to the end of the name"""
+    if not os.path.exists(f"{infile}.bai"):
+        subprocess.run(f"samtools index {infile} {infile}.bai".split())
+
 rule genome_link:
     input:
         genomefile
@@ -75,12 +82,8 @@ rule genome_link:
         if (file {input} | grep -q compressed ) ;then
             # is regular gzipped, needs to be BGzipped
             zcat {input} | bgzip -c > {output}
-        elif (file {input} | grep -q BGZF ); then
-            # is bgzipped, just linked
-            ln -sr {input} {output}
         else
-            # isn't compressed, just linked
-            ln -sr {input} {output}
+            cp {input} {output}
         fi
         """
 
@@ -120,20 +123,21 @@ rule copy_groupings:
 
 rule index_alignments:
     input:
-        bam_dir + "/{sample}.bam"
+        bamlist
     output:
-        bam_dir + "/{sample}.bam.bai"
-    container:
-        None
+        [f"{i}.bai" for i in bamlist]
+    threads:
+        workflow.cores
     message:
-        "Indexing alignments: {wildcards.sample}"
-    shell:
-        "samtools index {input} {output} 2> /dev/null"
+        "Indexing alignment files"
+    run:
+        with multiprocessing.Pool(processes=threads) as pool:
+            pool.map(sam_index, input)
 
 rule bam_list:
     input: 
-        bam = collect(bam_dir + "/{sample}.bam", sample = samplenames),
-        bai = collect(bam_dir + "/{sample}.bam.bai", sample = samplenames)
+        bam = bamlist,
+        bai = [f"{i}.bai" for i in bamlist]
     output:
         outdir + "/logs/samples.files"
     message:
@@ -315,7 +319,6 @@ rule log_workflow:
         with open(outdir + "/workflow/snp.mpileup.summary", "w") as f:
             _ = f.write("The harpy variants snp module ran using these parameters:\n\n")
             _ = f.write(f"The provided genome: {bn}\n")
-            _ = f.write(f"The directory with alignments: {bam_dir}\n")
             if windowsize:
                 _ = f.write(f"Size of intervals to split genome for variant calling: {windowsize}\n")
             else:
