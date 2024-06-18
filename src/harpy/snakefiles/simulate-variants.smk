@@ -6,13 +6,12 @@ import random
 from rich.panel import Panel
 from rich import print as rprint
 
-indir = config["input_directory"]
 outdir = config["output_directory"]
 envdir = os.getcwd() + "/.harpy_envs"
 variant = config["variant_type"]
 outprefix = config["prefix"]
-genome = config["genome"]
-vcf = config.get("vcf", None)
+genome = config["inputs"]["genome"]
+vcf = config["inputs"].get("vcf", None)
 heterozygosity = float(config["heterozygosity"])
 vcf_correct = "None"
 
@@ -23,11 +22,11 @@ if vcf:
 else:
     variant_params = f"-{variant}_count " + str(config["count"])
     centromeres = config.get("centromeres", None)
-    variant_params += f" -centromere_gff {indir + '/' + os.path.basename(centromeres)}" if centromeres else ""
-    genes = config.get("genes", None)
-    variant_params += f" -gene_gff {indir + '/' + os.path.basename(genes)}" if genes else ""
-    exclude = config.get("exclude_chr", None)
-    variant_params += f" -excluded_chr_list {indir + '/' + os.path.basename(exclude)}" if exclude else ""
+    variant_params += f" -centromere_gff {centromeres}" if centromeres else ""
+    genes = config["inputs"].get("genes", None)
+    variant_params += f" -gene_gff {genes}" if genes else ""
+    exclude = config["inputs"].get("exclude_chr", None)
+    variant_params += f" -excluded_chr_list {exclude}" if exclude else ""
     randomseed = config.get("randomseed", None)
     variant_params += f" -seed {randomseed}" if randomseed else ""
     if variant == "inversion":
@@ -101,9 +100,7 @@ rule simulate_variants:
     message:
         f"Simulating {variant}s onto genome"
     shell:
-        """
-        perl {params.simuG} -refseq {input.geno} -prefix {params.prefix} {params.parameters} > {log}
-        """
+        "perl {params.simuG} -refseq {input.geno} -prefix {params.prefix} {params.parameters} > {log}"
 
 rule create_heterozygote_vcf:
     input:
@@ -138,16 +135,10 @@ rule create_heterozygote_vcf:
                     else:
                         hap2_vcf.write(line)
 
-results = list()
-results.append(multiext(f"{outdir}/{outprefix}", ".vcf", ".bed", ".fasta"))
-if heterozygosity > 0:
-    results.append(collect(f"{outdir}/{outprefix}.hap" + "{n}.vcf", n = [1,2]))
-
 rule all:
     default_target: True
     input:
-        results
-    params:
-        heterozygosity
+        multiext(f"{outdir}/{outprefix}", ".vcf", ".bed", ".fasta"),
+        collect(f"{outdir}/{outprefix}.hap" + "{n}.vcf", n = [1,2]) if heterozygosity > 0 else []
     message:
         "Checking for workflow outputs"
