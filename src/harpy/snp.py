@@ -7,9 +7,9 @@ from pathlib import Path
 import rich_click as click
 from .conda_deps import generate_conda_deps
 from .helperfunctions import fetch_rule, fetch_report
-from .fileparsers import getnames, parse_alignment_inputs
+from .fileparsers import parse_alignment_inputs
 from .printfunctions import print_onstart
-from .validations import validate_bam_RG, validate_popfile, validate_popsamples, validate_vcfsamples, validate_input_by_ext, validate_regions
+from .validations import validate_bam_RG, validate_popfile, validate_popsamples, validate_input_by_ext, validate_regions
 
 @click.group(options_metavar='', context_settings={"help_option_names" : ["-h", "--help"]})
 def snp():

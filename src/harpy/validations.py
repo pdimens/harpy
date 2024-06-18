@@ -228,26 +228,27 @@ def vcf_samplematch(vcf, bamlist, vcf_samples):
         sys.exit(1)
     return(query)
 
-def validate_vcfsamples(directory, populations, samplenames, rows, quiet):
-    """Validate the presence of samples listed in 'populations' to be in the inputs"""
-    p_list = [i.split()[0] for i in rows]
-    missing_samples = [x for x in p_list if x not in samplenames]
-    overlooked = [x for x in samplenames if x not in p_list]
-    if len(overlooked) > 0 and not quiet:
-        print_notice(f"There are [bold]{len(overlooked)}[/bold] samples found in [bold]{directory}[/bold] that weren\'t included in [bold]{populations}[/bold]. This will not cause errors and can be ignored if it was deliberate. Commenting or removing these lines will avoid this message. The samples are:\n" + ", ".join(overlooked))
-    if len(missing_samples) > 0:
-        print_error(f"There are [bold]{len(missing_samples)}[/bold] samples included in [bold]{populations}[/bold] that weren\'t found in [bold]{directory}[/bold]. Terminating Harpy to avoid downstream errors.")
-        print_solution_with_culprits(
-            f"Make sure the spelling of these samples is identical in [bold]{directory}[/bold] and [bold]{populations}[/bold], or remove them from [bold]{populations}[/bold].",
-            "The samples causing this error are:"
-        )
-        click.echo(", ".join(sorted(missing_samples)), file = sys.stderr)
-        sys.exit(1)
-
+# DEPRECATE?
+#def validate_vcfsamples(directory, populations, quiet):
+#    """Validate the presence of samples listed in 'populations' to be in the inputs"""
+#    p_list = [i.split()[0] for i in rows]
+#    missing_samples = [x for x in p_list if x not in samplenames]
+#    overlooked = [x for x in samplenames if x not in p_list]
+#    if len(overlooked) > 0 and not quiet:
+#        print_notice(f"There are [bold]{len(overlooked)}[/bold] samples found in [bold]{directory}[/bold] that weren\'t included in [bold]{populations}[/bold]. This will not cause errors and can be ignored if it was deliberate. Commenting or removing these lines will avoid this message. The samples are:\n" + ", ".join(overlooked))
+#    if len(missing_samples) > 0:
+#        print_error(f"There are [bold]{len(missing_samples)}[/bold] samples included in [bold]{populations}[/bold] that weren\'t found in [bold]{directory}[/bold]. Terminating Harpy to avoid downstream errors.")
+#        print_solution_with_culprits(
+#            f"Make sure the spelling of these samples is identical in [bold]{directory}[/bold] and [bold]{populations}[/bold], or remove them from [bold]{populations}[/bold].",
+#            "The samples causing this error are:"
+#        )
+#        click.echo(", ".join(sorted(missing_samples)), file = sys.stderr)
+#        sys.exit(1)
+#
 def validate_popsamples(infiles, popfile, quiet):
     """Validate the presence of samples listed in 'populations' to be in the input files"""
     with open(popfile, "r", encoding="utf-8") as f:
-        popsamples = [i[0] for i in f.readlines() if i != "\n" and not i.lstrip().startswith("#")]
+        popsamples = [i.split()[0] for i in f.readlines() if i != "\n" and not i.lstrip().startswith("#")]
     in_samples = [Path(i).stem for i in infiles]
     missing_samples = [x for x in popsamples if x not in in_samples]
     overlooked = [x for x in in_samples if x not in popsamples]

@@ -1,14 +1,17 @@
 containerized: "docker://pdimens/harpy:latest"
 
+import os
+import re
+import sys
+import multiprocessing
+from pathlib import Path
 from rich import print as rprint
 from rich.panel import Panel
-import sys
-import os
 
-bam_dir     = config["seq_directory"]
 envdir      = os.getcwd() + "/.harpy_envs"
-genomefile  = config["genomefile"]
-samplenames = config["samplenames"]
+genomefile  = config["inputs"]["genome"]
+bamlist     = config["inputs"]["alignments"]
+samplenames = {Path(i).stem for i in bamlist}
 min_sv      = config["min_sv"]
 min_bc      = config["min_barcodes"]
 extra       = config.get("extra", "") 
@@ -46,22 +49,40 @@ onsuccess:
         file = sys.stderr
     )
 
-rule index_alignment:
+def sam_index(infile):
+    """Use Samtools to index an input file, adding .bai to the end of the name"""
+    if not os.path.exists(f"{infile}.bai"):
+        subprocess.run(f"samtools index {infile} {infile}.bai".split())
+
+def get_alignments(wildcards):
+    """returns a list with the bam file for the sample based on wildcards.sample"""
+    r = re.compile(fr".*/({wildcards.sample})\.(bam|sam)$", flags = re.IGNORECASE)
+    aln = list(filter(r.match, bamlist))
+    return aln[0]
+
+def get_align_index(wildcards):
+    """returns a list with the bai index file for the sample based on wildcards.sample"""
+    r = re.compile(fr"(.*/{wildcards.sample})\.(bam|sam)$", flags = re.IGNORECASE)
+    aln = list(filter(r.match, bamlist))
+    return aln[0] + ".bai"
+
+rule index_alignments:
     input:
-        bam_dir + "/{sample}.bam"
+        bamlist
     output:
-        bam_dir + "/{sample}.bam.bai"
-    container:
-        None
+        [f"{i}.bai" for i in bamlist]
+    threads:
+        workflow.cores
     message:
-        "Indexing alignment: {wildcards.sample}"
-    shell:
-        "samtools index {input} {output} 2> /dev/null"
+        "Indexing alignment files"
+    run:
+        with multiprocessing.Pool(processes=threads) as pool:
+            pool.map(sam_index, input)
 
 rule index_barcode:
     input: 
-        bam = bam_dir + "/{sample}.bam",
-        bai = bam_dir + "/{sample}.bam.bai"
+        bam = get_alignments,
+        bai = get_align_index
     output:
         temp(outdir + "/lrezIndexed/{sample}.bci")
     benchmark:
@@ -94,7 +115,7 @@ rule genome_link:
             gzip -dc {input} > {output}
         else
             # isn't compressed, just linked
-            ln -sr {input} {output}
+            cp {input} {output}
         fi
         """
 
@@ -128,8 +149,8 @@ rule index_bwa_genome:
 
 rule leviathan_variantcall:
     input:
-        bam    = bam_dir + "/{sample}.bam",
-        bai    = bam_dir + "/{sample}.bam.bai",
+        bam    = get_alignments,
+        bai    = get_align_index,
         bc_idx = outdir + "/lrezIndexed/{sample}.bci",
         genome = f"Genome/{bn}",
         genidx = multiext(f"Genome/{bn}", ".fai", ".ann", ".bwt", ".pac", ".sa", ".amb")
@@ -211,7 +232,6 @@ rule log_workflow:
         with open(outdir + "/workflow/sv.leviathan.summary", "w") as f:
             _ = f.write("The harpy variants sv module ran using these parameters:\n\n")
             _ = f.write(f"The provided genome: {bn}\n")
-            _ = f.write(f"The directory with alignments: {bam_dir}\n")
             _ = f.write("The barcodes were indexed using:\n")
             _ = f.write("    LRez index bam -p -b INPUT\n")
             _ = f.write("Leviathan was called using:\n")

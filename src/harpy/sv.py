@@ -3,12 +3,13 @@
 import os
 import sys
 import subprocess
+from pathlib import Path
 import rich_click as click
 from .conda_deps import generate_conda_deps
 from .helperfunctions import fetch_rule, fetch_report
-from .fileparsers import getnames, parse_alignment_inputs
+from .fileparsers import parse_alignment_inputs
 from .printfunctions import print_onstart
-from .validations import validate_popfile, validate_vcfsamples, check_phase_vcf, validate_input_by_ext
+from .validations import validate_popfile, validate_popsamples, check_phase_vcf, validate_input_by_ext
 
 @click.group(options_metavar='', context_settings={"help_option_names" : ["-h", "--help"]})
 def sv():
@@ -91,8 +92,7 @@ def leviathan(inputs, output_dir, genome, min_sv, min_barcodes, threads, populat
         sys.exit(0)
 
     os.makedirs(f"{workflowdir}/", exist_ok= True)
-    _ = parse_alignment_inputs(inputs, f"{workflowdir}/input", hpc)
-    samplenames = getnames(f"{workflowdir}/input", '.bam')
+    bamlist, n = parse_alignment_inputs(inputs)
     validate_input_by_ext(genome, "--genome", [".fasta", ".fa", ".fasta.gz", ".fa.gz"])
     if populations is not None:
         fetch_report(workflowdir, "LeviathanPop.Rmd")
@@ -101,27 +101,29 @@ def leviathan(inputs, output_dir, genome, min_sv, min_barcodes, threads, populat
 
     with open(f'{workflowdir}/config.yaml', "w", encoding="utf-8") as config:
         config.write("workflow: sv leviathan\n")
-        config.write(f"seq_directory: {workflowdir}/input\n")
         config.write(f"output_directory: {output_dir}\n")
-        config.write(f"samplenames: {samplenames}\n")
-        popgroupings = ""
-        if populations is not None:
-            # check for delimeter and formatting
-            rows = validate_popfile(populations)
-            # check that samplenames and populations line up
-            validate_vcfsamples(f"{workflowdir}/input", populations, samplenames, rows, quiet)
-            config.write(f"groupings: {populations}\n")
-            popgroupings += f"\nPopulations: {populations}"
-        config.write(f"genomefile: {genome}\n")
         config.write(f"min_barcodes: {min_barcodes}\n")
         config.write(f"min_sv: {min_sv}\n")
         if extra_params is not None:
             config.write(f"extra: {extra_params}\n")
         config.write(f"skipreports: {skipreports}\n")
         config.write(f"workflow_call: {command}\n")
+        config.write("inputs:\n")
+        popgroupings = ""
+        config.write(f"  genome: {Path(genome).resolve()}\n")
+        if populations is not None:
+            # check for delimeter and formatting
+            validate_popfile(populations)
+            # check that samplenames and populations line up
+            validate_popsamples(bamlist, populations,quiet)
+            config.write(f"  groupings: {Path(populations).resolve()}\n")
+            popgroupings += f"\nPopulations: {populations}"
+        config.write("  alignments:\n")
+        for i in bamlist:
+            config.write(f"    - {i}\n")
 
     print_onstart(
-        f"Samples: {len(samplenames)}{popgroupings}\nOutput Directory: {output_dir}/",
+        f"Samples: {n}{popgroupings}\nOutput Directory: {output_dir}/",
         "sv leviathan"
     )
     generate_conda_deps()
@@ -181,8 +183,7 @@ def naibr(inputs, output_dir, genome, vcf, min_sv, min_barcodes, threads, popula
         sys.exit(0)
 
     os.makedirs(f"{workflowdir}/", exist_ok= True)
-    _ = parse_alignment_inputs(inputs, f"{workflowdir}/input", hpc)
-    samplenames = getnames(f"{workflowdir}/input", '.bam')
+    bamlist, n = parse_alignment_inputs(inputs)
     validate_input_by_ext(genome, "--genome", [".fasta", ".fa", ".fasta.gz", ".fa.gz"])
     if populations is not None:
         fetch_report(workflowdir, "NaibrPop.Rmd")
@@ -194,31 +195,33 @@ def naibr(inputs, output_dir, genome, vcf, min_sv, min_barcodes, threads, popula
 
     with open(f'{workflowdir}/config.yaml', "w", encoding="utf-8") as config:
         config.write("workflow: sv naibr\n")
-        config.write(f"seq_directory: {workflowdir}/input\n")
         config.write(f"output_directory: {output_dir}\n")
-        config.write(f"samplenames: {samplenames}\n")
-        popgroupings = ""
-        if populations is not None:
-            # check for delimeter and formatting
-            rows = validate_popfile(populations)
-            # check that samplenames and populations line up
-            validate_vcfsamples(f"{workflowdir}/input", populations, samplenames, rows, quiet)
-            config.write(f"groupings: {populations}\n")
-            popgroupings += f"\nPopulations: {populations}"
-        config.write(f"molecule_distance: {molecule_distance}\n")
-        if vcf is not None:
-            config.write(f"vcf: {vcf}\n")
-        if genome is not None:
-            config.write(f"genomefile: {genome}\n")
         config.write(f"min_barcodes: {min_barcodes}\n")
         config.write(f"min_sv: {min_sv}\n")
+        config.write(f"molecule_distance: {molecule_distance}\n")
         if extra_params is not None:
             config.write(f"extra: {extra_params}\n")
         config.write(f"skipreports: {skipreports}\n")
         config.write(f"workflow_call: {command}\n")
+        popgroupings = ""
+        config.write("inputs:\n")
+        if vcf is not None:
+            config.write(f"  vcf: {Path(vcf).resolve()}\n")
+        if genome is not None:
+            config.write(f"  genome: {Path(genome).resolve()}\n")
+        if populations is not None:
+            # check for delimeter and formatting
+            validate_popfile(populations)
+            # check that samplenames and populations line up
+            validate_popsamples(bamlist, populations, quiet)
+            config.write(f"  groupings: {Path(populations).resolve()}\n")
+            popgroupings += f"\nPopulations: {populations}"
+        config.write("  alignments:\n")
+        for i in bamlist:
+            config.write(f"    - {i}\n")
 
     print_onstart(
-        f"Samples: {len(samplenames)}{popgroupings}\nOutput Directory: {output_dir}/",
+        f"Samples: {n}{popgroupings}\nOutput Directory: {output_dir}/",
         "sv naibr"
     )
     generate_conda_deps()
