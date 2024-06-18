@@ -1,18 +1,18 @@
 containerized: "docker://pdimens/harpy:latest"
 
-from rich import print as rprint
-from rich.panel import Panel
 import os
 import re
 import sys
 import glob
+import multiprocessing
+from pathlib import Path
+from rich import print as rprint
+from rich.panel import Panel
 
-seq_dir = config["seq_directory"]
 out_dir = config["output_directory"]
-envdir      = os.getcwd() + "/.harpy_envs"
-
-bamlist = [os.path.basename(i) for i in glob.iglob(f"{seq_dir}/*") if not os.path.isdir(i) and i.lower().endswith(".bam")]
-samplenames = set([os.path.splitext(i)[0] for i in bamlist])  
+envdir  = os.getcwd() + "/.harpy_envs"
+bamlist = config["inputs"]
+samplenames = {Path(i).stem for i in bamlist}  
 
 wildcard_constraints:
     sample = "[a-zA-Z0-9._-]+"
@@ -41,22 +41,41 @@ onsuccess:
         file = sys.stderr
     )
 
-rule index_bam:
+def get_alignments(wildcards):
+    """returns a list with the bam file for the sample based on wildcards.sample"""
+    r = re.compile(fr".*/({wildcards.sample})\.(bam|sam)$", flags = re.IGNORECASE)
+    aln = list(filter(r.match, bamlist))
+    return aln[0]
+
+def get_align_index(wildcards):
+    """returns a list with the bai index file for the sample based on wildcards.sample"""
+    r = re.compile(fr"(.*/{wildcards.sample})\.(bam|sam)$", flags = re.IGNORECASE)
+    aln = list(filter(r.match, bamlist))
+    return aln[0] + ".bai"
+
+def sam_index(infile):
+    """Use Samtools to index an input file, adding .bai to the end of the name"""
+    if not os.path.exists(f"{infile}.bai"):
+        subprocess.run(f"samtools index {infile} {infile}.bai".split())
+
+# not the ideal way of doing this, but it works
+rule index_alignments:
     input:
-        seq_dir + "/{sample}.bam"
+        bamlist
     output:
-        seq_dir + "/{sample}.bam.bai"
-    container:
-        None
+        [f"{i}.bai" for i in bamlist]
+    threads:
+        workflow.cores
     message:
-        "Indexing {input}"
-    shell:
-        "samtools index {input}"
+        "Indexing alignment files"
+    run:
+        with multiprocessing.Pool(processes=threads) as pool:
+            pool.map(sam_index, input)
 
 rule check_bam:
     input:
-        bam = seq_dir + "/{sample}.bam",
-        bai = seq_dir + "/{sample}.bam.bai"
+        bam = get_alignments,
+        bai = get_align_index
     output:
         temp(out_dir + "/{sample}.log")
     conda:
@@ -87,8 +106,6 @@ rule create_report:
         out_dir + "/filecheck.bam.tsv"
     output:
         out_dir + "/filecheck.bam.html"
-    params:
-        seq_dir
     conda:
         f"{envdir}/r.yaml"
     message:
@@ -106,7 +123,6 @@ rule log_workflow:
         os.makedirs(f"{out_dir}/workflow/", exist_ok= True)
         with open(out_dir + "/workflow/preflight.bam.summary", "w") as f:
             _ = f.write("The harpy preflight module ran using these parameters:\n\n")
-            _ = f.write(f"The directory with sequences: {seq_dir}\n")
             _ = f.write("validations were performed with:\n")
             _ = f.write("    checkBAM.py sample.bam > sample.txt\n")
             _ = f.write("\nThe Snakemake workflow was called via command line:\n")

@@ -1,33 +1,47 @@
 containerized: "docker://pdimens/harpy:latest"
 
+import sys
+import multiprocessing
+from pathlib import Path
 from rich import print as rprint
 from rich.panel import Panel
-import sys
 
 ##TODO MANUAL PRUNING OF SWITCH ERRORS
 # https://github.com/vibansal/HapCUT2/blob/master/outputformat.md
 
-bam_dir           = config["seq_directory"]
-samplenames       = config["samplenames"]
-variantfile       = config["variantfile"]
 pruning           = config["prune"]
 molecule_distance = config["molecule_distance"]
 extra             = config.get("extra", "") 
 outdir 			  = config["output_directory"]
 envdir      = os.getcwd() + "/.harpy_envs"
-
-if config["noBX"]:
-    fragfile = outdir + "/extractHairs/{sample}.unlinked.frags"
-else:
-    fragfile =  outdir + "/linkFragments/{sample}.linked.frags"
-
-linkarg     = "--10x 0" if config["noBX"] else "--10x 1"
 skipreports = config["skipreports"]
 
-try:
-    indelarg = "--indels 1 --ref " + config["indels"]
-except:
-    indelarg = ""
+variantfile       = config["inputs"]["variantfile"]
+bamlist     = config["inputs"]["alignments"]
+samplenames = [Path(i).stem for i in bamlist]
+# toggle linked-read aware mode
+if config["noBX"]:
+    fragfile = outdir + "/extractHairs/{sample}.unlinked.frags"
+    linkarg = "--10x 0"
+else:
+    fragfile =  outdir + "/linkFragments/{sample}.linked.frags"
+    linkarg  = "--10x 1"
+
+# toggle indel mode
+if config["inputs"].get("genome", None):
+    genomefile = config["inputs"]["genome"]
+    bn 		   = Path(genomefile).stem
+    geno       = f"{bn}.fasta"
+    genofai    = f"{bn}.fasta.fai"
+    indelarg   = f"--indels 1 --ref {geno}"
+    indels     = True
+else:
+    indelarg   = ""
+    genomefile = []
+    geno       = []
+    genofai    = []
+    bn         = []
+    indels     = True
 
 wildcard_constraints:
     sample = "[a-zA-Z0-9._-]+"
@@ -56,14 +70,28 @@ onsuccess:
         file = sys.stderr
     )
 
+def sam_index(infile):
+    """Use Samtools to index an input file, adding .bai to the end of the name"""
+    if not os.path.exists(f"{infile}.bai"):
+        subprocess.run(f"samtools index {infile} {infile}.bai".split())
+
+def get_alignments(wildcards):
+    """returns a list with the bam file for the sample based on wildcards.sample"""
+    r = re.compile(fr".*/({wildcards.sample})\.(bam|sam)$", flags = re.IGNORECASE)
+    aln = list(filter(r.match, bamlist))
+    return aln[0]
+
+def get_align_index(wildcards):
+    """returns a list with the bai index file for the sample based on wildcards.sample"""
+    r = re.compile(fr"(.*/{wildcards.sample})\.(bam|sam)$", flags = re.IGNORECASE)
+    aln = list(filter(r.match, bamlist))
+    return aln[0] + ".bai"
+
 rule extract_heterozygous:
     input: 
-        vcf = variantfile,
-        bam = bam_dir + "/{sample}.bam"
+        vcf = variantfile
     output:
         outdir + "/workflow/input/vcf/{sample}.het.vcf"
-    benchmark:
-        ".Benchmark/Phase/splithet.{sample}.txt"
     container:
         None
     message:
@@ -75,12 +103,9 @@ rule extract_heterozygous:
 
 rule extract_homozygous:
     input: 
-        vcf = variantfile,
-        bam = bam_dir + "/{sample}.bam"
+        vcf = variantfile
     output:
         outdir + "/workflow/input/vcf/{sample}.hom.vcf"
-    benchmark:
-        ".Benchmark/Phase/split.{sample}.txt"
     container:
         None
     message:
@@ -90,23 +115,65 @@ rule extract_homozygous:
         bcftools view -s {wildcards.sample} -Ou {input.vcf} | bcftools view -i 'GT="hom"' > {output}
         """
 
-rule index_alignment:
+# not the ideal way of doing this, but it works
+rule index_alignments:
     input:
-        bam_dir + "/{sample}.bam"
+        bamlist
     output:
-        bam_dir + "/{sample}.bam.bai"
-    container:
-        None
+        [f"{i}.bai" for i in bamlist]
+    threads:
+        workflow.cores
     message:
-        "Indexing alignment: {wildcards.sample}"
-    shell:
-        "samtools index {input} {output} 2> /dev/null"
+        "Indexing alignment files"
+    run:
+        with multiprocessing.Pool(processes=threads) as pool:
+            pool.map(sam_index, input)
+
+if indels:
+    rule genome_setup:
+        input:
+            genomefile
+        output: 
+            geno
+        container:
+            None
+        message: 
+            "Copying {input} to Genome/"
+        shell: 
+            """
+            if (file {input} | grep -q compressed ) ;then
+                # is regular gzipped, needs to be decompressed
+                zcat {input} > {output}
+            elif (file {input} | grep -q BGZF ); then
+                # is bgzipped, also decompressed
+                zcat {input} > {output}
+            else
+                # isn't compressed, just copied
+                cp {input} {output}
+            fi
+            """
+
+    rule genome_faidx:
+        input: 
+            geno
+        output: 
+            genofai
+        log:
+            f"Genome/{bn}.faidx.log"
+        container:
+            None
+        message:
+            "Indexing {input}"
+        shell: 
+            "samtools faidx --fai-idx {output} {input} 2> {log}"
 
 rule extract_hairs:
     input:
         vcf = outdir + "/workflow/input/vcf/{sample}.het.vcf",
-        bam = bam_dir + "/{sample}.bam",
-        bai = bam_dir + "/{sample}.bam.bai"
+        bam = get_alignments,
+        bai = get_align_index,
+        geno = geno,
+        fai  = genofai
     output:
         outdir + "/extractHairs/{sample}.unlinked.frags"
     log:
@@ -125,7 +192,7 @@ rule extract_hairs:
 
 rule link_fragments:
     input: 
-        bam       = bam_dir + "/{sample}.bam",
+        bam       = get_alignments,
         vcf       = outdir + "/workflow/input/vcf/{sample}.het.vcf",
         fragments = outdir + "/extractHairs/{sample}.unlinked.frags"
     output:
@@ -271,7 +338,6 @@ rule log_workflow:
         with open(outdir + "/workflow/phase.summary", "w") as f:
             _ = f.write("The harpy phase module ran using these parameters:\n\n")
             _ = f.write(f"The provided variant file: {variantfile}\n")
-            _ = f.write(f"The directory with alignments: {bam_dir}\n")
             _ = f.write("The variant file was split by sample and filtered for heterozygous sites using:\n")
             _ = f.write("""    bcftools view -s SAMPLE | bcftools view -i 'GT="het"' \n""")
             _ = f.write("Phasing was performed using the components of HapCut2:\n")

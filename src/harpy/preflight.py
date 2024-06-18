@@ -74,19 +74,20 @@ def fastq(inputs, output_dir, threads, snakemake, quiet, hpc, conda, print_only)
         sys.exit()
     
     os.makedirs(f"{workflowdir}/", exist_ok= True)
-    sn = parse_fastq_inputs(inputs, f"{workflowdir}/input", hpc)
+    fqlist, n = parse_fastq_inputs(inputs)
     fetch_rule(workflowdir, "preflight-fastq.smk")
     fetch_script(workflowdir, "checkFASTQ.py")
     fetch_report(workflowdir, "PreflightFastq.Rmd")
 
     with open(f"{workflowdir}/config.yaml", "w", encoding="utf-8") as config:
         config.write("workflow: preflight fastq\n")
-        config.write(f"seq_directory: {workflowdir}/input\n")
         config.write(f"output_directory: {output_dir}\n")
         config.write(f"workflow_call: {command}\n")
-
+        config.write("inputs:\n")
+        for i in fqlist:
+            config.write(f"  - {i}\n")
     print_onstart(
-        f"Files: {len(sn)}\nOutput Directory: {output_dir}/",
+        f"Files: {n}\nOutput Directory: {output_dir}/",
         "preflight fastq"
     )
     generate_conda_deps()
@@ -132,19 +133,20 @@ def bam(inputs, output_dir, threads, snakemake, quiet, hpc, conda, print_only):
         sys.exit()
 
     os.makedirs(f"{workflowdir}/", exist_ok= True)
-    sn = parse_alignment_inputs(inputs, f"{workflowdir}/input", hpc)
+    bamlist, n = parse_alignment_inputs(inputs)
     fetch_rule(workflowdir, "preflight-bam.smk")
     fetch_report(workflowdir, "PreflightBam.Rmd")
     fetch_script(workflowdir, "checkBAM.py")
 
     with open(f"{workflowdir}/config.yaml", "w", encoding="utf-8") as config:
         config.write("workflow: preflight bam\n")
-        config.write(f"seq_directory: {workflowdir}/input\n")
         config.write(f"output_directory: {output_dir}\n")
         config.write(f"workflow_call: {command}\n")
-
+        config.write("inputs:\n")
+        for i in bamlist:
+            config.write(f"  - {i}\n")
     print_onstart(
-        f"Samples: {len(sn)}\nOutput Directory: {output_dir}/",
+        f"Samples: {n}\nOutput Directory: {output_dir}/",
         "preflight bam"
     )
     generate_conda_deps()

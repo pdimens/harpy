@@ -91,7 +91,7 @@ def phase(inputs, output_dir, vcf, threads, molecule_distance, prune_threshold, 
         config.write("inputs:\n")
         config.write(f"  variantfile: {vcf}\n")
         if genome is not None:
-            config.write(f"  indels: {genome}\n")
+            config.write(f"  genome: {genome}\n")
             if not os.path.exists(f"{genome}.fai"):
                 subprocess.run(f"samtools faidx --fai-idx {genome}.fai {genome}".split())
         config.write("  alignments:\n")
@@ -99,7 +99,7 @@ def phase(inputs, output_dir, vcf, threads, molecule_distance, prune_threshold, 
             config.write(f"    - {i}\n")
 
     print_onstart(
-        f"Input VCF: {vcf}\nSamples in VCF: {len(samplenames)}\nAlignments Provided: {len(n)}\nOutput Directory: {output_dir}/",
+        f"Input VCF: {vcf}\nSamples in VCF: {len(samplenames)}\nAlignments Provided: {n}\nOutput Directory: {output_dir}/",
         "phase"
     )
     generate_conda_deps()

@@ -25,13 +25,8 @@ with open(biallelic, "r") as f_open:
 wildcard_constraints:
     sample = "[a-zA-Z0-9._-]+"
 
-#def get_alignments(wildcards):
-#    """returns a list with the bam file for the sample based on wildcards.sample"""
-#    r = re.compile(fr"({wildcards.sample})\.(bam|sam)$", flags = re.IGNORECASE)
-#    aln = list(filter(r.match, bamlist))
-#    return aln[0]
-
 def sam_index(infile):
+    """Use Samtools to index an input file, adding .bai to the end of the name"""
     if not os.path.exists(f"{infile}.bai"):
         subprocess.run(f"samtools index {infile} {infile}.bai".split())
 
