@@ -37,7 +37,7 @@ def resume(directory, conda):
         harpy_config = yaml.full_load(f)
         command = harpy_config["workflow_call"]
     
-    print_onstart(f"Output Directory: {directory}", "harpy resume: " + harpy_config["workflow"])
+    print_onstart(f"Output Directory: {directory}", "resume: " + harpy_config["workflow"])
     _module = subprocess.run(command.split())
     sys.exit(_module.returncode)
 
