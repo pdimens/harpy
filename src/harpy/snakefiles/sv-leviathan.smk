@@ -115,7 +115,7 @@ rule genome_link:
             gzip -dc {input} > {output}
         else
             # isn't compressed, just linked
-            cp {input} {output}
+            cp -f {input} {output}
         fi
         """
 

@@ -1,23 +1,25 @@
 containerized: "docker://pdimens/harpy:latest"
 
-from rich import print as rprint
-from rich.panel import Panel
-import sys
 import os
 import re
+import sys
+import multiprocessing
+from pathlib import Path
+from rich import print as rprint
+from rich.panel import Panel
 
-bam_dir     = config["seq_directory"]
 envdir      = os.getcwd() + "/.harpy_envs"
-samplenames = config["samplenames"] 
+genomefile  = config["inputs"]["genome"]
+bamlist     = config["inputs"]["alignments"]
+samplenames = {Path(i).stem for i in bamlist}
 extra       = config.get("extra", None) 
-genomefile  = config["genomefile"]
-molecule_distance = config["molecule_distance"]
-outdir      = config["output_directory"]
-skipreports = config["skipreports"]
+mol_dist    = config["molecule_distance"]
 min_sv      = config["min_sv"]
 min_barcodes = config["min_barcodes"]
+outdir      = config["output_directory"]
+skipreports = config["skipreports"]
 bn          = os.path.basename(genomefile)
-genome_zip  = True if (bn.endswith(".gz") or bn.endswith(".GZ")) else False
+genome_zip  = True if bn.lower().endswith(".gz") else False
 bn_idx      = f"{bn}.gzi" if genome_zip else f"{bn}.fai"
 
 wildcard_constraints:
@@ -26,7 +28,7 @@ wildcard_constraints:
 def process_args(args):
     argsDict = {
         "min_mapq" : 30,
-        "d"        : molecule_distance,
+        "d"        : mol_dist,
         "min_sv"   : min_sv,
         "k"        : min_barcodes
     }
@@ -61,21 +63,39 @@ onsuccess:
         file = sys.stderr
     )
 
-rule index_alignment:
+def sam_index(infile):
+    """Use Samtools to index an input file, adding .bai to the end of the name"""
+    if not os.path.exists(f"{infile}.bai"):
+        subprocess.run(f"samtools index {infile} {infile}.bai".split())
+
+def get_alignments(wildcards):
+    """returns a list with the bam file for the sample based on wildcards.sample"""
+    r = re.compile(fr".*/({wildcards.sample})\.(bam|sam)$", flags = re.IGNORECASE)
+    aln = list(filter(r.match, bamlist))
+    return aln[0]
+
+def get_align_index(wildcards):
+    """returns a list with the bai index file for the sample based on wildcards.sample"""
+    r = re.compile(fr"(.*/{wildcards.sample})\.(bam|sam)$", flags = re.IGNORECASE)
+    aln = list(filter(r.match, bamlist))
+    return aln[0] + ".bai"
+
+rule index_alignments:
     input:
-        bam_dir + "/{sample}.bam"
+        bamlist
     output:
-        bam_dir + "/{sample}.bam.bai"
-    container:
-        None
+        [f"{i}.bai" for i in bamlist]
+    threads:
+        workflow.cores
     message:
-        "Indexing alignment: {wildcards.sample}"
-    shell:
-        "samtools index {input} {output} 2> /dev/null"
+        "Indexing alignment files"
+    run:
+        with multiprocessing.Pool(processes=threads) as pool:
+            pool.map(sam_index, input)
 
 rule create_config:
     input:
-        bam_dir + "/{sample}.bam"
+        get_alignments
     output:
         outdir + "/workflow/input/{sample}.config"
     params:
@@ -95,8 +115,8 @@ rule create_config:
 
 rule call_sv:
     input:
-        bam   = bam_dir + "/{sample}.bam",
-        bai   = bam_dir + "/{sample}.bam.bai",
+        bam   = get_alignments,
+        bai   = get_align_index,
         conf  = outdir + "/workflow/input/{sample}.config"
     output:
         bedpe = outdir + "/{sample}/{sample}.bedpe",
@@ -152,8 +172,8 @@ rule genome_link:
             # is regular gzipped, needs to be BGzipped
             zcat {input} | bgzip -c > {output}
         else
-            # if BZgipped or isn't compressed, just linked
-            ln -sr {input} {output}
+            # if BZgipped or isn't compressed, just copied
+            cp -f {input} {output}
         fi
         """
 
@@ -206,7 +226,6 @@ rule log_workflow:
         with open(outdir + "/workflow/sv.naibr.summary", "w") as f:
             _ = f.write("The harpy sv naibr workflow ran using these parameters:\n\n")
             _ = f.write(f"The provided genome: {bn}\n")
-            _ = f.write(f"The directory with alignments: {bam_dir}\n\n")
             _ = f.write("naibr variant calling ran using these configurations:\n")
             _ = f.write(f"    bam_file=BAMFILE\n")
             _ = f.write(f"    prefix=PREFIX\n")
