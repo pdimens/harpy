@@ -230,7 +230,7 @@ rule log_workflow:
         "Summarizing the workflow: {output}"
     run:
         with open(outdir + "/workflow/sv.leviathan.summary", "w") as f:
-            _ = f.write("The harpy variants sv module ran using these parameters:\n\n")
+            _ = f.write("The harpy sv leviathan workflow ran using these parameters:\n\n")
             _ = f.write(f"The provided genome: {bn}\n")
             _ = f.write("The barcodes were indexed using:\n")
             _ = f.write("    LRez index bam -p -b INPUT\n")
