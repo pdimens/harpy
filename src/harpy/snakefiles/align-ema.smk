@@ -480,7 +480,7 @@ rule log_workflow:
         "Summarizing the workflow: {output}"
     run:
         with open(outdir + "/workflow/align.ema.summary", "w") as f:
-            _ = f.write("The harpy align module ran using these parameters:\n\n")
+            _ = f.write("The harpy align ema workflow ran using these parameters:\n\n")
             _ = f.write(f"The provided genome: {bn}\n")
             _ = f.write("Barcodes were counted and validated with EMA using:\n")
             _ = f.write(f"    seqtk mergepe forward.fq.gz reverse.fq.gz | ema count {params.beadtech}\n")

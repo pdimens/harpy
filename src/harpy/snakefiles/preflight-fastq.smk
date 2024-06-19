@@ -114,7 +114,7 @@ rule log_workflow:
     run:
         os.makedirs(f"{out_dir}/workflow/", exist_ok= True)
         with open(out_dir + "/workflow/preflight.fastq.summary", "w") as f:
-            _ = f.write("The harpy preflight module ran using these parameters:\n\n")
+            _ = f.write("The harpy preflight fastq workflow ran using these parameters:\n\n")
             _ = f.write("validations were performed with:\n")
             _ = f.write("    checkFASTQ.py sample.fastq > sample.txt\n")
             _ = f.write("\nThe Snakemake workflow was called via command line:\n")

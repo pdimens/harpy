@@ -231,7 +231,7 @@ rule log_workflow:
         "Summarizing the workflow: {output}"
     run:
         with open(outdir + "/workflow/simulate.reads.summary", "w") as f:
-            _ = f.write("The harpy simulate reads module ran using these parameters:\n\n")
+            _ = f.write("The harpy simulate linkedreas workflow ran using these parameters:\n\n")
             _ = f.write(f"Genome haplotype 1: {gen_hap1}\n")
             _ = f.write(f"Genome haplotype 2: {gen_hap2}\n")
             _ = f.write(f"Barcode file: {barcodefile}\n")

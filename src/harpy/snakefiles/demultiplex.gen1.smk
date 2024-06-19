@@ -204,7 +204,7 @@ rule log_workflow:
     run:
         os.makedirs(f"{outdir}/workflow/", exist_ok= True)
         with open(outdir + "/workflow/demux.gen1.summary", "w") as f:
-            _ = f.write("The harpy demultiplex module ran using these parameters:\n\n")
+            _ = f.write("The harpy demultiplex gen1 workflow ran using these parameters:\n\n")
             _ = f.write("Haplotag technology: Generation I\n")
             _ = f.write(f"The multiplexed input files:\n    -")
             _ = f.write("\n    -".join([R1,R2,I1,I2]) + "\n")

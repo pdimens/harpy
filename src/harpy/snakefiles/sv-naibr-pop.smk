@@ -272,7 +272,7 @@ rule log_workflow:
         os.system(f"rm -rf {outdir}/naibrlog")
         argdict = process_args(extra)
         with open(outdir + "/workflow/sv.naibr.summary", "w") as f:
-            _ = f.write("The harpy variants sv module ran using these parameters:\n\n")
+            _ = f.write("The harpy sv naibr workflow ran using these parameters:\n\n")
             _ = f.write(f"The provided genome: {bn}\n")
             _ = f.write(f"The directory with alignments: {bam_dir}\n")
             _ = f.write(f"The sample grouping file: {groupfile}\n\n")

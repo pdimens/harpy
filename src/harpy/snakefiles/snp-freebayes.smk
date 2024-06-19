@@ -298,7 +298,7 @@ rule log_workflow:
         extra = extra
     run:
         with open(outdir + "/workflow/snp.freebayes.summary", "w") as f:
-            _ = f.write("The harpy variants snp module ran using these parameters:\n\n")
+            _ = f.write("The harpy snp freebayes workflow ran using these parameters:\n\n")
             _ = f.write(f"The provided genome: {bn}\n")
             _ = f.write(f"Size of intervals to split genome for variant calling: {windowsize}\n")
             _ = f.write("The freebayes parameters:\n")

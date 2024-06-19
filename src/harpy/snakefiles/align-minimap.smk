@@ -334,7 +334,7 @@ rule log_workflow:
         "Summarizing the workflow: {output}"
     run:
         with open(outdir + "/workflow/align.minimap.summary", "w") as f:
-            _ = f.write("The harpy align module ran using these parameters:\n\n")
+            _ = f.write("The harpy align minimap workflow ran using these parameters:\n\n")
             _ = f.write(f"The provided genome: {bn}\n")
             _ = f.write("Sequencing were aligned with Minimap2 using:\n")
             _ = f.write(f"    minimap2 -y {params.extra} --sam-hit-only -R \"@RG\\tID:SAMPLE\\tSM:SAMPLE\" genome.mmi forward_reads reverse_reads |\n")

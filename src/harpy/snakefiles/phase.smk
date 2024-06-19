@@ -336,7 +336,7 @@ rule log_workflow:
         "Creating record of relevant runtime parameters"
     run:
         with open(outdir + "/workflow/phase.summary", "w") as f:
-            _ = f.write("The harpy phase module ran using these parameters:\n\n")
+            _ = f.write("The harpy phase workflow ran using these parameters:\n\n")
             _ = f.write(f"The provided variant file: {variantfile}\n")
             _ = f.write("The variant file was split by sample and filtered for heterozygous sites using:\n")
             _ = f.write("""    bcftools view -s SAMPLE | bcftools view -i 'GT="het"' \n""")

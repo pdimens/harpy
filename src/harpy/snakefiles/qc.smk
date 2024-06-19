@@ -139,7 +139,7 @@ rule log_workflow:
         "Summarizing the workflow: {output}"
     run:
         with open(outdir + "/workflow/qc.summary", "w") as f:
-            _ = f.write("The harpy qc module ran using these parameters:\n\n")
+            _ = f.write("The harpy qc workflow ran using these parameters:\n\n")
             _ = f.write("fastp trimming ran using:\n")
             _ = f.write("    fastp --trim_poly_g --cut_right " + " ".join(params) + "\n")
             _ = f.write("\nThe Snakemake workflow was called via command line:\n")

@@ -317,7 +317,7 @@ rule log_workflow:
         "Summarizing the workflow: {output}"
     run:
         with open(outdir + "/workflow/snp.mpileup.summary", "w") as f:
-            _ = f.write("The harpy variants snp module ran using these parameters:\n\n")
+            _ = f.write("The harpy snp mpileup workflow ran using these parameters:\n\n")
             _ = f.write(f"The provided genome: {bn}\n")
             if windowsize:
                 _ = f.write(f"Size of intervals to split genome for variant calling: {windowsize}\n")

@@ -335,7 +335,7 @@ rule log_workflow:
         "Summarizing the workflow: {output}"
     run:
         with open(outdir + "/workflow/align.bwa.summary", "w") as f:
-            _ = f.write("The harpy align module ran using these parameters:\n\n")
+            _ = f.write("The harpy align bwa workflow ran using these parameters:\n\n")
             _ = f.write(f"The provided genome: {genomefile}\n")
             _ = f.write("Sequencing were aligned with BWA using:\n")
             _ = f.write(f"    bwa mem -C -v 2 {params.extra} -R \"@RG\\tID:SAMPLE\\tSM:SAMPLE\" genome forward_reads reverse_reads |\n")

@@ -304,7 +304,7 @@ rule log_workflow:
         "Summarizing the workflow: {output}"
     run:
         with open(outdir + "/workflow/impute.summary", "w") as f:
-            _ = f.write("The harpy impute module ran using these parameters:\n\n")
+            _ = f.write("The harpy impute workflow ran using these parameters:\n\n")
             _ = f.write(f"The provided variant file: {variantfile}\n")
             _ = f.write("Preprocessing was performed with:\n")
             _ = f.write("    bcftools view -M2 -v snps --regions CONTIG INFILE |\n")
