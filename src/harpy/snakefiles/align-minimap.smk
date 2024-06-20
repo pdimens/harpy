@@ -114,7 +114,7 @@ rule genome_index:
 
 rule align:
     input:
-        fastq = get_fq
+        fastq = get_fq,
         genome   = f"Genome/{bn}.mmi"
     output:  
         pipe(outdir + "/samples/{sample}/{sample}.raw.sam")
