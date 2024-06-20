@@ -26,6 +26,7 @@ from . import snp
 from . import sv
 from . import container
 from . import hpc
+from . import resume
 from .popgroups import popgroup
 from .stitchparams import stitchparams
 import rich_click as click
@@ -43,11 +44,9 @@ click.rich_click.ERRORS_EPILOGUE = "See the documentation: [link=https://pdimens
 @click.version_option("1.1.0", prog_name="Harpy")
 def cli():
     """
-    ## Harpy haplotagging pipeline
-    
-    An automated workflow to demultiplex sequences, trim and qc reads, 
-    map sequences, call variants, impute genotypes, and phase 
-    haplotypes of Haplotagging data. Batteries included.
+    An automated workflow for haplotagging linked-read data
+    to go from raw data to genotypes (or phased haplotypes).
+    Batteries included.
     
     **demultiplex >> qc >> align >> snp >> impute >> phase >> sv**
     
@@ -69,6 +68,7 @@ cli.add_command(phase.phase)
 cli.add_command(simulate.simulate)
 cli.add_command(container.containerize)
 cli.add_command(hpc.hpc)
+cli.add_command(resume.resume)
 
 ## the modules ##
 click.rich_click.COMMAND_GROUPS = {
@@ -80,7 +80,7 @@ click.rich_click.COMMAND_GROUPS = {
             },
             {
                 "name": "Other Commands",
-                "commands": ["hpc", "preflight", "popgroup", "stitchparams"]
+                "commands": ["resume", "hpc", "preflight", "popgroup", "stitchparams"]
             }
         ],
  } | simulate.commandstring | hpc.docstring

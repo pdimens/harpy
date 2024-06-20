@@ -1,7 +1,9 @@
 """Harpy demultiplex workflows"""
 
+import os
 import sys
 import subprocess
+from pathlib import Path
 import rich_click as click
 from .conda_deps import generate_conda_deps
 from .printfunctions import print_onstart
@@ -61,31 +63,32 @@ def gen1(r1_fq, r2_fq, i1_fq, i2_fq, output_dir, schema, threads, snakemake, ski
     sdm = "conda" if conda else "conda apptainer"
     command = f'snakemake --rerun-incomplete --rerun-triggers input mtime params --nolock --software-deployment-method {sdm} --conda-prefix ./.snakemake/conda --cores {threads} --directory . '
     command += f"--snakefile {workflowdir}/demultiplex.gen1.smk "
-    command += f"--configfile {workflowdir}/config.yml "
+    command += f"--configfile {workflowdir}/config.yaml "
     if hpc:
         command += f"--workflow-profile {hpc} "
     if quiet:
         command += "--quiet all "
     if snakemake is not None:
         command += snakemake
-
     if print_only:
         click.echo(command)
         sys.exit(0)
 
-    #check_demux_fastq(fastq_input)
     validate_demuxschema(schema)
+    os.makedirs(f"{workflowdir}", exist_ok=True)
     fetch_rule(workflowdir, "demultiplex.gen1.smk")
-
-    with open(f"{workflowdir}/config.yml", "w") as config:
-        config.write(f"R1: {r1_fq}\n")
-        config.write(f"R2: {r2_fq}\n")
-        config.write(f"I1: {i1_fq}\n")
-        config.write(f"I2: {i2_fq}\n")
+        
+    with open(f"{workflowdir}/config.yaml", "w", encoding= "utf-8") as config:
+        config.write("workflow: demultiplex gen1\n")
         config.write(f"output_directory: {output_dir}\n")
-        config.write(f"samplefile: {schema}\n")
         config.write(f"skipreports: {skipreports}\n")
         config.write(f"workflow_call: {command}\n")
+        config.write("inputs:\n")
+        config.write(f"  demultiplex_schema: {Path(schema).resolve()}\n")
+        config.write(f"  R1: {Path(r1_fq).resolve()}\n")
+        config.write(f"  R2: {Path(r2_fq).resolve()}\n")
+        config.write(f"  I1: {Path(i1_fq).resolve()}\n")
+        config.write(f"  I2: {Path(i2_fq).resolve()}\n")
 
     print_onstart(
         f"Haplotag Type: Generation I\nDemultiplex Schema: {schema}\nOutput Directory: {output_dir}",

@@ -6,11 +6,11 @@ import sys
 from rich.panel import Panel
 from rich import print as rprint
 
-R1 = config["R1"]
-R2 = config["R2"]
-I1 = config["I1"]
-I2 = config["I2"]
-samplefile = config["samplefile"]
+R1 = config["inputs"]["R1"]
+R2 = config["inputs"]["R2"]
+I1 = config["inputs"]["I1"]
+I2 = config["inputs"]["I2"]
+samplefile = config["inputs"]["demultiplex_schema"]
 skipreports = config["skipreports"]
 outdir = config["output_directory"]
 envdir      = os.getcwd() + "/.harpy_envs"
@@ -204,7 +204,7 @@ rule log_workflow:
     run:
         os.makedirs(f"{outdir}/workflow/", exist_ok= True)
         with open(outdir + "/workflow/demux.gen1.summary", "w") as f:
-            _ = f.write("The harpy demultiplex module ran using these parameters:\n\n")
+            _ = f.write("The harpy demultiplex gen1 workflow ran using these parameters:\n\n")
             _ = f.write("Haplotag technology: Generation I\n")
             _ = f.write(f"The multiplexed input files:\n    -")
             _ = f.write("\n    -".join([R1,R2,I1,I2]) + "\n")

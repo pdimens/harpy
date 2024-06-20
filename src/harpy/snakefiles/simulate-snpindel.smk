@@ -6,12 +6,11 @@ import random
 from rich.panel import Panel
 from rich import print as rprint
 
-indir = config["input_directory"]
 outdir = config["output_directory"]
-genome = config["genome"]
+genome = config["inputs"]["genome"]
 envdir = os.getcwd() + "/.harpy_envs"
-snp_vcf = config.get("snp_vcf", None)
-indel_vcf = config.get("indel_vcf", None)
+snp_vcf = config["inputs"].get("snp_vcf", None)
+indel_vcf = config["inputs"].get("indel_vcf", None)
 heterozygosity = config["heterozygosity"]
 outprefix = config["prefix"]
 in_vcfs = []
@@ -48,12 +47,12 @@ else:
         ratio = config.get("indel_ratio", None)
         variant_params += f" -ins_del_ratio {ratio}" if ratio else ""
 
-    centromeres = config.get("centromeres", None)
-    variant_params += f" -centromere_gff {indir + '/' + os.path.basename(centromeres)}" if centromeres else ""
-    genes = config.get("genes", None)
-    variant_params += f" -gene_gff {indir + '/' + os.path.basename(genes)}" if genes else ""
-    exclude = config.get("exclude_chr", None)
-    variant_params += f" -excluded_chr_list {indir + '/' + os.path.basename(exclude)}" if exclude else ""
+    centromeres = config["inputs"].get("centromeres", None)
+    variant_params += f" -centromere_gff {centromeres}" if centromeres else ""
+    genes = config["inputs"].get("genes", None)
+    variant_params += f" -gene_gff {genes}" if genes else ""
+    exclude = config["inputs"].get("exclude_chr", None)
+    variant_params += f" -excluded_chr_list {exclude}" if exclude else ""
     randomseed = config.get("randomseed", None)
     variant_params += f" -seed {randomseed}" if randomseed else ""
 
@@ -127,9 +126,7 @@ rule simulate_variants:
     message:
         "Simulating snps and/or indels"
     shell:
-        """
-        perl {params.simuG} -refseq {input.geno} -prefix {params.prefix} {params.parameters} > {log}
-        """
+        "perl {params.simuG} -refseq {input.geno} -prefix {params.prefix} {params.parameters} > {log}"
 
 rule create_heterozygote_snp_vcf:
     input:
@@ -140,7 +137,7 @@ rule create_heterozygote_snp_vcf:
     params:
         heterozygosity
     message:
-        "Creating diploid variant files for heterozygosity = {params}"
+        "Creating snp diploid variant files for heterozygosity = {params}"
     run:
         random.seed(6969)
         hap1_vcf, hap2_vcf = open(output[0], "w"), open(output[1], "w")
@@ -164,38 +161,15 @@ rule create_heterozygote_snp_vcf:
                     else:
                         hap2_vcf.write(line)
 
-rule create_heterozygote_indel_vcf:
+use rule create_heterozygote_snp_vcf as create_heterozygote_indel_vcf with:
     input:
         f"{outdir}/{outprefix}.indel.vcf"
     output:
         f"{outdir}/{outprefix}.indel.hap1.vcf",
         f"{outdir}/{outprefix}.indel.hap2.vcf"
-    params:
-        heterozygosity
     message:
-        "Creating diploid variant files for heterozygosity = {params}"
-    run:
-        random.seed(6969)
-        hap1_vcf, hap2_vcf = open(output[0], "w"), open(output[1], "w")
-        with open(input[0], "r") as in_vcf:
-            while True:
-                line = in_vcf.readline()
-                if not line:
-                    break
-                if line.startswith("#"):
-                    hap1_vcf.write(line)
-                    hap2_vcf.write(line)
-                    continue
-                if random.uniform(0, 1) >= params[0]:
-                    # write homozygote
-                    hap1_vcf.write(line)
-                    hap2_vcf.write(line)
-                else:
-                    # 50% chance of falling into hap1 or hap2
-                    if random.uniform(0, 1) >= 0.5:
-                        hap1_vcf.write(line)
-                    else:
-                        hap2_vcf.write(line)
+        "Creating indel diploid variant files for heterozygosity = {params}"
+
 rule all:
     default_target: True
     input:

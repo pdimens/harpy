@@ -13,7 +13,7 @@ from .printfunctions import print_error, print_solution, print_notice
 @click.argument('inputdir', required=True, type=click.Path(exists=True, file_okay=False))
 def popgroup(inputdir, output):
     """
-    Create a sample grouping file
+    Create a template grouping file for samples
 
     With this command you can generate a sample grouping file (for variant calling). Provide the 
     input fastq/bam directory at the end of the command.

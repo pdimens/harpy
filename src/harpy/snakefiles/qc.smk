@@ -3,23 +3,20 @@ containerized: "docker://pdimens/harpy:latest"
 import os
 import re
 import sys
-import glob
 from rich.panel import Panel
 from rich import print as rprint
 
-seq_dir   = config["seq_directory"]
-envdir      = os.getcwd() + "/.harpy_envs"
-outdir      = config["output_directory"]
-min_len 	  = config["min_len"]
-max_len 	  = config["max_len"]
-extra 	  = config.get("extra", "") 
-skipadapters  = config["adapters"]
-skipreports = config["skipreports"]
-flist = [os.path.basename(i) for i in glob.iglob(f"{seq_dir}/*") if not os.path.isdir(i)]
-r = re.compile(r".*\.f(?:ast)?q(?:\.gz)?$", flags=re.IGNORECASE)
-fqlist = list(filter(r.match, flist))
-bn_r = r"[\.\_][RF](?:[12])?(?:\_00[1-9])*\.f(?:ast)?q(?:\.gz)?$"
-samplenames = set([re.sub(bn_r, "", i, flags = re.IGNORECASE) for i in fqlist])
+envdir       = os.getcwd() + "/.harpy_envs"
+fqlist       = config["inputs"]
+outdir       = config["output_directory"]
+min_len 	 = config["min_len"]
+max_len 	 = config["max_len"]
+extra 	     = config.get("extra", "") 
+skipadapters = config["skip_adapter_trim"]
+skipreports  = config["skipreports"]
+
+bn_r = r"([_\.][12]|[_\.][FR]|[_\.]R[12](?:\_00[0-9])*)?\.((fastq|fq)(\.gz)?)$"
+samplenames = {re.sub(bn_r, "", os.path.basename(i), flags = re.IGNORECASE) for i in fqlist}
 
 wildcard_constraints:
     sample = "[a-zA-Z0-9._-]+"
@@ -49,18 +46,14 @@ onerror:
     )
 
 def get_fq1(wildcards):
-    # code that returns a list of fastq files for read 1 based on *wildcards.sample* e.g.
-    lst = sorted(glob.glob(seq_dir + "/" + wildcards.sample + "*"))
-    r = re.compile(r".*[\_\.][FR][1]?(?:\_00[0-9])*\.f(?:ast)?q(?:\.gz)?$", flags=re.IGNORECASE)
-    fqlist = list(filter(r.match, lst))
-    return fqlist
+    # returns a list of fastq files for read 1 based on *wildcards.sample* e.g.
+    r = re.compile(fr"(.*/{re.escape(wildcards.sample)})([_\.]1|[_\.]F|[_\.]R1(?:\_00[0-9])*)?\.((fastq|fq)(\.gz)?)$", flags = re.IGNORECASE)
+    return list(filter(r.match, fqlist))
 
 def get_fq2(wildcards):
-    # code that returns a list of fastq files for read 2 based on *wildcards.sample*, e.g.
-    lst = sorted(glob.glob(seq_dir + "/" + wildcards.sample + "*"))
-    r = re.compile(r".*[\_\.][R][2]?(?:\_00[0-9])*\.f(?:ast)?q(?:\.gz)?$", flags=re.IGNORECASE)
-    fqlist = list(filter(r.match, lst))
-    return fqlist
+    # returns a list of fastq files for read 2 based on *wildcards.sample*, e.g.
+    r = re.compile(fr"(.*/{re.escape(wildcards.sample)})([_\.]2|[_\.]R|[_\.]R2(?:\_00[0-9])*)?\.((fastq|fq)(\.gz)?)$", flags = re.IGNORECASE)
+    return list(filter(r.match, fqlist))
 
 rule qc_fastp:
     input:
@@ -69,17 +62,17 @@ rule qc_fastp:
     output:
         fw   = outdir + "/{sample}.R1.fq.gz",
         rv   = outdir + "/{sample}.R2.fq.gz",
-        json = outdir + "/logs/json/{sample}.fastp.json"
+        json = outdir + "/reports/data/fastp/{sample}.fastp.json"
     log:
-        html = outdir + "/reports/fastp_reports/{sample}.html",
-        serr = outdir + "/logs/fastp_logs/{sample}.log"
+        html = outdir + "/reports/{sample}.html",
+        serr = outdir + "/logs/fastp/{sample}.log"
     params:
         minlen = f"--length_required {min_len}",
         maxlen = f"--max_len1 {max_len}",
         tim_adapters = "--disable_adapter_trimming" if skipadapters else "--detect_adapter_for_pe",
         extra = extra
     threads:
-        2
+        min(4, workflow.cores // 2)
     conda:
         f"{envdir}/qc.yaml"
     message:
@@ -115,9 +108,11 @@ rule beadtag_counts_summary:
    
 rule create_report:
     input: 
-        collect(outdir + "/logs/json/{sample}.fastp.json", sample = samplenames)
+        collect(outdir + "/reports/data/fastp/{sample}.fastp.json", sample = samplenames)
     output:
         outdir + "/reports/qc.report.html"
+    log:
+        outdir + "/logs/mutliqc.log"
     params:
         outdir
     conda:
@@ -126,7 +121,7 @@ rule create_report:
         "Aggregating fastp reports"
     shell: 
         """
-        multiqc {params}/logs/json -m fastp --force --filename {output} --quiet --title "QC Summary" --comment "This report aggregates trimming and quality control metrics reported by fastp" --no-data-dir 2>/dev/null
+        multiqc {params}/reports/data/fastp/ -m fastp --force --filename {output} --quiet --title "QC Summary" --comment "This report aggregates trimming and quality control metrics reported by fastp" --no-data-dir 2> {log}
         """
 
 rule log_workflow:
@@ -144,8 +139,7 @@ rule log_workflow:
         "Summarizing the workflow: {output}"
     run:
         with open(outdir + "/workflow/qc.summary", "w") as f:
-            _ = f.write("The harpy qc module ran using these parameters:\n\n")
-            _ = f.write(f"The directory with sequences: {seq_dir}\n")
+            _ = f.write("The harpy qc workflow ran using these parameters:\n\n")
             _ = f.write("fastp trimming ran using:\n")
             _ = f.write("    fastp --trim_poly_g --cut_right " + " ".join(params) + "\n")
             _ = f.write("\nThe Snakemake workflow was called via command line:\n")

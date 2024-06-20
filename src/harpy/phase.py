@@ -8,7 +8,7 @@ from .conda_deps import generate_conda_deps
 from .helperfunctions import fetch_rule, fetch_report
 from .fileparsers import parse_alignment_inputs
 from .printfunctions import print_onstart
-from .validations import vcfcheck, vcf_samplematch, validate_bamfiles, validate_input_by_ext
+from .validations import vcf_samplematch, validate_bam_RG, validate_input_by_ext
 
 docstring = {
         "harpy phase": [
@@ -57,7 +57,7 @@ def phase(inputs, output_dir, vcf, threads, molecule_distance, prune_threshold, 
     sdm = "conda" if conda else "conda apptainer"
     command = f'snakemake --rerun-incomplete --rerun-triggers input mtime params --nolock --software-deployment-method {sdm} --conda-prefix ./.snakemake/conda --cores {threads} --directory . '
     command += f"--snakefile {workflowdir}/phase.smk "
-    command += f"--configfile {workflowdir}/config.yml "
+    command += f"--configfile {workflowdir}/config.yaml "
     if hpc:
         command += f"--workflow-profile {hpc} "
     if quiet:
@@ -68,36 +68,38 @@ def phase(inputs, output_dir, vcf, threads, molecule_distance, prune_threshold, 
         click.echo(command)
         sys.exit(0)
 
-    os.makedirs(f"{workflowdir}/input/alignments", exist_ok= True)
-    sn = parse_alignment_inputs(inputs, f"{workflowdir}/input/alignments")
-    samplenames = vcf_samplematch(vcf, f"{workflowdir}/input/alignments", vcf_samples)
-    vcfcheck(vcf)
-    validate_bamfiles(f"{workflowdir}/input/alignments", samplenames)
+    os.makedirs(f"{workflowdir}/input", exist_ok= True)
+    bamlist, n = parse_alignment_inputs(inputs)
+    samplenames = vcf_samplematch(vcf, bamlist, vcf_samples)
+    validate_input_by_ext(vcf, "--vcf", ["vcf", "bcf", "vcf.gz"])
+    validate_bam_RG(bamlist)
     if genome:
         validate_input_by_ext(genome, "--genome", [".fasta", ".fa", ".fasta.gz", ".fa.gz"])
     fetch_rule(workflowdir, "phase.smk")
     fetch_report(workflowdir, "HapCut2.Rmd")
-    prune_threshold /= 100
 
-    with open(f"{workflowdir}/config.yml", "w", encoding="utf-8") as config:
-        config.write(f"seq_directory: {workflowdir}/input/alignments\n")
+    with open(f"{workflowdir}/config.yaml", "w", encoding="utf-8") as config:
+        config.write("workflow: phase\n")
         config.write(f"output_directory: {output_dir}\n")
-        config.write(f"samplenames: {samplenames}\n")
-        config.write(f"variantfile: {vcf}\n")
         config.write(f"noBX: {ignore_bx}\n")
-        config.write(f"prune: {prune_threshold}\n")
+        config.write(f"prune: {prune_threshold/100}\n")
         config.write(f"molecule_distance: {molecule_distance}\n")
-        if genome is not None:
-            config.write(f"indels: {genome}\n")
-            if not os.path.exists(f"{genome}.fai"):
-                subprocess.run(f"samtools faidx --fai-idx {genome}.fai {genome}".split(), check = False)
         if extra_params is not None:
             config.write(f"extra: {extra_params}\n")
         config.write(f"skipreports: {skipreports}\n")
         config.write(f"workflow_call: {command}\n")
+        config.write("inputs:\n")
+        config.write(f"  variantfile: {vcf}\n")
+        if genome is not None:
+            config.write(f"  genome: {genome}\n")
+            if not os.path.exists(f"{genome}.fai"):
+                subprocess.run(f"samtools faidx --fai-idx {genome}.fai {genome}".split())
+        config.write("  alignments:\n")
+        for i in bamlist:
+            config.write(f"    - {i}\n")
 
     print_onstart(
-        f"Input VCF: {vcf}\nSamples in VCF: {len(samplenames)}\nAlignments Provided: {len(sn)}\nOutput Directory: {output_dir}/",
+        f"Input VCF: {vcf}\nSamples in VCF: {len(samplenames)}\nAlignments Provided: {n}\nOutput Directory: {output_dir}/",
         "phase"
     )
     generate_conda_deps()

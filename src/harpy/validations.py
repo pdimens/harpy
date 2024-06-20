@@ -5,33 +5,65 @@ import os
 import re
 import gzip
 import subprocess
+from pathlib import Path
 from rich import box, print
 from rich.table import Table
 import rich_click as click
-from .fileparsers import getnames
+#from .fileparsers import getnames
 from .printfunctions import print_error, print_notice, print_solution, print_solution_with_culprits
 
-def validate_input_by_ext(input, option, ext):
-    """Check that the input file for a given option matches the acceptable extensions """
+def check_envdir(dirpath):
+    """Check that the provided dir exists and contains the necessary environment definitions"""
+    if not os.path.exists(dirpath):
+        print_error("This working directory does not contain the expected directory of conda environment definitions ([blue bold].harpy_envs/[/blue bold])\n  - use [green bold]--conda[/green bold] to recreate it")
+        sys.exit(1)
+    envlist = os.listdir(dirpath)
+    envs = ["qc", "align", "snp", "sv", "phase", "simulations", "r"]
+    errcount = 0
+    errtable = Table(show_footer=True, box=box.SIMPLE)
+    errtable.add_column("File", justify="left", style="blue", no_wrap=True)
+    errtable.add_column("Exists", justify="center")
+    for i in envs:
+        if f"{i}.yaml" in envlist:
+            errtable.add_row(f"{i}.yaml", "[blue]✓")
+        else:
+            errcount += 1
+            errtable.add_row(f"{i}.yaml", "[yellow]🗙")
+    if errcount > 0:
+        print_error(f"The conda environment definition directory ([blue bold]{dirpath}[/blue bold]) is missing [yellow bold]{errcount}[/yellow bold] of the expected definition files. All of the environment files are expected to be present, even if a particular workflow doesn't use it.")
+        print_solution_with_culprits(
+            "Check that the names conform to Harpy's expectations, otheriwse you can recreate this directory using the [green bold]--conda[/green bold] option.",
+            "Expected environment files:"
+            )
+        print(errtable, file = sys.stderr)
+        sys.exit(1)
+
+def validate_input_by_ext(inputfile, option, ext):
+    """Check that the input file for a given option has read permissions and matches the acceptable extensions """
+    if not os.access(inputfile, os.R_OK):
+        print_error(f"The {inputfile} does not have Read permissions. These will create errors and terminate workflows prematurely. Please make sure this file has Read permissions")
+        sys.exit(1)
     if isinstance(ext, list):
-        test = [not(input.lower().endswith(i)) for i in ext]
+        test = [not(inputfile.lower().endswith(i.lower())) for i in ext]
         if all(test):
             ext_text = " | ".join(ext)
             print_error(f"The input file for [bold]{option}[/bold] must end in one of:\n[green bold]{ext_text}[/green bold]")
             sys.exit(1)
     else:
-        if not input.lower().endswith(ext):
+        if not inputfile.lower().endswith(ext.lower()):
             print_error(f"The input file for [bold]{option}[/bold] must end in [green bold]{ext}[/green bold]")
             sys.exit(1)
 
-def vcfcheck(vcf):
-    """Check that a file ends with one of .vcf, .bcf, or .vcf.gz. Is case insensitive."""
-    vfile = vcf.lower()
-    if vfile.endswith(".vcf") or vfile.endswith(".bcf") or vfile.endswith(".vcf.gz"):
-        pass
-    else:
-        print_error(f"Supplied variant call file [bold]{vcf}[/bold] must end in one of:\n[green bold].vcf | .vcf.gz | .bcf[/green bold]")
-        sys.exit(1)
+# DEPRECATE
+#def vcfcheck(vcf):
+#    """Check that a file ends with one of .vcf, .bcf, or .vcf.gz. Is case insensitive."""
+#    vfile = vcf.lower()
+#    if vfile.endswith(".vcf") or vfile.endswith(".bcf") or vfile.endswith(".vcf.gz"):
+#        pass
+#    else:
+#        print_error(f"Supplied variant call file [bold]{vcf}[/bold] must end in one of:\n[green bold].vcf | .vcf.gz | .bcf[/green bold]")
+#        sys.exit(1)
+###
 
 def check_impute_params(parameters):
     """Validate the STITCH parameter file for column names, order, types, missing values, etc."""
@@ -126,26 +158,16 @@ def check_impute_params(parameters):
             print(errtable, file = sys.stderr)
             sys.exit(1)
 
-def validate_bamfiles(dir, namelist):
-    """Validate BAM files in directory 'dir' to make sure the sample name inferred from the file matches the @RG tag within the file"""
+def validate_bam_RG(bamlist):
+    """Validate BAM files bamlist to make sure the sample name inferred from the file matches the @RG tag within the file"""
     culpritfiles = []
     culpritIDs   = []
-    for i in namelist:
-        fname = f"{dir}/{i}.bam"
-        samview = subprocess.Popen(f"samtools view -H {fname}".split(), stdout = subprocess.PIPE)
-        IDtag = subprocess.run("grep ^@RG".split(), stdin = samview.stdout, stdout=subprocess.PIPE, check = False).stdout.decode('utf-8')
-        r = re.compile("(\t)(ID:.*?)(\t)")
-        IDsearch = r.search(IDtag)
-        if IDsearch:
-            # strip right and left whitespaces and rm "ID:"
-            IDval = IDsearch.group(0).rstrip().lstrip()[3:]
-            # does the ID: tag match the sample name?
-            if IDval != i:
-                culpritfiles.append(os.path.basename(fname))
-                culpritIDs.append(IDval)
-        else:
-            culpritfiles.append(os.path.basename)
-            culpritIDs.append("missing @RG ID:")
+    for i in bamlist:
+        samplename = Path(i).stem
+        samview = subprocess.run(f"samtools samples {i}".split(), stdout = subprocess.PIPE).stdout.decode('utf-8').split()
+        if samplename != samview[0]:
+            culpritfiles.append(os.path.basename(i))
+            culpritIDs.append(samview[0])
         
     if len(culpritfiles) > 0:
         print_error(f"There are [bold]{len(culpritfiles)}[/bold] alignment files whose ID tags do not match their filenames.")
@@ -153,7 +175,7 @@ def validate_bamfiles(dir, namelist):
             "For alignment files (sam/bam), the base of the file name must be identical to the [green bold]@RD ID:[/green bold] tag in the file header. For example, a file named \'sample_001.bam\' should have the [green bold]@RG ID:sample_001[/green bold] tag. Use the [blue bold]renamebam[/blue bold] script to properly rename alignment files so as to also update the @RG header.",
             "File causing error and their ID tags:"
         )
-        for i,j in zip(culpritfiles,culpritIDs):
+        for i,j in zip(culpritIDs,culpritfiles):
             click.echo(f"{i}\t{j}", file = sys.stderr)
         sys.exit(1)
 
@@ -181,44 +203,61 @@ def validate_popfile(infile):
                 )
             _ = [click.echo(f"{i[0]+1}\t{i[1]}", file = sys.stderr) for i in invalids]
             sys.exit(1)
-        else:
-            return rows
 
-def vcf_samplematch(vcf, directory, vcf_samples):
-    """Validate that the input VCF file and the samples in the 'directory' (BAM files). The directionality of this check is determined by 'vcf_samples', which prioritizes the sample list in the file, rather that directory."""
+def vcf_samplematch(vcf, bamlist, vcf_samples):
+    """Validate that the input VCF file and the samples in the list of BAM files. The directionality of this check is determined by 'vcf_samples', which prioritizes the sample list in the vcf file, rather than bamlist."""
     bcfquery = subprocess.Popen(["bcftools", "query", "-l", vcf], stdout=subprocess.PIPE)
-    filesamples = bcfquery.stdout.read().decode().split()
-    dirsamples  = getnames(directory, '.bam')
+    vcfsamples = bcfquery.stdout.read().decode().split()
+    filesamples = [Path(i).stem for i in bamlist]
     if vcf_samples:
-        fromthis, query = vcf, filesamples
-        inthis, search = directory, dirsamples
+        fromthis, query = vcf, vcfsamples
+        inthis, search = "the input files", filesamples
     else:
-        fromthis, query = directory, dirsamples
-        inthis, search = vcf, filesamples
+        fromthis, query = "the input files", filesamples
+        inthis, search = vcf, vcfsamples
 
     missing_samples = [x for x in query if x not in search]
     # check that samples in VCF match input directory
     if len(missing_samples) > 0:
         print_error(f"There are [bold]{len(missing_samples)}[/bold] samples found in [bold]{fromthis}[/bold] that are not in [bold]{inthis}[/bold]. Terminating Harpy to avoid downstream errors.")
         print_solution_with_culprits(
-            f"[bold]{fromthis}[/bold] cannot contain samples that are absent in [bold]{inthis}[/bold]. Check the spelling or remove those samples from [bold]{fromthis}[/bold] or remake the vcf file to include/omit these samples. Alternatively, toggle [green]--vcf-samples[/green] to aggregate the sample list from [bold]{directory}[/bold] or [bold]{vcf}[/bold].",
+            f"[bold]{fromthis}[/bold] cannot contain samples that are absent in [bold]{inthis}[/bold]. Check the spelling or remove those samples from [bold]{fromthis}[/bold] or remake the vcf file to include/omit these samples. Alternatively, toggle [green]--vcf-samples[/green] to aggregate the sample list from [bold]the input files[/bold] or [bold]{vcf}[/bold].",
             "The samples causing this error are:"
         )
         click.echo(", ".join(sorted(missing_samples)), file = sys.stderr)
         sys.exit(1)
     return(query)
 
-def validate_vcfsamples(directory, populations, samplenames, rows, quiet):
-    """Validate the presence of samples listed in 'populations' to be in the target directory"""
-    p_list = [i.split()[0] for i in rows]
-    missing_samples = [x for x in p_list if x not in samplenames]
-    overlooked = [x for x in samplenames if x not in p_list]
+# DEPRECATE?
+#def validate_vcfsamples(directory, populations, quiet):
+#    """Validate the presence of samples listed in 'populations' to be in the inputs"""
+#    p_list = [i.split()[0] for i in rows]
+#    missing_samples = [x for x in p_list if x not in samplenames]
+#    overlooked = [x for x in samplenames if x not in p_list]
+#    if len(overlooked) > 0 and not quiet:
+#        print_notice(f"There are [bold]{len(overlooked)}[/bold] samples found in [bold]{directory}[/bold] that weren\'t included in [bold]{populations}[/bold]. This will not cause errors and can be ignored if it was deliberate. Commenting or removing these lines will avoid this message. The samples are:\n" + ", ".join(overlooked))
+#    if len(missing_samples) > 0:
+#        print_error(f"There are [bold]{len(missing_samples)}[/bold] samples included in [bold]{populations}[/bold] that weren\'t found in [bold]{directory}[/bold]. Terminating Harpy to avoid downstream errors.")
+#        print_solution_with_culprits(
+#            f"Make sure the spelling of these samples is identical in [bold]{directory}[/bold] and [bold]{populations}[/bold], or remove them from [bold]{populations}[/bold].",
+#            "The samples causing this error are:"
+#        )
+#        click.echo(", ".join(sorted(missing_samples)), file = sys.stderr)
+#        sys.exit(1)
+#
+def validate_popsamples(infiles, popfile, quiet):
+    """Validate the presence of samples listed in 'populations' to be in the input files"""
+    with open(popfile, "r", encoding="utf-8") as f:
+        popsamples = [i.split()[0] for i in f.readlines() if i != "\n" and not i.lstrip().startswith("#")]
+    in_samples = [Path(i).stem for i in infiles]
+    missing_samples = [x for x in popsamples if x not in in_samples]
+    overlooked = [x for x in in_samples if x not in popsamples]
     if len(overlooked) > 0 and not quiet:
-        print_notice(f"There are [bold]{len(overlooked)}[/bold] samples found in [bold]{directory}[/bold] that weren\'t included in [bold]{populations}[/bold]. This will not cause errors and can be ignored if it was deliberate. Commenting or removing these lines will avoid this message. The samples are:\n" + ", ".join(overlooked))
+        print_notice(f"There are [bold]{len(overlooked)}[/bold] samples found in the inputs that weren\'t included in [bold]{popfile}[/bold]. This will [bold]not[/bold] cause errors and can be ignored if it was deliberate. Commenting or removing these lines will avoid this message. The samples are:\n" + ", ".join(overlooked))
     if len(missing_samples) > 0:
-        print_error(f"There are [bold]{len(missing_samples)}[/bold] samples included in [bold]{populations}[/bold] that weren\'t found in [bold]{directory}[/bold]. Terminating Harpy to avoid downstream errors.")
+        print_error(f"There are [bold]{len(missing_samples)}[/bold] samples included in [bold]{popfile}[/bold] that weren\'t found in in the inputs. Terminating Harpy to avoid downstream errors.")
         print_solution_with_culprits(
-            f"Make sure the spelling of these samples is identical in [bold]{directory}[/bold] and [bold]{populations}[/bold], or remove them from [bold]{populations}[/bold].",
+            f"Make sure the spelling of these samples is identical in the inputs and [bold]{popfile}[/bold], or remove them from [bold]{popfile}[/bold].",
             "The samples causing this error are:"
         )
         click.echo(", ".join(sorted(missing_samples)), file = sys.stderr)

@@ -1,31 +1,40 @@
 containerized: "docker://pdimens/harpy:latest"
 
-from snakemake.utils import Paramspace
-from rich import print as rprint
-from rich.panel import Panel
-import pandas as pd
-import sys
 import os
+import re
+import sys
+import subprocess
+import pandas as pd
+import multiprocessing
+from rich.panel import Panel
+from rich import print as rprint
+from snakemake.utils import Paramspace
 
-samplenames = config["samplenames"]
-variantfile = config["variantfile"]
-paramfile   = config["paramfile"]
-contigs     = config["contigs"]
+bamlist     = config["inputs"]["alignments"]
+variantfile = config["inputs"]["variantfile"]
+paramfile   = config["inputs"]["paramfile"]
+biallelic   = config["inputs"]["biallelic_contigs"]
 skipreports = config["skipreports"]
 outdir      = config["output_directory"]
-bam_dir     = f"{outdir}/workflow/input/alignments"
 envdir      = os.getcwd() + "/.harpy_envs"
-# declare a dataframe to be the paramspace
 paramspace  = Paramspace(pd.read_csv(paramfile, sep=r"\s+").rename(columns=str.lower), param_sep = "", filename_params="*")
+
+with open(biallelic, "r") as f_open:
+    contigs = [i.rstrip() for i in f_open.readlines()]
 
 wildcard_constraints:
     sample = "[a-zA-Z0-9._-]+"
+
+def sam_index(infile):
+    """Use Samtools to index an input file, adding .bai to the end of the name"""
+    if not os.path.exists(f"{infile}.bai"):
+        subprocess.run(f"samtools index {infile} {infile}.bai".split())
 
 onerror:
     print("")
     rprint(
         Panel(
-            f"The workflow has terminated due to an error. See the log file below for more details.",
+            "The workflow has terminated due to an error. See the log file below for more details.",
             title = "[bold]harpy impute",
             title_align = "left",
             border_style = "red"
@@ -60,22 +69,24 @@ rule sort_bcf:
     shell:
         "bcftools sort -Ob --write-index -o {output.bcf} {input} 2> {log}"
 
+# not the ideal way of doing this, but it works
 rule index_alignments:
     input:
-        bam_dir + "/{sample}.bam"
+        bamlist
     output:
-        bam_dir + "/{sample}.bam.bai"
-    container:
-        None
+        [f"{i}.bai" for i in bamlist]
+    threads:
+        workflow.cores
     message:
-        "Indexing: {wildcards.sample}"
-    shell:
-        "samtools index {input} {output} 2> /dev/null"
+        "Indexing alignment files"
+    run:
+        with multiprocessing.Pool(processes=threads) as pool:
+            pool.map(sam_index, input)
 
 rule alignment_list:
     input:
-        bam = collect(bam_dir + "/{sample}.bam", sample = samplenames),
-        bai = collect(bam_dir + "/{sample}.bam.bai", sample = samplenames)
+        bam = bamlist,
+        bailist = [f"{i}.bai" for i in bamlist]
     output:
         outdir + "/workflow/input/samples.list"
     message:
@@ -293,14 +304,13 @@ rule log_workflow:
         "Summarizing the workflow: {output}"
     run:
         with open(outdir + "/workflow/impute.summary", "w") as f:
-            _ = f.write("The harpy impute module ran using these parameters:\n\n")
+            _ = f.write("The harpy impute workflow ran using these parameters:\n\n")
             _ = f.write(f"The provided variant file: {variantfile}\n")
-            _ = f.write(f"The directory with alignments: {bam_dir}\n")
             _ = f.write("Preprocessing was performed with:\n")
             _ = f.write("    bcftools view -M2 -v snps --regions CONTIG INFILE |\n")
             _ = f.write("""    bcftools query -i '(STRLEN(REF)==1) & (STRLEN(ALT[0])==1) & (REF!="N")' -f '%CHROM\\t%POS\\t%REF\\t%ALT\\n'\n""")
             _ = f.write("\nThe STITCH parameters were governed by the rows of the input parameter table:\n")
-            with open(config["paramfile"], "r") as f1:
+            with open(config["inputs"]["paramfile"], "r") as f1:
                 for line in f1:
                     _ = f.write("    " + line)
             _ = f.write("\nWithin R, STITCH was invoked with the following parameters:\n")

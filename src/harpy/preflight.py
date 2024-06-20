@@ -12,7 +12,7 @@ from .fileparsers import parse_alignment_inputs, parse_fastq_inputs
 @click.group(options_metavar='', context_settings={"help_option_names" : ["-h", "--help"]})
 def preflight():
     """
-    Run file format checks on haplotag data
+    File format checks for haplotag data
 
     This is useful to make sure your input files are formatted correctly for the processing pipeline 
     before you are surprised by errors hours into an analysis. Provide an additional command `fastq`
@@ -61,7 +61,7 @@ def fastq(inputs, output_dir, threads, snakemake, quiet, hpc, conda, print_only)
     sdm = "conda" if conda else "conda apptainer"
     command = f'snakemake --rerun-incomplete --rerun-triggers input mtime params --nolock --software-deployment-method {sdm} --conda-prefix ./.snakemake/conda --cores {threads} --directory . '
     command += f"--snakefile {workflowdir}/preflight-fastq.smk "
-    command += f"--configfile {workflowdir}/config.yml "
+    command += f"--configfile {workflowdir}/config.yaml "
     if hpc:
         command += f"--workflow-profile {hpc} "
     if quiet:
@@ -74,18 +74,20 @@ def fastq(inputs, output_dir, threads, snakemake, quiet, hpc, conda, print_only)
         sys.exit()
     
     os.makedirs(f"{workflowdir}/", exist_ok= True)
-    sn = parse_fastq_inputs(inputs, f"{workflowdir}/input")
+    fqlist, n = parse_fastq_inputs(inputs)
     fetch_rule(workflowdir, "preflight-fastq.smk")
     fetch_script(workflowdir, "checkFASTQ.py")
     fetch_report(workflowdir, "PreflightFastq.Rmd")
 
-    with open(f"{workflowdir}/config.yml", "w", encoding="utf-8") as config:
-        config.write(f"seq_directory: {workflowdir}/input\n")
+    with open(f"{workflowdir}/config.yaml", "w", encoding="utf-8") as config:
+        config.write("workflow: preflight fastq\n")
         config.write(f"output_directory: {output_dir}\n")
         config.write(f"workflow_call: {command}\n")
-
+        config.write("inputs:\n")
+        for i in fqlist:
+            config.write(f"  - {i}\n")
     print_onstart(
-        f"Files: {len(sn)}\nOutput Directory: {output_dir}/",
+        f"Files: {n}\nOutput Directory: {output_dir}/",
         "preflight fastq"
     )
     generate_conda_deps()
@@ -118,7 +120,7 @@ def bam(inputs, output_dir, threads, snakemake, quiet, hpc, conda, print_only):
     sdm = "conda" if conda else "conda apptainer"
     command = f'snakemake --rerun-incomplete --rerun-triggers input mtime params --nolock --software-deployment-method {sdm} --conda-prefix ./.snakemake/conda --cores {threads} --directory . '
     command += f"--snakefile {workflowdir}/preflight-bam.smk "
-    command += f"--configfile {workflowdir}/config.yml "
+    command += f"--configfile {workflowdir}/config.yaml "
     if hpc:
         command += f"--workflow-profile {hpc} "
     if quiet:
@@ -131,18 +133,20 @@ def bam(inputs, output_dir, threads, snakemake, quiet, hpc, conda, print_only):
         sys.exit()
 
     os.makedirs(f"{workflowdir}/", exist_ok= True)
-    sn = parse_alignment_inputs(inputs, f"{workflowdir}/input")
+    bamlist, n = parse_alignment_inputs(inputs)
     fetch_rule(workflowdir, "preflight-bam.smk")
     fetch_report(workflowdir, "PreflightBam.Rmd")
     fetch_script(workflowdir, "checkBAM.py")
 
-    with open(f"{workflowdir}/config.yml", "w", encoding="utf-8") as config:
-        config.write(f"seq_directory: {workflowdir}/input\n")
+    with open(f"{workflowdir}/config.yaml", "w", encoding="utf-8") as config:
+        config.write("workflow: preflight bam\n")
         config.write(f"output_directory: {output_dir}\n")
         config.write(f"workflow_call: {command}\n")
-
+        config.write("inputs:\n")
+        for i in bamlist:
+            config.write(f"  - {i}\n")
     print_onstart(
-        f"Samples: {len(sn)}\nOutput Directory: {output_dir}/",
+        f"Samples: {n}\nOutput Directory: {output_dir}/",
         "preflight bam"
     )
     generate_conda_deps()

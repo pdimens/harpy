@@ -1,31 +1,32 @@
 containerized: "docker://pdimens/harpy:latest"
 
-from rich import print as rprint
-from rich.panel import Panel
 import os
 import sys
 import gzip
+import multiprocessing
+from pathlib import Path
+from rich import print as rprint
+from rich.panel import Panel
 
-bam_dir 	= config["seq_directory"]
 envdir      = os.getcwd() + "/.harpy_envs"
-genomefile 	= config["genomefile"]
-groupings 	= config.get("groupings", [])
+
+ploidy 		= config["ploidy"]
+extra 	    = config.get("extra", "") 
+regiontype  = config["regiontype"]
+windowsize  = config.get("windowsize", None)
+outdir      = config["output_directory"]
+skipreports = config["skipreports"]
+bamlist     = config["inputs"]["alignments"]
+genomefile 	= config["inputs"]["genome"]
 bn          = os.path.basename(genomefile)
 if bn.lower().endswith(".gz"):
     genome_zip  = True
     bn = bn[:-3]
 else:
     genome_zip  = False
-
-ploidy 		= config["ploidy"]
-samplenames = config["samplenames"]
-extra 	    = config.get("extra", "") 
-regioninput = config["regions"]
-regiontype  = config["regiontype"]
-windowsize  = config.get("windowsize", None)
-outdir      = config["output_directory"]
-skipreports = config["skipreports"]
-
+groupings 	= config["inputs"].get("groupings", [])
+regioninput = config["inputs"]["regions"]
+samplenames = {Path(i).stem for i in bamlist}
 if regiontype == "region":
     intervals = [regioninput]
     regions = {f"{regioninput}" : f"{regioninput}"}
@@ -67,6 +68,11 @@ onsuccess:
         file = sys.stderr
     )
 
+def sam_index(infile):
+    """Use Samtools to index an input file, adding .bai to the end of the name"""
+    if not os.path.exists(f"{infile}.bai"):
+        subprocess.run(f"samtools index {infile} {infile}.bai".split())
+
 rule copy_groupings:
     input:
         groupings
@@ -96,8 +102,8 @@ rule genome_link:
             # is bgzipped, needs decompression
             gzip -d -c {input} > {output}
         else
-            # isn't compressed, just linked
-            ln -sr {input} {output}
+            # isn't compressed, just copied
+            cp {input} {output}
         fi
         """
 
@@ -117,15 +123,16 @@ rule genome_faidx:
 
 rule index_alignments:
     input:
-        bam_dir + "/{sample}.bam"
+        bamlist
     output:
-        bam_dir + "/{sample}.bam.bai"
-    container:
-        None
+        [f"{i}.bai" for i in bamlist]
+    threads:
+        workflow.cores
     message:
-        "Indexing alignments: {wildcards.sample}"
-    shell:
-        "samtools index {input} {output} 2> /dev/null"
+        "Indexing alignment files"
+    run:
+        with multiprocessing.Pool(processes=threads) as pool:
+            pool.map(sam_index, input)
 
 rule samplenames:
     output:
@@ -139,8 +146,8 @@ rule samplenames:
 
 rule bam_list:
     input: 
-        bam = collect(bam_dir + "/{sample}.bam", sample = samplenames),
-        bai = collect(bam_dir + "/{sample}.bam.bai", sample = samplenames)
+        bam = bamlist,
+        bai = [f"{i}.bai" for i in bamlist]
     output:
         outdir + "/logs/samples.files"
     message:
@@ -152,8 +159,8 @@ rule bam_list:
 
 rule call_variants:
     input:
-        bam = collect(bam_dir + "/{sample}.bam", sample = samplenames),
-        bai = collect(bam_dir + "/{sample}.bam.bai", sample = samplenames),
+        bam = bamlist,
+        bai = [f"{i}.bai" for i in bamlist],
         groupfile = outdir + "/logs/sample.groups" if groupings else [],
         ref     = f"Genome/{bn}",
         ref_idx = f"Genome/{bn}.fai",
@@ -291,9 +298,8 @@ rule log_workflow:
         extra = extra
     run:
         with open(outdir + "/workflow/snp.freebayes.summary", "w") as f:
-            _ = f.write("The harpy variants snp module ran using these parameters:\n\n")
+            _ = f.write("The harpy snp freebayes workflow ran using these parameters:\n\n")
             _ = f.write(f"The provided genome: {bn}\n")
-            _ = f.write(f"The directory with alignments: {bam_dir}\n")
             _ = f.write(f"Size of intervals to split genome for variant calling: {windowsize}\n")
             _ = f.write("The freebayes parameters:\n")
             _ = f.write("    freebayes -f GENOME -L samples.list -r REGION " + " ".join(params) + " | bcftools sort -\n")

@@ -1,12 +1,14 @@
 """Module for workflow file parsers"""
 
-import sys
-import os
 import re
-import glob
+import os
+import sys
+import subprocess
 from pathlib import Path
+from collections import Counter
+from rich.markdown import Markdown
 import rich_click as click
-from .printfunctions import print_error, print_solution_with_culprits, print_solution
+from .printfunctions import print_error, print_solution_with_culprits
 
 def getnames(directory, ext):
     """Find all files in 'directory' that end with 'ext'"""
@@ -16,121 +18,139 @@ def getnames(directory, ext):
         sys.exit(1)
     return samplenames
 
-def parse_fastq_inputs(inputs, outdir):
+def parse_fastq_inputs(inputs):
     """
-    Parse the command line input FASTQ arguments to generate a clean list of input files
-    and create symlinks of those files to a target destination folder.
+    Parse the command line input FASTQ arguments to generate a clean list of input files. Returns the number of unique samples,
+    i.e. forward and reverse reads for one sample = 1 sample.
     """
     infiles = []
-    outfiles = []
+    unreadable = 0
+    re_ext = re.compile(r"\.(fq|fastq)(?:\.gz)?$", re.IGNORECASE)
     for i in inputs:
         if os.path.isdir(i):
             for j in os.listdir(i):
-                if j.lower().endswith("gz") or j.lower().endswith("fastq") or j.lower().endswith("fq"):
-                    infiles.append(os.path.join(i, j))
+                if re.search(re_ext, j):
+                    infiles.append(Path(os.path.join(i, j)).resolve())
+                    # check if the file has read access
+                    unreadable += not os.access(os.path.join(i, j), os.R_OK)
         else:
-            if i.lower().endswith("gz") or i.lower().endswith("fastq") or i.lower().endswith("fq"):
-                infiles.append(i)
-    re_fq = re.compile(r"\.(fq|fastq)", re.IGNORECASE)
-    re_gz = re.compile(r"\.gz$", re.IGNORECASE)
-    re_ext = re.compile(r"\.(fq|fastq)(?:\.gz)?$", re.IGNORECASE)
+            if re.search(re_ext, i):
+                infiles.append(Path(i).resolve())
+                unreadable += not os.access(i, os.R_OK)
+
     if len(infiles) < 1:
         print_error("There were no files found in the provided inputs that end with the accepted fastq extensions [blue].fq .fastq .fq.gz .fastq.gz[/blue]")
         sys.exit(1)
-    for i in infiles:
-        destination = os.path.join(outdir,os.path.basename(i))
-        # clean up extensions for consistency
-        clean_destination = re_fq.sub(".fq", destination)
-        clean_destination = re_gz.sub(".gz", clean_destination)
-        outfiles.append(clean_destination)
-    # check if any links will be clashing
+
+    if unreadable > 0:
+        print_error(Markdown(f"There are {unreadable} FASTQ files provided without Read permission. These will create errors and terminate workflows prematurely. Please make sure you have Read permissions for these files or use `chmod +r <filename>` to grant them."))
+        sys.exit(1)
+    # check if any names will be clashing
+    bn_r = r"[\.\_](?:[RF])?(?:[12])?(?:\_00[1-9])*?$"
     uniqs = set()
-    dupes = [os.path.basename(re_ext.sub("", i)) for i in outfiles if i in uniqs or uniqs.add(i)]
+    dupes = []
+    for i in infiles:
+        sans_ext = os.path.basename(re_ext.sub("", str(i)))
+        if sans_ext in uniqs:
+            dupes.append(sans_ext)
+        else:
+            uniqs.add(sans_ext)
     if dupes:
-        print_error("Identical filenames were detected, which will cause unexpected behavior and results. Note that files with identical names but different-cased extensions are treated as identical.")
+        print_error(Markdown("Identical filenames were detected, which will cause unexpected behavior and results.\n- files with identical names but different-cased extensions are treated as identical\n- files with the same name from different directories are also considered identical"))
         print_solution_with_culprits("Make sure all input files have unique names.", "Files with clashing names:")
         for i in dupes:
             click.echo(" ".join([j for j in infiles if i in j]), file = sys.stderr)
         sys.exit(1)
 
-    Path(outdir).mkdir(parents=True, exist_ok=True)
-    for (i,o) in zip(infiles, outfiles):
-        Path(o).unlink(missing_ok=True)
-        Path(o).symlink_to(Path(i).resolve())
-    return infiles
+    n = len({re.sub(bn_r, "", i, flags = re.IGNORECASE) for i in uniqs})
+    # return the filenames and # of unique samplenames
+    return infiles, n
 
-def parse_alignment_inputs(inputs, outdir):
+def parse_alignment_inputs(inputs):
     """
     Parse the command line input sam/bam arguments to generate a clean list of input files
-    and create symlinks of those files to a target destination folder.
+    and return the number of unique samples.
     """
     bam_infiles = []
     bai_infiles = []
-    bam_outfiles = []
-    bai_outfiles = []
+    unreadable = 0
+    re_bam = re.compile(r".*\.(bam|sam)$", flags = re.IGNORECASE)
+    re_bai = re.compile(r".*\.bam\.bai$", flags = re.IGNORECASE)
     for i in inputs:
         if os.path.isdir(i):
             for j in os.listdir(i):
-                if j.lower().endswith("bam") or j.lower().endswith("sam"):
-                    bam_infiles.append(os.path.join(i, j))
-                elif j.lower().endswith("bai"):
-                    bai_infiles.append(os.path.join(i, j))
+                if re_bam.match(j):
+                    bam_infiles.append(Path(os.path.join(i, j)).resolve())
+                    unreadable += not os.access(Path(os.path.join(i, j)).resolve(), os.R_OK)
+                elif re_bai.match(j):
+                    bai_infiles.append(Path(os.path.join(i, j)).resolve())
+                    unreadable += not os.access(os.path.join(i, j), os.R_OK)
         else:
-            if i.lower().endswith("bam") or i.lower().endswith("sam"):
-                bam_infiles.append(i)
-            elif i.lower().endswith("bai"):
-                bai_infiles.append(i)
+            if re_bam.match(i):
+                bam_infiles.append(Path(i).resolve())
+                unreadable += not os.access(i, os.R_OK)
+            elif re_bai.match(i):
+                bai_infiles.append(Path(i).resolve())
+                unreadable += not os.access(i, os.R_OK)
     if len(bam_infiles) < 1:
-        print_error("There were no files found in the provided inputs that end with the [blue].bam[/blue] extension.")
+        print_error("There were no files found in the provided inputs that end with the [blue].bam[/blue] or [blue].sam[/blue] extensions.")
         sys.exit(1)
-    re_bam = re.compile(r"\.bam$", re.IGNORECASE)
-    re_sam = re.compile(r"\.sam$", re.IGNORECASE)
+    if unreadable > 0:
+        print_error(Markdown(f"There are {unreadable} alignment files provided without Read permission. These will create errors and terminate workflows prematurely. Please make sure you have Read permissions for these files or use `chmod +r <filename>` to grant them."))
+        sys.exit(1)
     re_ext = re.compile(r"\.(bam|sam)$", re.IGNORECASE)
-    for i in bam_infiles:
-        destination = os.path.join(outdir,os.path.basename(i))
-        # clean up extensions for consistency
-        clean_destination = re_bam.sub(".bam", destination)
-        clean_destination = re_sam.sub(".sam", clean_destination)
-        bam_outfiles.append(clean_destination)
+
     # check if any links will be clashing
     uniqs = set()
     dupes = []
     for i in bam_infiles:
-        bn = os.path.basename(re_ext.sub("", i))
+        bn = os.path.basename(re_ext.sub("", str(i)))
         if bn in uniqs:
             dupes.append(bn)
         else:
             uniqs.add(bn)
     if dupes:
-        print_error("Identical filenames were detected, which will cause unexpected behavior and results. Note that files with identical names but different-cased extensions are treated as identical.")
+        print_error(Markdown("Identical filenames were detected, which will cause unexpected behavior and results.\n- files with identical names but different-cased extensions are treated as identical\n- files with the same name from different directories are also considered identical"))
         print_solution_with_culprits("Make sure all input files have unique names.", "Files with clashing names:")
         for i in dupes:
             click.echo(" ".join([j for j in bam_infiles if i in j]), file = sys.stderr)
         sys.exit(1)
-    for i in bai_infiles:
-        destination = os.path.join(outdir,os.path.basename(i))
-        # clean up extensions for consistency
-        clean_destination = re_bam.sub(".bam.bai", destination)
-        bai_outfiles.append(clean_destination)
-    Path(outdir).mkdir(parents=True, exist_ok=True)
-    for (i,o) in zip(bam_infiles, bam_outfiles):
-        Path(o).unlink(missing_ok=True)
-        Path(o).symlink_to(Path(i).resolve())
-    for (i,o) in zip(bai_infiles, bai_outfiles):
-        Path(o).unlink(missing_ok=True)
-        Path(o).symlink_to(Path(i).resolve())
-    return bam_infiles
+    return bam_infiles, len(uniqs)
 
-def get_samples_from_fastq(directory):
-    """Identify the sample names from a directory containing FASTQ files"""
-    full_flist = [i for i in glob.iglob(f"{directory}/*") if not os.path.isdir(i)]
-    r = re.compile(r".*\.f(?:ast)?q(?:\.gz)?$", flags=re.IGNORECASE)
-    full_fqlist = list(filter(r.match, full_flist))
-    fqlist = [os.path.basename(i) for i in full_fqlist]
-    bn_r = r"[\.\_][RF](?:[12])?(?:\_00[1-9])*\.f(?:ast)?q(?:\.gz)?$"
-    if len(fqlist) == 0:
-        print_error(f"No fastq files with acceptable names found in [bold]{directory}[/bold]")
-        print_solution("Check that the file endings conform to [green].[/green][[green]F[/green][dim]|[/dim][green]R1[/green]][green].[/green][[green]fastq[/green][dim]|[/dim][green]fq[/green]][green].gz[/green]\nRead the documentation for details: https://pdimens.github.io/harpy/haplotagdata/#naming-conventions")
+#def get_samples_from_fastq(directory):
+#    """Identify the sample names from a directory containing FASTQ files"""
+#    full_flist = [i for i in glob.iglob(f"{directory}/*") if not os.path.isdir(i)]
+#    r = re.compile(r".*\.f(?:ast)?q(?:\.gz)?$", flags=re.IGNORECASE)
+#    full_fqlist = list(filter(r.match, full_flist))
+#    fqlist = [os.path.basename(i) for i in full_fqlist]
+#    bn_r = r"[\.\_][RF](?:[12])?(?:\_00[1-9])*\.f(?:ast)?q(?:\.gz)?$"
+#    if len(fqlist) == 0:
+#        print_error(f"No fastq files with acceptable names found in [bold]{directory}[/bold]")
+#        print_solution("Check that the file endings conform to [green].[/green][[green]F[/green][dim]|[/dim][green]R1[/green]][green].[/green][[green]fastq[/green][dim]|[/dim][green]fq[/green]][green].gz[/green]\nRead the documentation for details: https://pdimens.github.io/harpy/haplotagdata/#naming-conventions")
+#        sys.exit(1)
+#
+#    return set([re.sub(bn_r, "", i, flags = re.IGNORECASE) for i in fqlist])
+
+
+def biallelic_contigs(vcf, workdir):
+    """Identify which contigs have at least 2 biallelic SNPs"""
+    vbn = os.path.basename(vcf)
+    if os.path.exists(f"{workdir}/{vbn}.biallelic"):
+        with open(f"{workdir}/{vbn}.biallelic", "r", encoding="utf-8") as f:
+            contigs = [line.rstrip() for line in f]
+        click.echo(f"{workdir}/{vbn}.biallelic exists, using the {len(contigs)} contigs listed in it.", file = sys.stderr)
+    else:
+        click.echo("Identifying which contigs have at least 2 biallelic SNPs", file = sys.stderr)
+        os.makedirs(f"{workdir}/", exist_ok = True)
+        biallelic = subprocess.Popen(f"bcftools view -M2 -v snps {vcf} -Ob".split(), stdout = subprocess.PIPE)
+        contigs = subprocess.run("""bcftools query -f '%CHROM\\n'""".split(), stdin = biallelic.stdout, stdout = subprocess.PIPE, check = False).stdout.decode().splitlines()
+        counts = Counter(contigs)
+        contigs = [i.replace("\'", "") for i in counts if counts[i] > 1]
+        with open(f"{workdir}/{vbn}.biallelic", "w", encoding="utf-8") as f:
+            _ = [f.write(f"{i}\n") for i in contigs]
+
+    if len(contigs) == 0:
+        print_error("No contigs with at least 2 biallelic SNPs identified. Cannot continue with imputation.")
         sys.exit(1)
-
-    return set([re.sub(bn_r, "", i, flags = re.IGNORECASE) for i in fqlist])
+    else:
+        return f"{workdir}/{vbn}.biallelic"
