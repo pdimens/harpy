@@ -122,8 +122,9 @@ def leviathan(inputs, output_dir, genome, min_sv, min_barcodes, threads, populat
         for i in bamlist:
             config.write(f"    - {i}\n")
 
+    modetext = "pool-by-group" if populations else "single-sample"
     print_onstart(
-        f"Samples: {n}{popgroupings}\nOutput Directory: {output_dir}/",
+        f"Samples: {n}{popgroupings}\nOutput Directory: {output_dir}/\nMode: {modetext}",
         "sv leviathan"
     )
     generate_conda_deps()
@@ -220,8 +221,16 @@ def naibr(inputs, output_dir, genome, vcf, min_sv, min_barcodes, threads, popula
         for i in bamlist:
             config.write(f"    - {i}\n")
 
+    if populations:
+        modetext = "pool-by-group"
+    else:
+        modetext = "single-sample"
+    if vcf:
+        modetext += " + will be phased"
+    else:
+        modetext += " + already phased"
     print_onstart(
-        f"Samples: {n}{popgroupings}\nOutput Directory: {output_dir}/",
+        f"Samples: {n}{popgroupings}\nOutput Directory: {output_dir}/\nMode: {modetext}",
         "sv naibr"
     )
     generate_conda_deps()
