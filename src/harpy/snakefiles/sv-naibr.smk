@@ -97,7 +97,7 @@ rule create_config:
     input:
         get_alignments
     output:
-        outdir + "/workflow/input/{sample}.config"
+        outdir + "/workflow/input/{sample}.naibr"
     params:
         lambda wc: wc.get("sample"),
         min(10, workflow.cores)
@@ -117,13 +117,13 @@ rule call_sv:
     input:
         bam   = get_alignments,
         bai   = get_align_index,
-        conf  = outdir + "/workflow/input/{sample}.config"
+        conf  = outdir + "/workflow/input/{sample}.naibr"
     output:
         bedpe = outdir + "/{sample}/{sample}.bedpe",
         refmt = outdir + "/{sample}/{sample}.reformat.bedpe",
         vcf   = outdir + "/{sample}/{sample}.vcf"
     log:
-        outdir + "/logs/{sample}.log"
+        outdir + "/logs/{sample}.naibr.log"
     threads:
         min(10, workflow.cores)
     conda:

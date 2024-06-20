@@ -1,50 +1,37 @@
 containerized: "docker://pdimens/harpy:latest"
 
-from rich import print as rprint
-from rich.panel import Panel
-import sys
 import os
 import re
+import sys
+import multiprocessing
+from pathlib import Path
+from rich import print as rprint
+from rich.panel import Panel
 
-bam_dir     = config["seq_directory"]
 envdir      = os.getcwd() + "/.harpy_envs"
-samplenames = config["samplenames"] 
+genomefile  = config["inputs"]["genome"]
+bamlist     = config["inputs"]["alignments"]
+vcffile     = config["inputs"]["vcf"]
+samplenames = {Path(i).stem for i in bamlist}
 extra       = config.get("extra", None) 
-genomefile  = config["genomefile"]
-molecule_distance = config["molecule_distance"]
+mol_dist    = config["molecule_distance"]
 min_sv      = config["min_sv"]
 min_barcodes = config["min_barcodes"]
 outdir      = config["output_directory"]
 skipreports = config["skipreports"]
-
-wildcard_constraints:
-    sample = "[a-zA-Z0-9._-]+"
-
-bn = os.path.basename(genomefile)
+bn          = os.path.basename(genomefile)
 if bn.lower().endswith(".gz"):
     validgenome = bn[:-3]
 else:
     validgenome = bn
 
-vcffile = config["vcf"]
 if vcffile.lower().endswith("bcf"):
     vcfindex = vcffile + ".csi"
 else:
     vcfindex = vcffile + ".tbi"
 
-def process_args(args):
-    argsDict = {
-        "min_mapq" : 30,
-        "d"        : molecule_distance,
-        "min_sv"   : min_sv,
-        "k"        : min_barcodes
-    }
-    if args:
-        words = [i for i in re.split(r"\s|=", args) if len(i) > 0]
-        for i in zip(words[::2], words[1::2]):
-            if "blacklist" in i or "candidates" in i:
-                argsDict[i[0].lstrip("-")] = i[1]
-    return argsDict
+wildcard_constraints:
+    sample = "[a-zA-Z0-9._-]+"
 
 onerror:
     print("")
@@ -70,6 +57,37 @@ onsuccess:
         file = sys.stderr
     )
 
+def process_args(args):
+    argsDict = {
+        "min_mapq" : 30,
+        "d"        : mol_dist,
+        "min_sv"   : min_sv,
+        "k"        : min_barcodes
+    }
+    if args:
+        words = [i for i in re.split(r"\s|=", args) if len(i) > 0]
+        for i in zip(words[::2], words[1::2]):
+            if "blacklist" in i or "candidates" in i:
+                argsDict[i[0].lstrip("-")] = i[1]
+    return argsDict
+
+def sam_index(infile):
+    """Use Samtools to index an input file, adding .bai to the end of the name"""
+    if not os.path.exists(f"{infile}.bai"):
+        subprocess.run(f"samtools index {infile} {infile}.bai".split())
+
+def get_alignments(wildcards):
+    """returns a list with the bam file for the sample based on wildcards.sample"""
+    r = re.compile(fr".*/({wildcards.sample})\.(bam|sam)$", flags = re.IGNORECASE)
+    aln = list(filter(r.match, bamlist))
+    return aln[0]
+
+def get_align_index(wildcards):
+    """returns a list with the bai index file for the sample based on wildcards.sample"""
+    r = re.compile(fr"(.*/{wildcards.sample})\.(bam|sam)$", flags = re.IGNORECASE)
+    aln = list(filter(r.match, bamlist))
+    return aln[0] + ".bai"
+
 rule genome_link:
     input:
         genomefile
@@ -88,8 +106,8 @@ rule genome_link:
             # decompress bgzipped
             gzip -d -c {input} | seqtk seq > {output}
         else
-            # linked uncompressed
-            ln -sr {input} {output}
+            # copy uncompressed
+            cp -f {input} {output}
         fi
         """
 
@@ -107,17 +125,18 @@ rule genome_faidx:
     shell:
         "samtools faidx --fai-idx {output} {input} 2> {log}"
 
-rule index_original_alignment:
+rule index_original_alignments:
     input:
-        bam_dir + "/{sample}.bam"
+        bamlist
     output:
-        bam_dir + "/{sample}.bam.bai"
-    container:
-        None
+        [f"{i}.bai" for i in bamlist]
+    threads:
+        workflow.cores
     message:
-        "Indexing alignment: {wildcards.sample}"
-    shell:
-        "samtools index {input} {output} 2> /dev/null"
+        "Indexing alignment files"
+    run:
+        with multiprocessing.Pool(processes=threads) as pool:
+            pool.map(sam_index, input)
 
 rule index_bcf:
     input:
@@ -145,11 +164,11 @@ rule index_vcfgz:
 
 rule phase_alignments:
     input:
-        bam_dir + "/{sample}.bam.bai",
+        get_align_index,
         vcfindex,
         f"Genome/{validgenome}.fai",
         vcf = vcffile,
-        aln = bam_dir + "/{sample}.bam",
+        aln = get_alignments,
         ref = f"Genome/{validgenome}"
     output:
         bam = outdir + "/phasedbam/{sample}.bam",
@@ -167,7 +186,7 @@ rule log_phasing:
     input:
         collect(outdir + "/logs/whatshap-haplotag/{sample}.phase.log", sample = samplenames)
     output:
-        outdir + "/logs/whatshap-haplotag/phasing.log"
+        outdir + "/logs/whatshap-haplotag.log"
     container:
         None
     message:
@@ -186,7 +205,7 @@ rule create_config:
     input:
         outdir + "/phasedbam/{sample}.bam"
     output:
-        outdir + "/workflow/input/{sample}.config"
+        outdir + "/workflow/input/{sample}.naibr"
     params:
         lambda wc: wc.get("sample"),
         min(10, workflow.cores)
@@ -218,13 +237,13 @@ rule call_sv:
     input:
         bam   = outdir + "/phasedbam/{sample}.bam",
         bai   = outdir + "/phasedbam/{sample}.bam.bai",
-        conf  = outdir + "/workflow/input/{sample}.config"
+        conf  = outdir + "/workflow/input/{sample}.naibr"
     output:
         bedpe = outdir + "/{sample}/{sample}.bedpe",
         refmt = outdir + "/{sample}/{sample}.reformat.bedpe",
         vcf   = outdir + "/{sample}/{sample}.vcf"
     log:
-        outdir + "/logs/{sample}.log"
+        outdir + "/logs/{sample}.naibr.log"
     threads:
         min(10, workflow.cores)
     conda:
@@ -275,7 +294,7 @@ rule log_workflow:
     default_target: True
     input:
         bedpe = collect(outdir + "/{sample}.bedpe", sample = samplenames),
-        phaselog = outdir + "/logs/whatshap-haplotag/phasing.log",
+        phaselog = outdir + "/logs/whatshap-haplotag.log",
         reports =  collect(outdir + "/reports/{sample}.naibr.html", sample = samplenames) if not skipreports else []
     message:
         "Summarizing the workflow: {output}"
@@ -285,9 +304,8 @@ rule log_workflow:
         with open(outdir + "/workflow/sv.naibr.summary", "w") as f:
             _ = f.write("The harpy sv naibr workflow ran using these parameters:\n\n")
             _ = f.write(f"The provided genome: {bn}\n")
-            _ = f.write(f"The directory with alignments: {bam_dir}\n\n")
             _ = f.write("The alignment files were phased using:\n")
-            _ = f.write(f"    whatshap haplotag --reference genome.fasta --linked-read-distance-cutoff {molecule_distance} --ignore-read-groups --tag-supplementary --sample sample_x file.vcf sample_x.bam\n")
+            _ = f.write(f"    whatshap haplotag --reference genome.fasta --linked-read-distance-cutoff {mol_dist} --ignore-read-groups --tag-supplementary --sample sample_x file.vcf sample_x.bam\n")
             _ = f.write("naibr variant calling ran using these configurations:\n")
             _ = f.write(f"    bam_file=BAMFILE\n")
             _ = f.write(f"    prefix=PREFIX\n")

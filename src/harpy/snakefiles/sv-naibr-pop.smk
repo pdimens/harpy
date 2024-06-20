@@ -1,63 +1,30 @@
 containerized: "docker://pdimens/harpy:latest"
 
-from rich import print as rprint
-from rich.panel import Panel
-import sys
 import os
 import re
+import sys
+import multiprocessing
+from pathlib import Path
+from rich import print as rprint
+from rich.panel import Panel
 
-bam_dir     = config["seq_directory"]
-envdir      = os.getcwd() + "/.harpy_envs"
-samplenames = config["samplenames"] 
-extra       = config.get("extra", None) 
-groupfile   = config["groupings"]
-genomefile  = config["genomefile"]
-molecule_distance = config["molecule_distance"]
-min_sv      = config["min_sv"]
+envdir       = os.getcwd() + "/.harpy_envs"
+genomefile   = config["inputs"]["genome"]
+bamlist      = config["inputs"]["alignments"]
+groupfile    = config["inputs"]["groupings"]
+extra        = config.get("extra", None) 
+min_sv       = config["min_sv"]
 min_barcodes = config["min_barcodes"]
-skipreports = config["skipreports"]
-bn          = os.path.basename(genomefile)
-outdir      = config["output_directory"]
-genome_zip  = True if bn.lower().endswith(".gz") else False
-if genome_zip:
-    bn = bn[:-3]
+mol_dist     = config["molecule_distance"]
+skipreports  = config["skipreports"]
+bn           = os.path.basename(genomefile)
+outdir       = config["output_directory"]
+if bn.lower().endswith(".gz"):
+    bn[:-3]
 
 wildcard_constraints:
     sample = "[a-zA-Z0-9._-]+",
     population = "[a-zA-Z0-9._-]+"
-
-def process_args(args):
-    argsDict = {
-        "min_mapq" : 30,
-        "d"        : molecule_distance,
-        "min_sv"   : min_sv,
-        "k"        : min_barcodes
-    }
-    if args:
-        words = [i for i in re.split(r"\s|=", args) if len(i) > 0]
-        for i in zip(words[::2], words[1::2]):
-            if "blacklist" in i or "candidates" in i:
-                argsDict[i[0].lstrip("-")] = i[1]
-    return argsDict
-
-# create dictionary of population => filenames
-## this makes it easier to set the snakemake rules/wildcards
-def pop_manifest(infile, dirn):
-    d = dict()
-    with open(infile) as f:
-        for line in f:
-            samp, pop = line.rstrip().split()
-            if samp.lstrip().startswith("#"):
-                continue
-            samp = f"{dirn}/{samp}.bam"
-            if pop not in d.keys():
-                d[pop] = [samp]
-            else:
-                d[pop].append(samp)
-    return d
-
-popdict     = pop_manifest(groupfile, f"{outdir}/workflow/input")
-populations = popdict.keys()
 
 onerror:
     print("")
@@ -82,6 +49,40 @@ onsuccess:
             ),
         file = sys.stderr
     )
+
+def process_args(args):
+    argsDict = {
+        "min_mapq" : 30,
+        "d"        : mol_dist,
+        "min_sv"   : min_sv,
+        "k"        : min_barcodes
+    }
+    if args:
+        words = [i for i in re.split(r"\s|=", args) if len(i) > 0]
+        for i in zip(words[::2], words[1::2]):
+            if "blacklist" in i or "candidates" in i:
+                argsDict[i[0].lstrip("-")] = i[1]
+    return argsDict
+
+# create dictionary of population => filenames
+## this makes it easier to set the snakemake rules/wildcards
+def pop_manifest(groupingfile, filelist):
+    d = dict()
+    with open(groupingfile) as f:
+        for line in f:
+            samp, pop = line.rstrip().split()
+            if samp.lstrip().startswith("#"):
+                continue
+            r = re.compile(fr".*/({samp.lstrip()})\.(bam|sam)$", flags = re.IGNORECASE)
+            sampl = list(filter(r.match, filelist))[0]
+            if pop not in d.keys():
+                d[pop] = [sampl]
+            else:
+                d[pop].append(sampl)
+    return d
+
+popdict = pop_manifest(groupfile, bamlist)
+populations = popdict.keys()
 
 rule copy_groupings:
     input:
@@ -113,10 +114,10 @@ rule merge_populations:
         bamlist  = outdir + "/workflow/{population}.list",
         bamfiles = lambda wc: collect("{sample}", sample = popdict[wc.population]) 
     output:
-        bam = temp(outdir + "/workflow/inputpop/{population}.bam"),
-        bai = temp(outdir + "/workflow/inputpop/{population}.bam.bai")
+        bam = temp(outdir + "/workflow/input/{population}.bam"),
+        bai = temp(outdir + "/workflow/input/{population}.bam.bai")
     threads:
-        2
+        4
     container:
         None
     message:
@@ -126,7 +127,7 @@ rule merge_populations:
 
 rule create_config:
     input:
-        outdir + "/workflow/inputpop/{population}.bam"
+        outdir + "/workflow/input/{population}.bam"
     output:
         outdir + "/workflow/config/{population}.naibr"
     params:
@@ -146,15 +147,15 @@ rule create_config:
 
 rule call_sv:
     input:
-        bam   = outdir + "/workflow/inputpop/{population}.bam",
-        bai   = outdir + "/workflow/inputpop/{population}.bam.bai",
+        bam   = outdir + "/workflow/input/{population}.bam",
+        bai   = outdir + "/workflow/input/{population}.bam.bai",
         conf  = outdir + "/workflow/config/{population}.naibr"
     output:
         bedpe = outdir + "/{population}/{population}.bedpe",
         refmt = outdir + "/{population}/{population}.reformat.bedpe",
         vcf   = outdir + "/{population}/{population}.vcf"
     log:
-        outdir + "/logs/{population}.log"
+        outdir + "/logs/{population}.naibr.log"
     threads:
         min(10, workflow.cores)
     conda:
@@ -196,18 +197,17 @@ rule genome_link:
     container:
         None
     message: 
-        "Symlinking {input}"
+        "Creating {output}"
     shell: 
         """
         if (file {input} | grep -q compressed ) ;then
-            # is regular gzipped, needs to be BGzipped
-            zcat {input} | bgzip -c > {output}
+            # is regular gzipped, needs to be decompressed
+            gzip -dc {input} > {output}
         elif (file {input} | grep -q BGZF ); then
-            # is bgzipped, just linked
-            ln -sr {input} {output}
+            # is bgzipped, decompress
+            gzip -dc {input} > {output}
         else
-            # isn't compressed, just linked
-            ln -sr {input} {output}
+            cp -f {input} {output}
         fi
         """
 
@@ -215,24 +215,15 @@ rule genome_faidx:
     input: 
         f"Genome/{bn}"
     output: 
-        fai = f"Genome/{bn}.fai",
-        gzi = f"Genome/{bn}.gzi" if genome_zip else []
+        f"Genome/{bn}.fai"
     log:
         f"Genome/{bn}.faidx.log"
-    params:
-        genome_zip
     container:
         None
     message:
         "Indexing {input}"
-    shell: 
-        """
-        if [ "{params}" = "True" ]; then
-            samtools faidx --gzi-idx {output.gzi} --fai-idx {output.fai} {input} 2> {log}
-        else
-            samtools faidx --fai-idx {output.fai} {input} 2> {log}
-        fi
-        """
+    shell:
+        "samtools faidx --fai-idx {output} {input} 2> {log}"
 
 rule create_report:
     input:
@@ -274,7 +265,6 @@ rule log_workflow:
         with open(outdir + "/workflow/sv.naibr.summary", "w") as f:
             _ = f.write("The harpy sv naibr workflow ran using these parameters:\n\n")
             _ = f.write(f"The provided genome: {bn}\n")
-            _ = f.write(f"The directory with alignments: {bam_dir}\n")
             _ = f.write(f"The sample grouping file: {groupfile}\n\n")
             _ = f.write("naibr variant calling ran using these configurations:\n")
             _ = f.write(f"    bam_file=BAMFILE\n")

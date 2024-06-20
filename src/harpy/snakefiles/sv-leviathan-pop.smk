@@ -3,15 +3,12 @@ containerized: "docker://pdimens/harpy:latest"
 import os
 import re
 import sys
-#import multiprocessing
-from pathlib import Path
 from rich import print as rprint
 from rich.panel import Panel
 
 envdir      = os.getcwd() + "/.harpy_envs"
 genomefile 	= config["inputs"]["genome"]
 bamlist     = config["inputs"]["alignments"]
-#samplenames = {Path(i).stem for i in bamlist}
 groupfile 	= config["inputs"]["groupings"]
 extra 		= config.get("extra", "") 
 min_sv      = config["min_sv"]
@@ -19,33 +16,13 @@ min_bc      = config["min_barcodes"]
 outdir      = config["output_directory"]
 skipreports = config["skipreports"]
 bn 			= os.path.basename(genomefile)
-genome_zip  = True if bn.lower().endswith(".gz") else False
-if genome_zip:
-    bn = bn[:-3]
+if bn.lower().endswith(".gz"):
+    bn[:-3]
 
 wildcard_constraints:
-    sample = "[a-zA-Z0-9._-]+"
+    sample = "[a-zA-Z0-9._-]+",
+    population = "[a-zA-Z0-9._-]+"
     
-# create dictionary of population => filenames
-## this makes it easier to set the snakemake rules/wildcards
-def pop_manifest(groupingfile, filelist):
-    d = dict()
-    with open(groupingfile) as f:
-        for line in f:
-            samp, pop = line.rstrip().split()
-            if samp.lstrip().startswith("#"):
-                continue
-            r = re.compile(fr".*/({samp.lstrip()})\.(bam|sam)$", flags = re.IGNORECASE)
-            sampl = list(filter(r.match, filelist))[0]
-            if pop not in d.keys():
-                d[pop] = [sampl]
-            else:
-                d[pop].append(sampl)
-    return d
-
-popdict = pop_manifest(groupfile, bamlist)
-populations = popdict.keys()
-
 onerror:
     print("")
     rprint(
@@ -69,6 +46,26 @@ onsuccess:
             ),
         file = sys.stderr
     )
+
+# create dictionary of population => filenames
+## this makes it easier to set the snakemake rules/wildcards
+def pop_manifest(groupingfile, filelist):
+    d = dict()
+    with open(groupingfile) as f:
+        for line in f:
+            samp, pop = line.rstrip().split()
+            if samp.lstrip().startswith("#"):
+                continue
+            r = re.compile(fr".*/({samp.lstrip()})\.(bam|sam)$", flags = re.IGNORECASE)
+            sampl = list(filter(r.match, filelist))[0]
+            if pop not in d.keys():
+                d[pop] = [sampl]
+            else:
+                d[pop].append(sampl)
+    return d
+
+popdict = pop_manifest(groupfile, bamlist)
+populations = popdict.keys()
 
 rule copy_groupings:
     input:
@@ -100,10 +97,10 @@ rule merge_populations:
         bamlist  = outdir + "/workflow/{population}.list",
         bamfiles = lambda wc: collect("{sample}", sample = popdict[wc.population]) 
     output:
-        bam = temp(outdir + "/workflow/inputpop/{population}.bam"),
-        bai = temp(outdir + "/workflow/inputpop/{population}.bam.bai")
+        bam = temp(outdir + "/workflow/input/{population}.bam"),
+        bai = temp(outdir + "/workflow/input/{population}.bam.bai")
     threads:
-        2
+        4
     container:
         None
     message:
@@ -113,8 +110,8 @@ rule merge_populations:
 
 rule index_barcode:
     input: 
-        bam = outdir + "/workflow/inputpop/{population}.bam",
-        bai = outdir + "/workflow/inputpop/{population}.bam.bai"
+        bam = outdir + "/workflow/input/{population}.bam",
+        bai = outdir + "/workflow/input/{population}.bam.bai"
     output:
         temp(outdir + "/lrez_index/{population}.bci")
     benchmark:
@@ -146,8 +143,7 @@ rule genome_link:
             # is bgzipped, decompress
             gzip -dc {input} > {output}
         else
-            # isn't compressed, just linked
-            ln -sr {input} {output}
+            cp -f {input} {output}
         fi
         """
 
@@ -179,10 +175,10 @@ rule index_bwa_genome:
     shell: 
         "bwa index {input} 2> {log}"
 
-rule leviathan_variantcall:
+rule call_sv:
     input:
-        bam    = outdir + "/workflow/inputpop/{population}.bam",
-        bai    = outdir + "/workflow/inputpop/{population}.bam.bai",
+        bam    = outdir + "/workflow/input/{population}.bam",
+        bai    = outdir + "/workflow/input/{population}.bam.bai",
         bc_idx = outdir + "/lrez_index/{population}.bci",
         genome = f"Genome/{bn}",
         genidx = multiext(f"Genome/{bn}", ".fai", ".ann", ".bwt", ".pac", ".sa", ".amb")

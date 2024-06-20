@@ -147,7 +147,7 @@ rule index_bwa_genome:
     shell: 
         "bwa index {input} 2> {log}"
 
-rule leviathan_variantcall:
+rule call_sv:
     input:
         bam    = get_alignments,
         bai    = get_align_index,
