@@ -1,8 +1,8 @@
 """Module for workflow file parsers"""
 
-import sys
-import os
 import re
+import os
+import sys
 import subprocess
 from pathlib import Path
 from collections import Counter
@@ -34,7 +34,7 @@ def parse_fastq_inputs(inputs):
                     # check if the file has read access
                     unreadable += not os.access(os.path.join(i, j), os.R_OK)
         else:
-            if re.search(i, re_ext):
+            if re.search(re_ext, i):
                 infiles.append(Path(i).resolve())
                 unreadable += not os.access(i, os.R_OK)
 
