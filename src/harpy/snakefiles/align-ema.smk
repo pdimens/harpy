@@ -21,16 +21,9 @@ bn_idx      = f"{bn}.gzi" if genome_zip else f"{bn}.fai"
 envdir      = os.getcwd() + "/.harpy_envs"
 windowsize  = config["depth_windowsize"]
 skipreports = config["skipreports"]
-
-bn_r = r"[\.\_](?:[RF])?(?:[12])?(?:\_00[1-9])*\.f(?:ast)?q(?:\.gz)?$"
-samplenames = set([re.sub(bn_r, "", os.path.basename(i), flags = re.IGNORECASE) for i in fqlist])
-d = dict(zip(samplenames, samplenames))
-
-def get_fq(wildcards):
-    # returns a list of fastq files for read 1 based on *wildcards.sample* e.g.
-    r = re.compile(f"({wildcards.sample})" + r"([_\.][12]|[_\.][FR]|[_\.]R[12](?:\_00[0-9])*)?\.((fastq|fq)(\.gz)?)$", flags = re.IGNORECASE)
-    sample_F = list(filter(r.match, fqlist))
-    return sample_F[:2]
+    
+wildcard_constraints:
+    sample = "[a-zA-Z0-9._-]+"
 
 onerror:
     print("")
@@ -57,8 +50,14 @@ onsuccess:
         file = sys.stderr
     )
 
-wildcard_constraints:
-    sample = "[a-zA-Z0-9._-]+"
+bn_r = r"([_\.][12]|[_\.][FR]|[_\.]R[12](?:\_00[0-9])*)?\.((fastq|fq)(\.gz)?)$"
+samplenames = {re.sub(bn_r, "", os.path.basename(i), flags = re.IGNORECASE) for i in fqlist}
+d = dict(zip(samplenames, samplenames))
+
+def get_fq(wildcards):
+    # returns a list of fastq files for read 1 based on *wildcards.sample* e.g.
+    r = re.compile(fr".*/({re.escape(wildcards.sample)}){bn_r}", flags = re.IGNORECASE)
+    return list(filter(r.match, fqlist))[:2]
 
 rule genome_setup:
     input:
