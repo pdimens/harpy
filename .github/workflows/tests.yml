@@ -345,7 +345,7 @@ jobs:
           path: .snakemake/singularity
       - name: test strobealign
         shell: micromamba-shell {0}
-        run: harpy align strobe -g test/genome/genome.fasta.gz --snakemake "--show-failed-logs" -x "--seed 13" test/fastq
+        run: harpy align strobe -r 125 -g test/genome/genome.fasta.gz --snakemake "--show-failed-logs" test/fastq
 
   mpileup:
     needs: [changes, pkgbuild]
