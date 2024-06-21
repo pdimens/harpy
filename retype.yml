@@ -17,7 +17,7 @@ links:
   icon: ruby
   target: blank
 - text: Guides & Tutorials
-  link: https://pdimens.github.io/harpy/blog
+  link: /blog
   icon: code-of-conduct
   target: blank
 footer:
