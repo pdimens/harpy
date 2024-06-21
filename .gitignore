@@ -8,9 +8,7 @@ src/
 build/
 Demultiplex/
 QC/
-Align/
 SNP/
-SV/
 Impute/
 Phase/
 workflow/
