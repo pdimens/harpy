@@ -31,7 +31,7 @@ jobs:
       qc: ${{ steps.filter.outputs.qc }}
       bwa: ${{ steps.filter.outputs.bwa }}
       ema: ${{ steps.filter.outputs.ema }}
-      minimap: ${{ steps.filter.outputs.minimap }}
+      strobealign: ${{ steps.filter.outputs.strobealign }}
       mpileup: ${{ steps.filter.outputs.mpileup }}
       freebayes: ${{ steps.filter.outputs.freebayes }}
       leviathan: ${{ steps.filter.outputs.leviathan }}
@@ -309,10 +309,10 @@ jobs:
         shell: micromamba-shell {0}
         run: harpy align ema --ema-bins 150 -g test/genome/genome.fasta.gz --snakemake "--show-failed-logs" -x "-d" test/fastq
 
-  minimap:
+  strobe:
     needs: [changes, pkgbuild]
-    if: ${{ needs.changes.outputs.minimap == 'true' && needs.pkgbuild.result == 'success' }}
-    name: align minimap
+    if: ${{ needs.changes.outputs.strobealign == 'true' && needs.pkgbuild.result == 'success' }}
+    name: align strobe
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -343,9 +343,9 @@ jobs:
         with:
           name: deps-image
           path: .snakemake/singularity
-      - name: test minimap
+      - name: test strobealign
         shell: micromamba-shell {0}
-        run: harpy align minimap -g test/genome/genome.fasta.gz --snakemake "--show-failed-logs" -x "--seed 13" test/fastq
+        run: harpy align strobe -g test/genome/genome.fasta.gz --snakemake "--show-failed-logs" -x "--seed 13" test/fastq
 
   mpileup:
     needs: [changes, pkgbuild]

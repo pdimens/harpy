@@ -59,11 +59,11 @@ ema: &ema
   - 'src/harpy/scripts/countBX.py'
   - 'src/harpy/bin/makewindows.py'
   - 'test/fastq/**'
-minimap: &minimap
+strobealign: &strobealign
   - *common
   - *container
   - 'src/harpy/align.py'
-  - 'src/harpy/rules/align-minimap.smk'
+  - 'src/harpy/rules/align-strobealign.smk'
   - 'src/harpy/reports/AlignStats.Rmd'
   - 'src/harpy/reports/BxCount.Rmd'
   - 'src/harpy/scripts/bxStats.py'
