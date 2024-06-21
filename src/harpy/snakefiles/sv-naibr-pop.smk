@@ -20,7 +20,7 @@ skipreports  = config["skipreports"]
 bn           = os.path.basename(genomefile)
 outdir       = config["output_directory"]
 if bn.lower().endswith(".gz"):
-    bn[:-3]
+    bn = bn[:-3]
 
 wildcard_constraints:
     sample = "[a-zA-Z0-9._-]+",
