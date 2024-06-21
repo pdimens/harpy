@@ -150,7 +150,7 @@ modules:
   - *qc
   - *bwa
   - *ema
-  - *minimap
+  - *strobealign
   - *mpileup
   - *freebayes
   - *impute
