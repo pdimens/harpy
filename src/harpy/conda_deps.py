@@ -7,7 +7,7 @@ def generate_conda_deps():
     condachannels = ["bioconda","conda-forge","defaults"]
     environ = {
         "qc" : ["bioconda::falco", "bioconda::fastp", "bioconda::multiqc", "bioconda::pysam=0.22"],
-        "align": ["bioconda::bwa", "bioconda::ema","conda-forge::icu","conda-forge::libzlib", "bioconda::strobealign", "bioconda::samtools=1.20", "bioconda::seqtk", "bioconda::tabix", "conda-forge::xz"],
+        "align": ["bioconda::bwa", "bioconda::ema","bioconda::strobealign", "conda-forge::icu","conda-forge::libzlib", "bioconda::samtools=1.20", "bioconda::seqtk", "bioconda::tabix", "conda-forge::xz"],
         "snp": ["bioconda::bcftools=1.20", "bioconda::freebayes=1.3.6"],
         "sv": ["bioconda::leviathan", "bioconda::naibr-plus"],
         "phase" : ["bioconda::hapcut2", "bioconda::whatshap"],
