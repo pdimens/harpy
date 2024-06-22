@@ -46,10 +46,9 @@ def impute(inputs, output_dir, parameters, threads, vcf, vcf_samples, extra_para
     individual files/folders, using shell wildcards (e.g. `data/drosophila*.bam`), or both.
     
     Requires a parameter file, use **harpy stitchparams** to generate one and adjust it for your study.
-    The `--vcf-samples` flag toggles to phase only the samples present in your input `--vcf` file rather than all
+    The `--vcf-samples` option considers only the samples present in your input `--vcf` file rather than all
     the samples identified in `INPUT`. If providing additional STITCH arguments, they must be in quotes and 
-    in R language style. The extra parameters will remain constant across different models.
-    Use single-quotes (string literals) if supplying an argument that requires quotes. For example:
+    in R language style. Use single-quotes (string literals) if supplying an argument that requires quotes. For example:
     
     ```
     harpy ... -x 'switchModelIteration = 39, splitReadIterations = NA, reference_populations = c("CEU","GBR")'...
@@ -77,11 +76,6 @@ def impute(inputs, output_dir, parameters, threads, vcf, vcf_samples, extra_para
     samplenames = vcf_samplematch(vcf, bamlist, vcf_samples)
     validate_bam_RG(bamlist)
     check_impute_params(parameters)
-    # the biallelic check might take a minute, so print the start text first
-    print_onstart(
-        f"Input VCF: {vcf}\nSamples in VCF: {len(samplenames)}\nAlignments Provided: {n}\nOutput Directory: {output_dir}/",
-        "impute"
-    )
     biallelic = biallelic_contigs(vcf, f"{workflowdir}")
 
     fetch_rule(workflowdir, "impute.smk")
@@ -104,6 +98,11 @@ def impute(inputs, output_dir, parameters, threads, vcf, vcf_samples, extra_para
         config.write("  alignments:\n")
         for i in bamlist:
             config.write(f"    - {i}\n")
+    
+    print_onstart(
+        f"Input VCF: {vcf}\nSamples in VCF: {len(samplenames)}\nAlignments Provided: {n}\nOutput Directory: {output_dir}/",
+        "impute"
+    )
     generate_conda_deps()
     _module = subprocess.run(command.split())
     sys.exit(_module.returncode)

@@ -135,3 +135,37 @@ def biallelic_contigs(vcf, workdir):
         with open(f"{workdir}/{vbn}.biallelic", "w", encoding="utf-8") as f:
             f.write(valid)
     return f"{workdir}/{vbn}.biallelic"
+
+def biallelic_contigs(vcf, workdir):
+    vbn = os.path.basename(vcf)
+    if os.path.exists(f"{workdir}/{vbn}.biallelic"):
+        with open(f"{workdir}/{vbn}.biallelic", "r", encoding="utf-8") as f:
+            contigs = [line.rstrip() for line in f]
+        click.echo(f"{workdir}/{vbn}.biallelic exists, using the {len(contigs)} contigs listed in it.", file = sys.stderr)
+    else:
+        click.echo("Identifying which contigs have at least 2 biallelic SNPs", file = sys.stderr)
+        os.makedirs(f"{workdir}/", exist_ok = True)
+    valid = []
+    index_rows = subprocess.check_output(['bcftools', 'index', '-s', vcf]).decode().split('\n')
+    for row in index_rows:
+        contig = row.split("\t")[0]
+        # Use bcftools to count the number of biallelic SNPs in the contig
+        viewcmd = subprocess.Popen(['bcftools', 'view', '-r', contig, '-v', 'snps', '-m2', '-M2', '-c', '2', vcf], stdout=subprocess.PIPE)
+        snpcount = 0
+        while True:
+            # Read the next line of output
+            line = viewcmd.stdout.readline().decode()
+            if not line:
+                break
+            snpcount += 1
+            # If there are at least 2 biallellic snps, terminate the process
+            if snpcount >= 2:
+                valid.append(contig)
+                viewcmd.terminate()
+                break
+    if not valid:
+        click.echo("No contigs with at least 2 biallelic SNPs identified. Cannot continue with imputation.")
+        sys.exit(1)
+    with open(f"{workdir}/{vbn}.biallelic", "w", encoding="utf-8") as f:
+        f.write("\n".join(valid))
+    return f"{workdir}/{vbn}.biallelic"
