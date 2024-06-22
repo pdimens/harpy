@@ -77,6 +77,11 @@ def impute(inputs, output_dir, parameters, threads, vcf, vcf_samples, extra_para
     samplenames = vcf_samplematch(vcf, bamlist, vcf_samples)
     validate_bam_RG(bamlist)
     check_impute_params(parameters)
+    # the biallelic check might take a minute, so print the start text first
+    print_onstart(
+        f"Input VCF: {vcf}\nSamples in VCF: {len(samplenames)}\nAlignments Provided: {n}\nOutput Directory: {output_dir}/",
+        "impute"
+    )
     biallelic = biallelic_contigs(vcf, f"{workflowdir}")
 
     fetch_rule(workflowdir, "impute.smk")
@@ -99,11 +104,6 @@ def impute(inputs, output_dir, parameters, threads, vcf, vcf_samples, extra_para
         config.write("  alignments:\n")
         for i in bamlist:
             config.write(f"    - {i}\n")
-
-    print_onstart(
-        f"Input VCF: {vcf}\nSamples in VCF: {len(samplenames)}\nAlignments Provided: {n}\nOutput Directory: {output_dir}/",
-        "impute"
-    )
     generate_conda_deps()
     _module = subprocess.run(command.split())
     sys.exit(_module.returncode)

@@ -5,7 +5,6 @@ import os
 import sys
 import subprocess
 from pathlib import Path
-from collections import Counter
 from rich.markdown import Markdown
 import rich_click as click
 from .printfunctions import print_error, print_solution_with_culprits
@@ -117,21 +116,6 @@ def parse_alignment_inputs(inputs):
         sys.exit(1)
     return bam_infiles, len(uniqs)
 
-#def get_samples_from_fastq(directory):
-#    """Identify the sample names from a directory containing FASTQ files"""
-#    full_flist = [i for i in glob.iglob(f"{directory}/*") if not os.path.isdir(i)]
-#    r = re.compile(r".*\.f(?:ast)?q(?:\.gz)?$", flags=re.IGNORECASE)
-#    full_fqlist = list(filter(r.match, full_flist))
-#    fqlist = [os.path.basename(i) for i in full_fqlist]
-#    bn_r = r"[\.\_][RF](?:[12])?(?:\_00[1-9])*\.f(?:ast)?q(?:\.gz)?$"
-#    if len(fqlist) == 0:
-#        print_error(f"No fastq files with acceptable names found in [bold]{directory}[/bold]")
-#        print_solution("Check that the file endings conform to [green].[/green][[green]F[/green][dim]|[/dim][green]R1[/green]][green].[/green][[green]fastq[/green][dim]|[/dim][green]fq[/green]][green].gz[/green]\nRead the documentation for details: https://pdimens.github.io/harpy/haplotagdata/#naming-conventions")
-#        sys.exit(1)
-#
-#    return set([re.sub(bn_r, "", i, flags = re.IGNORECASE) for i in fqlist])
-
-
 def biallelic_contigs(vcf, workdir):
     """Identify which contigs have at least 2 biallelic SNPs"""
     vbn = os.path.basename(vcf)
@@ -142,15 +126,12 @@ def biallelic_contigs(vcf, workdir):
     else:
         click.echo("Identifying which contigs have at least 2 biallelic SNPs", file = sys.stderr)
         os.makedirs(f"{workdir}/", exist_ok = True)
-        biallelic = subprocess.Popen(f"bcftools view -M2 -v snps {vcf} -Ob".split(), stdout = subprocess.PIPE)
-        contigs = subprocess.run("""bcftools query -f '%CHROM\\n'""".split(), stdin = biallelic.stdout, stdout = subprocess.PIPE, check = False).stdout.decode().splitlines()
-        counts = Counter(contigs)
-        contigs = [i.replace("\'", "") for i in counts if counts[i] > 1]
+        biallelic = subprocess.Popen(f"bcftools view -m2 -M2 -v snps {vcf}".split(), stdout = subprocess.PIPE)
+        contigs = subprocess.Popen("""bcftools query -f '%CHROM\\n'""".split(), stdin = biallelic.stdout, stdout = subprocess.PIPE)
+        valid = subprocess.run('awk \'{a[$1]++} END{for (i in a) if (a[i] >= 2) print i}\'', shell = True, stdin = contigs.stdout, capture_output=True, text=True).stdout.replace("\'", "")
+        if not valid:
+            click.echo("No contigs with at least 2 biallelic SNPs identified. Cannot continue with imputation.")
+            sys.exit(1)
         with open(f"{workdir}/{vbn}.biallelic", "w", encoding="utf-8") as f:
-            _ = [f.write(f"{i}\n") for i in contigs]
-
-    if len(contigs) == 0:
-        print_error("No contigs with at least 2 biallelic SNPs identified. Cannot continue with imputation.")
-        sys.exit(1)
-    else:
-        return f"{workdir}/{vbn}.biallelic"
+            f.write(valid)
+    return f"{workdir}/{vbn}.biallelic"
