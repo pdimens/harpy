@@ -117,26 +117,7 @@ def parse_alignment_inputs(inputs):
     return bam_infiles, len(uniqs)
 
 def biallelic_contigs(vcf, workdir):
-    """Identify which contigs have at least 2 biallelic SNPs"""
-    vbn = os.path.basename(vcf)
-    if os.path.exists(f"{workdir}/{vbn}.biallelic"):
-        with open(f"{workdir}/{vbn}.biallelic", "r", encoding="utf-8") as f:
-            contigs = [line.rstrip() for line in f]
-        click.echo(f"{workdir}/{vbn}.biallelic exists, using the {len(contigs)} contigs listed in it.", file = sys.stderr)
-    else:
-        click.echo("Identifying which contigs have at least 2 biallelic SNPs", file = sys.stderr)
-        os.makedirs(f"{workdir}/", exist_ok = True)
-        biallelic = subprocess.Popen(f"bcftools view -m2 -M2 -v snps {vcf}".split(), stdout = subprocess.PIPE)
-        contigs = subprocess.Popen("""bcftools query -f '%CHROM\\n'""".split(), stdin = biallelic.stdout, stdout = subprocess.PIPE)
-        valid = subprocess.run('awk \'{a[$1]++} END{for (i in a) if (a[i] >= 2) print i}\'', shell = True, stdin = contigs.stdout, capture_output=True, text=True).stdout.replace("\'", "")
-        if not valid:
-            click.echo("No contigs with at least 2 biallelic SNPs identified. Cannot continue with imputation.")
-            sys.exit(1)
-        with open(f"{workdir}/{vbn}.biallelic", "w", encoding="utf-8") as f:
-            f.write(valid)
-    return f"{workdir}/{vbn}.biallelic"
-
-def biallelic_contigs(vcf, workdir):
+    """Identify which contigs have at least 2 biallelic SNPs and write them to workdir/vcf.biallelic"""
     vbn = os.path.basename(vcf)
     if os.path.exists(f"{workdir}/{vbn}.biallelic"):
         with open(f"{workdir}/{vbn}.biallelic", "r", encoding="utf-8") as f:
