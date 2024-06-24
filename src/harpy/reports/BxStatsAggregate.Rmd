@@ -1,0 +1,52 @@
+---
+title: "Harpy Alignment Barcode Summary"
+date: "`r format(Sys.time(), '%m-%d-%y %X')`"
+output:
+  flexdashboard::flex_dashboard:
+    theme: lumen
+    orientation: rows
+    vertical_layout: scroll
+    horizontal_layout: fill
+    favicon: "https://raw.githubusercontent.com/pdimens/harpy/docs/static/favicon_dark.png"
+---
+
+```{r echo = F, results = F, message = F}
+using<-function(...) {
+    libs<-unlist(list(...))
+    req<-unlist(lapply(libs,require,character.only=TRUE))
+    need<-libs[req==FALSE]
+    if(length(need)>0){ 
+        install.packages(need, repos = "https://cloud.r-project.org/")
+        lapply(need,require,character.only=TRUE)
+    }
+}
+
+using("flexdashboard","dplyr","highcharter","DT")
+```
+
+```{r bxper, echo = F, results = F, message = F}
+valids <- filter(tb, valid == "valid BX")
+nBX <- group_by(valids, contig) %>% 
+  summarize(nBX = length(molecule))
+
+avgBX <- round(mean(nBX$nBX), digits = 2)
+
+totuniqBX <- system(paste("zcat",snakemake@input[[1]]), "| tail -1")
+totuniqBX <- gsub("#total unique barcodes: ", "", totuniqBX) |> as.integer()
+
+tots <- tb %>% 
+    group_by(valid) %>%
+    summarize(total = length(molecule)) %>% 
+    as.data.frame()
+
+tot_invalid <- sum(tots$valid == "invalid BX")
+tot_valid <- sum(tots$valid == "valid BX")
+```
+
+```{r nxx, echo = F, results = F, message = F}
+NX <- function(lengths, X=50){
+  lengths <- as.numeric(sort(lengths, decreasing=TRUE))
+  index <- which(cumsum(lengths) / sum(lengths) >= X/100)[1]
+  return(lengths[index])
+}
+```
