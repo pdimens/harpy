@@ -51,11 +51,9 @@ tots <- tb %>%
     group_by(valid) %>%
     summarize(total = length(molecule)) %>% 
     as.data.frame()
-for(i in c("invalid BX", "valid BX")){
-  if (!(i %in% tots$valid)){
-    tots <- rbind(tots, data.frame("valid" = i, total = 0))
-  }
-}
+
+tot_invalid <- sum(tots$valid == "invalid BX")
+tot_valid <- sum(tots$valid == "valid BX")
 ```
 
 ```{r nxx, echo = F, results = F, message = F}
@@ -80,12 +78,12 @@ valueBox(scales::comma(length(unique(tb$contig))), caption = "Contigs")
 
 ### validBX
 ```{r}
-valueBox(scales::comma(tots[tots$valid == "valid BX", 2]), caption = "Valid Barcodes", color = "success", icon = "fa-vial-circle-check")
+valueBox(scales::comma(tot_valid), caption = "Valid Barcodes", color = "success", icon = "fa-vial-circle-check")
 ```
 
 ### invalidBX
 ```{r}
-valueBox(scales::comma(tots[tots$valid == "invalid BX", 2]), caption = "Invalid Barcodes", color = "warning", icon = "fa-x")
+valueBox(scales::comma(tot_invalid), caption = "Invalid Barcodes", color = "warning", icon = "fa-x")
 ```
 
 ### glob-avg
