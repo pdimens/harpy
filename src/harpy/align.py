@@ -318,7 +318,7 @@ def ema(inputs, output_dir, platform, whitelist, genome, depth_window, threads, 
 @click.option('-g', '--genome', type=click.Path(exists=True, dir_okay=False), required = True, help = 'Genome assembly for read mapping')
 @click.option('-m', '--molecule-distance', default = 100000, show_default = True, type = int, help = 'Base-pair distance threshold to separate molecules')
 @click.option('-f', '--quality-filter', default = 30, show_default = True, type = click.IntRange(min = 0, max = 40), help = 'Minimum mapping quality to pass filtering')
-@click.option('-r', '--read-length', default = "125", show_default = True, type = click.Choice(["50", "75", "100", "125", "150", "250", "400"]), help = 'Average read length for creating index')
+@click.option('-r', '--read-length', default = "auto", show_default = True, type = click.Choice(["auto", "50", "75", "100", "125", "150", "250", "400"]), help = 'Average read length for creating index')
 @click.option('-d', '--depth-window', default = 50000, show_default = True, type = int, help = 'Interval size (in bp) for depth stats')
 @click.option('-x', '--extra-params', type = str, help = 'Additional aligner parameters, in quotes')
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(min = 4, max_open = True), help = 'Number of threads to use')
@@ -337,11 +337,12 @@ def strobe(inputs, output_dir, genome, read_length, depth_window, threads, extra
     Provide the input fastq files and/or directories at the end of the command as individual
     files/folders, using shell wildcards (e.g. `data/echidna*.fastq.gz`), or both.
     
-    strobealign is an ultra-fast aligner comparable to bwa for sequences >100bp. This aligner does 
-    not use barcodes when mapping. Harpy will post-processes the alignments using the
+    strobealign is an ultra-fast aligner comparable to bwa for sequences >100bp and does 
+    not use barcodes when mapping, so Harpy will post-processes the alignments using the
     specified `--molecule-distance` to assign alignments to unique molecules. The `--read-length` is
-    an *approximate* parameter and should be one of [`50`, `75`, `100`, `125`, `150`, `250`, `400`].
-    If your input is post-qc sequences, then you should expect the read lengths to be <150.
+    an *approximate* parameter and should be one of [`auto`, `50`, `75`, `100`, `125`, `150`, `250`, `400`].
+    The alignment process will be faster and take up less disk/RAM if you specify an `-r` value that isn't
+    `auto`. If your input has adapters removed, then you should expect the read lengths to be <150.
     """
     output_dir = output_dir.rstrip("/")
     workflowdir = f"{output_dir}/workflow"

@@ -333,10 +333,14 @@ rule log_workflow:
         with open(outdir + "/workflow/align.strobealign.summary", "w") as f:
             _ = f.write("The harpy align strobealign workflow ran using these parameters:\n\n")
             _ = f.write(f"The provided genome: {bn}\n")
-            _ = f.write("The genome index was created using:\n")
-            _ = f.write("    strobealign --create-index -r {params.readlen} genome\n")
-            _ = f.write("Sequencing were aligned with strobealign using:\n")
-            _ = f.write(f"    strobealign --use-index -U -C --rg=SM:SAMPLE {params.extra} genome reads.F.fq reads.R.fq |\n")
+            if autolen:
+                _ = f.write("Sequencing were aligned with strobealign using:\n")
+                _ = f.write(f"    strobealign -U -C --rg-id=SAMPLE --rg=SM:SAMPLE {params.extra} genome reads.F.fq reads.R.fq |\n")
+            else:
+                _ = f.write("The genome index was created using:\n")
+                _ = f.write(f"    strobealign --create-index -r {params.readlen} genome\n")
+                _ = f.write("Sequencing were aligned with strobealign using:\n")
+                _ = f.write(f"    strobealign --use-index -U -C --rg=SM:SAMPLE {params.extra} genome reads.F.fq reads.R.fq |\n")
             _ = f.write(f"    samtools view -h -F 4 -q {params.quality} |\n")
             _ = f.write("Duplicates in the alignments were marked following:\n")
             _ = f.write("    samtools collate \n")
