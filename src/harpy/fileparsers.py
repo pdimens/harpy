@@ -119,13 +119,13 @@ def parse_alignment_inputs(inputs):
 def biallelic_contigs(vcf, workdir):
     """Identify which contigs have at least 2 biallelic SNPs and write them to workdir/vcf.biallelic"""
     vbn = os.path.basename(vcf)
-    if os.path.exists(f"{workdir}/{vbn}.biallelic"):
-        with open(f"{workdir}/{vbn}.biallelic", "r", encoding="utf-8") as f:
-            contigs = [line.rstrip() for line in f]
-        click.echo(f"{workdir}/{vbn}.biallelic exists, using the {len(contigs)} contigs listed in it.", file = sys.stderr)
-    else:
-        click.echo("Identifying which contigs have at least 2 biallelic SNPs", file = sys.stderr)
-        os.makedirs(f"{workdir}/", exist_ok = True)
+    #if os.path.exists(f"{workdir}/{vbn}.biallelic"):
+    #    with open(f"{workdir}/{vbn}.biallelic", "r", encoding="utf-8") as f:
+    #        contigs = [line.rstrip() for line in f]
+    #    click.echo(f"{workdir}/{vbn}.biallelic exists, using the {len(contigs)} contigs listed in it.", file = sys.stderr)
+    #else:
+    click.echo("\nIdentifying which contigs have at least 2 biallelic SNPs", file = sys.stderr)
+    os.makedirs(f"{workdir}/", exist_ok = True)
     valid = []
     index_rows = subprocess.check_output(['bcftools', 'index', '-s', vcf]).decode().split('\n')
     for row in index_rows:
