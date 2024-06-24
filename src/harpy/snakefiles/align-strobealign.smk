@@ -18,6 +18,7 @@ skipreports = config["skipreports"]
 windowsize  = config["depth_windowsize"]
 molecule_distance = config["molecule_distance"]
 readlen = config["average_read_length"]
+autolen = isinstance(readlen, str)
 
 wildcard_constraints:
     sample = "[a-zA-Z0-9._-]+"
@@ -111,14 +112,14 @@ rule align:
     input:
         fastq = get_fq,
         genome   = f"Genome/{bn}",
-        genome_index   = f"Genome/{bn}.r{readlen}.sti"
+        genome_index   = f"Genome/{bn}.r{readlen}.sti" if not autolen else []
     output:  
         pipe(outdir + "/samples/{sample}/{sample}.raw.sam")
     log:
         outdir + "/logs/{sample}.strobealign.log"
     params: 
         samps = lambda wc: d[wc.get("sample")],
-        readlen = readlen,
+        readlen = "" if autolen else f"--use-index -r {readlen}",
         extra = extra
     benchmark:
         ".Benchmark/Mapping/strobealign/align.{sample}.txt"
@@ -129,7 +130,7 @@ rule align:
     message:
         "Aligning sequences: {wildcards.sample}"
     shell:
-        "strobealign --use-index -r {params.readlen} -t {threads} -U -C --rg=SM:{wildcards.sample} {params.extra} {input.genome} {input.fastq} > {output} 2> {log}"
+        "strobealign {params.readlen} -t {threads} -U -C --rg-id={wildcards.sample} --rg=SM:{wildcards.sample} {params.extra} {input.genome} {input.fastq} > {output} 2> {log}"
  
 rule quality_filter:
     input:
@@ -313,7 +314,7 @@ rule samtools_reports:
         "Summarizing samtools stats and flagstat"
     shell:
         """
-        multiqc {params}/reports/data/samtools_stats {params}/reports/data/samtools_flagstat --force --quiet --title "Basic Alignment Statistics" --comment "This report aggregates samtools stats and samtools flagstats results for all alignments. Samtools stats ignores alignments marked as duplicates." --no-data-dir --filename {output} 2> /dev/null
+        multiqc {params}/reports/data/samtools_stats {params}/reports/data/samtools_flagstat --no-version-check --force --quiet --title "Basic Alignment Statistics" --comment "This report aggregates samtools stats and samtools flagstats results for all alignments. Samtools stats ignores alignments marked as duplicates." --no-data-dir --filename {output} 2> /dev/null
         """
 
 rule log_workflow:

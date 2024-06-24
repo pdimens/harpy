@@ -191,7 +191,7 @@ rule qc_report:
         "Creating final demultiplexing QC report"
     shell:
         """
-        multiqc {params} --force --quiet --title "QC for Demultiplexed Samples" --comment "This report aggregates the QC results created by falco." --no-data-dir --filename {output} 2> /dev/null
+        multiqc {params} --no-version-check --force --quiet --title "QC for Demultiplexed Samples" --comment "This report aggregates the QC results created by falco." --no-data-dir --filename {output} 2> /dev/null
         """
 
 rule log_workflow:

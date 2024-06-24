@@ -463,7 +463,7 @@ rule collate_samtools_stats:
         "Summarizing samtools stats and flagstat"
     shell:
         """
-        multiqc {outdir}/reports/data/samtools_stats {outdir}/reports/data/samtools_flagstat --force --quiet --title "General Alignment Statistics" --comment "This report aggregates samtools stats and samtools flagstats results for all alignments. Samtools stats ignores alignments marked as duplicates." --no-data-dir --filename {output} 2> /dev/null
+        multiqc {outdir}/reports/data/samtools_stats {outdir}/reports/data/samtools_flagstat --no-version-check --force --quiet --title "General Alignment Statistics" --comment "This report aggregates samtools stats and samtools flagstats results for all alignments. Samtools stats ignores alignments marked as duplicates." --no-data-dir --filename {output} 2> /dev/null
         """
 
 rule log_workflow:
