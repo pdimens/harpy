@@ -33,7 +33,7 @@ bamfile <- gsub(".bxstats.gz", ".bam", infile)
 samplename <- gsub(".bxstats.gz", "", basename(infile))
 tb <- read.table(infile, header = T, sep = "\t") %>% select(-start, -end)
 tb$valid <- tb$molecule
-tb[!(tb$valid %in% c("noBX", "invalidBX")), "valid"] <- "validBX"
+tb[tb$valid != "invalidBX", "valid"] <- "validBX"
 tb$valid <- gsub("BX", " BX", tb$valid)
 ```
 
@@ -44,13 +44,14 @@ nBX <- group_by(valids, contig) %>%
 
 avgBX <- round(mean(nBX$nBX), digits = 2)
 
-totuniqBX <- length(unique(valids$molecule))
+totuniqBX <- system(paste("zcat",snakemake@input[[1]]), "| tail -1")
+totuniqBX <- gsub("#total unique barcodes: ", "", totuniqBX) |> as.integer()
 
 tots <- tb %>% 
     group_by(valid) %>%
     summarize(total = length(molecule)) %>% 
     as.data.frame()
-for(i in c("no BX", "invalid BX", "valid BX")){
+for(i in c("invalid BX", "valid BX")){
   if (!(i %in% tots$valid)){
     tots <- rbind(tots, data.frame("valid" = i, total = 0))
   }
