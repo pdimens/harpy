@@ -71,11 +71,11 @@ def impute(inputs, output_dir, parameters, threads, vcf, vcf_samples, extra_para
         sys.exit(0)
 
     os.makedirs(f"{workflowdir}/", exist_ok= True)
-    bamlist, n = parse_alignment_inputs(inputs)
     validate_input_by_ext(vcf, "--vcf", ["vcf", "bcf", "vcf.gz"])
-    samplenames = vcf_samplematch(vcf, bamlist, vcf_samples)
-    validate_bam_RG(bamlist)
     check_impute_params(parameters)
+    bamlist, n = parse_alignment_inputs(inputs)
+    validate_bam_RG(bamlist)
+    samplenames = vcf_samplematch(vcf, bamlist, vcf_samples)
     biallelic = biallelic_contigs(vcf, f"{workflowdir}")
 
     fetch_rule(workflowdir, "impute.smk")

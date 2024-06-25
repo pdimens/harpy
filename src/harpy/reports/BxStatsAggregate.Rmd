@@ -10,7 +10,7 @@ output:
     favicon: "https://raw.githubusercontent.com/pdimens/harpy/docs/static/favicon_dark.png"
 ---
 
-```{r echo = F, results = F, message = F}
+```{r imports, echo = F, results = F, message = F}
 using<-function(...) {
     libs<-unlist(list(...))
     req<-unlist(lapply(libs,require,character.only=TRUE))
@@ -24,29 +24,82 @@ using<-function(...) {
 using("flexdashboard","dplyr","highcharter","DT")
 ```
 
-```{r bxper, echo = F, results = F, message = F}
-valids <- filter(tb, valid == "valid BX")
-nBX <- group_by(valids, contig) %>% 
-  summarize(nBX = length(molecule))
-
-avgBX <- round(mean(nBX$nBX), digits = 2)
-
-totuniqBX <- system(paste("zcat",snakemake@input[[1]]), "| tail -1")
-totuniqBX <- gsub("#total unique barcodes: ", "", totuniqBX) |> as.integer()
-
-tots <- tb %>% 
-    group_by(valid) %>%
-    summarize(total = length(molecule)) %>% 
-    as.data.frame()
-
-tot_invalid <- sum(tots$valid == "invalid BX")
-tot_valid <- sum(tots$valid == "valid BX")
-```
-
-```{r nxx, echo = F, results = F, message = F}
+```{r nxx_and_process_funs, echo = F, results = F, message = F}
 NX <- function(lengths, X=50){
   lengths <- as.numeric(sort(lengths, decreasing=TRUE))
   index <- which(cumsum(lengths) / sum(lengths) >= X/100)[1]
   return(lengths[index])
 }
+
+process_input <- function(infile){
+  bamfile <- gsub(".bxstats.gz", ".bam", infile)
+  samplename <- gsub(".bxstats.gz", "", basename(infile))
+  tb <- read.table(infile, header = T, sep = "\t") %>% select(1,2,3,6)
+  tb$valid <- tb$molecule
+  tb[tb$valid != "invalidBX", "valid"] <- "validBX"
+  tb$valid <- gsub("BX", " BX", tb$valid)
+
+  nMol <- group_by(tb[tb$valid == "valid BX",], contig) %>% 
+    summarize(nMol = length(molecule))
+  avg_mol <- round(mean(nMol$nMol), digits = 2)
+
+  tot_uniq_bx <- system(paste("zcat",infile, "| tail -1"), intern = T)
+  tot_uniq_bx <- gsub("#total unique barcodes: ", "", tot_uniq_bx) |> as.integer()
+
+  tot_mol <- sum(tb$valid == "valid BX")
+  tot_valid_reads <- sum(tb[tb$valid == "valid BX", "reads"])
+  tot_invalid_reads <- sum(tb[tb$valid == "invalid BX", "reads"])
+  n50 <- NX(tb$length_inferred, 50)
+  n75 <- NX(tb$length_inferred, 75)
+  n90 <- NX(tb$length_inferred, 90)
+
+  outrow <- data.frame(
+    sample = samplename,
+    totaluniquemol = tot_mol,
+    totaluniquebx = tot_uniq_bx,
+    molecule2bxratio = round(tot_mol / tot_uniq_bx,2),
+    totalvalidreads = tot_valid_reads,
+    totalinvalidreads = tot_invalid_reads,
+    totavalidpercent = round(tot_valid_reads/(tot_valid_reads + tot_invalid_reads) * 100,2),
+    averagemolpercont = avg_mol,
+    averagereadspermol = round(tot_valid_reads/tot_mol,1),
+    N50 = n50,
+    N75 = n75,
+    N90 = n90
+  )
+  return(outrow)
+}
 ```
+
+```{r setup_df, echo = F, results = F, message = F}
+#infiles <- snakemake@input[[1]]
+infiles <- c("~/sample1.bxstats.gz", "~/sample2.bxstats.gz")
+
+aggregate_df <- data.frame(
+  sample = character(),
+  totaluniquemol = integer(),
+  totaluniquebx = integer(),
+  molecule2bxratio = numeric(),
+  totalvalidreads = integer(),
+  totalinvalidreads = integer(),
+  totalvalidpercent = numeric(),
+  averagemolpercont = integer(),
+  averagereadspermol = numeric(),
+  N50 = integer(),
+  N75 = integer(),
+  N90 = integer()
+)
+```
+
+```{r setup_df, echo = F, results = F, message = F}
+for(i in infiles){
+  aggregate_df <- rbind(aggregate_df, process_input(i))
+}
+```
+
+#TODO highcharter areaspline of NXX calcs
+
+#TODO static? areaspline of total valid percent across all samples
+
+#TODO average molecules per contig plot WITH standard deviation per sample
+#TODO will require adding sd() calculation above
