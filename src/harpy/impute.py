@@ -76,7 +76,7 @@ def impute(inputs, output_dir, parameters, threads, vcf, vcf_samples, extra_para
     bamlist, n = parse_alignment_inputs(inputs)
     validate_bam_RG(bamlist)
     samplenames = vcf_samplematch(vcf, bamlist, vcf_samples)
-    biallelic = biallelic_contigs(vcf, f"{workflowdir}")
+    biallelic, n_biallelic = biallelic_contigs(vcf, f"{workflowdir}")
 
     fetch_rule(workflowdir, "impute.smk")
     fetch_script(workflowdir, "stitch_impute.R")
@@ -100,7 +100,7 @@ def impute(inputs, output_dir, parameters, threads, vcf, vcf_samples, extra_para
             config.write(f"    - {i}\n")
     
     print_onstart(
-        f"Input VCF: {vcf}\nSamples in VCF: {len(samplenames)}\nAlignments Provided: {n}\nOutput Directory: {output_dir}/",
+        f"Input VCF: {vcf}\nSamples in VCF: {len(samplenames)}\nAlignments Provided: {n}\nContigs with ≥2 Biallelic SNPs: {n_biallelic}\nOutput Directory: {output_dir}/",
         "impute"
     )
     generate_conda_deps()

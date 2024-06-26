@@ -119,17 +119,13 @@ def parse_alignment_inputs(inputs):
 def biallelic_contigs(vcf, workdir):
     """Identify which contigs have at least 2 biallelic SNPs and write them to workdir/vcf.biallelic"""
     vbn = os.path.basename(vcf)
-    #if os.path.exists(f"{workdir}/{vbn}.biallelic"):
-    #    with open(f"{workdir}/{vbn}.biallelic", "r", encoding="utf-8") as f:
-    #        contigs = [line.rstrip() for line in f]
-    #    click.echo(f"{workdir}/{vbn}.biallelic exists, using the {len(contigs)} contigs listed in it.", file = sys.stderr)
-    #else:
-    click.echo("\nIdentifying which contigs have at least 2 biallelic SNPs", file = sys.stderr)
     os.makedirs(f"{workdir}/", exist_ok = True)
     valid = []
-    index_rows = subprocess.check_output(['bcftools', 'index', '-s', vcf]).decode().split('\n')
-    for row in index_rows:
-        contig = row.split("\t")[0]
+    vcfheader = subprocess.check_output(['bcftools', 'view', '-h', vcf]).decode().split('\n')
+    header_contigs = [i.split(",")[0].replace("##contig=<ID=","") for i in vcfheader if i.startswith("##contig=")]
+    if vcf.lower().endswith("bcf") and not os.path.exists(f"{vcf}.csi"):
+        subprocess.run(f"bcftools index {vcf}".split())
+    for contig in header_contigs:
         # Use bcftools to count the number of biallelic SNPs in the contig
         viewcmd = subprocess.Popen(['bcftools', 'view', '-r', contig, '-v', 'snps', '-m2', '-M2', '-c', '2', vcf], stdout=subprocess.PIPE)
         snpcount = 0
@@ -149,4 +145,4 @@ def biallelic_contigs(vcf, workdir):
         sys.exit(1)
     with open(f"{workdir}/{vbn}.biallelic", "w", encoding="utf-8") as f:
         f.write("\n".join(valid))
-    return f"{workdir}/{vbn}.biallelic"
+    return f"{workdir}/{vbn}.biallelic", len(valid)
