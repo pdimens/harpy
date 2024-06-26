@@ -62,6 +62,7 @@ process_input <- function(infile){
 
   outrow <- data.frame(
     sample = samplename,
+    totalreads = tot_valid_reads + tot_invalid_reads,
     totaluniquemol = tot_mol,
     totaluniquebx = tot_uniq_bx,
     molecule2bxratio = round(tot_mol / tot_uniq_bx,2),
@@ -86,6 +87,7 @@ infiles <- c("~/sample1.bxstats.gz", "~/sample2.bxstats.gz")
 
 aggregate_df <- data.frame(
   sample = character(),
+  totalreads = integer(),
   totaluniquemol = integer(),
   totaluniquebx = integer(),
   molecule2bxratio = numeric(),
@@ -104,7 +106,25 @@ aggregate_df <- data.frame(
 for(i in infiles){
   aggregate_df <- rbind(aggregate_df, process_input(i))
 }
-aggregate_df$totalreads <- (aggregate_df$totalvalidreads + aggregate_df$totalinvalidreads)
+```
+
+## General Barcode Information from Alignments
+### Desc {.no-title}
+<h2> General Barcode Information from Alignments </h2>
+This report aggregates the barcode-specific information from the alignments
+that were created using `harpy align`. Detailed information for any one sample
+can be found in that sample's individual report. The table below is an aggregation
+of data for each sample based on their `*.bxstats.gz` file.
+
+```{r}
+DT::datatable(
+  aggregate_df,
+  rownames = F,
+  extensions = 'Buttons', 
+  options = list(dom = 'Brtip', buttons = c('csv'), scrollX = TRUE),
+  fillContainer = T,
+  colnames = c("sample", "alignments", "unique molecules", "unique barcodes", "molecule:bx ratio", "valid bx alignments", "invalid bx alignments", "% valid bx", "avg molecules/contig", "SEM molecules/contig", "avg reads/molecule", "SEM reads/molecule", "N50", "N75","N90")
+)
 ```
 
 ```{r sampleplot_height, echo=FALSE, message=FALSE, warning=FALSE}
