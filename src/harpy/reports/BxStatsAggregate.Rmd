@@ -21,7 +21,7 @@ using<-function(...) {
     }
 }
 
-using("flexdashboard","dplyr","highcharter","DT")
+using("flexdashboard","dplyr","tidyr", "highcharter","DT")
 ```
 
 ```{r nxx_and_process_funs, echo = F, results = F, message = F}
@@ -29,6 +29,10 @@ NX <- function(lengths, X=50){
   lengths <- as.numeric(sort(lengths, decreasing=TRUE))
   index <- which(cumsum(lengths) / sum(lengths) >= X/100)[1]
   return(lengths[index])
+}
+
+std_error <- function(x){
+  sd(x)/sqrt(length((x)))
 }
 
 process_input <- function(infile){
@@ -39,15 +43,18 @@ process_input <- function(infile){
   tb[tb$valid != "invalidBX", "valid"] <- "validBX"
   tb$valid <- gsub("BX", " BX", tb$valid)
 
-  nMol <- group_by(tb[tb$valid == "valid BX",], contig) %>% 
+  nMolpercont <- group_by(tb[tb$valid == "valid BX",], contig) %>% 
     summarize(nMol = length(molecule))
-  avg_mol <- round(mean(nMol$nMol), digits = 2)
-
+    
+  avg_mol <- round(mean(nMolpercont$nMol), digits = 2)
+  sem_mol_per_cont <- round(std_error(nMolpercont$nMol), digits = 3)
   tot_uniq_bx <- system(paste("zcat",infile, "| tail -1"), intern = T)
   tot_uniq_bx <- gsub("#total unique barcodes: ", "", tot_uniq_bx) |> as.integer()
 
   tot_mol <- sum(tb$valid == "valid BX")
   tot_valid_reads <- sum(tb[tb$valid == "valid BX", "reads"])
+  avg_reads_per_mol <- round(tot_valid_reads/tot_mol,1)
+  sem_reads_per_mol <- round(std_error(tb[tb$valid == "valid BX", "reads"]), 1)
   tot_invalid_reads <- sum(tb[tb$valid == "invalid BX", "reads"])
   n50 <- NX(tb$length_inferred, 50)
   n75 <- NX(tb$length_inferred, 75)
@@ -60,9 +67,11 @@ process_input <- function(infile){
     molecule2bxratio = round(tot_mol / tot_uniq_bx,2),
     totalvalidreads = tot_valid_reads,
     totalinvalidreads = tot_invalid_reads,
-    totavalidpercent = round(tot_valid_reads/(tot_valid_reads + tot_invalid_reads) * 100,2),
+    totalvalidpercent = round(tot_valid_reads/(tot_valid_reads + tot_invalid_reads) * 100,2),
     averagemolpercont = avg_mol,
-    averagereadspermol = round(tot_valid_reads/tot_mol,1),
+    semolpercont = sem_mol_per_cont,
+    averagereadspermol = avg_reads_per_mol,
+    sereadspermol = sem_reads_per_mol,
     N50 = n50,
     N75 = n75,
     N90 = n90
@@ -84,22 +93,95 @@ aggregate_df <- data.frame(
   totalinvalidreads = integer(),
   totalvalidpercent = numeric(),
   averagemolpercont = integer(),
+  semolpercont = numeric(),
   averagereadspermol = numeric(),
+  sereadspermol = numeric(),
   N50 = integer(),
   N75 = integer(),
   N90 = integer()
 )
-```
 
-```{r setup_df, echo = F, results = F, message = F}
 for(i in infiles){
   aggregate_df <- rbind(aggregate_df, process_input(i))
 }
+aggregate_df$totalreads <- (aggregate_df$totalvalidreads + aggregate_df$totalinvalidreads)
 ```
 
-#TODO highcharter areaspline of NXX calcs
+```{r nxxplot, echo = F, results = F, message = F}
+highchart() |>
+  hc_chart(type = "area") |>
+  hc_add_series(data = density(aggregate_df$N50), name = "N50", type = "areaspline") |>
+  hc_add_series(data = density(aggregate_df$N75), name = "N75", type = "areaspline") |>
+  hc_add_series(data = density(aggregate_df$N90), name = "N90", color = "#d3805f", type = "areaspline") |>
+  hc_tooltip(enabled = FALSE) |>
+  hc_title(text = "NX Stats Across Samples") |>
+  hc_xAxis(title = list(text = "NX value"), min = 0) |>
+  hc_yAxis(title = list(text = "density")) |>
+  hc_exporting(enabled = T, filename = "NX.stats",
+    buttons = list(contextButton = list(menuItems = c("viewFullscreen", "separator", "downloadPNG", "downloadJPEG", "downloadPDF", "downloadSVG")))
+  )
+```
 
-#TODO static? areaspline of total valid percent across all samples
+```{r perc_valid_dist, echo = F, results = F, message = F}
+hs <- hist(
+  aggregate_df$totalvalidpercent,
+  breaks = min(aggregate_df$totalvalidpercent):max(aggregate_df$totalvalidpercent),
+  plot = F
+)
+hs$counts <- round(hs$counts / sum(hs$counts) * 100, 4)
+hs <- data.frame(val = hs$breaks[-1], freq = hs$counts)
 
-#TODO average molecules per contig plot WITH standard deviation per sample
-#TODO will require adding sd() calculation above
+hchart(hs, "areaspline", hcaes(x = val, y = freq), color = "#8484bd", name = "Percent Alignments", marker = list(enabled = FALSE)) |>
+  hc_title(text = "Percent of Alignments with Valid BX tags") |>
+  hc_xAxis(min = 0, max = 100, title = list(text = "percent alignment with valid BX tag")) |>
+  hc_yAxis(max = 100, title = list(text = "% samples")) |>
+  hc_tooltip(crosshairs = TRUE) |>
+  hc_exporting(enabled = T, filename = "percent.valid.dist",
+    buttons = list(contextButton = list(menuItems = c("viewFullscreen", "separator", "downloadPNG", "downloadJPEG", "downloadPDF", "downloadSVG")))
+  )
+```
+
+```{r perc_valid_per_sample, echo = F, results = F, message = F}
+hchart(aggregate_df, "xrange", pointPadding = 0.1, groupPadding = 0.0001,
+  hcaes(x = 0, x2 = totalreads, y = 0:(nrow(aggregate_df)-1), partialFill = totalvalidpercent/100), dataLabels = list(enabled = TRUE)) |> 
+  hc_xAxis(title = list(text = "Total Alignments")) |> 
+  hc_yAxis(title = FALSE, gridLineWidth = 0, categories = aggregate_df$sample) |>
+  hc_tooltip(enabled = FALSE) |>
+  hc_colors(color = "#95d8a7") |>
+  hc_title(text = "Percent Alignments with Valid BX Barcode") |>
+  hc_exporting(enabled = T, filename = "BX.valid.alignments",
+    buttons = list(contextButton = list(menuItems = c("viewFullscreen", "separator", "downloadPNG", "downloadJPEG", "downloadPDF", "downloadSVG")))
+  )
+```
+#TODO custom tooltip fixes: y = samplename, x = y_value
+```{r mol_per_contig, echo = F, results = F, message = F}
+# Create a scatter plot with horizontal error bars
+err_df <- data.frame(x = 0:(nrow(aggregate_df)-1), y = aggregate_df$averagemolpercont, low = aggregate_df$averagemolpercont - aggregate_df$semolpercont, high = aggregate_df$averagemolpercont + aggregate_df$semolpercont)
+highchart() |>
+  hc_chart(inverted=TRUE) |>
+  hc_add_series(data = aggregate_df, type = "scatter", name = "mean", hcaes(x = 0:(nrow(aggregate_df)-1), y = averagemolpercont), marker = list(radius = 8), color = "#c26d9b", zIndex = 1) |>
+  hc_add_series(data = err_df, type = "errorbar", name = "standard deviation", linkedTo = ":previous", zIndex = 0, stemColor = "#c26d9b", whiskerColor = "#c98fae") |>
+  hc_xAxis(title = FALSE, gridLineWidth = 0, categories = aggregate_df$sample) |>
+  hc_title(text = "Average Molecules Per Contig") |>
+  hc_caption(text = "Error bars show the standard error of the mean") |>
+  hc_tooltip(crosshairs = TRUE) |>
+  hc_exporting(enabled = T, filename = "avg.molecules.per.contig",
+    buttons = list(contextButton = list(menuItems = c("viewFullscreen", "separator", "downloadPNG", "downloadJPEG", "downloadPDF", "downloadSVG")))
+  )
+```
+
+#TODO average reads per molecule with SD
+```{r reads_per_, echo = F, results = F, message = F}
+err_df <- data.frame(x = 0:(nrow(aggregate_df)-1), y = aggregate_df$averagereadspermol, low = aggregate_df$averagereadspermol - aggregate_df$sereadspermol, high = aggregate_df$averagereadspermol + aggregate_df$sereadspermol)
+highchart() |>
+  hc_chart(inverted=TRUE) |>
+  hc_add_series(data = aggregate_df, type = "scatter", name = "mean", hcaes(x = 0:(nrow(aggregate_df)-1), y = averagereadspermol), marker = list(radius = 8), color = "#6d73c2", zIndex = 1) |>
+  hc_add_series(data = err_df, type = "errorbar", name = "standard deviation", linkedTo = ":previous", zIndex = 0, stemColor = "#8186c7", whiskerColor = "#8186c7") |>
+  hc_xAxis(title = FALSE, gridLineWidth = 0, categories = aggregate_df$sample) |>
+  hc_title(text = "Average Reads Per Molecule") |>
+  hc_caption(text = "Error bars show the standard error of the mean") |>
+  hc_tooltip(crosshairs = TRUE) |>
+  hc_exporting(enabled = T, filename = "avg.reads.per.molecule",
+    buttons = list(contextButton = list(menuItems = c("viewFullscreen", "separator", "downloadPNG", "downloadJPEG", "downloadPDF", "downloadSVG")))
+  )
+```
