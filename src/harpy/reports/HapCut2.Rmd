@@ -1,13 +1,16 @@
 ---
 title: "Haplotype Phasing Report"
-date: "`r format(Sys.time(), '%d %B, %Y')`"
+date: "`r format(Sys.time(), '%d %b, %Y at %H:%M')`"
 output:
   flexdashboard::flex_dashboard:
     theme: lumen
     orientation: rows
     vertical_layout: scroll
     horizontal_layout: fill
+    logo: https://raw.githubusercontent.com/pdimens/harpy/docs/static/logo_mini.png
     favicon: "https://raw.githubusercontent.com/pdimens/harpy/docs/static/favicon_dark.png"
+    navbar:
+      - { title : "Docs", icon: "fa-book", href: "https://pdimens.github.io/harpy/", align: right }
 ---
 
 ```{r echo= FALSE, message = FALSE, warning = FALSE}

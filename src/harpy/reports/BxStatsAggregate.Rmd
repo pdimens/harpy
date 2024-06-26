@@ -1,13 +1,16 @@
 ---
 title: "Harpy Alignment Barcode Summary"
-date: "`r format(Sys.time(), '%m-%d-%y %X')`"
+date: "`r format(Sys.time(), '%d %b, %Y at %H:%M')`"
 output:
   flexdashboard::flex_dashboard:
     theme: lumen
     orientation: rows
     vertical_layout: scroll
     horizontal_layout: fill
+    logo: https://raw.githubusercontent.com/pdimens/harpy/docs/static/logo_mini.png
     favicon: "https://raw.githubusercontent.com/pdimens/harpy/docs/static/favicon_dark.png"
+    navbar:
+      - { title : "Docs", icon: "fa-book", href: "https://pdimens.github.io/harpy/", align: right }
 ---
 
 ```{r imports, echo = F, results = F, message = F}
@@ -82,8 +85,8 @@ process_input <- function(infile){
 ```
 
 ```{r setup_df, echo = F, results = F, message = F}
-infiles <- snakemake@input[[1]]
-#infiles <- c("~/sample1.bxstats.gz", "~/sample2.bxstats.gz")
+#infiles <- snakemake@input[[1]]
+infiles <- c("~/sample1.bxstats.gz", "~/sample2.bxstats.gz")
 
 aggregate_df <- data.frame(
   sample = character(),
