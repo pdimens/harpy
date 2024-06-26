@@ -1,5 +1,5 @@
 ---
-title: "NAIBR Structural Variant Summary"
+title: "NAIBR Structural Variant Calling Summary"
 date: "`r format(Sys.time(), '%d %b, %Y at %H:%M')`"
 output:
   flexdashboard::flex_dashboard:
@@ -8,7 +8,7 @@ output:
     vertical_layout: scroll
     horizontal_layout: fill
     logo: https://raw.githubusercontent.com/pdimens/harpy/docs/static/logo_mini.png
-    favicon: "https://raw.githubusercontent.com/pdimens/harpy/docs/static/favicon_dark.png"
+    favicon: "https://raw.githubusercontent.com/pdimens/harpy/docs/static/favicon_report.png"
     navbar:
       - { title : "Docs", icon: "fa-book", href: "https://pdimens.github.io/harpy/", align: right }
 ---
