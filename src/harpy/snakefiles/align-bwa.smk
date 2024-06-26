@@ -320,6 +320,18 @@ rule samtools_reports:
         multiqc {params}/reports/data/samtools_stats {params}/reports/data/samtools_flagstat --no-version-check --force --quiet --title "General Alignment Statistics" --comment "This report aggregates samtools stats and samtools flagstats results for all alignments. Samtools stats ignores alignments marked as duplicates." --no-data-dir --filename {output} 2> /dev/null
         """
 
+rule bx_aggregate_report:
+    input:
+        collect(outdir + "/reports/data/bxstats/{sample}.bxstats.gz", sample = samplenames)
+    output:	
+        outdir + "/reports/barcodes.summary.html"
+    conda:
+        f"{envdir}/r.yaml"
+    message: 
+        "Summarizing all barcode information from alignments"
+    script:
+        "report/BxAlignStats.Rmd"
+
 rule log_workflow:
     default_target: True
     input:

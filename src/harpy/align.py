@@ -119,6 +119,7 @@ def bwa(inputs, output_dir, genome, depth_window, threads, extra_params, quality
     fetch_script(workflowdir, "assignMI.py")
     fetch_script(workflowdir, "bxStats.py")
     fetch_report(workflowdir, "AlignStats.Rmd")
+    fetch_report(workflowdir, "BxAlignStats.Rmd")
 
     with open(f"{workflowdir}/config.yaml", "w", encoding="utf-8") as config:
         config.write("workflow: align bwa\n")

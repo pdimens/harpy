@@ -47,7 +47,7 @@ nBX <- group_by(valids, contig) %>%
 
 avgBX <- round(mean(nBX$nBX), digits = 2)
 
-totuniqBX <- system(paste("zcat",snakemake@input[[1]]), "| tail -1")
+totuniqBX <- system2(paste("zcat",snakemake@input[[1]], "| tail -1"), stdout = TRUE)
 totuniqBX <- gsub("#total unique barcodes: ", "", totuniqBX) |> as.integer()
 
 tots <- tb %>% 

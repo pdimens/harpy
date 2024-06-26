@@ -80,7 +80,7 @@ for read in alnfile.fetch():
         #isize = min(bp, abs(read.template_length))
         # only count the bp of the first read of paired end reads
         #bp = bp if read.is_read1 else 0
-        bp = min(abs(read.template_length, bp), read.infer_query_length())
+        bp = min(abs(read.template_length), read.infer_query_length())
     elif read.is_supplementary:
         # if it's a supplementary alignment, just use the alignment length
         isize = bp
@@ -107,5 +107,5 @@ for read in alnfile.fetch():
 # print the last entry
 writestats(d, chrom_last)
 # write comment on the last line with the total number of unique BX barcodes
-outfile.write(f"#total unique barcodes: {len(all_bx)}")
+outfile.write(f"#total unique barcodes: {len(all_bx)}".encode())
 outfile.close()
