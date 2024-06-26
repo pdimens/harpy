@@ -115,7 +115,16 @@ This report aggregates the barcode-specific information from the alignments
 that were created using `harpy align`. Detailed information for any one sample
 can be found in that sample's individual report. The table below is an aggregation
 of data for each sample based on their `*.bxstats.gz` file.
+- `avg` refers to the average (arithmetic mean)
+- `SEM` refers to the Standard Error of the mean
+- `molecules` are the unique DNA molecules as inferred from linked-read barcodes
+- `barcodes` are the linked-read barcodes associated with DNA sequences and are synonymous with `bx`
+- `valid` refers to a proper haplotag barcode (e.g. `A01C34B92D51`)
+- `invalid` refers to an invalidated haplotag barcode, where there is a `00` in any of the `ACBD` positions (e.g. `A21C00B32D57`)
+- `NX` are the N-statistics (explained in more detail below)
 
+## Sampletable
+### Per-Sample Information
 ```{r}
 DT::datatable(
   aggregate_df,
@@ -133,6 +142,19 @@ plotheight <- 150 + (15 * n_samples)
 figheight <- 1 + (0.2 * n_samples)
 ```
 
+## NX plots
+### NX desc {.no-title}
+#### N50
+The **N50** is the length of the shortest molecule in the group of longest molecules that together
+ represent at least 50% of the total molecules by length. It can be thought of as a kind of median.
+#### N75
+The **N75** is the length of the shortest molecule in the group of longest molecules that together
+represent at least 75% of the total molecules by length.
+#### N90
+The **N90** is the length of the shortest molecule in the group of longest molecules that together
+represent at least 90% of the total molecules by length.
+
+### NX plots {.no-title}
 ```{r nxxplot, echo = F, results = F, message = F}
 highchart() |>
   hc_chart(type = "area") |>
@@ -148,6 +170,12 @@ highchart() |>
   )
 ```
 
+## Distribution of valid bx alignments
+### dist description {.no-title}
+
+
+## valid bx plot
+### distribution plot {.no-title}
 ```{r perc_valid_dist, echo = F, results = F, message = F}
 hs <- hist(
   aggregate_df$totalvalidpercent,
@@ -167,6 +195,12 @@ hchart(hs, "areaspline", hcaes(x = val, y = freq), color = "#8484bd", name = "Pe
   )
 ```
 
+## Per-Sample Metrics
+### Per-sample desc {.no-title}
+Below is a series of plots that shows metrics per-sample.
+
+## Per-sample plots
+### percent valid {.no-title}
 ```{r perc_valid_per_sample, echo = F, results = F, message = F, fig.height=figheight, out.width="100%"}
 hchart(aggregate_df, "xrange", pointPadding = 0.1, groupPadding = 0.0001,
   hcaes(x = 0, x2 = totalreads, y = 0:(n_samples-1), partialFill = totalvalidpercent/100), dataLabels = list(enabled = TRUE)) |> 
@@ -180,6 +214,8 @@ hchart(aggregate_df, "xrange", pointPadding = 0.1, groupPadding = 0.0001,
     buttons = list(contextButton = list(menuItems = c("downloadPNG", "downloadJPEG", "downloadPDF", "downloadSVG")))
   )
 ```
+
+### molecules per contig {.no-title}
 ```{r mol_per_contig, echo = F, results = F, message = F}
 # Create a scatter plot with horizontal error bars
 err_df <- data.frame(x = 0:n_samples-1), y = aggregate_df$averagemolpercont, low = aggregate_df$averagemolpercont - aggregate_df$semolpercont, high = aggregate_df$averagemolpercont + aggregate_df$semolpercont)
@@ -195,7 +231,7 @@ highchart() |>
     buttons = list(contextButton = list(menuItems = c("downloadPNG", "downloadJPEG", "downloadPDF", "downloadSVG")))
   )
 ```
-
+### reads per molecule{.no-title}
 ```{r reads_per_mol_sample, echo = F, results = F, message = F, fig.height=figheight, out.width="100%"}
 err_df <- data.frame(x = 0:(n_samples-1), y = aggregate_df$averagereadspermol, low = aggregate_df$averagereadspermol - aggregate_df$sereadspermol, high = aggregate_df$averagereadspermol + aggregate_df$sereadspermol)
 highchart() |>
