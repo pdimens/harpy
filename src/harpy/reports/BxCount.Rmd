@@ -224,7 +224,7 @@ hchart(inv_hist, "areaspline", hcaes(x = Bin, y = Count, group = Segment), stack
     formatter = JS("function () {return '<b>' + this.series.name + '</b><br><b>' + this.x + '% invalid</b><br/>Count: <b>' + this.y + '</b>';}") 
   ) |>
   hc_exporting(enabled = T, filename = "indel.quality",
-    buttons = list(contextButton = list(menuItems = c("viewFullscreen", "separator", "downloadPNG", "downloadJPEG", "downloadPDF", "downloadSVG")))
+    buttons = list(contextButton = list(menuItems = c("downloadPNG", "downloadJPEG", "downloadPDF", "downloadSVG")))
 )
 ```
 
@@ -274,7 +274,7 @@ hchart(tb, "bar", hcaes(x = Sample, y = Count, group = Barcode), stacking = "nor
   hc_yAxis(title = list(text = "count")) |>
   hc_tooltip(crosshairs = TRUE) |>
   hc_exporting(enabled = T, filename = "bxcount",
-    buttons = list(contextButton = list(menuItems = c("viewFullscreen", "separator", "downloadPNG", "downloadJPEG", "downloadPDF", "downloadSVG")))
+    buttons = list(contextButton = list(menuItems = c("downloadPNG", "downloadJPEG", "downloadPDF", "downloadSVG")))
   )
 ```
 ### proportional valid barcodes
@@ -287,7 +287,7 @@ hchart(tb, "bar", hcaes(x = Sample, y = Count, group = Barcode), stacking = "per
   hc_yAxis(title = list(text = "percent")) |>
   hc_tooltip(crosshairs = TRUE) |>
   hc_exporting(enabled = T, filename = "bxpercent",
-    buttons = list(contextButton = list(menuItems = c("viewFullscreen", "separator", "downloadPNG", "downloadJPEG", "downloadPDF", "downloadSVG")))
+    buttons = list(contextButton = list(menuItems = c("downloadPNG", "downloadJPEG", "downloadPDF", "downloadSVG")))
 )
 ```
 
@@ -306,6 +306,6 @@ highchart() |>
     formatter = JS("function () {return '<b>' + this.x + '</b><br><b>' + this.series.name + '</b><br/>Percent: <b>' + this.y + '</b>';}") 
   ) |>
   hc_exporting(enabled = T, filename = "invalid.segments",
-    buttons = list(contextButton = list(menuItems = c("viewFullscreen", "separator", "downloadPNG", "downloadJPEG", "downloadPDF", "downloadSVG")))
+    buttons = list(contextButton = list(menuItems = c("downloadPNG", "downloadJPEG", "downloadPDF", "downloadSVG")))
 )
 ```

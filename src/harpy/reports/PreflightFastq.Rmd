@@ -160,7 +160,7 @@ hchart(m) |>
     formatter = JS("function () {return '<b>' + this.series.xAxis.categories[this.point.x] + '</b><br>' + this.series.yAxis.categories[this.point.y] + '<br/>QC: <b>' + (this.point.value<1 ? 'FAIL' : 'PASS') + '</b>';}") 
   ) |>
   hc_exporting(enabled = T, filename = "fastq.preflight",
-    buttons = list(contextButton = list(menuItems = c("viewFullscreen", "separator", "downloadPNG", "downloadJPEG", "downloadPDF", "downloadSVG")))
+    buttons = list(contextButton = list(menuItems = c("downloadPNG", "downloadJPEG", "downloadPDF", "downloadSVG")))
   )
 ```
 

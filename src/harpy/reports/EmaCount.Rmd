@@ -132,7 +132,7 @@ hchart(tb, "bar", hcaes(x = Sample, y = Count, group = Barcode), stacking = "nor
   hc_caption(text = "As determined by ema count, given as counts") |>
   hc_tooltip(crosshairs = TRUE) |>
   hc_exporting(enabled = T, filename = "ema.bxcount",
-    buttons = list(contextButton = list(menuItems = c("viewFullscreen", "separator", "downloadPNG", "downloadJPEG", "downloadPDF", "downloadSVG")))
+    buttons = list(contextButton = list(menuItems = c("downloadPNG", "downloadJPEG", "downloadPDF", "downloadSVG")))
   )
 ```
 ### proportional valid barcodes
@@ -145,7 +145,7 @@ hchart(tb, "bar", hcaes(x = Sample, y = Count, group = Barcode), stacking = "per
   hc_caption(text = "As determined by ema count, given as percents") |>
   hc_tooltip(crosshairs = TRUE) |>
   hc_exporting(enabled = T, filename = "ema.bxpercent",
-    buttons = list(contextButton = list(menuItems = c("viewFullscreen", "separator", "downloadPNG", "downloadJPEG", "downloadPDF", "downloadSVG")))
+    buttons = list(contextButton = list(menuItems = c("downloadPNG", "downloadJPEG", "downloadPDF", "downloadSVG")))
 )
 ```
 

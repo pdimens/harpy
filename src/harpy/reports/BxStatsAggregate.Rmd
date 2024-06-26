@@ -107,6 +107,12 @@ for(i in infiles){
 aggregate_df$totalreads <- (aggregate_df$totalvalidreads + aggregate_df$totalinvalidreads)
 ```
 
+```{r sampleplot_height, echo=FALSE, message=FALSE, warning=FALSE}
+n_samples <- nrow(aggregate_df)
+plotheight <- 150 + (15 * n_samples)
+figheight <- 1 + (0.2 * n_samples)
+```
+
 ```{r nxxplot, echo = F, results = F, message = F}
 highchart() |>
   hc_chart(type = "area") |>
@@ -118,7 +124,7 @@ highchart() |>
   hc_xAxis(title = list(text = "NX value"), min = 0) |>
   hc_yAxis(title = list(text = "density")) |>
   hc_exporting(enabled = T, filename = "NX.stats",
-    buttons = list(contextButton = list(menuItems = c("viewFullscreen", "separator", "downloadPNG", "downloadJPEG", "downloadPDF", "downloadSVG")))
+    buttons = list(contextButton = list(menuItems = c("downloadPNG", "downloadJPEG", "downloadPDF", "downloadSVG")))
   )
 ```
 
@@ -133,55 +139,54 @@ hs <- data.frame(val = hs$breaks[-1], freq = hs$counts)
 
 hchart(hs, "areaspline", hcaes(x = val, y = freq), color = "#8484bd", name = "Percent Alignments", marker = list(enabled = FALSE)) |>
   hc_title(text = "Percent of Alignments with Valid BX tags") |>
-  hc_xAxis(min = 0, max = 100, title = list(text = "percent alignment with valid BX tag")) |>
+  hc_xAxis(min = 0, max = 100, title = list(text = "% alignment with valid BX tag")) |>
   hc_yAxis(max = 100, title = list(text = "% samples")) |>
   hc_tooltip(crosshairs = TRUE) |>
   hc_exporting(enabled = T, filename = "percent.valid.dist",
-    buttons = list(contextButton = list(menuItems = c("viewFullscreen", "separator", "downloadPNG", "downloadJPEG", "downloadPDF", "downloadSVG")))
+    buttons = list(contextButton = list(menuItems = c("downloadPNG", "downloadJPEG", "downloadPDF", "downloadSVG")))
   )
 ```
 
-```{r perc_valid_per_sample, echo = F, results = F, message = F}
+```{r perc_valid_per_sample, echo = F, results = F, message = F, fig.height=figheight, out.width="100%"}
 hchart(aggregate_df, "xrange", pointPadding = 0.1, groupPadding = 0.0001,
-  hcaes(x = 0, x2 = totalreads, y = 0:(nrow(aggregate_df)-1), partialFill = totalvalidpercent/100), dataLabels = list(enabled = TRUE)) |> 
+  hcaes(x = 0, x2 = totalreads, y = 0:(n_samples-1), partialFill = totalvalidpercent/100), dataLabels = list(enabled = TRUE)) |> 
   hc_xAxis(title = list(text = "Total Alignments")) |> 
   hc_yAxis(title = FALSE, gridLineWidth = 0, categories = aggregate_df$sample) |>
+  hc_caption(text = "Percentage represents the percent of alignments with a valid BX barcode") |>
   hc_tooltip(enabled = FALSE) |>
   hc_colors(color = "#95d8a7") |>
   hc_title(text = "Percent Alignments with Valid BX Barcode") |>
   hc_exporting(enabled = T, filename = "BX.valid.alignments",
-    buttons = list(contextButton = list(menuItems = c("viewFullscreen", "separator", "downloadPNG", "downloadJPEG", "downloadPDF", "downloadSVG")))
+    buttons = list(contextButton = list(menuItems = c("downloadPNG", "downloadJPEG", "downloadPDF", "downloadSVG")))
   )
 ```
-#TODO custom tooltip fixes: y = samplename, x = y_value
 ```{r mol_per_contig, echo = F, results = F, message = F}
 # Create a scatter plot with horizontal error bars
-err_df <- data.frame(x = 0:(nrow(aggregate_df)-1), y = aggregate_df$averagemolpercont, low = aggregate_df$averagemolpercont - aggregate_df$semolpercont, high = aggregate_df$averagemolpercont + aggregate_df$semolpercont)
+err_df <- data.frame(x = 0:n_samples-1), y = aggregate_df$averagemolpercont, low = aggregate_df$averagemolpercont - aggregate_df$semolpercont, high = aggregate_df$averagemolpercont + aggregate_df$semolpercont)
 highchart() |>
-  hc_chart(inverted=TRUE) |>
+  hc_chart(inverted=TRUE, pointPadding = 0.1, groupPadding = 0.0001) |>
   hc_add_series(data = aggregate_df, type = "scatter", name = "mean", hcaes(x = 0:(nrow(aggregate_df)-1), y = averagemolpercont), marker = list(radius = 8), color = "#c26d9b", zIndex = 1) |>
   hc_add_series(data = err_df, type = "errorbar", name = "standard deviation", linkedTo = ":previous", zIndex = 0, stemColor = "#c26d9b", whiskerColor = "#c98fae") |>
   hc_xAxis(title = FALSE, gridLineWidth = 0, categories = aggregate_df$sample) |>
   hc_title(text = "Average Molecules Per Contig") |>
   hc_caption(text = "Error bars show the standard error of the mean") |>
-  hc_tooltip(crosshairs = TRUE) |>
+  hc_tooltip(crosshairs = TRUE, pointFormat= '<b>{point.y}</b>') |>
   hc_exporting(enabled = T, filename = "avg.molecules.per.contig",
-    buttons = list(contextButton = list(menuItems = c("viewFullscreen", "separator", "downloadPNG", "downloadJPEG", "downloadPDF", "downloadSVG")))
+    buttons = list(contextButton = list(menuItems = c("downloadPNG", "downloadJPEG", "downloadPDF", "downloadSVG")))
   )
 ```
 
-#TODO average reads per molecule with SD
-```{r reads_per_, echo = F, results = F, message = F}
-err_df <- data.frame(x = 0:(nrow(aggregate_df)-1), y = aggregate_df$averagereadspermol, low = aggregate_df$averagereadspermol - aggregate_df$sereadspermol, high = aggregate_df$averagereadspermol + aggregate_df$sereadspermol)
+```{r reads_per_mol_sample, echo = F, results = F, message = F, fig.height=figheight, out.width="100%"}
+err_df <- data.frame(x = 0:(n_samples-1), y = aggregate_df$averagereadspermol, low = aggregate_df$averagereadspermol - aggregate_df$sereadspermol, high = aggregate_df$averagereadspermol + aggregate_df$sereadspermol)
 highchart() |>
-  hc_chart(inverted=TRUE) |>
+  hc_chart(inverted=TRUE, pointPadding = 0.0001, groupPadding = 0.0001) |>
   hc_add_series(data = aggregate_df, type = "scatter", name = "mean", hcaes(x = 0:(nrow(aggregate_df)-1), y = averagereadspermol), marker = list(radius = 8), color = "#6d73c2", zIndex = 1) |>
   hc_add_series(data = err_df, type = "errorbar", name = "standard deviation", linkedTo = ":previous", zIndex = 0, stemColor = "#8186c7", whiskerColor = "#8186c7") |>
   hc_xAxis(title = FALSE, gridLineWidth = 0, categories = aggregate_df$sample) |>
   hc_title(text = "Average Reads Per Molecule") |>
   hc_caption(text = "Error bars show the standard error of the mean") |>
-  hc_tooltip(crosshairs = TRUE) |>
+  hc_tooltip(crosshairs = TRUE, pointFormat= '<b>{point.y}</b>') |>
   hc_exporting(enabled = T, filename = "avg.reads.per.molecule",
-    buttons = list(contextButton = list(menuItems = c("viewFullscreen", "separator", "downloadPNG", "downloadJPEG", "downloadPDF", "downloadSVG")))
+    buttons = list(contextButton = list(menuItems = c("downloadPNG", "downloadJPEG", "downloadPDF", "downloadSVG")))
   )
 ```

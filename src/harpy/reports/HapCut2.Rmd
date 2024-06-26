@@ -145,7 +145,7 @@ hchart(hs, "areaspline", hcaes(x = val, y = freq), color = "#7eb495", name = "co
   hc_yAxis(title = list(text = "count")) |>
   hc_tooltip(crosshairs = TRUE) |>
   hc_exporting(enabled = T, filename = "haplotype.hist",
-    buttons = list(contextButton = list(menuItems = c("viewFullscreen", "separator", "downloadPNG", "downloadJPEG", "downloadPDF", "downloadSVG")))
+    buttons = list(contextButton = list(menuItems = c("downloadPNG", "downloadJPEG", "downloadPDF", "downloadSVG")))
   )
 ```
 

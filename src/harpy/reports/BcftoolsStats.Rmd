@@ -157,7 +157,7 @@ if(do_qual){
       formatter = JS("function () {return '<b>Quality ' + this.x + '</b><br>Count: <b>' + this.y + '</b>';}") 
     ) |>
     hc_exporting(enabled = T, filename = "snp.quality",
-      buttons = list(contextButton = list(menuItems = c("viewFullscreen", "separator", "downloadPNG", "downloadJPEG", "downloadPDF", "downloadSVG")))
+      buttons = list(contextButton = list(menuItems = c("downloadPNG", "downloadJPEG", "downloadPDF", "downloadSVG")))
     )
 
 } else {
@@ -181,7 +181,7 @@ if(do_qual){
       formatter = JS("function () {return '<b>Quality ' + this.x + '</b><br>Count: <b>' + this.y + '</b>';}") 
     ) |>
     hc_exporting(enabled = T, filename = "indel.quality",
-      buttons = list(contextButton = list(menuItems = c("viewFullscreen", "separator", "downloadPNG", "downloadJPEG", "downloadPDF", "downloadSVG")))
+      buttons = list(contextButton = list(menuItems = c("downloadPNG", "downloadJPEG", "downloadPDF", "downloadSVG")))
     )
 
 } else {
@@ -235,7 +235,7 @@ if(sum(.dpL) == 0){
       formatter = JS("function () {return '<b>depth: ' + this.x + '</b><br>Percent: <b>' + this.y + '</b>';}") 
     ) |>
     hc_exporting(enabled = T, filename = "genotype.depth",
-      buttons = list(contextButton = list(menuItems = c("viewFullscreen", "separator", "downloadPNG", "downloadJPEG", "downloadPDF", "downloadSVG")))
+      buttons = list(contextButton = list(menuItems = c("downloadPNG", "downloadJPEG", "downloadPDF", "downloadSVG")))
   )
 }
 ```
@@ -287,7 +287,7 @@ if(sum(.iddL) == 0){
       formatter = JS("function () {return '<b>' + this.series.name + '</b><br>Length: <b>' + Math.abs(this.x) + '</b><br/>Count: <b>' + this.y + '</b>';}") 
 ) |>
     hc_exporting(enabled = T, filename = "indel.distribution",
-      buttons = list(contextButton = list(menuItems = c("viewFullscreen", "separator", "downloadPNG", "downloadJPEG", "downloadPDF", "downloadSVG")))
+      buttons = list(contextButton = list(menuItems = c("downloadPNG", "downloadJPEG", "downloadPDF", "downloadSVG")))
     )
 }
 ```
@@ -324,7 +324,7 @@ highchart() |>
     pointFormat= '<b>{point.category}</b><br>Count: <b>{point.y:.0f}</b>'
   ) |>
   hc_exporting(enabled = T, filename = "samples.variantstats",
-    buttons = list(contextButton = list(menuItems = c("viewFullscreen", "separator", "downloadPNG", "downloadJPEG", "downloadPDF", "downloadSVG")))
+    buttons = list(contextButton = list(menuItems = c("downloadPNG", "downloadJPEG", "downloadPDF", "downloadSVG")))
   )
 ```
 
