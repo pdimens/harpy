@@ -6,7 +6,7 @@ def generate_conda_deps():
     """Create the YAML files of the workflow conda dependencies"""
     condachannels = ["bioconda","conda-forge","defaults"]
     environ = {
-        "qc" : ["bioconda::falco", "bioconda::fastp", "bioconda::multiqc", "bioconda::pysam=0.22"],
+        "qc" : ["bioconda::falco", "bioconda::fastp", "bioconda::multiqc=1.22", "bioconda::pysam=0.22"],
         "align": ["bioconda::bwa", "bioconda::ema","bioconda::strobealign", "conda-forge::icu","conda-forge::libzlib", "bioconda::samtools=1.20", "bioconda::seqtk", "bioconda::tabix", "conda-forge::xz"],
         "snp": ["bioconda::bcftools=1.20", "bioconda::freebayes=1.3.6"],
         "sv": ["bioconda::leviathan", "bioconda::naibr-plus"],
