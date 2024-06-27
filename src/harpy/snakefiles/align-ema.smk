@@ -115,7 +115,7 @@ rule genome_bwa_index:
     shell: 
         "bwa index {input} 2> {log}"
 
-rule beadtag_count:
+rule ema_count:
     input:
         get_fq
     output: 
@@ -136,7 +136,7 @@ rule beadtag_count:
             ema count {params.beadtech} -o {params.prefix} 2> {output.logs}
         """
 
-rule preprocess:
+rule ema_preprocess:
     input: 
         reads = get_fq,
         emacounts  = outdir + "/ema_count/{sample}.ema-ncnt"
@@ -162,7 +162,7 @@ rule preprocess:
             cat - > {log}
         """
 
-rule align:
+rule ema_align:
     input:
         readbin    = collect(outdir + "/ema_preproc/{{sample}}/ema-bin-{bin}", bin = binrange),
         genome 	   = f"Genome/{bn}",
@@ -195,7 +195,7 @@ rule align:
         rm -rf {params.tmpdir}
         """
 
-rule align_nobarcode:
+rule bwa_align:
     input:
         reads      = outdir + "/ema_preproc/{sample}/ema-nobc",
         genome 	   = f"Genome/{bn}",
@@ -221,7 +221,7 @@ rule align_nobarcode:
             samtools view -h -F 4 -q {params.quality} > {output}
         """
 
-rule mark_duplicates:
+rule bwa_markdups:
     input:
         sam    = outdir + "/bwa_align/{sample}.bwa.nobc.sam",
         genome = f"Genome/{bn}",
@@ -249,7 +249,7 @@ rule mark_duplicates:
         rm -rf {params.tmpdir}
         """
 
-rule markdups_index:
+rule bwa_markdups_index:
     input:
         outdir + "/bwa_align/{sample}.markdup.nobc.bam"
     output:
@@ -285,7 +285,7 @@ rule concatenate_alignments:
             samtools sort -@ 1 -O bam --reference {input.genome} -m {resources.mem_mb}M --write-index -o {output.bam}##idx##{output.bai} -
         """
 
-rule alignment_coverage:
+rule coverage:
     input: 
         bam = outdir + "/{sample}.bam",
         bai = outdir + "/{sample}.bam.bai"
