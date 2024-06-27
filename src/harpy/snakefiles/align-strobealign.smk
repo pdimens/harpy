@@ -114,104 +114,57 @@ rule align:
         genome   = f"Genome/{bn}",
         genome_index   = f"Genome/{bn}.r{readlen}.sti" if not autolen else []
     output:  
-        pipe(outdir + "/samples/{sample}/{sample}.raw.sam")
+        temp(outdir + "/samples/{sample}/{sample}.strobe.sam")
     log:
         outdir + "/logs/{sample}.strobealign.log"
     params: 
         samps = lambda wc: d[wc.get("sample")],
         readlen = "" if autolen else f"--use-index -r {readlen}",
+        quality = config["quality"],
         extra = extra
     benchmark:
         ".Benchmark/Mapping/strobealign/align.{sample}.txt"
     threads:
-        min(10, workflow.cores) - 2
+        min(10, workflow.cores)
     conda:
         f"{envdir}/align.yaml"
     message:
         "Aligning sequences: {wildcards.sample}"
     shell:
-        "strobealign {params.readlen} -t {threads} -U -C --rg-id={wildcards.sample} --rg=SM:{wildcards.sample} {params.extra} {input.genome} {input.fastq} > {output} 2> {log}"
- 
-rule quality_filter:
-    input:
-        outdir + "/samples/{sample}/{sample}.raw.sam"
-    output:
-        temp(outdir + "/samples/{sample}/{sample}.mm2.sam")
-    params: 
-        quality = config["quality"]
-    container:
-        None
-    message:
-        "Quality filtering alignments: {wildcards.sample}"
-    shell:
-        "samtools view -h -F 4 -q {params.quality} {input} > {output}"
-
-rule collate:
-    input:
-        outdir + "/samples/{sample}/{sample}.mm2.sam"
-    output:
-        temp(outdir + "/samples/{sample}/{sample}.collate.bam")
-    container:
-        None
-    message:
-        "Collating alignments: {wildcards.sample}"
-    shell:
-        "samtools collate -o {output} {input} 2> /dev/null"
-
-rule fix_mates:
-    input:
-        outdir + "/samples/{sample}/{sample}.collate.bam"
-    output:
-        temp(outdir + "/samples/{sample}/{sample}.fixmate.bam")
-    container:
-        None
-    message:
-        "Fixing mates in alignments: {wildcards.sample}"
-    shell:
-        "samtools fixmate -m {input} {output} 2> /dev/null"
-
-rule sort_alignments:
-    input:
-        sam           = outdir + "/samples/{sample}/{sample}.fixmate.bam",
-        genome 		  = f"Genome/{bn}",
-        genome_samidx = f"Genome/{bn}.fai"
-    output:
-        bam = temp(outdir + "/samples/{sample}/{sample}.sort.bam"),
-        bai = temp(outdir + "/samples/{sample}/{sample}.sort.bam.bai")
-    log:
-        outdir + "/logs/{sample}.strobealign.sort.log"
-    params: 
-        quality = config["quality"],
-        tmpdir = lambda wc: outdir + "/." + d[wc.sample]
-    resources:
-        mem_mb = 2000
-    container:
-        None
-    message:
-        "Sorting alignments: {wildcards.sample}"
-    shell:
         """
-        samtools sort -T {params.tmpdir} --reference {input.genome} -O bam -l 0 -m {resources.mem_mb}M --write-index -o {output.bam}##idx##{output.bai} {input.sam} 2> {log}
-        rm -rf {params.tmpdir}
+        strobealign {params.readlen} -t {threads} -U -C --rg-id={wildcards.sample} --rg=SM:{wildcards.sample} {params.extra} {input.genome} {input.fastq} 2> {log} |
+            samtools view -h -F 4 -q {params.quality} > {output} 
         """
 
-rule mark_duplicates:
+rule markduplicates:
     input:
-        outdir + "/samples/{sample}/{sample}.sort.bam"
+        sam    = outdir + "/samples/{sample}/{sample}.strobe.sam",
+        genome = f"Genome/{bn}",
+        faidx  = f"Genome/{bn}.fai"
     output:
         temp(outdir + "/samples/{sample}/{sample}.markdup.bam")
     log:
         outdir + "/logs/{sample}.markdup.log"
+    params: 
+        tmpdir = lambda wc: outdir + "/." + d[wc.sample]
+    resources:
+        mem_mb = 2000
     threads:
         2
     container:
         None
     message:
-        "Marking duplicates in alignments alignment: {wildcards.sample}"
+        "Marking duplicates: {wildcards.sample}"
     shell:
-        "samtools markdup -@ {threads} -S --barcode-tag BX -f {log} {input} {output}  2> /dev/null"
+        """
+        samtools collate -O -u {input.sam} |
+            samtools fixmate -m -u - - |
+            samtools sort -T {params.tmpdir} -u --reference {input.genome} -l 0 -m {resources.mem_mb}M - |
+            samtools markdup -@ {threads} -S --barcode-tag BX -f {log} - {output}
+        rm -rf {params.tmpdir}
+        """
 
-rule index_markdups:
+rule markdups_index:
     input:
         outdir + "/samples/{sample}/{sample}.markdup.bam"
     output:
@@ -239,7 +192,7 @@ rule assign_molecules:
     script:
         "scripts/assignMI.py"
 
-rule alignment_bxstats:
+rule bxstats:
     input:
         bam = outdir + "/{sample}.bam",
         bai = outdir + "/{sample}.bam.bai"
@@ -254,7 +207,7 @@ rule alignment_bxstats:
     script:
         "scripts/bxStats.py"
 
-rule alignment_coverage:
+rule coverage:
     input: 
         bam = outdir + "/{sample}.bam",
         bai = outdir + "/{sample}.bam.bai"
@@ -269,7 +222,7 @@ rule alignment_coverage:
     shell:
         "samtools depth -a {input.bam} | depthWindows.py {params} | gzip > {output}"
 
-rule alignment_report:
+rule report_persample:
     input:
         outdir + "/reports/data/bxstats/{sample}.bxstats.gz",
         outdir + "/reports/data/coverage/{sample}.cov.gz"
@@ -284,7 +237,7 @@ rule alignment_report:
     script:
         "report/AlignStats.Rmd"
 
-rule general_alignment_stats:
+rule stats:
     input:
         bam      = outdir + "/{sample}.bam",
         bai      = outdir + "/{sample}.bam.bai"
@@ -301,7 +254,7 @@ rule general_alignment_stats:
         samtools flagstat {input.bam} > {output.flagstat}
         """
 
-rule samtools_reports:
+rule report_samtools:
     input: 
         collect(outdir + "/reports/data/samtools_{ext}/{sample}.{ext}", sample = samplenames, ext = ["stats", "flagstat"])
     output: 
@@ -317,7 +270,7 @@ rule samtools_reports:
         multiqc {params}/reports/data/samtools_stats {params}/reports/data/samtools_flagstat --no-version-check --force --quiet --title "Basic Alignment Statistics" --comment "This report aggregates samtools stats and samtools flagstats results for all alignments. Samtools stats ignores alignments marked as duplicates." --no-data-dir --filename {output} 2> /dev/null
         """
 
-rule bx_report:
+rule report_bx:
     input:
         collect(outdir + "/reports/data/bxstats/{sample}.bxstats.gz", sample = samplenames)
     output:	
