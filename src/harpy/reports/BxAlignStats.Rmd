@@ -85,8 +85,8 @@ process_input <- function(infile){
 ```
 
 ```{r setup_df, echo = F, results = F, message = F}
-#infiles <- snakemake@input[[1]]
-infiles <- c("~/sample1.bxstats.gz", "~/sample2.bxstats.gz")
+infiles <- snakemake@input[[1]]
+#infiles <- c("~/sample1.bxstats.gz", "~/sample2.bxstats.gz")
 
 aggregate_df <- data.frame(
   sample = character(),
