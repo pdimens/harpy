@@ -57,7 +57,7 @@ d = dict(zip(samplenames, samplenames))
 def get_fq(wildcards):
     # returns a list of fastq files for read 1 based on *wildcards.sample* e.g.
     r = re.compile(fr".*/({re.escape(wildcards.sample)}){bn_r}", flags = re.IGNORECASE)
-    return list(filter(r.match, fqlist))[:2]
+    return sorted(list(filter(r.match, fqlist))[:2])
 
 rule genome_setup:
     input:
