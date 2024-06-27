@@ -261,15 +261,16 @@ rule report_samtools:
     output: 
         outdir + "/reports/bwa.stats.html"
     params:
-        outdir
+        outdir = f"{outdir}/reports/data/samtools_stats {outdir}/reports/data/samtools_flagstat",
+        options = "--no-version-check --force --quiet --no-data-dir",
+        title = "--title \"Basic Alignment Statistics\"",
+        comment = "--comment \"This report aggregates samtools stats and samtools flagstats results for all alignments. Samtools stats ignores alignments marked as duplicates.\""
     conda:
         f"{envdir}/qc.yaml"
     message:
         "Summarizing samtools stats and flagstat"
     shell:
-        """
-        multiqc {params}/reports/data/samtools_stats {params}/reports/data/samtools_flagstat --no-version-check --force --quiet --title "General Alignment Statistics" --comment "This report aggregates samtools stats and samtools flagstats results for all alignments. Samtools stats ignores alignments marked as duplicates." --no-data-dir --filename {output} 2> /dev/null
-        """
+        "multiqc {params} --filename {output} 2> /dev/null"
 
 rule report_bx:
     input:
