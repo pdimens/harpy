@@ -35,6 +35,10 @@ infile <- snakemake@input[[1]]
 bamfile <- gsub(".bxstats.gz", ".bam", infile)
 samplename <- gsub(".bxstats.gz", "", basename(infile))
 tb <- read.table(infile, header = T, sep = "\t") %>% select(-start, -end)
+if(nrow(tb) == 0){
+  print(paste("Input data file",infle, "is empty"))
+  knittr::knittr_exit()
+}
 tb$valid <- tb$molecule
 tb[tb$valid != "invalidBX", "valid"] <- "validBX"
 tb$valid <- gsub("BX", " BX", tb$valid)
@@ -308,6 +312,10 @@ knitr::kable(
 covfile <- snakemake@input[[2]]
 #covfile <- "~/test.cov.gz"
 tb <- read.table(covfile, header = F)
+if(nrow(tb) == 0){
+  print(paste("Input data file",covfile, "is empty"))
+  knittr::knittr_exit()
+}
 colnames(tb) <- c("contig", "position", "depth")
 q99 <- quantile(tb$depth, 0.99)
 Mode <- function(x) {
