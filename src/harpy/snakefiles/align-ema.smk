@@ -119,12 +119,12 @@ rule beadtag_count:
     input:
         get_fq
     output: 
-        counts = temp(outdir + "/bxcount/{sample}.ema-ncnt"),
+        counts = temp(outdir + "/ema_count/{sample}.ema-ncnt"),
         logs   = temp(outdir + "/logs/count/{sample}.count")
     params:
-        prefix = lambda wc: outdir + "/bxcount/" + wc.get("sample"),
+        prefix = lambda wc: outdir + "/ema_count/" + wc.get("sample"),
         beadtech = "-p" if platform == "haplotag" else f"-w {whitelist}",
-        logdir = f"{outdir}/logs/count/"
+        logdir = f"{outdir}/logs/ema_count/"
     message:
         "Counting barcode frequency: {wildcards.sample}"
     conda:
@@ -139,14 +139,14 @@ rule beadtag_count:
 rule preprocess:
     input: 
         reads = get_fq,
-        emacounts  = outdir + "/bxcount/{sample}.ema-ncnt"
+        emacounts  = outdir + "/ema_count/{sample}.ema-ncnt"
     output: 
-        bins       = temp(collect(outdir + "/preproc/{{sample}}/ema-bin-{bin}", bin = binrange)),
-        unbarcoded = temp(outdir + "/preproc/{sample}/ema-nobc")
+        bins       = temp(collect(outdir + "/ema_preproc/{{sample}}/ema-bin-{bin}", bin = binrange)),
+        unbarcoded = temp(outdir + "/ema_preproc/{sample}/ema-nobc")
     log:
-        outdir + "/logs/preproc/{sample}.preproc.log"
+        outdir + "/logs/ema_preproc/{sample}.preproc.log"
     params:
-        outdir = lambda wc: outdir + "/preproc/" + wc.get("sample"),
+        outdir = lambda wc: outdir + "/ema_preproc/" + wc.get("sample"),
         bxtype = "-p" if platform == "haplotag" else f"-w {whitelist}",
         bins   = nbins
     threads:
@@ -164,18 +164,18 @@ rule preprocess:
 
 rule align:
     input:
-        readbin    = collect(outdir + "/preproc/{{sample}}/ema-bin-{bin}", bin = binrange),
+        readbin    = collect(outdir + "/ema_preproc/{{sample}}/ema-bin-{bin}", bin = binrange),
         genome 	   = f"Genome/{bn}",
         geno_faidx = f"Genome/{bn_idx}",
         geno_idx   = multiext(f"Genome/{bn}", ".ann", ".bwt", ".pac", ".sa", ".amb")
     output:
-        aln = temp(outdir + "/align/{sample}.bc.bam"),
-        idx = temp(outdir + "/align/{sample}.bc.bam.bai")
+        aln = temp(outdir + "/ema_align/{sample}.bc.bam"),
+        idx = temp(outdir + "/ema_align/{sample}.bc.bam.bai")
     log:
-        ema = outdir + "/logs/{sample}.ema.align.log",
-        sort = outdir + "/logs/{sample}.ema.sort.log",
+        ema  = outdir + "/logs/align/{sample}.ema.align.log",
+        sort = outdir + "/logs/align/{sample}.ema.sort.log",
     resources:
-        mem_mb = 2000
+        mem_mb = 500
     params: 
         bxtype = f"-p {platform}",
         tmpdir = lambda wc: outdir + "/." + d[wc.sample],
@@ -197,14 +197,14 @@ rule align:
 
 rule align_nobarcode:
     input:
-        reads      = outdir + "/preproc/{sample}/ema-nobc",
+        reads      = outdir + "/ema_preproc/{sample}/ema-nobc",
         genome 	   = f"Genome/{bn}",
         geno_faidx = f"Genome/{bn_idx}",
         geno_idx   = multiext(f"Genome/{bn}", ".ann", ".bwt", ".pac", ".sa", ".amb")
     output: 
-        temp(outdir + "/align/{sample}.bwa.nobc.sam")
+        temp(outdir + "/bwa_align/{sample}.bwa.nobc.sam")
     log:
-        outdir + "/logs/{sample}.bwa.align.log"
+        outdir + "/logs/align/{sample}.bwa.align.log"
     params:
         quality = config["quality"]
     benchmark:
@@ -223,17 +223,17 @@ rule align_nobarcode:
 
 rule mark_duplicates:
     input:
-        sam    = outdir + "/align/{sample}.bwa.nobc.sam",
+        sam    = outdir + "/bwa_align/{sample}.bwa.nobc.sam",
         genome = f"Genome/{bn}",
         faidx  = f"Genome/{bn_idx}"
     output:
-        temp(outdir + "/align/{sample}.markdup.nobc.bam")
+        temp(outdir + "/bwa_align/{sample}.markdup.nobc.bam")
     log:
-        outdir + "/logs/{sample}.markdup.log"
+        outdir + "/logs/align/{sample}.markdup.log"
     params: 
         tmpdir = lambda wc: outdir + "/." + d[wc.sample]
     resources:
-        mem_mb = 2000
+        mem_mb = 500
     container:
         None
     threads:
@@ -251,9 +251,9 @@ rule mark_duplicates:
 
 rule markdups_index:
     input:
-        outdir + "/align/{sample}.markdup.nobc.bam"
+        outdir + "/bwa_align/{sample}.markdup.nobc.bam"
     output:
-        temp(outdir + "/align/{sample}.markdup.nobc.bam.bai")
+        temp(outdir + "/bwa_align/{sample}.markdup.nobc.bam.bai")
     container:
         None
     message:
@@ -263,10 +263,10 @@ rule markdups_index:
 
 rule concatenate_alignments:
     input:
-        aln_bc   = outdir + "/align/{sample}.bc.bam",
-        idx_bc   = outdir + "/align/{sample}.bc.bam.bai",
-        aln_nobc = outdir + "/align/{sample}.markdup.nobc.bam",
-        idx_nobc = outdir + "/align/{sample}.markdup.nobc.bam.bai",
+        aln_bc   = outdir + "/ema_align/{sample}.bc.bam",
+        idx_bc   = outdir + "/ema_align/{sample}.bc.bam.bai",
+        aln_nobc = outdir + "/bwa_align/{sample}.markdup.nobc.bam",
+        idx_nobc = outdir + "/bwa_align/{sample}.markdup.nobc.bam.bai",
         genome   = f"Genome/{bn}"
     output: 
         bam = outdir + "/{sample}.bam",
@@ -274,7 +274,7 @@ rule concatenate_alignments:
     threads:
         2
     resources:
-        mem_mb = 2000
+        mem_mb = 500
     container:
         None
     message:
