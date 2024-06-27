@@ -320,7 +320,7 @@ rule samtools_reports:
         multiqc {params}/reports/data/samtools_stats {params}/reports/data/samtools_flagstat --no-version-check --force --quiet --title "General Alignment Statistics" --comment "This report aggregates samtools stats and samtools flagstats results for all alignments. Samtools stats ignores alignments marked as duplicates." --no-data-dir --filename {output} 2> /dev/null
         """
 
-rule bx_aggregate_report:
+rule bx_report:
     input:
         collect(outdir + "/reports/data/bxstats/{sample}.bxstats.gz", sample = samplenames)
     output:	
@@ -337,7 +337,8 @@ rule log_workflow:
     input:
         bams = collect(outdir + "/{sample}.{ext}", sample = samplenames, ext = ["bam", "bam.bai"]),
         reports = collect(outdir + "/reports/{sample}.html", sample = samplenames) if not skipreports else [],
-        agg_report = outdir + "/reports/bwa.stats.html" if not skipreports else []
+        agg_report = outdir + "/reports/bwa.stats.html" if not skipreports else [],
+        bx_report = outdir + "/reports/barcodes.summary.html" if not skipreports else []
     params:
         quality = config["alignment_quality"],
         extra   = extra

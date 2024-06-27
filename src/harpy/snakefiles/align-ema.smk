@@ -450,7 +450,7 @@ rule general_stats:
         samtools flagstat {input.bam} > {output.flagstat}
         """
 
-rule collate_samtools_stats:
+rule samtools_reports:
     input: 
         collect(outdir + "/reports/data/samtools_{ext}/{sample}.{ext}", sample = samplenames, ext = ["stats", "flagstat"]),
     output: 
@@ -466,13 +466,26 @@ rule collate_samtools_stats:
         multiqc {outdir}/reports/data/samtools_stats {outdir}/reports/data/samtools_flagstat --no-version-check --force --quiet --title "General Alignment Statistics" --comment "This report aggregates samtools stats and samtools flagstats results for all alignments. Samtools stats ignores alignments marked as duplicates." --no-data-dir --filename {output} 2> /dev/null
         """
 
+rule bx_report:
+    input:
+        collect(outdir + "/reports/data/bxstats/{sample}.bxstats.gz", sample = samplenames)
+    output:	
+        outdir + "/reports/barcodes.summary.html"
+    conda:
+        f"{envdir}/r.yaml"
+    message: 
+        "Summarizing all barcode information from alignments"
+    script:
+        "report/BxAlignStats.Rmd"
+
 rule log_workflow:
     default_target: True
     input:
         bams = collect(outdir + "/{sample}.{ext}", sample = samplenames, ext = [ "bam", "bam.bai"] ),
         cov_report = collect(outdir + "/reports/{sample}.html", sample = samplenames) if not skipreports else [],
         bx_counts = f"{outdir}/reports/reads.bxcounts.html" if not skipreports else [],
-        agg_report = f"{outdir}/reports/ema.stats.html" if not skipreports else []
+        agg_report = f"{outdir}/reports/ema.stats.html" if not skipreports else [],
+        bx_report = outdir + "/reports/barcodes.summary.html" if not skipreports else []
     params:
         beadtech = "-p" if platform == "haplotag" else f"-w {whitelist}"
     message:

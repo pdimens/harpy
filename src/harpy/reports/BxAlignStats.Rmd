@@ -51,9 +51,9 @@ process_input <- function(infile){
     
   avg_mol <- round(mean(nMolpercont$nMol), digits = 2)
   sem_mol_per_cont <- round(std_error(nMolpercont$nMol), digits = 3)
-  tot_uniq_bx <- system2(paste("zcat",infile, "| tail -1"), stdout = TRUE)
-  tot_uniq_bx <- gsub("#total unique barcodes: ", "", tot_uniq_bx) |> as.integer()
 
+  tot_uniq_bx <- read.table(infile, header = F, sep = "\n", as.is = T, skip = nrow(tb) + 1, comment.char = "+")
+  tot_uniq_bx <- gsub("#total unique barcodes: ", "", tot_uniq_bx$V1[1]) |> as.integer()
   tot_mol <- sum(tb$valid == "valid BX")
   tot_valid_reads <- sum(tb[tb$valid == "valid BX", "reads"])
   avg_reads_per_mol <- round(tot_valid_reads/tot_mol,1)

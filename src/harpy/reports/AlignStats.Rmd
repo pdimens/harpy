@@ -46,8 +46,7 @@ nBX <- group_by(valids, contig) %>%
   summarize(nBX = length(molecule))
 
 avgBX <- round(mean(nBX$nBX), digits = 2)
-
-totuniqBX <- system2(paste("zcat",snakemake@input[[1]], "| tail -1"), stdout = TRUE)
+totuniqBX <- read.table(infile, header = F, sep = "\n", as.is = T, skip = nrow(tb) + 1, comment.char = "+")
 totuniqBX <- gsub("#total unique barcodes: ", "", totuniqBX) |> as.integer()
 
 tots <- tb %>% 
