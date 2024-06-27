@@ -209,8 +209,8 @@ def ema(inputs, output_dir, platform, whitelist, genome, depth_window, threads, 
     validate_input_by_ext(genome, "--genome", [".fasta", ".fa", ".fasta.gz", ".fa.gz"])
     fetch_rule(workflowdir, "align-ema.smk")
     fetch_script(workflowdir, "bxStats.py")
-    for i in ["EmaCount", "AlignStats"]:
-        fetch_report(workflowdir, f"{i}.Rmd")
+    fetch_report(workflowdir, "AlignStats.Rmd")
+    fetch_report(workflowdir, "BxAlignStats.Rmd")
 
     with open(f"{workflowdir}/config.yaml", "w", encoding="utf-8") as config:
         config.write("workflow: align ema\n")
@@ -292,6 +292,7 @@ def strobe(inputs, output_dir, genome, read_length, depth_window, threads, extra
     fetch_script(workflowdir, "assignMI.py")
     fetch_script(workflowdir, "bxStats.py")
     fetch_report(workflowdir, "AlignStats.Rmd")
+    fetch_report(workflowdir, "BxAlignStats.Rmd")
 
     with open(f"{workflowdir}/config.yaml", "w", encoding="utf-8") as config:
         config.write("workflow: align strobe\n")
