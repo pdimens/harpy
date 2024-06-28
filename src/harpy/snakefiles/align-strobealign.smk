@@ -185,12 +185,12 @@ rule assign_molecules:
         bai = outdir + "/{sample}.bam.bai"
     params:
         molecule_distance
-    conda:
-        f"{envdir}/qc.yaml"
+    container:
+        None
     message:
         "Assigning barcodes to molecules: {wildcards.sample}"
-    script:
-        "scripts/assignMI.py"
+    shell:
+        "assignMI.py -o {output.bam} -c {params} {input.bam}"
 
 rule bxstats:
     input:
@@ -200,12 +200,12 @@ rule bxstats:
         outdir + "/reports/data/bxstats/{sample}.bxstats.gz"
     params:
         sample = lambda wc: d[wc.sample]
-    conda:
-        f"{envdir}/qc.yaml"
+    container:
+        None
     message:
         "Calculating barcode alignment statistics: {wildcards.sample}"
-    script:
-        "scripts/bxStats.py"
+    shell:
+        "bxStats.py -o {output} {input.bam}"
 
 rule coverage:
     input: 

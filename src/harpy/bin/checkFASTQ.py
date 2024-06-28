@@ -1,9 +1,32 @@
-import pysam
-import sys
-import re
-import os.path
+#! /usr/bin/env python
 
-fq_in = snakemake.input[0]
+import re
+import os
+import sys
+import argparse
+import pysam
+
+parser = argparse.ArgumentParser(
+    prog = 'checkFASTQ.py',
+    description =
+    """
+    Parses a FASTQ file to check if any sequences don't conform to the SAM spec,
+    whether BX:Z: is the last tag in the record, and the counts of: total reads,
+    reads without BX:Z: tag, reads with incorrect BX:Z: tag.
+    """,
+    usage = "checkBAM.py input.bam > output.txt",
+    exit_on_error = False
+    )
+
+parser.add_argument('input', help = "Input fastq file. Can be gzipped.")
+
+if len(sys.argv) == 1:
+    parser.print_help(sys.stderr)
+    sys.exit(1)
+
+args = parser.parse_args()
+
+fq_in = args.input
 
 #bxz = re.compile('BX:Z:')
 samspec = re.compile('[A-Z][A-Z]:[AifZHB]:')
@@ -38,5 +61,4 @@ with pysam.FastxFile(fq_in) as fh:
             noBX += 1
 
 values = [str(i) for i in [os.path.basename(fq_in), n_reads, noBX, badBX, badSamSpec, bxNotLast]]
-with open(snakemake.output[0], "w") as fout:
-    print("\t".join(values), file = fout) 
+print("\t".join(values), file = sys.stdout)

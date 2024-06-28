@@ -306,12 +306,12 @@ rule bx_stats:
         bai = outdir + "/{sample}.bam.bai"
     output: 
         outdir + "/reports/data/bxstats/{sample}.bxstats.gz"
-    conda:
-        f"{envdir}/qc.yaml"
+    container:
+        None
     message:
         "Calculating barcode alignment statistics: {wildcards.sample}"
-    script:
-        "scripts/bxStats.py"
+    shell:
+        "bxStats.py -o {output} {input.bam}"
 
 rule report_persample:
     input:

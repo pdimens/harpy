@@ -116,8 +116,6 @@ def bwa(inputs, output_dir, genome, depth_window, threads, extra_params, quality
     fqlist, sample_count = parse_fastq_inputs(inputs)
     validate_input_by_ext(genome, "--genome", [".fasta", ".fa", ".fasta.gz", ".fa.gz"])
     fetch_rule(workflowdir, "align-bwa.smk")
-    fetch_script(workflowdir, "assignMI.py")
-    fetch_script(workflowdir, "bxStats.py")
     fetch_report(workflowdir, "AlignStats.Rmd")
     fetch_report(workflowdir, "AlignBxStats.Rmd")
 
@@ -208,7 +206,6 @@ def ema(inputs, output_dir, platform, whitelist, genome, depth_window, threads, 
     fqlist, sample_count = parse_fastq_inputs(inputs)
     validate_input_by_ext(genome, "--genome", [".fasta", ".fa", ".fasta.gz", ".fa.gz"])
     fetch_rule(workflowdir, "align-ema.smk")
-    fetch_script(workflowdir, "bxStats.py")
     fetch_report(workflowdir, "AlignStats.Rmd")
     fetch_report(workflowdir, "AlignBxStats.Rmd")
 
@@ -289,8 +286,6 @@ def strobe(inputs, output_dir, genome, read_length, depth_window, threads, extra
     fqlist, sample_count = parse_fastq_inputs(inputs)
     validate_input_by_ext(genome, "--genome", [".fasta", ".fa", ".fasta.gz", ".fa.gz"])
     fetch_rule(workflowdir, "align-strobealign.smk")
-    fetch_script(workflowdir, "assignMI.py")
-    fetch_script(workflowdir, "bxStats.py")
     fetch_report(workflowdir, "AlignStats.Rmd")
     fetch_report(workflowdir, "AlignBxStats.Rmd")
 

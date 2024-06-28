@@ -1,6 +1,29 @@
-import pysam
+#! /usr/bin/env python
+
 import re
 import sys
+import argparse
+import pysam
+
+parser = argparse.ArgumentParser(
+    prog = 'countBX.py',
+    description =
+    """
+    Parses a FASTQ file to count: total sequences, total number of BX tags,
+    number of valid haplotagging BX tags, number of invalid BX tags, number of
+    invalid BX tag segments (i.e. A00, C00, B00, D00)
+    """,
+    usage = "countBX.py input.fastq > output.txt",
+    exit_on_error = False
+    )
+
+parser.add_argument('input', help = "Input fastq file. Can be gzipped.")
+
+if len(sys.argv) == 1:
+    parser.print_help(sys.stderr)
+    sys.exit(1)
+
+args = parser.parse_args()
 
 n_reads = 0
 n_bx = 0
@@ -16,7 +39,7 @@ inv_dict = {
     "C" : 0,
     "D" : 0
 }
-with pysam.FastxFile(snakemake.input[0]) as fh:
+with pysam.FastxFile(args.input) as fh:
     for entry in fh:
         n_reads += 1
         comments = entry.comment.split()
@@ -38,12 +61,11 @@ with pysam.FastxFile(snakemake.input[0]) as fh:
                     continue
                 n_valid += 1
 
-with open(snakemake.output[0], "w") as fout:
-    print(f"totalReads\t{n_reads}", file = fout)
-    print(f"bxTagCount\t{n_bx}", file = fout)
-    print(f"bxValid\t{n_valid}", file = fout)
-    print(f"bxInvalid\t{n_bx - n_valid}", file = fout)
-    print("A00\t",str(inv_dict["A"]), file = fout)
-    print("C00\t",str(inv_dict["C"]), file = fout)
-    print("B00\t",str(inv_dict["B"]), file = fout)
-    print("D00\t",str(inv_dict["D"]), file = fout)
+print(f"totalReads\t{n_reads}", file = sys.stdout)
+print(f"bxTagCount\t{n_bx}", file = sys.stdout)
+print(f"bxValid\t{n_valid}", file = sys.stdout)
+print(f"bxInvalid\t{n_bx - n_valid}", file = sys.stdout)
+print("A00\t",str(inv_dict["A"]), file = sys.stdout)
+print("C00\t",str(inv_dict["C"]), file = sys.stdout)
+print("B00\t",str(inv_dict["B"]), file = sys.stdout)
+print("D00\t",str(inv_dict["D"]), file = sys.stdout)

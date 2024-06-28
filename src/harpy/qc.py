@@ -67,7 +67,6 @@ def qc(inputs, output_dir, min_length, max_length, ignore_adapters, extra_params
 
     os.makedirs(workflowdir, exist_ok=True)
     fqlist, sample_count = parse_fastq_inputs(inputs)
-    fetch_script(workflowdir, "countBX.py")
     fetch_rule(workflowdir, "qc.smk")
     fetch_report(workflowdir, "BxCount.Rmd")
 
