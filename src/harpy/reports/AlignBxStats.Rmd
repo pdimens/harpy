@@ -92,36 +92,14 @@ process_input <- function(infile){
 infiles <- unlist(snakemake@input, recursive = FALSE)
 #infiles <- c("~/sample1.bxstats.gz", "~/sample2.bxstats.gz")
 
-aggregate_df <- data.frame(
-  sample = character(),
-  totalreads = integer(),
-  totaluniquemol = integer(),
-  singletons = integer(),
-  multiplex = integer(),
-  totaluniquebx = integer(),
-  molecule2bxratio = numeric(),
-  totalvalidreads = integer(),
-  totalinvalidreads = integer(),
-  totalvalidpercent = numeric(),
-  averagereadspermol = numeric(),
-  sereadspermol = numeric(),
-  averagemolcov = numeric(),
-  semolcov = numeric(),
-  averagemolcovbp = numeric(),
-  semolcovbp = numeric(),
-  N50 = integer(),
-  N75 = integer(),
-  N90 = integer()
-)
+aggregate_df <- Reduce(rbind, Map(process_input, infiles))
 
-for(i in infiles){
-  aggregate_df <- rbind(aggregate_df, process_input(i))
-}
 if(nrow(aggregate_df) == 0){
   print("All input files were empty")
   knittr::knittr_exit()
 }
 ```
+
 # General
 ## General Barcode Information from Alignments
 ### Desc {.no-title}
