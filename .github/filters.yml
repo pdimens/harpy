@@ -45,7 +45,7 @@ bwa: &bwa
   - 'src/harpy/reports/BxCount.Rmd'
   - 'src/harpy/bin/bxStats.py'
   - 'src/harpy/bin/countBX.py'
-  - `src/harpy/bin/assignMI.py'
+  - 'src/harpy/bin/assignMI.py'
   - 'src/harpy/bin/makeWindows.py'
   - 'test/fastq/**'
 ema: &ema
@@ -66,7 +66,7 @@ strobealign: &strobealign
   - 'src/harpy/rules/align-strobealign.smk'
   - 'src/harpy/reports/AlignStats.Rmd'
   - 'src/harpy/reports/BxCount.Rmd'
-  - `src/harpy/bin/assignMI.py'
+  - 'src/harpy/bin/assignMI.py'
   - 'src/harpy/bin/bxStats.py'
   - 'src/harpy/bin/countBX.py'
   - 'src/harpy/bin/makewindows.py'
