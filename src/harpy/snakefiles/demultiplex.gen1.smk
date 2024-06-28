@@ -184,15 +184,16 @@ rule qc_report:
     output:
         outdir + "/reports/demultiplex.QC.html"
     params:
-        outdir + "/logs/"
+        logdir = outdir + "/logs/",
+        options = "--no-version-check --force --quiet --no-data-dir",
+        title = "--title \"QC for Demultiplexed Samples\"",
+        comment = "--comment \"This report aggregates the QC results created by falco.\""
     conda:
         f"{envdir}/qc.yaml"
     message:
         "Creating final demultiplexing QC report"
     shell:
-        """
-        multiqc {params} --force --quiet --title "QC for Demultiplexed Samples" --comment "This report aggregates the QC results created by falco." --no-data-dir --filename {output} 2> /dev/null
-        """
+        "multiqc {params} --filename {output} 2> /dev/null"
 
 rule log_workflow:
     default_target: True

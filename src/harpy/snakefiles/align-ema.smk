@@ -57,7 +57,7 @@ d = dict(zip(samplenames, samplenames))
 def get_fq(wildcards):
     # returns a list of fastq files for read 1 based on *wildcards.sample* e.g.
     r = re.compile(fr".*/({re.escape(wildcards.sample)}){bn_r}", flags = re.IGNORECASE)
-    return list(filter(r.match, fqlist))[:2]
+    return sorted(list(filter(r.match, fqlist))[:2])
 
 rule genome_setup:
     input:
@@ -115,32 +115,16 @@ rule genome_bwa_index:
     shell: 
         "bwa index {input} 2> {log}"
 
-rule interleave:
+rule ema_count:
     input:
-        fastq = get_fq
-    output:
-        pipe(outdir + "/.interleave/{sample}.interleave.fq")
-    container:
-        None
-    message:
-        "Interleaving input fastq files: {wildcards.sample}"
-    shell:
-        "seqtk mergepe {input} > {output}"
-
-use rule interleave as interleave2 with:
-    output:
-        outdir + "/.interleave/{sample}.interleave2.fq"
-
-rule beadtag_count:
-    input:
-        outdir + "/.interleave/{sample}.interleave.fq"
+        get_fq
     output: 
-        counts = temp(outdir + "/bxcount/{sample}.ema-ncnt"),
+        counts = temp(outdir + "/ema_count/{sample}.ema-ncnt"),
         logs   = temp(outdir + "/logs/count/{sample}.count")
     params:
-        prefix = lambda wc: outdir + "/bxcount/" + wc.get("sample"),
+        prefix = lambda wc: outdir + "/ema_count/" + wc.get("sample"),
         beadtech = "-p" if platform == "haplotag" else f"-w {whitelist}",
-        logdir = f"{outdir}/logs/count/"
+        logdir = f"{outdir}/logs/ema_count/"
     message:
         "Counting barcode frequency: {wildcards.sample}"
     conda:
@@ -148,32 +132,21 @@ rule beadtag_count:
     shell:
         """
         mkdir -p {params.prefix} {params.logdir}
-        ema count {params.beadtech} -o {params.prefix} < {input} 2> {output.logs}
+        seqtk mergepe {input} |
+            ema count {params.beadtech} -o {params.prefix} 2> {output.logs}
         """
 
-rule beadtag_summary:
+rule ema_preprocess:
     input: 
-        countlog = collect(outdir + "/logs/count/{sample}.count", sample = samplenames)
-    output:
-        outdir + "/reports/reads.bxcounts.html"
-    conda:
-        f"{envdir}/r.yaml"
-    message:
-        "Creating sample barcode validation report"
-    script:
-        "report/EmaCount.Rmd"
-
-rule preprocess:
-    input: 
-        reads = outdir + "/.interleave/{sample}.interleave2.fq",
-        emacounts  = outdir + "/bxcount/{sample}.ema-ncnt"
+        reads = get_fq,
+        emacounts  = outdir + "/ema_count/{sample}.ema-ncnt"
     output: 
-        bins       = temp(collect(outdir + "/preproc/{{sample}}/ema-bin-{bin}", bin = binrange)),
-        unbarcoded = temp(outdir + "/preproc/{sample}/ema-nobc")
+        bins       = temp(collect(outdir + "/ema_preproc/{{sample}}/ema-bin-{bin}", bin = binrange)),
+        unbarcoded = temp(outdir + "/ema_preproc/{sample}/ema-nobc")
     log:
-        outdir + "/logs/preproc/{sample}.preproc.log"
+        outdir + "/logs/ema_preproc/{sample}.preproc.log"
     params:
-        outdir = lambda wc: outdir + "/preproc/" + wc.get("sample"),
+        outdir = lambda wc: outdir + "/ema_preproc/" + wc.get("sample"),
         bxtype = "-p" if platform == "haplotag" else f"-w {whitelist}",
         bins   = nbins
     threads:
@@ -184,172 +157,103 @@ rule preprocess:
         "Preprocessing for EMA mapping: {wildcards.sample}"
     shell:
         """
-        ema preproc {params.bxtype} -n {params.bins} -t {threads} -o {params.outdir} {input.emacounts} < {input.reads} 2>&1 |
+        seqtk mergepe {input.reads} |
+            ema preproc {params.bxtype} -n {params.bins} -t {threads} -o {params.outdir} {input.emacounts} 2>&1 |
             cat - > {log}
         """
 
-rule align:
+rule ema_align:
     input:
-        readbin    = collect(outdir + "/preproc/{{sample}}/ema-bin-{bin}", bin = binrange),
+        readbin    = collect(outdir + "/ema_preproc/{{sample}}/ema-bin-{bin}", bin = binrange),
         genome 	   = f"Genome/{bn}",
+        geno_faidx = f"Genome/{bn_idx}",
         geno_idx   = multiext(f"Genome/{bn}", ".ann", ".bwt", ".pac", ".sa", ".amb")
     output:
-        pipe(outdir + "/align/{sample}.bc.raw.sam"),
+        aln = temp(outdir + "/ema_align/{sample}.bc.bam"),
+        idx = temp(outdir + "/ema_align/{sample}.bc.bam.bai")
     log:
-        outdir + "/logs/{sample}.ema.align.log",
+        ema  = outdir + "/logs/align/{sample}.ema.align.log",
+        sort = outdir + "/logs/align/{sample}.ema.sort.log",
+    resources:
+        mem_mb = 500
     params: 
         bxtype = f"-p {platform}",
+        tmpdir = lambda wc: outdir + "/." + d[wc.sample],
+        quality = config["quality"],
         extra = extra
     threads:
-        min(10, workflow.cores) - 2
+        min(10, workflow.cores)
     conda:
         f"{envdir}/align.yaml"
     message:
         "Aligning barcoded sequences: {wildcards.sample}"
     shell:
         """
-        ema align -t {threads} {params.extra} -d {params.bxtype} -r {input.genome} -R \"@RG\\tID:{wildcards.sample}\\tSM:{wildcards.sample}\" -x {input.readbin} > {output} 2> {log}
-        """
-
-rule sort_raw_ema:
-    input:
-        sam        = outdir + "/align/{sample}.bc.raw.sam",
-        genome 	   = f"Genome/{bn}",
-        geno_faidx = f"Genome/{bn_idx}",
-        geno_idx   = multiext(f"Genome/{bn}", ".ann", ".bwt", ".pac", ".sa", ".amb")
-    output:
-        aln = temp(outdir + "/align/{sample}.bc.bam"),
-        idx = temp(outdir + "/align/{sample}.bc.bam.bai")
-    log:
-        outdir + "/logs/{sample}.ema.sort.log"
-    params: 
-        quality = config["quality"],
-        tmpdir = lambda wc: outdir + "/align/." + d[wc.sample],
-        extra = extra
-    resources:
-        mem_mb = 2000
-    threads:
-        2
-    container:
-        None
-    message:
-        "Sorting and quality filtering alignments: {wildcards.sample}"
-    shell:
-        """
-        samtools view -h -F 4 -q {params.quality} {input.sam} | 
-            samtools sort -T {params.tmpdir} --reference {input.genome} -O bam --write-index -m {resources.mem_mb}M -o {output.aln}##idx##{output.idx} - 2> {log}
+        ema align -t {threads} {params.extra} -d {params.bxtype} -r {input.genome} -R \"@RG\\tID:{wildcards.sample}\\tSM:{wildcards.sample}\" -x {input.readbin} 2> {log.ema} |
+            samtools view -h -F 4 -q {params.quality} | 
+            samtools sort -T {params.tmpdir} --reference {input.genome} -O bam --write-index -m {resources.mem_mb}M -o {output.aln}##idx##{output.idx} - 2> {log.sort}
         rm -rf {params.tmpdir}
         """
 
-rule align_nobarcode:
+rule bwa_align:
     input:
-        reads      = outdir + "/preproc/{sample}/ema-nobc",
+        reads      = outdir + "/ema_preproc/{sample}/ema-nobc",
         genome 	   = f"Genome/{bn}",
         geno_faidx = f"Genome/{bn_idx}",
         geno_idx   = multiext(f"Genome/{bn}", ".ann", ".bwt", ".pac", ".sa", ".amb")
     output: 
-        pipe(outdir + "/align/{sample}.nobc.raw.sam")
+        temp(outdir + "/bwa_align/{sample}.bwa.nobc.sam")
     log:
-        outdir + "/logs/{sample}.bwa.align.log"
+        outdir + "/logs/align/{sample}.bwa.align.log"
+    params:
+        quality = config["quality"]
     benchmark:
         ".Benchmark/Mapping/ema/bwaAlign.{sample}.txt"
     threads:
-        min(10, workflow.cores) - 2
+        min(10, workflow.cores)
     conda:
         f"{envdir}/align.yaml"
     message:
         "Aligning unbarcoded sequences: {wildcards.sample}"
     shell:
         """
-        bwa mem -t {threads} -v2 -C -R \"@RG\\tID:{wildcards.sample}\\tSM:{wildcards.sample}\" {input.genome} {input.reads} > {output} 2> {log}
+        bwa mem -t {threads} -v2 -C -R \"@RG\\tID:{wildcards.sample}\\tSM:{wildcards.sample}\" {input.genome} {input.reads} 2> {log} |
+            samtools view -h -F 4 -q {params.quality} > {output}
         """
 
-rule quality_filter:
+rule bwa_markdups:
     input:
-        outdir + "/align/{sample}.nobc.raw.sam"
+        sam    = outdir + "/bwa_align/{sample}.bwa.nobc.sam",
+        genome = f"Genome/{bn}",
+        faidx  = f"Genome/{bn_idx}"
     output:
-        temp(outdir + "/align/{sample}.bwa.nobc.sam")
-    params: 
-        quality = config["quality"]
-    container:
-        None
-    message:
-        "Quality filtering alignments: {wildcards.sample}"
-    shell:
-        "samtools view -h -F 4 -q {params.quality} {input} > {output}"
-
-rule collate:
-    input:
-        outdir + "/align/{sample}.bwa.nobc.sam"
-    output:
-        temp(outdir + "/align/{sample}.collate.nobc.bam")
-    container:
-        None
-    message:
-        "Collating alignments: {wildcards.sample}"
-    shell:
-        "samtools collate -o {output} {input} 2> /dev/null"
-
-rule fix_mates:
-    input:
-        outdir + "/align/{sample}.collate.nobc.bam"
-    output:
-        temp(outdir + "/align/{sample}.fixmate.nobc.bam")
-    container:
-        None
-    message:
-        "Fixing mates in alignments: {wildcards.sample}"
-    shell:
-        "samtools fixmate -m {input} {output} 2> /dev/null"
-
-rule sort_nobc_alignments:
-    input:
-        sam           = outdir + "/align/{sample}.fixmate.nobc.bam",
-        genome 		  = f"Genome/{bn}",
-        genome_samidx = f"Genome/{bn_idx}",
-        genome_idx 	  = multiext(f"Genome/{bn}", ".ann", ".bwt", ".pac", ".sa", ".amb")
-    output:
-        bam = temp(outdir + "/align/{sample}.sort.nobc.bam"),
-        bai = temp(outdir + "/align/{sample}.sort.nobc.bam.bai")
+        temp(outdir + "/bwa_align/{sample}.markdup.nobc.bam")
     log:
-        outdir + "/logs/{sample}.bwa.sort.log"
+        outdir + "/logs/align/{sample}.markdup.log"
     params: 
-        quality = config["quality"],
         tmpdir = lambda wc: outdir + "/." + d[wc.sample]
     resources:
-        mem_mb = 2000
+        mem_mb = 500
     container:
         None
+    threads:
+        2
     message:
-        "Sorting alignments: {wildcards.sample}"
+        "Marking duplicates: {wildcards.sample}"
     shell:
         """
-        samtools sort -T {params.tmpdir} --reference {input.genome} -O bam -l 0 -m {resources.mem_mb}M --write-index -o {output.bam}##idx##{output.bai} {input.sam} 2> {log}
+        samtools collate -O -u {input.sam} |
+            samtools fixmate -m -u - - |
+            samtools sort -T {params.tmpdir} -u --reference {input.genome} -l 0 -m {resources.mem_mb}M - |
+            samtools markdup -@ {threads} -S --barcode-tag BX -f {log} - {output}
         rm -rf {params.tmpdir}
         """
 
-rule mark_duplicates:
+rule bwa_markdups_index:
     input:
-        bam = outdir + "/align/{sample}.sort.nobc.bam",
-        bai = outdir + "/align/{sample}.sort.nobc.bam.bai"
+        outdir + "/bwa_align/{sample}.markdup.nobc.bam"
     output:
-        temp(outdir + "/align/{sample}.markdup.nobc.bam")
-    log:
-        outdir + "/logs/{sample}.markdup.log"
-    threads:
-        2
-    container:
-        None
-    message:
-        "Marking duplicates in alignments alignment: {wildcards.sample}"
-    shell:
-        "samtools markdup -@ {threads} -S -f {log} {input.bam} {output}  2> /dev/null"
-
-rule index_markdups:
-    input:
-        outdir + "/align/{sample}.markdup.nobc.bam"
-    output:
-        temp(outdir + "/align/{sample}.markdup.nobc.bam.bai")
+        temp(outdir + "/bwa_align/{sample}.markdup.nobc.bam.bai")
     container:
         None
     message:
@@ -359,40 +263,29 @@ rule index_markdups:
 
 rule concatenate_alignments:
     input:
-        aln_bc   = outdir + "/align/{sample}.bc.bam",
-        idx_bc   = outdir + "/align/{sample}.bc.bam.bai",
-        aln_nobc = outdir + "/align/{sample}.markdup.nobc.bam",
-        idx_nobc = outdir + "/align/{sample}.markdup.nobc.bam.bai"
+        aln_bc   = outdir + "/ema_align/{sample}.bc.bam",
+        idx_bc   = outdir + "/ema_align/{sample}.bc.bam.bai",
+        aln_nobc = outdir + "/bwa_align/{sample}.markdup.nobc.bam",
+        idx_nobc = outdir + "/bwa_align/{sample}.markdup.nobc.bam.bai",
+        genome   = f"Genome/{bn}"
     output: 
-        bam 	 = temp(outdir + "/align/{sample}.concat.unsort.bam")
-    threads:
-        2
-    container:
-        None
-    message:
-        "Concatenating barcoded and unbarcoded alignments: {wildcards.sample}"
-    shell:
-        "samtools cat -@ {threads} {input.aln_bc} {input.aln_nobc} > {output.bam}"
-
-rule sort_concatenated:
-    input:
-        bam    = outdir + "/align/{sample}.concat.unsort.bam",
-        genome = f"Genome/{bn}"
-    output:
         bam = outdir + "/{sample}.bam",
         bai = outdir + "/{sample}.bam.bai"
     threads:
         2
     resources:
-        mem_mb = 2000
+        mem_mb = 500
     container:
         None
     message:
-        "Sorting merged barcoded alignments: {wildcards.sample}"
+        "Concatenating barcoded and unbarcoded alignments: {wildcards.sample}"
     shell:
-        "samtools sort -@ {threads} -O bam --reference {input.genome} -m {resources.mem_mb}M --write-index -o {output.bam}##idx##{output.bai} {input.bam} 2> /dev/null"
+        """
+        samtools cat -@ 1 {input.aln_bc} {input.aln_nobc} |
+            samtools sort -@ 1 -O bam --reference {input.genome} -m {resources.mem_mb}M --write-index -o {output.bam}##idx##{output.bai} -
+        """
 
-rule alignment_coverage:
+rule coverage:
     input: 
         bam = outdir + "/{sample}.bam",
         bai = outdir + "/{sample}.bam.bai"
@@ -420,7 +313,7 @@ rule bx_stats:
     script:
         "scripts/bxStats.py"
 
-rule alignment_report:
+rule report_persample:
     input:
         outdir + "/reports/data/bxstats/{sample}.bxstats.gz",
         outdir + "/reports/data/coverage/{sample}.cov.gz"
@@ -433,7 +326,7 @@ rule alignment_report:
     script:
         "report/AlignStats.Rmd"
 
-rule general_stats:
+rule stats:
     input: 		
         bam      = outdir + "/{sample}.bam",
         bai      = outdir + "/{sample}.bam.bai"
@@ -450,29 +343,42 @@ rule general_stats:
         samtools flagstat {input.bam} > {output.flagstat}
         """
 
-rule collate_samtools_stats:
+rule report_samtools:
     input: 
         collect(outdir + "/reports/data/samtools_{ext}/{sample}.{ext}", sample = samplenames, ext = ["stats", "flagstat"]),
     output: 
         outdir + "/reports/ema.stats.html"
     params:
-        outdir
+        outdir = f"{outdir}/reports/data/samtools_stats {outdir}/reports/data/samtools_flagstat",
+        options = "--no-version-check --force --quiet --no-data-dir",
+        title = "--title \"Basic Alignment Statistics\"",
+        comment = "--comment \"This report aggregates samtools stats and samtools flagstats results for all alignments. Samtools stats ignores alignments marked as duplicates.\""
     conda:
         f"{envdir}/qc.yaml"
     message:
         "Summarizing samtools stats and flagstat"
     shell:
-        """
-        multiqc {outdir}/reports/data/samtools_stats {outdir}/reports/data/samtools_flagstat --force --quiet --title "General Alignment Statistics" --comment "This report aggregates samtools stats and samtools flagstats results for all alignments. Samtools stats ignores alignments marked as duplicates." --no-data-dir --filename {output} 2> /dev/null
-        """
+        "multiqc {params} --filename {output} 2> /dev/null"
+
+rule report_bx:
+    input:
+        collect(outdir + "/reports/data/bxstats/{sample}.bxstats.gz", sample = samplenames)
+    output:	
+        outdir + "/reports/barcodes.summary.html"
+    conda:
+        f"{envdir}/r.yaml"
+    message: 
+        "Summarizing all barcode information from alignments"
+    script:
+        "report/AlignBxStats.Rmd"
 
 rule log_workflow:
     default_target: True
     input:
         bams = collect(outdir + "/{sample}.{ext}", sample = samplenames, ext = [ "bam", "bam.bai"] ),
         cov_report = collect(outdir + "/reports/{sample}.html", sample = samplenames) if not skipreports else [],
-        bx_counts = f"{outdir}/reports/reads.bxcounts.html" if not skipreports else [],
-        agg_report = f"{outdir}/reports/ema.stats.html" if not skipreports else []
+        agg_report = f"{outdir}/reports/ema.stats.html" if not skipreports else [],
+        bx_report = outdir + "/reports/barcodes.summary.html" if (not skipreports or len(samplenames) == 1) else []
     params:
         beadtech = "-p" if platform == "haplotag" else f"-w {whitelist}"
     message:

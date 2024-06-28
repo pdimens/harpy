@@ -46,10 +46,9 @@ def impute(inputs, output_dir, parameters, threads, vcf, vcf_samples, extra_para
     individual files/folders, using shell wildcards (e.g. `data/drosophila*.bam`), or both.
     
     Requires a parameter file, use **harpy stitchparams** to generate one and adjust it for your study.
-    The `--vcf-samples` flag toggles to phase only the samples present in your input `--vcf` file rather than all
+    The `--vcf-samples` option considers only the samples present in your input `--vcf` file rather than all
     the samples identified in `INPUT`. If providing additional STITCH arguments, they must be in quotes and 
-    in R language style. The extra parameters will remain constant across different models.
-    Use single-quotes (string literals) if supplying an argument that requires quotes. For example:
+    in R language style. Use single-quotes (string literals) if supplying an argument that requires quotes. For example:
     
     ```
     harpy ... -x 'switchModelIteration = 39, splitReadIterations = NA, reference_populations = c("CEU","GBR")'...
@@ -72,12 +71,12 @@ def impute(inputs, output_dir, parameters, threads, vcf, vcf_samples, extra_para
         sys.exit(0)
 
     os.makedirs(f"{workflowdir}/", exist_ok= True)
-    bamlist, n = parse_alignment_inputs(inputs)
     validate_input_by_ext(vcf, "--vcf", ["vcf", "bcf", "vcf.gz"])
-    samplenames = vcf_samplematch(vcf, bamlist, vcf_samples)
-    validate_bam_RG(bamlist)
     check_impute_params(parameters)
-    biallelic = biallelic_contigs(vcf, f"{workflowdir}")
+    bamlist, n = parse_alignment_inputs(inputs)
+    validate_bam_RG(bamlist)
+    samplenames = vcf_samplematch(vcf, bamlist, vcf_samples)
+    biallelic, n_biallelic = biallelic_contigs(vcf, f"{workflowdir}")
 
     fetch_rule(workflowdir, "impute.smk")
     fetch_script(workflowdir, "stitch_impute.R")
@@ -99,9 +98,9 @@ def impute(inputs, output_dir, parameters, threads, vcf, vcf_samples, extra_para
         config.write("  alignments:\n")
         for i in bamlist:
             config.write(f"    - {i}\n")
-
+    
     print_onstart(
-        f"Input VCF: {vcf}\nSamples in VCF: {len(samplenames)}\nAlignments Provided: {n}\nOutput Directory: {output_dir}/",
+        f"Input VCF: {vcf}\nSamples in VCF: {len(samplenames)}\nAlignments Provided: {n}\nContigs with ≥2 Biallelic SNPs: {n_biallelic}\nOutput Directory: {output_dir}/",
         "impute"
     )
     generate_conda_deps()

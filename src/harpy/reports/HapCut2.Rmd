@@ -1,13 +1,16 @@
 ---
-title: "Haplotype Phasing Report"
-date: "`r format(Sys.time(), '%d %B, %Y')`"
+title: "Haplotype Phasing Summary"
+date: "`r format(Sys.time(), '%d %b, %Y at %H:%M')`"
 output:
   flexdashboard::flex_dashboard:
     theme: lumen
     orientation: rows
     vertical_layout: scroll
     horizontal_layout: fill
-    favicon: "https://raw.githubusercontent.com/pdimens/harpy/docs/static/favicon_dark.png"
+    logo: https://raw.githubusercontent.com/pdimens/harpy/docs/static/logo_mini.png
+    favicon: "https://raw.githubusercontent.com/pdimens/harpy/docs/static/favicon_report.png"
+    navbar:
+      - { title : "Docs", icon: "fa-book", href: "https://pdimens.github.io/harpy/", align: right }
 ---
 
 ```{r echo= FALSE, message = FALSE, warning = FALSE}
@@ -145,7 +148,7 @@ hchart(hs, "areaspline", hcaes(x = val, y = freq), color = "#7eb495", name = "co
   hc_yAxis(title = list(text = "count")) |>
   hc_tooltip(crosshairs = TRUE) |>
   hc_exporting(enabled = T, filename = "haplotype.hist",
-    buttons = list(contextButton = list(menuItems = c("viewFullscreen", "separator", "downloadPNG", "downloadJPEG", "downloadPDF", "downloadSVG")))
+    buttons = list(contextButton = list(menuItems = c("downloadPNG", "downloadJPEG", "downloadPDF", "downloadSVG")))
   )
 ```
 

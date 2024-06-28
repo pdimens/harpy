@@ -135,7 +135,7 @@ rule impute:
     threads:
         workflow.cores
     message: 
-        "Imputing {wildcards.part}:\nmodel: {wildcards.model}, useBX: {wildcards}, k: {wildcards.k}, bxLimit: {wildcards.bxlimit}, s: {wildcards.s}, nGen: {wildcards.ngen}"
+        "Imputing {wildcards.part}:\nmodel: {wildcards.model}, useBX: {wildcards.usebx}, k: {wildcards.k}, bxLimit: {wildcards.bxlimit}, s: {wildcards.s}, nGen: {wildcards.ngen}"
     script:
         "scripts/stitch_impute.R"
 

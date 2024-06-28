@@ -52,7 +52,7 @@ d = dict(zip(samplenames, samplenames))
 def get_fq(wildcards):
     # returns a list of fastq files for read 1 based on *wildcards.sample* e.g.
     r = re.compile(fr".*/({re.escape(wildcards.sample)}){bn_r}", flags = re.IGNORECASE)
-    return list(filter(r.match, fqlist))[:2]
+    return sorted(list(filter(r.match, fqlist))[:2])
 
 rule genome_setup:
     input:
@@ -316,7 +316,7 @@ rule samtools_reports:
         "Summarizing samtools stats and flagstat"
     shell:
         """
-        multiqc {params}/reports/data/samtools_stats {params}/reports/data/samtools_flagstat --force --quiet --title "Basic Alignment Statistics" --comment "This report aggregates samtools stats and samtools flagstats results for all alignments. Samtools stats ignores alignments marked as duplicates." --no-data-dir --filename {output} 2> /dev/null
+        multiqc {params}/reports/data/samtools_stats {params}/reports/data/samtools_flagstat --no-version-check --force --quiet --title "Basic Alignment Statistics" --comment "This report aggregates samtools stats and samtools flagstats results for all alignments. Samtools stats ignores alignments marked as duplicates." --no-data-dir --filename {output} 2> /dev/null
         """
 
 rule log_workflow:

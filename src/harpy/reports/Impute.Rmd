@@ -1,12 +1,15 @@
 ---
 title: "Imputation Assessment"
-date: "`r format(Sys.time(), '%d %B, %Y')`"
+date: "`r format(Sys.time(), '%d %b, %Y at %H:%M')`"
 output:
   flexdashboard::flex_dashboard:
     theme: lumen
     orientation: rows
     vertical_layout: scroll
-    favicon: "https://raw.githubusercontent.com/pdimens/harpy/docs/static/favicon_dark.png"
+    logo: https://raw.githubusercontent.com/pdimens/harpy/docs/static/logo_mini.png
+    favicon: "https://raw.githubusercontent.com/pdimens/harpy/docs/static/favicon_report.png"
+    navbar:
+      - { title : "Docs", icon: "fa-book", href: "https://pdimens.github.io/harpy/", align: right }
 ---
 
 # General Stats
@@ -124,7 +127,7 @@ hchart(h, "areaspline", hcaes(x = info, y = freq), name = "% sites", marker = li
     formatter = JS("function () {return 'INFO_SCORE <b>' + this.x + '</b><br><b>' + this.y + '% of sites</b>';}") 
   ) |>
   hc_exporting(enabled = T, filename = "impute.infoscores",
-    buttons = list(contextButton = list(menuItems = c("viewFullscreen", "separator", "downloadPNG", "downloadJPEG", "downloadPDF", "downloadSVG")))
+    buttons = list(contextButton = list(menuItems = c("downloadPNG", "downloadJPEG", "downloadPDF", "downloadSVG")))
 )
 ```
 
@@ -253,7 +256,7 @@ hchart(gcts_long, "bar", hcaes(x = sample, y = Count, group = Conversion), stack
   hc_yAxis(title = list(text = "count")) |>
   hc_tooltip(crosshairs = TRUE, animation = F) |>
   hc_exporting(enabled = T, filename = "impute.samples",
-    buttons = list(contextButton = list(menuItems = c("viewFullscreen", "separator", "downloadPNG", "downloadJPEG", "downloadPDF", "downloadSVG")))
+    buttons = list(contextButton = list(menuItems = c("downloadPNG", "downloadJPEG", "downloadPDF", "downloadSVG")))
   )
 ```
 

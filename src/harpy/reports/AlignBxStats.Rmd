@@ -1,0 +1,266 @@
+---
+title: "Harpy Alignment Barcode Summary"
+date: "`r format(Sys.time(), '%d %b, %Y at %H:%M')`"
+output:
+  flexdashboard::flex_dashboard:
+    theme: lumen
+    orientation: rows
+    vertical_layout: scroll
+    horizontal_layout: fill
+    logo: https://raw.githubusercontent.com/pdimens/harpy/docs/static/logo_mini.png
+    favicon: "https://raw.githubusercontent.com/pdimens/harpy/docs/static/favicon_report.png"
+    navbar:
+      - { title : "Docs", icon: "fa-book", href: "https://pdimens.github.io/harpy/", align: right }
+---
+
+```{r imports, echo = F, results = F, message = F}
+using<-function(...) {
+    libs<-unlist(list(...))
+    req<-unlist(lapply(libs,require,character.only=TRUE))
+    need<-libs[req==FALSE]
+    if(length(need)>0){ 
+        install.packages(need, repos = "https://cloud.r-project.org/")
+        lapply(need,require,character.only=TRUE)
+    }
+}
+
+using("flexdashboard","dplyr","tidyr", "highcharter","DT")
+```
+
+```{r nxx_and_process_funs, echo = F, results = F, message = F}
+NX <- function(lengths, X=50){
+  lengths <- as.numeric(sort(lengths, decreasing=TRUE))
+  index <- which(cumsum(lengths) / sum(lengths) >= X/100)[1]
+  return(lengths[index])
+}
+
+std_error <- function(x){
+  sd(x)/sqrt(length((x)))
+}
+
+process_input <- function(infile){
+  bamfile <- gsub(".bxstats.gz", ".bam", infile)
+  samplename <- gsub(".bxstats.gz", "", basename(infile))
+  tb <- read.table(infile, header = T, sep = "\t") %>% select(-4, -5)
+  tb$valid <- tb$molecule
+  tb[tb$valid != "invalidBX", "valid"] <- "validBX"
+  tb$valid <- gsub("BX", " BX", tb$valid)
+  # isolate non-singletons b/c molecules with 1 read pair aren't linked reads
+  multiplex_df <- filter(tb, valid == "valid BX", reads > 2)
+  singletons <- sum(tb$reads <= 2 & tb$valid == "valid BX")
+  tot_uniq_bx <- read.table(infile, header = F, sep = "\n", as.is = T, skip = nrow(tb) + 1, comment.char = "+")
+  tot_uniq_bx <- gsub("#total unique barcodes: ", "", tot_uniq_bx$V1[1]) |> as.integer()
+  tot_mol <- sum(tb$valid == "valid BX")
+  tot_valid_reads <- sum(tb[tb$valid == "valid BX", "reads"])
+  avg_reads_per_mol <- round(mean(multiplex_df$reads),1)
+  sem_reads_per_mol <- round(std_error(multiplex_df$reads), 2)
+  tot_invalid_reads <- sum(tb[tb$valid == "invalid BX", "reads"])
+  avg_mol_cov <- round(mean(multiplex_df$coverage_inserts), 2)
+  sem_mol_cov <- round(std_error(multiplex_df$coverage_inserts), 4)
+  avg_mol_cov_bp <- round(mean(multiplex_df$coverage_bp), 2)
+  sem_mol_cov_bp<- round(std_error(multiplex_df$coverage_bp), 4)
+  n50 <- NX(multiplex_df$length_inferred, 50)
+  n75 <- NX(multiplex_df$length_inferred, 75)
+  n90 <- NX(multiplex_df$length_inferred, 90)
+
+  outrow <- data.frame(
+    sample = samplename,
+    totalreads = tot_valid_reads + tot_invalid_reads,
+    totaluniquemol = tot_mol,
+    singletons = singletons,
+    multiplex = nrow(multiplex_df),
+    totaluniquebx = tot_uniq_bx,
+    molecule2bxratio = round(tot_mol / tot_uniq_bx,2),
+    totalvalidreads = tot_valid_reads,
+    totalinvalidreads = tot_invalid_reads,
+    totalvalidpercent = round(tot_valid_reads/(tot_valid_reads + tot_invalid_reads) * 100,2),
+    averagereadspermol = avg_reads_per_mol,
+    sereadspermol = sem_reads_per_mol,
+    averagemolcov = avg_mol_cov,
+    semolcov = sem_mol_cov,
+    averagemolcovbp = avg_mol_cov_bp,
+    semolcovbp = sem_mol_cov_bp,
+    N50 = n50,
+    N75 = n75,
+    N90 = n90
+  )
+  return(outrow)
+}
+```
+
+```{r setup_df, echo = F, results = F, message = F}
+infiles <- unlist(snakemake@input, recursive = FALSE)
+#infiles <- c("~/sample1.bxstats.gz", "~/sample2.bxstats.gz")
+
+aggregate_df <- Reduce(rbind, Map(process_input, infiles))
+
+if(nrow(aggregate_df) == 0){
+  print("All input files were empty")
+  knittr::knittr_exit()
+}
+```
+
+# General
+## General Barcode Information from Alignments
+### Desc {.no-title}
+<h2> General Barcode Information from Alignments </h2>
+This report aggregates the barcode-specific information from the alignments
+that were created using `harpy align`. Detailed information for any one sample
+can be found in that sample's individual report. The table below is an aggregation
+of data for each sample based on their `*.bxstats.gz` file.
+
+- `avg` refers to the average (arithmetic mean)
+- `SEM` refers to the Standard Error of the mean
+- `molecules` are the unique DNA molecules as inferred from linked-read barcodes
+  - `singletons` are molecules composed of one single-end or paired-end sequence, effectively not a linked read
+  - `multiplex` refer to molecules composed of more than two single-end or paired-end sequences
+- `barcodes` are the linked-read barcodes associated with DNA sequences and are synonymous with `bx`
+- `valid` refers to a proper haplotag barcode (e.g. `A01C34B92D51`)
+- `invalid` refers to an invalidated haplotag barcode, where there is a `00` in any of the `ACBD` positions (e.g. `A21C00B32D57`)
+- `NX` are the N-statistics (explained in more detail below)
+
+## Sampletable
+### Per-Sample Information {.no-title}
+```{r}
+DT::datatable(
+  aggregate_df,
+  rownames = F,
+  extensions = 'Buttons', 
+  options = list(dom = 'Brtip', buttons = c('csv'), scrollX = TRUE),
+  caption = 'Per-Sample Alignment Information Pertaining to Barcodes',
+  fillContainer = T,
+  colnames = c("sample", "alignments", "unique molecules", "singletons", "multiplex", "unique barcodes", "molecule:bx ratio", "valid bx alignments", "invalid bx alignments", "% valid bx", "avg reads/molecule", "SEM reads/molecule", "avg molecule coverage %","SEM molecule coverage %", "N50", "N75","N90")
+)
+```
+
+```{r sampleplot_height, echo=FALSE, message=FALSE, warning=FALSE}
+n_samples <- nrow(aggregate_df)
+plotheight <- 150 + (15 * n_samples)
+figheight <- 0.6 + (0.2 * n_samples)
+```
+
+## NX plots desc
+### NX desc {.no-title}
+<h2> NX Information </h2>
+The **NX** metric (e.g. **N50**) is the length of the shortest molecule in the group of longest molecules that together
+represent at least **X%** of the total molecules by length. For example, `N50` would be the shortest molecule in the 
+group of longest molecules that together represent **50%** of the total molecules by length (sort of like a median).
+Below is the distributions of three common NX metrics (N50, N75, N90) across all samples.
+
+## NXX plots actual
+### NX plots {.no-title}
+```{r nxxplot, echo = F, warning = F, message = F}
+highchart() |>
+  hc_chart(type = "area", animation = F) |>
+  hc_add_series(data = density(aggregate_df$N50), name = "N50", type = "areaspline") |>
+  hc_add_series(data = density(aggregate_df$N75), name = "N75", type = "areaspline") |>
+  hc_add_series(data = density(aggregate_df$N90), name = "N90", color = "#d3805f", type = "areaspline") |>
+  hc_tooltip(enabled = FALSE) |>
+  hc_caption(text = "Values derived using non-singleton molecules") |>
+  hc_title(text = "NX Stats Across Samples") |>
+  hc_xAxis(title = list(text = "NX value"), min = 0) |>
+  hc_yAxis(title = list(text = "density")) |>
+  hc_exporting(enabled = T, filename = "NX.stats",
+    buttons = list(contextButton = list(menuItems = c("downloadPNG", "downloadJPEG", "downloadPDF", "downloadSVG")))
+  )
+```
+
+## Distribution of valid bx alignments
+### dist description {.no-title}
+<h2> Distribution of alignments with valid barcodes </h2>
+Below is a distribution of what percent of total alignments each sample
+had valid haplotag barcodes (`AXXCXXBXXDXX` where `XX` is not `00`).
+
+## valid bx plot
+### distribution plot {.no-title}
+```{r perc_valid_dist, echo = F, warning = F, message = F}
+hs <- hist(
+  aggregate_df$totalvalidpercent,
+  breaks = min(aggregate_df$totalvalidpercent):max(aggregate_df$totalvalidpercent),
+  plot = F
+)
+hs$counts <- round(hs$counts / sum(hs$counts) * 100, 4)
+hs <- data.frame(val = hs$breaks[-1], freq = hs$counts)
+
+hchart(hs, "areaspline", hcaes(x = val, y = freq), color = "#8484bd", name = "Percent Alignments", marker = list(enabled = FALSE), animation = F) |>
+  hc_title(text = "Percent of Alignments with Valid BX tags") |>
+  hc_xAxis(min = 0, max = 100, title = list(text = "% alignment with valid BX tag")) |>
+  hc_yAxis(max = 100, title = list(text = "% samples")) |>
+  hc_tooltip(crosshairs = TRUE) |>
+  hc_exporting(enabled = T, filename = "percent.valid.dist",
+    buttons = list(contextButton = list(menuItems = c("downloadPNG", "downloadJPEG", "downloadPDF", "downloadSVG")))
+  )
+```
+
+# Per-Sample
+## Per-Sample Metrics
+### Per-sample desc {.no-title}
+<h2> Per-Sample Metrics </h2>
+Below is a series of plots showing per-sample metrics. The meaning of percentages and error bars are provided in the bottom-left captions of the plots.
+
+## Per-sample plots
+### percent valid {.no-title}
+```{r perc_valid_per_sample, echo = F, warning = F, message = F, fig.height=figheight, out.width="100%"}
+hchart(aggregate_df, "xrange", animation = F, groupPadding = 0.0001,
+  hcaes(x = 0, x2 = totalreads, y = rev(0:(n_samples-1)), partialFill = totalvalidpercent/100), dataLabels = list(enabled = TRUE)) |> 
+  hc_xAxis(title = list(text = "Total Alignments")) |> 
+  hc_yAxis(title = FALSE, gridLineWidth = 0, categories = rev(aggregate_df$sample)) |>
+  hc_caption(text = "Percentage represents the percent of alignments with a valid BX barcode") |>
+  hc_tooltip(enabled = FALSE) |>
+  hc_colors(color = "#95d8a7") |>
+  hc_title(text = "Percent Alignments with Valid BX Barcode") |>
+  hc_exporting(enabled = T, filename = "BX.valid.alignments",
+    buttons = list(contextButton = list(menuItems = c("downloadPNG", "downloadJPEG", "downloadPDF", "downloadSVG")))
+  )
+```
+
+### multiplex percent {.no-title}
+```{r perc_multiplex, echo = F, warning = F, message = F, fig.height=figheight, out.width="100%"}
+hchart(aggregate_df, "xrange", animation = F, groupPadding = 0.0001,
+  hcaes(x = 0, x2 = multiplex + singletons, y = rev(0:(n_samples-1)), partialFill = round(multiplex / (multiplex + singletons), 4)), dataLabels = list(enabled = TRUE)) |> 
+  hc_xAxis(title = list(text = "Total Alignments with Valid Barcodes")) |> 
+  hc_yAxis(title = FALSE, gridLineWidth = 0, categories = rev(aggregate_df$sample)) |>
+  hc_caption(text = "Percentage represents the percent of molecules composed of more than 2 single-end or paired-end sequences") |>
+  hc_tooltip(enabled = FALSE) |>
+  hc_colors(color = "#8dc6f5") |>
+  hc_title(text = "Percent Non-Singleton Molecules") |>
+  hc_exporting(enabled = T, filename = "BX.multiplex",
+    buttons = list(contextButton = list(menuItems = c("downloadPNG", "downloadJPEG", "downloadPDF", "downloadSVG")))
+  )
+```
+
+### reads per molecule{.no-title}
+```{r reads_per_mol_sample, echo = F, warning = F, message = F, fig.height=figheight, out.width="100%"}
+err_df <- data.frame(x = 0:(n_samples-1), y = aggregate_df$averagereadspermol, low = aggregate_df$averagereadspermol - aggregate_df$sereadspermol, high = aggregate_df$averagereadspermol + aggregate_df$sereadspermol)
+highchart() |>
+  hc_chart(inverted=TRUE, animation = F, pointPadding = 0.0001, groupPadding = 0.0001) |>
+  hc_add_series(data = aggregate_df, type = "scatter", name = "mean", hcaes(x = 0:(nrow(aggregate_df)-1), y = averagereadspermol), marker = list(radius = 8), color = "#6d73c2", zIndex = 1) |>
+  hc_add_series(data = err_df, type = "errorbar", name = "standard error", linkedTo = ":previous", zIndex = 0, stemColor = "#8186c7", whiskerColor = "#8186c7") |>
+  hc_xAxis(title = FALSE, gridLineWidth = 0, categories = aggregate_df$sample) |>
+  hc_title(text = "Average Reads Per Molecule") |>
+  hc_caption(text = "Error bars show the standard error of the mean of non-singleton molecules") |>
+  hc_tooltip(crosshairs = TRUE, pointFormat= '<b>{point.y}</b>') |>
+  hc_exporting(enabled = T, filename = "avg.reads.per.molecule",
+    buttons = list(contextButton = list(menuItems = c("downloadPNG", "downloadJPEG", "downloadPDF", "downloadSVG")))
+  )
+```
+
+### average molecule coverage{.no-title}
+```{r avg_mol_cov, echo = F, warning = F, message = F, fig.height=figheight, out.width="100%"}
+err_df <- data.frame(x = 0:(n_samples-1), y = aggregate_df$averagemolcov, low = aggregate_df$averagemolcov - aggregate_df$semolcov, high = aggregate_df$averagemolcov + aggregate_df$semolcov)
+err_df_bp <- data.frame(x = 0:(n_samples-1), y = aggregate_df$averagemolcovbp, low = aggregate_df$averagemolcovbp - aggregate_df$semolcovbp, high = aggregate_df$averagemolcovbp + aggregate_df$semolcovbp)
+
+highchart() |>
+  hc_chart(inverted=TRUE, animation = F, pointPadding = 0.0001, groupPadding = 0.0001) |>
+  hc_add_series(data = aggregate_df, type = "scatter", name = "Inferred Fragments", hcaes(x = 0:(nrow(aggregate_df)-1), y = averagemolcov), marker = list(radius = 8), color = "#df77b5", zIndex = 1) |>
+  hc_add_series(data = err_df, type = "errorbar", name = "standard error", linkedTo = ":previous", zIndex = 0, stemColor = "#ef94ca", whiskerColor = "#ef94ca") |>
+  hc_add_series(data = aggregate_df, type = "scatter", name = "Aligned Base Pairs", hcaes(x = 0:(nrow(aggregate_df)-1), y = averagemolcovbp), marker = list(radius = 8), color = "#924596", zIndex = 1) |>
+  hc_add_series(data = err_df_bp, type = "errorbar", name = "standard error", linkedTo = ":previous", zIndex = 0, stemColor = "#916094", whiskerColor = "#916094") |>
+  hc_xAxis(title = FALSE, gridLineWidth = 0, categories = aggregate_df$sample) |>
+  hc_title(text = "Average Molecule Percent Coverage") |>
+  hc_caption(text = "Error bars show the standard error of the mean percent coverage of non-singleton molecules") |>
+  hc_tooltip(crosshairs = TRUE, pointFormat= '<b>{point.y}</b>') |>
+  hc_exporting(enabled = T, filename = "avg.molecule.coverage",
+    buttons = list(contextButton = list(menuItems = c("downloadPNG", "downloadJPEG", "downloadPDF", "downloadSVG")))
+  )
+```

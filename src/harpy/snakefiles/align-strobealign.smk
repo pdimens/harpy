@@ -18,6 +18,7 @@ skipreports = config["skipreports"]
 windowsize  = config["depth_windowsize"]
 molecule_distance = config["molecule_distance"]
 readlen = config["average_read_length"]
+autolen = isinstance(readlen, str)
 
 wildcard_constraints:
     sample = "[a-zA-Z0-9._-]+"
@@ -53,7 +54,7 @@ d = dict(zip(samplenames, samplenames))
 def get_fq(wildcards):
     # returns a list of fastq files for read 1 based on *wildcards.sample* e.g.
     r = re.compile(fr".*/({re.escape(wildcards.sample)}){bn_r}", flags = re.IGNORECASE)
-    return list(filter(r.match, fqlist))[:2]
+    return sorted(list(filter(r.match, fqlist))[:2])
 
 rule genome_setup:
     input:
@@ -111,106 +112,59 @@ rule align:
     input:
         fastq = get_fq,
         genome   = f"Genome/{bn}",
-        genome_index   = f"Genome/{bn}.r{readlen}.sti"
+        genome_index   = f"Genome/{bn}.r{readlen}.sti" if not autolen else []
     output:  
-        pipe(outdir + "/samples/{sample}/{sample}.raw.sam")
+        temp(outdir + "/samples/{sample}/{sample}.strobe.sam")
     log:
         outdir + "/logs/{sample}.strobealign.log"
     params: 
         samps = lambda wc: d[wc.get("sample")],
-        readlen = readlen,
+        readlen = "" if autolen else f"--use-index -r {readlen}",
+        quality = config["quality"],
         extra = extra
     benchmark:
         ".Benchmark/Mapping/strobealign/align.{sample}.txt"
     threads:
-        min(10, workflow.cores) - 2
+        min(10, workflow.cores)
     conda:
         f"{envdir}/align.yaml"
     message:
         "Aligning sequences: {wildcards.sample}"
     shell:
-        "strobealign --use-index -r {params.readlen} -t {threads} -U -C --rg=SM:{wildcards.sample} {params.extra} {input.genome} {input.fastq} > {output} 2> {log}"
- 
-rule quality_filter:
-    input:
-        outdir + "/samples/{sample}/{sample}.raw.sam"
-    output:
-        temp(outdir + "/samples/{sample}/{sample}.mm2.sam")
-    params: 
-        quality = config["quality"]
-    container:
-        None
-    message:
-        "Quality filtering alignments: {wildcards.sample}"
-    shell:
-        "samtools view -h -F 4 -q {params.quality} {input} > {output}"
-
-rule collate:
-    input:
-        outdir + "/samples/{sample}/{sample}.mm2.sam"
-    output:
-        temp(outdir + "/samples/{sample}/{sample}.collate.bam")
-    container:
-        None
-    message:
-        "Collating alignments: {wildcards.sample}"
-    shell:
-        "samtools collate -o {output} {input} 2> /dev/null"
-
-rule fix_mates:
-    input:
-        outdir + "/samples/{sample}/{sample}.collate.bam"
-    output:
-        temp(outdir + "/samples/{sample}/{sample}.fixmate.bam")
-    container:
-        None
-    message:
-        "Fixing mates in alignments: {wildcards.sample}"
-    shell:
-        "samtools fixmate -m {input} {output} 2> /dev/null"
-
-rule sort_alignments:
-    input:
-        sam           = outdir + "/samples/{sample}/{sample}.fixmate.bam",
-        genome 		  = f"Genome/{bn}",
-        genome_samidx = f"Genome/{bn}.fai"
-    output:
-        bam = temp(outdir + "/samples/{sample}/{sample}.sort.bam"),
-        bai = temp(outdir + "/samples/{sample}/{sample}.sort.bam.bai")
-    log:
-        outdir + "/logs/{sample}.strobealign.sort.log"
-    params: 
-        quality = config["quality"],
-        tmpdir = lambda wc: outdir + "/." + d[wc.sample]
-    resources:
-        mem_mb = 2000
-    container:
-        None
-    message:
-        "Sorting alignments: {wildcards.sample}"
-    shell:
         """
-        samtools sort -T {params.tmpdir} --reference {input.genome} -O bam -l 0 -m {resources.mem_mb}M --write-index -o {output.bam}##idx##{output.bai} {input.sam} 2> {log}
-        rm -rf {params.tmpdir}
+        strobealign {params.readlen} -t {threads} -U -C --rg-id={wildcards.sample} --rg=SM:{wildcards.sample} {params.extra} {input.genome} {input.fastq} 2> {log} |
+            samtools view -h -F 4 -q {params.quality} > {output} 
         """
 
-rule mark_duplicates:
+rule markduplicates:
     input:
-        outdir + "/samples/{sample}/{sample}.sort.bam"
+        sam    = outdir + "/samples/{sample}/{sample}.strobe.sam",
+        genome = f"Genome/{bn}",
+        faidx  = f"Genome/{bn}.fai"
     output:
         temp(outdir + "/samples/{sample}/{sample}.markdup.bam")
     log:
         outdir + "/logs/{sample}.markdup.log"
+    params: 
+        tmpdir = lambda wc: outdir + "/." + d[wc.sample]
+    resources:
+        mem_mb = 2000
     threads:
         2
     container:
         None
     message:
-        "Marking duplicates in alignments alignment: {wildcards.sample}"
+        "Marking duplicates: {wildcards.sample}"
     shell:
-        "samtools markdup -@ {threads} -S --barcode-tag BX -f {log} {input} {output}  2> /dev/null"
+        """
+        samtools collate -O -u {input.sam} |
+            samtools fixmate -m -u - - |
+            samtools sort -T {params.tmpdir} -u --reference {input.genome} -l 0 -m {resources.mem_mb}M - |
+            samtools markdup -@ {threads} -S --barcode-tag BX -f {log} - {output}
+        rm -rf {params.tmpdir}
+        """
 
-rule index_markdups:
+rule markdups_index:
     input:
         outdir + "/samples/{sample}/{sample}.markdup.bam"
     output:
@@ -238,7 +192,7 @@ rule assign_molecules:
     script:
         "scripts/assignMI.py"
 
-rule alignment_bxstats:
+rule bxstats:
     input:
         bam = outdir + "/{sample}.bam",
         bai = outdir + "/{sample}.bam.bai"
@@ -253,7 +207,7 @@ rule alignment_bxstats:
     script:
         "scripts/bxStats.py"
 
-rule alignment_coverage:
+rule coverage:
     input: 
         bam = outdir + "/{sample}.bam",
         bai = outdir + "/{sample}.bam.bai"
@@ -268,7 +222,7 @@ rule alignment_coverage:
     shell:
         "samtools depth -a {input.bam} | depthWindows.py {params} | gzip > {output}"
 
-rule alignment_report:
+rule report_persample:
     input:
         outdir + "/reports/data/bxstats/{sample}.bxstats.gz",
         outdir + "/reports/data/coverage/{sample}.cov.gz"
@@ -283,7 +237,7 @@ rule alignment_report:
     script:
         "report/AlignStats.Rmd"
 
-rule general_alignment_stats:
+rule stats:
     input:
         bam      = outdir + "/{sample}.bam",
         bai      = outdir + "/{sample}.bam.bai"
@@ -300,28 +254,42 @@ rule general_alignment_stats:
         samtools flagstat {input.bam} > {output.flagstat}
         """
 
-rule samtools_reports:
+rule report_samtools:
     input: 
         collect(outdir + "/reports/data/samtools_{ext}/{sample}.{ext}", sample = samplenames, ext = ["stats", "flagstat"])
     output: 
         outdir + "/reports/strobealign.stats.html"
     params:
-        outdir
+        outdir = f"{outdir}/reports/data/samtools_stats {outdir}/reports/data/samtools_flagstat",
+        options = "--no-version-check --force --quiet --no-data-dir",
+        title = "--title \"Basic Alignment Statistics\"",
+        comment = "--comment \"This report aggregates samtools stats and samtools flagstats results for all alignments. Samtools stats ignores alignments marked as duplicates.\""
     conda:
         f"{envdir}/qc.yaml"
     message:
         "Summarizing samtools stats and flagstat"
     shell:
-        """
-        multiqc {params}/reports/data/samtools_stats {params}/reports/data/samtools_flagstat --force --quiet --title "Basic Alignment Statistics" --comment "This report aggregates samtools stats and samtools flagstats results for all alignments. Samtools stats ignores alignments marked as duplicates." --no-data-dir --filename {output} 2> /dev/null
-        """
+        "multiqc  {params} --filename {output} 2> /dev/null"
+
+rule report_bx:
+    input:
+        collect(outdir + "/reports/data/bxstats/{sample}.bxstats.gz", sample = samplenames)
+    output:	
+        outdir + "/reports/barcodes.summary.html"
+    conda:
+        f"{envdir}/r.yaml"
+    message: 
+        "Summarizing all barcode information from alignments"
+    script:
+        "report/AlignBxStats.Rmd"
 
 rule log_workflow:
     default_target: True
     input: 
         bams = collect(outdir + "/{sample}.{ext}", sample = samplenames, ext = ["bam","bam.bai"]),
         samtools =  outdir + "/reports/strobealign.stats.html" if not skipreports else [] ,
-        bx_reports = collect(outdir + "/reports/{sample}.html", sample = samplenames) if not skipreports else []
+        reports = collect(outdir + "/reports/{sample}.html", sample = samplenames) if not skipreports else [],
+        bx_report = outdir + "/reports/barcodes.summary.html" if (not skipreports or len(samplenames) == 1) else []
     params:
         readlen = readlen,
         quality = config["quality"],
@@ -332,10 +300,14 @@ rule log_workflow:
         with open(outdir + "/workflow/align.strobealign.summary", "w") as f:
             _ = f.write("The harpy align strobealign workflow ran using these parameters:\n\n")
             _ = f.write(f"The provided genome: {bn}\n")
-            _ = f.write("The genome index was created using:\n")
-            _ = f.write("    strobealign --create-index -r {params.readlen} genome\n")
-            _ = f.write("Sequencing were aligned with strobealign using:\n")
-            _ = f.write(f"    strobealign --use-index -U -C --rg=SM:SAMPLE {params.extra} genome reads.F.fq reads.R.fq |\n")
+            if autolen:
+                _ = f.write("Sequencing were aligned with strobealign using:\n")
+                _ = f.write(f"    strobealign -U -C --rg-id=SAMPLE --rg=SM:SAMPLE {params.extra} genome reads.F.fq reads.R.fq |\n")
+            else:
+                _ = f.write("The genome index was created using:\n")
+                _ = f.write(f"    strobealign --create-index -r {params.readlen} genome\n")
+                _ = f.write("Sequencing were aligned with strobealign using:\n")
+                _ = f.write(f"    strobealign --use-index -U -C --rg=SM:SAMPLE {params.extra} genome reads.F.fq reads.R.fq |\n")
             _ = f.write(f"    samtools view -h -F 4 -q {params.quality} |\n")
             _ = f.write("Duplicates in the alignments were marked following:\n")
             _ = f.write("    samtools collate \n")

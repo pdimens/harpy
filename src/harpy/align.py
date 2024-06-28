@@ -119,6 +119,7 @@ def bwa(inputs, output_dir, genome, depth_window, threads, extra_params, quality
     fetch_script(workflowdir, "assignMI.py")
     fetch_script(workflowdir, "bxStats.py")
     fetch_report(workflowdir, "AlignStats.Rmd")
+    fetch_report(workflowdir, "AlignBxStats.Rmd")
 
     with open(f"{workflowdir}/config.yaml", "w", encoding="utf-8") as config:
         config.write("workflow: align bwa\n")
@@ -208,8 +209,8 @@ def ema(inputs, output_dir, platform, whitelist, genome, depth_window, threads, 
     validate_input_by_ext(genome, "--genome", [".fasta", ".fa", ".fasta.gz", ".fa.gz"])
     fetch_rule(workflowdir, "align-ema.smk")
     fetch_script(workflowdir, "bxStats.py")
-    for i in ["EmaCount", "AlignStats"]:
-        fetch_report(workflowdir, f"{i}.Rmd")
+    fetch_report(workflowdir, "AlignStats.Rmd")
+    fetch_report(workflowdir, "AlignBxStats.Rmd")
 
     with open(f"{workflowdir}/config.yaml", "w", encoding="utf-8") as config:
         config.write("workflow: align ema\n")
@@ -238,87 +239,11 @@ def ema(inputs, output_dir, platform, whitelist, genome, depth_window, threads, 
     _module = subprocess.run(command.split())
     sys.exit(_module.returncode)
 
-#@click.command(no_args_is_help = True, epilog= "read the docs for more information: https://pdimens.github.io/harpy/modules/align/minimap/")
-#@click.option('-g', '--genome', type=click.Path(exists=True, dir_okay=False), required = True, help = 'Genome assembly for read mapping')
-#@click.option('-m', '--molecule-distance', default = 100000, show_default = True, type = int, help = 'Base-pair distance threshold to separate molecules')
-#@click.option('-f', '--quality-filter', default = 30, show_default = True, type = click.IntRange(min = 0, max = 40), help = 'Minimum mapping quality to pass filtering')
-#@click.option('-d', '--depth-window', default = 50000, show_default = True, type = int, help = 'Interval size (in bp) for depth stats')
-#@click.option('-x', '--extra-params', type = str, help = 'Additional aligner parameters, in quotes')
-#@click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(min = 4, max_open = True), help = 'Number of threads to use')
-#@click.option('-q', '--quiet',  is_flag = True, show_default = True, default = False, help = 'Don\'t show output text while running')
-#@click.option('-o', '--output-dir', type = str, default = "Align/minimap", show_default=True, help = 'Name of output directory')
-#@click.option('--snakemake', type = str, help = 'Additional Snakemake parameters, in quotes')
-#@click.option('--hpc',  type = click.Path(exists = True, file_okay = False), help = 'Config dir for automatic HPC submission')
-#@click.option('--conda',  is_flag = True, default = False, help = 'Use conda/mamba instead of container')
-#@click.option('--skipreports',  is_flag = True, show_default = True, default = False, help = 'Don\'t generate HTML reports')
-#@click.option('--print-only',  is_flag = True, hidden = True, default = False, help = 'Print the generated snakemake command and exit')
-#@click.argument('inputs', required=True, type=click.Path(exists=True), nargs=-1)
-#def minimap(inputs, output_dir, genome, depth_window, threads, extra_params, quality_filter, molecule_distance, snakemake, skipreports, quiet, hpc, conda, print_only):
-#    """
-#    Align sequences to genome using `Minimap2`
-# 
-#    Provide the input fastq files and/or directories at the end of the command as individual
-#    files/folders, using shell wildcards (e.g. `data/echidna*.fastq.gz`), or both.
-#    
-#    Minimap2 is an ultra-fast aligner comparable to bwa for sequences >100bp. This aligner does 
-#    not use barcodes when mapping. Harpy will post-processes the alignments using the
-#    specified `--molecule-distance` to assign alignments to unique molecules. 
-#    """
-#    output_dir = output_dir.rstrip("/")
-#    workflowdir = f"{output_dir}/workflow"
-#    sdm = "conda" if conda else "conda apptainer"
-#    command = f'snakemake --rerun-incomplete --rerun-triggers input mtime params --nolock --software-deployment-method {sdm} --conda-prefix ./.snakemake/conda --cores {threads} --directory . '
-#    command += f"--snakefile {workflowdir}/align-minimap.smk "
-#    command += f"--configfile {workflowdir}/config.yaml "
-#    if hpc:
-#        command += f"--workflow-profile {hpc} "
-#    if quiet:
-#        command += "--quiet all "
-#    if snakemake is not None:
-#        command +=  snakemake
-#    if print_only:
-#        click.echo(command)
-#        sys.exit(0)
-#
-#    os.makedirs(f"{workflowdir}/", exist_ok= True)
-#    fqlist, sample_count = parse_fastq_inputs(inputs)
-#    validate_input_by_ext(genome, "--genome", [".fasta", ".fa", ".fasta.gz", ".fa.gz"])
-#    fetch_rule(workflowdir, "align-minimap.smk")
-#    fetch_script(workflowdir, "assignMI.py")
-#    fetch_script(workflowdir, "bxStats.py")
-#    fetch_report(workflowdir, "AlignStats.Rmd")
-#
-#    with open(f"{workflowdir}/config.yaml", "w", encoding="utf-8") as config:
-#        config.write("workflow: align minimap\n")
-#        config.write(f"genomefile: {genome}\n")
-#        config.write(f"seq_directory: {workflowdir}/input\n")
-#        config.write(f"output_directory: {output_dir}\n")
-#        config.write(f"quality: {quality_filter}\n")
-#        config.write(f"molecule_distance: {molecule_distance}\n")
-#        config.write(f"depth_windowsize: {depth_window}\n")
-#        config.write(f"skipreports: {skipreports}\n")
-#        if extra_params is not None:
-#            config.write(f"extra: {extra_params}\n")
-#        config.write(f"workflow_call: {command}\n")
-#        config.write("inputs:\n")
-#        config.write(f"  genome: {Path(genome).resolve()}\n")
-#        config.write("  fastq:\n")
-#        for i in fqlist:
-#            config.write(f"    - {i}\n")
-#
-#    print_onstart(
-#        f"Samples: {sample_count}\nOutput Directory: {output_dir}",
-#        "align minimap"
-#    )
-#    generate_conda_deps()
-#    _module = subprocess.run(command.split())
-#    sys.exit(_module.returncode)
-
 @click.command(no_args_is_help = True, epilog= "read the docs for more information: https://pdimens.github.io/harpy/modules/align/minimap/")
 @click.option('-g', '--genome', type=click.Path(exists=True, dir_okay=False), required = True, help = 'Genome assembly for read mapping')
 @click.option('-m', '--molecule-distance', default = 100000, show_default = True, type = int, help = 'Base-pair distance threshold to separate molecules')
 @click.option('-f', '--quality-filter', default = 30, show_default = True, type = click.IntRange(min = 0, max = 40), help = 'Minimum mapping quality to pass filtering')
-@click.option('-r', '--read-length', default = "125", show_default = True, type = click.Choice(["50", "75", "100", "125", "150", "250", "400"]), help = 'Average read length for creating index')
+@click.option('-r', '--read-length', default = "auto", show_default = True, type = click.Choice(["auto", "50", "75", "100", "125", "150", "250", "400"]), help = 'Average read length for creating index')
 @click.option('-d', '--depth-window', default = 50000, show_default = True, type = int, help = 'Interval size (in bp) for depth stats')
 @click.option('-x', '--extra-params', type = str, help = 'Additional aligner parameters, in quotes')
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(min = 4, max_open = True), help = 'Number of threads to use')
@@ -337,11 +262,12 @@ def strobe(inputs, output_dir, genome, read_length, depth_window, threads, extra
     Provide the input fastq files and/or directories at the end of the command as individual
     files/folders, using shell wildcards (e.g. `data/echidna*.fastq.gz`), or both.
     
-    strobealign is an ultra-fast aligner comparable to bwa for sequences >100bp. This aligner does 
-    not use barcodes when mapping. Harpy will post-processes the alignments using the
+    strobealign is an ultra-fast aligner comparable to bwa for sequences >100bp and does 
+    not use barcodes when mapping, so Harpy will post-processes the alignments using the
     specified `--molecule-distance` to assign alignments to unique molecules. The `--read-length` is
-    an *approximate* parameter and should be one of [`50`, `75`, `100`, `125`, `150`, `250`, `400`].
-    If your input is post-qc sequences, then you should expect the read lengths to be <150.
+    an *approximate* parameter and should be one of [`auto`, `50`, `75`, `100`, `125`, `150`, `250`, `400`].
+    The alignment process will be faster and take up less disk/RAM if you specify an `-r` value that isn't
+    `auto`. If your input has adapters removed, then you should expect the read lengths to be <150.
     """
     output_dir = output_dir.rstrip("/")
     workflowdir = f"{output_dir}/workflow"
@@ -366,6 +292,7 @@ def strobe(inputs, output_dir, genome, read_length, depth_window, threads, extra
     fetch_script(workflowdir, "assignMI.py")
     fetch_script(workflowdir, "bxStats.py")
     fetch_report(workflowdir, "AlignStats.Rmd")
+    fetch_report(workflowdir, "AlignBxStats.Rmd")
 
     with open(f"{workflowdir}/config.yaml", "w", encoding="utf-8") as config:
         config.write("workflow: align strobe\n")
@@ -396,5 +323,4 @@ def strobe(inputs, output_dir, genome, read_length, depth_window, threads, extra
 
 align.add_command(bwa)
 align.add_command(ema)
-#align.add_command(minimap)
 align.add_command(strobe)

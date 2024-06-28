@@ -5,7 +5,6 @@ import os
 import sys
 import subprocess
 from pathlib import Path
-from collections import Counter
 from rich.markdown import Markdown
 import rich_click as click
 from .printfunctions import print_error, print_solution_with_culprits
@@ -117,40 +116,36 @@ def parse_alignment_inputs(inputs):
         sys.exit(1)
     return bam_infiles, len(uniqs)
 
-#def get_samples_from_fastq(directory):
-#    """Identify the sample names from a directory containing FASTQ files"""
-#    full_flist = [i for i in glob.iglob(f"{directory}/*") if not os.path.isdir(i)]
-#    r = re.compile(r".*\.f(?:ast)?q(?:\.gz)?$", flags=re.IGNORECASE)
-#    full_fqlist = list(filter(r.match, full_flist))
-#    fqlist = [os.path.basename(i) for i in full_fqlist]
-#    bn_r = r"[\.\_][RF](?:[12])?(?:\_00[1-9])*\.f(?:ast)?q(?:\.gz)?$"
-#    if len(fqlist) == 0:
-#        print_error(f"No fastq files with acceptable names found in [bold]{directory}[/bold]")
-#        print_solution("Check that the file endings conform to [green].[/green][[green]F[/green][dim]|[/dim][green]R1[/green]][green].[/green][[green]fastq[/green][dim]|[/dim][green]fq[/green]][green].gz[/green]\nRead the documentation for details: https://pdimens.github.io/harpy/haplotagdata/#naming-conventions")
-#        sys.exit(1)
-#
-#    return set([re.sub(bn_r, "", i, flags = re.IGNORECASE) for i in fqlist])
-
-
 def biallelic_contigs(vcf, workdir):
-    """Identify which contigs have at least 2 biallelic SNPs"""
+    """Identify which contigs have at least 2 biallelic SNPs and write them to workdir/vcf.biallelic"""
     vbn = os.path.basename(vcf)
-    if os.path.exists(f"{workdir}/{vbn}.biallelic"):
-        with open(f"{workdir}/{vbn}.biallelic", "r", encoding="utf-8") as f:
-            contigs = [line.rstrip() for line in f]
-        click.echo(f"{workdir}/{vbn}.biallelic exists, using the {len(contigs)} contigs listed in it.", file = sys.stderr)
-    else:
-        click.echo("Identifying which contigs have at least 2 biallelic SNPs", file = sys.stderr)
-        os.makedirs(f"{workdir}/", exist_ok = True)
-        biallelic = subprocess.Popen(f"bcftools view -M2 -v snps {vcf} -Ob".split(), stdout = subprocess.PIPE)
-        contigs = subprocess.run("""bcftools query -f '%CHROM\\n'""".split(), stdin = biallelic.stdout, stdout = subprocess.PIPE, check = False).stdout.decode().splitlines()
-        counts = Counter(contigs)
-        contigs = [i.replace("\'", "") for i in counts if counts[i] > 1]
-        with open(f"{workdir}/{vbn}.biallelic", "w", encoding="utf-8") as f:
-            _ = [f.write(f"{i}\n") for i in contigs]
+    os.makedirs(f"{workdir}/", exist_ok = True)
+    valid = []
+    vcfheader = subprocess.check_output(['bcftools', 'view', '-h', vcf]).decode().split('\n')
+    header_contigs = [i.split(",")[0].replace("##contig=<ID=","") for i in vcfheader if i.startswith("##contig=")]
+    if vcf.lower().endswith("bcf") and not os.path.exists(f"{vcf}.csi"):
+        subprocess.run(f"bcftools index {vcf}".split())
+    if vcf.lower().endswith("vcf.gz") and not os.path.exists(f"{vcf}.csi"):
+        subprocess.run(f"bcftools index --tbi {vcf}".split())
 
-    if len(contigs) == 0:
-        print_error("No contigs with at least 2 biallelic SNPs identified. Cannot continue with imputation.")
+    for contig in header_contigs:
+        # Use bcftools to count the number of biallelic SNPs in the contig
+        viewcmd = subprocess.Popen(['bcftools', 'view', '-r', contig, '-v', 'snps', '-m2', '-M2', '-c', '2', vcf], stdout=subprocess.PIPE)
+        snpcount = 0
+        while True:
+            # Read the next line of output
+            line = viewcmd.stdout.readline().decode()
+            if not line:
+                break
+            snpcount += 1
+            # If there are at least 2 biallellic snps, terminate the process
+            if snpcount >= 2:
+                valid.append(contig)
+                viewcmd.terminate()
+                break
+    if not valid:
+        click.echo("No contigs with at least 2 biallelic SNPs identified. Cannot continue with imputation.")
         sys.exit(1)
-    else:
-        return f"{workdir}/{vbn}.biallelic"
+    with open(f"{workdir}/{vbn}.biallelic", "w", encoding="utf-8") as f:
+        f.write("\n".join(valid))
+    return f"{workdir}/{vbn}.biallelic", len(valid)

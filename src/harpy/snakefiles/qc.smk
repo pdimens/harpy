@@ -114,15 +114,18 @@ rule create_report:
     log:
         outdir + "/logs/mutliqc.log"
     params:
-        outdir
+        logdir = f"{outdir}/reports/data/fastp/",
+        module = "-m fastp",
+        options = "--no-version-check --force --quiet --no-data-dir",
+        title = "--title \"QC Summary\"",
+        comment = "--comment \"This report aggregates trimming and quality control metrics reported by fastp.\""
+
     conda:
         f"{envdir}/qc.yaml"
     message:
         "Aggregating fastp reports"
     shell: 
-        """
-        multiqc {params}/reports/data/fastp/ -m fastp --force --filename {output} --quiet --title "QC Summary" --comment "This report aggregates trimming and quality control metrics reported by fastp" --no-data-dir 2> {log}
-        """
+        "multiqc {params} --filename {output} 2> {log}"
 
 rule log_workflow:
     default_target: True

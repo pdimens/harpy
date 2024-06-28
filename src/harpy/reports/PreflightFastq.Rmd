@@ -1,12 +1,15 @@
 ---
 title: "FASTQ Haplotag Format Check"
-date: "`r format(Sys.time(), '%m-%d-%y %X')`"
+date: "`r format(Sys.time(), '%d %b, %Y at %H:%M')`"
 output:
   flexdashboard::flex_dashboard:
     theme: lumen
     orientation: rows  
     vertical_layout: scroll
-    favicon: "https://raw.githubusercontent.com/pdimens/harpy/docs/static/favicon_dark.png"
+    logo: https://raw.githubusercontent.com/pdimens/harpy/docs/static/logo_mini.png
+    favicon: "https://raw.githubusercontent.com/pdimens/harpy/docs/static/favicon_report.png"
+    navbar:
+      - { title : "Docs", icon: "fa-book", href: "https://pdimens.github.io/harpy/", align: right }
 ---
 
 ```{r load environment, echo=FALSE, message=FALSE, warning=FALSE}
@@ -21,9 +24,9 @@ using<-function(...) {
 }
 using("flexdashboard","dplyr","tidyr","DT","highcharter","scales")
 
-#infile <- "~/Documents/harpy/test/fastq/Preflight/filecheck.fastq.tsv"
+#infile <- "~/Documents/harpy/Preflight/fastq/filecheck.fastq.tsv"
 infile <- snakemake@input[[1]]
-#dirname <- "filler text"
+
 data <- read.table(infile, header = T)
 attention_df <- data %>% 
   mutate(allmissing = (reads == noBX)) %>% 
@@ -32,72 +35,29 @@ attention_df <- data %>%
   summarise(count = sum(c(badBX,badSamSpec, allmissing)))
 attention <- sum(attention_df$count > 0)
 ```
-
+# File Checks
 ## filetop
 ### fltop {.no-title}
 <h1> Preflight checks for FASTQ files </h1>
 
 This report reflects the FASTQ files provided. Harpy has processed
-the files to identify formatting issues that may require your attention.
+the files to identify [formatting issues](#details) that may require your attention.
 
 ## General Information {data-height=100}
 ### nfiles
 ```{r}
-valueBox(scales::comma(nrow(data)), caption = "Files", color = "info")
+valueBox(scales::comma(nrow(data)), caption = "FASTQ Files",  icon = "fa-file", color = "#C0C0C0")
 ```
-### fileformat
-```{r}
-valueBox("FASTQ", caption = "File Format", color = "info")
-```
+
 ### issues
 ```{r}
-valueBox(scales::comma(attention), caption = "Files With Issues", color = ifelse(attention > 0, "warning", "success"))
+valueBox(scales::comma(attention), caption = "Files With Issues", icon = ifelse(attention > 0, "fa-exclamation", "fa-check"), color = ifelse(attention > 0, "warning", "success"))
 ```
 
 ### BX not last
 ```{r}
 bxnotlast <- sum(data$bxNotLast > 0)
-valueBox(bxnotlast, caption = "BX:Z: tag not last", color = ifelse(bxnotlast > 0, "#feda75", "success"))
-```
-
-## interpret
-### interpcol {.no-title}
-<h2> Interpreting the Data </h2>
-
-The `harpy preflight fastq -d ...` created a `Preflight` folder within
-the supplied directory and within it you will find this report, along with the
-`filecheck.fastq.tsv` file summing the results that are included in this report.
-This file contains a tab-delimited table with the columns: `file`,	`reads`, `noBX`,	`badBX`, and	`badSamSpec`. These columns are defined by:
-
-- `file`: the name of the FASTQ file
-- `reads`: the total number of reads in the file
-- `noBX`: the number of reads that do not have a `BX:Z:` tag in the read header
-  - severity: <strong style='color:#c0c0c0;'>minimal</strong> and likely won't cause issues unless no reads have `BX:Z:` tags
-  - if you expect all of your reads should have `BX:Z:` tags, then further investigation is necessary
-- `badBX`: the haplotag barcode in the `BX:Z:` comment does not adhere to the proper `AxxCxxBxxDxx` format
-  - severity: <strong style='color:red;'>critical</strong> and will cause downstream issues and errors
-- `badSamSpec`: the comments in the read header after the read ID do not conform to the `TAG:TYPE:VALUE` [SAM specification](https://samtools.github.io/hts-specs/SAMv1.pdf)
-  - severity: <strong style='color:red;'>critical</strong> and will cause downstream issues and errors
-- `bxNotLast`: the `BX:Z:` tag in the FASTQ header is not the last comment
-  - severity: <strong style='color:orange;'>conditional</strong> and only relevant for LEVIATHAN variant calling 
-  - can be ignored if not intending to call structural variants with LEVIATHAN
-  - if intending to use LEVIATHAN, the `BX:Z:` tag must be the last comment in a read header
-  - `harpy align -m bwa` automatically moves the `BX:Z:` tag to the end of the alignment record
-
-### Proper header {.no-title}
-<h2> Proper Read Headers </h2>
-
-An example of a proper FASTQ read header is like the one below, where all comments
-following the initial read ID (`@A00814...`) have the proper [SAM spec](https://samtools.github.io/hts-specs/SAMv1.pdf)
-`TAG:TYPE:VALUE` format and among them is a `BX:Z:` tag followed by a `AxxCxxBxxDxx`
-formatted haplotag barcode. The comments must be **TAB separated** because the `:Z:` tag type allows a 
-whitespace character for its value. The read header below contains the read ID `@A00814...`,
-the `BX:Z:` haplotag barcode tag, and two more comments `RX:Z:` and `QX:Z:` that both
-adhere to the SAM specification. If using LEVIATHAN to call structural variants, the `BX:Z:` tag
-must be the last comment in the read header.
-
-```
-@A00814:267:HTMH3DRXX:2:1101:4580:1000	BX:Z:A02C01B11D46	RX:Z:GAAACGACCAACA+CGAACACGTTAGC	QX:Z:F,FFFFFFFFFFF+FF,FFF:FFFFFF
+valueBox(bxnotlast, caption = "BX:Z: tag not last", icon = ifelse(attention > 0, "fa-exclamation", "fa-check"), color = ifelse(bxnotlast > 0, "#feda75", "success"))
 ```
 
 ## viz desc
@@ -127,9 +87,6 @@ knitr::kable(
 )
 ```
 
-If the heatmap appears to be completely green, then all of your samples have passed all the preflight checks.
-If any sample fails at least one check, fails will appear in yellow and passes will appear in blue.
-
 ## datarow 
 ### plot {.no-title}
 ```{r status_df}
@@ -146,21 +103,20 @@ data2 <- data %>%
   rownames(m) <- data$file
 ```
 
-
-```{r readsper, echo = FALSE, message = FALSE, warning = FALSE, out.width = '100%'}
+```{r readsper, echo = FALSE, message = FALSE, warning = FALSE}
 hchart(m) |>
-  hc_colorAxis(stops = list(c(0, "#feda75"), c(1, "#4faad1")), tickAmount = 2) |>
-  hc_title(text = "FASTQ file preflight QC") |>
+  hc_colorAxis(stops = list(c(0, "#feda75"), c(1, "#4faad1")), tickAmount = 2, min = 0, max = 1) |>
+  hc_title(text = "FASTQ File Checks") |>
   hc_xAxis(labels = list(style = list(fontSize = '16px')) )|>
   hc_yAxis(labels = list(style = list(fontSize = '16px')) )|>
-  hc_plotOptions(heatmap = list(borderWidth = 1, borderColor = "white", animated = F)) |>
+  hc_plotOptions(heatmap = list(animation = FALSE, borderWidth = 1, borderColor = "white", states = list(inactive = list(animation = FALSE), normal = list(animation = FALSE)))) |>
   hc_legend(enabled = F) |>
   hc_tooltip(
     animation = FALSE,
-    formatter = JS("function () {return '<b>' + this.series.xAxis.categories[this.point.x] + '</b><br>' + this.series.yAxis.categories[this.point.y] + '<br/>QC: <b>' + (this.point.value<1 ? 'FAIL' : 'PASS') + '</b>';}") 
+    formatter = JS("function () {return '<b>' + this.series.xAxis.categories[this.point.x] + '</b><br>' + this.series.yAxis.categories[this.point.y] + '<br/>QC: <b>' + (this.point.value<1 ? 'FAIL</b>' : 'PASS</b>');}") 
   ) |>
   hc_exporting(enabled = T, filename = "fastq.preflight",
-    buttons = list(contextButton = list(menuItems = c("viewFullscreen", "separator", "downloadPNG", "downloadJPEG", "downloadPDF", "downloadSVG")))
+    buttons = list(contextButton = list(menuItems = c("downloadPNG", "downloadJPEG", "downloadPDF", "downloadSVG")))
   )
 ```
 
@@ -174,4 +130,66 @@ DT::datatable(
   options = list(dom = 'Brtip', buttons = c('csv'), scrollX = T),
   fillContainer = T
 )
+```
+
+# Details
+## interpret
+### interpcol {.no-title}
+<h2> Interpreting the Data </h2>
+
+The `harpy preflight fastq ...` command created a `filecheck.fastq.tsv` file in the specified
+output directory that summarizes the results that are included in this report.
+This file contains a tab-delimited table with the columns: `file`,	`reads`, `noBX`,	`badBX`, and	`badSamSpec`. These columns are defined by:
+
+#### file
+The name of the FASTQ file
+
+#### reads
+The total number of reads in the file
+
+#### noBX
+The number of reads that do not have a `BX:Z:` tag in the read header
+
+- severity: <strong style='color:#c0c0c0;'>minimal</strong> and likely won't cause issues unless no reads have `BX:Z:` tags
+- if you expect all of your reads should have `BX:Z:` tags, then further investigation is necessary
+
+#### badBX
+The haplotag barcode in the `BX:Z:` comment does not adhere to the proper `AxxCxxBxxDxx` format
+
+- severity: <strong style='color:red;'>critical</strong> and will cause downstream issues and errors
+
+#### badSamSpec
+The comments in the read header after the read ID do not conform to the `TAG:TYPE:VALUE` [SAM specification](https://samtools.github.io/hts-specs/SAMv1.pdf)
+
+- severity: <strong style='color:red;'>critical</strong> and will cause downstream issues and errors
+
+#### bxNotLast
+The `BX:Z:` tag in the FASTQ header is not the last comment
+
+- severity: <strong style='color:orange;'>conditional</strong> and only relevant for LEVIATHAN variant calling 
+- can be ignored if not intending to call structural variants with LEVIATHAN
+- if intending to use LEVIATHAN, the `BX:Z:` tag must be the last comment in a read header
+- `harpy align -m bwa` automatically moves the `BX:Z:` tag to the end of the alignment record
+
+### Proper header {.no-title}
+<h2> Proper Read Headers </h2>
+
+#### SAM Specification
+An example of a proper FASTQ read header is like the one below, where all comments
+following the initial read ID (`@A00814...`) have the proper [SAM spec](https://samtools.github.io/hts-specs/SAMv1.pdf)
+`TAG:TYPE:VALUE` format and among them is a `BX:Z:` tag followed by a `AxxCxxBxxDxx`
+formatted haplotag barcode. 
+
+#### Comments
+The comments must be **TAB separated** because the `:Z:` tag type allows a 
+whitespace character for its value. 
+
+#### Example Header
+The read header below contains the read ID `@A00814...`,
+the `BX:Z:` haplotag barcode tag, and two more comments `RX:Z:` and `QX:Z:` that both
+adhere to the SAM specification. If using LEVIATHAN to call structural variants, the `BX:Z:` tag
+must be the last comment in the read header.
+
+```
+@A00814:267:HTMH3DRXX:2:1101:4580:1000	BX:Z:A02C01B11D46	RX:Z:GAAACGACCAACA+CGAACACGTTAGC	QX:Z:F,FFFFFFFFFFF+FF,FFF:FFFFFF
 ```

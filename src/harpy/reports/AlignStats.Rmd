@@ -1,13 +1,16 @@
 ---
-title: "Harpy Alignment Report"
-date: "`r format(Sys.time(), '%m-%d-%y %X')`"
+title: "Harpy Alignment Summary"
+date: "`r format(Sys.time(), '%d %b, %Y at %H:%M')`"
 output:
   flexdashboard::flex_dashboard:
     theme: lumen
     orientation: rows
     vertical_layout: scroll
     horizontal_layout: fill
-    favicon: "https://raw.githubusercontent.com/pdimens/harpy/docs/static/favicon_dark.png"
+    logo: https://raw.githubusercontent.com/pdimens/harpy/docs/static/logo_mini.png
+    favicon: "https://raw.githubusercontent.com/pdimens/harpy/docs/static/favicon_report.png"
+    navbar:
+      - { title : "Docs", icon: "fa-book", href: "https://pdimens.github.io/harpy/", align: right }
 ---
 
 # Barcode Stats
@@ -32,8 +35,12 @@ infile <- snakemake@input[[1]]
 bamfile <- gsub(".bxstats.gz", ".bam", infile)
 samplename <- gsub(".bxstats.gz", "", basename(infile))
 tb <- read.table(infile, header = T, sep = "\t") %>% select(-start, -end)
+if(nrow(tb) == 0){
+  print(paste("Input data file",infle, "is empty"))
+  knittr::knittr_exit()
+}
 tb$valid <- tb$molecule
-tb[!(tb$valid %in% c("noBX", "invalidBX")), "valid"] <- "validBX"
+tb[tb$valid != "invalidBX", "valid"] <- "validBX"
 tb$valid <- gsub("BX", " BX", tb$valid)
 ```
 
@@ -43,18 +50,16 @@ nBX <- group_by(valids, contig) %>%
   summarize(nBX = length(molecule))
 
 avgBX <- round(mean(nBX$nBX), digits = 2)
-
-totuniqBX <- length(unique(valids$molecule))
+totuniqBX <- read.table(infile, header = F, sep = "\n", as.is = T, skip = nrow(tb) + 1, comment.char = "+")
+totuniqBX <- gsub("#total unique barcodes: ", "", totuniqBX) |> as.integer()
 
 tots <- tb %>% 
     group_by(valid) %>%
     summarize(total = length(molecule)) %>% 
     as.data.frame()
-for(i in c("no BX", "invalid BX", "valid BX")){
-  if (!(i %in% tots$valid)){
-    tots <- rbind(tots, data.frame("valid" = i, total = 0))
-  }
-}
+
+tot_invalid <- sum(tots$valid == "invalid BX")
+tot_valid <- sum(tots$valid == "valid BX")
 ```
 
 ```{r nxx, echo = F, results = F, message = F}
@@ -79,12 +84,12 @@ valueBox(scales::comma(length(unique(tb$contig))), caption = "Contigs")
 
 ### validBX
 ```{r}
-valueBox(scales::comma(tots[tots$valid == "valid BX", 2]), caption = "Valid Barcodes", color = "success", icon = "fa-vial-circle-check")
+valueBox(scales::comma(tot_valid), caption = "Valid Barcodes", color = "success", icon = "fa-vial-circle-check")
 ```
 
 ### invalidBX
 ```{r}
-valueBox(scales::comma(tots[tots$valid == "invalid BX", 2]), caption = "Invalid Barcodes", color = "warning", icon = "fa-x")
+valueBox(scales::comma(tot_invalid), caption = "Invalid Barcodes", color = "warning", icon = "fa-x")
 ```
 
 ### glob-avg
@@ -138,7 +143,7 @@ hchart(hs, "areaspline", hcaes(x = val, y = freq), color = "#8484bd", name = "% 
   hc_caption(text = paste0("Total unique molecules: ", totuniqBX)) |>
   hc_tooltip(crosshairs = TRUE) |>
   hc_exporting(enabled = T, filename = paste0(samplename, ".readsper"),
-    buttons = list(contextButton = list(menuItems = c("viewFullscreen", "separator", "downloadPNG", "downloadJPEG", "downloadPDF", "downloadSVG")))
+    buttons = list(contextButton = list(menuItems = c("downloadPNG", "downloadJPEG", "downloadPDF", "downloadSVG")))
   )
 ```
 
@@ -155,7 +160,7 @@ hchart(hs, "areaspline", hcaes(x = val, y = freq), color = "#75b89e", name = "% 
   hc_caption(text = paste0("Total unique molecules: ", totuniqBX)) |>
   hc_tooltip(crosshairs = TRUE) |>
   hc_exporting(enabled = T, filename = paste0(samplename, ".basesper"),
-    buttons = list(contextButton = list(menuItems = c("viewFullscreen", "separator", "downloadPNG", "downloadJPEG", "downloadPDF", "downloadSVG")))
+    buttons = list(contextButton = list(menuItems = c("downloadPNG", "downloadJPEG", "downloadPDF", "downloadSVG")))
   )
 ```
 
@@ -186,7 +191,7 @@ hchart(hs, "areaspline", hcaes(x = val, y = freq), color = "#b3519d", name = "% 
   hc_caption(text = paste0("Total unique molecules: ", totuniqBX)) |>
   hc_tooltip(crosshairs = TRUE) |>
   hc_exporting(enabled = T, filename = paste0(samplename, ".mollen"),
-    buttons = list(contextButton = list(menuItems = c("viewFullscreen", "separator", "downloadPNG", "downloadJPEG", "downloadPDF", "downloadSVG")))
+    buttons = list(contextButton = list(menuItems = c("downloadPNG", "downloadJPEG", "downloadPDF", "downloadSVG")))
   )
 ```
 
@@ -227,7 +232,7 @@ hchart(hs, "areaspline", hcaes(x = val, y = freq), color = "#e59765", name = "% 
   hc_caption(text = paste0("Total unique molecules: ", totuniqBX)) |>
   hc_tooltip(crosshairs = TRUE) |>
   hc_exporting(enabled = T, filename = paste0(samplename, ".molcov"),
-    buttons = list(contextButton = list(menuItems = c("viewFullscreen", "separator", "downloadPNG", "downloadJPEG", "downloadPDF", "downloadSVG")))
+    buttons = list(contextButton = list(menuItems = c("downloadPNG", "downloadJPEG", "downloadPDF", "downloadSVG")))
   )
 ```
 
@@ -248,7 +253,7 @@ hchart(hs, "areaspline", hcaes(x = val, y = freq), color = "#dbe465", name = "% 
   hc_caption(text = paste0("Total unique molecules: ", totuniqBX)) |>
   hc_tooltip(crosshairs = TRUE) |>
   hc_exporting(enabled = T, filename = paste0(samplename, ".molcov"),
-    buttons = list(contextButton = list(menuItems = c("viewFullscreen", "separator", "downloadPNG", "downloadJPEG", "downloadPDF", "downloadSVG")))
+    buttons = list(contextButton = list(menuItems = c("downloadPNG", "downloadJPEG", "downloadPDF", "downloadSVG")))
   )
 ```
 
@@ -307,6 +312,10 @@ knitr::kable(
 covfile <- snakemake@input[[2]]
 #covfile <- "~/test.cov.gz"
 tb <- read.table(covfile, header = F)
+if(nrow(tb) == 0){
+  print(paste("Input data file",covfile, "is empty"))
+  knittr::knittr_exit()
+}
 colnames(tb) <- c("contig", "position", "depth")
 q99 <- quantile(tb$depth, 0.99)
 Mode <- function(x) {
@@ -402,7 +411,7 @@ hchart(hs, "areaspline", hcaes(x = val, y = freq), color = "#9393d2", name = "% 
   hc_yAxis(title = list(text = "% molecules"))  |>
   hc_title(text = "Distribution of Alignment Depths")  |>
   hc_exporting(enabled = T, filename = paste0(samplename, ".cov"),
-    buttons = list(contextButton = list(menuItems = c("viewFullscreen", "separator", "downloadPNG", "downloadJPEG", "downloadPDF", "downloadSVG")))
+    buttons = list(contextButton = list(menuItems = c("downloadPNG", "downloadJPEG", "downloadPDF", "downloadSVG")))
   )
 ```
 
