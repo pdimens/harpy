@@ -30,6 +30,7 @@ data <- read.table(infile, header = T)
 attention_df <- data %>% select(-1,-3) %>% rowwise() %>% summarise(count = sum(c(nameMismatch, noBX, badBX)))
 attention <- sum(attention_df$count > 0)
 ```
+# File Checks
 ## filetop
 ### fltop {.no-title}
 <h1> Preflight checks for BAM files </h1>
@@ -40,75 +41,24 @@ the files to identify formatting conformity and issues that may require your att
 ## General Information {data-height=100}
 ### nfiles
 ```{r}
-valueBox(scales::comma(nrow(data)), caption = "Files", color = "info")
-```
-
-### fileformat
-```{r}
-valueBox("BAM", caption = "File Format", color = "info")
+valueBox(scales::comma(nrow(data)), caption = "Alignment Files", icon = "fa-file", color = "#C0C0C0")
 ```
 
 ### no MI tag
 ```{r}
-noMItag <- sum(data$noMI > 0)
-valueBox(scales::comma(noMItag), caption = "No MI: tag", color = ifelse(noMItag > 0, "warning", "success"))
+noMItag <- sum(data$noMI ==data$alignments)
+valueBox(scales::comma(noMItag), caption = "No MI: tag", icon = ifelse(noMItag > 0, "fa-exclamation", "fa-check"), color = ifelse(noMItag > 0, "warning", "success"))
 ```
 
 ### bxnotlast
 ```{r}
 bxnotlast <- sum(data$bxNotLast > 0)
-valueBox(scales::comma(bxnotlast), caption = "BX:Z: tag not last", color = ifelse(bxnotlast > 0, "warning", "success"))
+valueBox(scales::comma(bxnotlast), caption = "BX:Z: tag not last", icon = ifelse(bxnotlast > 0, "fa-exclamation", "fa-check"), color = ifelse(bxnotlast > 0, "warning", "success"))
 ```
 
 ### issues
 ```{r}
-valueBox(scales::comma(attention), caption = "Files With Issues", color = ifelse(attention > 0, "warning", "success"))
-```
-
-## interpret
-### interpcol {.no-title}
-<h2> Interpreting the Data </h2>
-
-The `harpy preflight bam -d ...` created a `Preflight` folder within
-the supplied directory and within it you will find this report, along with the
-`filecheck.bam.tsv` file summing the results that are included in this report.
-This file contains a tab-delimited table with the columns: `file`,	`nameMismatch`, `alignments`,	`noBX`, and	`badBX`. These columns are defined by:
-
-- `file`: the name of the BAM file
-- `nameMismatch`: the sample name of the file inferred from name of the file (i.e. Harpy assumes `sample1.bam` to be `sample1`) does not match the `@RG ID` tag in the alignment file.
-  - severity: <strong style='color:red;'>critical</strong> and will likely cause downstream issues and errors
-- `alignments`: the total number of alignment records in the file
-- `noMI`: alignment records lack `MI:` tag (`MI:Z:` or `MI:i:`)
-  - severity: <strong style='color:red;'>critical</strong> and will prevent HapCut2 phasing
-  - the `MI` tag is the "molecular identifier", meaning it's the unique name of a molecule from which are series of alignments share a barcode. 
-    - `EMA` adds these to alignments, `BWA` does not, but `harpy align` will add them when using `BWA`
-- `noBX`: the number of alignments that do not have a `BX:Z:` tag in the record
-  - severity: <strong style='color:#c0c0c0;'>minimal</strong> and likely won't cause issues unless no alignments have `BX:Z:` tags
-  - if you expect all of your alignments should have `BX:Z:` tags, then further investigation is necessary
-- `badBX`: the haplotag barcode in the `BX:Z:` tag does not adhere to the proper `AxxCxxBxxDxx` format
-  - severity: <strong style='color:red;'>critical</strong> and will cause downstream issues and errors
-- `bxNotLast`: the `BX:Z:` tag in the alignment record is not the last tag
-  - severity: <strong style='color:orange;'>conditional</strong> and only relevant for LEVIATHAN variant calling 
-  - can be ignored if not intending to call structural variants with LEVIATHAN
-  - if intending to use LEVIATHAN, the `BX:Z:` tag must be the last tag in the alignment records
-    - can be fixed by editing the BAM file, or fixing FASTQ files prior to alignment
-    - `harpy align -m bwa` automatically moves the `BX:Z:` tag to the end of the alignment record
-
-
-### Proper format {.no-title}
-<h2> Proper BAM file format </h2>
-
-A proper BAM file will contain a `BX:Z:` tag with an alignment that features a
-properly-formatted haplotag barcode `AxxCxxBxxDxx`. If this barcode is not in that
-format, then it's likely the input FASTQ used for read mapping is the source of the
-issue. You can check those FASTQ files for errors with `harpy preflight fastq ...`. 
-
-Below is an example of a proper alignment record for a file named `sample1.bam`.
-Note the tag `RG:Z:sample1`, indicating this alignment is associated with `sample1` and
-matches the file name. Also note the correctly formatted haplotag barcode `BX:Z:A19C01B86D78`
-and the presence of a `MI:` tag.
-```
-A00814:267:HTMH3DRXX:2:1132:26268:10316 113     contig1 6312    60      4S47M1D86M      =       6312    0       TAACCCTAACCCTAACCCTAACCCTAAACCTAACCCTAACCCTAACCCTAACCCTATTCCTATTCCTAACCCTAACCCTAAAAACCAACTGCACCCCGGTGCACTTTTGGCTATTACCCCCTATCATACCCTTGTCC     FFFF,FFFF:FFFF:FF:FFF:FFFF,,FFFFFFFFFFF:FFFFF:FFFFFFFFFFFFF:FFFF,FFFFFFFFF:FF:F:FFFFF,F:,FFFFFFFFFF:FFF,FFFFFF:FFFFFF:FFFF:FFFFFFFFFF:FFF     NM:i:2  MD:Z:23C23^C86  MC:Z:4S47M1D86M AS:i:121        XS:i:86 RG:Z:sample1   MI:i:4040669       RX:Z:GAAACGATGTTGC+CCTAAGCCGAATC        QX:Z:FFFFFFFFFFFFF+FFFFF:FFFFFFF    BX:Z:A19C01B86D78
+valueBox(scales::comma(attention), caption = "Files With Issues", icon = ifelse(attention > 0, "fa-exclamation", "fa-check"), color = ifelse(attention > 0, "warning", "success"))
 ```
 
 ## viz desc
@@ -140,9 +90,6 @@ knitr::kable(
 )
 ```
 
-You may click on the plot to expand it in your browser window. Clicking it again will exit
-out of the zoomed view.
-
 ## datarow
 ### plot {.no-title}
 ```{r status_df}
@@ -162,15 +109,15 @@ rownames(m) <- gsub(".bam", "", data$file)
 
 ```{r readsper, echo = FALSE, message = FALSE, warning = FALSE, out.width = '100%'}
 hchart(m) |>
-  hc_colorAxis(stops = list(c(0, "#feda75"), c(1, "#4faad1")), tickAmount = 2) |>
-  hc_title(text = "BAM file preflight QC") |>
+  hc_colorAxis(stops = list(c(0, "#feda75"), c(1, "#4faad1")), tickAmount = 2, min = 0, max = 1) |>
+  hc_title(text = "Alignment File Checks") |>
   hc_xAxis(labels = list(style = list(fontSize = '16px')) )|>
   hc_yAxis(labels = list(style = list(fontSize = '16px')) )|>
-  hc_plotOptions(heatmap = list(borderWidth = 1, borderColor = "white", animated = F)) |>
+  hc_plotOptions(heatmap = list(animation = FALSE, borderWidth = 1, borderColor = "white", states = list(inactive = list(animation = FALSE), normal = list(animation = FALSE)))) |>
   hc_legend(enabled = F) |>
   hc_tooltip(
     animation = FALSE,
-    formatter = JS("function () {return '<b>' + this.series.xAxis.categories[this.point.x] + '</b><br>' + this.series.yAxis.categories[this.point.y] + '<br/>QC: <b>' + (this.point.value<1 ? 'FAIL' : 'PASS') + '</b>';}") 
+    formatter = JS("function () {return '<b>' + this.series.xAxis.categories[this.point.x] + '</b><br>' + this.series.yAxis.categories[this.point.y] + '<br/>QC: <b>' + (this.point.value<1 ? 'FAIL</b>' : 'PASS</b>');}") 
   ) |>
   hc_exporting(enabled = T, filename = "bam.preflight",
     buttons = list(contextButton = list(menuItems = c("downloadPNG", "downloadJPEG", "downloadPDF", "downloadSVG")))
@@ -187,4 +134,73 @@ DT::datatable(
   options = list(dom = 'Brtip', buttons = c('csv'), scrollX = T),
   fillContainer = T
 )
+```
+
+
+# Details
+## interpret
+### interpcol {.no-title}
+<h2> Interpreting the Data </h2>
+
+The `harpy preflight bam ...` command created a `filecheck.bam.tsv` file in the specified
+output directory that summarizes the results that are included in this report.
+This file contains a tab-delimited table with the columns: `file`,	`nameMismatch`, `alignments`,	`noBX`, and	`badBX`. These columns are defined by:
+
+#### file
+The name of the BAM file
+
+#### nameMismatch
+The sample name of the file inferred from name of the file (i.e. Harpy assumes `sample1.bam` to be `sample1`) does not match the `@RG ID` tag in the alignment file.
+
+- severity: <strong style='color:red;'>critical</strong> and will likely cause downstream issues and errors
+
+#### alignments
+The total number of alignment records in the file
+
+#### noMI
+Alignment records lack `MI:` tag (`MI:Z:` or `MI:i:`)
+
+- severity: <strong style='color:red;'>critical</strong> and will prevent HapCut2 phasing
+- the `MI` tag is the "molecular identifier", meaning it's the unique name of a molecule from which are series of alignments share a barcode. 
+  - `EMA` adds these to alignments, `BWA` does not, but `harpy align` will add them when using `BWA`
+
+#### noBX
+The number of alignments that do not have a `BX:Z:` tag in the record
+
+- severity: <strong style='color:#c0c0c0;'>minimal</strong> and likely won't cause issues unless no alignments have `BX:Z:` tags
+- if you expect all of your alignments should have `BX:Z:` tags, then further investigation is necessary
+
+#### badBX
+The haplotag barcode in the `BX:Z:` tag does not adhere to the proper `AxxCxxBxxDxx` format
+
+- severity: <strong style='color:red;'>critical</strong> and will cause downstream issues and errors
+
+#### bxNotLast
+The `BX:Z:` tag in the alignment record is not the last tag
+
+- severity: <strong style='color:orange;'>conditional</strong> and only relevant for LEVIATHAN variant calling 
+- can be ignored if not intending to call structural variants with LEVIATHAN
+- if intending to use LEVIATHAN, the `BX:Z:` tag must be the last tag in the alignment records
+  - can be fixed by editing the BAM file, or fixing FASTQ files prior to alignment
+  - `harpy align -m bwa` automatically moves the `BX:Z:` tag to the end of the alignment record
+
+
+### Proper format {.no-title}
+<h2> Proper BAM file format </h2>
+
+#### BX Tag
+A proper linked-read alignment file will contain a `BX:Z:` tag with an alignment record
+that features a properly-formatted haplotag barcode `AxxCxxBxxDxx`. If this barcode is not in that
+format, then it's likely the input FASTQ used for read mapping is the source of the
+issue. You can check those FASTQ files for errors with `harpy preflight fastq ...`. 
+
+#### Example Alignment Record
+Below is an example of a proper alignment record for a file named `sample1.bam`.
+Note the tag `RG:Z:sample1`, indicating this alignment is associated with `sample1` and
+matches the file name. Also note the correctly formatted haplotag barcode `BX:Z:A19C01B86D78`
+and the presence of a `MI:` tag. To reduce horizontal scrolling, the alignment sequence and Phred
+scores have been replaced with `SEQUENCE` and `QUALITY`, respectively.
+
+```
+A00814:267:HTMH3DRXX:2:1132:26268:10316 113     contig1 6312    60      4S47M1D86M      =       6312    0       SEQUENCE  QUALITY     NM:i:2  MD:Z:23C23^C86  MC:Z:4S47M1D86M AS:i:121        XS:i:86 RG:Z:sample1   MI:i:4040669       RX:Z:GAAACGATGTTGC+CCTAAGCCGAATC        QX:Z:FFFFFFFFFFFFF+FFFFF:FFFFFFF    BX:Z:A19C01B86D78
 ```
