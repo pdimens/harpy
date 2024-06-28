@@ -119,7 +119,7 @@ def bwa(inputs, output_dir, genome, depth_window, threads, extra_params, quality
     fetch_script(workflowdir, "assignMI.py")
     fetch_script(workflowdir, "bxStats.py")
     fetch_report(workflowdir, "AlignStats.Rmd")
-    fetch_report(workflowdir, "BxAlignStats.Rmd")
+    fetch_report(workflowdir, "AlignBxStats.Rmd")
 
     with open(f"{workflowdir}/config.yaml", "w", encoding="utf-8") as config:
         config.write("workflow: align bwa\n")
@@ -210,7 +210,7 @@ def ema(inputs, output_dir, platform, whitelist, genome, depth_window, threads, 
     fetch_rule(workflowdir, "align-ema.smk")
     fetch_script(workflowdir, "bxStats.py")
     fetch_report(workflowdir, "AlignStats.Rmd")
-    fetch_report(workflowdir, "BxAlignStats.Rmd")
+    fetch_report(workflowdir, "AlignBxStats.Rmd")
 
     with open(f"{workflowdir}/config.yaml", "w", encoding="utf-8") as config:
         config.write("workflow: align ema\n")
@@ -292,7 +292,7 @@ def strobe(inputs, output_dir, genome, read_length, depth_window, threads, extra
     fetch_script(workflowdir, "assignMI.py")
     fetch_script(workflowdir, "bxStats.py")
     fetch_report(workflowdir, "AlignStats.Rmd")
-    fetch_report(workflowdir, "BxAlignStats.Rmd")
+    fetch_report(workflowdir, "AlignBxStats.Rmd")
 
     with open(f"{workflowdir}/config.yaml", "w", encoding="utf-8") as config:
         config.write("workflow: align strobe\n")

@@ -57,6 +57,8 @@ process_input <- function(infile){
   tot_invalid_reads <- sum(tb[tb$valid == "invalid BX", "reads"])
   avg_mol_cov <- round(mean(multiplex_df$coverage_inserts), 2)
   sem_mol_cov <- round(std_error(multiplex_df$coverage_inserts), 4)
+  avg_mol_cov_bp <- round(mean(multiplex_df$coverage_bp), 2)
+  sem_mol_cov_bp<- round(std_error(multiplex_df$coverage_bp), 4)
   n50 <- NX(multiplex_df$length_inferred, 50)
   n75 <- NX(multiplex_df$length_inferred, 75)
   n90 <- NX(multiplex_df$length_inferred, 90)
@@ -76,6 +78,8 @@ process_input <- function(infile){
     sereadspermol = sem_reads_per_mol,
     averagemolcov = avg_mol_cov,
     semolcov = sem_mol_cov,
+    averagemolcovbp = avg_mol_cov_bp,
+    semolcovbp = sem_mol_cov_bp,
     N50 = n50,
     N75 = n75,
     N90 = n90
@@ -85,7 +89,7 @@ process_input <- function(infile){
 ```
 
 ```{r setup_df, echo = F, results = F, message = F}
-infiles <- snakemake@input[[1]]
+infiles <- unlist(snakemake@input, recursive = FALSE)
 #infiles <- c("~/sample1.bxstats.gz", "~/sample2.bxstats.gz")
 
 aggregate_df <- data.frame(
@@ -103,6 +107,8 @@ aggregate_df <- data.frame(
   sereadspermol = numeric(),
   averagemolcov = numeric(),
   semolcov = numeric(),
+  averagemolcovbp = numeric(),
+  semolcovbp = numeric(),
   N50 = integer(),
   N75 = integer(),
   N90 = integer()
@@ -264,10 +270,14 @@ highchart() |>
 ### average molecule coverage{.no-title}
 ```{r avg_mol_cov, echo = F, warning = F, message = F, fig.height=figheight, out.width="100%"}
 err_df <- data.frame(x = 0:(n_samples-1), y = aggregate_df$averagemolcov, low = aggregate_df$averagemolcov - aggregate_df$semolcov, high = aggregate_df$averagemolcov + aggregate_df$semolcov)
+err_df_bp <- data.frame(x = 0:(n_samples-1), y = aggregate_df$averagemolcovbp, low = aggregate_df$averagemolcovbp - aggregate_df$semolcovbp, high = aggregate_df$averagemolcovbp + aggregate_df$semolcovbp)
+
 highchart() |>
   hc_chart(inverted=TRUE, animation = F, pointPadding = 0.0001, groupPadding = 0.0001) |>
-  hc_add_series(data = aggregate_df, type = "scatter", name = "mean", hcaes(x = 0:(nrow(aggregate_df)-1), y = averagemolcov), marker = list(radius = 8), color = "#d774ae", zIndex = 1) |>
-  hc_add_series(data = err_df, type = "errorbar", name = "standard error", linkedTo = ":previous", zIndex = 0, stemColor = "#e39dc6", whiskerColor = "#e39dc6") |>
+  hc_add_series(data = aggregate_df, type = "scatter", name = "Inferred Fragments", hcaes(x = 0:(nrow(aggregate_df)-1), y = averagemolcov), marker = list(radius = 8), color = "#df77b5", zIndex = 1) |>
+  hc_add_series(data = err_df, type = "errorbar", name = "standard error", linkedTo = ":previous", zIndex = 0, stemColor = "#ef94ca", whiskerColor = "#ef94ca") |>
+  hc_add_series(data = aggregate_df, type = "scatter", name = "Aligned Base Pairs", hcaes(x = 0:(nrow(aggregate_df)-1), y = averagemolcovbp), marker = list(radius = 8), color = "#924596", zIndex = 1) |>
+  hc_add_series(data = err_df_bp, type = "errorbar", name = "standard error", linkedTo = ":previous", zIndex = 0, stemColor = "#916094", whiskerColor = "#916094") |>
   hc_xAxis(title = FALSE, gridLineWidth = 0, categories = aggregate_df$sample) |>
   hc_title(text = "Average Molecule Percent Coverage") |>
   hc_caption(text = "Error bars show the standard error of the mean percent coverage of non-singleton molecules") |>
