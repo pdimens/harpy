@@ -107,5 +107,5 @@ for read in alnfile.fetch():
 # print the last entry
 writestats(d, chrom_last)
 # write comment on the last line with the total number of unique BX barcodes
-outfile.write(f"#total unique barcodes: {len(all_bx)}".encode())
+outfile.write(f"#total unique barcodes: {len(all_bx)}\n".encode())
 outfile.close()
