@@ -15,11 +15,11 @@ def writestats(x, writechrom):
     for _mi in x:
         x[_mi]["inferred"] = x[_mi]["end"] - x[_mi]["start"] 
         try:
-            x[_mi]["covered_bp"] = min(x[_mi]["bp"] / x[_mi]["inferred"], 1.0)
+            x[_mi]["covered_bp"] = round(min(x[_mi]["bp"] / x[_mi]["inferred"], 1.0),4)
         except:
             x[_mi]["covered_bp"] = 0
         try:
-            x[_mi]["covered_inserts"] = min(x[_mi]["insert_len"] / x[_mi]["inferred"], 1.0)
+            x[_mi]["covered_inserts"] = round(min(x[_mi]["insert_len"] / x[_mi]["inferred"], 1.0), 4)
         except:
             x[_mi]["covered_inferred"] = 0
         outtext = f"{writechrom}\t{_mi}\t" + "\t".join([str(x[_mi][i]) for i in ["n", "start","end", "inferred", "bp", "insert_len", "covered_bp", "covered_inserts"]])
