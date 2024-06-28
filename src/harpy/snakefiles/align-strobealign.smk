@@ -281,7 +281,7 @@ rule report_bx:
     message: 
         "Summarizing all barcode information from alignments"
     script:
-        "report/BxAlignStats.Rmd"
+        "report/AlignBxStats.Rmd"
 
 rule log_workflow:
     default_target: True
@@ -289,7 +289,7 @@ rule log_workflow:
         bams = collect(outdir + "/{sample}.{ext}", sample = samplenames, ext = ["bam","bam.bai"]),
         samtools =  outdir + "/reports/strobealign.stats.html" if not skipreports else [] ,
         reports = collect(outdir + "/reports/{sample}.html", sample = samplenames) if not skipreports else [],
-        bx_report = outdir + "/reports/barcodes.summary.html" if not skipreports else []
+        bx_report = outdir + "/reports/barcodes.summary.html" if (not skipreports or len(samplenames) == 1) else []
     params:
         readlen = readlen,
         quality = config["quality"],

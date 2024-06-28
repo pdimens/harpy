@@ -370,7 +370,7 @@ rule report_bx:
     message: 
         "Summarizing all barcode information from alignments"
     script:
-        "report/BxAlignStats.Rmd"
+        "report/AlignBxStats.Rmd"
 
 rule log_workflow:
     default_target: True
@@ -378,7 +378,7 @@ rule log_workflow:
         bams = collect(outdir + "/{sample}.{ext}", sample = samplenames, ext = [ "bam", "bam.bai"] ),
         cov_report = collect(outdir + "/reports/{sample}.html", sample = samplenames) if not skipreports else [],
         agg_report = f"{outdir}/reports/ema.stats.html" if not skipreports else [],
-        bx_report = outdir + "/reports/barcodes.summary.html" if not skipreports else []
+        bx_report = outdir + "/reports/barcodes.summary.html" if (not skipreports or len(samplenames) == 1) else []
     params:
         beadtech = "-p" if platform == "haplotag" else f"-w {whitelist}"
     message:
