@@ -78,12 +78,12 @@ rule check_bam:
         bai = get_align_index
     output:
         temp(out_dir + "/{sample}.log")
-    conda:
-        f"{envdir}/qc.yaml"
+    container:
+        None
     message:
         "Processing: {wildcards.sample}"
-    script: 
-        "scripts/checkBAM.py"
+    shell: 
+        "checkBAM.py {input.bam} > {output}"
 
 rule merge_checks:
     input:

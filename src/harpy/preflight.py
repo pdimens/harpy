@@ -76,7 +76,6 @@ def fastq(inputs, output_dir, threads, snakemake, quiet, hpc, conda, print_only)
     os.makedirs(f"{workflowdir}/", exist_ok= True)
     fqlist, n = parse_fastq_inputs(inputs)
     fetch_rule(workflowdir, "preflight-fastq.smk")
-    fetch_script(workflowdir, "checkFASTQ.py")
     fetch_report(workflowdir, "PreflightFastq.Rmd")
 
     with open(f"{workflowdir}/config.yaml", "w", encoding="utf-8") as config:
@@ -136,7 +135,6 @@ def bam(inputs, output_dir, threads, snakemake, quiet, hpc, conda, print_only):
     bamlist, n = parse_alignment_inputs(inputs)
     fetch_rule(workflowdir, "preflight-bam.smk")
     fetch_report(workflowdir, "PreflightBam.Rmd")
-    fetch_script(workflowdir, "checkBAM.py")
 
     with open(f"{workflowdir}/config.yaml", "w", encoding="utf-8") as config:
         config.write("workflow: preflight bam\n")

@@ -58,12 +58,12 @@ rule check_forward:
         get_fq1
     output:
         temp(out_dir + "/{sample}.F.log")
-    conda:
-        f"{envdir}/qc.yaml"
+    container:
+        None
     message:
         "Processing forward reads: {wildcards.sample}"
-    script: 
-        "scripts/checkFASTQ.py"
+    shell: 
+        "checkFASTQ.py {input} > {output}"
 
 rule check_reverse:
     input:
@@ -72,10 +72,10 @@ rule check_reverse:
         temp(out_dir + "/{sample}.R.log")
     message:
         "Processing reverse reads: {wildcards.sample}"
-    conda:
-        f"{envdir}/qc.yaml"
-    script: 
-        "scripts/checkFASTQ.py"
+    container:
+        None
+    shell: 
+        "checkFASTQ.py {input} > {output}"
 
 rule merge_checks:
     input:

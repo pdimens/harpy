@@ -1,9 +1,38 @@
+#! /usr/bin/env python
+
 import re
+import sys
 import gzip
+import argparse
 import pysam
 
-alnfile = pysam.AlignmentFile(snakemake.input[0])
-outfile = gzip.open(snakemake.output[0], "wb", 6)
+parser = argparse.ArgumentParser(
+    prog = 'bxStats.py',
+    description =
+    """
+    Calculates various linked-read molecule metrics from the input alignment file.
+    Metrics include (per molecule): number of reads, position start, position end,
+    length of molecule inferred from alignments, total aligned basepairs, total,
+    length of inferred inserts, molecule coverage (%) based on aligned bases, molecule
+    coverage (%) based on total inferred insert length.
+    Input file MUST BE COORDINATE SORTED.
+    """,
+    usage = "bxStats.py -o output.gz input.bam",
+    exit_on_error = False
+    )
+
+parser.add_argument('-o', '--output', help = "Gzipped tab-delimited file of metrics.")
+parser.add_argument('input', help = "Input coordinate-sorted bam/sam file. If bam, a matching index file should be in the same directory.")
+
+if len(sys.argv) == 1:
+    parser.print_help(sys.stderr)
+    sys.exit(1)
+
+args = parser.parse_args()
+
+
+alnfile = pysam.AlignmentFile(args.input)
+outfile = gzip.open(args.output, "wb", 6)
 outfile.write(b"contig\tmolecule\treads\tstart\tend\tlength_inferred\taligned_bp\tinsert_len\tcoverage_bp\tcoverage_inserts\n")
 
 d = {}

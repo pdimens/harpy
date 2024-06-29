@@ -89,10 +89,10 @@ rule count_beadtags:
         temp(outdir + "/logs/bxcount/{sample}.count.log")
     message:
         "Counting barcode frequency: {wildcards.sample}"
-    conda:
-        f"{envdir}/qc.yaml"
-    script:
-        "scripts/countBX.py"
+    container:
+        None
+    shell:
+        "countBX.py {input} > {output}"
 
 rule beadtag_counts_summary:
     input: 

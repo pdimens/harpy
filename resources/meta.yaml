@@ -34,6 +34,7 @@ requirements:
     - apptainer
     - bcftools =1.20
     - pandas
+    - pysam
     - python >3.10
     - rich-click
     - snakemake-minimal >7
