@@ -53,14 +53,14 @@ configured using these arguments:
 | `--quiet`       |   `-q`     | toggle  |         | Suppress Snakemake printing to console                                            |
 | `--help`        |   `-h`     |         |         | Show the module docstring                                                         |
 
-As as example, you could call [!badge corners="pill" text="align minimap"](Modules/Align/minimap.md) and specify 20 threads with no output to console:
+As as example, you could call [!badge corners="pill" text="align strobe"](Modules/Align/strobe.md) and specify 20 threads with no output to console:
 
 ```bash
-harpy align minimap --threads 20 --quiet samples/trimmedreads
+harpy align strobe --threads 20 --quiet samples/trimmedreads
 
 # identical to #
 
-harpy align minimap -t 20 -q samples/trimmedreads
+harpy align strobe -t 20 -q samples/trimmedreads
 ```
 ---
 

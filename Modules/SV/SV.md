@@ -26,4 +26,4 @@ the [!badge corners="pill" text="sv naibr"](naibr.md) module can use that to pha
 ### LEVIATHAN
 LEVIATHAN relies on split-read information in the sequence alignments to call variants.
 The EMA aligner does not report split read alignments, instead it reports secondary alignments.
-It is recommended to use BWA- or Minimap2-generated alignments if intending to call variants with [!badge corners="pill" text="sv leviathan"](leviathan.md).
+It is recommended to use BWA- or strobealign-generated alignments if intending to call variants with [!badge corners="pill" text="sv leviathan"](leviathan.md).

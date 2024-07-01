@@ -25,7 +25,7 @@ Issues with specific tools might warrant a discussion with the authors/developer
 | LRez        | [website](https://github.com/morispi/LRez), [publication](https://academic.oup.com/bioinformaticsadvances/article/1/1/vbab022/6375438?login=false) |
 | LRSIM       | [webiste](https://github.com/aquaskyline/LRSIM) [publication](http://doi.org/10.1016/j.csbj.2017.10.002)            |
 | mamba       | [website](https://github.com/mamba-org/mamba)                                                                       |
-| minimap2    | [website](https://github.com/lh3/minimap2) [publication](https://doi.org/10.1093/bioinformatics/btab705)            |
+| strobealign | [website](https://github.com/ksahlin/strobealign) [publication](https://doi.org/10.1186/s13059-022-02831-7)            |
 | NAIBR       | [website](https://github.com/raphael-group/NAIBR), [fork](https://github.com/pontushojer/NAIBR), [publication](https://doi.org/10.1093/bioinformatics/btx712) |
 | plotly      | [website](https://plotly.com/)                                                                                      |
 | python      | [website](https://www.python.org/)                                                                                  |
