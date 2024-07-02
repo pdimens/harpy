@@ -27,7 +27,7 @@ docstring = {
 @click.option('-k', '--kmer-length', default = 21, show_default = True, type=int, help = 'Size of kmers')
 @click.option('-w', '--window-size', default = 40, show_default = True, type=int, help = 'Size of window guaranteed to contain at least one kmer')
 @click.option('-d', '--density', default = 3, show_default = True, type = click.IntRange(min = 1, max_open = True), help = 'On average, 1/2^d kmers are indexed')
-@click.option('-a', '--dropout', default = 1, show_default = True, type = click.IntRange(min = 1, max_open = True), help = 'Minimum cloud size to deconvolve')
+@click.option('-m', '--min-reads', default = 1, show_default = True, type = click.IntRange(min = 1, max_open = True), help = 'Minimum cloud size to deconvolve')
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(min = 1, max_open = True), help = 'Number of threads to use')
 @click.option('-q', '--quiet',  is_flag = True, show_default = True, default = False, help = 'Don\'t show output text while running')
 @click.option('-o', '--output-dir', type = str, default = "Deconvolve", show_default=True, help = 'Output directory name')
@@ -36,7 +36,7 @@ docstring = {
 @click.option('--snakemake', type = str, help = 'Additional Snakemake parameters, in quotes')
 @click.option('--config-only',  is_flag = True, hidden = True, show_default = True, default = False, help = 'Create the config.yaml file and exit')
 @click.argument('inputs', required=True, type=click.Path(exists=True), nargs=-1)
-def deconvolve(inputs, output_dir, kmer_length, window_size, density, dropout, threads, snakemake, quiet, hpc, conda, config_only):
+def deconvolve(inputs, output_dir, kmer_length, window_size, density, min_reads, threads, snakemake, quiet, hpc, conda, config_only):
     """
     Resolve clashing barcodes from different molecules
 
@@ -69,7 +69,7 @@ def deconvolve(inputs, output_dir, kmer_length, window_size, density, dropout, t
         config.write(f"kmer_length: {kmer_length}\n")       
         config.write(f"window_size: {window_size}\n")
         config.write(f"density: {density}\n")
-        config.write(f"dropout: {dropout - 1}\n")
+        config.write(f"dropout: {min_reads - 1}\n")
         config.write(f"workflow_call: {command}\n")
         config.write("inputs:\n")
         for i in fqlist:
