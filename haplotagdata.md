@@ -66,9 +66,8 @@ most common FASTQ naming styles are supported:
 - **sample names**: Alphanumeric and [!badge variant="success" text="."] [!badge variant="success" text="_"] [!badge variant="success" text="-"]
     - you can mix and match special characters, but that's bad practice and not recommended
     - examples: `Sample.001`, `Sample_001_year4`, `Sample-001_population1.year2` <- not recommended
-- **forward**: [!badge variant="success" text="_F"] [!badge variant="success" text=".F"] [!badge variant="success" text="_R1_001"] [!badge variant="success" text=".R1_001"] [!badge variant="success" text="_R1"] [!badge variant="success" text=".R1"] 
-- **reverse**: [!badge variant="success" text="_R"] [!badge variant="success" text=".R"] [!badge variant="success" text="_R2_001"] [!badge variant="success" text=".R2_001"] [!badge variant="success" text="_R2"] [!badge variant="success" text=".R2"] 
-    - note that this **does not include**  [!badge variant="danger" text=".1"] or [!badge variant="danger" text="_1"] conventions for forward/reverse
+- **forward**: [!badge variant="success" text="_F"] [!badge variant="success" text=".F"] [!badge variant="success" text="_1"] [!badge variant="success" text=".1"] [!badge variant="success" text="_R1_001"] [!badge variant="success" text=".R1_001"] [!badge variant="success" text="_R1"] [!badge variant="success" text=".R1"] 
+- **reverse**: [!badge variant="success" text="_R"] [!badge variant="success" text=".R"] [!badge variant="success" text="_2"] [!badge variant="success" text=".2"] [!badge variant="success" text="_R2_001"] [!badge variant="success" text=".R2_001"] [!badge variant="success" text="_R2"] [!badge variant="success" text=".R2"] 
 - **fastq extension**: [!badge variant="success" text=".fq"] [!badge variant="success" text=".fastq"] [!badge variant="success" text=".FQ"] [!badge variant="success" text=".FASTQ"]
 - **gzipped**: supported and recommended
 - **not gzipped**: supported

@@ -26,12 +26,12 @@ to avoid unexpected behavior.
 !!!
 
 !!!warning clashing names
-Harpy will symlink just the file names into `workflow/input` regardless of their origin,
-meaning that files in different directories that have the same name (ignoring extensions) will
-clash. As an example, both `folderA/sample001.bam` and `folderB/sample001.bam` will become symlinked
-as `workflow/input/sample001.bam`, with one symlink overwriting the other, leaving you with one missing
-sample. During parsing, Harpy will inform you of naming clashes and terminate to protect you against
-this behavior. 
+Given the regex pattern matching Harpy employs under the hood and the isolation of just the sample names for Snakemake rules,
+files in different directories that have the same name (ignoring extensions) will clash. For example, `lane1/sample1.F.fq`
+and `lane2/sample1.F.fq` would both derive the sample name `sample1`, which, in a workflow like [!badge corners="pill" text="align"](Modules/Align/Align.md)
+would both result in `output/sample1.bam`, creating a problem. This also holds true for the same sample name but different extension, such
+as `sample1.F.fq` and `sample1_R1.fq.gz`, which would again derive `sample1` as the sample name and create a naming clash for workflow outputs.
+During parsing, Harpy will inform you of naming clashes and terminate to protect you against this behavior. 
 !!!
 
 ## Common command-line options
