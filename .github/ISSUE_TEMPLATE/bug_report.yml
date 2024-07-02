@@ -6,10 +6,7 @@ body:
     id: description
     attributes:
       label: Describe the bug
-      description: |
-        A clear and concise description of what the bug is. Please do note
-        paste in the contents of example files (do that below), but it may
-        be helpful in some cases to see your project directory structure. 
+      description: A clear and concise description of what the bug is. Please do note paste in the contents of example files (do that below), but it may be helpful in some cases to see your project directory structure. 
     validations:
       required: true
       
@@ -17,9 +14,7 @@ body:
     id: version
     attributes:
       label: Harpy Version
-      description: |
-        Please include the version of harpy that is causing this issue. The version number is provided
-        by running `harpy --version`.
+      description: Please include the version of harpy that is causing this issue. The version number is provided by running `harpy --version`.
       placeholder: |
         x.x.x
     validations:
@@ -29,10 +24,7 @@ body:
     id: error-file
     attributes:
       label: File that triggers the error (if applicable)
-      description: |
-        Please drag and drop (and upload to the GitHub issue) an input file that can be used to replicate the error.
-        You may also copy-and-paste it as a code block.
-        If the file type is not allowed, please compress into a `.zip` or `.gz` file.
+      description: Please drag and drop (and upload to the GitHub issue) an input file that can be used to replicate the error. You may also copy-and-paste it as a code block. If the file type is not allowed, please compress into a `.zip` or `.gz` file.
       placeholder: |
         [ Copy and paste or drag and drop an example file here to upload ]
 
@@ -40,10 +32,7 @@ body:
     id: log
     attributes:
       label: Harpy error log
-      description: |
-        Please paste your **full harpy command** and whatever error messages you are seeing
-        that are specific to your workflow and not a generic harpy error message. Helpful information
-        will include which snakemake rules are creating problems, if any.
+      description: Please paste your **full harpy command** and whatever error messages you are seeing that are specific to your workflow and not a generic harpy error message. Helpful information will include which snakemake rules are creating problems, if any.
       render: console
       placeholder: |
         $ harpy preflight bam test/bam test/bam_phased
