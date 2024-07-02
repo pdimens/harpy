@@ -13,7 +13,7 @@ docstring = {
     "harpy qc": [
         {
             "name": "Parameters",
-            "options": ["--min-length", "--max-length", "deduplicate", "--ignore-adapters", "--extra-params"],
+            "options": ["--min-length", "--max-length", "--deduplicate", "--ignore-adapters", "--extra-params"],
         },
         {
             "name": "Other Options",
@@ -26,7 +26,7 @@ docstring = {
 @click.option('-n', '--min-length', default = 30, show_default = True, type=int, help = 'Discard reads shorter than this length')
 @click.option('-m', '--max-length', default = 150, show_default = True, type=int, help = 'Maximum length to trim sequences down to')
 @click.option('-a', '--ignore-adapters', is_flag = True, show_default = False, default = False, help = 'Skip adapter trimming')
-@click.option('-d', '--deduplicate', is_flag = True, show_default = True, default = False, help = 'Deduplicate sequences')
+@click.option('-d', '--deduplicate', is_flag = True, show_default = True, default = False, help = 'Remove PCR duplicate sequences')
 @click.option('-x', '--extra-params', type = str, help = 'Additional Fastp parameters, in quotes')
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(min = 4, max_open = True), help = 'Number of threads to use')
 @click.option('-q', '--quiet',  is_flag = True, show_default = True, default = False, help = 'Don\'t show output text while running')

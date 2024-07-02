@@ -139,6 +139,7 @@ rule log_workflow:
         minlen = f"--length_required {min_len}",
         maxlen = f"--max_len1 {max_len}",
         tim_adapters = "--disable_adapter_trimming" if skipadapters else "--detect_adapter_for_pe",
+        dedup = "-D" if dedup else "",
         extra = extra
     message:
         "Summarizing the workflow: {output}"
