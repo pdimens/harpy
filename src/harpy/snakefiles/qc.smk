@@ -14,6 +14,12 @@ max_len 	 = config["max_len"]
 extra 	     = config.get("extra", "") 
 skipadapters = config["skip_adapter_trim"]
 dedup        = config["deduplicate"]
+deconvolve   = config.get("deconvolve", False)
+if deconvolve:
+    decon_k = deconvolve["kmer_length"]
+    decon_w = deconvolve["window_size"]
+    decon_d = deconvolve["density"]
+    decon_a = deconvolve["dropout"]
 skipreports  = config["skipreports"]
 
 bn_r = r"([_\.][12]|[_\.][FR]|[_\.]R[12](?:\_00[0-9])*)?\.((fastq|fq)(\.gz)?)$"
@@ -56,33 +62,102 @@ def get_fq2(wildcards):
     r = re.compile(fr"(.*/{re.escape(wildcards.sample)})([_\.]2|[_\.]R|[_\.]R2(?:\_00[0-9])*)?\.((fastq|fq)(\.gz)?)$", flags = re.IGNORECASE)
     return list(filter(r.match, fqlist))
 
-rule qc_fastp:
-    input:
-        fw   = get_fq1,
-        rv   = get_fq2
-    output:
-        fw   = outdir + "/{sample}.R1.fq.gz",
-        rv   = outdir + "/{sample}.R2.fq.gz",
-        json = outdir + "/reports/data/fastp/{sample}.fastp.json"
-    log:
-        html = outdir + "/reports/{sample}.html",
-        serr = outdir + "/logs/fastp/{sample}.log"
-    params:
-        minlen = f"--length_required {min_len}",
-        maxlen = f"--max_len1 {max_len}",
-        trim_adapters = "--disable_adapter_trimming" if skipadapters else "--detect_adapter_for_pe",
-        dedup = "-D" if dedup else "",
-        extra = extra
-    threads:
-        min(4, workflow.cores // 2)
-    conda:
-        f"{envdir}/qc.yaml"
-    message:
-        "Quality trimming" + (", removing adapters" if not skipadapters else "") + (", removing PCR duplicates" if dedup else "") + ": {wildcards.sample}"
-    shell: 
-        """
-        fastp --trim_poly_g --cut_right {params} --thread {threads} -i {input.fw} -I {input.rv} -o {output.fw} -O {output.rv} -h {log.html} -j {output.json} -R "{wildcards.sample} QC Report" 2> {log.serr}
-        """
+if not deconvolve:
+    rule qc_fastp:
+        input:
+            fw   = get_fq1,
+            rv   = get_fq2
+        output:
+            fw   = outdir + "/{sample}.R1.fq.gz",
+            rv   = outdir + "/{sample}.R2.fq.gz",
+            json = outdir + "/reports/data/fastp/{sample}.fastp.json"
+        log:
+            html = outdir + "/reports/{sample}.html",
+            serr = outdir + "/logs/fastp/{sample}.log"
+        params:
+            minlen = f"--length_required {min_len}",
+            maxlen = f"--max_len1 {max_len}",
+            trim_adapters = "--disable_adapter_trimming" if skipadapters else "--detect_adapter_for_pe",
+            dedup = "-D" if dedup else "",
+            extra = extra
+        threads:
+            min(4, workflow.cores // 2)
+        conda:
+            f"{envdir}/qc.yaml"
+        message:
+            "Quality trimming" + (", removing adapters" if not skipadapters else "") + (", removing PCR duplicates" if dedup else "") + ": {wildcards.sample}"
+        shell: 
+            """
+            fastp --trim_poly_g --cut_right {params} --thread {threads} -i {input.fw} -I {input.rv} -o {output.fw} -O {output.rv} -h {log.html} -j {output.json} -R "{wildcards.sample} QC Report" 2> {log.serr}
+            """
+else:
+    rule qc_fastp:
+        input:
+            fw   = get_fq1,
+            rv   = get_fq2
+        output:
+            fq   = temp(outdir + "/fastp/{sample}.fastq"),
+            json = outdir + "/reports/data/fastp/{sample}.fastp.json"
+        log:
+            html = outdir + "/reports/{sample}.html",
+            serr = outdir + "/logs/fastp/{sample}.log"
+        params:
+            minlen = f"--length_required {min_len}",
+            maxlen = f"--max_len1 {max_len}",
+            trim_adapters = "--disable_adapter_trimming" if skipadapters else "--detect_adapter_for_pe",
+            dedup = "-D" if dedup else "",
+            extra = extra
+        threads:
+            min(4, workflow.cores // 2)
+        conda:
+            f"{envdir}/qc.yaml"
+        message:
+            "Quality trimming" + (", removing adapters" if not skipadapters else "") + (", removing PCR duplicates" if dedup else "") + ": {wildcards.sample}"
+        shell: 
+            """
+            fastp --trim_poly_g --cut_right {params} --thread {threads} -i {input.fw} -I {input.rv} --stdout -h {log.html} -j {output.json} -R "{wildcards.sample} QC Report" 2> {log.serr} > {output.fq}
+            """
+
+    rule deconvolve:
+        input:
+            outdir + "/fastp/{sample}.fastq"
+        output:
+            temp(outdir + "/{sample}.fastq")
+        log:
+            outdir + "/logs/{sample}.deconvolve.log"
+        params:
+            kmer    = f"-k {decon_k}",
+            windows = f"-w {decon_w}",
+            density = f"-d {decon_d}",
+            dropout = f"-a {decon_a}"
+        threads:
+            2
+        conda:
+            f"{envdir}/qc.yaml"
+        message:
+            "Performing deconvolution: {wildcards.sample}"
+        shell:
+            "QuickDeconvolution -t {threads} -i {input} -o {output} {params} > {log} 2>&1"
+
+    rule recover_forward:
+        input:
+            outdir + "/{sample}.fastq"
+        output:
+            outdir + "/{sample}.R1.fq.gz"
+        params:
+            "-1"
+        container:
+            None
+        message:
+            "Extracting deconvolved forward reads: {wildcards.sample}"
+        shell:
+            "seqtk seq {params} {input} | gzip > {output}"
+
+    use rule recover_forward as recover_reverse with:
+        output:
+            outdir + "/{sample}.R2.fq.gz"
+        params:
+            "-2"
 
 rule count_beadtags:
     input:
@@ -147,5 +222,11 @@ rule log_workflow:
             _ = f.write("The harpy qc workflow ran using these parameters:\n\n")
             _ = f.write("fastp trimming ran using:\n")
             _ = f.write("    fastp --trim_poly_g --cut_right " + " ".join(params) + "\n")
+            if deconvolve:
+                _ = f.write("Deconvolution occurred using QuickDeconvolution:\n")
+                _ = f.write(f"   QuickDeconvolution -t threads -i infile.fq -o output.fq -k {kmer_length} -w {window_size} -d {density} -a {dropout}\n")
+                _ = f.write("The interleaved output was split back into forward and reverse reads with seqtk:\n")
+                _ = f.write("    seqtk -1 interleaved.fq | gzip > file.R1.fq.gz\n")
+                _ = f.write("    seqtk -2 interleaved.fq | gzip > file.R2.fq.gz\n")
             _ = f.write("\nThe Snakemake workflow was called via command line:\n")
             _ = f.write("    " + str(config["workflow_call"]) + "\n")
