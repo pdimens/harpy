@@ -13,6 +13,7 @@ min_len 	 = config["min_len"]
 max_len 	 = config["max_len"]
 extra 	     = config.get("extra", "") 
 skipadapters = config["skip_adapter_trim"]
+dedup        = config["deduplicate"]
 skipreports  = config["skipreports"]
 
 bn_r = r"([_\.][12]|[_\.][FR]|[_\.]R[12](?:\_00[0-9])*)?\.((fastq|fq)(\.gz)?)$"
@@ -69,7 +70,8 @@ rule qc_fastp:
     params:
         minlen = f"--length_required {min_len}",
         maxlen = f"--max_len1 {max_len}",
-        tim_adapters = "--disable_adapter_trimming" if skipadapters else "--detect_adapter_for_pe",
+        trim_adapters = "--disable_adapter_trimming" if skipadapters else "--detect_adapter_for_pe",
+        dedup = "-D" if dedup else "",
         extra = extra
     threads:
         min(4, workflow.cores // 2)
