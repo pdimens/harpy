@@ -83,7 +83,7 @@ $$
 \%\ chance\ correct = (1 - 10^\frac{-MQ}{10}) \times 100
 $$
 
-[!embed el="embed"](//plotly.com/~pdimens/7.embed)
+![A visual explanation of MQ Score](/static/MQscore.png)
 ===
 
 ## Marking PCR duplicates
