@@ -27,6 +27,7 @@ from . import sv
 from . import container
 from . import hpc
 from . import resume
+from . import deconvolve
 from .popgroups import popgroup
 from .stitchparams import stitchparams
 import rich_click as click
@@ -69,6 +70,7 @@ cli.add_command(simulate.simulate)
 cli.add_command(container.containerize)
 cli.add_command(hpc.hpc)
 cli.add_command(resume.resume)
+cli.add_command(deconvolve.deconvolve)
 
 ## the modules ##
 click.rich_click.COMMAND_GROUPS = {
@@ -80,9 +82,9 @@ click.rich_click.COMMAND_GROUPS = {
             },
             {
                 "name": "Other Commands",
-                "commands": ["resume", "hpc", "preflight", "popgroup", "stitchparams"]
+                "commands": ["resume", "hpc", "preflight", "deconvolve", "popgroup", "stitchparams"]
             }
         ],
  } | simulate.commandstring | hpc.docstring
 
-click.rich_click.OPTION_GROUPS = demultiplex.docstring | preflight.docstring | qc.docstring | align.docstring | snp.docstring | sv.docstring | impute.docstring | phase.docstring | simulate.docstring
+click.rich_click.OPTION_GROUPS = demultiplex.docstring | preflight.docstring | qc.docstring | deconvolve.docstring | align.docstring | snp.docstring | sv.docstring | impute.docstring | phase.docstring | simulate.docstring
