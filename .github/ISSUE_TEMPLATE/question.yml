@@ -1,5 +1,6 @@
 name: Question
 description: Questions about running Harpy unrelated to issues
+labels: question
 body:
   - type: textarea
     id: description
