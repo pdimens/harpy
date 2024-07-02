@@ -121,7 +121,6 @@ rule create_report:
         options = "--no-version-check --force --quiet --no-data-dir",
         title = "--title \"QC Summary\"",
         comment = "--comment \"This report aggregates trimming and quality control metrics reported by fastp.\""
-
     conda:
         f"{envdir}/qc.yaml"
     message:
