@@ -5,7 +5,7 @@ meta:
   title: " | Harpy haplotagging pipeline"
 links:
 - text: GitHub
-  link: https://github.com/pdimens/HARPY
+  link: https://github.com/pdimens/harpy
   icon: mark-github
   target: blank
 - text: Therkildsen Lab
@@ -24,7 +24,7 @@ footer:
   copyright: "&copy; Copyright {{ year }}. All rights reserved."
 branding:
   title: Harpy
-  label: v1.0
+  label: v1.1
   logo: static/favicon.png
   logoDark: static/favicon.png
   logoAlign: left
