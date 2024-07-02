@@ -71,7 +71,7 @@ def qc(inputs, output_dir, min_length, max_length, ignore_adapters, deduplicate,
         config.write("workflow: qc\n")
         config.write(f"output_directory: {output_dir}\n")
         config.write(f"skip_adapter_trim: {ignore_adapters}\n")
-        config.write(f"deduplicate: {deduplicate}")
+        config.write(f"deduplicate: {deduplicate}\n")
         config.write(f"min_len: {min_length}\n")
         config.write(f"max_len: {max_length}\n")
         config.write(f"extra: {extra_params}\n") if extra_params else None
