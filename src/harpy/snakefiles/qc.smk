@@ -12,7 +12,7 @@ outdir       = config["output_directory"]
 min_len 	 = config["min_len"]
 max_len 	 = config["max_len"]
 extra 	     = config.get("extra", "") 
-skipadapters = config["skip_adapter_trim"]
+trimadapters = config["trim_adapters"]
 dedup        = config["deduplicate"]
 deconvolve   = config.get("deconvolve", False)
 if deconvolve:
@@ -77,7 +77,7 @@ if not deconvolve:
         params:
             minlen = f"--length_required {min_len}",
             maxlen = f"--max_len1 {max_len}",
-            trim_adapters = "--disable_adapter_trimming" if skipadapters else "--detect_adapter_for_pe",
+            trim_adapters = "--detect_adapter_for_pe" if trimadapters else "--disable_adapter_trimming" ,
             dedup = "-D" if dedup else "",
             extra = extra
         threads:
@@ -85,7 +85,7 @@ if not deconvolve:
         conda:
             f"{envdir}/qc.yaml"
         message:
-            "Quality trimming" + (", removing adapters" if not skipadapters else "") + (", removing PCR duplicates" if dedup else "") + ": {wildcards.sample}"
+            "Quality trimming" + (", removing adapters" if not trimadapters else "") + (", removing PCR duplicates" if dedup else "") + ": {wildcards.sample}"
         shell: 
             """
             fastp --trim_poly_g --cut_right {params} --thread {threads} -i {input.fw} -I {input.rv} -o {output.fw} -O {output.rv} -h {log.html} -j {output.json} -R "{wildcards.sample} QC Report" 2> {log.serr}
@@ -104,7 +104,7 @@ else:
         params:
             minlen = f"--length_required {min_len}",
             maxlen = f"--max_len1 {max_len}",
-            trim_adapters = "--disable_adapter_trimming" if skipadapters else "--detect_adapter_for_pe",
+            trim_adapters = "--detect_adapter_for_pe" if trimadapters else "--disable_adapter_trimming" ,
             dedup = "-D" if dedup else "",
             extra = extra
         threads:
@@ -112,7 +112,7 @@ else:
         conda:
             f"{envdir}/qc.yaml"
         message:
-            "Quality trimming" + (", removing adapters" if not skipadapters else "") + (", removing PCR duplicates" if dedup else "") + ": {wildcards.sample}"
+            "Quality trimming" + (", removing adapters" if not trimadapters else "") + (", removing PCR duplicates" if dedup else "") + ": {wildcards.sample}"
         shell: 
             """
             fastp --trim_poly_g --cut_right {params} --thread {threads} -i {input.fw} -I {input.rv} --stdout -h {log.html} -j {output.json} -R "{wildcards.sample} QC Report" 2> {log.serr} > {output.fq}
@@ -188,8 +188,6 @@ rule create_report:
         collect(outdir + "/reports/data/fastp/{sample}.fastp.json", sample = samplenames)
     output:
         outdir + "/reports/qc.report.html"
-    log:
-        outdir + "/logs/mutliqc.log"
     params:
         logdir = f"{outdir}/reports/data/fastp/",
         module = "-m fastp",
@@ -201,7 +199,7 @@ rule create_report:
     message:
         "Aggregating fastp reports"
     shell: 
-        "multiqc {params} --filename {output} 2> {log}"
+        "multiqc {params} --filename {output}"
 
 rule log_workflow:
     default_target: True
@@ -212,7 +210,7 @@ rule log_workflow:
     params:
         minlen = f"--length_required {min_len}",
         maxlen = f"--max_len1 {max_len}",
-        tim_adapters = "--disable_adapter_trimming" if skipadapters else "--detect_adapter_for_pe",
+        trim_adapters = "--detect_adapter_for_pe" if trimadapters else "--disable_adapter_trimming" ,
         dedup = "-D" if dedup else "",
         extra = extra
     message:
@@ -224,7 +222,7 @@ rule log_workflow:
             _ = f.write("    fastp --trim_poly_g --cut_right " + " ".join(params) + "\n")
             if deconvolve:
                 _ = f.write("Deconvolution occurred using QuickDeconvolution:\n")
-                _ = f.write(f"   QuickDeconvolution -t threads -i infile.fq -o output.fq -k {kmer_length} -w {window_size} -d {density} -a {dropout}\n")
+                _ = f.write(f"   QuickDeconvolution -t threads -i infile.fq -o output.fq -k {decon_k} -w {decon_w} -d {decon_d} -a {decon_a}\n")
                 _ = f.write("The interleaved output was split back into forward and reverse reads with seqtk:\n")
                 _ = f.write("    seqtk -1 interleaved.fq | gzip > file.R1.fq.gz\n")
                 _ = f.write("    seqtk -2 interleaved.fq | gzip > file.R2.fq.gz\n")

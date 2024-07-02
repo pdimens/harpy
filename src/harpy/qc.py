@@ -14,7 +14,7 @@ docstring = {
     "harpy qc": [
         {
             "name": "Parameters",
-            "options": ["--min-length", "--max-length", "--deduplicate", "--deconvolve", "--deconvolve-params", "--ignore-adapters", "--extra-params"],
+            "options": ["--min-length", "--max-length", "--trim-adapters", "--deduplicate", "--deconvolve", "--deconvolve-params", "--extra-params"],
         },
         {
             "name": "Other Options",
@@ -26,21 +26,21 @@ docstring = {
 @click.command(no_args_is_help = True, epilog = "read the docs for more information: https://pdimens.github.io/harpy/modules/qc")
 @click.option('-n', '--min-length', default = 30, show_default = True, type=int, help = 'Discard reads shorter than this length')
 @click.option('-m', '--max-length', default = 150, show_default = True, type=int, help = 'Maximum length to trim sequences down to')
-@click.option('-a', '--ignore-adapters', is_flag = True, show_default = False, default = False, help = 'Skip adapter trimming')
-@click.option('-d', '--deduplicate', is_flag = True, show_default = True, default = False, help = 'Remove PCR duplicate sequences')
-@click.option('-c', '--deconvolve', is_flag = True, show_default = True, default = False, help = 'Resolve barcode clashes between reads from different molecules.')
+@click.option('-a', '--trim-adapters', is_flag = True, default = False, help = 'Detect and trim adapters')
+@click.option('-d', '--deduplicate', is_flag = True, default = False, help = 'Identify and remove PCR duplicates')
+@click.option('-c', '--deconvolve', is_flag = True, default = False, help = 'Resolve barcode clashes between reads from different molecules.')
 @click.option('-p', '--deconvolve-params', type = (int,int,int,int), show_default = True, default = (21,40,3,0), help = ' Accepts the QuickDeconvolution parameters for k,w,d,a, in that order')
 @click.option('-x', '--extra-params', type = str, help = 'Additional Fastp parameters, in quotes')
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(min = 4, max_open = True), help = 'Number of threads to use')
-@click.option('-q', '--quiet',  is_flag = True, show_default = True, default = False, help = 'Don\'t show output text while running')
+@click.option('-q', '--quiet',  is_flag = True, default = False, help = 'Don\'t show output text while running')
 @click.option('-o', '--output-dir', type = str, default = "QC", show_default=True, help = 'Output directory name')
 @click.option('--hpc',  type = click.Path(exists = True, file_okay = False), help = 'Directory with HPC submission config.yaml file')
 @click.option('--conda',  is_flag = True, default = False, help = 'Use conda/mamba instead of container')
 @click.option('--snakemake', type = str, help = 'Additional Snakemake parameters, in quotes')
-@click.option('--skipreports',  is_flag = True, show_default = True, default = False, help = 'Don\'t generate HTML reports')
+@click.option('--skipreports',  is_flag = True, default = False, help = 'Don\'t generate HTML reports')
 @click.option('--config-only',  is_flag = True, hidden = True, show_default = True, default = False, help = 'Create the config.yaml file and exit')
 @click.argument('inputs', required=True, type=click.Path(exists=True), nargs=-1)
-def qc(inputs, output_dir, min_length, max_length, ignore_adapters, deduplicate, deconvolve, deconvolve_params, extra_params, threads, snakemake, skipreports, quiet, hpc, conda, config_only):
+def qc(inputs, output_dir, min_length, max_length, trim_adapters, deduplicate, deconvolve, deconvolve_params, extra_params, threads, snakemake, skipreports, quiet, hpc, conda, config_only):
     """
     Remove adapters and quality-control sequences
 
@@ -48,7 +48,7 @@ def qc(inputs, output_dir, min_length, max_length, ignore_adapters, deduplicate,
     as individual files/folders, using shell wildcards (e.g. `data/acronotus*.fq`), or both.
     
     By default, adapters will be automatically detected and removed (can be disabled with `-a`).
-    Use `--deconvolve` to also resolve barcode clashing that may occur by unrelated sequences having the same barcode.
+    Use `--deconvolve` to resolve barcode clashing that may occur by unrelated sequences having the same barcode.
     The parameters are described [here](https://github.com/RolandFaure/QuickDeconvolution?tab=readme-ov-file#usage). You
     can also use the `harpy deconvolve` worklfow to perform this task separately.
     The input reads will be quality trimmed using:
@@ -76,7 +76,7 @@ def qc(inputs, output_dir, min_length, max_length, ignore_adapters, deduplicate,
     with open(f"{workflowdir}/config.yaml", "w", encoding="utf-8") as config:
         config.write("workflow: qc\n")
         config.write(f"output_directory: {output_dir}\n")
-        config.write(f"skip_adapter_trim: {ignore_adapters}\n")
+        config.write(f"trim_adapters: {trim_adapters}\n")
         config.write(f"deduplicate: {deduplicate}\n")
         if deconvolve:
             config.write("deconvolve:\n")
