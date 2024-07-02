@@ -17,7 +17,7 @@ order: 1
 !!!warning EMA-mapped reads
 Leviathan relies on split-read information in the sequence alignments to call variants. The EMA aligner
 does not report split read alignments, instead it reports secondary alignments. It is recommended to use
-BWA- or Minimap2-generated alignments if intending to call variants with leviathan. 
+BWA- or strobealign-generated alignments if intending to call variants with leviathan. 
 !!!
 ==- :icon-file: sample grouping file  [!badge variant="ghost" text="optional"]
 This file is optional and only useful if you want variant calling to happen on a per-population level.

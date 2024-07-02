@@ -10,6 +10,9 @@ order: 5
 - at least 4 cores/threads available
 - a genome assembly in FASTA format: [!badge variant="success" text=".fasta"] [!badge variant="success" text=".fa"] [!badge variant="success" text=".fasta.gz"] [!badge variant="success" text=".fa.gz"]
 - paired-end fastq sequence file with the [proper naming convention](/haplotagdata/#naming-conventions) [!badge variant="secondary" text="gzipped recommended"]
+    - **forward**: [!badge variant="success" text="_F"] [!badge variant="success" text=".F"] [!badge variant="success" text=".1"] [!badge variant="success" text="_1"] [!badge variant="success" text="_R1_001"] [!badge variant="success" text=".R1_001"] [!badge variant="success" text="_R1"] [!badge variant="success" text=".R1"] 
+    - **reverse**: [!badge variant="success" text="_R"] [!badge variant="success" text=".R"] [!badge variant="success" text=".2"] [!badge variant="success" text="_2"] [!badge variant="success" text="_R2_001"] [!badge variant="success" text=".R2_001"] [!badge variant="success" text="_R2"] [!badge variant="success" text=".R2"] 
+    - **fastq extension**: [!badge variant="success" text=".fq"] [!badge variant="success" text=".fastq"] [!badge variant="success" text=".FQ"] [!badge variant="success" text=".FASTQ"]
 - patience because EMA is [!badge variant="warning" text="slow"]
 ==- Why EMA?
 The original haplotag manuscript uses BWA to map reads. The authors have since recommended
@@ -144,8 +147,8 @@ Align/ema
 │   └── preproc
 │       └── Sample1.preproc.log
 └── reports
+    ├── barcodes.summary.html
     ├── ema.stats.html
-    ├── reads.bxcounts.html
     ├── Sample1.html
     └── data
         ├── bxstats
@@ -162,7 +165,7 @@ Align/ema
 | `logs/preproc/*.preproc.log`                   | everything `ema preproc` writes to `stderr` during operation                                                  |
 | `reports/`                                     | various counts/statistics/reports relating to sequence alignment                                              |
 | `reports/ema.stats.html`                       | report summarizing `samtools flagstat and stats` results across all samples from `multiqc`                    |
-| `reports/reads.bxcounts.html`                  | interactive html report summarizing `ema count` across all samples                                            |
+| `reports/barcodes.summary.html`                | interactive html report summarizing barcode-specific metrics across all samples                                            |
 | `reports/Sample1.html`              | interactive html report summarizing BX tag metrics and alignment coverage        | 
 | `reports/data/coverage/*.cov.gz`    | output from samtools cov, used for plots                                         |
 | `reports/data/bxstats`              | tabular data containing the information used to generate the BX stats in reports |
@@ -184,16 +187,13 @@ These are taken directly from the [EMA documentation](https://github.com/arshaji
 These are the summary reports Harpy generates for this workflow. You may right-click
 the images and open them in a new tab if you wish to see the examples in better detail.
 
-||| Depth and coverage
-Reports the depth of alignments in 10kb windows.
+||| Alignment BX Information
+An aggregate report of barcode-specific alignment information for all samples.
 ![reports/coverage/*.html](/static/report_align_coverage.png)
-||| BX validation
-Reports the number of valid/invalid barcodes in the alignments.
-![reports/reads.bxstats.html](/static/report_align_bxstats.png)
-||| Molecule size
+||| Molecule size and Coverage
 Reports the inferred molecule sized based on barcodes in the alignments.
 ![reports/BXstats/*.bxstats.html](/static/report_align_bxmol.png)
-||| Alignment stats
+||| Samtools Alignment stats
 Reports the general statistics computed by samtools `stats` and `flagstat`
 ![reports/samtools_*stat/*html](/static/report_align_flagstat.png)
 |||
