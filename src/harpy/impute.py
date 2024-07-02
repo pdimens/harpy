@@ -15,11 +15,11 @@ docstring = {
         "harpy impute": [
         {
             "name": "Parameters",
-            "options": ["--vcf", "--parameters", "--extra-params", "--vcf-samples"],
+            "options": ["--extra-params",  "--parameters", "--vcf", "--vcf-samples"],
         },
         {
             "name": "Other Options",
-            "options": ["--output-dir", "--threads", "--skipreports", "--hpc", "--conda", "--snakemake", "--quiet", "--help"],
+            "options": ["--conda", "--hpc", "--output-dir", "--quiet", "--skipreports", "--snakemake", "--threads", "--help"],
         },
     ]
 }

@@ -30,7 +30,7 @@ commandstring = {
         },
         {
             "name": "Genomic Variants",
-            "commands": ["snpindel","inversion", "cnv", "translocation"],
+            "commands": ["cnv", "inversion", "snpindel", "translocation"],
         }
     ]
 }
@@ -39,25 +39,25 @@ docstring = {
     "harpy simulate linkedreads": [
         {
             "name": "Parameters",
-            "options": ["--barcodes", "--read-pairs", "--outer-distance", "--distance-sd", "--mutation-rate", "--molecule-length", "--partitions", "--molecules-per"],
+            "options": ["--barcodes", "--distance-sd", "--outer-distance", "--molecule-length", "--molecules-per", "--mutation-rate", "--partitions", "--read-pairs"],
         },
         {
             "name": "Other Options",
-            "options": ["--output-dir", "--threads", "--hpc", "--conda", "--snakemake", "--quiet", "--help"],
+            "options": ["--conda", "--hpc", "--output-dir", "--quiet", "--snakemake", "--threads", "--help"],
         },     
     ],
     "harpy simulate snpindel": [
         {
             "name": "Known Variants",
-            "options": ["--snp-vcf", "--indel-vcf"],
+            "options": ["--indel-vcf", "--snp-vcf"],
         },
         {
             "name": "Random Variants",
-            "options": ["--snp-count", "--indel-count", "--titv-ratio", "--indel-ratio", "--snp-gene-constraints", "--genes", "--centromeres", "--exclude-chr"],
+            "options": ["--centromeres", "--exclude-chr", "--genes", "--indel-count", "--indel-ratio", "--snp-count", "--snp-gene-constraints", "--titv-ratio"],
         },
         {
             "name": "Other Options",
-            "options": ["--output-dir", "--prefix", "--heterozygosity", "--randomseed", "--hpc", "--conda", "--snakemake", "--quiet", "--help"],
+            "options": ["--conda", "--heterozygosity", "--hpc", "--output-dir", "--prefix", "--quiet", "--randomseed", "--snakemake", "--help"],
         },
     ],
     "harpy simulate inversion": [
@@ -67,11 +67,11 @@ docstring = {
         },
         {
             "name": "Random Variants",
-            "options": ["--count", "--min-size", "--max-size", "--genes", "--centromeres", "--exclude-chr"],
+            "options": ["--centromeres", "--count", "--exclude-chr", "--genes", "--max-size", "--min-size"],
         },
         {
             "name": "Other Options",
-            "options": ["--output-dir", "--prefix", "--heterozygosity", "--randomseed", "--hpc", "--conda", "--snakemake", "--quiet", "--help"],
+            "options": ["--conda", "--heterozygosity", "--hpc", "--output-dir", "--prefix", "--quiet", "--randomseed", "--snakemake", "--help"],
         },
     ],
     "harpy simulate cnv": [
@@ -81,11 +81,11 @@ docstring = {
         },
         {
             "name": "Random Variants",
-            "options": ["--count", "--min-size", "--max-size", "--max-copy", "--dup-ratio", "--gain-ratio", "--genes", "--centromeres", "--exclude-chr"],
+            "options": ["--centromeres", "--count", "--dup-ratio", "--exclude-chr", "--gain-ratio", "--genes",  "--max-copy", "--max-size", "--min-size"],
         },
         {
             "name": "Other Options",
-            "options": ["--output-dir", "--prefix", "--heterozygosity", "--randomseed", "--hpc", "--conda", "--snakemake", "--quiet", "--help"],
+            "options": ["--conda", "--heterozygosity", "--hpc", "--output-dir", "--prefix", "--quiet", "--randomseed", "--snakemake", "--help"],
         },
     ],
     "harpy simulate translocation": [
@@ -95,11 +95,11 @@ docstring = {
         },
         {
             "name": "Random Variants",
-            "options": ["--count", "--genes", "--centromeres", "--exclude-chr"],
+            "options": ["--centromeres", "--count", "--exclude-chr", "--genes"],
         },
         {
             "name": "Other Options",
-            "options": ["--output-dir","--prefix","--heterozygosity", "--randomseed", "--hpc", "--conda", "--snakemake", "--quiet", "--help"],
+            "options": ["--conda", "--heterozygosity", "--hpc", "--output-dir", "--prefix", "--quiet", "--randomseed", "--snakemake", "--help"],
         },
     ]
 }

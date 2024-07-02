@@ -14,11 +14,11 @@ docstring = {
     "harpy deconvolve": [
         {
             "name": "Parameters",
-            "options": ["--kmer-length", "--window-size", "--density", "--dropout"],
+            "options": ["--density", "--dropout", "--kmer-length", "--window-size"],
         },
         {
             "name": "Other Options",
-            "options": ["--output-dir", "--threads", "--hpc", "--conda", "--snakemake", "--quiet", "--help"],
+            "options": ["--conda", "--hpc", "--output-dir", "--quiet", "--snakemake", "--threads", "--help"],
         },
     ]
 }

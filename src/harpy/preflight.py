@@ -23,13 +23,13 @@ docstring = {
     "harpy preflight bam": [
         {
             "name": "Options",
-            "options": ["--output-dir", "--threads", "--hpc", "--conda", "--snakemake", "--quiet", "--help"],
+            "options": ["--conda", "--hpc", "--output-dir", "--quiet", "--snakemake", "--threads", "--help"],
         },
     ],
     "harpy preflight fastq": [
         {
             "name": "Options",
-            "options": ["--output-dir", "--threads", "--hpc", "--conda", "--snakemake", "--quiet", "--help"],
+            "options": ["--conda", "--hpc", "--output-dir", "--quiet", "--snakemake", "--threads", "--help"],
         },
     ]
 }

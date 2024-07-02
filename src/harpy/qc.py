@@ -14,11 +14,11 @@ docstring = {
     "harpy qc": [
         {
             "name": "Parameters",
-            "options": ["--min-length", "--max-length", "--trim-adapters", "--deduplicate", "--deconvolve", "--deconvolve-params", "--extra-params"],
+            "options": ["--deconvolve", "--deconvolve-params", "--deduplicate", "--extra-params", "--min-length", "--max-length", "--trim-adapters"],
         },
         {
             "name": "Other Options",
-            "options": ["--output-dir", "--threads", "--skipreports", "--hpc", "--conda", "--snakemake", "--quiet", "--help"],
+            "options": ["--conda", "--hpc", "--output-dir", "--quiet", "--skipreports", "--snakemake", "--threads", "--help"],
         },
     ]
 }

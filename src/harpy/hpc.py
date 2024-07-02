@@ -21,7 +21,7 @@ docstring = {
     "harpy hpc": [
         {
             "name": "Submission Systems",
-            "commands": ["slurm", "htcondor", "lsf", "googlebatch", "generic"],
+            "commands": ["generic", "googlebatch", "htcondor", "lsf", "slurm"],
         },
     ]
 }

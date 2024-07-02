@@ -28,21 +28,21 @@ docstring = {
     "harpy sv leviathan": [
         {
             "name": "Parameters",
-            "options": ["--genome", "--min-sv", "--min-barcodes", "--populations", "--extra-params"],
+            "options": ["--extra-params", "--genome", "--min-barcodes", "--min-sv", "--populations"],
         },
         {
             "name": "Other Options",
-            "options": ["--output-dir", "--threads", "--skipreports", "--hpc", "--conda", "--snakemake", "--quiet", "--help"],
+            "options": ["--conda", "--hpc", "--output-dir", "--quiet", "--skipreports", "--snakemake", "--threads", "--help"],
         },
     ],
     "harpy sv naibr": [
         {
             "name": "Module Parameters",
-            "options": ["--genome", "--vcf", "--min-sv", "--min-barcodes", "--molecule-distance", "--populations", "--extra-params"],
+            "options": ["--extra-params", "--genome", "--min-barcodes", "--min-sv", "--molecule-distance", "--populations", "--vcf"],
         },
         {
             "name": "Other Options",
-            "options": ["--output-dir", "--threads", "--skipreports", "--hpc", "--conda", "--snakemake", "--quiet", "--help"],
+            "options": ["--conda", "--hpc", "--output-dir", "--quiet", "--skipreports", "--snakemake", "--threads", "--help"],
         },
     ]
 }

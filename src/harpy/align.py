@@ -31,41 +31,31 @@ docstring = {
     "harpy align bwa": [
         {
             "name": "Parameters",
-            "options": ["--genome", "--quality-filter", "--molecule-distance", "--extra-params"],
+            "options": ["--extra-params", "--genome", "--molecule-distance", "--quality-filter"],
         },
         {
             "name": "Other Options",
-            "options": ["--output-dir", "--threads", "--depth-window", "--skipreports", "--hpc", "--conda", "--snakemake", "--quiet", "--help"],
+            "options": ["--conda", "--depth-window", "--hpc", "--output-dir", "--quiet", "--skipreports", "--snakemake", "--threads", "--help"],
         },
     ],
     "harpy align ema": [
         {
             "name": "Parameters",
-            "options": ["--platform", "--whitelist", "--genome", "--quality-filter", "--ema-bins", "--extra-params"],
+            "options": ["--ema-bins", "--extra-params", "--genome", "--platform", "--quality-filter", "--whitelist"],
         },
         {
             "name": "Other Options",
-            "options": ["--output-dir", "--threads", "--depth-window", "--skipreports", "--conda", "--snakemake", "--quiet", "--help"],
-        },
-    ],
-    "harpy align minimap": [
-        {
-            "name": "Parameters",
-            "options": ["--genome", "--quality-filter", "--molecule-distance", "--extra-params"],
-        },
-        {
-            "name": "Other Options",
-            "options": ["--output-dir", "--threads", "--depth-window", "--skipreports", "--conda", "--snakemake", "--quiet", "--help"],
+            "options": ["--conda", "--depth-window", "--hpc", "--output-dir", "--quiet", "--skipreports", "--snakemake", "--threads", "--help"],
         },
     ],
     "harpy align strobe": [
         {
             "name": "Parameters",
-            "options": ["--genome", "--read-length", "--quality-filter", "--molecule-distance", "--extra-params"],
+            "options": ["--extra-params", "--genome", "--molecule-distance", "--quality-filter", "--read-length"],
         },
         {
             "name": "Other Options",
-            "options": ["--output-dir", "--threads", "--depth-window", "--skipreports", "--conda", "--snakemake", "--quiet", "--help"],
+            "options": ["--conda", "--depth-window", "--hpc", "--output-dir", "--quiet", "--skipreports", "--snakemake", "--threads", "--help"],
         },
     ]
 }
