@@ -12,7 +12,7 @@ def generate_conda_deps():
         "sv": ["bioconda::leviathan", "bioconda::naibr-plus"],
         "phase" : ["bioconda::hapcut2", "bioconda::whatshap"],
         "simulations" : ["conda-forge::perl", "bioconda::perl-math-random", "bioconda::perl-inline-c", "bioconda::perl-parse-recdescent", "conda-forge::numpy", "bioconda::dwgsim", "alienzj::msort"],
-        "r" : ["conda-forge::r-xml2", "conda-forge::r-highcharter", "conda-forge::r-circlize", "r::r-biocircos", "conda-forge::r-dt", "conda-forge::r-flexdashboard", "conda-forge::r-ggplot2", "conda-forge::r-ggridges", "conda-forge::r-plotly", "conda-forge::r-tidyr", "bioconda::r-stitch"]
+        "r" : ["conda-forge::r-xml2", "conda-forge::r-highcharter", "conda-forge::r-circlize", "r::r-biocircos", "conda-forge::r-dt", "conda-forge::r-flexdashboard", "conda-forge::r-ggplot2", "conda-forge::r-ggridges", "conda-forge::r-plotly", "conda-forge::r-tidyr", "bioconda::r-stitch=1.6.10"]
     }
     os.makedirs(".harpy_envs", exist_ok = True)
     # overwrites existing
