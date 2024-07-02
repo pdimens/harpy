@@ -33,14 +33,14 @@ docstring = {
 @click.option('-x', '--extra-params', type = str, help = 'Additional HapCut2 parameters, in quotes')
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(min = 2, max_open = True), help = 'Number of threads to use')
 @click.option('-q', '--quiet',  is_flag = True, show_default = True, default = False, help = 'Don\'t show output text while running')
-@click.option('-o', '--output-dir', type = str, default = "Phase", show_default=True, help = 'Name of output directory')
+@click.option('-o', '--output-dir', type = str, default = "Phase", show_default=True, help = 'Output directory name')
 @click.option('--snakemake',  type = str, help = 'Additional Snakemake parameters, in quotes')
 @click.option('--hpc',  type = click.Path(exists = True, file_okay = False), help = 'Config dir for automatic HPC submission')
 @click.option('--conda',  is_flag = True, default = False, help = 'Use conda/mamba instead of container')
 @click.option('--skipreports',  is_flag = True, show_default = True, default = False, help = 'Don\'t generate HTML reports')
-@click.option('--print-only',  is_flag = True, hidden = True, default = False, help = 'Print the generated snakemake command and exit')
+@click.option('--config-only',  is_flag = True, hidden = True, default = False, help = 'Create the config.yaml file and exit')
 @click.argument('inputs', required=True, type=click.Path(exists=True), nargs=-1)
-def phase(inputs, output_dir, vcf, threads, molecule_distance, prune_threshold, vcf_samples, genome, snakemake, extra_params, ignore_bx, skipreports, quiet, hpc, conda, print_only):
+def phase(inputs, output_dir, vcf, threads, molecule_distance, prune_threshold, vcf_samples, genome, snakemake, extra_params, ignore_bx, skipreports, quiet, hpc, conda, config_only):
     """
     Phase SNPs into haplotypes
 
@@ -64,9 +64,6 @@ def phase(inputs, output_dir, vcf, threads, molecule_distance, prune_threshold, 
         command += "--quiet all "
     if snakemake is not None:
         command += snakemake
-    if print_only:
-        click.echo(command)
-        sys.exit(0)
 
     os.makedirs(f"{workflowdir}/input", exist_ok= True)
     bamlist, n = parse_alignment_inputs(inputs)
@@ -97,6 +94,8 @@ def phase(inputs, output_dir, vcf, threads, molecule_distance, prune_threshold, 
         config.write("  alignments:\n")
         for i in bamlist:
             config.write(f"    - {i}\n")
+    if config_only:
+        sys.exit(0)
 
     print_onstart(
         f"Input VCF: {vcf}\nSamples in VCF: {len(samplenames)}\nAlignments Provided: {n}\nOutput Directory: {output_dir}/",

@@ -78,14 +78,14 @@ docstring = {
 @click.option('-x', '--extra-params', type = str, help = 'Additional bwa mem parameters, in quotes')
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(min = 4, max_open = True), help = 'Number of threads to use')
 @click.option('-q', '--quiet',  is_flag = True, show_default = True, default = False, help = 'Don\'t show output text while running')
-@click.option('-o', '--output-dir', type = str, default = "Align/bwa", show_default=True, help = 'Name of output directory')
+@click.option('-o', '--output-dir', type = str, default = "Align/bwa", show_default=True, help = 'Output directory name')
 @click.option('--snakemake', type = str, help = 'Additional Snakemake parameters, in quotes')
 @click.option('--hpc',  type = click.Path(exists = True, file_okay = False), help = 'Config dir for automatic HPC submission')
 @click.option('--conda',  is_flag = True, default = False, help = 'Use conda/mamba instead of container')
 @click.option('--skipreports',  is_flag = True, show_default = True, default = False, help = 'Don\'t generate HTML reports')
-@click.option('--print-only',  is_flag = True, hidden = True, default = False, help = 'Print the generated snakemake command and exit')
+@click.option('--config-only',  is_flag = True, hidden = True, default = False, help = 'Create the config.yaml file and exit')
 @click.argument('inputs', required=True, type=click.Path(exists=True), nargs=-1)
-def bwa(inputs, output_dir, genome, depth_window, threads, extra_params, quality_filter, molecule_distance, snakemake, skipreports, quiet, hpc, conda, print_only):
+def bwa(inputs, output_dir, genome, depth_window, threads, extra_params, quality_filter, molecule_distance, snakemake, skipreports, quiet, hpc, conda, config_only):
     """
     Align sequences to genome using `BWA MEM`
  
@@ -108,9 +108,6 @@ def bwa(inputs, output_dir, genome, depth_window, threads, extra_params, quality
         command += "--quiet all "
     if snakemake is not None:
         command += snakemake
-    if print_only:
-        click.echo(command)
-        sys.exit(0)
 
     os.makedirs(f"{workflowdir}/", exist_ok= True)
     fqlist, sample_count = parse_fastq_inputs(inputs)
@@ -135,6 +132,9 @@ def bwa(inputs, output_dir, genome, depth_window, threads, extra_params, quality
         for i in fqlist:
             config.write(f"    - {i}\n")
 
+    if config_only:
+        sys.exit(0)
+
     print_onstart(
         f"Samples: {sample_count}\nOutput Directory: {output_dir}",
         "align bwa"
@@ -153,14 +153,14 @@ def bwa(inputs, output_dir, genome, depth_window, threads, extra_params, quality
 @click.option('-x', '--extra-params', type = str, help = 'Additional ema align parameters, in quotes')
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(min = 4, max_open = True), help = 'Number of threads to use')
 @click.option('-q', '--quiet',  is_flag = True, show_default = True, default = False, help = 'Don\'t show output text while running')
-@click.option('-o', '--output-dir', type = str, default = "Align/ema", show_default=True, help = 'Name of output directory')
+@click.option('-o', '--output-dir', type = str, default = "Align/ema", show_default=True, help = 'Output directory name')
 @click.option('--snakemake', type = str, help = 'Additional Snakemake parameters, in quotes')
 @click.option('--hpc',  type = click.Path(exists = True, file_okay = False), help = 'Config dir for automatic HPC submission')
 @click.option('--conda',  is_flag = True, default = False, help = 'Use conda/mamba instead of container')
 @click.option('--skipreports',  is_flag = True, show_default = True, default = False, help = 'Don\'t generate HTML reports')
-@click.option('--print-only',  is_flag = True, hidden = True, default = False, help = 'Print the generated snakemake command and exit')
+@click.option('--config-only',  is_flag = True, hidden = True, default = False, help = 'Create the config.yaml file and exit')
 @click.argument('inputs', required=True, type=click.Path(exists=True), nargs=-1)
-def ema(inputs, output_dir, platform, whitelist, genome, depth_window, threads, ema_bins, skipreports, extra_params, quality_filter, snakemake, quiet, hpc, conda, print_only):
+def ema(inputs, output_dir, platform, whitelist, genome, depth_window, threads, ema_bins, skipreports, extra_params, quality_filter, snakemake, quiet, hpc, conda, config_only):
     """
     Align sequences to genome using `EMA`
 
@@ -185,9 +185,6 @@ def ema(inputs, output_dir, platform, whitelist, genome, depth_window, threads, 
         command += "--quiet all "
     if snakemake is not None:
         command += snakemake
-    if print_only:
-        click.echo(command)
-        sys.exit(0)
 
     platform = platform.lower()
     # the tellseq stuff isn't impremented yet, but this is a placeholder for that... wishful thinking
@@ -228,6 +225,9 @@ def ema(inputs, output_dir, platform, whitelist, genome, depth_window, threads, 
         for i in fqlist:
             config.write(f"    - {i}\n")
 
+    if config_only:
+        sys.exit(0)
+
     print_onstart(
         f"Samples: {sample_count}\nPlatform: {platform}\nOutput Directory: {output_dir}/",
         "align ema"
@@ -245,14 +245,14 @@ def ema(inputs, output_dir, platform, whitelist, genome, depth_window, threads, 
 @click.option('-x', '--extra-params', type = str, help = 'Additional aligner parameters, in quotes')
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(min = 4, max_open = True), help = 'Number of threads to use')
 @click.option('-q', '--quiet',  is_flag = True, show_default = True, default = False, help = 'Don\'t show output text while running')
-@click.option('-o', '--output-dir', type = str, default = "Align/strobealign", show_default=True, help = 'Name of output directory')
+@click.option('-o', '--output-dir', type = str, default = "Align/strobealign", show_default=True, help = 'Output directory name')
 @click.option('--snakemake', type = str, help = 'Additional Snakemake parameters, in quotes')
 @click.option('--hpc',  type = click.Path(exists = True, file_okay = False), help = 'Config dir for automatic HPC submission')
 @click.option('--conda',  is_flag = True, default = False, help = 'Use conda/mamba instead of container')
 @click.option('--skipreports',  is_flag = True, show_default = True, default = False, help = 'Don\'t generate HTML reports')
-@click.option('--print-only',  is_flag = True, hidden = True, default = False, help = 'Print the generated snakemake command and exit')
+@click.option('--config-only',  is_flag = True, hidden = True, default = False, help = 'Create the config.yaml file and exit')
 @click.argument('inputs', required=True, type=click.Path(exists=True), nargs=-1)
-def strobe(inputs, output_dir, genome, read_length, depth_window, threads, extra_params, quality_filter, molecule_distance, snakemake, skipreports, quiet, hpc, conda, print_only):
+def strobe(inputs, output_dir, genome, read_length, depth_window, threads, extra_params, quality_filter, molecule_distance, snakemake, skipreports, quiet, hpc, conda, config_only):
     """
     Align sequences to genome using `strobealign`
  
@@ -278,9 +278,6 @@ def strobe(inputs, output_dir, genome, read_length, depth_window, threads, extra
         command += "--quiet all "
     if snakemake is not None:
         command +=  snakemake
-    if print_only:
-        click.echo(command)
-        sys.exit(0)
 
     os.makedirs(f"{workflowdir}/", exist_ok= True)
     fqlist, sample_count = parse_fastq_inputs(inputs)
@@ -307,6 +304,9 @@ def strobe(inputs, output_dir, genome, read_length, depth_window, threads, extra
         config.write("  fastq:\n")
         for i in fqlist:
             config.write(f"    - {i}\n")
+
+    if config_only:
+        sys.exit(0)
 
     print_onstart(
         f"Samples: {sample_count}\nOutput Directory: {output_dir}",

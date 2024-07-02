@@ -1,16 +1,17 @@
-"""Harpy sequence adapter trimming and quality control"""
+"""Separate barcodes by unique molecule"""
 
 import os
 import sys
 import subprocess
 import rich_click as click
+from traitlets import default
 from .conda_deps import generate_conda_deps
-from .helperfunctions import fetch_report, fetch_rule, fetch_script
+from .helperfunctions import fetch_report, fetch_rule
 from .fileparsers import parse_fastq_inputs
 from .printfunctions import print_onstart
 
 docstring = {
-    "harpy qc": [
+    "harpy deconvolute": [
         {
             "name": "Parameters",
             "options": ["--max-length", "--ignore-adapters", "--extra-params"],
@@ -23,17 +24,16 @@ docstring = {
 }
 
 @click.command(no_args_is_help = True, epilog = "read the docs for more information: https://pdimens.github.io/harpy/modules/qc")
-@click.option('-n', '--min-length', default = 30, show_default = True, type=int, help = 'Discard reads shorter than this length')
-@click.option('-m', '--max-length', default = 150, show_default = True, type=int, help = 'Maximum length to trim sequences down to')
-@click.option('-a', '--ignore-adapters', is_flag = True, show_default = False, default = False, help = 'Skip adapter trimming')
-@click.option('-x', '--extra-params', type = str, help = 'Additional Fastp parameters, in quotes')
-@click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(min = 4, max_open = True), help = 'Number of threads to use')
+@click.option('-k', '--kmers-length', default = 21, show_default = True, type=int, help = 'Size of kmers')
+@click.option('-w', '--window-size', default = 40, show_default = True, type=int, help = 'Size of window guaranteed to contain at least one kmer')
+@click.option('-d', '--density', default = 3, type = int, show_default = True, help = 'On average, 1/2^d kmers are indexed')
+@click.option('-a', '--dropout', type = int, default = 0, help = 'Do not try to deconvolve clouds smaller than this value')
+@click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(min = 1, max_open = True), help = 'Number of threads to use')
 @click.option('-q', '--quiet',  is_flag = True, show_default = True, default = False, help = 'Don\'t show output text while running')
-@click.option('-o', '--output-dir', type = str, default = "QC", show_default=True, help = 'Output directory name')
+@click.option('-o', '--output-dir', type = str, default = "Deconvolve", show_default=True, help = 'Output directory name')
 @click.option('--hpc',  type = click.Path(exists = True, file_okay = False), help = 'Config dir for automatic HPC submission')
 @click.option('--conda',  is_flag = True, default = False, help = 'Use conda/mamba instead of container')
 @click.option('--snakemake', type = str, help = 'Additional Snakemake parameters, in quotes')
-@click.option('--skipreports',  is_flag = True, show_default = True, default = False, help = 'Don\'t generate HTML reports')
 @click.option('--config-only',  is_flag = True, hidden = True, show_default = True, default = False, help = 'Create the config.yaml file and exit')
 @click.argument('inputs', required=True, type=click.Path(exists=True), nargs=-1)
 def qc(inputs, output_dir, min_length, max_length, ignore_adapters, extra_params, threads, snakemake, skipreports, quiet, hpc, conda, config_only):
@@ -78,6 +78,7 @@ def qc(inputs, output_dir, min_length, max_length, ignore_adapters, extra_params
         config.write("inputs:\n")
         for i in fqlist:
             config.write(f"  - {i}\n")
+
     if config_only:
         sys.exit(0)
 

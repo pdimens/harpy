@@ -53,16 +53,16 @@ docstring = {
 @click.option('-n', '--min-sv', type = click.IntRange(min = 10, max_open = True), default = 1000, show_default=True, help = 'Minimum size of SV to detect')
 @click.option('-b', '--min-barcodes', show_default = True, default=2, type = click.IntRange(min = 1, max_open = True), help = 'Minimum number of barcode overlaps supporting candidate SV')
 @click.option('-x', '--extra-params', type = str, help = 'Additional variant caller parameters, in quotes')
-@click.option('-o', '--output-dir', type = str, default = "SV/leviathan", show_default=True, help = 'Name of output directory')
+@click.option('-o', '--output-dir', type = str, default = "SV/leviathan", show_default=True, help = 'Output directory name')
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(min = 4, max_open = True), help = 'Number of threads to use')
 @click.option('-q', '--quiet',  is_flag = True, show_default = True, default = False, help = 'Don\'t show output text while running')
 @click.option('--hpc',  type = click.Path(exists = True, file_okay = False), help = 'Config dir for automatic HPC submission')
 @click.option('--conda',  is_flag = True, default = False, help = 'Use conda/mamba instead of container')
 @click.option('--snakemake', type = str, help = 'Additional Snakemake parameters, in quotes')
 @click.option('--skipreports',  is_flag = True, show_default = True, default = False, help = 'Don\'t generate HTML reports')
-@click.option('--print-only',  is_flag = True, hidden = True, default = False, help = 'Print the generated snakemake command and exit')
+@click.option('--config-only',  is_flag = True, hidden = True, default = False, help = 'Create the config.yaml file and exit')
 @click.argument('inputs', required=True, type=click.Path(exists=True), nargs=-1)
-def leviathan(inputs, output_dir, genome, min_sv, min_barcodes, threads, populations, extra_params, snakemake, skipreports, quiet, hpc, conda, print_only):
+def leviathan(inputs, output_dir, genome, min_sv, min_barcodes, threads, populations, extra_params, snakemake, skipreports, quiet, hpc, conda, config_only):
     """
     Call structural variants using LEVIATHAN
     
@@ -86,10 +86,6 @@ def leviathan(inputs, output_dir, genome, min_sv, min_barcodes, threads, populat
         command += "--quiet all "
     if snakemake is not None:
         command += snakemake
-
-    if print_only:
-        click.echo(command)
-        sys.exit(0)
 
     os.makedirs(f"{workflowdir}/", exist_ok= True)
     bamlist, n = parse_alignment_inputs(inputs)
@@ -121,6 +117,8 @@ def leviathan(inputs, output_dir, genome, min_sv, min_barcodes, threads, populat
         config.write("  alignments:\n")
         for i in bamlist:
             config.write(f"    - {i}\n")
+    if config_only:
+        sys.exit(0)
 
     modetext = "pool-by-group" if populations else "single-sample"
     print_onstart(
@@ -139,16 +137,16 @@ def leviathan(inputs, output_dir, genome, min_sv, min_barcodes, threads, populat
 @click.option('-b', '--min-barcodes', show_default = True, default=2, type = click.IntRange(min = 1, max_open = True), help = 'Minimum number of barcode overlaps supporting candidate SV')
 @click.option('-m', '--molecule-distance', default = 100000, show_default = True, type = int, help = 'Base-pair distance delineating separate molecules')
 @click.option('-x', '--extra-params', type = str, help = 'Additional variant caller parameters, in quotes')
-@click.option('-o', '--output-dir', type = str, default = "SV/naibr", show_default=True, help = 'Name of output directory')
+@click.option('-o', '--output-dir', type = str, default = "SV/naibr", show_default=True, help = 'Output directory name')
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(min = 4, max_open = True), help = 'Number of threads to use')
 @click.option('-q', '--quiet',  is_flag = True, show_default = True, default = False, help = 'Don\'t show output text while running')
 @click.option('--hpc',  type = click.Path(exists = True, file_okay = False), help = 'Config dir for automatic HPC submission')
 @click.option('--conda',  is_flag = True, default = False, help = 'Use conda/mamba instead of container')
 @click.option('--snakemake', type = str, help = 'Additional Snakemake parameters, in quotes')
 @click.option('--skipreports',  is_flag = True, show_default = True, default = False, help = 'Don\'t generate HTML reports')
-@click.option('--print-only',  is_flag = True, hidden = True, default = False, help = 'Print the generated snakemake command and exit')
+@click.option('--config-only',  is_flag = True, hidden = True, default = False, help = 'Create the config.yaml file and exit')
 @click.argument('inputs', required=True, type=click.Path(exists=True), nargs=-1)
-def naibr(inputs, output_dir, genome, vcf, min_sv, min_barcodes, threads, populations, molecule_distance, extra_params, snakemake, skipreports, quiet, hpc, conda, print_only):
+def naibr(inputs, output_dir, genome, vcf, min_sv, min_barcodes, threads, populations, molecule_distance, extra_params, snakemake, skipreports, quiet, hpc, conda, config_only):
     """
     Call structural variants using NAIBR
     
@@ -179,9 +177,6 @@ def naibr(inputs, output_dir, genome, vcf, min_sv, min_barcodes, threads, popula
         command += "--quiet all "
     if snakemake is not None:
         command += snakemake
-    if print_only:
-        click.echo(command)
-        sys.exit(0)
 
     os.makedirs(f"{workflowdir}/", exist_ok= True)
     bamlist, n = parse_alignment_inputs(inputs)
@@ -220,6 +215,8 @@ def naibr(inputs, output_dir, genome, vcf, min_sv, min_barcodes, threads, popula
         config.write("  alignments:\n")
         for i in bamlist:
             config.write(f"    - {i}\n")
+    if config_only:
+        sys.exit(0)
 
     if populations:
         modetext = "pool-by-group"
