@@ -129,7 +129,7 @@ rule impute:
         parameters = paramspace.instance,
         extra = config.get("extra", "")
     conda:
-        f"{envdir}/r.yaml"
+        f"{envdir}/stitch.yaml"
     benchmark:
         f".Benchmark/{outdir}/stitch.{paramspace.wildcard_pattern}" + ".{part}.txt"
     threads:
