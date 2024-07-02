@@ -1,5 +1,6 @@
 name: Bug report
-description: Something about harpy is breaking or not behaving in the way you expect
+about: Something about harpy is not working or behaving in the way you expect
+labels: bug
 body:
   - type: textarea
     id: description
