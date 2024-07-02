@@ -2,7 +2,7 @@ input: .
 output: .retype
 url: pdimens.github.io/harpy/
 meta:
-  title: " | Harpy haplotagging pipeline"
+  title: " | Harpy haplotag"
 links:
 - text: GitHub
   link: https://github.com/pdimens/harpy
