@@ -38,6 +38,11 @@ rule r_env:
     conda: os.getcwd() + "/.harpy_envs/r.yaml"
     shell: "touch {output}"
 
+rule r_env:
+    output: "stitch.env"
+    conda: os.getcwd() + "/.harpy_envs/stitch.yaml"
+    shell: "touch {output}"
+
 rule simulations:
     output: "simulations.env"
     conda: os.getcwd() + "/.harpy_envs/simulations.yaml"
