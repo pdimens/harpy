@@ -9,7 +9,7 @@ from .validations import check_envdir
 from .printfunctions import print_error, print_onstart
 from .conda_deps import generate_conda_deps
 
-@click.command(no_args_is_help = True, epilog = "read the docs for more information: https://pdimens.github.io/harpy/modules/other")
+@click.command(no_args_is_help = True, epilog = "See the documentation for more information: https://pdimens.github.io/harpy/modules/other")
 @click.option('-c', '--conda',  is_flag = True, default = False, help = 'Recreate the conda environments into .harpy_envs/')
 @click.argument('directory', required=True, type=click.Path(exists=True, file_okay=False), nargs=1)
 def resume(directory, conda):

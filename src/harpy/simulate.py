@@ -104,7 +104,7 @@ docstring = {
     ]
 }
 
-@click.command(no_args_is_help = True, epilog = "read the docs for more information: https://pdimens.github.io/harpy/modules/simulate/simulate-linkedreads")
+@click.command(no_args_is_help = True, epilog = "See the documentation for more information: https://pdimens.github.io/harpy/modules/simulate/simulate-linkedreads")
 @click.option('-d', '--outer-distance', type = click.IntRange(min = 100), default = 350, show_default= True, help = "Outer distance between paired-end reads (bp)")
 @click.option('-s', '--distance-sd', type = click.IntRange(min = 1), default = 15, show_default=True,  help = "Standard deviation of read-pair distance")
 @click.option('-b', '--barcodes', type = click.Path(exists=True, dir_okay=False), help = "File of linked-read barcodes to add to reads")
@@ -298,7 +298,7 @@ def snpindel(genome, snp_vcf, indel_vcf, output_dir, prefix, snp_count, indel_co
     _module = subprocess.run(command.split())
     sys.exit(_module.returncode)
 
-@click.command(no_args_is_help = True, epilog = "Please read the docs for more information: https://pdimens.github.io/harpy/modules/simulate/simulate-variants")
+@click.command(no_args_is_help = True, epilog = "Please See the documentation for more information: https://pdimens.github.io/harpy/modules/simulate/simulate-variants")
 @click.option('-v', '--vcf', type=click.Path(exists=True, dir_okay=False), help = 'VCF file of known inversions to simulate')
 @click.option('-n', '--count', type = click.IntRange(min = 0), default=0, show_default=False, help = "Number of random inversions to simluate")
 @click.option('-m', '--min-size', type = click.IntRange(min = 1), default = 1000, show_default= True, help = "Minimum inversion size (bp)")
@@ -392,7 +392,7 @@ def inversion(genome, vcf, prefix, output_dir, count, min_size, max_size, centro
     _module = subprocess.run(command.split())
     sys.exit(_module.returncode)
 
-@click.command(no_args_is_help = True, epilog = "Please read the docs for more information: https://pdimens.github.io/harpy/modules/simulate/simulate-variants")
+@click.command(no_args_is_help = True, epilog = "Please See the documentation for more information: https://pdimens.github.io/harpy/modules/simulate/simulate-variants")
 @click.option('-v', '--vcf', type=click.Path(exists=True, dir_okay=False), help = 'VCF file of known copy number variants to simulate')
 @click.option('-n', '--count', type = click.IntRange(min = 0), default=0, show_default=False, help = "Number of random variants to simluate")
 @click.option('-m', '--min-size', type = click.IntRange(min = 1), default = 1000, show_default= True, help = "Minimum variant size (bp)")
@@ -497,7 +497,7 @@ def cnv(genome, output_dir, vcf, prefix, count, min_size, max_size, dup_ratio, m
     _module = subprocess.run(command.split())
     sys.exit(_module.returncode)
 
-@click.command(no_args_is_help = True, epilog = "Please read the docs for more information: https://pdimens.github.io/harpy/modules/simulate/simulate-variants")
+@click.command(no_args_is_help = True, epilog = "Please See the documentation for more information: https://pdimens.github.io/harpy/modules/simulate/simulate-variants")
 @click.option('-v', '--vcf', type=click.Path(exists=True, dir_okay=False), help = 'VCF file of known translocations to simulate')
 @click.option('-n', '--count', type = click.IntRange(min = 0), default=0, show_default=False, help = "Number of random translocations to simluate")
 @click.option('-c', '--centromeres', type = click.Path(exists=True, dir_okay=False), help = "GFF3 file of centromeres to avoid")

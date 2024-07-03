@@ -1,20 +1,6 @@
 #!/usr/bin/env python3
 
-import os
-import sys
-
-try:
-    harpypath = '{CONDA_PREFIX}'.format(**os.environ) + "/bin"
-except:
-    enverror = "\033[1;33mERROR:\033[00m Harpy expects to run from within an active conda environment, but one was not detected."
-    print(enverror, file = sys.stderr)
-    fix = "\033[1;34mSOLUTION:\033[00m Activate the conda environment Harpy was installed into and run Harpy again."
-    print("\n" + fix, file = sys.stderr)
-    print(f"\n\033[1mDetails:\033[00m")
-    details = "In order to work correctly, Harpy expects several software packages to be available in the PATH, which are provided automatically with Harpy's conda-based installation. If you're seeing this message, no active conda environment was detected upon execution, and Harpy exited as an early failsafe against unexpected runtime errors associated with \"missing\" files and packages."
-    print(details, file = sys.stderr)
-    sys.exit(1)
-
+import rich_click as click
 from . import align
 from . import demultiplex
 from . import impute
@@ -30,7 +16,6 @@ from . import resume
 from . import deconvolve
 from .popgroups import popgroup
 from .stitchparams import stitchparams
-import rich_click as click
 
 click.rich_click.USE_MARKDOWN = True
 click.rich_click.SHOW_ARGUMENTS = False
@@ -39,7 +24,9 @@ click.rich_click.APPEND_METAVARS_HELP = False
 click.rich_click.MAX_WIDTH = 75
 click.rich_click.REQUIRED_SHORT_STRING = ""
 click.rich_click.ERRORS_SUGGESTION = "Try the '--help' flag for more information."
-click.rich_click.ERRORS_EPILOGUE = "See the documentation: [link=https://pdimens.github.io/harpy/]https://pdimens.github.io/harpy/[/link]"
+click.rich_click.ERRORS_EPILOGUE = """
+See the documentation: [link=https://pdimens.github.io/harpy/]https://pdimens.github.io/harpy/[/link]
+"""
 
 @click.group(options_metavar='', context_settings={"help_option_names" : ["-h", "--help"]})
 @click.version_option("1.1.0", prog_name="Harpy")
@@ -87,4 +74,5 @@ click.rich_click.COMMAND_GROUPS = {
         ],
  } | simulate.commandstring | hpc.docstring
 
-click.rich_click.OPTION_GROUPS = demultiplex.docstring | preflight.docstring | qc.docstring | deconvolve.docstring | align.docstring | snp.docstring | sv.docstring | impute.docstring | phase.docstring | simulate.docstring
+for i in [align, deconvolve, demultiplex, impute, phase, preflight, qc, simulate, snp, sv]:
+    click.rich_click.OPTION_GROUPS |= i.docstring

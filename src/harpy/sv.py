@@ -47,7 +47,7 @@ docstring = {
     ]
 }
 
-@click.command(no_args_is_help = True, epilog= "read the docs for more information: https://pdimens.github.io/harpy/modules/sv/leviathan/")
+@click.command(no_args_is_help = True, epilog= "See the documentation for more information: https://pdimens.github.io/harpy/modules/sv/leviathan/")
 @click.option('-g', '--genome', type=click.Path(exists=True, dir_okay=False), required = True, help = 'Genome assembly for variant calling')
 @click.option('-p', '--populations', type=click.Path(exists = True, dir_okay=False), help = "Tab-delimited file of sample\<tab\>population")
 @click.option('-n', '--min-sv', type = click.IntRange(min = 10, max_open = True), default = 1000, show_default=True, help = 'Minimum size of SV to detect')
@@ -129,7 +129,7 @@ def leviathan(inputs, output_dir, genome, min_sv, min_barcodes, threads, populat
     _module = subprocess.run(command.split())
     sys.exit(_module.returncode)
 
-@click.command(no_args_is_help = True, epilog = "read the docs for more information: https://pdimens.github.io/harpy/modules/sv/naibr/")
+@click.command(no_args_is_help = True, epilog = "See the documentation for more information: https://pdimens.github.io/harpy/modules/sv/naibr/")
 @click.option('-g', '--genome', required = True, type=click.Path(exists=True, dir_okay=False), help = 'Genome assembly')
 @click.option('-v', '--vcf', type=click.Path(exists=True, dir_okay=False),  help = 'Path to phased bcf/vcf file')
 @click.option('-p', '--populations', type=click.Path(exists = True, dir_okay=False), help = "Tab-delimited file of sample\<tab\>population")

@@ -47,7 +47,7 @@ docstring = {
     ]
 }
 
-@click.command(no_args_is_help = True, epilog = "read the docs for more information: https://pdimens.github.io/harpy/modules/snp")
+@click.command(no_args_is_help = True, epilog = "See the documentation for more information: https://pdimens.github.io/harpy/modules/snp")
 @click.option('-g', '--genome', type=click.Path(exists=True, dir_okay=False), required = True, help = 'Genome assembly for variant calling')
 @click.option('-p', '--populations', type=click.Path(exists = True, dir_okay=False), help = "Tab-delimited file of sample\<tab\>population")
 @click.option('-x', '--ploidy', default = 2, show_default = True, type=int, help = 'Ploidy of samples')
@@ -147,7 +147,7 @@ def mpileup(inputs, output_dir, regions, genome, threads, populations, ploidy, e
     _module = subprocess.run(command.split())
     sys.exit(_module.returncode)
 
-@click.command(no_args_is_help = True, epilog = "read the docs for more information: https://pdimens.github.io/harpy/modules/snp")
+@click.command(no_args_is_help = True, epilog = "See the documentation for more information: https://pdimens.github.io/harpy/modules/snp")
 @click.option('-g', '--genome', type=click.Path(exists=True, dir_okay=False), required = True, help = 'Genome assembly for variant calling')
 @click.option('-p', '--populations', type=click.Path(exists = True, dir_okay=False), help = "Tab-delimited file of sample\<tab\>population")
 @click.option('-x', '--ploidy', default = 2, show_default = True, type=int, help = 'Ploidy of samples')
