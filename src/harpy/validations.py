@@ -18,7 +18,7 @@ def check_envdir(dirpath):
         print_error("This working directory does not contain the expected directory of conda environment definitions ([blue bold].harpy_envs/[/blue bold])\n  - use [green bold]--conda[/green bold] to recreate it")
         sys.exit(1)
     envlist = os.listdir(dirpath)
-    envs = ["qc", "align", "snp", "sv", "phase", "simulations", "r"]
+    envs = ["align",  "phase", "qc", "r", "simulations", "snp", "stitch", "sv"]
     errcount = 0
     errtable = Table(show_footer=True, box=box.SIMPLE)
     errtable.add_column("File", justify="left", style="blue", no_wrap=True)
