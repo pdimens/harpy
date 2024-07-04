@@ -16,7 +16,7 @@ outdir = config["output_directory"]
 envdir      = os.getcwd() + "/.harpy_envs"
 
 def barcodedict(smpl):
-    d = dict()
+    d = {}
     with open(smpl, "r") as f:
         for i in f.readlines():
             # a casual way to ignore empty lines or lines with >2 fields

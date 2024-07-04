@@ -306,7 +306,7 @@ def validate_regions(regioninput, genome):
             sys.exit(1)
         # check if the region is in the genome
 
-        contigs = dict()
+        contigs = {}
         if genome.lower().endswith("gz"):
             with gzip.open(genome, "r") as fopen:
                 for line in fopen:

@@ -232,7 +232,7 @@ jobs:
       - name: harpy qc all options
         shell: micromamba-shell {0}
         run: harpy qc -a -d -c --snakemake "--show-failed-logs" test/fastq
-    deconvolve:
+  deconvolve:
     needs: [changes, pkgbuild]
     if: ${{ needs.changes.outputs.deconvolve == 'true' && needs.pkgbuild.result == 'success' }}
     name: deconvolve

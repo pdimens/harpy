@@ -32,7 +32,7 @@ n_valid = 0
 haplotag = re.compile('A[0-9]{2}C[0-9]{2}B[0-9]{2}D[0-9]{2}')
 # invalid = re.compile('[A-Z]00')
 invalid = re.compile('[AaBbCcDd]00')
-# inv_dict = dict()
+# inv_dict = {}
 inv_dict = {
     "A" : 0,
     "B" : 0,

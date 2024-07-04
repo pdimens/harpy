@@ -44,7 +44,7 @@ def process_record(fw_entry, rv_entry):
 bc_range = [f"{i}".zfill(2) for i in range(1,97)]
 bc_generator = product("A", bc_range, "C", bc_range, "B", bc_range, "D", bc_range)
 
-bc_dict = dict()
+bc_dict = {}
 
 # read in barcodes
 with open(args.barcodes, "r") as bc_file:

@@ -107,7 +107,7 @@ def write_missingbx(bam, alnrecord):
 #args = parser.parse_args()
 bam_input = args.input
 # initialize the dict
-d = dict()
+d = {}
 # chromlast keeps track of the last chromosome so we can
 # clear the dict when it's a new contig/chromosome
 chromlast = False
