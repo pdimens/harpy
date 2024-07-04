@@ -6,7 +6,7 @@ onsuccess:
 
 rule all:
     input:
-        collect("{conda}.env", conda = ["qc","align","snp","sv","phase","r","simulations"])
+        collect("{conda}.env", conda = ["align", "phase", "qc", "r", "simulations", "snp", "stitch", "sv"])
 
 rule qc:
     output: "qc.env"
@@ -33,9 +33,14 @@ rule phase:
     conda: os.getcwd() + "/.harpy_envs/phase.yaml"
     shell: "touch {output}"
 
-rule r_env:
+rule r:
     output: "r.env"
     conda: os.getcwd() + "/.harpy_envs/r.yaml"
+    shell: "touch {output}"
+
+rule stitch:
+    output: "stitch.env"
+    conda: os.getcwd() + "/.harpy_envs/stitch.yaml"
     shell: "touch {output}"
 
 rule simulations:
