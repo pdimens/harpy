@@ -30,12 +30,12 @@ docstring = {
 @click.option('-m', '--min-reads', default = 1, show_default = True, type = click.IntRange(min = 1, max_open = True), help = 'Minimum cloud size to deconvolve')
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(min = 1, max_open = True), help = 'Number of threads to use')
 @click.option('-q', '--quiet',  is_flag = True, show_default = True, default = False, help = 'Don\'t show output text while running')
-@click.option('-o', '--output-dir', type = str, default = "Deconvolve", show_default=True, help = 'Output directory name')
-@click.option('--hpc',  type = click.Path(exists = True, file_okay = False), help = 'Directory with HPC submission config.yaml file')
+@click.option('-o', '--output-dir', type = click.Path(exists = False), default = "Deconvolve", show_default=True,  help = 'Output directory name')
+@click.option('--hpc',  type = click.Path(exists = True, file_okay = False, readable=True), help = 'Directory with HPC submission config.yaml file')
 @click.option('--conda',  is_flag = True, default = False, help = 'Use conda/mamba instead of container')
 @click.option('--snakemake', type = str, help = 'Additional Snakemake parameters, in quotes')
 @click.option('--config-only',  is_flag = True, hidden = True, show_default = True, default = False, help = 'Create the config.yaml file and exit')
-@click.argument('inputs', required=True, type=click.Path(exists=True), nargs=-1)
+@click.argument('inputs', required=True, type=click.Path(exists=True, readable=True), nargs=-1)
 def deconvolve(inputs, output_dir, kmer_length, window_size, density, min_reads, threads, snakemake, quiet, hpc, conda, config_only):
     """
     Resolve clashing barcodes from different molecules
