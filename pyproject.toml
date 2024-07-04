@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "harpy"
-version = "1.1.0"
+version = "0.0.0"
 authors = [
     {name = "Pavel Dimens"}
 ]

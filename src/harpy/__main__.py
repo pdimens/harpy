@@ -29,7 +29,7 @@ See the documentation: [link=https://pdimens.github.io/harpy/]https://pdimens.gi
 """
 
 @click.group(options_metavar='', context_settings={"help_option_names" : ["-h", "--help"]})
-@click.version_option("1.1.0", prog_name="Harpy")
+@click.version_option("0.0.0", prog_name="harpy")
 def cli():
     """
     An automated workflow for haplotagging linked-read data
