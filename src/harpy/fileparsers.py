@@ -29,7 +29,6 @@ def parse_fastq_inputs(inputs):
             for j in os.listdir(i):
                 if re.search(re_ext, j):
                     infiles.append(Path(os.path.join(i, j)).resolve())
-                    # check if the file has read access
         else:
             if re.search(re_ext, i):
                 infiles.append(Path(i).resolve())
