@@ -17,7 +17,7 @@ docstring = {
             "options": ["--deconvolve", "--deconvolve-params", "--deduplicate", "--extra-params", "--min-length", "--max-length", "--trim-adapters"],
         },
         {
-            "name": "Other Options",
+            "name": "Workflow Controls",
             "options": ["--conda", "--hpc", "--output-dir", "--quiet", "--skipreports", "--snakemake", "--threads", "--help"],
         },
     ]
@@ -34,7 +34,7 @@ docstring = {
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(min = 4, max_open = True), help = 'Number of threads to use')
 @click.option('-q', '--quiet',  is_flag = True, default = False, help = 'Don\'t show output text while running')
 @click.option('-o', '--output-dir', type = click.Path(exists = False), default = "QC", show_default=True,  help = 'Output directory name')
-@click.option('--hpc',  type = click.Path(exists = True, file_okay = False, readable=True), help = 'Directory with HPC submission config.yaml file')
+@click.option('--hpc',  type = click.Path(exists = True, file_okay = False, readable=True), help = 'Directory with HPC submission `config.yaml` file')
 @click.option('--conda',  is_flag = True, default = False, help = 'Use conda/mamba instead of container')
 @click.option('--snakemake', type = str, help = 'Additional Snakemake parameters, in quotes')
 @click.option('--skipreports',  is_flag = True, default = False, help = 'Don\'t generate HTML reports')
@@ -47,13 +47,14 @@ def qc(inputs, output_dir, min_length, max_length, trim_adapters, deduplicate, d
     Provide the input fastq files and/or directories at the end of the command
     as individual files/folders, using shell wildcards (e.g. `data/acronotus*.fq`), or both.
     
-    By default, adapters will be automatically detected and removed (can be disabled with `-a`).
-    Use `--deconvolve` to resolve barcode clashing that may occur by unrelated sequences having the same barcode.
-    The parameters are described [here](https://github.com/RolandFaure/QuickDeconvolution?tab=readme-ov-file#usage). You
-    can also use the `harpy deconvolve` worklfow to perform this task separately.
     The input reads will be quality trimmed using:
     - a sliding window from front to tail
     - poly-G tail removal
+    - use `-a` to automatically detect and remove adapters
+    - use `-d` to find and remove PCR duplicates
+    - use `-c` to resolve barcode clashing that may occur by unrelated sequences having the same barcode
+      - the parameters for `-p` are described [here](https://github.com/RolandFaure/QuickDeconvolution?tab=readme-ov-file#usage).
+      - you can use `harpy deconvolve` to perform this task separately
     """
     output_dir = output_dir.rstrip("/")
     workflowdir = f"{output_dir}/workflow"

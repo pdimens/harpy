@@ -42,7 +42,7 @@ docstring = {
             "options": ["--barcodes", "--distance-sd", "--outer-distance", "--molecule-length", "--molecules-per", "--mutation-rate", "--partitions", "--read-pairs"],
         },
         {
-            "name": "Other Options",
+            "name": "Workflow Controls",
             "options": ["--conda", "--hpc", "--output-dir", "--quiet", "--snakemake", "--threads", "--help"],
         },     
     ],
@@ -56,7 +56,7 @@ docstring = {
             "options": ["--centromeres", "--exclude-chr", "--genes", "--indel-count", "--indel-ratio", "--snp-count", "--snp-gene-constraints", "--titv-ratio"],
         },
         {
-            "name": "Other Options",
+            "name": "Workflow Controls",
             "options": ["--conda", "--heterozygosity", "--hpc", "--output-dir", "--prefix", "--quiet", "--randomseed", "--snakemake", "--help"],
         },
     ],
@@ -70,7 +70,7 @@ docstring = {
             "options": ["--centromeres", "--count", "--exclude-chr", "--genes", "--max-size", "--min-size"],
         },
         {
-            "name": "Other Options",
+            "name": "Workflow Controls",
             "options": ["--conda", "--heterozygosity", "--hpc", "--output-dir", "--prefix", "--quiet", "--randomseed", "--snakemake", "--help"],
         },
     ],
@@ -84,7 +84,7 @@ docstring = {
             "options": ["--centromeres", "--count", "--dup-ratio", "--exclude-chr", "--gain-ratio", "--genes",  "--max-copy", "--max-size", "--min-size"],
         },
         {
-            "name": "Other Options",
+            "name": "Workflow Controls",
             "options": ["--conda", "--heterozygosity", "--hpc", "--output-dir", "--prefix", "--quiet", "--randomseed", "--snakemake", "--help"],
         },
     ],
@@ -98,7 +98,7 @@ docstring = {
             "options": ["--centromeres", "--count", "--exclude-chr", "--genes"],
         },
         {
-            "name": "Other Options",
+            "name": "Workflow Controls",
             "options": ["--conda", "--heterozygosity", "--hpc", "--output-dir", "--prefix", "--quiet", "--randomseed", "--snakemake", "--help"],
         },
     ]
@@ -115,7 +115,7 @@ docstring = {
 @click.option('-m', '--molecules-per', type = click.IntRange(min = 1), default = 10, show_default=True,  help = "Average number of molecules per partition")
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(min = 1, max_open = True), help = 'Number of threads to use')
 @click.option('-q', '--quiet',  is_flag = True, show_default = True, default = False, help = 'Don\'t show output text while running')
-@click.option('--hpc',  type = click.Path(exists = True, file_okay = False, readable=True), help = 'Directory with HPC submission config.yaml file')
+@click.option('--hpc',  type = click.Path(exists = True, file_okay = False, readable=True), help = 'Directory with HPC submission `config.yaml` file')
 @click.option('--conda',  is_flag = True, default = False, help = 'Use conda/mamba instead of container')
 @click.option('--snakemake', type = str, help = 'Additional Snakemake parameters, in quotes')
 @click.option('--config-only',  is_flag = True, hidden = True, show_default = True, default = False, help = 'Create the config.yaml file and exit')
@@ -201,7 +201,7 @@ def linkedreads(genome_hap1, genome_hap2, output_dir, outer_distance, mutation_r
 @click.option('-p', '--prefix', type = str, default= "sim.snpindel", show_default=True, help = "Naming prefix for output files")
 @click.option('-q', '--quiet',  is_flag = True, show_default = True, default = False, help = 'Don\'t show output text while running')
 @click.option('--randomseed', type = click.IntRange(min = 1), help = "Random seed for simulation")
-@click.option('--hpc',  type = click.Path(exists = True, file_okay = False, readable=True), help = 'Directory with HPC submission config.yaml file')
+@click.option('--hpc',  type = click.Path(exists = True, file_okay = False, readable=True), help = 'Directory with HPC submission `config.yaml` file')
 @click.option('--conda',  is_flag = True, default = False, help = 'Use conda/mamba instead of container')
 @click.option('--snakemake', type = str, help = 'Additional Snakemake parameters, in quotes')
 @click.option('--config-only',  is_flag = True, hidden = True, show_default = True, default = False, help = 'Create the config.yaml file and exit')
@@ -311,7 +311,7 @@ def snpindel(genome, snp_vcf, indel_vcf, output_dir, prefix, snp_count, indel_co
 @click.option('-q', '--quiet',  is_flag = True, show_default = True, default = False, help = 'Don\'t show output text while running')
 @click.option('-o', '--output-dir', type = click.Path(exists = False), default = "Simulate/inversion", show_default=True,  help = 'Output directory name')
 @click.option('--randomseed', type = click.IntRange(min = 1), help = "Random seed for simulation")
-@click.option('--hpc',  type = click.Path(exists = True, file_okay = False, readable=True), help = 'Directory with HPC submission config.yaml file')
+@click.option('--hpc',  type = click.Path(exists = True, file_okay = False, readable=True), help = 'Directory with HPC submission `config.yaml` file')
 @click.option('--conda',  is_flag = True, default = False, help = 'Use conda/mamba instead of container')
 @click.option('--snakemake', type = str, help = 'Additional Snakemake parameters, in quotes')
 @click.option('--config-only',  is_flag = True, hidden = True, show_default = True, default = False, help = 'Create the config.yaml file and exit')
@@ -408,7 +408,7 @@ def inversion(genome, vcf, prefix, output_dir, count, min_size, max_size, centro
 @click.option('-p', '--prefix', type = str, default= "sim.cnv", show_default=True, help = "Naming prefix for output files")
 @click.option('-q', '--quiet',  is_flag = True, show_default = True, default = False, help = 'Don\'t show output text while running')
 @click.option('--randomseed', type = click.IntRange(min = 1), help = "Random seed for simulation")
-@click.option('--hpc',  type = click.Path(exists = True, file_okay = False, readable=True), help = 'Directory with HPC submission config.yaml file')
+@click.option('--hpc',  type = click.Path(exists = True, file_okay = False, readable=True), help = 'Directory with HPC submission `config.yaml` file')
 @click.option('--conda',  is_flag = True, default = False, help = 'Use conda/mamba instead of container')
 @click.option('--snakemake', type = str, help = 'Additional Snakemake parameters, in quotes')
 @click.option('--config-only',  is_flag = True, hidden = True, show_default = True, default = False, help = 'Create the config.yaml file and exit')
@@ -508,7 +508,7 @@ def cnv(genome, output_dir, vcf, prefix, count, min_size, max_size, dup_ratio, m
 @click.option('-p', '--prefix', type = str, default= "sim.translocation", show_default=True, help = "Naming prefix for output files")
 @click.option('-q', '--quiet',  is_flag = True, show_default = True, default = False, help = 'Don\'t show output text while running')
 @click.option('--randomseed', type = click.IntRange(min = 1), help = "Random seed for simulation")
-@click.option('--hpc',  type = click.Path(exists = True, file_okay = False, readable=True), help = 'Directory with HPC submission config.yaml file')
+@click.option('--hpc',  type = click.Path(exists = True, file_okay = False, readable=True), help = 'Directory with HPC submission `config.yaml` file')
 @click.option('--conda',  is_flag = True, default = False, help = 'Use conda/mamba instead of container')
 @click.option('--snakemake', type = str, help = 'Additional Snakemake parameters, in quotes')
 @click.option('--config-only',  is_flag = True, hidden = True, show_default = True, default = False, help = 'Create the config.yaml file and exit')

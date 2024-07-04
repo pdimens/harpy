@@ -34,7 +34,7 @@ docstring = {
             "options": ["--extra-params", "--genome", "--molecule-distance", "--quality-filter"],
         },
         {
-            "name": "Other Options",
+            "name": "Workflow Controls",
             "options": ["--conda", "--depth-window", "--hpc", "--output-dir", "--quiet", "--skipreports", "--snakemake", "--threads", "--help"],
         },
     ],
@@ -44,7 +44,7 @@ docstring = {
             "options": ["--ema-bins", "--extra-params", "--genome", "--platform", "--quality-filter", "--whitelist"],
         },
         {
-            "name": "Other Options",
+            "name": "Workflow Controls",
             "options": ["--conda", "--depth-window", "--hpc", "--output-dir", "--quiet", "--skipreports", "--snakemake", "--threads", "--help"],
         },
     ],
@@ -54,7 +54,7 @@ docstring = {
             "options": ["--extra-params", "--genome", "--molecule-distance", "--quality-filter", "--read-length"],
         },
         {
-            "name": "Other Options",
+            "name": "Workflow Controls",
             "options": ["--conda", "--depth-window", "--hpc", "--output-dir", "--quiet", "--skipreports", "--snakemake", "--threads", "--help"],
         },
     ]
@@ -70,7 +70,7 @@ docstring = {
 @click.option('-q', '--quiet',  is_flag = True, show_default = True, default = False, help = 'Don\'t show output text while running')
 @click.option('-o', '--output-dir', type = click.Path(exists = False), default = "Align/bwa", show_default=True,  help = 'Output directory name')
 @click.option('--snakemake', type = str, help = 'Additional Snakemake parameters, in quotes')
-@click.option('--hpc',  type = click.Path(exists = True, file_okay = False, readable=True), help = 'Directory with HPC submission config.yaml file')
+@click.option('--hpc',  type = click.Path(exists = True, file_okay = False, readable=True), help = 'Directory with HPC submission `config.yaml` file')
 @click.option('--conda',  is_flag = True, default = False, help = 'Use conda/mamba instead of container')
 @click.option('--skipreports',  is_flag = True, show_default = True, default = False, help = 'Don\'t generate HTML reports')
 @click.option('--config-only',  is_flag = True, hidden = True, default = False, help = 'Create the config.yaml file and exit')
@@ -145,7 +145,7 @@ def bwa(inputs, output_dir, genome, depth_window, threads, extra_params, quality
 @click.option('-q', '--quiet',  is_flag = True, show_default = True, default = False, help = 'Don\'t show output text while running')
 @click.option('-o', '--output-dir', type = click.Path(exists = False), default = "Align/ema", show_default=True,  help = 'Output directory name')
 @click.option('--snakemake', type = str, help = 'Additional Snakemake parameters, in quotes')
-@click.option('--hpc',  type = click.Path(exists = True, file_okay = False, readable=True), help = 'Directory with HPC submission config.yaml file')
+@click.option('--hpc',  type = click.Path(exists = True, file_okay = False, readable=True), help = 'Directory with HPC submission `config.yaml` file')
 @click.option('--conda',  is_flag = True, default = False, help = 'Use conda/mamba instead of container')
 @click.option('--skipreports',  is_flag = True, show_default = True, default = False, help = 'Don\'t generate HTML reports')
 @click.option('--config-only',  is_flag = True, hidden = True, default = False, help = 'Create the config.yaml file and exit')
@@ -237,7 +237,7 @@ def ema(inputs, output_dir, platform, whitelist, genome, depth_window, threads, 
 @click.option('-q', '--quiet',  is_flag = True, show_default = True, default = False, help = 'Don\'t show output text while running')
 @click.option('-o', '--output-dir', type = click.Path(exists = False), default = "Align/strobealign", show_default=True,  help = 'Output directory name')
 @click.option('--snakemake', type = str, help = 'Additional Snakemake parameters, in quotes')
-@click.option('--hpc',  type = click.Path(exists = True, file_okay = False, readable=True), help = 'Directory with HPC submission config.yaml file')
+@click.option('--hpc',  type = click.Path(exists = True, file_okay = False, readable=True), help = 'Directory with HPC submission `config.yaml` file')
 @click.option('--conda',  is_flag = True, default = False, help = 'Use conda/mamba instead of container')
 @click.option('--skipreports',  is_flag = True, show_default = True, default = False, help = 'Don\'t generate HTML reports')
 @click.option('--config-only',  is_flag = True, hidden = True, default = False, help = 'Create the config.yaml file and exit')
