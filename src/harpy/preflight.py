@@ -22,28 +22,28 @@ def preflight():
 docstring = {
     "harpy preflight bam": [
         {
-            "name": "Options",
-            "options": ["--output-dir", "--threads", "--hpc", "--conda", "--snakemake", "--quiet", "--help"],
+            "name": "Workflow Controls",
+            "options": ["--conda", "--hpc", "--output-dir", "--quiet", "--snakemake", "--threads", "--help"],
         },
     ],
     "harpy preflight fastq": [
         {
-            "name": "Options",
-            "options": ["--output-dir", "--threads", "--hpc", "--conda", "--snakemake", "--quiet", "--help"],
+            "name": "Workflow Controls",
+            "options": ["--conda", "--hpc", "--output-dir", "--quiet", "--snakemake", "--threads", "--help"],
         },
     ]
 }
 
-@click.command(no_args_is_help = True, epilog = "read the docs for more information: https://pdimens.github.io/harpy/modules/preflight/")
+@click.command(no_args_is_help = True, epilog = "See the documentation for more information: https://pdimens.github.io/harpy/modules/preflight/")
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(min = 1, max_open = True), help = 'Number of threads to use')
 @click.option('-q', '--quiet',  is_flag = True, show_default = True, default = False, help = 'Don\'t show output text while running')
-@click.option('-o', '--output-dir', type = str, default = "Preflight/fastq", show_default=True, help = 'Name of output directory')
+@click.option('-o', '--output-dir', type = click.Path(exists = False), default = "Preflight/fastq", show_default=True,  help = 'Output directory name')
 @click.option('--snakemake', type = str, help = 'Additional Snakemake parameters, in quotes')
-@click.option('--hpc',  type = click.Path(exists = True, file_okay = False), help = 'Config dir for automatic HPC submission')
+@click.option('--hpc',  type = click.Path(exists = True, file_okay = False, readable=True), help = 'Directory with HPC submission `config.yaml` file')
 @click.option('--conda',  is_flag = True, default = False, help = 'Use conda/mamba instead of container')
-@click.option('--print-only',  is_flag = True, hidden = True, default = False, help = 'Print the generated snakemake command and exit')
+@click.option('--config-only',  is_flag = True, hidden = True, default = False, help = 'Create the config.yaml file and exit')
 @click.argument('inputs', required=True, type=click.Path(exists=True), nargs=-1)
-def fastq(inputs, output_dir, threads, snakemake, quiet, hpc, conda, print_only):
+def fastq(inputs, output_dir, threads, snakemake, quiet, hpc, conda, config_only):
     """
     Run validity checks on haplotagged FASTQ files.
 
@@ -69,10 +69,6 @@ def fastq(inputs, output_dir, threads, snakemake, quiet, hpc, conda, print_only)
     if snakemake is not None:
         command += snakemake
 
-    if print_only:
-        click.echo(command)
-        sys.exit()
-    
     os.makedirs(f"{workflowdir}/", exist_ok= True)
     fqlist, n = parse_fastq_inputs(inputs)
     fetch_rule(workflowdir, "preflight-fastq.smk")
@@ -85,6 +81,9 @@ def fastq(inputs, output_dir, threads, snakemake, quiet, hpc, conda, print_only)
         config.write("inputs:\n")
         for i in fqlist:
             config.write(f"  - {i}\n")
+    if config_only:
+        sys.exit(0)
+
     print_onstart(
         f"Files: {n}\nOutput Directory: {output_dir}/",
         "preflight fastq"
@@ -93,16 +92,16 @@ def fastq(inputs, output_dir, threads, snakemake, quiet, hpc, conda, print_only)
     _module = subprocess.run(command.split())
     sys.exit(_module.returncode)
 
-@click.command(no_args_is_help = True, epilog = "read the docs for more information: https://pdimens.github.io/harpy/modules/preflight/")
+@click.command(no_args_is_help = True, epilog = "See the documentation for more information: https://pdimens.github.io/harpy/modules/preflight/")
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(min = 1, max_open = True), help = 'Number of threads to use')
 @click.option('-q', '--quiet',  is_flag = True, show_default = True, default = False, help = 'Don\'t show output text while running')
-@click.option('-o', '--output-dir', type = str, default = "Preflight/bam", show_default=True, help = 'Name of output directory')
+@click.option('-o', '--output-dir', type = click.Path(exists = False), default = "Preflight/bam", show_default=True,  help = 'Output directory name')
 @click.option('--snakemake', type = str, help = 'Additional Snakemake parameters, in quotes')
-@click.option('--hpc',  type = click.Path(exists = True, file_okay = False), help = 'Config dir for automatic HPC submission')
+@click.option('--hpc',  type = click.Path(exists = True, file_okay = False, readable=True), help = 'Directory with HPC submission `config.yaml` file')
 @click.option('--conda',  is_flag = True, default = False, help = 'Use conda/mamba instead of container')
-@click.option('--print-only',  is_flag = True, hidden = True, default = False, help = 'Print the generated snakemake command and exit')
-@click.argument('inputs', required=True, type=click.Path(exists=True), nargs=-1)
-def bam(inputs, output_dir, threads, snakemake, quiet, hpc, conda, print_only):
+@click.option('--config-only',  is_flag = True, hidden = True, default = False, help = 'Create the config.yaml file and exit')
+@click.argument('inputs', required=True, type=click.Path(exists=True, readable=True), nargs=-1)
+def bam(inputs, output_dir, threads, snakemake, quiet, hpc, conda, config_only):
     """
     Run validity checks on haplotagged BAM files
 
@@ -127,10 +126,6 @@ def bam(inputs, output_dir, threads, snakemake, quiet, hpc, conda, print_only):
     if snakemake is not None:
         command += snakemake
 
-    if print_only:
-        click.echo(command)
-        sys.exit()
-
     os.makedirs(f"{workflowdir}/", exist_ok= True)
     bamlist, n = parse_alignment_inputs(inputs)
     fetch_rule(workflowdir, "preflight-bam.smk")
@@ -143,6 +138,9 @@ def bam(inputs, output_dir, threads, snakemake, quiet, hpc, conda, print_only):
         config.write("inputs:\n")
         for i in bamlist:
             config.write(f"  - {i}\n")
+    if config_only:
+        sys.exit(0)
+
     print_onstart(
         f"Samples: {n}\nOutput Directory: {output_dir}/",
         "preflight bam"

@@ -23,27 +23,20 @@ def parse_fastq_inputs(inputs):
     i.e. forward and reverse reads for one sample = 1 sample.
     """
     infiles = []
-    unreadable = 0
     re_ext = re.compile(r"\.(fq|fastq)(?:\.gz)?$", re.IGNORECASE)
     for i in inputs:
         if os.path.isdir(i):
             for j in os.listdir(i):
                 if re.search(re_ext, j):
                     infiles.append(Path(os.path.join(i, j)).resolve())
-                    # check if the file has read access
-                    unreadable += not os.access(os.path.join(i, j), os.R_OK)
         else:
             if re.search(re_ext, i):
                 infiles.append(Path(i).resolve())
-                unreadable += not os.access(i, os.R_OK)
 
     if len(infiles) < 1:
         print_error("There were no files found in the provided inputs that end with the accepted fastq extensions [blue].fq .fastq .fq.gz .fastq.gz[/blue]")
         sys.exit(1)
 
-    if unreadable > 0:
-        print_error(Markdown(f"There are {unreadable} FASTQ files provided without Read permission. These will create errors and terminate workflows prematurely. Please make sure you have Read permissions for these files or use `chmod +r <filename>` to grant them."))
-        sys.exit(1)
     # check if any names will be clashing
     bn_r = r"[\.\_](?:[RF])?(?:[12])?(?:\_00[1-9])*?$"
     uniqs = set()
@@ -72,7 +65,6 @@ def parse_alignment_inputs(inputs):
     """
     bam_infiles = []
     bai_infiles = []
-    unreadable = 0
     re_bam = re.compile(r".*\.(bam|sam)$", flags = re.IGNORECASE)
     re_bai = re.compile(r".*\.bam\.bai$", flags = re.IGNORECASE)
     for i in inputs:
@@ -80,22 +72,15 @@ def parse_alignment_inputs(inputs):
             for j in os.listdir(i):
                 if re_bam.match(j):
                     bam_infiles.append(Path(os.path.join(i, j)).resolve())
-                    unreadable += not os.access(Path(os.path.join(i, j)).resolve(), os.R_OK)
                 elif re_bai.match(j):
                     bai_infiles.append(Path(os.path.join(i, j)).resolve())
-                    unreadable += not os.access(os.path.join(i, j), os.R_OK)
         else:
             if re_bam.match(i):
                 bam_infiles.append(Path(i).resolve())
-                unreadable += not os.access(i, os.R_OK)
             elif re_bai.match(i):
                 bai_infiles.append(Path(i).resolve())
-                unreadable += not os.access(i, os.R_OK)
     if len(bam_infiles) < 1:
         print_error("There were no files found in the provided inputs that end with the [blue].bam[/blue] or [blue].sam[/blue] extensions.")
-        sys.exit(1)
-    if unreadable > 0:
-        print_error(Markdown(f"There are {unreadable} alignment files provided without Read permission. These will create errors and terminate workflows prematurely. Please make sure you have Read permissions for these files or use `chmod +r <filename>` to grant them."))
         sys.exit(1)
     re_ext = re.compile(r"\.(bam|sam)$", re.IGNORECASE)
 

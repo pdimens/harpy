@@ -5,6 +5,7 @@
 .cache/
 hpc/
 QC/
+Deconvolve/
 Demultiplex/
 Genome/
 Align/

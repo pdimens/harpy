@@ -27,6 +27,7 @@ jobs:
     # Set job outputs to values from filter step
     outputs:
       preflight: ${{ steps.filter.outputs.preflight }}
+      deconvolve: ${{ steps.filter.outputs.deconvolve }}
       demux: ${{ steps.filter.outputs.demux }}
       qc: ${{ steps.filter.outputs.qc }}
       bwa: ${{ steps.filter.outputs.bwa }}
@@ -228,11 +229,46 @@ jobs:
       - name: harpy qc
         shell: micromamba-shell {0}
         run: harpy qc -x "--trim_poly_g"  --snakemake "--show-failed-logs" test/fastq
-      - name: harpy qc skip adapter trimming
-        if: always()
+      - name: harpy qc all options
         shell: micromamba-shell {0}
-        run: harpy qc -a --snakemake "--show-failed-logs" test/fastq
-  
+        run: harpy qc -a -d -c --snakemake "--show-failed-logs" test/fastq
+  deconvolve:
+    needs: [changes, pkgbuild]
+    if: ${{ needs.changes.outputs.deconvolve == 'true' && needs.pkgbuild.result == 'success' }}
+    name: deconvolve
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+      - name: Setup Mamba
+        uses: mamba-org/setup-micromamba@v1
+        env:
+          ACTIONS_STEP_DEBUG: true
+        with:
+          init-shell: bash
+          generate-run-shell: true
+          environment-file: resources/harpy.yaml
+          cache-environment: true
+          post-cleanup: 'all'
+          log-level: error
+      - name: Install Harpy
+        shell: micromamba-shell {0}
+        run: |
+          python3 -m pip install --upgrade build && python3 -m build
+          pip install dist/*.whl
+          resources/buildforCI.sh
+      - name: Clear Space
+        run: rm -rf /opt/hostedtoolcache && mkdir -p .snakemake/singularity
+      - name: Download Singularity Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: deps-image
+          path: .snakemake/singularity
+      - name: harpy deconvolve
+        shell: micromamba-shell {0}
+        run: harpy deconvolve --snakemake "--show-failed-logs" test/fastq
   bwa:
     needs: [changes, pkgbuild]
     if: ${{ needs.changes.outputs.bwa == 'true' && needs.pkgbuild.result == 'success' }}

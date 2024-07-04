@@ -50,6 +50,9 @@ def write_validbx(bam, alnrecord, molID):
     idx = [i for i in range(len(tags))]
     # swap the BX and MI tags to make sure BX is at the end
     # b/c LEVIATHAN insists it's at the end
+    #TODO logic to identify hyphens
+    # FIND HYPHEN, SPLIT AT HYPHEN, PULL index[0]
+    # index[0] becomes the BX tag, the original gets rebranded the DX
     tags[BX_idx], tags[-1] = tags[-1], tags[BX_idx]
     # update the record's tags
     alnrecord.set_tags(tags)
@@ -104,7 +107,7 @@ def write_missingbx(bam, alnrecord):
 #args = parser.parse_args()
 bam_input = args.input
 # initialize the dict
-d = dict()
+d = {}
 # chromlast keeps track of the last chromosome so we can
 # clear the dict when it's a new contig/chromosome
 chromlast = False

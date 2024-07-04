@@ -67,7 +67,7 @@ def process_args(args):
 # create dictionary of population => filenames
 ## this makes it easier to set the snakemake rules/wildcards
 def pop_manifest(groupingfile, filelist):
-    d = dict()
+    d = {}
     with open(groupingfile) as f:
         for line in f:
             samp, pop = line.rstrip().split()

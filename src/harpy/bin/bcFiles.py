@@ -1,8 +1,7 @@
 #! /usr/bin/env python
-
+"""Generates the BC_{ABCD}.txt files necessary to demultiplex Gen I haplotag barcodes"""
 import sys
 
-## Generates the BC_{ABCD}.txt files necessary to demultiplex Gen I haplotag barcodes
 outdir = sys.argv[1].rstrip("/")
 
 BX = {
@@ -13,7 +12,7 @@ BX = {
 }
 
 for BC in ["A","C","B","D"]:
-    with open(f"{outdir}/BC_{BC}.txt", "w") as f:
+    with open(f"{outdir}/BC_{BC}.txt", "w", encoding="utf-8") as f:
         ID = [f"{BC}{number:02d}" for number in range(1, 97)]
         delim = ["	".join(tup) for tup in zip(ID, BX[BC])]
         _ = [f.write(f"{i}\n") for i in delim]

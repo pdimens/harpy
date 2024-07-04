@@ -28,41 +28,41 @@ docstring = {
     "harpy snp mpileup": [
         {
             "name": "Parameters",
-            "options": ["--genome", "--populations", "--ploidy", "--regions", "--extra-params"],
+            "options": ["--extra-params", "--genome", "--ploidy", "--populations", "--regions"],
         },
         {
-            "name": "Other Options",
-            "options": ["--output-dir", "--threads", "--skipreports", "--hpc", "--conda", "--snakemake", "--quiet", "--help"],
+            "name": "Workflow Controls",
+            "options": ["--conda", "--hpc", "--output-dir", "--quiet", "--skipreports", "--snakemake", "--threads", "--help"],
         },
     ],
     "harpy snp freebayes": [
         {
             "name": "Parameters",
-            "options": ["--genome", "--populations", "--ploidy", "--regions", "--extra-params"],
+            "options": ["--extra-params", "--genome", "--ploidy", "--populations", "--regions"],
         },
         {
-            "name": "Other Options",
-            "options": ["--output-dir", "--threads", "--skipreports", "--hpc",  "--conda", "--snakemake", "--quiet", "--help"],
+            "name": "Workflow Controls",
+            "options": ["--conda", "--hpc", "--output-dir", "--quiet", "--skipreports", "--snakemake", "--threads", "--help"],
         },
     ]
 }
 
-@click.command(no_args_is_help = True, epilog = "read the docs for more information: https://pdimens.github.io/harpy/modules/snp")
-@click.option('-g', '--genome', type=click.Path(exists=True, dir_okay=False), required = True, help = 'Genome assembly for variant calling')
-@click.option('-p', '--populations', type=click.Path(exists = True, dir_okay=False), help = "Tab-delimited file of sample\<tab\>population")
+@click.command(no_args_is_help = True, epilog = "See the documentation for more information: https://pdimens.github.io/harpy/modules/snp")
+@click.option('-g', '--genome', type=click.Path(exists=True, dir_okay=False, readable=True), required = True, help = 'Genome assembly for variant calling')
+@click.option('-p', '--populations', type=click.Path(exists = True, dir_okay=False, readable=True), help = "Tab-delimited file of sample\<tab\>population")
 @click.option('-x', '--ploidy', default = 2, show_default = True, type=int, help = 'Ploidy of samples')
 @click.option('-r', '--regions', type=str, default=50000, show_default=True, help = "Regions where to call variants")
 @click.option('-x', '--extra-params', type = str, help = 'Additional variant caller parameters, in quotes')
-@click.option('-o', '--output-dir', type = str, default = "SNP/mpileup", show_default=True, help = 'Name of output directory')
+@click.option('-o', '--output-dir', type = click.Path(exists = False), default = "SNP/mpileup", show_default=True,  help = 'Output directory name')
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(min = 4, max_open = True), help = 'Number of threads to use')
 @click.option('-q', '--quiet',  is_flag = True, show_default = True, default = False, help = 'Don\'t show output text while running')
-@click.option('--hpc',  type = click.Path(exists = True, file_okay = False), help = 'Config dir for automatic HPC submission')
+@click.option('--hpc',  type = click.Path(exists = True, file_okay = False, readable=True), help = 'Directory with HPC submission `config.yaml` file')
 @click.option('--conda',  is_flag = True, default = False, help = 'Use conda/mamba instead of container')
 @click.option('--snakemake', type = str, help = 'Additional Snakemake parameters, in quotes')
 @click.option('--skipreports',  is_flag = True, show_default = True, default = False, help = 'Don\'t generate HTML reports')
-@click.option('--print-only',  is_flag = True, hidden = True, default = False, help = 'Print the generated snakemake command and exit')
-@click.argument('inputs', required=True, type=click.Path(exists=True), nargs=-1)
-def mpileup(inputs, output_dir, regions, genome, threads, populations, ploidy, extra_params, snakemake, skipreports, quiet, hpc, conda, print_only):
+@click.option('--config-only',  is_flag = True, hidden = True, default = False, help = 'Create the config.yaml file and exit')
+@click.argument('inputs', required=True, type=click.Path(exists=True, readable=True), nargs=-1)
+def mpileup(inputs, output_dir, regions, genome, threads, populations, ploidy, extra_params, snakemake, skipreports, quiet, hpc, conda, config_only):
     """
     Call variants from using bcftools mpileup
     
@@ -92,10 +92,6 @@ def mpileup(inputs, output_dir, regions, genome, threads, populations, ploidy, e
         command += "--quiet all "
     if snakemake is not None:
         command += snakemake
-
-    if print_only:
-        click.echo(command)
-        sys.exit(0)
 
     os.makedirs(f"{workflowdir}/", exist_ok= True)
     bamlist, n = parse_alignment_inputs(inputs)
@@ -140,6 +136,8 @@ def mpileup(inputs, output_dir, regions, genome, threads, populations, ploidy, e
         config.write("  alignments:\n")
         for i in bamlist:
             config.write(f"    - {i}\n")
+    if config_only:
+        sys.exit(0)
 
     print_onstart(
         f"Samples: {n}{popgroupings}\nOutput Directory: {output_dir}/",
@@ -149,22 +147,22 @@ def mpileup(inputs, output_dir, regions, genome, threads, populations, ploidy, e
     _module = subprocess.run(command.split())
     sys.exit(_module.returncode)
 
-@click.command(no_args_is_help = True, epilog = "read the docs for more information: https://pdimens.github.io/harpy/modules/snp")
-@click.option('-g', '--genome', type=click.Path(exists=True, dir_okay=False), required = True, help = 'Genome assembly for variant calling')
-@click.option('-p', '--populations', type=click.Path(exists = True, dir_okay=False), help = "Tab-delimited file of sample\<tab\>population")
+@click.command(no_args_is_help = True, epilog = "See the documentation for more information: https://pdimens.github.io/harpy/modules/snp")
+@click.option('-g', '--genome', type=click.Path(exists=True, dir_okay=False, readable=True), required = True, help = 'Genome assembly for variant calling')
+@click.option('-p', '--populations', type=click.Path(exists = True, dir_okay=False, readable=True), help = "Tab-delimited file of sample\<tab\>population")
 @click.option('-x', '--ploidy', default = 2, show_default = True, type=int, help = 'Ploidy of samples')
 @click.option('-r', '--regions', type=str, default=50000, show_default=True, help = "Regions where to call variants")
 @click.option('-x', '--extra-params', type = str, help = 'Additional variant caller parameters, in quotes')
-@click.option('-o', '--output-dir', type = str, default = "SNP/freebayes", show_default=True, help = 'Name of output directory')
+@click.option('-o', '--output-dir', type = click.Path(exists = False), default = "SNP/freebayes", show_default=True,  help = 'Output directory name')
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(min = 4, max_open = True), help = 'Number of threads to use')
 @click.option('-q', '--quiet',  is_flag = True, show_default = True, default = False, help = 'Don\'t show output text while running')
-@click.option('--hpc',  type = click.Path(exists = True, file_okay = False), help = 'Config dir for automatic HPC submission')
+@click.option('--hpc',  type = click.Path(exists = True, file_okay = False, readable=True), help = 'Directory with HPC submission `config.yaml` file')
 @click.option('--conda',  is_flag = True, default = False, help = 'Use conda/mamba instead of container')
 @click.option('--snakemake', type = str, help = 'Additional Snakemake parameters, in quotes')
 @click.option('--skipreports',  is_flag = True, show_default = True, default = False, help = 'Don\'t generate HTML reports')
-@click.option('--print-only',  is_flag = True, hidden = True, default = False, help = 'Print the generated snakemake command and exit')
-@click.argument('inputs', required=True, type=click.Path(exists=True), nargs=-1)
-def freebayes(inputs, output_dir, genome, threads, populations, ploidy, regions, extra_params, snakemake, skipreports, quiet, hpc, conda, print_only):
+@click.option('--config-only',  is_flag = True, hidden = True, default = False, help = 'Create the config.yaml file and exit')
+@click.argument('inputs', required=True, type=click.Path(exists=True, readable=True), nargs=-1)
+def freebayes(inputs, output_dir, genome, threads, populations, ploidy, regions, extra_params, snakemake, skipreports, quiet, hpc, conda, config_only):
     """
     Call variants using freebayes
     
@@ -194,9 +192,6 @@ def freebayes(inputs, output_dir, genome, threads, populations, ploidy, regions,
         command += "--quiet all "
     if snakemake is not None:
         command += snakemake
-    if print_only:
-        click.echo(command)
-        sys.exit(0)
 
     os.makedirs(f"{workflowdir}/", exist_ok= True)
     bamlist, n = parse_alignment_inputs(inputs)
@@ -241,6 +236,8 @@ def freebayes(inputs, output_dir, genome, threads, populations, ploidy, regions,
         config.write("  alignments:\n")
         for i in bamlist:
             config.write(f"    - {i}\n")
+    if config_only:
+        sys.exit(0)
 
     print_onstart(
         f"Samples: {n}{popgroupings}\nOutput Directory: {output_dir}/",

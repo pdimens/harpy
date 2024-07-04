@@ -17,9 +17,11 @@ def containerize():
     """
     generate_conda_deps()
     fetch_rule(os.getcwd(), "containerize.smk")
-    command = 'snakemake -s containerize.smk --containerize'
 
     with open("Dockerfile", "w", encoding = "utf-8") as dockerfile:
-        _module = subprocess.run(command.split(), stdout = dockerfile)
+        _module = subprocess.run(
+            'snakemake -s containerize.smk --containerize'.split(),
+            stdout = dockerfile
+        )
     os.remove("containerize.smk")
     sys.exit(_module.returncode)

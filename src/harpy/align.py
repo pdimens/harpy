@@ -31,61 +31,51 @@ docstring = {
     "harpy align bwa": [
         {
             "name": "Parameters",
-            "options": ["--genome", "--quality-filter", "--molecule-distance", "--extra-params"],
+            "options": ["--extra-params", "--genome", "--molecule-distance", "--quality-filter"],
         },
         {
-            "name": "Other Options",
-            "options": ["--output-dir", "--threads", "--depth-window", "--skipreports", "--hpc", "--conda", "--snakemake", "--quiet", "--help"],
+            "name": "Workflow Controls",
+            "options": ["--conda", "--depth-window", "--hpc", "--output-dir", "--quiet", "--skipreports", "--snakemake", "--threads", "--help"],
         },
     ],
     "harpy align ema": [
         {
             "name": "Parameters",
-            "options": ["--platform", "--whitelist", "--genome", "--quality-filter", "--ema-bins", "--extra-params"],
+            "options": ["--ema-bins", "--extra-params", "--genome", "--platform", "--quality-filter", "--whitelist"],
         },
         {
-            "name": "Other Options",
-            "options": ["--output-dir", "--threads", "--depth-window", "--skipreports", "--conda", "--snakemake", "--quiet", "--help"],
-        },
-    ],
-    "harpy align minimap": [
-        {
-            "name": "Parameters",
-            "options": ["--genome", "--quality-filter", "--molecule-distance", "--extra-params"],
-        },
-        {
-            "name": "Other Options",
-            "options": ["--output-dir", "--threads", "--depth-window", "--skipreports", "--conda", "--snakemake", "--quiet", "--help"],
+            "name": "Workflow Controls",
+            "options": ["--conda", "--depth-window", "--hpc", "--output-dir", "--quiet", "--skipreports", "--snakemake", "--threads", "--help"],
         },
     ],
     "harpy align strobe": [
         {
             "name": "Parameters",
-            "options": ["--genome", "--read-length", "--quality-filter", "--molecule-distance", "--extra-params"],
+            "options": ["--extra-params", "--genome", "--molecule-distance", "--quality-filter", "--read-length"],
         },
         {
-            "name": "Other Options",
-            "options": ["--output-dir", "--threads", "--depth-window", "--skipreports", "--conda", "--snakemake", "--quiet", "--help"],
+            "name": "Workflow Controls",
+            "options": ["--conda", "--depth-window", "--hpc", "--output-dir", "--quiet", "--skipreports", "--snakemake", "--threads", "--help"],
         },
     ]
 }
 
-@click.command(no_args_is_help = True, epilog= "read the docs for more information: https://pdimens.github.io/harpy/modules/align/bwa/")
-@click.option('-g', '--genome', type=click.Path(exists=True, dir_okay=False), required = True, help = 'Genome assembly for read mapping')
+@click.command(no_args_is_help = True, epilog= "See the documentation for more information: https://pdimens.github.io/harpy/modules/align/bwa/")
+@click.option('-g', '--genome', type=click.Path(exists=True, dir_okay=False, readable=True), required = True, help = 'Genome assembly for read mapping')
 @click.option('-m', '--molecule-distance', default = 100000, show_default = True, type = int, help = 'Base-pair distance threshold to separate molecules')
 @click.option('-f', '--quality-filter', default = 30, show_default = True, type = click.IntRange(min = 0, max = 40), help = 'Minimum mapping quality to pass filtering')
 @click.option('-d', '--depth-window', default = 50000, show_default = True, type = int, help = 'Interval size (in bp) for depth stats')
 @click.option('-x', '--extra-params', type = str, help = 'Additional bwa mem parameters, in quotes')
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(min = 4, max_open = True), help = 'Number of threads to use')
 @click.option('-q', '--quiet',  is_flag = True, show_default = True, default = False, help = 'Don\'t show output text while running')
-@click.option('-o', '--output-dir', type = str, default = "Align/bwa", show_default=True, help = 'Name of output directory')
+@click.option('-o', '--output-dir', type = click.Path(exists = False), default = "Align/bwa", show_default=True,  help = 'Output directory name')
 @click.option('--snakemake', type = str, help = 'Additional Snakemake parameters, in quotes')
-@click.option('--hpc',  type = click.Path(exists = True, file_okay = False), help = 'Config dir for automatic HPC submission')
+@click.option('--hpc',  type = click.Path(exists = True, file_okay = False, readable=True), help = 'Directory with HPC submission `config.yaml` file')
 @click.option('--conda',  is_flag = True, default = False, help = 'Use conda/mamba instead of container')
 @click.option('--skipreports',  is_flag = True, show_default = True, default = False, help = 'Don\'t generate HTML reports')
-@click.option('--print-only',  is_flag = True, hidden = True, default = False, help = 'Print the generated snakemake command and exit')
-@click.argument('inputs', required=True, type=click.Path(exists=True), nargs=-1)
-def bwa(inputs, output_dir, genome, depth_window, threads, extra_params, quality_filter, molecule_distance, snakemake, skipreports, quiet, hpc, conda, print_only):
+@click.option('--config-only',  is_flag = True, hidden = True, default = False, help = 'Create the config.yaml file and exit')
+@click.argument('inputs', required=True, type=click.Path(exists=True, readable=True), nargs=-1)
+def bwa(inputs, output_dir, genome, depth_window, threads, extra_params, quality_filter, molecule_distance, snakemake, skipreports, quiet, hpc, conda, config_only):
     """
     Align sequences to genome using `BWA MEM`
  
@@ -108,9 +98,6 @@ def bwa(inputs, output_dir, genome, depth_window, threads, extra_params, quality
         command += "--quiet all "
     if snakemake is not None:
         command += snakemake
-    if print_only:
-        click.echo(command)
-        sys.exit(0)
 
     os.makedirs(f"{workflowdir}/", exist_ok= True)
     fqlist, sample_count = parse_fastq_inputs(inputs)
@@ -135,6 +122,9 @@ def bwa(inputs, output_dir, genome, depth_window, threads, extra_params, quality
         for i in fqlist:
             config.write(f"    - {i}\n")
 
+    if config_only:
+        sys.exit(0)
+
     print_onstart(
         f"Samples: {sample_count}\nOutput Directory: {output_dir}",
         "align bwa"
@@ -143,24 +133,24 @@ def bwa(inputs, output_dir, genome, depth_window, threads, extra_params, quality
     _module = subprocess.run(command.split())
     sys.exit(_module.returncode)
 
-@click.command(no_args_is_help = True, epilog = "read the docs for more information: https://pdimens.github.io/harpy/modules/align/ema")
+@click.command(no_args_is_help = True, epilog = "See the documentation for more information: https://pdimens.github.io/harpy/modules/align/ema")
 @click.option('-p', '--platform', type = click.Choice(['haplotag', '10x'], case_sensitive=False), default = "haplotag", show_default=True, help = "Linked read bead technology\n[haplotag, 10x]")
 @click.option('-w', '--whitelist', type = click.Path(exists=True, dir_okay=False), help = "Barcode whitelist file for tellseq/10x")
-@click.option('-g', '--genome', type=click.Path(exists=True, dir_okay=False), required = True, help = 'Genome assembly for read mapping')
+@click.option('-g', '--genome', type=click.Path(exists=True, dir_okay=False, readable=True), required = True, help = 'Genome assembly for read mapping')
 @click.option('-b', '--ema-bins', default = 500, show_default = True, type = click.IntRange(1,1000), help="Number of barcode bins")
 @click.option('-d', '--depth-window', default = 50000, show_default = True, type = int, help = 'Interval size (in bp) for depth stats')
 @click.option('-f', '--quality-filter', default = 30, show_default = True, type = click.IntRange(min = 0, max = 40), help = 'Minimum mapping quality to pass filtering')
 @click.option('-x', '--extra-params', type = str, help = 'Additional ema align parameters, in quotes')
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(min = 4, max_open = True), help = 'Number of threads to use')
 @click.option('-q', '--quiet',  is_flag = True, show_default = True, default = False, help = 'Don\'t show output text while running')
-@click.option('-o', '--output-dir', type = str, default = "Align/ema", show_default=True, help = 'Name of output directory')
+@click.option('-o', '--output-dir', type = click.Path(exists = False), default = "Align/ema", show_default=True,  help = 'Output directory name')
 @click.option('--snakemake', type = str, help = 'Additional Snakemake parameters, in quotes')
-@click.option('--hpc',  type = click.Path(exists = True, file_okay = False), help = 'Config dir for automatic HPC submission')
+@click.option('--hpc',  type = click.Path(exists = True, file_okay = False, readable=True), help = 'Directory with HPC submission `config.yaml` file')
 @click.option('--conda',  is_flag = True, default = False, help = 'Use conda/mamba instead of container')
 @click.option('--skipreports',  is_flag = True, show_default = True, default = False, help = 'Don\'t generate HTML reports')
-@click.option('--print-only',  is_flag = True, hidden = True, default = False, help = 'Print the generated snakemake command and exit')
-@click.argument('inputs', required=True, type=click.Path(exists=True), nargs=-1)
-def ema(inputs, output_dir, platform, whitelist, genome, depth_window, threads, ema_bins, skipreports, extra_params, quality_filter, snakemake, quiet, hpc, conda, print_only):
+@click.option('--config-only',  is_flag = True, hidden = True, default = False, help = 'Create the config.yaml file and exit')
+@click.argument('inputs', required=True, type=click.Path(exists=True, readable=True), nargs=-1)
+def ema(inputs, output_dir, platform, whitelist, genome, depth_window, threads, ema_bins, skipreports, extra_params, quality_filter, snakemake, quiet, hpc, conda, config_only):
     """
     Align sequences to genome using `EMA`
 
@@ -185,9 +175,6 @@ def ema(inputs, output_dir, platform, whitelist, genome, depth_window, threads, 
         command += "--quiet all "
     if snakemake is not None:
         command += snakemake
-    if print_only:
-        click.echo(command)
-        sys.exit(0)
 
     platform = platform.lower()
     # the tellseq stuff isn't impremented yet, but this is a placeholder for that... wishful thinking
@@ -228,6 +215,9 @@ def ema(inputs, output_dir, platform, whitelist, genome, depth_window, threads, 
         for i in fqlist:
             config.write(f"    - {i}\n")
 
+    if config_only:
+        sys.exit(0)
+
     print_onstart(
         f"Samples: {sample_count}\nPlatform: {platform}\nOutput Directory: {output_dir}/",
         "align ema"
@@ -236,8 +226,8 @@ def ema(inputs, output_dir, platform, whitelist, genome, depth_window, threads, 
     _module = subprocess.run(command.split())
     sys.exit(_module.returncode)
 
-@click.command(no_args_is_help = True, epilog= "read the docs for more information: https://pdimens.github.io/harpy/modules/align/minimap/")
-@click.option('-g', '--genome', type=click.Path(exists=True, dir_okay=False), required = True, help = 'Genome assembly for read mapping')
+@click.command(no_args_is_help = True, epilog= "See the documentation for more information: https://pdimens.github.io/harpy/modules/align/minimap/")
+@click.option('-g', '--genome', type=click.Path(exists=True, dir_okay=False, readable=True), required = True, help = 'Genome assembly for read mapping')
 @click.option('-m', '--molecule-distance', default = 100000, show_default = True, type = int, help = 'Base-pair distance threshold to separate molecules')
 @click.option('-f', '--quality-filter', default = 30, show_default = True, type = click.IntRange(min = 0, max = 40), help = 'Minimum mapping quality to pass filtering')
 @click.option('-r', '--read-length', default = "auto", show_default = True, type = click.Choice(["auto", "50", "75", "100", "125", "150", "250", "400"]), help = 'Average read length for creating index')
@@ -245,14 +235,14 @@ def ema(inputs, output_dir, platform, whitelist, genome, depth_window, threads, 
 @click.option('-x', '--extra-params', type = str, help = 'Additional aligner parameters, in quotes')
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(min = 4, max_open = True), help = 'Number of threads to use')
 @click.option('-q', '--quiet',  is_flag = True, show_default = True, default = False, help = 'Don\'t show output text while running')
-@click.option('-o', '--output-dir', type = str, default = "Align/strobealign", show_default=True, help = 'Name of output directory')
+@click.option('-o', '--output-dir', type = click.Path(exists = False), default = "Align/strobealign", show_default=True,  help = 'Output directory name')
 @click.option('--snakemake', type = str, help = 'Additional Snakemake parameters, in quotes')
-@click.option('--hpc',  type = click.Path(exists = True, file_okay = False), help = 'Config dir for automatic HPC submission')
+@click.option('--hpc',  type = click.Path(exists = True, file_okay = False, readable=True), help = 'Directory with HPC submission `config.yaml` file')
 @click.option('--conda',  is_flag = True, default = False, help = 'Use conda/mamba instead of container')
 @click.option('--skipreports',  is_flag = True, show_default = True, default = False, help = 'Don\'t generate HTML reports')
-@click.option('--print-only',  is_flag = True, hidden = True, default = False, help = 'Print the generated snakemake command and exit')
-@click.argument('inputs', required=True, type=click.Path(exists=True), nargs=-1)
-def strobe(inputs, output_dir, genome, read_length, depth_window, threads, extra_params, quality_filter, molecule_distance, snakemake, skipreports, quiet, hpc, conda, print_only):
+@click.option('--config-only',  is_flag = True, hidden = True, default = False, help = 'Create the config.yaml file and exit')
+@click.argument('inputs', required=True, type=click.Path(exists=True, readable=True), nargs=-1)
+def strobe(inputs, output_dir, genome, read_length, depth_window, threads, extra_params, quality_filter, molecule_distance, snakemake, skipreports, quiet, hpc, conda, config_only):
     """
     Align sequences to genome using `strobealign`
  
@@ -278,9 +268,6 @@ def strobe(inputs, output_dir, genome, read_length, depth_window, threads, extra
         command += "--quiet all "
     if snakemake is not None:
         command +=  snakemake
-    if print_only:
-        click.echo(command)
-        sys.exit(0)
 
     os.makedirs(f"{workflowdir}/", exist_ok= True)
     fqlist, sample_count = parse_fastq_inputs(inputs)
@@ -307,6 +294,9 @@ def strobe(inputs, output_dir, genome, read_length, depth_window, threads, extra
         config.write("  fastq:\n")
         for i in fqlist:
             config.write(f"    - {i}\n")
+
+    if config_only:
+        sys.exit(0)
 
     print_onstart(
         f"Samples: {sample_count}\nOutput Directory: {output_dir}",
