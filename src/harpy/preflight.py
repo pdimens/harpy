@@ -22,13 +22,13 @@ def preflight():
 docstring = {
     "harpy preflight bam": [
         {
-            "name": "Options",
+            "name": "Workflow Controls",
             "options": ["--conda", "--hpc", "--output-dir", "--quiet", "--snakemake", "--threads", "--help"],
         },
     ],
     "harpy preflight fastq": [
         {
-            "name": "Options",
+            "name": "Workflow Controls",
             "options": ["--conda", "--hpc", "--output-dir", "--quiet", "--snakemake", "--threads", "--help"],
         },
     ]
