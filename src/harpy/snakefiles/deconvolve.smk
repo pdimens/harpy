@@ -12,7 +12,7 @@ outdir      = config["output_directory"]
 kmer_length = config["kmer_length"]
 window_size = config["window_size"]
 density 	= config["density"] 
-dropout     = config["min_reads"]
+dropout     = config["dropout"]
 
 bn_r = r"([_\.][12]|[_\.][FR]|[_\.]R[12](?:\_00[0-9])*)?\.((fastq|fq)(\.gz)?)$"
 samplenames = {re.sub(bn_r, "", os.path.basename(i), flags = re.IGNORECASE) for i in fqlist}
