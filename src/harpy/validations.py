@@ -40,9 +40,6 @@ def check_envdir(dirpath):
 
 def validate_input_by_ext(inputfile, option, ext):
     """Check that the input file for a given option has read permissions and matches the acceptable extensions """
-    if not os.access(inputfile, os.R_OK):
-        print_error(f"The {inputfile} does not have Read permissions. These will create errors and terminate workflows prematurely. Please make sure this file has Read permissions")
-        sys.exit(1)
     if isinstance(ext, list):
         test = [not(inputfile.lower().endswith(i.lower())) for i in ext]
         if all(test):
@@ -53,17 +50,6 @@ def validate_input_by_ext(inputfile, option, ext):
         if not inputfile.lower().endswith(ext.lower()):
             print_error(f"The input file for [bold]{option}[/bold] must end in [green bold]{ext}[/green bold]")
             sys.exit(1)
-
-# DEPRECATE
-#def vcfcheck(vcf):
-#    """Check that a file ends with one of .vcf, .bcf, or .vcf.gz. Is case insensitive."""
-#    vfile = vcf.lower()
-#    if vfile.endswith(".vcf") or vfile.endswith(".bcf") or vfile.endswith(".vcf.gz"):
-#        pass
-#    else:
-#        print_error(f"Supplied variant call file [bold]{vcf}[/bold] must end in one of:\n[green bold].vcf | .vcf.gz | .bcf[/green bold]")
-#        sys.exit(1)
-###
 
 def check_impute_params(parameters):
     """Validate the STITCH parameter file for column names, order, types, missing values, etc."""
@@ -228,23 +214,6 @@ def vcf_samplematch(vcf, bamlist, vcf_samples):
         sys.exit(1)
     return(query)
 
-# DEPRECATE?
-#def validate_vcfsamples(directory, populations, quiet):
-#    """Validate the presence of samples listed in 'populations' to be in the inputs"""
-#    p_list = [i.split()[0] for i in rows]
-#    missing_samples = [x for x in p_list if x not in samplenames]
-#    overlooked = [x for x in samplenames if x not in p_list]
-#    if len(overlooked) > 0 and not quiet:
-#        print_notice(f"There are [bold]{len(overlooked)}[/bold] samples found in [bold]{directory}[/bold] that weren\'t included in [bold]{populations}[/bold]. This will not cause errors and can be ignored if it was deliberate. Commenting or removing these lines will avoid this message. The samples are:\n" + ", ".join(overlooked))
-#    if len(missing_samples) > 0:
-#        print_error(f"There are [bold]{len(missing_samples)}[/bold] samples included in [bold]{populations}[/bold] that weren\'t found in [bold]{directory}[/bold]. Terminating Harpy to avoid downstream errors.")
-#        print_solution_with_culprits(
-#            f"Make sure the spelling of these samples is identical in [bold]{directory}[/bold] and [bold]{populations}[/bold], or remove them from [bold]{populations}[/bold].",
-#            "The samples causing this error are:"
-#        )
-#        click.echo(", ".join(sorted(missing_samples)), file = sys.stderr)
-#        sys.exit(1)
-#
 def validate_popsamples(infiles, popfile, quiet):
     """Validate the presence of samples listed in 'populations' to be in the input files"""
     with open(popfile, "r", encoding="utf-8") as f:
