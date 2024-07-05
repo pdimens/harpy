@@ -88,7 +88,7 @@ rule bx_files:
     message:
         "Creating the Gen I barcode files for barcode demultiplexing"
     shell:
-        "bcFiles.py {params}"
+        "haplotag_acbd.py {params}"
 
 rule demux_bx:
     input:

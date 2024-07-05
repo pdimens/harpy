@@ -152,7 +152,7 @@ def linkedreads(genome_hap1, genome_hap2, output_dir, outer_distance, mutation_r
 
     os.makedirs(f"{workflowdir}/", exist_ok= True)
     fetch_rule(workflowdir, "simulate-linkedreads.smk")
-    fetch_script(workflowdir, "LRSIMharpy.pl")
+    fetch_script(workflowdir, "LRSIM_harpy.pl")
 
     with open(f"{workflowdir}/config.yaml", "w", encoding="utf-8") as config:
         config.write("workflow: simulate linkedreads\n")

@@ -17,7 +17,7 @@ parser = argparse.ArgumentParser(
     coverage (%) based on total inferred insert length.
     Input file MUST BE COORDINATE SORTED.
     """,
-    usage = "bxStats.py -o output.gz input.bam",
+    usage = "bx_stats.py -o output.gz input.bam",
     exit_on_error = False
     )
 

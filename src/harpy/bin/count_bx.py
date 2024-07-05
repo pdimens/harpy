@@ -13,7 +13,7 @@ parser = argparse.ArgumentParser(
     number of valid haplotagging BX tags, number of invalid BX tags, number of
     invalid BX tag segments (i.e. A00, C00, B00, D00)
     """,
-    usage = "countBX.py input.fastq > output.txt",
+    usage = "count_bx.py input.fastq > output.txt",
     exit_on_error = False
     )
 

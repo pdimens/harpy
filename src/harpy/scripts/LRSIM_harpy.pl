@@ -7,7 +7,7 @@
 # Detailed explanation:
 # LRSIM first created two haplotypes of a genome by introducing variants via SURVIVOR --REMOVED
 # Sections that called external tools (samtools, dwgsim, SURVIVOR) --REMOVED
-# The input now expects two haplotypes of a genome (-g) that were created separately, and LRSIMharpy.pl will just
+# The input now expects two haplotypes of a genome (-g) that were created separately, and LRSIM_harpy.pl will just
 # create linked reads from them. No more, no less.
 # The -r option is now a folder prefix to make like easier in the larger Harpy workflow --CHANGED
 ####

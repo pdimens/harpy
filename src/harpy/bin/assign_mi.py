@@ -16,7 +16,7 @@ parser = argparse.ArgumentParser(
     with an invalid barcode (00 as one of its segments) are presevered
     but are not assigned an MI:i tag. Input file MUST BE COORDINATE SORTED.
     """,
-    usage = "assignMI.py -c cutoff -o output.bam input.bam",
+    usage = "assign_mi.py -c cutoff -o output.bam input.bam",
     exit_on_error = False
     )
 

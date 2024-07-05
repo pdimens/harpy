@@ -14,7 +14,7 @@ parser = argparse.ArgumentParser(
     whether BX:Z: is the last tag in the record, and the counts of: total reads,
     reads without BX:Z: tag, reads with incorrect BX:Z: tag.
     """,
-    usage = "checkBAM.py input.bam > output.txt",
+    usage = "check_bam.py input.bam > output.txt",
     exit_on_error = False
     )
 

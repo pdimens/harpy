@@ -63,7 +63,7 @@ rule check_forward:
     message:
         "Processing forward reads: {wildcards.sample}"
     shell: 
-        "checkFASTQ.py {input} > {output}"
+        "check_fastq.py {input} > {output}"
 
 rule check_reverse:
     input:
@@ -75,7 +75,7 @@ rule check_reverse:
     container:
         None
     shell: 
-        "checkFASTQ.py {input} > {output}"
+        "check_fastq.py {input} > {output}"
 
 rule merge_checks:
     input:
@@ -116,6 +116,6 @@ rule log_workflow:
         with open(out_dir + "/workflow/preflight.fastq.summary", "w") as f:
             _ = f.write("The harpy preflight fastq workflow ran using these parameters:\n\n")
             _ = f.write("validations were performed with:\n")
-            _ = f.write("    checkFASTQ.py sample.fastq > sample.txt\n")
+            _ = f.write("    check_fastq.py sample.fastq > sample.txt\n")
             _ = f.write("\nThe Snakemake workflow was called via command line:\n")
             _ = f.write("    " + str(config["workflow_call"]) + "\n")

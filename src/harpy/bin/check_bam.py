@@ -15,7 +15,7 @@ parser = argparse.ArgumentParser(
     and the counts of: total alignments, alignments with an MI:i: tag,
     alignments without BX:Z: tag, incorrect BX:Z: tag.
     """,
-    usage = "checkBAM.py input.bam > output.txt",
+    usage = "check_bam.py input.bam > output.txt",
     exit_on_error = False
     )
 

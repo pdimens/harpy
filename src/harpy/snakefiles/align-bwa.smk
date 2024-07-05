@@ -191,7 +191,7 @@ rule assign_molecules:
     message:
         "Assigning barcodes to molecules: {wildcards.sample}"
     shell:
-        "assignMI.py -o {output.bam} -c {params} {input.bam}"
+        "assign_mi.py -o {output.bam} -c {params} {input.bam}"
 
 rule bxstats:
     input:
@@ -206,7 +206,7 @@ rule bxstats:
     message:
         "Calculating barcoded alignment statistics: {wildcards.sample}"
     shell:
-        "bxStats.py -o {output} {input.bam}"
+        "bx_stats.py -o {output} {input.bam}"
 
 rule coverage:
     input: 
@@ -221,7 +221,7 @@ rule coverage:
     message:
         "Calculating genomic coverage: {wildcards.sample}"
     shell:
-        "samtools depth -a {input.bam} | depthWindows.py {params} | gzip > {output}"
+        "samtools depth -a {input.bam} | depth_windows.py {params} | gzip > {output}"
 
 rule report_persample:
     input:
