@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="turbo-root" content="/harpy">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="3.5.0.773245826519">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="3.5.0.773525426656">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 3.5.0">
@@ -34,12 +34,12 @@
     <script data-cfasync="false">(function () { var el = document.documentElement, m = localStorage.getItem("doc_theme"), wm = window.matchMedia; if (m === "dark" || (!m && wm && wm("(prefers-color-scheme: dark)").matches)) { el.classList.add("dark") } else { el.classList.remove("dark") } })();</script>
 
     <link href="../../../static/favicon.png" rel="icon">
-    <link href="../../../resources/css/retype.css?v=3.5.0.773245826519" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=3.5.0.773525426656" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=3.5.0.773245826519" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=3.5.0.773525426656" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=3.5.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=3.5.0.773245826519" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=3.5.0.773245826519" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=3.5.0.773525426656" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=3.5.0.773525426656" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../../resources/js/mermaid.js?v=3.5.0" defer></script>
     <link href="../../../resources/css/katex.css?v=3.5.0" rel="stylesheet">
     <script id="katex-js" data-cfasync="false" src="../../../resources/js/katex.js?v=3.5.0" defer></script>
@@ -63,7 +63,7 @@
                                 <img class="max-h-10 hidden dark:inline-block" src="../../../static/favicon.png">
                             </span>
                             <span class="dark:text-white font-semibold line-clamp-1 md:line-clamp-2">Harpy</span>
-                        </a><span class="hidden px-2 py-1 ml-4 text-sm font-semibold leading-none text-root-logo-label-text bg-root-logo-label-bg rounded-sm md:inline-block">v1.1</span>
+                        </a><span class="hidden px-2 py-1 ml-4 text-sm font-semibold leading-none text-root-logo-label-text bg-root-logo-label-bg rounded-sm md:inline-block">v1.2.0</span>
                     </div>
         
                     <span class="hidden h-8 border-r md:inline-block dark:border-dark-650"></span>
@@ -362,22 +362,6 @@ and converts the LRSIM 10X-style output into Haplotag-style reads. To simulate l
 <td style="text-align: left;">Haplotype 1 of the diploid genome to simulate reads</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code v-pre>--outer-distance</code></td>
-<td style="text-align: center;"><code v-pre>-d</code></td>
-<td style="text-align: left;">integer</td>
-<td style="text-align: center;">350</td>
-<td style="text-align: center;"></td>
-<td style="text-align: left;">Outer distance between paired-end reads (bp)</td>
-</tr>
-<tr>
-<td style="text-align: left;"><code v-pre>--distance-sd</code></td>
-<td style="text-align: center;"><code v-pre>-i</code></td>
-<td style="text-align: left;">integer</td>
-<td style="text-align: center;">15</td>
-<td style="text-align: center;"></td>
-<td style="text-align: left;">Standard deviation of read-pair distance</td>
-</tr>
-<tr>
 <td style="text-align: left;"><code v-pre>--barcodes</code></td>
 <td style="text-align: center;"><code v-pre>-b</code></td>
 <td style="text-align: left;">file path</td>
@@ -386,20 +370,12 @@ and converts the LRSIM 10X-style output into Haplotag-style reads. To simulate l
 <td style="text-align: left;">File of linked-read barcodes to add to reads</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code v-pre>--read-pairs</code></td>
-<td style="text-align: center;"><code v-pre>-n</code></td>
-<td style="text-align: left;">number</td>
-<td style="text-align: center;">600</td>
+<td style="text-align: left;"><code v-pre>--distance-sd</code></td>
+<td style="text-align: center;"><code v-pre>-s</code></td>
+<td style="text-align: left;">integer</td>
+<td style="text-align: center;">15</td>
 <td style="text-align: center;"></td>
-<td style="text-align: left;">Number (in millions) of read pairs to simulate</td>
-</tr>
-<tr>
-<td style="text-align: left;"><code v-pre>--mutation-rate</code></td>
-<td style="text-align: center;"><code v-pre>-r</code></td>
-<td style="text-align: left;">number</td>
-<td style="text-align: center;">0.001</td>
-<td style="text-align: center;"></td>
-<td style="text-align: left;">Random mutation rate for simulating reads (0 - 1.0)</td>
+<td style="text-align: left;">Standard deviation of read-pair distance</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code v-pre>--molecule-length</code></td>
@@ -410,6 +386,30 @@ and converts the LRSIM 10X-style output into Haplotag-style reads. To simulate l
 <td style="text-align: left;">Mean molecule length (kbp)</td>
 </tr>
 <tr>
+<td style="text-align: left;"><code v-pre>--molecules-per</code></td>
+<td style="text-align: center;"><code v-pre>-m</code></td>
+<td style="text-align: left;">integer</td>
+<td style="text-align: center;">10</td>
+<td style="text-align: center;"></td>
+<td style="text-align: left;">Average number of molecules per partition</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code v-pre>--mutation-rate</code></td>
+<td style="text-align: center;"><code v-pre>-r</code></td>
+<td style="text-align: left;">number</td>
+<td style="text-align: center;">0.001</td>
+<td style="text-align: center;"></td>
+<td style="text-align: left;">Random mutation rate for simulating reads (0 - 1.0)</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code v-pre>--outer-distance</code></td>
+<td style="text-align: center;"><code v-pre>-d</code></td>
+<td style="text-align: left;">integer</td>
+<td style="text-align: center;">350</td>
+<td style="text-align: center;"></td>
+<td style="text-align: left;">Outer distance between paired-end reads (bp)</td>
+</tr>
+<tr>
 <td style="text-align: left;"><code v-pre>--patitions</code></td>
 <td style="text-align: center;"><code v-pre>-p</code></td>
 <td style="text-align: left;">integer</td>
@@ -418,12 +418,12 @@ and converts the LRSIM 10X-style output into Haplotag-style reads. To simulate l
 <td style="text-align: left;">Number (in thousands) of partitions/beads to generate</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code v-pre>--molecules-per</code></td>
-<td style="text-align: center;"><code v-pre>-m</code></td>
-<td style="text-align: left;">integer</td>
-<td style="text-align: center;">10</td>
+<td style="text-align: left;"><code v-pre>--read-pairs</code></td>
+<td style="text-align: center;"><code v-pre>-n</code></td>
+<td style="text-align: left;">number</td>
+<td style="text-align: center;">600</td>
 <td style="text-align: center;"></td>
-<td style="text-align: left;">Average number of molecules per partition</td>
+<td style="text-align: left;">Number (in millions) of read pairs to simulate</td>
 </tr>
 </tbody>
 </table>

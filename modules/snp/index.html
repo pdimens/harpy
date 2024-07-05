@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="turbo-root" content="/harpy">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="3.5.0.773245826519">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="3.5.0.773525426656">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 3.5.0">
@@ -34,12 +34,12 @@
     <script data-cfasync="false">(function () { var el = document.documentElement, m = localStorage.getItem("doc_theme"), wm = window.matchMedia; if (m === "dark" || (!m && wm && wm("(prefers-color-scheme: dark)").matches)) { el.classList.add("dark") } else { el.classList.remove("dark") } })();</script>
 
     <link href="../../static/favicon.png" rel="icon">
-    <link href="../../resources/css/retype.css?v=3.5.0.773245826519" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=3.5.0.773525426656" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=3.5.0.773245826519" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=3.5.0.773525426656" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=3.5.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=3.5.0.773245826519" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=3.5.0.773245826519" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=3.5.0.773525426656" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=3.5.0.773525426656" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=3.5.0" defer></script>
 </head>
 <body>
@@ -61,7 +61,7 @@
                                 <img class="max-h-10 hidden dark:inline-block" src="../../static/favicon.png">
                             </span>
                             <span class="dark:text-white font-semibold line-clamp-1 md:line-clamp-2">Harpy</span>
-                        </a><span class="hidden px-2 py-1 ml-4 text-sm font-semibold leading-none text-root-logo-label-text bg-root-logo-label-bg rounded-sm md:inline-block">v1.1</span>
+                        </a><span class="hidden px-2 py-1 ml-4 text-sm font-semibold leading-none text-root-logo-label-text bg-root-logo-label-bg rounded-sm md:inline-block">v1.2.0</span>
                     </div>
         
                     <span class="hidden h-8 border-r md:inline-block dark:border-dark-650"></span>
@@ -380,28 +380,20 @@ harpy snp freebayes --threads 20 --genome genome.fasta Align/bwa</code></pre>
 <td style="text-align: left;">Files or directories containing <a href="../../commonoptions/#input-arguments">input BAM files</a></td>
 </tr>
 <tr>
+<td style="text-align: left;"><code v-pre>--extra-params</code></td>
+<td style="text-align: center;"><code v-pre>-x</code></td>
+<td style="text-align: left;">string</td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;">no</td>
+<td style="text-align: left;">Additional mpileup/freebayes arguments, in quotes</td>
+</tr>
+<tr>
 <td style="text-align: left;"><code v-pre>--genome</code></td>
 <td style="text-align: center;"><code v-pre>-g</code></td>
 <td style="text-align: left;">file path</td>
 <td style="text-align: center;"></td>
 <td style="text-align: center;"><strong>yes</strong></td>
 <td style="text-align: left;">Genome assembly for variant calling</td>
-</tr>
-<tr>
-<td style="text-align: left;"><code v-pre>--regions</code></td>
-<td style="text-align: center;"><code v-pre>-r</code></td>
-<td style="text-align: left;">integer/file path/string</td>
-<td style="text-align: center;">50000</td>
-<td style="text-align: center;">no</td>
-<td style="text-align: left;">Regions to call variants on (<doc-anchor-trigger to="#regions">see below</doc-anchor-trigger>)</td>
-</tr>
-<tr>
-<td style="text-align: left;"><code v-pre>--populations</code></td>
-<td style="text-align: center;"><code v-pre>-p</code></td>
-<td style="text-align: left;">file path</td>
-<td style="text-align: center;"></td>
-<td style="text-align: center;">no</td>
-<td style="text-align: left;">Tab-delimited file of sample&lt;<em>tab</em>&gt;group</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code v-pre>--ploidy</code></td>
@@ -412,12 +404,20 @@ harpy snp freebayes --threads 20 --genome genome.fasta Align/bwa</code></pre>
 <td style="text-align: left;">Ploidy of samples</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code v-pre>--extra-params</code></td>
-<td style="text-align: center;"><code v-pre>-x</code></td>
-<td style="text-align: left;">string</td>
+<td style="text-align: left;"><code v-pre>--populations</code></td>
+<td style="text-align: center;"><code v-pre>-p</code></td>
+<td style="text-align: left;">file path</td>
 <td style="text-align: center;"></td>
 <td style="text-align: center;">no</td>
-<td style="text-align: left;">Additional mpileup/freebayes arguments, in quotes</td>
+<td style="text-align: left;">Tab-delimited file of sample&lt;<em>tab</em>&gt;group</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code v-pre>--regions</code></td>
+<td style="text-align: center;"><code v-pre>-r</code></td>
+<td style="text-align: left;">integer/file path/string</td>
+<td style="text-align: center;">50000</td>
+<td style="text-align: center;">no</td>
+<td style="text-align: left;">Regions to call variants on (<doc-anchor-trigger to="#regions">see below</doc-anchor-trigger>)</td>
 </tr>
 </tbody>
 </table>
