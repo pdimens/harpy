@@ -66,9 +66,9 @@ In addition to the [!badge variant="info" corners="pill" text="common runtime op
 | argument         | short name | type          | default | required | description                                        |
 |:-----------------|:----------:|:--------------|:-------:|:--------:|:---------------------------------------------------|
 | `INPUTS`         |            | file/directory paths  |         | **yes**  | Files or directories containing [input BAM files](/commonoptions.md#input-arguments)     |
+| `--extra-params` |    `-x`    | string        |         |    no             | Additional naibr arguments, in quotes              |
 | `--genome`       |    `-g`    | file path     |         |    yes | Genome assembly that was used to create alignments    |
 | `--populations`  |    `-p`    | file path     |         |    no             | Tab-delimited file of sample\<*tab*\>group         |
-| `--extra-params` |    `-x`    | string        |         |    no             | Additional naibr arguments, in quotes              |
 
 ### Single-sample variant calling
 When **not** using a population grouping file via `--populations`, variants will be called per-sample. 

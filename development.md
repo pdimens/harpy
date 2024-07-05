@@ -175,6 +175,7 @@ build a new Dockerfile and tag it with the same git tag for Harpy's next release
 In doing so, it will also replace the tag of the container in all of Harpy's snakefiles from `latest` to the
 current Harpy version. In other words, during development the top of every snakefile reads
 `containerized: docker://pdimens/harpy:latest` and the automation replaces it with (e.g.) `containerized: docker://pdimens/harpy:1.17`.
+Same for the software version, which is kept at `0.0.0` (`pyproject.toml` and `__main__.py`) in the development version and gets replaced with the tagged version with the automation.
 Tagging is easily accomplished with Git commands in the command line:
 ```bash
 # make sure you're on the main branch

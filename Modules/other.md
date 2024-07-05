@@ -1,8 +1,8 @@
 ---
 label: Other
-order: 1
 icon: file-diff
 description: Generate extra files for analysis with Harpy
+order: 7
 ---
 
 # :icon-file-diff: Other Harpy modules

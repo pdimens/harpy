@@ -48,14 +48,14 @@ In addition to the [!badge variant="info" corners="pill" text="common runtime op
 |:---------------|:----------:|:------------|:-------------:|:--------:|:------------------------------------------------------------------------------------------------|
 | `HAP1_GENOME`       |            | file path |       | **yes**  | Haplotype 1 of the diploid genome to simulate reads   |
 | `HAP2_GENOME`       |            | file path |       | **yes**  | Haplotype 1 of the diploid genome to simulate reads   |
-| `--outer-distance`  |    `-d`    | integer   | 350   |   | Outer distance between paired-end reads (bp)                 |
-| `--distance-sd`     |    `-i`    | integer   |  15   |   | Standard deviation of read-pair distance                     |
 | `--barcodes`        |    `-b`    | file path |  [10X barcodes](https://github.com/aquaskyline/LRSIM/blob/master/4M-with-alts-february-2016.txt)   |        | File of linked-read barcodes to add to reads   |
-| `--read-pairs`      |    `-n`    | number    |  600  |   | Number (in millions) of read pairs to simulate               |
-| `--mutation-rate`   |    `-r`    | number    | 0.001 |   | Random mutation rate for simulating reads (0 - 1.0)          |
+| `--distance-sd`     |    `-s`    | integer   |  15   |   | Standard deviation of read-pair distance                     |
 | `--molecule-length` |    `-l`    | integer   |  100  |   | Mean molecule length (kbp)                                   |
-| `--patitions`       |    `-p`    | integer   |  1500 |   | Number (in thousands) of partitions/beads to generate        |
 | `--molecules-per`   |    `-m`    | integer   |   10  |   | Average number of molecules per partition                    |
+| `--mutation-rate`   |    `-r`    | number    | 0.001 |   | Random mutation rate for simulating reads (0 - 1.0)          |
+| `--outer-distance`  |    `-d`    | integer   | 350   |   | Outer distance between paired-end reads (bp)                 |
+| `--patitions`       |    `-p`    | integer   |  1500 |   | Number (in thousands) of partitions/beads to generate        |
+| `--read-pairs`      |    `-n`    | number    |  600  |   | Number (in millions) of read pairs to simulate               |
 
 ## Mutation Rate
 The read simulation is two-part: first `dwgsim` generates forward and reverse FASTQ files from the provided genome haplotypes

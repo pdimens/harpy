@@ -66,11 +66,11 @@ In addition to the [!badge variant="info" corners="pill" text="common runtime op
 | argument         | short name | type          | default | required | description                                        |
 |:-----------------|:----------:|:--------------|:-------:|:--------:|:---------------------------------------------------|
 | `INPUTS`         |            | file/directory paths  |         | **yes**  | Files or directories containing [input BAM files](/commonoptions.md#input-arguments)     |
+| `--extra-params` |    `-x`    | string        |         |    no             | Additional naibr arguments, in quotes              |
 | `--genome`       |    `-g`    | file path     |         | **yes** | Genome assembly for phasing bam files     |
-| `--vcf`          |    `-v`    | file path     |         | **conditionally** | Phased vcf file for phasing bam files     |
 | `--molecule-distance` |  `-m` | integer       |  100000 |    no             | Base-pair distance threshold to separate molecules |
 | `--populations`  |    `-p`    | file path     |         |    no             | Tab-delimited file of sample\<*tab*\>group         |
-| `--extra-params` |    `-x`    | string        |         |    no             | Additional naibr arguments, in quotes              |
+| `--vcf`          |    `-v`    | file path     |         | **conditionally** | Phased vcf file for phasing bam files     |
 
 ### Molecule distance
 The `--molecule-distance` option is used to let the program determine how far apart alignments on a contig with the same

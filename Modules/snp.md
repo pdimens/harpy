@@ -2,7 +2,7 @@
 label: SNP
 description: Call SNPs and small indels
 icon: sliders
-order: 5
+order: 2
 ---
 
 # :icon-sliders: Call SNPs and small indels
@@ -60,12 +60,12 @@ In addition to the [!badge variant="info" corners="pill" text="common runtime op
 {.compact}
 | argument         | short name | type                            | default | required | description                                         |
 |:-----------------|:----------:|:--------------------------------|:-------:|:--------:|:----------------------------------------------------|
-| `INPUTS`           |            | file/directory paths  |         | **yes**  | Files or directories containing [input BAM files](/commonoptions.md#input-arguments)   |
-| `--genome`       |    `-g`    | file path                       |         | **yes**  | Genome assembly for variant calling                 |
-| `--regions`      |    `-r`    | integer/file path/string        |  50000  |    no    | Regions to call variants on ([see below](#regions))             |
-| `--populations`  |    `-p`    | file path                       |         |    no    | Tab-delimited file of sample\<*tab*\>group          |
-| `--ploidy`       |    `-x`    | integer                         |    2    |    no    | Ploidy of samples                                   |
+| `INPUTS`         |            | file/directory paths  |         | **yes**  | Files or directories containing [input BAM files](/commonoptions.md#input-arguments)   |
 | `--extra-params` |    `-x`    | string                          |         |    no    | Additional mpileup/freebayes arguments, in quotes   |
+| `--genome`       |    `-g`    | file path                       |         | **yes**  | Genome assembly for variant calling                 |
+| `--ploidy`       |    `-x`    | integer                         |    2    |    no    | Ploidy of samples                                   |
+| `--populations`  |    `-p`    | file path                       |         |    no    | Tab-delimited file of sample\<*tab*\>group          |
+| `--regions`      |    `-r`    | integer/file path/string        |  50000  |    no    | Regions to call variants on ([see below](#regions))             |
 
 ### regions
 The `--regions` (`-r`) option lets you specify the genomic regions you want to call variants on. Keep in mind that

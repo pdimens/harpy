@@ -49,11 +49,11 @@ specific variants to simulate. There are also these unifying options among the d
 | argument | short name | type |  description |
 | :-----|:-----|:-----|:-----|
 | `INPUT_GENOME`           |    | file path  |  The haploid genome to simulate variants onto. **REQUIRED**   |
-| `--prefix` | | string |  Naming prefix for output files (default: `sim.{module_name}`)|
-| `--exclude-chr` | `-e` | file path | Text file of chromosomes to avoid, one per line |
 | `--centromeres` | `-c` | file path | GFF3 file of centromeres to avoid |
+| `--exclude-chr` | `-e` | file path | Text file of chromosomes to avoid, one per line |
 | `--genes` | `-g` | file path |  GFF3 file of genes to avoid simulating over (see `snpindel` for caveat) |
 | `--heterozygosity` | `-z` | float between [0,1] |  [% heterozygosity to simulate diploid later](#heterozygosity) (default: `0`) |
+| `--prefix` | | string |  Naming prefix for output files (default: `sim.{module_name}`)|
 | `--randomseed` |  | integer |   Random seed for simulation |
 
 ==- 🟣 snps and indels
@@ -64,28 +64,29 @@ Given software limitations, simulating many SNPs (>10,000) will be noticeably sl
 
 A single nucleotide polymorphism ("SNP") is a genomic variant at a single base position in the DNA ([source](https://www.genome.gov/genetics-glossary/Single-Nucleotide-Polymorphisms)).
 An indel, is a type of mutation that involves the addition/deletion of one or more nucleotides into a segment of DNA ([insertions](https://www.genome.gov/genetics-glossary/Insertion), [deletions](https://www.genome.gov/genetics-glossary/Deletion)).
-The snp and indel variants are combined in this module because `simuG` allows simulating them together. The
-ratio parameters control different things for snp and indel variants and have special meanings when setting
-the value to either `9999` or `0` :
-- `--titv-ratio`
-    - `9999`: transitions only
-    - `0`: transversions only
-- `--indel-ratio`
-    - `9999`: insertions only
-    - `0`: deletions only
+The snp and indel variants are combined in this module because `simuG` allows simulating them together. 
 
 {.compact}
 | argument          | short name | type       | default |  description                                                 |
 |:------------------|:----------:|:-----------|:-------:|:-------------------------------------------------------------|
-| `--snp-vcf`| `-s` | file path | | VCF file of known snps to simulate |
-| `--indel-vcf` | `-i` | file path | | VCF file of known indels to simulate |
-| `--snp-count` | `-n` | integer | 0 | Number of random snps to simluate |
 | `--indel-count` |  `-m` | integer | 0 | Number of random indels to simluate |
-| `--titv-ratio` | `-r` | float  | 0.5 | Transition/Transversion ratio for snps |
+| `--indel-vcf` | `-i` | file path | | VCF file of known indels to simulate |
 | `--indel-ratio` | `-d` | float  |  1 | Insertion/Deletion ratio for indels |
 | `--indel-size-alpha` | `-a` | float |  2.0 | Exponent Alpha for power-law-fitted indel size distribution|
 | `--indel-size-constant` | `-l` | float | 0.5 | Exponent constant for power-law-fitted indel size distribution |
+| `--snp-count` | `-n` | integer | 0 | Number of random snps to simluate |
 | `--snp-gene-constraints` | `-y` | string | | How to constrain randomly simulated SNPs {`noncoding`,`coding`,`2d`,`4d`} when using `--genes`|
+| `--snp-vcf`| `-s` | file path | | VCF file of known snps to simulate |
+| `--titv-ratio` | `-r` | float  | 0.5 | Transition/Transversion ratio for snps |
+
+The ratio parameters for snp and indel variants and have special meanings when setting
+the value to either `0` or `9999` :
+
+{.compact}
+| ratio | `0` meaning | `9999` meaning   |
+|:---- |:---|:---|
+| `--indel-ratio` | deletions only | insertions only |
+| `--titv-ratio` | transversions only | transitions  only |
 
 ==- 🔵 inversions
 ### inversion
@@ -94,35 +95,34 @@ Inversions are when a section of a chromosome appears in the reverse orientation
 {.compact}
 | argument          | short name | type       | default |  description     |
 |:------------------|:----------:|:-----------|:-------:|:----------------|
-| `--vcf` | `-v` | file path |  |  VCF file of known inversions to simulate |
 | `--count`| `-n` | integer | 0 |  Number of random inversions to simluate |
-| `--min-size` | `-m` | integer | 1000 | Minimum inversion size (bp) |
 | `--max-size` | `-x` | integer | 100000 | Maximum inversion size (bp) |
+| `--min-size` | `-m` | integer | 1000 | Minimum inversion size (bp) |
+| `--vcf` | `-v` | file path |  |  VCF file of known inversions to simulate |
 
 ==- 🟢 copy number variants
 ### cnv
 A copy number variation (CNV) is when the number of copies of a particular gene varies
-between individuals ([source](https://www.genome.gov/genetics-glossary/Copy-Number-Variation))
-The ratio parameters control different things and have special meanings when setting
-the value to either `9999` or `0` :
-- `--dup-ratio`
-    - `9999`: tandem duplications only
-    - `0`: dispersed duplications only
-- `--gain-ratio`
-    - `9999`: gain only
-    - `0`: loss only
+between individuals ([source](https://www.genome.gov/genetics-glossary/Copy-Number-Variation)).
 
 {.compact}
 | argument          | short name | type       | default |  description     |
 |:------------------|:----------:|:-----------|:-------:|:----------------|
 | `--vcf` | `-v` | file path | | VCF file of known copy number variants to simulate |
 | `--count` | `-n` | integer | 0 | Number of random cnv to simluate |
-| `--min-size` | `-m` | integer |  1000 | Minimum cnv size (bp) |
-| `--max-size`|   `-x` | integer |100000 | Maximum cnv size (bp) |
-| `--max-copy` |  `-y` | integer | 10 | Maximum number of copies |
 | `--dup-ratio` | `-d` | float |  1 | Tandem/Dispersed duplication ratio |
 | `--gain-ratio` |`-l` | float |  1 | Relative ratio of DNA gain over DNA loss |
+| `--max-size`|   `-x` | integer |100000 | Maximum cnv size (bp) |
+| `--max-copy` |  `-y` | integer | 10 | Maximum number of copies |
+| `--min-size` | `-m` | integer |  1000 | Minimum cnv size (bp) |
 
+The ratio parameters special meanings when setting the value to either `0` or `9999` :
+
+{.compact}
+| ratio | `0` meaning | `9999` meaning   |
+|:---- |:---|:---|
+| `--dup-ratio` | dispersed duplications only | tandem duplications only |
+| `--gain-ratio` | loss only | gain only |
 
 ==- 🟡 translocations
 ### translocation
@@ -131,8 +131,8 @@ A translocation occurs when a chromosome breaks and the fragmented pieces re-att
 {.compact}
 | argument          | short name | type       | default |  description     |
 |:------------------|:----------:|:-----------|:-------:|:----------------|
-| `--vcf` | `-v` | file path |  |  VCF file of known inversions to simulate |
 | `--count`| `-n` | integer | 0 |  Number of random inversions to simluate |
+| `--vcf` | `-v` | file path |  |  VCF file of known inversions to simulate |
 
 ===
 

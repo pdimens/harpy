@@ -13,9 +13,9 @@ Issues with specific tools might warrant a discussion with the authors/developer
 ## Standalone Software
 {.compact}
 | Software    | Links       | Publication                                                                                               |
-|:------------|:-------------------------:| :-------------------------------------------------------------------------------------------|
+|:------------|:-------------------------| :-------------------------------------------------------------------------------------------|
 | bash        | [website](https://www.gnu.org/software/bash/)                                                                      |
-| bcftools    | [github](https://github.com/samtools/bcftools), [website](https://samtools.github.io/bcftools/bcftools.html) |                                                        |
+| bcftools    | [github](https://github.com/samtools/bcftools), [website](https://samtools.github.io/bcftools/bcftools.html) |        |
 | bgzip       | [website](http://www.htslib.org/doc/bgzip.html) |                                                                     |
 | bwa         | [github](https://github.com/lh3/bwa)| [publication](http://arxiv.org/abs/1303.3997)                                 |
 | conda       | [github](https://github.com/conda)   |                                                                              |
@@ -29,8 +29,9 @@ Issues with specific tools might warrant a discussion with the authors/developer
 | NAIBR       | [github](https://github.com/raphael-group/NAIBR), [github (fork)](https://github.com/pontushojer/NAIBR) |[publication](https://doi.org/10.1093/bioinformatics/btx712) |
 | plotly      | [website](https://plotly.com/)      |                                                                                |
 | python      | [website](https://www.python.org/)   |                                                                               |
+| QuickDeconvolution | [github](https://github.com/RolandFaure/QuickDeconvolution) | [publication](https://doi.org/10.1093/bioadv/vbac068) |
 | R           | [website](https://www.r-project.org/)  |                                                                              |
-| samtools    | [github](https://github.com/samtools/samtools), [website](http://www.htslib.org/)       |                                                                            |
+| samtools    | [github](https://github.com/samtools/samtools), [website](http://www.htslib.org/)       |                             |
 | seqtk       | [github](https://github.com/lh3/seqtk)    |                                                                         |
 | simuG       | [github](https://github.com/aquaskyline/LRSIM) | [publication](https://doi.org/10.1093/bioinformatics/btz424)        |
 | Snakemake   | [github](https://github.com/snakemake/snakemake)| [publication](https://f1000research.com/articles/10-33/v1)       |
@@ -40,7 +41,7 @@ Issues with specific tools might warrant a discussion with the authors/developer
 ## Software Packages
 {.compact}
 | Package     | Language | Links     |       Publication                                                                                                   |
-|:------------|:-----:   |:-----------:|:------------------------------------------------------------------------------------------------------|
+|:------------|:-----:   |:-----------|:------------------------------------------------------------------------------------------------------|
 | click       | python   | [github](https://github.com/pallets/click)            |                                                              |
 | pysam       | python   | [github](https://github.com/pysam-developers/pysam)    |                                                            |
 | r-biocircos |     R    | [github](https://github.com/lvulliard/BioCircos.R)      |                                                           |

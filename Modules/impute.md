@@ -2,7 +2,7 @@
 label: Impute
 description: Impute genotypes for haplotagged data with Harpy
 icon: workflow
-order: 3
+order: 8
 ---
 
 # :icon-workflow: Impute Genotypes using Sequences
@@ -56,10 +56,10 @@ In addition to the [!badge variant="info" corners="pill" text="common runtime op
 | argument       | short name | type        |    default    | required | description                                                                                     |
 |:---------------|:----------:|:------------|:-------------:|:--------:|:------------------------------------------------------------------------------------------------|
 | `INPUTS`       |            | file/directory paths  |         | **yes**  | Files or directories containing [input BAM files](/commonoptions.md)     |
-| `--vcf`        |    `-v`    | file path   |               | **yes**  | Path to VCF/BCF file                                                                            |
 | `--extra-params` |  `-x`    | folder path |               |  no      | Extra arguments to add to the STITCH R function, provided in quotes and R syntax                |
-| `--vcf-samples`|            |    toggle   |               | no       | [Use samples present in vcf file](#prioritize-the-vcf-file) for imputation rather than those found the directory    |
 | `--parameters` |    `-p`    | file path   |               | **yes**  | STITCH [parameter file](#parameter-file) (tab-delimited)                                                           |
+| `--vcf`        |    `-v`    | file path   |               | **yes**  | Path to VCF/BCF file                                                                            |
+| `--vcf-samples`|            |    toggle   |               | no       | [Use samples present in vcf file](#prioritize-the-vcf-file) for imputation rather than those found the directory    |
 
 ### Extra STITCH parameters
 You may add [additional parameters](https://github.com/rwdavies/STITCH/blob/master/Options.md) to STITCH by way of the 

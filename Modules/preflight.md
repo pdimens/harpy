@@ -2,8 +2,7 @@
 label: Preflight
 description: Run file format checks on haplotagged FASTQ/BAM files
 icon: rocket
-#visibility: hidden
-order: 6
+order: 5
 ---
 
 # :icon-rocket: Pre-flight checks for input files
@@ -12,6 +11,9 @@ order: 6
 - at least 2 cores/threads available
 - [!badge corners="pill" text="preflight bam"]: SAM/BAM alignment files [!badge variant="secondary" text="BAM recommended"]
 - [!badge corners="pill" text="preflight fastq"]: paired-end reads from an Illumina sequencer in FASTQ format [!badge variant="secondary" text="gzip recommended"]
+    - **forward**: [!badge variant="success" text="_F"] [!badge variant="success" text=".F"] [!badge variant="success" text=".1"] or [!badge variant="success" text="_1"] [!badge variant="success" text="_R1_001"] [!badge variant="success" text=".R1_001"] [!badge variant="success" text="_R1"] [!badge variant="success" text=".R1"] 
+    - **reverse**: [!badge variant="success" text="_R"] [!badge variant="success" text=".R"] [!badge variant="success" text=".2"] or [!badge variant="success" text="_2"] [!badge variant="success" text="_R2_001"] [!badge variant="success" text=".R2_001"] [!badge variant="success" text="_R2"] [!badge variant="success" text=".R2"] 
+    - **fastq extension**: [!badge variant="success" text=".fq"] [!badge variant="success" text=".fastq"] [!badge variant="success" text=".FQ"] [!badge variant="success" text=".FASTQ"]
 ===
 
 Harpy does a lot of stuff with a lot of software and each of these programs expect the incoming data to follow particular formats (plural, unfortunately).

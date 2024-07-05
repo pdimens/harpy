@@ -2,8 +2,7 @@
 label: Demultiplex
 description: Demultiplex raw sequences into haplotag barcoded samples
 icon: versions
-#visibility: hidden
-order: 6
+order: 9
 ---
 
 # :icon-versions: Demultiplex Raw Sequences
@@ -29,14 +28,14 @@ harpy demultiplex gen1 --threads 20 --schema demux.schema Plate_1_S001_R*.fastq.
 In addition to the [!badge variant="info" corners="pill" text="common runtime options"](/commonoptions.md), the [!badge corners="pill" text="demultiplex"] module is configured using these command-line arguments:
 
 {.compact}
-| argument          | short name | type       | default | required | description                                                             |
-|:------------------|:----------:|:-----------|:-------:|:--------:|:------------------------------------------------------------------------|
-| `R1_FQ`           |            | file path  |         | **yes**  | The forward multiplexed FASTQ file                                      |
-| `R2_FQ`           |            | file path  |         | **yes**  | The reverse multiplexed FASTQ file                                      |
-| `I1_FQ`           |            | file path  |         | **yes**  | The forward FASTQ index file provided by the sequencing facility        |
-| `I2_FQ`           |            | file path  |         | **yes**  | The reverse FASTQ index file provided by the sequencing facility        |
-| `METHOD`          |            | choice     |         | **yes**  | Haplotag technology of the sequences  [`gen1`]                          |
-| `--schema`        |    `-s`    | file path  |         | **yes**  | Tab-delimited file of sample\<tab\>barcode                              |
+| argument          | short name | type       | required | description                                                             |
+|:------------------|:----------:|:-----------|:--------:|:------------------------------------------------------------------------|
+| `METHOD`          |            | choice     | **yes**  | Haplotag technology of the sequences  [`gen1`]                          |
+| `R1_FQ`           |            | file path  | **yes**  | The forward multiplexed FASTQ file                                      |
+| `R2_FQ`           |            | file path  | **yes**  | The reverse multiplexed FASTQ file                                      |
+| `I1_FQ`           |            | file path  | **yes**  | The forward FASTQ index file provided by the sequencing facility        |
+| `I2_FQ`           |            | file path  | **yes**  | The reverse FASTQ index file provided by the sequencing facility        |
+| `--schema`        |    `-s`    | file path  | **yes**  | Tab-delimited file of sample\<tab\>barcode                              |
 
 ## Haplotag Types
 ==- Generation 1 - `gen1`

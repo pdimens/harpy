@@ -2,7 +2,7 @@
 label: QC
 description: Quality trim haplotagged sequences with Harpy
 icon: codescan-checkmark
-order: 6
+order: 4
 ---
 
 # :icon-codescan-checkmark: Quality Trim Sequences
@@ -16,8 +16,8 @@ order: 6
 
 Raw sequences are not suitable for downstream analyses. They have sequencing adapters,
 index sequences, regions of poor quality, etc. The first step of any genetic sequence
-analyses is to remove these adapters and trim poor quality data. You can remove adapters
-and quality trim sequences using the [!badge corners="pill" text="qc"] module:
+analyses is to remove these adapters and trim poor quality data. You can remove adapters,
+remove duplicates, deconvolve, and quality trim sequences using the [!badge corners="pill" text="qc"] module:
 
 ```bash usage
 harpy qc OPTIONS... INPUTS...
@@ -31,13 +31,21 @@ harpy qc --threads 20 Sequences_Raw/
 In addition to the [!badge variant="info" corners="pill" text="common runtime options"](/commonoptions.md), the [!badge corners="pill" text="qc"] module is configured using these command-line arguments:
 
 {.compact}
-| argument         | short name | type        | default | required | description                                                                                     |
-|:-----------------|:----------:|:------------|:-------:|:-------:|:------------------------------------------------------------------------------------------------|
-| `INPUTS`         |            | file/directory paths  |         | **yes**  | Files or directories containing [input FASTQ files](/commonoptions.md#input-arguments)     |
-| `--min-length`   |    `-n`    | integer     |   30    |    no   | Discard reads shorter than this length                                                          |
-| `--max-length`   |    `-m`    | integer     |   150   |    no   | Maximum length to trim sequences down to                                                        |
-| `--ignore-adapters` | `-x`    | toggle      |         |    no   | Skip adapter trimming                                                                           |
-| `--extra-params` |    `-x`    | string      |         |    no   | Additional fastp arguments, in quotes                                                           |
+| argument         | short name | type        | default | required | description                                                                                      |
+|:-----------------|:----------:|:------------|:-------:|:-------:|:--------------------------------------------------------------------------------------------------|
+| `INPUTS`         |            | file/directory paths  |         | **yes**  | Files or directories containing [input FASTQ files](/commonoptions.md#input-arguments) |
+| `--deconvolve`  | `-c`    | toggle      |         |      | Resolve barcode clashes between reads from different molecules                                           |
+| `--deconvolve-params`  | `-p`    | (int,int,int,int)   | (21,40,3,0) |      | Accepts the QuickDeconvolution parameters for `k`,`w`,`d`,`a`, in that order          |
+| `--deduplicate` | `-d`    | toggle      |         |       | Identify and remove PCR duplicates                                                                      |
+| `--extra-params` |    `-x`    | string      |         |       | Additional fastp arguments, in quotes                                                               |
+| `--min-length`   |    `-n`    | integer     |   30    |     | Discard reads shorter than this length                                                                |
+| `--max-length`   |    `-m`    | integer     |   150   |     | Maximum length to trim sequences down to                                                              |
+| `--trim-adapters` | `-a`    | toggle      |         |       | Detect and remove adapter sequences                                                                   |
+
+By default, this workflow will only quality-trim the sequences. You can also opt-in to:
+- [!badge variant="secondary" text="recommended"] find and remove sequencing adapters
+- [!badge variant="secondary" text="recommended"] find and remove PCR duplicates 
+- resolve situations where reads from different molecules have the same barcode (see [!badge corners="pill" text="deconvolve"](deconvolve.md)) 
 
 ---
 ## :icon-git-pull-request: QC Workflow
@@ -54,6 +62,7 @@ graph LR
     end
     Inputs-->A:::clean
     A([fastp]) --> B([count barcodes]):::clean
+    A-->|--deconvolve|C([QuickDeconvolution]):::clean
     style Inputs fill:#f0f0f0,stroke:#e8e8e8,stroke-width:2px
     classDef clean fill:#f5f6f9,stroke:#b7c9ef,stroke-width:2px
 ```
