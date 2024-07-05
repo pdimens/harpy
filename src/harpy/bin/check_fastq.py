@@ -1,5 +1,5 @@
 #! /usr/bin/env python
-
+"""parse a fastq file to do BX checks"""
 import re
 import os
 import sys
@@ -7,7 +7,7 @@ import argparse
 import pysam
 
 parser = argparse.ArgumentParser(
-    prog = 'checkFASTQ.py',
+    prog = 'check_fastq.py',
     description =
     """
     Parses a FASTQ file to check if any sequences don't conform to the SAM spec,
@@ -34,31 +34,31 @@ haplotag = re.compile('A[0-9][0-9]C[0-9][0-9]B[0-9][0-9]D[0-9][0-9]')
 bxlast = re.compile('BX:Z:A[0-9][0-9]C[0-9][0-9]B[0-9][0-9]D[0-9][0-9]$')
 
 with pysam.FastxFile(fq_in) as fh:
-    n_reads    = 0
-    noBX       = 0
-    badBX      = 0
-    badSamSpec = 0
-    bxNotLast  = 0
+    N_READS    = 0
+    NO_BX       = 0
+    BAD_BX      = 0
+    BAD_SAM_SPEC = 0
+    BX_NOT_LAST  = 0
     for entry in fh:
-        n_reads += 1
+        N_READS += 1
         # look for BX:Z: tag
         if 'BX:Z:' in entry.comment:
             # if AXXCXXBXXDXX format isnt found, it's a bad BX
             if not haplotag.search(entry.comment):
-                badBX += 1
+                BAD_BX += 1
             splithead = entry.comment.split()
             for i in splithead:
                 # if comments dont start with TAG:TYPE:, invalid SAM spec
                 if not samspec.match(i):
-                    badSamSpec += 1
-            # if the BX:Z: isn't at the end, add to bxNotLast
+                    BAD_SAM_SPEC += 1
+            # if the BX:Z: isn't at the end, add to BX_NOT_LAST
             if splithead[-1].startswith('BX:Z'):
                 pass
             else:
-                bxNotLast += 1
+                BX_NOT_LAST += 1
         else:
             # missing BX:Z: tag
-            noBX += 1
+            NO_BX += 1
 
-values = [str(i) for i in [os.path.basename(fq_in), n_reads, noBX, badBX, badSamSpec, bxNotLast]]
+values = [str(i) for i in [os.path.basename(fq_in), N_READS, NO_BX, BAD_BX, BAD_SAM_SPEC, BX_NOT_LAST]]
 print("\t".join(values), file = sys.stdout)

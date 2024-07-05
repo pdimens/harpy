@@ -1,10 +1,10 @@
 #! /usr/bin/env python
-
+"""Create column in NAIBR bedpe output inferring the SV type from the orientation"""
 import argparse
 import sys
 
 parser = argparse.ArgumentParser(
-    prog = 'inferSV.py',
+    prog = 'infer_sv.py',
     description = 'Create column in NAIBR bedpe output inferring the SV type from the orientation. Removes variants with FAIL flags, use optional -f argument to output FAIL variants to a separate file.',
     usage = "inferSV.py file.bedpe [-f fail.bedpe] > outfile.bedpe",
     exit_on_error = False
@@ -12,8 +12,6 @@ parser = argparse.ArgumentParser(
 
 parser.add_argument("bedfile", help = "Input bedpe file containing the output of NAIBR.")
 parser.add_argument("-f", "--fail", dest = "failfile", required = False, type=str, metavar = "<failed.bedpe>", help="output variants who fail filtering into separate file")
-
-# parser.add_argument("outfile", help = "Output bam file. A corresponding index file will be created for it.")
 
 if len(sys.argv) == 1:
     parser.print_help(sys.stderr)
@@ -29,15 +27,15 @@ conversions = {
     }
 
 if args.failfile is not None:
-    failout = open(args.failfile, "w")
-    with open(args.bedfile, "r") as f:
+    failout = open(args.failfile, "w", encoding="utf-8")
+    with open(args.bedfile, "r", encoding="utf-8") as f:
         # first line, the header
         line = f.readline().strip().split("\t")
         line_corrected = [i.title().replace(" ", "") for i in line]
         line_corrected.append("SV")
-        headerline = "\t".join(line_corrected) + "\n"
-        sys.stdout.write(headerline)
-        failout.write(headerline)
+        HEADERLINE = "\t".join(line_corrected) + "\n"
+        sys.stdout.write(HEADERLINE)
+        failout.write(HEADERLINE)
         # the reamining lines
         while True:
             line = f.readline()
@@ -46,20 +44,20 @@ if args.failfile is not None:
             line = line.strip().split("\t")
             inference = conversions[line[6]]
             line.append(inference)
-            newrow = "\t".join(line) + "\n"
+            NEWROW = "\t".join(line) + "\n"
             if "FAIL" not in line:
-                sys.stdout.write(newrow)
+                sys.stdout.write(NEWROW)
             else:
-                failout.write(newrow)
+                failout.write(NEWROW)
     failout.close()
 else:
-    with open(args.bedfile, "r") as f:
+    with open(args.bedfile, "r", encoding="utf-8") as f:
         # first line, the header
         line = f.readline().strip().split("\t")
         line_corrected = [i.title().replace(" ", "") for i in line]
         line_corrected.append("SV")
-        headerline = "\t".join(line_corrected) + "\n"
-        sys.stdout.write(headerline)
+        HEADERLINE = "\t".join(line_corrected) + "\n"
+        sys.stdout.write(HEADERLINE)
         # the reamining lines
         while True:
             line = f.readline()
@@ -69,5 +67,5 @@ else:
             if "FAIL" not in line:
                 inference = conversions[line[6]]
                 line.append(inference)
-                newrow = "\t".join(line) + "\n"
-                sys.stdout.write(newrow)
+                NEWROW = "\t".join(line) + "\n"
+                sys.stdout.write(NEWROW)

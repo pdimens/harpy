@@ -1,5 +1,5 @@
 #! /usr/bin/env python
-
+"""calculate linked-read metrics from barcode information"""
 import re
 import sys
 import gzip
@@ -7,7 +7,7 @@ import argparse
 import pysam
 
 parser = argparse.ArgumentParser(
-    prog = 'bxStats.py',
+    prog = 'bx_stats.py',
     description =
     """
     Calculates various linked-read molecule metrics from the input alignment file.
@@ -37,12 +37,12 @@ outfile.write(b"contig\tmolecule\treads\tstart\tend\tlength_inferred\taligned_bp
 
 d = {}
 all_bx = set()
-chrom_last = None
+LAST_CONTIG = None
 
 def writestats(x, writechrom):
     """write to file the bx stats dictionary as a table"""
     for _mi in x:
-        x[_mi]["inferred"] = x[_mi]["end"] - x[_mi]["start"] 
+        x[_mi]["inferred"] = x[_mi]["end"] - x[_mi]["start"]
         try:
             x[_mi]["covered_bp"] = round(min(x[_mi]["bp"] / x[_mi]["inferred"], 1.0),4)
         except:
@@ -58,10 +58,10 @@ for read in alnfile.fetch():
     chrom = read.reference_name
     # check if the current chromosome is different from the previous one
     # if so, print the dict to file and empty it (a consideration for RAM usage)
-    if chrom_last and chrom != chrom_last:
-        writestats(d, chrom_last)
+    if LAST_CONTIG and chrom != LAST_CONTIG:
+        writestats(d, LAST_CONTIG)
         d = {}
-    chrom_last = chrom
+    LAST_CONTIG = chrom
     # skip duplicates, unmapped, and secondary alignments
     if read.is_duplicate or read.is_unmapped or read.is_secondary:
         continue
@@ -135,7 +135,7 @@ for read in alnfile.fetch():
         d[mi]["end"] = max(pos_end, d[mi]["end"])
 
 # print the last entry
-writestats(d, chrom_last)
+writestats(d, LAST_CONTIG)
 # write comment on the last line with the total number of unique BX barcodes
 outfile.write(f"#total unique barcodes: {len(all_bx)}\n".encode())
 outfile.close()

@@ -1,10 +1,5 @@
 #! /usr/bin/env python
-
-## the ARGS ##
-# 1 forward read
-# 2 reverse read
-# 3 barcode file
-# 4 barcode conversion output file name
+"""Convert 10X style barcodes into Haplotag style ones"""
 import gzip
 import sys
 import argparse
@@ -27,19 +22,20 @@ if len(sys.argv) == 1:
 args = parser.parse_args()
 
 def process_record(fw_entry, rv_entry):
+    """convert the 10X to haplotag"""
     # [0] = header, [1] = seq, [2] = +, [3] = qual
     bc10x = fw_entry[1][:16]
     bchap = bc_dict.get(bc10x, "A00C00B00D00")
     if not bchap:
         bchap = "".join(next(bc_generator))
         bc_dict[bc10x] = bchap
-    new_fw  = fw_entry[0].split()[0] + f"\tTX:Z:{bc10x}\tBX:Z:{bchap}\n"
-    new_fw += fw_entry[1][16:] + "\n"
-    new_fw += fw_entry[2] + "\n"
-    new_fw += fw_entry[3][16:] + "\n"
-    new_rv  = rv_entry[0].split()[0] + f"\tTX:Z:{bc10x}\tBX:Z:{bchap}\n"
-    new_rv += "\n".join(rv_entry[1:3])
-    return new_fw, new_rv
+    _new_fw  = fw_entry[0].split()[0] + f"\tTX:Z:{bc10x}\tBX:Z:{bchap}\n"
+    _new_fw += fw_entry[1][16:] + "\n"
+    _new_fw += fw_entry[2] + "\n"
+    _new_fw += fw_entry[3][16:] + "\n"
+    _new_rv  = rv_entry[0].split()[0] + f"\tTX:Z:{bc10x}\tBX:Z:{bchap}\n"
+    _new_rv += "\n".join(rv_entry[1:3])
+    return _new_fw, _new_rv
 
 bc_range = [f"{i}".zfill(2) for i in range(1,97)]
 bc_generator = product("A", bc_range, "C", bc_range, "B", bc_range, "D", bc_range)
@@ -59,8 +55,8 @@ with open(args.barcodes, "r") as bc_file:
         if not line:
             break
         bc = line.rstrip("\n").split()
-        _10x = str(bc[0])
-        bc_dict[_10x] = None
+        _10X = str(bc[0])
+        bc_dict[_10X] = None
 
 # simultaneously iterate the forward and reverse fastq files
 fw_reads = args.forward
@@ -100,5 +96,6 @@ with gzip.open(fw_reads, "r") as fw_i, gzip.open(rv_reads, "r") as rv_i:
 fw_out.close()
 rv_out.close()
 
-for i in bc_dict:
-    print(i + "\t" + bc_dict[i], file = sys.stdout) if bc_dict[i] else None
+for i,j in bc_dict.items():
+    if j:
+        print(f"{i}\t{j}", file = sys.stdout)

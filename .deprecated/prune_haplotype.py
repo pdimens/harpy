@@ -33,7 +33,8 @@ def fix_block_header(hapblock_file, output_file):
 
         if len(varlines) >= 2: ## last block left
             print('BLOCK: offset:',offset,'len:',last-first+1,'phased:',phased,'SPAN:',lastp-firstp,'fragments',fragments,file=of)
-            for var in varlines: print(var,file=of,end='')
+            for var in varlines:
+                print(var,file=of,end='')
   
 
 def prune_hapblock_file(hapblock_file, output_file, snp_conf_cutoff, split_conf_cutoff, use_refhap_heuristic):

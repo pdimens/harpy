@@ -1,5 +1,5 @@
 #! /usr/bin/env python
-
+"""assign molecular identifier (MI) tags to alignments based on distance and barcode"""
 import re
 import os
 import sys
@@ -7,7 +7,7 @@ import argparse
 import pysam
 
 parser = argparse.ArgumentParser(
-    prog = 'assignMI.py',
+    prog = 'assign_mi.py',
     description =
     """
     Assign an MI:i: (Molecular Identifier) tag to each barcoded
@@ -30,11 +30,11 @@ if len(sys.argv) == 1:
 
 args = parser.parse_args()
 
-def write_validbx(bam, alnrecord, molID):
+def write_validbx(bam, alnrecord, mol_id):
     '''
     bam: the output bam
     alnrecord: the pysam alignment record
-    molID: the "mol_id" entry of a barcode dictionary
+    mol_id: the "mol_id" entry of a barcode dictionary
     Formats an alignment record to include the MI tag
     and the BX at the end and writes it to the output
     bam file. Replaces existing MI tag, if exists.
@@ -43,7 +43,7 @@ def write_validbx(bam, alnrecord, molID):
     # will manually parse BX, so omit that too
     # also remove DI because it's not necessary
     tags = [j for j in alnrecord.get_tags() if j[0] not in ['MI', 'DI', 'BX']]
-    tags.append(("MI", molID))
+    tags.append(("MI", mol_id))
     _bx = alnrecord.get_tag("BX")
     if "-" in _bx:
         # it's been deconvolved, set it to a DX tag
@@ -98,9 +98,9 @@ def write_missingbx(bam, alnrecord):
 bam_input = args.input
 # initialize the dict
 d = {}
-# chromlast keeps track of the last chromosome so we can
+# LAST_CONTIG keeps track of the last contig so we can
 # clear the dict when it's a new contig/chromosome
-chromlast = False
+LAST_CONTIG = False
 # MI is the name of the current molecule, starting a 1 (0+1)
 MI = 0
 
@@ -122,11 +122,11 @@ for record in alnfile.fetch():
     bp   = record.query_alignment_length
     # check if the current chromosome is different from the previous one
     # if so, empty the dict (a consideration for RAM usage)
-    if chromlast is not False and chrm != chromlast:
+    if LAST_CONTIG is not False and chrm != LAST_CONTIG:
         d = {}
     if record.is_unmapped:
         # skip, don't output
-        chromlast = chrm
+        LAST_CONTIG = chrm
         continue
 
     try:
@@ -135,18 +135,18 @@ for record in alnfile.fetch():
         if re.search("[ABCD]0{2,4}", bx):
             # if found, invalid
             write_invalidbx(outfile, record)
-            chromlast = chrm
+            LAST_CONTIG = chrm
             continue
     except:
         # There is no bx tag
         write_missingbx(outfile, record)
-        chromlast = chrm
+        LAST_CONTIG = chrm
         continue
 
     aln = record.get_blocks()
     if not aln:
         # unaligned, skip and don't output
-        chromlast = chrm
+        LAST_CONTIG = chrm
         continue
 
     # logic to accommodate split records
@@ -166,7 +166,7 @@ for record in alnfile.fetch():
         }
         # write and move on
         write_validbx(outfile, record, MI)
-        chromlast = chrm
+        LAST_CONTIG = chrm
         continue
 
     # store the original barcode as `orig` b/c we might need to suffix it
@@ -178,7 +178,7 @@ for record in alnfile.fetch():
     # distance from last alignment = current aln start - previous aln end
     dist = pos_start - d[bx]["lastpos"]
     # if the distance between alignments is > cutoff, it's a different molecule
-    # so we'll +1 the suffix of the original barcode and relabel this one as 
+    # so we'll +1 the suffix of the original barcode and relabel this one as
     # BX + suffix. Since it's a new entry, we initialize it and move on
     if dist > args.cutoff:
         # increment MI b/c it's a new molecule
@@ -194,7 +194,7 @@ for record in alnfile.fetch():
         }
         # write and move on
         write_validbx(outfile, record, MI)
-        chromlast = chrm
+        LAST_CONTIG = chrm
         continue
 
     if record.is_reverse or (record.is_forward and not record.is_paired):
@@ -206,7 +206,7 @@ for record in alnfile.fetch():
     write_validbx(outfile, record, d[bx]["mol_id"])
 
     # update the chromosome tracker
-    chromlast = chrm
+    LAST_CONTIG = chrm
 
 alnfile.close()
 outfile.close()

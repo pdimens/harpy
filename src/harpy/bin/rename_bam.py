@@ -1,11 +1,11 @@
 #! /usr/bin/env python
-
+"""Rename a sam/bam file and modify the @RG tag of the alignment file to reflect the change for both ID and SM."""
 import argparse
 import sys
 import os
 
 parser = argparse.ArgumentParser(
-    prog='renamebam',
+    prog='rename_bam.py',
     description='Rename a sam/bam file and modify the @RG tag of the alignment file to reflect the change for both ID and SM. This process creates a new file \'newname.bam\' and you may use -d to delete the original file. Requires samtools.'
     )
 parser.add_argument("input", type=str, metavar = "input.bam", help="input bam or sam file")
@@ -19,15 +19,15 @@ if len(sys.argv) == 1:
 args = parser.parse_args()
 
 if not os.path.exists(args.input):
-    parser.error("The file %s does not exist :(" % args.input)
-    sys.exit(1)
+    parser.error(f"The file {args.input} does not exist :(")
 
-jobstatus = os.system(f"samtools addreplacerg -r \"ID:{args.name}\\tSM:{args.name}\" -o {args.name}.bam {args.input}")
+JOB_STATUS = os.system(
+    f"samtools addreplacerg -r \"ID:{args.name}\\tSM:{args.name}\" -o {args.name}.bam {args.input}"
+    )
 
-if jobstatus != 0:
-    sys.exit(jobstatus)
+if JOB_STATUS != 0:
+    sys.exit(JOB_STATUS)
 else:
     if args.delete:
         os.remove(args.input)
-
-    sys.exit(jobstatus)
+    sys.exit(JOB_STATUS)
