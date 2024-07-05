@@ -93,7 +93,8 @@ for read in alnfile.fetch():
                 d["invalidBX"]["n"] += 1
             continue
         # add valid bx to set of all unique barcodes
-        all_bx.add(bx)
+        # remove the deconvolve hyphen, if present
+        all_bx.add(bx.split("-")[0])
     except:
         # There is no bx/MI tag
         continue

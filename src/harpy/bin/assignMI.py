@@ -40,21 +40,16 @@ def write_validbx(bam, alnrecord, molID):
     bam file. Replaces existing MI tag, if exists.
     '''
     # get all the tags except MI b/c it's being replaced (if exists)
+    # will manually parse BX, so omit that too
     # also remove DI because it's not necessary
-    tags = [j for i,j in enumerate(alnrecord.get_tags()) if j[0] not in ['MI', 'DI']]
-    # add the MI tag
+    tags = [j for j in alnrecord.get_tags() if j[0] not in ['MI', 'DI', 'BX']]
     tags.append(("MI", molID))
-    # find which tag index is the BX tag
-    BX_idx = [i for i,j in enumerate(tags) if j[0] == 'BX'][0]
-    # get the list of indices for the updated tag list
-    idx = [i for i in range(len(tags))]
-    # swap the BX and MI tags to make sure BX is at the end
-    # b/c LEVIATHAN insists it's at the end
-    #TODO logic to identify hyphens
-    # FIND HYPHEN, SPLIT AT HYPHEN, PULL index[0]
-    # index[0] becomes the BX tag, the original gets rebranded the DX
-    tags[BX_idx], tags[-1] = tags[-1], tags[BX_idx]
-    # update the record's tags
+    _bx = alnrecord.get_tag("BX")
+    if "-" in _bx:
+        # it's been deconvolved, set it to a DX tag
+        tags.append(("DX", _bx))
+    bx_clean = _bx.split("-")[0]
+    tags.append(("BX", bx_clean))
     alnrecord.set_tags(tags)
     # write record to output file
     bam.write(alnrecord)
@@ -65,23 +60,19 @@ def write_invalidbx(bam, alnrecord):
     alnrecord: the pysam alignment record
     Formats an alignment record to include the BX 
     at the end and writes it to the output
-    bam file. Removes existing MI tag, if exists.
+    bam file. Keeps existing MI tag if present.
     '''
-    # get all the tags except MI b/c it's being replaced (if exists)
-    # this won't write a new MI, but keeping an existing one
+    # will keeping an existing MI tag if present
     # may create incorrect molecule associations by chance
     # also remove DI because it's not necessary
-    tags = [j for i,j in enumerate(alnrecord.get_tags()) if j[0] not in ['MI', 'DI']]
-    # find which tag index is the BX tag
-    BX_idx = [i for i,j in enumerate(tags) if j[0] == 'BX'][0]
-    # get the list of indices for the tag list
-    idx = [i for i in range(len(tags))]
-    # if BX isn't already last, make sure BX is at the end
-    if tags[-1][0] != 'BX':
-        # swap it with whatever is last
-        tags[BX_idx], tags[-1] = tags[-1], tags[BX_idx]
-        # update the record's tags
-        alnrecord.set_tags(tags)
+    tags = [j for j in alnrecord.get_tags() if j[0] not in ['DI', 'BX']]
+    _bx = alnrecord.get_tag("BX")
+    # if hyphen is present, it's been deconvolved and shouldn't have been
+    # and rm the hyphen part
+    bx_clean = _bx.split("-")[0]
+    tags.append(("BX", bx_clean))
+    # update the record's tags
+    alnrecord.set_tags(tags)
     # write record to output file
     bam.write(alnrecord)
 
@@ -98,13 +89,12 @@ def write_missingbx(bam, alnrecord):
     # may create incorrect molecule associations by chance
     # also remove DI because it's not necessary
     # removes BX... just in case. It's not supposed to be there to begin with
-    tags = [j for i,j in enumerate(alnrecord.get_tags()) if j[0] not in ['MI', 'DI', 'BX']]
+    tags = [j for j in alnrecord.get_tags() if j[0] not in ['MI', 'DI', 'BX']]
     tags.append(("BX", "A00C00B00D00"))
     alnrecord.set_tags(tags)
     # write record to output file
     bam.write(alnrecord)
 
-#args = parser.parse_args()
 bam_input = args.input
 # initialize the dict
 d = {}
@@ -122,9 +112,9 @@ if bam_input.lower().endswith(".bam"):
     if not os.path.exists(bam_input + ".bai"):
         print(f"Error: {bam_input} requires a matching {bam_input}.bai index file, but one wasn\'t found.", file = sys.stderr)
         sys.exit(1)
-alnfile = pysam.AlignmentFile(bam_input)
 
-# iniitalize output file
+# iniitalize input/output files
+alnfile = pysam.AlignmentFile(bam_input)
 outfile = pysam.AlignmentFile(args.output, "wb", template = alnfile)
 
 for record in alnfile.fetch():
@@ -159,7 +149,7 @@ for record in alnfile.fetch():
         chromlast = chrm
         continue
 
-    # logic to accommodate split records 
+    # logic to accommodate split records
     # start position of first alignment
     pos_start = aln[0][0]
     # end position of last alignment
@@ -175,7 +165,7 @@ for record in alnfile.fetch():
             "mol_id": MI
         }
         # write and move on
-        write_validbx(outfile, record, d[bx]["mol_id"])
+        write_validbx(outfile, record, MI)
         chromlast = chrm
         continue
 
@@ -203,9 +193,9 @@ for record in alnfile.fetch():
             "mol_id": MI
         }
         # write and move on
-        write_validbx(outfile, record, d[bx]["mol_id"])
+        write_validbx(outfile, record, MI)
         chromlast = chrm
-        continue 
+        continue
 
     if record.is_reverse or (record.is_forward and not record.is_paired):
         # set the last position to be the end of current alignment
