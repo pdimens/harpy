@@ -18,8 +18,8 @@ preflight: &preflight
   - 'src/harpy/snakefiles/preflight-bam.smk'
   - 'test/fastq/**'
   - 'test/bam/**'
-  - 'src/harpy/bin/checkBAM.py'
-  - 'src/harpy/bin/checkFASTQ.py'
+  - 'src/harpy/bin/check_bam.py'
+  - 'src/harpy/bin/check_fastq.py'
   - 'src/harpy/reports/PreflightFastq.Rmd'
   - 'src/harpy/reports/PreflightBam.Rmd'
 deconvolve: &deconvolve
@@ -33,7 +33,7 @@ demux: &demux
   - 'src/harpy/demultiplex.py'
   - 'src/harpy/snakefiles/demultiplex**.smk'
   - '**demuxGen1'
-  - 'bcFiles.py'
+  - 'haplotag_acbd.py'
   - 'test/data/demux/**'
 qc: &qc
   - *common
@@ -48,9 +48,9 @@ bwa: &bwa
   - 'src/harpy/snakefiles/align-bwa.smk'
   - 'src/harpy/reports/AlignStats.Rmd'
   - 'src/harpy/reports/BxCount.Rmd'
-  - 'src/harpy/bin/bxStats.py'
-  - 'src/harpy/bin/countBX.py'
-  - 'src/harpy/bin/assignMI.py'
+  - 'src/harpy/bin/bx_stats.py'
+  - 'src/harpy/bin/count_bx.py'
+  - 'src/harpy/bin/assign_mi.py'
   - 'src/harpy/bin/makeWindows.py'
   - 'test/fastq/**'
 ema: &ema
@@ -60,8 +60,8 @@ ema: &ema
   - 'src/harpy/snakefiles/align-ema.smk'
   - 'src/harpy/reports/AlignStats.Rmd'
   - 'src/harpy/reports/BxCount.Rmd'
-  - 'src/harpy/bin/bxStats.py'
-  - 'src/harpy/bin/countBX.py'
+  - 'src/harpy/bin/bx_stats.py'
+  - 'src/harpy/bin/count_bx.py'
   - 'src/harpy/bin/makewindows.py'
   - 'test/fastq/**'
 strobealign: &strobealign
@@ -71,9 +71,9 @@ strobealign: &strobealign
   - 'src/harpy/snakefiles/align-strobealign.smk'
   - 'src/harpy/reports/AlignStats.Rmd'
   - 'src/harpy/reports/BxCount.Rmd'
-  - 'src/harpy/bin/assignMI.py'
-  - 'src/harpy/bin/bxStats.py'
-  - 'src/harpy/bin/countBX.py'
+  - 'src/harpy/bin/assign_mi.py'
+  - 'src/harpy/bin/bx_stats.py'
+  - 'src/harpy/bin/count_bx.py'
   - 'src/harpy/bin/makewindows.py'
   - 'test/fastq/**'
 mpileup: &mpileup
@@ -118,7 +118,7 @@ naibr: &naibr
   - 'test/bam_phased/**'
   - 'test/vcf/test.phased.bcf'
   - 'src/harpy/reports/Naibr**.Rmd'
-  - 'src/harpy/bin/inferSV.py'
+  - 'src/harpy/bin/infer_sv.py'
 phase: &phase
   - *common
   - *container
@@ -127,7 +127,7 @@ phase: &phase
   - 'test/bam/**'
   - 'test/vcf/test.bcf'
   - 'src/harpy/reports/HapCut2.Rmd'
-  - 'src/harpy/bin/parsePhaseBlocks.py'
+  - 'src/harpy/bin/parse_phaseblocks.py'
 simvars: &simvars
   - *common
   - *container
@@ -144,7 +144,7 @@ simreads: &simreads
   - 'test/genome**gz'
   - 'extractReads.cpp'
   - 'src/harpy/bin/10xtoHaplotag.py'
-  - 'src/harpy/scripts/LRSIMharpy.pl'
+  - 'src/harpy/scripts/LRSIM_harpy.pl'
 other: &other
   - '.github/workflows/tests.yml'
   - 'src/harpy/stitchparams.py'

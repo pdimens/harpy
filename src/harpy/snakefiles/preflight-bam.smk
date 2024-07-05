@@ -83,7 +83,7 @@ rule check_bam:
     message:
         "Processing: {wildcards.sample}"
     shell: 
-        "checkBAM.py {input.bam} > {output}"
+        "check_bam.py {input.bam} > {output}"
 
 rule merge_checks:
     input:
@@ -124,6 +124,6 @@ rule log_workflow:
         with open(out_dir + "/workflow/preflight.bam.summary", "w") as f:
             _ = f.write("The harpy preflight bam workflow ran using these parameters:\n\n")
             _ = f.write("validations were performed with:\n")
-            _ = f.write("    checkBAM.py sample.bam > sample.txt\n")
+            _ = f.write("    check_bam.py sample.bam > sample.txt\n")
             _ = f.write("\nThe Snakemake workflow was called via command line:\n")
             _ = f.write("    " + str(config["workflow_call"]) + "\n")

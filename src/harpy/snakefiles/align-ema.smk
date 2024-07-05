@@ -298,7 +298,7 @@ rule coverage:
     message:
         "Calculating genomic coverage: {wildcards.sample}"
     shell:
-        "samtools depth -a {input.bam} | depthWindows.py {params} | gzip > {output}"
+        "samtools depth -a {input.bam} | depth_windows.py {params} | gzip > {output}"
 
 rule bx_stats:
     input:
@@ -311,7 +311,7 @@ rule bx_stats:
     message:
         "Calculating barcode alignment statistics: {wildcards.sample}"
     shell:
-        "bxStats.py -o {output} {input.bam}"
+        "bx_stats.py -o {output} {input.bam}"
 
 rule report_persample:
     input:

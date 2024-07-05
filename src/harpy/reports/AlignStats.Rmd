@@ -266,7 +266,7 @@ These descriptions should help you understand the underlying data.
 ### interpreting {.no-title}
 <h3> Interpreting the Supporting File </h3>
 Listed below are the descriptions of the columns in **`r basename(infile)`**, which was created
-by Harpy using the included `bxStats.py` script. The term `molecule` refers to the
+by Harpy using the included `bx_stats.py` script. The term `molecule` refers to the
 `MI:i` tag in the alignments, which is a unique molecule ID given to the original
 fragment alignments sharing a barcode are inferred to have originated from. The inference
 takes into account an [alignment distance threshold](https://pdimens.github.io/harpy/haplotagdata/#barcode-thresholds)
@@ -489,7 +489,7 @@ number of reads that had a _proper_ alignment in the `r windowskb` kilobase inte
 not marked as a duplicate or flagged with the SAM `UNMAP`, `SECONDARY`,  or `QCFAIL` flags.
 These values are derived using
 ```bash
-samtools depth -a <input.bam> | depthWindows.py <windowsize>
+samtools depth -a <input.bam> | depth_windows.py <windowsize>
 ```
 
 This plot allows you to hover regions to view their coverage, pan by clicking and dragging,

@@ -137,7 +137,7 @@ rule lrsim:
     log:
         f"{outdir}/logs/LRSIM.log"
     params:
-        lrsim = f"{outdir}/workflow/scripts/LRSIMharpy.pl",
+        lrsim = f"{outdir}/workflow/scripts/LRSIM_harpy.pl",
         proj_dir = f"{outdir}",
         outdist  = config["outer_distance"],
         dist_sd  = config["distance_sd"],
@@ -238,7 +238,7 @@ rule log_workflow:
             _ = f.write("Reads were simulated from the provided genomes using:\n")
             _ = f.write(f"    dwgsim -N {params.dwgreadpairs} -e 0.0001,0.0016 -E 0.0001,0.0016 -d {params.dwgouterdist} -s {params.dwgdistsd} -1 135 -2 151 -H -y 0 -S 0 -c 0 -R 0 -r {params.dwgmutationrate} -F 0 -o 1 -m /dev/null GENO PREFIX\n")
             _ = f.write("LRSIM was started from step 3 (-u 3) with these parameters:\n")
-            _ = f.write(f"    LRSIMharpy.pl -g genome1,genome2 -p {params.lrsproj_dir}/lrsim/sim -b BARCODES -r {params.lrsproj_dir} -i {params.lrsoutdist} -s {params.lrsdist_sd} -x {params.lrsn_pairs} -f {params.lrsmol_len} -t {params.lrsparts} -m {params.lrsmols_per} -z THREADS {params.lrsstatic}\n")
+            _ = f.write(f"    LRSIM_harpy.pl -g genome1,genome2 -p {params.lrsproj_dir}/lrsim/sim -b BARCODES -r {params.lrsproj_dir} -i {params.lrsoutdist} -s {params.lrsdist_sd} -x {params.lrsn_pairs} -f {params.lrsmol_len} -t {params.lrsparts} -m {params.lrsmols_per} -z THREADS {params.lrsstatic}\n")
             _ = f.write("10X style barcodes were converted in haplotag BX:Z tags using:\n")
             _ = f.write("    10xtoHaplotag.py\n")
             _ = f.write("The Snakemake workflow was called via command line:\n")

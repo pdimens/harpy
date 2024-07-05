@@ -2,7 +2,7 @@
 
 if [[ -z "$1" ]]; then
     echo -e "\n  Split a BAM file with BX:Z tags into 2 files, one with valid ACBD barcodes (stdout), one with invalid ACBD barcodes (stderr)."
-    echo -e "\n [usage] separateValidBX input.bam > valid.bam 2> invalid.bam"
+    echo -e "\n [usage] separate_validbx input.bam > valid.bam 2> invalid.bam"
     exit
 fi
 

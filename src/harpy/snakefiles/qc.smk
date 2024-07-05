@@ -169,7 +169,7 @@ rule count_beadtags:
     container:
         None
     shell:
-        "countBX.py {input} > {output}"
+        "count_bx.py {input} > {output}"
 
 rule beadtag_counts_summary:
     input: 
