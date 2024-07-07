@@ -80,6 +80,8 @@ def check_impute_params(parameters):
             # if line is empty, end of file is reached
             if not line:
                 break
+            if line == "\n":
+                break
             # split the line by whitespace
             rowvals = line.rstrip().split()
             rowlen = len(rowvals)
