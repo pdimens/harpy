@@ -24,11 +24,11 @@ footer:
   copyright: "&copy; Copyright {{ year }}. All rights reserved."
 branding:
   title: Harpy
-  label: v1.2.0
-  logo: static/favicon.png
-  logoDark: static/favicon.png
+  label: v1.2
+  logo: static/navbarlogo.svg
+  logoDark: static/navbarlogo.svg
   logoAlign: left
-favicon: static/favicon.png
+favicon: static/favicon.svg
 search:
   mode: partial
 edit:
