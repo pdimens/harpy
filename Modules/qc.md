@@ -104,7 +104,7 @@ QC/
 +++ :icon-code-square: fastp parameters
 By default, Harpy runs `fastp` with these parameters (excluding inputs and outputs):
 ```bash
-fastp --trim_poly_g --cut_right --detect_adapter_for_pe
+fastp --trim_poly_g --cut_right
 ```
 
 The list of all `fastp` command line options is quite extensive and would
