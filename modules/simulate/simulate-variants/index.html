@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="turbo-root" content="/harpy">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="3.5.0.773778359966">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="3.5.0.773852250406">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 3.5.0">
@@ -32,12 +32,12 @@
     <script data-cfasync="false">(function () { var el = document.documentElement, m = localStorage.getItem("doc_theme"), wm = window.matchMedia; if (m === "dark" || (!m && wm && wm("(prefers-color-scheme: dark)").matches)) { el.classList.add("dark") } else { el.classList.remove("dark") } })();</script>
 
     <link href="../../../static/favicon.svg" rel="icon">
-    <link href="../../../resources/css/retype.css?v=3.5.0.773778359966" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=3.5.0.773852250406" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=3.5.0.773778359966" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=3.5.0.773852250406" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=3.5.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=3.5.0.773778359966" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=3.5.0.773778359966" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=3.5.0.773852250406" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=3.5.0.773852250406" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../../resources/js/mermaid.js?v=3.5.0" defer></script>
 </head>
 <body>
@@ -393,9 +393,9 @@ specific variants to simulate. There are also these unifying options among the d
 </tbody>
 </table>
 </div>
-<doc-panels>
-   <doc-panel id="snps-and-indels" collapsed>
-       <template #title><span class="docs-emoji">&#x1F7E3;</span> snps and indels</template>
+<doc-tabs>
+<doc-tab v-cloak id="snps-and-indels">
+<template #title><span class="docs-emoji">&#x1F7E3;</span> snps and indels</template>
 <doc-anchor-target id="snpindel">
     <h3>
         <doc-anchor-trigger class="header-anchor-trigger" to="#snpindel">#</doc-anchor-trigger>
@@ -525,9 +525,9 @@ the value to either <code v-pre>0</code> or <code v-pre>9999</code> :</p>
 </tbody>
 </table>
 </div>
-   </doc-panel>
-   <doc-panel id="inversions" collapsed>
-       <template #title><span class="docs-emoji">&#x1F535;</span> inversions</template>
+</doc-tab>
+<doc-tab v-cloak id="inversions">
+<template #title><span class="docs-emoji">&#x1F535;</span> inversions</template>
 <doc-anchor-target id="inversion">
     <h3>
         <doc-anchor-trigger class="header-anchor-trigger" to="#inversion">#</doc-anchor-trigger>
@@ -578,9 +578,9 @@ the value to either <code v-pre>0</code> or <code v-pre>9999</code> :</p>
 </tbody>
 </table>
 </div>
-   </doc-panel>
-   <doc-panel id="copy-number-variants" collapsed>
-       <template #title><span class="docs-emoji">&#x1F7E2;</span> copy number variants</template>
+</doc-tab>
+<doc-tab v-cloak id="copy-number-variants">
+<template #title><span class="docs-emoji">&#x1F7E2;</span> copy number variants</template>
 <doc-anchor-target id="cnv">
     <h3>
         <doc-anchor-trigger class="header-anchor-trigger" to="#cnv">#</doc-anchor-trigger>
@@ -677,9 +677,9 @@ between individuals (<a href="https://www.genome.gov/genetics-glossary/Copy-Numb
 </tbody>
 </table>
 </div>
-   </doc-panel>
-   <doc-panel id="translocations" collapsed>
-       <template #title><span class="docs-emoji">&#x1F7E1;</span> translocations</template>
+</doc-tab>
+<doc-tab v-cloak id="translocations">
+<template #title><span class="docs-emoji">&#x1F7E1;</span> translocations</template>
 <doc-anchor-target id="translocation">
     <h3>
         <doc-anchor-trigger class="header-anchor-trigger" to="#translocation">#</doc-anchor-trigger>
@@ -716,8 +716,8 @@ between individuals (<a href="https://www.genome.gov/genetics-glossary/Copy-Numb
 </tbody>
 </table>
 </div>
-   </doc-panel>
-</doc-panels>
+</doc-tab>
+</doc-tabs>
 <doc-anchor-target id="simulate-known-variants">
     <h2>
         <doc-anchor-trigger class="header-anchor-trigger" to="#simulate-known-variants">#</doc-anchor-trigger>
