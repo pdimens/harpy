@@ -56,7 +56,7 @@ specific variants to simulate. There are also these unifying options among the d
 | `--prefix` | | string |  Naming prefix for output files (default: `sim.{module_name}`)|
 | `--randomseed` |  | integer |   Random seed for simulation |
 
-==- 🟣 snps and indels
++++ 🟣 snps and indels
 ### snpindel
 !!!warning SNPs can be slow
 Given software limitations, simulating many SNPs (>10,000) will be noticeably slower than the other variant types.
@@ -88,7 +88,7 @@ the value to either `0` or `9999` :
 | `--indel-ratio` | deletions only | insertions only |
 | `--titv-ratio` | transversions only | transitions  only |
 
-==- 🔵 inversions
++++ 🔵 inversions
 ### inversion
 Inversions are when a section of a chromosome appears in the reverse orientation ([source](https://www.genome.gov/genetics-glossary/Inversion)).
 
@@ -100,7 +100,7 @@ Inversions are when a section of a chromosome appears in the reverse orientation
 | `--min-size` | `-m` | integer | 1000 | Minimum inversion size (bp) |
 | `--vcf` | `-v` | file path |  |  VCF file of known inversions to simulate |
 
-==- 🟢 copy number variants
++++ 🟢 copy number variants
 ### cnv
 A copy number variation (CNV) is when the number of copies of a particular gene varies
 between individuals ([source](https://www.genome.gov/genetics-glossary/Copy-Number-Variation)).
@@ -124,7 +124,7 @@ The ratio parameters special meanings when setting the value to either `0` or `9
 | `--dup-ratio` | dispersed duplications only | tandem duplications only |
 | `--gain-ratio` | loss only | gain only |
 
-==- 🟡 translocations
++++ 🟡 translocations
 ### translocation
 A translocation occurs when a chromosome breaks and the fragmented pieces re-attach to different chromosomes ([source](https://www.genome.gov/genetics-glossary/Translocation)). 
 
@@ -134,7 +134,7 @@ A translocation occurs when a chromosome breaks and the fragmented pieces re-att
 | `--count`| `-n` | integer | 0 |  Number of random inversions to simluate |
 | `--vcf` | `-v` | file path |  |  VCF file of known inversions to simulate |
 
-===
++++
 
 ## Simulate known variants
 Rather than simulating random variants, you can use a VCF file as input to any of the submodules
