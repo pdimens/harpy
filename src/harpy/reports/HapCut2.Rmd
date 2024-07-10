@@ -186,10 +186,10 @@ DT::datatable(
 
 ## contig ridgeplot
 ### per contig plot {.no-title}
-```{r warning=FALSE, message=FALSE, echo= FALSE, fig.height=ridgeheight, fig.width=8}
+```{r contig_ridgeplot, warning=FALSE, message=FALSE, echo= FALSE, fig.height=ridgeheight, fig.width=8}
 ggplot(df, aes(x = block_length, y = contig, fill = stat(x))) +
-  geom_density_ridges_gradient() +
-  scale_fill_viridis_c(option = "C", trans = "log10") +
+  geom_density_ridges() + #_gradient() +
+  #scale_fill_viridis_c(option = "C", trans = "log10") +
   theme_minimal() +
   theme(legend.position = "none") +
   scale_x_log10(
@@ -239,10 +239,10 @@ DT::datatable(
 
 ## ridgeplot
 ### the ridgeplot {.no-title}
-```{r warning=FALSE, message=FALSE, echo= FALSE, fig.height=ridgeheight.samples, fig.width=8}
+```{r sample_ridgeplot, warning=FALSE, message=FALSE, echo= FALSE, fig.height=ridgeheight.samples, fig.width=8}
 ggplot(df, aes(x = block_length, y = sample, fill = stat(x))) +
-  geom_density_ridges_gradient(rel_min_height = 0.01) +
-  scale_fill_viridis_c(option = "G", trans = "log10") +
+  geom_density_ridges() + #_gradient(rel_min_height = 0.01) +
+  #scale_fill_viridis_c(option = "G", trans = "log10") +
   theme_minimal() +
   theme(legend.position = "none") +
   scale_x_log10(
