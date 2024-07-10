@@ -313,6 +313,11 @@ figheight <- 1 + (0.2 * nrow(psc))
 ```
 
 ## Individual Statistics {.tabset data-height=plotheight}
+### Individual Data
+```{r Individual table, echo=FALSE, message=FALSE, warning=FALSE}
+DT::datatable(psc, rownames = F, fillContainer = T, filter = "top", extensions = 'Buttons', options = list(dom = 'Brtip', buttons = c('csv'), scrollX = TRUE, paging = F))
+```
+
 ### Individual Statistics
 ```{r Individual plot, echo=FALSE, message=FALSE, warning=FALSE, fig.height=figheight, out.width="100%"}
 highchart() |>
@@ -331,7 +336,3 @@ highchart() |>
   )
 ```
 
-### Individual Data
-```{r Individual table, echo=FALSE, message=FALSE, warning=FALSE}
-DT::datatable(psc, rownames = F, fillContainer = T, filter = "top", extensions = 'Buttons', options = list(dom = 'Brtip', buttons = c('csv'), scrollX = TRUE, paging = F))
-```
