@@ -29,8 +29,8 @@ footer:
 branding:
   title: Harpy
   label: v1.2
-  logo: static/navbarlogo.svg
-  logoDark: static/navbarlogo.svg
+  logo: static/logo_navbar.svg
+  logoDark: static/logo_navbar.svg
   logoAlign: left
 favicon: static/favicon.svg
 search:
