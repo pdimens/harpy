@@ -121,7 +121,7 @@ def mpileup(inputs, output_dir, regions, genome, threads, populations, ploidy, e
             config.write("windowsize: {regions}\n")
         if extra_params is not None:
             config.write(f"extra: {extra_params}\n")
-        config.write(f"skipreports: {skipreports}\n")
+        config.write(f"skip_reports: {skipreports}\n")
         config.write(f"workflow_call: {command}\n")
         config.write("inputs:\n")
         config.write(f"  genome: {Path(genome).resolve()}\n")
@@ -221,7 +221,7 @@ def freebayes(inputs, output_dir, genome, threads, populations, ploidy, regions,
             config.write("windowsize: {regions}\n")
         if extra_params is not None:
             config.write(f"extra: {extra_params}\n")
-        config.write(f"skipreports: {skipreports}\n")
+        config.write(f"skip_reports: {skipreports}\n")
         config.write(f"workflow_call: {command}\n")
         config.write("inputs:\n")
         config.write(f"  genome: {Path(genome).resolve()}\n")

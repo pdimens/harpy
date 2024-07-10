@@ -20,7 +20,7 @@ genome_zip  = True if bn.lower().endswith(".gz") else False
 bn_idx      = f"{bn}.gzi" if genome_zip else f"{bn}.fai"
 envdir      = os.getcwd() + "/.harpy_envs"
 windowsize  = config["depth_windowsize"]
-skipreports = config["skipreports"]
+skipreports = config["skip_reports"]
     
 wildcard_constraints:
     sample = "[a-zA-Z0-9._-]+"

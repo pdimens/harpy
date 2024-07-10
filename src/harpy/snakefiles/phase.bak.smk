@@ -22,7 +22,7 @@ else:
     fragfile =  outdir + "/linkFragments/{sample}.linked.frags"
 
 linkarg     = "--10x 0" if config["noBX"] else "--10x 1"
-skipreports = config["skipreports"]
+skipreports = config["skip_reports"]
 
 try:
     indelarg = "--indels 1 --ref " + config["indels"]

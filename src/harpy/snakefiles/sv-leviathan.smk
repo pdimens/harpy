@@ -16,7 +16,7 @@ min_sv      = config["min_sv"]
 min_bc      = config["min_barcodes"]
 extra       = config.get("extra", "") 
 outdir      = config["output_directory"]
-skipreports = config["skipreports"]
+skipreports = config["skip_reports"]
 bn          = os.path.basename(genomefile)
 genome_zip  = True if bn.lower().endswith(".gz") else False
 if genome_zip:

@@ -89,7 +89,7 @@ def qc(inputs, output_dir, min_length, max_length, trim_adapters, deduplicate, d
         config.write(f"min_len: {min_length}\n")
         config.write(f"max_len: {max_length}\n")
         config.write(f"extra: {extra_params}\n") if extra_params else None
-        config.write(f"skipreports: {skipreports}\n")
+        config.write(f"skip_reports: {skipreports}\n")
         config.write(f"workflow_call: {command}\n")
         config.write("inputs:\n")
         for i in fqlist:

@@ -86,7 +86,7 @@ def impute(inputs, output_dir, parameters, threads, vcf, vcf_samples, extra_para
         config.write(f"samples_from_vcf: {vcf_samples}\n")
         if extra_params is not None:
             config.write(f"extra: {extra_params}\n")
-        config.write(f"skipreports: {skipreports}\n")
+        config.write(f"skip_reports: {skipreports}\n")
         config.write(f"workflow_call: {command}\n")
         config.write("inputs:\n")
         config.write(f"  paramfile: {Path(parameters).resolve()}\n")

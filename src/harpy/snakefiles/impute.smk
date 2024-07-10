@@ -14,7 +14,7 @@ bamlist     = config["inputs"]["alignments"]
 variantfile = config["inputs"]["variantfile"]
 paramfile   = config["inputs"]["paramfile"]
 biallelic   = config["inputs"]["biallelic_contigs"]
-skipreports = config["skipreports"]
+skipreports = config["skip_reports"]
 outdir      = config["output_directory"]
 envdir      = os.getcwd() + "/.harpy_envs"
 paramspace  = Paramspace(pd.read_csv(paramfile, sep=r"\s+", skip_blank_lines=True).rename(columns=str.lower), param_sep = "", filename_params="*")

@@ -112,7 +112,7 @@ def bwa(inputs, output_dir, genome, depth_window, threads, extra_params, quality
         config.write(f"alignment_quality: {quality_filter}\n")
         config.write(f"molecule_distance: {molecule_distance}\n")
         config.write(f"depth_windowsize: {depth_window}\n")
-        config.write(f"skipreports: {skipreports}\n")
+        config.write(f"skip_reports: {skipreports}\n")
         if extra_params is not None:
             config.write(f"extra: {extra_params}\n")
         config.write(f"workflow_call: {command}\n")
@@ -203,7 +203,7 @@ def ema(inputs, output_dir, platform, whitelist, genome, depth_window, threads, 
         config.write(f"platform: {platform}\n")
         config.write(f"EMA_bins: {ema_bins}\n")
         config.write(f"depth_windowsize: {depth_window}\n")
-        config.write(f"skipreports: {skipreports}\n")
+        config.write(f"skip_reports: {skipreports}\n")
         if extra_params is not None:
             config.write(f"extra: {extra_params}\n")
         config.write(f"workflow_call: {command}\n")
@@ -285,7 +285,7 @@ def strobe(inputs, output_dir, genome, read_length, depth_window, threads, extra
         config.write(f"molecule_distance: {molecule_distance}\n")
         config.write(f"average_read_length: {read_length}\n")
         config.write(f"depth_windowsize: {depth_window}\n")
-        config.write(f"skipreports: {skipreports}\n")
+        config.write(f"skip_reports: {skipreports}\n")
         if extra_params is not None:
             config.write(f"extra: {extra_params}\n")
         config.write(f"workflow_call: {command}\n")

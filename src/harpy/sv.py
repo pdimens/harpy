@@ -102,7 +102,7 @@ def leviathan(inputs, output_dir, genome, min_sv, min_barcodes, threads, populat
         config.write(f"min_sv: {min_sv}\n")
         if extra_params is not None:
             config.write(f"extra: {extra_params}\n")
-        config.write(f"skipreports: {skipreports}\n")
+        config.write(f"skip_reports: {skipreports}\n")
         config.write(f"workflow_call: {command}\n")
         config.write("inputs:\n")
         popgroupings = ""
@@ -197,7 +197,7 @@ def naibr(inputs, output_dir, genome, vcf, min_sv, min_barcodes, threads, popula
         config.write(f"molecule_distance: {molecule_distance}\n")
         if extra_params is not None:
             config.write(f"extra: {extra_params}\n")
-        config.write(f"skipreports: {skipreports}\n")
+        config.write(f"skip_reports: {skipreports}\n")
         config.write(f"workflow_call: {command}\n")
         popgroupings = ""
         config.write("inputs:\n")

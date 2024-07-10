@@ -209,10 +209,10 @@ def vcf_samplematch(vcf, bamlist, vcf_samples):
     if len(missing_samples) > 0:
         print_error(f"There are [bold]{len(missing_samples)}[/bold] samples found in [bold]{fromthis}[/bold] that are not in [bold]{inthis}[/bold]. Terminating Harpy to avoid downstream errors.")
         print_solution_with_culprits(
-            f"[bold]{fromthis}[/bold] cannot contain samples that are absent in [bold]{inthis}[/bold]. Check the spelling or remove those samples from [bold]{fromthis}[/bold] or remake the vcf file to include/omit these samples. Alternatively, toggle [green]--vcf-samples[/green] to aggregate the sample list from [bold]the input files[/bold] or [bold]{vcf}[/bold].",
+            f"[bold]{fromthis}[/bold] cannot contain samples that are absent in [bold]{inthis}[/bold]. Check the spelling or remove those samples from [bold]{fromthis}[/bold] or remake the vcf file to include/omit these samples. Alternatively, toggle [green]--vcf-samples[/green] to aggregate the sample list from the input files or [bold]{vcf}[/bold].",
             "The samples causing this error are:"
         )
-        click.echo(", ".join(sorted(missing_samples)), file = sys.stderr)
+        click.echo(", ".join(sorted(missing_samples)) + "\n", file = sys.stderr)
         sys.exit(1)
     return(query)
 

@@ -11,7 +11,7 @@ R2 = config["inputs"]["R2"]
 I1 = config["inputs"]["I1"]
 I2 = config["inputs"]["I2"]
 samplefile = config["inputs"]["demultiplex_schema"]
-skipreports = config["skipreports"]
+skipreports = config["skip_reports"]
 outdir = config["output_directory"]
 envdir      = os.getcwd() + "/.harpy_envs"
 

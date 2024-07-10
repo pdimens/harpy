@@ -16,7 +16,7 @@ extra        = config.get("extra", None)
 min_sv       = config["min_sv"]
 min_barcodes = config["min_barcodes"]
 mol_dist     = config["molecule_distance"]
-skipreports  = config["skipreports"]
+skipreports  = config["skip_reports"]
 bn           = os.path.basename(genomefile)
 outdir       = config["output_directory"]
 if bn.lower().endswith(".gz"):

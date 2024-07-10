@@ -20,7 +20,7 @@ if deconvolve:
     decon_w = deconvolve["window_size"]
     decon_d = deconvolve["density"]
     decon_a = deconvolve["dropout"]
-skipreports  = config["skipreports"]
+skipreports  = config["skip_reports"]
 
 bn_r = r"([_\.][12]|[_\.][FR]|[_\.]R[12](?:\_00[0-9])*)?\.((fastq|fq)(\.gz)?)$"
 samplenames = {re.sub(bn_r, "", os.path.basename(i), flags = re.IGNORECASE) for i in fqlist}

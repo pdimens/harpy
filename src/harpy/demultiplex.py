@@ -78,7 +78,7 @@ def gen1(r1_fq, r2_fq, i1_fq, i2_fq, output_dir, schema, threads, snakemake, ski
     with open(f"{workflowdir}/config.yaml", "w", encoding= "utf-8") as config:
         config.write("workflow: demultiplex gen1\n")
         config.write(f"output_directory: {output_dir}\n")
-        config.write(f"skipreports: {skipreports}\n")
+        config.write(f"skip_reports: {skipreports}\n")
         config.write(f"workflow_call: {command}\n")
         config.write("inputs:\n")
         config.write(f"  demultiplex_schema: {Path(schema).resolve()}\n")
