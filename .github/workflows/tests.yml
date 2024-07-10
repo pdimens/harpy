@@ -551,7 +551,9 @@ jobs:
       - name: phase from vcf
         shell: micromamba-shell {0}
         if: always()
-        run: harpy phase --vcf-samples -o phasevcf --vcf test/vcf/test.bcf --snakemake "--show-failed-logs" test/bam
+        run: |
+          cp test/bam/sample1.bam test/bam/pineapple.bam && renamebam -d test/bam/pineapple.bam pineapple1
+          harpy phase --vcf-samples -o phasevcf --vcf test/vcf/test.bcf --snakemake "--show-failed-logs" test/bam
 
   leviathan:
     needs: [changes, pkgbuild]
