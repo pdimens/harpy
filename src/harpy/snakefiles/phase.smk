@@ -29,7 +29,7 @@ else:
     linkarg  = "--10x 1"
 
 if samples_from_vcf:
-    bcfquery = subprocess.run(["bcftools", "query", "-l", variantfile], stdout=subprocess.PIPE)
+    bcfquery = subprocess.Popen(["bcftools", "query", "-l", variantfile], stdout=subprocess.PIPE)
     samplenames = bcfquery.stdout.read().decode().split()
 else:
     samplenames = [Path(i).stem for i in bamlist]
@@ -38,9 +38,12 @@ else:
 # toggle indel mode
 if config["inputs"].get("genome", None):
     genomefile = config["inputs"]["genome"]
-    bn 		   = Path(genomefile).stem
-    geno       = f"{bn}.fasta"
-    genofai    = f"{bn}.fasta.fai"
+    if genomefile.lower().endswith(".gz"):
+        bn = Path(Path(genomefile).stem).stem
+    else:
+        bn = Path(genomefile).stem
+    geno       = f"Genome/{bn}.fasta"
+    genofai    = f"Genome/{bn}.fasta.fai"
     indelarg   = f"--indels 1 --ref {geno}"
     indels     = True
 else:
