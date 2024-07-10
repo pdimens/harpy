@@ -188,7 +188,7 @@ rule extract_hairs:
     output:
         outdir + "/extractHairs/{sample}.unlinked.frags"
     log:
-        outdir + "/extractHairs/logs/{sample}.unlinked.log"
+        outdir + "/logs/extractHairs/{sample}.unlinked.log"
     params:
         indels = indelarg,
         bx = linkarg
@@ -209,7 +209,7 @@ rule link_fragments:
     output:
         outdir + "/linkFragments/{sample}.linked.frags"
     log:
-        outdir + "/linkFragments/logs/{sample}.linked.log"
+        outdir + "/logs/linkFragments/{sample}.linked.log"
     params:
         d = molecule_distance
     conda:
@@ -229,7 +229,7 @@ rule phase_blocks:
         blocks    = outdir + "/phaseBlocks/{sample}.blocks",
         vcf       = temp(outdir + "/phaseBlocks/{sample}.blocks.phased.VCF")
     log:
-        outdir + "/phaseBlocks/logs/{sample}.blocks.phased.log"
+        outdir + "/logs/phaseBlocks/{sample}.blocks.phased.log"
     params: 
         prune = f"--threshold {pruning}" if pruning > 0 else "--no_prune 1",
         extra = extra
