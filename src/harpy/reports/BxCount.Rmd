@@ -6,7 +6,7 @@ output:
     theme: lumen
     orientation: rows
     vertical_layout: scroll
-    logo: https://raw.githubusercontent.com/pdimens/harpy/docs/static/logo_mini.png
+    logo: https://raw.githubusercontent.com/pdimens/harpy/docs/static/navbarlogo.svg
     favicon: "https://raw.githubusercontent.com/pdimens/harpy/docs/static/favicon_report.png"
     navbar:
       - { title : "Docs", icon: "fa-book", href: "https://pdimens.github.io/harpy/", align: right }
@@ -223,7 +223,7 @@ hchart(inv_hist, "areaspline", hcaes(x = Bin, y = Count, group = Segment), stack
   hc_title(text = "Distribution of Percent Invalid Beadtag Segments") |>
   hc_xAxis(title = list(text = "Percent Invalid"), type = "linear") |>
   hc_yAxis(title = list(text = "Count")) |>
-  hc_tooltip(crosshairs = TRUE,
+  hc_tooltip(crosshairs = TRUE, animation = FALSE,
     formatter = JS("function () {return '<b>' + this.series.name + '</b><br><b>' + this.x + '% invalid</b><br/>Count: <b>' + this.y + '</b>';}") 
   ) |>
   hc_exporting(enabled = T, filename = "indel.quality",
@@ -250,22 +250,22 @@ DT::datatable(
 ## Segment viz description
 ### indiv desc {.no-title}
 <h3> Per-Sample Barcode and Segment Invalidations </h3>
-Below are two visualizations showing the occurrence of invalid haplotag barcodes.
+Below are three visualizations showing the occurrence of invalid haplotag barcodes.
 The plot on the left shows this as the count of valid vs. invalid barcodes 
-per individual, whereas the plot on the right shows this in finer detail as
-the percent invalid beadtag segments per individual. Together, these two plots
-should help you assess if any individuals have an unusually high amount of barcode
-invalidations and if any particular beadtag segments appear to be more prone to
+per individual, whereas the plot in the middle shows this in finer detail as
+the percent invalid beadtag segments per individual. The plot on the right shows
+the proportion of invalid haplotag barcode segments (A, C, B, or D) per individual.
+Together, these three graphs should help you assess if any individuals have an unusually
+high amount of barcode invalidations and if any particular beadtag segments appear to be more prone to
 failure than others.
 
 ```{r}
-pltheight <- 150 + (15 * nrow(invalids))
-#frameheight <- 1.2 + (0.166 * nrow(invalids))
+figheight <- 0.6 + (0.2 * nrow(invalids))
 ```
 
 ## validity plots {data-height=pltheight}
-### count of valid barcodes
-```{r echo = FALSE, message = FALSE, warning = FALSE, out.width = '100%'}
+### count of valid barcodes {.no-title}
+```{r echo = FALSE, message = FALSE, warning = FALSE, fig.height=figheight, out.width = '100%'}
 tb<-plotdata %>%
   pivot_longer(-Sample, names_to = "Barcode", values_to = "Count")
 
@@ -275,28 +275,27 @@ hchart(tb, "bar", hcaes(x = Sample, y = Count, group = Barcode), stacking = "nor
   hc_caption(text = "Given as counts") |>
   hc_xAxis(title = list(text = "")) |>
   hc_yAxis(title = list(text = "count")) |>
-  hc_tooltip(crosshairs = TRUE) |>
+  hc_tooltip(crosshairs = TRUE, animation = FALSE) |>
   hc_exporting(enabled = T, filename = "bxcount",
     buttons = list(contextButton = list(menuItems = c("downloadPNG", "downloadJPEG", "downloadPDF", "downloadSVG")))
   )
 ```
-### proportional valid barcodes
-```{r echo = FALSE, message = FALSE, warning = FALSE, out.width = '100%'}
+### proportional valid barcodes {.no-title}
+```{r echo = FALSE, message = FALSE, warning = FALSE, fig.height=figheight, out.width = '100%'}
 hchart(tb, "bar", hcaes(x = Sample, y = Count, group = Barcode), stacking = "percent") |>
   hc_colors(c("#707070", "#b88ace")) |>
   hc_title(text = "Valid vs Invalid Barcodes") |>
   hc_caption(text = "Given as percents") |>
   hc_xAxis(title = list(text = "")) |>
   hc_yAxis(title = list(text = "percent")) |>
-  hc_tooltip(crosshairs = TRUE) |>
+  hc_tooltip(crosshairs = TRUE, animation = FALSE) |>
   hc_exporting(enabled = T, filename = "bxpercent",
     buttons = list(contextButton = list(menuItems = c("downloadPNG", "downloadJPEG", "downloadPDF", "downloadSVG")))
 )
 ```
 
-## Individual Segment Invalidations
-### which haplotag barcode segments are invalid
-```{r echo = FALSE, message = FALSE, warning = FALSE, out.width = '100%'}
+### which haplotag barcode segments are invalid {.no-title}
+```{r echo = FALSE, message = FALSE, warning = FALSE, fig.height=figheight, out.width = '100%'}
 highchart() |>
   hc_chart(inverted=TRUE) |>
   hc_add_series(data = invalids_long,  type = "scatter", hcaes(x = Sample, y = Count, group = Segment), marker = list(symbol = "circle")) |>
@@ -304,7 +303,7 @@ highchart() |>
   hc_title(text = "Percent Invalid Beadtag Segments") |>
   hc_xAxis(type = "category", title = list(text = ""), categories = levels(invalids_long$Sample)) |>
   hc_yAxis(title = list(text = "percent invalid")) |>
-  hc_tooltip(crosshairs = TRUE,
+  hc_tooltip(crosshairs = TRUE, animation = FALSE,
     formatter = JS("function () {return '<b>' + this.x + '</b><br><b>' + this.series.name + '</b><br/>Percent: <b>' + this.y + '</b>';}") 
   ) |>
   hc_exporting(enabled = T, filename = "invalid.segments",

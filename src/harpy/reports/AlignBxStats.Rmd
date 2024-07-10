@@ -135,7 +135,7 @@ DT::datatable(
 
 ```{r sampleplot_height, echo=FALSE, message=FALSE, warning=FALSE}
 n_samples <- nrow(aggregate_df)
-plotheight <- 150 + (15 * n_samples)
+#plotheight <- 150 + (15 * n_samples)
 figheight <- 0.6 + (0.2 * n_samples)
 ```
 
