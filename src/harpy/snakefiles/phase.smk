@@ -109,7 +109,7 @@ rule extract_heterozygous:
         "Extracting heterozygous variants: {wildcards.sample}"
     shell:
         """
-        bcftools view -s {wildcards.sample} -Ou {input.vcf} | bcftools view -i 'GT="het"' > {output}
+        bcftools view -s {wildcards.sample} -Ou -m 2 -M 2 {input.vcf} | bcftools view -i 'GT="het"' > {output}
         """
 
 rule extract_homozygous:
