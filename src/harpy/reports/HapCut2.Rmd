@@ -216,8 +216,8 @@ visualization difficult to plot meaningfully. The plot presented below has
 ## per sample 
 ### the ridgeplot {.no-title}
 ```{r warning=FALSE, message=FALSE, echo= FALSE, fig.height=ridgeheight.samples, fig.width=8}
-ggplot(df, aes(x = block_length, y = sample, fill = after_stat(x))) +
-  geom_density_ridges_gradient(scale = 1.4) +
+ggplot(df, aes(x = block_length, y = sample)) +
+  geom_density_ridges_gradient(aes(fill = ..x..), scale = 1.4) +
   scale_fill_viridis_c(option = "G", trans = "log10") +
   theme_minimal() +
   theme(legend.position = "none") +
