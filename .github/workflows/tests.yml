@@ -552,7 +552,7 @@ jobs:
         shell: micromamba-shell {0}
         if: always()
         run: |
-          cp test/bam/sample1.bam test/bam/pineapple.bam && renamebam -d test/bam/pineapple.bam pineapple1
+          cp test/bam/sample1.bam test/bam/pineapple.bam && rename_bam -d test/bam/pineapple.bam pineapple1
           harpy phase --vcf-samples -o phasevcf --vcf test/vcf/test.bcf --snakemake "--show-failed-logs" test/bam
 
   leviathan:
