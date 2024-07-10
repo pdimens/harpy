@@ -4,7 +4,7 @@ url: pdimens.github.io/harpy/
 meta:
   title: " | Harpy haplotag"
 links:
-- text: GitHub
+- text: Source Code
   link: https://github.com/pdimens/harpy
   icon: mark-github
   target: blank
