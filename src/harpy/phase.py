@@ -78,19 +78,20 @@ def phase(inputs, output_dir, vcf, threads, molecule_distance, prune_threshold, 
     with open(f"{workflowdir}/config.yaml", "w", encoding="utf-8") as config:
         config.write("workflow: phase\n")
         config.write(f"output_directory: {output_dir}\n")
-        config.write(f"noBX: {ignore_bx}\n")
+        config.write(f"ignore_bx: {ignore_bx}\n")
         config.write(f"prune: {prune_threshold/100}\n")
         config.write(f"molecule_distance: {molecule_distance}\n")
+        config.write(f"samples_from_vcf: {vcf_samples}\n")
         if extra_params is not None:
             config.write(f"extra: {extra_params}\n")
-        config.write(f"skipreports: {skipreports}\n")
+        config.write(f"skip_reports: {skipreports}\n")
         config.write(f"workflow_call: {command}\n")
         config.write("inputs:\n")
         config.write(f"  variantfile: {vcf}\n")
         if genome is not None:
             config.write(f"  genome: {genome}\n")
-            if not os.path.exists(f"{genome}.fai"):
-                subprocess.run(f"samtools faidx --fai-idx {genome}.fai {genome}".split())
+        #    if not os.path.exists(f"{genome}.fai"):
+        #        subprocess.run(f"samtools faidx --fai-idx {genome}.fai {genome}".split())
         config.write("  alignments:\n")
         for i in bamlist:
             config.write(f"    - {i}\n")

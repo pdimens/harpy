@@ -1,6 +1,7 @@
 containerized: "docker://pdimens/harpy:latest"
 
 import sys
+import subprocess
 import multiprocessing
 from pathlib import Path
 from rich import print as rprint
@@ -13,19 +14,26 @@ pruning           = config["prune"]
 molecule_distance = config["molecule_distance"]
 extra             = config.get("extra", "") 
 outdir 			  = config["output_directory"]
-envdir      = os.getcwd() + "/.harpy_envs"
-skipreports = config["skipreports"]
-
+envdir            = os.getcwd() + "/.harpy_envs"
+skipreports       = config["skip_reports"]
+samples_from_vcf  = config["samples_from_vcf"]
 variantfile       = config["inputs"]["variantfile"]
 bamlist     = config["inputs"]["alignments"]
-samplenames = [Path(i).stem for i in bamlist]
+
 # toggle linked-read aware mode
-if config["noBX"]:
+if config["ignore_bx"]:
     fragfile = outdir + "/extractHairs/{sample}.unlinked.frags"
     linkarg = "--10x 0"
 else:
     fragfile =  outdir + "/linkFragments/{sample}.linked.frags"
     linkarg  = "--10x 1"
+
+if samples_from_vcf:
+    bcfquery = subprocess.run(["bcftools", "query", "-l", variantfile], stdout=subprocess.PIPE)
+    samplenames = bcfquery.stdout.read().decode().split()
+else:
+    samplenames = [Path(i).stem for i in bamlist]
+
 
 # toggle indel mode
 if config["inputs"].get("genome", None):
@@ -41,7 +49,7 @@ else:
     geno       = []
     genofai    = []
     bn         = []
-    indels     = True
+    indels     = False
 
 wildcard_constraints:
     sample = "[a-zA-Z0-9._-]+"
