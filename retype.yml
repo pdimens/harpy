@@ -20,6 +20,10 @@ links:
   link: /blog
   icon: code-of-conduct
   target: blank
+- text: Submit an Issue
+  link: https://github.com/pdimens/harpy/issues/new/choose
+  icon: bug
+  target: blank
 footer:
   copyright: "&copy; Copyright {{ year }}. All rights reserved."
 branding:
