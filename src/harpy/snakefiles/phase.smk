@@ -199,7 +199,7 @@ rule extract_hairs:
     message:
         "Converting to compact fragment format: {wildcards.sample}"
     shell:
-        "extractHAIRS {params} --nf 1 --bam {input.bam} --VCF {input.vcf} --out {output} 2> {log}"
+        "extractHAIRS {params} --nf 1 --bam {input.bam} --VCF {input.vcf} --out {output} > {log} 2>&1"
 
 rule link_fragments:
     input: 
