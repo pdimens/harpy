@@ -263,7 +263,7 @@ pltheight <- 150 + (15 * nrow(invalids))
 #frameheight <- 1.2 + (0.166 * nrow(invalids))
 ```
 
-## segment plots {data-height=pltheight}
+## validity plots {data-height=pltheight}
 ### count of valid barcodes
 ```{r echo = FALSE, message = FALSE, warning = FALSE, out.width = '100%'}
 tb<-plotdata %>%
@@ -295,8 +295,7 @@ hchart(tb, "bar", hcaes(x = Sample, y = Count, group = Barcode), stacking = "per
 ```
 
 ## Individual Segment Invalidations
-### Which barcode segments are invalid (may help troubleshooting)
-sample prepartion.
+### which haplotag barcode segments are invalid
 ```{r echo = FALSE, message = FALSE, warning = FALSE, out.width = '100%'}
 highchart() |>
   hc_chart(inverted=TRUE) |>
