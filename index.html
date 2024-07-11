@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="turbo-root" content="/harpy">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="3.5.0.774020233777">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="3.5.0.774021772995">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 3.5.0">
@@ -34,11 +34,11 @@
     <script data-cfasync="false">(function () { var el = document.documentElement, m = localStorage.getItem("doc_theme"), wm = window.matchMedia; if (m === "dark" || (!m && wm && wm("(prefers-color-scheme: dark)").matches)) { el.classList.add("dark") } else { el.classList.remove("dark") } })();</script>
 
     <link href="static/favicon.svg" rel="icon">
-    <link href="resources/css/retype.css?v=3.5.0.774020233777" rel="stylesheet">
+    <link href="resources/css/retype.css?v=3.5.0.774021772995" rel="stylesheet">
 
-    <script data-cfasync="false" src="resources/js/config.js?v=3.5.0.774020233777" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="resources/js/config.js?v=3.5.0.774021772995" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="resources/js/retype.js?v=3.5.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="resources/js/lunr.js?v=3.5.0.774020233777" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="resources/js/lunr.js?v=3.5.0.774021772995" data-turbo-eval="false" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="resources/js/mermaid.js?v=3.5.0" defer></script>
 </head>
 <body>
@@ -277,29 +277,12 @@
     <figcaption class="caption"></figcaption>
 </figure>
 </p>
-<p>Harpy is a haplotagging data processing pipeline for Linux-based systems. It uses all the
+<p>Harpy is a <a href="haplotagdata/">haplotagging data</a> processing pipeline for Linux-based systems. It uses all the
 magic of <a href="https://snakemake.readthedocs.io/en/stable/">Snakemake</a> under the hood to handle
 the worklfow decision-making, but as a user, you just interact with it like a normal command-line
 program. Harpy uses both well known and niche programs to take raw haplotagging sequences and process
 them to become called SNP genotypes (or haplotypes) or large structural variants (inversions, deletions, duplications).
 Most of the settings are pre-configured and the settings you can modify are done at the command line.</p>
-<doc-anchor-target id="what-is-haplotagging">
-    <h2>
-        <doc-anchor-trigger class="header-anchor-trigger" to="#what-is-haplotagging">#</doc-anchor-trigger>
-        <span>What is haplotagging?</span>
-    </h2>
-</doc-anchor-target>
-<p>Linked-read sequencing exists to combine the throughput and accuracy of short-read
-sequencing with the long range haplotype information of long-read sequencing.
-Haplotagging is an implementation of linked-read sequencing developed by
-<a href="https://doi.org/10.1073/pnas.2015005118">Meier <em>et al.</em></a> to:</p>
-<ol>
-<li>sequence a large number of samples</li>
-<li>achieve high molecular resolution</li>
-<li>do both within a reasonable budget</li>
-</ol>
-<p>If you don&#x27;t have haplotagged data, then Harpy will likely be of little to no use to you. See the <a href="https://www.fml.tuebingen.mpg.de/9418/haplotagging">haplotagging site</a>
-for more information about haplotagging and why you might consider it for your study system.</p>
 <doc-anchor-target id="harpy-modules">
     <h2>
         <doc-anchor-trigger class="header-anchor-trigger" to="#harpy-modules">#</doc-anchor-trigger>
