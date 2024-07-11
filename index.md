@@ -35,48 +35,49 @@ Great! Only want to call variants? Awesome! All modules are called by `harpy <mo
 
 |      Module                                                        | Description                                   |
 |:-------------------------------------------------------------------|:----------------------------------------------|
-| [!badge corners="pill" text="preflight"](Modules/preflight.md)     | Run various format checks for FASTQ and BAM files |
+| [!badge corners="pill" text="align"](Modules/Align/Align.md)         | Align sample sequences to a reference genome  |
 | [!badge corners="pill" text="demultiplex"](Modules/demultiplex.md) | Demultiplex haplotagged FASTQ files           |
-| [!badge corners="pill" text="qc"](Modules/qc.md)                   | Remove adapters and quality trim sequences    |
-| [!badge corners="pill" text="align"](Modules/Align/bwa.md)         | Align sample sequences to a reference genome  |
-| [!badge corners="pill" text="snp"](Modules/snp.md)                 | Call SNPs and small indels                    |
-| [!badge corners="pill" text="sv"](Modules/SV/naibr.md)             | Call large structural variants                |
 | [!badge corners="pill" text="impute"](Modules/impute.md)           | Impute genotypes using variants and sequences |
 | [!badge corners="pill" text="phase"](Modules/phase.md)             | Phase SNPs into haplotypes                    |
+| [!badge corners="pill" text="preflight"](Modules/preflight.md)     | Run various format checks for FASTQ and BAM files |
+| [!badge corners="pill" text="qc"](Modules/qc.md)                   | Remove adapters, deduplicate, and quality trim sequences    |
+| [!badge corners="pill" text="simulate"](Modules/Simulate/Simulate.md) | Simulate haplotag linked reads or genomic variants |
+| [!badge corners="pill" text="snp"](Modules/snp.md)                 | Call SNPs and small indels                    |
+| [!badge corners="pill" text="sv"](Modules/SV/SV.md)             | Call large structural variants (inversions, deletions, duplications) |
 
 ## Using Harpy
 You can call `harpy` without any arguments (or with `--help`) to print the docstring to your terminal. You can likewise call any of the modules without arguments or with `--help` to see their usage  (e.g. `harpy align --help`).
 ``` harpy --help                                                      
- Usage: harpy COMMAND [ARGS]...                     
-                                                              
-                  Harpy haplotagging pipeline                  
- An automated workflow to demultiplex sequences, trim and qc   
- reads, map sequences, call variants, impute genotypes, and    
- phase haplotypes of Haplotagging data. Batteries included.    
-                                                               
- demultiplex >> qc >> align >> snp >> impute >> phase >> sv          
-                                                               
- Documentation: https://pdimens.github.io/harpy/               
-                                                               
-╭─ Options ────────────────────────────────────────────────────╮
-│ --version      Show the version and exit.                    │
-│ --help     -h  Show this message and exit.                   │
-╰──────────────────────────────────────────────────────────────╯
-╭─ Modules ────────────────────────────────────────────────────╮
-│ demultiplex  Demultiplex haplotagged FASTQ files             │
-│ qc           Remove adapters and quality trim sequences      │
-│ align        Align sample sequences to a reference genome    │
-│ snp          Call SNPs and small indels                      │
-│ sv           Call large structural variants                  │
-│ impute       Impute genotypes using variants and sequences   │
-│ phase        Phase SNPs into haplotypes                      │
-│ simulate     Simulate variants or linked reads from a genome │
-╰──────────────────────────────────────────────────────────────╯
-╭─ Other Commands ─────────────────────────────────────────────╮
-│ preflight     Run file format checks on haplotag data        │
-│ popgroup      Create a sample grouping file                  │
-│ stitchparams  Create a template STITCH parameter file        │
-╰──────────────────────────────────────────────────────────────╯
+ Usage: harpy COMMAND [ARGS]...                                            
+                                                                           
+ An automated workflow for haplotagging linked-read data to go from raw    
+ data to genotypes (or phased haplotypes). Batteries included.             
+ demultiplex >> qc >> align >> snp >> impute >> phase >> sv                
+                                                                           
+ Documentation: https://pdimens.github.io/harpy/                           
+                                                                           
+╭─ Options ───────────────────────────────────────────────────────────────╮
+│ --version      Show the version and exit.                               │
+│ --help     -h  Show this message and exit.                              │
+╰─────────────────────────────────────────────────────────────────────────╯
+╭─ Modules ───────────────────────────────────────────────────────────────╮
+│ demultiplex  Demultiplex haplotagged FASTQ files                        │
+│ qc           Remove adapters and quality-control sequences              │
+│ align        Align sample sequences to a reference genome               │
+│ snp          Call SNPs and small indels on alignments                   │
+│ sv           Call large structural variants on alignments               │
+│ impute       Impute genotypes using variants and alignments             │
+│ phase        Phase SNPs into haplotypes                                 │
+│ simulate     Simulate variants or linked-reads from a genome            │
+╰─────────────────────────────────────────────────────────────────────────╯
+╭─ Other Commands ────────────────────────────────────────────────────────╮
+│ resume        Resume a workflow from an existing Harpy directory        │
+│ hpc           Profile templates for cluster job submissions             │
+│ preflight     File format checks for haplotag data                      │
+│ deconvolve    Resolve clashing barcodes from different molecules        │
+│ popgroup      Create a template grouping file for samples               │
+│ stitchparams  Create a template STITCH parameter file                   │
+╰─────────────────────────────────────────────────────────────────────────╯
 ```
 
 ## Linked-Read Workflow
