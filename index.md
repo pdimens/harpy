@@ -78,3 +78,19 @@ You can call `harpy` without any arguments (or with `--help`) to print the docst
 │ stitchparams  Create a template STITCH parameter file        │
 ╰──────────────────────────────────────────────────────────────╯
 ```
+
+## Linked-Read Workflow
+Depending on your project goals, you may want any combination of SNPs, structural variants (inversions, deletions, duplications), or phased haplotypes. Below is a flow chart
+outlining a general workflow of linked-read data.
+
+```mermaid
+graph LR
+    Demux([demultiplex]):::clean--->QC([QC, trim adapters, etc.]):::clean
+    QC--->Align([align sequences]):::clean
+    Align--->SNP([call SNPs]):::clean
+    SNP--->Impute([impute genotypes]):::clean
+    SNP--->Phase([phase haplotypes]):::clean
+    Align--->SV([call structural variants]):::clean
+
+    classDef clean fill:#f5f6f9,stroke:#b7c9ef,stroke-width:2px
+```
