@@ -1,5 +1,5 @@
 ---
-label: Haplotag data
+label: Haplotag Data
 icon: file-binary
 order: 5
 ---

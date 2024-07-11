@@ -1,5 +1,5 @@
 ---
-label: Snakemake things
+label: Snakemake Things
 icon: terminal
 order: 2
 ---
