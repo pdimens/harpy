@@ -5,6 +5,20 @@ order: 5
 ---
 # :icon-file-binary: Haplotag data
 
+## What is haplotagging?
+Linked-read sequencing exists to combine the throughput and accuracy of short-read
+sequencing with the long range haplotype information of long-read sequencing.
+Haplotagging is an implementation of linked-read sequencing developed by
+[Meier _et al._](https://doi.org/10.1073/pnas.2015005118) to:
+
+1. sequence a large number of samples
+2. achieve high molecular resolution
+3. do both within a reasonable budget
+
+If you don't have haplotagged data, then Harpy will likely be of little to no use to you. See the [haplotagging site](https://www.fml.tuebingen.mpg.de/9418/haplotagging)
+for more information about haplotagging and why you might consider it for your study system.
+
+
 ## Data Format
 ### Barcodes
 While barcodes are actually combinatorial bases, in the read headers they are represented
