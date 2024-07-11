@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="turbo-root" content="/harpy">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="3.5.0.773955185215">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="3.5.0.774020233777">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 3.5.0">
@@ -34,11 +34,12 @@
     <script data-cfasync="false">(function () { var el = document.documentElement, m = localStorage.getItem("doc_theme"), wm = window.matchMedia; if (m === "dark" || (!m && wm && wm("(prefers-color-scheme: dark)").matches)) { el.classList.add("dark") } else { el.classList.remove("dark") } })();</script>
 
     <link href="static/favicon.svg" rel="icon">
-    <link href="resources/css/retype.css?v=3.5.0.773955185215" rel="stylesheet">
+    <link href="resources/css/retype.css?v=3.5.0.774020233777" rel="stylesheet">
 
-    <script data-cfasync="false" src="resources/js/config.js?v=3.5.0.773955185215" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="resources/js/config.js?v=3.5.0.774020233777" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="resources/js/retype.js?v=3.5.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="resources/js/lunr.js?v=3.5.0.773955185215" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="resources/js/lunr.js?v=3.5.0.774020233777" data-turbo-eval="false" defer></script>
+    <script id="mermaid-js" data-cfasync="false" src="resources/js/mermaid.js?v=3.5.0" defer></script>
 </head>
 <body>
     <div id="docs-app" class="relative text-base antialiased text-gray-700 bg-white font-body dark:bg-dark-850 dark:text-dark-300">
@@ -317,40 +318,16 @@ Great! Only want to call variants? Awesome! All modules are called by <code v-pr
 </thead>
 <tbody>
 <tr>
-<td style="text-align: left;"><a href="modules/preflight/" class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-blue-600 bg-blue-100 border border-blue-100 hover:border-blue-300 dark:hover:bg-blue-200 transition-colors duration-200 ease-out h-6 px-2 text-xs rounded-full">
-    <span>preflight</span>
+<td style="text-align: left;"><a href="modules/align/" class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-blue-600 bg-blue-100 border border-blue-100 hover:border-blue-300 dark:hover:bg-blue-200 transition-colors duration-200 ease-out h-6 px-2 text-xs rounded-full">
+    <span>align</span>
 </a></td>
-<td style="text-align: left;">Run various format checks for FASTQ and BAM files</td>
+<td style="text-align: left;">Align sample sequences to a reference genome</td>
 </tr>
 <tr>
 <td style="text-align: left;"><a href="modules/demultiplex/" class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-blue-600 bg-blue-100 border border-blue-100 hover:border-blue-300 dark:hover:bg-blue-200 transition-colors duration-200 ease-out h-6 px-2 text-xs rounded-full">
     <span>demultiplex</span>
 </a></td>
 <td style="text-align: left;">Demultiplex haplotagged FASTQ files</td>
-</tr>
-<tr>
-<td style="text-align: left;"><a href="modules/qc/" class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-blue-600 bg-blue-100 border border-blue-100 hover:border-blue-300 dark:hover:bg-blue-200 transition-colors duration-200 ease-out h-6 px-2 text-xs rounded-full">
-    <span>qc</span>
-</a></td>
-<td style="text-align: left;">Remove adapters and quality trim sequences</td>
-</tr>
-<tr>
-<td style="text-align: left;"><a href="modules/align/bwa/" class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-blue-600 bg-blue-100 border border-blue-100 hover:border-blue-300 dark:hover:bg-blue-200 transition-colors duration-200 ease-out h-6 px-2 text-xs rounded-full">
-    <span>align</span>
-</a></td>
-<td style="text-align: left;">Align sample sequences to a reference genome</td>
-</tr>
-<tr>
-<td style="text-align: left;"><a href="modules/snp/" class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-blue-600 bg-blue-100 border border-blue-100 hover:border-blue-300 dark:hover:bg-blue-200 transition-colors duration-200 ease-out h-6 px-2 text-xs rounded-full">
-    <span>snp</span>
-</a></td>
-<td style="text-align: left;">Call SNPs and small indels</td>
-</tr>
-<tr>
-<td style="text-align: left;"><a href="modules/sv/naibr/" class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-blue-600 bg-blue-100 border border-blue-100 hover:border-blue-300 dark:hover:bg-blue-200 transition-colors duration-200 ease-out h-6 px-2 text-xs rounded-full">
-    <span>sv</span>
-</a></td>
-<td style="text-align: left;">Call large structural variants</td>
 </tr>
 <tr>
 <td style="text-align: left;"><a href="modules/impute/" class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-blue-600 bg-blue-100 border border-blue-100 hover:border-blue-300 dark:hover:bg-blue-200 transition-colors duration-200 ease-out h-6 px-2 text-xs rounded-full">
@@ -364,6 +341,36 @@ Great! Only want to call variants? Awesome! All modules are called by <code v-pr
 </a></td>
 <td style="text-align: left;">Phase SNPs into haplotypes</td>
 </tr>
+<tr>
+<td style="text-align: left;"><a href="modules/preflight/" class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-blue-600 bg-blue-100 border border-blue-100 hover:border-blue-300 dark:hover:bg-blue-200 transition-colors duration-200 ease-out h-6 px-2 text-xs rounded-full">
+    <span>preflight</span>
+</a></td>
+<td style="text-align: left;">Run various format checks for FASTQ and BAM files</td>
+</tr>
+<tr>
+<td style="text-align: left;"><a href="modules/qc/" class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-blue-600 bg-blue-100 border border-blue-100 hover:border-blue-300 dark:hover:bg-blue-200 transition-colors duration-200 ease-out h-6 px-2 text-xs rounded-full">
+    <span>qc</span>
+</a></td>
+<td style="text-align: left;">Remove adapters, deduplicate, and quality trim sequences</td>
+</tr>
+<tr>
+<td style="text-align: left;"><a href="modules/simulate/" class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-blue-600 bg-blue-100 border border-blue-100 hover:border-blue-300 dark:hover:bg-blue-200 transition-colors duration-200 ease-out h-6 px-2 text-xs rounded-full">
+    <span>simulate</span>
+</a></td>
+<td style="text-align: left;">Simulate haplotag linked reads or genomic variants</td>
+</tr>
+<tr>
+<td style="text-align: left;"><a href="modules/snp/" class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-blue-600 bg-blue-100 border border-blue-100 hover:border-blue-300 dark:hover:bg-blue-200 transition-colors duration-200 ease-out h-6 px-2 text-xs rounded-full">
+    <span>snp</span>
+</a></td>
+<td style="text-align: left;">Call SNPs and small indels</td>
+</tr>
+<tr>
+<td style="text-align: left;"><a href="modules/sv/" class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-blue-600 bg-blue-100 border border-blue-100 hover:border-blue-300 dark:hover:bg-blue-200 transition-colors duration-200 ease-out h-6 px-2 text-xs rounded-full">
+    <span>sv</span>
+</a></td>
+<td style="text-align: left;">Call large structural variants (inversions, deletions, duplications)</td>
+</tr>
 </tbody>
 </table>
 </div>
@@ -376,37 +383,54 @@ Great! Only want to call variants? Awesome! All modules are called by <code v-pr
 <p>You can call <code v-pre>harpy</code> without any arguments (or with <code v-pre>--help</code>) to print the docstring to your terminal. You can likewise call any of the modules without arguments or with <code v-pre>--help</code> to see their usage  (e.g. <code v-pre>harpy align --help</code>).</p>
 <div class="codeblock-wrapper"><doc-codeblock>
 <div class="codeblock-title">harpy --help</div>
-<pre class="language-none"><code v-pre class="language-none"> Usage: harpy COMMAND [ARGS]...                     
-                                                              
-                  Harpy haplotagging pipeline                  
- An automated workflow to demultiplex sequences, trim and qc   
- reads, map sequences, call variants, impute genotypes, and    
- phase haplotypes of Haplotagging data. Batteries included.    
-                                                               
- demultiplex &gt;&gt; qc &gt;&gt; align &gt;&gt; snp &gt;&gt; impute &gt;&gt; phase &gt;&gt; sv          
-                                                               
- Documentation: https://pdimens.github.io/harpy/               
-                                                               
-╭─ Options ────────────────────────────────────────────────────╮
-│ --version      Show the version and exit.                    │
-│ --help     -h  Show this message and exit.                   │
-╰──────────────────────────────────────────────────────────────╯
-╭─ Modules ────────────────────────────────────────────────────╮
-│ demultiplex  Demultiplex haplotagged FASTQ files             │
-│ qc           Remove adapters and quality trim sequences      │
-│ align        Align sample sequences to a reference genome    │
-│ snp          Call SNPs and small indels                      │
-│ sv           Call large structural variants                  │
-│ impute       Impute genotypes using variants and sequences   │
-│ phase        Phase SNPs into haplotypes                      │
-│ simulate     Simulate variants or linked reads from a genome │
-╰──────────────────────────────────────────────────────────────╯
-╭─ Other Commands ─────────────────────────────────────────────╮
-│ preflight     Run file format checks on haplotag data        │
-│ popgroup      Create a sample grouping file                  │
-│ stitchparams  Create a template STITCH parameter file        │
-╰──────────────────────────────────────────────────────────────╯</code></pre>
+<pre class="language-none"><code v-pre class="language-none"> Usage: harpy COMMAND [ARGS]...                                            
+                                                                           
+ An automated workflow for haplotagging linked-read data to go from raw    
+ data to genotypes (or phased haplotypes). Batteries included.             
+ demultiplex &gt;&gt; qc &gt;&gt; align &gt;&gt; snp &gt;&gt; impute &gt;&gt; phase &gt;&gt; sv                
+                                                                           
+ Documentation: https://pdimens.github.io/harpy/                           
+                                                                           
+╭─ Options ───────────────────────────────────────────────────────────────╮
+│ --version      Show the version and exit.                               │
+│ --help     -h  Show this message and exit.                              │
+╰─────────────────────────────────────────────────────────────────────────╯
+╭─ Modules ───────────────────────────────────────────────────────────────╮
+│ demultiplex  Demultiplex haplotagged FASTQ files                        │
+│ qc           Remove adapters and quality-control sequences              │
+│ align        Align sample sequences to a reference genome               │
+│ snp          Call SNPs and small indels on alignments                   │
+│ sv           Call large structural variants on alignments               │
+│ impute       Impute genotypes using variants and alignments             │
+│ phase        Phase SNPs into haplotypes                                 │
+│ simulate     Simulate variants or linked-reads from a genome            │
+╰─────────────────────────────────────────────────────────────────────────╯
+╭─ Other Commands ────────────────────────────────────────────────────────╮
+│ resume        Resume a workflow from an existing Harpy directory        │
+│ hpc           Profile templates for cluster job submissions             │
+│ preflight     File format checks for haplotag data                      │
+│ deconvolve    Resolve clashing barcodes from different molecules        │
+│ popgroup      Create a template grouping file for samples               │
+│ stitchparams  Create a template STITCH parameter file                   │
+╰─────────────────────────────────────────────────────────────────────────╯</code></pre>
 </doc-codeblock></div>
+<doc-anchor-target id="linked-read-workflow">
+    <h2>
+        <doc-anchor-trigger class="header-anchor-trigger" to="#linked-read-workflow">#</doc-anchor-trigger>
+        <span>Linked-Read Workflow</span>
+    </h2>
+</doc-anchor-target>
+<p>Depending on your project goals, you may want any combination of SNPs, structural variants (inversions, deletions, duplications), or phased haplotypes. Below is a flow chart
+outlining a general workflow of linked-read data.</p>
+<div class="overflow-hidden mb-6 py-4 dark:px-5 dark:bg-white rounded-md"><pre class="mermaid w-full">graph LR
+    Demux([demultiplex]):::clean---&gt;QC([QC, trim adapters, etc.]):::clean
+    QC---&gt;Align([align sequences]):::clean
+    Align---&gt;SNP([call SNPs]):::clean
+    SNP---&gt;Impute([impute genotypes]):::clean
+    SNP---&gt;Phase([phase haplotypes]):::clean
+    Align---&gt;SV([call structural variants]):::clean
+
+    classDef clean fill:#f5f6f9,stroke:#b7c9ef,stroke-width:2px</pre></div>
 
                                 
                                 <!-- Required only on API pages -->
@@ -472,6 +496,6 @@ Great! Only want to call variants? Awesome! All modules are called by <code v-pr
 
     <div id="docs-overlay-target"></div>
 
-    <script data-cfasync="false">window.__DOCS__ = { "title": "Home", isRoot: true, level: 0, icon: "file", hasPrism: false, hasMermaid: false, hasMath: false, tocDepth: 23 }</script>
+    <script data-cfasync="false">window.__DOCS__ = { "title": "Home", isRoot: true, level: 0, icon: "file", hasPrism: false, hasMermaid: true, hasMath: false, tocDepth: 23 }</script>
 </body>
 </html>
