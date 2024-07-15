@@ -1,5 +1,5 @@
 ---
-title: "NAIBR Structural Variant Calling Summary"
+title: "Structural Variant Calling Summary (NAIBR)"
 date: "`r format(Sys.time(), '%d %b, %Y at %H:%M')`"
 output:
   flexdashboard::flex_dashboard:
@@ -47,9 +47,8 @@ script src = "https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"
 ```{r echo = FALSE, warnings = FALSE, message = FALSE}
 infiles <- snakemake@input[["bedpe"]]
 fai <- snakemake@input[["fai"]]
-#infiles <- paste0("/home/pdimens/", c(1,2,3), ".bedpe")
-#infiles <- list.files("~/downsampled/", full.names = T)
-#fai <- "/home/pdimens/test.fai"
+#infiles <- list.files(path = "~", pattern = "*bedpe", full.names = T)
+#fai <- "~/test.fai"
 ```
 
 # General Stats
@@ -72,9 +71,7 @@ knitr::kable(
     )
 )
 ```
-This tab (`General Stats`) shows overview information. Clicking `Per-Contig Plots`
-in the navigation bar at the top of this page will show you interactive
-plots detailing all variants identified.
+This report shows overview information.
 
 In the colorful summary boxes are the per-population average number of
 variants detected by type.
@@ -110,7 +107,7 @@ chimeric <- function(x){
 
 ```{r echo = FALSE}
 emptyfiles <- character()
-sv <- data.frame(matrix(ncol=12,nrow=0, dimnames=list(NULL, c("Population", "Chr1", "Break1", "Chr2", "Break2", "SplitMolecules", "DiscordantReads", "Orientation", "Haplotype", "Score", "PassFilter", "SV"  ))))
+sv <- data.frame(matrix(ncol=12,nrow=0, dimnames=list(NULL, c("Population", "Chr1", "Break1", "Chr2", "Break2", "SplitMolecules", "DiscordantReads", "Orientation", "Haplotype", "Score", "PassFilter", "SV"))))
 for(i in infiles){
   .df <- tryCatch(readvariants(i), error = function(e){return(0)})
   if(length(.df)==1){
@@ -202,7 +199,6 @@ DT::datatable(
   filter = "top",
   extensions = 'Buttons',
   options = list(dom = 'Brtip', buttons = c('csv'), scrollX = TRUE),
-  autoHideNavigation = T,
   fillContainer = T
 )
 ```
@@ -220,7 +216,6 @@ DT::datatable(
   filter = "top",
   extensions = 'Buttons',
   options = list(dom = 'Brtip', buttons = c('csv'), scrollX = TRUE),
-  autoHideNavigation = T,
   fillContainer = T
 )
 ```
@@ -271,7 +266,6 @@ DT::datatable(
   filter = "top",
   extensions = 'Buttons', 
   options = list(dom = 'Brtip', buttons = 'csv', scrollX = TRUE),
-  autoHideNavigation = T,
   fillContainer = T
 )
 ```
@@ -403,104 +397,9 @@ circosplot(sv_clean, fa.sizes, "inversion", popheight, populations, col.ramp)
 ### Deletions
 ```{r echo = FALSE, message = FALSE, warning = FALSE, dev = "jpeg", fig.align='center'}
 circosplot(sv_clean, fa.sizes, "deletion", popheight, populations, col.ramp)
-
 ```
 
 ### Duplications
 ```{r echo = FALSE, message = FALSE, warning = FALSE, dev = "jpeg", fig.align='center'}
 circosplot(sv_clean, fa.sizes, "duplication", popheight, populations, col.ramp)
-```
-
-# Per-Contig Plots
-## percontig desc
-### desc {.no-title}
-<h1> Structural Variants Per Contig Per Population </h1>
-Below is a plot to help you assess what structural variants were
-detected by NAIBR These plots are interactive, allowing you
-to hover over a variant to provide additional information, including
-the genomic interval in which it occurs and the number of haplotag
-barcodes supporting the variant. Populations are stacked vertically
-for each contig, denoted by the grey strip on the right side of each row.
-
-## per contig
-### plots per contig {.no-title data-height=10000}
-```{r echo = FALSE, message = FALSE, warning = FALSE}
-color.palette <- c(
-  "deletion" = "#5a8c84",
-  "duplication" = "#ffd75f",
-  "inversion" = "#4a9fea"
-)
-
-sv_clean$ystart <- case_when(
-  sv_clean$SV == "inversion" ~ 0.1,
-  sv_clean$SV == "duplication" ~ 1.1,
-  sv_clean$SV == "deletion" ~ 2.1
-)
-sv_clean$ystop <- sv_clean$ystart + 0.8
-
-```
-
-
-```{r echo = FALSE, out.width = '100%', warning=FALSE}
-l <- list()
-nplotrows <- 0
-
-for (i in 1:nrow(fa.sizes)) {
-  sv.filt <- sv_clean %>% filter(Chr1 == fa.sizes$contig[i])
-  sv_stats <- group_by(sv.filt, SV) %>% summarise(n = length(SV))
-  if (nrow(sv_stats) == 0) {
-    next
-  }
-  plt <- sv.filt %>%
-    ggplot() +
-    geom_rect(
-      alpha = 0.7,
-      aes(
-        xmin = Break1,
-        xmax = Break2,
-        ymin = ystart,
-        ymax = ystop,
-        fill = SV,
-        color = SV,
-        text = sprintf("Type: %s<br>Position: %s-%s<br>barcodes: %s", SV, Break1, Break2, SplitMolecules)        )
-      ) +
-    geom_hline(yintercept = 1:3, color = "grey96") +
-    scale_color_manual(values = color.palette) +
-    scale_fill_manual(values = color.palette) +
-    facet_grid(rows = vars(Population)) +
-    theme_light() +
-    theme(
-      axis.line.y = element_blank(),
-      axis.ticks.y = element_blank(),
-      panel.grid.major = element_blank(),
-      panel.grid.minor = element_blank(),
-      strip.background = element_rect(fill = "grey80"),
-      strip.text = element_text(color = "grey20"),
-      legend.position = "none",
-    ) +
-    scale_x_continuous(labels = scales::comma) +
-    scale_y_continuous(
-      breaks = c(0.5, 1.5, 2.5),
-      labels = c("INV", "DUP", "DEL"),
-      limits = c(0,3)
-    ) +
-    coord_cartesian(xlim = c(0, fa.sizes$size[i] + 1), expand = F) +
-    xlab("Position (bp)")
-    annotations <- list( 
-      x = 0.5,
-      y = 1.05,  
-      text = as.character(fa.sizes$contig[i]),  
-      xref = "paper",  
-      yref = "paper",  
-      xanchor = "center",  
-      yanchor = "bottom",  
-      showarrow = FALSE 
-    )
-  pp <- subplot(ggplotly(plt, height = 800 * length(populations), tooltip = "text")) %>% 
-    layout(annotations = annotations)
-    l[[i]] <- pp
-}
-# remove null
-l <- Filter(Negate(is.null), l)
-subplot(l, nrows = length(l) , shareX = FALSE, titleX = TRUE)
 ```

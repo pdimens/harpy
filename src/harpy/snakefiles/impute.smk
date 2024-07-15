@@ -17,7 +17,7 @@ biallelic   = config["inputs"]["biallelic_contigs"]
 skipreports = config["skip_reports"]
 outdir      = config["output_directory"]
 envdir      = os.getcwd() + "/.harpy_envs"
-paramspace  = Paramspace(pd.read_csv(paramfile, sep=r"\s+", skip_blank_lines=True).rename(columns=str.lower), param_sep = "", filename_params="*")
+paramspace  = Paramspace(pd.read_csv(paramfile, sep=r"\s+", skip_blank_lines=True).rename(columns=str.lower), param_sep = "", filename_params = ["k", "s", "ngen", "bxlimit"])
 
 with open(biallelic, "r") as f_open:
     contigs = [i.rstrip() for i in f_open.readlines()]
