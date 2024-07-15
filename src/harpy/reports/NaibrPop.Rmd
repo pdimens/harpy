@@ -45,11 +45,10 @@ script src = "https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"
 ```
 
 ```{r echo = FALSE, warnings = FALSE, message = FALSE}
-#infiles <- snakemake@input[["bedpe"]]
-#fai <- snakemake@input[["fai"]]
-#infiles <- paste0("/home/pdimens/", c("AW","BL"), ".bedpe")
-infiles <- list.files(path = "~", pattern = "*bedpe", full.names = T)
-fai <- "~/test.fai"
+infiles <- snakemake@input[["bedpe"]]
+fai <- snakemake@input[["fai"]]
+#infiles <- list.files(path = "~", pattern = "*bedpe", full.names = T)
+#fai <- "~/test.fai"
 ```
 
 # General Stats

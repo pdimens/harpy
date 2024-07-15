@@ -383,7 +383,7 @@ circosplot(sv, fa.sizes, samplename)
 ## per contig
 ### Per-contig {.no-title data-height=7000}
 <h1> Structural Variants Per Contig </h1>
-Below is a plot to help you assess what structural variants were detected by LEVIATHAN. These plots are interactive,
+Below is a plot to help you assess what structural variants were detected by NAIBR. These plots are interactive,
 allowing you to hover over a variant to provide additional information, including the genomic interval in which it occurs and the
 number of haplotag barcodes supporting the variant.
 
