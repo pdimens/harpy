@@ -121,7 +121,7 @@ rule merge_populations:
     container:
         None
     message:
-        "Merging alignments: Population {wildcards.population}"
+        "Merging alignments: {wildcards.population}"
     shell:
         "samtools merge -o {output.bam}##idx##{output.bai} --threads {threads} --write-index -b {input.bamlist}"
 
