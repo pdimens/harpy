@@ -16,10 +16,10 @@ output:
 
 
 ```{r echo = FALSE, warnings = FALSE, message = FALSE}
-#infile <- snakemake@input[["bedpe"]]
-#fai <- snakemake@input[["fai"]]
-infile <- "~/test.bedpe"
-fai <- "~/testshad.fai"
+infile <- snakemake@input[["bedpe"]]
+fai <- snakemake@input[["fai"]]
+#infile <- "~/test.bedpe"
+#fai <- "~/testshad.fai"
 samplename <- gsub(".bedpe", "", basename(infile))
 ```
 

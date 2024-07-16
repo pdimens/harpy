@@ -22,32 +22,14 @@ using<-function(...) {
         lapply(need,require,character.only=TRUE)
     }
 }
-using("flexdashboard","dplyr","ggplot2","DT","plotly","circlize")
-```
-
-```{css zoom-lib-src, echo = FALSE, message = FALSE, warning = FALSE}
-script src = "https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"
-```
-
-```{js zoom-jquery, echo = FALSE, message = FALSE, warning = FALSE}
- $(document).ready(function() {
-    $('body').prepend('<div class=\"zoomDiv\"><img src=\"\" class=\"zoomImg\"></div>');
-    // onClick function for all plots (img's)
-    $('img:not(.zoomImg)').click(function() {
-      $('.zoomImg').attr('src', $(this).attr('src')).css({width: '100%'});
-      $('.zoomDiv').css({opacity: '1', width: 'auto', border: '1px solid white', borderRadius: '5px', position: 'fixed', top: '50%', left: '50%', marginRight: '-50%', transform: 'translate(-50%, -50%)', boxShadow: '0px 0px 50px #888888', zIndex: '50', overflow: 'auto', maxHeight: '100%'});
-    });
-    // onClick function for zoomImg
-    $('img.zoomImg').click(function() {
-      $('.zoomDiv').css({opacity: '0', width: '0%'}); 
-    });
-  });
+using("flexdashboard","dplyr","ggplot2","DT","BioCircos")
 ```
 
 # General Stats
 ## Intro
 ### introtext {.no-title}
 ```{r}
+fai <- snakemake@input[["faidx"]]
 statsfile <- snakemake@input[["statsfile"]]
 samplename <- gsub(".stats", "", basename(statsfile))
 ```
@@ -83,17 +65,6 @@ if (nrow(sv) == 0) {
   cat(paste0("There are no variants in the file ", "`", bcf, "`"))
   knitr::knit_exit()
 }
-```
-```{r contigSizes, echo = FALSE}
-faidx <- snakemake@input[["faidx"]]
-fa.sizes <- read.table(faidx, header = F)[,1:2] %>% arrange(desc(2))
-colnames(fa.sizes) <- c("contig", "size")
-
-# make sure that the contigs with SV are the ones being plotted, not the others
-fa.sizes <- fa.sizes[fa.sizes$contig %in% unique(sv$contig), ]
-
-# limit the data to only the 30 of the largest present contigs
-fa.sizes <- fa.sizes[1:min(nrow(fa.sizes), 30), ]
 ```
 
 ## General Information {data-height=100}
@@ -180,14 +151,6 @@ DT::datatable(
 ```
 
 ## SV size and location
-```{r colors, echo = FALSE, warning = FALSE, message = FALSE}
-col.palette <- c(
-  "DEL" = "#5a8c84",
-  "DUP" = "#ffd75f",
-  "INV" = "#4a9fea",
-  "BND" = "#df487f"
-  )
-```
 ### legend {.no-title data-width=200}
 To the right is a circular plot to visualize the distribution of structural variants
 across (up to) 30 of the largest contigs. This should help you assess
@@ -197,9 +160,9 @@ You may click on the plot to expand it in your browser window. Clicking it again
 out of the zoomed view.
 
 ```{r plot legend, echo = FALSE, warning = FALSE, message = FALSE}
-justcolors <- c("#df487f", "#5a8c84", "#ffd75f", "#4a9fea")
+color.palette <- c("deletion" = "#5a8c84", "duplication" = "#99278a", "inversion" = "#4a9fea", "breakend" = "#c56e34")
 
-data.frame(x = 1, y = 1:4, colour = c("Breakend","Deletion","Duplication", "Inversion")) %>% 
+data.frame(x = 1, y = 1:4, colour = c("breakend","deletion","duplication", "inversion")) %>% 
 ggplot(aes(x, y, fill = colour))+
   geom_point(alpha=0, shape = 22, color = "white")+ # completely transparent rectangular point 
   scale_fill_manual(values=justcolors, drop=FALSE) +
@@ -207,15 +170,145 @@ ggplot(aes(x, y, fill = colour))+
   theme(axis.title = element_blank(),
         axis.text = element_blank(),
         axis.ticks = element_blank(),
-        legend.position = c(0.3, 0.5),
+        legend.position = "inside",
+        legend.position.inside = c(0.3, 0.5),
         legend.text = element_text(size = 25),
         legend.title=element_text(size=25),
         legend.key = element_rect(fill='NA'),
         panel.grid = element_blank(),
-        panel.border = element_rect(colour = "white", fill='white', linewidth=1)
+        panel.background = element_rect(fill='transparent'), 
+        plot.background = element_rect(fill='transparent', color=NA),
+        legend.background = element_rect(fill='transparent'),
+        legend.box.background = element_rect(fill='transparent', color = "transparent"), 
   ) +
   labs(fill="Variant Type")
 ```
+
+### Structural Variants: `r samplename` (save by taking a screenshot)
+```{r filter_contigs}
+fa.sizes <- read.table(fai, header = F) %>% arrange(desc(2))
+colnames(fa.sizes) <- c("contig", "size")
+
+# make sure that the contigs with SV are the ones being plotted, not the others
+fa.sizes <- fa.sizes[fa.sizes$contig %in% unique(sv$Chr1), 1:2]
+
+# limit the data to only the 30 of the largest present contigs
+fa.sizes <- fa.sizes[1:min(nrow(fa.sizes), 30), ]
+
+# filter out variants that aren't on one of these contigs
+sv <- sv[sv$Chr1 %in% fa.sizes$contig, ]
+#TODO get test leviathan output file to get the cols right
+```
+
+
+```{r interactive_circos, out.width= "80%", out.height="900px"}
+genomeChr <- fa.sizes$size
+names(genomeChr) <- fa.sizes$contig
+genomeChr <- as.list(genomeChr)
+tracks <- BioCircosTracklist()
+radius <- 0.2
+
+# Add one track for each SV type
+# deletions
+del <- sv[sv$type == "DEL",]
+if(nrow(del) > 0){
+  tracks <- tracks + BioCircosSNPTrack(
+    'Deletions',
+    del$Chr1,
+    del$Break1,
+    values = abs(del$Break2 - del$Break1),
+    minRadius = 0.53,
+    maxRadius = 0.67,
+    size = 1,
+    shape = "rect",
+    opacities = 0.7,
+    colors = color.palette["deletion"],
+    labels = "Type: Deletion"
+  )
+}
+
+# inversions
+inv <- sv[sv$type == "INV",]
+if(nrow(inv) > 0){
+  tracks <- tracks + BioCircosArcTrack(
+    'Inversions',
+    inv$Chr1,
+    inv$Break1,
+    inv$Break2,
+    opacities = 0.7,
+    values = inv$SplitMolecules,
+    minRadius = 0.73,
+    maxRadius = 0.87,
+    colors = color.palette["inversion"],
+    labels = "Type: Inversion",
+  )
+}
+
+# duplications
+dup <- sv[sv$type == "DUP",]
+if(nrow(dup) > 0){
+  tracks <- tracks + BioCircosArcTrack(
+    'Duplications',
+    dup$Chr1,
+    dup$Break1,
+    dup$Break2,
+    values = dup$SplitMolecules,
+    opacities = 0.7,
+    minRadius = 0.33,
+    maxRadius = 0.47,
+    colors = color.palette["duplication"],
+    labels = "Type: Duplication",
+  )
+}
+
+# duplications
+dup <- sv[sv$type == "BND",]
+if(nrow(dup) > 0){
+  tracks <- tracks + BioCircosArcTrack(
+    'Duplications',
+    dup$Chr1,
+    dup$Break1,
+    dup$Break2,
+    values = dup$SplitMolecules,
+    opacities = 0.7,
+    minRadius = 0.33,
+    maxRadius = 0.47,
+    colors = color.palette["duplication"],
+    labels = "Type: Duplication",
+  )
+}
+
+# loop to create backgrounds
+for(i in c("inversion", "deletion", "duplication")){
+  tracks = tracks + BioCircosBackgroundTrack(
+    paste0(i,"_background"),
+    minRadius = radius, maxRadius = radius + 0.2,
+    fillColors = "#F9F9F9",
+    borderColors = "white",
+    borderSize = 1
+  )
+  radius <- radius + 0.2
+}
+
+BioCircos(
+  tracks,
+  displayGenomeBorder = F,
+  genome = genomeChr,
+  chrPad = 0.03,
+  genomeTicksDisplay = F,
+  genomeLabelDy = 3,
+  genomeLabelTextSize = 7,
+  SNPMouseOverCircleSize = 2,
+  SNPMouseOverTooltipsHtml03 = "<br/>Length: ",
+  width = "100%",
+  height = "1000px",
+  elementId = "circosplot" 
+)
+```
+
+
+
+
 
 ### Summary {.no-title data-height=700}
 ```{r circos, echo = FALSE, message = FALSE, warning = FALSE, dev = "jpeg", out.width= "100%"}
