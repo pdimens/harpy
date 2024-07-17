@@ -293,6 +293,23 @@ tracks <- BioCircosTracklist()
 radius <- 0.3
 
 # Add one track for each SV type
+# inversions
+inv <- sv[sv$SV == "inversion",]
+if(nrow(inv) > 0){
+  tracks <- tracks + BioCircosArcTrack(
+    'Inversions',
+    inv$Chr1,
+    inv$Break1,
+    inv$Break2,
+    opacities = 0.7,
+    values = inv$SplitMolecules,
+    minRadius = 0.73,
+    maxRadius = 0.87,
+    colors = color.palette["inversion"],
+    labels = "Type: Inversion",
+  )
+}
+
 # deletions
 del <- sv[sv$SV == "deletion",]
 if(nrow(del) > 0){
@@ -308,23 +325,6 @@ if(nrow(del) > 0){
     opacities = 0.7,
     colors = color.palette["deletion"],
     labels = "Type: Deletion"
-  )
-}
-
-# inversions
-inv <- sv[sv$SV == "inversion",]
-if(nrow(inv) > 0){
-  tracks <- tracks + BioCircosArcTrack(
-    'Inversions',
-    inv$Chr1,
-    inv$Break1,
-    inv$Break2,
-    opacities = 0.7,
-    values = inv$SplitMolecules,
-    minRadius = 0.73,
-    maxRadius = 0.87,
-    colors = color.palette["inversion"],
-    labels = "Type: Inversion",
   )
 }
 
