@@ -156,7 +156,7 @@ rule call_sv:
         genome = f"Genome/{bn}",
         genidx = multiext(f"Genome/{bn}", ".fai", ".ann", ".bwt", ".pac", ".sa", ".amb")
     output:
-        pipe(outdir + "/{sample}.vcf")
+        temp(outdir + "/{sample}.vcf")
     log:  
         runlog     = outdir + "/logs/{sample}.leviathan.log",
         candidates = outdir + "/logs/{sample}.candidates"
@@ -166,7 +166,7 @@ rule call_sv:
         iters  = f"-B {iterations}",
         extra = extra
     threads:
-        3
+        4
     conda:
         f"{envdir}/sv.yaml"
     benchmark:
