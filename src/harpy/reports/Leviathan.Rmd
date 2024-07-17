@@ -167,7 +167,7 @@ color.palette <- c("deletion" = "#5a8c84", "duplication" = "#99278a", "inversion
 data.frame(x = 1, y = 1:4, colour = c("breakend","deletion","duplication", "inversion")) %>% 
 ggplot(aes(x, y, fill = colour))+
   geom_point(alpha=0, shape = 22, color = "white")+ # completely transparent rectangular point 
-  scale_fill_manual(values=justcolors, drop=FALSE) +
+  scale_fill_manual(values=color.palette, drop=FALSE) +
   guides(fill = guide_legend(override.aes = list(alpha=1, size = 25)))+ # showing the point in the legend
   theme(axis.title = element_blank(),
         axis.text = element_blank(),
