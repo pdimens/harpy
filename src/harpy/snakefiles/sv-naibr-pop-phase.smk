@@ -248,7 +248,7 @@ rule merge_populations:
         bam = temp(outdir + "/workflow/input/{population}.bam"),
         bai = temp(outdir + "/workflow/input/{population}.bam.bai")
     threads:
-        2
+        workflow.cores
     container:
         None
     message:
