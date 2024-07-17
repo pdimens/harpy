@@ -81,7 +81,7 @@ if not deconvolve:
             dedup = "-D" if dedup else "",
             extra = extra
         threads:
-            min(4, workflow.cores // 2)
+            workflow.cores
         conda:
             f"{envdir}/qc.yaml"
         message:
@@ -108,7 +108,7 @@ else:
             dedup = "-D" if dedup else "",
             extra = extra
         threads:
-            min(4, workflow.cores // 2)
+            workflow.cores
         conda:
             f"{envdir}/qc.yaml"
         message:
@@ -131,7 +131,7 @@ else:
             density = f"-d {decon_d}",
             dropout = f"-a {decon_a}"
         threads:
-            2
+            workflow.cores
         conda:
             f"{envdir}/qc.yaml"
         message:

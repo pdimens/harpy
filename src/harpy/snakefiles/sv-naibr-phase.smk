@@ -245,7 +245,7 @@ rule call_sv:
     log:
         outdir + "/logs/{sample}.naibr.log"
     threads:
-        min(10, workflow.cores)
+        10
     conda:
         f"{envdir}/sv.yaml"
     message:

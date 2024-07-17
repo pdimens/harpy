@@ -89,7 +89,7 @@ rule index_barcode:
     benchmark:
         ".Benchmark/leviathan/{sample}.lrez"
     threads:
-        4
+        max(10, workflow.cores)
     conda:
         f"{envdir}/sv.yaml"
     message:
@@ -166,7 +166,7 @@ rule call_sv:
         iters  = f"-B {iterations}",
         extra = extra
     threads:
-        4
+        10
     conda:
         f"{envdir}/sv.yaml"
     benchmark:
