@@ -68,7 +68,6 @@ if (nrow(sv) == 0) {
 ```
 
 ## General Information {data-height=100}
-### nvariants
 ```{r summaryinfo, echo=FALSE, message=FALSE, warning=FALSE}
 summinfo <- sv %>%
   group_by(contig, type) %>%
@@ -81,6 +80,9 @@ summinfo <- sv %>%
 )
 
 nvar = sum(summinfo$total)
+```
+### nvariants
+```{r}
 valueBox(scales::comma(nvar), caption = "Variants", color = ifelse(nvar > 0, "success", "warning"))
 ```
 
