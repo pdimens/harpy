@@ -13,6 +13,7 @@ groupfile 	= config["inputs"]["groupings"]
 extra 		= config.get("extra", "") 
 min_sv      = config["min_sv"]
 min_bc      = config["min_barcodes"]
+iterations  = config["iterations"]
 outdir      = config["output_directory"]
 skipreports = config["skip_reports"]
 bn 			= os.path.basename(genomefile)
@@ -125,7 +126,7 @@ rule index_barcode:
     shell:
         "LRez index bam -p -b {input.bam} -o {output} --threads {threads}"
 
-rule genome_link:
+rule genome_preprocess:
     input:
         genomefile
     output: 
@@ -190,6 +191,7 @@ rule call_sv:
     params:
         min_sv = f"-v {min_sv}",
         min_bc = f"-c {min_bc}",
+        iters  = f"-B {iterations}",
         extra = extra
     threads:
         3
@@ -269,6 +271,7 @@ rule log_workflow:
     params:
         min_sv = f"-v {min_sv}",
         min_bc = f"-c {min_bc}",
+        iters  = f"-B {iterations}",
         extra = extra
     run:
         with open(outdir + "/workflow/sv.leviathan.summary", "w") as f:

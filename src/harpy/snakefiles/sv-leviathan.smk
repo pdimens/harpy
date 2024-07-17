@@ -14,6 +14,7 @@ bamlist     = config["inputs"]["alignments"]
 samplenames = {Path(i).stem for i in bamlist}
 min_sv      = config["min_sv"]
 min_bc      = config["min_barcodes"]
+iterations  = config["iterations"]
 extra       = config.get("extra", "") 
 outdir      = config["output_directory"]
 skipreports = config["skip_reports"]
@@ -162,6 +163,7 @@ rule call_sv:
     params:
         min_sv = f"-v {min_sv}",
         min_bc = f"-c {min_bc}",
+        iters  = f"-B {iterations}",
         extra = extra
     threads:
         3
@@ -225,6 +227,7 @@ rule log_workflow:
     params:
         min_sv = f"-v {min_sv}",
         min_bc = f"-c {min_bc}",
+        iters  = f"-B {iterations}",
         extra = extra
     message:
         "Summarizing the workflow: {output}"
