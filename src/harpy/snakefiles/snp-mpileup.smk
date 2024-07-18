@@ -163,7 +163,7 @@ rule mpileup:
         genome  = f"Genome/{bn}",
         genome_fai = f"Genome/{bn}.fai"
     output: 
-        bcf = pipe(outdir + "/{part}.mp.bcf"),
+        bcf = pipe(outdir + "/mpileup/{part}.mp.bcf"),
         logfile = temp(outdir + "/logs/{part}.mpileup.log")
     params:
         region = lambda wc: "-r " + regions[wc.part],
@@ -178,7 +178,7 @@ rule mpileup:
 rule call_genotypes:
     input:
         groupfile = outdir + "/logs/sample.groups" if groupings else [],
-        bcf = outdir + "/{part}.mp.bcf"
+        bcf = outdir + "/mpileup/{part}.mp.bcf"
     output:
         bcf = temp(outdir + "/call/{part}.bcf"),
         idx = temp(outdir + "/call/{part}.bcf.csi")
