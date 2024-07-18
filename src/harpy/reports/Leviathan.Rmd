@@ -283,7 +283,7 @@ if(nrow(bnd) > 0){
 
 # loop to create backgrounds
 for(i in c("inversion", "deletion", "duplication")){
-  tracks = tracks + BioCircosBackgroundTrack(
+  tracks <- tracks + BioCircosBackgroundTrack(
     paste0(i,"_background"),
     minRadius = radius, maxRadius = radius + 0.15,
     fillColors = "#F9F9F9",
