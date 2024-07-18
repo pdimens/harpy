@@ -199,6 +199,7 @@ fa.sizes <- fa.sizes[1:min(nrow(fa.sizes), 30), ]
 
 # filter out variants that aren't on one of these contigs
 sv <- sv[sv$contig %in% fa.sizes$contig, ]
+sv$contig <- factor(sv$contig)
 ```
 
 

@@ -22,35 +22,16 @@ using<-function(...) {
         lapply(need,require,character.only=TRUE)
     }
 }
-using("flexdashboard","dplyr", "tidyr", "ggplot2","DT","plotly","circlize", "viridisLite", "tools")
-```
-
-```{css zoom-lib-src, echo = FALSE, message = FALSE, warning = FALSE}
-script src = "https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"
-```
-```{js zoom-jquery, echo = FALSE, message = FALSE, warning = FALSE}
- $(document).ready(function() {
-    $('body').prepend('<div class=\"zoomDiv\"><img src=\"\" class=\"zoomImg\"></div>');
-    // onClick function for all plots (img's)
-    $('img:not(.zoomImg)').click(function() {
-      $('.zoomImg').attr('src', $(this).attr('src')).css({width: '100%'});
-      $('.zoomDiv').css({opacity: '1', width: 'auto', border: '1px solid white', borderRadius: '5px', position: 'fixed', top: '50%', left: '50%', marginRight: '-50%', transform: 'translate(-50%, -50%)', boxShadow: '0px 0px 50px #888888', zIndex: '50', overflow: 'auto', maxHeight: '100%'});
-    });
-    // onClick function for zoomImg
-    $('img.zoomImg').click(function() {
-      $('.zoomDiv').css({opacity: '0', width: '0%'}); 
-    });
-  });
+using("flexdashboard","dplyr", "tidyr", "ggplot2","DT", "viridisLite", "BioCircos", "tools")
 ```
 
 ```{r}
-#statsfiles <- c("/home/pdimens/1.sv.stats", "/home/pdimens/2.sv.stats")
-statsfiles <- snakemake@input[["statsfiles"]]
-#faidx <- "/home/pdimens/test.fai"
-faidx <- snakemake@input[["faidx"]]
+#statsfiles <- snakemake@input[["statsfiles"]]
+statsfiles <- list.files(path = "~/test/", pattern = "*.stats", full.names = T)
+faidx <- "~/testshad.fai"
+#faidx <- snakemake@input[["faidx"]]
 ```
 
-# General Stats
 ## Intro
 ### introtext {.no-title}
 <h1> Structural Variants Summary </h1>
@@ -105,17 +86,6 @@ if(length(emptyfiles > 0)){
   cat("Some of the populations did not have any variants detected and are omitted from this report:\n")
   cat(paste0("- ", emptyfiles), sep = "\n")
 }
-```
-
-```{r}
-fa.sizes <- read.table(faidx, header = F)[,1:2] %>% arrange(desc(2))
-colnames(fa.sizes) <- c("contig", "size")
-
-# make sure that the contigs with SV are the ones being plotted, not the others
-fa.sizes <- fa.sizes[fa.sizes$contig %in% unique(sv$contig), ]
-
-# limit the data to only the 30 of the largest present contigs
-fa.sizes <- fa.sizes[1:min(nrow(fa.sizes), 30), ]
 ```
 
 ```{r echo = FALSE, warnings= FALSE, message = FALSE}
@@ -210,112 +180,212 @@ DT::datatable(
   )
 ```
 
----
-
 ## SV size and location
-### legend {.no-title data-height=700 data-width=200}
-The plots to the right are a visual representation of each structural variant where it was detected.
-Contigs that are absent did not have any variants detected on them. Within each 
-contig, each population is plotted as a row (ring) to help visualize shared
-variants between populations. Below is the legend to this plot, where
-colors represent populations. Plotting only the first 30 largest contigs.
-You may click on the plot to expand it in your browser window. Clicking it again will exit
-out of the zoomed view.
+### legend {.no-title}
+<h2>Visualize the Variants</h2>
+Below are three circular plots to visualize the distribution of _putative_ structural variants
+across (up to) 30 of the largest contigs across the groups you specified in your data.
+If you are unfamiliar with this kind of visualization, it's a circular version of a linear genome.
+Each "wedge" is a different contig, from position 0 to  the end of the contig, and is labelled by the contig name.
+Each internal (grey) ring is a plot of observed structural variants for that contig for a different population. 
 
-```{r circoslegend, fig.width = 6}
-populations <- unique(sv$population)
-col.ramp <- viridis(length(populations))
+Very small variants may be difficult to see or will not appear on the plot. Deletions are displayed as points as they tend to be small
+and clump together. Breakends were not plotted as LEVIATHAN tends to find many more of them than other variants and their presence usually
+isn't as useful to visualize as putative inversions, deletions, and duplications. You may hover your cursor over variants to view their
+positions, pan by clicking and dragging, and zoom using scroll (mouse or touchpad). In case you become unable to scroll up from the plot
+due to these interactive features, place your cursor over the navigation bar of this report and you will be able to scroll the report instead of
+zooming on the plot.
+```{r plots_setup}
+fa.sizes <- read.table(faidx, header = F)[,1:2] %>% arrange(desc(2))
+colnames(fa.sizes) <- c("contig", "size")
 
-pops <- data.frame(x = 1, population = levels(populations))
+# make sure that the contigs with SV are the ones being plotted, not the others
+fa.sizes <- fa.sizes[fa.sizes$contig %in% unique(sv$contig), ]
+
+# limit the data to only the 30 of the largest present contigs
+fa.sizes <- fa.sizes[1:min(nrow(fa.sizes), 30), ]
+
+# filter out variants that aren't on one of these contigs
+sv <- sv[sv$contig %in% fa.sizes$contig, ]
+sv$contig <- factor(sv$contig)
+
+populations <- levels(sv$population)
+color.palette <- turbo(length(populations))
+names(color.palette) <- populations
+
+genomeChr <- fa.sizes$size
+names(genomeChr) <- fa.sizes$contig
+genomeChr <- as.list(genomeChr)
+radius <- 0.9
+radius_increments <- round(.6 / length(populations), 3)
+padding <- radius_increments * 0.2
+```
+
+## legendrow {data-height=200}
+### Population legend
+```{r circoslegend, fig.width = 14, fig.height=1}
+pops <- data.frame(x = 1, population = populations)
 ggplot(pops, aes(y = population, x = 1, fill = population)) +
   geom_tile(color = "white", lwd = 1.5,linetype = 1) +
-  scale_fill_manual(values=col.ramp, drop=FALSE) +
+  scale_fill_manual(values=color.palette, drop=FALSE) +
   theme_minimal() +
+  scale_y_discrete(position = "right", guide = guide_axis(n.dodge=2)) +
   theme(
     panel.grid = element_blank(),
     legend.position = "none",
-    axis.text.x=element_blank(),
-    axis.ticks.x=element_blank(),
+    axis.text.y=element_blank(),
+    axis.ticks.y=element_blank(),
     axis.title = element_blank()
   ) +
+  coord_flip() +
   labs(title = "Population")
 ```
 
-### circosplot {.no-title}
-```{r echo = FALSE, message = FALSE, warning = FALSE, dev = "jpeg"}
-circosplot <- function(data, contigdata, svtype, trackheight, poplist, colormap){
-  circos.clear()
-  col_text <- "grey40"
-  circos.par("track.height" = 0.8, gap.degree = 2, cell.padding = c(0, 0, 0, 0))
-  circos.initialize(
-    factors = contigdata$contig,
-    xlim = matrix(c(rep(0, nrow(contigdata)), contigdata$size), ncol = 2)
-  )
-
-  # contigs
-  circos.track(
-    ylim = c(0, 1),
-    bg.col = "grey90",
-    bg.border = F,
-    track.height = 0.06,
-    panel.fun = function(x, y) {
-      chr = CELL_META$sector.index
-      xlim = CELL_META$xlim
-      ylim = CELL_META$ylim
-      circos.text(
-        mean(xlim),
-        mean(ylim),
-        chr,
-        cex = 0.6,
-        col = col_text,
-        facing="bending.inside",
-        niceFacing = T
-      )
-    }
-  )
-
-  # x axis
-  brk <- seq(0, 10, 0.5) * 10^7
-  circos.track(
-    ylim = c(0,1),
-    track.index = get.current.track.index(),
-    bg.border = F,
-    panel.fun = function(x, y) {
-      circos.axis(
-        h = "top",
-        major.at = brk,
-        labels = round(brk/10^6, 1),
-        labels.cex = 0.6,
-        col = col_text,
-        labels.col = col_text,
-        lwd = 0.7,
-        labels.facing = "clockwise"
-      )
-    }
-  )
-
-  # plot the track
-  for(i in 1:length(poplist)){
-    svquery = data$population == populations[i] & data$type == svtype 
-    circos.genomicTrack(
-      ylim = c(0,1),
-      data = sv[svquery, -1],
-      track.height = trackheight,
-      bg.border = F,
-      panel.fun = function(region, value, ...) {
-      circos.genomicRect(region, value, ybottom = 0, ytop = 1, col = colormap[i], border = colormap[i])
-      }
+## plotrow {.tabset data-height=900}
+### Inversions
+```{r circos_inversions, out.width= "80%", out.height="900px"}
+radius <- 0.9
+tracks <- BioCircosTracklist()
+variant_type <- "INV"
+# Add one track for each population
+for( pop in populations ){
+  variant <- sv[(sv$type == variant_type) & (sv$population == pop),]
+  if(nrow(variant) > 0){
+    tracks <- tracks + BioCircosArcTrack(
+      paste0(variant_type, pop),
+      as.character(variant$contig),
+      variant$position_start,
+      variant$position_end,
+      opacities = 0.7,
+      values = variant$n_barcodes,
+      minRadius = radius - (radius_increments - padding),
+      maxRadius = radius - padding,
+      colors = color.palette[pop],
+      labels = paste0("Population: ", pop, "</br>Type: Inversion"),
     )
   }
-  text(0, 0, svtype, cex = 2)
+  # loop to create backgrounds
+  tracks <- tracks + BioCircosBackgroundTrack(
+    paste0(pop,"_background"),
+    minRadius = radius - radius_increments, maxRadius = radius,
+    fillColors = "#F9F9F9",
+    borderColors = "white",
+    borderSize = 1
+  )
+  radius <- radius - radius_increments
 }
+BioCircos(
+  tracks,
+  displayGenomeBorder = F,
+  genome = genomeChr,
+  chrPad = 0.03,
+  genomeTicksDisplay = F,
+  genomeLabelDy = 3,
+  genomeLabelTextSize = 7,
+  SNPMouseOverCircleSize = 2,
+  SNPMouseOverTooltipsHtml03 = "<br/>Length: ",
+  width = "100%",
+  height = "1000px",
+  elementId = paste0(variant_type, "_circosplot") 
+)
 ```
 
-```{r circosplots, echo = FALSE, message = FALSE, warning = FALSE, dev="jpeg", fig.align='center', fig.width=12, fig.height=12, out.width= "100%"}
-par(mfrow = c(2, 2))
-popheight <- 5 / length(populations) / 10
 
-for (SV in c("INV", "DEL", "DUP", "BND")){
-  circosplot(sv, fa.sizes, SV, popheight, populations, col.ramp)
+### Duplications {data-height=900}
+```{r circos_duplications, out.width= "80%", out.height="900px"}
+# Add one track for each population
+radius <- 0.9
+tracks <- BioCircosTracklist()
+variant_type <- "DUP"
+# Add one track for each population
+for( pop in populations ){
+  variant <- sv[(sv$type == variant_type) & (sv$population == pop),]
+  if(nrow(variant) > 0){
+    tracks <- tracks + BioCircosArcTrack(
+      paste0(variant_type, pop),
+      as.character(variant$contig),
+      variant$position_start,
+      variant$position_end,
+      opacities = 0.7,
+      values = variant$n_barcodes,
+      minRadius = radius - (radius_increments - padding),
+      maxRadius = radius - padding,
+      colors = color.palette[pop],
+      labels = paste0("Population: ", pop, "</br>Type: Duplication"),
+    )
+  }
+  # loop to create backgrounds
+  tracks <- tracks + BioCircosBackgroundTrack(
+    paste0(pop,"_background"),
+    minRadius = radius - radius_increments, maxRadius = radius,
+    fillColors = "#F9F9F9",
+    borderColors = "white",
+    borderSize = 1
+  )
+  radius <- radius - radius_increments
 }
+
+BioCircos(
+  tracks,
+  displayGenomeBorder = F,
+  genome = genomeChr,
+  chrPad = 0.03,
+  genomeTicksDisplay = F,
+  genomeLabelDy = 3,
+  genomeLabelTextSize = 7,
+  width = "100%",
+  height = "1000px",
+  elementId = paste0(variant_type, "_circosplot") 
+)
+```
+
+### Deletions {data-height=900}
+```{r circos_deletions, out.width= "80%", out.height="900px"}
+# Add one track for each population
+radius <- 0.9
+tracks <- BioCircosTracklist()
+variant_type <- "DEL"
+# Add one track for each population
+for( pop in populations ){
+  variant <- sv[(sv$type == variant_type) & (sv$population == pop),]
+  if(nrow(variant) > 0){
+    tracks <- tracks + BioCircosSNPTrack(
+      paste0(variant_type, pop),
+      as.character(variant$contig),
+      variant$position_start,
+      values = abs(variant$position_end - variant$position_start),
+      minRadius = radius - (radius_increments - padding),
+      maxRadius = radius - padding,
+      size = 2,
+      shape = "rect",
+      opacities = 0.7,
+      colors = color.palette[pop],
+      labels = paste0("Population: ", pop, "</br>Type: Deletion"),
+  )
+  }
+  # loop to create backgrounds
+  tracks <- tracks + BioCircosBackgroundTrack(
+    paste0(pop,"_background"),
+    minRadius = radius - radius_increments, maxRadius = radius,
+    fillColors = "#F9F9F9",
+    borderColors = "white",
+    borderSize = 1
+  )
+  radius <- radius - radius_increments
+}
+
+BioCircos(
+  tracks,
+  displayGenomeBorder = F,
+  genome = genomeChr,
+  chrPad = 0.03,
+  genomeTicksDisplay = F,
+  genomeLabelDy = 3,
+  genomeLabelTextSize = 7,
+  SNPMouseOverCircleSize = 2,
+  SNPMouseOverTooltipsHtml03 = "<br/>Length: ",
+  width = "100%",
+  height = "1000px",
+  elementId = paste0(variant_type, "_circosplot") 
+)
 ```
