@@ -1,5 +1,5 @@
 ---
-title: "Structural Variant Calling Summary (NAIBR)"
+title: "NAIBR SV Calling Summary"
 date: "`r format(Sys.time(), '%d %b, %Y at %H:%M')`"
 output:
   flexdashboard::flex_dashboard:
