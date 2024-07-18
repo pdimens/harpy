@@ -372,7 +372,7 @@ rule report_bx:
     script:
         "report/AlignBxStats.Rmd"
 
-rule log_workflow:
+rule workflow_summary:
     default_target: True
     input:
         bams = collect(outdir + "/{sample}.{ext}", sample = samplenames, ext = [ "bam", "bam.bai"] ),

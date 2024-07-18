@@ -290,7 +290,7 @@ rule create_report:
     script:
         "report/Naibr.Rmd"
 
-rule log_workflow:
+rule workflow_summary:
     default_target: True
     input:
         bedpe = collect(outdir + "/{sample}.bedpe", sample = samplenames),

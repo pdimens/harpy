@@ -335,7 +335,7 @@ rule phase_report:
     script:
         "report/HapCut2.Rmd"
 
-rule log_workflow:
+rule workflow_summary:
     default_target: True
     input:
         vcf = outdir + "/variants.phased.bcf",

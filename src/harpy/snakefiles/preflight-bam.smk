@@ -113,7 +113,7 @@ rule create_report:
     script:
         "report/PreflightBam.Rmd"
 
-rule log_workflow:
+rule workflow_summary:
     default_target: True
     input:
         out_dir + "/filecheck.bam.html"

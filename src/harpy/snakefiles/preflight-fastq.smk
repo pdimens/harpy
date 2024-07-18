@@ -105,7 +105,7 @@ rule create_report:
     script:
         "report/PreflightFastq.Rmd"
 
-rule log_workflow:
+rule workflow_summary:
     default_target: True
     input:
         out_dir + "/filecheck.fastq.html"

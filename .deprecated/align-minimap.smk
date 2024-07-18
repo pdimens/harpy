@@ -319,7 +319,7 @@ rule samtools_reports:
         multiqc {params}/reports/data/samtools_stats {params}/reports/data/samtools_flagstat --no-version-check --force --quiet --title "Basic Alignment Statistics" --comment "This report aggregates samtools stats and samtools flagstats results for all alignments. Samtools stats ignores alignments marked as duplicates." --no-data-dir --filename {output} 2> /dev/null
         """
 
-rule log_workflow:
+rule workflow_summary:
     default_target: True
     input: 
         bams = collect(outdir + "/{sample}.{ext}", sample = samplenames, ext = ["bam","bam.bai"]),

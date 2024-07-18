@@ -293,7 +293,7 @@ rule imputation_results_reports:
         "report/Impute.Rmd"
 
 
-rule log_workflow:
+rule workflow_summary:
     default_target: True
     input: 
         vcf = collect(outdir + "/{stitchparams}/variants.imputed.bcf", stitchparams=paramspace.instance_patterns),

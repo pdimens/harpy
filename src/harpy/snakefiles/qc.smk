@@ -201,7 +201,7 @@ rule create_report:
     shell: 
         "multiqc {params} --filename {output}"
 
-rule log_workflow:
+rule workflow_summary:
     default_target: True
     input:
         fq = collect(outdir + "/{sample}.{FR}.fq.gz", FR = ["R1", "R2"], sample = samplenames),

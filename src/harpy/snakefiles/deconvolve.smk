@@ -108,7 +108,7 @@ use rule recover_forward as recover_reverse with:
     params:
         "-2"
 
-rule log_workflow:
+rule workflow_summary:
     default_target: True
     input:
         collect(outdir + "/{sample}.{FR}.fq.gz", FR = ["R1", "R2"], sample = samplenames),

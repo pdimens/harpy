@@ -285,7 +285,7 @@ rule bcf_report:
     script:
         "report/BcftoolsStats.Rmd"
 
-rule log_workflow:
+rule workflow_summary:
     default_target: True
     input:
         vcf = collect(outdir + "/variants.{file}.bcf", file = ["raw"]),

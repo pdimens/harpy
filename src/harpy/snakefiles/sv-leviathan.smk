@@ -219,7 +219,7 @@ rule sv_report:
         "report/Leviathan.Rmd"
 
 
-rule log_workflow:
+rule workflow_summary:
     default_target: True
     input: 
         vcf = collect(outdir + "/{sample}.bcf", sample = samplenames),

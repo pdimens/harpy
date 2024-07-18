@@ -223,7 +223,7 @@ rule genome_faidx:
     shell:
         "samtools faidx --fai-idx {output} {input} 2> {log}"
 
-rule create_report:
+rule sv_report:
     input:
         fai   = f"Genome/{bn}.fai",
         bedpe = outdir + "/{population}.bedpe"
@@ -236,7 +236,7 @@ rule create_report:
     script:
         "report/Naibr.Rmd"
 
-rule report_pop:
+rule sv_report_aggregate:
     input:
         fai   = f"Genome/{bn}.fai",
         bedpe = collect(outdir + "/{pop}.bedpe", pop = populations)
@@ -249,7 +249,7 @@ rule report_pop:
     script:
         "report/NaibrPop.Rmd"
 
-rule log_workflow:
+rule workflow_summary:
     default_target: True
     input:
         bedpe = collect(outdir + "/{pop}.bedpe", pop = populations),

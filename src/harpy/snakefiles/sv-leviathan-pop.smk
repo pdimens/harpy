@@ -231,7 +231,7 @@ rule sv_stats:
         bcftools query -f '{wildcards.population}\\t%CHROM\\t%POS\\t%END\\t%SVLEN\\t%SVTYPE\\t%BARCODES\\t%PAIRS\\n' {input} >> {output}
         """
 
-rule sv_report_bypop:
+rule sv_report:
     input:	
         statsfile = outdir + "/reports/data/{population}.sv.stats",
         bcf       = outdir + "/{population}.bcf",
@@ -245,7 +245,7 @@ rule sv_report_bypop:
     script:
         "report/Leviathan.Rmd"
 
-rule sv_report:
+rule sv_report_aggregate:
     input:	
         faidx      = f"Genome/{bn}.fai",
         statsfiles = collect(outdir + "/reports/data/{pop}.sv.stats", pop = populations)
@@ -258,7 +258,7 @@ rule sv_report:
     script:
         "report/LeviathanPop.Rmd"
 
-rule log_workflow:
+rule workflow_summary:
     default_target: True
     input:
         vcf = collect(outdir + "/{pop}.bcf", pop = populations),
