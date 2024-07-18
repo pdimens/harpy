@@ -26,10 +26,10 @@ using("flexdashboard","dplyr", "tidyr", "ggplot2","DT", "viridisLite", "BioCirco
 ```
 
 ```{r}
-#statsfiles <- snakemake@input[["statsfiles"]]
-statsfiles <- list.files(path = "~/test/", pattern = "*.stats", full.names = T)
-faidx <- "~/testshad.fai"
-#faidx <- snakemake@input[["faidx"]]
+statsfiles <- snakemake@input[["statsfiles"]]
+faidx <- snakemake@input[["faidx"]]
+#statsfiles <- list.files(path = "~/test/", pattern = "*.stats", full.names = T)
+#faidx <- "~/testshad.fai"
 ```
 
 ## Intro
