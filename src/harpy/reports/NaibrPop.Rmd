@@ -30,10 +30,10 @@ using("flexdashboard","dplyr", "ggplot2", "tidyr","DT","BioCircos", "viridisLite
 ```
 
 ```{r echo = FALSE, warnings = FALSE, message = FALSE}
-#infiles <- snakemake@input[["bedpe"]]
-#fai <- snakemake@input[["fai"]]
-infiles <- list.files(path = "~/test", pattern = "*bedpe", full.names = T)
-fai <- "~/testshad.fai"
+infiles <- snakemake@input[["bedpe"]]
+fai <- snakemake@input[["fai"]]
+#infiles <- list.files(path = "~/test", pattern = "*bedpe", full.names = T)
+#fai <- "~/testshad.fai"
 ```
 
 ## Intro
