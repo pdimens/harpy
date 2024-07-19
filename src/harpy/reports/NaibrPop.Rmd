@@ -30,11 +30,10 @@ using("flexdashboard","dplyr", "ggplot2", "tidyr","DT","BioCircos", "viridisLite
 ```{r echo = FALSE, warnings = FALSE, message = FALSE}
 infiles <- snakemake@input[["bedpe"]]
 fai <- snakemake@input[["fai"]]
-#infiles <- list.files(path = "~", pattern = "*bedpe", full.names = T)
-#fai <- "~/test.fai"
+#infiles <- list.files(path = "~/test", pattern = "*bedpe", full.names = T)
+#fai <- "~/testshad.fai"
 ```
 
-# General Stats
 ## Intro
 ### introtext {.no-title}
 <h1> Structural Variants Summary </h1>
@@ -112,16 +111,6 @@ if(length(emptyfiles > 0)){
 
 ```{r echo = FALSE, warnings= FALSE, message = FALSE}
 sv_clean <- cleanbedpe(sv)
-```
-
-```{r echo = FALSE, warnings = FALSE, message = FALSE}
-fa.sizes <- read.table(fai, header = F) %>% arrange(desc(2))
-colnames(fa.sizes) <- c("contig", "size")
-# make sure that the contigs with SV are the ones being plotted, not the others
-fa.sizes <- fa.sizes[fa.sizes$contig %in% unique(sv_clean$Chr1), ]
-
-# limit the data to only the 30 of the largest present contigs
-fa.sizes <- fa.sizes[1:min(nrow(fa.sizes), 30), ]
 ```
 
 ```{r echo = FALSE, warnings= FALSE, message = FALSE}
@@ -291,7 +280,7 @@ fa.sizes <- fa.sizes[1:min(nrow(fa.sizes), 30), ]
 sv <- sv[sv$Chr1 %in% fa.sizes$contig, ]
 sv$Chr1 <- factor(sv$Chr1)
 
-populations <- levels(sv$population)
+populations <- levels(sv$Population)
 color.palette <- turbo(length(populations))
 names(color.palette) <- populations
 
@@ -470,141 +459,4 @@ BioCircos(
   height = "1000px",
   elementId = paste0(variant_type, "_circosplot") 
 )
-```
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-## circos plots
-### circos plots desc {.no-title}
-<h2> Variant Summary Plots </h2>
-For an overview of the size and position of detected variants across
-populations, three "circos" plots are shown below. These plots are for
-summarization purposes and are not interactive. If you wish to view these
-data in better detail, click the `Per-Contig Plots` tab in the navigation
-bar above.
-
-The plots below are a visual representation of each structural variant where it was detected.
-Contigs that are absent did not have any variants detected on them. Within each 
-contig, each population is plotted as a row (ring) to help visualize shared
-variants between populations. Below is the legend to these plots, where
-colors represent populations. Plotting only the first 30 largest contigs.
-You may click on the plot to expand it in your browser window. Clicking it again will exit
-out of the zoomed view.
-
-## legend {data-height=125}
-### Populations legend {.no-title}
-```{r fig.width=20, fig.height=1.5}
-populations <- unique(sv$Population)
-popheight <- .5 / length(populations)
-col.ramp <- viridis(length(populations))
-
-pops <- data.frame(x = 1, population = levels(populations))
-ggplot(pops, aes(x = population, y = 1, fill = population)) +
-  geom_tile(color = "white", lwd = 1.5,linetype = 1) +
-  scale_fill_manual(values=col.ramp, drop=FALSE) +
-  theme_minimal() +
-  scale_x_discrete(position = "top", guide = guide_axis(n.dodge = 2)) +
-  theme(
-    panel.grid = element_blank(),
-    legend.position = "none",
-    axis.text.y=element_blank(),
-    axis.ticks.y=element_blank(),
-    axis.title = element_blank()
-  ) +
-  labs(title = "Population")
-```
-
-## SV size and location {data-height=600}
-### Inversions
-```{r echo = FALSE, message = FALSE, warning = FALSE}
-circosplot <- function(data, contigdata, svtype, trackheight, poplist, colormap){
-  circos.clear()
-  col_text <- "grey40"
-  circos.par("track.height" = 0.8, gap.degree = 2, cell.padding = c(0, 0, 0, 0))
-  circos.initialize(
-    factors = contigdata$contig,
-    xlim = matrix(c(rep(0, nrow(contigdata)), contigdata$size), ncol = 2)
-  )
-
-  # contigs
-  circos.track(
-    ylim = c(0, 1),
-    bg.col = "grey90",
-    bg.border = F,
-    track.height = 0.06,
-    panel.fun = function(x, y) {
-      chr = CELL_META$sector.index
-      xlim = CELL_META$xlim
-      ylim = CELL_META$ylim
-      circos.text(
-        mean(xlim),
-        mean(ylim),
-        chr,
-        cex = 0.6,
-        col = col_text,
-        facing="bending.inside",
-        niceFacing = T
-      )
-    }
-  )
-
-  # x axis
-  brk <- seq(0, 10, 0.5) * 10^7
-  circos.track(
-    ylim = c(0,1),
-    track.index = get.current.track.index(),
-    bg.border = F,
-    panel.fun = function(x, y) {
-      circos.axis(
-        h = "top",
-        major.at = brk,
-        labels = round(brk/10^6, 1),
-        labels.cex = 0.6,
-        col = col_text,
-        labels.col = col_text,
-        lwd = 0.7,
-        labels.facing = "clockwise"
-      )
-    }
-  )
-
-  # plot the track
-  for(i in 1:length(poplist)){
-    svquery = data$Population == populations[i] & data$SV == svtype
-    circos.genomicTrack(
-      ylim = c(0,1),
-      data = data[svquery, -1],
-      track.height = trackheight,
-      bg.border = F,
-      panel.fun = function(region, value, ...) {
-      circos.genomicRect(region, value, ybottom = 0, ytop = 1, col = colormap[i], border = colormap[i])
-      }
-    )
-  }
-  text(0, 0, svtype, cex = 1)
-}
-```
-```{r echo = FALSE, message = FALSE, warning = FALSE, dev = "jpeg", fig.align='center'}
-circosplot(sv_clean, fa.sizes, "inversion", popheight, populations, col.ramp)
-```
-
-### Deletions
-```{r echo = FALSE, message = FALSE, warning = FALSE, dev = "jpeg", fig.align='center'}
-circosplot(sv_clean, fa.sizes, "deletion", popheight, populations, col.ramp)
-```
-
-### Duplications
-```{r echo = FALSE, message = FALSE, warning = FALSE, dev = "jpeg", fig.align='center'}
-circosplot(sv_clean, fa.sizes, "duplication", popheight, populations, col.ramp)
 ```
