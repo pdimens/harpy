@@ -30,6 +30,7 @@ def generate_conda_deps():
             ],
         "r" : [
             "conda-forge::r-dt",
+            "conda-forge::r-dplyr",
             "conda-forge::r-flexdashboard",
             "conda-forge::r-ggplot2",
             "conda-forge::r-highcharter",

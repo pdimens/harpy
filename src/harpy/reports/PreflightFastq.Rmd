@@ -14,15 +14,12 @@ output:
       - { title : "Source", icon: "fa-github", href: "https://www.github.com/pdimens/harpy/", align: right }
 ---
 
-```{r load environment, echo=FALSE, message=TRUE, warning=FALSE}
+```{r load environment, echo=FALSE, message=FALSE, warning=FALSE}
 using<-function(...) {
     libs<-unlist(list(...))
     req<-unlist(lapply(libs,require,character.only=TRUE))
     need<-libs[req==FALSE]
     if(length(need)>0){ 
-        print(paste("Installing:", need))
-        cat(paste("Installing:", need))
-        message(paste("Installing:", need))
         install.packages(need, repos = "https://cloud.r-project.org/")
         lapply(need,require,character.only=TRUE)
     }
