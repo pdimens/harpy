@@ -591,12 +591,12 @@ jobs:
           path: .snakemake/singularity
       - name: leviathan
         shell: micromamba-shell {0}
-        run: harpy sv leviathan -n 100 -b 1 -g test/genome/genome.fasta.gz --snakemake "--show-failed-logs" -x "-M 2002" test/bam
+        run: harpy sv leviathan -m 100 -b 1 -g test/genome/genome.fasta.gz --snakemake "--show-failed-logs" -x "-M 2002" test/bam
         continue-on-error: true
       - name: leviathan-pop
         if: always()
         shell: micromamba-shell {0}
-        run: harpy sv leviathan -n 100 -b 1 -g test/genome/genome.fasta.gz -o SV/leviathanpop -p test/samples.groups --snakemake "--show-failed-logs" test/bam
+        run: harpy sv leviathan -m 100 -b 1 -g test/genome/genome.fasta.gz -o SV/leviathanpop -p test/samples.groups --snakemake "--show-failed-logs" test/bam
 
   naibr:
     needs: [changes, pkgbuild]
