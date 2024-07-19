@@ -59,7 +59,7 @@ def generate_conda_deps():
             "bioconda::naibr-plus"
             ]
     }
-    
+
     os.makedirs(".harpy_envs", exist_ok = True)
     # overwrites existing
     for env,deps in environ.items():
