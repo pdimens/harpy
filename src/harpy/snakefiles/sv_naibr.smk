@@ -251,7 +251,7 @@ rule workflow_summary:
     default_target: True
     input:
         bedpe = collect(outdir + "/bedpe/{sample}.bedpe", sample = samplenames),
-        bedpe_agg = collect(outdir + "/{sv}.bedpe", sv = ["inversions", "deletions","duplications"])
+        bedpe_agg = collect(outdir + "/{sv}.bedpe", sv = ["inversions", "deletions","duplications"]),
         reports =  collect(outdir + "/reports/{sample}.naibr.html", sample = samplenames) if not skipreports else []
     message:
         "Summarizing the workflow: {output}"
