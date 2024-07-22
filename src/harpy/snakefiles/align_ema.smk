@@ -324,7 +324,7 @@ rule report_persample:
     message: 
         "Generating summary of barcode alignment: {wildcards.sample}"
     script:
-        "report/AlignStats.Rmd"
+        "report/align_stats.Rmd"
 
 rule stats:
     input: 		
@@ -370,7 +370,7 @@ rule report_bx:
     message: 
         "Summarizing all barcode information from alignments"
     script:
-        "report/AlignBxStats.Rmd"
+        "report/align_bxstats.Rmd"
 
 rule workflow_summary:
     default_target: True

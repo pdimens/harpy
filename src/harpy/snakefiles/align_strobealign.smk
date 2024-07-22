@@ -9,14 +9,16 @@ from rich import print as rprint
 outdir      = config["output_directory"]
 envdir      = os.getcwd() + "/.harpy_envs"
 genomefile 	= config["inputs"]["genome"]
-fqlist       = config["inputs"]["fastq"]
-molecule_distance = config["molecule_distance"]
+fqlist      = config["inputs"]["fastq"]
 extra 		= config.get("extra", "") 
 bn 			= os.path.basename(genomefile)
-genome_zip  = True if bn.lower().endswith(".gz") else False
-bn_idx      = f"{bn}.gzi" if genome_zip else f"{bn}.fai"
+if bn.lower().endswith(".gz"):
+    bn = bn[:-3]
 skipreports = config["skip_reports"]
 windowsize  = config["depth_windowsize"]
+molecule_distance = config["molecule_distance"]
+readlen = config["average_read_length"]
+autolen = isinstance(readlen, str)
 
 wildcard_constraints:
     sample = "[a-zA-Z0-9._-]+"
@@ -26,7 +28,7 @@ onerror:
     rprint(
         Panel(
             f"The workflow has terminated due to an error. See the log file below for more details.",
-            title = "[bold]harpy align bwa",
+            title = "[bold]harpy align strobealign",
             title_align = "left",
             border_style = "red"
             ),
@@ -38,7 +40,7 @@ onsuccess:
     rprint(
         Panel(
             f"The workflow has finished successfully! Find the results in [bold]{outdir}[/bold]",
-            title = "[bold]harpy align bwa",
+            title = "[bold]harpy align strobealign",
             title_align = "left",
             border_style = "green"
             ),
@@ -66,8 +68,9 @@ rule genome_setup:
     shell: 
         """
         if (file {input} | grep -q compressed ) ;then
-            # is regular gzipped, needs to be BGzipped
-            zcat {input} | bgzip -c > {output}
+            zcat {input} > {output}
+        elif (file {input} | grep -q BGZF ); then
+            zcat {input} > {output}
         else
             cp -f {input} {output}
         fi
@@ -77,54 +80,50 @@ rule genome_faidx:
     input: 
         f"Genome/{bn}"
     output: 
-        fai = f"Genome/{bn}.fai",
-        gzi = f"Genome/{bn}.gzi" if genome_zip else []
+        f"Genome/{bn}.fai",
     log:
         f"Genome/{bn}.faidx.log"
-    params:
-        genome_zip
     container:
         None
     message:
         "Indexing {input}"
     shell: 
-        """
-        if [ "{params}" = "True" ]; then
-            samtools faidx --gzi-idx {output.gzi} --fai-idx {output.fai} {input} 2> {log}
-        else
-            samtools faidx --fai-idx {output.fai} {input} 2> {log}
-        fi
-        """
+        "samtools faidx --fai-idx {output} {input} 2> {log}"
 
-rule genome_bwa_index:
+rule strobeindex:
     input: 
         f"Genome/{bn}"
-    output: 
-        multiext(f"Genome/{bn}", ".ann", ".bwt", ".pac", ".sa", ".amb")
+    output:
+        f"Genome/{bn}.r{readlen}.sti"
     log:
-        f"Genome/{bn}.idx.log"
+        f"Genome/{bn}.r{readlen}.sti.log"
+    params:
+        readlen
     conda:
         f"{envdir}/align.yaml"
+    threads:
+        2
     message:
         "Indexing {input}"
     shell: 
-        "bwa index {input} 2> {log}"
+        "strobealign --create-index -t {threads} -r {params} {input} 2> {log}"
 
 rule align:
     input:
-        fastq      = get_fq,
-        genome     = f"Genome/{bn}",
-        genome_idx = multiext(f"Genome/{bn}", ".ann", ".bwt", ".pac", ".sa", ".amb")
+        fastq = get_fq,
+        genome   = f"Genome/{bn}",
+        genome_index   = f"Genome/{bn}.r{readlen}.sti" if not autolen else []
     output:  
-        temp(outdir + "/samples/{sample}/{sample}.bwa.sam")
+        temp(outdir + "/samples/{sample}/{sample}.strobe.sam")
     log:
-        outdir + "/logs/{sample}.bwa.log"
+        outdir + "/logs/{sample}.strobealign.log"
     params: 
         samps = lambda wc: d[wc.get("sample")],
-        quality = config["alignment_quality"],
+        readlen = "" if autolen else f"--use-index -r {readlen}",
+        quality = config["quality"],
         extra = extra
     benchmark:
-        ".Benchmark/Mapping/bwa/align.{sample}.txt"
+        ".Benchmark/Mapping/strobealign/align.{sample}.txt"
     threads:
         10
     conda:
@@ -133,15 +132,15 @@ rule align:
         "Aligning sequences: {wildcards.sample}"
     shell:
         """
-        bwa mem -C -v 2 -t {threads} {params.extra} -R \"@RG\\tID:{wildcards.sample}\\tSM:{wildcards.sample}\" {input.genome} {input.fastq} 2> {log} |
+        strobealign {params.readlen} -t {threads} -U -C --rg-id={wildcards.sample} --rg=SM:{wildcards.sample} {params.extra} {input.genome} {input.fastq} 2> {log} |
             samtools view -h -F 4 -q {params.quality} > {output} 
         """
 
-rule mark_duplicates:
+rule markduplicates:
     input:
-        sam    = outdir + "/samples/{sample}/{sample}.bwa.sam",
+        sam    = outdir + "/samples/{sample}/{sample}.strobe.sam",
         genome = f"Genome/{bn}",
-        faidx  = f"Genome/{bn_idx}"
+        faidx  = f"Genome/{bn}.fai"
     output:
         temp(outdir + "/samples/{sample}/{sample}.markdup.bam")
     log:
@@ -150,10 +149,10 @@ rule mark_duplicates:
         tmpdir = lambda wc: outdir + "/." + d[wc.sample]
     resources:
         mem_mb = 2000
-    container:
-        None
     threads:
         2
+    container:
+        None
     message:
         "Marking duplicates: {wildcards.sample}"
     shell:
@@ -204,7 +203,7 @@ rule bxstats:
     container:
         None
     message:
-        "Calculating barcoded alignment statistics: {wildcards.sample}"
+        "Calculating barcode alignment statistics: {wildcards.sample}"
     shell:
         "bx_stats.py -o {output} {input.bam}"
 
@@ -234,10 +233,10 @@ rule report_persample:
     conda:
         f"{envdir}/r.yaml"
     message: 
-        "Creating alignment report: {wildcards.sample}"
+        "Summarizing barcoded alignments: {wildcards.sample}"
     script:
-        "report/AlignStats.Rmd"
-   
+        "report/align_stats.Rmd"
+
 rule stats:
     input:
         bam      = outdir + "/{sample}.bam",
@@ -259,7 +258,7 @@ rule report_samtools:
     input: 
         collect(outdir + "/reports/data/samtools_{ext}/{sample}.{ext}", sample = samplenames, ext = ["stats", "flagstat"])
     output: 
-        outdir + "/reports/bwa.stats.html"
+        outdir + "/reports/strobealign.stats.html"
     params:
         outdir = f"{outdir}/reports/data/samtools_stats {outdir}/reports/data/samtools_flagstat",
         options = "--no-version-check --force --quiet --no-data-dir",
@@ -270,7 +269,7 @@ rule report_samtools:
     message:
         "Summarizing samtools stats and flagstat"
     shell:
-        "multiqc {params} --filename {output} 2> /dev/null"
+        "multiqc  {params} --filename {output} 2> /dev/null"
 
 rule report_bx:
     input:
@@ -282,31 +281,38 @@ rule report_bx:
     message: 
         "Summarizing all barcode information from alignments"
     script:
-        "report/AlignBxStats.Rmd"
+        "report/align_bxstats.Rmd"
 
 rule workflow_summary:
     default_target: True
-    input:
-        bams = collect(outdir + "/{sample}.{ext}", sample = samplenames, ext = ["bam", "bam.bai"]),
+    input: 
+        bams = collect(outdir + "/{sample}.{ext}", sample = samplenames, ext = ["bam","bam.bai"]),
+        samtools =  outdir + "/reports/strobealign.stats.html" if not skipreports else [] ,
         reports = collect(outdir + "/reports/{sample}.html", sample = samplenames) if not skipreports else [],
-        agg_report = outdir + "/reports/bwa.stats.html" if not skipreports else [],
         bx_report = outdir + "/reports/barcodes.summary.html" if (not skipreports or len(samplenames) == 1) else []
     params:
-        quality = config["alignment_quality"],
+        readlen = readlen,
+        quality = config["quality"],
         extra   = extra
     message:
         "Summarizing the workflow: {output}"
     run:
-        with open(outdir + "/workflow/align.bwa.summary", "w") as f:
-            _ = f.write("The harpy align bwa workflow ran using these parameters:\n\n")
-            _ = f.write(f"The provided genome: {genomefile}\n")
-            _ = f.write("Sequencing were aligned with BWA using:\n")
-            _ = f.write(f"    bwa mem -C -v 2 {params.extra} -R \"@RG\\tID:SAMPLE\\tSM:SAMPLE\" genome forward_reads reverse_reads |\n")
+        with open(outdir + "/workflow/align.strobealign.summary", "w") as f:
+            _ = f.write("The harpy align strobealign workflow ran using these parameters:\n\n")
+            _ = f.write(f"The provided genome: {bn}\n")
+            if autolen:
+                _ = f.write("Sequencing were aligned with strobealign using:\n")
+                _ = f.write(f"    strobealign -U -C --rg-id=SAMPLE --rg=SM:SAMPLE {params.extra} genome reads.F.fq reads.R.fq |\n")
+            else:
+                _ = f.write("The genome index was created using:\n")
+                _ = f.write(f"    strobealign --create-index -r {params.readlen} genome\n")
+                _ = f.write("Sequencing were aligned with strobealign using:\n")
+                _ = f.write(f"    strobealign --use-index -U -C --rg=SM:SAMPLE {params.extra} genome reads.F.fq reads.R.fq |\n")
             _ = f.write(f"    samtools view -h -F 4 -q {params.quality} |\n")
             _ = f.write("Duplicates in the alignments were marked following:\n")
             _ = f.write("    samtools collate \n")
             _ = f.write("    samtools fixmate\n")
-            _ = f.write("    samtools sort -T SAMPLE --reference genome -m 2000M \n")
+            _ = f.write("    samtools sort -m 2000M\n")
             _ = f.write("    samtools markdup -S --barcode-tag BX\n")
             _ = f.write("\nThe Snakemake workflow was called via command line:\n")
             _ = f.write("    " + str(config["workflow_call"]) + "\n")

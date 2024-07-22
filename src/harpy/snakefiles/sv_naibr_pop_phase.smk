@@ -8,30 +8,27 @@ from pathlib import Path
 from rich import print as rprint
 from rich.panel import Panel
 
-envdir      = os.getcwd() + "/.harpy_envs"
-genomefile  = config["inputs"]["genome"]
-bamlist     = config["inputs"]["alignments"]
-vcffile     = config["inputs"]["vcf"]
-samplenames = {Path(i).stem for i in bamlist}
-extra       = config.get("extra", None) 
-mol_dist    = config["molecule_distance"]
-min_sv      = config["min_sv"]
-min_barcodes = config["min_barcodes"]
-outdir      = config["output_directory"]
-skipreports = config["skip_reports"]
-bn          = os.path.basename(genomefile)
-if bn.lower().endswith(".gz"):
-    validgenome = bn[:-3]
-else:
-    validgenome = bn
 
-if vcffile.lower().endswith("bcf"):
-    vcfindex = vcffile + ".csi"
-else:
-    vcfindex = vcffile + ".tbi"
+envdir       = os.getcwd() + "/.harpy_envs"
+genomefile   = config["inputs"]["genome"]
+bn           = os.path.basename(genomefile)
+bamlist      = config["inputs"]["alignments"]
+samplenames = {Path(i).stem for i in bamlist}
+groupfile    = config["inputs"]["groupings"]
+vcffile      = config["inputs"]["vcf"]
+vcfindex     = (vcffile + ".csi") if vcffile.lower().endswith("bcf") else (vcffile + ".tbi")
+extra        = config.get("extra", None) 
+min_sv       = config["min_sv"]
+min_barcodes = config["min_barcodes"]
+mol_dist     = config["molecule_distance"]
+skipreports  = config["skip_reports"]
+outdir       = config["output_directory"]
+if bn.lower().endswith(".gz"):
+    bn = bn[:-3]
 
 wildcard_constraints:
-    sample = "[a-zA-Z0-9._-]+"
+    sample = "[a-zA-Z0-9._-]+",
+    population = "[a-zA-Z0-9._-]+"
 
 onerror:
     print("")
@@ -71,6 +68,26 @@ def process_args(args):
                 argsDict[i[0].lstrip("-")] = i[1]
     return argsDict
 
+# create dictionary of population => filenames
+## this makes it easier to set the snakemake rules/wildcards
+def pop_manifest(groupingfile, filelist):
+    d = {}
+    with open(groupingfile) as f:
+        for line in f:
+            samp, pop = line.rstrip().split()
+            if samp.lstrip().startswith("#"):
+                continue
+            r = re.compile(fr".*/({samp.lstrip()})\.(bam|sam)$", flags = re.IGNORECASE)
+            sampl = list(filter(r.match, filelist))[0]
+            if pop not in d.keys():
+                d[pop] = [sampl]
+            else:
+                d[pop].append(sampl)
+    return d
+
+popdict     = pop_manifest(groupfile, bamlist)
+populations = popdict.keys()
+
 def sam_index(infile):
     """Use Samtools to index an input file, adding .bai to the end of the name"""
     if not os.path.exists(f"{infile}.bai"):
@@ -92,7 +109,7 @@ rule genome_link:
     input:
         genomefile
     output: 
-        f"Genome/{validgenome}"
+        f"Genome/{bn}"
     container:
         None
     message: 
@@ -106,37 +123,23 @@ rule genome_link:
             # decompress bgzipped
             gzip -d -c {input} | seqtk seq > {output}
         else
-            # copy uncompressed
             cp -f {input} {output}
         fi
         """
 
 rule genome_faidx:
     input: 
-        f"Genome/{validgenome}"
+        f"Genome/{bn}"
     output: 
-        f"Genome/{validgenome}.fai"
-    log:
-        f"Genome/{validgenome}.faidx.log"
+        f"Genome/{bn}.fai"
     container:
         None
     message:
         "Indexing {input}"
+    log:
+        f"Genome/{bn}.faidx.log"
     shell:
         "samtools faidx --fai-idx {output} {input} 2> {log}"
-
-rule index_original_alignments:
-    input:
-        bamlist
-    output:
-        [f"{i}.bai" for i in bamlist]
-    threads:
-        workflow.cores
-    message:
-        "Indexing alignment files"
-    run:
-        with multiprocessing.Pool(processes=threads) as pool:
-            pool.map(sam_index, input)
 
 rule index_bcf:
     input:
@@ -162,21 +165,34 @@ rule index_vcfgz:
     shell:
         "tabix {input}"
 
+rule index_original_alignments:
+    input:
+        bamlist
+    output:
+        [f"{i}.bai" for i in bamlist]
+    threads:
+        workflow.cores
+    message:
+        "Indexing alignment files"
+    run:
+        with multiprocessing.Pool(processes=threads) as pool:
+            pool.map(sam_index, input)
+
 rule phase_alignments:
     input:
-        get_align_index,
         vcfindex,
-        f"Genome/{validgenome}.fai",
+        get_align_index,
+        f"Genome/{bn}.fai",
         vcf = vcffile,
         aln = get_alignments,
-        ref = f"Genome/{validgenome}"
+        ref = f"Genome/{bn}"
     output:
         bam = outdir + "/phasedbam/{sample}.bam",
         log = outdir + "/logs/whatshap-haplotag/{sample}.phase.log"
-    conda:
-        f"{envdir}/phase.yaml"
     threads:
         4
+    conda:
+        f"{envdir}/phase.yaml"
     message:
         "Phasing: {input.aln}"
     shell:
@@ -201,74 +217,101 @@ rule log_phasing:
         done
         """
 
+rule copy_groupings:
+    input:
+        groupfile
+    output:
+        outdir + "/workflow/sample.groups"
+    message:
+        "Logging {input}"
+    run:
+        with open(input[0], "r") as infile, open(output[0], "w") as outfile:
+            _ = [outfile.write(i) for i in infile.readlines() if not i.lstrip().startswith("#")]
+
+rule merge_list:
+    input:
+        outdir + "/workflow/sample.groups"
+    output:
+        outdir + "/workflow/merge_samples/{population}.list"
+    message:
+        "Creating population file list: {wildcards.population}"
+    run:
+        with open(output[0], "w") as fout:
+            for bamfile in popdict[wildcards.population]:
+                _ = fout.write(bamfile + "\n")
+
+rule merge_populations:
+    input: 
+        bamlist  = outdir + "/workflow/merge_samples/{population}.list",
+        bamfiles = lambda wc: collect("{sample}", sample = popdict[wc.population]) 
+    output:
+        bam = temp(outdir + "/workflow/input/{population}.bam"),
+        bai = temp(outdir + "/workflow/input/{population}.bam.bai")
+    threads:
+        workflow.cores
+    container:
+        None
+    message:
+        "Merging alignments: {wildcards.population}"
+    shell:
+        "samtools merge -o {output.bam}##idx##{output.bai} --threads {threads} --write-index -b {input.bamlist}"
+
 rule create_config:
     input:
-        outdir + "/phasedbam/{sample}.bam"
+        outdir + "/workflow/input/{population}.bam"
     output:
-        outdir + "/workflow/input/{sample}.naibr"
+        outdir + "/workflow/config/{population}.naibr"
     params:
-        lambda wc: wc.get("sample"),
+        lambda wc: wc.get("population"),
         min(10, workflow.cores)
     message:
-        "Creating naibr config file: {wildcards.sample}"
+        "Creating naibr config file: {wildcards.population}"
     run:
         argdict = process_args(extra)
         with open(output[0], "w") as conf:
             _ = conf.write(f"bam_file={input[0]}\n")
-            _ = conf.write(f"prefix={params[0]}\n")
             _ = conf.write(f"outdir={outdir}/{params[0]}\n")
+            _ = conf.write(f"prefix={params[0]}\n")
             _ = conf.write(f"threads={params[1]}\n")
             for i in argdict:
                 _ = conf.write(f"{i}={argdict[i]}\n")
 
-rule index_phased_alignment:
-    input:
-        outdir + "/phasedbam/{sample}.bam"
-    output:
-        outdir + "/phasedbam/{sample}.bam.bai"
-    container:
-        None
-    message:
-        "Indexing alignment: {wildcards.sample}"
-    shell:
-        "samtools index {input} {output} 2> /dev/null"
-
 rule call_sv:
     input:
-        bam   = outdir + "/phasedbam/{sample}.bam",
-        bai   = outdir + "/phasedbam/{sample}.bam.bai",
-        conf  = outdir + "/workflow/input/{sample}.naibr"
+        bam   = outdir + "/workflow/input/{population}.bam",
+        bai   = outdir + "/workflow/input/{population}.bam.bai",
+        conf  = outdir + "/workflow/config/{population}.naibr"
     output:
-        bedpe = outdir + "/{sample}/{sample}.bedpe",
-        refmt = outdir + "/{sample}/{sample}.reformat.bedpe",
-        vcf   = outdir + "/{sample}/{sample}.vcf"
+        bedpe = outdir + "/{population}/{population}.bedpe",
+        refmt = outdir + "/{population}/{population}.reformat.bedpe",
+        vcf   = outdir + "/{population}/{population}.vcf"
     log:
-        outdir + "/logs/{sample}.naibr.log"
+        outdir + "/logs/{population}.naibr.log"
     threads:
         10
     conda:
         f"{envdir}/sv.yaml"
     message:
-        "Calling variants: {wildcards.sample}"
+        "Calling variants: {wildcards.population}"
     shell:
         "naibr {input.conf} > {log} 2>&1"
 
 rule infer_sv:
     input:
-        bedpe = outdir + "/{sample}/{sample}.bedpe",
-        refmt = outdir + "/{sample}/{sample}.reformat.bedpe",
-        vcf   = outdir + "/{sample}/{sample}.vcf"
+        bedpe = outdir + "/{population}/{population}.bedpe",
+        refmt = outdir + "/{population}/{population}.reformat.bedpe",
+        vcf   = outdir + "/{population}/{population}.vcf"
     output:
-        bedpe = outdir + "/{sample}.bedpe",
-        refmt = outdir + "/IGV/{sample}.reformat.bedpe",
-        fail  = outdir + "/filtered/{sample}.fail.bedpe",
-        vcf   = outdir + "/vcf/{sample}.vcf" 
+        bedpe = outdir + "/{population}.bedpe",
+        refmt = outdir + "/IGV/{population}.reformat.bedpe",
+        fail  = outdir + "/filtered/{population}.fail.bedpe",
+        vcf   = outdir + "/vcf/{population}.vcf" 
     params:
-        outdir = lambda wc: outdir + "/" + wc.get("sample")
+        outdir = lambda wc: outdir + "/" + wc.get("population")
     container:
         None
     message:
-        "Inferring variants from naibr output: {wildcards.sample}"
+        "Inferring variants from naibr output: {wildcards.population}"
     shell:
         """
         infer_sv.py {input.bedpe} -f {output.fail} > {output.bedpe}
@@ -277,25 +320,39 @@ rule infer_sv:
         rm -rf {params.outdir}
         """
 
-rule create_report:
+rule infer_sv_report:
     input:
-        bedpe = outdir + "/{sample}.bedpe",
-        fai   = f"Genome/{validgenome}.fai"
+        fai   = f"Genome/{bn}.fai",
+        bedpe = outdir + "/{population}.bedpe"
     output:
-        outdir + "/reports/{sample}.naibr.html"
+        outdir + "/reports/{population}.naibr.html"
+    message:
+        "Creating report: {wildcards.population}"
     conda:
         f"{envdir}/r.yaml"
-    message:
-        "Creating report: {wildcards.sample}"
     script:
-        "report/Naibr.Rmd"
+        "report/naibr.Rmd"
+
+rule sv_report_aggregate:
+    input:
+        fai   = f"Genome/{bn}.fai",
+        bedpe = collect(outdir + "/{pop}.bedpe", pop = populations)
+    output:
+        outdir + "/reports/naibr.pop.summary.html"
+    message:
+        "Creating summary report"
+    conda:
+        f"{envdir}/r.yaml"
+    script:
+        "report/naibr_pop.Rmd"
 
 rule workflow_summary:
     default_target: True
     input:
-        bedpe = collect(outdir + "/{sample}.bedpe", sample = samplenames),
+        bedpe = collect(outdir + "/{pop}.bedpe", pop = populations),
         phaselog = outdir + "/logs/whatshap-haplotag.log",
-        reports =  collect(outdir + "/reports/{sample}.naibr.html", sample = samplenames) if not skipreports else []
+        reports = collect(outdir + "/reports/{pop}.naibr.html", pop = populations) if not skipreports else [],
+        agg_report = outdir + "/reports/naibr.pop.summary.html" if not skipreports else []
     message:
         "Summarizing the workflow: {output}"
     run:
@@ -304,6 +361,7 @@ rule workflow_summary:
         with open(outdir + "/workflow/sv.naibr.summary", "w") as f:
             _ = f.write("The harpy sv naibr workflow ran using these parameters:\n\n")
             _ = f.write(f"The provided genome: {bn}\n")
+            _ = f.write(f"The sample grouping file: {groupfile}\n\n")
             _ = f.write("The alignment files were phased using:\n")
             _ = f.write(f"    whatshap haplotag --reference genome.fasta --linked-read-distance-cutoff {mol_dist} --ignore-read-groups --tag-supplementary --sample sample_x file.vcf sample_x.bam\n")
             _ = f.write("naibr variant calling ran using these configurations:\n")

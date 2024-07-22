@@ -111,7 +111,7 @@ rule create_report:
     message:
         "Producing report"
     script:
-        "report/PreflightBam.Rmd"
+        "report/preflight_bam.Rmd"
 
 rule workflow_summary:
     default_target: True

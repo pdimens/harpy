@@ -284,7 +284,7 @@ rule alignment_report:
     message: 
         "Summarizing barcoded alignments: {wildcards.sample}"
     script:
-        "report/AlignStats.Rmd"
+        "report/align_stats.Rmd"
 
 rule general_alignment_stats:
     input:

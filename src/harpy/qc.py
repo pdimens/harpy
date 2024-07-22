@@ -72,7 +72,7 @@ def qc(inputs, output_dir, min_length, max_length, trim_adapters, deduplicate, d
     os.makedirs(workflowdir, exist_ok=True)
     fqlist, sample_count = parse_fastq_inputs(inputs)
     fetch_rule(workflowdir, "qc.smk")
-    fetch_report(workflowdir, "BxCount.Rmd")
+    fetch_report(workflowdir, "bx_count.Rmd")
 
     with open(f"{workflowdir}/config.yaml", "w", encoding="utf-8") as config:
         config.write("workflow: qc\n")

@@ -138,7 +138,7 @@ def linkedreads(genome_hap1, genome_hap2, output_dir, outer_distance, mutation_r
     workflowdir = f"{output_dir}/workflow"
     sdm = "conda" if conda else "conda apptainer"
     command = f'snakemake --rerun-incomplete --rerun-triggers input mtime params --nolock  --software-deployment-method {sdm} --conda-prefix ./.snakemake/conda --cores {threads} --directory . '
-    command += f"--snakefile {workflowdir}/simulate-linkedreads.smk "
+    command += f"--snakefile {workflowdir}/simulate_linkedreads.smk "
     command += f"--configfile {workflowdir}/config.yaml "
     if hpc:
         command += f"--workflow-profile {hpc} "
@@ -151,7 +151,7 @@ def linkedreads(genome_hap1, genome_hap2, output_dir, outer_distance, mutation_r
     validate_input_by_ext(genome_hap2, "GENOME_HAP2", [".fasta", ".fa", ".fasta.gz", ".fa.gz"])
 
     os.makedirs(f"{workflowdir}/", exist_ok= True)
-    fetch_rule(workflowdir, "simulate-linkedreads.smk")
+    fetch_rule(workflowdir, "simulate_linkedreads.smk")
     fetch_script(workflowdir, "LRSIM_harpy.pl")
 
     with open(f"{workflowdir}/config.yaml", "w", encoding="utf-8") as config:
@@ -230,7 +230,7 @@ def snpindel(genome, snp_vcf, indel_vcf, output_dir, prefix, snp_count, indel_co
     workflowdir = f"{output_dir}/workflow"
     sdm = "conda" if conda else "conda apptainer"
     command = f'snakemake --rerun-incomplete --rerun-triggers input mtime params --nolock --software-deployment-method {sdm} --conda-prefix ./.snakemake/conda --cores 1 --directory . '
-    command += f"--snakefile {workflowdir}/simulate-snpindel.smk "
+    command += f"--snakefile {workflowdir}/simulate_snpindel.smk "
     command += f"--configfile {workflowdir}/config.yaml "
     if hpc:
         command += f"--workflow-profile {hpc} "
@@ -262,7 +262,7 @@ def snpindel(genome, snp_vcf, indel_vcf, output_dir, prefix, snp_count, indel_co
         printmsg += f"Genes GFF: {os.path.basename(genes)}\n"
     if exclude_chr:
         printmsg += f"Excluded Chromosomes: {os.path.basename(exclude_chr)}\n"
-    fetch_rule(workflowdir, "simulate-snpindel.smk")
+    fetch_rule(workflowdir, "simulate_snpindel.smk")
     fetch_script(workflowdir, "simuG.pl")
     # setup the config file depending on inputs
     with open(f"{workflowdir}/config.yaml", "w", encoding="utf-8") as config:
@@ -332,7 +332,7 @@ def inversion(genome, vcf, prefix, output_dir, count, min_size, max_size, centro
     workflowdir = f"{output_dir}/workflow"
     sdm = "conda" if conda else "conda apptainer"
     command = f'snakemake --rerun-incomplete --rerun-triggers input mtime params --nolock --software-deployment-method {sdm} --conda-prefix ./.snakemake/conda --cores 1 --directory . '
-    command += f"--snakefile {workflowdir}/simulate-variants.smk "
+    command += f"--snakefile {workflowdir}/simulate_variants.smk "
     command += f"--configfile {workflowdir}/config.yaml "
     if hpc:
         command += f"--workflow-profile {hpc} "
@@ -360,7 +360,7 @@ def inversion(genome, vcf, prefix, output_dir, count, min_size, max_size, centro
         printmsg += f"Genes GFF: {os.path.basename(genes)}\n"
     if exclude_chr:
         printmsg += f"Excluded Chromosomes: {os.path.basename(exclude_chr)}\n"
-    fetch_rule(workflowdir, "simulate-variants.smk")
+    fetch_rule(workflowdir, "simulate_variants.smk")
     fetch_script(workflowdir, "simuG.pl")
 
     # setup the config file depending on inputs
@@ -435,7 +435,7 @@ def cnv(genome, output_dir, vcf, prefix, count, min_size, max_size, dup_ratio, m
     workflowdir = f"{output_dir}/workflow"
     sdm = "conda" if conda else "conda apptainer"
     command = f'snakemake --rerun-incomplete --rerun-triggers input mtime params --nolock --software-deployment-method {sdm} --conda-prefix ./.snakemake/conda --cores 1 --directory . '
-    command += f"--snakefile {workflowdir}/simulate-variants.smk "
+    command += f"--snakefile {workflowdir}/simulate_variants.smk "
     command += f"--configfile {workflowdir}/config.yaml "
     if hpc:
         command += f"--workflow-profile {hpc} "
@@ -463,7 +463,7 @@ def cnv(genome, output_dir, vcf, prefix, count, min_size, max_size, dup_ratio, m
         printmsg += f"Genes GFF: {os.path.basename(genes)}\n"
     if exclude_chr:
         printmsg += f"Excluded Chromosomes: {os.path.basename(exclude_chr)}\n"
-    fetch_rule(workflowdir, "simulate-variants.smk")
+    fetch_rule(workflowdir, "simulate_variants.smk")
     fetch_script(workflowdir, "simuG.pl")
     # setup the config file depending on inputs
     with open(f"{workflowdir}/config.yaml", "w", encoding="utf-8") as config:
@@ -529,7 +529,7 @@ def translocation(genome, output_dir, prefix, vcf, count, centromeres, genes, he
     workflowdir = f"{output_dir}/workflow"
     sdm = "conda" if conda else "conda apptainer"
     command = f'snakemake --rerun-incomplete --rerun-triggers input mtime params --nolock --software-deployment-method {sdm} --conda-prefix ./.snakemake/conda --cores 1 --directory . '
-    command += f"--snakefile {workflowdir}/simulate-variants.smk "
+    command += f"--snakefile {workflowdir}/simulate_variants.smk "
     command += f"--configfile {workflowdir}/config.yaml "
     if hpc:
         command += f"--workflow-profile {hpc} "
@@ -558,7 +558,7 @@ def translocation(genome, output_dir, prefix, vcf, count, centromeres, genes, he
     if exclude_chr:
         printmsg += f"Excluded Chromosomes: {os.path.basename(exclude_chr)}\n"
 
-    fetch_rule(workflowdir, "simulate-variants.smk")
+    fetch_rule(workflowdir, "simulate_variants.smk")
     fetch_script(workflowdir, "simuG.pl")
     # setup the config file depending on inputs
     with open(f"{workflowdir}/config.yaml", "w", encoding="utf-8") as config:

@@ -20,8 +20,8 @@ preflight: &preflight
   - 'test/bam/**'
   - 'src/harpy/bin/check_bam.py'
   - 'src/harpy/bin/check_fastq.py'
-  - 'src/harpy/reports/PreflightFastq.Rmd'
-  - 'src/harpy/reports/PreflightBam.Rmd'
+  - 'src/harpy/reports/preflight_fastq.Rmd'
+  - 'src/harpy/reports/preflight_bam.Rmd'
 deconvolve: &deconvolve
   - *common
   - *container
@@ -46,51 +46,51 @@ bwa: &bwa
   - *container
   - 'src/harpy/align.py'
   - 'src/harpy/snakefiles/align-bwa.smk'
-  - 'src/harpy/reports/AlignStats.Rmd'
-  - 'src/harpy/reports/BxCount.Rmd'
+  - 'src/harpy/reports/align_stats.Rmd'
+  - 'src/harpy/reports/bx_count.Rmd'
   - 'src/harpy/bin/bx_stats.py'
   - 'src/harpy/bin/count_bx.py'
   - 'src/harpy/bin/assign_mi.py'
-  - 'src/harpy/bin/makeWindows.py'
+  - 'src/harpy/bin/make_windows.py'
   - 'test/fastq/**'
 ema: &ema
   - *common
   - *container
   - 'src/harpy/align.py'
   - 'src/harpy/snakefiles/align-ema.smk'
-  - 'src/harpy/reports/AlignStats.Rmd'
-  - 'src/harpy/reports/BxCount.Rmd'
+  - 'src/harpy/reports/align_stats.Rmd'
+  - 'src/harpy/reports/bx_count.Rmd'
   - 'src/harpy/bin/bx_stats.py'
   - 'src/harpy/bin/count_bx.py'
-  - 'src/harpy/bin/makewindows.py'
+  - 'src/harpy/bin/make_windows.py'
   - 'test/fastq/**'
 strobealign: &strobealign
   - *common
   - *container
   - 'src/harpy/align.py'
   - 'src/harpy/snakefiles/align-strobealign.smk'
-  - 'src/harpy/reports/AlignStats.Rmd'
-  - 'src/harpy/reports/BxCount.Rmd'
+  - 'src/harpy/reports/align_stats.Rmd'
+  - 'src/harpy/reports/bx_count.Rmd'
   - 'src/harpy/bin/assign_mi.py'
   - 'src/harpy/bin/bx_stats.py'
   - 'src/harpy/bin/count_bx.py'
-  - 'src/harpy/bin/makewindows.py'
+  - 'src/harpy/bin/make_windows.py'
   - 'test/fastq/**'
 mpileup: &mpileup
   - *common
   - *container
   - 'src/harpy/snp.py'
   - 'src/harpy/snakefiles/snp-mpileup.smk'
-  - 'src/harpy/reports/BcftoolsStats.Rmd'
-  - 'src/harpy/bin/makewindows.py'
+  - 'src/harpy/reports/bcftools_stats.Rmd'
+  - 'src/harpy/bin/make_windows.py'
   - 'test/bam/**'
 freebayes: &freebayes
   - *common
   - *container
   - 'src/harpy/snp.py'
   - 'src/harpy/snakefiles/snp-freebayes.smk'
-  - 'src/harpy/reports/BcftoolsStats.Rmd'
-  - 'src/harpy/bin/makewindows.py'
+  - 'src/harpy/reports/bcftools_stats.Rmd'
+  - 'src/harpy/bin/make_windows.py'
   - 'test/bam/**'
 impute: &impute
   - *common
@@ -99,8 +99,8 @@ impute: &impute
   - 'src/harpy/snakefiles/impute.smk'
   - 'test/bam/**'
   - 'test/vcf/test.bcf'
-  - 'src/harpy/reports/Impute.Rmd'
-  - 'src/harpy/reports/StitchCollate.Rmd'
+  - 'src/harpy/reports/impute.Rmd'
+  - 'src/harpy/reports/stitch_collate.Rmd'
   - 'src/harpy/scripts/stitch_impute.R'
 leviathan: &leviathan
   - *common
@@ -126,7 +126,7 @@ phase: &phase
   - 'src/harpy/snakefiles/phase.smk'
   - 'test/bam/**'
   - 'test/vcf/test.bcf'
-  - 'src/harpy/reports/HapCut2.Rmd'
+  - 'src/harpy/reports/hapcut.Rmd'
   - 'src/harpy/bin/parse_phaseblocks.py'
 simvars: &simvars
   - *common

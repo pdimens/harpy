@@ -243,7 +243,7 @@ rule sv_report:
     conda:
         f"{envdir}/r.yaml"
     script:
-        "report/Leviathan.Rmd"
+        "report/leviathan.Rmd"
 
 rule sv_report_aggregate:
     input:	
@@ -256,7 +256,7 @@ rule sv_report_aggregate:
     conda:
         f"{envdir}/r.yaml"
     script:
-        "report/LeviathanPop.Rmd"
+        "report/leviathan_pop.Rmd"
 
 rule workflow_summary:
     default_target: True

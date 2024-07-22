@@ -211,7 +211,7 @@ rule create_report:
     message:
         "Creating report: {wildcards.sample}"
     script:
-        "report/Naibr.Rmd"
+        "report/naibr.Rmd"
 
 rule workflow_summary:
     default_target: True

@@ -333,7 +333,7 @@ rule phase_report:
     message:
         "Summarizing phasing results"
     script:
-        "report/HapCut2.Rmd"
+        "report/hapcut.Rmd"
 
 rule workflow_summary:
     default_target: True

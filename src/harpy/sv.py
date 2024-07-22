@@ -77,9 +77,9 @@ def leviathan(inputs, output_dir, genome, min_sv, min_barcodes, iterations, thre
     output_dir = output_dir.rstrip("/")
     workflowdir = f"{output_dir}/workflow"
     sdm = "conda" if conda else "conda apptainer"
-    vcaller = "leviathan" if populations is None else "leviathan-pop"
+    vcaller = "leviathan" if populations is None else "leviathan_pop"
     command = f'snakemake --rerun-incomplete --rerun-triggers input mtime params --nolock --software-deployment-method {sdm} --conda-prefix ./.snakemake/conda --cores {threads} --directory . '
-    command += f"--snakefile {workflowdir}/sv-{vcaller}.smk "
+    command += f"--snakefile {workflowdir}/sv_{vcaller}.smk "
     command += f"--configfile {workflowdir}/config.yaml "
     if hpc:
         command += f"--workflow-profile {hpc} "
@@ -92,9 +92,9 @@ def leviathan(inputs, output_dir, genome, min_sv, min_barcodes, iterations, thre
     bamlist, n = parse_alignment_inputs(inputs)
     validate_input_by_ext(genome, "--genome", [".fasta", ".fa", ".fasta.gz", ".fa.gz"])
     if populations is not None:
-        fetch_report(workflowdir, "LeviathanPop.Rmd")
-    fetch_report(workflowdir, "Leviathan.Rmd")
-    fetch_rule(workflowdir, f"sv-{vcaller}.smk")
+        fetch_report(workflowdir, "leviathan_pop.Rmd")
+    fetch_report(workflowdir, "leviathan.Rmd")
+    fetch_rule(workflowdir, f"sv_{vcaller}.smk")
 
     with open(f'{workflowdir}/config.yaml', "w", encoding="utf-8") as config:
         config.write("workflow: sv leviathan\n")
@@ -168,10 +168,10 @@ def naibr(inputs, output_dir, genome, vcf, min_sv, min_barcodes, threads, popula
     output_dir = output_dir.rstrip("/")
     workflowdir = f"{output_dir}/workflow"
     sdm = "conda" if conda else "conda apptainer"
-    vcaller = "naibr" if populations is None else "naibr-pop"
-    vcaller += "-phase" if vcf is not None else ""
+    vcaller = "naibr" if populations is None else "naibr_pop"
+    vcaller += "_phase" if vcf is not None else ""
     command = f'snakemake --rerun-incomplete --rerun-triggers input mtime params --nolock --software-deployment-method {sdm} --conda-prefix ./.snakemake/conda --cores {threads} --directory . '
-    command += f"--snakefile {workflowdir}/sv-{vcaller}.smk "
+    command += f"--snakefile {workflowdir}/sv_{vcaller}.smk "
     command += f"--configfile {workflowdir}/config.yaml "
     if hpc:
         command += f"--workflow-profile {hpc} "
@@ -184,12 +184,11 @@ def naibr(inputs, output_dir, genome, vcf, min_sv, min_barcodes, threads, popula
     bamlist, n = parse_alignment_inputs(inputs)
     validate_input_by_ext(genome, "--genome", [".fasta", ".fa", ".fasta.gz", ".fa.gz"])
     if populations is not None:
-        fetch_report(workflowdir, "NaibrPop.Rmd")
-    fetch_report(workflowdir, "Naibr.Rmd")
+        fetch_report(workflowdir, "naibr_pop.Rmd")
+    fetch_report(workflowdir, "naibr.Rmd")
     if vcf is not None:
         check_phase_vcf(vcf)
-        #vcaller += "-phase"
-    fetch_rule(workflowdir, f"sv-{vcaller}.smk")
+    fetch_rule(workflowdir, f"sv_{vcaller}.smk")
 
     with open(f'{workflowdir}/config.yaml', "w", encoding="utf-8") as config:
         config.write("workflow: sv naibr\n")

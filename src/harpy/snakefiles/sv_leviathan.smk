@@ -216,7 +216,7 @@ rule sv_report:
     message:
         "Generating SV report: {wildcards.sample}"
     script:
-        "report/Leviathan.Rmd"
+        "report/leviathan.Rmd"
 
 
 rule workflow_summary:

@@ -234,7 +234,7 @@ rule sv_report:
     message:
         "Creating report: {wildcards.population}"
     script:
-        "report/Naibr.Rmd"
+        "report/naibr.Rmd"
 
 rule sv_report_aggregate:
     input:
@@ -247,7 +247,7 @@ rule sv_report_aggregate:
     message:
         "Creating summary report"
     script:
-        "report/NaibrPop.Rmd"
+        "report/naibr_pop.Rmd"
 
 rule workflow_summary:
     default_target: True
