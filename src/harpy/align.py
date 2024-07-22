@@ -90,7 +90,7 @@ def bwa(inputs, output_dir, genome, depth_window, threads, extra_params, quality
     workflowdir = f"{output_dir}/workflow"
     sdm = "conda" if conda else "conda apptainer"
     command = f'snakemake --rerun-incomplete --rerun-triggers input mtime params --nolock --software-deployment-method {sdm} --conda-prefix ./.snakemake/conda --cores {threads} --directory . '
-    command += f"--snakefile {workflowdir}/align-bwa.smk "
+    command += f"--snakefile {workflowdir}/align_bwa.smk "
     command += f"--configfile {workflowdir}/config.yaml "
     if hpc:
         command += f"--workflow-profile {hpc} "
@@ -102,9 +102,9 @@ def bwa(inputs, output_dir, genome, depth_window, threads, extra_params, quality
     os.makedirs(f"{workflowdir}/", exist_ok= True)
     fqlist, sample_count = parse_fastq_inputs(inputs)
     validate_input_by_ext(genome, "--genome", [".fasta", ".fa", ".fasta.gz", ".fa.gz"])
-    fetch_rule(workflowdir, "align-bwa.smk")
-    fetch_report(workflowdir, "AlignStats.Rmd")
-    fetch_report(workflowdir, "AlignBxStats.Rmd")
+    fetch_rule(workflowdir, "align_bwa.smk")
+    fetch_report(workflowdir, "align_stats.Rmd")
+    fetch_report(workflowdir, "align_bxstats.Rmd")
 
     with open(f"{workflowdir}/config.yaml", "w", encoding="utf-8") as config:
         config.write("workflow: align bwa\n")
@@ -167,7 +167,7 @@ def ema(inputs, output_dir, platform, whitelist, genome, depth_window, threads, 
     workflowdir = f"{output_dir}/workflow"
     sdm = "conda" if conda else "conda apptainer"
     command = f'snakemake --rerun-incomplete --rerun-triggers input mtime params --nolock --software-deployment-method {sdm} --conda-prefix ./.snakemake/conda --cores {threads} --directory . '
-    command += f"--snakefile {workflowdir}/align-ema.smk "
+    command += f"--snakefile {workflowdir}/align_ema.smk "
     command += f"--configfile {workflowdir}/config.yaml "
     if hpc:
         command += f"--workflow-profile {hpc} "
@@ -192,9 +192,9 @@ def ema(inputs, output_dir, platform, whitelist, genome, depth_window, threads, 
     os.makedirs(f"{workflowdir}/", exist_ok= True)
     fqlist, sample_count = parse_fastq_inputs(inputs)
     validate_input_by_ext(genome, "--genome", [".fasta", ".fa", ".fasta.gz", ".fa.gz"])
-    fetch_rule(workflowdir, "align-ema.smk")
-    fetch_report(workflowdir, "AlignStats.Rmd")
-    fetch_report(workflowdir, "AlignBxStats.Rmd")
+    fetch_rule(workflowdir, "align_ema.smk")
+    fetch_report(workflowdir, "align_stats.Rmd")
+    fetch_report(workflowdir, "align_bxstats.Rmd")
 
     with open(f"{workflowdir}/config.yaml", "w", encoding="utf-8") as config:
         config.write("workflow: align ema\n")
@@ -260,7 +260,7 @@ def strobe(inputs, output_dir, genome, read_length, depth_window, threads, extra
     workflowdir = f"{output_dir}/workflow"
     sdm = "conda" if conda else "conda apptainer"
     command = f'snakemake --rerun-incomplete --rerun-triggers input mtime params --nolock --software-deployment-method {sdm} --conda-prefix ./.snakemake/conda --cores {threads} --directory . '
-    command += f"--snakefile {workflowdir}/align-strobealign.smk "
+    command += f"--snakefile {workflowdir}/align_strobealign.smk "
     command += f"--configfile {workflowdir}/config.yaml "
     if hpc:
         command += f"--workflow-profile {hpc} "
@@ -272,9 +272,9 @@ def strobe(inputs, output_dir, genome, read_length, depth_window, threads, extra
     os.makedirs(f"{workflowdir}/", exist_ok= True)
     fqlist, sample_count = parse_fastq_inputs(inputs)
     validate_input_by_ext(genome, "--genome", [".fasta", ".fa", ".fasta.gz", ".fa.gz"])
-    fetch_rule(workflowdir, "align-strobealign.smk")
-    fetch_report(workflowdir, "AlignStats.Rmd")
-    fetch_report(workflowdir, "AlignBxStats.Rmd")
+    fetch_rule(workflowdir, "align_strobealign.smk")
+    fetch_report(workflowdir, "align_stats.Rmd")
+    fetch_report(workflowdir, "align_bxstats.Rmd")
 
     with open(f"{workflowdir}/config.yaml", "w", encoding="utf-8") as config:
         config.write("workflow: align strobe\n")

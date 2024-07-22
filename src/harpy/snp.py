@@ -84,7 +84,7 @@ def mpileup(inputs, output_dir, regions, genome, threads, populations, ploidy, e
     workflowdir = f"{output_dir}/workflow"
     sdm = "conda" if conda else "conda apptainer"
     command = f'snakemake --rerun-incomplete --rerun-triggers input mtime params --nolock --software-deployment-method {sdm} --conda-prefix ./.snakemake/conda --cores {threads} --directory . '
-    command += f"--snakefile {workflowdir}/snp-mpileup.smk "
+    command += f"--snakefile {workflowdir}/snp_mpileup.smk "
     command += f"--configfile {workflowdir}/config.yaml "
     if hpc:
         command += f"--workflow-profile {hpc} "
@@ -109,8 +109,8 @@ def mpileup(inputs, output_dir, regions, genome, threads, populations, ploidy, e
         region = Path(f"{workflowdir}/positions.bed").resolve()
         os.system(f"cp -f {regions} {region}")
 
-    fetch_rule(workflowdir, "snp-mpileup.smk")
-    fetch_report(workflowdir, "BcftoolsStats.Rmd")
+    fetch_rule(workflowdir, "snp_mpileup.smk")
+    fetch_report(workflowdir, "bcftools_stats.Rmd")
 
     with open(f"{workflowdir}/config.yaml", "w", encoding="utf-8") as config:
         config.write("workflow: snp mpileup\n")
@@ -184,7 +184,7 @@ def freebayes(inputs, output_dir, genome, threads, populations, ploidy, regions,
     workflowdir = f"{output_dir}/workflow"
     sdm = "conda" if conda else "conda apptainer"
     command = f'snakemake --rerun-incomplete --rerun-triggers input mtime params --nolock --software-deployment-method {sdm} --conda-prefix ./.snakemake/conda --cores {threads} --directory . '
-    command += f"--snakefile {workflowdir}/snp-freebayes.smk "
+    command += f"--snakefile {workflowdir}/snp_freebayes.smk "
     command += f"--configfile {workflowdir}/config.yaml "
     if hpc:
         command += f"--workflow-profile {hpc} "
@@ -209,8 +209,8 @@ def freebayes(inputs, output_dir, genome, threads, populations, ploidy, regions,
         region = Path(f"{workflowdir}/positions.bed").resolve()
         os.system(f"cp -f {regions} {region}")
 
-    fetch_rule(workflowdir, "snp-freebayes.smk")
-    fetch_report(workflowdir, "BcftoolsStats.Rmd")
+    fetch_rule(workflowdir, "snp_freebayes.smk")
+    fetch_report(workflowdir, "bcftools_stats.Rmd")
 
     with open(f"{workflowdir}/config.yaml", "w", encoding="utf-8") as config:
         config.write("workflow: snp freebayes\n")

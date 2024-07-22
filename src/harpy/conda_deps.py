@@ -6,15 +6,65 @@ def generate_conda_deps():
     """Create the YAML files of the workflow conda dependencies"""
     condachannels = ["bioconda","conda-forge","defaults"]
     environ = {
-        "qc" : ["bioconda::quickdeconvolution", "bioconda::falco", "bioconda::fastp", "bioconda::multiqc=1.22", "bioconda::pysam=0.22"],
-        "align": ["bioconda::bwa", "bioconda::ema","bioconda::strobealign", "conda-forge::icu","conda-forge::libzlib", "bioconda::samtools=1.20", "bioconda::seqtk", "bioconda::tabix", "conda-forge::xz"],
-        "snp": ["bioconda::bcftools=1.20", "bioconda::freebayes=1.3.6"],
-        "sv": ["bioconda::leviathan", "bioconda::naibr-plus"],
-        "phase" : ["bioconda::hapcut2", "bioconda::whatshap"],
-        "simulations" : ["conda-forge::perl", "bioconda::perl-math-random", "bioconda::perl-inline-c", "bioconda::perl-parse-recdescent", "conda-forge::numpy", "bioconda::dwgsim", "alienzj::msort"],
-        "r" : ["conda-forge::r-xml2", "conda-forge::r-highcharter", "conda-forge::r-circlize", "r::r-biocircos", "conda-forge::r-dt", "conda-forge::r-flexdashboard", "conda-forge::r-ggplot2", "conda-forge::r-plotly", "conda-forge::r-tidyr"],
-        "stitch" : ["bioconda::r-stitch=1.6.10"]
+        "align": [
+            "bioconda::bwa",
+            "bioconda::ema",
+            "bioconda::samtools=1.20",
+            "bioconda::seqtk",
+            "bioconda::strobealign",
+            "bioconda::tabix",
+            "conda-forge::icu",
+            "conda-forge::libzlib",
+            "conda-forge::xz"
+            ],
+        "phase" : [
+            "bioconda::hapcut2",
+            "bioconda::whatshap"
+            ],
+        "qc" : [
+            "bioconda::falco",
+            "bioconda::fastp",
+            "bioconda::multiqc=1.22",
+            "bioconda::pysam=0.22",
+            "bioconda::quickdeconvolution"
+            ],
+        "r" : [
+            "conda-forge::r-dt",
+            "conda-forge::r-dplyr",
+            "conda-forge::r-flexdashboard",
+            "conda-forge::r-ggplot2",
+            "conda-forge::r-highcharter",
+            "conda-forge::r-magrittr",
+            "conda-forge::r-plotly",
+            "conda-forge::r-scales",
+            "conda-forge::r-stringi",
+            "conda-forge::r-tidyr",
+            "conda-forge::r-viridislite", 
+            "conda-forge::r-xml2",
+            "r::r-biocircos"
+            ],
+        "simulations" : [
+            "alienzj::msort",
+            "bioconda::dwgsim",
+            "bioconda::perl-math-random",
+            "bioconda::perl-inline-c",
+            "bioconda::perl-parse-recdescent",
+            "conda-forge::numpy",
+            "conda-forge::perl"
+            ],
+        "snp": [
+            "bioconda::bcftools=1.20",
+            "bioconda::freebayes=1.3.6"
+            ],
+        "stitch" : [
+            "bioconda::r-stitch=1.6.10"
+            ],
+        "sv": [
+            "bioconda::leviathan",
+            "bioconda::naibr-plus"
+            ]
     }
+
     os.makedirs(".harpy_envs", exist_ok = True)
     # overwrites existing
     for env,deps in environ.items():

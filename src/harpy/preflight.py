@@ -60,7 +60,7 @@ def fastq(inputs, output_dir, threads, snakemake, quiet, hpc, conda, config_only
     workflowdir = f"{output_dir}/workflow"
     sdm = "conda" if conda else "conda apptainer"
     command = f'snakemake --rerun-incomplete --rerun-triggers input mtime params --nolock --software-deployment-method {sdm} --conda-prefix ./.snakemake/conda --cores {threads} --directory . '
-    command += f"--snakefile {workflowdir}/preflight-fastq.smk "
+    command += f"--snakefile {workflowdir}/preflight_fastq.smk "
     command += f"--configfile {workflowdir}/config.yaml "
     if hpc:
         command += f"--workflow-profile {hpc} "
@@ -71,8 +71,8 @@ def fastq(inputs, output_dir, threads, snakemake, quiet, hpc, conda, config_only
 
     os.makedirs(f"{workflowdir}/", exist_ok= True)
     fqlist, n = parse_fastq_inputs(inputs)
-    fetch_rule(workflowdir, "preflight-fastq.smk")
-    fetch_report(workflowdir, "PreflightFastq.Rmd")
+    fetch_rule(workflowdir, "preflight_fastq.smk")
+    fetch_report(workflowdir, "preflight_fastq.Rmd")
 
     with open(f"{workflowdir}/config.yaml", "w", encoding="utf-8") as config:
         config.write("workflow: preflight fastq\n")
@@ -117,7 +117,7 @@ def bam(inputs, output_dir, threads, snakemake, quiet, hpc, conda, config_only):
     workflowdir = f"{output_dir}/workflow"
     sdm = "conda" if conda else "conda apptainer"
     command = f'snakemake --rerun-incomplete --rerun-triggers input mtime params --nolock --software-deployment-method {sdm} --conda-prefix ./.snakemake/conda --cores {threads} --directory . '
-    command += f"--snakefile {workflowdir}/preflight-bam.smk "
+    command += f"--snakefile {workflowdir}/preflight_bam.smk "
     command += f"--configfile {workflowdir}/config.yaml "
     if hpc:
         command += f"--workflow-profile {hpc} "
@@ -128,8 +128,8 @@ def bam(inputs, output_dir, threads, snakemake, quiet, hpc, conda, config_only):
 
     os.makedirs(f"{workflowdir}/", exist_ok= True)
     bamlist, n = parse_alignment_inputs(inputs)
-    fetch_rule(workflowdir, "preflight-bam.smk")
-    fetch_report(workflowdir, "PreflightBam.Rmd")
+    fetch_rule(workflowdir, "preflight_bam.smk")
+    fetch_report(workflowdir, "preflight_bam.Rmd")
 
     with open(f"{workflowdir}/config.yaml", "w", encoding="utf-8") as config:
         config.write("workflow: preflight bam\n")

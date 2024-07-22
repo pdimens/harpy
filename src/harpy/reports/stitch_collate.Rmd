@@ -6,10 +6,12 @@ output:
     theme: lumen
     orientation: rows
     vertical_layout: scroll
+    mathjax: NULL
     logo: https://raw.githubusercontent.com/pdimens/harpy/docs/static/logo_report.png
     favicon: "https://github.com/pdimens/harpy/blob/docs/static/report_favicon.png"
     navbar:
       - { title : "Docs", icon: "fa-book", href: "https://pdimens.github.io/harpy/", align: right }
+      - { title : "Source", icon: "fa-github", href: "https://www.github.com/pdimens/harpy/", align: right }
 ---
 
 ```{r setup, include=FALSE}
@@ -118,6 +120,7 @@ pheight <- 1.2 + (0.166 * n)
 ```
 
 ```{r basic stats, fig.width = 7.5, dev ='jpeg'}
+#TODO make this interactive(?)
 .pscL <- grepl("^PSC", dataL)
 psc <- read.table(text=dataL[.pscL])[ ,3:14]
 names(psc) <- c("Sample", "HomozygousRef", "HomozygousAtl", "Heterozygotes", "Transitions", "Transversions", "Indels",	"MeanDepth", "Singletons",	"HapRef", "HapAlt", "Missing")

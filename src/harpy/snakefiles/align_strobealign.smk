@@ -125,7 +125,7 @@ rule align:
     benchmark:
         ".Benchmark/Mapping/strobealign/align.{sample}.txt"
     threads:
-        min(10, workflow.cores)
+        10
     conda:
         f"{envdir}/align.yaml"
     message:
@@ -235,7 +235,7 @@ rule report_persample:
     message: 
         "Summarizing barcoded alignments: {wildcards.sample}"
     script:
-        "report/AlignStats.Rmd"
+        "report/align_stats.Rmd"
 
 rule stats:
     input:
@@ -281,9 +281,9 @@ rule report_bx:
     message: 
         "Summarizing all barcode information from alignments"
     script:
-        "report/AlignBxStats.Rmd"
+        "report/align_bxstats.Rmd"
 
-rule log_workflow:
+rule workflow_summary:
     default_target: True
     input: 
         bams = collect(outdir + "/{sample}.{ext}", sample = samplenames, ext = ["bam","bam.bai"]),

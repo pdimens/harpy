@@ -73,7 +73,7 @@ def phase(inputs, output_dir, vcf, threads, molecule_distance, prune_threshold, 
     if genome:
         validate_input_by_ext(genome, "--genome", [".fasta", ".fa", ".fasta.gz", ".fa.gz"])
     fetch_rule(workflowdir, "phase.smk")
-    fetch_report(workflowdir, "HapCut2.Rmd")
+    fetch_report(workflowdir, "hapcut.Rmd")
 
     with open(f"{workflowdir}/config.yaml", "w", encoding="utf-8") as config:
         config.write("workflow: phase\n")

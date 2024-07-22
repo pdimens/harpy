@@ -209,7 +209,7 @@ rule convert_haplotag:
     shell:
         "10xtoHaplotag.py -f {input.fw} -r {input.rv} -b {input.barcodes} -p {params} > {log}"
 
-rule log_workflow:
+rule workflow_summary:
     default_target: True
     input:
         collect(outdir + "/sim_hap{hap}_haplotag.R{fw}.fq.gz", hap = [0,1], fw = [1,2])

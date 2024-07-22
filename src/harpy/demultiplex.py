@@ -62,7 +62,7 @@ def gen1(r1_fq, r2_fq, i1_fq, i2_fq, output_dir, schema, threads, snakemake, ski
     workflowdir = f"{output_dir}/workflow"
     sdm = "conda" if conda else "conda apptainer"
     command = f'snakemake --rerun-incomplete --rerun-triggers input mtime params --nolock --software-deployment-method {sdm} --conda-prefix ./.snakemake/conda --cores {threads} --directory . '
-    command += f"--snakefile {workflowdir}/demultiplex-gen1.smk "
+    command += f"--snakefile {workflowdir}/demultiplex_gen1.smk "
     command += f"--configfile {workflowdir}/config.yaml "
     if hpc:
         command += f"--workflow-profile {hpc} "
@@ -73,7 +73,7 @@ def gen1(r1_fq, r2_fq, i1_fq, i2_fq, output_dir, schema, threads, snakemake, ski
 
     validate_demuxschema(schema)
     os.makedirs(f"{workflowdir}", exist_ok=True)
-    fetch_rule(workflowdir, "demultiplex-gen1.smk")
+    fetch_rule(workflowdir, "demultiplex_gen1.smk")
         
     with open(f"{workflowdir}/config.yaml", "w", encoding= "utf-8") as config:
         config.write("workflow: demultiplex gen1\n")

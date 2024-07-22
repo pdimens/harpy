@@ -165,7 +165,7 @@ rule collate_stitch_reports:
     conda:
         f"{envdir}/r.yaml"
     script:
-        "report/StitchCollate.Rmd"
+        "report/stitch_collate.Rmd"
 
 rule clean_stitch_intermediates:
     input:
@@ -290,10 +290,10 @@ rule imputation_results_reports:
     message:
         "Generating imputation success report: {output}"
     script:
-        "report/Impute.Rmd"
+        "report/impute.Rmd"
 
 
-rule log_workflow:
+rule workflow_summary:
     default_target: True
     input: 
         vcf = collect(outdir + "/{stitchparams}/variants.imputed.bcf", stitchparams=paramspace.instance_patterns),

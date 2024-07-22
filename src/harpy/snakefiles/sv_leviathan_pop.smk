@@ -13,6 +13,7 @@ groupfile 	= config["inputs"]["groupings"]
 extra 		= config.get("extra", "") 
 min_sv      = config["min_sv"]
 min_bc      = config["min_barcodes"]
+iterations  = config["iterations"]
 outdir      = config["output_directory"]
 skipreports = config["skip_reports"]
 bn 			= os.path.basename(genomefile)
@@ -78,33 +79,31 @@ rule copy_groupings:
         with open(input[0], "r") as infile, open(output[0], "w") as outfile:
             _ = [outfile.write(i) for i in infile.readlines() if not i.lstrip().startswith("#")]
 
-rule bam_list:
+rule merge_list:
     input:
         outdir + "/workflow/sample.groups"
     output:
-        collect(outdir + "/workflow/{pop}.list", pop = populations)
+        outdir + "/workflow/merge_samples/{population}.list"
     message:
-        "Creating population file lists"
+        "Creating population file list: {wildcards.population}"
     run:
-        for p in populations:
-            alnlist = popdict[p]
-            with open(f"{outdir}/workflow/{p}.list", "w") as fout:
-                for bamfile in alnlist:
-                    _ = fout.write(bamfile + "\n")
+        with open(output[0], "w") as fout:
+            for bamfile in popdict[wildcards.population]:
+                _ = fout.write(bamfile + "\n")
 
 rule merge_populations:
     input: 
-        bamlist  = outdir + "/workflow/{population}.list",
+        bamlist  = outdir + "/workflow/merge_samples/{population}.list",
         bamfiles = lambda wc: collect("{sample}", sample = popdict[wc.population]) 
     output:
         bam = temp(outdir + "/workflow/input/{population}.bam"),
         bai = temp(outdir + "/workflow/input/{population}.bam.bai")
     threads:
-        4
+        workflow.cores
     container:
         None
     message:
-        "Merging alignments: Population {wildcards.population}"
+        "Merging alignments: {wildcards.population}"
     shell:
         "samtools merge -o {output.bam}##idx##{output.bai} --threads {threads} --write-index -b {input.bamlist}"
 
@@ -117,7 +116,7 @@ rule index_barcode:
     benchmark:
         ".Benchmark/leviathan-pop/{population}.lrez"
     threads:
-        4
+        max(10, workflow.cores)
     conda:
         f"{envdir}/sv.yaml"
     message:
@@ -125,7 +124,7 @@ rule index_barcode:
     shell:
         "LRez index bam -p -b {input.bam} -o {output} --threads {threads}"
 
-rule genome_link:
+rule genome_preprocess:
     input:
         genomefile
     output: 
@@ -183,16 +182,17 @@ rule call_sv:
         genome = f"Genome/{bn}",
         genidx = multiext(f"Genome/{bn}", ".fai", ".ann", ".bwt", ".pac", ".sa", ".amb")
     output:
-        pipe(outdir + "/{population}.vcf")
+        temp(outdir + "/{population}.vcf")
     log:  
         runlog     = outdir + "/logs/{population}.leviathan.log",
         candidates = outdir + "/logs/{population}.candidates"
     params:
         min_sv = f"-v {min_sv}",
         min_bc = f"-c {min_bc}",
+        iters  = f"-B {iterations}",
         extra = extra
     threads:
-        3
+        workflow.cores
     conda:
         f"{envdir}/sv.yaml"
     message:
@@ -231,7 +231,7 @@ rule sv_stats:
         bcftools query -f '{wildcards.population}\\t%CHROM\\t%POS\\t%END\\t%SVLEN\\t%SVTYPE\\t%BARCODES\\t%PAIRS\\n' {input} >> {output}
         """
 
-rule sv_report_bypop:
+rule sv_report:
     input:	
         statsfile = outdir + "/reports/data/{population}.sv.stats",
         bcf       = outdir + "/{population}.bcf",
@@ -243,9 +243,9 @@ rule sv_report_bypop:
     conda:
         f"{envdir}/r.yaml"
     script:
-        "report/Leviathan.Rmd"
+        "report/leviathan.Rmd"
 
-rule sv_report:
+rule sv_report_aggregate:
     input:	
         faidx      = f"Genome/{bn}.fai",
         statsfiles = collect(outdir + "/reports/data/{pop}.sv.stats", pop = populations)
@@ -256,9 +256,9 @@ rule sv_report:
     conda:
         f"{envdir}/r.yaml"
     script:
-        "report/LeviathanPop.Rmd"
+        "report/leviathan_pop.Rmd"
 
-rule log_workflow:
+rule workflow_summary:
     default_target: True
     input:
         vcf = collect(outdir + "/{pop}.bcf", pop = populations),
@@ -269,6 +269,7 @@ rule log_workflow:
     params:
         min_sv = f"-v {min_sv}",
         min_bc = f"-c {min_bc}",
+        iters  = f"-B {iterations}",
         extra = extra
     run:
         with open(outdir + "/workflow/sv.leviathan.summary", "w") as f:

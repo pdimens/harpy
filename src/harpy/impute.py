@@ -77,8 +77,8 @@ def impute(inputs, output_dir, parameters, threads, vcf, vcf_samples, extra_para
 
     fetch_rule(workflowdir, "impute.smk")
     fetch_script(workflowdir, "stitch_impute.R")
-    for i in ["Impute", "StitchCollate"]:
-        fetch_report(workflowdir, f"{i}.Rmd")
+    fetch_report(workflowdir, "impute.Rmd")
+    fetch_report(workflowdir, "stitch_collate.Rmd")
 
     with open(f"{workflowdir}/config.yaml", "w", encoding="utf-8") as config:
         config.write("workflow: impute\n")

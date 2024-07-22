@@ -28,7 +28,7 @@ docstring = {
     "harpy sv leviathan": [
         {
             "name": "Parameters",
-            "options": ["--extra-params", "--genome", "--min-barcodes", "--min-sv", "--populations"],
+            "options": ["--extra-params", "--genome", "--iterations", "--min-barcodes", "--min-sv", "--populations"],
         },
         {
             "name": "Workflow Controls",
@@ -50,8 +50,9 @@ docstring = {
 @click.command(no_args_is_help = True, epilog= "See the documentation for more information: https://pdimens.github.io/harpy/modules/sv/leviathan/")
 @click.option('-g', '--genome', type=click.Path(exists=True, dir_okay=False, readable=True), required = True, help = 'Genome assembly for variant calling')
 @click.option('-p', '--populations', type=click.Path(exists = True, dir_okay=False, readable=True), help = "Tab-delimited file of sample\<tab\>population")
-@click.option('-n', '--min-sv', type = click.IntRange(min = 10, max_open = True), default = 1000, show_default=True, help = 'Minimum size of SV to detect')
+@click.option('-m', '--min-sv', type = click.IntRange(min = 10, max_open = True), default = 1000, show_default=True, help = 'Minimum size of SV to detect')
 @click.option('-b', '--min-barcodes', show_default = True, default=2, type = click.IntRange(min = 1, max_open = True), help = 'Minimum number of barcode overlaps supporting candidate SV')
+@click.option('-i', '--iterations', show_default = True, default=50, type = click.IntRange(min = 10, max_open = True), help = 'Number of iterations to perform through index (reduces memory)')
 @click.option('-x', '--extra-params', type = str, help = 'Additional variant caller parameters, in quotes')
 @click.option('-o', '--output-dir', type = click.Path(exists = False), default = "SV/leviathan", show_default=True,  help = 'Output directory name')
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(min = 4, max_open = True), help = 'Number of threads to use')
@@ -62,7 +63,7 @@ docstring = {
 @click.option('--skipreports',  is_flag = True, show_default = True, default = False, help = 'Don\'t generate HTML reports')
 @click.option('--config-only',  is_flag = True, hidden = True, default = False, help = 'Create the config.yaml file and exit')
 @click.argument('inputs', required=True, type=click.Path(exists=True, readable=True), nargs=-1)
-def leviathan(inputs, output_dir, genome, min_sv, min_barcodes, threads, populations, extra_params, snakemake, skipreports, quiet, hpc, conda, config_only):
+def leviathan(inputs, output_dir, genome, min_sv, min_barcodes, iterations, threads, populations, extra_params, snakemake, skipreports, quiet, hpc, conda, config_only):
     """
     Call structural variants using LEVIATHAN
     
@@ -76,9 +77,9 @@ def leviathan(inputs, output_dir, genome, min_sv, min_barcodes, threads, populat
     output_dir = output_dir.rstrip("/")
     workflowdir = f"{output_dir}/workflow"
     sdm = "conda" if conda else "conda apptainer"
-    vcaller = "leviathan" if populations is None else "leviathan-pop"
+    vcaller = "leviathan" if populations is None else "leviathan_pop"
     command = f'snakemake --rerun-incomplete --rerun-triggers input mtime params --nolock --software-deployment-method {sdm} --conda-prefix ./.snakemake/conda --cores {threads} --directory . '
-    command += f"--snakefile {workflowdir}/sv-{vcaller}.smk "
+    command += f"--snakefile {workflowdir}/sv_{vcaller}.smk "
     command += f"--configfile {workflowdir}/config.yaml "
     if hpc:
         command += f"--workflow-profile {hpc} "
@@ -91,15 +92,16 @@ def leviathan(inputs, output_dir, genome, min_sv, min_barcodes, threads, populat
     bamlist, n = parse_alignment_inputs(inputs)
     validate_input_by_ext(genome, "--genome", [".fasta", ".fa", ".fasta.gz", ".fa.gz"])
     if populations is not None:
-        fetch_report(workflowdir, "LeviathanPop.Rmd")
-    fetch_report(workflowdir, "Leviathan.Rmd")
-    fetch_rule(workflowdir, f"sv-{vcaller}.smk")
+        fetch_report(workflowdir, "leviathan_pop.Rmd")
+    fetch_report(workflowdir, "leviathan.Rmd")
+    fetch_rule(workflowdir, f"sv_{vcaller}.smk")
 
     with open(f'{workflowdir}/config.yaml', "w", encoding="utf-8") as config:
         config.write("workflow: sv leviathan\n")
         config.write(f"output_directory: {output_dir}\n")
         config.write(f"min_barcodes: {min_barcodes}\n")
         config.write(f"min_sv: {min_sv}\n")
+        config.write(f"iterations: {iterations}\n")
         if extra_params is not None:
             config.write(f"extra: {extra_params}\n")
         config.write(f"skip_reports: {skipreports}\n")
@@ -166,10 +168,10 @@ def naibr(inputs, output_dir, genome, vcf, min_sv, min_barcodes, threads, popula
     output_dir = output_dir.rstrip("/")
     workflowdir = f"{output_dir}/workflow"
     sdm = "conda" if conda else "conda apptainer"
-    vcaller = "naibr" if populations is None else "naibr-pop"
-    vcaller += "-phase" if vcf is not None else ""
+    vcaller = "naibr" if populations is None else "naibr_pop"
+    vcaller += "_phase" if vcf is not None else ""
     command = f'snakemake --rerun-incomplete --rerun-triggers input mtime params --nolock --software-deployment-method {sdm} --conda-prefix ./.snakemake/conda --cores {threads} --directory . '
-    command += f"--snakefile {workflowdir}/sv-{vcaller}.smk "
+    command += f"--snakefile {workflowdir}/sv_{vcaller}.smk "
     command += f"--configfile {workflowdir}/config.yaml "
     if hpc:
         command += f"--workflow-profile {hpc} "
@@ -182,12 +184,11 @@ def naibr(inputs, output_dir, genome, vcf, min_sv, min_barcodes, threads, popula
     bamlist, n = parse_alignment_inputs(inputs)
     validate_input_by_ext(genome, "--genome", [".fasta", ".fa", ".fasta.gz", ".fa.gz"])
     if populations is not None:
-        fetch_report(workflowdir, "NaibrPop.Rmd")
-    fetch_report(workflowdir, "Naibr.Rmd")
+        fetch_report(workflowdir, "naibr_pop.Rmd")
+    fetch_report(workflowdir, "naibr.Rmd")
     if vcf is not None:
         check_phase_vcf(vcf)
-        #vcaller += "-phase"
-    fetch_rule(workflowdir, f"sv-{vcaller}.smk")
+    fetch_rule(workflowdir, f"sv_{vcaller}.smk")
 
     with open(f'{workflowdir}/config.yaml', "w", encoding="utf-8") as config:
         config.write("workflow: sv naibr\n")

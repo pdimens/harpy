@@ -81,7 +81,7 @@ if not deconvolve:
             dedup = "-D" if dedup else "",
             extra = extra
         threads:
-            min(4, workflow.cores // 2)
+            workflow.cores
         conda:
             f"{envdir}/qc.yaml"
         message:
@@ -108,7 +108,7 @@ else:
             dedup = "-D" if dedup else "",
             extra = extra
         threads:
-            min(4, workflow.cores // 2)
+            workflow.cores
         conda:
             f"{envdir}/qc.yaml"
         message:
@@ -131,7 +131,7 @@ else:
             density = f"-d {decon_d}",
             dropout = f"-a {decon_a}"
         threads:
-            2
+            workflow.cores
         conda:
             f"{envdir}/qc.yaml"
         message:
@@ -181,7 +181,7 @@ rule beadtag_counts_summary:
     message:
         "Summarizing sample barcode validation"
     script:
-        "report/BxCount.Rmd"
+        "report/bx_count.Rmd"
    
 rule create_report:
     input: 
@@ -201,7 +201,7 @@ rule create_report:
     shell: 
         "multiqc {params} --filename {output}"
 
-rule log_workflow:
+rule workflow_summary:
     default_target: True
     input:
         fq = collect(outdir + "/{sample}.{FR}.fq.gz", FR = ["R1", "R2"], sample = samplenames),

@@ -125,7 +125,7 @@ rule call_sv:
     log:
         outdir + "/logs/{sample}.naibr.log"
     threads:
-        min(10, workflow.cores)
+        10
     conda:
         f"{envdir}/sv.yaml"     
     message:
@@ -211,9 +211,9 @@ rule create_report:
     message:
         "Creating report: {wildcards.sample}"
     script:
-        "report/Naibr.Rmd"
+        "report/naibr.Rmd"
 
-rule log_workflow:
+rule workflow_summary:
     default_target: True
     input:
         bedpe = collect(outdir + "/{sample}.bedpe", sample = samplenames),

@@ -6,10 +6,12 @@ output:
     theme: lumen
     orientation: rows
     vertical_layout: scroll
+    mathjax: NULL
     logo: https://raw.githubusercontent.com/pdimens/harpy/docs/static/logo_report.png
     favicon: "https://raw.githubusercontent.com/pdimens/harpy/docs/static/favicon_report.png"
     navbar:
       - { title : "Docs", icon: "fa-book", href: "https://pdimens.github.io/harpy/", align: right }
+      - { title : "Source", icon: "fa-github", href: "https://www.github.com/pdimens/harpy/", align: right }
 ---
 
 # General Stats

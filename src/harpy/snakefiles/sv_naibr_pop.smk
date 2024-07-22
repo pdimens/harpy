@@ -95,33 +95,31 @@ rule copy_groupings:
         with open(input[0], "r") as infile, open(output[0], "w") as outfile:
             _ = [outfile.write(i) for i in infile.readlines() if not i.lstrip().startswith("#")]
 
-rule bam_list:
+rule merge_list:
     input:
         outdir + "/workflow/sample.groups"
     output:
-        collect(outdir + "/workflow/{pop}.list", pop = populations)
+        outdir + "/workflow/merge_samples/{population}.list"
     message:
-        "Creating population file lists."
+        "Creating population file list: {wildcards.population}"
     run:
-        for p in populations:
-            bamlist = popdict[p]
-            with open(f"{outdir}/workflow/{p}.list", "w") as fout:
-                for bamfile in bamlist:
-                    _ = fout.write(bamfile + "\n")
+        with open(output[0], "w") as fout:
+            for bamfile in popdict[wildcards.population]:
+                _ = fout.write(bamfile + "\n")
 
 rule merge_populations:
     input: 
-        bamlist  = outdir + "/workflow/{population}.list",
+        bamlist  = outdir + "/workflow/merge_samples/{population}.list",
         bamfiles = lambda wc: collect("{sample}", sample = popdict[wc.population]) 
     output:
         bam = temp(outdir + "/workflow/input/{population}.bam"),
         bai = temp(outdir + "/workflow/input/{population}.bam.bai")
     threads:
-        4
+        workflow.cores
     container:
         None
     message:
-        "Merging alignments: Population {wildcards.population}"
+        "Merging alignments: {wildcards.population}"
     shell:
         "samtools merge -o {output.bam}##idx##{output.bai} --threads {threads} --write-index -b {input.bamlist}"
 
@@ -157,7 +155,7 @@ rule call_sv:
     log:
         outdir + "/logs/{population}.naibr.log"
     threads:
-        min(10, workflow.cores)
+        10
     conda:
         f"{envdir}/sv.yaml"
     message:
@@ -225,7 +223,7 @@ rule genome_faidx:
     shell:
         "samtools faidx --fai-idx {output} {input} 2> {log}"
 
-rule create_report:
+rule sv_report:
     input:
         fai   = f"Genome/{bn}.fai",
         bedpe = outdir + "/{population}.bedpe"
@@ -236,9 +234,9 @@ rule create_report:
     message:
         "Creating report: {wildcards.population}"
     script:
-        "report/Naibr.Rmd"
+        "report/naibr.Rmd"
 
-rule report_pop:
+rule sv_report_aggregate:
     input:
         fai   = f"Genome/{bn}.fai",
         bedpe = collect(outdir + "/{pop}.bedpe", pop = populations)
@@ -249,9 +247,9 @@ rule report_pop:
     message:
         "Creating summary report"
     script:
-        "report/NaibrPop.Rmd"
+        "report/naibr_pop.Rmd"
 
-rule log_workflow:
+rule workflow_summary:
     default_target: True
     input:
         bedpe = collect(outdir + "/{pop}.bedpe", pop = populations),

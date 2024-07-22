@@ -38,7 +38,7 @@ def fetch_rule(workdir, target):
         if os.path.isfile(files(harpy.snakefiles).joinpath(target)):
             f.write(files(harpy.snakefiles).joinpath(target).read_text())
         else:
-            print_error(f"Bundled script [blue bold]{target}[/blue bold] was not found in the Harpy installation.")
+            print_error(f"The required snakefile [blue bold]{target}[/blue bold] was not found in the Harpy installation.")
             print_solution("There may be an issue with your Harpy installation, which would require reinstalling Harpy. Alternatively, there may be in a issue with your conda/mamba environment or configuration.")
             sys.exit(1)
 
@@ -51,7 +51,7 @@ def fetch_report(workdir, target):
         if os.path.isfile(files(harpy.reports).joinpath(target)):
             f.write(files(harpy.reports).joinpath(target).read_text())
         else:
-            print_error(f"Bundled script [blue bold]{target}[/blue bold] was not found in the Harpy installation.")
+            print_error(f"The required report script [blue bold]{target}[/blue bold] was not found within the Harpy installation.")
             print_solution("There may be an issue with your Harpy installation, which would require reinstalling Harpy. Alternatively, there may be in a issue with your conda/mamba environment or configuration.")
             sys.exit(1)
 
