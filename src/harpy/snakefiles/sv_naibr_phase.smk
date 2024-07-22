@@ -261,7 +261,7 @@ rule infer_sv:
     output:
         bedpe = outdir + "/bedpe/{sample}.bedpe",
         refmt = outdir + "/IGV/{sample}.reformat.bedpe",
-        fail  = outdir + "/filtered/{sample}.fail.bedpe",
+        fail  = outdir + "/bedpe/qc_fail/{sample}.fail.bedpe",
         vcf   = outdir + "/vcf/{sample}.vcf" 
     params:
         outdir = lambda wc: outdir + "/" + wc.get("sample")
