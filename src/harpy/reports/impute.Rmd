@@ -253,7 +253,7 @@ gcts_long$Conversion <- gsub("Het","Heterozygote", gcts_long$Conversion)
 gcts_long$Conversion <- gsub("RefHom","Homozygous Ref", gcts_long$Conversion)
 gcts_long$Conversion <- gsub("missing","not imputed", gcts_long$Conversion)
 ```
-```{r per_indiv, echo = FALSE, message = FALSE, warning = FALSE,fig. height=figheight, out.width = "100%"}
+```{r per_indiv, echo = FALSE, message = FALSE, warning = FALSE, fig.height=figheight, out.width = "100%"}
 hchart(gcts_long, "bar", hcaes(x = sample, y = Count, group = Conversion), stacking = "normal", animation = F) |>
   hc_colors(c("#7cb3d4", "#b18ad1", "#ffd75f", "#6f6c70")) |>
   hc_title(text = "Missing Genotype Imputations") |>
