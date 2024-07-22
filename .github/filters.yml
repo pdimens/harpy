@@ -51,7 +51,7 @@ bwa: &bwa
   - 'src/harpy/bin/bx_stats.py'
   - 'src/harpy/bin/count_bx.py'
   - 'src/harpy/bin/assign_mi.py'
-  - 'src/harpy/bin/makeWindows.py'
+  - 'src/harpy/bin/make_windows.py'
   - 'test/fastq/**'
 ema: &ema
   - *common
@@ -62,7 +62,7 @@ ema: &ema
   - 'src/harpy/reports/BxCount.Rmd'
   - 'src/harpy/bin/bx_stats.py'
   - 'src/harpy/bin/count_bx.py'
-  - 'src/harpy/bin/makewindows.py'
+  - 'src/harpy/bin/make_windows.py'
   - 'test/fastq/**'
 strobealign: &strobealign
   - *common
@@ -74,7 +74,7 @@ strobealign: &strobealign
   - 'src/harpy/bin/assign_mi.py'
   - 'src/harpy/bin/bx_stats.py'
   - 'src/harpy/bin/count_bx.py'
-  - 'src/harpy/bin/makewindows.py'
+  - 'src/harpy/bin/make_windows.py'
   - 'test/fastq/**'
 mpileup: &mpileup
   - *common
@@ -82,7 +82,7 @@ mpileup: &mpileup
   - 'src/harpy/snp.py'
   - 'src/harpy/snakefiles/snp-mpileup.smk'
   - 'src/harpy/reports/BcftoolsStats.Rmd'
-  - 'src/harpy/bin/makewindows.py'
+  - 'src/harpy/bin/make_windows.py'
   - 'test/bam/**'
 freebayes: &freebayes
   - *common
@@ -90,7 +90,7 @@ freebayes: &freebayes
   - 'src/harpy/snp.py'
   - 'src/harpy/snakefiles/snp-freebayes.smk'
   - 'src/harpy/reports/BcftoolsStats.Rmd'
-  - 'src/harpy/bin/makewindows.py'
+  - 'src/harpy/bin/make_windows.py'
   - 'test/bam/**'
 impute: &impute
   - *common
