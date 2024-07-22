@@ -182,7 +182,7 @@ rule call_sv:
         genome = f"Genome/{bn}",
         genidx = multiext(f"Genome/{bn}", ".fai", ".ann", ".bwt", ".pac", ".sa", ".amb")
     output:
-        temp(outdir + "/{population}.vcf")
+        temp(outdir + "/vcf/{population}.vcf")
     log:  
         runlog     = outdir + "/logs/{population}.leviathan.log",
         candidates = outdir + "/logs/{population}.candidates"
@@ -196,7 +196,7 @@ rule call_sv:
     conda:
         f"{envdir}/sv.yaml"
     message:
-        "Calling variants: Population {wildcards.population}"
+        "Calling variants: {wildcards.population}"
     benchmark:
         ".Benchmark/leviathan-pop/{population}.variantcall"
     shell:
@@ -204,9 +204,9 @@ rule call_sv:
 
 rule sort_bcf:
     input:
-        outdir + "/{population}.vcf"
+        outdir + "/vcf/{population}.vcf"
     output:
-        outdir + "/{population}.bcf"
+        outdir + "/vcf/{population}.bcf"
     params:
         "{wildcards.population}"
     container:
@@ -218,9 +218,9 @@ rule sort_bcf:
 
 rule sv_stats:
     input: 
-        outdir + "/{population}.bcf"
+        outdir + "/vcf/{population}.bcf"
     output:
-        outdir + "/reports/data/{population}.sv.stats"
+        temp(outdir + "/reports/data/{population}.sv.stats")
     container:
         None
     message:
@@ -231,10 +231,45 @@ rule sv_stats:
         bcftools query -f '{wildcards.population}\\t%CHROM\\t%POS\\t%END\\t%SVLEN\\t%SVTYPE\\t%BARCODES\\t%PAIRS\\n' {input} >> {output}
         """
 
+rule merge_variants:
+    input:
+        collect(outdir + "/reports/data/{population}.sv.stats", population = populations)
+    output:
+        outdir + "/inversions.bedpe",
+        outdir + "/deletions.bedpe",
+        outdir + "/duplications.bedpe",
+        outdir + "/breakends.bedpe"
+    message:
+        "Aggregating the detected variants"
+    run:
+        with open(output[0], "w") as inversions, open(output[1], "w") as deletions, open(output[2], "w") as duplications, open(output[3], "w") as breakends:
+            header = ["population","contig","position_start","position_end","length","type","n_barcodes","n_pairs"]
+            _ = inversions.write("\t".join(header) + "\n")
+            _ = deletions.write("\t".join(header) + "\n")
+            _ = duplications.write("\t".join(header) + "\n")
+            _ = breakends.write("\t".join(header) + "\n")
+            for varfile in input:
+                with open(varfile, "r") as f_in:
+                    # skip header
+                    f_in.readline()
+                    while True:
+                        line = f_in.readline()
+                        if not line:
+                            break
+                        record = line.rstrip().split("\t")
+                        if record[5] == "INV":
+                            _ = inversions.write(line)
+                        elif record[5] == "DEL":
+                            _ = deletions.write(line)
+                        elif record[5] == "DUP":
+                            _ = duplications.write(line)
+                        elif record[5] == "BND":
+                            _ = breakends.write(line)
+
 rule sv_report:
     input:	
         statsfile = outdir + "/reports/data/{population}.sv.stats",
-        bcf       = outdir + "/{population}.bcf",
+        bcf       = outdir + "/vcf/{population}.bcf",
         faidx     = f"Genome/{bn}.fai"
     output:
         outdir + "/reports/{population}.sv.html"
@@ -261,7 +296,8 @@ rule sv_report_aggregate:
 rule workflow_summary:
     default_target: True
     input:
-        vcf = collect(outdir + "/{pop}.bcf", pop = populations),
+        vcf = collect(outdir + "/vcf/{pop}.bcf", pop = populations),
+        bedpe_agg = collect(outdir + "/{sv}.bedpe", sv = ["inversions", "deletions","duplications", "breakends"]),
         reports = collect(outdir + "/reports/{pop}.sv.html", pop = populations) if not skipreports else [],
         agg_report = outdir + "/reports/leviathan.summary.html" if not skipreports else []
     message:
