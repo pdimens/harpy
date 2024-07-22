@@ -37,6 +37,7 @@ def generate_conda_deps():
             "conda-forge::r-magrittr",
             "conda-forge::r-plotly",
             "conda-forge::r-scales",
+            "conda-forge::r-stringi",
             "conda-forge::r-tidyr",
             "conda-forge::r-viridislite", 
             "conda-forge::r-xml2",
