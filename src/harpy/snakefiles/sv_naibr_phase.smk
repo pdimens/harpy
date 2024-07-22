@@ -313,7 +313,7 @@ rule merge_variants:
 
 rule create_report:
     input:
-        bedpe = outdir + "/{sample}.bedpe",
+        bedpe = outdir + "/bedpe/{sample}.bedpe",
         fai   = f"Genome/{validgenome}.fai"
     output:
         outdir + "/reports/{sample}.naibr.html"
