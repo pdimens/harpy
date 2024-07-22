@@ -34,8 +34,11 @@ def generate_conda_deps():
             "conda-forge::r-flexdashboard",
             "conda-forge::r-ggplot2",
             "conda-forge::r-highcharter",
+            "conda-forge::r-magrittr",
             "conda-forge::r-plotly",
+            "conda-forge::r-scales",
             "conda-forge::r-tidyr",
+            "conda-forge::r-viridislite", 
             "conda-forge::r-xml2",
             "r::r-biocircos"
             ],
