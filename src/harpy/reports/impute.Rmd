@@ -236,12 +236,16 @@ the reference allele (from the reference genome), `Alt` refers to the alternativ
 allele, and `Missing` details how many SNPs remain missing
 (failed to impute) for that individual. As an example, the `Homozygous Ref` is 
 the number of missing genotypes that were imputed into
-a homozygous genotype for the reference allele. The table on the right is the
-underlying data used to create the visualization. Clicking
-on a plot will expand it to fill your browser window. Clicking it again will exit
-out of the zoomed view.
+a homozygous genotype for the reference allele. The table on the other tab is the
+underlying data used to create the visualization.
 
-## ind stats plt
+```{r}
+n_samples <- length(unique(gcts_long$sample))
+plotheight <- 150 + (15 * n_samples)
+figheight <- 1 + (0.2 * n_samples)
+```
+
+## ind stats plt {.tabset data-height=plotheight}
 ### Individuals Plot {.no-title}
 ```{r preprocess fields, echo = FALSE, message = FALSE, warning = FALSE, out.width = "100%"}
 gcts_long$Conversion <- gsub("AltHom","Homozygous Alt", gcts_long$Conversion)
@@ -249,7 +253,7 @@ gcts_long$Conversion <- gsub("Het","Heterozygote", gcts_long$Conversion)
 gcts_long$Conversion <- gsub("RefHom","Homozygous Ref", gcts_long$Conversion)
 gcts_long$Conversion <- gsub("missing","not imputed", gcts_long$Conversion)
 ```
-```{r percontig dist, echo = FALSE, message = FALSE, warning = FALSE, out.width = "100%"}
+```{r per_indiv, echo = FALSE, message = FALSE, warning = FALSE,fig. height=figheight, out.width = "100%"}
 hchart(gcts_long, "bar", hcaes(x = sample, y = Count, group = Conversion), stacking = "normal", animation = F) |>
   hc_colors(c("#7cb3d4", "#b18ad1", "#ffd75f", "#6f6c70")) |>
   hc_title(text = "Missing Genotype Imputations") |>
