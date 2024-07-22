@@ -260,7 +260,7 @@ rule genome_faidx:
 rule sv_report:
     input:
         fai   = f"Genome/{bn}.fai",
-        bedpe = outdir + "/{population}.bedpe"
+        bedpe = outdir + "/bedpe/{population}.bedpe"
     output:
         outdir + "/reports/{population}.naibr.html"
     conda:
@@ -273,7 +273,7 @@ rule sv_report:
 rule sv_report_aggregate:
     input:
         fai   = f"Genome/{bn}.fai",
-        bedpe = collect(outdir + "/{pop}.bedpe", pop = populations)
+        bedpe = collect(outdir + "/bedpe/{pop}.bedpe", pop = populations)
     output:
         outdir + "/reports/naibr.pop.summary.html"
     conda:
