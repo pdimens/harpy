@@ -27,8 +27,7 @@ conversions = {
     }
 
 if args.failfile is not None:
-    failout = open(args.failfile, "w", encoding="utf-8")
-    with open(args.bedfile, "r", encoding="utf-8") as f:
+    with open(args.bedfile, "r", encoding="utf-8") as f, open(args.failfile, "w", encoding="utf-8") as failout:
         # first line, the header
         line = f.readline().strip().split("\t")
         line_corrected = [i.title().replace(" ", "") for i in line]
@@ -49,7 +48,6 @@ if args.failfile is not None:
                 sys.stdout.write(NEWROW)
             else:
                 failout.write(NEWROW)
-    failout.close()
 else:
     with open(args.bedfile, "r", encoding="utf-8") as f:
         # first line, the header
