@@ -23,7 +23,6 @@ fai <- snakemake@input[["fai"]]
 samplename <- gsub(".bedpe", "", basename(infile))
 ```
 
-# General Stats
 ## file top
 ### file header {.no-title}
 <h1> NAIBR Variant Calling: `r samplename`  </h1>

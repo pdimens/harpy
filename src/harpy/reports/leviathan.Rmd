@@ -27,7 +27,6 @@ using<-function(...) {
 using("flexdashboard","dplyr","ggplot2","DT","BioCircos")
 ```
 
-# General Stats
 ## Intro
 ### introtext {.no-title}
 ```{r}
