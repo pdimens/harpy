@@ -108,8 +108,6 @@ summstats <- sv %>%
   group_by(Chr1, SV) %>%
   summarise(n = n())
 
-#svlen <- sv %>% group_by(SV) %>%  summarise(mlen = mean(Length), sdlen = sd(Length))
-
 sumtable <- summstats %>%
   group_by(SV) %>%
   summarise(count = sum(n))

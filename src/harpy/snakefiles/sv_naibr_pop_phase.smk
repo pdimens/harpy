@@ -302,9 +302,9 @@ rule infer_sv:
         refmt = outdir + "/{population}/{population}.reformat.bedpe",
         vcf   = outdir + "/{population}/{population}.vcf"
     output:
-        bedpe = outdir + "/{population}.bedpe",
+        bedpe = outdir + "/bedpe/{population}.bedpe",
         refmt = outdir + "/IGV/{population}.reformat.bedpe",
-        fail  = outdir + "/filtered/{population}.fail.bedpe",
+        fail  = outdir + "/bedpe/qc_fail/{population}.fail.bedpe",
         vcf   = outdir + "/vcf/{population}.vcf" 
     params:
         outdir = lambda wc: outdir + "/" + wc.get("population")
@@ -320,10 +320,44 @@ rule infer_sv:
         rm -rf {params.outdir}
         """
 
+rule merge_variants:
+    input:
+        collect(outdir + "/bedpe/{population}.bedpe", population = populations)
+    output:
+        outdir + "/inversions.bedpe",
+        outdir + "/deletions.bedpe",
+        outdir + "/duplications.bedpe"
+    message:
+        "Aggregating the detected variants"
+    run:
+        from pathlib import Path
+        with open(output[0], "w") as inversions, open(output[1], "w") as deletions, open(output[2], "w") as duplications:
+            header = ["Population","Chr1","Break1","Chr2","Break2","SplitMolecules","DiscordantReads","Orientation","Haplotype","Score","PassFilter","SV"]
+            _ = inversions.write("\t".join(header) + "\n")
+            _ = deletions.write("\t".join(header) + "\n")
+            _ = duplications.write("\t".join(header) + "\n")
+            for varfile in input:
+                samplename = Path(varfile).stem
+                with open(varfile, "r") as f_in:
+                    # read the header to skip it
+                    f_in.readline()
+                    # read the rest of it
+                    while True:
+                        line = f_in.readline()
+                        if not line:
+                            break
+                        record = line.rstrip().split("\t")
+                        if record[-1] == "inversion":
+                            _ = inversions.write(f"{samplename}\t{line}")
+                        elif record[-1] == "deletion":
+                            _ = deletions.write(f"{samplename}\t{line}")
+                        elif record[-1] == "duplication":
+                            _ = duplications.write(f"{samplename}\t{line}")
+
 rule infer_sv_report:
     input:
         fai   = f"Genome/{bn}.fai",
-        bedpe = outdir + "/{population}.bedpe"
+        bedpe = outdir + "/bedpe/{population}.bedpe"
     output:
         outdir + "/reports/{population}.naibr.html"
     message:
@@ -336,7 +370,7 @@ rule infer_sv_report:
 rule sv_report_aggregate:
     input:
         fai   = f"Genome/{bn}.fai",
-        bedpe = collect(outdir + "/{pop}.bedpe", pop = populations)
+        bedpe = collect(outdir + "/bedpe/{pop}.bedpe", pop = populations)
     output:
         outdir + "/reports/naibr.pop.summary.html"
     message:
@@ -349,7 +383,8 @@ rule sv_report_aggregate:
 rule workflow_summary:
     default_target: True
     input:
-        bedpe = collect(outdir + "/{pop}.bedpe", pop = populations),
+        bedpe = collect(outdir + "/bedpe/{pop}.bedpe", pop = populations),
+        bedpe_agg = collect(outdir + "/{sv}.bedpe", sv = ["inversions", "deletions","duplications"]),
         phaselog = outdir + "/logs/whatshap-haplotag.log",
         reports = collect(outdir + "/reports/{pop}.naibr.html", pop = populations) if not skipreports else [],
         agg_report = outdir + "/reports/naibr.pop.summary.html" if not skipreports else []

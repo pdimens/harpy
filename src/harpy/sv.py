@@ -122,7 +122,7 @@ def leviathan(inputs, output_dir, genome, min_sv, min_barcodes, iterations, thre
     if config_only:
         sys.exit(0)
 
-    modetext = "pool-by-group" if populations else "single-sample"
+    modetext = "pool-by-group" if populations else "sample-by-sample"
     print_onstart(
         f"Samples: {n}{popgroupings}\nOutput Directory: {output_dir}/\nMode: {modetext}",
         "sv leviathan"
@@ -222,7 +222,7 @@ def naibr(inputs, output_dir, genome, vcf, min_sv, min_barcodes, threads, popula
     if populations:
         modetext = "pool-by-group"
     else:
-        modetext = "single-sample"
+        modetext = "sample-by-sample"
     if vcf:
         modetext += " + will be phased"
     else:

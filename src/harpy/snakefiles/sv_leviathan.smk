@@ -156,7 +156,7 @@ rule call_sv:
         genome = f"Genome/{bn}",
         genidx = multiext(f"Genome/{bn}", ".fai", ".ann", ".bwt", ".pac", ".sa", ".amb")
     output:
-        temp(outdir + "/{sample}.vcf")
+        temp(outdir + "/vcf/{sample}.vcf")
     log:  
         runlog     = outdir + "/logs/{sample}.leviathan.log",
         candidates = outdir + "/logs/{sample}.candidates"
@@ -178,9 +178,9 @@ rule call_sv:
 
 rule sort_bcf:
     input:
-        outdir + "/{sample}.vcf"
+        outdir + "/vcf/{sample}.vcf"
     output:
-        outdir + "/{sample}.bcf"
+        outdir + "/vcf/{sample}.bcf"
     params:
         "{wildcards.sample}"
     container:
@@ -192,9 +192,9 @@ rule sort_bcf:
 
 rule sv_stats:
     input: 
-        outdir + "/{sample}.bcf"
+        outdir + "/vcf/{sample}.bcf"
     output: 
-        outdir + "/reports/data/{sample}.sv.stats"
+        temp(outdir + "/reports/data/{sample}.sv.stats")
     container:
         None
     message:
@@ -204,6 +204,41 @@ rule sv_stats:
         echo -e "sample\\tcontig\\tposition_start\\tposition_end\\tlength\\ttype\\tn_barcodes\\tn_pairs" > {output}
         bcftools query -f '{wildcards.sample}\\t%CHROM\\t%POS\\t%END\\t%SVLEN\\t%SVTYPE\\t%BARCODES\\t%PAIRS\\n' {input} >> {output}
         """
+
+rule merge_variants:
+    input:
+        collect(outdir + "/reports/data/{sample}.sv.stats", sample = samplenames)
+    output:
+        outdir + "/inversions.bedpe",
+        outdir + "/deletions.bedpe",
+        outdir + "/duplications.bedpe",
+        outdir + "/breakends.bedpe"
+    message:
+        "Aggregating the detected variants"
+    run:
+        with open(output[0], "w") as inversions, open(output[1], "w") as deletions, open(output[2], "w") as duplications, open(output[3], "w") as breakends:
+            header = ["sample","contig","position_start","position_end","length","type","n_barcodes","n_pairs"]
+            _ = inversions.write("\t".join(header) + "\n")
+            _ = deletions.write("\t".join(header) + "\n")
+            _ = duplications.write("\t".join(header) + "\n")
+            _ = breakends.write("\t".join(header) + "\n")
+            for varfile in input:
+                with open(varfile, "r") as f_in:
+                    # skip header
+                    f_in.readline()
+                    while True:
+                        line = f_in.readline()
+                        if not line:
+                            break
+                        record = line.rstrip().split("\t")
+                        if record[5] == "INV":
+                            _ = inversions.write(line)
+                        elif record[5] == "DEL":
+                            _ = deletions.write(line)
+                        elif record[5] == "DUP":
+                            _ = duplications.write(line)
+                        elif record[5] == "BND":
+                            _ = breakends.write(line)
 
 rule sv_report:
     input:	
@@ -222,7 +257,8 @@ rule sv_report:
 rule workflow_summary:
     default_target: True
     input: 
-        vcf = collect(outdir + "/{sample}.bcf", sample = samplenames),
+        vcf = collect(outdir + "/vcf/{sample}.bcf", sample = samplenames),
+        bedpe_agg = collect(outdir + "/{sv}.bedpe", sv = ["inversions", "deletions","duplications", "breakends"]),
         reports = collect(outdir + "/reports/{sample}.SV.html", sample = samplenames) if not skipreports else []
     params:
         min_sv = f"-v {min_sv}",

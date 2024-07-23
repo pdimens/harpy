@@ -279,10 +279,10 @@ fa.sizes <- fa.sizes[fa.sizes$contig %in% unique(sv$Chr1), 1:2]
 fa.sizes <- fa.sizes[1:min(nrow(fa.sizes), 30), ]
 
 # filter out variants that aren't on one of these contigs
-sv <- sv[sv$Chr1 %in% fa.sizes$contig, ]
-sv$Chr1 <- factor(sv$Chr1)
+sv_clean <- sv_clean[sv_clean$Chr1 %in% fa.sizes$contig, ]
+sv_clean$Chr1 <- factor(sv_clean$Chr1)
 
-populations <- levels(sv$Population)
+populations <- levels(sv_clean$Population)
 color.palette <- turbo(length(populations))
 names(color.palette) <- populations
 
@@ -322,7 +322,7 @@ tracks <- BioCircosTracklist()
 variant_type <- "inversion"
 # Add one track for each population
 for( pop in populations ){
-  variant <- sv[(sv$SV == variant_type) & (sv$Population == pop),]
+  variant <- sv_clean[(sv_clean$SV == variant_type) & (sv_clean$Population == pop),]
   if(nrow(variant) > 0){
     tracks <- tracks + BioCircosArcTrack(
       paste0(variant_type, pop),
@@ -372,7 +372,7 @@ tracks <- BioCircosTracklist()
 variant_type <- "duplication"
 # Add one track for each population
 for( pop in populations ){
-  variant <- sv[(sv$SV == variant_type) & (sv$Population == pop),]
+  variant <- sv_clean[(sv_clean$SV == variant_type) & (sv_clean$Population == pop),]
   if(nrow(variant) > 0){
     tracks <- tracks + BioCircosArcTrack(
       paste0(variant_type, pop),
@@ -420,7 +420,7 @@ tracks <- BioCircosTracklist()
 variant_type <- "deletion"
 # Add one track for each population
 for( pop in populations ){
-  variant <- sv[(sv$SV == variant_type) & (sv$Population == pop),]
+  variant <- sv_clean[(sv_clean$SV == variant_type) & (sv_clean$Population == pop),]
   if(nrow(variant) > 0){
     tracks <- tracks + BioCircosSNPTrack(
       paste0(variant_type, pop),
