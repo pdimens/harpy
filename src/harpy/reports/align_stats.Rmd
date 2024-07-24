@@ -110,7 +110,7 @@ valueBox(scales::comma(totuniqBX), caption = "Total unique molecules", color = "
 valids %>% 
     group_by(contig) %>%
     summarize(n50 = NX(length_inferred, 50), n75 = NX(length_inferred, 75), n90 = NX(length_inferred, 90)) %>%    
-    DT::datatable(rownames = F, options = list(dom = 'Brtip', buttons = c('csv')), fillContainer = T)
+    DT::datatable(rownames = F, options = list(dom = 'Brtip', buttons = list(list(extend = "csv",filename = "molecule_NX"))), fillContainer = T)
 ```
 
 ## Reads per molecule dec
@@ -446,7 +446,7 @@ DT::datatable(
   contig_avg, 
   rownames = F, 
   extensions = 'Buttons', 
-  options = list(dom = 'Brtip', buttons = c('csv'), scrollX = TRUE), 
+  options = list(dom = 'Brtip', buttons = list(list(extend = "csv",filename = "align_depth_avg")), scrollX = TRUE), 
   colnames = c('Contig', 'Average Depth', 'Standard Deviation'),
   autoHideNavigation = T,
   fillContainer = T,
@@ -460,7 +460,7 @@ DT::datatable(
   contig_avg_filt,
   rownames = F, 
   extensions = 'Buttons', 
-  options = list(dom = 'Brtip', buttons = c('csv'), scrollX = TRUE),
+  options = list(dom = 'Brtip', buttons = list(list(extend = "csv",filename = "align_depth_filt_avg")), scrollX = TRUE),
   colnames = c('Contig', 'Average Depth', 'Standard Deviation'),
   autoHideNavigation = T,
   fillContainer = T,
@@ -474,7 +474,7 @@ DT::datatable(
   outliers, 
   rownames = F, 
   extensions = 'Buttons', 
-  options = list(dom = 'Brtip', buttons = c('csv'), scrollX = TRUE),
+  options = list(dom = 'Brtip', buttons = list(list(extend = "csv",filename = "align_depth_outlier_avg")), scrollX = TRUE),
   colnames = c('Contig', 'Position', 'Depth'),
   autoHideNavigation = T,
   fillContainer = T

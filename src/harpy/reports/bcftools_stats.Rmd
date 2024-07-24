@@ -255,7 +255,7 @@ if(sum(.dpL) == 0){
     rownames = F,
     filter = "top",
     extensions = 'Buttons',
-    options = list(dom = 'Brtip', buttons = c('csv')),
+    options = list(dom = 'Brtip', buttons = list(list(extend = "csv",filename = "align_depth_bins"))),
     colnames = c("Depth Bin", "Genotypes", "% Genotypes", "Sites", "% Sites")
     )
 }
@@ -317,7 +317,18 @@ figheight <- 1 + (0.2 * nrow(psc))
 ## Individual Statistics {.tabset data-height=plotheight}
 ### Individual Data
 ```{r Individual table, echo=FALSE, message=FALSE, warning=FALSE}
-DT::datatable(psc, rownames = F, fillContainer = T, filter = "top", extensions = 'Buttons', options = list(dom = 'Brtip', buttons = c('csv'), scrollX = TRUE, paging = F))
+DT::datatable(
+  psc, rownames = F,
+  fillContainer = T,
+  filter = "top",
+  extensions = 'Buttons',
+  options = list(
+    dom = 'Brtip',
+    buttons = list(list(extend = "csv",filename = "snp_indiv_stats")),
+    scrollX = TRUE,
+    paging = F
+  )
+)
 ```
 
 ### Individual Statistics

@@ -128,7 +128,7 @@ DT::datatable(
   aggregate_df,
   rownames = F,
   extensions = 'Buttons', 
-  options = list(dom = 'Brtip', buttons = c('csv'), scrollX = TRUE),
+  options = list(dom = 'Brtip', buttons = list(list(extend = "csv",filename = "per_sample_barcode_alignment")), scrollX = TRUE),
   caption = 'Per-Sample Alignment Information Pertaining to Barcodes',
   fillContainer = T,
   colnames = c("sample", "alignments", "unique molecules", "singletons", "multiplex", "unique barcodes", "molecule:bx ratio", "valid bx alignments", "invalid bx alignments", "% valid bx", "avg reads/molecule", "SEM reads/molecule", "avg molecule coverage %","SEM molecule coverage %", "N50", "N75","N90")

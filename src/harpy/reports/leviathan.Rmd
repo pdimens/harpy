@@ -126,7 +126,11 @@ DT::datatable(
   rownames = F,
   filter = "top",
   extensions = 'Buttons',
-  options = list(dom = 'Brtip', buttons = c('csv'), scrollX = TRUE),
+  options = list(
+    dom = 'Brtip',
+    buttons = list(list(extend = "csv",filename = "leviathan_sv")),  
+    scrollX = TRUE
+  ),
   autoHideNavigation = T,
   fillContainer = T
 )
@@ -147,7 +151,11 @@ DT::datatable(
   rownames = F, 
   filter = "top", 
   extensions = 'Buttons', 
-  options = list(dom = 'Brtip', buttons = c('csv'), scrollX = TRUE),
+  options = list(
+    dom = 'Brtip',
+    buttons = list(list(extend = "csv",filename = "leviathan_sv_summary")),
+    scrollX = TRUE
+  ),
   autoHideNavigation = T,
   fillContainer = T
 )

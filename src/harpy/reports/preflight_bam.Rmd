@@ -133,7 +133,11 @@ DT::datatable(
   rownames = F,
   filter = "top",
   extensions = 'Buttons',
-  options = list(dom = 'Brtip', buttons = c('csv'), scrollX = T),
+  options = list(
+    dom = 'Brtip',
+    buttons = list(list(extend = "csv",filename = "bam_checks")),
+    scrollX = T
+  ),
   fillContainer = T
 )
 ```
