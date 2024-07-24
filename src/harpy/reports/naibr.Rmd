@@ -146,7 +146,7 @@ DT::datatable(
   extensions = 'Buttons',
   options = list(
     dom = 'Brtip',
-    buttons = list(list(extend = "csv",filename = "naibr_sv_count")),
+    buttons = list(list(extend = "csv",filename = paste0(samplename , "_sv_naibr_count"))),
     scrollX = TRUE
   ),
   autoHideNavigation = T,
@@ -161,7 +161,7 @@ DT::datatable(
   extensions = 'Buttons',
   options = list(
     dom = 'Brtip',
-    buttons = list(list(extend = "csv",filename = "naibr_sv_count_bp")),
+    buttons = list(list(extend = "csv",filename = paste0(samplename , "_sv_naibr_count_bp"))),
     scrollX = TRUE
   ),  autoHideNavigation = T,
   fillContainer = T,
@@ -216,7 +216,7 @@ DT::datatable(
   extensions = 'Buttons',
   options = list(
     dom = 'Brtip',
-    buttons = list(list(extend = "csv",filename = "naibr_sv")),
+    buttons = list(list(extend = "csv",filename = paste0(samplename ,"_sv_naibr"))),
     scrollX = TRUE
   ),
   autoHideNavigation = T,
@@ -232,7 +232,7 @@ DT::datatable(
   extensions = 'Buttons',
   options = list(
     dom = 'Brtip',
-    buttons = list(list(extend = "csv",filename = "naibr_sv_chimeric")),
+    buttons = list(list(extend = "csv",filename = paste0(samplename ,"_sv_naibr_chimeric"))),
     scrollX = TRUE
   ),
   autoHideNavigation = T,
