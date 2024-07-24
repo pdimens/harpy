@@ -22,10 +22,10 @@ bamlist     = config["inputs"]["alignments"]
 
 # toggle linked-read aware mode
 if config["ignore_bx"]:
-    fragfile = outdir + "/extractHairs/{sample}.unlinked.frags"
+    fragfile = outdir + "/extract_hairs/{sample}.unlinked.frags"
     linkarg = "--10x 0"
 else:
-    fragfile =  outdir + "/linkFragments/{sample}.linked.frags"
+    fragfile =  outdir + "/link_fragments/{sample}.linked.frags"
     linkarg  = "--10x 1"
 
 if samples_from_vcf:
@@ -186,9 +186,9 @@ rule extract_hairs:
         geno = geno,
         fai  = genofai
     output:
-        outdir + "/extractHairs/{sample}.unlinked.frags"
+        outdir + "/extract_hairs/{sample}.unlinked.frags"
     log:
-        outdir + "/logs/extractHairs/{sample}.unlinked.log"
+        outdir + "/logs/extract_hairs/{sample}.unlinked.log"
     params:
         indels = indelarg,
         bx = linkarg
@@ -205,11 +205,11 @@ rule link_fragments:
     input: 
         bam       = get_alignments,
         vcf       = outdir + "/workflow/input/vcf/{sample}.het.vcf",
-        fragments = outdir + "/extractHairs/{sample}.unlinked.frags"
+        fragments = outdir + "/extract_hairs/{sample}.unlinked.frags"
     output:
-        outdir + "/linkFragments/{sample}.linked.frags"
+        outdir + "/link_fragments/{sample}.linked.frags"
     log:
-        outdir + "/logs/linkFragments/{sample}.linked.log"
+        outdir + "/logs/link_fragments/{sample}.linked.log"
     params:
         d = molecule_distance
     conda:
@@ -226,10 +226,10 @@ rule phase_blocks:
         vcf       = outdir + "/workflow/input/vcf/{sample}.het.vcf",
         fragments = fragfile
     output: 
-        blocks    = outdir + "/phaseBlocks/{sample}.blocks",
-        vcf       = temp(outdir + "/phaseBlocks/{sample}.blocks.phased.VCF")
+        blocks    = outdir + "/phase_blocks/{sample}.blocks",
+        vcf       = temp(outdir + "/phase_blocks/{sample}.blocks.phased.VCF")
     log:
-        outdir + "/logs/phaseBlocks/{sample}.blocks.phased.log"
+        outdir + "/logs/phase_blocks/{sample}.blocks.phased.log"
     params: 
         prune = f"--threshold {pruning}" if pruning > 0 else "--no_prune 1",
         extra = extra
@@ -244,9 +244,9 @@ rule phase_blocks:
 
 rule compress_phaseblock:
     input:
-        outdir + "/phaseBlocks/{sample}.blocks.phased.VCF"
+        outdir + "/phase_blocks/{sample}.blocks.phased.VCF"
     output:
-        outdir + "/phaseBlocks/{sample}.phased.vcf.gz"
+        outdir + "/phase_blocks/{sample}.phased.vcf.gz"
     container:
         None
     message:
@@ -262,11 +262,11 @@ use rule compress_phaseblock as compress vcf with:
 
 rule merge_annotations:
     input:
-        phase = outdir + "/phaseBlocks/{sample}.phased.vcf.gz",
+        phase = outdir + "/phase_blocks/{sample}.phased.vcf.gz",
         orig  = outdir + "/workflow/input/gzvcf/{sample}.hom.vcf.gz"
     output:
-        bcf = outdir + "/annotations/{sample}.phased.annot.bcf",
-        idx = outdir + "/annotations/{sample}.phased.annot.bcf.csi"
+        bcf = outdir + "/phased_samples/{sample}.phased.annot.bcf",
+        idx = outdir + "/phased_samples/{sample}.phased.annot.bcf.csi"
     threads:
         2
     benchmark:
@@ -280,8 +280,8 @@ rule merge_annotations:
 
 rule merge_samples:
     input: 
-        bcf = collect(outdir + "/annotations/{sample}.phased.annot.bcf", sample = samplenames),
-        idx = collect(outdir + "/annotations/{sample}.phased.annot.bcf.csi", sample = samplenames)
+        bcf = collect(outdir + "/phased_samples/{sample}.phased.annot.bcf", sample = samplenames),
+        idx = collect(outdir + "/phased_samples/{sample}.phased.annot.bcf.csi", sample = samplenames)
     output:
         bcf = outdir + "/variants.phased.bcf",
         idx = outdir + "/variants.phased.bcf.csi"
@@ -305,7 +305,7 @@ rule merge_samples:
 
 rule summarize_blocks:
     input:
-        collect(outdir + "/phaseBlocks/{sample}.blocks", sample = samplenames)
+        collect(outdir + "/phase_blocks/{sample}.blocks", sample = samplenames)
     output:
         outdir + "/reports/blocks.summary.gz"
     params:
