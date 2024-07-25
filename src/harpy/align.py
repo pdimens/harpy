@@ -7,10 +7,10 @@ from time import sleep
 from pathlib import Path
 import rich_click as click
 from .conda_deps import generate_conda_deps
-from .helperfunctions import fetch_report, fetch_rule, fetch_script
+from .helperfunctions import fetch_report, fetch_rule
 from .fileparsers import parse_fastq_inputs
 from .printfunctions import print_error, print_solution, print_notice, print_onstart
-from .validations import validate_input_by_ext
+from .validations import check_fasta
 
 @click.group(options_metavar='', context_settings={"help_option_names" : ["-h", "--help"]})
 def align():
@@ -101,7 +101,7 @@ def bwa(inputs, output_dir, genome, depth_window, threads, extra_params, quality
 
     os.makedirs(f"{workflowdir}/", exist_ok= True)
     fqlist, sample_count = parse_fastq_inputs(inputs)
-    validate_input_by_ext(genome, "--genome", [".fasta", ".fa", ".fasta.gz", ".fa.gz"])
+    check_fasta(genome)
     fetch_rule(workflowdir, "align_bwa.smk")
     fetch_report(workflowdir, "align_stats.Rmd")
     fetch_report(workflowdir, "align_bxstats.Rmd")
@@ -191,7 +191,7 @@ def ema(inputs, output_dir, platform, whitelist, genome, depth_window, threads, 
 
     os.makedirs(f"{workflowdir}/", exist_ok= True)
     fqlist, sample_count = parse_fastq_inputs(inputs)
-    validate_input_by_ext(genome, "--genome", [".fasta", ".fa", ".fasta.gz", ".fa.gz"])
+    check_fasta(genome)
     fetch_rule(workflowdir, "align_ema.smk")
     fetch_report(workflowdir, "align_stats.Rmd")
     fetch_report(workflowdir, "align_bxstats.Rmd")
@@ -271,7 +271,7 @@ def strobe(inputs, output_dir, genome, read_length, depth_window, threads, extra
 
     os.makedirs(f"{workflowdir}/", exist_ok= True)
     fqlist, sample_count = parse_fastq_inputs(inputs)
-    validate_input_by_ext(genome, "--genome", [".fasta", ".fa", ".fasta.gz", ".fa.gz"])
+    check_fasta(genome)
     fetch_rule(workflowdir, "align_strobealign.smk")
     fetch_report(workflowdir, "align_stats.Rmd")
     fetch_report(workflowdir, "align_bxstats.Rmd")

@@ -9,7 +9,7 @@ from .conda_deps import generate_conda_deps
 from .helperfunctions import fetch_rule, fetch_report
 from .fileparsers import parse_alignment_inputs
 from .printfunctions import print_onstart
-from .validations import validate_bam_RG, validate_popfile, validate_popsamples, validate_input_by_ext, validate_regions
+from .validations import check_fasta, validate_bam_RG, validate_popfile, validate_popsamples, validate_regions
 
 @click.group(options_metavar='', context_settings={"help_option_names" : ["-h", "--help"]})
 def snp():
@@ -96,7 +96,7 @@ def mpileup(inputs, output_dir, regions, genome, threads, populations, ploidy, e
     os.makedirs(f"{workflowdir}/", exist_ok= True)
     bamlist, n = parse_alignment_inputs(inputs)
     validate_bam_RG(bamlist)
-    validate_input_by_ext(genome, "--genome", [".fasta", ".fa", ".fasta.gz", ".fa.gz"])
+    check_fasta(genome)
 
     # setup regions checks
     regtype = validate_regions(regions, genome)
@@ -196,7 +196,7 @@ def freebayes(inputs, output_dir, genome, threads, populations, ploidy, regions,
     os.makedirs(f"{workflowdir}/", exist_ok= True)
     bamlist, n = parse_alignment_inputs(inputs)
     validate_bam_RG(bamlist)
-    validate_input_by_ext(genome, "--genome", [".fasta", ".fa", ".fasta.gz", ".fa.gz"])
+    check_fasta(genome)
 
     # setup regions checks
     regtype = validate_regions(regions, genome)

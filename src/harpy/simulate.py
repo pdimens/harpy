@@ -7,7 +7,7 @@ import rich_click as click
 from .conda_deps import generate_conda_deps
 from .helperfunctions import fetch_rule, fetch_script
 from .printfunctions import print_onstart, print_error
-from .validations import validate_input_by_ext
+from .validations import validate_input_by_ext, check_fasta
 
 @click.group(options_metavar='', context_settings={"help_option_names" : ["-h", "--help"]})
 def simulate():
@@ -147,8 +147,8 @@ def linkedreads(genome_hap1, genome_hap2, output_dir, outer_distance, mutation_r
     if snakemake is not None:
         command += snakemake
 
-    validate_input_by_ext(genome_hap1, "GENOME_HAP1", [".fasta", ".fa", ".fasta.gz", ".fa.gz"])
-    validate_input_by_ext(genome_hap2, "GENOME_HAP2", [".fasta", ".fa", ".fasta.gz", ".fa.gz"])
+    check_fasta(genome_hap1)
+    check_fasta(genome_hap2)
 
     os.makedirs(f"{workflowdir}/", exist_ok= True)
     fetch_rule(workflowdir, "simulate_linkedreads.smk")
@@ -242,7 +242,7 @@ def snpindel(genome, snp_vcf, indel_vcf, output_dir, prefix, snp_count, indel_co
     # instantiate workflow directory
     # move necessary files to workflow dir
     os.makedirs(f"{workflowdir}/input/", exist_ok= True)   
-    validate_input_by_ext(genome, "GENOME", [".fasta", ".fa", ".fasta.gz", ".fa.gz"])
+    check_fasta(genome)
     printmsg = f"Inpute Genome: {os.path.basename(genome)}\nOutput Directory: {output_dir}/\n"
     if snp_vcf:
         validate_input_by_ext(snp_vcf, "--snp-vcf", ["vcf","vcf.gz","bcf"])
@@ -344,7 +344,7 @@ def inversion(genome, vcf, prefix, output_dir, count, min_size, max_size, centro
     # instantiate workflow directory
     # move necessary files to workflow dir
     os.makedirs(f"{workflowdir}/input/", exist_ok= True)
-    validate_input_by_ext(genome, "GENOME", [".fasta", ".fa", ".fasta.gz", ".fa.gz"])
+    check_fasta(genome)
     printmsg = f"Inpute Genome: {os.path.basename(genome)}\nOutput Directory: {output_dir}/\n"
 
     if vcf:
@@ -447,7 +447,7 @@ def cnv(genome, output_dir, vcf, prefix, count, min_size, max_size, dup_ratio, m
     # instantiate workflow directory
     # move necessary files to workflow dir
     os.makedirs(f"{workflowdir}/input/", exist_ok= True)
-    validate_input_by_ext(genome, "GENOME", [".fasta", ".fa", ".fasta.gz", ".fa.gz"])
+    check_fasta(genome)
     printmsg = f"Inpute Genome: {os.path.basename(genome)}\nOutput Directory: {output_dir}/\n"
 
     if vcf:
@@ -541,7 +541,7 @@ def translocation(genome, output_dir, prefix, vcf, count, centromeres, genes, he
     # instantiate workflow directory
     # move necessary files to workflow dir
     os.makedirs(f"{workflowdir}/input/", exist_ok= True)
-    validate_input_by_ext(genome, "GENOME", [".fasta", ".fa", ".fasta.gz", ".fa.gz"])
+    check_fasta(genome)
     printmsg = f"Inpute Genome: {os.path.basename(genome)}\nOutput Directory: {output_dir}/\n"
     
     if vcf:

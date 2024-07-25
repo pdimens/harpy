@@ -9,7 +9,8 @@ from .conda_deps import generate_conda_deps
 from .helperfunctions import fetch_rule, fetch_report
 from .fileparsers import parse_alignment_inputs
 from .printfunctions import print_onstart
-from .validations import validate_popfile, validate_popsamples, check_phase_vcf, validate_input_by_ext
+from .validations import check_fasta, check_phase_vcf
+from .validations import validate_popfile, validate_popsamples, validate_input_by_ext
 
 @click.group(options_metavar='', context_settings={"help_option_names" : ["-h", "--help"]})
 def sv():
@@ -90,7 +91,7 @@ def leviathan(inputs, output_dir, genome, min_sv, min_barcodes, iterations, thre
 
     os.makedirs(f"{workflowdir}/", exist_ok= True)
     bamlist, n = parse_alignment_inputs(inputs)
-    validate_input_by_ext(genome, "--genome", [".fasta", ".fa", ".fasta.gz", ".fa.gz"])
+    check_fasta(genome)
     if populations is not None:
         fetch_report(workflowdir, "leviathan_pop.Rmd")
     fetch_report(workflowdir, "leviathan.Rmd")
@@ -182,7 +183,7 @@ def naibr(inputs, output_dir, genome, vcf, min_sv, min_barcodes, threads, popula
 
     os.makedirs(f"{workflowdir}/", exist_ok= True)
     bamlist, n = parse_alignment_inputs(inputs)
-    validate_input_by_ext(genome, "--genome", [".fasta", ".fa", ".fasta.gz", ".fa.gz"])
+    check_fasta(genome)
     if populations is not None:
         fetch_report(workflowdir, "naibr_pop.Rmd")
     fetch_report(workflowdir, "naibr.Rmd")

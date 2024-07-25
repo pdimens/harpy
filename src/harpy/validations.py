@@ -9,7 +9,6 @@ from pathlib import Path
 from rich import box, print
 from rich.table import Table
 import rich_click as click
-#from .fileparsers import getnames
 from .printfunctions import print_error, print_notice, print_solution, print_solution_with_culprits
 
 def check_envdir(dirpath):
@@ -371,3 +370,61 @@ def validate_regions(regioninput, genome):
             click.echo(",".join([i for i in badrows]), file = sys.stderr)
             sys.exit(1)
     return "file"
+
+
+def check_fasta(genofile):
+    """perform validations on fasta file for extensions and file contents"""
+    ext_options = [".fasta", ".fas", ".fa", ".fna", ".ffn", ".faa", ".mpfa", ".frn"]
+    ext_correct = 0
+    for i in ext_options:
+        if genofile.lower().endswith(i) or genofile.lower().endswith(i + ".gz"):
+            ext_correct += 1
+    if ext_correct == 0:
+        print_notice(f"[blue]{genofile}[/blue] has an unfamiliar FASTA file extension. Common FASTA file extensions are:\n[green]" + ", ".join(ext_options) + "[/green] and may also be gzipped.")
+
+    # validate fasta file contents
+    if genofile.lower().endswith(".gz"):
+        fasta = gzip.open(genofile, 'rt')
+    else:
+        fasta = open(genofile, 'r')
+    line_num = 0
+    seq_id = 0
+    seq = 0
+    last_header = False
+    for line in fasta:
+        line_num += 1
+        if line.startswith(">"):
+            seq_id += 1
+            if last_header:
+                print_error(f"All contig names must be followed by at least one line of nucleotide sequences, but two consecutive lines of contig names were detected. This issue was identified at line [bold]{line_num}[/bold] in [blue]{genofile}[/blue], but there may be others further in the file.")
+                print_solution("See the FASTA file spec: https://www.ncbi.nlm.nih.gov/genbank/fastaformat/ and make the appropriate changes, then try again.")
+                sys.exit(1)
+            else:
+                last_header = True
+            if len(line.rstrip()) == 1:
+                print_error(f"All contigs must have an alphanumeric name, but a contig was detected without a name. This issue was identified at line [bold]{line_num}[/bold] in [blue]{genofile}[/blue], but there may be others further in the file.")
+                print_solution("See the FASTA file spec: https://www.ncbi.nlm.nih.gov/genbank/fastaformat/ and make the appropriate changes, then try again.")
+                sys.exit(1)
+            if line.startswith("> "):
+                print_error(f"All contig names must be named [green bold]>contig_name[/green bold], without a space, but a contig was detected with a space between the [green bold]>[/green bold] and contig_name. This issue was identified at line [bold]{line_num}[/bold] in [blue]{genofile}[/blue], but there may be others further in the file.")
+                print_solution("See the FASTA file spec: https://www.ncbi.nlm.nih.gov/genbank/fastaformat/ and make the appropriate changes, then try again.")
+                sys.exit(1)
+        elif line == "\n":
+            print_error(f"Empty lines are not permitted in FASTA files, but one was detected at line [bold]{line_num}[/bold] in [blue]{genofile}[/blue]. The scan ended at this error, but there may be others further in the file.")
+            print_solution("See the FASTA file spec: https://www.ncbi.nlm.nih.gov/genbank/fastaformat/ and make the appropriate changes, then try again.")
+            sys.exit(1)
+        else:
+            seq += 1
+            last_header = False
+    fasta.close()
+    solutiontext = "FASTA files must have at least one contig name in the form of [green bold]>contigname[/green bold] followed by sequence data on the next line. Example:\n"
+    solutiontext += "[bold]  >aardvark_13\n  ATACAGGAGATTAGGCA[/bold]\n"
+    # make sure there is at least one of each
+    if seq_id == 0:
+        print_error(f"No contig names detected in [blue]{genofile}[/blue].")
+        print_solution(solutiontext + "\nSee the FASTA file spec: https://www.ncbi.nlm.nih.gov/genbank/fastaformat/ and make the appropriate changes, then try again.")
+        sys.exit(1)
+    if seq == 0:
+        print_error(f"No sequences detected in [blue]{genofile}[/blue].")
+        print_solution(solutiontext + "\nSee the FASTA file spec: https://www.ncbi.nlm.nih.gov/genbank/fastaformat/ and make the appropriate changes, then try again.")
+        sys.exit(1)

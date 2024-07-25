@@ -8,7 +8,7 @@ from .conda_deps import generate_conda_deps
 from .helperfunctions import fetch_rule, fetch_report
 from .fileparsers import parse_alignment_inputs
 from .printfunctions import print_onstart
-from .validations import vcf_samplematch, validate_bam_RG, validate_input_by_ext
+from .validations import check_fasta, vcf_samplematch, validate_bam_RG, validate_input_by_ext
 
 docstring = {
         "harpy phase": [
@@ -71,7 +71,7 @@ def phase(inputs, output_dir, vcf, threads, molecule_distance, prune_threshold, 
     validate_input_by_ext(vcf, "--vcf", ["vcf", "bcf", "vcf.gz"])
     validate_bam_RG(bamlist)
     if genome:
-        validate_input_by_ext(genome, "--genome", [".fasta", ".fa", ".fasta.gz", ".fa.gz"])
+        check_fasta(genome)
     fetch_rule(workflowdir, "phase.smk")
     fetch_report(workflowdir, "hapcut.Rmd")
 
@@ -90,8 +90,6 @@ def phase(inputs, output_dir, vcf, threads, molecule_distance, prune_threshold, 
         config.write(f"  variantfile: {vcf}\n")
         if genome is not None:
             config.write(f"  genome: {genome}\n")
-        #    if not os.path.exists(f"{genome}.fai"):
-        #        subprocess.run(f"samtools faidx --fai-idx {genome}.fai {genome}".split())
         config.write("  alignments:\n")
         for i in bamlist:
             config.write(f"    - {i}\n")
