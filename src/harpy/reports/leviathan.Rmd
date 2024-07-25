@@ -27,7 +27,6 @@ using<-function(...) {
 using("flexdashboard","dplyr","ggplot2","DT","BioCircos")
 ```
 
-# General Stats
 ## Intro
 ### introtext {.no-title}
 ```{r}
@@ -127,7 +126,11 @@ DT::datatable(
   rownames = F,
   filter = "top",
   extensions = 'Buttons',
-  options = list(dom = 'Brtip', buttons = c('csv'), scrollX = TRUE),
+  options = list(
+    dom = 'Brtip',
+    buttons = list(list(extend = "csv",filename = paste0(samplename , "_sv_leviathan`"))),  
+    scrollX = TRUE
+  ),
   autoHideNavigation = T,
   fillContainer = T
 )
@@ -148,7 +151,11 @@ DT::datatable(
   rownames = F, 
   filter = "top", 
   extensions = 'Buttons', 
-  options = list(dom = 'Brtip', buttons = c('csv'), scrollX = TRUE),
+  options = list(
+    dom = 'Brtip',
+    buttons = list(list(extend = "csv",filename = paste0(samplename ,"_sv_leviathan_per_contig"))),
+    scrollX = TRUE
+  ),
   autoHideNavigation = T,
   fillContainer = T
 )

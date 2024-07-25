@@ -179,10 +179,14 @@ DT::datatable(
   percontig,
   rownames = F,
   extensions = 'Buttons',
-  options = list(dom = 'Brtip', buttons = c('csv'), scrollX = TRUE),
+  options = list(
+    dom = 'Brtip',
+    buttons = list(list(extend = "csv",filename = "phasing_per_contig")), 
+    scrollX = TRUE
+  ),
   colnames = c("Contig", "Total Haplotypes", "Mean SNPs", "Median SNPs", "Mean Haplotype Length", "Median Haplotype Length", "Largest Haplotype"),
   fillContainer = T
-  )
+)
 ```
 
 ### per contig plot {.no-title}
@@ -247,7 +251,11 @@ DT::datatable(
   persample,
   rownames = F,
   extensions = 'Buttons',
-  options = list(dom = 'Brtip', buttons = c('csv'), scrollX = TRUE),
+  options = list(
+    dom = 'Brtip', 
+    buttons = list(list(extend = "csv",filename = "phasing_per_sample")), 
+    scrollX = TRUE
+  ),
   colnames = c("Sample", "Haplotypes", "Mean SNPs", "Median SNPs", "Mean Haplotype Length", "Median Haplotype Length", "Largest Haplotype"),
   fillContainer = T
 )

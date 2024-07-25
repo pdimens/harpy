@@ -172,7 +172,11 @@ DT::datatable(
   rownames = F,
   filter = "top",
   extensions = 'Buttons',
-  options = list(dom = 'Brtip', buttons = c('csv'), scrollX = TRUE),
+  options = list(
+    dom = 'Brtip',
+    buttons = list(list(extend = "csv",filename = "naibr_sv_count_pop")),
+    scrollX = TRUE
+  ),
   fillContainer = T
 )
 ```
@@ -189,7 +193,11 @@ DT::datatable(
   rownames = F,
   filter = "top",
   extensions = 'Buttons',
-  options = list(dom = 'Brtip', buttons = c('csv'), scrollX = TRUE),
+  options = list(
+    dom = 'Brtip',
+    buttons = list(list(extend = "csv",filename = "naibr_sv_count_bp")),
+    scrollX = TRUE
+  ),
   fillContainer = T
 )
 ```
@@ -239,7 +247,11 @@ DT::datatable(
   rownames = F,
   filter = "top",
   extensions = 'Buttons', 
-  options = list(dom = 'Brtip', buttons = 'csv', scrollX = TRUE),
+  options = list(
+    dom = 'Brtip',
+    buttons = list(list(extend = "csv",filename = "naibr_sv")),
+    scrollX = TRUE
+  ),
   fillContainer = T
 )
 ```
@@ -250,7 +262,11 @@ DT::datatable(
   rownames = F,
   filter = "top",
   extensions = 'Buttons',
-  options = list(dom = 'Brtip', buttons = c('csv'), scrollX = TRUE)
+  options = list(
+    dom = 'Brtip',
+    buttons = list(list(extend = "csv",filename = "naibr_sv_chimeric")),
+    scrollX = TRUE
+  )
 )
 ```
 

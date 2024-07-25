@@ -23,7 +23,6 @@ fai <- snakemake@input[["fai"]]
 samplename <- gsub(".bedpe", "", basename(infile))
 ```
 
-# General Stats
 ## file top
 ### file header {.no-title}
 <h1> NAIBR Variant Calling: `r samplename`  </h1>
@@ -145,8 +144,11 @@ DT::datatable(
   grpstats %>% pivot_wider(id_cols = 1, names_from = SV, values_from = count),
   rownames = F,
   extensions = 'Buttons',
-  options = list(dom = 'Brtip', buttons = c('csv'), scrollX = TRUE),
-  #colnames = c('Contig', 'Variant Type', 'Count', 'Total Base Pairs'),
+  options = list(
+    dom = 'Brtip',
+    buttons = list(list(extend = "csv",filename = paste0(samplename , "_sv_naibr_count"))),
+    scrollX = TRUE
+  ),
   autoHideNavigation = T,
   fillContainer = T
 )
@@ -157,9 +159,11 @@ DT::datatable(
   grpstats %>% pivot_wider(id_cols = 1, names_from = SV, values_from = total_bp),
   rownames = F,
   extensions = 'Buttons',
-  options = list(dom = 'Brtip', buttons = c('csv'), scrollX = TRUE),
-  #colnames = c('deletion', 'duplication', 'inversion'),
-  autoHideNavigation = T,
+  options = list(
+    dom = 'Brtip',
+    buttons = list(list(extend = "csv",filename = paste0(samplename , "_sv_naibr_count_bp"))),
+    scrollX = TRUE
+  ),  autoHideNavigation = T,
   fillContainer = T,
 )
 ```
@@ -210,7 +214,11 @@ DT::datatable(
   rownames = F,
   filter = "top",
   extensions = 'Buttons',
-  options = list(dom = 'Brtip', buttons = c('csv'), scrollX = TRUE),
+  options = list(
+    dom = 'Brtip',
+    buttons = list(list(extend = "csv",filename = paste0(samplename ,"_sv_naibr"))),
+    scrollX = TRUE
+  ),
   autoHideNavigation = T,
   fillContainer = T
 )
@@ -222,7 +230,11 @@ DT::datatable(
   rownames = F,
   filter = "top",
   extensions = 'Buttons',
-  options = list(dom = 'Brtip', buttons = c('csv'), scrollX = TRUE),
+  options = list(
+    dom = 'Brtip',
+    buttons = list(list(extend = "csv",filename = paste0(samplename ,"_sv_naibr_chimeric"))),
+    scrollX = TRUE
+  ),
   autoHideNavigation = T,
   fillContainer = T
 )
