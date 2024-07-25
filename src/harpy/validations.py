@@ -372,6 +372,24 @@ def validate_regions(regioninput, genome):
     return "file"
 
 
+def is_gzip(file_path):
+    """helper function to determine if a file is gzipped"""
+    try:
+        with gzip.open(file_path, 'rt') as f:
+            f.read(10)
+        return True
+    except:
+        return False
+
+def is_plaintext(file_path):
+    """helper function to determine if a file is plaintext"""
+    try:
+        with open(file_path, 'r') as f:
+            f.read(10)
+        return True
+    except:
+        return False
+
 def check_fasta(genofile):
     """perform validations on fasta file for extensions and file contents"""
     ext_options = [".fasta", ".fas", ".fa", ".fna", ".ffn", ".faa", ".mpfa", ".frn"]
@@ -383,10 +401,13 @@ def check_fasta(genofile):
         print_notice(f"[blue]{genofile}[/blue] has an unfamiliar FASTA file extension. Common FASTA file extensions are:\n[green]" + ", ".join(ext_options) + "[/green] and may also be gzipped.")
 
     # validate fasta file contents
-    if genofile.lower().endswith(".gz"):
+    if is_gzip(genofile):
         fasta = gzip.open(genofile, 'rt')
+    elif is_plaintext(genofile):
+        fasta = open(genofile, 'r', encoding="utf-8")
     else:
-        fasta = open(genofile, 'r')
+        print_error(f"Unable to determine file encoding for [blue]{genofile}[/blue]. Please check that it is a gzipped or uncompressed FASTA file.")
+        sys.exit(1)
     line_num = 0
     seq_id = 0
     seq = 0
