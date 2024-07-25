@@ -6,6 +6,7 @@ common: &common
   - 'src/harpy/__main__.py'
   - 'resources/harpy.yaml'
   - '.github/workflows/tests.yml'
+  - '.github/filters.yml'
   - 'resources/buildforCI.sh'
 container: &container
   - 'src/harpy/conda_deps.py'
