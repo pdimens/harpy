@@ -225,7 +225,7 @@ inv <- sv[sv$type == "INV",]
 if(nrow(inv) > 0){
   tracks <- tracks + BioCircosArcTrack(
     'Inversions',
-    inv$contig,
+    as.character(inv$contig),
     inv$position_start,
     inv$position_end,
     opacities = 0.7,
@@ -242,7 +242,7 @@ del <- sv[sv$type == "DEL",]
 if(nrow(del) > 0){
   tracks <- tracks + BioCircosSNPTrack(
     'Deletions',
-    del$contig,
+    as.character(del$contig),
     del$position_start,
     values = abs(del$position_end - del$position_start),
     minRadius = 0.63,
@@ -261,7 +261,7 @@ dup <- sv[sv$type == "DUP",]
 if(nrow(dup) > 0){
   tracks <- tracks + BioCircosArcTrack(
     'Duplications',
-    dup$contig,
+    as.character(dup$contig),
     dup$position_start,
     dup$position_end,
     values = dup$n_barcodes,
@@ -278,7 +278,7 @@ bnd <- sv[sv$type == "BND",]
 if(nrow(bnd) > 0){
   tracks <- tracks + BioCircosSNPTrack(
     'Breakends',
-    bnd$contig,
+    as.character(bnd$contig),
     bnd$position_start,
     values = 0,
     minRadius = 0.33,

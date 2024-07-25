@@ -309,7 +309,7 @@ inv <- sv[sv$SV == "inversion",]
 if(nrow(inv) > 0){
   tracks <- tracks + BioCircosArcTrack(
     'Inversions',
-    inv$Chr1,
+    as.character(inv$Chr1),
     inv$Break1,
     inv$Break2,
     opacities = 0.7,
@@ -326,7 +326,7 @@ del <- sv[sv$SV == "deletion",]
 if(nrow(del) > 0){
   tracks <- tracks + BioCircosSNPTrack(
     'Deletions',
-    del$Chr1,
+    as.character(del$Chr1),
     del$Break1,
     values = abs(del$Break2 - del$Break1),
     minRadius = 0.53,
@@ -344,7 +344,7 @@ dup <- sv[sv$SV == "duplication",]
 if(nrow(dup) > 0){
   tracks <- tracks + BioCircosArcTrack(
     'Duplications',
-    dup$Chr1,
+    as.character(dup$Chr1),
     dup$Break1,
     dup$Break2,
     values = dup$SplitMolecules,
