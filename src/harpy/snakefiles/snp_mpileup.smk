@@ -83,7 +83,7 @@ rule genome_setup:
             # is regular gzipped, needs to be BGzipped
             seqtk seq {input} | bgzip -c > {output}
         else
-            cp -f {input} > {output}
+            cp -f {input} {output}
         fi
         """
 
