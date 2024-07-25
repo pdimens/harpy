@@ -97,7 +97,7 @@ rule index_barcode:
     shell:
         "LRez index bam --threads {threads} -p -b {input.bam} -o {output}"
 
-rule genome_link:
+rule genome_setup:
     input:
         genomefile
     output: 
@@ -107,18 +107,7 @@ rule genome_link:
     message: 
         "Creating {output}"
     shell: 
-        """
-        if (file {input} | grep -q compressed ) ;then
-            # is regular gzipped, needs to be decompressed
-            gzip -dc {input} > {output}
-        elif (file {input} | grep -q BGZF ); then
-            # is bgzipped, decompress
-            gzip -dc {input} > {output}
-        else
-            # isn't compressed, just linked
-            cp -f {input} {output}
-        fi
-        """
+        "seqtk seq {input} > {output}"
 
 rule genome_faidx:
     input: 

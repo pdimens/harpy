@@ -191,7 +191,7 @@ rule merge_variants:
                         elif record[-1] == "duplication":
                             _ = duplications.write(f"{samplename}\t{line}")
 
-rule genome_link:
+rule genome_setup:
     input:
         genomefile
     output: 
@@ -204,7 +204,7 @@ rule genome_link:
         """
         if (file {input} | grep -q compressed ) ;then
             # is regular gzipped, needs to be BGzipped
-            zcat {input} | bgzip -c > {output}
+            seqtk seq {input} | bgzip -c > {output}
         else
             # if BZgipped or isn't compressed, just copied
             cp -f {input} {output}

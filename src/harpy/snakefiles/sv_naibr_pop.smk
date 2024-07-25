@@ -221,7 +221,7 @@ rule merge_variants:
                         elif record[-1] == "duplication":
                             _ = duplications.write(f"{samplename}\t{line}")
 
-rule genome_link:
+rule genome_setup:
     input:
         genomefile
     output: 
@@ -229,19 +229,9 @@ rule genome_link:
     container:
         None
     message: 
-        "Creating {output}"
+        "Preprocessing {input}"
     shell: 
-        """
-        if (file {input} | grep -q compressed ) ;then
-            # is regular gzipped, needs to be decompressed
-            gzip -dc {input} > {output}
-        elif (file {input} | grep -q BGZF ); then
-            # is bgzipped, decompress
-            gzip -dc {input} > {output}
-        else
-            cp -f {input} {output}
-        fi
-        """
+        "seqtk seq {input} > {output}"
 
 rule genome_faidx:
     input: 

@@ -68,7 +68,7 @@ def sam_index(infile):
     if not os.path.exists(f"{infile}.bai"):
         subprocess.run(f"samtools index {infile} {infile}.bai".split())
 
-rule genome_link:
+rule genome_setup:
     input:
         genomefile
     output: 
@@ -81,9 +81,9 @@ rule genome_link:
         """
         if (file {input} | grep -q compressed ) ;then
             # is regular gzipped, needs to be BGzipped
-            zcat {input} | bgzip -c > {output}
+            seqtk seq {input} | bgzip -c > {output}
         else
-            cp {input} {output}
+            seqtk {input} > {output}
         fi
         """
 

@@ -84,7 +84,7 @@ rule copy_groupings:
         with open(input[0], "r") as infile, open(output[0], "w") as outfile:
             _ = [outfile.write(i) for i in infile.readlines() if not i.lstrip().startswith("#")]
 
-rule genome_link:
+rule genome_setup:
     input:
         genomefile
     output: 
@@ -92,20 +92,9 @@ rule genome_link:
     container:
         None
     message: 
-        "Symlinking {input}"
+        "Copying {input} to Genome/"
     shell: 
-        """
-        if (file {input} | grep -q compressed ) ;then
-            # is regular gzipped, needs decompression
-            gzip -d -c {input} > {output}
-        elif (file {input} | grep -q BGZF ); then
-            # is bgzipped, needs decompression
-            gzip -d -c {input} > {output}
-        else
-            # isn't compressed, just copied
-            cp {input} {output}
-        fi
-        """
+        "seqtk seq {input} > {output}"
 
 rule genome_faidx:
     input: 

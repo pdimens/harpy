@@ -66,15 +66,7 @@ rule genome_setup:
     message: 
         "Copying {input} to Genome/"
     shell: 
-        """
-        if (file {input} | grep -q compressed ) ;then
-            zcat {input} > {output}
-        elif (file {input} | grep -q BGZF ); then
-            zcat {input} > {output}
-        else
-            cp -f {input} {output}
-        fi
-        """
+        "seqtk seq {input} > {output}"
 
 rule genome_faidx:
     input: 

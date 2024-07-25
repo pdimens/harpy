@@ -67,9 +67,9 @@ rule genome_setup:
         """
         if (file {input} | grep -q compressed ) ;then
             # is regular gzipped, needs to be BGzipped
-            zcat {input} | bgzip -c > {output}
+            seqtk seq {input} | bgzip -c > {output}
         else
-            cp -f {input} {output}
+            seqtk seq {input} > {output}
         fi
         """
 

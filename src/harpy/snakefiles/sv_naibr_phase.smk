@@ -88,7 +88,7 @@ def get_align_index(wildcards):
     aln = list(filter(r.match, bamlist))
     return aln[0] + ".bai"
 
-rule genome_link:
+rule genome_setup:
     input:
         genomefile
     output: 
@@ -98,18 +98,7 @@ rule genome_link:
     message: 
         "Preprocessing {input}"
     shell: 
-        """
-        if (file {input} | grep -q compressed ) ;then
-            # decompress gzipped
-            gzip -d -c {input} | seqtk seq > {output}
-        elif (file {input} | grep -q BGZF ); then
-            # decompress bgzipped
-            gzip -d -c {input} | seqtk seq > {output}
-        else
-            # copy uncompressed
-            cp -f {input} {output}
-        fi
-        """
+        "seqtk seq {input} > {output}"
 
 rule genome_faidx:
     input: 

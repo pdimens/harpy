@@ -151,18 +151,7 @@ if indels:
         message: 
             "Copying {input} to Genome/"
         shell: 
-            """
-            if (file {input} | grep -q compressed ) ;then
-                # is regular gzipped, needs to be decompressed
-                zcat {input} > {output}
-            elif (file {input} | grep -q BGZF ); then
-                # is bgzipped, also decompressed
-                zcat {input} > {output}
-            else
-                # isn't compressed, just copied
-                cp {input} {output}
-            fi
-            """
+            "seqtk seq {input} > {output}"
 
     rule genome_faidx:
         input: 
