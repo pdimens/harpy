@@ -14,8 +14,8 @@ preflight: &preflight
   - *common
   - *container
   - 'src/harpy/preflight.py'
-  - 'src/harpy/snakefiles/preflight-fastq.smk'
-  - 'src/harpy/snakefiles/preflight-bam.smk'
+  - 'src/harpy/snakefiles/preflight_fastq.smk'
+  - 'src/harpy/snakefiles/preflight_bam.smk'
   - 'test/fastq/**'
   - 'test/bam/**'
   - 'src/harpy/bin/check_bam.py'
@@ -45,7 +45,7 @@ bwa: &bwa
   - *common
   - *container
   - 'src/harpy/align.py'
-  - 'src/harpy/snakefiles/align-bwa.smk'
+  - 'src/harpy/snakefiles/align_bwa.smk'
   - 'src/harpy/reports/align_stats.Rmd'
   - 'src/harpy/reports/align_bxstats.Rmd'
   - 'src/harpy/bin/bx_stats.py'
@@ -57,7 +57,7 @@ ema: &ema
   - *common
   - *container
   - 'src/harpy/align.py'
-  - 'src/harpy/snakefiles/align-ema.smk'
+  - 'src/harpy/snakefiles/align_ema.smk'
   - 'src/harpy/reports/align_stats.Rmd'
   - 'src/harpy/reports/align_bxstats.Rmd'
   - 'src/harpy/bin/bx_stats.py'
@@ -68,7 +68,7 @@ strobealign: &strobealign
   - *common
   - *container
   - 'src/harpy/align.py'
-  - 'src/harpy/snakefiles/align-strobealign.smk'
+  - 'src/harpy/snakefiles/align_strobealign.smk'
   - 'src/harpy/reports/align_stats.Rmd'
   - 'src/harpy/reports/align_bxstats.Rmd'
   - 'src/harpy/bin/assign_mi.py'
@@ -80,7 +80,7 @@ mpileup: &mpileup
   - *common
   - *container
   - 'src/harpy/snp.py'
-  - 'src/harpy/snakefiles/snp-mpileup.smk'
+  - 'src/harpy/snakefiles/snp_mpileup.smk'
   - 'src/harpy/reports/bcftools_stats.Rmd'
   - 'src/harpy/bin/make_windows.py'
   - 'test/bam/**'
@@ -88,7 +88,7 @@ freebayes: &freebayes
   - *common
   - *container
   - 'src/harpy/snp.py'
-  - 'src/harpy/snakefiles/snp-freebayes.smk'
+  - 'src/harpy/snakefiles/snp_freebayes.smk'
   - 'src/harpy/reports/bcftools_stats.Rmd'
   - 'src/harpy/bin/make_windows.py'
   - 'test/bam/**'
@@ -106,14 +106,14 @@ leviathan: &leviathan
   - *common
   - *container
   - 'src/harpy/sv.py'
-  - 'src/harpy/snakefiles/sv-leviathan**.smk'
+  - 'src/harpy/snakefiles/sv_leviathan**.smk'
   - 'test/bam/**'
   - 'src/harpy/reports/Leviathan**.Rmd'
 naibr: &naibr
   - *common
   - *container
   - 'src/harpy/sv.py'
-  - 'src/harpy/snakefiles/sv-naibr**.smk'
+  - 'src/harpy/snakefiles/sv_naibr**.smk'
   - 'test/bam/**'
   - 'test/bam_phased/**'
   - 'test/vcf/test.phased.bcf'
@@ -132,15 +132,15 @@ simvars: &simvars
   - *common
   - *container
   - 'src/harpy/simulatevariants.py'
-  - 'src/harpy/snakefiles/simulate-snpindel.smk'
-  - 'src/harpy/snakefiles/simulate-variants.smk'
+  - 'src/harpy/snakefiles/simulate_snpindel.smk'
+  - 'src/harpy/snakefiles/simulate_variants.smk'
   - 'test/vcf/test.bcf'
   - 'src/harpy/scripts/simuG.pl'
 simreads: &simreads
   - *common
   - *container
   - 'src/harpy/simulatelinkedreads.py'
-  - 'src/harpy/snakefiles/simulate-linkedreads.smk'
+  - 'src/harpy/snakefiles/simulate_linkedreads.smk'
   - 'test/genome**gz'
   - 'extractReads.cpp'
   - 'src/harpy/bin/10xtoHaplotag.py'
