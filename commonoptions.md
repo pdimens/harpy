@@ -74,7 +74,6 @@ and the contents therein also allow you to rerun the workflow manually. The `wor
 |:-----|:---------|:--------|
 |`*.smk`               | Snakefile with the full recipe of the workflow | useful for understanding the workflow |
 | `config.yml`         | Configuration file generated from command-line arguments and consumed by the Snakefile | useful for bookkeeping | 
-| `input/`             | Symlinks to all of the provided input files with standardized extensions |
 | `report/*.Rmd`       | RMarkdown files used to generate the fancy reports | useful to understand math behind plots/tables or borrow code from |
 | `*.summary` | Plain-text overview of the important parts of the workflow | useful for bookkeeping and writing Methods |
 
