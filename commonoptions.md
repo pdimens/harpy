@@ -14,8 +14,7 @@ where `module` is something like [!badge corners="pill" text="impute"](Modules/i
 which can include things like an input `--vcf` file, `--molecule-distance`, etc. After the options
 is where you provide the input files/directories without flags and following standard BASH expansion
 rules (e.g. wildcards). You can mix and match entire directories, individual files, and wildcard expansions.
-In most cases, you can provide an unlimited amount of input arguments, which Harpy will parse and symlink
-into the `*/workflow/input` folder, leaving the original files unmodified. In practice, that can look like:
+In most cases, you can provide an unlimited amount of input arguments. In practice, that can look like:
 ```bash
 harpy align bwa -t 5 -g genome.fasta data/pop1 data/pop2/trimmed*gz data/pop3/sample{1,2}* data/pop4/sample{2..5}*gz 
 ```
