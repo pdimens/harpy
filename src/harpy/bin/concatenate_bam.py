@@ -27,13 +27,18 @@ if len(sys.argv) == 1:
 args = parser.parse_args()
 
 if (args.alignments and args.bamlist):
-    print("Please provide either a single file to \'--bamlist\' featuring all the files you want to concatenate (one per line) or all the files at the command line.")
+    print("Please provide a single file to \'--bamlist\' (-b) featuring all the files you want to concatenate (one per line):", file = sys.stderr)
+    print("[example]: concatenate_bam.py -o c_acronotus.bam -b alignments.txt\n", file = sys.stderr)
+    
+    print("Alternatively, provide the files after \'-o output.bam\':", file = sys.stderr)
+    print("[example]: concatenate_bam.py -o c_acronotus.bam sample1.bam sample2.bam", file = sys.stderr)
+
     sys.exit(1)
 
 if args.bamlist:
     with open(args.bamlist, "r") as bl:
         # read in and filter out commented lines
-        aln_list = [i for i in bl.readlines() if not i.startswith("#")]
+        aln_list = [i.rstrip() for i in bl.readlines() if not i.startswith("#")]
 else:
     if isinstance(args.alignments, str):
         aln_list = [args.alignments]
@@ -56,38 +61,37 @@ if 'PG' not in header:
     header['PG'] = []
 header['PG'].append(new_pg_line)
 
-# update RG lines to match concat name
+# update RG lines to match output filename name
 header['RG'][0]['ID'] = Path(args.out).stem
 header['RG'][0]['SM'] = Path(args.out).stem
 
-bam_out = pysam.AlignmentFile(args.out, "wb", header = header)
+with pysam.AlignmentFile(args.out, "wb", header = header) as bam_out:
+    # current available unused MI tag
+    MI_NEW = 1
 
-# current available unused MI tag
-MI_NEW = 1
+    # iterate through the bam files
+    for xam in aln_list:
+        # create MI dict for this sample
+        MI_LOCAL = {}
+        # create index if it doesn't exist
+        if xam.lower().endswith(".bam"):
+            if not os.path.exists(f"{xam}.bai"):
+                pysam.index(xam)
+        with pysam.AlignmentFile(xam) as xamfile:
+            for record in xamfile.fetch():
+                try:
+                    mi = record.get_tag("MI")
+                    # if previously converted for this sample, use that
+                    if mi in MI_LOCAL:
+                        record.set_tag("MI", MI_LOCAL[mi])
+                    else:
+                        record.set_tag("MI", MI_NEW)
+                        # add to sample conversion dict
+                        MI_LOCAL[mi] = MI_NEW
+                        # increment to next unique MI
+                        MI_NEW += 1
+                except:
+                    pass
+                bam_out.write(record)
 
-# iterate through the bam files
-for xam in aln_list:
-    # create MI dict for this sample
-    MI_LOCAL = {}
-    # create index if it doesn't exist
-    if xam.lower().endswith(".bam"):
-        if not os.path.exists(f"{xam}.bai"):
-            pysam.index(xam)
-    with pysam.AlignmentFile(xam) as xamfile:
-        for record in xamfile.fetch():
-            try:
-                mi = record.get_tag("MI")
-                # if previously converted for this sample, use that
-                if mi in MI_LOCAL:
-                    record.set_tag("MI", MI_LOCAL[mi])
-                else:
-                    record.set_tag("MI", MI_NEW)
-                    # add to sample conversion dict
-                    MI_LOCAL[mi] = MI_NEW
-                    # increment to next unique MI
-                    MI_NEW += 1
-            except:
-                pass
-            bam_out.write(record)
-
-bam_out.close()
+pysam.index(bam_out)
