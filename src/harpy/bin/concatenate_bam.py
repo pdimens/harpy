@@ -94,4 +94,4 @@ with pysam.AlignmentFile(args.out, "wb", header = header) as bam_out:
                     pass
                 bam_out.write(record)
 
-pysam.index(bam_out)
+pysam.index(args.out)
