@@ -96,16 +96,34 @@ rule merge_populations:
         bamlist  = outdir + "/workflow/merge_samples/{population}.list",
         bamfiles = lambda wc: collect("{sample}", sample = popdict[wc.population]) 
     output:
-        bam = temp(outdir + "/workflow/input/{population}.bam"),
-        bai = temp(outdir + "/workflow/input/{population}.bam.bai")
+        bam = temp(outdir + "/workflow/input/{population}.unsort.bam"),
+        bai = temp(outdir + "/workflow/input/{population}.unsort.bam.bai")
     threads:
-        workflow.cores
+        1
     container:
         None
     message:
         "Merging alignments: {wildcards.population}"
     shell:
-        "samtools merge -o {output.bam}##idx##{output.bai} --threads {threads} --write-index -b {input.bamlist}"
+        "concatenate_bam.py -o {output.bam} -b {input.bamlist}"
+
+rule sort_alignments:
+    input:
+        bam = outdir + "/workflow/input/{population}.unsort.bam",
+        bai = outdir + "/workflow/input/{population}.unsort.bam.bai"
+    output:
+        bam = outdir + "/workflow/input/{population}.bam",
+        bai = outdir + "/workflow/input/{population}.bam"
+    log:
+        outdir + "/logs/{population}.sort.log"
+    resources:
+        mem_mb = 2000
+    container:
+        None
+    message:
+        "Sorting alignments: {wildcards.population}"
+    shell:
+        "samtools sort -O bam -l 0 -m {resources.mem_mb}M --write-index -o {output.bam}##idx##{output.bai} {input.bam} 2> {log}"
 
 rule index_barcode:
     input: 
