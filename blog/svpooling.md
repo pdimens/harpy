@@ -37,7 +37,7 @@ calling structural variants at low depth is challenging, especially with short r
 It's recommended to have at least 10X-12X depth to get decent structural variant calls
 (definitely read that in a paper that I would like to link here, but I can't seem to find
 it). If your data already has a minimum of 10X for each individual, great! Feel free to use
-variant callers like `naibr` and `leviathan` to identify structural variants. Hwoever, if
+variant callers like `naibr` and `leviathan` to identify structural variants. However, if
 you opted to sequence more individuals at lower coverage (lcWGS is often between 0.5-5X),
 then calling structural variants in individuals may be a challenge.
 
@@ -58,7 +58,7 @@ that as a basis to pool together samples from these groups. As an example, you c
 get results like these:
 ![PCA of Alosa sapidissima (SNPs from low-coverage haplotag dataset)](/static/pca.png)
 
-Given these results, a sensible pooling strategy would be:
+Given these results, a sensible pooling strategy may be:
 - **Pool 1**: Miramichi samples
 - **Pool 2**: Annapolis samples
 - **Pool 3**: St_Johns samples
