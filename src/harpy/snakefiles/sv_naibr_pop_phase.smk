@@ -252,7 +252,7 @@ rule sort_alignments:
         bai = outdir + "/workflow/input/{population}.unsort.bam.bai"
     output:
         bam = outdir + "/workflow/input/{population}.bam",
-        bai = outdir + "/workflow/input/{population}.bam"
+        bai = outdir + "/workflow/input/{population}.bam.bai"
     log:
         outdir + "/logs/{population}.sort.log"
     resources:
