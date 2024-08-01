@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="turbo-root" content="/harpy">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="3.5.0.775858605883">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="3.5.0.775859210990">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 3.5.0">
@@ -37,11 +37,11 @@
     <script data-cfasync="false">(function () { var el = document.documentElement, m = localStorage.getItem("doc_theme"), wm = window.matchMedia; if (m === "dark" || (!m && wm && wm("(prefers-color-scheme: dark)").matches)) { el.classList.add("dark") } else { el.classList.remove("dark") } })();</script>
 
     <link href="../../static/favicon.svg" rel="icon">
-    <link href="../../resources/css/retype.css?v=3.5.0.775858605883" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=3.5.0.775859210990" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=3.5.0.775858605883" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=3.5.0.775859210990" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=3.5.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=3.5.0.775858605883" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=3.5.0.775859210990" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="docs-app" class="relative text-base antialiased text-gray-700 bg-white font-body dark:bg-dark-850 dark:text-dark-300">
@@ -341,7 +341,7 @@ calling structural variants at low depth is challenging, especially with short r
 <p>It&#x27;s recommended to have at least 10X-12X depth to get decent structural variant calls
 (definitely read that in a paper that I would like to link here, but I can&#x27;t seem to find
 it). If your data already has a minimum of 10X for each individual, great! Feel free to use
-variant callers like <code v-pre>naibr</code> and <code v-pre>leviathan</code> to identify structural variants. Hwoever, if
+variant callers like <code v-pre>naibr</code> and <code v-pre>leviathan</code> to identify structural variants. However, if
 you opted to sequence more individuals at lower coverage (lcWGS is often between 0.5-5X),
 then calling structural variants in individuals may be a challenge.</p>
 <doc-anchor-target id="the-solution">
@@ -373,7 +373,7 @@ get results like these:
     <figcaption class="caption">PCA of Alosa sapidissima (SNPs from low-coverage haplotag dataset)</figcaption>
 </figure>
 </p>
-<p>Given these results, a sensible pooling strategy would be:</p>
+<p>Given these results, a sensible pooling strategy may be:</p>
 <ul>
 <li><strong>Pool 1</strong>: Miramichi samples</li>
 <li><strong>Pool 2</strong>: Annapolis samples</li>
