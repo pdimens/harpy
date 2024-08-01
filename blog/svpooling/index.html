@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="turbo-root" content="/harpy">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="3.5.0.775859210990">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="3.5.0.775859609213">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 3.5.0">
@@ -37,11 +37,11 @@
     <script data-cfasync="false">(function () { var el = document.documentElement, m = localStorage.getItem("doc_theme"), wm = window.matchMedia; if (m === "dark" || (!m && wm && wm("(prefers-color-scheme: dark)").matches)) { el.classList.add("dark") } else { el.classList.remove("dark") } })();</script>
 
     <link href="../../static/favicon.svg" rel="icon">
-    <link href="../../resources/css/retype.css?v=3.5.0.775859210990" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=3.5.0.775859609213" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=3.5.0.775859210990" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=3.5.0.775859609213" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=3.5.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=3.5.0.775859210990" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=3.5.0.775859609213" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="docs-app" class="relative text-base antialiased text-gray-700 bg-white font-body dark:bg-dark-850 dark:text-dark-300">
@@ -342,7 +342,7 @@ calling structural variants at low depth is challenging, especially with short r
 (definitely read that in a paper that I would like to link here, but I can&#x27;t seem to find
 it). If your data already has a minimum of 10X for each individual, great! Feel free to use
 variant callers like <code v-pre>naibr</code> and <code v-pre>leviathan</code> to identify structural variants. However, if
-you opted to sequence more individuals at lower coverage (lcWGS is often between 0.5-5X),
+you opted to sequence more individuals at lower depth (lcWGS is often between 0.5-5X),
 then calling structural variants in individuals may be a challenge.</p>
 <doc-anchor-target id="the-solution">
     <h2>
@@ -350,7 +350,7 @@ then calling structural variants in individuals may be a challenge.</p>
         <span>The solution</span>
     </h2>
 </doc-anchor-target>
-<p>One way to get your low-coverage data and still call structural variants is to pool
+<p>One way to get your low-coverage (low depth) data and still call structural variants is to pool
 samples together, which would effectively boost the depth. By doing this, you will
 no longer be able to make per-individual assessments, which can be fine depending on
 the nature of your study.</p>
@@ -366,11 +366,11 @@ haplotag data is just whole genome sequence data plus a little extra information
 use the SNPs of your data to first identify genetic clusters as per standard population
 genetic practices. Once population structure/stratification has been identified, you can use
 that as a basis to pool together samples from these groups. As an example, you can use
-<a href="https://github.com/Rosemeis/pcangsd">pcangsd</a> to perform a PCA on low-coverage SNP data and
+<a href="https://github.com/Rosemeis/pcangsd">pcangsd</a> to perform a PCA on low-depth SNP data and
 get results like these:
 <figure class="content-center">
-    <img src="../../static/pca.png" alt="PCA of Alosa sapidissima (SNPs from low-coverage haplotag dataset)">
-    <figcaption class="caption">PCA of Alosa sapidissima (SNPs from low-coverage haplotag dataset)</figcaption>
+    <img src="../../static/pca.png" alt="PCA of Alosa sapidissima (SNPs from low-depth haplotag dataset)">
+    <figcaption class="caption">PCA of Alosa sapidissima (SNPs from low-depth haplotag dataset)</figcaption>
 </figure>
 </p>
 <p>Given these results, a sensible pooling strategy may be:</p>
