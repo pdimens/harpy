@@ -29,6 +29,7 @@ using<-function(...) {
 using("flexdashboard","dplyr","tidyr","DT","highcharter","scales")
 
 modelparams <- paste(snakemake@params[[1]])
+splitparams <- unlist(strsplit(modelparams, "[_/]"))
 #modelparams <- "Filler Text"
 ```
 ```{r echo = FALSE, message = FALSE, warning = FALSE}
@@ -68,11 +69,39 @@ tryCatch(
 
 ### reportheader {.no-title}
 <h2> `r comparefile` </h2>
-This report details the results of genotype imputation using STITCH with the model parameters:
-`r modelparams`.
-
 This page displays various information and general statistics and clicking the `Individual Statistics` tab 
 in the navigation menu above will display imputation results per individual.
+
+## Param Information {data-height=100}
+### param_model
+```{r}
+valueBox(gsub("model", "", splitparams[1]), caption = "model", color = "#c0c0c0")
+```
+
+### param_usebx
+```{r}
+valueBox(gsub("usebx", "", splitparams[2]), caption = "usebX", color = "#c0c0c0")
+```
+### param_bxlimit
+```{r}
+valueBox(gsub("bxlimit", "", splitparams[6]), caption = "bxlimit", color = "#c0c0c0")
+```
+
+### param_k
+```{r}
+valueBox(gsub("k", "", splitparams[3]), caption = "k", color = "#c0c0c0")
+```
+
+### param_s
+```{r}
+valueBox(gsub("s", "", splitparams[4]), caption = "s", color = "#c0c0c0")
+```
+
+### param_ngen
+```{r}
+valueBox(gsub("ngen", "", splitparams[5]), caption = "ngen", color = "#c0c0c0")
+```
+
 
 ## General Information {data-height=100}
 ```{r}

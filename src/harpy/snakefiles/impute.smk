@@ -288,7 +288,7 @@ rule imputation_results_reports:
     conda:
         f"{envdir}/r.yaml"
     message:
-        "Generating imputation success report: {output}"
+        "Assessing imputation results: {output}"
     script:
         "report/impute.Rmd"
 

@@ -109,12 +109,14 @@ leviathan: &leviathan
   - 'src/harpy/sv.py'
   - 'src/harpy/snakefiles/sv_leviathan**.smk'
   - 'test/bam/**'
+  - 'src/harpy/bin/concatenate_bam.py'
   - 'src/harpy/reports/Leviathan**.Rmd'
 naibr: &naibr
   - *common
   - *container
   - 'src/harpy/sv.py'
   - 'src/harpy/snakefiles/sv_naibr**.smk'
+  - 'src/harpy/bin/concatenate_bam.py'
   - 'test/bam/**'
   - 'test/bam_phased/**'
   - 'test/vcf/test.phased.bcf'

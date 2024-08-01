@@ -110,8 +110,7 @@ if not os.path.exists(bam_input):
 
 if bam_input.lower().endswith(".bam"):
     if not os.path.exists(bam_input + ".bai"):
-        print(f"Error: {bam_input} requires a matching {bam_input}.bai index file, but one wasn\'t found.", file = sys.stderr)
-        sys.exit(1)
+        pysam.index(bam_input)
 
 # iniitalize input/output files
 alnfile = pysam.AlignmentFile(bam_input)
