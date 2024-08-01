@@ -38,11 +38,11 @@ It's recommended to have at least 10X-12X depth to get decent structural variant
 (definitely read that in a paper that I would like to link here, but I can't seem to find
 it). If your data already has a minimum of 10X for each individual, great! Feel free to use
 variant callers like `naibr` and `leviathan` to identify structural variants. However, if
-you opted to sequence more individuals at lower coverage (lcWGS is often between 0.5-5X),
+you opted to sequence more individuals at lower depth (lcWGS is often between 0.5-5X),
 then calling structural variants in individuals may be a challenge.
 
 ## The solution
-One way to get your low-coverage data and still call structural variants is to pool
+One way to get your low-coverage (low depth) data and still call structural variants is to pool
 samples together, which would effectively boost the depth. By doing this, you will
 no longer be able to make per-individual assessments, which can be fine depending on
 the nature of your study.
@@ -54,9 +54,9 @@ haplotag data is just whole genome sequence data plus a little extra information
 use the SNPs of your data to first identify genetic clusters as per standard population
 genetic practices. Once population structure/stratification has been identified, you can use
 that as a basis to pool together samples from these groups. As an example, you can use
-[pcangsd](https://github.com/Rosemeis/pcangsd) to perform a PCA on low-coverage SNP data and
+[pcangsd](https://github.com/Rosemeis/pcangsd) to perform a PCA on low-depth SNP data and
 get results like these:
-![PCA of Alosa sapidissima (SNPs from low-coverage haplotag dataset)](/static/pca.png)
+![PCA of Alosa sapidissima (SNPs from low-depth haplotag dataset)](/static/pca.png)
 
 Given these results, a sensible pooling strategy may be:
 - **Pool 1**: Miramichi samples
