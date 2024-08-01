@@ -19,7 +19,7 @@ parser = argparse.ArgumentParser(
     exit_on_error = False
     )
 
-parser.add_argument('input', help = "Input bam/sam file. If bam, a matching index file should be in the same directory.")
+parser.add_argument('input', help = "Input bam/sam file")
 
 if len(sys.argv) == 1:
     parser.print_help(sys.stderr)
@@ -28,6 +28,9 @@ if len(sys.argv) == 1:
 args = parser.parse_args()
 
 bam_in = args.input
+if bam_in.lower().endswith(".bam"):
+    if not os.path.exists(bam_in + ".bai"):
+        pysam.index(bam_in)
 
 # regex for EXACTLY AXXCXXBXXDXX
 haplotag = re.compile('^A[0-9][0-9]C[0-9][0-9]B[0-9][0-9]D[0-9][0-9]')
