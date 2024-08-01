@@ -2,11 +2,12 @@
 """Concatenate records from haplotagged BAM files"""
 import os
 import sys
+from pathlib import Path
 import argparse
 import pysam
 
 parser = argparse.ArgumentParser(
-    prog = 'merge_bam.py',
+    prog = 'concatenate_bam.py',
     description =
     """
     Concatenate records from haplotagged SAM/BAM files while making sure MI:i tags remain unique for every sample.
@@ -14,11 +15,11 @@ parser = argparse.ArgumentParser(
     so individuals don't have overlapping MI tags (which would mess up all the linked-read data). You can either provide
     all the files you want to concatenate, or a single file featuring filenames with the \'-b\' option.
     """,
-    usage = "merge_bam.py file_1.bam file_2.bam...file_N.bam > output.bam",
+    usage = "concatenate_bam.py -o output.bam file_1.bam file_2.bam...file_N.bam",
     exit_on_error = False
     )
-
 parser.add_argument("alignments", nargs='*', help = "SAM or BAM files")
+parser.add_argument("-o", "--out", required = True, type = str, help = "Name of BAM output file")
 parser.add_argument("-b", "--bamlist", required = False, type = str, help = "List of SAM or BAM files to concatenate")
 if len(sys.argv) == 1:
     parser.print_help(sys.stderr)
@@ -28,9 +29,6 @@ args = parser.parse_args()
 if (args.alignments and args.bamlist):
     print("Please provide either a single file to \'--bamlist\' featuring all the files you want to concatenate (one per line) or all the files at the command line.")
     sys.exit(1)
-
-# global set of observed MI tags
-MI_INVENTORY = set()
 
 if args.bamlist:
     with open(args.bamlist, "r") as bl:
@@ -42,27 +40,32 @@ else:
     else:
         aln_list = args.alignments
 
-# process the first bam file, establish a baseline
-first_xam = aln_list.pop(0)
-if first_xam.lower().endswith(".bam"):
-    if not os.path.exists(f"{first_xam}.bai"):
-        pysam.index(first_xam)
+# instantiate output file
+if aln_list[0].lower().endswith(".bam"):
+    if not os.path.exists(f"{aln_list[0]}.bai"):
+        pysam.index(aln_list[0])
+with pysam.AlignmentFile(aln_list[0]) as xam_in:
+    header = xam_in.header.to_dict()
+# Remove all @PG lines
+if 'PG' in header:
+    del header['PG']
+# Add a new @PG line
+sys.argv[0] = os.path.basename(sys.argv[0])
+new_pg_line = {'ID': 'concatenate', 'PN': 'harpy', 'VN': '1.x', 'CL': " ".join(sys.argv)}
+if 'PG' not in header:
+    header['PG'] = []
+header['PG'].append(new_pg_line)
 
-xam_in = pysam.AlignmentFile(first_xam)
-bam_out = pysam.AlignmentFile("-", "wb", template = xam_in)
-for record in xam_in.fetch():
-    try:
-        MI_INVENTORY.add(record.get_tag("MI"))
-    except:
-        pass
-    bam_out.write(record)
-xam_in.close()
+# update RG lines to match concat name
+header['RG'][0]['ID'] = Path(args.out).stem
+header['RG'][0]['SM'] = Path(args.out).stem
 
+bam_out = pysam.AlignmentFile(args.out, "wb", header = header)
 
 # current available unused MI tag
-MI_NEW = max(MI_INVENTORY) + 1
+MI_NEW = 1
 
-# iterate through the rest of the bam files
+# iterate through the bam files
 for xam in aln_list:
     # create MI dict for this sample
     MI_LOCAL = {}
@@ -70,27 +73,21 @@ for xam in aln_list:
     if xam.lower().endswith(".bam"):
         if not os.path.exists(f"{xam}.bai"):
             pysam.index(xam)
-    xamfile = pysam.AlignmentFile(xam)
-
-    for record in xamfile.fetch():
-        try:
-            mi = record.get_tag("MI")
-            # if previously converted for this sample, use that
-            if mi in MI_LOCAL:
-                record.set_tag("MI", MI_LOCAL[mi])
-            else:
-                record.set_tag("MI", MI_NEW)
-                # add to sample conversion dict
-                MI_LOCAL[mi] = MI_NEW
-                # add to total manifest of MI tags for all samples
-                MI_INVENTORY.add(MI_NEW)
-                # increment to next unique MI
-                MI_NEW += 1
-        except:
-            pass
-
-        bam_out.write(record)
-    xamfile.close()
+    with pysam.AlignmentFile(xam) as xamfile:
+        for record in xamfile.fetch():
+            try:
+                mi = record.get_tag("MI")
+                # if previously converted for this sample, use that
+                if mi in MI_LOCAL:
+                    record.set_tag("MI", MI_LOCAL[mi])
+                else:
+                    record.set_tag("MI", MI_NEW)
+                    # add to sample conversion dict
+                    MI_LOCAL[mi] = MI_NEW
+                    # increment to next unique MI
+                    MI_NEW += 1
+            except:
+                pass
+            bam_out.write(record)
 
 bam_out.close()
-
