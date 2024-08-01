@@ -23,7 +23,8 @@ refers to the number of sequences present at a given genomic position.
 Think of coverage as horizontal and depth as vertical. If depth is given
 as "15X", that means every sequenced genomic position has about 15 sequences
 per position (a.k.a. 15 replicates per locus). For clarity, when we say "depth",
-we are referring to this "vertical" description of replicates per locus. 
+we are referring to this "vertical" description of replicates per locus.
+![The difference between depth and coverage. The locus on the left would be considered 5X.](/static/depth_coverage.png)
 ### Depth, in context
 Historically, one would have wanted to sequence fewer individuals at higher depth
 to get confident genotype calls, rather than sequence more individuals at lower depth.
