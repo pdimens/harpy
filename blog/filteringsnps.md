@@ -4,7 +4,7 @@ date: 2024-06-05
 category: guides
 description: A gentle introduction to the wild world of filtering SNPs
 icon: filter
-image: https://vre.eucanshare.bsc.es/vre/tools/SNP_Filtering/assets/home/logo.png
+image: https://visualpharm.com/assets/479/Filter-595b40b65ba036ed117d440c.svg
 ---
 
 # :icon-filter: Filtering Variants

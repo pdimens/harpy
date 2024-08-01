@@ -4,7 +4,7 @@ date: 2024-06-21
 category: guides
 description: Deciding between using Conda or Containers
 icon: container
-image: https://cdn-icons-png.freepik.com/512/7115/7115168.png 
+image: https://visualpharm.com/assets/917/Docker-595b40b65ba036ed117d3f62.svg
 ---
 
 # :icon-container: Choosing a software runtime method
