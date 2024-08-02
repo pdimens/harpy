@@ -70,7 +70,7 @@ def process_args(args):
 
 # create dictionary of population => filenames
 ## this makes it easier to set the snakemake rules/wildcards
-def pop_manifest(groupingfile, filelist, out_dir):
+def pop_manifest(groupingfile, filelist):
     d = {}
     with open(groupingfile) as f:
         for line in f:
@@ -79,14 +79,15 @@ def pop_manifest(groupingfile, filelist, out_dir):
                 continue
             r = re.compile(fr".*/({samp.lstrip()})\.(bam|sam)$", flags = re.IGNORECASE)
             sampl = list(filter(r.match, filelist))[0]
-            sampl = f"{out_dir}/phasedbam/{os.path.basename(sampl)}"
+            sampl = os.path.basename(sampl)
+            #f"{out_dir}/phasedbam/{Path(sampl).stem}.bam"
             if pop not in d.keys():
                 d[pop] = [sampl]
             else:
                 d[pop].append(sampl)
     return d
 
-popdict     = pop_manifest(groupfile, bamlist, outdir)
+popdict     = pop_manifest(groupfile, bamlist)
 populations = popdict.keys()
 
 def sam_index(infile):
@@ -180,6 +181,8 @@ rule phase_alignments:
     output:
         bam = outdir + "/phasedbam/{sample}.bam",
         log = outdir + "/logs/whatshap-haplotag/{sample}.phase.log"
+    params:
+        mol_dist
     threads:
         4
     conda:
@@ -187,7 +190,7 @@ rule phase_alignments:
     message:
         "Phasing alignments: {wildcards.sample}"
     shell:
-        "whatshap haplotag --sample {wildcards.sample} --ignore-read-groups --tag-supplementary --output-threads={threads} -o {output.bam} --reference {input.ref} {input.vcf} {input.aln} 2> {output.log}"
+        "whatshap haplotag --sample {wildcards.sample} --linked-read-distance-cutoff {params} --ignore-read-groups --tag-supplementary --output-threads={threads} -o {output.bam} --reference {input.ref} {input.vcf} {input.aln} 2> {output.log}"
 
 rule log_phasing:
     input:
@@ -229,12 +232,12 @@ rule merge_list:
     run:
         with open(output[0], "w") as fout:
             for bamfile in popdict[wildcards.population]:
-                _ = fout.write(bamfile + "\n")
+                _ = fout.write(f"{outdir}/phasedbam/{Path(bamfile).stem}.bam\n")
 
 rule merge_populations:
     input: 
         bamlist  = outdir + "/workflow/pool_samples/{population}.list",
-        bamfiles = lambda wc: popdict[wc.population]
+        bamfiles = lambda wc: collect(outdir + "/phasedbam/{sample}", sample = popdict[wc.population])
     output:
         temp(outdir + "/workflow/input/concat/{population}.unsort.bam")
     threads:
@@ -408,6 +411,8 @@ rule workflow_summary:
             _ = f.write(f"The sample grouping file: {groupfile}\n\n")
             _ = f.write("The alignment files were phased using:\n")
             _ = f.write(f"    whatshap haplotag --reference genome.fasta --linked-read-distance-cutoff {mol_dist} --ignore-read-groups --tag-supplementary --sample sample_x file.vcf sample_x.bam\n")
+            _ = f.write("The phased alignments were concatenated using:\n")
+            _ = f.write("    concatenate_bam.py -o groupname.bam -b samples.list\n")
             _ = f.write("naibr variant calling ran using these configurations:\n")
             _ = f.write(f"    bam_file=BAMFILE\n")
             _ = f.write(f"    prefix=PREFIX\n")

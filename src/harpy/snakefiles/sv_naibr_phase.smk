@@ -162,6 +162,8 @@ rule phase_alignments:
     output:
         bam = outdir + "/phasedbam/{sample}.bam",
         log = outdir + "/logs/whatshap-haplotag/{sample}.phase.log"
+    params:
+        mol_dist
     conda:
         f"{envdir}/phase.yaml"
     threads:
@@ -169,7 +171,7 @@ rule phase_alignments:
     message:
         "Phasing alignments: {wildcards.sample}"
     shell:
-        "whatshap haplotag --sample {wildcards.sample} --ignore-read-groups --tag-supplementary --output-threads={threads} -o {output.bam} --reference {input.ref} {input.vcf} {input.aln} 2> {output.log}"
+        "whatshap haplotag --sample {wildcards.sample} --linked-read-distance-cutoff {params} --ignore-read-groups --tag-supplementary --output-threads={threads} -o {output.bam} --reference {input.ref} {input.vcf} {input.aln} 2> {output.log}"
 
 rule log_phasing:
     input:
