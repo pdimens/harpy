@@ -167,7 +167,7 @@ rule phase_alignments:
     threads:
         4
     message:
-        "Phasing: {input.aln}"
+        "Phasing alignments: {wildcards.sample}"
     shell:
         "whatshap haplotag --sample {wildcards.sample} --ignore-read-groups --tag-supplementary --output-threads={threads} -o {output.bam} --reference {input.ref} {input.vcf} {input.aln} 2> {output.log}"
 
