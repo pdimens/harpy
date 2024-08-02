@@ -307,6 +307,8 @@ rule workflow_summary:
             _ = f.write("The harpy sv naibr workflow ran using these parameters:\n\n")
             _ = f.write(f"The provided genome: {bn}\n")
             _ = f.write(f"The sample grouping file: {groupfile}\n\n")
+            _ = f.write("The alignments were concatenated using:\n")
+            _ = f.write("    concatenate_bam.py -o groupname.bam -b samples.list\n")
             _ = f.write("naibr variant calling ran using these configurations:\n")
             _ = f.write(f"    bam_file=BAMFILE\n")
             _ = f.write(f"    prefix=PREFIX\n")
