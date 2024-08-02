@@ -70,7 +70,7 @@ def process_args(args):
 
 # create dictionary of population => filenames
 ## this makes it easier to set the snakemake rules/wildcards
-def pop_manifest(groupingfile, filelist):
+def pop_manifest(groupingfile, filelist, out_dir):
     d = {}
     with open(groupingfile) as f:
         for line in f:
@@ -79,13 +79,14 @@ def pop_manifest(groupingfile, filelist):
                 continue
             r = re.compile(fr".*/({samp.lstrip()})\.(bam|sam)$", flags = re.IGNORECASE)
             sampl = list(filter(r.match, filelist))[0]
+            sampl = f"{out_dir}/phasedbam/{os.path.basename(sampl)}"
             if pop not in d.keys():
                 d[pop] = [sampl]
             else:
                 d[pop].append(sampl)
     return d
 
-popdict     = pop_manifest(groupfile, bamlist)
+popdict     = pop_manifest(groupfile, bamlist, outdir)
 populations = popdict.keys()
 
 def sam_index(infile):
@@ -222,9 +223,9 @@ rule merge_list:
     input:
         outdir + "/workflow/sample.groups"
     output:
-        outdir + "/workflow/merge_samples/{population}.list"
+        outdir + "/workflow/pool_samples/{population}.list"
     message:
-        "Creating population file list: {wildcards.population}"
+        "Creating pooling file list: {wildcards.population}"
     run:
         with open(output[0], "w") as fout:
             for bamfile in popdict[wildcards.population]:
@@ -232,10 +233,10 @@ rule merge_list:
 
 rule merge_populations:
     input: 
-        bamlist  = outdir + "/workflow/merge_samples/{population}.list",
-        bamfiles = lambda wc: collect("{sample}", sample = popdict[wc.population]) 
+        bamlist  = outdir + "/workflow/pool_samples/{population}.list",
+        bamfiles = lambda wc: popdict[wc.population]
     output:
-        temp(outdir + "/workflow/input/{population}.unsort.bam")
+        temp(outdir + "/workflow/input/concat/{population}.unsort.bam")
     threads:
         1
     container:
@@ -247,7 +248,7 @@ rule merge_populations:
 
 rule sort_merged:
     input:
-        outdir + "/workflow/input/{population}.unsort.bam"
+        outdir + "/workflow/input/concat/{population}.unsort.bam"
     output:
         bam = outdir + "/workflow/input/{population}.bam",
         bai = outdir + "/workflow/input/{population}.bam.bai"
@@ -262,7 +263,7 @@ rule sort_merged:
     message:
         "Sorting alignments: {wildcards.population}"
     shell:
-        "samtools sort -@ {threadS} -O bam -l 0 -m {resources.mem_mb}M --write-index -o {output.bam}##idx##{output.bai} {input} 2> {log}"
+        "samtools sort -@ {threads} -O bam -l 0 -m {resources.mem_mb}M --write-index -o {output.bam}##idx##{output.bai} {input} 2> {log}"
 
 rule create_config:
     input:
