@@ -79,8 +79,6 @@ def pop_manifest(groupingfile, filelist):
                 continue
             r = re.compile(fr".*/({samp.lstrip()})\.(bam|sam)$", flags = re.IGNORECASE)
             sampl = list(filter(r.match, filelist))[0]
-            sampl = os.path.basename(sampl)
-            #f"{out_dir}/phasedbam/{Path(sampl).stem}.bam"
             if pop not in d.keys():
                 d[pop] = [sampl]
             else:
@@ -94,18 +92,6 @@ def sam_index(infile):
     """Use Samtools to index an input file, adding .bai to the end of the name"""
     if not os.path.exists(f"{infile}.bai"):
         subprocess.run(f"samtools index {infile} {infile}.bai".split())
-
-def get_alignments(wildcards):
-    """returns a list with the bam file for the sample based on wildcards.sample"""
-    r = re.compile(fr".*/({wildcards.sample})\.(bam|sam)$", flags = re.IGNORECASE)
-    aln = list(filter(r.match, bamlist))
-    return aln[0]
-
-def get_align_index(wildcards):
-    """returns a list with the bai index file for the sample based on wildcards.sample"""
-    r = re.compile(fr"(.*/{wildcards.sample})\.(bam|sam)$", flags = re.IGNORECASE)
-    aln = list(filter(r.match, bamlist))
-    return aln[0] + ".bai"
 
 rule genome_setup:
     input:
@@ -170,47 +156,6 @@ rule index_original_alignments:
         with multiprocessing.Pool(processes=threads) as pool:
             pool.map(sam_index, input)
 
-rule phase_alignments:
-    input:
-        vcfindex,
-        get_align_index,
-        f"Genome/{bn}.fai",
-        vcf = vcffile,
-        aln = get_alignments,
-        ref = f"Genome/{bn}"
-    output:
-        bam = outdir + "/phasedbam/{sample}.bam",
-        log = outdir + "/logs/whatshap-haplotag/{sample}.phase.log"
-    params:
-        mol_dist
-    threads:
-        4
-    conda:
-        f"{envdir}/phase.yaml"
-    message:
-        "Phasing alignments: {wildcards.sample}"
-    shell:
-        "whatshap haplotag --sample {wildcards.sample} --linked-read-distance-cutoff {params} --ignore-read-groups --tag-supplementary --output-threads={threads} -o {output.bam} --reference {input.ref} {input.vcf} {input.aln} 2> {output.log}"
-
-rule log_phasing:
-    input:
-        collect(outdir + "/logs/whatshap-haplotag/{sample}.phase.log", sample = samplenames)
-    output:
-        outdir + "/logs/whatshap-haplotag.log"
-    container:
-        None
-    message:
-        "Creating log of alignment phasing"
-    shell:
-        """
-        echo -e "sample\\ttotal_alignments\\tphased_alignments" > {output}
-        for i in {input}; do
-            SAMP=$(basename $i .phaselog)
-            echo -e "${{SAMP}}\\t$(grep "Total alignments" $i)\\t$(grep "could be tagged" $i)" |
-                sed 's/ \\+ /\\t/g' | cut -f1,3,5 >> {output}
-        done
-        """
-
 rule copy_groupings:
     input:
         groupfile
@@ -226,18 +171,18 @@ rule merge_list:
     input:
         outdir + "/workflow/sample.groups"
     output:
-        outdir + "/workflow/pool_samples/{population}.list"
+        outdir + "/workflow/groupings/{population}.list"
     message:
         "Creating pooling file list: {wildcards.population}"
     run:
         with open(output[0], "w") as fout:
             for bamfile in popdict[wildcards.population]:
-                _ = fout.write(f"{outdir}/phasedbam/{Path(bamfile).stem}.bam\n")
+                _ = fout.write(f"{bamfile}\n")
 
 rule merge_populations:
     input: 
-        bamlist  = outdir + "/workflow/pool_samples/{population}.list",
-        bamfiles = lambda wc: collect(outdir + "/phasedbam/{sample}", sample = popdict[wc.population])
+        bamlist  = outdir + "/workflow/groupings/{population}.list",
+        bamfiles = lambda wc: popdict[wc.population]
     output:
         temp(outdir + "/workflow/input/concat/{population}.unsort.bam")
     threads:
@@ -253,8 +198,8 @@ rule sort_merged:
     input:
         outdir + "/workflow/input/concat/{population}.unsort.bam"
     output:
-        bam = outdir + "/workflow/input/{population}.bam",
-        bai = outdir + "/workflow/input/{population}.bam.bai"
+        bam = temp(outdir + "/workflow/input/{population}.bam"),
+        bai = temp(outdir + "/workflow/input/{population}.bam.bai")
     log:
         outdir + "/logs/{population}.sort.log"
     resources:
@@ -268,9 +213,60 @@ rule sort_merged:
     shell:
         "samtools sort -@ {threads} -O bam -l 0 -m {resources.mem_mb}M --write-index -o {output.bam}##idx##{output.bai} {input} 2> {log}"
 
+rule phase_alignments:
+    input:
+        vcfindex,
+        f"Genome/{bn}.fai",
+        vcf = vcffile,
+        ref = f"Genome/{bn}",
+        bam = outdir + "/workflow/input/{population}.bam",
+        bai = outdir + "/workflow/input/{population}.bam.bai"
+    output:
+        bam = outdir + "/phasedbam/{population}.bam",
+        log = outdir + "/logs/whatshap-haplotag/{population}.phase.log"
+    params:
+        mol_dist
+    threads:
+        8
+    conda:
+        f"{envdir}/phase.yaml"
+    message:
+        "Phasing alignments: {wildcards.population}"
+    shell:
+        "whatshap haplotag --sample {wildcards.population} --linked-read-distance-cutoff {params} --ignore-read-groups --tag-supplementary --output-threads={threads} -o {output.bam} --reference {input.ref} {input.vcf} {input.bam} 2> {output.log}"
+
+rule index_phased:
+    input:
+        outdir + "/phasedbam/{population}.bam"
+    output:
+        outdir + "/phasedbam/{population}.bam.bai"
+    message:
+        "Indexing phased alignments: {wildcards.population}"
+    shell:
+        "samtools index {input}"
+
+rule log_phasing:
+    input:
+        collect(outdir + "/logs/whatshap-haplotag/{population}.phase.log", population = populations)
+    output:
+        outdir + "/logs/whatshap-haplotag.log"
+    container:
+        None
+    message:
+        "Creating log of alignment phasing"
+    shell:
+        """
+        echo -e "sample\\ttotal_alignments\\tphased_alignments" > {output}
+        for i in {input}; do
+            SAMP=$(basename $i .phaselog)
+            echo -e "${{SAMP}}\\t$(grep "Total alignments" $i)\\t$(grep "could be tagged" $i)" |
+                sed 's/ \\+ /\\t/g' | cut -f1,3,5 >> {output}
+        done
+        """
+# BUG THIS WONT WORK B/C THE VCF LISTS THE SAMPLES NOT THE POPS
 rule create_config:
     input:
-        outdir + "/workflow/input/{population}.bam"
+        outdir + "/phasedbam/{population}.bam"
     output:
         outdir + "/workflow/config/{population}.naibr"
     params:
@@ -290,8 +286,8 @@ rule create_config:
 
 rule call_sv:
     input:
-        bam   = outdir + "/workflow/input/{population}.bam",
-        bai   = outdir + "/workflow/input/{population}.bam.bai",
+        bam   = outdir + "/phasedbam/{population}.bam",
+        bai   = outdir + "/phasedbam/{population}.bam.bai",
         conf  = outdir + "/workflow/config/{population}.naibr"
     output:
         bedpe = outdir + "/{population}/{population}.bedpe",
