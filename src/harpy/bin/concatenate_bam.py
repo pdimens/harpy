@@ -93,5 +93,3 @@ with pysam.AlignmentFile(args.out, "wb", header = header) as bam_out:
                 except:
                     pass
                 bam_out.write(record)
-
-pysam.index(args.out)
