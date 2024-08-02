@@ -12,8 +12,9 @@ parser = argparse.ArgumentParser(
     """
     Concatenate records from haplotagged SAM/BAM files while making sure MI:i tags remain unique for every sample.
     This is a means of accomplishing the same as \'samtools cat\', except all MI (Molecule Identifier) tags are updated
-    so individuals don't have overlapping MI tags (which would mess up all the linked-read data). You can either provide
-    all the files you want to concatenate, or a single file featuring filenames with the \'-b\' option.
+    so individuals don't have overlapping MI tags (which would mess up all the linked-read data). Also does the same for
+    existing phasing (PS or HP) tags, if they are present. You can either provide all the files you want to concatenate,
+    or a single file featuring filenames with the \'-b\' option.
     """,
     usage = "concatenate_bam.py -o output.bam file_1.bam file_2.bam...file_N.bam",
     exit_on_error = False
@@ -68,18 +69,20 @@ header['RG'][0]['SM'] = Path(args.out).stem
 with pysam.AlignmentFile(args.out, "wb", header = header) as bam_out:
     # current available unused MI tag
     MI_NEW = 1
-
+    PHASE_NEW = 1
     # iterate through the bam files
     for xam in aln_list:
         # create MI dict for this sample
         MI_LOCAL = {}
+        PHASE_LOCAL = {}
         # create index if it doesn't exist
         if xam.lower().endswith(".bam"):
             if not os.path.exists(f"{xam}.bai"):
                 pysam.index(xam)
         with pysam.AlignmentFile(xam) as xamfile:
             for record in xamfile.fetch():
-                try:
+                tags = [i[0] for i in record.get_tags()]
+                if "MI" in tags:
                     mi = record.get_tag("MI")
                     # if previously converted for this sample, use that
                     if mi in MI_LOCAL:
@@ -90,6 +93,20 @@ with pysam.AlignmentFile(args.out, "wb", header = header) as bam_out:
                         MI_LOCAL[mi] = MI_NEW
                         # increment to next unique MI
                         MI_NEW += 1
-                except:
-                    pass
+                
+                if "HP" in tags:
+                    phasing = "HP"
+                elif "PS" in tags:
+                    phasing = "PS"
+                else:
+                    phasing = False
+                if phasing:
+                    PS = record.get_tag(phasing)
+                    if PS in PHASE_LOCAL:
+                        record.set_tag(phasing, PHASE_LOCAL[PS])
+                    else:
+                        record.set_tag(phasing, PHASE_NEW)
+                        PHASE_LOCAL[PS] = PHASE_NEW
+                        PHASE_NEW += 1
+
                 bam_out.write(record)
