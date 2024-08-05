@@ -4,6 +4,8 @@ import os
 import re
 import sys
 import glob
+import logging as pylogging
+from datetime import datetime
 from pathlib import Path
 from rich import print as rprint
 from rich.panel import Panel
@@ -13,6 +15,10 @@ out_dir = config["output_directory"]
 envdir      = os.getcwd() + "/.harpy_envs"
 bn_r = r"([_\.][12]|[_\.][FR]|[_\.]R[12](?:\_00[0-9])*)?\.((fastq|fq)(\.gz)?)$"
 samplenames = {re.sub(bn_r, "", os.path.basename(i), flags = re.IGNORECASE) for i in fqlist}
+os.makedirs(f"{outdir}/logs/snakemake", exist_ok = True)
+dt_string = datetime.now().strftime("%d_%m_%Y-%H_%M_%S")
+extra_logfile_handler = pylogging.FileHandler(f"{outdir}/logs/snakemake/{dt_string}.snakelog")
+logger.logger.addHandler(extra_logfile_handler)
 
 wildcard_constraints:
     sample = "[a-zA-Z0-9._-]+"

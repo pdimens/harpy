@@ -3,6 +3,8 @@ containerized: "docker://pdimens/harpy:latest"
 import sys
 import os
 import random
+import logging as pylogging
+from datetime import datetime
 from rich.panel import Panel
 from rich import print as rprint
 
@@ -14,6 +16,10 @@ genome = config["inputs"]["genome"]
 vcf = config["inputs"].get("vcf", None)
 heterozygosity = float(config["heterozygosity"])
 vcf_correct = "None"
+os.makedirs(f"{outdir}/logs/snakemake", exist_ok = True)
+dt_string = datetime.now().strftime("%d_%m_%Y-%H_%M_%S")
+extra_logfile_handler = pylogging.FileHandler(f"{outdir}/logs/snakemake/{dt_string}.snakelog")
+logger.logger.addHandler(extra_logfile_handler)
 
 if vcf:
     vcf_correct = vcf[:-4] + ".vcf.gz" if vcf.lower().endswith("bcf") else vcf

@@ -4,6 +4,8 @@ import os
 import re
 import sys
 import multiprocessing
+import logging as pylogging
+from datetime import datetime
 from pathlib import Path
 from rich import print as rprint
 from rich.panel import Panel
@@ -21,6 +23,10 @@ skipreports = config["skip_reports"]
 bn          = os.path.basename(genomefile)
 genome_zip  = True if bn.lower().endswith(".gz") else False
 bn_idx      = f"{bn}.gzi" if genome_zip else f"{bn}.fai"
+os.makedirs(f"{outdir}/logs/snakemake", exist_ok = True)
+dt_string = datetime.now().strftime("%d_%m_%Y-%H_%M_%S")
+extra_logfile_handler = pylogging.FileHandler(f"{outdir}/logs/snakemake/{dt_string}.snakelog")
+logger.logger.addHandler(extra_logfile_handler)
 
 wildcard_constraints:
     sample = "[a-zA-Z0-9._-]+"

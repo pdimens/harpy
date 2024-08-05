@@ -4,21 +4,26 @@ import os
 import sys
 import gzip
 import shutil
+import logging as pylogging
+from datetime import datetime
 from pathlib import Path
-
 from rich.panel import Panel
 from rich import print as rprint
 
-outdir = config["output_directory"]
+outdir   = config["output_directory"]
 gen_hap1 = config["inputs"]["genome_hap1"]
 gen_hap2 = config["inputs"]["genome_hap2"]
-envdir      = os.getcwd() + "/.harpy_envs"
-
+envdir   = os.getcwd() + "/.harpy_envs"
 barcodes = config.get("barcodes", None)
 if barcodes:
     barcodefile = barcodes
 else:
     barcodefile = f"{outdir}/workflow/input/4M-with-alts-february-2016.txt"
+os.makedirs(f"{outdir}/logs/snakemake", exist_ok = True)
+dt_string = datetime.now().strftime("%d_%m_%Y-%H_%M_%S")
+extra_logfile_handler = pylogging.FileHandler(f"{outdir}/logs/snakemake/{dt_string}.snakelog")
+logger.logger.addHandler(extra_logfile_handler)
+
 
 onsuccess:
     shutil.rmtree('./_Inline', ignore_errors=True)

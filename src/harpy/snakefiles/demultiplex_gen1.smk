@@ -3,6 +3,8 @@ containerized: "docker://pdimens/harpy:latest"
 import os
 import re
 import sys
+import logging as pylogging
+from datetime import datetime
 from rich.panel import Panel
 from rich import print as rprint
 
@@ -13,7 +15,11 @@ I2 = config["inputs"]["I2"]
 samplefile = config["inputs"]["demultiplex_schema"]
 skipreports = config["skip_reports"]
 outdir = config["output_directory"]
-envdir      = os.getcwd() + "/.harpy_envs"
+envdir = os.getcwd() + "/.harpy_envs"
+os.makedirs(f"{outdir}/logs/snakemake", exist_ok = True)
+dt_string = datetime.now().strftime("%d_%m_%Y-%H_%M_%S")
+extra_logfile_handler = pylogging.FileHandler(f"{outdir}/logs/snakemake/{dt_string}.snakelog")
+logger.logger.addHandler(extra_logfile_handler)
 
 def barcodedict(smpl):
     d = {}

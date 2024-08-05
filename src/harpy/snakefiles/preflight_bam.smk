@@ -4,6 +4,8 @@ import os
 import re
 import sys
 import glob
+import logging as pylogging
+from datetime import datetime
 import multiprocessing
 from pathlib import Path
 from rich import print as rprint
@@ -13,6 +15,10 @@ out_dir = config["output_directory"]
 envdir  = os.getcwd() + "/.harpy_envs"
 bamlist = config["inputs"]
 samplenames = {Path(i).stem for i in bamlist}  
+os.makedirs(f"{outdir}/logs/snakemake", exist_ok = True)
+dt_string = datetime.now().strftime("%d_%m_%Y-%H_%M_%S")
+extra_logfile_handler = pylogging.FileHandler(f"{outdir}/logs/snakemake/{dt_string}.snakelog")
+logger.logger.addHandler(extra_logfile_handler)
 
 wildcard_constraints:
     sample = "[a-zA-Z0-9._-]+"

@@ -6,6 +6,8 @@ import sys
 import subprocess
 import pandas as pd
 import multiprocessing
+import logging as pylogging
+from datetime import datetime
 from rich.panel import Panel
 from rich import print as rprint
 from snakemake.utils import Paramspace
@@ -18,6 +20,10 @@ skipreports = config["skip_reports"]
 outdir      = config["output_directory"]
 envdir      = os.getcwd() + "/.harpy_envs"
 paramspace  = Paramspace(pd.read_csv(paramfile, sep=r"\s+", skip_blank_lines=True).rename(columns=str.lower), param_sep = "", filename_params = ["k", "s", "ngen", "bxlimit"])
+os.makedirs(f"{outdir}/logs/snakemake", exist_ok = True)
+dt_string = datetime.now().strftime("%d_%m_%Y-%H_%M_%S")
+extra_logfile_handler = pylogging.FileHandler(f"{outdir}/logs/snakemake/{dt_string}.snakelog")
+logger.logger.addHandler(extra_logfile_handler)
 
 with open(biallelic, "r") as f_open:
     contigs = [i.rstrip() for i in f_open.readlines()]

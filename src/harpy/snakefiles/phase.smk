@@ -3,6 +3,8 @@ containerized: "docker://pdimens/harpy:latest"
 import sys
 import subprocess
 import multiprocessing
+import logging as pylogging
+from datetime import datetime
 from pathlib import Path
 from rich import print as rprint
 from rich.panel import Panel
@@ -19,6 +21,10 @@ skipreports       = config["skip_reports"]
 samples_from_vcf  = config["samples_from_vcf"]
 variantfile       = config["inputs"]["variantfile"]
 bamlist     = config["inputs"]["alignments"]
+os.makedirs(f"{outdir}/logs/snakemake", exist_ok = True)
+dt_string = datetime.now().strftime("%d_%m_%Y-%H_%M_%S")
+extra_logfile_handler = pylogging.FileHandler(f"{outdir}/logs/snakemake/{dt_string}.snakelog")
+logger.logger.addHandler(extra_logfile_handler)
 
 # toggle linked-read aware mode
 if config["ignore_bx"]:

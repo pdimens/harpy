@@ -3,6 +3,10 @@ containerized: "docker://pdimens/harpy:latest"
 import os
 import re
 import sys
+import logging as pylogging
+from datetime import datetime
+import logging as pylogging
+from datetime import datetime
 from rich.panel import Panel
 from rich import print as rprint
 
@@ -21,6 +25,10 @@ if deconvolve:
     decon_d = deconvolve["density"]
     decon_a = deconvolve["dropout"]
 skipreports  = config["skip_reports"]
+os.makedirs(f"{outdir}/logs/snakemake", exist_ok = True)
+dt_string = datetime.now().strftime("%d_%m_%Y-%H_%M_%S")
+extra_logfile_handler = pylogging.FileHandler(f"{outdir}/logs/snakemake/{dt_string}.snakelog")
+logger.logger.addHandler(extra_logfile_handler)
 
 bn_r = r"([_\.][12]|[_\.][FR]|[_\.]R[12](?:\_00[0-9])*)?\.((fastq|fq)(\.gz)?)$"
 samplenames = {re.sub(bn_r, "", os.path.basename(i), flags = re.IGNORECASE) for i in fqlist}

@@ -3,6 +3,8 @@ containerized: "docker://pdimens/harpy:latest"
 import os
 import re
 import sys
+import logging as pylogging
+from datetime import datetime
 from rich import print as rprint
 from rich.panel import Panel
 
@@ -19,6 +21,10 @@ skipreports = config["skip_reports"]
 bn 			= os.path.basename(genomefile)
 if bn.lower().endswith(".gz"):
     bn = bn[:-3]
+os.makedirs(f"{outdir}/logs/snakemake", exist_ok = True)
+dt_string = datetime.now().strftime("%d_%m_%Y-%H_%M_%S")
+extra_logfile_handler = pylogging.FileHandler(f"{outdir}/logs/snakemake/{dt_string}.snakelog")
+logger.logger.addHandler(extra_logfile_handler)
 
 wildcard_constraints:
     sample = "[a-zA-Z0-9._-]+",
