@@ -63,7 +63,7 @@ sv <- read.table(statsfile, header = T,
   colClasses = c("factor", "factor", "integer", "integer", "character", "factor", "integer", "integer")
 )
 if (nrow(sv) == 0) {
-  cat(paste0("There are no variants in the file ", "`", bcf, "`"))
+  cat(paste0("There are no variants in the file ", "`", samplename, ".bcf`"))
   knitr::knit_exit()
 }
 ```
