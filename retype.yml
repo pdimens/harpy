@@ -29,14 +29,14 @@ footer:
 branding:
   title: Harpy
   label: v1.4
-  logo: static/logo_navbar.svg
-  logoDark: static/logo_navbar.svg
+  logo: static/logo_navbar.png
+  logoDark: static/logo_navbar.png
   logoAlign: left
-favicon: static/favicon.svg
+favicon: static/favicon.png
 search:
   mode: partial
 edit:
-  repo: "https://github.com/pdimens/HARPY/edit"
+  repo: "https://github.com/pdimens/harpy/edit"
   base: /
   branch: "docs"
 exclude:

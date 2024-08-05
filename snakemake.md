@@ -4,7 +4,23 @@ icon: terminal
 order: 2
 ---
 
-# :icon-terminal: Adding Snakamake parameters
+# :icon-terminal: Snakamake Things
+## Workflow logs
+Barring a few exceptions, most of Harpy's options are Snakemake workflows.
+This means we are all at the mercy of how Snakemake operates, which includes
+the `.snakemake/` folder in your project directory. That folder contains
+all sorts of things necessary for Snakemake to do its magic. However, as a
+convenience, Harpy workflows will also create a copy of the Snakemake
+workflow log (all those things that print on screen when Harpy is running)
+in a workflow's output directory. These logs are found in `OUTDIR/logs/snakemake`
+and are named `DATE-TIME.snakelog`. As an example, using the default
+settings of `harpy qc`, you will find a copy of your workflow's log in
+`QC/logs/snakemake/5_13_2024-11_59_22.snakelog`. The name of this log will
+**not** match the official log Snakemake creates in `.snakemake/logs`, but
+the contents will be identical. This naming convention exists to allow multiple
+runs in a single output directory, which usually happens because something went wrong.
+
+## Adding Snakemake Parameters
 Harpy relies on Snakemake under the hood to handle file and job dependencies.
 Most of these details have been abstracted away from the end-user, but every
 module of Harpy (except `popgroup`, and `stitchparams`) has an optional flag `--snakemake` 
