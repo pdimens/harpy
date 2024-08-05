@@ -35,7 +35,7 @@ onerror:
     print("")
     rprint(
         Panel(
-            f"The workflow has terminated due to an error. See the log file below for more details.",
+            f"The workflow has terminated due to an error. See the log file for more details:\n[bold]{outdir}/logs/snakemake/{dt_string}.snakelog[/bold]",
             title = "[bold]harpy align ema",
             title_align = "left",
             border_style = "red"

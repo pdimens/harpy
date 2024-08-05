@@ -8,7 +8,7 @@ from rich.panel import Panel
 def print_onstart(text, title):
     """Print a panel of info on workflow run"""
     print("")
-    print(Panel(text, title = f"[bold]Harpy {title}", title_align = "left", border_style = "light_steel_blue", subtitle = "Running Workflow", width = 75), file = sys.stderr)
+    print(Panel(text, title = f"[bold]harpy {title}", title_align = "left", border_style = "light_steel_blue", subtitle = "Running Workflow", width = 75), file = sys.stderr)
 
 def print_error(errortext):
     """Print a yellow panel with error text"""
