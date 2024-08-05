@@ -29,7 +29,7 @@ we are referring to this "vertical" description of replicates per locus.
 Historically, one would have wanted to sequence fewer individuals at higher depth
 to get confident genotype calls, rather than sequence more individuals at lower depth.
 Recent advances in bioinformatics have enabled low-coverage whole genome sequencing
-a.k.a. _lcWGS_ to be a viable options for studies of outbred non-model systems. More
+a.k.a. _lcWGS_ to be a viable option for studies of outbred non-model systems. More
 and more studies are emerging that have adopted lcWGS, which is pretty cool. However,
 calling structural variants at low depth is challenging, especially with short reads.
 
