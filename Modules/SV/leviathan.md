@@ -117,29 +117,38 @@ The resulting folder also includes a `workflow` directory (not shown) with workf
 
 ```
 SV/leviathan
-├── sample1.bcf
-├── sample2.bcf
+├── breakends.bedpe
+├── deletions.bedpe
+├── duplications.bedpe
+├── inversions.bedpe
 ├── logs
 │   ├── sample1.leviathan.log
 │   ├── sample1.candidates
 │   ├── sample2.leviathan.log
 │   └── sample2.candidates
-└── reports
-    ├── sample1.SV.html
-    ├── sample2.SV.html
-    └── data
-        ├── sample1.sv.stats
-        └── sample2.sv.stats
+├── reports
+│   ├── sample1.SV.html
+│   ├── sample2.SV.html
+│   └── data
+│       ├── sample1.sv.stats
+│       └── sample2.sv.stats
+└── vcf
+    ├── sample1.bvf
+    └── sample2.bcf
 ```
 {.compact}
 | item                   | description                                              |
 |:-----------------------|:---------------------------------------------------------|
-| `*.bcf`                | structural variants identified by LEVIATHAN              |
+| `breakends.bedpe` | an aggregation of all the breakends identified by LEVIATHAN |
+| `deletions.bedpe` | an aggregation of all the deletions identified by LEVIATHAN |
+| `duplications.bedpe` | an aggregation of all the duplications identified by LEVIATHAN |
+| `inversions.bedpe` | an aggregation of all the inversions identified by LEVIATHAN |
+| `logs/harpy.variants.log` | relevant runtime parameters for the variants module  |
 | `logs/sample.groups`   | if provided, a copy of the file provided to `--populations` with commented lines removed  |
 | `logs/*candidates`     | candidate structural variants LEVIATHAN identified       |
 | `reports/`             | summary reports with interactive plots of detected SV    |
-| `logs/harpy.variants.log` | relevant runtime parameters for the variants module  |
 | `stats/`               | results of `bcftools stats` on the vcf LEVIATHAN creates |
+| `vcf/`                | structural variants identified by LEVIATHAN              |
 
 +++ :icon-code-square: leviathan parameters
 By default, Harpy runs `leviathan` with default parameters (shown below), only modifying inputs and outputs at the command line.

@@ -167,8 +167,12 @@ The resulting folder also includes a `workflow` directory (not shown) with workf
 
 ```
 SV/naibr
-├── sample1.bedpe
-├── sample2.bedpe
+├── deletions.bedpe
+├── duplications.bedpe
+├── inversions.bedpe
+├── bedpe
+│   ├── sample1.bedpe
+│   └── sample2.bedpe
 ├── configs
 │   ├── sample1.config
 │   └── sample2.config
@@ -192,7 +196,10 @@ SV/naibr
 {.compact}
 | item          | description                                                      |
 |:--------------|:-----------------------------------------------------------------|
-| `*.bedpe`     | structural variants identified by NAIBR                          |
+| `deletions.bedpe` | an aggregation of all the deletions identified by NAIBR |
+| `duplications.bedpe` | an aggregation of all the duplications identified by NAIBR |
+| `inversions.bedpe` | an aggregation of all the inversions identified by NAIBR |
+| `bedpe/`      | structural variants identified by NAIBR                          |
 | `configs/`    | the configuration files harpy generated for each sample          |
 | `filtered/`   | the variants that failed NAIBR's internal filters                |
 | `IGV/`        | same as the output .bedpe` files but in IGV format               |
