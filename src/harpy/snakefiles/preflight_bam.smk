@@ -11,7 +11,7 @@ from pathlib import Path
 from rich import print as rprint
 from rich.panel import Panel
 
-out_dir = config["output_directory"]
+outdir = config["output_directory"]
 envdir  = os.getcwd() + "/.harpy_envs"
 bamlist = config["inputs"]
 samplenames = {Path(i).stem for i in bamlist}  
@@ -39,7 +39,7 @@ onsuccess:
     print("")
     rprint(
         Panel(
-            f"The workflow has finished successfully! Find the results in [bold]{out_dir}[/bold]",
+            f"The workflow has finished successfully! Find the results in [bold]{outdir}[/bold]",
             title = "[bold]harpy preflight bam",
             title_align = "left",
             border_style = "green"
@@ -83,7 +83,7 @@ rule check_bam:
         bam = get_alignments,
         bai = get_align_index
     output:
-        temp(out_dir + "/{sample}.log")
+        temp(outdir + "/{sample}.log")
     container:
         None
     message:
@@ -93,10 +93,10 @@ rule check_bam:
 
 rule merge_checks:
     input:
-        collect(out_dir + "/{sample}.log", sample = samplenames)
+        collect(outdir + "/{sample}.log", sample = samplenames)
     output:
-        tmp = temp(out_dir + "/filecheck.tmp"),
-        final = out_dir + "/filecheck.bam.tsv"
+        tmp = temp(outdir + "/filecheck.tmp"),
+        final = outdir + "/filecheck.bam.tsv"
     container:
         None
     message:
@@ -109,9 +109,9 @@ rule merge_checks:
 
 rule create_report:
     input:
-        out_dir + "/filecheck.bam.tsv"
+        outdir + "/filecheck.bam.tsv"
     output:
-        out_dir + "/filecheck.bam.html"
+        outdir + "/filecheck.bam.html"
     conda:
         f"{envdir}/r.yaml"
     message:
@@ -122,12 +122,12 @@ rule create_report:
 rule workflow_summary:
     default_target: True
     input:
-        out_dir + "/filecheck.bam.html"
+        outdir + "/filecheck.bam.html"
     message:
         "Summarizing the workflow: {output}"
     run:
-        os.makedirs(f"{out_dir}/workflow/", exist_ok= True)
-        with open(out_dir + "/workflow/preflight.bam.summary", "w") as f:
+        os.makedirs(f"{outdir}/workflow/", exist_ok= True)
+        with open(outdir + "/workflow/preflight.bam.summary", "w") as f:
             _ = f.write("The harpy preflight bam workflow ran using these parameters:\n\n")
             _ = f.write("validations were performed with:\n")
             _ = f.write("    check_bam.py sample.bam > sample.txt\n")
