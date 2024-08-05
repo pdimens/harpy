@@ -8,6 +8,11 @@
     <lastBuildDate>Thu, 01 Aug 2024 00:00:00 GMT</lastBuildDate>
     <generator>https://retype.com</generator>
     <atom:link rel="self" type="application/rss+xml" href="https://pdimens.github.io/harpy/blog/feed.xml" />
+    <image>
+      <title>Blog</title>
+      <link>https://pdimens.github.io/harpy/blog/</link>
+      <url>https://pdimens.github.io/harpy/favicon.png</url>
+    </image>
     <item>
       <title> Pooling samples for SV calling</title>
       <guid isPermaLink="true">https://pdimens.github.io/harpy/blog/svpooling/</guid>
