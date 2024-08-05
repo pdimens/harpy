@@ -21,11 +21,6 @@ skipreports       = config["skip_reports"]
 samples_from_vcf  = config["samples_from_vcf"]
 variantfile       = config["inputs"]["variantfile"]
 bamlist     = config["inputs"]["alignments"]
-os.makedirs(f"{outdir}/logs/snakemake", exist_ok = True)
-dt_string = datetime.now().strftime("%d_%m_%Y-%H_%M_%S")
-extra_logfile_handler = pylogging.FileHandler(f"{outdir}/logs/snakemake/{dt_string}.snakelog")
-logger.logger.addHandler(extra_logfile_handler)
-
 # toggle linked-read aware mode
 if config["ignore_bx"]:
     fragfile = outdir + "/extract_hairs/{sample}.unlinked.frags"
@@ -39,7 +34,6 @@ if samples_from_vcf:
     samplenames = bcfquery.stdout.read().decode().split()
 else:
     samplenames = [Path(i).stem for i in bamlist]
-
 
 # toggle indel mode
 if config["inputs"].get("genome", None):
@@ -62,6 +56,12 @@ else:
 
 wildcard_constraints:
     sample = "[a-zA-Z0-9._-]+"
+
+onstart:
+    os.makedirs(f"{outdir}/logs/snakemake", exist_ok = True)
+    dt_string = datetime.now().strftime("%d_%m_%Y-%H_%M_%S")
+    extra_logfile_handler = pylogging.FileHandler(f"{outdir}/logs/snakemake/{dt_string}.snakelog")
+    logger.logger.addHandler(extra_logfile_handler)
 
 onerror:
     print("")

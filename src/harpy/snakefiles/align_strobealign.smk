@@ -21,13 +21,15 @@ windowsize  = config["depth_windowsize"]
 molecule_distance = config["molecule_distance"]
 readlen = config["average_read_length"]
 autolen = isinstance(readlen, str)
-os.makedirs(f"{outdir}/logs/snakemake", exist_ok = True)
-dt_string = datetime.now().strftime("%d_%m_%Y-%H_%M_%S")
-extra_logfile_handler = pylogging.FileHandler(f"{outdir}/logs/snakemake/{dt_string}.snakelog")
-logger.logger.addHandler(extra_logfile_handler)
 
 wildcard_constraints:
     sample = "[a-zA-Z0-9._-]+"
+
+onstart:
+    os.makedirs(f"{outdir}/logs/snakemake", exist_ok = True)
+    dt_string = datetime.now().strftime("%d_%m_%Y-%H_%M_%S")
+    extra_logfile_handler = pylogging.FileHandler(f"{outdir}/logs/snakemake/{dt_string}.snakelog")
+    logger.logger.addHandler(extra_logfile_handler)
 
 onerror:
     print("")

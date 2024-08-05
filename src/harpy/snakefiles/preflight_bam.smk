@@ -14,14 +14,16 @@ from rich.panel import Panel
 outdir = config["output_directory"]
 envdir  = os.getcwd() + "/.harpy_envs"
 bamlist = config["inputs"]
-samplenames = {Path(i).stem for i in bamlist}  
-os.makedirs(f"{outdir}/logs/snakemake", exist_ok = True)
-dt_string = datetime.now().strftime("%d_%m_%Y-%H_%M_%S")
-extra_logfile_handler = pylogging.FileHandler(f"{outdir}/logs/snakemake/{dt_string}.snakelog")
-logger.logger.addHandler(extra_logfile_handler)
+samplenames = {Path(i).stem for i in bamlist}
 
 wildcard_constraints:
     sample = "[a-zA-Z0-9._-]+"
+
+onstart:
+    os.makedirs(f"{outdir}/logs/snakemake", exist_ok = True)
+    dt_string = datetime.now().strftime("%d_%m_%Y-%H_%M_%S")
+    extra_logfile_handler = pylogging.FileHandler(f"{outdir}/logs/snakemake/{dt_string}.snakelog")
+    logger.logger.addHandler(extra_logfile_handler)
 
 onerror:
     print("")

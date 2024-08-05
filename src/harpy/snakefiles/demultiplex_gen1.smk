@@ -16,10 +16,6 @@ samplefile = config["inputs"]["demultiplex_schema"]
 skipreports = config["skip_reports"]
 outdir = config["output_directory"]
 envdir = os.getcwd() + "/.harpy_envs"
-os.makedirs(f"{outdir}/logs/snakemake", exist_ok = True)
-dt_string = datetime.now().strftime("%d_%m_%Y-%H_%M_%S")
-extra_logfile_handler = pylogging.FileHandler(f"{outdir}/logs/snakemake/{dt_string}.snakelog")
-logger.logger.addHandler(extra_logfile_handler)
 
 def barcodedict(smpl):
     d = {}
@@ -35,6 +31,12 @@ def barcodedict(smpl):
 
 samples = barcodedict(samplefile)
 samplenames = [i for i in samples.keys()]
+
+onstart:
+    os.makedirs(f"{outdir}/logs/snakemake", exist_ok = True)
+    dt_string = datetime.now().strftime("%d_%m_%Y-%H_%M_%S")
+    extra_logfile_handler = pylogging.FileHandler(f"{outdir}/logs/snakemake/{dt_string}.snakelog")
+    logger.logger.addHandler(extra_logfile_handler)
 
 onerror:
     print("")

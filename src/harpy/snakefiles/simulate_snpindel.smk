@@ -15,11 +15,6 @@ snp_vcf = config["inputs"].get("snp_vcf", None)
 indel_vcf = config["inputs"].get("indel_vcf", None)
 heterozygosity = config["heterozygosity"]
 outprefix = config["prefix"]
-os.makedirs(f"{outdir}/logs/snakemake", exist_ok = True)
-dt_string = datetime.now().strftime("%d_%m_%Y-%H_%M_%S")
-extra_logfile_handler = pylogging.FileHandler(f"{outdir}/logs/snakemake/{dt_string}.snakelog")
-logger.logger.addHandler(extra_logfile_handler)
-
 in_vcfs = []
 snp = False 
 indel = False
@@ -64,6 +59,12 @@ else:
     variant_params += f" -seed {randomseed}" if randomseed else ""
 
 variants = [i for i,j in zip(["snp", "indel"], [snp, indel]) if j]
+
+onstart:
+    os.makedirs(f"{outdir}/logs/snakemake", exist_ok = True)
+    dt_string = datetime.now().strftime("%d_%m_%Y-%H_%M_%S")
+    extra_logfile_handler = pylogging.FileHandler(f"{outdir}/logs/snakemake/{dt_string}.snakelog")
+    logger.logger.addHandler(extra_logfile_handler)
 
 onsuccess:
     print("")

@@ -16,11 +16,6 @@ genome = config["inputs"]["genome"]
 vcf = config["inputs"].get("vcf", None)
 heterozygosity = float(config["heterozygosity"])
 vcf_correct = "None"
-os.makedirs(f"{outdir}/logs/snakemake", exist_ok = True)
-dt_string = datetime.now().strftime("%d_%m_%Y-%H_%M_%S")
-extra_logfile_handler = pylogging.FileHandler(f"{outdir}/logs/snakemake/{dt_string}.snakelog")
-logger.logger.addHandler(extra_logfile_handler)
-
 if vcf:
     vcf_correct = vcf[:-4] + ".vcf.gz" if vcf.lower().endswith("bcf") else vcf
     variant_params = f"-{variant}_vcf {vcf_correct}"
@@ -51,6 +46,12 @@ else:
         variant_params += f" --cnv_max_copy_number {cnv_copy}" if cnv_copy else ""
         cnv_ratio =config.get("cnv_ratio", None)
         variant_params += f" --cnv_gain_loss_ratio {cnv_ratio}" if cnv_ratio else ""
+
+onstart:
+    os.makedirs(f"{outdir}/logs/snakemake", exist_ok = True)
+    dt_string = datetime.now().strftime("%d_%m_%Y-%H_%M_%S")
+    extra_logfile_handler = pylogging.FileHandler(f"{outdir}/logs/snakemake/{dt_string}.snakelog")
+    logger.logger.addHandler(extra_logfile_handler)
 
 onsuccess:
     print("")
