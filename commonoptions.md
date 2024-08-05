@@ -48,7 +48,7 @@ configured using these arguments:
 | `--threads`     |   `-t`     | integer | 4       | Number of threads to use                                                          |
 | `--conda`       |            | toggle  |         | Use local conda environments instead of preconfigured Singularity container       |
 | `--skipreports` |            | toggle  |         | Skip the processing and generation of HTML reports in a workflow                  |
-| `--snakemake`   |            | string  |         | Additional [Snakemake](snakemake/#adding-snakamake-parameters) options, in quotes |
+| `--snakemake`   |            | string  |         | Additional [Snakemake](snakemake/#adding-snakemake-parameters) options, in quotes |
 | `--quiet`       |   `-q`     | toggle  |         | Suppress Snakemake printing to console                                            |
 | `--help`        |   `-h`     |         |         | Show the module docstring                                                         |
 
