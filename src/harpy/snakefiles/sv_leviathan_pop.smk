@@ -110,8 +110,8 @@ rule sort_merged:
     input:
         outdir + "/workflow/input/{population}.unsort.bam"
     output:
-        bam = outdir + "/workflow/input/{population}.bam",
-        bai = outdir + "/workflow/input/{population}.bam.bai"
+        bam = temp(outdir + "/workflow/input/{population}.bam"),
+        bai = temp(outdir + "/workflow/input/{population}.bam.bai")
     log:
         outdir + "/logs/{population}.sort.log"
     resources:
