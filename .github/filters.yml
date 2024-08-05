@@ -110,7 +110,7 @@ leviathan: &leviathan
   - 'src/harpy/snakefiles/sv_leviathan**.smk'
   - 'test/bam/**'
   - 'src/harpy/bin/concatenate_bam.py'
-  - 'src/harpy/reports/Leviathan**.Rmd'
+  - 'src/harpy/reports/leviathan**.Rmd'
 naibr: &naibr
   - *common
   - *container
