@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="turbo-root" content="/harpy">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="3.5.0.776187398104">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="3.5.0.776189951757">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 3.5.0">
@@ -34,12 +34,12 @@
     <script data-cfasync="false">(function () { var el = document.documentElement, m = localStorage.getItem("doc_theme"), wm = window.matchMedia; if (m === "dark" || (!m && wm && wm("(prefers-color-scheme: dark)").matches)) { el.classList.add("dark") } else { el.classList.remove("dark") } })();</script>
 
     <link href="../../../static/favicon.svg" rel="icon">
-    <link href="../../../resources/css/retype.css?v=3.5.0.776187398104" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=3.5.0.776189951757" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=3.5.0.776187398104" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=3.5.0.776189951757" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=3.5.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=3.5.0.776187398104" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=3.5.0.776187398104" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=3.5.0.776189951757" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=3.5.0.776189951757" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../../resources/js/mermaid.js?v=3.5.0" defer></script>
 </head>
 <body>
@@ -520,19 +520,24 @@ in the alignments, then it calls variants using Leviathan.</p>
 The resulting folder also includes a <code v-pre>workflow</code> directory (not shown) with workflow-relevant runtime files and information.</p>
 <div class="codeblock-wrapper"><doc-codeblock>
 <pre class="language-none"><code v-pre class="language-none">SV/leviathan
-├── sample1.bcf
-├── sample2.bcf
+├── breakends.bedpe
+├── deletions.bedpe
+├── duplications.bedpe
+├── inversions.bedpe
 ├── logs
 │   ├── sample1.leviathan.log
 │   ├── sample1.candidates
 │   ├── sample2.leviathan.log
 │   └── sample2.candidates
-└── reports
-    ├── sample1.SV.html
-    ├── sample2.SV.html
-    └── data
-        ├── sample1.sv.stats
-        └── sample2.sv.stats</code></pre>
+├── reports
+│   ├── sample1.SV.html
+│   ├── sample2.SV.html
+│   └── data
+│       ├── sample1.sv.stats
+│       └── sample2.sv.stats
+└── vcf
+    ├── sample1.bvf
+    └── sample2.bcf</code></pre>
 </doc-codeblock></div>
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="compact">
@@ -544,8 +549,24 @@ The resulting folder also includes a <code v-pre>workflow</code> directory (not 
 </thead>
 <tbody>
 <tr>
-<td style="text-align: left;"><code v-pre>*.bcf</code></td>
-<td style="text-align: left;">structural variants identified by LEVIATHAN</td>
+<td style="text-align: left;"><code v-pre>breakends.bedpe</code></td>
+<td style="text-align: left;">an aggregation of all the breakends identified by LEVIATHAN</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code v-pre>deletions.bedpe</code></td>
+<td style="text-align: left;">an aggregation of all the deletions identified by LEVIATHAN</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code v-pre>duplications.bedpe</code></td>
+<td style="text-align: left;">an aggregation of all the duplications identified by LEVIATHAN</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code v-pre>inversions.bedpe</code></td>
+<td style="text-align: left;">an aggregation of all the inversions identified by LEVIATHAN</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code v-pre>logs/harpy.variants.log</code></td>
+<td style="text-align: left;">relevant runtime parameters for the variants module</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code v-pre>logs/sample.groups</code></td>
@@ -560,12 +581,12 @@ The resulting folder also includes a <code v-pre>workflow</code> directory (not 
 <td style="text-align: left;">summary reports with interactive plots of detected SV</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code v-pre>logs/harpy.variants.log</code></td>
-<td style="text-align: left;">relevant runtime parameters for the variants module</td>
-</tr>
-<tr>
 <td style="text-align: left;"><code v-pre>stats/</code></td>
 <td style="text-align: left;">results of <code v-pre>bcftools stats</code> on the vcf LEVIATHAN creates</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code v-pre>vcf/</code></td>
+<td style="text-align: left;">structural variants identified by LEVIATHAN</td>
 </tr>
 </tbody>
 </table>

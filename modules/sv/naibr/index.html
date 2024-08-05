@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="turbo-root" content="/harpy">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="3.5.0.776187398104">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="3.5.0.776189951757">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 3.5.0">
@@ -34,12 +34,12 @@
     <script data-cfasync="false">(function () { var el = document.documentElement, m = localStorage.getItem("doc_theme"), wm = window.matchMedia; if (m === "dark" || (!m && wm && wm("(prefers-color-scheme: dark)").matches)) { el.classList.add("dark") } else { el.classList.remove("dark") } })();</script>
 
     <link href="../../../static/favicon.svg" rel="icon">
-    <link href="../../../resources/css/retype.css?v=3.5.0.776187398104" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=3.5.0.776189951757" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=3.5.0.776187398104" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=3.5.0.776189951757" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=3.5.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=3.5.0.776187398104" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=3.5.0.776187398104" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=3.5.0.776189951757" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=3.5.0.776189951757" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../../resources/js/mermaid.js?v=3.5.0" defer></script>
 </head>
 <body>
@@ -584,8 +584,12 @@ names for demonstration purposes.
 The resulting folder also includes a <code v-pre>workflow</code> directory (not shown) with workflow-relevant runtime files and information.</p>
 <div class="codeblock-wrapper"><doc-codeblock>
 <pre class="language-none"><code v-pre class="language-none">SV/naibr
-├── sample1.bedpe
-├── sample2.bedpe
+├── deletions.bedpe
+├── duplications.bedpe
+├── inversions.bedpe
+├── bedpe
+│   ├── sample1.bedpe
+│   └── sample2.bedpe
 ├── configs
 │   ├── sample1.config
 │   └── sample2.config
@@ -608,7 +612,10 @@ The resulting folder also includes a <code v-pre>workflow</code> directory (not 
 <p class="compact">
 | item          | description                                                      |
 |:--------------|:-----------------------------------------------------------------|
-| <code v-pre>*.bedpe</code>     | structural variants identified by NAIBR                          |
+| <code v-pre>deletions.bedpe</code> | an aggregation of all the deletions identified by NAIBR |
+| <code v-pre>duplications.bedpe</code> | an aggregation of all the duplications identified by NAIBR |
+| <code v-pre>inversions.bedpe</code> | an aggregation of all the inversions identified by NAIBR |
+| <code v-pre>bedpe/</code>      | structural variants identified by NAIBR                          |
 | <code v-pre>configs/</code>    | the configuration files harpy generated for each sample          |
 | <code v-pre>filtered/</code>   | the variants that failed NAIBR&#x27;s internal filters                |
 | <code v-pre>IGV/</code>        | same as the output .bedpe<code v-pre>files but in IGV format               | |</code>logs/sample.groups<code v-pre>  | if provided, a copy of the file provided to</code>--populations<code v-pre>with commented lines removed  | |</code>logs/*.log<code v-pre> | what NAIBR writes to</code>stderr<code v-pre>during operation                   | |</code>reports/<code v-pre>   | summary reports with interactive plots of detected SV            | |</code>vcf/<code v-pre>       | the resulting variants, but in</code>.VCF&#x60; format                     |</p>
