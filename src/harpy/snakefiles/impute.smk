@@ -174,26 +174,6 @@ rule collate_stitch_reports:
     script:
         "report/stitch_collate.Rmd"
 
-rule clean_stitch_intermediates:
-    input:
-        outdir + "/{stitchparams}/contigs/{part}/{part}.stats"
-    output:
-        temp(touch(outdir + "/{stitchparams}/contigs/{part}/.intermediates.cleaned"))
-    params:
-        stitch = lambda wc: wc.get("stitchparams"),
-        outdir = outdir
-    container:
-        None
-    priority:
-        2
-    message:
-        "Cleaning up {wildcards.stitchparams}: {wildcards.part}"
-    shell: 
-        """
-        rm -rf {params.outdir}/{params.stitch}/contigs/{wildcards.part}/input
-        rm -rf {params.outdir}/{params.stitch}/contigs/{wildcards.part}/RData
-        """
-
 rule clean_stitch_plots:
     input:
         outdir + "/{stitchparams}/contigs/{part}/{part}.STITCH.html"
@@ -225,8 +205,7 @@ rule concat_list:
 rule merge_vcfs:
     input:
         files = outdir + "/{stitchparams}/bcf.files",
-        idx   = collect(outdir + "/{{stitchparams}}/contigs/{part}/{part}.vcf.gz.tbi", part = contigs),
-        clean = collect(outdir + "/{{stitchparams}}/contigs/{part}/.intermediates.cleaned", part = contigs)
+        idx   = collect(outdir + "/{{stitchparams}}/contigs/{part}/{part}.vcf.gz.tbi", part = contigs)
     output:
         outdir + "/{stitchparams}/variants.imputed.bcf"
     threads:
