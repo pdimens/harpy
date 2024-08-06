@@ -68,6 +68,8 @@ In addition to the [!badge variant="info" corners="pill" text="common runtime op
 | `INPUTS`         |            | file/directory paths  |         | **yes**  | Files or directories containing [input BAM files](/commonoptions.md#input-arguments)     |
 | `--extra-params` |    `-x`    | string        |         |    no             | Additional naibr arguments, in quotes              |
 | `--genome`       |    `-g`    | file path     |         | **yes** | Genome assembly for phasing bam files     |
+| `--min-barcodes` |    `-b`    | integer       |    2    |    no             | Minimum number of barcode overlaps supporting candidate SV |
+| `--min-sv`       |    `-n`    | integer       |  1000   |    no             | Minimum size of SV to detect              |
 | `--molecule-distance` |  `-m` | integer       |  100000 |    no             | Base-pair distance threshold to separate molecules |
 | `--populations`  |    `-p`    | file path     |         |    no             | Tab-delimited file of sample\<*tab*\>group         |
 | `--vcf`          |    `-v`    | file path     |         | **conditionally** | Phased vcf file for phasing bam files     |
