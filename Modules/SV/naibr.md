@@ -196,14 +196,13 @@ SV/naibr
 {.compact}
 | item          | description                                                      |
 |:--------------|:-----------------------------------------------------------------|
-| `deletions.bedpe` | an aggregation of all the deletions identified by NAIBR |
+| `deletions.bedpe`    | an aggregation of all the deletions identified by NAIBR    |
 | `duplications.bedpe` | an aggregation of all the duplications identified by NAIBR |
-| `inversions.bedpe` | an aggregation of all the inversions identified by NAIBR |
+| `inversions.bedpe`   | an aggregation of all the inversions identified by NAIBR   |
 | `bedpe/`      | structural variants identified by NAIBR                          |
 | `configs/`    | the configuration files harpy generated for each sample          |
 | `filtered/`   | the variants that failed NAIBR's internal filters                |
-| `IGV/`        | same as the output .bedpe` files but in IGV format               |
-| `logs/sample.groups`   | if provided, a copy of the file provided to `--populations` with commented lines removed  |
+| `IGV/`        | same as the output `.bedpe` files but in IGV format               |
 | `logs/*.log`  | what NAIBR writes to `stderr` during operation                   |
 | `reports/`    | summary reports with interactive plots of detected SV            |
 | `vcf/`        | the resulting variants, but in `.VCF` format                     |
