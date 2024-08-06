@@ -35,7 +35,7 @@ In addition to the [!badge variant="info" corners="pill" text="common runtime op
 |:-----------------|:----------:|:------------|:-------:|:-------:|:--------------------------------------------------------------------------------------------------|
 | `INPUTS`         |            | file/directory paths  |         | **yes**  | Files or directories containing [input FASTQ files](/commonoptions.md#input-arguments) |
 | `--deconvolve`  | `-c`    | toggle      |         |      | Resolve barcode clashes between reads from different molecules                                           |
-| `--deconvolve-params`  | `-p`    | (int,int,int,int)   | (21,40,3,0) |      | Accepts the QuickDeconvolution parameters for `k`,`w`,`d`,`a`, in that order          |
+| `--deconvolve-params`  | `-p`    | (int,int,int,int)   | (21,40,3,0) |      | Accepts the [QuickDeconvolution parameters](/Modules/deconvolve.md/#running-options) for `k`,`w`,`d`,`a`, in that order          |
 | `--deduplicate` | `-d`    | toggle      |         |       | Identify and remove PCR duplicates                                                                      |
 | `--extra-params` |    `-x`    | string      |         |       | Additional fastp arguments, in quotes                                                               |
 | `--min-length`   |    `-n`    | integer     |   30    |     | Discard reads shorter than this length                                                                |
