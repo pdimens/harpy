@@ -187,7 +187,7 @@ rule phase_alignments:
         aln = get_alignments,
         ref = f"Genome/{bn}"
     output:
-        bam = outdir + "/phasedbam/{sample}.bam",
+        bam = temp(outdir + "/phasedbam/{sample}.bam"),
         log = outdir + "/logs/whatshap-haplotag/{sample}.phase.log"
     params:
         mol_dist
