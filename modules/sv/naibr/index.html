@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="turbo-root" content="/harpy">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="3.5.0.776206281762">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="3.5.0.776272671638">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 3.5.0">
@@ -34,12 +34,12 @@
     <script data-cfasync="false">(function () { var el = document.documentElement, m = localStorage.getItem("doc_theme"), wm = window.matchMedia; if (m === "dark" || (!m && wm && wm("(prefers-color-scheme: dark)").matches)) { el.classList.add("dark") } else { el.classList.remove("dark") } })();</script>
 
     <link href="../../../static/favicon.png" rel="icon">
-    <link href="../../../resources/css/retype.css?v=3.5.0.776206281762" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=3.5.0.776272671638" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=3.5.0.776206281762" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=3.5.0.776272671638" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=3.5.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=3.5.0.776206281762" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=3.5.0.776206281762" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=3.5.0.776272671638" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=3.5.0.776272671638" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../../resources/js/mermaid.js?v=3.5.0" defer></script>
 </head>
 <body>
@@ -609,16 +609,58 @@ The resulting folder also includes a <code v-pre>workflow</code> directory (not 
     ├── sample1.vcf
     └── sample2.vcf</code></pre>
 </doc-codeblock></div>
-<p class="compact">
-| item          | description                                                      |
-|:--------------|:-----------------------------------------------------------------|
-| <code v-pre>deletions.bedpe</code> | an aggregation of all the deletions identified by NAIBR |
-| <code v-pre>duplications.bedpe</code> | an aggregation of all the duplications identified by NAIBR |
-| <code v-pre>inversions.bedpe</code> | an aggregation of all the inversions identified by NAIBR |
-| <code v-pre>bedpe/</code>      | structural variants identified by NAIBR                          |
-| <code v-pre>configs/</code>    | the configuration files harpy generated for each sample          |
-| <code v-pre>filtered/</code>   | the variants that failed NAIBR&#x27;s internal filters                |
-| <code v-pre>IGV/</code>        | same as the output .bedpe<code v-pre>files but in IGV format               | |</code>logs/sample.groups<code v-pre>  | if provided, a copy of the file provided to</code>--populations<code v-pre>with commented lines removed  | |</code>logs/*.log<code v-pre> | what NAIBR writes to</code>stderr<code v-pre>during operation                   | |</code>reports/<code v-pre>   | summary reports with interactive plots of detected SV            | |</code>vcf/<code v-pre>       | the resulting variants, but in</code>.VCF&#x60; format                     |</p>
+<div class="table-wrapper scrollbar overflow-hidden">
+<table class="compact">
+<thead>
+<tr>
+<th style="text-align: left;">item</th>
+<th style="text-align: left;">description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code v-pre>deletions.bedpe</code></td>
+<td style="text-align: left;">an aggregation of all the deletions identified by NAIBR</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code v-pre>duplications.bedpe</code></td>
+<td style="text-align: left;">an aggregation of all the duplications identified by NAIBR</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code v-pre>inversions.bedpe</code></td>
+<td style="text-align: left;">an aggregation of all the inversions identified by NAIBR</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code v-pre>bedpe/</code></td>
+<td style="text-align: left;">structural variants identified by NAIBR</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code v-pre>configs/</code></td>
+<td style="text-align: left;">the configuration files harpy generated for each sample</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code v-pre>filtered/</code></td>
+<td style="text-align: left;">the variants that failed NAIBR&#x27;s internal filters</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code v-pre>IGV/</code></td>
+<td style="text-align: left;">same as the output <code v-pre>.bedpe</code> files but in IGV format</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code v-pre>logs/*.log</code></td>
+<td style="text-align: left;">what NAIBR writes to <code v-pre>stderr</code> during operation</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code v-pre>reports/</code></td>
+<td style="text-align: left;">summary reports with interactive plots of detected SV</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code v-pre>vcf/</code></td>
+<td style="text-align: left;">the resulting variants, but in <code v-pre>.VCF</code> format</td>
+</tr>
+</tbody>
+</table>
+</div>
 </doc-tab>
 <doc-tab v-cloak id="naibr-parameters">
 <template #title><svg xmlns="http://www.w3.org/2000/svg" class="docs-icon" viewBox="0 0 24 24" role="presentation"><g fill="currentColor"><g><path d="M10.3 8.24a.75.75 0 0 1-.04 1.06L7.352 12l2.908 2.7a.75.75 0 1 1-1.02 1.1l-3.5-3.25a.75.75 0 0 1 0-1.1l3.5-3.25a.75.75 0 0 1 1.06.04Zm3.44 1.06a.75.75 0 1 1 1.02-1.1l3.5 3.25a.75.75 0 0 1 0 1.1l-3.5 3.25a.75.75 0 1 1-1.02-1.1l2.908-2.7-2.908-2.7Z"/><path d="M2 3.75C2 2.784 2.784 2 3.75 2h16.5c.966 0 1.75.784 1.75 1.75v16.5A1.75 1.75 0 0 1 20.25 22H3.75A1.75 1.75 0 0 1 2 20.25Zm1.75-.25a.25.25 0 0 0-.25.25v16.5c0 .138.112.25.25.25h16.5a.25.25 0 0 0 .25-.25V3.75a.25.25 0 0 0-.25-.25Z"/></g></g></svg> naibr parameters</template>
