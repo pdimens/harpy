@@ -3,7 +3,7 @@ containerized: "docker://pdimens/harpy:latest"
 import os
 import sys
 import glob
-import randvom
+import random
 import logging as pylogging
 from datetime import datetime
 from rich.panel import Panel
