@@ -49,6 +49,10 @@ else:
 if aln_list[0].lower().endswith(".bam"):
     if not os.path.exists(f"{aln_list[0]}.bai"):
         pysam.index(aln_list[0])
+        # for housekeeping
+        DELETE_FIRST_INDEX = True
+    else:
+        DELETE_FIRST_INDEX = False
 with pysam.AlignmentFile(aln_list[0]) as xam_in:
     header = xam_in.header.to_dict()
 # Remove all @PG lines
@@ -77,6 +81,9 @@ with pysam.AlignmentFile(args.out, "wb", header = header) as bam_out:
         if xam.lower().endswith(".bam"):
             if not os.path.exists(f"{xam}.bai"):
                 pysam.index(xam)
+                DELETE_INDEX = True
+            else:
+                DELETE_INDEX = False
         with pysam.AlignmentFile(xam) as xamfile:
             for record in xamfile.fetch():
                 try:
@@ -93,3 +100,8 @@ with pysam.AlignmentFile(args.out, "wb", header = header) as bam_out:
                 except:
                     pass
                 bam_out.write(record)
+        if DELETE_INDEX:
+            Path.unlink(f"{xam}.bai")
+# just for consistent housekeeping
+if DELETE_FIRST_INDEX:
+    Path.unlink(f"{aln_list[0]}.bai")
