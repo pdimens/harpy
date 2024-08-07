@@ -108,12 +108,11 @@ table below:
 |:---| :---|
 | `main` | staging and testing area for new code prior to creating the next release  |
 | `docs` | the source documentation files (markdown and configs) that are deployed for the current documentation |
-| `docs_dev` | the updated documentation intended for the next release and is not deployed |
-| `retype` | the branch that `docs` deploys to and contains the current rendered documentation and is not to be touched |
+| `website` | the branch that `docs` deploys to and contains the current rendered documentation and is not to be touched |
 
 ### development workflow
 The dev workflow is reasonably standard:
-1. [create a fork](https://github.com/pdimens/harpy/fork) of Harpy
+1. [create a fork](https://github.com/pdimens/harpy/fork) of Harpy, usually from the `main` branch
 2. within your fork, create a new branch, name it something relevant to what you intend to do (_e.g._, `naibr_bugfix`, `add_deepvariant`)
 3. add and modify code with your typical coding workflow, pushing your changes to your Harpy fork
 4. when it's ready for inclusion into Harpy (and testing), create a Pull Request to merge your changes into the Harpy `main` branch
