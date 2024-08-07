@@ -14,7 +14,7 @@ readme = {file = "README.md", content-type = "text/markdown"}
 license = {text = "GPL-3.0"}
 
 [tool.setuptools.packages.find]
-where = ["src"]
+where = ["."]
 
 [tool.setuptools.package-data]
 "*" = ["*.*"]

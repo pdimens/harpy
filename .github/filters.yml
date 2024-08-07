@@ -1,157 +1,157 @@
 common: &common
-  - 'src/harpy/helperfunctions.py'
-  - 'src/harpy/printfunctions.py'
-  - 'src/harpy/fileparsers.py'
-  - 'src/harpy/validations.py'
-  - 'src/harpy/__main__.py'
+  - 'harpy/helperfunctions.py'
+  - 'harpy/printfunctions.py'
+  - 'harpy/fileparsers.py'
+  - 'harpy/validations.py'
+  - 'harpy/__main__.py'
   - 'resources/harpy.yaml'
   - '.github/workflows/tests.yml'
   - '.github/filters.yml'
   - 'resources/buildforCI.sh'
 container: &container
-  - 'src/harpy/conda_deps.py'
-  - 'src/harpy/containerize.smk'
+  - 'harpy/conda_deps.py'
+  - 'harpy/containerize.smk'
 preflight: &preflight
   - *common
   - *container
-  - 'src/harpy/preflight.py'
-  - 'src/harpy/snakefiles/preflight_fastq.smk'
-  - 'src/harpy/snakefiles/preflight_bam.smk'
+  - 'harpy/preflight.py'
+  - 'harpy/snakefiles/preflight_fastq.smk'
+  - 'harpy/snakefiles/preflight_bam.smk'
   - 'test/fastq/**'
   - 'test/bam/**'
-  - 'src/harpy/bin/check_bam.py'
-  - 'src/harpy/bin/check_fastq.py'
-  - 'src/harpy/reports/preflight_fastq.Rmd'
-  - 'src/harpy/reports/preflight_bam.Rmd'
+  - 'harpy/bin/check_bam.py'
+  - 'harpy/bin/check_fastq.py'
+  - 'harpy/reports/preflight_fastq.Rmd'
+  - 'harpy/reports/preflight_bam.Rmd'
 deconvolve: &deconvolve
   - *common
   - *container
-  - 'src/harpy/deconvolve.py'
-  - 'src/harpy/snakefiles/deconvolve.smk'
+  - 'harpy/deconvolve.py'
+  - 'harpy/snakefiles/deconvolve.smk'
 demux: &demux
   - *common
   - *container
-  - 'src/harpy/demultiplex.py'
-  - 'src/harpy/snakefiles/demultiplex**.smk'
+  - 'harpy/demultiplex.py'
+  - 'harpy/snakefiles/demultiplex**.smk'
   - '**demuxGen1'
   - 'haplotag_acbd.py'
   - 'test/data/demux/**'
 qc: &qc
   - *common
   - *container
-  - 'src/harpy/qc.py'
-  - 'src/harpy/snakefiles/qc.smk'
+  - 'harpy/qc.py'
+  - 'harpy/snakefiles/qc.smk'
   - 'test/fastq/**'
 bwa: &bwa
   - *common
   - *container
-  - 'src/harpy/align.py'
-  - 'src/harpy/snakefiles/align_bwa.smk'
-  - 'src/harpy/reports/align_stats.Rmd'
-  - 'src/harpy/reports/align_bxstats.Rmd'
-  - 'src/harpy/bin/bx_stats.py'
-  - 'src/harpy/bin/count_bx.py'
-  - 'src/harpy/bin/assign_mi.py'
-  - 'src/harpy/bin/make_windows.py'
+  - 'harpy/align.py'
+  - 'harpy/snakefiles/align_bwa.smk'
+  - 'harpy/reports/align_stats.Rmd'
+  - 'harpy/reports/align_bxstats.Rmd'
+  - 'harpy/bin/bx_stats.py'
+  - 'harpy/bin/count_bx.py'
+  - 'harpy/bin/assign_mi.py'
+  - 'harpy/bin/make_windows.py'
   - 'test/fastq/**'
 ema: &ema
   - *common
   - *container
-  - 'src/harpy/align.py'
-  - 'src/harpy/snakefiles/align_ema.smk'
-  - 'src/harpy/reports/align_stats.Rmd'
-  - 'src/harpy/reports/align_bxstats.Rmd'
-  - 'src/harpy/bin/bx_stats.py'
-  - 'src/harpy/bin/count_bx.py'
-  - 'src/harpy/bin/make_windows.py'
+  - 'harpy/align.py'
+  - 'harpy/snakefiles/align_ema.smk'
+  - 'harpy/reports/align_stats.Rmd'
+  - 'harpy/reports/align_bxstats.Rmd'
+  - 'harpy/bin/bx_stats.py'
+  - 'harpy/bin/count_bx.py'
+  - 'harpy/bin/make_windows.py'
   - 'test/fastq/**'
 strobealign: &strobealign
   - *common
   - *container
-  - 'src/harpy/align.py'
-  - 'src/harpy/snakefiles/align_strobealign.smk'
-  - 'src/harpy/reports/align_stats.Rmd'
-  - 'src/harpy/reports/align_bxstats.Rmd'
-  - 'src/harpy/bin/assign_mi.py'
-  - 'src/harpy/bin/bx_stats.py'
-  - 'src/harpy/bin/count_bx.py'
-  - 'src/harpy/bin/make_windows.py'
+  - 'harpy/align.py'
+  - 'harpy/snakefiles/align_strobealign.smk'
+  - 'harpy/reports/align_stats.Rmd'
+  - 'harpy/reports/align_bxstats.Rmd'
+  - 'harpy/bin/assign_mi.py'
+  - 'harpy/bin/bx_stats.py'
+  - 'harpy/bin/count_bx.py'
+  - 'harpy/bin/make_windows.py'
   - 'test/fastq/**'
 mpileup: &mpileup
   - *common
   - *container
-  - 'src/harpy/snp.py'
-  - 'src/harpy/snakefiles/snp_mpileup.smk'
-  - 'src/harpy/reports/bcftools_stats.Rmd'
-  - 'src/harpy/bin/make_windows.py'
+  - 'harpy/snp.py'
+  - 'harpy/snakefiles/snp_mpileup.smk'
+  - 'harpy/reports/bcftools_stats.Rmd'
+  - 'harpy/bin/make_windows.py'
   - 'test/bam/**'
 freebayes: &freebayes
   - *common
   - *container
-  - 'src/harpy/snp.py'
-  - 'src/harpy/snakefiles/snp_freebayes.smk'
-  - 'src/harpy/reports/bcftools_stats.Rmd'
-  - 'src/harpy/bin/make_windows.py'
+  - 'harpy/snp.py'
+  - 'harpy/snakefiles/snp_freebayes.smk'
+  - 'harpy/reports/bcftools_stats.Rmd'
+  - 'harpy/bin/make_windows.py'
   - 'test/bam/**'
 impute: &impute
   - *common
   - *container
-  - 'src/harpy/impute.py'
-  - 'src/harpy/snakefiles/impute.smk'
+  - 'harpy/impute.py'
+  - 'harpy/snakefiles/impute.smk'
   - 'test/bam/**'
   - 'test/vcf/test.bcf'
-  - 'src/harpy/reports/impute.Rmd'
-  - 'src/harpy/reports/stitch_collate.Rmd'
-  - 'src/harpy/scripts/stitch_impute.R'
+  - 'harpy/reports/impute.Rmd'
+  - 'harpy/reports/stitch_collate.Rmd'
+  - 'harpy/scripts/stitch_impute.R'
 leviathan: &leviathan
   - *common
   - *container
-  - 'src/harpy/sv.py'
-  - 'src/harpy/snakefiles/sv_leviathan**.smk'
+  - 'harpy/sv.py'
+  - 'harpy/snakefiles/sv_leviathan**.smk'
   - 'test/bam/**'
-  - 'src/harpy/bin/concatenate_bam.py'
-  - 'src/harpy/reports/leviathan**.Rmd'
+  - 'harpy/bin/concatenate_bam.py'
+  - 'harpy/reports/leviathan**.Rmd'
 naibr: &naibr
   - *common
   - *container
-  - 'src/harpy/sv.py'
-  - 'src/harpy/snakefiles/sv_naibr**.smk'
-  - 'src/harpy/bin/concatenate_bam.py'
+  - 'harpy/sv.py'
+  - 'harpy/snakefiles/sv_naibr**.smk'
+  - 'harpy/bin/concatenate_bam.py'
   - 'test/bam/**'
   - 'test/bam_phased/**'
   - 'test/vcf/test.phased.bcf'
-  - 'src/harpy/reports/Naibr**.Rmd'
-  - 'src/harpy/bin/infer_sv.py'
+  - 'harpy/reports/Naibr**.Rmd'
+  - 'harpy/bin/infer_sv.py'
 phase: &phase
   - *common
   - *container
-  - 'src/harpy/phase.py'
-  - 'src/harpy/snakefiles/phase.smk'
+  - 'harpy/phase.py'
+  - 'harpy/snakefiles/phase.smk'
   - 'test/bam/**'
   - 'test/vcf/test.bcf'
-  - 'src/harpy/reports/hapcut.Rmd'
-  - 'src/harpy/bin/parse_phaseblocks.py'
+  - 'harpy/reports/hapcut.Rmd'
+  - 'harpy/bin/parse_phaseblocks.py'
 simvars: &simvars
   - *common
   - *container
-  - 'src/harpy/simulatevariants.py'
-  - 'src/harpy/snakefiles/simulate_snpindel.smk'
-  - 'src/harpy/snakefiles/simulate_variants.smk'
+  - 'harpy/simulatevariants.py'
+  - 'harpy/snakefiles/simulate_snpindel.smk'
+  - 'harpy/snakefiles/simulate_variants.smk'
   - 'test/vcf/test.bcf'
-  - 'src/harpy/scripts/simuG.pl'
+  - 'harpy/scripts/simuG.pl'
 simreads: &simreads
   - *common
   - *container
-  - 'src/harpy/simulatelinkedreads.py'
-  - 'src/harpy/snakefiles/simulate_linkedreads.smk'
+  - 'harpy/simulatelinkedreads.py'
+  - 'harpy/snakefiles/simulate_linkedreads.smk'
   - 'test/genome**gz'
   - 'extractReads.cpp'
-  - 'src/harpy/bin/10xtoHaplotag.py'
-  - 'src/harpy/scripts/LRSIM_harpy.pl'
+  - 'harpy/bin/10xtoHaplotag.py'
+  - 'harpy/scripts/LRSIM_harpy.pl'
 other: &other
   - '.github/workflows/tests.yml'
-  - 'src/harpy/stitchparams.py'
-  - 'src/harpy/popgroup.py'
+  - 'harpy/stitchparams.py'
+  - 'harpy/popgroup.py'
 modules:
   - *common
   - *demux

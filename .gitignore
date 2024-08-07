@@ -20,8 +20,8 @@ samples.populations
 *.bcf
 genome.fasta
 build/
-src/harpy.egg-info
-src/harpy/__pycache__
+harpy.egg-info/
+__pycache__/
 .Benchmark/
 extractReads
 _Inline

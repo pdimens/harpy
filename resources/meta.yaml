@@ -19,10 +19,10 @@ build:
     - {{ pin_subpackage('harpy', max_pin="x.x") }}
   script: |
     mkdir -p ${PREFIX}/bin
-    "${CXX}" src/harpy/bin/extractReads.cpp -O3 -o ${PREFIX}/bin/extractReads
+    "${CXX}" harpy/bin/extractReads.cpp -O3 -o ${PREFIX}/bin/extractReads
     ${PYTHON} -m pip install . --no-deps -vvv
-    chmod +x src/harpy/bin/* 
-    cp src/harpy/bin/* ${PREFIX}/bin/
+    chmod +x harpy/bin/* 
+    cp harpy/bin/* ${PREFIX}/bin/
 
 requirements:
   build:

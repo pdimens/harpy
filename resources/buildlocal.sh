@@ -9,11 +9,12 @@ fi
 mkdir -p ${CONDA_PREFIX}/bin
 
 # compilation
-g++ src/harpy/bin/extractReads.cpp -O3 -o ${CONDA_PREFIX}/bin/extractReads
+g++ harpy/bin/extractReads.cpp -O3 -o ${CONDA_PREFIX}/bin/extractReads
 
 # install harpy proper
-pip install . --no-deps
+pip install . --no-deps && \
+    rm -r build harpy.egg-info
 
 # associated scripts
-chmod +x src/harpy/bin/* 
-cp -f src/harpy/bin/* ${CONDA_PREFIX}/bin/
+chmod +x harpy/bin/* 
+cp -f harpy/bin/* ${CONDA_PREFIX}/bin/
