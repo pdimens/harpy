@@ -3,6 +3,7 @@ containerized: "docker://pdimens/harpy:latest"
 import os
 import sys
 import gzip
+import glob
 import shutil
 import logging as pylogging
 from datetime import datetime
@@ -20,10 +21,17 @@ if barcodes:
 else:
     barcodefile = f"{outdir}/workflow/input/4M-with-alts-february-2016.txt"
 
+## the log file ##
+attempts = glob.glob(f"{outdir}/logs/snakemake/*.snakelog")
+if not attempts:
+    logfile = f"{outdir}/logs/snakemake/simulate_linkedreads.run1." + datetime.now().strftime("%d_%m_%Y") + ".snakelog"
+else:
+    increment = sorted([int(i.split(".")[1].replace("run","")) for i in attempts])[-1] + 1
+    logfile = f"{outdir}/logs/snakemake/simulate_linkedreads.run{increment}." + datetime.now().strftime("%d_%m_%Y") + ".snakelog"
+
 onstart:
     os.makedirs(f"{outdir}/logs/snakemake", exist_ok = True)
-    dt_string = datetime.now().strftime("%d_%m_%Y-%H_%M_%S")
-    extra_logfile_handler = pylogging.FileHandler(f"{outdir}/logs/snakemake/{dt_string}.snakelog")
+    extra_logfile_handler = pylogging.FileHandler(logfile)
     logger.logger.addHandler(extra_logfile_handler)
 
 onsuccess:

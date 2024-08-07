@@ -3,6 +3,7 @@ containerized: "docker://pdimens/harpy:latest"
 import os
 import re
 import sys
+import glob
 import logging as pylogging
 from datetime import datetime
 from rich.panel import Panel
@@ -19,14 +20,20 @@ genome_zip  = True if bn.lower().endswith(".gz") else False
 bn_idx      = f"{bn}.gzi" if genome_zip else f"{bn}.fai"
 skipreports = config["skip_reports"]
 windowsize  = config["depth_windowsize"]
+## the log file ##
+attempts = glob.glob(f"{outdir}/logs/snakemake/*.snakelog")
+if not attempts:
+    logfile = f"{outdir}/logs/snakemake/align_bwa.run1." + datetime.now().strftime("%d_%m_%Y") + ".snakelog"
+else:
+    increment = sorted([int(i.split(".")[1].replace("run","")) for i in attempts])[-1] + 1
+    logfile = f"{outdir}/logs/snakemake/align_bwa.run{increment}." + datetime.now().strftime("%d_%m_%Y") + ".snakelog"
 
 wildcard_constraints:
     sample = "[a-zA-Z0-9._-]+"
 
 onstart:
     os.makedirs(f"{outdir}/logs/snakemake", exist_ok = True)
-    dt_string = datetime.now().strftime("%d_%m_%Y-%H_%M_%S")
-    extra_logfile_handler = pylogging.FileHandler(f"{outdir}/logs/snakemake/{dt_string}.snakelog")
+    extra_logfile_handler = pylogging.FileHandler(logfile)
     logger.logger.addHandler(extra_logfile_handler)
 
 onerror:

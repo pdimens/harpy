@@ -3,6 +3,7 @@ containerized: "docker://pdimens/harpy:latest"
 import os
 import re
 import sys
+import glob
 import multiprocessing
 import logging as pylogging
 from datetime import datetime
@@ -25,7 +26,15 @@ min_barcodes = config["min_barcodes"]
 mol_dist     = config["molecule_distance"]
 skipreports  = config["skip_reports"]
 outdir       = config["output_directory"]
-dt_string    = datetime.now().strftime("%d_%m_%Y-%H_%M_%S")
+
+## the log file ##
+attempts = glob.glob(f"{outdir}/logs/snakemake/*.snakelog")
+if not attempts:
+    logfile = f"{outdir}/logs/snakemake/sv_naibr.run1." + datetime.now().strftime("%d_%m_%Y") + ".snakelog"
+else:
+    increment = sorted([int(i.split(".")[1].replace("run","")) for i in attempts])[-1] + 1
+    logfile = f"{outdir}/logs/snakemake/sv_naibr.run{increment}." + datetime.now().strftime("%d_%m_%Y") + ".snakelog"
+
 if bn.lower().endswith(".gz"):
     bn = bn[:-3]
 
@@ -35,7 +44,7 @@ wildcard_constraints:
 
 onstart:
     os.makedirs(f"{outdir}/logs/snakemake", exist_ok = True)
-    extra_logfile_handler = pylogging.FileHandler(f"{outdir}/logs/snakemake/{dt_string}.snakelog")
+    extra_logfile_handler = pylogging.FileHandler(logfile)
     logger.logger.addHandler(extra_logfile_handler)
 
 onerror:

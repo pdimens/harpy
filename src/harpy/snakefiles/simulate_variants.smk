@@ -1,7 +1,8 @@
 containerized: "docker://pdimens/harpy:latest"
 
-import sys
 import os
+import sys
+import glob
 import random
 import logging as pylogging
 from datetime import datetime
@@ -47,10 +48,17 @@ else:
         cnv_ratio =config.get("cnv_ratio", None)
         variant_params += f" --cnv_gain_loss_ratio {cnv_ratio}" if cnv_ratio else ""
 
+## the log file ##
+attempts = glob.glob(f"{outdir}/logs/snakemake/*.snakelog")
+if not attempts:
+    logfile = f"{outdir}/logs/snakemake/simulate_{variant}.run1." + datetime.now().strftime("%d_%m_%Y") + ".snakelog"
+else:
+    increment = sorted([int(i.split(".")[1].replace("run","")) for i in attempts])[-1] + 1
+    logfile = f"{outdir}/logs/snakemake/simulate_{variant}.run{increment}." + datetime.now().strftime("%d_%m_%Y") + ".snakelog"
+
 onstart:
     os.makedirs(f"{outdir}/logs/snakemake", exist_ok = True)
-    dt_string = datetime.now().strftime("%d_%m_%Y-%H_%M_%S")
-    extra_logfile_handler = pylogging.FileHandler(f"{outdir}/logs/snakemake/{dt_string}.snakelog")
+    extra_logfile_handler = pylogging.FileHandler(logfile)
     logger.logger.addHandler(extra_logfile_handler)
 
 onsuccess:
