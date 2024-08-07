@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="turbo-root" content="/harpy">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="3.5.0.776375828853">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="3.5.0.776375928950">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 3.5.0">
@@ -34,12 +34,12 @@
     <script data-cfasync="false">(function () { var el = document.documentElement, m = localStorage.getItem("doc_theme"), wm = window.matchMedia; if (m === "dark" || (!m && wm && wm("(prefers-color-scheme: dark)").matches)) { el.classList.add("dark") } else { el.classList.remove("dark") } })();</script>
 
     <link href="../static/favicon.png" rel="icon">
-    <link href="../resources/css/retype.css?v=3.5.0.776375828853" rel="stylesheet">
+    <link href="../resources/css/retype.css?v=3.5.0.776375928950" rel="stylesheet">
 
-    <script data-cfasync="false" src="../resources/js/config.js?v=3.5.0.776375828853" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../resources/js/config.js?v=3.5.0.776375928950" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../resources/js/retype.js?v=3.5.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../resources/js/lunr.js?v=3.5.0.776375828853" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../resources/js/prism.js?v=3.5.0.776375828853" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../resources/js/lunr.js?v=3.5.0.776375928950" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../resources/js/prism.js?v=3.5.0.776375928950" defer></script>
 </head>
 <body>
     <div id="docs-app" class="relative text-base antialiased text-gray-700 bg-white font-body dark:bg-dark-850 dark:text-dark-300">
@@ -426,11 +426,7 @@ table below:</p>
 <td style="text-align: left;">the source documentation files (markdown and configs) that are deployed for the current documentation</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code v-pre>docs_dev</code></td>
-<td style="text-align: left;">the updated documentation intended for the next release and is not deployed</td>
-</tr>
-<tr>
-<td style="text-align: left;"><code v-pre>retype</code></td>
+<td style="text-align: left;"><code v-pre>website</code></td>
 <td style="text-align: left;">the branch that <code v-pre>docs</code> deploys to and contains the current rendered documentation and is not to be touched</td>
 </tr>
 </tbody>
@@ -444,7 +440,7 @@ table below:</p>
 </doc-anchor-target>
 <p>The dev workflow is reasonably standard:</p>
 <ol>
-<li><a href="https://github.com/pdimens/harpy/fork">create a fork</a> of Harpy</li>
+<li><a href="https://github.com/pdimens/harpy/fork">create a fork</a> of Harpy, usually from the <code v-pre>main</code> branch</li>
 <li>within your fork, create a new branch, name it something relevant to what you intend to do (<em>e.g.</em>, <code v-pre>naibr_bugfix</code>, <code v-pre>add_deepvariant</code>)</li>
 <li>add and modify code with your typical coding workflow, pushing your changes to your Harpy fork</li>
 <li>when it&#x27;s ready for inclusion into Harpy (and testing), create a Pull Request to merge your changes into the Harpy <code v-pre>main</code> branch</li>
