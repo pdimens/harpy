@@ -25,6 +25,7 @@ min_barcodes = config["min_barcodes"]
 mol_dist     = config["molecule_distance"]
 skipreports  = config["skip_reports"]
 outdir       = config["output_directory"]
+dt_string    = datetime.now().strftime("%d_%m_%Y-%H_%M_%S")
 if bn.lower().endswith(".gz"):
     bn = bn[:-3]
 
@@ -34,7 +35,6 @@ wildcard_constraints:
 
 onstart:
     os.makedirs(f"{outdir}/logs/snakemake", exist_ok = True)
-    dt_string = datetime.now().strftime("%d_%m_%Y-%H_%M_%S")
     extra_logfile_handler = pylogging.FileHandler(f"{outdir}/logs/snakemake/{dt_string}.snakelog")
     logger.logger.addHandler(extra_logfile_handler)
 
