@@ -79,7 +79,7 @@ def leviathan(inputs, output_dir, genome, min_sv, min_barcodes, iterations, thre
     workflowdir = f"{output_dir}/workflow"
     sdm = "conda" if conda else "conda apptainer"
     vcaller = "leviathan" if populations is None else "leviathan_pop"
-    command = f'snakemake --rerun-incomplete --rerun-triggers input mtime params --nolock --software-deployment-method {sdm} --conda-prefix ./.snakemake/conda --cores {threads} --directory . '
+    command = f'snakemake --rerun-incomplete --show-failed-logs --rerun-triggers input mtime params --nolock --software-deployment-method {sdm} --conda-prefix ./.snakemake/conda --cores {threads} --directory . '
     command += f"--snakefile {workflowdir}/sv_{vcaller}.smk "
     command += f"--configfile {workflowdir}/config.yaml "
     if hpc:
@@ -171,7 +171,7 @@ def naibr(inputs, output_dir, genome, vcf, min_sv, min_barcodes, threads, popula
     sdm = "conda" if conda else "conda apptainer"
     vcaller = "naibr" if populations is None else "naibr_pop"
     vcaller += "_phase" if vcf is not None else ""
-    command = f'snakemake --rerun-incomplete --rerun-triggers input mtime params --nolock --software-deployment-method {sdm} --conda-prefix ./.snakemake/conda --cores {threads} --directory . '
+    command = f'snakemake --rerun-incomplete --show-failed-logs --rerun-triggers input mtime params --nolock --software-deployment-method {sdm} --conda-prefix ./.snakemake/conda --cores {threads} --directory . '
     command += f"--snakefile {workflowdir}/sv_{vcaller}.smk "
     command += f"--configfile {workflowdir}/config.yaml "
     if hpc:

@@ -61,7 +61,7 @@ def gen1(r1_fq, r2_fq, i1_fq, i2_fq, output_dir, schema, threads, snakemake, ski
     output_dir = output_dir.rstrip("/")
     workflowdir = f"{output_dir}/workflow"
     sdm = "conda" if conda else "conda apptainer"
-    command = f'snakemake --rerun-incomplete --rerun-triggers input mtime params --nolock --software-deployment-method {sdm} --conda-prefix ./.snakemake/conda --cores {threads} --directory . '
+    command = f'snakemake --rerun-incomplete --show-failed-logs --rerun-triggers input mtime params --nolock --software-deployment-method {sdm} --conda-prefix ./.snakemake/conda --cores {threads} --directory . '
     command += f"--snakefile {workflowdir}/demultiplex_gen1.smk "
     command += f"--configfile {workflowdir}/config.yaml "
     if hpc:

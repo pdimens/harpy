@@ -89,7 +89,7 @@ def bwa(inputs, output_dir, genome, depth_window, threads, extra_params, quality
     output_dir = output_dir.rstrip("/")
     workflowdir = f"{output_dir}/workflow"
     sdm = "conda" if conda else "conda apptainer"
-    command = f'snakemake --rerun-incomplete --rerun-triggers input mtime params --nolock --software-deployment-method {sdm} --conda-prefix ./.snakemake/conda --cores {threads} --directory . '
+    command = f'snakemake --rerun-incomplete --show-failed-logs --rerun-triggers input mtime params --nolock --software-deployment-method {sdm} --conda-prefix ./.snakemake/conda --cores {threads} --directory . '
     command += f"--snakefile {workflowdir}/align_bwa.smk "
     command += f"--configfile {workflowdir}/config.yaml "
     if hpc:
@@ -166,7 +166,7 @@ def ema(inputs, output_dir, platform, whitelist, genome, depth_window, threads, 
     output_dir = output_dir.rstrip("/")
     workflowdir = f"{output_dir}/workflow"
     sdm = "conda" if conda else "conda apptainer"
-    command = f'snakemake --rerun-incomplete --rerun-triggers input mtime params --nolock --software-deployment-method {sdm} --conda-prefix ./.snakemake/conda --cores {threads} --directory . '
+    command = f'snakemake --rerun-incomplete --show-failed-logs --rerun-triggers input mtime params --nolock --software-deployment-method {sdm} --conda-prefix ./.snakemake/conda --cores {threads} --directory . '
     command += f"--snakefile {workflowdir}/align_ema.smk "
     command += f"--configfile {workflowdir}/config.yaml "
     if hpc:
@@ -259,7 +259,7 @@ def strobe(inputs, output_dir, genome, read_length, depth_window, threads, extra
     output_dir = output_dir.rstrip("/")
     workflowdir = f"{output_dir}/workflow"
     sdm = "conda" if conda else "conda apptainer"
-    command = f'snakemake --rerun-incomplete --rerun-triggers input mtime params --nolock --software-deployment-method {sdm} --conda-prefix ./.snakemake/conda --cores {threads} --directory . '
+    command = f'snakemake --rerun-incomplete --show-failed-logs --rerun-triggers input mtime params --nolock --software-deployment-method {sdm} --conda-prefix ./.snakemake/conda --cores {threads} --directory . '
     command += f"--snakefile {workflowdir}/align_strobealign.smk "
     command += f"--configfile {workflowdir}/config.yaml "
     if hpc:

@@ -59,7 +59,7 @@ def qc(inputs, output_dir, min_length, max_length, trim_adapters, deduplicate, d
     output_dir = output_dir.rstrip("/")
     workflowdir = f"{output_dir}/workflow"
     sdm = "conda" if conda else "conda apptainer"
-    command = f'snakemake --rerun-incomplete --rerun-triggers input mtime params --nolock  --software-deployment-method {sdm} --conda-prefix .snakemake/conda --cores {threads} --directory . '
+    command = f'snakemake --rerun-incomplete --show-failed-logs --rerun-triggers input mtime params --nolock  --software-deployment-method {sdm} --conda-prefix .snakemake/conda --cores {threads} --directory . '
     command += f"--snakefile {workflowdir}/qc.smk "
     command += f"--configfile {workflowdir}/config.yaml "
     if hpc:

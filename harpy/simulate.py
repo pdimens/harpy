@@ -136,7 +136,7 @@ def linkedreads(genome_hap1, genome_hap2, output_dir, outer_distance, mutation_r
     output_dir = output_dir.rstrip("/")
     workflowdir = f"{output_dir}/workflow"
     sdm = "conda" if conda else "conda apptainer"
-    command = f'snakemake --rerun-incomplete --rerun-triggers input mtime params --nolock  --software-deployment-method {sdm} --conda-prefix ./.snakemake/conda --cores {threads} --directory . '
+    command = f'snakemake --rerun-incomplete --show-failed-logs --rerun-triggers input mtime params --nolock  --software-deployment-method {sdm} --conda-prefix ./.snakemake/conda --cores {threads} --directory . '
     command += f"--snakefile {workflowdir}/simulate_linkedreads.smk "
     command += f"--configfile {workflowdir}/config.yaml "
     if hpc:
@@ -228,7 +228,7 @@ def snpindel(genome, snp_vcf, indel_vcf, output_dir, prefix, snp_count, indel_co
     output_dir = output_dir.rstrip("/")
     workflowdir = f"{output_dir}/workflow"
     sdm = "conda" if conda else "conda apptainer"
-    command = f'snakemake --rerun-incomplete --rerun-triggers input mtime params --nolock --software-deployment-method {sdm} --conda-prefix ./.snakemake/conda --cores 1 --directory . '
+    command = f'snakemake --rerun-incomplete --show-failed-logs --rerun-triggers input mtime params --nolock --software-deployment-method {sdm} --conda-prefix ./.snakemake/conda --cores 1 --directory . '
     command += f"--snakefile {workflowdir}/simulate_snpindel.smk "
     command += f"--configfile {workflowdir}/config.yaml "
     if hpc:
@@ -330,7 +330,7 @@ def inversion(genome, vcf, prefix, output_dir, count, min_size, max_size, centro
     output_dir = output_dir.rstrip("/")
     workflowdir = f"{output_dir}/workflow"
     sdm = "conda" if conda else "conda apptainer"
-    command = f'snakemake --rerun-incomplete --rerun-triggers input mtime params --nolock --software-deployment-method {sdm} --conda-prefix ./.snakemake/conda --cores 1 --directory . '
+    command = f'snakemake --rerun-incomplete --show-failed-logs --rerun-triggers input mtime params --nolock --software-deployment-method {sdm} --conda-prefix ./.snakemake/conda --cores 1 --directory . '
     command += f"--snakefile {workflowdir}/simulate_variants.smk "
     command += f"--configfile {workflowdir}/config.yaml "
     if hpc:
@@ -433,7 +433,7 @@ def cnv(genome, output_dir, vcf, prefix, count, min_size, max_size, dup_ratio, m
     output_dir = output_dir.rstrip("/")
     workflowdir = f"{output_dir}/workflow"
     sdm = "conda" if conda else "conda apptainer"
-    command = f'snakemake --rerun-incomplete --rerun-triggers input mtime params --nolock --software-deployment-method {sdm} --conda-prefix ./.snakemake/conda --cores 1 --directory . '
+    command = f'snakemake --rerun-incomplete --show-failed-logs --rerun-triggers input mtime params --nolock --software-deployment-method {sdm} --conda-prefix ./.snakemake/conda --cores 1 --directory . '
     command += f"--snakefile {workflowdir}/simulate_variants.smk "
     command += f"--configfile {workflowdir}/config.yaml "
     if hpc:
@@ -527,7 +527,7 @@ def translocation(genome, output_dir, prefix, vcf, count, centromeres, genes, he
     output_dir = output_dir.rstrip("/")
     workflowdir = f"{output_dir}/workflow"
     sdm = "conda" if conda else "conda apptainer"
-    command = f'snakemake --rerun-incomplete --rerun-triggers input mtime params --nolock --software-deployment-method {sdm} --conda-prefix ./.snakemake/conda --cores 1 --directory . '
+    command = f'snakemake --rerun-incomplete --show-failed-logs --rerun-triggers input mtime params --nolock --software-deployment-method {sdm} --conda-prefix ./.snakemake/conda --cores 1 --directory . '
     command += f"--snakefile {workflowdir}/simulate_variants.smk "
     command += f"--configfile {workflowdir}/config.yaml "
     if hpc:

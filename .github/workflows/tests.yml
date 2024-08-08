@@ -228,10 +228,10 @@ jobs:
           path: .snakemake/singularity
       - name: harpy qc
         shell: micromamba-shell {0}
-        run: harpy qc -x "--trim_poly_g"  --snakemake "--show-failed-logs" test/fastq
+        run: harpy qc -x "--trim_poly_g"   test/fastq
       - name: harpy qc all options
         shell: micromamba-shell {0}
-        run: harpy qc -a -d -c --snakemake "--show-failed-logs" test/fastq
+        run: harpy qc -a -d -c  test/fastq
   deconvolve:
     needs: [changes, pkgbuild]
     if: ${{ needs.changes.outputs.deconvolve == 'true' && needs.pkgbuild.result == 'success' }}
@@ -268,7 +268,7 @@ jobs:
           path: .snakemake/singularity
       - name: harpy deconvolve
         shell: micromamba-shell {0}
-        run: harpy deconvolve --snakemake "--show-failed-logs" test/fastq
+        run: harpy deconvolve  test/fastq
   bwa:
     needs: [changes, pkgbuild]
     if: ${{ needs.changes.outputs.bwa == 'true' && needs.pkgbuild.result == 'success' }}
@@ -305,7 +305,7 @@ jobs:
           path: .snakemake/singularity
       - name: test bwa
         shell: micromamba-shell {0}
-        run: harpy align bwa -g test/genome/genome.fasta.gz --snakemake "--show-failed-logs" -x "-A 2" test/fastq
+        run: harpy align bwa -g test/genome/genome.fasta.gz  -x "-A 2" test/fastq
   
   ema:
     needs: [changes, pkgbuild]
@@ -343,7 +343,7 @@ jobs:
           path: .snakemake/singularity
       - name: test ema
         shell: micromamba-shell {0}
-        run: harpy align ema --ema-bins 150 -g test/genome/genome.fasta.gz --snakemake "--show-failed-logs" -x "-d" test/fastq
+        run: harpy align ema --ema-bins 150 -g test/genome/genome.fasta.gz  -x "-d" test/fastq
 
   strobe:
     needs: [changes, pkgbuild]
@@ -381,7 +381,7 @@ jobs:
           path: .snakemake/singularity
       - name: test strobealign
         shell: micromamba-shell {0}
-        run: harpy align strobe -r 125 -g test/genome/genome.fasta.gz --snakemake "--show-failed-logs" test/fastq
+        run: harpy align strobe -r 125 -g test/genome/genome.fasta.gz  test/fastq
 
   mpileup:
     needs: [changes, pkgbuild]
@@ -422,7 +422,7 @@ jobs:
         run: harpy snp mpileup -r test/positions.bed -g test/genome/genome.fasta.gz -x "--ignore-RG" test/bam
       - name: snp mpileup-pop
         shell: micromamba-shell {0}
-        run: harpy snp mpileup -r test/positions.bed -o SNP/poptest -g test/genome/genome.fasta.gz -p test/samples.groups --snakemake "--show-failed-logs" test/bam
+        run: harpy snp mpileup -r test/positions.bed -o SNP/poptest -g test/genome/genome.fasta.gz -p test/samples.groups  test/bam
   
   freebayes:
     needs: [changes, pkgbuild]
@@ -463,7 +463,7 @@ jobs:
         run: harpy snp freebayes -r test/positions.bed -g test/genome/genome.fasta.gz -x "-g 200" test/bam
       - name: snp freebayes-pop
         shell: micromamba-shell {0}
-        run: harpy snp freebayes -r test/positions.bed -o SNP/poptest -g test/genome/genome.fasta.gz -p test/samples.groups --snakemake "--show-failed-logs" test/bam
+        run: harpy snp freebayes -r test/positions.bed -o SNP/poptest -g test/genome/genome.fasta.gz -p test/samples.groups  test/bam
 
   impute:
     needs: [changes, pkgbuild]
@@ -501,11 +501,11 @@ jobs:
           path: .snakemake/singularity
       - name: impute
         shell: micromamba-shell {0}
-        run: harpy impute --vcf test/vcf/test.bcf -p test/stitch.params --snakemake "--show-failed-logs" test/bam
+        run: harpy impute --vcf test/vcf/test.bcf -p test/stitch.params  test/bam
       - name: impute from vcf
         shell: micromamba-shell {0}
         if: always()
-        run: harpy impute --vcf-samples -o vcfImpute --vcf test/vcf/test.bcf -p test/stitch.params --snakemake "--show-failed-logs" test/bam
+        run: harpy impute --vcf-samples -o vcfImpute --vcf test/vcf/test.bcf -p test/stitch.params  test/bam
 
   phase:
     needs: [changes, pkgbuild]
@@ -543,17 +543,17 @@ jobs:
           path: .snakemake/singularity
       - name: phase
         shell: micromamba-shell {0}
-        run: harpy phase --vcf test/vcf/test.bcf --snakemake "--show-failed-logs" -x "--max_iter 10001" test/bam
+        run: harpy phase --vcf test/vcf/test.bcf  -x "--max_iter 10001" test/bam
       - name: phase with indels
         shell: micromamba-shell {0}
         if: always()
-        run: harpy phase --vcf test/vcf/test.bcf -o phaseindel -g test/genome/genome.fasta.gz --snakemake "--show-failed-logs" test/bam
+        run: harpy phase --vcf test/vcf/test.bcf -o phaseindel -g test/genome/genome.fasta.gz  test/bam
       - name: phase from vcf
         shell: micromamba-shell {0}
         if: always()
         run: |
           cp test/bam/sample1.bam test/bam/pineapple.bam && rename_bam -d test/bam/pineapple.bam pineapple1
-          harpy phase --vcf-samples -o phasevcf --vcf test/vcf/test.bcf --snakemake "--show-failed-logs" test/bam
+          harpy phase --vcf-samples -o phasevcf --vcf test/vcf/test.bcf  test/bam
 
   leviathan:
     needs: [changes, pkgbuild]
@@ -591,12 +591,12 @@ jobs:
           path: .snakemake/singularity
       - name: leviathan
         shell: micromamba-shell {0}
-        run: harpy sv leviathan -m 100 -b 1 -g test/genome/genome.fasta.gz --snakemake "--show-failed-logs" -x "-M 2002" test/bam
+        run: harpy sv leviathan -m 100 -b 1 -g test/genome/genome.fasta.gz  -x "-M 2002" test/bam
         continue-on-error: true
       - name: leviathan-pop
         if: always()
         shell: micromamba-shell {0}
-        run: harpy sv leviathan -m 100 -b 1 -g test/genome/genome.fasta.gz -o SV/leviathanpop -p test/samples.groups --snakemake "--show-failed-logs" test/bam
+        run: harpy sv leviathan -m 100 -b 1 -g test/genome/genome.fasta.gz -o SV/leviathanpop -p test/samples.groups  test/bam
 
   naibr:
     needs: [changes, pkgbuild]
@@ -634,20 +634,20 @@ jobs:
           path: .snakemake/singularity
       - name: naibr
         shell: micromamba-shell {0}
-        run: harpy sv naibr -g test/genome/genome.fasta.gz -o SV/naibr --snakemake "--show-failed-logs" -x "-min_sv 5000" test/bam_phased && rm -r Genome
+        run: harpy sv naibr -g test/genome/genome.fasta.gz -o SV/naibr  -x "-min_sv 5000" test/bam_phased && rm -r Genome
       - name: naibr pop
         if: always()
         shell: micromamba-shell {0}
-        run: harpy sv naibr -g test/genome/genome.fasta.gz -o SV/pop -p test/samples.groups --snakemake "--show-failed-logs" test/bam_phased && rm -r Genome
+        run: harpy sv naibr -g test/genome/genome.fasta.gz -o SV/pop -p test/samples.groups  test/bam_phased && rm -r Genome
       - name: naibr with phasing
         if: always()
         shell: micromamba-shell {0}
         run: |
-          harpy sv naibr -g test/genome/genome.fasta.gz -o SV/phase -v test/vcf/test.phased.bcf --snakemake "--show-failed-logs" test/bam && rm -r Genome
+          harpy sv naibr -g test/genome/genome.fasta.gz -o SV/phase -v test/vcf/test.phased.bcf  test/bam && rm -r Genome
       - name: naibr pop with phasing
         if: always()
         shell: micromamba-shell {0}
-        run: harpy sv naibr -g test/genome/genome.fasta.gz -o SV/phasepop -v test/vcf/test.phased.bcf -p test/samples.groups --snakemake "--show-failed-logs" test/bam && rm -r Genome
+        run: harpy sv naibr -g test/genome/genome.fasta.gz -o SV/phasepop -v test/vcf/test.phased.bcf -p test/samples.groups  test/bam && rm -r Genome
 
 
   simulate_variants:
@@ -687,26 +687,26 @@ jobs:
       - name: simulate random snps/indels
         shell: micromamba-shell {0}
         run: |
-          harpy simulate snpindel --snp-count 10 --indel-count 10 -z 0.5 --snakemake "--show-failed-logs" test/genome/genome.fasta.gz
-          harpy simulate snpindel --prefix Simulate/snpvcf --snp-vcf Simulate/snpindel/sim.snpindel.snp.hap1.vcf --indel-vcf Simulate/snpindel/sim.snpindel.indel.hap1.vcf --snakemake "--show-failed-logs" test/genome/genome.fasta.gz
+          harpy simulate snpindel --snp-count 10 --indel-count 10 -z 0.5  test/genome/genome.fasta.gz
+          harpy simulate snpindel --prefix Simulate/snpvcf --snp-vcf Simulate/snpindel/sim.snpindel.snp.hap1.vcf --indel-vcf Simulate/snpindel/sim.snpindel.indel.hap1.vcf  test/genome/genome.fasta.gz
       - name: simulate inversions
         shell: micromamba-shell {0}
         if: always()
         run: |
           harpy simulate inversion --count 10 -z 0.5 test/genome/genome.fasta.gz
-          harpy simulate inversion --prefix Simulate/invvcf --vcf Simulate/inversion/sim.inversion.hap1.vcf --snakemake "--show-failed-logs" test/genome/genome.fasta.gz
+          harpy simulate inversion --prefix Simulate/invvcf --vcf Simulate/inversion/sim.inversion.hap1.vcf  test/genome/genome.fasta.gz
       - name: simulate cnv
         shell: micromamba-shell {0}
         if: always()
         run: |
           harpy simulate cnv --count 10 -z 0.5 test/genome/genome.fasta.gz
-          harpy simulate cnv --prefix Simulate/cnvvcf --vcf Simulate/cnv/sim.cnv.hap1.vcf --snakemake "--show-failed-logs" test/genome/genome.fasta.gz
+          harpy simulate cnv --prefix Simulate/cnvvcf --vcf Simulate/cnv/sim.cnv.hap1.vcf  test/genome/genome.fasta.gz
       - name: simulate translocations
         shell: micromamba-shell {0}
         if: always()
         run: |
           harpy simulate translocation --count 10 -z 0.5 test/genome/genome.fasta.gz
-          harpy simulate translocation --prefix Simulate/transvcf --vcf Simulate/translocation/sim.translocation.hap1.vcf --snakemake "--show-failed-logs" test/genome/genome.fasta.gz
+          harpy simulate translocation --prefix Simulate/transvcf --vcf Simulate/translocation/sim.translocation.hap1.vcf  test/genome/genome.fasta.gz
 
   simulate_linkedreads:
     needs: [changes, pkgbuild]
@@ -744,7 +744,7 @@ jobs:
           path: .snakemake/singularity
       - name: simulate linked reads
         shell: micromamba-shell {0}
-        run: harpy simulate linkedreads --snakemake "--show-failed-logs" -t 4 -n 2  -l 100 -p 50 test/genome/genome.fasta.gz test/genome/genome2.fasta.gz
+        run: harpy simulate linkedreads  -t 4 -n 2  -l 100 -p 50 test/genome/genome.fasta.gz test/genome/genome2.fasta.gz
 
   extras:
     needs: [changes, pkgbuild]
