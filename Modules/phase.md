@@ -41,7 +41,7 @@ In addition to the [!badge variant="info" corners="pill" text="common runtime op
 | `--extra-params`      |    `-x`    | string          |         |    no    | Additional Hapcut2 arguments, in quotes                              |
 | `--genome           ` |    `-g`    | file path       |         |    no    | Path to genome if wanting to also use reads spanning indels          |
 | `--ignore-bx`         |    `-b`    | toggle          |         |    no    | Ignore haplotag barcodes for phasing                                 |
-| `--molecule-distance` |    `-m`    | integer         |  100000  |    no    | Base-pair distance threshold to separate molecules                   |
+| `--molecule-distance` |    `-d`    | integer         |  100000  |    no    | Base-pair distance threshold to separate molecules                   |
 | `--prune-threshold`   |    `-p`    | integer (0-100) |    7    |    no    | PHRED-scale (%) threshold for pruning low-confidence SNPs            |
 | `--vcf`               |    `-v`    | file path       |         | **yes**  | Path to BCF/VCF file                                                 |
 | `--vcf-samples`       |            |  toggle         |         |    no    | [Use samples present in vcf file](#prioritize-the-vcf-file) for imputation rather than those found the directory    |

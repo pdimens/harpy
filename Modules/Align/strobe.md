@@ -34,16 +34,17 @@ In addition to the [!badge variant="info" corners="pill" text="common runtime op
 | argument           | short name | type                  | default | required | description                                           |
 |:-------------------|:----------:|:----------------------|:-------:|:--------:|:------------------------------------------------------|
 | `INPUTS`           |            | file/directory paths  |         | **yes**  | Files or directories containing [input FASTQ files](/commonoptions.md#input-arguments)     |
-| `--genome`         |    `-g`    | file path             |         | **yes**  | Genome assembly for read mapping                      |
-| `--read-length`    |   `-r`    |  choice                | `auto`  |    no    |  Average read length for creating index. Options: [auto, 50, 75, 100, 125, 150, 250, 400] |
-| `--molecule-distance` |    `-m`    | integer            |  100000  |    no    | Base-pair distance threshold to separate molecules   |
-| `--quality-filter` |    `-f`    | integer (0-40)        |   30    |    no    | Minimum `MQ` (SAM mapping quality) to pass filtering  |
 | `--extra-params`   |    `-x`    | string                |         |    no    | Additional EMA-align/BWA arguments, in quotes         |
+| `--genome`         |    `-g`    | file path             |         | **yes**  | Genome assembly for read mapping                      |
+| `--keep-unmapped` |    `-u`    |          toggle        |   false    |    no    | Output unmapped sequences too  |
+| `--min-quality` |    `-d`    | integer (0-40)        |   30    |    no    | Minimum `MQ` (SAM mapping quality) to pass filtering  |
+| `--molecule-distance` |    `-m`    | integer            |  100000  |    no    | Base-pair distance threshold to separate molecules   |
+| `--read-length`    |   `-l`    |  choice                | `auto`  |    no    |  Average read length for creating index. Options: [auto, 50, 75, 100, 125, 150, 250, 400] |
 
 ### Read Length
 The strobealign program uses a new _strobemer_ design for aligning and requires its own way of indexing the genome.
 The index must be configured for the average read length of **the sample** being aligned. If your samples are all about
-the same length (on average), then you may specify a read length for `-r` from one of [`50`, `75`, `100`, `125`, `150`, `250`, `400`],
+the same length (on average), then you may specify a read length for `-l` from one of [`50`, `75`, `100`, `125`, `150`, `250`, `400`],
 which correspond to base pairs. Specifying an average read length would create a genomic index once and align samples afterwards,
 cutting down the time and disk usage for the workflow. If choosing `auto` (the default), strobealign will create an index on the fly
 for each sample, guesstimating the average read length for that sample from the first 500 sequences in the FASTQ files.
@@ -62,7 +63,7 @@ to assign alignments a unique Molecular Identifier `MI:i` tag based on their
 what this value does. 
 
 ## Quality filtering
-The `--quality` argument filters out alignments below a given $MQ$ threshold. The default, `30`, keeps alignments
+The `--min-quality` argument filters out alignments below a given $MQ$ threshold. The default, `30`, keeps alignments
 that are at least 99.9% likely correctly mapped. Set this value to `1` if you only want alignments removed with
 $MQ = 0$ (0% likely correct). You may also set it to `0` to keep all alignments for diagnostic purposes.
 The plot below shows the relationship between $MQ$ score and the likelihood the alignment is correct and will serve to help you decide

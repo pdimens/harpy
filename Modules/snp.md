@@ -63,7 +63,7 @@ In addition to the [!badge variant="info" corners="pill" text="common runtime op
 | `INPUTS`         |            | file/directory paths  |         | **yes**  | Files or directories containing [input BAM files](/commonoptions.md#input-arguments)   |
 | `--extra-params` |    `-x`    | string                          |         |    no    | Additional mpileup/freebayes arguments, in quotes   |
 | `--genome`       |    `-g`    | file path                       |         | **yes**  | Genome assembly for variant calling                 |
-| `--ploidy`       |    `-x`    | integer                         |    2    |    no    | Ploidy of samples                                   |
+| `--ploidy`       |    `-n`    | integer                         |    2    |    no    | Ploidy of samples                                   |
 | `--populations`  |    `-p`    | file path                       |         |    no    | Tab-delimited file of sample\<*tab*\>group          |
 | `--regions`      |    `-r`    | integer/file path/string        |  50000  |    no    | Regions to call variants on ([see below](#regions))             |
 

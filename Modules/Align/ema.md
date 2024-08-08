@@ -43,12 +43,13 @@ In addition to the [!badge variant="info" corners="pill" text="common runtime op
 | argument           | short name | type                  | default | required | description                                                        |
 |:-------------------|:----------:|:----------------------|:-------:|:--------:|:-------------------------------------------------------------------|
 | `INPUTS`           |            | file/directory paths  |         | **yes**  | Files or directories containing [input FASTQ files](/commonoptions.md#input-arguments)                  |
+| `--ema-bins`       |    `-e`    | integer (1-1000)      |   500   |    no    | Number of barcode bins for EMA                                     |
+| `--extra-params`   |    `-x`    | string                |         |    no    | Additional EMA-align/BWA arguments, in quotes                      |
 | `--genome`         |    `-g`    | file path             |         | **yes**  | Genome assembly for read mapping                                   |
+| `--keep-unmapped` |    `-u`    |          toggle        |   false    |    no    | Output unmapped sequences too  |
+| `--min-quality` |    `-q`    | integer (0-40)        |   30    |    no    | Minimum `MQ` (SAM mapping quality) to pass filtering               |
 | `--platform`       |    `-p`    | string                | haplotag | **yes** | Linked read technology: `haplotag` or `10x`                        |
 | `--whitelist`      |    `-w`    | file path             |         |    no    | Path to barcode whitelist (`--platform 10x` only)                  |
-| `--ema-bins`       |    `-e`    | integer (1-1000)      |   500   |    no    | Number of barcode bins for EMA                                     |
-| `--quality-filter` |    `-f`    | integer (0-40)        |   30    |    no    | Minimum `MQ` (SAM mapping quality) to pass filtering               |
-| `--extra-params`   |    `-x`    | string                |         |    no    | Additional EMA-align/BWA arguments, in quotes                      |
 
 ### Barcode whitelist
 Some linked-read methods (e.g. 10x, Tellseq) require the inclusion of a barcode "whitelist." This file is a 
@@ -57,7 +58,7 @@ If you need to process 10x data, then you will need to include the whitelist fil
 Conveniently, **haplotag data doesn't require this file**.
 
 ## Quality filtering
-The `--quality` argument filters out alignments below a given $MQ$ threshold. The default, `30`, keeps alignments
+The `--min-quality` argument filters out alignments below a given $MQ$ threshold. The default, `30`, keeps alignments
 that are at least 99.9% likely correctly mapped. Set this value to `1` if you only want alignments removed with
 $MQ = 0$ (0% likely correct). You may also set it to `0` to keep all alignments for diagnostic purposes.
 The plot below shows the relationship between $MQ$ score and the likelihood the alignment is correct and will serve to help you decide
