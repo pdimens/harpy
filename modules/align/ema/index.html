@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="turbo-root" content="/harpy">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="3.5.0.776375928950">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="3.5.0.776465474405">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 3.5.0">
@@ -34,12 +34,12 @@
     <script data-cfasync="false">(function () { var el = document.documentElement, m = localStorage.getItem("doc_theme"), wm = window.matchMedia; if (m === "dark" || (!m && wm && wm("(prefers-color-scheme: dark)").matches)) { el.classList.add("dark") } else { el.classList.remove("dark") } })();</script>
 
     <link href="../../../static/favicon.png" rel="icon">
-    <link href="../../../resources/css/retype.css?v=3.5.0.776375928950" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=3.5.0.776465474405" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=3.5.0.776375928950" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=3.5.0.776465474405" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=3.5.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=3.5.0.776375928950" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=3.5.0.776375928950" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=3.5.0.776465474405" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=3.5.0.776465474405" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../../resources/js/mermaid.js?v=3.5.0" defer></script>
     <link href="../../../resources/css/katex.css?v=3.5.0" rel="stylesheet">
     <script id="katex-js" data-cfasync="false" src="../../../resources/js/katex.js?v=3.5.0" defer></script>
@@ -406,12 +406,44 @@ using the <span class="no-link inline-flex align-middle items-center justify-cen
 <td style="text-align: left;">Files or directories containing <a href="../../../commonoptions/#input-arguments">input FASTQ files</a></td>
 </tr>
 <tr>
+<td style="text-align: left;"><code v-pre>--ema-bins</code></td>
+<td style="text-align: center;"><code v-pre>-e</code></td>
+<td style="text-align: left;">integer (1-1000)</td>
+<td style="text-align: center;">500</td>
+<td style="text-align: center;">no</td>
+<td style="text-align: left;">Number of barcode bins for EMA</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code v-pre>--extra-params</code></td>
+<td style="text-align: center;"><code v-pre>-x</code></td>
+<td style="text-align: left;">string</td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;">no</td>
+<td style="text-align: left;">Additional EMA-align/BWA arguments, in quotes</td>
+</tr>
+<tr>
 <td style="text-align: left;"><code v-pre>--genome</code></td>
 <td style="text-align: center;"><code v-pre>-g</code></td>
 <td style="text-align: left;">file path</td>
 <td style="text-align: center;"></td>
 <td style="text-align: center;"><strong>yes</strong></td>
 <td style="text-align: left;">Genome assembly for read mapping</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code v-pre>--keep-unmapped</code></td>
+<td style="text-align: center;"><code v-pre>-u</code></td>
+<td style="text-align: left;">toggle</td>
+<td style="text-align: center;">false</td>
+<td style="text-align: center;">no</td>
+<td style="text-align: left;">Output unmapped sequences too</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code v-pre>--min-quality</code></td>
+<td style="text-align: center;"><code v-pre>-q</code></td>
+<td style="text-align: left;">integer (0-40)</td>
+<td style="text-align: center;">30</td>
+<td style="text-align: center;">no</td>
+<td style="text-align: left;">Minimum <code v-pre>MQ</code> (SAM mapping quality) to pass filtering</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code v-pre>--platform</code></td>
@@ -428,30 +460,6 @@ using the <span class="no-link inline-flex align-middle items-center justify-cen
 <td style="text-align: center;"></td>
 <td style="text-align: center;">no</td>
 <td style="text-align: left;">Path to barcode whitelist (<code v-pre>--platform 10x</code> only)</td>
-</tr>
-<tr>
-<td style="text-align: left;"><code v-pre>--ema-bins</code></td>
-<td style="text-align: center;"><code v-pre>-e</code></td>
-<td style="text-align: left;">integer (1-1000)</td>
-<td style="text-align: center;">500</td>
-<td style="text-align: center;">no</td>
-<td style="text-align: left;">Number of barcode bins for EMA</td>
-</tr>
-<tr>
-<td style="text-align: left;"><code v-pre>--quality-filter</code></td>
-<td style="text-align: center;"><code v-pre>-f</code></td>
-<td style="text-align: left;">integer (0-40)</td>
-<td style="text-align: center;">30</td>
-<td style="text-align: center;">no</td>
-<td style="text-align: left;">Minimum <code v-pre>MQ</code> (SAM mapping quality) to pass filtering</td>
-</tr>
-<tr>
-<td style="text-align: left;"><code v-pre>--extra-params</code></td>
-<td style="text-align: center;"><code v-pre>-x</code></td>
-<td style="text-align: left;">string</td>
-<td style="text-align: center;"></td>
-<td style="text-align: center;">no</td>
-<td style="text-align: left;">Additional EMA-align/BWA arguments, in quotes</td>
 </tr>
 </tbody>
 </table>
@@ -472,7 +480,7 @@ Conveniently, <strong>haplotag data doesn&#x27;t require this file</strong>.</p>
         <span>Quality filtering</span>
     </h2>
 </doc-anchor-target>
-<p>The <code v-pre>--quality</code> argument filters out alignments below a given <span class="math">MQ</span> threshold. The default, <code v-pre>30</code>, keeps alignments
+<p>The <code v-pre>--min-quality</code> argument filters out alignments below a given <span class="math">MQ</span> threshold. The default, <code v-pre>30</code>, keeps alignments
 that are at least 99.9% likely correctly mapped. Set this value to <code v-pre>1</code> if you only want alignments removed with
 <span class="math">MQ = 0</span> (0% likely correct). You may also set it to <code v-pre>0</code> to keep all alignments for diagnostic purposes.
 The plot below shows the relationship between <span class="math">MQ</span> score and the likelihood the alignment is correct and will serve to help you decide
