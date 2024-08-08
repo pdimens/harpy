@@ -31,7 +31,7 @@ docstring = {
     "harpy align bwa": [
         {
             "name": "Parameters",
-            "options": ["--extra-params", "--genome", "--molecule-distance", "--quality-filter"],
+            "options": ["--extra-params", "--genome", "--molecule-distance", "--min-quality"],
         },
         {
             "name": "Workflow Controls",
@@ -41,7 +41,7 @@ docstring = {
     "harpy align ema": [
         {
             "name": "Parameters",
-            "options": ["--ema-bins", "--extra-params", "--genome", "--platform", "--quality-filter", "--whitelist"],
+            "options": ["--ema-bins", "--extra-params", "--genome", "--platform", "--min-quality", "--whitelist"],
         },
         {
             "name": "Workflow Controls",
@@ -51,7 +51,7 @@ docstring = {
     "harpy align strobe": [
         {
             "name": "Parameters",
-            "options": ["--extra-params", "--genome", "--molecule-distance", "--quality-filter", "--read-length"],
+            "options": ["--extra-params", "--genome", "--molecule-distance", "--min-quality", "--read-length"],
         },
         {
             "name": "Workflow Controls",
