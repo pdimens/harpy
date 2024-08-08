@@ -18,6 +18,7 @@ groupfile    = config["inputs"]["groupings"]
 extra        = config.get("extra", None) 
 min_sv       = config["min_sv"]
 min_barcodes = config["min_barcodes"]
+min_quality  = config["min_quality"]
 mol_dist     = config["molecule_distance"]
 skipreports  = config["skip_reports"]
 bn           = os.path.basename(genomefile)
@@ -68,7 +69,7 @@ onsuccess:
 
 def process_args(args):
     argsDict = {
-        "min_mapq" : 30,
+        "min_mapq" : min_quality,
         "d"        : mol_dist,
         "min_sv"   : min_sv,
         "k"        : min_barcodes

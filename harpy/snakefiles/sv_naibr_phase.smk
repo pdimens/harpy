@@ -18,6 +18,7 @@ vcffile     = config["inputs"]["vcf"]
 samplenames = {Path(i).stem for i in bamlist}
 extra       = config.get("extra", None) 
 mol_dist    = config["molecule_distance"]
+min_quality  = config["min_quality"]
 min_sv      = config["min_sv"]
 min_barcodes = config["min_barcodes"]
 outdir      = config["output_directory"]
@@ -75,7 +76,7 @@ onsuccess:
 
 def process_args(args):
     argsDict = {
-        "min_mapq" : 30,
+        "min_mapq" : min_quality,
         "d"        : mol_dist,
         "min_sv"   : min_sv,
         "k"        : min_barcodes
