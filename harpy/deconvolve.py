@@ -4,9 +4,8 @@ import os
 import sys
 import subprocess
 import rich_click as click
-from traitlets import default
 from .conda_deps import generate_conda_deps
-from .helperfunctions import fetch_report, fetch_rule
+from .helperfunctions import fetch_rule
 from .fileparsers import parse_fastq_inputs
 from .printfunctions import print_onstart
 
@@ -29,12 +28,12 @@ docstring = {
 @click.option('-d', '--density', default = 3, show_default = True, type = click.IntRange(min = 1, max_open = True), help = 'On average, 1/2^d kmers are indexed')
 @click.option('-a', '--dropout', default = 0, show_default = True, type = click.IntRange(min = 0, max_open = True), help = 'Minimum cloud size to deconvolve')
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(min = 1, max_open = True), help = 'Number of threads to use')
-@click.option('-q', '--quiet',  is_flag = True, show_default = True, default = False, help = 'Don\'t show output text while running')
 @click.option('-o', '--output-dir', type = click.Path(exists = False), default = "Deconvolve", show_default=True,  help = 'Output directory name')
-@click.option('--hpc',  type = click.Path(exists = True, file_okay = False, readable=True), help = 'Directory with HPC submission `config.yaml` file')
 @click.option('--conda',  is_flag = True, default = False, help = 'Use conda/mamba instead of container')
-@click.option('--snakemake', type = str, help = 'Additional Snakemake parameters, in quotes')
 @click.option('--config-only',  is_flag = True, hidden = True, show_default = True, default = False, help = 'Create the config.yaml file and exit')
+@click.option('--hpc',  type = click.Path(exists = True, file_okay = False, readable=True), help = 'Directory with HPC submission `config.yaml` file')
+@click.option('--quiet',  is_flag = True, show_default = True, default = False, help = 'Don\'t show output text while running')
+@click.option('--snakemake', type = str, help = 'Additional Snakemake parameters, in quotes')
 @click.argument('inputs', required=True, type=click.Path(exists=True, readable=True), nargs=-1)
 def deconvolve(inputs, output_dir, kmer_length, window_size, density, dropout, threads, snakemake, quiet, hpc, conda, config_only):
     """

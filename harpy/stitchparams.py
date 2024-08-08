@@ -23,9 +23,9 @@ def stitchparams(output):
             sys.exit(0)
     with open(output, "w", encoding="utf-8") as file:
         _ = file.write('model\tusebx\tbxlimit\tk\ts\tngen\n')
-        _ = file.write('diploid\tTRUE\t50000\t10\t5\t50\n')
         _ = file.write('diploid\tTRUE\t50000\t10\t1\t50\n')
-        _ = file.write('diploid\tTRUE\t50000\t15\t10\t100')
+        _ = file.write('diploid\tTRUE\t50000\t10\t1\t50\n')
+        _ = file.write('diploid\tTRUE\t50000\t15\t1\t100')
     print_notice(
         f"Created STITCH parameter file: {output}\n" +
         "Modify the model parameters as needed, but DO NOT add/remove columns."

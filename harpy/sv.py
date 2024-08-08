@@ -39,7 +39,7 @@ docstring = {
     "harpy sv naibr": [
         {
             "name": "Module Parameters",
-            "options": ["--extra-params", "--genome", "--min-barcodes", "--min-sv", "--molecule-distance", "--populations", "--vcf"],
+            "options": ["--extra-params", "--genome", "--min-barcodes", "--min-quality", "--min-sv", "--molecule-distance", "--populations", "--vcf"],
         },
         {
             "name": "Workflow Controls",
@@ -49,20 +49,20 @@ docstring = {
 }
 
 @click.command(no_args_is_help = True, epilog= "See the documentation for more information: https://pdimens.github.io/harpy/modules/sv/leviathan/")
-@click.option('-g', '--genome', type=click.Path(exists=True, dir_okay=False, readable=True), required = True, help = 'Genome assembly for variant calling')
-@click.option('-p', '--populations', type=click.Path(exists = True, dir_okay=False, readable=True), help = "Tab-delimited file of sample\<tab\>population")
-@click.option('-m', '--min-sv', type = click.IntRange(min = 10, max_open = True), default = 1000, show_default=True, help = 'Minimum size of SV to detect')
-@click.option('-b', '--min-barcodes', show_default = True, default=2, type = click.IntRange(min = 1, max_open = True), help = 'Minimum number of barcode overlaps supporting candidate SV')
-@click.option('-i', '--iterations', show_default = True, default=50, type = click.IntRange(min = 10, max_open = True), help = 'Number of iterations to perform through index (reduces memory)')
 @click.option('-x', '--extra-params', type = str, help = 'Additional variant caller parameters, in quotes')
+@click.option('-g', '--genome', type=click.Path(exists=True, dir_okay=False, readable=True), required = True, help = 'Genome assembly for variant calling')
+@click.option('-i', '--iterations', show_default = True, default=50, type = click.IntRange(min = 10, max_open = True), help = 'Number of iterations to perform through index (reduces memory)')
+@click.option('-s', '--min-sv', type = click.IntRange(min = 10, max_open = True), default = 1000, show_default=True, help = 'Minimum size of SV to detect')
+@click.option('-b', '--min-barcodes', show_default = True, default=2, type = click.IntRange(min = 1, max_open = True), help = 'Minimum number of barcode overlaps supporting candidate SV')
 @click.option('-o', '--output-dir', type = click.Path(exists = False), default = "SV/leviathan", show_default=True,  help = 'Output directory name')
+@click.option('-p', '--populations', type=click.Path(exists = True, dir_okay=False, readable=True), help = "Tab-delimited file of sample\<tab\>population")
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(min = 4, max_open = True), help = 'Number of threads to use')
-@click.option('-q', '--quiet',  is_flag = True, show_default = True, default = False, help = 'Don\'t show output text while running')
-@click.option('--hpc',  type = click.Path(exists = True, file_okay = False, readable=True), help = 'Directory with HPC submission `config.yaml` file')
 @click.option('--conda',  is_flag = True, default = False, help = 'Use conda/mamba instead of container')
-@click.option('--snakemake', type = str, help = 'Additional Snakemake parameters, in quotes')
-@click.option('--skipreports',  is_flag = True, show_default = True, default = False, help = 'Don\'t generate HTML reports')
 @click.option('--config-only',  is_flag = True, hidden = True, default = False, help = 'Create the config.yaml file and exit')
+@click.option('--hpc',  type = click.Path(exists = True, file_okay = False, readable=True), help = 'Directory with HPC submission `config.yaml` file')
+@click.option('--quiet',  is_flag = True, show_default = True, default = False, help = 'Don\'t show output text while running')
+@click.option('--skipreports',  is_flag = True, show_default = True, default = False, help = 'Don\'t generate HTML reports')
+@click.option('--snakemake', type = str, help = 'Additional Snakemake parameters, in quotes')
 @click.argument('inputs', required=True, type=click.Path(exists=True, readable=True), nargs=-1)
 def leviathan(inputs, output_dir, genome, min_sv, min_barcodes, iterations, threads, populations, extra_params, snakemake, skipreports, quiet, hpc, conda, config_only):
     """
@@ -133,23 +133,24 @@ def leviathan(inputs, output_dir, genome, min_sv, min_barcodes, iterations, thre
     sys.exit(_module.returncode)
 
 @click.command(no_args_is_help = True, epilog = "See the documentation for more information: https://pdimens.github.io/harpy/modules/sv/naibr/")
-@click.option('-g', '--genome', required = True, type=click.Path(exists=True, dir_okay=False, readable=True), help = 'Genome assembly')
-@click.option('-v', '--vcf', type=click.Path(exists=True, dir_okay=False, readable=True),  help = 'Path to phased bcf/vcf file')
-@click.option('-p', '--populations', type=click.Path(exists = True, dir_okay=False, readable=True), help = "Tab-delimited file of sample\<tab\>population")
-@click.option('-n', '--min-sv', type = click.IntRange(min = 10, max_open = True), default = 1000, show_default=True, help = 'Minimum size of SV to detect')
-@click.option('-b', '--min-barcodes', show_default = True, default=2, type = click.IntRange(min = 1, max_open = True), help = 'Minimum number of barcode overlaps supporting candidate SV')
-@click.option('-m', '--molecule-distance', default = 100000, show_default = True, type = int, help = 'Base-pair distance delineating separate molecules')
 @click.option('-x', '--extra-params', type = str, help = 'Additional variant caller parameters, in quotes')
+@click.option('-g', '--genome', required = True, type=click.Path(exists=True, dir_okay=False, readable=True), help = 'Genome assembly')
+@click.option('-b', '--min-barcodes', show_default = True, default=2, type = click.IntRange(min = 1, max_open = True), help = 'Minimum number of barcode overlaps supporting candidate SV')
+@click.option('-q', '--min-quality', show_default = True, default=30, type = click.IntRange(min = 0, max = 40), help = 'Minimum mapping quality of reads to use')
+@click.option('-s', '--min-sv', type = click.IntRange(min = 10, max_open = True), default = 1000, show_default=True, help = 'Minimum size of SV to detect')
+@click.option('-d', '--molecule-distance', default = 100000, show_default = True, type = int, help = 'Base-pair distance delineating separate molecules')
 @click.option('-o', '--output-dir', type = click.Path(exists = False), default = "SV/naibr", show_default=True,  help = 'Output directory name')
+@click.option('-p', '--populations', type=click.Path(exists = True, dir_okay=False, readable=True), help = "Tab-delimited file of sample\<tab\>population")
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(min = 4, max_open = True), help = 'Number of threads to use')
-@click.option('-q', '--quiet',  is_flag = True, show_default = True, default = False, help = 'Don\'t show output text while running')
-@click.option('--hpc',  type = click.Path(exists = True, file_okay = False, readable=True), help = 'Directory with HPC submission `config.yaml` file')
+@click.option('-v', '--vcf', type=click.Path(exists=True, dir_okay=False, readable=True),  help = 'Path to phased bcf/vcf file')
 @click.option('--conda',  is_flag = True, default = False, help = 'Use conda/mamba instead of container')
-@click.option('--snakemake', type = str, help = 'Additional Snakemake parameters, in quotes')
-@click.option('--skipreports',  is_flag = True, show_default = True, default = False, help = 'Don\'t generate HTML reports')
 @click.option('--config-only',  is_flag = True, hidden = True, default = False, help = 'Create the config.yaml file and exit')
+@click.option('--hpc',  type = click.Path(exists = True, file_okay = False, readable=True), help = 'Directory with HPC submission `config.yaml` file')
+@click.option('--quiet',  is_flag = True, show_default = True, default = False, help = 'Don\'t show output text while running')
+@click.option('--skipreports',  is_flag = True, show_default = True, default = False, help = 'Don\'t generate HTML reports')
+@click.option('--snakemake', type = str, help = 'Additional Snakemake parameters, in quotes')
 @click.argument('inputs', required=True, type=click.Path(exists=True, readable=True), nargs=-1)
-def naibr(inputs, output_dir, genome, vcf, min_sv, min_barcodes, threads, populations, molecule_distance, extra_params, snakemake, skipreports, quiet, hpc, conda, config_only):
+def naibr(inputs, output_dir, genome, vcf, min_sv, min_barcodes, min_quality, threads, populations, molecule_distance, extra_params, snakemake, skipreports, quiet, hpc, conda, config_only):
     """
     Call structural variants using NAIBR
     
@@ -195,6 +196,7 @@ def naibr(inputs, output_dir, genome, vcf, min_sv, min_barcodes, threads, popula
         config.write("workflow: sv naibr\n")
         config.write(f"output_directory: {output_dir}\n")
         config.write(f"min_barcodes: {min_barcodes}\n")
+        config.write(f"min_quality: {min_quality}\n")
         config.write(f"min_sv: {min_sv}\n")
         config.write(f"molecule_distance: {molecule_distance}\n")
         if extra_params is not None:
