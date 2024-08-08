@@ -14,6 +14,7 @@ envdir      = os.getcwd() + "/.harpy_envs"
 genomefile 	= config["inputs"]["genome"]
 fqlist       = config["inputs"]["fastq"]
 molecule_distance = config["molecule_distance"]
+keep_unmapped = config["keep_unmapped"]
 extra 		= config.get("extra", "") 
 bn 			= os.path.basename(genomefile)
 genome_zip  = True if bn.lower().endswith(".gz") else False
@@ -137,6 +138,7 @@ rule align:
     params: 
         samps = lambda wc: d[wc.get("sample")],
         quality = config["alignment_quality"],
+        unmapped = "" if keep_unmapped else "-F 4",
         extra = extra
     benchmark:
         ".Benchmark/Mapping/bwa/align.{sample}.txt"
@@ -149,7 +151,7 @@ rule align:
     shell:
         """
         bwa mem -C -v 2 -t {threads} {params.extra} -R \"@RG\\tID:{wildcards.sample}\\tSM:{wildcards.sample}\" {input.genome} {input.fastq} 2> {log} |
-            samtools view -h -F 4 -q {params.quality} > {output} 
+            samtools view -h {params.unmapped} -q {params.quality} > {output} 
         """
 
 rule mark_duplicates:
@@ -168,7 +170,7 @@ rule mark_duplicates:
     container:
         None
     threads:
-        2
+        4
     message:
         "Marking duplicates: {wildcards.sample}"
     shell:
@@ -308,6 +310,7 @@ rule workflow_summary:
         bx_report = outdir + "/reports/barcodes.summary.html" if (not skipreports or len(samplenames) == 1) else []
     params:
         quality = config["alignment_quality"],
+        unmapped = "" if keep_unmapped else "-F 4",
         extra   = extra
     message:
         "Summarizing the workflow: {output}"
@@ -317,11 +320,11 @@ rule workflow_summary:
             _ = f.write(f"The provided genome: {genomefile}\n")
             _ = f.write("Sequencing were aligned with BWA using:\n")
             _ = f.write(f"    bwa mem -C -v 2 {params.extra} -R \"@RG\\tID:SAMPLE\\tSM:SAMPLE\" genome forward_reads reverse_reads |\n")
-            _ = f.write(f"    samtools view -h -F 4 -q {params.quality} |\n")
+            _ = f.write(f"      samtools view -h {params.unmapped} -q {params.quality}\n")
             _ = f.write("Duplicates in the alignments were marked following:\n")
-            _ = f.write("    samtools collate \n")
-            _ = f.write("    samtools fixmate\n")
-            _ = f.write("    samtools sort -T SAMPLE --reference genome -m 2000M \n")
-            _ = f.write("    samtools markdup -S --barcode-tag BX\n")
+            _ = f.write("    samtools collate |\n")
+            _ = f.write("      samtools fixmate |\n")
+            _ = f.write("      samtools sort -T SAMPLE --reference genome -m 2000M |\n")
+            _ = f.write("      samtools markdup -S --barcode-tag BX\n")
             _ = f.write("\nThe Snakemake workflow was called via command line:\n")
             _ = f.write("    " + str(config["workflow_call"]) + "\n")

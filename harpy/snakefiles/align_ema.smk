@@ -23,6 +23,7 @@ genome_zip  = True if bn.lower().endswith(".gz") else False
 bn_idx      = f"{bn}.gzi" if genome_zip else f"{bn}.fai"
 envdir      = os.getcwd() + "/.harpy_envs"
 windowsize  = config["depth_windowsize"]
+keep_unmapped = config["keep_unmapped"]
 skipreports = config["skip_reports"]
 
 ## the log file ##
@@ -196,6 +197,7 @@ rule ema_align:
         bxtype = f"-p {platform}",
         tmpdir = lambda wc: outdir + "/." + d[wc.sample],
         quality = config["quality"],
+        unmapped = "" if keep_unmapped else "-F 4",
         extra = extra
     threads:
         10
@@ -206,7 +208,7 @@ rule ema_align:
     shell:
         """
         ema align -t {threads} {params.extra} -d {params.bxtype} -r {input.genome} -R \"@RG\\tID:{wildcards.sample}\\tSM:{wildcards.sample}\" -x {input.readbin} 2> {log.ema} |
-            samtools view -h -F 4 -q {params.quality} | 
+            samtools view -h {params.unmapped} -q {params.quality} | 
             samtools sort -T {params.tmpdir} --reference {input.genome} -O bam --write-index -m {resources.mem_mb}M -o {output.aln}##idx##{output.idx} - 2> {log.sort}
         rm -rf {params.tmpdir}
         """
@@ -222,7 +224,8 @@ rule bwa_align:
     log:
         outdir + "/logs/align/{sample}.bwa.align.log"
     params:
-        quality = config["quality"]
+        quality = config["quality"],
+        unmapped = "" if keep_unmapped else "-F 4"
     benchmark:
         ".Benchmark/Mapping/ema/bwaAlign.{sample}.txt"
     threads:
@@ -234,7 +237,7 @@ rule bwa_align:
     shell:
         """
         bwa mem -t {threads} -v2 -C -R \"@RG\\tID:{wildcards.sample}\\tSM:{wildcards.sample}\" {input.genome} {input.reads} 2> {log} |
-            samtools view -h -F 4 -q {params.quality} > {output}
+            samtools view -h {params.unmapped} -q {params.quality} > {output}
         """
 
 rule bwa_markdups:
@@ -396,7 +399,8 @@ rule workflow_summary:
         agg_report = f"{outdir}/reports/ema.stats.html" if not skipreports else [],
         bx_report = outdir + "/reports/barcodes.summary.html" if (not skipreports or len(samplenames) == 1) else []
     params:
-        beadtech = "-p" if platform == "haplotag" else f"-w {whitelist}"
+        beadtech = "-p" if platform == "haplotag" else f"-w {whitelist}",
+        unmapped = "" if keep_unmapped else "-F 4"
     message:
         "Summarizing the workflow: {output}"
     run:
@@ -409,15 +413,17 @@ rule workflow_summary:
             _ = f.write(f"    seqtk mergepe forward.fq.gz reverse.fq.gz | ema preproc {params.beadtech} -n {nbins}\n")
             _ = f.write("Barcoded bins were aligned with ema align using:\n")
             _ = f.write(f"    ema align " + extra + " -d -p " + platform + " -R \"@RG\\tID:SAMPLE\\tSM:SAMPLE\" |\n")
-            _ = f.write("    samtools view -h -F 4 -q " + str(config["quality"]) + " - |\n") 
-            _ = f.write("    samtools sort --reference genome -m 2000M\n\n")
+            _ = f.write("      samtools view -h {params.unmapped} -q " + str(config["quality"]) + " - |\n") 
+            _ = f.write("      samtools sort --reference genome -m 2000M\n\n")
             _ = f.write("Invalid/non barcoded sequences were aligned with BWA using:\n")
             _ = f.write("    bwa mem -C -v2 -R \"@RG\\tID:SAMPLE\\tSM:SAMPLE\" genome forward_reads reverse_reads\n")
+            _ = f.write("      samtools view -h {params.unmapped} -q " + str(config["quality"]) + " - |\n")
+            _ = f.write("      samtools sort --reference genome -m 2000M\n\n") 
             _ = f.write("Duplicates in non-barcoded alignments were marked following:\n")
-            _ = f.write("    samtools collate \n")
-            _ = f.write("    samtools fixmate\n")
-            _ = f.write("    samtools sort -m 2000M \n")
-            _ = f.write("    samtools markdup -S\n")
+            _ = f.write("    samtools collate |\n")
+            _ = f.write("      samtools fixmate |\n")
+            _ = f.write("      samtools sort -m 2000M |\n")
+            _ = f.write("      samtools markdup -S\n")
             _ = f.write("Alignments were merged using:\n")
             _ = f.write("    samtools cat barcode.bam nobarcode.bam > concat.bam\n")
             _ = f.write("Merged alignments were sorted using:\n")

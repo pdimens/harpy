@@ -31,7 +31,7 @@ docstring = {
     "harpy align bwa": [
         {
             "name": "Parameters",
-            "options": ["--extra-params", "--genome", "--molecule-distance", "--min-quality"],
+            "options": ["--extra-params", "--genome", "--keep-unmapped", "--molecule-distance", "--min-quality"],
         },
         {
             "name": "Workflow Controls",
@@ -41,7 +41,7 @@ docstring = {
     "harpy align ema": [
         {
             "name": "Parameters",
-            "options": ["--ema-bins", "--extra-params", "--genome", "--platform", "--min-quality", "--whitelist"],
+            "options": ["--ema-bins", "--extra-params", "--genome", "--keep-unmapped", "--platform", "--min-quality", "--whitelist"],
         },
         {
             "name": "Workflow Controls",
@@ -51,7 +51,7 @@ docstring = {
     "harpy align strobe": [
         {
             "name": "Parameters",
-            "options": ["--extra-params", "--genome", "--molecule-distance", "--min-quality", "--read-length"],
+            "options": ["--extra-params", "--genome", "--keep-unmapped", "--molecule-distance", "--min-quality", "--read-length"],
         },
         {
             "name": "Workflow Controls",
@@ -62,12 +62,13 @@ docstring = {
 
 @click.command(no_args_is_help = True, epilog= "See the documentation for more information: https://pdimens.github.io/harpy/modules/align/bwa/")
 @click.option('-g', '--genome', type=click.Path(exists=True, dir_okay=False, readable=True), required = True, help = 'Genome assembly for read mapping')
-@click.option('-d', '--molecule-distance', default = 100000, show_default = True, type = int, help = 'Base-pair distance threshold to separate molecules')
-@click.option('-q', '--min-quality', default = 30, show_default = True, type = click.IntRange(min = 0, max = 40), help = 'Minimum mapping quality to pass filtering')
 @click.option('-w', '--depth-window', default = 50000, show_default = True, type = int, help = 'Interval size (in bp) for depth stats')
 @click.option('-x', '--extra-params', type = str, help = 'Additional bwa mem parameters, in quotes')
-@click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(min = 4, max_open = True), help = 'Number of threads to use')
+@click.option('-u', '--keep-unmapped',  is_flag = True, default = False, help = 'Retain unmapped sequences in the output')
+@click.option('-q', '--min-quality', default = 30, show_default = True, type = click.IntRange(min = 0, max = 40), help = 'Minimum mapping quality to pass filtering')
+@click.option('-d', '--molecule-distance', default = 100000, show_default = True, type = int, help = 'Base-pair distance threshold to separate molecules')
 @click.option('-o', '--output-dir', type = click.Path(exists = False), default = "Align/bwa", show_default=True,  help = 'Output directory name')
+@click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(min = 4, max_open = True), help = 'Number of threads to use')
 @click.option('--conda',  is_flag = True, default = False, help = 'Use conda/mamba instead of container')
 @click.option('--config-only',  is_flag = True, hidden = True, default = False, help = 'Create the config.yaml file and exit')
 @click.option('--hpc',  type = click.Path(exists = True, file_okay = False, readable=True), help = 'Directory with HPC submission `config.yaml` file')
@@ -75,7 +76,7 @@ docstring = {
 @click.option('--skipreports',  is_flag = True, show_default = True, default = False, help = 'Don\'t generate HTML reports')
 @click.option('--snakemake', type = str, help = 'Additional Snakemake parameters, in quotes')
 @click.argument('inputs', required=True, type=click.Path(exists=True, readable=True), nargs=-1)
-def bwa(inputs, output_dir, genome, depth_window, threads, extra_params, min_quality, molecule_distance, snakemake, skipreports, quiet, hpc, conda, config_only):
+def bwa(inputs, output_dir, genome, depth_window, threads, keep_unmapped, extra_params, min_quality, molecule_distance, snakemake, skipreports, quiet, hpc, conda, config_only):
     """
     Align sequences to genome using `BWA MEM`
  
@@ -110,6 +111,7 @@ def bwa(inputs, output_dir, genome, depth_window, threads, extra_params, min_qua
         config.write("workflow: align bwa\n")
         config.write(f"output_directory: {output_dir}\n")
         config.write(f"alignment_quality: {min_quality}\n")
+        config.write(f"keep_unmapped: {keep_unmapped}\n")
         config.write(f"molecule_distance: {molecule_distance}\n")
         config.write(f"depth_windowsize: {depth_window}\n")
         config.write(f"skip_reports: {skipreports}\n")
@@ -150,7 +152,7 @@ def bwa(inputs, output_dir, genome, depth_window, threads, extra_params, min_qua
 @click.option('--skipreports',  is_flag = True, show_default = True, default = False, help = 'Don\'t generate HTML reports')
 @click.option('--snakemake', type = str, help = 'Additional Snakemake parameters, in quotes')
 @click.argument('inputs', required=True, type=click.Path(exists=True, readable=True), nargs=-1)
-def ema(inputs, output_dir, platform, whitelist, genome, depth_window, threads, ema_bins, skipreports, extra_params, min_quality, snakemake, quiet, hpc, conda, config_only):
+def ema(inputs, output_dir, platform, whitelist, genome, depth_window, keep_unmapped, threads, ema_bins, skipreports, extra_params, min_quality, snakemake, quiet, hpc, conda, config_only):
     """
     Align sequences to genome using `EMA`
 
@@ -200,6 +202,7 @@ def ema(inputs, output_dir, platform, whitelist, genome, depth_window, threads, 
         config.write("workflow: align ema\n")
         config.write(f"output_directory: {output_dir}\n")
         config.write(f"quality: {min_quality}\n")
+        config.write(f"keep_unmapped: {keep_unmapped}\n")
         config.write(f"platform: {platform}\n")
         config.write(f"EMA_bins: {ema_bins}\n")
         config.write(f"depth_windowsize: {depth_window}\n")
@@ -228,13 +231,14 @@ def ema(inputs, output_dir, platform, whitelist, genome, depth_window, threads, 
 
 @click.command(no_args_is_help = True, epilog= "See the documentation for more information: https://pdimens.github.io/harpy/modules/align/minimap/")
 @click.option('-g', '--genome', type=click.Path(exists=True, dir_okay=False, readable=True), required = True, help = 'Genome assembly for read mapping')
-@click.option('-d', '--molecule-distance', default = 100000, show_default = True, type = int, help = 'Base-pair distance threshold to separate molecules')
-@click.option('-q', '--min-quality', default = 30, show_default = True, type = click.IntRange(min = 0, max = 40), help = 'Minimum mapping quality to pass filtering')
-@click.option('-l', '--read-length', default = "auto", show_default = True, type = click.Choice(["auto", "50", "75", "100", "125", "150", "250", "400"]), help = 'Average read length for creating index')
 @click.option('-w', '--depth-window', default = 50000, show_default = True, type = int, help = 'Interval size (in bp) for depth stats')
 @click.option('-x', '--extra-params', type = str, help = 'Additional aligner parameters, in quotes')
-@click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(min = 4, max_open = True), help = 'Number of threads to use')
+@click.option('-u', '--keep-unmapped',  is_flag = True, default = False, help = 'Retain unmapped sequences in the output')
+@click.option('-q', '--min-quality', default = 30, show_default = True, type = click.IntRange(min = 0, max = 40), help = 'Minimum mapping quality to pass filtering')
+@click.option('-d', '--molecule-distance', default = 100000, show_default = True, type = int, help = 'Base-pair distance threshold to separate molecules')
 @click.option('-o', '--output-dir', type = click.Path(exists = False), default = "Align/strobealign", show_default=True,  help = 'Output directory name')
+@click.option('-l', '--read-length', default = "auto", show_default = True, type = click.Choice(["auto", "50", "75", "100", "125", "150", "250", "400"]), help = 'Average read length for creating index')
+@click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(min = 4, max_open = True), help = 'Number of threads to use')
 @click.option('--conda',  is_flag = True, default = False, help = 'Use conda/mamba instead of container')
 @click.option('--config-only',  is_flag = True, hidden = True, default = False, help = 'Create the config.yaml file and exit')
 @click.option('--hpc',  type = click.Path(exists = True, file_okay = False, readable=True), help = 'Directory with HPC submission `config.yaml` file')
@@ -242,7 +246,7 @@ def ema(inputs, output_dir, platform, whitelist, genome, depth_window, threads, 
 @click.option('--skipreports',  is_flag = True, show_default = True, default = False, help = 'Don\'t generate HTML reports')
 @click.option('--snakemake', type = str, help = 'Additional Snakemake parameters, in quotes')
 @click.argument('inputs', required=True, type=click.Path(exists=True, readable=True), nargs=-1)
-def strobe(inputs, output_dir, genome, read_length, depth_window, threads, extra_params, min_quality, molecule_distance, snakemake, skipreports, quiet, hpc, conda, config_only):
+def strobe(inputs, output_dir, genome, read_length, keep_unmapped, depth_window, threads, extra_params, min_quality, molecule_distance, snakemake, skipreports, quiet, hpc, conda, config_only):
     """
     Align sequences to genome using `strobealign`
  
@@ -279,7 +283,7 @@ def strobe(inputs, output_dir, genome, read_length, depth_window, threads, extra
     with open(f"{workflowdir}/config.yaml", "w", encoding="utf-8") as config:
         config.write("workflow: align strobe\n")
         config.write(f"genomefile: {genome}\n")
-        config.write(f"seq_directory: {workflowdir}/input\n")
+        config.write(f"keep_unmapped: {keep_unmapped}\n")
         config.write(f"output_directory: {output_dir}\n")
         config.write(f"quality: {min_quality}\n")
         config.write(f"molecule_distance: {molecule_distance}\n")
