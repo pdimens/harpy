@@ -378,22 +378,22 @@ valueBox("50 kbp", caption = "Intervals", color = "info")
 ```
 ### glob-avg
 ```{r}
-valueBox(scales::comma(global_avg), caption = "Average depth", color = "info")
+valueBox(global_avg, caption = "Average depth", color = "info")
 ```
 
 ### glob-sd
 ```{r}
-valueBox(scales::comma(global_sd), caption = "Stdev depth", color = "info")
+valueBox(global_sd) caption = "Stdev depth", color = "info")
 ```
 
 ### filt-avg
 ```{r}
-valueBox(scales::comma(global_avg_filt), caption = '↓Q99 avg', color = "info")
+valueBox(global_avg_filt, caption = '↓Q99 avg', color = "info")
 ```
 
 ### filt-sd
 ```{r}
-valueBox(scales::comma(global_sd_filt), caption = '↓Q99 stdev', color = "info")
+valueBox(global_sd_filt, caption = '↓Q99 stdev', color = "info")
 ```
 
 ### n-outliers
@@ -506,7 +506,7 @@ DT::datatable(
 To the right is a circular plot summarizing the depth information across up to 30 of the largest contigs.
 For clarity, this visualization truncates coverage at the 99th percentile (`r q99`).
 If you are unfamiliar with this kind of visualization, it's a circular version of a linear genome. 
-Each "wedge" is a different contig, from position 0 to the end of the contig, and is labelled by the contig name.
+Each arc (segment) is a different contig, from position 0 to the end of the contig, and is labelled by the contig name.
 The internal (grey) ring is a barplot where each bar represents the alignment depth at a `r windowskb` kilobase
 genomic interval, that is, the number of reads that had a _proper_ alignment in the `r windowskb` kilobase interval.
 "Proper" refers to a read not marked as a duplicate or flagged with the SAM `UNMAP`, `SECONDARY`,  or `QCFAIL` flags.
