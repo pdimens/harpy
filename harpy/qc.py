@@ -6,9 +6,9 @@ import subprocess
 import rich_click as click
 
 from .conda_deps import generate_conda_deps
-from .helperfunctions import fetch_report, fetch_rule
+from .helperfunctions import fetch_report, fetch_rule, launch_snakemake
 from .fileparsers import parse_fastq_inputs
-from .printfunctions import print_onstart
+from .printfunctions import print_onstart, print_success
 
 docstring = {
     "harpy qc": [
@@ -116,5 +116,4 @@ def qc(inputs, output_dir, min_length, max_length, trim_adapters, deduplicate, d
         "qc"
     )
     generate_conda_deps()
-    _module = subprocess.run(command.split())
-    sys.exit(_module.returncode)
+    launch_snakemake(command, output_dir)

@@ -1,15 +1,18 @@
 """Module with helper function to set up Harpy workflows"""
 
-import sys
 import os
+import re
+import sys
 import subprocess
 from pathlib import Path
 from collections import Counter
+from rich import print as rprint
+from rich.progress import Progress
 from importlib_resources import files
 import harpy.scripts
 import harpy.reports
 import harpy.snakefiles
-from .printfunctions import print_error, print_solution
+from .printfunctions import print_error, print_solution, print_success
 
 def symlink(original, destination):
     """Create a symbolic link from original -> destination if the destination doesn't already exist."""
@@ -75,3 +78,44 @@ def biallelic_contigs(vcf, workdir):
         sys.exit(1)
     else:
         return contigs
+
+def launch_snakemake(sm_args, outdir):
+    """launch snakemake with the given commands"""
+    try:
+        with Progress(transient=True) as progress:
+        # Add a task with a total value of 100 (representing 100%)
+            task = progress.add_task("harpy qc ", total=100)
+            # Start a subprocess
+            process = subprocess.Popen(sm_args.split(), stdout=subprocess.PIPE, stderr=subprocess.PIPE, text = True)
+            err = 0
+            while True:
+                output = process.stderr.readline()
+                if output == '' and process.poll() is not None:
+                    break
+                if output:
+                    if err > 0:
+                        rprint(f"[red]{output.strip()}")
+                    if "Error in rule" in output:
+                        #TODO PRINT ERROR BOX HERE
+                        rprint(f"[yellow bold]{output.strip()}")
+                        err += 1
+                    match = re.search(r"\(\d+%\)", output)
+                    if match:
+                        percent = int(re.sub(r'\D', '', match.group()))
+                        progress.update(task, completed=percent)
+            print_success(outdir)
+    except KeyboardInterrupt:
+        # Handle the keyboard interrupt
+        rprint("[yellow bold]\nTerminating harpy...")
+        process.terminate()
+        process.wait()
+        sys.exit(1)
+
+#TODO PATCH THIS UP, ADD IT TO FUNCTIONS
+def new_snakemake_logfile():
+    attempts = glob.glob(f"{outdir}/logs/snakemake/*.snakelog")
+    if not attempts:
+        logfile = f"{outdir}/logs/snakemake/qc.run1." + datetime.now().strftime("%d_%m_%Y") + ".snakelog"
+    else:
+        increment = sorted([int(i.split(".")[1].replace("run","")) for i in attempts])[-1] + 1
+        logfile = f"{outdir}/logs/snakemake/qc.run{increment}." + datetime.now().strftime("%d_%m_%Y") + ".snakelog"
