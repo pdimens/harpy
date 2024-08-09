@@ -88,7 +88,8 @@ def qc(inputs, output_dir, min_length, max_length, trim_adapters, deduplicate, d
             config.write(f"  dropout: {a}\n")
         config.write(f"min_len: {min_length}\n")
         config.write(f"max_len: {max_length}\n")
-        config.write(f"extra: {extra_params}\n") if extra_params else None
+        if extra_params:
+            config.write(f"extra: {extra_params}\n")
         config.write(f"skip_reports: {skipreports}\n")
         config.write(f"workflow_call: {command}\n")
         config.write("inputs:\n")
@@ -97,8 +98,21 @@ def qc(inputs, output_dir, min_length, max_length, trim_adapters, deduplicate, d
     if config_only:
         sys.exit(0)
 
+    if trim_adapters:
+        tasks = "Trim Adapters: yes\n"
+    else:
+        tasks = "Trim Adapters: no\n"
+    if deduplicate:
+        tasks += "Deduplicate: yes\n"
+    else:
+        tasks += "Deduplicate: no\n"
+    if deconvolve:
+        tasks += "Deconvolve: yes"
+    else:
+        tasks += "Deconvolve: no"
+
     print_onstart(
-        f"Samples: {sample_count}\nOutput Directory: {output_dir}/",
+        f"Samples: {sample_count}\nOutput Directory: {output_dir}/\n{tasks}",
         "qc"
     )
     generate_conda_deps()
