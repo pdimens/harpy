@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="turbo-root" content="/harpy">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="3.5.0.776526194549">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="3.5.0.776526715722">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 3.5.0">
@@ -32,12 +32,12 @@
     <script data-cfasync="false">(function () { var el = document.documentElement, m = localStorage.getItem("doc_theme"), wm = window.matchMedia; if (m === "dark" || (!m && wm && wm("(prefers-color-scheme: dark)").matches)) { el.classList.add("dark") } else { el.classList.remove("dark") } })();</script>
 
     <link href="../static/favicon.png" rel="icon">
-    <link href="../resources/css/retype.css?v=3.5.0.776526194549" rel="stylesheet">
+    <link href="../resources/css/retype.css?v=3.5.0.776526715722" rel="stylesheet">
 
-    <script data-cfasync="false" src="../resources/js/config.js?v=3.5.0.776526194549" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../resources/js/config.js?v=3.5.0.776526715722" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../resources/js/retype.js?v=3.5.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../resources/js/lunr.js?v=3.5.0.776526194549" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../resources/js/prism.js?v=3.5.0.776526194549" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../resources/js/lunr.js?v=3.5.0.776526715722" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../resources/js/prism.js?v=3.5.0.776526715722" defer></script>
 </head>
 <body>
     <div id="docs-app" class="relative text-base antialiased text-gray-700 bg-white font-body dark:bg-dark-850 dark:text-dark-300">
@@ -283,9 +283,11 @@ all sorts of things necessary for Snakemake to do its magic. However, as a
 convenience, Harpy workflows will also create a copy of the Snakemake
 workflow log (all those things that print on screen when Harpy is running)
 in a workflow&#x27;s output directory. These logs are found in <code v-pre>OUTDIR/logs/snakemake</code>
-and are named <code v-pre>DATE-TIME.snakelog</code>. As an example, using the default
+and are named <code v-pre>workflow.runX.DATE.snakelog</code>, where <code v-pre>workflow</code> is the harpy workflow
+(qc, sv_naibr, etc.), <code v-pre>runX</code> is the attempt number (given by <code v-pre>X</code>, e.g. <code v-pre>run4</code>), and
+<code v-pre>DATE</code> is given as <code v-pre>MONTH_DAY_YEAR</code>. As an example, using the default
 settings of <code v-pre>harpy qc</code>, you will find a copy of your workflow&#x27;s log in
-<code v-pre>QC/logs/snakemake/5_13_2024-11_59_22.snakelog</code>. The name of this log will
+<code v-pre>QC/logs/snakemake/qc.run1.5_13_2024.snakelog</code>. The name of this log will
 <strong>not</strong> match the official log Snakemake creates in <code v-pre>.snakemake/logs</code>, but
 the contents will be identical. This naming convention exists to allow multiple
 runs in a single output directory, which usually happens because something went wrong.</p>
@@ -322,18 +324,19 @@ use this flag, your argument must be enclosed in quotation marks, for example:</
             <h5>reserved/forbidden arguments</h5>
 <p>Harpy calls Snakemake with a given set of arguments, meaning you cannot append
 these again to the internal command line call. Well, you can, but Snakemake will
-error and exit. <a href="https://snakemake.readthedocs.io/en/stable/executing/cli.html#all-options">Everything else</a>
+complain or behave unexpectedly. <a href="https://snakemake.readthedocs.io/en/stable/executing/cli.html#all-options">Everything else</a>
 is allowed. The reserved (<strong>forbidden</strong>) arguments are:</p>
 <ul>
-<li><code v-pre>--directory</code></li>
-<li><code v-pre>--cores</code></li>
-<li><code v-pre>--snakefile</code></li>
-<li><code v-pre>--configfile</code></li>
-<li><code v-pre>--rerun-incomplete</code></li>
-<li><code v-pre>--nolock</code></li>
 <li><code v-pre>--conda-prefix</code></li>
-<li><code v-pre>--software-deployment-method</code></li>
+<li><code v-pre>--configfile</code></li>
+<li><code v-pre>--cores</code></li>
+<li><code v-pre>--directory</code></li>
+<li><code v-pre>--nolock</code></li>
+<li><code v-pre>--rerun-incomplete</code></li>
 <li><code v-pre>--rerun-triggers</code></li>
+<li><code v-pre>--show-failed-logs</code></li>
+<li><code v-pre>--software-deployment-method</code></li>
+<li><code v-pre>--snakefile</code></li>
 </ul>
         </div>
     </div>
