@@ -130,6 +130,8 @@ rule merge_populations:
         bamfiles = lambda wc: collect("{sample}", sample = popdict[wc.population]) 
     output:
         temp(outdir + "/workflow/input/{population}.unsort.bam")
+    log:
+        outdir + "/logs/{population}.concat.log"
     threads:
         1
     container:
@@ -137,7 +139,7 @@ rule merge_populations:
     message:
         "Merging alignments: {wildcards.population}"
     shell:
-        "concatenate_bam.py -o {output} -b {input.bamlist}"
+        "concatenate_bam.py -o {output} -b {input.bamlist} 2> {log}"
 
 rule sort_merged:
     input:
