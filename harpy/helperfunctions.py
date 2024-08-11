@@ -3,7 +3,9 @@
 import os
 import re
 import sys
+import glob
 import subprocess
+from datetime import datetime
 from pathlib import Path
 from collections import Counter
 from rich import print as rprint
@@ -12,7 +14,7 @@ from importlib_resources import files
 import harpy.scripts
 import harpy.reports
 import harpy.snakefiles
-from .printfunctions import print_error, print_solution, print_success
+from .printfunctions import print_error, print_solution, print_onsuccess, print_onstart, print_onerror
 
 def symlink(original, destination):
     """Create a symbolic link from original -> destination if the destination doesn't already exist."""
@@ -79,8 +81,9 @@ def biallelic_contigs(vcf, workdir):
     else:
         return contigs
 
-def launch_snakemake(sm_args, outdir):
+def launch_snakemake(sm_args, workflow, starttext, outdir, sm_logfile):
     """launch snakemake with the given commands"""
+    print_onstart(starttext, workflow)
     try:
         with Progress(transient=True) as progress:
         # Add a task with a total value of 100 (representing 100%)
@@ -94,16 +97,20 @@ def launch_snakemake(sm_args, outdir):
                     break
                 if output:
                     if err > 0:
+                        if "Shutting down, this" in output:
+                            sys.exit(1)
                         rprint(f"[red]{output.strip()}")
                     if "Error in rule" in output:
-                        #TODO PRINT ERROR BOX HERE
+                        progress.stop()
+                        print_onerror(sm_logfile)
                         rprint(f"[yellow bold]{output.strip()}")
                         err += 1
                     match = re.search(r"\(\d+%\)", output)
                     if match:
                         percent = int(re.sub(r'\D', '', match.group()))
                         progress.update(task, completed=percent)
-            print_success(outdir)
+        if process.returncode < 1:
+            print_onsuccess(outdir)
     except KeyboardInterrupt:
         # Handle the keyboard interrupt
         rprint("[yellow bold]\nTerminating harpy...")
@@ -111,11 +118,10 @@ def launch_snakemake(sm_args, outdir):
         process.wait()
         sys.exit(1)
 
-#TODO PATCH THIS UP, ADD IT TO FUNCTIONS
-def new_snakemake_logfile():
+def snakemake_log(outdir, workflow):
+    """Return a snakemake logfile name. Iterates logfile run number if one exists."""
     attempts = glob.glob(f"{outdir}/logs/snakemake/*.snakelog")
     if not attempts:
-        logfile = f"{outdir}/logs/snakemake/qc.run1." + datetime.now().strftime("%d_%m_%Y") + ".snakelog"
-    else:
-        increment = sorted([int(i.split(".")[1].replace("run","")) for i in attempts])[-1] + 1
-        logfile = f"{outdir}/logs/snakemake/qc.run{increment}." + datetime.now().strftime("%d_%m_%Y") + ".snakelog"
+        return f"{outdir}/logs/snakemake/{workflow}.run1." + datetime.now().strftime("%d_%m_%Y") + ".snakelog"
+    increment = sorted([int(i.split(".")[1].replace("run","")) for i in attempts])[-1] + 1
+    return f"{outdir}/logs/snakemake/{workflow}.run{increment}." + datetime.now().strftime("%d_%m_%Y") + ".snakelog"

@@ -26,8 +26,8 @@ def print_notice(noticetext):
     """Print a white panel with information text text"""
     rprint(Panel(noticetext, title = "Notice", title_align = "left", border_style = "dim", width = 75), file = sys.stderr)
 
-def print_success(outdir):
-    """Print a green panel with success text"""
+def print_onsuccess(outdir):
+    """Print a green panel with success text. To be used in place of onsuccess: inside a snakefile"""
     rprint(
         Panel(
             f"The workflow has finished successfully! Find the results in [bold]{outdir}/[/bold]",
@@ -35,6 +35,20 @@ def print_success(outdir):
             title_align = "left",
             border_style = "green",
             width=75
+            ),
+        file = sys.stderr
+    )
+
+def print_onerror(logfile):
+    """Print a red panel with error text. To be used in place of onsuccess: inside a snakefile. Expects the erroring rule printed after it."""
+    rprint(
+        Panel(
+            f"The workflow has terminated due to an error. See the log for more info:\n[bold]{logfile}[/bold]",
+            title = "[bold]workflow error",
+            title_align = "left",
+            border_style = "red",
+            subtitle = "the step causing this error:",
+            width=75,
             ),
         file = sys.stderr
     )

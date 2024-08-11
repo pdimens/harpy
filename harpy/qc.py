@@ -2,13 +2,10 @@
 
 import os
 import sys
-import subprocess
 import rich_click as click
-
 from .conda_deps import generate_conda_deps
-from .helperfunctions import fetch_report, fetch_rule, launch_snakemake
+from .helperfunctions import fetch_report, fetch_rule, snakemake_log, launch_snakemake
 from .fileparsers import parse_fastq_inputs
-from .printfunctions import print_onstart, print_success
 
 docstring = {
     "harpy qc": [
@@ -69,13 +66,16 @@ def qc(inputs, output_dir, min_length, max_length, trim_adapters, deduplicate, d
     if snakemake is not None:
         command += snakemake
 
-    os.makedirs(workflowdir, exist_ok=True)
     fqlist, sample_count = parse_fastq_inputs(inputs)
+    os.makedirs(workflowdir, exist_ok=True)
     fetch_rule(workflowdir, "qc.smk")
     fetch_report(workflowdir, "bx_count.Rmd")
+    os.makedirs(f"{output_dir}/logs/snakemake", exist_ok = True)
+    sm_log = snakemake_log(output_dir, "qc")
 
     with open(f"{workflowdir}/config.yaml", "w", encoding="utf-8") as config:
         config.write("workflow: qc\n")
+        config.write(f"snakemake_log: {sm_log}\n")
         config.write(f"output_directory: {output_dir}\n")
         config.write(f"trim_adapters: {trim_adapters}\n")
         config.write(f"deduplicate: {deduplicate}\n")
@@ -111,9 +111,6 @@ def qc(inputs, output_dir, min_length, max_length, trim_adapters, deduplicate, d
     else:
         tasks += "Deconvolve: no"
 
-    print_onstart(
-        f"Samples: {sample_count}\nOutput Directory: {output_dir}/\n{tasks}",
-        "qc"
-    )
     generate_conda_deps()
-    launch_snakemake(command, output_dir)
+    start_text = f"Samples: {sample_count}\nOutput Directory: {output_dir}/\n{tasks}\nSnakemake Log: {sm_log}"
+    launch_snakemake(command, "qc", start_text, output_dir, sm_log)
