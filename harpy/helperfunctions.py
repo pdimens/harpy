@@ -9,7 +9,7 @@ from datetime import datetime
 from pathlib import Path
 from collections import Counter
 from rich import print as rprint
-from rich.progress import Progress
+from rich.progress import Progress, BarColumn, TextColumn, TimeElapsedColumn
 from importlib_resources import files
 import harpy.scripts
 import harpy.reports
@@ -85,7 +85,13 @@ def launch_snakemake(sm_args, workflow, starttext, outdir, sm_logfile):
     """launch snakemake with the given commands"""
     print_onstart(starttext, workflow)
     try:
-        with Progress(transient=True) as progress:
+        with Progress(
+            TextColumn("[progress.description]{task.description}"),
+            BarColumn(bar_width=50),
+            TextColumn("[progress.percentage]{task.percentage:>3.0f}%"),
+            TimeElapsedColumn(),
+            transient=True
+        ) as progress:
         # Add a task with a total value of 100 (representing 100%)
             task = progress.add_task("harpy qc ", total=100)
             # Start a subprocess
