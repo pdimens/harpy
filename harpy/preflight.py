@@ -86,7 +86,7 @@ def fastq(inputs, output_dir, threads, snakemake, quiet, hpc, conda, config_only
         sys.exit(0)
 
     generate_conda_deps()
-    start_text = f"Files: {n}\nOutput Directory: {output_dir}/\nSnakemake Log: {sm_log}"
+    start_text = f"Files: {n}\nOutput Directory: {output_dir}/\nLog: {sm_log}"
     launch_snakemake(command, "preflight_fastq", start_text, output_dir, sm_log)
 
 @click.command(no_args_is_help = True, epilog = "See the documentation for more information: https://pdimens.github.io/harpy/modules/preflight/")
@@ -142,7 +142,7 @@ def bam(inputs, output_dir, threads, snakemake, quiet, hpc, conda, config_only):
         sys.exit(0)
 
     generate_conda_deps()
-    start_text = f"Samples: {n}\nOutput Directory: {output_dir}/\nSnakemake Log: {sm_log}"
+    start_text = f"Samples: {n}\nOutput Directory: {output_dir}/\nLog: {sm_log}"
     launch_snakemake(command, "preflight_bam", start_text, output_dir, sm_log)
 
 preflight.add_command(fastq)

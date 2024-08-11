@@ -98,5 +98,5 @@ def phase(inputs, output_dir, vcf, threads, molecule_distance, prune_threshold, 
         sys.exit(0)
 
     generate_conda_deps()
-    start_text = f"Input VCF: {vcf}\nSamples in VCF: {len(samplenames)}\nAlignments Provided: {n}\nOutput Directory: {output_dir}/\nSnakemake Log: {sm_log}"
+    start_text = f"Input VCF: {vcf}\nSamples in VCF: {len(samplenames)}\nAlignments Provided: {n}\nOutput Directory: {output_dir}/\nLog: {sm_log}"
     launch_snakemake(command, "phase", start_text, output_dir, sm_log)

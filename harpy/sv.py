@@ -126,7 +126,7 @@ def leviathan(inputs, output_dir, genome, min_sv, min_barcodes, iterations, thre
 
     generate_conda_deps()
     modetext = "pool-by-group" if populations else "sample-by-sample"
-    start_text = f"Samples: {n}{popgroupings}\nOutput Directory: {output_dir}/\nMode: {modetext}\nSnakemake Log: {sm_log}"
+    start_text = f"Samples: {n}{popgroupings}\nOutput Directory: {output_dir}/\nMode: {modetext}\nLog: {sm_log}"
     launch_snakemake(command, "sv_leviathan", start_text, output_dir, sm_log)
 
 @click.command(no_args_is_help = True, epilog = "See the documentation for more information: https://pdimens.github.io/harpy/modules/sv/naibr/")
@@ -232,7 +232,7 @@ def naibr(inputs, output_dir, genome, vcf, min_sv, min_barcodes, min_quality, th
         modetext += " + already phased"
 
     generate_conda_deps()
-    start_text = f"Samples: {n}{popgroupings}\nOutput Directory: {output_dir}/\nMode: {modetext}\nSnakemake Log: {sm_log}"
+    start_text = f"Samples: {n}{popgroupings}\nOutput Directory: {output_dir}/\nMode: {modetext}\nLog: {sm_log}"
     launch_snakemake(command, "sv_naibr", start_text, output_dir, sm_log)
 
 sv.add_command(leviathan)

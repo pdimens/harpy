@@ -112,5 +112,5 @@ def qc(inputs, output_dir, min_length, max_length, trim_adapters, deduplicate, d
         tasks += "Deconvolve: no"
 
     generate_conda_deps()
-    start_text = f"Samples: {sample_count}\nOutput Directory: {output_dir}/\n{tasks}\nSnakemake Log: {sm_log}"
+    start_text = f"Samples: {sample_count}\nOutput Directory: {output_dir}/\n{tasks}\nLog: {sm_log}"
     launch_snakemake(command, "qc", start_text, output_dir, sm_log)

@@ -130,7 +130,7 @@ def bwa(inputs, output_dir, genome, depth_window, threads, keep_unmapped, extra_
         sys.exit(0)
 
     generate_conda_deps()
-    start_text =  f"Samples: {sample_count}\nOutput Directory: {output_dir}\nSnakemake Log: {sm_log}"
+    start_text =  f"Samples: {sample_count}\nOutput Directory: {output_dir}\nLog: {sm_log}"
     launch_snakemake(command, "align_bwa", start_text, output_dir, sm_log)
 
 @click.command(no_args_is_help = True, epilog = "See the documentation for more information: https://pdimens.github.io/harpy/modules/align/ema")
@@ -224,7 +224,7 @@ def ema(inputs, output_dir, platform, whitelist, genome, depth_window, keep_unma
         sys.exit(0)
 
     generate_conda_deps()
-    start_text = f"Samples: {sample_count}\nPlatform: {platform}\nOutput Directory: {output_dir}/\nSnakemake Log: {sm_log}"
+    start_text = f"Samples: {sample_count}\nPlatform: {platform}\nOutput Directory: {output_dir}/\nLog: {sm_log}"
     launch_snakemake(command, "align_ema", start_text, output_dir, sm_log)
 
 @click.command(no_args_is_help = True, epilog= "See the documentation for more information: https://pdimens.github.io/harpy/modules/align/minimap/")
@@ -304,7 +304,7 @@ def strobe(inputs, output_dir, genome, read_length, keep_unmapped, depth_window,
         sys.exit(0)
 
     generate_conda_deps()
-    start_text =  f"Samples: {sample_count}\nOutput Directory: {output_dir}\nSnakemake Log: {sm_log}"
+    start_text =  f"Samples: {sample_count}\nOutput Directory: {output_dir}\nLog: {sm_log}"
     launch_snakemake(command, "align_strobe", start_text, output_dir, sm_log)
 
 align.add_command(bwa)

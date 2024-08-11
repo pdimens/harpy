@@ -78,5 +78,5 @@ def deconvolve(inputs, output_dir, kmer_length, window_size, density, dropout, t
         sys.exit(0)
 
     generate_conda_deps()
-    start_text =  f"Samples: {sample_count}\nOutput Directory: {output_dir}/\nSnakemake Log: {sm_log}"
+    start_text =  f"Samples: {sample_count}\nOutput Directory: {output_dir}/\nLog: {sm_log}"
     launch_snakemake(command, "deconvolve", start_text, output_dir, sm_log)

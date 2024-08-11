@@ -142,7 +142,7 @@ def mpileup(inputs, output_dir, regions, genome, threads, populations, ploidy, e
         sys.exit(0)
 
     generate_conda_deps()
-    start_text = f"Samples: {n}{popgroupings}\nOutput Directory: {output_dir}/\nSnakemake Log: {sm_log}"
+    start_text = f"Samples: {n}{popgroupings}\nOutput Directory: {output_dir}/\nLog: {sm_log}"
     launch_snakemake(command, "snp_mpileup", start_text, output_dir, sm_log)
 
 @click.command(no_args_is_help = True, epilog = "See the documentation for more information: https://pdimens.github.io/harpy/modules/snp")
@@ -241,7 +241,7 @@ def freebayes(inputs, output_dir, genome, threads, populations, ploidy, regions,
         sys.exit(0)
 
     generate_conda_deps()
-    start_text = f"Samples: {n}{popgroupings}\nOutput Directory: {output_dir}/\nSnakemake Log: {sm_log}"
+    start_text = f"Samples: {n}{popgroupings}\nOutput Directory: {output_dir}/\nLog: {sm_log}"
     launch_snakemake(command, "snp_freebayes", start_text, output_dir, sm_log)
 
 snp.add_command(mpileup)
