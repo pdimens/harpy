@@ -2,13 +2,11 @@
 
 import os
 import sys
-import subprocess
 import rich_click as click
 from pathlib import Path
 from .conda_deps import generate_conda_deps
-from .helperfunctions import fetch_rule, fetch_report, fetch_script
+from .helperfunctions import fetch_rule, fetch_report, fetch_script, snakemake_log, launch_snakemake
 from .fileparsers import parse_alignment_inputs, biallelic_contigs
-from .printfunctions import print_onstart
 from .validations import validate_input_by_ext, vcf_samplematch, check_impute_params, validate_bam_RG
 
 docstring = {
@@ -79,9 +77,12 @@ def impute(inputs, output_dir, parameters, threads, vcf, vcf_samples, extra_para
     fetch_script(workflowdir, "stitch_impute.R")
     fetch_report(workflowdir, "impute.Rmd")
     fetch_report(workflowdir, "stitch_collate.Rmd")
+    os.makedirs(f"{output_dir}/logs/snakemake", exist_ok = True)
+    sm_log = snakemake_log(output_dir, "impute")
 
     with open(f"{workflowdir}/config.yaml", "w", encoding="utf-8") as config:
         config.write("workflow: impute\n")
+        config.write(f"snakemake_log: {sm_log}\n")
         config.write(f"output_directory: {output_dir}\n")
         config.write(f"samples_from_vcf: {vcf_samples}\n")
         if extra_params is not None:
@@ -98,10 +99,6 @@ def impute(inputs, output_dir, parameters, threads, vcf, vcf_samples, extra_para
     if config_only:
         sys.exit(0)
 
-    print_onstart(
-        f"Input VCF: {vcf}\nSamples in VCF: {len(samplenames)}\nAlignments Provided: {n}\nContigs with ≥2 Biallelic SNPs: {n_biallelic}\nOutput Directory: {output_dir}/",
-        "impute"
-    )
     generate_conda_deps()
-    _module = subprocess.run(command.split())
-    sys.exit(_module.returncode)
+    start_text = f"Input VCF: {vcf}\nSamples in VCF: {len(samplenames)}\nAlignments Provided: {n}\nContigs with ≥2 Biallelic SNPs: {n_biallelic}\nOutput Directory: {output_dir}/\Snakemake Log: {sm_log}"
+    launch_snakemake(command, "impute", start_text, output_dir, sm_log)

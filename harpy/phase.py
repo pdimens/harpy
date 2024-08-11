@@ -2,12 +2,10 @@
 
 import os
 import sys
-import subprocess
 import rich_click as click
 from .conda_deps import generate_conda_deps
-from .helperfunctions import fetch_rule, fetch_report
+from .helperfunctions import fetch_rule, fetch_report, snakemake_log, launch_snakemake
 from .fileparsers import parse_alignment_inputs
-from .printfunctions import print_onstart
 from .validations import check_fasta, vcf_samplematch, validate_bam_RG, validate_input_by_ext
 
 docstring = {
@@ -74,9 +72,12 @@ def phase(inputs, output_dir, vcf, threads, molecule_distance, prune_threshold, 
         check_fasta(genome)
     fetch_rule(workflowdir, "phase.smk")
     fetch_report(workflowdir, "hapcut.Rmd")
+    os.makedirs(f"{output_dir}/logs/snakemake", exist_ok = True)
+    sm_log = snakemake_log(output_dir, "phase")
 
     with open(f"{workflowdir}/config.yaml", "w", encoding="utf-8") as config:
         config.write("workflow: phase\n")
+        config.write(f"snakemake_log: {sm_log}\n")
         config.write(f"output_directory: {output_dir}\n")
         config.write(f"ignore_bx: {ignore_bx}\n")
         config.write(f"prune: {prune_threshold/100}\n")
@@ -96,10 +97,6 @@ def phase(inputs, output_dir, vcf, threads, molecule_distance, prune_threshold, 
     if config_only:
         sys.exit(0)
 
-    print_onstart(
-        f"Input VCF: {vcf}\nSamples in VCF: {len(samplenames)}\nAlignments Provided: {n}\nOutput Directory: {output_dir}/",
-        "phase"
-    )
     generate_conda_deps()
-    _module = subprocess.run(command.split())
-    sys.exit(_module.returncode)
+    start_text = f"Input VCF: {vcf}\nSamples in VCF: {len(samplenames)}\nAlignments Provided: {n}\nOutput Directory: {output_dir}/\nSnakemake Log: {sm_log}"
+    launch_snakemake(command, "phase", start_text, output_dir, sm_log)

@@ -6,9 +6,8 @@ import subprocess
 from pathlib import Path
 import rich_click as click
 from .conda_deps import generate_conda_deps
-from .helperfunctions import fetch_rule, fetch_report
+from .helperfunctions import fetch_rule, fetch_report, snakemake_log, launch_snakemake
 from .fileparsers import parse_alignment_inputs
-from .printfunctions import print_onstart
 from .validations import check_fasta, validate_bam_RG, validate_popfile, validate_popsamples, validate_regions
 
 @click.group(options_metavar='', context_settings={"help_option_names" : ["-h", "--help"]})
@@ -111,9 +110,12 @@ def mpileup(inputs, output_dir, regions, genome, threads, populations, ploidy, e
 
     fetch_rule(workflowdir, "snp_mpileup.smk")
     fetch_report(workflowdir, "bcftools_stats.Rmd")
+    os.makedirs(f"{output_dir}/logs/snakemake", exist_ok = True)
+    sm_log = snakemake_log(output_dir, "snp_mpileup")
 
     with open(f"{workflowdir}/config.yaml", "w", encoding="utf-8") as config:
         config.write("workflow: snp mpileup\n")
+        config.write(f"snakemake_log: {sm_log}\n")
         config.write(f"output_directory: {output_dir}\n")
         config.write(f"ploidy: {ploidy}\n")
         config.write(f"regiontype: {regtype}\n")
@@ -139,13 +141,9 @@ def mpileup(inputs, output_dir, regions, genome, threads, populations, ploidy, e
     if config_only:
         sys.exit(0)
 
-    print_onstart(
-        f"Samples: {n}{popgroupings}\nOutput Directory: {output_dir}/",
-        "snp mpileup"
-    )
     generate_conda_deps()
-    _module = subprocess.run(command.split())
-    sys.exit(_module.returncode)
+    start_text = f"Samples: {n}{popgroupings}\nOutput Directory: {output_dir}/\nSnakemake Log: {sm_log}"
+    launch_snakemake(command, "snp_mpileup", start_text, output_dir, sm_log)
 
 @click.command(no_args_is_help = True, epilog = "See the documentation for more information: https://pdimens.github.io/harpy/modules/snp")
 @click.option('-x', '--extra-params', type = str, help = 'Additional variant caller parameters, in quotes')
@@ -211,9 +209,12 @@ def freebayes(inputs, output_dir, genome, threads, populations, ploidy, regions,
 
     fetch_rule(workflowdir, "snp_freebayes.smk")
     fetch_report(workflowdir, "bcftools_stats.Rmd")
+    os.makedirs(f"{output_dir}/logs/snakemake", exist_ok = True)
+    sm_log = snakemake_log(output_dir, "snp_freebayes")
 
     with open(f"{workflowdir}/config.yaml", "w", encoding="utf-8") as config:
         config.write("workflow: snp freebayes\n")
+        config.write(f"snakemake_log: {sm_log}\n")
         config.write(f"output_directory: {output_dir}\n")
         config.write(f"ploidy: {ploidy}\n")
         config.write(f"regiontype: {regtype}\n")
@@ -239,13 +240,9 @@ def freebayes(inputs, output_dir, genome, threads, populations, ploidy, regions,
     if config_only:
         sys.exit(0)
 
-    print_onstart(
-        f"Samples: {n}{popgroupings}\nOutput Directory: {output_dir}/",
-        "snp freebayes"
-    )
     generate_conda_deps()
-    _module = subprocess.run(command.split())
-    sys.exit(_module.returncode)
+    start_text = f"Samples: {n}{popgroupings}\nOutput Directory: {output_dir}/\nSnakemake Log: {sm_log}"
+    launch_snakemake(command, "snp_freebayes", start_text, output_dir, sm_log)
 
 snp.add_command(mpileup)
 snp.add_command(freebayes)

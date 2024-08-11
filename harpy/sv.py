@@ -2,15 +2,13 @@
 
 import os
 import sys
-import subprocess
 from pathlib import Path
 import rich_click as click
 from .conda_deps import generate_conda_deps
-from .helperfunctions import fetch_rule, fetch_report
+from .helperfunctions import fetch_rule, fetch_report, snakemake_log, launch_snakemake
 from .fileparsers import parse_alignment_inputs
-from .printfunctions import print_onstart
 from .validations import check_fasta, check_phase_vcf
-from .validations import validate_popfile, validate_popsamples, validate_input_by_ext
+from .validations import validate_popfile, validate_popsamples
 
 @click.group(options_metavar='', context_settings={"help_option_names" : ["-h", "--help"]})
 def sv():
@@ -96,9 +94,12 @@ def leviathan(inputs, output_dir, genome, min_sv, min_barcodes, iterations, thre
         fetch_report(workflowdir, "leviathan_pop.Rmd")
     fetch_report(workflowdir, "leviathan.Rmd")
     fetch_rule(workflowdir, f"sv_{vcaller}.smk")
+    os.makedirs(f"{output_dir}/logs/snakemake", exist_ok = True)
+    sm_log = snakemake_log(output_dir, "sv_naibr")
 
     with open(f'{workflowdir}/config.yaml', "w", encoding="utf-8") as config:
         config.write("workflow: sv leviathan\n")
+        config.write(f"snakemake_log: {sm_log}")
         config.write(f"output_directory: {output_dir}\n")
         config.write(f"min_barcodes: {min_barcodes}\n")
         config.write(f"min_sv: {min_sv}\n")
@@ -123,14 +124,10 @@ def leviathan(inputs, output_dir, genome, min_sv, min_barcodes, iterations, thre
     if config_only:
         sys.exit(0)
 
-    modetext = "pool-by-group" if populations else "sample-by-sample"
-    print_onstart(
-        f"Samples: {n}{popgroupings}\nOutput Directory: {output_dir}/\nMode: {modetext}",
-        "sv leviathan"
-    )
     generate_conda_deps()
-    _module = subprocess.run(command.split())
-    sys.exit(_module.returncode)
+    modetext = "pool-by-group" if populations else "sample-by-sample"
+    start_text = f"Samples: {n}{popgroupings}\nOutput Directory: {output_dir}/\nMode: {modetext}\nSnakemake Log: {sm_log}"
+    launch_snakemake(command, "sv_leviathan", start_text, output_dir, sm_log)
 
 @click.command(no_args_is_help = True, epilog = "See the documentation for more information: https://pdimens.github.io/harpy/modules/sv/naibr/")
 @click.option('-x', '--extra-params', type = str, help = 'Additional variant caller parameters, in quotes')
@@ -191,9 +188,12 @@ def naibr(inputs, output_dir, genome, vcf, min_sv, min_barcodes, min_quality, th
     if vcf is not None:
         check_phase_vcf(vcf)
     fetch_rule(workflowdir, f"sv_{vcaller}.smk")
+    os.makedirs(f"{output_dir}/logs/snakemake", exist_ok = True)
+    sm_log = snakemake_log(output_dir, "sv_naibr")
 
     with open(f'{workflowdir}/config.yaml', "w", encoding="utf-8") as config:
         config.write("workflow: sv naibr\n")
+        config.write(f"snakemake_log: {sm_log}\n")
         config.write(f"output_directory: {output_dir}\n")
         config.write(f"min_barcodes: {min_barcodes}\n")
         config.write(f"min_quality: {min_quality}\n")
@@ -230,14 +230,10 @@ def naibr(inputs, output_dir, genome, vcf, min_sv, min_barcodes, min_quality, th
         modetext += " + will be phased"
     else:
         modetext += " + already phased"
-    print_onstart(
-        f"Samples: {n}{popgroupings}\nOutput Directory: {output_dir}/\nMode: {modetext}",
-        "sv naibr"
-    )
-    generate_conda_deps()
-    _module = subprocess.run(command.split())
-    sys.exit(_module.returncode)
 
+    generate_conda_deps()
+    start_text = f"Samples: {n}{popgroupings}\nOutput Directory: {output_dir}/\nMode: {modetext}\nSnakemake Log: {sm_log}"
+    launch_snakemake(command, "sv_naibr", start_text, output_dir, sm_log)
 
 sv.add_command(leviathan)
 sv.add_command(naibr)

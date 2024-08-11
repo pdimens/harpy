@@ -2,14 +2,13 @@
 
 import os
 import sys
-import subprocess
 from time import sleep
 from pathlib import Path
 import rich_click as click
 from .conda_deps import generate_conda_deps
-from .helperfunctions import fetch_report, fetch_rule
+from .helperfunctions import fetch_report, fetch_rule, snakemake_log, launch_snakemake
 from .fileparsers import parse_fastq_inputs
-from .printfunctions import print_error, print_solution, print_notice, print_onstart
+from .printfunctions import print_error, print_solution, print_notice
 from .validations import check_fasta
 
 @click.group(options_metavar='', context_settings={"help_option_names" : ["-h", "--help"]})
@@ -106,9 +105,12 @@ def bwa(inputs, output_dir, genome, depth_window, threads, keep_unmapped, extra_
     fetch_rule(workflowdir, "align_bwa.smk")
     fetch_report(workflowdir, "align_stats.Rmd")
     fetch_report(workflowdir, "align_bxstats.Rmd")
+    os.makedirs(f"{output_dir}/logs/snakemake", exist_ok = True)
+    sm_log = snakemake_log(output_dir, "align_bwa")
 
     with open(f"{workflowdir}/config.yaml", "w", encoding="utf-8") as config:
         config.write("workflow: align bwa\n")
+        config.write(f"snakemake_log: {sm_log}\n")
         config.write(f"output_directory: {output_dir}\n")
         config.write(f"alignment_quality: {min_quality}\n")
         config.write(f"keep_unmapped: {keep_unmapped}\n")
@@ -127,13 +129,9 @@ def bwa(inputs, output_dir, genome, depth_window, threads, keep_unmapped, extra_
     if config_only:
         sys.exit(0)
 
-    print_onstart(
-        f"Samples: {sample_count}\nOutput Directory: {output_dir}",
-        "align bwa"
-    )
     generate_conda_deps()
-    _module = subprocess.run(command.split())
-    sys.exit(_module.returncode)
+    start_text =  f"Samples: {sample_count}\nOutput Directory: {output_dir}\nSnakemake Log: {sm_log}"
+    launch_snakemake(command, "align_bwa", start_text, output_dir, sm_log)
 
 @click.command(no_args_is_help = True, epilog = "See the documentation for more information: https://pdimens.github.io/harpy/modules/align/ema")
 @click.option('-x', '--extra-params', type = str, help = 'Additional ema align parameters, in quotes')
@@ -198,9 +196,12 @@ def ema(inputs, output_dir, platform, whitelist, genome, depth_window, keep_unma
     fetch_rule(workflowdir, "align_ema.smk")
     fetch_report(workflowdir, "align_stats.Rmd")
     fetch_report(workflowdir, "align_bxstats.Rmd")
+    os.makedirs(f"{output_dir}/logs/snakemake", exist_ok = True)
+    sm_log = snakemake_log(output_dir, "align_ema")
 
     with open(f"{workflowdir}/config.yaml", "w", encoding="utf-8") as config:
         config.write("workflow: align ema\n")
+        config.write(f"snakemake_log: {sm_log}\n")
         config.write(f"output_directory: {output_dir}\n")
         config.write(f"quality: {min_quality}\n")
         config.write(f"keep_unmapped: {keep_unmapped}\n")
@@ -222,13 +223,9 @@ def ema(inputs, output_dir, platform, whitelist, genome, depth_window, keep_unma
     if config_only:
         sys.exit(0)
 
-    print_onstart(
-        f"Samples: {sample_count}\nPlatform: {platform}\nOutput Directory: {output_dir}/",
-        "align ema"
-    )
     generate_conda_deps()
-    _module = subprocess.run(command.split())
-    sys.exit(_module.returncode)
+    start_text = f"Samples: {sample_count}\nPlatform: {platform}\nOutput Directory: {output_dir}/\nSnakemake Log: {sm_log}"
+    launch_snakemake(command, "align_ema", start_text, output_dir, sm_log)
 
 @click.command(no_args_is_help = True, epilog= "See the documentation for more information: https://pdimens.github.io/harpy/modules/align/minimap/")
 @click.option('-g', '--genome', type=click.Path(exists=True, dir_okay=False, readable=True), required = True, help = 'Genome assembly for read mapping')
@@ -280,9 +277,12 @@ def strobe(inputs, output_dir, genome, read_length, keep_unmapped, depth_window,
     fetch_rule(workflowdir, "align_strobealign.smk")
     fetch_report(workflowdir, "align_stats.Rmd")
     fetch_report(workflowdir, "align_bxstats.Rmd")
+    os.makedirs(f"{output_dir}/logs/snakemake", exist_ok = True)
+    sm_log = snakemake_log(output_dir, "align_strobe")
 
     with open(f"{workflowdir}/config.yaml", "w", encoding="utf-8") as config:
         config.write("workflow: align strobe\n")
+        config.write(f"snakemake_log: {sm_log}\n")
         config.write(f"genomefile: {genome}\n")
         config.write(f"keep_unmapped: {keep_unmapped}\n")
         config.write(f"output_directory: {output_dir}\n")
@@ -303,13 +303,9 @@ def strobe(inputs, output_dir, genome, read_length, keep_unmapped, depth_window,
     if config_only:
         sys.exit(0)
 
-    print_onstart(
-        f"Samples: {sample_count}\nOutput Directory: {output_dir}",
-        "align strobe"
-    )
     generate_conda_deps()
-    _module = subprocess.run(command.split())
-    sys.exit(_module.returncode)
+    start_text =  f"Samples: {sample_count}\nOutput Directory: {output_dir}\nSnakemake Log: {sm_log}"
+    launch_snakemake(command, "align_strobe", start_text, output_dir, sm_log)
 
 align.add_command(bwa)
 align.add_command(ema)

@@ -2,12 +2,10 @@
 
 import os
 import sys
-import subprocess
 import rich_click as click
 from .conda_deps import generate_conda_deps
-from .helperfunctions import fetch_rule
+from .helperfunctions import fetch_rule, snakemake_log, launch_snakemake
 from .fileparsers import parse_fastq_inputs
-from .printfunctions import print_onstart
 
 docstring = {
     "harpy deconvolve": [
@@ -61,9 +59,12 @@ def deconvolve(inputs, output_dir, kmer_length, window_size, density, dropout, t
     os.makedirs(workflowdir, exist_ok=True)
     fqlist, sample_count = parse_fastq_inputs(inputs)
     fetch_rule(workflowdir, "deconvolve.smk")
+    os.makedirs(f"{output_dir}/logs/snakemake", exist_ok = True)
+    sm_log = snakemake_log(output_dir, "deconvolve")
 
     with open(f"{workflowdir}/config.yaml", "w", encoding="utf-8") as config:
         config.write("workflow: deconvolve\n")
+        config.write(f"snakemake_log: {sm_log}\n")
         config.write(f"output_directory: {output_dir}\n")
         config.write(f"kmer_length: {kmer_length}\n")       
         config.write(f"window_size: {window_size}\n")
@@ -76,10 +77,6 @@ def deconvolve(inputs, output_dir, kmer_length, window_size, density, dropout, t
     if config_only:
         sys.exit(0)
 
-    print_onstart(
-        f"Samples: {sample_count}\nOutput Directory: {output_dir}/",
-        "deconvolve"
-    )
     generate_conda_deps()
-    _module = subprocess.run(command.split())
-    sys.exit(_module.returncode)
+    start_text =  f"Samples: {sample_count}\nOutput Directory: {output_dir}/\nSnakemake Log: {sm_log}"
+    launch_snakemake(command, "deconvolve", start_text, output_dir, sm_log)

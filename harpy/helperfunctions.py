@@ -93,7 +93,7 @@ def launch_snakemake(sm_args, workflow, starttext, outdir, sm_logfile):
             transient=True
         ) as progress:
         # Add a task with a total value of 100 (representing 100%)
-            task = progress.add_task("harpy qc ", total=100)
+            task = progress.add_task(workflow.replace("_", " "), total=100)
             # Start a subprocess
             process = subprocess.Popen(sm_args.split(), stdout=subprocess.PIPE, stderr=subprocess.PIPE, text = True)
             err = 0
