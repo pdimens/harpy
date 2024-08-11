@@ -2,11 +2,11 @@
 
 import os
 import sys
-import subprocess
 import yaml
 import rich_click as click
 from .validations import check_envdir
-from .printfunctions import print_error, print_onstart
+from .printfunctions import print_error
+from .helperfunctions import snakemake_log, launch_snakemake
 from .conda_deps import generate_conda_deps
 
 @click.command(no_args_is_help = True, epilog = "See the documentation for more information: https://pdimens.github.io/harpy/modules/other")
@@ -35,11 +35,12 @@ def resume(directory, conda):
         check_envdir(".harpy_envs")
     with open(f"{directory}/workflow/config.yaml", 'r', encoding="utf-8") as f:
         harpy_config = yaml.full_load(f)
-        command = harpy_config["workflow_call"]
     
-    print_onstart(f"Output Directory: {directory}", "resume: " + harpy_config["workflow"])
-    _module = subprocess.run(command.split())
-    sys.exit(_module.returncode)
+    workflow = harpy_config["workflow"].replace(" ", "_")
+    sm_log = snakemake_log(directory, workflow)
+    command = harpy_config["workflow_call"] + f" --config snakemake_log={sm_log}"
+    start_text = f"Output Directory: {directory}\nLog: {sm_log}"
+    launch_snakemake(command, workflow, start_text, directory, sm_log)
 
 
 
