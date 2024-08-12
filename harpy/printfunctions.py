@@ -43,7 +43,7 @@ def print_onerror(logfile):
     """Print a red panel with error text. To be used in place of onsuccess: inside a snakefile. Expects the erroring rule printed after it."""
     rprint(
         Panel(
-            f"The workflow has terminated due to an error. See the log for more info:\n[bold]{logfile}[/bold]",
+            f"The workflow terminated from an error. See the full log for more info:\n[bold]{logfile}[/bold]",
             title = "[bold]workflow error",
             title_align = "left",
             border_style = "red",

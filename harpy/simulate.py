@@ -140,8 +140,6 @@ def linkedreads(genome_hap1, genome_hap2, output_dir, outer_distance, mutation_r
     command += f"--configfile {workflowdir}/config.yaml "
     if hpc:
         command += f"--workflow-profile {hpc} "
-    if quiet:
-        command += "--quiet all "
     if snakemake is not None:
         command += snakemake
 
@@ -179,7 +177,7 @@ def linkedreads(genome_hap1, genome_hap2, output_dir, outer_distance, mutation_r
     start_text += f"Genome Haplotype 2: {os.path.basename(genome_hap2)}\n"
     start_text += f"Barcodes: {os.path.basename(barcodes)}\n" if barcodes else "Barcodes: 10X Default\n"
     start_text += f"Output Directory: {output_dir}/"
-    launch_snakemake(command, "simulate_linkedreads", start_text, output_dir, sm_log)
+    launch_snakemake(command, "simulate_linkedreads", start_text, output_dir, sm_log, quiet)
 
 @click.command(no_args_is_help = True, epilog = "This workflow can be quite technical, please read the docs for more information: https://pdimens.github.io/harpy/modules/simulate/simulate-variants")
 @click.option('-s', '--snp-vcf', type=click.Path(exists=True, dir_okay=False, readable=True), help = 'VCF file of known snps to simulate')
@@ -232,8 +230,6 @@ def snpindel(genome, snp_vcf, indel_vcf, output_dir, prefix, snp_count, indel_co
     command += f"--configfile {workflowdir}/config.yaml "
     if hpc:
         command += f"--workflow-profile {hpc} "
-    if quiet:
-        command += "--quiet all "
     if snakemake is not None:
         command += snakemake
 
@@ -296,7 +292,7 @@ def snpindel(genome, snp_vcf, indel_vcf, output_dir, prefix, snp_count, indel_co
         sys.exit(0)
 
     generate_conda_deps()
-    launch_snakemake(command, "simulate_snpindel", start_text.rstrip("\n"), output_dir, sm_log)
+    launch_snakemake(command, "simulate_snpindel", start_text.rstrip("\n"), output_dir, sm_log, quiet)
 
 
 @click.command(no_args_is_help = True, epilog = "Please See the documentation for more information: https://pdimens.github.io/harpy/modules/simulate/simulate-variants")
@@ -337,8 +333,6 @@ def inversion(genome, vcf, prefix, output_dir, count, min_size, max_size, centro
     command += f"--configfile {workflowdir}/config.yaml "
     if hpc:
         command += f"--workflow-profile {hpc} "
-    if quiet:
-        command += "--quiet all "
     if snakemake is not None:
         command += snakemake
 
@@ -392,7 +386,7 @@ def inversion(genome, vcf, prefix, output_dir, count, min_size, max_size, centro
         sys.exit(0)
 
     generate_conda_deps()
-    launch_snakemake(command, "simulate_inversion", start_text.rstrip("\n"), output_dir, sm_log)
+    launch_snakemake(command, "simulate_inversion", start_text.rstrip("\n"), output_dir, sm_log, quiet)
 
 
 @click.command(no_args_is_help = True, epilog = "Please See the documentation for more information: https://pdimens.github.io/harpy/modules/simulate/simulate-variants")
@@ -442,8 +436,6 @@ def cnv(genome, output_dir, vcf, prefix, count, min_size, max_size, dup_ratio, m
     command += f"--configfile {workflowdir}/config.yaml "
     if hpc:
         command += f"--workflow-profile {hpc} "
-    if quiet:
-        command += "--quiet all "
     if snakemake is not None:
         command += snakemake
 
@@ -500,7 +492,7 @@ def cnv(genome, output_dir, vcf, prefix, count, min_size, max_size, dup_ratio, m
         sys.exit(0)
 
     generate_conda_deps()
-    launch_snakemake(command, "simulate_cnv", start_text.rstrip("\n"), output_dir, sm_log)
+    launch_snakemake(command, "simulate_cnv", start_text.rstrip("\n"), output_dir, sm_log, quiet)
 
 @click.command(no_args_is_help = True, epilog = "Please See the documentation for more information: https://pdimens.github.io/harpy/modules/simulate/simulate-variants")
 @click.option('-v', '--vcf', type=click.Path(exists=True, dir_okay=False, readable=True), help = 'VCF file of known translocations to simulate')
@@ -538,8 +530,6 @@ def translocation(genome, output_dir, prefix, vcf, count, centromeres, genes, he
     command += f"--configfile {workflowdir}/config.yaml "
     if hpc:
         command += f"--workflow-profile {hpc} "
-    if quiet:
-        command += "--quiet all "
     if snakemake is not None:
         command += snakemake
 
@@ -592,7 +582,7 @@ def translocation(genome, output_dir, prefix, vcf, count, centromeres, genes, he
         sys.exit(0)
 
     generate_conda_deps()
-    launch_snakemake(command, "simulate_translocation", start_text.rstrip("\n"), output_dir, sm_log)
+    launch_snakemake(command, "simulate_translocation", start_text.rstrip("\n"), output_dir, sm_log, quiet)
 
 simulate.add_command(linkedreads)
 simulate.add_command(snpindel)

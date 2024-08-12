@@ -87,8 +87,6 @@ def mpileup(inputs, output_dir, regions, genome, threads, populations, ploidy, e
     command += f"--configfile {workflowdir}/config.yaml "
     if hpc:
         command += f"--workflow-profile {hpc} "
-    if quiet:
-        command += "--quiet all "
     if snakemake is not None:
         command += snakemake
 
@@ -143,7 +141,7 @@ def mpileup(inputs, output_dir, regions, genome, threads, populations, ploidy, e
 
     generate_conda_deps()
     start_text = f"Samples: {n}{popgroupings}\nOutput Directory: {output_dir}/\nLog: {sm_log}"
-    launch_snakemake(command, "snp_mpileup", start_text, output_dir, sm_log)
+    launch_snakemake(command, "snp_mpileup", start_text, output_dir, sm_log, quiet)
 
 @click.command(no_args_is_help = True, epilog = "See the documentation for more information: https://pdimens.github.io/harpy/modules/snp")
 @click.option('-x', '--extra-params', type = str, help = 'Additional variant caller parameters, in quotes')
@@ -186,8 +184,6 @@ def freebayes(inputs, output_dir, genome, threads, populations, ploidy, regions,
     command += f"--configfile {workflowdir}/config.yaml "
     if hpc:
         command += f"--workflow-profile {hpc} "
-    if quiet:
-        command += "--quiet all "
     if snakemake is not None:
         command += snakemake
 
@@ -242,7 +238,7 @@ def freebayes(inputs, output_dir, genome, threads, populations, ploidy, regions,
 
     generate_conda_deps()
     start_text = f"Samples: {n}{popgroupings}\nOutput Directory: {output_dir}/\nLog: {sm_log}"
-    launch_snakemake(command, "snp_freebayes", start_text, output_dir, sm_log)
+    launch_snakemake(command, "snp_freebayes", start_text, output_dir, sm_log, quiet)
 
 snp.add_command(mpileup)
 snp.add_command(freebayes)

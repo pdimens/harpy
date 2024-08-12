@@ -61,8 +61,6 @@ def qc(inputs, output_dir, min_length, max_length, trim_adapters, deduplicate, d
     command += f"--configfile {workflowdir}/config.yaml "
     if hpc:
         command += f"--workflow-profile {hpc} "
-    if quiet:
-        command += "--quiet all "
     if snakemake is not None:
         command += snakemake
 
@@ -113,4 +111,4 @@ def qc(inputs, output_dir, min_length, max_length, trim_adapters, deduplicate, d
 
     generate_conda_deps()
     start_text = f"Samples: {sample_count}\nOutput Directory: {output_dir}/\n{tasks}\nLog: {sm_log}"
-    launch_snakemake(command, "qc", start_text, output_dir, sm_log)
+    launch_snakemake(command, "qc", start_text, output_dir, sm_log, quiet)
