@@ -97,7 +97,7 @@ def leviathan(inputs, output_dir, genome, min_sv, min_barcodes, iterations, thre
 
     with open(f'{workflowdir}/config.yaml', "w", encoding="utf-8") as config:
         config.write("workflow: sv leviathan\n")
-        config.write(f"snakemake_log: {sm_log}")
+        config.write(f"snakemake_log: {sm_log}\n")
         config.write(f"output_directory: {output_dir}\n")
         config.write(f"min_barcodes: {min_barcodes}\n")
         config.write(f"min_sv: {min_sv}\n")
