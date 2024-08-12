@@ -114,11 +114,12 @@ def launch_snakemake(sm_args, workflow, starttext, outdir, sm_logfile, quiet):
                     process.stderr.readline()
                     process.stderr.readline()
                     break
-
-            task_ids = {"total_progress" : progress.add_task("Processing...", total=100)}
+            job_inventory = {}
+            task_ids = {"total_progress" : progress.add_task("[bold blue]Total", total=100)}
             # process the job summary
             while True:
                 output = process.stderr.readline()
+                # stop parsing on "total" since it's always the last entry
                 if output.startswith("total"):
                     break
                 if output.startswith("workflow_summary"):
@@ -126,7 +127,8 @@ def launch_snakemake(sm_args, workflow, starttext, outdir, sm_logfile, quiet):
                 try:
                     rule,count = output.split()
                     rule_desc = rule.replace("_", " ")
-                    task_ids[rule] = progress.add_task(rule_desc, total=int(count))
+                    # rule : display_name, count, set of job_id's
+                    job_inventory[rule] = [rule_desc, int(count), set()]
                 except ValueError:
                     pass
 
@@ -135,24 +137,46 @@ def launch_snakemake(sm_args, workflow, starttext, outdir, sm_logfile, quiet):
                 if output == '' and process.poll() is not None:
                     break
                 if output:
+                    # prioritizing printing the error and quitting
                     if err > 0:
                         if "Shutting down, this" in output:
                             sys.exit(1)
-                        rprint(f"[red]{output.strip()}")
+                        rprint(f"[red]{output.strip()}", file = sys.stderr)
                     if "Error in rule" in output:
                         progress.stop()
                         print_onerror(sm_logfile)
-                        rprint(f"[yellow bold]{output.strip()}")
+                        rprint(f"[yellow bold]{output.strip()}", file = sys.stderr)
                         err += 1
-                    match = re.search(r"\(\d+%\)", output)
+                    # find the % progress text to update Total progress bar
+                    match = re.search(r"\(\d+%\) done", output)
                     if match:
                         percent = int(re.sub(r'\D', '', match.group()))
                         progress.update(task_ids["total_progress"], completed=percent)
                         continue
+                    # add new progress bar track if the rule doesn't have one yet
                     rulematch = re.search(r"rule\s\w+:", output)
                     if rulematch:
                         rule = rulematch.group().replace(":","").split()[-1]
-                        progress.update(task_ids[rule], advance = 1)
+                        if rule not in task_ids:
+                            task_ids[rule] = progress.add_task(job_inventory[rule][0], total=job_inventory[rule][1])
+                        continue
+                    # store the job id in the inventory so we can later look up which rule it's associated with
+                    jobidmatch = re.search(r"jobid:\s\d+", string = output)
+                    if jobidmatch:
+                        job_id = int(re.search(r"\d+",output).group())
+                        # rule should be the most previous rule recorded
+                        job_inventory[rule][2].add(job_id)
+                        continue
+                    # check which rule the job is associated with and update the corresponding progress bar
+                    finishmatch = re.search(r"Finished\sjob\s\d+", output)
+                    if finishmatch:
+                        completed = int(re.search(r"\d+", output).group())
+                        for job,details in job_inventory.items():
+                            if completed in details[2]:
+                                progress.update(task_ids[job], advance = 1)
+                                # remove the job to save memory. wont be seen again
+                                details[2].discard(completed)
+                                break
 
         if process.returncode < 1:
             print_onsuccess(outdir)
