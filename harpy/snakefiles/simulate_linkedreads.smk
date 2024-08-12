@@ -3,62 +3,24 @@ containerized: "docker://pdimens/harpy:latest"
 import os
 import sys
 import gzip
-import glob
 import shutil
 import logging as pylogging
-from datetime import datetime
 from pathlib import Path
-from rich.panel import Panel
-from rich import print as rprint
 
 outdir   = config["output_directory"]
 gen_hap1 = config["inputs"]["genome_hap1"]
 gen_hap2 = config["inputs"]["genome_hap2"]
 envdir   = os.getcwd() + "/.harpy_envs"
+snakemake_log = config["snakemake_log"]
 barcodes = config.get("barcodes", None)
 if barcodes:
     barcodefile = barcodes
 else:
     barcodefile = f"{outdir}/workflow/input/4M-with-alts-february-2016.txt"
 
-## the log file ##
-attempts = glob.glob(f"{outdir}/logs/snakemake/*.snakelog")
-if not attempts:
-    logfile = f"{outdir}/logs/snakemake/simulate_linkedreads.run1." + datetime.now().strftime("%d_%m_%Y") + ".snakelog"
-else:
-    increment = sorted([int(i.split(".")[1].replace("run","")) for i in attempts])[-1] + 1
-    logfile = f"{outdir}/logs/snakemake/simulate_linkedreads.run{increment}." + datetime.now().strftime("%d_%m_%Y") + ".snakelog"
-
 onstart:
-    os.makedirs(f"{outdir}/logs/snakemake", exist_ok = True)
-    extra_logfile_handler = pylogging.FileHandler(logfile)
+    extra_logfile_handler = pylogging.FileHandler(snakemake_log)
     logger.logger.addHandler(extra_logfile_handler)
-
-onsuccess:
-    shutil.rmtree('./_Inline', ignore_errors=True)
-    print("")
-    rprint(
-        Panel(
-            f"The workflow has finished successfully! Find the results in [bold]{outdir}/[/bold]. If you want to combine both haplotypes of the forward (or reverse) reads together, you can do so with:\n[blue bold]cat sim_hap{{0..1}}_haplotag.R1.fq.gz > simulations.R1.fq.gz[/blue bold]",
-            title = "[bold]harpy simulate reads",
-            title_align = "left",
-            border_style = "green"
-            ),
-        file = sys.stderr
-    )
-
-onerror:
-    shutil.rmtree('./_Inline', ignore_errors=True)
-    print("")
-    rprint(
-        Panel(
-            f"The workflow has terminated due to an error. See the log file for more details:\n[bold]{logfile}[/bold]",
-            title = "[bold]harpy simulate reads",
-            title_align = "left",
-            border_style = "red"
-            ),
-        file = sys.stderr
-    )
 
 rule link_haplotype:
     input:

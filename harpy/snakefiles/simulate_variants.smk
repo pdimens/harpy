@@ -2,12 +2,8 @@ containerized: "docker://pdimens/harpy:latest"
 
 import os
 import sys
-import glob
 import random
 import logging as pylogging
-from datetime import datetime
-from rich.panel import Panel
-from rich import print as rprint
 
 outdir = config["output_directory"]
 envdir = os.getcwd() + "/.harpy_envs"
@@ -15,6 +11,7 @@ variant = config["variant_type"]
 outprefix = config["prefix"]
 genome = config["inputs"]["genome"]
 vcf = config["inputs"].get("vcf", None)
+snakemake_log = config["snakemake_log"]
 heterozygosity = float(config["heterozygosity"])
 vcf_correct = "None"
 if vcf:
@@ -48,42 +45,9 @@ else:
         cnv_ratio =config.get("cnv_ratio", None)
         variant_params += f" --cnv_gain_loss_ratio {cnv_ratio}" if cnv_ratio else ""
 
-## the log file ##
-attempts = glob.glob(f"{outdir}/logs/snakemake/*.snakelog")
-if not attempts:
-    logfile = f"{outdir}/logs/snakemake/simulate_{variant}.run1." + datetime.now().strftime("%d_%m_%Y") + ".snakelog"
-else:
-    increment = sorted([int(i.split(".")[1].replace("run","")) for i in attempts])[-1] + 1
-    logfile = f"{outdir}/logs/snakemake/simulate_{variant}.run{increment}." + datetime.now().strftime("%d_%m_%Y") + ".snakelog"
-
 onstart:
-    os.makedirs(f"{outdir}/logs/snakemake", exist_ok = True)
-    extra_logfile_handler = pylogging.FileHandler(logfile)
+    extra_logfile_handler = pylogging.FileHandler(snakemake_log)
     logger.logger.addHandler(extra_logfile_handler)
-
-onsuccess:
-    print("")
-    rprint(
-        Panel(
-            f"The workflow has finished successfully! Find the results in [bold]{outdir}/[/bold]",
-            title = f"[bold]harpy simulate {variant}",
-            title_align = "left",
-            border_style = "green"
-            ),
-        file = sys.stderr
-    )
-
-onerror:
-    print("")
-    rprint(
-        Panel(
-            f"The workflow has terminated due to an error. See the log file for more details:\n[bold]{logfile}[/bold]",
-            title = f"[bold]harpy simulate {variant}",
-            title_align = "left",
-            border_style = "red"
-            ),
-        file = sys.stderr
-    )
 
 if vcf:
     rule convert_vcf:

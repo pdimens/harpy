@@ -3,12 +3,8 @@ containerized: "docker://pdimens/harpy:latest"
 import os
 import re
 import sys
-import glob
 import logging as pylogging
-from datetime import datetime
 from pathlib import Path
-from rich import print as rprint
-from rich.panel import Panel
 
 fqlist = config["inputs"]
 outdir = config["output_directory"]
@@ -16,45 +12,12 @@ envdir      = os.getcwd() + "/.harpy_envs"
 bn_r = r"([_\.][12]|[_\.][FR]|[_\.]R[12](?:\_00[0-9])*)?\.((fastq|fq)(\.gz)?)$"
 samplenames = {re.sub(bn_r, "", os.path.basename(i), flags = re.IGNORECASE) for i in fqlist}
 
-## the log file ##
-attempts = glob.glob(f"{outdir}/logs/snakemake/*.snakelog")
-if not attempts:
-    logfile = f"{outdir}/logs/snakemake/preflight_fastq.run1." + datetime.now().strftime("%d_%m_%Y") + ".snakelog"
-else:
-    increment = sorted([int(i.split(".")[1].replace("run","")) for i in attempts])[-1] + 1
-    logfile = f"{outdir}/logs/snakemake/preflight_fastq.run{increment}." + datetime.now().strftime("%d_%m_%Y") + ".snakelog"
-
 wildcard_constraints:
     sample = "[a-zA-Z0-9._-]+"
 
 onstart:
-    os.makedirs(f"{outdir}/logs/snakemake", exist_ok = True)
-    extra_logfile_handler = pylogging.FileHandler(logfile)
+    extra_logfile_handler = pylogging.FileHandler(snakemake_log)
     logger.logger.addHandler(extra_logfile_handler)
-
-onerror:
-    print("")
-    rprint(
-        Panel(
-            f"The workflow has terminated due to an error. See the log file for more details:\n[bold]{logfile}[/bold]",
-            title = "[bold]harpy preflight fastq",
-            title_align = "left",
-            border_style = "red"
-            ),
-        file = sys.stderr
-    )
-
-onsuccess:
-    print("")
-    rprint(
-        Panel(
-            f"The workflow has finished successfully! Find the results in [bold]{outdir}[/bold]",
-            title = "[bold]harpy preflight fastq",
-            title_align = "left",
-            border_style = "green"
-            ),
-        file = sys.stderr
-    )
 
 def get_fq1(wildcards):
     # returns a list of fastq files for read 1 based on *wildcards.sample* e.g.

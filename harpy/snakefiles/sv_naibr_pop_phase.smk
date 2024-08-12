@@ -3,14 +3,9 @@ containerized: "docker://pdimens/harpy:latest"
 import os
 import re
 import sys
-import glob
 import multiprocessing
 import logging as pylogging
-from datetime import datetime
 from pathlib import Path
-from rich import print as rprint
-from rich.panel import Panel
-
 
 envdir       = os.getcwd() + "/.harpy_envs"
 genomefile   = config["inputs"]["genome"]
@@ -25,16 +20,9 @@ min_sv       = config["min_sv"]
 min_quality  = config["min_quality"]
 min_barcodes = config["min_barcodes"]
 mol_dist     = config["molecule_distance"]
-skipreports  = config["skip_reports"]
 outdir       = config["output_directory"]
-
-## the log file ##
-attempts = glob.glob(f"{outdir}/logs/snakemake/*.snakelog")
-if not attempts:
-    logfile = f"{outdir}/logs/snakemake/sv_naibr.run1." + datetime.now().strftime("%d_%m_%Y") + ".snakelog"
-else:
-    increment = sorted([int(i.split(".")[1].replace("run","")) for i in attempts])[-1] + 1
-    logfile = f"{outdir}/logs/snakemake/sv_naibr.run{increment}." + datetime.now().strftime("%d_%m_%Y") + ".snakelog"
+skipreports  = config["skip_reports"]
+snakemake_log = config["snakemake_log"]
 
 if bn.lower().endswith(".gz"):
     bn = bn[:-3]
@@ -44,33 +32,8 @@ wildcard_constraints:
     population = "[a-zA-Z0-9._-]+"
 
 onstart:
-    os.makedirs(f"{outdir}/logs/snakemake", exist_ok = True)
-    extra_logfile_handler = pylogging.FileHandler(logfile)
+    extra_logfile_handler = pylogging.FileHandler(snakemake_log)
     logger.logger.addHandler(extra_logfile_handler)
-
-onerror:
-    print("")
-    rprint(
-        Panel(
-            f"The workflow has terminated due to an error. See the log file for more details:\n[bold]{logfile}[/bold]",
-            title = "[bold]harpy sv naibr",
-            title_align = "left",
-            border_style = "red"
-            ),
-        file = sys.stderr
-    )
-
-onsuccess:
-    print("")
-    rprint(
-        Panel(
-            f"The workflow has finished successfully! Find the results in [bold]{outdir}/[/bold]",
-            title = "[bold]harpy sv naibr",
-            title_align = "left",
-            border_style = "green"
-            ),
-        file = sys.stderr
-    )
 
 def process_args(args):
     argsDict = {

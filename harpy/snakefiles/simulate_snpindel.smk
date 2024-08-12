@@ -2,12 +2,9 @@ containerized: "docker://pdimens/harpy:latest"
 
 import os
 import sys
-import glob
 import random
 import logging as pylogging
-from datetime import datetime
-from rich.panel import Panel
-from rich import print as rprint
+
 
 outdir = config["output_directory"]
 genome = config["inputs"]["genome"]
@@ -16,6 +13,7 @@ snp_vcf = config["inputs"].get("snp_vcf", None)
 indel_vcf = config["inputs"].get("indel_vcf", None)
 heterozygosity = config["heterozygosity"]
 outprefix = config["prefix"]
+snakemake_log = config["snakemake_log"]
 in_vcfs = []
 snp = False 
 indel = False
@@ -61,43 +59,9 @@ else:
 
 variants = [i for i,j in zip(["snp", "indel"], [snp, indel]) if j]
 
-## the log file ##
-attempts = glob.glob(f"{outdir}/logs/snakemake/*.snakelog")
-if not attempts:
-    logfile = f"{outdir}/logs/snakemake/simulate_snpindel.run1." + datetime.now().strftime("%d_%m_%Y") + ".snakelog"
-else:
-    increment = sorted([int(i.split(".")[1].replace("run","")) for i in attempts])[-1] + 1
-    logfile = f"{outdir}/logs/snakemake/simulate_snpindel.run{increment}." + datetime.now().strftime("%d_%m_%Y") + ".snakelog"
-
-
 onstart:
-    os.makedirs(f"{outdir}/logs/snakemake", exist_ok = True)
-    extra_logfile_handler = pylogging.FileHandler(logfile)
+    extra_logfile_handler = pylogging.FileHandler(snakemake_log)
     logger.logger.addHandler(extra_logfile_handler)
-
-onsuccess:
-    print("")
-    rprint(
-        Panel(
-            f"The workflow has finished successfully! Find the results in [bold]{outdir}/[/bold]",
-            title = f"[bold]harpy simulate snpindel",
-            title_align = "left",
-            border_style = "green"
-            ),
-        file = sys.stderr
-    )
-
-onerror:
-    print("")
-    rprint(
-        Panel(
-            f"The workflow has terminated due to an error. See the log file for more details:\n[bold]{logfile}[/bold]",
-            title = "[bold]harpy simulate snpindel",
-            title_align = "left",
-            border_style = "red"
-            ),
-        file = sys.stderr
-    )
 
 if snp_vcf:
     rule convert_snpvcf:

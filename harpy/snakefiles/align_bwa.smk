@@ -3,11 +3,7 @@ containerized: "docker://pdimens/harpy:latest"
 import os
 import re
 import sys
-import glob
 import logging as pylogging
-from datetime import datetime
-from rich.panel import Panel
-from rich import print as rprint
 
 outdir      = config["output_directory"]
 envdir      = os.getcwd() + "/.harpy_envs"
@@ -21,45 +17,14 @@ genome_zip  = True if bn.lower().endswith(".gz") else False
 bn_idx      = f"{bn}.gzi" if genome_zip else f"{bn}.fai"
 skipreports = config["skip_reports"]
 windowsize  = config["depth_windowsize"]
-## the log file ##
-attempts = glob.glob(f"{outdir}/logs/snakemake/*.snakelog")
-if not attempts:
-    logfile = f"{outdir}/logs/snakemake/align_bwa.run1." + datetime.now().strftime("%d_%m_%Y") + ".snakelog"
-else:
-    increment = sorted([int(i.split(".")[1].replace("run","")) for i in attempts])[-1] + 1
-    logfile = f"{outdir}/logs/snakemake/align_bwa.run{increment}." + datetime.now().strftime("%d_%m_%Y") + ".snakelog"
+snakemake_log = config["snakemake_log"]
 
 wildcard_constraints:
     sample = "[a-zA-Z0-9._-]+"
 
 onstart:
-    os.makedirs(f"{outdir}/logs/snakemake", exist_ok = True)
-    extra_logfile_handler = pylogging.FileHandler(logfile)
+    extra_logfile_handler = pylogging.FileHandler(snakemake_log)
     logger.logger.addHandler(extra_logfile_handler)
-
-onerror:
-    print("")
-    rprint(
-        Panel(
-            f"The workflow has terminated due to an error. See the log file for more details:\n[bold]{logfile}[/bold]",
-            title = "[bold]harpy align bwa",
-            title_align = "left",
-            border_style = "red"
-            ),
-        file = sys.stderr
-    )
-
-onsuccess:
-    print("")
-    rprint(
-        Panel(
-            f"The workflow has finished successfully! Find the results in [bold]{outdir}[/bold]",
-            title = "[bold]harpy align bwa",
-            title_align = "left",
-            border_style = "green"
-            ),
-        file = sys.stderr
-    )
 
 bn_r = r"([_\.][12]|[_\.][FR]|[_\.]R[12](?:\_00[0-9])*)?\.((fastq|fq)(\.gz)?)$"
 samplenames = {re.sub(bn_r, "", os.path.basename(i), flags = re.IGNORECASE) for i in fqlist}

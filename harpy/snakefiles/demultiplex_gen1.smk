@@ -3,11 +3,7 @@ containerized: "docker://pdimens/harpy:latest"
 import os
 import re
 import sys
-import glob
 import logging as pylogging
-from datetime import datetime
-from rich.panel import Panel
-from rich import print as rprint
 
 R1 = config["inputs"]["R1"]
 R2 = config["inputs"]["R2"]
@@ -17,15 +13,9 @@ samplefile = config["inputs"]["demultiplex_schema"]
 skipreports = config["skip_reports"]
 outdir = config["output_directory"]
 envdir = os.getcwd() + "/.harpy_envs"
+snakemake_log = config["snakemake_log"]
 
 ## the log file ##
-attempts = glob.glob(f"{outdir}/logs/snakemake/*.snakelog")
-if not attempts:
-    logfile = f"{outdir}/logs/snakemake/demultiplex_gen1.run1." + datetime.now().strftime("%d_%m_%Y") + ".snakelog"
-else:
-    increment = sorted([int(i.split(".")[1].replace("run","")) for i in attempts])[-1] + 1
-    logfile = f"{outdir}/logs/snakemake/demultiplex_gen1.run{increment}." + datetime.now().strftime("%d_%m_%Y") + ".snakelog"
-
 def barcodedict(smpl):
     d = {}
     with open(smpl, "r") as f:
@@ -42,33 +32,8 @@ samples = barcodedict(samplefile)
 samplenames = [i for i in samples.keys()]
 
 onstart:
-    os.makedirs(f"{outdir}/logs/snakemake", exist_ok = True)
-    extra_logfile_handler = pylogging.FileHandler(logfile)
+    extra_logfile_handler = pylogging.FileHandler(snakemake_log)
     logger.logger.addHandler(extra_logfile_handler)
-
-onerror:
-    print("")
-    rprint(
-        Panel(
-            f"The workflow has terminated due to an error. See the log file for more details:\n[bold]{logfile}[/bold]",
-            title = "[bold]harpy demultiplex",
-            title_align = "left",
-            border_style = "red"
-            ),
-        file = sys.stderr
-    )
-
-onsuccess:
-    print("")
-    rprint(
-        Panel(
-            f"The workflow has finished successfully! Find the results in [bold]{outdir}[/bold]",
-            title = "[bold]harpy demultiplex",
-            title_align = "left",
-            border_style = "green"
-            ),
-        file = sys.stderr
-    )
 
 rule link_R1:
     input:

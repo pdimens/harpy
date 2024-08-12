@@ -1,14 +1,10 @@
 containerized: "docker://pdimens/harpy:latest"
 
 import sys
-import glob
 import subprocess
 import multiprocessing
 import logging as pylogging
-from datetime import datetime
 from pathlib import Path
-from rich import print as rprint
-from rich.panel import Panel
 
 ##TODO MANUAL PRUNING OF SWITCH ERRORS
 # https://github.com/vibansal/HapCUT2/blob/master/outputformat.md
@@ -22,6 +18,8 @@ skipreports       = config["skip_reports"]
 samples_from_vcf  = config["samples_from_vcf"]
 variantfile       = config["inputs"]["variantfile"]
 bamlist     = config["inputs"]["alignments"]
+snakemake_log = config["snakemake_log"]
+
 # toggle linked-read aware mode
 if config["ignore_bx"]:
     fragfile = outdir + "/extract_hairs/{sample}.unlinked.frags"
@@ -55,45 +53,12 @@ else:
     bn         = []
     indels     = False
 
-## the log file ##
-attempts = glob.glob(f"{outdir}/logs/snakemake/*.snakelog")
-if not attempts:
-    logfile = f"{outdir}/logs/snakemake/phase.run1." + datetime.now().strftime("%d_%m_%Y") + ".snakelog"
-else:
-    increment = sorted([int(i.split(".")[1].replace("run","")) for i in attempts])[-1] + 1
-    logfile = f"{outdir}/logs/snakemake/phase.run{increment}." + datetime.now().strftime("%d_%m_%Y") + ".snakelog"
-
 wildcard_constraints:
     sample = "[a-zA-Z0-9._-]+"
 
 onstart:
-    os.makedirs(f"{outdir}/logs/snakemake", exist_ok = True)
-    extra_logfile_handler = pylogging.FileHandler(logfile)
+    extra_logfile_handler = pylogging.FileHandler(snakemake_log)
     logger.logger.addHandler(extra_logfile_handler)
-
-onerror:
-    print("")
-    rprint(
-        Panel(
-            f"The workflow has terminated due to an error. See the log file for more details:\n[bold]{logfile}[/bold]",
-            title = "[bold]harpy phase",
-            title_align = "left",
-            border_style = "red"
-            ),
-        file = sys.stderr
-    )
-
-onsuccess:
-    print("")
-    rprint(
-        Panel(
-            f"The workflow has finished successfully! Find the results in [bold]{outdir}/[/bold]",
-            title = "[bold]harpy phase",
-            title_align = "left",
-            border_style = "green"
-            ),
-        file = sys.stderr
-    )
 
 def sam_index(infile):
     """Use Samtools to index an input file, adding .bai to the end of the name"""

@@ -3,35 +3,23 @@ containerized: "docker://pdimens/harpy:latest"
 import os
 import re
 import sys
-import glob
 import subprocess
 import pandas as pd
 import multiprocessing
 import logging as pylogging
-from datetime import datetime
-from rich.panel import Panel
-from rich import print as rprint
 from snakemake.utils import Paramspace
 
 bamlist     = config["inputs"]["alignments"]
 variantfile = config["inputs"]["variantfile"]
 paramfile   = config["inputs"]["paramfile"]
 biallelic   = config["inputs"]["biallelic_contigs"]
-skipreports = config["skip_reports"]
 outdir      = config["output_directory"]
 envdir      = os.getcwd() + "/.harpy_envs"
+skipreports = config["skip_reports"]
+snakemake_log = config["snakemake_log"]
 paramspace  = Paramspace(pd.read_csv(paramfile, sep=r"\s+", skip_blank_lines=True).rename(columns=str.lower), param_sep = "", filename_params = ["k", "s", "ngen", "bxlimit"])
 with open(biallelic, "r") as f_open:
     contigs = [i.rstrip() for i in f_open.readlines()]
-
-
-## the log file ##
-attempts = glob.glob(f"{outdir}/logs/snakemake/*.snakelog")
-if not attempts:
-    logfile = f"{outdir}/logs/snakemake/impute.run1." + datetime.now().strftime("%d_%m_%Y") + ".snakelog"
-else:
-    increment = sorted([int(i.split(".")[1].replace("run","")) for i in attempts])[-1] + 1
-    logfile = f"{outdir}/logs/snakemake/impute.run{increment}." + datetime.now().strftime("%d_%m_%Y") + ".snakelog"
 
 wildcard_constraints:
     sample = "[a-zA-Z0-9._-]+"
@@ -42,33 +30,8 @@ def sam_index(infile):
         subprocess.run(f"samtools index {infile} {infile}.bai".split())
 
 onstart:
-    os.makedirs(f"{outdir}/logs/snakemake", exist_ok = True)
-    extra_logfile_handler = pylogging.FileHandler(logfile)
+    extra_logfile_handler = pylogging.FileHandler(snakemake_log)
     logger.logger.addHandler(extra_logfile_handler)
-
-onerror:
-    print("")
-    rprint(
-        Panel(
-            f"The workflow has terminated due to an error. See the log file for more details:\n[bold]{logfile}[/bold]",
-            title = "[bold]harpy impute",
-            title_align = "left",
-            border_style = "red"
-            ),
-        file = sys.stderr
-    )
-
-onsuccess:
-    print("")
-    rprint(
-        Panel(
-            f"The workflow has finished successfully! Find the results in [bold]{outdir}/[/bold]",
-            title = "[bold]harpy impute",
-            title_align = "left",
-            border_style = "green"
-            ),
-        file = sys.stderr
-    )
 
 rule sort_bcf:
     input:

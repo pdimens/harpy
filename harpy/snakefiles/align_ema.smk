@@ -2,13 +2,9 @@ containerized: "docker://pdimens/harpy:latest"
 
 import os
 import re
-import glob
 import shutil
 import logging as pylogging
-from datetime import datetime
 from pathlib import Path
-from rich.panel import Panel
-from rich import print as rprint
 
 outdir      = config["output_directory"]
 nbins 		= config["EMA_bins"]
@@ -25,47 +21,14 @@ envdir      = os.getcwd() + "/.harpy_envs"
 windowsize  = config["depth_windowsize"]
 keep_unmapped = config["keep_unmapped"]
 skipreports = config["skip_reports"]
-
-## the log file ##
-attempts = glob.glob(f"{outdir}/logs/snakemake/*.snakelog")
-if not attempts:
-    logfile = f"{outdir}/logs/snakemake/align_ema.run1." + datetime.now().strftime("%d_%m_%Y") + ".snakelog"
-else:
-    increment = sorted([int(i.split(".")[1].replace("run","")) for i in attempts])[-1] + 1
-    logfile = f"{outdir}/logs/snakemake/align_ema.run{increment}." + datetime.now().strftime("%d_%m_%Y") + ".snakelog"
+snakemake_log = config["snakemake_log"]
 
 wildcard_constraints:
     sample = "[a-zA-Z0-9._-]+"
 
 onstart:
-    os.makedirs(f"{outdir}/logs/snakemake", exist_ok = True)
-    extra_logfile_handler = pylogging.FileHandler(logfile)
+    extra_logfile_handler = pylogging.FileHandler(snakemake_log)
     logger.logger.addHandler(extra_logfile_handler)
-
-onerror:
-    print("")
-    rprint(
-        Panel(
-            f"The workflow has terminated due to an error. See the log file for more details:\n[bold]{logfile}[/bold]",
-            title = "[bold]harpy align ema",
-            title_align = "left",
-            border_style = "red"
-            ),
-        file = sys.stderr
-    )
-
-onsuccess:
-    print("")
-    shutil.rmtree(f'{outdir}/bxcount', ignore_errors=True)
-    rprint(
-        Panel(
-            f"The workflow has finished successfully! Find the results in [bold]{outdir}[/bold]",
-            title = "[bold]harpy align ema",
-            title_align = "left",
-            border_style = "green"
-            ),
-        file = sys.stderr
-    )
 
 bn_r = r"([_\.][12]|[_\.][FR]|[_\.]R[12](?:\_00[0-9])*)?\.((fastq|fq)(\.gz)?)$"
 samplenames = {re.sub(bn_r, "", os.path.basename(i), flags = re.IGNORECASE) for i in fqlist}

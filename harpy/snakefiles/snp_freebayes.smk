@@ -3,13 +3,9 @@ containerized: "docker://pdimens/harpy:latest"
 import os
 import sys
 import gzip
-import glob
 import multiprocessing
 import logging as pylogging
-from datetime import datetime
 from pathlib import Path
-from rich import print as rprint
-from rich.panel import Panel
 
 envdir      = os.getcwd() + "/.harpy_envs"
 
@@ -19,6 +15,7 @@ regiontype  = config["regiontype"]
 windowsize  = config.get("windowsize", None)
 outdir      = config["output_directory"]
 skipreports = config["skip_reports"]
+snakemake_log = config["snakemake_log"]
 bamlist     = config["inputs"]["alignments"]
 genomefile 	= config["inputs"]["genome"]
 bn          = os.path.basename(genomefile)
@@ -44,46 +41,12 @@ else:
             intervals.add(f"{cont}:{startpos}-{endpos}")
     regions = dict(zip(intervals, intervals))
 
-## the log file ##
-attempts = glob.glob(f"{outdir}/logs/snakemake/*.snakelog")
-if not attempts:
-    logfile = f"{outdir}/logs/snakemake/snp_freebayes.run1." + datetime.now().strftime("%d_%m_%Y") + ".snakelog"
-else:
-    increment = sorted([int(i.split(".")[1].replace("run","")) for i in attempts])[-1] + 1
-    logfile = f"{outdir}/logs/snakemake/snp_freebayes.run{increment}." + datetime.now().strftime("%d_%m_%Y") + ".snakelog"
-
-
 wildcard_constraints:
     sample = "[a-zA-Z0-9._-]+"
 
 onstart:
-    os.makedirs(f"{outdir}/logs/snakemake", exist_ok = True)
-    extra_logfile_handler = pylogging.FileHandler(logfile)
+    extra_logfile_handler = pylogging.FileHandler(snakemake_log)
     logger.logger.addHandler(extra_logfile_handler)
-
-onerror:
-    print("")
-    rprint(
-        Panel(
-            f"The workflow has terminated due to an error. See the log file for more details:\n[bold]{logfile}[/bold]",
-            title = "[bold]harpy snp freebayes",
-            title_align = "left",
-            border_style = "red"
-            ),
-        file = sys.stderr
-    )
-
-onsuccess:
-    print("")
-    rprint(
-        Panel(
-            f"The workflow has finished successfully! Find the results in [bold]{outdir}/[/bold]",
-            title = "[bold]harpy snp freebayes",
-            title_align = "left",
-            border_style = "green"
-            ),
-        file = sys.stderr
-    )
 
 def sam_index(infile):
     """Use Samtools to index an input file, adding .bai to the end of the name"""
