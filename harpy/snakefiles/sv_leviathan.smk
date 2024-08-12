@@ -73,7 +73,7 @@ rule index_barcode:
     shell:
         "LRez index bam --threads {threads} -p -b {input.bam} -o {output}"
 
-rule genome_setup:
+rule setup_genome:
     input:
         genomefile
     output: 
@@ -83,7 +83,7 @@ rule genome_setup:
     shell: 
         "seqtk seq {input} > {output}"
 
-rule genome_faidx:
+rule faidx_genome:
     input: 
         f"Genome/{bn}"
     output: 
@@ -95,7 +95,7 @@ rule genome_faidx:
     shell:
         "samtools faidx --fai-idx {output} {input} 2> {log}"
 
-rule index_bwa_genome:
+rule bwa_index_genome:
     input: 
         f"Genome/{bn}"
     output: 
@@ -107,7 +107,7 @@ rule index_bwa_genome:
     shell: 
         "bwa index {input} 2> {log}"
 
-rule call_sv:
+rule call_variants:
     input:
         bam    = get_alignments,
         bai    = get_align_index,
@@ -133,7 +133,7 @@ rule call_sv:
     shell:
         "LEVIATHAN -b {input.bam} -i {input.bc_idx} {params} -g {input.genome} -o {output} -t {threads} --candidates {log.candidates} 2> {log.runlog}"
 
-rule sort_bcf:
+rule sort_variants:
     input:
         outdir + "/vcf/{sample}.vcf"
     output:
@@ -145,7 +145,7 @@ rule sort_bcf:
     shell:        
         "bcftools sort -Ob --output {output} {input} 2> /dev/null"
 
-rule sv_stats:
+rule variant_stats:
     input: 
         outdir + "/vcf/{sample}.bcf"
     output: 
@@ -158,7 +158,7 @@ rule sv_stats:
         bcftools query -f '{wildcards.sample}\\t%CHROM\\t%POS\\t%END\\t%SVLEN\\t%SVTYPE\\t%BARCODES\\t%PAIRS\\n' {input} >> {output}
         """
 
-rule merge_variants:
+rule aggregate_variants:
     input:
         collect(outdir + "/reports/data/{sample}.sv.stats", sample = samplenames)
     output:
@@ -191,7 +191,7 @@ rule merge_variants:
                         elif record[5] == "BND":
                             _ = breakends.write(line)
 
-rule sv_report:
+rule sample_reports:
     input:	
         faidx     = f"Genome/{bn}.fai",
         statsfile = outdir + "/reports/data/{sample}.sv.stats"
@@ -201,7 +201,6 @@ rule sv_report:
         f"{envdir}/r.yaml"
     script:
         "report/leviathan.Rmd"
-
 
 rule workflow_summary:
     default_target: True

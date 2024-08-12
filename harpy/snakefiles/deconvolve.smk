@@ -64,7 +64,7 @@ rule deconvolve:
     shell:
         "QuickDeconvolution -t {threads} -i {input} -o {output} {params} > {log} 2>&1"
 
-rule recover_forward:
+rule extract_forward:
     input:
         outdir + "/{sample}.fastq"
     output:
@@ -76,7 +76,7 @@ rule recover_forward:
     shell:
         "seqtk seq {params} {input} | gzip > {output}"
 
-use rule recover_forward as recover_reverse with:
+use rule extract_forward as extract_reverse with:
     output:
         outdir + "/{sample}.R2.fq.gz"
     params:

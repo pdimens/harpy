@@ -37,7 +37,7 @@ def get_fq(wildcards):
     r = re.compile(fr".*/({re.escape(wildcards.sample)}){bn_r}", flags = re.IGNORECASE)
     return sorted(list(filter(r.match, fqlist))[:2])
 
-rule genome_setup:
+rule setup_genome:
     input:
         genomefile
     output: 
@@ -47,7 +47,7 @@ rule genome_setup:
     shell: 
         "seqtk seq {input} > {output}"
 
-rule genome_faidx:
+rule faidx_genome:
     input: 
         f"Genome/{bn}"
     output: 
@@ -59,7 +59,7 @@ rule genome_faidx:
     shell: 
         "samtools faidx --fai-idx {output} {input} 2> {log}"
 
-rule strobeindex:
+rule strobe_index:
     input: 
         f"Genome/{bn}"
     output:
@@ -103,7 +103,7 @@ rule align:
             samtools view -h {params.unmapped} -q {params.quality} > {output} 
         """
 
-rule markduplicates:
+rule mark_duplicates:
     input:
         sam    = outdir + "/samples/{sample}/{sample}.strobe.sam",
         genome = f"Genome/{bn}",
@@ -129,7 +129,7 @@ rule markduplicates:
         rm -rf {params.tmpdir}
         """
 
-rule markdups_index:
+rule index_duplicates:
     input:
         outdir + "/samples/{sample}/{sample}.markdup.bam"
     output:
@@ -153,7 +153,7 @@ rule assign_molecules:
     shell:
         "assign_mi.py -o {output.bam} -c {params} {input.bam}"
 
-rule bxstats:
+rule barcode_stats:
     input:
         bam = outdir + "/{sample}.bam",
         bai = outdir + "/{sample}.bam.bai"
@@ -166,7 +166,7 @@ rule bxstats:
     shell:
         "bx_stats.py -o {output} {input.bam}"
 
-rule coverage:
+rule calculate_depth:
     input: 
         bam = outdir + "/{sample}.bam",
         bai = outdir + "/{sample}.bam.bai"
@@ -179,7 +179,7 @@ rule coverage:
     shell:
         "samtools depth -a {input.bam} | depth_windows.py {params} | gzip > {output}"
 
-rule report_persample:
+rule sample_reports:
     input:
         outdir + "/reports/data/bxstats/{sample}.bxstats.gz",
         outdir + "/reports/data/coverage/{sample}.cov.gz"
@@ -192,7 +192,7 @@ rule report_persample:
     script:
         "report/align_stats.Rmd"
 
-rule stats:
+rule general_stats:
     input:
         bam      = outdir + "/{sample}.bam",
         bai      = outdir + "/{sample}.bam.bai"
@@ -207,7 +207,7 @@ rule stats:
         samtools flagstat {input.bam} > {output.flagstat}
         """
 
-rule report_samtools:
+rule samtools_report:
     input: 
         collect(outdir + "/reports/data/samtools_{ext}/{sample}.{ext}", sample = samplenames, ext = ["stats", "flagstat"])
     output: 
@@ -222,7 +222,7 @@ rule report_samtools:
     shell:
         "multiqc  {params} --filename {output} 2> /dev/null"
 
-rule report_bx:
+rule barcode_report:
     input:
         collect(outdir + "/reports/data/bxstats/{sample}.bxstats.gz", sample = samplenames)
     output:	

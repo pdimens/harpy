@@ -68,7 +68,7 @@ rule alignment_list:
         with open(output[0], "w") as fout:
             _ = [fout.write(f"{bamfile}\n") for bamfile in input["bam"]]
 
-rule convert_stitch:
+rule stitch_conversion:
     input:
         bcf = f"{outdir}/workflow/input/vcf/input.sorted.bcf",
         idx = f"{outdir}/workflow/input/vcf/input.sorted.bcf.csi"
@@ -122,7 +122,7 @@ rule index_vcf:
         bcftools stats -s "-" {input.vcf} > {output.stats}
         """
 
-rule collate_stitch_reports:
+rule stitch_reports:
     input:
         outdir + "/{stitchparams}/contigs/{part}/{part}.stats"
     output:
@@ -132,7 +132,7 @@ rule collate_stitch_reports:
     script:
         "report/stitch_collate.Rmd"
 
-rule clean_stitch_plots:
+rule clean_plots:
     input:
         outdir + "/{stitchparams}/contigs/{part}/{part}.STITCH.html"
     output:
@@ -156,7 +156,7 @@ rule concat_list:
         with open(output[0], "w") as fout:
             _ = fout.write("\n".join(input.bcf))
 
-rule merge_vcfs:
+rule merge_vcf:
     input:
         files = outdir + "/{stitchparams}/bcf.files",
         idx   = collect(outdir + "/{{stitchparams}}/contigs/{part}/{part}.vcf.gz.tbi", part = contigs)
@@ -179,7 +179,7 @@ rule index_merged:
     shell:
         "bcftools index {input}"
 
-rule stats:
+rule general_stats:
     input:
         bcf = outdir + "/{stitchparams}/variants.imputed.bcf",
         idx = outdir + "/{stitchparams}/variants.imputed.bcf.csi"
@@ -209,7 +209,7 @@ rule compare_stats:
         bcftools query -f '%CHROM\\t%POS\\t%INFO/INFO_SCORE\\n' {input.impute} > {output.info_sc}
         """
 
-rule imputation_results_reports:
+rule impute_reports:
     input: 
         outdir + "/{stitchparams}/reports/data/impute.compare.stats",
         outdir + "/{stitchparams}/reports/data/impute.infoscore"

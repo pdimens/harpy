@@ -64,7 +64,7 @@ onstart:
     logger.logger.addHandler(extra_logfile_handler)
 
 if snp_vcf:
-    rule convert_snpvcf:
+    rule convert_snp_vcf:
         input:
             snp_vcf
         output:
@@ -75,7 +75,7 @@ if snp_vcf:
             "bcftools view -Oz {input} > {output}"
 
 if indel_vcf:
-    rule convert_indelvcf:
+    rule convert_indel_vcf:
         input:
             indel_vcf
         output:
@@ -103,7 +103,7 @@ rule simulate_variants:
     shell:
         "perl {params.simuG} -refseq {input.geno} -prefix {params.prefix} {params.parameters} > {log}"
 
-rule create_heterozygote_snp_vcf:
+rule snp_vcf_het:
     input:
         f"{outdir}/{outprefix}.snp.vcf"
     output:
@@ -134,7 +134,7 @@ rule create_heterozygote_snp_vcf:
                     else:
                         hap2_vcf.write(line)
 
-use rule create_heterozygote_snp_vcf as create_heterozygote_indel_vcf with:
+use rule snp_vcf_het as indel_vcf_het with:
     input:
         f"{outdir}/{outprefix}.indel.vcf"
     output:

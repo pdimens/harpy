@@ -43,7 +43,7 @@ def get_fq2(wildcards):
     return list(filter(r.match, fqlist))
 
 if not deconvolve:
-    rule qc_fastp:
+    rule fastp:
         input:
             fw   = get_fq1,
             rv   = get_fq2
@@ -69,7 +69,7 @@ if not deconvolve:
             fastp --trim_poly_g --cut_right {params} --thread {threads} -i {input.fw} -I {input.rv} -o {output.fw} -O {output.rv} -h {output.html} -j {output.json} -R "{wildcards.sample} QC Report" 2> {log.serr}
             """
 else:
-    rule qc_fastp:
+    rule fastp:
         input:
             fw   = get_fq1,
             rv   = get_fq2
@@ -113,7 +113,7 @@ else:
         shell:
             "QuickDeconvolution -t {threads} -i {input} -o {output} {params} > {log} 2>&1"
 
-    rule recover_forward:
+    rule extract_forward:
         input:
             outdir + "/{sample}.fastq"
         output:
@@ -125,13 +125,13 @@ else:
         shell:
             "seqtk seq {params} {input} | gzip > {output}"
 
-    use rule recover_forward as recover_reverse with:
+    use rule extract_forward as extract_reverse with:
         output:
             outdir + "/{sample}.R2.fq.gz"
         params:
             "-2"
 
-rule count_beadtags:
+rule check_barcodes:
     input:
         outdir + "/{sample}.R1.fq.gz"
     output: 
@@ -141,7 +141,7 @@ rule count_beadtags:
     shell:
         "count_bx.py {input} > {output}"
 
-rule beadtag_counts_summary:
+rule barcode_report:
     input: 
         countlog = collect(outdir + "/logs/bxcount/{sample}.count.log", sample = samplenames)
     output:
@@ -151,7 +151,7 @@ rule beadtag_counts_summary:
     script:
         "report/bx_count.Rmd"
    
-rule create_report:
+rule qc_report:
     input: 
         collect(outdir + "/reports/data/fastp/{sample}.fastp.json", sample = samplenames)
     output:

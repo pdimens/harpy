@@ -72,7 +72,7 @@ rule index_alignments:
         with multiprocessing.Pool(processes=threads) as pool:
             pool.map(sam_index, input)
 
-rule create_config:
+rule naibr_config:
     input:
         get_alignments
     output:
@@ -90,7 +90,7 @@ rule create_config:
             for i in argdict:
                 _ = conf.write(f"{i}={argdict[i]}\n")
 
-rule call_sv:
+rule call_variants:
     input:
         bam   = get_alignments,
         bai   = get_align_index,
@@ -108,7 +108,7 @@ rule call_sv:
     shell:
         "naibr {input.conf} > {log} 2>&1"
 
-rule infer_sv:
+rule infer_variants:
     input:
         bedpe = outdir + "/{sample}/{sample}.bedpe",
         refmt = outdir + "/{sample}/{sample}.reformat.bedpe",
@@ -130,7 +130,7 @@ rule infer_sv:
         rm -rf {params.outdir}
         """
 
-rule merge_variants:
+rule aggregate_variants:
     input:
         collect(outdir + "/bedpe/{sample}.bedpe", sample = samplenames)
     output:
@@ -162,7 +162,7 @@ rule merge_variants:
                         elif record[-1] == "duplication":
                             _ = duplications.write(f"{samplename}\t{line}")
 
-rule genome_setup:
+rule setup_genome:
     input:
         genomefile
     output: 
@@ -180,7 +180,7 @@ rule genome_setup:
         fi
         """
 
-rule genome_faidx:
+rule faidx_genome:
     input: 
         f"Genome/{bn}"
     output: 
@@ -201,7 +201,7 @@ rule genome_faidx:
         fi
         """
 
-rule create_report:
+rule sample_reports:
     input:
         bedpe = outdir + "/bedpe/{sample}.bedpe",
         fai   = f"Genome/{bn}.fai"

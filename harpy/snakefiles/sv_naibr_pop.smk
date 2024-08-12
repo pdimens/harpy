@@ -65,7 +65,7 @@ def pop_manifest(groupingfile, filelist):
 popdict = pop_manifest(groupfile, bamlist)
 populations = popdict.keys()
 
-rule copy_groupings:
+rule preproc_groups:
     input:
         groupfile
     output:
@@ -74,7 +74,7 @@ rule copy_groupings:
         with open(input[0], "r") as infile, open(output[0], "w") as outfile:
             _ = [outfile.write(i) for i in infile.readlines() if not i.lstrip().startswith("#")]
 
-rule merge_list:
+rule concat_list:
     input:
         outdir + "/workflow/sample.groups"
     output:
@@ -84,7 +84,7 @@ rule merge_list:
             for bamfile in popdict[wildcards.population]:
                 _ = fout.write(bamfile + "\n")
 
-rule merge_populations:
+rule concat_groups:
     input: 
         bamlist  = outdir + "/workflow/merge_samples/{population}.list",
         bamfiles = lambda wc: collect("{sample}", sample = popdict[wc.population]) 
@@ -99,7 +99,7 @@ rule merge_populations:
     shell:
         "concatenate_bam.py -o {output} -b {input.bamlist} 2> {log}"
 
-rule sort_merged:
+rule sort_groups:
     input:
         outdir + "/workflow/input/{population}.unsort.bam"
     output:
@@ -116,7 +116,7 @@ rule sort_merged:
     shell:
         "samtools sort -@ {threads} -O bam -l 0 -m {resources.mem_mb}M --write-index -o {output.bam}##idx##{output.bai} {input} 2> {log}"
 
-rule create_config:
+rule naibr_config:
     input:
         outdir + "/workflow/input/{population}.bam"
     output:
@@ -134,7 +134,7 @@ rule create_config:
             for i in argdict:
                 _ = conf.write(f"{i}={argdict[i]}\n")
 
-rule call_sv:
+rule call_variants:
     input:
         bam   = outdir + "/workflow/input/{population}.bam",
         bai   = outdir + "/workflow/input/{population}.bam.bai",
@@ -152,7 +152,7 @@ rule call_sv:
     shell:
         "naibr {input.conf} > {log} 2>&1"
 
-rule infer_sv:
+rule infer_variants:
     input:
         bedpe = outdir + "/{population}/{population}.bedpe",
         refmt = outdir + "/{population}/{population}.reformat.bedpe",
@@ -174,7 +174,7 @@ rule infer_sv:
         rm -rf {params.outdir}
         """
 
-rule merge_variants:
+rule aggregate_variants_variants:
     input:
         collect(outdir + "/bedpe/{population}.bedpe", population = populations)
     output:
@@ -206,7 +206,7 @@ rule merge_variants:
                         elif record[-1] == "duplication":
                             _ = duplications.write(f"{samplename}\t{line}")
 
-rule genome_setup:
+rule setup_genome:
     input:
         genomefile
     output: 
@@ -216,7 +216,7 @@ rule genome_setup:
     shell: 
         "seqtk seq {input} > {output}"
 
-rule genome_faidx:
+rule faidx_genome:
     input: 
         f"Genome/{bn}"
     output: 
@@ -228,7 +228,7 @@ rule genome_faidx:
     shell:
         "samtools faidx --fai-idx {output} {input} 2> {log}"
 
-rule sv_report:
+rule group_reports:
     input:
         fai   = f"Genome/{bn}.fai",
         bedpe = outdir + "/bedpe/{population}.bedpe"
@@ -239,7 +239,7 @@ rule sv_report:
     script:
         "report/naibr.Rmd"
 
-rule sv_report_aggregate:
+rule aggregate_report:
     input:
         fai   = f"Genome/{bn}.fai",
         bedpe = collect(outdir + "/bedpe/{pop}.bedpe", pop = populations)

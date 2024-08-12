@@ -53,7 +53,7 @@ def sam_index(infile):
     if not os.path.exists(f"{infile}.bai"):
         subprocess.run(f"samtools index {infile} {infile}.bai".split())
 
-rule copy_groupings:
+rule preproc_groups:
     input:
         groupings
     output:
@@ -62,7 +62,7 @@ rule copy_groupings:
         with open(input[0], "r") as infile, open(output[0], "w") as outfile:
             _ = [outfile.write(i) for i in infile.readlines() if not i.lstrip().startswith("#")]
 
-rule genome_setup:
+rule setup_genome:
     input:
         genomefile
     output: 
@@ -72,7 +72,7 @@ rule genome_setup:
     shell: 
         "seqtk seq {input} > {output}"
 
-rule genome_faidx:
+rule faidx_genome:
     input: 
         f"Genome/{bn}"
     output: 
@@ -94,14 +94,6 @@ rule index_alignments:
     run:
         with multiprocessing.Pool(processes=threads) as pool:
             pool.map(sam_index, input)
-
-rule samplenames:
-    output:
-        outdir + "/logs/samples.names"
-    run:
-        with open(output[0], "w") as fout:
-            for samplename in samplenames:
-                _ = fout.write(samplename + "\n")	
 
 rule bam_list:
     input: 
@@ -155,7 +147,7 @@ rule concat_list:
             for bcf in input.bcfs:
                 _ = fout.write(f"{bcf}\n")   
 
-rule merge_vcfs:
+rule concat_variants:
     input:
         bcfs = collect(outdir + "/regions/{part}.{ext}", part = intervals, ext = ["bcf", "bcf.csi"]),
         filelist = outdir + "/logs/bcf.files"
@@ -170,7 +162,7 @@ rule merge_vcfs:
     shell:  
         "bcftools concat -f {input.filelist} --threads {threads} --naive -Ob -o {output} 2> {log}"
 
-rule sort_vcf:
+rule sort_variants:
     input:
         outdir + "/variants.raw.unsort.bcf"
     output:
@@ -181,7 +173,7 @@ rule sort_vcf:
     shell:
         "bcftools sort --write-index -Ob -o {output.bcf} {input} 2> /dev/null"
 
-rule variants_stats:
+rule general_stats:
     input:
         genome  = f"Genome/{bn}",
         ref_idx = f"Genome/{bn}.fai",
@@ -196,7 +188,7 @@ rule variants_stats:
         bcftools stats -s "-" --fasta-ref {input.genome} {input.bcf} > {output} 2> /dev/null
         """
 
-rule bcf_report:
+rule variant_report:
     input:
         outdir + "/reports/variants.{type}.stats"
     output:

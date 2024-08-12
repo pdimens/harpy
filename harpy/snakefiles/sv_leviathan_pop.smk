@@ -48,7 +48,7 @@ def pop_manifest(groupingfile, filelist):
 popdict = pop_manifest(groupfile, bamlist)
 populations = popdict.keys()
 
-rule copy_groupings:
+rule preproc_groups:
     input:
         groupfile
     output:
@@ -57,7 +57,7 @@ rule copy_groupings:
         with open(input[0], "r") as infile, open(output[0], "w") as outfile:
             _ = [outfile.write(i) for i in infile.readlines() if not i.lstrip().startswith("#")]
 
-rule merge_list:
+rule concat_list:
     input:
         outdir + "/workflow/sample.groups"
     output:
@@ -67,7 +67,7 @@ rule merge_list:
             for bamfile in popdict[wildcards.population]:
                 _ = fout.write(bamfile + "\n")
 
-rule merge_populations:
+rule concat_groups:
     input: 
         bamlist  = outdir + "/workflow/merge_samples/{population}.list",
         bamfiles = lambda wc: collect("{sample}", sample = popdict[wc.population]) 
@@ -82,7 +82,7 @@ rule merge_populations:
     shell:
         "concatenate_bam.py -o {output} -b {input.bamlist} 2> {log}"
 
-rule sort_merged:
+rule sort_groups:
     input:
         outdir + "/workflow/input/{population}.unsort.bam"
     output:
@@ -114,7 +114,7 @@ rule index_barcode:
     shell:
         "LRez index bam -p -b {input.bam} -o {output} --threads {threads}"
 
-rule genome_setup:
+rule setup_genome:
     input:
         genomefile
     output: 
@@ -124,7 +124,7 @@ rule genome_setup:
     shell: 
         "seqtk seq {input} > {output}"
 
-rule genome_faidx:
+rule faidx_genome:
     input: 
         f"Genome/{bn}"
     output: 
@@ -136,7 +136,7 @@ rule genome_faidx:
     shell:
         "samtools faidx --fai-idx {output} {input} 2> {log}"
 
-rule index_bwa_genome:
+rule bwa_index_genome:
     input: 
         f"Genome/{bn}"
     output: 
@@ -148,7 +148,7 @@ rule index_bwa_genome:
     shell: 
         "bwa index {input} 2> {log}"
 
-rule call_sv:
+rule call_variants:
     input:
         bam    = outdir + "/workflow/input/{population}.bam",
         bai    = outdir + "/workflow/input/{population}.bam.bai",
@@ -174,7 +174,7 @@ rule call_sv:
     shell:
         "LEVIATHAN -b {input.bam} -i {input.bc_idx} {params} -g {input.genome} -o {output} -t {threads} --candidates {log.candidates} 2> {log.runlog}"
 
-rule sort_bcf:
+rule sort_variants:
     input:
         outdir + "/vcf/{population}.vcf"
     output:
@@ -186,7 +186,7 @@ rule sort_bcf:
     shell:        
         "bcftools sort -Ob --output {output} {input} 2> /dev/null"
 
-rule sv_stats:
+rule variant_stats:
     input: 
         outdir + "/vcf/{population}.bcf"
     output:
@@ -199,7 +199,7 @@ rule sv_stats:
         bcftools query -f '{wildcards.population}\\t%CHROM\\t%POS\\t%END\\t%SVLEN\\t%SVTYPE\\t%BARCODES\\t%PAIRS\\n' {input} >> {output}
         """
 
-rule merge_variants:
+rule aggregate_variants:
     input:
         collect(outdir + "/reports/data/{population}.sv.stats", population = populations)
     output:
@@ -232,7 +232,7 @@ rule merge_variants:
                         elif record[5] == "BND":
                             _ = breakends.write(line)
 
-rule sv_report:
+rule group_reports:
     input:	
         statsfile = outdir + "/reports/data/{population}.sv.stats",
         bcf       = outdir + "/vcf/{population}.bcf",
@@ -244,7 +244,7 @@ rule sv_report:
     script:
         "report/leviathan.Rmd"
 
-rule sv_report_aggregate:
+rule aggregate_report:
     input:	
         faidx      = f"Genome/{bn}.fai",
         statsfiles = collect(outdir + "/reports/data/{pop}.sv.stats", pop = populations)

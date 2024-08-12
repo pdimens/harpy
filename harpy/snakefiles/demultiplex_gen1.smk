@@ -57,7 +57,7 @@ use rule link_R1 as link_I2 with:
     input: I2
     output: temp(outdir + "/DATA_I2_001.fastq.gz")
 
-rule bx_files:
+rule barcode_segments:
     output:
         temp(collect(outdir + "/BC_{letter}.txt", letter = ["A","C","B","D"]))
     params:
@@ -67,7 +67,7 @@ rule bx_files:
     shell:
         "haplotag_acbd.py {params}"
 
-rule demux_bx:
+rule demux_barcodes:
     input:
         collect(outdir + "/DATA_{IR}{ext}_001.fastq.gz", IR = ["R","I"], ext = [1,2]),
         collect(outdir + "/BC_{letter}.txt", letter = ["A","C","B","D"])
@@ -86,7 +86,7 @@ rule demux_bx:
         mv demux*BC.log logs
         """
 
-rule split_samples_fw:
+rule demux_samples_F:
     input:
         f"{outdir}/demux_R1_001.fastq.gz"
     output:
@@ -100,7 +100,7 @@ rule split_samples_fw:
         ( zgrep -A3 "A..{params}B..D" {input} | grep -v "^--$" | gzip -q > {output} ) || touch {output}
         """
 
-use rule split_samples_fw as split_samples_rv with:
+use rule demux_samples_F as demux_samples_R with:
     input:
         f"{outdir}/demux_R2_001.fastq.gz"
     output:

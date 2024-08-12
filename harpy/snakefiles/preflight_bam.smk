@@ -60,7 +60,7 @@ rule check_bam:
     shell: 
         "check_bam.py {input.bam} > {output}"
 
-rule merge_checks:
+rule concat_results:
     input:
         collect(outdir + "/{sample}.log", sample = samplenames)
     output:

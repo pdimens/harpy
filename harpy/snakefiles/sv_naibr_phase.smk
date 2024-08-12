@@ -69,7 +69,7 @@ def get_align_index(wildcards):
     aln = list(filter(r.match, bamlist))
     return aln[0] + ".bai"
 
-rule genome_setup:
+rule setup_genome:
     input:
         genomefile
     output: 
@@ -79,7 +79,7 @@ rule genome_setup:
     shell: 
         "seqtk seq {input} > {output}"
 
-rule genome_faidx:
+rule faidx_genome:
     input: 
         f"Genome/{validgenome}"
     output: 
@@ -91,7 +91,7 @@ rule genome_faidx:
     shell:
         "samtools faidx --fai-idx {output} {input} 2> {log}"
 
-rule index_original_alignments:
+rule index_alignments:
     input:
         bamlist
     output:
@@ -102,7 +102,7 @@ rule index_original_alignments:
         with multiprocessing.Pool(processes=threads) as pool:
             pool.map(sam_index, input)
 
-rule index_bcf:
+rule index_snps:
     input:
         vcffile
     output:
@@ -112,7 +112,7 @@ rule index_bcf:
     shell:
         "bcftools index {input}"
 
-rule index_vcfgz:
+rule index_snps_gz:
     input:
         vcffile
     output:
@@ -159,7 +159,7 @@ rule log_phasing:
         done
         """
 
-rule create_config:
+rule naibr_config:
     input:
         outdir + "/phasedbam/{sample}.bam"
     output:
@@ -177,7 +177,7 @@ rule create_config:
             for i in argdict:
                 _ = conf.write(f"{i}={argdict[i]}\n")
 
-rule index_phased_alignment:
+rule index_phased:
     input:
         outdir + "/phasedbam/{sample}.bam"
     output:
@@ -187,7 +187,7 @@ rule index_phased_alignment:
     shell:
         "samtools index {input} {output} 2> /dev/null"
 
-rule call_sv:
+rule call_variants:
     input:
         bam   = outdir + "/phasedbam/{sample}.bam",
         bai   = outdir + "/phasedbam/{sample}.bam.bai",
@@ -205,7 +205,7 @@ rule call_sv:
     shell:
         "naibr {input.conf} > {log} 2>&1"
 
-rule infer_sv:
+rule infer_variants:
     input:
         bedpe = outdir + "/{sample}/{sample}.bedpe",
         refmt = outdir + "/{sample}/{sample}.reformat.bedpe",
@@ -227,7 +227,7 @@ rule infer_sv:
         rm -rf {params.outdir}
         """
 
-rule merge_variants:
+rule aggregate_variants:
     input:
         collect(outdir + "/bedpe/{sample}.bedpe", sample = samplenames)
     output:
@@ -259,7 +259,7 @@ rule merge_variants:
                         elif record[-1] == "duplication":
                             _ = duplications.write(f"{samplename}\t{line}")
 
-rule create_report:
+rule variant_report:
     input:
         bedpe = outdir + "/bedpe/{sample}.bedpe",
         fai   = f"Genome/{validgenome}.fai"

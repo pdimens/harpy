@@ -77,7 +77,7 @@ def get_align_index(wildcards):
     aln = list(filter(r.match, bamlist))
     return aln[0] + ".bai"
 
-rule extract_heterozygous:
+rule extract_het:
     input: 
         vcf = variantfile
     output:
@@ -89,7 +89,7 @@ rule extract_heterozygous:
         bcftools view -s {wildcards.sample} -Ou -m 2 -M 2 {input.vcf} | bcftools view -i 'GT="het"' > {output}
         """
 
-rule extract_homozygous:
+rule extract_hom:
     input: 
         vcf = variantfile
     output:
@@ -114,7 +114,7 @@ rule index_alignments:
             pool.map(sam_index, input)
 
 if indels:
-    rule genome_setup:
+    rule setup_genome:
         input:
             genomefile
         output: 
@@ -124,7 +124,7 @@ if indels:
         shell: 
             "seqtk seq {input} > {output}"
 
-    rule genome_faidx:
+    rule faidx_genome:
         input: 
             geno
         output: 
@@ -175,7 +175,7 @@ rule link_fragments:
     shell:
         "LinkFragments.py --bam {input.bam} --VCF {input.vcf} --fragments {input.fragments} --out {output} -d {params} > {log} 2>&1"
 
-rule phase_blocks:
+rule phase:
     input:
         vcf       = outdir + "/workflow/input/vcf/{sample}.het.vcf",
         fragments = fragfile
@@ -204,13 +204,13 @@ rule compress_phaseblock:
     shell:
         "bcftools view -Oz6 -o {output} --write-index {input}"
 
-use rule compress_phaseblock as compress vcf with:
+use rule compress_phaseblock as compress_vcf with:
     input:
         outdir + "/workflow/input/vcf/{sample}.hom.vcf"
     output:
         outdir + "/workflow/input/gzvcf/{sample}.hom.vcf.gz"
 
-rule merge_annotations:
+rule merge_het_hom:
     input:
         phase = outdir + "/phase_blocks/{sample}.phased.vcf.gz",
         orig  = outdir + "/workflow/input/gzvcf/{sample}.hom.vcf.gz"

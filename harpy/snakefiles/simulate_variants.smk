@@ -77,7 +77,7 @@ rule simulate_variants:
     shell:
         "perl {params.simuG} -refseq {input.geno} -prefix {params.prefix} {params.parameters} > {log}"
 
-rule create_heterozygote_vcf:
+rule create_het_vcf:
     input:
         f"{outdir}/{outprefix}.vcf"
     output:

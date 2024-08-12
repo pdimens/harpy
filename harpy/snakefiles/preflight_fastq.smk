@@ -51,7 +51,7 @@ rule check_reverse:
     shell: 
         "check_fastq.py {input} > {output}"
 
-rule merge_checks:
+rule concat_results:
     input:
         collect(outdir + "/{sample}.{FR}.log", sample = samplenames, FR = ["F","R"])
     output:
