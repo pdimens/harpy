@@ -64,8 +64,6 @@ if not deconvolve:
             workflow.cores
         conda:
             f"{envdir}/qc.yaml"
-        message:
-            "Quality trimming" + (", removing adapters" if not trimadapters else "") + (", removing PCR duplicates" if dedup else "") + ": {wildcards.sample}"
         shell: 
             """
             fastp --trim_poly_g --cut_right {params} --thread {threads} -i {input.fw} -I {input.rv} -o {output.fw} -O {output.rv} -h {output.html} -j {output.json} -R "{wildcards.sample} QC Report" 2> {log.serr}
@@ -91,8 +89,6 @@ else:
             workflow.cores
         conda:
             f"{envdir}/qc.yaml"
-        message:
-            "Quality trimming" + (", removing adapters" if not trimadapters else "") + (", removing PCR duplicates" if dedup else "") + ": {wildcards.sample}"
         shell: 
             """
             fastp --trim_poly_g --cut_right {params} --thread {threads} -i {input.fw} -I {input.rv} --stdout -h {output.html} -j {output.json} -R "{wildcards.sample} QC Report" 2> {log.serr} > {output.fq}
@@ -114,8 +110,6 @@ else:
             workflow.cores
         conda:
             f"{envdir}/qc.yaml"
-        message:
-            "Performing deconvolution: {wildcards.sample}"
         shell:
             "QuickDeconvolution -t {threads} -i {input} -o {output} {params} > {log} 2>&1"
 
@@ -128,8 +122,6 @@ else:
             "-1"
         container:
             None
-        message:
-            "Extracting deconvolved forward reads: {wildcards.sample}"
         shell:
             "seqtk seq {params} {input} | gzip > {output}"
 
@@ -144,8 +136,6 @@ rule count_beadtags:
         outdir + "/{sample}.R1.fq.gz"
     output: 
         temp(outdir + "/logs/bxcount/{sample}.count.log")
-    message:
-        "Counting barcode frequency: {wildcards.sample}"
     container:
         None
     shell:
@@ -158,8 +148,6 @@ rule beadtag_counts_summary:
         outdir + "/reports/barcode.summary.html"
     conda:
         f"{envdir}/r.yaml"
-    message:
-        "Summarizing sample barcode validation"
     script:
         "report/bx_count.Rmd"
    
@@ -176,8 +164,6 @@ rule create_report:
         comment = "--comment \"This report aggregates trimming and quality control metrics reported by fastp.\""
     conda:
         f"{envdir}/qc.yaml"
-    message:
-        "Aggregating fastp reports"
     shell: 
         "multiqc {params} --filename {output}"
 

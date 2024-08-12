@@ -54,8 +54,6 @@ rule index_alignments:
         [f"{i}.bai" for i in bamlist]
     threads:
         workflow.cores
-    message:
-        "Indexing alignment files"
     run:
         with multiprocessing.Pool(processes=threads) as pool:
             pool.map(sam_index, input)
@@ -72,8 +70,6 @@ rule index_barcode:
         max(10, workflow.cores)
     conda:
         f"{envdir}/sv.yaml"
-    message:
-        "Indexing barcodes: {wildcards.sample}"
     shell:
         "LRez index bam --threads {threads} -p -b {input.bam} -o {output}"
 
@@ -84,8 +80,6 @@ rule genome_setup:
         f"Genome/{bn}"
     container:
         None
-    message: 
-        "Creating {output}"
     shell: 
         "seqtk seq {input} > {output}"
 
@@ -98,8 +92,6 @@ rule genome_faidx:
         f"Genome/{bn}.faidx.log"
     container:
         None
-    message:
-        "Indexing {input}"
     shell:
         "samtools faidx --fai-idx {output} {input} 2> {log}"
 
@@ -112,8 +104,6 @@ rule index_bwa_genome:
         f"Genome/{bn}.idx.log"
     conda:
         f"{envdir}/align.yaml"
-    message:
-        "Indexing {input}"
     shell: 
         "bwa index {input} 2> {log}"
 
@@ -140,8 +130,6 @@ rule call_sv:
         f"{envdir}/sv.yaml"
     benchmark:
         ".Benchmark/leviathan/{sample}.variantcall"
-    message:
-        "Calling variants: {wildcards.sample}"
     shell:
         "LEVIATHAN -b {input.bam} -i {input.bc_idx} {params} -g {input.genome} -o {output} -t {threads} --candidates {log.candidates} 2> {log.runlog}"
 
@@ -154,8 +142,6 @@ rule sort_bcf:
         "{wildcards.sample}"
     container:
         None
-    message:
-        "Sorting and converting to BCF: {wildcards.sample}"
     shell:        
         "bcftools sort -Ob --output {output} {input} 2> /dev/null"
 
@@ -166,8 +152,6 @@ rule sv_stats:
         temp(outdir + "/reports/data/{sample}.sv.stats")
     container:
         None
-    message:
-        "Getting SV stats for {wildcards.sample}"
     shell:
         """
         echo -e "sample\\tcontig\\tposition_start\\tposition_end\\tlength\\ttype\\tn_barcodes\\tn_pairs" > {output}
@@ -182,8 +166,6 @@ rule merge_variants:
         outdir + "/deletions.bedpe",
         outdir + "/duplications.bedpe",
         outdir + "/breakends.bedpe"
-    message:
-        "Aggregating the detected variants"
     run:
         with open(output[0], "w") as inversions, open(output[1], "w") as deletions, open(output[2], "w") as duplications, open(output[3], "w") as breakends:
             header = ["sample","contig","position_start","position_end","length","type","n_barcodes","n_pairs"]
@@ -217,8 +199,6 @@ rule sv_report:
         outdir + "/reports/{sample}.SV.html"
     conda:
         f"{envdir}/r.yaml"
-    message:
-        "Generating SV report: {wildcards.sample}"
     script:
         "report/leviathan.Rmd"
 

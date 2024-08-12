@@ -71,8 +71,6 @@ if snp_vcf:
             snp_vcf_correct
         container:
             None
-        message:
-            "Converting {input} to compressed VCF format"
         shell:
             "bcftools view -Oz {input} > {output}"
 
@@ -84,8 +82,6 @@ if indel_vcf:
             indel_vcf_correct
         container:
             None
-        message:
-            "Converting {input} to compressed VCF format"
         shell:
             "bcftools view -Oz {input} > {output}"
 
@@ -104,8 +100,6 @@ rule simulate_variants:
         parameters = variant_params
     conda:
         f"{envdir}/simulations.yaml"
-    message:
-        "Simulating snps and/or indels"
     shell:
         "perl {params.simuG} -refseq {input.geno} -prefix {params.prefix} {params.parameters} > {log}"
 
@@ -117,8 +111,6 @@ rule create_heterozygote_snp_vcf:
         f"{outdir}/{outprefix}.snp.hap2.vcf"
     params:
         heterozygosity
-    message:
-        "Creating snp diploid variant files for heterozygosity = {params}"
     run:
         random.seed(6969)
         hap1_vcf, hap2_vcf = open(output[0], "w"), open(output[1], "w")
@@ -148,10 +140,8 @@ use rule create_heterozygote_snp_vcf as create_heterozygote_indel_vcf with:
     output:
         f"{outdir}/{outprefix}.indel.hap1.vcf",
         f"{outdir}/{outprefix}.indel.hap2.vcf"
-    message:
-        "Creating indel diploid variant files for heterozygosity = {params}"
 
-rule all:
+rule workflow_summary:
     default_target: True
     input:
         multiext(f"{outdir}/{outprefix}", ".bed", ".fasta"),

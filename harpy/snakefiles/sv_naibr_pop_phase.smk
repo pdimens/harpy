@@ -95,8 +95,6 @@ rule genome_setup:
         f"Genome/{bn}"
     container:
         None
-    message: 
-        "Preprocessing {input}"
     shell: 
         "seqtk seq {input} > {output}"
 
@@ -107,8 +105,6 @@ rule genome_faidx:
         f"Genome/{bn}.fai"
     container:
         None
-    message:
-        "Indexing {input}"
     log:
         f"Genome/{bn}.faidx.log"
     shell:
@@ -121,8 +117,6 @@ rule index_bcf:
         vcffile + ".csi"
     container:
         None
-    message:
-        "Indexing {input}"
     shell:
         "bcftools index {input}"
 
@@ -133,8 +127,6 @@ rule index_vcfgz:
         vcffile + ".tbi"
     container:
         None
-    message:
-        "Indexing {input}"
     shell:
         "tabix {input}"
 
@@ -145,8 +137,6 @@ rule index_original_alignments:
         [f"{i}.bai" for i in bamlist]
     threads:
         workflow.cores
-    message:
-        "Indexing alignment files"
     run:
         with multiprocessing.Pool(processes=threads) as pool:
             pool.map(sam_index, input)
@@ -168,8 +158,6 @@ rule phase_alignments:
         4
     conda:
         f"{envdir}/phase.yaml"
-    message:
-        "Phasing alignments: {wildcards.sample}"
     shell:
         "whatshap haplotag --sample {wildcards.sample} --linked-read-distance-cutoff {params} --ignore-read-groups --tag-supplementary --output-threads={threads} -o {output.bam} --reference {input.ref} {input.vcf} {input.aln} 2> {output.log}"
 
@@ -180,8 +168,6 @@ rule log_phasing:
         outdir + "/logs/whatshap-haplotag.log"
     container:
         None
-    message:
-        "Creating log of alignment phasing"
     shell:
         """
         echo -e "sample\\ttotal_alignments\\tphased_alignments" > {output}
@@ -197,8 +183,6 @@ rule copy_groupings:
         groupfile
     output:
         outdir + "/workflow/sample.groups"
-    message:
-        "Logging {input}"
     run:
         with open(input[0], "r") as infile, open(output[0], "w") as outfile:
             _ = [outfile.write(i) for i in infile.readlines() if not i.lstrip().startswith("#")]
@@ -208,8 +192,6 @@ rule merge_list:
         outdir + "/workflow/sample.groups"
     output:
         outdir + "/workflow/pool_samples/{population}.list"
-    message:
-        "Creating pooling file list: {wildcards.population}"
     run:
         with open(output[0], "w") as fout:
             for bamfile in popdict[wildcards.population]:
@@ -227,8 +209,6 @@ rule merge_populations:
         1
     container:
         None
-    message:
-        "Merging alignments: {wildcards.population}"
     shell:
         "concatenate_bam.py -o {output} -b {input.bamlist} 2> {log}"
 
@@ -246,8 +226,6 @@ rule sort_merged:
         10
     container:
         None
-    message:
-        "Sorting alignments: {wildcards.population}"
     shell:
         "samtools sort -@ {threads} -O bam -l 0 -m {resources.mem_mb}M --write-index -o {output.bam}##idx##{output.bai} {input} 2> {log}"
 
@@ -259,8 +237,6 @@ rule create_config:
     params:
         lambda wc: wc.get("population"),
         min(10, workflow.cores)
-    message:
-        "Creating naibr config file: {wildcards.population}"
     run:
         argdict = process_args(extra)
         with open(output[0], "w") as conf:
@@ -286,8 +262,6 @@ rule call_sv:
         10
     conda:
         f"{envdir}/sv.yaml"
-    message:
-        "Calling variants: {wildcards.population}"
     shell:
         "naibr {input.conf} > {log} 2>&1"
 
@@ -305,8 +279,6 @@ rule infer_sv:
         outdir = lambda wc: outdir + "/" + wc.get("population")
     container:
         None
-    message:
-        "Inferring variants from naibr output: {wildcards.population}"
     shell:
         """
         infer_sv.py {input.bedpe} -f {output.fail} > {output.bedpe}
@@ -322,8 +294,6 @@ rule merge_variants:
         outdir + "/inversions.bedpe",
         outdir + "/deletions.bedpe",
         outdir + "/duplications.bedpe"
-    message:
-        "Aggregating the detected variants"
     run:
         from pathlib import Path
         with open(output[0], "w") as inversions, open(output[1], "w") as deletions, open(output[2], "w") as duplications:
@@ -355,8 +325,6 @@ rule infer_sv_report:
         bedpe = outdir + "/bedpe/{population}.bedpe"
     output:
         outdir + "/reports/{population}.naibr.html"
-    message:
-        "Creating report: {wildcards.population}"
     conda:
         f"{envdir}/r.yaml"
     script:
@@ -368,8 +336,6 @@ rule sv_report_aggregate:
         bedpe = collect(outdir + "/bedpe/{pop}.bedpe", pop = populations)
     output:
         outdir + "/reports/naibr.pop.summary.html"
-    message:
-        "Creating summary report"
     conda:
         f"{envdir}/r.yaml"
     script:

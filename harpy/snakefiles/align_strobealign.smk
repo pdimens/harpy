@@ -44,8 +44,6 @@ rule genome_setup:
         f"Genome/{bn}"
     container:
         None
-    message: 
-        "Copying {input} to Genome/"
     shell: 
         "seqtk seq {input} > {output}"
 
@@ -58,8 +56,6 @@ rule genome_faidx:
         f"Genome/{bn}.faidx.log"
     container:
         None
-    message:
-        "Indexing {input}"
     shell: 
         "samtools faidx --fai-idx {output} {input} 2> {log}"
 
@@ -76,8 +72,6 @@ rule strobeindex:
         f"{envdir}/align.yaml"
     threads:
         2
-    message:
-        "Indexing {input}"
     shell: 
         "strobealign --create-index -t {threads} -r {params} {input} 2> {log}"
 
@@ -103,8 +97,6 @@ rule align:
         10
     conda:
         f"{envdir}/align.yaml"
-    message:
-        "Aligning sequences: {wildcards.sample}"
     shell:
         """
         strobealign {params.readlen} -t {threads} {params.unmapped_strobe} -C --rg-id={wildcards.sample} --rg=SM:{wildcards.sample} {params.extra} {input.genome} {input.fastq} 2> {log} |
@@ -128,8 +120,6 @@ rule markduplicates:
         2
     container:
         None
-    message:
-        "Marking duplicates: {wildcards.sample}"
     shell:
         """
         samtools collate -O -u {input.sam} |
@@ -146,8 +136,6 @@ rule markdups_index:
         temp(outdir + "/samples/{sample}/{sample}.markdup.bam.bai")
     container:
         None
-    message:
-        "Indexing duplicate-marked alignments: {wildcards.sample}"
     shell:
         "samtools index {input}"
 
@@ -162,8 +150,6 @@ rule assign_molecules:
         molecule_distance
     container:
         None
-    message:
-        "Assigning barcodes to molecules: {wildcards.sample}"
     shell:
         "assign_mi.py -o {output.bam} -c {params} {input.bam}"
 
@@ -177,8 +163,6 @@ rule bxstats:
         sample = lambda wc: d[wc.sample]
     container:
         None
-    message:
-        "Calculating barcode alignment statistics: {wildcards.sample}"
     shell:
         "bx_stats.py -o {output} {input.bam}"
 
@@ -192,8 +176,6 @@ rule coverage:
         windowsize
     container:
         None
-    message:
-        "Calculating genomic coverage: {wildcards.sample}"
     shell:
         "samtools depth -a {input.bam} | depth_windows.py {params} | gzip > {output}"
 
@@ -207,8 +189,6 @@ rule report_persample:
         molecule_distance
     conda:
         f"{envdir}/r.yaml"
-    message: 
-        "Summarizing barcoded alignments: {wildcards.sample}"
     script:
         "report/align_stats.Rmd"
 
@@ -221,8 +201,6 @@ rule stats:
         flagstat = temp(outdir + "/reports/data/samtools_flagstat/{sample}.flagstat")
     container:
         None
-    message:
-        "Calculating alignment stats: {wildcards.sample}"
     shell:
         """
         samtools stats -d {input.bam} > {output.stats}
@@ -241,8 +219,6 @@ rule report_samtools:
         comment = "--comment \"This report aggregates samtools stats and samtools flagstats results for all alignments. Samtools stats ignores alignments marked as duplicates.\""
     conda:
         f"{envdir}/qc.yaml"
-    message:
-        "Summarizing samtools stats and flagstat"
     shell:
         "multiqc  {params} --filename {output} 2> /dev/null"
 
@@ -253,8 +229,6 @@ rule report_bx:
         outdir + "/reports/barcodes.summary.html"
     conda:
         f"{envdir}/r.yaml"
-    message: 
-        "Summarizing all barcode information from alignments"
     script:
         "report/align_bxstats.Rmd"
 

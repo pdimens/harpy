@@ -40,8 +40,6 @@ rule interleave:
         rv = get_fq2
     output: 
         temp(outdir + "/workflow/input/{sample}.fastq"),
-    message:
-        "Interleaving: {wildcards.sample}"
     container:
         None
     shell:
@@ -63,8 +61,6 @@ rule deconvolve:
         2
     conda:
         f"{envdir}/qc.yaml"
-    message:
-        "Performing deconvolution: {wildcards.sample}"
     shell:
         "QuickDeconvolution -t {threads} -i {input} -o {output} {params} > {log} 2>&1"
 
@@ -77,8 +73,6 @@ rule recover_forward:
         "-1"
     container:
         None
-    message:
-        "Extracting deconvolved forward reads: {wildcards.sample}"
     shell:
         "seqtk seq {params} {input} | gzip > {output}"
 

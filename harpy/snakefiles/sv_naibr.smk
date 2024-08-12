@@ -68,8 +68,6 @@ rule index_alignments:
         [f"{i}.bai" for i in bamlist]
     threads:
         workflow.cores
-    message:
-        "Indexing alignment files"
     run:
         with multiprocessing.Pool(processes=threads) as pool:
             pool.map(sam_index, input)
@@ -82,8 +80,6 @@ rule create_config:
     params:
         lambda wc: wc.get("sample"),
         min(10, workflow.cores)
-    message:
-        "Creating naibr config file: {wildcards.sample}"
     run:
         argdict = process_args(extra)
         with open(output[0], "w") as conf:
@@ -109,8 +105,6 @@ rule call_sv:
         10
     conda:
         f"{envdir}/sv.yaml"     
-    message:
-        "Calling variants: {wildcards.sample}"
     shell:
         "naibr {input.conf} > {log} 2>&1"
 
@@ -128,8 +122,6 @@ rule infer_sv:
         outdir = lambda wc: outdir + "/" + wc.get("sample")
     container:
         None
-    message:
-        "Inferring variants from naibr output: {wildcards.sample}"
     shell:
         """
         infer_sv.py {input.bedpe} -f {output.fail} > {output.bedpe}
@@ -145,8 +137,6 @@ rule merge_variants:
         outdir + "/inversions.bedpe",
         outdir + "/deletions.bedpe",
         outdir + "/duplications.bedpe"
-    message:
-        "Aggregating the detected variants"
     run:
         from pathlib import Path
         with open(output[0], "w") as inversions, open(output[1], "w") as deletions, open(output[2], "w") as duplications:
@@ -179,8 +169,6 @@ rule genome_setup:
         f"Genome/{bn}"
     container:
         None
-    message: 
-        "Symlinking {input}"
     shell: 
         """
         if (file {input} | grep -q compressed ) ;then
@@ -204,8 +192,6 @@ rule genome_faidx:
         genome_zip
     container:
         None
-    message:
-        "Indexing {input}"
     shell: 
         """
         if [ "{params}" = "True" ]; then
@@ -223,8 +209,6 @@ rule create_report:
         outdir + "/reports/{sample}.naibr.html"
     conda:
         f"{envdir}/r.yaml"
-    message:
-        "Creating report: {wildcards.sample}"
     script:
         "report/naibr.Rmd"
 

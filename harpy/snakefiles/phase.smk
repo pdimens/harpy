@@ -84,8 +84,6 @@ rule extract_heterozygous:
         outdir + "/workflow/input/vcf/{sample}.het.vcf"
     container:
         None
-    message:
-        "Extracting heterozygous variants: {wildcards.sample}"
     shell:
         """
         bcftools view -s {wildcards.sample} -Ou -m 2 -M 2 {input.vcf} | bcftools view -i 'GT="het"' > {output}
@@ -98,8 +96,6 @@ rule extract_homozygous:
         outdir + "/workflow/input/vcf/{sample}.hom.vcf"
     container:
         None
-    message:
-        "Extracting variants: {wildcards.sample}"
     shell:
         """
         bcftools view -s {wildcards.sample} -Ou {input.vcf} | bcftools view -i 'GT="hom"' > {output}
@@ -113,8 +109,6 @@ rule index_alignments:
         [f"{i}.bai" for i in bamlist]
     threads:
         workflow.cores
-    message:
-        "Indexing alignment files"
     run:
         with multiprocessing.Pool(processes=threads) as pool:
             pool.map(sam_index, input)
@@ -127,8 +121,6 @@ if indels:
             geno
         container:
             None
-        message: 
-            "Copying {input} to Genome/"
         shell: 
             "seqtk seq {input} > {output}"
 
@@ -141,8 +133,6 @@ if indels:
             f"Genome/{bn}.faidx.log"
         container:
             None
-        message:
-            "Indexing {input}"
         shell: 
             "samtools faidx --fai-idx {output} {input} 2> {log}"
 
@@ -164,8 +154,6 @@ rule extract_hairs:
         f"{envdir}/phase.yaml"
     benchmark:
         ".Benchmark/Phase/extracthairs.{sample}.txt"
-    message:
-        "Converting to compact fragment format: {wildcards.sample}"
     shell:
         "extractHAIRS {params} --nf 1 --bam {input.bam} --VCF {input.vcf} --out {output} > {log} 2>&1"
 
@@ -184,8 +172,6 @@ rule link_fragments:
         f"{envdir}/phase.yaml"
     benchmark:
         ".Benchmark/Phase/linkfrag.{sample}.txt"
-    message:
-        "Linking fragments: {wildcards.sample}"
     shell:
         "LinkFragments.py --bam {input.bam} --VCF {input.vcf} --fragments {input.fragments} --out {output} -d {params} > {log} 2>&1"
 
@@ -205,8 +191,6 @@ rule phase_blocks:
         f"{envdir}/phase.yaml"
     benchmark:
         ".Benchmark/Phase/phase.{sample}.txt"
-    message:
-        "Creating phased haplotype blocks: {wildcards.sample}"
     shell:
         "HAPCUT2 --fragments {input.fragments} --vcf {input.vcf} {params} --out {output.blocks} --nf 1 --error_analysis_mode 1 --call_homozygous 1 --outvcf 1 > {log} 2>&1"
 
@@ -217,8 +201,6 @@ rule compress_phaseblock:
         outdir + "/phase_blocks/{sample}.phased.vcf.gz"
     container:
         None
-    message:
-        "Compressing vcf: {wildcards.sample}"
     shell:
         "bcftools view -Oz6 -o {output} --write-index {input}"
 
@@ -241,8 +223,6 @@ rule merge_annotations:
         ".Benchmark/Phase/mergeAnno.{sample}.txt"
     container:
         None
-    message:
-        "Merging annotations: {wildcards.sample}"
     shell:
         "bcftools annotate -Ob -o {output.bcf} --write-index -a {input.phase} -c CHROM,POS,FMT/GT,FMT/PS,FMT/PQ,FMT/PD -m +HAPCUT {input.orig}"
 
@@ -259,8 +239,6 @@ rule merge_samples:
         workflow.cores
     container:
         None
-    message:
-        "Combining results into {output.bcf}" if len(samplenames) > 1 else "Copying results to {output.bcf}"
     shell:
         """
         if [ "{params}" = true ]; then
@@ -280,8 +258,6 @@ rule summarize_blocks:
         outdir + "/reports/blocks.summary"
     container:
         None
-    message:
-        "Summarizing phasing results"
     shell:
         """
         echo -e "sample\\tcontig\\tn_snp\\tpos_start\\tblock_length" > {params}
@@ -298,8 +274,6 @@ rule phase_report:
         outdir + "/reports/phase.html"
     conda:
         f"{envdir}/r.yaml"
-    message:
-        "Summarizing phasing results"
     script:
         "report/hapcut.Rmd"
 

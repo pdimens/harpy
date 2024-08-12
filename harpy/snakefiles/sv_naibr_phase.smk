@@ -76,8 +76,6 @@ rule genome_setup:
         f"Genome/{validgenome}"
     container:
         None
-    message: 
-        "Preprocessing {input}"
     shell: 
         "seqtk seq {input} > {output}"
 
@@ -90,8 +88,6 @@ rule genome_faidx:
         f"Genome/{validgenome}.faidx.log"
     container:
         None
-    message:
-        "Indexing {input}"
     shell:
         "samtools faidx --fai-idx {output} {input} 2> {log}"
 
@@ -102,8 +98,6 @@ rule index_original_alignments:
         [f"{i}.bai" for i in bamlist]
     threads:
         workflow.cores
-    message:
-        "Indexing alignment files"
     run:
         with multiprocessing.Pool(processes=threads) as pool:
             pool.map(sam_index, input)
@@ -115,8 +109,6 @@ rule index_bcf:
         vcffile + ".csi"
     container:
         None
-    message:
-        "Indexing {input}"
     shell:
         "bcftools index {input}"
 
@@ -127,8 +119,6 @@ rule index_vcfgz:
         vcffile + ".tbi"
     container:
         None
-    message:
-        "Indexing {input}"
     shell:
         "tabix {input}"
 
@@ -149,8 +139,6 @@ rule phase_alignments:
         f"{envdir}/phase.yaml"
     threads:
         4
-    message:
-        "Phasing alignments: {wildcards.sample}"
     shell:
         "whatshap haplotag --sample {wildcards.sample} --linked-read-distance-cutoff {params} --ignore-read-groups --tag-supplementary --output-threads={threads} -o {output.bam} --reference {input.ref} {input.vcf} {input.aln} 2> {output.log}"
 
@@ -161,8 +149,6 @@ rule log_phasing:
         outdir + "/logs/whatshap-haplotag.log"
     container:
         None
-    message:
-        "Creating log of alignment phasing"
     shell:
         """
         echo -e "sample\\ttotal_alignments\\tphased_alignments" > {output}
@@ -181,8 +167,6 @@ rule create_config:
     params:
         lambda wc: wc.get("sample"),
         min(10, workflow.cores)
-    message:
-        "Creating naibr config file: {wildcards.sample}"
     run:
         argdict = process_args(extra)
         with open(output[0], "w") as conf:
@@ -200,8 +184,6 @@ rule index_phased_alignment:
         outdir + "/phasedbam/{sample}.bam.bai"
     container:
         None
-    message:
-        "Indexing alignment: {wildcards.sample}"
     shell:
         "samtools index {input} {output} 2> /dev/null"
 
@@ -220,8 +202,6 @@ rule call_sv:
         10
     conda:
         f"{envdir}/sv.yaml"
-    message:
-        "Calling variants: {wildcards.sample}"
     shell:
         "naibr {input.conf} > {log} 2>&1"
 
@@ -239,8 +219,6 @@ rule infer_sv:
         outdir = lambda wc: outdir + "/" + wc.get("sample")
     container:
         None
-    message:
-        "Inferring variants from naibr output: {wildcards.sample}"
     shell:
         """
         infer_sv.py {input.bedpe} -f {output.fail} > {output.bedpe}
@@ -256,8 +234,6 @@ rule merge_variants:
         outdir + "/inversions.bedpe",
         outdir + "/deletions.bedpe",
         outdir + "/duplications.bedpe"
-    message:
-        "Aggregating the detected variants"
     run:
         from pathlib import Path
         with open(output[0], "w") as inversions, open(output[1], "w") as deletions, open(output[2], "w") as duplications:
@@ -291,8 +267,6 @@ rule create_report:
         outdir + "/reports/{sample}.naibr.html"
     conda:
         f"{envdir}/r.yaml"
-    message:
-        "Creating report: {wildcards.sample}"
     script:
         "report/naibr.Rmd"
 

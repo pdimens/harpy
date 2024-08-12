@@ -51,8 +51,6 @@ rule genome_faidx:
         outdir + "/workflow/input/hap.{hap}.fasta.fai"
     container:
         None
-    message:
-        "Indexing haplotype {wildcards.hap}"
     shell:
         "samtools faidx --fai-idx {output} {input}"
 
@@ -60,8 +58,6 @@ if not barcodes:
     rule download_barcodes:
         output:
             barcodefile
-        message:
-            "Downloading list of standard 10X barcodes"
         run:
             from urllib.request import urlretrieve
             _ = urlretrieve("https://raw.githubusercontent.com/aquaskyline/LRSIM/master/4M-with-alts-february-2016.txt", output[0])
@@ -81,8 +77,6 @@ rule create_molecules_hap:
         prefix = lambda wc: outdir + "/dwgsim_simulated/dwgsim." + wc.get("hap") + ".12"
     conda:
         f"{envdir}/simulations.yaml"
-    message:
-        "Simulating reads reads from {input}"
     shell:
         """
         dwgsim -N {params.readpairs} -e 0.0001,0.0016 -E 0.0001,0.0016 -d {params.outerdist} -s {params.distsd} -1 135 -2 151 -H -y 0 -S 0 -c 0 -R 0 -r {params.mutationrate} -F 0 -o 1 -m /dev/null {input} {params.prefix} 2> {log}
@@ -95,8 +89,6 @@ rule interleave_dwgsim_output:
         outdir + "/dwgsim_simulated/dwgsim.{hap}.12.fastq"
     container:
         None
-    message:
-        "Interleaving dwgsim output: {wildcards.hap}"
     shell:
         "seqtk mergepe {input} > {output}"
 
@@ -126,8 +118,6 @@ rule lrsim:
         workflow.cores
     conda:
         f"{envdir}/simulations.yaml"
-    message:
-        "Running LRSIM to generate linked reads from\n    haplotype 1: {input.hap1}\n    haplotype 2: {input.hap2}" 
     shell: 
         """
         perl {params.lrsim} -g {input.hap1},{input.hap2} -p {params.proj_dir}/lrsim/sim \\
@@ -143,8 +133,6 @@ rule sort_manifest:
         outdir + "/lrsim/sim.{hap}.sort.manifest"
     conda:
         f"{envdir}/simulations.yaml"
-    message:
-        "Sorting read manifest: haplotype {wildcards.hap}"
     shell:
         "msort -kn1 {input} > {output}"
 
@@ -161,8 +149,6 @@ rule extract_reads:
         lambda wc: f"""{outdir}/10X/sim_hap{wc.get("hap")}_10x"""
     container:
         None
-    message:
-        "Extracting linked reads for haplotype {wildcards.hap}"
     shell:
         "extractReads {input} {params} 2> {log}"
 
@@ -180,8 +166,6 @@ rule convert_haplotag:
         lambda wc: f"""{outdir}/sim_hap{wc.get("hap")}_haplotag"""
     container:
         None
-    message:
-        "Converting 10X barcodes to haplotag format: haplotype {wildcards.hap}"
     shell:
         "10xtoHaplotag.py -f {input.fw} -r {input.rv} -b {input.barcodes} -p {params} > {log}"
 

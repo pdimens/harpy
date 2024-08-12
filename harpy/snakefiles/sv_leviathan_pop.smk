@@ -53,8 +53,6 @@ rule copy_groupings:
         groupfile
     output:
         outdir + "/workflow/sample.groups"
-    message:
-        "Logging {input}"
     run:
         with open(input[0], "r") as infile, open(output[0], "w") as outfile:
             _ = [outfile.write(i) for i in infile.readlines() if not i.lstrip().startswith("#")]
@@ -64,8 +62,6 @@ rule merge_list:
         outdir + "/workflow/sample.groups"
     output:
         outdir + "/workflow/merge_samples/{population}.list"
-    message:
-        "Creating population file list: {wildcards.population}"
     run:
         with open(output[0], "w") as fout:
             for bamfile in popdict[wildcards.population]:
@@ -83,8 +79,6 @@ rule merge_populations:
         1
     container:
         None
-    message:
-        "Merging alignments: {wildcards.population}"
     shell:
         "concatenate_bam.py -o {output} -b {input.bamlist} 2> {log}"
 
@@ -102,8 +96,6 @@ rule sort_merged:
         10
     container:
         None
-    message:
-        "Sorting alignments: {wildcards.population}"
     shell:
         "samtools sort -@ {threads} -O bam -l 0 -m {resources.mem_mb}M --write-index -o {output.bam}##idx##{output.bai} {input} 2> {log}"
 
@@ -119,8 +111,6 @@ rule index_barcode:
         max(10, workflow.cores)
     conda:
         f"{envdir}/sv.yaml"
-    message:
-        "Indexing barcodes: Population {wildcards.population}"
     shell:
         "LRez index bam -p -b {input.bam} -o {output} --threads {threads}"
 
@@ -131,8 +121,6 @@ rule genome_setup:
         f"Genome/{bn}"
     container:
         None
-    message: 
-        "Creating {output}"
     shell: 
         "seqtk seq {input} > {output}"
 
@@ -145,8 +133,6 @@ rule genome_faidx:
         f"Genome/{bn}.faidx.log"
     container:
         None
-    message:
-        "Indexing {input}"
     shell:
         "samtools faidx --fai-idx {output} {input} 2> {log}"
 
@@ -157,8 +143,6 @@ rule index_bwa_genome:
         multiext(f"Genome/{bn}", ".ann", ".bwt", ".pac", ".sa", ".amb")
     log:
         f"Genome/{bn}.idx.log"
-    message:
-        "Indexing {input}"
     conda:
         f"{envdir}/align.yaml"
     shell: 
@@ -185,8 +169,6 @@ rule call_sv:
         workflow.cores
     conda:
         f"{envdir}/sv.yaml"
-    message:
-        "Calling variants: {wildcards.population}"
     benchmark:
         ".Benchmark/leviathan-pop/{population}.variantcall"
     shell:
@@ -201,8 +183,6 @@ rule sort_bcf:
         "{wildcards.population}"
     container:
         None
-    message:
-        "Sorting and converting to BCF: Population {wildcards.population}"
     shell:        
         "bcftools sort -Ob --output {output} {input} 2> /dev/null"
 
@@ -213,8 +193,6 @@ rule sv_stats:
         temp(outdir + "/reports/data/{population}.sv.stats")
     container:
         None
-    message:
-        "Getting stats: Population {input}"
     shell:
         """
         echo -e "population\\tcontig\\tposition_start\\tposition_end\\tlength\\ttype\\tn_barcodes\\tn_pairs" > {output}
@@ -229,8 +207,6 @@ rule merge_variants:
         outdir + "/deletions.bedpe",
         outdir + "/duplications.bedpe",
         outdir + "/breakends.bedpe"
-    message:
-        "Aggregating the detected variants"
     run:
         with open(output[0], "w") as inversions, open(output[1], "w") as deletions, open(output[2], "w") as duplications, open(output[3], "w") as breakends:
             header = ["population","contig","position_start","position_end","length","type","n_barcodes","n_pairs"]
@@ -263,8 +239,6 @@ rule sv_report:
         faidx     = f"Genome/{bn}.fai"
     output:
         outdir + "/reports/{population}.sv.html"
-    message:
-        "Generating SV report: population {wildcards.population}"
     conda:
         f"{envdir}/r.yaml"
     script:
@@ -276,8 +250,6 @@ rule sv_report_aggregate:
         statsfiles = collect(outdir + "/reports/data/{pop}.sv.stats", pop = populations)
     output:
         outdir + "/reports/leviathan.summary.html"
-    message:
-        "Generating SV report for all populations"
     conda:
         f"{envdir}/r.yaml"
     script:
