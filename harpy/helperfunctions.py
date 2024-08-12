@@ -103,12 +103,20 @@ def launch_snakemake(sm_args, workflow, starttext, outdir, sm_logfile, quiet):
         # Add a task with a total value of 100 (representing 100%)
             # Start a subprocess
             process = subprocess.Popen(sm_args.split(), stdout=subprocess.PIPE, stderr=subprocess.PIPE, text = True)
-            err = 0
+            err = False
+            print_deps = True
             # read up to the job summary
             while True:
                 output = process.stderr.readline()
                 if output == '' and process.poll() is not None:
                     break
+                # print dependency text only once
+                if "Downloading and installing remote packages" in output:
+                    if print_deps:
+                        rprint("[yellow]  Downloading and installing workflow dependencies", file = sys.stderr)
+                        print_deps = False
+                        continue
+                    continue
                 if output.startswith("Job stats:"):
                     # read and ignore the next two lines
                     process.stderr.readline()
@@ -138,7 +146,7 @@ def launch_snakemake(sm_args, workflow, starttext, outdir, sm_logfile, quiet):
                     break
                 if output:
                     # prioritizing printing the error and quitting
-                    if err > 0:
+                    if err:
                         if "Shutting down, this" in output:
                             sys.exit(1)
                         rprint(f"[red]{output.strip()}", file = sys.stderr)
@@ -146,7 +154,7 @@ def launch_snakemake(sm_args, workflow, starttext, outdir, sm_logfile, quiet):
                         progress.stop()
                         print_onerror(sm_logfile)
                         rprint(f"[yellow bold]{output.strip()}", file = sys.stderr)
-                        err += 1
+                        err = True
                     # find the % progress text to update Total progress bar
                     match = re.search(r"\(\d+%\) done", output)
                     if match:
