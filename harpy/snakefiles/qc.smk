@@ -50,9 +50,9 @@ if not deconvolve:
         output:
             fw   = outdir + "/{sample}.R1.fq.gz",
             rv   = outdir + "/{sample}.R2.fq.gz",
+            html = outdir + "/reports/{sample}.html",
             json = outdir + "/reports/data/fastp/{sample}.fastp.json"
         log:
-            html = outdir + "/reports/{sample}.html",
             serr = outdir + "/logs/fastp/{sample}.log"
         params:
             minlen = f"--length_required {min_len}",
@@ -68,7 +68,7 @@ if not deconvolve:
             "Quality trimming" + (", removing adapters" if not trimadapters else "") + (", removing PCR duplicates" if dedup else "") + ": {wildcards.sample}"
         shell: 
             """
-            fastp --trim_poly_g --cut_right {params} --thread {threads} -i {input.fw} -I {input.rv} -o {output.fw} -O {output.rv} -h {log.html} -j {output.json} -R "{wildcards.sample} QC Report" 2> {log.serr}
+            fastp --trim_poly_g --cut_right {params} --thread {threads} -i {input.fw} -I {input.rv} -o {output.fw} -O {output.rv} -h {output.html} -j {output.json} -R "{wildcards.sample} QC Report" 2> {log.serr}
             """
 else:
     rule qc_fastp:
@@ -77,9 +77,9 @@ else:
             rv   = get_fq2
         output:
             fq   = temp(outdir + "/fastp/{sample}.fastq"),
+            html = outdir + "/reports/{sample}.html",
             json = outdir + "/reports/data/fastp/{sample}.fastp.json"
         log:
-            html = outdir + "/reports/{sample}.html",
             serr = outdir + "/logs/fastp/{sample}.log"
         params:
             minlen = f"--length_required {min_len}",
@@ -95,7 +95,7 @@ else:
             "Quality trimming" + (", removing adapters" if not trimadapters else "") + (", removing PCR duplicates" if dedup else "") + ": {wildcards.sample}"
         shell: 
             """
-            fastp --trim_poly_g --cut_right {params} --thread {threads} -i {input.fw} -I {input.rv} --stdout -h {log.html} -j {output.json} -R "{wildcards.sample} QC Report" 2> {log.serr} > {output.fq}
+            fastp --trim_poly_g --cut_right {params} --thread {threads} -i {input.fw} -I {input.rv} --stdout -h {output.html} -j {output.json} -R "{wildcards.sample} QC Report" 2> {log.serr} > {output.fq}
             """
 
     rule deconvolve:
