@@ -211,7 +211,7 @@ hchart(aggregate_df, "xrange", animation = F, groupPadding = 0.0001,
   hcaes(x = 0, x2 = totalreads, y = rev(0:(n_samples-1)), partialFill = totalvalidpercent/100), dataLabels = list(enabled = TRUE)) |> 
   hc_xAxis(title = list(text = "Total Alignments")) |> 
   hc_yAxis(title = FALSE, gridLineWidth = 0, categories = rev(aggregate_df$sample)) |>
-  hc_caption(text = "Percentage represents the percent of alignments with a valid BX barcode") |>
+  hc_caption(text = "Percentage represents the percent of alignments with a valid BX barcode, shown in dark green. Light green represents invalid BX barcodes.") |>
   hc_tooltip(enabled = FALSE) |>
   hc_colors(color = "#95d8a7") |>
   hc_title(text = "Percent Alignments with Valid BX Barcode") |>
@@ -226,7 +226,7 @@ hchart(aggregate_df, "xrange", animation = F, groupPadding = 0.0001,
   hcaes(x = 0, x2 = multiplex + singletons, y = rev(0:(n_samples-1)), partialFill = round(multiplex / (multiplex + singletons), 4)), dataLabels = list(enabled = TRUE)) |> 
   hc_xAxis(title = list(text = "Total Alignments with Valid Barcodes")) |> 
   hc_yAxis(title = FALSE, gridLineWidth = 0, categories = rev(aggregate_df$sample)) |>
-  hc_caption(text = "Percentage represents the percent of molecules composed of more than 2 single-end or paired-end sequences") |>
+  hc_caption(text = "Percentage represents the percent of molecules composed of more than 2 single-end or paired-end sequences, shown in dark blue. Light blue represents the singletons.") |>
   hc_tooltip(enabled = FALSE) |>
   hc_colors(color = "#8dc6f5") |>
   hc_title(text = "Percent Non-Singleton Molecules") |>
