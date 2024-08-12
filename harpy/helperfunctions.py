@@ -1,15 +1,20 @@
 """Module with helper function to set up Harpy workflows"""
 
-import sys
 import os
+import re
+import sys
+import glob
 import subprocess
+from datetime import datetime
 from pathlib import Path
 from collections import Counter
+from rich import print as rprint
+from rich.progress import Progress, BarColumn, TextColumn, TimeElapsedColumn
 from importlib_resources import files
 import harpy.scripts
 import harpy.reports
 import harpy.snakefiles
-from .printfunctions import print_error, print_solution
+from .printfunctions import print_error, print_solution, print_onsuccess, print_onstart, print_onerror
 
 def symlink(original, destination):
     """Create a symbolic link from original -> destination if the destination doesn't already exist."""
@@ -75,3 +80,54 @@ def biallelic_contigs(vcf, workdir):
         sys.exit(1)
     else:
         return contigs
+
+def launch_snakemake(sm_args, workflow, starttext, outdir, sm_logfile):
+    """launch snakemake with the given commands"""
+    print_onstart(starttext, workflow)
+    try:
+        with Progress(
+            TextColumn("[progress.description]{task.description}"),
+            BarColumn(bar_width=50),
+            TextColumn("[progress.percentage]{task.percentage:>3.0f}%"),
+            TimeElapsedColumn(),
+            transient=True
+        ) as progress:
+        # Add a task with a total value of 100 (representing 100%)
+            task = progress.add_task("Processing...", total=100)
+            # Start a subprocess
+            process = subprocess.Popen(sm_args.split(), stdout=subprocess.PIPE, stderr=subprocess.PIPE, text = True)
+            err = 0
+            while True:
+                output = process.stderr.readline()
+                if output == '' and process.poll() is not None:
+                    break
+                if output:
+                    if err > 0:
+                        if "Shutting down, this" in output:
+                            sys.exit(1)
+                        rprint(f"[red]{output.strip()}")
+                    if "Error in rule" in output:
+                        progress.stop()
+                        print_onerror(sm_logfile)
+                        rprint(f"[yellow bold]{output.strip()}")
+                        err += 1
+                    match = re.search(r"\(\d+%\)", output)
+                    if match:
+                        percent = int(re.sub(r'\D', '', match.group()))
+                        progress.update(task, completed=percent)
+        if process.returncode < 1:
+            print_onsuccess(outdir)
+    except KeyboardInterrupt:
+        # Handle the keyboard interrupt
+        rprint("[yellow bold]\nTerminating harpy...")
+        process.terminate()
+        process.wait()
+        sys.exit(1)
+
+def snakemake_log(outdir, workflow):
+    """Return a snakemake logfile name. Iterates logfile run number if one exists."""
+    attempts = glob.glob(f"{outdir}/logs/snakemake/*.snakelog")
+    if not attempts:
+        return f"{outdir}/logs/snakemake/{workflow}.run1." + datetime.now().strftime("%d_%m_%Y") + ".snakelog"
+    increment = sorted([int(i.split(".")[1].replace("run","")) for i in attempts])[-1] + 1
+    return f"{outdir}/logs/snakemake/{workflow}.run{increment}." + datetime.now().strftime("%d_%m_%Y") + ".snakelog"

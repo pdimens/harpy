@@ -2,12 +2,10 @@
 
 import os
 import sys
-import subprocess
 from pathlib import Path
 import rich_click as click
 from .conda_deps import generate_conda_deps
-from .printfunctions import print_onstart
-from .helperfunctions import fetch_rule
+from .helperfunctions import fetch_rule, snakemake_log, launch_snakemake
 from .validations import validate_demuxschema
 
 @click.group(options_metavar='', context_settings={"help_option_names" : ["-h", "--help"]})
@@ -74,9 +72,12 @@ def gen1(r1_fq, r2_fq, i1_fq, i2_fq, output_dir, schema, threads, snakemake, ski
     validate_demuxschema(schema)
     os.makedirs(f"{workflowdir}", exist_ok=True)
     fetch_rule(workflowdir, "demultiplex_gen1.smk")
-        
+    os.makedirs(f"{output_dir}/logs/snakemake", exist_ok = True)
+    sm_log = snakemake_log(output_dir, "demultiplex_gen1")
+
     with open(f"{workflowdir}/config.yaml", "w", encoding= "utf-8") as config:
         config.write("workflow: demultiplex gen1\n")
+        config.write(f"snakemake_log: {sm_log}\n")
         config.write(f"output_directory: {output_dir}\n")
         config.write(f"skip_reports: {skipreports}\n")
         config.write(f"workflow_call: {command}\n")
@@ -89,12 +90,8 @@ def gen1(r1_fq, r2_fq, i1_fq, i2_fq, output_dir, schema, threads, snakemake, ski
     if config_only:
         sys.exit(0)
 
-    print_onstart(
-        f"Haplotag Type: Generation I\nDemultiplex Schema: {schema}\nOutput Directory: {output_dir}",
-        "demultiplex gen1"
-    )
     generate_conda_deps()
-    _module = subprocess.run(command.split())
-    sys.exit(_module.returncode)
+    start_text = f"Haplotag Type: Generation I\nDemultiplex Schema: {schema}\nOutput Directory: {output_dir}\nLog: {sm_log}"
+    launch_snakemake(command, "demultiplex_gen1", start_text, output_dir, sm_log)
 
 demultiplex.add_command(gen1)

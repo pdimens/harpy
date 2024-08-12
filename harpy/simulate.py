@@ -1,12 +1,11 @@
 """Harpy workflows to simulate genomic variants and linked-reads"""
 import os
 import sys
-import subprocess
 from pathlib import Path
 import rich_click as click
 from .conda_deps import generate_conda_deps
-from .helperfunctions import fetch_rule, fetch_script
-from .printfunctions import print_onstart, print_error
+from .helperfunctions import fetch_rule, fetch_script, snakemake_log, launch_snakemake
+from .printfunctions import print_error
 from .validations import validate_input_by_ext, check_fasta
 
 @click.group(options_metavar='', context_settings={"help_option_names" : ["-h", "--help"]})
@@ -152,9 +151,12 @@ def linkedreads(genome_hap1, genome_hap2, output_dir, outer_distance, mutation_r
     os.makedirs(f"{workflowdir}/", exist_ok= True)
     fetch_rule(workflowdir, "simulate_linkedreads.smk")
     fetch_script(workflowdir, "LRSIM_harpy.pl")
+    os.makedirs(f"{output_dir}/logs/snakemake", exist_ok = True)
+    sm_log = snakemake_log(output_dir, "simulate_linkedreads")
 
     with open(f"{workflowdir}/config.yaml", "w", encoding="utf-8") as config:
         config.write("workflow: simulate linkedreads\n")
+        config.write(f"snakemake_log: {sm_log}\n")
         config.write(f"output_directory: {output_dir}\n")
         if barcodes:
             config.write(f"barcodes: {Path(barcodes).resolve()}\n")
@@ -172,15 +174,12 @@ def linkedreads(genome_hap1, genome_hap2, output_dir, outer_distance, mutation_r
     if config_only:
         sys.exit(0)
 
-    onstart_text = f"Genome Haplotype 1: {os.path.basename(genome_hap1)}\n"
-    onstart_text += f"Genome Haplotype 2: {os.path.basename(genome_hap2)}\n"
-    onstart_text += f"Barcodes: {os.path.basename(barcodes)}\n" if barcodes else "Barcodes: 10X Default\n"
-    onstart_text += f"Output Directory: {output_dir}/"
-    print_onstart(onstart_text, "simulate reads")
-    
     generate_conda_deps()
-    _module = subprocess.run(command.split())
-    sys.exit(_module.returncode)
+    start_text = f"Genome Haplotype 1: {os.path.basename(genome_hap1)}\n"
+    start_text += f"Genome Haplotype 2: {os.path.basename(genome_hap2)}\n"
+    start_text += f"Barcodes: {os.path.basename(barcodes)}\n" if barcodes else "Barcodes: 10X Default\n"
+    start_text += f"Output Directory: {output_dir}/"
+    launch_snakemake(command, "simulate_linkedreads", start_text, output_dir, sm_log)
 
 @click.command(no_args_is_help = True, epilog = "This workflow can be quite technical, please read the docs for more information: https://pdimens.github.io/harpy/modules/simulate/simulate-variants")
 @click.option('-s', '--snp-vcf', type=click.Path(exists=True, dir_okay=False, readable=True), help = 'VCF file of known snps to simulate')
@@ -242,30 +241,34 @@ def snpindel(genome, snp_vcf, indel_vcf, output_dir, prefix, snp_count, indel_co
     # move necessary files to workflow dir
     os.makedirs(f"{workflowdir}/input/", exist_ok= True)   
     check_fasta(genome)
-    printmsg = f"Inpute Genome: {os.path.basename(genome)}\nOutput Directory: {output_dir}/\n"
+    start_text = f"Inpute Genome: {os.path.basename(genome)}\nOutput Directory: {output_dir}/\n"
     if snp_vcf:
         validate_input_by_ext(snp_vcf, "--snp-vcf", ["vcf","vcf.gz","bcf"])
-        printmsg += f"SNPs: from vcf ({os.path.basename(snp_vcf)})\n"
+        start_text += f"SNPs: from vcf ({os.path.basename(snp_vcf)})\n"
     elif snp_count > 0:
-        printmsg += "SNPs: random\n"
+        start_text += "SNPs: random\n"
     if indel_vcf:
         validate_input_by_ext(indel_vcf, "--indel-vcf", ["vcf","vcf.gz","bcf"])
-        printmsg += f"Indels: from vcf: ({os.path.basename(indel_vcf)})\n"
+        start_text += f"Indels: from vcf: ({os.path.basename(indel_vcf)})\n"
     elif indel_count > 0:
-        printmsg += "Indels: random\n"
+        start_text += "Indels: random\n"
     if centromeres:
         validate_input_by_ext(centromeres, "--centromeres", [".gff",".gff3",".gff.gz", ".gff3.gz"])
-        printmsg += f"Centromere GFF: {os.path.basename(centromeres)}\n"
+        start_text += f"Centromere GFF: {os.path.basename(centromeres)}\n"
     if genes:
         validate_input_by_ext(genes, "--genes", [".gff",".gff3",".gff.gz", ".gff3.gz"])
-        printmsg += f"Genes GFF: {os.path.basename(genes)}\n"
+        start_text += f"Genes GFF: {os.path.basename(genes)}\n"
     if exclude_chr:
-        printmsg += f"Excluded Chromosomes: {os.path.basename(exclude_chr)}\n"
+        start_text += f"Excluded Chromosomes: {os.path.basename(exclude_chr)}\n"
     fetch_rule(workflowdir, "simulate_snpindel.smk")
     fetch_script(workflowdir, "simuG.pl")
+    os.makedirs(f"{output_dir}/logs/snakemake", exist_ok = True)
+    sm_log = snakemake_log(output_dir, "simulate_snpindel")
+
     # setup the config file depending on inputs
     with open(f"{workflowdir}/config.yaml", "w", encoding="utf-8") as config:
         config.write("workflow: simulate snpindel\n")
+        config.write(f"snakemake_log: {sm_log}\n")
         config.write(f"output_directory: {output_dir}\n")
         config.write(f"prefix: {prefix}\n")
         config.write(f"heterozygosity: {heterozygosity}\n")
@@ -292,10 +295,9 @@ def snpindel(genome, snp_vcf, indel_vcf, output_dir, prefix, snp_count, indel_co
     if config_only:
         sys.exit(0)
 
-    print_onstart(printmsg.rstrip("\n"), "simulate variants: snpindel")
     generate_conda_deps()
-    _module = subprocess.run(command.split())
-    sys.exit(_module.returncode)
+    launch_snakemake(command, "simulate_snpindel", start_text.rstrip("\n"), output_dir, sm_log)
+
 
 @click.command(no_args_is_help = True, epilog = "Please See the documentation for more information: https://pdimens.github.io/harpy/modules/simulate/simulate-variants")
 @click.option('-v', '--vcf', type=click.Path(exists=True, dir_okay=False, readable=True), help = 'VCF file of known inversions to simulate')
@@ -344,27 +346,30 @@ def inversion(genome, vcf, prefix, output_dir, count, min_size, max_size, centro
     # move necessary files to workflow dir
     os.makedirs(f"{workflowdir}/input/", exist_ok= True)
     check_fasta(genome)
-    printmsg = f"Inpute Genome: {os.path.basename(genome)}\nOutput Directory: {output_dir}/\n"
+    start_text = f"Inpute Genome: {os.path.basename(genome)}\nOutput Directory: {output_dir}/\n"
 
     if vcf:
         validate_input_by_ext(vcf, "--vcf", ["vcf","vcf.gz","bcf"])
-        printmsg += f"Input VCF: {os.path.basename(vcf)}\n"
+        start_text += f"Input VCF: {os.path.basename(vcf)}\n"
     else:
-        printmsg += "Mode: Random variants\n"
+        start_text += "Mode: Random variants\n"
     if centromeres:
         validate_input_by_ext(centromeres, "--centromeres", [".gff",".gff3",".gff.gz", ".gff3.gz"])
-        printmsg += f"Centromere GFF: {os.path.basename(centromeres)}\n"
+        start_text += f"Centromere GFF: {os.path.basename(centromeres)}\n"
     if genes:
         validate_input_by_ext(genes, "--genes", [".gff",".gff3",".gff.gz", ".gff3.gz"])
-        printmsg += f"Genes GFF: {os.path.basename(genes)}\n"
+        start_text += f"Genes GFF: {os.path.basename(genes)}\n"
     if exclude_chr:
-        printmsg += f"Excluded Chromosomes: {os.path.basename(exclude_chr)}\n"
+        start_text += f"Excluded Chromosomes: {os.path.basename(exclude_chr)}\n"
     fetch_rule(workflowdir, "simulate_variants.smk")
     fetch_script(workflowdir, "simuG.pl")
+    os.makedirs(f"{output_dir}/logs/snakemake", exist_ok = True)
+    sm_log = snakemake_log(output_dir, "simulate_inversion")
 
     # setup the config file depending on inputs
     with open(f"{workflowdir}/config.yaml", "w", encoding="utf-8") as config:
         config.write("workflow: simulate inversion\n")
+        config.write(f"snakemake_log: {sm_log}\n")
         config.write(f"output_directory: {output_dir}\n")
         config.write("variant_type: inversion\n")
         config.write(f"prefix: {prefix}\n")
@@ -386,10 +391,9 @@ def inversion(genome, vcf, prefix, output_dir, count, min_size, max_size, centro
     if config_only:
         sys.exit(0)
 
-    print_onstart(printmsg.rstrip("\n"), "simulate variants: inversion")
     generate_conda_deps()
-    _module = subprocess.run(command.split())
-    sys.exit(_module.returncode)
+    launch_snakemake(command, "simulate_inversion", start_text.rstrip("\n"), output_dir, sm_log)
+
 
 @click.command(no_args_is_help = True, epilog = "Please See the documentation for more information: https://pdimens.github.io/harpy/modules/simulate/simulate-variants")
 @click.option('-v', '--vcf', type=click.Path(exists=True, dir_okay=False, readable=True), help = 'VCF file of known copy number variants to simulate')
@@ -447,26 +451,30 @@ def cnv(genome, output_dir, vcf, prefix, count, min_size, max_size, dup_ratio, m
     # move necessary files to workflow dir
     os.makedirs(f"{workflowdir}/input/", exist_ok= True)
     check_fasta(genome)
-    printmsg = f"Inpute Genome: {os.path.basename(genome)}\nOutput Directory: {output_dir}/\n"
+    start_text = f"Inpute Genome: {os.path.basename(genome)}\nOutput Directory: {output_dir}/\n"
 
     if vcf:
         validate_input_by_ext(vcf, "--vcf", ["vcf","vcf.gz","bcf"])
-        printmsg += f"Input VCF: {os.path.basename(vcf)}\n"
+        start_text += f"Input VCF: {os.path.basename(vcf)}\n"
     else:
-        printmsg += "Mode: Random variants\n"
+        start_text += "Mode: Random variants\n"
     if centromeres:
         validate_input_by_ext(centromeres, "--centromeres", [".gff",".gff3",".gff.gz", ".gff3.gz"])
-        printmsg += f"Centromere GFF: {os.path.basename(centromeres)}\n"
+        start_text += f"Centromere GFF: {os.path.basename(centromeres)}\n"
     if genes:
         validate_input_by_ext(genes, "--genes", [".gff",".gff3",".gff.gz", ".gff3.gz"])
-        printmsg += f"Genes GFF: {os.path.basename(genes)}\n"
+        start_text += f"Genes GFF: {os.path.basename(genes)}\n"
     if exclude_chr:
-        printmsg += f"Excluded Chromosomes: {os.path.basename(exclude_chr)}\n"
+        start_text += f"Excluded Chromosomes: {os.path.basename(exclude_chr)}\n"
     fetch_rule(workflowdir, "simulate_variants.smk")
     fetch_script(workflowdir, "simuG.pl")
+    os.makedirs(f"{output_dir}/logs/snakemake", exist_ok = True)
+    sm_log = snakemake_log(output_dir, "simulate_cnv")
+
     # setup the config file depending on inputs
     with open(f"{workflowdir}/config.yaml", "w", encoding="utf-8") as config:
         config.write("workflow: simulate cnv\n")
+        config.write(f"snakemake_log: {sm_log}\n")
         config.write(f"output_directory: {output_dir}\n")
         config.write("variant_type: cnv\n")
         config.write(f"prefix: {prefix}\n")
@@ -491,10 +499,8 @@ def cnv(genome, output_dir, vcf, prefix, count, min_size, max_size, dup_ratio, m
     if config_only:
         sys.exit(0)
 
-    print_onstart(printmsg.rstrip("\n"),"simulate cnv")
     generate_conda_deps()
-    _module = subprocess.run(command.split())
-    sys.exit(_module.returncode)
+    launch_snakemake(command, "simulate_cnv", start_text.rstrip("\n"), output_dir, sm_log)
 
 @click.command(no_args_is_help = True, epilog = "Please See the documentation for more information: https://pdimens.github.io/harpy/modules/simulate/simulate-variants")
 @click.option('-v', '--vcf', type=click.Path(exists=True, dir_okay=False, readable=True), help = 'VCF file of known translocations to simulate')
@@ -541,27 +547,31 @@ def translocation(genome, output_dir, prefix, vcf, count, centromeres, genes, he
     # move necessary files to workflow dir
     os.makedirs(f"{workflowdir}/input/", exist_ok= True)
     check_fasta(genome)
-    printmsg = f"Inpute Genome: {os.path.basename(genome)}\nOutput Directory: {output_dir}/\n"
+    start_text = f"Inpute Genome: {os.path.basename(genome)}\nOutput Directory: {output_dir}/\n"
     
     if vcf:
         validate_input_by_ext(vcf, "--vcf", ["vcf","vcf.gz","bcf"])
-        printmsg += f"Input VCF: {os.path.basename(vcf)}\n"
+        start_text += f"Input VCF: {os.path.basename(vcf)}\n"
     else:
-        printmsg += "Mode: Random variants\n"
+        start_text += "Mode: Random variants\n"
     if centromeres:
         validate_input_by_ext(centromeres, "--centromeres", [".gff",".gff3",".gff.gz", ".gff3.gz"])
-        printmsg += f"Centromere GFF: {os.path.basename(centromeres)}\n"
+        start_text += f"Centromere GFF: {os.path.basename(centromeres)}\n"
     if genes:
         validate_input_by_ext(genes, "--genes", [".gff",".gff3",".gff.gz", ".gff3.gz"])
-        printmsg += f"Genes GFF: {os.path.basename(genes)}\n"
+        start_text += f"Genes GFF: {os.path.basename(genes)}\n"
     if exclude_chr:
-        printmsg += f"Excluded Chromosomes: {os.path.basename(exclude_chr)}\n"
+        start_text += f"Excluded Chromosomes: {os.path.basename(exclude_chr)}\n"
 
     fetch_rule(workflowdir, "simulate_variants.smk")
     fetch_script(workflowdir, "simuG.pl")
+    os.makedirs(f"{output_dir}/logs/snakemake", exist_ok = True)
+    sm_log = snakemake_log(output_dir, "simulate_translocation")
+
     # setup the config file depending on inputs
     with open(f"{workflowdir}/config.yaml", "w", encoding="utf-8") as config:
         config.write("workflow: simulate translocation\n")
+        config.write(f"snakemake_log: {sm_log}\n")
         config.write(f"output_directory: {output_dir}\n")
         config.write("variant_type: translocation\n")
         config.write(f"prefix: {prefix}\n")
@@ -581,11 +591,8 @@ def translocation(genome, output_dir, prefix, vcf, count, centromeres, genes, he
     if config_only:
         sys.exit(0)
 
-    print_onstart(printmsg.rstrip("\n"), "simulate variants: translocation")
     generate_conda_deps()
-    _module = subprocess.run(command.split())
-    sys.exit(_module.returncode)
-
+    launch_snakemake(command, "simulate_translocation", start_text.rstrip("\n"), output_dir, sm_log)
 
 simulate.add_command(linkedreads)
 simulate.add_command(snpindel)

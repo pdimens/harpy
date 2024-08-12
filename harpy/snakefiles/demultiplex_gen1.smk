@@ -50,7 +50,7 @@ onerror:
     print("")
     rprint(
         Panel(
-            f"The workflow has terminated due to an error. See the log file for more details:\n[bold]{outdir}/logs/snakemake/{dt_string}.snakelog[/bold]",
+            f"The workflow has terminated due to an error. See the log file for more details:\n[bold]{logfile}[/bold]",
             title = "[bold]harpy demultiplex",
             title_align = "left",
             border_style = "red"
