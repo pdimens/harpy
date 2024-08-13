@@ -155,9 +155,6 @@ def launch_snakemake(sm_args, workflow, starttext, outdir, sm_logfile, quiet):
                             process.stderr.readline()
                             process.stderr.readline()
                             break
-            if process.poll() == 1:
-                print_error("There is an error in the Snakefile. Try running the Snakefile independently to diagnose it. If you did not edit the Snakefile manually, it's probably a bug! Please submit an issue on GitHub: [bold]https://github.com/pdimens/harpy/issues")
-                sys.exit(1)
             job_inventory = {}
             task_ids = {"total_progress" : progress.add_task("[bold blue]Total", total=100)}
             # process the job summary
