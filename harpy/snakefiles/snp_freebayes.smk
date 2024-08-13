@@ -126,7 +126,7 @@ rule call_variants:
     shell:
         "freebayes -f {input.ref} -L {input.samples} {params} > {output}"
 
-rule sort_variants:
+rule sort_sample_variants:
     input:
         outdir + "/regions/{part}.vcf"
     output:
@@ -162,7 +162,7 @@ rule concat_variants:
     shell:  
         "bcftools concat -f {input.filelist} --threads {threads} --naive -Ob -o {output} 2> {log}"
 
-rule sort_variants:
+rule sort_all_variants:
     input:
         outdir + "/variants.raw.unsort.bcf"
     output:

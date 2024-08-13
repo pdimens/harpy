@@ -13,22 +13,17 @@ gen_hap2 = config["inputs"]["genome_hap2"]
 envdir   = os.getcwd() + "/.harpy_envs"
 snakemake_log = config["snakemake_log"]
 barcodes = config.get("barcodes", None)
-if barcodes:
-    barcodefile = barcodes
-else:
-    barcodefile = f"{outdir}/workflow/input/4M-with-alts-february-2016.txt"
+barcodefile = barcodes if barcodes else f"{outdir}/workflow/input/4M-with-alts-february-2016.txt"
 
 onstart:
     extra_logfile_handler = pylogging.FileHandler(snakemake_log)
     logger.logger.addHandler(extra_logfile_handler)
 
-rule link_geno_1:
+rule link_1st_geno:
     input:
         gen_hap1
     output: 
         f"{outdir}/workflow/input/hap.0.fasta"
-    message: 
-        "Decompressing {input}" if gen_hap1.lower().endswith("gz") else "Symlinking {input}"
     run:
         if input[0].lower().endswith("gz"):
             with open(input[0], 'rb') as inf, open(output[0], 'w', encoding='utf8') as outf:
@@ -38,7 +33,7 @@ rule link_geno_1:
             if not (Path(output[0]).is_symlink() or Path(output[0]).exists()):
                 Path(output[0]).symlink_to(Path(input[0]).resolve()) 
 
-use rule link_geno_1 as link_geno_2 with:
+use rule link_1st_geno as link_2nd_geno with:
     input:
         gen_hap2
     output: 
@@ -82,7 +77,7 @@ rule create_reads:
         dwgsim -N {params.readpairs} -e 0.0001,0.0016 -E 0.0001,0.0016 -d {params.outerdist} -s {params.distsd} -1 135 -2 151 -H -y 0 -S 0 -c 0 -R 0 -r {params.mutationrate} -F 0 -o 1 -m /dev/null {input} {params.prefix} 2> {log}
         """
 
-rule interleave:
+rule interleave_dwgsim:
     input:
         collect(outdir + "/dwgsim_simulated/dwgsim.{{hap}}.12.bwa.read{rd}.fastq.gz", rd = [1,2]) 
     output:
@@ -152,7 +147,7 @@ rule extract_reads:
     shell:
         "extractReads {input} {params} 2> {log}"
 
-rule 10X_to_haplotag:
+rule convert_to_haplotag:
     input:
         fw = outdir + "/10X/sim_hap{hap}_10x_R1_001.fastq.gz",
         rv = outdir + "/10X/sim_hap{hap}_10x_R2_001.fastq.gz",
