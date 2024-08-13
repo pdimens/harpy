@@ -92,7 +92,7 @@ def snakemake_log(outdir, workflow):
 
 def launch_snakemake(sm_args, workflow, starttext, outdir, sm_logfile, quiet):
     """launch snakemake with the given commands"""
-    print_onstart(starttext, workflow)
+    print_onstart(starttext, workflow.replace("_", " "))
     try:
         with Progress(
             TextColumn("[progress.description]{task.description}"),
@@ -106,7 +106,7 @@ def launch_snakemake(sm_args, workflow, starttext, outdir, sm_logfile, quiet):
             # Start a subprocess
             process = subprocess.Popen(sm_args.split(), stdout=subprocess.PIPE, stderr=subprocess.PIPE, text = True)
             err = False
-            deps = False            
+            deps = False
             # read up to the job summary, but break early if dependency text appears
             while True:
                 output = process.stderr.readline()
