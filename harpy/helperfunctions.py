@@ -84,11 +84,11 @@ def biallelic_contigs(vcf, workdir):
 
 def snakemake_log(outdir, workflow):
     """Return a snakemake logfile name. Iterates logfile run number if one exists."""
-    attempts = glob.glob(f"{outdir}/logs/snakemake/*.snakelog")
+    attempts = glob.glob(f"{outdir}/logs/snakemake/*.log")
     if not attempts:
-        return f"{outdir}/logs/snakemake/{workflow}.run1." + datetime.now().strftime("%d_%m_%Y") + ".snakelog"
+        return f"{outdir}/logs/snakemake/{workflow}.run1." + datetime.now().strftime("%d_%m_%Y") + ".log"
     increment = sorted([int(i.split(".")[1].replace("run","")) for i in attempts])[-1] + 1
-    return f"{outdir}/logs/snakemake/{workflow}.run{increment}." + datetime.now().strftime("%d_%m_%Y") + ".snakelog"
+    return f"{outdir}/logs/snakemake/{workflow}.run{increment}." + datetime.now().strftime("%d_%m_%Y") + ".log"
 
 def launch_snakemake(sm_args, workflow, starttext, outdir, sm_logfile, quiet):
     """launch snakemake with the given commands"""
@@ -110,11 +110,20 @@ def launch_snakemake(sm_args, workflow, starttext, outdir, sm_logfile, quiet):
             # read up to the job summary, but break early if dependency text appears
             while True:
                 output = process.stderr.readline()
-                if output == '' and process.poll() is not None:
+                return_code = process.poll()
+                if return_code == 1:
+                    print_error("There is an error in the Snakefile. Try running the Snakefile independently to diagnose it. If you did not edit the Snakefile manually, it's probably a bug! Please submit an issue on GitHub: [bold]https://github.com/pdimens/harpy/issues")
+                    sys.exit(1)
+                if output == '' and return_code is not None:
                     break
                 # print dependency text only once
                 if "Downloading and installing remote packages" in output:
                     deps = True
+                    deploy_text = "[magenta]Downloading and installing workflow dependencies"
+                    break
+                if "Pulling singularity image" in output:
+                    deps = True
+                    deploy_text = "[magenta]Downloading software container"
                     break
                 if output.startswith("Job stats:"):
                     # read and ignore the next two lines
@@ -125,7 +134,7 @@ def launch_snakemake(sm_args, workflow, starttext, outdir, sm_logfile, quiet):
             if deps:
                 if not quiet:
                     console = Console()
-                    with console.status("[magenta]Downloading and installing workflow dependencies", spinner = "point") as status:
+                    with console.status(deploy_text, spinner = "point") as status:
                         while True:
                             output = process.stderr.readline()
                             if output == '' and process.poll() is not None:
@@ -146,7 +155,9 @@ def launch_snakemake(sm_args, workflow, starttext, outdir, sm_logfile, quiet):
                             process.stderr.readline()
                             process.stderr.readline()
                             break
-
+            if process.poll() == 1:
+                print_error("There is an error in the Snakefile. Try running the Snakefile independently to diagnose it. If you did not edit the Snakefile manually, it's probably a bug! Please submit an issue on GitHub: [bold]https://github.com/pdimens/harpy/issues")
+                sys.exit(1)
             job_inventory = {}
             task_ids = {"total_progress" : progress.add_task("[bold blue]Total", total=100)}
             # process the job summary
