@@ -54,7 +54,7 @@ def get_fq(wildcards):
     r = re.compile(fr".*/({re.escape(wildcards.sample)}){bn_r}", flags = re.IGNORECASE)
     return sorted(list(filter(r.match, fqlist))[:2])
 
-rule genome_setup:
+rule setup_genome:
     input:
         genomefile
     output: 
@@ -73,7 +73,7 @@ rule genome_setup:
         fi
         """
 
-rule genome_faidx:
+rule faidx_genome:
     input: 
         f"Genome/{bn}"
     output: 

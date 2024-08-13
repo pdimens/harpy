@@ -62,8 +62,6 @@ def fastq(inputs, output_dir, threads, snakemake, quiet, hpc, conda, config_only
     command += f"--configfile {workflowdir}/config.yaml "
     if hpc:
         command += f"--workflow-profile {hpc} "
-    if quiet:
-        command += "--quiet all "
     if snakemake is not None:
         command += snakemake
 
@@ -87,7 +85,7 @@ def fastq(inputs, output_dir, threads, snakemake, quiet, hpc, conda, config_only
 
     generate_conda_deps()
     start_text = f"Files: {n}\nOutput Directory: {output_dir}/\nLog: {sm_log}"
-    launch_snakemake(command, "preflight_fastq", start_text, output_dir, sm_log)
+    launch_snakemake(command, "preflight_fastq", start_text, output_dir, sm_log, quiet)
 
 @click.command(no_args_is_help = True, epilog = "See the documentation for more information: https://pdimens.github.io/harpy/modules/preflight/")
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(min = 1, max_open = True), help = 'Number of threads to use')
@@ -118,8 +116,6 @@ def bam(inputs, output_dir, threads, snakemake, quiet, hpc, conda, config_only):
     command += f"--configfile {workflowdir}/config.yaml "
     if hpc:
         command += f"--workflow-profile {hpc} "
-    if quiet:
-        command += "--quiet all "
     if snakemake is not None:
         command += snakemake
 
@@ -143,7 +139,7 @@ def bam(inputs, output_dir, threads, snakemake, quiet, hpc, conda, config_only):
 
     generate_conda_deps()
     start_text = f"Samples: {n}\nOutput Directory: {output_dir}/\nLog: {sm_log}"
-    launch_snakemake(command, "preflight_bam", start_text, output_dir, sm_log)
+    launch_snakemake(command, "preflight_bam", start_text, output_dir, sm_log, quiet)
 
 preflight.add_command(fastq)
 preflight.add_command(bam)

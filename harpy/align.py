@@ -94,8 +94,6 @@ def bwa(inputs, output_dir, genome, depth_window, threads, keep_unmapped, extra_
     command += f"--configfile {workflowdir}/config.yaml "
     if hpc:
         command += f"--workflow-profile {hpc} "
-    if quiet:
-        command += "--quiet all "
     if snakemake is not None:
         command += snakemake
 
@@ -131,7 +129,7 @@ def bwa(inputs, output_dir, genome, depth_window, threads, keep_unmapped, extra_
 
     generate_conda_deps()
     start_text =  f"Samples: {sample_count}\nOutput Directory: {output_dir}\nLog: {sm_log}"
-    launch_snakemake(command, "align_bwa", start_text, output_dir, sm_log)
+    launch_snakemake(command, "align_bwa", start_text, output_dir, sm_log, quiet)
 
 @click.command(no_args_is_help = True, epilog = "See the documentation for more information: https://pdimens.github.io/harpy/modules/align/ema")
 @click.option('-x', '--extra-params', type = str, help = 'Additional ema align parameters, in quotes')
@@ -172,8 +170,6 @@ def ema(inputs, output_dir, platform, whitelist, genome, depth_window, keep_unma
     command += f"--configfile {workflowdir}/config.yaml "
     if hpc:
         command += f"--workflow-profile {hpc} "
-    if quiet:
-        command += "--quiet all "
     if snakemake is not None:
         command += snakemake
 
@@ -225,7 +221,7 @@ def ema(inputs, output_dir, platform, whitelist, genome, depth_window, keep_unma
 
     generate_conda_deps()
     start_text = f"Samples: {sample_count}\nPlatform: {platform}\nOutput Directory: {output_dir}/\nLog: {sm_log}"
-    launch_snakemake(command, "align_ema", start_text, output_dir, sm_log)
+    launch_snakemake(command, "align_ema", start_text, output_dir, sm_log, quiet)
 
 @click.command(no_args_is_help = True, epilog= "See the documentation for more information: https://pdimens.github.io/harpy/modules/align/minimap/")
 @click.option('-g', '--genome', type=click.Path(exists=True, dir_okay=False, readable=True), required = True, help = 'Genome assembly for read mapping')
@@ -266,10 +262,8 @@ def strobe(inputs, output_dir, genome, read_length, keep_unmapped, depth_window,
     command += f"--configfile {workflowdir}/config.yaml "
     if hpc:
         command += f"--workflow-profile {hpc} "
-    if quiet:
-        command += "--quiet all "
     if snakemake is not None:
-        command +=  snakemake
+        command += snakemake
 
     os.makedirs(f"{workflowdir}/", exist_ok= True)
     fqlist, sample_count = parse_fastq_inputs(inputs)
@@ -305,7 +299,7 @@ def strobe(inputs, output_dir, genome, read_length, keep_unmapped, depth_window,
 
     generate_conda_deps()
     start_text =  f"Samples: {sample_count}\nOutput Directory: {output_dir}\nLog: {sm_log}"
-    launch_snakemake(command, "align_strobe", start_text, output_dir, sm_log)
+    launch_snakemake(command, "align_strobe", start_text, output_dir, sm_log, quiet)
 
 align.add_command(bwa)
 align.add_command(ema)

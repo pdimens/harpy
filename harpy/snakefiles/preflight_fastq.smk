@@ -38,8 +38,6 @@ rule check_forward:
         temp(outdir + "/{sample}.F.log")
     container:
         None
-    message:
-        "Processing forward reads: {wildcards.sample}"
     shell: 
         "check_fastq.py {input} > {output}"
 
@@ -48,14 +46,12 @@ rule check_reverse:
         get_fq2
     output:
         temp(outdir + "/{sample}.R.log")
-    message:
-        "Processing reverse reads: {wildcards.sample}"
     container:
         None
     shell: 
         "check_fastq.py {input} > {output}"
 
-rule merge_checks:
+rule concat_results:
     input:
         collect(outdir + "/{sample}.{FR}.log", sample = samplenames, FR = ["F","R"])
     output:
@@ -63,8 +59,6 @@ rule merge_checks:
         final = outdir + "/filecheck.fastq.tsv"
     container:
         None
-    message:
-        "Concatenating results"
     shell:
         """
         cat {input} | sort -k1 > {output.tmp}
@@ -78,8 +72,6 @@ rule create_report:
         outdir + "/filecheck.fastq.html"
     conda:
         f"{envdir}/r.yaml"
-    message:
-        "Producing report"
     script:
         "report/preflight_fastq.Rmd"
 

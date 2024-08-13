@@ -43,8 +43,6 @@ rule sort_bcf:
         f"{outdir}/workflow/input/vcf/input.sorted.log"
     container:
         None
-    message:
-        "Sorting input variant call file"
     shell:
         "bcftools sort -Ob --write-index -o {output.bcf} {input} 2> {log}"
 
@@ -56,8 +54,6 @@ rule index_alignments:
         [f"{i}.bai" for i in bamlist]
     threads:
         workflow.cores
-    message:
-        "Indexing alignment files"
     run:
         with multiprocessing.Pool(processes=threads) as pool:
             pool.map(sam_index, input)
@@ -68,13 +64,11 @@ rule alignment_list:
         bailist = [f"{i}.bai" for i in bamlist]
     output:
         outdir + "/workflow/input/samples.list"
-    message:
-        "Creating list of alignment files"
     run:
         with open(output[0], "w") as fout:
             _ = [fout.write(f"{bamfile}\n") for bamfile in input["bam"]]
 
-rule convert_stitch:
+rule stitch_conversion:
     input:
         bcf = f"{outdir}/workflow/input/vcf/input.sorted.bcf",
         idx = f"{outdir}/workflow/input/vcf/input.sorted.bcf.csi"
@@ -84,8 +78,6 @@ rule convert_stitch:
         3
     container:
         None
-    message:
-        "Converting data to biallelic STITCH format: {wildcards.part}"
     shell:
         """
         bcftools view --types snps -M2 --regions {wildcards.part} {input.bcf} |
@@ -113,8 +105,6 @@ rule impute:
         f".Benchmark/{outdir}/stitch.{paramspace.wildcard_pattern}" + ".{part}.txt"
     threads:
         workflow.cores
-    message: 
-        "Imputing {wildcards.part}:\nmodel: {wildcards.model}, useBX: {wildcards.usebx}, k: {wildcards.k}, bxLimit: {wildcards.bxlimit}, s: {wildcards.s}, nGen: {wildcards.ngen}"
     script:
         "scripts/stitch_impute.R"
 
@@ -126,27 +116,23 @@ rule index_vcf:
         stats = outdir + "/{stitchparams}/contigs/{part}/{part}.stats"
     container:
         None
-    message:
-        "Indexing: {wildcards.stitchparams}/{wildcards.part}"
     shell:
         """
         tabix {input.vcf}
         bcftools stats -s "-" {input.vcf} > {output.stats}
         """
 
-rule collate_stitch_reports:
+rule stitch_reports:
     input:
         outdir + "/{stitchparams}/contigs/{part}/{part}.stats"
     output:
         outdir + "/{stitchparams}/contigs/{part}/{part}.STITCH.html"
-    message:
-        "Generating STITCH report: {wildcards.part}"
     conda:
         f"{envdir}/r.yaml"
     script:
         "report/stitch_collate.Rmd"
 
-rule clean_stitch_plots:
+rule clean_plots:
     input:
         outdir + "/{stitchparams}/contigs/{part}/{part}.STITCH.html"
     output:
@@ -158,8 +144,6 @@ rule clean_stitch_plots:
         None
     priority:
         2
-    message:
-        "Cleaning up {wildcards.stitchparams}: {wildcards.part}"
     shell: 
         "rm -rf {params.outdir}/{params.stitch}/contigs/{wildcards.part}/plots"
 
@@ -168,13 +152,11 @@ rule concat_list:
         bcf = collect(outdir + "/{{stitchparams}}/contigs/{part}/{part}.vcf.gz", part = contigs)
     output:
         temp(outdir + "/{stitchparams}/bcf.files")
-    message:
-        "Creating list vcf files for concatenation"
     run:
         with open(output[0], "w") as fout:
             _ = fout.write("\n".join(input.bcf))
 
-rule merge_vcfs:
+rule merge_vcf:
     input:
         files = outdir + "/{stitchparams}/bcf.files",
         idx   = collect(outdir + "/{{stitchparams}}/contigs/{part}/{part}.vcf.gz.tbi", part = contigs)
@@ -184,8 +166,6 @@ rule merge_vcfs:
         workflow.cores
     container:
         None
-    message:
-        "Merging VCFs: {wildcards.stitchparams}"
     shell:
         "bcftools concat --threads {threads} -O b -o {output} -f {input.files} 2> /dev/null"
 
@@ -196,12 +176,10 @@ rule index_merged:
         outdir + "/{stitchparams}/variants.imputed.bcf.csi"
     container:
         None
-    message:
-        "Indexing resulting file: {output}"
     shell:
         "bcftools index {input}"
 
-rule stats:
+rule general_stats:
     input:
         bcf = outdir + "/{stitchparams}/variants.imputed.bcf",
         idx = outdir + "/{stitchparams}/variants.imputed.bcf.csi"
@@ -209,8 +187,6 @@ rule stats:
         outdir + "/{stitchparams}/reports/variants.imputed.stats"
     container:
         None
-    message:
-        "Calculating stats: {wildcards.stitchparams}/variants.imputed.bcf"
     shell:
         """
         bcftools stats -s "-" {input.bcf} > {output}
@@ -227,15 +203,13 @@ rule compare_stats:
         info_sc = temp(outdir + "/{stitchparams}/reports/data/impute.infoscore")
     container:
         None
-    message:
-        "Computing post-imputation stats: {wildcards.stitchparams}"
     shell:
         """
         bcftools stats -s "-" {input.orig} {input.impute} | grep \"GCTs\" > {output.compare}
         bcftools query -f '%CHROM\\t%POS\\t%INFO/INFO_SCORE\\n' {input.impute} > {output.info_sc}
         """
 
-rule imputation_results_reports:
+rule impute_reports:
     input: 
         outdir + "/{stitchparams}/reports/data/impute.compare.stats",
         outdir + "/{stitchparams}/reports/data/impute.infoscore"
@@ -245,8 +219,6 @@ rule imputation_results_reports:
         lambda wc: wc.get("stitchparams")
     conda:
         f"{envdir}/r.yaml"
-    message:
-        "Assessing imputation results: {output}"
     script:
         "report/impute.Rmd"
 

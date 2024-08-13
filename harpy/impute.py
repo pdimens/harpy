@@ -60,8 +60,6 @@ def impute(inputs, output_dir, parameters, threads, vcf, vcf_samples, extra_para
     command += f"--configfile {workflowdir}/config.yaml "
     if hpc:
         command += f"--workflow-profile {hpc} "
-    if quiet:
-        command += "--quiet all "
     if snakemake is not None:
         command += snakemake
 
@@ -101,4 +99,4 @@ def impute(inputs, output_dir, parameters, threads, vcf, vcf_samples, extra_para
 
     generate_conda_deps()
     start_text = f"Input VCF: {vcf}\nSamples in VCF: {len(samplenames)}\nAlignments Provided: {n}\nContigs with ≥2 Biallelic SNPs: {n_biallelic}\nOutput Directory: {output_dir}/\Snakemake Log: {sm_log}"
-    launch_snakemake(command, "impute", start_text, output_dir, sm_log)
+    launch_snakemake(command, "impute", start_text, output_dir, sm_log, quiet)

@@ -13,6 +13,7 @@ regiontype  = config["regiontype"]
 windowsize  = config.get("windowsize", None)
 outdir      = config["output_directory"]
 skipreports = config["skip_reports"]
+snakemake_log = config["snakemake_log"]
 bamlist     = config["inputs"]["alignments"]
 genomefile 	= config["inputs"]["genome"]
 bn          = os.path.basename(genomefile)
@@ -47,15 +48,13 @@ def sam_index(infile):
     if not os.path.exists(f"{infile}.bai"):
         subprocess.run(f"samtools index {infile} {infile}.bai".split())
 
-rule genome_setup:
+rule setup_genome:
     input:
         genomefile
     output: 
         f"Genome/{bn}"
     container:
         None
-    message:
-        "Symlinking {input}"
     shell: 
         """
         if (file {input} | grep -q compressed ) ;then
@@ -66,7 +65,7 @@ rule genome_setup:
         fi
         """
 
-rule genome_faidx:
+rule faidx_genome:
     input: 
         f"Genome/{bn}"
     output: 
@@ -78,8 +77,6 @@ rule genome_faidx:
         genome_zip
     container:
         None
-    message:
-        "Indexing {input}"
     shell: 
         """
         if [ "{params}" = "True" ]; then
@@ -89,13 +86,11 @@ rule genome_faidx:
         fi
         """
 
-rule copy_groupings:
+rule preproc_groups:
     input:
         groupings
     output:
         outdir + "/logs/sample.groups"
-    message:
-        "Logging {input}"
     run:
         with open(input[0], "r") as infile, open(output[0], "w") as outfile:
             _ = [outfile.write(i) for i in infile.readlines() if not i.lstrip().startswith("#")]
@@ -107,8 +102,6 @@ rule index_alignments:
         [f"{i}.bai" for i in bamlist]
     threads:
         workflow.cores
-    message:
-        "Indexing alignment files"
     run:
         with multiprocessing.Pool(processes=threads) as pool:
             pool.map(sam_index, input)
@@ -119,22 +112,10 @@ rule bam_list:
         bai = [f"{i}.bai" for i in bamlist]
     output:
         outdir + "/logs/samples.files"
-    message:
-        "Creating list of alignment files"
     run:
         with open(output[0], "w") as fout:
             for bamfile in input.bam:
                 _ = fout.write(bamfile + "\n")
-
-rule samplenames:
-    output:
-        outdir + "/logs/samples.names"
-    message:
-        "Creating list of sample names"
-    run:
-        with open(output[0], "w") as fout:
-            for samplename in samplenames:
-                _ = fout.write(samplename + "\n")		
 
 rule mpileup:
     input:
@@ -149,8 +130,6 @@ rule mpileup:
         extra = mp_extra
     container:
         None
-    message: 
-        "Finding variants: {wildcards.part}"
     shell:
         "bcftools mpileup --fasta-ref {input.genome} --bam-list {input.bamlist} --annotate AD --output-type b {params} > {output.bcf} 2> {output.logfile}"
 
@@ -168,8 +147,6 @@ rule call_genotypes:
         2
     container:
         None
-    message:
-        "Calling genotypes: {wildcards.part}"
     shell:
         """
         bcftools call --multiallelic-caller --variants-only --output-type b {params} {input} |
@@ -181,8 +158,6 @@ rule concat_list:
         bcfs = collect(outdir + "/call/{part}.bcf", part = intervals),
     output:
         outdir + "/logs/bcf.files"
-    message:
-        "Creating list of region-specific vcf files"
     run:
         with open(output[0], "w") as fout:
             for bcf in input.bcfs:
@@ -193,8 +168,6 @@ rule concat_logs:
         collect(outdir + "/logs/{part}.mpileup.log", part = intervals)
     output:
         outdir + "/logs/mpileup.log"
-    message:
-        "Combining mpileup logs"
     run:
         with open(output[0], "w") as fout:
             for file in input:
@@ -204,7 +177,7 @@ rule concat_logs:
                     fout.write(f"{interval}\t{line}")
                 fin.close()
 
-rule merge_vcfs:
+rule concat_variants:
     input:
         vcfs     = collect(outdir + "/call/{part}.{ext}", part = intervals, ext = ["bcf", "bcf.csi"]),
         filelist = outdir + "/logs/bcf.files"
@@ -216,12 +189,10 @@ rule merge_vcfs:
         workflow.cores
     container:
         None
-    message:
-        "Combining vcfs into a single file"
     shell:  
         "bcftools concat -f {input.filelist} --threads {threads} --naive -Ob -o {output} 2> {log}"
 
-rule sort_vcf:
+rule sort_variants:
     input:
         outdir + "/variants.raw.unsort.bcf"
     output:
@@ -229,33 +200,10 @@ rule sort_vcf:
         csi = outdir + "/variants.raw.bcf.csi"
     container:
         None
-    message:
-        "Sorting and indexing final variants"
     shell:
         "bcftools sort --write-index -Ob -o {output.bcf} {input} 2> /dev/null"
 
-#rule normalize_bcf:
-#    input: 
-#        genome  = f"Genome/{bn}",
-#        bcf     = outdir + "/variants.raw.bcf",
-#        samples = outdir + "/logs/samples.names"
-#    output:
-#        bcf     = outdir + "/variants.normalized.bcf",
-#        idx     = outdir + "/variants.normalized.bcf.csi"
-#    log:
-#        outdir + "/logs/normalize.log"
-#    threads:
-#        2
-#    message: 
-#        "Normalizing the called variants"
-#    shell:
-#        """
-#        bcftools norm -d exact -f {input.genome} {input.bcf} 2> {log}.tmp1 | 
-#            bcftools norm -m -any -N -Ob --write-index -o {output.bcf} 2> {log}.tmp2
-#        cat {log}.tmp1 {log}.tmp2 > {log} && rm {log}.tmp1 {log}.tmp2  
-#        """
-        
-rule variants_stats:
+rule general_stats:
     input:
         genome  = f"Genome/{bn}",
         bcf     = outdir + "/variants.{type}.bcf",
@@ -264,22 +212,18 @@ rule variants_stats:
         outdir + "/reports/data/variants.{type}.stats"
     container:
         None
-    message:
-        "Calculating variant stats: variants.{wildcards.type}.bcf"
     shell:
         """
         bcftools stats -s "-" --fasta-ref {input.genome} {input.bcf} > {output} 2> /dev/null
         """
 
-rule bcf_report:
+rule variant_report:
     input:
         outdir + "/reports/data/variants.{type}.stats"
     output:
         outdir + "/reports/variants.{type}.html"
     conda:
         f"{envdir}/r.yaml"
-    message:
-        "Generating bcftools report: variants.{wildcards.type}.bcf"
     script:
         "report/bcftools_stats.Rmd"
 

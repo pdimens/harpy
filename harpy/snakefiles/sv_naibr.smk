@@ -68,13 +68,11 @@ rule index_alignments:
         [f"{i}.bai" for i in bamlist]
     threads:
         workflow.cores
-    message:
-        "Indexing alignment files"
     run:
         with multiprocessing.Pool(processes=threads) as pool:
             pool.map(sam_index, input)
 
-rule create_config:
+rule naibr_config:
     input:
         get_alignments
     output:
@@ -82,8 +80,6 @@ rule create_config:
     params:
         lambda wc: wc.get("sample"),
         min(10, workflow.cores)
-    message:
-        "Creating naibr config file: {wildcards.sample}"
     run:
         argdict = process_args(extra)
         with open(output[0], "w") as conf:
@@ -94,7 +90,7 @@ rule create_config:
             for i in argdict:
                 _ = conf.write(f"{i}={argdict[i]}\n")
 
-rule call_sv:
+rule call_variants:
     input:
         bam   = get_alignments,
         bai   = get_align_index,
@@ -109,12 +105,10 @@ rule call_sv:
         10
     conda:
         f"{envdir}/sv.yaml"     
-    message:
-        "Calling variants: {wildcards.sample}"
     shell:
         "naibr {input.conf} > {log} 2>&1"
 
-rule infer_sv:
+rule infer_variants:
     input:
         bedpe = outdir + "/{sample}/{sample}.bedpe",
         refmt = outdir + "/{sample}/{sample}.reformat.bedpe",
@@ -128,8 +122,6 @@ rule infer_sv:
         outdir = lambda wc: outdir + "/" + wc.get("sample")
     container:
         None
-    message:
-        "Inferring variants from naibr output: {wildcards.sample}"
     shell:
         """
         infer_sv.py {input.bedpe} -f {output.fail} > {output.bedpe}
@@ -138,15 +130,13 @@ rule infer_sv:
         rm -rf {params.outdir}
         """
 
-rule merge_variants:
+rule aggregate_variants:
     input:
         collect(outdir + "/bedpe/{sample}.bedpe", sample = samplenames)
     output:
         outdir + "/inversions.bedpe",
         outdir + "/deletions.bedpe",
         outdir + "/duplications.bedpe"
-    message:
-        "Aggregating the detected variants"
     run:
         from pathlib import Path
         with open(output[0], "w") as inversions, open(output[1], "w") as deletions, open(output[2], "w") as duplications:
@@ -172,15 +162,13 @@ rule merge_variants:
                         elif record[-1] == "duplication":
                             _ = duplications.write(f"{samplename}\t{line}")
 
-rule genome_setup:
+rule setup_genome:
     input:
         genomefile
     output: 
         f"Genome/{bn}"
     container:
         None
-    message: 
-        "Symlinking {input}"
     shell: 
         """
         if (file {input} | grep -q compressed ) ;then
@@ -192,7 +180,7 @@ rule genome_setup:
         fi
         """
 
-rule genome_faidx:
+rule faidx_genome:
     input: 
         f"Genome/{bn}"
     output: 
@@ -204,8 +192,6 @@ rule genome_faidx:
         genome_zip
     container:
         None
-    message:
-        "Indexing {input}"
     shell: 
         """
         if [ "{params}" = "True" ]; then
@@ -215,7 +201,7 @@ rule genome_faidx:
         fi
         """
 
-rule create_report:
+rule sample_reports:
     input:
         bedpe = outdir + "/bedpe/{sample}.bedpe",
         fai   = f"Genome/{bn}.fai"
@@ -223,8 +209,6 @@ rule create_report:
         outdir + "/reports/{sample}.naibr.html"
     conda:
         f"{envdir}/r.yaml"
-    message:
-        "Creating report: {wildcards.sample}"
     script:
         "report/naibr.Rmd"
 

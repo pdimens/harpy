@@ -51,8 +51,6 @@ def deconvolve(inputs, output_dir, kmer_length, window_size, density, dropout, t
     command += f"--configfile {workflowdir}/config.yaml "
     if hpc:
         command += f"--workflow-profile {hpc} "
-    if quiet:
-        command += "--quiet all "
     if snakemake is not None:
         command += snakemake
 
@@ -79,4 +77,4 @@ def deconvolve(inputs, output_dir, kmer_length, window_size, density, dropout, t
 
     generate_conda_deps()
     start_text =  f"Samples: {sample_count}\nOutput Directory: {output_dir}/\nLog: {sm_log}"
-    launch_snakemake(command, "deconvolve", start_text, output_dir, sm_log)
+    launch_snakemake(command, "deconvolve", start_text, output_dir, sm_log, quiet)

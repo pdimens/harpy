@@ -45,8 +45,6 @@ rule index_alignments:
         [f"{i}.bai" for i in bamlist]
     threads:
         workflow.cores
-    message:
-        "Indexing alignment files"
     run:
         with multiprocessing.Pool(processes=threads) as pool:
             pool.map(sam_index, input)
@@ -59,12 +57,10 @@ rule check_bam:
         temp(outdir + "/{sample}.log")
     container:
         None
-    message:
-        "Processing: {wildcards.sample}"
     shell: 
         "check_bam.py {input.bam} > {output}"
 
-rule merge_checks:
+rule concat_results:
     input:
         collect(outdir + "/{sample}.log", sample = samplenames)
     output:
@@ -72,8 +68,6 @@ rule merge_checks:
         final = outdir + "/filecheck.bam.tsv"
     container:
         None
-    message:
-        "Concatenating results"
     shell:
         """
         cat {input} | sort -k1 > {output.tmp} 
@@ -87,8 +81,6 @@ rule create_report:
         outdir + "/filecheck.bam.html"
     conda:
         f"{envdir}/r.yaml"
-    message:
-        "Producing report"
     script:
         "report/preflight_bam.Rmd"
 

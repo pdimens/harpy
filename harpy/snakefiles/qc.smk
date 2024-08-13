@@ -43,16 +43,16 @@ def get_fq2(wildcards):
     return list(filter(r.match, fqlist))
 
 if not deconvolve:
-    rule qc_fastp:
+    rule fastp:
         input:
             fw   = get_fq1,
             rv   = get_fq2
         output:
             fw   = outdir + "/{sample}.R1.fq.gz",
             rv   = outdir + "/{sample}.R2.fq.gz",
+            html = outdir + "/reports/{sample}.html",
             json = outdir + "/reports/data/fastp/{sample}.fastp.json"
         log:
-            html = outdir + "/reports/{sample}.html",
             serr = outdir + "/logs/fastp/{sample}.log"
         params:
             minlen = f"--length_required {min_len}",
@@ -64,22 +64,20 @@ if not deconvolve:
             workflow.cores
         conda:
             f"{envdir}/qc.yaml"
-        message:
-            "Quality trimming" + (", removing adapters" if not trimadapters else "") + (", removing PCR duplicates" if dedup else "") + ": {wildcards.sample}"
         shell: 
             """
-            fastp --trim_poly_g --cut_right {params} --thread {threads} -i {input.fw} -I {input.rv} -o {output.fw} -O {output.rv} -h {log.html} -j {output.json} -R "{wildcards.sample} QC Report" 2> {log.serr}
+            fastp --trim_poly_g --cut_right {params} --thread {threads} -i {input.fw} -I {input.rv} -o {output.fw} -O {output.rv} -h {output.html} -j {output.json} -R "{wildcards.sample} QC Report" 2> {log.serr}
             """
 else:
-    rule qc_fastp:
+    rule fastp:
         input:
             fw   = get_fq1,
             rv   = get_fq2
         output:
             fq   = temp(outdir + "/fastp/{sample}.fastq"),
+            html = outdir + "/reports/{sample}.html",
             json = outdir + "/reports/data/fastp/{sample}.fastp.json"
         log:
-            html = outdir + "/reports/{sample}.html",
             serr = outdir + "/logs/fastp/{sample}.log"
         params:
             minlen = f"--length_required {min_len}",
@@ -91,11 +89,9 @@ else:
             workflow.cores
         conda:
             f"{envdir}/qc.yaml"
-        message:
-            "Quality trimming" + (", removing adapters" if not trimadapters else "") + (", removing PCR duplicates" if dedup else "") + ": {wildcards.sample}"
         shell: 
             """
-            fastp --trim_poly_g --cut_right {params} --thread {threads} -i {input.fw} -I {input.rv} --stdout -h {log.html} -j {output.json} -R "{wildcards.sample} QC Report" 2> {log.serr} > {output.fq}
+            fastp --trim_poly_g --cut_right {params} --thread {threads} -i {input.fw} -I {input.rv} --stdout -h {output.html} -j {output.json} -R "{wildcards.sample} QC Report" 2> {log.serr} > {output.fq}
             """
 
     rule deconvolve:
@@ -114,12 +110,10 @@ else:
             workflow.cores
         conda:
             f"{envdir}/qc.yaml"
-        message:
-            "Performing deconvolution: {wildcards.sample}"
         shell:
             "QuickDeconvolution -t {threads} -i {input} -o {output} {params} > {log} 2>&1"
 
-    rule recover_forward:
+    rule extract_forward:
         input:
             outdir + "/{sample}.fastq"
         output:
@@ -128,42 +122,36 @@ else:
             "-1"
         container:
             None
-        message:
-            "Extracting deconvolved forward reads: {wildcards.sample}"
         shell:
             "seqtk seq {params} {input} | gzip > {output}"
 
-    use rule recover_forward as recover_reverse with:
+    use rule extract_forward as extract_reverse with:
         output:
             outdir + "/{sample}.R2.fq.gz"
         params:
             "-2"
 
-rule count_beadtags:
+rule check_barcodes:
     input:
         outdir + "/{sample}.R1.fq.gz"
     output: 
         temp(outdir + "/logs/bxcount/{sample}.count.log")
-    message:
-        "Counting barcode frequency: {wildcards.sample}"
     container:
         None
     shell:
         "count_bx.py {input} > {output}"
 
-rule beadtag_counts_summary:
+rule barcode_report:
     input: 
         countlog = collect(outdir + "/logs/bxcount/{sample}.count.log", sample = samplenames)
     output:
         outdir + "/reports/barcode.summary.html"
     conda:
         f"{envdir}/r.yaml"
-    message:
-        "Summarizing sample barcode validation"
     script:
         "report/bx_count.Rmd"
    
-rule create_report:
+rule qc_report:
     input: 
         collect(outdir + "/reports/data/fastp/{sample}.fastp.json", sample = samplenames)
     output:
@@ -176,8 +164,6 @@ rule create_report:
         comment = "--comment \"This report aggregates trimming and quality control metrics reported by fastp.\""
     conda:
         f"{envdir}/qc.yaml"
-    message:
-        "Aggregating fastp reports"
     shell: 
         "multiqc {params} --filename {output}"
 

@@ -39,15 +39,13 @@ def get_fq(wildcards):
     r = re.compile(fr".*/({re.escape(wildcards.sample)}){bn_r}", flags = re.IGNORECASE)
     return sorted(list(filter(r.match, fqlist))[:2])
 
-rule genome_setup:
+rule setup_genome:
     input:
         genomefile
     output: 
         f"Genome/{bn}"
     container:
         None
-    message: 
-        "Copying {input} to Genome/"
     shell: 
         """
         if (file {input} | grep -q compressed ) ;then
@@ -58,7 +56,7 @@ rule genome_setup:
         fi
         """
 
-rule genome_faidx:
+rule samtools_faidx:
     input: 
         f"Genome/{bn}"
     output: 
@@ -70,8 +68,6 @@ rule genome_faidx:
         genome_zip
     container:
         None
-    message:
-        "Indexing {input}"
     shell: 
         """
         if [ "{params}" = "True" ]; then
@@ -81,7 +77,7 @@ rule genome_faidx:
         fi
         """
 
-rule genome_bwa_index:
+rule bwa_index:
     input: 
         f"Genome/{bn}"
     output: 
@@ -90,8 +86,6 @@ rule genome_bwa_index:
         f"Genome/{bn}.idx.log"
     conda:
         f"{envdir}/align.yaml"
-    message:
-        "Indexing {input}"
     shell: 
         "bwa index {input} 2> {log}"
 
@@ -105,8 +99,6 @@ rule ema_count:
         prefix = lambda wc: outdir + "/ema_count/" + wc.get("sample"),
         beadtech = "-p" if platform == "haplotag" else f"-w {whitelist}",
         logdir = f"{outdir}/logs/ema_count/"
-    message:
-        "Counting barcode frequency: {wildcards.sample}"
     conda:
         f"{envdir}/align.yaml"
     shell:
@@ -133,8 +125,6 @@ rule ema_preprocess:
         2
     conda:
         f"{envdir}/align.yaml"
-    message:
-        "Preprocessing for EMA mapping: {wildcards.sample}"
     shell:
         """
         seqtk mergepe {input.reads} |
@@ -142,7 +132,7 @@ rule ema_preprocess:
             cat - > {log}
         """
 
-rule ema_align:
+rule align_ema:
     input:
         readbin    = collect(outdir + "/ema_preproc/{{sample}}/ema-bin-{bin}", bin = binrange),
         genome 	   = f"Genome/{bn}",
@@ -166,8 +156,6 @@ rule ema_align:
         10
     conda:
         f"{envdir}/align.yaml"
-    message:
-        "Aligning barcoded sequences: {wildcards.sample}"
     shell:
         """
         ema align -t {threads} {params.extra} -d {params.bxtype} -r {input.genome} -R \"@RG\\tID:{wildcards.sample}\\tSM:{wildcards.sample}\" -x {input.readbin} 2> {log.ema} |
@@ -176,7 +164,7 @@ rule ema_align:
         rm -rf {params.tmpdir}
         """
 
-rule bwa_align:
+rule align_bwa:
     input:
         reads      = outdir + "/ema_preproc/{sample}/ema-nobc",
         genome 	   = f"Genome/{bn}",
@@ -195,15 +183,13 @@ rule bwa_align:
         10
     conda:
         f"{envdir}/align.yaml"
-    message:
-        "Aligning unbarcoded sequences: {wildcards.sample}"
     shell:
         """
         bwa mem -t {threads} -v2 -C -R \"@RG\\tID:{wildcards.sample}\\tSM:{wildcards.sample}\" {input.genome} {input.reads} 2> {log} |
             samtools view -h {params.unmapped} -q {params.quality} > {output}
         """
 
-rule bwa_markdups:
+rule mark_duplicates:
     input:
         sam    = outdir + "/bwa_align/{sample}.bwa.nobc.sam",
         genome = f"Genome/{bn}",
@@ -220,8 +206,6 @@ rule bwa_markdups:
         None
     threads:
         2
-    message:
-        "Marking duplicates: {wildcards.sample}"
     shell:
         """
         samtools collate -O -u {input.sam} |
@@ -231,19 +215,17 @@ rule bwa_markdups:
         rm -rf {params.tmpdir}
         """
 
-rule bwa_markdups_index:
+rule index_duplicates:
     input:
         outdir + "/bwa_align/{sample}.markdup.nobc.bam"
     output:
         temp(outdir + "/bwa_align/{sample}.markdup.nobc.bam.bai")
     container:
         None
-    message:
-        "Indexing duplicate-marked alignments: {wildcards.sample}"
     shell:
         "samtools index {input}"
 
-rule concatenate_alignments:
+rule concat_alignments:
     input:
         aln_bc   = outdir + "/ema_align/{sample}.bc.bam",
         idx_bc   = outdir + "/ema_align/{sample}.bc.bam.bai",
@@ -259,15 +241,13 @@ rule concatenate_alignments:
         mem_mb = 500
     container:
         None
-    message:
-        "Concatenating barcoded and unbarcoded alignments: {wildcards.sample}"
     shell:
         """
         samtools cat -@ 1 {input.aln_bc} {input.aln_nobc} |
             samtools sort -@ 1 -O bam --reference {input.genome} -m {resources.mem_mb}M --write-index -o {output.bam}##idx##{output.bai} -
         """
 
-rule coverage:
+rule calculate_depth:
     input: 
         bam = outdir + "/{sample}.bam",
         bai = outdir + "/{sample}.bam.bai"
@@ -277,12 +257,10 @@ rule coverage:
         windowsize
     container:
         None
-    message:
-        "Calculating genomic coverage: {wildcards.sample}"
     shell:
         "samtools depth -a {input.bam} | depth_windows.py {params} | gzip > {output}"
 
-rule bx_stats:
+rule barcode_stats:
     input:
         bam = outdir + "/{sample}.bam",
         bai = outdir + "/{sample}.bam.bai"
@@ -290,12 +268,10 @@ rule bx_stats:
         outdir + "/reports/data/bxstats/{sample}.bxstats.gz"
     container:
         None
-    message:
-        "Calculating barcode alignment statistics: {wildcards.sample}"
     shell:
         "bx_stats.py -o {output} {input.bam}"
 
-rule report_persample:
+rule sample_reports:
     input:
         outdir + "/reports/data/bxstats/{sample}.bxstats.gz",
         outdir + "/reports/data/coverage/{sample}.cov.gz"
@@ -303,12 +279,10 @@ rule report_persample:
         outdir + "/reports/{sample}.html"
     conda:
         f"{envdir}/r.yaml"
-    message: 
-        "Generating summary of barcode alignment: {wildcards.sample}"
     script:
         "report/align_stats.Rmd"
 
-rule stats:
+rule general_stats:
     input: 		
         bam      = outdir + "/{sample}.bam",
         bai      = outdir + "/{sample}.bam.bai"
@@ -317,15 +291,13 @@ rule stats:
         flagstat = temp(outdir + "/reports/data/samtools_flagstat/{sample}.flagstat")
     container:
         None
-    message:
-        "Calculating alignment stats: {wildcards.sample}"
     shell:
         """
         samtools stats -d {input.bam} > {output.stats}
         samtools flagstat {input.bam} > {output.flagstat}
         """
 
-rule report_samtools:
+rule samtools_report:
     input: 
         collect(outdir + "/reports/data/samtools_{ext}/{sample}.{ext}", sample = samplenames, ext = ["stats", "flagstat"]),
     output: 
@@ -337,20 +309,16 @@ rule report_samtools:
         comment = "--comment \"This report aggregates samtools stats and samtools flagstats results for all alignments. Samtools stats ignores alignments marked as duplicates.\""
     conda:
         f"{envdir}/qc.yaml"
-    message:
-        "Summarizing samtools stats and flagstat"
     shell:
         "multiqc {params} --filename {output} 2> /dev/null"
 
-rule report_bx:
+rule barcode_report:
     input:
         collect(outdir + "/reports/data/bxstats/{sample}.bxstats.gz", sample = samplenames)
     output:	
         outdir + "/reports/barcodes.summary.html"
     conda:
         f"{envdir}/r.yaml"
-    message: 
-        "Summarizing all barcode information from alignments"
     script:
         "report/align_bxstats.Rmd"
 

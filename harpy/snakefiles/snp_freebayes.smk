@@ -53,30 +53,26 @@ def sam_index(infile):
     if not os.path.exists(f"{infile}.bai"):
         subprocess.run(f"samtools index {infile} {infile}.bai".split())
 
-rule copy_groupings:
+rule preproc_groups:
     input:
         groupings
     output:
         outdir + "/logs/sample.groups"
-    message:
-        "Logging {input}"
     run:
         with open(input[0], "r") as infile, open(output[0], "w") as outfile:
             _ = [outfile.write(i) for i in infile.readlines() if not i.lstrip().startswith("#")]
 
-rule genome_setup:
+rule setup_genome:
     input:
         genomefile
     output: 
         f"Genome/{bn}"
     container:
         None
-    message: 
-        "Copying {input} to Genome/"
     shell: 
         "seqtk seq {input} > {output}"
 
-rule genome_faidx:
+rule faidx_genome:
     input: 
         f"Genome/{bn}"
     output: 
@@ -85,8 +81,6 @@ rule genome_faidx:
         f"Genome/{bn}.faidx.log"
     container:
         None
-    message:
-        "Indexing {input}"
     shell:
         "samtools faidx --fai-idx {output} {input} 2> {log}"
 
@@ -97,21 +91,9 @@ rule index_alignments:
         [f"{i}.bai" for i in bamlist]
     threads:
         workflow.cores
-    message:
-        "Indexing alignment files"
     run:
         with multiprocessing.Pool(processes=threads) as pool:
             pool.map(sam_index, input)
-
-rule samplenames:
-    output:
-        outdir + "/logs/samples.names"
-    message:
-        "Creating list of sample names"
-    run:
-        with open(output[0], "w") as fout:
-            for samplename in samplenames:
-                _ = fout.write(samplename + "\n")	
 
 rule bam_list:
     input: 
@@ -119,8 +101,6 @@ rule bam_list:
         bai = [f"{i}.bai" for i in bamlist]
     output:
         outdir + "/logs/samples.files"
-    message:
-        "Creating list of alignment files"
     run:
         with open(output[0], "w") as fout:
             for bamfile in input.bam:
@@ -139,16 +119,14 @@ rule call_variants:
     params:
         region = lambda wc: "-r " + regions[wc.part],
         ploidy = f"-p {ploidy}",
-        populations = "--populations " + rules.copy_groupings.output[0] if groupings else "",
+        populations = f"--populations {outdir}/logs/sample.groups" if groupings else "",
         extra = extra
     conda:
         f"{envdir}/snp.yaml"
-    message:
-        "Calling variants: {wildcards.part}"
     shell:
         "freebayes -f {input.ref} -L {input.samples} {params} > {output}"
 
-rule sort_variants:
+rule sort_sample_variants:
     input:
         outdir + "/regions/{part}.vcf"
     output:
@@ -156,8 +134,6 @@ rule sort_variants:
         idx = temp(outdir + "/regions/{part}.bcf.csi")
     container:
         None
-    message:
-        "Sorting: {wildcards.part}"
     shell:
         "bcftools sort -Ob --write-index --output {output.bcf} {input} 2> /dev/null"
 
@@ -166,14 +142,12 @@ rule concat_list:
         bcfs = collect(outdir + "/regions/{part}.bcf", part = intervals),
     output:
         outdir + "/logs/bcf.files"
-    message:
-        "Creating list of region-specific vcf files"
     run:
         with open(output[0], "w") as fout:
             for bcf in input.bcfs:
                 _ = fout.write(f"{bcf}\n")   
 
-rule merge_vcfs:
+rule concat_variants:
     input:
         bcfs = collect(outdir + "/regions/{part}.{ext}", part = intervals, ext = ["bcf", "bcf.csi"]),
         filelist = outdir + "/logs/bcf.files"
@@ -185,12 +159,10 @@ rule merge_vcfs:
         workflow.cores
     container:
         None
-    message:
-        "Combining vcfs into a single file"
     shell:  
         "bcftools concat -f {input.filelist} --threads {threads} --naive -Ob -o {output} 2> {log}"
 
-rule sort_vcf:
+rule sort_all_variants:
     input:
         outdir + "/variants.raw.unsort.bcf"
     output:
@@ -198,34 +170,10 @@ rule sort_vcf:
         csi = outdir + "/variants.raw.bcf.csi"
     container:
         None
-    message:
-        "Sorting and indexing final variants"
     shell:
         "bcftools sort --write-index -Ob -o {output.bcf} {input} 2> /dev/null"
 
-
-#rule normalize_bcf:
-#    input: 
-#        genome  = f"Genome/{bn}",
-#        ref_idx = f"Genome/{bn}.fai",
-#        bcf     = outdir + "/variants.raw.bcf"
-#    output:
-#        bcf     = outdir + "/variants.normalized.bcf",
-#        idx     = outdir + "/variants.normalized.bcf.csi"
-#    log:
-#        outdir + "/logs/normalize.log"
-#    threads: 
-#        2
-#    message: 
-#        "Normalizing the called variants"
-#    shell:
-#        """
-#        bcftools norm -d exact -f {input.genome} {input.bcf} 2> {log}.tmp1 | 
-#            bcftools norm -m -any -N -Ob --write-index -o {output.bcf} 2> {log}.tmp2
-#        cat {log}.tmp1 {log}.tmp2 > {log} && rm {log}.tmp1 {log}.tmp2    
-#        """
-
-rule variants_stats:
+rule general_stats:
     input:
         genome  = f"Genome/{bn}",
         ref_idx = f"Genome/{bn}.fai",
@@ -235,22 +183,18 @@ rule variants_stats:
         outdir + "/reports/variants.{type}.stats",
     container:
         None
-    message:
-        "Calculating variant stats: variants.{wildcards.type}.bcf"
     shell:
         """
         bcftools stats -s "-" --fasta-ref {input.genome} {input.bcf} > {output} 2> /dev/null
         """
 
-rule bcf_report:
+rule variant_report:
     input:
         outdir + "/reports/variants.{type}.stats"
     output:
         outdir + "/reports/variants.{type}.html"
     conda:
         f"{envdir}/r.yaml"
-    message:
-        "Generating bcftools report: variants.{wildcards.type}.bcf"
     script:
         "report/bcftools_stats.Rmd"
 

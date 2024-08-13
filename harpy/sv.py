@@ -82,8 +82,6 @@ def leviathan(inputs, output_dir, genome, min_sv, min_barcodes, iterations, thre
     command += f"--configfile {workflowdir}/config.yaml "
     if hpc:
         command += f"--workflow-profile {hpc} "
-    if quiet:
-        command += "--quiet all "
     if snakemake is not None:
         command += snakemake
 
@@ -99,7 +97,7 @@ def leviathan(inputs, output_dir, genome, min_sv, min_barcodes, iterations, thre
 
     with open(f'{workflowdir}/config.yaml', "w", encoding="utf-8") as config:
         config.write("workflow: sv leviathan\n")
-        config.write(f"snakemake_log: {sm_log}")
+        config.write(f"snakemake_log: {sm_log}\n")
         config.write(f"output_directory: {output_dir}\n")
         config.write(f"min_barcodes: {min_barcodes}\n")
         config.write(f"min_sv: {min_sv}\n")
@@ -127,7 +125,7 @@ def leviathan(inputs, output_dir, genome, min_sv, min_barcodes, iterations, thre
     generate_conda_deps()
     modetext = "pool-by-group" if populations else "sample-by-sample"
     start_text = f"Samples: {n}{popgroupings}\nOutput Directory: {output_dir}/\nMode: {modetext}\nLog: {sm_log}"
-    launch_snakemake(command, "sv_leviathan", start_text, output_dir, sm_log)
+    launch_snakemake(command, "sv_leviathan", start_text, output_dir, sm_log, quiet)
 
 @click.command(no_args_is_help = True, epilog = "See the documentation for more information: https://pdimens.github.io/harpy/modules/sv/naibr/")
 @click.option('-x', '--extra-params', type = str, help = 'Additional variant caller parameters, in quotes')
@@ -174,8 +172,6 @@ def naibr(inputs, output_dir, genome, vcf, min_sv, min_barcodes, min_quality, th
     command += f"--configfile {workflowdir}/config.yaml "
     if hpc:
         command += f"--workflow-profile {hpc} "
-    if quiet:
-        command += "--quiet all "
     if snakemake is not None:
         command += snakemake
 
@@ -233,7 +229,7 @@ def naibr(inputs, output_dir, genome, vcf, min_sv, min_barcodes, min_quality, th
 
     generate_conda_deps()
     start_text = f"Samples: {n}{popgroupings}\nOutput Directory: {output_dir}/\nMode: {modetext}\nLog: {sm_log}"
-    launch_snakemake(command, "sv_naibr", start_text, output_dir, sm_log)
+    launch_snakemake(command, "sv_naibr", start_text, output_dir, sm_log, quiet)
 
 sv.add_command(leviathan)
 sv.add_command(naibr)

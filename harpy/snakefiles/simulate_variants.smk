@@ -57,8 +57,6 @@ if vcf:
             vcf_correct
         container:
             None
-        message:
-            "Converting {input} to compressed VCF format"
         shell:
             "bcftools view -Oz {input} > {output}"
 
@@ -76,12 +74,10 @@ rule simulate_variants:
         parameters = variant_params
     conda:
         f"{envdir}/simulations.yaml"
-    message:
-        f"Simulating {variant}s onto genome"
     shell:
         "perl {params.simuG} -refseq {input.geno} -prefix {params.prefix} {params.parameters} > {log}"
 
-rule create_heterozygote_vcf:
+rule create_het_vcf:
     input:
         f"{outdir}/{outprefix}.vcf"
     output:
@@ -89,8 +85,6 @@ rule create_heterozygote_vcf:
         f"{outdir}/{outprefix}.hap2.vcf"
     params:
         heterozygosity
-    message:
-        "Creating diploid variant files for heterozygosity = {params}"
     run:
         random.seed(6969)
         hap1_vcf, hap2_vcf = open(output[0], "w"), open(output[1], "w")
@@ -114,7 +108,7 @@ rule create_heterozygote_vcf:
                     else:
                         hap2_vcf.write(line)
 
-rule all:
+rule workflow_summary:
     default_target: True
     input:
         multiext(f"{outdir}/{outprefix}", ".vcf", ".bed", ".fasta"),

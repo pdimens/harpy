@@ -65,30 +65,26 @@ def pop_manifest(groupingfile, filelist):
 popdict = pop_manifest(groupfile, bamlist)
 populations = popdict.keys()
 
-rule copy_groupings:
+rule preproc_groups:
     input:
         groupfile
     output:
         outdir + "/workflow/sample.groups"
-    message:
-        "Logging {input}"
     run:
         with open(input[0], "r") as infile, open(output[0], "w") as outfile:
             _ = [outfile.write(i) for i in infile.readlines() if not i.lstrip().startswith("#")]
 
-rule merge_list:
+rule concat_list:
     input:
         outdir + "/workflow/sample.groups"
     output:
         outdir + "/workflow/merge_samples/{population}.list"
-    message:
-        "Creating population file list: {wildcards.population}"
     run:
         with open(output[0], "w") as fout:
             for bamfile in popdict[wildcards.population]:
                 _ = fout.write(bamfile + "\n")
 
-rule merge_populations:
+rule concat_groups:
     input: 
         bamlist  = outdir + "/workflow/merge_samples/{population}.list",
         bamfiles = lambda wc: collect("{sample}", sample = popdict[wc.population]) 
@@ -100,12 +96,10 @@ rule merge_populations:
         1
     container:
         None
-    message:
-        "Merging alignments: {wildcards.population}"
     shell:
         "concatenate_bam.py -o {output} -b {input.bamlist} 2> {log}"
 
-rule sort_merged:
+rule sort_groups:
     input:
         outdir + "/workflow/input/{population}.unsort.bam"
     output:
@@ -119,12 +113,10 @@ rule sort_merged:
         10
     container:
         None
-    message:
-        "Sorting alignments: {wildcards.population}"
     shell:
         "samtools sort -@ {threads} -O bam -l 0 -m {resources.mem_mb}M --write-index -o {output.bam}##idx##{output.bai} {input} 2> {log}"
 
-rule create_config:
+rule naibr_config:
     input:
         outdir + "/workflow/input/{population}.bam"
     output:
@@ -132,8 +124,6 @@ rule create_config:
     params:
         lambda wc: wc.get("population"),
         min(10, workflow.cores)
-    message:
-        "Creating naibr config file: {wildcards.population}"
     run:
         argdict = process_args(extra)
         with open(output[0], "w") as conf:
@@ -144,7 +134,7 @@ rule create_config:
             for i in argdict:
                 _ = conf.write(f"{i}={argdict[i]}\n")
 
-rule call_sv:
+rule call_variants:
     input:
         bam   = outdir + "/workflow/input/{population}.bam",
         bai   = outdir + "/workflow/input/{population}.bam.bai",
@@ -159,12 +149,10 @@ rule call_sv:
         10
     conda:
         f"{envdir}/sv.yaml"
-    message:
-        "Calling variants: {wildcards.population}"
     shell:
         "naibr {input.conf} > {log} 2>&1"
 
-rule infer_sv:
+rule infer_variants:
     input:
         bedpe = outdir + "/{population}/{population}.bedpe",
         refmt = outdir + "/{population}/{population}.reformat.bedpe",
@@ -178,8 +166,6 @@ rule infer_sv:
         outdir = lambda wc: outdir + "/" + wc.get("population")
     container:
         None
-    message:
-        "Inferring variants from naibr output: {wildcards.population}"
     shell:
         """
         infer_sv.py {input.bedpe} -f {output.fail} > {output.bedpe}
@@ -188,15 +174,13 @@ rule infer_sv:
         rm -rf {params.outdir}
         """
 
-rule merge_variants:
+rule aggregate_variants_variants:
     input:
         collect(outdir + "/bedpe/{population}.bedpe", population = populations)
     output:
         outdir + "/inversions.bedpe",
         outdir + "/deletions.bedpe",
         outdir + "/duplications.bedpe"
-    message:
-        "Aggregating the detected variants"
     run:
         from pathlib import Path
         with open(output[0], "w") as inversions, open(output[1], "w") as deletions, open(output[2], "w") as duplications:
@@ -222,19 +206,17 @@ rule merge_variants:
                         elif record[-1] == "duplication":
                             _ = duplications.write(f"{samplename}\t{line}")
 
-rule genome_setup:
+rule setup_genome:
     input:
         genomefile
     output: 
         f"Genome/{bn}"
     container:
         None
-    message: 
-        "Preprocessing {input}"
     shell: 
         "seqtk seq {input} > {output}"
 
-rule genome_faidx:
+rule faidx_genome:
     input: 
         f"Genome/{bn}"
     output: 
@@ -243,12 +225,10 @@ rule genome_faidx:
         f"Genome/{bn}.faidx.log"
     container:
         None
-    message:
-        "Indexing {input}"
     shell:
         "samtools faidx --fai-idx {output} {input} 2> {log}"
 
-rule sv_report:
+rule group_reports:
     input:
         fai   = f"Genome/{bn}.fai",
         bedpe = outdir + "/bedpe/{population}.bedpe"
@@ -256,12 +236,10 @@ rule sv_report:
         outdir + "/reports/{population}.naibr.html"
     conda:
         f"{envdir}/r.yaml"
-    message:
-        "Creating report: {wildcards.population}"
     script:
         "report/naibr.Rmd"
 
-rule sv_report_aggregate:
+rule aggregate_report:
     input:
         fai   = f"Genome/{bn}.fai",
         bedpe = collect(outdir + "/bedpe/{pop}.bedpe", pop = populations)
@@ -269,8 +247,6 @@ rule sv_report_aggregate:
         outdir + "/reports/naibr.pop.summary.html"
     conda:
         f"{envdir}/r.yaml"
-    message:
-        "Creating summary report"
     script:
         "report/naibr_pop.Rmd"
 

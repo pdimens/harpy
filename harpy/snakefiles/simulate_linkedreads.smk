@@ -13,22 +13,17 @@ gen_hap2 = config["inputs"]["genome_hap2"]
 envdir   = os.getcwd() + "/.harpy_envs"
 snakemake_log = config["snakemake_log"]
 barcodes = config.get("barcodes", None)
-if barcodes:
-    barcodefile = barcodes
-else:
-    barcodefile = f"{outdir}/workflow/input/4M-with-alts-february-2016.txt"
+barcodefile = barcodes if barcodes else f"{outdir}/workflow/input/4M-with-alts-february-2016.txt"
 
 onstart:
     extra_logfile_handler = pylogging.FileHandler(snakemake_log)
     logger.logger.addHandler(extra_logfile_handler)
 
-rule link_haplotype:
+rule link_1st_geno:
     input:
         gen_hap1
     output: 
         f"{outdir}/workflow/input/hap.0.fasta"
-    message: 
-        "Decompressing {input}" if gen_hap1.lower().endswith("gz") else "Symlinking {input}"
     run:
         if input[0].lower().endswith("gz"):
             with open(input[0], 'rb') as inf, open(output[0], 'w', encoding='utf8') as outf:
@@ -38,21 +33,19 @@ rule link_haplotype:
             if not (Path(output[0]).is_symlink() or Path(output[0]).exists()):
                 Path(output[0]).symlink_to(Path(input[0]).resolve()) 
 
-use rule link_haplotype as link_second_haplotype with:
+use rule link_1st_geno as link_2nd_geno with:
     input:
         gen_hap2
     output: 
         f"{outdir}/workflow/input/hap.1.fasta"
 
-rule genome_faidx:
+rule faidx_genome:
     input:
         outdir + "/workflow/input/hap.{hap}.fasta"
     output: 
         outdir + "/workflow/input/hap.{hap}.fasta.fai"
     container:
         None
-    message:
-        "Indexing haplotype {wildcards.hap}"
     shell:
         "samtools faidx --fai-idx {output} {input}"
 
@@ -60,13 +53,11 @@ if not barcodes:
     rule download_barcodes:
         output:
             barcodefile
-        message:
-            "Downloading list of standard 10X barcodes"
         run:
             from urllib.request import urlretrieve
             _ = urlretrieve("https://raw.githubusercontent.com/aquaskyline/LRSIM/master/4M-with-alts-february-2016.txt", output[0])
 
-rule create_molecules_hap:
+rule create_reads:
     input:
         outdir + "/workflow/input/hap.{hap}.fasta"
     output:
@@ -81,22 +72,18 @@ rule create_molecules_hap:
         prefix = lambda wc: outdir + "/dwgsim_simulated/dwgsim." + wc.get("hap") + ".12"
     conda:
         f"{envdir}/simulations.yaml"
-    message:
-        "Simulating reads reads from {input}"
     shell:
         """
         dwgsim -N {params.readpairs} -e 0.0001,0.0016 -E 0.0001,0.0016 -d {params.outerdist} -s {params.distsd} -1 135 -2 151 -H -y 0 -S 0 -c 0 -R 0 -r {params.mutationrate} -F 0 -o 1 -m /dev/null {input} {params.prefix} 2> {log}
         """
 
-rule interleave_dwgsim_output:
+rule interleave_dwgsim:
     input:
         collect(outdir + "/dwgsim_simulated/dwgsim.{{hap}}.12.bwa.read{rd}.fastq.gz", rd = [1,2]) 
     output:
         outdir + "/dwgsim_simulated/dwgsim.{hap}.12.fastq"
     container:
         None
-    message:
-        "Interleaving dwgsim output: {wildcards.hap}"
     shell:
         "seqtk mergepe {input} > {output}"
 
@@ -126,8 +113,6 @@ rule lrsim:
         workflow.cores
     conda:
         f"{envdir}/simulations.yaml"
-    message:
-        "Running LRSIM to generate linked reads from\n    haplotype 1: {input.hap1}\n    haplotype 2: {input.hap2}" 
     shell: 
         """
         perl {params.lrsim} -g {input.hap1},{input.hap2} -p {params.proj_dir}/lrsim/sim \\
@@ -143,8 +128,6 @@ rule sort_manifest:
         outdir + "/lrsim/sim.{hap}.sort.manifest"
     conda:
         f"{envdir}/simulations.yaml"
-    message:
-        "Sorting read manifest: haplotype {wildcards.hap}"
     shell:
         "msort -kn1 {input} > {output}"
 
@@ -161,12 +144,10 @@ rule extract_reads:
         lambda wc: f"""{outdir}/10X/sim_hap{wc.get("hap")}_10x"""
     container:
         None
-    message:
-        "Extracting linked reads for haplotype {wildcards.hap}"
     shell:
         "extractReads {input} {params} 2> {log}"
 
-rule convert_haplotag:
+rule convert_to_haplotag:
     input:
         fw = outdir + "/10X/sim_hap{hap}_10x_R1_001.fastq.gz",
         rv = outdir + "/10X/sim_hap{hap}_10x_R2_001.fastq.gz",
@@ -180,8 +161,6 @@ rule convert_haplotag:
         lambda wc: f"""{outdir}/sim_hap{wc.get("hap")}_haplotag"""
     container:
         None
-    message:
-        "Converting 10X barcodes to haplotag format: haplotype {wildcards.hap}"
     shell:
         "10xtoHaplotag.py -f {input.fw} -r {input.rv} -b {input.barcodes} -p {params} > {log}"
 

@@ -64,28 +64,24 @@ onstart:
     logger.logger.addHandler(extra_logfile_handler)
 
 if snp_vcf:
-    rule convert_snpvcf:
+    rule convert_snp_vcf:
         input:
             snp_vcf
         output:
             snp_vcf_correct
         container:
             None
-        message:
-            "Converting {input} to compressed VCF format"
         shell:
             "bcftools view -Oz {input} > {output}"
 
 if indel_vcf:
-    rule convert_indelvcf:
+    rule convert_indel_vcf:
         input:
             indel_vcf
         output:
             indel_vcf_correct
         container:
             None
-        message:
-            "Converting {input} to compressed VCF format"
         shell:
             "bcftools view -Oz {input} > {output}"
 
@@ -104,12 +100,10 @@ rule simulate_variants:
         parameters = variant_params
     conda:
         f"{envdir}/simulations.yaml"
-    message:
-        "Simulating snps and/or indels"
     shell:
         "perl {params.simuG} -refseq {input.geno} -prefix {params.prefix} {params.parameters} > {log}"
 
-rule create_heterozygote_snp_vcf:
+rule snp_vcf_het:
     input:
         f"{outdir}/{outprefix}.snp.vcf"
     output:
@@ -117,8 +111,6 @@ rule create_heterozygote_snp_vcf:
         f"{outdir}/{outprefix}.snp.hap2.vcf"
     params:
         heterozygosity
-    message:
-        "Creating snp diploid variant files for heterozygosity = {params}"
     run:
         random.seed(6969)
         hap1_vcf, hap2_vcf = open(output[0], "w"), open(output[1], "w")
@@ -142,16 +134,14 @@ rule create_heterozygote_snp_vcf:
                     else:
                         hap2_vcf.write(line)
 
-use rule create_heterozygote_snp_vcf as create_heterozygote_indel_vcf with:
+use rule snp_vcf_het as indel_vcf_het with:
     input:
         f"{outdir}/{outprefix}.indel.vcf"
     output:
         f"{outdir}/{outprefix}.indel.hap1.vcf",
         f"{outdir}/{outprefix}.indel.hap2.vcf"
-    message:
-        "Creating indel diploid variant files for heterozygosity = {params}"
 
-rule all:
+rule workflow_summary:
     default_target: True
     input:
         multiext(f"{outdir}/{outprefix}", ".bed", ".fasta"),

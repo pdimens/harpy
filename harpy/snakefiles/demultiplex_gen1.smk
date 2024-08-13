@@ -42,8 +42,6 @@ rule link_R1:
         temp(outdir + "/DATA_R1_001.fastq.gz")
     container:
         None
-    message:
-        "Linking {input} to output directory"
     shell:
         "ln -sr {input} {output}"
 
@@ -59,19 +57,17 @@ use rule link_R1 as link_I2 with:
     input: I2
     output: temp(outdir + "/DATA_I2_001.fastq.gz")
 
-rule bx_files:
+rule barcode_segments:
     output:
         temp(collect(outdir + "/BC_{letter}.txt", letter = ["A","C","B","D"]))
     params:
         outdir
     container:
         None
-    message:
-        "Creating the Gen I barcode files for barcode demultiplexing"
     shell:
         "haplotag_acbd.py {params}"
 
-rule demux_bx:
+rule demux_barcodes:
     input:
         collect(outdir + "/DATA_{IR}{ext}_001.fastq.gz", IR = ["R","I"], ext = [1,2]),
         collect(outdir + "/BC_{letter}.txt", letter = ["A","C","B","D"])
@@ -82,8 +78,6 @@ rule demux_bx:
         logdir = outdir +"/logs/demux"
     container:
         None
-    message:
-        "Moving barcodes into read headers"
     shell:
         """
         mkdir -p {params.logdir}
@@ -92,7 +86,7 @@ rule demux_bx:
         mv demux*BC.log logs
         """
 
-rule split_samples_fw:
+rule demux_samples_F:
     input:
         f"{outdir}/demux_R1_001.fastq.gz"
     output:
@@ -101,20 +95,16 @@ rule split_samples_fw:
         c_barcode = lambda wc: samples[wc.get("sample")]
     container:
         None
-    message:
-        "Extracting forward reads:\n sample: {wildcards.sample}\n barcode: {params}"
     shell:
         """
         ( zgrep -A3 "A..{params}B..D" {input} | grep -v "^--$" | gzip -q > {output} ) || touch {output}
         """
 
-use rule split_samples_fw as split_samples_rv with:
+use rule demux_samples_F as demux_samples_R with:
     input:
         f"{outdir}/demux_R2_001.fastq.gz"
     output:
         outdir + "/{sample}.R.fq.gz"
-    message:
-        "Extracting reverse reads:\n sample: {wildcards.sample}\n barcode: {params}"
 
 rule fastqc_F:
     input:
@@ -127,8 +117,6 @@ rule fastqc_F:
         1
     conda:
         f"{envdir}/qc.yaml"
-    message:
-        "Performing quality assessment: {wildcards.sample}.F.fq.gz"
     shell:
         """
         mkdir -p {params}
@@ -156,8 +144,6 @@ use rule fastqc_F as fastqc_R with:
         temp(outdir + "/logs/{sample}_R/fastqc_data.txt")
     params:
         lambda wc: f"{outdir}/logs/" + wc.get("sample") + "_R"
-    message:
-        "Performing quality assessment: {wildcards.sample}.R.fq.gz"
 
 rule qc_report:
     input:
@@ -171,8 +157,6 @@ rule qc_report:
         comment = "--comment \"This report aggregates the QC results created by falco.\""
     conda:
         f"{envdir}/qc.yaml"
-    message:
-        "Creating final demultiplexing QC report"
     shell:
         "multiqc {params} --filename {output} 2> /dev/null"
 

@@ -69,19 +69,17 @@ def get_align_index(wildcards):
     aln = list(filter(r.match, bamlist))
     return aln[0] + ".bai"
 
-rule genome_setup:
+rule setup_genome:
     input:
         genomefile
     output: 
         f"Genome/{validgenome}"
     container:
         None
-    message: 
-        "Preprocessing {input}"
     shell: 
         "seqtk seq {input} > {output}"
 
-rule genome_faidx:
+rule faidx_genome:
     input: 
         f"Genome/{validgenome}"
     output: 
@@ -90,45 +88,37 @@ rule genome_faidx:
         f"Genome/{validgenome}.faidx.log"
     container:
         None
-    message:
-        "Indexing {input}"
     shell:
         "samtools faidx --fai-idx {output} {input} 2> {log}"
 
-rule index_original_alignments:
+rule index_alignments:
     input:
         bamlist
     output:
         [f"{i}.bai" for i in bamlist]
     threads:
         workflow.cores
-    message:
-        "Indexing alignment files"
     run:
         with multiprocessing.Pool(processes=threads) as pool:
             pool.map(sam_index, input)
 
-rule index_bcf:
+rule index_snps:
     input:
         vcffile
     output:
         vcffile + ".csi"
     container:
         None
-    message:
-        "Indexing {input}"
     shell:
         "bcftools index {input}"
 
-rule index_vcfgz:
+rule index_snps_gz:
     input:
         vcffile
     output:
         vcffile + ".tbi"
     container:
         None
-    message:
-        "Indexing {input}"
     shell:
         "tabix {input}"
 
@@ -149,8 +139,6 @@ rule phase_alignments:
         f"{envdir}/phase.yaml"
     threads:
         4
-    message:
-        "Phasing alignments: {wildcards.sample}"
     shell:
         "whatshap haplotag --sample {wildcards.sample} --linked-read-distance-cutoff {params} --ignore-read-groups --tag-supplementary --output-threads={threads} -o {output.bam} --reference {input.ref} {input.vcf} {input.aln} 2> {output.log}"
 
@@ -161,8 +149,6 @@ rule log_phasing:
         outdir + "/logs/whatshap-haplotag.log"
     container:
         None
-    message:
-        "Creating log of alignment phasing"
     shell:
         """
         echo -e "sample\\ttotal_alignments\\tphased_alignments" > {output}
@@ -173,7 +159,7 @@ rule log_phasing:
         done
         """
 
-rule create_config:
+rule naibr_config:
     input:
         outdir + "/phasedbam/{sample}.bam"
     output:
@@ -181,8 +167,6 @@ rule create_config:
     params:
         lambda wc: wc.get("sample"),
         min(10, workflow.cores)
-    message:
-        "Creating naibr config file: {wildcards.sample}"
     run:
         argdict = process_args(extra)
         with open(output[0], "w") as conf:
@@ -193,19 +177,17 @@ rule create_config:
             for i in argdict:
                 _ = conf.write(f"{i}={argdict[i]}\n")
 
-rule index_phased_alignment:
+rule index_phased:
     input:
         outdir + "/phasedbam/{sample}.bam"
     output:
         outdir + "/phasedbam/{sample}.bam.bai"
     container:
         None
-    message:
-        "Indexing alignment: {wildcards.sample}"
     shell:
         "samtools index {input} {output} 2> /dev/null"
 
-rule call_sv:
+rule call_variants:
     input:
         bam   = outdir + "/phasedbam/{sample}.bam",
         bai   = outdir + "/phasedbam/{sample}.bam.bai",
@@ -220,12 +202,10 @@ rule call_sv:
         10
     conda:
         f"{envdir}/sv.yaml"
-    message:
-        "Calling variants: {wildcards.sample}"
     shell:
         "naibr {input.conf} > {log} 2>&1"
 
-rule infer_sv:
+rule infer_variants:
     input:
         bedpe = outdir + "/{sample}/{sample}.bedpe",
         refmt = outdir + "/{sample}/{sample}.reformat.bedpe",
@@ -239,8 +219,6 @@ rule infer_sv:
         outdir = lambda wc: outdir + "/" + wc.get("sample")
     container:
         None
-    message:
-        "Inferring variants from naibr output: {wildcards.sample}"
     shell:
         """
         infer_sv.py {input.bedpe} -f {output.fail} > {output.bedpe}
@@ -249,15 +227,13 @@ rule infer_sv:
         rm -rf {params.outdir}
         """
 
-rule merge_variants:
+rule aggregate_variants:
     input:
         collect(outdir + "/bedpe/{sample}.bedpe", sample = samplenames)
     output:
         outdir + "/inversions.bedpe",
         outdir + "/deletions.bedpe",
         outdir + "/duplications.bedpe"
-    message:
-        "Aggregating the detected variants"
     run:
         from pathlib import Path
         with open(output[0], "w") as inversions, open(output[1], "w") as deletions, open(output[2], "w") as duplications:
@@ -283,7 +259,7 @@ rule merge_variants:
                         elif record[-1] == "duplication":
                             _ = duplications.write(f"{samplename}\t{line}")
 
-rule create_report:
+rule variant_report:
     input:
         bedpe = outdir + "/bedpe/{sample}.bedpe",
         fai   = f"Genome/{validgenome}.fai"
@@ -291,8 +267,6 @@ rule create_report:
         outdir + "/reports/{sample}.naibr.html"
     conda:
         f"{envdir}/r.yaml"
-    message:
-        "Creating report: {wildcards.sample}"
     script:
         "report/naibr.Rmd"
 

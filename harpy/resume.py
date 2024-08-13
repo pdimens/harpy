@@ -11,8 +11,9 @@ from .conda_deps import generate_conda_deps
 
 @click.command(no_args_is_help = True, epilog = "See the documentation for more information: https://pdimens.github.io/harpy/modules/other")
 @click.option('-c', '--conda',  is_flag = True, default = False, help = 'Recreate the conda environments into .harpy_envs/')
+@click.option('--quiet',  is_flag = True, default = False, help = 'Don\'t show output text while running')
 @click.argument('directory', required=True, type=click.Path(exists=True, file_okay=False, readable=True), nargs=1)
-def resume(directory, conda):
+def resume(directory, conda, quiet):
     """
     Resume a workflow from an existing Harpy directory
 
@@ -40,7 +41,7 @@ def resume(directory, conda):
     sm_log = snakemake_log(directory, workflow)
     command = harpy_config["workflow_call"] + f" --config snakemake_log={sm_log}"
     start_text = f"Output Directory: {directory}\nLog: {sm_log}"
-    launch_snakemake(command, workflow, start_text, directory, sm_log)
+    launch_snakemake(command, workflow, start_text, directory, sm_log, quiet)
 
 
 

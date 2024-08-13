@@ -64,8 +64,6 @@ def gen1(r1_fq, r2_fq, i1_fq, i2_fq, output_dir, schema, threads, snakemake, ski
     command += f"--configfile {workflowdir}/config.yaml "
     if hpc:
         command += f"--workflow-profile {hpc} "
-    if quiet:
-        command += "--quiet all "
     if snakemake is not None:
         command += snakemake
 
@@ -92,6 +90,6 @@ def gen1(r1_fq, r2_fq, i1_fq, i2_fq, output_dir, schema, threads, snakemake, ski
 
     generate_conda_deps()
     start_text = f"Haplotag Type: Generation I\nDemultiplex Schema: {schema}\nOutput Directory: {output_dir}\nLog: {sm_log}"
-    launch_snakemake(command, "demultiplex_gen1", start_text, output_dir, sm_log)
+    launch_snakemake(command, "demultiplex_gen1", start_text, output_dir, sm_log, quiet)
 
 demultiplex.add_command(gen1)
