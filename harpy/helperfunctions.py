@@ -5,11 +5,13 @@ import re
 import sys
 import glob
 import subprocess
+from time import sleep
 from datetime import datetime
 from pathlib import Path
 from collections import Counter
 from rich import print as rprint
 from rich.progress import Progress, BarColumn, TextColumn, TimeElapsedColumn
+from rich.console import Console
 from importlib_resources import files
 import harpy.scripts
 import harpy.reports
@@ -104,24 +106,47 @@ def launch_snakemake(sm_args, workflow, starttext, outdir, sm_logfile, quiet):
             # Start a subprocess
             process = subprocess.Popen(sm_args.split(), stdout=subprocess.PIPE, stderr=subprocess.PIPE, text = True)
             err = False
-            print_deps = True
-            # read up to the job summary
+            deps = False            
+            # read up to the job summary, but break early if dependency text appears
             while True:
                 output = process.stderr.readline()
                 if output == '' and process.poll() is not None:
                     break
                 # print dependency text only once
                 if "Downloading and installing remote packages" in output:
-                    if print_deps:
-                        rprint("[yellow]  Downloading and installing workflow dependencies", file = sys.stderr)
-                        print_deps = False
-                        continue
-                    continue
+                    deps = True
+                    break
                 if output.startswith("Job stats:"):
                     # read and ignore the next two lines
                     process.stderr.readline()
                     process.stderr.readline()
                     break
+            # if dependency text present, print console log with spinner and read up to the job stats
+            if deps:
+                if not quiet:
+                    console = Console()
+                    with console.status("[magenta]Downloading and installing workflow dependencies", spinner = "point") as status:
+                        while True:
+                            output = process.stderr.readline()
+                            if output == '' and process.poll() is not None:
+                                break
+                            sleep(2)
+                            if output.startswith("Job stats:"):
+                                # read and ignore the next two lines
+                                process.stderr.readline()
+                                process.stderr.readline()
+                                break
+                else:
+                    while True:
+                        output = process.stderr.readline()
+                        if output == '' and process.poll() is not None:
+                            break
+                        if output.startswith("Job stats:"):
+                            # read and ignore the next two lines
+                            process.stderr.readline()
+                            process.stderr.readline()
+                            break
+
             job_inventory = {}
             task_ids = {"total_progress" : progress.add_task("[bold blue]Total", total=100)}
             # process the job summary
