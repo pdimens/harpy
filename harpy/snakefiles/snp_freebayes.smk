@@ -119,7 +119,7 @@ rule call_variants:
     params:
         region = lambda wc: "-r " + regions[wc.part],
         ploidy = f"-p {ploidy}",
-        populations = "--populations " + rules.copy_groupings.output[0] if groupings else "",
+        populations = f"--populations {outdir}/logs/sample.groups" if groupings else "",
         extra = extra
     conda:
         f"{envdir}/snp.yaml"
