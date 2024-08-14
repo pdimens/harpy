@@ -115,7 +115,7 @@ def leviathan(inputs, output_dir, genome, min_sv, min_barcodes, iterations, thre
             # check that samplenames and populations line up
             validate_popsamples(bamlist, populations,quiet)
             config.write(f"  groupings: {Path(populations).resolve()}\n")
-            popgroupings += f"\nPopulations: {populations}"
+            popgroupings += f"\nSample Pooling: {populations}"
         config.write("  alignments:\n")
         for i in bamlist:
             config.write(f"    - {i}\n")
@@ -211,7 +211,7 @@ def naibr(inputs, output_dir, genome, vcf, min_sv, min_barcodes, min_quality, th
             # check that samplenames and populations line up
             validate_popsamples(bamlist, populations, quiet)
             config.write(f"  groupings: {Path(populations).resolve()}\n")
-            popgroupings += f"\nPopulations: {populations}"
+            popgroupings += f"\nSample Pooling: {populations}"
         config.write("  alignments:\n")
         for i in bamlist:
             config.write(f"    - {i}\n")

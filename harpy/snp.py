@@ -132,7 +132,7 @@ def mpileup(inputs, output_dir, regions, genome, threads, populations, ploidy, e
             # check that samplenames and populations line up
             validate_popsamples(bamlist, populations, quiet)
             config.write(f"  groupings: {populations}\n")
-            popgroupings += f"\nPopulations: {populations}"
+            popgroupings += f"\nGrouping Information: {populations}"
         config.write("  alignments:\n")
         for i in bamlist:
             config.write(f"    - {i}\n")
@@ -229,7 +229,7 @@ def freebayes(inputs, output_dir, genome, threads, populations, ploidy, regions,
             # check that samplenames and populations line up
             validate_popsamples(bamlist, populations, quiet)
             config.write(f"  groupings: {populations}\n")
-            popgroupings += f"\nPopulations: {populations}"
+            popgroupings += f"\nGrouping Information: {populations}"
         config.write("  alignments:\n")
         for i in bamlist:
             config.write(f"    - {i}\n")
