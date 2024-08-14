@@ -247,7 +247,6 @@ def snpindel(genome, snp_vcf, indel_vcf, output_dir, prefix, snp_count, indel_co
     os.makedirs(f"{workflowdir}/input/", exist_ok= True)
     check_fasta(genome)
     start_text.add_row("Input Genome:", os.path.basename(genome))
-    start_text.add_row("Output Folder:", output_dir + "/")
     if snp_vcf:
         validate_input_by_ext(snp_vcf, "--snp-vcf", ["vcf","vcf.gz","bcf"])
         start_text.add_row("SNP File:", os.path.basename(snp_vcf))
@@ -302,6 +301,7 @@ def snpindel(genome, snp_vcf, indel_vcf, output_dir, prefix, snp_count, indel_co
         sys.exit(0)
 
     generate_conda_deps()
+    start_text.add_row("Output Folder:", output_dir + "/")
     start_text.add_row("Workflow Log:", sm_log.replace(f"{output_dir}/", ""))
     launch_snakemake(command, "simulate_snpindel", start_text, output_dir, sm_log, quiet)
 
@@ -354,9 +354,7 @@ def inversion(genome, vcf, prefix, output_dir, count, min_size, max_size, centro
     start_text = Table(show_header=False,pad_edge=False, show_edge=False, padding = (0,0), box=box.SIMPLE)
     start_text.add_column("detail", justify="left", style="light_steel_blue", no_wrap=True)
     start_text.add_column(header="value", justify="left")
-
     start_text.add_row("Input Genome:", os.path.basename(genome))
-    start_text.add_row("Output Folder:", output_dir + "/")
 
     if vcf:
         validate_input_by_ext(vcf, "--vcf", ["vcf","vcf.gz","bcf"])
@@ -402,6 +400,7 @@ def inversion(genome, vcf, prefix, output_dir, count, min_size, max_size, centro
         sys.exit(0)
 
     generate_conda_deps()
+    start_text.add_row("Output Folder:", output_dir + "/")
     start_text.add_row("Workflow Log:", sm_log.replace(f"{output_dir}/", ""))
     launch_snakemake(command, "simulate_inversion", start_text, output_dir, sm_log, quiet)
 
@@ -464,7 +463,6 @@ def cnv(genome, output_dir, vcf, prefix, count, min_size, max_size, dup_ratio, m
     start_text.add_column("detail", justify="left", style="light_steel_blue", no_wrap=True)
     start_text.add_column(header="value", justify="left")
     start_text.add_row("Input Genome:", os.path.basename(genome))
-    start_text.add_row("Output Folder:", output_dir + "/")
 
     if vcf:
         validate_input_by_ext(vcf, "--vcf", ["vcf","vcf.gz","bcf"])
@@ -513,6 +511,7 @@ def cnv(genome, output_dir, vcf, prefix, count, min_size, max_size, dup_ratio, m
         sys.exit(0)
 
     generate_conda_deps()
+    start_text.add_row("Output Folder:", output_dir + "/")
     start_text.add_row("Workflow Log:", sm_log.replace(f"{output_dir}/", ""))
     launch_snakemake(command, "simulate_cnv", start_text, output_dir, sm_log, quiet)
 
@@ -563,7 +562,6 @@ def translocation(genome, output_dir, prefix, vcf, count, centromeres, genes, he
     start_text.add_column("detail", justify="left", style="light_steel_blue", no_wrap=True)
     start_text.add_column(header="value", justify="left")
     start_text.add_row("Input Genome:", os.path.basename(genome))
-    start_text.add_row("Output Folder:", output_dir + "/")
     
     if vcf:
         validate_input_by_ext(vcf, "--vcf", ["vcf","vcf.gz","bcf"])
@@ -608,6 +606,7 @@ def translocation(genome, output_dir, prefix, vcf, count, centromeres, genes, he
         sys.exit(0)
 
     generate_conda_deps()
+    start_text.add_row("Output Folder:", output_dir + "/")
     start_text.add_row("Workflow Log:", sm_log.replace(f"{output_dir}/", ""))
     launch_snakemake(command, "simulate_translocation", start_text, output_dir, sm_log, quiet)
 

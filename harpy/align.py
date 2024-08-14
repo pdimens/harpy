@@ -233,8 +233,8 @@ def ema(inputs, output_dir, platform, whitelist, genome, depth_window, keep_unma
     start_text.add_column("value", justify="left")
     start_text.add_row("Samples:", f"{sample_count}")
     start_text.add_row("Genome:", genome)
-    start_text.add_row("Output Folder:", output_dir + "/")
     start_text.add_row("Platform:", platform)
+    start_text.add_row("Output Folder:", output_dir + "/")
     start_text.add_row("Workflow Log:", sm_log.replace(f"{output_dir}/", ""))
     launch_snakemake(command, "align_ema", start_text, output_dir, sm_log, quiet)
 
