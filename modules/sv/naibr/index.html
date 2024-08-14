@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="turbo-root" content="/harpy">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="3.5.0.776958141096">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="3.5.0.776965745952">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 3.5.0">
@@ -34,12 +34,12 @@
     <script data-cfasync="false">(function () { var el = document.documentElement, m = localStorage.getItem("doc_theme"), wm = window.matchMedia; if (m === "dark" || (!m && wm && wm("(prefers-color-scheme: dark)").matches)) { el.classList.add("dark") } else { el.classList.remove("dark") } })();</script>
 
     <link href="../../../static/favicon.png" rel="icon">
-    <link href="../../../resources/css/retype.css?v=3.5.0.776958141096" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=3.5.0.776965745952" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=3.5.0.776958141096" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=3.5.0.776965745952" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=3.5.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=3.5.0.776958141096" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=3.5.0.776958141096" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=3.5.0.776965745952" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=3.5.0.776965745952" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../../resources/js/mermaid.js?v=3.5.0" defer></script>
 </head>
 <body>
@@ -404,7 +404,7 @@ harpy sv naibr --threads 20 --genome genome.fasta --vcf Variants/data.vcf.gz Ali
 <td style="text-align: center;"></td>
 <td style="text-align: left;">file/directory paths</td>
 <td style="text-align: center;"></td>
-<td style="text-align: center;"><strong>yes</strong></td>
+<td style="text-align: center;"><span class="docs-emoji">&#x203C;&#xFE0F;</span></td>
 <td style="text-align: left;">Files or directories containing <a href="../../../commonoptions/#input-arguments">input BAM files</a></td>
 </tr>
 <tr>
@@ -412,7 +412,7 @@ harpy sv naibr --threads 20 --genome genome.fasta --vcf Variants/data.vcf.gz Ali
 <td style="text-align: center;"><code v-pre>-x</code></td>
 <td style="text-align: left;">string</td>
 <td style="text-align: center;"></td>
-<td style="text-align: center;">no</td>
+<td style="text-align: center;"></td>
 <td style="text-align: left;">Additional naibr arguments, in quotes</td>
 </tr>
 <tr>
@@ -420,7 +420,7 @@ harpy sv naibr --threads 20 --genome genome.fasta --vcf Variants/data.vcf.gz Ali
 <td style="text-align: center;"><code v-pre>-g</code></td>
 <td style="text-align: left;">file path</td>
 <td style="text-align: center;"></td>
-<td style="text-align: center;"><strong>yes</strong></td>
+<td style="text-align: center;"><span class="docs-emoji">&#x203C;&#xFE0F;</span></td>
 <td style="text-align: left;">Genome assembly for phasing bam files</td>
 </tr>
 <tr>
@@ -428,7 +428,7 @@ harpy sv naibr --threads 20 --genome genome.fasta --vcf Variants/data.vcf.gz Ali
 <td style="text-align: center;"><code v-pre>-b</code></td>
 <td style="text-align: left;">integer</td>
 <td style="text-align: center;">2</td>
-<td style="text-align: center;">no</td>
+<td style="text-align: center;"></td>
 <td style="text-align: left;">Minimum number of barcode overlaps supporting candidate SV</td>
 </tr>
 <tr>
@@ -436,7 +436,7 @@ harpy sv naibr --threads 20 --genome genome.fasta --vcf Variants/data.vcf.gz Ali
 <td style="text-align: center;"><code v-pre>-q</code></td>
 <td style="text-align: left;">integer (0-40)</td>
 <td style="text-align: center;">30</td>
-<td style="text-align: center;">no</td>
+<td style="text-align: center;"></td>
 <td style="text-align: left;">Minimum <code v-pre>MQ</code> (SAM mapping quality) to pass filtering</td>
 </tr>
 <tr>
@@ -444,7 +444,7 @@ harpy sv naibr --threads 20 --genome genome.fasta --vcf Variants/data.vcf.gz Ali
 <td style="text-align: center;"><code v-pre>-n</code></td>
 <td style="text-align: left;">integer</td>
 <td style="text-align: center;">1000</td>
-<td style="text-align: center;">no</td>
+<td style="text-align: center;"></td>
 <td style="text-align: left;">Minimum size of SV to detect</td>
 </tr>
 <tr>
@@ -452,7 +452,7 @@ harpy sv naibr --threads 20 --genome genome.fasta --vcf Variants/data.vcf.gz Ali
 <td style="text-align: center;"><code v-pre>-m</code></td>
 <td style="text-align: left;">integer</td>
 <td style="text-align: center;">100000</td>
-<td style="text-align: center;">no</td>
+<td style="text-align: center;"></td>
 <td style="text-align: left;">Base-pair distance threshold to separate molecules</td>
 </tr>
 <tr>
@@ -460,7 +460,7 @@ harpy sv naibr --threads 20 --genome genome.fasta --vcf Variants/data.vcf.gz Ali
 <td style="text-align: center;"><code v-pre>-p</code></td>
 <td style="text-align: left;">file path</td>
 <td style="text-align: center;"></td>
-<td style="text-align: center;">no</td>
+<td style="text-align: center;"></td>
 <td style="text-align: left;">Tab-delimited file of sample&lt;<em>tab</em>&gt;group</td>
 </tr>
 <tr>
@@ -468,8 +468,8 @@ harpy sv naibr --threads 20 --genome genome.fasta --vcf Variants/data.vcf.gz Ali
 <td style="text-align: center;"><code v-pre>-v</code></td>
 <td style="text-align: left;">file path</td>
 <td style="text-align: center;"></td>
-<td style="text-align: center;"><strong>conditionally</strong></td>
-<td style="text-align: left;">Phased vcf file for phasing bam files</td>
+<td style="text-align: center;"><span class="docs-emoji">&#x2757;</span></td>
+<td style="text-align: left;">Phased vcf file for phasing bam files (<doc-anchor-trigger to="#optional-vcf-file">see below</doc-anchor-trigger>)</td>
 </tr>
 </tbody>
 </table>
@@ -526,14 +526,14 @@ it too well.</p>
 <doc-anchor-target id="optional-vcf-file">
     <h3>
         <doc-anchor-trigger class="header-anchor-trigger" to="#optional-vcf-file">#</doc-anchor-trigger>
-        <span>optional vcf file</span>
+        <span>Optional vcf file</span>
     </h3>
 </doc-anchor-target>
-<p>In order to get the best variant calling performance out of NAIBR, it requires <em>phased</em> bam files as input.
-The <code v-pre>--vcf</code> option is optional and not used by NAIBR. However, to use <span class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-blue-600 bg-blue-100 h-6 px-2 text-xs rounded-full">
+<p>In order to get the best variant calling performance out of NAIBR, it requires <strong><em>phased</em></strong> bam files as input.
+Using <code v-pre>--vcf</code> is optional and not used by NAIBR directly. However, to use <span class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-blue-600 bg-blue-100 h-6 px-2 text-xs rounded-full">
     <span>sv naibr</span>
 </span> with
-bam files that are not phased, you will need to include <code v-pre>--vcf</code>, which Harpy uses with
+bam files that are not phased, you will need to include a <strong>phased VCF file</strong> with <code v-pre>--vcf</code>, which Harpy uses with
 <code v-pre>whatshap haplotag</code> to phase your input BAM files prior to variant calling. See the <a href="https://whatshap.readthedocs.io/en/latest/guide.html#whatshap-haplotag">whatshap documentation</a>
 for more details on that process.</p>
 <doc-anchor-target id="a-phased-input---vcf">

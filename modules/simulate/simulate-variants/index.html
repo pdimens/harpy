@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="turbo-root" content="/harpy">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="3.5.0.776958141096">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="3.5.0.776965745952">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 3.5.0">
@@ -32,12 +32,12 @@
     <script data-cfasync="false">(function () { var el = document.documentElement, m = localStorage.getItem("doc_theme"), wm = window.matchMedia; if (m === "dark" || (!m && wm && wm("(prefers-color-scheme: dark)").matches)) { el.classList.add("dark") } else { el.classList.remove("dark") } })();</script>
 
     <link href="../../../static/favicon.png" rel="icon">
-    <link href="../../../resources/css/retype.css?v=3.5.0.776958141096" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=3.5.0.776965745952" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=3.5.0.776958141096" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=3.5.0.776965745952" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=3.5.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=3.5.0.776958141096" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=3.5.0.776958141096" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=3.5.0.776965745952" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=3.5.0.776965745952" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../../resources/js/mermaid.js?v=3.5.0" defer></script>
 </head>
 <body>
@@ -364,6 +364,7 @@ specific variants to simulate. There are also these unifying options among the d
 <th style="text-align: left;">argument</th>
 <th style="text-align: left;">short name</th>
 <th style="text-align: left;">type</th>
+<th style="text-align: center;">required</th>
 <th style="text-align: left;">description</th>
 </tr>
 </thead>
@@ -372,42 +373,49 @@ specific variants to simulate. There are also these unifying options among the d
 <td style="text-align: left;"><code v-pre>INPUT_GENOME</code></td>
 <td style="text-align: left;"></td>
 <td style="text-align: left;">file path</td>
-<td style="text-align: left;">The haploid genome to simulate variants onto. <strong>REQUIRED</strong></td>
+<td style="text-align: center;"><span class="docs-emoji">&#x203C;&#xFE0F;</span></td>
+<td style="text-align: left;">The haploid genome to simulate variants onto</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code v-pre>--centromeres</code></td>
 <td style="text-align: left;"><code v-pre>-c</code></td>
 <td style="text-align: left;">file path</td>
+<td style="text-align: center;"></td>
 <td style="text-align: left;">GFF3 file of centromeres to avoid</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code v-pre>--exclude-chr</code></td>
 <td style="text-align: left;"><code v-pre>-e</code></td>
 <td style="text-align: left;">file path</td>
+<td style="text-align: center;"></td>
 <td style="text-align: left;">Text file of chromosomes to avoid, one per line</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code v-pre>--genes</code></td>
 <td style="text-align: left;"><code v-pre>-g</code></td>
 <td style="text-align: left;">file path</td>
+<td style="text-align: center;"></td>
 <td style="text-align: left;">GFF3 file of genes to avoid simulating over (see <code v-pre>snpindel</code> for caveat)</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code v-pre>--heterozygosity</code></td>
 <td style="text-align: left;"><code v-pre>-z</code></td>
 <td style="text-align: left;">float between [0,1]</td>
+<td style="text-align: center;"></td>
 <td style="text-align: left;"><doc-anchor-trigger to="#heterozygosity">% heterozygosity to simulate diploid later</doc-anchor-trigger> (default: <code v-pre>0</code>)</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code v-pre>--prefix</code></td>
 <td style="text-align: left;"></td>
 <td style="text-align: left;">string</td>
+<td style="text-align: center;"></td>
 <td style="text-align: left;">Naming prefix for output files (default: <code v-pre>sim.{module_name}</code>)</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code v-pre>--randomseed</code></td>
 <td style="text-align: left;"></td>
 <td style="text-align: left;">integer</td>
+<td style="text-align: center;"></td>
 <td style="text-align: left;">Random seed for simulation</td>
 </tr>
 </tbody>
@@ -673,7 +681,7 @@ between individuals (<a href="https://www.genome.gov/genetics-glossary/Copy-Numb
 </tbody>
 </table>
 </div>
-<p>The ratio parameters special meanings when setting the value to either <code v-pre>0</code> or <code v-pre>9999</code> :</p>
+<p>The ratio parameters have special meanings when setting the value to either <code v-pre>0</code> or <code v-pre>9999</code> :</p>
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="compact">
 <thead>
