@@ -3,6 +3,8 @@
 import os
 import sys
 from pathlib import Path
+from rich import box
+from rich.table import Table
 import rich_click as click
 from .conda_deps import generate_conda_deps
 from .helperfunctions import fetch_rule, fetch_report, snakemake_log, launch_snakemake
@@ -115,7 +117,6 @@ def leviathan(inputs, output_dir, genome, min_sv, min_barcodes, iterations, thre
             # check that samplenames and populations line up
             validate_popsamples(bamlist, populations,quiet)
             config.write(f"  groupings: {Path(populations).resolve()}\n")
-            popgroupings += f"\nSample Pooling: {populations}"
         config.write("  alignments:\n")
         for i in bamlist:
             config.write(f"    - {i}\n")
@@ -123,8 +124,16 @@ def leviathan(inputs, output_dir, genome, min_sv, min_barcodes, iterations, thre
         sys.exit(0)
 
     generate_conda_deps()
-    modetext = "pool-by-group" if populations else "sample-by-sample"
-    start_text = f"Samples: {n}{popgroupings}\nOutput Directory: {output_dir}/\nMode: {modetext}\nLog: {sm_log}"
+    start_text = Table(show_header=False,pad_edge=False, show_edge=False, padding = (0,0), box=box.SIMPLE)
+    start_text.add_column("detail", justify="left", style="light_steel_blue", no_wrap=True)
+    start_text.add_column(header="value", justify="left")
+    start_text.add_row("Samples:", f"{n}")
+    start_text.add_row("Genome:", genome)
+    start_text.add_row("Output Folder:", output_dir + "/")
+    if populations:
+        start_text.add_row("Sample Pooling:", populations)
+    start_text.add_row("Mode:", "pool-by-group" if populations else "sample-by-sample")
+    start_text.add_row("Workflow Log:", sm_log.replace(f"{output_dir}/", ""))
     launch_snakemake(command, "sv_leviathan", start_text, output_dir, sm_log, quiet)
 
 @click.command(no_args_is_help = True, epilog = "See the documentation for more information: https://pdimens.github.io/harpy/modules/sv/naibr/")
@@ -199,7 +208,6 @@ def naibr(inputs, output_dir, genome, vcf, min_sv, min_barcodes, min_quality, th
             config.write(f"extra: {extra_params}\n")
         config.write(f"skip_reports: {skipreports}\n")
         config.write(f"workflow_call: {command}\n")
-        popgroupings = ""
         config.write("inputs:\n")
         if vcf is not None:
             config.write(f"  vcf: {Path(vcf).resolve()}\n")
@@ -211,13 +219,14 @@ def naibr(inputs, output_dir, genome, vcf, min_sv, min_barcodes, min_quality, th
             # check that samplenames and populations line up
             validate_popsamples(bamlist, populations, quiet)
             config.write(f"  groupings: {Path(populations).resolve()}\n")
-            popgroupings += f"\nSample Pooling: {populations}"
         config.write("  alignments:\n")
         for i in bamlist:
             config.write(f"    - {i}\n")
     if config_only:
         sys.exit(0)
 
+
+    generate_conda_deps()
     if populations:
         modetext = "pool-by-group"
     else:
@@ -226,9 +235,16 @@ def naibr(inputs, output_dir, genome, vcf, min_sv, min_barcodes, min_quality, th
         modetext += " + will be phased"
     else:
         modetext += " + already phased"
-
-    generate_conda_deps()
-    start_text = f"Samples: {n}{popgroupings}\nOutput Directory: {output_dir}/\nMode: {modetext}\nLog: {sm_log}"
+    start_text = Table(show_header=False,pad_edge=False, show_edge=False, padding = (0,0), box=box.SIMPLE)
+    start_text.add_column("detail", justify="left", style="light_steel_blue", no_wrap=True)
+    start_text.add_column(header="value", justify="left")
+    start_text.add_row("Samples:", f"{n}")
+    start_text.add_row("Genome:", genome)
+    start_text.add_row("Output Folder:", output_dir + "/")
+    if populations:
+        start_text.add_row("Sample Pooling:", populations)
+    start_text.add_row("Mode:", modetext)
+    start_text.add_row("Workflow Log:", sm_log.replace(f"{output_dir}/", ""))
     launch_snakemake(command, "sv_naibr", start_text, output_dir, sm_log, quiet)
 
 sv.add_command(leviathan)

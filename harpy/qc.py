@@ -2,6 +2,8 @@
 
 import os
 import sys
+from rich import box
+from rich.table import Table
 import rich_click as click
 from .conda_deps import generate_conda_deps
 from .helperfunctions import fetch_report, fetch_rule, snakemake_log, launch_snakemake
@@ -96,19 +98,14 @@ def qc(inputs, output_dir, min_length, max_length, trim_adapters, deduplicate, d
     if config_only:
         sys.exit(0)
 
-    if trim_adapters:
-        tasks = "Trim Adapters: yes\n"
-    else:
-        tasks = "Trim Adapters: no\n"
-    if deduplicate:
-        tasks += "Deduplicate: yes\n"
-    else:
-        tasks += "Deduplicate: no\n"
-    if deconvolve:
-        tasks += "Deconvolve: yes"
-    else:
-        tasks += "Deconvolve: no"
-
     generate_conda_deps()
-    start_text = f"Samples: {sample_count}\nOutput Directory: {output_dir}/\n{tasks}\nLog: {sm_log}"
+    start_text = Table(show_header=False,pad_edge=False, show_edge=False, padding = (0,0), box=box.SIMPLE)
+    start_text.add_column("detail", justify="left", style="light_steel_blue", no_wrap=True)
+    start_text.add_column("value", justify="left")
+    start_text.add_row("Samples:", f"{sample_count}")
+    start_text.add_row("Output Folder:", f"{output_dir}/")
+    start_text.add_row("Trim Adapters:", "yes" if trim_adapters else "no")
+    start_text.add_row("Deduplicate:", "yes" if deduplicate else "no")
+    start_text.add_row("Deconvolve:", "yes" if deconvolve else "no")
+    start_text.add_row("Workflow Log:", sm_log.replace(f"{output_dir}/", ""))
     launch_snakemake(command, "qc", start_text, output_dir, sm_log, quiet)

@@ -3,6 +3,8 @@
 import os
 import sys
 import yaml
+from rich import box
+from rich.table import Table
 import rich_click as click
 from .validations import check_envdir
 from .printfunctions import print_error
@@ -40,7 +42,11 @@ def resume(directory, conda, quiet):
     workflow = harpy_config["workflow"].replace(" ", "_")
     sm_log = snakemake_log(directory, workflow)
     command = harpy_config["workflow_call"] + f" --config snakemake_log={sm_log}"
-    start_text = f"Output Directory: {directory}\nLog: {sm_log}"
+    start_text = Table(show_header=False,pad_edge=False, show_edge=False, padding = (0,0), box=box.SIMPLE)
+    start_text.add_column("detail", justify="left", style="light_steel_blue", no_wrap=True)
+    start_text.add_column(header="value", justify="left")
+    start_text.add_row("Output Folder:", directory + "/")
+    start_text.add_row("Workflow Log:", sm_log.replace(f"{directory}/", ""))
     launch_snakemake(command, workflow, start_text, directory, sm_log, quiet)
 
 

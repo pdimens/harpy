@@ -4,6 +4,8 @@ import os
 import sys
 from time import sleep
 from pathlib import Path
+from rich import box
+from rich.table import Table
 import rich_click as click
 from .conda_deps import generate_conda_deps
 from .helperfunctions import fetch_report, fetch_rule, snakemake_log, launch_snakemake
@@ -128,7 +130,13 @@ def bwa(inputs, output_dir, genome, depth_window, threads, keep_unmapped, extra_
         sys.exit(0)
 
     generate_conda_deps()
-    start_text =  f"Samples: {sample_count}\nOutput Directory: {output_dir}\nLog: {sm_log}"
+    start_text = Table(show_header=False,pad_edge=False, show_edge=False, padding = (0,0), box=box.SIMPLE)
+    start_text.add_column("detail", justify="left", style="light_steel_blue", no_wrap=True)
+    start_text.add_column("value", justify="left")
+    start_text.add_row("Samples:", f"{sample_count}")
+    start_text.add_row("Genome:", genome)
+    start_text.add_row("Output Folder:", output_dir + "/")
+    start_text.add_row("Workflow Log:", sm_log.replace(f"{output_dir}/", ""))
     launch_snakemake(command, "align_bwa", start_text, output_dir, sm_log, quiet)
 
 @click.command(no_args_is_help = True, epilog = "See the documentation for more information: https://pdimens.github.io/harpy/modules/align/ema")
@@ -220,7 +228,14 @@ def ema(inputs, output_dir, platform, whitelist, genome, depth_window, keep_unma
         sys.exit(0)
 
     generate_conda_deps()
-    start_text = f"Samples: {sample_count}\nPlatform: {platform}\nOutput Directory: {output_dir}/\nLog: {sm_log}"
+    start_text = Table(show_header=False,pad_edge=False, show_edge=False, padding = (0,0), box=box.SIMPLE)
+    start_text.add_column("detail", justify="left", style="light_steel_blue", no_wrap=True)
+    start_text.add_column("value", justify="left")
+    start_text.add_row("Samples:", f"{sample_count}")
+    start_text.add_row("Genome:", genome)
+    start_text.add_row("Output Folder:", output_dir + "/")
+    start_text.add_row("Platform:", platform)
+    start_text.add_row("Workflow Log:", sm_log.replace(f"{output_dir}/", ""))
     launch_snakemake(command, "align_ema", start_text, output_dir, sm_log, quiet)
 
 @click.command(no_args_is_help = True, epilog= "See the documentation for more information: https://pdimens.github.io/harpy/modules/align/minimap/")
@@ -251,7 +266,7 @@ def strobe(inputs, output_dir, genome, read_length, keep_unmapped, depth_window,
     not use barcodes when mapping, so Harpy will post-processes the alignments using the
     specified `--molecule-distance` to assign alignments to unique molecules. The `--read-length` is
     an *approximate* parameter and should be one of [`auto`, `50`, `75`, `100`, `125`, `150`, `250`, `400`].
-    The alignment process will be faster and take up less disk/RAM if you specify an `-r` value that isn't
+    The alignment process will be faster and take up less disk/RAM if you specify an `-l` value that isn't
     `auto`. If your input has adapters removed, then you should expect the read lengths to be <150.
     """
     output_dir = output_dir.rstrip("/")
@@ -298,7 +313,13 @@ def strobe(inputs, output_dir, genome, read_length, keep_unmapped, depth_window,
         sys.exit(0)
 
     generate_conda_deps()
-    start_text =  f"Samples: {sample_count}\nOutput Directory: {output_dir}\nLog: {sm_log}"
+    start_text = Table(show_header=False,pad_edge=False, show_edge=False, padding = (0,0), box=box.SIMPLE)
+    start_text.add_column("detail", justify="left", style="light_steel_blue", no_wrap=True)
+    start_text.add_column("value", justify="left")
+    start_text.add_row("Samples:", f"{sample_count}")
+    start_text.add_row("Genome:", genome)
+    start_text.add_row("Output Folder:", output_dir + "/")
+    start_text.add_row("Workflow Log:", sm_log.replace(f"{output_dir}/", ""))
     launch_snakemake(command, "align_strobe", start_text, output_dir, sm_log, quiet)
 
 align.add_command(bwa)

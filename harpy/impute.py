@@ -2,8 +2,10 @@
 
 import os
 import sys
-import rich_click as click
 from pathlib import Path
+from rich import box
+from rich.table import Table
+import rich_click as click
 from .conda_deps import generate_conda_deps
 from .helperfunctions import fetch_rule, fetch_report, fetch_script, snakemake_log, launch_snakemake
 from .fileparsers import parse_alignment_inputs, biallelic_contigs
@@ -97,6 +99,14 @@ def impute(inputs, output_dir, parameters, threads, vcf, vcf_samples, extra_para
     if config_only:
         sys.exit(0)
 
+    start_text = Table(show_header=False,pad_edge=False, show_edge=False, padding = (0,0), box=box.SIMPLE)
+    start_text.add_column("detail", justify="left", style="light_steel_blue", no_wrap=True)
+    start_text.add_column("value", justify="left")
+    start_text.add_row("Input VCF:", vcf)
+    start_text.add_row("VCF Samples:", f"{len(samplenames)}")
+    start_text.add_row("Alignment Files:", f"{n}")
+    start_text.add_row("Output Folder:", output_dir + "/")
+    start_text.add_row("Usable Contigs:", f"{n_biallelic}")
+    start_text.add_row("Workflow Log:", sm_log.replace(f"{output_dir}/", ""))
     generate_conda_deps()
-    start_text = f"Input VCF: {vcf}\nSamples in VCF: {len(samplenames)}\nAlignments Provided: {n}\nContigs with ≥2 Biallelic SNPs: {n_biallelic}\nOutput Directory: {output_dir}/\Snakemake Log: {sm_log}"
     launch_snakemake(command, "impute", start_text, output_dir, sm_log, quiet)

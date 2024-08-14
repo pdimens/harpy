@@ -3,6 +3,8 @@
 import os
 import sys
 from pathlib import Path
+from rich import box
+from rich.table import Table
 import rich_click as click
 from .conda_deps import generate_conda_deps
 from .helperfunctions import fetch_rule, snakemake_log, launch_snakemake
@@ -89,7 +91,13 @@ def gen1(r1_fq, r2_fq, i1_fq, i2_fq, output_dir, schema, threads, snakemake, ski
         sys.exit(0)
 
     generate_conda_deps()
-    start_text = f"Haplotag Type: Generation I\nDemultiplex Schema: {schema}\nOutput Directory: {output_dir}\nLog: {sm_log}"
+    start_text = Table(show_header=False,pad_edge=False, show_edge=False, padding = (0,0), box=box.SIMPLE)
+    start_text.add_column("detail", justify="left", style="light_steel_blue", no_wrap=True)
+    start_text.add_column("value", justify="left")
+    start_text.add_row("Haplotag Type:", "Generation I")
+    start_text.add_row("Demultiplex Schema:", schema)
+    start_text.add_row("Output Folder:", output_dir + "/")
+    start_text.add_row("Workflow Log:", sm_log.replace(f"{output_dir}/", ""))
     launch_snakemake(command, "demultiplex_gen1", start_text, output_dir, sm_log, quiet)
 
 demultiplex.add_command(gen1)

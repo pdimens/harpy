@@ -2,6 +2,8 @@
 import os
 import sys
 from pathlib import Path
+from rich import box
+from rich.table import Table
 import rich_click as click
 from .conda_deps import generate_conda_deps
 from .helperfunctions import fetch_rule, fetch_script, snakemake_log, launch_snakemake
@@ -173,11 +175,14 @@ def linkedreads(genome_hap1, genome_hap2, output_dir, outer_distance, mutation_r
         sys.exit(0)
 
     generate_conda_deps()
-    start_text = f"Genome Haplotype 1: {os.path.basename(genome_hap1)}\n"
-    start_text += f"Genome Haplotype 2: {os.path.basename(genome_hap2)}\n"
-    start_text += f"Barcodes: {os.path.basename(barcodes)}\n" if barcodes else "Barcodes: 10X Default\n"
-    start_text += f"Output Directory: {output_dir}/\n"
-    start_text += f"Log: {sm_log}"
+    start_text = Table(show_header=False,pad_edge=False, show_edge=False, padding = (0,0), box=box.SIMPLE)
+    start_text.add_column("detail", justify="left", style="light_steel_blue", no_wrap=True)
+    start_text.add_column(header="value", justify="left")
+    start_text.add_row("Genome Haplotype 1:", os.path.basename(genome_hap1))
+    start_text.add_row("Genome Haplotype 2:", os.path.basename(genome_hap2))
+    start_text.add_row("Barcodes:", os.path.basename(barcodes) if barcodes else "Barcodes: 10X Default")
+    start_text.add_row("Output Folder:", output_dir + "/")
+    start_text.add_row("Workflow Log:", sm_log.replace(f"{output_dir}/", ""))
     launch_snakemake(command, "simulate_linkedreads", start_text, output_dir, sm_log, quiet)
 
 @click.command(no_args_is_help = True, epilog = "This workflow can be quite technical, please read the docs for more information: https://pdimens.github.io/harpy/modules/simulate/simulate-variants")
@@ -233,30 +238,34 @@ def snpindel(genome, snp_vcf, indel_vcf, output_dir, prefix, snp_count, indel_co
         command += f"--workflow-profile {hpc} "
     if snakemake is not None:
         command += snakemake
+    start_text = Table(show_header=False,pad_edge=False, show_edge=False, padding = (0,0), box=box.SIMPLE)
+    start_text.add_column("detail", justify="left", style="light_steel_blue", no_wrap=True)
+    start_text.add_column(header="value", justify="left")
 
     # instantiate workflow directory
     # move necessary files to workflow dir
-    os.makedirs(f"{workflowdir}/input/", exist_ok= True)   
+    os.makedirs(f"{workflowdir}/input/", exist_ok= True)
     check_fasta(genome)
-    start_text = f"Inpute Genome: {os.path.basename(genome)}\nOutput Directory: {output_dir}/\n"
+    start_text.add_row("Input Genome:", os.path.basename(genome))
+    start_text.add_row("Output Folder:", output_dir + "/")
     if snp_vcf:
         validate_input_by_ext(snp_vcf, "--snp-vcf", ["vcf","vcf.gz","bcf"])
-        start_text += f"SNPs: from vcf ({os.path.basename(snp_vcf)})\n"
+        start_text.add_row("SNPs:", os.path.basename(snp_vcf))
     elif snp_count > 0:
-        start_text += "SNPs: random\n"
+        start_text.add_row("SNPs:", f"{snp_count} random SNPs)")
     if indel_vcf:
         validate_input_by_ext(indel_vcf, "--indel-vcf", ["vcf","vcf.gz","bcf"])
-        start_text += f"Indels: from vcf: ({os.path.basename(indel_vcf)})\n"
+        start_text.add_row("Indels:", os.path.basename(indel_vcf))
     elif indel_count > 0:
-        start_text += "Indels: random\n"
+        start_text.add_row("Indels:", f"{indel_count} random indels")
     if centromeres:
         validate_input_by_ext(centromeres, "--centromeres", [".gff",".gff3",".gff.gz", ".gff3.gz"])
-        start_text += f"Centromere GFF: {os.path.basename(centromeres)}\n"
+        start_text.add_row("Centromere GFF:", os.path.basename(centromeres))
     if genes:
         validate_input_by_ext(genes, "--genes", [".gff",".gff3",".gff.gz", ".gff3.gz"])
-        start_text += f"Genes GFF: {os.path.basename(genes)}\n"
+        start_text.add_row("Genes GFF:", os.path.basename(genes))
     if exclude_chr:
-        start_text += f"Excluded Chromosomes: {os.path.basename(exclude_chr)}\n"
+        start_text.add_row("Excluded Chromosomes:", os.path.basename(exclude_chr))
     fetch_rule(workflowdir, "simulate_snpindel.smk")
     fetch_script(workflowdir, "simuG.pl")
     os.makedirs(f"{output_dir}/logs/snakemake", exist_ok = True)
@@ -293,7 +302,7 @@ def snpindel(genome, snp_vcf, indel_vcf, output_dir, prefix, snp_count, indel_co
         sys.exit(0)
 
     generate_conda_deps()
-    start_text += f"Log: {sm_log}"
+    start_text.add_row("Workflow Log:", sm_log.replace(f"{output_dir}/", ""))
     launch_snakemake(command, "simulate_snpindel", start_text, output_dir, sm_log, quiet)
 
 
@@ -342,21 +351,26 @@ def inversion(genome, vcf, prefix, output_dir, count, min_size, max_size, centro
     # move necessary files to workflow dir
     os.makedirs(f"{workflowdir}/input/", exist_ok= True)
     check_fasta(genome)
-    start_text = f"Inpute Genome: {os.path.basename(genome)}\nOutput Directory: {output_dir}/\n"
+    start_text = Table(show_header=False,pad_edge=False, show_edge=False, padding = (0,0), box=box.SIMPLE)
+    start_text.add_column("detail", justify="left", style="light_steel_blue", no_wrap=True)
+    start_text.add_column(header="value", justify="left")
+
+    start_text.add_row("Input Genome:", os.path.basename(genome))
+    start_text.add_row("Output Folder:", output_dir + "/")
 
     if vcf:
         validate_input_by_ext(vcf, "--vcf", ["vcf","vcf.gz","bcf"])
-        start_text += f"Input VCF: {os.path.basename(vcf)}\n"
+        start_text.add_row("Input VCF:", os.path.basename(vcf))
     else:
-        start_text += "Mode: Random variants\n"
+        start_text.add_row("Mode:", f"{count} random inversions")
     if centromeres:
         validate_input_by_ext(centromeres, "--centromeres", [".gff",".gff3",".gff.gz", ".gff3.gz"])
-        start_text += f"Centromere GFF: {os.path.basename(centromeres)}\n"
+        start_text.add_row("Centromere GFF:", os.path.basename(centromeres))
     if genes:
         validate_input_by_ext(genes, "--genes", [".gff",".gff3",".gff.gz", ".gff3.gz"])
-        start_text += f"Genes GFF: {os.path.basename(genes)}\n"
+        start_text.add_row("Genes GFF:", os.path.basename(genes))
     if exclude_chr:
-        start_text += f"Excluded Chromosomes: {os.path.basename(exclude_chr)}\n"
+        start_text.add_row("Excluded Chromosomes:", os.path.basename(exclude_chr))
     fetch_rule(workflowdir, "simulate_variants.smk")
     fetch_script(workflowdir, "simuG.pl")
     os.makedirs(f"{output_dir}/logs/snakemake", exist_ok = True)
@@ -388,7 +402,7 @@ def inversion(genome, vcf, prefix, output_dir, count, min_size, max_size, centro
         sys.exit(0)
 
     generate_conda_deps()
-    start_text += f"Log: {sm_log}"
+    start_text.add_row("Workflow Log:", sm_log.replace(f"{output_dir}/", ""))
     launch_snakemake(command, "simulate_inversion", start_text, output_dir, sm_log, quiet)
 
 
@@ -446,21 +460,25 @@ def cnv(genome, output_dir, vcf, prefix, count, min_size, max_size, dup_ratio, m
     # move necessary files to workflow dir
     os.makedirs(f"{workflowdir}/input/", exist_ok= True)
     check_fasta(genome)
-    start_text = f"Inpute Genome: {os.path.basename(genome)}\nOutput Directory: {output_dir}/\n"
+    start_text = Table(show_header=False,pad_edge=False, show_edge=False, padding = (0,0), box=box.SIMPLE)
+    start_text.add_column("detail", justify="left", style="light_steel_blue", no_wrap=True)
+    start_text.add_column(header="value", justify="left")
+    start_text.add_row("Input Genome:", os.path.basename(genome))
+    start_text.add_row("Output Folder:", output_dir + "/")
 
     if vcf:
         validate_input_by_ext(vcf, "--vcf", ["vcf","vcf.gz","bcf"])
-        start_text += f"Input VCF: {os.path.basename(vcf)}\n"
+        start_text.add_row("Input VCF:", os.path.basename(vcf))
     else:
-        start_text += "Mode: Random variants\n"
+        start_text.add_row("Mode:", f"{count} random copy number variants")
     if centromeres:
         validate_input_by_ext(centromeres, "--centromeres", [".gff",".gff3",".gff.gz", ".gff3.gz"])
-        start_text += f"Centromere GFF: {os.path.basename(centromeres)}\n"
+        start_text.add_row("Centromere GFF:", os.path.basename(centromeres))
     if genes:
         validate_input_by_ext(genes, "--genes", [".gff",".gff3",".gff.gz", ".gff3.gz"])
-        start_text += f"Genes GFF: {os.path.basename(genes)}\n"
+        start_text.add_row("Genes GFF:", os.path.basename(genes))
     if exclude_chr:
-        start_text += f"Excluded Chromosomes: {os.path.basename(exclude_chr)}\n"
+        start_text.add_row("Excluded Chromosomes:", os.path.basename(exclude_chr))
     fetch_rule(workflowdir, "simulate_variants.smk")
     fetch_script(workflowdir, "simuG.pl")
     os.makedirs(f"{output_dir}/logs/snakemake", exist_ok = True)
@@ -495,7 +513,7 @@ def cnv(genome, output_dir, vcf, prefix, count, min_size, max_size, dup_ratio, m
         sys.exit(0)
 
     generate_conda_deps()
-    start_text += f"Log: {sm_log}"
+    start_text.add_row("Workflow Log:", sm_log.replace(f"{output_dir}/", ""))
     launch_snakemake(command, "simulate_cnv", start_text, output_dir, sm_log, quiet)
 
 @click.command(no_args_is_help = True, epilog = "Please See the documentation for more information: https://pdimens.github.io/harpy/modules/simulate/simulate-variants")
@@ -541,21 +559,25 @@ def translocation(genome, output_dir, prefix, vcf, count, centromeres, genes, he
     # move necessary files to workflow dir
     os.makedirs(f"{workflowdir}/input/", exist_ok= True)
     check_fasta(genome)
-    start_text = f"Inpute Genome: {os.path.basename(genome)}\nOutput Directory: {output_dir}/\n"
+    start_text = Table(show_header=False,pad_edge=False, show_edge=False, padding = (0,0), box=box.SIMPLE)
+    start_text.add_column("detail", justify="left", style="light_steel_blue", no_wrap=True)
+    start_text.add_column(header="value", justify="left")
+    start_text.add_row("Input Genome:", os.path.basename(genome))
+    start_text.add_row("Output Folder:", output_dir + "/")
     
     if vcf:
         validate_input_by_ext(vcf, "--vcf", ["vcf","vcf.gz","bcf"])
-        start_text += f"Input VCF: {os.path.basename(vcf)}\n"
+        start_text.add_row("Input VCF:", os.path.basename(vcf))
     else:
-        start_text += "Mode: Random variants\n"
+        start_text.add_row("Mode:", f"{count} random translocations")
     if centromeres:
         validate_input_by_ext(centromeres, "--centromeres", [".gff",".gff3",".gff.gz", ".gff3.gz"])
-        start_text += f"Centromere GFF: {os.path.basename(centromeres)}\n"
+        start_text.add_row("Centromere GFF:", os.path.basename(centromeres))
     if genes:
         validate_input_by_ext(genes, "--genes", [".gff",".gff3",".gff.gz", ".gff3.gz"])
-        start_text += f"Genes GFF: {os.path.basename(genes)}\n"
+        start_text.add_row("Genes GFF:", os.path.basename(genes))
     if exclude_chr:
-        start_text += f"Excluded Chromosomes: {os.path.basename(exclude_chr)}\n"
+        start_text.add_row("Excluded Chromosomes:", os.path.basename(exclude_chr))
 
     fetch_rule(workflowdir, "simulate_variants.smk")
     fetch_script(workflowdir, "simuG.pl")
@@ -586,7 +608,7 @@ def translocation(genome, output_dir, prefix, vcf, count, centromeres, genes, he
         sys.exit(0)
 
     generate_conda_deps()
-    start_text += f"Log: {sm_log}"
+    start_text.add_row("Workflow Log:", sm_log.replace(f"{output_dir}/", ""))
     launch_snakemake(command, "simulate_translocation", start_text, output_dir, sm_log, quiet)
 
 simulate.add_command(linkedreads)
