@@ -250,14 +250,14 @@ def snpindel(genome, snp_vcf, indel_vcf, output_dir, prefix, snp_count, indel_co
     start_text.add_row("Output Folder:", output_dir + "/")
     if snp_vcf:
         validate_input_by_ext(snp_vcf, "--snp-vcf", ["vcf","vcf.gz","bcf"])
-        start_text.add_row("SNPs:", os.path.basename(snp_vcf))
+        start_text.add_row("SNP File:", os.path.basename(snp_vcf))
     elif snp_count > 0:
-        start_text.add_row("SNPs:", f"{snp_count} random SNPs)")
+        start_text.add_row("Random SNPs:", f"{snp_count}")
     if indel_vcf:
         validate_input_by_ext(indel_vcf, "--indel-vcf", ["vcf","vcf.gz","bcf"])
-        start_text.add_row("Indels:", os.path.basename(indel_vcf))
+        start_text.add_row("Indel File:", os.path.basename(indel_vcf))
     elif indel_count > 0:
-        start_text.add_row("Indels:", f"{indel_count} random indels")
+        start_text.add_row("Random Indels:", f"{indel_count}")
     if centromeres:
         validate_input_by_ext(centromeres, "--centromeres", [".gff",".gff3",".gff.gz", ".gff3.gz"])
         start_text.add_row("Centromere GFF:", os.path.basename(centromeres))
@@ -360,9 +360,9 @@ def inversion(genome, vcf, prefix, output_dir, count, min_size, max_size, centro
 
     if vcf:
         validate_input_by_ext(vcf, "--vcf", ["vcf","vcf.gz","bcf"])
-        start_text.add_row("Input VCF:", os.path.basename(vcf))
+        start_text.add_row("Inversion File:", os.path.basename(vcf))
     else:
-        start_text.add_row("Mode:", f"{count} random inversions")
+        start_text.add_row("Random Inversions:", f"{count}")
     if centromeres:
         validate_input_by_ext(centromeres, "--centromeres", [".gff",".gff3",".gff.gz", ".gff3.gz"])
         start_text.add_row("Centromere GFF:", os.path.basename(centromeres))
@@ -468,9 +468,9 @@ def cnv(genome, output_dir, vcf, prefix, count, min_size, max_size, dup_ratio, m
 
     if vcf:
         validate_input_by_ext(vcf, "--vcf", ["vcf","vcf.gz","bcf"])
-        start_text.add_row("Input VCF:", os.path.basename(vcf))
+        start_text.add_row("CNV File:", os.path.basename(vcf))
     else:
-        start_text.add_row("Mode:", f"{count} random copy number variants")
+        start_text.add_row("Random CNVs:", f"{count}")
     if centromeres:
         validate_input_by_ext(centromeres, "--centromeres", [".gff",".gff3",".gff.gz", ".gff3.gz"])
         start_text.add_row("Centromere GFF:", os.path.basename(centromeres))
@@ -567,9 +567,9 @@ def translocation(genome, output_dir, prefix, vcf, count, centromeres, genes, he
     
     if vcf:
         validate_input_by_ext(vcf, "--vcf", ["vcf","vcf.gz","bcf"])
-        start_text.add_row("Input VCF:", os.path.basename(vcf))
+        start_text.add_row("Translocation File:", os.path.basename(vcf))
     else:
-        start_text.add_row("Mode:", f"{count} random translocations")
+        start_text.add_row("Random Translocations", f"{count} random translocations")
     if centromeres:
         validate_input_by_ext(centromeres, "--centromeres", [".gff",".gff3",".gff.gz", ".gff3.gz"])
         start_text.add_row("Centromere GFF:", os.path.basename(centromeres))
