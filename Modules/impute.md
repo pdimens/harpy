@@ -99,6 +99,16 @@ diploid   TRUE    50000    10      5       50
 diploid   TRUE    50000   15      10      100
 pseudoHaploid   TRUE    50000   10      1       50
 ```
++++example file (as a table)
+This is the table view of the tab-delimited file, shown here for clarity.
+
+{.compact}
+| model         | useBX | bxlimit  | k  | s  | nGen |
+|:--------------|:------|:---------|:---|:---|:-----|
+| diploid | TRUE  |   50000  | 10 | 5  | 50   |
+| diploid | TRUE  |   50000  | 15 | 10 | 100  |
+| pseudoHaploid | TRUE  |   50000  | 10 | 1  | 50   |
+
 +++parameter file columns
 See the section below for detailed information on each parameter. This
 table serves as an overview of the parameters.
@@ -113,15 +123,6 @@ table serves as an overview of the parameters.
 | s           |   integer    |                   ≥ 1                   | Number of instances of the founder haplotypes to average results over |
 | nGen        |   integer    |                   ≥ 1                   | Estimated number of generations since founding                        |
 
-+++example file  (as a table)
-This is the table view of the tab-delimited file, shown here for clarity.
-
-{.compact}
-| model         | useBX | bxlimit  | k  | s  | nGen |
-|:--------------|:------|:---------|:---|:---|:-----|
-| diploid | TRUE  |   50000  | 10 | 5  | 50   |
-| diploid | TRUE  |   50000  | 15 | 10 | 100  |
-| pseudoHaploid | TRUE  |   50000  | 10 | 1  | 50   |
 +++
 
 ## STITCH Parameters
@@ -163,6 +164,10 @@ that each ancestral haplotype gets at least a certain average \_X of coverage, l
 ##### Number of ancestral haplotypes to average over
 The `s` parameter controls the number of sets of ancestral haplotypes used and which final results are averaged over. 
 This may be useful for wild or large populations, like humans. The `s` value should affect RAM and run time in a near-linearly.
+
+!!!
+For the time being, it's probably best to set this value to `1` due to [this inconsistent issue](https://github.com/rwdavies/STITCH/issues/98#issuecomment-2248700697).
+!!!
 
 +++nGen
 ##### Recombination rate between samples
