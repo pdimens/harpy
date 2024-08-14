@@ -143,9 +143,9 @@ def mpileup(inputs, output_dir, regions, genome, threads, populations, ploidy, e
     start_text.add_column("detail", justify="left", style="light_steel_blue", no_wrap=True)
     start_text.add_column(header="value", justify="left")
     start_text.add_row("Samples:", f"{n}")
-    start_text.add_row("Genome:", genome)
     if populations:
-        start_text.add_row("Grouping Information:", populations)
+        start_text.add_row("Sample Groups:", populations)
+    start_text.add_row("Genome:", genome)
     start_text.add_row("Output Folder:", output_dir + "/")
     start_text.add_row("Workflow Log:", sm_log.replace(f"{output_dir}/", ""))
     launch_snakemake(command, "snp_mpileup", start_text, output_dir, sm_log, quiet)
@@ -246,9 +246,9 @@ def freebayes(inputs, output_dir, genome, threads, populations, ploidy, regions,
     start_text.add_column("detail", justify="left", style="light_steel_blue", no_wrap=True)
     start_text.add_column(header="value", justify="left")
     start_text.add_row("Samples:", f"{n}")
-    start_text.add_row("Genome:", genome)
     if populations:
-        start_text.add_row("Grouping Information:", populations)
+        start_text.add_row("Sample Groups:", populations)
+    start_text.add_row("Genome:", genome)
     start_text.add_row("Output Folder:", output_dir + "/")
     start_text.add_row("Workflow Log:", sm_log.replace(f"{output_dir}/", ""))
     launch_snakemake(command, "snp_freebayes", start_text, output_dir, sm_log, quiet)
