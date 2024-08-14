@@ -86,9 +86,9 @@ def snakemake_log(outdir, workflow):
     """Return a snakemake logfile name. Iterates logfile run number if one exists."""
     attempts = glob.glob(f"{outdir}/logs/snakemake/*.log")
     if not attempts:
-        return f"{outdir}/logs/snakemake/{workflow}.run1." + datetime.now().strftime("%d_%m_%Y") + ".log"
-    increment = sorted([int(i.split(".")[1].replace("run","")) for i in attempts])[-1] + 1
-    return f"{outdir}/logs/snakemake/{workflow}.run{increment}." + datetime.now().strftime("%d_%m_%Y") + ".log"
+        return f"{outdir}/logs/snakemake/{workflow}.1." + datetime.now().strftime("%d_%m_%Y") + ".log"
+    increment = sorted([int(i.split(".")[1]) for i in attempts])[-1] + 1
+    return f"{outdir}/logs/snakemake/{workflow}.{increment}." + datetime.now().strftime("%d_%m_%Y") + ".log"
 
 def launch_snakemake(sm_args, workflow, starttext, outdir, sm_logfile, quiet):
     """launch snakemake with the given commands"""
@@ -102,7 +102,7 @@ def launch_snakemake(sm_args, workflow, starttext, outdir, sm_logfile, quiet):
             transient=True,
             disable=quiet
         ) as progress:
-        # Add a task with a total value of 100 (representing 100%)
+            # Add a task with a total value of 100 (representing 100%)
             # Start a subprocess
             process = subprocess.Popen(sm_args.split(), stdout=subprocess.PIPE, stderr=subprocess.PIPE, text = True)
             err = False
@@ -112,7 +112,7 @@ def launch_snakemake(sm_args, workflow, starttext, outdir, sm_logfile, quiet):
                 output = process.stderr.readline()
                 return_code = process.poll()
                 if return_code == 1:
-                    print_error("There is an error in the Snakefile. Try running the Snakefile independently to diagnose it. If you did not edit the Snakefile manually, it's probably a bug! Please submit an issue on GitHub: [bold]https://github.com/pdimens/harpy/issues")
+                    print_error("There is an error in the Snakefile. If you edited the Snakefile manually, try running the Snakefile manually to diagnose it. You can use the Snakemake command from the generated config.yaml file to do so. If you didn't edit it manually, it's probably a bug (oops!) and you should submit an issue on GitHub: [bold]https://github.com/pdimens/harpy/issues")
                     sys.exit(1)
                 if output == '' and return_code is not None:
                     break
