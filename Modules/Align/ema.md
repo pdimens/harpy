@@ -42,14 +42,14 @@ In addition to the [!badge variant="info" corners="pill" text="common runtime op
 {.compact}
 | argument           | short name | type                  | default | required | description                                                        |
 |:-------------------|:----------:|:----------------------|:-------:|:--------:|:-------------------------------------------------------------------|
-| `INPUTS`           |            | file/directory paths  |         | **yes**  | Files or directories containing [input FASTQ files](/commonoptions.md#input-arguments)                  |
-| `--ema-bins`       |    `-e`    | integer (1-1000)      |   500   |    no    | Number of barcode bins for EMA                                     |
-| `--extra-params`   |    `-x`    | string                |         |    no    | Additional EMA-align/BWA arguments, in quotes                      |
-| `--genome`         |    `-g`    | file path             |         | **yes**  | Genome assembly for read mapping                                   |
-| `--keep-unmapped` |    `-u`    |          toggle        |   false    |    no    | Output unmapped sequences too  |
-| `--min-quality` |    `-q`    | integer (0-40)        |   30    |    no    | Minimum `MQ` (SAM mapping quality) to pass filtering               |
-| `--platform`       |    `-p`    | string                | haplotag | **yes** | Linked read technology: `haplotag` or `10x`                        |
-| `--whitelist`      |    `-w`    | file path             |         |    no    | Path to barcode whitelist (`--platform 10x` only)                  |
+| `INPUTS`           |            | file/directory paths  |         | ‼️  | Files or directories containing [input FASTQ files](/commonoptions.md#input-arguments)                  |
+| `--ema-bins`       |    `-e`    | integer (1-1000)      |   500   |        | Number of barcode bins for EMA                                     |
+| `--extra-params`   |    `-x`    | string                |         |        | Additional EMA-align/BWA arguments, in quotes                      |
+| `--genome`         |    `-g`    | file path             |         | ‼️  | Genome assembly for read mapping                                   |
+| `--keep-unmapped` |    `-u`    |          toggle        |   false    |        | Output unmapped sequences too  |
+| `--min-quality` |    `-q`    | integer (0-40)        |   30    |        | Minimum `MQ` (SAM mapping quality) to pass filtering               |
+| `--platform`       |    `-p`    | string                | haplotag | ‼️ | Linked read technology: `haplotag` or `10x`                        |
+| `--whitelist`      |    `-w`    | file path             |         |        | Path to barcode whitelist (`--platform 10x` only)                  |
 
 ### Barcode whitelist
 Some linked-read methods (e.g. 10x, Tellseq) require the inclusion of a barcode "whitelist." This file is a 

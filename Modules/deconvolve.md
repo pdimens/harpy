@@ -46,7 +46,7 @@ harpy deconvolve OPTIONS... INPUTS...
 {.compact}
 | argument              | short name | type            | default | required | description                                                          |
 |:----------------------|:----------:|:----------------|:-------:|:--------:|:---------------------------------------------------------------------|
-| `INPUTS`           |            | file/directory paths  |         | **yes**  | Files or directories containing [input FASTQ files](/commonoptions.md#input-arguments)    |
+| `INPUTS`           |            | file/directory paths  |         | ‼️  | Files or directories containing [input FASTQ files](/commonoptions.md#input-arguments)    |
 | `--density`        |  `-d`      | integer       |    3   |   | On average, $\frac{1}{2^d}$ kmers are indexed  |
 | `--dropout`        |  `-a`      | integer       |    0   |   | Minimum cloud size to deconvolve  |
 | `--kmer-length`    |  `-k`      | integer       |    21   |   | Size of k-mers to search for similarities  |

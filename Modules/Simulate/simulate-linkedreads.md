@@ -46,8 +46,8 @@ In addition to the [!badge variant="info" corners="pill" text="common runtime op
 {.compact}
 | argument       | short name | type        |    default    | required | description                                                                                     |
 |:---------------|:----------:|:------------|:-------------:|:--------:|:------------------------------------------------------------------------------------------------|
-| `HAP1_GENOME`       |            | file path |       | **yes**  | Haplotype 1 of the diploid genome to simulate reads   |
-| `HAP2_GENOME`       |            | file path |       | **yes**  | Haplotype 1 of the diploid genome to simulate reads   |
+| `HAP1_GENOME`       |            | file path |       | ‼️  | Haplotype 1 of the diploid genome to simulate reads   |
+| `HAP2_GENOME`       |            | file path |       | ‼️  | Haplotype 1 of the diploid genome to simulate reads   |
 | `--barcodes`        |    `-b`    | file path |  [10X barcodes](https://github.com/aquaskyline/LRSIM/blob/master/4M-with-alts-february-2016.txt)   |        | File of linked-read barcodes to add to reads   |
 | `--distance-sd`     |    `-s`    | integer   |  15   |   | Standard deviation of read-pair distance                     |
 | `--molecule-length` |    `-l`    | integer   |  100  |   | Mean molecule length (kbp)                                   |

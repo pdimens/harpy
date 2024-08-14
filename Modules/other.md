@@ -29,7 +29,7 @@ harpy resume [--conda] DIRECTORY
 {.compact}
 | argument              | short name | type            | default | required | description                                                          |
 |:----------------------|:----------:|:----------------|:-------:|:--------:|:---------------------------------------------------------------------|
-| `DIRECTORY`           |            | file/directory paths  |         | **yes**  | Output directory of an existing harpy workflow             |
+| `DIRECTORY`           |            | file/directory paths  |         | ‼️  | Output directory of an existing harpy workflow             |
 | `--conda`               |        | toggle       |         |   | generate a `.harpy_envs/` folder with the necessary conda enviroments               |
 
 The `DIRECTORY` is the output directory of a previous harpy-invoked workflow, which **must** have the `workflow/config.yaml` file.
@@ -55,8 +55,8 @@ harpy popgroup -o samples.groups data/
 {.compact}
 | argument              | short name | type            | default | required | description                                                          |
 |:----------------------|:----------:|:----------------|:-------:|:--------:|:---------------------------------------------------------------------|
-| `INPUTS`           |            | file/directory paths  |         | **yes**  | Files or directories containing input FASTQ/BAM files             |
-| `--output`               |    `-o`    | file path       |         | **yes**  | name of the output file                                             |
+| `INPUTS`           |            | file/directory paths  |         | ‼️  | Files or directories containing input FASTQ/BAM files             |
+| `--output`               |    `-o`    | file path       |         | ‼️  | name of the output file                                             |
 
 This optional file is useful if you want SNP variant calling to happen on a
 per-population level via  [!badge corners="pill" text="harpy snp"](snp.md/#populations) or on samples
@@ -89,7 +89,7 @@ harpy stitchparams -o params.stitch
 {.compact}
 | argument              | short name | type            | default | required | description                                                          |
 |:----------------------|:----------:|:----------------|:-------:|:--------:|:---------------------------------------------------------------------|
-| `--output`               |    `-o`    | file path       |         | **yes**  | name of the output file                                             |
+| `--output`               |    `-o`    | file path       |         | ‼️  | name of the output file                                             |
 
 Typically, one runs STITCH multiple times, exploring how results vary with
 different model parameters. The solution Harpy uses for this is to have the user

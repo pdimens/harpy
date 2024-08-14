@@ -46,15 +46,15 @@ end of the command line, and each requires either a `--count` of variants to ran
 specific variants to simulate. There are also these unifying options among the different variant types:
 
 {.compact}
-| argument | short name | type |  description |
-| :-----|:-----|:-----|:-----|
-| `INPUT_GENOME`           |    | file path  |  The haploid genome to simulate variants onto. **REQUIRED**   |
-| `--centromeres` | `-c` | file path | GFF3 file of centromeres to avoid |
-| `--exclude-chr` | `-e` | file path | Text file of chromosomes to avoid, one per line |
-| `--genes` | `-g` | file path |  GFF3 file of genes to avoid simulating over (see `snpindel` for caveat) |
-| `--heterozygosity` | `-z` | float between [0,1] |  [% heterozygosity to simulate diploid later](#heterozygosity) (default: `0`) |
-| `--prefix` | | string |  Naming prefix for output files (default: `sim.{module_name}`)|
-| `--randomseed` |  | integer |   Random seed for simulation |
+| argument | short name | type |  required | description |
+| :-----|:-----|:-----|:---:|:-----|
+| `INPUT_GENOME`           |    | file path  | ‼️ |  The haploid genome to simulate variants onto|
+| `--centromeres` | `-c` | file path |  | GFF3 file of centromeres to avoid |
+| `--exclude-chr` | `-e` | file path |  | Text file of chromosomes to avoid, one per line |
+| `--genes` | `-g` | file path |   | GFF3 file of genes to avoid simulating over (see `snpindel` for caveat) |
+| `--heterozygosity` | `-z` | float between [0,1] |  | [% heterozygosity to simulate diploid later](#heterozygosity) (default: `0`) |
+| `--prefix` | | string |   | Naming prefix for output files (default: `sim.{module_name}`)|
+| `--randomseed` |  | integer |   | Random seed for simulation |
 
 +++ 🟣 snps and indels
 ### snpindel
@@ -116,7 +116,7 @@ between individuals ([source](https://www.genome.gov/genetics-glossary/Copy-Numb
 | `--max-copy` |  `-y` | integer | 10 | Maximum number of copies |
 | `--min-size` | `-m` | integer |  1000 | Minimum cnv size (bp) |
 
-The ratio parameters special meanings when setting the value to either `0` or `9999` :
+The ratio parameters have special meanings when setting the value to either `0` or `9999` :
 
 {.compact}
 | ratio | `0` meaning | `9999` meaning   |

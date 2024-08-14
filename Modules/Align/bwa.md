@@ -33,12 +33,12 @@ In addition to the [!badge variant="info" corners="pill" text="common runtime op
 {.compact}
 | argument           | short name | type                  | default | required | description                                           |
 |:-------------------|:----------:|:----------------------|:-------:|:--------:|:------------------------------------------------------|
-| `INPUTS`           |            | file/directory paths  |         | **yes**  | Files or directories containing [input FASTQ files](/commonoptions.md#input-arguments)     |
-| `--extra-params`   |    `-x`    | string                |         |    no    | Additional EMA-align/BWA arguments, in quotes         |
-| `--genome`         |    `-g`    | file path             |         | **yes**  | Genome assembly for read mapping                      |
-| `--keep-unmapped` |    `-u`    |          toggle        |   false    |    no    | Output unmapped sequences too  |
-| `--min-quality` |    `-q`    | integer (0-40)        |   30    |    no    | Minimum `MQ` (SAM mapping quality) to pass filtering  |
-| `--molecule-distance` |    `-d`    | integer         |  100000  |    no    | Base-pair distance threshold to separate molecules      |
+| `INPUTS`           |            | file/directory paths  |         |  ‼️  | Files or directories containing [input FASTQ files](/commonoptions.md#input-arguments)     |
+| `--extra-params`   |    `-x`    | string                |         |         | Additional EMA-align/BWA arguments, in quotes         |
+| `--genome`         |    `-g`    | file path             |         | ‼️  | Genome assembly for read mapping                      |
+| `--keep-unmapped` |    `-u`    |          toggle        |   false    |         | Output unmapped sequences too  |
+| `--min-quality` |    `-q`    | integer (0-40)        |   30    |        | Minimum `MQ` (SAM mapping quality) to pass filtering  |
+| `--molecule-distance` |    `-d`    | integer         |  100000  |         | Base-pair distance threshold to separate molecules      |
 
 ### Molecule distance
 The `--molecule-distance` option is used during the BWA alignment workflow

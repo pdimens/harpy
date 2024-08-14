@@ -65,15 +65,15 @@ In addition to the [!badge variant="info" corners="pill" text="common runtime op
 {.compact}
 | argument         | short name | type          | default | required | description                                        |
 |:-----------------|:----------:|:--------------|:-------:|:--------:|:---------------------------------------------------|
-| `INPUTS`         |            | file/directory paths  |         | **yes**  | Files or directories containing [input BAM files](/commonoptions.md#input-arguments)     |
-| `--extra-params` |    `-x`    | string        |         |    no             | Additional naibr arguments, in quotes              |
-| `--genome`       |    `-g`    | file path     |         | **yes** | Genome assembly for phasing bam files     |
-| `--min-barcodes` |    `-b`    | integer       |    2    |    no             | Minimum number of barcode overlaps supporting candidate SV |
-| `--min-quality` |    `-q`    | integer (0-40)        |   30    |    no    | Minimum `MQ` (SAM mapping quality) to pass filtering  |
-| `--min-sv`       |    `-n`    | integer       |  1000   |    no             | Minimum size of SV to detect              |
-| `--molecule-distance` |  `-m` | integer       |  100000 |    no             | Base-pair distance threshold to separate molecules |
-| `--populations`  |    `-p`    | file path     |         |    no             | Tab-delimited file of sample\<*tab*\>group         |
-| `--vcf`          |    `-v`    | file path     |         | **conditionally** | Phased vcf file for phasing bam files     |
+| `INPUTS`         |            | file/directory paths  |         | ‼️  | Files or directories containing [input BAM files](/commonoptions.md#input-arguments)     |
+| `--extra-params` |    `-x`    | string        |         |                 | Additional naibr arguments, in quotes              |
+| `--genome`       |    `-g`    | file path     |         | ‼️ | Genome assembly for phasing bam files     |
+| `--min-barcodes` |    `-b`    | integer       |    2    |                 | Minimum number of barcode overlaps supporting candidate SV |
+| `--min-quality` |    `-q`    | integer (0-40)        |   30    |        | Minimum `MQ` (SAM mapping quality) to pass filtering  |
+| `--min-sv`       |    `-n`    | integer       |  1000   |                | Minimum size of SV to detect              |
+| `--molecule-distance` |  `-m` | integer       |  100000 |                | Base-pair distance threshold to separate molecules |
+| `--populations`  |    `-p`    | file path     |         |                | Tab-delimited file of sample\<*tab*\>group         |
+| `--vcf`          |    `-v`    | file path     |         | ❗ | Phased vcf file for phasing bam files ([see below](#optional-vcf-file))    |
 
 ### Molecule distance
 The `--molecule-distance` option is used to let the program determine how far apart alignments on a contig with the same
@@ -98,10 +98,10 @@ comparing "populations" as usual. Keep in mind that if there are too many sample
 it too well.
 !!!
 
-### optional vcf file
-In order to get the best variant calling performance out of NAIBR, it requires _phased_ bam files as input. 
-The `--vcf` option is optional and not used by NAIBR. However, to use [!badge corners="pill" text="sv naibr"] with
-bam files that are not phased, you will need to include `--vcf`, which Harpy uses with 
+### Optional vcf file
+In order to get the best variant calling performance out of NAIBR, it requires **_phased_** bam files as input. 
+Using `--vcf` is optional and not used by NAIBR directly. However, to use [!badge corners="pill" text="sv naibr"] with
+bam files that are not phased, you will need to include a **phased VCF file** with `--vcf`, which Harpy uses with 
 `whatshap haplotag` to phase your input BAM files prior to variant calling. See the [whatshap documentation](https://whatshap.readthedocs.io/en/latest/guide.html#whatshap-haplotag)
 for more details on that process.
 

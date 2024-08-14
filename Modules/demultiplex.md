@@ -30,12 +30,12 @@ In addition to the [!badge variant="info" corners="pill" text="common runtime op
 {.compact}
 | argument          | short name | type       | required | description                                                             |
 |:------------------|:----------:|:-----------|:--------:|:------------------------------------------------------------------------|
-| `METHOD`          |            | choice     | **yes**  | Haplotag technology of the sequences  [`gen1`]                          |
-| `R1_FQ`           |            | file path  | **yes**  | The forward multiplexed FASTQ file                                      |
-| `R2_FQ`           |            | file path  | **yes**  | The reverse multiplexed FASTQ file                                      |
-| `I1_FQ`           |            | file path  | **yes**  | The forward FASTQ index file provided by the sequencing facility        |
-| `I2_FQ`           |            | file path  | **yes**  | The reverse FASTQ index file provided by the sequencing facility        |
-| `--schema`        |    `-s`    | file path  | **yes**  | Tab-delimited file of sample\<tab\>barcode                              |
+| `METHOD`          |            | choice     | ‼️  | Haplotag technology of the sequences  [`gen1`]                          |
+| `R1_FQ`           |            | file path  | ‼️  | The forward multiplexed FASTQ file                                      |
+| `R2_FQ`           |            | file path  | ‼️  | The reverse multiplexed FASTQ file                                      |
+| `I1_FQ`           |            | file path  | ‼️  | The forward FASTQ index file provided by the sequencing facility        |
+| `I2_FQ`           |            | file path  | ‼️  | The reverse FASTQ index file provided by the sequencing facility        |
+| `--schema`        |    `-s`    | file path  | ‼️  | Tab-delimited file of sample\<tab\>barcode                              |
 
 ## Haplotag Types
 ==- Generation 1 - `gen1`

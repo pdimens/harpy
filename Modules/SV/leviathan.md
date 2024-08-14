@@ -65,13 +65,13 @@ In addition to the [!badge variant="info" corners="pill" text="common runtime op
 {.compact}
 | argument         | short name | type          | default | required | description                                        |
 |:-----------------|:----------:|:--------------|:-------:|:--------:|:---------------------------------------------------|
-| `INPUTS`         |            | file/directory paths  |         | **yes**  | Files or directories containing [input BAM files](/commonoptions.md#input-arguments)     |
-| `--extra-params` |    `-x`    | string        |         |    no             | Additional naibr arguments, in quotes              |
-| `--genome`       |    `-g`    | file path     |         |    yes | Genome assembly that was used to create alignments    |
-| `--iterations`   |    `-i`    | integer       |   50    |    no             | Number of iterations to perform through index (reduces memory) |
-| `--min-barcodes` |    `-b`    | integer       |    2    |    no             | Minimum number of barcode overlaps supporting candidate SV |
-| `--min-sv`       |    `-m`    | integer       |  1000   |    no             | Minimum size of SV to detect              |
-| `--populations`  |    `-p`    | file path     |         |    no             | Tab-delimited file of sample\<*tab*\>group         |
+| `INPUTS`         |            | file/directory paths  |         | ‼️  | Files or directories containing [input BAM files](/commonoptions.md#input-arguments)     |
+| `--extra-params` |    `-x`    | string        |         |                | Additional naibr arguments, in quotes              |
+| `--genome`       |    `-g`    | file path     |         |    ‼️ | Genome assembly that was used to create alignments    |
+| `--iterations`   |    `-i`    | integer       |   50    |                 | Number of iterations to perform through index (reduces memory) |
+| `--min-barcodes` |    `-b`    | integer       |    2    |                 | Minimum number of barcode overlaps supporting candidate SV |
+| `--min-sv`       |    `-m`    | integer       |  1000   |                 | Minimum size of SV to detect              |
+| `--populations`  |    `-p`    | file path     |         |                 | Tab-delimited file of sample\<*tab*\>group         |
 
 ### Single-sample variant calling
 When **not** using a population grouping file via `--populations`, variants will be called per-sample. 

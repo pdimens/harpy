@@ -48,7 +48,7 @@ In addition to the [!badge variant="info" corners="pill" text="common runtime op
 {.compact}
 | argument          | short name | type       | default | required | description                                                                          |
 |:------------------|:----------:|:-----------|:-------:|:--------:|:-------------------------------------------------------------------------------------|
-| `INPUTS`           |            | file/directory paths  |         | **yes**  | Files or directories containing [input fastq or bam files](/commonoptions.md#input-arguments)     |
+| `INPUTS`           |            | file/directory paths  |         | ‼️  | Files or directories containing [input fastq or bam files](/commonoptions.md#input-arguments)     |
 
 ## Workflow
 

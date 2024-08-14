@@ -37,14 +37,14 @@ In addition to the [!badge variant="info" corners="pill" text="common runtime op
 {.compact}
 | argument              | short name | type            | default | required | description                                                          |
 |:----------------------|:----------:|:----------------|:-------:|:--------:|:---------------------------------------------------------------------|
-| `INPUTS`           |            | file/directory paths  |         | **yes**  | Files or directories containing [input BAM files](/commonoptions.md#input-arguments)     |
-| `--extra-params`      |    `-x`    | string          |         |    no    | Additional Hapcut2 arguments, in quotes                              |
-| `--genome           ` |    `-g`    | file path       |         |    no    | Path to genome if wanting to also use reads spanning indels          |
-| `--ignore-bx`         |    `-b`    | toggle          |         |    no    | Ignore haplotag barcodes for phasing                                 |
-| `--molecule-distance` |    `-d`    | integer         |  100000  |    no    | Base-pair distance threshold to separate molecules                   |
-| `--prune-threshold`   |    `-p`    | integer (0-100) |    7    |    no    | PHRED-scale (%) threshold for pruning low-confidence SNPs            |
-| `--vcf`               |    `-v`    | file path       |         | **yes**  | Path to BCF/VCF file                                                 |
-| `--vcf-samples`       |            |  toggle         |         |    no    | [Use samples present in vcf file](#prioritize-the-vcf-file) for imputation rather than those found the directory    |
+| `INPUTS`           |            | file/directory paths  |         | ‼️  | Files or directories containing [input BAM files](/commonoptions.md#input-arguments)     |
+| `--extra-params`      |    `-x`    | string          |         |        | Additional Hapcut2 arguments, in quotes                              |
+| `--genome           ` |    `-g`    | file path       |         |        | Path to genome if wanting to also use reads spanning indels          |
+| `--ignore-bx`         |    `-b`    | toggle          |         |        | Ignore haplotag barcodes for phasing                                 |
+| `--molecule-distance` |    `-d`    | integer         |  100000  |       | Base-pair distance threshold to separate molecules                   |
+| `--prune-threshold`   |    `-p`    | integer (0-100) |    7    |        | PHRED-scale (%) threshold for pruning low-confidence SNPs            |
+| `--vcf`               |    `-v`    | file path       |         | ‼️  | Path to BCF/VCF file                                                 |
+| `--vcf-samples`       |            |  toggle         |         |        | [Use samples present in vcf file](#prioritize-the-vcf-file) for imputation rather than those found the directory    |
 
 ### Prioritize the vcf file
 Sometimes you want to run imputation on all the samples present in the `INPUTS`, but other times you may want
