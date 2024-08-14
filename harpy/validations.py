@@ -6,7 +6,8 @@ import re
 import gzip
 import subprocess
 from pathlib import Path
-from rich import box, print
+from rich import box
+from rich import print as rprint
 from rich.table import Table
 import rich_click as click
 from .printfunctions import print_error, print_notice, print_solution, print_solution_with_culprits
@@ -34,7 +35,7 @@ def check_envdir(dirpath):
             "Check that the names conform to Harpy's expectations, otheriwse you can recreate this directory using the [green bold]--conda[/green bold] option.",
             "Expected environment files:"
             )
-        print(errtable, file = sys.stderr)
+        rprint(errtable, file = sys.stderr)
         sys.exit(1)
 
 def validate_input_by_ext(inputfile, option, ext):
@@ -142,7 +143,7 @@ def check_impute_params(parameters):
                 "Review the table below of what values are expected for each column and which rows are causing issues.",
                 "Formatting Errors:"
             )
-            print(errtable, file = sys.stderr)
+            rprint(errtable, file = sys.stderr)
             sys.exit(1)
 
 def validate_bam_RG(bamlist):
