@@ -130,9 +130,7 @@ def leviathan(inputs, output_dir, genome, min_sv, min_barcodes, iterations, thre
     start_text.add_row("Samples:", f"{n}")
     start_text.add_row("Genome:", genome)
     start_text.add_row("Output Folder:", output_dir + "/")
-    if populations:
-        start_text.add_row("Sample Pooling:", populations)
-    start_text.add_row("Mode:", "pool-by-group" if populations else "sample-by-sample")
+    start_text.add_row("Sample Pooling:", populations if populations else "no")
     start_text.add_row("Workflow Log:", sm_log.replace(f"{output_dir}/", ""))
     launch_snakemake(command, "sv_leviathan", start_text, output_dir, sm_log, quiet)
 
@@ -232,9 +230,7 @@ def naibr(inputs, output_dir, genome, vcf, min_sv, min_barcodes, min_quality, th
     start_text.add_row("Samples:", f"{n}")
     start_text.add_row("Genome:", genome)
     start_text.add_row("Output Folder:", output_dir + "/")
-    if populations:
-        start_text.add_row("Sample Pooling:", populations)
-    start_text.add_row("Mode:", "pool-by-group" if populations else "sample-by-sample")
+    start_text.add_row("Sample Pooling:", populations if populations else "no")
     start_text.add_row("Perform Phasing:", "yes" if vcf else "no")
     start_text.add_row("Workflow Log:", sm_log.replace(f"{output_dir}/", ""))
     launch_snakemake(command, "sv_naibr", start_text, output_dir, sm_log, quiet)
