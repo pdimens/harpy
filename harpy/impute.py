@@ -106,6 +106,7 @@ def impute(inputs, output_dir, parameters, threads, vcf, vcf_samples, extra_para
     start_text.add_row("VCF Samples:", f"{len(samplenames)}")
     start_text.add_row("Alignment Files:", f"{n}")
     start_text.add_row("Output Folder:", output_dir + "/")
+    start_text.add_row("Parameter File:", parameters)
     start_text.add_row("Usable Contigs:", f"{n_biallelic}")
     start_text.add_row("Workflow Log:", sm_log.replace(f"{output_dir}/", ""))
     generate_conda_deps()
