@@ -227,14 +227,6 @@ def naibr(inputs, output_dir, genome, vcf, min_sv, min_barcodes, min_quality, th
 
 
     generate_conda_deps()
-    if populations:
-        modetext = "pool-by-group"
-    else:
-        modetext = "sample-by-sample"
-    if vcf:
-        modetext += " + will be phased"
-    else:
-        modetext += " + already phased"
     start_text = Table(show_header=False,pad_edge=False, show_edge=False, padding = (0,0), box=box.SIMPLE)
     start_text.add_column("detail", justify="left", style="light_steel_blue", no_wrap=True)
     start_text.add_column(header="value", justify="left")
@@ -243,7 +235,8 @@ def naibr(inputs, output_dir, genome, vcf, min_sv, min_barcodes, min_quality, th
     start_text.add_row("Output Folder:", output_dir + "/")
     if populations:
         start_text.add_row("Sample Pooling:", populations)
-    start_text.add_row("Mode:", modetext)
+    start_text.add_row("Mode:", "pool-by-group" if populations else "sample-by-sample")
+    start_text.add_row("Perform Phasing:", "yes" if vcf else "no")
     start_text.add_row("Workflow Log:", sm_log.replace(f"{output_dir}/", ""))
     launch_snakemake(command, "sv_naibr", start_text, output_dir, sm_log, quiet)
 
