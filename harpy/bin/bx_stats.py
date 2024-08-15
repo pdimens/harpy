@@ -29,8 +29,6 @@ if len(sys.argv) == 1:
     sys.exit(1)
 
 args = parser.parse_args()
-
-
 alnfile = pysam.AlignmentFile(args.input)
 outfile = gzip.open(args.output, "wb", 6)
 outfile.write(b"contig\tmolecule\treads\tstart\tend\tlength_inferred\taligned_bp\tinsert_len\tcoverage_bp\tcoverage_inserts\n")
@@ -39,27 +37,27 @@ d = {}
 all_bx = set()
 LAST_CONTIG = None
 
-def writestats(x, writechrom):
+def writestats(x, writechrom, destination):
     """write to file the bx stats dictionary as a table"""
     for _mi in x:
         x[_mi]["inferred"] = x[_mi]["end"] - x[_mi]["start"]
-        try:
+        if x[_mi]["inferred"] > 0:
             x[_mi]["covered_bp"] = round(min(x[_mi]["bp"] / x[_mi]["inferred"], 1.0),4)
-        except:
+        else:
             x[_mi]["covered_bp"] = 0
-        try:
+        if x[_mi]["inferred"] > 0:
             x[_mi]["covered_inserts"] = round(min(x[_mi]["insert_len"] / x[_mi]["inferred"], 1.0), 4)
-        except:
-            x[_mi]["covered_inferred"] = 0
+        else:
+            x[_mi]["covered_inserts"] = 0
         outtext = f"{writechrom}\t{_mi}\t" + "\t".join([str(x[_mi][i]) for i in ["n", "start","end", "inferred", "bp", "insert_len", "covered_bp", "covered_inserts"]])
-        outfile.write(outtext.encode() + b"\n")
+        destination.write(outtext.encode() + b"\n")
 
 for read in alnfile.fetch():
     chrom = read.reference_name
     # check if the current chromosome is different from the previous one
     # if so, print the dict to file and empty it (a consideration for RAM usage)
     if LAST_CONTIG and chrom != LAST_CONTIG:
-        writestats(d, LAST_CONTIG)
+        writestats(d, LAST_CONTIG, outfile)
         d = {}
     LAST_CONTIG = chrom
     # skip duplicates, unmapped, and secondary alignments
@@ -95,8 +93,19 @@ for read in alnfile.fetch():
         # add valid bx to set of all unique barcodes
         # remove the deconvolve hyphen, if present
         all_bx.add(bx.split("-")[0])
-    except:
+    except KeyError:
         # There is no bx/MI tag
+        if "invalidBX" not in d:
+            d["invalidBX"] = {
+                "start":  0,
+                "end": 0,
+                "bp":   bp,
+                "insert_len" : 0,
+                "n":    1,
+            }
+        else:
+            d["invalidBX"]["bp"] += bp
+            d["invalidBX"]["n"] += 1
         continue
 
     # start position of first alignment
@@ -134,8 +143,9 @@ for read in alnfile.fetch():
         d[mi]["start"] = min(pos_start, d[mi]["start"])
         d[mi]["end"] = max(pos_end, d[mi]["end"])
 
+alnfile.close()
 # print the last entry
-writestats(d, LAST_CONTIG)
+writestats(d, LAST_CONTIG, outfile)
 # write comment on the last line with the total number of unique BX barcodes
 outfile.write(f"#total unique barcodes: {len(all_bx)}\n".encode())
 outfile.close()
