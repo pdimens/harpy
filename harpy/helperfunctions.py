@@ -94,60 +94,41 @@ def launch_snakemake(sm_args, workflow, starttext, outdir, sm_logfile, quiet):
     """launch snakemake with the given commands"""
     print_onstart(starttext, workflow.replace("_", " "))
     try:
-        with Progress(
-            TextColumn("[progress.description]{task.description}"),
-            BarColumn(),
-            TextColumn("[progress.percentage]{task.percentage:>3.0f}%"),
-            TimeElapsedColumn(),
-            transient=True,
-            disable=quiet
-        ) as progress:
-            # Add a task with a total value of 100 (representing 100%)
-            # Start a subprocess
-            process = subprocess.Popen(sm_args.split(), stdout=subprocess.PIPE, stderr=subprocess.PIPE, text = True)
-            err = False
-            deps = False
-            # read up to the job summary, but break early if dependency text appears
-            while True:
-                output = process.stderr.readline()
-                return_code = process.poll()
-                if return_code == 1:
-                    print_snakefile_error("If you manually edited the Snakefile, see the error below to fix it. If you didn't edit it manually, it's probably a bug (oops!) and you should submit an issue on GitHub: [bold]https://github.com/pdimens/harpy/issues")
-                    errtext = subprocess.run(sm_args.split(), stderr=subprocess.PIPE, text = True)
-                    rprint("[red]" + errtext.stderr.partition("jobs...\n")[2], end = None)
-                    sys.exit(1)
-                if output == '' and return_code is not None:
-                    break
-                # print dependency text only once
-                if "Downloading and installing remote packages" in output:
-                    deps = True
-                    deploy_text = "[magenta]Downloading and installing workflow dependencies"
-                    break
-                if "Pulling singularity image" in output:
-                    deps = True
-                    deploy_text = "[magenta]Downloading software container"
-                    break
-                if output.startswith("Job stats:"):
-                    # read and ignore the next two lines
-                    process.stderr.readline()
-                    process.stderr.readline()
-                    break
-            # if dependency text present, print console log with spinner and read up to the job stats
-            if deps:
-                if not quiet:
-                    console = Console()
-                    with console.status(deploy_text, spinner = "point") as status:
-                        while True:
-                            output = process.stderr.readline()
-                            if output == '' and process.poll() is not None:
-                                break
-                            sleep(2)
-                            if output.startswith("Job stats:"):
-                                # read and ignore the next two lines
-                                process.stderr.readline()
-                                process.stderr.readline()
-                                break
-                else:
+        # Add a task with a total value of 100 (representing 100%)
+        # Start a subprocess
+        process = subprocess.Popen(sm_args.split(), stdout=subprocess.PIPE, stderr=subprocess.PIPE, text = True)
+        err = False
+        deps = False
+        # read up to the job summary, but break early if dependency text appears
+        while True:
+            output = process.stderr.readline()
+            return_code = process.poll()
+            if return_code == 1:
+                print_snakefile_error("If you manually edited the Snakefile, see the error below to fix it. If you didn't edit it manually, it's probably a bug (oops!) and you should submit an issue on GitHub: [bold]https://github.com/pdimens/harpy/issues")
+                errtext = subprocess.run(sm_args.split(), stderr=subprocess.PIPE, text = True)
+                rprint("[red]" + errtext.stderr.partition("jobs...\n")[2], end = None)
+                sys.exit(1)
+            if output == '' and return_code is not None:
+                break
+            # print dependency text only once
+            if "Downloading and installing remote packages" in output:
+                deps = True
+                deploy_text = "[magenta]Downloading and installing workflow dependencies"
+                break
+            if "Pulling singularity image" in output:
+                deps = True
+                deploy_text = "[magenta]Downloading software container"
+                break
+            if output.startswith("Job stats:"):
+                # read and ignore the next two lines
+                process.stderr.readline()
+                process.stderr.readline()
+                break
+        # if dependency text present, print console log with spinner and read up to the job stats
+        if deps:
+            if not quiet:
+                console = Console()
+                with console.status(deploy_text, spinner = "point") as status:
                     while True:
                         output = process.stderr.readline()
                         if output == '' and process.poll() is not None:
@@ -157,6 +138,24 @@ def launch_snakemake(sm_args, workflow, starttext, outdir, sm_logfile, quiet):
                             process.stderr.readline()
                             process.stderr.readline()
                             break
+            else:
+                while True:
+                    output = process.stderr.readline()
+                    if output == '' and process.poll() is not None:
+                        break
+                    if output.startswith("Job stats:"):
+                        # read and ignore the next two lines
+                        process.stderr.readline()
+                        process.stderr.readline()
+                        break
+        with Progress(
+            TextColumn("[progress.description]{task.description}"),
+            BarColumn(),
+            TextColumn("[progress.percentage]{task.percentage:>3.0f}%"),
+            TimeElapsedColumn(),
+            transient=True,
+            disable=quiet
+        ) as progress:
             job_inventory = {}
             task_ids = {"total_progress" : progress.add_task("[bold blue]Total", total=100)}
             # process the job summary
