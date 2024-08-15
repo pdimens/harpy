@@ -303,7 +303,7 @@ highchart() |>
   hc_add_series(data = invalids_long,  type = "scatter", hcaes(x = Sample, y = Count, group = Segment), marker = list(symbol = "circle")) |>
   hc_colors(c("#4a9fea", "#5a8c84", "#ffd75f", "#df487f")) |>
   hc_title(text = "Percent Invalid Beadtag Segments") |>
-  hc_xAxis(type = "category", title = list(text = ""), categories = levels(invalids_long$Sample)) |>
+  hc_xAxis(type = "category", title = list(text = ""), categories = unique(invalids_long$Sample)) |>
   hc_yAxis(title = list(text = "percent invalid")) |>
   hc_tooltip(crosshairs = TRUE, animation = FALSE,
     formatter = JS("function () {return '<b>' + this.x + '</b><br><b>' + this.series.name + '</b><br/>Percent: <b>' + this.y + '</b>';}") 
