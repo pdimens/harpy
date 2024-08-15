@@ -378,22 +378,22 @@ valueBox(paste(windowskb, "kb"), caption = "Intervals", color = "info")
 ```
 ### glob-avg
 ```{r}
-valueBox(global_avg, caption = "Average depth", color = "info")
+valueBox(round(global_avg,2), caption = "Average depth", color = "info")
 ```
 
 ### glob-sd
 ```{r}
-valueBox(global_sd, caption = "Stdev depth", color = "info")
+valueBox(round(global_sd,2), caption = "Stdev depth", color = "info")
 ```
 
 ### filt-avg
 ```{r}
-valueBox(global_avg_filt, caption = '↓Q99 avg', color = "info")
+valueBox(round(global_avg_filt,2), caption = '↓Q99 avg', color = "info")
 ```
 
 ### filt-sd
 ```{r}
-valueBox(global_sd_filt, caption = '↓Q99 stdev', color = "info")
+valueBox(round(global_sd_filt,2), caption = '↓Q99 stdev', color = "info")
 ```
 
 ### n-outliers
