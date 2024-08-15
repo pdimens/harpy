@@ -14,6 +14,10 @@ def print_error(errortext):
     """Print a yellow panel with error text"""
     rprint(Panel(errortext, title = "[bold]Error", title_align = "left", border_style = "yellow", width = 75), file = sys.stderr)
 
+def print_snakefile_error(errortext):
+    """Print a red panel with snakefile error text"""
+    rprint(Panel(errortext, title = "[bold]Snakefile Error", title_align = "left", subtitle = "The error reported by Snakemake", border_style = "red", width = 75), file = sys.stderr)
+
 def print_solution(solutiontext):
     """Print a blue panel with solution text"""
     rprint(Panel(solutiontext, title = "[bold]Solution", title_align = "left", border_style = "blue", width = 75), file = sys.stderr)

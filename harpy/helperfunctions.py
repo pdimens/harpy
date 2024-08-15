@@ -16,7 +16,7 @@ from importlib_resources import files
 import harpy.scripts
 import harpy.reports
 import harpy.snakefiles
-from .printfunctions import print_error, print_solution, print_onsuccess, print_onstart, print_onerror
+from .printfunctions import print_error, print_solution, print_onsuccess, print_onstart, print_onerror, print_snakefile_error
 
 def symlink(original, destination):
     """Create a symbolic link from original -> destination if the destination doesn't already exist."""
@@ -112,7 +112,9 @@ def launch_snakemake(sm_args, workflow, starttext, outdir, sm_logfile, quiet):
                 output = process.stderr.readline()
                 return_code = process.poll()
                 if return_code == 1:
-                    print_error("There is an error in the Snakefile. If you edited the Snakefile manually, try running the Snakefile manually to diagnose it. You can use the Snakemake command from the generated config.yaml file to do so. If you didn't edit it manually, it's probably a bug (oops!) and you should submit an issue on GitHub: [bold]https://github.com/pdimens/harpy/issues")
+                    print_snakefile_error("If you manually edited the Snakefile, see the error below to fix it. If you didn't edit it manually, it's probably a bug (oops!) and you should submit an issue on GitHub: [bold]https://github.com/pdimens/harpy/issues")
+                    errtext = subprocess.run(sm_args.split(), stderr=subprocess.PIPE, text = True)
+                    rprint("[red]" + errtext.stderr.partition("jobs...\n")[2], end = None)
                     sys.exit(1)
                 if output == '' and return_code is not None:
                     break
