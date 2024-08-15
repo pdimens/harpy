@@ -41,13 +41,13 @@ if(nrow(tb) == 0){
   print(paste("Input data file",infle, "is empty"))
   knittr::knittr_exit()
 }
-tb$valid <- tb$molecule
-tb[tb$valid != "invalidBX", "valid"] <- "validBX"
-tb$valid <- gsub("BX", " BX", tb$valid)
+tb$valid <- tb$molecule != "invalidBX"
 ```
 
 ```{r bxper, echo = F, results = F, message = F}
-valids <- filter(tb, valid == "valid BX")
+valids <- filter(tb, valid)
+invalids <- filter(tb, !valid)
+valids$molecule <- as.integer(valids$molecule)
 nBX <- group_by(valids, contig) %>% 
   summarize(nBX = length(molecule))
 
@@ -55,13 +55,8 @@ avgBX <- round(mean(nBX$nBX), digits = 2)
 totuniqBX <- read.table(infile, header = F, sep = "\n", as.is = T, skip = nrow(tb) + 1, comment.char = "+")
 totuniqBX <- gsub("#total unique barcodes: ", "", totuniqBX) |> as.integer()
 
-tots <- tb %>% 
-    group_by(valid) %>%
-    summarize(total = length(molecule)) %>% 
-    as.data.frame()
-
-tot_invalid <- sum(tots$valid == "invalid BX")
-tot_valid <- sum(tots$valid == "valid BX")
+tot_invalid <- sum(tb[!(tb$valid), "reads"])
+tot_valid <- sum(tb[tb$valid, "reads"])
 ```
 
 ```{r nxx, echo = F, results = F, message = F}
@@ -74,50 +69,61 @@ NX <- function(lengths, X=50){
 
 ## fileheader
 ### hdr {.no-title}
-<h1> Haplotag Barcode Statistics </h1>
+<h1> Linked-Read Barcode Statistics </h1>
 The information presented below were gathered from the alignments within **`r basename(bamfile)`**.
 
 
 ## General Information {data-height=100}
 ### ncontigs
 ```{r}
-valueBox(scales::comma(length(unique(tb$contig))), caption = "Contigs")
+valueBox(scales::comma(length(unique(tb$contig))), caption = "Contigs", color = "#ffffff")
+```
+
+### glob-total-bx
+```{r}
+valueBox(scales::comma(totuniqBX), caption = "Unique barcodes", color = "#8f4f76")
+```
+
+### glob-total-mol
+```{r}
+valueBox(scales::comma(length(unique(valids$molecule))), caption = "Unique Molecules")
 ```
 
 ### validBX
 ```{r}
-valueBox(scales::comma(tot_valid), caption = "Valid Barcodes", color = "success", icon = "fa-vial-circle-check")
+valueBox(scales::comma(tot_valid), caption = "Valid BX Records", color = "success", icon = "fa-vial-circle-check")
 ```
 
 ### invalidBX
 ```{r}
-valueBox(scales::comma(tot_invalid), caption = "Invalid Barcodes", color = "warning", icon = "fa-x")
+valueBox(scales::comma(tot_invalid), caption = "Invalid BX Records", color = "warning", icon = "fa-x")
 ```
 
 ### glob-avg
 ```{r}
-valueBox(scales::comma(avgBX), caption = "Average molecules per contig", color = "info")
+valueBox(scales::comma(avgBX), caption = "Avg molecules per contig", color = "#d4d4d4")
 ```
 
-### glob-total
-```{r}
-valueBox(scales::comma(totuniqBX), caption = "Total unique molecules", color = "info")
-```
 
 ## N50 and N90
 ### Molecule NXX Length Metrics
 ```{r echo = FALSE, message = FALSE, warning = FALSE}
-valids %>% 
+summary_table <- valids %>% 
     group_by(contig) %>%
-    summarize(n50 = NX(length_inferred, 50), n75 = NX(length_inferred, 75), n90 = NX(length_inferred, 90)) %>%    
-    DT::datatable(
-      rownames = F,
-      options = list(
-        dom = 'Brtip',
-        buttons = list(list(extend = "csv",filename = paste0(samplename ,"_molecule_NX")))
-      ),
-      fillContainer = T
-    )
+    summarize(valid_records = sum(reads), molecules = length(molecule),n50 = NX(length_inferred, 50), n75 = NX(length_inferred, 75), n90 = NX(length_inferred, 90))
+summ_invalid <- invalids %>% group_by(contig) %>% summarize(invalid_records = sum(reads))
+summary_table <- left_join(summary_table, summ_invalid, by = "contig", keep = T) %>% select(1, 2, 8, 3:6)
+summary_table$invalid_records[is.na(summary_table$invalid_records)] <- 0
+DT::datatable(
+  summary_table,
+  rownames = F,
+  options = list(
+    dom = 'Brtip',
+    buttons = list(list(extend = "csv",filename = paste0(samplename ,"_molecule_NX")))
+  ),
+  colnames = c("contig", "valid BX records", "invalid BX records", "molecules", "N50", "N75", "N90"),
+  fillContainer = T
+)
 ```
 
 ## Reads per molecule dec
