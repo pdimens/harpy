@@ -93,3 +93,4 @@ if (length(list.files(debugdir)) < 1) {
 
 unlink(paste(outdir, "input", sep = "/"), recursive = TRUE)
 unlink(paste(outdir, "RData", sep = "/"), recursive = TRUE)
+unlink(paste(outdir, "tmp", sep = "/"), recursive = TRUE)
