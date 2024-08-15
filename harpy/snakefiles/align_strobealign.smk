@@ -99,7 +99,7 @@ rule align:
         f"{envdir}/align.yaml"
     shell:
         """
-        strobealign {params.readlen} -t {threads} {params.unmapped_strobe} -C --rg-id={wildcards.sample} --rg=SM:{wildcards.sample} {params.extra} {input.genome} {input.fastq} 2> {log} |
+        strobealign {params.readlen} -N 2 -t {threads} {params.unmapped_strobe} -C --rg-id={wildcards.sample} --rg=SM:{wildcards.sample} {params.extra} {input.genome} {input.fastq} 2> {log} |
             samtools view -h {params.unmapped} -q {params.quality} > {output} 
         """
 
@@ -258,7 +258,7 @@ rule workflow_summary:
                 _ = f.write("The genome index was created using:\n")
                 _ = f.write(f"    strobealign --create-index -r {params.readlen} genome\n")
                 _ = f.write("Sequencing were aligned with strobealign using:\n")
-                _ = f.write(f"    strobealign --use-index {params.unmapped_strobe} -C --rg=SM:SAMPLE {params.extra} genome reads.F.fq reads.R.fq |\n")
+                _ = f.write(f"    strobealign --use-index {params.unmapped_strobe} -N 2 -C --rg=SM:SAMPLE {params.extra} genome reads.F.fq reads.R.fq |\n")
             _ = f.write(f"      samtools view -h {params.unmapped} -q {params.quality}\n")
             _ = f.write("Duplicates in the alignments were marked following:\n")
             _ = f.write("    samtools collate |\n")
