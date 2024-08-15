@@ -225,9 +225,9 @@ def snpindel(genome, snp_vcf, indel_vcf, output_dir, prefix, snp_count, indel_co
     | `--indel-ratio` | insertions / deletions      | insert. only  | delet. only  |
     """
     if (snp_gene_constraints and not genes) or (genes and not snp_gene_constraints):
-        print_error("The options `--genes` and `--snp-coding-partition` must be used together for SNP variants.")
+        print_error("missing option", "The options `--genes` and `--snp-coding-partition` must be used together for SNP variants.")
     if (not snp_vcf and snp_count == 0) and (not indel_vcf and indel_count == 0):
-        print_error("You must either provide a vcf file of known variants to simulate or a count of that variant to randomly simulate.")
+        print_error("missing option", "You must either provide a vcf file of known variants to simulate or a count of that variant to randomly simulate.")
     output_dir = output_dir.rstrip("/")
     workflowdir = f"{output_dir}/workflow"
     sdm = "conda" if conda else "conda apptainer"
@@ -334,7 +334,7 @@ def inversion(genome, vcf, prefix, output_dir, count, min_size, max_size, centro
     by running this module again.
     """
     if not vcf and count == 0:
-        print_error("Provide either a `--count` of cnv to randomly simulate or a `--vcf` of known variants to simulate.")
+        print_error("missing option", "Provide either a `--count` of cnv to randomly simulate or a `--vcf` of known variants to simulate.")
 
     output_dir = output_dir.rstrip("/")
     workflowdir = f"{output_dir}/workflow"
@@ -443,7 +443,7 @@ def cnv(genome, output_dir, vcf, prefix, count, min_size, max_size, dup_ratio, m
     | `--gain-ratio` | copy gain / loss | gain only | loss only| 
     """
     if not vcf and count == 0:
-        print_error("Provide either a `--count` of cnv to randomly simulate or a `--vcf` of known cnv to simulate.")
+        print_error("missing option", "Provide either a `--count` of cnv to randomly simulate or a `--vcf` of known cnv to simulate.")
     output_dir = output_dir.rstrip("/")
     workflowdir = f"{output_dir}/workflow"
     sdm = "conda" if conda else "conda apptainer"
@@ -542,7 +542,7 @@ def translocation(genome, output_dir, prefix, vcf, count, centromeres, genes, he
     this module again.
     """
     if not vcf and count == 0:
-        print_error("Provide either a `--count` of cnv to randomly simulate or a `--vcf` of known cnv to simulate.")
+        print_error("missing option", "Provide either a `--count` of cnv to randomly simulate or a `--vcf` of known cnv to simulate.")
     output_dir = output_dir.rstrip("/")
     workflowdir = f"{output_dir}/workflow"
     sdm = "conda" if conda else "conda apptainer"

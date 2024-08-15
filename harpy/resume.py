@@ -30,7 +30,7 @@ def resume(directory, conda, quiet):
     """
     directory = directory.rstrip("/")
     if not os.path.exists(f"{directory}/workflow/config.yaml"):
-        print_error(f"Target directory [blue bold]{directory}[/blue bold] does not contain [blue bold]workflow/config.yaml[/blue bold]")
+        print_error("config.yaml missing", f"Target directory [blue bold]{directory}[/blue bold] does not contain [blue bold]workflow/config.yaml[/blue bold]")
         sys.exit(1)
     if conda:
         generate_conda_deps()

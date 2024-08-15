@@ -13,7 +13,7 @@ def getnames(directory, ext):
     """Find all files in 'directory' that end with 'ext'"""
     samplenames = set([i.split(ext)[0] for i in os.listdir(directory) if i.endswith(ext)])
     if len(samplenames) < 1:
-        print_error(f"No sample files ending with [bold]{ext}[/bold] found in [bold]{directory}[/bold].")
+        print_error("no files found", f"No sample files ending with [bold]{ext}[/bold] found in [bold]{directory}[/bold].")
         sys.exit(1)
     return samplenames
 
@@ -34,7 +34,7 @@ def parse_fastq_inputs(inputs):
                 infiles.append(Path(i).resolve())
 
     if len(infiles) < 1:
-        print_error("There were no files found in the provided inputs that end with the accepted fastq extensions [blue].fq .fastq .fq.gz .fastq.gz[/blue]")
+        print_error("no files found", "There were no files found in the provided inputs that end with the accepted fastq extensions [blue].fq .fastq .fq.gz .fastq.gz[/blue]")
         sys.exit(1)
 
     # check if any names will be clashing
@@ -48,7 +48,7 @@ def parse_fastq_inputs(inputs):
         else:
             uniqs.add(sans_ext)
     if dupes:
-        print_error(Markdown("Identical filenames were detected, which will cause unexpected behavior and results.\n- files with identical names but different-cased extensions are treated as identical\n- files with the same name from different directories are also considered identical"))
+        print_error("clashing sample names", Markdown("Identical filenames were detected, which will cause unexpected behavior and results.\n- files with identical names but different-cased extensions are treated as identical\n- files with the same name from different directories are also considered identical"))
         print_solution_with_culprits("Make sure all input files have unique names.", "Files with clashing names:")
         for i in dupes:
             click.echo(" ".join([j for j in infiles if i in j]), file = sys.stderr)
@@ -80,7 +80,7 @@ def parse_alignment_inputs(inputs):
             elif re_bai.match(i):
                 bai_infiles.append(Path(i).resolve())
     if len(bam_infiles) < 1:
-        print_error("There were no files found in the provided inputs that end with the [blue].bam[/blue] or [blue].sam[/blue] extensions.")
+        print_error("no files found", "There were no files found in the provided inputs that end with the [blue].bam[/blue] or [blue].sam[/blue] extensions.")
         sys.exit(1)
     re_ext = re.compile(r"\.(bam|sam)$", re.IGNORECASE)
 
@@ -94,7 +94,7 @@ def parse_alignment_inputs(inputs):
         else:
             uniqs.add(bn)
     if dupes:
-        print_error(Markdown("Identical filenames were detected, which will cause unexpected behavior and results.\n- files with identical names but different-cased extensions are treated as identical\n- files with the same name from different directories are also considered identical"))
+        print_error("clashing sample names", Markdown("Identical filenames were detected, which will cause unexpected behavior and results.\n- files with identical names but different-cased extensions are treated as identical\n- files with the same name from different directories are also considered identical"))
         print_solution_with_culprits("Make sure all input files have unique names.", "Files with clashing names:")
         for i in dupes:
             click.echo(" ".join([j for j in bam_infiles if i in j]), file = sys.stderr)

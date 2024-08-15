@@ -32,7 +32,7 @@ def fetch_script(workdir, target):
         if os.path.isfile(files(harpy.scripts).joinpath(target)):
             f.write(files(harpy.scripts).joinpath(target).read_text())
         else:
-            print_error(f"Bundled script [blue bold]{target}[/blue bold] was not found in the Harpy installation.")
+            print_error("script missing", f"Bundled script [blue bold]{target}[/blue bold] was not found in the Harpy installation.")
             print_solution("There may be an issue with your Harpy installation, which would require reinstalling Harpy. Alternatively, there may be in a issue with your conda/mamba environment or configuration.")
             sys.exit(1)
 
@@ -45,7 +45,7 @@ def fetch_rule(workdir, target):
         if os.path.isfile(files(harpy.snakefiles).joinpath(target)):
             f.write(files(harpy.snakefiles).joinpath(target).read_text())
         else:
-            print_error(f"The required snakefile [blue bold]{target}[/blue bold] was not found in the Harpy installation.")
+            print_error("snakefile missing", f"The required snakefile [blue bold]{target}[/blue bold] was not found in the Harpy installation.")
             print_solution("There may be an issue with your Harpy installation, which would require reinstalling Harpy. Alternatively, there may be in a issue with your conda/mamba environment or configuration.")
             sys.exit(1)
 
@@ -58,7 +58,7 @@ def fetch_report(workdir, target):
         if os.path.isfile(files(harpy.reports).joinpath(target)):
             f.write(files(harpy.reports).joinpath(target).read_text())
         else:
-            print_error(f"The required report script [blue bold]{target}[/blue bold] was not found within the Harpy installation.")
+            print_error("report script missing", f"The required report script [blue bold]{target}[/blue bold] was not found within the Harpy installation.")
             print_solution("There may be an issue with your Harpy installation, which would require reinstalling Harpy. Alternatively, there may be in a issue with your conda/mamba environment or configuration.")
             sys.exit(1)
 
@@ -77,7 +77,7 @@ def biallelic_contigs(vcf, workdir):
         with open(f"{workdir}/{vbn}.biallelic", "r", encoding="utf-8") as f:
             contigs = [line.rstrip() for line in f]
     if len(contigs) == 0:
-        print_error("No contigs with at least 2 biallelic SNPs identified. Cannot continue with imputation.")
+        print_error("no usable contigs", "No contigs with at least 2 biallelic SNPs identified. Cannot continue with imputation.")
         sys.exit(1)
     else:
         return contigs

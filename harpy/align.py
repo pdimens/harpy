@@ -184,7 +184,7 @@ def ema(inputs, output_dir, platform, whitelist, genome, depth_window, keep_unma
     platform = platform.lower()
     # the tellseq stuff isn't impremented yet, but this is a placeholder for that... wishful thinking
     if platform in ["tellseq", "10x"] and not whitelist:
-        print_error(f"{platform} technology requires the use of a barcode whitelist.")
+        print_error("missing barcode whitelist", f"{platform} technology requires the use of a barcode whitelist.")
         if platform == "10x":
             print_solution("Running EMA requires 10X barcodes provided to [green]--whitelist[/green]. A standard 10X barcode whitelist can be downloaded from [dim]https://github.com/10XGenomics/cellranger/tree/master/lib/python/cellranger/barcodes[/dim]")
         else:

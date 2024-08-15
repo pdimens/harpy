@@ -15,7 +15,7 @@ from .printfunctions import print_error, print_notice, print_solution, print_sol
 def check_envdir(dirpath):
     """Check that the provided dir exists and contains the necessary environment definitions"""
     if not os.path.exists(dirpath):
-        print_error("This working directory does not contain the expected directory of conda environment definitions ([blue bold].harpy_envs/[/blue bold])\n  - use [green bold]--conda[/green bold] to recreate it")
+        print_error("missing conda files", "This working directory does not contain the expected directory of conda environment definitions ([blue bold].harpy_envs/[/blue bold])\n  - use [green bold]--conda[/green bold] to recreate it")
         sys.exit(1)
     envlist = os.listdir(dirpath)
     envs = ["align",  "phase", "qc", "r", "simulations", "snp", "stitch", "sv"]
@@ -30,7 +30,7 @@ def check_envdir(dirpath):
             errcount += 1
             errtable.add_row(f"{i}.yaml", "[yellow]🗙")
     if errcount > 0:
-        print_error(f"The conda environment definition directory ([blue bold]{dirpath}[/blue bold]) is missing [yellow bold]{errcount}[/yellow bold] of the expected definition files. All of the environment files are expected to be present, even if a particular workflow doesn't use it.")
+        print_error("missing conda files", f"The conda environment definition directory ([blue bold]{dirpath}[/blue bold]) is missing [yellow bold]{errcount}[/yellow bold] of the expected definition files. All of the environment files are expected to be present, even if a particular workflow doesn't use it.")
         print_solution_with_culprits(
             "Check that the names conform to Harpy's expectations, otheriwse you can recreate this directory using the [green bold]--conda[/green bold] option.",
             "Expected environment files:"
@@ -44,11 +44,11 @@ def validate_input_by_ext(inputfile, option, ext):
         test = [not(inputfile.lower().endswith(i.lower())) for i in ext]
         if all(test):
             ext_text = " | ".join(ext)
-            print_error(f"The input file for [bold]{option}[/bold] must end in one of:\n[green bold]{ext_text}[/green bold]")
+            print_error("invalid file extension", f"The input file for [bold]{option}[/bold] must end in one of:\n[green bold]{ext_text}[/green bold]")
             sys.exit(1)
     else:
         if not inputfile.lower().endswith(ext.lower()):
-            print_error(f"The input file for [bold]{option}[/bold] must end in [green bold]{ext}[/green bold]")
+            print_error("invalid file extension", f"The input file for [bold]{option}[/bold] must end in [green bold]{ext}[/green bold]")
             sys.exit(1)
 
 def check_impute_params(parameters):
@@ -62,7 +62,7 @@ def check_impute_params(parameters):
         badlens = []
         if sorted(headersplt) != correct_header:
             culprits = [i for i in headersplt if i not in correct_header]
-            print_error(f"Parameter file [bold]{parameters}[/bold] has incorrect column names. Valid names are:\n[green bold]model usebx bxlimit k s ngen[/green bold]")
+            print_error("invalid column names", f"Parameter file [bold]{parameters}[/bold] has incorrect column names. Valid names are:\n[green bold]model usebx bxlimit k s ngen[/green bold]")
             print_solution_with_culprits(
                 f"Fix the headers in [bold]{parameters}[/bold] or use [blue bold]harpy stitchparams[/blue bold] to generate a valid parameter file and modify it with appropriate values.",
                 "Column names causing this error:"
@@ -95,7 +95,7 @@ def check_impute_params(parameters):
                     data[j].append(k)
 
         if len(badrows) > 0:
-            print_error(f"Parameter file [bold]{parameters}[/bold] is formatted incorrectly. Not all rows have the expected 6 columns.")
+            print_error("invalid rows", f"Parameter file [bold]{parameters}[/bold] is formatted incorrectly. Not all rows have the expected 6 columns.")
             print_solution_with_culprits(
                 f"See the problematic rows below. Check that you are using a whitespace (space or tab) delimeter in [bold]{parameters}[/bold] or use [blue bold]harpy stitchparams[/blue bold] to generate a valid parameter file and modify it with appropriate values.",
                 "Rows causing this error and their column count:"
@@ -138,7 +138,7 @@ def check_impute_params(parameters):
                 errtable.add_row(param, "Integers", ",".join(culprits[param]))
 
         if colerr > 0:
-            print_error(f"Parameter file [bold]{parameters}[/bold] is formatted incorrectly. Not all columns have valid values.")
+            print_error("invalid column values", f"Parameter file [bold]{parameters}[/bold] is formatted incorrectly. Not all columns have valid values.")
             print_solution_with_culprits(
                 "Review the table below of what values are expected for each column and which rows are causing issues.",
                 "Formatting Errors:"
@@ -158,7 +158,7 @@ def validate_bam_RG(bamlist):
             culpritIDs.append(samview[0])
         
     if len(culpritfiles) > 0:
-        print_error(f"There are [bold]{len(culpritfiles)}[/bold] alignment files whose ID tags do not match their filenames.")
+        print_error("sample ID mismatch",f"There are [bold]{len(culpritfiles)}[/bold] alignment files whose RG tags do not match their filenames.")
         print_solution_with_culprits(
             "For alignment files (sam/bam), the base of the file name must be identical to the [green bold]@RD ID:[/green bold] tag in the file header. For example, a file named \'sample_001.bam\' should have the [green bold]@RG ID:sample_001[/green bold] tag. Use the [blue bold]renamebam[/blue bold] script to properly rename alignment files so as to also update the @RG header.",
             "File causing error and their ID tags:"
@@ -174,8 +174,8 @@ def check_phase_vcf(infile):
         return
     else:
         bn = os.path.basename(infile)
-        print_error("The input variant file needs to be phased into haplotypes, but no FORMAT/PS or FORMAT/HP fields were found.")
-        print_solution(f"Phase [bold]{bn}[/bold] into haplotypes using [blue bold]harpy phase[/blue bold] or another manner of your choosing and use the phased vcf file as input. If you are confident this file is phased, then the phasing does not follow standard convention and you will need to make sure the phasing information appears as either [bold]FORMAT/PS[/bold] or [bold]FORMAT/HP[/bold] tags.")
+        print_error("vcf not phased", "The input variant file needs to be phased into haplotypes, but no [green]FORMAT/PS[/green] or [green]FORMAT/HP[/green] fields were found.")
+        print_solution(f"Phase [bold]{bn}[/bold] into haplotypes using [blue bold]harpy phase[/blue bold] or another manner of your choosing and use the phased vcf file as input. If you are confident this file is phased, then the phasing does not follow standard convention and you will need to make sure the phasing information appears as either [green]FORMAT/PS[/green] or [green]FORMAT/HP[/green] tags.")
         sys.exit(1)
 
 def validate_popfile(infile):
@@ -184,7 +184,7 @@ def validate_popfile(infile):
         rows = [i for i in f.readlines() if i != "\n" and not i.lstrip().startswith("#")]
         invalids = [(i,j) for i,j in enumerate(rows) if len(j.split()) < 2]
         if invalids:
-            print_error(f"There are [bold]{len(invalids)}[/bold] rows in [bold]{infile}[/bold] without a space/tab delimiter or don't have two entries for sample[dim]<tab>[/dim]population. Terminating Harpy to avoid downstream errors.")
+            print_error("invalid format", f"There are [bold]{len(invalids)}[/bold] rows in [bold]{infile}[/bold] without a space/tab delimiter or don't have two entries for sample[dim]<tab>[/dim]population. Terminating Harpy to avoid downstream errors.")
             print_solution_with_culprits(
                 f"Make sure every entry in [bold]{infile}[/bold] uses space or tab delimeters and has both a sample name and population designation. You may comment out rows with a [green bold]#[/green bold] to have Harpy ignore them.",
                 "The rows and values causing this error are:"
@@ -207,9 +207,9 @@ def vcf_samplematch(vcf, bamlist, vcf_samples):
     missing_samples = [x for x in query if x not in search]
     # check that samples in VCF match input directory
     if len(missing_samples) > 0:
-        print_error(f"There are [bold]{len(missing_samples)}[/bold] samples found in [bold]{fromthis}[/bold] that are not in [bold]{inthis}[/bold]. Terminating Harpy to avoid downstream errors.")
+        print_error("mismatched inputs", f"There are [bold]{len(missing_samples)}[/bold] samples found in [blue]{fromthis}[/blue] that are not in [blue]{inthis}[/blue]. Terminating Harpy to avoid downstream errors.")
         print_solution_with_culprits(
-            f"[bold]{fromthis}[/bold] cannot contain samples that are absent in [bold]{inthis}[/bold]. Check the spelling or remove those samples from [bold]{fromthis}[/bold] or remake the vcf file to include/omit these samples. Alternatively, toggle [green]--vcf-samples[/green] to aggregate the sample list from the input files or [bold]{vcf}[/bold].",
+            f"[blue]{fromthis}[/blue] cannot contain samples that are absent in [blue]{inthis}[/blue]. Check the spelling or remove those samples from [blue]{fromthis}[/blue] or remake the vcf file to include/omit these samples. Alternatively, toggle [green]--vcf-samples[/green] to aggregate the sample list from the input files or [blue]{vcf}[/blue].",
             "The samples causing this error are:"
         )
         click.echo(", ".join(sorted(missing_samples)) + "\n", file = sys.stderr)
@@ -224,11 +224,11 @@ def validate_popsamples(infiles, popfile, quiet):
     missing_samples = [x for x in popsamples if x not in in_samples]
     overlooked = [x for x in in_samples if x not in popsamples]
     if len(overlooked) > 0 and not quiet:
-        print_notice(f"There are [bold]{len(overlooked)}[/bold] samples found in the inputs that weren\'t included in [bold]{popfile}[/bold]. This will [bold]not[/bold] cause errors and can be ignored if it was deliberate. Commenting or removing these lines will avoid this message. The samples are:\n" + ", ".join(overlooked))
+        print_notice(f"There are [bold]{len(overlooked)}[/bold] samples found in the inputs that weren\'t included in [blue]{popfile}[/blue]. This will [bold]not[/bold] cause errors and can be ignored if it was deliberate. Commenting or removing these lines will avoid this message. The samples are:\n" + ", ".join(overlooked))
     if len(missing_samples) > 0:
-        print_error(f"There are [bold]{len(missing_samples)}[/bold] samples included in [bold]{popfile}[/bold] that weren\'t found in in the inputs. Terminating Harpy to avoid downstream errors.")
+        print_error("mismatched inputs", f"There are [bold]{len(missing_samples)}[/bold] samples included in [blue]{popfile}[/blue] that weren\'t found in in the inputs. Terminating Harpy to avoid downstream errors.")
         print_solution_with_culprits(
-            f"Make sure the spelling of these samples is identical in the inputs and [bold]{popfile}[/bold], or remove them from [bold]{popfile}[/bold].",
+            f"Make sure the spelling of these samples is identical in the inputs and [blue]{popfile}[/blue], or remove them from [blue]{popfile}[/blue].",
             "The samples causing this error are:"
         )
         click.echo(", ".join(sorted(missing_samples)), file = sys.stderr)
@@ -240,9 +240,9 @@ def validate_demuxschema(infile):
         rows = [i for i in f.readlines() if i != "\n" and not i.lstrip().startswith("#")]
         invalids = [(i,j) for i,j in enumerate(rows) if len(j.split()) < 2]
         if invalids:
-            print_error(f"There are [bold]{len(invalids)}[/bold] rows in [bold]{infile}[/bold] without a space/tab delimiter or don't have two entries for sample[dim]<tab>[/dim]barcode. Terminating Harpy to avoid downstream errors.")
+            print_error(f"invalid format", "There are [bold]{len(invalids)}[/bold] rows in [blue]{infile}[/blue] without a space/tab delimiter or don't have two entries for sample[dim]<tab>[/dim]barcode. Terminating Harpy to avoid downstream errors.")
             print_solution_with_culprits(
-                f"Make sure every entry in [bold]{infile}[/bold] uses space or tab delimeters and has both a sample name and barcode designation. You may comment out rows with a [green]#[/green] to have Harpy ignore them.",
+                f"Make sure every entry in [blue]{infile}[/blue] uses space or tab delimeters and has both a sample name and barcode designation. You may comment out rows with a [green]#[/green] to have Harpy ignore them.",
                 "The rows and values causing this error are:"
                 )
             _ = [click.echo(f"{i[0]+1}\t{i[1]}", file = sys.stderr) for i in invalids]
@@ -252,7 +252,7 @@ def check_demux_fastq(file):
     """Check for the presence of corresponding FASTQ files from a single provided FASTQ file based on pipeline expectations."""
     bn = os.path.basename(file)
     if not bn.lower().endswith("fq") and not bn.lower().endswith("fastq") and not bn.lower().endswith("fastq.gz") and not bn.lower().endswith("fq.gz"):     
-        print_error(f"The file {bn} is not recognized as a FASTQ file by the file extension.")
+        print_error("unrecognized extension", f"The file [blue]{bn}[/blue] is not recognized as a FASTQ file by the file extension.")
         print_solution("Make sure the input file ends with a standard FASTQ extension. These are not case-sensitive.\nAccepted extensions: [green bold].fq .fastq .fq.gz .fastq.gz[/green bold]")
         sys.exit(1)
     ext = re.search(r"(?:\_00[0-9])*\.f(.*?)q(?:\.gz)?$", file, re.IGNORECASE).group(0)
@@ -267,7 +267,7 @@ def check_demux_fastq(file):
         symbol = " " if TF else "X"
         filelist.append(f"\033[91m{symbol}\033[0m  {prefix}_{i}{ext}")
     if printerr:
-        print_error(f"Not all necessary files with prefix [bold]{prefix}[/bold] present")
+        print_error("missing files", f"Not all necessary files with prefix [bold]{prefix}[/bold] present")
         print_solution_with_culprits(
             "Demultiplexing requires 4 sequence files: the forward and reverse sequences (R1 and R2), along with the forward and reverse indices (I2 and I2).",
             "Necessary/expected files:"
@@ -283,7 +283,7 @@ def validate_regions(regioninput, genome):
     except:
         region = regioninput
     if isinstance(region, int) and region < 10:
-        print_error("Input for [green bold]--regions[/green bold] was interpreted as an integer to create equal windows to call variants. Integer input for [green bold]--regions[/green bold] must be greater than or equal to [blue bold]10[/blue bold].")
+        print_error("window size too small", "Input for [green bold]--regions[/green bold] was interpreted as an integer to create equal windows to call variants. Integer input for [green bold]--regions[/green bold] must be greater than or equal to [green bold]10[/green bold].")
         sys.exit(1)
     elif isinstance(region, int) and region >= 10:
         return "windows"
@@ -297,13 +297,13 @@ def validate_regions(regioninput, genome):
         try:
             reg[1] = int(reg[1])
         except:
-            err += f"The region start position [blue bold]({reg[1]})[/blue bold] is not a valid integer. "
+            err += f"The region start position [green bold]({reg[1]})[/green bold] is not a valid integer. "
         try:
             reg[2] = int(reg[2])
         except:
-            err += f"The region end position [blue bold]({reg[2]})[/blue bold] is not a valid integer."
+            err += f"The region end position [green bold]({reg[2]})[/green bold] is not a valid integer."
         if err != "":
-            print_error("Input for [green bold]--regions[/green bold] was interpreted as a single region. " + err)
+            print_error("invalid region", "Input for [green bold]--regions[/green bold] was interpreted as a single region. " + err)
             print_solution("If providing a single region to call variants, it should be in the format [yellow bold]contig:start-end[/yellow bold], where [yellow bold]start[/yellow bold] and [yellow bold]end[/yellow bold] are integers. If the input is a file and was incorrectly interpreted as a region, try changing the name to avoid using colons ([yellow bold]:[/yellow bold]) or dashes ([yellow bold]-[/yellow bold]).")
             sys.exit(1)
         # check if the region is in the genome
@@ -328,19 +328,19 @@ def validate_regions(regioninput, genome):
                         contigs[cn] += len(line.rstrip("\n")) - 1
         err = ""
         if reg[0] not in contigs:
-            print_error(f"The contig ([bold yellow]{reg[0]})[/bold yellow]) of the input region [yellow bold]{regioninput}[/yellow bold] was not found in [bold]{genome}[/bold].")
+            print_error("contig not found", f"The contig ([bold yellow]{reg[0]})[/bold yellow]) of the input region [yellow bold]{regioninput}[/yellow bold] was not found in [blue]{genome}[/blue].")
             sys.exit(1)
         if reg[1] > contigs[reg[0]]:
             err += f"- start position: [bold yellow]{reg[1]}[/bold yellow]\n"
         if reg[2] > contigs[reg[0]]:
             err += f"- end position: [bold yellow]{reg[2]}[/bold yellow]"
         if err != "":
-            print_error(f"Components of the input region [yellow bold]{regioninput}[/yellow bold] were not found in [bold]{genome}[/bold]:\n" + err)
+            print_error("region out of bounds", f"Components of the input region [yellow bold]{regioninput}[/yellow bold] were not found in [blue]{genome}[/blue]:\n" + err)
             sys.exit(1)
         return "region"
     # is a file specifying regions
     if not os.path.isfile(regioninput):
-        print_error("Input for [green bold]--regions[/green bold] was interpreted as a file of regions to call variants over and this file was not found.")
+        print_error("file not found", "Input for [green bold]--regions[/green bold] was interpreted as a file and this file was not found.")
         print_solution(f"Check that the path to [bold]{regioninput}[/bold] is correct.")
         sys.exit(1)
     with open(regioninput, "r", encoding="utf-8") as fin:
@@ -363,7 +363,7 @@ def validate_regions(regioninput, genome):
                     badrows.append(idx)
 
         if badrows:
-            print_error("The input file is formatted incorrectly.")
+            print_error("invalid format", "The input file is formatted incorrectly.")
             print_solution_with_culprits(
                 "Rows in the provided file need to be [bold]space[/bold] or [bold]tab[/bold] delimited with the format [yellow bold]contig start end[/yellow bold] where [yellow bold]start[/yellow bold] and [yellow bold]end[/yellow bold] are integers.",
                 "Rows triggering this error:"
@@ -407,7 +407,7 @@ def check_fasta(genofile):
     elif is_plaintext(genofile):
         fasta = open(genofile, 'r', encoding="utf-8")
     else:
-        print_error(f"Unable to determine file encoding for [blue]{genofile}[/blue]. Please check that it is a gzipped or uncompressed FASTA file.")
+        print_error("unknown file type", f"Unable to determine file encoding for [blue]{genofile}[/blue]. Please check that it is a gzipped or uncompressed FASTA file.")
         sys.exit(1)
     line_num = 0
     seq_id = 0
@@ -418,35 +418,35 @@ def check_fasta(genofile):
         if line.startswith(">"):
             seq_id += 1
             if last_header:
-                print_error(f"All contig names must be followed by at least one line of nucleotide sequences, but two consecutive lines of contig names were detected. This issue was identified at line [bold]{line_num}[/bold] in [blue]{genofile}[/blue], but there may be others further in the file.")
-                print_solution("See the FASTA file spec: https://www.ncbi.nlm.nih.gov/genbank/fastaformat/ and make the appropriate changes, then try again.")
+                print_error("consecutive contig names", f"All contig names must be followed by at least one line of nucleotide sequences, but two consecutive lines of contig names were detected. This issue was identified at line [bold]{line_num}[/bold] in [blue]{genofile}[/blue], but there may be others further in the file.")
+                print_solution("See the FASTA file spec and try again after making the appropriate changes: https://www.ncbi.nlm.nih.gov/genbank/fastaformat/")
                 sys.exit(1)
             else:
                 last_header = True
             if len(line.rstrip()) == 1:
-                print_error(f"All contigs must have an alphanumeric name, but a contig was detected without a name. This issue was identified at line [bold]{line_num}[/bold] in [blue]{genofile}[/blue], but there may be others further in the file.")
-                print_solution("See the FASTA file spec: https://www.ncbi.nlm.nih.gov/genbank/fastaformat/ and make the appropriate changes, then try again.")
+                print_error("unnamed contigs", f"All contigs must have an alphanumeric name, but a contig was detected without a name. This issue was identified at line [bold]{line_num}[/bold] in [blue]{genofile}[/blue], but there may be others further in the file.")
+                print_solution("See the FASTA file spec and try again after making the appropriate changes: https://www.ncbi.nlm.nih.gov/genbank/fastaformat/")
                 sys.exit(1)
             if line.startswith("> "):
-                print_error(f"All contig names must be named [green bold]>contig_name[/green bold], without a space, but a contig was detected with a space between the [green bold]>[/green bold] and contig_name. This issue was identified at line [bold]{line_num}[/bold] in [blue]{genofile}[/blue], but there may be others further in the file.")
-                print_solution("See the FASTA file spec: https://www.ncbi.nlm.nih.gov/genbank/fastaformat/ and make the appropriate changes, then try again.")
+                print_error("invalid contig names", f"All contig names must be named [green bold]>contig_name[/green bold], without a space, but a contig was detected with a space between the [green bold]>[/green bold] and contig_name. This issue was identified at line [bold]{line_num}[/bold] in [blue]{genofile}[/blue], but there may be others further in the file.")
+                print_solution("See the FASTA file spec and try again after making the appropriate changes: https://www.ncbi.nlm.nih.gov/genbank/fastaformat/")
                 sys.exit(1)
         elif line == "\n":
-            print_error(f"Empty lines are not permitted in FASTA files, but one was detected at line [bold]{line_num}[/bold] in [blue]{genofile}[/blue]. The scan ended at this error, but there may be others further in the file.")
-            print_solution("See the FASTA file spec: https://www.ncbi.nlm.nih.gov/genbank/fastaformat/ and make the appropriate changes, then try again.")
+            print_error("empty lines", f"Empty lines are not permitted in FASTA files, but one was detected at line [bold]{line_num}[/bold] in [blue]{genofile}[/blue]. The scan ended at this error, but there may be others further in the file.")
+            print_solution("See the FASTA file spec and try again after making the appropriate changes: https://www.ncbi.nlm.nih.gov/genbank/fastaformat/")
             sys.exit(1)
         else:
             seq += 1
             last_header = False
     fasta.close()
-    solutiontext = "FASTA files must have at least one contig name in the form of [green bold]>contigname[/green bold] followed by sequence data on the next line. Example:\n"
-    solutiontext += "[bold]  >aardvark_13\n  ATACAGGAGATTAGGCA[/bold]\n"
+    solutiontext = "FASTA files must have at least one contig name followed by sequence data on the next line. Example:\n"
+    solutiontext += "[green]  >contig_name\n  ATACAGGAGATTAGGCA[/green]\n"
     # make sure there is at least one of each
     if seq_id == 0:
-        print_error(f"No contig names detected in [blue]{genofile}[/blue].")
-        print_solution(solutiontext + "\nSee the FASTA file spec: https://www.ncbi.nlm.nih.gov/genbank/fastaformat/ and make the appropriate changes, then try again.")
+        print_error("contig names absent", f"No contig names detected in [blue]{genofile}[/blue].")
+        print_solution(solutiontext + "\nSee the FASTA file spec and try again after making the appropriate changes: https://www.ncbi.nlm.nih.gov/genbank/fastaformat/")
         sys.exit(1)
     if seq == 0:
-        print_error(f"No sequences detected in [blue]{genofile}[/blue].")
-        print_solution(solutiontext + "\nSee the FASTA file spec: https://www.ncbi.nlm.nih.gov/genbank/fastaformat/ and make the appropriate changes, then try again.")
+        print_error("sequences absent", f"No sequences detected in [blue]{genofile}[/blue].")
+        print_solution(solutiontext + "\nSee the FASTA file spec and try again after making the appropriate changes: https://www.ncbi.nlm.nih.gov/genbank/fastaformat/")
         sys.exit(1)
