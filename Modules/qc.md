@@ -123,7 +123,7 @@ Aggregates the metrics FASTP generates for every sample during QC.
 ![reports/trim.report.html](/static/report_trim_aggregate.png)
 ||| BX validation
 Reports the number of valid/invalid barcodes in the sequences and the segments contributing to invalidation.
-![reports/summary.bx.valid.html](/static/report_align_bxstats.png)
+![reports/summary.bx.valid.html](/static/report_qc_bx.png)
 |||
 
 +++

@@ -176,13 +176,9 @@ Advanced Options:
 These are the summary reports Harpy generates for this workflow. You may right-click
 the image and open it in a new tab if you wish to see the example in better detail.
 
-||| Overall Phasing
-Aggregates phasing metrics across all samples.
+||| Phasing Performance
+Aggregates phasing metrics overall and across all samples.
 ![reports/phase.html](/static/report_phase.png)
-||| Per Sample Phasing
-The second tab shows haplotype metrics for every sample
-![reports/phase.html](/static/report_phase2.png)
 |||
-
 
 +++
