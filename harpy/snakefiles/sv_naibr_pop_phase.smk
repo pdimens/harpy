@@ -205,8 +205,6 @@ rule concat_groups:
         temp(outdir + "/workflow/input/concat/{population}.unsort.bam")
     log:
         outdir + "/logs/{population}.concat.log"
-    threads:
-        1
     container:
         None
     shell:
@@ -236,7 +234,7 @@ rule naibr_config:
         outdir + "/workflow/config/{population}.naibr"
     params:
         lambda wc: wc.get("population"),
-        min(10, workflow.cores)
+        min(10, workflow.cores - 1)
     run:
         argdict = process_args(extra)
         with open(output[0], "w") as conf:
@@ -259,7 +257,7 @@ rule call_variants:
     log:
         outdir + "/logs/{population}.naibr.log"
     threads:
-        10
+        min(10, workflow.cores - 1)
     conda:
         f"{envdir}/sv.yaml"
     shell:

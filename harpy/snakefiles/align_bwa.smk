@@ -102,7 +102,7 @@ rule align:
     benchmark:
         ".Benchmark/Mapping/bwa/align.{sample}.txt"
     threads:
-        10
+        max(5, workflow.cores - 1)
     conda:
         f"{envdir}/align.yaml"
     shell:

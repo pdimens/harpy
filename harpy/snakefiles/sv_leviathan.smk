@@ -125,7 +125,7 @@ rule call_variants:
         iters  = f"-B {iterations}",
         extra = extra
     threads:
-        workflow.cores
+        workflow.cores - 1
     conda:
         f"{envdir}/sv.yaml"
     benchmark:

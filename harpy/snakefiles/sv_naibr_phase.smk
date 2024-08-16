@@ -166,7 +166,7 @@ rule naibr_config:
         outdir + "/workflow/input/{sample}.naibr"
     params:
         lambda wc: wc.get("sample"),
-        min(10, workflow.cores)
+        min(10, workflow.cores - 1)
     run:
         argdict = process_args(extra)
         with open(output[0], "w") as conf:

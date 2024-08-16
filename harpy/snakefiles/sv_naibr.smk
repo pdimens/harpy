@@ -100,9 +100,9 @@ rule call_variants:
         refmt = outdir + "/{sample}/{sample}.reformat.bedpe",
         vcf   = outdir + "/{sample}/{sample}.vcf"
     log:
-        outdir + "/logs/{sample}.naibr.log"
+        outdir + "/logs/naibr/{sample}.naibr.log"
     threads:
-        10
+        min(10, workflow.cores -1)
     conda:
         f"{envdir}/sv.yaml"     
     shell:
@@ -207,6 +207,8 @@ rule sample_reports:
         fai   = f"Genome/{bn}.fai"
     output:
         outdir + "/reports/{sample}.naibr.html"
+    log:
+        outdir + "/logs/report/{sample}.log"
     conda:
         f"{envdir}/r.yaml"
     script:
