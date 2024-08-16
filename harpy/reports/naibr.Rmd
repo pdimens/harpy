@@ -391,4 +391,8 @@ BioCircos(
 
 ```{r close_sink}
 sink(NULL)
+info <- file.info(snakemake$log[[1]])
+if (info$size == 0L) {
+  snakemake$log[[1]]
+}
 ```
