@@ -109,14 +109,23 @@ def launch_snakemake(sm_args, workflow, starttext, outdir, sm_logfile, quiet):
                 sys.exit(1)
             if output == '' and return_code is not None:
                 break
+            if not quiet:
+                console = Console()
+                with console.status("[dim]Processing workflow order", spinner = "point") as status:
+                    while True:
+                        output = process.stderr.readline()
+                        if output.startswith("Building DAG of jobs...") or output.startswith("Assuming"):
+                            pass
+                        else:
+                            break
             # print dependency text only once
             if "Downloading and installing remote packages" in output:
                 deps = True
-                deploy_text = "[magenta]Downloading and installing workflow dependencies"
+                deploy_text = "[dim]Downloading and installing workflow dependencies"
                 break
             if "Pulling singularity image" in output:
                 deps = True
-                deploy_text = "[magenta]Downloading software container"
+                deploy_text = "[dim]Downloading software container"
                 break
             if output.startswith("Job stats:"):
                 # read and ignore the next two lines
@@ -183,7 +192,7 @@ def launch_snakemake(sm_args, workflow, starttext, outdir, sm_logfile, quiet):
                         if "Shutting down, this" in output:
                             sys.exit(1)
                         rprint(f"[red]{output.strip().partition("Finished job")[0]}", file = sys.stderr)
-                    if "Error in rule" in output:
+                    if "Error in rule" in output or "RuleException" in output:
                         progress.stop()
                         print_onerror(sm_logfile)
                         rprint(f"[yellow bold]{output.strip()}", file = sys.stderr)
