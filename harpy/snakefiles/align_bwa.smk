@@ -79,7 +79,7 @@ rule bwa_index:
     output: 
         multiext(f"Genome/{bn}", ".ann", ".bwt", ".pac", ".sa", ".amb")
     log:
-        f"Genome/{bn}.idx.log"
+        f"Genome/{bn}.bwa.idx.log"
     conda:
         f"{envdir}/align.yaml"
     shell: 
@@ -93,7 +93,7 @@ rule align:
     output:  
         temp(outdir + "/samples/{sample}/{sample}.bwa.sam")
     log:
-        outdir + "/logs/{sample}.bwa.log"
+        outdir + "/logs/bwa/{sample}.bwa.log"
     params: 
         samps = lambda wc: d[wc.get("sample")],
         quality = config["alignment_quality"],
@@ -119,7 +119,7 @@ rule mark_duplicates:
     output:
         temp(outdir + "/samples/{sample}/{sample}.markdup.bam")
     log:
-        outdir + "/logs/{sample}.markdup.log"
+        outdir + "/logs/markdup/{sample}.markdup.log"
     params: 
         tmpdir = lambda wc: outdir + "/." + d[wc.sample]
     resources:

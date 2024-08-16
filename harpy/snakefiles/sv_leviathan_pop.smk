@@ -74,7 +74,7 @@ rule concat_groups:
     output:
         temp(outdir + "/workflow/input/{population}.unsort.bam")
     log:
-        outdir + "/logs/{population}.concat.log"
+        outdir + "/logs/concat_groups/{population}.concat.log"
     threads:
         1
     container:
@@ -89,7 +89,7 @@ rule sort_groups:
         bam = temp(outdir + "/workflow/input/{population}.bam"),
         bai = temp(outdir + "/workflow/input/{population}.bam.bai")
     log:
-        outdir + "/logs/{population}.sort.log"
+        outdir + "/logs/samtools_sort/{population}.sort.log"
     resources:
         mem_mb = 2000
     threads:
@@ -142,7 +142,7 @@ rule bwa_index_genome:
     output: 
         multiext(f"Genome/{bn}", ".ann", ".bwt", ".pac", ".sa", ".amb")
     log:
-        f"Genome/{bn}.idx.log"
+        f"Genome/{bn}.bwa.idx.log"
     conda:
         f"{envdir}/align.yaml"
     shell: 
@@ -158,8 +158,8 @@ rule call_variants:
     output:
         temp(outdir + "/vcf/{population}.vcf")
     log:  
-        runlog     = outdir + "/logs/{population}.leviathan.log",
-        candidates = outdir + "/logs/{population}.candidates"
+        runlog     = outdir + "/logs/leviathan/{population}.leviathan.log",
+        candidates = outdir + "/logs/leviathan/{population}.candidates"
     params:
         min_sv = f"-v {min_sv}",
         min_bc = f"-c {min_bc}",

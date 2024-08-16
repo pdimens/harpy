@@ -100,7 +100,7 @@ else:
         output:
             temp(outdir + "/{sample}.fastq")
         log:
-            outdir + "/logs/{sample}.deconvolve.log"
+            outdir + "/logs/deconvolve/{sample}.deconvolve.log"
         params:
             kmer    = f"-k {decon_k}",
             windows = f"-w {decon_w}",

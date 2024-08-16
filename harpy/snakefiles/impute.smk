@@ -40,7 +40,7 @@ rule sort_bcf:
         bcf = temp(f"{outdir}/workflow/input/vcf/input.sorted.bcf"),
         idx = temp(f"{outdir}/workflow/input/vcf/input.sorted.bcf.csi")
     log:
-        f"{outdir}/workflow/input/vcf/input.sorted.log"
+        f"{outdir}/logs/input.sorted.log"
     container:
         None
     shell:
@@ -93,7 +93,7 @@ rule impute:
         # into a file path, with k, s, ngen being the columns of the data frame
         f"{outdir}/{paramspace.wildcard_pattern}/contigs/" + "{part}/{part}.vcf.gz"
     log:
-        f"{outdir}/{paramspace.wildcard_pattern}/contigs/" + "{part}/{part}.log"
+        f"{outdir}/{paramspace.wildcard_pattern}/logs/stitch/" + "{part}/{part}.log"
     params:
         # automatically translate the wildcard values into an instance of the param space
         # in the form of a dict (here: {"k": ..., "s": ..., "ngen": ...})
@@ -104,7 +104,7 @@ rule impute:
     benchmark:
         f".Benchmark/{outdir}/stitch.{paramspace.wildcard_pattern}" + ".{part}.txt"
     threads:
-        workflow.cores
+        workflow.cores - 1
     script:
         "scripts/stitch_impute.R"
 

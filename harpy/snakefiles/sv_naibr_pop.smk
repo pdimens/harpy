@@ -91,7 +91,7 @@ rule concat_groups:
     output:
         temp(outdir + "/workflow/input/{population}.unsort.bam")
     log:
-        outdir + "/logs/{population}.concat.log"
+        outdir + "/logs/concat_groups/{population}.concat.log"
     threads:
         1
     container:
@@ -106,7 +106,7 @@ rule sort_groups:
         bam = (outdir + "/workflow/input/{population}.bam"),
         bai = (outdir + "/workflow/input/{population}.bam.bai")
     log:
-        outdir + "/logs/{population}.sort.log"
+        outdir + "/logs/samtools/sort/{population}.sort.log"
     resources:
         mem_mb = 2000
     threads:
@@ -144,7 +144,7 @@ rule call_variants:
         refmt = outdir + "/{population}/{population}.reformat.bedpe",
         vcf   = outdir + "/{population}/{population}.vcf"
     log:
-        outdir + "/logs/{population}.naibr.log"
+        outdir + "/logs/naibr/{population}.naibr.log"
     threads:
         min(10, workflow.cores - 1)
     conda:

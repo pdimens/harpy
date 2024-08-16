@@ -197,7 +197,7 @@ rule call_variants:
         refmt = outdir + "/{sample}/{sample}.reformat.bedpe",
         vcf   = outdir + "/{sample}/{sample}.vcf"
     log:
-        outdir + "/logs/{sample}.naibr.log"
+        outdir + "/logs/naibr/{sample}.naibr.log"
     threads:
         10
     conda:
