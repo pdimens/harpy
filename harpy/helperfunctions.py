@@ -183,7 +183,7 @@ def launch_snakemake(sm_args, workflow, starttext, outdir, sm_logfile, quiet):
                     if err:
                         if "Shutting down, this" in output:
                             sys.exit(1)
-                        rprint(f"[red]{output.strip()}", file = sys.stderr)
+                        rprint(f"[red]{output.strip().partition("Finished job")[0]}", file = sys.stderr)
                     if "Error in rule" in output:
                         progress.stop()
                         print_onerror(sm_logfile)
