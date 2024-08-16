@@ -16,6 +16,11 @@ output:
 ---
 
 
+```{R setup, include=FALSE}
+log <- file(snakemake@log[[1]], open="wt")
+sink(log)
+sink(log, type="message")
+```
 
 ```{r echo = FALSE, warnings = FALSE, message = FALSE}
 infile <- snakemake@input[["bedpe"]]
@@ -382,4 +387,8 @@ BioCircos(
   height = "1000px",
   elementId = "circosplot" 
 )
+```
+
+```{r close_sink}
+sink(NULL)
 ```

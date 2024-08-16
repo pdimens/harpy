@@ -15,6 +15,12 @@ output:
       - { title : "Source", icon: "fa-github", href: "https://www.github.com/pdimens/harpy/", align: right }
 ---
 
+```{R setup, include=FALSE}
+log <- file(snakemake@log[[1]], open="wt")
+sink(log)
+sink(log, type="message")
+```
+
 ```{r imports, echo = F, results = F, message = F}
 using<-function(...) {
     libs<-unlist(list(...))
@@ -269,4 +275,8 @@ highchart() |>
   hc_exporting(enabled = T, filename = "avg.molecule.coverage",
     buttons = list(contextButton = list(menuItems = c("downloadPNG", "downloadJPEG", "downloadPDF", "downloadSVG")))
   )
+```
+
+```{r close_sink}
+sink(NULL)
 ```
