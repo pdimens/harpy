@@ -111,7 +111,7 @@ def launch_snakemake(sm_args, workflow, starttext, outdir, sm_logfile, quiet):
                 break
             if not quiet:
                 console = Console()
-                with console.status("[dim]Processing workflow order", spinner = "point") as status:
+                with console.status("[dim]Setting up workflow", spinner = "point") as status:
                     while True:
                         output = process.stderr.readline()
                         if output.startswith("Building DAG of jobs...") or output.startswith("Assuming"):
