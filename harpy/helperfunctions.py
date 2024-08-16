@@ -5,7 +5,6 @@ import re
 import sys
 import glob
 import subprocess
-from time import sleep
 from datetime import datetime
 from pathlib import Path
 from collections import Counter
