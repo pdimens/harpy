@@ -63,7 +63,6 @@ def parse_fastq_inputs(inputs):
 
     n = len({re.sub(bn_r, "", i, flags = re.IGNORECASE) for i in uniqs})
     # return the filenames and # of unique samplenames
-    sys.exit(0)
     return infiles, n
 
 def parse_alignment_inputs(inputs):
