@@ -285,8 +285,6 @@ rule workflow_summary:
     params:
         prune = f"--threshold {pruning}" if pruning > 0 else "--no_prune 1",
         extra = extra
-    message:
-        "Creating record of relevant runtime parameters"
     run:
         with open(outdir + "/workflow/phase.summary", "w") as f:
             _ = f.write("The harpy phase workflow ran using these parameters:\n\n")

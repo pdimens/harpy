@@ -230,8 +230,6 @@ rule workflow_summary:
         agg_report = collect(outdir + "/{stitchparams}/reports/variants.imputed.html", stitchparams=paramspace.instance_patterns) if not skipreports else [],
         contig_report = collect(outdir + "/{stitchparams}/contigs/{part}/{part}.STITCH.html", stitchparams=paramspace.instance_patterns, part = contigs) if not skipreports else [],
         cleanedplots = collect(outdir + "/{stitchparams}/contigs/{part}/.plots.cleaned", stitchparams=paramspace.instance_patterns, part = contigs) if not skipreports else []
-    message:
-        "Summarizing the workflow: {output}"
     run:
         with open(outdir + "/workflow/impute.summary", "w") as f:
             _ = f.write("The harpy impute workflow ran using these parameters:\n\n")

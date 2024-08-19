@@ -203,8 +203,6 @@ rule workflow_summary:
     input:
         vcf = collect(outdir + "/variants.{file}.bcf", file = ["raw"]),
         reports = collect(outdir + "/reports/variants.{file}.html", file = ["raw"]) if not skipreports else []
-    message:
-        "Summarizing the workflow: {output}"
     params:
         ploidy = f"-p {ploidy}",
         populations = f"--populations {groupings}" if groupings else '',

@@ -165,8 +165,6 @@ rule workflow_summary:
     input:
         fq = collect(outdir + "/{sample}.{FR}.fq.gz", sample = samplenames, FR = ["F", "R"]),
         reports = outdir + "/reports/demultiplex.QC.html" if not skipreports else []
-    message:
-        "Summarizing the workflow: {output}"
     run:
         os.makedirs(f"{outdir}/workflow/", exist_ok= True)
         with open(outdir + "/workflow/demux.gen1.summary", "w") as f:

@@ -347,8 +347,6 @@ rule workflow_summary:
         phaselog = outdir + "/logs/whatshap-haplotag.log",
         reports = collect(outdir + "/reports/{pop}.naibr.html", pop = populations) if not skipreports else [],
         agg_report = outdir + "/reports/naibr.pop.summary.html" if not skipreports else []
-    message:
-        "Summarizing the workflow: {output}"
     run:
         os.system(f"rm -rf {outdir}/naibrlog")
         argdict = process_args(extra)

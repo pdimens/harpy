@@ -262,8 +262,6 @@ rule workflow_summary:
         bedpe_agg = collect(outdir + "/{sv}.bedpe", sv = ["inversions", "deletions","duplications", "breakends"]),
         reports = collect(outdir + "/reports/{pop}.sv.html", pop = populations) if not skipreports else [],
         agg_report = outdir + "/reports/leviathan.summary.html" if not skipreports else []
-    message:
-        "Summarizing the workflow: {output}"
     params:
         min_sv = f"-v {min_sv}",
         min_bc = f"-c {min_bc}",

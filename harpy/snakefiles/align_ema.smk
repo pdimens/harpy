@@ -332,8 +332,6 @@ rule workflow_summary:
     params:
         beadtech = "-p" if platform == "haplotag" else f"-w {barcode_list}",
         unmapped = "" if keep_unmapped else "-F 4"
-    message:
-        "Summarizing the workflow: {output}"
     run:
         with open(outdir + "/workflow/align.ema.summary", "w") as f:
             _ = f.write("The harpy align ema workflow ran using these parameters:\n\n")

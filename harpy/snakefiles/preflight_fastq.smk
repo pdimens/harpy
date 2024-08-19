@@ -80,8 +80,6 @@ rule workflow_summary:
     default_target: True
     input:
         outdir + "/filecheck.fastq.html"
-    message:
-        "Summarizing the workflow: {output}"
     run:
         os.makedirs(f"{outdir}/workflow/", exist_ok= True)
         with open(outdir + "/workflow/preflight.fastq.summary", "w") as f:

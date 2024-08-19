@@ -179,8 +179,6 @@ rule workflow_summary:
         trim_adapters = "--detect_adapter_for_pe" if trimadapters else "--disable_adapter_trimming" ,
         dedup = "-D" if dedup else "",
         extra = extra
-    message:
-        "Summarizing the workflow: {output}"
     run:
         with open(outdir + "/workflow/qc.summary", "w") as f:
             _ = f.write("The harpy qc workflow ran using these parameters:\n\n")

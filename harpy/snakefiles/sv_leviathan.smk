@@ -213,8 +213,6 @@ rule workflow_summary:
         min_bc = f"-c {min_bc}",
         iters  = f"-B {iterations}",
         extra = extra
-    message:
-        "Summarizing the workflow: {output}"
     run:
         with open(outdir + "/workflow/sv.leviathan.summary", "w") as f:
             _ = f.write("The harpy sv leviathan workflow ran using these parameters:\n\n")

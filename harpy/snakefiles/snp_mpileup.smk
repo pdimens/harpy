@@ -236,8 +236,6 @@ rule workflow_summary:
     params:
         ploidy = f"--ploidy {ploidy}",
         populations = f"--populations {groupings}" if groupings else "--populations -"
-    message:
-        "Summarizing the workflow: {output}"
     run:
         with open(outdir + "/workflow/snp.mpileup.summary", "w") as f:
             _ = f.write("The harpy snp mpileup workflow ran using these parameters:\n\n")

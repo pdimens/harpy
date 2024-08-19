@@ -277,8 +277,6 @@ rule workflow_summary:
         bedpe_agg = collect(outdir + "/{sv}.bedpe", sv = ["inversions", "deletions","duplications"]),
         phaselog = outdir + "/logs/whatshap-haplotag.log",
         reports =  collect(outdir + "/reports/{sample}.naibr.html", sample = samplenames) if not skipreports else []
-    message:
-        "Summarizing the workflow: {output}"
     run:
         os.system(f"rm -rf {outdir}/naibrlog")
         argdict = process_args(extra)

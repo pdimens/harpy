@@ -88,8 +88,6 @@ rule workflow_summary:
     default_target: True
     input:
         outdir + "/filecheck.bam.html"
-    message:
-        "Summarizing the workflow: {output}"
     run:
         os.makedirs(f"{outdir}/workflow/", exist_ok= True)
         with open(outdir + "/workflow/preflight.bam.summary", "w") as f:

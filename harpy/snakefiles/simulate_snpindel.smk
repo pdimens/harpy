@@ -147,5 +147,3 @@ rule workflow_summary:
         multiext(f"{outdir}/{outprefix}", ".bed", ".fasta"),
         collect(f"{outdir}/{outprefix}." + "{var}.vcf", var = variants),
         collect(f"{outdir}/{outprefix}" + ".{var}.hap{n}.vcf", n = [1,2], var = variants) if heterozygosity > 0 else []
-    message:
-        "Checking for workflow outputs"

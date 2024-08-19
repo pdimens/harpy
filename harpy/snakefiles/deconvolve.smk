@@ -86,8 +86,6 @@ rule workflow_summary:
     default_target: True
     input:
         collect(outdir + "/{sample}.{FR}.fq.gz", FR = ["R1", "R2"], sample = samplenames),
-    message:
-        "Summarizing the workflow: {output}"
     run:
         with open(outdir + "/workflow/deconvolve.summary", "w") as f:
             _ = f.write("The harpy deconvolve workflow ran using these parameters:\n\n")

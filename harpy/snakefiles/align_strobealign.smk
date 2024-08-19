@@ -245,8 +245,6 @@ rule workflow_summary:
         unmapped_strobe = "" if keep_unmapped else "-U",
         unmapped = "" if keep_unmapped else "-F 4",
         extra   = extra
-    message:
-        "Summarizing the workflow: {output}"
     run:
         with open(outdir + "/workflow/align.strobealign.summary", "w") as f:
             _ = f.write("The harpy align strobealign workflow ran using these parameters:\n\n")

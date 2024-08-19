@@ -218,8 +218,6 @@ rule workflow_summary:
         bedpe = collect(outdir + "/bedpe/{sample}.bedpe", sample = samplenames),
         bedpe_agg = collect(outdir + "/{sv}.bedpe", sv = ["inversions", "deletions","duplications"]),
         reports =  collect(outdir + "/reports/{sample}.naibr.html", sample = samplenames) if not skipreports else []
-    message:
-        "Summarizing the workflow: {output}"
     run:
         os.system(f"rm -rf {outdir}/naibrlog")
         argdict = process_args(extra)

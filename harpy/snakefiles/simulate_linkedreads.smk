@@ -182,8 +182,6 @@ rule workflow_summary:
         dwgdistsd = config["distance_sd"],
         dwgmutationrate = config["mutation_rate"],
         dwgprefix = outdir + "/dwgsim_simulated/dwgsim.hap.12"
-    message:
-        "Summarizing the workflow: {output}"
     run:
         with open(outdir + "/workflow/simulate.reads.summary", "w") as f:
             _ = f.write("The harpy simulate linkedreas workflow ran using these parameters:\n\n")

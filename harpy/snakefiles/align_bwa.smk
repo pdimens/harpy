@@ -251,8 +251,6 @@ rule workflow_summary:
         quality = config["alignment_quality"],
         unmapped = "" if keep_unmapped else "-F 4",
         extra   = extra
-    message:
-        "Summarizing the workflow: {output}"
     run:
         with open(outdir + "/workflow/align.bwa.summary", "w") as f:
             _ = f.write("The harpy align bwa workflow ran using these parameters:\n\n")
