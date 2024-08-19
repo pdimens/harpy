@@ -79,6 +79,7 @@ of `0` were removed from the data.
 ## Haplotyping details {data-height=100}
 ```{r echo= FALSE, message = FALSE, warning = FALSE}
 overall <- df %>% summarise(
+    total_snps = sum(n_snp),
     mean_snps = round(mean(n_snp), digits = 0),
     median_snps = median(n_snp),
     mean_blocksize = round(mean(block_length), digits = 0),
@@ -86,6 +87,12 @@ overall <- df %>% summarise(
     max_blocksize = max(block_length)
 )
 ```
+
+### total phased
+```{r}
+valueBox(scales::comma(overall$total_snps[1]), caption = "Phased SNPs", color = "#81ce9b")
+```
+
 ### avg snps
 ```{r}
 valueBox(scales::comma(overall$mean_snps[1]), caption = "Avg SNPs/Haplotype", color = "info")
