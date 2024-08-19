@@ -8,6 +8,7 @@ from pathlib import Path
 
 fqlist = config["inputs"]
 outdir = config["output_directory"]
+snakemake_log = config["snakemake_log"]
 envdir      = os.getcwd() + "/.harpy_envs"
 bn_r = r"([_\.][12]|[_\.][FR]|[_\.]R[12](?:\_00[0-9])*)?\.((fastq|fq)(\.gz)?)$"
 samplenames = {re.sub(bn_r, "", os.path.basename(i), flags = re.IGNORECASE) for i in fqlist}
