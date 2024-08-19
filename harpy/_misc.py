@@ -134,35 +134,23 @@ def launch_snakemake(sm_args, workflow, starttext, outdir, sm_logfile, quiet):
                 process.stderr.readline()
                 break
         
-        # if dependency text present, print console log with spinner and read up to the job stats
+        # if dependency text present, print pulse progress bar to indicate things are happening
         if deps:
-            if not quiet:
-                #console = Console()
-                #with console.status(deploy_text, spinner = "point") as status:
-                with Progress(
-                    TextColumn("[progress.description]{task.description}"),
-                    BarColumn(bar_width= 70 - len(deploy_text), pulse_style = "grey46"),
-                    TimeElapsedColumn(),
-                    transient=True
-                ) as progress:
-                    progress.add_task("[dim]" + deploy_text, total = None)
-                    while True:
-                        output = process.stderr.readline()
-                        if output == '' and process.poll() is not None:
-                            progress.stop()
-                            break
-                        if output.startswith("Job stats:"):
-                            progress.stop()
-                            # read and ignore the next two lines
-                            process.stderr.readline()
-                            process.stderr.readline()
-                            break
-            else:
+            with Progress(
+                TextColumn("[progress.description]{task.description}"),
+                BarColumn(bar_width= 70 - len(deploy_text), pulse_style = "grey46"),
+                TimeElapsedColumn(),
+                transient=True,
+                disable=quiet
+            ) as progress:
+                progress.add_task("[dim]" + deploy_text, total = None)
                 while True:
                     output = process.stderr.readline()
                     if output == '' and process.poll() is not None:
+                        progress.stop()
                         break
                     if output.startswith("Job stats:"):
+                        progress.stop()
                         # read and ignore the next two lines
                         process.stderr.readline()
                         process.stderr.readline()
