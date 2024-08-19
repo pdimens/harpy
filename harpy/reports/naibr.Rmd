@@ -15,13 +15,6 @@ output:
       - { title : "Source", icon: "fa-github", href: "https://www.github.com/pdimens/harpy/", align: right }
 ---
 
-
-```{R setup, include=FALSE}
-log <- file(snakemake@log[[1]], open="wt")
-sink(log)
-sink(log, type="message")
-```
-
 ```{r echo = FALSE, warnings = FALSE, message = FALSE}
 infile <- snakemake@input[["bedpe"]]
 fai <- snakemake@input[["fai"]]
@@ -387,12 +380,4 @@ BioCircos(
   height = "1000px",
   elementId = "circosplot" 
 )
-```
-
-```{r close_sink}
-sink(NULL)
-info <- file.info(snakemake$log[[1]])
-if (info$size == 0L) {
-  snakemake$log[[1]]
-}
 ```

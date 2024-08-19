@@ -207,8 +207,6 @@ rule sample_reports:
         fai   = f"Genome/{bn}.fai"
     output:
         outdir + "/reports/{sample}.naibr.html"
-    log:
-        outdir + "/logs/report/{sample}.log"
     conda:
         f"{envdir}/r.yaml"
     script:
