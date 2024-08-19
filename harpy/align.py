@@ -42,7 +42,7 @@ docstring = {
     "harpy align ema": [
         {
             "name": "Parameters",
-            "options": ["--ema-bins", "--extra-params", "--genome", "--keep-unmapped", "--platform", "--min-quality", "--whitelist"],
+            "options": ["--ema-bins", "--extra-params", "--genome", "--keep-unmapped", "--platform", "--min-quality", "--barcode-list"],
         },
         {
             "name": "Workflow Controls",
@@ -149,7 +149,7 @@ def bwa(inputs, output_dir, genome, depth_window, threads, keep_unmapped, extra_
 @click.option('-o', '--output-dir', type = click.Path(exists = False), default = "Align/ema", show_default=True,  help = 'Output directory name')
 @click.option('-p', '--platform', type = click.Choice(['haplotag', '10x'], case_sensitive=False), default = "haplotag", show_default=True, help = "Linked read bead technology\n[haplotag, 10x]")
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(min = 4, max_open = True), help = 'Number of threads to use')
-@click.option('-l', '--whitelist', type = click.Path(exists=True, dir_okay=False), help = "Barcode whitelist file for 10x linked reads")
+@click.option('-l', '--barcode-list', type = click.Path(exists=True, dir_okay=False), help = "File of known barcodes for 10x linked reads")
 @click.option('--setup-only',  is_flag = True, hidden = True, default = False, help = 'Setup the workflow and exit')
 @click.option('--conda',  is_flag = True, default = False, help = 'Use conda/mamba instead of container')
 @click.option('--hpc',  type = click.Path(exists = True, file_okay = False, readable=True), help = 'Directory with HPC submission `config.yaml` file')
@@ -157,7 +157,7 @@ def bwa(inputs, output_dir, genome, depth_window, threads, keep_unmapped, extra_
 @click.option('--skipreports',  is_flag = True, show_default = True, default = False, help = 'Don\'t generate HTML reports')
 @click.option('--snakemake', type = str, help = 'Additional Snakemake parameters, in quotes')
 @click.argument('inputs', required=True, type=click.Path(exists=True, readable=True), nargs=-1)
-def ema(inputs, output_dir, platform, whitelist, genome, depth_window, keep_unmapped, threads, ema_bins, skipreports, extra_params, min_quality, snakemake, quiet, hpc, conda, setup_only):
+def ema(inputs, output_dir, platform, barcode_list, genome, depth_window, keep_unmapped, threads, ema_bins, skipreports, extra_params, min_quality, snakemake, quiet, hpc, conda, setup_only):
     """
     Align sequences to genome using `EMA`
 
@@ -167,7 +167,7 @@ def ema(inputs, output_dir, platform, whitelist, genome, depth_window, keep_unma
 
     EMA may improve mapping, but it also marks split reads as secondary
     reads, making it less useful for variant calling with leviathan. The barcode
-    whitelist is a list of barcodes (in nucleotide format, one per line) that lets EMA know what
+    list is a file of known barcodes (in nucleotide format, one per line) that lets EMA know what
     sequences at the beginning of the forward reads are known barcodes.
     """
     output_dir = output_dir.rstrip("/")
@@ -183,15 +183,15 @@ def ema(inputs, output_dir, platform, whitelist, genome, depth_window, keep_unma
 
     platform = platform.lower()
     # the tellseq stuff isn't impremented yet, but this is a placeholder for that... wishful thinking
-    if platform in ["tellseq", "10x"] and not whitelist:
-        print_error("missing barcode whitelist", f"{platform} technology requires the use of a barcode whitelist.")
+    if platform in ["tellseq", "10x"] and not barcode_list:
+        print_error("missing barcode list", f"{platform} technology requires a list of known barcodes.")
         if platform == "10x":
-            print_solution("Running EMA requires 10X barcodes provided to [green]--whitelist[/green]. A standard 10X barcode whitelist can be downloaded from [dim]https://github.com/10XGenomics/cellranger/tree/master/lib/python/cellranger/barcodes[/dim]")
+            print_solution("Running EMA requires 10X barcodes provided to [green]--barcode-list[/green]. A standard 10X barcode list can be downloaded from [dim]https://github.com/10XGenomics/cellranger/tree/master/lib/python/cellranger/barcodes[/dim]")
         else:
-            print_solution("Running EMA requires TELLseq barcodes provided to [green]--whitelist[/green]. They can be acquired from the TELL-read software [dim]https://www.illumina.com/products/by-type/informatics-products/basespace-sequence-hub/apps/universal-sequencing-tell-seq-data-analysis-pipeline.html[/dim]")
+            print_solution("Running EMA requires TELLseq barcodes provided to [green]--barcode-list[/green]. They can be acquired from the TELL-read software [dim]https://www.illumina.com/products/by-type/informatics-products/basespace-sequence-hub/apps/universal-sequencing-tell-seq-data-analysis-pipeline.html[/dim]")
         sys.exit(1)
-    if platform == "haplotag" and whitelist:
-        print_notice("Haplotag data does not require barcode whitelists and the whitelist provided as input will be ignored.")
+    if platform == "haplotag" and barcode_list:
+        print_notice("Haplotag data does not require a barcode list and the file provided to [green]--barcode-list[/green] will be ignored.")
         sleep(3)
 
     os.makedirs(f"{workflowdir}/", exist_ok= True)
@@ -218,8 +218,8 @@ def ema(inputs, output_dir, platform, whitelist, genome, depth_window, keep_unma
         config.write(f"workflow_call: {command}\n")
         config.write("inputs:\n")
         config.write(f"  genome: {Path(genome).resolve()}\n")
-        if whitelist:
-            config.write(f"  whitelist: {Path(whitelist).resolve()}\n")
+        if barcode_list:
+            config.write(f"  barcode_list: {Path(barcode_list).resolve()}\n")
         config.write("  fastq:\n")
         for i in fqlist:
             config.write(f"    - {i}\n")

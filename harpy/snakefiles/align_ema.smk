@@ -12,7 +12,7 @@ binrange    = ["%03d" % i for i in range(nbins)]
 fqlist       = config["inputs"]["fastq"]
 genomefile 	= config["inputs"]["genome"]
 platform    = config["platform"]
-whitelist   = config["inputs"].get("whitelist", "") 
+barcode_list   = config["inputs"].get("barcode_list", "") 
 extra 		= config.get("extra", "") 
 bn 			= os.path.basename(genomefile)
 genome_zip  = True if bn.lower().endswith(".gz") else False
@@ -97,7 +97,7 @@ rule ema_count:
         logs   = temp(outdir + "/logs/count/{sample}.count")
     params:
         prefix = lambda wc: outdir + "/ema_count/" + wc.get("sample"),
-        beadtech = "-p" if platform == "haplotag" else f"-w {whitelist}",
+        beadtech = "-p" if platform == "haplotag" else f"-w {barcode_list}",
         logdir = f"{outdir}/logs/ema_count/"
     conda:
         f"{envdir}/align.yaml"
@@ -119,7 +119,7 @@ rule ema_preprocess:
         outdir + "/logs/ema_preproc/{sample}.preproc.log"
     params:
         outdir = lambda wc: outdir + "/ema_preproc/" + wc.get("sample"),
-        bxtype = "-p" if platform == "haplotag" else f"-w {whitelist}",
+        bxtype = "-p" if platform == "haplotag" else f"-w {barcode_list}",
         bins   = nbins
     threads:
         2
@@ -330,7 +330,7 @@ rule workflow_summary:
         agg_report = f"{outdir}/reports/ema.stats.html" if not skipreports else [],
         bx_report = outdir + "/reports/barcodes.summary.html" if (not skipreports or len(samplenames) == 1) else []
     params:
-        beadtech = "-p" if platform == "haplotag" else f"-w {whitelist}",
+        beadtech = "-p" if platform == "haplotag" else f"-w {barcode_list}",
         unmapped = "" if keep_unmapped else "-F 4"
     message:
         "Summarizing the workflow: {output}"
