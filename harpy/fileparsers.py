@@ -32,21 +32,28 @@ def parse_fastq_inputs(inputs):
         else:
             if re.search(re_ext, i):
                 infiles.append(Path(i).resolve())
-
     if len(infiles) < 1:
         print_error("no files found", "There were no files found in the provided inputs that end with the accepted fastq extensions [blue].fq .fastq .fq.gz .fastq.gz[/blue]")
         sys.exit(1)
-
     # check if any names will be clashing
     bn_r = r"[\.\_](?:[RF])?(?:[12])?(?:\_00[1-9])*?$"
     uniqs = set()
     dupes = []
+    inv_pattern = r'[^a-zA-Z0-9._-]+'
+    badmatch = []
     for i in infiles:
         sans_ext = os.path.basename(re_ext.sub("", str(i)))
         if sans_ext in uniqs:
             dupes.append(sans_ext)
         else:
             uniqs.add(sans_ext)
+        if re.search(inv_pattern, os.path.basename(i)):
+            badmatch.append(os.path.basename(i))
+    if badmatch:
+        print_error("Error: invalid characters", "Invalid characters were detected in the input file names.")
+        print_solution_with_culprits(Markdown("Valid file names may contain only:\n- **A-Z** characters (case insensitive)\n- **.** (period)\n- **_** (underscore)\n- **-** (dash)"), "The offending files:")
+        click.echo(", ".join(badmatch), file = sys.stderr)
+        sys.exit(1)
     if dupes:
         print_error("clashing sample names", Markdown("Identical filenames were detected, which will cause unexpected behavior and results.\n- files with identical names but different-cased extensions are treated as identical\n- files with the same name from different directories are also considered identical"))
         print_solution_with_culprits("Make sure all input files have unique names.", "Files with clashing names:")
@@ -56,6 +63,7 @@ def parse_fastq_inputs(inputs):
 
     n = len({re.sub(bn_r, "", i, flags = re.IGNORECASE) for i in uniqs})
     # return the filenames and # of unique samplenames
+    sys.exit(0)
     return infiles, n
 
 def parse_alignment_inputs(inputs):
@@ -87,12 +95,21 @@ def parse_alignment_inputs(inputs):
     # check if any links will be clashing
     uniqs = set()
     dupes = []
+    inv_pattern = r'[^a-zA-Z0-9._-]+'
+    badmatch = []
     for i in bam_infiles:
         bn = os.path.basename(re_ext.sub("", str(i)))
         if bn in uniqs:
             dupes.append(bn)
         else:
             uniqs.add(bn)
+        if re.search(inv_pattern, os.path.basename(i)):
+            badmatch.append(os.path.basename(i))
+    if badmatch:
+        print_error("Error: invalid characters", "Invalid characters were detected in the input file names.")
+        print_solution_with_culprits(Markdown("Valid file names may contain only:\n- **A-Z** characters (case insensitive)\n- **.** (period)\n- **_** (underscore)\n- **-** (dash)"), "The offending files:")
+        click.echo(", ".join(badmatch), file = sys.stderr)
+        sys.exit(1)
     if dupes:
         print_error("clashing sample names", Markdown("Identical filenames were detected, which will cause unexpected behavior and results.\n- files with identical names but different-cased extensions are treated as identical\n- files with the same name from different directories are also considered identical"))
         print_solution_with_culprits("Make sure all input files have unique names.", "Files with clashing names:")
