@@ -89,7 +89,7 @@ def print_onsuccess(outdir):
     rprint(
         Panel(
             f"The workflow has finished successfully! Find the results in [bold]{outdir}/[/bold]",
-            title = "[bold]success!",
+            subtitle = "[bold]success!",
             title_align = "left",
             border_style = "green",
             width=75
