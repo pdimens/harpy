@@ -105,10 +105,11 @@ def launch_snakemake(sm_args, workflow, starttext, outdir, sm_logfile, quiet):
             if return_code == 1:
                 print_snakefile_error("If you manually edited the Snakefile, see the error below to fix it. If you didn't edit it manually, it's probably a bug (oops!) and you should submit an issue on GitHub: [bold]https://github.com/pdimens/harpy/issues")
                 errtext = subprocess.run(sm_args.split(), stderr=subprocess.PIPE, text = True)
-                rprint("[red]" + errtext.stderr.partition("jobs...\n")[2], end = None)
+                errtext = errtext.stderr.split("\n")
+                startprint = [i for i,j in enumerate(errtext) if "Exception in rule" in j][0]
+                rprint("[red]" + "\n".join(errtext[startprint:]), end = None)
+                #rprint("[red]" + errtext.stderr.partition("jobs...\n")[2], end = None)
                 sys.exit(1)
-            if output == '' and return_code is not None:
-                break
             if not quiet:
                 console = Console()
                 with console.status("[dim]Setting up workflow", spinner = "point") as status:
@@ -132,6 +133,7 @@ def launch_snakemake(sm_args, workflow, starttext, outdir, sm_logfile, quiet):
                 process.stderr.readline()
                 process.stderr.readline()
                 break
+        
         # if dependency text present, print console log with spinner and read up to the job stats
         if deps:
             if not quiet:
@@ -184,8 +186,17 @@ def launch_snakemake(sm_args, workflow, starttext, outdir, sm_logfile, quiet):
             
             while True:
                 output = process.stderr.readline()
-                if output == '' and process.poll() is not None:
-                    break
+                if process.poll():
+                    if process.poll() == 1:
+                        progress.stop()
+                        print_snakefile_error("If you manually edited the Snakefile, see the error below to fix it. If you didn't edit it manually, it's probably a bug (oops!) and you should submit an issue on GitHub: [bold]https://github.com/pdimens/harpy/issues")
+                        errtext = subprocess.run(sm_args.split(), stderr=subprocess.PIPE, text = True)
+                        errtext = errtext.stderr.split("\n")
+                        startprint = [i for i,j in enumerate(errtext) if j.startswith("total")][0] + 2
+                        rprint("[red]" + "\n".join(errtext[startprint:]), end = None)
+                        sys.exit(1)
+                    if output == '':
+                        break
                 if output:
                     if output.startswith("Complete log:") or process.poll():
                         process.wait()
@@ -228,6 +239,8 @@ def launch_snakemake(sm_args, workflow, starttext, outdir, sm_logfile, quiet):
 
         if process.returncode < 1:
             print_onsuccess(outdir)
+        else:
+            sys.exit(1)
     except KeyboardInterrupt:
         # Handle the keyboard interrupt
         rprint("[yellow bold]\nTerminating harpy...")
