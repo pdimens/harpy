@@ -50,7 +50,7 @@ def parse_fastq_inputs(inputs):
         if re.search(inv_pattern, os.path.basename(i)):
             badmatch.append(os.path.basename(i))
     if badmatch:
-        print_error("Error: invalid characters", "Invalid characters were detected in the input file names.")
+        print_error("invalid characters", "Invalid characters were detected in the input file names.")
         print_solution_with_culprits(Markdown("Valid file names may contain only:\n- **A-Z** characters (case insensitive)\n- **.** (period)\n- **_** (underscore)\n- **-** (dash)"), "The offending files:")
         click.echo(", ".join(badmatch), file = sys.stderr)
         sys.exit(1)
@@ -105,7 +105,7 @@ def parse_alignment_inputs(inputs):
         if re.search(inv_pattern, os.path.basename(i)):
             badmatch.append(os.path.basename(i))
     if badmatch:
-        print_error("Error: invalid characters", "Invalid characters were detected in the input file names.")
+        print_error("invalid characters", "Invalid characters were detected in the input file names.")
         print_solution_with_culprits(Markdown("Valid file names may contain only:\n- **A-Z** characters (case insensitive)\n- **.** (period)\n- **_** (underscore)\n- **-** (dash)"), "The offending files:")
         click.echo(", ".join(badmatch), file = sys.stderr)
         sys.exit(1)

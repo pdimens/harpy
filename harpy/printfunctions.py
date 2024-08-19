@@ -78,7 +78,6 @@ def print_onstart(text, title):
             title = f"[bold]harpy {title}",
             title_align = "right",
             border_style = "light_steel_blue",
-            subtitle = "Running Workflow",
             width = 75
             ),
         file = sys.stderr
