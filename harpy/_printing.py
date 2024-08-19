@@ -76,7 +76,7 @@ def print_onstart(text, title):
         Panel(
             text,
             title = f"[bold]harpy {title}",
-            title_align = "right",
+            title_align = "center",
             border_style = "light_steel_blue",
             width = 75
             ),
