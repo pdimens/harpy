@@ -122,7 +122,7 @@ def launch_snakemake(sm_args, workflow, starttext, outdir, sm_logfile, quiet):
             # print dependency text only once
             if "Downloading and installing remote packages" in output:
                 deps = True
-                deploy_text = "[dim]Downloading and installing workflow dependencies"
+                deploy_text = "[dim]Installing software dependencies"
                 break
             if "Pulling singularity image" in output:
                 deps = True
@@ -137,13 +137,22 @@ def launch_snakemake(sm_args, workflow, starttext, outdir, sm_logfile, quiet):
         # if dependency text present, print console log with spinner and read up to the job stats
         if deps:
             if not quiet:
-                console = Console()
-                with console.status(deploy_text, spinner = "point") as status:
+                #console = Console()
+                #with console.status(deploy_text, spinner = "point") as status:
+                with Progress(
+                    TextColumn("[progress.description]{task.description}"),
+                    BarColumn(bar_width= 70 - len(deploy_text), pulse_style = "grey46"),
+                    TimeElapsedColumn(),
+                    transient=True
+                ) as progress:
+                    progress.add_task("[dim]" + deploy_text, total = None)
                     while True:
                         output = process.stderr.readline()
                         if output == '' and process.poll() is not None:
+                            progress.stop()
                             break
                         if output.startswith("Job stats:"):
+                            progress.stop()
                             # read and ignore the next two lines
                             process.stderr.readline()
                             process.stderr.readline()
@@ -160,7 +169,7 @@ def launch_snakemake(sm_args, workflow, starttext, outdir, sm_logfile, quiet):
                         break
         with Progress(
             TextColumn("[progress.description]{task.description}"),
-            BarColumn(),
+            BarColumn(complete_style="yellow", finished_style="blue"),
             TextColumn("[progress.percentage]{task.percentage:>3.0f}%"),
             TimeElapsedColumn(),
             transient=True,
