@@ -61,7 +61,7 @@ def print_notice(noticetext):
     rprint(
         Panel(
             noticetext,
-            title = "Notice",
+            title = "[dim]Notice",
             title_align = "left",
             border_style = "dim",
             width = 75
