@@ -5,10 +5,10 @@ from pathlib import Path
 from rich import box
 from rich.table import Table
 import rich_click as click
-from .conda_deps import generate_conda_deps
-from .helperfunctions import fetch_rule, fetch_script, snakemake_log, launch_snakemake
-from .printfunctions import print_error
-from .validations import validate_input_by_ext, check_fasta
+from ._conda import generate_conda_deps
+from ._misc import fetch_rule, fetch_script, snakemake_log, launch_snakemake
+from ._printing import print_error
+from ._validations import validate_input_by_ext, check_fasta
 
 @click.group(options_metavar='', context_settings={"help_option_names" : ["-h", "--help"]})
 def simulate():

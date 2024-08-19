@@ -3,7 +3,7 @@
 import os
 import rich_click as click
 from rich.markdown import Markdown
-from .printfunctions import print_notice
+from ._printing import print_notice
 
 @click.group(options_metavar='', context_settings={"help_option_names" : ["-h", "--help"]})
 def hpc():

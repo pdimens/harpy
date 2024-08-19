@@ -5,10 +5,10 @@ import sys
 from rich import box
 from rich.table import Table
 import rich_click as click
-from .conda_deps import generate_conda_deps
-from .helperfunctions import fetch_rule, fetch_report, snakemake_log, launch_snakemake
-from .fileparsers import parse_alignment_inputs
-from .validations import check_fasta, vcf_samplematch, validate_bam_RG, validate_input_by_ext
+from ._conda import generate_conda_deps
+from ._misc import fetch_rule, fetch_report, snakemake_log, launch_snakemake
+from ._parsers import parse_alignment_inputs
+from ._validations import check_fasta, vcf_samplematch, validate_bam_RG, validate_input_by_ext
 
 docstring = {
         "harpy phase": [

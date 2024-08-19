@@ -7,7 +7,7 @@ import subprocess
 from pathlib import Path
 from rich.markdown import Markdown
 import rich_click as click
-from .printfunctions import print_error, print_solution_with_culprits
+from ._printing import print_error, print_solution_with_culprits
 
 def getnames(directory, ext):
     """Find all files in 'directory' that end with 'ext'"""

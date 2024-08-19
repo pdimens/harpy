@@ -6,10 +6,10 @@ from pathlib import Path
 from rich import box
 from rich.table import Table
 import rich_click as click
-from .conda_deps import generate_conda_deps
-from .helperfunctions import fetch_rule, fetch_report, snakemake_log, launch_snakemake
-from .fileparsers import parse_alignment_inputs
-from .validations import check_fasta, validate_bam_RG, validate_popfile, validate_popsamples, validate_regions
+from ._conda import generate_conda_deps
+from ._misc import fetch_rule, fetch_report, snakemake_log, launch_snakemake
+from ._parsers import parse_alignment_inputs
+from ._validations import check_fasta, validate_bam_RG, validate_popfile, validate_popsamples, validate_regions
 
 @click.group(options_metavar='', context_settings={"help_option_names" : ["-h", "--help"]})
 def snp():

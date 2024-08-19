@@ -5,9 +5,9 @@ import sys
 from rich import box
 from rich.table import Table
 import rich_click as click
-from .conda_deps import generate_conda_deps
-from .helperfunctions import fetch_rule, snakemake_log, launch_snakemake
-from .fileparsers import parse_fastq_inputs
+from ._conda import generate_conda_deps
+from ._misc import fetch_rule, snakemake_log, launch_snakemake
+from ._parsers import parse_fastq_inputs
 
 docstring = {
     "harpy deconvolve": [

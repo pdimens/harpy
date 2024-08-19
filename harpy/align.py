@@ -7,11 +7,11 @@ from pathlib import Path
 from rich import box
 from rich.table import Table
 import rich_click as click
-from .conda_deps import generate_conda_deps
-from .helperfunctions import fetch_report, fetch_rule, snakemake_log, launch_snakemake
-from .fileparsers import parse_fastq_inputs
-from .printfunctions import print_error, print_solution, print_notice
-from .validations import check_fasta
+from ._conda import generate_conda_deps
+from ._misc import fetch_report, fetch_rule, snakemake_log, launch_snakemake
+from ._parsers import parse_fastq_inputs
+from ._printing import print_error, print_solution, print_notice
+from ._validations import check_fasta
 
 @click.group(options_metavar='', context_settings={"help_option_names" : ["-h", "--help"]})
 def align():

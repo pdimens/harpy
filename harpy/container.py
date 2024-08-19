@@ -4,8 +4,8 @@ import os
 import sys
 import subprocess
 import rich_click as click
-from .conda_deps import generate_conda_deps
-from .helperfunctions import fetch_rule
+from ._conda import generate_conda_deps
+from ._misc import fetch_rule
 
 @click.command(no_args_is_help = False, hidden = True)
 def containerize():

@@ -10,7 +10,7 @@ from rich import box
 from rich import print as rprint
 from rich.table import Table
 import rich_click as click
-from .printfunctions import print_error, print_notice, print_solution, print_solution_with_culprits
+from ._printing import print_error, print_notice, print_solution, print_solution_with_culprits
 
 def check_envdir(dirpath):
     """Check that the provided dir exists and contains the necessary environment definitions"""

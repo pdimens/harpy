@@ -15,7 +15,7 @@ from importlib_resources import files
 import harpy.scripts
 import harpy.reports
 import harpy.snakefiles
-from .printfunctions import print_error, print_solution, print_onsuccess, print_onstart, print_onerror, print_snakefile_error
+from ._printing import print_error, print_solution, print_onsuccess, print_onstart, print_onerror, print_snakefile_error
 
 def symlink(original, destination):
     """Create a symbolic link from original -> destination if the destination doesn't already exist."""
