@@ -44,7 +44,7 @@ def print_solution(solutiontext):
     )
 
 def print_solution_with_culprits(solutiontext, culprittext):
-    """Print a blue panel with solution text and the list of offenders below it"""
+    """Print a blue panel with solution text and culprittext as the subtitle to introducethe list of offenders below it."""
     rprint(
         Panel(solutiontext,
             title = "[bold]Solution",
