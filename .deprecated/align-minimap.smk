@@ -328,8 +328,7 @@ rule workflow_summary:
     params:
         quality = config["quality"],
         extra   = extra
-    message:
-        "Summarizing the workflow: {output}"
+
     run:
         with open(outdir + "/workflow/align.minimap.summary", "w") as f:
             _ = f.write("The harpy align minimap workflow ran using these parameters:\n\n")

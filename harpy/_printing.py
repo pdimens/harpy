@@ -44,7 +44,7 @@ def print_solution(solutiontext):
     )
 
 def print_solution_with_culprits(solutiontext, culprittext):
-    """Print a blue panel with solution text and the list of offenders below it"""
+    """Print a blue panel with solution text and culprittext as the subtitle to introducethe list of offenders below it."""
     rprint(
         Panel(solutiontext,
             title = "[bold]Solution",
@@ -61,7 +61,7 @@ def print_notice(noticetext):
     rprint(
         Panel(
             noticetext,
-            title = "Notice",
+            title = "[dim]Notice",
             title_align = "left",
             border_style = "dim",
             width = 75
@@ -76,9 +76,8 @@ def print_onstart(text, title):
         Panel(
             text,
             title = f"[bold]harpy {title}",
-            title_align = "right",
+            title_align = "center",
             border_style = "light_steel_blue",
-            subtitle = "Running Workflow",
             width = 75
             ),
         file = sys.stderr
@@ -89,7 +88,7 @@ def print_onsuccess(outdir):
     rprint(
         Panel(
             f"The workflow has finished successfully! Find the results in [bold]{outdir}/[/bold]",
-            title = "[bold]success!",
+            subtitle = "[bold]success!",
             title_align = "left",
             border_style = "green",
             width=75

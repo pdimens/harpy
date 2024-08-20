@@ -6,10 +6,10 @@ from pathlib import Path
 from rich import box
 from rich.table import Table
 import rich_click as click
-from .conda_deps import generate_conda_deps
-from .helperfunctions import fetch_rule, fetch_report, snakemake_log, launch_snakemake
-from .fileparsers import parse_alignment_inputs
-from .validations import check_fasta, validate_bam_RG, validate_popfile, validate_popsamples, validate_regions
+from ._conda import generate_conda_deps
+from ._misc import fetch_rule, fetch_report, snakemake_log, launch_snakemake
+from ._parsers import parse_alignment_inputs
+from ._validations import check_fasta, validate_bam_RG, validate_popfile, validate_popsamples, validate_regions
 
 @click.group(options_metavar='', context_settings={"help_option_names" : ["-h", "--help"]})
 def snp():
@@ -57,12 +57,12 @@ docstring = {
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(min = 4, max_open = True), help = 'Number of threads to use')
 @click.option('--hpc',  type = click.Path(exists = True, file_okay = False, readable=True), help = 'Directory with HPC submission `config.yaml` file')
 @click.option('--conda',  is_flag = True, default = False, help = 'Use conda/mamba instead of container')
-@click.option('--config-only',  is_flag = True, hidden = True, default = False, help = 'Create the config.yaml file and exit')
+@click.option('--setup-only',  is_flag = True, hidden = True, default = False, help = 'Setup the workflow and exit')
 @click.option('--quiet',  is_flag = True, show_default = True, default = False, help = 'Don\'t show output text while running')
 @click.option('--skipreports',  is_flag = True, show_default = True, default = False, help = 'Don\'t generate HTML reports')
 @click.option('--snakemake', type = str, help = 'Additional Snakemake parameters, in quotes')
 @click.argument('inputs', required=True, type=click.Path(exists=True, readable=True), nargs=-1)
-def mpileup(inputs, output_dir, regions, genome, threads, populations, ploidy, extra_params, snakemake, skipreports, quiet, hpc, conda, config_only):
+def mpileup(inputs, output_dir, regions, genome, threads, populations, ploidy, extra_params, snakemake, skipreports, quiet, hpc, conda, setup_only):
     """
     Call variants from using bcftools mpileup
     
@@ -135,10 +135,11 @@ def mpileup(inputs, output_dir, regions, genome, threads, populations, ploidy, e
         config.write("  alignments:\n")
         for i in bamlist:
             config.write(f"    - {i}\n")
-    if config_only:
-        sys.exit(0)
 
     generate_conda_deps()
+    if setup_only:
+        sys.exit(0)
+
     start_text = Table(show_header=False,pad_edge=False, show_edge=False, padding = (0,0), box=box.SIMPLE)
     start_text.add_column("detail", justify="left", style="light_steel_blue", no_wrap=True)
     start_text.add_column(header="value", justify="left")
@@ -159,13 +160,13 @@ def mpileup(inputs, output_dir, regions, genome, threads, populations, ploidy, e
 @click.option('-r', '--regions', type=str, default=50000, show_default=True, help = "Regions where to call variants")
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(min = 4, max_open = True), help = 'Number of threads to use')
 @click.option('--conda',  is_flag = True, default = False, help = 'Use conda/mamba instead of container')
-@click.option('--config-only',  is_flag = True, hidden = True, default = False, help = 'Create the config.yaml file and exit')
+@click.option('--setup-only',  is_flag = True, hidden = True, default = False, help = 'Setup the workflow and exit')
 @click.option('--hpc',  type = click.Path(exists = True, file_okay = False, readable=True), help = 'Directory with HPC submission `config.yaml` file')
 @click.option('--quiet',  is_flag = True, show_default = True, default = False, help = 'Don\'t show output text while running')
 @click.option('--skipreports',  is_flag = True, show_default = True, default = False, help = 'Don\'t generate HTML reports')
 @click.option('--snakemake', type = str, help = 'Additional Snakemake parameters, in quotes')
 @click.argument('inputs', required=True, type=click.Path(exists=True, readable=True), nargs=-1)
-def freebayes(inputs, output_dir, genome, threads, populations, ploidy, regions, extra_params, snakemake, skipreports, quiet, hpc, conda, config_only):
+def freebayes(inputs, output_dir, genome, threads, populations, ploidy, regions, extra_params, snakemake, skipreports, quiet, hpc, conda, setup_only):
     """
     Call variants using freebayes
     
@@ -238,10 +239,11 @@ def freebayes(inputs, output_dir, genome, threads, populations, ploidy, regions,
         config.write("  alignments:\n")
         for i in bamlist:
             config.write(f"    - {i}\n")
-    if config_only:
-        sys.exit(0)
 
     generate_conda_deps()
+    if setup_only:
+        sys.exit(0)
+
     start_text = Table(show_header=False,pad_edge=False, show_edge=False, padding = (0,0), box=box.SIMPLE)
     start_text.add_column("detail", justify="left", style="light_steel_blue", no_wrap=True)
     start_text.add_column(header="value", justify="left")

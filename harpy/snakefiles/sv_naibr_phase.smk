@@ -166,7 +166,7 @@ rule naibr_config:
         outdir + "/workflow/input/{sample}.naibr"
     params:
         lambda wc: wc.get("sample"),
-        min(10, workflow.cores)
+        min(10, workflow.cores - 1)
     run:
         argdict = process_args(extra)
         with open(output[0], "w") as conf:
@@ -197,7 +197,7 @@ rule call_variants:
         refmt = outdir + "/{sample}/{sample}.reformat.bedpe",
         vcf   = outdir + "/{sample}/{sample}.vcf"
     log:
-        outdir + "/logs/{sample}.naibr.log"
+        outdir + "/logs/naibr/{sample}.naibr.log"
     threads:
         10
     conda:
@@ -277,8 +277,6 @@ rule workflow_summary:
         bedpe_agg = collect(outdir + "/{sv}.bedpe", sv = ["inversions", "deletions","duplications"]),
         phaselog = outdir + "/logs/whatshap-haplotag.log",
         reports =  collect(outdir + "/reports/{sample}.naibr.html", sample = samplenames) if not skipreports else []
-    message:
-        "Summarizing the workflow: {output}"
     run:
         os.system(f"rm -rf {outdir}/naibrlog")
         argdict = process_args(extra)

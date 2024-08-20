@@ -421,9 +421,9 @@ hs <- hist(tb$depth[tb$depth <= q99], breaks = 30, plot = F)
 hs$counts <- round(hs$counts / sum(hs$counts)*100,2)
 hs <- data.frame(val = hs$breaks[-1], freq = hs$counts)
 
-hchart(hs, "areaspline", hcaes(x = val, y = freq), color = "#9393d2", name = "% of molecules", marker = list(enabled = FALSE)) |>
+hchart(hs, "areaspline", hcaes(x = val, y = freq), color = "#9393d2", name = "% of intervals", marker = list(enabled = FALSE)) |>
   hc_xAxis(ceiling = q99, title = list(text = "depth")) |>
-  hc_yAxis(title = list(text = "% molecules"))  |>
+  hc_yAxis(title = list(text = "% intervals"))  |>
   hc_title(text = "Distribution of Alignment Depths")  |>
   hc_exporting(enabled = T, filename = paste0(samplename, ".cov"),
     buttons = list(contextButton = list(menuItems = c("downloadPNG", "downloadJPEG", "downloadPDF", "downloadSVG")))

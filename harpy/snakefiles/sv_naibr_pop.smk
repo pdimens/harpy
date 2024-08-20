@@ -91,7 +91,7 @@ rule concat_groups:
     output:
         temp(outdir + "/workflow/input/{population}.unsort.bam")
     log:
-        outdir + "/logs/{population}.concat.log"
+        outdir + "/logs/concat_groups/{population}.concat.log"
     threads:
         1
     container:
@@ -106,7 +106,7 @@ rule sort_groups:
         bam = (outdir + "/workflow/input/{population}.bam"),
         bai = (outdir + "/workflow/input/{population}.bam.bai")
     log:
-        outdir + "/logs/{population}.sort.log"
+        outdir + "/logs/samtools/sort/{population}.sort.log"
     resources:
         mem_mb = 2000
     threads:
@@ -123,7 +123,7 @@ rule naibr_config:
         outdir + "/workflow/config/{population}.naibr"
     params:
         lambda wc: wc.get("population"),
-        min(10, workflow.cores)
+        min(10, workflow.cores - 1)
     run:
         argdict = process_args(extra)
         with open(output[0], "w") as conf:
@@ -144,9 +144,9 @@ rule call_variants:
         refmt = outdir + "/{population}/{population}.reformat.bedpe",
         vcf   = outdir + "/{population}/{population}.vcf"
     log:
-        outdir + "/logs/{population}.naibr.log"
+        outdir + "/logs/naibr/{population}.naibr.log"
     threads:
-        10
+        min(10, workflow.cores - 1)
     conda:
         f"{envdir}/sv.yaml"
     shell:
@@ -257,8 +257,6 @@ rule workflow_summary:
         bedpe_agg = collect(outdir + "/{sv}.bedpe", sv = ["inversions", "deletions","duplications"]),
         reports = collect(outdir + "/reports/{pop}.naibr.html", pop = populations) if not skipreports else [],
         agg_report = outdir + "/reports/naibr.pop.summary.html" if not skipreports else []
-    message:
-        "Summarizing the workflow: {output}"
     run:
         os.system(f"rm -rf {outdir}/naibrlog")
         argdict = process_args(extra)

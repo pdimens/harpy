@@ -5,7 +5,6 @@ import re
 import sys
 import glob
 import subprocess
-from time import sleep
 from datetime import datetime
 from pathlib import Path
 from collections import Counter
@@ -16,7 +15,7 @@ from importlib_resources import files
 import harpy.scripts
 import harpy.reports
 import harpy.snakefiles
-from .printfunctions import print_error, print_solution, print_onsuccess, print_onstart, print_onerror, print_snakefile_error
+from ._printing import print_error, print_solution, print_onsuccess, print_onstart, print_onerror, print_snakefile_error
 
 def symlink(original, destination):
     """Create a symbolic link from original -> destination if the destination doesn't already exist."""
@@ -106,66 +105,73 @@ def launch_snakemake(sm_args, workflow, starttext, outdir, sm_logfile, quiet):
             if return_code == 1:
                 print_snakefile_error("If you manually edited the Snakefile, see the error below to fix it. If you didn't edit it manually, it's probably a bug (oops!) and you should submit an issue on GitHub: [bold]https://github.com/pdimens/harpy/issues")
                 errtext = subprocess.run(sm_args.split(), stderr=subprocess.PIPE, text = True)
-                rprint("[red]" + errtext.stderr.partition("jobs...\n")[2], end = None)
+                errtext = errtext.stderr.split("\n")
+                startprint = [i for i,j in enumerate(errtext) if "Exception in rule" in j][0]
+                rprint("[red]" + "\n".join(errtext[startprint:]), end = None)
+                #rprint("[red]" + errtext.stderr.partition("jobs...\n")[2], end = None)
                 sys.exit(1)
-            if output == '' and return_code is not None:
-                break
+            if not quiet:
+                console = Console()
+                with console.status("[dim]Setting up workflow", spinner = "point") as status:
+                    while True:
+                        if output.startswith("Building DAG of jobs...") or output.startswith("Assuming"):
+                            pass
+                        else:
+                            break
+                        output = process.stderr.readline()
             # print dependency text only once
             if "Downloading and installing remote packages" in output:
                 deps = True
-                deploy_text = "[magenta]Downloading and installing workflow dependencies"
+                deploy_text = "[dim]Installing software dependencies"
                 break
             if "Pulling singularity image" in output:
                 deps = True
-                deploy_text = "[magenta]Downloading software container"
+                deploy_text = "[dim]Downloading software container"
                 break
             if output.startswith("Job stats:"):
                 # read and ignore the next two lines
                 process.stderr.readline()
                 process.stderr.readline()
                 break
-        # if dependency text present, print console log with spinner and read up to the job stats
+        
+        # if dependency text present, print pulse progress bar to indicate things are happening
         if deps:
-            if not quiet:
-                console = Console()
-                with console.status(deploy_text, spinner = "point") as status:
-                    while True:
-                        output = process.stderr.readline()
-                        if output == '' and process.poll() is not None:
-                            break
-                        if output.startswith("Job stats:"):
-                            # read and ignore the next two lines
-                            process.stderr.readline()
-                            process.stderr.readline()
-                            break
-            else:
+            with Progress(
+                TextColumn("[progress.description]{task.description}"),
+                BarColumn(bar_width= 70 - len(deploy_text), pulse_style = "grey46"),
+                TimeElapsedColumn(),
+                transient=True,
+                disable=quiet
+            ) as progress:
+                progress.add_task("[dim]" + deploy_text, total = None)
                 while True:
                     output = process.stderr.readline()
                     if output == '' and process.poll() is not None:
+                        progress.stop()
                         break
                     if output.startswith("Job stats:"):
+                        progress.stop()
                         # read and ignore the next two lines
                         process.stderr.readline()
                         process.stderr.readline()
                         break
         with Progress(
             TextColumn("[progress.description]{task.description}"),
-            BarColumn(),
+            BarColumn(complete_style="yellow", finished_style="blue"),
             TextColumn("[progress.percentage]{task.percentage:>3.0f}%"),
             TimeElapsedColumn(),
             transient=True,
             disable=quiet
         ) as progress:
-            job_inventory = {}
-            task_ids = {"total_progress" : progress.add_task("[bold blue]Total", total=100)}
             # process the job summary
+            job_inventory = {}
             while True:
                 output = process.stderr.readline()
-                # stop parsing on "total" since it's always the last entry
-                if output.startswith("total"):
+                if output == '' and process.poll() is not None:
                     break
-                if output.startswith("workflow_summary"):
-                    continue
+                # stop parsing on "total" since it's always the last entry
+                if output.startswith("total") or output.startswith("Select jobs to execute"):
+                    break
                 try:
                     rule,count = output.split()
                     rule_desc = rule.replace("_", " ")
@@ -173,28 +179,35 @@ def launch_snakemake(sm_args, workflow, starttext, outdir, sm_logfile, quiet):
                     job_inventory[rule] = [rule_desc, int(count), set()]
                 except ValueError:
                     pass
-
+            task_ids = {"total_progress" : progress.add_task("[bold blue]Total", total=sum(j[1] for i,j in job_inventory.items()))}
+            
             while True:
                 output = process.stderr.readline()
-                if output == '' and process.poll() is not None:
-                    break
+                if process.poll():
+                    if process.poll() == 1:
+                        progress.stop()
+                        print_snakefile_error("If you manually edited the Snakefile, see the error below to fix it. If you didn't edit it manually, it's probably a bug (oops!) and you should submit an issue on GitHub: [bold]https://github.com/pdimens/harpy/issues")
+                        errtext = subprocess.run(sm_args.split(), stderr=subprocess.PIPE, text = True)
+                        errtext = errtext.stderr.split("\n")
+                        startprint = [i for i,j in enumerate(errtext) if j.startswith("total")][0] + 2
+                        rprint("[red]" + "\n".join(errtext[startprint:]), end = None)
+                        sys.exit(1)
+                    if output == '':
+                        break
                 if output:
+                    if output.startswith("Complete log:") or process.poll():
+                        process.wait()
+                        break
                     # prioritizing printing the error and quitting
                     if err:
                         if "Shutting down, this" in output:
                             sys.exit(1)
-                        rprint(f"[red]{output.strip()}", file = sys.stderr)
-                    if "Error in rule" in output:
+                        rprint(f"[red]{output.strip().partition("Finished job")[0]}", file = sys.stderr)
+                    if "Error in rule" in output or "RuleException" in output:
                         progress.stop()
                         print_onerror(sm_logfile)
                         rprint(f"[yellow bold]{output.strip()}", file = sys.stderr)
                         err = True
-                    # find the % progress text to update Total progress bar
-                    match = re.search(r"\(\d+%\) done", output)
-                    if match:
-                        percent = int(re.sub(r'\D', '', match.group()))
-                        progress.update(task_ids["total_progress"], completed=percent)
-                        continue
                     # add new progress bar track if the rule doesn't have one yet
                     rulematch = re.search(r"rule\s\w+:", output)
                     if rulematch:
@@ -216,12 +229,15 @@ def launch_snakemake(sm_args, workflow, starttext, outdir, sm_logfile, quiet):
                         for job,details in job_inventory.items():
                             if completed in details[2]:
                                 progress.update(task_ids[job], advance = 1)
+                                progress.update(task_ids["total_progress"], advance=1)
                                 # remove the job to save memory. wont be seen again
                                 details[2].discard(completed)
                                 break
 
         if process.returncode < 1:
             print_onsuccess(outdir)
+        else:
+            sys.exit(1)
     except KeyboardInterrupt:
         # Handle the keyboard interrupt
         rprint("[yellow bold]\nTerminating harpy...")

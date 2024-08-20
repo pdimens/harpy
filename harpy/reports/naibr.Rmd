@@ -15,8 +15,6 @@ output:
       - { title : "Source", icon: "fa-github", href: "https://www.github.com/pdimens/harpy/", align: right }
 ---
 
-
-
 ```{r echo = FALSE, warnings = FALSE, message = FALSE}
 infile <- snakemake@input[["bedpe"]]
 fai <- snakemake@input[["fai"]]

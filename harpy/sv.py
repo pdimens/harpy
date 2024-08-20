@@ -6,11 +6,11 @@ from pathlib import Path
 from rich import box
 from rich.table import Table
 import rich_click as click
-from .conda_deps import generate_conda_deps
-from .helperfunctions import fetch_rule, fetch_report, snakemake_log, launch_snakemake
-from .fileparsers import parse_alignment_inputs
-from .validations import check_fasta, check_phase_vcf
-from .validations import validate_popfile, validate_popsamples
+from ._conda import generate_conda_deps
+from ._misc import fetch_rule, fetch_report, snakemake_log, launch_snakemake
+from ._parsers import parse_alignment_inputs
+from ._validations import check_fasta, check_phase_vcf
+from ._validations import validate_popfile, validate_popsamples
 
 @click.group(options_metavar='', context_settings={"help_option_names" : ["-h", "--help"]})
 def sv():
@@ -58,13 +58,13 @@ docstring = {
 @click.option('-p', '--populations', type=click.Path(exists = True, dir_okay=False, readable=True), help = "Tab-delimited file of sample\<tab\>population")
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(min = 4, max_open = True), help = 'Number of threads to use')
 @click.option('--conda',  is_flag = True, default = False, help = 'Use conda/mamba instead of container')
-@click.option('--config-only',  is_flag = True, hidden = True, default = False, help = 'Create the config.yaml file and exit')
+@click.option('--setup-only',  is_flag = True, hidden = True, default = False, help = 'Setup the workflow and exit')
 @click.option('--hpc',  type = click.Path(exists = True, file_okay = False, readable=True), help = 'Directory with HPC submission `config.yaml` file')
 @click.option('--quiet',  is_flag = True, show_default = True, default = False, help = 'Don\'t show output text while running')
 @click.option('--skipreports',  is_flag = True, show_default = True, default = False, help = 'Don\'t generate HTML reports')
 @click.option('--snakemake', type = str, help = 'Additional Snakemake parameters, in quotes')
 @click.argument('inputs', required=True, type=click.Path(exists=True, readable=True), nargs=-1)
-def leviathan(inputs, output_dir, genome, min_sv, min_barcodes, iterations, threads, populations, extra_params, snakemake, skipreports, quiet, hpc, conda, config_only):
+def leviathan(inputs, output_dir, genome, min_sv, min_barcodes, iterations, threads, populations, extra_params, snakemake, skipreports, quiet, hpc, conda, setup_only):
     """
     Call structural variants using LEVIATHAN
     
@@ -120,10 +120,11 @@ def leviathan(inputs, output_dir, genome, min_sv, min_barcodes, iterations, thre
         config.write("  alignments:\n")
         for i in bamlist:
             config.write(f"    - {i}\n")
-    if config_only:
-        sys.exit(0)
 
     generate_conda_deps()
+    if setup_only:
+        sys.exit(0)
+
     start_text = Table(show_header=False,pad_edge=False, show_edge=False, padding = (0,0), box=box.SIMPLE)
     start_text.add_column("detail", justify="left", style="light_steel_blue", no_wrap=True)
     start_text.add_column(header="value", justify="left")
@@ -146,13 +147,13 @@ def leviathan(inputs, output_dir, genome, min_sv, min_barcodes, iterations, thre
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(min = 4, max_open = True), help = 'Number of threads to use')
 @click.option('-v', '--vcf', type=click.Path(exists=True, dir_okay=False, readable=True),  help = 'Path to phased bcf/vcf file')
 @click.option('--conda',  is_flag = True, default = False, help = 'Use conda/mamba instead of container')
-@click.option('--config-only',  is_flag = True, hidden = True, default = False, help = 'Create the config.yaml file and exit')
+@click.option('--setup-only',  is_flag = True, hidden = True, default = False, help = 'Setup the workflow and exit')
 @click.option('--hpc',  type = click.Path(exists = True, file_okay = False, readable=True), help = 'Directory with HPC submission `config.yaml` file')
 @click.option('--quiet',  is_flag = True, show_default = True, default = False, help = 'Don\'t show output text while running')
 @click.option('--skipreports',  is_flag = True, show_default = True, default = False, help = 'Don\'t generate HTML reports')
 @click.option('--snakemake', type = str, help = 'Additional Snakemake parameters, in quotes')
 @click.argument('inputs', required=True, type=click.Path(exists=True, readable=True), nargs=-1)
-def naibr(inputs, output_dir, genome, vcf, min_sv, min_barcodes, min_quality, threads, populations, molecule_distance, extra_params, snakemake, skipreports, quiet, hpc, conda, config_only):
+def naibr(inputs, output_dir, genome, vcf, min_sv, min_barcodes, min_quality, threads, populations, molecule_distance, extra_params, snakemake, skipreports, quiet, hpc, conda, setup_only):
     """
     Call structural variants using NAIBR
     
@@ -220,10 +221,11 @@ def naibr(inputs, output_dir, genome, vcf, min_sv, min_barcodes, min_quality, th
         config.write("  alignments:\n")
         for i in bamlist:
             config.write(f"    - {i}\n")
-    if config_only:
-        sys.exit(0)
 
     generate_conda_deps()
+    if setup_only:
+        sys.exit(0)
+
     start_text = Table(show_header=False,pad_edge=False, show_edge=False, padding = (0,0), box=box.SIMPLE)
     start_text.add_column("detail", justify="left", style="light_steel_blue", no_wrap=True)
     start_text.add_column(header="value", justify="left")

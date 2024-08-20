@@ -5,9 +5,9 @@ import sys
 from rich import box
 from rich.table import Table
 import rich_click as click
-from .conda_deps import generate_conda_deps
-from .helperfunctions import fetch_rule, fetch_report, snakemake_log, launch_snakemake
-from .fileparsers import parse_alignment_inputs, parse_fastq_inputs
+from ._conda import generate_conda_deps
+from ._misc import fetch_rule, fetch_report, snakemake_log, launch_snakemake
+from ._parsers import parse_alignment_inputs, parse_fastq_inputs
 
 @click.group(options_metavar='', context_settings={"help_option_names" : ["-h", "--help"]})
 def preflight():
@@ -38,12 +38,12 @@ docstring = {
 @click.option('-o', '--output-dir', type = click.Path(exists = False), default = "Preflight/fastq", show_default=True,  help = 'Output directory name')
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(min = 1, max_open = True), help = 'Number of threads to use')
 @click.option('--conda',  is_flag = True, default = False, help = 'Use conda/mamba instead of container')
-@click.option('--config-only',  is_flag = True, hidden = True, default = False, help = 'Create the config.yaml file and exit')
+@click.option('--setup-only',  is_flag = True, hidden = True, default = False, help = 'Setup the workflow and exit')
 @click.option('--hpc',  type = click.Path(exists = True, file_okay = False, readable=True), help = 'Directory with HPC submission `config.yaml` file')
 @click.option('--quiet',  is_flag = True, show_default = True, default = False, help = 'Don\'t show output text while running')
 @click.option('--snakemake', type = str, help = 'Additional Snakemake parameters, in quotes')
 @click.argument('inputs', required=True, type=click.Path(exists=True), nargs=-1)
-def fastq(inputs, output_dir, threads, snakemake, quiet, hpc, conda, config_only):
+def fastq(inputs, output_dir, threads, snakemake, quiet, hpc, conda, setup_only):
     """
     Run validity checks on haplotagged FASTQ files.
 
@@ -82,10 +82,11 @@ def fastq(inputs, output_dir, threads, snakemake, quiet, hpc, conda, config_only
         config.write("inputs:\n")
         for i in fqlist:
             config.write(f"  - {i}\n")
-    if config_only:
-        sys.exit(0)
 
     generate_conda_deps()
+    if setup_only:
+        sys.exit(0)
+
     start_text = Table(show_header=False,pad_edge=False, show_edge=False, padding = (0,0), box=box.SIMPLE)
     start_text.add_column("detail", justify="left", style="light_steel_blue", no_wrap=True)
     start_text.add_column("value", justify="left")
@@ -101,9 +102,9 @@ def fastq(inputs, output_dir, threads, snakemake, quiet, hpc, conda, config_only
 @click.option('--snakemake', type = str, help = 'Additional Snakemake parameters, in quotes')
 @click.option('--hpc',  type = click.Path(exists = True, file_okay = False, readable=True), help = 'Directory with HPC submission `config.yaml` file')
 @click.option('--conda',  is_flag = True, default = False, help = 'Use conda/mamba instead of container')
-@click.option('--config-only',  is_flag = True, hidden = True, default = False, help = 'Create the config.yaml file and exit')
+@click.option('--setup-only',  is_flag = True, hidden = True, default = False, help = 'Setup the workflow and exit')
 @click.argument('inputs', required=True, type=click.Path(exists=True, readable=True), nargs=-1)
-def bam(inputs, output_dir, threads, snakemake, quiet, hpc, conda, config_only):
+def bam(inputs, output_dir, threads, snakemake, quiet, hpc, conda, setup_only):
     """
     Run validity checks on haplotagged BAM files
 
@@ -141,10 +142,11 @@ def bam(inputs, output_dir, threads, snakemake, quiet, hpc, conda, config_only):
         config.write("inputs:\n")
         for i in bamlist:
             config.write(f"  - {i}\n")
-    if config_only:
-        sys.exit(0)
 
     generate_conda_deps()
+    if setup_only:
+        sys.exit(0)
+
     start_text = Table(show_header=False,pad_edge=False, show_edge=False, padding = (0,0), box=box.SIMPLE)
     start_text.add_column("detail", justify="left", style="light_steel_blue", no_wrap=True)
     start_text.add_column(header="value", justify="left")

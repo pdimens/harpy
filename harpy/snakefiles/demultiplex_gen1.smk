@@ -86,7 +86,7 @@ rule demux_barcodes:
         mv demux*BC.log logs
         """
 
-rule demux_samples_F:
+rule demux_samples_R1:
     input:
         f"{outdir}/demux_R1_001.fastq.gz"
     output:
@@ -100,13 +100,13 @@ rule demux_samples_F:
         ( zgrep -A3 "A..{params}B..D" {input} | grep -v "^--$" | gzip -q > {output} ) || touch {output}
         """
 
-use rule demux_samples_F as demux_samples_R with:
+use rule demux_samples_R1 as demux_samples_R2 with:
     input:
         f"{outdir}/demux_R2_001.fastq.gz"
     output:
         outdir + "/{sample}.R.fq.gz"
 
-rule fastqc_F:
+rule fastqc_R1:
     input:
         outdir + "/{sample}.F.fq.gz"
     output: 
@@ -137,7 +137,7 @@ rule fastqc_F:
         fi
         """
 
-use rule fastqc_F as fastqc_R with:
+use rule fastqc_R1 as fastqc_R2 with:
     input:
         outdir + "/{sample}.R.fq.gz"
     output: 
@@ -165,8 +165,6 @@ rule workflow_summary:
     input:
         fq = collect(outdir + "/{sample}.{FR}.fq.gz", sample = samplenames, FR = ["F", "R"]),
         reports = outdir + "/reports/demultiplex.QC.html" if not skipreports else []
-    message:
-        "Summarizing the workflow: {output}"
     run:
         os.makedirs(f"{outdir}/workflow/", exist_ok= True)
         with open(outdir + "/workflow/demux.gen1.summary", "w") as f:

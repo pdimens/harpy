@@ -183,7 +183,7 @@ rule phase:
         blocks    = outdir + "/phase_blocks/{sample}.blocks",
         vcf       = temp(outdir + "/phase_blocks/{sample}.blocks.phased.VCF")
     log:
-        outdir + "/logs/phase_blocks/{sample}.blocks.phased.log"
+        outdir + "/logs/hapcut2/{sample}.blocks.phased.log"
     params: 
         prune = f"--threshold {pruning}" if pruning > 0 else "--no_prune 1",
         extra = extra
@@ -285,8 +285,6 @@ rule workflow_summary:
     params:
         prune = f"--threshold {pruning}" if pruning > 0 else "--no_prune 1",
         extra = extra
-    message:
-        "Creating record of relevant runtime parameters"
     run:
         with open(outdir + "/workflow/phase.summary", "w") as f:
             _ = f.write("The harpy phase workflow ran using these parameters:\n\n")

@@ -3,7 +3,7 @@
 import os
 import sys
 import rich_click as click
-from .printfunctions import print_notice
+from ._printing import print_notice
 
 @click.command(no_args_is_help = True, epilog = "See the documentation for more information: https://pdimens.github.io/harpy/modules/impute/#parameter-file")
 @click.option('-o', '--output', type=str, required = True, metavar = "Output file name", help = 'Name of output STITCH parameter file')

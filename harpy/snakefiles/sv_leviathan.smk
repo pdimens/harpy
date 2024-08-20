@@ -101,7 +101,7 @@ rule bwa_index_genome:
     output: 
         multiext(f"Genome/{bn}", ".ann", ".bwt", ".pac", ".sa", ".amb")
     log:
-        f"Genome/{bn}.idx.log"
+        f"Genome/{bn}.bwa.idx.log"
     conda:
         f"{envdir}/align.yaml"
     shell: 
@@ -117,15 +117,15 @@ rule call_variants:
     output:
         temp(outdir + "/vcf/{sample}.vcf")
     log:  
-        runlog     = outdir + "/logs/{sample}.leviathan.log",
-        candidates = outdir + "/logs/{sample}.candidates"
+        runlog     = outdir + "/logs/leviathan/{sample}.leviathan.log",
+        candidates = outdir + "/logs/leviathan/{sample}.candidates"
     params:
         min_sv = f"-v {min_sv}",
         min_bc = f"-c {min_bc}",
         iters  = f"-B {iterations}",
         extra = extra
     threads:
-        workflow.cores
+        workflow.cores - 1
     conda:
         f"{envdir}/sv.yaml"
     benchmark:
@@ -213,8 +213,6 @@ rule workflow_summary:
         min_bc = f"-c {min_bc}",
         iters  = f"-B {iterations}",
         extra = extra
-    message:
-        "Summarizing the workflow: {output}"
     run:
         with open(outdir + "/workflow/sv.leviathan.summary", "w") as f:
             _ = f.write("The harpy sv leviathan workflow ran using these parameters:\n\n")

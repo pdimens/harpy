@@ -83,7 +83,7 @@ rule align:
     output:  
         temp(outdir + "/samples/{sample}/{sample}.strobe.sam")
     log:
-        outdir + "/logs/{sample}.strobealign.log"
+        outdir + "/logs/strobealign/{sample}.strobealign.log"
     params: 
         samps = lambda wc: d[wc.get("sample")],
         readlen = "" if autolen else f"--use-index -r {readlen}",
@@ -94,7 +94,7 @@ rule align:
     benchmark:
         ".Benchmark/Mapping/strobealign/align.{sample}.txt"
     threads:
-        10
+        max(5, workflow.cores - 1)
     conda:
         f"{envdir}/align.yaml"
     shell:
@@ -111,7 +111,7 @@ rule mark_duplicates:
     output:
         temp(outdir + "/samples/{sample}/{sample}.markdup.bam")
     log:
-        outdir + "/logs/{sample}.markdup.log"
+        outdir + "/logs/markdup/{sample}.markdup.log"
     params: 
         tmpdir = lambda wc: outdir + "/." + d[wc.sample]
     resources:
@@ -245,8 +245,6 @@ rule workflow_summary:
         unmapped_strobe = "" if keep_unmapped else "-U",
         unmapped = "" if keep_unmapped else "-F 4",
         extra   = extra
-    message:
-        "Summarizing the workflow: {output}"
     run:
         with open(outdir + "/workflow/align.strobealign.summary", "w") as f:
             _ = f.write("The harpy align strobealign workflow ran using these parameters:\n\n")

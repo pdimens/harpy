@@ -1,15 +1,15 @@
 common: &common
-  - 'harpy/helperfunctions.py'
-  - 'harpy/printfunctions.py'
-  - 'harpy/fileparsers.py'
-  - 'harpy/validations.py'
+  - 'harpy/_misc.py'
+  - 'harpy/_printing.py'
+  - 'harpy/_parsers.py'
+  - 'harpy/_validations.py'
   - 'harpy/__main__.py'
   - 'resources/harpy.yaml'
   - '.github/workflows/tests.yml'
   - '.github/filters.yml'
   - 'resources/buildforCI.sh'
 container: &container
-  - 'harpy/conda_deps.py'
+  - 'harpy/_conda.py'
   - 'harpy/containerize.smk'
 preflight: &preflight
   - *common
@@ -149,7 +149,6 @@ simreads: &simreads
   - 'harpy/bin/10xtoHaplotag.py'
   - 'harpy/scripts/LRSIM_harpy.pl'
 other: &other
-  - '.github/workflows/tests.yml'
   - 'harpy/stitchparams.py'
   - 'harpy/popgroup.py'
 modules:

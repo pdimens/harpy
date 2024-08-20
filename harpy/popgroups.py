@@ -5,7 +5,7 @@ import re
 import sys
 import glob
 import rich_click as click
-from .printfunctions import print_error, print_solution, print_notice
+from ._printing import print_error, print_solution, print_notice
 
 
 @click.command(no_args_is_help = True, epilog = "See the documentation for more information: https://pdimens.github.io/harpy/modules/snp/#sample-grouping-file")

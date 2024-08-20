@@ -6,10 +6,10 @@ import yaml
 from rich import box
 from rich.table import Table
 import rich_click as click
-from .validations import check_envdir
-from .printfunctions import print_error
-from .helperfunctions import snakemake_log, launch_snakemake
-from .conda_deps import generate_conda_deps
+from ._validations import check_envdir
+from ._printing import print_error
+from ._misc import snakemake_log, launch_snakemake
+from ._conda import generate_conda_deps
 
 @click.command(no_args_is_help = True, epilog = "See the documentation for more information: https://pdimens.github.io/harpy/modules/other")
 @click.option('-c', '--conda',  is_flag = True, default = False, help = 'Recreate the conda environments into .harpy_envs/')
