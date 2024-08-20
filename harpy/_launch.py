@@ -4,7 +4,7 @@ import re
 import sys
 import subprocess
 from rich import print as rprint
-from rich.progress import Progress, BarColumn, TextColumn, TimeElapsedColumn
+from rich.progress import Progress, BarColumn, TextColumn, TimeElapsedColumn, SpinnerColumn
 from rich.console import Console
 from ._printing import print_onsuccess, print_onstart, print_onerror, print_snakefile_error
 
@@ -31,7 +31,7 @@ def launch_snakemake(sm_args, workflow, starttext, outdir, sm_logfile, quiet):
                 sys.exit(1)
             if not quiet:
                 console = Console()
-                with console.status("[dim]Setting up workflow", spinner = "point") as status:
+                with console.status("[dim]Setting up workflow", spinner = "point", spinner_style="yellow") as status:
                     while True:
                         if output.startswith("Building DAG of jobs...") or output.startswith("Assuming"):
                             pass
@@ -75,6 +75,7 @@ def launch_snakemake(sm_args, workflow, starttext, outdir, sm_logfile, quiet):
                         process.stderr.readline()
                         break
         with Progress(
+            SpinnerColumn(spinner_name = "arc", style = "dim"),
             TextColumn("[progress.description]{task.description}"),
             BarColumn(complete_style="yellow", finished_style="blue"),
             TextColumn("[progress.percentage]{task.percentage:>3.0f}%"),
