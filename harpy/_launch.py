@@ -65,7 +65,7 @@ def launch_snakemake(sm_args, workflow, starttext, outdir, sm_logfile, quiet):
                 progress.add_task("[dim]" + deploy_text, total = None)
                 while True:
                     output = process.stderr.readline()
-                    if output == '' and process.poll() is not None:
+                    if not output and process.poll():
                         progress.stop()
                         break
                     if output.startswith("Job stats:"):
@@ -87,7 +87,7 @@ def launch_snakemake(sm_args, workflow, starttext, outdir, sm_logfile, quiet):
             job_inventory = {}
             while True:
                 output = process.stderr.readline()
-                if output == '' and process.poll() is not None:
+                if not output and process.poll():
                     break
                 # stop parsing on "total" since it's always the last entry
                 if output.startswith("total") or output.startswith("Select jobs to execute"):
@@ -112,7 +112,7 @@ def launch_snakemake(sm_args, workflow, starttext, outdir, sm_logfile, quiet):
                         startprint = [i for i,j in enumerate(errtext) if j.startswith("total")][0] + 2
                         rprint("[red]" + "\n".join(errtext[startprint:]), end = None)
                         sys.exit(1)
-                    if output == '':
+                    if not output:
                         break
                 if output:
                     if output.startswith("Complete log:") or process.poll():
