@@ -1,4 +1,5 @@
 common: &common
+  - 'harpy/_launch.py'
   - 'harpy/_misc.py'
   - 'harpy/_printing.py'
   - 'harpy/_parsers.py'
