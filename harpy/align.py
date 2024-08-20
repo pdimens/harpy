@@ -8,7 +8,8 @@ from rich import box
 from rich.table import Table
 import rich_click as click
 from ._conda import generate_conda_deps
-from ._misc import fetch_report, fetch_rule, snakemake_log, launch_snakemake
+from ._misc import fetch_report, fetch_rule, snakemake_log
+from ._launch import launch_snakemake
 from ._parsers import parse_fastq_inputs
 from ._printing import print_error, print_solution, print_notice
 from ._validations import check_fasta
