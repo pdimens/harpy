@@ -90,7 +90,3 @@ debugdir <- paste(outdir, "debug", sep = "/")
 if (length(list.files(debugdir)) < 1) {
     unlink(debugdir, recursive = TRUE)
 }
-
-unlink(paste(outdir, "input", sep = "/"), recursive = TRUE)
-unlink(paste(outdir, "RData", sep = "/"), recursive = TRUE)
-unlink(paste(outdir, "tmp", sep = "/"), recursive = TRUE)
