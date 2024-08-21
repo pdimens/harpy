@@ -10,7 +10,8 @@ from ._printing import print_onsuccess, print_onstart, print_onerror, print_snak
 
 def launch_snakemake(sm_args, workflow, starttext, outdir, sm_logfile, quiet):
     """launch snakemake with the given commands"""
-    print_onstart(starttext, workflow.replace("_", " "))
+    if not quiet:
+        print_onstart(starttext, workflow.replace("_", " "))
     try:
         # Add a task with a total value of 100 (representing 100%)
         # Start a subprocess
@@ -155,7 +156,8 @@ def launch_snakemake(sm_args, workflow, starttext, outdir, sm_logfile, quiet):
                                 break
 
         if process.returncode < 1:
-            print_onsuccess(outdir)
+            if not quiet:
+                print_onsuccess(outdir)
         else:
             print_onerror(sm_logfile)
             with open(sm_logfile, "r", encoding="utf-8") as logfile:
