@@ -21,15 +21,15 @@ Great! Only want to call variants? Awesome! All modules are called by `harpy <mo
 
 |      Module                                                        | Description                                   |
 |:-------------------------------------------------------------------|:----------------------------------------------|
-| [!badge corners="pill" text="align"](Modules/Align/Align.md)         | Align sample sequences to a reference genome  |
-| [!badge corners="pill" text="demultiplex"](Modules/demultiplex.md) | Demultiplex haplotagged FASTQ files           |
-| [!badge corners="pill" text="impute"](Modules/impute.md)           | Impute genotypes using variants and sequences |
-| [!badge corners="pill" text="phase"](Modules/phase.md)             | Phase SNPs into haplotypes                    |
-| [!badge corners="pill" text="preflight"](Modules/preflight.md)     | Run various format checks for FASTQ and BAM files |
-| [!badge corners="pill" text="qc"](Modules/qc.md)                   | Remove adapters, deduplicate, and quality trim sequences    |
-| [!badge corners="pill" text="simulate"](Modules/Simulate/Simulate.md) | Simulate haplotag linked reads or genomic variants |
-| [!badge corners="pill" text="snp"](Modules/snp.md)                 | Call SNPs and small indels                    |
-| [!badge corners="pill" text="sv"](Modules/SV/SV.md)             | Call large structural variants (inversions, deletions, duplications) |
+| [!badge corners="pill" text="align"](Workflows/Align/Align.md)         | Align sample sequences to a reference genome  |
+| [!badge corners="pill" text="demultiplex"](Workflows/demultiplex.md) | Demultiplex haplotagged FASTQ files           |
+| [!badge corners="pill" text="impute"](Workflows/impute.md)           | Impute genotypes using variants and sequences |
+| [!badge corners="pill" text="phase"](Workflows/phase.md)             | Phase SNPs into haplotypes                    |
+| [!badge corners="pill" text="preflight"](Workflows/preflight.md)     | Run various format checks for FASTQ and BAM files |
+| [!badge corners="pill" text="qc"](Workflows/qc.md)                   | Remove adapters, deduplicate, and quality trim sequences    |
+| [!badge corners="pill" text="simulate"](Workflows/Simulate/Simulate.md) | Simulate haplotag linked reads or genomic variants |
+| [!badge corners="pill" text="snp"](Workflows/snp.md)                 | Call SNPs and small indels                    |
+| [!badge corners="pill" text="sv"](Workflows/SV/SV.md)             | Call large structural variants (inversions, deletions, duplications) |
 
 ## Using Harpy
 You can call `harpy` without any arguments (or with `--help`) to print the docstring to your terminal. You can likewise call any of the modules without arguments or with `--help` to see their usage  (e.g. `harpy align --help`).

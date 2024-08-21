@@ -6,11 +6,11 @@ order: 4
 
 # :icon-list-unordered: Common Harpy Options
 ## Input Arguments
-Each of the main Harpy modules (e.g. [!badge corners="pill" text="qc"](Modules/qc.md) or [!badge corners="pill" text="phase"](Modules/phase.md)) follows the format of
+Each of the main Harpy modules (e.g. [!badge corners="pill" text="qc"](Workflows/qc.md) or [!badge corners="pill" text="phase"](Workflows/phase.md)) follows the format of
 ```bash
 harpy module options arguments
 ```
-where `module` is something like [!badge corners="pill" text="impute"](Modules/impute.md) or [!badge corners="pill" text="snp mpileup"](Modules/snp.md) and `options` are the runtime parameters,
+where `module` is something like [!badge corners="pill" text="impute"](Workflows/impute.md) or [!badge corners="pill" text="snp mpileup"](Workflows/snp.md) and `options` are the runtime parameters,
 which can include things like an input `--vcf` file, `--molecule-distance`, etc. After the options
 is where you provide the input files/directories without flags and following standard BASH expansion
 rules (e.g. wildcards). You can mix and match entire directories, individual files, and wildcard expansions.
@@ -27,7 +27,7 @@ to avoid unexpected behavior.
 !!!warning clashing names
 Given the regex pattern matching Harpy employs under the hood and the isolation of just the sample names for Snakemake rules,
 files in different directories that have the same name (ignoring extensions) will clash. For example, `lane1/sample1.F.fq`
-and `lane2/sample1.F.fq` would both derive the sample name `sample1`, which, in a workflow like [!badge corners="pill" text="align"](Modules/Align/Align.md)
+and `lane2/sample1.F.fq` would both derive the sample name `sample1`, which, in a workflow like [!badge corners="pill" text="align"](Workflows/Align/Align.md)
 would both result in `output/sample1.bam`, creating a problem. This also holds true for the same sample name but different extension, such
 as `sample1.F.fq` and `sample1_R1.fq.gz`, which would again derive `sample1` as the sample name and create a naming clash for workflow outputs.
 During parsing, Harpy will inform you of naming clashes and terminate to protect you against this behavior. 
@@ -36,7 +36,7 @@ During parsing, Harpy will inform you of naming clashes and terminate to protect
 ## Common command-line options
 Every Harpy module has a series of configuration parameters. These are arguments you need to input
 to configure the module to run on your data, such as the directory with the reads/alignments,
-the genome assembly, etc. All main modules (e.g. [!badge corners="pill" text="qc"](Modules/qc.md)) also share a series of common runtime
+the genome assembly, etc. All main modules (e.g. [!badge corners="pill" text="qc"](Workflows/qc.md)) also share a series of common runtime
 parameters that don't impact the results of the module, but instead control the speed/verbosity/etc.
 of calling the module. These runtime parameters are listed in the modules' help strings and can be 
 configured using these arguments:
@@ -52,7 +52,7 @@ configured using these arguments:
 | `--quiet`       |   `-q`     | toggle  |         | Suppress Snakemake printing to console                                            |
 | `--help`        |   `-h`     |         |         | Show the module docstring                                                         |
 
-As as example, you could call [!badge corners="pill" text="align strobe"](Modules/Align/strobe.md) and specify 20 threads with no output to console:
+As as example, you could call [!badge corners="pill" text="align strobe"](Workflows/Align/strobe.md) and specify 20 threads with no output to console:
 
 ```bash
 harpy align strobe --threads 20 --quiet samples/trimmedreads

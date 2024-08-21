@@ -74,7 +74,7 @@ sample5 pop3
 ```
 ---
 ### stitchparams
-Create a template parameter file for the [!badge corners="pill" text="impute"](/Modules/impute.md) module. The file is formatted correctly and serves
+Create a template parameter file for the [!badge corners="pill" text="impute"](/Workflows/impute.md) module. The file is formatted correctly and serves
 as a starting point for using parameters that make sense for your study.
 
 ```bash usage
@@ -96,7 +96,7 @@ different model parameters. The solution Harpy uses for this is to have the user
 provide a tab-delimited dataframe file where the columns are the 6 STITCH model 
 parameters and the rows are the values for those parameters. To make formatting
 easier, a template file is generated for you, just replace the values and add/remove
-rows as necessary. See the section for the [!badge corners="pill" text="impute"](/Modules/impute.md)
+rows as necessary. See the section for the [!badge corners="pill" text="impute"](/Workflows/impute.md)
 module for details on these parameters. The template file will look like:
 
 ``` params.stitch

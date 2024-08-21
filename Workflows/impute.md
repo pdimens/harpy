@@ -212,58 +212,38 @@ graph LR
 ```
 +++ :icon-file-directory: impute output
 The default output directory is `Impute` with the folder structure below. `contig1` and `contig2` 
-are generic contig names from an imaginary `genome.fasta` for demonstration purposes. The directory `model1/`
+are generic contig names from an imaginary `genome.fasta` for demonstration purposes. The directory `model/params`
 is a generic name to reflect the corresponding parameter row in the stitch parameter
-file, which would have explicit names in real use (e.g. `modelpseudoHaploid_useBXTrue_k10_s1_nGen50/`).
+file, which would have explicit names in real use (e.g. `modelpseudoHaploid/useBXTrue/k10_s1_nGen50/`).
 The resulting folder also includes a `workflow` directory (not shown) with workflow-relevant runtime files and information.
 
 ```
 Impute/
-├── input
-│   ├── contig1.stitch
-│   ├── contig2.stitch
-│   ├── samples.list
-│   ├── samples.names
-│   └── logs
-│       └── harpy.impute.log
-└── model1
-    ├── concat.log
+└── model/params
     ├── variants.imputed.bcf
     ├── variants.imputed.bcf.csi
-    ├── variants.imputed.html
-    └── contigs
-        ├── contig1
-        │   ├── contig1.log
-        │   ├── contig1.impute.html
-        │   ├── contig1.stats
-        │   ├── contig1.vcf.gz
-        │   └── contig1.vcf.gz.tbi
-        ├── contig2
-        │   ├── contig2.log
-        │   ├── contig2.impute.html
-        │   ├── contig2.stats
-        │   ├── contig2.vcf.gz
-        │   └── contig2.vcf.gz.tbi
-        └── stats
-            └── impute.compare.stats
+    ├── contigs
+    │    ├── contig1.vcf.gz
+    │    ├── contig1.vcf.gz.tbi
+    │    ├── contig2.vcf.gz
+    │    └── contig2.vcf.gz.tbi
+    ├── logs
+    └── reports
+        ├── data
+        ├── contig1.stitch.html
+        ├── contig2.stitch.html
+        └── variants.imputed.html
 
 ```
 {.compact}
 | item                                | description                                                               |
 |:------------------------------------|:--------------------------------------------------------------------------|
-| `logs/harpy.impute.log`             | relevant runtime parameters for the phase module                          |
-| `input/*.stitch`                    | biallelic SNPs used for imputation                                        |
-| `input/samples.list`                | list of [input BAM files](/commonoptions.md)                                                   |
-| `input/samples.names`               | list of sample names                                                      |
-| `model*/concat.log`                 | output from bcftools concat to create final imputed bcf                   |
 | `model*/variants.imputed.bcf`       | final bcf file of imputed genotypes                                       |
 | `model*/variants.imputed.bcf.csi`   | index of `variants.imputed.bcf`                                           |
-| `model*/variants.imputed.html`  | report summarizing the results of imputation                              |
-| `model*/contigs/*/*.impute.html`    | summary of STITCH imputation                                              |
-| `model*/contigs/*/*.log`            | what STITCH writes to `stdout` and `stderr`                               |
-| `model*/contigs/*/*.vcf.gz`         | variants resulting from imputation                                        |
-| `model*/contigs/*/*.vcf.gz.tbi`     | index of variant file                                                     |
-| `model*/contigs/*/impute.compare.stats` | results of `bcftools stats` comparing the original to the imputed vcf |
+| `model*/reports/variants.imputed.html`  | report summarizing the results of imputation                              |
+| `model*/reports/*.stitch.html`    | summary of STITCH imputation (per contig)                                 |
+| `model*/contigs/*.vcf.gz`         | variants resulting from imputation                                        |
+| `model*/contigs/*.vcf.gz.tbi`     | index of variant file                                                     |
 
 +++ :icon-code-square: STITCH parameters
 While you are expected to run STITCH using your own set of 

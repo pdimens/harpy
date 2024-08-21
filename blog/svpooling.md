@@ -85,7 +85,7 @@ the same molecule. A basic concatenation will flood the resulting file with clas
 tags, which will make it impossible for a linked-read aware SV caller to make sense
 of the data and do its job well.
 
-The [!badge corners="pill" text="harpy sv"](/Modules/SV/SV.md) workflows will intelligently concatenate files and will make sure
+The [!badge corners="pill" text="harpy sv"](/Workflows/SV/SV.md) workflows will intelligently concatenate files and will make sure
 every individual will have unique `MI` values that are not shared with any
 other individual in the pool. If you need to concatenate linked-read alignment files outside
 of a workflow, use `concatenate_bam.py` shipped with Harpy instead of `samtools cat` or other similar tools. 

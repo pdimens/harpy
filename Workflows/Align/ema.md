@@ -96,7 +96,7 @@ marked as a duplicate. Duplicates get marked but **are not removed**.
 - leverages the BX barcode information to improve mapping
 - sometimes better downstream SV detection
 - slower
-- marks split alignments as secondary alignments [⚠️](/Modules/SV/leviathan.md)
+- marks split alignments as secondary alignments [⚠️](/Workflows/SV/leviathan.md)
 - lots of temporary files
 
 Since [EMA](https://github.com/arshajii/ema) does extra things to account for barcode
