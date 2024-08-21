@@ -49,7 +49,7 @@ configured using these arguments:
 | `--conda`       |            | toggle  |         | Use local conda environments instead of preconfigured Singularity container       |
 | `--skipreports` |            | toggle  |         | Skip the processing and generation of HTML reports in a workflow                  |
 | `--snakemake`   |            | string  |         | Additional [Snakemake](snakemake/#adding-snakemake-parameters) options, in quotes |
-| `--quiet`       |   `-q`     | toggle  |         | Suppress Snakemake printing to console                                            |
+| `--quiet`       |   `-q`     | toggle  |         | Suppress the progress bars and other status text when running                     |
 | `--help`        |   `-h`     |         |         | Show the module docstring                                                         |
 
 As as example, you could call [!badge corners="pill" text="align strobe"](Workflows/Align/strobe.md) and specify 20 threads with no output to console:
