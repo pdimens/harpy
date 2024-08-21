@@ -120,7 +120,7 @@ def launch_snakemake(sm_args, workflow, starttext, outdir, sm_logfile, quiet):
                         break
                     # prioritizing printing the error and quitting
                     if err:
-                        if "Shutting down, this" in output:
+                        if "Shutting down, this" in output or output.endswith("]\n"):
                             sys.exit(1)
                         rprint(f"[red]{output.strip().partition("Finished job")[0]}", file = sys.stderr)
                     if "Error in rule" in output or "RuleException" in output:
@@ -157,9 +157,20 @@ def launch_snakemake(sm_args, workflow, starttext, outdir, sm_logfile, quiet):
         if process.returncode < 1:
             print_onsuccess(outdir)
         else:
-            while output:
-                rprint("[red]" + output)
-                output = process.stderr.readline()
+            print_onerror(sm_logfile)
+            with open(sm_logfile, "r", encoding="utf-8") as logfile:
+                line = logfile.readline()
+                while line:
+                    if "Error" in line or "Exception" in line:
+                        rprint("[bold yellow]" + line.rstrip())
+                        break
+                    line = logfile.readline()
+                line = logfile.readline()
+                while line:
+                    if line.endswith("]\n"):
+                        break
+                    rprint("[red]" + line.rstrip())
+                    line = logfile.readline()
             sys.exit(1)
     except KeyboardInterrupt:
         # Handle the keyboard interrupt
