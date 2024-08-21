@@ -17,9 +17,9 @@ Most of the settings are pre-configured and the settings you can modify are done
 
 ## Harpy Modules
 Harpy is modular, meaning you can use different parts of it independent from each other. Need to only align reads?
-Great! Only want to call variants? Awesome! All modules are called by `harpy <module>`. For example, use `harpy align` to align reads.
+Great! Only want to call variants? Awesome! All modules are called by `harpy <workflow>`. For example, use `harpy align` to align reads.
 
-|      Module                                                        | Description                                   |
+|      Workflow                                                        | Description                                   |
 |:-------------------------------------------------------------------|:----------------------------------------------|
 | [!badge corners="pill" text="align"](Workflows/Align/Align.md)         | Align sample sequences to a reference genome  |
 | [!badge corners="pill" text="demultiplex"](Workflows/demultiplex.md) | Demultiplex haplotagged FASTQ files           |

@@ -72,10 +72,10 @@ and the contents therein also allow you to rerun the workflow manually. The `wor
 {.compact}
 | item | contents | utility |
 |:-----|:---------|:--------|
-|`*.smk`               | Snakefile with the full recipe of the workflow | useful for understanding the workflow |
-| `config.yml`         | Configuration file generated from command-line arguments and consumed by the Snakefile | useful for bookkeeping | 
-| `report/*.Rmd`       | RMarkdown files used to generate the fancy reports | useful to understand math behind plots/tables or borrow code from |
-| `*.summary` | Plain-text overview of the important parts of the workflow | useful for bookkeeping and writing Methods |
+|`*.smk`               | Snakefile with the full recipe of the workflow | understanding the entire workflow |
+| `config.yml`         | Configuration file generated from command-line arguments and consumed by the Snakefile | general bookkeeping, advanced runs | 
+| `report/*.Rmd`       | RMarkdown files used to generate the fancy reports | seeing math behind plots/tables or borrow code from |
+| `*.summary` | Plain-text overview of the important parts of the workflow | bookkeeping and writing Methods in manuscripts |
 
 ---
 

@@ -37,11 +37,11 @@ In addition to the [!badge variant="info" corners="pill" text="common runtime op
 | `INPUTS`         |            | file/directory paths  |         | ‼️  | Files or directories containing [input FASTQ files](/commonoptions.md#input-arguments) |
 | `--deconvolve`  | `-c`    | toggle      |         |      | Resolve barcode clashes between reads from different molecules                                           |
 | `--deconvolve-params`  | `-p`    | (int,int,int,int)   | (21,40,3,0) |      | Accepts the [QuickDeconvolution parameters](/Workflows/deconvolve.md/#running-options) for `k`,`w`,`d`,`a`, in that order          |
-| `--deduplicate` | `-d`    | toggle      |         |       | Identify and remove PCR duplicates                                                                      |
+| `--deduplicate` | `-d`    | toggle      |         |       | Identify and remove PCR duplicates [!badge variant="secondary" text="recommended"]                      |
 | `--extra-params` |    `-x`    | string      |         |       | Additional fastp arguments, in quotes                                                               |
 | `--min-length`   |    `-n`    | integer     |   30    |     | Discard reads shorter than this length                                                                |
 | `--max-length`   |    `-m`    | integer     |   150   |     | Maximum length to trim sequences down to                                                              |
-| `--trim-adapters` | `-a`    | toggle      |         |       | Detect and remove adapter sequences                                                                   |
+| `--trim-adapters` | `-a`    | toggle      |         |       | Detect and remove adapter sequences  [!badge variant="secondary" text="recommended"]                  |
 
 By default, this workflow will only quality-trim the sequences. You can also opt-in to:
 - [!badge variant="secondary" text="recommended"] find and remove sequencing adapters
