@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="turbo-root" content="/harpy">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="3.5.0.777572951338">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="3.5.0.777579518736">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 3.5.0">
@@ -34,12 +34,12 @@
     <script data-cfasync="false">(function () { var el = document.documentElement, m = localStorage.getItem("doc_theme"), wm = window.matchMedia; if (m === "dark" || (!m && wm && wm("(prefers-color-scheme: dark)").matches)) { el.classList.add("dark") } else { el.classList.remove("dark") } })();</script>
 
     <link href="../static/favicon.png" rel="icon">
-    <link href="../resources/css/retype.css?v=3.5.0.777572951338" rel="stylesheet">
+    <link href="../resources/css/retype.css?v=3.5.0.777579518736" rel="stylesheet">
 
-    <script data-cfasync="false" src="../resources/js/config.js?v=3.5.0.777572951338" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../resources/js/config.js?v=3.5.0.777579518736" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../resources/js/retype.js?v=3.5.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../resources/js/lunr.js?v=3.5.0.777572951338" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../resources/js/prism.js?v=3.5.0.777572951338" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../resources/js/lunr.js?v=3.5.0.777579518736" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../resources/js/prism.js?v=3.5.0.777579518736" defer></script>
 </head>
 <body>
     <div id="docs-app" class="relative text-base antialiased text-gray-700 bg-white font-body dark:bg-dark-850 dark:text-dark-300">
@@ -281,36 +281,34 @@ development and how to contribute to it, if you were inclined to do so.</p>
 why Harpy is the way it is. Harpy may be a pipeline for other software, but
 there is a lot of extra stuff built in to make it user
 friendly. Not just friendly, but <em>compassionate</em>. The guiding ethos for Harpy is
-<strong>&quot;We don&#x27;t hate the user&quot;</strong>. That means there is a lot
-of code that checks input files, runtime details, etc. to exit before
+<strong>&quot;Don&#x27;t hate the user&quot;</strong>. That means there is a lot
+of code that checks input files, runtime details, etc. before
 Snakemake takes over. This is done to minimize time wasted on minor
 errors that only show their ugly heads 18 hours into a 96 hour process. With that in mind:</p>
 <ol>
 <li><strong>Code should be written clearly</strong> because someone else will need to read it at
 some point, and that person could be future-you who hasn&#x27;t seen or thought
 about that code for a while. Write nicely. Annotate.</li>
-<li><strong>Error messages should provide all the information a user needs to fix the problem and retry</strong>. It&#x27;s not enough to exit when an error is identified. Collate
-the things causing the error, explain to the user what and why. Harpy follows a
-style of presenting and explaining the error, then providing a solution and showing exactly what files/rows/columns/etc. caused the error. Be kind to users.</li>
-</ol>
-<p><figure class="content-center">
-    <img src="../static/errormsg.png" alt="These are Harpy error messages">
-    <figcaption class="caption">These are Harpy error messages</figcaption>
-</figure>
-</p>
-<ol start="3">
-<li><strong>Documentation is just as important as the code</strong>. No features are undocumented,
+<li><strong>Documentation is just as important as the code</strong>. No user-facing features are undocumented,
 and the documentation should read like something that a new student can
 pick up and understand. Good documentation, written compassionately, will lower
 the barrier of entry to people who just want to process their haplotag data. Harpy
 isn&#x27;t about ego, it&#x27;s about accessibility. We invest in this documentation because
-we <em>want</em> to, not because we need to.</li>
+we <strong><em>want</em></strong> to.</li>
+<li><strong>Error messages should provide all the information a user needs to fix the problem and retry</strong>. It&#x27;s not enough to exit when an error is identified. Collate
+the things causing the error, explain to the user what and why. Harpy follows a
+style of presenting and explaining the error, then providing a solution and showing exactly what files/rows/columns/etc. caused the error. Be kind to users.
+<figure class="content-center">
+    <img src="../static/errormsg.png" alt="These are Harpy error messages">
+    <figcaption class="caption">These are Harpy error messages</figcaption>
+</figure>
+</li>
 </ol>
 </doc-panel>
-<doc-anchor-target id="installing-harpy-for-development">
+<doc-anchor-target id="installing-dev-version">
     <h2>
-        <doc-anchor-trigger class="header-anchor-trigger" to="#installing-harpy-for-development">#</doc-anchor-trigger>
-        <span>Installing Harpy for development</span>
+        <doc-anchor-trigger class="header-anchor-trigger" to="#installing-dev-version">#</doc-anchor-trigger>
+        <span>Installing dev version</span>
     </h2>
 </doc-anchor-target>
 <p>The process follows cloning the harpy repository, installing the preconfigured conda environment, and running the <code v-pre>resources/buildlocal.sh</code>
@@ -381,7 +379,7 @@ using non-python code.</p>
 <doc-anchor-target id="bioconda-recipe">
     <h3>
         <doc-anchor-trigger class="header-anchor-trigger" to="#bioconda-recipe">#</doc-anchor-trigger>
-        <span>Bioconda recipe</span>
+        <span>bioconda recipe</span>
     </h3>
 </doc-anchor-target>
 <p>For the ease of installation for end-users, Harpy has a <a href="https://github.com/bioconda/bioconda-recipes/blob/master/recipes/harpy/meta.yaml">recipe and build script</a> in Bioconda,
@@ -396,10 +394,10 @@ requiring any intervention on the development side for the newest Harpy version 
         <span>The Harpy repository</span>
     </h2>
 </doc-anchor-target>
-<doc-anchor-target id="structure">
+<doc-anchor-target id="repo-structure">
     <h3>
-        <doc-anchor-trigger class="header-anchor-trigger" to="#structure">#</doc-anchor-trigger>
-        <span>structure</span>
+        <doc-anchor-trigger class="header-anchor-trigger" to="#repo-structure">#</doc-anchor-trigger>
+        <span>repo structure</span>
     </h3>
 </doc-anchor-target>
 <p>Harpy exists as a Git repository and has 5 standard branches that are used in
@@ -510,23 +508,23 @@ version. So, if the Harpy version is <code v-pre>1.4.12</code>, then the associa
 <doc-anchor-target id="testing">
     <h3>
         <doc-anchor-trigger class="header-anchor-trigger" to="#testing">#</doc-anchor-trigger>
-        <span>Testing</span>
+        <span>testing</span>
     </h3>
 </doc-anchor-target>
 <p>CI (<strong>C</strong>ontinuous <strong>I</strong>ntegration) is a term describing automated actions that do
 things to/with your code and are triggered by how you interact with a repository.
 Harpy has a series of GitHub Actions triggered by interactions with the <code v-pre>main</code> branch (in <code v-pre>.github/workflows</code>)
 to test the Harpy modules depending on which files are being changed by the push or
-pull request. It&#x27;s setup such that, for example, when files associated with
+pull request. It&#x27;s set up such that, for example, when files associated with
 demultiplexing are altered, it will run <code v-pre>harpy demultiplex</code> on the test data
 in the cloud and notify the Harpy devs if for some reason <code v-pre>harpy demultiplex</code>
 could not run successfully to completion. These tests do not test for accuracy,
 but test for breaking behavior. You&#x27;d be shocked to find out how many errors
-crop up this way and require more development so Harpy can be resilient to more use cases.</p>
+crop up this way and require more work so Harpy can be resilient to more use cases.</p>
 <doc-anchor-target id="releases">
     <h3>
         <doc-anchor-trigger class="header-anchor-trigger" to="#releases">#</doc-anchor-trigger>
-        <span>Releases</span>
+        <span>releases</span>
     </h3>
 </doc-anchor-target>
 <p>There is <a href="https://github.com/pdimens/harpy/blob/dev/.github/workflows/createrelease.yml">an automation</a>
