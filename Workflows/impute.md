@@ -9,7 +9,9 @@ order: 8
 
 ===  :icon-checklist: You will need
 - a tab-delimited parameter file 
-- sequence alignments in BAM format: [!badge variant="success" text=".bam"]
+- sequence alignments in BAM format:
+    - **sample names**: [!badge variant="success" text="a-z"] [!badge variant="success" text="0-9"] [!badge variant="success" text="."] [!badge variant="success" text="_"] [!badge variant="success" text="-"] (case insensitive)
+    - **extension**: [!badge variant="success" text=".bam"]
 - a variant call format file: [!badge variant="success" text=".vcf"] [!badge variant="success" text=".vcf.gz"] [!badge variant="success" text=".bcf"]
 ==- :icon-codescan: Curation of input VCF file
 To work well with STITCH, Harpy needs the input variant call file to meet specific criteria.
