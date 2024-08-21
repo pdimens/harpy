@@ -40,7 +40,7 @@ rule sort_bcf:
         bcf = temp(f"{outdir}/workflow/input/vcf/input.sorted.bcf"),
         idx = temp(f"{outdir}/workflow/input/vcf/input.sorted.bcf.csi")
     log:
-        f"{outdir}/logs/input.sorted.log"
+        f"{outdir}/logs/input.sort.log"
     container:
         None
     shell:
@@ -91,9 +91,13 @@ rule impute:
     output:
         # format a wildcard pattern like "k{k}/s{s}/ngen{ngen}"
         # into a file path, with k, s, ngen being the columns of the data frame
-        f"{outdir}/{paramspace.wildcard_pattern}/contigs/" + "{part}/{part}.vcf.gz"
+        temp(f"{outdir}/{paramspace.wildcard_pattern}/contigs/" + "{part}/{part}.vcf.gz"),
+        temp(directory(f"{outdir}/{paramspace.wildcard_pattern}/contigs/" + "{part}/plots")),
+        temp(directory(f"{outdir}/{paramspace.wildcard_pattern}/contigs/" + "{part}/tmp")),
+        temp(directory(f"{outdir}/{paramspace.wildcard_pattern}/contigs/" + "{part}/RData")),
+        temp(directory(f"{outdir}/{paramspace.wildcard_pattern}/contigs/" + "{part}/input"))
     log:
-        f"{outdir}/{paramspace.wildcard_pattern}/logs/stitch/" + "{part}/{part}.log"
+        f"{outdir}/{paramspace.wildcard_pattern}/logs/" + "{part}.stitch.log"
     params:
         # automatically translate the wildcard values into an instance of the param space
         # in the form of a dict (here: {"k": ..., "s": ..., "ngen": ...})
@@ -111,45 +115,35 @@ rule impute:
 rule index_vcf:
     input:
         vcf   = outdir + "/{stitchparams}/contigs/{part}/{part}.vcf.gz"
-    output: 
-        idx   = outdir + "/{stitchparams}/contigs/{part}/{part}.vcf.gz.tbi",
-        stats = outdir + "/{stitchparams}/contigs/{part}/{part}.stats"
+    output:
+        vcf   = outdir + "/{stitchparams}/contigs/{part}.vcf.gz",
+        idx   = outdir + "/{stitchparams}/contigs/{part}.vcf.gz.tbi",
+        stats = outdir + "/{stitchparams}/reports/data/contigs/{part}.stats"
+    wildcard_constraints:
+        part = "[^/]+"
     container:
         None
     shell:
         """
-        tabix {input.vcf}
+        cp {input} {output.vcf}
+        tabix {output.vcf}
         bcftools stats -s "-" {input.vcf} > {output.stats}
         """
 
 rule stitch_reports:
     input:
-        outdir + "/{stitchparams}/contigs/{part}/{part}.stats"
+        outdir + "/{stitchparams}/reports/data/contigs/{part}.stats",
+        outdir + "/{stitchparams}/contigs/{part}/plots"
     output:
-        outdir + "/{stitchparams}/contigs/{part}/{part}.STITCH.html"
+        outdir + "/{stitchparams}/reports/{part}.stitch.html"
     conda:
         f"{envdir}/r.yaml"
     script:
         "report/stitch_collate.Rmd"
 
-rule clean_plots:
-    input:
-        outdir + "/{stitchparams}/contigs/{part}/{part}.STITCH.html"
-    output:
-        temp(touch(outdir + "/{stitchparams}/contigs/{part}/.plots.cleaned"))
-    params:
-        stitch = lambda wc: wc.get("stitchparams"),
-        outdir = outdir
-    container:
-        None
-    priority:
-        2
-    shell: 
-        "rm -rf {params.outdir}/{params.stitch}/contigs/{wildcards.part}/plots"
-
 rule concat_list:
     input:
-        bcf = collect(outdir + "/{{stitchparams}}/contigs/{part}/{part}.vcf.gz", part = contigs)
+        bcf = collect(outdir + "/{{stitchparams}}/contigs/{part}.vcf.gz", part = contigs)
     output:
         temp(outdir + "/{stitchparams}/bcf.files")
     run:
@@ -159,7 +153,7 @@ rule concat_list:
 rule merge_vcf:
     input:
         files = outdir + "/{stitchparams}/bcf.files",
-        idx   = collect(outdir + "/{{stitchparams}}/contigs/{part}/{part}.vcf.gz.tbi", part = contigs)
+        idx   = collect(outdir + "/{{stitchparams}}/contigs/{part}.vcf.gz.tbi", part = contigs)
     output:
         outdir + "/{stitchparams}/variants.imputed.bcf"
     threads:
@@ -184,7 +178,7 @@ rule general_stats:
         bcf = outdir + "/{stitchparams}/variants.imputed.bcf",
         idx = outdir + "/{stitchparams}/variants.imputed.bcf.csi"
     output:
-        outdir + "/{stitchparams}/reports/variants.imputed.stats"
+        outdir + "/{stitchparams}/reports/data/impute.stats"
     container:
         None
     shell:
@@ -228,8 +222,7 @@ rule workflow_summary:
     input: 
         vcf = collect(outdir + "/{stitchparams}/variants.imputed.bcf", stitchparams=paramspace.instance_patterns),
         agg_report = collect(outdir + "/{stitchparams}/reports/variants.imputed.html", stitchparams=paramspace.instance_patterns) if not skipreports else [],
-        contig_report = collect(outdir + "/{stitchparams}/contigs/{part}/{part}.STITCH.html", stitchparams=paramspace.instance_patterns, part = contigs) if not skipreports else [],
-        cleanedplots = collect(outdir + "/{stitchparams}/contigs/{part}/.plots.cleaned", stitchparams=paramspace.instance_patterns, part = contigs) if not skipreports else []
+        contig_report = collect(outdir + "/{stitchparams}/reports/{part}.stitch.html", stitchparams=paramspace.instance_patterns, part = contigs) if not skipreports else [],
     run:
         with open(outdir + "/workflow/impute.summary", "w") as f:
             _ = f.write("The harpy impute workflow ran using these parameters:\n\n")

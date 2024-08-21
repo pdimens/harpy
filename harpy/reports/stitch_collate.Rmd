@@ -46,23 +46,36 @@ using<-function(...) {
         lapply(need,require,character.only=TRUE)
     }
 }
-using("flexdashboard","tidyr","magrittr","DT","ggplot2","plotly","RColorBrewer")
+using("flexdashboard","tidyr","magrittr","DT")
 ```
 
 ```{r load data}
 infile <- snakemake@input[[1]]
 #infile <- "~/contig1.stats"
 dataL <- readLines(infile)
-bcf <- gsub(".stats$", ".bcf", infile)
+bcf <- gsub(".stats$", ".bcf", basename(infile))
+chrom <- gsub(".bcf", "", bcf)
 basedir <- dirname(normalizePath(infile))
-chrom <- basename(basedir)
-plotdir <- paste(basedir, "plots/", sep = "/")
+plotdir <- normalizePath(snakemake@input[[2]])
+plotdir <- paste0(plotdir, "/")
+# first by folder
+params <- unlist(strsplit(infile, "[/]"))
+model <- gsub("model", "", params[length(params) - 6])
+usebx <- gsub("usebx", "", params[length(params) - 5])
+otherparams <- unlist(strsplit(params[length(params) - 4], "_"))
+k <-       gsub("k", "", otherparams[1])
+s <-       gsub("s", "", otherparams[2])
+ngen <-    gsub("ngen", "", otherparams[3])
+bxlimit <- gsub("bxlimit", "", otherparams[4])
 ```
-## `r bcf`
+## Contig: `r chrom`
+
 For convenience, this report consolidates the various outputs from `STITCH` and `bcftools` into a single document.
-This reflects the general information stored in the records of the bcf file. Since STITCH
+This reflects the general information stored in the records of `r bcf`. Since STITCH
 requires only bi-allelic SNPs as input, you should not expect to see any other types
-of variants (MNPs, indels, _etc._). The images may appear small and can be clicked on to expand/focus them. Click on the image again to remove focus from the image. For the wider images, you may right-click them and open them in a new tab/window to view them at their original
+of variants (MNPs, indels, _etc._). The images may appear small and can be clicked on to expand/focus them. 
+Click on the image again to remove focus from the image. For the wider images, you may right-click them and open
+them in a new tab/window to view them at their original
 sizes, which may prove to be more useful in some cases.
 
 
@@ -77,43 +90,16 @@ sn <- as.data.frame(t(sn[2]))
 rownames(sn) <- NULL
 ```
 
+**model**: `r model` | **use barcodes**: `r usebx` | **k**: `r k` | **s**: `r s` | **ngen**: `r ngen` | **bx limit**: `r bxlimit`
+
 **SAMPLES**: `r sn$samples[1]` | **TOTAL RECORDS**: `r sn$records[1]` | **no-ALTs**: `r sn[3,1]` | **SNPs**: `r sn$SNPs[1]` | **MNPs**: `r sn$MNPs[1]`
 
-### Per Sample (graph)
-```{r}
-# scale plot height to sample count
-n <- as.numeric(sn$samples[1])
-pltheight <- 330 + (15 * n)
-pheight <- 1.2 + (0.166 * n)
-```
-
-```{r basic stats, fig.width = 7.5, dev ='jpeg'}
-#TODO make this interactive(?)
+### Per Sample Stats
+```{r stats table}
 .pscL <- grepl("^PSC", dataL)
 psc <- read.table(text=dataL[.pscL])[ ,3:14]
 names(psc) <- c("Sample", "HomozygousRef", "HomozygousAtl", "Heterozygotes", "Transitions", "Transversions", "Indels",	"MeanDepth", "Singletons",	"HapRef", "HapAlt", "Missing")
 psc$Homozygotes <- psc$HomozygousRef + psc$HomozygousAtl
-tidy_psc <- pivot_longer(psc[,c(1,2,3,4,5,6,9,12,13)], -Sample , names_to = "Category", values_to = "Count")
-
-ggplot(data = tidy_psc, mapping = aes(x = Count, y = Sample, color = Category)) +
-  geom_point(size = 2) +
-  labs(title = "Statistics by Sample") +
-  theme_bw() +
-  scale_x_continuous(n.breaks=9, labels = scales::comma) +
-  xlab("Count") +
-  ylab("") +
-  scale_color_brewer(palette = "Dark2") +
-  theme(panel.grid.minor = element_blank(), panel.grid.major.y = element_blank())
-```
-
-***
-
-This graph contains variant statistics per individual, corresponding 
-to the `r sn$samples[1]` samples in `r bcf`. The data showin in the next
-tab were used create this visualization.
-
-### Per Sample (table)
-```{r stats table}
 DT::datatable(
   psc[,c(1,12,2,3,13,4,5,6,9)],
   rownames = F, 
@@ -132,8 +118,7 @@ DT::datatable(
 ***
 
 This table contains variant statistics per individual, corresponding 
-to the `r sn$samples[1]` samples in `r bcf`. These data are what is used
-to create the visualization from the previous tab.
+to the `r sn$samples[1]` samples in `r bcf`. 
 
 ### Chromosome-wide Imputation QC Plot
 ```{r QC_chromwide, dev = "jpeg", out.width="100%"}

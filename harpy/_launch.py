@@ -25,7 +25,7 @@ def launch_snakemake(sm_args, workflow, starttext, outdir, sm_logfile, quiet):
                 print_snakefile_error("If you manually edited the Snakefile, see the error below to fix it. If you didn't edit it manually, it's probably a bug (oops!) and you should submit an issue on GitHub: [bold]https://github.com/pdimens/harpy/issues")
                 errtext = subprocess.run(sm_args.split(), stderr=subprocess.PIPE, text = True)
                 errtext = errtext.stderr.split("\n")
-                startprint = [i for i,j in enumerate(errtext) if "Exception in rule" in j][0]
+                startprint = [i for i,j in enumerate(errtext) if "Exception in rule" in j or "Error in file" in j or "Exception:" in j][0]
                 rprint("[red]" + "\n".join(errtext[startprint:]), end = None)
                 #rprint("[red]" + errtext.stderr.partition("jobs...\n")[2], end = None)
                 sys.exit(1)
@@ -120,7 +120,7 @@ def launch_snakemake(sm_args, workflow, starttext, outdir, sm_logfile, quiet):
                         break
                     # prioritizing printing the error and quitting
                     if err:
-                        if "Shutting down, this" in output:
+                        if "Shutting down, this" in output or output.endswith("]\n"):
                             sys.exit(1)
                         rprint(f"[red]{output.strip().partition("Finished job")[0]}", file = sys.stderr)
                     if "Error in rule" in output or "RuleException" in output:
@@ -157,6 +157,20 @@ def launch_snakemake(sm_args, workflow, starttext, outdir, sm_logfile, quiet):
         if process.returncode < 1:
             print_onsuccess(outdir)
         else:
+            print_onerror(sm_logfile)
+            with open(sm_logfile, "r", encoding="utf-8") as logfile:
+                line = logfile.readline()
+                while line:
+                    if "Error" in line or "Exception" in line:
+                        rprint("[bold yellow]" + line.rstrip())
+                        break
+                    line = logfile.readline()
+                line = logfile.readline()
+                while line:
+                    if line.endswith("]\n"):
+                        break
+                    rprint("[red]" + line.rstrip())
+                    line = logfile.readline()
             sys.exit(1)
     except KeyboardInterrupt:
         # Handle the keyboard interrupt
