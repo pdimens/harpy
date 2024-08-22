@@ -1,134 +1,134 @@
 """launch snakemake"""
 
 import re
+import os
 import sys
+import glob
 import subprocess
 from rich import print as rprint
 from rich.progress import Progress, BarColumn, TextColumn, TimeElapsedColumn, SpinnerColumn
 from rich.console import Console
-from ._printing import print_onsuccess, print_onstart, print_onerror, print_snakefile_error
+from ._misc import gzip_file
+from ._printing import print_onsuccess, print_onstart, print_onerror, print_setup_error
+
+def iserror(text):
+    """logical check for erroring trigger words in snakemake output"""
+    return "Exception" in text or "Error" in text or "MissingOutputException" in text
+
+def purge_empty_logs(target_dir):
+    """scan target_dir and remove empty files, then scan it again and remove empty directories"""
+    for logfile in glob.glob(f"{target_dir}/logs/**/*", recursive = True):
+        if os.path.isfile(logfile) and os.path.getsize(logfile) == 0:
+            os.remove(logfile)
+    for logfile in glob.glob(f"{target_dir}/logs/**/*", recursive = True):
+        if os.path.isdir(logfile) and not os.listdir(logfile):
+            os.rmdir(logfile)
 
 def launch_snakemake(sm_args, workflow, starttext, outdir, sm_logfile, quiet):
     """launch snakemake with the given commands"""
     if not quiet:
         print_onstart(starttext, workflow.replace("_", " "))
+    exitcode = None
     try:
-        # Add a task with a total value of 100 (representing 100%)
-        # Start a subprocess
+        # Start snakemake as a subprocess
         process = subprocess.Popen(sm_args.split(), stdout=subprocess.PIPE, stderr=subprocess.PIPE, text = True)
-        err = False
         deps = False
         # read up to the job summary, but break early if dependency text appears
-        while True:
+        while not exitcode:
             output = process.stderr.readline()
-            return_code = process.poll()
-            if return_code == 1:
-                print_snakefile_error("If you manually edited the Snakefile, see the error below to fix it. If you didn't edit it manually, it's probably a bug (oops!) and you should submit an issue on GitHub: [bold]https://github.com/pdimens/harpy/issues")
-                errtext = subprocess.run(sm_args.split(), stderr=subprocess.PIPE, text = True)
-                errtext = errtext.stderr.split("\n")
-                startprint = [i for i,j in enumerate(errtext) if "Exception in rule" in j or "Error in file" in j or "Exception:" in j][0]
-                rprint("[red]" + "\n".join(errtext[startprint:]), end = None)
-                #rprint("[red]" + errtext.stderr.partition("jobs...\n")[2], end = None)
-                sys.exit(1)
+            # check for syntax errors at the very beginning
+            if process.poll() or iserror(output):
+                exitcode = 0 if process.poll() == 0 else 1
+                break
             if not quiet:
                 console = Console()
-                with console.status("[dim]Setting up workflow", spinner = "point", spinner_style="yellow") as status:
-                    while True:
-                        if output.startswith("Building DAG of jobs...") or output.startswith("Assuming"):
-                            pass
-                        else:
-                            break
+                with console.status("[dim]Preparing workflow", spinner = "point", spinner_style="yellow") as status:
+                    while output.startswith("Building DAG of jobs...") or output.startswith("Assuming"):
                         output = process.stderr.readline()
-            # print dependency text only once
-            if "Downloading and installing remote packages" in output:
-                deps = True
-                deploy_text = "[dim]Installing software dependencies"
+            else:
+                while output.startswith("Building DAG of jobs...") or output.startswith("Assuming"):
+                    output = process.stderr.readline()
+            if process.poll() or iserror(output):
+                exitcode = 0 if process.poll() == 0 else 1
                 break
-            if "Pulling singularity image" in output:
-                deps = True
-                deploy_text = "[dim]Downloading software container"
+
+            while not output.startswith("Job stats:"):
+                # print dependency text only once
+                if "Downloading and installing remote packages" in output:
+                    deps = True
+                    deploy_text = "[dim]Installing software dependencies"
+                    break
+                if "Pulling singularity image" in output:
+                    deps = True
+                    deploy_text = "[dim]Downloading software container"
+                    break
+                if "Nothing to be" in output:
+                    exitcode = 0
+                    break
+                output = process.stderr.readline()
+
+            # if dependency text present, print pulsing progress bar
+            if deps:
+                with Progress(
+                    TextColumn("[progress.description]{task.description}"),
+                    BarColumn(bar_width= 70 - len(deploy_text), pulse_style = "grey46"),
+                    TimeElapsedColumn(),
+                    transient=True,
+                    disable=quiet
+                ) as progress:
+                    progress.add_task("[dim]" + deploy_text, total = None)
+                    while not output.startswith("Job stats:"):
+                        output = process.stderr.readline()
+                        if process.poll() or iserror(output):
+                            exitcode = 0 if process.poll() == 0 else 2
+                            break
+                    progress.stop()
+            if process.poll() or exitcode:
                 break
-            if output.startswith("Job stats:"):
-                # read and ignore the next two lines
-                process.stderr.readline()
-                process.stderr.readline()
+            if "Nothing to be" in output:
+                exitcode = 0
                 break
-        
-        # if dependency text present, print pulse progress bar to indicate things are happening
-        if deps:
             with Progress(
+                SpinnerColumn(spinner_name = "arc", style = "dim"),
                 TextColumn("[progress.description]{task.description}"),
-                BarColumn(bar_width= 70 - len(deploy_text), pulse_style = "grey46"),
+                BarColumn(complete_style="yellow", finished_style="blue"),
+                TextColumn("[progress.remaining]{task.completed}/{task.total}", style = "magenta"),
                 TimeElapsedColumn(),
                 transient=True,
                 disable=quiet
             ) as progress:
-                progress.add_task("[dim]" + deploy_text, total = None)
+                # process the job summary
+                job_inventory = {}
                 while True:
                     output = process.stderr.readline()
-                    if not output and process.poll():
-                        progress.stop()
+                    # stop parsing on "total" since it's always the last entry
+                    if output.startswith("Select jobs to execute"):
                         break
-                    if output.startswith("Job stats:"):
-                        progress.stop()
-                        # read and ignore the next two lines
-                        process.stderr.readline()
-                        process.stderr.readline()
+                    try:
+                        rule,count = output.split()
+                        rule_desc = rule.replace("_", " ")
+                        # rule : display_name, count, set of job_id's
+                        job_inventory[rule] = [rule_desc, int(count), set()]
+                    except ValueError:
+                        pass
+                # checkpoint
+                    if process.poll() or iserror(output):
+                        exitcode = 0 if process.poll() == 0 else 1
                         break
-        with Progress(
-            SpinnerColumn(spinner_name = "arc", style = "dim"),
-            TextColumn("[progress.description]{task.description}"),
-            BarColumn(complete_style="yellow", finished_style="blue"),
-            TextColumn("[progress.percentage]{task.percentage:>3.0f}%"),
-            TimeElapsedColumn(),
-            transient=True,
-            disable=quiet
-        ) as progress:
-            # process the job summary
-            job_inventory = {}
-            while True:
-                output = process.stderr.readline()
-                if not output and process.poll():
+                if process.poll() or exitcode:
                     break
-                # stop parsing on "total" since it's always the last entry
-                if output.startswith("total") or output.startswith("Select jobs to execute"):
-                    break
-                try:
-                    rule,count = output.split()
-                    rule_desc = rule.replace("_", " ")
-                    # rule : display_name, count, set of job_id's
-                    job_inventory[rule] = [rule_desc, int(count), set()]
-                except ValueError:
-                    pass
-            task_ids = {"total_progress" : progress.add_task("[bold blue]Total", total=sum(j[1] for i,j in job_inventory.items()))}
-            
-            while True:
-                output = process.stderr.readline()
-                if process.poll():
-                    if process.poll() == 1:
+                task_ids = {"total_progress" : progress.add_task("[bold blue]Total", total=job_inventory["total"][1])}
+
+                while output:
+                    output = process.stderr.readline()
+                    if iserror(output) or process.poll() == 1:
                         progress.stop()
-                        print_snakefile_error("If you manually edited the Snakefile, see the error below to fix it. If you didn't edit it manually, it's probably a bug (oops!) and you should submit an issue on GitHub: [bold]https://github.com/pdimens/harpy/issues")
-                        errtext = subprocess.run(sm_args.split(), stderr=subprocess.PIPE, text = True)
-                        errtext = errtext.stderr.split("\n")
-                        startprint = [i for i,j in enumerate(errtext) if j.startswith("total")][0] + 2
-                        rprint("[red]" + "\n".join(errtext[startprint:]), end = None)
-                        sys.exit(1)
-                    if not output:
+                        exitcode = 3
                         break
-                if output:
-                    if output.startswith("Complete log:") or process.poll():
-                        process.wait()
-                        break
-                    # prioritizing printing the error and quitting
-                    if err:
-                        if "Shutting down, this" in output or output.endswith("]\n"):
-                            sys.exit(1)
-                        rprint(f"[red]{output.strip().partition("Finished job")[0]}", file = sys.stderr)
-                    if "Error in rule" in output or "RuleException" in output:
+                    if process.poll() == 0 or output.startswith("Complete log:") or output.startswith("Nothing to be"):
                         progress.stop()
-                        print_onerror(sm_logfile)
-                        rprint(f"[yellow bold]{output.strip()}", file = sys.stderr)
-                        err = True
+                        exitcode = 0 if process.poll() == 0 else 3
+                        break
                     # add new progress bar track if the rule doesn't have one yet
                     rulematch = re.search(r"rule\s\w+:", output)
                     if rulematch:
@@ -155,28 +155,39 @@ def launch_snakemake(sm_args, workflow, starttext, outdir, sm_logfile, quiet):
                                 details[2].discard(completed)
                                 break
 
+        process.wait()
         if process.returncode < 1:
+            gzip_file(sm_logfile)
+            purge_empty_logs(outdir)
             if not quiet:
                 print_onsuccess(outdir)
+            sys.exit(0)
         else:
-            print_onerror(sm_logfile)
-            with open(sm_logfile, "r", encoding="utf-8") as logfile:
-                line = logfile.readline()
-                while line:
-                    if "Error" in line or "Exception" in line:
-                        rprint("[bold yellow]" + line.rstrip())
-                        break
-                    line = logfile.readline()
-                line = logfile.readline()
-                while line:
-                    if line.endswith("]\n"):
-                        break
-                    rprint("[red]" + line.rstrip())
-                    line = logfile.readline()
+            if exitcode in (1,2):
+                print_setup_error(exitcode)
+            elif exitcode == 3:
+                print_onerror(sm_logfile)
+            while output and not output.endswith("]") and not output.startswith("Shutting down"):
+                if "Exception" in output or "Error" in output:
+                    rprint("[yellow bold]" + output.rstrip(), file = sys.stderr)
+                    output = process.stderr.readline()
+                    continue
+                if output.startswith("Logfile"):
+                    rprint("[yellow]" + output.rstrip(), file = sys.stderr)
+                    output = process.stderr.readline()
+                    continue
+                if output:
+                    if not output.startswith("Complete log"):
+                        rprint("[red]" + output.replace("\t","    ").rstrip(), file = sys.stderr)
+                output = process.stderr.readline()
+            gzip_file(sm_logfile)
+            purge_empty_logs(outdir)
             sys.exit(1)
     except KeyboardInterrupt:
         # Handle the keyboard interrupt
-        rprint("[yellow bold]\nTerminating harpy...")
+        rprint("[yellow bold]\nTerminating harpy...", file = sys.stderr)
         process.terminate()
         process.wait()
+        gzip_file(sm_logfile)
+        purge_empty_logs(outdir)
         sys.exit(1)

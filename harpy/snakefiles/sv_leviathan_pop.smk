@@ -2,8 +2,17 @@ containerized: "docker://pdimens/harpy:latest"
 
 import os
 import re
-import sys
-import logging as pylogging
+import logging
+
+onstart:
+    logger.logger.addHandler(logging.FileHandler(config["snakemake_log"]))
+onsuccess:
+    os.remove(logger.logfile)
+onerror:
+    os.remove(logger.logfile)
+wildcard_constraints:
+    sample = "[a-zA-Z0-9._-]+",
+    population = "[a-zA-Z0-9._-]+"
 
 envdir      = os.getcwd() + "/.harpy_envs"
 genomefile 	= config["inputs"]["genome"]
@@ -15,19 +24,10 @@ min_bc      = config["min_barcodes"]
 iterations  = config["iterations"]
 outdir      = config["output_directory"]
 skipreports = config["skip_reports"]
-snakemake_log = config["snakemake_log"]
 bn 			= os.path.basename(genomefile)
 if bn.lower().endswith(".gz"):
     bn = bn[:-3]
-
-wildcard_constraints:
-    sample = "[a-zA-Z0-9._-]+",
-    population = "[a-zA-Z0-9._-]+"
     
-onstart:
-    extra_logfile_handler = pylogging.FileHandler(snakemake_log)
-    logger.logger.addHandler(extra_logfile_handler)
-
 # create dictionary of population => filenames
 ## this makes it easier to set the snakemake rules/wildcards
 def pop_manifest(groupingfile, filelist):
@@ -110,11 +110,11 @@ rule index_barcode:
     threads:
         max(10, workflow.cores)
     conda:
-        f"{envdir}/sv.yaml"
+        f"{envdir}/variants.yaml"
     shell:
         "LRez index bam -p -b {input.bam} -o {output} --threads {threads}"
 
-rule setup_genome:
+rule process_genome:
     input:
         genomefile
     output: 
@@ -124,7 +124,7 @@ rule setup_genome:
     shell: 
         "seqtk seq {input} > {output}"
 
-rule faidx_genome:
+rule index_genome:
     input: 
         f"Genome/{bn}"
     output: 
@@ -156,10 +156,10 @@ rule call_variants:
         genome = f"Genome/{bn}",
         genidx = multiext(f"Genome/{bn}", ".fai", ".ann", ".bwt", ".pac", ".sa", ".amb")
     output:
-        temp(outdir + "/vcf/{population}.vcf")
-    log:  
-        runlog     = outdir + "/logs/leviathan/{population}.leviathan.log",
+        vcf = temp(outdir + "/vcf/{population}.vcf"),
         candidates = outdir + "/logs/leviathan/{population}.candidates"
+    log:  
+        runlog = outdir + "/logs/leviathan/{population}.leviathan.log",
     params:
         min_sv = f"-v {min_sv}",
         min_bc = f"-c {min_bc}",
@@ -168,11 +168,11 @@ rule call_variants:
     threads:
         workflow.cores - 1
     conda:
-        f"{envdir}/sv.yaml"
+        f"{envdir}/variants.yaml"
     benchmark:
         ".Benchmark/leviathan-pop/{population}.variantcall"
     shell:
-        "LEVIATHAN -b {input.bam} -i {input.bc_idx} {params} -g {input.genome} -o {output} -t {threads} --candidates {log.candidates} 2> {log.runlog}"
+        "LEVIATHAN -b {input.bam} -i {input.bc_idx} {params} -g {input.genome} -o {output.vcf} -t {threads} --candidates {output.candidates} 2> {log.runlog}"
 
 rule sort_variants:
     input:
@@ -239,6 +239,8 @@ rule group_reports:
         faidx     = f"Genome/{bn}.fai"
     output:
         outdir + "/reports/{population}.sv.html"
+    log:
+        logfile = outdir + "/logs/reports/{population}.report.log"
     conda:
         f"{envdir}/r.yaml"
     script:
@@ -250,6 +252,8 @@ rule aggregate_report:
         statsfiles = collect(outdir + "/reports/data/{pop}.sv.stats", pop = populations)
     output:
         outdir + "/reports/leviathan.summary.html"
+    log:
+        logfile = outdir + "/logs/reports/summary.report.log"
     conda:
         f"{envdir}/r.yaml"
     script:

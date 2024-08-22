@@ -1,9 +1,14 @@
 containerized: "docker://pdimens/harpy:latest"
 
 import os
-import re
-import sys
-import logging as pylogging
+import logging
+
+onstart:
+    logger.logger.addHandler(logging.FileHandler(config["snakemake_log"]))
+onsuccess:
+    os.remove(logger.logfile)
+onerror:
+    os.remove(logger.logfile)
 
 R1 = config["inputs"]["R1"]
 R2 = config["inputs"]["R2"]
@@ -13,9 +18,8 @@ samplefile = config["inputs"]["demultiplex_schema"]
 skipreports = config["skip_reports"]
 outdir = config["output_directory"]
 envdir = os.getcwd() + "/.harpy_envs"
-snakemake_log = config["snakemake_log"]
 
-## the log file ##
+## the barcode log file ##
 def barcodedict(smpl):
     d = {}
     with open(smpl, "r") as f:
@@ -30,10 +34,6 @@ def barcodedict(smpl):
 
 samples = barcodedict(samplefile)
 samplenames = [i for i in samples.keys()]
-
-onstart:
-    extra_logfile_handler = pylogging.FileHandler(snakemake_log)
-    logger.logger.addHandler(extra_logfile_handler)
 
 rule link_R1:
     input:

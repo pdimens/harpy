@@ -2,8 +2,16 @@ containerized: "docker://pdimens/harpy:latest"
 
 import os
 import re
-import sys
-import logging as pylogging
+import logging
+
+onstart:
+    logger.logger.addHandler(logging.FileHandler(config["snakemake_log"]))
+onsuccess:
+    os.remove(logger.logfile)
+onerror:
+    os.remove(logger.logfile)
+wildcard_constraints:
+    sample = "[a-zA-Z0-9._-]+"
 
 envdir      = os.getcwd() + "/.harpy_envs"
 fqlist      = config["inputs"]
@@ -12,17 +20,8 @@ kmer_length = config["kmer_length"]
 window_size = config["window_size"]
 density 	= config["density"] 
 dropout     = config["dropout"]
-snakemake_log = config["snakemake_log"]
-
 bn_r = r"([_\.][12]|[_\.][FR]|[_\.]R[12](?:\_00[0-9])*)?\.((fastq|fq)(\.gz)?)$"
 samplenames = {re.sub(bn_r, "", os.path.basename(i), flags = re.IGNORECASE) for i in fqlist}
-
-wildcard_constraints:
-    sample = "[a-zA-Z0-9._-]+"
-
-onstart:
-    extra_logfile_handler = pylogging.FileHandler(snakemake_log)
-    logger.logger.addHandler(extra_logfile_handler)
 
 def get_fq1(wildcards):
     # returns a list of fastq files for read 1 based on *wildcards.sample* e.g.

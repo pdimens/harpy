@@ -14,7 +14,14 @@ output:
       - { title : "Source", icon: "fa-github", href: "https://www.github.com/pdimens/harpy/", align: right }
 ---
 
-```{r load environment, echo=FALSE, message=FALSE, warning=FALSE}
+```{r setup}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE)
+logfile <- file(snakemake@log$logfile, open = "wt")
+sink(logfile)
+sink(logfile, type = "message")
+```
+
+```{r package_imports}
 using<-function(...) {
     libs<-unlist(list(...))
     req<-unlist(lapply(libs,require,character.only=TRUE))
@@ -27,7 +34,7 @@ using<-function(...) {
 using("flexdashboard","dplyr", "tidyr", "ggplot2","DT", "viridisLite", "BioCircos", "tools")
 ```
 
-```{r}
+```{r read_inputs}
 statsfiles <- snakemake@input[["statsfiles"]]
 faidx <- snakemake@input[["faidx"]]
 #statsfiles <- list.files(path = "~/test/", pattern = "*.stats", full.names = T)
@@ -40,7 +47,7 @@ faidx <- snakemake@input[["faidx"]]
 Below is a series of tables and plots detailing the structural variants
 identified by [LEVIATHAN](https://github.com/morispi/LEVIATHAN) [(preprint)](https://doi.org/10.1101/2021.03.25.437002). The variants are given by:
 
-```{r table2, echo=FALSE, message=FALSE, warnings=FALSE}
+```{r table2}
 knitr::kable(
   data.frame(
   "Variant" = c("INV", "DUP", "DEL","BND"),
@@ -68,7 +75,7 @@ readvariants <- function(x){
 }
 ```
 
-```{r}
+```{r process_inputs}
 emptyfiles <- character()
 sv <- data.frame(matrix(ncol=8,nrow=0, dimnames=list(NULL, c("population",	"contig",	"position_start",	"position_end",	"length",	"type",	"n_barcodes",	"n_pairs"))))
 for(i in statsfiles){
@@ -90,7 +97,7 @@ if(length(emptyfiles > 0)){
 }
 ```
 
-```{r echo = FALSE, warnings= FALSE, message = FALSE}
+```{r summary_info}
 summinfo <- sv %>%
   group_by(population, type) %>%
   summarise(tot = n()) %>%
@@ -131,7 +138,7 @@ valueBox(scales::comma(ninv, accuracy = 0.01), caption = "Inversions (average)",
 ## Various information {.tabset data-height=450}
 ### all variants
 This table details all the variants LEVIATHAN detected and the quantity/quality of evidence for those detections.
-```{r all variants, message = FALSE, echo = FALSE}
+```{r all variants}
 DT::datatable(
   sv,
   rownames = F,
@@ -146,12 +153,12 @@ DT::datatable(
   )
 ```
 
-```{r echo = FALSE, warnings= FALSE, message = FALSE}
+```{r fix_breakend_length}
 sv$length <- as.numeric(gsub("\\.", "1", sv$length))
 ```
 ### counts per contig
 This table details counts each type of structural variant for every contig for every population.
-```{r percontig counts, echo = FALSE, warnings= FALSE, message = FALSE}
+```{r percontig counts}
 grpcounts <- sv %>%
   group_by(population, contig, type) %>%
   summarise(count = n()) %>%
@@ -173,7 +180,7 @@ DT::datatable(
 
 ### bp per contig
 This table details the lengths (in bp) of structural variants for every contig for every population. Breakends are not counted because they do not have a size.
-```{r bp per contig, echo = FALSE, warnings= FALSE, message = FALSE}
+```{r bp per contig}
 grplens <- sv %>% 
   filter(type != "BND") %>%
   group_by(population, contig, type) %>%

@@ -2,23 +2,23 @@ containerized: "docker://pdimens/harpy:latest"
 
 import os
 import re
-import sys
-import logging as pylogging
-import multiprocessing
+import logging
 from pathlib import Path
 
-outdir = config["output_directory"]
-envdir  = os.getcwd() + "/.harpy_envs"
-snakemake_log = config["snakemake_log"]
-bamlist = config["inputs"]
-samplenames = {Path(i).stem for i in bamlist}
-
+onstart:
+    logger.logger.addHandler(logging.FileHandler(config["snakemake_log"]))
+onsuccess:
+    os.remove(logger.logfile)
+onerror:
+    os.remove(logger.logfile)
 wildcard_constraints:
     sample = "[a-zA-Z0-9._-]+"
 
-onstart:
-    extra_logfile_handler = pylogging.FileHandler(snakemake_log)
-    logger.logger.addHandler(extra_logfile_handler)
+outdir = config["output_directory"]
+envdir  = os.getcwd() + "/.harpy_envs"
+bamlist = config["inputs"]
+bamdict = dict(zip(bamlist, bamlist))
+samplenames = {Path(i).stem for i in bamlist}
 
 def get_alignments(wildcards):
     """returns a list with the bam file for the sample based on wildcards.sample"""
@@ -32,22 +32,15 @@ def get_align_index(wildcards):
     aln = list(filter(r.match, bamlist))
     return aln[0] + ".bai"
 
-def sam_index(infile):
-    """Use Samtools to index an input file, adding .bai to the end of the name"""
-    if not os.path.exists(f"{infile}.bai"):
-        subprocess.run(f"samtools index {infile} {infile}.bai".split())
-
-# not the ideal way of doing this, but it works
 rule index_alignments:
     input:
-        bamlist
+        lambda wc: bamdict[wc.bam]
     output:
-        [f"{i}.bai" for i in bamlist]
-    threads:
-        workflow.cores
-    run:
-        with multiprocessing.Pool(processes=threads) as pool:
-            pool.map(sam_index, input)
+        "{bam}.bai"
+    container:
+        None
+    shell:
+        "samtools index {input}"
 
 rule check_bam:
     input:
@@ -79,6 +72,8 @@ rule create_report:
         outdir + "/filecheck.bam.tsv"
     output:
         outdir + "/filecheck.bam.html"
+    log:
+        logfile = outdir + "/logs/report.log"
     conda:
         f"{envdir}/r.yaml"
     script:

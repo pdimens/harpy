@@ -25,11 +25,11 @@ def readinput(infile, filestream):
 def makewindows(_contig, _c_len, windowsize, outfile):
     """create a file of the specified windows"""
     start = args.mode
-    end = windowsize
-    starts = [args.mode]
-    ends = [windowsize]
+    end = min(_c_len, windowsize)
+    starts = [start]
+    ends = [end]
     while end < _c_len:
-        end = end + windowsize if (end + windowsize) < _c_len else _c_len
+        end = min(end + windowsize, _c_len)
         ends.append(end)
         start += windowsize
         starts.append(start)

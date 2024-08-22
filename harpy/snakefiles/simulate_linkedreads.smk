@@ -1,23 +1,23 @@
 containerized: "docker://pdimens/harpy:latest"
 
 import os
-import sys
 import gzip
-import shutil
-import logging as pylogging
+import logging
 from pathlib import Path
+
+onstart:
+    logger.logger.addHandler(logging.FileHandler(config["snakemake_log"]))
+onsuccess:
+    os.remove(logger.logfile)
+onerror:
+    os.remove(logger.logfile)
 
 outdir   = config["output_directory"]
 gen_hap1 = config["inputs"]["genome_hap1"]
 gen_hap2 = config["inputs"]["genome_hap2"]
 envdir   = os.getcwd() + "/.harpy_envs"
-snakemake_log = config["snakemake_log"]
 barcodes = config.get("barcodes", None)
 barcodefile = barcodes if barcodes else f"{outdir}/workflow/input/4M-with-alts-february-2016.txt"
-
-onstart:
-    extra_logfile_handler = pylogging.FileHandler(snakemake_log)
-    logger.logger.addHandler(extra_logfile_handler)
 
 rule link_1st_geno:
     input:
@@ -39,7 +39,7 @@ use rule link_1st_geno as link_2nd_geno with:
     output: 
         f"{outdir}/workflow/input/hap.1.fasta"
 
-rule faidx_genome:
+rule index_genome:
     input:
         outdir + "/workflow/input/hap.{hap}.fasta"
     output: 

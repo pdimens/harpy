@@ -2,16 +2,25 @@ containerized: "docker://pdimens/harpy:latest"
 
 import os
 import re
-import sys
-import multiprocessing
-import logging as pylogging
+import logging
 from pathlib import Path
+
+onstart:
+    logger.logger.addHandler(logging.FileHandler(config["snakemake_log"]))
+onsuccess:
+    os.remove(logger.logfile)
+onerror:
+    os.remove(logger.logfile)
+wildcard_constraints:
+    sample = "[a-zA-Z0-9._-]+",
+    population = "[a-zA-Z0-9._-]+"
 
 envdir       = os.getcwd() + "/.harpy_envs"
 genomefile   = config["inputs"]["genome"]
 bn           = os.path.basename(genomefile)
 bamlist      = config["inputs"]["alignments"]
-samplenames = {Path(i).stem for i in bamlist}
+bamdict      = dict(zip(bamlist, bamlist))
+samplenames  = {Path(i).stem for i in bamlist}
 groupfile    = config["inputs"]["groupings"]
 vcffile      = config["inputs"]["vcf"]
 vcfindex     = (vcffile + ".csi") if vcffile.lower().endswith("bcf") else (vcffile + ".tbi")
@@ -22,18 +31,8 @@ min_barcodes = config["min_barcodes"]
 mol_dist     = config["molecule_distance"]
 outdir       = config["output_directory"]
 skipreports  = config["skip_reports"]
-snakemake_log = config["snakemake_log"]
-
 if bn.lower().endswith(".gz"):
     bn = bn[:-3]
-
-wildcard_constraints:
-    sample = "[a-zA-Z0-9._-]+",
-    population = "[a-zA-Z0-9._-]+"
-
-onstart:
-    extra_logfile_handler = pylogging.FileHandler(snakemake_log)
-    logger.logger.addHandler(extra_logfile_handler)
 
 def process_args(args):
     argsDict = {
@@ -71,11 +70,6 @@ def pop_manifest(groupingfile, filelist):
 popdict     = pop_manifest(groupfile, bamlist)
 populations = popdict.keys()
 
-def sam_index(infile):
-    """Use Samtools to index an input file, adding .bai to the end of the name"""
-    if not os.path.exists(f"{infile}.bai"):
-        subprocess.run(f"samtools index {infile} {infile}.bai".split())
-
 def get_alignments(wildcards):
     """returns a list with the bam file for the sample based on wildcards.sample"""
     r = re.compile(fr".*/({wildcards.sample})\.(bam|sam)$", flags = re.IGNORECASE)
@@ -88,7 +82,7 @@ def get_align_index(wildcards):
     aln = list(filter(r.match, bamlist))
     return aln[0] + ".bai"
 
-rule setup_genome:
+rule process_genome:
     input:
         genomefile
     output: 
@@ -98,7 +92,7 @@ rule setup_genome:
     shell: 
         "seqtk seq {input} > {output}"
 
-rule faidx_genome:
+rule index_genome:
     input: 
         f"Genome/{bn}"
     output: 
@@ -132,14 +126,13 @@ rule index_snps_gz:
 
 rule index_alignments:
     input:
-        bamlist
+        lambda wc: bamdict[wc.bam]
     output:
-        [f"{i}.bai" for i in bamlist]
-    threads:
-        workflow.cores
-    run:
-        with multiprocessing.Pool(processes=threads) as pool:
-            pool.map(sam_index, input)
+        "{bam}.bai"
+    container:
+        None
+    shell:
+        "samtools index {input}"
 
 rule phase_alignments:
     input:
@@ -259,7 +252,7 @@ rule call_variants:
     threads:
         min(10, workflow.cores - 1)
     conda:
-        f"{envdir}/sv.yaml"
+        f"{envdir}/variants.yaml"
     shell:
         "naibr {input.conf} > {log} 2>&1"
 
@@ -323,6 +316,8 @@ rule group_reports:
         bedpe = outdir + "/bedpe/{population}.bedpe"
     output:
         outdir + "/reports/{population}.naibr.html"
+    log:
+        logfile = outdir + "/logs/reports/{population}.report.log"
     conda:
         f"{envdir}/r.yaml"
     script:
@@ -334,6 +329,8 @@ rule aggregate_report:
         bedpe = collect(outdir + "/bedpe/{pop}.bedpe", pop = populations)
     output:
         outdir + "/reports/naibr.pop.summary.html"
+    log:
+        logfile = outdir + "/logs/reports/summary.report.log"
     conda:
         f"{envdir}/r.yaml"
     script:

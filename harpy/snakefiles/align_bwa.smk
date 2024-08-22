@@ -2,8 +2,16 @@ containerized: "docker://pdimens/harpy:latest"
 
 import os
 import re
-import sys
-import logging as pylogging
+import logging
+
+onstart:
+    logger.logger.addHandler(logging.FileHandler(config["snakemake_log"]))
+onsuccess:
+    os.remove(logger.logfile)
+onerror:
+    os.remove(logger.logfile)
+wildcard_constraints:
+    sample = "[a-zA-Z0-9._-]+"
 
 outdir      = config["output_directory"]
 envdir      = os.getcwd() + "/.harpy_envs"
@@ -17,15 +25,6 @@ genome_zip  = True if bn.lower().endswith(".gz") else False
 bn_idx      = f"{bn}.gzi" if genome_zip else f"{bn}.fai"
 skipreports = config["skip_reports"]
 windowsize  = config["depth_windowsize"]
-snakemake_log = config["snakemake_log"]
-
-wildcard_constraints:
-    sample = "[a-zA-Z0-9._-]+"
-
-onstart:
-    extra_logfile_handler = pylogging.FileHandler(snakemake_log)
-    logger.logger.addHandler(extra_logfile_handler)
-
 bn_r = r"([_\.][12]|[_\.][FR]|[_\.]R[12](?:\_00[0-9])*)?\.((fastq|fq)(\.gz)?)$"
 samplenames = {re.sub(bn_r, "", os.path.basename(i), flags = re.IGNORECASE) for i in fqlist}
 d = dict(zip(samplenames, samplenames))
@@ -35,7 +34,7 @@ def get_fq(wildcards):
     r = re.compile(fr".*/({re.escape(wildcards.sample)}){bn_r}", flags = re.IGNORECASE)
     return sorted(list(filter(r.match, fqlist))[:2])
 
-rule setup_genome:
+rule process_genome:
     input:
         genomefile
     output: 
@@ -193,6 +192,8 @@ rule sample_reports:
         outdir + "/reports/data/coverage/{sample}.cov.gz"
     output:	
         outdir + "/reports/{sample}.html"
+    log:
+        logfile = outdir + "/logs/reports/{sample}.alignstats.log"
     params:
         molecule_distance
     conda:
@@ -235,6 +236,8 @@ rule barcode_report:
         collect(outdir + "/reports/data/bxstats/{sample}.bxstats.gz", sample = samplenames)
     output:	
         outdir + "/reports/barcodes.summary.html"
+    log:
+        logfile = outdir + "/logs/reports/bxstats.report.log"
     conda:
         f"{envdir}/r.yaml"
     script:

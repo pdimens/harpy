@@ -7,7 +7,7 @@ from pathlib import Path
 from rich import box
 from rich.table import Table
 import rich_click as click
-from ._conda import generate_conda_deps
+from ._conda import create_conda_recipes
 from ._misc import fetch_report, fetch_rule, snakemake_log
 from ._launch import launch_snakemake
 from ._parsers import parse_fastq_inputs
@@ -127,7 +127,7 @@ def bwa(inputs, output_dir, genome, depth_window, threads, keep_unmapped, extra_
         for i in fqlist:
             config.write(f"    - {i}\n")
 
-    generate_conda_deps()
+    create_conda_recipes()
     if setup_only:
         sys.exit(0)
 
@@ -137,10 +137,10 @@ def bwa(inputs, output_dir, genome, depth_window, threads, keep_unmapped, extra_
     start_text.add_row("Samples:", f"{sample_count}")
     start_text.add_row("Genome:", genome)
     start_text.add_row("Output Folder:", output_dir + "/")
-    start_text.add_row("Workflow Log:", sm_log.replace(f"{output_dir}/", ""))
+    start_text.add_row("Workflow Log:", sm_log.replace(f"{output_dir}/", "") + "[dim].gz")
     launch_snakemake(command, "align_bwa", start_text, output_dir, sm_log, quiet)
 
-@click.command(no_args_is_help = True, epilog = "See the documentation for more information: https://pdimens.github.io/harpy/modules/align/ema")
+@click.command(no_args_is_help = True, context_settings=dict(allow_interspersed_args=False), epilog = "See the documentation for more information: https://pdimens.github.io/harpy/modules/align/ema")
 @click.option('-x', '--extra-params', type = str, help = 'Additional ema align parameters, in quotes')
 @click.option('-w', '--depth-window', default = 50000, show_default = True, type = int, help = 'Interval size (in bp) for depth stats')
 @click.option('-b', '--ema-bins', default = 500, show_default = True, type = click.IntRange(1,1000), help="Number of barcode bins")
@@ -225,7 +225,7 @@ def ema(inputs, output_dir, platform, barcode_list, genome, depth_window, keep_u
         for i in fqlist:
             config.write(f"    - {i}\n")
 
-    generate_conda_deps()
+    create_conda_recipes()
     if setup_only:
         sys.exit(0)
 
@@ -236,7 +236,7 @@ def ema(inputs, output_dir, platform, barcode_list, genome, depth_window, keep_u
     start_text.add_row("Genome:", genome)
     start_text.add_row("Platform:", platform)
     start_text.add_row("Output Folder:", output_dir + "/")
-    start_text.add_row("Workflow Log:", sm_log.replace(f"{output_dir}/", ""))
+    start_text.add_row("Workflow Log:", sm_log.replace(f"{output_dir}/", "") + "[dim].gz")
     launch_snakemake(command, "align_ema", start_text, output_dir, sm_log, quiet)
 
 @click.command(no_args_is_help = True, epilog= "See the documentation for more information: https://pdimens.github.io/harpy/modules/align/minimap/")
@@ -310,7 +310,7 @@ def strobe(inputs, output_dir, genome, read_length, keep_unmapped, depth_window,
         for i in fqlist:
             config.write(f"    - {i}\n")
 
-    generate_conda_deps()
+    create_conda_recipes()
     if setup_only:
         sys.exit(0)
 
@@ -320,7 +320,7 @@ def strobe(inputs, output_dir, genome, read_length, keep_unmapped, depth_window,
     start_text.add_row("Samples:", f"{sample_count}")
     start_text.add_row("Genome:", genome)
     start_text.add_row("Output Folder:", output_dir + "/")
-    start_text.add_row("Workflow Log:", sm_log.replace(f"{output_dir}/", ""))
+    start_text.add_row("Workflow Log:", sm_log.replace(f"{output_dir}/", "") + "[dim].gz")
     launch_snakemake(command, "align_strobe", start_text, output_dir, sm_log, quiet)
 
 align.add_command(bwa)

@@ -5,7 +5,7 @@ import sys
 from rich import box
 from rich.table import Table
 import rich_click as click
-from ._conda import generate_conda_deps
+from ._conda import create_conda_recipes
 from ._launch import launch_snakemake
 from ._misc import fetch_rule, fetch_report, snakemake_log
 from ._parsers import parse_alignment_inputs
@@ -24,7 +24,7 @@ docstring = {
     ]
 }
 
-@click.command(no_args_is_help = True, epilog = "See the documentation for more information: https://pdimens.github.io/harpy/modules/phase")
+@click.command(no_args_is_help = True, context_settings=dict(allow_interspersed_args=False), epilog = "See the documentation for more information: https://pdimens.github.io/harpy/modules/phase")
 @click.option('-x', '--extra-params', type = str, help = 'Additional HapCut2 parameters, in quotes')
 @click.option('-g', '--genome', type=click.Path(exists=True, dir_okay=False, readable=True), help = 'Path to genome assembly if wanting to also extract reads spanning indels')
 @click.option('-b', '--ignore-bx',  is_flag = True, show_default = True, default = False, help = 'Ignore barcodes when phasing')
@@ -96,7 +96,7 @@ def phase(inputs, output_dir, vcf, threads, molecule_distance, prune_threshold, 
         for i in bamlist:
             config.write(f"    - {i}\n")
 
-    generate_conda_deps()
+    create_conda_recipes()
     if setup_only:
         sys.exit(0)
 
@@ -110,5 +110,5 @@ def phase(inputs, output_dir, vcf, threads, molecule_distance, prune_threshold, 
     if genome is not None:
         start_text.add_row("Genome:", genome)
     start_text.add_row("Output Folder:", output_dir + "/")
-    start_text.add_row("Workflow Log:", sm_log.replace(f"{output_dir}/", ""))
+    start_text.add_row("Workflow Log:", sm_log.replace(f"{output_dir}/", "") + "[dim].gz")
     launch_snakemake(command, "phase", start_text, output_dir, sm_log, quiet)

@@ -121,7 +121,7 @@ naibr: &naibr
   - 'test/bam/**'
   - 'test/bam_phased/**'
   - 'test/vcf/test.phased.bcf'
-  - 'harpy/reports/Naibr**.Rmd'
+  - 'harpy/reports/naibr**.Rmd'
   - 'harpy/bin/infer_sv.py'
 phase: &phase
   - *common
@@ -152,6 +152,7 @@ simreads: &simreads
 other: &other
   - 'harpy/stitchparams.py'
   - 'harpy/popgroup.py'
+  - 'harpy/hpc.py'
 modules:
   - *common
   - *demux

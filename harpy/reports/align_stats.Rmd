@@ -16,8 +16,14 @@ output:
 ---
 
 # Barcode Stats
+```{r setup}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE)
+logfile <- file(snakemake@log$logfile, open = "wt")
+sink(logfile)
+sink(logfile, type = "message")
+```
 
-```{r echo = F, results = F, message = F}
+```{r package_imports, results = F}
 using<-function(...) {
     libs<-unlist(list(...))
     req<-unlist(lapply(libs,require,character.only=TRUE))
@@ -31,7 +37,7 @@ using<-function(...) {
 using("flexdashboard","dplyr","highcharter","DT","BioCircos")
 ```
 
-```{r echo = F, results = F, message = F}
+```{r import_file, results = F}
 #infile <- "~/file.bxstats.gz"
 infile <- snakemake@input[[1]]
 bamfile <- gsub(".bxstats.gz", ".bam", infile)
@@ -44,7 +50,7 @@ if(nrow(tb) == 0){
 tb$valid <- tb$molecule != "invalidBX"
 ```
 
-```{r bxper, echo = F, results = F, message = F}
+```{r bxper, results = F}
 valids <- filter(tb, valid)
 invalids <- filter(tb, !valid)
 valids$molecule <- as.integer(valids$molecule)
@@ -59,7 +65,7 @@ tot_invalid <- sum(tb[!(tb$valid), "reads"])
 tot_valid <- sum(tb[tb$valid, "reads"])
 ```
 
-```{r nxx, echo = F, results = F, message = F}
+```{r nxx, results = F}
 NX <- function(lengths, X=50){
   lengths <- as.numeric(sort(lengths, decreasing=TRUE))
   index <- which(cumsum(lengths) / sum(lengths) >= X/100)[1]
@@ -75,39 +81,39 @@ The information presented below were gathered from the alignments within **`r ba
 
 ## General Information {data-height=100}
 ### ncontigs
-```{r}
+```{r valuebox_ncontigs}
 valueBox(scales::comma(length(unique(tb$contig))), caption = "Contigs", color = "#ffffff")
 ```
 
 ### glob-total-bx
-```{r}
+```{r valuebox_n_barcodes}
 valueBox(scales::comma(totuniqBX), caption = "Unique barcodes", color = "#8f4f76")
 ```
 
 ### glob-total-mol
-```{r}
+```{r valuebox_n_molecules}
 valueBox(scales::comma(length(unique(valids$molecule))), caption = "Unique Molecules")
 ```
 
 ### validBX
-```{r}
+```{r valuebox_valids}
 valueBox(scales::comma(tot_valid), caption = "Valid BX Records", color = "success", icon = "fa-vial-circle-check")
 ```
 
 ### invalidBX
-```{r}
+```{r valuebox_invalids}
 valueBox(scales::comma(tot_invalid), caption = "Invalid BX Records", color = "warning", icon = "fa-x")
 ```
 
 ### glob-avg
-```{r}
+```{r valuebox_mol_per_contig}
 valueBox(scales::comma(avgBX), caption = "Avg molecules per contig", color = "#d4d4d4")
 ```
 
 
 ## N50 and N90
 ### Molecule NXX Length Metrics
-```{r echo = FALSE, message = FALSE, warning = FALSE}
+```{r NX_stats}
 summary_table <- valids %>% 
     group_by(contig) %>%
     summarize(valid_records = sum(reads), molecules = length(molecule),n50 = NX(length_inferred, 50), n75 = NX(length_inferred, 75), n90 = NX(length_inferred, 90))
@@ -142,7 +148,7 @@ as it likely doesn't start at `0`.
 ## the plots
 ### reads per {.no-title}
 
-```{r readsper, echo = FALSE, message = FALSE, warning = FALSE, out.width = '100%'}
+```{r readsper, out.width = '100%'}
 hs <- hist(
   valids$reads,
   breaks = min(valids$reads):max(valids$reads),
@@ -163,7 +169,7 @@ hchart(hs, "areaspline", hcaes(x = val, y = freq), color = "#8484bd", name = "% 
 ```
 
 ### bases per {.no-title}
-```{r basesper, echo = FALSE, message = FALSE, warning = FALSE, out.width="100%"}
+```{r basesper, out.width="100%"}
 hs <- hist(round(valids$aligned_bp, -2), breaks = 50,  plot = F)
 hs$counts <- round(hs$counts / sum(hs$counts)*100,4)
 hs <- data.frame(val = hs$breaks[-1], freq = hs$counts)
@@ -189,7 +195,7 @@ Pay attention to the Y axis, as it may not start at `0`.
 
 ## inferred-plot
 ### inferredplot {.no-title}
-```{r inferred, echo = FALSE, message = FALSE, warning = FALSE, out.width = '100%'}
+```{r inferred, out.width = '100%'}
 hs <- hist(
   round(valids$length_inferred / 1000,0),
   breaks = 25,
@@ -231,7 +237,7 @@ molecule coverage as `300bp ÷ molecule_length`, whereas the plot on the right c
 
 ## breadthplot
 ### coverage by aligned bp {.no-title}
-```{r inferred_cov_bp, echo = FALSE, message = FALSE, warning = FALSE, out.width = '100%'}
+```{r inferred_cov_bp, out.width = '100%'}
 hs <- hist(
   round(valids$coverage_bp, 0),
   breaks = seq(0, 1, by = 0.05),
@@ -252,7 +258,7 @@ hchart(hs, "areaspline", hcaes(x = val, y = freq), color = "#e59765", name = "% 
 ```
 
 ### coverage by inserts {.no-title}
-```{r inferred_cov_insert, echo = FALSE, message = FALSE, warning = FALSE, out.width = '100%'}
+```{r inferred_cov_insert, out.width = '100%'}
 hs <- hist(
   round(valids$coverage_inserts, 0),
   breaks = seq(0, 1, by = 0.05),
@@ -287,7 +293,7 @@ fragment alignments sharing a barcode are inferred to have originated from. The 
 takes into account an [alignment distance threshold](https://pdimens.github.io/harpy/haplotagdata/#barcode-thresholds)
 and that the sequences aligned to the same contig.
 
-```{r cols_explained, echo=FALSE, message=FALSE, warnings=FALSE}
+```{r cols_explained}
 knitr::kable(
   data.frame(
     "Column Name" = c("contig", "molecule", "reads", "start", "end", "length_inferred", "percent_coverage", "aligned_bp"),
@@ -309,7 +315,7 @@ knitr::kable(
 <h3> Interpreting Barcode Validity </h3>
 BX barcode validity is classified into one of two categories:
 
-```{r bx_explanation, echo=FALSE, message=FALSE, warnings=FALSE}
+```{r bx_explanation}
 knitr::kable(
   data.frame(
     "Classification" = c("valid BX", "invalid BX"),
@@ -323,7 +329,7 @@ knitr::kable(
 
 # Coverage Stats
 
-```{r echo = FALSE, message = FALSE, warning = FALSE}
+```{r imports}
 covfile <- snakemake@input[[2]]
 #covfile <- "~/test.cov.gz"
 tb <- read.table(covfile, header = F)
@@ -341,7 +347,7 @@ windowsize <- Mode(tb$position[-1] - tb$position[1:nrow(tb)-1])
 windowskb <- round(windowsize/1000, 0)
 ```
 
-```{r echo = FALSE, message = FALSE, warning = FALSE}
+```{r summary_stats}
 global_avg <- mean(tb$depth)
 global_sd <- sd(tb$depth)
 tb$outlier <- tb$depth > q99
@@ -374,36 +380,36 @@ alignments above this depth were not removed from the file.
 
 ## General Information {data-height=100}
 ### ncontigs
-```{r}
+```{r valuebox_contigs}
 valueBox(scales::comma(length(unique(tb$contig))), caption = "Contigs", color = "success")
 ```
 
 ### general-samples
-```{r}
+```{r valuebox_intervals}
 valueBox(paste(windowskb, "kb"), caption = "Intervals", color = "info")
 ```
 ### glob-avg
-```{r}
+```{r valuebox_glob_avg}
 valueBox(round(global_avg,2), caption = "Average depth", color = "info")
 ```
 
 ### glob-sd
-```{r}
+```{r valuebox_stdv}
 valueBox(round(global_sd,2), caption = "Stdev depth", color = "info")
 ```
 
 ### filt-avg
-```{r}
+```{r valuebox_lessQ99}
 valueBox(round(global_avg_filt,2), caption = '↓Q99 avg', color = "info")
 ```
 
 ### filt-sd
-```{r}
+```{r valuebox_lessQ99_stdv}
 valueBox(round(global_sd_filt,2), caption = '↓Q99 stdev', color = "info")
 ```
 
 ### n-outliers
-```{r}
+```{r valuebox_outliers}
 valueBox(scales::comma(nrow(outliers)), caption = "regions >Q99", color = "warning")
 ```
 
@@ -416,7 +422,7 @@ values, which is **`r q99`** for these data.
 
 ## distributionplot
 ### distplot {.no-title}
-```{r echo=F, warning=F, message=F}
+```{r depth_distribution}
 hs <- hist(tb$depth[tb$depth <= q99], breaks = 30, plot = F)
 hs$counts <- round(hs$counts / sum(hs$counts)*100,2)
 hs <- data.frame(val = hs$breaks[-1], freq = hs$counts)
@@ -454,7 +460,7 @@ having coverage greater than the 99th percentile (`r q99`).
 
 ## Summary information 
 ### Averages
-```{r}
+```{r depth_table}
 DT::datatable(
   contig_avg, 
   rownames = F, 
@@ -472,7 +478,7 @@ DT::datatable(
 ```
 
 ### Filtered Averages
-```{r echo = FALSE, message = FALSE, warning = FALSE}
+```{r filtered_depth_table}
 DT::datatable(
   contig_avg_filt,
   rownames = F, 
@@ -490,7 +496,7 @@ DT::datatable(
 ```
 
 ### Outliers
-```{r echo = FALSE, message = FALSE, warning = FALSE}
+```{r depth_plot}
 DT::datatable(
   outliers, 
   rownames = F, 
@@ -528,7 +534,7 @@ features, place your cursor over this left column or the navigation bar of this 
 be able to scroll the report instead of zooming on the plot.
 
 ### Coverage across the genome
-```{r echo = FALSE, message = FALSE, warning = FALSE}
+```{r limit_contigs}
 # Find the 30 largest contigs
 contigs <- group_by(tb, contig) %>%
   summarize(size = max(position)) %>%
@@ -543,7 +549,7 @@ if (nrow(contigs) > 30){
 }
 ```
 
-```{r fig.align='center', out.width= "80%", out.height="900px"}
+```{r circleplot, fig.align='center', out.width= "80%", out.height="900px"}
 genomeChr <- .contigs$size
 names(genomeChr) <- .contigs$contig
 genomeChr <- as.list(genomeChr)
