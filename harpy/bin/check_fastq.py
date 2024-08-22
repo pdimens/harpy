@@ -25,6 +25,8 @@ if len(sys.argv) == 1:
     sys.exit(1)
 
 args = parser.parse_args()
+if not os.path.exists(args.input):
+    parser.error(f"{args.input} was not found")
 
 fq_in = args.input
 
@@ -33,7 +35,7 @@ samspec = re.compile('[A-Z][A-Z]:[AifZHB]:')
 haplotag = re.compile('A[0-9][0-9]C[0-9][0-9]B[0-9][0-9]D[0-9][0-9]')
 bxlast = re.compile('BX:Z:A[0-9][0-9]C[0-9][0-9]B[0-9][0-9]D[0-9][0-9]$')
 
-with pysam.FastxFile(fq_in) as fh:
+with pysam.FastxFile(fq_in, persist=False) as fh:
     N_READS    = 0
     NO_BX       = 0
     BAD_BX      = 0
@@ -61,4 +63,4 @@ with pysam.FastxFile(fq_in) as fh:
             NO_BX += 1
 
 values = [str(i) for i in [os.path.basename(fq_in), N_READS, NO_BX, BAD_BX, BAD_SAM_SPEC, BX_NOT_LAST]]
-print("\t".join(values), file = sys.stdout)
+sys.stdout.write("\t".join(values) + "\n")

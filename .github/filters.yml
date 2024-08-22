@@ -1,8 +1,10 @@
 common: &common
   - 'harpy/_launch.py'
   - 'harpy/_misc.py'
-  - 'harpy/_printing.py'
+  - 'harpy/_cli_types_generic.py'
+  - 'harpy/_cli_types_params.py'
   - 'harpy/_parsers.py'
+  - 'harpy/_printing.py'
   - 'harpy/_validations.py'
   - 'harpy/__main__.py'
   - 'resources/harpy.yaml'
@@ -11,6 +13,7 @@ common: &common
   - 'resources/buildforCI.sh'
 container: &container
   - 'harpy/_conda.py'
+  - 'harpy/container.py'
   - 'harpy/containerize.smk'
 preflight: &preflight
   - *common
@@ -54,6 +57,7 @@ bwa: &bwa
   - 'harpy/bin/count_bx.py'
   - 'harpy/bin/assign_mi.py'
   - 'harpy/bin/make_windows.py'
+  - 'harpy/bin/depth_windows.py'
   - 'test/fastq/**'
 ema: &ema
   - *common
@@ -65,6 +69,7 @@ ema: &ema
   - 'harpy/bin/bx_stats.py'
   - 'harpy/bin/count_bx.py'
   - 'harpy/bin/make_windows.py'
+  - 'harpy/bin/depth_windows.py'
   - 'test/fastq/**'
 strobealign: &strobealign
   - *common
@@ -77,6 +82,7 @@ strobealign: &strobealign
   - 'harpy/bin/bx_stats.py'
   - 'harpy/bin/count_bx.py'
   - 'harpy/bin/make_windows.py'
+  - 'harpy/bin/depth_windows.py'
   - 'test/fastq/**'
 mpileup: &mpileup
   - *common
@@ -121,7 +127,7 @@ naibr: &naibr
   - 'test/bam/**'
   - 'test/bam_phased/**'
   - 'test/vcf/test.phased.bcf'
-  - 'harpy/reports/Naibr**.Rmd'
+  - 'harpy/reports/naibr**.Rmd'
   - 'harpy/bin/infer_sv.py'
 phase: &phase
   - *common
@@ -135,7 +141,7 @@ phase: &phase
 simvars: &simvars
   - *common
   - *container
-  - 'harpy/simulatevariants.py'
+  - 'harpy/simulate.py'
   - 'harpy/snakefiles/simulate_snpindel.smk'
   - 'harpy/snakefiles/simulate_variants.smk'
   - 'test/vcf/test.bcf'
@@ -143,15 +149,25 @@ simvars: &simvars
 simreads: &simreads
   - *common
   - *container
-  - 'harpy/simulatelinkedreads.py'
+  - 'harpy/simulate.py'
   - 'harpy/snakefiles/simulate_linkedreads.smk'
   - 'test/genome**gz'
   - 'extractReads.cpp'
-  - 'harpy/bin/10xtoHaplotag.py'
-  - 'harpy/scripts/LRSIM_harpy.pl'
+  - 'harpy/bin/inline_to_haplotag.py'
+  - 'harpy/bin/haplotag_barcodes.py'
+  - 'harpy/scripts/HaploSim.pl'
+assembly: &assembly
+  - *common
+  - *container
+  - 'harpy/assembly.py'
+  - 'harpy/metassembly.py'
+  - 'harpy/snakefiles/assembly.smk'
+  - 'harpy/snakefiles/metassembly.smk'
 other: &other
-  - 'harpy/stitchparams.py'
+  - *common
+  - 'harpy/imputeparams.py'
   - 'harpy/popgroup.py'
+  - 'harpy/hpc.py'
 modules:
   - *common
   - *demux
@@ -169,4 +185,5 @@ modules:
   - *naibr
   - *simvars
   - *simreads
+  - *assembly
   - *other

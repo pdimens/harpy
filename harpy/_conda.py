@@ -1,12 +1,18 @@
 """Module that sets up the conda environments and dependencies for all the Harpy workflows"""
 
 import os
+import sys
+import yaml
+from rich import box
+from rich.table import Table
+from rich import print as rprint
+from ._printing import print_error, print_solution_with_culprits
 
-def generate_conda_deps():
+def create_conda_recipes(outdir: str, envs: list=None) -> None:
     """Create the YAML files of the workflow conda dependencies"""
     condachannels = ["bioconda","conda-forge","defaults"]
     environ = {
-        "align": [
+        "align" : [
             "bioconda::bwa",
             "bioconda::ema",
             "bioconda::samtools=1.20",
@@ -17,6 +23,12 @@ def generate_conda_deps():
             "conda-forge::libzlib",
             "conda-forge::xz"
             ],
+        "metassembly" : [
+            "bioconda::spades=4.0"
+        ],
+        "athena": [
+            "bioconda::athena_meta"
+        ],
         "phase" : [
             "bioconda::hapcut2",
             "bioconda::whatshap"
@@ -49,19 +61,18 @@ def generate_conda_deps():
             "bioconda::perl-math-random",
             "bioconda::perl-inline-c",
             "bioconda::perl-parse-recdescent",
+            "bioconda::simug>1.0.0",
             "conda-forge::numpy",
             "conda-forge::perl"
             ],
-        "snp": [
+        "variants": [
             "bioconda::bcftools=1.20",
-            "bioconda::freebayes=1.3.6"
+            "bioconda::freebayes=1.3.6",
+            "bioconda::leviathan",
+            "bioconda::naibr-plus"
             ],
         "stitch" : [
             "bioconda::r-stitch=1.6.10"
-            ],
-        "sv": [
-            "bioconda::leviathan",
-            "bioconda::naibr-plus"
             ]
     }
 

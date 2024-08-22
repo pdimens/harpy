@@ -2,11 +2,14 @@
 
 import os
 import sys
+import yaml
 from pathlib import Path
 from rich import box
 from rich.table import Table
 import rich_click as click
-from ._conda import generate_conda_deps
+from ._cli_types_generic import HPCProfile, InputFile, SnakemakeParams
+from ._cli_types_params import MpileupParams, FreebayesParams
+from ._conda import create_conda_recipes
 from ._launch import launch_snakemake
 from ._misc import fetch_rule, fetch_report, snakemake_log
 from ._parsers import parse_alignment_inputs
@@ -17,12 +20,9 @@ def snp():
     """
     Call SNPs and small indels on alignments
     
-    **Variant Callers**
-    - `mpileup`: call variants using bcftools mpileup
-    - `freebayes`: call variants using freebayes
-
     Provide an additional subcommand `mpileup` or `freebayes` to get more information on using
-    those variant callers. They are both robust variant callers and neither is recommended over the other.
+    those variant callers. They are both robust variant callers, but `freebayes` is recommended when ploidy
+    is greater than **2**.
     """
 
 docstring = {
@@ -33,7 +33,7 @@ docstring = {
         },
         {
             "name": "Workflow Controls",
-            "options": ["--conda", "--hpc", "--output-dir", "--quiet", "--skipreports", "--snakemake", "--threads", "--help"],
+            "options": ["--conda", "--hpc", "--output-dir", "--quiet", "--skip-reports", "--snakemake", "--threads", "--help"],
         },
     ],
     "harpy snp freebayes": [
@@ -43,27 +43,27 @@ docstring = {
         },
         {
             "name": "Workflow Controls",
-            "options": ["--conda", "--hpc", "--output-dir", "--quiet", "--skipreports", "--snakemake", "--threads", "--help"],
+            "options": ["--conda", "--hpc", "--output-dir", "--quiet", "--skip-reports", "--snakemake", "--threads", "--help"],
         },
     ]
 }
 
-@click.command(no_args_is_help = True, epilog = "See the documentation for more information: https://pdimens.github.io/harpy/modules/snp")
-@click.option('-x', '--extra-params', type = str, help = 'Additional variant caller parameters, in quotes')
-@click.option('-g', '--genome', type=click.Path(exists=True, dir_okay=False, readable=True), required = True, help = 'Genome assembly for variant calling')
+@click.command(no_args_is_help = True, context_settings=dict(allow_interspersed_args=False), epilog = "Documentation: https://pdimens.github.io/harpy/workflows/snp")
+@click.option('-x', '--extra-params', type = MpileupParams(), help = 'Additional mpileup parameters, in quotes')
+@click.option('-g', '--genome', type=InputFile("fasta", gzip_ok = True), required = True, help = 'Genome assembly for variant calling')
 @click.option('-o', '--output-dir', type = click.Path(exists = False), default = "SNP/mpileup", show_default=True,  help = 'Output directory name')
-@click.option('-n', '--ploidy', default = 2, show_default = True, type=int, help = 'Ploidy of samples')
-@click.option('-p', '--populations', type=click.Path(exists = True, dir_okay=False, readable=True), help = "Tab-delimited file of sample\<tab\>population")
+@click.option('-n', '--ploidy', default = 2, show_default = True, type=click.IntRange(min = 1, max = 2), help = 'Ploidy of samples')
+@click.option('-p', '--populations', type=click.Path(exists = True, dir_okay=False, readable=True), help = 'File of `sample`\\<TAB\\>`population`')
 @click.option('-r', '--regions', type=str, default=50000, show_default=True, help = "Regions where to call variants")
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(min = 4, max_open = True), help = 'Number of threads to use')
-@click.option('--hpc',  type = click.Path(exists = True, file_okay = False, readable=True), help = 'Directory with HPC submission `config.yaml` file')
-@click.option('--conda',  is_flag = True, default = False, help = 'Use conda/mamba instead of container')
+@click.option('--hpc',  type = HPCProfile(), help = 'Directory with HPC submission `config.yaml` file')
+@click.option('--conda',  is_flag = True, default = False, help = 'Use conda/mamba instead of a container')
 @click.option('--setup-only',  is_flag = True, hidden = True, default = False, help = 'Setup the workflow and exit')
 @click.option('--quiet',  is_flag = True, show_default = True, default = False, help = 'Don\'t show output text while running')
-@click.option('--skipreports',  is_flag = True, show_default = True, default = False, help = 'Don\'t generate HTML reports')
-@click.option('--snakemake', type = str, help = 'Additional Snakemake parameters, in quotes')
+@click.option('--skip-reports',  is_flag = True, show_default = True, default = False, help = 'Don\'t generate HTML reports')
+@click.option('--snakemake', type = SnakemakeParams(), help = 'Additional Snakemake parameters, in quotes')
 @click.argument('inputs', required=True, type=click.Path(exists=True, readable=True), nargs=-1)
-def mpileup(inputs, output_dir, regions, genome, threads, populations, ploidy, extra_params, snakemake, skipreports, quiet, hpc, conda, setup_only):
+def mpileup(inputs, output_dir, regions, genome, threads, populations, ploidy, extra_params, snakemake, skip_reports, quiet, hpc, conda, setup_only):
     """
     Call variants from using bcftools mpileup
     
@@ -82,62 +82,64 @@ def mpileup(inputs, output_dir, regions, genome, threads, populations, ploidy, e
     use as input for `--populations`. 
     """   
     output_dir = output_dir.rstrip("/")
-    workflowdir = f"{output_dir}/workflow"
+    workflowdir = os.path.join(output_dir, 'workflow')
     sdm = "conda" if conda else "conda apptainer"
     command = f'snakemake --rerun-incomplete --show-failed-logs --rerun-triggers input mtime params --nolock --software-deployment-method {sdm} --conda-prefix ./.snakemake/conda --cores {threads} --directory . '
     command += f"--snakefile {workflowdir}/snp_mpileup.smk "
     command += f"--configfile {workflowdir}/config.yaml "
     if hpc:
         command += f"--workflow-profile {hpc} "
-    if snakemake is not None:
+    if snakemake:
         command += snakemake
 
     os.makedirs(f"{workflowdir}/", exist_ok= True)
     bamlist, n = parse_alignment_inputs(inputs)
-    validate_bam_RG(bamlist)
+    validate_bam_RG(bamlist, threads, quiet)
     check_fasta(genome)
 
     # setup regions checks
     regtype = validate_regions(regions, genome)
+    region = Path(f"{workflowdir}/positions.bed").resolve()
     if regtype == "windows":
-        region = Path(f"{workflowdir}/positions.bed").resolve()
-        os.system(f"make_windows.py -m 1 -i {genome} -o {region} -w {regions}")
-    elif regtype == "region":
-        region = regions
-    else:
-        region = Path(f"{workflowdir}/positions.bed").resolve()
+        os.system(f"make_windows.py -m 1 -w {regions} {genome} > {region}")
+    elif regtype == "file":
         os.system(f"cp -f {regions} {region}")
+    else:
+        region = regions
 
     fetch_rule(workflowdir, "snp_mpileup.smk")
     fetch_report(workflowdir, "bcftools_stats.Rmd")
     os.makedirs(f"{output_dir}/logs/snakemake", exist_ok = True)
     sm_log = snakemake_log(output_dir, "snp_mpileup")
+    conda_envs = ["r"]
+    if populations:
+        validate_popfile(populations)
+        # check that samplenames and populations line up
+        validate_popsamples(bamlist, populations, quiet)
+    configs = {
+        "workflow" : "snp mpileup",
+        "snakemake_log" : sm_log,
+        "output_directory" : output_dir,
+        "ploidy" : ploidy,
+        "region_type" : regtype,
+        **({'windowsize': int(regions)} if regtype == "windows" else {}),
+        **({'extra': extra_params} if extra_params else {}),
+        "workflow_call" : command.rstrip(),
+        "conda_environments" : conda_envs,
+        "reports" : {
+            "skip": skip_reports
+        },
+        "inputs" : {
+            "genome" : Path(genome).resolve().as_posix(),
+            "regions" : Path(region).resolve().as_posix() if regtype != "region" else region,
+            **({'groupings': Path(populations).resolve().as_posix()} if populations else {}),
+            "alignments" : [i.as_posix() for i in bamlist]
+        }
+    }
+    with open(os.path.join(workflowdir, 'config.yaml'), "w", encoding="utf-8") as config:
+        yaml.dump(configs, config, default_flow_style= False, sort_keys=False, width=float('inf'))
 
-    with open(f"{workflowdir}/config.yaml", "w", encoding="utf-8") as config:
-        config.write("workflow: snp mpileup\n")
-        config.write(f"snakemake_log: {sm_log}\n")
-        config.write(f"output_directory: {output_dir}\n")
-        config.write(f"ploidy: {ploidy}\n")
-        config.write(f"regiontype: {regtype}\n")
-        if regtype == "windows":
-            config.write("windowsize: {regions}\n")
-        if extra_params is not None:
-            config.write(f"extra: {extra_params}\n")
-        config.write(f"skip_reports: {skipreports}\n")
-        config.write(f"workflow_call: {command}\n")
-        config.write("inputs:\n")
-        config.write(f"  genome: {Path(genome).resolve()}\n")
-        config.write(f"  regions: {region}\n")
-        if populations:
-            validate_popfile(populations)
-            # check that samplenames and populations line up
-            validate_popsamples(bamlist, populations, quiet)
-            config.write(f"  groupings: {populations}\n")
-        config.write("  alignments:\n")
-        for i in bamlist:
-            config.write(f"    - {i}\n")
-
-    generate_conda_deps()
+    create_conda_recipes(output_dir, conda_envs)
     if setup_only:
         sys.exit(0)
 
@@ -149,25 +151,25 @@ def mpileup(inputs, output_dir, regions, genome, threads, populations, ploidy, e
         start_text.add_row("Sample Groups:", populations)
     start_text.add_row("Genome:", genome)
     start_text.add_row("Output Folder:", output_dir + "/")
-    start_text.add_row("Workflow Log:", sm_log.replace(f"{output_dir}/", ""))
-    launch_snakemake(command, "snp_mpileup", start_text, output_dir, sm_log, quiet)
+    start_text.add_row("Workflow Log:", sm_log.replace(f"{output_dir}/", "") + "[dim].gz")
+    launch_snakemake(command, "snp_mpileup", start_text, output_dir, sm_log, quiet, "workflow/snp.mpileup.summary")
 
-@click.command(no_args_is_help = True, epilog = "See the documentation for more information: https://pdimens.github.io/harpy/modules/snp")
-@click.option('-x', '--extra-params', type = str, help = 'Additional variant caller parameters, in quotes')
-@click.option('-g', '--genome', type=click.Path(exists=True, dir_okay=False, readable=True), required = True, help = 'Genome assembly for variant calling')
+@click.command(no_args_is_help = True, context_settings=dict(allow_interspersed_args=False), epilog = "Documentation: https://pdimens.github.io/harpy/workflows/snp")
+@click.option('-x', '--extra-params', type = FreebayesParams(), help = 'Additional freebayes parameters, in quotes')
+@click.option('-g', '--genome', type=InputFile("fasta", gzip_ok = True), required = True, help = 'Genome assembly for variant calling')
 @click.option('-o', '--output-dir', type = click.Path(exists = False), default = "SNP/freebayes", show_default=True,  help = 'Output directory name')
-@click.option('-n', '--ploidy', default = 2, show_default = True, type=int, help = 'Ploidy of samples')
-@click.option('-p', '--populations', type=click.Path(exists = True, dir_okay=False, readable=True), help = "Tab-delimited file of sample\<tab\>population")
+@click.option('-n', '--ploidy', default = 2, show_default = True, type=click.IntRange(min=1, max_open=True), help = 'Ploidy of samples')
+@click.option('-p', '--populations', type=click.Path(exists = True, dir_okay=False, readable=True), help = 'File of `sample`\\<TAB\\>`population`')
 @click.option('-r', '--regions', type=str, default=50000, show_default=True, help = "Regions where to call variants")
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(min = 4, max_open = True), help = 'Number of threads to use')
-@click.option('--conda',  is_flag = True, default = False, help = 'Use conda/mamba instead of container')
+@click.option('--conda',  is_flag = True, default = False, help = 'Use conda/mamba instead of a container')
 @click.option('--setup-only',  is_flag = True, hidden = True, default = False, help = 'Setup the workflow and exit')
-@click.option('--hpc',  type = click.Path(exists = True, file_okay = False, readable=True), help = 'Directory with HPC submission `config.yaml` file')
+@click.option('--hpc',  type = HPCProfile(), help = 'Directory with HPC submission `config.yaml` file')
 @click.option('--quiet',  is_flag = True, show_default = True, default = False, help = 'Don\'t show output text while running')
-@click.option('--skipreports',  is_flag = True, show_default = True, default = False, help = 'Don\'t generate HTML reports')
-@click.option('--snakemake', type = str, help = 'Additional Snakemake parameters, in quotes')
+@click.option('--skip-reports',  is_flag = True, show_default = True, default = False, help = 'Don\'t generate HTML reports')
+@click.option('--snakemake', type = SnakemakeParams(), help = 'Additional Snakemake parameters, in quotes')
 @click.argument('inputs', required=True, type=click.Path(exists=True, readable=True), nargs=-1)
-def freebayes(inputs, output_dir, genome, threads, populations, ploidy, regions, extra_params, snakemake, skipreports, quiet, hpc, conda, setup_only):
+def freebayes(inputs, output_dir, genome, threads, populations, ploidy, regions, extra_params, snakemake, skip_reports, quiet, hpc, conda, setup_only):
     """
     Call variants using freebayes
     
@@ -186,62 +188,64 @@ def freebayes(inputs, output_dir, genome, threads, populations, ploidy, regions,
     use as input for `--populations`. 
     """
     output_dir = output_dir.rstrip("/")
-    workflowdir = f"{output_dir}/workflow"
+    workflowdir = os.path.join(output_dir, 'workflow')
     sdm = "conda" if conda else "conda apptainer"
     command = f'snakemake --rerun-incomplete --show-failed-logs --rerun-triggers input mtime params --nolock --software-deployment-method {sdm} --conda-prefix ./.snakemake/conda --cores {threads} --directory . '
     command += f"--snakefile {workflowdir}/snp_freebayes.smk "
     command += f"--configfile {workflowdir}/config.yaml "
     if hpc:
         command += f"--workflow-profile {hpc} "
-    if snakemake is not None:
+    if snakemake:
         command += snakemake
 
     os.makedirs(f"{workflowdir}/", exist_ok= True)
     bamlist, n = parse_alignment_inputs(inputs)
-    validate_bam_RG(bamlist)
+    validate_bam_RG(bamlist, threads, quiet)
     check_fasta(genome)
 
     # setup regions checks
     regtype = validate_regions(regions, genome)
+    region = Path(f"{workflowdir}/positions.bed").resolve().as_posix()
     if regtype == "windows":
-        region = Path(f"{workflowdir}/positions.bed").resolve()
-        os.system(f"make_windows.py -m 0 -i {genome} -o {region} -w {regions}")
-    elif regtype == "region":
-        region = regions
-    else:
-        region = Path(f"{workflowdir}/positions.bed").resolve()
+        os.system(f"make_windows.py -m 1 -w {regions} {genome} > {region}")
+    elif regtype == "file":
         os.system(f"cp -f {regions} {region}")
+    else:
+        region = regions
 
     fetch_rule(workflowdir, "snp_freebayes.smk")
     fetch_report(workflowdir, "bcftools_stats.Rmd")
     os.makedirs(f"{output_dir}/logs/snakemake", exist_ok = True)
     sm_log = snakemake_log(output_dir, "snp_freebayes")
+    conda_envs = ["r", "variants"]
+    if populations:
+        # check for delimeter and formatting
+        validate_popfile(populations)
+        # check that samplenames and populations line up
+        validate_popsamples(bamlist, populations,quiet)
 
-    with open(f"{workflowdir}/config.yaml", "w", encoding="utf-8") as config:
-        config.write("workflow: snp freebayes\n")
-        config.write(f"snakemake_log: {sm_log}\n")
-        config.write(f"output_directory: {output_dir}\n")
-        config.write(f"ploidy: {ploidy}\n")
-        config.write(f"regiontype: {regtype}\n")
-        if regtype == "windows":
-            config.write("windowsize: {regions}\n")
-        if extra_params is not None:
-            config.write(f"extra: {extra_params}\n")
-        config.write(f"skip_reports: {skipreports}\n")
-        config.write(f"workflow_call: {command}\n")
-        config.write("inputs:\n")
-        config.write(f"  genome: {Path(genome).resolve()}\n")
-        config.write(f"  regions: {region}\n")
-        if populations is not None:
-            validate_popfile(populations)
-            # check that samplenames and populations line up
-            validate_popsamples(bamlist, populations, quiet)
-            config.write(f"  groupings: {populations}\n")
-        config.write("  alignments:\n")
-        for i in bamlist:
-            config.write(f"    - {i}\n")
+    configs = {
+        "workflow" : "snp freebayes",
+        "snakemake_log" : sm_log,
+        "output_directory" : output_dir,
+        "ploidy" : ploidy,
+        "region_type" : regtype,
+        **({'windowsize': int(regions)} if regtype == "windows" else {}),
+        **({'extra': extra_params} if extra_params else {}),
+        "workflow_call" : command.rstrip(),
+        "conda_environments" : conda_envs,
+        "reports" : {"skip": skip_reports},
+        "inputs" : {
+            "genome" : Path(genome).resolve().as_posix(),
+            "regions" : Path(region).resolve().as_posix() if regtype != "region" else region,
+            **({'groupings': Path(populations).resolve().as_posix()} if populations else {}),
+            "alignments" : [i.as_posix() for i in bamlist]
+        }
+    }
+    with open(os.path.join(workflowdir, 'config.yaml'), "w", encoding="utf-8") as config:
+        yaml.dump(configs, config, default_flow_style= False, sort_keys=False, width=float('inf'))
 
-    generate_conda_deps()
+    create_conda_recipes(output_dir, conda_envs)
     if setup_only:
         sys.exit(0)
 
@@ -253,8 +257,8 @@ def freebayes(inputs, output_dir, genome, threads, populations, ploidy, regions,
         start_text.add_row("Sample Groups:", populations)
     start_text.add_row("Genome:", genome)
     start_text.add_row("Output Folder:", output_dir + "/")
-    start_text.add_row("Workflow Log:", sm_log.replace(f"{output_dir}/", ""))
-    launch_snakemake(command, "snp_freebayes", start_text, output_dir, sm_log, quiet)
+    start_text.add_row("Workflow Log:", sm_log.replace(f"{output_dir}/", "") + "[dim].gz")
+    launch_snakemake(command, "snp_freebayes", start_text, output_dir, sm_log, quiet, "workflow/snp.freebayes.summary")
 
 snp.add_command(mpileup)
 snp.add_command(freebayes)

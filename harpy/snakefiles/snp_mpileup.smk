@@ -1,20 +1,27 @@
 containerized: "docker://pdimens/harpy:latest"
 
 import os
-import sys
-import multiprocessing
-import logging as pylogging
+import logging
 from pathlib import Path
 
-envdir      = os.getcwd() + "/.harpy_envs"
+onstart:
+    logger.logger.addHandler(logging.FileHandler(config["snakemake_log"]))
+onsuccess:
+    os.remove(logger.logfile)
+onerror:
+    os.remove(logger.logfile)
+wildcard_constraints:
+    sample = "[a-zA-Z0-9._-]+"
+
+outdir      = config["output_directory"]
+envdir      = os.path.join(os.getcwd(), outdir, "workflow", "envs")
 ploidy 		= config["ploidy"]
 mp_extra 	= config.get("extra", "")
-regiontype  = config["regiontype"]
+regiontype  = config["region_type"]
 windowsize  = config.get("windowsize", None)
-outdir      = config["output_directory"]
-skipreports = config["skip_reports"]
-snakemake_log = config["snakemake_log"]
+skip_reports = config["reports"]["skip"]
 bamlist     = config["inputs"]["alignments"]
+bamdict     = dict(zip(bamlist, bamlist))
 genomefile 	= config["inputs"]["genome"]
 bn          = os.path.basename(genomefile)
 genome_zip  = True if bn.lower().endswith(".gz") else False
@@ -28,27 +35,12 @@ if regiontype == "region":
 else:
     with open(regioninput, "r") as reg_in:
         intervals = set()
-        while True:
-            line = reg_in.readline()
-            if not line:
-                break
+        for line in reg_in:
             cont,startpos,endpos = line.split()
             intervals.add(f"{cont}:{startpos}-{endpos}")
     regions = dict(zip(intervals, intervals))
 
-wildcard_constraints:
-    sample = "[a-zA-Z0-9._-]+"
-
-onstart:
-    extra_logfile_handler = pylogging.FileHandler(snakemake_log)
-    logger.logger.addHandler(extra_logfile_handler)
-
-def sam_index(infile):
-    """Use Samtools to index an input file, adding .bai to the end of the name"""
-    if not os.path.exists(f"{infile}.bai"):
-        subprocess.run(f"samtools index {infile} {infile}.bai".split())
-
-rule setup_genome:
+rule process_genome:
     input:
         genomefile
     output: 
@@ -65,7 +57,7 @@ rule setup_genome:
         fi
         """
 
-rule faidx_genome:
+rule index_genome:
     input: 
         f"Genome/{bn}"
     output: 
@@ -90,28 +82,27 @@ rule preproc_groups:
     input:
         groupings
     output:
-        outdir + "/logs/sample.groups"
+        outdir + "/workflow/sample.groups"
     run:
         with open(input[0], "r") as infile, open(output[0], "w") as outfile:
             _ = [outfile.write(i) for i in infile.readlines() if not i.lstrip().startswith("#")]
 
 rule index_alignments:
     input:
-        bamlist
+        lambda wc: bamdict[wc.bam]
     output:
-        [f"{i}.bai" for i in bamlist]
-    threads:
-        workflow.cores
-    run:
-        with multiprocessing.Pool(processes=threads) as pool:
-            pool.map(sam_index, input)
+        "{bam}.bai"
+    container:
+        None
+    shell:
+        "samtools index {input}"
 
 rule bam_list:
     input: 
         bam = bamlist,
-        bai = [f"{i}.bai" for i in bamlist]
+        bai = collect("{bam}.bai", bam = bamlist)
     output:
-        outdir + "/logs/samples.files"
+        temp(outdir + "/logs/samples.files")
     run:
         with open(output[0], "w") as fout:
             for bamfile in input.bam:
@@ -120,6 +111,8 @@ rule bam_list:
 rule mpileup:
     input:
         bamlist = outdir + "/logs/samples.files",
+        bam = bamlist,
+        bai = collect("{bam}.bai", bam = bamlist),
         genome  = f"Genome/{bn}",
         genome_fai = f"Genome/{bn}.fai"
     output: 
@@ -135,7 +128,7 @@ rule mpileup:
 
 rule call_genotypes:
     input:
-        groupfile = outdir + "/logs/sample.groups" if groupings else [],
+        groupfile = outdir + "/workflow/sample.groups" if groupings else [],
         bcf = outdir + "/mpileup/{part}.mp.bcf"
     output:
         bcf = temp(outdir + "/call/{part}.bcf"),
@@ -203,6 +196,23 @@ rule sort_variants:
     shell:
         "bcftools sort --write-index -Ob -o {output.bcf} {input} 2> /dev/null"
 
+rule indel_realign:
+    input:
+        genome  = f"Genome/{bn}",
+        bcf     = outdir + "/variants.raw.bcf",
+        idx     = outdir + "/variants.raw.bcf.csi"
+    output:
+        bcf = outdir + "/variants.normalized.bcf",
+        idx = outdir + "/variants.normalized.bcf.csi"
+    log:
+        outdir + "/logs/variants.normalized.log"
+    threads:
+        workflow.cores
+    container:
+        None
+    shell:
+        "bcftools norm --threads {threads} -m -both -d both --write-index -Ob -o {output.bcf} -f {input.genome} {input.bcf} 2> {log}"
+
 rule general_stats:
     input:
         genome  = f"Genome/{bn}",
@@ -222,6 +232,8 @@ rule variant_report:
         outdir + "/reports/data/variants.{type}.stats"
     output:
         outdir + "/reports/variants.{type}.html"
+    log:
+        logfile = outdir + "/logs/variants.{type}.report.log"    
     conda:
         f"{envdir}/r.yaml"
     script:
@@ -232,25 +244,32 @@ rule workflow_summary:
     input:
         vcf = collect(outdir + "/variants.{file}.bcf", file = ["raw"]),
         agg_log = outdir + "/logs/mpileup.log",
-        reports = collect(outdir + "/reports/variants.{file}.html", file = ["raw"]) if not skipreports else []
+        reports = collect(outdir + "/reports/variants.{file}.html", file = ["raw", "normalized"]) if not skip_reports else []
     params:
         ploidy = f"--ploidy {ploidy}",
         populations = f"--populations {groupings}" if groupings else "--populations -"
     run:
+        summary = ["The harpy snp freebayes workflow ran using these parameters:"]
+        summary.append(f"The provided genome: {bn}")
+        if windowsize:
+            summary.append(f"Size of intervals to split genome for variant calling: {windowsize}")
+        else:
+            summary.append(f"Genomic positions for which variants were called: {regioninput}")
+        mpileup = "The mpileup parameters:\n"
+        mpileup += f"\tbcftools mpileup --fasta-ref GENOME --region REGION --bam-list BAMS --annotate AD --output-type b {mp_extra}"
+        summary.append(mpileup)
+        bcfcall = "The bcftools call parameters:\n"
+        bcfcall += "\tbcftools call --multiallelic-caller {params} --variants-only --output-type b |\n"
+        bcfcall += "\tbcftools sort -"
+        summary.append(bcfcall)
+        merged = "The variants identified in the intervals were merged into the final variant file using:\n"
+        merged += "\tbcftools concat -f bcf.files -a --remove-duplicates"
+        summary.append(merged)
+        normalize = "The variants were normalized using:\n"
+        normalize += "\tbcftools norm -m -both -d both"
+        summary.append(normalize)
+        sm = "The Snakemake workflow was called via command line:\n"
+        sm += f"\t{config['workflow_call']}"
+        summary.append(sm)
         with open(outdir + "/workflow/snp.mpileup.summary", "w") as f:
-            _ = f.write("The harpy snp mpileup workflow ran using these parameters:\n\n")
-            _ = f.write(f"The provided genome: {bn}\n")
-            if windowsize:
-                _ = f.write(f"Size of intervals to split genome for variant calling: {windowsize}\n")
-            else:
-                _ = f.write(f"Genomic positions for which variants were called: {regioninput}\n")
-            _ = f.write("The mpileup parameters:\n")
-            _ = f.write("    bcftools mpileup --fasta-ref GENOME --region REGION --bam-list BAMS --annotate AD --output-type b" + mp_extra + "\n")
-            _ = f.write("The bcftools call parameters:\n")
-            _ = f.write("    bcftools call --multiallelic-caller " + " ".join(params) + " --variants-only --output-type b | bcftools sort -\n")
-            _ = f.write("The variants identified in the intervals were merged into the final variant file using:\n")
-            _ = f.write("    bcftools concat -f vcf.list -a --remove-duplicates\n")
-            #_ = f.write("The variants were normalized using:\n")
-            #_ = f.write("    bcftools norm -d exact | bcftools norm -m -any -N -Ob\n")
-            _ = f.write("\nThe Snakemake workflow was called via command line:\n")
-            _ = f.write("    " + str(config["workflow_call"]) + "\n")
+            f.write("\n\n".join(summary))

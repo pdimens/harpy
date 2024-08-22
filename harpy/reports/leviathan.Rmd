@@ -14,7 +14,14 @@ output:
       - { title : "Source", icon: "fa-github", href: "https://www.github.com/pdimens/harpy/", align: right }
 ---
 
-```{r load environment, echo=FALSE, message=FALSE, warning=FALSE}
+```{r setup}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE)
+logfile <- file(snakemake@log$logfile, open = "wt")
+sink(logfile)
+sink(logfile, type = "message")
+```
+
+```{r package_imports}
 using<-function(...) {
     libs<-unlist(list(...))
     req<-unlist(lapply(libs,require,character.only=TRUE))
@@ -29,7 +36,7 @@ using("flexdashboard","dplyr","ggplot2","DT","BioCircos")
 
 ## Intro
 ### introtext {.no-title}
-```{r}
+```{r read_inputs}
 fai <- snakemake@input[["faidx"]]
 statsfile <- snakemake@input[["statsfile"]]
 samplename <- gsub(".stats", "", basename(statsfile))
@@ -39,7 +46,7 @@ samplename <- gsub(".stats", "", basename(statsfile))
 Below is a series of tables and plots detailing the structural variants
 identified by [LEVIATHAN](https://github.com/morispi/LEVIATHAN) [(preprint)](https://doi.org/10.1101/2021.03.25.437002). The variants are given by:
 
-```{r table2, echo=FALSE, message=FALSE, warnings=FALSE}
+```{r table2}
 knitr::kable(
   data.frame(
   "Variant" = c("INV", "DUP", "DEL","BND"),
@@ -58,7 +65,7 @@ This tab (`General Stats`) shows overview information. Clicking `Per-Contig Plot
 in the navigation bar at the top of this page will show you interactive
 plots detailing all variants identified.
 
-```{r}
+```{r process_statsfile}
 sv <- read.table(statsfile, header = T,
   colClasses = c("factor", "factor", "integer", "integer", "character", "factor", "integer", "integer")
 )
@@ -69,7 +76,7 @@ if (nrow(sv) == 0) {
 ```
 
 ## General Information {data-height=100}
-```{r summaryinfo, echo=FALSE, message=FALSE, warning=FALSE}
+```{r summaryinfo}
 summinfo <- sv %>%
   group_by(contig, type) %>%
   summarise(count = n()) %>% 
@@ -120,7 +127,11 @@ every contig.
 
 ## Various Stats Tables
 ### All variants found
-```{r various stats, echo = FALSE, warnings = FALSE, message = FALSE}
+```{r fix_breakend_length}
+sv$length <- gsub("\\.", "1", sv$length) %>%  as.numeric()
+```
+
+```{r various stats}
 DT::datatable(
   sv,
   rownames = F,
@@ -137,11 +148,7 @@ DT::datatable(
 ```
 
 ### Per-contig info
-```{r echo = FALSE, message = FALSE}
-sv$length <- gsub("\\.", "1", sv$length) %>%  as.numeric()
-```
-
-```{r percontig, echo = FALSE, message = FALSE, warning = FALSE}
+```{r percontig}
 grpstats <- sv %>%
   group_by(contig, type) %>%
   summarise(count = n(), total_bp  = sum(length))
@@ -170,7 +177,7 @@ colors correspond to which type of variant.
 You may click on the plot to expand it in your browser window. Clicking it again will exit
 out of the zoomed view.
 
-```{r plot legend, echo = FALSE, warning = FALSE, message = FALSE}
+```{r plot legend}
 color.palette <- c("deletion" = "#5a8c84", "duplication" = "#99278a", "inversion" = "#4a9fea", "breakend" = "#c56e34")
 
 data.frame(x = 1, y = 1:4, colour = c("breakend","deletion","duplication", "inversion")) %>% 
@@ -200,11 +207,15 @@ ggplot(aes(x, y, fill = colour))+
 fa.sizes <- read.table(fai, header = F) %>% arrange(desc(2))
 colnames(fa.sizes) <- c("contig", "size")
 
-# make sure that the contigs with SV are the ones being plotted, not the others
-fa.sizes <- fa.sizes[fa.sizes$contig %in% unique(sv$contig), 1:2]
-
-# limit the data to only the 30 of the largest present contigs
-fa.sizes <- fa.sizes[1:min(nrow(fa.sizes), 30), ]
+plot_contigs <- snakemake@params$contigs
+if (all(plot_contigs == "default")){
+  # make sure that the contigs with SV are the ones being plotted, not the others
+  fa.sizes <- fa.sizes[fa.sizes$contig %in% unique(sv$contig), 1:2]
+  # limit the data to only the 30 of the largest present contigs
+  fa.sizes <- fa.sizes[1:min(nrow(fa.sizes), 30), ]
+} else {
+  fa.sizes <- fa.sizes[fa.sizes$contig %in% plot_contigs, 1:2]
+}
 
 # filter out variants that aren't on one of these contigs
 sv <- sv[sv$contig %in% fa.sizes$contig, ]

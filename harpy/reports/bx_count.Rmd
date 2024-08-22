@@ -14,7 +14,14 @@ output:
       - { title : "Source", icon: "fa-github", href: "https://www.github.com/pdimens/harpy/", align: right }
 ---
 
-```{r echo = FALSE, message = FALSE}
+```{r setup}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE)
+logfile <- file(snakemake@log$logfile, open = "wt")
+sink(logfile)
+sink(logfile, type = "message")
+```
+
+```{r package_imports}
 using<-function(...) {
     libs<-unlist(list(...))
     req<-unlist(lapply(libs,require,character.only=TRUE))
@@ -48,7 +55,7 @@ SAM spec `TAG:TYPE:VALUE`.
 | :---:|
 
 ## genstats {data-height=100}
-```{r instantiate_df, echo = FALSE, message = FALSE, warning = FALSE}
+```{r instantiate_df}
 BXstats <- data.frame(
   Sample = character(),
   TotalReads = integer(),
@@ -68,7 +75,7 @@ invalids <- data.frame(
 )
 ```
 
-```{r fill_df, echo = FALSE, message = FALSE, warning = FALSE}
+```{r fill_df}
 #for (i in list.files("~/Documents/harpy/bananas/logs/bxcount/", ".count.log", full.names = TRUE)) {
 for (i in snakemake@input[["countlog"]]) {
   samplename <- gsub(".count.log", "", basename(i))
@@ -113,25 +120,25 @@ for (i in snakemake@input[["countlog"]]) {
 
 
 ### filerow {.no-title}
-```{r}
+```{r valuebox_samples}
 valueBox(scales::comma(nrow(BXstats)), caption = "Samples", color = "success")
 ```
 ### mininv {.no-title}
-```{r}
+```{r valuebox_min_perc_valid}
 valueBox(min(BXstats$ValidPercent), caption = "Minimum % Valid", color = "info")
 ```
 ### maxinv {.no-title}
-```{r}
+```{r valuebox_max_perc_valid}
 valueBox(max(BXstats$ValidPercent), caption = "Maximum % Valid", color = "info")
 ```
 
 ### minign {.no-title}
-```{r}
+```{r valuebox_min_absent}
 absent <- BXstats$TotalReads-BXstats$TotalBarcodes
 valueBox(min(absent), caption = "Minimum Absent Barcodes", color = "info")
 ```
 ### maxign {.no-title}
-```{r}
+```{r valubox_max_absent}
 valueBox(max(absent), caption = "Maximum Absent Barcodes", color = "info")
 ```
 
@@ -145,7 +152,7 @@ If for some reason `TotalBarcodes` equals `0`, then there may be an issue with
 the format of your FASTQ headers.
 
 ## persamp viz
-```{r echo = FALSE, message = FALSE, warning = FALSE}
+```{r per_sample_tables}
 plotdata <- BXstats %>%
   select(Sample, ValidBarcodes, InvalidBarcodes) %>% 
   rename(Valid = ValidBarcodes, Invalid = InvalidBarcodes)
@@ -156,7 +163,7 @@ percdata <- BXstats %>%
 ```
 
 ### Table {.no-title}
-```{r}
+```{r sample_bx_qual}
 DT::datatable(
   BXstats,
   rownames = FALSE,
@@ -197,7 +204,7 @@ because the number of reads and barcodes will vary between individual samples.
 These data are visualized in the scatterplot below this section.
 
 ## Segment
-```{r echo = FALSE, message = FALSE, warning = FALSE}
+```{r invalid_segment_processing}
 invalids_percent <- data.frame(
   Sample = as.factor(invalids$Sample),
   A = round(invalids$A/invalids$TotalBarcodes * 100, digits = 3),
@@ -210,7 +217,7 @@ invalids_long$Segment <- as.factor(paste0("segment " , invalids_long$Segment))
 ```
 
 ### segment dist {.no-title}
-```{r echo = FALSE, message = FALSE, warning = FALSE}
+```{r invalid_segment_dist}
 inv_hist <- data.frame(Segment = character(), Bin = numeric(), Count = numeric())
 inv_breaks <- hist(invalids_long$Count, plot = F)
 inv_breaks <- inv_breaks$breaks
@@ -234,7 +241,7 @@ hchart(inv_hist, "areaspline", hcaes(x = Bin, y = Count, group = Segment), stack
 ```
 
 ### table per thousand {.no-title}
-```{r echo = FALSE, message = FALSE, warning = FALSE}
+```{r invalid_segment_table}
 DT::datatable(
   invalids_percent,
   rownames = FALSE,
@@ -267,7 +274,7 @@ figheight <- 0.6 + (0.2 * nrow(invalids))
 
 ## validity plots {data-height=pltheight}
 ### count of valid barcodes {.no-title}
-```{r echo = FALSE, message = FALSE, warning = FALSE, fig.height=figheight, out.width = '100%'}
+```{r valid_plot, fig.height=figheight, out.width = '100%'}
 tb<-plotdata %>%
   pivot_longer(-Sample, names_to = "Barcode", values_to = "Count")
 
@@ -283,7 +290,7 @@ hchart(tb, "bar", hcaes(x = Sample, y = Count, group = Barcode), stacking = "nor
   )
 ```
 ### proportional valid barcodes {.no-title}
-```{r echo = FALSE, message = FALSE, warning = FALSE, fig.height=figheight, out.width = '100%'}
+```{r valid_proportion_plot, fig.height=figheight, out.width = '100%'}
 hchart(tb, "bar", hcaes(x = Sample, y = Count, group = Barcode), stacking = "percent") |>
   hc_colors(c("#707070", "#b88ace")) |>
   hc_title(text = "Valid vs Invalid Barcodes") |>
@@ -297,7 +304,7 @@ hchart(tb, "bar", hcaes(x = Sample, y = Count, group = Barcode), stacking = "per
 ```
 
 ### which haplotag barcode segments are invalid {.no-title}
-```{r echo = FALSE, message = FALSE, warning = FALSE, fig.height=figheight, out.width = '100%'}
+```{r invalid_segment_plot, fig.height=figheight, out.width = '100%'}
 highchart() |>
   hc_chart(inverted=TRUE) |>
   hc_add_series(data = invalids_long,  type = "scatter", hcaes(x = Sample, y = Count, group = Segment), marker = list(symbol = "circle")) |>

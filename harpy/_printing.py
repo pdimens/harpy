@@ -17,12 +17,19 @@ def print_error(errortitle, errortext):
         file = sys.stderr
     )
 
-def print_snakefile_error(errortext):
-    """Print a red panel with snakefile error text"""
+def print_setup_error(exitcode):
+    """Print a red panel with snakefile or conda/singularity error text"""
+    if exitcode == 1:
+        errortext = "Something is wrong with the Snakefile for this workflow. If you manually edited the Snakefile, see the error below for troubleshooting. If you didn't, it's probably a bug (oops!) and you should submit an issue on GitHub: [bold]https://github.com/pdimens/harpy/issues"
+        errortype = "Snakefile Error"
+    else:
+        errortext = "There was an issue creating the software environment(s) necessary to run this workflow. If you manually edited the conda dependencies in [blue]/workflows/envs[/blue], see the error below for troubleshooting. If you didn't, it might be a bug or related to how your system is setup for Conda or Singularity environments and you should submit an issue on GitHub: [bold]https://github.com/pdimens/harpy/issues"
+        errortype = "Software Environment Error"
+
     rprint(
         Panel(
             errortext,
-            title = "[bold]Snakefile Error",
+            title = "[bold]" + errortype,
             title_align = "left",
             subtitle = "The error reported by Snakemake",
             border_style = "red",
@@ -83,11 +90,14 @@ def print_onstart(text, title):
         file = sys.stderr
     )
 
-def print_onsuccess(outdir):
+def print_onsuccess(outdir, summary = None):
     """Print a green panel with success text. To be used in place of onsuccess: inside a snakefile"""
+    text = f"The workflow has finished successfully! Find the results in [bold]{outdir}/[/bold]"
+    if summary:
+        text += f" and an outline of the workflow in [bold]{summary}[/bold]"
     rprint(
         Panel(
-            f"The workflow has finished successfully! Find the results in [bold]{outdir}/[/bold]",
+            text,
             subtitle = "[bold]success!",
             title_align = "left",
             border_style = "green",

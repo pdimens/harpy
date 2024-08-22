@@ -41,6 +41,7 @@ jobs:
       phase: ${{ steps.filter.outputs.phase }}
       simvars: ${{ steps.filter.outputs.simvars }}
       simreads: ${{ steps.filter.outputs.simreads }}
+      assembly: ${{ steps.filter.outputs.assembly }}
       other: ${{ steps.filter.outputs.other }}
       container: ${{ steps.filter.outputs.container }}
       modules: ${{ steps.filter.outputs.modules }}
@@ -106,7 +107,7 @@ jobs:
         id: singularity
         shell: micromamba-shell {0}
         if: ${{ needs.changes.outputs.modules == 'true' }}
-        run: harpy qc --skipreports --quiet test/fastq/sample1.*.fq.gz
+        run: harpy qc --skip-reports --quiet test/fastq/sample1.*.fq.gz
       - name: Create Singularity Artifact
         if: ${{ steps.singularity.outcome == 'success' }}
         uses: actions/upload-artifact@v4
@@ -140,7 +141,7 @@ jobs:
           pip install dist/*.whl
           resources/buildforCI.sh
       - name: Clear Space
-        run: rm -rf /opt/hostedtoolcache && mkdir -p .snakemake/singularity
+        uses: jlumbroso/free-disk-space@main
       - name: Download Singularity Artifact
         uses: actions/download-artifact@v4
         with:
@@ -178,7 +179,7 @@ jobs:
           pip install dist/*.whl
           resources/buildforCI.sh
       - name: Clear Space
-        run: rm -rf /opt/hostedtoolcache && mkdir -p .snakemake/singularity
+        uses: jlumbroso/free-disk-space@main
       - name: Download Singularity Artifact
         uses: actions/download-artifact@v4
         with:
@@ -220,7 +221,7 @@ jobs:
           pip install dist/*.whl
           resources/buildforCI.sh
       - name: Clear Space
-        run: rm -rf /opt/hostedtoolcache && mkdir -p .snakemake/singularity
+        uses: jlumbroso/free-disk-space@main
       - name: Download Singularity Artifact
         uses: actions/download-artifact@v4
         with:
@@ -228,10 +229,10 @@ jobs:
           path: .snakemake/singularity
       - name: harpy qc
         shell: micromamba-shell {0}
-        run: harpy qc -x "--trim_poly_g" --quiet test/fastq
+        run: harpy qc -x "--low_complexity_filter" --quiet test/fastq
       - name: harpy qc all options
         shell: micromamba-shell {0}
-        run: harpy qc -a -d -c --quiet test/fastq
+        run: harpy qc -a -d -c 21,40,3,0 --quiet test/fastq
   deconvolve:
     needs: [changes, pkgbuild]
     if: ${{ needs.changes.outputs.deconvolve == 'true' && needs.pkgbuild.result == 'success' }}
@@ -260,7 +261,7 @@ jobs:
           pip install dist/*.whl
           resources/buildforCI.sh
       - name: Clear Space
-        run: rm -rf /opt/hostedtoolcache && mkdir -p .snakemake/singularity
+        uses: jlumbroso/free-disk-space@main
       - name: Download Singularity Artifact
         uses: actions/download-artifact@v4
         with:
@@ -297,7 +298,7 @@ jobs:
           pip install dist/*.whl
           resources/buildforCI.sh
       - name: Clear Space
-        run: rm -rf /opt/hostedtoolcache && mkdir -p .snakemake/singularity
+        uses: jlumbroso/free-disk-space@main
       - name: Download Singularity Artifact
         uses: actions/download-artifact@v4
         with:
@@ -335,7 +336,7 @@ jobs:
           pip install dist/*.whl
           resources/buildforCI.sh
       - name: Clear Space
-        run: rm -rf /opt/hostedtoolcache && mkdir -p .snakemake/singularity
+        uses: jlumbroso/free-disk-space@main
       - name: Download Singularity Artifact
         uses: actions/download-artifact@v4
         with:
@@ -343,7 +344,7 @@ jobs:
           path: .snakemake/singularity
       - name: test ema
         shell: micromamba-shell {0}
-        run: harpy align ema --quiet --ema-bins 150 -g test/genome/genome.fasta.gz -x "-d" test/fastq
+        run: harpy align ema --quiet --ema-bins 150 -g test/genome/genome.fasta.gz test/fastq
 
   strobe:
     needs: [changes, pkgbuild]
@@ -373,7 +374,7 @@ jobs:
           pip install dist/*.whl
           resources/buildforCI.sh
       - name: Clear Space
-        run: rm -rf /opt/hostedtoolcache && mkdir -p .snakemake/singularity
+        uses: jlumbroso/free-disk-space@main
       - name: Download Singularity Artifact
         uses: actions/download-artifact@v4
         with:
@@ -411,7 +412,7 @@ jobs:
           pip install dist/*.whl
           resources/buildforCI.sh
       - name: Clear Space
-        run: rm -rf /opt/hostedtoolcache && mkdir -p .snakemake/singularity
+        uses: jlumbroso/free-disk-space@main
       - name: Download Singularity Artifact
         uses: actions/download-artifact@v4
         with:
@@ -452,7 +453,7 @@ jobs:
           pip install dist/*.whl
           resources/buildforCI.sh
       - name: Clear Space
-        run: rm -rf /opt/hostedtoolcache && mkdir -p .snakemake/singularity
+        uses: jlumbroso/free-disk-space@main
       - name: Download Singularity Artifact
         uses: actions/download-artifact@v4
         with:
@@ -493,7 +494,7 @@ jobs:
           pip install dist/*.whl
           resources/buildforCI.sh
       - name: Clear Space
-        run: rm -rf /opt/hostedtoolcache && mkdir -p .snakemake/singularity
+        uses: jlumbroso/free-disk-space@main
       - name: Download Singularity Artifact
         uses: actions/download-artifact@v4
         with:
@@ -535,7 +536,7 @@ jobs:
           pip install dist/*.whl
           resources/buildforCI.sh
       - name: Clear Space
-        run: rm -rf /opt/hostedtoolcache && mkdir -p .snakemake/singularity
+        uses: jlumbroso/free-disk-space@main
       - name: Download Singularity Artifact
         uses: actions/download-artifact@v4
         with:
@@ -552,7 +553,7 @@ jobs:
         shell: micromamba-shell {0}
         if: always()
         run: |
-          cp test/bam/sample1.bam test/bam/pineapple.bam && rename_bam -d test/bam/pineapple.bam pineapple1
+          cp test/bam/sample1.bam test/bam/pineapple.bam && rename_bam.py -d pineapple1 test/bam/pineapple.bam
           harpy phase --quiet --vcf-samples -o phasevcf --vcf test/vcf/test.bcf  test/bam
 
   leviathan:
@@ -583,7 +584,7 @@ jobs:
           pip install dist/*.whl
           resources/buildforCI.sh
       - name: Clear Space
-        run: rm -rf /opt/hostedtoolcache && mkdir -p .snakemake/singularity
+        uses: jlumbroso/free-disk-space@main
       - name: Download Singularity Artifact
         uses: actions/download-artifact@v4
         with:
@@ -626,7 +627,7 @@ jobs:
           pip install dist/*.whl
           resources/buildforCI.sh
       - name: Clear Space
-        run: rm -rf /opt/hostedtoolcache && mkdir -p .snakemake/singularity
+        uses: jlumbroso/free-disk-space@main
       - name: Download Singularity Artifact
         uses: actions/download-artifact@v4
         with:
@@ -678,7 +679,7 @@ jobs:
           pip install dist/*.whl
           resources/buildforCI.sh
       - name: Clear Space
-        run: rm -rf /opt/hostedtoolcache && mkdir -p .snakemake/singularity
+        uses: jlumbroso/free-disk-space@main
       - name: Download Singularity Artifact
         uses: actions/download-artifact@v4
         with:
@@ -688,25 +689,25 @@ jobs:
         shell: micromamba-shell {0}
         run: |
           harpy simulate snpindel --quiet --snp-count 10 --indel-count 10 -z 0.5  test/genome/genome.fasta.gz
-          harpy simulate snpindel --quiet --prefix Simulate/snpvcf --snp-vcf Simulate/snpindel/sim.snpindel.snp.hap1.vcf --indel-vcf Simulate/snpindel/sim.snpindel.indel.hap1.vcf  test/genome/genome.fasta.gz
+          harpy simulate snpindel --quiet --prefix Simulate/snpvcf --snp-vcf Simulate/snpindel/haplotype_1/sim.hap1.snp.vcf --indel-vcf Simulate/snpindel/haplotype_1/sim.hap1.indel.vcf  test/genome/genome.fasta.gz
       - name: simulate inversions
         shell: micromamba-shell {0}
         if: always()
         run: |
           harpy simulate inversion --quiet --count 10 -z 0.5 test/genome/genome.fasta.gz
-          harpy simulate inversion --quiet --prefix Simulate/invvcf --vcf Simulate/inversion/sim.inversion.hap1.vcf  test/genome/genome.fasta.gz
+          harpy simulate inversion --quiet --prefix Simulate/invvcf --vcf Simulate/inversion/haplotype_1/sim.hap1.inversion.vcf  test/genome/genome.fasta.gz
       - name: simulate cnv
         shell: micromamba-shell {0}
         if: always()
         run: |
           harpy simulate cnv --quiet --count 10 -z 0.5 test/genome/genome.fasta.gz
-          harpy simulate cnv --quiet --prefix Simulate/cnvvcf --vcf Simulate/cnv/sim.cnv.hap1.vcf  test/genome/genome.fasta.gz
+          harpy simulate cnv --quiet --prefix Simulate/cnvvcf --vcf Simulate/cnv/haplotype_1/sim.hap1.cnv.vcf  test/genome/genome.fasta.gz
       - name: simulate translocations
         shell: micromamba-shell {0}
         if: always()
         run: |
           harpy simulate translocation --quiet --count 10 -z 0.5 test/genome/genome.fasta.gz
-          harpy simulate translocation --quiet --prefix Simulate/transvcf --vcf Simulate/translocation/sim.translocation.hap1.vcf  test/genome/genome.fasta.gz
+          harpy simulate translocation --quiet --prefix Simulate/transvcf --vcf Simulate/translocation/haplotype_1/sim.hap1.translocation.vcf  test/genome/genome.fasta.gz
 
   simulate_linkedreads:
     needs: [changes, pkgbuild]
@@ -736,7 +737,7 @@ jobs:
           pip install dist/*.whl
           resources/buildforCI.sh
       - name: Clear Space
-        run: rm -rf /opt/hostedtoolcache && mkdir -p .snakemake/singularity
+        uses: jlumbroso/free-disk-space@main
       - name: Download Singularity Artifact
         uses: actions/download-artifact@v4
         with:
@@ -744,7 +745,53 @@ jobs:
           path: .snakemake/singularity
       - name: simulate linked reads
         shell: micromamba-shell {0}
-        run: harpy simulate linkedreads --quiet -t 4 -n 2  -l 100 -p 50 test/genome/genome.fasta.gz test/genome/genome2.fasta.gz
+        run: |
+          haplotag_barcodes.py -n 14000000 > test/haplotag.bc
+          harpy simulate linkedreads --quiet -t 4 -n 2 -b test/haplotag.bc -l 100 -p 50 test/genome/genome.fasta.gz test/genome/genome2.fasta.gz
+
+  assembly:
+    needs: [changes, pkgbuild]
+    if: ${{ needs.changes.outputs.assembly == 'true' && needs.pkgbuild.result == 'success' }}
+    name: metassembly
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+      - name: Setup Mamba
+        uses: mamba-org/setup-micromamba@v1
+        env:
+          ACTIONS_STEP_DEBUG: true
+        with:
+          init-shell: bash
+          generate-run-shell: true
+          environment-file: resources/harpy.yaml
+          cache-environment: true
+          post-cleanup: 'all'
+          log-level: error
+      - name: Install Harpy
+        shell: micromamba-shell {0}
+        run: |
+          python3 -m pip install --upgrade build && python3 -m build
+          pip install dist/*.whl
+          resources/buildforCI.sh
+      - name: Clear Space
+        uses: jlumbroso/free-disk-space@main
+      - name: Download Singularity Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: deps-image
+          path: .snakemake/singularity
+      - name: test assembly
+        shell: micromamba-shell {0}
+        run: harpy assembly --quiet -r 4000 test/fastq/sample1.*
+      - name: test metassembly
+        shell: micromamba-shell {0}
+        run: harpy metassembly --quiet -r 4000 test/fastq/sample1.*
+      - name: test metassembly without barcodes
+        shell: micromamba-shell {0}
+        run: harpy metassembly --ignore-bx --quiet -r 4000 test/fastq/sample1.*
 
   extras:
     needs: [changes, pkgbuild]
@@ -774,10 +821,17 @@ jobs:
           pip install dist/*.whl
           resources/buildforCI.sh
       - name: Clear Space
-        run: rm -rf /opt/hostedtoolcache && mkdir -p .snakemake/singularity
-      - name: harpy stitchparams
+        uses: jlumbroso/free-disk-space@main
+      - name: harpy imputeparams
         shell: micromamba-shell {0}
-        run: harpy stitchparams -o params.file
+        run: harpy imputeparams -o params.file
       - name: harpy popgroup
         shell: micromamba-shell {0}
         run: harpy popgroup test/fastq
+      - name: harpy hpc
+        shell: micromamba-shell {0}
+        run: |
+          harpy hpc slurm
+          harpy hpc googlebatch
+          harpy hpc lsf
+          harpy hpc htcondor

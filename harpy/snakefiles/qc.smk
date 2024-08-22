@@ -2,12 +2,20 @@ containerized: "docker://pdimens/harpy:latest"
 
 import os
 import re
-import sys
-import logging as pylogging
+import logging
 
-envdir       = os.getcwd() + "/.harpy_envs"
+onstart:
+    logger.logger.addHandler(logging.FileHandler(config["snakemake_log"]))
+onsuccess:
+    os.remove(logger.logfile)
+onerror:
+    os.remove(logger.logfile)
+wildcard_constraints:
+    sample = "[a-zA-Z0-9._-]+"
+
 fqlist       = config["inputs"]
 outdir       = config["output_directory"]
+envdir       = os.path.join(os.getcwd(), outdir, "workflow", "envs")
 min_len 	 = config["min_len"]
 max_len 	 = config["max_len"]
 extra 	     = config.get("extra", "") 
@@ -19,18 +27,9 @@ if deconvolve:
     decon_w = deconvolve["window_size"]
     decon_d = deconvolve["density"]
     decon_a = deconvolve["dropout"]
-skipreports  = config["skip_reports"]
-snakemake_log = config["snakemake_log"]
-
+skip_reports  = config["reports"]["skip"]
 bn_r = r"([_\.][12]|[_\.][FR]|[_\.]R[12](?:\_00[0-9])*)?\.((fastq|fq)(\.gz)?)$"
 samplenames = {re.sub(bn_r, "", os.path.basename(i), flags = re.IGNORECASE) for i in fqlist}
-
-wildcard_constraints:
-    sample = "[a-zA-Z0-9._-]+"
-
-onstart:
-    extra_logfile_handler = pylogging.FileHandler(snakemake_log)
-    logger.logger.addHandler(extra_logfile_handler)
 
 def get_fq1(wildcards):
     # returns a list of fastq files for read 1 based on *wildcards.sample* e.g.
@@ -146,6 +145,8 @@ rule barcode_report:
         countlog = collect(outdir + "/logs/bxcount/{sample}.count.log", sample = samplenames)
     output:
         outdir + "/reports/barcode.summary.html"
+    log:
+        logfile = outdir + "/logs/barcode.report.log"
     conda:
         f"{envdir}/r.yaml"
     script:
@@ -171,8 +172,8 @@ rule workflow_summary:
     default_target: True
     input:
         fq = collect(outdir + "/{sample}.{FR}.fq.gz", FR = ["R1", "R2"], sample = samplenames),
-        bx_report = outdir + "/reports/barcode.summary.html" if not skipreports else [],
-        agg_report = outdir + "/reports/qc.report.html" if not skipreports else []    
+        bx_report = outdir + "/reports/barcode.summary.html" if not skip_reports else [],
+        agg_report = outdir + "/reports/qc.report.html" if not skip_reports else []    
     params:
         minlen = f"--length_required {min_len}",
         maxlen = f"--max_len1 {max_len}",
@@ -180,15 +181,20 @@ rule workflow_summary:
         dedup = "-D" if dedup else "",
         extra = extra
     run:
+        summary = ["The harpy qc workflow ran using these parameters:"]
+        fastp = "fastp ran using:\n"
+        fastp += f"\tfastp --trim_poly_g --cut_right {params}"
+        summary.append(fastp)
+        if deconvolve:
+            deconv = "Deconvolution occurred using QuickDeconvolution:\n"
+            deconv += "\tQuickDeconvolution -t threads -i infile.fq -o output.fq -k {decon_k} -w {decon_w} -d {decon_d} -a {decon_a}"
+            summary.append(deconv)
+            interlv = "The interleaved output was split back into forward and reverse reads with seqtk:\n"
+            interlv += "\tseqtk -1 interleaved.fq | gzip > file.R1.fq.gz\n"
+            interlv += "\tseqtk -2 interleaved.fq | gzip > file.R2.fq.gz"
+            summary.append(interlv)
+        sm = "The Snakemake workflow was called via command line:\n"
+        sm += f"\t{config['workflow_call']}"
+        summary.append(sm)
         with open(outdir + "/workflow/qc.summary", "w") as f:
-            _ = f.write("The harpy qc workflow ran using these parameters:\n\n")
-            _ = f.write("fastp trimming ran using:\n")
-            _ = f.write("    fastp --trim_poly_g --cut_right " + " ".join(params) + "\n")
-            if deconvolve:
-                _ = f.write("Deconvolution occurred using QuickDeconvolution:\n")
-                _ = f.write(f"   QuickDeconvolution -t threads -i infile.fq -o output.fq -k {decon_k} -w {decon_w} -d {decon_d} -a {decon_a}\n")
-                _ = f.write("The interleaved output was split back into forward and reverse reads with seqtk:\n")
-                _ = f.write("    seqtk -1 interleaved.fq | gzip > file.R1.fq.gz\n")
-                _ = f.write("    seqtk -2 interleaved.fq | gzip > file.R2.fq.gz\n")
-            _ = f.write("\nThe Snakemake workflow was called via command line:\n")
-            _ = f.write("    " + str(config["workflow_call"]) + "\n")
+            f.write("\n\n".join(summary))

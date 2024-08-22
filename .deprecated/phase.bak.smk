@@ -14,7 +14,7 @@ pruning           = config["prune"]
 molecule_distance = config["molecule_distance"]
 extra             = config.get("extra", "") 
 outdir 			  = config["output_directory"]
-envdir      = os.getcwd() + "/.harpy_envs"
+envdir      = os.path.join(os.getcwd(), ".harpy_envs")
 
 if config["noBX"]:
     fragfile = outdir + "/extractHairs/{sample}.unlinked.frags"
@@ -289,7 +289,7 @@ rule workflow_summary:
     default_target: True
     input:
         vcf = outdir + "/variants.phased.bcf",
-        reports = outdir + "/reports/phase.html" if not skipreports else []
+        reports = outdir + "/reports/phase.html" if not skip_reports else []
     params:
         prune = f"--threshold {pruning}" if pruning > 0 else "--no_prune 1",
         extra = extra

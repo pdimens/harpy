@@ -16,7 +16,15 @@ output:
 
 # General Stats
 ## header row
-```{r load environment, echo=FALSE, message=FALSE, warning=FALSE}
+
+```{r setup}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE)
+logfile <- file(snakemake@log$logfile, open = "wt")
+sink(logfile)
+sink(logfile, type = "message")
+```
+
+```{r package_imports}
 using<-function(...) {
     libs<-unlist(list(...))
     req<-unlist(lapply(libs,require,character.only=TRUE))
@@ -27,13 +35,28 @@ using<-function(...) {
     }
 }
 using("flexdashboard","dplyr","tidyr","DT","highcharter","scales")
-
-modelparams <- paste(snakemake@params[[1]])
-splitparams <- unlist(strsplit(modelparams, "[_/]"))
-#modelparams <- "Filler Text"
 ```
-```{r echo = FALSE, message = FALSE, warning = FALSE}
-comparefile <- snakemake@input[[1]]
+
+```{r load_params}
+paramsname <- snakemake@params$paramname
+stitch_model <- snakemake@params$model
+stitch_usebx <- snakemake@params$usebx
+stitch_bxlimit <- snakemake@params$bxlimit
+stitch_k <- snakemake@params$k
+stitch_s <- snakemake@params$s
+stitch_ngen <- snakemake@params$ngen
+
+#paramsname <- "test"
+#stitch_model <- "test"
+#stitch_usebx <- "test"
+#stitch_bxlimit <- 10000
+#stitch_k <- 10
+#stitch_s <- 10
+#stitch_ngen <- 10
+```
+
+```{r read_input}
+comparefile <- snakemake@input$comparison
 #comparefile <- "~/impute.compare.stats"
 tryCatch(
   expr = {
@@ -52,8 +75,8 @@ conv_height <- 1.4 + (0.12 * nrow(gcts))
 gcts_long <- pivot_longer(gcts, -1, names_to = "Conversion", values_to = "Count")
 ```
 
-```{r echo=FALSE, message=FALSE, warning=FALSE}
-infofile <- snakemake@input[[2]]
+```{r read_info_input}
+infofile <- snakemake@input$infoscore
 #infofile <- "~/impute.infoscore"
 
 tryCatch(
@@ -75,31 +98,36 @@ in the navigation menu above will display imputation results per individual.
 ## Param Information {data-height=100}
 ### param_model
 ```{r}
-valueBox(gsub("model", "", splitparams[1]), caption = "model", color = "#c0c0c0")
+valueBox(paramsname, caption = "Name", color = "#b4dfbd")
+```
+
+### param_model
+```{r}
+valueBox(stitch_model, caption = "model", color = "#c0c0c0")
 ```
 
 ### param_usebx
 ```{r}
-valueBox(gsub("usebx", "", splitparams[2]), caption = "usebX", color = "#c0c0c0")
+valueBox(stitch_usebx, caption = "usebX", color = "#c0c0c0")
 ```
 ### param_bxlimit
 ```{r}
-valueBox(gsub("bxlimit", "", splitparams[6]), caption = "bxlimit", color = "#c0c0c0")
+valueBox(stitch_bxlimit , caption = "bxlimit", color = "#c0c0c0")
 ```
 
 ### param_k
 ```{r}
-valueBox(gsub("k", "", splitparams[3]), caption = "k", color = "#c0c0c0")
+valueBox(stitch_k, caption = "k", color = "#c0c0c0")
 ```
 
 ### param_s
 ```{r}
-valueBox(gsub("s", "", splitparams[4]), caption = "s", color = "#c0c0c0")
+valueBox(stitch_s, caption = "s", color = "#c0c0c0")
 ```
 
 ### param_ngen
 ```{r}
-valueBox(gsub("ngen", "", splitparams[5]), caption = "ngen", color = "#c0c0c0")
+valueBox(stitch_ngen, caption = "ngen", color = "#c0c0c0")
 ```
 
 
@@ -145,7 +173,7 @@ plot shows up to 30 of the largest contigs present in the VCF file.
 
 ## distributions
 ### Overall distribution {.no-title}
-```{r echo=FALSE, message=FALSE, warning=FALSE}
+```{r overall_dist}
 h <- hist(infos$info, breaks = 20, plot = F)
 h <- data.frame(info = round(h$breaks[1:length(h$breaks)-1], 2), freq = round(h$counts / sum(h$counts)  * 100, 2))
 hchart(h, "areaspline", hcaes(x = info, y = freq), name = "% sites", marker = list(enabled = FALSE)) |>
@@ -161,7 +189,7 @@ hchart(h, "areaspline", hcaes(x = info, y = freq), name = "% sites", marker = li
 ```
 
 ### Per-contig distribution {.no-title}
-```{r echo = FALSE, message = FALSE, warning = FALSE}
+```{r per_contig_dist}
 dat <- data_to_boxplot(infos, info, contig, name = "INFO_SCORE", animation = FALSE)
 
 highchart() |>
@@ -191,7 +219,7 @@ it (_i.e._ `0.2` is the number of SNPs with a score `>= 0.2` ).
 
 ## filtering table
 ### filt table {.no-title}
-```{r filttable, echo = FALSE, message = FALSE, warning = FALSE}
+```{r filttable}
 filterthresh <- infos %>% group_by(contig) %>%
   summarise(
     totals = length(info),
@@ -222,7 +250,7 @@ DT::datatable(
 ```
 
 ### filt loss table {.no-title}
-```{r filttable_loss, echo = FALSE, message = FALSE, warning = FALSE}
+```{r filttable_loss}
 filterthresh <- infos %>% group_by(contig) %>%
   summarise(
     totals = length(info),
@@ -266,7 +294,7 @@ the number of missing genotypes that were imputed into
 a homozygous genotype for the reference allele. The table on the other tab is the
 underlying data used to create the visualization.
 
-```{r}
+```{r plot_height}
 n_samples <- length(unique(gcts_long$sample))
 plotheight <- 150 + (15 * n_samples)
 figheight <- 1 + (0.2 * n_samples)
@@ -274,13 +302,13 @@ figheight <- 1 + (0.2 * n_samples)
 
 ## ind stats plt {.tabset data-height=plotheight}
 ### Individuals Plot {.no-title}
-```{r preprocess fields, echo = FALSE, message = FALSE, warning = FALSE, out.width = "100%"}
+```{r preprocess fields, out.width = "100%"}
 gcts_long$Conversion <- gsub("AltHom","Homozygous Alt", gcts_long$Conversion)
 gcts_long$Conversion <- gsub("Het","Heterozygote", gcts_long$Conversion)
 gcts_long$Conversion <- gsub("RefHom","Homozygous Ref", gcts_long$Conversion)
 gcts_long$Conversion <- gsub("missing","not imputed", gcts_long$Conversion)
 ```
-```{r per_indiv, echo = FALSE, message = FALSE, warning = FALSE, fig.height=figheight, out.width = "100%"}
+```{r per_indiv, fig.height=figheight, out.width = "100%"}
 hchart(gcts_long, "bar", hcaes(x = sample, y = Count, group = Conversion), stacking = "normal", animation = F) |>
   hc_colors(c("#7cb3d4", "#b18ad1", "#ffd75f", "#6f6c70")) |>
   hc_title(text = "Genotype Imputations") |>
@@ -294,7 +322,7 @@ hchart(gcts_long, "bar", hcaes(x = sample, y = Count, group = Conversion), stack
 ```
 
 ### Imputation Results Table {.no-title}
-```{r impute_table, echo=FALSE, message=FALSE, warning=FALSE}
+```{r impute_table}
 DT::datatable(
   gcts,
   rownames = FALSE,

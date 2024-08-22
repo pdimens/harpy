@@ -5,13 +5,13 @@
 [![Anaconda-Server Badge](https://img.shields.io/conda/dn/bioconda/harpy.svg?style=for-the-badge&logo=docusign&logoColor=ffffff)](https://anaconda.org/bioconda/harpy)
 [![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/pdimens/harpy/tests.yml?style=for-the-badge&logo=cachet&logoColor=ffffff)](https://www.youtube.com/watch?v=F1qdBPlK9M4)
 
-[Haplotag](https://doi.org/10.1073/pnas.2015005118) Data Processing Pipeline. Getting you from raw reads to genotypes/phased haplotypes or your money back.
+[Haplotagging](https://doi.org/10.1073/pnas.2015005118) Data Processing Pipeline. Getting you from raw reads to assemblies, genotypes, or phased haplotypes or your 💰 back.
 
 
 ## 📥 Install 
 To avoid dependency conflicts with an existing environment, it is best to create a new environment for a harpy installation. The code below creates a new conda/mamba environment called `harpy` (via `-n harpy`) and installs harpy into it. You can name this environment whatever you like using the `-n somename` argument. 
 ```bash
-mamba create -n harpy -c bioconda -c conda-forge harpy
+conda create -n harpy -c bioconda -c conda-forge harpy
 ```
 
 <details>
@@ -21,11 +21,11 @@ mamba create -n harpy -c bioconda -c conda-forge harpy
   
 If you wish to install harpy and its dependencies into an existing environment, activate that environment (`conda activate env_name`) and execute this installation code:
 ```bash
-mamba install -c conda-forge bioconda::harpy
+conda install -c conda-forge bioconda::harpy
 ```
 Or provide `-n envname` to install it into an existing environment named `envname`
 ```bash
-mamba install -n envname -c conda-forge bioconda::harpy
+conda install -n envname -c conda-forge bioconda::harpy
 ```
 
 ---
@@ -34,7 +34,7 @@ mamba install -n envname -c conda-forge bioconda::harpy
 
 ## Update
 ```bash
-mamba update -c conda-forge bioconda::harpy
+conda update -c conda-forge bioconda::harpy
 ```
 
 ## 🌟 Activate the harpy environment
@@ -51,7 +51,8 @@ Just call `harpy` or `harpy --help` on the command line to get started!
 harpy
 ```
 
-## 🌈 Get Started
-No data? No problem! Harpy lets you [simulate genomic variants](https://pdimens.github.io/harpy/modules/simulate/simulate-variants/)
-from an existing genome and can also [create haplotag data](https://pdimens.github.io/harpy/modules/simulate/simulate-linkedreads/)
-from an existing genome! You can see what haplotag data (and Harpy) are like without paying a single cent!
+## 🌈 Getting Started
+No data? No problem! Harpy lets you [simulate genomic variants](https://pdimens.github.io/harpy/workflows/simulate/simulate-variants/)
+from an existing genome and can also [create haplotag data](https://pdimens.github.io/harpy/workflows/simulate/simulate-linkedreads/)
+from an existing genome! You can see what haplotag data (and Harpy) are like without paying a cent! A simple tutorial on simulating
+both of these can be found [here](https://pdimens.github.io/harpy/blog/simulate_diploid/).

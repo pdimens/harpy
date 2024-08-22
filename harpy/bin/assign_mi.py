@@ -29,6 +29,8 @@ if len(sys.argv) == 1:
     sys.exit(1)
 
 args = parser.parse_args()
+if not os.path.exists(args.input):
+    parser.error(f"{args.input} was not found")
 
 def write_validbx(bam, alnrecord, mol_id):
     '''
@@ -62,10 +64,9 @@ def write_invalidbx(bam, alnrecord):
     at the end and writes it to the output
     bam file. Keeps existing MI tag if present.
     '''
-    # will keeping an existing MI tag if present
-    # may create incorrect molecule associations by chance
+    # will not keep an existing MI tag if present
     # also remove DI because it's not necessary
-    tags = [j for j in alnrecord.get_tags() if j[0] not in ['DI', 'BX']]
+    tags = [j for j in alnrecord.get_tags() if j[0] not in ['MI', 'DI', 'BX']]
     _bx = alnrecord.get_tag("BX")
     # if hyphen is present, it's been deconvolved and shouldn't have been
     # and rm the hyphen part
@@ -84,11 +85,7 @@ def write_missingbx(bam, alnrecord):
     at the end and writes it to the output
     bam file. Removes existing MI tag, if exists.
     '''
-    # get all the tags except MI b/c it's being replaced (if exists)
-    # this won't write a new MI, but keeping an existing one
-    # may create incorrect molecule associations by chance
-    # also remove DI because it's not necessary
-    # removes BX... just in case. It's not supposed to be there to begin with
+     # removes MI and DI tags, writes new BX tag
     tags = [j for j in alnrecord.get_tags() if j[0] not in ['MI', 'DI', 'BX']]
     tags.append(("BX", "A00C00B00D00"))
     alnrecord.set_tags(tags)
@@ -105,7 +102,7 @@ LAST_CONTIG = False
 MI = 0
 
 if not os.path.exists(bam_input):
-    print(f"Error: {bam_input} not found", file = sys.stderr)
+    sys.stderr.write(f"Error: {bam_input} not found\n")
     sys.exit(1)
 
 if bam_input.lower().endswith(".bam"):

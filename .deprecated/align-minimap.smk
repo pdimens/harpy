@@ -7,14 +7,16 @@ from rich.panel import Panel
 from rich import print as rprint
 
 outdir      = config["output_directory"]
-envdir      = os.getcwd() + "/.harpy_envs"
+envdir      = os.path.join(os.getcwd(), ".harpy_envs")
 genomefile 	= config["inputs"]["genome"]
 fqlist      = config["inputs"]["fastq"]
 extra 		= config.get("extra", "") 
 bn 			= os.path.basename(genomefile)
 genome_zip  = True if bn.lower().endswith(".gz") else False
 bn_idx      = f"{bn}.gzi" if genome_zip else f"{bn}.fai"
-skipreports = config["skip_reports"]
+envdir      = os.getcwd() + "/.harpy_envs"
+windowsize  = config["depth_windowsize"]
+skipreports = config["skipreports"]
 windowsize  = config["depth_windowsize"]
 molecule_distance = config["molecule_distance"]
 
@@ -54,7 +56,7 @@ def get_fq(wildcards):
     r = re.compile(fr".*/({re.escape(wildcards.sample)}){bn_r}", flags = re.IGNORECASE)
     return sorted(list(filter(r.match, fqlist))[:2])
 
-rule setup_genome:
+rule process_genome:
     input:
         genomefile
     output: 
@@ -73,7 +75,7 @@ rule setup_genome:
         fi
         """
 
-rule faidx_genome:
+rule index_genome:
     input: 
         f"Genome/{bn}"
     output: 
@@ -185,8 +187,6 @@ rule sort_alignments:
     params: 
         quality = config["quality"],
         tmpdir = lambda wc: outdir + "/." + d[wc.sample]
-    resources:
-        mem_mb = 2000
     container:
         None
     message:
@@ -234,8 +234,8 @@ rule assign_molecules:
         bai = outdir + "/{sample}.bam.bai"
     params:
         molecule_distance
-    container:
-        None
+    conda:
+        f"{envdir}/qc.yaml"
     message:
         "Assigning barcodes to molecules: {wildcards.sample}"
     shell:
@@ -249,8 +249,8 @@ rule alignment_bxstats:
         outdir + "/reports/data/bxstats/{sample}.bxstats.gz"
     params:
         sample = lambda wc: d[wc.sample]
-    container:
-        None
+    conda:
+        f"{envdir}/qc.yaml"
     message:
         "Calculating barcode alignment statistics: {wildcards.sample}"
     shell:
@@ -316,22 +316,22 @@ rule samtools_reports:
         "Summarizing samtools stats and flagstat"
     shell:
         """
-        multiqc {params}/reports/data/samtools_stats {params}/reports/data/samtools_flagstat --no-version-check --force --quiet --title "Basic Alignment Statistics" --comment "This report aggregates samtools stats and samtools flagstats results for all alignments. Samtools stats ignores alignments marked as duplicates." --no-data-dir --filename {output} 2> /dev/null
+        multiqc {params}/reports/data/samtools_stats {params}/reports/data/samtools_flagstat --force --quiet --title "Basic Alignment Statistics" --comment "This report aggregates samtools stats and samtools flagstats results for all alignments." --no-data-dir --filename {output} 2> /dev/null
         """
 
 rule workflow_summary:
     default_target: True
     input: 
         bams = collect(outdir + "/{sample}.{ext}", sample = samplenames, ext = ["bam","bam.bai"]),
-        samtools =  outdir + "/reports/minimap.stats.html" if not skipreports else [] ,
-        bx_reports = collect(outdir + "/reports/{sample}.html", sample = samplenames) if not skipreports else []
+        samtools =  outdir + "/reports/minimap.stats.html" if not skip_reports else [] ,
+        bx_reports = collect(outdir + "/reports/{sample}.html", sample = samplenames) if not skip_reports else []
     params:
         quality = config["quality"],
         extra   = extra
 
     run:
         with open(outdir + "/workflow/align.minimap.summary", "w") as f:
-            _ = f.write("The harpy align minimap workflow ran using these parameters:\n\n")
+            _ = f.write("The harpy align module ran using these parameters:\n\n")
             _ = f.write(f"The provided genome: {bn}\n")
             _ = f.write("Sequencing were aligned with Minimap2 using:\n")
             _ = f.write(f"    minimap2 -y {params.extra} --sam-hit-only -R \"@RG\\tID:SAMPLE\\tSM:SAMPLE\" genome.mmi forward_reads reverse_reads |\n")

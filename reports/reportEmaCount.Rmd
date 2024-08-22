@@ -1,28 +1,24 @@
 ---
 title: "EMA Count Barcode Summary"
-date: "`r format(Sys.time(), '%d %b, %Y at %H:%M')`"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
 output:
   flexdashboard::flex_dashboard:
     theme: lumen
     orientation: rows
     vertical_layout: scroll
-    logo: https://raw.githubusercontent.com/pdimens/harpy/docs/static/logo_mini.png
-    favicon: "https://raw.githubusercontent.com/pdimens/harpy/docs/static/favicon_report.png"
-    navbar:
-      - { title : "Docs", icon: "fa-book", href: "https://pdimens.github.io/harpy/", align: right }
+    favicon: "https://raw.githubusercontent.com/pdimens/harpy/docs/static/favicon_dark.png"
 ---
 
+
 ```{r echo = FALSE, message = FALSE}
-using<-function(...) {
-    libs<-unlist(list(...))
-    req<-unlist(lapply(libs,require,character.only=TRUE))
-    need<-libs[req==FALSE]
-    if(length(need)>0){ 
-        install.packages(need, repos = "https://cloud.r-project.org/")
-        lapply(need,require,character.only=TRUE)
-    }
-}
-using("flexdashboard","dplyr","tidyr","DT","highcharter","scales")
+library(flexdashboard)
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+library(scales)
+library(magrittr)
+library(DT)
+library(plotly)
 ```
 
 This report details the counts of valid and invalid haplotag barcodes in the sample read headers.
@@ -112,7 +108,7 @@ with the format of your FASTQ headers. Please refer to the top of this report fo
 guidance on proper FASTQ read headers to hopefully remedy that issue.
 
 ## Per Sample Plot
-### count of valid barcodes
+### the plot {.no-title}
 ```{r echo = FALSE, message = FALSE, warning = FALSE}
 plotdata <- BXstats %>%
   mutate(Invalid = TotalBarcodes - ValidBarcodes) %>%
@@ -126,33 +122,21 @@ percdata <- BXstats %>%
 ```
 
 ```{r echo = FALSE, message = FALSE, warning = FALSE, out.width = '100%'}
-tb<- plotdata %>% pivot_longer(-Sample, names_to = "Barcode", values_to = "Count")
-hchart(tb, "bar", hcaes(x = Sample, y = Count, group = Barcode), stacking = "normal") |>
-  hc_colors(c("#707070", "#b88ace")) |>
-  hc_title(text = "Valid vs Invalid Barcodes") |>
-  hc_xAxis(title = list(text = "")) |>
-  hc_yAxis(title = list(text = "count")) |>
-  hc_caption(text = "As determined by ema count, given as counts") |>
-  hc_tooltip(crosshairs = TRUE) |>
-  hc_exporting(enabled = T, filename = "ema.bxcount",
-    buttons = list(contextButton = list(menuItems = c("downloadPNG", "downloadJPEG", "downloadPDF", "downloadSVG")))
-  )
-```
-### proportional valid barcodes
-```{r echo = FALSE, message = FALSE, warning = FALSE, out.width = '100%'}
-hchart(tb, "bar", hcaes(x = Sample, y = Count, group = Barcode), stacking = "percent") |>
-  hc_colors(c("#707070", "#b88ace")) |>
-  hc_title(text = "Valid vs Invalid Barcodes") |>
-  hc_xAxis(title = list(text = "")) |>
-  hc_yAxis(title = list(text = "percent")) |>
-  hc_caption(text = "As determined by ema count, given as percents") |>
-  hc_tooltip(crosshairs = TRUE) |>
-  hc_exporting(enabled = T, filename = "ema.bxpercent",
-    buttons = list(contextButton = list(menuItems = c("downloadPNG", "downloadJPEG", "downloadPDF", "downloadSVG")))
-)
+p <-  plotdata %>%
+  pivot_longer(-Sample, names_to = "Barcode", values_to = "Count") %>%
+  ggplot(aes(y = Sample, x = Count, fill = Barcode)) +
+    geom_col() +
+    theme_minimal() +
+    theme(panel.grid.major.y = element_blank(), axis.title.y = element_blank()) +
+    scale_fill_manual(values = c(Valid = "#afd5e7", Invalid = "#c02554")) +
+    scale_x_continuous(labels = scales::comma) +
+    labs(title = "Valid vs Invalid Barcodes")
+
+pltheight <- 150 + (30 * length(unique(plotdata$Sample)))
+
+ggplotly(p, height = pltheight)
 ```
 
-## Table
 ### the table {.no-title}
 ```{r echo = FALSE, message = FALSE, warning = FALSE}
 DT::datatable(

@@ -15,6 +15,7 @@ license = {text = "GPL-3.0"}
 
 [tool.setuptools.packages.find]
 where = ["."]
+exclude = ["test"]
 
 [tool.setuptools.package-data]
 "*" = ["*.*"]

@@ -2,10 +2,20 @@ containerized: "docker://pdimens/harpy:latest"
 
 import os
 import re
-import sys
-import logging as pylogging
+import logging
 
-envdir      = os.getcwd() + "/.harpy_envs"
+onstart:
+    logger.logger.addHandler(logging.FileHandler(config["snakemake_log"]))
+onsuccess:
+    os.remove(logger.logfile)
+onerror:
+    os.remove(logger.logfile)
+wildcard_constraints:
+    sample = "[a-zA-Z0-9._-]+",
+    population = "[a-zA-Z0-9._-]+"
+
+outdir      = config["output_directory"]
+envdir      = os.path.join(os.getcwd(), outdir, "workflow", "envs")
 genomefile 	= config["inputs"]["genome"]
 bamlist     = config["inputs"]["alignments"]
 groupfile 	= config["inputs"]["groupings"]
@@ -13,21 +23,12 @@ extra 		= config.get("extra", "")
 min_sv      = config["min_sv"]
 min_bc      = config["min_barcodes"]
 iterations  = config["iterations"]
-outdir      = config["output_directory"]
-skipreports = config["skip_reports"]
-snakemake_log = config["snakemake_log"]
+skip_reports = config["reports"]["skip"]
+plot_contigs = config["reports"]["plot_contigs"]    
 bn 			= os.path.basename(genomefile)
 if bn.lower().endswith(".gz"):
     bn = bn[:-3]
-
-wildcard_constraints:
-    sample = "[a-zA-Z0-9._-]+",
-    population = "[a-zA-Z0-9._-]+"
     
-onstart:
-    extra_logfile_handler = pylogging.FileHandler(snakemake_log)
-    logger.logger.addHandler(extra_logfile_handler)
-
 # create dictionary of population => filenames
 ## this makes it easier to set the snakemake rules/wildcards
 def pop_manifest(groupingfile, filelist):
@@ -80,7 +81,7 @@ rule concat_groups:
     container:
         None
     shell:
-        "concatenate_bam.py -o {output} -b {input.bamlist} 2> {log}"
+        "concatenate_bam.py --bx -o {output} -b {input.bamlist} 2> {log}"
 
 rule sort_groups:
     input:
@@ -105,16 +106,14 @@ rule index_barcode:
         bai = outdir + "/workflow/input/{population}.bam.bai"
     output:
         temp(outdir + "/lrez_index/{population}.bci")
-    benchmark:
-        ".Benchmark/leviathan-pop/{population}.lrez"
     threads:
         max(10, workflow.cores)
     conda:
-        f"{envdir}/sv.yaml"
+        f"{envdir}/variants.yaml"
     shell:
         "LRez index bam -p -b {input.bam} -o {output} --threads {threads}"
 
-rule setup_genome:
+rule process_genome:
     input:
         genomefile
     output: 
@@ -124,7 +123,7 @@ rule setup_genome:
     shell: 
         "seqtk seq {input} > {output}"
 
-rule faidx_genome:
+rule index_genome:
     input: 
         f"Genome/{bn}"
     output: 
@@ -156,10 +155,10 @@ rule call_variants:
         genome = f"Genome/{bn}",
         genidx = multiext(f"Genome/{bn}", ".fai", ".ann", ".bwt", ".pac", ".sa", ".amb")
     output:
-        temp(outdir + "/vcf/{population}.vcf")
-    log:  
-        runlog     = outdir + "/logs/leviathan/{population}.leviathan.log",
+        vcf = temp(outdir + "/vcf/{population}.vcf"),
         candidates = outdir + "/logs/leviathan/{population}.candidates"
+    log:  
+        runlog = outdir + "/logs/leviathan/{population}.leviathan.log",
     params:
         min_sv = f"-v {min_sv}",
         min_bc = f"-c {min_bc}",
@@ -168,11 +167,9 @@ rule call_variants:
     threads:
         workflow.cores - 1
     conda:
-        f"{envdir}/sv.yaml"
-    benchmark:
-        ".Benchmark/leviathan-pop/{population}.variantcall"
+        f"{envdir}/variants.yaml"
     shell:
-        "LEVIATHAN -b {input.bam} -i {input.bc_idx} {params} -g {input.genome} -o {output} -t {threads} --candidates {log.candidates} 2> {log.runlog}"
+        "LEVIATHAN -b {input.bam} -i {input.bc_idx} {params} -g {input.genome} -o {output.vcf} -t {threads} --candidates {output.candidates} 2> {log.runlog}"
 
 rule sort_variants:
     input:
@@ -239,6 +236,10 @@ rule group_reports:
         faidx     = f"Genome/{bn}.fai"
     output:
         outdir + "/reports/{population}.sv.html"
+    log:
+        logfile = outdir + "/logs/reports/{population}.report.log"
+    params:
+        contigs = plot_contigs
     conda:
         f"{envdir}/r.yaml"
     script:
@@ -250,6 +251,10 @@ rule aggregate_report:
         statsfiles = collect(outdir + "/reports/data/{pop}.sv.stats", pop = populations)
     output:
         outdir + "/reports/leviathan.summary.html"
+    log:
+        logfile = outdir + "/logs/reports/summary.report.log"
+    params:
+        contigs = plot_contigs
     conda:
         f"{envdir}/r.yaml"
     script:
@@ -260,20 +265,27 @@ rule workflow_summary:
     input:
         vcf = collect(outdir + "/vcf/{pop}.bcf", pop = populations),
         bedpe_agg = collect(outdir + "/{sv}.bedpe", sv = ["inversions", "deletions","duplications", "breakends"]),
-        reports = collect(outdir + "/reports/{pop}.sv.html", pop = populations) if not skipreports else [],
-        agg_report = outdir + "/reports/leviathan.summary.html" if not skipreports else []
+        reports = collect(outdir + "/reports/{pop}.sv.html", pop = populations) if not skip_reports else [],
+        agg_report = outdir + "/reports/leviathan.summary.html" if not skip_reports else []
     params:
         min_sv = f"-v {min_sv}",
         min_bc = f"-c {min_bc}",
         iters  = f"-B {iterations}",
         extra = extra
     run:
+        summary = ["The harpy sv leviathan workflow ran using these parameters:"]
+        summary.append(f"The provided genome: {bn}")
+        concat = "The alignments were concatenated using:\n"
+        concat += "\tconcatenate_bam.py --bx -o groupname.bam -b samples.list"
+        summary.append(concat)
+        bc_idx = "The barcodes were indexed using:\n"
+        bc_idx += "LRez index bam -p -b INPUT"
+        summary.append(bc_idx)
+        svcall = "Leviathan was called using:\n"
+        svcall += f"\tLEVIATHAN -b INPUT -i INPUT.BCI -g GENOME {params}"
+        summary.append(svcall)
+        sm = "The Snakemake workflow was called via command line:\n"
+        sm += f"\t{config['workflow_call']}"
+        summary.append(sm)
         with open(outdir + "/workflow/sv.leviathan.summary", "w") as f:
-            _ = f.write("The harpy sv leviathan workflow ran using these parameters:\n\n")
-            _ = f.write(f"The provided genome: {bn}\n")
-            _ = f.write("The barcodes were indexed using:\n")
-            _ = f.write("    LRez index bam -p -b INPUT\n")
-            _ = f.write("Leviathan was called using:\n")
-            _ = f.write(f"    LEVIATHAN -b INPUT -i INPUT.BCI -g GENOME {params}\n")
-            _ = f.write("\nThe Snakemake workflow was called via command line:\n")
-            _ = f.write("    " + str(config["workflow_call"]) + "\n")
+            f.write("\n\n".join(summary))

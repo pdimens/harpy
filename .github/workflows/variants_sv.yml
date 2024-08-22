@@ -1,0 +1,96 @@
+name: Test Variants SV
+
+on:
+  push:
+    branches:
+      - 'dev'
+    paths:
+      - 'rules/variants-leviathan**.smk'
+      - 'rules/variants-naibr**.smk'
+      - '**sv.py'
+      - '**helperfunctions.py'
+      - 'utilities/makewindows.py'
+      - 'test/bam/**'
+      - 'test/bam_phased/**'
+      - '**variants_snp.yml'
+      - 'reports/reportNaibr.Rmd'
+      - 'reports/reportNaibrPop.Rmd'
+      - 'reports/reportLeviathan.Rmd'
+      - 'reports/reportLeviathanPop.Rmd'
+      - 'utilities/inferSV.py'
+
+  pull_request:
+    branches:
+      - 'dev'
+    paths:
+      - 'rules/variants-leviathan**.smk'
+      - 'rules/variants-naibr**.smk'
+      - '**sv.py'
+      - '**helperfunctions.py'
+      - 'utilities/makewindows.py'
+      - 'test/bam/**'
+      - 'test/bam_phased/**'
+      - '**variants_snp.yml'
+      - 'reports/reportNaibr.Rmd'
+      - 'reports/reportNaibrPop.Rmd'
+      - 'reports/reportLeviathan.Rmd'
+      - 'reports/reportLeviathanPop.Rmd'
+      - 'utilities/inferSV.py'
+
+env:
+  CACHE_NUMBER: 0  # increase to reset cache manually
+
+jobs:
+  build:
+    name: linux64
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 1
+      - name: setup mamba
+        uses: mamba-org/setup-micromamba@v1
+        env:
+          ACTIONS_STEP_DEBUG: true
+        with:
+          init-shell: bash
+          generate-run-shell: true
+          environment-file: misc/harpyenv.yaml
+          cache-environment: true
+          post-cleanup: 'all'
+          log-level: error
+      - name: Install harpy
+        run: |
+          python3 -m pip install --upgrade build && python3 -m build
+          pip install dist/*.whl
+          misc/buildforCI.sh
+        shell: micromamba-shell {0}
+
+      - name: leviathan
+        shell: micromamba-shell {0}
+        run: harpy sv leviathan -d test/bam -g test/genome/genome.fasta.gz -s "--show-failed-logs"
+        continue-on-error: true
+
+      - name: leviathan-pop
+        shell: micromamba-shell {0}
+        run: harpy sv leviathan -d test/bam -g test/genome/genome.fasta.gz -p test/samples.groups -s "--show-failed-logs"
+        continue-on-error: true
+
+      - name: naibr
+        shell: micromamba-shell {0}
+        run: harpy sv naibr -d test/bam_phased -g test/genome/genome.fasta.gz -s "--show-failed-logs"
+        continue-on-error: true
+
+      - name: naibr pop
+        shell: micromamba-shell {0}
+        run: harpy sv naibr -d test/bam_phased -g test/genome/genome.fasta.gz -p test/samples.groups -s "--show-failed-logs"
+
+      - name: naibr phasing
+        shell: micromamba-shell {0}
+        run: harpy sv naibr -d test/bam -g test/genome/genome.fasta.gz -v test/vcf/test.phased.bcf -s "--show-failed-logs"
+        continue-on-error: true
+
+      - name: naibr pop phasing
+        shell: micromamba-shell {0}
+        run: harpy sv naibr -d test/bam -g test/genome/genome.fasta.gz -v test/vcf/test.phased.bcf -p test/samples.groups -s "--show-failed-logs"

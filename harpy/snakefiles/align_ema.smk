@@ -2,9 +2,16 @@ containerized: "docker://pdimens/harpy:latest"
 
 import os
 import re
-import shutil
-import logging as pylogging
-from pathlib import Path
+import logging
+
+onstart:
+    logger.logger.addHandler(logging.FileHandler(config["snakemake_log"]))
+onsuccess:
+    os.remove(logger.logfile)
+onerror:
+    os.remove(logger.logfile)
+wildcard_constraints:
+    sample = "[a-zA-Z0-9._-]+"
 
 outdir      = config["output_directory"]
 nbins 		= config["EMA_bins"]
@@ -12,34 +19,28 @@ binrange    = ["%03d" % i for i in range(nbins)]
 fqlist       = config["inputs"]["fastq"]
 genomefile 	= config["inputs"]["genome"]
 platform    = config["platform"]
+frag_opt    = config["fragment_density_optimization"]
 barcode_list   = config["inputs"].get("barcode_list", "") 
 extra 		= config.get("extra", "") 
 bn 			= os.path.basename(genomefile)
 genome_zip  = True if bn.lower().endswith(".gz") else False
 bn_idx      = f"{bn}.gzi" if genome_zip else f"{bn}.fai"
-envdir      = os.getcwd() + "/.harpy_envs"
+envdir      = os.path.join(os.getcwd(), outdir, "workflow", "envs")
 windowsize  = config["depth_windowsize"]
 keep_unmapped = config["keep_unmapped"]
-skipreports = config["skip_reports"]
-snakemake_log = config["snakemake_log"]
-
-wildcard_constraints:
-    sample = "[a-zA-Z0-9._-]+"
-
-onstart:
-    extra_logfile_handler = pylogging.FileHandler(snakemake_log)
-    logger.logger.addHandler(extra_logfile_handler)
-
+skip_reports = config["reports"]["skip"]
+plot_contigs = config["reports"]["plot_contigs"]    
 bn_r = r"([_\.][12]|[_\.][FR]|[_\.]R[12](?:\_00[0-9])*)?\.((fastq|fq)(\.gz)?)$"
 samplenames = {re.sub(bn_r, "", os.path.basename(i), flags = re.IGNORECASE) for i in fqlist}
 d = dict(zip(samplenames, samplenames))
+os.makedirs(f"{outdir}/logs/ema_count/", exist_ok = True)
 
 def get_fq(wildcards):
-    # returns a list of fastq files for read 1 based on *wildcards.sample* e.g.
+    """returns a list of fastq files for read 1 based on *wildcards.sample* e.g."""
     r = re.compile(fr".*/({re.escape(wildcards.sample)}){bn_r}", flags = re.IGNORECASE)
     return sorted(list(filter(r.match, fqlist))[:2])
 
-rule setup_genome:
+rule process_genome:
     input:
         genomefile
     output: 
@@ -56,7 +57,7 @@ rule setup_genome:
         fi
         """
 
-rule samtools_faidx:
+rule index_genome:
     input: 
         f"Genome/{bn}"
     output: 
@@ -97,15 +98,14 @@ rule ema_count:
         logs   = temp(outdir + "/logs/count/{sample}.count")
     params:
         prefix = lambda wc: outdir + "/ema_count/" + wc.get("sample"),
-        beadtech = "-p" if platform == "haplotag" else f"-w {barcode_list}",
-        logdir = f"{outdir}/logs/ema_count/"
+        beadtech = "-p" if platform == "haplotag" else f"-w {barcode_list}"
     conda:
         f"{envdir}/align.yaml"
     shell:
         """
-        mkdir -p {params.prefix} {params.logdir}
+        mkdir -p {params.prefix}
         seqtk mergepe {input} |
-            ema count {params.beadtech} -o {params.prefix} 2> {output.logs}
+        ema count {params.beadtech} -o {params.prefix} 2> {output.logs}
         """
 
 rule ema_preprocess:
@@ -128,8 +128,8 @@ rule ema_preprocess:
     shell:
         """
         seqtk mergepe {input.reads} |
-            ema preproc {params.bxtype} -n {params.bins} -t {threads} -o {params.outdir} {input.emacounts} 2>&1 |
-            cat - > {log}
+        ema preproc {params.bxtype} -n {params.bins} -t {threads} -o {params.outdir} {input.emacounts} 2>&1 |
+        cat - > {log}
         """
 
 rule align_ema:
@@ -146,10 +146,12 @@ rule align_ema:
         sort = outdir + "/logs/align/{sample}.ema.sort.log",
     resources:
         mem_mb = 500
-    params: 
+    params:
+        RG_tag = lambda wc: "\"@RG\\tID:" + wc.get("sample") + "\\tSM:" + wc.get("sample") + "\"",
         bxtype = f"-p {platform}",
         tmpdir = lambda wc: outdir + "/." + d[wc.sample],
-        quality = config["quality"],
+        frag_opt = "-d" if frag_opt else "",
+        quality = config["alignment_quality"],
         unmapped = "" if keep_unmapped else "-F 4",
         extra = extra
     threads:
@@ -158,7 +160,7 @@ rule align_ema:
         f"{envdir}/align.yaml"
     shell:
         """
-        ema align -t {threads} {params.extra} -d {params.bxtype} -r {input.genome} -R \"@RG\\tID:{wildcards.sample}\\tSM:{wildcards.sample}\" -x {input.readbin} 2> {log.ema} |
+        ema align -t {threads} {params.extra} {params.frag_opt} {params.bxtype} -r {input.genome} -R {params.RG_tag} -x {input.readbin} 2> {log.ema} |
             samtools view -h {params.unmapped} -q {params.quality} | 
             samtools sort -T {params.tmpdir} --reference {input.genome} -O bam --write-index -m {resources.mem_mb}M -o {output.aln}##idx##{output.idx} - 2> {log.sort}
         rm -rf {params.tmpdir}
@@ -175,17 +177,16 @@ rule align_bwa:
     log:
         outdir + "/logs/align/{sample}.bwa.align.log"
     params:
-        quality = config["quality"],
-        unmapped = "" if keep_unmapped else "-F 4"
-    benchmark:
-        ".Benchmark/Mapping/ema/bwaAlign.{sample}.txt"
+        quality = config["alignment_quality"],
+        unmapped = "" if keep_unmapped else "-F 4",
+        RG_tag = lambda wc: "\"@RG\\tID:" + wc.get("sample") + "\\tSM:" + wc.get("sample") + "\""
     threads:
         10
     conda:
         f"{envdir}/align.yaml"
     shell:
         """
-        bwa mem -t {threads} -v2 -C -R \"@RG\\tID:{wildcards.sample}\\tSM:{wildcards.sample}\" {input.genome} {input.reads} 2> {log} |
+        bwa mem -t {threads} -v2 -C -R {params.RG_tag} {input.genome} {input.reads} 2> {log} |
             samtools view -h {params.unmapped} -q {params.quality} > {output}
         """
 
@@ -271,12 +272,33 @@ rule barcode_stats:
     shell:
         "bx_stats.py -o {output} {input.bam}"
 
+rule molecule_coverage:
+    input:
+        stats = outdir + "/reports/data/bxstats/{sample}.bxstats.gz",
+        fai = f"Genome/{bn}.fai"
+    output: 
+        outdir + "/reports/data/coverage/{sample}.molcov.gz"
+    params:
+        windowsize
+    container:
+        None
+    shell:
+        "molecule_coverage.py -f {input.fai} {input.stats} | depth_windows.py {params} | gzip > {output}"
+
 rule sample_reports:
     input:
-        outdir + "/reports/data/bxstats/{sample}.bxstats.gz",
-        outdir + "/reports/data/coverage/{sample}.cov.gz"
+        bxstats = outdir + "/reports/data/bxstats/{sample}.bxstats.gz",
+        coverage = outdir + "/reports/data/coverage/{sample}.cov.gz",
+        molecule_coverage = outdir + "/reports/data/coverage/{sample}.molcov.gz"
     output:	
         outdir + "/reports/{sample}.html"
+    log:
+        logfile = outdir + "/logs/reports/{sample}.alignstats.log"
+    params:
+        mol_dist = 0,
+        window_size = windowsize,
+        contigs = plot_contigs,
+        samplename = lambda wc: wc.get("sample")
     conda:
         f"{envdir}/r.yaml"
     script:
@@ -317,6 +339,8 @@ rule barcode_report:
         collect(outdir + "/reports/data/bxstats/{sample}.bxstats.gz", sample = samplenames)
     output:	
         outdir + "/reports/barcodes.summary.html"
+    log:
+        logfile = outdir + "/logs/reports/bxstats.report.log"
     conda:
         f"{envdir}/r.yaml"
     script:
@@ -326,36 +350,45 @@ rule workflow_summary:
     default_target: True
     input:
         bams = collect(outdir + "/{sample}.{ext}", sample = samplenames, ext = [ "bam", "bam.bai"] ),
-        cov_report = collect(outdir + "/reports/{sample}.html", sample = samplenames) if not skipreports else [],
-        agg_report = f"{outdir}/reports/ema.stats.html" if not skipreports else [],
-        bx_report = outdir + "/reports/barcodes.summary.html" if (not skipreports or len(samplenames) == 1) else []
+        cov_report = collect(outdir + "/reports/{sample}.html", sample = samplenames) if not skip_reports else [],
+        agg_report = f"{outdir}/reports/ema.stats.html" if not skip_reports else [],
+        bx_report = outdir + "/reports/barcodes.summary.html" if (not skip_reports or len(samplenames) == 1) else []
     params:
         beadtech = "-p" if platform == "haplotag" else f"-w {barcode_list}",
-        unmapped = "" if keep_unmapped else "-F 4"
+        unmapped = "" if keep_unmapped else "-F 4",
+        frag_opt = "-d" if frag_opt else ""
     run:
+        summary = ["The harpy align ema workflow ran using these parameters:"]
+        summary.append(f"The provided genome: {genomefile}")
+        counts = "Barcodes were counted and validated with EMA using:\n"
+        counts += f"\tseqtk mergepe forward.fq.gz reverse.fq.gz | ema count {params.beadtech}"
+        summary.append(counts)
+        bins = "Barcoded sequences were binned with EMA using:\n"
+        bins += f"\tseqtk mergepe forward.fq.gz reverse.fq.gz | ema preproc {params.beadtech} -n {nbins}"
+        summary.append(bins)
+        ema_align = "Barcoded bins were aligned with ema align using:\n"
+        ema_align += f'\tema align {extra} {params.frag_opt} -p {platform} -R "@RG\\tID:SAMPLE\\tSM:SAMPLE" |\n'
+        ema_align += f"\tsamtools view -h {params.unmapped} -q {config["alignment_quality"]} - |\n"
+        ema_align += "\tsamtools sort --reference genome"
+        summary.append(ema_align)
+        bwa_align = "Non-barcoded and invalid-barcoded sequences were aligned with BWA using:\n"
+        bwa_align += '\tbwa mem -C -v 2 -R "@RG\\tID:SAMPLE\\tSM:SAMPLE" genome forward_reads reverse_reads |\n'
+        bwa_align += f"\tsamtools view -h {params.unmapped} -q {config["alignment_quality"]}"
+        summary.append(bwa_align)
+        duplicates = "Duplicates in non-barcoded alignments were marked following:\n"
+        duplicates += "\tsamtools collate |\n"
+        duplicates += "\tsamtools fixmate |\n"
+        duplicates += f"\tsamtools sort -T SAMPLE --reference {genomefile} |\n"
+        duplicates += "\tsamtools markdup -S"
+        summary.append(duplicates)
+        merged = "Alignments were merged using:\n"
+        merged += "\tsamtools cat barcode.bam nobarcode.bam > concat.bam"
+        summary.append(merged)
+        sorting = "Merged alignments were sorted using:\n"
+        sorting += "\tsamtools sort -m 2000M concat.bam"
+        summary.append(sorting)
+        sm = "The Snakemake workflow was called via command line:\n"
+        sm += f"\t{config['workflow_call']}"
+        summary.append(sm)
         with open(outdir + "/workflow/align.ema.summary", "w") as f:
-            _ = f.write("The harpy align ema workflow ran using these parameters:\n\n")
-            _ = f.write(f"The provided genome: {bn}\n")
-            _ = f.write("Barcodes were counted and validated with EMA using:\n")
-            _ = f.write(f"    seqtk mergepe forward.fq.gz reverse.fq.gz | ema count {params.beadtech}\n")
-            _ = f.write("Barcoded sequences were binned with EMA using:\n")
-            _ = f.write(f"    seqtk mergepe forward.fq.gz reverse.fq.gz | ema preproc {params.beadtech} -n {nbins}\n")
-            _ = f.write("Barcoded bins were aligned with ema align using:\n")
-            _ = f.write(f"    ema align " + extra + " -d -p " + platform + " -R \"@RG\\tID:SAMPLE\\tSM:SAMPLE\" |\n")
-            _ = f.write("      samtools view -h {params.unmapped} -q " + str(config["quality"]) + " - |\n") 
-            _ = f.write("      samtools sort --reference genome -m 2000M\n\n")
-            _ = f.write("Invalid/non barcoded sequences were aligned with BWA using:\n")
-            _ = f.write("    bwa mem -C -v2 -R \"@RG\\tID:SAMPLE\\tSM:SAMPLE\" genome forward_reads reverse_reads\n")
-            _ = f.write("      samtools view -h {params.unmapped} -q " + str(config["quality"]) + " - |\n")
-            _ = f.write("      samtools sort --reference genome -m 2000M\n\n") 
-            _ = f.write("Duplicates in non-barcoded alignments were marked following:\n")
-            _ = f.write("    samtools collate |\n")
-            _ = f.write("      samtools fixmate |\n")
-            _ = f.write("      samtools sort -m 2000M |\n")
-            _ = f.write("      samtools markdup -S\n")
-            _ = f.write("Alignments were merged using:\n")
-            _ = f.write("    samtools cat barcode.bam nobarcode.bam > concat.bam\n")
-            _ = f.write("Merged alignments were sorted using:\n")
-            _ = f.write("    samtools sort -m 2000M concat.bam\n")
-            _ = f.write("\nThe Snakemake workflow was called via command line:\n")
-            _ = f.write("    " + str(config["workflow_call"]) + "\n")
+            f.write("\n\n".join(summary))

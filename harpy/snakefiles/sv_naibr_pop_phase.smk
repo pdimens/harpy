@@ -2,16 +2,26 @@ containerized: "docker://pdimens/harpy:latest"
 
 import os
 import re
-import sys
-import multiprocessing
-import logging as pylogging
+import logging
 from pathlib import Path
 
-envdir       = os.getcwd() + "/.harpy_envs"
+onstart:
+    logger.logger.addHandler(logging.FileHandler(config["snakemake_log"]))
+onsuccess:
+    os.remove(logger.logfile)
+onerror:
+    os.remove(logger.logfile)
+wildcard_constraints:
+    sample = "[a-zA-Z0-9._-]+",
+    population = "[a-zA-Z0-9._-]+"
+
+outdir       = config["output_directory"]
+envdir       = os.path.join(os.getcwd(), outdir, "workflow", "envs")
 genomefile   = config["inputs"]["genome"]
 bn           = os.path.basename(genomefile)
 bamlist      = config["inputs"]["alignments"]
-samplenames = {Path(i).stem for i in bamlist}
+bamdict      = dict(zip(bamlist, bamlist))
+samplenames  = {Path(i).stem for i in bamlist}
 groupfile    = config["inputs"]["groupings"]
 vcffile      = config["inputs"]["vcf"]
 vcfindex     = (vcffile + ".csi") if vcffile.lower().endswith("bcf") else (vcffile + ".tbi")
@@ -20,20 +30,10 @@ min_sv       = config["min_sv"]
 min_quality  = config["min_quality"]
 min_barcodes = config["min_barcodes"]
 mol_dist     = config["molecule_distance"]
-outdir       = config["output_directory"]
-skipreports  = config["skip_reports"]
-snakemake_log = config["snakemake_log"]
-
+skip_reports  = config["reports"]["skip"]
+plot_contigs = config["reports"]["plot_contigs"]    
 if bn.lower().endswith(".gz"):
     bn = bn[:-3]
-
-wildcard_constraints:
-    sample = "[a-zA-Z0-9._-]+",
-    population = "[a-zA-Z0-9._-]+"
-
-onstart:
-    extra_logfile_handler = pylogging.FileHandler(snakemake_log)
-    logger.logger.addHandler(extra_logfile_handler)
 
 def process_args(args):
     argsDict = {
@@ -48,6 +48,8 @@ def process_args(args):
             if "blacklist" in i or "candidates" in i:
                 argsDict[i[0].lstrip("-")] = i[1]
     return argsDict
+
+argdict = process_args(extra)
 
 # create dictionary of population => filenames
 ## this makes it easier to set the snakemake rules/wildcards
@@ -71,11 +73,6 @@ def pop_manifest(groupingfile, filelist):
 popdict     = pop_manifest(groupfile, bamlist)
 populations = popdict.keys()
 
-def sam_index(infile):
-    """Use Samtools to index an input file, adding .bai to the end of the name"""
-    if not os.path.exists(f"{infile}.bai"):
-        subprocess.run(f"samtools index {infile} {infile}.bai".split())
-
 def get_alignments(wildcards):
     """returns a list with the bam file for the sample based on wildcards.sample"""
     r = re.compile(fr".*/({wildcards.sample})\.(bam|sam)$", flags = re.IGNORECASE)
@@ -88,7 +85,7 @@ def get_align_index(wildcards):
     aln = list(filter(r.match, bamlist))
     return aln[0] + ".bai"
 
-rule setup_genome:
+rule process_genome:
     input:
         genomefile
     output: 
@@ -98,7 +95,7 @@ rule setup_genome:
     shell: 
         "seqtk seq {input} > {output}"
 
-rule faidx_genome:
+rule index_genome:
     input: 
         f"Genome/{bn}"
     output: 
@@ -132,14 +129,13 @@ rule index_snps_gz:
 
 rule index_alignments:
     input:
-        bamlist
+        lambda wc: bamdict[wc.bam]
     output:
-        [f"{i}.bai" for i in bamlist]
-    threads:
-        workflow.cores
-    run:
-        with multiprocessing.Pool(processes=threads) as pool:
-            pool.map(sam_index, input)
+        "{bam}.bai"
+    container:
+        None
+    shell:
+        "samtools index {input}"
 
 rule phase_alignments:
     input:
@@ -236,7 +232,6 @@ rule naibr_config:
         lambda wc: wc.get("population"),
         min(10, workflow.cores - 1)
     run:
-        argdict = process_args(extra)
         with open(output[0], "w") as conf:
             _ = conf.write(f"bam_file={input[0]}\n")
             _ = conf.write(f"outdir={outdir}/{params[0]}\n")
@@ -259,7 +254,7 @@ rule call_variants:
     threads:
         min(10, workflow.cores - 1)
     conda:
-        f"{envdir}/sv.yaml"
+        f"{envdir}/variants.yaml"
     shell:
         "naibr {input.conf} > {log} 2>&1"
 
@@ -323,6 +318,10 @@ rule group_reports:
         bedpe = outdir + "/bedpe/{population}.bedpe"
     output:
         outdir + "/reports/{population}.naibr.html"
+    log:
+        logfile = outdir + "/logs/reports/{population}.report.log"
+    params:
+        contigs = plot_contigs
     conda:
         f"{envdir}/r.yaml"
     script:
@@ -334,6 +333,10 @@ rule aggregate_report:
         bedpe = collect(outdir + "/bedpe/{pop}.bedpe", pop = populations)
     output:
         outdir + "/reports/naibr.pop.summary.html"
+    log:
+        logfile = outdir + "/logs/reports/summary.report.log"
+    params:
+        contigs = plot_contigs
     conda:
         f"{envdir}/r.yaml"
     script:
@@ -345,24 +348,26 @@ rule workflow_summary:
         bedpe = collect(outdir + "/bedpe/{pop}.bedpe", pop = populations),
         bedpe_agg = collect(outdir + "/{sv}.bedpe", sv = ["inversions", "deletions","duplications"]),
         phaselog = outdir + "/logs/whatshap-haplotag.log",
-        reports = collect(outdir + "/reports/{pop}.naibr.html", pop = populations) if not skipreports else [],
-        agg_report = outdir + "/reports/naibr.pop.summary.html" if not skipreports else []
+        reports = collect(outdir + "/reports/{pop}.naibr.html", pop = populations) if not skip_reports else [],
+        agg_report = outdir + "/reports/naibr.pop.summary.html" if not skip_reports else []
     run:
         os.system(f"rm -rf {outdir}/naibrlog")
-        argdict = process_args(extra)
+        summary = ["The harpy sv naibr workflow ran using these parameters:"]
+        summary.append(f"The provided genome: {bn}")
+        phase = "The alignment files were phased using:\n"
+        phase += f"\twhatshap haplotag --reference genome.fasta --linked-read-distance-cutoff {mol_dist} --ignore-read-groups --tag-supplementary --sample sample_x file.vcf sample_x.bam"
+        summary.append(phase)
+        concat = "The alignments were concatenated using:\n"
+        concat += "\tconcatenate_bam.py -o groupname.bam -b samples.list"
+        summary.append(concat)
+        naibr = "naibr variant calling ran using these configurations:\n"
+        naibr += "\tbam_file=BAMFILE\n"
+        naibr += "\tprefix=PREFIX\n"
+        naibr += "\toutdir=Variants/naibr/PREFIX\n"
+        naibr += "\n\t".join([f"{k}={v}" for k,v in argdict.items()])
+        summary.append(naibr)
+        sm = "The Snakemake workflow was called via command line:\n"
+        sm = f"\t{config['workflow_call']}"
+        summary.append(sm)
         with open(outdir + "/workflow/sv.naibr.summary", "w") as f:
-            _ = f.write("The harpy sv naibr workflow ran using these parameters:\n\n")
-            _ = f.write(f"The provided genome: {bn}\n")
-            _ = f.write(f"The sample grouping file: {groupfile}\n\n")
-            _ = f.write("The alignment files were phased using:\n")
-            _ = f.write(f"    whatshap haplotag --reference genome.fasta --linked-read-distance-cutoff {mol_dist} --ignore-read-groups --tag-supplementary --sample sample_x file.vcf sample_x.bam\n")
-            _ = f.write("The phased alignments were concatenated using:\n")
-            _ = f.write("    concatenate_bam.py -o groupname.bam -b samples.list\n")
-            _ = f.write("naibr variant calling ran using these configurations:\n")
-            _ = f.write(f"    bam_file=BAMFILE\n")
-            _ = f.write(f"    prefix=PREFIX\n")
-            _ = f.write(f"    outdir=Variants/naibr/PREFIX\n")
-            for i in argdict:
-                _ = f.write(f"    {i}={argdict[i]}\n")
-            _ = f.write("\nThe Snakemake workflow was called via command line:\n")
-            _ = f.write("    " + str(config["workflow_call"]) + "\n")
+            f.write("\n\n".join(summary))

@@ -2,23 +2,22 @@ containerized: "docker://pdimens/harpy:latest"
 
 import os
 import re
-import sys
-import logging as pylogging
-from pathlib import Path
+import logging
 
-fqlist = config["inputs"]
-outdir = config["output_directory"]
-snakemake_log = config["snakemake_log"]
-envdir      = os.getcwd() + "/.harpy_envs"
-bn_r = r"([_\.][12]|[_\.][FR]|[_\.]R[12](?:\_00[0-9])*)?\.((fastq|fq)(\.gz)?)$"
-samplenames = {re.sub(bn_r, "", os.path.basename(i), flags = re.IGNORECASE) for i in fqlist}
-
+onstart:
+    logger.logger.addHandler(logging.FileHandler(config["snakemake_log"]))
+onsuccess:
+    os.remove(logger.logfile)
+onerror:
+    os.remove(logger.logfile)
 wildcard_constraints:
     sample = "[a-zA-Z0-9._-]+"
 
-onstart:
-    extra_logfile_handler = pylogging.FileHandler(snakemake_log)
-    logger.logger.addHandler(extra_logfile_handler)
+fqlist = config["inputs"]
+outdir = config["output_directory"]
+envdir      = os.path.join(os.getcwd(), outdir, "workflow", "envs")
+bn_r = r"([_\.][12]|[_\.][FR]|[_\.]R[12](?:\_00[0-9])*)?\.((fastq|fq)(\.gz)?)$"
+samplenames = {re.sub(bn_r, "", os.path.basename(i), flags = re.IGNORECASE) for i in fqlist}
 
 def get_fq1(wildcards):
     # returns a list of fastq files for read 1 based on *wildcards.sample* e.g.
@@ -71,6 +70,8 @@ rule create_report:
         outdir + "/filecheck.fastq.tsv"
     output:
         outdir + "/filecheck.fastq.html"
+    log:
+        logfile = outdir + "/logs/report.log"
     conda:
         f"{envdir}/r.yaml"
     script:
@@ -82,9 +83,12 @@ rule workflow_summary:
         outdir + "/filecheck.fastq.html"
     run:
         os.makedirs(f"{outdir}/workflow/", exist_ok= True)
+        summary = ["The harpy preflight fastq workflow ran using these parameters:"]
+        valids = "Validations were performed with:\n"
+        valids += "\tcheck_fastq.py sample.fastq > sample.txt"
+        summary.append(valids)
+        sm = "The Snakemake workflow was called via command line:\n"
+        sm += f"\t{config['workflow_call']}"
+        summary.append(sm)
         with open(outdir + "/workflow/preflight.fastq.summary", "w") as f:
-            _ = f.write("The harpy preflight fastq workflow ran using these parameters:\n\n")
-            _ = f.write("validations were performed with:\n")
-            _ = f.write("    check_fastq.py sample.fastq > sample.txt\n")
-            _ = f.write("\nThe Snakemake workflow was called via command line:\n")
-            _ = f.write("    " + str(config["workflow_call"]) + "\n")
+            f.write("\n\n".join(summary))

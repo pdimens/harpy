@@ -1,7 +1,10 @@
 """Harpy module to create HPC profiles for running snakemake on a cluster"""
 
 import os
+import subprocess
+import sys
 import rich_click as click
+from rich import print as rprint
 from rich.markdown import Markdown
 from ._printing import print_notice
 
@@ -13,8 +16,9 @@ def hpc():
     If running Harpy on an HPC system, you can leverage Snakemake
     to handle all the job submissions on your behalf. This command creates templates
     for common HPC schedulers so you can run Harpy on a cluster with minimal friction.
-    The subcommands create a `config.yaml` in an `hpc/` directory. You will also need
-    to install the associated Snakemake executor plugin for HPC job submission to work.
+    The subcommands create a `config.yaml` in an `hpc/system` directory (where `system`
+    is one of the options below). You will also need to install the associated Snakemake
+    executor plugin for HPC job submission to work.
     """
 
 docstring = {
@@ -26,20 +30,31 @@ docstring = {
     ]
 }
 
+def package_exists(pkg):
+    """helper function to search for a package in the active conda environment"""
+    search_pkg = subprocess.run(f"conda list snakemake-executor-plugin-{pkg}".split(), capture_output = True, text = True)
+    exists = False
+    for i in search_pkg.stdout.split("\n"):
+        if i and not i.startswith("#"):
+            exists = True
+    if not exists:
+        print_notice(Markdown(f"""
+Using this scheduler requires installing an additional Snakemake plugin, which wasn't detected in this environment.
+Install the `{pkg}` plugin with:
+    
+```bash
+conda install bioconda::snakemake-executor-plugin-{pkg}
+```
+    """))
+
 @click.command()
 def generic():
     """Configuration for a generic scheduler"""
     outfile = "hpc/generic/config.yaml"
     os.makedirs("hpc/generic", exist_ok=True)
     if os.path.exists(outfile):
-        click.echo(f"{outfile} exists, overwriting.")
-    print_notice(Markdown("""
-Using a scheduler requires installing an additional Snakemake plugin. If you haven't already, install the `generic-cluster` plugin with:
-    
-```bash
-mamba install bioconda::snakemake-executor-plugin-cluster-generic
-```
-                """))
+        rprint(f"HPC profile [blue]{outfile}[/blue] already exists, overwriting\n", file = sys.stderr)
+    package_exists("cluster-generic")
     with open(outfile, "w", encoding = "utf-8") as yml:
         yml.write("__use_yte__: true\n")
         yml.write("executor: cluster-generic\n")
@@ -74,14 +89,8 @@ def lsf():
     outfile = "hpc/lsf/config.yaml"
     os.makedirs("hpc/lsf", exist_ok=True)
     if os.path.exists(outfile):
-        click.echo(f"{outfile} exists, overwriting.")
-    print_notice(Markdown("""
-Using a scheduler requires installing an additional Snakemake plugin. If you haven't already, install the `lsf` plugin with:
-    
-```bash
-mamba install bioconda::snakemake-executor-plugin-lsf
-```
-                """))
+        rprint(f"HPC profile [blue]{outfile}[/blue] already exists, overwriting\n", file = sys.stderr)
+    package_exists("lsf")
     with open(outfile, "w", encoding = "utf-8") as yml:
         yml.write("__use_yte__: true\n")
         yml.write("executor: lsf\n")
@@ -110,14 +119,8 @@ def htcondor():
     os.makedirs("hpc/htcondor", exist_ok=True)
     outfile = "hpc/htcondor/config.yaml"
     if os.path.exists(outfile):
-        click.echo(f"{outfile} exists, overwriting.")
-    print_notice(Markdown("""
-Using a scheduler requires installing an additional Snakemake plugin. If you haven't already, install the `htcondor` plugin with:
-    
-```bash
-mamba install bioconda::snakemake-executor-plugin-htcondor
-```
-                """))
+        rprint(f"HPC profile [blue]{outfile}[/blue] already exists, overwriting\n", file = sys.stderr)
+    package_exists("htcondor")
     with open(outfile, "w", encoding = "utf-8") as yml:
         yml.write("__use_yte__: true\n")
         yml.write("executor: htcondor\n")
@@ -145,14 +148,8 @@ def slurm():
     os.makedirs("hpc/slurm", exist_ok=True)
     outfile = "hpc/slurm/config.yaml"
     if os.path.exists(outfile):
-        click.echo(f"{outfile} exists, overwriting.")
-    print_notice(Markdown("""
-Using a scheduler requires installing an additional Snakemake plugin. If you haven't already, install the `slurm` plugin with:
-    
-```bash
-mamba install bioconda::snakemake-executor-plugin-slurm
-```
-                """))
+        rprint(f"HPC profile [blue]{outfile}[/blue] already exists, overwriting\n", file = sys.stderr)
+    package_exists("slurm")
     with open(outfile, "w", encoding = "utf-8") as yml:
         yml.write("__use_yte__: true\n")
         yml.write("executor: slurm\n")
@@ -180,14 +177,8 @@ def googlebatch():
     os.makedirs("hpc/googlebatch", exist_ok=True)
     outfile = "hpc/googlebatch/config.yaml"
     if os.path.exists(outfile):
-        click.echo(f"{outfile} exists, overwriting.")
-    print_notice(Markdown("""
-Using a scheduler requires installing an additional Snakemake plugin. If you haven't already, install the `googlebatch` plugin with:
-    
-```bash
-mamba install bioconda::snakemake-executor-plugin-googlebatch
-```
-                """))
+        rprint(f"HPC profile [blue]{outfile}[/blue] already exists, overwriting\n", file = sys.stderr)
+    package_exists("googlebatch")
     with open(outfile, "w", encoding = "utf-8") as yml:
         yml.write("__use_yte__: true\n")
         yml.write("executor: googlebatch\n")

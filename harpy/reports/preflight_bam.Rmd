@@ -14,7 +14,14 @@ output:
       - { title : "Source", icon: "fa-github", href: "https://www.github.com/pdimens/harpy/", align: right }
 ---
 
-```{r load environment, echo=FALSE, message=FALSE, warning=FALSE}
+```{r setup}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE)
+logfile <- file(snakemake@log$logfile, open = "wt")
+sink(logfile)
+sink(logfile, type = "message")
+```
+
+```{r package_imports}
 using<-function(...) {
     libs<-unlist(list(...))
     req<-unlist(lapply(libs,require,character.only=TRUE))
@@ -25,7 +32,9 @@ using<-function(...) {
     }
 }
 using("flexdashboard","dplyr","tidyr","DT","highcharter","scales")
+```
 
+```{r read_inputs}
 #infile <- "~/bamfilecheck.bam.tsv"
 infile <- snakemake@input[[1]]
 data <- read.table(infile, header = T)
@@ -69,7 +78,7 @@ valueBox(scales::comma(attention), caption = "Files With Issues", icon = ifelse(
 Below are a plot and corresponding table of the results of the preflight checks.
 The plot renames the parameters for clarity and they are:
 
-```{r}
+```{r description_table}
 knitr::kable(
   data.frame(
     "data column" = c("`nameMismatch`", "`noMI`", "`noBX`", "`badBX`", "`bxNotLast`"),
@@ -109,7 +118,7 @@ colnames(m) <- c("Name matches", "MI: tag present", "BX:Z: tag present", "AxxCxx
 rownames(m) <- gsub(".bam", "", data$file)
 ```
 
-```{r readsper, echo = FALSE, message = FALSE, warning = FALSE, out.width = '100%'}
+```{r readsper, out.width = '100%'}
 hchart(m) |>
   hc_colorAxis(stops = list(c(0, "#feda75"), c(1, "#4faad1")), tickAmount = 2, min = 0, max = 1) |>
   hc_title(text = "Alignment File Checks") |>
@@ -127,7 +136,7 @@ hchart(m) |>
 ```
 
 ### table {.no-title}
-```{r dtable, echo=FALSE, message=FALSE, warning=FALSE}
+```{r dtable}
 DT::datatable(
   data,
   rownames = F,

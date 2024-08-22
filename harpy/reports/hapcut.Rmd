@@ -15,7 +15,14 @@ output:
       - { title : "Source", icon: "fa-github", href: "https://www.github.com/pdimens/harpy/", align: right }
 ---
 
-```{r echo= FALSE, message = FALSE, warning = FALSE}
+```{r setup}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE)
+logfile <- file(snakemake@log$logfile, open = "wt")
+sink(logfile)
+sink(logfile, type = "message")
+```
+
+```{r package_imports}
 using<-function(...) {
     libs<-unlist(list(...))
     req<-unlist(lapply(libs,require,character.only=TRUE))
@@ -28,9 +35,9 @@ using<-function(...) {
 using("flexdashboard","dplyr","DT","scales", "plotly", "highcharter")
 ```
 
-```{r echo= FALSE, message = FALSE, warning = FALSE}
+```{r read_input}
 #file <- "~/blocks.summary.gz"
-file <- snakemake@input[[1]]
+file <- snakemake@input$blockfile
 df <- read.table(
   file, header = T,
   colClasses = c("factor","factor","integer","integer", "integer")
@@ -42,23 +49,6 @@ if(nrow(df) < 1){
 df$pos_end <- df$pos_start + df$block_length
 df <- df[df$block_length > 0, c(1,2,3,4,6,5)]
 levels(df$sample) <- basename(levels(df$sample))
-```
-
-```{r echo = FALSE, message = FALSE, warning = FALSE}
-# Find the 30 largest contigs
-contigs <- group_by(df, contig) %>%
-  summarize(size = max(pos_end)) %>%
-  arrange(desc(size))
-# limit the data to only the 30 largest contigs
-#if (nrow(contigs) > 30){
-#    .contigs <- contigs[1:30, ]$contig
-#} else {
-#    .contigs <- contigs$contig
-#}
-#pltheight <- round(1.2 * (length(.contigs)), digits = 0)
-#ridgeheight <- 1 + round(0.7 * (length(.contigs)), digits = 0)
-#pltheight.samples <- <- round(1.2 * (length(levels(df$sample))), digits = 0)
-#ridgeheight.samples <- 1 + round(0.7 * (length(levels(df$sample))), digits = 0)
 ```
 
 # General Stats
@@ -77,7 +67,7 @@ statistics relating to haplotypes on the per-sample level. Haplotype blocks with
 of `0` were removed from the data.
 
 ## Haplotyping details {data-height=100}
-```{r echo= FALSE, message = FALSE, warning = FALSE}
+```{r process_stats}
 overall <- df %>% summarise(
     total_snps = sum(n_snp),
     mean_snps = round(mean(n_snp), digits = 0),
@@ -112,7 +102,7 @@ valueBox(scales::comma(overall$mean_blocksize[1]), caption = "Avg Haplotype Leng
 valueBox(scales::comma(overall$median_blocksize[1]), caption = "Median Haplotype Length", color = "info")
 ```
 
-### avg snps
+### longest haplotype
 ```{r}
 valueBox(scales::comma(overall$max_blocksize[1]), caption = "Longest Haplotype (bp)", color = "info")
 ```
@@ -127,7 +117,7 @@ to collapse the right tail for better readability.
 
 ## dist plot
 ### the dist plpt {.no-title}
-```{r warning=FALSE, message=FALSE, echo= FALSE, out.width="100%"}
+```{r block_len_dist_plot, out.width="100%"}
 hs <- hist(
   df$block_length,
   breaks = 500,
@@ -154,25 +144,9 @@ Phasing typically has a few very large haplotypes, resulting in extreme
 right-tails in these distributions, therefore, the haplotype lengths are **log-scaled lengths**
 to collapse the right tail for better readability.
 
-```{r, echo= FALSE, message = FALSE, warning = FALSE}
-dropdown_buttons <- function(COLUMN, cutoff){
-  buttonlist <- list()
-  categories <- unique(COLUMN)
-  idx <- 0
-  for(i in categories){
-    idx <- idx + 1
-    if(idx > cutoff) break
-    visibility <- as.list(rep(FALSE, length(categories)))
-    visibility[[idx]] <- TRUE
-    buttonlist[[idx]] <- list(method = "restyle", label = i, args = list("visible", visibility))
-  }
-  return( list(list(y = 1, buttons = buttonlist)) )
-}
-```
-
 ## Per contig data
 ### stats per contig {.no-title}
-```{r echo= FALSE, message = FALSE, warning = FALSE,paged.print=TRUE, out.width="100%"}
+```{r per_contig_table, paged.print=TRUE, out.width="100%"}
 percontig <- df %>% group_by(contig) %>% summarise(
     n_haplo = round(length(n_snp)),
     mean_snps = round(mean(n_snp), digits = 0),
@@ -197,21 +171,45 @@ DT::datatable(
 ```
 
 ### per contig plot {.no-title}
-```{r contig_ridges, warning=FALSE, message=FALSE, echo= FALSE, out.width="100%"}
+```{r dropdown_buttons_func}
+dropdown_buttons <- function(CONTIGS, CUTOFF = 0){
+  buttonlist <- list()
+  idx <- 0
+  n_contigs <- length(CONTIGS)
+  for(i in CONTIGS){
+    idx <- idx + 1
+    if((CUTOFF > 0) && (idx > CUTOFF)) break
+    visibility <- as.list(rep(FALSE, n_contigs))
+    visibility[[idx]] <- TRUE
+    buttonlist[[idx]] <- list(method = "restyle", label = i, args = list("visible", visibility))
+  }
+  return( list(list(y = 1, buttons = buttonlist)) )
+}
+```
+
+```{r plotting_contigs_setup}
+plotting_contigs <- snakemake@params$contigs
+if (all(plotting_contigs == "default")){
+  .contigs <- group_by(df, contig) %>%
+    summarize(size = max(pos_end)) %>%
+    arrange(desc(size))
+  plot_contigs <- .contigs$contig[1:min(nrow(.contigs), 40)] 
+  } else {
+  plot_contigs <- plotting_contigs
+}
+```
+
+```{r contig_ridges, out.width="100%"}
 fig <- plot_ly(hoverinfo = "none") %>%
   layout(
     xaxis = list(title = "Log-Scaled Haplotype Length (bp)", fixedrange = TRUE),#, type = "log"),
     yaxis = list(fixedrange = TRUE),
     title = "Distribution of Haplotype Lengths by Contig",
     showlegend = F,
-    updatemenus = dropdown_buttons(df$contig, 300)
+    updatemenus = dropdown_buttons(plot_contigs)
   ) %>% config(displayModeBar = FALSE)
 # Loop over the categories
-.idx <- 0
-for (cont in unique(df$contig)) {
-  .idx <- .idx + 1
-  # stop after 300 contigs
-  if(.idx > 300) break
+for (cont in plot_contigs) {
   subset_cont <- df$block_length[df$contig == cont]
   fig <- fig %>%
     add_trace(
@@ -223,6 +221,44 @@ for (cont in unique(df$contig)) {
       visible = "legendonly"
     )
 }
+
+fig
+```
+
+### per contig plot {.no-title}
+```{r contig_ridgeplot, warning=FALSE, message=FALSE, echo= FALSE, fig.height=ridgeheight, fig.width=8}
+ggplot(df, aes(x = block_length, y = contig, fill = stat(x))) +
+  geom_density_ridges_gradient() +
+  scale_fill_viridis_c(option = "C", trans = "log10") +
+  theme_minimal() +
+  theme(legend.position = "none") +
+  scale_x_log10(
+     breaks = trans_breaks("log10", function(x) 10^x),
+     labels = trans_format("log10", math_format(10^.x))
+  ) +
+  labs(title = "Distribution of Haplotype Lengths by Contig", fill = "Haplotype Length (bp)") +
+  xlab("Haplotype Length (log scale)") +
+  ylab("")
+```
+
+fig
+```
+
+### per contig plot {.no-title}
+```{r contig_ridgeplot, warning=FALSE, message=FALSE, echo= FALSE, fig.height=ridgeheight, fig.width=8}
+ggplot(df, aes(x = block_length, y = contig, fill = stat(x))) +
+  geom_density_ridges_gradient() +
+  scale_fill_viridis_c(option = "C", trans = "log10") +
+  theme_minimal() +
+  theme(legend.position = "none") +
+  scale_x_log10(
+     breaks = trans_breaks("log10", function(x) 10^x),
+     labels = trans_format("log10", math_format(10^.x))
+  ) +
+  labs(title = "Distribution of Haplotype Lengths by Contig", fill = "Haplotype Length (bp)") +
+  xlab("Haplotype Length (log scale)") +
+  ylab("")
+```
 
 fig
 ```
@@ -244,7 +280,7 @@ right-tails in these distributions, therefore, the haplotype lengths are
 
 ## per sample
 ### stats per sample {.no-title}
-```{r echo= FALSE, message = FALSE, warning = FALSE, out.width="100%"}
+```{r table_persample, out.width="100%"}
 persample <- df %>% group_by(sample) %>% summarise(
     n_haplo = sum(length(n_snp)),
     mean_snps = round(mean(n_snp), digits = 0),
@@ -269,7 +305,7 @@ DT::datatable(
 ```
 
 ### the ridgeplot {.no-title}
-```{r sample_ridgeplot, warning=FALSE, message=FALSE, echo= FALSE, out.width="100%"}
+```{r sample_ridgeplot, out.width="100%"}
 fig <- plot_ly(hoverinfo = "none") %>%
   layout(
     xaxis = list(title = "Log-Scaled Haplotype Length (bp)", fixedrange = TRUE),#, type = "log"),

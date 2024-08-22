@@ -126,12 +126,12 @@ def biallelic_contigs(vcf, workdir):
     header_contigs = [i.split(",")[0].replace("##contig=<ID=","") for i in vcfheader if i.startswith("##contig=")]
     if vcf.lower().endswith("bcf") and not os.path.exists(f"{vcf}.csi"):
         subprocess.run(f"bcftools index {vcf}".split())
-    if vcf.lower().endswith("vcf.gz") and not os.path.exists(f"{vcf}.csi"):
+    if vcf.lower().endswith("vcf.gz") and not os.path.exists(f"{vcf}.tbi"):
         subprocess.run(f"bcftools index --tbi {vcf}".split())
 
     for contig in header_contigs:
         # Use bcftools to count the number of biallelic SNPs in the contig
-        viewcmd = subprocess.Popen(['bcftools', 'view', '-r', contig, '-v', 'snps', '-m2', '-M2', '-c', '2', vcf], stdout=subprocess.PIPE)
+        viewcmd = subprocess.Popen(['bcftools', 'view', '-H', '-r', contig, '-v', 'snps', '-m2', '-M2', '-c', '2', vcf], stdout=subprocess.PIPE)
         snpcount = 0
         while True:
             # Read the next line of output

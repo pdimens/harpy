@@ -1,10 +1,18 @@
 containerized: "docker://pdimens/harpy:latest"
 
-import sys
+import os
 import subprocess
-import multiprocessing
-import logging as pylogging
+import logging
 from pathlib import Path
+
+onstart:
+    logger.logger.addHandler(logging.FileHandler(config["snakemake_log"]))
+onsuccess:
+    os.remove(logger.logfile)
+onerror:
+    os.remove(logger.logfile)
+wildcard_constraints:
+    sample = "[a-zA-Z0-9._-]+"
 
 ##TODO MANUAL PRUNING OF SWITCH ERRORS
 # https://github.com/vibansal/HapCUT2/blob/master/outputformat.md
@@ -13,28 +21,24 @@ pruning           = config["prune"]
 molecule_distance = config["molecule_distance"]
 extra             = config.get("extra", "") 
 outdir 			  = config["output_directory"]
-envdir            = os.getcwd() + "/.harpy_envs"
-skipreports       = config["skip_reports"]
+envdir            = os.path.join(os.getcwd(), outdir, "workflow", "envs")
 samples_from_vcf  = config["samples_from_vcf"]
 variantfile       = config["inputs"]["variantfile"]
+skip_reports      = config["reports"]["skip"]
+plot_contigs      = config["reports"]["plot_contigs"]
 bamlist     = config["inputs"]["alignments"]
-snakemake_log = config["snakemake_log"]
-
-# toggle linked-read aware mode
+bamdict     = dict(zip(bamlist, bamlist))
 if config["ignore_bx"]:
     fragfile = outdir + "/extract_hairs/{sample}.unlinked.frags"
     linkarg = "--10x 0"
 else:
     fragfile =  outdir + "/link_fragments/{sample}.linked.frags"
     linkarg  = "--10x 1"
-
 if samples_from_vcf:
     bcfquery = subprocess.Popen(["bcftools", "query", "-l", variantfile], stdout=subprocess.PIPE)
     samplenames = bcfquery.stdout.read().decode().split()
 else:
     samplenames = [Path(i).stem for i in bamlist]
-
-# toggle indel mode
 if config["inputs"].get("genome", None):
     genomefile = config["inputs"]["genome"]
     if genomefile.lower().endswith(".gz"):
@@ -52,18 +56,6 @@ else:
     genofai    = []
     bn         = []
     indels     = False
-
-wildcard_constraints:
-    sample = "[a-zA-Z0-9._-]+"
-
-onstart:
-    extra_logfile_handler = pylogging.FileHandler(snakemake_log)
-    logger.logger.addHandler(extra_logfile_handler)
-
-def sam_index(infile):
-    """Use Samtools to index an input file, adding .bai to the end of the name"""
-    if not os.path.exists(f"{infile}.bai"):
-        subprocess.run(f"samtools index {infile} {infile}.bai".split())
 
 def get_alignments(wildcards):
     """returns a list with the bam file for the sample based on wildcards.sample"""
@@ -101,20 +93,18 @@ rule extract_hom:
         bcftools view -s {wildcards.sample} -Ou {input.vcf} | bcftools view -i 'GT="hom"' > {output}
         """
 
-# not the ideal way of doing this, but it works
 rule index_alignments:
     input:
-        bamlist
+        lambda wc: bamdict[wc.bam]
     output:
-        [f"{i}.bai" for i in bamlist]
-    threads:
-        workflow.cores
-    run:
-        with multiprocessing.Pool(processes=threads) as pool:
-            pool.map(sam_index, input)
+        "{bam}.bai"
+    container:
+        None
+    shell:
+        "samtools index {input}"
 
 if indels:
-    rule setup_genome:
+    rule process_genome:
         input:
             genomefile
         output: 
@@ -124,7 +114,7 @@ if indels:
         shell: 
             "seqtk seq {input} > {output}"
 
-    rule faidx_genome:
+    rule index_genome:
         input: 
             geno
         output: 
@@ -152,8 +142,6 @@ rule extract_hairs:
         bx = linkarg
     conda:
         f"{envdir}/phase.yaml"
-    benchmark:
-        ".Benchmark/Phase/extracthairs.{sample}.txt"
     shell:
         "extractHAIRS {params} --nf 1 --bam {input.bam} --VCF {input.vcf} --out {output} > {log} 2>&1"
 
@@ -170,8 +158,6 @@ rule link_fragments:
         d = molecule_distance
     conda:
         f"{envdir}/phase.yaml"
-    benchmark:
-        ".Benchmark/Phase/linkfrag.{sample}.txt"
     shell:
         "LinkFragments.py --bam {input.bam} --VCF {input.vcf} --fragments {input.fragments} --out {output} -d {params} > {log} 2>&1"
 
@@ -186,13 +172,12 @@ rule phase:
         outdir + "/logs/hapcut2/{sample}.blocks.phased.log"
     params: 
         prune = f"--threshold {pruning}" if pruning > 0 else "--no_prune 1",
+        fixed_params = "--nf 1 --error_analysis_mode 1 --call_homozygous 1 --outvcf 1",
         extra = extra
     conda:
         f"{envdir}/phase.yaml"
-    benchmark:
-        ".Benchmark/Phase/phase.{sample}.txt"
     shell:
-        "HAPCUT2 --fragments {input.fragments} --vcf {input.vcf} {params} --out {output.blocks} --nf 1 --error_analysis_mode 1 --call_homozygous 1 --outvcf 1 > {log} 2>&1"
+        "HAPCUT2 --fragments {input.fragments} --vcf {input.vcf} --out {output.blocks} {params} > {log} 2>&1"
 
 rule compress_phaseblock:
     input:
@@ -217,14 +202,14 @@ rule merge_het_hom:
     output:
         bcf = outdir + "/phased_samples/{sample}.phased.annot.bcf",
         idx = outdir + "/phased_samples/{sample}.phased.annot.bcf.csi"
+    params:
+        "-Ob --write-index -c CHROM,POS,FMT/GT,FMT/PS,FMT/PQ,FMT/PD -m +HAPCUT"
     threads:
         2
-    benchmark:
-        ".Benchmark/Phase/mergeAnno.{sample}.txt"
     container:
         None
     shell:
-        "bcftools annotate -Ob -o {output.bcf} --write-index -a {input.phase} -c CHROM,POS,FMT/GT,FMT/PS,FMT/PQ,FMT/PD -m +HAPCUT {input.orig}"
+        "bcftools annotate -a {input.phase} -o {output.bcf} {params} {input.orig}"
 
 rule merge_samples:
     input: 
@@ -262,16 +247,20 @@ rule summarize_blocks:
         """
         echo -e "sample\\tcontig\\tn_snp\\tpos_start\\tblock_length" > {params}
         for i in {input}; do
-            parse_phaseblocks.py -i $i >> {params}
+            parse_phaseblocks.py $i >> {params}
         done
         gzip {params}
         """
 
 rule phase_report:
     input:
-        outdir + "/reports/blocks.summary.gz"
+        blockfile = outdir + "/reports/blocks.summary.gz"
     output:
         outdir + "/reports/phase.html"
+    log:
+        logfile = outdir + "/logs/report.log"
+    params:
+        contigs = plot_contigs
     conda:
         f"{envdir}/r.yaml"
     script:
@@ -281,22 +270,27 @@ rule workflow_summary:
     default_target: True
     input:
         vcf = outdir + "/variants.phased.bcf",
-        reports = outdir + "/reports/phase.html" if not skipreports else []
+        reports = outdir + "/reports/phase.html" if not skip_reports else []
     params:
         prune = f"--threshold {pruning}" if pruning > 0 else "--no_prune 1",
         extra = extra
     run:
+        summary = ["The harpy phase workflow ran using these parameters:"]
+        summary.append(f"The provided variant file: {variantfile}")
+        hetsplit = "The variant file was split by sample and filtered for heterozygous sites using:\n"
+        hetsplit += "\tbcftools view -s SAMPLE | bcftools view -i \'GT=\"het\"\'"
+        summary.append(hetsplit)
+        phase = "Phasing was performed using the components of HapCut2:\n"
+        phase += "\textractHAIRS {linkarg} --nf 1 --bam sample.bam --VCF sample.vcf --out sample.unlinked.frags\n"
+        phase += f"\tLinkFragments.py --bam sample.bam --VCF sample.vcf --fragments sample.unlinked.frags --out sample.linked.frags -d {molecule_distance}\n"
+        phase += f"\tHAPCUT2 --fragments sample.linked.frags --vcf sample.vcf --out sample.blocks --nf 1 --error_analysis_mode 1 --call_homozygous 1 --outvcf 1 {params.prune} {params.extra}\n"
+        summary.append(phase)
+        annot = "Variant annotation was performed using:\n"
+        annot += "\tbcftools annotate -a sample.phased.vcf -c CHROM,POS,FMT/GT,FMT/PS,FMT/PQ,FMT/PD -m +HAPCUT\n"
+        annot += "\tbcftools merge --output-type b samples.annot.bcf"
+        summary.append(annot)
+        sm = "The Snakemake workflow was called via command line:\n"
+        sm = f"\t{config['workflow_call']}"
+        summary.append(sm)
         with open(outdir + "/workflow/phase.summary", "w") as f:
-            _ = f.write("The harpy phase workflow ran using these parameters:\n\n")
-            _ = f.write(f"The provided variant file: {variantfile}\n")
-            _ = f.write("The variant file was split by sample and filtered for heterozygous sites using:\n")
-            _ = f.write("""    bcftools view -s SAMPLE | bcftools view -i 'GT="het"' \n""")
-            _ = f.write("Phasing was performed using the components of HapCut2:\n")
-            _ = f.write("    extractHAIRS " + linkarg + " --nf 1 --bam sample.bam --VCF sample.vcf --out sample.unlinked.frags\n")
-            _ = f.write("    LinkFragments.py --bam sample.bam --VCF sample.vcf --fragments sample.unlinked.frags --out sample.linked.frags -d " + f"{molecule_distance}" + "\n")
-            _ = f.write("    HAPCUT2 --fragments sample.linked.frags --vcf sample.vcf --out sample.blocks --nf 1 --error_analysis_mode 1 --call_homozygous 1 --outvcf 1" + f" {params[0]} {params[1]}" + "\n\n")
-            _ = f.write("Variant annotation was performed using:\n")
-            _ = f.write("    bcftools annotate -a sample.phased.vcf -c CHROM,POS,FMT/GT,FMT/PS,FMT/PQ,FMT/PD -m +HAPCUT \n")
-            _ = f.write("    bcftools merge --output-type b samples.annot.bcf\n\n")
-            _ = f.write("\nThe Snakemake workflow was called via command line:\n")
-            _ = f.write("    " + str(config["workflow_call"]) + "\n")
+            f.write("\n\n".join(summary))

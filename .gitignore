@@ -1,6 +1,5 @@
 .snakemake/
 .vscode/
-.harpy_envs/
 .condarc
 .cache/
 hpc/
@@ -15,6 +14,8 @@ Simulate/
 Impute/
 Preflight/
 Phase/
+Assembly/
+Metassembly/
 samples.populations
 *.fasta
 *.bcf
@@ -24,4 +25,5 @@ harpy.egg-info/
 __pycache__/
 .Benchmark/
 extractReads
+haplotag.bc
 _Inline

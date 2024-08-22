@@ -2,38 +2,34 @@ containerized: "docker://pdimens/harpy:latest"
 
 import os
 import re
-import sys
-import multiprocessing
-import logging as pylogging
+import logging
 from pathlib import Path
 
-envdir      = os.getcwd() + "/.harpy_envs"
+onstart:
+    logger.logger.addHandler(logging.FileHandler(config["snakemake_log"]))
+onsuccess:
+    os.remove(logger.logfile)
+onerror:
+    os.remove(logger.logfile)
+wildcard_constraints:
+    sample = "[a-zA-Z0-9._-]+"
+
+outdir      = config["output_directory"]
+envdir      = os.path.join(os.getcwd(), outdir, "workflow", "envs")
 genomefile  = config["inputs"]["genome"]
 bamlist     = config["inputs"]["alignments"]
+bamdict     = dict(zip(bamlist, bamlist))
 samplenames = {Path(i).stem for i in bamlist}
 min_sv      = config["min_sv"]
 min_bc      = config["min_barcodes"]
 iterations  = config["iterations"]
 extra       = config.get("extra", "") 
-outdir      = config["output_directory"]
-skipreports = config["skip_reports"]
-snakemake_log = config["snakemake_log"]
+skip_reports = config["reports"]["skip"]
+plot_contigs = config["reports"]["plot_contigs"]    
 bn          = os.path.basename(genomefile)
 genome_zip  = True if bn.lower().endswith(".gz") else False
 if genome_zip:
     bn = bn[:-3]
-
-wildcard_constraints:
-    sample = "[a-zA-Z0-9._-]+"
-
-onstart:
-    extra_logfile_handler = pylogging.FileHandler(snakemake_log)
-    logger.logger.addHandler(extra_logfile_handler)
-
-def sam_index(infile):
-    """Use Samtools to index an input file, adding .bai to the end of the name"""
-    if not os.path.exists(f"{infile}.bai"):
-        subprocess.run(f"samtools index {infile} {infile}.bai".split())
 
 def get_alignments(wildcards):
     """returns a list with the bam file for the sample based on wildcards.sample"""
@@ -49,14 +45,13 @@ def get_align_index(wildcards):
 
 rule index_alignments:
     input:
-        bamlist
+        lambda wc: bamdict[wc.bam]
     output:
-        [f"{i}.bai" for i in bamlist]
-    threads:
-        workflow.cores
-    run:
-        with multiprocessing.Pool(processes=threads) as pool:
-            pool.map(sam_index, input)
+        "{bam}.bai"
+    container:
+        None
+    shell:
+        "samtools index {input}"
 
 rule index_barcode:
     input: 
@@ -64,16 +59,14 @@ rule index_barcode:
         bai = get_align_index
     output:
         temp(outdir + "/lrezIndexed/{sample}.bci")
-    benchmark:
-        ".Benchmark/leviathan/{sample}.lrez"
     threads:
         max(10, workflow.cores)
     conda:
-        f"{envdir}/sv.yaml"
+        f"{envdir}/variants.yaml"
     shell:
         "LRez index bam --threads {threads} -p -b {input.bam} -o {output}"
 
-rule setup_genome:
+rule process_genome:
     input:
         genomefile
     output: 
@@ -83,7 +76,7 @@ rule setup_genome:
     shell: 
         "seqtk seq {input} > {output}"
 
-rule faidx_genome:
+rule index_genome:
     input: 
         f"Genome/{bn}"
     output: 
@@ -115,10 +108,10 @@ rule call_variants:
         genome = f"Genome/{bn}",
         genidx = multiext(f"Genome/{bn}", ".fai", ".ann", ".bwt", ".pac", ".sa", ".amb")
     output:
-        temp(outdir + "/vcf/{sample}.vcf")
-    log:  
-        runlog     = outdir + "/logs/leviathan/{sample}.leviathan.log",
+        vcf = temp(outdir + "/vcf/{sample}.vcf"),
         candidates = outdir + "/logs/leviathan/{sample}.candidates"
+    log:  
+        runlog = outdir + "/logs/leviathan/{sample}.leviathan.log"
     params:
         min_sv = f"-v {min_sv}",
         min_bc = f"-c {min_bc}",
@@ -127,11 +120,9 @@ rule call_variants:
     threads:
         workflow.cores - 1
     conda:
-        f"{envdir}/sv.yaml"
-    benchmark:
-        ".Benchmark/leviathan/{sample}.variantcall"
+        f"{envdir}/variants.yaml"
     shell:
-        "LEVIATHAN -b {input.bam} -i {input.bc_idx} {params} -g {input.genome} -o {output} -t {threads} --candidates {log.candidates} 2> {log.runlog}"
+        "LEVIATHAN -b {input.bam} -i {input.bc_idx} {params} -g {input.genome} -o {output.vcf} -t {threads} --candidates {output.candidates} 2> {log.runlog}"
 
 rule sort_variants:
     input:
@@ -197,6 +188,10 @@ rule sample_reports:
         statsfile = outdir + "/reports/data/{sample}.sv.stats"
     output:	
         outdir + "/reports/{sample}.SV.html"
+    log:
+        logfile = outdir + "/logs/reports/{sample}.report.log"
+    params:
+        contigs = plot_contigs
     conda:
         f"{envdir}/r.yaml"
     script:
@@ -207,19 +202,23 @@ rule workflow_summary:
     input: 
         vcf = collect(outdir + "/vcf/{sample}.bcf", sample = samplenames),
         bedpe_agg = collect(outdir + "/{sv}.bedpe", sv = ["inversions", "deletions","duplications", "breakends"]),
-        reports = collect(outdir + "/reports/{sample}.SV.html", sample = samplenames) if not skipreports else []
+        reports = collect(outdir + "/reports/{sample}.SV.html", sample = samplenames) if not skip_reports else []
     params:
         min_sv = f"-v {min_sv}",
         min_bc = f"-c {min_bc}",
         iters  = f"-B {iterations}",
         extra = extra
     run:
+        summary = ["The harpy sv leviathan workflow ran using these parameters:"]
+        summary.append(f"The provided genome: {bn}")
+        bc_idx = "The barcodes were indexed using:\n"
+        bc_idx += "LRez index bam -p -b INPUT"
+        summary.append(bc_idx)
+        svcall = "Leviathan was called using:\n"
+        svcall += f"\tLEVIATHAN -b INPUT -i INPUT.BCI -g GENOME {params}"
+        summary.append(svcall)
+        sm = "The Snakemake workflow was called via command line:\n"
+        sm += f"\t{config['workflow_call']}"
+        summary.append(sm)
         with open(outdir + "/workflow/sv.leviathan.summary", "w") as f:
-            _ = f.write("The harpy sv leviathan workflow ran using these parameters:\n\n")
-            _ = f.write(f"The provided genome: {bn}\n")
-            _ = f.write("The barcodes were indexed using:\n")
-            _ = f.write("    LRez index bam -p -b INPUT\n")
-            _ = f.write("Leviathan was called using:\n")
-            _ = f.write(f"    LEVIATHAN -b INPUT -i INPUT.BCI -g GENOME {params}\n")
-            _ = f.write("\nThe Snakemake workflow was called via command line:\n")
-            _ = f.write("    " + str(config["workflow_call"]) + "\n")
+            f.write("\n\n".join(summary))

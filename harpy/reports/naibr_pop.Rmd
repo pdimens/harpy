@@ -15,8 +15,14 @@ output:
       - { title : "Source", icon: "fa-github", href: "https://www.github.com/pdimens/harpy/", align: right }
 ---
 
+```{r setup}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE)
+logfile <- file(snakemake@log$logfile, open = "wt")
+sink(logfile)
+sink(logfile, type = "message")
+```
 
-```{r load environment, echo=FALSE, message=FALSE, warning=FALSE}
+```{r package_imports}
 using<-function(...) {
     libs<-unlist(list(...))
     req<-unlist(lapply(libs,require,character.only=TRUE))
@@ -29,7 +35,7 @@ using<-function(...) {
 using("flexdashboard","dplyr", "ggplot2", "tidyr","DT","BioCircos", "viridisLite", "tools")
 ```
 
-```{r echo = FALSE, warnings = FALSE, message = FALSE}
+```{r read_inputs}
 infiles <- snakemake@input[["bedpe"]]
 fai <- snakemake@input[["fai"]]
 #infiles <- list.files(path = "~/test", pattern = "*bedpe", full.names = T)
@@ -43,7 +49,7 @@ Below is a series of tables and plots detailing the structural variants
 identified by [NAIBR](https://github.com/pontushojer/NAIBR) [(publication)](https://doi.org/10.1093/bioinformatics/btx712).
 The variants are given by:
 
-```{r table2, echo=FALSE, message=FALSE, warnings=FALSE, results='asis'}
+```{r table2, results='asis'}
 knitr::kable(
   data.frame(
     "Name" = c("Inversion", "Duplication", "Deletion"),
@@ -60,7 +66,7 @@ This report shows overview information.
 In the colorful summary boxes are the per-population average number of
 variants detected by type.
 
-```{r echo = FALSE, warnings = FALSE, message = FALSE}
+```{r readvariants_func}
 readvariants <- function(x){
   y <- read.table(
     x,
@@ -81,7 +87,6 @@ cleanbedpe <- function(x){
   return(y)
 }
 
-
 chimeric <- function(x){
   y <- x[x$Chr1!=x$Chr2, -11]
   y$Score <- round(y$Score, digits = 3)
@@ -89,7 +94,7 @@ chimeric <- function(x){
 }
 ```
 
-```{r echo = FALSE}
+```{r process_inputs}
 emptyfiles <- character()
 sv <- data.frame(matrix(ncol=12,nrow=0, dimnames=list(NULL, c("Population", "Chr1", "Break1", "Chr2", "Break2", "SplitMolecules", "DiscordantReads", "Orientation", "Haplotype", "Score", "PassFilter", "SV"))))
 for(i in infiles){
@@ -111,11 +116,11 @@ if(length(emptyfiles > 0)){
 }
 ```
 
-```{r echo = FALSE, warnings= FALSE, message = FALSE}
+```{r filter_variants}
 sv_clean <- cleanbedpe(sv)
 ```
 
-```{r echo = FALSE, warnings= FALSE, message = FALSE}
+```{r summary_info}
 summinfo <- sv %>%
   group_by(Population, SV) %>%
   summarise(tot = n()) %>%
@@ -161,7 +166,7 @@ The table below details the lengths (in bp) of structural variants for every con
 
 ## Per contig counts
 ### Variants by count {.no-title}
-```{r echo = FALSE, warnings= FALSE, message = FALSE}
+```{r sv_per_cont_table}
 grpcounts <- sv_clean %>%
   group_by(Population, Chr1, SV) %>%
   summarise(count = n()) %>%
@@ -182,8 +187,8 @@ DT::datatable(
 ```
 
 ### Variants by base-pair span {.no-title}
-```{r echo = FALSE, warnings= FALSE, message = FALSE}
-grplens <- sv_clean %>% 
+```{r variant_len_table}
+grplens <- sv_clean %>%
   group_by(Population, Chr1, SV) %>%
   summarise(bp = sum(Length)) %>%
   pivot_wider(names_from = Population, values_from = bp)
@@ -209,7 +214,7 @@ NAIBR outputs a tab-delimited file with named columns (along with a VCF
 and a reformatted bedpe file with extra information). The columns of the
 bedpe file are deciphered as such:
 
-```{r}
+```{r explanation_table}
 knitr::kable(
   data.frame(
     "Column" = names(sv),
@@ -241,7 +246,7 @@ The table below shows any structural variants whose breakpoints span multiple co
 
 ## Variants and Chimeras
 ### all variants {.no-title}
-```{r message = FALSE, echo = FALSE}
+```{r all_sv_table}
 DT::datatable(
   sv_clean,
   rownames = F,
@@ -256,7 +261,7 @@ DT::datatable(
 )
 ```
 ### chimeric variants {.no-title}
-```{r echo = FALSE, warnings = FALSE, message = FALSE}
+```{r chimeric_table}
 DT::datatable(
   chimeric(sv),
   rownames = F,
@@ -287,12 +292,15 @@ zooming on the plot.
 ```{r plots_setup}
 fa.sizes <- read.table(fai, header = F) %>% arrange(desc(2))
 colnames(fa.sizes) <- c("contig", "size")
-
-# make sure that the contigs with SV are the ones being plotted, not the others
-fa.sizes <- fa.sizes[fa.sizes$contig %in% unique(sv$Chr1), 1:2]
-
-# limit the data to only the 30 of the largest present contigs
-fa.sizes <- fa.sizes[1:min(nrow(fa.sizes), 30), ]
+plot_contigs <- snakemake@params$contigs
+if (all(plot_contigs == "default")){
+  # make sure that the contigs with SV are the ones being plotted, not the others
+  fa.sizes <- fa.sizes[fa.sizes$contig %in% unique(sv$Chr1), 1:2]
+  # limit the data to only the 30 of the largest present contigs
+  fa.sizes <- fa.sizes[1:min(nrow(fa.sizes), 30), ]
+} else {
+  fa.sizes <- fa.sizes[fa.sizes$contig %in% plot_contigs, 1:2]
+}
 
 # filter out variants that aren't on one of these contigs
 sv_clean <- sv_clean[sv_clean$Chr1 %in% fa.sizes$contig, ]

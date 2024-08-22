@@ -11,152 +11,148 @@ from rich import print as rprint
 from rich.table import Table
 import rich_click as click
 from ._printing import print_error, print_notice, print_solution, print_solution_with_culprits
+from ._misc import harpy_progressbar
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
-def check_envdir(dirpath):
-    """Check that the provided dir exists and contains the necessary environment definitions"""
-    if not os.path.exists(dirpath):
-        print_error("missing conda files", "This working directory does not contain the expected directory of conda environment definitions ([blue bold].harpy_envs/[/blue bold])\n  - use [green bold]--conda[/green bold] to recreate it")
-        sys.exit(1)
-    envlist = os.listdir(dirpath)
-    envs = ["align",  "phase", "qc", "r", "simulations", "snp", "stitch", "sv"]
-    errcount = 0
-    errtable = Table(show_footer=True, box=box.SIMPLE)
-    errtable.add_column("File", justify="left", style="blue", no_wrap=True)
-    errtable.add_column("Exists", justify="center")
-    for i in envs:
-        if f"{i}.yaml" in envlist:
-            errtable.add_row(f"{i}.yaml", "[blue]✓")
-        else:
-            errcount += 1
-            errtable.add_row(f"{i}.yaml", "[yellow]🗙")
-    if errcount > 0:
-        print_error("missing conda files", f"The conda environment definition directory ([blue bold]{dirpath}[/blue bold]) is missing [yellow bold]{errcount}[/yellow bold] of the expected definition files. All of the environment files are expected to be present, even if a particular workflow doesn't use it.")
-        print_solution_with_culprits(
-            "Check that the names conform to Harpy's expectations, otheriwse you can recreate this directory using the [green bold]--conda[/green bold] option.",
-            "Expected environment files:"
-            )
-        rprint(errtable, file = sys.stderr)
-        sys.exit(1)
+def is_gzip(file_path):
+    """helper function to determine if a file is gzipped"""
+    try:
+        with gzip.open(file_path, 'rt') as f:
+            f.read(10)
+        return True
+    except gzip.BadGzipFile:
+        return False
 
-def validate_input_by_ext(inputfile, option, ext):
-    """Check that the input file for a given option has read permissions and matches the acceptable extensions """
-    if isinstance(ext, list):
-        test = [not(inputfile.lower().endswith(i.lower())) for i in ext]
-        if all(test):
-            ext_text = " | ".join(ext)
-            print_error("invalid file extension", f"The input file for [bold]{option}[/bold] must end in one of:\n[green bold]{ext_text}[/green bold]")
-            sys.exit(1)
-    else:
-        if not inputfile.lower().endswith(ext.lower()):
-            print_error("invalid file extension", f"The input file for [bold]{option}[/bold] must end in [green bold]{ext}[/green bold]")
-            sys.exit(1)
+def is_plaintext(file_path):
+    """helper function to determine if a file is plaintext"""
+    try:
+        with open(file_path, 'r') as f:
+            f.read(10)
+        return True
+    except UnicodeDecodeError:
+        return False
 
 def check_impute_params(parameters):
     """Validate the STITCH parameter file for column names, order, types, missing values, etc."""
-    with open(parameters, "r", encoding="utf-8") as fp:
-        header = fp.readline().rstrip().lower()
+    with open(parameters, "r", encoding="utf-8") as paramfile:
+        header = paramfile.readline().rstrip().lower()
         headersplt = header.split()
-        correct_header = sorted(["model", "usebx", "bxlimit", "k", "s", "ngen"])
+        colnames = ["name", "model", "usebx", "bxlimit", "k", "s", "ngen"]
+        correct_header = sorted(colnames)
+        n_cols = len(colnames)
         row = 1
         badrows = []
         badlens = []
         if sorted(headersplt) != correct_header:
-            culprits = [i for i in headersplt if i not in correct_header]
-            print_error("invalid column names", f"Parameter file [bold]{parameters}[/bold] has incorrect column names. Valid names are:\n[green bold]model usebx bxlimit k s ngen[/green bold]")
+            invalid_col = [i for i in headersplt if i not in colnames]
+            missing_col = [i for i in colnames if i not in headersplt]
+            errtext = []
+            culprit_text = []
+            if invalid_col:
+                errtext.append("\n  - invalid column names")
+                culprit_text.append(f"[red]Invalid columns:[/red] " + ", ".join(invalid_col))
+            if missing_col:
+                errtext.append("\n  - missing columns")
+                culprit_text.append( f"[yellow]Missing columns:[/yellow] " + ", ".join(missing_col))
+
+            print_error("incorrect columns", f"Parameter file [bold]{parameters}[/bold] has incorrect column names" + "".join(errtext) + f"\nValid names are: [green bold]" + " ".join(colnames) + "[/green bold]")
             print_solution_with_culprits(
                 f"Fix the headers in [bold]{parameters}[/bold] or use [blue bold]harpy stitchparams[/blue bold] to generate a valid parameter file and modify it with appropriate values.",
-                "Column names causing this error:"
+                "Column causing this error:"
             )
-            click.echo(" ".join(culprits), file = sys.stderr)
+            rprint("\n".join(culprit_text), file = sys.stderr)
             sys.exit(1)
+        else:
+            # in case the columns are out of order, reorder the columns to match `colnames`
+            col_order = [colnames.index(item) for item in headersplt]
         # instantiate dict with colnames
         data = {}
-        for i in headersplt:
-            data[i] = []
         while True:
             # Get next line from file
-            line = fp.readline()
+            line = paramfile.readline()
             row += 1
             # if line is empty, end of file is reached
             if not line:
                 break
             if line == "\n":
-                break
-            # split the line by whitespace
-            rowvals = line.rstrip().split()
-            rowlen = len(rowvals)
-            if rowlen != 6:
-                badrows.append(row)
-                badlens.append(rowlen)
-            elif len(badrows) > 0:
+                # be lenient with empty rows
                 continue
+            # split the line by whitespace and reorder to match expected colname order
+            row_values = [line.rstrip().split()[i] for i in col_order]
+            if len(row_values) == n_cols: 
+                data[row_values[0]] = dict(zip(colnames[1:], row_values[1:]))
             else:
-                for j,k in zip(headersplt, rowvals):
-                    data[j].append(k)
-
+                badrows.append(row)
+                badlens.append(len(row_values))
         if len(badrows) > 0:
-            print_error("invalid rows", f"Parameter file [bold]{parameters}[/bold] is formatted incorrectly. Not all rows have the expected 6 columns.")
+            print_error("invalid rows", f"Parameter file [blue]{parameters}[/blue] is formatted incorrectly. Not all rows have the expected {n_cols} columns.")
             print_solution_with_culprits(
-                f"See the problematic rows below. Check that you are using a whitespace (space or tab) delimeter in [bold]{parameters}[/bold] or use [blue bold]harpy stitchparams[/blue bold] to generate a valid parameter file and modify it with appropriate values.",
+                f"See the problematic rows below. Check that you are using a whitespace (space or tab) delimeter in [blue]{parameters}[/blue] or use [blue green]harpy stitchparams[/blue green] to generate a valid parameter file and modify it with appropriate values.",
                 "Rows causing this error and their column count:"
             )
             for i in zip(badrows, badlens):
                 click.echo(f"{i[0]}\t{i[1]}", file = sys.stderr)
             sys.exit(1)
         
-        # Validate each column
-        culprits = {}
-        colerr = 0
+        # validate each row
+        row_error = False
         errtable = Table(show_footer=True, box=box.SIMPLE)
-        errtable.add_column("Column", justify="right", style="white", no_wrap=True)
-        errtable.add_column("Expected Values", style="blue")
-        errtable.add_column("Rows with Issues", style = "white")
+        errtable.add_column("Row", justify="right", style="white", no_wrap=True)
+        errtable.add_column("Columns with Issues", style = "white")
 
-        culprits["model"] = []
-        for i,j in enumerate(data["model"]):
-            if j not in ["pseudoHaploid", "diploid","diploid-inbred"]:
-                culprits["model"].append(str(i + 1))
-                colerr += 1
-        if culprits["model"]:
-            errtable.add_row("model", "diploid, diploid-inbred, pseudoHaploid", ", ".join(culprits["model"]))
-
-        culprits["usebx"] = []
-        for i,j in enumerate(data["usebx"]):
-            if j not in [True, "TRUE", "true", False, "FALSE", "false", "Y","y", "YES", "Yes", "yes", "N", "n", "NO", "No", "no"]:
-                culprits["usebx"].append(str(i + 1))
-                colerr += 1
-        if culprits["usebx"]:
-            errtable.add_row("usebx", "True, False", ",".join(culprits["usebx"]))
-        
-        for param in ["bxlimit","k","s","ngen"]:
-            culprits[param] = []
-            for i,j in enumerate(data[param]):
-                if not j.isdigit():
-                    culprits[param].append(str(i + 1))
-                    colerr += 1
-            if culprits[param]:
-                errtable.add_row(param, "Integers", ",".join(culprits[param]))
-
-        if colerr > 0:
-            print_error("invalid column values", f"Parameter file [bold]{parameters}[/bold] is formatted incorrectly. Not all columns have valid values.")
+        row = 1
+        for k,v in data.items():
+            badcols = []
+            if re.search(r'[^a-z0-9\-_\.]',k, flags = re.IGNORECASE):
+                badcols.append("name")
+            if v["model"] not in ["pseudoHaploid", "diploid","diploid-inbred"]:
+                badcols.append("model")
+            if v["usebx"].lower() not in ["true", "false", "yes", "y", "no", "n"]:
+                badcols.append("usebx")
+            else:
+                if v["usebx"].lower() in ["true", "yes", "y"]:                
+                    v["usebx"] = True
+                else:
+                    v["usebx"] = False
+            for param in ["bxlimit", "k", "s", "ngen"]:
+                if not v[param].isdigit():
+                    badcols.append(param)
+                else:
+                    v[param] = int(v[param])
+            if badcols:
+                row_error = True
+                errtable.add_row(f"{row}", ", ".join(badcols))
+            row += 1
+        if row_error:
+            print_error("invalid parameter values", f"Parameter file [bold]{parameters}[/bold] is formatted incorrectly. Some rows have incorrect values for one or more parameters.")
             print_solution_with_culprits(
-                "Review the table below of what values are expected for each column and which rows are causing issues.",
+                "Review the table below of which rows/columns are causing issues",
                 "Formatting Errors:"
             )
             rprint(errtable, file = sys.stderr)
-            sys.exit(1)
+            sys.exit(1)        
+        return data
 
-def validate_bam_RG(bamlist):
+def validate_bam_RG(bamlist, threads, quiet):
     """Validate BAM files bamlist to make sure the sample name inferred from the file matches the @RG tag within the file"""
     culpritfiles = []
     culpritIDs   = []
-    for i in bamlist:
-        samplename = Path(i).stem
-        samview = subprocess.run(f"samtools samples {i}".split(), stdout = subprocess.PIPE).stdout.decode('utf-8').split()
+    def check_RG(bamfile):
+        samplename = Path(bamfile).stem
+        samview = subprocess.run(f"samtools samples {bamfile}".split(), stdout = subprocess.PIPE).stdout.decode('utf-8').split()
         if samplename != samview[0]:
-            culpritfiles.append(os.path.basename(i))
-            culpritIDs.append(samview[0])
-        
+            return os.path.basename(bamfile), samview[0]
+
+    with harpy_progressbar(quiet) as progress, ThreadPoolExecutor(max_workers=threads) as executor:
+        task_progress = progress.add_task("[green]Checking RG tags", total=len(bamlist))
+        futures = [executor.submit(check_RG, i) for i in bamlist]
+        for future in as_completed(futures):
+            result = future.result()
+            progress.update(task_progress, advance=1)
+            if result:
+                culpritfiles.append(result[0])
+                culpritIDs.append(result[1])
+    
     if len(culpritfiles) > 0:
         print_error("sample ID mismatch",f"There are [bold]{len(culpritfiles)}[/bold] alignment files whose RG tags do not match their filenames.")
         print_solution_with_culprits(
@@ -192,7 +188,7 @@ def validate_popfile(infile):
             _ = [click.echo(f"{i[0]+1}\t{i[1]}", file = sys.stderr) for i in invalids]
             sys.exit(1)
 
-def vcf_samplematch(vcf, bamlist, vcf_samples):
+def vcf_sample_match(vcf, bamlist, vcf_samples):
     """Validate that the input VCF file and the samples in the list of BAM files. The directionality of this check is determined by 'vcf_samples', which prioritizes the sample list in the vcf file, rather than bamlist."""
     bcfquery = subprocess.Popen(["bcftools", "query", "-l", vcf], stdout=subprocess.PIPE)
     vcfsamples = bcfquery.stdout.read().decode().split()
@@ -215,6 +211,24 @@ def vcf_samplematch(vcf, bamlist, vcf_samples):
         click.echo(", ".join(sorted(missing_samples)) + "\n", file = sys.stderr)
         sys.exit(1)
     return(query)
+
+def vcf_contig_match(contigs, vcf):
+    vcf_contigs = []
+    vcf_header = subprocess.run(["bcftools", "head", vcf], capture_output = True, text = True)
+    for i in vcf_header.stdout.split("\n"):
+        if i.startswith("##contig="):
+            unformatted_contig = i.split(",")[0]
+            vcf_contigs.append(unformatted_contig.lstrip("##contig=<ID="))
+    bad_names = []
+    for i in contigs:
+        if i not in vcf_contigs:
+            bad_names.append(i)
+    if bad_names:
+        shortname = os.path.basename(vcf)
+        print_error("contigs absent", f"Some of the provided contigs were not found in [blue]{shortname}[/blue]. This will definitely cause plotting errors in the workflow.")
+        print_solution_with_culprits("Check that your contig names are correct, including uppercase and lowercase. It's possible that you listed a contig in the genome that isn't in the variant call file due to filtering.", f"Contigs absent in {shortname}:")
+        click.echo(",".join([i for i in bad_names]), file = sys.stderr)
+        sys.exit(1)
 
 def validate_popsamples(infiles, popfile, quiet):
     """Validate the presence of samples listed in 'populations' to be in the input files"""
@@ -247,33 +261,6 @@ def validate_demuxschema(infile):
                 )
             _ = [click.echo(f"{i[0]+1}\t{i[1]}", file = sys.stderr) for i in invalids]
             sys.exit(1)
-
-def check_demux_fastq(file):
-    """Check for the presence of corresponding FASTQ files from a single provided FASTQ file based on pipeline expectations."""
-    bn = os.path.basename(file)
-    if not bn.lower().endswith("fq") and not bn.lower().endswith("fastq") and not bn.lower().endswith("fastq.gz") and not bn.lower().endswith("fq.gz"):     
-        print_error("unrecognized extension", f"The file [blue]{bn}[/blue] is not recognized as a FASTQ file by the file extension.")
-        print_solution("Make sure the input file ends with a standard FASTQ extension. These are not case-sensitive.\nAccepted extensions: [green bold].fq .fastq .fq.gz .fastq.gz[/green bold]")
-        sys.exit(1)
-    ext = re.search(r"(?:\_00[0-9])*\.f(.*?)q(?:\.gz)?$", file, re.IGNORECASE).group(0)
-    prefix     = re.sub(r"[\_\.][IR][12]?(?:\_00[0-9])*\.f(?:ast)?q(?:\.gz)?$", "", bn)
-    prefixfull = re.sub(r"[\_\.][IR][12]?(?:\_00[0-9])*\.f(?:ast)?q(?:\.gz)?$", "", file)
-    filelist = []
-    printerr = False
-    for i in ["I1", "I2","R1","R2"]:
-        chkfile = f"{prefixfull}_{i}{ext}"
-        TF = os.path.exists(chkfile)
-        printerr = True if not TF else printerr
-        symbol = " " if TF else "X"
-        filelist.append(f"\033[91m{symbol}\033[0m  {prefix}_{i}{ext}")
-    if printerr:
-        print_error("missing files", f"Not all necessary files with prefix [bold]{prefix}[/bold] present")
-        print_solution_with_culprits(
-            "Demultiplexing requires 4 sequence files: the forward and reverse sequences (R1 and R2), along with the forward and reverse indices (I2 and I2).",
-            "Necessary/expected files:"
-        )
-        _ = [click.echo(i, file = sys.stderr) for i in filelist]
-        sys.exit(1)
 
 def validate_regions(regioninput, genome):
     """validates the --regions input of harpy snp to infer whether it's an integer, region, or file"""
@@ -309,23 +296,18 @@ def validate_regions(regioninput, genome):
         # check if the region is in the genome
 
         contigs = {}
-        if genome.lower().endswith("gz"):
-            with gzip.open(genome, "r") as fopen:
-                for line in fopen:
-                    line = line.decode()
-                    if line.startswith(">"):
-                        cn = line.rstrip("\n").lstrip(">").split()[0]
-                        contigs[cn] = 0
-                    else:
-                        contigs[cn] += len(line.rstrip("\n")) - 1
-        else:
-            with open(genome, "r", encoding="utf-8") as fout:
-                for line in fopen:
-                    if line.startswith(">"):
-                        cn = line.rstrip("\n").lstrip(">").split()[0]
-                        contigs[cn] = 0
-                    else:
-                        contigs[cn] += len(line.rstrip("\n")) - 1
+        opener = gzip.open if is_gzip(genome) else open
+        mode = "rt" if is_gzip(genome) else "r"
+        with opener(genome, mode) as fopen:
+            for line in fopen:
+                if line.startswith(">"):
+                    cn = line.rstrip("\n").lstrip(">").split()[0]
+                    contigs[cn] = 0
+                else:
+                    contigs[cn] += len(line.rstrip("\n"))
+        # since it's zero-based, subtract 1 from the final sums
+        #for k,v in contigs.items():
+        #    contigs[k] = v - 1
         err = ""
         if reg[0] not in contigs:
             print_error("contig not found", f"The contig ([bold yellow]{reg[0]})[/bold yellow]) of the input region [yellow bold]{regioninput}[/yellow bold] was not found in [blue]{genome}[/blue].")
@@ -345,13 +327,7 @@ def validate_regions(regioninput, genome):
         sys.exit(1)
     with open(regioninput, "r", encoding="utf-8") as fin:
         badrows = []
-        idx = 0
-        while True:
-            line = fin.readline()
-            if not line:
-                break
-            else:
-                idx += 1
+        for idx, line in enumerate(fin, 1):
             row = line.split()
             if len(row) != 3:
                 badrows.append(idx)
@@ -372,73 +348,41 @@ def validate_regions(regioninput, genome):
             sys.exit(1)
     return "file"
 
-
-def is_gzip(file_path):
-    """helper function to determine if a file is gzipped"""
-    try:
-        with gzip.open(file_path, 'rt') as f:
-            f.read(10)
-        return True
-    except:
-        return False
-
-def is_plaintext(file_path):
-    """helper function to determine if a file is plaintext"""
-    try:
-        with open(file_path, 'r') as f:
-            f.read(10)
-        return True
-    except:
-        return False
-
 def check_fasta(genofile):
     """perform validations on fasta file for extensions and file contents"""
-    ext_options = [".fasta", ".fas", ".fa", ".fna", ".ffn", ".faa", ".mpfa", ".frn"]
-    ext_correct = 0
-    for i in ext_options:
-        if genofile.lower().endswith(i) or genofile.lower().endswith(i + ".gz"):
-            ext_correct += 1
-    if ext_correct == 0:
-        print_notice(f"[blue]{genofile}[/blue] has an unfamiliar FASTA file extension. Common FASTA file extensions are: [green]" + ", ".join(ext_options) + "[/green] and may also be gzipped.")
-
     # validate fasta file contents
-    if is_gzip(genofile):
-        fasta = gzip.open(genofile, 'rt')
-    elif is_plaintext(genofile):
-        fasta = open(genofile, 'r', encoding="utf-8")
-    else:
-        print_error("unknown file type", f"Unable to determine file encoding for [blue]{genofile}[/blue]. Please check that it is a gzipped or uncompressed FASTA file.")
-        sys.exit(1)
+    opener = gzip.open if is_gzip(genofile) else open
+    mode = "rt" if is_gzip(genofile) else "r"
     line_num = 0
     seq_id = 0
     seq = 0
     last_header = False
-    for line in fasta:
-        line_num += 1
-        if line.startswith(">"):
-            seq_id += 1
-            if last_header:
-                print_error("consecutive contig names", f"All contig names must be followed by at least one line of nucleotide sequences, but two consecutive lines of contig names were detected. This issue was identified at line [bold]{line_num}[/bold] in [blue]{genofile}[/blue], but there may be others further in the file.")
+    with opener(genofile, mode) as fasta:
+        for line in fasta:
+            line_num += 1
+            if line.startswith(">"):
+                seq_id += 1
+                if last_header:
+                    print_error("consecutive contig names", f"All contig names must be followed by at least one line of nucleotide sequences, but two consecutive lines of contig names were detected. This issue was identified at line [bold]{line_num}[/bold] in [blue]{genofile}[/blue], but there may be others further in the file.")
+                    print_solution("See the FASTA file spec and try again after making the appropriate changes: https://www.ncbi.nlm.nih.gov/genbank/fastaformat/")
+                    sys.exit(1)
+                else:
+                    last_header = True
+                if len(line.rstrip()) == 1:
+                    print_error("unnamed contigs", f"All contigs must have an alphanumeric name, but a contig was detected without a name. This issue was identified at line [bold]{line_num}[/bold] in [blue]{genofile}[/blue], but there may be others further in the file.")
+                    print_solution("See the FASTA file spec and try again after making the appropriate changes: https://www.ncbi.nlm.nih.gov/genbank/fastaformat/")
+                    sys.exit(1)
+                if line.startswith("> "):
+                    print_error("invalid contig names", f"All contig names must be named [green bold]>contig_name[/green bold], without a space, but a contig was detected with a space between the [green bold]>[/green bold] and contig_name. This issue was identified at line [bold]{line_num}[/bold] in [blue]{genofile}[/blue], but there may be others further in the file.")
+                    print_solution("See the FASTA file spec and try again after making the appropriate changes: https://www.ncbi.nlm.nih.gov/genbank/fastaformat/")
+                    sys.exit(1)
+            elif line == "\n":
+                print_error("empty lines", f"Empty lines are not permitted in FASTA files, but one was detected at line [bold]{line_num}[/bold] in [blue]{genofile}[/blue]. The scan ended at this error, but there may be others further in the file.")
                 print_solution("See the FASTA file spec and try again after making the appropriate changes: https://www.ncbi.nlm.nih.gov/genbank/fastaformat/")
                 sys.exit(1)
             else:
-                last_header = True
-            if len(line.rstrip()) == 1:
-                print_error("unnamed contigs", f"All contigs must have an alphanumeric name, but a contig was detected without a name. This issue was identified at line [bold]{line_num}[/bold] in [blue]{genofile}[/blue], but there may be others further in the file.")
-                print_solution("See the FASTA file spec and try again after making the appropriate changes: https://www.ncbi.nlm.nih.gov/genbank/fastaformat/")
-                sys.exit(1)
-            if line.startswith("> "):
-                print_error("invalid contig names", f"All contig names must be named [green bold]>contig_name[/green bold], without a space, but a contig was detected with a space between the [green bold]>[/green bold] and contig_name. This issue was identified at line [bold]{line_num}[/bold] in [blue]{genofile}[/blue], but there may be others further in the file.")
-                print_solution("See the FASTA file spec and try again after making the appropriate changes: https://www.ncbi.nlm.nih.gov/genbank/fastaformat/")
-                sys.exit(1)
-        elif line == "\n":
-            print_error("empty lines", f"Empty lines are not permitted in FASTA files, but one was detected at line [bold]{line_num}[/bold] in [blue]{genofile}[/blue]. The scan ended at this error, but there may be others further in the file.")
-            print_solution("See the FASTA file spec and try again after making the appropriate changes: https://www.ncbi.nlm.nih.gov/genbank/fastaformat/")
-            sys.exit(1)
-        else:
-            seq += 1
-            last_header = False
-    fasta.close()
+                seq += 1
+                last_header = False
     solutiontext = "FASTA files must have at least one contig name followed by sequence data on the next line. Example:\n"
     solutiontext += "[green]  >contig_name\n  ATACAGGAGATTAGGCA[/green]\n"
     # make sure there is at least one of each
@@ -450,3 +394,103 @@ def check_fasta(genofile):
         print_error("sequences absent", f"No sequences detected in [blue]{genofile}[/blue].")
         print_solution(solutiontext + "\nSee the FASTA file spec and try again after making the appropriate changes: https://www.ncbi.nlm.nih.gov/genbank/fastaformat/")
         sys.exit(1)
+
+def fasta_contig_match(contigs, fasta):
+    """Checks whether a list of contigs are present in a fasta file"""
+    valid_contigs = []
+    opener = gzip.open if is_gzip(fasta) else open
+    with opener(fasta, "rt") as gen_open:
+        for line in gen_open:
+            if not line.startswith(">"):
+                continue
+            # get just the name, no comments or starting character
+            valid_contigs.append(line.rstrip().lstrip(">").split()[0])
+    bad_names = []
+    for i in contigs:
+        if i not in valid_contigs:
+            bad_names.append(i)
+    if bad_names:
+        shortname = os.path.basename(fasta)
+        print_error("contigs absent", f"Some of the provided contigs were not found in [blue]{shortname}[/blue]. This will definitely cause plotting errors in the workflow.")
+        print_solution_with_culprits("Check that your contig names are correct, including uppercase and lowercase.", f"Contigs absent in {shortname}:")
+        click.echo(",".join([i for i in bad_names]), file = sys.stderr)
+        sys.exit(1)
+
+def validate_fastq_bx(fastq_list, threads, quiet):
+    """
+    Parse a list of fastq files to verify that they have BX/BC tag, and only one of those two types per file
+    """
+    def validate(fastq):
+        BX = False
+        BC = False
+        if is_gzip(fastq):
+            fq = gzip.open(fastq, "rt")
+        else:
+            fq = open(fastq, "r")
+        with fq:
+            for line in fq:
+                if not line.startswith("@"):
+                    continue
+                BX = True if "BX:Z" in line else BX
+                BC = True if "BC:Z" in line else BC
+                if BX and BC:
+                    print_error("clashing barcode tags", f"Both [green bold]BC:Z[/green bold] and [green bold]BX:Z[/green bold] tags were detected in the read headers for [blue]{os.path.basename(fastq)}[/blue]. Athena accepts [bold]only[/bold] one of [green bold]BC:Z[/green bold] or [green bold]BX:Z[/green bold].")
+                    print_solution("Check why your data has both tags in use and remove/rename one of the tags.")
+                    sys.exit(1)
+            # check for one or the other after parsing is done
+            if not BX and not BC:
+                print_error("no barcodes found",f"No [green bold]BC:Z[/green bold] or [green bold]BX:Z[/green bold] tags were detected in read headers for [blue]{os.path.basename(fastq)}[/blue]. Athena requires the linked-read barcode to be present as either [green bold]BC:Z[/green bold] or [/green bold]BX:Z[/green bold] tags.")
+                print_solution("Check that this is linked-read data and that the barcode is demultiplexed from the sequence line into the read header as either a `BX:Z` or `BC:Z` tag.")
+                sys.exit(1)
+
+    # parellelize over the fastq list
+    with harpy_progressbar(quiet) as progress, ThreadPoolExecutor(max_workers=threads) as executor:
+        task_progress = progress.add_task("[green]Validating FASTQ inputs", total=len(fastq_list))
+        futures = [executor.submit(validate, i) for i in fastq_list]
+        for future in as_completed(futures):
+            progress.update(task_progress, advance=1)
+
+def validate_barcodefile(infile, return_len = False, quiet = False, limit = 140):
+    """Does validations to make sure it's one length, within a length limit, one per line, and nucleotides"""
+    if is_gzip(infile):
+        print_error("Incorrect format", f"The input file must be in uncompressed format. Please decompress [blue]{infile}[/blue] and try again.")
+        sys.exit(1)
+    lengths = set()
+    nucleotides = {'A','C','G','T'}
+    def validate(line_num, bc_line):
+        barcode = bc_line.rstrip()
+        if len(barcode.split()) > 1:
+            print_error("Incorrect format", f"There must be one barcode per line, but multiple entries were detected on [bold]line {line_num}[/bold] in [blue]{infile}[/blue]")
+            sys.exit(1)
+        if not set(barcode).issubset(nucleotides) or barcode != barcode.upper():
+            print_error("Incorrect format", f"Invalid barcode format on [bold]line {line_num }[/bold]: [yellow]{barcode}[/yellow].\nBarcodes in [blue]{infile}[/blue] must be captial letters and only contain standard nucleotide characters [green]ATCG[/green].")
+            sys.exit(1)
+        return len(barcode)
+
+    with open(infile, "r") as bc_file, harpy_progressbar(quiet) as progress:
+        out = subprocess.Popen(['wc', '-l', infile], stdout=subprocess.PIPE, stderr=subprocess.STDOUT).communicate()[0]
+        linenum = int(out.partition(b' ')[0])
+        if linenum > 96**4:
+            print_error("Too many barcodes", f"The maximum number of barcodes possible with haplotagging is [bold]96^4 (84,934,656)[/bold], but there are [yellow]{linenum}[/yellow] barcodes in [blue]{infile}[/blue]. Please use fewer barcodes.")
+            sys.exit(1)
+        task_progress = progress.add_task("[green]Validating barcodes", total=linenum)
+        # check for duplicates
+        sort_out = subprocess.Popen(["sort", infile], stdout=subprocess.PIPE)
+        dup_out = subprocess.run(["uniq", "-d"], stdin=sort_out.stdout, capture_output=True, text=True)
+        if dup_out.stdout:
+            print_error("Duplicate barcodes", f"Duplicate barcodes were detected in {infile}, which will result in misleading simulated data.")
+            print_solution_with_culprits("Check that you remove duplicate barcodes from your input file.", "Duplicates identified:")
+            click.echo(dup_out.stdout, file = sys.stderr)
+            sys.exit(1)
+        for line,bc in enumerate(bc_file):
+            length = validate(line + 1, bc)
+            if length > limit:
+                print_error("Barcodes too long", f"Barcodes in [blue]{infile}[/blue] are [yellow]{length}bp[/yellow] and cannot exceed a length of [bold]{limit}bp[/bold]. Please use shorter barcodes.")
+                sys.exit(1)
+            lengths.add(length)
+            progress.update(task_progress, advance=1)
+    if len(lengths) > 1:
+        print_error("Incorrect format", f"Barcodes in [blue]{infile}[/blue] must all be a single length, but multiple lengths were detected: [yellow]" + ", ".join(lengths) + "[/yellow]")
+        sys.exit(1)
+    if return_len:
+        return lengths.pop()
