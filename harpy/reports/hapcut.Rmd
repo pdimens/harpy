@@ -15,7 +15,7 @@ output:
       - { title : "Source", icon: "fa-github", href: "https://www.github.com/pdimens/harpy/", align: right }
 ---
 
-```{r setup, include=FALSE}
+```{r setup}
 knitr::opts_chunk$set(echo = FALSE, warning = FALSE)
 logfile <- file(snakemake@log$logfile, open = "wt")
 sink(logfile)
@@ -56,16 +56,6 @@ levels(df$sample) <- basename(levels(df$sample))
 contigs <- group_by(df, contig) %>%
   summarize(size = max(pos_end)) %>%
   arrange(desc(size))
-# limit the data to only the 30 largest contigs
-#if (nrow(contigs) > 30){
-#    .contigs <- contigs[1:30, ]$contig
-#} else {
-#    .contigs <- contigs$contig
-#}
-#pltheight <- round(1.2 * (length(.contigs)), digits = 0)
-#ridgeheight <- 1 + round(0.7 * (length(.contigs)), digits = 0)
-#pltheight.samples <- <- round(1.2 * (length(levels(df$sample))), digits = 0)
-#ridgeheight.samples <- 1 + round(0.7 * (length(levels(df$sample))), digits = 0)
 ```
 
 # General Stats

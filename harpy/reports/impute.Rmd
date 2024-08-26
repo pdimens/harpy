@@ -17,7 +17,7 @@ output:
 # General Stats
 ## header row
 
-```{r setup, include=FALSE}
+```{r setup}
 knitr::opts_chunk$set(echo = FALSE, warning = FALSE)
 logfile <- file(snakemake@log$logfile, open = "wt")
 sink(logfile)

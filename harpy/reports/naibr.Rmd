@@ -15,11 +15,17 @@ output:
       - { title : "Source", icon: "fa-github", href: "https://www.github.com/pdimens/harpy/", align: right }
 ---
 
-```{r setup, include=FALSE}
+```{r setup}
 knitr::opts_chunk$set(echo = FALSE, warning = FALSE)
 logfile <- file(snakemake@log$logfile, open = "wt")
 sink(logfile)
 sink(logfile, type = "message")
+```
+
+```{r input_files}
+infile <- snakemake@input[["bedpe"]]
+fai <- snakemake@input[["fai"]]
+samplename <- gsub(".bedpe", "", basename(infile))
 ```
 
 ## file top
@@ -41,12 +47,6 @@ if (nrow(variants) == 0) {
   cat(paste0("There are no variants in the file ", "`", infile, "`"))
   knitr::knit_exit()
 }
-```
-
-```{r setup_log}
-logfile <- file(snakemake@log$logfile, open = "wt")
-sink(logfile)
-sink(logfile, type = "message")
 ```
 
 ```{r package_imports}

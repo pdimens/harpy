@@ -273,7 +273,7 @@ rule phase_report:
     output:
         outdir + "/reports/phase.html"
     log:
-        logfile = outdir + "/logs/phasereport.log"
+        logfile = outdir + "/logs/report.log"
     conda:
         f"{envdir}/r.yaml"
     script:

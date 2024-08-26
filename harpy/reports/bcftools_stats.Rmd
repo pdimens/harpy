@@ -15,7 +15,7 @@ output:
       - { title : "Source", icon: "fa-github", href: "https://www.github.com/pdimens/harpy/", align: right }
 ---
 
-```{r setup, include=FALSE}
+```{r setup}
 knitr::opts_chunk$set(echo = FALSE, warning = FALSE)
 logfile <- file(snakemake@log$logfile, open = "wt")
 sink(logfile)
