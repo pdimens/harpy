@@ -26,7 +26,7 @@ def launch_snakemake(sm_args, workflow, starttext, outdir, sm_logfile, quiet):
                 print_snakefile_error("If you manually edited the Snakefile, see the error below to fix it. If you didn't edit it manually, it's probably a bug (oops!) and you should submit an issue on GitHub: [bold]https://github.com/pdimens/harpy/issues")
                 errtext = subprocess.run(sm_args.split(), stderr=subprocess.PIPE, text = True)
                 errtext = errtext.stderr.split("\n")
-                startprint = [i for i,j in enumerate(errtext) if "Exception in rule" in j or "Error in file" in j or "Exception:" in j][0]
+                startprint = [i for i,j in enumerate(errtext) if "Exception in rule" in j or "Error in file" in j or "Exception:" in j or "Error:" in j or "Exception:" in j][0]
                 for i in errtext[startprint:]:
                     if i:
                         rprint("[red]" + i)
@@ -131,14 +131,25 @@ def launch_snakemake(sm_args, workflow, starttext, outdir, sm_logfile, quiet):
                         break
                     # prioritizing printing the error and quitting
                     if err:
-                        if "Shutting down, this" in output or output.endswith("]\n"):
-                            sys.exit(1)
-                        rprint("[red]" + output.strip().partition("Finished job")[0], file = sys.stderr)
+                        while True:
+                            output = process.stderr.readline()
+                            if not output:
+                                sys.exit(1)
+                            if "Shutting down, this" in output or "%) done" in output or not output:
+                                sys.exit(1)
+                            if output.startswith("RuleException"):
+                                rprint("[yellow bold]" + output.strip().partition("Finished job")[0], file = sys.stderr)
+                            elif output.startswith("Error in rule"):
+                                rprint("[yellow]" + output.strip().partition("Finished job")[0], file = sys.stderr)
+                            else:
+                                rprint("[red]" + output.strip().partition("Finished job")[0], file = sys.stderr)
                     if "Error in rule" in output or "RuleException" in output:
                         progress.stop()
-                        print_onerror(sm_logfile)
+                        if not err:
+                            print_onerror(sm_logfile)
                         rprint(f"[yellow bold]{output.strip()}", file = sys.stderr)
                         err = True
+                        continue
                     # add new progress bar track if the rule doesn't have one yet
                     rulematch = re.search(r"rule\s\w+:", output)
                     if rulematch:
