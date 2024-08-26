@@ -265,6 +265,8 @@ rule variant_report:
         fai   = f"Genome/{validgenome}.fai"
     output:
         outdir + "/reports/{sample}.naibr.html"
+    log:
+        logfile = outdir + "/logs/reports/{sample}.report.log"
     conda:
         f"{envdir}/r.yaml"
     script:

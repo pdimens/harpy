@@ -136,6 +136,8 @@ rule stitch_reports:
         outdir + "/{stitchparams}/contigs/{part}/plots"
     output:
         outdir + "/{stitchparams}/reports/{part}.stitch.html"
+    log:
+        logfile = outdir + "/{stitchparams}/logs/reports/{part}.stitch.log"
     conda:
         f"{envdir}/r.yaml"
     script:
@@ -209,6 +211,8 @@ rule impute_reports:
         outdir + "/{stitchparams}/reports/data/impute.infoscore"
     output:
         outdir + "/{stitchparams}/reports/variants.imputed.html"
+    log:
+        logfile = outdir + "/{stitchparams}/logs/reports/imputestats.log"
     params:
         lambda wc: wc.get("stitchparams")
     conda:

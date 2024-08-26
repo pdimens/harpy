@@ -57,7 +57,7 @@ rule preproc_groups:
     input:
         groupings
     output:
-        outdir + "/logs/sample.groups"
+        outdir + "/workflow/sample.groups"
     run:
         with open(input[0], "r") as infile, open(output[0], "w") as outfile:
             _ = [outfile.write(i) for i in infile.readlines() if not i.lstrip().startswith("#")]
@@ -116,15 +116,17 @@ rule call_variants:
         samples = outdir + "/logs/samples.files"
     output:
         pipe(outdir + "/regions/{part}.vcf")
+    log:
+        outdir + "/logs/{part}.freebayes.log"
     params:
         region = lambda wc: "-r " + regions[wc.part],
         ploidy = f"-p {ploidy}",
-        populations = f"--populations {outdir}/logs/sample.groups" if groupings else "",
+        populations = f"--populations {outdir}/workflow/sample.groups" if groupings else "",
         extra = extra
     conda:
         f"{envdir}/snp.yaml"
     shell:
-        "freebayes -f {input.ref} -L {input.samples} {params} > {output}"
+        "freebayes -f {input.ref} -L {input.samples} {params} > {output} 2> {log}"
 
 rule sort_sample_variants:
     input:
@@ -193,6 +195,8 @@ rule variant_report:
         outdir + "/reports/variants.{type}.stats"
     output:
         outdir + "/reports/variants.{type}.html"
+    log:
+        logfile = outdir + "/logs/variants.{type}.report.log"
     conda:
         f"{envdir}/r.yaml"
     script:

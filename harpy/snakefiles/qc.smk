@@ -146,6 +146,8 @@ rule barcode_report:
         countlog = collect(outdir + "/logs/bxcount/{sample}.count.log", sample = samplenames)
     output:
         outdir + "/reports/barcode.summary.html"
+    log:
+        logfile = outdir + "/logs/barcode.report.log"
     conda:
         f"{envdir}/r.yaml"
     script:

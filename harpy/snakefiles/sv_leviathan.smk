@@ -115,10 +115,10 @@ rule call_variants:
         genome = f"Genome/{bn}",
         genidx = multiext(f"Genome/{bn}", ".fai", ".ann", ".bwt", ".pac", ".sa", ".amb")
     output:
-        temp(outdir + "/vcf/{sample}.vcf")
-    log:  
-        runlog     = outdir + "/logs/leviathan/{sample}.leviathan.log",
+        vcf = temp(outdir + "/vcf/{sample}.vcf"),
         candidates = outdir + "/logs/leviathan/{sample}.candidates"
+    log:  
+        runlog = outdir + "/logs/leviathan/{sample}.leviathan.log"
     params:
         min_sv = f"-v {min_sv}",
         min_bc = f"-c {min_bc}",
@@ -131,7 +131,7 @@ rule call_variants:
     benchmark:
         ".Benchmark/leviathan/{sample}.variantcall"
     shell:
-        "LEVIATHAN -b {input.bam} -i {input.bc_idx} {params} -g {input.genome} -o {output} -t {threads} --candidates {log.candidates} 2> {log.runlog}"
+        "LEVIATHAN -b {input.bam} -i {input.bc_idx} {params} -g {input.genome} -o {output.vcf} -t {threads} --candidates {output.candidates} 2> {log.runlog}"
 
 rule sort_variants:
     input:
@@ -197,6 +197,8 @@ rule sample_reports:
         statsfile = outdir + "/reports/data/{sample}.sv.stats"
     output:	
         outdir + "/reports/{sample}.SV.html"
+    log:
+        logfile = outdir + "/logs/reports/{sample}.report.log"
     conda:
         f"{envdir}/r.yaml"
     script:

@@ -79,6 +79,8 @@ rule create_report:
         outdir + "/filecheck.bam.tsv"
     output:
         outdir + "/filecheck.bam.html"
+    log:
+        logfile = outdir + "/logs/report.log"
     conda:
         f"{envdir}/r.yaml"
     script:

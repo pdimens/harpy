@@ -15,7 +15,14 @@ output:
       - { title : "Source", icon: "fa-github", href: "https://www.github.com/pdimens/harpy/", align: right }
 ---
 
-```{r load environment, echo=FALSE, message=FALSE, warning=FALSE}
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE)
+logfile <- file(snakemake@log$logfile, open = "wt")
+sink(logfile)
+sink(logfile, type = "message")
+```
+
+```{r load environment}
 using<-function(...) {
     libs<-unlist(list(...))
     req<-unlist(lapply(libs,require,character.only=TRUE))
@@ -37,7 +44,7 @@ bcf <- gsub(".stats$", ".bcf", statsfile)
 
 This reflects the general information stored in the records of `r bcf`.
 
-```{r General Stats, echo = FALSE, message = FALSE, warning = FALSE}
+```{r General Stats}
 .snL <- grepl("^SN", dataL)
 sn <- read.table(text=dataL[.snL], sep = "\t")[,3:4]
 names(sn) <- c("Metric", "Number")
@@ -48,39 +55,39 @@ sn <- as.data.frame(t(sn[2]))
 ## Metrics {data-height=100}
 
 ### general-samples
-```{r}
+```{r valuebox_samples}
 valueBox(scales::comma(sn[1,1]), caption = "Samples", color = "success")
 ```
 ### general-records
-```{r}
+```{r valuebox_general}
 valueBox(scales::comma(sn[1,2]), caption = "Records", color = "info")
 ```
 ### general-snps
-```{r}
+```{r valuebox_snp}
 valueBox(scales::comma(sn[1,4]), caption = "SNPs", color = "info")
 ```
 ### general-mnps
-```{r}
+```{r valuebox_mnp}
 valueBox(scales::comma(sn[1,5]), caption = "MNPs", color = "info")
 ```
 ### general-indels
-```{r}
+```{r valuebox_indels}
 valueBox(scales::comma(sn[1,6]), caption = "Indels", color = "info")
 ```
 ### general-multisites
-```{r}
+```{r valuebox_multiallelic}
 valueBox(scales::comma(sn[1,8]), caption = "Multiallelic Sites", color = "info")
 ```
 ### general-multisnps
-```{r}
+```{r valuebox_multi_snp}
 valueBox(scales::comma(sn[1,9]), caption = "Multiallelic SNPs", color = "info")
 ```
 ### general-noalts
-```{r}
+```{r valuebox_no_atls}
 valueBox(scales::comma(sn[1,3]), caption = "No-ALTs", color = "info")
 ```
 ### general-other
-```{r}
+```{r valuebox_other}
 valueBox(scales::comma(sn[1,7]), caption = "Others", color = "info")
 ```
 ## Quality Statistics Desc
@@ -92,7 +99,7 @@ greater than or equal to `0` and less than `10`". The histograms are truncated a
 for visual clarity.
 
 ## Quality Statistics
-```{r qual data, echo=FALSE, message=FALSE, warning=FALSE}
+```{r qual data}
 .qual <- grepl("^QUAL", dataL)
 if(sum(.qual) == 0){
   do_qual <- FALSE
@@ -106,7 +113,7 @@ if(do_qual){
   qual[names(qual)] <- sapply(qual[names(qual)],as.numeric)
 }
 ```
-```{r resizehist, echo=F}
+```{r resizehist}
 # function to merge QUAL bins into a width of 10
 mergebins <- function(x){
   bins <- seq(0, max(x[,1]), 10)
@@ -131,7 +138,7 @@ mergebins <- function(x){
 
 ```
 
-```{r}
+```{r hist_function}
 hist_quantile <- function(x, q){
   # find the qth percentile of the histogram x
   # Calculate the cumulative sum of the counts
@@ -147,7 +154,7 @@ hist_quantile <- function(x, q){
 }
 ```
 ### SNP Quality {.no-title}
-```{r snpqual plot, echo=FALSE, message=FALSE, warning=FALSE}
+```{r snpqual plot}
 if(do_qual){
   rebinned_qual <- mergebins(qual[,-3])
   q99 <- hist_quantile(rebinned_qual, 0.99)
@@ -171,7 +178,7 @@ if(do_qual){
 ```
 
 ### Indel Quality {.no-title}
-```{r indelqual plot, echo=FALSE, message=FALSE, warning=FALSE}
+```{r indelqual plot}
 if(do_qual){
   rebinned_qual <- mergebins(qual[,-2])
   q99 <- hist_quantile(rebinned_qual, 0.99)
@@ -203,7 +210,7 @@ The table reflects the data visualized in the plot tab.
 ## Depth Statistics
 ### Depth Statistics {.no-title}
 
-```{r echo=FALSE, message=FALSE, warning=FALSE}
+```{r findzero_function}
 # find index when the values are consistently 0 to hopefully remove an uninformative tail from the plot
 find_zero_runs <- function(vec) {
   rle_result <- rle(vec)
@@ -216,7 +223,7 @@ find_zero_runs <- function(vec) {
 }
 ```
 
-```{r depth plot, echo=FALSE, message=FALSE, warning=FALSE, out.width="100%"}
+```{r depth plot, out.width="100%"}
 .dpL <- grepl("^DP", dataL)
 if(sum(.dpL) == 0){
   cat(paste0("No DP section in ", statsfile, " found\n"))
@@ -246,7 +253,7 @@ if(sum(.dpL) == 0){
 ```
 
 ### Depth Data  {data-width=350 .no-title}
-```{r depth table, echo=FALSE, message=FALSE, warning=FALSE, paged.print=TRUE, out.width="100%"}
+```{r depth table, paged.print=TRUE, out.width="100%"}
 if(sum(.dpL) == 0){
   cat(paste0("No DP section in ", statsfile, " found\n"))
 } else {
@@ -269,7 +276,7 @@ length is presented here as negative values for visual clarity.
 
 ## Insertions and Deletions
 ### Insertions and Deletions {.no-title}
-```{r Indel Stats, echo=FALSE, message=FALSE, warning=FALSE, paged.print=TRUE, out.width="100%"}
+```{r Indel Stats, paged.print=TRUE, out.width="100%"}
 .iddL <- grepl("^IDD", dataL)
 if(sum(.iddL) == 0){
   cat(paste0("No IDD section in ", statsfile, " found, suggesting no indels are present\n"))
@@ -302,7 +309,7 @@ if(sum(.iddL) == 0){
 <h2> Individual Statistics </h2>
 <br>These are per-locus statistics, which correspond to the Per-Sample Counts (`PSC`) calculations of `bcftools stats`. The table reflects the data visualized in the plot tab. `HomAlt` and `HomRef` refer to homozygous for the Reference and Alternative alleles, respectively.</br>
 
-```{r echo=FALSE, message=FALSE, warning=FALSE}
+```{r read_persample}
 .pscL <- grepl("^PSC", dataL)
 psc <- read.table(text=dataL[.pscL])[ ,3:14]
 names(psc) <- c("Sample", "HomRef", "HomAtl", "Het", "Transitions", "Transversions", "Indels",	"MeanDepth", "Singletons",	"HapRef", "HapAlt", "Missing")
@@ -316,7 +323,7 @@ figheight <- 1 + (0.2 * nrow(psc))
 
 ## Individual Statistics {.tabset data-height=plotheight}
 ### Individual Data
-```{r Individual table, echo=FALSE, message=FALSE, warning=FALSE}
+```{r Individual table}
 DT::datatable(
   psc, rownames = F,
   fillContainer = T,
@@ -332,7 +339,7 @@ DT::datatable(
 ```
 
 ### Individual Statistics
-```{r Individual plot, echo=FALSE, message=FALSE, warning=FALSE, fig.height=figheight, out.width="100%"}
+```{r Individual plot, fig.height=figheight, out.width="100%"}
 highchart() |>
   hc_chart(inverted=TRUE) |>
   hc_add_series(data = tidy_psc, type = "scatter", hcaes(y = Count, x = Sample, group = Metric)) |>

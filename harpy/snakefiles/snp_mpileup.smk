@@ -90,7 +90,7 @@ rule preproc_groups:
     input:
         groupings
     output:
-        outdir + "/logs/sample.groups"
+        outdir + "/workflow/sample.groups"
     run:
         with open(input[0], "r") as infile, open(output[0], "w") as outfile:
             _ = [outfile.write(i) for i in infile.readlines() if not i.lstrip().startswith("#")]
@@ -135,7 +135,7 @@ rule mpileup:
 
 rule call_genotypes:
     input:
-        groupfile = outdir + "/logs/sample.groups" if groupings else [],
+        groupfile = outdir + "/workflow/sample.groups" if groupings else [],
         bcf = outdir + "/mpileup/{part}.mp.bcf"
     output:
         bcf = temp(outdir + "/call/{part}.bcf"),
@@ -222,6 +222,8 @@ rule variant_report:
         outdir + "/reports/data/variants.{type}.stats"
     output:
         outdir + "/reports/variants.{type}.html"
+    log:
+        logfile = outdir + "/logs/variants.{type}.report.log"    
     conda:
         f"{envdir}/r.yaml"
     script:

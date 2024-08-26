@@ -71,6 +71,8 @@ rule create_report:
         outdir + "/filecheck.fastq.tsv"
     output:
         outdir + "/filecheck.fastq.html"
+    log:
+        logfile = outdir + "/logs/report.log"
     conda:
         f"{envdir}/r.yaml"
     script:

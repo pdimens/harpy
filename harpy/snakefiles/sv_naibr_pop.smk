@@ -234,6 +234,8 @@ rule group_reports:
         bedpe = outdir + "/bedpe/{population}.bedpe"
     output:
         outdir + "/reports/{population}.naibr.html"
+    log:
+        logfile = outdir + "/logs/reports/{population}.report.log"
     conda:
         f"{envdir}/r.yaml"
     script:
@@ -245,6 +247,8 @@ rule aggregate_report:
         bedpe = collect(outdir + "/bedpe/{pop}.bedpe", pop = populations)
     output:
         outdir + "/reports/naibr.pop.summary.html"
+    log:
+        logfile = outdir + "/logs/reports/summary.report.log"
     conda:
         f"{envdir}/r.yaml"
     script:

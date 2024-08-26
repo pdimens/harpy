@@ -193,6 +193,8 @@ rule sample_reports:
         outdir + "/reports/data/coverage/{sample}.cov.gz"
     output:	
         outdir + "/reports/{sample}.html"
+    log:
+        logfile = outdir + "/logs/reports/{sample}.alignstats.log"
     params:
         molecule_distance
     conda:
@@ -235,6 +237,8 @@ rule barcode_report:
         collect(outdir + "/reports/data/bxstats/{sample}.bxstats.gz", sample = samplenames)
     output:	
         outdir + "/reports/barcodes.summary.html"
+    log:
+        logfile = outdir + "/logs/reports/{sample}.bxstats.log"
     conda:
         f"{envdir}/r.yaml"
     script:

@@ -272,6 +272,8 @@ rule phase_report:
         outdir + "/reports/blocks.summary.gz"
     output:
         outdir + "/reports/phase.html"
+    log:
+        logfile = outdir + "/logs/phasereport.log"
     conda:
         f"{envdir}/r.yaml"
     script:
