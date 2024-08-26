@@ -100,7 +100,7 @@ rule bam_list:
         bam = bamlist,
         bai = [f"{i}.bai" for i in bamlist]
     output:
-        outdir + "/logs/samples.files"
+        outdir + "/workflow/samples.files"
     run:
         with open(output[0], "w") as fout:
             for bamfile in input.bam:
@@ -110,10 +110,10 @@ rule call_variants:
     input:
         bam = bamlist,
         bai = [f"{i}.bai" for i in bamlist],
-        groupfile = outdir + "/logs/sample.groups" if groupings else [],
+        groupfile = outdir + "/workflow/sample.groups" if groupings else [],
         ref     = f"Genome/{bn}",
         ref_idx = f"Genome/{bn}.fai",
-        samples = outdir + "/logs/samples.files"
+        samples = outdir + "/workflow/samples.files"
     output:
         pipe(outdir + "/regions/{part}.vcf")
     log:

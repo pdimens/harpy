@@ -238,7 +238,7 @@ rule barcode_report:
     output:	
         outdir + "/reports/barcodes.summary.html"
     log:
-        logfile = outdir + "/logs/reports/{sample}.bxstats.log"
+        logfile = outdir + "/logs/reports/bxstats.report.log"
     conda:
         f"{envdir}/r.yaml"
     script:

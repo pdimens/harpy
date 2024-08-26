@@ -104,7 +104,7 @@ infiles <- unlist(snakemake@input, recursive = FALSE)
 aggregate_df <- Reduce(rbind, Map(process_input, infiles))
 
 if(nrow(aggregate_df) == 0){
-  print("All input files were empty")e
+  print("All input files were empty")
   knittr::knittr_exit()
 }
 ```
