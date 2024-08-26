@@ -7,7 +7,7 @@ from itertools import zip_longest, product
 
 parser = argparse.ArgumentParser(
     prog = '10xtoHaplotag.py',
-    description = 'Converts 10x linked reads to haplotag linked reads with barcodes in BX:Z: and TX:Z: header tags.',
+    description = 'Converts 10x linked reads to haplotag linked reads with barcodes in BX:Z: and OX:Z: header tags.',
     usage = "10xtoHaplotag.py -f <forward.fq.gz> -r <reverse.fq.gz> -b <barcodes.txt> -p <prefix> > barcodes.conversion.txt",
     exit_on_error = False
     )
@@ -29,11 +29,11 @@ def process_record(fw_entry, rv_entry):
     if not bchap:
         bchap = "".join(next(bc_generator))
         bc_dict[bc10x] = bchap
-    _new_fw  = fw_entry[0].split()[0] + f"\tTX:Z:{bc10x}\tBX:Z:{bchap}\n"
+    _new_fw  = fw_entry[0].split()[0] + f"\tOX:Z:{bc10x}\tBX:Z:{bchap}\n"
     _new_fw += fw_entry[1][16:] + "\n"
     _new_fw += fw_entry[2] + "\n"
     _new_fw += fw_entry[3][16:] + "\n"
-    _new_rv  = rv_entry[0].split()[0] + f"\tTX:Z:{bc10x}\tBX:Z:{bchap}\n"
+    _new_rv  = rv_entry[0].split()[0] + f"\tOX:Z:{bc10x}\tBX:Z:{bchap}\n"
     _new_rv += "\n".join(rv_entry[1:3])
     return _new_fw, _new_rv
 
