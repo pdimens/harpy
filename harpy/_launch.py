@@ -111,11 +111,17 @@ def launch_snakemake(sm_args, workflow, starttext, outdir, sm_logfile, quiet):
                         progress.stop()
                         print_snakefile_error("If you manually edited the Snakefile, see the error below to fix it. If you didn't edit it manually, it's probably a bug (oops!) and you should submit an issue on GitHub: [bold]https://github.com/pdimens/harpy/issues")
                         errtext = subprocess.run(sm_args.split(), stderr=subprocess.PIPE, text = True)
+                        errtext = errtext.partition("total")
                         errtext = errtext.stderr.split("\n")
-                        startprint = [i for i,j in enumerate(errtext) if j.startswith("total")][0]
-                        for i in errtext[startprint:]:
-                            if i:
-                                rprint("[red]" + i)
+                        # if the DAG was created and job summary printed, print the stuff after
+                        for i,j in enumerate(errtext):
+                            if i.startswith("total"):
+                                startfrom = j+1
+                                for errline in errtext[startfrom:]:
+                                    rprint("[red]" + errline)
+                                sys.exit(1)
+                        # otherwise, print everything
+                        _ = [rprint("[red]" + i) for i in errtext]
                         sys.exit(1)
                     if not output:
                         break
