@@ -52,7 +52,6 @@ levels(df$sample) <- basename(levels(df$sample))
 ```
 
 ```{r process_contigs}
-# Find the 30 largest contigs
 contigs <- group_by(df, contig) %>%
   summarize(size = max(pos_end)) %>%
   arrange(desc(size))
@@ -86,31 +85,31 @@ overall <- df %>% summarise(
 ```
 
 ### total phased
-```{r valuebox_phased}
+```{r}
 valueBox(scales::comma(overall$total_snps[1]), caption = "Phased SNPs", color = "#81ce9b")
 ```
 
 ### avg snps
-```{r valuebox_avg_snp}
+```{r}
 valueBox(scales::comma(overall$mean_snps[1]), caption = "Avg SNPs/Haplotype", color = "info")
 ```
 
 ### median snps
-```{r valuebox_median_snp}
+```{r}
 valueBox(scales::comma(overall$median_snps[1]), caption = "Median SNPs/Haplotype", color = "info")
 ```
 ### avg blocksize
-```{r valuebox_avg_blocksize}
+```{r}
 valueBox(scales::comma(overall$mean_blocksize[1]), caption = "Avg Haplotype Length", color = "info")
 ```
 
 ### median blocksize
-```{r valuebox_median_blocksize}
+```{r}
 valueBox(scales::comma(overall$median_blocksize[1]), caption = "Median Haplotype Length", color = "info")
 ```
 
 ### longest haplotype
-```{r valuebox_longest_hap}
+```{r}
 valueBox(scales::comma(overall$max_blocksize[1]), caption = "Longest Haplotype (bp)", color = "info")
 ```
 
@@ -266,7 +265,7 @@ DT::datatable(
 ```
 
 ### the ridgeplot {.no-title}
-```{r sample_ridgeplot out.width="100%"}
+```{r sample_ridgeplot, out.width="100%"}
 fig <- plot_ly(hoverinfo = "none") %>%
   layout(
     xaxis = list(title = "Log-Scaled Haplotype Length (bp)", fixedrange = TRUE),#, type = "log"),
