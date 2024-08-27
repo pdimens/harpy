@@ -188,7 +188,7 @@ had valid haplotag barcodes (`AXXCXXBXXDXX` where `XX` is not `00`).
 ```{r perc_valid_dist}
 hs <- hist(
   aggregate_df$totalvalidpercent,
-  #breaks = min(aggregate_df$totalvalidpercent):max(aggregate_df$totalvalidpercent),
+  breaks = seq(0,100, by = 5),
   plot = F
 )
 hs$counts <- round(hs$counts / sum(hs$counts) * 100, 4)
@@ -196,7 +196,7 @@ hs <- data.frame(val = hs$breaks[-1], freq = hs$counts)
 
 hchart(hs, "areaspline", hcaes(x = val, y = freq), color = "#8484bd", name = "Percent Alignments", marker = list(enabled = FALSE), animation = F) |>
   hc_title(text = "Percent of Alignments with Valid BX tags") |>
-  hc_xAxis(min = 0, max = 100, title = list(text = "% alignment with valid BX tag")) |>
+  hc_xAxis(min = 0, max = 100, title = list(text = "% alignments with valid BX tag")) |>
   hc_yAxis(max = 100, title = list(text = "% samples")) |>
   hc_tooltip(crosshairs = TRUE) |>
   hc_exporting(enabled = T, filename = "percent.valid.dist",
