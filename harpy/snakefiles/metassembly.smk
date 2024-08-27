@@ -3,6 +3,11 @@ import re
 import sys
 import logging as pylogging
 
+
+cont_cov = config["contig_coverage"]
+clusters = config["clusters"]
+
+
 rule sort_fastq:
     input:
         fq = FASTQ1,
@@ -54,7 +59,8 @@ rule bwa_align:
         samsort = f"{outdir}/logs/sort.alignments.log"
     shell:
         "bwa mem -C -p {input.contigs} /path/to/reads 2> {log.bwa} | samtools sort -O bam -o {output} - 2> {log.samsort}"
-
+cont_cov
+clusters
 rule index_alignment:
     input:
         f"{outdir}/align/reads-to-metaspades.bam"
@@ -94,12 +100,12 @@ rule athena:
     log:
         f"{outdir}/logs/athena.log"
     shell:
+        "athena-meta --config {input.config}"
 
 #TODO figure this part out
 # is it sorted reads, interleaved? Can I just use the starting ones? maybe just the corrected metaspades ones
 #TODO figure these out: -lt 10,30 -c 30
 # lt = coverage for low abundance contigs
-# c = number of clusters
 rule pangaea:
     input:
         F_fq = f"{outdir}/metaspades/corrected/",
@@ -110,10 +116,12 @@ rule pangaea:
     output:
         f"{outdir}/pangaea/final.asm.fa"
     params:
-        f"{outdir}/pangaea"
+        outdir = f"{outdir}/pangaea",
+        lt = cont_cov,
+        c =  clusters
     log:
         f"{outdir}/logs/pangaea.log"
     shell:
-        "python pangaea_path/pangaea.py -1 {input.F_fq} -2 {input.R_fq} -sp {input.spades_contigs} -lc {input.athena_local} -at {input.athena_hybrid} -lt 10,30 -c 30 -o {params} 2> {log}"
+        "python pangaea_path/pangaea.py -1 {input.F_fq} -2 {input.R_fq} -sp {input.spades_contigs} -lc {input.athena_local} -at {input.athena_hybrid} -lt {params.lt} -c {params.c} -o {params.outdir} 2> {log}"
 
 rule workflow_summary:

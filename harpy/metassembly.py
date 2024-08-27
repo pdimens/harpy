@@ -14,7 +14,7 @@ docstring = {
     "harpy metassembly": [
         {
             "name": "Parameters",
-            "options": ["--deconvolve", "--deconvolve-params", "--deduplicate", "--extra-params", "--min-length", "--max-length", "--trim-adapters"],
+            "options": [],
         },
         {
             "name": "Workflow Controls",
@@ -24,22 +24,20 @@ docstring = {
 }
 
 @click.command(no_args_is_help = True, context_settings=dict(allow_interspersed_args=False), epilog = "See the documentation for more information: https://pdimens.github.io/harpy/modules/qc")
-@click.argument('inputs', required=True, type=click.Path(exists=True, readable=True), nargs=-1)
-def qc(inputs, output_dir, min_length, max_length, trim_adapters, deduplicate, deconvolve, deconvolve_params, extra_params, threads, snakemake, skipreports, quiet, hpc, conda, setup_only):
+@click.option('-n', '--clusters', default = 35, show_default = True, type = int, help = 'Number of clusters')
+@click.option('-c', '--contig-cov', default = (10,30), show_default = True, type = int, help = "Coverage for low abundance contigs")
+@click.option('--conda',  is_flag = True, default = False, help = 'Use conda/mamba instead of container')
+@click.option('--setup-only',  is_flag = True, hidden = True, default = False, help = 'Setup the workflow and exit')
+@click.option('--hpc',  type = click.Path(exists = True, file_okay = False, readable=True), help = 'Directory with HPC submission `config.yaml` file')
+@click.option('--quiet',  is_flag = True, show_default = True, default = False, help = 'Don\'t show output text while running')
+@click.option('--skipreports',  is_flag = True, show_default = True, default = False, help = 'Don\'t generate HTML reports')
+@click.option('--snakemake',  type = str, help = 'Additional Snakemake parameters, in quotes')
+@click.option('--vcf-samples',  is_flag = True, show_default = True, default = False, help = 'Use samples present in vcf file for phasing rather than those found the inputs')
+@click.argument('fastq', required=True, type=click.Path(exists=True, readable=True), nargs=1)
+@click.argument('fastq2', required=False, type=click.Path(exists=True, readable=True), nargs=1)
+def qc(fastq, fastq2, clusters, contig_cov, output_dir, extra_params, threads, snakemake, skipreports, quiet, hpc, conda, setup_only):
     """
-    Remove adapters and quality-control sequences
-
-    Provide the input fastq files and/or directories at the end of the command
-    as individual files/folders, using shell wildcards (e.g. `data/acronotus*.fq`), or both.
-    
-    The input reads will be quality trimmed using:
-    - a sliding window from front to tail
-    - poly-G tail removal
-    - use `-a` to automatically detect and remove adapters
-    - use `-d` to find and remove PCR duplicates
-    - use `-c` to resolve barcode clashing that may occur by unrelated sequences having the same barcode
-      - the parameters for `-p` are described [here](https://github.com/RolandFaure/QuickDeconvolution?tab=readme-ov-file#usage).
-      - you can use `harpy deconvolve` to perform this task separately
+    Do a metassembly
     """
     output_dir = output_dir.rstrip("/")
     workflowdir = f"{output_dir}/workflow"
@@ -52,35 +50,25 @@ def qc(inputs, output_dir, min_length, max_length, trim_adapters, deduplicate, d
     if snakemake is not None:
         command += snakemake
 
-    fqlist, sample_count = parse_fastq_inputs(inputs)
     os.makedirs(workflowdir, exist_ok=True)
-    fetch_rule(workflowdir, "qc.smk")
-    fetch_report(workflowdir, "bx_count.Rmd")
+    fetch_rule(workflowdir, "metassembly.smk")
+    #fetch_report(workflowdir, "bx_count.Rmd")
     os.makedirs(f"{output_dir}/logs/snakemake", exist_ok = True)
-    sm_log = snakemake_log(output_dir, "qc")
+    sm_log = snakemake_log(output_dir, "metassembly")
 
     with open(f"{workflowdir}/config.yaml", "w", encoding="utf-8") as config:
-        config.write("workflow: qc\n")
+        config.write("workflow: metassembly\n")
         config.write(f"snakemake_log: {sm_log}\n")
         config.write(f"output_directory: {output_dir}\n")
-        config.write(f"trim_adapters: {trim_adapters}\n")
-        config.write(f"deduplicate: {deduplicate}\n")
-        if deconvolve:
-            config.write("deconvolve:\n")
-            k,w,d,a = deconvolve_params
-            config.write(f"  kmer_length: {k}\n")
-            config.write(f"  window_size: {w}\n")
-            config.write(f"  density: {d}\n")
-            config.write(f"  dropout: {a}\n")
-        config.write(f"min_len: {min_length}\n")
-        config.write(f"max_len: {max_length}\n")
+
         if extra_params:
             config.write(f"extra: {extra_params}\n")
         config.write(f"skip_reports: {skipreports}\n")
         config.write(f"workflow_call: {command}\n")
         config.write("inputs:\n")
-        for i in fqlist:
-            config.write(f"  - {i}\n")
+        config.write(f"  - {fastq}\n")
+        if fastq2:
+            config.write(f"  - {fastq2}\n")
 
     generate_conda_deps()
     if setup_only:
@@ -89,10 +77,9 @@ def qc(inputs, output_dir, min_length, max_length, trim_adapters, deduplicate, d
     start_text = Table(show_header=False,pad_edge=False, show_edge=False, padding = (0,0), box=box.SIMPLE)
     start_text.add_column("detail", justify="left", style="light_steel_blue", no_wrap=True)
     start_text.add_column("value", justify="left")
-    start_text.add_row("Samples:", f"{sample_count}")
-    start_text.add_row("Trim Adapters:", "yes" if trim_adapters else "no")
-    start_text.add_row("Deduplicate:", "yes" if deduplicate else "no")
-    start_text.add_row("Deconvolve:", "yes" if deconvolve else "no")
+    start_text.add_row("FASTQ Input:", ) #TODO SINGLE OR DOUBLE?
+    start_text.add_row(f"Clusters: {clusters}")
+    start_text.add_row("Contig Coverage Threshold:")
     start_text.add_row("Output Folder:", f"{output_dir}/")
     start_text.add_row("Workflow Log:", sm_log.replace(f"{output_dir}/", ""))
     launch_snakemake(command, "qc", start_text, output_dir, sm_log, quiet)
