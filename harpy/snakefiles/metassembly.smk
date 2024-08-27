@@ -3,12 +3,28 @@ import re
 import sys
 import logging as pylogging
 
+rule sort_fastq:
+    input:
+        fq = FASTQ1,
+        fq2 = FASTQ2 if FASTQ2 else []
+    output:
+        temp(f"{outdir}/workflow/input.fq")
+    params:
+        config["barcode_tag"].upper()
+    shell:
+        """
+        samtools import -T "*" {input} |
+        samtools sort -O SAM -t {params} |
+        samtools fastq -T "*" > {output}
+        """
+
 rule metaspades:
     input:
+        f"{outdir}/workflow/input.fq"
     output:
-        F_fq = f"{outidr}/metaspades/corrected/",
-        R_fq = f"{outidr}/metaspades/corrected/",
-        spades_contigs = f"{outidr}/metaspades/contigs.fasta" 
+        F_fq = f"{outdir}/metaspades/corrected/",
+        R_fq = f"{outdir}/metaspades/corrected/",
+        spades_contigs = f"{outdir}/metaspades/contigs.fasta" 
     log:
         f"{outdir}/logs/metaspades.log"
     params:
@@ -18,9 +34,9 @@ rule metaspades:
 
 rule bwa_index:
     input:
-        f"{outidr}/metaspades/contigs.fasta" 
+        f"{outdir}/metaspades/contigs.fasta" 
     output:
-        multiext(f"{outidr}/metaspades/contigs.fasta.", "ann", "bwt", "pac", "sa", "amb") 
+        multiext(f"{outdir}/metaspades/contigs.fasta.", "ann", "bwt", "pac", "sa", "amb") 
     log:
         f"{outdir}/logs/bwa.index.log"
     shell:
@@ -28,9 +44,9 @@ rule bwa_index:
 
 rule bwa_align:
     input:
-        fastq   = path/to/fastq,
-        contigs = f"{outidr}/metaspades/contigs.fasta",
-        indices = multiext(f"{outidr}/metaspades/contigs.fasta.", "ann", "bwt", "pac", "sa", "amb")
+        fastq   = f"{outdir}/workflow/input.fq",
+        contigs = f"{outdir}/metaspades/contigs.fasta",
+        indices = multiext(f"{outdir}/metaspades/contigs.fasta.", "ann", "bwt", "pac", "sa", "amb")
     output:
         f"{outdir}/align/reads-to-metaspades.bam"
     log:
@@ -51,10 +67,10 @@ rule index_alignment:
 
 rule athena_config:
     input:
-        fastq = path/to/fasq
+        fastq = f"{outdir}/workflow/input.fq",
         bam = f"{outdir}/align/reads-to-metaspades.bam",
         bai = f"{outdir}/align/reads-to-metaspades.bam.bai",
-        contigs = f"{outidr}/metaspades/contigs.fasta"
+        contigs = f"{outdir}/metaspades/contigs.fasta"
     output:
         f"{outdir}/athena/athena.config"
     run:
@@ -67,10 +83,10 @@ rule athena_config:
 
 rule athena:
     input:
-        fastq = path/to/fasq,
+        fastq = f"{outdir}/workflow/input.fq",
         bam = f"{outdir}/align/reads-to-metaspades.bam",
         bai = f"{outdir}/align/reads-to-metaspades.bam.bai",
-        contigs = f"{outidr}/metaspades/contigs.fasta",
+        contigs = f"{outdir}/metaspades/contigs.fasta",
         config = f"{outdir}/athena/athena.config"
     output:
         local_asm = f"{outdir}/athena/results/olc/flye-input-contigs.fa",
@@ -79,16 +95,25 @@ rule athena:
         f"{outdir}/logs/athena.log"
     shell:
 
+#TODO figure this part out
+# is it sorted reads, interleaved? Can I just use the starting ones? maybe just the corrected metaspades ones
+#TODO figure these out: -lt 10,30 -c 30
+# lt = coverage for low abundance contigs
+# c = number of clusters
 rule pangaea:
     input:
-        F_fq = f"{outidr}/metaspades/corrected/",
-        R_fq = f"{outidr}/metaspades/corrected/",
-        spades_contigs = f"{outidr}/metaspades/corrected/contigs.fasta" 
+        F_fq = f"{outdir}/metaspades/corrected/",
+        R_fq = f"{outdir}/metaspades/corrected/",
+        spades_contigs = f"{outdir}/metaspades/corrected/contigs.fasta",
+        athena_local = f"{outdir}/athena/results/olc/flye-input-contigs.fa",
+        athena_hybrid = f"{outdir}/athena/results/olc/athena.asm.fa"
     output:
-
+        f"{outdir}/pangaea/final.asm.fa"
+    params:
+        f"{outdir}/pangaea"
     log:
         f"{outdir}/logs/pangaea.log"
     shell:
-        "python pangaea_path/pangaea.py -1 {input.F_fq} -2 {input.R_fq} -sp {input.spades_contigs} -lc {athena_local} -at {athena_hybrid} -lt 10,30 -c 30 -o {outdir} 2> {log}"
+        "python pangaea_path/pangaea.py -1 {input.F_fq} -2 {input.R_fq} -sp {input.spades_contigs} -lc {input.athena_local} -at {input.athena_hybrid} -lt 10,30 -c 30 -o {params} 2> {log}"
 
 rule workflow_summary:
