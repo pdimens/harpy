@@ -239,6 +239,13 @@ rule workflow_summary:
         ploidy = f"--ploidy {ploidy}",
         populations = f"--populations {groupings}" if groupings else "--populations -"
     run:
+        import glob
+        for logfile in glob.glob(f"{outdir}/logs/**/*", recursive = True):
+            if os.path.isfile(logfile) and os.path.getsize(logfile) == 0:
+                os.remove(logfile)
+        for logfile in glob.glob(f"{outdir}/logs/**/*", recursive = True):
+            if os.path.isdir(logfile) and not os.listdir(logfile):
+                os.rmdir(logfile)
         with open(outdir + "/workflow/snp.mpileup.summary", "w") as f:
             _ = f.write("The harpy snp mpileup workflow ran using these parameters:\n\n")
             _ = f.write(f"The provided genome: {bn}\n")

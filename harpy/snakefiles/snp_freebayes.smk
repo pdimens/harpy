@@ -212,6 +212,13 @@ rule workflow_summary:
         populations = f"--populations {groupings}" if groupings else '',
         extra = extra
     run:
+        import glob
+        for logfile in glob.glob(f"{outdir}/logs/**/*", recursive = True):
+            if os.path.isfile(logfile) and os.path.getsize(logfile) == 0:
+                os.remove(logfile)
+        for logfile in glob.glob(f"{outdir}/logs/**/*", recursive = True):
+            if os.path.isdir(logfile) and not os.listdir(logfile):
+                os.rmdir(logfile)
         with open(outdir + "/workflow/snp.freebayes.summary", "w") as f:
             _ = f.write("The harpy snp freebayes workflow ran using these parameters:\n\n")
             _ = f.write(f"The provided genome: {bn}\n")
