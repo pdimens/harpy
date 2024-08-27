@@ -34,7 +34,7 @@ def launch_snakemake(sm_args, workflow, starttext, outdir, sm_logfile, quiet):
                 sys.exit(1)
             if not quiet:
                 console = Console()
-                with console.status("[dim]Setting up workflow", spinner = "point", spinner_style="yellow") as status:
+                with console.status("[dim]Preparing workflow", spinner = "point", spinner_style="yellow") as status:
                     while True:
                         if output.startswith("Building DAG of jobs...") or output.startswith("Assuming"):
                             pass
@@ -51,9 +51,6 @@ def launch_snakemake(sm_args, workflow, starttext, outdir, sm_logfile, quiet):
                 deploy_text = "[dim]Downloading software container"
                 break
             if output.startswith("Job stats:"):
-                # read and ignore the next two lines
-                process.stderr.readline()
-                process.stderr.readline()
                 break
         
         # if dependency text present, print pulse progress bar to indicate things are happening
@@ -73,9 +70,6 @@ def launch_snakemake(sm_args, workflow, starttext, outdir, sm_logfile, quiet):
                         break
                     if output.startswith("Job stats:"):
                         progress.stop()
-                        # read and ignore the next two lines
-                        process.stderr.readline()
-                        process.stderr.readline()
                         break
         with Progress(
             SpinnerColumn(spinner_name = "arc", style = "dim"),
