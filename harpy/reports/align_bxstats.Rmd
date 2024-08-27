@@ -188,7 +188,7 @@ had valid haplotag barcodes (`AXXCXXBXXDXX` where `XX` is not `00`).
 ```{r perc_valid_dist}
 hs <- hist(
   aggregate_df$totalvalidpercent,
-  breaks = min(aggregate_df$totalvalidpercent):max(aggregate_df$totalvalidpercent),
+  #breaks = min(aggregate_df$totalvalidpercent):max(aggregate_df$totalvalidpercent),
   plot = F
 )
 hs$counts <- round(hs$counts / sum(hs$counts) * 100, 4)
