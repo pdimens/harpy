@@ -24,7 +24,7 @@ docstring = {
     ]
 }
 
-@click.command(no_args_is_help = True, epilog = "See the documentation for more information: https://pdimens.github.io/harpy/modules/phase")
+@click.command(no_args_is_help = True, context_settings=dict(allow_interspersed_args=False), epilog = "See the documentation for more information: https://pdimens.github.io/harpy/modules/phase")
 @click.option('-x', '--extra-params', type = str, help = 'Additional HapCut2 parameters, in quotes')
 @click.option('-g', '--genome', type=click.Path(exists=True, dir_okay=False, readable=True), help = 'Path to genome assembly if wanting to also extract reads spanning indels')
 @click.option('-b', '--ignore-bx',  is_flag = True, show_default = True, default = False, help = 'Ignore barcodes when phasing')

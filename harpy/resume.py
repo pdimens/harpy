@@ -12,7 +12,7 @@ from ._launch import launch_snakemake
 from ._misc import snakemake_log
 from ._conda import generate_conda_deps
 
-@click.command(no_args_is_help = True, epilog = "See the documentation for more information: https://pdimens.github.io/harpy/modules/other")
+@click.command(no_args_is_help = True, context_settings=dict(allow_interspersed_args=False), epilog = "See the documentation for more information: https://pdimens.github.io/harpy/modules/other")
 @click.option('-c', '--conda',  is_flag = True, default = False, help = 'Recreate the conda environments into .harpy_envs/')
 @click.option('--quiet',  is_flag = True, default = False, help = 'Don\'t show output text while running')
 @click.argument('directory', required=True, type=click.Path(exists=True, file_okay=False, readable=True), nargs=1)
