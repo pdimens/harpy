@@ -24,9 +24,7 @@ click.rich_click.APPEND_METAVARS_HELP = False
 click.rich_click.MAX_WIDTH = 75
 click.rich_click.REQUIRED_SHORT_STRING = ""
 click.rich_click.ERRORS_SUGGESTION = "Try the '--help' flag for more information."
-click.rich_click.ERRORS_EPILOGUE = """
-See the documentation: [link=https://pdimens.github.io/harpy/]https://pdimens.github.io/harpy/[/link]
-"""
+click.rich_click.ERRORS_EPILOGUE = "Documentation: [link=https://pdimens.github.io/harpy/]https://pdimens.github.io/harpy/[/link]"
 
 @click.group(options_metavar='', context_settings={"help_option_names" : ["-h", "--help"]})
 @click.version_option("0.0.0", prog_name="harpy")
