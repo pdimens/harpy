@@ -7,7 +7,7 @@ from rich.table import Table
 import rich_click as click
 from ._conda import generate_conda_deps
 from ._launch import launch_snakemake
-from ._misc import fetch_report, fetch_rule, snakemake_log
+from ._misc import fetch_report, fetch_rule, snakemake_log, IntQuartet
 from ._parsers import parse_fastq_inputs
 
 docstring = {
@@ -25,7 +25,7 @@ docstring = {
 
 @click.command(no_args_is_help = True, context_settings=dict(allow_interspersed_args=False), epilog = "See the documentation for more information: https://pdimens.github.io/harpy/modules/qc")
 @click.option('-c', '--deconvolve', is_flag = True, default = False, help = 'Resolve barcode clashes between reads from different molecules.')
-@click.option('-p', '--deconvolve-params', type = (int,int,int,int), show_default = True, default = (21,40,3,0), help = ' Accepts the QuickDeconvolution parameters for k,w,d,a, in that order')
+@click.option('-p', '--deconvolve-params', type = IntQuartet(), show_default = True, default = "21,40,3,0", help = ' Accepts the QuickDeconvolution parameters for k,w,d,a, in that order')
 @click.option('-d', '--deduplicate', is_flag = True, default = False, help = 'Identify and remove PCR duplicates')
 @click.option('-x', '--extra-params', type = str, help = 'Additional Fastp parameters, in quotes')
 @click.option('-m', '--max-length', default = 150, show_default = True, type=int, help = 'Maximum length to trim sequences down to')

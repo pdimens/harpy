@@ -3,6 +3,7 @@
 import os
 import sys
 import glob
+import click
 import subprocess
 from datetime import datetime
 from pathlib import Path
@@ -84,3 +85,28 @@ def snakemake_log(outdir, workflow):
         return f"{outdir}/logs/snakemake/{workflow}.1." + datetime.now().strftime("%d_%m_%Y") + ".log"
     increment = sorted([int(i.split(".")[1]) for i in attempts])[-1] + 1
     return f"{outdir}/logs/snakemake/{workflow}.{increment}." + datetime.now().strftime("%d_%m_%Y") + ".log"
+
+
+class IntPair(click.ParamType):
+    """A class for a click type which accepts 2 integers, separated by a comma."""
+    name = "int_pair"
+    def convert(self, value, param, ctx):
+        try:
+            parts = value.split(',')
+            if len(parts) != 2:
+                self.fail(f"{value} is not a valid int pair. The value should be two integers separated by a comma.", param, ctx)
+            return [int(i) for i in parts]
+        except ValueError:
+            self.fail(f"{value} is not a valid int pair. The value should be two integers separated by a comma.", param, ctx)
+
+class IntQuartet(click.ParamType):
+    """A class for a click type which accepts 4 integers, separated by a comma."""
+    name = "int_pair"
+    def convert(self, value, param, ctx):
+        try:
+            parts = value.split(',')
+            if len(parts) != 4:
+                self.fail(f"{value} is not a valid set of 4 integers separated by a comma.", param, ctx)
+            return [int(i) for i in parts]
+        except ValueError:
+            self.fail(f"{value} is not a valid set of 4 integers separated by a comma.", param, ctx)

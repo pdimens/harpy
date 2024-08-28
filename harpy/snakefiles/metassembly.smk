@@ -4,9 +4,13 @@ import sys
 import logging as pylogging
 
 
-cont_cov = config["contig_coverage"]
+cont_cov = config["contig_coverage"]  #TODO MAKE THIS 1,2 FORMAT\
 clusters = config["clusters"]
+snakemake_log = config["snakemake_log"]
 
+onstart:
+    extra_logfile_handler = pylogging.FileHandler(snakemake_log)
+    logger.logger.addHandler(extra_logfile_handler)
 
 rule sort_fastq:
     input:
@@ -59,8 +63,7 @@ rule bwa_align:
         samsort = f"{outdir}/logs/sort.alignments.log"
     shell:
         "bwa mem -C -p {input.contigs} /path/to/reads 2> {log.bwa} | samtools sort -O bam -o {output} - 2> {log.samsort}"
-cont_cov
-clusters
+
 rule index_alignment:
     input:
         f"{outdir}/align/reads-to-metaspades.bam"
