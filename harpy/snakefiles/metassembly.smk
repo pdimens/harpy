@@ -3,10 +3,12 @@ import re
 import sys
 import logging as pylogging
 
-
-cont_cov = config["contig_coverage"]  #TODO MAKE THIS 1,2 FORMAT\
+FASTQ1 = config["inputs"]["fastq"]
+FASTQ2 = config["inputs"].get("fastq", None)
+cont_cov = config["contig_coverage"]
 clusters = config["clusters"]
 snakemake_log = config["snakemake_log"]
+outdir = config["output_directory"]
 
 onstart:
     extra_logfile_handler = pylogging.FileHandler(snakemake_log)
@@ -31,8 +33,8 @@ rule metaspades:
     input:
         f"{outdir}/workflow/input.fq"
     output:
-        F_fq = f"{outdir}/metaspades/corrected/",
-        R_fq = f"{outdir}/metaspades/corrected/",
+#        F_fq = f"{outdir}/metaspades/corrected/",
+#        R_fq = f"{outdir}/metaspades/corrected/",
         spades_contigs = f"{outdir}/metaspades/contigs.fasta" 
     log:
         f"{outdir}/logs/metaspades.log"
@@ -40,6 +42,11 @@ rule metaspades:
         f"{outdir}/metaspades"
     shell:
         "metaspades.py --12 {input} -o {params} 2> {log}"
+
+rule all:
+    default_target: True
+    input:
+        f"{outdir}/metaspades/contigs.fasta"
 
 rule bwa_index:
     input:
@@ -68,7 +75,7 @@ rule index_alignment:
     input:
         f"{outdir}/align/reads-to-metaspades.bam"
     output:
-`       f"{outdir}/align/reads-to-metaspades.bam.bai"
+       f"{outdir}/align/reads-to-metaspades.bam.bai"
     log:
         f"{outdir}/logs/index.alignments.log"
     shell:
@@ -84,11 +91,11 @@ rule athena_config:
         f"{outdir}/athena/athena.config"
     run:
         with open(output[0], "w") as conf:
-        _ = conf.write("{\n")
-        _ = conf.write("\"input_fqs\": \"/path/to/fq\",\n")
-        _ = conf.write("\"ctgfasta_path\": \"/path/to/seeds.fa\",\n")
-        _ = conf.write("\"reads_ctg_bam_path\": \"/path/to/reads_2_seeds.bam\"\n")
-        _ = conf.write("}\n")
+            _ = conf.write("{\n")
+            _ = conf.write("\"input_fqs\": \"/path/to/fq\",\n")
+            _ = conf.write("\"ctgfasta_path\": \"/path/to/seeds.fa\",\n")
+            _ = conf.write("\"reads_ctg_bam_path\": \"/path/to/reads_2_seeds.bam\"\n")
+            _ = conf.write("}\n")
 
 rule athena:
     input:
@@ -107,8 +114,6 @@ rule athena:
 
 #TODO figure this part out
 # is it sorted reads, interleaved? Can I just use the starting ones? maybe just the corrected metaspades ones
-#TODO figure these out: -lt 10,30 -c 30
-# lt = coverage for low abundance contigs
 rule pangaea:
     input:
         F_fq = f"{outdir}/metaspades/corrected/",
@@ -127,4 +132,4 @@ rule pangaea:
     shell:
         "python pangaea_path/pangaea.py -1 {input.F_fq} -2 {input.R_fq} -sp {input.spades_contigs} -lc {input.athena_local} -at {input.athena_hybrid} -lt {params.lt} -c {params.c} -o {params.outdir} 2> {log}"
 
-rule workflow_summary:
+#rule workflow_summary:
