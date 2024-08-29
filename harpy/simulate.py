@@ -5,7 +5,7 @@ from pathlib import Path
 from rich import box
 from rich.table import Table
 import rich_click as click
-from ._conda import generate_conda_deps
+from ._conda import create_conda_recipes
 from ._launch import launch_snakemake
 from ._misc import fetch_rule, fetch_script, snakemake_log
 from ._printing import print_error
@@ -173,7 +173,7 @@ def linkedreads(genome_hap1, genome_hap2, output_dir, outer_distance, mutation_r
         config.write(f"  genome_hap1: {Path(genome_hap1).resolve()}\n")
         config.write(f"  genome_hap2: {Path(genome_hap2).resolve()}\n")
     
-    generate_conda_deps()
+    create_conda_recipes()
     if setup_only:
         sys.exit(0)
 
@@ -300,7 +300,7 @@ def snpindel(genome, snp_vcf, indel_vcf, output_dir, prefix, snp_count, indel_co
         config.write(f"  genes: {Path(genes).resolve()}\n") if genes else None
         config.write(f"  exclude_chr: {Path(exclude_chr).resolve()}\n") if exclude_chr else None
     
-    generate_conda_deps()
+    create_conda_recipes()
     if setup_only:
         sys.exit(0)
 
@@ -400,7 +400,7 @@ def inversion(genome, vcf, prefix, output_dir, count, min_size, max_size, centro
             config.write(f"  genes: {Path(genes).resolve()}\n") if genes else None
             config.write(f"  exclude_chr: {Path(exclude_chr).resolve()}\n") if exclude_chr else None
     
-    generate_conda_deps()
+    create_conda_recipes()
     if setup_only:
         sys.exit(0)
 
@@ -512,7 +512,7 @@ def cnv(genome, output_dir, vcf, prefix, count, min_size, max_size, dup_ratio, m
             config.write(f"  genes: {Path(genes).resolve()}\n") if genes else None
             config.write(f"  exclude_chr: {Path(exclude_chr).resolve()}\n") if exclude_chr else None
     
-    generate_conda_deps()
+    create_conda_recipes()
     if setup_only:
         sys.exit(0)
 
@@ -608,7 +608,7 @@ def translocation(genome, output_dir, prefix, vcf, count, centromeres, genes, he
             config.write(f"  genes: {Path(genes).resolve()}\n") if genes else None
             config.write(f"  exclude_chr: {Path(exclude_chr).resolve()}\n") if exclude_chr else None
     
-    generate_conda_deps()
+    create_conda_recipes()
     if setup_only:
         sys.exit(0)
 

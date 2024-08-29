@@ -4,7 +4,7 @@ import os
 import sys
 import subprocess
 import rich_click as click
-from ._conda import generate_conda_deps
+from ._conda import create_conda_recipes
 from ._misc import fetch_rule
 
 @click.command(no_args_is_help = False, hidden = True)
@@ -15,7 +15,7 @@ def containerize():
     **INTERNAL USE ONLY**. Used to recreate all the conda environments required
     by the workflows and build a dockerfile from that.
     """
-    generate_conda_deps()
+    create_conda_recipes()
     fetch_rule(os.getcwd(), "containerize.smk")
 
     with open("Dockerfile", "w", encoding = "utf-8") as dockerfile:

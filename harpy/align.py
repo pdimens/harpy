@@ -7,7 +7,7 @@ from pathlib import Path
 from rich import box
 from rich.table import Table
 import rich_click as click
-from ._conda import generate_conda_deps
+from ._conda import create_conda_recipes
 from ._misc import fetch_report, fetch_rule, snakemake_log
 from ._launch import launch_snakemake
 from ._parsers import parse_fastq_inputs
@@ -127,7 +127,7 @@ def bwa(inputs, output_dir, genome, depth_window, threads, keep_unmapped, extra_
         for i in fqlist:
             config.write(f"    - {i}\n")
 
-    generate_conda_deps()
+    create_conda_recipes()
     if setup_only:
         sys.exit(0)
 
@@ -225,7 +225,7 @@ def ema(inputs, output_dir, platform, barcode_list, genome, depth_window, keep_u
         for i in fqlist:
             config.write(f"    - {i}\n")
 
-    generate_conda_deps()
+    create_conda_recipes()
     if setup_only:
         sys.exit(0)
 
@@ -310,7 +310,7 @@ def strobe(inputs, output_dir, genome, read_length, keep_unmapped, depth_window,
         for i in fqlist:
             config.write(f"    - {i}\n")
 
-    generate_conda_deps()
+    create_conda_recipes()
     if setup_only:
         sys.exit(0)
 

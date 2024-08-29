@@ -5,7 +5,7 @@ import sys
 from rich import box
 from rich.table import Table
 import rich_click as click
-from ._conda import generate_conda_deps
+from ._conda import create_conda_recipes
 from ._launch import launch_snakemake
 from ._misc import fetch_rule, snakemake_log
 from ._parsers import parse_fastq_inputs
@@ -76,7 +76,7 @@ def deconvolve(inputs, output_dir, kmer_length, window_size, density, dropout, t
         for i in fqlist:
             config.write(f"  - {i}\n")
     
-    generate_conda_deps()
+    create_conda_recipes()
     if setup_only:
         sys.exit(0)
 

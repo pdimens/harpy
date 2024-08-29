@@ -6,7 +6,7 @@ from pathlib import Path
 from rich import box
 from rich.table import Table
 import rich_click as click
-from ._conda import generate_conda_deps
+from ._conda import create_conda_recipes
 from ._launch import launch_snakemake
 from ._misc import fetch_rule, fetch_report, fetch_script, snakemake_log
 from ._parsers import parse_alignment_inputs, biallelic_contigs
@@ -98,7 +98,7 @@ def impute(inputs, output_dir, parameters, threads, vcf, vcf_samples, extra_para
         for i in bamlist:
             config.write(f"    - {i}\n")
     
-    generate_conda_deps()
+    create_conda_recipes()
     if setup_only:
         sys.exit(0)
 

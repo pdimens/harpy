@@ -2,7 +2,7 @@
 
 import os
 
-def generate_conda_deps():
+def create_conda_recipes():
     """Create the YAML files of the workflow conda dependencies"""
     condachannels = ["bioconda","conda-forge","defaults"]
     environ = {

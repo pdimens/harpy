@@ -10,7 +10,7 @@ from ._validations import check_envdir
 from ._printing import print_error
 from ._launch import launch_snakemake
 from ._misc import snakemake_log
-from ._conda import generate_conda_deps
+from ._conda import create_conda_recipes
 
 @click.command(no_args_is_help = True, context_settings=dict(allow_interspersed_args=False), epilog = "See the documentation for more information: https://pdimens.github.io/harpy/modules/other")
 @click.option('-c', '--conda',  is_flag = True, default = False, help = 'Recreate the conda environments into .harpy_envs/')
@@ -34,7 +34,7 @@ def resume(directory, conda, quiet):
         print_error("config.yaml missing", f"Target directory [blue bold]{directory}[/blue bold] does not contain [blue bold]workflow/config.yaml[/blue bold]")
         sys.exit(1)
     if conda:
-        generate_conda_deps()
+        create_conda_recipes()
     else:
         check_envdir(".harpy_envs")
     with open(f"{directory}/workflow/config.yaml", 'r', encoding="utf-8") as f:

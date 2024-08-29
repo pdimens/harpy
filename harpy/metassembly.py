@@ -5,7 +5,7 @@ import sys
 from rich import box
 from rich.table import Table
 import rich_click as click
-from ._conda import generate_conda_deps
+from ._conda import create_conda_recipes
 from ._launch import launch_snakemake
 from ._misc import fetch_rule, snakemake_log, IntPair
 
@@ -13,7 +13,7 @@ docstring = {
     "harpy metassembly": [
         {
             "name": "Parameters",
-            "options": ["--clusters", "--contig-cov"],
+            "options": ["--bx-tag", "--clusters", "--contig-cov", "--extra-params"],
         },
         {
             "name": "Workflow Controls",
@@ -24,8 +24,9 @@ docstring = {
 
 @click.command(no_args_is_help = True, context_settings=dict(allow_interspersed_args=False), epilog = "See the documentation for more information: https://pdimens.github.io/harpy/modules/qc")
 @click.option('-n', '--clusters', default = 35, show_default = True, type = int, help = 'Number of clusters')
+@click.option('-b', '--bx-tag', type = click.Choice(['BX', 'BC'], case_sensitive=False), default = "BX", show_default=True, help = "The header tag with the barcode (`BX` or `BC`)")
 @click.option('-c', '--contig-cov', default = "10,30", show_default = True, type = IntPair(), help = "Coverage for low abundance contigs")
-@click.option('-x', '--extra-params', type = str, help = 'Additional STITCH parameters, in quotes')
+@click.option('-x', '--extra-params', type = str, help = 'Additional pagaea parameters, in quotes')
 @click.option('-o', '--output-dir', type = click.Path(exists = False), default = "Metassembly", show_default=True,  help = 'Output directory name')
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(min = 1, max_open = True), help = 'Number of threads to use')
 @click.option('--conda',  is_flag = True, default = False, help = 'Use conda/mamba instead of container')
@@ -36,9 +37,15 @@ docstring = {
 @click.option('--snakemake',  type = str, help = 'Additional Snakemake parameters, in quotes')
 @click.argument('fastq', required=True, type=click.Path(exists=True, readable=True), nargs=1)
 @click.argument('fastq2', required=False, type=click.Path(exists=True, readable=True), nargs=1)
-def metassembly(fastq, fastq2, clusters, contig_cov, output_dir, extra_params, threads, snakemake, skipreports, quiet, hpc, conda, setup_only):
+def metassembly(fastq, fastq2, clusters, contig_cov, bx_tag, output_dir, extra_params, threads, snakemake, skipreports, quiet, hpc, conda, setup_only):
     """
-    Do a metassembly
+    Perform a metassembly from linked-read sequences.
+
+    The linked-read barcode must be in either a `BX:Z` or `BC:Z` FASTQ header tag, specified with `--bx-tag`.
+    Input FASTQ files can be one of:
+    - one interleaved FASTQ
+    - one single-end FASTQ
+    - the two FASTQ's of paired-end reads
     """
     output_dir = output_dir.rstrip("/")
     workflowdir = f"{output_dir}/workflow"
@@ -61,6 +68,7 @@ def metassembly(fastq, fastq2, clusters, contig_cov, output_dir, extra_params, t
         config.write("workflow: metassembly\n")
         config.write(f"snakemake_log: {sm_log}\n")
         config.write(f"output_directory: {output_dir}\n")
+        config.write(f"barcode_tag: {bx_tag.upper()}\n")
         config.write(f"clusters: {clusters}\n")
         config.write(f"contig_coverage: {contig_cov[0]},{contig_cov[1]}\n")
         if extra_params:
@@ -72,7 +80,7 @@ def metassembly(fastq, fastq2, clusters, contig_cov, output_dir, extra_params, t
         if fastq2:
             config.write(f"  fastq2: {fastq2}\n")
 
-    generate_conda_deps()
+    create_conda_recipes()
     if setup_only:
         sys.exit(0)
 
@@ -81,6 +89,7 @@ def metassembly(fastq, fastq2, clusters, contig_cov, output_dir, extra_params, t
     start_text.add_column("detail", justify="left", style="light_steel_blue", no_wrap=True)
     start_text.add_column("value", justify="left")
     start_text.add_row("FASTQ Inputs: ", f"{n_fq}")
+    start_text.add_row("Barcode Tag: ", bx_tag.upper())
     start_text.add_row("Clusters: ", f"{clusters}")
     start_text.add_row("Contig Cov. Thresh: ", f"{contig_cov[0]},{contig_cov[1]}")
     start_text.add_row("Output Folder:", f"{output_dir}/")
