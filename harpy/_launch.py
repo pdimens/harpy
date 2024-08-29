@@ -75,7 +75,7 @@ def launch_snakemake(sm_args, workflow, starttext, outdir, sm_logfile, quiet):
             SpinnerColumn(spinner_name = "arc", style = "dim"),
             TextColumn("[progress.description]{task.description}"),
             BarColumn(complete_style="yellow", finished_style="blue"),
-            TextColumn("[progress.percentage]{task.percentage:>3.0f}%"),
+            TextColumn("[progress.remaining]{task.completed}/{task.total}"),
             TimeElapsedColumn(),
             transient=True,
             disable=quiet
@@ -164,6 +164,7 @@ def launch_snakemake(sm_args, workflow, starttext, outdir, sm_logfile, quiet):
                         completed = int(re.search(r"\d+", output).group())
                         for job,details in job_inventory.items():
                             if completed in details[2]:
+                                target_job = job
                                 progress.update(task_ids[job], advance = 1)
                                 progress.update(task_ids["total_progress"], advance=1)
                                 # remove the job to save memory. wont be seen again
