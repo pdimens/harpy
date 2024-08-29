@@ -33,8 +33,8 @@ rule metaspades:
     input:
         f"{outdir}/workflow/input.fq"
     output:
-        F_fq = f"{outdir}/metaspades/corrected/corrected/input_1.00.0_0.cor.fastq.gz",
-        R_fq = f"{outdir}/metaspades/corrected/corrected/input_2.00.0_0.cor.fastq.gz",
+        F_fq = f"{outdir}/metaspades/corrected/input_1.00.0_0.cor.fastq.gz",
+        R_fq = f"{outdir}/metaspades/corrected/input_2.00.0_0.cor.fastq.gz",
         spades_contigs = f"{outdir}/metaspades/contigs.fasta" 
     log:
         f"{outdir}/logs/metaspades.log"
