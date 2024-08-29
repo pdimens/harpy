@@ -19,7 +19,7 @@ def launch_snakemake(sm_args, workflow, starttext, outdir, sm_logfile, quiet):
         err = False
         deps = False
         # read up to the job summary, but break early if dependency text appears
-        while True:
+        while not process.poll():
             output = process.stderr.readline()
             return_code = process.poll()
             if return_code == 1:
@@ -35,11 +35,7 @@ def launch_snakemake(sm_args, workflow, starttext, outdir, sm_logfile, quiet):
             if not quiet:
                 console = Console()
                 with console.status("[dim]Preparing workflow", spinner = "point", spinner_style="yellow") as status:
-                    while True:
-                        if output.startswith("Building DAG of jobs...") or output.startswith("Assuming"):
-                            pass
-                        else:
-                            break
+                    while output.startswith("Building DAG of jobs...") or output.startswith("Assuming"):
                         output = process.stderr.readline()
             # print dependency text only once
             if "Downloading and installing remote packages" in output:
@@ -65,9 +61,18 @@ def launch_snakemake(sm_args, workflow, starttext, outdir, sm_logfile, quiet):
                 progress.add_task("[dim]" + deploy_text, total = None)
                 while True:
                     output = process.stderr.readline()
-                    if not output and process.poll():
+                    if process.poll():
                         progress.stop()
-                        break
+                        errtext = subprocess.run(sm_args.split(), stderr=subprocess.PIPE, text = True)
+                        startprint = False
+                        for i in errtext.stderr.split("\n"):
+                            if "Exception" in i:
+                                startprint = True
+                                rprint("[bold yellow]" + i)
+                                continue
+                            if startprint and i:
+                                rprint("[red]" + i)
+                        sys.exit(1)
                     if output.startswith("Job stats:"):
                         progress.stop()
                         break
@@ -75,16 +80,16 @@ def launch_snakemake(sm_args, workflow, starttext, outdir, sm_logfile, quiet):
             SpinnerColumn(spinner_name = "arc", style = "dim"),
             TextColumn("[progress.description]{task.description}"),
             BarColumn(complete_style="yellow", finished_style="blue"),
-            TextColumn("[progress.remaining]{task.completed}/{task.total}"),
+            TextColumn("[progress.remaining]{task.completed}/{task.total}", style = "magenta"),
             TimeElapsedColumn(),
             transient=True,
             disable=quiet
         ) as progress:
             # process the job summary
             job_inventory = {}
-            while True:
+            while not process.poll():
                 output = process.stderr.readline()
-                if not output and process.poll():
+                if not output:
                     break
                 # stop parsing on "total" since it's always the last entry
                 if output.startswith("total") or output.startswith("Select jobs to execute"):
@@ -98,7 +103,7 @@ def launch_snakemake(sm_args, workflow, starttext, outdir, sm_logfile, quiet):
                     pass
             task_ids = {"total_progress" : progress.add_task("[bold blue]Total", total=sum(j[1] for i,j in job_inventory.items()))}
             
-            while True:
+            while output:
                 output = process.stderr.readline()
                 if process.poll():
                     if process.poll() == 1:
@@ -117,59 +122,54 @@ def launch_snakemake(sm_args, workflow, starttext, outdir, sm_logfile, quiet):
                         # otherwise, print everything
                         _ = [rprint("[red]" + i) for i in errtext]
                         sys.exit(1)
-                    if not output:
-                        break
-                if output:
-                    if output.startswith("Complete log:") or process.poll():
-                        process.wait()
-                        break
-                    # prioritizing printing the error and quitting
-                    if err:
-                        while True:
-                            output = process.stderr.readline()
-                            if not output:
-                                sys.exit(1)
-                            if "Shutting down, this" in output or "%) done" in output or not output:
-                                sys.exit(1)
-                            if output.startswith("RuleException"):
-                                rprint("[yellow bold]" + output.strip().partition("Finished job")[0], file = sys.stderr)
-                            elif output.startswith("Error in rule"):
-                                rprint("[yellow]" + output.strip().partition("Finished job")[0], file = sys.stderr)
-                            else:
-                                rprint("[red]" + output.strip().partition("Finished job")[0], file = sys.stderr)
-                    if "Error in rule" in output or "RuleException" in output:
-                        progress.stop()
-                        if not err:
-                            print_onerror(sm_logfile)
-                        rprint(f"[yellow bold]{output.strip()}", file = sys.stderr)
-                        err = True
-                        continue
-                    # add new progress bar track if the rule doesn't have one yet
-                    rulematch = re.search(r"rule\s\w+:", output)
-                    if rulematch:
-                        rule = rulematch.group().replace(":","").split()[-1]
-                        if rule not in task_ids:
-                            task_ids[rule] = progress.add_task(job_inventory[rule][0], total=job_inventory[rule][1])
-                        continue
-                    # store the job id in the inventory so we can later look up which rule it's associated with
-                    jobidmatch = re.search(r"jobid:\s\d+", string = output)
-                    if jobidmatch:
-                        job_id = int(re.search(r"\d+",output).group())
-                        # rule should be the most previous rule recorded
-                        job_inventory[rule][2].add(job_id)
-                        continue
-                    # check which rule the job is associated with and update the corresponding progress bar
-                    finishmatch = re.search(r"Finished\sjob\s\d+", output)
-                    if finishmatch:
-                        completed = int(re.search(r"\d+", output).group())
-                        for job,details in job_inventory.items():
-                            if completed in details[2]:
-                                target_job = job
-                                progress.update(task_ids[job], advance = 1)
-                                progress.update(task_ids["total_progress"], advance=1)
-                                # remove the job to save memory. wont be seen again
-                                details[2].discard(completed)
-                                break
+                if output.startswith("Complete log:") or process.poll():
+                    process.wait()
+                    break
+                # prioritizing printing the error and quitting
+                if err:
+                    while output:
+                        output = process.stderr.readline()
+                        if "Shutting down, this" in output or "%) done" in output or not output:
+                            sys.exit(1)
+                        if output.startswith("RuleException"):
+                            rprint("[yellow bold]" + output.strip().partition("Finished job")[0], file = sys.stderr)
+                        elif output.startswith("Error in rule"):
+                            rprint("[yellow]" + output.strip().partition("Finished job")[0], file = sys.stderr)
+                        else:
+                            rprint("[red]" + output.strip().partition("Finished job")[0], file = sys.stderr)
+                    sys.exit(1)
+                if "Error in rule" in output or "RuleException" in output:
+                    progress.stop()
+                    if not err:
+                        print_onerror(sm_logfile)
+                    rprint(f"[yellow bold]{output.strip()}", file = sys.stderr)
+                    err = True
+                    continue
+                # add new progress bar track if the rule doesn't have one yet
+                rulematch = re.search(r"rule\s\w+:", output)
+                if rulematch:
+                    rule = rulematch.group().replace(":","").split()[-1]
+                    if rule not in task_ids:
+                        task_ids[rule] = progress.add_task(job_inventory[rule][0], total=job_inventory[rule][1])
+                    continue
+                # store the job id in the inventory so we can later look up which rule it's associated with
+                jobidmatch = re.search(r"jobid:\s\d+", string = output)
+                if jobidmatch:
+                    job_id = int(re.search(r"\d+",output).group())
+                    # rule should be the most previous rule recorded
+                    job_inventory[rule][2].add(job_id)
+                    continue
+                # check which rule the job is associated with and update the corresponding progress bar
+                finishmatch = re.search(r"Finished\sjob\s\d+", output)
+                if finishmatch:
+                    completed = int(re.search(r"\d+", output).group())
+                    for job,details in job_inventory.items():
+                        if completed in details[2]:
+                            progress.update(task_ids[job], advance = 1)
+                            progress.update(task_ids["total_progress"], advance=1)
+                            # remove the job to save memory. wont be seen again
+                            details[2].discard(completed)
+                            break
 
         if process.returncode < 1:
             if not quiet:
