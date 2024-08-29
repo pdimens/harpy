@@ -201,7 +201,7 @@ rule call_variants:
     threads:
         10
     conda:
-        f"{envdir}/sv.yaml"
+        f"{envdir}/variants.yaml"
     shell:
         "naibr {input.conf} > {log} 2>&1"
 

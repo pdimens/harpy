@@ -124,7 +124,7 @@ rule call_variants:
         populations = f"--populations {outdir}/workflow/sample.groups" if groupings else "",
         extra = extra
     conda:
-        f"{envdir}/snp.yaml"
+        f"{envdir}/variants.yaml"
     shell:
         "freebayes -f {input.ref} -L {input.samples} {params} > {output} 2> {log}"
 

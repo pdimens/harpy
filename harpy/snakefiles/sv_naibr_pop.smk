@@ -148,7 +148,7 @@ rule call_variants:
     threads:
         min(10, workflow.cores - 1)
     conda:
-        f"{envdir}/sv.yaml"
+        f"{envdir}/variants.yaml"
     shell:
         "naibr {input.conf} > {log} 2>&1"
 

@@ -69,7 +69,7 @@ rule index_barcode:
     threads:
         max(10, workflow.cores)
     conda:
-        f"{envdir}/sv.yaml"
+        f"{envdir}/variants.yaml"
     shell:
         "LRez index bam --threads {threads} -p -b {input.bam} -o {output}"
 
@@ -127,7 +127,7 @@ rule call_variants:
     threads:
         workflow.cores - 1
     conda:
-        f"{envdir}/sv.yaml"
+        f"{envdir}/variants.yaml"
     benchmark:
         ".Benchmark/leviathan/{sample}.variantcall"
     shell:
