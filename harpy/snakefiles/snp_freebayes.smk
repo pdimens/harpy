@@ -128,7 +128,7 @@ rule call_variants:
     shell:
         "freebayes -f {input.ref} -L {input.samples} {params} > {output} 2> {log}"
 
-rule sort_sample_variants:
+rule sort_variants:
     input:
         outdir + "/regions/{part}.vcf"
     output:
