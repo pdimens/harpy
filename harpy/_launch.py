@@ -147,6 +147,10 @@ def launch_snakemake(sm_args, workflow, starttext, outdir, sm_logfile, quiet):
                     rprint("[yellow bold]" + output.rstrip(), file = sys.stderr)
                     output = process.stderr.readline()
                     continue
+                if output.startswith("Logfile"):
+                    rprint("[yellow]" + output.rstrip(), file = sys.stderr)
+                    output = process.stderr.readline()
+                    continue
                 if output:
                     if not output.startswith("Complete log"):
                         rprint("[red]" + output.replace("\t","    ").rstrip(), file = sys.stderr)
