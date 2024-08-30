@@ -8,9 +8,9 @@ from rich.progress import Progress, BarColumn, TextColumn, TimeElapsedColumn, Sp
 from rich.console import Console
 from ._printing import print_onsuccess, print_onstart, print_onerror, print_setup_error
 
-def iferror(text):
+def iserror(text):
     """logical check for erroring trigger words in snakemake output"""
-    return "Exception" in text or "Error" in text
+    return "Exception" in text or "Error" in text or "MissingOutputException" in text
 
 def launch_snakemake(sm_args, workflow, starttext, outdir, sm_logfile, quiet):
     """launch snakemake with the given commands"""
@@ -33,7 +33,7 @@ def launch_snakemake(sm_args, workflow, starttext, outdir, sm_logfile, quiet):
             else:
                 while output.startswith("Building DAG of jobs...") or output.startswith("Assuming"):
                     output = process.stderr.readline()
-            if process.poll() or iferror(output):
+            if process.poll() or iserror(output):
                 exitcode = 0 if process.poll() == 0 else 1
 
             while not output.startswith("Job stats:"):
@@ -60,7 +60,7 @@ def launch_snakemake(sm_args, workflow, starttext, outdir, sm_logfile, quiet):
                     progress.add_task("[dim]" + deploy_text, total = None)
                     while not output.startswith("Job stats:"):
                         output = process.stderr.readline()
-                        if process.poll() or iferror(output):
+                        if process.poll() or iserror(output):
                             exitcode = 0 if process.poll() == 0 else 2
                             break
                     progress.stop()
@@ -90,7 +90,7 @@ def launch_snakemake(sm_args, workflow, starttext, outdir, sm_logfile, quiet):
                     except ValueError:
                         pass
                 # checkpoint
-                    if process.poll() or iferror(output):
+                    if process.poll() or iserror(output):
                         exitcode = 0 if process.poll() == 0 else 1
                         break
                 if process.poll() or exitcode:
@@ -99,7 +99,11 @@ def launch_snakemake(sm_args, workflow, starttext, outdir, sm_logfile, quiet):
                 
                 while output:
                     output = process.stderr.readline()
-                    if process.poll() or output.startswith("Complete log:"):
+                    if iserror(output) or process.poll() == 1:
+                        progress.stop()
+                        exitcode = 3
+                        break
+                    if process.poll() == 0 or output.startswith("Complete log:"):
                         progress.stop()
                         exitcode = 0 if process.poll() == 0 else 3
                         break
@@ -138,13 +142,14 @@ def launch_snakemake(sm_args, workflow, starttext, outdir, sm_logfile, quiet):
                 print_setup_error(exitcode)
             elif exitcode == 3:
                 print_onerror(sm_logfile)
-            while output and not output.endswith("]"):
+            while output and not output.endswith("]") and not output.startswith("Shutting down"):
                 if "Exception" in output or "Error" in output:
                     rprint("[yellow bold]" + output.rstrip(), file = sys.stderr)
                     output = process.stderr.readline()
                     continue
                 if output:
-                    rprint("[red]" + output.replace("\t","    ").rstrip(), file = sys.stderr)
+                    if not output.startswith("Complete log"):
+                        rprint("[red]" + output.replace("\t","    ").rstrip(), file = sys.stderr)
                 output = process.stderr.readline()
             sys.exit(1)
     except KeyboardInterrupt:
