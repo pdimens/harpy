@@ -25,6 +25,10 @@ def launch_snakemake(sm_args, workflow, starttext, outdir, sm_logfile, quiet):
         # read up to the job summary, but break early if dependency text appears
         while not exitcode:
             output = process.stderr.readline()
+            # check for syntax errors at the very beginning
+            if process.poll() or iserror(output):
+                exitcode = 0 if process.poll() == 0 else 1
+                break
             if not quiet:
                 console = Console()
                 with console.status("[dim]Preparing workflow", spinner = "point", spinner_style="yellow") as status:
