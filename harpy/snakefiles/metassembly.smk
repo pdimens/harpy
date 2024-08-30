@@ -13,7 +13,7 @@ onstart:
     extra_logfile_handler = pylogging.FileHandler(snakemake_log)
     logger.logger.addHandler(extra_logfile_handler)
 
-rule sort_fastq:
+rule barcode_sort:
     input:
         fq = FASTQ1,
         fq2 = FASTQ2 if FASTQ2 else []
@@ -33,11 +33,11 @@ rule metaspades:
     input:
         f"{outdir}/workflow/input.fq"
     output:
-        F_fq = f"{outdir}/metaspades/corrected/input_1.00.0_0.cor.fastq.gz",
-        R_fq = f"{outdir}/metaspades/corrected/input_2.00.0_0.cor.fastq.gz",
-        spades_contigs = f"{outdir}/metaspades/contigs.fasta" 
+        F_fq = f"{outdir}/metaspades/corrected/input_100.0_0.cor.fastq.gz",
+        R_fq = f"{outdir}/metaspades/corrected/input_200.0_0.cor.fastq.gz",
+        contigs = f"{outdir}/metaspades/scaffolds.fasta" 
     log:
-        f"{outdir}/logs/metaspades.log"
+        f"{outdir}/metaspades/warnings.log"
     params:
         outdir = f"{outdir}/metaspades",
         continue_arg = "--restart-from last" if os.path.exists(f"{outdir}/metaspades/pipeline_state/") else "",
@@ -50,12 +50,12 @@ rule metaspades:
     conda:
         f"{envdir}/metassembly.yaml"
     shell:
-        "metaspades.py {params.infile} {params.continue_arg} -o {params.outdir} -t {threads} -m {params.mem_gb} > {log}"
+        "metaspades.py {params.infile} {params.continue_arg} -o {params.outdir} -t {threads} -m {params.mem_gb}"
 
 rule all:
     default_target: True
     input:
-        f"{outdir}/metaspades/contigs.fasta"
+        f"{outdir}/metaspades/scaffolds.fasta"
 
 rule bwa_index:
     input:
