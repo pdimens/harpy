@@ -26,11 +26,10 @@ def launch_snakemake(sm_args, workflow, starttext, outdir, sm_logfile, quiet):
                 print_snakefile_error("If you manually edited the Snakefile, see the error below to fix it. If you didn't edit it manually, it's probably a bug (oops!) and you should submit an issue on GitHub: [bold]https://github.com/pdimens/harpy/issues")
                 errtext = subprocess.run(sm_args.split(), stderr=subprocess.PIPE, text = True)
                 errtext = errtext.stderr.split("\n")
-                startprint = [i for i,j in enumerate(errtext) if "Exception in rule" in j or "Error in file" in j or "Exception:" in j or "Error:" in j or "Exception:" in j][0]
+                startprint = [i for i,j in enumerate(errtext) if "Exception in" in j or "Error in" in j or "Exception:" in j or "Error:" in j][0]
                 for i in errtext[startprint:]:
                     if i:
-                        rprint("[red]" + i)
-                #rprint("[red]" + "\n".join(errtext[startprint:]), end = None)
+                        rprint("[red]" + i, file = sys.stderr)
                 sys.exit(1)
             if not quiet:
                 console = Console()
@@ -68,10 +67,10 @@ def launch_snakemake(sm_args, workflow, starttext, outdir, sm_logfile, quiet):
                         for i in errtext.stderr.split("\n"):
                             if "Exception" in i:
                                 startprint = True
-                                rprint("[bold yellow]" + i)
+                                rprint("[bold yellow]" + i, file = sys.stderr)
                                 continue
                             if startprint and i:
-                                rprint("[red]" + i)
+                                rprint("[red]" + i, file = sys.stderr)
                         sys.exit(1)
                     if output.startswith("Job stats:"):
                         progress.stop()
@@ -117,10 +116,10 @@ def launch_snakemake(sm_args, workflow, starttext, outdir, sm_logfile, quiet):
                             if i.startswith("total"):
                                 startfrom = j+1
                                 for errline in errtext[startfrom:]:
-                                    rprint("[red]" + errline)
+                                    rprint("[red]" + errline, file = sys.stderr)
                                 sys.exit(1)
                         # otherwise, print everything
-                        _ = [rprint("[red]" + i) for i in errtext]
+                        _ = [rprint("[red]" + i, file = sys.stderr) for i in errtext]
                         sys.exit(1)
                 if output.startswith("Complete log:") or process.poll():
                     process.wait()
@@ -180,19 +179,19 @@ def launch_snakemake(sm_args, workflow, starttext, outdir, sm_logfile, quiet):
                 line = logfile.readline()
                 while line:
                     if "Error" in line or "Exception" in line:
-                        rprint("[bold yellow]" + line.rstrip())
+                        rprint("[bold yellow]" + line.rstrip(), file = sys.stderr)
                         break
                     line = logfile.readline()
                 line = logfile.readline()
                 while line:
                     if line.endswith("]\n"):
                         break
-                    rprint("[red]" + line.rstrip())
+                    rprint("[red]" + line.rstrip(), file = sys.stderr)
                     line = logfile.readline()
             sys.exit(1)
     except KeyboardInterrupt:
         # Handle the keyboard interrupt
-        rprint("[yellow bold]\nTerminating harpy...")
+        rprint("[yellow bold]\nTerminating harpy...", file = sys.stderr)
         process.terminate()
         process.wait()
         sys.exit(1)
