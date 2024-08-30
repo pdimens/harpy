@@ -2,7 +2,7 @@ import os
 import logging as pylogging
 
 FASTQ1 = config["inputs"]["fastq"]
-FASTQ2 = config["inputs"].get("fastq", None)
+FASTQ2 = config["inputs"].get("fastq2")
 cont_cov = config["contig_coverage"]
 clusters = config["clusters"]
 snakemake_log = config["snakemake_log"]
@@ -15,47 +15,46 @@ onstart:
 
 rule barcode_sort:
     input:
-        fq = FASTQ1,
-        fq2 = FASTQ2 if FASTQ2 else []
+        fq_f = FASTQ1,
+        fq_r = FASTQ2
     output:
-        temp(f"{outdir}/workflow/input.fq")
+        fq_f = temp(f"{outdir}/workflow/input.R1.fq"),
+        fq_r = temp(f"{outdir}/workflow/input.R2.fq")
     params:
         config["barcode_tag"].upper()
     shell:
         """
         samtools import -T "*" {input} |
         samtools sort -O SAM -t {params} |
-        samtools fastq -T "*" > {output}
+        samtools fastq -T "*" -1 {output.fq_f} -2 {output.fq_r}
         """
 
-#TODO METASPADES NEEDS MORE PARAMETERS
 rule metaspades:
     input:
-        f"{outdir}/workflow/input.fq"
+        reads = collect(outdir + "/workflow/input.R{X}.fq", X = [1,2])
     output:
-        F_fq = f"{outdir}/metaspades/corrected/input_100.0_0.cor.fastq.gz",
-        R_fq = f"{outdir}/metaspades/corrected/input_200.0_0.cor.fastq.gz",
-        contigs = f"{outdir}/metaspades/scaffolds.fasta" 
-    log:
-        f"{outdir}/metaspades/warnings.log"
+        contigs = outdir + "/metaspades/contigs.fasta",
+        scaffolds = outdir + "/metaspades/scaffolds.fasta",
+        dir = directory(outdir + "/metaspades/intermediate_files"),
+        corrected_F = outdir + "/metaspades/intermediate_files/corrected/input.R100.0_0.cor.fastq.gz",
+        corrected_R = outdir + "/metaspades/intermediate_files/corrected/input.R200.0_0.cor.fastq.gz"
     params:
-        outdir = f"{outdir}/metaspades",
-        continue_arg = "--restart-from last" if os.path.exists(f"{outdir}/metaspades/pipeline_state/") else "",
-        mem_gb = lambda wildcards, resources: resources.mem_mb//1000,
-        infile = "" if os.path.exists(f"{outdir}/metaspades/pipeline_state/") else f"--12 {outdir}/workflow/input.fq"
+        k="auto"
+        #extra="--only-assembler",
+    log:
+        outdir + "/logs/spades.log",
     threads:
         workflow.cores
     resources:
-        mem_mb = 20000
-    conda:
-        f"{envdir}/metassembly.yaml"
-    shell:
-        "metaspades.py {params.infile} {params.continue_arg} -o {params.outdir} -t {threads} -m {params.mem_gb}"
+        mem_mem=250000,
+        time=60 * 24,
+    wrapper:
+        "v4.3.0/bio/spades/metaspades"
 
 rule all:
     default_target: True
     input:
-        f"{outdir}/metaspades/scaffolds.fasta"
+        f"{outdir}/metaspades/contigs.fasta"
 
 rule bwa_index:
     input:
@@ -133,8 +132,8 @@ rule athena:
 # is it sorted reads, interleaved? Can I just use the starting ones? maybe just the corrected metaspades ones
 rule pangaea:
     input:
-        F_fq = f"{outdir}/metaspades/corrected/corrected/input_1.00.0_0.cor.fastq.gz",
-        R_fq = f"{outdir}/metaspades/corrected/corrected/input_2.00.0_0.cor.fastq.gz",
+        F_fq = f"{outdir}/metaspades/corrected/corrected/input_100.0_0.cor.fastq.gz",
+        R_fq = f"{outdir}/metaspades/corrected/corrected/input_200.0_0.cor.fastq.gz",
         spades_contigs = f"{outdir}/metaspades/corrected/contigs.fasta",
         athena_local = f"{outdir}/athena/results/olc/flye-input-contigs.fa",
         athena_hybrid = f"{outdir}/athena/results/olc/athena.asm.fa"
