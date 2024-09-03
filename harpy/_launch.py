@@ -39,6 +39,7 @@ def launch_snakemake(sm_args, workflow, starttext, outdir, sm_logfile, quiet):
                     output = process.stderr.readline()
             if process.poll() or iserror(output):
                 exitcode = 0 if process.poll() == 0 else 1
+                break
 
             while not output.startswith("Job stats:"):
                 # print dependency text only once
@@ -49,6 +50,9 @@ def launch_snakemake(sm_args, workflow, starttext, outdir, sm_logfile, quiet):
                 if "Pulling singularity image" in output:
                     deps = True
                     deploy_text = "[dim]Downloading software container"
+                    break
+                if "Nothing to be" in output:
+                    exitcode = 0
                     break
                 output = process.stderr.readline()
 
@@ -69,6 +73,9 @@ def launch_snakemake(sm_args, workflow, starttext, outdir, sm_logfile, quiet):
                             break
                     progress.stop()
             if process.poll() or exitcode:
+                break
+            if "Nothing to be" in output:
+                exitcode = 0
                 break
             with Progress(
                 SpinnerColumn(spinner_name = "arc", style = "dim"),
@@ -107,7 +114,7 @@ def launch_snakemake(sm_args, workflow, starttext, outdir, sm_logfile, quiet):
                         progress.stop()
                         exitcode = 3
                         break
-                    if process.poll() == 0 or output.startswith("Complete log:"):
+                    if process.poll() == 0 or output.startswith("Complete log:") or output.startswith("Nothing to be"):
                         progress.stop()
                         exitcode = 0 if process.poll() == 0 else 3
                         break
