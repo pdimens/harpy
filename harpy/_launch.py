@@ -100,7 +100,7 @@ def launch_snakemake(sm_args, workflow, starttext, outdir, sm_logfile, quiet):
                 if process.poll() or exitcode:
                     break
                 task_ids = {"total_progress" : progress.add_task("[bold blue]Total", total=job_inventory["total"][1])}
-                
+
                 while output:
                     output = process.stderr.readline()
                     if iserror(output) or process.poll() == 1:
