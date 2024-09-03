@@ -126,7 +126,7 @@ def biallelic_contigs(vcf, workdir):
     header_contigs = [i.split(",")[0].replace("##contig=<ID=","") for i in vcfheader if i.startswith("##contig=")]
     if vcf.lower().endswith("bcf") and not os.path.exists(f"{vcf}.csi"):
         subprocess.run(f"bcftools index {vcf}".split())
-    if vcf.lower().endswith("vcf.gz") and not os.path.exists(f"{vcf}.csi"):
+    if vcf.lower().endswith("vcf.gz") and not os.path.exists(f"{vcf}.tbi"):
         subprocess.run(f"bcftools index --tbi {vcf}".split())
 
     for contig in header_contigs:
