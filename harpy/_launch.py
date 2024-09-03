@@ -19,8 +19,7 @@ def launch_snakemake(sm_args, workflow, starttext, outdir, sm_logfile, quiet):
         print_onstart(starttext, workflow.replace("_", " "))
     exitcode = None
     try:
-        # Add a task with a total value of 100 (representing 100%)
-        # Start a subprocess
+        # Start snakemake as a subprocess
         process = subprocess.Popen(sm_args.split(), stdout=subprocess.PIPE, stderr=subprocess.PIPE, text = True)
         deps = False
         # read up to the job summary, but break early if dependency text appears
