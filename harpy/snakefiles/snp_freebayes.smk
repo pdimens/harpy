@@ -176,7 +176,8 @@ rule indel_realign:
         bcf     = outdir + "/variants.raw.bcf",
         idx     = outdir + "/variants.raw.bcf.csi"
     output:
-        outdir + "/variants.normalized.bcf"
+        bcf = outdir + "/variants.normalized.bcf",
+        idx = outdir + "/variants.normalized.bcf.csi"
     log:
         outdir + "/logs/variants.normalized.log"
     threads:
@@ -184,7 +185,7 @@ rule indel_realign:
     container:
         None
     shell:
-        "bcftools norm --threads {threads} -m -both -d both --write-index -Ob -o {output} -f {input.genome} {input.vcf} 2> {log}"
+        "bcftools norm --threads {threads} -m -both -d both --write-index -Ob -o {output.bcf} -f {input.genome} {input.vcf} 2> {log}"
 
 rule general_stats:
     input:
