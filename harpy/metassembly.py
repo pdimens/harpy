@@ -22,7 +22,7 @@ docstring = {
     ]
 }
 
-@click.command(no_args_is_help = True, context_settings=dict(allow_interspersed_args=False), epilog = "See the documentation for more information: https://pdimens.github.io/harpy/modules/qc")
+@click.command(no_args_is_help = True, context_settings=dict(allow_interspersed_args=False), epilog = "See the documentation for more information: https://pdimens.github.io/harpy/modules/qc", hidden = True)
 @click.option('-n', '--clusters', default = 35, show_default = True, type = int, help = 'Number of clusters')
 @click.option('-b', '--bx-tag', type = click.Choice(['BX', 'BC'], case_sensitive=False), default = "BX", show_default=True, help = "The header tag with the barcode (`BX` or `BC`)")
 @click.option('-c', '--contig-cov', default = "10,30", show_default = True, type = IntPair(), help = "Coverage for low abundance contigs")
