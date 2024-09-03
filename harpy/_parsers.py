@@ -131,7 +131,7 @@ def biallelic_contigs(vcf, workdir):
 
     for contig in header_contigs:
         # Use bcftools to count the number of biallelic SNPs in the contig
-        viewcmd = subprocess.Popen(['bcftools', 'view', '-r', contig, '-v', 'snps', '-m2', '-M2', '-c', '2', vcf], stdout=subprocess.PIPE)
+        viewcmd = subprocess.Popen(['bcftools', 'view', '-H', '-r', contig, '-v', 'snps', '-m2', '-M2', '-c', '2', vcf], stdout=subprocess.PIPE)
         snpcount = 0
         while True:
             # Read the next line of output
