@@ -30,7 +30,7 @@ body:
     id: error-file
     attributes:
       label: File that triggers the error (if applicable)
-      description: Please drag and drop (and upload to the GitHub issue) an input file that can be used to replicate the error. You may also copy-and-paste it as a code block. If the file type is not allowed, please compress into a `.zip` or `.gz` file.
+      description: Please drag and drop (and upload to the GitHub issue) an input file that can be used to replicate the error. You may also copy-and-paste it as a code block. If the file type is not allowed, please compress into a `.zip` or `.gz` file. Alternatively, a snakemake log file would be helpful here too.
       placeholder: |
         [ Copy and paste or drag and drop an example file here to upload ]
 
