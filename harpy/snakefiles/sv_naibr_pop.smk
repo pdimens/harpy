@@ -4,8 +4,18 @@ import os
 import re
 import sys
 import multiprocessing
-import logging as pylogging
+import logging
 from pathlib import Path
+
+onstart:
+    logger.logger.addHandler(logging.FileHandler(config["snakemake_log"]))
+onsuccess:
+    os.remove(logger.logfile)
+onerror:
+    os.remove(logger.logfile)
+wildcard_constraints:
+    sample = "[a-zA-Z0-9._-]+",
+    population = "[a-zA-Z0-9._-]+"
 
 envdir       = os.getcwd() + "/.harpy_envs"
 genomefile   = config["inputs"]["genome"]
@@ -18,18 +28,9 @@ min_quality  = config["min_quality"]
 mol_dist     = config["molecule_distance"]
 outdir       = config["output_directory"]
 skipreports  = config["skip_reports"]
-snakemake_log = config["snakemake_log"]
 bn           = os.path.basename(genomefile)
 if bn.lower().endswith(".gz"):
     bn = bn[:-3]
-
-wildcard_constraints:
-    sample = "[a-zA-Z0-9._-]+",
-    population = "[a-zA-Z0-9._-]+"
-
-onstart:
-    extra_logfile_handler = pylogging.FileHandler(snakemake_log)
-    logger.logger.addHandler(extra_logfile_handler)
 
 def process_args(args):
     argsDict = {

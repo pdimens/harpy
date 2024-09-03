@@ -93,5 +93,5 @@ def metassembly(fastq, fastq2, clusters, contig_cov, bx_tag, output_dir, extra_p
     start_text.add_row("Clusters: ", f"{clusters}")
     start_text.add_row("Contig Cov. Thresh: ", f"{contig_cov[0]},{contig_cov[1]}")
     start_text.add_row("Output Folder:", f"{output_dir}/")
-    start_text.add_row("Workflow Log:", sm_log.replace(f"{output_dir}/", ""))
+    start_text.add_row("Workflow Log:", sm_log.replace(f"{output_dir}/", "") + "[dim].gz")
     launch_snakemake(command, "metassembly", start_text, output_dir, sm_log, quiet)

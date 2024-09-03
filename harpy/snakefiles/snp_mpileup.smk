@@ -3,8 +3,17 @@ containerized: "docker://pdimens/harpy:latest"
 import os
 import sys
 import multiprocessing
-import logging as pylogging
+import logging
 from pathlib import Path
+
+onstart:
+    logger.logger.addHandler(logging.FileHandler(config["snakemake_log"]))
+onsuccess:
+    os.remove(logger.logfile)
+onerror:
+    os.remove(logger.logfile)
+wildcard_constraints:
+    sample = "[a-zA-Z0-9._-]+"
 
 envdir      = os.getcwd() + "/.harpy_envs"
 ploidy 		= config["ploidy"]
@@ -13,7 +22,6 @@ regiontype  = config["regiontype"]
 windowsize  = config.get("windowsize", None)
 outdir      = config["output_directory"]
 skipreports = config["skip_reports"]
-snakemake_log = config["snakemake_log"]
 bamlist     = config["inputs"]["alignments"]
 genomefile 	= config["inputs"]["genome"]
 bn          = os.path.basename(genomefile)
@@ -35,13 +43,6 @@ else:
             cont,startpos,endpos = line.split()
             intervals.add(f"{cont}:{startpos}-{endpos}")
     regions = dict(zip(intervals, intervals))
-
-wildcard_constraints:
-    sample = "[a-zA-Z0-9._-]+"
-
-onstart:
-    extra_logfile_handler = pylogging.FileHandler(snakemake_log)
-    logger.logger.addHandler(extra_logfile_handler)
 
 def sam_index(infile):
     """Use Samtools to index an input file, adding .bai to the end of the name"""

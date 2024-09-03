@@ -5,10 +5,8 @@ import sys
 import glob
 import gzip
 import shutil
-import subprocess
 from datetime import datetime
 from pathlib import Path
-from collections import Counter
 from importlib_resources import files
 import click
 import harpy.scripts
@@ -62,7 +60,7 @@ def fetch_report(workdir, target):
 
 def snakemake_log(outdir, workflow):
     """Return a snakemake logfile name. Iterates logfile run number if one exists."""
-    attempts = glob.glob(f"{outdir}/logs/snakemake/*.log.gz")
+    attempts = glob.glob(f"{outdir}/logs/snakemake/*.log*")
     if not attempts:
         return f"{outdir}/logs/snakemake/{workflow}.1." + datetime.now().strftime("%d_%m_%Y") + ".log"
     increment = sorted([int(i.split(".")[1]) for i in attempts])[-1] + 1
@@ -70,7 +68,7 @@ def snakemake_log(outdir, workflow):
 
 def gzip_file(infile):
     """gzip a file and delete the original, using only python"""
-    if os.path.exists():
+    if os.path.exists(infile):
         with open(infile, 'rb') as f_in, gzip.open(infile + '.gz', 'wb', 6) as f_out:
             shutil.copyfileobj(f_in, f_out)
         os.remove(infile)

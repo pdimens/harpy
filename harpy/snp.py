@@ -149,7 +149,7 @@ def mpileup(inputs, output_dir, regions, genome, threads, populations, ploidy, e
         start_text.add_row("Sample Groups:", populations)
     start_text.add_row("Genome:", genome)
     start_text.add_row("Output Folder:", output_dir + "/")
-    start_text.add_row("Workflow Log:", sm_log.replace(f"{output_dir}/", ""))
+    start_text.add_row("Workflow Log:", sm_log.replace(f"{output_dir}/", "") + "[dim].gz")
     launch_snakemake(command, "snp_mpileup", start_text, output_dir, sm_log, quiet)
 
 @click.command(no_args_is_help = True, context_settings=dict(allow_interspersed_args=False), epilog = "See the documentation for more information: https://pdimens.github.io/harpy/modules/snp")
@@ -253,7 +253,7 @@ def freebayes(inputs, output_dir, genome, threads, populations, ploidy, regions,
         start_text.add_row("Sample Groups:", populations)
     start_text.add_row("Genome:", genome)
     start_text.add_row("Output Folder:", output_dir + "/")
-    start_text.add_row("Workflow Log:", sm_log.replace(f"{output_dir}/", ""))
+    start_text.add_row("Workflow Log:", sm_log.replace(f"{output_dir}/", "") + "[dim].gz")
     launch_snakemake(command, "snp_freebayes", start_text, output_dir, sm_log, quiet)
 
 snp.add_command(mpileup)

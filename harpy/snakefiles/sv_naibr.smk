@@ -4,8 +4,17 @@ import os
 import re
 import sys
 import multiprocessing
-import logging as pylogging
+import logging
 from pathlib import Path
+
+onstart:
+    logger.logger.addHandler(logging.FileHandler(config["snakemake_log"]))
+onsuccess:
+    os.remove(logger.logfile)
+onerror:
+    os.remove(logger.logfile)
+wildcard_constraints:
+    sample = "[a-zA-Z0-9._-]+"
 
 envdir      = os.getcwd() + "/.harpy_envs"
 genomefile  = config["inputs"]["genome"]
@@ -21,7 +30,6 @@ bn          = os.path.basename(genomefile)
 genome_zip  = True if bn.lower().endswith(".gz") else False
 bn_idx      = f"{bn}.gzi" if genome_zip else f"{bn}.fai"
 skipreports = config["skip_reports"]
-snakemake_log = config["snakemake_log"]
 
 def process_args(args):
     argsDict = {
@@ -37,12 +45,6 @@ def process_args(args):
                 argsDict[i[0].lstrip("-")] = i[1]
     return argsDict
 
-wildcard_constraints:
-    sample = "[a-zA-Z0-9._-]+"
-
-onstart:
-    extra_logfile_handler = pylogging.FileHandler(snakemake_log)
-    logger.logger.addHandler(extra_logfile_handler)
 
 def sam_index(infile):
     """Use Samtools to index an input file, adding .bai to the end of the name"""

@@ -110,5 +110,5 @@ def phase(inputs, output_dir, vcf, threads, molecule_distance, prune_threshold, 
     if genome is not None:
         start_text.add_row("Genome:", genome)
     start_text.add_row("Output Folder:", output_dir + "/")
-    start_text.add_row("Workflow Log:", sm_log.replace(f"{output_dir}/", ""))
+    start_text.add_row("Workflow Log:", sm_log.replace(f"{output_dir}/", "") + "[dim].gz")
     launch_snakemake(command, "phase", start_text, output_dir, sm_log, quiet)

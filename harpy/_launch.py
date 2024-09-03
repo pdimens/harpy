@@ -138,11 +138,11 @@ def launch_snakemake(sm_args, workflow, starttext, outdir, sm_logfile, quiet):
                                 break
 
         process.wait()
-        # compress the Snakemake log file
-        gzip_file(sm_logfile)
         if process.returncode < 1:
+            gzip_file(sm_logfile)
             if not quiet:
                 print_onsuccess(outdir)
+            sys.exit(0)
         else:
             if exitcode in (1,2):
                 print_setup_error(exitcode)

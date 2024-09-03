@@ -93,7 +93,7 @@ def fastq(inputs, output_dir, threads, snakemake, quiet, hpc, conda, setup_only)
     start_text.add_column("value", justify="left")
     start_text.add_row("FASTQ Files:", f"{n}")
     start_text.add_row("Output Folder:", output_dir + "/")
-    start_text.add_row("Workflow Log:", sm_log.replace(f"{output_dir}/", ""))
+    start_text.add_row("Workflow Log:", sm_log.replace(f"{output_dir}/", "") + "[dim].gz")
     launch_snakemake(command, "preflight_fastq", start_text, output_dir, sm_log, quiet)
 
 @click.command(no_args_is_help = True, context_settings=dict(allow_interspersed_args=False), epilog = "See the documentation for more information: https://pdimens.github.io/harpy/modules/preflight/")
@@ -153,7 +153,7 @@ def bam(inputs, output_dir, threads, snakemake, quiet, hpc, conda, setup_only):
     start_text.add_column(header="value", justify="left")
     start_text.add_row("Alignment Files:", f"{n}")
     start_text.add_row("Output Folder:", output_dir + "/")
-    start_text.add_row("Workflow Log:", sm_log.replace(f"{output_dir}/", ""))
+    start_text.add_row("Workflow Log:", sm_log.replace(f"{output_dir}/", "") + "[dim].gz")
     launch_snakemake(command, "preflight_bam", start_text, output_dir, sm_log, quiet)
 
 preflight.add_command(fastq)

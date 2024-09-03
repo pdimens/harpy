@@ -1,17 +1,19 @@
 import os
-import logging as pylogging
+import logging
+
+onstart:
+    logger.logger.addHandler(logging.FileHandler(config["snakemake_log"]))
+onsuccess:
+    os.remove(logger.logfile)
+onerror:
+    os.remove(logger.logfile)
 
 FASTQ1 = config["inputs"]["fastq"]
 FASTQ2 = config["inputs"].get("fastq2")
 cont_cov = config["contig_coverage"]
 clusters = config["clusters"]
-snakemake_log = config["snakemake_log"]
 outdir = config["output_directory"]
 envdir = os.getcwd() + "/.harpy_envs"
-
-onstart:
-    extra_logfile_handler = pylogging.FileHandler(snakemake_log)
-    logger.logger.addHandler(extra_logfile_handler)
 
 rule barcode_sort:
     input:

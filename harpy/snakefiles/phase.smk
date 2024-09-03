@@ -1,10 +1,20 @@
 containerized: "docker://pdimens/harpy:latest"
 
+import os
 import sys
 import subprocess
 import multiprocessing
-import logging as pylogging
+import logging
 from pathlib import Path
+
+onstart:
+    logger.logger.addHandler(logging.FileHandler(config["snakemake_log"]))
+onsuccess:
+    os.remove(logger.logfile)
+onerror:
+    os.remove(logger.logfile)
+wildcard_constraints:
+    sample = "[a-zA-Z0-9._-]+"
 
 ##TODO MANUAL PRUNING OF SWITCH ERRORS
 # https://github.com/vibansal/HapCUT2/blob/master/outputformat.md
@@ -18,23 +28,17 @@ skipreports       = config["skip_reports"]
 samples_from_vcf  = config["samples_from_vcf"]
 variantfile       = config["inputs"]["variantfile"]
 bamlist     = config["inputs"]["alignments"]
-snakemake_log = config["snakemake_log"]
-
-# toggle linked-read aware mode
 if config["ignore_bx"]:
     fragfile = outdir + "/extract_hairs/{sample}.unlinked.frags"
     linkarg = "--10x 0"
 else:
     fragfile =  outdir + "/link_fragments/{sample}.linked.frags"
     linkarg  = "--10x 1"
-
 if samples_from_vcf:
     bcfquery = subprocess.Popen(["bcftools", "query", "-l", variantfile], stdout=subprocess.PIPE)
     samplenames = bcfquery.stdout.read().decode().split()
 else:
     samplenames = [Path(i).stem for i in bamlist]
-
-# toggle indel mode
 if config["inputs"].get("genome", None):
     genomefile = config["inputs"]["genome"]
     if genomefile.lower().endswith(".gz"):
@@ -52,13 +56,6 @@ else:
     genofai    = []
     bn         = []
     indels     = False
-
-wildcard_constraints:
-    sample = "[a-zA-Z0-9._-]+"
-
-onstart:
-    extra_logfile_handler = pylogging.FileHandler(snakemake_log)
-    logger.logger.addHandler(extra_logfile_handler)
 
 def sam_index(infile):
     """Use Samtools to index an input file, adding .bai to the end of the name"""

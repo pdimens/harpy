@@ -6,8 +6,17 @@ import sys
 import subprocess
 import pandas as pd
 import multiprocessing
-import logging as pylogging
+import logging
 from snakemake.utils import Paramspace
+
+onstart:
+    logger.logger.addHandler(logging.FileHandler(config["snakemake_log"]))
+onsuccess:
+    os.remove(logger.logfile)
+onerror:
+    os.remove(logger.logfile)
+wildcard_constraints:
+    sample = "[a-zA-Z0-9._-]+"
 
 bamlist     = config["inputs"]["alignments"]
 variantfile = config["inputs"]["variantfile"]
@@ -16,22 +25,15 @@ biallelic   = config["inputs"]["biallelic_contigs"]
 outdir      = config["output_directory"]
 envdir      = os.getcwd() + "/.harpy_envs"
 skipreports = config["skip_reports"]
-snakemake_log = config["snakemake_log"]
 paramspace  = Paramspace(pd.read_csv(paramfile, sep=r"\s+", skip_blank_lines=True).rename(columns=str.lower), param_sep = "", filename_params = ["k", "s", "ngen", "bxlimit"])
 with open(biallelic, "r") as f_open:
     contigs = [i.rstrip() for i in f_open.readlines()]
-
-wildcard_constraints:
-    sample = "[a-zA-Z0-9._-]+"
 
 def sam_index(infile):
     """Use Samtools to index an input file, adding .bai to the end of the name"""
     if not os.path.exists(f"{infile}.bai"):
         subprocess.run(f"samtools index {infile} {infile}.bai".split())
 
-onstart:
-    extra_logfile_handler = pylogging.FileHandler(snakemake_log)
-    logger.logger.addHandler(extra_logfile_handler)
 
 rule sort_bcf:
     input:

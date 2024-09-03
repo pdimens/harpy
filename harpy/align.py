@@ -137,7 +137,7 @@ def bwa(inputs, output_dir, genome, depth_window, threads, keep_unmapped, extra_
     start_text.add_row("Samples:", f"{sample_count}")
     start_text.add_row("Genome:", genome)
     start_text.add_row("Output Folder:", output_dir + "/")
-    start_text.add_row("Workflow Log:", sm_log.replace(f"{output_dir}/", ""))
+    start_text.add_row("Workflow Log:", sm_log.replace(f"{output_dir}/", "") + "[dim].gz")
     launch_snakemake(command, "align_bwa", start_text, output_dir, sm_log, quiet)
 
 @click.command(no_args_is_help = True, context_settings=dict(allow_interspersed_args=False), epilog = "See the documentation for more information: https://pdimens.github.io/harpy/modules/align/ema")
@@ -236,7 +236,7 @@ def ema(inputs, output_dir, platform, barcode_list, genome, depth_window, keep_u
     start_text.add_row("Genome:", genome)
     start_text.add_row("Platform:", platform)
     start_text.add_row("Output Folder:", output_dir + "/")
-    start_text.add_row("Workflow Log:", sm_log.replace(f"{output_dir}/", ""))
+    start_text.add_row("Workflow Log:", sm_log.replace(f"{output_dir}/", "") + "[dim].gz")
     launch_snakemake(command, "align_ema", start_text, output_dir, sm_log, quiet)
 
 @click.command(no_args_is_help = True, epilog= "See the documentation for more information: https://pdimens.github.io/harpy/modules/align/minimap/")
@@ -320,7 +320,7 @@ def strobe(inputs, output_dir, genome, read_length, keep_unmapped, depth_window,
     start_text.add_row("Samples:", f"{sample_count}")
     start_text.add_row("Genome:", genome)
     start_text.add_row("Output Folder:", output_dir + "/")
-    start_text.add_row("Workflow Log:", sm_log.replace(f"{output_dir}/", ""))
+    start_text.add_row("Workflow Log:", sm_log.replace(f"{output_dir}/", "") + "[dim].gz")
     launch_snakemake(command, "align_strobe", start_text, output_dir, sm_log, quiet)
 
 align.add_command(bwa)
