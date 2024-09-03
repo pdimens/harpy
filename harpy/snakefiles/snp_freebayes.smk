@@ -131,7 +131,7 @@ rule call_variants:
     shell:
         """
         freebayes -f {input.ref} -L {input.samples} {params} 2> {log} |
-            bcftools sort - --output {outbcf} --write-index 2> /dev/null
+            bcftools sort - --output {out.bcf} --write-index 2> /dev/null
         """
 
 rule concat_list:
