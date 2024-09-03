@@ -6,6 +6,7 @@ import subprocess
 from rich import print as rprint
 from rich.progress import Progress, BarColumn, TextColumn, TimeElapsedColumn, SpinnerColumn
 from rich.console import Console
+from ._misc import gzip_file
 from ._printing import print_onsuccess, print_onstart, print_onerror, print_setup_error
 
 def iserror(text):
@@ -138,6 +139,8 @@ def launch_snakemake(sm_args, workflow, starttext, outdir, sm_logfile, quiet):
                                 break
 
         process.wait()
+        # compress the Snakemake log file
+        gzip_file(sm_logfile)
         if process.returncode < 1:
             if not quiet:
                 print_onsuccess(outdir)
@@ -165,4 +168,5 @@ def launch_snakemake(sm_args, workflow, starttext, outdir, sm_logfile, quiet):
         rprint("[yellow bold]\nTerminating harpy...", file = sys.stderr)
         process.terminate()
         process.wait()
+        gzip_file(sm_logfile)
         sys.exit(1)
