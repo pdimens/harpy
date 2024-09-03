@@ -22,9 +22,8 @@ body:
   - type: checkboxes
     id: checklist
     attributes:
-      description: Is this the latest version of Harpy?
       options:
-        - label: yes
+        - label: this is the latest version of Harpy
           required: true
 
   - type: textarea
