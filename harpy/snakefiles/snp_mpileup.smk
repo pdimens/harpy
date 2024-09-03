@@ -219,7 +219,7 @@ rule indel_realign:
     container:
         None
     shell:
-        "bcftools norm --threads {threads} -m -both -d both --write-index -Ob -o {output.bcf} -f {input.genome} {input.vcf} 2> {log}"
+        "bcftools norm --threads {threads} -m -both -d both --write-index -Ob -o {output.bcf} -f {input.genome} {input.bcf} 2> {log}"
 
 rule general_stats:
     input:
