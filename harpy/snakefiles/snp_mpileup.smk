@@ -203,6 +203,22 @@ rule sort_variants:
     shell:
         "bcftools sort --write-index -Ob -o {output.bcf} {input} 2> /dev/null"
 
+rule indel_realign:
+    input:
+        genome  = f"Genome/{bn}",
+        bcf     = outdir + "/variants.raw.bcf",
+        idx     = outdir + "/variants.raw.bcf.csi"
+    output:
+        outdir + "/variants.normalized.bcf"
+    log:
+        outdir + "/logs/variants.normalized.log"
+    threads:
+        workflow.cores
+    container:
+        None
+    shell:
+        "bcftools norm --threads {threads} -m -both -d both --write-index -Ob -o {output} -f {input.genome} {input.vcf} 2> {log}"
+
 rule general_stats:
     input:
         genome  = f"Genome/{bn}",
@@ -234,7 +250,7 @@ rule workflow_summary:
     input:
         vcf = collect(outdir + "/variants.{file}.bcf", file = ["raw"]),
         agg_log = outdir + "/logs/mpileup.log",
-        reports = collect(outdir + "/reports/variants.{file}.html", file = ["raw"]) if not skipreports else []
+        reports = collect(outdir + "/reports/variants.{file}.html", file = ["raw", "normalized"]) if not skipreports else []
     params:
         ploidy = f"--ploidy {ploidy}",
         populations = f"--populations {groupings}" if groupings else "--populations -"
@@ -258,8 +274,8 @@ rule workflow_summary:
             _ = f.write("The bcftools call parameters:\n")
             _ = f.write("    bcftools call --multiallelic-caller " + " ".join(params) + " --variants-only --output-type b | bcftools sort -\n")
             _ = f.write("The variants identified in the intervals were merged into the final variant file using:\n")
-            _ = f.write("    bcftools concat -f vcf.list -a --remove-duplicates\n")
-            #_ = f.write("The variants were normalized using:\n")
-            #_ = f.write("    bcftools norm -d exact | bcftools norm -m -any -N -Ob\n")
+            _ = f.write("    bcftools concat -f bcf.files -a --remove-duplicates\n")
+            _ = f.write("The variants were normalized using:\n")
+            _ = f.write("    bcftools norm -m -both -d both\n")
             _ = f.write("\nThe Snakemake workflow was called via command line:\n")
             _ = f.write("    " + str(config["workflow_call"]) + "\n")

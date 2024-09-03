@@ -115,7 +115,8 @@ rule call_variants:
         ref_idx = f"Genome/{bn}.fai",
         samples = outdir + "/workflow/samples.files"
     output:
-        pipe(outdir + "/regions/{part}.vcf")
+        bcf = temp(outdir + "/regions/{part}.bcf"),
+        idx = temp(outdir + "/regions/{part}.bcf.csi")
     log:
         outdir + "/logs/{part}.freebayes.log"
     params:
@@ -123,21 +124,15 @@ rule call_variants:
         ploidy = f"-p {ploidy}",
         populations = f"--populations {outdir}/workflow/sample.groups" if groupings else "",
         extra = extra
+    threads:
+        2
     conda:
         f"{envdir}/variants.yaml"
     shell:
-        "freebayes -f {input.ref} -L {input.samples} {params} > {output} 2> {log}"
-
-rule sort_variants:
-    input:
-        outdir + "/regions/{part}.vcf"
-    output:
-        bcf = temp(outdir + "/regions/{part}.bcf"),
-        idx = temp(outdir + "/regions/{part}.bcf.csi")
-    container:
-        None
-    shell:
-        "bcftools sort -Ob --write-index --output {output.bcf} {input} 2> /dev/null"
+        """
+        freebayes -f {input.ref} -L {input.samples} {params} 2> {log} |
+            bcftools sort - --output {outbcf} --write-index 2> /dev/null
+        """
 
 rule concat_list:
     input:
@@ -164,7 +159,7 @@ rule concat_variants:
     shell:  
         "bcftools concat -f {input.filelist} --threads {threads} --naive -Ob -o {output} 2> {log}"
 
-rule sort_all_variants:
+rule sort_variants:
     input:
         outdir + "/variants.raw.unsort.bcf"
     output:
@@ -174,6 +169,22 @@ rule sort_all_variants:
         None
     shell:
         "bcftools sort --write-index -Ob -o {output.bcf} {input} 2> /dev/null"
+
+rule indel_realign:
+    input:
+        genome  = f"Genome/{bn}",
+        bcf     = outdir + "/variants.raw.bcf",
+        idx     = outdir + "/variants.raw.bcf.csi"
+    output:
+        outdir + "/variants.normalized.bcf"
+    log:
+        outdir + "/logs/variants.normalized.log"
+    threads:
+        workflow.cores
+    container:
+        None
+    shell:
+        "bcftools norm --threads {threads} -m -both -d both --write-index -Ob -o {output} -f {input.genome} {input.vcf} 2> {log}"
 
 rule general_stats:
     input:
@@ -226,8 +237,8 @@ rule workflow_summary:
             _ = f.write("The freebayes parameters:\n")
             _ = f.write("    freebayes -f GENOME -L samples.list -r REGION " + " ".join(params) + " | bcftools sort -\n")
             _ = f.write("The variants identified in the intervals were merged into the final variant file using:\n")
-            _ = f.write("    bcftools concat -f vcf.list -a --remove-duplicates\n")
-            #_ = f.write("The variants were normalized using:\n")
-            #_ = f.write("    bcftools norm -d exact | bcftools norm -m -any -N -Ob\n")
+            _ = f.write("    bcftools concat -f bcf.files -a --remove-duplicates\n")
+            _ = f.write("The variants were normalized using:\n")
+            _ = f.write("    bcftools norm -m -both -d both\n")
             _ = f.write("\nThe Snakemake workflow was called via command line:\n")
             _ = f.write("    " + str(config["workflow_call"]) + "\n")
