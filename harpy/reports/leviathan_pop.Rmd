@@ -138,6 +138,10 @@ valueBox(scales::comma(ninv, accuracy = 0.01), caption = "Inversions (average)",
 ## Various information {.tabset data-height=450}
 ### all variants
 This table details all the variants LEVIATHAN detected and the quantity/quality of evidence for those detections.
+```{r fix_breakend_length}
+sv$length <- as.numeric(gsub("\\.", "1", sv$length))
+```
+
 ```{r all variants}
 DT::datatable(
   sv,
@@ -153,9 +157,6 @@ DT::datatable(
   )
 ```
 
-```{r fix_breakend_length}
-sv$length <- as.numeric(gsub("\\.", "1", sv$length))
-```
 ### counts per contig
 This table details counts each type of structural variant for every contig for every population.
 ```{r percontig counts}

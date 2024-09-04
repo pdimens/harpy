@@ -5,7 +5,7 @@ import sys
 from rich import box
 from rich.table import Table
 import rich_click as click
-from ._conda import generate_conda_deps
+from ._conda import create_conda_recipes
 from ._launch import launch_snakemake
 from ._misc import fetch_rule, snakemake_log
 from ._parsers import parse_fastq_inputs
@@ -23,7 +23,7 @@ docstring = {
     ]
 }
 
-@click.command(no_args_is_help = True, epilog = "See the documentation for more information: https://pdimens.github.io/harpy/modules/qc")
+@click.command(no_args_is_help = True, context_settings=dict(allow_interspersed_args=False), epilog = "See the documentation for more information: https://pdimens.github.io/harpy/modules/qc")
 @click.option('-k', '--kmer-length', default = 21, show_default = True, type=int, help = 'Size of kmers')
 @click.option('-w', '--window-size', default = 40, show_default = True, type=int, help = 'Size of window guaranteed to contain at least one kmer')
 @click.option('-d', '--density', default = 3, show_default = True, type = click.IntRange(min = 1, max_open = True), help = 'On average, 1/2^d kmers are indexed')
@@ -76,7 +76,7 @@ def deconvolve(inputs, output_dir, kmer_length, window_size, density, dropout, t
         for i in fqlist:
             config.write(f"  - {i}\n")
     
-    generate_conda_deps()
+    create_conda_recipes()
     if setup_only:
         sys.exit(0)
 
@@ -85,5 +85,5 @@ def deconvolve(inputs, output_dir, kmer_length, window_size, density, dropout, t
     start_text.add_column("value", justify="left")
     start_text.add_row("Samples:", f"{sample_count}")
     start_text.add_row("Output Folder:", output_dir + "/")
-    start_text.add_row("Workflow Log:", sm_log.replace(f"{output_dir}/", ""))
+    start_text.add_row("Workflow Log:", sm_log.replace(f"{output_dir}/", "") + "[dim].gz")
     launch_snakemake(command, "deconvolve", start_text, output_dir, sm_log, quiet)

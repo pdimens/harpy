@@ -5,7 +5,7 @@ from pathlib import Path
 from rich import box
 from rich.table import Table
 import rich_click as click
-from ._conda import generate_conda_deps
+from ._conda import create_conda_recipes
 from ._launch import launch_snakemake
 from ._misc import fetch_rule, fetch_script, snakemake_log
 from ._printing import print_error
@@ -54,11 +54,11 @@ docstring = {
         },
         {
             "name": "Random Variants",
-            "options": ["--centromeres", "--exclude-chr", "--genes", "--indel-count", "--indel-ratio", "--snp-count", "--snp-gene-constraints", "--titv-ratio"],
+            "options": ["--centromeres", "--exclude-chr", "--genes", "--heterozygosity", "--indel-count", "--indel-ratio", "--snp-count", "--snp-gene-constraints", "--titv-ratio"],
         },
         {
             "name": "Workflow Controls",
-            "options": ["--conda", "--heterozygosity", "--hpc", "--output-dir", "--prefix", "--quiet", "--randomseed", "--snakemake", "--help"],
+            "options": ["--conda", "--hpc", "--output-dir", "--prefix", "--quiet", "--randomseed", "--snakemake", "--help"],
         },
     ],
     "harpy simulate inversion": [
@@ -68,11 +68,11 @@ docstring = {
         },
         {
             "name": "Random Variants",
-            "options": ["--centromeres", "--count", "--exclude-chr", "--genes", "--max-size", "--min-size"],
+            "options": ["--centromeres", "--count", "--exclude-chr", "--genes", "--heterozygosity", "--max-size", "--min-size"],
         },
         {
             "name": "Workflow Controls",
-            "options": ["--conda", "--heterozygosity", "--hpc", "--output-dir", "--prefix", "--quiet", "--randomseed", "--snakemake", "--help"],
+            "options": ["--conda", "--hpc", "--output-dir", "--prefix", "--quiet", "--randomseed", "--snakemake", "--help"],
         },
     ],
     "harpy simulate cnv": [
@@ -82,11 +82,11 @@ docstring = {
         },
         {
             "name": "Random Variants",
-            "options": ["--centromeres", "--count", "--dup-ratio", "--exclude-chr", "--gain-ratio", "--genes",  "--max-copy", "--max-size", "--min-size"],
+            "options": ["--centromeres", "--count", "--dup-ratio", "--exclude-chr", "--gain-ratio", "--genes", "--heterozygosity",  "--max-copy", "--max-size", "--min-size"],
         },
         {
             "name": "Workflow Controls",
-            "options": ["--conda", "--heterozygosity", "--hpc", "--output-dir", "--prefix", "--quiet", "--randomseed", "--snakemake", "--help"],
+            "options": ["--conda", "--hpc", "--output-dir", "--prefix", "--quiet", "--randomseed", "--snakemake", "--help"],
         },
     ],
     "harpy simulate translocation": [
@@ -96,16 +96,16 @@ docstring = {
         },
         {
             "name": "Random Variants",
-            "options": ["--centromeres", "--count", "--exclude-chr", "--genes"],
+            "options": ["--centromeres", "--count", "--exclude-chr", "--genes", "--heterozygosity"],
         },
         {
             "name": "Workflow Controls",
-            "options": ["--conda", "--heterozygosity", "--hpc", "--output-dir", "--prefix", "--quiet", "--randomseed", "--snakemake", "--help"],
+            "options": ["--conda", "--hpc", "--output-dir", "--prefix", "--quiet", "--randomseed", "--snakemake", "--help"],
         },
     ]
 }
 
-@click.command(no_args_is_help = True, epilog = "See the documentation for more information: https://pdimens.github.io/harpy/modules/simulate/simulate-linkedreads")
+@click.command(no_args_is_help = True, context_settings=dict(allow_interspersed_args=False), epilog = "See the documentation for more information: https://pdimens.github.io/harpy/modules/simulate/simulate-linkedreads")
 @click.option('-b', '--barcodes', type = click.Path(exists=True, dir_okay=False), help = "File of linked-read barcodes to add to reads")
 @click.option('-s', '--distance-sd', type = click.IntRange(min = 1), default = 15, show_default=True,  help = "Standard deviation of read-pair distance")
 @click.option('-m', '--molecules-per', type = click.IntRange(min = 1), default = 10, show_default=True,  help = "Average number of molecules per partition")
@@ -173,7 +173,7 @@ def linkedreads(genome_hap1, genome_hap2, output_dir, outer_distance, mutation_r
         config.write(f"  genome_hap1: {Path(genome_hap1).resolve()}\n")
         config.write(f"  genome_hap2: {Path(genome_hap2).resolve()}\n")
     
-    generate_conda_deps()
+    create_conda_recipes()
     if setup_only:
         sys.exit(0)
 
@@ -184,10 +184,10 @@ def linkedreads(genome_hap1, genome_hap2, output_dir, outer_distance, mutation_r
     start_text.add_row("Genome Haplotype 2:", os.path.basename(genome_hap2))
     start_text.add_row("Barcodes:", os.path.basename(barcodes) if barcodes else "Barcodes: 10X Default")
     start_text.add_row("Output Folder:", output_dir + "/")
-    start_text.add_row("Workflow Log:", sm_log.replace(f"{output_dir}/", ""))
+    start_text.add_row("Workflow Log:", sm_log.replace(f"{output_dir}/", "") + "[dim].gz")
     launch_snakemake(command, "simulate_linkedreads", start_text, output_dir, sm_log, quiet)
 
-@click.command(no_args_is_help = True, epilog = "This workflow can be quite technical, please read the docs for more information: https://pdimens.github.io/harpy/modules/simulate/simulate-variants")
+@click.command(no_args_is_help = True, context_settings=dict(allow_interspersed_args=False), epilog = "This workflow can be quite technical, please read the docs for more information: https://pdimens.github.io/harpy/modules/simulate/simulate-variants")
 @click.option('-s', '--snp-vcf', type=click.Path(exists=True, dir_okay=False, readable=True), help = 'VCF file of known snps to simulate')
 @click.option('-i', '--indel-vcf', type=click.Path(exists=True, dir_okay=False, readable=True), help = 'VCF file of known indels to simulate')
 @click.option('-n', '--snp-count', type = click.IntRange(min = 0), default=0, show_default=False, help = "Number of random snps to simluate")
@@ -284,7 +284,7 @@ def snpindel(genome, snp_vcf, indel_vcf, output_dir, prefix, snp_count, indel_co
             config.write(f"snp_gene_constraints: {snp_gene_constraints}\n") if snp_gene_constraints else None
             config.write(f"titv_ratio: {titv_ratio}\n") if titv_ratio else None
         if not indel_vcf:
-            config.write(f"indel_count: {snp_count}\n") if indel_count else None
+            config.write(f"indel_count: {indel_count}\n") if indel_count else None
             config.write(f"indel_ratio: {indel_ratio}\n") if indel_ratio else None
             config.write(f"indel_size_alpha: {indel_size_alpha}\n") if indel_size_alpha else None
             config.write(f"indel_size_constant: {indel_size_constant}\n") if indel_size_constant else None
@@ -300,16 +300,16 @@ def snpindel(genome, snp_vcf, indel_vcf, output_dir, prefix, snp_count, indel_co
         config.write(f"  genes: {Path(genes).resolve()}\n") if genes else None
         config.write(f"  exclude_chr: {Path(exclude_chr).resolve()}\n") if exclude_chr else None
     
-    generate_conda_deps()
+    create_conda_recipes()
     if setup_only:
         sys.exit(0)
 
     start_text.add_row("Output Folder:", output_dir + "/")
-    start_text.add_row("Workflow Log:", sm_log.replace(f"{output_dir}/", ""))
+    start_text.add_row("Workflow Log:", sm_log.replace(f"{output_dir}/", "") + "[dim].gz")
     launch_snakemake(command, "simulate_snpindel", start_text, output_dir, sm_log, quiet)
 
 
-@click.command(no_args_is_help = True, epilog = "Please See the documentation for more information: https://pdimens.github.io/harpy/modules/simulate/simulate-variants")
+@click.command(no_args_is_help = True, context_settings=dict(allow_interspersed_args=False), epilog = "Please See the documentation for more information: https://pdimens.github.io/harpy/modules/simulate/simulate-variants")
 @click.option('-v', '--vcf', type=click.Path(exists=True, dir_okay=False, readable=True), help = 'VCF file of known inversions to simulate')
 @click.option('-n', '--count', type = click.IntRange(min = 0), default=0, show_default=False, help = "Number of random inversions to simluate")
 @click.option('-m', '--min-size', type = click.IntRange(min = 1), default = 1000, show_default= True, help = "Minimum inversion size (bp)")
@@ -400,16 +400,16 @@ def inversion(genome, vcf, prefix, output_dir, count, min_size, max_size, centro
             config.write(f"  genes: {Path(genes).resolve()}\n") if genes else None
             config.write(f"  exclude_chr: {Path(exclude_chr).resolve()}\n") if exclude_chr else None
     
-    generate_conda_deps()
+    create_conda_recipes()
     if setup_only:
         sys.exit(0)
 
     start_text.add_row("Output Folder:", output_dir + "/")
-    start_text.add_row("Workflow Log:", sm_log.replace(f"{output_dir}/", ""))
+    start_text.add_row("Workflow Log:", sm_log.replace(f"{output_dir}/", "") + "[dim].gz")
     launch_snakemake(command, "simulate_inversion", start_text, output_dir, sm_log, quiet)
 
 
-@click.command(no_args_is_help = True, epilog = "Please See the documentation for more information: https://pdimens.github.io/harpy/modules/simulate/simulate-variants")
+@click.command(no_args_is_help = True, context_settings=dict(allow_interspersed_args=False), epilog = "Please See the documentation for more information: https://pdimens.github.io/harpy/modules/simulate/simulate-variants")
 @click.option('-v', '--vcf', type=click.Path(exists=True, dir_okay=False, readable=True), help = 'VCF file of known copy number variants to simulate')
 @click.option('-n', '--count', type = click.IntRange(min = 0), default=0, show_default=False, help = "Number of random variants to simluate")
 @click.option('-m', '--min-size', type = click.IntRange(min = 1), default = 1000, show_default= True, help = "Minimum variant size (bp)")
@@ -512,15 +512,15 @@ def cnv(genome, output_dir, vcf, prefix, count, min_size, max_size, dup_ratio, m
             config.write(f"  genes: {Path(genes).resolve()}\n") if genes else None
             config.write(f"  exclude_chr: {Path(exclude_chr).resolve()}\n") if exclude_chr else None
     
-    generate_conda_deps()
+    create_conda_recipes()
     if setup_only:
         sys.exit(0)
 
     start_text.add_row("Output Folder:", output_dir + "/")
-    start_text.add_row("Workflow Log:", sm_log.replace(f"{output_dir}/", ""))
+    start_text.add_row("Workflow Log:", sm_log.replace(f"{output_dir}/", "") + "[dim].gz")
     launch_snakemake(command, "simulate_cnv", start_text, output_dir, sm_log, quiet)
 
-@click.command(no_args_is_help = True, epilog = "Please See the documentation for more information: https://pdimens.github.io/harpy/modules/simulate/simulate-variants")
+@click.command(no_args_is_help = True, context_settings=dict(allow_interspersed_args=False), epilog = "Please See the documentation for more information: https://pdimens.github.io/harpy/modules/simulate/simulate-variants")
 @click.option('-v', '--vcf', type=click.Path(exists=True, dir_okay=False, readable=True), help = 'VCF file of known translocations to simulate')
 @click.option('-n', '--count', type = click.IntRange(min = 0), default=0, show_default=False, help = "Number of random translocations to simluate")
 @click.option('-c', '--centromeres', type = click.Path(exists=True, dir_okay=False, readable=True), help = "GFF3 file of centromeres to avoid")
@@ -608,12 +608,12 @@ def translocation(genome, output_dir, prefix, vcf, count, centromeres, genes, he
             config.write(f"  genes: {Path(genes).resolve()}\n") if genes else None
             config.write(f"  exclude_chr: {Path(exclude_chr).resolve()}\n") if exclude_chr else None
     
-    generate_conda_deps()
+    create_conda_recipes()
     if setup_only:
         sys.exit(0)
 
     start_text.add_row("Output Folder:", output_dir + "/")
-    start_text.add_row("Workflow Log:", sm_log.replace(f"{output_dir}/", ""))
+    start_text.add_row("Workflow Log:", sm_log.replace(f"{output_dir}/", "") + "[dim].gz")
     launch_snakemake(command, "simulate_translocation", start_text, output_dir, sm_log, quiet)
 
 simulate.add_command(linkedreads)

@@ -781,3 +781,10 @@ jobs:
       - name: harpy popgroup
         shell: micromamba-shell {0}
         run: harpy popgroup test/fastq
+      - name: harpy hpc
+        shell: micromamba-shell {0}
+        run: |
+          harpy hpc slurm
+          harpy hpc googlebatch
+          harpy hpc lsf
+          harpy hpc htcondor

@@ -127,6 +127,10 @@ every contig.
 
 ## Various Stats Tables
 ### All variants found
+```{r fix_breakend_length}
+sv$length <- gsub("\\.", "1", sv$length) %>%  as.numeric()
+```
+
 ```{r various stats}
 DT::datatable(
   sv,
@@ -144,10 +148,6 @@ DT::datatable(
 ```
 
 ### Per-contig info
-```{r fix_breakend_length}
-sv$length <- gsub("\\.", "1", sv$length) %>%  as.numeric()
-```
-
 ```{r percontig}
 grpstats <- sv %>%
   group_by(contig, type) %>%
