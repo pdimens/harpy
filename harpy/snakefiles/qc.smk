@@ -182,13 +182,6 @@ rule workflow_summary:
         dedup = "-D" if dedup else "",
         extra = extra
     run:
-        import glob
-        for logfile in glob.glob(f"{outdir}/logs/**/*", recursive = True):
-            if os.path.isfile(logfile) and os.path.getsize(logfile) == 0:
-                os.remove(logfile)
-        for logfile in glob.glob(f"{outdir}/logs/**/*", recursive = True):
-            if os.path.isdir(logfile) and not os.listdir(logfile):
-                os.rmdir(logfile)
         with open(outdir + "/workflow/qc.summary", "w") as f:
             _ = f.write("The harpy qc workflow ran using these parameters:\n\n")
             _ = f.write("fastp trimming ran using:\n")

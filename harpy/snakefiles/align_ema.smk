@@ -337,13 +337,6 @@ rule workflow_summary:
         beadtech = "-p" if platform == "haplotag" else f"-w {barcode_list}",
         unmapped = "" if keep_unmapped else "-F 4"
     run:
-        import glob
-        for logfile in glob.glob(f"{outdir}/logs/**/*", recursive = True):
-            if os.path.isfile(logfile) and os.path.getsize(logfile) == 0:
-                os.remove(logfile)
-        for logfile in glob.glob(f"{outdir}/logs/**/*", recursive = True):
-            if os.path.isdir(logfile) and not os.listdir(logfile):
-                os.rmdir(logfile)
         with open(outdir + "/workflow/align.ema.summary", "w") as f:
             _ = f.write("The harpy align ema workflow ran using these parameters:\n\n")
             _ = f.write(f"The provided genome: {bn}\n")

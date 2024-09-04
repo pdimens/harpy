@@ -278,13 +278,6 @@ rule workflow_summary:
         prune = f"--threshold {pruning}" if pruning > 0 else "--no_prune 1",
         extra = extra
     run:
-        import glob
-        for logfile in glob.glob(f"{outdir}/logs/**/*", recursive = True):
-            if os.path.isfile(logfile) and os.path.getsize(logfile) == 0:
-                os.remove(logfile)
-        for logfile in glob.glob(f"{outdir}/logs/**/*", recursive = True):
-            if os.path.isdir(logfile) and not os.listdir(logfile):
-                os.rmdir(logfile)
         with open(outdir + "/workflow/phase.summary", "w") as f:
             _ = f.write("The harpy phase workflow ran using these parameters:\n\n")
             _ = f.write(f"The provided variant file: {variantfile}\n")

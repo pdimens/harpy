@@ -21,12 +21,6 @@ envdir      = os.getcwd() + "/.harpy_envs"
 bn_r = r"([_\.][12]|[_\.][FR]|[_\.]R[12](?:\_00[0-9])*)?\.((fastq|fq)(\.gz)?)$"
 samplenames = {re.sub(bn_r, "", os.path.basename(i), flags = re.IGNORECASE) for i in fqlist}
 
-onstart:
-    logger.logger.addHandler(logging.FileHandler(config["snakemake_log"]))
-onsuccess:
-    os.remove(logger.logfile)
-onerror:
-    os.remove(logger.logfile)
 def get_fq1(wildcards):
     # returns a list of fastq files for read 1 based on *wildcards.sample* e.g.
     #samples_FR = [i for i in fqlist if wildcards.sample in i]
