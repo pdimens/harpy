@@ -1,7 +1,9 @@
 """launch snakemake"""
 
 import re
+import os
 import sys
+import glob
 import subprocess
 from rich import print as rprint
 from rich.progress import Progress, BarColumn, TextColumn, TimeElapsedColumn, SpinnerColumn
@@ -12,6 +14,15 @@ from ._printing import print_onsuccess, print_onstart, print_onerror, print_setu
 def iserror(text):
     """logical check for erroring trigger words in snakemake output"""
     return "Exception" in text or "Error" in text or "MissingOutputException" in text
+
+def purge_empty_logs(target_dir):
+    """scan target_dir and remove empty files, then scan it again and remove empty directories"""
+    for logfile in glob.glob(f"{target_dir}/logs/**/*", recursive = True):
+        if os.path.isfile(logfile) and os.path.getsize(logfile) == 0:
+            os.remove(logfile)
+    for logfile in glob.glob(f"{target_dir}/logs/**/*", recursive = True):
+        if os.path.isdir(logfile) and not os.listdir(logfile):
+            os.rmdir(logfile)
 
 def launch_snakemake(sm_args, workflow, starttext, outdir, sm_logfile, quiet):
     """launch snakemake with the given commands"""
@@ -147,6 +158,7 @@ def launch_snakemake(sm_args, workflow, starttext, outdir, sm_logfile, quiet):
         process.wait()
         if process.returncode < 1:
             gzip_file(sm_logfile)
+            purge_empty_logs(outdir)
             if not quiet:
                 print_onsuccess(outdir)
             sys.exit(0)
@@ -168,6 +180,8 @@ def launch_snakemake(sm_args, workflow, starttext, outdir, sm_logfile, quiet):
                     if not output.startswith("Complete log"):
                         rprint("[red]" + output.replace("\t","    ").rstrip(), file = sys.stderr)
                 output = process.stderr.readline()
+            gzip_file(sm_logfile)
+            purge_empty_logs(outdir)
             sys.exit(1)
     except KeyboardInterrupt:
         # Handle the keyboard interrupt
@@ -175,4 +189,5 @@ def launch_snakemake(sm_args, workflow, starttext, outdir, sm_logfile, quiet):
         process.terminate()
         process.wait()
         gzip_file(sm_logfile)
+        purge_empty_logs(outdir)
         sys.exit(1)

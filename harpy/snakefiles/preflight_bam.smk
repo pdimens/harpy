@@ -4,7 +4,6 @@ import os
 import re
 import sys
 import logging
-import multiprocessing
 from pathlib import Path
 
 onstart:
@@ -19,6 +18,7 @@ wildcard_constraints:
 outdir = config["output_directory"]
 envdir  = os.getcwd() + "/.harpy_envs"
 bamlist = config["inputs"]
+bamdict = dict(zip(bamlist, bamlist))
 samplenames = {Path(i).stem for i in bamlist}
 
 def get_alignments(wildcards):
@@ -33,22 +33,15 @@ def get_align_index(wildcards):
     aln = list(filter(r.match, bamlist))
     return aln[0] + ".bai"
 
-def sam_index(infile):
-    """Use Samtools to index an input file, adding .bai to the end of the name"""
-    if not os.path.exists(f"{infile}.bai"):
-        subprocess.run(f"samtools index {infile} {infile}.bai".split())
-
-# not the ideal way of doing this, but it works
 rule index_alignments:
     input:
-        bamlist
+        lambda wc: bamdict[wc.bam]
     output:
-        [f"{i}.bai" for i in bamlist]
-    threads:
-        workflow.cores
-    run:
-        with multiprocessing.Pool(processes=threads) as pool:
-            pool.map(sam_index, input)
+        "{bam}.bai"
+    container:
+        None
+    shell:
+        "samtools index {input}"
 
 rule check_bam:
     input:

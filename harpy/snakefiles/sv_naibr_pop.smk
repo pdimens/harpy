@@ -207,7 +207,7 @@ rule aggregate_variants_variants:
                         elif record[-1] == "duplication":
                             _ = duplications.write(f"{samplename}\t{line}")
 
-rule setup_genome:
+rule process_genome:
     input:
         genomefile
     output: 
@@ -217,7 +217,7 @@ rule setup_genome:
     shell: 
         "seqtk seq {input} > {output}"
 
-rule faidx_genome:
+rule index_genome:
     input: 
         f"Genome/{bn}"
     output: 

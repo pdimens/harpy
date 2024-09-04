@@ -3,7 +3,6 @@ containerized: "docker://pdimens/harpy:latest"
 import os
 import re
 import sys
-import multiprocessing
 import logging
 from pathlib import Path
 
@@ -19,6 +18,7 @@ wildcard_constraints:
 envdir      = os.getcwd() + "/.harpy_envs"
 genomefile  = config["inputs"]["genome"]
 bamlist     = config["inputs"]["alignments"]
+bamdict     = dict(zip(bamlist, bamlist))
 samplenames = {Path(i).stem for i in bamlist}
 min_sv      = config["min_sv"]
 min_bc      = config["min_barcodes"]
@@ -30,11 +30,6 @@ bn          = os.path.basename(genomefile)
 genome_zip  = True if bn.lower().endswith(".gz") else False
 if genome_zip:
     bn = bn[:-3]
-
-def sam_index(infile):
-    """Use Samtools to index an input file, adding .bai to the end of the name"""
-    if not os.path.exists(f"{infile}.bai"):
-        subprocess.run(f"samtools index {infile} {infile}.bai".split())
 
 def get_alignments(wildcards):
     """returns a list with the bam file for the sample based on wildcards.sample"""
@@ -50,14 +45,13 @@ def get_align_index(wildcards):
 
 rule index_alignments:
     input:
-        bamlist
+        lambda wc: bamdict[wc.bam]
     output:
-        [f"{i}.bai" for i in bamlist]
-    threads:
-        workflow.cores
-    run:
-        with multiprocessing.Pool(processes=threads) as pool:
-            pool.map(sam_index, input)
+        "{bam}.bai"
+    container:
+        None
+    shell:
+        "samtools index {input}"
 
 rule index_barcode:
     input: 
@@ -74,7 +68,7 @@ rule index_barcode:
     shell:
         "LRez index bam --threads {threads} -p -b {input.bam} -o {output}"
 
-rule setup_genome:
+rule process_genome:
     input:
         genomefile
     output: 
@@ -84,7 +78,7 @@ rule setup_genome:
     shell: 
         "seqtk seq {input} > {output}"
 
-rule faidx_genome:
+rule index_genome:
     input: 
         f"Genome/{bn}"
     output: 

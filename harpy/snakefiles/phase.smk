@@ -3,7 +3,6 @@ containerized: "docker://pdimens/harpy:latest"
 import os
 import sys
 import subprocess
-import multiprocessing
 import logging
 from pathlib import Path
 
@@ -28,6 +27,7 @@ skipreports       = config["skip_reports"]
 samples_from_vcf  = config["samples_from_vcf"]
 variantfile       = config["inputs"]["variantfile"]
 bamlist     = config["inputs"]["alignments"]
+bamdict     = dict(zip(bamlist, bamlist))
 if config["ignore_bx"]:
     fragfile = outdir + "/extract_hairs/{sample}.unlinked.frags"
     linkarg = "--10x 0"
@@ -56,11 +56,6 @@ else:
     genofai    = []
     bn         = []
     indels     = False
-
-def sam_index(infile):
-    """Use Samtools to index an input file, adding .bai to the end of the name"""
-    if not os.path.exists(f"{infile}.bai"):
-        subprocess.run(f"samtools index {infile} {infile}.bai".split())
 
 def get_alignments(wildcards):
     """returns a list with the bam file for the sample based on wildcards.sample"""
@@ -98,20 +93,18 @@ rule extract_hom:
         bcftools view -s {wildcards.sample} -Ou {input.vcf} | bcftools view -i 'GT="hom"' > {output}
         """
 
-# not the ideal way of doing this, but it works
 rule index_alignments:
     input:
-        bamlist
+        lambda wc: bamdict[wc.bam]
     output:
-        [f"{i}.bai" for i in bamlist]
-    threads:
-        workflow.cores
-    run:
-        with multiprocessing.Pool(processes=threads) as pool:
-            pool.map(sam_index, input)
+        "{bam}.bai"
+    container:
+        None
+    shell:
+        "samtools index {input}"
 
 if indels:
-    rule setup_genome:
+    rule process_genome:
         input:
             genomefile
         output: 
@@ -121,7 +114,7 @@ if indels:
         shell: 
             "seqtk seq {input} > {output}"
 
-    rule faidx_genome:
+    rule index_genome:
         input: 
             geno
         output: 

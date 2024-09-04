@@ -115,7 +115,7 @@ rule index_barcode:
     shell:
         "LRez index bam -p -b {input.bam} -o {output} --threads {threads}"
 
-rule setup_genome:
+rule process_genome:
     input:
         genomefile
     output: 
@@ -125,7 +125,7 @@ rule setup_genome:
     shell: 
         "seqtk seq {input} > {output}"
 
-rule faidx_genome:
+rule index_genome:
     input: 
         f"Genome/{bn}"
     output: 

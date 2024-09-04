@@ -1,9 +1,6 @@
 containerized: "docker://pdimens/harpy:latest"
 
 import os
-import sys
-import gzip
-import multiprocessing
 import logging
 from pathlib import Path
 
@@ -24,6 +21,7 @@ windowsize  = config.get("windowsize", None)
 outdir      = config["output_directory"]
 skipreports = config["skip_reports"]
 bamlist     = config["inputs"]["alignments"]
+bamdict     = dict(zip(bamlist, bamlist))
 genomefile 	= config["inputs"]["genome"]
 bn          = os.path.basename(genomefile)
 if bn.lower().endswith(".gz"):
@@ -34,6 +32,7 @@ else:
 groupings 	= config["inputs"].get("groupings", [])
 regioninput = config["inputs"]["regions"]
 samplenames = {Path(i).stem for i in bamlist}
+sampldict = dict(zip(bamlist, samplenames))
 if regiontype == "region":
     intervals = [regioninput]
     regions = {f"{regioninput}" : f"{regioninput}"}
@@ -48,11 +47,6 @@ else:
             intervals.add(f"{cont}:{startpos}-{endpos}")
     regions = dict(zip(intervals, intervals))
 
-def sam_index(infile):
-    """Use Samtools to index an input file, adding .bai to the end of the name"""
-    if not os.path.exists(f"{infile}.bai"):
-        subprocess.run(f"samtools index {infile} {infile}.bai".split())
-
 rule preproc_groups:
     input:
         groupings
@@ -62,7 +56,7 @@ rule preproc_groups:
         with open(input[0], "r") as infile, open(output[0], "w") as outfile:
             _ = [outfile.write(i) for i in infile.readlines() if not i.lstrip().startswith("#")]
 
-rule setup_genome:
+rule process_genome:
     input:
         genomefile
     output: 
@@ -72,7 +66,7 @@ rule setup_genome:
     shell: 
         "seqtk seq {input} > {output}"
 
-rule faidx_genome:
+rule index_genome:
     input: 
         f"Genome/{bn}"
     output: 
@@ -86,14 +80,13 @@ rule faidx_genome:
 
 rule index_alignments:
     input:
-        bamlist
+        lambda wc: bamdict[wc.bam]
     output:
-        [f"{i}.bai" for i in bamlist]
-    threads:
-        workflow.cores
-    run:
-        with multiprocessing.Pool(processes=threads) as pool:
-            pool.map(sam_index, input)
+        "{bam}.bai"
+    container:
+        None
+    shell:
+        "samtools index {input}"
 
 rule bam_list:
     input: 
@@ -224,13 +217,6 @@ rule workflow_summary:
         populations = f"--populations {groupings}" if groupings else '',
         extra = extra
     run:
-        import glob
-        for logfile in glob.glob(f"{outdir}/logs/**/*", recursive = True):
-            if os.path.isfile(logfile) and os.path.getsize(logfile) == 0:
-                os.remove(logfile)
-        for logfile in glob.glob(f"{outdir}/logs/**/*", recursive = True):
-            if os.path.isdir(logfile) and not os.listdir(logfile):
-                os.rmdir(logfile)
         with open(outdir + "/workflow/snp.freebayes.summary", "w") as f:
             _ = f.write("The harpy snp freebayes workflow ran using these parameters:\n\n")
             _ = f.write(f"The provided genome: {bn}\n")

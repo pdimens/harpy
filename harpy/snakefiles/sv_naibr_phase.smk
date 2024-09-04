@@ -3,7 +3,6 @@ containerized: "docker://pdimens/harpy:latest"
 import os
 import re
 import sys
-import multiprocessing
 import logging
 from pathlib import Path
 
@@ -19,6 +18,7 @@ wildcard_constraints:
 envdir      = os.getcwd() + "/.harpy_envs"
 genomefile  = config["inputs"]["genome"]
 bamlist     = config["inputs"]["alignments"]
+bamdict     = dict(zip(bamlist, bamlist))
 vcffile     = config["inputs"]["vcf"]
 samplenames = {Path(i).stem for i in bamlist}
 extra       = config.get("extra", None) 
@@ -52,11 +52,6 @@ def process_args(args):
                 argsDict[i[0].lstrip("-")] = i[1]
     return argsDict
 
-def sam_index(infile):
-    """Use Samtools to index an input file, adding .bai to the end of the name"""
-    if not os.path.exists(f"{infile}.bai"):
-        subprocess.run(f"samtools index {infile} {infile}.bai".split())
-
 def get_alignments(wildcards):
     """returns a list with the bam file for the sample based on wildcards.sample"""
     r = re.compile(fr".*/({wildcards.sample})\.(bam|sam)$", flags = re.IGNORECASE)
@@ -69,7 +64,7 @@ def get_align_index(wildcards):
     aln = list(filter(r.match, bamlist))
     return aln[0] + ".bai"
 
-rule setup_genome:
+rule process_genome:
     input:
         genomefile
     output: 
@@ -79,7 +74,7 @@ rule setup_genome:
     shell: 
         "seqtk seq {input} > {output}"
 
-rule faidx_genome:
+rule index_genome:
     input: 
         f"Genome/{validgenome}"
     output: 
@@ -93,14 +88,13 @@ rule faidx_genome:
 
 rule index_alignments:
     input:
-        bamlist
+        lambda wc: bamdict[wc.bam]
     output:
-        [f"{i}.bai" for i in bamlist]
-    threads:
-        workflow.cores
-    run:
-        with multiprocessing.Pool(processes=threads) as pool:
-            pool.map(sam_index, input)
+        "{bam}.bai"
+    container:
+        None
+    shell:
+        "samtools index {input}"
 
 rule index_snps:
     input:

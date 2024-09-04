@@ -41,7 +41,7 @@ use rule link_1st_geno as link_2nd_geno with:
     output: 
         f"{outdir}/workflow/input/hap.1.fasta"
 
-rule faidx_genome:
+rule index_genome:
     input:
         outdir + "/workflow/input/hap.{hap}.fasta"
     output: 

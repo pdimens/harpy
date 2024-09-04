@@ -5,7 +5,6 @@ import re
 import sys
 import subprocess
 import pandas as pd
-import multiprocessing
 import logging
 from snakemake.utils import Paramspace
 
@@ -19,6 +18,7 @@ wildcard_constraints:
     sample = "[a-zA-Z0-9._-]+"
 
 bamlist     = config["inputs"]["alignments"]
+bamdict     = dict(zip(bamlist, bamlist))
 variantfile = config["inputs"]["variantfile"]
 paramfile   = config["inputs"]["paramfile"]
 biallelic   = config["inputs"]["biallelic_contigs"]
@@ -28,12 +28,6 @@ skipreports = config["skip_reports"]
 paramspace  = Paramspace(pd.read_csv(paramfile, sep=r"\s+", skip_blank_lines=True).rename(columns=str.lower), param_sep = "", filename_params = ["k", "s", "ngen", "bxlimit"])
 with open(biallelic, "r") as f_open:
     contigs = [i.rstrip() for i in f_open.readlines()]
-
-def sam_index(infile):
-    """Use Samtools to index an input file, adding .bai to the end of the name"""
-    if not os.path.exists(f"{infile}.bai"):
-        subprocess.run(f"samtools index {infile} {infile}.bai".split())
-
 
 rule sort_bcf:
     input:
@@ -48,17 +42,15 @@ rule sort_bcf:
     shell:
         "bcftools sort -Ob --write-index -o {output.bcf} {input} 2> {log}"
 
-# not the ideal way of doing this, but it works
 rule index_alignments:
     input:
-        bamlist
+        lambda wc: bamdict[wc.bam]
     output:
-        [f"{i}.bai" for i in bamlist]
-    threads:
-        workflow.cores
-    run:
-        with multiprocessing.Pool(processes=threads) as pool:
-            pool.map(sam_index, input)
+        "{bam}.bai"
+    container:
+        None
+    shell:
+        "samtools index {input}"
 
 rule alignment_list:
     input:
