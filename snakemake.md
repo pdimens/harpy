@@ -11,16 +11,19 @@ This means we are all at the mercy of how Snakemake operates, which includes
 the `.snakemake/` folder in your project directory. That folder contains
 all sorts of things necessary for Snakemake to do its magic. However, as a
 convenience, Harpy workflows will also create a copy of the Snakemake
-workflow log (all those things that print on screen when Harpy is running)
+workflow log (all those things that print on screen when snakemake is running)
 in a workflow's output directory. These logs are found in `OUTDIR/logs/snakemake`
 and are named `workflow.X.DATE.log`, where `workflow` is the harpy workflow
 (qc, sv_naibr, etc.), `X` is the attempt number (given by `X`, e.g. `4`), and
 `DATE` is given as `MONTH_DAY_YEAR`. As an example, using the default
-settings of `harpy qc`, you will find a copy of your workflow's log in
-`QC/logs/snakemake/qc.1.5_13_2024.log`. The name of this log will
-**not** match the official log Snakemake creates in `.snakemake/logs`, but
-the contents will be identical. This naming convention exists to allow multiple
-runs in a single output directory, which usually happens because something went wrong.
+settings of `harpy qc`, you will find your workflow's log in
+`QC/logs/snakemake/qc.1.5_13_2024.log.gz`. 
+
+!!!ghost Design choices
+Snakemake prints **a lot** of text during runtime. For some workflows, the resulting log files
+could occupy >1 gigabyte of hard drive space 😱. For this reason, Harpy gzip compresses the log file
+and deletes the original Snakemake logfile that you would expect to find in `.snakemake/logs/`.
+!!!
 
 ## Adding Snakemake Parameters
 Harpy relies on Snakemake under the hood to handle file and job dependencies.

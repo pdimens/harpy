@@ -126,40 +126,34 @@ it.
 
 ## :icon-git-pull-request: SNP calling workflow
 +++ :icon-git-merge: details
-The workflow is parallelized over genomic intervals (`--`). All intermediate outputs are removed, leaving 
+The workflow is parallelized over genomic intervals (`--regions`). All intermediate outputs are removed, leaving 
 you only the raw variants file (in `.bcf` format), the index of that file, and some stats about it.
 
-### mpileup
-The `mpileup` and `call` modules from [bcftools](https://samtools.github.io/bcftools/bcftools.html) (formerly samtools) 
-are used to call variants from alignments. 
+### SNP workflows
+The `mpileup` and `call` modules from [bcftools](https://samtools.github.io/bcftools/bcftools.html) (formerly samtools) or [Freebayes](https://github.com/freebayes/freebayes) are used to call variants from alignments. Both
+are very popular variant callers to call SNPs and small indels. 
 
 ```mermaid
 graph LR
     subgraph Inputs
         aln[BAM alignments]:::clean---gen[genome]:::clean
     end
-    Inputs --> B([freebayes]):::clean
-    B-->C([bcftools call]):::clean
+    subgraph mpileup
+        B([mpileup]):::clean-->C([bcftools call]):::clean
+    end
+    subgraph freebayes
+        z([freebayes]):::clean
+    end
+    Inputs --> mpileup
+    Inputs --> freebayes
     C-->D([index BCFs]):::clean
     D-->E([combine BCFs]):::clean
+    z --> D
     C-->E
+    E-->F([realign indels]):::clean
     style Inputs fill:#f0f0f0,stroke:#e8e8e8,stroke-width:2px
-    classDef clean fill:#f5f6f9,stroke:#b7c9ef,stroke-width:2px
-```
-
-### freebayes
-[Freebayes](https://github.com/freebayes/freebayes) is a very popular variant caller that uses local haplotype assemblies to
-call SNPs and small indels. Like mpileup, this method is ubiquitous in bioinformatics and very easy to use. 
-
-```mermaid
-graph LR
-    subgraph Inputs
-        aln[BAM alignments]:::clean---gen[genome]:::clean
-    end
-    Inputs --> B([freebayes]):::clean
-    B-->D([index BCFs]):::clean
-    D-->E([combine BCFs]):::clean
-    style Inputs fill:#f0f0f0,stroke:#e8e8e8,stroke-width:2px
+    style mpileup fill:#b0c1b3,stroke:#9eada1,stroke-width:2px
+    style freebayes fill:#bcb7cd,stroke:#a9a4b8,stroke-width:2px
     classDef clean fill:#f5f6f9,stroke:#b7c9ef,stroke-width:2px
 ```
 
@@ -189,6 +183,7 @@ SNP/method
 | item                      | description                                                                                    |
 |:--------------------------|:-----------------------------------------------------------------------------------------------|
 | `variants.raw.bcf`        | vcf file produced from variant calling, contains all samples and loci                          |
+| `variants.normalized.bcf` | variants, but with indels realigned and duplicates removed                                     |
 | `variants.*.bcf.csi`      | index file for `variants.*.bcf`                                                                |
 | `logs/*.call.log`         | what `bcftools call` writes to `stderr`                                                        |
 | `logs/*.METHOD.log`       | what `bcftools mpileup` or `freebayes` writes to `stderr`                                      |
