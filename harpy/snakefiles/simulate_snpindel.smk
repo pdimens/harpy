@@ -1,7 +1,6 @@
 containerized: "docker://pdimens/harpy:latest"
 
 import os
-import sys
 import random
 import logging
 

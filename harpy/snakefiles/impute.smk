@@ -1,9 +1,6 @@
 containerized: "docker://pdimens/harpy:latest"
 
 import os
-import re
-import sys
-import subprocess
 import pandas as pd
 import logging
 from snakemake.utils import Paramspace

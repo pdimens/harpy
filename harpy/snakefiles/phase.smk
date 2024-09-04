@@ -1,7 +1,6 @@
 containerized: "docker://pdimens/harpy:latest"
 
 import os
-import sys
 import subprocess
 import logging
 from pathlib import Path

@@ -2,9 +2,7 @@ containerized: "docker://pdimens/harpy:latest"
 
 import os
 import re
-import shutil
 import logging
-from pathlib import Path
 
 onstart:
     logger.logger.addHandler(logging.FileHandler(config["snakemake_log"]))
