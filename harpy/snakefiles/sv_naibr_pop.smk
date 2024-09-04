@@ -2,10 +2,18 @@ containerized: "docker://pdimens/harpy:latest"
 
 import os
 import re
-import sys
-import multiprocessing
-import logging as pylogging
+import logging
 from pathlib import Path
+
+onstart:
+    logger.logger.addHandler(logging.FileHandler(config["snakemake_log"]))
+onsuccess:
+    os.remove(logger.logfile)
+onerror:
+    os.remove(logger.logfile)
+wildcard_constraints:
+    sample = "[a-zA-Z0-9._-]+",
+    population = "[a-zA-Z0-9._-]+"
 
 envdir       = os.getcwd() + "/.harpy_envs"
 genomefile   = config["inputs"]["genome"]
@@ -18,18 +26,9 @@ min_quality  = config["min_quality"]
 mol_dist     = config["molecule_distance"]
 outdir       = config["output_directory"]
 skipreports  = config["skip_reports"]
-snakemake_log = config["snakemake_log"]
 bn           = os.path.basename(genomefile)
 if bn.lower().endswith(".gz"):
     bn = bn[:-3]
-
-wildcard_constraints:
-    sample = "[a-zA-Z0-9._-]+",
-    population = "[a-zA-Z0-9._-]+"
-
-onstart:
-    extra_logfile_handler = pylogging.FileHandler(snakemake_log)
-    logger.logger.addHandler(extra_logfile_handler)
 
 def process_args(args):
     argsDict = {
@@ -148,7 +147,7 @@ rule call_variants:
     threads:
         min(10, workflow.cores - 1)
     conda:
-        f"{envdir}/sv.yaml"
+        f"{envdir}/variants.yaml"
     shell:
         "naibr {input.conf} > {log} 2>&1"
 
@@ -206,7 +205,7 @@ rule aggregate_variants_variants:
                         elif record[-1] == "duplication":
                             _ = duplications.write(f"{samplename}\t{line}")
 
-rule setup_genome:
+rule process_genome:
     input:
         genomefile
     output: 
@@ -216,7 +215,7 @@ rule setup_genome:
     shell: 
         "seqtk seq {input} > {output}"
 
-rule faidx_genome:
+rule index_genome:
     input: 
         f"Genome/{bn}"
     output: 
@@ -262,13 +261,6 @@ rule workflow_summary:
         reports = collect(outdir + "/reports/{pop}.naibr.html", pop = populations) if not skipreports else [],
         agg_report = outdir + "/reports/naibr.pop.summary.html" if not skipreports else []
     run:
-        import glob
-        for logfile in glob.glob(f"{outdir}/logs/**/*", recursive = True):
-            if os.path.isfile(logfile) and os.path.getsize(logfile) == 0:
-                os.remove(logfile)
-        for logfile in glob.glob(f"{outdir}/logs/**/*", recursive = True):
-            if os.path.isdir(logfile) and not os.listdir(logfile):
-                os.rmdir(logfile)
         os.system(f"rm -rf {outdir}/naibrlog")
         argdict = process_args(extra)
         with open(outdir + "/workflow/sv.naibr.summary", "w") as f:

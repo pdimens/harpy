@@ -14,17 +14,23 @@ body:
     id: version
     attributes:
       label: Harpy Version
-      description: Please include the version of harpy that is causing this issue. The version number is provided by running `harpy --version`.
-      placeholder: |
-        x.x.x
+      description: Please include the version of harpy that is causing this issue.
+      placeholder: use `harpy --version` to find the version number
     validations:
       required: true
+
+  - type: checkboxes
+    id: checklist
+    attributes:
+      options:
+        - label: this is the latest version of Harpy
+          required: true
 
   - type: textarea
     id: error-file
     attributes:
       label: File that triggers the error (if applicable)
-      description: Please drag and drop (and upload to the GitHub issue) an input file that can be used to replicate the error. You may also copy-and-paste it as a code block. If the file type is not allowed, please compress into a `.zip` or `.gz` file.
+      description: Please drag and drop (and upload to the GitHub issue) an input file that can be used to replicate the error. You may also copy-and-paste it as a code block. If the file type is not allowed, please compress into a `.zip` or `.gz` file. Alternatively, a snakemake log file would be helpful here too.
       placeholder: |
         [ Copy and paste or drag and drop an example file here to upload ]
 
@@ -47,16 +53,3 @@ body:
         test/bam/sample2.bam test/bam_phased/sample2.bam
         test/bam/sample1.bam test/bam_phased/sample1.bam
 
-  - type: checkboxes
-    id: checklist
-    attributes:
-      label: Before submitting
-      description: >-
-        Please ensure your bug report fulfills all of the following requirements.
-      options:
-        - label: >-
-            I have read the [relevant documentation](https://pdimens.github.io/harpy/).
-          required: true
-        - label: >-
-            I am using the latest release of Harpy.
-          required: true

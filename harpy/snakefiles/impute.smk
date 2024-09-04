@@ -1,37 +1,30 @@
 containerized: "docker://pdimens/harpy:latest"
 
 import os
-import re
-import sys
-import subprocess
 import pandas as pd
-import multiprocessing
-import logging as pylogging
+import logging
 from snakemake.utils import Paramspace
 
+onstart:
+    logger.logger.addHandler(logging.FileHandler(config["snakemake_log"]))
+onsuccess:
+    os.remove(logger.logfile)
+onerror:
+    os.remove(logger.logfile)
+wildcard_constraints:
+    sample = "[a-zA-Z0-9._-]+"
+
 bamlist     = config["inputs"]["alignments"]
+bamdict     = dict(zip(bamlist, bamlist))
 variantfile = config["inputs"]["variantfile"]
 paramfile   = config["inputs"]["paramfile"]
 biallelic   = config["inputs"]["biallelic_contigs"]
 outdir      = config["output_directory"]
 envdir      = os.getcwd() + "/.harpy_envs"
 skipreports = config["skip_reports"]
-snakemake_log = config["snakemake_log"]
 paramspace  = Paramspace(pd.read_csv(paramfile, sep=r"\s+", skip_blank_lines=True).rename(columns=str.lower), param_sep = "", filename_params = ["k", "s", "ngen", "bxlimit"])
 with open(biallelic, "r") as f_open:
     contigs = [i.rstrip() for i in f_open.readlines()]
-
-wildcard_constraints:
-    sample = "[a-zA-Z0-9._-]+"
-
-def sam_index(infile):
-    """Use Samtools to index an input file, adding .bai to the end of the name"""
-    if not os.path.exists(f"{infile}.bai"):
-        subprocess.run(f"samtools index {infile} {infile}.bai".split())
-
-onstart:
-    extra_logfile_handler = pylogging.FileHandler(snakemake_log)
-    logger.logger.addHandler(extra_logfile_handler)
 
 rule sort_bcf:
     input:
@@ -46,17 +39,15 @@ rule sort_bcf:
     shell:
         "bcftools sort -Ob --write-index -o {output.bcf} {input} 2> {log}"
 
-# not the ideal way of doing this, but it works
 rule index_alignments:
     input:
-        bamlist
+        lambda wc: bamdict[wc.bam]
     output:
-        [f"{i}.bai" for i in bamlist]
-    threads:
-        workflow.cores
-    run:
-        with multiprocessing.Pool(processes=threads) as pool:
-            pool.map(sam_index, input)
+        "{bam}.bai"
+    container:
+        None
+    shell:
+        "samtools index {input}"
 
 rule alignment_list:
     input:
@@ -228,13 +219,6 @@ rule workflow_summary:
         agg_report = collect(outdir + "/{stitchparams}/reports/variants.imputed.html", stitchparams=paramspace.instance_patterns) if not skipreports else [],
         contig_report = collect(outdir + "/{stitchparams}/reports/{part}.stitch.html", stitchparams=paramspace.instance_patterns, part = contigs) if not skipreports else [],
     run:
-        import glob
-        for logfile in glob.glob(f"{outdir}/logs/**/*", recursive = True):
-            if os.path.isfile(logfile) and os.path.getsize(logfile) == 0:
-                os.remove(logfile)
-        for logfile in glob.glob(f"{outdir}/logs/**/*", recursive = True):
-            if os.path.isdir(logfile) and not os.listdir(logfile):
-                os.rmdir(logfile)
         with open(outdir + "/workflow/impute.summary", "w") as f:
             _ = f.write("The harpy impute workflow ran using these parameters:\n\n")
             _ = f.write(f"The provided variant file: {variantfile}\n")

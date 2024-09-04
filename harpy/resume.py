@@ -1,6 +1,7 @@
 """Module to bypass Harpy and run snakemake"""
 
 import os
+import re
 import sys
 import yaml
 from rich import box
@@ -10,13 +11,14 @@ from ._validations import check_envdir
 from ._printing import print_error
 from ._launch import launch_snakemake
 from ._misc import snakemake_log
-from ._conda import generate_conda_deps
+from ._conda import create_conda_recipes
 
-@click.command(no_args_is_help = True, epilog = "See the documentation for more information: https://pdimens.github.io/harpy/modules/other")
+@click.command(no_args_is_help = True, context_settings=dict(allow_interspersed_args=False), epilog = "See the documentation for more information: https://pdimens.github.io/harpy/modules/other")
 @click.option('-c', '--conda',  is_flag = True, default = False, help = 'Recreate the conda environments into .harpy_envs/')
+@click.option('-t', '--threads', type = click.IntRange(min = 2, max_open = True), help = 'Change the number of threads (>1)')
 @click.option('--quiet',  is_flag = True, default = False, help = 'Don\'t show output text while running')
 @click.argument('directory', required=True, type=click.Path(exists=True, file_okay=False, readable=True), nargs=1)
-def resume(directory, conda, quiet):
+def resume(directory, conda, threads, quiet):
     """
     Resume a workflow from an existing Harpy directory
 
@@ -34,7 +36,7 @@ def resume(directory, conda, quiet):
         print_error("config.yaml missing", f"Target directory [blue bold]{directory}[/blue bold] does not contain [blue bold]workflow/config.yaml[/blue bold]")
         sys.exit(1)
     if conda:
-        generate_conda_deps()
+        create_conda_recipes()
     else:
         check_envdir(".harpy_envs")
     with open(f"{directory}/workflow/config.yaml", 'r', encoding="utf-8") as f:
@@ -43,11 +45,13 @@ def resume(directory, conda, quiet):
     workflow = harpy_config["workflow"].replace(" ", "_")
     sm_log = snakemake_log(directory, workflow)
     command = harpy_config["workflow_call"] + f" --config snakemake_log={sm_log}"
+    if threads:
+        command = re.sub(r"--threads \d+", f"--threads {threads}", command)
     start_text = Table(show_header=False,pad_edge=False, show_edge=False, padding = (0,0), box=box.SIMPLE)
     start_text.add_column("detail", justify="left", style="light_steel_blue", no_wrap=True)
     start_text.add_column(header="value", justify="left")
     start_text.add_row("Output Folder:", directory + "/")
-    start_text.add_row("Workflow Log:", sm_log.replace(f"{directory}/", ""))
+    start_text.add_row("Workflow Log:", sm_log.replace(f"{directory}/", "") + "[dim].gz")
     launch_snakemake(command, workflow, start_text, directory, sm_log, quiet)
 
 

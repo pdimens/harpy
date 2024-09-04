@@ -5,7 +5,7 @@ import sys
 from rich import box
 from rich.table import Table
 import rich_click as click
-from ._conda import generate_conda_deps
+from ._conda import create_conda_recipes
 from ._launch import launch_snakemake
 from ._misc import fetch_rule, fetch_report, snakemake_log
 from ._parsers import parse_alignment_inputs, parse_fastq_inputs
@@ -35,7 +35,7 @@ docstring = {
     ]
 }
 
-@click.command(no_args_is_help = True, epilog = "See the documentation for more information: https://pdimens.github.io/harpy/modules/preflight/")
+@click.command(no_args_is_help = True, context_settings=dict(allow_interspersed_args=False), epilog = "See the documentation for more information: https://pdimens.github.io/harpy/modules/preflight/")
 @click.option('-o', '--output-dir', type = click.Path(exists = False), default = "Preflight/fastq", show_default=True,  help = 'Output directory name')
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(min = 1, max_open = True), help = 'Number of threads to use')
 @click.option('--conda',  is_flag = True, default = False, help = 'Use conda/mamba instead of container')
@@ -84,7 +84,7 @@ def fastq(inputs, output_dir, threads, snakemake, quiet, hpc, conda, setup_only)
         for i in fqlist:
             config.write(f"  - {i}\n")
 
-    generate_conda_deps()
+    create_conda_recipes()
     if setup_only:
         sys.exit(0)
 
@@ -93,10 +93,10 @@ def fastq(inputs, output_dir, threads, snakemake, quiet, hpc, conda, setup_only)
     start_text.add_column("value", justify="left")
     start_text.add_row("FASTQ Files:", f"{n}")
     start_text.add_row("Output Folder:", output_dir + "/")
-    start_text.add_row("Workflow Log:", sm_log.replace(f"{output_dir}/", ""))
+    start_text.add_row("Workflow Log:", sm_log.replace(f"{output_dir}/", "") + "[dim].gz")
     launch_snakemake(command, "preflight_fastq", start_text, output_dir, sm_log, quiet)
 
-@click.command(no_args_is_help = True, epilog = "See the documentation for more information: https://pdimens.github.io/harpy/modules/preflight/")
+@click.command(no_args_is_help = True, context_settings=dict(allow_interspersed_args=False), epilog = "See the documentation for more information: https://pdimens.github.io/harpy/modules/preflight/")
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(min = 1, max_open = True), help = 'Number of threads to use')
 @click.option('--quiet',  is_flag = True, show_default = True, default = False, help = 'Don\'t show output text while running')
 @click.option('-o', '--output-dir', type = click.Path(exists = False), default = "Preflight/bam", show_default=True,  help = 'Output directory name')
@@ -144,7 +144,7 @@ def bam(inputs, output_dir, threads, snakemake, quiet, hpc, conda, setup_only):
         for i in bamlist:
             config.write(f"  - {i}\n")
 
-    generate_conda_deps()
+    create_conda_recipes()
     if setup_only:
         sys.exit(0)
 
@@ -153,7 +153,7 @@ def bam(inputs, output_dir, threads, snakemake, quiet, hpc, conda, setup_only):
     start_text.add_column(header="value", justify="left")
     start_text.add_row("Alignment Files:", f"{n}")
     start_text.add_row("Output Folder:", output_dir + "/")
-    start_text.add_row("Workflow Log:", sm_log.replace(f"{output_dir}/", ""))
+    start_text.add_row("Workflow Log:", sm_log.replace(f"{output_dir}/", "") + "[dim].gz")
     launch_snakemake(command, "preflight_bam", start_text, output_dir, sm_log, quiet)
 
 preflight.add_command(fastq)

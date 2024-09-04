@@ -2,8 +2,17 @@ containerized: "docker://pdimens/harpy:latest"
 
 import os
 import re
-import sys
-import logging as pylogging
+import logging
+
+onstart:
+    logger.logger.addHandler(logging.FileHandler(config["snakemake_log"]))
+onsuccess:
+    os.remove(logger.logfile)
+onerror:
+    os.remove(logger.logfile)
+wildcard_constraints:
+    sample = "[a-zA-Z0-9._-]+",
+    population = "[a-zA-Z0-9._-]+"
 
 envdir      = os.getcwd() + "/.harpy_envs"
 genomefile 	= config["inputs"]["genome"]
@@ -15,19 +24,10 @@ min_bc      = config["min_barcodes"]
 iterations  = config["iterations"]
 outdir      = config["output_directory"]
 skipreports = config["skip_reports"]
-snakemake_log = config["snakemake_log"]
 bn 			= os.path.basename(genomefile)
 if bn.lower().endswith(".gz"):
     bn = bn[:-3]
-
-wildcard_constraints:
-    sample = "[a-zA-Z0-9._-]+",
-    population = "[a-zA-Z0-9._-]+"
     
-onstart:
-    extra_logfile_handler = pylogging.FileHandler(snakemake_log)
-    logger.logger.addHandler(extra_logfile_handler)
-
 # create dictionary of population => filenames
 ## this makes it easier to set the snakemake rules/wildcards
 def pop_manifest(groupingfile, filelist):
@@ -110,11 +110,11 @@ rule index_barcode:
     threads:
         max(10, workflow.cores)
     conda:
-        f"{envdir}/sv.yaml"
+        f"{envdir}/variants.yaml"
     shell:
         "LRez index bam -p -b {input.bam} -o {output} --threads {threads}"
 
-rule setup_genome:
+rule process_genome:
     input:
         genomefile
     output: 
@@ -124,7 +124,7 @@ rule setup_genome:
     shell: 
         "seqtk seq {input} > {output}"
 
-rule faidx_genome:
+rule index_genome:
     input: 
         f"Genome/{bn}"
     output: 
@@ -168,7 +168,7 @@ rule call_variants:
     threads:
         workflow.cores - 1
     conda:
-        f"{envdir}/sv.yaml"
+        f"{envdir}/variants.yaml"
     benchmark:
         ".Benchmark/leviathan-pop/{population}.variantcall"
     shell:
@@ -272,13 +272,6 @@ rule workflow_summary:
         iters  = f"-B {iterations}",
         extra = extra
     run:
-        import glob
-        for logfile in glob.glob(f"{outdir}/logs/**/*", recursive = True):
-            if os.path.isfile(logfile) and os.path.getsize(logfile) == 0:
-                os.remove(logfile)
-        for logfile in glob.glob(f"{outdir}/logs/**/*", recursive = True):
-            if os.path.isdir(logfile) and not os.listdir(logfile):
-                os.rmdir(logfile)
         with open(outdir + "/workflow/sv.leviathan.summary", "w") as f:
             _ = f.write("The harpy sv leviathan workflow ran using these parameters:\n\n")
             _ = f.write(f"The provided genome: {bn}\n")

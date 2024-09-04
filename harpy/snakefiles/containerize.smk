@@ -20,12 +20,12 @@ rule align:
 
 rule snp:
     output: "snp.env"
-    conda: os.getcwd() + "/.harpy_envs/snp.yaml"
+    conda: os.getcwd() + "/.harpy_envs/variants.yaml"
     shell: "touch {output}"
 
 rule sv:
     output: "sv.env"
-    conda: os.getcwd() + "/.harpy_envs/sv.yaml"
+    conda: os.getcwd() + "/.harpy_envs/variants.yaml"
     shell: "touch {output}"
 
 rule phase:

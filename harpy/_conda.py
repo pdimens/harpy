@@ -2,7 +2,7 @@
 
 import os
 
-def generate_conda_deps():
+def create_conda_recipes():
     """Create the YAML files of the workflow conda dependencies"""
     condachannels = ["bioconda","conda-forge","defaults"]
     environ = {
@@ -17,6 +17,12 @@ def generate_conda_deps():
             "conda-forge::libzlib",
             "conda-forge::xz"
             ],
+        "metassembly" : [
+            "bioconda::spades=4.0"
+        ],
+        "athena": [
+            "bioconda::athena_meta"
+        ],
         "phase" : [
             "bioconda::hapcut2",
             "bioconda::whatshap"
@@ -52,16 +58,14 @@ def generate_conda_deps():
             "conda-forge::numpy",
             "conda-forge::perl"
             ],
-        "snp": [
+        "variants": [
             "bioconda::bcftools=1.20",
-            "bioconda::freebayes=1.3.6"
+            "bioconda::freebayes=1.3.6",
+            "bioconda::leviathan",
+            "bioconda::naibr-plus"
             ],
         "stitch" : [
             "bioconda::r-stitch=1.6.10"
-            ],
-        "sv": [
-            "bioconda::leviathan",
-            "bioconda::naibr-plus"
             ]
     }
 

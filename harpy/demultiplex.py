@@ -6,7 +6,7 @@ from pathlib import Path
 from rich import box
 from rich.table import Table
 import rich_click as click
-from ._conda import generate_conda_deps
+from ._conda import create_conda_recipes
 from ._launch import launch_snakemake
 from ._misc import fetch_rule, snakemake_log
 from ._validations import validate_demuxschema
@@ -37,7 +37,7 @@ docstring = {
 
 }
 
-@click.command(no_args_is_help = True, epilog = "See the documentation for more information: https://pdimens.github.io/harpy/modules/demultiplex/")
+@click.command(no_args_is_help = True, context_settings=dict(allow_interspersed_args=False), epilog = "See the documentation for more information: https://pdimens.github.io/harpy/modules/demultiplex/")
 @click.option('-s', '--schema', required = True, type=click.Path(exists=True, dir_okay=False, readable=True), help = 'Tab-delimited file of sample\<tab\>barcode')
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(min = 1, max_open = True), help = 'Number of threads to use')
 @click.option('-o', '--output-dir', type = click.Path(exists = False), default = "Demultiplex", show_default=True,  help = 'Output directory name')
@@ -89,7 +89,7 @@ def gen1(r1_fq, r2_fq, i1_fq, i2_fq, output_dir, schema, threads, snakemake, ski
         config.write(f"  I1: {Path(i1_fq).resolve()}\n")
         config.write(f"  I2: {Path(i2_fq).resolve()}\n")
     
-    generate_conda_deps()
+    create_conda_recipes()
     if setup_only:
         sys.exit(0)
     
@@ -99,7 +99,7 @@ def gen1(r1_fq, r2_fq, i1_fq, i2_fq, output_dir, schema, threads, snakemake, ski
     start_text.add_row("Haplotag Type:", "Generation I")
     start_text.add_row("Demultiplex Schema:", schema)
     start_text.add_row("Output Folder:", output_dir + "/")
-    start_text.add_row("Workflow Log:", sm_log.replace(f"{output_dir}/", ""))
+    start_text.add_row("Workflow Log:", sm_log.replace(f"{output_dir}/", "") + "[dim].gz")
     launch_snakemake(command, "demultiplex_gen1", start_text, output_dir, sm_log, quiet)
 
 demultiplex.add_command(gen1)

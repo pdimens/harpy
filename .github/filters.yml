@@ -152,6 +152,7 @@ simreads: &simreads
 other: &other
   - 'harpy/stitchparams.py'
   - 'harpy/popgroup.py'
+  - 'harpy/hpc.py'
 modules:
   - *common
   - *demux

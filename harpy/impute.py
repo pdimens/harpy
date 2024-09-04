@@ -6,7 +6,7 @@ from pathlib import Path
 from rich import box
 from rich.table import Table
 import rich_click as click
-from ._conda import generate_conda_deps
+from ._conda import create_conda_recipes
 from ._launch import launch_snakemake
 from ._misc import fetch_rule, fetch_report, fetch_script, snakemake_log
 from ._parsers import parse_alignment_inputs, biallelic_contigs
@@ -25,7 +25,7 @@ docstring = {
     ]
 }
 
-@click.command(no_args_is_help = True, epilog = "See the documentation for more information: https://pdimens.github.io/harpy/modules/impute/")
+@click.command(no_args_is_help = True, context_settings=dict(allow_interspersed_args=False), epilog = "See the documentation for more information: https://pdimens.github.io/harpy/modules/impute/")
 @click.option('-x', '--extra-params', type = str, help = 'Additional STITCH parameters, in quotes')
 @click.option('-o', '--output-dir', type = click.Path(exists = False), default = "Impute", show_default=True,  help = 'Output directory name')
 @click.option('-p', '--parameters', required = True, type=click.Path(exists=True, dir_okay=False), help = 'STITCH parameter file (tab-delimited)')
@@ -98,7 +98,7 @@ def impute(inputs, output_dir, parameters, threads, vcf, vcf_samples, extra_para
         for i in bamlist:
             config.write(f"    - {i}\n")
     
-    generate_conda_deps()
+    create_conda_recipes()
     if setup_only:
         sys.exit(0)
 
@@ -111,5 +111,5 @@ def impute(inputs, output_dir, parameters, threads, vcf, vcf_samples, extra_para
     start_text.add_row("Parameter File:", parameters)
     start_text.add_row("Usable Contigs:", f"{n_biallelic}")
     start_text.add_row("Output Folder:", output_dir + "/")
-    start_text.add_row("Workflow Log:", sm_log.replace(f"{output_dir}/", ""))
+    start_text.add_row("Workflow Log:", sm_log.replace(f"{output_dir}/", "") + "[dim].gz")
     launch_snakemake(command, "impute", start_text, output_dir, sm_log, quiet)

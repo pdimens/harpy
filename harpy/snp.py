@@ -6,7 +6,7 @@ from pathlib import Path
 from rich import box
 from rich.table import Table
 import rich_click as click
-from ._conda import generate_conda_deps
+from ._conda import create_conda_recipes
 from ._launch import launch_snakemake
 from ._misc import fetch_rule, fetch_report, snakemake_log
 from ._parsers import parse_alignment_inputs
@@ -48,7 +48,7 @@ docstring = {
     ]
 }
 
-@click.command(no_args_is_help = True, epilog = "See the documentation for more information: https://pdimens.github.io/harpy/modules/snp")
+@click.command(no_args_is_help = True, context_settings=dict(allow_interspersed_args=False), epilog = "See the documentation for more information: https://pdimens.github.io/harpy/modules/snp")
 @click.option('-x', '--extra-params', type = str, help = 'Additional variant caller parameters, in quotes')
 @click.option('-g', '--genome', type=click.Path(exists=True, dir_okay=False, readable=True), required = True, help = 'Genome assembly for variant calling')
 @click.option('-o', '--output-dir', type = click.Path(exists = False), default = "SNP/mpileup", show_default=True,  help = 'Output directory name')
@@ -137,7 +137,7 @@ def mpileup(inputs, output_dir, regions, genome, threads, populations, ploidy, e
         for i in bamlist:
             config.write(f"    - {i}\n")
 
-    generate_conda_deps()
+    create_conda_recipes()
     if setup_only:
         sys.exit(0)
 
@@ -149,10 +149,10 @@ def mpileup(inputs, output_dir, regions, genome, threads, populations, ploidy, e
         start_text.add_row("Sample Groups:", populations)
     start_text.add_row("Genome:", genome)
     start_text.add_row("Output Folder:", output_dir + "/")
-    start_text.add_row("Workflow Log:", sm_log.replace(f"{output_dir}/", ""))
+    start_text.add_row("Workflow Log:", sm_log.replace(f"{output_dir}/", "") + "[dim].gz")
     launch_snakemake(command, "snp_mpileup", start_text, output_dir, sm_log, quiet)
 
-@click.command(no_args_is_help = True, epilog = "See the documentation for more information: https://pdimens.github.io/harpy/modules/snp")
+@click.command(no_args_is_help = True, context_settings=dict(allow_interspersed_args=False), epilog = "See the documentation for more information: https://pdimens.github.io/harpy/modules/snp")
 @click.option('-x', '--extra-params', type = str, help = 'Additional variant caller parameters, in quotes')
 @click.option('-g', '--genome', type=click.Path(exists=True, dir_okay=False, readable=True), required = True, help = 'Genome assembly for variant calling')
 @click.option('-o', '--output-dir', type = click.Path(exists = False), default = "SNP/freebayes", show_default=True,  help = 'Output directory name')
@@ -241,7 +241,7 @@ def freebayes(inputs, output_dir, genome, threads, populations, ploidy, regions,
         for i in bamlist:
             config.write(f"    - {i}\n")
 
-    generate_conda_deps()
+    create_conda_recipes()
     if setup_only:
         sys.exit(0)
 
@@ -253,7 +253,7 @@ def freebayes(inputs, output_dir, genome, threads, populations, ploidy, regions,
         start_text.add_row("Sample Groups:", populations)
     start_text.add_row("Genome:", genome)
     start_text.add_row("Output Folder:", output_dir + "/")
-    start_text.add_row("Workflow Log:", sm_log.replace(f"{output_dir}/", ""))
+    start_text.add_row("Workflow Log:", sm_log.replace(f"{output_dir}/", "") + "[dim].gz")
     launch_snakemake(command, "snp_freebayes", start_text, output_dir, sm_log, quiet)
 
 snp.add_command(mpileup)

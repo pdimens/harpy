@@ -2,8 +2,16 @@ containerized: "docker://pdimens/harpy:latest"
 
 import os
 import re
-import sys
-import logging as pylogging
+import logging
+
+onstart:
+    logger.logger.addHandler(logging.FileHandler(config["snakemake_log"]))
+onsuccess:
+    os.remove(logger.logfile)
+onerror:
+    os.remove(logger.logfile)
+wildcard_constraints:
+    sample = "[a-zA-Z0-9._-]+"
 
 outdir      = config["output_directory"]
 envdir      = os.getcwd() + "/.harpy_envs"
@@ -19,15 +27,6 @@ molecule_distance = config["molecule_distance"]
 keep_unmapped = config["keep_unmapped"]
 readlen = config["average_read_length"]
 autolen = isinstance(readlen, str)
-snakemake_log = config["snakemake_log"]
-
-wildcard_constraints:
-    sample = "[a-zA-Z0-9._-]+"
-
-onstart:
-    extra_logfile_handler = pylogging.FileHandler(snakemake_log)
-    logger.logger.addHandler(extra_logfile_handler)
-
 bn_r = r"([_\.][12]|[_\.][FR]|[_\.]R[12](?:\_00[0-9])*)?\.((fastq|fq)(\.gz)?)$"
 samplenames = {re.sub(bn_r, "", os.path.basename(i), flags = re.IGNORECASE) for i in fqlist}
 d = dict(zip(samplenames, samplenames))
@@ -37,7 +36,7 @@ def get_fq(wildcards):
     r = re.compile(fr".*/({re.escape(wildcards.sample)}){bn_r}", flags = re.IGNORECASE)
     return sorted(list(filter(r.match, fqlist))[:2])
 
-rule setup_genome:
+rule process_genome:
     input:
         genomefile
     output: 
@@ -47,7 +46,7 @@ rule setup_genome:
     shell: 
         "seqtk seq {input} > {output}"
 
-rule faidx_genome:
+rule index_genome:
     input: 
         f"Genome/{bn}"
     output: 
@@ -250,13 +249,6 @@ rule workflow_summary:
         unmapped = "" if keep_unmapped else "-F 4",
         extra   = extra
     run:
-        import glob
-        for logfile in glob.glob(f"{outdir}/logs/**/*", recursive = True):
-            if os.path.isfile(logfile) and os.path.getsize(logfile) == 0:
-                os.remove(logfile)
-        for logfile in glob.glob(f"{outdir}/logs/**/*", recursive = True):
-            if os.path.isdir(logfile) and not os.listdir(logfile):
-                os.rmdir(logfile)
         with open(outdir + "/workflow/align.strobealign.summary", "w") as f:
             _ = f.write("The harpy align strobealign workflow ran using these parameters:\n\n")
             _ = f.write(f"The provided genome: {bn}\n")

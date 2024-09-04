@@ -1,10 +1,15 @@
 containerized: "docker://pdimens/harpy:latest"
 
 import os
-import sys
 import random
-import logging as pylogging
+import logging
 
+onstart:
+    logger.logger.addHandler(logging.FileHandler(config["snakemake_log"]))
+onsuccess:
+    os.remove(logger.logfile)
+onerror:
+    os.remove(logger.logfile)
 
 outdir = config["output_directory"]
 genome = config["inputs"]["genome"]
@@ -13,7 +18,6 @@ snp_vcf = config["inputs"].get("snp_vcf", None)
 indel_vcf = config["inputs"].get("indel_vcf", None)
 heterozygosity = config["heterozygosity"]
 outprefix = config["prefix"]
-snakemake_log = config["snakemake_log"]
 in_vcfs = []
 snp = False 
 indel = False
@@ -58,10 +62,6 @@ else:
     variant_params += f" -seed {randomseed}" if randomseed else ""
 
 variants = [i for i,j in zip(["snp", "indel"], [snp, indel]) if j]
-
-onstart:
-    extra_logfile_handler = pylogging.FileHandler(snakemake_log)
-    logger.logger.addHandler(extra_logfile_handler)
 
 if snp_vcf:
     rule convert_snp_vcf:

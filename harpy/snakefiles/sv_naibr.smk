@@ -2,14 +2,22 @@ containerized: "docker://pdimens/harpy:latest"
 
 import os
 import re
-import sys
-import multiprocessing
-import logging as pylogging
+import logging
 from pathlib import Path
+
+onstart:
+    logger.logger.addHandler(logging.FileHandler(config["snakemake_log"]))
+onsuccess:
+    os.remove(logger.logfile)
+onerror:
+    os.remove(logger.logfile)
+wildcard_constraints:
+    sample = "[a-zA-Z0-9._-]+"
 
 envdir      = os.getcwd() + "/.harpy_envs"
 genomefile  = config["inputs"]["genome"]
 bamlist     = config["inputs"]["alignments"]
+bamdict     = dict(zip(bamlist, bamlist))
 samplenames = {Path(i).stem for i in bamlist}
 extra       = config.get("extra", None) 
 mol_dist    = config["molecule_distance"]
@@ -21,7 +29,6 @@ bn          = os.path.basename(genomefile)
 genome_zip  = True if bn.lower().endswith(".gz") else False
 bn_idx      = f"{bn}.gzi" if genome_zip else f"{bn}.fai"
 skipreports = config["skip_reports"]
-snakemake_log = config["snakemake_log"]
 
 def process_args(args):
     argsDict = {
@@ -37,18 +44,6 @@ def process_args(args):
                 argsDict[i[0].lstrip("-")] = i[1]
     return argsDict
 
-wildcard_constraints:
-    sample = "[a-zA-Z0-9._-]+"
-
-onstart:
-    extra_logfile_handler = pylogging.FileHandler(snakemake_log)
-    logger.logger.addHandler(extra_logfile_handler)
-
-def sam_index(infile):
-    """Use Samtools to index an input file, adding .bai to the end of the name"""
-    if not os.path.exists(f"{infile}.bai"):
-        subprocess.run(f"samtools index {infile} {infile}.bai".split())
-
 def get_alignments(wildcards):
     """returns a list with the bam file for the sample based on wildcards.sample"""
     r = re.compile(fr".*/({wildcards.sample})\.(bam|sam)$", flags = re.IGNORECASE)
@@ -63,14 +58,13 @@ def get_align_index(wildcards):
 
 rule index_alignments:
     input:
-        bamlist
+        lambda wc: bamdict[wc.bam]
     output:
-        [f"{i}.bai" for i in bamlist]
-    threads:
-        workflow.cores
-    run:
-        with multiprocessing.Pool(processes=threads) as pool:
-            pool.map(sam_index, input)
+        "{bam}.bai"
+    container:
+        None
+    shell:
+        "samtools index {input}"
 
 rule naibr_config:
     input:
@@ -104,7 +98,7 @@ rule call_variants:
     threads:
         min(10, workflow.cores -1)
     conda:
-        f"{envdir}/sv.yaml"     
+        f"{envdir}/variants.yaml"     
     shell:
         "naibr {input.conf} > {log} 2>&1"
 
@@ -162,7 +156,7 @@ rule aggregate_variants:
                         elif record[-1] == "duplication":
                             _ = duplications.write(f"{samplename}\t{line}")
 
-rule setup_genome:
+rule process_genome:
     input:
         genomefile
     output: 
@@ -180,7 +174,7 @@ rule setup_genome:
         fi
         """
 
-rule faidx_genome:
+rule index_genome:
     input: 
         f"Genome/{bn}"
     output: 
@@ -221,13 +215,6 @@ rule workflow_summary:
         bedpe_agg = collect(outdir + "/{sv}.bedpe", sv = ["inversions", "deletions","duplications"]),
         reports =  collect(outdir + "/reports/{sample}.naibr.html", sample = samplenames) if not skipreports else []
     run:
-        import glob
-        for logfile in glob.glob(f"{outdir}/logs/**/*", recursive = True):
-            if os.path.isfile(logfile) and os.path.getsize(logfile) == 0:
-                os.remove(logfile)
-        for logfile in glob.glob(f"{outdir}/logs/**/*", recursive = True):
-            if os.path.isdir(logfile) and not os.listdir(logfile):
-                os.rmdir(logfile)
         os.system(f"rm -rf {outdir}/naibrlog")
         argdict = process_args(extra)
         with open(outdir + "/workflow/sv.naibr.summary", "w") as f:
