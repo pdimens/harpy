@@ -10,7 +10,7 @@ order: 1
 
 ===  :icon-checklist: You will need
 - at least 4 cores/threads available
-- sequence alignments, in BAM format: [!badge variant="success" text=".bam"]
+- sequence alignments: [!badge variant="success" text=".bam"] [!badge variant="secondary" text="coordinate-sorted"]
 - genome assembly in FASTA format: [!badge variant="success" text=".fasta"] [!badge variant="success" text=".fa"] [!badge variant="success" text=".fasta.gz"] [!badge variant="success" text=".fa.gz"]
 - [!badge variant="ghost" text="optional"] sample grouping file ([see below](#pooled-sample-variant-calling))
 

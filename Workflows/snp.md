@@ -9,9 +9,8 @@ order: 2
 
 ===  :icon-checklist: You will need
 - at least 4 cores/threads available
-- sequence alignments, in BAM format:
-    - **sample name**: [!badge variant="success" text="a-z"] [!badge variant="success" text="0-9"] [!badge variant="success" text="."] [!badge variant="success" text="_"] [!badge variant="success" text="-"] (case insensitive)
-    - **extension**: [!badge variant="success" text=".bam"]
+- sequence alignments: [!badge variant="success" text=".bam"] [!badge variant="secondary" text="coordinate-sorted"]
+    - **sample name**: [!badge variant="success" text="a-z"] [!badge variant="success" text="0-9"] [!badge variant="success" text="."] [!badge variant="success" text="_"] [!badge variant="success" text="-"] [!badge variant="secondary" text="case insensitive"]
 - genome assembly in FASTA format: [!badge variant="success" text=".fasta"] [!badge variant="success" text=".fa"] [!badge variant="success" text=".fasta.gz"] [!badge variant="success" text=".fa.gz"]
 - [!badge variant="ghost" text="optional"] sample grouping file
 ==- :icon-file: sample grouping file [!badge variant="ghost" text="optional"]

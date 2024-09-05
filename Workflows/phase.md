@@ -9,9 +9,8 @@ order: 6
 
 ===  :icon-checklist: You will need
 - at least 2 cores/threads available
-- sequence alignments, in BAM format:
-    - **sample name**: [!badge variant="success" text="a-z"] [!badge variant="success" text="0-9"] [!badge variant="success" text="."] [!badge variant="success" text="_"] [!badge variant="success" text="-"] (case insensitive)
-    - **extension**: [!badge variant="success" text=".bam"]
+- sequence alignments: [!badge variant="success" text=".bam"] [!badge variant="secondary" text="coordinate-sorted"]
+    - **sample name**: [!badge variant="success" text="a-z"] [!badge variant="success" text="0-9"] [!badge variant="success" text="."] [!badge variant="success" text="_"] [!badge variant="success" text="-"] [!badge variant="secondary" text="case insensitive"]
 - a variant call format file of genotypes: [!badge variant="success" text=".vcf"] [!badge variant="success" text=".bcf"]
 - [!badge variant="ghost" text="optional"] a reference genome in FASTA format: [!badge variant="success" text=".fasta"] [!badge variant="success" text=".fa"] [!badge variant="success" text=".fasta.gz"] [!badge variant="success" text=".fa.gz"]
 

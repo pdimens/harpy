@@ -77,7 +77,7 @@ difficult to accomodate every wacky iteration currently in circulation.
 While Harpy tries its best to be flexible, there are limitations. 
 To that end, for the [!badge corners="pill" text="deumultiplex"](Workflows/demultiplex.md), [!badge corners="pill" text="qc"](Workflows/qc.md), and [!badge corners="pill" text="align"](Workflows/Align/bwa.md) modules, the 
 most common FASTQ naming styles are supported:
-- **sample names**: [!badge variant="success" text="a-z"] [!badge variant="success" text="0-9"] [!badge variant="success" text="."] [!badge variant="success" text="_"] [!badge variant="success" text="-"] (case insensitive)
+- **sample names**: [!badge variant="success" text="a-z"] [!badge variant="success" text="0-9"] [!badge variant="success" text="."] [!badge variant="success" text="_"] [!badge variant="success" text="-"] [!badge variant="secondary" text="case insensitive"]
     - you can mix and match special characters, but that's bad practice and not recommended
     - examples: `Sample.001`, `Sample_001_year4`, `Sample-001_population1.year2` <- not recommended
 - **forward**: [!badge variant="success" text="_F"] [!badge variant="success" text=".F"] [!badge variant="success" text="_1"] [!badge variant="success" text=".1"] [!badge variant="success" text="_R1_001"] [!badge variant="success" text=".R1_001"] [!badge variant="success" text="_R1"] [!badge variant="success" text=".R1"] 

@@ -8,10 +8,10 @@ order: 8
 # :icon-workflow: Impute Genotypes using Sequences
 
 ===  :icon-checklist: You will need
-- a tab-delimited parameter file 
-- sequence alignments in BAM format:
-    - **sample names**: [!badge variant="success" text="a-z"] [!badge variant="success" text="0-9"] [!badge variant="success" text="."] [!badge variant="success" text="_"] [!badge variant="success" text="-"] (case insensitive)
-    - **extension**: [!badge variant="success" text=".bam"]
+- at least 4 cores/threads available
+- a tab-delimited [parameter file](#parameter-file) 
+- sequence alignments: [!badge variant="success" text=".bam"] [!badge variant="secondary" text="coordinate-sorted"]
+    - **sample names**: [!badge variant="success" text="a-z"] [!badge variant="success" text="0-9"] [!badge variant="success" text="."] [!badge variant="success" text="_"] [!badge variant="success" text="-"] [!badge variant="secondary" text="case insensitive"]
 - a variant call format file: [!badge variant="success" text=".vcf"] [!badge variant="success" text=".vcf.gz"] [!badge variant="success" text=".bcf"]
 ==- :icon-codescan: Curation of input VCF file
 To work well with STITCH, Harpy needs the input variant call file to meet specific criteria.
@@ -119,7 +119,7 @@ table serves as an overview of the parameters.
 | column name |  value type  |             accepted values             | description                                                           |
 |:------------|:------------:|:---------------------------------------:|:----------------------------------------------------------------------|
 | model       |     text     | pseudoHaploid, diploid, diploid-inbred  | The STITCH model/method to use                                        |
-| usebx       | text/boolean | true, false, yes, no (case insensitive) | Whether to incorporate beadtag information                            |
+| usebx       | text/boolean | true, false, yes, no [!badge variant="secondary" text="case insensitive"] | Whether to incorporate beadtag information                            |
 | bxlimit     |   integer    |                   ≥ 1                   | Distance between identical BX tags at which to consider them different molecules |
 | k           |   integer    |                   ≥ 1                   | Number of founder haplotypes                                          |
 | s           |   integer    |                   ≥ 1                   | Number of instances of the founder haplotypes to average results over |
