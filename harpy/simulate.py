@@ -284,7 +284,7 @@ def snpindel(genome, snp_vcf, indel_vcf, output_dir, prefix, snp_count, indel_co
             config.write(f"snp_gene_constraints: {snp_gene_constraints}\n") if snp_gene_constraints else None
             config.write(f"titv_ratio: {titv_ratio}\n") if titv_ratio else None
         if not indel_vcf:
-            config.write(f"indel_count: {snp_count}\n") if indel_count else None
+            config.write(f"indel_count: {indel_count}\n") if indel_count else None
             config.write(f"indel_ratio: {indel_ratio}\n") if indel_ratio else None
             config.write(f"indel_size_alpha: {indel_size_alpha}\n") if indel_size_alpha else None
             config.write(f"indel_size_constant: {indel_size_constant}\n") if indel_size_constant else None
