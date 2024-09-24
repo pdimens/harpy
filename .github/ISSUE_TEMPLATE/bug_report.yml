@@ -23,7 +23,7 @@ body:
     id: check-version
     attributes:
       options:
-          - label: this is the latest version of Harpy
+        - label: this is the latest version of Harpy
           required: true
 
   - type: textarea
