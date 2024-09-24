@@ -24,7 +24,7 @@ body:
     attributes:
       label: Is this the latest version of Harpy?
       options:
-        - label: this is the latest version of Harpy
+        - label: yes
           required: true
 
   - type: textarea
