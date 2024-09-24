@@ -22,8 +22,9 @@ body:
   - type: checkboxes
     id: checklist
     attributes:
+      label: This is the latest version of Harpy
       options:
-        - label: this is the latest version of Harpy
+          - label: true
           required: true
 
   - type: textarea
