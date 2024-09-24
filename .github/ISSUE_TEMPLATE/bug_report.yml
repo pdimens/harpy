@@ -20,7 +20,7 @@ body:
     validations:
         required: true
       
-  - type: textarea
+  - type: input
     id: version
     attributes:
       label: Harpy Version
