@@ -20,11 +20,10 @@ body:
       required: true
 
   - type: checkboxes
-    id: checklist
+    id: check-version
     attributes:
-      label: This is the latest version of Harpy
       options:
-          - label: true
+          - label: this is the latest version of Harpy
           required: true
 
   - type: textarea
