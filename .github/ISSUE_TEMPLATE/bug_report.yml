@@ -17,8 +17,8 @@ body:
       options:
         - label: "yes"
         - label: "no"
-      validations:
-          required: true
+    validations:
+        required: true
       
   - type: textarea
     id: version
