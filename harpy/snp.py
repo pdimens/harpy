@@ -17,12 +17,9 @@ def snp():
     """
     Call SNPs and small indels on alignments
     
-    **Variant Callers**
-    - `mpileup`: call variants using bcftools mpileup
-    - `freebayes`: call variants using freebayes
-
     Provide an additional subcommand `mpileup` or `freebayes` to get more information on using
-    those variant callers. They are both robust variant callers and neither is recommended over the other.
+    those variant callers. They are both robust variant callers, but `freebayes` is recommended when ploidy
+    is greater than **2**.
     """
 
 docstring = {
@@ -52,7 +49,7 @@ docstring = {
 @click.option('-x', '--extra-params', type = str, help = 'Additional variant caller parameters, in quotes')
 @click.option('-g', '--genome', type=click.Path(exists=True, dir_okay=False, readable=True), required = True, help = 'Genome assembly for variant calling')
 @click.option('-o', '--output-dir', type = click.Path(exists = False), default = "SNP/mpileup", show_default=True,  help = 'Output directory name')
-@click.option('-n', '--ploidy', default = 2, show_default = True, type=int, help = 'Ploidy of samples')
+@click.option('-n', '--ploidy', default = 2, show_default = True, type=click.IntRange(min = 1, max = 2), help = 'Ploidy of samples')
 @click.option('-p', '--populations', type=click.Path(exists = True, dir_okay=False, readable=True), help = "Tab-delimited file of sample\<tab\>population")
 @click.option('-r', '--regions', type=str, default=50000, show_default=True, help = "Regions where to call variants")
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(min = 4, max_open = True), help = 'Number of threads to use')
@@ -156,7 +153,7 @@ def mpileup(inputs, output_dir, regions, genome, threads, populations, ploidy, e
 @click.option('-x', '--extra-params', type = str, help = 'Additional variant caller parameters, in quotes')
 @click.option('-g', '--genome', type=click.Path(exists=True, dir_okay=False, readable=True), required = True, help = 'Genome assembly for variant calling')
 @click.option('-o', '--output-dir', type = click.Path(exists = False), default = "SNP/freebayes", show_default=True,  help = 'Output directory name')
-@click.option('-n', '--ploidy', default = 2, show_default = True, type=int, help = 'Ploidy of samples')
+@click.option('-n', '--ploidy', default = 2, show_default = True, type=click.IntRange(min=1, max_open=True), help = 'Ploidy of samples')
 @click.option('-p', '--populations', type=click.Path(exists = True, dir_okay=False, readable=True), help = "Tab-delimited file of sample\<tab\>population")
 @click.option('-r', '--regions', type=str, default=50000, show_default=True, help = "Regions where to call variants")
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(min = 4, max_open = True), help = 'Number of threads to use')
