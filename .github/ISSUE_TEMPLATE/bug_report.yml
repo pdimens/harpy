@@ -1,4 +1,4 @@
-name: Bug report
+name: "There's a bug"
 description: Something about harpy is not working or behaving in the way you expect
 labels: bug
 body:
@@ -9,15 +9,6 @@ body:
       description: A clear and concise description of what the bug is. Please do note paste in the contents of example files (do that below), but it may be helpful in some cases to see your project directory structure. 
     validations:
       required: true
-      
-  - type: textarea
-    id: version
-    attributes:
-      label: Harpy Version
-      description: Please include the version of harpy that is causing this issue.
-      placeholder: use `harpy --version` to find the version number
-    validations:
-      required: true
 
   - type: checkboxes
     id: check-version
@@ -25,7 +16,16 @@ body:
       label: Is this the latest version of Harpy?
       options:
         - label: "yes"
+        - label: "no"
+      validations:
           required: true
+      
+  - type: textarea
+    id: version
+    attributes:
+      label: Harpy Version
+      description: If not the latest version, which version are you using?
+      placeholder: use `harpy --version` to find the version number
 
   - type: textarea
     id: error-file
