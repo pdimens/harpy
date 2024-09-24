@@ -22,6 +22,7 @@ body:
   - type: checkboxes
     id: check-version
     attributes:
+      label: Is this the latest version of Harpy?
       options:
         - label: this is the latest version of Harpy
           required: true
