@@ -5,7 +5,7 @@
     <link>https://pdimens.github.io/harpy/blog/</link>
     <description>Blog</description>
     <copyright>© Copyright 2024. All rights reserved.</copyright>
-    <lastBuildDate>Thu, 01 Aug 2024 00:00:00 GMT</lastBuildDate>
+    <lastBuildDate>Mon, 30 Sep 2024 00:00:00 GMT</lastBuildDate>
     <generator>https://retype.com</generator>
     <atom:link rel="self" type="application/rss+xml" href="https://pdimens.github.io/harpy/blog/feed.xml" />
     <image>
@@ -14,8 +14,16 @@
       <url>https://pdimens.github.io/harpy/favicon.png</url>
     </image>
     <item>
+      <title> Simulating variants</title>
+      <guid isPermaLink="true">https://pdimens.github.io/harpy/blog/simulate_diploid/</guid>
+      <description>A realistic workflow to simulate variants</description>
+      <author>Pavel Dimens</author>
+      <pubDate>Mon, 30 Sep 2024 00:00:00 GMT</pubDate>
+      <category domain="https://pdimens.github.io/harpy/categories/guides/">guides</category>
+    </item>
+    <item>
       <title> Pooling samples for SV calling</title>
-      <guid isPermaLink="true">https://pdimens.github.io/harpy/blog/svpooling/</guid>
+      <guid isPermaLink="true">https://pdimens.github.io/harpy/blog/sv_pooling/</guid>
       <description>Why pool samples for SV calling and when to do it</description>
       <author>Pavel Dimens</author>
       <pubDate>Thu, 01 Aug 2024 00:00:00 GMT</pubDate>
@@ -23,7 +31,7 @@
     </item>
     <item>
       <title> Choosing a software runtime method</title>
-      <guid isPermaLink="true">https://pdimens.github.io/harpy/blog/softwareenvironments/</guid>
+      <guid isPermaLink="true">https://pdimens.github.io/harpy/blog/software_environments/</guid>
       <description>Deciding between using Conda or Containers</description>
       <author>Pavel Dimens</author>
       <pubDate>Fri, 21 Jun 2024 00:00:00 GMT</pubDate>
@@ -31,7 +39,7 @@
     </item>
     <item>
       <title> Filtering Variants</title>
-      <guid isPermaLink="true">https://pdimens.github.io/harpy/blog/filteringsnps/</guid>
+      <guid isPermaLink="true">https://pdimens.github.io/harpy/blog/filtering_snps/</guid>
       <description>A gentle introduction to the wild world of filtering SNPs</description>
       <author>Pavel Dimens</author>
       <pubDate>Wed, 05 Jun 2024 00:00:00 GMT</pubDate>
