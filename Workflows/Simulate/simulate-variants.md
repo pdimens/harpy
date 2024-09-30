@@ -211,7 +211,8 @@ a diploid assembly with simulated variants.
 ## Simulate Diploid Assembly
 Here is a simple but realistic workflow of creating a diploid assembly with simulated variants. Due
 to the roundabout complexity of the process, attempts were made to use color to help keep track of the
-original haploid genome and the resulting genome haplotypes.
+original haploid genome and the resulting genome haplotypes. For a detailed look at this, see the
+[tutorial](/blog/simulate_diploid.md).
 If you haven't already, please read the sections about [simulating known variants](#simulate-known-variants)
 and [heterozygosity](#heterozygosity). The idea here is that due to the limitations of `simuG`, we can
 only simulate one type of variant at a time and we will take advantage of the VCF files created by
