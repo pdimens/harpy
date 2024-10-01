@@ -55,7 +55,7 @@ harpy snp mpileup --threads 20 --genome genome.fasta Align/bwa
 harpy snp freebayes --threads 20 --genome genome.fasta Align/bwa
 ```
 
-## :icon-terminal: Running Options
+## :icon-terminal: Running Optionso
 In addition to the [!badge variant="info" corners="pill" text="common runtime options"](../commonoptions.md), the [!badge corners="pill" text="snp"] module is configured using these command-line arguments:
 
 {.compact}
@@ -67,6 +67,11 @@ In addition to the [!badge variant="info" corners="pill" text="common runtime op
 | `--ploidy`       |    `-n`    | integer                         |    2    |       | Ploidy of samples                                   |
 | `--populations`  |    `-p`    | file path                       |         |       | Tab-delimited file of sample\<*tab*\>group          |
 | `--regions`      |    `-r`    | integer/file path/string        |  50000  |       | Regions to call variants on ([see below](#regions))             |
+
+
+### ploidy
+If you are calling haploid or diploid samples, using either `mpileup` or `freebayes` will be comparable. However, if you need to call SNPs in polyploids (ploidy >2),
+then you will need to use `freebayes`, since `mpileup` does not call variants for ploidy greater than 2.
 
 ### regions
 The `--regions` (`-r`) option lets you specify the genomic regions you want to call variants on. Keep in mind that
