@@ -62,8 +62,8 @@ The two VCFs of snps and indels
 ## 2. Add random inversions
 Next, we will need to do pretty much the same thing but for inversions. If you wanted to manually
 create inversions in specific areas or with specific lengths, this would be a good starting point too since
-you could manually modify the resulting VCF to create the specific inversions you want. We won't be covering,
-that here but you should hopefully be able to intuit how to do that by the end of this tutorial.
+you could manually modify the resulting VCF to create the specific inversions you want. We won't be covering
+that here, but you should hopefully be able to intuit how to do that by the end of this tutorial.
 
 ```bash
 harpy simulate inversion --conda -n 20 -z 0.1 --min-size 30000 dmel.nosex.fa
