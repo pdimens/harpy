@@ -14,7 +14,7 @@ Harpy provides both a variant and linked-read simulators and this tutorial serve
 show a real-world workflow starting with a haploid genome and creating a diploid genome
 with the variants we want in it, which will then be fed into linked-read simulation. The
 process might seem a little roundabout due to the limitations of the underlying software,
-but it shouldn't be too bad to wrap your head around it! Ultimately, you will creating
+but it shouldn't be too bad to wrap your head around it! Ultimately, you will create
 linked-reads from the resulting genome and then aligning those reads onto your **original**
 genome to identify those variants.
 
