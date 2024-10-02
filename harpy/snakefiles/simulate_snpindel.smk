@@ -16,10 +16,10 @@ genome = config["inputs"]["genome"]
 envdir = os.getcwd() + "/.harpy_envs"
 snp_vcf = config["inputs"].get("snp_vcf", None)
 indel_vcf = config["inputs"].get("indel_vcf", None)
-heterozygosity = config["heterozygosity"]["value"]
+heterozygosity = float(config["heterozygosity"]["value"])
 only_vcf = config["heterozygosity"]["only_vcf"]
 outprefix = config["prefix"]
-randomseed = config.get("randomseed", None)
+randomseed = config.get("random_seed", None)
 in_vcfs = []
 snp = False 
 indel = False
@@ -86,7 +86,7 @@ if indel_vcf:
         shell:
             "bcftools view -Oz {input} > {output}"
 
-rule simulate_variants:
+rule simulate_haploid:
     input:
         in_vcfs,
         geno = genome
@@ -104,12 +104,12 @@ rule simulate_variants:
     shell:
         "perl {params.simuG} -refseq {input.geno} -prefix {params.prefix} {params.parameters} > {log}"
 
-rule snp_vcf_het:
+rule heterozygous_snps:
     input:
         f"{outdir}/{outprefix}.snp.vcf"
     output:
-        temp(f"{outdir}/{outprefix}.snp.hap1.vcf") if not only_vcf else f"{outdir}/{outprefix}.snp.hap1.vcf",
-        temp(f"{outdir}/{outprefix}.snp.hap2.vcf") if not only_vcf else f"{outdir}/{outprefix}.snp.hap2.vcf"
+        f"{outdir}/diploid/{outprefix}.snp.hap1.vcf",
+        f"{outdir}/diploid/{outprefix}.snp.hap2.vcf"
     params:
         heterozygosity
     run:
@@ -135,29 +135,29 @@ rule snp_vcf_het:
                     else:
                         hap2.write(line)
 
-use rule snp_vcf_het as indel_vcf_het with:
+use rule heterozygous_snps as heterozygous_indels with:
     input:
         f"{outdir}/{outprefix}.indel.vcf"
     output:
-        temp(f"{outdir}/{outprefix}.indel.hap1.vcf") if not only_vcf else f"{outdir}/{outprefix}.indel.hap1.vcf",
-        temp(f"{outdir}/{outprefix}.indel.hap2.vcf") if not only_vcf else f"{outdir}/{outprefix}.indel.hap2.vcf"
+        f"{outdir}/diploid/{outprefix}.indel.hap1.vcf",
+        f"{outdir}/diploid/{outprefix}.indel.hap2.vcf"
 
-rule simulate_haplotype:
+rule simulate_diploid:
     input:
-        snp_hap = f"{outdir}/{outprefix}.snp.hap" + "{haplotype}.vcf" if snp else [],
-        indel_hap = f"{outdir}/{outprefix}.indel.hap" + "{haplotype}.vcf" if indel else [],
+        snp_hap = f"{outdir}/diploid/{outprefix}.snp.hap" + "{haplotype}.vcf" if snp else [],
+        indel_hap = f"{outdir}/diploid/{outprefix}.indel.hap" + "{haplotype}.vcf" if indel else [],
         geno = genome
     output:
-        f"{outdir}/{outprefix}.hap" + "{haplotype}.fasta",
-        f"{outdir}/{outprefix}.hap" + "{haplotype}.indel.vcf" if indel else [],
-        f"{outdir}/{outprefix}.hap" + "{haplotype}.snp.vcf" if snp else []
+        f"{outdir}/diploid/{outprefix}.hap" + "{haplotype}.fasta",
+        temp(f"{outdir}/diploid/{outprefix}.hap" + "{haplotype}.indel.vcf") if indel else [],
+        temp(f"{outdir}/diploid/{outprefix}.hap" + "{haplotype}.snp.vcf") if snp else []
     log:
         f"{outdir}/logs/{outprefix}.hap" + "{haplotype}.log"
     params:
-        prefix = lambda wc: f"{outdir}/{outprefix}.hap" + wc.get("haplotype"),
+        prefix = lambda wc: f"{outdir}/diploid/{outprefix}.hap" + wc.get("haplotype"),
         simuG = f"{outdir}/workflow/scripts/simuG.pl",
-        snp = lambda wc: f"-snp_vcf {outdir}/{outprefix}.snp.hap" + wc.get("haplotype") + ".vcf" if snp else "",
-        indel = lambda wc: f"-indel_vcf {outdir}/{outprefix}.indel.hap" + wc.get("haplotype") + ".vcf" if indel else ""
+        snp = lambda wc: f"-snp_vcf {outdir}/diploid/{outprefix}.snp.hap" + wc.get("haplotype") + ".vcf" if snp else "",
+        indel = lambda wc: f"-indel_vcf {outdir}/diploid/{outprefix}.indel.hap" + wc.get("haplotype") + ".vcf" if indel else ""
     conda:
         f"{envdir}/simulations.yaml"
     shell:
@@ -168,6 +168,5 @@ rule workflow_summary:
     input:
         multiext(f"{outdir}/{outprefix}", ".bed", ".fasta"),
         collect(f"{outdir}/{outprefix}" + ".{var}.vcf", var = variants),
-        collect(f"{outdir}/{outprefix}" + ".{var}.hap{n}.vcf", n = [1,2], var = variants) if heterozygosity > 0 and only_vcf else [],
-        collect(f"{outdir}/{outprefix}" + ".hap{n}.{var}.vcf", n = [1,2], var = variants) if heterozygosity >0 and not only_vcf else [],
-        collect(f"{outdir}/{outprefix}" + ".hap{n}.fasta", n = [1,2]) if heterozygosity > 0 and not only_vcf else []
+        collect(f"{outdir}/diploid/{outprefix}" + ".hap{n}.fasta", n = [1,2]) if heterozygosity > 0 and not only_vcf else [],
+        collect(f"{outdir}/diploid/{outprefix}" + ".{var}.hap{n}.vcf", n = [1,2], var = variants) if heterozygosity > 0 else []

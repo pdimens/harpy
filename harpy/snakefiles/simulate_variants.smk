@@ -17,7 +17,10 @@ variant = config["variant_type"]
 outprefix = config["prefix"]
 genome = config["inputs"]["genome"]
 vcf = config["inputs"].get("vcf", None)
-heterozygosity = float(config["heterozygosity"])
+heterozygosity = float(config["heterozygosity"]["value"])
+only_vcf = config["heterozygosity"]["only_vcf"]
+randomseed = config.get("random_seed", None)
+
 vcf_correct = "None"
 if vcf:
     vcf_correct = vcf[:-4] + ".vcf.gz" if vcf.lower().endswith("bcf") else vcf
@@ -61,7 +64,7 @@ if vcf:
         shell:
             "bcftools view -Oz {input} > {output}"
 
-rule simulate_variants:
+rule simulate_haploid:
     input:
         vcf_correct if vcf else [],
         geno = genome
@@ -78,39 +81,59 @@ rule simulate_variants:
     shell:
         "perl {params.simuG} -refseq {input.geno} -prefix {params.prefix} {params.parameters} > {log}"
 
-rule create_het_vcf:
+rule heterozygous_variants:
     input:
         f"{outdir}/{outprefix}.vcf"
     output:
-        f"{outdir}/{outprefix}.hap1.vcf",
-        f"{outdir}/{outprefix}.hap2.vcf"
+        f"{outdir}/diploid/{outprefix}.{variant}.hap1.vcf",
+        f"{outdir}/diploid/{outprefix}.{variant}.hap2.vcf"
     params:
         heterozygosity
     run:
-        random.seed(6969)
-        hap1_vcf, hap2_vcf = open(output[0], "w"), open(output[1], "w")
-        with open(input[0], "r") as in_vcf:
+        if randomseed:
+            random.seed(randomseed)
+        with open(input[0], "r") as in_vcf, open(output[0], "w") as hap1, open(output[1], "w") as hap2:
             while True:
                 line = in_vcf.readline()
                 if not line:
                     break
                 if line.startswith("#"):
-                    hap1_vcf.write(line)
-                    hap2_vcf.write(line)
+                    hap1.write(line)
+                    hap2.write(line)
                     continue
                 if random.uniform(0, 1) >= params[0]:
                     # write homozygote
-                    hap1_vcf.write(line)
-                    hap2_vcf.write(line)
+                    hap1.write(line)
+                    hap2.write(line)
                 else:
                     # 50% chance of falling into hap1 or hap2
                     if random.uniform(0, 1) >= 0.5:
-                        hap1_vcf.write(line)
+                        hap1.write(line)
                     else:
-                        hap2_vcf.write(line)
+                        hap2.write(line)
+
+rule simulate_diploid:
+    input:
+        hap = f"{outdir}/diploid/{outprefix}.{variant}.hap" + "{haplotype}.vcf",
+        geno = genome
+    output:
+        f"{outdir}/diploid/{outprefix}.hap" + "{haplotype}.fasta",
+        temp(f"{outdir}/diploid/{outprefix}.hap" + "{haplotype}.vcf")
+    log:
+        f"{outdir}/logs/{outprefix}.hap" + "{haplotype}.log"
+    params:
+        prefix = lambda wc: f"{outdir}/diploid/{outprefix}.hap" + wc.get("haplotype"),
+        simuG = f"{outdir}/workflow/scripts/simuG.pl",
+        vcf_arg = f"-{variant}_vcf"
+    conda:
+        f"{envdir}/simulations.yaml"
+    shell:
+        "perl {params.simuG} -refseq {input.geno} -prefix {params.prefix} {params.vcf_arg} {input.hap} > {log}"
+
 
 rule workflow_summary:
     default_target: True
     input:
         multiext(f"{outdir}/{outprefix}", ".vcf", ".bed", ".fasta"),
-        collect(f"{outdir}/{outprefix}.hap" + "{n}.vcf", n = [1,2]) if heterozygosity > 0 else []
+        collect(f"{outdir}/diploid/{outprefix}.hap" + "{n}.fasta", n = [1,2]) if heterozygosity > 0 and not only_vcf else [],
+        collect(f"{outdir}/diploid/{outprefix}.{variant}.hap" + "{n}.vcf", n = [1,2]) if heterozygosity > 0 else []
