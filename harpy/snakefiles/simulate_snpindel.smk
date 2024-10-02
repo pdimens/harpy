@@ -16,8 +16,10 @@ genome = config["inputs"]["genome"]
 envdir = os.getcwd() + "/.harpy_envs"
 snp_vcf = config["inputs"].get("snp_vcf", None)
 indel_vcf = config["inputs"].get("indel_vcf", None)
-heterozygosity = config["heterozygosity"]
+heterozygosity = config["heterozygosity"]["value"]
+only_vcf = config["heterozygosity"]["only_vcf"]
 outprefix = config["prefix"]
+randomseed = config.get("randomseed", None)
 in_vcfs = []
 snp = False 
 indel = False
@@ -58,7 +60,6 @@ else:
     variant_params += f" -gene_gff {genes}" if genes else ""
     exclude = config["inputs"].get("exclude_chr", None)
     variant_params += f" -excluded_chr_list {exclude}" if exclude else ""
-    randomseed = config.get("randomseed", None)
     variant_params += f" -seed {randomseed}" if randomseed else ""
 
 variants = [i for i,j in zip(["snp", "indel"], [snp, indel]) if j]
@@ -107,43 +108,66 @@ rule snp_vcf_het:
     input:
         f"{outdir}/{outprefix}.snp.vcf"
     output:
-        f"{outdir}/{outprefix}.snp.hap1.vcf",
-        f"{outdir}/{outprefix}.snp.hap2.vcf"
+        temp(f"{outdir}/{outprefix}.snp.hap1.vcf") if not only_vcf else f"{outdir}/{outprefix}.snp.hap1.vcf",
+        temp(f"{outdir}/{outprefix}.snp.hap2.vcf") if not only_vcf else f"{outdir}/{outprefix}.snp.hap2.vcf"
     params:
         heterozygosity
     run:
-        random.seed(6969)
-        hap1_vcf, hap2_vcf = open(output[0], "w"), open(output[1], "w")
-        with open(input[0], "r") as in_vcf:
+        if randomseed:
+            random.seed(randomseed)
+        with open(input[0], "r") as in_vcf, open(output[0], "w") as hap1, open(output[1], "w") as hap2:
             while True:
                 line = in_vcf.readline()
                 if not line:
                     break
                 if line.startswith("#"):
-                    hap1_vcf.write(line)
-                    hap2_vcf.write(line)
+                    hap1.write(line)
+                    hap2.write(line)
                     continue
                 if random.uniform(0, 1) >= params[0]:
                     # write homozygote
-                    hap1_vcf.write(line)
-                    hap2_vcf.write(line)
+                    hap1.write(line)
+                    hap2.write(line)
                 else:
                     # 50% chance of falling into hap1 or hap2
                     if random.uniform(0, 1) >= 0.5:
-                        hap1_vcf.write(line)
+                        hap1.write(line)
                     else:
-                        hap2_vcf.write(line)
+                        hap2.write(line)
 
 use rule snp_vcf_het as indel_vcf_het with:
     input:
         f"{outdir}/{outprefix}.indel.vcf"
     output:
-        f"{outdir}/{outprefix}.indel.hap1.vcf",
-        f"{outdir}/{outprefix}.indel.hap2.vcf"
+        temp(f"{outdir}/{outprefix}.indel.hap1.vcf") if not only_vcf else f"{outdir}/{outprefix}.indel.hap1.vcf",
+        temp(f"{outdir}/{outprefix}.indel.hap2.vcf") if not only_vcf else f"{outdir}/{outprefix}.indel.hap2.vcf"
+
+rule simulate_haplotype:
+    input:
+        snp_hap = f"{outdir}/{outprefix}.snp.hap" + "{haplotype}.vcf" if snp else [],
+        indel_hap = f"{outdir}/{outprefix}.indel.hap" + "{haplotype}.vcf" if indel else [],
+        geno = genome
+    output:
+        f"{outdir}/{outprefix}.hap" + "{haplotype}.fasta",
+        f"{outdir}/{outprefix}.hap" + "{haplotype}.indel.vcf" if indel else [],
+        f"{outdir}/{outprefix}.hap" + "{haplotype}.snp.vcf" if snp else []
+    log:
+        f"{outdir}/logs/{outprefix}.hap" + "{haplotype}.log"
+    params:
+        prefix = lambda wc: f"{outdir}/{outprefix}.hap" + wc.get("haplotype"),
+        simuG = f"{outdir}/workflow/scripts/simuG.pl",
+        snp = lambda wc: f"-snp_vcf {outdir}/{outprefix}.snp.hap" + wc.get("haplotype") + ".vcf" if snp else "",
+        indel = lambda wc: f"-indel_vcf {outdir}/{outprefix}.indel.hap" + wc.get("haplotype") + ".vcf" if indel else ""
+    conda:
+        f"{envdir}/simulations.yaml"
+    shell:
+        "perl {params.simuG} -refseq {input.geno} -prefix {params.prefix} {params.snp} {params.indel} > {log}"
 
 rule workflow_summary:
     default_target: True
     input:
         multiext(f"{outdir}/{outprefix}", ".bed", ".fasta"),
-        collect(f"{outdir}/{outprefix}." + "{var}.vcf", var = variants),
-        collect(f"{outdir}/{outprefix}" + ".{var}.hap{n}.vcf", n = [1,2], var = variants) if heterozygosity > 0 else []
+        collect(f"{outdir}/{outprefix}" + ".{var}.vcf", var = variants),
+        collect(f"{outdir}/{outprefix}" + ".{var}.hap{n}.vcf", n = [1,2], var = variants) if heterozygosity > 0 and only_vcf else [],
+        collect(f"{outdir}/{outprefix}" + ".hap{n}.{var}.vcf", n = [1,2], var = variants) if heterozygosity >0 and not only_vcf else [],
+        collect(f"{outdir}/{outprefix}" + ".hap{n}.fasta", n = [1,2]) if heterozygosity > 0 and not only_vcf else []

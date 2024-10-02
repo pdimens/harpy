@@ -54,7 +54,11 @@ docstring = {
         },
         {
             "name": "Random Variants",
-            "options": ["--centromeres", "--exclude-chr", "--genes", "--heterozygosity", "--indel-count", "--indel-ratio", "--snp-count", "--snp-gene-constraints", "--titv-ratio"],
+            "options": ["--centromeres", "--exclude-chr", "--genes", "--indel-count", "--indel-ratio", "--snp-count", "--snp-gene-constraints", "--titv-ratio"],
+        },
+        {
+            "name": "Diploid Options",
+            "options": ["--heterozygosity", "--only-vcf"],
         },
         {
             "name": "Workflow Controls",
@@ -199,7 +203,8 @@ def linkedreads(genome_hap1, genome_hap2, output_dir, outer_distance, mutation_r
 @click.option('-c', '--centromeres', type = click.Path(exists=True, dir_okay=False, readable=True), help = "GFF3 file of centromeres to avoid")
 @click.option('-y', '--snp-gene-constraints', type = click.Choice(["noncoding", "coding", "2d", "4d"]), help = "How to constrain randomly simulated SNPs {`noncoding`,`coding`,`2d`,`4d`}")
 @click.option('-g', '--genes', type = click.Path(exists=True, readable=True), help = "GFF3 file of genes to use with `--snp-gene-constraints`")
-@click.option('-z', '--heterozygosity', type = click.FloatRange(0,1), default = 0, show_default=True, help = '% heterozygosity to simulate diploid later')
+@click.option('-z', '--heterozygosity', type = click.FloatRange(0,1), default = 0, show_default=True, help = 'heterozygosity to simulate diploid variants')
+@click.option('-v', '--only-vcf',  is_flag = True, default = False, help = 'If setting heterozygosity, only create the VCF rather than the fasta files')
 @click.option('-e', '--exclude-chr', type = click.Path(exists=True, dir_okay=False, readable=True), help = "Text file of chromosomes to avoid")
 @click.option('-o', '--output-dir', type = click.Path(exists = False), default = "Simulate/snpindel", show_default=True,  help = 'Output directory name')
 @click.option('-p', '--prefix', type = str, default= "sim.snpindel", show_default=True, help = "Naming prefix for output files")
@@ -210,16 +215,21 @@ def linkedreads(genome_hap1, genome_hap2, output_dir, outer_distance, mutation_r
 @click.option('--randomseed', type = click.IntRange(min = 1), help = "Random seed for simulation")
 @click.option('--snakemake', type = str, help = 'Additional Snakemake parameters, in quotes')
 @click.argument('genome', required=True, type=click.Path(exists=True, dir_okay=False, readable=True), nargs=1)
-def snpindel(genome, snp_vcf, indel_vcf, output_dir, prefix, snp_count, indel_count, titv_ratio, indel_ratio, indel_size_alpha, indel_size_constant, centromeres, genes, snp_gene_constraints, heterozygosity, exclude_chr, randomseed, snakemake, quiet, hpc, conda, setup_only):
+def snpindel(genome, snp_vcf, indel_vcf, only_vcf, output_dir, prefix, snp_count, indel_count, titv_ratio, indel_ratio, indel_size_alpha, indel_size_constant, centromeres, genes, snp_gene_constraints, heterozygosity, exclude_chr, randomseed, snakemake, quiet, hpc, conda, setup_only):
     """
     Introduce snps and/or indels into a genome
  
-    Create a haploid genome with snps and/or indels introduced into it. Use either a VCF file to simulate known variants
-    via `--snp-vcf` and/or `--indel-vcf` or the command line options listed below to simulate random variants of the selected
-    type. Setting `--heterozygosity` greater than `0` will also create a subsampled VCF file with which you can create
-    another simulated genome (diploid) by running the `simulate` module again.
-    The ratio parameters control different things for snp and indel variants and have special meanings when setting
-    the value to either `9999` or `0` :
+    ### Haploid
+    Use either a VCF file to simulate known variants via `--snp-vcf` and/or `--indel-vcf` or the command line options listed below
+    to simulate random variants of the selected type.
+    
+    ### Diploid
+    Setting `--heterozygosity` greater than `0` will create homozygotes and heterozygotes from the simulated variants and
+    create a diploid genome with these variants. Use `--only-vcf` with `--heterozygosity` to only produce the diploid variant VCF file(s)
+    rather than the diploid genome.
+    
+    The ratio parameters control different things for snp and indel variants and have special
+    meanings when setting the value to either `9999` or `0` :
     
     | ratio | meaning | `9999` | `0` |
     |:---- |:---- |:--- |:---- |
@@ -278,7 +288,9 @@ def snpindel(genome, snp_vcf, indel_vcf, output_dir, prefix, snp_count, indel_co
         config.write(f"snakemake_log: {sm_log}\n")
         config.write(f"output_directory: {output_dir}\n")
         config.write(f"prefix: {prefix}\n")
-        config.write(f"heterozygosity: {heterozygosity}\n")
+        config.write("heterozygosity:\n")
+        config.write(f"  value: {heterozygosity}\n")
+        config.write(f"  only_vcf: {only_vcf}\n")
         if not snp_vcf:
             config.write(f"snp_count: {snp_count}\n") if snp_count else None
             config.write(f"snp_gene_constraints: {snp_gene_constraints}\n") if snp_gene_constraints else None
