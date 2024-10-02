@@ -312,7 +312,7 @@ def snpindel(genome, snp_vcf, indel_vcf, only_vcf, output_dir, prefix, snp_count
             config.write(f"indel_ratio: {indel_ratio}\n") if indel_ratio else None
             config.write(f"indel_size_alpha: {indel_size_alpha}\n") if indel_size_alpha else None
             config.write(f"indel_size_constant: {indel_size_constant}\n") if indel_size_constant else None
-        config.write(f"randomseed: {randomseed}\n") if randomseed else None
+        config.write(f"random_seed: {randomseed}\n") if randomseed else None
         config.write(f"workflow_call: {command}\n")
         config.write("inputs:\n")
         config.write(f"  genome: {Path(genome).resolve()}\n")
@@ -418,7 +418,7 @@ def inversion(genome, vcf, only_vcf, prefix, output_dir, count, min_size, max_si
             config.write(f"count: {count}\n")
             config.write(f"min_size: {min_size}\n") if min_size else None
             config.write(f"max_size: {max_size}\n") if max_size else None
-            config.write(f"randomseed: {randomseed}\n") if randomseed else None
+            config.write(f"random_seed: {randomseed}\n") if randomseed else None
         config.write(f"workflow_call: {command}\n")
         config.write("inputs:\n")
         config.write(f"  genome: {Path(genome).resolve()}\n")
@@ -536,7 +536,7 @@ def cnv(genome, output_dir, vcf, only_vcf, prefix, count, min_size, max_size, du
             config.write(f"dup_ratio: {dup_ratio}\n") if dup_ratio else None
             config.write(f"cnv_max_copy: {max_copy}\n") if max_copy else None
             config.write(f"gain_ratio: {gain_ratio}\n") if gain_ratio else None
-            config.write(f"randomseed: {randomseed}\n") if randomseed else None
+            config.write(f"random_seed: {randomseed}\n") if randomseed else None
         config.write(f"workflow_call: {command}\n")
         config.write("inputs:\n")
         config.write(f"  genome: {Path(genome).resolve()}\n")
@@ -634,7 +634,7 @@ def translocation(genome, output_dir, prefix, vcf, only_vcf, count, centromeres,
         config.write(f"prefix: {prefix}\n")
         if not vcf:
             config.write(f"count: {count}\n")
-            config.write(f"randomseed: {randomseed}\n") if randomseed else None
+            config.write(f"random_seed: {randomseed}\n") if randomseed else None
         config.write("heterozygosity:\n")
         config.write(f"  value: {heterozygosity}\n")
         config.write(f"  only_vcf: {only_vcf}\n")

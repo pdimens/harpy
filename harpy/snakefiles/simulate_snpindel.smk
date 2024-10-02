@@ -104,7 +104,7 @@ rule simulate_haploid:
     shell:
         "perl {params.simuG} -refseq {input.geno} -prefix {params.prefix} {params.parameters} > {log}"
 
-rule heterozygous_snps:
+rule diploid_snps:
     input:
         f"{outdir}/{outprefix}.snp.vcf"
     output:
@@ -135,7 +135,7 @@ rule heterozygous_snps:
                     else:
                         hap2.write(line)
 
-use rule heterozygous_snps as heterozygous_indels with:
+use rule diploid_snps as diploid_indels with:
     input:
         f"{outdir}/{outprefix}.indel.vcf"
     output:

@@ -81,7 +81,7 @@ rule simulate_haploid:
     shell:
         "perl {params.simuG} -refseq {input.geno} -prefix {params.prefix} {params.parameters} > {log}"
 
-rule heterozygous_variants:
+rule diploid_variants:
     input:
         f"{outdir}/{outprefix}.vcf"
     output:
