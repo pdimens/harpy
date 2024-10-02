@@ -571,7 +571,7 @@ def cnv(genome, output_dir, vcf, only_vcf, prefix, count, min_size, max_size, du
 @click.argument('genome', required=True, type=click.Path(exists=True, dir_okay=False, readable=True), nargs=1)
 def translocation(genome, output_dir, prefix, vcf, only_vcf, count, centromeres, genes, heterozygosity, exclude_chr, randomseed, snakemake, quiet, hpc, conda, setup_only):
     """
-    Introduce transolcations into a genome
+    Introduce translocations into a genome
  
     ### Haploid
     Use either a VCF file to simulate known translocations or the command line options listed below to simulate random translocations.
