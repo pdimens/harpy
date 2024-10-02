@@ -119,20 +119,14 @@ rule diploid_snps:
                 line = in_vcf.readline()
                 if not line:
                     break
-                if line.startswith("#"):
+                if line.startswith("#") or rng.uniform(0, 1) >= params.het:
+                    # write header lines and homozygous variants to both files
                     hap1.write(line)
                     hap2.write(line)
-                    continue
-                if rng.uniform(0, 1) >= params.het:
-                    # write homozygote
+                elif rng.random() < 0.5:
                     hap1.write(line)
-                    hap2.write(line)
                 else:
-                    # 50% chance of falling into hap1 or hap2
-                    if rng.uniform(0, 1) >= 0.5:
-                        hap1.write(line)
-                    else:
-                        hap2.write(line)
+                    hap2.write(line)
 
 use rule diploid_snps as diploid_indels with:
     input:
@@ -143,20 +137,20 @@ use rule diploid_snps as diploid_indels with:
 
 rule simulate_diploid:
     input:
-        snp_hap = f"{outdir}/diploid/{outprefix}.snp.hap" + "{haplotype}.vcf" if snp else [],
-        indel_hap = f"{outdir}/diploid/{outprefix}.indel.hap" + "{haplotype}.vcf" if indel else [],
+        snp_hap = f"{outdir}/diploid/{outprefix}.snp.hap{{haplotype}}.vcf" if snp else [],
+        indel_hap = f"{outdir}/diploid/{outprefix}.indel.hap{{haplotype}}.vcf" if indel else [],
         geno = genome
     output:
-        f"{outdir}/diploid/{outprefix}.hap" + "{haplotype}.fasta",
-        temp(f"{outdir}/diploid/{outprefix}.hap" + "{haplotype}.indel.vcf") if indel else [],
-        temp(f"{outdir}/diploid/{outprefix}.hap" + "{haplotype}.snp.vcf") if snp else []
+        f"{outdir}/diploid/{outprefix}.hap{{haplotype}}.fasta",
+        temp(f"{outdir}/diploid/{outprefix}.hap{{haplotype}}.indel.vcf") if indel else [],
+        temp(f"{outdir}/diploid/{outprefix}.hap{{haplotype}}.snp.vcf") if snp else []
     log:
-        f"{outdir}/logs/{outprefix}.hap" + "{haplotype}.log"
+        f"{outdir}/logs/{outprefix}.hap{{haplotype}}.log"
     params:
-        prefix = lambda wc: f"{outdir}/diploid/{outprefix}.hap" + wc.get("haplotype"),
+        prefix = f"{outdir}/diploid/{outprefix}.hap{{haplotype}}",
         simuG = f"{outdir}/workflow/scripts/simuG.pl",
-        snp = lambda wc: f"-snp_vcf {outdir}/diploid/{outprefix}.snp.hap" + wc.get("haplotype") + ".vcf" if snp else "",
-        indel = lambda wc: f"-indel_vcf {outdir}/diploid/{outprefix}.indel.hap" + wc.get("haplotype") + ".vcf" if indel else ""
+        snp = f"-snp_vcf {outdir}/diploid/{outprefix}.snp.hap{{haplotype}}.vcf" if snp else "",
+        indel = f"-indel_vcf {outdir}/diploid/{outprefix}.indel.hap{{haplotype}}.vcf" if indel else ""
     conda:
         f"{envdir}/simulations.yaml"
     shell:

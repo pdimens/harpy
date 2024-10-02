@@ -95,39 +95,32 @@ rule diploid_variants:
                 line = in_vcf.readline()
                 if not line:
                     break
-                if line.startswith("#"):
+                if line.startswith("#") or rng.uniform(0, 1) >= params.het:
+                    # write header lines and homozygous variants to both files
                     hap1.write(line)
                     hap2.write(line)
-                    continue
-                if rng.uniform(0, 1) >= params.het:
-                    # write homozygote
+                elif rng.random() < 0.5:
                     hap1.write(line)
-                    hap2.write(line)
                 else:
-                    # 50% chance of falling into hap1 or hap2
-                    if rng.uniform(0, 1) >= 0.5:
-                        hap1.write(line)
-                    else:
-                        hap2.write(line)
+                    hap2.write(line)
 
 rule simulate_diploid:
     input:
-        hap = f"{outdir}/diploid/{outprefix}.{variant}.hap" + "{haplotype}.vcf",
+        hap = f"{outdir}/diploid/{outprefix}.{variant}.hap{{haplotype}}.vcf",
         geno = genome
     output:
-        f"{outdir}/diploid/{outprefix}.hap" + "{haplotype}.fasta",
-        temp(f"{outdir}/diploid/{outprefix}.hap" + "{haplotype}.vcf")
+        f"{outdir}/diploid/{outprefix}.hap{{haplotype}}.fasta",
+        temp(f"{outdir}/diploid/{outprefix}.hap{{haplotype}}.vcf")
     log:
-        f"{outdir}/logs/{outprefix}.hap" + "{haplotype}.log"
+        f"{outdir}/logs/{outprefix}.hap{{haplotype}}.log"
     params:
-        prefix = lambda wc: f"{outdir}/diploid/{outprefix}.hap" + wc.get("haplotype"),
+        prefix = f"{outdir}/diploid/{outprefix}.hap{{haplotype}}",
         simuG = f"{outdir}/workflow/scripts/simuG.pl",
         vcf_arg = f"-{variant}_vcf"
     conda:
         f"{envdir}/simulations.yaml"
     shell:
         "perl {params.simuG} -refseq {input.geno} -prefix {params.prefix} {params.vcf_arg} {input.hap} > {log}"
-
 
 rule workflow_summary:
     default_target: True
