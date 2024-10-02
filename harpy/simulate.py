@@ -216,7 +216,7 @@ def linkedreads(genome_hap1, genome_hap2, output_dir, outer_distance, mutation_r
 @click.option('-y', '--snp-gene-constraints', type = click.Choice(["noncoding", "coding", "2d", "4d"]), help = "How to constrain randomly simulated SNPs {`noncoding`,`coding`,`2d`,`4d`}")
 @click.option('-g', '--genes', type = click.Path(exists=True, readable=True), help = "GFF3 file of genes to use with `--snp-gene-constraints`")
 @click.option('-z', '--heterozygosity', type = click.FloatRange(0,1), default = 0, show_default=True, help = 'heterozygosity to simulate diploid variants')
-@click.option('-v', '--only-vcf',  is_flag = True, default = False, help = 'If setting heterozygosity, only create the vcf rather than the fasta files')
+@click.option('--only-vcf',  is_flag = True, default = False, help = 'If setting heterozygosity, only create the vcf rather than the fasta files')
 @click.option('-e', '--exclude-chr', type = click.Path(exists=True, dir_okay=False, readable=True), help = "Text file of chromosomes to avoid")
 @click.option('-o', '--output-dir', type = click.Path(exists = False), default = "Simulate/snpindel", show_default=True,  help = 'Output directory name')
 @click.option('-p', '--prefix', type = str, default= "sim.snpindel", show_default=True, help = "Naming prefix for output files")
@@ -236,9 +236,8 @@ def snpindel(genome, snp_vcf, indel_vcf, only_vcf, output_dir, prefix, snp_count
     to simulate random variants of the selected type.
     
     ### Diploid
-    Setting `--heterozygosity` greater than `0` will create homozygotes and heterozygotes from the simulated variants and
-    create a diploid genome with these variants. Use `--only-vcf` with `--heterozygosity` to only produce the diploid variant VCF file(s)
-    rather than the diploid genome.
+    To simulate a diploid genome with heterozygous and homozygous variants, set `--heterozygosity` to a value greater than `0`.
+    Use `--only-vcf` alongside `--heterozygosity` if you want to generate only the variant VCF file(s) without creating the diploid genome.
     
     The ratio parameters control different things for snp and indel variants and have special
     meanings when setting the value to either `9999` or `0` :
@@ -342,7 +341,7 @@ def snpindel(genome, snp_vcf, indel_vcf, only_vcf, output_dir, prefix, snp_count
 @click.option('-z', '--heterozygosity', type = click.FloatRange(0,1), default = 0, show_default=True, help = 'heterozygosity to simulate diploid variants')
 @click.option('-e', '--exclude-chr', type = click.Path(exists=True, dir_okay=False, readable=True), help = "Text file of chromosomes to avoid")
 @click.option('-p', '--prefix', type = str, default= "sim.inversion", show_default=True, help = "Naming prefix for output files")
-@click.option('-v', '--only-vcf',  is_flag = True, default = False, help = 'If setting heterozygosity, only create the vcf rather than the fasta files')
+@click.option('--only-vcf',  is_flag = True, default = False, help = 'If setting heterozygosity, only create the vcf rather than the fasta files')
 @click.option('-o', '--output-dir', type = click.Path(exists = False), default = "Simulate/inversion", show_default=True,  help = 'Output directory name')
 @click.option('--conda',  is_flag = True, default = False, help = 'Use conda/mamba instead of container')
 @click.option('--setup-only',  is_flag = True, hidden = True, show_default = True, default = False, help = 'Setup the workflow and exit')
@@ -359,9 +358,8 @@ def inversion(genome, vcf, only_vcf, prefix, output_dir, count, min_size, max_si
     Use either a VCF file to simulate known inversions or the command line options listed below to simulate random inversions.
 
     ### Diploid
-    Setting `--heterozygosity` greater than `0` will create homozygotes and heterozygotes from the simulated variants and
-    create a diploid genome with these variants. Use `--only-vcf` with `--heterozygosity` to only produce the diploid variant VCF file(s)
-    rather than the diploid genome.
+    To simulate a diploid genome with heterozygous and homozygous variants, set `--heterozygosity` to a value greater than `0`.
+    Use `--only-vcf` alongside `--heterozygosity` if you want to generate only the variant VCF file(s) without creating the diploid genome.
     """
     if not vcf and count == 0:
         print_error("missing option", "Provide either a `--count` of cnv to randomly simulate or a `--vcf` of known variants to simulate.")
@@ -414,11 +412,11 @@ def inversion(genome, vcf, only_vcf, prefix, output_dir, count, min_size, max_si
         config.write("heterozygosity:\n")
         config.write(f"  value: {heterozygosity}\n")
         config.write(f"  only_vcf: {only_vcf}\n")
+        config.write(f"random_seed: {randomseed}\n") if randomseed else None
         if not vcf:
             config.write(f"count: {count}\n")
             config.write(f"min_size: {min_size}\n") if min_size else None
             config.write(f"max_size: {max_size}\n") if max_size else None
-            config.write(f"random_seed: {randomseed}\n") if randomseed else None
         config.write(f"workflow_call: {command}\n")
         config.write("inputs:\n")
         config.write(f"  genome: {Path(genome).resolve()}\n")
@@ -449,7 +447,7 @@ def inversion(genome, vcf, only_vcf, prefix, output_dir, count, min_size, max_si
 @click.option('-c', '--centromeres', type = click.Path(exists=True, dir_okay=False, readable=True), help = "GFF3 file of centromeres to avoid")
 @click.option('-g', '--genes', type = click.Path(exists=True, dir_okay=False, readable=True), help = "GFF3 file of genes to avoid when simulating (requires `--snp-coding-partition` for SNPs)")
 @click.option('-z', '--heterozygosity', type = click.FloatRange(0,1), default = 0, show_default=True, help = 'heterozygosity to simulate diploid variants')
-@click.option('-v', '--only-vcf',  is_flag = True, default = False, help = 'If setting heterozygosity, only create the vcf rather than the fasta files')
+@click.option('--only-vcf',  is_flag = True, default = False, help = 'If setting heterozygosity, only create the vcf rather than the fasta files')
 @click.option('-e', '--exclude-chr', type = click.Path(exists=True, dir_okay=False, readable=True), help = "Text file of chromosomes to avoid")
 @click.option('-o', '--output-dir', type = click.Path(exists = False), default = "Simulate/cnv", show_default=True,  help = 'Output directory name')
 @click.option('-p', '--prefix', type = str, default= "sim.cnv", show_default=True, help = "Naming prefix for output files")
@@ -468,9 +466,8 @@ def cnv(genome, output_dir, vcf, only_vcf, prefix, count, min_size, max_size, du
     Use either a VCF file to simulate known CNVs or the command line options listed below to simulate random CNVs.
       
     ### Diploid
-    Setting `--heterozygosity` greater than `0` will create homozygotes and heterozygotes from the simulated variants and
-    create a diploid genome with these variants. Use `--only-vcf` with `--heterozygosity` to only produce the diploid variant VCF file(s)
-    rather than the diploid genome.
+    To simulate a diploid genome with heterozygous and homozygous variants, set `--heterozygosity` to a value greater than `0`.
+    Use `--only-vcf` alongside `--heterozygosity` if you want to generate only the variant VCF file(s) without creating the diploid genome.
  
     The two ratio parameters control different things and have special meanings when setting their value to either `9999` or `0`:
     
@@ -561,7 +558,7 @@ def cnv(genome, output_dir, vcf, only_vcf, prefix, count, min_size, max_size, du
 @click.option('-c', '--centromeres', type = click.Path(exists=True, dir_okay=False, readable=True), help = "GFF3 file of centromeres to avoid")
 @click.option('-g', '--genes', type = click.Path(exists=True, dir_okay=False, readable=True), help = "GFF3 file of genes to avoid when simulating")
 @click.option('-z', '--heterozygosity', type = click.FloatRange(0,1), default = 0, show_default=True, help = 'heterozygosity to simulate diploid variants')
-@click.option('-v', '--only-vcf',  is_flag = True, default = False, help = 'If setting heterozygosity, only create the vcf rather than the fasta files')
+@click.option('--only-vcf',  is_flag = True, default = False, help = 'If setting heterozygosity, only create the vcf rather than the fasta files')
 @click.option('-e', '--exclude-chr', type = click.Path(exists=True, dir_okay=False, readable=True), help = "Text file of chromosomes to avoid")
 @click.option('-o', '--output-dir', type = click.Path(exists = False), default = "Simulate/translocation", show_default=True,  help = 'Output directory name')
 @click.option('-p', '--prefix', type = str, default= "sim.translocation", show_default=True, help = "Naming prefix for output files")
@@ -580,9 +577,8 @@ def translocation(genome, output_dir, prefix, vcf, only_vcf, count, centromeres,
     Use either a VCF file to simulate known translocations or the command line options listed below to simulate random translocations.
       
     ### Diploid
-    Setting `--heterozygosity` greater than `0` will create homozygotes and heterozygotes from the simulated variants and
-    create a diploid genome with these variants. Use `--only-vcf` with `--heterozygosity` to only produce the diploid variant VCF file(s)
-    rather than the diploid genome.
+    To simulate a diploid genome with heterozygous and homozygous variants, set `--heterozygosity` to a value greater than `0`.
+    Use `--only-vcf` alongside `--heterozygosity` if you want to generate only the variant VCF file(s) without creating the diploid genome.
     """
     if not vcf and count == 0:
         print_error("missing option", "Provide either a `--count` of cnv to randomly simulate or a `--vcf` of known cnv to simulate.")
