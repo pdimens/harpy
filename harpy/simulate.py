@@ -523,6 +523,7 @@ def cnv(genome, output_dir, vcf, only_vcf, prefix, count, min_size, max_size, du
         config.write(f"output_directory: {output_dir}\n")
         config.write("variant_type: cnv\n")
         config.write(f"prefix: {prefix}\n")
+        config.write(f"random_seed: {randomseed}\n") if randomseed else None
         config.write("heterozygosity:\n")
         config.write(f"  value: {heterozygosity}\n")
         config.write(f"  only_vcf: {only_vcf}\n")
@@ -533,7 +534,6 @@ def cnv(genome, output_dir, vcf, only_vcf, prefix, count, min_size, max_size, du
             config.write(f"dup_ratio: {dup_ratio}\n") if dup_ratio else None
             config.write(f"cnv_max_copy: {max_copy}\n") if max_copy else None
             config.write(f"gain_ratio: {gain_ratio}\n") if gain_ratio else None
-            config.write(f"random_seed: {randomseed}\n") if randomseed else None
         config.write(f"workflow_call: {command}\n")
         config.write("inputs:\n")
         config.write(f"  genome: {Path(genome).resolve()}\n")
@@ -628,9 +628,9 @@ def translocation(genome, output_dir, prefix, vcf, only_vcf, count, centromeres,
         config.write(f"output_directory: {output_dir}\n")
         config.write("variant_type: translocation\n")
         config.write(f"prefix: {prefix}\n")
+        config.write(f"random_seed: {randomseed}\n") if randomseed else None
         if not vcf:
             config.write(f"count: {count}\n")
-            config.write(f"random_seed: {randomseed}\n") if randomseed else None
         config.write("heterozygosity:\n")
         config.write(f"  value: {heterozygosity}\n")
         config.write(f"  only_vcf: {only_vcf}\n")

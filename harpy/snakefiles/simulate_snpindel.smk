@@ -111,10 +111,9 @@ rule diploid_snps:
         f"{outdir}/diploid/{outprefix}.snp.hap1.vcf",
         f"{outdir}/diploid/{outprefix}.snp.hap2.vcf"
     params:
-        heterozygosity
+        het = heterozygosity
     run:
-        if randomseed:
-            random.seed(randomseed)
+        rng = random.Random(randomseed) if randomseed else random.Random()
         with open(input[0], "r") as in_vcf, open(output[0], "w") as hap1, open(output[1], "w") as hap2:
             while True:
                 line = in_vcf.readline()
@@ -124,13 +123,13 @@ rule diploid_snps:
                     hap1.write(line)
                     hap2.write(line)
                     continue
-                if random.uniform(0, 1) >= params[0]:
+                if rng.uniform(0, 1) >= params.het:
                     # write homozygote
                     hap1.write(line)
                     hap2.write(line)
                 else:
                     # 50% chance of falling into hap1 or hap2
-                    if random.uniform(0, 1) >= 0.5:
+                    if rng.uniform(0, 1) >= 0.5:
                         hap1.write(line)
                     else:
                         hap2.write(line)
