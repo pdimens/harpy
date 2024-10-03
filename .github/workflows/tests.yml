@@ -694,19 +694,19 @@ jobs:
         if: always()
         run: |
           harpy simulate inversion --quiet --count 10 -z 0.5 test/genome/genome.fasta.gz
-          harpy simulate inversion --quiet --prefix Simulate/invvcf --vcf Simulate/inversion/diploid/sim.inversion.hap1.vcf  test/genome/genome.fasta.gz
+          harpy simulate inversion --quiet --prefix Simulate/invvcf --vcf Simulate/inversion/diploid/sim.inversion.inversion.   hap1.vcf  test/genome/genome.fasta.gz
       - name: simulate cnv
         shell: micromamba-shell {0}
         if: always()
         run: |
           harpy simulate cnv --quiet --count 10 -z 0.5 test/genome/genome.fasta.gz
-          harpy simulate cnv --quiet --prefix Simulate/cnvvcf --vcf Simulate/cnv/diploid/sim.cnv.hap1.vcf  test/genome/genome.fasta.gz
+          harpy simulate cnv --quiet --prefix Simulate/cnvvcf --vcf Simulate/cnv/diploid/sim.cnv.cnv.hap1.vcf  test/genome/genome.fasta.gz
       - name: simulate translocations
         shell: micromamba-shell {0}
         if: always()
         run: |
           harpy simulate translocation --quiet --count 10 -z 0.5 test/genome/genome.fasta.gz
-          harpy simulate translocation --quiet --prefix Simulate/transvcf --vcf Simulate/translocation/diploid/sim.translocation.hap1.vcf  test/genome/genome.fasta.gz
+          harpy simulate translocation --quiet --prefix Simulate/transvcf --vcf Simulate/translocation/diploid/sim.translocation.translocation.hap1.vcf  test/genome/genome.fasta.gz
 
   simulate_linkedreads:
     needs: [changes, pkgbuild]
