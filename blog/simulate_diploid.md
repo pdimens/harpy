@@ -14,7 +14,7 @@ Harpy provides both a variant and linked-read simulators and this tutorial serve
 show a real-world workflow starting with a haploid genome and creating a diploid genome
 with the variants we want in it, which will then be fed into linked-read simulation. The
 process might seem a little roundabout due to the limitations of the underlying software,
-but it shouldn't be too bad to wrap your head around it! Ultimately, you will create
+but it shouldn't be too bad to wrap your head around it! Ultimately, you will creating
 linked-reads from the resulting genome and then aligning those reads onto your **original**
 genome to identify those variants.
 
@@ -26,25 +26,61 @@ genome. Otherwise use your favorite genome! For learning purposes, the fewer con
 !!!
 ===
 
-## 1. Add snps and indels
 To keep this tutorial simple, but with a certain amount of real-world complexity, let's say you are interested in **inversions** and
-whether your linked-reads will be able to identify inversions in your system. To simulate inversions, we will first simulate SNPs and indels,
-then simulate inversions onto that. The SNPs and indels serve to create typical variants in the downstream linked-reads because it's highly
+whether your linked-reads will be able to identify inversions in your system. To simulate inversions, we will first simulate the inversions,
+then simulate introduce SNPs and small idnels. The SNPs and indels serve to create typical variants in the downstream linked-reads because it's highly
 unlikely that the _only_ variants in your data are a few inversions. 
 
 !!! heterozygosity
 By specifying a heterozygosity value for `harpy simulate ...`, we can make sure that our diploid haplotypes aren't exclusively homozygous for the alternative allele of the variants we are introducing.
 !!!
 
-For demonstrative purposes, let's say I wanted to simulate SNPs and indels like so:
+## 1. Add random inversions
+First, we will need to simulate some inversions and set a `--heterozygosity` value >0 to get a diploid genome as the output.
+If you wanted to manually create inversions in specific areas or with specific lengths, this would be a good starting point too since
+you could manually modify the resulting VCF to create the specific inversions you want (although use `--only-vcf`). We won't be covering
+that here, but you should hopefully be able to intuit how to do that by the end of this tutorial.
+
+```bash
+harpy simulate inversion --conda -n 20 -z 0.5 --min-size 30000 dmel.fa
+```
+==- :icon-terminal: code explation
+- `-n` is the number of random inversions (`20`)
+- `--min-size` is the minimum inversion size (`30000`)
+    - default is 1000 bp, which was arbitrarily made bigger in this example
+- `-z` is the level of heterozygosity (`0.5` = 50%)
+- `-o` is the name of the output directory
+- `--conda` is optional and a matter of runtime preference
+- `GENOME.fa` is your genome file
+==- :icon-git-compare: diagram
+```mermaid
+graph LR
+    geno(haploid genome)-->|simulate inversion -n 20 -z 0.5|hap(sim.fasta):::clean
+    hap-->hap1(haplotype1.fasta)
+    hap-->hap2(haplotype2.fasta)
+    style geno fill:#ebb038,stroke:#d19b2f,stroke-width:2px
+    style hap1 fill:#90c8be,stroke:#6fb6a9,stroke-width:2px
+    style hap2 fill:#bd8fcb,stroke:#a460b7,stroke-width:2px
+    classDef clean fill:#f5f6f9,stroke:#b7c9ef,stroke-width:2px
+```
+=== 📝 output to keep
+The two haploid FASTA files in `Simulate/inversion/diploid/`
+===
+
+## 2. Add snps and indels
+Let's say we wanted to simulate SNPs and indels like so:
 - 500 indels
 - 75k snps
 - introduce a heterozygosity of 10% for the variants
-  - based on https://www.ncbi.nlm.nih.gov/pmc/articles/PMC1203202/pdf/255.pdf
+  - based on [this for flies](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC1203202/pdf/255.pdf)
+
+We will need to first create random SNPs and indels from the haploid genome, then let Harpy create
+the homo/heterozygotes. We can then use the VCFs of hom/het variants to simulate those genotypes ([Step 3](#3-simulate-known-snps-and-indels-onto-the-diploid-genome-with-inversions)) onto
+the resulting diploid genome from [Step 1](#1-add-random-inversions).
 
 The Harpy command to accomplish this is:
 ```bash
-harpy simulate snpindel -m 500 -n 75000 -z 0.1 --conda -o sim_random_snpindel GENOME.fa
+harpy simulate snpindel -m 500 -n 75000 -z 0.1 --conda -o sim_snpindel GENOME.fa
 ```
 ==- :icon-terminal: code explation
 - `-m` is the number of ranbom indels (`500`)
@@ -54,102 +90,74 @@ harpy simulate snpindel -m 500 -n 75000 -z 0.1 --conda -o sim_random_snpindel GE
     - specifying this so subsequent runs don't overwrite each other
 - `--conda` is optional and a matter of runtime preference
 - `GENOME.fa` is your genome file
+==- :icon-git-compare: diagram
+```mermaid
+graph LR
+    geno(haploid genome)-->|simulate snpindel -m 500 -n75000 -z 0.1 --only-vcf|hap(sim.fasta):::clean
+    hap-->snp1(snp.hap1.vcf)
+    hap-->snp2(snp.hap2.vcf)
+    hap-->indel1(indel.hap1.vcf)
+    hap-->indel2(indel.hap2.vcf)
+    style geno fill:#ebb038,stroke:#d19b2f,stroke-width:2px
+    style snp1 fill:#f5f6f9,stroke:#90c8be,stro ke-width:2px
+    style indel1 fill:#f5f6f9,stroke:#90c8be,stro ke-width:2px
+    style snp2 fill:#f5f6f9,stroke:#bd8fcb,stroke-width:2px
+    style indel2 fill:#f5f6f9,stroke:#bd8fcb,stroke-width:2px
+    classDef clean fill:#f5f6f9,stroke:#b7c9ef,stroke-width:2px
+```
+=== 📝 output to keep
+The two VCF files of SNPs and indels in the `diploid/` subdirectory. There should be 2 haplotypes for SNPs and two for indels, depending
+on if you simulated one, the other, or both (up to a total of 4 VCF files).
 ===
 
-### 📝 output to keep
-The two VCFs of snps and indels
+## 3. Simulate "known" snps and indels onto the diploid genome with inversions
+We will run Harpy twice, once for each haplotype, using the corresponding VCFs from [**Step 2**](#2-add-snps-and-indels):
 
-## 2. Add random inversions
-Next, we will need to do pretty much the same thing but for inversions. If you wanted to manually
-create inversions in specific areas or with specific lengths, this would be a good starting point too since
-you could manually modify the resulting VCF to create the specific inversions you want. We won't be covering
-that here, but you should hopefully be able to intuit how to do that by the end of this tutorial.
-
+The Harpy command to accomplish this is:
 ```bash
-harpy simulate inversion --conda -n 20 -z 0.1 --min-size 30000 dmel.nosex.fa
+# haplotype 1
+harpy simulate snpindel --conda --snp-vcf SNP.hap1.vcf --indel-vcf indel.hap1.vcf -o sim_snp_hap1 haplotype1.fa
+
+# haplotype 2
+harpy simulate snpindel --conda --snp-vcf SNP.hap2.vcf --indel-vcf indel.hap2.vcf -o sim_snp_hap2 haplotype2.fa
 ```
 ==- :icon-terminal: code explation
-- `-n` is the number of random inversions (`20`)
-- `--min-size` is the minimum inversion size (`30000`)
-    - default is 1000 bp, which was arbitrarily made bigger in this example
-- `-z` is the level of heterozygosity (`0.1` = 10%)
+- `--snp-vcf` is the vcf of snps for haplotype 1 (or 2) from [**Step 2**](#2-add-snps-and-indels)
+- `--indel-vcf` is the vcf of indels for haplotype 1 (or 2) from [**Step 2**](#2-add-snps-and-indels)
 - `-o` is the name of the output directory
 - `--conda` is optional and a matter of runtime preference
-- `GENOME.fa` is your genome file
-===
+- `haplotypeX.fa` is the two haploype genomes from  [**Step 1**](#1-add-random-inversions)
+==- :icon-git-compare: diagram
+```mermaid
+graph LR
+    subgraph id1 ["Haplotype 1 inputs"]
+      geno1(haplotype1.fasta)
+      snphap1(snp.hap1.vcf)
+      indelhap1(indel.hap1.vcf)
+    end
+    subgraph id2 ["Haplotype 2 inputs"]
+      geno2(haplotype2.fasta)
+      snphap2(snp.hap2.vcf)
+      indelhap2(indel.hap2.vcf)
+    end
 
-### 📝 output to keep
-The two inversion VCFs
+    id1-->|simulate snpindel -s -i|genohap1(haplotype1.fasta final)
+    id2-->|simulate snpindel -s -i|genohap2(haplotype2.fasta final)
 
----
-## ⏸️ Checkpoint ⏸️
-So it seems like we did a bunch of simulating already, but we aren't done just yet. What we have done so far is create
-random variants (SNPs, indels, inversions), and now we need to create a diploid genome from them. Armed with the VCF files
-output from [**Step 1**](#1-add-snps-and-indels) and [**Step 2**](#2-add-random-inversions), we can now build our genome using "known" variants.
-
----
-
-## 3. Create diploid genome from "known" snps and indels
-Using the VCFs from [**Step 1**](#1-add-snps-and-indels), we will run Harpy twice, once for each haplotype, using the corresponding VCFs:
-
-### haplotype 1
-```bash
-harpy simulate snpindel --conda --snp-vcf SNP.hap1.vcf --indel-vcf indel.hap1.vcf -o sim_snp_hap1 GENOME.fa
+    style id1 fill:#f0f0f0,stroke:#e8e8e8,stroke-width:2px
+    style id2 fill:#f0f0f0,stroke:#e8e8e8,stroke-width:2px
+    style geno1 fill:#90c8be,stroke:#6fb6a9,stroke-width:2px
+    style geno2 fill:#bd8fcb,stroke:#a460b7,stroke-width:2px
+    style snphap2 fill:#f5f6f9,stroke:#bd8fcb,stroke-width:2px
+    style snphap1 fill:#f5f6f9,stroke:#90c8be,stro ke-width:2px
+    style indelhap1 fill:#f5f6f9,stroke:#90c8be,stro ke-width:2px
+    style indelhap2 fill:#f5f6f9,stroke:#bd8fcb,stroke-width:2px
+    style genohap1 fill:#90c8be,stroke:#000000,stroke-width:2px
+    style genohap2 fill:#bd8fcb,stroke:#000000,stroke-width:2px
 ```
-
-==- :icon-terminal: code explation
-- `--snp-vcf` is the vcf of snps for haplotype 1 from [**Step 1**](#1-add-snps-and-indels)
-- `--indel-vcf` is the vcf of indels for haplotype 1 from [**Step 1**](#1-add-snps-and-indels)
-- `-o` is the name of the output directory
-- `--conda` is optional and a matter of runtime preference
-- `GENOME.fa` is your genome file
-===
-
-### haplotype 2
-```bash
-harpy simulate snpindel --conda --snp-vcf SNP.hap2.vcf --indel-vcf indel.hap2.vcf -o sim_snp_hap2 GENOME.fa
-```
-==- :icon-terminal: code explation
-- `--snp-vcf` is the vcf of snps for haplotype 2 from [**Step 1**](#1-add-snps-and-indels)
-- `--indel-vcf` is the vcf of indels for haplotype 2 from [**Step 1**](#1-add-snps-and-indels)
-- `-o` is the name of the output directory
-- `--conda` is optional and a matter of runtime preference
-- `GENOME.fa` is your genome file
-===
-
-### 📝 output to keep
+=== 📝 output to keep
 The resulting genomes for both haplotype 1 and haplotype 2
-
-## 4. Add "known" inversions to the two haplotypes
-Now, all that's left is to repeat this process with the inversion VCFs from [**Step 2**](#2-add-random-inversions):
-
-### haplotype 1
-```bash
-harpy simulate inversion --conda --vcf VCF_inversions -o sim_inversions_hap1 geno.hap1.fa
-```
-==- :icon-terminal: code explation
-- `--vcf` is the vcf of inversions for haplotype 1 from [**Step 2**](#2-add-random-inversions)
-- `-o` is the name of the output directory
-- `--conda` is optional and a matter of runtime preference
-- `geno.hap1.fa` is the resulting genome from [**Step 3: haplotype 1**](#haplotype-1)
- - i.e. haplotype 1 with the simulated snps, and indels
 ===
-
-### haplotype 2
-```bash
-harpy simulate inversion --conda --vcf VCF_inversions -o inversions_hap2 geno.hap2.fa
-```
-==- :icon-terminal: code explation
-- `--vcf` is the vcf of inversions for haplotype 1 from [**Step 2**](#2-add-random-inversions)
-- `-o` is the name of the output directory
-- `--conda` is optional and a matter of runtime preference
-- `geno.hap1.fa` is the resulting genome from [**Step 3: haplotype 2**](#haplotype-2)
- - i.e. haplotype 2 with the simulated snps and indels
-===
-
-### 📝 output to keep
-The resulting genomes for both haplotype 1 and haplotype 2. These two fasta files make up your diploid genome! 🎉🎉
-
 -------
 
 ## 5. Simulating linked-reads
@@ -161,8 +169,8 @@ harpy simulate linkedreads --conda -t 4 HAP1.fa HAP2.fa
 ==- :icon-terminal: code explation
 - `--conda` is optional and a matter of runtime preference
 - `-t` is the number of threads to use (`4`)
-- `HAP1.fa` is the resulting genome from [**Step 4: haplotype 1**](#haplotype-1-1)
+- `HAP1.fa` is the resulting genome from [**Step 3: haplotype 1**](#3-simulate-known-snps-and-indels-onto-the-diploid-genome-with-inversions)
  - i.e. haplotype 1 with the simulated snps, indels, and inversions
-- `HAP2.fa` is the resulting genome from [**Step 4: haplotype 2**](#haplotype-2-1)
+- `HAP2.fa` is the resulting genome from [**Step 3: haplotype 2**](#3-simulate-known-snps-and-indels-onto-the-diploid-genome-with-inversions)
  - i.e. haplotype 2 with the simulated snps, indels, and inversions
 ===

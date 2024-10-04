@@ -40,10 +40,10 @@ There are 4 submodules with very obvious names:
 | [!badge corners="pill" text="translocation"](#translocation) | simulates translocations |
 
 ## :icon-terminal: Running Options
-While there are serveral differences between the submodule command line options, each has available all the
-[!badge variant="info" corners="pill" text="common runtime options"](/commonoptions.md) like other Harpy modules. Each requires and input genome at the
-end of the command line, and each requires either a `--count` of variants to randomly simulate, or a `--vcf` of
-specific variants to simulate. There are also these unifying options among the different variant types:
+While there are serveral differences between individual workflow options, each has available all the
+[!badge variant="info" corners="pill" text="common runtime options"](/commonoptions.md) like other Harpy modules.
+Each requires and input genome at the end of the command line, and each requires either a `--count` of variants
+to randomly simulate, or a `--vcf` of specific variants to simulate. There are also these unifying options among the different variant types:
 
 {.compact}
 | argument | short name | type |  required | description |
@@ -52,16 +52,18 @@ specific variants to simulate. There are also these unifying options among the d
 | `--centromeres` | `-c` | file path |  | GFF3 file of centromeres to avoid |
 | `--exclude-chr` | `-e` | file path |  | Text file of chromosomes to avoid, one per line |
 | `--genes` | `-g` | file path |   | GFF3 file of genes to avoid simulating over (see `snpindel` for caveat) |
-| `--heterozygosity` | `-z` | float between [0,1] |  | [% heterozygosity to simulate diploid later](#heterozygosity) (default: `0`) |
+| `--heterozygosity` | `-z` | float between [0,1] |  | [proportion of simulated variants to make heterozygous   ](#heterozygosity) (default: `0`) |
+| `--only-vcf` | | toggle | | When used with `--heterozygosity`, will create the diploid VCFs but will not simulate a diploid genome |
 | `--prefix` | | string |   | Naming prefix for output files (default: `sim.{module_name}`)|
 | `--randomseed` |  | integer |   | Random seed for simulation |
 
-+++ 🟣 snps and indels
-### snpindel
-!!!warning SNPs can be slow
-Given software limitations, simulating many SNPs (>10,000) will be noticeably slower than the other variant types.
+!!!warning simulations can be slow
+Given software limitations, simulating many variants **relative to the size of the input genome** will be noticeably slow.
+The program slows down substantially when it becomes difficult to find new sites to create variants.
 !!!
 
++++ 🟣 snps and indels
+### snpindel
 A single nucleotide polymorphism ("SNP") is a genomic variant at a single base position in the DNA ([source](https://www.genome.gov/genetics-glossary/Single-Nucleotide-Polymorphisms)).
 An indel, is a type of mutation that involves the addition/deletion of one or more nucleotides into a segment of DNA ([insertions](https://www.genome.gov/genetics-glossary/Insertion), [deletions](https://www.genome.gov/genetics-glossary/Deletion)).
 The snp and indel variants are combined in this module because `simuG` allows simulating them together. 
@@ -137,7 +139,7 @@ A translocation occurs when a chromosome breaks and the fragmented pieces re-att
 +++
 
 ## Simulate known variants
-Rather than simulating random variants, you can use a VCF file as input to any of the submodules
+Rather than simulating random variants, you can use a VCF file as input to any of the workflows
 to have `simuG` simulate the variants (of that type) from the VCF file. This becomes particularly
 handy because the modules output a VCF file of the variants that were introduced, which you can
 modify and reuse as you see fit (see [heterozygosity](#heterozygosity)). Using `--genes`, 
@@ -146,14 +148,13 @@ random simulation, except with SNPs, where you would have to specify the contrai
 `--genes` as per usual.
 
 ## Heterozygosity
-Each submodule has a `--heterozygosity` parameter where you can specify the heterozygosity of
-an intended diploid genome, should you use the resulting VCF(s) to simulate variants again.
- This **does not** create a diploid genome for you, rather, it
-takes the output VCF from `simuG` and creates two new VCF files (`{prefix}.hap1.vcf`,
+Each workflow has a `--heterozygosity` parameter where you can specify the heterozygosity of
+the simulated variants, which creates two new VCF files (`{prefix}.hap1.vcf`,
 `{prefix}.hap2.vcf`) that have their variants shuffled between the two haplotypes to
-achieve the desired heterozygosity. You can then use the two resulting VCF files to
-[simulate known variants](#simulate-known-variants) onto a genome and create a diploid genome!
-A simplified workflow is provided below to explain that in better context. 
+achieve the desired heterozygosity. The workflows will then use the new "diploid" variants
+to generate a diploid genome-- one fasta file for each haplotype. You can disable the creation
+of the diploid fasta files using `--only-vcf`, which will still create the VCF files of the variants
+to your chosen heterozygosity.
 
 ==- How the paramater is actually used
 To understand how heterozygosity is created from the `simuG` VCF output, consider a genome
@@ -207,96 +208,3 @@ So that's the logic behind the `--heterozygosity` parameter and why it ouputs 3 
 Knowing that, you can then have a workflow to start with a haploid assembly and create
 a diploid assembly with simulated variants.
 ==-
-
-## Simulate Diploid Assembly
-Here is a simple but realistic workflow of creating a diploid assembly with simulated variants. Due
-to the roundabout complexity of the process, attempts were made to use color to help keep track of the
-original haploid genome and the resulting genome haplotypes. For a detailed look at this, see the
-[tutorial](/blog/simulate_diploid.md).
-If you haven't already, please read the sections about [simulating known variants](#simulate-known-variants)
-and [heterozygosity](#heterozygosity). The idea here is that due to the limitations of `simuG`, we can
-only simulate one type of variant at a time and we will take advantage of the VCF files created by
-the `--heterozygosity` parameter to simulate known variants from random ones! The basic idea is such:
-
-#### Step 1
-Simulate random variants onto your haploid assembly with `--heterozygosity` (`-z`) set above `0`.
-We aren't interested in the resulting genome, but rather the positions of the variants `simuG` created.
-```mermaid
-graph LR
-    geno(haploid genome)-->|simulate inversion -n 10 -z 0.5|hap(inversions.vcf):::clean
-    hap-->hap1(inversion.hap1.vcf)
-    hap-->hap2(inversion.hap2.vcf)
-    style geno fill:#ebb038,stroke:#d19b2f,stroke-width:2px
-    style hap1 fill:#f5f6f9,stroke:#90c8be,stroke-width:2px
-    style hap2 fill:#f5f6f9,stroke:#bd8fcb,stroke-width:2px
-    classDef clean fill:#f5f6f9,stroke:#b7c9ef,stroke-width:2px
-```
-#### Step 2
-Use the resulting hap1 and hap2 VCF files to simulate those same variants, but shuffled
-into homozygotes and heterozygotes, onto the original haploid genome, creating two haplotype
-genomes. 
-```mermaid
-graph LR
-    subgraph id1 ["Haplotype 1 Inputs"]
-    hap1(inversion.hap1.vcf)---geno(haploid genome)
-    end
-    id1-->|simulate inversion -v|hapgeno(haplotype-1 genome)
-    style id1 fill:#f0f0f0,stroke:#e8e8e8,stroke-width:2px
-    style hap1 fill:#f5f6f9,stroke:#90c8be,stroke-width:2px
-    style hapgeno fill:#90c8be,stroke:#6fb6a9,stroke-width:2px
-    style geno fill:#ebb038,stroke:#d19b2f,stroke-width:2px
-```
-```mermaid
-graph LR
-    subgraph id2 ["Haplotype 2 Inputs"]
-    hap2(inversion.hap2.vcf)---geno(haploid genome)
-    end
-    id2-->|simulate inversion -v|hapgeno2(haplotype-2 genome)
-    style id2 fill:#f0f0f0,stroke:#e8e8e8,stroke-width:2px
-    style hap2 fill:#f5f6f9,stroke:#bd8fcb,stroke-width:2px
-    style hapgeno2 fill:#bd8fcb,stroke:#a460b7,stroke-width:2px
-    style geno fill:#ebb038,stroke:#d19b2f,stroke-width:2px
-```
-#### Step 3
-Use the one of the new genome haplotypes for simulating other kinds of variants. 
-Again, use `--heterozygosity` (`-z`) with a value greater than `0`. Like [**Step 1**](#step-1),
-we're only interested in the haplotype VCF files (positions of variants) and not the resulting
-genome.
-```mermaid
-graph LR
-    geno(haplotype-1 genome)-->|simulate snpindel -n 100000 -z 0.5|hap(snpindel.vcf):::clean
-    hap-->hap1(snpindel.hap1.vcf)
-    hap-->hap2(snpindel.hap2.vcf)
-    style geno fill:#90c8be,stroke:#6fb6a9,stroke-width:2px
-    style hap1 fill:#f5f6f9,stroke:#90c8be,stroke-width:2px
-    style hap2 fill:#f5f6f9,stroke:#bd8fcb,stroke-width:2px
-    classDef clean fill:#f5f6f9,stroke:#b7c9ef,stroke-width:2px
-```
-#### Step 4
-Use the resulting haplotype VCFs to simulate known variants onto the **haplotype genomes** from
-[Step 2](#step-2).
-```mermaid
-graph LR
-    subgraph id1 ["Haplotype 1 inputs"]
-    hap1(snpindel.hap1.vcf)---geno(haplotype-1 genome)
-    end
-    id1-->|simulate inversion -v|genohap1(haplotype-1 genome with new variants)
-    style id1 fill:#f0f0f0,stroke:#e8e8e8,stroke-width:2px
-    style geno fill:#90c8be,stroke:#6fb6a9,stroke-width:2px
-    style hap1 fill:#f5f6f9,stroke:#90c8be,stroke-width:2px
-    style genohap1 fill:#90c8be,stroke:#000000,stroke-width:2px
-```
-```mermaid
-graph LR
-    subgraph id2 ["Haplotype 2 inputs"]
-    hap2(snpindel.hap2.vcf)---geno(haplotype-2 genome)
-    end
-    id2-->|simulate inversion -v|genohap2(haplotype-2 genome with new variants)
-    style id2 fill:#f0f0f0,stroke:#e8e8e8,stroke-width:2px
-    style geno fill:#bd8fcb,stroke:#a460b7,stroke-width:2px
-    style hap2 fill:#f5f6f9,stroke:#bd8fcb,stroke-width:2px
-    style genohap2 fill:#bd8fcb,stroke:#000000,stroke-width:2px
-```
-
-#### Step 5
-Repeat [**Step 3**](#step-3) and [**Step 4**](#step-4) to your heart's content.
