@@ -694,7 +694,7 @@ jobs:
         if: always()
         run: |
           harpy simulate inversion --quiet --count 10 -z 0.5 test/genome/genome.fasta.gz
-          harpy simulate inversion --quiet --prefix Simulate/invvcf --vcf Simulate/inversion/diploid/sim.inversion.inversion.   hap1.vcf  test/genome/genome.fasta.gz
+          harpy simulate inversion --quiet --prefix Simulate/invvcf --vcf Simulate/inversion/diploid/sim.inversion.inversion.hap1.vcf  test/genome/genome.fasta.gz
       - name: simulate cnv
         shell: micromamba-shell {0}
         if: always()
