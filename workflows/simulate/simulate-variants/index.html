@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="turbo-root" content="/harpy">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="3.6.0.781118438057">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="3.6.0.781380313849">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 3.6.0">
@@ -32,13 +32,12 @@
     <script data-cfasync="false">(function () { var el = document.documentElement, m = localStorage.getItem("doc_theme"), wm = window.matchMedia; if (m === "dark" || (!m && wm && wm("(prefers-color-scheme: dark)").matches)) { el.classList.add("dark") } else { el.classList.remove("dark") } })();</script>
 
     <link href="../../../static/favicon.png" rel="icon">
-    <link href="../../../resources/css/retype.css?v=3.6.0.781118438057" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=3.6.0.781380313849" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=3.6.0.781118438057" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=3.6.0.781380313849" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=3.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=3.6.0.781118438057" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=3.6.0.781118438057" defer></script>
-    <script id="mermaid-js" data-cfasync="false" src="../../../resources/js/mermaid.js?v=3.6.0" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=3.6.0.781380313849" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=3.6.0.781380313849" defer></script>
 </head>
 <body>
     <div id="docs-app" class="relative text-base antialiased text-gray-700 bg-white font-body dark:bg-dark-850 dark:text-dark-300">
@@ -59,7 +58,7 @@
                                 <img class="max-h-10 hidden dark:inline-block" src="../../../static/logo_navbar.png">
                             </span>
                             <span class="dark:text-white font-semibold line-clamp-1 md:line-clamp-2">Harpy</span>
-                        </a><span class="hidden px-2 py-1 ml-4 text-sm font-semibold leading-none text-root-logo-label-text bg-root-logo-label-bg rounded-sm md:inline-block">v1.8</span>
+                        </a><span class="hidden px-2 py-1 ml-4 text-sm font-semibold leading-none text-root-logo-label-text bg-root-logo-label-bg rounded-sm md:inline-block">v1.9</span>
                     </div>
         
                     <span class="hidden h-8 border-r md:inline-block dark:border-dark-650"></span>
@@ -351,12 +350,12 @@ for simulating variants is:</p>
         <span><svg xmlns="http://www.w3.org/2000/svg" class="docs-icon" viewBox="0 0 24 24" role="presentation"><g fill="currentColor"><g><path d="M9.25 12a.75.75 0 0 1-.22.53l-2.75 2.75a.75.75 0 0 1-1.06-1.06L7.44 12 5.22 9.78a.75.75 0 1 1 1.06-1.06l2.75 2.75c.141.14.22.331.22.53Zm2 2a.75.75 0 0 0 0 1.5h5a.75.75 0 0 0 0-1.5h-5Z"/><path d="M0 4.75C0 3.784.784 3 1.75 3h20.5c.966 0 1.75.784 1.75 1.75v14.5A1.75 1.75 0 0 1 22.25 21H1.75A1.75 1.75 0 0 1 0 19.25Zm1.75-.25a.25.25 0 0 0-.25.25v14.5c0 .138.112.25.25.25h20.5a.25.25 0 0 0 .25-.25V4.75a.25.25 0 0 0-.25-.25Z"/></g></g></svg> Running Options</span>
     </h2>
 </doc-anchor-target>
-<p>While there are serveral differences between the submodule command line options, each has available all the
+<p>While there are serveral differences between individual workflow options, each has available all the
 <a href="../../../commonoptions/" class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-blue-500 dark:text-blue-400 border border-blue-500 dark:border-blue-400 hover:bg-blue-100 dark:hover:bg-transparent dark:hover:border-blue-200 dark:hover:text-blue-200 transition-colors duration-200 ease-out h-6 px-2 text-xs rounded-full">
     <span>common runtime options</span>
-</a> like other Harpy modules. Each requires and input genome at the
-end of the command line, and each requires either a <code v-pre>--count</code> of variants to randomly simulate, or a <code v-pre>--vcf</code> of
-specific variants to simulate. There are also these unifying options among the different variant types:</p>
+</a> like other Harpy modules.
+Each requires and input genome at the end of the command line, and each requires either a <code v-pre>--count</code> of variants
+to randomly simulate, or a <code v-pre>--vcf</code> of specific variants to simulate. There are also these unifying options among the different variant types:</p>
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="compact">
 <thead>
@@ -402,7 +401,14 @@ specific variants to simulate. There are also these unifying options among the d
 <td style="text-align: left;"><code v-pre>-z</code></td>
 <td style="text-align: left;">float between [0,1]</td>
 <td style="text-align: center;"></td>
-<td style="text-align: left;"><doc-anchor-trigger to="#heterozygosity">% heterozygosity to simulate diploid later</doc-anchor-trigger> (default: <code v-pre>0</code>)</td>
+<td style="text-align: left;"><doc-anchor-trigger to="#heterozygosity">proportion of simulated variants to make heterozygous   </doc-anchor-trigger> (default: <code v-pre>0</code>)</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code v-pre>--only-vcf</code></td>
+<td style="text-align: left;"></td>
+<td style="text-align: left;">toggle</td>
+<td style="text-align: center;"></td>
+<td style="text-align: left;">When used with <code v-pre>--heterozygosity</code>, will create the diploid VCFs but will not simulate a diploid genome</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code v-pre>--prefix</code></td>
@@ -421,15 +427,6 @@ specific variants to simulate. There are also these unifying options among the d
 </tbody>
 </table>
 </div>
-<doc-tabs>
-<doc-tab v-cloak id="snps-and-indels">
-<template #title><span class="docs-emoji">&#x1F7E3;</span> snps and indels</template>
-<doc-anchor-target id="snpindel">
-    <h3>
-        <doc-anchor-trigger class="header-anchor-trigger" to="#snpindel">#</doc-anchor-trigger>
-        <span>snpindel</span>
-    </h3>
-</doc-anchor-target>
 <div class="flex mb-6">
     <div class="shrink-0 w-1 rounded-tl rounded-bl bg-yellow-500"></div>
     <div class="flex w-full py-4 border border-l-0 border-gray-300 rounded-tr rounded-br doc-alert bg-white dark:bg-dark-700 dark:border-dark-700" role="alert">
@@ -442,11 +439,21 @@ specific variants to simulate. There are also these unifying options among the d
             </svg>
         </div>
         <div class="pr-5 ml-3 w-full">
-            <h5>SNPs can be slow</h5>
-<p>Given software limitations, simulating many SNPs (&gt;10,000) will be noticeably slower than the other variant types.</p>
+            <h5>simulations can be slow</h5>
+<p>Given software limitations, simulating many variants <strong>relative to the size of the input genome</strong> will be noticeably slow.
+The program slows down substantially when it becomes difficult to find new sites to create variants.</p>
         </div>
     </div>
 </div>
+<doc-tabs>
+<doc-tab v-cloak id="snps-and-indels">
+<template #title><span class="docs-emoji">&#x1F7E3;</span> snps and indels</template>
+<doc-anchor-target id="snpindel">
+    <h3>
+        <doc-anchor-trigger class="header-anchor-trigger" to="#snpindel">#</doc-anchor-trigger>
+        <span>snpindel</span>
+    </h3>
+</doc-anchor-target>
 <p>A single nucleotide polymorphism (&quot;SNP&quot;) is a genomic variant at a single base position in the DNA (<a href="https://www.genome.gov/genetics-glossary/Single-Nucleotide-Polymorphisms">source</a>).
 An indel, is a type of mutation that involves the addition/deletion of one or more nucleotides into a segment of DNA (<a href="https://www.genome.gov/genetics-glossary/Insertion">insertions</a>, <a href="https://www.genome.gov/genetics-glossary/Deletion">deletions</a>).
 The snp and indel variants are combined in this module because <code v-pre>simuG</code> allows simulating them together.</p>
@@ -752,7 +759,7 @@ between individuals (<a href="https://www.genome.gov/genetics-glossary/Copy-Numb
         <span>Simulate known variants</span>
     </h2>
 </doc-anchor-target>
-<p>Rather than simulating random variants, you can use a VCF file as input to any of the submodules
+<p>Rather than simulating random variants, you can use a VCF file as input to any of the workflows
 to have <code v-pre>simuG</code> simulate the variants (of that type) from the VCF file. This becomes particularly
 handy because the modules output a VCF file of the variants that were introduced, which you can
 modify and reuse as you see fit (see <doc-anchor-trigger to="#heterozygosity">heterozygosity</doc-anchor-trigger>). Using <code v-pre>--genes</code>,
@@ -765,14 +772,13 @@ random simulation, except with SNPs, where you would have to specify the contrai
         <span>Heterozygosity</span>
     </h2>
 </doc-anchor-target>
-<p>Each submodule has a <code v-pre>--heterozygosity</code> parameter where you can specify the heterozygosity of
-an intended diploid genome, should you use the resulting VCF(s) to simulate variants again.
-This <strong>does not</strong> create a diploid genome for you, rather, it
-takes the output VCF from <code v-pre>simuG</code> and creates two new VCF files (<code v-pre>{prefix}.hap1.vcf</code>,
+<p>Each workflow has a <code v-pre>--heterozygosity</code> parameter where you can specify the heterozygosity of
+the simulated variants, which creates two new VCF files (<code v-pre>{prefix}.hap1.vcf</code>,
 <code v-pre>{prefix}.hap2.vcf</code>) that have their variants shuffled between the two haplotypes to
-achieve the desired heterozygosity. You can then use the two resulting VCF files to
-<doc-anchor-trigger to="#simulate-known-variants">simulate known variants</doc-anchor-trigger> onto a genome and create a diploid genome!
-A simplified workflow is provided below to explain that in better context.</p>
+achieve the desired heterozygosity. The workflows will then use the new &quot;diploid&quot; variants
+to generate a diploid genome-- one fasta file for each haplotype. You can disable the creation
+of the diploid fasta files using <code v-pre>--only-vcf</code>, which will still create the VCF files of the variants
+to your chosen heterozygosity.</p>
 <doc-panel id="how-the-paramater-is-actually-used" collapsed>
     <template #title>How the paramater is actually used</template>
 <p>To understand how heterozygosity is created from the <code v-pre>simuG</code> VCF output, consider a genome
@@ -827,114 +833,6 @@ So that&#x27;s the logic behind the <code v-pre>--heterozygosity</code> paramete
 <p>Knowing that, you can then have a workflow to start with a haploid assembly and create
 a diploid assembly with simulated variants.</p>
 </doc-panel>
-<doc-anchor-target id="simulate-diploid-assembly">
-    <h2>
-        <doc-anchor-trigger class="header-anchor-trigger" to="#simulate-diploid-assembly">#</doc-anchor-trigger>
-        <span>Simulate Diploid Assembly</span>
-    </h2>
-</doc-anchor-target>
-<p>Here is a simple but realistic workflow of creating a diploid assembly with simulated variants. Due
-to the roundabout complexity of the process, attempts were made to use color to help keep track of the
-original haploid genome and the resulting genome haplotypes. For a detailed look at this, see the
-<a href="../../../blog/simulate_diploid/">tutorial</a>.
-If you haven&#x27;t already, please read the sections about <doc-anchor-trigger to="#simulate-known-variants">simulating known variants</doc-anchor-trigger>
-and <doc-anchor-trigger to="#heterozygosity">heterozygosity</doc-anchor-trigger>. The idea here is that due to the limitations of <code v-pre>simuG</code>, we can
-only simulate one type of variant at a time and we will take advantage of the VCF files created by
-the <code v-pre>--heterozygosity</code> parameter to simulate known variants from random ones! The basic idea is such:</p>
-<doc-anchor-target id="step-1">
-    <h4>
-        <doc-anchor-trigger class="header-anchor-trigger" to="#step-1">#</doc-anchor-trigger>
-        <span>Step 1</span>
-    </h4>
-</doc-anchor-target>
-<p>Simulate random variants onto your haploid assembly with <code v-pre>--heterozygosity</code> (<code v-pre>-z</code>) set above <code v-pre>0</code>.
-We aren&#x27;t interested in the resulting genome, but rather the positions of the variants <code v-pre>simuG</code> created.</p>
-<div class="overflow-hidden mb-6 py-4 dark:px-5 dark:bg-white rounded-md"><pre class="mermaid w-full">graph LR
-    geno(haploid genome)--&gt;|simulate inversion -n 10 -z 0.5|hap(inversions.vcf):::clean
-    hap--&gt;hap1(inversion.hap1.vcf)
-    hap--&gt;hap2(inversion.hap2.vcf)
-    style geno fill:#ebb038,stroke:#d19b2f,stroke-width:2px
-    style hap1 fill:#f5f6f9,stroke:#90c8be,stroke-width:2px
-    style hap2 fill:#f5f6f9,stroke:#bd8fcb,stroke-width:2px
-    classDef clean fill:#f5f6f9,stroke:#b7c9ef,stroke-width:2px</pre></div>
-<doc-anchor-target id="step-2">
-    <h4>
-        <doc-anchor-trigger class="header-anchor-trigger" to="#step-2">#</doc-anchor-trigger>
-        <span>Step 2</span>
-    </h4>
-</doc-anchor-target>
-<p>Use the resulting hap1 and hap2 VCF files to simulate those same variants, but shuffled
-into homozygotes and heterozygotes, onto the original haploid genome, creating two haplotype
-genomes.</p>
-<div class="overflow-hidden mb-6 py-4 dark:px-5 dark:bg-white rounded-md"><pre class="mermaid w-full">graph LR
-    subgraph id1 [&quot;Haplotype 1 Inputs&quot;]
-    hap1(inversion.hap1.vcf)---geno(haploid genome)
-    end
-    id1--&gt;|simulate inversion -v|hapgeno(haplotype-1 genome)
-    style id1 fill:#f0f0f0,stroke:#e8e8e8,stroke-width:2px
-    style hap1 fill:#f5f6f9,stroke:#90c8be,stroke-width:2px
-    style hapgeno fill:#90c8be,stroke:#6fb6a9,stroke-width:2px
-    style geno fill:#ebb038,stroke:#d19b2f,stroke-width:2px</pre></div>
-<div class="overflow-hidden mb-6 py-4 dark:px-5 dark:bg-white rounded-md"><pre class="mermaid w-full">graph LR
-    subgraph id2 [&quot;Haplotype 2 Inputs&quot;]
-    hap2(inversion.hap2.vcf)---geno(haploid genome)
-    end
-    id2--&gt;|simulate inversion -v|hapgeno2(haplotype-2 genome)
-    style id2 fill:#f0f0f0,stroke:#e8e8e8,stroke-width:2px
-    style hap2 fill:#f5f6f9,stroke:#bd8fcb,stroke-width:2px
-    style hapgeno2 fill:#bd8fcb,stroke:#a460b7,stroke-width:2px
-    style geno fill:#ebb038,stroke:#d19b2f,stroke-width:2px</pre></div>
-<doc-anchor-target id="step-3">
-    <h4>
-        <doc-anchor-trigger class="header-anchor-trigger" to="#step-3">#</doc-anchor-trigger>
-        <span>Step 3</span>
-    </h4>
-</doc-anchor-target>
-<p>Use the one of the new genome haplotypes for simulating other kinds of variants.
-Again, use <code v-pre>--heterozygosity</code> (<code v-pre>-z</code>) with a value greater than <code v-pre>0</code>. Like <doc-anchor-trigger to="#step-1"><strong>Step 1</strong></doc-anchor-trigger>,
-we&#x27;re only interested in the haplotype VCF files (positions of variants) and not the resulting
-genome.</p>
-<div class="overflow-hidden mb-6 py-4 dark:px-5 dark:bg-white rounded-md"><pre class="mermaid w-full">graph LR
-    geno(haplotype-1 genome)--&gt;|simulate snpindel -n 100000 -z 0.5|hap(snpindel.vcf):::clean
-    hap--&gt;hap1(snpindel.hap1.vcf)
-    hap--&gt;hap2(snpindel.hap2.vcf)
-    style geno fill:#90c8be,stroke:#6fb6a9,stroke-width:2px
-    style hap1 fill:#f5f6f9,stroke:#90c8be,stroke-width:2px
-    style hap2 fill:#f5f6f9,stroke:#bd8fcb,stroke-width:2px
-    classDef clean fill:#f5f6f9,stroke:#b7c9ef,stroke-width:2px</pre></div>
-<doc-anchor-target id="step-4">
-    <h4>
-        <doc-anchor-trigger class="header-anchor-trigger" to="#step-4">#</doc-anchor-trigger>
-        <span>Step 4</span>
-    </h4>
-</doc-anchor-target>
-<p>Use the resulting haplotype VCFs to simulate known variants onto the <strong>haplotype genomes</strong> from
-<doc-anchor-trigger to="#step-2">Step 2</doc-anchor-trigger>.</p>
-<div class="overflow-hidden mb-6 py-4 dark:px-5 dark:bg-white rounded-md"><pre class="mermaid w-full">graph LR
-    subgraph id1 [&quot;Haplotype 1 inputs&quot;]
-    hap1(snpindel.hap1.vcf)---geno(haplotype-1 genome)
-    end
-    id1--&gt;|simulate inversion -v|genohap1(haplotype-1 genome with new variants)
-    style id1 fill:#f0f0f0,stroke:#e8e8e8,stroke-width:2px
-    style geno fill:#90c8be,stroke:#6fb6a9,stroke-width:2px
-    style hap1 fill:#f5f6f9,stroke:#90c8be,stroke-width:2px
-    style genohap1 fill:#90c8be,stroke:#000000,stroke-width:2px</pre></div>
-<div class="overflow-hidden mb-6 py-4 dark:px-5 dark:bg-white rounded-md"><pre class="mermaid w-full">graph LR
-    subgraph id2 [&quot;Haplotype 2 inputs&quot;]
-    hap2(snpindel.hap2.vcf)---geno(haplotype-2 genome)
-    end
-    id2--&gt;|simulate inversion -v|genohap2(haplotype-2 genome with new variants)
-    style id2 fill:#f0f0f0,stroke:#e8e8e8,stroke-width:2px
-    style geno fill:#bd8fcb,stroke:#a460b7,stroke-width:2px
-    style hap2 fill:#f5f6f9,stroke:#bd8fcb,stroke-width:2px
-    style genohap2 fill:#bd8fcb,stroke:#000000,stroke-width:2px</pre></div>
-<doc-anchor-target id="step-5">
-    <h4>
-        <doc-anchor-trigger class="header-anchor-trigger" to="#step-5">#</doc-anchor-trigger>
-        <span>Step 5</span>
-    </h4>
-</doc-anchor-target>
-<p>Repeat <doc-anchor-trigger to="#step-3"><strong>Step 3</strong></doc-anchor-trigger> and <doc-anchor-trigger to="#step-4"><strong>Step 4</strong></doc-anchor-trigger> to your heart&#x27;s content.</p>
 
                                 
                                 <!-- Required only on API pages -->
@@ -1007,6 +905,6 @@ genome.</p>
 
     <div id="docs-overlay-target"></div>
 
-    <script data-cfasync="false">window.__DOCS__ = { "title": "Variants", level: 3, icon: "file", hasPrism: true, hasMermaid: true, hasMath: false, tocDepth: 23 }</script>
+    <script data-cfasync="false">window.__DOCS__ = { "title": "Variants", level: 3, icon: "file", hasPrism: true, hasMermaid: false, hasMath: false, tocDepth: 23 }</script>
 </body>
 </html>
