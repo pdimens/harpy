@@ -55,7 +55,7 @@ harpy snp mpileup --threads 20 --genome genome.fasta Align/bwa
 harpy snp freebayes --threads 20 --genome genome.fasta Align/bwa
 ```
 
-## :icon-terminal: Running Optionso
+## :icon-terminal: Running Options
 In addition to the [!badge variant="info" corners="pill" text="common runtime options"](../commonoptions.md), the [!badge corners="pill" text="snp"] module is configured using these command-line arguments:
 
 {.compact}
