@@ -55,7 +55,7 @@ harpy simulate inversion --conda -n 20 -z 0.5 --min-size 30000 dmel.fa
 ==- :icon-git-compare: diagram
 ```mermaid
 graph LR
-    geno(haploid genome)-->|simulate inversion -n 20 -z 0.5|hap(sim.fasta):::clean
+    geno(haploid genome)-->|simulate inversion ... -z 0.5|hap(sim.fasta):::clean
     hap-->hap1(haplotype1.fasta)
     hap-->hap2(haplotype2.fasta)
     style geno fill:#ebb038,stroke:#d19b2f,stroke-width:2px
@@ -94,7 +94,7 @@ harpy simulate snpindel -m 500 -n 75000 -z 0.1 --only-vcf --conda -o sim_snpinde
 ==- :icon-git-compare: diagram
 ```mermaid
 graph LR
-    geno(haploid genome)-->|simulate snpindel -m 500 -n75000 -z 0.1 --only-vcf|hap(sim.fasta):::clean
+    geno(haploid genome)-->|simulate snpindel ... -z 0.1 --only-vcf|hap(sim.fasta):::clean
     hap-->snp1(snp.hap1.vcf)
     hap-->snp2(snp.hap2.vcf)
     hap-->indel1(indel.hap1.vcf)
