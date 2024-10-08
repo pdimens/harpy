@@ -35,6 +35,7 @@ def create_conda_recipes():
             "bioconda::quickdeconvolution"
             ],
         "r" : [
+            "conda-forge::pandoc",
             "conda-forge::r-dt",
             "conda-forge::r-dplyr",
             "conda-forge::r-flexdashboard",
