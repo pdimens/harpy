@@ -16,10 +16,9 @@ body:
       label: Is this the latest version of Harpy?
       options:
         - label: "yes"
-        - label: "no"
     validations:
         required: true
-      
+
   - type: input
     id: version
     attributes:
