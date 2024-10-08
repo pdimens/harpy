@@ -80,7 +80,7 @@ the resulting diploid genome from [Step 1](#1-add-random-inversions).
 
 The Harpy command to accomplish this is:
 ```bash
-harpy simulate snpindel -m 500 -n 75000 -z 0.1 --conda -o sim_snpindel GENOME.fa
+harpy simulate snpindel -m 500 -n 75000 -z 0.1 --only-vcf --conda -o sim_snpindel GENOME.fa
 ```
 ==- :icon-terminal: code explation
 - `-m` is the number of ranbom indels (`500`)
@@ -88,6 +88,7 @@ harpy simulate snpindel -m 500 -n 75000 -z 0.1 --conda -o sim_snpindel GENOME.fa
 - `-z` is the level of heterozygosity (`0.1` = 10%)
 - `-o` is the name of the output directory
     - specifying this so subsequent runs don't overwrite each other
+- `--only-vcf` is to skip the diploid genome simulation
 - `--conda` is optional and a matter of runtime preference
 - `GENOME.fa` is your genome file
 ==- :icon-git-compare: diagram
