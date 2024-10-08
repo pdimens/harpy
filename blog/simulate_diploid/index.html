@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="turbo-root" content="/harpy">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="3.6.0.781624081850">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="3.6.0.781739039021">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 3.6.0">
@@ -37,12 +37,12 @@
     <script data-cfasync="false">(function () { var el = document.documentElement, m = localStorage.getItem("doc_theme"), wm = window.matchMedia; if (m === "dark" || (!m && wm && wm("(prefers-color-scheme: dark)").matches)) { el.classList.add("dark") } else { el.classList.remove("dark") } })();</script>
 
     <link href="../../static/favicon.png" rel="icon">
-    <link href="../../resources/css/retype.css?v=3.6.0.781624081850" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=3.6.0.781739039021" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=3.6.0.781624081850" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=3.6.0.781739039021" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=3.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=3.6.0.781624081850" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=3.6.0.781624081850" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=3.6.0.781739039021" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=3.6.0.781739039021" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=3.6.0" defer></script>
 </head>
 <body>
@@ -422,7 +422,7 @@ the homo/heterozygotes. We can then use the VCFs of hom/het variants to simulate
 the resulting diploid genome from <doc-anchor-trigger to="#1-add-random-inversions">Step 1</doc-anchor-trigger>.</p>
 <p>The Harpy command to accomplish this is:</p>
 <div class="codeblock-wrapper"><doc-codeblock>
-<pre class="language-bash"><code v-pre class="language-bash">harpy simulate snpindel -m 500 -n 75000 -z 0.1 --conda -o sim_snpindel GENOME.fa</code></pre>
+<pre class="language-bash"><code v-pre class="language-bash">harpy simulate snpindel -m 500 -n 75000 -z 0.1 --only-vcf --conda -o sim_snpindel GENOME.fa</code></pre>
 </doc-codeblock></div>
 <doc-panels>
    <doc-panel id="code-explation" collapsed>
@@ -436,6 +436,7 @@ the resulting diploid genome from <doc-anchor-trigger to="#1-add-random-inversio
 <li>specifying this so subsequent runs don&#x27;t overwrite each other</li>
 </ul>
 </li>
+<li><code v-pre>--only-vcf</code> is to skip the diploid genome simulation</li>
 <li><code v-pre>--conda</code> is optional and a matter of runtime preference</li>
 <li><code v-pre>GENOME.fa</code> is your genome file</li>
 </ul>
