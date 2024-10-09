@@ -52,7 +52,7 @@ def create_conda_recipes():
             ],
         "simulations" : [
             "alienzj::msort",
-            "bioconda::dwgsim",
+            "bioconda::dwgsim=1.1.14",
             "bioconda::perl-math-random",
             "bioconda::perl-inline-c",
             "bioconda::perl-parse-recdescent",

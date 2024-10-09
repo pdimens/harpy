@@ -74,7 +74,7 @@ rule create_reads:
         f"{envdir}/simulations.yaml"
     shell:
         """
-        dwgsim -N {params.readpairs} -e 0.0001,0.0016 -E 0.0001,0.0016 -d {params.outerdist} -s {params.distsd} -1 135 -2 151 -H -y 0 -S 0 -c 0 -R 0 -r {params.mutationrate} -F 0 -m /dev/null {input} {params.prefix} 2> {log}
+        dwgsim -N {params.readpairs} -e 0.0001,0.0016 -E 0.0001,0.0016 -d {params.outerdist} -s {params.distsd} -1 135 -2 151 -H -y 0 -S 0 -c 0 -R 0 -o 1 -r {params.mutationrate} -F 0 -m /dev/null {input} {params.prefix} 2> {log}
         """
 
 rule interleave_dwgsim:
