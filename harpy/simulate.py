@@ -288,6 +288,9 @@ def snpindel(genome, snp_vcf, indel_vcf, only_vcf, output_dir, prefix, snp_count
         start_text.add_row("Genes GFF:", os.path.basename(genes))
     if exclude_chr:
         start_text.add_row("Excluded Chromosomes:", os.path.basename(exclude_chr))
+    if heterozygosity > 0:
+        start_text.add_row("Heterozygosity:", f"{heterozygosity}")            
+
     fetch_rule(workflowdir, "simulate_snpindel.smk")
     fetch_script(workflowdir, "simuG.pl")
     os.makedirs(f"{output_dir}/logs/snakemake", exist_ok = True)
@@ -397,6 +400,9 @@ def inversion(genome, vcf, only_vcf, prefix, output_dir, count, min_size, max_si
         start_text.add_row("Genes GFF:", os.path.basename(genes))
     if exclude_chr:
         start_text.add_row("Excluded Chromosomes:", os.path.basename(exclude_chr))
+    if heterozygosity > 0:
+        start_text.add_row("Heterozygosity:", f"{heterozygosity}")            
+
     fetch_rule(workflowdir, "simulate_variants.smk")
     fetch_script(workflowdir, "simuG.pl")
     os.makedirs(f"{output_dir}/logs/snakemake", exist_ok = True)
@@ -511,6 +517,9 @@ def cnv(genome, output_dir, vcf, only_vcf, prefix, count, min_size, max_size, du
         start_text.add_row("Genes GFF:", os.path.basename(genes))
     if exclude_chr:
         start_text.add_row("Excluded Chromosomes:", os.path.basename(exclude_chr))
+    if heterozygosity > 0:
+        start_text.add_row("Heterozygosity:", f"{heterozygosity}")            
+
     fetch_rule(workflowdir, "simulate_variants.smk")
     fetch_script(workflowdir, "simuG.pl")
     os.makedirs(f"{output_dir}/logs/snakemake", exist_ok = True)
@@ -615,6 +624,8 @@ def translocation(genome, output_dir, prefix, vcf, only_vcf, count, centromeres,
         start_text.add_row("Genes GFF:", os.path.basename(genes))
     if exclude_chr:
         start_text.add_row("Excluded Chromosomes:", os.path.basename(exclude_chr))
+    if heterozygosity > 0:
+        start_text.add_row("Heterozygosity:", f"{heterozygosity}")            
 
     fetch_rule(workflowdir, "simulate_variants.smk")
     fetch_script(workflowdir, "simuG.pl")
