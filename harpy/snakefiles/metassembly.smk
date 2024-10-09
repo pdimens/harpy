@@ -14,14 +14,15 @@ cont_cov = config["contig_coverage"]
 clusters = config["clusters"]
 outdir = config["output_directory"]
 envdir = os.getcwd() + "/.harpy_envs"
+#TODO ADD K parameter
 
-rule barcode_sort:
+rule sort_by_barcode:
     input:
         fq_f = FASTQ1,
         fq_r = FASTQ2
     output:
-        fq_f = temp(f"{outdir}/workflow/input.R1.fq"),
-        fq_r = temp(f"{outdir}/workflow/input.R2.fq")
+        fq_f = temp(f"{outdir}/workflow/input.R1.fq.tmp"),
+        fq_r = temp(f"{outdir}/workflow/input.R2.fq.tmp")
     params:
         config["barcode_tag"].upper()
     shell:
@@ -29,9 +30,17 @@ rule barcode_sort:
         samtools import -T "*" {input} |
         samtools sort -O SAM -t {params} |
         samtools fastq -T "*" -1 {output.fq_f} -2 {output.fq_r}
-        sed -i 's/{params}:Z[^[:space:]]*/&-1/g' {output.fq_f}
-        sed -i 's/{params}:Z[^[:space:]]*/&-1/g' {output.fq_r}
         """
+        
+rule format_barcode:
+    input:
+        f"{outdir}/workflow/input.{{FR}}.fq.tmp"
+    output:
+        temp(f"{outdir}/workflow/input.{{FR}}.fq")
+    params:
+        config["barcode_tag"].upper()
+    shell:
+        "sed -i 's/{params}:Z[^[:space:]]*/&-1/g' {input} > {output}"
 
 rule metaspades:
     input:
@@ -53,7 +62,7 @@ rule metaspades:
         mem_mem=250000,
         time=60 * 24,
     wrapper:
-        "v4.3.0/bio/spades/metaspades"
+        "v4.7.0/bio/spades/metaspades"
 
 rule bwa_index:
     input:

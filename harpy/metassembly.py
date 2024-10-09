@@ -7,7 +7,7 @@ from rich.table import Table
 import rich_click as click
 from ._conda import create_conda_recipes
 from ._launch import launch_snakemake
-from ._misc import fetch_rule, snakemake_log, IntPair
+from ._misc import fetch_rule, snakemake_log, IntPair, KParam
 
 docstring = {
     "harpy metassembly": [
@@ -27,6 +27,7 @@ docstring = {
 @click.option('-b', '--bx-tag', type = click.Choice(['BX', 'BC'], case_sensitive=False), default = "BX", show_default=True, help = "The header tag with the barcode (`BX` or `BC`)")
 @click.option('-c', '--contig-cov', default = "10,30", show_default = True, type = IntPair(), help = "Coverage for low abundance contigs")
 @click.option('-x', '--extra-params', type = str, help = 'Additional pagaea parameters, in quotes')
+@click.option('-k', '--metaspades-k', type = KParam(), show_default = True, default = "auto", help = 'K values to use for metaspades. Must be odd and <=128')
 @click.option('-o', '--output-dir', type = click.Path(exists = False), default = "Metassembly", show_default=True,  help = 'Output directory name')
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(min = 1, max_open = True), help = 'Number of threads to use')
 @click.option('--conda',  is_flag = True, default = False, help = 'Use conda/mamba instead of container')
@@ -37,7 +38,7 @@ docstring = {
 @click.option('--snakemake',  type = str, help = 'Additional Snakemake parameters, in quotes')
 @click.argument('fastq', required=True, type=click.Path(exists=True, readable=True), nargs=1)
 @click.argument('fastq2', required=False, type=click.Path(exists=True, readable=True), nargs=1)
-def metassembly(fastq, fastq2, clusters, contig_cov, bx_tag, output_dir, extra_params, threads, snakemake, skipreports, quiet, hpc, conda, setup_only):
+def metassembly(fastq, fastq2, clusters, contig_cov, bx_tag, metaspades_k, output_dir, extra_params, threads, snakemake, skipreports, quiet, hpc, conda, setup_only):
     """
     Perform a metassembly from linked-read sequences.
 
@@ -71,6 +72,10 @@ def metassembly(fastq, fastq2, clusters, contig_cov, bx_tag, output_dir, extra_p
         config.write(f"barcode_tag: {bx_tag.upper()}\n")
         config.write(f"clusters: {clusters}\n")
         config.write(f"contig_coverage: {contig_cov[0]},{contig_cov[1]}\n")
+        if metaspades_k == "auto":
+            config.write(f"metaspades_k: auto")
+        else:
+            config.write(f"metaspades_k: " + ",".join(metaspades_k))
         if extra_params:
             config.write(f"extra: {extra_params}\n")
         config.write(f"skip_reports: {skipreports}\n")
@@ -92,6 +97,10 @@ def metassembly(fastq, fastq2, clusters, contig_cov, bx_tag, output_dir, extra_p
     start_text.add_row("Barcode Tag: ", bx_tag.upper())
     start_text.add_row("Clusters: ", f"{clusters}")
     start_text.add_row("Contig Cov. Thresh: ", f"{contig_cov[0]},{contig_cov[1]}")
+    if metaspades_k == "auto":
+        start_text.add_row(f"Metaspades K: ", "auto")
+    else:
+        start_text.add_row(f"Metaspades K: ", ",".join(metaspades_k))
     start_text.add_row("Output Folder:", f"{output_dir}/")
     start_text.add_row("Workflow Log:", sm_log.replace(f"{output_dir}/", "") + "[dim].gz")
     launch_snakemake(command, "metassembly", start_text, output_dir, sm_log, quiet)
