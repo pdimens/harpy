@@ -4,7 +4,7 @@ import os
 
 def create_conda_recipes():
     """Create the YAML files of the workflow conda dependencies"""
-    condachannels = ["bioconda","conda-forge","defaults"]
+    condachannels = ["bioconda","conda-forge"]
     environ = {
         "align": [
             "bioconda::bwa",
