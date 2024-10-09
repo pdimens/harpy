@@ -87,7 +87,7 @@ class IntPair(click.ParamType):
 
 class IntQuartet(click.ParamType):
     """A class for a click type which accepts 4 integers, separated by a comma."""
-    name = "int_pair"
+    name = "int_quartet"
     def convert(self, value, param, ctx):
         try:
             parts = value.split(',')
@@ -96,3 +96,21 @@ class IntQuartet(click.ParamType):
             return [int(i) for i in parts]
         except ValueError:
             self.fail(f"{value} is not a valid set of 4 integers separated by a comma.", param, ctx)
+
+
+class KParam(click.ParamType):
+    """A class for a click type which accepts any number of odd integers separated by a comma, or the word auto."""
+    name = "k_param"
+    def convert(self, value, param, ctx):
+        try:
+            if value == "auto":
+                return value
+            parts = value.split(',')
+            for i in parts:
+                if int(i) % 2 == 0:
+                    raise ValueError
+                if int(i) > 128:
+                    raise ValueError
+            return [int(i) for i in parts]
+        except ValueError:
+            self.fail(f"{value} is not \"auto\" or odd integers (<=128) separated by a comma.", param, ctx)
