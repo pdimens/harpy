@@ -29,6 +29,8 @@ rule barcode_sort:
         samtools import -T "*" {input} |
         samtools sort -O SAM -t {params} |
         samtools fastq -T "*" -1 {output.fq_f} -2 {output.fq_r}
+        sed -i 's/BX:Z[^[:space:]]*/&-1/g' {output.fq_f}
+        sed -i 's/BX:Z[^[:space:]]*/&-1/g' {output.fq_r}
         """
 
 rule metaspades:
@@ -53,11 +55,6 @@ rule metaspades:
     wrapper:
         "v4.3.0/bio/spades/metaspades"
 
-rule all:
-    default_target: True
-    input:
-        f"{outdir}/metaspades/contigs.fasta"
-
 rule bwa_index:
     input:
         f"{outdir}/metaspades/contigs.fasta" 
@@ -72,7 +69,7 @@ rule bwa_index:
 
 rule bwa_align:
     input:
-        fastq   = f"{outdir}/workflow/input.fq",
+        fastq   = collect(outdir + "/workflow/input.R{X}.fq", X = [1,2]),
         contigs = f"{outdir}/metaspades/contigs.fasta",
         indices = multiext(f"{outdir}/metaspades/contigs.fasta.", "ann", "bwt", "pac", "sa", "amb")
     output:
@@ -83,7 +80,7 @@ rule bwa_align:
     conda:
         f"{envdir}/align.yaml"
     shell:
-        "bwa mem -C -p {input.contigs} /path/to/reads 2> {log.bwa} | samtools sort -O bam -o {output} - 2> {log.samsort}"
+        "bwa mem -C -p {input.contigs} {input.fastq} 2> {log.bwa} | samtools sort -O bam -o {output} - 2> {log.samsort}"
 
 rule index_alignment:
     input:
@@ -105,6 +102,8 @@ rule athena_config:
         contigs = f"{outdir}/metaspades/contigs.fasta"
     output:
         f"{outdir}/athena/athena.config"
+    conda:
+        f"{envdir}/metassembly.yaml"
     run:
         with open(output[0], "w") as conf:
             _ = conf.write("{\n")
@@ -112,6 +111,11 @@ rule athena_config:
             _ = conf.write("\"ctgfasta_path\": \"/path/to/seeds.fa\",\n")
             _ = conf.write("\"reads_ctg_bam_path\": \"/path/to/reads_2_seeds.bam\"\n")
             _ = conf.write("}\n")
+
+rule all:
+    default_target: True
+    input:
+        f"{outdir}/athena/athena.config"
 
 rule athena:
     input:
