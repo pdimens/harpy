@@ -17,10 +17,7 @@ def create_conda_recipes():
             "conda-forge::libzlib",
             "conda-forge::xz"
             ],
-        "metassembly" : [
-            "bioconda::spades=4.0"
-        ],
-        "athena": [
+        "metassembly": [
             "bioconda::athena_meta"
         ],
         "phase" : [
