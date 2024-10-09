@@ -29,8 +29,8 @@ rule barcode_sort:
         samtools import -T "*" {input} |
         samtools sort -O SAM -t {params} |
         samtools fastq -T "*" -1 {output.fq_f} -2 {output.fq_r}
-        sed -i 's/BX:Z[^[:space:]]*/&-1/g' {output.fq_f}
-        sed -i 's/BX:Z[^[:space:]]*/&-1/g' {output.fq_r}
+        sed -i 's/{params}:Z[^[:space:]]*/&-1/g' {output.fq_f}
+        sed -i 's/{params}:Z[^[:space:]]*/&-1/g' {output.fq_r}
         """
 
 rule metaspades:
