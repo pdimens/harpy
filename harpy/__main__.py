@@ -64,7 +64,7 @@ click.rich_click.COMMAND_GROUPS = {
         [
             {
                 "name": "workflows",
-                "commands": ["demultiplex", "metassembly","qc", "align","snp","sv","impute","phase", "simulate"],
+                "commands": ["demultiplex","qc", "align","snp","sv","impute","phase", "simulate", "metassembly"],
             },
             {
                 "name": "Other Commands",

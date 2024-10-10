@@ -27,6 +27,7 @@ docstring = {
 @click.option('-b', '--bx-tag', type = click.Choice(['BX', 'BC'], case_sensitive=False), default = "BX", show_default=True, help = "The header tag with the barcode (`BX` or `BC`)")
 @click.option('-c', '--contig-cov', default = "10,30", show_default = True, type = IntPair(), help = "Coverage for low abundance contigs")
 @click.option('-x', '--extra-params', type = str, help = 'Additional metaspades parameters, in quotes')
+@click.option('-m', '--max-memory',  type = click.IntRange(min = 1000, max_open = True), show_default = True, default = 250000, help = 'Maximum memory for metaSPADES to use, in megabytes')
 @click.option('-k', '--metaspades-k', type = KParam(), show_default = True, default = "auto", help = 'K values to use for metaspades. Must be odd and <=128')
 @click.option('-o', '--output-dir', type = click.Path(exists = False), default = "Metassembly", show_default=True,  help = 'Output directory name')
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(min = 1, max_open = True), help = 'Number of threads to use')
@@ -38,9 +39,9 @@ docstring = {
 @click.option('--snakemake',  type = str, help = 'Additional Snakemake parameters, in quotes')
 @click.argument('fastq', required=True, type=click.Path(exists=True, readable=True), nargs=1)
 @click.argument('fastq2', required=False, type=click.Path(exists=True, readable=True), nargs=1)
-def metassembly(fastq, fastq2, clusters, contig_cov, bx_tag, metaspades_k, output_dir, extra_params, threads, snakemake, skip_reports, quiet, hpc, conda, setup_only):
+def metassembly(fastq, fastq2, clusters, contig_cov, bx_tag, max_memory, metaspades_k, output_dir, extra_params, threads, snakemake, skip_reports, quiet, hpc, conda, setup_only):
     """
-    Perform a metassembly from linked-read sequences.
+    Perform a metassembly from linked-read sequences
 
     The linked-read barcode must be in either a `BX:Z` or `BC:Z` FASTQ header tag, specified with `--bx-tag`.
     Input FASTQ files can be one of:
@@ -72,12 +73,14 @@ def metassembly(fastq, fastq2, clusters, contig_cov, bx_tag, metaspades_k, outpu
         config.write(f"barcode_tag: {bx_tag.upper()}\n")
         config.write(f"clusters: {clusters}\n")
         config.write(f"contig_coverage: {contig_cov[0]},{contig_cov[1]}\n")
+        config.write("metaspades:\n")
+        config.write(f"    max_memory: {max_memory}\n")
         if metaspades_k == "auto":
-            config.write(f"metaspades_k: auto\n")
+            config.write(f"    k: auto\n")
         else:
-            config.write(f"metaspades_k: " + ",".join(metaspades_k) + "\n")
+            config.write(f"    k: " + ",".join(metaspades_k) + "\n")
         if extra_params:
-            config.write(f"extra: {extra_params}\n")
+            config.write(f"    extra: {extra_params}\n")
         config.write(f"skip_reports: {skip_reports}\n")
         config.write(f"workflow_call: {command}\n")
         config.write("inputs:\n")
