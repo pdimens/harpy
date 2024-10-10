@@ -55,8 +55,8 @@ rule metaspades:
         contigs = outdir + "/metaspades/contigs.fasta",
         scaffolds = outdir + "/metaspades/scaffolds.fasta",
         dir = directory(outdir + "/metaspades/intermediate_files"),
-        corrected_F = outdir + "/metaspades/intermediate_files/corrected/input.R100.0_0.cor.fastq.gz",
-        corrected_R = outdir + "/metaspades/intermediate_files/corrected/input.R200.0_0.cor.fastq.gz"
+        corrected_F = outdir + "/metaspades/intermediate_files/corrected/input.R1.fq00.0_0.cor.fastq.gz",
+        corrected_R = outdir + "/metaspades/intermediate_files/corrected/input.R2.fq00.0_0.cor.fastq.gz"
     params:
         k = k_param,
         extra = extra
@@ -139,7 +139,7 @@ rule athena_config:
             _ = conf.write("    \"cluster_settings\": {\n")
             _ = conf.write(f"        \"processes\": {params.threads},\n")
             _ = conf.write("        \"cluster_options\": {\n")
-            _ = conf.write("            \"extra_params\": " + "{\"run_local\": True}\n")
+            _ = conf.write("            \"extra_params\": {\"run_local\": \"True\"}\n")
             _ = conf.write("        }\n")
             _ = conf.write("    }\n")
             _ = conf.write("}\n")
@@ -147,7 +147,7 @@ rule athena_config:
 rule athena:
     input:
         multiext(f"{outdir}/reads-to-metaspades.", "bam", "bam.bai"),
-        f"{outdir}/workflow/input.fq",
+        f"{outdir}/fastq_preproc/inverleaved.fq",
         f"{outdir}/metaspades/contigs.fasta",
         config = f"{outdir}/athena/athena.config"
     output:
@@ -158,7 +158,7 @@ rule athena:
     conda:
         f"{envdir}/metassembly.yaml"
     shell:
-        "athena-meta --config {input.config}"
+        "athena-meta --config {input.config} 2> {log}"
 
 #TODO figure this part out
 # is it sorted reads, interleaved? Can I just use the starting ones? maybe just the corrected metaspades ones

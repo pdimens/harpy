@@ -39,7 +39,7 @@ docstring = {
 @click.option('--snakemake',  type = str, help = 'Additional Snakemake parameters, in quotes')
 @click.argument('fastq_r1', required=True, type=click.Path(exists=True, readable=True), nargs=1)
 @click.argument('fastq_r2', required=True, type=click.Path(exists=True, readable=True), nargs=1)
-def metassembly(fastq_r1, fastq_r2, clusters, contig_cov, bx_tag, max_memory, metaspades_k, output_dir, extra_params, threads, snakemake, skip_reports, quiet, hpc, conda, setup_only):
+def metassembly(fastq_r1, fastq_r2, bx_tag, max_memory, metaspades_k, output_dir, extra_params, threads, snakemake, skip_reports, quiet, hpc, conda, setup_only):
     """
     Perform a metassembly from linked-read sequences
 
@@ -92,8 +92,8 @@ def metassembly(fastq_r1, fastq_r2, clusters, contig_cov, bx_tag, max_memory, me
     start_text.add_column("detail", justify="left", style="light_steel_blue", no_wrap=True)
     start_text.add_column("value", justify="left")
     start_text.add_row("Barcode Tag: ", bx_tag.upper())
-    start_text.add_row("Clusters: ", f"{clusters}")
-    start_text.add_row("Contig Cov. Thresh: ", f"{contig_cov[0]},{contig_cov[1]}")
+    #start_text.add_row("Clusters: ", f"{clusters}")
+    #start_text.add_row("Contig Cov. Thresh: ", f"{contig_cov[0]},{contig_cov[1]}")
     if metaspades_k == "auto":
         start_text.add_row(f"Metaspades K: ", "auto")
     else:
