@@ -39,7 +39,8 @@ def launch_snakemake(sm_args, workflow, starttext, outdir, sm_logfile, quiet):
             # check for syntax errors at the very beginning
             if process.poll() or iserror(output):
                 exitcode = 0 if process.poll() == 0 else 1
-                exitcode = 2 if iserror(output) else exitcode
+                exitcode = 2 if "Conda" in output else exitcode
+                exitcode = 2 if "MissingInput" in output else exitcode
                 break
             if not quiet:
                 console = Console()
