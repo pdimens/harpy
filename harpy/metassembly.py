@@ -22,11 +22,11 @@ docstring = {
     ]
 }
 
-@click.command(no_args_is_help = True, context_settings=dict(allow_interspersed_args=False), epilog = "See the documentation for more information: https://pdimens.github.io/harpy/modules/qc", hidden = True)
+@click.command(no_args_is_help = True, context_settings=dict(allow_interspersed_args=False), epilog = "See the documentation for more information: https://pdimens.github.io/harpy/workflows/qc")
 @click.option('-n', '--clusters', default = 35, show_default = True, type = int, help = 'Number of clusters')
 @click.option('-b', '--bx-tag', type = click.Choice(['BX', 'BC'], case_sensitive=False), default = "BX", show_default=True, help = "The header tag with the barcode (`BX` or `BC`)")
 @click.option('-c', '--contig-cov', default = "10,30", show_default = True, type = IntPair(), help = "Coverage for low abundance contigs")
-@click.option('-x', '--extra-params', type = str, help = 'Additional pagaea parameters, in quotes')
+@click.option('-x', '--extra-params', type = str, help = 'Additional metaspades parameters, in quotes')
 @click.option('-k', '--metaspades-k', type = KParam(), show_default = True, default = "auto", help = 'K values to use for metaspades. Must be odd and <=128')
 @click.option('-o', '--output-dir', type = click.Path(exists = False), default = "Metassembly", show_default=True,  help = 'Output directory name')
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(min = 1, max_open = True), help = 'Number of threads to use')

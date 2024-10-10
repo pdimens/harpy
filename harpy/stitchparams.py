@@ -5,7 +5,7 @@ import sys
 import rich_click as click
 from ._printing import print_notice
 
-@click.command(no_args_is_help = True, context_settings=dict(allow_interspersed_args=False), epilog = "See the documentation for more information: https://pdimens.github.io/harpy/modules/impute/#parameter-file")
+@click.command(no_args_is_help = True, context_settings=dict(allow_interspersed_args=False), epilog = "See the documentation for more information: https://pdimens.github.io/harpy/workflows/impute/#parameter-file")
 @click.option('-o', '--output', type=str, required = True, metavar = "Output file name", help = 'Name of output STITCH parameter file')
 def stitchparams(output):
     """

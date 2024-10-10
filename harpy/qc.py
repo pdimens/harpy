@@ -23,7 +23,7 @@ docstring = {
     ]
 }
 
-@click.command(no_args_is_help = True, context_settings=dict(allow_interspersed_args=False), epilog = "See the documentation for more information: https://pdimens.github.io/harpy/modules/qc")
+@click.command(no_args_is_help = True, context_settings=dict(allow_interspersed_args=False), epilog = "See the documentation for more information: https://pdimens.github.io/harpy/workflows/qc")
 @click.option('-c', '--deconvolve', is_flag = True, default = False, help = 'Resolve barcode clashes between reads from different molecules.')
 @click.option('-p', '--deconvolve-params', type = IntQuartet(), show_default = True, default = "21,40,3,0", help = 'Accepts the QuickDeconvolution parameters for k,w,d,a, in that order')
 @click.option('-d', '--deduplicate', is_flag = True, default = False, help = 'Identify and remove PCR duplicates')

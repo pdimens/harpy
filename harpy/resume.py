@@ -13,7 +13,7 @@ from ._launch import launch_snakemake
 from ._misc import snakemake_log
 from ._conda import create_conda_recipes
 
-@click.command(no_args_is_help = True, context_settings=dict(allow_interspersed_args=False), epilog = "See the documentation for more information: https://pdimens.github.io/harpy/modules/other")
+@click.command(no_args_is_help = True, context_settings=dict(allow_interspersed_args=False), epilog = "See the documentation for more information: https://pdimens.github.io/harpy/workflows/other")
 @click.option('-c', '--conda',  is_flag = True, default = False, help = 'Recreate the conda environments into .harpy_envs/')
 @click.option('-t', '--threads', type = click.IntRange(min = 2, max_open = True), help = 'Change the number of threads (>1)')
 @click.option('--quiet',  is_flag = True, default = False, help = 'Don\'t show output text while running')
