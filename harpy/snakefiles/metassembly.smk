@@ -1,3 +1,5 @@
+containerized: "docker://pdimens/harpy:latest"
+
 import os
 import logging
 
@@ -14,7 +16,9 @@ cont_cov = config["contig_coverage"]
 clusters = config["clusters"]
 outdir = config["output_directory"]
 envdir = os.getcwd() + "/.harpy_envs"
-#TODO ADD K parameter
+max_mem = config["metaspades"]["max_memory"]
+k_param = config["metaspades"]["k"]
+extra = config["metaspades"].get("extra", "") 
 
 rule sort_by_barcode:
     input:
@@ -25,6 +29,8 @@ rule sort_by_barcode:
         fq_r = temp(f"{outdir}/workflow/input.R2.fq.tmp")
     params:
         config["barcode_tag"].upper()
+    container:
+        None
     shell:
         """
         samtools import -T "*" {input} |
@@ -39,8 +45,10 @@ rule format_barcode:
         temp(f"{outdir}/workflow/input.{{FR}}.fq")
     params:
         config["barcode_tag"].upper()
+    container:
+        None
     shell:
-        "sed -i 's/{params}:Z[^[:space:]]*/&-1/g' {input} > {output}"
+        "sed 's/{params}:Z:[^[:space:]]*/&-1/g' {input} > {output}"
 
 rule metaspades:
     input:
@@ -52,17 +60,16 @@ rule metaspades:
         corrected_F = outdir + "/metaspades/intermediate_files/corrected/input.R100.0_0.cor.fastq.gz",
         corrected_R = outdir + "/metaspades/intermediate_files/corrected/input.R200.0_0.cor.fastq.gz"
     params:
-        k="auto"
-        #extra="--only-assembler",
+        k = k_param
+        extra = extra
     log:
-        outdir + "/logs/spades.log",
+        outdir + "/logs/spades.log"
     threads:
         workflow.cores
     resources:
-        mem_mem=250000,
-        time=60 * 24,
+        mem_mb=max_mem
     wrapper:
-        "v4.7.0/bio/spades/metaspades"
+        "v4.7.1/bio/spades/metaspades"
 
 rule bwa_index:
     input:
@@ -80,7 +87,7 @@ rule bwa_align:
     input:
         fastq   = collect(outdir + "/workflow/input.R{X}.fq", X = [1,2]),
         contigs = f"{outdir}/metaspades/contigs.fasta",
-        indices = multiext(f"{outdir}/metaspades/contigs.fasta.", "ann", "bwt", "pac", "sa", "amb")
+        multiext(f"{outdir}/metaspades/contigs.fasta.", "ann", "bwt", "pac", "sa", "amb")
     output:
         f"{outdir}/align/reads-to-metaspades.bam"
     log:
@@ -93,13 +100,13 @@ rule bwa_align:
 
 rule index_alignment:
     input:
-        f"{outdir}/align/reads-to-metaspades.bam"
+        f"{outdir}/reads-to-metaspades.bam"
     output:
-       f"{outdir}/align/reads-to-metaspades.bam.bai"
+       f"{outdir}/reads-to-metaspades.bam.bai"
     log:
         f"{outdir}/logs/index.alignments.log"
-    conda:
-        f"{envdir}/align.yaml"
+    container:
+        None
     shell:
         "samtools index {input} 2> {log}"
 
@@ -111,14 +118,12 @@ rule athena_config:
         contigs = f"{outdir}/metaspades/contigs.fasta"
     output:
         f"{outdir}/athena/athena.config"
-    conda:
-        f"{envdir}/metassembly.yaml"
     run:
         with open(output[0], "w") as conf:
             _ = conf.write("{\n")
-            _ = conf.write("\"input_fqs\": \"/path/to/fq\",\n")
-            _ = conf.write("\"ctgfasta_path\": \"/path/to/seeds.fa\",\n")
-            _ = conf.write("\"reads_ctg_bam_path\": \"/path/to/reads_2_seeds.bam\"\n")
+            _ = conf.write("\"input_fqs\": \"{input.fastq}\",\n")
+            _ = conf.write("\"ctgfasta_path\": \"{input.contigs}\",\n")
+            _ = conf.write("\"reads_ctg_bam_path\": \"{input.bam}\"\n")
             _ = conf.write("}\n")
 
 rule all:
