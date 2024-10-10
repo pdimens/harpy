@@ -23,7 +23,7 @@ extra 		= config.get("extra", "")
 bn 			= os.path.basename(genomefile)
 genome_zip  = True if bn.lower().endswith(".gz") else False
 bn_idx      = f"{bn}.gzi" if genome_zip else f"{bn}.fai"
-skipreports = config["skip_reports"]
+skip_reports = config["skip_reports"]
 windowsize  = config["depth_windowsize"]
 bn_r = r"([_\.][12]|[_\.][FR]|[_\.]R[12](?:\_00[0-9])*)?\.((fastq|fq)(\.gz)?)$"
 samplenames = {re.sub(bn_r, "", os.path.basename(i), flags = re.IGNORECASE) for i in fqlist}
@@ -247,9 +247,9 @@ rule workflow_summary:
     default_target: True
     input:
         bams = collect(outdir + "/{sample}.{ext}", sample = samplenames, ext = ["bam", "bam.bai"]),
-        reports = collect(outdir + "/reports/{sample}.html", sample = samplenames) if not skipreports else [],
-        agg_report = outdir + "/reports/bwa.stats.html" if not skipreports else [],
-        bx_report = outdir + "/reports/barcodes.summary.html" if (not skipreports or len(samplenames) == 1) else []
+        reports = collect(outdir + "/reports/{sample}.html", sample = samplenames) if not skip_reports else [],
+        agg_report = outdir + "/reports/bwa.stats.html" if not skip_reports else [],
+        bx_report = outdir + "/reports/barcodes.summary.html" if (not skip_reports or len(samplenames) == 1) else []
     params:
         quality = config["alignment_quality"],
         unmapped = "" if keep_unmapped else "-F 4",

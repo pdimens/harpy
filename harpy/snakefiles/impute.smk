@@ -21,7 +21,7 @@ paramfile   = config["inputs"]["paramfile"]
 biallelic   = config["inputs"]["biallelic_contigs"]
 outdir      = config["output_directory"]
 envdir      = os.getcwd() + "/.harpy_envs"
-skipreports = config["skip_reports"]
+skip_reports = config["skip_reports"]
 paramspace  = Paramspace(pd.read_csv(paramfile, sep=r"\s+", skip_blank_lines=True).rename(columns=str.lower), param_sep = "", filename_params = ["k", "s", "ngen", "bxlimit"])
 with open(biallelic, "r") as f_open:
     contigs = [i.rstrip() for i in f_open.readlines()]
@@ -216,8 +216,8 @@ rule workflow_summary:
     default_target: True
     input: 
         vcf = collect(outdir + "/{stitchparams}/variants.imputed.bcf", stitchparams=paramspace.instance_patterns),
-        agg_report = collect(outdir + "/{stitchparams}/reports/variants.imputed.html", stitchparams=paramspace.instance_patterns) if not skipreports else [],
-        contig_report = collect(outdir + "/{stitchparams}/reports/{part}.stitch.html", stitchparams=paramspace.instance_patterns, part = contigs) if not skipreports else [],
+        agg_report = collect(outdir + "/{stitchparams}/reports/variants.imputed.html", stitchparams=paramspace.instance_patterns) if not skip_reports else [],
+        contig_report = collect(outdir + "/{stitchparams}/reports/{part}.stitch.html", stitchparams=paramspace.instance_patterns, part = contigs) if not skip_reports else [],
     run:
         with open(outdir + "/workflow/impute.summary", "w") as f:
             _ = f.write("The harpy impute workflow ran using these parameters:\n\n")

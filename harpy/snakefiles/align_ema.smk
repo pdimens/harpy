@@ -27,7 +27,7 @@ bn_idx      = f"{bn}.gzi" if genome_zip else f"{bn}.fai"
 envdir      = os.getcwd() + "/.harpy_envs"
 windowsize  = config["depth_windowsize"]
 keep_unmapped = config["keep_unmapped"]
-skipreports = config["skip_reports"]
+skip_reports = config["skip_reports"]
 bn_r = r"([_\.][12]|[_\.][FR]|[_\.]R[12](?:\_00[0-9])*)?\.((fastq|fq)(\.gz)?)$"
 samplenames = {re.sub(bn_r, "", os.path.basename(i), flags = re.IGNORECASE) for i in fqlist}
 d = dict(zip(samplenames, samplenames))
@@ -328,9 +328,9 @@ rule workflow_summary:
     default_target: True
     input:
         bams = collect(outdir + "/{sample}.{ext}", sample = samplenames, ext = [ "bam", "bam.bai"] ),
-        cov_report = collect(outdir + "/reports/{sample}.html", sample = samplenames) if not skipreports else [],
-        agg_report = f"{outdir}/reports/ema.stats.html" if not skipreports else [],
-        bx_report = outdir + "/reports/barcodes.summary.html" if (not skipreports or len(samplenames) == 1) else []
+        cov_report = collect(outdir + "/reports/{sample}.html", sample = samplenames) if not skip_reports else [],
+        agg_report = f"{outdir}/reports/ema.stats.html" if not skip_reports else [],
+        bx_report = outdir + "/reports/barcodes.summary.html" if (not skip_reports or len(samplenames) == 1) else []
     params:
         beadtech = "-p" if platform == "haplotag" else f"-w {barcode_list}",
         unmapped = "" if keep_unmapped else "-F 4"

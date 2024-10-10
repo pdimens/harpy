@@ -30,7 +30,7 @@ docstring = {
         },
         {
             "name": "Workflow Controls",
-            "options": ["--conda", "--hpc", "--output-dir", "--quiet", "--skipreports", "--snakemake", "--threads", "--help"],
+            "options": ["--conda", "--hpc", "--output-dir", "--quiet", "--skip-reports", "--snakemake", "--threads", "--help"],
         },
     ],
     "harpy snp freebayes": [
@@ -40,7 +40,7 @@ docstring = {
         },
         {
             "name": "Workflow Controls",
-            "options": ["--conda", "--hpc", "--output-dir", "--quiet", "--skipreports", "--snakemake", "--threads", "--help"],
+            "options": ["--conda", "--hpc", "--output-dir", "--quiet", "--skip-reports", "--snakemake", "--threads", "--help"],
         },
     ]
 }
@@ -57,10 +57,10 @@ docstring = {
 @click.option('--conda',  is_flag = True, default = False, help = 'Use conda/mamba instead of container')
 @click.option('--setup-only',  is_flag = True, hidden = True, default = False, help = 'Setup the workflow and exit')
 @click.option('--quiet',  is_flag = True, show_default = True, default = False, help = 'Don\'t show output text while running')
-@click.option('--skipreports',  is_flag = True, show_default = True, default = False, help = 'Don\'t generate HTML reports')
+@click.option('--skip-reports',  is_flag = True, show_default = True, default = False, help = 'Don\'t generate HTML reports')
 @click.option('--snakemake', type = str, help = 'Additional Snakemake parameters, in quotes')
 @click.argument('inputs', required=True, type=click.Path(exists=True, readable=True), nargs=-1)
-def mpileup(inputs, output_dir, regions, genome, threads, populations, ploidy, extra_params, snakemake, skipreports, quiet, hpc, conda, setup_only):
+def mpileup(inputs, output_dir, regions, genome, threads, populations, ploidy, extra_params, snakemake, skip_reports, quiet, hpc, conda, setup_only):
     """
     Call variants from using bcftools mpileup
     
@@ -120,7 +120,7 @@ def mpileup(inputs, output_dir, regions, genome, threads, populations, ploidy, e
             config.write("windowsize: {regions}\n")
         if extra_params is not None:
             config.write(f"extra: {extra_params}\n")
-        config.write(f"skip_reports: {skipreports}\n")
+        config.write(f"skip_reports: {skip_reports}\n")
         config.write(f"workflow_call: {command}\n")
         config.write("inputs:\n")
         config.write(f"  genome: {Path(genome).resolve()}\n")
@@ -161,10 +161,10 @@ def mpileup(inputs, output_dir, regions, genome, threads, populations, ploidy, e
 @click.option('--setup-only',  is_flag = True, hidden = True, default = False, help = 'Setup the workflow and exit')
 @click.option('--hpc',  type = click.Path(exists = True, file_okay = False, readable=True), help = 'Directory with HPC submission `config.yaml` file')
 @click.option('--quiet',  is_flag = True, show_default = True, default = False, help = 'Don\'t show output text while running')
-@click.option('--skipreports',  is_flag = True, show_default = True, default = False, help = 'Don\'t generate HTML reports')
+@click.option('--skip-reports',  is_flag = True, show_default = True, default = False, help = 'Don\'t generate HTML reports')
 @click.option('--snakemake', type = str, help = 'Additional Snakemake parameters, in quotes')
 @click.argument('inputs', required=True, type=click.Path(exists=True, readable=True), nargs=-1)
-def freebayes(inputs, output_dir, genome, threads, populations, ploidy, regions, extra_params, snakemake, skipreports, quiet, hpc, conda, setup_only):
+def freebayes(inputs, output_dir, genome, threads, populations, ploidy, regions, extra_params, snakemake, skip_reports, quiet, hpc, conda, setup_only):
     """
     Call variants using freebayes
     
@@ -224,7 +224,7 @@ def freebayes(inputs, output_dir, genome, threads, populations, ploidy, regions,
             config.write("windowsize: {regions}\n")
         if extra_params is not None:
             config.write(f"extra: {extra_params}\n")
-        config.write(f"skip_reports: {skipreports}\n")
+        config.write(f"skip_reports: {skip_reports}\n")
         config.write(f"workflow_call: {command}\n")
         config.write("inputs:\n")
         config.write(f"  genome: {Path(genome).resolve()}\n")

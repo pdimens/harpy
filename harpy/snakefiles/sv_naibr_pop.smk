@@ -25,7 +25,7 @@ min_barcodes = config["min_barcodes"]
 min_quality  = config["min_quality"]
 mol_dist     = config["molecule_distance"]
 outdir       = config["output_directory"]
-skipreports  = config["skip_reports"]
+skip_reports  = config["skip_reports"]
 bn           = os.path.basename(genomefile)
 if bn.lower().endswith(".gz"):
     bn = bn[:-3]
@@ -258,8 +258,8 @@ rule workflow_summary:
     input:
         bedpe = collect(outdir + "/bedpe/{pop}.bedpe", pop = populations),
         bedpe_agg = collect(outdir + "/{sv}.bedpe", sv = ["inversions", "deletions","duplications"]),
-        reports = collect(outdir + "/reports/{pop}.naibr.html", pop = populations) if not skipreports else [],
-        agg_report = outdir + "/reports/naibr.pop.summary.html" if not skipreports else []
+        reports = collect(outdir + "/reports/{pop}.naibr.html", pop = populations) if not skip_reports else [],
+        agg_report = outdir + "/reports/naibr.pop.summary.html" if not skip_reports else []
     run:
         os.system(f"rm -rf {outdir}/naibrlog")
         argdict = process_args(extra)

@@ -34,7 +34,7 @@ docstring = {
         },
         {
             "name": "Workflow Controls",
-            "options": ["--conda", "--hpc", "--output-dir", "--quiet", "--skipreports", "--snakemake", "--threads", "--help"],
+            "options": ["--conda", "--hpc", "--output-dir", "--quiet", "--skip-reports", "--snakemake", "--threads", "--help"],
         },
     ],
     "harpy sv naibr": [
@@ -44,7 +44,7 @@ docstring = {
         },
         {
             "name": "Workflow Controls",
-            "options": ["--conda", "--hpc", "--output-dir", "--quiet", "--skipreports", "--snakemake", "--threads", "--help"],
+            "options": ["--conda", "--hpc", "--output-dir", "--quiet", "--skip-reports", "--snakemake", "--threads", "--help"],
         },
     ]
 }
@@ -62,10 +62,10 @@ docstring = {
 @click.option('--setup-only',  is_flag = True, hidden = True, default = False, help = 'Setup the workflow and exit')
 @click.option('--hpc',  type = click.Path(exists = True, file_okay = False, readable=True), help = 'Directory with HPC submission `config.yaml` file')
 @click.option('--quiet',  is_flag = True, show_default = True, default = False, help = 'Don\'t show output text while running')
-@click.option('--skipreports',  is_flag = True, show_default = True, default = False, help = 'Don\'t generate HTML reports')
+@click.option('--skip-reports',  is_flag = True, show_default = True, default = False, help = 'Don\'t generate HTML reports')
 @click.option('--snakemake', type = str, help = 'Additional Snakemake parameters, in quotes')
 @click.argument('inputs', required=True, type=click.Path(exists=True, readable=True), nargs=-1)
-def leviathan(inputs, output_dir, genome, min_sv, min_barcodes, iterations, threads, populations, extra_params, snakemake, skipreports, quiet, hpc, conda, setup_only):
+def leviathan(inputs, output_dir, genome, min_sv, min_barcodes, iterations, threads, populations, extra_params, snakemake, skip_reports, quiet, hpc, conda, setup_only):
     """
     Call structural variants using LEVIATHAN
     
@@ -107,7 +107,7 @@ def leviathan(inputs, output_dir, genome, min_sv, min_barcodes, iterations, thre
         config.write(f"iterations: {iterations}\n")
         if extra_params is not None:
             config.write(f"extra: {extra_params}\n")
-        config.write(f"skip_reports: {skipreports}\n")
+        config.write(f"skip_reports: {skip_reports}\n")
         config.write(f"workflow_call: {command}\n")
         config.write("inputs:\n")
         popgroupings = ""
@@ -151,10 +151,10 @@ def leviathan(inputs, output_dir, genome, min_sv, min_barcodes, iterations, thre
 @click.option('--setup-only',  is_flag = True, hidden = True, default = False, help = 'Setup the workflow and exit')
 @click.option('--hpc',  type = click.Path(exists = True, file_okay = False, readable=True), help = 'Directory with HPC submission `config.yaml` file')
 @click.option('--quiet',  is_flag = True, show_default = True, default = False, help = 'Don\'t show output text while running')
-@click.option('--skipreports',  is_flag = True, show_default = True, default = False, help = 'Don\'t generate HTML reports')
+@click.option('--skip-reports',  is_flag = True, show_default = True, default = False, help = 'Don\'t generate HTML reports')
 @click.option('--snakemake', type = str, help = 'Additional Snakemake parameters, in quotes')
 @click.argument('inputs', required=True, type=click.Path(exists=True, readable=True), nargs=-1)
-def naibr(inputs, output_dir, genome, vcf, min_sv, min_barcodes, min_quality, threads, populations, molecule_distance, extra_params, snakemake, skipreports, quiet, hpc, conda, setup_only):
+def naibr(inputs, output_dir, genome, vcf, min_sv, min_barcodes, min_quality, threads, populations, molecule_distance, extra_params, snakemake, skip_reports, quiet, hpc, conda, setup_only):
     """
     Call structural variants using NAIBR
     
@@ -206,7 +206,7 @@ def naibr(inputs, output_dir, genome, vcf, min_sv, min_barcodes, min_quality, th
         config.write(f"molecule_distance: {molecule_distance}\n")
         if extra_params is not None:
             config.write(f"extra: {extra_params}\n")
-        config.write(f"skip_reports: {skipreports}\n")
+        config.write(f"skip_reports: {skip_reports}\n")
         config.write(f"workflow_call: {command}\n")
         config.write("inputs:\n")
         if vcf is not None:

@@ -22,7 +22,7 @@ else:
     fragfile =  outdir + "/linkFragments/{sample}.linked.frags"
 
 linkarg     = "--10x 0" if config["noBX"] else "--10x 1"
-skipreports = config["skip_reports"]
+skip_reports = config["skip_reports"]
 
 try:
     indelarg = "--indels 1 --ref " + config["indels"]
@@ -289,7 +289,7 @@ rule workflow_summary:
     default_target: True
     input:
         vcf = outdir + "/variants.phased.bcf",
-        reports = outdir + "/reports/phase.html" if not skipreports else []
+        reports = outdir + "/reports/phase.html" if not skip_reports else []
     params:
         prune = f"--threshold {pruning}" if pruning > 0 else "--no_prune 1",
         extra = extra

@@ -19,7 +19,7 @@ mp_extra 	= config.get("extra", "")
 regiontype  = config["regiontype"]
 windowsize  = config.get("windowsize", None)
 outdir      = config["output_directory"]
-skipreports = config["skip_reports"]
+skip_reports = config["skip_reports"]
 bamlist     = config["inputs"]["alignments"]
 bamdict     = dict(zip(bamlist, bamlist))
 genomefile 	= config["inputs"]["genome"]
@@ -245,7 +245,7 @@ rule workflow_summary:
     input:
         vcf = collect(outdir + "/variants.{file}.bcf", file = ["raw"]),
         agg_log = outdir + "/logs/mpileup.log",
-        reports = collect(outdir + "/reports/variants.{file}.html", file = ["raw", "normalized"]) if not skipreports else []
+        reports = collect(outdir + "/reports/variants.{file}.html", file = ["raw", "normalized"]) if not skip_reports else []
     params:
         ploidy = f"--ploidy {ploidy}",
         populations = f"--populations {groupings}" if groupings else "--populations -"

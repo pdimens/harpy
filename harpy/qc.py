@@ -18,7 +18,7 @@ docstring = {
         },
         {
             "name": "Workflow Controls",
-            "options": ["--conda", "--hpc", "--output-dir", "--quiet", "--skipreports", "--snakemake", "--threads", "--help"],
+            "options": ["--conda", "--hpc", "--output-dir", "--quiet", "--skip-reports", "--snakemake", "--threads", "--help"],
         },
     ]
 }
@@ -37,10 +37,10 @@ docstring = {
 @click.option('--setup-only',  is_flag = True, hidden = True, show_default = True, default = False, help = 'Setup the workflow and exit')
 @click.option('--hpc',  type = click.Path(exists = True, file_okay = False, readable=True), help = 'Directory with HPC submission `config.yaml` file')
 @click.option('--quiet',  is_flag = True, default = False, help = 'Don\'t show output text while running')
-@click.option('--skipreports',  is_flag = True, default = False, help = 'Don\'t generate HTML reports')
+@click.option('--skip-reports',  is_flag = True, default = False, help = 'Don\'t generate HTML reports')
 @click.option('--snakemake', type = str, help = 'Additional Snakemake parameters, in quotes')
 @click.argument('inputs', required=True, type=click.Path(exists=True, readable=True), nargs=-1)
-def qc(inputs, output_dir, min_length, max_length, trim_adapters, deduplicate, deconvolve, deconvolve_params, extra_params, threads, snakemake, skipreports, quiet, hpc, conda, setup_only):
+def qc(inputs, output_dir, min_length, max_length, trim_adapters, deduplicate, deconvolve, deconvolve_params, extra_params, threads, snakemake, skip_reports, quiet, hpc, conda, setup_only):
     """
     Remove adapters and quality-control sequences
 
@@ -91,7 +91,7 @@ def qc(inputs, output_dir, min_length, max_length, trim_adapters, deduplicate, d
         config.write(f"max_len: {max_length}\n")
         if extra_params:
             config.write(f"extra: {extra_params}\n")
-        config.write(f"skip_reports: {skipreports}\n")
+        config.write(f"skip_reports: {skip_reports}\n")
         config.write(f"workflow_call: {command}\n")
         config.write("inputs:\n")
         for i in fqlist:

@@ -28,7 +28,7 @@ outdir      = config["output_directory"]
 bn          = os.path.basename(genomefile)
 genome_zip  = True if bn.lower().endswith(".gz") else False
 bn_idx      = f"{bn}.gzi" if genome_zip else f"{bn}.fai"
-skipreports = config["skip_reports"]
+skip_reports = config["skip_reports"]
 
 def process_args(args):
     argsDict = {
@@ -213,7 +213,7 @@ rule workflow_summary:
     input:
         bedpe = collect(outdir + "/bedpe/{sample}.bedpe", sample = samplenames),
         bedpe_agg = collect(outdir + "/{sv}.bedpe", sv = ["inversions", "deletions","duplications"]),
-        reports =  collect(outdir + "/reports/{sample}.naibr.html", sample = samplenames) if not skipreports else []
+        reports =  collect(outdir + "/reports/{sample}.naibr.html", sample = samplenames) if not skip_reports else []
     run:
         os.system(f"rm -rf {outdir}/naibrlog")
         argdict = process_args(extra)

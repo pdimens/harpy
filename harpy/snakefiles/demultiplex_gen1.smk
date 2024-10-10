@@ -15,7 +15,7 @@ R2 = config["inputs"]["R2"]
 I1 = config["inputs"]["I1"]
 I2 = config["inputs"]["I2"]
 samplefile = config["inputs"]["demultiplex_schema"]
-skipreports = config["skip_reports"]
+skip_reports = config["skip_reports"]
 outdir = config["output_directory"]
 envdir = os.getcwd() + "/.harpy_envs"
 
@@ -164,7 +164,7 @@ rule workflow_summary:
     default_target: True
     input:
         fq = collect(outdir + "/{sample}.{FR}.fq.gz", sample = samplenames, FR = ["F", "R"]),
-        reports = outdir + "/reports/demultiplex.QC.html" if not skipreports else []
+        reports = outdir + "/reports/demultiplex.QC.html" if not skip_reports else []
     run:
         os.makedirs(f"{outdir}/workflow/", exist_ok= True)
         with open(outdir + "/workflow/demux.gen1.summary", "w") as f:

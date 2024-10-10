@@ -24,7 +24,7 @@ min_bc      = config["min_barcodes"]
 iterations  = config["iterations"]
 extra       = config.get("extra", "") 
 outdir      = config["output_directory"]
-skipreports = config["skip_reports"]
+skip_reports = config["skip_reports"]
 bn          = os.path.basename(genomefile)
 genome_zip  = True if bn.lower().endswith(".gz") else False
 if genome_zip:
@@ -203,7 +203,7 @@ rule workflow_summary:
     input: 
         vcf = collect(outdir + "/vcf/{sample}.bcf", sample = samplenames),
         bedpe_agg = collect(outdir + "/{sv}.bedpe", sv = ["inversions", "deletions","duplications", "breakends"]),
-        reports = collect(outdir + "/reports/{sample}.SV.html", sample = samplenames) if not skipreports else []
+        reports = collect(outdir + "/reports/{sample}.SV.html", sample = samplenames) if not skip_reports else []
     params:
         min_sv = f"-v {min_sv}",
         min_bc = f"-c {min_bc}",

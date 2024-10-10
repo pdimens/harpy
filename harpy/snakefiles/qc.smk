@@ -27,7 +27,7 @@ if deconvolve:
     decon_w = deconvolve["window_size"]
     decon_d = deconvolve["density"]
     decon_a = deconvolve["dropout"]
-skipreports  = config["skip_reports"]
+skip_reports  = config["skip_reports"]
 bn_r = r"([_\.][12]|[_\.][FR]|[_\.]R[12](?:\_00[0-9])*)?\.((fastq|fq)(\.gz)?)$"
 samplenames = {re.sub(bn_r, "", os.path.basename(i), flags = re.IGNORECASE) for i in fqlist}
 
@@ -172,8 +172,8 @@ rule workflow_summary:
     default_target: True
     input:
         fq = collect(outdir + "/{sample}.{FR}.fq.gz", FR = ["R1", "R2"], sample = samplenames),
-        bx_report = outdir + "/reports/barcode.summary.html" if not skipreports else [],
-        agg_report = outdir + "/reports/qc.report.html" if not skipreports else []    
+        bx_report = outdir + "/reports/barcode.summary.html" if not skip_reports else [],
+        agg_report = outdir + "/reports/qc.report.html" if not skip_reports else []    
     params:
         minlen = f"--length_required {min_len}",
         maxlen = f"--max_len1 {max_len}",

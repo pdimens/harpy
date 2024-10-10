@@ -21,7 +21,7 @@ extra 		= config.get("extra", "")
 bn 			= os.path.basename(genomefile)
 if bn.lower().endswith(".gz"):
     bn = bn[:-3]
-skipreports = config["skip_reports"]
+skip_reports = config["skip_reports"]
 windowsize  = config["depth_windowsize"]
 molecule_distance = config["molecule_distance"]
 keep_unmapped = config["keep_unmapped"]
@@ -239,9 +239,9 @@ rule workflow_summary:
     default_target: True
     input: 
         bams = collect(outdir + "/{sample}.{ext}", sample = samplenames, ext = ["bam","bam.bai"]),
-        samtools =  outdir + "/reports/strobealign.stats.html" if not skipreports else [] ,
-        reports = collect(outdir + "/reports/{sample}.html", sample = samplenames) if not skipreports else [],
-        bx_report = outdir + "/reports/barcodes.summary.html" if (not skipreports or len(samplenames) == 1) else []
+        samtools =  outdir + "/reports/strobealign.stats.html" if not skip_reports else [] ,
+        reports = collect(outdir + "/reports/{sample}.html", sample = samplenames) if not skip_reports else [],
+        bx_report = outdir + "/reports/barcodes.summary.html" if (not skip_reports or len(samplenames) == 1) else []
     params:
         readlen = readlen,
         quality = config["quality"],

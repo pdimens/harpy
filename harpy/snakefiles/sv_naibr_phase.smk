@@ -26,7 +26,7 @@ min_quality  = config["min_quality"]
 min_sv      = config["min_sv"]
 min_barcodes = config["min_barcodes"]
 outdir      = config["output_directory"]
-skipreports = config["skip_reports"]
+skip_reports = config["skip_reports"]
 bn          = os.path.basename(genomefile)
 if bn.lower().endswith(".gz"):
     validgenome = bn[:-3]
@@ -271,7 +271,7 @@ rule workflow_summary:
         bedpe = collect(outdir + "/bedpe/{sample}.bedpe", sample = samplenames),
         bedpe_agg = collect(outdir + "/{sv}.bedpe", sv = ["inversions", "deletions","duplications"]),
         phaselog = outdir + "/logs/whatshap-haplotag.log",
-        reports =  collect(outdir + "/reports/{sample}.naibr.html", sample = samplenames) if not skipreports else []
+        reports =  collect(outdir + "/reports/{sample}.naibr.html", sample = samplenames) if not skip_reports else []
     run:
         os.system(f"rm -rf {outdir}/naibrlog")
         argdict = process_args(extra)
