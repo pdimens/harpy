@@ -57,6 +57,7 @@ def metassembly(fastq_r1, fastq_r2, clusters, contig_cov, bx_tag, max_memory, me
     if snakemake is not None:
         command += snakemake
 
+    #TODO REQUIRE A FQ CHECK TO SEE IF BOTH BC AND BX EXIST BECAUSE YOU CANT HAVE BOTH
     os.makedirs(workflowdir, exist_ok=True)
     fetch_rule(workflowdir, "metassembly.smk")
     os.makedirs(f"{output_dir}/logs/snakemake", exist_ok = True)

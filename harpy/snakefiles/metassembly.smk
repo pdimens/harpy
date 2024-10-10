@@ -128,12 +128,20 @@ rule athena_config:
         contigs = f"{outdir}/metaspades/contigs.fasta"
     output:
         f"{outdir}/athena/athena.config"
+    params:
+        threads = workflow.cores
     run:
         with open(output[0], "w") as conf:
             _ = conf.write("{\n")
-            _ = conf.write(f"\"input_fqs\": \"{input.fastq}\",\n")
-            _ = conf.write(f"\"ctgfasta_path\": \"{input.contigs}\",\n")
-            _ = conf.write(f"\"reads_ctg_bam_path\": \"{input.bam}\"\n")
+            _ = conf.write(f"    \"input_fqs\": \"{input.fastq}\",\n")
+            _ = conf.write(f"    \"ctgfasta_path\": \"{input.contigs}\",\n")
+            _ = conf.write(f"    \"reads_ctg_bam_path\": \"{input.bam}\",\n")
+            _ = conf.write("    \"cluster_settings\": {\n")
+            _ = conf.write(f"        \"processes\": {params.threads},\n")
+            _ = conf.write("        \"cluster_options\": {\n")
+            _ = conf.write("            \"extra_params\": " + "{\"run_local\": True}\n")
+            _ = conf.write("        }\n")
+            _ = conf.write("    }\n")
             _ = conf.write("}\n")
 
 rule athena:
