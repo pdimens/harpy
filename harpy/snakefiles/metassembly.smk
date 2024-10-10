@@ -91,10 +91,12 @@ rule bwa_align:
     log:
         bwa = f"{outdir}/logs/align.bwa.log",
         samsort = f"{outdir}/logs/sort.alignments.log"
+    threads:
+        workflow.cores
     conda:
         f"{envdir}/align.yaml"
     shell:
-        "bwa mem -C -p {input.contigs} {input.fastq} 2> {log.bwa} | samtools sort -O bam -o {output} - 2> {log.samsort}"
+        "bwa mem -C -t {threads} {input.contigs} {input.fastq} 2> {log.bwa} | samtools sort -O bam -o {output} - 2> {log.samsort}"
 
 rule index_alignment:
     input:
