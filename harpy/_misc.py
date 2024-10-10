@@ -80,10 +80,10 @@ class IntPair(click.ParamType):
         try:
             parts = value.split(',')
             if len(parts) != 2:
-                self.fail(f"{value} is not a valid int pair. The value should be two integers separated by a comma.", param, ctx)
+                raise ValueError
             return [int(i) for i in parts]
         except ValueError:
-            self.fail(f"{value} is not a valid int pair. The value should be two integers separated by a comma.", param, ctx)
+            self.fail(f"{value} is not a valid integer pair. The value should be two integers separated by a comma.", param, ctx)
 
 class IntQuartet(click.ParamType):
     """A class for a click type which accepts 4 integers, separated by a comma."""
@@ -92,10 +92,10 @@ class IntQuartet(click.ParamType):
         try:
             parts = value.split(',')
             if len(parts) != 4:
-                self.fail(f"{value} is not a valid set of 4 integers separated by a comma.", param, ctx)
+                raise ValueError
             return [int(i) for i in parts]
         except ValueError:
-            self.fail(f"{value} is not a valid set of 4 integers separated by a comma.", param, ctx)
+            self.fail(f"{value} is not a valid set of 4 integers separated by commas.", param, ctx)
 
 
 class KParam(click.ParamType):
@@ -107,10 +107,8 @@ class KParam(click.ParamType):
                 return value
             parts = value.split(',')
             for i in parts:
-                if int(i) % 2 == 0:
-                    raise ValueError
-                if int(i) > 128:
+                if int(i) % 2 == 0 or int(i) > 128:
                     raise ValueError
             return [int(i) for i in parts]
         except ValueError:
-            self.fail(f"{value} is not \"auto\" or odd integers (<=128) separated by a comma.", param, ctx)
+            self.fail(f"{value} is not 'auto' or odd integers <128 separated by a comma.", param, ctx)
