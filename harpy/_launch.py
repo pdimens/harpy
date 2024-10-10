@@ -40,7 +40,6 @@ def launch_snakemake(sm_args, workflow, starttext, outdir, sm_logfile, quiet):
             if process.poll() or iserror(output):
                 exitcode = 0 if process.poll() == 0 else 1
                 exitcode = 2 if "Conda" in output else exitcode
-                exitcode = 2 if "MissingInput" in output else exitcode
                 break
             if not quiet:
                 console = Console()
@@ -53,7 +52,6 @@ def launch_snakemake(sm_args, workflow, starttext, outdir, sm_logfile, quiet):
             if process.poll() or iserror(output):
                 exitcode = 0 if process.poll() == 0 else 1
                 break
-
             while not output.startswith("Job stats:"):
                 # print dependency text only once
                 if "Downloading and installing remote packages" in output:
@@ -66,6 +64,9 @@ def launch_snakemake(sm_args, workflow, starttext, outdir, sm_logfile, quiet):
                     break
                 if "Nothing to be" in output:
                     exitcode = 0
+                    break
+                if "MissingInput" in output:
+                    exitcode = 1
                     break
                 output = process.stderr.readline()
 
