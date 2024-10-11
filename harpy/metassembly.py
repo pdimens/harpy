@@ -9,6 +9,7 @@ from ._conda import create_conda_recipes
 from ._launch import launch_snakemake
 from ._misc import fetch_rule, snakemake_log, KParam
 from ._validations import validate_fastq_bx
+
 docstring = {
     "harpy metassembly": [
         {
