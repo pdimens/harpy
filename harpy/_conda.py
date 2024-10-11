@@ -18,7 +18,7 @@ def create_conda_recipes():
             "conda-forge::xz"
             ],
         "assembly": [
-            "bioconda::spades=4"
+            "conda-forge::python=3"
         ],
         "metassembly": [
             "bioconda::athena_meta=1.2"
