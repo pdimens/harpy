@@ -14,6 +14,24 @@ from ._printing import print_error, print_notice, print_solution, print_solution
 from ._misc import harpy_progressbar
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
+def is_gzip(file_path):
+    """helper function to determine if a file is gzipped"""
+    try:
+        with gzip.open(file_path, 'rt') as f:
+            f.read(10)
+        return True
+    except:
+        return False
+
+def is_plaintext(file_path):
+    """helper function to determine if a file is plaintext"""
+    try:
+        with open(file_path, 'r') as f:
+            f.read(10)
+        return True
+    except:
+        return False
+
 def check_envdir(dirpath):
     """Check that the provided dir exists and contains the necessary environment definitions"""
     if not os.path.exists(dirpath):
@@ -321,10 +339,9 @@ def validate_regions(regioninput, genome):
         # check if the region is in the genome
 
         contigs = {}
-        if genome.lower().endswith("gz"):
-            with gzip.open(genome, "r") as fopen:
+        if is_gzip(genome):
+            with gzip.open(genome, "rt") as fopen:
                 for line in fopen:
-                    line = line.decode()
                     if line.startswith(">"):
                         cn = line.rstrip("\n").lstrip(">").split()[0]
                         contigs[cn] = 0
@@ -383,25 +400,6 @@ def validate_regions(regioninput, genome):
             click.echo(",".join([i for i in badrows]), file = sys.stderr)
             sys.exit(1)
     return "file"
-
-
-def is_gzip(file_path):
-    """helper function to determine if a file is gzipped"""
-    try:
-        with gzip.open(file_path, 'rt') as f:
-            f.read(10)
-        return True
-    except:
-        return False
-
-def is_plaintext(file_path):
-    """helper function to determine if a file is plaintext"""
-    try:
-        with open(file_path, 'r') as f:
-            f.read(10)
-        return True
-    except:
-        return False
 
 def check_fasta(genofile, quiet):
     """perform validations on fasta file for extensions and file contents"""
