@@ -450,3 +450,30 @@ def check_fasta(genofile):
         print_error("sequences absent", f"No sequences detected in [blue]{genofile}[/blue].")
         print_solution(solutiontext + "\nSee the FASTA file spec and try again after making the appropriate changes: https://www.ncbi.nlm.nih.gov/genbank/fastaformat/")
         sys.exit(1)
+
+
+def validate_fastq_bx(fastq):
+    BX = False
+    BC = False
+    if is_gzip(fastq):
+        fq = gzip.open(fastq, "rt")
+    else:
+        fq = open(fastq, "r")
+    with fq:
+        while True:
+            line = fq.readline()
+            if not line:
+                break
+            if not line.startswith("@"):
+                continue
+            BX = True if "BX:Z" in line else BX
+            BC = True if "BC:Z" in line else BC
+            if BX and BC:
+                print_error("clashing barcode tags", f"Both [green bold]BC:Z[/green bold] and [green bold]BX:Z[/green bold] tags were detected in the read headers for [blue]{os.path.basename(fastq)}[/blue]. Athena accepts [bold]only[/bold] one of [green bold]BC:Z[/green bold] or [green bold]BX:Z[/green bold].")
+                print_solution("Check why your data has both tags in use and remove/rename one of the tags.")
+                sys.exit(1)
+        # check for one or the other after parsing is done
+        if not BX and not BC:
+            print_error("no barcodes found",f"No [green bold]BC:Z[/green bold] or [green bold]BX:Z[/green bold] tags were detected in read headers for [blue]{os.path.basename(fastq)}[/blue]. Athena requires the linked-read barcode to be present as either [green bold]BC:Z[/green bold] or [/green bold]BX:Z[/green bold] tags.")
+            print_solution("Check that this is linked-read data and that the barcode is demultiplexed from the sequence line into the read header as either a `BX:Z` or `BC:Z` tag.")
+            sys.exit(1)

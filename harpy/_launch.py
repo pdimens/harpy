@@ -6,9 +6,8 @@ import sys
 import glob
 import subprocess
 from rich import print as rprint
-from rich.progress import Progress, BarColumn, TextColumn, TimeElapsedColumn, SpinnerColumn
 from rich.console import Console
-from ._misc import gzip_file
+from ._misc import gzip_file, harpy_progressbar, harpy_pulsebar
 from ._printing import print_onsuccess, print_onstart, print_onerror, print_setup_error
 
 def iserror(text):
@@ -72,13 +71,7 @@ def launch_snakemake(sm_args, workflow, starttext, outdir, sm_logfile, quiet):
 
             # if dependency text present, print pulsing progress bar
             if deps:
-                with Progress(
-                    TextColumn("[progress.description]{task.description}"),
-                    BarColumn(bar_width= 70 - len(deploy_text), pulse_style = "grey46"),
-                    TimeElapsedColumn(),
-                    transient=True,
-                    disable=quiet
-                ) as progress:
+                with harpy_pulsebar(quiet, deploy_text) as progress:
                     progress.add_task("[dim]" + deploy_text, total = None)
                     while not output.startswith("Job stats:"):
                         output = process.stderr.readline()
@@ -91,15 +84,7 @@ def launch_snakemake(sm_args, workflow, starttext, outdir, sm_logfile, quiet):
             if "Nothing to be" in output:
                 exitcode = 0
                 break
-            with Progress(
-                SpinnerColumn(spinner_name = "arc", style = "dim"),
-                TextColumn("[progress.description]{task.description}"),
-                BarColumn(complete_style="yellow", finished_style="blue"),
-                TextColumn("[progress.remaining]{task.completed}/{task.total}", style = "magenta"),
-                TimeElapsedColumn(),
-                transient=True,
-                disable=quiet
-            ) as progress:
+            with harpy_progressbar(quiet) as progress:
                 # process the job summary
                 job_inventory = {}
                 while True:

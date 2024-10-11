@@ -9,10 +9,38 @@ from datetime import datetime
 from pathlib import Path
 from importlib_resources import files
 import click
+from rich.progress import Progress, BarColumn, TextColumn, TimeElapsedColumn, SpinnerColumn
 import harpy.scripts
 import harpy.reports
 import harpy.snakefiles
 from ._printing import print_error, print_solution
+
+def harpy_progressbar(quiet):
+    """
+    The pre-configured transient progress bar that workflows and validations use
+    """
+    return Progress(
+        SpinnerColumn(spinner_name = "arc", style = "dim"),
+        TextColumn("[progress.description]{task.description}"),
+        BarColumn(complete_style="yellow", finished_style="blue"),
+        TextColumn("[progress.remaining]{task.completed}/{task.total}", style = "magenta"),
+        TimeElapsedColumn(),
+        transient=True,
+        disable=quiet
+    )
+
+def harpy_pulsebar(quiet, desc_text):
+    """
+    The pre-configured transient pulsing progress bar that workflows use, typically for
+    installing the software dependencies/container
+    """
+    return Progress(
+        TextColumn("[progress.description]{task.description}"),
+        BarColumn(bar_width= 70 - len(desc_text), pulse_style = "grey46"),
+        TimeElapsedColumn(),
+        transient=True,
+        disable=quiet
+    )
 
 def symlink(original, destination):
     """Create a symbolic link from original -> destination if the destination doesn't already exist."""
