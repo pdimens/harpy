@@ -50,26 +50,53 @@ rule format_barcode:
     shell:
         "sed 's/{params}:Z:[^[:space:]]*/&-1/g' {input} | bgzip > {output}"
 
-rule metaspades:
+rule error_correction:
     input:
-        reads = collect(outdir + "/fastq_preproc/input.R{X}.fq.gz", X = [1,2])
+        FQ_R1 = outdir + "/fastq_preproc/input.R1.fq.gz",
+        FQ_R2 = outdir + "/fastq_preproc/input.R2.fq.gz"
     output:
-        contigs = outdir + "/metaspades/contigs.fasta",
-        scaffolds = outdir + "/metaspades/scaffolds.fasta",
-        dir = directory(outdir + "/metaspades/intermediate_files"),
-        corrected_F = outdir + "/metaspades/intermediate_files/corrected/input.R1.fq00.0_0.cor.fastq.gz",
-        corrected_R = outdir + "/metaspades/intermediate_files/corrected/input.R2.fq00.0_0.cor.fastq.gz"
+        outdir + "/error_correction/corrected/input.R1.fq00.0_0.cor.fastq.gz",
+        outdir + "/error_correction/corrected/input.R2.fq00.0_0.cor.fastq.gz",
+        outdir + "/error_correction/corrected/input.R_unpaired00.0_0.cor.fastq.gz"
     params:
+        outdir = outdir + "/error_correction",
         k = k_param,
+        mem = max_mem // 1000,
         extra = extra
     log:
-        outdir + "/logs/spades.log"
+        outdir + "/logs/error_correct.log"
+    conda:
+        f"{envdir}/assembly.yaml"
     threads:
         workflow.cores
     resources:
         mem_mb=max_mem
-    wrapper:
-        "v4.7.1/bio/spades/metaspades"
+    shell:
+        "metaspades.py -t {threads} -m {params.mem} -k {params.k} {params.extra} -1 {input.FQ_R1} -2 {input.FQ_R2} -o {params.outdir} --only-error-correction > {log}"
+
+rule spades_assembly:
+    default_target: True
+    input:
+        FQ_R1C = outdir + "/error_correction/corrected/input.R1.fq00.0_0.cor.fastq.gz",
+        FQ_R2C = outdir + "/error_correction/corrected/input.R2.fq00.0_0.cor.fastq.gz",
+        FQ_UNC = outdir + "/error_correction/corrected/input.R_unpaired00.0_0.cor.fastq.gz"
+    output:
+        f"{outdir}/metaspades/contigs.fasta" 
+    params:
+        outdir = outdir + "/metaspades",
+        k = k_param,
+        mem = max_mem // 1000,
+        extra = extra
+    log:
+        outdir + "/logs/metaspades_assembly.log"
+    conda:
+        f"{envdir}/assembly.yaml"
+    threads:
+        workflow.cores
+    resources:
+        mem_mb=max_mem
+    shell:
+        "metaspades.py -t {threads} -m {params.mem} -k {params.k} {params.extra} -1 {input.FQ_R1C} -2 {input.FQ_R2C} -s {input.FQ_UNC} -o {params.outdir} --only-assembler > {log}"
 
 rule bwa_index:
     input:
@@ -183,7 +210,7 @@ rule athena:
 #        "python pangaea_path/pangaea.py -1 {input.F_fq} -2 {input.R_fq} -sp {input.spades_contigs} -lc {input.athena_local} -at {input.athena_hybrid} -lt {params.lt} -c {params.c} -o {params.outdir} 2> {log}"
 
 rule workflow_summary:
-    default_target: True
+    #default_target: True
     input:
         f"{outdir}/athena/olc/athena.asm.fa"
     params:

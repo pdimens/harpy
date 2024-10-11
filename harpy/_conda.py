@@ -17,8 +17,11 @@ def create_conda_recipes():
             "conda-forge::libzlib",
             "conda-forge::xz"
             ],
+        "assembly": [
+            "bioconda::spades=4"
+        ],
         "metassembly": [
-            "bioconda::athena_meta"
+            "bioconda::athena_meta=1.2"
         ],
         "phase" : [
             "bioconda::hapcut2",
@@ -76,3 +79,10 @@ def create_conda_recipes():
             yml.write("\n  - ".join(condachannels))
             yml.write("\ndependencies:\n  - ")
             yml.write("\n  - ".join(deps) + "\n")
+
+    # post-deployment scripts
+    with open(".harpy_envs/assembly.post-deploy.sh", "w", encoding="utf-8") as shellscript:
+        shellscript.write("wget https://github.com/ablab/spades/releases/download/v4.0.0/SPAdes-4.0.0-Linux.tar.gz &&\\\n")
+        shellscript.write("tar -xvzf SPAdes-4.0.0-Linux.tar.gz -C SPADES &&\\\n")
+        shellscript.write("cd SPADES &&\\\n")
+        shellscript.write("cp SPADES/bin/* ${CONDA_PREFIX}/bin && cp -r SPADES/share/* ${CONDA_PREFIX}/share")
