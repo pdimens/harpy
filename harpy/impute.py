@@ -70,7 +70,7 @@ def impute(inputs, output_dir, parameters, threads, vcf, vcf_samples, extra_para
     validate_input_by_ext(vcf, "--vcf", ["vcf", "bcf", "vcf.gz"])
     check_impute_params(parameters)
     bamlist, n = parse_alignment_inputs(inputs)
-    validate_bam_RG(bamlist)
+    validate_bam_RG(bamlist, threads, quiet)
     samplenames = vcf_samplematch(vcf, bamlist, vcf_samples)
     biallelic, n_biallelic = biallelic_contigs(vcf, f"{workflowdir}")
 

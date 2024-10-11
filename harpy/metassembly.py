@@ -5,10 +5,9 @@ import sys
 from rich import box
 from rich.table import Table
 import rich_click as click
-from concurrent.futures import ThreadPoolExecutor, as_completed
 from ._conda import create_conda_recipes
 from ._launch import launch_snakemake
-from ._misc import fetch_rule, snakemake_log, harpy_progressbar, KParam
+from ._misc import fetch_rule, snakemake_log, KParam
 from ._validations import validate_fastq_bx
 docstring = {
     "harpy metassembly": [
@@ -58,13 +57,7 @@ def metassembly(fastq_r1, fastq_r2, bx_tag, max_memory, metaspades_k, output_dir
     if snakemake is not None:
         command += snakemake
 
-    with harpy_progressbar(quiet) as progress:
-        task_progress = progress.add_task("[green]Validating FASTQ inputs...", total=2)
-        with ThreadPoolExecutor(max_workers=2) as executor:
-            futures = [executor.submit(validate_fastq_bx, i) for i in [fastq_r1, fastq_r2]]
-            for future in as_completed(futures):
-                progress.update(task_progress, advance=1)
-
+    validate_fastq_bx([fastq_r1, fastq_r2], threads, quiet)
     os.makedirs(workflowdir, exist_ok=True)
     fetch_rule(workflowdir, "metassembly.smk")
     os.makedirs(f"{output_dir}/logs/snakemake", exist_ok = True)

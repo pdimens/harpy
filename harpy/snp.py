@@ -91,8 +91,8 @@ def mpileup(inputs, output_dir, regions, genome, threads, populations, ploidy, e
 
     os.makedirs(f"{workflowdir}/", exist_ok= True)
     bamlist, n = parse_alignment_inputs(inputs)
-    validate_bam_RG(bamlist)
-    check_fasta(genome)
+    validate_bam_RG(bamlist, threads, quiet)
+    check_fasta(genome, quiet)
 
     # setup regions checks
     regtype = validate_regions(regions, genome)
@@ -195,8 +195,8 @@ def freebayes(inputs, output_dir, genome, threads, populations, ploidy, regions,
 
     os.makedirs(f"{workflowdir}/", exist_ok= True)
     bamlist, n = parse_alignment_inputs(inputs)
-    validate_bam_RG(bamlist)
-    check_fasta(genome)
+    validate_bam_RG(bamlist, threads, quiet)
+    check_fasta(genome, quiet)
 
     # setup regions checks
     regtype = validate_regions(regions, genome)

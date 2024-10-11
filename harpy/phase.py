@@ -68,9 +68,9 @@ def phase(inputs, output_dir, vcf, threads, molecule_distance, prune_threshold, 
     bamlist, n = parse_alignment_inputs(inputs)
     samplenames = vcf_samplematch(vcf, bamlist, vcf_samples)
     validate_input_by_ext(vcf, "--vcf", ["vcf", "bcf", "vcf.gz"])
-    validate_bam_RG(bamlist)
+    validate_bam_RG(bamlist, threads, quiet)
     if genome:
-        check_fasta(genome)
+        check_fasta(genome, quiet)
     fetch_rule(workflowdir, "phase.smk")
     fetch_report(workflowdir, "hapcut.Rmd")
     os.makedirs(f"{output_dir}/logs/snakemake", exist_ok = True)
