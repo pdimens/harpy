@@ -47,3 +47,13 @@ rule simulations:
     output: "simulations.env"
     conda: os.getcwd() + "/.harpy_envs/simulations.yaml"
     shell: "touch {output}"
+
+rule assembly:
+    output: "assembly.env"
+    conda: os.getcwd() + "/.harpy_envs/assembly.yaml"
+    shell: "touch {output}"
+
+rule metassembly:
+    output: "metassembly.env"
+    conda: os.getcwd() + "/.harpy_envs/metassembly.yaml"
+    shell: "touch {output}"
