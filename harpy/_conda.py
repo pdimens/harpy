@@ -82,7 +82,7 @@ def create_conda_recipes():
 
     # post-deployment scripts
     with open(".harpy_envs/assembly.post-deploy.sh", "w", encoding="utf-8") as shellscript:
-        shellscript.write("wget https://github.com/ablab/spades/releases/download/v4.0.0/SPAdes-4.0.0-Linux.tar.gz &&\\\n")
-        shellscript.write("tar -xvzf SPAdes-4.0.0-Linux.tar.gz -C SPADES &&\\\n")
-        shellscript.write("cd SPADES &&\\\n")
-        shellscript.write("cp SPADES/bin/* ${CONDA_PREFIX}/bin && cp -r SPADES/share/* ${CONDA_PREFIX}/share")
+        shellscript.write("wget -O .spades.tar.gz https://github.com/ablab/spades/releases/download/v4.0.0/SPAdes-4.0.0-Linux.tar.gz\n")
+        shellscript.write("tar -xvzf .spades.tar.gz && rm .spades.tar.gz\n")
+        shellscript.write("mv SPAdes-4.0.0-Linux/bin/* ${CONDA_PREFIX}/bin && mv SPAdes-4.0.0-Linux/share/* ${CONDA_PREFIX}/share\n")
+        shellscript.write("rm -r SPAdes-4.0.0-Linux\n")

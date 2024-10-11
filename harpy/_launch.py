@@ -53,7 +53,7 @@ def launch_snakemake(sm_args, workflow, starttext, outdir, sm_logfile, quiet):
                 break
             while not output.startswith("Job stats:"):
                 # print dependency text only once
-                if "Downloading and installing remote packages" in output:
+                if "Downloading and installing remote packages" in output or "Running post-deploy" in output:
                     deps = True
                     deploy_text = "[dim]Installing software dependencies"
                     break
