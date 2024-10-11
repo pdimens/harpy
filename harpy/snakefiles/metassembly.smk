@@ -12,6 +12,8 @@ onerror:
 
 #cont_cov = config["contig_coverage"]
 #clusters = config["clusters"]
+FQ1 = config["inputs"]["fastq_r1"],
+FQ2 = config["inputs"]["fastq_r2"]
 outdir = config["output_directory"]
 envdir = os.getcwd() + "/.harpy_envs"
 max_mem = config["metaspades"]["max_memory"]
@@ -20,8 +22,8 @@ extra = config["metaspades"].get("extra", "")
 
 rule sort_by_barcode:
     input:
-        fq_f = config["inputs"]["fastq_r1"],
-        fq_r = config["inputs"]["fastq_r2"]
+        fq_f = FQ1,
+        fq_r = FQ2
     output:
         fq_f = temp(f"{outdir}/fastq_preproc/tmp.R1.fq"),
         fq_r = temp(f"{outdir}/fastq_preproc/tmp.R2.fq")
