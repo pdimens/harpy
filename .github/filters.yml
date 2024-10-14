@@ -149,7 +149,9 @@ simreads: &simreads
   - 'extractReads.cpp'
   - 'harpy/bin/10xtoHaplotag.py'
   - 'harpy/scripts/LRSIM_harpy.pl'
-other: &metassembly
+metassembly: &metassembly
+  - *common
+  - *container
   - 'harpy/metassembly.py'
   - 'harpy/snakefiles/metassembly.smk'
 other: &other
