@@ -41,6 +41,7 @@ jobs:
       phase: ${{ steps.filter.outputs.phase }}
       simvars: ${{ steps.filter.outputs.simvars }}
       simreads: ${{ steps.filter.outputs.simreads }}
+      metassembly: ${{ steps.filter.outputs.metassembly }}
       other: ${{ steps.filter.outputs.other }}
       container: ${{ steps.filter.outputs.container }}
       modules: ${{ steps.filter.outputs.modules }}
