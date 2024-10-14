@@ -101,30 +101,26 @@ def gzip_file(infile):
             shutil.copyfileobj(f_in, f_out)
         os.remove(infile)
 
-class IntPair(click.ParamType):
-    """A class for a click type which accepts 2 integers, separated by a comma."""
-    name = "int_pair"
+class IntList(click.ParamType):
+    """A class for a click type which accepts an arbitrary number of integers, separated by a comma."""
+    name = "int_list"
+    def __init__(self, max_entries):
+        super().__init__()
+        self.max_entries = max_entries
+
     def convert(self, value, param, ctx):
         try:
-            parts = value.split(',')
-            if len(parts) != 2:
+            parts = [i.strip() for i in value.split(',')]
+            if len(parts) != self.max_entries:
                 raise ValueError
+            for i in parts:
+                try:
+                    int(i)
+                except:
+                    raise ValueError
             return [int(i) for i in parts]
         except ValueError:
-            self.fail(f"{value} is not a valid integer pair. The value should be two integers separated by a comma.", param, ctx)
-
-class IntQuartet(click.ParamType):
-    """A class for a click type which accepts 4 integers, separated by a comma."""
-    name = "int_quartet"
-    def convert(self, value, param, ctx):
-        try:
-            parts = value.split(',')
-            if len(parts) != 4:
-                raise ValueError
-            return [int(i) for i in parts]
-        except ValueError:
-            self.fail(f"{value} is not a valid set of 4 integers separated by commas.", param, ctx)
-
+            self.fail(f"{value} is not a valid list of integers. The value should be {self.max_entries} integers separated by a comma.", param, ctx)
 
 class KParam(click.ParamType):
     """A class for a click type which accepts any number of odd integers separated by a comma, or the word auto."""
@@ -133,7 +129,7 @@ class KParam(click.ParamType):
         try:
             if value == "auto":
                 return value
-            parts = value.split(',')
+            parts = [i.strip() for i in value.split(',')]
             for i in parts:
                 if int(i) % 2 == 0 or int(i) > 128:
                     raise ValueError

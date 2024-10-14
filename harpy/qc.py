@@ -7,7 +7,7 @@ from rich.table import Table
 import rich_click as click
 from ._conda import create_conda_recipes
 from ._launch import launch_snakemake
-from ._misc import fetch_report, fetch_rule, snakemake_log, IntQuartet
+from ._misc import fetch_report, fetch_rule, snakemake_log, IntList
 from ._parsers import parse_fastq_inputs
 
 docstring = {
@@ -24,8 +24,7 @@ docstring = {
 }
 
 @click.command(no_args_is_help = True, context_settings=dict(allow_interspersed_args=False), epilog = "See the documentation for more information: https://pdimens.github.io/harpy/workflows/qc")
-@click.option('-c', '--deconvolve', is_flag = True, default = False, help = 'Resolve barcode clashes between reads from different molecules.')
-@click.option('-p', '--deconvolve-params', type = IntQuartet(), show_default = True, default = "21,40,3,0", help = 'Accepts the QuickDeconvolution parameters for k,w,d,a, in that order')
+@click.option('-c', '--deconvolve', type = IntList(4), default = "0,0,0,0", help = 'Accepts the QuickDeconvolution parameters for k,w,d,a, in that order. Use `21,40,3,0` to activate with the default parameteters.')
 @click.option('-d', '--deduplicate', is_flag = True, default = False, help = 'Identify and remove PCR duplicates')
 @click.option('-x', '--extra-params', type = str, help = 'Additional Fastp parameters, in quotes')
 @click.option('-m', '--max-length', default = 150, show_default = True, type=int, help = 'Maximum length to trim sequences down to')
@@ -40,7 +39,7 @@ docstring = {
 @click.option('--skip-reports',  is_flag = True, default = False, help = 'Don\'t generate HTML reports')
 @click.option('--snakemake', type = str, help = 'Additional Snakemake parameters, in quotes')
 @click.argument('inputs', required=True, type=click.Path(exists=True, readable=True), nargs=-1)
-def qc(inputs, output_dir, min_length, max_length, trim_adapters, deduplicate, deconvolve, deconvolve_params, extra_params, threads, snakemake, skip_reports, quiet, hpc, conda, setup_only):
+def qc(inputs, output_dir, min_length, max_length, trim_adapters, deduplicate, deconvolve, extra_params, threads, snakemake, skip_reports, quiet, hpc, conda, setup_only):
     """
     Remove adapters and quality-control sequences
 
@@ -80,9 +79,9 @@ def qc(inputs, output_dir, min_length, max_length, trim_adapters, deduplicate, d
         config.write(f"output_directory: {output_dir}\n")
         config.write(f"trim_adapters: {trim_adapters}\n")
         config.write(f"deduplicate: {deduplicate}\n")
-        if deconvolve:
+        if deconvolve is not [0,0,0,0]:
             config.write("deconvolve:\n")
-            k,w,d,a = deconvolve_params
+            k,w,d,a = deconvolve
             config.write(f"  kmer_length: {k}\n")
             config.write(f"  window_size: {w}\n")
             config.write(f"  density: {d}\n")
