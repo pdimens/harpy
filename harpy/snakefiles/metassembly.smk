@@ -75,15 +75,14 @@ rule error_correction:
         "metaspades.py -t {threads} -m {params.mem} -k {params.k} {params.extra} -1 {input.FQ_R1} -2 {input.FQ_R2} -o {params.outdir} --only-error-correction > {log}"
 
 rule spades_assembly:
-    default_target: True
     input:
         FQ_R1C = outdir + "/error_correction/corrected/input.R1.fq00.0_0.cor.fastq.gz",
         FQ_R2C = outdir + "/error_correction/corrected/input.R2.fq00.0_0.cor.fastq.gz",
         FQ_UNC = outdir + "/error_correction/corrected/input.R_unpaired00.0_0.cor.fastq.gz"
     output:
-        f"{outdir}/metaspades/contigs.fasta" 
+        f"{outdir}/metaspades_assembly/contigs.fasta" 
     params:
-        outdir = outdir + "/metaspades",
+        outdir = outdir + "/metaspades_assembly",
         k = k_param,
         mem = max_mem // 1000,
         extra = extra
@@ -100,9 +99,9 @@ rule spades_assembly:
 
 rule bwa_index:
     input:
-        f"{outdir}/metaspades/contigs.fasta" 
+        f"{outdir}/metaspades_assembly/contigs.fasta" 
     output:
-        multiext(f"{outdir}/metaspades/contigs.fasta.", "ann", "bwt", "pac", "sa", "amb") 
+        multiext(f"{outdir}/metaspades_assembly/contigs.fasta.", "ann", "bwt", "pac", "sa", "amb") 
     log:
         f"{outdir}/logs/bwa.index.log"
     conda:
@@ -112,9 +111,9 @@ rule bwa_index:
 
 rule bwa_align:
     input:
-        multiext(f"{outdir}/metaspades/contigs.fasta.", "ann", "bwt", "pac", "sa", "amb"),
+        multiext(f"{outdir}/metaspades_assembly/contigs.fasta.", "ann", "bwt", "pac", "sa", "amb"),
         fastq   = collect(outdir + "/fastq_preproc/input.R{X}.fq.gz", X = [1,2]),
-        contigs = f"{outdir}/metaspades/contigs.fasta"
+        contigs = f"{outdir}/metaspades_assembly/contigs.fasta"
     output:
         f"{outdir}/reads-to-metaspades.bam"
     log:
@@ -154,7 +153,7 @@ rule athena_config:
         f"{outdir}/reads-to-metaspades.bam.bai",
         fastq = f"{outdir}/fastq_preproc/inverleaved.fq",
         bam = f"{outdir}/reads-to-metaspades.bam",
-        contigs = f"{outdir}/metaspades/contigs.fasta"
+        contigs = f"{outdir}/metaspades_assembly/contigs.fasta"
     output:
         f"{outdir}/athena/athena.config"
     params:
@@ -177,42 +176,30 @@ rule athena:
     input:
         multiext(f"{outdir}/reads-to-metaspades.", "bam", "bam.bai"),
         f"{outdir}/fastq_preproc/inverleaved.fq",
-        f"{outdir}/metaspades/contigs.fasta",
+        f"{outdir}/metaspades_assembly/contigs.fasta",
         config = f"{outdir}/athena/athena.config"
     output:
-        local_asm = f"{outdir}/athena/olc/flye-input-contigs.fa",
-        final_asm = f"{outdir}/athena/olc/athena.asm.fa"
+        temp(directory(collect(outdir + "/athena/{X}", X = ["results", "logs", "working"]))),
+        f"{outdir}/athena/flye-input-contigs.fa",
+        f"{outdir}/athena/athena.asm.fa",
     log:
         f"{outdir}/logs/athena.log"
+    params:
+        local_asm = f"{outdir}/athena/results/olc/flye-input-contigs.fa",
+        final_asm = f"{outdir}/athena/results/olc/athena.asm.fa",
+        result_dir = f"{outdir}/athena"
     conda:
         f"{envdir}/metassembly.yaml"
     shell:
-        "athena-meta --config {input.config} 2> {log}"
-
-#TODO figure this part out
-# is it sorted reads, interleaved? Can I just use the starting ones? maybe just the corrected metaspades ones
-#rule pangaea:
-#    input:
-#        F_fq = f"{outdir}/metaspades/corrected/corrected/input_100.0_0.cor.fastq.gz",
-#        R_fq = f"{outdir}/metaspades/corrected/corrected/input_200.0_0.cor.fastq.gz",
-#        spades_contigs = f"{outdir}/metaspades/corrected/contigs.fasta",
-#        athena_local = f"{outdir}/athena/results/olc/flye-input-contigs.fa",
-#        athena_hybrid = f"{outdir}/athena/results/olc/athena.asm.fa"
-#    output:
-#        f"{outdir}/pangaea/final.asm.fa"
-#    params:
-#        outdir = f"{outdir}/pangaea",
-#        lt = cont_cov,
-#        c =  clusters
-#    log:
-#        f"{outdir}/logs/pangaea.log"
-#    shell:
-#        "python pangaea_path/pangaea.py -1 {input.F_fq} -2 {input.R_fq} -sp {input.spades_contigs} -lc {input.athena_local} -at {input.athena_hybrid} -lt {params.lt} -c {params.c} -o {params.outdir} 2> {log}"
+        """
+        athena-meta --config {input.config} 2> {log} &&\\
+        mv {params.local_asm} {params.final_asm} {params.result_dir}      
+        """
 
 rule workflow_summary:
-    #default_target: True
+    default_target: True
     input:
-        f"{outdir}/athena/olc/athena.asm.fa"
+        f"{outdir}/athena/athena.asm.fa"
     params:
         bx = config["barcode_tag"].upper(),
         k_param = k_param,
@@ -226,7 +213,7 @@ rule workflow_summary:
             _ = f.write("FASTQ inputs were sorted by their linked-read barcodes:\n")
             _ = f.write("    samtools import -T \"*\" FQ1 FQ2 |\n")
             _ = f.write(f"    samtools sort -O SAM -t {params.bx} |\n")
-            _ = f.write("    samtools fastq -T "*" -1 FQ_out1 -2 FQ_out2\n")
+            _ = f.write("    samtools fastq -T \"*\" -1 FQ_out1 -2 FQ_out2\n")
             _ = f.write("Barcoded-sorted FASTQ files had \"-1\" appended to the barcode to make them Athena-compliant:\n")
             _ = f.write(f"    sed 's/{params.bx}:Z:[^[:space:]]*/&-1/g' FASTQ | bgzip > FASTQ_OUT\n")
             _ = f.write(f"Reads were assembled using metaspades:\n")

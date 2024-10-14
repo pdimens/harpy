@@ -76,7 +76,7 @@ def metassembly(fastq_r1, fastq_r2, bx_tag, max_memory, metaspades_k, output_dir
         if metaspades_k == "auto":
             config.write(f"    k: auto\n")
         else:
-            config.write(f"    k: " + ",".join(metaspades_k) + "\n")
+            config.write(f"    k: " + ",".join(map(str,metaspades_k)) + "\n")
         if extra_params:
             config.write(f"    extra: {extra_params}\n")
         config.write(f"skip_reports: {skip_reports}\n")
@@ -98,7 +98,7 @@ def metassembly(fastq_r1, fastq_r2, bx_tag, max_memory, metaspades_k, output_dir
     if metaspades_k == "auto":
         start_text.add_row(f"Metaspades K: ", "auto")
     else:
-        start_text.add_row(f"Metaspades K: ", ",".join(metaspades_k))
+        start_text.add_row(f"Metaspades K: ", ",".join(map(str,metaspades_k)))
     start_text.add_row("Output Folder:", f"{output_dir}/")
     start_text.add_row("Workflow Log:", sm_log.replace(f"{output_dir}/", "") + "[dim].gz")
     launch_snakemake(command, "metassembly", start_text, output_dir, sm_log, quiet)
