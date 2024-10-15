@@ -197,7 +197,7 @@ fastp ran using:
 
 {deconvolve_text}
 
-The Snakemake workflow was called via command line:\n")
+The Snakemake workflow was called via command line:
     {config["workflow_call"]}
 """        
         with open(outdir + "/workflow/qc.summary", "w") as f:
