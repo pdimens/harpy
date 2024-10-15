@@ -89,8 +89,6 @@ def metassembly(fastq_r1, fastq_r2, bx_tag, kmer_length, max_memory, output_dir,
     start_text.add_column("detail", justify="left", style="light_steel_blue", no_wrap=True)
     start_text.add_column("value", justify="left")
     start_text.add_row("Barcode Tag: ", bx_tag.upper())
-    #start_text.add_row("Clusters: ", f"{clusters}")
-    #start_text.add_row("Contig Cov. Thresh: ", f"{contig_cov[0]},{contig_cov[1]}")
     if kmer_length == "auto":
         start_text.add_row(f"Kmer Length: ", "auto")
     else:
