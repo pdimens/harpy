@@ -69,7 +69,7 @@ def metassembly(fastq_r1, fastq_r2, bx_tag, kmer_length, max_memory, output_dir,
         config.write(f"barcode_tag: {bx_tag.upper()}\n")
         config.write("spades:\n")
         config.write(f"    max_memory: {max_memory}\n")
-        if metaspades_k == "auto":
+        if kmer_length == "auto":
             config.write(f"    k: auto\n")
         else:
             config.write(f"    k: " + ",".join(map(str,kmer_length)) + "\n")
@@ -91,7 +91,7 @@ def metassembly(fastq_r1, fastq_r2, bx_tag, kmer_length, max_memory, output_dir,
     start_text.add_row("Barcode Tag: ", bx_tag.upper())
     #start_text.add_row("Clusters: ", f"{clusters}")
     #start_text.add_row("Contig Cov. Thresh: ", f"{contig_cov[0]},{contig_cov[1]}")
-    if metaspades_k == "auto":
+    if kmer_length == "auto":
         start_text.add_row(f"Kmer Length: ", "auto")
     else:
         start_text.add_row(f"Kmer Length: ", ",".join(map(str,kmer_length)))
