@@ -51,6 +51,8 @@ def process_args(args):
                 argsDict[i[0].lstrip("-")] = i[1]
     return argsDict
 
+argdict = process_args(extra)
+
 def get_alignments(wildcards):
     """returns a list with the bam file for the sample based on wildcards.sample"""
     r = re.compile(fr".*/({wildcards.sample})\.(bam|sam)$", flags = re.IGNORECASE)
@@ -161,7 +163,6 @@ rule naibr_config:
         lambda wc: wc.get("sample"),
         min(10, workflow.cores - 1)
     run:
-        argdict = process_args(extra)
         with open(output[0], "w") as conf:
             _ = conf.write(f"bam_file={input[0]}\n")
             _ = conf.write(f"prefix={params[0]}\n")
@@ -274,17 +275,23 @@ rule workflow_summary:
         reports =  collect(outdir + "/reports/{sample}.naibr.html", sample = samplenames) if not skip_reports else []
     run:
         os.system(f"rm -rf {outdir}/naibrlog")
-        argdict = process_args(extra)
+        argtext = [f"{k}={v}" for k,v in argdict.items()]
+        summary_template = f"""
+The harpy sv naibr workflow ran using these parameters:
+
+The provided genome: {bn}
+
+The alignment files were phased using:
+    whatshap haplotag --reference genome.fasta --linked-read-distance-cutoff {mol_dist} --ignore-read-groups --tag-supplementary --sample sample_x file.vcf sample_x.bam
+
+naibr variant calling ran using these configurations:
+    bam_file=BAMFILE
+    prefix=PREFIX
+    outdir=Variants/naibr/PREFIX
+    {"\n\t".join(argtext)}
+
+The Snakemake workflow was called via command line:
+    {config["workflow_call"]}
+"""
         with open(outdir + "/workflow/sv.naibr.summary", "w") as f:
-            _ = f.write("The harpy sv naibr workflow ran using these parameters:\n\n")
-            _ = f.write(f"The provided genome: {bn}\n")
-            _ = f.write("The alignment files were phased using:\n")
-            _ = f.write(f"    whatshap haplotag --reference genome.fasta --linked-read-distance-cutoff {mol_dist} --ignore-read-groups --tag-supplementary --sample sample_x file.vcf sample_x.bam\n")
-            _ = f.write("naibr variant calling ran using these configurations:\n")
-            _ = f.write(f"    bam_file=BAMFILE\n")
-            _ = f.write(f"    prefix=PREFIX\n")
-            _ = f.write(f"    outdir=Variants/naibr/PREFIX\n")
-            for i in argdict:
-                _ = f.write(f"    {i}={argdict[i]}\n")
-            _ = f.write("\nThe Snakemake workflow was called via command line:\n")
-            _ = f.write("    " + str(config["workflow_call"]) + "\n")
+            f.write(summary_template)

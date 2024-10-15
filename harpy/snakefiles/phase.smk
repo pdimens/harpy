@@ -277,17 +277,25 @@ rule workflow_summary:
         prune = f"--threshold {pruning}" if pruning > 0 else "--no_prune 1",
         extra = extra
     run:
+        summary_template = f"""
+The harpy phase workflow ran using these parameters:
+
+The provided variant file: {variantfile}
+
+The variant file was split by sample and filtered for heterozygous sites using:
+    bcftools view -s SAMPLE | bcftools view -i 'GT="het"'
+
+Phasing was performed using the components of HapCut2:
+    extractHAIRS {linkarg} --nf 1 --bam sample.bam --VCF sample.vcf --out sample.unlinked.frags
+    LinkFragments.py --bam sample.bam --VCF sample.vcf --fragments sample.unlinked.frags --out sample.linked.frags -d {molecule_distance}
+    HAPCUT2 --fragments sample.linked.frags --vcf sample.vcf --out sample.blocks --nf 1 --error_analysis_mode 1 --call_homozygous 1 --outvcf 1 {params.prune} {params.extra}
+
+Variant annotation was performed using:
+    bcftools annotate -a sample.phased.vcf -c CHROM,POS,FMT/GT,FMT/PS,FMT/PQ,FMT/PD -m +HAPCUT 
+    bcftools merge --output-type b samples.annot.bcf
+
+The Snakemake workflow was called via command line:
+    {config["workflow_call"]}
+"""
         with open(outdir + "/workflow/phase.summary", "w") as f:
-            _ = f.write("The harpy phase workflow ran using these parameters:\n\n")
-            _ = f.write(f"The provided variant file: {variantfile}\n")
-            _ = f.write("The variant file was split by sample and filtered for heterozygous sites using:\n")
-            _ = f.write("""    bcftools view -s SAMPLE | bcftools view -i 'GT="het"' \n""")
-            _ = f.write("Phasing was performed using the components of HapCut2:\n")
-            _ = f.write("    extractHAIRS " + linkarg + " --nf 1 --bam sample.bam --VCF sample.vcf --out sample.unlinked.frags\n")
-            _ = f.write("    LinkFragments.py --bam sample.bam --VCF sample.vcf --fragments sample.unlinked.frags --out sample.linked.frags -d " + f"{molecule_distance}" + "\n")
-            _ = f.write("    HAPCUT2 --fragments sample.linked.frags --vcf sample.vcf --out sample.blocks --nf 1 --error_analysis_mode 1 --call_homozygous 1 --outvcf 1" + f" {params[0]} {params[1]}" + "\n\n")
-            _ = f.write("Variant annotation was performed using:\n")
-            _ = f.write("    bcftools annotate -a sample.phased.vcf -c CHROM,POS,FMT/GT,FMT/PS,FMT/PQ,FMT/PD -m +HAPCUT \n")
-            _ = f.write("    bcftools merge --output-type b samples.annot.bcf\n\n")
-            _ = f.write("\nThe Snakemake workflow was called via command line:\n")
-            _ = f.write("    " + str(config["workflow_call"]) + "\n")
+            f.write(summary_template)

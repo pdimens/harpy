@@ -210,12 +210,19 @@ rule workflow_summary:
         iters  = f"-B {iterations}",
         extra = extra
     run:
+        summary_template = f"""
+The harpy sv leviathan workflow ran using these parameters:
+
+The provided genome: {bn}
+
+The barcodes were indexed using:
+    LRez index bam -p -b INPUT
+
+Leviathan was called using:
+    LEVIATHAN -b INPUT -i INPUT.BCI -g GENOME {params}
+
+The Snakemake workflow was called via command line:
+    {config["workflow_call"]}
+"""
         with open(outdir + "/workflow/sv.leviathan.summary", "w") as f:
-            _ = f.write("The harpy sv leviathan workflow ran using these parameters:\n\n")
-            _ = f.write(f"The provided genome: {bn}\n")
-            _ = f.write("The barcodes were indexed using:\n")
-            _ = f.write("    LRez index bam -p -b INPUT\n")
-            _ = f.write("Leviathan was called using:\n")
-            _ = f.write(f"    LEVIATHAN -b INPUT -i INPUT.BCI -g GENOME {params}\n")
-            _ = f.write("\nThe Snakemake workflow was called via command line:\n")
-            _ = f.write("    " + str(config["workflow_call"]) + "\n")
+            f.write(summary_template)

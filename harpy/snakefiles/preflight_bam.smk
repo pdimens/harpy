@@ -85,9 +85,14 @@ rule workflow_summary:
         outdir + "/filecheck.bam.html"
     run:
         os.makedirs(f"{outdir}/workflow/", exist_ok= True)
+        summary_template = f"""
+The harpy preflight bam workflow ran using these parameters:
+
+Validations were performed with:
+    check_bam.py sample.bam > sample.txt
+
+The Snakemake workflow was called via command line:
+    {config["workflow_call"]}
+"""
         with open(outdir + "/workflow/preflight.bam.summary", "w") as f:
-            _ = f.write("The harpy preflight bam workflow ran using these parameters:\n\n")
-            _ = f.write("validations were performed with:\n")
-            _ = f.write("    check_bam.py sample.bam > sample.txt\n")
-            _ = f.write("\nThe Snakemake workflow was called via command line:\n")
-            _ = f.write("    " + str(config["workflow_call"]) + "\n")
+            f.write(summary_template)

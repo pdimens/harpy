@@ -234,5 +234,5 @@ Athena ran with the config file Harpy built from the files created from the prev
 The Snakemake workflow was called via command line:  
     {config["workflow_call"]}
 """
-        with open(output[0], "w") as f:  
+        with open(outdir + "/workflow/metassembly.summary", "w") as f:  
             f.write(summary_template.format(params=params))

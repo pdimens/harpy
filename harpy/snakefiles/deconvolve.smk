@@ -86,14 +86,21 @@ rule workflow_summary:
     input:
         collect(outdir + "/{sample}.{FR}.fq.gz", FR = ["R1", "R2"], sample = samplenames),
     run:
-        with open(outdir + "/workflow/deconvolve.summary", "w") as f:
-            _ = f.write("The harpy deconvolve workflow ran using these parameters:\n\n")
-            _ = f.write("fastq files were interleaved with seqtk:\n")
-            _ = f.write("    seqtk mergepe forward.fq reverse.fq\n")
-            _ = f.write("Deconvolution occurred using QuickDeconvolution:\n")
-            _ = f.write(f"   QuickDeconvolution -t threads -i infile.fq -o output.fq -k {kmer_length} -w {window_size} -d {density} -a {dropout}\n")
-            _ = f.write("The interleaved output was split back into forward and reverse reads with seqtk:\n")
-            _ = f.write("    seqtk -1 interleaved.fq | gzip > file.R1.fq.gz\n")
-            _ = f.write("    seqtk -2 interleaved.fq | gzip > file.R2.fq.gz\n")
-            _ = f.write("\nThe Snakemake workflow was called via command line:\n")
-            _ = f.write("    " + str(config["workflow_call"]) + "\n")
+        summary_template = f"""
+The harpy deconvolve workflow ran using these parameters:
+
+fastq files were interleaved with seqtk:
+    seqtk mergepe forward.fq reverse.fq
+
+Deconvolution occurred using QuickDeconvolution:
+    QuickDeconvolution -t threads -i infile.fq -o output.fq -k {kmer_length} -w {window_size} -d {density} -a {dropout}
+
+The interleaved output was split back into forward and reverse reads with seqtk:
+    seqtk -1 interleaved.fq | gzip > file.R1.fq.gz
+    seqtk -2 interleaved.fq | gzip > file.R2.fq.gz
+
+The Snakemake workflow was called via command line:
+        {config["workflow_call"]}
+"""
+        with open(outdir + "/workflow/deconvolve.summary", "w") as f:  
+            f.write(summary_template)

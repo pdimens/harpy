@@ -219,36 +219,42 @@ rule workflow_summary:
         agg_report = collect(outdir + "/{stitchparams}/reports/variants.imputed.html", stitchparams=paramspace.instance_patterns) if not skip_reports else [],
         contig_report = collect(outdir + "/{stitchparams}/reports/{part}.stitch.html", stitchparams=paramspace.instance_patterns, part = contigs) if not skip_reports else [],
     run:
+        summary_template = f"""
+The harpy impute workflow ran using these parameters:
+
+The provided variant file: {variantfile}
+
+Preprocessing was performed with:
+    bcftools view -M2 -v snps --regions CONTIG INFILE |
+    bcftools query -i '(STRLEN(REF)==1) & (STRLEN(ALT[0])==1) & (REF!="N")' -f '%CHROM\\t%POS\\t%REF\\t%ALT\\n'
+
+The STITCH parameter file: {paramfile}
+    {for line in open(paramfile, "r").readlines(): print("\t" + line)}
+
+Within R, STITCH was invoked with the following parameters:
+    STITCH(
+        method               = model,
+        posfile              = posfile,
+        bamlist              = bamlist,
+        nCores               = ncores,
+        nGen                 = ngen,
+        chr                  = chr,
+        K                    = k,
+        S                    = s,
+        use_bx_tag           = usebX,
+        bxTagUpperLimit      = bxlimit,
+        niterations          = 40,
+        switchModelIteration = 39,
+        splitReadIterations  = NA,
+        outputdir            = outdir,
+        output_filename      = outfile
+    )
+
+Additional STITCH parameters provided (overrides existing values above):\n")
+    {config.get("extra", "None provided")}
+
+The Snakemake workflow was called via command line:\n")
+    {config["workflow_call"]}
+"""
         with open(outdir + "/workflow/impute.summary", "w") as f:
-            _ = f.write("The harpy impute workflow ran using these parameters:\n\n")
-            _ = f.write(f"The provided variant file: {variantfile}\n")
-            _ = f.write("Preprocessing was performed with:\n")
-            _ = f.write("    bcftools view -M2 -v snps --regions CONTIG INFILE |\n")
-            _ = f.write("""    bcftools query -i '(STRLEN(REF)==1) & (STRLEN(ALT[0])==1) & (REF!="N")' -f '%CHROM\\t%POS\\t%REF\\t%ALT\\n'\n""")
-            _ = f.write("\nThe STITCH parameters were governed by the rows of the input parameter table:\n")
-            with open(config["inputs"]["paramfile"], "r") as f1:
-                for line in f1:
-                    _ = f.write("    " + line)
-            _ = f.write("\nWithin R, STITCH was invoked with the following parameters:\n")
-            _ = f.write(
-                "    STITCH(\n" +
-                "        method               = model,\n" +
-                "        posfile              = posfile,\n" +
-                "        bamlist              = bamlist,\n" +
-                "        nCores               = ncores,\n" +
-                "        nGen                 = ngen,\n" +
-                "        chr                  = chr,\n" +
-                "        K                    = k,\n" +
-                "        S                    = s,\n" +
-                "        use_bx_tag           = usebX,\n" +
-                "        bxTagUpperLimit      = bxlimit,\n" +
-                "        niterations          = 40,\n" +
-                "        switchModelIteration = 39,\n" +
-                "        splitReadIterations  = NA,\n" +
-                "        outputdir            = outdir,\n" +
-                "        output_filename      = outfile\n)\n"
-            )
-            _ = f.write("Additional STITCH parameters provided (overrides existing values above):\n")
-            _ = f.write("    " + config.get("extra", "None provided") + "\n")
-            _ = f.write("\nThe Snakemake workflow was called via command line:\n")
-            _ = f.write("    " + str(config["workflow_call"]) + "\n")
+            f.write(summary_template)

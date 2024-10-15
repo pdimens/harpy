@@ -251,20 +251,28 @@ rule workflow_summary:
         agg_report = outdir + "/reports/bwa.stats.html" if not skip_reports else [],
         bx_report = outdir + "/reports/barcodes.summary.html" if (not skip_reports or len(samplenames) == 1) else []
     params:
+        genomefile = genomefile,
         quality = config["alignment_quality"],
         unmapped = "" if keep_unmapped else "-F 4",
         extra   = extra
     run:
+        summary_template = f"""
+The harpy align bwa workflow ran using these parameters:
+
+The provided genome: {{params.genomefile}}
+
+Sequences were aligned with BWA using:
+    bwa mem -C -v 2 {{params.extra}} -R "@RG\\tID:SAMPLE\\tSM:SAMPLE" genome forward_reads reverse_reads |
+    samtools view -h {{params.unmapped}} -q {{params.quality}}
+
+Duplicates in the alignments were marked following:
+    samtools collate |
+    samtools fixmate |
+    samtools sort -T SAMPLE --reference {{params.genomefile}} -m 2000M |
+    samtools markdup -S --barcode-tag BX
+
+The Snakemake workflow was called via command line:
+    {config["workflow_call"]}
+"""
         with open(outdir + "/workflow/align.bwa.summary", "w") as f:
-            _ = f.write("The harpy align bwa workflow ran using these parameters:\n\n")
-            _ = f.write(f"The provided genome: {genomefile}\n")
-            _ = f.write("Sequencing were aligned with BWA using:\n")
-            _ = f.write(f"    bwa mem -C -v 2 {params.extra} -R \"@RG\\tID:SAMPLE\\tSM:SAMPLE\" genome forward_reads reverse_reads |\n")
-            _ = f.write(f"      samtools view -h {params.unmapped} -q {params.quality}\n")
-            _ = f.write("Duplicates in the alignments were marked following:\n")
-            _ = f.write("    samtools collate |\n")
-            _ = f.write("      samtools fixmate |\n")
-            _ = f.write("      samtools sort -T SAMPLE --reference genome -m 2000M |\n")
-            _ = f.write("      samtools markdup -S --barcode-tag BX\n")
-            _ = f.write("\nThe Snakemake workflow was called via command line:\n")
-            _ = f.write("    " + str(config["workflow_call"]) + "\n")
+            f.write(summary_template.format(params=params))

@@ -44,6 +44,8 @@ def process_args(args):
                 argsDict[i[0].lstrip("-")] = i[1]
     return argsDict
 
+argdict = process_args(extra)
+
 # create dictionary of population => filenames
 ## this makes it easier to set the snakemake rules/wildcards
 def pop_manifest(groupingfile, filelist):
@@ -124,7 +126,6 @@ rule naibr_config:
         lambda wc: wc.get("population"),
         min(10, workflow.cores - 1)
     run:
-        argdict = process_args(extra)
         with open(output[0], "w") as conf:
             _ = conf.write(f"bam_file={input[0]}\n")
             _ = conf.write(f"outdir={outdir}/{params[0]}\n")
@@ -263,17 +264,24 @@ rule workflow_summary:
     run:
         os.system(f"rm -rf {outdir}/naibrlog")
         argdict = process_args(extra)
+        argtext = [f"{k}={v}" for k,v in argdict.items()]
+        summary_template = f"""
+The harpy sv naibr workflow ran using these parameters:
+
+The provided genome: {bn}
+The sample grouping file: {groupfile}
+
+The alignments were concatenated using:
+    concatenate_bam.py -o groupname.bam -b samples.list
+
+naibr variant calling ran using these configurations:
+    bam_file=BAMFILE
+    prefix=PREFIX
+    outdir=Variants/naibr/PREFIX
+    {"\n\t".join(argtext)}
+
+The Snakemake workflow was called via command line:
+    {config["workflow_call"]}
+"""
         with open(outdir + "/workflow/sv.naibr.summary", "w") as f:
-            _ = f.write("The harpy sv naibr workflow ran using these parameters:\n\n")
-            _ = f.write(f"The provided genome: {bn}\n")
-            _ = f.write(f"The sample grouping file: {groupfile}\n\n")
-            _ = f.write("The alignments were concatenated using:\n")
-            _ = f.write("    concatenate_bam.py -o groupname.bam -b samples.list\n")
-            _ = f.write("naibr variant calling ran using these configurations:\n")
-            _ = f.write(f"    bam_file=BAMFILE\n")
-            _ = f.write(f"    prefix=PREFIX\n")
-            _ = f.write(f"    outdir=Variants/naibr/PREFIX\n")
-            for i in argdict:
-                _ = f.write(f"    {i}={argdict[i]}\n")
-            _ = f.write("\nThe Snakemake workflow was called via command line:\n")
-            _ = f.write("    " + str(config["workflow_call"]) + "\n")
+            f.write(summary_template)
