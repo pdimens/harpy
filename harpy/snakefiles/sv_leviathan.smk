@@ -24,7 +24,7 @@ min_bc      = config["min_barcodes"]
 iterations  = config["iterations"]
 extra       = config.get("extra", "") 
 outdir      = config["output_directory"]
-skipreports = config["skip_reports"]
+skip_reports = config["skip_reports"]
 bn          = os.path.basename(genomefile)
 genome_zip  = True if bn.lower().endswith(".gz") else False
 if genome_zip:
@@ -203,19 +203,26 @@ rule workflow_summary:
     input: 
         vcf = collect(outdir + "/vcf/{sample}.bcf", sample = samplenames),
         bedpe_agg = collect(outdir + "/{sv}.bedpe", sv = ["inversions", "deletions","duplications", "breakends"]),
-        reports = collect(outdir + "/reports/{sample}.SV.html", sample = samplenames) if not skipreports else []
+        reports = collect(outdir + "/reports/{sample}.SV.html", sample = samplenames) if not skip_reports else []
     params:
         min_sv = f"-v {min_sv}",
         min_bc = f"-c {min_bc}",
         iters  = f"-B {iterations}",
         extra = extra
     run:
+        summary_template = f"""
+The harpy sv leviathan workflow ran using these parameters:
+
+The provided genome: {bn}
+
+The barcodes were indexed using:
+    LRez index bam -p -b INPUT
+
+Leviathan was called using:
+    LEVIATHAN -b INPUT -i INPUT.BCI -g GENOME {params}
+
+The Snakemake workflow was called via command line:
+    {config["workflow_call"]}
+"""
         with open(outdir + "/workflow/sv.leviathan.summary", "w") as f:
-            _ = f.write("The harpy sv leviathan workflow ran using these parameters:\n\n")
-            _ = f.write(f"The provided genome: {bn}\n")
-            _ = f.write("The barcodes were indexed using:\n")
-            _ = f.write("    LRez index bam -p -b INPUT\n")
-            _ = f.write("Leviathan was called using:\n")
-            _ = f.write(f"    LEVIATHAN -b INPUT -i INPUT.BCI -g GENOME {params}\n")
-            _ = f.write("\nThe Snakemake workflow was called via command line:\n")
-            _ = f.write("    " + str(config["workflow_call"]) + "\n")
+            f.write(summary_template)

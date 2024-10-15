@@ -19,7 +19,7 @@ extra 	    = config.get("extra", "")
 regiontype  = config["regiontype"]
 windowsize  = config.get("windowsize", None)
 outdir      = config["output_directory"]
-skipreports = config["skip_reports"]
+skip_reports = config["skip_reports"]
 bamlist     = config["inputs"]["alignments"]
 bamdict     = dict(zip(bamlist, bamlist))
 genomefile 	= config["inputs"]["genome"]
@@ -135,7 +135,7 @@ rule concat_list:
     run:
         with open(output[0], "w") as fout:
             for bcf in input.bcfs:
-                _ = fout.write(f"{bcf}\n")   
+                _ = fout.write(f"{bcf}\n")
 
 rule concat_variants:
     input:
@@ -211,21 +211,36 @@ rule workflow_summary:
     default_target: True
     input:
         vcf = collect(outdir + "/variants.{file}.bcf", file = ["raw"]),
-        reports = collect(outdir + "/reports/variants.{file}.html", file = ["raw"]) if not skipreports else []
+        reports = collect(outdir + "/reports/variants.{file}.html", file = ["raw"]) if not skip_reports else []
     params:
         ploidy = f"-p {ploidy}",
         populations = f"--populations {groupings}" if groupings else '',
         extra = extra
     run:
+        if windowsize:
+            windowtext =  f"Size of intervals to split genome for variant calling: {windowsize}"
+        else:
+            windowtext = f"Genomic positions for which variants were called: {regioninput}"
+
+        summary_template = f"""
+The harpy snp freebayes workflow ran using these parameters:
+
+The provided genome: {bn}
+
+{windowtext}
+
+The freebayes parameters:
+    freebayes -f GENOME -L samples.list -r REGION {params} |
+    bcftools sort -
+
+The variants identified in the intervals were merged into the final variant file using:
+    bcftools concat -f bcf.files -a --remove-duplicates
+
+The variants were normalized using:
+    bcftools norm -m -both -d both
+
+The Snakemake workflow was called via command line:
+    {config["workflow_call"]}
+"""
         with open(outdir + "/workflow/snp.freebayes.summary", "w") as f:
-            _ = f.write("The harpy snp freebayes workflow ran using these parameters:\n\n")
-            _ = f.write(f"The provided genome: {bn}\n")
-            _ = f.write(f"Size of intervals to split genome for variant calling: {windowsize}\n")
-            _ = f.write("The freebayes parameters:\n")
-            _ = f.write("    freebayes -f GENOME -L samples.list -r REGION " + " ".join(params) + " | bcftools sort -\n")
-            _ = f.write("The variants identified in the intervals were merged into the final variant file using:\n")
-            _ = f.write("    bcftools concat -f bcf.files -a --remove-duplicates\n")
-            _ = f.write("The variants were normalized using:\n")
-            _ = f.write("    bcftools norm -m -both -d both\n")
-            _ = f.write("\nThe Snakemake workflow was called via command line:\n")
-            _ = f.write("    " + str(config["workflow_call"]) + "\n")
+            f.write(summary_template)

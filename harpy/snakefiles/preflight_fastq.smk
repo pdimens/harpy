@@ -83,9 +83,14 @@ rule workflow_summary:
         outdir + "/filecheck.fastq.html"
     run:
         os.makedirs(f"{outdir}/workflow/", exist_ok= True)
+        summary_template = f"""
+The harpy preflight fastq workflow ran using these parameters:
+
+Validations were performed with:
+    check_fastq.py sample.fastq > sample.txt
+
+The Snakemake workflow was called via command line:
+    {config["workflow_call"]}
+"""
         with open(outdir + "/workflow/preflight.fastq.summary", "w") as f:
-            _ = f.write("The harpy preflight fastq workflow ran using these parameters:\n\n")
-            _ = f.write("validations were performed with:\n")
-            _ = f.write("    check_fastq.py sample.fastq > sample.txt\n")
-            _ = f.write("\nThe Snakemake workflow was called via command line:\n")
-            _ = f.write("    " + str(config["workflow_call"]) + "\n")
+            f.write(summary_template)

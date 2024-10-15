@@ -149,6 +149,11 @@ simreads: &simreads
   - 'extractReads.cpp'
   - 'harpy/bin/10xtoHaplotag.py'
   - 'harpy/scripts/LRSIM_harpy.pl'
+metassembly: &metassembly
+  - *common
+  - *container
+  - 'harpy/metassembly.py'
+  - 'harpy/snakefiles/metassembly.smk'
 other: &other
   - 'harpy/stitchparams.py'
   - 'harpy/popgroup.py'
@@ -170,4 +175,5 @@ modules:
   - *naibr
   - *simvars
   - *simreads
+  - *metassembly
   - *other

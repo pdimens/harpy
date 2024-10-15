@@ -121,7 +121,7 @@ docstring = {
     ]
 }
 
-@click.command(no_args_is_help = True, context_settings=dict(allow_interspersed_args=False), epilog = "See the documentation for more information: https://pdimens.github.io/harpy/modules/simulate/simulate-linkedreads")
+@click.command(no_args_is_help = True, context_settings=dict(allow_interspersed_args=False), epilog = "See the documentation for more information: https://pdimens.github.io/harpy/workflows/simulate/simulate-linkedreads")
 @click.option('-b', '--barcodes', type = click.Path(exists=True, dir_okay=False), help = "File of linked-read barcodes to add to reads")
 @click.option('-s', '--distance-sd', type = click.IntRange(min = 1), default = 15, show_default=True,  help = "Standard deviation of read-pair distance")
 @click.option('-m', '--molecules-per', type = click.IntRange(min = 1), default = 10, show_default=True,  help = "Average number of molecules per partition")
@@ -144,7 +144,7 @@ def linkedreads(genome_hap1, genome_hap2, output_dir, outer_distance, mutation_r
     Create linked reads from a genome
  
     Two haplotype genomes (un/compressed fasta) need to be provided as inputs at the end of the command. If
-    you don't have a diploid genome, you can simulate one with `harpy simulate` as described [in the documentation](https://pdimens.github.io/harpy/modules/simulate/simulate-variants/#simulate-diploid-assembly).
+    you don't have a diploid genome, you can simulate one with `harpy simulate` as described [in the documentation](https://pdimens.github.io/harpy/workflows/simulate/simulate-variants/#simulate-diploid-assembly).
 
     If not providing a text file of `--barcodes`, Harpy will download the `4M-with-alts-february-2016.txt`
     file containing the standard 16-basepair 10X barcodes, which is available from 10X genomics and the
@@ -162,8 +162,8 @@ def linkedreads(genome_hap1, genome_hap2, output_dir, outer_distance, mutation_r
     if snakemake is not None:
         command += snakemake
 
-    check_fasta(genome_hap1)
-    check_fasta(genome_hap2)
+    check_fasta(genome_hap1, quiet)
+    check_fasta(genome_hap2, quiet)
 
     os.makedirs(f"{workflowdir}/", exist_ok= True)
     fetch_rule(workflowdir, "simulate_linkedreads.smk")
@@ -203,7 +203,7 @@ def linkedreads(genome_hap1, genome_hap2, output_dir, outer_distance, mutation_r
     start_text.add_row("Workflow Log:", sm_log.replace(f"{output_dir}/", "") + "[dim].gz")
     launch_snakemake(command, "simulate_linkedreads", start_text, output_dir, sm_log, quiet)
 
-@click.command(no_args_is_help = True, context_settings=dict(allow_interspersed_args=False), epilog = "This workflow can be quite technical, please read the docs for more information: https://pdimens.github.io/harpy/modules/simulate/simulate-variants")
+@click.command(no_args_is_help = True, context_settings=dict(allow_interspersed_args=False), epilog = "This workflow can be quite technical, please read the docs for more information: https://pdimens.github.io/harpy/workflows/simulate/simulate-variants")
 @click.option('-s', '--snp-vcf', type=click.Path(exists=True, dir_okay=False, readable=True), help = 'VCF file of known snps to simulate')
 @click.option('-i', '--indel-vcf', type=click.Path(exists=True, dir_okay=False, readable=True), help = 'VCF file of known indels to simulate')
 @click.option('-n', '--snp-count', type = click.IntRange(min = 0), default=0, show_default=False, help = "Number of random snps to simluate")
@@ -268,7 +268,7 @@ def snpindel(genome, snp_vcf, indel_vcf, only_vcf, output_dir, prefix, snp_count
     # instantiate workflow directory
     # move necessary files to workflow dir
     os.makedirs(f"{workflowdir}/input/", exist_ok= True)
-    check_fasta(genome)
+    check_fasta(genome, quiet)
     start_text.add_row("Input Genome:", os.path.basename(genome))
     if snp_vcf:
         validate_input_by_ext(snp_vcf, "--snp-vcf", ["vcf","vcf.gz","bcf"])
@@ -334,7 +334,7 @@ def snpindel(genome, snp_vcf, indel_vcf, only_vcf, output_dir, prefix, snp_count
     start_text.add_row("Workflow Log:", sm_log.replace(f"{output_dir}/", "") + "[dim].gz")
     launch_snakemake(command, "simulate_snpindel", start_text, output_dir, sm_log, quiet)
 
-@click.command(no_args_is_help = True, context_settings=dict(allow_interspersed_args=False), epilog = "Please See the documentation for more information: https://pdimens.github.io/harpy/modules/simulate/simulate-variants")
+@click.command(no_args_is_help = True, context_settings=dict(allow_interspersed_args=False), epilog = "Please See the documentation for more information: https://pdimens.github.io/harpy/workflows/simulate/simulate-variants")
 @click.option('-v', '--vcf', type=click.Path(exists=True, dir_okay=False, readable=True), help = 'VCF file of known inversions to simulate')
 @click.option('-n', '--count', type = click.IntRange(min = 0), default=0, show_default=False, help = "Number of random inversions to simluate")
 @click.option('-m', '--min-size', type = click.IntRange(min = 1), default = 1000, show_default= True, help = "Minimum inversion size (bp)")
@@ -381,7 +381,7 @@ def inversion(genome, vcf, only_vcf, prefix, output_dir, count, min_size, max_si
     # instantiate workflow directory
     # move necessary files to workflow dir
     os.makedirs(f"{workflowdir}/input/", exist_ok= True)
-    check_fasta(genome)
+    check_fasta(genome, quiet)
     start_text = Table(show_header=False,pad_edge=False, show_edge=False, padding = (0,0), box=box.SIMPLE)
     start_text.add_column("detail", justify="left", style="light_steel_blue", no_wrap=True)
     start_text.add_column(header="value", justify="left")
@@ -442,7 +442,7 @@ def inversion(genome, vcf, only_vcf, prefix, output_dir, count, min_size, max_si
     launch_snakemake(command, "simulate_inversion", start_text, output_dir, sm_log, quiet)
 
 
-@click.command(no_args_is_help = True, context_settings=dict(allow_interspersed_args=False), epilog = "Please See the documentation for more information: https://pdimens.github.io/harpy/modules/simulate/simulate-variants")
+@click.command(no_args_is_help = True, context_settings=dict(allow_interspersed_args=False), epilog = "Please See the documentation for more information: https://pdimens.github.io/harpy/workflows/simulate/simulate-variants")
 @click.option('-v', '--vcf', type=click.Path(exists=True, dir_okay=False, readable=True), help = 'VCF file of known copy number variants to simulate')
 @click.option('-n', '--count', type = click.IntRange(min = 0), default=0, show_default=False, help = "Number of random variants to simluate")
 @click.option('-m', '--min-size', type = click.IntRange(min = 1), default = 1000, show_default= True, help = "Minimum variant size (bp)")
@@ -498,7 +498,7 @@ def cnv(genome, output_dir, vcf, only_vcf, prefix, count, min_size, max_size, du
     # instantiate workflow directory
     # move necessary files to workflow dir
     os.makedirs(f"{workflowdir}/input/", exist_ok= True)
-    check_fasta(genome)
+    check_fasta(genome, quiet)
     start_text = Table(show_header=False,pad_edge=False, show_edge=False, padding = (0,0), box=box.SIMPLE)
     start_text.add_column("detail", justify="left", style="light_steel_blue", no_wrap=True)
     start_text.add_column(header="value", justify="left")
@@ -561,7 +561,7 @@ def cnv(genome, output_dir, vcf, only_vcf, prefix, count, min_size, max_size, du
     start_text.add_row("Workflow Log:", sm_log.replace(f"{output_dir}/", "") + "[dim].gz")
     launch_snakemake(command, "simulate_cnv", start_text, output_dir, sm_log, quiet)
 
-@click.command(no_args_is_help = True, context_settings=dict(allow_interspersed_args=False), epilog = "Please See the documentation for more information: https://pdimens.github.io/harpy/modules/simulate/simulate-variants")
+@click.command(no_args_is_help = True, context_settings=dict(allow_interspersed_args=False), epilog = "Please See the documentation for more information: https://pdimens.github.io/harpy/workflows/simulate/simulate-variants")
 @click.option('-v', '--vcf', type=click.Path(exists=True, dir_okay=False, readable=True), help = 'VCF file of known translocations to simulate')
 @click.option('-n', '--count', type = click.IntRange(min = 0), default=0, show_default=False, help = "Number of random translocations to simluate")
 @click.option('-c', '--centromeres', type = click.Path(exists=True, dir_okay=False, readable=True), help = "GFF3 file of centromeres to avoid")
@@ -605,7 +605,7 @@ def translocation(genome, output_dir, prefix, vcf, only_vcf, count, centromeres,
     # instantiate workflow directory
     # move necessary files to workflow dir
     os.makedirs(f"{workflowdir}/input/", exist_ok= True)
-    check_fasta(genome)
+    check_fasta(genome, quiet)
     start_text = Table(show_header=False,pad_edge=False, show_edge=False, padding = (0,0), box=box.SIMPLE)
     start_text.add_column("detail", justify="left", style="light_steel_blue", no_wrap=True)
     start_text.add_column(header="value", justify="left")

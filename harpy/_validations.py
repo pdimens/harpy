@@ -11,6 +11,26 @@ from rich import print as rprint
 from rich.table import Table
 import rich_click as click
 from ._printing import print_error, print_notice, print_solution, print_solution_with_culprits
+from ._misc import harpy_progressbar
+from concurrent.futures import ThreadPoolExecutor, as_completed
+
+def is_gzip(file_path):
+    """helper function to determine if a file is gzipped"""
+    try:
+        with gzip.open(file_path, 'rt') as f:
+            f.read(10)
+        return True
+    except gzip.BadGzipFile:
+        return False
+
+def is_plaintext(file_path):
+    """helper function to determine if a file is plaintext"""
+    try:
+        with open(file_path, 'r') as f:
+            f.read(10)
+        return True
+    except UnicodeDecodeError:
+        return False
 
 def check_envdir(dirpath):
     """Check that the provided dir exists and contains the necessary environment definitions"""
@@ -18,7 +38,7 @@ def check_envdir(dirpath):
         print_error("missing conda files", "This working directory does not contain the expected directory of conda environment definitions ([blue bold].harpy_envs/[/blue bold])\n  - use [green bold]--conda[/green bold] to recreate it")
         sys.exit(1)
     envlist = os.listdir(dirpath)
-    envs = ["align",  "phase", "qc", "r", "simulations", "stitch", "variants"]
+    envs = ["align", "metassembly", "phase", "qc", "r", "simulations", "stitch", "variants"]
     errcount = 0
     errtable = Table(show_footer=True, box=box.SIMPLE)
     errtable.add_column("File", justify="left", style="blue", no_wrap=True)
@@ -146,16 +166,26 @@ def check_impute_params(parameters):
             rprint(errtable, file = sys.stderr)
             sys.exit(1)
 
-def validate_bam_RG(bamlist):
+def validate_bam_RG(bamlist, threads, quiet):
     """Validate BAM files bamlist to make sure the sample name inferred from the file matches the @RG tag within the file"""
     culpritfiles = []
     culpritIDs   = []
-    for i in bamlist:
-        samplename = Path(i).stem
-        samview = subprocess.run(f"samtools samples {i}".split(), stdout = subprocess.PIPE).stdout.decode('utf-8').split()
+    def check_RG(bamfile):
+        samplename = Path(bamfile).stem
+        samview = subprocess.run(f"samtools samples {bamfile}".split(), stdout = subprocess.PIPE).stdout.decode('utf-8').split()
         if samplename != samview[0]:
-            culpritfiles.append(os.path.basename(i))
-            culpritIDs.append(samview[0])
+            return os.path.basename(i), samview[0]
+
+    with harpy_progressbar(quiet) as progress:
+        task_progress = progress.add_task("[green]Checking RG tags...", total=len(bamlist))
+        with ThreadPoolExecutor(max_workers=threads) as executor:
+            futures = [executor.submit(check_RG, i) for i in bamlist]
+            for future in as_completed(futures):
+                result = future.result()
+                progress.update(task_progress, advance=1)
+                if result:
+                    culpritfiles.append(result[0])
+                    culpritIDs.append(result[1])
         
     if len(culpritfiles) > 0:
         print_error("sample ID mismatch",f"There are [bold]{len(culpritfiles)}[/bold] alignment files whose RG tags do not match their filenames.")
@@ -309,10 +339,9 @@ def validate_regions(regioninput, genome):
         # check if the region is in the genome
 
         contigs = {}
-        if genome.lower().endswith("gz"):
-            with gzip.open(genome, "r") as fopen:
+        if is_gzip(genome):
+            with gzip.open(genome, "rt") as fopen:
                 for line in fopen:
-                    line = line.decode()
                     if line.startswith(">"):
                         cn = line.rstrip("\n").lstrip(">").split()[0]
                         contigs[cn] = 0
@@ -372,33 +401,14 @@ def validate_regions(regioninput, genome):
             sys.exit(1)
     return "file"
 
-
-def is_gzip(file_path):
-    """helper function to determine if a file is gzipped"""
-    try:
-        with gzip.open(file_path, 'rt') as f:
-            f.read(10)
-        return True
-    except:
-        return False
-
-def is_plaintext(file_path):
-    """helper function to determine if a file is plaintext"""
-    try:
-        with open(file_path, 'r') as f:
-            f.read(10)
-        return True
-    except:
-        return False
-
-def check_fasta(genofile):
+def check_fasta(genofile, quiet):
     """perform validations on fasta file for extensions and file contents"""
     ext_options = [".fasta", ".fas", ".fa", ".fna", ".ffn", ".faa", ".mpfa", ".frn"]
     ext_correct = 0
     for i in ext_options:
         if genofile.lower().endswith(i) or genofile.lower().endswith(i + ".gz"):
             ext_correct += 1
-    if ext_correct == 0:
+    if ext_correct == 0 and not quiet:
         print_notice(f"[blue]{genofile}[/blue] has an unfamiliar FASTA file extension. Common FASTA file extensions are: [green]" + ", ".join(ext_options) + "[/green] and may also be gzipped.")
 
     # validate fasta file contents
@@ -450,3 +460,39 @@ def check_fasta(genofile):
         print_error("sequences absent", f"No sequences detected in [blue]{genofile}[/blue].")
         print_solution(solutiontext + "\nSee the FASTA file spec and try again after making the appropriate changes: https://www.ncbi.nlm.nih.gov/genbank/fastaformat/")
         sys.exit(1)
+
+
+def validate_fastq_bx(fastq_list, threads, quiet):
+    def validate(fastq):
+        BX = False
+        BC = False
+        if is_gzip(fastq):
+            fq = gzip.open(fastq, "rt")
+        else:
+            fq = open(fastq, "r")
+        with fq:
+            while True:
+                line = fq.readline()
+                if not line:
+                    break
+                if not line.startswith("@"):
+                    continue
+                BX = True if "BX:Z" in line else BX
+                BC = True if "BC:Z" in line else BC
+                if BX and BC:
+                    print_error("clashing barcode tags", f"Both [green bold]BC:Z[/green bold] and [green bold]BX:Z[/green bold] tags were detected in the read headers for [blue]{os.path.basename(fastq)}[/blue]. Athena accepts [bold]only[/bold] one of [green bold]BC:Z[/green bold] or [green bold]BX:Z[/green bold].")
+                    print_solution("Check why your data has both tags in use and remove/rename one of the tags.")
+                    sys.exit(1)
+            # check for one or the other after parsing is done
+            if not BX and not BC:
+                print_error("no barcodes found",f"No [green bold]BC:Z[/green bold] or [green bold]BX:Z[/green bold] tags were detected in read headers for [blue]{os.path.basename(fastq)}[/blue]. Athena requires the linked-read barcode to be present as either [green bold]BC:Z[/green bold] or [/green bold]BX:Z[/green bold] tags.")
+                print_solution("Check that this is linked-read data and that the barcode is demultiplexed from the sequence line into the read header as either a `BX:Z` or `BC:Z` tag.")
+                sys.exit(1)
+
+    # parellelize over the fastq list
+    with harpy_progressbar(quiet) as progress:
+        task_progress = progress.add_task("[green]Validating FASTQ inputs...", total=len(fastq_list))
+        with ThreadPoolExecutor(max_workers=threads) as executor:
+            futures = [executor.submit(validate, i) for i in fastq_list]
+            for future in as_completed(futures):
+                progress.update(task_progress, advance=1)

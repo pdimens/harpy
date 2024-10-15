@@ -9,10 +9,38 @@ from datetime import datetime
 from pathlib import Path
 from importlib_resources import files
 import click
+from rich.progress import Progress, BarColumn, TextColumn, TimeElapsedColumn, SpinnerColumn
 import harpy.scripts
 import harpy.reports
 import harpy.snakefiles
 from ._printing import print_error, print_solution
+
+def harpy_progressbar(quiet):
+    """
+    The pre-configured transient progress bar that workflows and validations use
+    """
+    return Progress(
+        SpinnerColumn(spinner_name = "arc", style = "dim"),
+        TextColumn("[progress.description]{task.description}"),
+        BarColumn(complete_style="yellow", finished_style="blue"),
+        TextColumn("[progress.remaining]{task.completed}/{task.total}", style = "magenta"),
+        TimeElapsedColumn(),
+        transient=True,
+        disable=quiet
+    )
+
+def harpy_pulsebar(quiet, desc_text):
+    """
+    The pre-configured transient pulsing progress bar that workflows use, typically for
+    installing the software dependencies/container
+    """
+    return Progress(
+        TextColumn("[progress.description]{task.description}"),
+        BarColumn(bar_width= 70 - len(desc_text), pulse_style = "grey46"),
+        TimeElapsedColumn(),
+        transient=True,
+        disable=quiet
+    )
 
 def symlink(original, destination):
     """Create a symbolic link from original -> destination if the destination doesn't already exist."""
@@ -73,26 +101,38 @@ def gzip_file(infile):
             shutil.copyfileobj(f_in, f_out)
         os.remove(infile)
 
-class IntPair(click.ParamType):
-    """A class for a click type which accepts 2 integers, separated by a comma."""
-    name = "int_pair"
-    def convert(self, value, param, ctx):
-        try:
-            parts = value.split(',')
-            if len(parts) != 2:
-                self.fail(f"{value} is not a valid int pair. The value should be two integers separated by a comma.", param, ctx)
-            return [int(i) for i in parts]
-        except ValueError:
-            self.fail(f"{value} is not a valid int pair. The value should be two integers separated by a comma.", param, ctx)
+class IntList(click.ParamType):
+    """A class for a click type which accepts an arbitrary number of integers, separated by a comma."""
+    name = "int_list"
+    def __init__(self, max_entries):
+        super().__init__()
+        self.max_entries = max_entries
 
-class IntQuartet(click.ParamType):
-    """A class for a click type which accepts 4 integers, separated by a comma."""
-    name = "int_pair"
     def convert(self, value, param, ctx):
         try:
-            parts = value.split(',')
-            if len(parts) != 4:
-                self.fail(f"{value} is not a valid set of 4 integers separated by a comma.", param, ctx)
+            parts = [i.strip() for i in value.split(',')]
+            if len(parts) != self.max_entries:
+                raise ValueError
+            for i in parts:
+                try:
+                    int(i)
+                except:
+                    raise ValueError
             return [int(i) for i in parts]
         except ValueError:
-            self.fail(f"{value} is not a valid set of 4 integers separated by a comma.", param, ctx)
+            self.fail(f"{value} is not a valid list of integers. The value should be {self.max_entries} integers separated by a comma.", param, ctx)
+
+class KParam(click.ParamType):
+    """A class for a click type which accepts any number of odd integers separated by a comma, or the word auto."""
+    name = "k_param"
+    def convert(self, value, param, ctx):
+        try:
+            if value == "auto":
+                return value
+            parts = [i.strip() for i in value.split(',')]
+            for i in parts:
+                if int(i) % 2 == 0 or int(i) > 128:
+                    raise ValueError
+            return [int(i) for i in parts]
+        except ValueError:
+            self.fail(f"{value} is not 'auto' or odd integers <128 separated by a comma.", param, ctx)

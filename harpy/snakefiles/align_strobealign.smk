@@ -21,7 +21,7 @@ extra 		= config.get("extra", "")
 bn 			= os.path.basename(genomefile)
 if bn.lower().endswith(".gz"):
     bn = bn[:-3]
-skipreports = config["skip_reports"]
+skip_reports = config["skip_reports"]
 windowsize  = config["depth_windowsize"]
 molecule_distance = config["molecule_distance"]
 keep_unmapped = config["keep_unmapped"]
@@ -239,9 +239,9 @@ rule workflow_summary:
     default_target: True
     input: 
         bams = collect(outdir + "/{sample}.{ext}", sample = samplenames, ext = ["bam","bam.bai"]),
-        samtools =  outdir + "/reports/strobealign.stats.html" if not skipreports else [] ,
-        reports = collect(outdir + "/reports/{sample}.html", sample = samplenames) if not skipreports else [],
-        bx_report = outdir + "/reports/barcodes.summary.html" if (not skipreports or len(samplenames) == 1) else []
+        samtools =  outdir + "/reports/strobealign.stats.html" if not skip_reports else [] ,
+        reports = collect(outdir + "/reports/{sample}.html", sample = samplenames) if not skip_reports else [],
+        bx_report = outdir + "/reports/barcodes.summary.html" if (not skip_reports or len(samplenames) == 1) else []
     params:
         readlen = readlen,
         quality = config["quality"],
@@ -249,22 +249,30 @@ rule workflow_summary:
         unmapped = "" if keep_unmapped else "-F 4",
         extra   = extra
     run:
+        if autolen:
+            strobetext = f"Sequences were aligned with strobealign using:\n"
+            strobetext += f"    strobealign -U -C --rg-id=SAMPLE --rg=SM:SAMPLE {params.extra} genome reads.F.fq reads.R.fq |\n"
+        else:
+            strobetext = "The genome index was created using:\n"
+            strobetext += f"    strobealign --create-index -r {params.readlen} genome\n\n"
+            strobetext += "Sequences were aligned with strobealign using:\n"
+            strobetext += f"    strobealign --use-index {params.unmapped_strobe} -N 2 -C --rg=SM:SAMPLE {params.extra} genome reads.F.fq reads.R.fq |\n"
+        summary_template = f"""
+The harpy align strobealign workflow ran using these parameters:
+
+The provided genome: {bn}
+
+{strobetext}
+    samtools view -h {params.unmapped} -q {params.quality}
+
+Duplicates in the alignments were marked following:
+    samtools collate |
+    samtools fixmate |
+    samtools sort -m 2000M |
+    samtools markdup -S --barcode-tag BX
+
+The Snakemake workflow was called via command line:
+    {config["workflow_call"]}
+"""
         with open(outdir + "/workflow/align.strobealign.summary", "w") as f:
-            _ = f.write("The harpy align strobealign workflow ran using these parameters:\n\n")
-            _ = f.write(f"The provided genome: {bn}\n")
-            if autolen:
-                _ = f.write("Sequencing were aligned with strobealign using:\n")
-                _ = f.write(f"    strobealign -U -C --rg-id=SAMPLE --rg=SM:SAMPLE {params.extra} genome reads.F.fq reads.R.fq |\n")
-            else:
-                _ = f.write("The genome index was created using:\n")
-                _ = f.write(f"    strobealign --create-index -r {params.readlen} genome\n")
-                _ = f.write("Sequencing were aligned with strobealign using:\n")
-                _ = f.write(f"    strobealign --use-index {params.unmapped_strobe} -N 2 -C --rg=SM:SAMPLE {params.extra} genome reads.F.fq reads.R.fq |\n")
-            _ = f.write(f"      samtools view -h {params.unmapped} -q {params.quality}\n")
-            _ = f.write("Duplicates in the alignments were marked following:\n")
-            _ = f.write("    samtools collate |\n")
-            _ = f.write("      samtools fixmate |\n")
-            _ = f.write("      samtools sort -m 2000M |\n")
-            _ = f.write("      samtools markdup -S --barcode-tag BX\n")
-            _ = f.write("\nThe Snakemake workflow was called via command line:\n")
-            _ = f.write("    " + str(config["workflow_call"]) + "\n")
+            f.write(summary_template)

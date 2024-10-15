@@ -15,7 +15,7 @@ R2 = config["inputs"]["R2"]
 I1 = config["inputs"]["I1"]
 I2 = config["inputs"]["I2"]
 samplefile = config["inputs"]["demultiplex_schema"]
-skipreports = config["skip_reports"]
+skip_reports = config["skip_reports"]
 outdir = config["output_directory"]
 envdir = os.getcwd() + "/.harpy_envs"
 
@@ -164,18 +164,30 @@ rule workflow_summary:
     default_target: True
     input:
         fq = collect(outdir + "/{sample}.{FR}.fq.gz", sample = samplenames, FR = ["F", "R"]),
-        reports = outdir + "/reports/demultiplex.QC.html" if not skipreports else []
+        reports = outdir + "/reports/demultiplex.QC.html" if not skip_reports else []
     run:
         os.makedirs(f"{outdir}/workflow/", exist_ok= True)
+        summary_template = f"""
+The harpy demultiplex gen1 workflow ran using these parameters:
+
+Haplotag technology: Generation I
+
+The multiplexed input files:
+    - {R1}
+    - {R2}
+    - {I1}
+    - {I2}
+
+Barcodes were moved into the read headers using the command:
+    demuxGen1 DATA_ demux
+
+The delimited file associating CXX barcodes with samplenames: {samplefile}
+
+QC checks were performed on demultiplexed FASTQ files using:
+    falco -skip-report -skip-summary input.fq.gz
+
+The Snakemake workflow was called via command line:
+    {config["workflow_call"]}
+"""
         with open(outdir + "/workflow/demux.gen1.summary", "w") as f:
-            _ = f.write("The harpy demultiplex gen1 workflow ran using these parameters:\n\n")
-            _ = f.write("Haplotag technology: Generation I\n")
-            _ = f.write(f"The multiplexed input files:\n    -")
-            _ = f.write("\n    -".join([R1,R2,I1,I2]) + "\n")
-            _ = f.write("Barcodes were moved into the read headers using the command:\n")
-            _ = f.write(f"    demuxGen1 DATA_ demux\n")
-            _ = f.write(f"The delimited file associating CXX barcodes with samplenames:\n    {samplefile}\n")
-            _ = f.write(f"QC checks were performed on demultiplexed FASTQ files using:\n")
-            _ = f.write(f"    falco -skip-report -skip-summary input.fq.gz\n")
-            _ = f.write("\nThe Snakemake workflow was called via command line:\n")
-            _ = f.write("    " + str(config["workflow_call"]) + "\n")
+            f.write(summary_template)

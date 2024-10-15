@@ -6,10 +6,14 @@ import sys
 import glob
 import subprocess
 from rich import print as rprint
-from rich.progress import Progress, BarColumn, TextColumn, TimeElapsedColumn, SpinnerColumn
 from rich.console import Console
-from ._misc import gzip_file
+from ._misc import gzip_file, harpy_progressbar, harpy_pulsebar
 from ._printing import print_onsuccess, print_onstart, print_onerror, print_setup_error
+
+EXIT_CODE_SUCCESS = 0
+EXIT_CODE_GENERIC_ERROR = 1
+EXIT_CODE_CONDA_ERROR = 2
+EXIT_CODE_RUNTIME_ERROR = 3
 
 def iserror(text):
     """logical check for erroring trigger words in snakemake output"""
@@ -38,8 +42,8 @@ def launch_snakemake(sm_args, workflow, starttext, outdir, sm_logfile, quiet):
             output = process.stderr.readline()
             # check for syntax errors at the very beginning
             if process.poll() or iserror(output):
-                exitcode = 0 if process.poll() == 0 else 1
-                exitcode = 2 if iserror(output) else exitcode
+                exitcode = EXIT_CODE_SUCCESS if process.poll() == 0 else EXIT_CODE_GENERIC_ERROR
+                exitcode = EXIT_CODE_CONDA_ERROR if "Conda" in output else exitcode
                 break
             if not quiet:
                 console = Console()
@@ -50,12 +54,11 @@ def launch_snakemake(sm_args, workflow, starttext, outdir, sm_logfile, quiet):
                 while output.startswith("Building DAG of jobs...") or output.startswith("Assuming"):
                     output = process.stderr.readline()
             if process.poll() or iserror(output):
-                exitcode = 0 if process.poll() == 0 else 1
+                exitcode = EXIT_CODE_SUCCESS if process.poll() == 0 else EXIT_CODE_GENERIC_ERROR
                 break
-
             while not output.startswith("Job stats:"):
                 # print dependency text only once
-                if "Downloading and installing remote packages" in output:
+                if "Downloading and installing remote packages" in output or "Running post-deploy" in output:
                     deps = True
                     deploy_text = "[dim]Installing software dependencies"
                     break
@@ -64,40 +67,29 @@ def launch_snakemake(sm_args, workflow, starttext, outdir, sm_logfile, quiet):
                     deploy_text = "[dim]Downloading software container"
                     break
                 if "Nothing to be" in output:
-                    exitcode = 0
+                    exitcode = EXIT_CODE_SUCCESS
+                    break
+                if "MissingInput" in output:
+                    exitcode = EXIT_CODE_GENERIC_ERROR
                     break
                 output = process.stderr.readline()
 
             # if dependency text present, print pulsing progress bar
             if deps:
-                with Progress(
-                    TextColumn("[progress.description]{task.description}"),
-                    BarColumn(bar_width= 70 - len(deploy_text), pulse_style = "grey46"),
-                    TimeElapsedColumn(),
-                    transient=True,
-                    disable=quiet
-                ) as progress:
+                with harpy_pulsebar(quiet, deploy_text) as progress:
                     progress.add_task("[dim]" + deploy_text, total = None)
                     while not output.startswith("Job stats:"):
                         output = process.stderr.readline()
                         if process.poll() or iserror(output):
-                            exitcode = 0 if process.poll() == 0 else 2
+                            exitcode = EXIT_CODE_SUCCESS if process.poll() == 0 else 2
                             break
                     progress.stop()
             if process.poll() or exitcode:
                 break
             if "Nothing to be" in output:
-                exitcode = 0
+                exitcode = EXIT_CODE_SUCCESS
                 break
-            with Progress(
-                SpinnerColumn(spinner_name = "arc", style = "dim"),
-                TextColumn("[progress.description]{task.description}"),
-                BarColumn(complete_style="yellow", finished_style="blue"),
-                TextColumn("[progress.remaining]{task.completed}/{task.total}", style = "magenta"),
-                TimeElapsedColumn(),
-                transient=True,
-                disable=quiet
-            ) as progress:
+            with harpy_progressbar(quiet) as progress:
                 # process the job summary
                 job_inventory = {}
                 while True:
@@ -114,7 +106,7 @@ def launch_snakemake(sm_args, workflow, starttext, outdir, sm_logfile, quiet):
                         pass
                 # checkpoint
                     if process.poll() or iserror(output):
-                        exitcode = 0 if process.poll() == 0 else 1
+                        exitcode = EXIT_CODE_SUCCESS if process.poll() == 0 else EXIT_CODE_GENERIC_ERROR
                         break
                 if process.poll() or exitcode:
                     break
@@ -124,11 +116,11 @@ def launch_snakemake(sm_args, workflow, starttext, outdir, sm_logfile, quiet):
                     output = process.stderr.readline()
                     if iserror(output) or process.poll() == 1:
                         progress.stop()
-                        exitcode = 3
+                        exitcode = EXIT_CODE_RUNTIME_ERROR
                         break
                     if process.poll() == 0 or output.startswith("Complete log:") or output.startswith("Nothing to be"):
                         progress.stop()
-                        exitcode = 0 if process.poll() == 0 else 3
+                        exitcode = EXIT_CODE_SUCCESS if process.poll() == 0 else EXIT_CODE_RUNTIME_ERROR
                         break
                     # add new progress bar track if the rule doesn't have one yet
                     rulematch = re.search(r"rule\s\w+:", output)

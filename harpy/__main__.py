@@ -58,13 +58,13 @@ cli.add_command(resume.resume)
 cli.add_command(deconvolve.deconvolve)
 cli.add_command(metassembly.metassembly)
 
-## the modules ##
+## the workflows ##
 click.rich_click.COMMAND_GROUPS = {
     "harpy":
         [
             {
-                "name": "Modules",
-                "commands": ["demultiplex", "metassembly","qc", "align","snp","sv","impute","phase", "simulate"],
+                "name": "workflows",
+                "commands": ["demultiplex","qc", "align","snp","sv","impute","phase", "simulate", "metassembly"],
             },
             {
                 "name": "Other Commands",

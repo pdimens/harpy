@@ -11,10 +11,10 @@ from ._misc import fetch_rule, snakemake_log, KParam
 from ._validations import validate_fastq_bx
 
 docstring = {
-    "harpy metassembly": [
+    "harpy assemble": [
         {
             "name": "Parameters",
-            "options": ["--bx-tag", "--extra-params", "kmer-length", "--max-memory"],
+            "options": ["--bx-tag", "--extra-params", "--kmer-length", "--max-memory", "--metassembly"],
         },
         {
             "name": "Workflow Controls",
@@ -25,9 +25,10 @@ docstring = {
 
 @click.command(no_args_is_help = True, context_settings=dict(allow_interspersed_args=False), epilog = "See the documentation for more information: https://pdimens.github.io/harpy/workflows/qc")
 @click.option('-b', '--bx-tag', type = click.Choice(['BX', 'BC'], case_sensitive=False), default = "BX", show_default=True, help = "The header tag with the barcode (`BX` or `BC`)")
-@click.option('-x', '--extra-params', type = str, help = 'Additional metaspades parameters, in quotes')
+@click.option('-x', '--extra-params', type = str, help = 'Additional spades parameters, in quotes')
 @click.option('-m', '--max-memory',  type = click.IntRange(min = 1000, max_open = True), show_default = True, default = 250000, help = 'Maximum memory for metaSPADES to use, in megabytes')
-@click.option('-k', '--kmer-length', type = KParam(), show_default = True, default = "auto", help = 'K values to use for metaspades (`odd` and `<128`)')
+@click.option('-a', '--metassembly',  is_flag = True, show_default = True, default = False, help = 'Perform a metagenomic assembly')
+@click.option('-k', '--kmer-length', type = KParam(), show_default = True, default = "auto", help = 'K values to use for assembly (`odd` and `<128`)')
 @click.option('-o', '--output-dir', type = click.Path(exists = False), default = "Metassembly", show_default=True,  help = 'Output directory name')
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(min = 1, max_open = True), help = 'Number of threads to use')
 @click.option('--setup-only',  is_flag = True, hidden = True, default = False, help = 'Setup the workflow and exit')
@@ -37,18 +38,20 @@ docstring = {
 @click.option('--snakemake',  type = str, help = 'Additional Snakemake parameters, in quotes')
 @click.argument('fastq_r1', required=True, type=click.Path(exists=True, readable=True), nargs=1)
 @click.argument('fastq_r2', required=True, type=click.Path(exists=True, readable=True), nargs=1)
-def metassembly(fastq_r1, fastq_r2, bx_tag, kmer_length, max_memory, output_dir, extra_params, threads, snakemake, skip_reports, quiet, hpc, setup_only):
+def assemble(fastq_r1, fastq_r2, bx_tag, kmer_length, max_memory, metassembly, output_dir, extra_params, threads, snakemake, skip_reports, quiet, hpc, setup_only):
     """
-    Perform a metassembly from linked-read sequences
+    Perform an assembly from linked-read sequences
 
-    The linked-read barcode must be in either a `BX:Z` or `BC:Z` FASTQ header tag, specified with `--bx-tag`.
+    Use the `--metassembly` flag to perform a metagenome assembly (defaults to an assembly of a single sample).
+    The linked-read barcodes must be in either a `BX:Z` or `BC:Z` FASTQ header tag, specified with `--bx-tag`.
     If specifying `K` values, they must be separated by commas and without spaces (e.g. `-k 15,23,51`).
     """
     output_dir = output_dir.rstrip("/")
+    asm = "metassembly" if metassembly else "assembly"
     workflowdir = f"{output_dir}/workflow"
-    sdm = "conda" # if conda else "conda apptainer"
+    sdm = "conda" #if conda else "conda apptainer"
     command = f'snakemake --rerun-incomplete --show-failed-logs --rerun-triggers input mtime params --nolock  --software-deployment-method {sdm} --conda-prefix .snakemake/conda --cores {threads} --directory . '
-    command += f"--snakefile {workflowdir}/metassembly.smk "
+    command += f"--snakefile {workflowdir}/{asm}.smk "
     command += f"--configfile {workflowdir}/config.yaml "
     if hpc:
         command += f"--workflow-profile {hpc} "
@@ -57,12 +60,12 @@ def metassembly(fastq_r1, fastq_r2, bx_tag, kmer_length, max_memory, output_dir,
 
     validate_fastq_bx([fastq_r1, fastq_r2], threads, quiet)
     os.makedirs(workflowdir, exist_ok=True)
-    fetch_rule(workflowdir, "metassembly.smk")
+    fetch_rule(workflowdir, f"{asm}.smk")
     os.makedirs(f"{output_dir}/logs/snakemake", exist_ok = True)
-    sm_log = snakemake_log(output_dir, "metassembly")
+    sm_log = snakemake_log(output_dir, asm)
 
     with open(f"{workflowdir}/config.yaml", "w", encoding="utf-8") as config:
-        config.write("workflow: metassembly\n")
+        config.write(f"workflow: {asm}\n")
         config.write(f"snakemake_log: {sm_log}\n")
         config.write(f"output_directory: {output_dir}\n")
         config.write(f"barcode_tag: {bx_tag.upper()}\n")
@@ -94,4 +97,4 @@ def metassembly(fastq_r1, fastq_r2, bx_tag, kmer_length, max_memory, output_dir,
         start_text.add_row(f"Kmer Length: ", ",".join(map(str,kmer_length)))
     start_text.add_row("Output Folder:", f"{output_dir}/")
     start_text.add_row("Workflow Log:", sm_log.replace(f"{output_dir}/", "") + "[dim].gz")
-    launch_snakemake(command, "metassembly", start_text, output_dir, sm_log, quiet)
+    launch_snakemake(command, asm, start_text, output_dir, sm_log, quiet)

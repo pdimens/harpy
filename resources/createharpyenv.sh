@@ -2,4 +2,9 @@
 
 ## Use the first positional argument to set a name, usually `harpy` or `harpytest`
 
-mamba create -n $1 -f harpy.yaml
+if command -v mamba &> /dev/null
+then
+    mamba env create -n $1 -f resources/harpy.yaml
+else
+    conda env create -n $1 -f resources/harpy.yaml
+fi

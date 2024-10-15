@@ -14,7 +14,7 @@ extra 		= config.get("extra", "")
 bn 			= os.path.basename(genomefile)
 genome_zip  = True if bn.lower().endswith(".gz") else False
 bn_idx      = f"{bn}.gzi" if genome_zip else f"{bn}.fai"
-skipreports = config["skip_reports"]
+skip_reports = config["skip_reports"]
 windowsize  = config["depth_windowsize"]
 molecule_distance = config["molecule_distance"]
 
@@ -323,8 +323,8 @@ rule workflow_summary:
     default_target: True
     input: 
         bams = collect(outdir + "/{sample}.{ext}", sample = samplenames, ext = ["bam","bam.bai"]),
-        samtools =  outdir + "/reports/minimap.stats.html" if not skipreports else [] ,
-        bx_reports = collect(outdir + "/reports/{sample}.html", sample = samplenames) if not skipreports else []
+        samtools =  outdir + "/reports/minimap.stats.html" if not skip_reports else [] ,
+        bx_reports = collect(outdir + "/reports/{sample}.html", sample = samplenames) if not skip_reports else []
     params:
         quality = config["quality"],
         extra   = extra

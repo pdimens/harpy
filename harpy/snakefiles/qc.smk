@@ -27,7 +27,7 @@ if deconvolve:
     decon_w = deconvolve["window_size"]
     decon_d = deconvolve["density"]
     decon_a = deconvolve["dropout"]
-skipreports  = config["skip_reports"]
+skip_reports  = config["skip_reports"]
 bn_r = r"([_\.][12]|[_\.][FR]|[_\.]R[12](?:\_00[0-9])*)?\.((fastq|fq)(\.gz)?)$"
 samplenames = {re.sub(bn_r, "", os.path.basename(i), flags = re.IGNORECASE) for i in fqlist}
 
@@ -172,8 +172,8 @@ rule workflow_summary:
     default_target: True
     input:
         fq = collect(outdir + "/{sample}.{FR}.fq.gz", FR = ["R1", "R2"], sample = samplenames),
-        bx_report = outdir + "/reports/barcode.summary.html" if not skipreports else [],
-        agg_report = outdir + "/reports/qc.report.html" if not skipreports else []    
+        bx_report = outdir + "/reports/barcode.summary.html" if not skip_reports else [],
+        agg_report = outdir + "/reports/qc.report.html" if not skip_reports else []    
     params:
         minlen = f"--length_required {min_len}",
         maxlen = f"--max_len1 {max_len}",
@@ -181,15 +181,24 @@ rule workflow_summary:
         dedup = "-D" if dedup else "",
         extra = extra
     run:
+        if deconvolve:
+            deconvolve_text = "Deconvolution occurred using QuickDeconvolution:\n"
+            deconvolve_text += f"   QuickDeconvolution -t threads -i infile.fq -o output.fq -k {decon_k} -w {decon_w} -d {decon_d} -a {decon_a}\n"
+            deconvolve_text += "The interleaved output was split back into forward and reverse reads with seqtk:\n"
+            deconvolve_text += "    seqtk -1 interleaved.fq | gzip > file.R1.fq.gz\n"
+            deconvolve_text += "    seqtk -2 interleaved.fq | gzip > file.R2.fq.gz\n"
+        else:
+            deconvolve_text = ""
+        summary_template = f"""
+The harpy qc workflow ran using these parameters:
+
+fastp ran using:
+    fastp --trim_poly_g --cut_right {params}
+
+{deconvolve_text}
+
+The Snakemake workflow was called via command line:
+    {config["workflow_call"]}
+"""        
         with open(outdir + "/workflow/qc.summary", "w") as f:
-            _ = f.write("The harpy qc workflow ran using these parameters:\n\n")
-            _ = f.write("fastp trimming ran using:\n")
-            _ = f.write("    fastp --trim_poly_g --cut_right " + " ".join(params) + "\n")
-            if deconvolve:
-                _ = f.write("Deconvolution occurred using QuickDeconvolution:\n")
-                _ = f.write(f"   QuickDeconvolution -t threads -i infile.fq -o output.fq -k {decon_k} -w {decon_w} -d {decon_d} -a {decon_a}\n")
-                _ = f.write("The interleaved output was split back into forward and reverse reads with seqtk:\n")
-                _ = f.write("    seqtk -1 interleaved.fq | gzip > file.R1.fq.gz\n")
-                _ = f.write("    seqtk -2 interleaved.fq | gzip > file.R2.fq.gz\n")
-            _ = f.write("\nThe Snakemake workflow was called via command line:\n")
-            _ = f.write("    " + str(config["workflow_call"]) + "\n")
+            f.write(summary_template)

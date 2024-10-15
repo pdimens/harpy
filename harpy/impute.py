@@ -20,12 +20,12 @@ docstring = {
         },
         {
             "name": "Workflow Controls",
-            "options": ["--conda", "--hpc", "--output-dir", "--quiet", "--skipreports", "--snakemake", "--threads", "--help"],
+            "options": ["--conda", "--hpc", "--output-dir", "--quiet", "--skip-reports", "--snakemake", "--threads", "--help"],
         },
     ]
 }
 
-@click.command(no_args_is_help = True, context_settings=dict(allow_interspersed_args=False), epilog = "See the documentation for more information: https://pdimens.github.io/harpy/modules/impute/")
+@click.command(no_args_is_help = True, context_settings=dict(allow_interspersed_args=False), epilog = "See the documentation for more information: https://pdimens.github.io/harpy/workflows/impute/")
 @click.option('-x', '--extra-params', type = str, help = 'Additional STITCH parameters, in quotes')
 @click.option('-o', '--output-dir', type = click.Path(exists = False), default = "Impute", show_default=True,  help = 'Output directory name')
 @click.option('-p', '--parameters', required = True, type=click.Path(exists=True, dir_okay=False), help = 'STITCH parameter file (tab-delimited)')
@@ -35,11 +35,11 @@ docstring = {
 @click.option('--setup-only',  is_flag = True, hidden = True, default = False, help = 'Setup the workflow and exit')
 @click.option('--hpc',  type = click.Path(exists = True, file_okay = False, readable=True), help = 'Directory with HPC submission `config.yaml` file')
 @click.option('--quiet',  is_flag = True, show_default = True, default = False, help = 'Don\'t show output text while running')
-@click.option('--skipreports',  is_flag = True, show_default = True, default = False, help = 'Don\'t generate HTML reports')
+@click.option('--skip-reports',  is_flag = True, show_default = True, default = False, help = 'Don\'t generate HTML reports')
 @click.option('--snakemake', type = str, help = 'Additional Snakemake parameters, in quotes')
 @click.option('--vcf-samples',  is_flag = True, show_default = True, default = False, help = 'Use samples present in vcf file for imputation rather than those found the inputs')
 @click.argument('inputs', required=True, type=click.Path(exists=True, readable=True), nargs=-1)
-def impute(inputs, output_dir, parameters, threads, vcf, vcf_samples, extra_params, snakemake, skipreports, quiet, hpc, conda, setup_only):
+def impute(inputs, output_dir, parameters, threads, vcf, vcf_samples, extra_params, snakemake, skip_reports, quiet, hpc, conda, setup_only):
     """
     Impute genotypes using variants and alignments
     
@@ -70,7 +70,7 @@ def impute(inputs, output_dir, parameters, threads, vcf, vcf_samples, extra_para
     validate_input_by_ext(vcf, "--vcf", ["vcf", "bcf", "vcf.gz"])
     check_impute_params(parameters)
     bamlist, n = parse_alignment_inputs(inputs)
-    validate_bam_RG(bamlist)
+    validate_bam_RG(bamlist, threads, quiet)
     samplenames = vcf_samplematch(vcf, bamlist, vcf_samples)
     biallelic, n_biallelic = biallelic_contigs(vcf, f"{workflowdir}")
 
@@ -88,7 +88,7 @@ def impute(inputs, output_dir, parameters, threads, vcf, vcf_samples, extra_para
         config.write(f"samples_from_vcf: {vcf_samples}\n")
         if extra_params is not None:
             config.write(f"extra: {extra_params}\n")
-        config.write(f"skip_reports: {skipreports}\n")
+        config.write(f"skip_reports: {skip_reports}\n")
         config.write(f"workflow_call: {command}\n")
         config.write("inputs:\n")
         config.write(f"  paramfile: {Path(parameters).resolve()}\n")

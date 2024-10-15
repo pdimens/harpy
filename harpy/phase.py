@@ -19,12 +19,12 @@ docstring = {
         },
         {
             "name": "Workflow Controls",
-            "options": ["--conda", "--hpc", "--output-dir", "--quiet", "--skipreports", "--snakemake", "--threads", "--help"],
+            "options": ["--conda", "--hpc", "--output-dir", "--quiet", "--skip-reports", "--snakemake", "--threads", "--help"],
         },     
     ]
 }
 
-@click.command(no_args_is_help = True, context_settings=dict(allow_interspersed_args=False), epilog = "See the documentation for more information: https://pdimens.github.io/harpy/modules/phase")
+@click.command(no_args_is_help = True, context_settings=dict(allow_interspersed_args=False), epilog = "See the documentation for more information: https://pdimens.github.io/harpy/workflows/phase")
 @click.option('-x', '--extra-params', type = str, help = 'Additional HapCut2 parameters, in quotes')
 @click.option('-g', '--genome', type=click.Path(exists=True, dir_okay=False, readable=True), help = 'Path to genome assembly if wanting to also extract reads spanning indels')
 @click.option('-b', '--ignore-bx',  is_flag = True, show_default = True, default = False, help = 'Ignore barcodes when phasing')
@@ -37,11 +37,11 @@ docstring = {
 @click.option('--setup-only',  is_flag = True, hidden = True, default = False, help = 'Setup the workflow and exit')
 @click.option('--hpc',  type = click.Path(exists = True, file_okay = False, readable=True), help = 'Directory with HPC submission `config.yaml` file')
 @click.option('--quiet',  is_flag = True, show_default = True, default = False, help = 'Don\'t show output text while running')
-@click.option('--skipreports',  is_flag = True, show_default = True, default = False, help = 'Don\'t generate HTML reports')
+@click.option('--skip-reports',  is_flag = True, show_default = True, default = False, help = 'Don\'t generate HTML reports')
 @click.option('--snakemake',  type = str, help = 'Additional Snakemake parameters, in quotes')
 @click.option('--vcf-samples',  is_flag = True, show_default = True, default = False, help = 'Use samples present in vcf file for phasing rather than those found the inputs')
 @click.argument('inputs', required=True, type=click.Path(exists=True, readable=True), nargs=-1)
-def phase(inputs, output_dir, vcf, threads, molecule_distance, prune_threshold, vcf_samples, genome, snakemake, extra_params, ignore_bx, skipreports, quiet, hpc, conda, setup_only):
+def phase(inputs, output_dir, vcf, threads, molecule_distance, prune_threshold, vcf_samples, genome, snakemake, extra_params, ignore_bx, skip_reports, quiet, hpc, conda, setup_only):
     """
     Phase SNPs into haplotypes
 
@@ -68,9 +68,9 @@ def phase(inputs, output_dir, vcf, threads, molecule_distance, prune_threshold, 
     bamlist, n = parse_alignment_inputs(inputs)
     samplenames = vcf_samplematch(vcf, bamlist, vcf_samples)
     validate_input_by_ext(vcf, "--vcf", ["vcf", "bcf", "vcf.gz"])
-    validate_bam_RG(bamlist)
+    validate_bam_RG(bamlist, threads, quiet)
     if genome:
-        check_fasta(genome)
+        check_fasta(genome, quiet)
     fetch_rule(workflowdir, "phase.smk")
     fetch_report(workflowdir, "hapcut.Rmd")
     os.makedirs(f"{output_dir}/logs/snakemake", exist_ok = True)
@@ -86,7 +86,7 @@ def phase(inputs, output_dir, vcf, threads, molecule_distance, prune_threshold, 
         config.write(f"samples_from_vcf: {vcf_samples}\n")
         if extra_params is not None:
             config.write(f"extra: {extra_params}\n")
-        config.write(f"skip_reports: {skipreports}\n")
+        config.write(f"skip_reports: {skip_reports}\n")
         config.write(f"workflow_call: {command}\n")
         config.write("inputs:\n")
         config.write(f"  variantfile: {vcf}\n")

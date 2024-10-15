@@ -28,7 +28,7 @@ outdir      = config["output_directory"]
 bn          = os.path.basename(genomefile)
 genome_zip  = True if bn.lower().endswith(".gz") else False
 bn_idx      = f"{bn}.gzi" if genome_zip else f"{bn}.fai"
-skipreports = config["skip_reports"]
+skip_reports = config["skip_reports"]
 
 def process_args(args):
     argsDict = {
@@ -43,6 +43,8 @@ def process_args(args):
             if "blacklist" in i or "candidates" in i:
                 argsDict[i[0].lstrip("-")] = i[1]
     return argsDict
+
+argdict = process_args(extra)
 
 def get_alignments(wildcards):
     """returns a list with the bam file for the sample based on wildcards.sample"""
@@ -75,7 +77,6 @@ rule naibr_config:
         lambda wc: wc.get("sample"),
         min(10, workflow.cores)
     run:
-        argdict = process_args(extra)
         with open(output[0], "w") as conf:
             _ = conf.write(f"bam_file={input[0]}\n")
             _ = conf.write(f"prefix={params[0]}\n")
@@ -213,18 +214,23 @@ rule workflow_summary:
     input:
         bedpe = collect(outdir + "/bedpe/{sample}.bedpe", sample = samplenames),
         bedpe_agg = collect(outdir + "/{sv}.bedpe", sv = ["inversions", "deletions","duplications"]),
-        reports =  collect(outdir + "/reports/{sample}.naibr.html", sample = samplenames) if not skipreports else []
+        reports =  collect(outdir + "/reports/{sample}.naibr.html", sample = samplenames) if not skip_reports else []
     run:
         os.system(f"rm -rf {outdir}/naibrlog")
-        argdict = process_args(extra)
+        argtext = [f"{k}={v}" for k,v in argdict.items()]
+        summary_template = f"""
+The harpy sv naibr workflow ran using these parameters:
+
+The provided genome: {bn}
+
+naibr variant calling ran using these configurations:
+    bam_file=BAMFILE
+    prefix=PREFIX
+    outdir=Variants/naibr/PREFIX
+    {"\n\t".join(argtext)}
+
+The Snakemake workflow was called via command line:
+    {config["workflow_call"]}
+"""
         with open(outdir + "/workflow/sv.naibr.summary", "w") as f:
-            _ = f.write("The harpy sv naibr workflow ran using these parameters:\n\n")
-            _ = f.write(f"The provided genome: {bn}\n")
-            _ = f.write("naibr variant calling ran using these configurations:\n")
-            _ = f.write(f"    bam_file=BAMFILE\n")
-            _ = f.write(f"    prefix=PREFIX\n")
-            _ = f.write(f"    outdir=Variants/naibr/PREFIX\n")
-            for i in argdict:
-                _ = f.write(f"    {i}={argdict[i]}\n")
-            _ = f.write("\nThe Snakemake workflow was called via command line:\n")
-            _ = f.write("    " + str(config["workflow_call"]) + "\n")
+            f.write(summary_template)
