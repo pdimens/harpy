@@ -219,6 +219,7 @@ rule workflow_summary:
         agg_report = collect(outdir + "/{stitchparams}/reports/variants.imputed.html", stitchparams=paramspace.instance_patterns) if not skip_reports else [],
         contig_report = collect(outdir + "/{stitchparams}/reports/{part}.stitch.html", stitchparams=paramspace.instance_patterns, part = contigs) if not skip_reports else [],
     run:
+        paramfiletext = "\t".join(open(paramfile, "r").readlines())
         summary_template = f"""
 The harpy impute workflow ran using these parameters:
 
@@ -229,7 +230,7 @@ Preprocessing was performed with:
     bcftools query -i '(STRLEN(REF)==1) & (STRLEN(ALT[0])==1) & (REF!="N")' -f '%CHROM\\t%POS\\t%REF\\t%ALT\\n'
 
 The STITCH parameter file: {paramfile}
-    {for line in open(paramfile, "r").readlines(): print("\t" + line)}
+    {paramfiletext}
 
 Within R, STITCH was invoked with the following parameters:
     STITCH(
