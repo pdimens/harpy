@@ -10,15 +10,13 @@ onsuccess:
 onerror:
     os.remove(logger.logfile)
 
-#cont_cov = config["contig_coverage"]
-#clusters = config["clusters"]
 FQ1 = config["inputs"]["fastq_r1"],
 FQ2 = config["inputs"]["fastq_r2"]
 outdir = config["output_directory"]
 envdir = os.getcwd() + "/.harpy_envs"
-max_mem = config["metaspades"]["max_memory"]
-k_param = config["metaspades"]["k"]
-extra = config["metaspades"].get("extra", "") 
+max_mem = config["spades"]["max_memory"]
+k_param = config["spades"]["k"]
+extra = config["spades"].get("extra", "") 
 
 rule sort_by_barcode:
     input:
@@ -205,8 +203,6 @@ rule workflow_summary:
         k_param = k_param,
         max_mem = max_mem,
         extra = extra
-        #cont_cov = cont_cov,
-        #clusters = clsuters,
     run:
         with open(outdir + "/workflow/metassembly.summary", "w") as f:
             _ = f.write("The harpy metassembly workflow ran using these parameters:\n\n")
