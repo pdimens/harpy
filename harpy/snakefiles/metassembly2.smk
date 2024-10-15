@@ -14,9 +14,13 @@ outdir = config["output_directory"]
 envdir = os.getcwd() + "/.harpy_envs"
 max_mem = config["spades"]["max_memory"]
 k_param = config["spades"]["k"]
-cloudspades = config["spades"]["cloudspades"]
-extra = config["spades"].get("extra", "") 
-spadesdir = f"{outdir}/cloudspades_assembly" if cloudspades else f"{outdir}/spades_assembly"
+metassembly = config["spades"]["assembler"]
+extra = config["spades"].get("extra", "")
+cloudspades = True metassembly == "cloudspades" else False
+if cloudspades == "cloudspades":
+    spadesdir = f"{outdir}/cloudspades_assembly"
+else
+    spadesdir = f"{outdir}/spades_assembly"
 
 rule sort_by_barcode:
     input:
@@ -76,7 +80,7 @@ rule cloudspades_assembly:
         f"{outdir}/cloudspades_assembly/contigs.fasta",
         f"{outdir}/cloudspades_assembly/scaffolds.fasta"
     params:
-        outdir = f"{outdir}/cloudspades_assembly",
+        outdir = outdir,
         k = k_param,
         mem = max_mem // 1000,
         extra = extra
@@ -221,6 +225,10 @@ rule workflow_summary:
         max_mem = max_mem,
         extra = extra
     run:
+        if cloudspades:
+            spadestext = f"spades.py -t THREADS -m {max_mem} --gemcode1-1 FQ1 --gemcode1-2 FQ2 --meta -k {params.k_param} {params.extra}"
+        else:
+            spadestext = f"metaspades.py -t THREADS -m {max_mem} -k {k_param} {extra} -1 FQ_1 -2 FQ2 -o {spadesdir}"
         summary_template = f"""  
 The harpy metassembly workflow ran using these parameters:  
 
@@ -232,13 +240,11 @@ FASTQ inputs were sorted by their linked-read barcodes:
 Barcoded-sorted FASTQ files had "-1" appended to the barcode to make them Athena-compliant:  
     sed 's/{{params.bx}}:Z:[^[:space:]]*/&-1/g' FASTQ | bgzip > FASTQ_OUT  
 
-Reads were assembled using metaspades:  
-    k values: {{params.k_param}}  
-    maximum memory: {{params.max_mem}}  
-    extra parameters: {{params.extra}}  
+Reads were assembled using {metassembly}:
+    {spadestext}
 
 Original input FASTQ files were aligned to the metagenome using BWA:  
-    bwa mem -C -p metaspades.contigs FQ1 FQ2 | samtools sort -O bam -  
+    bwa mem -C -p spades.contigs FQ1 FQ2 | samtools sort -O bam -  
 
 Barcode-sorted Athena-compliant sequences were interleaved with seqtk:  
     seqtk mergepe FQ1 FQ2 > INTERLEAVED.FQ  

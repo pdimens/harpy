@@ -11,7 +11,7 @@ from ._misc import fetch_rule, snakemake_log, KParam
 from ._validations import validate_fastq_bx
 
 docstring = {
-    "harpy assemble": [
+    "harpy assembly": [
         {
             "name": "Parameters",
             "options": ["--bx-tag", "--extra-params", "--kmer-length", "--max-memory", "--metassembly"],
@@ -26,10 +26,10 @@ docstring = {
 @click.command(no_args_is_help = True, context_settings=dict(allow_interspersed_args=False), epilog = "See the documentation for more information: https://pdimens.github.io/harpy/workflows/qc")
 @click.option('-b', '--bx-tag', type = click.Choice(['BX', 'BC'], case_sensitive=False), default = "BX", show_default=True, help = "The header tag with the barcode (`BX` or `BC`)")
 @click.option('-x', '--extra-params', type = str, help = 'Additional spades parameters, in quotes')
-@click.option('-m', '--max-memory',  type = click.IntRange(min = 1000, max_open = True), show_default = True, default = 250000, help = 'Maximum memory for metaSPADES to use, in megabytes')
-@click.option('-a', '--metassembly',  is_flag = True, show_default = True, default = False, help = 'Perform a metagenomic assembly')
+@click.option('-m', '--max-memory',  type = click.IntRange(min = 1000, max_open = True), show_default = True, default = 250000, help = 'Maximum memory for spades to use, in megabytes')
+@click.option('-a', '--metassembly',  type = click.Choice(["cloudspades", "spades"]), help = 'Perform a metagenome assembly [`spades`, `cloudspades`]')
 @click.option('-k', '--kmer-length', type = KParam(), show_default = True, default = "auto", help = 'K values to use for assembly (`odd` and `<128`)')
-@click.option('-o', '--output-dir', type = click.Path(exists = False), default = "Metassembly", show_default=True,  help = 'Output directory name')
+@click.option('-o', '--output-dir', type = click.Path(exists = False), default = "Assembly", show_default=True,  help = 'Output directory name')
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(min = 1, max_open = True), help = 'Number of threads to use')
 @click.option('--setup-only',  is_flag = True, hidden = True, default = False, help = 'Setup the workflow and exit')
 @click.option('--hpc',  type = click.Path(exists = True, file_okay = False, readable=True), help = 'Directory with HPC submission `config.yaml` file')
@@ -38,13 +38,15 @@ docstring = {
 @click.option('--snakemake',  type = str, help = 'Additional Snakemake parameters, in quotes')
 @click.argument('fastq_r1', required=True, type=click.Path(exists=True, readable=True), nargs=1)
 @click.argument('fastq_r2', required=True, type=click.Path(exists=True, readable=True), nargs=1)
-def assemble(fastq_r1, fastq_r2, bx_tag, kmer_length, max_memory, metassembly, output_dir, extra_params, threads, snakemake, skip_reports, quiet, hpc, setup_only):
+def assembly(fastq_r1, fastq_r2, bx_tag, kmer_length, max_memory, metassembly, output_dir, extra_params, threads, snakemake, skip_reports, quiet, hpc, setup_only):
     """
-    Perform an assembly from linked-read sequences
+    Perform an assembly on linked-read sequences
 
-    Use the `--metassembly` flag to perform a metagenome assembly (defaults to an assembly of a single sample).
     The linked-read barcodes must be in either a `BX:Z` or `BC:Z` FASTQ header tag, specified with `--bx-tag`.
-    If specifying `K` values, they must be separated by commas and without spaces (e.g. `-k 15,23,51`).
+    If specifying `K` values, they must be separated by commas and without spaces (e.g. `-k 15,23,51`). Single-sample
+    assembly uses `cloudspades`, however you can use `--metassembly` to perform a metagenome assembly:
+    - `spades` uses the current version of spades for the initial metagenome assembly, which isn't barcode-aware
+    - `cloudspades` is a barcode-aware variant of spades, but has less development
     """
     output_dir = output_dir.rstrip("/")
     asm = "metassembly" if metassembly else "assembly"
@@ -70,6 +72,8 @@ def assemble(fastq_r1, fastq_r2, bx_tag, kmer_length, max_memory, metassembly, o
         config.write(f"output_directory: {output_dir}\n")
         config.write(f"barcode_tag: {bx_tag.upper()}\n")
         config.write("spades:\n")
+        if metassembly is not "None":
+            config.write(f"    assembler: {metassembly}\n")
         config.write(f"    max_memory: {max_memory}\n")
         if kmer_length == "auto":
             config.write(f"    k: auto\n")
@@ -90,6 +94,7 @@ def assemble(fastq_r1, fastq_r2, bx_tag, kmer_length, max_memory, metassembly, o
     start_text = Table(show_header=False,pad_edge=False, show_edge=False, padding = (0,0), box=box.SIMPLE)
     start_text.add_column("detail", justify="left", style="light_steel_blue", no_wrap=True)
     start_text.add_column("value", justify="left")
+    start_text.add_row("Metassembly: ", True if metassembly else False)  
     start_text.add_row("Barcode Tag: ", bx_tag.upper())
     if kmer_length == "auto":
         start_text.add_row(f"Kmer Length: ", "auto")

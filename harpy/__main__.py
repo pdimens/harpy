@@ -8,6 +8,7 @@ from . import container
 from . import hpc
 from . import impute
 from . import metassembly
+from . import assembly
 from . import qc
 from . import phase
 from . import preflight
@@ -56,7 +57,8 @@ cli.add_command(container.containerize)
 cli.add_command(hpc.hpc)
 cli.add_command(resume.resume)
 cli.add_command(deconvolve.deconvolve)
-cli.add_command(metassembly.metassembly)
+#cli.add_command(metassembly.metassembly)
+cli.add_command(assembly.assembly)
 
 ## the workflows ##
 click.rich_click.COMMAND_GROUPS = {
@@ -64,7 +66,7 @@ click.rich_click.COMMAND_GROUPS = {
         [
             {
                 "name": "workflows",
-                "commands": ["demultiplex","qc", "align","snp","sv","impute","phase", "simulate", "metassembly"],
+                "commands": ["demultiplex","qc", "align","snp","sv","impute","phase", "simulate", "assembly"],
             },
             {
                 "name": "Other Commands",
@@ -73,5 +75,5 @@ click.rich_click.COMMAND_GROUPS = {
         ],
  } | simulate.commandstring | hpc.docstring
 
-for i in [align, deconvolve, demultiplex, impute, phase, preflight, qc, simulate, snp, sv, metassembly]:
+for i in [align, deconvolve, demultiplex, impute, phase, preflight, qc, simulate, snp, sv, assembly]:
     click.rich_click.OPTION_GROUPS |= i.docstring
