@@ -140,7 +140,7 @@ rule interleave_fastq:
     input:
         collect(outdir + "/fastq_preproc/input.R{FR}.fq.gz", FR = [1,2])
     output:
-        f"{outdir}/fastq_preproc/inverleaved.fq"
+        f"{outdir}/fastq_preproc/interleaved.fq"
     container:
         None
     shell:
@@ -149,7 +149,7 @@ rule interleave_fastq:
 rule athena_config:
     input:
         f"{outdir}/reads-to-metaspades.bam.bai",
-        fastq = f"{outdir}/fastq_preproc/inverleaved.fq",
+        fastq = f"{outdir}/fastq_preproc/interleaved.fq",
         bam = f"{outdir}/reads-to-metaspades.bam",
         contigs = f"{outdir}/metaspades_assembly/contigs.fasta"
     output:
@@ -157,18 +157,20 @@ rule athena_config:
     params:
         threads = workflow.cores
     run:
-        with open(output[0], "w") as conf:
-            _ = conf.write("{\n")
-            _ = conf.write(f"    \"input_fqs\": \"{input.fastq}\",\n")
-            _ = conf.write(f"    \"ctgfasta_path\": \"{input.contigs}\",\n")
-            _ = conf.write(f"    \"reads_ctg_bam_path\": \"{input.bam}\",\n")
-            _ = conf.write("    \"cluster_settings\": {\n")
-            _ = conf.write(f"        \"processes\": {params.threads},\n")
-            _ = conf.write("        \"cluster_options\": {\n")
-            _ = conf.write("            \"extra_params\": {\"run_local\": \"True\"}\n")
-            _ = conf.write("        }\n")
-            _ = conf.write("    }\n")
-            _ = conf.write("}\n")
+        import json
+        config_data = {
+            "input_fqs": input.fastq,  
+            "ctgfasta_path": input.contigs,  
+            "reads_ctg_bam_path": input.bam,  
+            "cluster_settings": {  
+                "processes": params.threads,  
+                "cluster_options": {  
+                    "extra_params": {"run_local": "True"}  
+                }  
+            }  
+        }  
+        with open(output[0], "w") as conf:  
+            json.dump(config_data, conf, indent=4)  
 
 rule athena:
     input:
@@ -204,23 +206,33 @@ rule workflow_summary:
         max_mem = max_mem,
         extra = extra
     run:
-        with open(outdir + "/workflow/metassembly.summary", "w") as f:
-            _ = f.write("The harpy metassembly workflow ran using these parameters:\n\n")
-            _ = f.write("FASTQ inputs were sorted by their linked-read barcodes:\n")
-            _ = f.write("    samtools import -T \"*\" FQ1 FQ2 |\n")
-            _ = f.write(f"    samtools sort -O SAM -t {params.bx} |\n")
-            _ = f.write("    samtools fastq -T \"*\" -1 FQ_out1 -2 FQ_out2\n")
-            _ = f.write("Barcoded-sorted FASTQ files had \"-1\" appended to the barcode to make them Athena-compliant:\n")
-            _ = f.write(f"    sed 's/{params.bx}:Z:[^[:space:]]*/&-1/g' FASTQ | bgzip > FASTQ_OUT\n")
-            _ = f.write(f"Reads were assembled using metaspades:\n")
-            _ = f.write(f"    k values: {params.k_param}\n")
-            _ = f.write(f"    maximum memory: {params.max_mem}\n")
-            _ = f.write(f"    extra parameters: {params.extra}\n")
-            _ = f.write("Original input FASTQ files were aligned to the metagenome using BWA:\n")
-            _ = f.write("    bwa mem -C -p metaspades.contigs FQ1 FQ2 | samtools sort -O bam -\n")
-            _ = f.write("Barcode-sorted Athena-compliant sequences were interleaved with seqtk:\n")
-            _ = f.write("    seqtk mergepe FQ1 FQ2 > INTERLEAVED.FQ\n")
-            _ = f.write("Athena ran with the config file Harpy built from the files created from the previous steps:\n")
-            _ = f.write("    athena-meta --config athena.config\n")
-            _ = f.write("\nThe Snakemake workflow was called via command line:\n")
-            _ = f.write("    " + str(config["workflow_call"]) + "\n")
+        summary_template = f"""  
+The harpy metassembly workflow ran using these parameters:  
+
+FASTQ inputs were sorted by their linked-read barcodes:  
+    samtools import -T "*" FQ1 FQ2 |  
+    samtools sort -O SAM -t {{params.bx}} |  
+    samtools fastq -T "*" -1 FQ_out1 -2 FQ_out2  
+
+Barcoded-sorted FASTQ files had "-1" appended to the barcode to make them Athena-compliant:  
+    sed 's/{{params.bx}}:Z:[^[:space:]]*/&-1/g' FASTQ | bgzip > FASTQ_OUT  
+
+Reads were assembled using metaspades:  
+    k values: {{params.k_param}}  
+    maximum memory: {{params.max_mem}}  
+    extra parameters: {{params.extra}}  
+
+Original input FASTQ files were aligned to the metagenome using BWA:  
+    bwa mem -C -p metaspades.contigs FQ1 FQ2 | samtools sort -O bam -  
+
+Barcode-sorted Athena-compliant sequences were interleaved with seqtk:  
+    seqtk mergepe FQ1 FQ2 > INTERLEAVED.FQ  
+
+Athena ran with the config file Harpy built from the files created from the previous steps:  
+    athena-meta --config athena.config  
+
+The Snakemake workflow was called via command line:  
+    {config["workflow_call"]}
+"""
+        with open(output[0], "w") as f:  
+            f.write(summary_template.format(params=params))
