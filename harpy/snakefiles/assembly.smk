@@ -39,7 +39,7 @@ rule cloudspades:
     resources:
         mem_mb=max_mem
     shell:
-        "spades.py -t {threads} -m {params.mem} -k {params.k} {params.extra} --gemcode1-1 {input.FQ_R1C} --gemcode1-2 {input.FQ_R2C} -o {params.outdir} --isolate > {log}"
+        "spades.py -t {threads} -m {params.mem} -k {params.k} {params.extra} --gemcode1-1 {input.FQ_R1} --gemcode1-2 {input.FQ_R2} -o {params.outdir} --isolate > {log}"
 
 rule workflow_summary:
     default_target: True
@@ -47,12 +47,17 @@ rule workflow_summary:
         f"{outdir}/athena/athena.asm.fa"
     params:
         k_param = k_param,
-        max_mem = max_mem,
+        max_mem = max_mem // 1000,
         extra = extra
     run:
+        summary_template = f"""
+The harpy assemble workflow ran using these parameters:
+
+Reads were assembled using cloudspades:
+    spades.py -t THREADS -m {params.max_mem} --gemcode1-1 FQ1 --gemcode1-2 FQ2 --isolate -k {params.k_param} {params.extra}
+
+The Snakemake workflow was called via command line:
+    {config["workflow_call"]}
+"""
         with open(outdir + "/workflow/metassembly.summary", "w") as f:
-            _ = f.write("The harpy assemble workflow ran using these parameters:\n\n")
-            _ = f.write(f"Reads were assembled using cloudspades:\n")
-            _ = f.write(f"    spades.py -t THREADS -m MEM --gemcode1-1 FQ1 --gemcode1-2 FQ2 --isolate -k {params.k_param} {params.extra}\n")
-            _ = f.write("\nThe Snakemake workflow was called via command line:\n")
-            _ = f.write("    " + str(config["workflow_call"]) + "\n")
+            f.write(summary_template)
