@@ -408,7 +408,7 @@ def check_fasta(genofile, quiet):
     for i in ext_options:
         if genofile.lower().endswith(i) or genofile.lower().endswith(i + ".gz"):
             ext_correct += 1
-    if ext_correct == 0:
+    if ext_correct == 0 and not quiet:
         print_notice(f"[blue]{genofile}[/blue] has an unfamiliar FASTA file extension. Common FASTA file extensions are: [green]" + ", ".join(ext_options) + "[/green] and may also be gzipped.")
 
     # validate fasta file contents
