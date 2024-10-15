@@ -175,7 +175,7 @@ rule athena_config:
 rule athena:
     input:
         multiext(f"{outdir}/reads-to-metaspades.", "bam", "bam.bai"),
-        f"{outdir}/fastq_preproc/inverleaved.fq",
+        f"{outdir}/fastq_preproc/interleaved.fq",
         f"{outdir}/metaspades_assembly/contigs.fasta",
         config = f"{outdir}/athena/athena.config"
     output:
