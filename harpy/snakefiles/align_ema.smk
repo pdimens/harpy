@@ -369,7 +369,7 @@ Merged alignments were sorted using:
     samtools sort -m 2000M concat.bam
 
 The Snakemake workflow was called via command line:
-    {{config["workflow_call"]}}
+    {config["workflow_call"]}
 """
         with open(outdir + "/workflow/align.ema.summary", "w") as f:
             f.write(summary_template.format(params=params))
