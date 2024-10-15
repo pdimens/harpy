@@ -18,7 +18,7 @@ docstring = {
         },
         {
             "name": "Workflow Controls",
-            "options": ["--conda", "--hpc", "--output-dir", "--quiet", "--skip-reports", "--snakemake", "--threads", "--help"],
+            "options": ["--hpc", "--output-dir", "--quiet", "--skip-reports", "--snakemake", "--threads", "--help"],
         },
     ]
 }
@@ -31,7 +31,6 @@ docstring = {
 @click.option('-k', '--kmer-length', type = KParam(), show_default = True, default = "auto", help = 'K values to use for assembly (`odd` and `<128`)')
 @click.option('-o', '--output-dir', type = click.Path(exists = False), default = "Metassembly", show_default=True,  help = 'Output directory name')
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(min = 1, max_open = True), help = 'Number of threads to use')
-@click.option('--conda',  is_flag = True, default = False, help = 'Use conda/mamba instead of container')
 @click.option('--setup-only',  is_flag = True, hidden = True, default = False, help = 'Setup the workflow and exit')
 @click.option('--hpc',  type = click.Path(exists = True, file_okay = False, readable=True), help = 'Directory with HPC submission `config.yaml` file')
 @click.option('--quiet',  is_flag = True, show_default = True, default = False, help = 'Don\'t show output text while running')
@@ -39,7 +38,7 @@ docstring = {
 @click.option('--snakemake',  type = str, help = 'Additional Snakemake parameters, in quotes')
 @click.argument('fastq_r1', required=True, type=click.Path(exists=True, readable=True), nargs=1)
 @click.argument('fastq_r2', required=True, type=click.Path(exists=True, readable=True), nargs=1)
-def assemble(fastq_r1, fastq_r2, bx_tag, kmer_length, max_memory, metassembly, output_dir, extra_params, threads, snakemake, skip_reports, quiet, hpc, conda, setup_only):
+def assemble(fastq_r1, fastq_r2, bx_tag, kmer_length, max_memory, metassembly, output_dir, extra_params, threads, snakemake, skip_reports, quiet, hpc, setup_only):
     """
     Perform an assembly from linked-read sequences
 
@@ -50,7 +49,7 @@ def assemble(fastq_r1, fastq_r2, bx_tag, kmer_length, max_memory, metassembly, o
     output_dir = output_dir.rstrip("/")
     asm = "metassembly" if metassembly else "assembly"
     workflowdir = f"{output_dir}/workflow"
-    sdm = "conda" if conda else "conda apptainer"
+    sdm = "conda" #if conda else "conda apptainer"
     command = f'snakemake --rerun-incomplete --show-failed-logs --rerun-triggers input mtime params --nolock  --software-deployment-method {sdm} --conda-prefix .snakemake/conda --cores {threads} --directory . '
     command += f"--snakefile {workflowdir}/{asm}.smk "
     command += f"--configfile {workflowdir}/config.yaml "

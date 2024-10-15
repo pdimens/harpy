@@ -6,7 +6,7 @@ onsuccess:
 
 rule all:
     input:
-        collect("{conda}.env", conda = ["align", "assembly", "metassembly", "phase", "qc", "r", "simulations", "snp", "stitch", "sv"])
+        collect("{conda}.env", conda = ["align", "metassembly", "phase", "qc", "r", "simulations", "snp", "stitch", "sv"])
 
 rule qc:
     output: "qc.env"

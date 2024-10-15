@@ -20,7 +20,7 @@ def containerize():
 
     with open("Dockerfile", "w", encoding = "utf-8") as dockerfile:
         _module = subprocess.run(
-            'snakemake -s containerize.smk --containerize --files .harpy_envs/assembly.post-deploy.sh'.split(),
+            'snakemake -s containerize.smk --containerize'.split(),
             stdout = dockerfile
         )
     os.remove("containerize.smk")

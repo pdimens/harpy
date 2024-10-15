@@ -1,5 +1,3 @@
-containerized: "docker://pdimens/harpy:latest"
-
 import os
 import logging
 
@@ -27,8 +25,6 @@ rule sort_by_barcode:
         fq_r = temp(f"{outdir}/fastq_preproc/tmp.R2.fq")
     params:
         barcode_tag = config["barcode_tag"].upper()
-    container:
-        None
     shell:
         """
         samtools import -T "*" {input} |
@@ -43,8 +39,6 @@ rule format_barcode:
         temp(f"{outdir}/fastq_preproc/input.R{{FR}}.fq.gz")
     params:
         config["barcode_tag"].upper()
-    container:
-        None
     shell:
         "sed 's/{params}:Z:[^[:space:]]*/&-1/g' {input} | bgzip > {output}"
 
@@ -131,8 +125,6 @@ rule index_alignment:
        f"{outdir}/reads-to-metaspades.bam.bai"
     log:
         f"{outdir}/logs/index.alignments.log"
-    container:
-        None
     shell:
         "samtools index {input} 2> {log}"
 
@@ -141,8 +133,6 @@ rule interleave_fastq:
         collect(outdir + "/fastq_preproc/input.R{FR}.fq.gz", FR = [1,2])
     output:
         f"{outdir}/fastq_preproc/interleaved.fq"
-    container:
-        None
     shell:
         "seqtk mergepe {input} > {output}"
 
