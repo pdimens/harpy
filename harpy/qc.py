@@ -24,7 +24,7 @@ docstring = {
 }
 
 @click.command(no_args_is_help = True, context_settings=dict(allow_interspersed_args=False), epilog = "See the documentation for more information: https://pdimens.github.io/harpy/workflows/qc")
-@click.option('-c', '--deconvolve', type = IntList(4), default = "0,0,0,0", help = 'Accepts the QuickDeconvolution parameters for k,w,d,a, in that order. Use `21,40,3,0` to activate with the default parameteters.')
+@click.option('-c', '--deconvolve', type = IntList(4), default = "0,0,0,0", help = 'Accepts the QuickDeconvolution parameters for `k`,`w`,`d`,`a` (in that order)')
 @click.option('-d', '--deduplicate', is_flag = True, default = False, help = 'Identify and remove PCR duplicates')
 @click.option('-x', '--extra-params', type = str, help = 'Additional Fastp parameters, in quotes')
 @click.option('-m', '--max-length', default = 150, show_default = True, type=int, help = 'Maximum length to trim sequences down to')
@@ -49,11 +49,12 @@ def qc(inputs, output_dir, min_length, max_length, trim_adapters, deduplicate, d
     The input reads will be quality trimmed using:
     - a sliding window from front to tail
     - poly-G tail removal
-    - use `-a` to automatically detect and remove adapters
-    - use `-d` to find and remove PCR duplicates
-    - use `-c` to resolve barcode clashing that may occur by unrelated sequences having the same barcode
-      - the parameters for `-p` are described [here](https://github.com/RolandFaure/QuickDeconvolution?tab=readme-ov-file#usage).
-      - you can use `harpy deconvolve` to perform this task separately
+    - `-a` automatically detects and remove adapters
+    - `-d` finds and remove PCR duplicates
+    - `-c` resolves barcodes clashing between unrelated sequences
+      - off by default, activated with [4 integers](https://github.com/RolandFaure/QuickDeconvolution?tab=readme-ov-file#usage), separated by commas
+      - use `21,40,3,0` for QuickDeconvolution defaults (or adjust as needed)
+      - use `harpy deconvolve` to perform this task separately
     """
     output_dir = output_dir.rstrip("/")
     workflowdir = f"{output_dir}/workflow"
@@ -79,7 +80,7 @@ def qc(inputs, output_dir, min_length, max_length, trim_adapters, deduplicate, d
         config.write(f"output_directory: {output_dir}\n")
         config.write(f"trim_adapters: {trim_adapters}\n")
         config.write(f"deduplicate: {deduplicate}\n")
-        if deconvolve is not [0,0,0,0]:
+        if sum(deconvolve) > 0:
             config.write("deconvolve:\n")
             k,w,d,a = deconvolve
             config.write(f"  kmer_length: {k}\n")
@@ -99,14 +100,13 @@ def qc(inputs, output_dir, min_length, max_length, trim_adapters, deduplicate, d
     create_conda_recipes()
     if setup_only:
         sys.exit(0)
-
     start_text = Table(show_header=False,pad_edge=False, show_edge=False, padding = (0,0), box=box.SIMPLE)
     start_text.add_column("detail", justify="left", style="light_steel_blue", no_wrap=True)
     start_text.add_column("value", justify="left")
     start_text.add_row("Samples:", f"{sample_count}")
     start_text.add_row("Trim Adapters:", "yes" if trim_adapters else "no")
     start_text.add_row("Deduplicate:", "yes" if deduplicate else "no")
-    start_text.add_row("Deconvolve:", "yes" if deconvolve is not [0,0,0,0] else "no")
+    start_text.add_row("Deconvolve:", "yes" if sum(deconvolve) > 0 else "no")
     start_text.add_row("Output Folder:", f"{output_dir}/")
     start_text.add_row("Workflow Log:", sm_log.replace(f"{output_dir}/", "") + "[dim].gz")
     launch_snakemake(command, "qc", start_text, output_dir, sm_log, quiet)
