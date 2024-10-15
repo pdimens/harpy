@@ -14,7 +14,7 @@ docstring = {
     "harpy metassembly": [
         {
             "name": "Parameters",
-            "options": ["--bx-tag", "--extra-params", "--max-memory", "--metaspades-k"],
+            "options": ["--bx-tag", "--extra-params", "kmer-length", "--max-memory"],
         },
         {
             "name": "Workflow Controls",

@@ -10,7 +10,7 @@ onsuccess:
 onerror:
     os.remove(logger.logfile)
 
-FQ1 = config["inputs"]["fastq_r1"],
+FQ1 = config["inputs"]["fastq_r1"]
 FQ2 = config["inputs"]["fastq_r2"]
 outdir = config["output_directory"]
 envdir = os.getcwd() + "/.harpy_envs"

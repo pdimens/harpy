@@ -26,13 +26,13 @@ rule sort_by_barcode:
         fq_f = temp(f"{outdir}/fastq_preproc/tmp.R1.fq"),
         fq_r = temp(f"{outdir}/fastq_preproc/tmp.R2.fq")
     params:
-        config["barcode_tag"].upper()
+        barcode_tag = config["barcode_tag"].upper()
     container:
         None
     shell:
         """
         samtools import -T "*" {input} |
-        samtools sort -O SAM -t {params} |
+        samtools sort -O SAM -t {params.barcode_tag} |
         samtools fastq -T "*" -1 {output.fq_f} -2 {output.fq_r}
         """
         

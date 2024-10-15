@@ -20,7 +20,7 @@ def is_gzip(file_path):
         with gzip.open(file_path, 'rt') as f:
             f.read(10)
         return True
-    except:
+    except gzip.BadGzipFile:
         return False
 
 def is_plaintext(file_path):
@@ -29,7 +29,7 @@ def is_plaintext(file_path):
         with open(file_path, 'r') as f:
             f.read(10)
         return True
-    except:
+    except UnicodeDecodeError:
         return False
 
 def check_envdir(dirpath):
