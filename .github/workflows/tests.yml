@@ -825,6 +825,6 @@ jobs:
           path: .snakemake/singularity
       - name: create a metassembly
         shell: micromamba-shell {0}
-        run: harpy metassembly --quiet test/fastq/sample1.*
+        run: harpy metassembly --quiet -m 6000 test/fastq/sample1.*
 
 
