@@ -25,6 +25,7 @@ docstring = {
 
 @click.command(no_args_is_help = True, context_settings=dict(allow_interspersed_args=False), epilog = "See the documentation for more information: https://pdimens.github.io/harpy/workflows/qc")
 @click.option('-b', '--bx-tag', type = click.Choice(['BX', 'BC'], case_sensitive=False), default = "BX", show_default=True, help = "The header tag with the barcode (`BX` or `BC`)")
+@click.option('-c', '--cloudspades',  is_flag = True, default = False, help = 'Use barcode-aware `cloudspades` for initial assembly')
 @click.option('-x', '--extra-params', type = str, help = 'Additional metaspades parameters, in quotes')
 @click.option('-m', '--max-memory',  type = click.IntRange(min = 1000, max_open = True), show_default = True, default = 250000, help = 'Maximum memory for metaSPADES to use, in megabytes')
 @click.option('-k', '--kmer-length', type = KParam(), show_default = True, default = "auto", help = 'K values to use for metaspades (`odd` and `<128`)')
@@ -37,7 +38,7 @@ docstring = {
 @click.option('--snakemake',  type = str, help = 'Additional Snakemake parameters, in quotes')
 @click.argument('fastq_r1', required=True, type=click.Path(exists=True, readable=True), nargs=1)
 @click.argument('fastq_r2', required=True, type=click.Path(exists=True, readable=True), nargs=1)
-def metassembly(fastq_r1, fastq_r2, bx_tag, kmer_length, max_memory, output_dir, extra_params, threads, snakemake, skip_reports, quiet, hpc, setup_only):
+def metassembly(fastq_r1, fastq_r2, bx_tag, cloudspades, kmer_length, max_memory, output_dir, extra_params, single_cell, threads, snakemake, skip_reports, quiet, hpc, setup_only):
     """
     Perform a metassembly from linked-read sequences
 
@@ -55,6 +56,7 @@ def metassembly(fastq_r1, fastq_r2, bx_tag, kmer_length, max_memory, output_dir,
     if snakemake is not None:
         command += snakemake
 
+    asm_mode = "single-cell" if single_cell else "metagenome"
     validate_fastq_bx([fastq_r1, fastq_r2], threads, quiet)
     os.makedirs(workflowdir, exist_ok=True)
     fetch_rule(workflowdir, "metassembly.smk")
@@ -67,6 +69,7 @@ def metassembly(fastq_r1, fastq_r2, bx_tag, kmer_length, max_memory, output_dir,
         config.write(f"output_directory: {output_dir}\n")
         config.write(f"barcode_tag: {bx_tag.upper()}\n")
         config.write("spades:\n")
+        config.write(f"    cloudspades: {cloudspades}\n")
         config.write(f"    max_memory: {max_memory}\n")
         if kmer_length == "auto":
             config.write(f"    k: auto\n")
