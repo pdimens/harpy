@@ -45,7 +45,7 @@ def assemble(fastq_r1, fastq_r2, bx_tag, kmer_length, max_memory, metassembly, o
 
     Use the `--metassembly` flag to perform a metagenome assembly (defaults to an assembly of a single sample).
     The linked-read barcodes must be in either a `BX:Z` or `BC:Z` FASTQ header tag, specified with `--bx-tag`.
-    If specifying `K` values, they must be separated by commas (e.g. `-k 15,23,51`).
+    If specifying `K` values, they must be separated by commas and without spaces (e.g. `-k 15,23,51`).
     """
     output_dir = output_dir.rstrip("/")
     asm = "metassembly" if metassembly else "assembly"
