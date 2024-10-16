@@ -13,8 +13,12 @@ from ._validations import validate_fastq_bx
 docstring = {
     "harpy assembly": [
         {
-            "name": "Parameters",
-            "options": ["--bx-tag", "--extra-params", "--kmer-length", "--max-memory", "--metassembly"],
+            "name": "Assembly/Metassembly (spades) Parameters",
+            "options": ["--bx-tag", "--kmer-length", "--max-memory", "--metassembly", "--spades-extra"],
+        },
+        {
+            "name": "Scaffolding Parameters (ignored for metassembly)",
+            "options": ["--arcs-extra", "--contig-length", "--links", "--min-aligned", "--min-quality", "--mismatch", "--molecule-distance", "--molecule-length", "--seq-identity", "--span"],            
         },
         {
             "name": "Workflow Controls",
@@ -23,12 +27,25 @@ docstring = {
     ]
 }
 
-@click.command(no_args_is_help = True, context_settings=dict(allow_interspersed_args=False), epilog = "See the documentation for more information: https://pdimens.github.io/harpy/workflows/qc")
+@click.command(no_args_is_help = True, context_settings=dict(allow_interspersed_args=False), epilog = "Documentation: https://pdimens.github.io/harpy/workflows/assembly")
+# SPADES
 @click.option('-b', '--bx-tag', type = click.Choice(['BX', 'BC'], case_sensitive=False), default = "BX", show_default=True, help = "The header tag with the barcode (`BX` or `BC`)")
-@click.option('-x', '--extra-params', type = str, help = 'Additional spades parameters, in quotes')
-@click.option('-m', '--max-memory',  type = click.IntRange(min = 1000, max_open = True), show_default = True, default = 250000, help = 'Maximum memory for spades to use, in megabytes')
-@click.option('-a', '--metassembly',  type = click.Choice(["cloudspades", "spades"]), help = 'Perform a metagenome assembly [`spades`, `cloudspades`]')
 @click.option('-k', '--kmer-length', type = KParam(), show_default = True, default = "auto", help = 'K values to use for assembly (`odd` and `<128`)')
+@click.option('-r', '--max-memory',  type = click.IntRange(min = 1000, max_open = True), show_default = True, default = 10000, help = 'Maximum memory for spades to use, in megabytes')
+@click.option('--metassembly',  type = click.Choice(["cloudspades", "spades"]), help = 'Perform a metagenome assembly [`spades`, `cloudspades`]')
+@click.option('-z', '--spades-extra', type = str, help = 'Additional spades parameters, in quotes')
+# TIGMINT/ARCS/LINKS
+@click.option('-y', '--arcs-extra', type = str, help = 'Additional ARCS parameters, in quotes')
+@click.option("-c","--contig-length", type = int, default = 500, show_default = True, help = "Minimum contig length")
+@click.option("-x", "--links", type = int, default = 5, show_default = True, help = "Minimum number of links to compute scaffold")
+@click.option("-a", "--min-aligned", type = int, default = 5, show_default = True, help = "Minimum aligned read pairs per barcode")
+@click.option("-q", "--min-quality", type = click.IntRange(0,40), default = 0, show_default = True, help = "Minimum mapping quality")
+@click.option("-m", "--mismatch", type = int, default = 5, show_default = True, help = "Maximum number of mismatches")
+@click.option("-d", "--molecule-distance", type = int, default = 50000, show_default = True, help = "Distance cutoff to split molecules (bp)")
+@click.option("-l", "--molecule-length", type = int, default = 2000, show_default = True, help = "Minimum molecule length (bp)")
+@click.option("-i", "--seq-identity", type = click.IntRange(0,100), default = 98, show_default = True, help = "Minimum sequence identity") 
+@click.option("-s", "--span", type = int, default = 20, show_default = True, help = "Minimum number of spanning molecules to be considered assembled")
+# Common Workflow
 @click.option('-o', '--output-dir', type = click.Path(exists = False), default = "Assembly", show_default=True,  help = 'Output directory name')
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(min = 1, max_open = True), help = 'Number of threads to use')
 @click.option('--setup-only',  is_flag = True, hidden = True, default = False, help = 'Setup the workflow and exit')
@@ -38,13 +55,13 @@ docstring = {
 @click.option('--snakemake',  type = str, help = 'Additional Snakemake parameters, in quotes')
 @click.argument('fastq_r1', required=True, type=click.Path(exists=True, readable=True), nargs=1)
 @click.argument('fastq_r2', required=True, type=click.Path(exists=True, readable=True), nargs=1)
-def assembly(fastq_r1, fastq_r2, bx_tag, kmer_length, max_memory, metassembly, output_dir, extra_params, threads, snakemake, skip_reports, quiet, hpc, setup_only):
+def assembly(fastq_r1, fastq_r2, bx_tag, kmer_length, max_memory, metassembly, output_dir, spades_extra,arcs_extra,contig_length,links,min_quality,min_aligned,mismatch,molecule_distance,molecule_length,seq_identity,span,threads, snakemake, skip_reports, quiet, hpc, setup_only):
     """
-    Perform an assembly on linked-read sequences
+    Assemble linked-read sequences
 
     The linked-read barcodes must be in either a `BX:Z` or `BC:Z` FASTQ header tag, specified with `--bx-tag`.
-    If specifying `K` values, they must be separated by commas and without spaces (e.g. `-k 15,23,51`). Single-sample
-    assembly uses `cloudspades`, however you can use `--metassembly` to perform a metagenome assembly:
+    If provided, values for `-k` must be separated by commas and without spaces (e.g. `-k 15,23,51`). Use `--metassembly`
+    to perform a metagenome assembly (ignores scaffolding parameters):
     - `spades` uses the current version of spades for the initial metagenome assembly, which isn't barcode-aware
     - `cloudspades` is a barcode-aware variant of spades, but has less development
     """
@@ -79,8 +96,23 @@ def assembly(fastq_r1, fastq_r2, bx_tag, kmer_length, max_memory, metassembly, o
             config.write(f"    k: auto\n")
         else:
             config.write(f"    k: " + ",".join(map(str,kmer_length)) + "\n")
-        if extra_params:
-            config.write(f"    extra: {extra_params}\n")
+        if spades_extra:
+            config.write(f"    extra: {spades_extra}\n")
+        if metassembly is "None":
+            config.write("tigmint:\n")
+            config.write(f"    minimum_mapping_quality: {min_quality}\n")
+            config.write(f"    mismatch: {mismatch}\n")
+            config.write(f"    molecule_distance: {molecule_distance}\n")
+            config.write(f"    molecule_length: {molecule_length}\n")
+            config.write(f"    span: {span}\n")
+            config.write("arcs:\n")
+            config.write(f"    minimum_aligned_reads: {min_aligned}\n")
+            config.write(f"    minimum_contig_length: {contig_length}\n")
+            config.write(f"    minimum_sequence_identity: {seq_identity}\n")
+            if arcs_extra:
+                config.write(f"    extra: {arcs_extra}\n")
+            config.write("links:\n")
+            config.write(f"    minimum_links: {links}\n")
         config.write(f"skip_reports: {skip_reports}\n")
         config.write(f"workflow_call: {command}\n")
         config.write("inputs:\n")

@@ -15,7 +15,6 @@ envdir = os.getcwd() + "/.harpy_envs"
 max_mem = config["spades"]["max_memory"]
 k_param = config["spades"]["k"]
 extra = config["spades"].get("extra", "") 
-genosize = config["arcs"]["genome_size"]
 
 rule cloudspades:
     input:
