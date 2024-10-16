@@ -147,7 +147,7 @@ rule align_ema:
     params: 
         bxtype = f"-p {platform}",
         tmpdir = lambda wc: outdir + "/." + d[wc.sample],
-        quality = config["quality"],
+        quality = config["alignment_quality"],
         unmapped = "" if keep_unmapped else "-F 4",
         extra = extra
     threads:
@@ -347,13 +347,13 @@ Barcoded sequences were binned with EMA using:
     seqtk mergepe forward.fq.gz reverse.fq.gz | ema preproc {{params.beadtech}} -n {nbins}
 
 Barcoded bins were aligned with ema align using:
-    ema align " + extra + " -d -p " + platform + " -R \"@RG\\tID:SAMPLE\\tSM:SAMPLE\" |
-    samtools view -h {{params.unmapped}} -q " + str(config["quality"]) + " - | 
+    ema align {extra} -d -p {platform} -R \"@RG\\tID:SAMPLE\\tSM:SAMPLE\" |
+    samtools view -h {{params.unmapped}} -q {config["alignment_quality"]} - | 
     samtools sort --reference genome -m 2000M
 
 Invalid/non barcoded sequences were aligned with BWA using:
     bwa mem -C -v2 -R \"@RG\\tID:SAMPLE\\tSM:SAMPLE\" genome forward_reads reverse_reads
-    samtools view -h {{params.unmapped}} -q " + str(config["quality"]) + " - |
+    samtools view -h {{params.unmapped}} -q {config["alignemnt_quality"]} - |
     samtools sort --reference genome -m 2000M
 
 Duplicates in non-barcoded alignments were marked following:
