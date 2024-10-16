@@ -2,6 +2,7 @@
 
 import os
 import sys
+import yaml
 from rich import box
 from rich.table import Table
 import rich_click as click
@@ -73,29 +74,28 @@ def qc(inputs, output_dir, min_length, max_length, trim_adapters, deduplicate, d
     fetch_report(workflowdir, "bx_count.Rmd")
     os.makedirs(f"{output_dir}/logs/snakemake", exist_ok = True)
     sm_log = snakemake_log(output_dir, "qc")
-
+    k,w,d,a = deconvolve
+    configs = {
+        "workflow" : qc,
+        "snakemake_log" : sm_log,
+        "output_directory" : output_dir,
+        "trim_adapters" : trim_adapters,
+        "deduplicate" : deduplicate,
+        "min_len" : min_length,
+        "max_len" : max_length,
+        **({'extra': extra_params} if extra_params else {}),
+        **({'deconvolve': {
+            "kmer_length" : k,
+            "window_size" : w,
+            "density" : d,
+            "dropout" : a
+        }} if sum(deconvolve) > 0 else {}),
+        "skip_reports" : skip_reports,
+        "workflow_call" : command,
+        "inputs" : [i.as_posix() for i in fqlist]
+    }
     with open(f"{workflowdir}/config.yaml", "w", encoding="utf-8") as config:
-        config.write("workflow: qc\n")
-        config.write(f"snakemake_log: {sm_log}\n")
-        config.write(f"output_directory: {output_dir}\n")
-        config.write(f"trim_adapters: {trim_adapters}\n")
-        config.write(f"deduplicate: {deduplicate}\n")
-        if sum(deconvolve) > 0:
-            config.write("deconvolve:\n")
-            k,w,d,a = deconvolve
-            config.write(f"  kmer_length: {k}\n")
-            config.write(f"  window_size: {w}\n")
-            config.write(f"  density: {d}\n")
-            config.write(f"  dropout: {a}\n")
-        config.write(f"min_len: {min_length}\n")
-        config.write(f"max_len: {max_length}\n")
-        if extra_params:
-            config.write(f"extra: {extra_params}\n")
-        config.write(f"skip_reports: {skip_reports}\n")
-        config.write(f"workflow_call: {command}\n")
-        config.write("inputs:\n")
-        for i in fqlist:
-            config.write(f"  - {i}\n")
+        yaml.dump(configs, config, default_flow_style= False, sort_keys=False)
 
     create_conda_recipes()
     if setup_only:

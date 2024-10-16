@@ -2,6 +2,7 @@
 
 import os
 import sys
+import yaml
 from pathlib import Path
 from rich import box
 from rich.table import Table
@@ -109,30 +110,28 @@ def mpileup(inputs, output_dir, regions, genome, threads, populations, ploidy, e
     fetch_report(workflowdir, "bcftools_stats.Rmd")
     os.makedirs(f"{output_dir}/logs/snakemake", exist_ok = True)
     sm_log = snakemake_log(output_dir, "snp_mpileup")
-
+    validate_popfile(populations)
+    # check that samplenames and populations line up
+    validate_popsamples(bamlist, populations, quiet)
+    configs = {
+        "workflow" : "snp mpileup",
+        "snakemake_log" : sm_log,
+        "output_directory" : output_dir,
+        "ploidy" : ploidy,
+        "regiontype" : regtype,
+        **({'windowsize': regions} if regtype is "windows" else {}),
+        **({'extra': extra_params} if extra_params else {}),
+        "skip_reports" : skip_reports,
+        "workflow_call" : command,
+        "inputs" : {
+            "genome" : Path(genome).resolve().as_posix(),
+            "regions" : region,
+            **({'groupings': populations} if populations else {}),
+            "alignments" : [i.as_posix() for i in bamlist]
+        }
+    }
     with open(f"{workflowdir}/config.yaml", "w", encoding="utf-8") as config:
-        config.write("workflow: snp mpileup\n")
-        config.write(f"snakemake_log: {sm_log}\n")
-        config.write(f"output_directory: {output_dir}\n")
-        config.write(f"ploidy: {ploidy}\n")
-        config.write(f"regiontype: {regtype}\n")
-        if regtype == "windows":
-            config.write("windowsize: {regions}\n")
-        if extra_params is not None:
-            config.write(f"extra: {extra_params}\n")
-        config.write(f"skip_reports: {skip_reports}\n")
-        config.write(f"workflow_call: {command}\n")
-        config.write("inputs:\n")
-        config.write(f"  genome: {Path(genome).resolve()}\n")
-        config.write(f"  regions: {region}\n")
-        if populations:
-            validate_popfile(populations)
-            # check that samplenames and populations line up
-            validate_popsamples(bamlist, populations, quiet)
-            config.write(f"  groupings: {populations}\n")
-        config.write("  alignments:\n")
-        for i in bamlist:
-            config.write(f"    - {i}\n")
+        yaml.dump(configs, config, default_flow_style= False, sort_keys=False)
 
     create_conda_recipes()
     if setup_only:
@@ -201,43 +200,35 @@ def freebayes(inputs, output_dir, genome, threads, populations, ploidy, regions,
     # setup regions checks
     regtype = validate_regions(regions, genome)
     if regtype == "windows":
-        region = Path(f"{workflowdir}/positions.bed").resolve()
+        region = Path(f"{workflowdir}/positions.bed").resolve().as_posix()
         os.system(f"make_windows.py -m 0 -i {genome} -o {region} -w {regions}")
     elif regtype == "region":
         region = regions
     else:
-        region = Path(f"{workflowdir}/positions.bed").resolve()
+        region = Path(f"{workflowdir}/positions.bed").resolve().as_posix()
         os.system(f"cp -f {regions} {region}")
 
     fetch_rule(workflowdir, "snp_freebayes.smk")
     fetch_report(workflowdir, "bcftools_stats.Rmd")
     os.makedirs(f"{output_dir}/logs/snakemake", exist_ok = True)
     sm_log = snakemake_log(output_dir, "snp_freebayes")
-
-    with open(f"{workflowdir}/config.yaml", "w", encoding="utf-8") as config:
-        config.write("workflow: snp freebayes\n")
-        config.write(f"snakemake_log: {sm_log}\n")
-        config.write(f"output_directory: {output_dir}\n")
-        config.write(f"ploidy: {ploidy}\n")
-        config.write(f"regiontype: {regtype}\n")
-        if regtype == "windows":
-            config.write("windowsize: {regions}\n")
-        if extra_params is not None:
-            config.write(f"extra: {extra_params}\n")
-        config.write(f"skip_reports: {skip_reports}\n")
-        config.write(f"workflow_call: {command}\n")
-        config.write("inputs:\n")
-        config.write(f"  genome: {Path(genome).resolve()}\n")
-        config.write(f"  regions: {region}\n")
-        if populations is not None:
-            validate_popfile(populations)
-            # check that samplenames and populations line up
-            validate_popsamples(bamlist, populations, quiet)
-            config.write(f"  groupings: {populations}\n")
-        config.write("  alignments:\n")
-        for i in bamlist:
-            config.write(f"    - {i}\n")
-
+    configs = {
+        "workflow" : "snp mpileup",
+        "snakemake_log" : sm_log,
+        "output_directory" : output_dir,
+        "ploidy" : ploidy,
+        "regiontype" : regtype,
+        **({'windowsize': regions} if regtype is "windows" else {}),
+        **({'extra': extra_params} if extra_params else {}),
+        "skip_reports" : skip_reports,
+        "workflow_call" : command,
+        "inputs" : {
+            "genome" : Path(genome).resolve().as_posix(),
+            "regions" : region,
+            **({'groupings': populations} if populations else {}),
+            "alignments" : [i.as_posix() for i in bamlist]
+        }
+    }
     create_conda_recipes()
     if setup_only:
         sys.exit(0)
