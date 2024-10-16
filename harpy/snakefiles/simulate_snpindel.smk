@@ -62,7 +62,7 @@ else:
     variant_params += f" -centromere_gff {centromeres}" if centromeres else ""
     genes = config["inputs"].get("genes", None)
     variant_params += f" -gene_gff {genes}" if genes else ""
-    exclude = config["inputs"].get("exclude_chr", None)
+    exclude = config["inputs"].get("excluded_chromosomes", None)
     variant_params += f" -excluded_chr_list {exclude}" if exclude else ""
     variant_params += f" -seed {randomseed}" if randomseed else ""
 

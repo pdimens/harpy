@@ -13,11 +13,11 @@ onerror:
 
 outdir = config["output_directory"]
 envdir = os.getcwd() + "/.harpy_envs"
-variant = config["variant_type"]
+variant = config["workflow"].split()[1]
 outprefix = config["prefix"]
 genome = config["inputs"]["genome"]
-vcf = config["inputs"].get("vcf", None)
-heterozygosity = float(config["heterozygosity"]["value"])
+vcf = config[variant].get("vcf", None)
+heterozygosity = float(config["heterozygosity"]["ratio"])
 only_vcf = config["heterozygosity"]["only_vcf"]
 randomseed = config.get("random_seed", None)
 
@@ -27,29 +27,29 @@ if vcf:
     variant_params = f"-{variant}_vcf {vcf_correct}"
 
 else:
-    variant_params = f"-{variant}_count " + str(config["count"])
-    centromeres = config.get("centromeres", None)
+    variant_params = f"-{variant}_count " + str(config[variant]["count"])
+    centromeres = config["inputs"].get("centromeres", None)
     variant_params += f" -centromere_gff {centromeres}" if centromeres else ""
     genes = config["inputs"].get("genes", None)
     variant_params += f" -gene_gff {genes}" if genes else ""
-    exclude = config["inputs"].get("exclude_chr", None)
+    exclude = config["inputs"].get("excluded_chromosomes", None)
     variant_params += f" -excluded_chr_list {exclude}" if exclude else ""
     variant_params += f" -seed {randomseed}" if randomseed else ""
     if variant == "inversion":
-        min_size = config.get("min_size", None)
+        min_size = config[variant].get("min_size", None)
         variant_params += f" -{variant}_min_size {min_size}" if min_size else ""
-        max_size = config.get("max_size", None)
+        max_size = config[variant].get("max_size", None)
         variant_params += f" -{variant}_max_size {max_size}" if max_size else ""
     if variant == "cnv":
-        min_size = config.get("min_size", None)
+        min_size = config[variant].get("min_size", None)
         variant_params += f" -{variant}_min_size {min_size}" if min_size else ""
-        max_size = config.get("max_size", None)
+        max_size = config[variant].get("max_size", None)
         variant_params += f" -{variant}_max_size {max_size}" if max_size else ""
-        ratio   = config.get("ratio", None)
+        ratio   = config[variant].get("duplication_ratio", None)
         variant_params += f" -duplication_tandem_dispersed_ratio {ratio}" if ratio else ""
-        cnv_copy = config.get("cnv_max_copy", None)
+        cnv_copy = config[variant].get("max_copy", None)
         variant_params += f" --cnv_max_copy_number {cnv_copy}" if cnv_copy else ""
-        cnv_ratio =config.get("cnv_ratio", None)
+        cnv_ratio =config[variant].get("gain_ratio", None)
         variant_params += f" --cnv_gain_loss_ratio {cnv_ratio}" if cnv_ratio else ""
 
 if vcf:

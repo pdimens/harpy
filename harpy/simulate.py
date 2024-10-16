@@ -309,24 +309,24 @@ def snpindel(genome, snp_vcf, indel_vcf, only_vcf, output_dir, prefix, snp_count
             "only_vcf" : only_vcf,
         },
         "snp" : {
-            **({"vcf" : snp_vcf} if snp_vcf else {})
+            **({"vcf" : Path(snp_vcf).resolve().as_posix()} if snp_vcf else {}),
             **({'count': snp_count} if snp_count and not snp_vcf else {}),
             **({"gene_constraints":  snp_gene_constraints} if snp_gene_constraints and not snp_vcf else {}),
             **({"titv_ratio" : titv_ratio} if titv_ratio and not snp_vcf else {})
         },
         "indel" : {
-            **({"vcf" : indel_vcf} if indel_vcf else {})
-            **({"count" : indel_count} if indel_count and not indel_vcf else {})
-            **({"indel_ratio" : indel_ratio} if indel_ratio and not indel_vcf else {})
-            **({"size_alpha" : indel_size_alpha} if indel_size_alpha and not indel_vcf else {})
+            **({"vcf" : Path(indel_vcf).resolve().as_posix()} if indel_vcf else {}),
+            **({"count" : indel_count} if indel_count and not indel_vcf else {}),
+            **({"indel_ratio" : indel_ratio} if indel_ratio and not indel_vcf else {}),
+            **({"size_alpha" : indel_size_alpha} if indel_size_alpha and not indel_vcf else {}),
             **({"size_constant" : indel_size_constant} if indel_size_constant and not indel_vcf else {})
         },
         "workflow_call" : command,
         "inputs" : {
             "genome" : Path(genome).resolve().as_posix(),
-            **({"centromeres" : Path(centromeres).resolve().as_posix()} if centromeres else {})
-            **({"genes" : Path(genes).resolve().as_posix()} if genes else {})
-            **({"exclude_chr" : Path(exclude_chr).resolve().as_posix()} if exclude_chr else {})
+            **({"centromeres" : Path(centromeres).resolve().as_posix()} if centromeres else {}),
+            **({"genes" : Path(genes).resolve().as_posix()} if genes else {}),
+            **({"excluded_chromosomes" : Path(exclude_chr).resolve().as_posix()} if exclude_chr else {})
         }
     }
     with open(f"{workflowdir}/config.yaml", "w", encoding="utf-8") as config:
@@ -413,32 +413,33 @@ def inversion(genome, vcf, only_vcf, prefix, output_dir, count, min_size, max_si
     fetch_script(workflowdir, "simuG.pl")
     os.makedirs(f"{output_dir}/logs/snakemake", exist_ok = True)
     sm_log = snakemake_log(output_dir, "simulate_inversion")
-
-    # setup the config file depending on inputs
+    configs = {
+        "workflow" : "simulate inversion",
+        "snakemake_log" : sm_log,
+        "output_directory" : output_dir,
+        "prefix" : prefix,
+        **({"random_seed" : randomseed} if randomseed else {}),
+        "heterozygosity" : {
+            "ratio" : heterozygosity,
+            "only_vcf" : only_vcf,
+        },
+        "inversion" : {
+            **({"vcf" : Path(vcf).resolve().as_posix()} if vcf else {}),
+            **({'count': count} if count and not vcf else {}),
+            **({"min_size":  min_size} if min_size and not vcf else {}),
+            **({"max_size" : max_size} if max_size and not vcf else {})
+        },
+        "workflow_call" : command,
+        "inputs" : {
+            "genome" : Path(genome).resolve().as_posix(),
+            **({"centromeres" : Path(centromeres).resolve().as_posix()} if centromeres else {}),
+            **({"genes" : Path(genes).resolve().as_posix()} if genes else {}),
+            **({"excluded_chromosomes" : Path(exclude_chr).resolve().as_posix()} if exclude_chr else {})
+        }
+    }
     with open(f"{workflowdir}/config.yaml", "w", encoding="utf-8") as config:
-        config.write("workflow: simulate inversion\n")
-        config.write(f"snakemake_log: {sm_log}\n")
-        config.write(f"output_directory: {output_dir}\n")
-        config.write("variant_type: inversion\n")
-        config.write(f"prefix: {prefix}\n")
-        config.write("heterozygosity:\n")
-        config.write(f"  value: {heterozygosity}\n")
-        config.write(f"  only_vcf: {only_vcf}\n")
-        config.write(f"random_seed: {randomseed}\n") if randomseed else None
-        if not vcf:
-            config.write(f"count: {count}\n")
-            config.write(f"min_size: {min_size}\n") if min_size else None
-            config.write(f"max_size: {max_size}\n") if max_size else None
-        config.write(f"workflow_call: {command}\n")
-        config.write("inputs:\n")
-        config.write(f"  genome: {Path(genome).resolve()}\n")
-        if vcf:
-            config.write(f"  vcf: {Path(vcf).resolve()}\n")
-        else:
-            config.write(f"  centromeres: {Path(centromeres).resolve()}\n") if centromeres else None
-            config.write(f"  genes: {Path(genes).resolve()}\n") if genes else None
-            config.write(f"  exclude_chr: {Path(exclude_chr).resolve()}\n") if exclude_chr else None
-    
+        yaml.dump(configs, config, default_flow_style= False, sort_keys=False)
+
     create_conda_recipes()
     if setup_only:
         sys.exit(0)
@@ -530,35 +531,36 @@ def cnv(genome, output_dir, vcf, only_vcf, prefix, count, min_size, max_size, du
     fetch_script(workflowdir, "simuG.pl")
     os.makedirs(f"{output_dir}/logs/snakemake", exist_ok = True)
     sm_log = snakemake_log(output_dir, "simulate_cnv")
-
-    # setup the config file depending on inputs
+    configs = {
+        "workflow" : "simulate cnv",
+        "snakemake_log" : sm_log,
+        "output_directory" : output_dir,
+        "prefix" : prefix,
+        **({"random_seed" : randomseed} if randomseed else {}),
+        "heterozygosity" : {
+            "ratio" : heterozygosity,
+            "only_vcf" : only_vcf,
+        },
+        "cnv" : {
+            **({"vcf" : Path(vcf).resolve().as_posix()} if vcf else {}),
+            **({'count': count} if count and not vcf else {}),
+            **({"min_size":  min_size} if min_size and not vcf else {}),
+            **({"max_size" : max_size} if max_size and not vcf else {}),
+            **({"duplication_ratio" : dup_ratio} if dup_ratio and not vcf else {}),
+            **({"max_copy" : max_copy} if max_copy and not vcf else {}),
+            **({"gain_ratio" : gain_ratio} if gain_ratio and not vcf else {})
+        },
+        "workflow_call" : command,
+        "inputs" : {
+            "genome" : Path(genome).resolve().as_posix(),
+            **({"centromeres" : Path(centromeres).resolve().as_posix()} if centromeres else {})
+            **({"genes" : Path(genes).resolve().as_posix()} if genes else {})
+            **({"excluded_chromosomes" : Path(exclude_chr).resolve().as_posix()} if exclude_chr else {})
+        }
+    }
     with open(f"{workflowdir}/config.yaml", "w", encoding="utf-8") as config:
-        config.write("workflow: simulate cnv\n")
-        config.write(f"snakemake_log: {sm_log}\n")
-        config.write(f"output_directory: {output_dir}\n")
-        config.write("variant_type: cnv\n")
-        config.write(f"prefix: {prefix}\n")
-        config.write(f"random_seed: {randomseed}\n") if randomseed else None
-        config.write("heterozygosity:\n")
-        config.write(f"  value: {heterozygosity}\n")
-        config.write(f"  only_vcf: {only_vcf}\n")
-        if not vcf:
-            config.write(f"count: {count}\n")
-            config.write(f"min_size: {min_size}\n") if min_size else None
-            config.write(f"max_size: {max_size}\n") if max_size else None
-            config.write(f"dup_ratio: {dup_ratio}\n") if dup_ratio else None
-            config.write(f"cnv_max_copy: {max_copy}\n") if max_copy else None
-            config.write(f"gain_ratio: {gain_ratio}\n") if gain_ratio else None
-        config.write(f"workflow_call: {command}\n")
-        config.write("inputs:\n")
-        config.write(f"  genome: {Path(genome).resolve()}\n")
-        if vcf:
-            config.write(f"  vcf: {Path(vcf).resolve()}\n")
-        else:
-            config.write(f"  centromeres: {Path(centromeres).resolve()}\n") if centromeres else None
-            config.write(f"  genes: {Path(genes).resolve()}\n") if genes else None
-            config.write(f"  exclude_chr: {Path(exclude_chr).resolve()}\n") if exclude_chr else None
-    
+        yaml.dump(configs, config, default_flow_style= False, sort_keys=False)
+
     create_conda_recipes()
     if setup_only:
         sys.exit(0)
@@ -637,30 +639,32 @@ def translocation(genome, output_dir, prefix, vcf, only_vcf, count, centromeres,
     fetch_script(workflowdir, "simuG.pl")
     os.makedirs(f"{output_dir}/logs/snakemake", exist_ok = True)
     sm_log = snakemake_log(output_dir, "simulate_translocation")
-
+    configs = {
+        "workflow" : "simulate translocation",
+        "snakemake_log" : sm_log,
+        "output_directory" : output_dir,
+        "prefix" : prefix,
+        **({"random_seed" : randomseed} if randomseed else {}),
+        "heterozygosity" : {
+            "ratio" : heterozygosity,
+            "only_vcf" : only_vcf,
+        },
+        "translocation" : {
+            **({"vcf" : Path(vcf).resolve().as_posix()} if vcf else {}),
+            **({'count': count} if count and not vcf else {}),
+        },
+        "workflow_call" : command,
+        "inputs" : {
+            "genome" : Path(genome).resolve().as_posix(),
+            **({"centromeres" : Path(centromeres).resolve().as_posix()} if centromeres else {})
+            **({"genes" : Path(genes).resolve().as_posix()} if genes else {})
+            **({"excluded_chromosomes" : Path(exclude_chr).resolve().as_posix()} if exclude_chr else {})
+        }
+    }
     # setup the config file depending on inputs
     with open(f"{workflowdir}/config.yaml", "w", encoding="utf-8") as config:
-        config.write("workflow: simulate translocation\n")
-        config.write(f"snakemake_log: {sm_log}\n")
-        config.write(f"output_directory: {output_dir}\n")
-        config.write("variant_type: translocation\n")
-        config.write(f"prefix: {prefix}\n")
-        config.write(f"random_seed: {randomseed}\n") if randomseed else None
-        if not vcf:
-            config.write(f"count: {count}\n")
-        config.write("heterozygosity:\n")
-        config.write(f"  value: {heterozygosity}\n")
-        config.write(f"  only_vcf: {only_vcf}\n")
-        config.write(f"workflow_call: {command}\n")
-        config.write("inputs:\n")
-        config.write(f"  genome: {Path(genome).resolve()}\n")
-        if vcf:
-            config.write(f"  vcf: {Path(vcf).resolve()}\n")
-        else:
-            config.write(f"  centromeres: {Path(centromeres).resolve()}\n") if centromeres else None
-            config.write(f"  genes: {Path(genes).resolve()}\n") if genes else None
-            config.write(f"  exclude_chr: {Path(exclude_chr).resolve()}\n") if exclude_chr else None
-    
+        yaml.dump(configs, config, default_flow_style= False, sort_keys=False)
+
     create_conda_recipes()
     if setup_only:
         sys.exit(0)
