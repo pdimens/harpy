@@ -14,9 +14,9 @@ onerror:
 outdir = config["output_directory"]
 genome = config["inputs"]["genome"]
 envdir = os.getcwd() + "/.harpy_envs"
-snp_vcf = config["inputs"].get("snp_vcf", None)
-indel_vcf = config["inputs"].get("indel_vcf", None)
-heterozygosity = float(config["heterozygosity"]["value"])
+snp_vcf = config["snp"].get("vcf", None)
+indel_vcf = config["indel"].get("vcf", None)
+heterozygosity = float(config["heterozygosity"]["ratio"])
 only_vcf = config["heterozygosity"]["only_vcf"]
 outprefix = config["prefix"]
 randomseed = config.get("random_seed", None)
@@ -37,22 +37,26 @@ if snp_vcf or indel_vcf:
         variant_params += f" -indel_vcf {indel_vcf_correct}"
         in_vcfs.append(indel_vcf_correct)
 else:
-    snp_count = config.get("snp_count", None)
-    indel_count =  config.get("indel_count", None)
+    snp_count = config["snp"].get("count", None)
+    indel_count =  config["indel"].get("count", None)
     variant_params = ""
     if snp_count:
         snp = True
         variant_params += f" -snp_count {snp_count}"
-        snp_constraint = config.get("snp_gene_constraints", None)
+        snp_constraint = config["snp"].get("gene_constraints", None)
         variant_params += f" -coding_partition_for_snp_simulation {snp_constraint}" if snp_constraint else ""
-        ratio = config.get("titv_ratio", None)
+        ratio = config["snp"].get("titv_ratio", None)
         variant_params += f" -titv_ratio {ratio}" if ratio else ""
-
+#TODO CHECK SIZE ALPHA AND CONSTANT OPTION NAMES
     if indel_count:
         indel = True
         variant_params += f" -indel_count {indel_count}"
-        ratio = config.get("indel_ratio", None)
+        ratio = config["indel"].get("indel_ratio", None)
         variant_params += f" -ins_del_ratio {ratio}" if ratio else ""
+        size_alpha = config["indel"].get("size_alpha", None)
+        variant_params += f" -indel_size_alpha {size_alpha}" if size_alpha else ""        
+        size_constant = config["indel"].get("size_constant", None)
+        variant_params += f" -indel_size_constant {size_constant}" if size_constant else ""        
 
     centromeres = config["inputs"].get("centromeres", None)
     variant_params += f" -centromere_gff {centromeres}" if centromeres else ""
