@@ -14,13 +14,7 @@ outdir = config["output_directory"]
 envdir = os.getcwd() + "/.harpy_envs"
 max_mem = config["spades"]["max_memory"]
 k_param = config["spades"]["k"]
-metassembly = config["spades"]["assembler"]
-extra = config["spades"].get("extra", "")
-cloudspades = True metassembly == "cloudspades" else False
-if cloudspades == "cloudspades":
-    spadesdir = f"{outdir}/cloudspades_assembly"
-else
-    spadesdir = f"{outdir}/spades_assembly"
+extra = config["spades"].get("extra", "") 
 
 rule sort_by_barcode:
     input:
@@ -72,43 +66,20 @@ rule error_correction:
     shell:
         "metaspades.py -t {threads} -m {params.mem} -k {params.k} {params.extra} -1 {input.FQ_R1} -2 {input.FQ_R2} -o {params.outdir} --only-error-correction > {log}"
 
-rule cloudspades_assembly:
-    input:
-        FQ_R1 = FQ1,
-        FQ_R2 = FQ2
-    output:
-        f"{outdir}/cloudspades_assembly/contigs.fasta",
-        f"{outdir}/cloudspades_assembly/scaffolds.fasta"
-    params:
-        outdir = outdir,
-        k = k_param,
-        mem = max_mem // 1000,
-        extra = extra
-    log:
-        outdir + "/logs/assembly.log"
-    conda:
-        f"{envdir}/cloudspades.yaml"
-    threads:
-        workflow.cores
-    resources:
-        mem_mb=max_mem
-    shell:
-        "spades.py --meta -t {threads} -m {params.mem} -k {params.k} {params.extra} --gemcode1-1 {input.FQ_R1} --gemcode1-2 {input.FQ_R2} -o {params.outdir} > {log}"
-
 rule spades_assembly:
     input:
         FQ_R1C = outdir + "/error_correction/corrected/input.R1.fq00.0_0.cor.fastq.gz",
         FQ_R2C = outdir + "/error_correction/corrected/input.R2.fq00.0_0.cor.fastq.gz",
         FQ_UNC = outdir + "/error_correction/corrected/input.R_unpaired00.0_0.cor.fastq.gz"
     output:
-        f"{outdir}/spades_assembly/contigs.fasta" 
+        f"{outdir}/metaspades_assembly/contigs.fasta" 
     params:
-        outdir = outdir + "/spades_assembly",
+        outdir = outdir + "/metaspades_assembly",
         k = k_param,
         mem = max_mem // 1000,
         extra = extra
     log:
-        outdir + "/logs/spades_assembly.log"
+        outdir + "/logs/metaspades_assembly.log"
     conda:
         f"{envdir}/assembly.yaml"
     threads:
@@ -120,9 +91,9 @@ rule spades_assembly:
 
 rule bwa_index:
     input:
-        f"{spadesdir}/contigs.fasta"
+        f"{outdir}/metaspades_assembly/contigs.fasta" 
     output:
-        multiext(f"{spadesdir}/contigs.fasta.", "ann", "bwt", "pac", "sa", "amb") 
+        multiext(f"{outdir}/metaspades_assembly/contigs.fasta.", "ann", "bwt", "pac", "sa", "amb") 
     log:
         f"{outdir}/logs/bwa.index.log"
     conda:
@@ -132,11 +103,11 @@ rule bwa_index:
 
 rule bwa_align:
     input:
-        multiext(f"{spadesdir}/contigs.fasta.", "ann", "bwt", "pac", "sa", "amb"),
+        multiext(f"{outdir}/metaspades_assembly/contigs.fasta.", "ann", "bwt", "pac", "sa", "amb"),
         fastq   = collect(outdir + "/fastq_preproc/input.R{X}.fq.gz", X = [1,2]),
-        contigs = f"{spadesdir}/contigs.fasta"
+        contigs = f"{outdir}/metaspades_assembly/contigs.fasta"
     output:
-        f"{outdir}/reads-to-spades.bam"
+        f"{outdir}/reads-to-metaspades.bam"
     log:
         bwa = f"{outdir}/logs/align.bwa.log",
         samsort = f"{outdir}/logs/sort.alignments.log"
@@ -149,9 +120,9 @@ rule bwa_align:
 
 rule index_alignment:
     input:
-        f"{outdir}/reads-to-spades.bam"
+        f"{outdir}/reads-to-metaspades.bam"
     output:
-       f"{outdir}/reads-to-spades.bam.bai"
+       f"{outdir}/reads-to-metaspades.bam.bai"
     log:
         f"{outdir}/logs/index.alignments.log"
     shell:
@@ -167,10 +138,10 @@ rule interleave_fastq:
 
 rule athena_config:
     input:
-        f"{outdir}/reads-to-spades.bam.bai",
+        f"{outdir}/reads-to-metaspades.bam.bai",
         fastq = f"{outdir}/fastq_preproc/interleaved.fq",
-        bam = f"{outdir}/reads-to-spades.bam",
-        contigs = f"{spadesdir}/contigs.fasta"
+        bam = f"{outdir}/reads-to-metaspades.bam",
+        contigs = f"{outdir}/metaspades_assembly/contigs.fasta"
     output:
         f"{outdir}/athena/athena.config"
     params:
@@ -193,9 +164,9 @@ rule athena_config:
 
 rule athena:
     input:
-        multiext(f"{outdir}/reads-to-spades.", "bam", "bam.bai"),
+        multiext(f"{outdir}/reads-to-metaspades.", "bam", "bam.bai"),
         f"{outdir}/fastq_preproc/interleaved.fq",
-        f"{spadesdir}/contigs.fasta",
+        f"{outdir}/metaspades_assembly/contigs.fasta",
         config = f"{outdir}/athena/athena.config"
     output:
         temp(directory(collect(outdir + "/athena/{X}", X = ["results", "logs", "working"]))),
@@ -225,10 +196,6 @@ rule workflow_summary:
         max_mem = max_mem,
         extra = extra
     run:
-        if cloudspades:
-            spadestext = f"spades.py -t THREADS -m {max_mem} --gemcode1-1 FQ1 --gemcode1-2 FQ2 --meta -k {params.k_param} {params.extra}"
-        else:
-            spadestext = f"metaspades.py -t THREADS -m {max_mem} -k {k_param} {extra} -1 FQ_1 -2 FQ2 -o {spadesdir}"
         summary_template = f"""  
 The harpy metassembly workflow ran using these parameters:  
 
@@ -240,11 +207,13 @@ FASTQ inputs were sorted by their linked-read barcodes:
 Barcoded-sorted FASTQ files had "-1" appended to the barcode to make them Athena-compliant:  
     sed 's/{{params.bx}}:Z:[^[:space:]]*/&-1/g' FASTQ | bgzip > FASTQ_OUT  
 
-Reads were assembled using {metassembly}:
-    {spadestext}
+Reads were assembled using metaspades:  
+    k values: {{params.k_param}}  
+    maximum memory: {{params.max_mem}}  
+    extra parameters: {{params.extra}}  
 
 Original input FASTQ files were aligned to the metagenome using BWA:  
-    bwa mem -C -p spades.contigs FQ1 FQ2 | samtools sort -O bam -  
+    bwa mem -C -p metaspades.contigs FQ1 FQ2 | samtools sort -O bam -  
 
 Barcode-sorted Athena-compliant sequences were interleaved with seqtk:  
     seqtk mergepe FQ1 FQ2 > INTERLEAVED.FQ  
