@@ -298,37 +298,40 @@ def snpindel(genome, snp_vcf, indel_vcf, only_vcf, output_dir, prefix, snp_count
     fetch_script(workflowdir, "simuG.pl")
     os.makedirs(f"{output_dir}/logs/snakemake", exist_ok = True)
     sm_log = snakemake_log(output_dir, "simulate_snpindel")
-
-    # setup the config file depending on inputs
+    configs = {
+        "workflow" : "simulate snpindel",
+        "snakemake_log" : sm_log,
+        "output_directory" : output_dir,
+        "prefix" : prefix,
+        **({"random_seed" : randomseed} if randomseed else {}),
+        "heterozygosity" : {
+            "ratio" : heterozygosity,
+            "only_vcf" : only_vcf,
+        },
+        "snp" : {
+            **({"vcf" : snp_vcf} if snp_vcf else {})
+            **({'count': snp_count} if snp_count and not snp_vcf else {}),
+            **({"gene_constraints":  snp_gene_constraints} if snp_gene_constraints and not snp_vcf else {}),
+            **({"titv_ratio" : titv_ratio} if titv_ratio and not snp_vcf else {})
+        },
+        "indel" : {
+            **({"vcf" : indel_vcf} if indel_vcf else {})
+            **({"count" : indel_count} if indel_count and not indel_vcf else {})
+            **({"indel_ratio" : indel_ratio} if indel_ratio and not indel_vcf else {})
+            **({"size_alpha" : indel_size_alpha} if indel_size_alpha and not indel_vcf else {})
+            **({"size_constant" : indel_size_constant} if indel_size_constant and not indel_vcf else {})
+        },
+        "workflow_call" : command,
+        "inputs" : {
+            "genome" : Path(genome).resolve().as_posix(),
+            **({"centromeres" : Path(centromeres).resolve().as_posix()} if centromeres else {})
+            **({"genes" : Path(genes).resolve().as_posix()} if genes else {})
+            **({"exclude_chr" : Path(exclude_chr).resolve().as_posix()} if exclude_chr else {})
+        }
+    }
     with open(f"{workflowdir}/config.yaml", "w", encoding="utf-8") as config:
-        config.write("workflow: simulate snpindel\n")
-        config.write(f"snakemake_log: {sm_log}\n")
-        config.write(f"output_directory: {output_dir}\n")
-        config.write(f"prefix: {prefix}\n")
-        config.write("heterozygosity:\n")
-        config.write(f"  value: {heterozygosity}\n")
-        config.write(f"  only_vcf: {only_vcf}\n")
-        if not snp_vcf:
-            config.write(f"snp_count: {snp_count}\n") if snp_count else None
-            config.write(f"snp_gene_constraints: {snp_gene_constraints}\n") if snp_gene_constraints else None
-            config.write(f"titv_ratio: {titv_ratio}\n") if titv_ratio else None
-        if not indel_vcf:
-            config.write(f"indel_count: {indel_count}\n") if indel_count else None
-            config.write(f"indel_ratio: {indel_ratio}\n") if indel_ratio else None
-            config.write(f"indel_size_alpha: {indel_size_alpha}\n") if indel_size_alpha else None
-            config.write(f"indel_size_constant: {indel_size_constant}\n") if indel_size_constant else None
-        config.write(f"random_seed: {randomseed}\n") if randomseed else None
-        config.write(f"workflow_call: {command}\n")
-        config.write("inputs:\n")
-        config.write(f"  genome: {Path(genome).resolve()}\n")
-        if snp_vcf:
-            config.write(f"  snp_vcf: {Path(snp_vcf).resolve()}\n")
-        if indel_vcf:
-            config.write(f"  indel_vcf: {Path(indel_vcf).resolve()}\n")
-        config.write(f"  centromeres: {Path(centromeres).resolve()}\n") if centromeres else None
-        config.write(f"  genes: {Path(genes).resolve()}\n") if genes else None
-        config.write(f"  exclude_chr: {Path(exclude_chr).resolve()}\n") if exclude_chr else None
-    
+        yaml.dump(configs, config, default_flow_style= False, sort_keys=False)
+
     create_conda_recipes()
     if setup_only:
         sys.exit(0)
