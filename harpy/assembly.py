@@ -89,7 +89,7 @@ def assembly(fastq_r1, fastq_r2, bx_tag, kmer_length, max_memory, metassembly, o
         config.write(f"output_directory: {output_dir}\n")
         config.write(f"barcode_tag: {bx_tag.upper()}\n")
         config.write("spades:\n")
-        if metassembly is not "None":
+        if metassembly:
             config.write(f"    assembler: {metassembly}\n")
         config.write(f"    max_memory: {max_memory}\n")
         if kmer_length == "auto":
@@ -98,7 +98,7 @@ def assembly(fastq_r1, fastq_r2, bx_tag, kmer_length, max_memory, metassembly, o
             config.write(f"    k: " + ",".join(map(str,kmer_length)) + "\n")
         if spades_extra:
             config.write(f"    extra: {spades_extra}\n")
-        if metassembly is "None":
+        if not metassembly:
             config.write("tigmint:\n")
             config.write(f"    minimum_mapping_quality: {min_quality}\n")
             config.write(f"    mismatch: {mismatch}\n")
