@@ -2,6 +2,7 @@
 
 import os
 import sys
+import yaml
 from pathlib import Path
 from rich import box
 from rich.table import Table
@@ -80,23 +81,23 @@ def impute(inputs, output_dir, parameters, threads, vcf, vcf_samples, extra_para
     fetch_report(workflowdir, "stitch_collate.Rmd")
     os.makedirs(f"{output_dir}/logs/snakemake", exist_ok = True)
     sm_log = snakemake_log(output_dir, "impute")
-
+    configs = {
+        "workflow" : "impute",
+        "snakemake_log" : sm_log,
+        "output_directory" : output_dir,
+        "samples_from_vcf" : vcf_samples,
+        **({'extra': extra_params} if extra_params else {}),
+        "skip_reports" : skip_reports,
+        "workflow_call" : command,
+        "inputs" : {
+            "paramfile" : Path(parameters).resolve().as_posix(),
+            "variantfile" : Path(vcf).resolve().as_posix(),
+            "biallelic_contigs" : Path(biallelic).resolve().as_posix(),
+            "alignments" : [i.as_posix() for i in bamlist]
+        }
+    }
     with open(f"{workflowdir}/config.yaml", "w", encoding="utf-8") as config:
-        config.write("workflow: impute\n")
-        config.write(f"snakemake_log: {sm_log}\n")
-        config.write(f"output_directory: {output_dir}\n")
-        config.write(f"samples_from_vcf: {vcf_samples}\n")
-        if extra_params is not None:
-            config.write(f"extra: {extra_params}\n")
-        config.write(f"skip_reports: {skip_reports}\n")
-        config.write(f"workflow_call: {command}\n")
-        config.write("inputs:\n")
-        config.write(f"  paramfile: {Path(parameters).resolve()}\n")
-        config.write(f"  variantfile: {Path(vcf).resolve()}\n")
-        config.write(f"  biallelic_contigs: {Path(biallelic).resolve()}\n")
-        config.write("  alignments:\n")
-        for i in bamlist:
-            config.write(f"    - {i}\n")
+        yaml.dump(configs, config, default_flow_style= False, sort_keys=False)
     
     create_conda_recipes()
     if setup_only:
