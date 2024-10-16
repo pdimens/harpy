@@ -66,7 +66,7 @@ def fastq(inputs, output_dir, threads, snakemake, quiet, hpc, conda, setup_only)
     command += f"--configfile {workflowdir}/config.yaml "
     if hpc:
         command += f"--workflow-profile {hpc} "
-    if snakemake is not None:
+    if snakemake:
         command += snakemake
 
     os.makedirs(f"{workflowdir}/", exist_ok= True)
@@ -126,7 +126,7 @@ def bam(inputs, output_dir, threads, snakemake, quiet, hpc, conda, setup_only):
     command += f"--configfile {workflowdir}/config.yaml "
     if hpc:
         command += f"--workflow-profile {hpc} "
-    if snakemake is not None:
+    if snakemake:
         command += snakemake
 
     os.makedirs(f"{workflowdir}/", exist_ok= True)

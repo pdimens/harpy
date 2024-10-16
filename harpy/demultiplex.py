@@ -68,7 +68,7 @@ def gen1(r1_fq, r2_fq, i1_fq, i2_fq, output_dir, schema, threads, snakemake, ski
     command += f"--configfile {workflowdir}/config.yaml "
     if hpc:
         command += f"--workflow-profile {hpc} "
-    if snakemake is not None:
+    if snakemake:
         command += snakemake
 
     validate_demuxschema(schema)

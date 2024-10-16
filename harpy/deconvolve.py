@@ -55,7 +55,7 @@ def deconvolve(inputs, output_dir, kmer_length, window_size, density, dropout, t
     command += f"--configfile {workflowdir}/config.yaml "
     if hpc:
         command += f"--workflow-profile {hpc} "
-    if snakemake is not None:
+    if snakemake:
         command += snakemake
 
     os.makedirs(workflowdir, exist_ok=True)

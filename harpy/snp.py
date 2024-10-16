@@ -87,7 +87,7 @@ def mpileup(inputs, output_dir, regions, genome, threads, populations, ploidy, e
     command += f"--configfile {workflowdir}/config.yaml "
     if hpc:
         command += f"--workflow-profile {hpc} "
-    if snakemake is not None:
+    if snakemake:
         command += snakemake
 
     os.makedirs(f"{workflowdir}/", exist_ok= True)
@@ -190,7 +190,7 @@ def freebayes(inputs, output_dir, genome, threads, populations, ploidy, regions,
     command += f"--configfile {workflowdir}/config.yaml "
     if hpc:
         command += f"--workflow-profile {hpc} "
-    if snakemake is not None:
+    if snakemake:
         command += snakemake
 
     os.makedirs(f"{workflowdir}/", exist_ok= True)

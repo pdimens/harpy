@@ -98,7 +98,7 @@ def bwa(inputs, output_dir, genome, depth_window, threads, keep_unmapped, extra_
     command += f"--configfile {workflowdir}/config.yaml "
     if hpc:
         command += f"--workflow-profile {hpc} "
-    if snakemake is not None:
+    if snakemake:
         command += snakemake
 
     os.makedirs(f"{workflowdir}/", exist_ok= True)
@@ -180,7 +180,7 @@ def ema(inputs, output_dir, platform, barcode_list, genome, depth_window, keep_u
     command += f"--configfile {workflowdir}/config.yaml "
     if hpc:
         command += f"--workflow-profile {hpc} "
-    if snakemake is not None:
+    if snakemake:
         command += snakemake
 
     platform = platform.lower()
@@ -279,7 +279,7 @@ def strobe(inputs, output_dir, genome, read_length, keep_unmapped, depth_window,
     command += f"--configfile {workflowdir}/config.yaml "
     if hpc:
         command += f"--workflow-profile {hpc} "
-    if snakemake is not None:
+    if snakemake:
         command += snakemake
 
     os.makedirs(f"{workflowdir}/", exist_ok= True)

@@ -62,7 +62,7 @@ def phase(inputs, output_dir, vcf, threads, molecule_distance, prune_threshold, 
     command += f"--configfile {workflowdir}/config.yaml "
     if hpc:
         command += f"--workflow-profile {hpc} "
-    if snakemake is not None:
+    if snakemake:
         command += snakemake
 
     os.makedirs(f"{workflowdir}/input", exist_ok= True)
@@ -107,7 +107,7 @@ def phase(inputs, output_dir, vcf, threads, molecule_distance, prune_threshold, 
     start_text.add_row("Samples in VCF:", f"{len(samplenames)}")
     start_text.add_row("Alignment Files:", f"{n}")
     start_text.add_row("Phase Indels:", "yes" if genome else "no")
-    if genome is not None:
+    if genome:
         start_text.add_row("Genome:", genome)
     start_text.add_row("Output Folder:", output_dir + "/")
     start_text.add_row("Workflow Log:", sm_log.replace(f"{output_dir}/", "") + "[dim].gz")

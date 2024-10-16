@@ -64,7 +64,7 @@ def impute(inputs, output_dir, parameters, threads, vcf, vcf_samples, extra_para
     command += f"--configfile {workflowdir}/config.yaml "
     if hpc:
         command += f"--workflow-profile {hpc} "
-    if snakemake is not None:
+    if snakemake:
         command += snakemake
 
     os.makedirs(f"{workflowdir}/", exist_ok= True)

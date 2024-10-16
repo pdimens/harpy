@@ -86,16 +86,14 @@ def leviathan(inputs, output_dir, genome, min_sv, min_barcodes, iterations, thre
     command += f"--configfile {workflowdir}/config.yaml "
     if hpc:
         command += f"--workflow-profile {hpc} "
-    if snakemake is not None:
+    if snakemake:
         command += snakemake
 
     os.makedirs(f"{workflowdir}/", exist_ok= True)
     bamlist, n = parse_alignment_inputs(inputs)
     check_fasta(genome, quiet)
     if populations:
-        # check for delimeter and formatting
         validate_popfile(populations)
-        # check that samplenames and populations line up
         validate_popsamples(bamlist, populations,quiet)
         fetch_report(workflowdir, "leviathan_pop.Rmd")
     fetch_report(workflowdir, "leviathan.Rmd")
@@ -174,26 +172,24 @@ def naibr(inputs, output_dir, genome, vcf, min_sv, min_barcodes, min_quality, th
     workflowdir = f"{output_dir}/workflow"
     sdm = "conda" if conda else "conda apptainer"
     vcaller = "naibr" if populations is None else "naibr_pop"
-    vcaller += "_phase" if vcf is not None else ""
+    vcaller += "_phase" if vcf else ""
     command = f'snakemake --rerun-incomplete --show-failed-logs --rerun-triggers input mtime params --nolock --software-deployment-method {sdm} --conda-prefix ./.snakemake/conda --cores {threads} --directory . '
     command += f"--snakefile {workflowdir}/sv_{vcaller}.smk "
     command += f"--configfile {workflowdir}/config.yaml "
     if hpc:
         command += f"--workflow-profile {hpc} "
-    if snakemake is not None:
+    if snakemake:
         command += snakemake
 
     os.makedirs(f"{workflowdir}/", exist_ok= True)
     bamlist, n = parse_alignment_inputs(inputs)
     check_fasta(genome, quiet)
     if populations:
-        # check for delimeter and formatting
         validate_popfile(populations)
-        # check that samplenames and populations line up
         validate_popsamples(bamlist, populations, quiet)
         fetch_report(workflowdir, "naibr_pop.Rmd")
     fetch_report(workflowdir, "naibr.Rmd")
-    if vcf is not None:
+    if vcf:
         check_phase_vcf(vcf)
     fetch_rule(workflowdir, f"sv_{vcaller}.smk")
     os.makedirs(f"{output_dir}/logs/snakemake", exist_ok = True)

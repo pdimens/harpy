@@ -65,7 +65,7 @@ def qc(inputs, output_dir, min_length, max_length, trim_adapters, deduplicate, d
     command += f"--configfile {workflowdir}/config.yaml "
     if hpc:
         command += f"--workflow-profile {hpc} "
-    if snakemake is not None:
+    if snakemake:
         command += snakemake
 
     fqlist, sample_count = parse_fastq_inputs(inputs)

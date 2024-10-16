@@ -53,7 +53,7 @@ def metassembly(fastq_r1, fastq_r2, bx_tag, cloudspades, kmer_length, max_memory
     command += f"--configfile {workflowdir}/config.yaml "
     if hpc:
         command += f"--workflow-profile {hpc} "
-    if snakemake is not None:
+    if snakemake:
         command += snakemake
 
     asm_mode = "single-cell" if single_cell else "metagenome"
