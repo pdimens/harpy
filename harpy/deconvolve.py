@@ -2,6 +2,7 @@
 
 import os
 import sys
+import yaml
 from rich import box
 from rich.table import Table
 import rich_click as click
@@ -62,20 +63,20 @@ def deconvolve(inputs, output_dir, kmer_length, window_size, density, dropout, t
     fetch_rule(workflowdir, "deconvolve.smk")
     os.makedirs(f"{output_dir}/logs/snakemake", exist_ok = True)
     sm_log = snakemake_log(output_dir, "deconvolve")
-
+    configs = {
+        "workflow": "deconvolve",
+        "snakemake_log" : sm_log,
+        "output_directory" : output_dir,
+        "kmer_length" : kmer_length,       
+        "window_size" : window_size,
+        "density" :  density,
+        "dropout" :  dropout,
+        "workflow_call" : command,
+        "inputs": [i.as_posix() for i in fqlist]
+        }
     with open(f"{workflowdir}/config.yaml", "w", encoding="utf-8") as config:
-        config.write("workflow: deconvolve\n")
-        config.write(f"snakemake_log: {sm_log}\n")
-        config.write(f"output_directory: {output_dir}\n")
-        config.write(f"kmer_length: {kmer_length}\n")       
-        config.write(f"window_size: {window_size}\n")
-        config.write(f"density: {density}\n")
-        config.write(f"dropout: {dropout}\n")
-        config.write(f"workflow_call: {command}\n")
-        config.write("inputs:\n")
-        for i in fqlist:
-            config.write(f"  - {i}\n")
-    
+        yaml.dump(configs, config, default_flow_style= False, sort_keys=False)
+
     create_conda_recipes()
     if setup_only:
         sys.exit(0)

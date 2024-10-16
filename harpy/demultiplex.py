@@ -2,6 +2,7 @@
 
 import os
 import sys
+import yaml
 from pathlib import Path
 from rich import box
 from rich.table import Table
@@ -75,20 +76,23 @@ def gen1(r1_fq, r2_fq, i1_fq, i2_fq, output_dir, schema, threads, snakemake, ski
     fetch_rule(workflowdir, "demultiplex_gen1.smk")
     os.makedirs(f"{output_dir}/logs/snakemake", exist_ok = True)
     sm_log = snakemake_log(output_dir, "demultiplex_gen1")
-
+    configs = {
+        "workflow" : "demultiplex gen1",
+        "snakemake_log" : sm_log,
+        "output_directory" : output_dir,
+        "skip_reports" : skip_reports,
+        "workflow_call" : command,
+        "inputs" : {
+            "demultiplex_schema" : Path(schema).resolve().as_posix(),
+            "R1": Path(r1_fq).resolve().as_posix(),
+            "R2": Path(r2_fq).resolve().as_posix(),
+            "I1": Path(i1_fq).resolve().as_posix(),
+            "I2": Path(i2_fq).resolve().as_posix()
+        }
+    }
     with open(f"{workflowdir}/config.yaml", "w", encoding= "utf-8") as config:
-        config.write("workflow: demultiplex gen1\n")
-        config.write(f"snakemake_log: {sm_log}\n")
-        config.write(f"output_directory: {output_dir}\n")
-        config.write(f"skip_reports: {skip_reports}\n")
-        config.write(f"workflow_call: {command}\n")
-        config.write("inputs:\n")
-        config.write(f"  demultiplex_schema: {Path(schema).resolve()}\n")
-        config.write(f"  R1: {Path(r1_fq).resolve()}\n")
-        config.write(f"  R2: {Path(r2_fq).resolve()}\n")
-        config.write(f"  I1: {Path(i1_fq).resolve()}\n")
-        config.write(f"  I2: {Path(i2_fq).resolve()}\n")
-    
+        yaml.dump(configs, config, default_flow_style= False, sort_keys=False)
+
     create_conda_recipes()
     if setup_only:
         sys.exit(0)
