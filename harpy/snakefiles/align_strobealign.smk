@@ -86,7 +86,7 @@ rule align:
     params: 
         samps = lambda wc: d[wc.get("sample")],
         readlen = "" if autolen else f"--use-index -r {readlen}",
-        quality = config["quality"],
+        quality = config["alignment_quality"],
         unmapped_strobe = "" if keep_unmapped else "-U",
         unmapped = "" if keep_unmapped else "-F 4",
         extra = extra
@@ -244,7 +244,7 @@ rule workflow_summary:
         bx_report = outdir + "/reports/barcodes.summary.html" if (not skip_reports or len(samplenames) == 1) else []
     params:
         readlen = readlen,
-        quality = config["quality"],
+        quality = config["alignment_quality"],
         unmapped_strobe = "" if keep_unmapped else "-U",
         unmapped = "" if keep_unmapped else "-F 4",
         extra   = extra
