@@ -2,6 +2,7 @@
 
 import os
 import sys
+import yaml
 from rich import box
 from rich.table import Table
 import rich_click as click
@@ -82,43 +83,48 @@ def assembly(fastq_r1, fastq_r2, bx_tag, kmer_length, max_memory, metassembly, o
     fetch_rule(workflowdir, f"{asm}.smk")
     os.makedirs(f"{output_dir}/logs/snakemake", exist_ok = True)
     sm_log = snakemake_log(output_dir, asm)
+    configs = {
+        "workflow" : asm,
+        "snakemake_log" : sm_log,
+        "output_directory" : output_dir,
+        "barcode_tag" : bx_tag.upper(),
+        "spades" : {
+            **({'assembler': metassembly} if metassembly else {}),
+            "k" : 'auto' if kmer_length is "auto" else ",".join(map(str,kmer_length)),
+            "max_memory" : max_memory,
+            **({'extra': spades_extra} if spades_extra else {})
+        },
+        **({'tigmint': {}} if not metassembly else {}),
+        **({'arcs': {}} if not metassembly else {}),
+        **({'links': {}} if not metassembly else {}),
+        "skip_reports": skip_reports,
+        "workflow_call": command,
+        "inputs": {
+            "fastq_r1": fastq_r1,
+            "fastq_r2": fastq_r2
+        }
+    }
+    if not metassembly:
+        configs["tigmint"] = {
+            "minimum_mapping_quality": min_quality,
+            "mismatch": mismatch,
+            "molecule_distance": molecule_distance,
+            "molecule_length": molecule_length,
+            "span": span
+        }
+        configs["arcs"] = {
+            "minimum_aligned_reads": min_aligned,
+            "minimum_contig_length": contig_length,
+            "minimum_sequence_identity": seq_identity,
+            **({'extra': arcs_extra} if arcs_extra else {})
+        }
+        configs["links"] = {
+            "minimum_links" : links
+        }
 
     with open(f"{workflowdir}/config.yaml", "w", encoding="utf-8") as config:
-        config.write(f"workflow: {asm}\n")
-        config.write(f"snakemake_log: {sm_log}\n")
-        config.write(f"output_directory: {output_dir}\n")
-        config.write(f"barcode_tag: {bx_tag.upper()}\n")
-        config.write("spades:\n")
-        if metassembly:
-            config.write(f"    assembler: {metassembly}\n")
-        config.write(f"    max_memory: {max_memory}\n")
-        if kmer_length == "auto":
-            config.write(f"    k: auto\n")
-        else:
-            config.write(f"    k: " + ",".join(map(str,kmer_length)) + "\n")
-        if spades_extra:
-            config.write(f"    extra: {spades_extra}\n")
-        if not metassembly:
-            config.write("tigmint:\n")
-            config.write(f"    minimum_mapping_quality: {min_quality}\n")
-            config.write(f"    mismatch: {mismatch}\n")
-            config.write(f"    molecule_distance: {molecule_distance}\n")
-            config.write(f"    molecule_length: {molecule_length}\n")
-            config.write(f"    span: {span}\n")
-            config.write("arcs:\n")
-            config.write(f"    minimum_aligned_reads: {min_aligned}\n")
-            config.write(f"    minimum_contig_length: {contig_length}\n")
-            config.write(f"    minimum_sequence_identity: {seq_identity}\n")
-            if arcs_extra:
-                config.write(f"    extra: {arcs_extra}\n")
-            config.write("links:\n")
-            config.write(f"    minimum_links: {links}\n")
-        config.write(f"skip_reports: {skip_reports}\n")
-        config.write(f"workflow_call: {command}\n")
-        config.write("inputs:\n")
-        config.write(f"  fastq_r1: {fastq_r1}\n")
-        config.write(f"  fastq_r2: {fastq_r2}\n")
-
+        yaml.dump(configs, config, default_flow_style= False, sort_keys=False)
+    
     create_conda_recipes()
     if setup_only:
         sys.exit(0)

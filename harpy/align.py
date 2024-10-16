@@ -2,6 +2,7 @@
 
 import os
 import sys
+import yaml
 from time import sleep
 from pathlib import Path
 from rich import box
@@ -108,24 +109,24 @@ def bwa(inputs, output_dir, genome, depth_window, threads, keep_unmapped, extra_
     fetch_report(workflowdir, "align_bxstats.Rmd")
     os.makedirs(f"{output_dir}/logs/snakemake", exist_ok = True)
     sm_log = snakemake_log(output_dir, "align_bwa")
-
+    configs = {
+        "workflow" : "align bwa",
+        "snakemake_log" : sm_log,
+        "output_directory" : output_dir,
+        "alignment_quality" : min_quality,
+        "keep_unmapped" : keep_unmapped,
+        "molecule_distance" : molecule_distance,
+        "depth_windowsize" : depth_window,
+        "skip_reports" : skip_reports,
+        **({'extra': extra_params} if extra_params else {}),
+        "workflow_call" : command,
+        "inputs" : {
+            "genome": Path(genome).resolve().as_posix(),
+            "fastq": [i.as_posix() for i in fqlist]
+        }
+    }
     with open(f"{workflowdir}/config.yaml", "w", encoding="utf-8") as config:
-        config.write("workflow: align bwa\n")
-        config.write(f"snakemake_log: {sm_log}\n")
-        config.write(f"output_directory: {output_dir}\n")
-        config.write(f"alignment_quality: {min_quality}\n")
-        config.write(f"keep_unmapped: {keep_unmapped}\n")
-        config.write(f"molecule_distance: {molecule_distance}\n")
-        config.write(f"depth_windowsize: {depth_window}\n")
-        config.write(f"skip_reports: {skip_reports}\n")
-        if extra_params is not None:
-            config.write(f"extra: {extra_params}\n")
-        config.write(f"workflow_call: {command}\n")
-        config.write("inputs:\n")
-        config.write(f"  genome: {Path(genome).resolve()}\n")
-        config.write("  fastq:\n")
-        for i in fqlist:
-            config.write(f"    - {i}\n")
+        yaml.dump(configs, config, default_flow_style= False, sort_keys=False)
 
     create_conda_recipes()
     if setup_only:
@@ -203,27 +204,27 @@ def ema(inputs, output_dir, platform, barcode_list, genome, depth_window, keep_u
     fetch_report(workflowdir, "align_bxstats.Rmd")
     os.makedirs(f"{output_dir}/logs/snakemake", exist_ok = True)
     sm_log = snakemake_log(output_dir, "align_ema")
+    configs = {
+        "workflow" : "align ema",
+        "snakemake_log" : sm_log,
+        "output_directory" : output_dir,
+        "alignment_quality" : min_quality,
+        "keep_unmapped" : keep_unmapped,
+        "depth_windowsize" : depth_window,
+        "platform" : platform,
+        "EMA_bins" : ema_bins,
+        "skip_reports" : skip_reports,
+        **({'extra': extra_params} if extra_params else {}),
+        "workflow_call" : command,
+        "inputs" : {
+            "genome": Path(genome).resolve().as_posix(),
+            **({'barcode_list': Path(barcode_list).resolve().as_posix()} if barcode_list else {}),
+            "fastq": [i.as_posix() for i in fqlist]
+        }
+    }
 
     with open(f"{workflowdir}/config.yaml", "w", encoding="utf-8") as config:
-        config.write("workflow: align ema\n")
-        config.write(f"snakemake_log: {sm_log}\n")
-        config.write(f"output_directory: {output_dir}\n")
-        config.write(f"quality: {min_quality}\n")
-        config.write(f"keep_unmapped: {keep_unmapped}\n")
-        config.write(f"platform: {platform}\n")
-        config.write(f"EMA_bins: {ema_bins}\n")
-        config.write(f"depth_windowsize: {depth_window}\n")
-        config.write(f"skip_reports: {skip_reports}\n")
-        if extra_params is not None:
-            config.write(f"extra: {extra_params}\n")
-        config.write(f"workflow_call: {command}\n")
-        config.write("inputs:\n")
-        config.write(f"  genome: {Path(genome).resolve()}\n")
-        if barcode_list:
-            config.write(f"  barcode_list: {Path(barcode_list).resolve()}\n")
-        config.write("  fastq:\n")
-        for i in fqlist:
-            config.write(f"    - {i}\n")
+        yaml.dump(configs, config, default_flow_style= False, sort_keys=False)
 
     create_conda_recipes()
     if setup_only:
@@ -289,26 +290,25 @@ def strobe(inputs, output_dir, genome, read_length, keep_unmapped, depth_window,
     fetch_report(workflowdir, "align_bxstats.Rmd")
     os.makedirs(f"{output_dir}/logs/snakemake", exist_ok = True)
     sm_log = snakemake_log(output_dir, "align_strobe")
-
+    configs = {
+        "workflow" : "align strobe",
+        "snakemake_log" : sm_log,
+        "output_directory" : output_dir,
+        "alignment_quality" : min_quality,
+        "keep_unmapped" : keep_unmapped,
+        "molecule_distance" : molecule_distance,
+        "average_read_length": read_length,
+        "depth_windowsize" : depth_window,
+        "skip_reports" : skip_reports,
+        **({'extra': extra_params} if extra_params else {}),
+        "workflow_call" : command,
+        "inputs" : {
+            "genome": Path(genome).resolve().as_posix(),
+            "fastq": [i.as_posix() for i in fqlist]
+        }
+    }
     with open(f"{workflowdir}/config.yaml", "w", encoding="utf-8") as config:
-        config.write("workflow: align strobe\n")
-        config.write(f"snakemake_log: {sm_log}\n")
-        config.write(f"genomefile: {genome}\n")
-        config.write(f"keep_unmapped: {keep_unmapped}\n")
-        config.write(f"output_directory: {output_dir}\n")
-        config.write(f"quality: {min_quality}\n")
-        config.write(f"molecule_distance: {molecule_distance}\n")
-        config.write(f"average_read_length: {read_length}\n")
-        config.write(f"depth_windowsize: {depth_window}\n")
-        config.write(f"skip_reports: {skip_reports}\n")
-        if extra_params is not None:
-            config.write(f"extra: {extra_params}\n")
-        config.write(f"workflow_call: {command}\n")
-        config.write("inputs:\n")
-        config.write(f"  genome: {Path(genome).resolve()}\n")
-        config.write("  fastq:\n")
-        for i in fqlist:
-            config.write(f"    - {i}\n")
+        yaml.dump(configs, config, default_flow_style= False, sort_keys=False)
 
     create_conda_recipes()
     if setup_only:
