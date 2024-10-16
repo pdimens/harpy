@@ -2,6 +2,7 @@
 
 import os
 import sys
+import yaml
 from rich import box
 from rich.table import Table
 import rich_click as click
@@ -74,15 +75,15 @@ def fastq(inputs, output_dir, threads, snakemake, quiet, hpc, conda, setup_only)
     fetch_report(workflowdir, "preflight_fastq.Rmd")
     os.makedirs(f"{output_dir}/logs/snakemake", exist_ok = True)
     sm_log = snakemake_log(output_dir, "preflight_fastq")
-
+    configs = {
+        "workflow" : "preflight fastq",
+        "snakemake_log" : sm_log,
+        "output_directory" : output_dir,
+        "workflow_call" : command,
+        "inputs" : [i.as_posix() for i in fqlist]
+    }
     with open(f"{workflowdir}/config.yaml", "w", encoding="utf-8") as config:
-        config.write("workflow: preflight fastq\n")
-        config.write(f"snakemake_log: {sm_log}\n")
-        config.write(f"output_directory: {output_dir}\n")
-        config.write(f"workflow_call: {command}\n")
-        config.write("inputs:\n")
-        for i in fqlist:
-            config.write(f"  - {i}\n")
+        yaml.dump(configs, config, default_flow_style= False, sort_keys=False)
 
     create_conda_recipes()
     if setup_only:
@@ -134,15 +135,15 @@ def bam(inputs, output_dir, threads, snakemake, quiet, hpc, conda, setup_only):
     fetch_report(workflowdir, "preflight_bam.Rmd")
     os.makedirs(f"{output_dir}/logs/snakemake", exist_ok = True)
     sm_log = snakemake_log(output_dir, "preflight_bam")
-
+    configs = {
+        "workflow" : "preflight bam",
+        "snakemake_log" : sm_log,
+        "output_directory" : output_dir,
+        "workflow_call" : command,
+        "inputs" : [i.as_posix() for i in bamlist]
+    }
     with open(f"{workflowdir}/config.yaml", "w", encoding="utf-8") as config:
-        config.write("workflow: preflight bam\n")
-        config.write(f"snakemake_log: {sm_log}\n")
-        config.write(f"output_directory: {output_dir}\n")
-        config.write(f"workflow_call: {command}\n")
-        config.write("inputs:\n")
-        for i in bamlist:
-            config.write(f"  - {i}\n")
+        yaml.dump(configs, config, default_flow_style= False, sort_keys=False)
 
     create_conda_recipes()
     if setup_only:

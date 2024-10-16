@@ -2,6 +2,7 @@
 
 import os
 import sys
+import yaml
 from rich import box
 from rich.table import Table
 import rich_click as click
@@ -75,26 +76,25 @@ def phase(inputs, output_dir, vcf, threads, molecule_distance, prune_threshold, 
     fetch_report(workflowdir, "hapcut.Rmd")
     os.makedirs(f"{output_dir}/logs/snakemake", exist_ok = True)
     sm_log = snakemake_log(output_dir, "phase")
-
+    configs = {
+        "workflow" : "phase",
+        "snakemake_log" : sm_log,
+        "output_directory" : output_dir,
+        "ignore_bx" : ignore_bx,
+        "prune" : prune_threshold/100,
+        "molecule_distance" : molecule_distance,
+        "samples_from_vcf" : vcf_samples,
+        **({'extra': extra_params} if extra_params else {}),
+        "skip_reports" : skip_reports,
+        "workflow_call" : command,
+        "inputs" : {
+            "variantfile" : vcf,
+            **({'genome': genome} if genome else {}),
+            "alignments" : [i.as_posix() for i in bamlist]
+        }
+    }
     with open(f"{workflowdir}/config.yaml", "w", encoding="utf-8") as config:
-        config.write("workflow: phase\n")
-        config.write(f"snakemake_log: {sm_log}\n")
-        config.write(f"output_directory: {output_dir}\n")
-        config.write(f"ignore_bx: {ignore_bx}\n")
-        config.write(f"prune: {prune_threshold/100}\n")
-        config.write(f"molecule_distance: {molecule_distance}\n")
-        config.write(f"samples_from_vcf: {vcf_samples}\n")
-        if extra_params is not None:
-            config.write(f"extra: {extra_params}\n")
-        config.write(f"skip_reports: {skip_reports}\n")
-        config.write(f"workflow_call: {command}\n")
-        config.write("inputs:\n")
-        config.write(f"  variantfile: {vcf}\n")
-        if genome is not None:
-            config.write(f"  genome: {genome}\n")
-        config.write("  alignments:\n")
-        for i in bamlist:
-            config.write(f"    - {i}\n")
+        yaml.dump(configs, config, default_flow_style= False, sort_keys=False)
 
     create_conda_recipes()
     if setup_only:
