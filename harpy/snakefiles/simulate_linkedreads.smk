@@ -16,7 +16,7 @@ outdir   = config["output_directory"]
 gen_hap1 = config["inputs"]["genome_hap1"]
 gen_hap2 = config["inputs"]["genome_hap2"]
 envdir   = os.getcwd() + "/.harpy_envs"
-barcodes = config.get("barcodes", None)
+barcodes = config["inputs"].get("barcodes", None)
 barcodefile = barcodes if barcodes else f"{outdir}/workflow/input/4M-with-alts-february-2016.txt"
 
 rule link_1st_geno:

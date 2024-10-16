@@ -1,6 +1,7 @@
 """Harpy workflows to simulate genomic variants and linked-reads"""
 import os
 import sys
+import yaml
 from pathlib import Path
 from rich import box
 from rich.table import Table
@@ -170,25 +171,27 @@ def linkedreads(genome_hap1, genome_hap2, output_dir, outer_distance, mutation_r
     fetch_script(workflowdir, "LRSIM_harpy.pl")
     os.makedirs(f"{output_dir}/logs/snakemake", exist_ok = True)
     sm_log = snakemake_log(output_dir, "simulate_linkedreads")
-
+    configs = {
+        "workflow" : "simulate linkedreads",
+        "snakemake_log" : sm_log,
+        "output_directory" : output_dir,
+        "outer_distance" : outer_distance,
+        "distance_sd" : distance_sd,
+        "read_pairs" : read_pairs,
+        "mutation_rate" : mutation_rate,
+        "molecule_length" : molecule_length,
+        "partitions" : partitions,
+        "molecules_per_partition" : molecules_per,
+        "workflow_call" : command,
+        "inputs" : {
+            "genome_hap1" : Path(genome_hap1).resolve().as_posix(),
+            "genome_hap2" : Path(genome_hap2).resolve().as_posix(),
+            **({'barcodes': Path(barcodes).resolve().as_posix()} if barcodes else {}),
+        }
+    }
     with open(f"{workflowdir}/config.yaml", "w", encoding="utf-8") as config:
-        config.write("workflow: simulate linkedreads\n")
-        config.write(f"snakemake_log: {sm_log}\n")
-        config.write(f"output_directory: {output_dir}\n")
-        if barcodes:
-            config.write(f"barcodes: {Path(barcodes).resolve()}\n")
-        config.write(f"outer_distance: {outer_distance}\n")
-        config.write(f"distance_sd: {distance_sd}\n")
-        config.write(f"read_pairs: {read_pairs}\n")
-        config.write(f"mutation_rate: {mutation_rate}\n")
-        config.write(f"molecule_length: {molecule_length}\n")
-        config.write(f"partitions: {partitions}\n")
-        config.write(f"molecules_per_partition: {molecules_per}\n")
-        config.write(f"workflow_call: {command}\n")
-        config.write("inputs:\n")
-        config.write(f"  genome_hap1: {Path(genome_hap1).resolve()}\n")
-        config.write(f"  genome_hap2: {Path(genome_hap2).resolve()}\n")
-    
+        yaml.dump(configs, config, default_flow_style= False, sort_keys=False)
+
     create_conda_recipes()
     if setup_only:
         sys.exit(0)
