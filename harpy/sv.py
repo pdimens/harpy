@@ -2,6 +2,7 @@
 
 import os
 import sys
+import yaml
 from pathlib import Path
 from rich import box
 from rich.table import Table
@@ -91,36 +92,34 @@ def leviathan(inputs, output_dir, genome, min_sv, min_barcodes, iterations, thre
     os.makedirs(f"{workflowdir}/", exist_ok= True)
     bamlist, n = parse_alignment_inputs(inputs)
     check_fasta(genome, quiet)
-    if populations is not None:
+    if populations:
+        # check for delimeter and formatting
+        validate_popfile(populations)
+        # check that samplenames and populations line up
+        validate_popsamples(bamlist, populations,quiet)
         fetch_report(workflowdir, "leviathan_pop.Rmd")
     fetch_report(workflowdir, "leviathan.Rmd")
     fetch_rule(workflowdir, f"sv_{vcaller}.smk")
     os.makedirs(f"{output_dir}/logs/snakemake", exist_ok = True)
-    sm_log = snakemake_log(output_dir, "sv_naibr")
-
+    sm_log = snakemake_log(output_dir, "sv_leviathan")
+    configs = {
+        "workflow" : "sv leviathan",
+        "snakemake_log" : sm_log,
+        "output_directory" : output_dir,
+        "min_barcodes" : min_barcodes,
+        "min_sv" : min_sv,
+        "iterations" : iterations,
+        **({'extra': extra_params} if extra_params else {}),
+        "skip_reports" : skip_reports,
+        "workflow_call" : command,
+        "inputs" : {
+            "genome" : Path(genome).resolve().as_posix(),
+            **({'groupings': Path(populations).resolve().as_posix()} if populations else {}),
+            "alignments" : [i.as_posix() for i in bamlist]
+        }
+    }
     with open(f'{workflowdir}/config.yaml', "w", encoding="utf-8") as config:
-        config.write("workflow: sv leviathan\n")
-        config.write(f"snakemake_log: {sm_log}\n")
-        config.write(f"output_directory: {output_dir}\n")
-        config.write(f"min_barcodes: {min_barcodes}\n")
-        config.write(f"min_sv: {min_sv}\n")
-        config.write(f"iterations: {iterations}\n")
-        if extra_params is not None:
-            config.write(f"extra: {extra_params}\n")
-        config.write(f"skip_reports: {skip_reports}\n")
-        config.write(f"workflow_call: {command}\n")
-        config.write("inputs:\n")
-        popgroupings = ""
-        config.write(f"  genome: {Path(genome).resolve()}\n")
-        if populations is not None:
-            # check for delimeter and formatting
-            validate_popfile(populations)
-            # check that samplenames and populations line up
-            validate_popsamples(bamlist, populations,quiet)
-            config.write(f"  groupings: {Path(populations).resolve()}\n")
-        config.write("  alignments:\n")
-        for i in bamlist:
-            config.write(f"    - {i}\n")
+        yaml.dump(configs, config, default_flow_style= False, sort_keys=False)
 
     create_conda_recipes()
     if setup_only:
@@ -187,7 +186,11 @@ def naibr(inputs, output_dir, genome, vcf, min_sv, min_barcodes, min_quality, th
     os.makedirs(f"{workflowdir}/", exist_ok= True)
     bamlist, n = parse_alignment_inputs(inputs)
     check_fasta(genome, quiet)
-    if populations is not None:
+    if populations:
+        # check for delimeter and formatting
+        validate_popfile(populations)
+        # check that samplenames and populations line up
+        validate_popsamples(bamlist, populations, quiet)
         fetch_report(workflowdir, "naibr_pop.Rmd")
     fetch_report(workflowdir, "naibr.Rmd")
     if vcf is not None:
@@ -195,33 +198,26 @@ def naibr(inputs, output_dir, genome, vcf, min_sv, min_barcodes, min_quality, th
     fetch_rule(workflowdir, f"sv_{vcaller}.smk")
     os.makedirs(f"{output_dir}/logs/snakemake", exist_ok = True)
     sm_log = snakemake_log(output_dir, "sv_naibr")
-
+    configs = {
+        "workflow" : "sv naibr",
+        "snakemake_log" : sm_log,
+        "output_directory" : output_dir,
+        "min_barcodes" : min_barcodes,
+        "min_quality" : min_quality,
+        "min_sv" : min_sv,
+        "molecule_distance" : molecule_distance,
+        **({'extra': extra_params} if extra_params else {}),
+        "skip_reports" : skip_reports,
+        "workflow_call" : command,
+        "inputs" : {
+            **({'genome': Path(genome).resolve().as_posix()} if genome else {}),
+            **({'vcf': Path(vcf).resolve().as_posix()} if vcf else {}),
+            **({'groupings': Path(populations).resolve().as_posix()} if populations else {}),
+            "alignments" : [i.as_posix() for i in bamlist]
+        }
+    }
     with open(f'{workflowdir}/config.yaml', "w", encoding="utf-8") as config:
-        config.write("workflow: sv naibr\n")
-        config.write(f"snakemake_log: {sm_log}\n")
-        config.write(f"output_directory: {output_dir}\n")
-        config.write(f"min_barcodes: {min_barcodes}\n")
-        config.write(f"min_quality: {min_quality}\n")
-        config.write(f"min_sv: {min_sv}\n")
-        config.write(f"molecule_distance: {molecule_distance}\n")
-        if extra_params is not None:
-            config.write(f"extra: {extra_params}\n")
-        config.write(f"skip_reports: {skip_reports}\n")
-        config.write(f"workflow_call: {command}\n")
-        config.write("inputs:\n")
-        if vcf is not None:
-            config.write(f"  vcf: {Path(vcf).resolve()}\n")
-        if genome is not None:
-            config.write(f"  genome: {Path(genome).resolve()}\n")
-        if populations is not None:
-            # check for delimeter and formatting
-            validate_popfile(populations)
-            # check that samplenames and populations line up
-            validate_popsamples(bamlist, populations, quiet)
-            config.write(f"  groupings: {Path(populations).resolve()}\n")
-        config.write("  alignments:\n")
-        for i in bamlist:
-            config.write(f"    - {i}\n")
+        yaml.dump(configs, config, default_flow_style= False, sort_keys=False)
 
     create_conda_recipes()
     if setup_only:

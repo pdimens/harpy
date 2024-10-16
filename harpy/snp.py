@@ -110,9 +110,10 @@ def mpileup(inputs, output_dir, regions, genome, threads, populations, ploidy, e
     fetch_report(workflowdir, "bcftools_stats.Rmd")
     os.makedirs(f"{output_dir}/logs/snakemake", exist_ok = True)
     sm_log = snakemake_log(output_dir, "snp_mpileup")
-    validate_popfile(populations)
-    # check that samplenames and populations line up
-    validate_popsamples(bamlist, populations, quiet)
+    if populations:
+        validate_popfile(populations)
+        # check that samplenames and populations line up
+        validate_popsamples(bamlist, populations, quiet)
     configs = {
         "workflow" : "snp mpileup",
         "snakemake_log" : sm_log,
@@ -126,7 +127,7 @@ def mpileup(inputs, output_dir, regions, genome, threads, populations, ploidy, e
         "inputs" : {
             "genome" : Path(genome).resolve().as_posix(),
             "regions" : region,
-            **({'groupings': populations} if populations else {}),
+            **({'groupings': Path(populations).resolve().as_posix()} if populations else {}),
             "alignments" : [i.as_posix() for i in bamlist]
         }
     }
@@ -212,6 +213,12 @@ def freebayes(inputs, output_dir, genome, threads, populations, ploidy, regions,
     fetch_report(workflowdir, "bcftools_stats.Rmd")
     os.makedirs(f"{output_dir}/logs/snakemake", exist_ok = True)
     sm_log = snakemake_log(output_dir, "snp_freebayes")
+    if populations:
+        # check for delimeter and formatting
+        validate_popfile(populations)
+        # check that samplenames and populations line up
+        validate_popsamples(bamlist, populations,quiet)
+
     configs = {
         "workflow" : "snp mpileup",
         "snakemake_log" : sm_log,
@@ -225,7 +232,7 @@ def freebayes(inputs, output_dir, genome, threads, populations, ploidy, regions,
         "inputs" : {
             "genome" : Path(genome).resolve().as_posix(),
             "regions" : region,
-            **({'groupings': populations} if populations else {}),
+            **({'groupings': Path(populations).resolve().as_posix()} if populations else {}),
             "alignments" : [i.as_posix() for i in bamlist]
         }
     }
