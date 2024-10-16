@@ -15,16 +15,17 @@ envdir = os.getcwd() + "/.harpy_envs"
 max_mem = config["spades"]["max_memory"]
 k_param = config["spades"]["k"]
 extra = config["spades"].get("extra", "") 
+genosize = config["arcs"]["genome_size"]
 
 rule cloudspades:
     input:
         FQ_R1 = FQ1,
         FQ_R2 = FQ2
     output:
-        f"{outdir}/contigs.fasta",
-        f"{outdir}/scaffolds.fasta"
+        f"{outdir}/spades/contigs.fasta",
+        f"{outdir}/spades/scaffolds.fasta"
     params:
-        outdir = outdir,
+        outdir = f"{outdir}/spades",
         k = k_param,
         mem = max_mem // 1000,
         extra = extra
@@ -39,8 +40,54 @@ rule cloudspades:
     shell:
         "spades.py -t {threads} -m {params.mem} -k {params.k} {params.extra} --gemcode1-1 {input.FQ_R1} --gemcode1-2 {input.FQ_R2} -o {params.outdir} --isolate > {log}"
 
-rule workflow_summary:
+rule interleave_fastq:
+    input:
+        FQ1,
+        FQ2
+    output:
+        temp(f"{outdir}/scaffold/interleaved.fq")
+    shell:
+        "seqtk mergepe {input} > {output}"
+
+rule link_assembly:
+    input:
+        f"{outdir}/spades/scaffolds.fasta",
+    output:
+        f"{outdir}/scaffold/spades.fa"
+    shell:  
+        "ln -sr {input} {output}"
+
+rule scaffolding:
     default_target: True
+    input:
+        asm = f"{outdir}/scaffold/spades.fa",
+        reads = f"{outdir}/scaffold/interleaved.fq"
+#    output:
+#        f"{outdir}/scaffold/scaffolds.fasta.tigmint.fa"
+    threads:
+        workflow.cores
+    params:
+        workdir = f"-C {outdir}/scaffold",
+        threads = f"-j {workflow.cores}",
+        draft_asm = f"draft=spades",
+        reads = f"reads=interleaved",
+        bwa_threads = f"t={workflow.cores}",
+        span = f"span={span}",
+        moldist = f"dist={moldist}",
+        max_mismatch = f"nm={max_mismatch}",
+        min_length = f"minsize={min_length}",
+        min_mapq = f"mapq={min_mapq}",
+        min_contig = f"z={min_contig}",
+        min_perbarcod = f"c={min_aligned_pairs}",
+        min_seqid = f"s={min_seq_id}",
+        min_links = f"l={min_links}"
+    conda:
+        f"{envdir}/assembly.yaml"
+    shell:
+        "arcs-make arcs {params}"
+
+rule workflow_summary:
+    #default_target: True
     input:
         f"{outdir}/athena/athena.asm.fa"
     params:

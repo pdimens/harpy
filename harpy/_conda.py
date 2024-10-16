@@ -17,8 +17,16 @@ def create_conda_recipes():
             "conda-forge::libzlib",
             "conda-forge::xz"
             ],
-        "assembly": [
+        "spades": [
             "conda-forge::python=3"
+        ],
+        "assembly":[
+            "bioconda::arcs",
+            "bioconda::bwa",
+            "bioconda::cloudspades",
+            "bioconda::links",
+            "bioconda::samtools",
+            "bioconda::tigmint"
         ],
         "metassembly": [
             "bioconda::athena_meta=1.2"
