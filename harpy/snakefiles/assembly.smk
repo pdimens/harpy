@@ -12,9 +12,21 @@ FQ1 = config["inputs"]["fastq_r1"]
 FQ2 = config["inputs"]["fastq_r2"]
 outdir = config["output_directory"]
 envdir = os.getcwd() + "/.harpy_envs"
-max_mem = config["spades"]["max_memory"]
-k_param = config["spades"]["k"]
-extra = config["spades"].get("extra", "") 
+# SPADES
+max_mem      = config["spades"]["max_memory"]
+k_param      = config["spades"]["k"]
+spades_extra = config["spades"].get("extra", "")
+# ARCS
+mapq       = config["tigmint"]["minimum_mapping_quality"]
+mismatch   = config["tigmint"]["mismatch"]
+mol_dist   = config["tigmint"]["molecule_distance"]
+mol_len    = config["tigmint"]["molecule_length"]
+span       = config["tigmint"]["span"]
+min_align  = config["arcs"]["minimum_aligned_reads"]
+min_contig = config["arcs"]["minimum_contig_length"]
+seq_id     = config["arcs"]["minimum_sequence_identity"]
+arcs_extra = config["arcs"].get("extra", "")
+links      = config["links"]["minimum_links"]
 
 rule cloudspades:
     input:
@@ -27,7 +39,7 @@ rule cloudspades:
         outdir = f"{outdir}/spades",
         k = k_param,
         mem = max_mem // 1000,
-        extra = extra
+        extra = spades_extra
     log:
         outdir + "/logs/assembly.log"
     conda:
@@ -71,15 +83,16 @@ rule scaffolding:
         draft_asm = f"draft=spades",
         reads = f"reads=interleaved",
         bwa_threads = f"t={workflow.cores}",
+        min_mapq = f"mapq={mapq}",
+        max_mismatch = f"nm={mismatch}",
+        moldist = f"dist={mol_dist}",
+        min_length = f"minsize={mol_len}",
         span = f"span={span}",
-        moldist = f"dist={moldist}",
-        max_mismatch = f"nm={max_mismatch}",
-        min_length = f"minsize={min_length}",
-        min_mapq = f"mapq={min_mapq}",
+        min_perbarcod = f"c={min_align}",
         min_contig = f"z={min_contig}",
-        min_perbarcod = f"c={min_aligned_pairs}",
-        min_seqid = f"s={min_seq_id}",
-        min_links = f"l={min_links}"
+        min_seqid = f"s={seq_id}",
+        min_links = f"l={links}",
+        extra = arcs_extra
     conda:
         f"{envdir}/assembly.yaml"
     shell:
@@ -92,13 +105,31 @@ rule workflow_summary:
     params:
         k_param = k_param,
         max_mem = max_mem // 1000,
-        extra = extra
+        extra = extra,
+        workdir = f"-C {outdir}/scaffold",
+        threads = f"-j {workflow.cores}",
+        draft_asm = f"draft=spades",
+        reads = f"reads=interleaved",
+        bwa_threads = f"t={workflow.cores}",
+        min_mapq = f"mapq={mapq}",
+        max_mismatch = f"nm={mismatch}",
+        moldist = f"dist={mol_dist}",
+        min_length = f"minsize={mol_len}",
+        span = f"span={span}",
+        min_perbarcod = f"c={min_align}",
+        min_contig = f"z={min_contig}",
+        min_seqid = f"s={seq_id}",
+        min_links = f"l={links}",
+        extra = arcs_extra
     run:
         summary_template = f"""
 The harpy assemble workflow ran using these parameters:
 
 Reads were assembled using cloudspades:
     spades.py -t THREADS -m {params.max_mem} --gemcode1-1 FQ1 --gemcode1-2 FQ2 --isolate -k {params.k_param} {params.extra}
+
+The draft assembly was error corrected and scaffolded with ARCS:
+    arcs-make arcs {params[3:]}
 
 The Snakemake workflow was called via command line:
     {config["workflow_call"]}
