@@ -1,3 +1,5 @@
+containerized: "docker://pdimens/harpy:latest"
+
 import os
 import logging
 
@@ -25,6 +27,8 @@ rule sort_by_barcode:
         fq_r = temp(f"{outdir}/fastq_preproc/tmp.R2.fq")
     params:
         barcode_tag = config["barcode_tag"].upper()
+    container:
+        None
     shell:
         """
         samtools import -T "*" {input} |
@@ -39,6 +43,8 @@ rule format_barcode:
         temp(f"{outdir}/fastq_preproc/input.R{{FR}}.fq.gz")
     params:
         config["barcode_tag"].upper()
+    container:
+        None
     shell:
         "sed 's/{params}:Z:[^[:space:]]*/&-1/g' {input} | bgzip > {output}"
 
@@ -57,12 +63,14 @@ rule error_correction:
         extra = extra
     log:
         outdir + "/logs/error_correct.log"
-    conda:
-        f"{envdir}/assembly.yaml"
     threads:
         workflow.cores
     resources:
         mem_mb=max_mem
+    conda:
+        f"{envdir}/spades.yaml"
+    container:
+        None
     shell:
         "metaspades.py -t {threads} -m {params.mem} -k {params.k} {params.extra} -1 {input.FQ_R1} -2 {input.FQ_R2} -o {params.outdir} --only-error-correction > {log}"
 

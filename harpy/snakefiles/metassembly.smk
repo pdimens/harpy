@@ -1,3 +1,5 @@
+containerized: "docker://pdimens/harpy:latest"
+
 import os
 import logging
 
@@ -17,10 +19,7 @@ k_param = config["spades"]["k"]
 metassembly = config["spades"]["assembler"]
 extra = config["spades"].get("extra", "")
 cloudspades = True if metassembly == "cloudspades" else False
-if cloudspades:
-    spadesdir = f"{outdir}/cloudspades_assembly"
-else
-    spadesdir = f"{outdir}/spades_assembly"
+spadesdir = f"{outdir}/cloudspades_assembly" if cloudspades else f"{outdir}/spades_assembly"
 
 rule sort_by_barcode:
     input:
@@ -33,6 +32,8 @@ rule sort_by_barcode:
         barcode_tag = config["barcode_tag"].upper()
     threads:
         workflow.cores
+    container:
+        None
     shell:
         """
         samtools import -T "*" {input} |
@@ -47,6 +48,8 @@ rule format_barcode:
         temp(f"{outdir}/fastq_preproc/input.R{{FR}}.fq.gz")
     params:
         config["barcode_tag"].upper()
+    container:
+        None
     shell:
         "sed 's/{params}:Z:[^[:space:]]*/&-1/g' {input} | bgzip > {output}"
 
@@ -65,14 +68,41 @@ rule error_correction:
         extra = extra
     log:
         outdir + "/logs/error_correct.log"
-    conda:
-        f"{envdir}/assembly.yaml"
     threads:
         workflow.cores
     resources:
         mem_mb=max_mem
+    conda:
+        f"{envdir}/spades.yaml"
+    container:
+        None
     shell:
         "metaspades.py -t {threads} -m {params.mem} -k {params.k} {params.extra} -1 {input.FQ_R1} -2 {input.FQ_R2} -o {params.outdir} --only-error-correction > {log}"
+
+rule spades_assembly:
+    input:
+        fastq_R1C = outdir + "/error_correction/corrected/input.R1.fq00.0_0.cor.fastq.gz",
+        fastq_R2C = outdir + "/error_correction/corrected/input.R2.fq00.0_0.cor.fastq.gz",
+        fastq_UNC = outdir + "/error_correction/corrected/input.R_unpaired00.0_0.cor.fastq.gz"
+    output:
+        f"{outdir}/spades_assembly/contigs.fasta" 
+    params:
+        outdir = outdir + "/spades_assembly",
+        k = k_param,
+        mem = max_mem // 1000,
+        extra = extra
+    log:
+        outdir + "/logs/spades_assembly.log"
+    threads:
+        workflow.cores
+    resources:
+        mem_mb=max_mem
+    conda:
+        f"{envdir}/spades.yaml"
+    container:
+        None
+    shell:
+        "metaspades.py -t {threads} -m {params.mem} -k {params.k} {params.extra} -1 {input.fastq_R1C} -2 {input.fastq_R2C} -s {input.fastq_UNC} -o {params.outdir} --only-assembler > {log}"
 
 rule cloudspades_assembly:
     input:
@@ -89,36 +119,13 @@ rule cloudspades_assembly:
     log:
         outdir + "/logs/assembly.log"
     conda:
-        f"{envdir}/cloudspades.yaml"
-    threads:
-        workflow.cores
-    resources:
-        mem_mb=max_mem
-    shell:
-        "spades.py --meta -t {threads} -m {params.mem} -k {params.k} {params.extra} --gemcode1-1 {input.fastq_R1} --gemcode1-2 {input.fastq_R2} -o {params.outdir} > {log}"
-
-rule spades_assembly:
-    input:
-        fastq_R1C = outdir + "/error_correction/corrected/input.R1.fq00.0_0.cor.fastq.gz",
-        fastq_R2C = outdir + "/error_correction/corrected/input.R2.fq00.0_0.cor.fastq.gz",
-        fastq_UNC = outdir + "/error_correction/corrected/input.R_unpaired00.0_0.cor.fastq.gz"
-    output:
-        f"{outdir}/spades_assembly/contigs.fasta" 
-    params:
-        outdir = outdir + "/spades_assembly",
-        k = k_param,
-        mem = max_mem // 1000,
-        extra = extra
-    log:
-        outdir + "/logs/spades_assembly.log"
-    conda:
         f"{envdir}/assembly.yaml"
     threads:
         workflow.cores
     resources:
         mem_mb=max_mem
     shell:
-        "metaspades.py -t {threads} -m {params.mem} -k {params.k} {params.extra} -1 {input.fastq_R1C} -2 {input.fastq_R2C} -s {input.fastq_UNC} -o {params.outdir} --only-assembler > {log}"
+        "spades.py --meta -t {threads} -m {params.mem} -k {params.k} {params.extra} --gemcode1-1 {input.fastq_R1} --gemcode1-2 {input.fastq_R2} -o {params.outdir} > {log}"
 
 rule bwa_index:
     input:
@@ -156,6 +163,8 @@ rule index_alignment:
        f"{outdir}/reads-to-spades.bam.bai"
     log:
         f"{outdir}/logs/index.alignments.log"
+    container:
+        None
     shell:
         "samtools index {input} 2> {log}"
 
@@ -164,6 +173,8 @@ rule interleave_fastq:
         collect(outdir + "/fastq_preproc/input.R{FR}.fq.gz", FR = [1,2])
     output:
         f"{outdir}/fastq_preproc/interleaved.fq"
+    container:
+        None
     shell:
         "seqtk mergepe {input} > {output}"
 

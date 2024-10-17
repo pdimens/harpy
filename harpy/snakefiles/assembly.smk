@@ -1,3 +1,5 @@
+containerized: "docker://pdimens/harpy:latest"
+
 import os
 import logging
 
@@ -57,6 +59,8 @@ rule interleave_fastq:
         FQ2
     output:
         temp(f"{outdir}/scaffold/interleaved.fq")
+    container:
+        None
     shell:
         "seqtk mergepe {input} > {output}"
 
@@ -65,6 +69,8 @@ rule link_assembly:
         f"{outdir}/spades/scaffolds.fasta",
     output:
         f"{outdir}/scaffold/spades.fa"
+    container:
+        None
     shell:  
         "ln -sr {input} {output}"
 

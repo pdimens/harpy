@@ -49,14 +49,15 @@ docstring = {
 # Common Workflow
 @click.option('-o', '--output-dir', type = click.Path(exists = False), default = "Assembly", show_default=True,  help = 'Output directory name')
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(min = 1, max_open = True), help = 'Number of threads to use')
-@click.option('--setup-only',  is_flag = True, hidden = True, default = False, help = 'Setup the workflow and exit')
+@click.option('--conda',  is_flag = True, default = False, help = 'Use conda/mamba instead of container')
 @click.option('--hpc',  type = click.Path(exists = True, file_okay = False, readable=True), help = 'Directory with HPC submission `config.yaml` file')
 @click.option('--quiet',  is_flag = True, show_default = True, default = False, help = 'Don\'t show output text while running')
+@click.option('--setup-only',  is_flag = True, hidden = True, default = False, help = 'Setup the workflow and exit')
 @click.option('--skip-reports',  is_flag = True, show_default = True, default = False, help = 'Don\'t generate HTML reports')
 @click.option('--snakemake',  type = str, help = 'Additional Snakemake parameters, in quotes')
 @click.argument('fastq_r1', required=True, type=click.Path(exists=True, readable=True), nargs=1)
 @click.argument('fastq_r2', required=True, type=click.Path(exists=True, readable=True), nargs=1)
-def assembly(fastq_r1, fastq_r2, bx_tag, kmer_length, max_memory, metassembly, output_dir, spades_extra,arcs_extra,contig_length,links,min_quality,min_aligned,mismatch,molecule_distance,molecule_length,seq_identity,span,threads, snakemake, skip_reports, quiet, hpc, setup_only):
+def assembly(fastq_r1, fastq_r2, bx_tag, kmer_length, max_memory, metassembly, output_dir, spades_extra,arcs_extra,contig_length,links,min_quality,min_aligned,mismatch,molecule_distance,molecule_length,seq_identity,span,conda, threads, snakemake, skip_reports, quiet, hpc, setup_only):
     """
     Create an assembly/metassembly from linked-reads
 
@@ -69,7 +70,7 @@ def assembly(fastq_r1, fastq_r2, bx_tag, kmer_length, max_memory, metassembly, o
     output_dir = output_dir.rstrip("/")
     asm = "metassembly" if metassembly else "assembly"
     workflowdir = f"{output_dir}/workflow"
-    sdm = "conda" #if conda else "conda apptainer"
+    sdm = "conda" if conda else "conda apptainer"
     command = f'snakemake --rerun-incomplete --show-failed-logs --rerun-triggers input mtime params --nolock  --software-deployment-method {sdm} --conda-prefix .snakemake/conda --cores {threads} --directory . '
     command += f"--snakefile {workflowdir}/{asm}.smk "
     command += f"--configfile {workflowdir}/config.yaml "
