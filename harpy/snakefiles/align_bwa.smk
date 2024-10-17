@@ -251,28 +251,24 @@ rule workflow_summary:
         agg_report = outdir + "/reports/bwa.stats.html" if not skip_reports else [],
         bx_report = outdir + "/reports/barcodes.summary.html" if (not skip_reports or len(samplenames) == 1) else []
     params:
-        genomefile = genomefile,
         quality = config["alignment_quality"],
         unmapped = "" if keep_unmapped else "-F 4",
         extra   = extra
     run:
-        summary_template = f"""
-The harpy align bwa workflow ran using these parameters:
-
-The provided genome: {{params.genomefile}}
-
-Sequences were aligned with BWA using:
-    bwa mem -C -v 2 {{params.extra}} -R "@RG\\tID:SAMPLE\\tSM:SAMPLE" genome forward_reads reverse_reads |
-    samtools view -h {{params.unmapped}} -q {{params.quality}}
-
-Duplicates in the alignments were marked following:
-    samtools collate |
-    samtools fixmate |
-    samtools sort -T SAMPLE --reference {{params.genomefile}} -m 2000M |
-    samtools markdup -S --barcode-tag BX
-
-The Snakemake workflow was called via command line:
-    {config["workflow_call"]}
-"""
+        summary = ["The harpy align bwa workflow ran using these parameters:"]
+        summary.append(f"The provided genome: {genomefile}")
+        align = "Sequences were aligned with BWA using:\n"
+        align += f"\tbwa mem -C -v 2 {params.extra} -R \"@RG\\tID:SAMPLE\\tSM:SAMPLE\" genome forward_reads reverse_reads |\n"
+        align += f"\tsamtools view -h {params.unmapped} -q {params.quality}"
+        summary.append(align)
+        duplicates = "Duplicates in the alignments were marked following:\n"
+        duplicates += "\tsamtools collate |\n"
+        duplicates += "\tsamtools fixmate |\n"
+        duplicates += "\tsamtools sort -T SAMPLE --reference {params.genomefile} -m 2000M |\n"
+        duplicates += "\tsamtools markdup -S --barcode-tag BX"
+        summary.append(duplicates)
+        sm = "The Snakemake workflow was called via command line:\n"
+        sm += f"\t{config["workflow_call"]}"
+        summary.append(sm)
         with open(outdir + "/workflow/align.bwa.summary", "w") as f:
-            f.write(summary_template.format(params=params))
+            f.write("\n\n".join(summary))

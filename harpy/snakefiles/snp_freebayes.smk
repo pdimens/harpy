@@ -217,30 +217,24 @@ rule workflow_summary:
         populations = f"--populations {groupings}" if groupings else '',
         extra = extra
     run:
+        summary = ["The harpy snp freebayes workflow ran using these parameters:"]
+        summary.append(f"The provided genome: {bn}")
         if windowsize:
-            windowtext =  f"Size of intervals to split genome for variant calling: {windowsize}"
+            summary.append(f"Size of intervals to split genome for variant calling: {windowsize}")
         else:
-            windowtext = f"Genomic positions for which variants were called: {regioninput}"
-
-        summary_template = f"""
-The harpy snp freebayes workflow ran using these parameters:
-
-The provided genome: {bn}
-
-{windowtext}
-
-The freebayes parameters:
-    freebayes -f GENOME -L samples.list -r REGION {params} |
-    bcftools sort -
-
-The variants identified in the intervals were merged into the final variant file using:
-    bcftools concat -f bcf.files -a --remove-duplicates
-
-The variants were normalized using:
-    bcftools norm -m -both -d both
-
-The Snakemake workflow was called via command line:
-    {config["workflow_call"]}
-"""
+            summary.append(f"Genomic positions for which variants were called: {regioninput}")
+        varcall = "The freebayes parameters:\n"
+        varcall += f"\tfreebayes -f GENOME -L samples.list -r REGION {params} |\n"
+        varcall += f"\tbcftools sort -"
+        summary.append(varcall)
+        merged = "The variants identified in the intervals were merged into the final variant file using:\n"
+        merged += "\tbcftools concat -f bcf.files -a --remove-duplicates"
+        summary.append(merged)
+        normalize = "The variants were normalized using:\n"
+        normalize += "\tbcftools norm -m -both -d both"
+        summary.append(normalize)
+        sm = "The Snakemake workflow was called via command line:\n"
+        sm += f"\t{config["workflow_call"]}"
+        summary.append(sm)
         with open(outdir + "/workflow/snp.freebayes.summary", "w") as f:
-            f.write(summary_template)
+            f.write("\n\n".join(summary))

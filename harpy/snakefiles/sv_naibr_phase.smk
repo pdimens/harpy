@@ -295,3 +295,19 @@ The Snakemake workflow was called via command line:
 """
         with open(outdir + "/workflow/sv.naibr.summary", "w") as f:
             f.write(summary_template)
+        summary = ["The harpy sv naibr workflow ran using these parameters:"]
+        summary.append(f"The provided genome: {bn}")
+        phase = "The alignment files were phased using:\n"
+        phase += f"\twhatshap haplotag --reference genome.fasta --linked-read-distance-cutoff {mol_dist} --ignore-read-groups --tag-supplementary --sample sample_x file.vcf sample_x.bam"
+        summary.append(phase)
+        naibr = "naibr variant calling ran using these configurations:\n"
+        naibr += "\tbam_file=BAMFILE\n"
+        naibr += "\tprefix=PREFIX\n"
+        naibr += "\toutdir=Variants/naibr/PREFIX\n"
+        naibr += "\n\t".join([f"{k}={v}" for k,v in argdict.items()])
+        summary.append(naibr)
+        sm = "The Snakemake workflow was called via command line:\n"
+        sm = f"\t{config["workflow_call"]}"
+        summary.append(sm)
+        with open(outdir + "/workflow/sv.naibr.summary", "w") as f:
+            f.write("\n\n".join(summary))

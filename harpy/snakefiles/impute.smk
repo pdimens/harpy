@@ -220,42 +220,37 @@ rule workflow_summary:
         contig_report = collect(outdir + "/{stitchparams}/reports/{part}.stitch.html", stitchparams=paramspace.instance_patterns, part = contigs) if not skip_reports else [],
     run:
         paramfiletext = "\t".join(open(paramfile, "r").readlines())
-        summary_template = f"""
-The harpy impute workflow ran using these parameters:
-
-The provided variant file: {variantfile}
-
-Preprocessing was performed with:
-    bcftools view -M2 -v snps --regions CONTIG INFILE |
-    bcftools query -i '(STRLEN(REF)==1) & (STRLEN(ALT[0])==1) & (REF!="N")' -f '%CHROM\\t%POS\\t%REF\\t%ALT\\n'
-
-The STITCH parameter file: {paramfile}
-    {paramfiletext}
-
-Within R, STITCH was invoked with the following parameters:
-    STITCH(
-        method               = model,
-        posfile              = posfile,
-        bamlist              = bamlist,
-        nCores               = ncores,
-        nGen                 = ngen,
-        chr                  = chr,
-        K                    = k,
-        S                    = s,
-        use_bx_tag           = usebX,
-        bxTagUpperLimit      = bxlimit,
-        niterations          = 40,
-        switchModelIteration = 39,
-        splitReadIterations  = NA,
-        outputdir            = outdir,
-        output_filename      = outfile
-    )
-
-Additional STITCH parameters provided (overrides existing values above):\n")
-    {config.get("extra", "None provided")}
-
-The Snakemake workflow was called via command line:\n")
-    {config["workflow_call"]}
-"""
+        summary = ["The harpy impute workflow ran using these parameters:"]
+        summary.append(f"The provided variant file: {variantfile}")
+        preproc = "Preprocessing was performed with:\n"
+        preproc += "\tbcftools view -M2 -v snps --regions CONTIG INFILE |\n"
+        preproc += "\tbcftools query -i '(STRLEN(REF)==1) & (STRLEN(ALT[0])==1) & (REF!="N")' -f '%CHROM\\t%POS\\t%REF\\t%ALT\\n'"
+        summary.append(preproc)
+        stitchparam = "The STITCH parameter file: {paramfile}\n"
+        stitchparam += f"\t{paramfiletext}"
+        summary.append(stitchparam)
+        stitch = "Within R, STITCH was invoked with the following parameters:\n"
+        stitch += "\tSTITCH(\n"
+        stitch += "\t\tmethod               = model,\n"
+        stitch += "\t\tposfile              = posfile,\n"
+        stitch += "\t\tbamlist              = bamlist,\n"
+        stitch += "\t\tnCores               = ncores,\n"
+        stitch += "\t\tnGen                 = ngen,\n"
+        stitch += "\t\tchr                  = chr,\n"
+        stitch += "\t\tK                    = k,\n"
+        stitch += "\t\tS                    = s,\n"
+        stitch += "\t\tuse_bx_tag           = usebX,\n"
+        stitch += "\t\tbxTagUpperLimit      = bxlimit,\n"
+        stitch += "\t\tniterations          = 40,\n"
+        stitch += "\t\tswitchModelIteration = 39,\n"
+        stitch += "\t\tsplitReadIterations  = NA,\n"
+        stitch += "\t\toutputdir            = outdir,\n"
+        stitch += "\t\toutput_filename      = outfile\n\t)"
+        summary.append(stitch)
+        stitchextra = "Additional STITCH parameters provided (overrides existing values above):\n"
+        stitchextra += f"\t{config.get("extra", "None provided")}"
+        summary.append(stitchextra)
+        sm = "The Snakemake workflow was called via command line:\n"
+        sm += f"\t{config["workflow_call"]}"
         with open(outdir + "/workflow/impute.summary", "w") as f:
-            f.write(summary_template)
+            f.write("\n\n".join(summary))

@@ -234,39 +234,34 @@ rule workflow_summary:
         f"{outdir}/athena/athena.asm.fa"
     params:
         bx = config["barcode_tag"].upper(),
-        k_param = k_param,
-        max_mem = max_mem,
         extra = extra
     run:
+        summary = ["The harpy metassembly workflow ran using these parameters:"]  
+        bxsort = "FASTQ inputs were sorted by their linked-read barcodes:\n"
+        bxsort += "\tsamtools import -T "*" FQ1 FQ2 |\n"
+        bxsort += f"\tsamtools sort -O SAM -t {params.bx} |\n"  
+        bxsort += "\tsamtools fastq -T "*" -1 FQ_out1 -2 FQ_out2"  
+        summary.append(bxsort)
+        bxappend += "Barcoded-sorted FASTQ files had \"-1\" appended to the barcode to make them Athena-compliant:\n"  
+        bxappend = f"\tsed 's/{params.bx}:Z:[^[:space:]]*/&-1/g' FASTQ | bgzip > FASTQ_OUT"  
+        summary.append(bxappend)
+        spades = f"Reads were assembled using {metassembly}:\n"
         if cloudspades:
-            spadestext = f"spades.py -t THREADS -m {max_mem} --gemcode1-1 FQ1 --gemcode1-2 FQ2 --meta -k {params.k_param} {params.extra}"
+            spades += f"\tspades.py -t THREADS -m {max_mem} --gemcode1-1 FQ1 --gemcode1-2 FQ2 --meta -k {k_param} {params.extra}"
         else:
-            spadestext = f"metaspades.py -t THREADS -m {max_mem} -k {k_param} {extra} -1 FQ_1 -2 FQ2 -o {spadesdir}"
-        summary_template = f"""  
-The harpy metassembly workflow ran using these parameters:  
-
-FASTQ inputs were sorted by their linked-read barcodes:  
-    samtools import -T "*" FQ1 FQ2 |  
-    samtools sort -O SAM -t {{params.bx}} |  
-    samtools fastq -T "*" -1 FQ_out1 -2 FQ_out2  
-
-Barcoded-sorted FASTQ files had "-1" appended to the barcode to make them Athena-compliant:  
-    sed 's/{{params.bx}}:Z:[^[:space:]]*/&-1/g' FASTQ | bgzip > FASTQ_OUT  
-
-Reads were assembled using {metassembly}:
-    {spadestext}
-
-Original input FASTQ files were aligned to the metagenome using BWA:  
-    bwa mem -C -p spades.contigs FQ1 FQ2 | samtools sort -O bam -  
-
-Barcode-sorted Athena-compliant sequences were interleaved with seqtk:  
-    seqtk mergepe FQ1 FQ2 > INTERLEAVED.FQ  
-
-Athena ran with the config file Harpy built from the files created from the previous steps:  
-    athena-meta --config athena.config  
-
-The Snakemake workflow was called via command line:  
-    {config["workflow_call"]}
-"""
+            spades += f"\tmetaspades.py -t THREADS -m {max_mem} -k {k_param} {extra} -1 FQ_1 -2 FQ2 -o {spadesdir}"
+        summary.append(spades)
+        align = "Original input FASTQ files were aligned to the metagenome using BWA:\n"
+        align += "\tbwa mem -C -p spades.contigs FQ1 FQ2 | samtools sort -O bam -  
+        summary.append(align)
+        interleaved = "Barcode-sorted Athena-compliant sequences were interleaved with seqtk:\n"
+        interleaved += "\tseqtk mergepe FQ1 FQ2 > INTERLEAVED.FQ  
+        summary.append(interleaved)
+        athena = "Athena ran with the config file Harpy built from the files created from the previous steps:\n"
+        athena += "\tathena-meta --config athena.config"
+        summary.append(athena)
+        sm += "The Snakemake workflow was called via command line:\n"
+        sm = f"\t{config["workflow_call"]}"
+        summary.append(sm)
         with open(outdir + "/workflow/metassembly.summary", "w") as f:  
-            f.write(summary_template.format(params=params))
+            f.write("\n\n".join(summary))

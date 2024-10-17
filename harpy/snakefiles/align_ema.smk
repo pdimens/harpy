@@ -371,5 +371,37 @@ Merged alignments were sorted using:
 The Snakemake workflow was called via command line:
     {config["workflow_call"]}
 """
-        with open(outdir + "/workflow/align.ema.summary", "w") as f:
-            f.write(summary_template.format(params=params))
+        summary = ["The harpy align ema workflow ran using these parameters:"]
+        summary.append(f"The provided genome: {genomefile}")
+        counts = "Barcodes were counted and validated with EMA using:\n"
+        counts += f"\tseqtk mergepe forward.fq.gz reverse.fq.gz | ema count {params.beadtech}
+        summary.append(counts)
+        bins = "Barcoded sequences were binned with EMA using:\n"
+        bins += f"\tseqtk mergepe forward.fq.gz reverse.fq.gz | ema preproc {params.beadtech} -n {nbins}"
+        summary.append(bins)
+        ema_align = "Barcoded bins were aligned with ema align using:\n"
+        ema_align += f"\tema align {extra} -d -p {platform} -R \"@RG\\tID:SAMPLE\\tSM:SAMPLE\" |\n"
+        ema_align += f"\tsamtools view -h {params.unmapped} -q {config["alignment_quality"]} - |\n"
+        ema_align += "\tsamtools sort --reference genome -m 2000M"
+        summary.append(ema_align)
+        bwa_align = "Non-barcoded and invalid-barcoded sequences were aligned with BWA using:\n"
+        bwa_align += f"\tbwa mem -C -v 2 -R \"@RG\\tID:SAMPLE\\tSM:SAMPLE\" genome forward_reads reverse_reads |\n"
+        bwa_align += f"\tsamtools view -h {params.unmapped} -q {params.quality}"
+        summary.append(bwa_align)
+        duplicates = "Duplicates in non-barcoded alignments were marked following:\n"
+        duplicates += "\tsamtools collate |\n"
+        duplicates += "\tsamtools fixmate |\n"
+        duplicates += "\tsamtools sort -T SAMPLE --reference {params.genomefile} -m 2000M |\n"
+        duplicates += "\tsamtools markdup -S"
+        summary.append(duplicates)
+        merged = "Alignments were merged using:\n"
+        merged += "\tsamtools cat barcode.bam nobarcode.bam > concat.bam"
+        summary.append(merged)
+        sorting += "Merged alignments were sorted using:\n"
+        sorting += "\tsamtools sort -m 2000M concat.bam"
+        summary.append(sorting)
+        sm = "The Snakemake workflow was called via command line:\n"
+        sm += f"\t{config["workflow_call"]}"
+        summary.append(sm)
+        with open(outdir + "/workflow/align.bwa.summary", "w") as f:
+            f.write("\n\n".join(summary))

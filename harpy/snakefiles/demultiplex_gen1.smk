@@ -167,27 +167,23 @@ rule workflow_summary:
         reports = outdir + "/reports/demultiplex.QC.html" if not skip_reports else []
     run:
         os.makedirs(f"{outdir}/workflow/", exist_ok= True)
-        summary_template = f"""
-The harpy demultiplex gen1 workflow ran using these parameters:
-
-Haplotag technology: Generation I
-
-The multiplexed input files:
-    - {R1}
-    - {R2}
-    - {I1}
-    - {I2}
-
-Barcodes were moved into the read headers using the command:
-    demuxGen1 DATA_ demux
-
-The delimited file associating CXX barcodes with samplenames: {samplefile}
-
-QC checks were performed on demultiplexed FASTQ files using:
-    falco -skip-report -skip-summary input.fq.gz
-
-The Snakemake workflow was called via command line:
-    {config["workflow_call"]}
-"""
+        summary = ["The harpy demultiplex gen1 workflow ran using these parameters:"]
+        summary.append("Haplotag technology: Generation I")
+        inputs = "The multiplexed input files:\n"
+        inputs =+ f"\tread 1: {R1}\n"
+        inputs =+ f"\tread 2: {R2}\n"
+        inputs =+ f"\tindex 1: {I1}\n"
+        inputs =+ f"\tindex 2: {I2}"
+        summary.append(inputs)
+        demux = "Barcodes were moved into the read headers using the command:\n"
+        demux += "\tdemuxGen1 DATA_ demux"
+        summary.append(demux)
+        summary.append(f"The delimited file associating CXX barcodes with samplenames: {samplefile}")
+        qc = "QC checks were performed on demultiplexed FASTQ files using:\n"
+        qc += "\tfalco -skip-report -skip-summary input.fq.gz"
+        summary.append(qc)
+        sm = "The Snakemake workflow was called via command line:\n"
+        sm += f"\t{config["workflow_call"]}"
+        summary.append(sm)
         with open(outdir + "/workflow/demux.gen1.summary", "w") as f:
             f.write(summary_template)

@@ -183,24 +183,21 @@ rule workflow_summary:
         dwgmutationrate = config["mutation_rate"],
         dwgprefix = outdir + "/dwgsim_simulated/dwgsim.hap.12"
     run:
-        summary_template = f"""
-The harpy simulate linkedreas workflow ran using these parameters:
-
-Genome haplotype 1: {gen_hap1}
-Genome haplotype 2: {gen_hap2}
-Barcode file: {barcodefile}
-
-Reads were simulated from the provided genomes using:
-    dwgsim -N {{params.dwgreadpairs}} -e 0.0001,0.0016 -E 0.0001,0.0016 -d {{params.dwgouterdist}} -s {{params.dwgdistsd}} -1 135 -2 151 -H -y 0 -S 0 -c 0 -R 0 -r {{params.dwgmutationrate}} -F 0 -o 1 -m /dev/null GENO PREFIX
-
-LRSIM was started from step 3 (-u 3) with these parameters:
-    LRSIM_harpy.pl -g genome1,genome2 -p {{params.lrsproj_dir}}/lrsim/sim -b BARCODES -r {{params.lrsproj_dir}} -i {{params.lrsoutdist}} -s {{params.lrsdist_sd}} -x {{params.lrsn_pairs}} -f {{params.lrsmol_len}} -t {{params.lrsparts}} -m {{params.lrsmols_per}} -z THREADS {{params.lrsstatic}}
-
-10X style barcodes were converted in haplotag BX:Z tags using:
-    10xtoHaplotag.py
-
-The Snakemake workflow was called via command line:
-    {config["workflow_call"]}
-"""
+        summary = ["The harpy simulate linkedreas workflow ran using these parameters:"]
+        summary.append(f"Genome haplotype 1: {gen_hap1}")
+        summary.append(f"Genome haplotype 2: {gen_hap2}")
+        summary.append(f"Barcode file: {barcodefile}")
+        dwgsim = "Reads were simulated from the provided genomes using:\n"
+        dwgsim += f"\tdwgsim -N {params.dwgreadpairs} -e 0.0001,0.0016 -E 0.0001,0.0016 -d {params.dwgouterdist} -s {params.dwgdistsd} -1 135 -2 151 -H -y 0 -S 0 -c 0 -R 0 -r {params.dwgmutationrate} -F 0 -o 1 -m /dev/null GENO PREFIX"
+        summary.append(dwgsim)
+        lrsim = "LRSIM was started from step 3 (-u 3) with these parameters:\n"
+        lrsim += f"\tLRSIM_harpy.pl -g genome1,genome2 -p {params.lrsproj_dir}/lrsim/sim -b BARCODES -r {params.lrsproj_dir} -i {params.lrsoutdist} -s {params.lrsdist_sd} -x {params.lrsn_pairs} -f {params.lrsmol_len} -t {params.lrsparts} -m {params.lrsmols_per} -z THREADS {params.lrsstatic}
+        summary.append(lrsim)
+        bxconvert = "10X style barcodes were converted in haplotag BX:Z tags using:\n"
+        bxconvert += "\t10xtoHaplotag.py"
+        summary.append(bxconvert)
+        sm = "The Snakemake workflow was called via command line:\n"
+        sm += f"\t{config["workflow_call"]}"
+        summary.append(sm)
         with open(outdir + "/workflow/simulate.reads.summary", "w") as f:
-            f.write(summary_template.format(params = params))
+            f.write("\n\n".join(summary))

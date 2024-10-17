@@ -272,19 +272,19 @@ rule workflow_summary:
         iters  = f"-B {iterations}",
         extra = extra
     run:
-        summary_template = f"""
-The harpy sv leviathan workflow ran using these parameters:
-
-The provided genome: {bn}
-
-The barcodes were indexed using:
-   LRez index bam -p -b INPUT
-
-Leviathan was called using:
-    LEVIATHAN -b INPUT -i INPUT.BCI -g GENOME {params}
-
-The Snakemake workflow was called via command line:
-   {config["workflow_call"]}
-"""
+        summary = ["The harpy sv leviathan workflow ran using these parameters:"]
+        summary.append(f"The provided genome: {bn}")
+        concat = "The alignments were concatenated using:\n"
+        concat += "\tconcatenate_bam.py -o groupname.bam -b samples.list"
+        summary.append(concat)
+        bc_idx = "The barcodes were indexed using:\n"
+        bc_idx += "LRez index bam -p -b INPUT"
+        summary.append(bc_idx)
+        svcall = "Leviathan was called using:\n"
+        svcall += f"\tLEVIATHAN -b INPUT -i INPUT.BCI -g GENOME {params}"
+        summary.append(svcall)
+        sm = "The Snakemake workflow was called via command line:\n"
+        sm += f"\t{config["workflow_call"]}"
+        summary.append(sm)
         with open(outdir + "/workflow/sv.leviathan.summary", "w") as f:
-            f.write(summary_template)
+            f.write("\n\n".join(summary))

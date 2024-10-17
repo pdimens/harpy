@@ -133,17 +133,15 @@ rule workflow_summary:
         min_links = f"l={links}",
         arcs_extra = arcs_extra
     run:
-        summary_template = f"""
-The harpy assemble workflow ran using these parameters:
-
-Reads were assembled using cloudspades:
-    spades.py -t THREADS -m {params.max_mem} --gemcode1-1 FQ1 --gemcode1-2 FQ2 --isolate -k {params.k_param} {params.spades_extra}
-
-The draft assembly was error corrected and scaffolded with Tigmint/ARCS/LINKS:
-    arcs-make arcs-tigmint {params[3:]}
-
-The Snakemake workflow was called via command line:
-    {config["workflow_call"]}
-"""
+        summary = ["The harpy assemble workflow ran using these parameters:"]
+        spades = "Reads were assembled using cloudspades:\n"
+        spades += f"\tspades.py -t THREADS -m {params.max_mem} --gemcode1-1 FQ1 --gemcode1-2 FQ2 --isolate -k {params.k_param} {params.spades_extra}"
+        summary.append(spades)
+        arcs = "The draft assembly was error corrected and scaffolded with Tigmint/ARCS/LINKS:\n"
+        arcs += f"\tarcs-make arcs-tigmint {params[3:]}"
+        summary.append(arcs)
+        sm = "The Snakemake workflow was called via command line:\n"
+        sm += f"\t{config["workflow_call"]}"
+        summary.append(sm)
         with open(outdir + "/workflow/metassembly.summary", "w") as f:
-            f.write(summary_template)
+            f.write("\n\n".join(summary))

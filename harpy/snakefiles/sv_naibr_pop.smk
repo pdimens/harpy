@@ -263,25 +263,19 @@ rule workflow_summary:
         agg_report = outdir + "/reports/naibr.pop.summary.html" if not skip_reports else []
     run:
         os.system(f"rm -rf {outdir}/naibrlog")
-        argdict = process_args(extra)
-        argtext = [f"{k}={v}" for k,v in argdict.items()]
-        summary_template = f"""
-The harpy sv naibr workflow ran using these parameters:
-
-The provided genome: {bn}
-The sample grouping file: {groupfile}
-
-The alignments were concatenated using:
-    concatenate_bam.py -o groupname.bam -b samples.list
-
-naibr variant calling ran using these configurations:
-    bam_file=BAMFILE
-    prefix=PREFIX
-    outdir=Variants/naibr/PREFIX
-    {"\n\t".join(argtext)}
-
-The Snakemake workflow was called via command line:
-    {config["workflow_call"]}
-"""
+        summary = ["The harpy sv naibr workflow ran using these parameters:"]
+        summary.append(f"The provided genome: {bn}")
+        concat = "The alignments were concatenated using:\n"
+        concat += "\tconcatenate_bam.py -o groupname.bam -b samples.list"
+        summary.append(concat)
+        naibr = "naibr variant calling ran using these configurations:\n"
+        naibr += "\tbam_file=BAMFILE\n"
+        naibr += "\tprefix=PREFIX\n"
+        naibr += "\toutdir=Variants/naibr/PREFIX\n"
+        naibr += "\n\t".join([f"{k}={v}" for k,v in argdict.items()])
+        summary.append(naibr)
+        sm = "The Snakemake workflow was called via command line:\n"
+        sm = f"\t{config["workflow_call"]}"
+        summary.append(sm)
         with open(outdir + "/workflow/sv.naibr.summary", "w") as f:
-            f.write(summary_template)
+            f.write("\n\n".join(summary))

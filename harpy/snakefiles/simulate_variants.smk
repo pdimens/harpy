@@ -134,22 +134,17 @@ rule workflow_summary:
         dip_prefix = f"{outdir}/diploid/{outprefix}.hap{{haplotype}}",
         vcf_arg = f"-{variant}_vcf"
     run:
-        text = f"simuG -refseq {genome} -prefix {params.prefix} {params.parameters}"
+        summary = [f"The harpy simulate {variant} workflow ran using these parameters:"]
+        summary.append(f"The provided genome: {genome}")
+        summary.append(f"Heterozygosity specified: {heterozygosity}")
+        haploid = "Haploid variants were simulated using simuG:\n"    
+        haploid += f"simuG -refseq {genome} -prefix {params.prefix} {params.parameters}"
+        summary.append(haploid)
         if heterozygosity > 0 and not only_vcf:
-            text += f"\n\nDiploid variants were simulated after splitting by the heterozygosity ratio:\n"
-            text += f"    simuG -refseq {genome} -prefix {params.dip_prefix} {params.vcf_arg} hapX.vcf"
-        summary_template = f"""
-The harpy simulate {variant} workflow ran using these parameters:
-
-The provided genome: {genome}
-
-Heterozygosity specified: {heterozygosity}
-
-Haploid variants were simulated using simuG:
-    {text}    
-
-The Snakemake workflow was called via command line:
-    {config["workflow_call"]}
-"""
-        with open(f"{outdir}/workflow/simulate.{variant}.summary", "w") as f:
-            f.write(summary_template)
+            diploid = f"Diploid variants were simulated after splitting by the heterozygosity ratio:\n"
+            diploid += f"\tsimuG -refseq {genome} -prefix {params.dip_prefix} {params.vcf_arg} hapX.vcf"
+            summary.append(diploid)
+        sm = "The Snakemake workflow was called via command line:"
+        sm += f"\t{config["workflow_call"]}"
+        with open(f"{outdir}/workflow/simulate.snpindel.summary", "w") as f:
+            f.write("\n\n".join(summary))
