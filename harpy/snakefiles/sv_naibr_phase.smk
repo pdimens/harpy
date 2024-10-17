@@ -275,26 +275,6 @@ rule workflow_summary:
         reports =  collect(outdir + "/reports/{sample}.naibr.html", sample = samplenames) if not skip_reports else []
     run:
         os.system(f"rm -rf {outdir}/naibrlog")
-        argtext = [f"{k}={v}" for k,v in argdict.items()]
-        summary_template = f"""
-The harpy sv naibr workflow ran using these parameters:
-
-The provided genome: {bn}
-
-The alignment files were phased using:
-    whatshap haplotag --reference genome.fasta --linked-read-distance-cutoff {mol_dist} --ignore-read-groups --tag-supplementary --sample sample_x file.vcf sample_x.bam
-
-naibr variant calling ran using these configurations:
-    bam_file=BAMFILE
-    prefix=PREFIX
-    outdir=Variants/naibr/PREFIX
-    {"\n\t".join(argtext)}
-
-The Snakemake workflow was called via command line:
-    {config["workflow_call"]}
-"""
-        with open(outdir + "/workflow/sv.naibr.summary", "w") as f:
-            f.write(summary_template)
         summary = ["The harpy sv naibr workflow ran using these parameters:"]
         summary.append(f"The provided genome: {bn}")
         phase = "The alignment files were phased using:\n"
