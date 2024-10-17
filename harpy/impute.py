@@ -81,6 +81,7 @@ def impute(inputs, output_dir, parameters, threads, vcf, vcf_samples, extra_para
     fetch_report(workflowdir, "stitch_collate.Rmd")
     os.makedirs(f"{output_dir}/logs/snakemake", exist_ok = True)
     sm_log = snakemake_log(output_dir, "impute")
+    #TODO PARAMFILE INTEGRATED INTO CONFIG FILE
     configs = {
         "workflow" : "impute",
         "snakemake_log" : sm_log,
