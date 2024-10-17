@@ -113,4 +113,4 @@ def impute(inputs, output_dir, parameters, threads, vcf, vcf_samples, extra_para
     start_text.add_row("Usable Contigs:", f"{n_biallelic}")
     start_text.add_row("Output Folder:", output_dir + "/")
     start_text.add_row("Workflow Log:", sm_log.replace(f"{output_dir}/", "") + "[dim].gz")
-    launch_snakemake(command, "impute", start_text, output_dir, sm_log, quiet)
+    launch_snakemake(command, "impute", start_text, output_dir, sm_log, quiet, "workflow/impute.summary")

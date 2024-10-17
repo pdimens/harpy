@@ -139,7 +139,7 @@ def bwa(inputs, output_dir, genome, depth_window, threads, keep_unmapped, extra_
     start_text.add_row("Genome:", genome)
     start_text.add_row("Output Folder:", output_dir + "/")
     start_text.add_row("Workflow Log:", sm_log.replace(f"{output_dir}/", "") + "[dim].gz")
-    launch_snakemake(command, "align_bwa", start_text, output_dir, sm_log, quiet)
+    launch_snakemake(command, "align_bwa", start_text, output_dir, sm_log, quiet, "workflow/align.bwa.summary")
 
 @click.command(no_args_is_help = True, context_settings=dict(allow_interspersed_args=False), epilog = "Documentation: https://pdimens.github.io/harpy/workflows/align/ema")
 @click.option('-x', '--extra-params', type = str, help = 'Additional ema align parameters, in quotes')
@@ -238,7 +238,7 @@ def ema(inputs, output_dir, platform, barcode_list, genome, depth_window, keep_u
     start_text.add_row("Platform:", platform)
     start_text.add_row("Output Folder:", output_dir + "/")
     start_text.add_row("Workflow Log:", sm_log.replace(f"{output_dir}/", "") + "[dim].gz")
-    launch_snakemake(command, "align_ema", start_text, output_dir, sm_log, quiet)
+    launch_snakemake(command, "align_ema", start_text, output_dir, sm_log, quiet, "workflow/align.ema.summary")
 
 @click.command(no_args_is_help = True, epilog= "Documentation: https://pdimens.github.io/harpy/workflows/align/minimap/")
 @click.option('-g', '--genome', type=click.Path(exists=True, dir_okay=False, readable=True), required = True, help = 'Genome assembly for read mapping')
@@ -321,7 +321,7 @@ def strobe(inputs, output_dir, genome, read_length, keep_unmapped, depth_window,
     start_text.add_row("Genome:", genome)
     start_text.add_row("Output Folder:", output_dir + "/")
     start_text.add_row("Workflow Log:", sm_log.replace(f"{output_dir}/", "") + "[dim].gz")
-    launch_snakemake(command, "align_strobe", start_text, output_dir, sm_log, quiet)
+    launch_snakemake(command, "align_strobe", start_text, output_dir, sm_log, quiet, "workflow/align.strobealign.summary")
 
 align.add_command(bwa)
 align.add_command(ema)

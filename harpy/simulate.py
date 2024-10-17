@@ -204,7 +204,7 @@ def linkedreads(genome_hap1, genome_hap2, output_dir, outer_distance, mutation_r
     start_text.add_row("Barcodes:", os.path.basename(barcodes) if barcodes else "Barcodes: 10X Default")
     start_text.add_row("Output Folder:", output_dir + "/")
     start_text.add_row("Workflow Log:", sm_log.replace(f"{output_dir}/", "") + "[dim].gz")
-    launch_snakemake(command, "simulate_linkedreads", start_text, output_dir, sm_log, quiet)
+    launch_snakemake(command, "simulate_linkedreads", start_text, output_dir, sm_log, quiet, "workflow/simulate.reads.summary")
 
 @click.command(no_args_is_help = True, context_settings=dict(allow_interspersed_args=False), epilog = "This workflow can be quite technical, please read the docs for more information: https://pdimens.github.io/harpy/workflows/simulate/simulate-variants")
 @click.option('-s', '--snp-vcf', type=click.Path(exists=True, dir_okay=False, readable=True), help = 'VCF file of known snps to simulate')
@@ -338,7 +338,7 @@ def snpindel(genome, snp_vcf, indel_vcf, only_vcf, output_dir, prefix, snp_count
 
     start_text.add_row("Output Folder:", output_dir + "/")
     start_text.add_row("Workflow Log:", sm_log.replace(f"{output_dir}/", "") + "[dim].gz")
-    launch_snakemake(command, "simulate_snpindel", start_text, output_dir, sm_log, quiet)
+    launch_snakemake(command, "simulate_snpindel", start_text, output_dir, sm_log, quiet, "workflow/simulate.snpindel.summary")
 
 @click.command(no_args_is_help = True, context_settings=dict(allow_interspersed_args=False), epilog = "Please Documentation: https://pdimens.github.io/harpy/workflows/simulate/simulate-variants")
 @click.option('-v', '--vcf', type=click.Path(exists=True, dir_okay=False, readable=True), help = 'VCF file of known inversions to simulate')
@@ -446,7 +446,7 @@ def inversion(genome, vcf, only_vcf, prefix, output_dir, count, min_size, max_si
 
     start_text.add_row("Output Folder:", output_dir + "/")
     start_text.add_row("Workflow Log:", sm_log.replace(f"{output_dir}/", "") + "[dim].gz")
-    launch_snakemake(command, "simulate_inversion", start_text, output_dir, sm_log, quiet)
+    launch_snakemake(command, "simulate_inversion", start_text, output_dir, sm_log, quiet, "workflow/simulate.inversion.summary")
 
 
 @click.command(no_args_is_help = True, context_settings=dict(allow_interspersed_args=False), epilog = "Please Documentation: https://pdimens.github.io/harpy/workflows/simulate/simulate-variants")
@@ -567,7 +567,7 @@ def cnv(genome, output_dir, vcf, only_vcf, prefix, count, min_size, max_size, du
 
     start_text.add_row("Output Folder:", output_dir + "/")
     start_text.add_row("Workflow Log:", sm_log.replace(f"{output_dir}/", "") + "[dim].gz")
-    launch_snakemake(command, "simulate_cnv", start_text, output_dir, sm_log, quiet)
+    launch_snakemake(command, "simulate_cnv", start_text, output_dir, sm_log, quiet, "workflow/simulate.cnv.summary")
 
 @click.command(no_args_is_help = True, context_settings=dict(allow_interspersed_args=False), epilog = "Please Documentation: https://pdimens.github.io/harpy/workflows/simulate/simulate-variants")
 @click.option('-v', '--vcf', type=click.Path(exists=True, dir_okay=False, readable=True), help = 'VCF file of known translocations to simulate')
@@ -671,7 +671,7 @@ def translocation(genome, output_dir, prefix, vcf, only_vcf, count, centromeres,
 
     start_text.add_row("Output Folder:", output_dir + "/")
     start_text.add_row("Workflow Log:", sm_log.replace(f"{output_dir}/", "") + "[dim].gz")
-    launch_snakemake(command, "simulate_translocation", start_text, output_dir, sm_log, quiet)
+    launch_snakemake(command, "simulate_translocation", start_text, output_dir, sm_log, quiet, "workflow/simulate.translocation.summary")
 
 simulate.add_command(linkedreads)
 simulate.add_command(snpindel)

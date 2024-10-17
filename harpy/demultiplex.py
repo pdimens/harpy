@@ -104,6 +104,6 @@ def gen1(r1_fq, r2_fq, i1_fq, i2_fq, output_dir, schema, threads, snakemake, ski
     start_text.add_row("Demultiplex Schema:", schema)
     start_text.add_row("Output Folder:", output_dir + "/")
     start_text.add_row("Workflow Log:", sm_log.replace(f"{output_dir}/", "") + "[dim].gz")
-    launch_snakemake(command, "demultiplex_gen1", start_text, output_dir, sm_log, quiet)
+    launch_snakemake(command, "demultiplex_gen1", start_text, output_dir, sm_log, quiet, "workflow/demux.gen1.summary")
 
 demultiplex.add_command(gen1)

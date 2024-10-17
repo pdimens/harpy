@@ -58,11 +58,11 @@ rule interleave_fastq:
         FQ1,
         FQ2
     output:
-        temp(f"{outdir}/scaffold/interleaved.fq")
+        temp(f"{outdir}/scaffold/interleaved.fq.gz")
     container:
         None
     shell:
-        "seqtk mergepe {input} > {output}"
+        "seqtk mergepe {input} | bgzip > {output}"
 
 rule link_assembly:
     input:
@@ -75,16 +75,17 @@ rule link_assembly:
         "ln -sr {input} {output}"
 
 rule scaffolding:
-    default_target: True
     input:
         asm = f"{outdir}/scaffold/spades.fa",
-        reads = f"{outdir}/scaffold/interleaved.fq"
-#    output:
-#        f"{outdir}/scaffold/scaffolds.fasta.tigmint.fa"
+        reads = f"{outdir}/scaffold/interleaved.fq.gz"
+    output:
+        f"{outdir}/scaffold/scaffolds.fasta"
+    log:
+        outdir + "/logs/scaffolding.log"
     threads:
         workflow.cores
     params:
-        workdir = f"-C {outdir}/scaffold",
+        workdir = f"{outdir}/scaffold",
         threads = f"-j {workflow.cores}",
         draft_asm = f"draft=spades",
         reads = f"reads=interleaved",
@@ -98,20 +99,24 @@ rule scaffolding:
         min_contig = f"z={min_contig}",
         min_seqid = f"s={seq_id}",
         min_links = f"l={links}",
+        prefix = "base_name=scaffolds",
         extra = arcs_extra
     conda:
         f"{envdir}/assembly.yaml"
     shell:
-        "arcs-make arcs {params}"
+        """
+        arcs-make arcs-tigmint -C {params} 2> {log}
+        mv {params.workdir}/spades.tigmint*.scaffolds.fa {output}
+        """
 
 rule workflow_summary:
-    #default_target: True
+    default_target: True
     input:
-        f"{outdir}/athena/athena.asm.fa"
+        f"{outdir}/scaffold/scaffolds.fasta"
     params:
         k_param = k_param,
         max_mem = max_mem // 1000,
-        extra = extra,
+        spades_extra = spades_extra,
         workdir = f"-C {outdir}/scaffold",
         threads = f"-j {workflow.cores}",
         draft_asm = f"draft=spades",
@@ -126,16 +131,16 @@ rule workflow_summary:
         min_contig = f"z={min_contig}",
         min_seqid = f"s={seq_id}",
         min_links = f"l={links}",
-        extra = arcs_extra
+        arcs_extra = arcs_extra
     run:
         summary_template = f"""
 The harpy assemble workflow ran using these parameters:
 
 Reads were assembled using cloudspades:
-    spades.py -t THREADS -m {params.max_mem} --gemcode1-1 FQ1 --gemcode1-2 FQ2 --isolate -k {params.k_param} {params.extra}
+    spades.py -t THREADS -m {params.max_mem} --gemcode1-1 FQ1 --gemcode1-2 FQ2 --isolate -k {params.k_param} {params.spades_extra}
 
-The draft assembly was error corrected and scaffolded with ARCS:
-    arcs-make arcs {params[3:]}
+The draft assembly was error corrected and scaffolded with Tigmint/ARCS/LINKS:
+    arcs-make arcs-tigmint {params[3:]}
 
 The Snakemake workflow was called via command line:
     {config["workflow_call"]}

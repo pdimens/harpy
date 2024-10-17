@@ -147,7 +147,7 @@ def mpileup(inputs, output_dir, regions, genome, threads, populations, ploidy, e
     start_text.add_row("Genome:", genome)
     start_text.add_row("Output Folder:", output_dir + "/")
     start_text.add_row("Workflow Log:", sm_log.replace(f"{output_dir}/", "") + "[dim].gz")
-    launch_snakemake(command, "snp_mpileup", start_text, output_dir, sm_log, quiet)
+    launch_snakemake(command, "snp_mpileup", start_text, output_dir, sm_log, quiet, "workflow/snp.mpileup.summary")
 
 @click.command(no_args_is_help = True, context_settings=dict(allow_interspersed_args=False), epilog = "Documentation: https://pdimens.github.io/harpy/workflows/snp")
 @click.option('-x', '--extra-params', type = str, help = 'Additional variant caller parameters, in quotes')
@@ -220,7 +220,7 @@ def freebayes(inputs, output_dir, genome, threads, populations, ploidy, regions,
         validate_popsamples(bamlist, populations,quiet)
 
     configs = {
-        "workflow" : "snp mpileup",
+        "workflow" : "snp freebayes",
         "snakemake_log" : sm_log,
         "output_directory" : output_dir,
         "ploidy" : ploidy,
@@ -236,6 +236,9 @@ def freebayes(inputs, output_dir, genome, threads, populations, ploidy, regions,
             "alignments" : [i.as_posix() for i in bamlist]
         }
     }
+    with open(f"{workflowdir}/config.yaml", "w", encoding="utf-8") as config:
+        yaml.dump(configs, config, default_flow_style= False, sort_keys=False)
+
     create_conda_recipes()
     if setup_only:
         sys.exit(0)
@@ -249,7 +252,7 @@ def freebayes(inputs, output_dir, genome, threads, populations, ploidy, regions,
     start_text.add_row("Genome:", genome)
     start_text.add_row("Output Folder:", output_dir + "/")
     start_text.add_row("Workflow Log:", sm_log.replace(f"{output_dir}/", "") + "[dim].gz")
-    launch_snakemake(command, "snp_freebayes", start_text, output_dir, sm_log, quiet)
+    launch_snakemake(command, "snp_freebayes", start_text, output_dir, sm_log, quiet, "workflow/snp.freebayes.summary")
 
 snp.add_command(mpileup)
 snp.add_command(freebayes)

@@ -141,4 +141,4 @@ def assembly(fastq_r1, fastq_r2, bx_tag, kmer_length, max_memory, metassembly, o
         start_text.add_row(f"Kmer Length: ", ",".join(map(str,kmer_length)))
     start_text.add_row("Output Folder:", f"{output_dir}/")
     start_text.add_row("Workflow Log:", sm_log.replace(f"{output_dir}/", "") + "[dim].gz")
-    launch_snakemake(command, asm, start_text, output_dir, sm_log, quiet)
+    launch_snakemake(command, asm, start_text, output_dir, sm_log, quiet, f"workflow/{asm}.summary")

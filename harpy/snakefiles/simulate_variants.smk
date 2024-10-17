@@ -128,3 +128,28 @@ rule workflow_summary:
         multiext(f"{outdir}/{outprefix}", ".vcf", ".bed", ".fasta"),
         collect(f"{outdir}/diploid/{outprefix}.hap" + "{n}.fasta", n = [1,2]) if heterozygosity > 0 and not only_vcf else [],
         collect(f"{outdir}/diploid/{outprefix}.{variant}.hap" + "{n}.vcf", n = [1,2]) if heterozygosity > 0 else []
+    params:
+        prefix = f"{outdir}/{outprefix}",
+        parameters = variant_params,
+        dip_prefix = f"{outdir}/diploid/{outprefix}.hap{{haplotype}}",
+        vcf_arg = f"-{variant}_vcf"
+    run:
+        text = f"simuG -refseq {genome} -prefix {params.prefix} {params.parameters}"
+        if heterozygosity > 0 and not only_vcf:
+            text += f"\n\nDiploid variants were simulated after splitting by the heterozygosity ratio:\n"
+            text += f"    simuG -refseq {genome} -prefix {params.dip_prefix} {params.vcf_arg} hapX.vcf"
+        summary_template = f"""
+The harpy simulate {variant} workflow ran using these parameters:
+
+The provided genome: {genome}
+
+Heterozygosity specified: {heterozygosity}
+
+Haploid variants were simulated using simuG:
+    {text}    
+
+The Snakemake workflow was called via command line:
+    {config["workflow_call"]}
+"""
+        with open(f"{outdir}/workflow/simulate.{variant}.summary", "w") as f:
+            f.write(summary_template)

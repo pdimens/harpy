@@ -76,7 +76,7 @@ def qc(inputs, output_dir, min_length, max_length, trim_adapters, deduplicate, d
     sm_log = snakemake_log(output_dir, "qc")
     k,w,d,a = deconvolve
     configs = {
-        "workflow" : qc,
+        "workflow" : "qc",
         "snakemake_log" : sm_log,
         "output_directory" : output_dir,
         "trim_adapters" : trim_adapters,
@@ -109,4 +109,4 @@ def qc(inputs, output_dir, min_length, max_length, trim_adapters, deduplicate, d
     start_text.add_row("Deconvolve:", "yes" if sum(deconvolve) > 0 else "no")
     start_text.add_row("Output Folder:", f"{output_dir}/")
     start_text.add_row("Workflow Log:", sm_log.replace(f"{output_dir}/", "") + "[dim].gz")
-    launch_snakemake(command, "qc", start_text, output_dir, sm_log, quiet)
+    launch_snakemake(command, "qc", start_text, output_dir, sm_log, quiet, "workflow/qc.summary")

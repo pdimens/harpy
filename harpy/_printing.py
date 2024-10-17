@@ -90,11 +90,14 @@ def print_onstart(text, title):
         file = sys.stderr
     )
 
-def print_onsuccess(outdir):
+def print_onsuccess(outdir, summary = None):
     """Print a green panel with success text. To be used in place of onsuccess: inside a snakefile"""
+    text = f"The workflow has finished successfully! Find the results in [bold]{outdir}/[/bold]"
+    if summary:
+        text += f" and an outline of the workflow in [bold]{summary}[/bold]"
     rprint(
         Panel(
-            f"The workflow has finished successfully! Find the results in [bold]{outdir}/[/bold]",
+            text,
             subtitle = "[bold]success!",
             title_align = "left",
             border_style = "green",

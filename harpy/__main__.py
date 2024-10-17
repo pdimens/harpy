@@ -7,7 +7,6 @@ from . import demultiplex
 from . import container
 from . import hpc
 from . import impute
-from . import metassembly
 from . import assembly
 from . import qc
 from . import phase
