@@ -146,5 +146,6 @@ rule workflow_summary:
             summary.append(diploid)
         sm = "The Snakemake workflow was called via command line:"
         sm += f"\t{config["workflow_call"]}"
+        summary.append(sm)
         with open(f"{outdir}/workflow/simulate.snpindel.summary", "w") as f:
             f.write("\n\n".join(summary))
