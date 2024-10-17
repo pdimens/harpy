@@ -181,24 +181,20 @@ rule workflow_summary:
         dedup = "-D" if dedup else "",
         extra = extra
     run:
+        summary = ["The harpy qc workflow ran using these parameters:"]
+        fastp = "fastp ran using:\n"
+        fastp += f"\tfastp --trim_poly_g --cut_right {params}"
+        summary.append(fastp)
         if deconvolve:
-            deconvolve_text = "Deconvolution occurred using QuickDeconvolution:\n"
-            deconvolve_text += f"   QuickDeconvolution -t threads -i infile.fq -o output.fq -k {decon_k} -w {decon_w} -d {decon_d} -a {decon_a}\n"
-            deconvolve_text += "The interleaved output was split back into forward and reverse reads with seqtk:\n"
-            deconvolve_text += "    seqtk -1 interleaved.fq | gzip > file.R1.fq.gz\n"
-            deconvolve_text += "    seqtk -2 interleaved.fq | gzip > file.R2.fq.gz\n"
-        else:
-            deconvolve_text = ""
-        summary_template = f"""
-The harpy qc workflow ran using these parameters:
-
-fastp ran using:
-    fastp --trim_poly_g --cut_right {params}
-
-{deconvolve_text}
-
-The Snakemake workflow was called via command line:
-    {config["workflow_call"]}
-        """
+            deconv = "Deconvolution occurred using QuickDeconvolution:\n"
+            deconv += "\tQuickDeconvolution -t threads -i infile.fq -o output.fq -k {decon_k} -w {decon_w} -d {decon_d} -a {decon_a}"
+            summary.append(deconv)
+            interlv = "The interleaved output was split back into forward and reverse reads with seqtk:\n"
+            interlv += "\tseqtk -1 interleaved.fq | gzip > file.R1.fq.gz\n"
+            interlv += "\tseqtk -2 interleaved.fq | gzip > file.R2.fq.gz"
+            summary.append(interlv)
+        sm = "The Snakemake workflow was called via command line:\n"
+        sm += f"\t{config["workflow_call"]}"
+        summary.append(sm)
         with open(outdir + "/workflow/qc.summary", "w") as f:
-            f.write(summary_template)
+            f.write("\n\n".join(summary))
