@@ -47,16 +47,15 @@ else:
         variant_params += f" -coding_partition_for_snp_simulation {snp_constraint}" if snp_constraint else ""
         ratio = config["snp"].get("titv_ratio", None)
         variant_params += f" -titv_ratio {ratio}" if ratio else ""
-#TODO CHECK SIZE ALPHA AND CONSTANT OPTION NAMES
     if indel_count:
         indel = True
         variant_params += f" -indel_count {indel_count}"
         ratio = config["indel"].get("indel_ratio", None)
         variant_params += f" -ins_del_ratio {ratio}" if ratio else ""
         size_alpha = config["indel"].get("size_alpha", None)
-        variant_params += f" -indel_size_alpha {size_alpha}" if size_alpha else ""        
+        variant_params += f" -indel_size_powerlaw_alpha {size_alpha}" if size_alpha else ""        
         size_constant = config["indel"].get("size_constant", None)
-        variant_params += f" -indel_size_constant {size_constant}" if size_constant else ""        
+        variant_params += f" -indel_size_powerlaw_constant {size_constant}" if size_constant else ""        
 
     centromeres = config["inputs"].get("centromeres", None)
     variant_params += f" -centromere_gff {centromeres}" if centromeres else ""
