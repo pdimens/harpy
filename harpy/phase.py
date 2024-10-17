@@ -86,7 +86,7 @@ def phase(inputs, output_dir, vcf, threads, molecule_distance, prune_threshold, 
         "samples_from_vcf" : vcf_samples,
         **({'extra': extra_params} if extra_params else {}),
         "skip_reports" : skip_reports,
-        "workflow_call" : command,
+        "workflow_call" : command.rstrip(),
         "inputs" : {
             "variantfile" : vcf,
             **({'genome': genome} if genome else {}),

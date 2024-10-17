@@ -71,7 +71,7 @@ def deconvolve(inputs, output_dir, kmer_length, window_size, density, dropout, t
         "window_size" : window_size,
         "density" :  density,
         "dropout" :  dropout,
-        "workflow_call" : command,
+        "workflow_call" : command.rstrip(),
         "inputs": [i.as_posix() for i in fqlist]
         }
     with open(f"{workflowdir}/config.yaml", "w", encoding="utf-8") as config:

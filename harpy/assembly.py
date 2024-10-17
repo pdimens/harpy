@@ -58,7 +58,7 @@ docstring = {
 @click.argument('fastq_r2', required=True, type=click.Path(exists=True, readable=True), nargs=1)
 def assembly(fastq_r1, fastq_r2, bx_tag, kmer_length, max_memory, metassembly, output_dir, spades_extra,arcs_extra,contig_length,links,min_quality,min_aligned,mismatch,molecule_distance,molecule_length,seq_identity,span,threads, snakemake, skip_reports, quiet, hpc, setup_only):
     """
-    Assemble linked-read sequences
+    Create an assembly/metassembly from linked-reads
 
     The linked-read barcodes must be in either a `BX:Z` or `BC:Z` FASTQ header tag, specified with `--bx-tag`.
     If provided, values for `-k` must be separated by commas and without spaces (e.g. `-k 15,23,51`). Use `--metassembly`
@@ -89,34 +89,34 @@ def assembly(fastq_r1, fastq_r2, bx_tag, kmer_length, max_memory, metassembly, o
         "output_directory" : output_dir,
         "barcode_tag" : bx_tag.upper(),
         "spades" : {
-            **({'assembler': metassembly} if metassembly else {}),
+            **({'assembler' : metassembly} if metassembly else {}),
             "k" : 'auto' if kmer_length is "auto" else ",".join(map(str,kmer_length)),
             "max_memory" : max_memory,
-            **({'extra': spades_extra} if spades_extra else {})
+            **({'extra' : spades_extra} if spades_extra else {})
         },
         **({'tigmint': {}} if not metassembly else {}),
-        **({'arcs': {}} if not metassembly else {}),
-        **({'links': {}} if not metassembly else {}),
-        "skip_reports": skip_reports,
-        "workflow_call": command,
+        **({'arcs' : {}} if not metassembly else {}),
+        **({'links' : {}} if not metassembly else {}),
+        "skip_reports" : skip_reports,
+        "workflow_call" : command.rstrip(),
         "inputs": {
-            "fastq_r1": fastq_r1,
-            "fastq_r2": fastq_r2
+            "fastq_r1" : fastq_r1,
+            "fastq_r2" : fastq_r2
         }
     }
     if not metassembly:
         configs["tigmint"] = {
-            "minimum_mapping_quality": min_quality,
-            "mismatch": mismatch,
-            "molecule_distance": molecule_distance,
-            "molecule_length": molecule_length,
-            "span": span
+            "minimum_mapping_quality" : min_quality,
+            "mismatch" : mismatch,
+            "molecule_distance" : molecule_distance,
+            "molecule_length" : molecule_length,
+            "span" : span
         }
         configs["arcs"] = {
-            "minimum_aligned_reads": min_aligned,
-            "minimum_contig_length": contig_length,
-            "minimum_sequence_identity": seq_identity,
-            **({'extra': arcs_extra} if arcs_extra else {})
+            "minimum_aligned_reads" : min_aligned,
+            "minimum_contig_length" : contig_length,
+            "minimum_sequence_identity" : seq_identity,
+            **({'extra' : arcs_extra} if arcs_extra else {})
         }
         configs["links"] = {
             "minimum_links" : links

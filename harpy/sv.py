@@ -109,7 +109,7 @@ def leviathan(inputs, output_dir, genome, min_sv, min_barcodes, iterations, thre
         "iterations" : iterations,
         **({'extra': extra_params} if extra_params else {}),
         "skip_reports" : skip_reports,
-        "workflow_call" : command,
+        "workflow_call" : command.rstrip(),
         "inputs" : {
             "genome" : Path(genome).resolve().as_posix(),
             **({'groupings': Path(populations).resolve().as_posix()} if populations else {}),
@@ -204,7 +204,7 @@ def naibr(inputs, output_dir, genome, vcf, min_sv, min_barcodes, min_quality, th
         "molecule_distance" : molecule_distance,
         **({'extra': extra_params} if extra_params else {}),
         "skip_reports" : skip_reports,
-        "workflow_call" : command,
+        "workflow_call" : command.rstrip(),
         "inputs" : {
             **({'genome': Path(genome).resolve().as_posix()} if genome else {}),
             **({'vcf': Path(vcf).resolve().as_posix()} if vcf else {}),

@@ -119,7 +119,7 @@ def bwa(inputs, output_dir, genome, depth_window, threads, keep_unmapped, extra_
         "depth_windowsize" : depth_window,
         "skip_reports" : skip_reports,
         **({'extra': extra_params} if extra_params else {}),
-        "workflow_call" : command,
+        "workflow_call" : command.rstrip(),
         "inputs" : {
             "genome": Path(genome).resolve().as_posix(),
             "fastq": [i.as_posix() for i in fqlist]
@@ -215,7 +215,7 @@ def ema(inputs, output_dir, platform, barcode_list, genome, depth_window, keep_u
         "EMA_bins" : ema_bins,
         "skip_reports" : skip_reports,
         **({'extra': extra_params} if extra_params else {}),
-        "workflow_call" : command,
+        "workflow_call" : command.rstrip(),
         "inputs" : {
             "genome": Path(genome).resolve().as_posix(),
             **({'barcode_list': Path(barcode_list).resolve().as_posix()} if barcode_list else {}),
@@ -301,7 +301,7 @@ def strobe(inputs, output_dir, genome, read_length, keep_unmapped, depth_window,
         "depth_windowsize" : depth_window,
         "skip_reports" : skip_reports,
         **({'extra': extra_params} if extra_params else {}),
-        "workflow_call" : command,
+        "workflow_call" : command.rstrip(),
         "inputs" : {
             "genome": Path(genome).resolve().as_posix(),
             "fastq": [i.as_posix() for i in fqlist]

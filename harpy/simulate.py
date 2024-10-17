@@ -182,7 +182,7 @@ def linkedreads(genome_hap1, genome_hap2, output_dir, outer_distance, mutation_r
         "molecule_length" : molecule_length,
         "partitions" : partitions,
         "molecules_per_partition" : molecules_per,
-        "workflow_call" : command,
+        "workflow_call" : command.rstrip(),
         "inputs" : {
             "genome_hap1" : Path(genome_hap1).resolve().as_posix(),
             "genome_hap2" : Path(genome_hap2).resolve().as_posix(),
@@ -321,7 +321,7 @@ def snpindel(genome, snp_vcf, indel_vcf, only_vcf, output_dir, prefix, snp_count
             **({"size_alpha" : indel_size_alpha} if indel_size_alpha and not indel_vcf else {}),
             **({"size_constant" : indel_size_constant} if indel_size_constant and not indel_vcf else {})
         },
-        "workflow_call" : command,
+        "workflow_call" : command.rstrip(),
         "inputs" : {
             "genome" : Path(genome).resolve().as_posix(),
             **({"centromeres" : Path(centromeres).resolve().as_posix()} if centromeres else {}),
@@ -429,7 +429,7 @@ def inversion(genome, vcf, only_vcf, prefix, output_dir, count, min_size, max_si
             **({"min_size":  min_size} if min_size and not vcf else {}),
             **({"max_size" : max_size} if max_size and not vcf else {})
         },
-        "workflow_call" : command,
+        "workflow_call" : command.rstrip(),
         "inputs" : {
             "genome" : Path(genome).resolve().as_posix(),
             **({"centromeres" : Path(centromeres).resolve().as_posix()} if centromeres else {}),
@@ -550,7 +550,7 @@ def cnv(genome, output_dir, vcf, only_vcf, prefix, count, min_size, max_size, du
             **({"max_copy" : max_copy} if max_copy and not vcf else {}),
             **({"gain_ratio" : gain_ratio} if gain_ratio and not vcf else {})
         },
-        "workflow_call" : command,
+        "workflow_call" : command.rstrip(),
         "inputs" : {
             "genome" : Path(genome).resolve().as_posix(),
             **({"centromeres" : Path(centromeres).resolve().as_posix()} if centromeres else {})
@@ -653,7 +653,7 @@ def translocation(genome, output_dir, prefix, vcf, only_vcf, count, centromeres,
             **({"vcf" : Path(vcf).resolve().as_posix()} if vcf else {}),
             **({'count': count} if count and not vcf else {}),
         },
-        "workflow_call" : command,
+        "workflow_call" : command.rstrip(),
         "inputs" : {
             "genome" : Path(genome).resolve().as_posix(),
             **({"centromeres" : Path(centromeres).resolve().as_posix()} if centromeres else {})
