@@ -23,7 +23,7 @@ docstring = {
         },
         {
             "name": "Workflow Controls",
-            "options": ["--hpc", "--output-dir", "--quiet", "--skip-reports", "--snakemake", "--threads", "--help"],
+            "options": ["--conda", "--hpc", "--output-dir", "--quiet", "--skip-reports", "--snakemake", "--threads", "--help"],
         },
     ]
 }
@@ -64,7 +64,7 @@ def assembly(fastq_r1, fastq_r2, bx_tag, kmer_length, max_memory, metassembly, o
     The linked-read barcodes must be in either a `BX:Z` or `BC:Z` FASTQ header tag, specified with `--bx-tag`.
     If provided, values for `-k` must be separated by commas and without spaces (e.g. `-k 15,23,51`). Use `--metassembly`
     to perform a metagenome assembly (ignores scaffolding parameters):
-    - `spades` uses the current version of spades for the initial metagenome assembly, which isn't barcode-aware
+    - `spades` is not barcode-aware, but uses the current version of spades for the initial metassembly
     - `cloudspades` is a barcode-aware variant of spades, but has less development
     """
     output_dir = output_dir.rstrip("/")
@@ -133,7 +133,7 @@ def assembly(fastq_r1, fastq_r2, bx_tag, kmer_length, max_memory, metassembly, o
     start_text = Table(show_header=False,pad_edge=False, show_edge=False, padding = (0,0), box=box.SIMPLE)
     start_text.add_column("detail", justify="left", style="light_steel_blue", no_wrap=True)
     start_text.add_column("value", justify="left")
-    start_text.add_row("Metassembly: ", True if metassembly else False)  
+    start_text.add_row("Metassembly: ", "True" if metassembly else "False")  
     start_text.add_row("Barcode Tag: ", bx_tag.upper())
     if kmer_length == "auto":
         start_text.add_row(f"Kmer Length: ", "auto")
