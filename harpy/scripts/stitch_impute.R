@@ -1,24 +1,24 @@
 suppressWarnings(suppressPackageStartupMessages(library("STITCH")))
 
 # Params pulled in from Snakemake
-bamlist <- snakemake@input[["bamlist"]]
-posfile <- snakemake@input[["infile"]]
+bamlist <- snakemake@input$bamlist
+posfile <- snakemake@input$infile
 chr <- gsub(".stitch", "", basename(posfile))
-outvcf <- snakemake@output[["vcf"]]
+outvcf <- snakemake@output$vcf
 outdir <- normalizePath(dirname(outvcf))
 outfile <- basename(outvcf)
-logfile <- file(snakemake@log[["logfile"]], open = "wt")
+logfile <- file(snakemake@log$logfile, open = "wt")
 # create tmpdir if not already present
 tmpdr <- paste(outdir, "tmp", sep = "/")
 dir.create(file.path(tmpdr), showWarnings = FALSE)
 
 # model parameters
-modeltype <- snakemake@params[["model"]]
-K <- snakemake@params[["k"]]
-S <- snakemake@params[["s"]]
-bx <- as.logical(snakemake@params[["usebx"]])
-bxlim <- snakemake@params[["bxlimit"]]
-nGenerations <- snakemake@params[["ngen"]]
+modeltype <- snakemake@params$model
+K <- snakemake@params$k
+S <- snakemake@params$s
+bx <- as.logical(snakemake@params$usebx)
+bxlim <- snakemake@params$bxlimit
+nGenerations <- snakemake@params$ngen
 nCores <- snakemake@threads
 inputBundleBlockSize <- NA
 cli_args <- list(
@@ -40,7 +40,7 @@ cli_args <- list(
     tempdir              = tmpdr
 )
 # if there are any extra arguments provided to harpy by the -x argument
-extra <- snakemake@params[["extra"]]
+extra <- snakemake@params$extra
 if(extra != ""){
     # convert the extra arguments into proper R types
     # converts numbers to numeric, vectors to vectors, leaves strings as-is
