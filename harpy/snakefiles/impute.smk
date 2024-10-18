@@ -20,7 +20,6 @@ outdir        = config["output_directory"]
 envdir        = os.getcwd() + "/.harpy_envs"
 skip_reports  = config["skip_reports"]
 stitch_params = config["stitch_parameters"]
-#paramspace  = Paramspace(pd.read_csv(paramfile, sep=r"\s+", skip_blank_lines=True).rename(columns=str.lower), param_sep = "", filename_params = ["k", "s", "ngen", "bxlimit"])
 contigs = [i.rstrip() for i in open(biallelic, "r").readlines()]
 
 rule sort_bcf:
