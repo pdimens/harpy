@@ -120,12 +120,20 @@ rule index_vcf:
 
 rule contig_report:
     input:
-        outdir + "/{paramset}/reports/data/contigs/{contig}.stats",
-        outdir + "/{paramset}/contigs/{contig}/plots"
+        statsfile = outdir + "/{paramset}/reports/data/contigs/{contig}.stats",
+        plotdir = outdir + "/{paramset}/contigs/{contig}/plots"
     output:
-        outdir + "/{paramset}/reports/{contig}.stitch.html"
+        outdir + "/{paramset}/reports/{contig}.{paramset}.html"
     log:
         logfile = outdir + "/{paramset}/logs/reports/{contig}.stitch.log"
+    params:
+        model   = lambda wc: stitch_params[wc.paramset]["model"],
+        usebx   = lambda wc: stitch_params[wc.paramset]["usebx"],
+        bxlimit = lambda wc: stitch_params[wc.paramset]["bxlimit"],
+        k       = lambda wc: stitch_params[wc.paramset]["k"],
+        s       = lambda wc: stitch_params[wc.paramset]["s"],
+        ngen    = lambda wc: stitch_params[wc.paramset]["ngen"],
+        extra   = config.get("stitch_extra", "")
     conda:
         f"{envdir}/r.yaml"
     script:
@@ -218,8 +226,8 @@ rule workflow_summary:
     default_target: True
     input: 
         vcf = collect(outdir + "/{paramset}/{paramset}.bcf", paramset = list(stitch_params.keys())),
-        agg_report = collect(outdir + "/{paramset}/reports/{paramset}.html", paramset = list(stitch_params.keys())) if not skip_reports else [],
-        contig_report = collect(outdir + "/{paramset}/reports/{contig}.stitch.html", paramset = list(stitch_params.keys()), contig = contigs) if not skip_reports else [],
+        agg_report = collect(outdir + "/{paramset}/reports/{paramset}.html", paramset = stitch_params.keys()) if not skip_reports else [],
+        contig_report = collect(outdir + "/{paramset}/reports/{contig}.{paramset}.html", paramset = stitch_params.keys(), contig = contigs) if not skip_reports else [],
     run:
         paramfiletext = "\t".join(open(paramfile, "r").readlines())
         summary = ["The harpy impute workflow ran using these parameters:"]
