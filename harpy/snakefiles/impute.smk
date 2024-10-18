@@ -97,10 +97,10 @@ rule impute:
         s       = lambda wc: stitch_params[wc.paramset]["s"],
         ngen    = lambda wc: stitch_params[wc.paramset]["ngen"],
         extra   = config.get("stitch_extra", "")
-    conda:
-        f"{envdir}/stitch.yaml"
     threads:
         workflow.cores - 1
+    conda:
+        f"{envdir}/stitch.yaml"
     script:
         "scripts/stitch_impute.R"
 
