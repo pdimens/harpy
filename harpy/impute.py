@@ -69,7 +69,7 @@ def impute(inputs, output_dir, parameters, threads, vcf, vcf_samples, extra_para
 
     os.makedirs(f"{workflowdir}/", exist_ok= True)
     validate_input_by_ext(vcf, "--vcf", ["vcf", "bcf", "vcf.gz"])
-    check_impute_params(parameters)
+    params = check_impute_params(parameters)
     bamlist, n = parse_alignment_inputs(inputs)
     validate_bam_RG(bamlist, threads, quiet)
     samplenames = vcf_samplematch(vcf, bamlist, vcf_samples)
@@ -81,7 +81,6 @@ def impute(inputs, output_dir, parameters, threads, vcf, vcf_samples, extra_para
     fetch_report(workflowdir, "stitch_collate.Rmd")
     os.makedirs(f"{output_dir}/logs/snakemake", exist_ok = True)
     sm_log = snakemake_log(output_dir, "impute")
-    #TODO PARAMFILE INTEGRATED INTO CONFIG FILE
     configs = {
         "workflow" : "impute",
         "snakemake_log" : sm_log,
@@ -90,6 +89,7 @@ def impute(inputs, output_dir, parameters, threads, vcf, vcf_samples, extra_para
         **({'extra': extra_params} if extra_params else {}),
         "skip_reports" : skip_reports,
         "workflow_call" : command.rstrip(),
+        "stitch_parameters" : params,
         "inputs" : {
             "paramfile" : Path(parameters).resolve().as_posix(),
             "variantfile" : Path(vcf).resolve().as_posix(),
