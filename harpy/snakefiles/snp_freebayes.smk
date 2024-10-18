@@ -91,7 +91,7 @@ rule index_alignments:
 rule bam_list:
     input: 
         bam = bamlist,
-        bai = [f"{i}.bai" for i in bamlist]
+        bai = collect("{bam}.bai", bam = bamlist)
     output:
         outdir + "/workflow/samples.files"
     run:
@@ -102,7 +102,7 @@ rule bam_list:
 rule call_variants:
     input:
         bam = bamlist,
-        bai = [f"{i}.bai" for i in bamlist],
+        bai = collect("{bam}.bai", bam = bamlist),
         groupfile = outdir + "/workflow/sample.groups" if groupings else [],
         ref     = f"Genome/{bn}",
         ref_idx = f"Genome/{bn}.fai",

@@ -103,9 +103,9 @@ rule index_alignments:
 rule bam_list:
     input: 
         bam = bamlist,
-        bai = [f"{i}.bai" for i in bamlist]
+        bai = collect("{bam}.bai", bam = bamlist)
     output:
-        outdir + "/logs/samples.files"
+        temp(outdir + "/logs/samples.files")
     run:
         with open(output[0], "w") as fout:
             for bamfile in input.bam:
@@ -114,6 +114,8 @@ rule bam_list:
 rule mpileup:
     input:
         bamlist = outdir + "/logs/samples.files",
+        bam = bamlist,
+        bai = collect("{bam}.bai", bam = bamlist),
         genome  = f"Genome/{bn}",
         genome_fai = f"Genome/{bn}.fai"
     output: 

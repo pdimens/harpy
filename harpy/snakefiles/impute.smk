@@ -1,9 +1,9 @@
 containerized: "docker://pdimens/harpy:latest"
-
+#TODO figure out how to pull params from config rather than param file
 import os
-import pandas as pd
+#import pandas as pd
 import logging
-from snakemake.utils import Paramspace
+#from snakemake.utils import Paramspace
 
 onstart:
     logger.logger.addHandler(logging.FileHandler(config["snakemake_log"]))
@@ -14,17 +14,17 @@ onerror:
 wildcard_constraints:
     sample = "[a-zA-Z0-9._-]+"
 
-bamlist     = config["inputs"]["alignments"]
-bamdict     = dict(zip(bamlist, bamlist))
-variantfile = config["inputs"]["variantfile"]
-paramfile   = config["inputs"]["paramfile"]
-biallelic   = config["inputs"]["biallelic_contigs"]
-outdir      = config["output_directory"]
-envdir      = os.getcwd() + "/.harpy_envs"
-skip_reports = config["skip_reports"]
-paramspace  = Paramspace(pd.read_csv(paramfile, sep=r"\s+", skip_blank_lines=True).rename(columns=str.lower), param_sep = "", filename_params = ["k", "s", "ngen", "bxlimit"])
-with open(biallelic, "r") as f_open:
-    contigs = [i.rstrip() for i in f_open.readlines()]
+bamlist       = config["inputs"]["alignments"]
+bamdict       = dict(zip(bamlist, bamlist))
+variantfile   = config["inputs"]["variantfile"]
+paramfile     = config["inputs"]["paramfile"]
+biallelic     = config["inputs"]["biallelic_contigs"]
+outdir        = config["output_directory"]
+envdir        = os.getcwd() + "/.harpy_envs"
+skip_reports  = config["skip_reports"]
+stitch_params = config["stitch_parameters"]
+#paramspace  = Paramspace(pd.read_csv(paramfile, sep=r"\s+", skip_blank_lines=True).rename(columns=str.lower), param_sep = "", filename_params = ["k", "s", "ngen", "bxlimit"])
+contigs = [i.rstrip() for i in open(biallelic, "r").readlines()]
 
 rule sort_bcf:
     input:
@@ -52,7 +52,7 @@ rule index_alignments:
 rule alignment_list:
     input:
         bam = bamlist,
-        bailist = [f"{i}.bai" for i in bamlist]
+        bailist = collect("{bam}.bai", bam = bamlist)
     output:
         outdir + "/workflow/input/samples.list"
     run:
@@ -78,26 +78,35 @@ rule stitch_conversion:
 rule impute:
     input:
         bamlist = outdir + "/workflow/input/samples.list",
-        infile  = outdir + "/workflow/input/stitch/{part}.stitch"
+        infile  = outdir + "/workflow/input/stitch/{contig}.stitch"
     output:
-        # format a wildcard pattern like "k{k}/s{s}/ngen{ngen}"
-        # into a file path, with k, s, ngen being the columns of the data frame
-        temp(f"{outdir}/{paramspace.wildcard_pattern}/contigs/" + "{part}/{part}.vcf.gz"),
-        temp(directory(f"{outdir}/{paramspace.wildcard_pattern}/contigs/" + "{part}/plots")),
-        temp(directory(f"{outdir}/{paramspace.wildcard_pattern}/contigs/" + "{part}/tmp")),
-        temp(directory(f"{outdir}/{paramspace.wildcard_pattern}/contigs/" + "{part}/RData")),
-        temp(directory(f"{outdir}/{paramspace.wildcard_pattern}/contigs/" + "{part}/input"))
+        temp(outdir + "/{paramset}/contigs/{contig}/{contig}.vcf.gz"),
+        temp(directory(outdir + "/{paramset}/contigs/{contig}/plots")),
+        temp(directory(outdir + "/{paramset}/contigs/{contig}/tmp")),
+        temp(directory(outdir + "/{paramset}/contigs/{contig}/RData")),
+        temp(directory(outdir + "/{paramset}/contigs/{contig}/input"))
+
+        ## format a wildcard pattern like "k{k}/s{s}/ngen{ngen}"
+        ## into a file path, with k, s, ngen being the columns of the data frame
+        #temp(f"{outdir}/{paramspace.wildcard_pattern}/contigs/" + "{part}/{part}.vcf.gz"),
+        #temp(directory(f"{outdir}/{paramspace.wildcard_pattern}/contigs/" + "{part}/plots")),
+        #temp(directory(f"{outdir}/{paramspace.wildcard_pattern}/contigs/" + "{part}/tmp")),
+        #temp(directory(f"{outdir}/{paramspace.wildcard_pattern}/contigs/" + "{part}/RData")),
+        #temp(directory(f"{outdir}/{paramspace.wildcard_pattern}/contigs/" + "{part}/input"))
     log:
-        f"{outdir}/{paramspace.wildcard_pattern}/logs/" + "{part}.stitch.log"
+        outdir + "/{paramset}/logs/{contig}.stitch.log"
     params:
         # automatically translate the wildcard values into an instance of the param space
         # in the form of a dict (here: {"k": ..., "s": ..., "ngen": ...})
-        parameters = paramspace.instance,
-        extra = config.get("extra", "")
+        #parameters = paramspace.instance,
+        model = lambda wc: stitch_params[wc.paramset]["model"],
+        usebX = lambda wc: stitch_params[wc.paramset]["usebx"],
+        k     = lambda wc: stitch_params[wc.paramset]["k"],
+        s     = lambda wc: stitch_params[wc.paramset]["s"],
+        ngen  = lambda wc: stitch_params[wc.paramset]["ngen"],
+        extra = config.get("stitch_extra", "")
     conda:
         f"{envdir}/stitch.yaml"
-    benchmark:
-        f".Benchmark/{outdir}/stitch.{paramspace.wildcard_pattern}" + ".{part}.txt"
     threads:
         workflow.cores - 1
     script:
