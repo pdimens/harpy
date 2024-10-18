@@ -56,7 +56,7 @@ def launch_snakemake(sm_args, workflow, starttext, outdir, sm_logfile, quiet, su
             if process.poll() or iserror(output):
                 exitcode = EXIT_CODE_SUCCESS if process.poll() == 0 else EXIT_CODE_GENERIC_ERROR
                 break
-            while not output.startswith("Job stats:"):
+            while not output.startswith("Job stats:") and not exitcode:
                 # print dependency text only once
                 if "Downloading and installing remote packages" in output or "Running post-deploy" in output:
                     deps = True
@@ -68,10 +68,10 @@ def launch_snakemake(sm_args, workflow, starttext, outdir, sm_logfile, quiet, su
                     break
                 if "Nothing to be" in output:
                     exitcode = EXIT_CODE_SUCCESS
-                    break
                 if "MissingInput" in output:
                     exitcode = EXIT_CODE_GENERIC_ERROR
-                    break
+                if "AmbiguousRuleException" in output:
+                    exitcode = EXIT_CODE_RUNTIME_ERROR
                 output = process.stderr.readline()
 
             # if dependency text present, print pulsing progress bar
