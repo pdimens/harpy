@@ -91,7 +91,7 @@ rule impute:
         logfile = outdir + "/{paramset}/logs/{contig}.stitch.log"
     params:
         model   = lambda wc: stitch_params[wc.paramset]["model"],
-        usebX   = lambda wc: stitch_params[wc.paramset]["usebx"],
+        usebx   = lambda wc: stitch_params[wc.paramset]["usebx"],
         bxlimit = lambda wc: stitch_params[wc.paramset]["bxlimit"],
         k       = lambda wc: stitch_params[wc.paramset]["k"],
         s       = lambda wc: stitch_params[wc.paramset]["s"],
@@ -218,7 +218,6 @@ rule impute_reports:
     script:
         "report/impute.Rmd"
 
-
 rule workflow_summary:
     default_target: True
     input: 
@@ -233,29 +232,29 @@ rule workflow_summary:
         preproc += "\tbcftools view -M2 -v snps --regions CONTIG INFILE |\n"
         preproc += """\tbcftools query -i '(STRLEN(REF)==1) & (STRLEN(ALT[0])==1) & (REF!="N")' -f '%CHROM\\t%POS\\t%REF\\t%ALT\\n'"""
         summary.append(preproc)
-        stitchparam = "The STITCH parameter file: {paramfile}\n"
+        stitchparam = f"The STITCH parameter file: {paramfile}\n"
         stitchparam += f"\t{paramfiletext}"
         summary.append(stitchparam)
         stitch = "Within R, STITCH was invoked with the following parameters:\n"
         stitch += "\tSTITCH(\n"
-        stitch += "\t\tmethod               = model,\n"
-        stitch += "\t\tposfile              = posfile,\n"
-        stitch += "\t\tbamlist              = bamlist,\n"
-        stitch += "\t\tnCores               = ncores,\n"
-        stitch += "\t\tnGen                 = ngen,\n"
-        stitch += "\t\tchr                  = chr,\n"
-        stitch += "\t\tK                    = k,\n"
-        stitch += "\t\tS                    = s,\n"
-        stitch += "\t\tuse_bx_tag           = usebX,\n"
-        stitch += "\t\tbxTagUpperLimit      = bxlimit,\n"
-        stitch += "\t\tniterations          = 40,\n"
+        stitch += "\t\tmethod = model,\n"
+        stitch += "\t\tposfile = posfile,\n"
+        stitch += "\t\tbamlist = bamlist,\n"
+        stitch += "\t\tnCores = ncores,\n"
+        stitch += "\t\tnGen = ngen,\n"
+        stitch += "\t\tchr = chr,\n"
+        stitch += "\t\tK = k,\n"
+        stitch += "\t\tS = s,\n"
+        stitch += "\t\tuse_bx_tag = usebX,\n"
+        stitch += "\t\tbxTagUpperLimit = bxlimit,\n"
+        stitch += "\t\tniterations = 40,\n"
         stitch += "\t\tswitchModelIteration = 39,\n"
-        stitch += "\t\tsplitReadIterations  = NA,\n"
-        stitch += "\t\toutputdir            = outdir,\n"
-        stitch += "\t\toutput_filename      = outfile\n\t)"
+        stitch += "\t\tsplitReadIterations = NA,\n"
+        stitch += "\t\toutputdir = outdir,\n"
+        stitch += "\t\toutput_filename = outfile\n\t)"
         summary.append(stitch)
         stitchextra = "Additional STITCH parameters provided (overrides existing values above):\n"
-        stitchextra += f"\t{config.get("extra", "None provided")}"
+        stitchextra += f"\t{config.get("extra", "None")}"
         summary.append(stitchextra)
         sm = "The Snakemake workflow was called via command line:\n"
         sm += f"\t{config["workflow_call"]}"
