@@ -1,9 +1,6 @@
 containerized: "docker://pdimens/harpy:latest"
-#TODO figure out how to pull params from config rather than param file
 import os
-#import pandas as pd
 import logging
-#from snakemake.utils import Paramspace
 
 onstart:
     logger.logger.addHandler(logging.FileHandler(config["snakemake_log"]))

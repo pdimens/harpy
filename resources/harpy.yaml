@@ -6,7 +6,6 @@ dependencies:
   - apptainer
   - bcftools =1.20
   - conda >24.7
-  - pandas
   - pysam
   - python
   - rich-click
