@@ -64,47 +64,39 @@ rule stitch_conversion:
         bcf = f"{outdir}/workflow/input/vcf/input.sorted.bcf",
         idx = f"{outdir}/workflow/input/vcf/input.sorted.bcf.csi"
     output:
-        outdir + "/workflow/input/stitch/{part}.stitch"
+        outdir + "/workflow/input/stitch/{contig}.stitch"
     threads: 
         3
     container:
         None
     shell:
         """
-        bcftools view --types snps -M2 --regions {wildcards.part} {input.bcf} |
+        bcftools view --types snps -M2 --regions {wildcards.contig} {input.bcf} |
             bcftools query -i '(STRLEN(REF)==1) & (STRLEN(ALT[0])==1) & (REF!="N")' -f '%CHROM\\t%POS\\t%REF\\t%ALT\\n' > {output}
         """
 
 rule impute:
     input:
         bamlist = outdir + "/workflow/input/samples.list",
-        infile  = outdir + "/workflow/input/stitch/{contig}.stitch"
+        infile  = outdir + "/workflow/input/stitch/{contig}.stitch",
+        bam = bamlist,
+        bailist = collect("{bam}.bai", bam = bamlist)
     output:
-        temp(outdir + "/{paramset}/contigs/{contig}/{contig}.vcf.gz"),
         temp(directory(outdir + "/{paramset}/contigs/{contig}/plots")),
         temp(directory(outdir + "/{paramset}/contigs/{contig}/tmp")),
         temp(directory(outdir + "/{paramset}/contigs/{contig}/RData")),
-        temp(directory(outdir + "/{paramset}/contigs/{contig}/input"))
-
-        ## format a wildcard pattern like "k{k}/s{s}/ngen{ngen}"
-        ## into a file path, with k, s, ngen being the columns of the data frame
-        #temp(f"{outdir}/{paramspace.wildcard_pattern}/contigs/" + "{part}/{part}.vcf.gz"),
-        #temp(directory(f"{outdir}/{paramspace.wildcard_pattern}/contigs/" + "{part}/plots")),
-        #temp(directory(f"{outdir}/{paramspace.wildcard_pattern}/contigs/" + "{part}/tmp")),
-        #temp(directory(f"{outdir}/{paramspace.wildcard_pattern}/contigs/" + "{part}/RData")),
-        #temp(directory(f"{outdir}/{paramspace.wildcard_pattern}/contigs/" + "{part}/input"))
+        temp(directory(outdir + "/{paramset}/contigs/{contig}/input")),
+        vcf = temp(outdir + "/{paramset}/contigs/{contig}/{contig}.vcf.gz")
     log:
-        outdir + "/{paramset}/logs/{contig}.stitch.log"
+        logfile = outdir + "/{paramset}/logs/{contig}.stitch.log"
     params:
-        # automatically translate the wildcard values into an instance of the param space
-        # in the form of a dict (here: {"k": ..., "s": ..., "ngen": ...})
-        #parameters = paramspace.instance,
-        model = lambda wc: stitch_params[wc.paramset]["model"],
-        usebX = lambda wc: stitch_params[wc.paramset]["usebx"],
-        k     = lambda wc: stitch_params[wc.paramset]["k"],
-        s     = lambda wc: stitch_params[wc.paramset]["s"],
-        ngen  = lambda wc: stitch_params[wc.paramset]["ngen"],
-        extra = config.get("stitch_extra", "")
+        model   = lambda wc: stitch_params[wc.paramset]["model"],
+        usebX   = lambda wc: stitch_params[wc.paramset]["usebx"],
+        bxlimit = lambda wc: stitch_params[wc.paramset]["bxlimit"],
+        k       = lambda wc: stitch_params[wc.paramset]["k"],
+        s       = lambda wc: stitch_params[wc.paramset]["s"],
+        ngen    = lambda wc: stitch_params[wc.paramset]["ngen"],
+        extra   = config.get("stitch_extra", "")
     conda:
         f"{envdir}/stitch.yaml"
     threads:
@@ -114,13 +106,13 @@ rule impute:
 
 rule index_vcf:
     input:
-        vcf   = outdir + "/{stitchparams}/contigs/{part}/{part}.vcf.gz"
+        vcf   = outdir + "/{paramset}/contigs/{contig}/{contig}.vcf.gz"
     output:
-        vcf   = outdir + "/{stitchparams}/contigs/{part}.vcf.gz",
-        idx   = outdir + "/{stitchparams}/contigs/{part}.vcf.gz.tbi",
-        stats = outdir + "/{stitchparams}/reports/data/contigs/{part}.stats"
+        vcf   = outdir + "/{paramset}/contigs/{contig}.vcf.gz",
+        idx   = outdir + "/{paramset}/contigs/{contig}.vcf.gz.tbi",
+        stats = outdir + "/{paramset}/reports/data/contigs/{contig}.stats"
     wildcard_constraints:
-        part = "[^/]+"
+        contig = "[^/]+"
     container:
         None
     shell:
@@ -130,14 +122,14 @@ rule index_vcf:
         bcftools stats -s "-" {input.vcf} > {output.stats}
         """
 
-rule stitch_reports:
+rule contig_report:
     input:
-        outdir + "/{stitchparams}/reports/data/contigs/{part}.stats",
-        outdir + "/{stitchparams}/contigs/{part}/plots"
+        outdir + "/{paramset}/reports/data/contigs/{contig}.stats",
+        outdir + "/{paramset}/contigs/{contig}/plots"
     output:
-        outdir + "/{stitchparams}/reports/{part}.stitch.html"
+        outdir + "/{paramset}/reports/{contig}.stitch.html"
     log:
-        logfile = outdir + "/{stitchparams}/logs/reports/{part}.stitch.log"
+        logfile = outdir + "/{paramset}/logs/reports/{contig}.stitch.log"
     conda:
         f"{envdir}/r.yaml"
     script:
@@ -145,19 +137,21 @@ rule stitch_reports:
 
 rule concat_list:
     input:
-        bcf = collect(outdir + "/{{stitchparams}}/contigs/{part}.vcf.gz", part = contigs)
+        bcf = collect(outdir + "/{{paramset}}/contigs/{contig}.vcf.gz", contig = contigs)
     output:
-        temp(outdir + "/{stitchparams}/bcf.files")
+        temp(outdir + "/{paramset}/bcf.files")
     run:
         with open(output[0], "w") as fout:
             _ = fout.write("\n".join(input.bcf))
 
 rule merge_vcf:
     input:
-        files = outdir + "/{stitchparams}/bcf.files",
-        idx   = collect(outdir + "/{{stitchparams}}/contigs/{part}.vcf.gz.tbi", part = contigs)
+        files = outdir + "/{paramset}/bcf.files",
+        idx   = collect(outdir + "/{{paramset}}/contigs/{contig}.vcf.gz.tbi", contig = contigs)
     output:
-        outdir + "/{stitchparams}/variants.imputed.bcf"
+        outdir + "/{paramset}/{paramset}.bcf"
+    wildcard_constraints:
+        paramset = "[^/]+"
     threads:
         workflow.cores
     container:
@@ -167,9 +161,11 @@ rule merge_vcf:
 
 rule index_merged:
     input:
-        outdir + "/{stitchparams}/variants.imputed.bcf"
+        outdir + "/{paramset}/{paramset}.bcf"
     output:
-        outdir + "/{stitchparams}/variants.imputed.bcf.csi"
+        outdir + "/{paramset}/{paramset}.bcf.csi"
+    wildcard_constraints:
+        paramset = "[^/]+"
     container:
         None
     shell:
@@ -177,26 +173,28 @@ rule index_merged:
 
 rule general_stats:
     input:
-        bcf = outdir + "/{stitchparams}/variants.imputed.bcf",
-        idx = outdir + "/{stitchparams}/variants.imputed.bcf.csi"
+        bcf = outdir + "/{paramset}/{paramset}.bcf",
+        idx = outdir + "/{paramset}/{paramset}.bcf.csi"
     output:
-        outdir + "/{stitchparams}/reports/data/impute.stats"
+        outdir + "/{paramset}/reports/data/impute.stats"
+    wildcard_constraints:
+        paramset = "[^/]+"
     container:
         None
     shell:
-        """
-        bcftools stats -s "-" {input.bcf} > {output}
-        """
+        "bcftools stats -s \"-\" {input.bcf} > {output}"
 
 rule compare_stats:
     input:
         orig    = outdir + "/workflow/input/vcf/input.sorted.bcf",
         origidx = outdir + "/workflow/input/vcf/input.sorted.bcf.csi",
-        impute  = outdir + "/{stitchparams}/variants.imputed.bcf",
-        idx     = outdir + "/{stitchparams}/variants.imputed.bcf.csi"
+        impute  = outdir + "/{paramset}/{paramset}.bcf",
+        idx     = outdir + "/{paramset}/{paramset}.bcf.csi"
     output:
-        compare = outdir + "/{stitchparams}/reports/data/impute.compare.stats",
-        info_sc = temp(outdir + "/{stitchparams}/reports/data/impute.infoscore")
+        compare = outdir + "/{paramset}/reports/data/impute.compare.stats",
+        info_sc = temp(outdir + "/{paramset}/reports/data/impute.infoscore")
+    wildcard_constraints:
+        paramset = "[^/]+"
     container:
         None
     shell:
@@ -207,14 +205,14 @@ rule compare_stats:
 
 rule impute_reports:
     input: 
-        outdir + "/{stitchparams}/reports/data/impute.compare.stats",
-        outdir + "/{stitchparams}/reports/data/impute.infoscore"
+        outdir + "/{paramset}/reports/data/impute.compare.stats",
+        outdir + "/{paramset}/reports/data/impute.infoscore"
     output:
-        outdir + "/{stitchparams}/reports/variants.imputed.html"
+        outdir + "/{paramset}/reports/{paramset}.html"
     log:
-        logfile = outdir + "/{stitchparams}/logs/reports/imputestats.log"
+        logfile = outdir + "/{paramset}/logs/reports/imputestats.log"
     params:
-        lambda wc: wc.get("stitchparams")
+        lambda wc: wc.get("paramset")
     conda:
         f"{envdir}/r.yaml"
     script:
@@ -224,16 +222,16 @@ rule impute_reports:
 rule workflow_summary:
     default_target: True
     input: 
-        vcf = collect(outdir + "/{stitchparams}/variants.imputed.bcf", stitchparams=paramspace.instance_patterns),
-        agg_report = collect(outdir + "/{stitchparams}/reports/variants.imputed.html", stitchparams=paramspace.instance_patterns) if not skip_reports else [],
-        contig_report = collect(outdir + "/{stitchparams}/reports/{part}.stitch.html", stitchparams=paramspace.instance_patterns, part = contigs) if not skip_reports else [],
+        vcf = collect(outdir + "/{paramset}/{paramset}.bcf", paramset = list(stitch_params.keys())),
+        agg_report = collect(outdir + "/{paramset}/reports/{paramset}.html", paramset = list(stitch_params.keys())) if not skip_reports else [],
+        contig_report = collect(outdir + "/{paramset}/reports/{contig}.stitch.html", paramset = list(stitch_params.keys()), contig = contigs) if not skip_reports else [],
     run:
         paramfiletext = "\t".join(open(paramfile, "r").readlines())
         summary = ["The harpy impute workflow ran using these parameters:"]
         summary.append(f"The provided variant file: {variantfile}")
         preproc = "Preprocessing was performed with:\n"
         preproc += "\tbcftools view -M2 -v snps --regions CONTIG INFILE |\n"
-        preproc += "\tbcftools query -i '(STRLEN(REF)==1) & (STRLEN(ALT[0])==1) & (REF!="N")' -f '%CHROM\\t%POS\\t%REF\\t%ALT\\n'"
+        preproc += """\tbcftools query -i '(STRLEN(REF)==1) & (STRLEN(ALT[0])==1) & (REF!="N")' -f '%CHROM\\t%POS\\t%REF\\t%ALT\\n'"""
         summary.append(preproc)
         stitchparam = "The STITCH parameter file: {paramfile}\n"
         stitchparam += f"\t{paramfiletext}"
