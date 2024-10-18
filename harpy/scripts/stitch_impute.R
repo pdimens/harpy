@@ -4,21 +4,21 @@ suppressWarnings(suppressPackageStartupMessages(library("STITCH")))
 bamlist <- snakemake@input[["bamlist"]]
 posfile <- snakemake@input[["infile"]]
 chr <- gsub(".stitch", "", basename(posfile))
-outdir <- normalizePath(dirname(snakemake@output[[1]]))
-outfile <- basename(snakemake@output[[1]])
-logfile <- file(snakemake@log[[1]], open = "wt")
+outvcf <- snakemake@output[["vcf"]]
+outdir <- normalizePath(dirname(outvcf))
+outfile <- basename(outvcf)
+logfile <- file(snakemake@log[["logfile"]], open = "wt")
 # create tmpdir if not already present
 tmpdr <- paste(outdir, "tmp", sep = "/")
 dir.create(file.path(tmpdr), showWarnings = FALSE)
 
 # model parameters
-parameters <- snakemake@params[["parameters"]]
-modeltype <- parameters$model
-K <- parameters$k
-S <- parameters$s
-bx <- toupper(parameters$usebx) %in% c("TRUE", "YES", "Y")
-bxlim <- parameters$bxlimit
-nGenerations <- parameters$ngen
+modeltype <- snakemake@params[["model"]]
+K <- snakemake@params[["k"]]
+S <- snakemake@params[["s"]]
+bx <- as.logical(snakemake@params[["usebx"]])
+bxlim <- snakemake@params[["bxlimit"]]
+nGenerations <- snakemake@params[["ngen"]]
 nCores <- snakemake@threads
 inputBundleBlockSize <- NA
 cli_args <- list(
