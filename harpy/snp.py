@@ -119,14 +119,14 @@ def mpileup(inputs, output_dir, regions, genome, threads, populations, ploidy, e
         "snakemake_log" : sm_log,
         "output_directory" : output_dir,
         "ploidy" : ploidy,
-        "regiontype" : regtype,
-        **({'windowsize': regions} if regtype == "windows" else {}),
+        "region_type" : regtype,
+        **({'windowsize': int(regions)} if regtype == "windows" else {}),
         **({'extra': extra_params} if extra_params else {}),
         "skip_reports" : skip_reports,
         "workflow_call" : command.rstrip(),
         "inputs" : {
             "genome" : Path(genome).resolve().as_posix(),
-            "regions" : region,
+            "regions" : Path(region).resolve().as_posix() if regtype != "region" else region,
             **({'groupings': Path(populations).resolve().as_posix()} if populations else {}),
             "alignments" : [i.as_posix() for i in bamlist]
         }
@@ -224,14 +224,14 @@ def freebayes(inputs, output_dir, genome, threads, populations, ploidy, regions,
         "snakemake_log" : sm_log,
         "output_directory" : output_dir,
         "ploidy" : ploidy,
-        "regiontype" : regtype,
-        **({'windowsize': regions} if regtype is "windows" else {}),
+        "region_type" : regtype,
+        **({'windowsize': int(regions)} if regtype == "windows" else {}),
         **({'extra': extra_params} if extra_params else {}),
         "skip_reports" : skip_reports,
         "workflow_call" : command.rstrip(),
         "inputs" : {
             "genome" : Path(genome).resolve().as_posix(),
-            "regions" : region,
+            "regions" : Path(region).resolve().as_posix() if regtype != "region" else region,
             **({'groupings': Path(populations).resolve().as_posix()} if populations else {}),
             "alignments" : [i.as_posix() for i in bamlist]
         }

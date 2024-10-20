@@ -16,7 +16,7 @@ wildcard_constraints:
 envdir      = os.path.join(os.getcwd(), ".harpy_envs")
 ploidy 		= config["ploidy"]
 mp_extra 	= config.get("extra", "")
-regiontype  = config["regiontype"]
+regiontype  = config["region_type"]
 windowsize  = config.get("windowsize", None)
 outdir      = config["output_directory"]
 skip_reports = config["skip_reports"]
