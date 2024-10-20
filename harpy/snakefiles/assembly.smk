@@ -79,7 +79,7 @@ rule scaffolding:
         asm = f"{outdir}/scaffold/spades.fa",
         reads = f"{outdir}/scaffold/interleaved.fq.gz"
     output:
-        f"{outdir}/scaffold/scaffolds.fasta"
+        f"{outdir}/scaffolds.fasta"
     log:
         outdir + "/logs/scaffolding.log"
     threads:
@@ -112,7 +112,7 @@ rule scaffolding:
 rule workflow_summary:
     default_target: True
     input:
-        f"{outdir}/scaffold/scaffolds.fasta"
+        f"{outdir}/scaffolds.fasta"
     params:
         k_param = k_param,
         max_mem = max_mem // 1000,
@@ -138,10 +138,10 @@ rule workflow_summary:
         spades += f"\tspades.py -t THREADS -m {params.max_mem} --gemcode1-1 FQ1 --gemcode1-2 FQ2 --isolate -k {params.k_param} {params.spades_extra}"
         summary.append(spades)
         arcs = "The draft assembly was error corrected and scaffolded with Tigmint/ARCS/LINKS:\n"
-        arcs += f"\tarcs-make arcs-tigmint {params[3:]}"
+        arcs += f"\tarcs-make arcs-tigmint {" ".join(params[3:])}"
         summary.append(arcs)
         sm = "The Snakemake workflow was called via command line:\n"
         sm += f"\t{config["workflow_call"]}"
         summary.append(sm)
-        with open(outdir + "/workflow/metassembly.summary", "w") as f:
+        with open(outdir + "/workflow/assembly.summary", "w") as f:
             f.write("\n\n".join(summary))

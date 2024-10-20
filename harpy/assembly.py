@@ -61,11 +61,11 @@ def assembly(fastq_r1, fastq_r2, bx_tag, kmer_length, max_memory, metassembly, o
     """
     Create an assembly/metassembly from linked-reads
 
-    The linked-read barcodes must be in either a `BX:Z` or `BC:Z` FASTQ header tag, specified with `--bx-tag`.
-    If provided, values for `-k` must be separated by commas and without spaces (e.g. `-k 15,23,51`). Use `--metassembly`
-    to perform a metagenome assembly (ignores scaffolding parameters):
-    - `spades` is not barcode-aware, but uses the current version of spades for the initial metassembly
-    - `cloudspades` is a barcode-aware variant of spades, but has less development
+    The linked-read barcodes must be in `BX:Z` or `BC:Z` FASTQ header tags. If provided, values for `-k` must be
+    separated by commas and without spaces (e.g. `-k 15,23,51`). It is strongly recommended to first deconvolve
+    the input FASTQ files with `harpy deconvolve`.  Use `--metassembly` to perform a metagenome assembly:
+    - `spades`: ignores linked read information for the initial metassembly
+    - `cloudspades` incorporates linked read data for the initial metassembly
     """
     output_dir = output_dir.rstrip("/")
     asm = "metassembly" if metassembly else "assembly"
