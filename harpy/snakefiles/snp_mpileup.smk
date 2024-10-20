@@ -13,7 +13,7 @@ onerror:
 wildcard_constraints:
     sample = "[a-zA-Z0-9._-]+"
 
-envdir      = os.getcwd() + "/.harpy_envs"
+envdir      = os.path.join(os.getcwd(), ".harpy_envs")
 ploidy 		= config["ploidy"]
 mp_extra 	= config.get("extra", "")
 regiontype  = config["regiontype"]
@@ -265,8 +265,6 @@ rule workflow_summary:
         bcfcall += "\tbcftools call --multiallelic-caller {params} --variants-only --output-type b |\n"
         bcfcall += "\tbcftools sort -"
         summary.append(bcfcall)
-        varcall += f"\tbcftools sort -"
-        summary.append(varcall)
         merged = "The variants identified in the intervals were merged into the final variant file using:\n"
         merged += "\tbcftools concat -f bcf.files -a --remove-duplicates"
         summary.append(merged)
@@ -277,4 +275,4 @@ rule workflow_summary:
         sm += f"\t{config["workflow_call"]}"
         summary.append(sm)
         with open(outdir + "/workflow/snp.mpileup.summary", "w") as f:
-            f.write(summary_template)
+            f.write("\n\n".join(summary))

@@ -13,7 +13,7 @@ onerror:
 FQ1 = config["inputs"]["fastq_r1"],
 FQ2 = config["inputs"]["fastq_r2"]
 outdir = config["output_directory"]
-envdir = os.getcwd() + "/.harpy_envs"
+envdir = os.path.join(os.getcwd(), ".harpy_envs")
 max_mem = config["spades"]["max_memory"]
 k_param = config["spades"]["k"]
 metassembly = config["spades"]["assembler"]
@@ -109,10 +109,10 @@ rule cloudspades_assembly:
         fastq_R1 = FQ1,
         fastq_R2 = FQ2
     output:
-        f"{outdir}/cloudspades_assembly/contigs.fasta",
-        f"{outdir}/cloudspades_assembly/scaffolds.fasta"
+        f"{spadesdir}/contigs.fasta",
+        f"{spadesdir}/scaffolds.fasta"
     params:
-        outdir = outdir,
+        outdir = spadesdir,
         k = k_param,
         mem = max_mem // 1000,
         extra = extra
@@ -242,7 +242,7 @@ rule workflow_summary:
         bxsort += f"\tsamtools sort -O SAM -t {params.bx} |\n"  
         bxsort += "\tsamtools fastq -T "*" -1 FQ_out1 -2 FQ_out2"  
         summary.append(bxsort)
-        bxappend += "Barcoded-sorted FASTQ files had \"-1\" appended to the barcode to make them Athena-compliant:\n"  
+        bxappend = "Barcoded-sorted FASTQ files had \"-1\" appended to the barcode to make them Athena-compliant:\n"  
         bxappend = f"\tsed 's/{params.bx}:Z:[^[:space:]]*/&-1/g' FASTQ | bgzip > FASTQ_OUT"  
         summary.append(bxappend)
         spades = f"Reads were assembled using {metassembly}:\n"
@@ -260,8 +260,8 @@ rule workflow_summary:
         athena = "Athena ran with the config file Harpy built from the files created from the previous steps:\n"
         athena += "\tathena-meta --config athena.config"
         summary.append(athena)
-        sm += "The Snakemake workflow was called via command line:\n"
-        sm = f"\t{config["workflow_call"]}"
+        sm = "The Snakemake workflow was called via command line:\n"
+        sm += f"\t{config["workflow_call"]}"
         summary.append(sm)
         with open(outdir + "/workflow/metassembly.summary", "w") as f:  
             f.write("\n\n".join(summary))

@@ -15,7 +15,7 @@ wildcard_constraints:
     sample = "[a-zA-Z0-9._-]+",
     population = "[a-zA-Z0-9._-]+"
 
-envdir       = os.getcwd() + "/.harpy_envs"
+envdir       = os.path.join(os.getcwd(), ".harpy_envs")
 genomefile   = config["inputs"]["genome"]
 bn           = os.path.basename(genomefile)
 bamlist      = config["inputs"]["alignments"]

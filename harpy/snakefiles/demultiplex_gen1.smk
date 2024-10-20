@@ -17,7 +17,7 @@ I2 = config["inputs"]["I2"]
 samplefile = config["inputs"]["demultiplex_schema"]
 skip_reports = config["skip_reports"]
 outdir = config["output_directory"]
-envdir = os.getcwd() + "/.harpy_envs"
+envdir = os.path.join(os.getcwd(), ".harpy_envs")
 
 ## the barcode log file ##
 def barcodedict(smpl):
@@ -170,10 +170,10 @@ rule workflow_summary:
         summary = ["The harpy demultiplex gen1 workflow ran using these parameters:"]
         summary.append("Haplotag technology: Generation I")
         inputs = "The multiplexed input files:\n"
-        inputs =+ f"\tread 1: {R1}\n"
-        inputs =+ f"\tread 2: {R2}\n"
-        inputs =+ f"\tindex 1: {I1}\n"
-        inputs =+ f"\tindex 2: {I2}"
+        inputs += f"\tread 1: {R1}\n"
+        inputs += f"\tread 2: {R2}\n"
+        inputs += f"\tindex 1: {I1}\n"
+        inputs += f"\tindex 2: {I2}"
         summary.append(inputs)
         demux = "Barcodes were moved into the read headers using the command:\n"
         demux += "\tdemuxGen1 DATA_ demux"

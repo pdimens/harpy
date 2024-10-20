@@ -91,7 +91,7 @@ def assembly(fastq_r1, fastq_r2, bx_tag, kmer_length, max_memory, metassembly, o
         "barcode_tag" : bx_tag.upper(),
         "spades" : {
             **({'assembler' : metassembly} if metassembly else {}),
-            "k" : 'auto' if kmer_length is "auto" else ",".join(map(str,kmer_length)),
+            "k" : 'auto' if kmer_length == "auto" else ",".join(map(str,kmer_length)),
             "max_memory" : max_memory,
             **({'extra' : spades_extra} if spades_extra else {})
         },
@@ -136,9 +136,9 @@ def assembly(fastq_r1, fastq_r2, bx_tag, kmer_length, max_memory, metassembly, o
     start_text.add_row("Metassembly: ", "True" if metassembly else "False")  
     start_text.add_row("Barcode Tag: ", bx_tag.upper())
     if kmer_length == "auto":
-        start_text.add_row(f"Kmer Length: ", "auto")
+        start_text.add_row("Kmer Length: ", "auto")
     else:
-        start_text.add_row(f"Kmer Length: ", ",".join(map(str,kmer_length)))
+        start_text.add_row("Kmer Length: ", ",".join(map(str,kmer_length)))
     start_text.add_row("Output Folder:", f"{output_dir}/")
     start_text.add_row("Workflow Log:", sm_log.replace(f"{output_dir}/", "") + "[dim].gz")
     launch_snakemake(command, asm, start_text, output_dir, sm_log, quiet, f"workflow/{asm}.summary")

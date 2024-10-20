@@ -13,7 +13,7 @@ onerror:
 
 outdir = config["output_directory"]
 genome = config["inputs"]["genome"]
-envdir = os.getcwd() + "/.harpy_envs"
+envdir = os.path.join(os.getcwd(), ".harpy_envs")
 snp_vcf = config["snp"].get("vcf", None)
 indel_vcf = config["indel"].get("vcf", None)
 heterozygosity = float(config["heterozygosity"]["ratio"])

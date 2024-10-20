@@ -13,7 +13,7 @@ onerror:
 wildcard_constraints:
     sample = "[a-zA-Z0-9._-]+"
 
-envdir      = os.getcwd() + "/.harpy_envs"
+envdir      = os.path.join(os.getcwd(), ".harpy_envs")
 ploidy 		= config["ploidy"]
 extra 	    = config.get("extra", "") 
 regiontype  = config["regiontype"]

@@ -12,7 +12,7 @@ onerror:
     os.remove(logger.logfile)
 
 outdir = config["output_directory"]
-envdir = os.getcwd() + "/.harpy_envs"
+envdir = os.path.join(os.getcwd(), ".harpy_envs")
 variant = config["workflow"].split()[1]
 outprefix = config["prefix"]
 genome = config["inputs"]["genome"]
@@ -35,15 +35,11 @@ else:
     exclude = config["inputs"].get("excluded_chromosomes", None)
     variant_params += f" -excluded_chr_list {exclude}" if exclude else ""
     variant_params += f" -seed {randomseed}" if randomseed else ""
-    if variant == "inversion":
-        min_size = config[variant].get("min_size", None)
-        variant_params += f" -{variant}_min_size {min_size}" if min_size else ""
-        max_size = config[variant].get("max_size", None)
-        variant_params += f" -{variant}_max_size {max_size}" if max_size else ""
-    if variant == "cnv":
-        min_size = config[variant].get("min_size", None)
-        variant_params += f" -{variant}_min_size {min_size}" if min_size else ""
-        max_size = config[variant].get("max_size", None)
+if variant in ["inversion", "cnv"]:  
+    min_size = config[variant].get("min_size", None)  
+    variant_params += f" -{variant}_min_size {min_size}" if min_size else ""  
+    max_size = config[variant].get("max_size", None)  
+    variant_params += f" -{variant}_max_size {max_size}" if max_size else "" 
         variant_params += f" -{variant}_max_size {max_size}" if max_size else ""
         ratio   = config[variant].get("duplication_ratio", None)
         variant_params += f" -duplication_tandem_dispersed_ratio {ratio}" if ratio else ""
@@ -147,5 +143,5 @@ rule workflow_summary:
         sm = "The Snakemake workflow was called via command line:"
         sm += f"\t{config["workflow_call"]}"
         summary.append(sm)
-        with open(f"{outdir}/workflow/simulate.snpindel.summary", "w") as f:
+        with open(f"{outdir}/workflow/simulate.{variant}.summary", "w") as f:
             f.write("\n\n".join(summary))

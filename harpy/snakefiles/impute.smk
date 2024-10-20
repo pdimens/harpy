@@ -10,6 +10,8 @@ onerror:
     os.remove(logger.logfile)
 wildcard_constraints:
     sample = "[a-zA-Z0-9._-]+"
+    paramset = "[^/]+"
+    contig = "[^/]+"
 
 bamlist       = config["inputs"]["alignments"]
 bamdict       = dict(zip(bamlist, bamlist))
@@ -17,10 +19,11 @@ variantfile   = config["inputs"]["variantfile"]
 paramfile     = config["inputs"]["paramfile"]
 biallelic     = config["inputs"]["biallelic_contigs"]
 outdir        = config["output_directory"]
-envdir        = os.getcwd() + "/.harpy_envs"
+envdir        = os.path.join(os.getcwd(), ".harpy_envs")
 skip_reports  = config["skip_reports"]
 stitch_params = config["stitch_parameters"]
-contigs = [i.rstrip() for i in open(biallelic, "r").readlines()]
+with open(biallelic, "r") as f:
+    contigs = [line.rstrip() for line in f]
 
 rule sort_bcf:
     input:
@@ -107,8 +110,6 @@ rule index_vcf:
         vcf   = outdir + "/{paramset}/contigs/{contig}.vcf.gz",
         idx   = outdir + "/{paramset}/contigs/{contig}.vcf.gz.tbi",
         stats = outdir + "/{paramset}/reports/data/contigs/{contig}.stats"
-    wildcard_constraints:
-        contig = "[^/]+"
     container:
         None
     shell:
@@ -154,8 +155,6 @@ rule merge_vcf:
         idx   = collect(outdir + "/{{paramset}}/contigs/{contig}.vcf.gz.tbi", contig = contigs)
     output:
         outdir + "/{paramset}/{paramset}.bcf"
-    wildcard_constraints:
-        paramset = "[^/]+"
     threads:
         workflow.cores
     container:
@@ -168,8 +167,6 @@ rule index_merged:
         outdir + "/{paramset}/{paramset}.bcf"
     output:
         outdir + "/{paramset}/{paramset}.bcf.csi"
-    wildcard_constraints:
-        paramset = "[^/]+"
     container:
         None
     shell:
@@ -181,8 +178,6 @@ rule general_stats:
         idx = outdir + "/{paramset}/{paramset}.bcf.csi"
     output:
         outdir + "/{paramset}/reports/data/impute.stats"
-    wildcard_constraints:
-        paramset = "[^/]+"
     container:
         None
     shell:
@@ -197,8 +192,6 @@ rule compare_stats:
     output:
         compare = outdir + "/{paramset}/reports/data/impute.compare.stats",
         info_sc = temp(outdir + "/{paramset}/reports/data/impute.infoscore")
-    wildcard_constraints:
-        paramset = "[^/]+"
     container:
         None
     shell:
@@ -223,7 +216,7 @@ rule impute_reports:
         "report/impute.Rmd"
 
 rule workflow_summary:
-    default_target: True
+        paramset = lambda wc: wc.get("paramset")
     input: 
         vcf = collect(outdir + "/{paramset}/{paramset}.bcf", paramset = list(stitch_params.keys())),
         agg_report = collect(outdir + "/{paramset}/reports/{paramset}.html", paramset = stitch_params.keys()) if not skip_reports else [],
@@ -249,14 +242,14 @@ rule workflow_summary:
         stitch += "\t\tchr = chr,\n"
         stitch += "\t\tK = k,\n"
         stitch += "\t\tS = s,\n"
-        stitch += "\t\tuse_bx_tag = usebX,\n"
+        stitch += "\t\tuse_bx_tag = usebx,\n"
         stitch += "\t\tbxTagUpperLimit = bxlimit,\n"
         stitch += "\t\tniterations = 40,\n"
         stitch += "\t\tswitchModelIteration = 39,\n"
         stitch += "\t\tsplitReadIterations = NA,\n"
         stitch += "\t\toutputdir = outdir,\n"
         stitch += "\t\toutput_filename = outfile\n\t)"
-        summary.append(stitch)
+        stitch += "\t\tuse_bx_tag = usebx,\n"
         stitchextra = "Additional STITCH parameters provided (overrides existing values above):\n"
         stitchextra += f"\t{config.get("extra", "None")}"
         summary.append(stitchextra)

@@ -120,7 +120,7 @@ def mpileup(inputs, output_dir, regions, genome, threads, populations, ploidy, e
         "output_directory" : output_dir,
         "ploidy" : ploidy,
         "regiontype" : regtype,
-        **({'windowsize': regions} if regtype is "windows" else {}),
+        **({'windowsize': regions} if regtype == "windows" else {}),
         **({'extra': extra_params} if extra_params else {}),
         "skip_reports" : skip_reports,
         "workflow_call" : command.rstrip(),

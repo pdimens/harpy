@@ -553,8 +553,8 @@ def cnv(genome, output_dir, vcf, only_vcf, prefix, count, min_size, max_size, du
         "workflow_call" : command.rstrip(),
         "inputs" : {
             "genome" : Path(genome).resolve().as_posix(),
-            **({"centromeres" : Path(centromeres).resolve().as_posix()} if centromeres else {})
-            **({"genes" : Path(genes).resolve().as_posix()} if genes else {})
+            **({"centromeres" : Path(centromeres).resolve().as_posix()} if centromeres else {}),
+            **({"genes" : Path(genes).resolve().as_posix()} if genes else {}),
             **({"excluded_chromosomes" : Path(exclude_chr).resolve().as_posix()} if exclude_chr else {})
         }
     }
@@ -656,8 +656,8 @@ def translocation(genome, output_dir, prefix, vcf, only_vcf, count, centromeres,
         "workflow_call" : command.rstrip(),
         "inputs" : {
             "genome" : Path(genome).resolve().as_posix(),
-            **({"centromeres" : Path(centromeres).resolve().as_posix()} if centromeres else {})
-            **({"genes" : Path(genes).resolve().as_posix()} if genes else {})
+            **({"centromeres" : Path(centromeres).resolve().as_posix()} if centromeres else {}),
+            **({"genes" : Path(genes).resolve().as_posix()} if genes else {}),
             **({"excluded_chromosomes" : Path(exclude_chr).resolve().as_posix()} if exclude_chr else {})
         }
     }

@@ -14,7 +14,7 @@ wildcard_constraints:
     sample = "[a-zA-Z0-9._-]+"
 
 outdir      = config["output_directory"]
-envdir      = os.getcwd() + "/.harpy_envs"
+envdir      = os.path.join(os.getcwd(), ".harpy_envs")
 genomefile 	= config["inputs"]["genome"]
 fqlist       = config["inputs"]["fastq"]
 molecule_distance = config["molecule_distance"]
@@ -264,7 +264,7 @@ rule workflow_summary:
         duplicates = "Duplicates in the alignments were marked following:\n"
         duplicates += "\tsamtools collate |\n"
         duplicates += "\tsamtools fixmate |\n"
-        duplicates += "\tsamtools sort -T SAMPLE --reference {params.genomefile} -m 2000M |\n"
+        duplicates += f"\tsamtools sort -T SAMPLE --reference {genomefile} -m 2000M |\n"
         duplicates += "\tsamtools markdup -S --barcode-tag BX"
         summary.append(duplicates)
         sm = "The Snakemake workflow was called via command line:\n"

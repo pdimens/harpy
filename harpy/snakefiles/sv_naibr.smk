@@ -14,7 +14,7 @@ onerror:
 wildcard_constraints:
     sample = "[a-zA-Z0-9._-]+"
 
-envdir      = os.getcwd() + "/.harpy_envs"
+envdir      = os.path.join(os.getcwd(), ".harpy_envs")
 genomefile  = config["inputs"]["genome"]
 bamlist     = config["inputs"]["alignments"]
 bamdict     = dict(zip(bamlist, bamlist))

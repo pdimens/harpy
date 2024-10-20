@@ -13,7 +13,7 @@ onerror:
 FQ1 = config["inputs"]["fastq_r1"]
 FQ2 = config["inputs"]["fastq_r2"]
 outdir = config["output_directory"]
-envdir = os.getcwd() + "/.harpy_envs"
+envdir = os.path.join(os.getcwd(), ".harpy_envs")
 # SPADES
 max_mem      = config["spades"]["max_memory"]
 k_param      = config["spades"]["k"]
@@ -141,7 +141,7 @@ rule workflow_summary:
         arcs += f"\tarcs-make arcs-tigmint {" ".join(params[3:])}"
         summary.append(arcs)
         sm = "The Snakemake workflow was called via command line:\n"
-        sm += f"\t{config["workflow_call"]}"
+        sm += f"\t{config['workflow_call']}"
         summary.append(sm)
         with open(outdir + "/workflow/assembly.summary", "w") as f:
             f.write("\n\n".join(summary))

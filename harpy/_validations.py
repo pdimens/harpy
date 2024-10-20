@@ -88,10 +88,10 @@ def check_impute_params(parameters):
             errtext = []
             culprit_text = []
             if invalid_col:
-                errtext.append(f"\n  - invalid column names")
+                errtext.append("\n  - invalid column names")
                 culprit_text.append(f"[red]Invalid columns:[/red] {", ".join(invalid_col)}")
             if missing_col:
-                errtext.append(f"\n  - missing columns")
+                errtext.append("\n  - missing columns")
                 culprit_text.append( f"[yellow]Missing columns:[/yellow] {", ".join(missing_col)}")
 
             print_error("incorrect columns", f"Parameter file [bold]{parameters}[/bold] has incorrect column names{"".join(errtext)}\nValid names are: [green bold]{" ".join(colnames)}[/green bold]")
@@ -113,7 +113,7 @@ def check_impute_params(parameters):
             # if line is empty, end of file is reached
             if not line:
                 break
-            if line is "\n":
+            if line == "\n":
                 # be lenient with empty rows
                 continue
             # split the line by whitespace and reorder to match expected colname order
