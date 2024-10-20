@@ -41,7 +41,7 @@ jobs:
       phase: ${{ steps.filter.outputs.phase }}
       simvars: ${{ steps.filter.outputs.simvars }}
       simreads: ${{ steps.filter.outputs.simreads }}
-      metassembly: ${{ steps.filter.outputs.metassembly }}
+      assembly: ${{ steps.filter.outputs.assembly }}
       other: ${{ steps.filter.outputs.other }}
       container: ${{ steps.filter.outputs.container }}
       modules: ${{ steps.filter.outputs.modules }}
@@ -747,6 +747,50 @@ jobs:
         shell: micromamba-shell {0}
         run: harpy simulate linkedreads --quiet -t 4 -n 2  -l 100 -p 50 test/genome/genome.fasta.gz test/genome/genome2.fasta.gz
 
+  assembly:
+    needs: [changes, pkgbuild]
+    if: ${{ needs.changes.outputs.assembly == 'true' && needs.pkgbuild.result == 'success' }}
+    name: metassembly
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+      - name: Setup Mamba
+        uses: mamba-org/setup-micromamba@v1
+        env:
+          ACTIONS_STEP_DEBUG: true
+        with:
+          init-shell: bash
+          generate-run-shell: true
+          environment-file: resources/harpy.yaml
+          cache-environment: true
+          post-cleanup: 'all'
+          log-level: error
+      - name: Install Harpy
+        shell: micromamba-shell {0}
+        run: |
+          python3 -m pip install --upgrade build && python3 -m build
+          pip install dist/*.whl
+          resources/buildforCI.sh
+      - name: Clear Space
+        run: rm -rf /opt/hostedtoolcache && mkdir -p .snakemake/singularity
+      - name: Download Singularity Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: deps-image
+          path: .snakemake/singularity
+      - name: test assembly
+        shell: micromamba-shell {0}
+        run: harpy --quiet -m 4000 test/fastq/sample1.*
+      - name: test metassembly
+        shell: micromamba-shell {0}
+        run: harpy assembly --metassembly spades --quiet -m 4000 test/fastq/sample1.*
+      - name: test metassembly cloud
+        shell: micromamba-shell {0}
+        run: harpy assembly --metassembly cloudspades --quiet -m 4000 test/fastq/sample1.*
+
   extras:
     needs: [changes, pkgbuild]
     if: ${{ needs.changes.outputs.other == 'true' && needs.pkgbuild.result == 'success' }}
@@ -789,42 +833,3 @@ jobs:
           harpy hpc googlebatch
           harpy hpc lsf
           harpy hpc htcondor
-  metassembly:
-    needs: [changes, pkgbuild]
-    if: ${{ needs.changes.outputs.metassembly == 'true' && needs.pkgbuild.result == 'success' }}
-    name: metassembly
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 1
-      - name: Setup Mamba
-        uses: mamba-org/setup-micromamba@v1
-        env:
-          ACTIONS_STEP_DEBUG: true
-        with:
-          init-shell: bash
-          generate-run-shell: true
-          environment-file: resources/harpy.yaml
-          cache-environment: true
-          post-cleanup: 'all'
-          log-level: error
-      - name: Install Harpy
-        shell: micromamba-shell {0}
-        run: |
-          python3 -m pip install --upgrade build && python3 -m build
-          pip install dist/*.whl
-          resources/buildforCI.sh
-      - name: Clear Space
-        run: rm -rf /opt/hostedtoolcache && mkdir -p .snakemake/singularity
-      - name: Download Singularity Artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: deps-image
-          path: .snakemake/singularity
-      - name: create a metassembly
-        shell: micromamba-shell {0}
-        run: harpy metassembly --quiet -m 6000 test/fastq/sample1.*
-
-
