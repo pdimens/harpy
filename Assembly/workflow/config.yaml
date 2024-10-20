@@ -1,0 +1,13 @@
+workflow: assembly
+snakemake_log: Assembly/logs/snakemake/assembly.1.15_10_2024.log
+output_directory: Assembly
+barcode_tag: BX
+spades:
+    assembler: None
+    max_memory: 250000
+    k: auto
+skip_reports: False
+workflow_call: snakemake --rerun-incomplete --show-failed-logs --rerun-triggers input mtime params --nolock  --software-deployment-method conda --conda-prefix .snakemake/conda --cores 4 --directory . --snakefile Assembly/workflow/assembly.smk --configfile Assembly/workflow/config.yaml 
+inputs:
+  fastq_r1: test/fastq/sample1.F.fq.gz
+  fastq_r2: test/fastq/sample1.R.fq.gz
