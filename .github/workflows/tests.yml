@@ -783,7 +783,7 @@ jobs:
           path: .snakemake/singularity
       - name: test assembly
         shell: micromamba-shell {0}
-        run: harpy --quiet -m 4000 test/fastq/sample1.*
+        run: harpy assembly --quiet -m 4000 test/fastq/sample1.*
       - name: test metassembly
         shell: micromamba-shell {0}
         run: harpy assembly --metassembly spades --quiet -m 4000 test/fastq/sample1.*
