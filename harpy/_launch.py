@@ -70,7 +70,7 @@ def launch_snakemake(sm_args, workflow, starttext, outdir, sm_logfile, quiet, su
                     exitcode = EXIT_CODE_SUCCESS
                 if "MissingInput" in output:
                     exitcode = EXIT_CODE_GENERIC_ERROR
-                if "AmbiguousRuleException" in output:
+                if "AmbiguousRuleException" in output or "Error" in output or "Exception" in output:
                     exitcode = EXIT_CODE_RUNTIME_ERROR
                 output = process.stderr.readline()
 
