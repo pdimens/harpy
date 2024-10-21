@@ -86,11 +86,11 @@ rule demux_barcodes:
         mv demux*BC.log logs
         """
 
-rule demux_samples_R1:
+rule demux_read_1:
     input:
         f"{outdir}/demux_R1_001.fastq.gz"
     output:
-        outdir + "/{sample}.F.fq.gz"
+        outdir + "/{sample}.R1.fq.gz"
     params:
         c_barcode = lambda wc: samples[wc.get("sample")]
     container:
@@ -100,61 +100,37 @@ rule demux_samples_R1:
         ( zgrep -A3 "A..{params}B..D" {input} | grep -v "^--$" | gzip -q > {output} ) || touch {output}
         """
 
-use rule demux_samples_R1 as demux_samples_R2 with:
+use rule demux_read_1 as demux_read_2 with:
     input:
         f"{outdir}/demux_R2_001.fastq.gz"
     output:
-        outdir + "/{sample}.R.fq.gz"
+        outdir + "/{sample}.R2.fq.gz"
 
-rule fastqc_R1:
+rule quality_assessment:
     input:
-        outdir + "/{sample}.F.fq.gz"
-    output: 
-        temp(outdir + "/logs/{sample}_F/fastqc_data.txt")
-    params:
-        lambda wc: f"{outdir}/logs/" + wc.get("sample") + "_F"
+        read1 = outdir + "/{sample}.R1.fq.gz",
+        read2 = outdir + "/{sample}.R2.fq.gz"
+    output:
+        temp(outdir + "/reports/data/{sample}.fastp.json")
+    log:
+        outdir + "/reports/{sample}.html"
     threads:
-        1
+        2
     conda:
         f"{envdir}/qc.yaml"
     shell:
-        """
-        mkdir -p {params}
-        if [ -z $(gzip -cd {input} | head -c1) ]; then
-            echo "##Falco	1.2.1" > {output}
-            echo ">>Basic Statistics	fail" >> {output}
-            echo "#Measure	Value" >> {output}
-            echo "Filename	{wildcards.sample}.F.fq.gz" >> {output}
-            echo "File type	Conventional base calls" >> {output}
-            echo "Encoding	Sanger / Illumina 1.9" >> {output}
-            echo "Total Sequences	0" >> {output}
-            echo "Sequences flagged as poor quality	0" >> {output}
-            echo "Sequence length	0" >> {output}
-            echo "%GC	0" >> {output}
-            echo ">>END_MODULE" >> {output}
-        else
-            falco -q --threads {threads} -skip-report -skip-summary -o {params} {input}
-        fi
-        """
-
-use rule fastqc_R1 as fastqc_R2 with:
-    input:
-        outdir + "/{sample}.R.fq.gz"
-    output: 
-        temp(outdir + "/logs/{sample}_R/fastqc_data.txt")
-    params:
-        lambda wc: f"{outdir}/logs/" + wc.get("sample") + "_R"
+        "fastp -pQLAG --stdout -w {threads} -i {input.read1} -I {input.read2} -j {output} --html {log} -R \"{wildcards.sample} demultiplex quality report\" > /dev/null"
 
 rule qc_report:
     input:
-        collect(outdir + "/logs/{sample}_{FR}/fastqc_data.txt", sample = samplenames, FR = ["F","R"])
+        collect(outdir + "/reports/data/{sample}.fastp.json", sample = samplenames)
     output:
         outdir + "/reports/demultiplex.QC.html"
     params:
-        logdir = outdir + "/logs/",
+        logdir = outdir + "/reports/data/",
         options = "--no-version-check --force --quiet --no-data-dir",
         title = "--title \"QC for Demultiplexed Samples\"",
-        comment = "--comment \"This report aggregates the QC results created by falco.\""
+        comment = "--comment \"This report aggregates the quality assessments from fastp. The data were NOT filtered, the report is suggesting what it would look like trimmed/filtered with default parameters.\""
     conda:
         f"{envdir}/qc.yaml"
     shell:
@@ -163,11 +139,11 @@ rule qc_report:
 rule workflow_summary:
     default_target: True
     input:
-        fq = collect(outdir + "/{sample}.{FR}.fq.gz", sample = samplenames, FR = ["F", "R"]),
+        fq = collect(outdir + "/{sample}.R{FR}.fq.gz", sample = samplenames, FR = [1,2]),
         reports = outdir + "/reports/demultiplex.QC.html" if not skip_reports else []
     run:
         os.makedirs(f"{outdir}/workflow/", exist_ok= True)
-        summary = ["The harpy demultiplex gen1 workflow ran using these parameters:"]
+        summary = ["The harpy demultiplex workflow ran using these parameters:"]
         summary.append("Haplotag technology: Generation I")
         inputs = "The multiplexed input files:\n"
         inputs += f"\tread 1: {R1}\n"
@@ -180,10 +156,10 @@ rule workflow_summary:
         summary.append(demux)
         summary.append(f"The delimited file associating CXX barcodes with samplenames: {samplefile}")
         qc = "QC checks were performed on demultiplexed FASTQ files using:\n"
-        qc += "\tfalco -skip-report -skip-summary input.fq.gz"
+        qc += "\tfastp -pQLAG --stdout -i R1.fq -I R2.fq > /dev/null"
         summary.append(qc)
         sm = "The Snakemake workflow was called via command line:\n"
-        sm += f"\t{config["workflow_call"]}"
+        sm += f'\t{config["workflow_call"]}'
         summary.append(sm)
         with open(outdir + "/workflow/demux.gen1.summary", "w") as f:
-            f.write(summary_template)
+            f.write("\n\n".join(summary))
