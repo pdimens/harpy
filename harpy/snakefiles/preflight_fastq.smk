@@ -84,7 +84,7 @@ rule workflow_summary:
     run:
         os.makedirs(f"{outdir}/workflow/", exist_ok= True)
         summary = ["The harpy preflight fastq workflow ran using these parameters:"]
-        valids = "Validations were performed with:\n
+        valids = "Validations were performed with:\n"
         valids += "\tcheck_fastq.py sample.fastq > sample.txt"
         summary.append(valids)
         sm = "The Snakemake workflow was called via command line:\n"
