@@ -238,9 +238,9 @@ rule workflow_summary:
     run:
         summary = ["The harpy metassembly workflow ran using these parameters:"]  
         bxsort = "FASTQ inputs were sorted by their linked-read barcodes:\n"
-        bxsort += "\tsamtools import -T "*" FQ1 FQ2 |\n"
+        bxsort += "\tsamtools import -T \"*\" FQ1 FQ2 |\n"
         bxsort += f"\tsamtools sort -O SAM -t {params.bx} |\n"  
-        bxsort += "\tsamtools fastq -T "*" -1 FQ_out1 -2 FQ_out2"  
+        bxsort += "\tsamtools fastq -T \"*\" -1 FQ_out1 -2 FQ_out2"  
         summary.append(bxsort)
         bxappend = "Barcoded-sorted FASTQ files had \"-1\" appended to the barcode to make them Athena-compliant:\n"  
         bxappend += f"\tsed 's/{params.bx}:Z:[^[:space:]]*/&-1/g' FASTQ | bgzip > FASTQ_OUT"  
