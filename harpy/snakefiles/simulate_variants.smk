@@ -33,15 +33,13 @@ else:
     exclude = config["inputs"].get("excluded_chromosomes", None)
     variant_params += f" -excluded_chr_list {exclude}" if exclude else ""
     variant_params += f" -seed {randomseed}" if randomseed else ""
-
-if variant in ["inversion", "cnv"]:  
-    variant_params += f" -{variant}_min_size " +  str(config[variant]["min_size"])
-    variant_params += f" -{variant}_max_size " +  str(config[variant]["max_size"])
-
-if variant == "cnv":
-    variant_params += f" -duplication_tandem_dispersed_ratio " +  str(config[variant]["duplication_ratio"])
-    variant_params += f" --cnv_max_copy_number " +  str(config[variant]["max_copy"])
-    variant_params += f" --cnv_gain_loss_ratio " +  str(config[variant]["gain_ratio"])
+    if variant in ["inversion", "cnv"]:  
+        variant_params += f" -{variant}_min_size " +  str(config[variant]["min_size"])
+        variant_params += f" -{variant}_max_size " +  str(config[variant]["max_size"])
+    if variant == "cnv":
+        variant_params += f" -duplication_tandem_dispersed_ratio " +  str(config[variant]["duplication_ratio"])
+        variant_params += f" --cnv_max_copy_number " +  str(config[variant]["max_copy"])
+        variant_params += f" --cnv_gain_loss_ratio " +  str(config[variant]["gain_ratio"])
 
 if vcf:
     rule convert_vcf:
