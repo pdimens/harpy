@@ -216,7 +216,7 @@ rule impute_reports:
         "report/impute.Rmd"
 
 rule workflow_summary:
-        paramset = lambda wc: wc.get("paramset")
+    default_target: True
     input: 
         vcf = collect(outdir + "/{paramset}/{paramset}.bcf", paramset = list(stitch_params.keys())),
         agg_report = collect(outdir + "/{paramset}/reports/{paramset}.html", paramset = stitch_params.keys()) if not skip_reports else [],
@@ -249,12 +249,11 @@ rule workflow_summary:
         stitch += "\t\tsplitReadIterations = NA,\n"
         stitch += "\t\toutputdir = outdir,\n"
         stitch += "\t\toutput_filename = outfile\n\t)"
-        stitch += "\t\tuse_bx_tag = usebx,\n"
         stitchextra = "Additional STITCH parameters provided (overrides existing values above):\n"
-        stitchextra += f"\t{config.get("extra", "None")}"
+        stitchextra += "\t" + config.get("stitch_extra", "None")
         summary.append(stitchextra)
         sm = "The Snakemake workflow was called via command line:\n"
-        sm += f"\t{config["workflow_call"]}"
+        sm += f'\t{config["workflow_call"]}'
         summary.append(sm)
         with open(outdir + "/workflow/impute.summary", "w") as f:
             f.write("\n\n".join(summary))
