@@ -109,8 +109,8 @@ rule cloudspades_assembly:
         fastq_R1 = FQ1,
         fastq_R2 = FQ2
     output:
-        f"{spadesdir}/contigs.fasta",
-        f"{spadesdir}/scaffolds.fasta"
+        f"{outdir}/cloudspades_assembly/contigs.fasta",
+        f"{outdir}/cloudspades_assembly/scaffolds.fasta"
     params:
         outdir = spadesdir,
         k = k_param,
