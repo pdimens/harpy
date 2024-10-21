@@ -91,7 +91,7 @@ rule workflow_summary:
         interleave += "\tseqtk mergepe forward.fq reverse.fq"
         summary.append(interleave)
         deconv = "Deconvolution occurred using QuickDeconvolution:\n"
-        deconv += f"\tQuickDeconvolution -t threads -i infile.fq -o output.fq -k {kmer_length} -w {window_size} -d {density} -a {dropout}""
+        deconv += f"\tQuickDeconvolution -t threads -i infile.fq -o output.fq -k {kmer_length} -w {window_size} -d {density} -a {dropout}"
         summary.append(deconv)
         recover = "The interleaved output was split back into forward and reverse reads with seqtk:\n"
         recover += "\tseqtk -1 interleaved.fq | gzip > file.R1.fq.gz\n"
