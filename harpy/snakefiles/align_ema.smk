@@ -173,7 +173,7 @@ rule align_bwa:
     log:
         outdir + "/logs/align/{sample}.bwa.align.log"
     params:
-        quality = config["quality"],
+        quality = config["alignment_quality"],
         unmapped = "" if keep_unmapped else "-F 4"
     benchmark:
         ".Benchmark/Mapping/ema/bwaAlign.{sample}.txt"
