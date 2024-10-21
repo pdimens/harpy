@@ -243,7 +243,7 @@ rule workflow_summary:
         bxsort += "\tsamtools fastq -T "*" -1 FQ_out1 -2 FQ_out2"  
         summary.append(bxsort)
         bxappend = "Barcoded-sorted FASTQ files had \"-1\" appended to the barcode to make them Athena-compliant:\n"  
-        bxappend = f"\tsed 's/{params.bx}:Z:[^[:space:]]*/&-1/g' FASTQ | bgzip > FASTQ_OUT"  
+        bxappend += f"\tsed 's/{params.bx}:Z:[^[:space:]]*/&-1/g' FASTQ | bgzip > FASTQ_OUT"  
         summary.append(bxappend)
         spades = f"Reads were assembled using {metassembly}:\n"
         if cloudspades:
@@ -252,16 +252,16 @@ rule workflow_summary:
             spades += f"\tmetaspades.py -t THREADS -m {max_mem} -k {k_param} {extra} -1 FQ_1 -2 FQ2 -o {spadesdir}"
         summary.append(spades)
         align = "Original input FASTQ files were aligned to the metagenome using BWA:\n"
-        align += "\tbwa mem -C -p spades.contigs FQ1 FQ2 | samtools sort -O bam -  
+        align += "\tbwa mem -C -p spades.contigs FQ1 FQ2 | samtools sort -O bam -"
         summary.append(align)
         interleaved = "Barcode-sorted Athena-compliant sequences were interleaved with seqtk:\n"
-        interleaved += "\tseqtk mergepe FQ1 FQ2 > INTERLEAVED.FQ  
+        interleaved += "\tseqtk mergepe FQ1 FQ2 > INTERLEAVED.FQ"
         summary.append(interleaved)
         athena = "Athena ran with the config file Harpy built from the files created from the previous steps:\n"
         athena += "\tathena-meta --config athena.config"
         summary.append(athena)
         sm = "The Snakemake workflow was called via command line:\n"
-        sm += f"\t{config["workflow_call"]}"
+        sm += f'\t{config["workflow_call"]}'
         summary.append(sm)
         with open(outdir + "/workflow/metassembly.summary", "w") as f:  
             f.write("\n\n".join(summary))

@@ -98,7 +98,7 @@ rule workflow_summary:
         recover += "\tseqtk -2 interleaved.fq | gzip > file.R2.fq.gz"
         summary.append(recover)
         sm = "Snakemake workflow was called via command line:\n"
-        sm += "\t{config["workflow_call"]}"
+        sm += f'\t{config["workflow_call"]}'
         summary.append(sm)
         with open(outdir + "/workflow/deconvolve.summary", "w") as f:  
             f.write("\n\n".join(summary))

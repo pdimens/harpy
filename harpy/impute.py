@@ -114,4 +114,4 @@ def impute(inputs, output_dir, parameters, threads, vcf, vcf_samples, extra_para
     start_text.add_row("Contigs:", f"{n_biallelic} [dim](with at least 2 biallelic SNPs)")
     start_text.add_row("Output Folder:", output_dir + "/")
     start_text.add_row("Workflow Log:", sm_log.replace(f"{output_dir}/", "") + "[dim].gz")
-    launch_snakemake(command, "impute", start_text, output_dir, sm_log, quiet, "workflow/impute.summary", "workflow/impute.summary")
+    launch_snakemake(command, "impute", start_text, output_dir, sm_log, quiet, "workflow/impute.summary")

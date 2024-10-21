@@ -280,7 +280,7 @@ rule workflow_summary:
         summary = ["The harpy phase workflow ran using these parameters:"]
         summary.append(f"The provided variant file: {variantfile}")
         hetsplit = "The variant file was split by sample and filtered for heterozygous sites using:\n"
-        hetsplit += "\tbcftools view -s SAMPLE | bcftools view -i 'GT="het"'"
+        hetsplit += "\tbcftools view -s SAMPLE | bcftools view -i \'GT=\"het\"\'"
         summary.append(hetsplit)
         phase = "Phasing was performed using the components of HapCut2:\n"
         phase += "\textractHAIRS {linkarg} --nf 1 --bam sample.bam --VCF sample.vcf --out sample.unlinked.frags\n"
@@ -288,11 +288,11 @@ rule workflow_summary:
         phase += f"\tHAPCUT2 --fragments sample.linked.frags --vcf sample.vcf --out sample.blocks --nf 1 --error_analysis_mode 1 --call_homozygous 1 --outvcf 1 {params.prune} {params.extra}\n"
         summary.append(phase)
         annot = "Variant annotation was performed using:\n"
-        annot += "\tbcftools annotate -a sample.phased.vcf -c CHROM,POS,FMT/GT,FMT/PS,FMT/PQ,FMT/PD -m +HAPCUT\n
-        annot += "\tbcftools merge --output-type b samples.annot.bcf
+        annot += "\tbcftools annotate -a sample.phased.vcf -c CHROM,POS,FMT/GT,FMT/PS,FMT/PQ,FMT/PD -m +HAPCUT\n"
+        annot += "\tbcftools merge --output-type b samples.annot.bcf"
         summary.append(annot)
-        sm = "The Snakemake workflow was called via command line:\n
-        sm = f"\t{config["workflow_call"]}"
+        sm = "The Snakemake workflow was called via command line:\n"
+        sm = f'\t{config["workflow_call"]}'
         summary.append(sm)
         with open(outdir + "/workflow/phase.summary", "w") as f:
             f.write("\n\n".join(summary))
