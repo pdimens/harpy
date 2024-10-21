@@ -169,9 +169,8 @@ rule workflow_summary:
     params:
         prefix = f"{outdir}/{outprefix}",
         parameters = variant_params,
-        dip_prefix = f"{outdir}/diploid/{outprefix}.hap{{haplotype}}",
-        snp = f"-snp_vcf {outdir}/diploid/{outprefix}.snp.hap{{haplotype}}.vcf" if snp else "",
-        indel = f"-indel_vcf {outdir}/diploid/{outprefix}.indel.hap{{haplotype}}.vcf" if indel else ""
+        snp = f"-snp_vcf {outdir}/diploid/{outprefix}.snp.hapX.vcf" if snp else "",
+        indel = f"-indel_vcf {outdir}/diploid/{outprefix}.indel.hapX.vcf" if indel else ""
     run:
         summary = ["The harpy simulate snpindel workflow ran using these parameters:"]
         summary.append(f"The provided genome: {genome}")
@@ -181,7 +180,7 @@ rule workflow_summary:
         summary.append(haploid)
         if heterozygosity > 0 and not only_vcf:
             diploid = "Diploid variants were simulated after splitting by the heterozygosity ratio:\n"
-            diploid += f"\tsimuG -refseq {genome} -prefix {params.dip_prefix} {params.snp} {params.indel}"
+            diploid += f"\tsimuG -refseq {genome} -prefix hapX {params.snp} {params.indel}"
             summary.append(diploid)
         sm = "The Snakemake workflow was called via command line:"
         sm += f"\t{config["workflow_call"]}"
