@@ -25,7 +25,6 @@ vcf_correct = "None"
 if vcf:
     vcf_correct = vcf[:-4] + ".vcf.gz" if vcf.lower().endswith("bcf") else vcf
     variant_params = f"-{variant}_vcf {vcf_correct}"
-
 else:
     variant_params = f"-{variant}_count " + str(config[variant]["count"])
     centromeres = config["inputs"].get("centromeres", None)
@@ -35,18 +34,15 @@ else:
     exclude = config["inputs"].get("excluded_chromosomes", None)
     variant_params += f" -excluded_chr_list {exclude}" if exclude else ""
     variant_params += f" -seed {randomseed}" if randomseed else ""
+
 if variant in ["inversion", "cnv"]:  
-    min_size = config[variant].get("min_size", None)  
-    variant_params += f" -{variant}_min_size {min_size}" if min_size else ""  
-    max_size = config[variant].get("max_size", None)  
-    variant_params += f" -{variant}_max_size {max_size}" if max_size else "" 
-        variant_params += f" -{variant}_max_size {max_size}" if max_size else ""
-        ratio   = config[variant].get("duplication_ratio", None)
-        variant_params += f" -duplication_tandem_dispersed_ratio {ratio}" if ratio else ""
-        cnv_copy = config[variant].get("max_copy", None)
-        variant_params += f" --cnv_max_copy_number {cnv_copy}" if cnv_copy else ""
-        cnv_ratio =config[variant].get("gain_ratio", None)
-        variant_params += f" --cnv_gain_loss_ratio {cnv_ratio}" if cnv_ratio else ""
+    variant_params += f" -{variant}_min_size " +  str(config[variant]["min_size"])
+    variant_params += f" -{variant}_max_size " +  str(config[variant]["max_size"])
+
+if variant == "cnv":
+    variant_params += f" -duplication_tandem_dispersed_ratio " +  str(config[variant]["duplication_ratio"])
+    variant_params += f" --cnv_max_copy_number " +  str(config[variant]["max_copy"])
+    variant_params += f" --cnv_gain_loss_ratio " +  str(config[variant]["gain_ratio"])
 
 if vcf:
     rule convert_vcf:
@@ -127,7 +123,6 @@ rule workflow_summary:
     params:
         prefix = f"{outdir}/{outprefix}",
         parameters = variant_params,
-        dip_prefix = f"{outdir}/diploid/{outprefix}.hap{{haplotype}}",
         vcf_arg = f"-{variant}_vcf"
     run:
         summary = [f"The harpy simulate {variant} workflow ran using these parameters:"]
@@ -138,7 +133,7 @@ rule workflow_summary:
         summary.append(haploid)
         if heterozygosity > 0 and not only_vcf:
             diploid = f"Diploid variants were simulated after splitting by the heterozygosity ratio:\n"
-            diploid += f"\tsimuG -refseq {genome} -prefix {params.dip_prefix} {params.vcf_arg} hapX.vcf"
+            diploid += f"\tsimuG -refseq {genome} -prefix HAP_PREFIX {params.vcf_arg} hapX.vcf"
             summary.append(diploid)
         sm = "The Snakemake workflow was called via command line:"
         sm += f'\t{config["workflow_call"]}'
