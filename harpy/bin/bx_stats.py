@@ -51,8 +51,6 @@ def writestats(x, writechrom, destination):
             x[_mi]["covered_inserts"] = 0
         outtext = f"{writechrom}\t{_mi}\t" + "\t".join([str(x[_mi][i]) for i in ["n", "start","end", "inferred", "bp", "insert_len", "covered_bp", "covered_inserts"]])
         destination.write(outtext.encode() + b"\n")
-        # delete the key (for better RAM management)
-        del x[_mi]
 
 for read in alnfile.fetch():
     chrom = read.reference_name
