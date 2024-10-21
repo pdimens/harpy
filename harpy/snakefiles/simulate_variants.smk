@@ -21,7 +21,6 @@ heterozygosity = float(config["heterozygosity"]["ratio"])
 only_vcf = config["heterozygosity"]["only_vcf"]
 randomseed = config.get("random_seed", None)
 
-vcf_correct = "None"
 if vcf:
     vcf_correct = vcf[:-4] + ".vcf.gz" if vcf.lower().endswith("bcf") else vcf
     variant_params = f"-{variant}_vcf {vcf_correct}"

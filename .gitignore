@@ -16,6 +16,7 @@ Impute/
 Preflight/
 Phase/
 Assembly/
+Metassembly/
 samples.populations
 *.fasta
 *.bcf
