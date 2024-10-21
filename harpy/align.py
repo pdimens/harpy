@@ -2,6 +2,7 @@
 
 import os
 import sys
+import yaml
 from time import sleep
 from pathlib import Path
 from rich import box
@@ -62,13 +63,13 @@ docstring = {
     ]
 }
 
-@click.command(no_args_is_help = True, epilog= "See the documentation for more information: https://pdimens.github.io/harpy/workflows/align/bwa/")
+@click.command(no_args_is_help = True, epilog= "Documentation: https://pdimens.github.io/harpy/workflows/align/bwa/")
 @click.option('-g', '--genome', type=click.Path(exists=True, dir_okay=False, readable=True), required = True, help = 'Genome assembly for read mapping')
 @click.option('-w', '--depth-window', default = 50000, show_default = True, type = int, help = 'Interval size (in bp) for depth stats')
 @click.option('-x', '--extra-params', type = str, help = 'Additional bwa mem parameters, in quotes')
 @click.option('-u', '--keep-unmapped',  is_flag = True, default = False, help = 'Retain unmapped sequences in the output')
 @click.option('-q', '--min-quality', default = 30, show_default = True, type = click.IntRange(min = 0, max = 40), help = 'Minimum mapping quality to pass filtering')
-@click.option('-d', '--molecule-distance', default = 100000, show_default = True, type = int, help = 'Base-pair distance threshold to separate molecules')
+@click.option('-d', '--molecule-distance', default = 100000, show_default = True, type = int, help = 'Distance cutoff to split molecules (bp)')
 @click.option('-o', '--output-dir', type = click.Path(exists = False), default = "Align/bwa", show_default=True,  help = 'Output directory name')
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(min = 4, max_open = True), help = 'Number of threads to use')
 @click.option('--conda',  is_flag = True, default = False, help = 'Use conda/mamba instead of container')
@@ -97,7 +98,7 @@ def bwa(inputs, output_dir, genome, depth_window, threads, keep_unmapped, extra_
     command += f"--configfile {workflowdir}/config.yaml "
     if hpc:
         command += f"--workflow-profile {hpc} "
-    if snakemake is not None:
+    if snakemake:
         command += snakemake
 
     os.makedirs(f"{workflowdir}/", exist_ok= True)
@@ -108,24 +109,24 @@ def bwa(inputs, output_dir, genome, depth_window, threads, keep_unmapped, extra_
     fetch_report(workflowdir, "align_bxstats.Rmd")
     os.makedirs(f"{output_dir}/logs/snakemake", exist_ok = True)
     sm_log = snakemake_log(output_dir, "align_bwa")
-
+    configs = {
+        "workflow" : "align bwa",
+        "snakemake_log" : sm_log,
+        "output_directory" : output_dir,
+        "alignment_quality" : min_quality,
+        "keep_unmapped" : keep_unmapped,
+        "molecule_distance" : molecule_distance,
+        "depth_windowsize" : depth_window,
+        "skip_reports" : skip_reports,
+        **({'extra': extra_params} if extra_params else {}),
+        "workflow_call" : command.rstrip(),
+        "inputs" : {
+            "genome": Path(genome).resolve().as_posix(),
+            "fastq": [i.as_posix() for i in fqlist]
+        }
+    }
     with open(f"{workflowdir}/config.yaml", "w", encoding="utf-8") as config:
-        config.write("workflow: align bwa\n")
-        config.write(f"snakemake_log: {sm_log}\n")
-        config.write(f"output_directory: {output_dir}\n")
-        config.write(f"alignment_quality: {min_quality}\n")
-        config.write(f"keep_unmapped: {keep_unmapped}\n")
-        config.write(f"molecule_distance: {molecule_distance}\n")
-        config.write(f"depth_windowsize: {depth_window}\n")
-        config.write(f"skip_reports: {skip_reports}\n")
-        if extra_params is not None:
-            config.write(f"extra: {extra_params}\n")
-        config.write(f"workflow_call: {command}\n")
-        config.write("inputs:\n")
-        config.write(f"  genome: {Path(genome).resolve()}\n")
-        config.write("  fastq:\n")
-        for i in fqlist:
-            config.write(f"    - {i}\n")
+        yaml.dump(configs, config, default_flow_style= False, sort_keys=False)
 
     create_conda_recipes()
     if setup_only:
@@ -138,9 +139,9 @@ def bwa(inputs, output_dir, genome, depth_window, threads, keep_unmapped, extra_
     start_text.add_row("Genome:", genome)
     start_text.add_row("Output Folder:", output_dir + "/")
     start_text.add_row("Workflow Log:", sm_log.replace(f"{output_dir}/", "") + "[dim].gz")
-    launch_snakemake(command, "align_bwa", start_text, output_dir, sm_log, quiet)
+    launch_snakemake(command, "align_bwa", start_text, output_dir, sm_log, quiet, "workflow/align.bwa.summary")
 
-@click.command(no_args_is_help = True, context_settings=dict(allow_interspersed_args=False), epilog = "See the documentation for more information: https://pdimens.github.io/harpy/workflows/align/ema")
+@click.command(no_args_is_help = True, context_settings=dict(allow_interspersed_args=False), epilog = "Documentation: https://pdimens.github.io/harpy/workflows/align/ema")
 @click.option('-x', '--extra-params', type = str, help = 'Additional ema align parameters, in quotes')
 @click.option('-w', '--depth-window', default = 50000, show_default = True, type = int, help = 'Interval size (in bp) for depth stats')
 @click.option('-b', '--ema-bins', default = 500, show_default = True, type = click.IntRange(1,1000), help="Number of barcode bins")
@@ -179,7 +180,7 @@ def ema(inputs, output_dir, platform, barcode_list, genome, depth_window, keep_u
     command += f"--configfile {workflowdir}/config.yaml "
     if hpc:
         command += f"--workflow-profile {hpc} "
-    if snakemake is not None:
+    if snakemake:
         command += snakemake
 
     platform = platform.lower()
@@ -203,27 +204,27 @@ def ema(inputs, output_dir, platform, barcode_list, genome, depth_window, keep_u
     fetch_report(workflowdir, "align_bxstats.Rmd")
     os.makedirs(f"{output_dir}/logs/snakemake", exist_ok = True)
     sm_log = snakemake_log(output_dir, "align_ema")
+    configs = {
+        "workflow" : "align ema",
+        "snakemake_log" : sm_log,
+        "output_directory" : output_dir,
+        "alignment_quality" : min_quality,
+        "keep_unmapped" : keep_unmapped,
+        "depth_windowsize" : depth_window,
+        "platform" : platform,
+        "EMA_bins" : ema_bins,
+        "skip_reports" : skip_reports,
+        **({'extra': extra_params} if extra_params else {}),
+        "workflow_call" : command.rstrip(),
+        "inputs" : {
+            "genome": Path(genome).resolve().as_posix(),
+            **({'barcode_list': Path(barcode_list).resolve().as_posix()} if barcode_list else {}),
+            "fastq": [i.as_posix() for i in fqlist]
+        }
+    }
 
     with open(f"{workflowdir}/config.yaml", "w", encoding="utf-8") as config:
-        config.write("workflow: align ema\n")
-        config.write(f"snakemake_log: {sm_log}\n")
-        config.write(f"output_directory: {output_dir}\n")
-        config.write(f"quality: {min_quality}\n")
-        config.write(f"keep_unmapped: {keep_unmapped}\n")
-        config.write(f"platform: {platform}\n")
-        config.write(f"EMA_bins: {ema_bins}\n")
-        config.write(f"depth_windowsize: {depth_window}\n")
-        config.write(f"skip_reports: {skip_reports}\n")
-        if extra_params is not None:
-            config.write(f"extra: {extra_params}\n")
-        config.write(f"workflow_call: {command}\n")
-        config.write("inputs:\n")
-        config.write(f"  genome: {Path(genome).resolve()}\n")
-        if barcode_list:
-            config.write(f"  barcode_list: {Path(barcode_list).resolve()}\n")
-        config.write("  fastq:\n")
-        for i in fqlist:
-            config.write(f"    - {i}\n")
+        yaml.dump(configs, config, default_flow_style= False, sort_keys=False)
 
     create_conda_recipes()
     if setup_only:
@@ -237,15 +238,15 @@ def ema(inputs, output_dir, platform, barcode_list, genome, depth_window, keep_u
     start_text.add_row("Platform:", platform)
     start_text.add_row("Output Folder:", output_dir + "/")
     start_text.add_row("Workflow Log:", sm_log.replace(f"{output_dir}/", "") + "[dim].gz")
-    launch_snakemake(command, "align_ema", start_text, output_dir, sm_log, quiet)
+    launch_snakemake(command, "align_ema", start_text, output_dir, sm_log, quiet, "workflow/align.ema.summary")
 
-@click.command(no_args_is_help = True, epilog= "See the documentation for more information: https://pdimens.github.io/harpy/workflows/align/minimap/")
+@click.command(no_args_is_help = True, epilog= "Documentation: https://pdimens.github.io/harpy/workflows/align/strobe/")
 @click.option('-g', '--genome', type=click.Path(exists=True, dir_okay=False, readable=True), required = True, help = 'Genome assembly for read mapping')
 @click.option('-w', '--depth-window', default = 50000, show_default = True, type = int, help = 'Interval size (in bp) for depth stats')
 @click.option('-x', '--extra-params', type = str, help = 'Additional aligner parameters, in quotes')
 @click.option('-u', '--keep-unmapped',  is_flag = True, default = False, help = 'Retain unmapped sequences in the output')
 @click.option('-q', '--min-quality', default = 30, show_default = True, type = click.IntRange(min = 0, max = 40), help = 'Minimum mapping quality to pass filtering')
-@click.option('-d', '--molecule-distance', default = 100000, show_default = True, type = int, help = 'Base-pair distance threshold to separate molecules')
+@click.option('-d', '--molecule-distance', default = 100000, show_default = True, type = int, help = 'Distance cutoff to split molecules (bp)')
 @click.option('-o', '--output-dir', type = click.Path(exists = False), default = "Align/strobealign", show_default=True,  help = 'Output directory name')
 @click.option('-l', '--read-length', default = "auto", show_default = True, type = click.Choice(["auto", "50", "75", "100", "125", "150", "250", "400"]), help = 'Average read length for creating index')
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(min = 4, max_open = True), help = 'Number of threads to use')
@@ -278,7 +279,7 @@ def strobe(inputs, output_dir, genome, read_length, keep_unmapped, depth_window,
     command += f"--configfile {workflowdir}/config.yaml "
     if hpc:
         command += f"--workflow-profile {hpc} "
-    if snakemake is not None:
+    if snakemake:
         command += snakemake
 
     os.makedirs(f"{workflowdir}/", exist_ok= True)
@@ -289,26 +290,25 @@ def strobe(inputs, output_dir, genome, read_length, keep_unmapped, depth_window,
     fetch_report(workflowdir, "align_bxstats.Rmd")
     os.makedirs(f"{output_dir}/logs/snakemake", exist_ok = True)
     sm_log = snakemake_log(output_dir, "align_strobe")
-
+    configs = {
+        "workflow" : "align strobe",
+        "snakemake_log" : sm_log,
+        "output_directory" : output_dir,
+        "alignment_quality" : min_quality,
+        "keep_unmapped" : keep_unmapped,
+        "molecule_distance" : molecule_distance,
+        "average_read_length": read_length,
+        "depth_windowsize" : depth_window,
+        "skip_reports" : skip_reports,
+        **({'extra': extra_params} if extra_params else {}),
+        "workflow_call" : command.rstrip(),
+        "inputs" : {
+            "genome": Path(genome).resolve().as_posix(),
+            "fastq": [i.as_posix() for i in fqlist]
+        }
+    }
     with open(f"{workflowdir}/config.yaml", "w", encoding="utf-8") as config:
-        config.write("workflow: align strobe\n")
-        config.write(f"snakemake_log: {sm_log}\n")
-        config.write(f"genomefile: {genome}\n")
-        config.write(f"keep_unmapped: {keep_unmapped}\n")
-        config.write(f"output_directory: {output_dir}\n")
-        config.write(f"quality: {min_quality}\n")
-        config.write(f"molecule_distance: {molecule_distance}\n")
-        config.write(f"average_read_length: {read_length}\n")
-        config.write(f"depth_windowsize: {depth_window}\n")
-        config.write(f"skip_reports: {skip_reports}\n")
-        if extra_params is not None:
-            config.write(f"extra: {extra_params}\n")
-        config.write(f"workflow_call: {command}\n")
-        config.write("inputs:\n")
-        config.write(f"  genome: {Path(genome).resolve()}\n")
-        config.write("  fastq:\n")
-        for i in fqlist:
-            config.write(f"    - {i}\n")
+        yaml.dump(configs, config, default_flow_style= False, sort_keys=False)
 
     create_conda_recipes()
     if setup_only:
@@ -321,7 +321,7 @@ def strobe(inputs, output_dir, genome, read_length, keep_unmapped, depth_window,
     start_text.add_row("Genome:", genome)
     start_text.add_row("Output Folder:", output_dir + "/")
     start_text.add_row("Workflow Log:", sm_log.replace(f"{output_dir}/", "") + "[dim].gz")
-    launch_snakemake(command, "align_strobe", start_text, output_dir, sm_log, quiet)
+    launch_snakemake(command, "align_strobe", start_text, output_dir, sm_log, quiet, "workflow/align.strobealign.summary")
 
 align.add_command(bwa)
 align.add_command(ema)

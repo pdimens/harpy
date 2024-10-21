@@ -2,6 +2,7 @@
 
 import os
 import sys
+import yaml
 from pathlib import Path
 from rich import box
 from rich.table import Table
@@ -37,7 +38,7 @@ docstring = {
 
 }
 
-@click.command(no_args_is_help = True, context_settings=dict(allow_interspersed_args=False), epilog = "See the documentation for more information: https://pdimens.github.io/harpy/workflows/demultiplex/")
+@click.command(no_args_is_help = True, context_settings=dict(allow_interspersed_args=False), epilog = "Documentation: https://pdimens.github.io/harpy/workflows/demultiplex/")
 @click.option('-s', '--schema', required = True, type=click.Path(exists=True, dir_okay=False, readable=True), help = 'Tab-delimited file of sample\<tab\>barcode')
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(min = 1, max_open = True), help = 'Number of threads to use')
 @click.option('-o', '--output-dir', type = click.Path(exists = False), default = "Demultiplex", show_default=True,  help = 'Output directory name')
@@ -67,7 +68,7 @@ def gen1(r1_fq, r2_fq, i1_fq, i2_fq, output_dir, schema, threads, snakemake, ski
     command += f"--configfile {workflowdir}/config.yaml "
     if hpc:
         command += f"--workflow-profile {hpc} "
-    if snakemake is not None:
+    if snakemake:
         command += snakemake
 
     validate_demuxschema(schema)
@@ -75,20 +76,23 @@ def gen1(r1_fq, r2_fq, i1_fq, i2_fq, output_dir, schema, threads, snakemake, ski
     fetch_rule(workflowdir, "demultiplex_gen1.smk")
     os.makedirs(f"{output_dir}/logs/snakemake", exist_ok = True)
     sm_log = snakemake_log(output_dir, "demultiplex_gen1")
-
+    configs = {
+        "workflow" : "demultiplex gen1",
+        "snakemake_log" : sm_log,
+        "output_directory" : output_dir,
+        "skip_reports" : skip_reports,
+        "workflow_call" : command.rstrip(),
+        "inputs" : {
+            "demultiplex_schema" : Path(schema).resolve().as_posix(),
+            "R1": Path(r1_fq).resolve().as_posix(),
+            "R2": Path(r2_fq).resolve().as_posix(),
+            "I1": Path(i1_fq).resolve().as_posix(),
+            "I2": Path(i2_fq).resolve().as_posix()
+        }
+    }
     with open(f"{workflowdir}/config.yaml", "w", encoding= "utf-8") as config:
-        config.write("workflow: demultiplex gen1\n")
-        config.write(f"snakemake_log: {sm_log}\n")
-        config.write(f"output_directory: {output_dir}\n")
-        config.write(f"skip_reports: {skip_reports}\n")
-        config.write(f"workflow_call: {command}\n")
-        config.write("inputs:\n")
-        config.write(f"  demultiplex_schema: {Path(schema).resolve()}\n")
-        config.write(f"  R1: {Path(r1_fq).resolve()}\n")
-        config.write(f"  R2: {Path(r2_fq).resolve()}\n")
-        config.write(f"  I1: {Path(i1_fq).resolve()}\n")
-        config.write(f"  I2: {Path(i2_fq).resolve()}\n")
-    
+        yaml.dump(configs, config, default_flow_style= False, sort_keys=False)
+
     create_conda_recipes()
     if setup_only:
         sys.exit(0)
@@ -100,6 +104,6 @@ def gen1(r1_fq, r2_fq, i1_fq, i2_fq, output_dir, schema, threads, snakemake, ski
     start_text.add_row("Demultiplex Schema:", schema)
     start_text.add_row("Output Folder:", output_dir + "/")
     start_text.add_row("Workflow Log:", sm_log.replace(f"{output_dir}/", "") + "[dim].gz")
-    launch_snakemake(command, "demultiplex_gen1", start_text, output_dir, sm_log, quiet)
+    launch_snakemake(command, "demultiplex_gen1", start_text, output_dir, sm_log, quiet, "workflow/demux.gen1.summary")
 
 demultiplex.add_command(gen1)

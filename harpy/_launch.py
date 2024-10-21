@@ -28,7 +28,7 @@ def purge_empty_logs(target_dir):
         if os.path.isdir(logfile) and not os.listdir(logfile):
             os.rmdir(logfile)
 
-def launch_snakemake(sm_args, workflow, starttext, outdir, sm_logfile, quiet):
+def launch_snakemake(sm_args, workflow, starttext, outdir, sm_logfile, quiet, summaryfile = None):
     """launch snakemake with the given commands"""
     if not quiet:
         print_onstart(starttext, workflow.replace("_", " "))
@@ -56,22 +56,22 @@ def launch_snakemake(sm_args, workflow, starttext, outdir, sm_logfile, quiet):
             if process.poll() or iserror(output):
                 exitcode = EXIT_CODE_SUCCESS if process.poll() == 0 else EXIT_CODE_GENERIC_ERROR
                 break
-            while not output.startswith("Job stats:"):
+            while not output.startswith("Job stats:") and not exitcode:
                 # print dependency text only once
                 if "Downloading and installing remote packages" in output or "Running post-deploy" in output:
                     deps = True
-                    deploy_text = "[dim]Installing software dependencies"
+                    deploy_text = "[dim]Installing workflow dependencies"
                     break
                 if "Pulling singularity image" in output:
                     deps = True
-                    deploy_text = "[dim]Downloading software container"
+                    deploy_text = "[dim]Downloading harpy container"
                     break
                 if "Nothing to be" in output:
                     exitcode = EXIT_CODE_SUCCESS
-                    break
                 if "MissingInput" in output:
                     exitcode = EXIT_CODE_GENERIC_ERROR
-                    break
+                if "AmbiguousRuleException" in output or "Error" in output or "Exception" in output:
+                    exitcode = EXIT_CODE_RUNTIME_ERROR
                 output = process.stderr.readline()
 
             # if dependency text present, print pulsing progress bar
@@ -153,7 +153,7 @@ def launch_snakemake(sm_args, workflow, starttext, outdir, sm_logfile, quiet):
             gzip_file(sm_logfile)
             purge_empty_logs(outdir)
             if not quiet:
-                print_onsuccess(outdir)
+                print_onsuccess(outdir, summaryfile)
             sys.exit(0)
         else:
             if exitcode in (1,2):

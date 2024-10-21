@@ -7,7 +7,7 @@ from rich.panel import Panel
 from rich import print as rprint
 
 outdir      = config["output_directory"]
-envdir      = os.getcwd() + "/.harpy_envs"
+envdir      = os.path.join(os.getcwd(), ".harpy_envs")
 genomefile 	= config["inputs"]["genome"]
 fqlist      = config["inputs"]["fastq"]
 extra 		= config.get("extra", "") 
