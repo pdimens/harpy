@@ -49,7 +49,7 @@ with open(args.fai, "r", encoding= "utf-8") as fai:
 
 def write_coverage(counter_obj, contigname):
     for position,freq in counter_obj.items():
-        print(f"{contigname}\t{position}\t{freq}\n", file = sys.stdout)
+        sys.stdout.write(f"{contigname}\t{position}\t{freq}\n")
 
 
 with gzip.open(args.statsfile, "rt") as statsfile:
@@ -59,11 +59,11 @@ with gzip.open(args.statsfile, "rt") as statsfile:
     # just in case this order changes at some point for some reason
     header = line.rstrip().split()
     for idx,val in enumerate(header):
-        if val == "contig":
+        if val.strip() == "contig":
             IDX_CONTIG = idx
-        if val == "start":
+        if val.strip() == "start":
             IDX_START = idx
-        if val == "end":
+        if val.strip() == "end":
             IDX_END = idx
     while True:
         line = statsfile.readline()
@@ -72,10 +72,16 @@ with gzip.open(args.statsfile, "rt") as statsfile:
                 # write the last contig to file
                 write_coverage(coverage, LASTCONTIG)
             break
+        if line.startswith("#"):
+            continue
         splitline = line.split()
         contig = splitline[IDX_CONTIG]
         start = int(splitline[IDX_START])
-        end = int(splitline[IDX_END])
+        try:
+            end = int(splitline[IDX_END])
+        except:
+            print(line)
+            sys.exit(1)
         if contig != LASTCONTIG:
             if LASTCONTIG:
                 # write to file when contig changed

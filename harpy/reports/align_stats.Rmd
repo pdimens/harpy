@@ -90,6 +90,11 @@ valueBox(scales::comma(length(unique(tb$contig))), caption = "Contigs", color = 
 valueBox(scales::comma(totuniqBX), caption = "Unique barcodes", color = "#8f4f76")
 ```
 
+### mol-thresh
+```{r valuebox_mol_thresh}
+valueBox(scales::comma(snakemake@params$mol_dist), caption = "Molecule threshold", color = "#be96b9")
+```
+
 ### glob-total-mol
 ```{r valuebox_n_molecules}
 valueBox(scales::comma(length(unique(valids$molecule))), caption = "Unique Molecules")
@@ -328,7 +333,10 @@ knitr::kable(
 ```
 
 # Coverage Stats
-
+```{r reset_env}
+# clear out all the objects in memory to reduce RAM usage
+rm(list = ls())
+```
 ```{r imports}
 covfile <- snakemake@input$coverage
 molcovfile <- snakemake@input$molecule_coverage
@@ -348,38 +356,28 @@ if(nrow(tbmol) == 0){
 ```{r setup_cov_table}
 colnames(tb) <- c("contig", "position", "depth")
 colnames(tmbol) <- c("contig", "position", "mol_depth")
-tb <- merge(x=tb,y=tbmol, 
-      by.x=c("contig","position"), 
-      by.y=c("contig","position"),
-      all.x=TRUE
-)
+tb$mol_depth <- tbmol$mol_depth
+rm(tbmol) 
 q99 <- quantile(tb$depth, 0.99)
-Mode <- function(x) {
-  ux <- unique(x)
-  ux[which.max(tabulate(match(x, ux)))]
-}
-windowsize <- Mode(tb$position[-1] - tb$position[1:nrow(tb)-1])
+mol_q99 <- quantile(tb$mol_depth, 0.99)
+windowsize <- as.integer(snakemake@params@window_size)
 windowskb <- round(windowsize/1000, 0)
 ```
 
 ```{r summary_stats}
 global_avg <- mean(tb$depth)
 global_sd <- sd(tb$depth)
-tb$outlier <- tb$depth > q99
-outliers <- tb[tb$outlier, -4]
-nonoutliers <- tb[!(tb$outlier), -4]
-contig_avg <- group_by(tb, contig) %>%
-  summarize(average = mean(depth), sdv = sd(depth))
-contig_avg <- rbind(data.frame(contig = "global", average = global_avg, sdv = global_sd), contig_avg) %>% 
-  mutate(average = round(average, 2), sdv = round(sdv, 2))
+mol_global_avg <- mean(tb$mol_depth)
+mol_global_sd <- sd(tb$mol_depth)
 
-global_avg_filt <- mean(nonoutliers$depth)
-global_sd_filt <- sd(nonoutliers$depth)
-contig_avg_filt <- group_by(nonoutliers, contig) %>%
-  summarize(average = mean(depth), sdv = sd(depth))
-contig_avg_filt <- rbind(
-  data.frame(contig = "global", average = global_avg_filt, sdv = global_sd_filt), contig_avg_filt) %>% 
-  mutate(average = round(average, 2), sdv = round(sdv, 2))
+tb$outlier <- tb$depth > q99
+outliers <- tb[tb$outlier, -5]
+nonoutliers <- tb[!(tb$outlier), -5]
+
+contig_avg <- group_by(tb, contig) %>%
+  summarize(average = mean(depth), mol_average = mean(mol_depth) sdv = sd(depth), mol_sdv = sd(mol_depth))
+contig_avg <- rbind(data.frame(contig = "global", average = global_avg, sdv = global_sd, mol_average = mol_global_avg, mol_sdv = mol_global_sd), contig_avg) %>% 
+  mutate(average = round(average, 2), sdv = round(sdv, 2), mol_average = round(mol_average, 2), mol_sdv = round(mol_sdv, 2))
 ```
 
 
@@ -413,19 +411,14 @@ valueBox(round(global_avg,2), caption = "Average depth", color = "info")
 valueBox(round(global_sd,2), caption = "Stdev depth", color = "info")
 ```
 
-### filt-avg
-```{r valuebox_lessQ99}
-valueBox(round(global_avg_filt,2), caption = '↓Q99 avg', color = "info")
+### mol-avg
+```{r valuebox_mol_avg}
+valueBox(round(mol_global_avg,2), caption = 'Mol. Average Depth', color = "info")
 ```
 
-### filt-sd
-```{r valuebox_lessQ99_stdv}
-valueBox(round(global_sd_filt,2), caption = '↓Q99 stdev', color = "info")
-```
-
-### n-outliers
-```{r valuebox_outliers}
-valueBox(scales::comma(nrow(outliers)), caption = "regions >Q99", color = "warning")
+### mol-sd
+```{r valuebox_mol_stdv}
+valueBox(round(mol_global_sd,2), caption = 'Mol. Stdev depth', color = "info")
 ```
 
 ## Distdesc header
@@ -439,11 +432,15 @@ values, which is **`r q99`** for these data.
 ### distplot {.no-title}
 ```{r depth_distribution}
 hs <- hist(tb$depth[tb$depth <= q99], breaks = 30, plot = F)
-hs$counts <- round(hs$counts / sum(hs$counts)*100,2)
+hs$counts <- round(hs$counts / sum(hs$counts) * 100, 2)
 hs <- data.frame(val = hs$breaks[-1], freq = hs$counts)
+mol_hs <- hist(tb$mol_depth[tb$mol_depth <= mol_q99], breaks = 30, plot = F)
+mol_hs$counts <- round(mol_hs$counts / sum(mol_hs$counts) * 100, 2)
+mol_hs <- data.frame(val = mol_hs$breaks[-1], freq = mol_hs$counts)
 
-hchart(hs, "areaspline", hcaes(x = val, y = freq), color = "#9393d2", name = "% of intervals", marker = list(enabled = FALSE)) |>
-  hc_xAxis(ceiling = q99, title = list(text = "depth")) |>
+hchart(hs, "areaspline", hcaes(x = val, y = freq), color = "#9393d2", name = "% intervals (alignments)", marker = list(enabled = FALSE)) |>
+  hc_add_series(data = mol_hs, type = "areaspline", hcaes(x = val, y = freq), name = "% intervals (molecules)")
+  hc_xAxis(ceiling = mol_q99, title = list(text = "depth")) |>
   hc_yAxis(title = list(text = "% intervals"))  |>
   hc_title(text = "Distribution of Alignment Depths")  |>
   hc_exporting(enabled = T, filename = paste0(samplename, ".cov"),
@@ -462,13 +459,6 @@ The table below shows the global and per-contig average depth and standard
 deviation per `r windowskb`kbp intervals **including** intervals whose depth is flagged
 an outlier in the data. 
 
-
-### filtdesc {.no-title}
-The table below shows the global and per-contig average depth and standard 
-deviation per `r windowskb`kbp intervals, **excluding** intervals whose depth is flagged
-an outlier in the data, as determined by being greater than 3 standard deviations
-above the mean depth. This should be a more accurate representation of read coverage.
-
 ### outlierdesc {.no-title}
 The table below shows the `r windowskb`kbp intervals considered outliers, as determined by 
 having coverage greater than the 99th percentile (`r q99`). 
@@ -485,25 +475,7 @@ DT::datatable(
     scrollX = TRUE,
     buttons = list(list(extend = "csv",filename = paste0(samplename ,"_align_depth_avg")))
   ),
-  colnames = c('Contig', 'Average Depth', 'Standard Deviation'),
-  autoHideNavigation = T,
-  fillContainer = T,
-  height = "fit-content"
-)
-```
-
-### Filtered Averages
-```{r filtered_depth_table}
-DT::datatable(
-  contig_avg_filt,
-  rownames = F, 
-  extensions = 'Buttons', 
-  options = list(
-    dom = 'Brtip',
-    scrollX = TRUE,
-    buttons = list(list(extend = "csv",filename = paste0(samplename ,"_align_depth_filt_avg")))
-  ), 
-  colnames = c('Contig', 'Average Depth', 'Standard Deviation'),
+  colnames = c('Contig', 'Average Depth', 'Standard Deviation', 'Average Depth (molecules)', 'Standard Deviation (Molecules)'),
   autoHideNavigation = T,
   fillContainer = T,
   height = "fit-content"
@@ -521,10 +493,10 @@ DT::datatable(
     scrollX = TRUE,
     buttons = list(list(extend = "csv",filename = paste0(samplename ,"_align_depth_outlier_avg")))
   ),
-  colnames = c('Contig', 'Position', 'Depth'),
+  colnames = c('Contig', 'Position', 'Depth', 'Depth (molecules)'),
   autoHideNavigation = T,
   fillContainer = T
-  )
+)
 ```
 
 ## Circleplot {.no-title data-height=900}
@@ -578,20 +550,39 @@ for (i in names(genomeChr)){
   #chrcov$depth
   # Add a track with bars on the i-th chromosome
   tracks = tracks + BioCircosBarTrack(
-    paste0("bars", i),
+    paste0("cov_", i),
     chromosome = i, 
     starts = chrcov$position - windowsize, ends = chrcov$position,
     values = pmin(chrcov$depth, q99),
-    color = "#56486d"
+    color = "#56486d",
+    minRadius = 0.55,
+    maxRadius = 0.9
+  )
+  tracks = tracks + BioCircosBarTrack(
+    paste0("molcov_", i),
+    chromosome = i, 
+    starts = chrcov$position - windowsize, ends = chrcov$position,
+    values = pmin(chrcov$mol_depth, mol_q99),
+    color = "#699867",
+    minRadius = 0.05,
+    maxRadius = 0.45
   )
 }
 # Add background
 tracks = tracks + BioCircosBackgroundTrack(
-  "bars_background",
+  "depth_background",
   fillColors = "#f3f3f3",
-  borderColors = "#C9C9C9"
+  borderColors = "#C9C9C9",
+  minRadius = 0.55,
+  maxRadius = 0.9
 )
-
+tracks = tracks + BioCircosBackgroundTrack(
+  "molcov_background",
+  fillColors = "#f3f3f3",
+  borderColors = "#C9C9C9",
+  minRadius = 0.05,
+  maxRadius = 0.45
+  )
 BioCircos(
   tracks,
   displayGenomeBorder = F,

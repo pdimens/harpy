@@ -209,7 +209,8 @@ rule sample_reports:
     log:
         logfile = outdir + "/logs/reports/{sample}.alignstats.log"
     params:
-        molecule_distance
+        mol_dist = molecule_distance,
+        window_size = windowsize
     conda:
         f"{envdir}/r.yaml"
     script:
