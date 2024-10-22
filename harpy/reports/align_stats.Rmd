@@ -46,7 +46,7 @@ bamfile <- paste0(samplename, ".bam")
 tb <- read.table(infile, header = T, sep = "\t") %>% select(-start, -end)
 if(nrow(tb) == 0){
   print(paste("Input data file",infle, "is empty"))
-  knittr::knittr_exit()
+  knittr::knit_exit()
 }
 tb$valid <- tb$molecule != "invalidBX"
 ```
@@ -341,7 +341,7 @@ rm(list = ls())
 ```{r imports}
 covfile <- snakemake@input$coverage
 molcovfile <- snakemake@input$molecule_coverage
-windowsize <- as.integer(snakemake@params@window_size)
+windowsize <- as.integer(snakemake@params$window_size)
 samplename <- snakemake@params$samplename
 #samplename <- "test sample"
 #windowsize <- 50000
@@ -350,19 +350,19 @@ samplename <- snakemake@params$samplename
 tb <- read.table(covfile, header = F)
 if(nrow(tb) == 0){
   print(paste("Input data file", covfile, "is empty"))
-  knittr::knittr_exit()
+  knittr::knit_exit()
 }
 tbmol <- read.table(molcovfile, header = F)
 if(nrow(tbmol) == 0){
   print(paste("Input data file", molcovfile, "is empty"))
-  knittr::knittr_exit()
+  knittr::knit_exit()
 }
 ```
 
 ```{r setup_cov_table}
 colnames(tb) <- c("contig", "position", "depth")
 colnames(tbmol) <- c("contig", "position", "mol_depth")
-tb$mol_depth <- tbmol$mol_depth
+tb <- merge(tb, tbmol, by = c("contig", "position"))
 q99 <- quantile(tb$depth, 0.99)
 mol_q99 <- quantile(tb$mol_depth, 0.99)
 windowskb <- round(windowsize/1000, 0)
@@ -448,7 +448,7 @@ highchart() |>
   hc_chart(type = "area", animation = F) |>
   hc_add_series(data = hs, type = "areaspline", color = "#56486d", name = "by alignments", hcaes(x = val, y = freq),  marker = list(enabled = FALSE)) |>
   hc_add_series(data = mol_hs, type = "areaspline", hcaes(x = val, y = freq), color = "#88c793", name = "by inferred molecules", marker = list(enabled = FALSE)) |>
-  hc_xAxis(ceiling = mol_q99, title = list(text = "depth")) |>
+  hc_xAxis(max = mol_q99, title = list(text = "depth")) |>
   hc_yAxis(title = list(text = "% intervals"))  |>
   hc_caption(text = "inferred molecules calculate \"effective\" or \"molecule\" coverage") |>
   hc_title(text = "Distribution of Alignment Depths")  |>
