@@ -365,7 +365,7 @@ rule workflow_summary:
         sorting += "\tsamtools sort -m 2000M concat.bam"
         summary.append(sorting)
         sm = "The Snakemake workflow was called via command line:\n"
-        sm += f'\t{config["workflow_call"]}'
+        sm += f"\t{config['workflow_call']}"
         summary.append(sm)
         with open(outdir + "/workflow/align.bwa.summary", "w") as f:
             f.write("\n\n".join(summary))

@@ -88,7 +88,7 @@ rule workflow_summary:
         valids += "\tcheck_fastq.py sample.fastq > sample.txt"
         summary.append(valids)
         sm = "The Snakemake workflow was called via command line:\n"
-        sm += f'\t{config["workflow_call"]}'
+        sm += f"\t{config['workflow_call']}"
         summary.append(sm)
         with open(outdir + "/workflow/preflight.fastq.summary", "w") as f:
             f.write("\n\n".join(summary))

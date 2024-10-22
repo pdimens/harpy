@@ -173,6 +173,19 @@ rule barcode_stats:
     shell:
         "bx_stats.py -o {output} {input.bam}"
 
+rule molecule_coverage:
+    input:
+        stats = outdir + "/reports/data/bxstats/{sample}.bxstats.gz",
+        fai = f"Genome/{bn}.fai"
+    output: 
+        outdir + "/reports/data/coverage/{sample}.molcov.gz"
+    params:
+        windowsize
+    container:
+        None
+    shell:
+        "molecule_coverage.py -f {input.fai} {input.stats} | depth_windows.py {params} | gzip > {output}"
+
 rule calculate_depth:
     input: 
         bam = outdir + "/{sample}.bam",
@@ -188,8 +201,9 @@ rule calculate_depth:
 
 rule sample_reports:
     input:
-        outdir + "/reports/data/bxstats/{sample}.bxstats.gz",
-        outdir + "/reports/data/coverage/{sample}.cov.gz"
+        bxstats = outdir + "/reports/data/bxstats/{sample}.bxstats.gz",
+        coverage = outdir + "/reports/data/coverage/{sample}.cov.gz",
+        molecule_coverage = outdir + "/reports/data/coverage/{sample}.molcov.gz"
     output:	
         outdir + "/reports/{sample}.html"
     log:
@@ -268,7 +282,7 @@ rule workflow_summary:
         duplicates += "\tsamtools markdup -S --barcode-tag BX"
         summary.append(duplicates)
         sm = "The Snakemake workflow was called via command line:\n"
-        sm += f"\t{config["workflow_call"]}"
+        sm += f"\t{config['workflow_call']}"
         summary.append(sm)
         with open(outdir + "/workflow/align.bwa.summary", "w") as f:
             f.write("\n\n".join(summary))

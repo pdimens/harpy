@@ -268,7 +268,7 @@ rule workflow_summary:
         duplicates += "\tsamtools markdup -S --barcode-tag BX"
         summary.append(duplicates)
         sm = "The Snakemake workflow was called via command line:\n"
-        sm += f'\t{config["workflow_call"]}'
+        sm += f"\t{config['workflow_call']}"
         summary.append(sm)
         with open(outdir + "/workflow/align.strobealign.summary", "w") as f:
             f.write("\n\n".join(summary))

@@ -292,7 +292,7 @@ rule workflow_summary:
         annot += "\tbcftools merge --output-type b samples.annot.bcf"
         summary.append(annot)
         sm = "The Snakemake workflow was called via command line:\n"
-        sm = f'\t{config["workflow_call"]}'
+        sm = f"\t{config['workflow_call']}"
         summary.append(sm)
         with open(outdir + "/workflow/phase.summary", "w") as f:
             f.write("\n\n".join(summary))

@@ -133,7 +133,7 @@ rule workflow_summary:
             diploid += f"\tsimuG -refseq {genome} -prefix HAP_PREFIX {params.vcf_arg} hapX.vcf"
             summary.append(diploid)
         sm = "The Snakemake workflow was called via command line:"
-        sm += f'\t{config["workflow_call"]}'
+        sm += f"\t{config['workflow_call']}"
         summary.append(sm)
         with open(f"{outdir}/workflow/simulate.{variant}.summary", "w") as f:
             f.write("\n\n".join(summary))

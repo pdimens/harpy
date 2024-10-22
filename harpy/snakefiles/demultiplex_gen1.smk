@@ -159,7 +159,7 @@ rule workflow_summary:
         qc += "\tfastp -pQLAG --stdout -i R1.fq -I R2.fq > /dev/null"
         summary.append(qc)
         sm = "The Snakemake workflow was called via command line:\n"
-        sm += f'\t{config["workflow_call"]}'
+        sm += f"\t{config['workflow_call']}"
         summary.append(sm)
         with open(outdir + "/workflow/demux.gen1.summary", "w") as f:
             f.write("\n\n".join(summary))

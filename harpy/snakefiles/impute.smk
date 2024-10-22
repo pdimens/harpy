@@ -9,8 +9,8 @@ onsuccess:
 onerror:
     os.remove(logger.logfile)
 wildcard_constraints:
-    sample = "[a-zA-Z0-9._-]+"
-    paramset = "[^/]+"
+    sample = "[a-zA-Z0-9._-]+",
+    paramset = "[^/]+",
     contig = "[^/]+"
 
 bamlist       = config["inputs"]["alignments"]
@@ -253,7 +253,7 @@ rule workflow_summary:
         stitchextra += "\t" + config.get("stitch_extra", "None")
         summary.append(stitchextra)
         sm = "The Snakemake workflow was called via command line:\n"
-        sm += f'\t{config["workflow_call"]}'
+        sm += f"\t{config['workflow_call']}"
         summary.append(sm)
         with open(outdir + "/workflow/impute.summary", "w") as f:
             f.write("\n\n".join(summary))

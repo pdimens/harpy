@@ -284,7 +284,7 @@ rule workflow_summary:
         svcall += f"\tLEVIATHAN -b INPUT -i INPUT.BCI -g GENOME {params}"
         summary.append(svcall)
         sm = "The Snakemake workflow was called via command line:\n"
-        sm += f"\t{config["workflow_call"]}"
+        sm += f"\t{config['workflow_call']}"
         summary.append(sm)
         with open(outdir + "/workflow/sv.leviathan.summary", "w") as f:
             f.write("\n\n".join(summary))
