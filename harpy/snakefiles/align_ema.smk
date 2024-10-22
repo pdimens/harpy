@@ -292,7 +292,7 @@ rule sample_reports:
     log:
         logfile = outdir + "/logs/reports/{sample}.alignstats.log"
     params:
-        mol_dist = molecule_distance,
+        mol_dist = 0,
         window_size = windowsize,
         samplename = lambda wc: wc.get("sample")
     conda:
