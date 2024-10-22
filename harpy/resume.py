@@ -52,7 +52,7 @@ def resume(directory, conda, threads, quiet):
     start_text.add_column(header="value", justify="left")
     start_text.add_row("Output Folder:", directory + "/")
     start_text.add_row("Workflow Log:", sm_log.replace(f"{directory}/", "") + "[dim].gz")
-    launch_snakemake(command, workflow, start_text, directory, sm_log, quiet)
+    launch_snakemake(command, workflow, start_text, directory, sm_log, quiet, f'workflow/{workflow.replace("_", ".")}.summary')
 
 
 
