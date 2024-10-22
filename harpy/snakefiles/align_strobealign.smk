@@ -14,7 +14,7 @@ wildcard_constraints:
     sample = "[a-zA-Z0-9._-]+"
 
 outdir      = config["output_directory"]
-envdir      = os.getcwd() + "/.harpy_envs"
+envdir      = os.path.join(os.getcwd(), ".harpy_envs")
 genomefile 	= config["inputs"]["genome"]
 fqlist      = config["inputs"]["fastq"]
 extra 		= config.get("extra", "") 
@@ -86,7 +86,7 @@ rule align:
     params: 
         samps = lambda wc: d[wc.get("sample")],
         readlen = "" if autolen else f"--use-index -r {readlen}",
-        quality = config["quality"],
+        quality = config["alignment_quality"],
         unmapped_strobe = "" if keep_unmapped else "-U",
         unmapped = "" if keep_unmapped else "-F 4",
         extra = extra
@@ -244,35 +244,31 @@ rule workflow_summary:
         bx_report = outdir + "/reports/barcodes.summary.html" if (not skip_reports or len(samplenames) == 1) else []
     params:
         readlen = readlen,
-        quality = config["quality"],
+        quality = config["alignment_quality"],
         unmapped_strobe = "" if keep_unmapped else "-U",
         unmapped = "" if keep_unmapped else "-F 4",
         extra   = extra
     run:
+        summary = ["The harpy align strobe workflow ran using these parameters:"]
+        summary.append(f"The provided genome: {genomefile}")
+        align = "Sequences were aligned with strobealign using:\n"
         if autolen:
-            strobetext = f"Sequences were aligned with strobealign using:\n"
-            strobetext += f"    strobealign -U -C --rg-id=SAMPLE --rg=SM:SAMPLE {params.extra} genome reads.F.fq reads.R.fq |\n"
+            align += f"\tstrobealign -U -C --rg-id=SAMPLE --rg=SM:SAMPLE {params.extra} genome reads.F.fq reads.R.fq |\n"
         else:
-            strobetext = "The genome index was created using:\n"
-            strobetext += f"    strobealign --create-index -r {params.readlen} genome\n\n"
-            strobetext += "Sequences were aligned with strobealign using:\n"
-            strobetext += f"    strobealign --use-index {params.unmapped_strobe} -N 2 -C --rg=SM:SAMPLE {params.extra} genome reads.F.fq reads.R.fq |\n"
-        summary_template = f"""
-The harpy align strobealign workflow ran using these parameters:
-
-The provided genome: {bn}
-
-{strobetext}
-    samtools view -h {params.unmapped} -q {params.quality}
-
-Duplicates in the alignments were marked following:
-    samtools collate |
-    samtools fixmate |
-    samtools sort -m 2000M |
-    samtools markdup -S --barcode-tag BX
-
-The Snakemake workflow was called via command line:
-    {config["workflow_call"]}
-"""
+            align = "The genome index was created using:\n"
+            align += f"\tstrobealign --create-index -r {params.readlen} genome\n\n"
+            align += "Sequences were aligned with strobealign using:\n"
+            align += f"\tstrobealign --use-index {params.unmapped_strobe} -N 2 -C --rg=SM:SAMPLE {params.extra} genome reads.F.fq reads.R.fq |\n"
+        align += f"\t\tsamtools view -h {params.unmapped} -q {params.quality}"
+        summary.append(align)
+        duplicates = "Duplicates in the alignments were marked following:\n"
+        duplicates += "\tsamtools collate |\n"
+        duplicates += "\tsamtools fixmate |\n"
+        duplicates += f"\tsamtools sort -T SAMPLE --reference {genomefile} -m 2000M |\n"
+        duplicates += "\tsamtools markdup -S --barcode-tag BX"
+        summary.append(duplicates)
+        sm = "The Snakemake workflow was called via command line:\n"
+        sm += f"\t{config['workflow_call']}"
+        summary.append(sm)
         with open(outdir + "/workflow/align.strobealign.summary", "w") as f:
-            f.write(summary_template)
+            f.write("\n\n".join(summary))

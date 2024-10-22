@@ -26,7 +26,7 @@ conversions = {
     "-+": "duplication"
     }
 
-if args.failfile is not None:
+if args.failfile:
     with open(args.bedfile, "r", encoding="utf-8") as f, open(args.failfile, "w", encoding="utf-8") as failout:
         # first line, the header
         line = f.readline().strip().split("\t")

@@ -2,6 +2,7 @@
 
 import os
 import sys
+import yaml
 from rich import box
 from rich.table import Table
 import rich_click as click
@@ -23,7 +24,7 @@ docstring = {
     ]
 }
 
-@click.command(no_args_is_help = True, context_settings=dict(allow_interspersed_args=False), epilog = "See the documentation for more information: https://pdimens.github.io/harpy/workflows/qc")
+@click.command(no_args_is_help = True, context_settings=dict(allow_interspersed_args=False), epilog = "Documentation: https://pdimens.github.io/harpy/workflows/qc")
 @click.option('-c', '--deconvolve', type = IntList(4), default = "0,0,0,0", help = 'Accepts the QuickDeconvolution parameters for `k`,`w`,`d`,`a` (in that order)')
 @click.option('-d', '--deduplicate', is_flag = True, default = False, help = 'Identify and remove PCR duplicates')
 @click.option('-x', '--extra-params', type = str, help = 'Additional Fastp parameters, in quotes')
@@ -64,7 +65,7 @@ def qc(inputs, output_dir, min_length, max_length, trim_adapters, deduplicate, d
     command += f"--configfile {workflowdir}/config.yaml "
     if hpc:
         command += f"--workflow-profile {hpc} "
-    if snakemake is not None:
+    if snakemake:
         command += snakemake
 
     fqlist, sample_count = parse_fastq_inputs(inputs)
@@ -73,29 +74,28 @@ def qc(inputs, output_dir, min_length, max_length, trim_adapters, deduplicate, d
     fetch_report(workflowdir, "bx_count.Rmd")
     os.makedirs(f"{output_dir}/logs/snakemake", exist_ok = True)
     sm_log = snakemake_log(output_dir, "qc")
-
+    k,w,d,a = deconvolve
+    configs = {
+        "workflow" : "qc",
+        "snakemake_log" : sm_log,
+        "output_directory" : output_dir,
+        "trim_adapters" : trim_adapters,
+        "deduplicate" : deduplicate,
+        "min_len" : min_length,
+        "max_len" : max_length,
+        **({'extra': extra_params} if extra_params else {}),
+        **({'deconvolve': {
+            "kmer_length" : k,
+            "window_size" : w,
+            "density" : d,
+            "dropout" : a
+        }} if sum(deconvolve) > 0 else {}),
+        "skip_reports" : skip_reports,
+        "workflow_call" : command.rstrip(),
+        "inputs" : [i.as_posix() for i in fqlist]
+    }
     with open(f"{workflowdir}/config.yaml", "w", encoding="utf-8") as config:
-        config.write("workflow: qc\n")
-        config.write(f"snakemake_log: {sm_log}\n")
-        config.write(f"output_directory: {output_dir}\n")
-        config.write(f"trim_adapters: {trim_adapters}\n")
-        config.write(f"deduplicate: {deduplicate}\n")
-        if sum(deconvolve) > 0:
-            config.write("deconvolve:\n")
-            k,w,d,a = deconvolve
-            config.write(f"  kmer_length: {k}\n")
-            config.write(f"  window_size: {w}\n")
-            config.write(f"  density: {d}\n")
-            config.write(f"  dropout: {a}\n")
-        config.write(f"min_len: {min_length}\n")
-        config.write(f"max_len: {max_length}\n")
-        if extra_params:
-            config.write(f"extra: {extra_params}\n")
-        config.write(f"skip_reports: {skip_reports}\n")
-        config.write(f"workflow_call: {command}\n")
-        config.write("inputs:\n")
-        for i in fqlist:
-            config.write(f"  - {i}\n")
+        yaml.dump(configs, config, default_flow_style= False, sort_keys=False)
 
     create_conda_recipes()
     if setup_only:
@@ -109,4 +109,4 @@ def qc(inputs, output_dir, min_length, max_length, trim_adapters, deduplicate, d
     start_text.add_row("Deconvolve:", "yes" if sum(deconvolve) > 0 else "no")
     start_text.add_row("Output Folder:", f"{output_dir}/")
     start_text.add_row("Workflow Log:", sm_log.replace(f"{output_dir}/", "") + "[dim].gz")
-    launch_snakemake(command, "qc", start_text, output_dir, sm_log, quiet)
+    launch_snakemake(command, "qc", start_text, output_dir, sm_log, quiet, "workflow/qc.summary")

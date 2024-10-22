@@ -13,10 +13,10 @@ onerror:
 wildcard_constraints:
     sample = "[a-zA-Z0-9._-]+"
 
-envdir      = os.getcwd() + "/.harpy_envs"
+envdir      = os.path.join(os.getcwd(), ".harpy_envs")
 ploidy 		= config["ploidy"]
 mp_extra 	= config.get("extra", "")
-regiontype  = config["regiontype"]
+regiontype  = config["region_type"]
 windowsize  = config.get("windowsize", None)
 outdir      = config["output_directory"]
 skip_reports = config["skip_reports"]
@@ -103,9 +103,9 @@ rule index_alignments:
 rule bam_list:
     input: 
         bam = bamlist,
-        bai = [f"{i}.bai" for i in bamlist]
+        bai = collect("{bam}.bai", bam = bamlist)
     output:
-        outdir + "/logs/samples.files"
+        temp(outdir + "/logs/samples.files")
     run:
         with open(output[0], "w") as fout:
             for bamfile in input.bam:
@@ -114,6 +114,8 @@ rule bam_list:
 rule mpileup:
     input:
         bamlist = outdir + "/logs/samples.files",
+        bam = bamlist,
+        bai = collect("{bam}.bai", bam = bamlist),
         genome  = f"Genome/{bn}",
         genome_fai = f"Genome/{bn}.fai"
     output: 
@@ -250,32 +252,27 @@ rule workflow_summary:
         ploidy = f"--ploidy {ploidy}",
         populations = f"--populations {groupings}" if groupings else "--populations -"
     run:
+        summary = ["The harpy snp freebayes workflow ran using these parameters:"]
+        summary.append(f"The provided genome: {bn}")
         if windowsize:
-            windowtext =  f"Size of intervals to split genome for variant calling: {windowsize}"
+            summary.append(f"Size of intervals to split genome for variant calling: {windowsize}")
         else:
-            windowtext = f"Genomic positions for which variants were called: {regioninput}"
-            summary_template = f"""
-The harpy snp mpileup workflow ran using these parameters:
-
-The provided genome: {bn}
-
-{windowtext}
-
-The mpileup parameters:
-    bcftools mpileup --fasta-ref GENOME --region REGION --bam-list BAMS --annotate AD --output-type b {mp_extra}
-
-The bcftools call parameters:
-    bcftools call --multiallelic-caller {params} --variants-only --output-type b |
-    bcftools sort -
-
-The variants identified in the intervals were merged into the final variant file using:
-    bcftools concat -f bcf.files -a --remove-duplicates
-
-The variants were normalized using:
-    bcftools norm -m -both -d both
-
-The Snakemake workflow was called via command line:
-    {config["workflow_call"]}
-"""
+            summary.append(f"Genomic positions for which variants were called: {regioninput}")
+        mpileup = "The mpileup parameters:\n"
+        mpileup += f"\tbcftools mpileup --fasta-ref GENOME --region REGION --bam-list BAMS --annotate AD --output-type b {mp_extra}"
+        summary.append(mpileup)
+        bcfcall = "The bcftools call parameters:\n"
+        bcfcall += "\tbcftools call --multiallelic-caller {params} --variants-only --output-type b |\n"
+        bcfcall += "\tbcftools sort -"
+        summary.append(bcfcall)
+        merged = "The variants identified in the intervals were merged into the final variant file using:\n"
+        merged += "\tbcftools concat -f bcf.files -a --remove-duplicates"
+        summary.append(merged)
+        normalize = "The variants were normalized using:\n"
+        normalize += "\tbcftools norm -m -both -d both"
+        summary.append(normalize)
+        sm = "The Snakemake workflow was called via command line:\n"
+        sm += f"\t{config['workflow_call']}"
+        summary.append(sm)
         with open(outdir + "/workflow/snp.mpileup.summary", "w") as f:
-            f.write(summary_template)
+            f.write("\n\n".join(summary))

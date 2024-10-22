@@ -14,7 +14,7 @@ pruning           = config["prune"]
 molecule_distance = config["molecule_distance"]
 extra             = config.get("extra", "") 
 outdir 			  = config["output_directory"]
-envdir      = os.getcwd() + "/.harpy_envs"
+envdir      = os.path.join(os.getcwd(), ".harpy_envs")
 
 if config["noBX"]:
     fragfile = outdir + "/extractHairs/{sample}.unlinked.frags"

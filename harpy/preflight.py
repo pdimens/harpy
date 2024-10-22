@@ -2,6 +2,7 @@
 
 import os
 import sys
+import yaml
 from rich import box
 from rich.table import Table
 import rich_click as click
@@ -35,7 +36,7 @@ docstring = {
     ]
 }
 
-@click.command(no_args_is_help = True, context_settings=dict(allow_interspersed_args=False), epilog = "See the documentation for more information: https://pdimens.github.io/harpy/workflows/preflight/")
+@click.command(no_args_is_help = True, context_settings=dict(allow_interspersed_args=False), epilog = "Documentation: https://pdimens.github.io/harpy/workflows/preflight/")
 @click.option('-o', '--output-dir', type = click.Path(exists = False), default = "Preflight/fastq", show_default=True,  help = 'Output directory name')
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(min = 1, max_open = True), help = 'Number of threads to use')
 @click.option('--conda',  is_flag = True, default = False, help = 'Use conda/mamba instead of container')
@@ -65,7 +66,7 @@ def fastq(inputs, output_dir, threads, snakemake, quiet, hpc, conda, setup_only)
     command += f"--configfile {workflowdir}/config.yaml "
     if hpc:
         command += f"--workflow-profile {hpc} "
-    if snakemake is not None:
+    if snakemake:
         command += snakemake
 
     os.makedirs(f"{workflowdir}/", exist_ok= True)
@@ -74,15 +75,15 @@ def fastq(inputs, output_dir, threads, snakemake, quiet, hpc, conda, setup_only)
     fetch_report(workflowdir, "preflight_fastq.Rmd")
     os.makedirs(f"{output_dir}/logs/snakemake", exist_ok = True)
     sm_log = snakemake_log(output_dir, "preflight_fastq")
-
+    configs = {
+        "workflow" : "preflight fastq",
+        "snakemake_log" : sm_log,
+        "output_directory" : output_dir,
+        "workflow_call" : command.rstrip(),
+        "inputs" : [i.as_posix() for i in fqlist]
+    }
     with open(f"{workflowdir}/config.yaml", "w", encoding="utf-8") as config:
-        config.write("workflow: preflight fastq\n")
-        config.write(f"snakemake_log: {sm_log}\n")
-        config.write(f"output_directory: {output_dir}\n")
-        config.write(f"workflow_call: {command}\n")
-        config.write("inputs:\n")
-        for i in fqlist:
-            config.write(f"  - {i}\n")
+        yaml.dump(configs, config, default_flow_style= False, sort_keys=False)
 
     create_conda_recipes()
     if setup_only:
@@ -94,9 +95,9 @@ def fastq(inputs, output_dir, threads, snakemake, quiet, hpc, conda, setup_only)
     start_text.add_row("FASTQ Files:", f"{n}")
     start_text.add_row("Output Folder:", output_dir + "/")
     start_text.add_row("Workflow Log:", sm_log.replace(f"{output_dir}/", "") + "[dim].gz")
-    launch_snakemake(command, "preflight_fastq", start_text, output_dir, sm_log, quiet)
+    launch_snakemake(command, "preflight_fastq", start_text, output_dir, sm_log, quiet, "workflow/preflight.fastq.summary")
 
-@click.command(no_args_is_help = True, context_settings=dict(allow_interspersed_args=False), epilog = "See the documentation for more information: https://pdimens.github.io/harpy/workflows/preflight/")
+@click.command(no_args_is_help = True, context_settings=dict(allow_interspersed_args=False), epilog = "Documentation: https://pdimens.github.io/harpy/workflows/preflight/")
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(min = 1, max_open = True), help = 'Number of threads to use')
 @click.option('--quiet',  is_flag = True, show_default = True, default = False, help = 'Don\'t show output text while running')
 @click.option('-o', '--output-dir', type = click.Path(exists = False), default = "Preflight/bam", show_default=True,  help = 'Output directory name')
@@ -125,7 +126,7 @@ def bam(inputs, output_dir, threads, snakemake, quiet, hpc, conda, setup_only):
     command += f"--configfile {workflowdir}/config.yaml "
     if hpc:
         command += f"--workflow-profile {hpc} "
-    if snakemake is not None:
+    if snakemake:
         command += snakemake
 
     os.makedirs(f"{workflowdir}/", exist_ok= True)
@@ -134,15 +135,15 @@ def bam(inputs, output_dir, threads, snakemake, quiet, hpc, conda, setup_only):
     fetch_report(workflowdir, "preflight_bam.Rmd")
     os.makedirs(f"{output_dir}/logs/snakemake", exist_ok = True)
     sm_log = snakemake_log(output_dir, "preflight_bam")
-
+    configs = {
+        "workflow" : "preflight bam",
+        "snakemake_log" : sm_log,
+        "output_directory" : output_dir,
+        "workflow_call" : command.rstrip(),
+        "inputs" : [i.as_posix() for i in bamlist]
+    }
     with open(f"{workflowdir}/config.yaml", "w", encoding="utf-8") as config:
-        config.write("workflow: preflight bam\n")
-        config.write(f"snakemake_log: {sm_log}\n")
-        config.write(f"output_directory: {output_dir}\n")
-        config.write(f"workflow_call: {command}\n")
-        config.write("inputs:\n")
-        for i in bamlist:
-            config.write(f"  - {i}\n")
+        yaml.dump(configs, config, default_flow_style= False, sort_keys=False)
 
     create_conda_recipes()
     if setup_only:
@@ -154,7 +155,7 @@ def bam(inputs, output_dir, threads, snakemake, quiet, hpc, conda, setup_only):
     start_text.add_row("Alignment Files:", f"{n}")
     start_text.add_row("Output Folder:", output_dir + "/")
     start_text.add_row("Workflow Log:", sm_log.replace(f"{output_dir}/", "") + "[dim].gz")
-    launch_snakemake(command, "preflight_bam", start_text, output_dir, sm_log, quiet)
+    launch_snakemake(command, "preflight_bam", start_text, output_dir, sm_log, quiet, "workflow/preflight.bam.summary")
 
 preflight.add_command(fastq)
 preflight.add_command(bam)

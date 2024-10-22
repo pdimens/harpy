@@ -15,7 +15,7 @@ wildcard_constraints:
     sample = "[a-zA-Z0-9._-]+"
 
 outdir = config["output_directory"]
-envdir  = os.getcwd() + "/.harpy_envs"
+envdir  = os.path.join(os.getcwd(), ".harpy_envs")
 bamlist = config["inputs"]
 bamdict = dict(zip(bamlist, bamlist))
 samplenames = {Path(i).stem for i in bamlist}
@@ -85,14 +85,12 @@ rule workflow_summary:
         outdir + "/filecheck.bam.html"
     run:
         os.makedirs(f"{outdir}/workflow/", exist_ok= True)
-        summary_template = f"""
-The harpy preflight bam workflow ran using these parameters:
-
-Validations were performed with:
-    check_bam.py sample.bam > sample.txt
-
-The Snakemake workflow was called via command line:
-    {config["workflow_call"]}
-"""
+        summary = ["The harpy preflight bam workflow ran using these parameters:"]
+        valids = "Validations were performed with:\n"
+        valids += "\tcheck_bam.py sample.bam > sample.txt"
+        summary.append(valids)
+        sm = "The Snakemake workflow was called via command line:\n"
+        sm += f"\t{config['workflow_call']}"
+        summary.append(sm)
         with open(outdir + "/workflow/preflight.bam.summary", "w") as f:
-            f.write(summary_template)
+            f.write("\n\n".join(summary))

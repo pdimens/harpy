@@ -14,7 +14,7 @@ onerror:
 wildcard_constraints:
     sample = "[a-zA-Z0-9._-]+"
 
-envdir      = os.getcwd() + "/.harpy_envs"
+envdir      = os.path.join(os.getcwd(), ".harpy_envs")
 genomefile  = config["inputs"]["genome"]
 bamlist     = config["inputs"]["alignments"]
 bamdict     = dict(zip(bamlist, bamlist))
@@ -210,19 +210,16 @@ rule workflow_summary:
         iters  = f"-B {iterations}",
         extra = extra
     run:
-        summary_template = f"""
-The harpy sv leviathan workflow ran using these parameters:
-
-The provided genome: {bn}
-
-The barcodes were indexed using:
-    LRez index bam -p -b INPUT
-
-Leviathan was called using:
-    LEVIATHAN -b INPUT -i INPUT.BCI -g GENOME {params}
-
-The Snakemake workflow was called via command line:
-    {config["workflow_call"]}
-"""
+        summary = ["The harpy sv leviathan workflow ran using these parameters:"]
+        summary.append(f"The provided genome: {bn}")
+        bc_idx = "The barcodes were indexed using:\n"
+        bc_idx += "LRez index bam -p -b INPUT"
+        summary.append(bc_idx)
+        svcall = "Leviathan was called using:\n"
+        svcall += f"\tLEVIATHAN -b INPUT -i INPUT.BCI -g GENOME {params}"
+        summary.append(svcall)
+        sm = "The Snakemake workflow was called via command line:\n"
+        sm += f"\t{config['workflow_call']}"
+        summary.append(sm)
         with open(outdir + "/workflow/sv.leviathan.summary", "w") as f:
-            f.write(summary_template)
+            f.write("\n\n".join(summary))

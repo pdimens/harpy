@@ -73,98 +73,104 @@ def validate_input_by_ext(inputfile, option, ext):
 
 def check_impute_params(parameters):
     """Validate the STITCH parameter file for column names, order, types, missing values, etc."""
-    with open(parameters, "r", encoding="utf-8") as fp:
-        header = fp.readline().rstrip().lower()
+    with open(parameters, "r", encoding="utf-8") as paramfile:
+        header = paramfile.readline().rstrip().lower()
         headersplt = header.split()
-        correct_header = sorted(["model", "usebx", "bxlimit", "k", "s", "ngen"])
+        colnames = ["name", "model", "usebx", "bxlimit", "k", "s", "ngen"]
+        correct_header = sorted(colnames)
+        n_cols = len(colnames)
         row = 1
         badrows = []
         badlens = []
         if sorted(headersplt) != correct_header:
-            culprits = [i for i in headersplt if i not in correct_header]
-            print_error("invalid column names", f"Parameter file [bold]{parameters}[/bold] has incorrect column names. Valid names are:\n[green bold]model usebx bxlimit k s ngen[/green bold]")
+            invalid_col = [i for i in headersplt if i not in colnames]
+            missing_col = [i for i in colnames if i not in headersplt]
+            errtext = []
+            culprit_text = []
+            if invalid_col:
+                errtext.append("\n  - invalid column names")
+                culprit_text.append(f"[red]Invalid columns:[/red] {", ".join(invalid_col)}")
+            if missing_col:
+                errtext.append("\n  - missing columns")
+                culprit_text.append( f"[yellow]Missing columns:[/yellow] {", ".join(missing_col)}")
+
+            print_error("incorrect columns", f"Parameter file [bold]{parameters}[/bold] has incorrect column names{"".join(errtext)}\nValid names are: [green bold]{" ".join(colnames)}[/green bold]")
             print_solution_with_culprits(
                 f"Fix the headers in [bold]{parameters}[/bold] or use [blue bold]harpy stitchparams[/blue bold] to generate a valid parameter file and modify it with appropriate values.",
-                "Column names causing this error:"
+                "Column causing this error:"
             )
-            click.echo(" ".join(culprits), file = sys.stderr)
+            rprint("\n".join(culprit_text), file = sys.stderr)
             sys.exit(1)
+        else:
+            # in case the columns are out of order, reorder the columns to match `colnames`
+            col_order = [colnames.index(item) for item in headersplt]
         # instantiate dict with colnames
         data = {}
-        for i in headersplt:
-            data[i] = []
         while True:
             # Get next line from file
-            line = fp.readline()
+            line = paramfile.readline()
             row += 1
             # if line is empty, end of file is reached
             if not line:
                 break
             if line == "\n":
-                break
-            # split the line by whitespace
-            rowvals = line.rstrip().split()
-            rowlen = len(rowvals)
-            if rowlen != 6:
-                badrows.append(row)
-                badlens.append(rowlen)
-            elif len(badrows) > 0:
+                # be lenient with empty rows
                 continue
+            # split the line by whitespace and reorder to match expected colname order
+            row_values = [line.rstrip().split()[i] for i in col_order]
+            if len(row_values) == n_cols: 
+                data[row_values[0]] = dict(zip(colnames[1:], row_values[1:]))
             else:
-                for j,k in zip(headersplt, rowvals):
-                    data[j].append(k)
-
+                badrows.append(row)
+                badlens.append(len(row_values))
         if len(badrows) > 0:
-            print_error("invalid rows", f"Parameter file [bold]{parameters}[/bold] is formatted incorrectly. Not all rows have the expected 6 columns.")
+            print_error("invalid rows", f"Parameter file [blue]{parameters}[/blue] is formatted incorrectly. Not all rows have the expected {n_cols} columns.")
             print_solution_with_culprits(
-                f"See the problematic rows below. Check that you are using a whitespace (space or tab) delimeter in [bold]{parameters}[/bold] or use [blue bold]harpy stitchparams[/blue bold] to generate a valid parameter file and modify it with appropriate values.",
+                f"See the problematic rows below. Check that you are using a whitespace (space or tab) delimeter in [blue]{parameters}[/blue] or use [blue green]harpy stitchparams[/blue green] to generate a valid parameter file and modify it with appropriate values.",
                 "Rows causing this error and their column count:"
             )
             for i in zip(badrows, badlens):
                 click.echo(f"{i[0]}\t{i[1]}", file = sys.stderr)
             sys.exit(1)
         
-        # Validate each column
-        culprits = {}
-        colerr = 0
+        # validate each row
+        row_error = False
         errtable = Table(show_footer=True, box=box.SIMPLE)
-        errtable.add_column("Column", justify="right", style="white", no_wrap=True)
-        errtable.add_column("Expected Values", style="blue")
-        errtable.add_column("Rows with Issues", style = "white")
+        errtable.add_column("Row", justify="right", style="white", no_wrap=True)
+        errtable.add_column("Columns with Issues", style = "white")
 
-        culprits["model"] = []
-        for i,j in enumerate(data["model"]):
-            if j not in ["pseudoHaploid", "diploid","diploid-inbred"]:
-                culprits["model"].append(str(i + 1))
-                colerr += 1
-        if culprits["model"]:
-            errtable.add_row("model", "diploid, diploid-inbred, pseudoHaploid", ", ".join(culprits["model"]))
-
-        culprits["usebx"] = []
-        for i,j in enumerate(data["usebx"]):
-            if j not in [True, "TRUE", "true", False, "FALSE", "false", "Y","y", "YES", "Yes", "yes", "N", "n", "NO", "No", "no"]:
-                culprits["usebx"].append(str(i + 1))
-                colerr += 1
-        if culprits["usebx"]:
-            errtable.add_row("usebx", "True, False", ",".join(culprits["usebx"]))
-        
-        for param in ["bxlimit","k","s","ngen"]:
-            culprits[param] = []
-            for i,j in enumerate(data[param]):
-                if not j.isdigit():
-                    culprits[param].append(str(i + 1))
-                    colerr += 1
-            if culprits[param]:
-                errtable.add_row(param, "Integers", ",".join(culprits[param]))
-
-        if colerr > 0:
-            print_error("invalid column values", f"Parameter file [bold]{parameters}[/bold] is formatted incorrectly. Not all columns have valid values.")
+        row = 1
+        for k,v in data.items():
+            badcols = []
+            if re.search(r'[^a-z0-9\-_\.]',k, flags = re.IGNORECASE):
+                badcols.append("name")
+            if v["model"] not in ["pseudoHaploid", "diploid","diploid-inbred"]:
+                badcols.append("model")
+            if f"{v["usebx"]}".lower() not in ["true", "false", "yes", "y", "no", "n"]:
+                badcols.append("usebx")
+            else:
+                if f"{v["usebx"]}".lower() in ["true", "yes", "y"]:                
+                    v["usebx"] = True
+                else:
+                    v["usebx"] = False
+            for param in ["bxlimit", "k", "s", "ngen"]:
+                if not v[param].isdigit():
+                    badcols.append(param)
+                else:
+                    v[param] = int(v[param])
+            if badcols:
+                row_error = True
+                errtable.add_row(f"{row}", ", ".join(badcols))
+            row += 1
+        if row_error:
+            print_error("invalid parameter values", f"Parameter file [bold]{parameters}[/bold] is formatted incorrectly. Some rows have incorrect values for one or more parameters.")
             print_solution_with_culprits(
-                "Review the table below of what values are expected for each column and which rows are causing issues.",
+                "Review the table below of which rows/columns are causing issues",
                 "Formatting Errors:"
             )
             rprint(errtable, file = sys.stderr)
-            sys.exit(1)
+            sys.exit(1)        
+        return data
 
 def validate_bam_RG(bamlist, threads, quiet):
     """Validate BAM files bamlist to make sure the sample name inferred from the file matches the @RG tag within the file"""

@@ -21,7 +21,7 @@ pruning           = config["prune"]
 molecule_distance = config["molecule_distance"]
 extra             = config.get("extra", "") 
 outdir 			  = config["output_directory"]
-envdir            = os.getcwd() + "/.harpy_envs"
+envdir            = os.path.join(os.getcwd(), ".harpy_envs")
 skip_reports       = config["skip_reports"]
 samples_from_vcf  = config["samples_from_vcf"]
 variantfile       = config["inputs"]["variantfile"]
@@ -277,25 +277,22 @@ rule workflow_summary:
         prune = f"--threshold {pruning}" if pruning > 0 else "--no_prune 1",
         extra = extra
     run:
-        summary_template = f"""
-The harpy phase workflow ran using these parameters:
-
-The provided variant file: {variantfile}
-
-The variant file was split by sample and filtered for heterozygous sites using:
-    bcftools view -s SAMPLE | bcftools view -i 'GT="het"'
-
-Phasing was performed using the components of HapCut2:
-    extractHAIRS {linkarg} --nf 1 --bam sample.bam --VCF sample.vcf --out sample.unlinked.frags
-    LinkFragments.py --bam sample.bam --VCF sample.vcf --fragments sample.unlinked.frags --out sample.linked.frags -d {molecule_distance}
-    HAPCUT2 --fragments sample.linked.frags --vcf sample.vcf --out sample.blocks --nf 1 --error_analysis_mode 1 --call_homozygous 1 --outvcf 1 {params.prune} {params.extra}
-
-Variant annotation was performed using:
-    bcftools annotate -a sample.phased.vcf -c CHROM,POS,FMT/GT,FMT/PS,FMT/PQ,FMT/PD -m +HAPCUT 
-    bcftools merge --output-type b samples.annot.bcf
-
-The Snakemake workflow was called via command line:
-    {config["workflow_call"]}
-"""
+        summary = ["The harpy phase workflow ran using these parameters:"]
+        summary.append(f"The provided variant file: {variantfile}")
+        hetsplit = "The variant file was split by sample and filtered for heterozygous sites using:\n"
+        hetsplit += "\tbcftools view -s SAMPLE | bcftools view -i \'GT=\"het\"\'"
+        summary.append(hetsplit)
+        phase = "Phasing was performed using the components of HapCut2:\n"
+        phase += "\textractHAIRS {linkarg} --nf 1 --bam sample.bam --VCF sample.vcf --out sample.unlinked.frags\n"
+        phase += f"\tLinkFragments.py --bam sample.bam --VCF sample.vcf --fragments sample.unlinked.frags --out sample.linked.frags -d {molecule_distance}\n"
+        phase += f"\tHAPCUT2 --fragments sample.linked.frags --vcf sample.vcf --out sample.blocks --nf 1 --error_analysis_mode 1 --call_homozygous 1 --outvcf 1 {params.prune} {params.extra}\n"
+        summary.append(phase)
+        annot = "Variant annotation was performed using:\n"
+        annot += "\tbcftools annotate -a sample.phased.vcf -c CHROM,POS,FMT/GT,FMT/PS,FMT/PQ,FMT/PD -m +HAPCUT\n"
+        annot += "\tbcftools merge --output-type b samples.annot.bcf"
+        summary.append(annot)
+        sm = "The Snakemake workflow was called via command line:\n"
+        sm = f"\t{config['workflow_call']}"
+        summary.append(sm)
         with open(outdir + "/workflow/phase.summary", "w") as f:
-            f.write(summary_template)
+            f.write("\n\n".join(summary))

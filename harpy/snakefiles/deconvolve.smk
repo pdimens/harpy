@@ -13,7 +13,7 @@ onerror:
 wildcard_constraints:
     sample = "[a-zA-Z0-9._-]+"
 
-envdir      = os.getcwd() + "/.harpy_envs"
+envdir      = os.path.join(os.getcwd(), ".harpy_envs")
 fqlist      = config["inputs"]
 outdir      = config["output_directory"]
 kmer_length = config["kmer_length"]
@@ -86,21 +86,19 @@ rule workflow_summary:
     input:
         collect(outdir + "/{sample}.{FR}.fq.gz", FR = ["R1", "R2"], sample = samplenames),
     run:
-        summary_template = f"""
-The harpy deconvolve workflow ran using these parameters:
-
-fastq files were interleaved with seqtk:
-    seqtk mergepe forward.fq reverse.fq
-
-Deconvolution occurred using QuickDeconvolution:
-    QuickDeconvolution -t threads -i infile.fq -o output.fq -k {kmer_length} -w {window_size} -d {density} -a {dropout}
-
-The interleaved output was split back into forward and reverse reads with seqtk:
-    seqtk -1 interleaved.fq | gzip > file.R1.fq.gz
-    seqtk -2 interleaved.fq | gzip > file.R2.fq.gz
-
-The Snakemake workflow was called via command line:
-        {config["workflow_call"]}
-"""
+        summary = ["The harpy deconvolve workflow ran using these parameters:"]
+        interleave = "fastq files were interleaved with seqtk:\n"
+        interleave += "\tseqtk mergepe forward.fq reverse.fq"
+        summary.append(interleave)
+        deconv = "Deconvolution occurred using QuickDeconvolution:\n"
+        deconv += f"\tQuickDeconvolution -t threads -i infile.fq -o output.fq -k {kmer_length} -w {window_size} -d {density} -a {dropout}"
+        summary.append(deconv)
+        recover = "The interleaved output was split back into forward and reverse reads with seqtk:\n"
+        recover += "\tseqtk -1 interleaved.fq | gzip > file.R1.fq.gz\n"
+        recover += "\tseqtk -2 interleaved.fq | gzip > file.R2.fq.gz"
+        summary.append(recover)
+        sm = "Snakemake workflow was called via command line:\n"
+        sm += f"\t{config['workflow_call']}"
+        summary.append(sm)
         with open(outdir + "/workflow/deconvolve.summary", "w") as f:  
-            f.write(summary_template)
+            f.write("\n\n".join(summary))

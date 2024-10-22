@@ -24,7 +24,7 @@ extra 		= config.get("extra", "")
 bn 			= os.path.basename(genomefile)
 genome_zip  = True if bn.lower().endswith(".gz") else False
 bn_idx      = f"{bn}.gzi" if genome_zip else f"{bn}.fai"
-envdir      = os.getcwd() + "/.harpy_envs"
+envdir      = os.path.join(os.getcwd(), ".harpy_envs")
 windowsize  = config["depth_windowsize"]
 keep_unmapped = config["keep_unmapped"]
 skip_reports = config["skip_reports"]
@@ -147,7 +147,7 @@ rule align_ema:
     params: 
         bxtype = f"-p {platform}",
         tmpdir = lambda wc: outdir + "/." + d[wc.sample],
-        quality = config["quality"],
+        quality = config["alignment_quality"],
         unmapped = "" if keep_unmapped else "-F 4",
         extra = extra
     threads:
@@ -173,7 +173,7 @@ rule align_bwa:
     log:
         outdir + "/logs/align/{sample}.bwa.align.log"
     params:
-        quality = config["quality"],
+        quality = config["alignment_quality"],
         unmapped = "" if keep_unmapped else "-F 4"
     benchmark:
         ".Benchmark/Mapping/ema/bwaAlign.{sample}.txt"
@@ -335,41 +335,37 @@ rule workflow_summary:
         beadtech = "-p" if platform == "haplotag" else f"-w {barcode_list}",
         unmapped = "" if keep_unmapped else "-F 4"
     run:
-        summary_template= f"""
-The harpy align ema workflow ran using these parameters:
-
-The provided genome: {bn}
-
-Barcodes were counted and validated with EMA using:
-    seqtk mergepe forward.fq.gz reverse.fq.gz | ema count {{params.beadtech}}
-
-Barcoded sequences were binned with EMA using:
-    seqtk mergepe forward.fq.gz reverse.fq.gz | ema preproc {{params.beadtech}} -n {nbins}
-
-Barcoded bins were aligned with ema align using:
-    ema align " + extra + " -d -p " + platform + " -R \"@RG\\tID:SAMPLE\\tSM:SAMPLE\" |
-    samtools view -h {{params.unmapped}} -q " + str(config["quality"]) + " - | 
-    samtools sort --reference genome -m 2000M
-
-Invalid/non barcoded sequences were aligned with BWA using:
-    bwa mem -C -v2 -R \"@RG\\tID:SAMPLE\\tSM:SAMPLE\" genome forward_reads reverse_reads
-    samtools view -h {{params.unmapped}} -q " + str(config["quality"]) + " - |
-    samtools sort --reference genome -m 2000M
-
-Duplicates in non-barcoded alignments were marked following:
-    samtools collate |
-    samtools fixmate |
-    samtools sort -m 2000M |
-    samtools markdup -S
-
-Alignments were merged using:
-    samtools cat barcode.bam nobarcode.bam > concat.bam
-
-Merged alignments were sorted using:
-    samtools sort -m 2000M concat.bam
-
-The Snakemake workflow was called via command line:
-    {config["workflow_call"]}
-"""
-        with open(outdir + "/workflow/align.ema.summary", "w") as f:
-            f.write(summary_template.format(params=params))
+        summary = ["The harpy align ema workflow ran using these parameters:"]
+        summary.append(f"The provided genome: {genomefile}")
+        counts = "Barcodes were counted and validated with EMA using:\n"
+        counts += f"\tseqtk mergepe forward.fq.gz reverse.fq.gz | ema count {params.beadtech}"
+        summary.append(counts)
+        bins = "Barcoded sequences were binned with EMA using:\n"
+        bins += f"\tseqtk mergepe forward.fq.gz reverse.fq.gz | ema preproc {params.beadtech} -n {nbins}"
+        summary.append(bins)
+        ema_align = "Barcoded bins were aligned with ema align using:\n"
+        ema_align += f"\tema align {extra} -d -p {platform} -R \"@RG\\tID:SAMPLE\\tSM:SAMPLE\" |\n"
+        ema_align += f"\tsamtools view -h {params.unmapped} -q {config["alignment_quality"]} - |\n"
+        ema_align += "\tsamtools sort --reference genome"
+        summary.append(ema_align)
+        bwa_align = "Non-barcoded and invalid-barcoded sequences were aligned with BWA using:\n"
+        bwa_align += "\tbwa mem -C -v 2 -R \"@RG\\tID:SAMPLE\\tSM:SAMPLE\" genome forward_reads reverse_reads |\n"
+        bwa_align += f"\tsamtools view -h {params.unmapped} -q {config["alignment_quality"]}"
+        summary.append(bwa_align)
+        duplicates = "Duplicates in non-barcoded alignments were marked following:\n"
+        duplicates += "\tsamtools collate |\n"
+        duplicates += "\tsamtools fixmate |\n"
+        duplicates += f"\tsamtools sort -T SAMPLE --reference {genomefile} |\n"
+        duplicates += "\tsamtools markdup -S"
+        summary.append(duplicates)
+        merged = "Alignments were merged using:\n"
+        merged += "\tsamtools cat barcode.bam nobarcode.bam > concat.bam"
+        summary.append(merged)
+        sorting = "Merged alignments were sorted using:\n"
+        sorting += "\tsamtools sort -m 2000M concat.bam"
+        summary.append(sorting)
+        sm = "The Snakemake workflow was called via command line:\n"
+        sm += f"\t{config['workflow_call']}"
+        summary.append(sm)
+        with open(outdir + "/workflow/align.bwa.summary", "w") as f:
+            f.write("\n\n".join(summary))

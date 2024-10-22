@@ -15,6 +15,7 @@ Simulate/
 Impute/
 Preflight/
 Phase/
+Assembly/
 Metassembly/
 samples.populations
 *.fasta

@@ -13,10 +13,10 @@ onerror:
 
 outdir = config["output_directory"]
 genome = config["inputs"]["genome"]
-envdir = os.getcwd() + "/.harpy_envs"
-snp_vcf = config["inputs"].get("snp_vcf", None)
-indel_vcf = config["inputs"].get("indel_vcf", None)
-heterozygosity = float(config["heterozygosity"]["value"])
+envdir = os.path.join(os.getcwd(), ".harpy_envs")
+snp_vcf = config["snp"].get("vcf", None)
+indel_vcf = config["indel"].get("vcf", None)
+heterozygosity = float(config["heterozygosity"]["ratio"])
 only_vcf = config["heterozygosity"]["only_vcf"]
 outprefix = config["prefix"]
 randomseed = config.get("random_seed", None)
@@ -37,28 +37,31 @@ if snp_vcf or indel_vcf:
         variant_params += f" -indel_vcf {indel_vcf_correct}"
         in_vcfs.append(indel_vcf_correct)
 else:
-    snp_count = config.get("snp_count", None)
-    indel_count =  config.get("indel_count", None)
+    snp_count = config["snp"].get("count", None)
+    indel_count =  config["indel"].get("count", None)
     variant_params = ""
     if snp_count:
         snp = True
         variant_params += f" -snp_count {snp_count}"
-        snp_constraint = config.get("snp_gene_constraints", None)
+        snp_constraint = config["snp"].get("gene_constraints", None)
         variant_params += f" -coding_partition_for_snp_simulation {snp_constraint}" if snp_constraint else ""
-        ratio = config.get("titv_ratio", None)
+        ratio = config["snp"].get("titv_ratio", None)
         variant_params += f" -titv_ratio {ratio}" if ratio else ""
-
     if indel_count:
         indel = True
         variant_params += f" -indel_count {indel_count}"
-        ratio = config.get("indel_ratio", None)
+        ratio = config["indel"].get("indel_ratio", None)
         variant_params += f" -ins_del_ratio {ratio}" if ratio else ""
+        size_alpha = config["indel"].get("size_alpha", None)
+        variant_params += f" -indel_size_powerlaw_alpha {size_alpha}" if size_alpha else ""        
+        size_constant = config["indel"].get("size_constant", None)
+        variant_params += f" -indel_size_powerlaw_constant {size_constant}" if size_constant else ""        
 
     centromeres = config["inputs"].get("centromeres", None)
     variant_params += f" -centromere_gff {centromeres}" if centromeres else ""
     genes = config["inputs"].get("genes", None)
     variant_params += f" -gene_gff {genes}" if genes else ""
-    exclude = config["inputs"].get("exclude_chr", None)
+    exclude = config["inputs"].get("excluded_chromosomes", None)
     variant_params += f" -excluded_chr_list {exclude}" if exclude else ""
     variant_params += f" -seed {randomseed}" if randomseed else ""
 
@@ -163,3 +166,24 @@ rule workflow_summary:
         collect(f"{outdir}/{outprefix}" + ".{var}.vcf", var = variants),
         collect(f"{outdir}/diploid/{outprefix}" + ".hap{n}.fasta", n = [1,2]) if heterozygosity > 0 and not only_vcf else [],
         collect(f"{outdir}/diploid/{outprefix}" + ".{var}.hap{n}.vcf", n = [1,2], var = variants) if heterozygosity > 0 else []
+    params:
+        prefix = f"{outdir}/{outprefix}",
+        parameters = variant_params,
+        snp = f"-snp_vcf {outdir}/diploid/{outprefix}.snp.hapX.vcf" if snp else "",
+        indel = f"-indel_vcf {outdir}/diploid/{outprefix}.indel.hapX.vcf" if indel else ""
+    run:
+        summary = ["The harpy simulate snpindel workflow ran using these parameters:"]
+        summary.append(f"The provided genome: {genome}")
+        summary.append(f"Heterozygosity specified: {heterozygosity}")
+        haploid = "Haploid variants were simulated using simuG:\n"    
+        haploid += f"simuG -refseq {genome} -prefix {params.prefix} {params.parameters}"
+        summary.append(haploid)
+        if heterozygosity > 0 and not only_vcf:
+            diploid = "Diploid variants were simulated after splitting by the heterozygosity ratio:\n"
+            diploid += f"\tsimuG -refseq {genome} -prefix hapX {params.snp} {params.indel}"
+            summary.append(diploid)
+        sm = "The Snakemake workflow was called via command line:"
+        sm += f"\t{config['workflow_call']}"
+        summary.append(sm)
+        with open(f"{outdir}/workflow/simulate.snpindel.summary", "w") as f:
+            f.write("\n\n".join(summary))

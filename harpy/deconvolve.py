@@ -2,6 +2,7 @@
 
 import os
 import sys
+import yaml
 from rich import box
 from rich.table import Table
 import rich_click as click
@@ -23,7 +24,7 @@ docstring = {
     ]
 }
 
-@click.command(no_args_is_help = True, context_settings=dict(allow_interspersed_args=False), epilog = "See the documentation for more information: https://pdimens.github.io/harpy/workflows/qc")
+@click.command(no_args_is_help = True, context_settings=dict(allow_interspersed_args=False), epilog = "Documentation: https://pdimens.github.io/harpy/workflows/qc")
 @click.option('-k', '--kmer-length', default = 21, show_default = True, type=int, help = 'Size of kmers')
 @click.option('-w', '--window-size', default = 40, show_default = True, type=int, help = 'Size of window guaranteed to contain at least one kmer')
 @click.option('-d', '--density', default = 3, show_default = True, type = click.IntRange(min = 1, max_open = True), help = 'On average, 1/2^d kmers are indexed')
@@ -54,7 +55,7 @@ def deconvolve(inputs, output_dir, kmer_length, window_size, density, dropout, t
     command += f"--configfile {workflowdir}/config.yaml "
     if hpc:
         command += f"--workflow-profile {hpc} "
-    if snakemake is not None:
+    if snakemake:
         command += snakemake
 
     os.makedirs(workflowdir, exist_ok=True)
@@ -62,20 +63,20 @@ def deconvolve(inputs, output_dir, kmer_length, window_size, density, dropout, t
     fetch_rule(workflowdir, "deconvolve.smk")
     os.makedirs(f"{output_dir}/logs/snakemake", exist_ok = True)
     sm_log = snakemake_log(output_dir, "deconvolve")
-
+    configs = {
+        "workflow": "deconvolve",
+        "snakemake_log" : sm_log,
+        "output_directory" : output_dir,
+        "kmer_length" : kmer_length,       
+        "window_size" : window_size,
+        "density" :  density,
+        "dropout" :  dropout,
+        "workflow_call" : command.rstrip(),
+        "inputs": [i.as_posix() for i in fqlist]
+        }
     with open(f"{workflowdir}/config.yaml", "w", encoding="utf-8") as config:
-        config.write("workflow: deconvolve\n")
-        config.write(f"snakemake_log: {sm_log}\n")
-        config.write(f"output_directory: {output_dir}\n")
-        config.write(f"kmer_length: {kmer_length}\n")       
-        config.write(f"window_size: {window_size}\n")
-        config.write(f"density: {density}\n")
-        config.write(f"dropout: {dropout}\n")
-        config.write(f"workflow_call: {command}\n")
-        config.write("inputs:\n")
-        for i in fqlist:
-            config.write(f"  - {i}\n")
-    
+        yaml.dump(configs, config, default_flow_style= False, sort_keys=False)
+
     create_conda_recipes()
     if setup_only:
         sys.exit(0)
@@ -86,4 +87,4 @@ def deconvolve(inputs, output_dir, kmer_length, window_size, density, dropout, t
     start_text.add_row("Samples:", f"{sample_count}")
     start_text.add_row("Output Folder:", output_dir + "/")
     start_text.add_row("Workflow Log:", sm_log.replace(f"{output_dir}/", "") + "[dim].gz")
-    launch_snakemake(command, "deconvolve", start_text, output_dir, sm_log, quiet)
+    launch_snakemake(command, "deconvolve", start_text, output_dir, sm_log, quiet, "workflow/deconvolve.summary")

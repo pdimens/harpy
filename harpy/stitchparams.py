@@ -5,7 +5,7 @@ import sys
 import rich_click as click
 from ._printing import print_notice
 
-@click.command(no_args_is_help = True, context_settings=dict(allow_interspersed_args=False), epilog = "See the documentation for more information: https://pdimens.github.io/harpy/workflows/impute/#parameter-file")
+@click.command(no_args_is_help = True, context_settings=dict(allow_interspersed_args=False), epilog = "Documentation: https://pdimens.github.io/harpy/workflows/impute/#parameter-file")
 @click.option('-o', '--output', type=str, required = True, metavar = "Output file name", help = 'Name of output STITCH parameter file')
 def stitchparams(output):
     """
@@ -22,10 +22,10 @@ def stitchparams(output):
             click.echo("Please suggest a different name for the output file")
             sys.exit(0)
     with open(output, "w", encoding="utf-8") as file:
-        _ = file.write('model\tusebx\tbxlimit\tk\ts\tngen\n')
-        _ = file.write('diploid\tTRUE\t50000\t10\t1\t50\n')
-        _ = file.write('diploid\tTRUE\t50000\t10\t1\t50\n')
-        _ = file.write('diploid\tTRUE\t50000\t15\t1\t100')
+        _ = file.write('name\tmodel\tusebx\tbxlimit\tk\ts\tngen\n')
+        _ = file.write('k10_ng50\tdiploid\tTRUE\t50000\t10\t1\t50\n')
+        _ = file.write('k1_ng30\tdiploid\tTRUE\t50000\t5\t1\t30\n')
+        _ = file.write('high_ngen\tdiploid\tTRUE\t50000\t15\t1\t100')
     print_notice(
         f"Created STITCH parameter file: {output}\n" +
         "Modify the model parameters as needed, but DO NOT add/remove columns."
