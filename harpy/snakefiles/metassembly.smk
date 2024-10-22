@@ -19,7 +19,7 @@ k_param = config["spades"]["k"]
 metassembly = config["spades"]["assembler"]
 extra = config["spades"].get("extra", "")
 cloudspades = True if metassembly == "cloudspades" else False
-spadesdir = f"{outdir}/cloudspades_assembly" if cloudspades else f"{outdir}/spades_assembly"
+spadesdir = f"{outdir}/{'cloudspades' if cloudspades else 'spades'}_assembly"
 
 rule sort_by_barcode:
     input:

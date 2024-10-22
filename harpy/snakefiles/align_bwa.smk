@@ -272,7 +272,7 @@ rule workflow_summary:
         summary = ["The harpy align bwa workflow ran using these parameters:"]
         summary.append(f"The provided genome: {genomefile}")
         align = "Sequences were aligned with BWA using:\n"
-        align += f"\tbwa mem -C -v 2 {params.extra} -R \"@RG\\tID:SAMPLE\\tSM:SAMPLE\" genome forward_reads reverse_reads |\n"
+        align += f'\tbwa mem -C -v 2 {params.extra} -R "@RG\\tID:SAMPLE\\tSM:SAMPLE" genome forward_reads reverse_reads |\n'
         align += f"\tsamtools view -h {params.unmapped} -q {params.quality}"
         summary.append(align)
         duplicates = "Duplicates in the alignments were marked following:\n"
