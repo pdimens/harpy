@@ -336,7 +336,7 @@ knitr::kable(
 # Coverage Stats
 ```{r reset_env}
 # clear out all the objects in memory to reduce RAM usage
-rm(list = ls())
+rm(list = c(valids,invalids))
 ```
 ```{r imports}
 covfile <- snakemake@input$coverage
