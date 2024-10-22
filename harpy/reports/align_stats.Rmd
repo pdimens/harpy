@@ -41,7 +41,7 @@ using("flexdashboard","dplyr","highcharter","DT","BioCircos")
 #infile <- "~/file.bxstats.gz"
 infile <- snakemake@input$bxstats
 bamfile <- gsub(".bxstats.gz", ".bam", infile)
-samplename <- gsub(".bxstats.gz", "", basename(infile))
+samplename <- snakemake@params$samplename
 tb <- read.table(infile, header = T, sep = "\t") %>% select(-start, -end)
 if(nrow(tb) == 0){
   print(paste("Input data file",infle, "is empty"))
@@ -338,9 +338,14 @@ knitr::kable(
 rm(list = ls())
 ```
 ```{r imports}
-covfile <- snakemake@input$coverage
-molcovfile <- snakemake@input$molecule_coverage
-#covfile <- "~/test.cov.gz"
+#covfile <- snakemake@input$coverage
+#molcovfile <- snakemake@input$molecule_coverage
+#windowsize <- as.integer(snakemake@params@window_size)
+#samplename <- snakemake@params$samplename
+samplename <- "test sample"
+windowsize <- 50000
+covfile <- "~/cov.gz"
+molcovfile <- "~/molcov.gz"
 tb <- read.table(covfile, header = F)
 if(nrow(tb) == 0){
   print(paste("Input data file", covfile, "is empty"))
@@ -355,13 +360,12 @@ if(nrow(tbmol) == 0){
 
 ```{r setup_cov_table}
 colnames(tb) <- c("contig", "position", "depth")
-colnames(tmbol) <- c("contig", "position", "mol_depth")
+colnames(tbmol) <- c("contig", "position", "mol_depth")
 tb$mol_depth <- tbmol$mol_depth
-rm(tbmol) 
 q99 <- quantile(tb$depth, 0.99)
 mol_q99 <- quantile(tb$mol_depth, 0.99)
-windowsize <- as.integer(snakemake@params@window_size)
 windowskb <- round(windowsize/1000, 0)
+rm(tbmol)
 ```
 
 ```{r summary_stats}
@@ -375,7 +379,7 @@ outliers <- tb[tb$outlier, -5]
 nonoutliers <- tb[!(tb$outlier), -5]
 
 contig_avg <- group_by(tb, contig) %>%
-  summarize(average = mean(depth), mol_average = mean(mol_depth) sdv = sd(depth), mol_sdv = sd(mol_depth))
+  summarize(average = mean(depth), mol_average = mean(mol_depth), sdv = sd(depth), mol_sdv = sd(mol_depth))
 contig_avg <- rbind(data.frame(contig = "global", average = global_avg, sdv = global_sd, mol_average = mol_global_avg, mol_sdv = mol_global_sd), contig_avg) %>% 
   mutate(average = round(average, 2), sdv = round(sdv, 2), mol_average = round(mol_average, 2), mol_sdv = round(mol_sdv, 2))
 ```
@@ -397,7 +401,7 @@ alignments above this depth were not removed from the file.
 valueBox(scales::comma(length(unique(tb$contig))), caption = "Contigs", color = "success")
 ```
 
-### general-samples
+### general-windowsize
 ```{r valuebox_intervals}
 valueBox(paste(windowskb, "kb"), caption = "Intervals", color = "info")
 ```
@@ -438,10 +442,14 @@ mol_hs <- hist(tb$mol_depth[tb$mol_depth <= mol_q99], breaks = 30, plot = F)
 mol_hs$counts <- round(mol_hs$counts / sum(mol_hs$counts) * 100, 2)
 mol_hs <- data.frame(val = mol_hs$breaks[-1], freq = mol_hs$counts)
 
-hchart(hs, "areaspline", hcaes(x = val, y = freq), color = "#9393d2", name = "% intervals (alignments)", marker = list(enabled = FALSE)) |>
-  hc_add_series(data = mol_hs, type = "areaspline", hcaes(x = val, y = freq), name = "% intervals (molecules)")
+
+highchart() |>
+  hc_chart(type = "area", animation = F) |>
+  hc_add_series(data = hs, type = "areaspline", color = "#9393d2", name = "by alignments", hcaes(x = val, y = freq),  marker = list(enabled = FALSE)) |>
+  hc_add_series(data = mol_hs, type = "areaspline", hcaes(x = val, y = freq), color = "#88c793", name = "by inferred molecules", marker = list(enabled = FALSE)) |>
   hc_xAxis(ceiling = mol_q99, title = list(text = "depth")) |>
   hc_yAxis(title = list(text = "% intervals"))  |>
+  hc_caption(text = "inferred molecules calculate \"effective\" or \"molecule\" coverage") |>
   hc_title(text = "Distribution of Alignment Depths")  |>
   hc_exporting(enabled = T, filename = paste0(samplename, ".cov"),
     buttons = list(contextButton = list(menuItems = c("downloadPNG", "downloadJPEG", "downloadPDF", "downloadSVG")))

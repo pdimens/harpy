@@ -210,7 +210,8 @@ rule sample_reports:
         logfile = outdir + "/logs/reports/{sample}.alignstats.log"
     params:
         mol_dist = molecule_distance,
-        window_size = windowsize
+        window_size = windowsize,
+        samplename = lambda wc: wc.get("sample")
     conda:
         f"{envdir}/r.yaml"
     script:
