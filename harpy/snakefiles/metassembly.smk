@@ -10,8 +10,9 @@ onsuccess:
 onerror:
     os.remove(logger.logfile)
 
-FQ1 = config["inputs"]["fastq_r1"],
+FQ1 = config["inputs"]["fastq_r1"]
 FQ2 = config["inputs"]["fastq_r2"]
+BX_TAG = config["barcode_tag"].upper()
 outdir = config["output_directory"]
 envdir = os.path.join(os.getcwd(), ".harpy_envs")
 max_mem = config["spades"]["max_memory"]
@@ -29,7 +30,7 @@ rule sort_by_barcode:
         fq_f = temp(f"{outdir}/fastq_preproc/tmp.R1.fq"),
         fq_r = temp(f"{outdir}/fastq_preproc/tmp.R2.fq")
     params:
-        barcode_tag = config["barcode_tag"].upper()
+        barcode_tag = BX_TAG
     threads:
         workflow.cores
     container:
@@ -47,7 +48,7 @@ rule format_barcode:
     output:
         temp(f"{outdir}/fastq_preproc/input.R{{FR}}.fq.gz")
     params:
-        config["barcode_tag"].upper()
+        barcode_tag = BX_TAG
     container:
         None
     shell:
@@ -233,7 +234,7 @@ rule workflow_summary:
     input:
         f"{outdir}/athena/athena.asm.fa"
     params:
-        bx = config["barcode_tag"].upper(),
+        bx = BX_TAG,
         extra = extra
     run:
         summary = ["The harpy metassembly workflow ran using these parameters:"]  
