@@ -39,7 +39,7 @@ using("flexdashboard","dplyr","highcharter","DT","BioCircos")
 
 ```{r import_file, results = F}
 #infile <- "~/file.bxstats.gz"
-infile <- snakemake@input[[1]]
+infile <- snakemake@input$bxstats
 bamfile <- gsub(".bxstats.gz", ".bam", infile)
 samplename <- gsub(".bxstats.gz", "", basename(infile))
 tb <- read.table(infile, header = T, sep = "\t") %>% select(-start, -end)
@@ -330,14 +330,29 @@ knitr::kable(
 # Coverage Stats
 
 ```{r imports}
-covfile <- snakemake@input[[2]]
+covfile <- snakemake@input$coverage
+molcovfile <- snakemake@input$molecule_coverage
 #covfile <- "~/test.cov.gz"
 tb <- read.table(covfile, header = F)
 if(nrow(tb) == 0){
-  print(paste("Input data file",covfile, "is empty"))
+  print(paste("Input data file", covfile, "is empty"))
   knittr::knittr_exit()
 }
+tbmol <- read.table(molcovfile, header = F)
+if(nrow(tbmol) == 0){
+  print(paste("Input data file", molcovfile, "is empty"))
+  knittr::knittr_exit()
+}
+```
+
+```{r setup_cov_table}
 colnames(tb) <- c("contig", "position", "depth")
+colnames(tmbol) <- c("contig", "position", "mol_depth")
+tb <- merge(x=tb,y=tbmol, 
+      by.x=c("contig","position"), 
+      by.y=c("contig","position"),
+      all.x=TRUE
+)
 q99 <- quantile(tb$depth, 0.99)
 Mode <- function(x) {
   ux <- unique(x)

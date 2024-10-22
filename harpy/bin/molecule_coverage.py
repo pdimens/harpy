@@ -1,0 +1,87 @@
+#! /usr/bin/env python
+"""Using the ranges of BX molecule start/stop positions, calculates "molecular coverage" across the genome."""
+
+import sys
+import gzip
+import argparse
+from collections import Counter
+
+parser = argparse.ArgumentParser(
+    prog = 'molecule_coverage.py',
+    description =
+    """
+    Using the statsfile generate by bx_stats.py from Harpy,
+    will calculate "molecular coverage" across the genome.
+    Molecular coverage is the "effective" alignment coverage
+    if you treat a molecule inferred from linked-read data as
+    one contiguous alignment, even though the reads that make
+    up that molecule don't cover its entire length. Requires a
+    FASTA fai index (like the kind created using samtools faidx)
+    to know the actual sizes of the contigs.
+    """,
+    usage = "molecule_coverage.py -f genome.fasta.fai STATSFILE > output.cov",
+    exit_on_error = False
+    )
+
+parser.add_argument('-f', '--fai', type = str, help = "FASTA index (.fai) file of genome used for alignment")
+parser.add_argument('statsfile', help = "stats file produced by harpy via bx_stats.py")
+
+if len(sys.argv) == 1:
+    parser.print_help(sys.stderr)
+    sys.exit(1)
+
+args = parser.parse_args()
+
+# main program
+contigs = {}
+LASTCONTIG = None
+
+# read the fasta index file as a dict of contig lengths
+with open(args.fai, "r", encoding= "utf-8") as fai:
+    while True:
+        line = fai.readline()
+        if not line:
+            break
+        splitline = line.split()
+        contig = splitline[0]
+        length = splitline[1]
+        contigs[contig] = int(length)
+
+def write_coverage(counter_obj, contigname):
+    for position,freq in counter_obj.items():
+        print(f"{contigname}\t{position}\t{freq}\n", file = sys.stdout)
+
+
+with gzip.open(args.statsfile, "rt") as statsfile:
+    # read in the header
+    line = statsfile.readline()
+    # for safety, find out which columns are the contig, start, and end positions
+    # just in case this order changes at some point for some reason
+    header = line.rstrip().split()
+    for idx,val in enumerate(header):
+        if val == "contig":
+            IDX_CONTIG = idx
+        if val == "start":
+            IDX_START = idx
+        if val == "end":
+            IDX_END = idx
+    while True:
+        line = statsfile.readline()
+        if not line:
+            if LASTCONTIG:
+                # write the last contig to file
+                write_coverage(coverage, LASTCONTIG)
+            break
+        splitline = line.split()
+        contig = splitline[IDX_CONTIG]
+        start = int(splitline[IDX_START])
+        end = int(splitline[IDX_END])
+        if contig != LASTCONTIG:
+            if LASTCONTIG:
+                # write to file when contig changed
+                write_coverage(coverage, LASTCONTIG)
+            # reset the counter for the new contig
+            coverage = Counter({i: 0 for i in range(1, contigs[contig] + 1)})
+        # update the counter with the current row
+        coverage.update(range(start, end + 1))
+        LASTCONTIG = contig
