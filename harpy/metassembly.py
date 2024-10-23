@@ -15,7 +15,7 @@ docstring = {
     "harpy metassembly": [
         {
             "name": "Metassembly Parameters",
-            "options": ["--bx-tag", "--ignore-bx","--kmer-length", "--max-memory", "--metassembly", "--spades-extra"],
+            "options": ["--bx-tag", "--extra-params", "--ignore-bx","--kmer-length", "--max-memory", "--metassembly"],
         },
         {
             "name": "Workflow Controls",
@@ -30,7 +30,7 @@ docstring = {
 @click.option('-k', '--kmer-length', type = KParam(), show_default = True, default = "auto", help = 'K values to use for assembly (`odd` and `<128`)')
 @click.option('-r', '--max-memory',  type = click.IntRange(min = 1000, max_open = True), show_default = True, default = 10000, help = 'Maximum memory for spades to use, in megabytes')
 @click.option('--ignore-bx', is_flag = True, show_default = True, default = False, help = 'Ignore linked-read info for initial spades assembly')
-@click.option('-z', '--spades-extra', type = str, help = 'Additional spades parameters, in quotes')
+@click.option('-x', '--extra-params', type = str, help = 'Additional spades parameters, in quotes')
 # Common Workflow
 @click.option('-o', '--output-dir', type = click.Path(exists = False), default = "Assembly", show_default=True,  help = 'Output directory name')
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(min = 1, max_open = True), help = 'Number of threads to use')
@@ -42,7 +42,7 @@ docstring = {
 @click.option('--snakemake',  type = str, help = 'Additional Snakemake parameters, in quotes')
 @click.argument('fastq_r1', required=True, type=click.Path(exists=True, readable=True), nargs=1)
 @click.argument('fastq_r2', required=True, type=click.Path(exists=True, readable=True), nargs=1)
-def metassembly(fastq_r1, fastq_r2, bx_tag, kmer_length, max_memory, ignore_bx, output_dir, spades_extra, conda, threads, snakemake, skip_reports, quiet, hpc, setup_only):
+def metassembly(fastq_r1, fastq_r2, bx_tag, kmer_length, max_memory, ignore_bx, output_dir, extra_params, conda, threads, snakemake, skip_reports, quiet, hpc, setup_only):
     """
     Create a metassembly from linked-reads
 
@@ -67,7 +67,7 @@ def metassembly(fastq_r1, fastq_r2, bx_tag, kmer_length, max_memory, ignore_bx, 
     os.makedirs(f"{output_dir}/logs/snakemake", exist_ok = True)
     sm_log = snakemake_log(output_dir, "metassembly")
     configs = {
-        "workflow" : asm,
+        "workflow" : "metassembly",
         "snakemake_log" : sm_log,
         "output_directory" : output_dir,
         "barcode_tag" : bx_tag.upper(),
@@ -75,7 +75,7 @@ def metassembly(fastq_r1, fastq_r2, bx_tag, kmer_length, max_memory, ignore_bx, 
             'ignore_barcodes' : ignore_bx,
             "k" : 'auto' if kmer_length == "auto" else ",".join(map(str,kmer_length)),
             "max_memory" : max_memory,
-            **({'extra' : spades_extra} if spades_extra else {})
+            **({'extra' : extra_params} if extra_params else {})
         },
         "skip_reports" : skip_reports,
         "workflow_call" : command.rstrip(),
