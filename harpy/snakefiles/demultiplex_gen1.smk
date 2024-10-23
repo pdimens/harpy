@@ -113,7 +113,7 @@ rule assess_quality:
         f"{envdir}/qc.yaml"
     shell:
         """
-        (falco --quiet --threads {threads} -skip-report -skip-summary -data-filename {output} {input} ) ||\\
+        ( falco --quiet --threads {threads} -skip-report -skip-summary -data-filename {output} {input} ) ||
 cat <<EOF > {output}
 ##Falco	1.2.4
 >>Basic Statistics	fail
