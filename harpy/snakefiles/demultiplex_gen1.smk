@@ -144,13 +144,14 @@ rule report_config:
                 "R1": ".R1",
                 "R2": ".R2"
             },
-            "title" : "Quality Assessment of Demultiplexed Samples",
-            "comment" : "This report aggregates the QA results created by falco",
-            "report_header_info": {
-                "Submit an issue": "https://github.com/pdimens/harpy/issues/new/choose",
-                "Read the Documentation": "https://pdimens.github.io/harpy/",
-                "Project Homepage": "https://github.com/pdimens/harpy"
-            }
+            "title": "Quality Assessment of Demultiplexed Samples",
+            "subtitle": "This report aggregates the QA results created by falco",
+            "report_comment": "Generated as part of the Harpy demultiplex workflow",
+            "report_header_info": [
+                {"Submit an issue": "https://github.com/pdimens/harpy/issues/new/choose"},
+                {"Read the Docs": "https://pdimens.github.io/harpy/"},
+                {"Project Homepage": "https://github.com/pdimens/harpy"}
+            ]
         }
         with open(output[0], "w", encoding="utf-8") as yml:
             yaml.dump(configs, yml, default_flow_style= False, sort_keys=False, width=float('inf'))
@@ -165,7 +166,7 @@ rule qa_report:
         f"{outdir}/logfile"
     params:
         options = "--no-version-check --force --quiet --no-data-dir",
-        module = " --module fastp",
+        module = " --module fastqc",
         logdir = outdir + "/reports/data/"
     conda:
         f"{envdir}/qc.yaml"
