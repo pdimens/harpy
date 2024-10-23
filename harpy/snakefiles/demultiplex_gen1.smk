@@ -104,7 +104,7 @@ rule assess_quality:
     input:
         outdir + "/{sample}.R{FR}.fq.gz"
     output: 
-        temp(outdir + "/reports/data/{sample}.R{FR}.fastqc")
+        outdir + "/reports/data/{sample}.R{FR}.fastqc"
     params:
         f"{outdir}/reports/data"
     threads:
@@ -159,7 +159,7 @@ rule qa_report:
     output:
         outdir + "/reports/demultiplex.QA.html"
     log:
-        f"{outdir}/logfile"
+        f"{outdir}/logs/multiqc.log"
     params:
         options = "--no-version-check --force --quiet --no-data-dir",
         module = " --module fastqc",
