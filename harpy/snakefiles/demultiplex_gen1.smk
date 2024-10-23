@@ -3,13 +3,6 @@ containerized: "docker://pdimens/harpy:latest"
 import os
 import logging
 
-onstart:
-    logger.logger.addHandler(logging.FileHandler(config["snakemake_log"]))
-onsuccess:
-    os.remove(logger.logfile)
-onerror:
-    os.remove(logger.logfile)
-
 R1 = config["inputs"]["R1"]
 R2 = config["inputs"]["R2"]
 I1 = config["inputs"]["I1"]
@@ -18,6 +11,15 @@ samplefile = config["inputs"]["demultiplex_schema"]
 skip_reports = config["skip_reports"]
 outdir = config["output_directory"]
 envdir = os.path.join(os.getcwd(), ".harpy_envs")
+
+onstart:
+    logger.logger.addHandler(logging.FileHandler(config["snakemake_log"]))
+    os.makedirs(f"{outdir}/reports/data", exist_ok = True)
+    os.makedirs(f"{outdir}/logs/demux", exist_ok = True)
+onsuccess:
+    os.remove(logger.logfile)
+onerror:
+    os.remove(logger.logfile)
 
 ## the barcode log file ##
 def barcodedict(smpl):
@@ -74,19 +76,17 @@ rule demultiplex_barcodes:
     output:
         temp(collect(outdir + "/demux_R{ext}_001.fastq.gz", ext = [1,2]))
     params:
-        outdr = outdir,
-        logdir = outdir +"/logs/demux"
+        outdir
     container:
         None
     shell:
         """
-        mkdir -p {params.logdir}
-        cd {params.outdr}
+        cd {params}
         demuxGen1 DATA_ demux
         mv demux*BC.log logs
         """
 
-rule demulipex_samples:
+rule demultiplex_samples:
     input:
         outdir + "/demux_R{FR}_001.fastq.gz"
     output:
@@ -113,10 +113,9 @@ rule assess_quality:
         f"{envdir}/qc.yaml"
     shell:
         """
-        mkdir -p {params}
-        if [ -z $(gzip -cd {input} | head -c1) ]; then
+        (falco --quiet --threads {threads} -skip-report -skip-summary -data-filename {output} {input} ) ||\\
 cat <<EOF > {output}
-##Falco	1.4.1
+##Falco	1.2.4
 >>Basic Statistics	fail
 #Measure	Value
 Filename	{wildcards.sample}.R{wildcards.FR}.fq.gz
@@ -127,10 +126,7 @@ Sequences flagged as poor quality	0
 Sequence length	0
 %GC	0
 >>END_MODULE
-EOF
-        else
-            falco --quiet --threads {threads} -skip-report -skip-summary -data-filename {output} {input}
-        fi
+EOF      
         """
 
 rule report_config:
