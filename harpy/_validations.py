@@ -89,12 +89,12 @@ def check_impute_params(parameters):
             culprit_text = []
             if invalid_col:
                 errtext.append("\n  - invalid column names")
-                culprit_text.append(f"[red]Invalid columns:[/red] {", ".join(invalid_col)}")
+                culprit_text.append(f"[red]Invalid columns:[/red] " + ", ".join(invalid_col))
             if missing_col:
                 errtext.append("\n  - missing columns")
-                culprit_text.append( f"[yellow]Missing columns:[/yellow] {", ".join(missing_col)}")
+                culprit_text.append( f"[yellow]Missing columns:[/yellow] " + ", ".join(missing_col))
 
-            print_error("incorrect columns", f"Parameter file [bold]{parameters}[/bold] has incorrect column names{"".join(errtext)}\nValid names are: [green bold]{" ".join(colnames)}[/green bold]")
+            print_error("incorrect columns", f"Parameter file [bold]{parameters}[/bold] has incorrect column names" + "".join(errtext) + f"\nValid names are: [green bold]" + " ".join(colnames) + "[/green bold]")
             print_solution_with_culprits(
                 f"Fix the headers in [bold]{parameters}[/bold] or use [blue bold]harpy stitchparams[/blue bold] to generate a valid parameter file and modify it with appropriate values.",
                 "Column causing this error:"
