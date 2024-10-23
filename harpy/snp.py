@@ -132,7 +132,7 @@ def mpileup(inputs, output_dir, regions, genome, threads, populations, ploidy, e
         }
     }
     with open(f"{workflowdir}/config.yaml", "w", encoding="utf-8") as config:
-        yaml.dump(configs, config, default_flow_style= False, sort_keys=False)
+        yaml.dump(configs, config, default_flow_style= False, sort_keys=False, width=float('inf'))
 
     create_conda_recipes()
     if setup_only:
@@ -237,7 +237,7 @@ def freebayes(inputs, output_dir, genome, threads, populations, ploidy, regions,
         }
     }
     with open(f"{workflowdir}/config.yaml", "w", encoding="utf-8") as config:
-        yaml.dump(configs, config, default_flow_style= False, sort_keys=False)
+        yaml.dump(configs, config, default_flow_style= False, sort_keys=False, width=float('inf'))
 
     create_conda_recipes()
     if setup_only:

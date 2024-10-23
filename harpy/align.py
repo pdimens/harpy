@@ -126,7 +126,7 @@ def bwa(inputs, output_dir, genome, depth_window, threads, keep_unmapped, extra_
         }
     }
     with open(f"{workflowdir}/config.yaml", "w", encoding="utf-8") as config:
-        yaml.dump(configs, config, default_flow_style= False, sort_keys=False)
+        yaml.dump(configs, config, default_flow_style= False, sort_keys=False, width=float('inf'))
 
     create_conda_recipes()
     if setup_only:
@@ -224,7 +224,7 @@ def ema(inputs, output_dir, platform, barcode_list, genome, depth_window, keep_u
     }
 
     with open(f"{workflowdir}/config.yaml", "w", encoding="utf-8") as config:
-        yaml.dump(configs, config, default_flow_style= False, sort_keys=False)
+        yaml.dump(configs, config, default_flow_style= False, sort_keys=False, width=float('inf'))
 
     create_conda_recipes()
     if setup_only:
@@ -308,7 +308,7 @@ def strobe(inputs, output_dir, genome, read_length, keep_unmapped, depth_window,
         }
     }
     with open(f"{workflowdir}/config.yaml", "w", encoding="utf-8") as config:
-        yaml.dump(configs, config, default_flow_style= False, sort_keys=False)
+        yaml.dump(configs, config, default_flow_style= False, sort_keys=False, width=float('inf'))
 
     create_conda_recipes()
     if setup_only:

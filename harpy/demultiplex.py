@@ -91,7 +91,7 @@ def gen1(r1_fq, r2_fq, i1_fq, i2_fq, output_dir, schema, threads, snakemake, ski
         }
     }
     with open(f"{workflowdir}/config.yaml", "w", encoding= "utf-8") as config:
-        yaml.dump(configs, config, default_flow_style= False, sort_keys=False)
+        yaml.dump(configs, config, default_flow_style= False, sort_keys=False, width=float('inf'))
 
     create_conda_recipes()
     if setup_only:

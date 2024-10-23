@@ -117,7 +117,7 @@ def leviathan(inputs, output_dir, genome, min_sv, min_barcodes, iterations, thre
         }
     }
     with open(f'{workflowdir}/config.yaml', "w", encoding="utf-8") as config:
-        yaml.dump(configs, config, default_flow_style= False, sort_keys=False)
+        yaml.dump(configs, config, default_flow_style= False, sort_keys=False, width=float('inf'))
 
     create_conda_recipes()
     if setup_only:
@@ -213,7 +213,7 @@ def naibr(inputs, output_dir, genome, vcf, min_sv, min_barcodes, min_quality, th
         }
     }
     with open(f'{workflowdir}/config.yaml', "w", encoding="utf-8") as config:
-        yaml.dump(configs, config, default_flow_style= False, sort_keys=False)
+        yaml.dump(configs, config, default_flow_style= False, sort_keys=False, width=float('inf'))
 
     create_conda_recipes()
     if setup_only:

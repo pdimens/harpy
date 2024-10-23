@@ -75,7 +75,7 @@ def deconvolve(inputs, output_dir, kmer_length, window_size, density, dropout, t
         "inputs": [i.as_posix() for i in fqlist]
         }
     with open(f"{workflowdir}/config.yaml", "w", encoding="utf-8") as config:
-        yaml.dump(configs, config, default_flow_style= False, sort_keys=False)
+        yaml.dump(configs, config, default_flow_style= False, sort_keys=False, width=float('inf'))
 
     create_conda_recipes()
     if setup_only:

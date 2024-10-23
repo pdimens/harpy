@@ -190,7 +190,7 @@ def linkedreads(genome_hap1, genome_hap2, output_dir, outer_distance, mutation_r
         }
     }
     with open(f"{workflowdir}/config.yaml", "w", encoding="utf-8") as config:
-        yaml.dump(configs, config, default_flow_style= False, sort_keys=False)
+        yaml.dump(configs, config, default_flow_style= False, sort_keys=False, width=float('inf'))
 
     create_conda_recipes()
     if setup_only:
@@ -330,7 +330,7 @@ def snpindel(genome, snp_vcf, indel_vcf, only_vcf, output_dir, prefix, snp_count
         }
     }
     with open(f"{workflowdir}/config.yaml", "w", encoding="utf-8") as config:
-        yaml.dump(configs, config, default_flow_style= False, sort_keys=False)
+        yaml.dump(configs, config, default_flow_style= False, sort_keys=False, width=float('inf'))
 
     create_conda_recipes()
     if setup_only:
@@ -438,7 +438,7 @@ def inversion(genome, vcf, only_vcf, prefix, output_dir, count, min_size, max_si
         }
     }
     with open(f"{workflowdir}/config.yaml", "w", encoding="utf-8") as config:
-        yaml.dump(configs, config, default_flow_style= False, sort_keys=False)
+        yaml.dump(configs, config, default_flow_style= False, sort_keys=False, width=float('inf'))
 
     create_conda_recipes()
     if setup_only:
@@ -559,7 +559,7 @@ def cnv(genome, output_dir, vcf, only_vcf, prefix, count, min_size, max_size, du
         }
     }
     with open(f"{workflowdir}/config.yaml", "w", encoding="utf-8") as config:
-        yaml.dump(configs, config, default_flow_style= False, sort_keys=False)
+        yaml.dump(configs, config, default_flow_style= False, sort_keys=False, width=float('inf'))
 
     create_conda_recipes()
     if setup_only:
@@ -663,7 +663,7 @@ def translocation(genome, output_dir, prefix, vcf, only_vcf, count, centromeres,
     }
     # setup the config file depending on inputs
     with open(f"{workflowdir}/config.yaml", "w", encoding="utf-8") as config:
-        yaml.dump(configs, config, default_flow_style= False, sort_keys=False)
+        yaml.dump(configs, config, default_flow_style= False, sort_keys=False, width=float('inf'))
 
     create_conda_recipes()
     if setup_only:

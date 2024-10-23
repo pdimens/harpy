@@ -124,7 +124,7 @@ def assembly(fastq_r1, fastq_r2, bx_tag, kmer_length, max_memory, metassembly, o
         }
 
     with open(f"{workflowdir}/config.yaml", "w", encoding="utf-8") as config:
-        yaml.dump(configs, config, default_flow_style= False, sort_keys=False)
+        yaml.dump(configs, config, default_flow_style= False, sort_keys=False, width=float('inf'))
     
     create_conda_recipes()
     if setup_only:
