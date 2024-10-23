@@ -17,10 +17,10 @@ outdir = config["output_directory"]
 envdir = os.path.join(os.getcwd(), ".harpy_envs")
 max_mem = config["spades"]["max_memory"]
 k_param = config["spades"]["k"]
-metassembly = config["spades"]["assembler"]
+ignore_bx = config["spades"]["ignore_barcodes"]
 extra = config["spades"].get("extra", "")
-cloudspades = True if metassembly == "cloudspades" else False
-spadesdir = f"{outdir}/{'cloudspades' if cloudspades else 'spades'}_assembly"
+cloudspades = not ignore_bx
+spadesdir = f"{outdir}/{'cloudspades' if not ignore_bx else 'spades'}_assembly"
 
 rule sort_by_barcode:
     input:
@@ -246,10 +246,11 @@ rule workflow_summary:
         bxappend = "Barcoded-sorted FASTQ files had \"-1\" appended to the barcode to make them Athena-compliant:\n"  
         bxappend += f"\tsed 's/{params.bx}:Z:[^[:space:]]*/&-1/g' FASTQ | bgzip > FASTQ_OUT"  
         summary.append(bxappend)
-        spades = f"Reads were assembled using {metassembly}:\n"
-        if cloudspades:
+        if not ignore_bx:
+            spades = f"Reads were assembled using 'cloudspades':\n"
             spades += f"\tspades.py -t THREADS -m {max_mem} --gemcode1-1 FQ1 --gemcode1-2 FQ2 --meta -k {k_param} {params.extra}"
         else:
+            spades = f"Reads were assembled using 'spades':\n"
             spades += f"\tmetaspades.py -t THREADS -m {max_mem} -k {k_param} {extra} -1 FQ_1 -2 FQ2 -o {spadesdir}"
         summary.append(spades)
         align = "Original input FASTQ files were aligned to the metagenome using BWA:\n"
