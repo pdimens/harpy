@@ -255,12 +255,12 @@ def vcf_sample_match(vcf, bamlist, vcf_samples):
 def vcf_contig_match(contigs, vcf):
     vcf_contigs = []
     vcf_header = subprocess.run(["bcftools", "head", vcf], capture_output = True, text = True)
-    for i in vcf_header:
+    for i in vcf_header.stdout.split("\n"):
         if i.startswith("##ALT="):
             break
         if i.startswith("##contig="):
             unformatted_contig = i.split(",")[0]
-            vcf_contigs.append(unformatted_contig.split("=")[-1])
+            vcf_contigs.append(unformatted_contig.lstrip("##contig=<ID="))
     bad_names = []
     for i in contigs:
         if i not in vcf_contigs:
