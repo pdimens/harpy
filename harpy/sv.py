@@ -93,6 +93,8 @@ def leviathan(inputs, output_dir, genome, min_sv, min_barcodes, iterations, thre
     os.makedirs(f"{workflowdir}/", exist_ok= True)
     bamlist, n = parse_alignment_inputs(inputs)
     check_fasta(genome, quiet)
+    if contigs:
+        match_fasta_contigs(contigs, genome)
     if populations:
         validate_popfile(populations)
         validate_popsamples(bamlist, populations,quiet)
@@ -109,8 +111,11 @@ def leviathan(inputs, output_dir, genome, min_sv, min_barcodes, iterations, thre
         "min_sv" : min_sv,
         "iterations" : iterations,
         **({'extra': extra_params} if extra_params else {}),
-        "skip_reports" : skip_reports,
         "workflow_call" : command.rstrip(),
+        "reports" : {
+            "skip": skip_reports,
+            **({'plot_contigs': contigs} if contigs else {'plot_contigs': "default"}),
+        },
         "inputs" : {
             "genome" : Path(genome).resolve().as_posix(),
             **({'groupings': Path(populations).resolve().as_posix()} if populations else {}),
@@ -186,6 +191,8 @@ def naibr(inputs, output_dir, genome, vcf, min_sv, min_barcodes, min_quality, th
     os.makedirs(f"{workflowdir}/", exist_ok= True)
     bamlist, n = parse_alignment_inputs(inputs)
     check_fasta(genome, quiet)
+    if contigs:
+        match_fasta_contigs(contigs, genome)
     if populations:
         validate_popfile(populations)
         validate_popsamples(bamlist, populations, quiet)
@@ -205,8 +212,11 @@ def naibr(inputs, output_dir, genome, vcf, min_sv, min_barcodes, min_quality, th
         "min_sv" : min_sv,
         "molecule_distance" : molecule_distance,
         **({'extra': extra_params} if extra_params else {}),
-        "skip_reports" : skip_reports,
         "workflow_call" : command.rstrip(),
+        "reports" : {
+            "skip": skip_reports,
+            **({'plot_contigs': contigs} if contigs else {'plot_contigs': "default"}),
+        },
         "inputs" : {
             **({'genome': Path(genome).resolve().as_posix()} if genome else {}),
             **({'vcf': Path(vcf).resolve().as_posix()} if vcf else {}),
