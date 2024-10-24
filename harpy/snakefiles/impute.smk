@@ -20,7 +20,7 @@ paramfile     = config["inputs"]["paramfile"]
 biallelic     = config["inputs"]["biallelic_contigs"]
 outdir        = config["output_directory"]
 envdir        = os.path.join(os.getcwd(), ".harpy_envs")
-skip_reports  = config["skip_reports"]
+skip_reports  = config["reports"]["skip"]
 stitch_params = config["stitch_parameters"]
 with open(biallelic, "r") as f:
     contigs = [line.rstrip() for line in f]

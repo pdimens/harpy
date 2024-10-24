@@ -30,7 +30,7 @@ min_quality  = config["min_quality"]
 min_barcodes = config["min_barcodes"]
 mol_dist     = config["molecule_distance"]
 outdir       = config["output_directory"]
-skip_reports  = config["skip_reports"]
+skip_reports  = config["reports"]["skip"]
 plot_contigs = config["reports"]["plot_contigs"]    
 if bn.lower().endswith(".gz"):
     bn = bn[:-3]

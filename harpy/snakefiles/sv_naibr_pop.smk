@@ -25,7 +25,7 @@ min_barcodes = config["min_barcodes"]
 min_quality  = config["min_quality"]
 mol_dist     = config["molecule_distance"]
 outdir       = config["output_directory"]
-skip_reports  = config["skip_reports"]
+skip_reports  = config["reports"]["skip"]
 plot_contigs = config["reports"]["plot_contigs"]    
 bn           = os.path.basename(genomefile)
 if bn.lower().endswith(".gz"):
