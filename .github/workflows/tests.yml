@@ -783,13 +783,13 @@ jobs:
           path: .snakemake/singularity
       - name: test assembly
         shell: micromamba-shell {0}
-        run: harpy assembly --quiet -m 4000 test/fastq/sample1.*
+        run: harpy assembly --quiet -r 4000 test/fastq/sample1.*
       - name: test metassembly
         shell: micromamba-shell {0}
-        run: harpy assembly --metassembly spades --quiet -m 4000 test/fastq/sample1.*
-      - name: test metassembly cloud
+        run: harpy metassembly --quiet -r 4000 test/fastq/sample1.*
+      - name: test metassembly without barcodes
         shell: micromamba-shell {0}
-        run: harpy assembly --metassembly cloudspades --quiet -m 4000 test/fastq/sample1.*
+        run: harpy metassembly --ignore-bx --quiet -r 4000 test/fastq/sample1.*
 
   extras:
     needs: [changes, pkgbuild]

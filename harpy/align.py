@@ -91,7 +91,7 @@ def bwa(inputs, output_dir, genome, depth_window, threads, keep_unmapped, extra_
     to assign alignments to unique molecules. 
     """
     output_dir = output_dir.rstrip("/")
-    workflowdir = f"{output_dir}/workflow"
+    workflowdir = os.path.join(output_dir, 'workflow')
     sdm = "conda" if conda else "conda apptainer"
     command = f'snakemake --rerun-incomplete --show-failed-logs --rerun-triggers input mtime params --nolock --software-deployment-method {sdm} --conda-prefix ./.snakemake/conda --cores {threads} --directory . '
     command += f"--snakefile {workflowdir}/align_bwa.smk "
@@ -125,8 +125,8 @@ def bwa(inputs, output_dir, genome, depth_window, threads, keep_unmapped, extra_
             "fastq": [i.as_posix() for i in fqlist]
         }
     }
-    with open(f"{workflowdir}/config.yaml", "w", encoding="utf-8") as config:
-        yaml.dump(configs, config, default_flow_style= False, sort_keys=False)
+    with open(os.path.join(workflowdir, 'config.yaml'), "w", encoding="utf-8") as config:
+        yaml.dump(configs, config, default_flow_style= False, sort_keys=False, width=float('inf'))
 
     create_conda_recipes()
     if setup_only:
@@ -173,7 +173,7 @@ def ema(inputs, output_dir, platform, barcode_list, genome, depth_window, keep_u
     sequences at the beginning of the forward reads are known barcodes.
     """
     output_dir = output_dir.rstrip("/")
-    workflowdir = f"{output_dir}/workflow"
+    workflowdir = os.path.join(output_dir, 'workflow')
     sdm = "conda" if conda else "conda apptainer"
     command = f'snakemake --rerun-incomplete --show-failed-logs --rerun-triggers input mtime params --nolock --software-deployment-method {sdm} --conda-prefix ./.snakemake/conda --cores {threads} --directory . '
     command += f"--snakefile {workflowdir}/align_ema.smk "
@@ -223,8 +223,8 @@ def ema(inputs, output_dir, platform, barcode_list, genome, depth_window, keep_u
         }
     }
 
-    with open(f"{workflowdir}/config.yaml", "w", encoding="utf-8") as config:
-        yaml.dump(configs, config, default_flow_style= False, sort_keys=False)
+    with open(os.path.join(workflowdir, 'config.yaml'), "w", encoding="utf-8") as config:
+        yaml.dump(configs, config, default_flow_style= False, sort_keys=False, width=float('inf'))
 
     create_conda_recipes()
     if setup_only:
@@ -272,7 +272,7 @@ def strobe(inputs, output_dir, genome, read_length, keep_unmapped, depth_window,
     `auto`. If your input has adapters removed, then you should expect the read lengths to be <150.
     """
     output_dir = output_dir.rstrip("/")
-    workflowdir = f"{output_dir}/workflow"
+    workflowdir = os.path.join(output_dir, 'workflow')
     sdm = "conda" if conda else "conda apptainer"
     command = f'snakemake --rerun-incomplete --show-failed-logs --rerun-triggers input mtime params --nolock --software-deployment-method {sdm} --conda-prefix ./.snakemake/conda --cores {threads} --directory . '
     command += f"--snakefile {workflowdir}/align_strobealign.smk "
@@ -307,8 +307,8 @@ def strobe(inputs, output_dir, genome, read_length, keep_unmapped, depth_window,
             "fastq": [i.as_posix() for i in fqlist]
         }
     }
-    with open(f"{workflowdir}/config.yaml", "w", encoding="utf-8") as config:
-        yaml.dump(configs, config, default_flow_style= False, sort_keys=False)
+    with open(os.path.join(workflowdir, 'config.yaml'), "w", encoding="utf-8") as config:
+        yaml.dump(configs, config, default_flow_style= False, sort_keys=False, width=float('inf'))
 
     create_conda_recipes()
     if setup_only:

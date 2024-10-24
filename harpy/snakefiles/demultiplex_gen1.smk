@@ -3,13 +3,6 @@ containerized: "docker://pdimens/harpy:latest"
 import os
 import logging
 
-onstart:
-    logger.logger.addHandler(logging.FileHandler(config["snakemake_log"]))
-onsuccess:
-    os.remove(logger.logfile)
-onerror:
-    os.remove(logger.logfile)
-
 R1 = config["inputs"]["R1"]
 R2 = config["inputs"]["R2"]
 I1 = config["inputs"]["I1"]
@@ -18,6 +11,15 @@ samplefile = config["inputs"]["demultiplex_schema"]
 skip_reports = config["skip_reports"]
 outdir = config["output_directory"]
 envdir = os.path.join(os.getcwd(), ".harpy_envs")
+
+onstart:
+    logger.logger.addHandler(logging.FileHandler(config["snakemake_log"]))
+    os.makedirs(f"{outdir}/reports/data", exist_ok = True)
+    os.makedirs(f"{outdir}/logs/demux", exist_ok = True)
+onsuccess:
+    os.remove(logger.logfile)
+onerror:
+    os.remove(logger.logfile)
 
 ## the barcode log file ##
 def barcodedict(smpl):
@@ -67,30 +69,28 @@ rule barcode_segments:
     shell:
         "haplotag_acbd.py {params}"
 
-rule demux_barcodes:
+rule demultiplex_barcodes:
     input:
         collect(outdir + "/DATA_{IR}{ext}_001.fastq.gz", IR = ["R","I"], ext = [1,2]),
         collect(outdir + "/BC_{letter}.txt", letter = ["A","C","B","D"])
     output:
         temp(collect(outdir + "/demux_R{ext}_001.fastq.gz", ext = [1,2]))
     params:
-        outdr = outdir,
-        logdir = outdir +"/logs/demux"
+        outdir
     container:
         None
     shell:
         """
-        mkdir -p {params.logdir}
-        cd {params.outdr}
+        cd {params}
         demuxGen1 DATA_ demux
         mv demux*BC.log logs
         """
 
-rule demux_read_1:
+rule demultiplex_samples:
     input:
-        f"{outdir}/demux_R1_001.fastq.gz"
+        outdir + "/demux_R{FR}_001.fastq.gz"
     output:
-        outdir + "/{sample}.R1.fq.gz"
+        outdir + "/{sample}.R{FR}.fq.gz"
     params:
         c_barcode = lambda wc: samples[wc.get("sample")]
     container:
@@ -100,47 +100,80 @@ rule demux_read_1:
         ( zgrep -A3 "A..{params}B..D" {input} | grep -v "^--$" | gzip -q > {output} ) || touch {output}
         """
 
-use rule demux_read_1 as demux_read_2 with:
+rule assess_quality:
     input:
-        f"{outdir}/demux_R2_001.fastq.gz"
-    output:
-        outdir + "/{sample}.R2.fq.gz"
-
-rule quality_assessment:
-    input:
-        read1 = outdir + "/{sample}.R1.fq.gz",
-        read2 = outdir + "/{sample}.R2.fq.gz"
-    output:
-        temp(outdir + "/reports/data/{sample}.fastp.json")
-    log:
-        outdir + "/reports/{sample}.html"
-    threads:
-        2
-    conda:
-        f"{envdir}/qc.yaml"
-    shell:
-        "fastp -pQLAG --stdout -w {threads} -i {input.read1} -I {input.read2} -j {output} --html {log} -R \"{wildcards.sample} demultiplex quality report\" > /dev/null"
-
-rule qc_report:
-    input:
-        collect(outdir + "/reports/data/{sample}.fastp.json", sample = samplenames)
-    output:
-        outdir + "/reports/demultiplex.QC.html"
+        outdir + "/{sample}.R{FR}.fq.gz"
+    output: 
+        outdir + "/reports/data/{sample}.R{FR}.fastqc"
     params:
-        logdir = outdir + "/reports/data/",
-        options = "--no-version-check --force --quiet --no-data-dir",
-        title = "--title \"QC for Demultiplexed Samples\"",
-        comment = "--comment \"This report aggregates the quality assessments from fastp. The data were NOT filtered, the report is suggesting what it would look like trimmed/filtered with default parameters.\""
+        f"{outdir}/reports/data"
+    threads:
+        1
     conda:
         f"{envdir}/qc.yaml"
     shell:
-        "multiqc {params} --filename {output} 2> /dev/null"
+        """
+        ( falco --quiet --threads {threads} -skip-report -skip-summary -data-filename {output} {input} ) 2>&1 > /dev/null ||
+cat <<EOF > {output}
+##Falco	1.2.4
+>>Basic Statistics	fail
+#Measure	Value
+Filename	{wildcards.sample}.R{wildcards.FR}.fq.gz
+File type	Conventional base calls
+Encoding	Sanger / Illumina 1.9
+Total Sequences	0
+Sequences flagged as poor quality	0
+Sequence length	0
+%GC	0
+>>END_MODULE
+EOF      
+        """
+
+rule report_config:
+    output:
+        outdir + "/workflow/multiqc.yaml"
+    run:
+        import yaml
+        configs = {
+            "sp": {"fastqc/data": {"fn" : "*.fastqc"}},
+            "table_sample_merge": {
+                "R1": ".R1",
+                "R2": ".R2"
+            },
+            "title": "Quality Assessment of Demultiplexed Samples",
+            "subtitle": "This report aggregates the QA results created by falco",
+            "report_comment": "Generated as part of the Harpy demultiplex workflow",
+            "report_header_info": [
+                {"Submit an issue": "https://github.com/pdimens/harpy/issues/new/choose"},
+                {"Read the Docs": "https://pdimens.github.io/harpy/"},
+                {"Project Homepage": "https://github.com/pdimens/harpy"}
+            ]
+        }
+        with open(output[0], "w", encoding="utf-8") as yml:
+            yaml.dump(configs, yml, default_flow_style= False, sort_keys=False, width=float('inf'))
+
+rule qa_report:
+    input:
+        fqc = collect(outdir + "/reports/data/{sample}.R{FR}.fastqc", sample = samplenames, FR = [1,2]),
+        mqc_yaml = outdir + "/workflow/multiqc.yaml"
+    output:
+        outdir + "/reports/demultiplex.QA.html"
+    log:
+        f"{outdir}/logs/multiqc.log"
+    params:
+        options = "--no-version-check --force --quiet --no-data-dir",
+        module = " --module fastqc",
+        logdir = outdir + "/reports/data/"
+    conda:
+        f"{envdir}/qc.yaml"
+    shell:
+        "multiqc --filename {output} --config {input.mqc_yaml} {params} 2> {log}"
 
 rule workflow_summary:
     default_target: True
     input:
         fq = collect(outdir + "/{sample}.R{FR}.fq.gz", sample = samplenames, FR = [1,2]),
-        reports = outdir + "/reports/demultiplex.QC.html" if not skip_reports else []
+        reports = outdir + "/reports/demultiplex.QA.html" if not skip_reports else []
     run:
         os.makedirs(f"{outdir}/workflow/", exist_ok= True)
         summary = ["The harpy demultiplex workflow ran using these parameters:"]

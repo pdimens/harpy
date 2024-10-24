@@ -61,7 +61,7 @@ def gen1(r1_fq, r2_fq, i1_fq, i2_fq, output_dir, schema, threads, snakemake, ski
     where `barcode` is the C- beadtag assigned to the sample (.e.g. `C01`, `C02`, etc.)
     """
     output_dir = output_dir.rstrip("/")
-    workflowdir = f"{output_dir}/workflow"
+    workflowdir = os.path.join(output_dir, 'workflow')
     sdm = "conda" if conda else "conda apptainer"
     command = f'snakemake --rerun-incomplete --show-failed-logs --rerun-triggers input mtime params --nolock --software-deployment-method {sdm} --conda-prefix ./.snakemake/conda --cores {threads} --directory . '
     command += f"--snakefile {workflowdir}/demultiplex_gen1.smk "
@@ -90,8 +90,8 @@ def gen1(r1_fq, r2_fq, i1_fq, i2_fq, output_dir, schema, threads, snakemake, ski
             "I2": Path(i2_fq).resolve().as_posix()
         }
     }
-    with open(f"{workflowdir}/config.yaml", "w", encoding= "utf-8") as config:
-        yaml.dump(configs, config, default_flow_style= False, sort_keys=False)
+    with open(os.path.join(workflowdir, 'config.yaml'), "w", encoding= "utf-8") as config:
+        yaml.dump(configs, config, default_flow_style= False, sort_keys=False, width=float('inf'))
 
     create_conda_recipes()
     if setup_only:

@@ -33,8 +33,9 @@ def create_conda_recipes():
             "bioconda::whatshap"
         ],
         "qc" : [
+            "bioconda::falco=1.2.4",
             "bioconda::fastp",
-            "bioconda::multiqc=1.22",
+            "bioconda::multiqc=1.25",
             "bioconda::pysam=0.22",
             "bioconda::quickdeconvolution"
         ],
