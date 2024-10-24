@@ -467,8 +467,38 @@ def check_fasta(genofile, quiet):
         print_solution(solutiontext + "\nSee the FASTA file spec and try again after making the appropriate changes: https://www.ncbi.nlm.nih.gov/genbank/fastaformat/")
         sys.exit(1)
 
+def match_fasta_contigs(contigs, fasta):
+    """Checks whether a list of contigs are present in a fasta file"""
+    valid_contigs = []
+    if is_gzip(fasta):
+        gen_open = gzip.open(fasta, "rt")
+    else:
+        gen_open = open(fasta, "r")
+
+    while True:
+        line = gen_open.readline()
+        if not line:
+            gen_open.close()
+            break
+        if not line.startswith(">"):
+            continue
+        # get just the name, no comments or starting character
+        valid_contigs.append(line.rstrip().lstrip(">").split()[0])
+    bad_names = []
+    for i in contigs:
+        if i not in valid_contigs:
+            bad_names.append(i)
+    if bad_names:
+        shortname = os.path.basename(fasta)
+        print_error("contigs absent", f"Some of the provided contigs were not found in [blue]{shortname}[/blue]. This will definitely cause plotting errors in the workflow.")
+        print_solution_with_culprits("Check that your contig names are correct, including uppercase and lowercase.", f"Contigs absent in {shortname}:")
+        click.echo(",".join([i for i in bad_names]), file = sys.stderr)
+        sys.exit(1)
 
 def validate_fastq_bx(fastq_list, threads, quiet):
+    """
+    Parse a list of fastq files to verify that they have BX/BC tag, and only one of those two types per file
+    """
     def validate(fastq):
         BX = False
         BC = False

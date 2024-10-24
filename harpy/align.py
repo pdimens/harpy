@@ -9,11 +9,11 @@ from rich import box
 from rich.table import Table
 import rich_click as click
 from ._conda import create_conda_recipes
-from ._misc import fetch_report, fetch_rule, snakemake_log
+from ._misc import fetch_report, fetch_rule, snakemake_log, ContigList
 from ._launch import launch_snakemake
 from ._parsers import parse_fastq_inputs
 from ._printing import print_error, print_solution, print_notice
-from ._validations import check_fasta
+from ._validations import check_fasta, match_fasta_contigs
 
 @click.group(options_metavar='', context_settings={"help_option_names" : ["-h", "--help"]})
 def align():
@@ -38,7 +38,7 @@ docstring = {
         },
         {
             "name": "Workflow Controls",
-            "options": ["--conda", "--depth-window", "--hpc", "--output-dir", "--quiet", "--skip-reports", "--snakemake", "--threads", "--help"],
+            "options": ["--conda", "--contigs", "--depth-window", "--hpc", "--output-dir", "--quiet", "--skip-reports", "--snakemake", "--threads", "--help"],
         },
     ],
     "harpy align ema": [
@@ -48,7 +48,7 @@ docstring = {
         },
         {
             "name": "Workflow Controls",
-            "options": ["--conda", "--depth-window", "--hpc", "--output-dir", "--quiet", "--skip-reports", "--snakemake", "--threads", "--help"],
+            "options": ["--conda", "--contigs", "--depth-window", "--hpc", "--output-dir", "--quiet", "--skip-reports", "--snakemake", "--threads", "--help"],
         },
     ],
     "harpy align strobe": [
@@ -58,7 +58,7 @@ docstring = {
         },
         {
             "name": "Workflow Controls",
-            "options": ["--conda", "--depth-window", "--hpc", "--output-dir", "--quiet", "--skip-reports", "--snakemake", "--threads", "--help"],
+            "options": ["--conda", "--contigs", "--depth-window", "--hpc", "--output-dir", "--quiet", "--skip-reports", "--snakemake", "--threads", "--help"],
         },
     ]
 }
@@ -72,14 +72,15 @@ docstring = {
 @click.option('-d', '--molecule-distance', default = 100000, show_default = True, type = int, help = 'Distance cutoff to split molecules (bp)')
 @click.option('-o', '--output-dir', type = click.Path(exists = False), default = "Align/bwa", show_default=True,  help = 'Output directory name')
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(min = 4, max_open = True), help = 'Number of threads to use')
-@click.option('--conda',  is_flag = True, default = False, help = 'Use conda/mamba instead of container')
+@click.option('--conda',  is_flag = True, default = False, help = 'Use conda/mamba instead of a container')
+@click.option('--contigs',  type = ContigList(), help = 'File or list of contigs to plot')
 @click.option('--setup-only',  is_flag = True, hidden = True, default = False, help = 'Setup the workflow and exit')
 @click.option('--hpc',  type = click.Path(exists = True, file_okay = False, readable=True), help = 'Directory with HPC submission `config.yaml` file')
 @click.option('--quiet',  is_flag = True, show_default = True, default = False, help = 'Don\'t show output text while running')
 @click.option('--skip-reports',  is_flag = True, show_default = True, default = False, help = 'Don\'t generate HTML reports')
 @click.option('--snakemake', type = str, help = 'Additional Snakemake parameters, in quotes')
 @click.argument('inputs', required=True, type=click.Path(exists=True, readable=True), nargs=-1)
-def bwa(inputs, output_dir, genome, depth_window, threads, keep_unmapped, extra_params, min_quality, molecule_distance, snakemake, skip_reports, quiet, hpc, conda, setup_only):
+def bwa(inputs, output_dir, genome, depth_window, threads, keep_unmapped, extra_params, min_quality, molecule_distance, snakemake, skip_reports, quiet, hpc, conda, contigs, setup_only):
     """
     Align sequences to genome using `BWA MEM`
  
@@ -104,6 +105,7 @@ def bwa(inputs, output_dir, genome, depth_window, threads, keep_unmapped, extra_
     os.makedirs(f"{workflowdir}/", exist_ok= True)
     fqlist, sample_count = parse_fastq_inputs(inputs)
     check_fasta(genome, quiet)
+    match_fasta_contigs(contigs, genome)
     fetch_rule(workflowdir, "align_bwa.smk")
     fetch_report(workflowdir, "align_stats.Rmd")
     fetch_report(workflowdir, "align_bxstats.Rmd")
@@ -117,9 +119,12 @@ def bwa(inputs, output_dir, genome, depth_window, threads, keep_unmapped, extra_
         "keep_unmapped" : keep_unmapped,
         "molecule_distance" : molecule_distance,
         "depth_windowsize" : depth_window,
-        "skip_reports" : skip_reports,
         **({'extra': extra_params} if extra_params else {}),
         "workflow_call" : command.rstrip(),
+        "reports" : {
+            "skip": skip_reports,
+            **({'plot_contigs': contigs} if contigs else {'plot_contigs': "default"}),
+        },
         "inputs" : {
             "genome": Path(genome).resolve().as_posix(),
             "fastq": [i.as_posix() for i in fqlist]
@@ -153,13 +158,14 @@ def bwa(inputs, output_dir, genome, depth_window, threads, keep_unmapped, extra_
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(min = 4, max_open = True), help = 'Number of threads to use')
 @click.option('-l', '--barcode-list', type = click.Path(exists=True, dir_okay=False), help = "File of known barcodes for 10x linked reads")
 @click.option('--setup-only',  is_flag = True, hidden = True, default = False, help = 'Setup the workflow and exit')
-@click.option('--conda',  is_flag = True, default = False, help = 'Use conda/mamba instead of container')
+@click.option('--contigs',  type = ContigList(), help = 'File or list of contigs to plot')
+@click.option('--conda',  is_flag = True, default = False, help = 'Use conda/mamba instead of a container')
 @click.option('--hpc',  type = click.Path(exists = True, file_okay = False, readable=True), help = 'Directory with HPC submission `config.yaml` file')
 @click.option('--quiet',  is_flag = True, show_default = True, default = False, help = 'Don\'t show output text while running')
 @click.option('--skip-reports',  is_flag = True, show_default = True, default = False, help = 'Don\'t generate HTML reports')
 @click.option('--snakemake', type = str, help = 'Additional Snakemake parameters, in quotes')
 @click.argument('inputs', required=True, type=click.Path(exists=True, readable=True), nargs=-1)
-def ema(inputs, output_dir, platform, barcode_list, genome, depth_window, keep_unmapped, threads, ema_bins, skip_reports, extra_params, min_quality, snakemake, quiet, hpc, conda, setup_only):
+def ema(inputs, output_dir, platform, barcode_list, genome, depth_window, keep_unmapped, threads, ema_bins, skip_reports, extra_params, min_quality, snakemake, quiet, hpc, conda, contigs, setup_only):
     """
     Align sequences to genome using `EMA`
 
@@ -213,9 +219,12 @@ def ema(inputs, output_dir, platform, barcode_list, genome, depth_window, keep_u
         "depth_windowsize" : depth_window,
         "platform" : platform,
         "EMA_bins" : ema_bins,
-        "skip_reports" : skip_reports,
         **({'extra': extra_params} if extra_params else {}),
         "workflow_call" : command.rstrip(),
+        "reports" : {
+            "skip": skip_reports,
+            **({'plot_contigs': contigs} if contigs else {'plot_contigs': "Default"}),
+        },
         "inputs" : {
             "genome": Path(genome).resolve().as_posix(),
             **({'barcode_list': Path(barcode_list).resolve().as_posix()} if barcode_list else {}),
@@ -250,14 +259,15 @@ def ema(inputs, output_dir, platform, barcode_list, genome, depth_window, keep_u
 @click.option('-o', '--output-dir', type = click.Path(exists = False), default = "Align/strobealign", show_default=True,  help = 'Output directory name')
 @click.option('-l', '--read-length', default = "auto", show_default = True, type = click.Choice(["auto", "50", "75", "100", "125", "150", "250", "400"]), help = 'Average read length for creating index')
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(min = 4, max_open = True), help = 'Number of threads to use')
-@click.option('--conda',  is_flag = True, default = False, help = 'Use conda/mamba instead of container')
+@click.option('--contigs',  type = ContigList(), help = 'File or list of contigs to plot')
+@click.option('--conda',  is_flag = True, default = False, help = 'Use conda/mamba instead of a container')
 @click.option('--setup-only',  is_flag = True, hidden = True, default = False, help = 'Setup the workflow and exit')
 @click.option('--hpc',  type = click.Path(exists = True, file_okay = False, readable=True), help = 'Directory with HPC submission `config.yaml` file')
 @click.option('--quiet',  is_flag = True, show_default = True, default = False, help = 'Don\'t show output text while running')
 @click.option('--skip-reports',  is_flag = True, show_default = True, default = False, help = 'Don\'t generate HTML reports')
 @click.option('--snakemake', type = str, help = 'Additional Snakemake parameters, in quotes')
 @click.argument('inputs', required=True, type=click.Path(exists=True, readable=True), nargs=-1)
-def strobe(inputs, output_dir, genome, read_length, keep_unmapped, depth_window, threads, extra_params, min_quality, molecule_distance, snakemake, skip_reports, quiet, hpc, conda, setup_only):
+def strobe(inputs, output_dir, genome, read_length, keep_unmapped, depth_window, threads, extra_params, min_quality, molecule_distance, snakemake, skip_reports, quiet, hpc, conda, contigs, setup_only):
     """
     Align sequences to genome using `strobealign`
  
@@ -299,9 +309,12 @@ def strobe(inputs, output_dir, genome, read_length, keep_unmapped, depth_window,
         "molecule_distance" : molecule_distance,
         "average_read_length": read_length,
         "depth_windowsize" : depth_window,
-        "skip_reports" : skip_reports,
         **({'extra': extra_params} if extra_params else {}),
         "workflow_call" : command.rstrip(),
+        "reports" : {
+            "skip": skip_reports,
+            **({'plot_contigs': contigs} if contigs else {'plot_contigs': "Default"}),
+        },
         "inputs" : {
             "genome": Path(genome).resolve().as_posix(),
             "fastq": [i.as_posix() for i in fqlist]
