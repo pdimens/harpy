@@ -21,12 +21,13 @@ extra 		= config.get("extra", "")
 bn 			= os.path.basename(genomefile)
 if bn.lower().endswith(".gz"):
     bn = bn[:-3]
-skip_reports = config["reports"]["skip"]
 windowsize  = config["depth_windowsize"]
 molecule_distance = config["molecule_distance"]
 keep_unmapped = config["keep_unmapped"]
 readlen = config["average_read_length"]
 autolen = isinstance(readlen, str)
+skip_reports = config["reports"]["skip"]
+plot_contigs = config["reports"]["plot_contigs"]    
 bn_r = r"([_\.][12]|[_\.][FR]|[_\.]R[12](?:\_00[0-9])*)?\.((fastq|fq)(\.gz)?)$"
 samplenames = {re.sub(bn_r, "", os.path.basename(i), flags = re.IGNORECASE) for i in fqlist}
 d = dict(zip(samplenames, samplenames))
@@ -203,6 +204,7 @@ rule sample_reports:
     params:
         mol_dist = molecule_distance,
         window_size = windowsize,
+        contigs = plot_contigs,
         samplename = lambda wc: wc.get("sample")
     conda:
         f"{envdir}/r.yaml"

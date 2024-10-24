@@ -24,6 +24,7 @@ min_bc      = config["min_barcodes"]
 iterations  = config["iterations"]
 outdir      = config["output_directory"]
 skip_reports = config["reports"]["skip"]
+plot_contigs = config["reports"]["plot_contigs"]    
 bn 			= os.path.basename(genomefile)
 if bn.lower().endswith(".gz"):
     bn = bn[:-3]
@@ -241,6 +242,8 @@ rule group_reports:
         outdir + "/reports/{population}.sv.html"
     log:
         logfile = outdir + "/logs/reports/{population}.report.log"
+    params:
+        contigs = plot_contigs
     conda:
         f"{envdir}/r.yaml"
     script:
@@ -254,6 +257,8 @@ rule aggregate_report:
         outdir + "/reports/leviathan.summary.html"
     log:
         logfile = outdir + "/logs/reports/summary.report.log"
+    params:
+        contigs = plot_contigs
     conda:
         f"{envdir}/r.yaml"
     script:

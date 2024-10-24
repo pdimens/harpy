@@ -194,6 +194,7 @@ DT::datatable(
 
 ### per contig plot {.no-title}
 ```{r contig_ridges, out.width="100%"}
+#TODO add plot_contigs here
 fig <- plot_ly(hoverinfo = "none") %>%
   layout(
     xaxis = list(title = "Log-Scaled Haplotype Length (bp)", fixedrange = TRUE),#, type = "log"),

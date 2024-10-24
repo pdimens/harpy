@@ -87,7 +87,6 @@ cleanbedpe <- function(x){
   return(y)
 }
 
-
 chimeric <- function(x){
   y <- x[x$Chr1!=x$Chr2, -11]
   y$Score <- round(y$Score, digits = 3)
@@ -293,12 +292,15 @@ zooming on the plot.
 ```{r plots_setup}
 fa.sizes <- read.table(fai, header = F) %>% arrange(desc(2))
 colnames(fa.sizes) <- c("contig", "size")
-
-# make sure that the contigs with SV are the ones being plotted, not the others
-fa.sizes <- fa.sizes[fa.sizes$contig %in% unique(sv$Chr1), 1:2]
-
-# limit the data to only the 30 of the largest present contigs
-fa.sizes <- fa.sizes[1:min(nrow(fa.sizes), 30), ]
+plot_contigs <- snakemake@params$contigs
+if (plot_contigs == "default"){
+  # make sure that the contigs with SV are the ones being plotted, not the others
+  fa.sizes <- fa.sizes[fa.sizes$contig %in% unique(sv$Chr1), 1:2]
+  # limit the data to only the 30 of the largest present contigs
+  fa.sizes <- fa.sizes[1:min(nrow(fa.sizes), 30), ]
+} else {
+  fa.sizes <- fa.sizes[fa.sizes$contig %in% plot_contigs, 1:2]
+}
 
 # filter out variants that aren't on one of these contigs
 sv_clean <- sv_clean[sv_clean$Chr1 %in% fa.sizes$contig, ]
