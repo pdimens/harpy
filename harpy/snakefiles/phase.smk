@@ -22,9 +22,10 @@ molecule_distance = config["molecule_distance"]
 extra             = config.get("extra", "") 
 outdir 			  = config["output_directory"]
 envdir            = os.path.join(os.getcwd(), ".harpy_envs")
-skip_reports       = config["reports"]["skip"]
 samples_from_vcf  = config["samples_from_vcf"]
 variantfile       = config["inputs"]["variantfile"]
+skip_reports      = config["reports"]["skip"]
+plot_contigs      = config["reports"]["plot_contigs"]
 bamlist     = config["inputs"]["alignments"]
 bamdict     = dict(zip(bamlist, bamlist))
 if config["ignore_bx"]:
@@ -263,6 +264,8 @@ rule phase_report:
         outdir + "/reports/phase.html"
     log:
         logfile = outdir + "/logs/report.log"
+    params:
+        contigs = plot_contigs
     conda:
         f"{envdir}/r.yaml"
     script:

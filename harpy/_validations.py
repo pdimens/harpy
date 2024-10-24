@@ -268,7 +268,7 @@ def vcf_contig_match(contigs, vcf):
     if bad_names:
         shortname = os.path.basename(vcf)
         print_error("contigs absent", f"Some of the provided contigs were not found in [blue]{shortname}[/blue]. This will definitely cause plotting errors in the workflow.")
-        print_solution_with_culprits("Check that your contig names are correct, including uppercase and lowercase.", f"Contigs absent in {shortname}:")
+        print_solution_with_culprits("Check that your contig names are correct, including uppercase and lowercase. It's possible that you listed a contig in the genome that isn't in the variant call file due to filtering.", f"Contigs absent in {shortname}:")
         click.echo(",".join([i for i in bad_names]), file = sys.stderr)
         sys.exit(1)
 
