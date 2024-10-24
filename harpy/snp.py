@@ -80,7 +80,7 @@ def mpileup(inputs, output_dir, regions, genome, threads, populations, ploidy, e
     use as input for `--populations`. 
     """   
     output_dir = output_dir.rstrip("/")
-    workflowdir = f"{output_dir}/workflow"
+    workflowdir = os.path.join(output_dir, 'workflow')
     sdm = "conda" if conda else "conda apptainer"
     command = f'snakemake --rerun-incomplete --show-failed-logs --rerun-triggers input mtime params --nolock --software-deployment-method {sdm} --conda-prefix ./.snakemake/conda --cores {threads} --directory . '
     command += f"--snakefile {workflowdir}/snp_mpileup.smk "
@@ -131,7 +131,7 @@ def mpileup(inputs, output_dir, regions, genome, threads, populations, ploidy, e
             "alignments" : [i.as_posix() for i in bamlist]
         }
     }
-    with open(f"{workflowdir}/config.yaml", "w", encoding="utf-8") as config:
+    with open(os.path.join(workflowdir, 'config.yaml'), "w", encoding="utf-8") as config:
         yaml.dump(configs, config, default_flow_style= False, sort_keys=False, width=float('inf'))
 
     create_conda_recipes()
@@ -183,7 +183,7 @@ def freebayes(inputs, output_dir, genome, threads, populations, ploidy, regions,
     use as input for `--populations`. 
     """
     output_dir = output_dir.rstrip("/")
-    workflowdir = f"{output_dir}/workflow"
+    workflowdir = os.path.join(output_dir, 'workflow')
     sdm = "conda" if conda else "conda apptainer"
     command = f'snakemake --rerun-incomplete --show-failed-logs --rerun-triggers input mtime params --nolock --software-deployment-method {sdm} --conda-prefix ./.snakemake/conda --cores {threads} --directory . '
     command += f"--snakefile {workflowdir}/snp_freebayes.smk "
@@ -236,7 +236,7 @@ def freebayes(inputs, output_dir, genome, threads, populations, ploidy, regions,
             "alignments" : [i.as_posix() for i in bamlist]
         }
     }
-    with open(f"{workflowdir}/config.yaml", "w", encoding="utf-8") as config:
+    with open(os.path.join(workflowdir, 'config.yaml'), "w", encoding="utf-8") as config:
         yaml.dump(configs, config, default_flow_style= False, sort_keys=False, width=float('inf'))
 
     create_conda_recipes()

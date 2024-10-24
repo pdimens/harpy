@@ -154,7 +154,7 @@ assembly: &assembly
   - *common
   - *container
   - 'harpy/assembly.py'
-  - 'harpy/metaassembly.py'
+  - 'harpy/metassembly.py'
   - 'harpy/snakefiles/assembly.smk'
   - 'harpy/snakefiles/metassembly.smk'
 other: &other

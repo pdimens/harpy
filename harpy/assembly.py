@@ -66,7 +66,7 @@ def assembly(fastq_r1, fastq_r2, bx_tag, kmer_length, max_memory, output_dir, ex
     """
     output_dir = output_dir.rstrip("/")
     asm = "assembly"
-    workflowdir = f"{output_dir}/workflow"
+    workflowdir = os.path.join(output_dir, 'workflow')
     sdm = "conda" if conda else "conda apptainer"
     command = f'snakemake --rerun-incomplete --show-failed-logs --rerun-triggers input mtime params --nolock  --software-deployment-method {sdm} --conda-prefix .snakemake/conda --cores {threads} --directory . '
     command += f"--snakefile {workflowdir}/{asm}.smk "
@@ -114,7 +114,7 @@ def assembly(fastq_r1, fastq_r2, bx_tag, kmer_length, max_memory, output_dir, ex
             "fastq_r2" : fastq_r2
         }
     }
-    with open(f"{workflowdir}/config.yaml", "w", encoding="utf-8") as config:
+    with open(os.path.join(workflowdir, 'config.yaml'), "w", encoding="utf-8") as config:
         yaml.dump(configs, config, default_flow_style= False, sort_keys=False, width=float('inf'))
     
     create_conda_recipes()

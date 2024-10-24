@@ -153,7 +153,7 @@ def linkedreads(genome_hap1, genome_hap2, output_dir, outer_distance, mutation_r
     are expected to be one 16-basepar barcode per line.
     """
     output_dir = output_dir.rstrip("/")
-    workflowdir = f"{output_dir}/workflow"
+    workflowdir = os.path.join(output_dir, 'workflow')
     sdm = "conda" if conda else "conda apptainer"
     command = f'snakemake --rerun-incomplete --show-failed-logs --rerun-triggers input mtime params --nolock  --software-deployment-method {sdm} --conda-prefix ./.snakemake/conda --cores {threads} --directory . '
     command += f"--snakefile {workflowdir}/simulate_linkedreads.smk "
@@ -189,7 +189,7 @@ def linkedreads(genome_hap1, genome_hap2, output_dir, outer_distance, mutation_r
             **({'barcodes': Path(barcodes).resolve().as_posix()} if barcodes else {}),
         }
     }
-    with open(f"{workflowdir}/config.yaml", "w", encoding="utf-8") as config:
+    with open(os.path.join(workflowdir, 'config.yaml'), "w", encoding="utf-8") as config:
         yaml.dump(configs, config, default_flow_style= False, sort_keys=False, width=float('inf'))
 
     create_conda_recipes()
@@ -255,7 +255,7 @@ def snpindel(genome, snp_vcf, indel_vcf, only_vcf, output_dir, prefix, snp_count
     if (not snp_vcf and snp_count == 0) and (not indel_vcf and indel_count == 0):
         print_error("missing option", "You must either provide a vcf file of known variants to simulate or a count of that variant to randomly simulate.")
     output_dir = output_dir.rstrip("/")
-    workflowdir = f"{output_dir}/workflow"
+    workflowdir = os.path.join(output_dir, 'workflow')
     sdm = "conda" if conda else "conda apptainer"
     command = f'snakemake --rerun-incomplete --show-failed-logs --rerun-triggers input mtime params --nolock --software-deployment-method {sdm} --conda-prefix ./.snakemake/conda --cores 1 --directory . '
     command += f"--snakefile {workflowdir}/simulate_snpindel.smk "
@@ -329,7 +329,7 @@ def snpindel(genome, snp_vcf, indel_vcf, only_vcf, output_dir, prefix, snp_count
             **({"excluded_chromosomes" : Path(exclude_chr).resolve().as_posix()} if exclude_chr else {})
         }
     }
-    with open(f"{workflowdir}/config.yaml", "w", encoding="utf-8") as config:
+    with open(os.path.join(workflowdir, 'config.yaml'), "w", encoding="utf-8") as config:
         yaml.dump(configs, config, default_flow_style= False, sort_keys=False, width=float('inf'))
 
     create_conda_recipes()
@@ -374,7 +374,7 @@ def inversion(genome, vcf, only_vcf, prefix, output_dir, count, min_size, max_si
         print_error("missing option", "Provide either a `--count` of cnv to randomly simulate or a `--vcf` of known variants to simulate.")
 
     output_dir = output_dir.rstrip("/")
-    workflowdir = f"{output_dir}/workflow"
+    workflowdir = os.path.join(output_dir, 'workflow')
     sdm = "conda" if conda else "conda apptainer"
     command = f'snakemake --rerun-incomplete --show-failed-logs --rerun-triggers input mtime params --nolock --software-deployment-method {sdm} --conda-prefix ./.snakemake/conda --cores 1 --directory . '
     command += f"--snakefile {workflowdir}/simulate_variants.smk "
@@ -437,7 +437,7 @@ def inversion(genome, vcf, only_vcf, prefix, output_dir, count, min_size, max_si
             **({"excluded_chromosomes" : Path(exclude_chr).resolve().as_posix()} if exclude_chr else {})
         }
     }
-    with open(f"{workflowdir}/config.yaml", "w", encoding="utf-8") as config:
+    with open(os.path.join(workflowdir, 'config.yaml'), "w", encoding="utf-8") as config:
         yaml.dump(configs, config, default_flow_style= False, sort_keys=False, width=float('inf'))
 
     create_conda_recipes()
@@ -492,7 +492,7 @@ def cnv(genome, output_dir, vcf, only_vcf, prefix, count, min_size, max_size, du
     if not vcf and count == 0:
         print_error("missing option", "Provide either a `--count` of cnv to randomly simulate or a `--vcf` of known cnv to simulate.")
     output_dir = output_dir.rstrip("/")
-    workflowdir = f"{output_dir}/workflow"
+    workflowdir = os.path.join(output_dir, 'workflow')
     sdm = "conda" if conda else "conda apptainer"
     command = f'snakemake --rerun-incomplete --show-failed-logs --rerun-triggers input mtime params --nolock --software-deployment-method {sdm} --conda-prefix ./.snakemake/conda --cores 1 --directory . '
     command += f"--snakefile {workflowdir}/simulate_variants.smk "
@@ -558,7 +558,7 @@ def cnv(genome, output_dir, vcf, only_vcf, prefix, count, min_size, max_size, du
             **({"excluded_chromosomes" : Path(exclude_chr).resolve().as_posix()} if exclude_chr else {})
         }
     }
-    with open(f"{workflowdir}/config.yaml", "w", encoding="utf-8") as config:
+    with open(os.path.join(workflowdir, 'config.yaml'), "w", encoding="utf-8") as config:
         yaml.dump(configs, config, default_flow_style= False, sort_keys=False, width=float('inf'))
 
     create_conda_recipes()
@@ -600,7 +600,7 @@ def translocation(genome, output_dir, prefix, vcf, only_vcf, count, centromeres,
     if not vcf and count == 0:
         print_error("missing option", "Provide either a `--count` of cnv to randomly simulate or a `--vcf` of known cnv to simulate.")
     output_dir = output_dir.rstrip("/")
-    workflowdir = f"{output_dir}/workflow"
+    workflowdir = os.path.join(output_dir, 'workflow')
     sdm = "conda" if conda else "conda apptainer"
     command = f'snakemake --rerun-incomplete --show-failed-logs --rerun-triggers input mtime params --nolock --software-deployment-method {sdm} --conda-prefix ./.snakemake/conda --cores 1 --directory . '
     command += f"--snakefile {workflowdir}/simulate_variants.smk "
@@ -662,7 +662,7 @@ def translocation(genome, output_dir, prefix, vcf, only_vcf, count, centromeres,
         }
     }
     # setup the config file depending on inputs
-    with open(f"{workflowdir}/config.yaml", "w", encoding="utf-8") as config:
+    with open(os.path.join(workflowdir, 'config.yaml'), "w", encoding="utf-8") as config:
         yaml.dump(configs, config, default_flow_style= False, sort_keys=False, width=float('inf'))
 
     create_conda_recipes()

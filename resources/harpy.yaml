@@ -2,6 +2,7 @@ name: harpy
 channels:
   - conda-forge
   - bioconda
+  - sshockwave
 dependencies:
   - apptainer
   - bcftools =1.20
@@ -13,3 +14,4 @@ dependencies:
   - samtools =1.20
   - seqtk
   - tabix
+  - gocryptfs
