@@ -11,7 +11,7 @@ from ._conda import create_conda_recipes
 from ._launch import launch_snakemake
 from ._misc import fetch_rule, fetch_report, fetch_script, snakemake_log
 from ._parsers import parse_alignment_inputs, biallelic_contigs
-from ._validations import validate_input_by_ext, vcf_samplematch, check_impute_params, validate_bam_RG
+from ._validations import validate_input_by_ext, vcf_sample_match, check_impute_params, validate_bam_RG
 
 docstring = {
         "harpy impute": [
@@ -72,7 +72,7 @@ def impute(inputs, output_dir, parameters, threads, vcf, vcf_samples, extra_para
     params = check_impute_params(parameters)
     bamlist, n = parse_alignment_inputs(inputs)
     validate_bam_RG(bamlist, threads, quiet)
-    samplenames = vcf_samplematch(vcf, bamlist, vcf_samples)
+    samplenames = vcf_sample_match(vcf, bamlist, vcf_samples)
     biallelic, n_biallelic = biallelic_contigs(vcf, f"{workflowdir}")
 
     fetch_rule(workflowdir, "impute.smk")

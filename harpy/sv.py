@@ -12,7 +12,7 @@ from ._launch import launch_snakemake
 from ._misc import fetch_rule, fetch_report, snakemake_log, ContigList
 from ._parsers import parse_alignment_inputs
 from ._validations import check_fasta, check_phase_vcf
-from ._validations import validate_popfile, validate_popsamples, match_fasta_contigs
+from ._validations import validate_popfile, validate_popsamples, fasta_contig_match
 
 @click.group(options_metavar='', context_settings={"help_option_names" : ["-h", "--help"]})
 def sv():
@@ -94,7 +94,7 @@ def leviathan(inputs, output_dir, genome, min_sv, min_barcodes, iterations, thre
     bamlist, n = parse_alignment_inputs(inputs)
     check_fasta(genome, quiet)
     if contigs:
-        match_fasta_contigs(contigs, genome)
+        fasta_contig_match(contigs, genome)
     if populations:
         validate_popfile(populations)
         validate_popsamples(bamlist, populations,quiet)
@@ -192,7 +192,7 @@ def naibr(inputs, output_dir, genome, vcf, min_sv, min_barcodes, min_quality, th
     bamlist, n = parse_alignment_inputs(inputs)
     check_fasta(genome, quiet)
     if contigs:
-        match_fasta_contigs(contigs, genome)
+        fasta_contig_match(contigs, genome)
     if populations:
         validate_popfile(populations)
         validate_popsamples(bamlist, populations, quiet)

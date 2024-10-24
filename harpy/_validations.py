@@ -228,7 +228,7 @@ def validate_popfile(infile):
             _ = [click.echo(f"{i[0]+1}\t{i[1]}", file = sys.stderr) for i in invalids]
             sys.exit(1)
 
-def vcf_samplematch(vcf, bamlist, vcf_samples):
+def vcf_sample_match(vcf, bamlist, vcf_samples):
     """Validate that the input VCF file and the samples in the list of BAM files. The directionality of this check is determined by 'vcf_samples', which prioritizes the sample list in the vcf file, rather than bamlist."""
     bcfquery = subprocess.Popen(["bcftools", "query", "-l", vcf], stdout=subprocess.PIPE)
     vcfsamples = bcfquery.stdout.read().decode().split()
@@ -251,6 +251,26 @@ def vcf_samplematch(vcf, bamlist, vcf_samples):
         click.echo(", ".join(sorted(missing_samples)) + "\n", file = sys.stderr)
         sys.exit(1)
     return(query)
+
+def vcf_contig_match(contigs, vcf):
+    vcf_contigs = []
+    vcf_header = subprocess.run(["bcftools", "head", vcf], capture_output = True, text = True)
+    for i in vcf_header:
+        if i.startswith("##ALT="):
+            break
+        if i.startswith("##contig="):
+            unformatted_contig = i.split(",")[0]
+            vcf_contigs.append(unformatted_contig.split("=")[-1])
+    bad_names = []
+    for i in contigs:
+        if i not in vcf_contigs:
+            bad_names.append(i)
+    if bad_names:
+        shortname = os.path.basename(vcf)
+        print_error("contigs absent", f"Some of the provided contigs were not found in [blue]{shortname}[/blue]. This will definitely cause plotting errors in the workflow.")
+        print_solution_with_culprits("Check that your contig names are correct, including uppercase and lowercase.", f"Contigs absent in {shortname}:")
+        click.echo(",".join([i for i in bad_names]), file = sys.stderr)
+        sys.exit(1)
 
 def validate_popsamples(infiles, popfile, quiet):
     """Validate the presence of samples listed in 'populations' to be in the input files"""
@@ -467,7 +487,7 @@ def check_fasta(genofile, quiet):
         print_solution(solutiontext + "\nSee the FASTA file spec and try again after making the appropriate changes: https://www.ncbi.nlm.nih.gov/genbank/fastaformat/")
         sys.exit(1)
 
-def match_fasta_contigs(contigs, fasta):
+def fasta_contig_match(contigs, fasta):
     """Checks whether a list of contigs are present in a fasta file"""
     valid_contigs = []
     if is_gzip(fasta):

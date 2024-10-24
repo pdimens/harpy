@@ -10,7 +10,7 @@ from ._conda import create_conda_recipes
 from ._launch import launch_snakemake
 from ._misc import fetch_rule, fetch_report, snakemake_log, ContigList
 from ._parsers import parse_alignment_inputs
-from ._validations import check_fasta, vcf_samplematch, validate_bam_RG, validate_input_by_ext, match_fasta_contigs
+from ._validations import check_fasta, vcf_sample_match, validate_bam_RG, validate_input_by_ext, fasta_contig_match, vcf_contig_match
 
 docstring = {
         "harpy phase": [
@@ -68,14 +68,13 @@ def phase(inputs, output_dir, vcf, threads, molecule_distance, prune_threshold, 
 
     os.makedirs(f"{workflowdir}/input", exist_ok= True)
     bamlist, n = parse_alignment_inputs(inputs)
-    samplenames = vcf_samplematch(vcf, bamlist, vcf_samples)
+    samplenames = vcf_sample_match(vcf, bamlist, vcf_samples)
     validate_input_by_ext(vcf, "--vcf", ["vcf", "bcf", "vcf.gz"])
     validate_bam_RG(bamlist, threads, quiet)
     if genome:
         check_fasta(genome, quiet)
     if contigs:
-        #TODO THIS NEEDS A VCF CONTIG MATCH
-        match_fasta_contigs(contigs, genome)
+        vcf_contig_match(contigs, vcf)
     fetch_rule(workflowdir, "phase.smk")
     fetch_report(workflowdir, "hapcut.Rmd")
     os.makedirs(f"{output_dir}/logs/snakemake", exist_ok = True)

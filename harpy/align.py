@@ -13,7 +13,7 @@ from ._misc import fetch_report, fetch_rule, snakemake_log, ContigList
 from ._launch import launch_snakemake
 from ._parsers import parse_fastq_inputs
 from ._printing import print_error, print_solution, print_notice
-from ._validations import check_fasta, match_fasta_contigs
+from ._validations import check_fasta, fasta_contig_match
 
 @click.group(options_metavar='', context_settings={"help_option_names" : ["-h", "--help"]})
 def align():
@@ -106,7 +106,7 @@ def bwa(inputs, output_dir, genome, depth_window, threads, keep_unmapped, extra_
     fqlist, sample_count = parse_fastq_inputs(inputs)
     check_fasta(genome, quiet)
     if contigs:
-        match_fasta_contigs(contigs, genome)
+        fasta_contig_match(contigs, genome)
     fetch_rule(workflowdir, "align_bwa.smk")
     fetch_report(workflowdir, "align_stats.Rmd")
     fetch_report(workflowdir, "align_bxstats.Rmd")
@@ -207,7 +207,7 @@ def ema(inputs, output_dir, platform, barcode_list, genome, depth_window, keep_u
     fqlist, sample_count = parse_fastq_inputs(inputs)
     check_fasta(genome, quiet)
     if contigs:
-        match_fasta_contigs(contigs, genome)
+        fasta_contig_match(contigs, genome)
     fetch_rule(workflowdir, "align_ema.smk")
     fetch_report(workflowdir, "align_stats.Rmd")
     fetch_report(workflowdir, "align_bxstats.Rmd")
@@ -299,7 +299,7 @@ def strobe(inputs, output_dir, genome, read_length, keep_unmapped, depth_window,
     fqlist, sample_count = parse_fastq_inputs(inputs)
     check_fasta(genome, quiet)
     if contigs:
-        match_fasta_contigs(contigs, genome)
+        fasta_contig_match(contigs, genome)
     fetch_rule(workflowdir, "align_strobealign.smk")
     fetch_report(workflowdir, "align_stats.Rmd")
     fetch_report(workflowdir, "align_bxstats.Rmd")
