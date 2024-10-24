@@ -23,7 +23,7 @@ min_sv      = config["min_sv"]
 min_bc      = config["min_barcodes"]
 iterations  = config["iterations"]
 outdir      = config["output_directory"]
-skip_reports = config["skip_reports"]
+skip_reports = config["reports"]["skip"]
 bn 			= os.path.basename(genomefile)
 if bn.lower().endswith(".gz"):
     bn = bn[:-3]

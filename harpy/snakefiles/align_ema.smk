@@ -27,7 +27,7 @@ bn_idx      = f"{bn}.gzi" if genome_zip else f"{bn}.fai"
 envdir      = os.path.join(os.getcwd(), ".harpy_envs")
 windowsize  = config["depth_windowsize"]
 keep_unmapped = config["keep_unmapped"]
-skip_reports = config["skip_reports"]
+skip_reports = config["reports"]["skip"]
 bn_r = r"([_\.][12]|[_\.][FR]|[_\.]R[12](?:\_00[0-9])*)?\.((fastq|fq)(\.gz)?)$"
 samplenames = {re.sub(bn_r, "", os.path.basename(i), flags = re.IGNORECASE) for i in fqlist}
 d = dict(zip(samplenames, samplenames))

@@ -8,7 +8,7 @@ R2 = config["inputs"]["R2"]
 I1 = config["inputs"]["I1"]
 I2 = config["inputs"]["I2"]
 samplefile = config["inputs"]["demultiplex_schema"]
-skip_reports = config["skip_reports"]
+skip_reports = config["reports"]["skip"]
 outdir = config["output_directory"]
 envdir = os.path.join(os.getcwd(), ".harpy_envs")
 

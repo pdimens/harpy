@@ -21,7 +21,7 @@ extra 		= config.get("extra", "")
 bn 			= os.path.basename(genomefile)
 if bn.lower().endswith(".gz"):
     bn = bn[:-3]
-skip_reports = config["skip_reports"]
+skip_reports = config["reports"]["skip"]
 windowsize  = config["depth_windowsize"]
 molecule_distance = config["molecule_distance"]
 keep_unmapped = config["keep_unmapped"]

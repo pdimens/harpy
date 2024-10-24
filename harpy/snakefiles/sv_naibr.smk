@@ -28,7 +28,7 @@ outdir      = config["output_directory"]
 bn          = os.path.basename(genomefile)
 genome_zip  = True if bn.lower().endswith(".gz") else False
 bn_idx      = f"{bn}.gzi" if genome_zip else f"{bn}.fai"
-skip_reports = config["skip_reports"]
+skip_reports = config["reports"]["skip"]
 
 def process_args(args):
     argsDict = {

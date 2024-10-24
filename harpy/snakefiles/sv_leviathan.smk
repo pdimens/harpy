@@ -24,7 +24,7 @@ min_bc      = config["min_barcodes"]
 iterations  = config["iterations"]
 extra       = config.get("extra", "") 
 outdir      = config["output_directory"]
-skip_reports = config["skip_reports"]
+skip_reports = config["reports"]["skip"]
 bn          = os.path.basename(genomefile)
 genome_zip  = True if bn.lower().endswith(".gz") else False
 if genome_zip:
