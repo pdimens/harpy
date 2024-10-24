@@ -80,8 +80,10 @@ def gen1(r1_fq, r2_fq, i1_fq, i2_fq, output_dir, schema, threads, snakemake, ski
         "workflow" : "demultiplex gen1",
         "snakemake_log" : sm_log,
         "output_directory" : output_dir,
-        "skip_reports" : skip_reports,
         "workflow_call" : command.rstrip(),
+        "reports" : {
+            "skip": skip_reports
+        },
         "inputs" : {
             "demultiplex_schema" : Path(schema).resolve().as_posix(),
             "R1": Path(r1_fq).resolve().as_posix(),

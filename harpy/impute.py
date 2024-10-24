@@ -87,8 +87,8 @@ def impute(inputs, output_dir, parameters, threads, vcf, vcf_samples, extra_para
         "output_directory" : output_dir,
         "samples_from_vcf" : vcf_samples,
         **({'stitch_extra': extra_params} if extra_params else {}),
-        "skip_reports" : skip_reports,
         "workflow_call" : command.rstrip(),
+        "reports" : {"skip": skip_reports},
         "stitch_parameters" : params,
         "inputs" : {
             "paramfile" : Path(parameters).resolve().as_posix(),

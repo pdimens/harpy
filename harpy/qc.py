@@ -90,8 +90,8 @@ def qc(inputs, output_dir, min_length, max_length, trim_adapters, deduplicate, d
             "density" : d,
             "dropout" : a
         }} if sum(deconvolve) > 0 else {}),
-        "skip_reports" : skip_reports,
         "workflow_call" : command.rstrip(),
+        "reports" : {"skip": skip_reports},
         "inputs" : [i.as_posix() for i in fqlist]
     }
     with open(os.path.join(workflowdir, 'config.yaml'), "w", encoding="utf-8") as config:

@@ -122,8 +122,10 @@ def mpileup(inputs, output_dir, regions, genome, threads, populations, ploidy, e
         "region_type" : regtype,
         **({'windowsize': int(regions)} if regtype == "windows" else {}),
         **({'extra': extra_params} if extra_params else {}),
-        "skip_reports" : skip_reports,
         "workflow_call" : command.rstrip(),
+        "reports" : {
+            "skip": skip_reports
+        },
         "inputs" : {
             "genome" : Path(genome).resolve().as_posix(),
             "regions" : Path(region).resolve().as_posix() if regtype != "region" else region,
@@ -227,8 +229,8 @@ def freebayes(inputs, output_dir, genome, threads, populations, ploidy, regions,
         "region_type" : regtype,
         **({'windowsize': int(regions)} if regtype == "windows" else {}),
         **({'extra': extra_params} if extra_params else {}),
-        "skip_reports" : skip_reports,
         "workflow_call" : command.rstrip(),
+        "reports" : {"skip": skip_reports},
         "inputs" : {
             "genome" : Path(genome).resolve().as_posix(),
             "regions" : Path(region).resolve().as_posix() if regtype != "region" else region,
