@@ -10,7 +10,7 @@ from ._conda import create_conda_recipes
 from ._launch import launch_snakemake
 from ._misc import fetch_rule, fetch_report, snakemake_log, ContigList
 from ._parsers import parse_alignment_inputs
-from ._validations import check_fasta, vcf_sample_match, validate_bam_RG, validate_input_by_ext, fasta_contig_match, vcf_contig_match
+from ._validations import check_fasta, vcf_sample_match, validate_bam_RG, validate_input_by_ext, vcf_contig_match
 
 docstring = {
         "harpy phase": [
