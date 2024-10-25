@@ -259,7 +259,7 @@ rule summarize_blocks:
 
 rule phase_report:
     input:
-        outdir + "/reports/blocks.summary.gz"
+        blockfile = outdir + "/reports/blocks.summary.gz"
     output:
         outdir + "/reports/phase.html"
     log:
