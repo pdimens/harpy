@@ -172,12 +172,13 @@ DT::datatable(
 
 ### per contig plot {.no-title}
 ```{r dropdown_buttons_func}
-dropdown_buttons <- function(CONTIGS){
+dropdown_buttons <- function(CONTIGS, CUTOFF = 0){
   buttonlist <- list()
   idx <- 0
   n_contigs <- length(CONTIGS)
   for(i in CONTIGS){
     idx <- idx + 1
+    if((CUTOFF > 0) && (idx > CUTOFF)) break
     visibility <- as.list(rep(FALSE, n_contigs))
     visibility[[idx]] <- TRUE
     buttonlist[[idx]] <- list(method = "restyle", label = i, args = list("visible", visibility))
