@@ -226,7 +226,7 @@ def ema(inputs, output_dir, platform, barcode_list, genome, depth_window, keep_u
         "workflow_call" : command.rstrip(),
         "reports" : {
             "skip": skip_reports,
-            **({'plot_contigs': contigs} if contigs else {'plot_contigs': "Default"}),
+            **({'plot_contigs': contigs} if contigs else {'plot_contigs': "default"}),
         },
         "inputs" : {
             "genome": Path(genome).resolve().as_posix(),
@@ -318,7 +318,7 @@ def strobe(inputs, output_dir, genome, read_length, keep_unmapped, depth_window,
         "workflow_call" : command.rstrip(),
         "reports" : {
             "skip": skip_reports,
-            **({'plot_contigs': contigs} if contigs else {'plot_contigs': "Default"}),
+            **({'plot_contigs': contigs} if contigs else {'plot_contigs': "default"}),
         },
         "inputs" : {
             "genome": Path(genome).resolve().as_posix(),
