@@ -26,7 +26,8 @@ min_quality  = config["min_quality"]
 min_sv      = config["min_sv"]
 min_barcodes = config["min_barcodes"]
 outdir      = config["output_directory"]
-skip_reports = config["skip_reports"]
+plot_contigs = config["reports"]["plot_contigs"]    
+skip_reports = config["reports"]["skip"]
 bn          = os.path.basename(genomefile)
 if bn.lower().endswith(".gz"):
     validgenome = bn[:-3]
@@ -261,6 +262,8 @@ rule variant_report:
         outdir + "/reports/{sample}.naibr.html"
     log:
         logfile = outdir + "/logs/reports/{sample}.report.log"
+    params:
+        contigs = plot_contigs
     conda:
         f"{envdir}/r.yaml"
     script:

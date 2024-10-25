@@ -8,9 +8,9 @@ from rich.table import Table
 import rich_click as click
 from ._conda import create_conda_recipes
 from ._launch import launch_snakemake
-from ._misc import fetch_rule, fetch_report, snakemake_log
+from ._misc import fetch_rule, fetch_report, snakemake_log, ContigList
 from ._parsers import parse_alignment_inputs
-from ._validations import check_fasta, vcf_samplematch, validate_bam_RG, validate_input_by_ext
+from ._validations import check_fasta, vcf_sample_match, validate_bam_RG, validate_input_by_ext, vcf_contig_match
 
 docstring = {
         "harpy phase": [
@@ -20,7 +20,7 @@ docstring = {
         },
         {
             "name": "Workflow Controls",
-            "options": ["--conda", "--hpc", "--output-dir", "--quiet", "--skip-reports", "--snakemake", "--threads", "--help"],
+            "options": ["--conda", "--contigs", "--hpc", "--output-dir", "--quiet", "--skip-reports", "--snakemake", "--threads", "--help"],
         },     
     ]
 }
@@ -34,7 +34,8 @@ docstring = {
 @click.option('-p', '--prune-threshold', default = 7, show_default = True, type = click.IntRange(0,100), help = 'PHRED-scale threshold (%) for pruning low-confidence SNPs (larger prunes more.)')
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(min = 2, max_open = True), help = 'Number of threads to use')
 @click.option('-v', '--vcf', required = True, type=click.Path(exists=True, dir_okay=False, readable=True), help = 'Path to BCF/VCF file')
-@click.option('--conda',  is_flag = True, default = False, help = 'Use conda/mamba instead of container')
+@click.option('--conda',  is_flag = True, default = False, help = 'Use conda/mamba instead of a container')
+@click.option('--contigs',  type = ContigList(), help = 'File or list of contigs to plot')
 @click.option('--setup-only',  is_flag = True, hidden = True, default = False, help = 'Setup the workflow and exit')
 @click.option('--hpc',  type = click.Path(exists = True, file_okay = False, readable=True), help = 'Directory with HPC submission `config.yaml` file')
 @click.option('--quiet',  is_flag = True, show_default = True, default = False, help = 'Don\'t show output text while running')
@@ -42,7 +43,7 @@ docstring = {
 @click.option('--snakemake',  type = str, help = 'Additional Snakemake parameters, in quotes')
 @click.option('--vcf-samples',  is_flag = True, show_default = True, default = False, help = 'Use samples present in vcf file for phasing rather than those found the inputs')
 @click.argument('inputs', required=True, type=click.Path(exists=True, readable=True), nargs=-1)
-def phase(inputs, output_dir, vcf, threads, molecule_distance, prune_threshold, vcf_samples, genome, snakemake, extra_params, ignore_bx, skip_reports, quiet, hpc, conda, setup_only):
+def phase(inputs, output_dir, vcf, threads, molecule_distance, prune_threshold, vcf_samples, genome, snakemake, extra_params, ignore_bx, skip_reports, quiet, hpc, conda, contigs, setup_only):
     """
     Phase SNPs into haplotypes
 
@@ -67,11 +68,13 @@ def phase(inputs, output_dir, vcf, threads, molecule_distance, prune_threshold, 
 
     os.makedirs(f"{workflowdir}/input", exist_ok= True)
     bamlist, n = parse_alignment_inputs(inputs)
-    samplenames = vcf_samplematch(vcf, bamlist, vcf_samples)
+    samplenames = vcf_sample_match(vcf, bamlist, vcf_samples)
     validate_input_by_ext(vcf, "--vcf", ["vcf", "bcf", "vcf.gz"])
     validate_bam_RG(bamlist, threads, quiet)
     if genome:
         check_fasta(genome, quiet)
+    if contigs:
+        vcf_contig_match(contigs, vcf)
     fetch_rule(workflowdir, "phase.smk")
     fetch_report(workflowdir, "hapcut.Rmd")
     os.makedirs(f"{output_dir}/logs/snakemake", exist_ok = True)
@@ -85,8 +88,11 @@ def phase(inputs, output_dir, vcf, threads, molecule_distance, prune_threshold, 
         "molecule_distance" : molecule_distance,
         "samples_from_vcf" : vcf_samples,
         **({'extra': extra_params} if extra_params else {}),
-        "skip_reports" : skip_reports,
         "workflow_call" : command.rstrip(),
+        "reports" : {
+            "skip": skip_reports,
+            **({'plot_contigs': contigs} if contigs else {'plot_contigs': "default"}),
+        },
         "inputs" : {
             "variantfile" : vcf,
             **({'genome': genome} if genome else {}),

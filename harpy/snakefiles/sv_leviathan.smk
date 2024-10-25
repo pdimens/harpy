@@ -24,7 +24,8 @@ min_bc      = config["min_barcodes"]
 iterations  = config["iterations"]
 extra       = config.get("extra", "") 
 outdir      = config["output_directory"]
-skip_reports = config["skip_reports"]
+skip_reports = config["reports"]["skip"]
+plot_contigs = config["reports"]["plot_contigs"]    
 bn          = os.path.basename(genomefile)
 genome_zip  = True if bn.lower().endswith(".gz") else False
 if genome_zip:
@@ -193,6 +194,8 @@ rule sample_reports:
         outdir + "/reports/{sample}.SV.html"
     log:
         logfile = outdir + "/logs/reports/{sample}.report.log"
+    params:
+        contigs = plot_contigs
     conda:
         f"{envdir}/r.yaml"
     script:

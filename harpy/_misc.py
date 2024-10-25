@@ -136,3 +136,16 @@ class KParam(click.ParamType):
             return [int(i) for i in parts]
         except ValueError:
             self.fail(f"{value} is not 'auto' or odd integers <128 separated by a comma.", param, ctx)
+
+class ContigList(click.ParamType):
+    """A class for a click type which accepts a file of contigs or a list of contigs separated by a comma."""
+    name = "contig_list"
+    def convert(self, value, param, ctx):
+        # check if it's a file
+        if os.path.exists(value):
+            if not os.path.isfile(value):
+                self.fail(f"{value} is not a file.", param, ctx)
+            with open(value, "r") as cont_in:
+                return [i.strip() for i in cont_in.readlines()]
+        else:
+            return [i.strip() for i in value.split(',')]

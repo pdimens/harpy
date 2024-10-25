@@ -28,7 +28,8 @@ outdir      = config["output_directory"]
 bn          = os.path.basename(genomefile)
 genome_zip  = True if bn.lower().endswith(".gz") else False
 bn_idx      = f"{bn}.gzi" if genome_zip else f"{bn}.fai"
-skip_reports = config["skip_reports"]
+skip_reports = config["reports"]["skip"]
+plot_contigs = config["reports"]["plot_contigs"]    
 
 def process_args(args):
     argsDict = {
@@ -204,6 +205,8 @@ rule sample_reports:
         outdir + "/reports/{sample}.naibr.html"
     log:
         logfile = outdir + "/logs/reports/{sample}.report.log"
+    params:
+        contigs = plot_contigs
     conda:
         f"{envdir}/r.yaml"
     script:

@@ -37,7 +37,7 @@ using("flexdashboard","dplyr","DT","scales", "plotly", "highcharter")
 
 ```{r read_input}
 #file <- "~/blocks.summary.gz"
-file <- snakemake@input[[1]]
+file <- snakemake@input$blockfile
 df <- read.table(
   file, header = T,
   colClasses = c("factor","factor","integer","integer", "integer")
@@ -49,12 +49,6 @@ if(nrow(df) < 1){
 df$pos_end <- df$pos_start + df$block_length
 df <- df[df$block_length > 0, c(1,2,3,4,6,5)]
 levels(df$sample) <- basename(levels(df$sample))
-```
-
-```{r process_contigs}
-contigs <- group_by(df, contig) %>%
-  summarize(size = max(pos_end)) %>%
-  arrange(desc(size))
 ```
 
 # General Stats
@@ -150,22 +144,6 @@ Phasing typically has a few very large haplotypes, resulting in extreme
 right-tails in these distributions, therefore, the haplotype lengths are **log-scaled lengths**
 to collapse the right tail for better readability.
 
-```{r dropdown_buttons_func}
-dropdown_buttons <- function(COLUMN, cutoff){
-  buttonlist <- list()
-  categories <- unique(COLUMN)
-  idx <- 0
-  for(i in categories){
-    idx <- idx + 1
-    if(idx > cutoff) break
-    visibility <- as.list(rep(FALSE, length(categories)))
-    visibility[[idx]] <- TRUE
-    buttonlist[[idx]] <- list(method = "restyle", label = i, args = list("visible", visibility))
-  }
-  return( list(list(y = 1, buttons = buttonlist)) )
-}
-```
-
 ## Per contig data
 ### stats per contig {.no-title}
 ```{r per_contig_table, paged.print=TRUE, out.width="100%"}
@@ -193,6 +171,34 @@ DT::datatable(
 ```
 
 ### per contig plot {.no-title}
+```{r dropdown_buttons_func}
+dropdown_buttons <- function(CONTIGS, CUTOFF = 0){
+  buttonlist <- list()
+  idx <- 0
+  n_contigs <- length(CONTIGS)
+  for(i in CONTIGS){
+    idx <- idx + 1
+    if((CUTOFF > 0) && (idx > CUTOFF)) break
+    visibility <- as.list(rep(FALSE, n_contigs))
+    visibility[[idx]] <- TRUE
+    buttonlist[[idx]] <- list(method = "restyle", label = i, args = list("visible", visibility))
+  }
+  return( list(list(y = 1, buttons = buttonlist)) )
+}
+```
+
+```{r plotting_contigs_setup}
+plotting_contigs <- snakemake@params$contigs
+if (plotting_contigs == "default"){
+  .contigs <- group_by(df, contig) %>%
+    summarize(size = max(pos_end)) %>%
+    arrange(desc(size))
+  plot_contigs <- .contigs$contig[1:min(nrow(.contigs), 40)] 
+  } else {
+  plot_contigs <- plotting_contigs
+}
+```
+
 ```{r contig_ridges, out.width="100%"}
 fig <- plot_ly(hoverinfo = "none") %>%
   layout(
@@ -200,14 +206,10 @@ fig <- plot_ly(hoverinfo = "none") %>%
     yaxis = list(fixedrange = TRUE),
     title = "Distribution of Haplotype Lengths by Contig",
     showlegend = F,
-    updatemenus = dropdown_buttons(df$contig, 300)
+    updatemenus = dropdown_buttons(plot_contigs)
   ) %>% config(displayModeBar = FALSE)
 # Loop over the categories
-.idx <- 0
-for (cont in unique(df$contig)) {
-  .idx <- .idx + 1
-  # stop after 300 contigs
-  if(.idx > 300) break
+for (cont in plot_contigs) {
   subset_cont <- df$block_length[df$contig == cont]
   fig <- fig %>%
     add_trace(

@@ -14,7 +14,7 @@ extra 		= config.get("extra", "")
 bn 			= os.path.basename(genomefile)
 genome_zip  = True if bn.lower().endswith(".gz") else False
 bn_idx      = f"{bn}.gzi" if genome_zip else f"{bn}.fai"
-skip_reports = config["skip_reports"]
+skip_reports = config["reports"]["skip"]
 windowsize  = config["depth_windowsize"]
 molecule_distance = config["molecule_distance"]
 

@@ -30,7 +30,8 @@ min_quality  = config["min_quality"]
 min_barcodes = config["min_barcodes"]
 mol_dist     = config["molecule_distance"]
 outdir       = config["output_directory"]
-skip_reports  = config["skip_reports"]
+skip_reports  = config["reports"]["skip"]
+plot_contigs = config["reports"]["plot_contigs"]    
 if bn.lower().endswith(".gz"):
     bn = bn[:-3]
 
@@ -319,6 +320,8 @@ rule group_reports:
         outdir + "/reports/{population}.naibr.html"
     log:
         logfile = outdir + "/logs/reports/{population}.report.log"
+    params:
+        contigs = plot_contigs
     conda:
         f"{envdir}/r.yaml"
     script:
@@ -332,6 +335,8 @@ rule aggregate_report:
         outdir + "/reports/naibr.pop.summary.html"
     log:
         logfile = outdir + "/logs/reports/summary.report.log"
+    params:
+        contigs = plot_contigs
     conda:
         f"{envdir}/r.yaml"
     script:

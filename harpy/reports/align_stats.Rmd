@@ -537,18 +537,24 @@ be able to scroll the report instead of zooming on the plot.
 
 ### Coverage across the genome
 ```{r limit_contigs}
+plot_contigs <- snakemake@params$contigs
 # Find the 30 largest contigs
 contigs <- group_by(tb, contig) %>%
   summarize(size = max(position)) %>%
   arrange(desc(size))
-
-# limit the data to only the 30 largest contigs
-if (nrow(contigs) > 30){
+if (plot_contigs == "default"){
+  # limit the data to only the 30 largest contigs
+  if (nrow(contigs) > 30){
     .contigs <- contigs[1:30, ]
     tb <- filter(tb, contig %in% .contigs$contig)
-} else {
+  } else {
     .contigs <- contigs
+  }
+} else {
+  .contigs <- filter(contigs, contig %in% plot_contigs)
+  tb <- filter(tb, contig %in% plot_contigs)
 }
+
 ```
 
 ```{r circleplot, fig.align='center', out.width= "80%", out.height="900px"}
@@ -565,7 +571,7 @@ for (i in names(genomeChr)){
   chrcov <- tb[tb$contig == i,]
   #chrcov$depth
   # Add a track with bars on the i-th chromosome
-  tracks = tracks + BioCircosBarTrack(
+  tracks <- tracks + BioCircosBarTrack(
     paste0("cov_", i),
     chromosome = i, 
     starts = chrcov$position - windowsize, ends = chrcov$position,
@@ -574,7 +580,7 @@ for (i in names(genomeChr)){
     minRadius = inner[1],
     maxRadius = inner[2]
   )
-  tracks = tracks + BioCircosBarTrack(
+  tracks <- tracks + BioCircosBarTrack(
     paste0("molcov_", i),
     chromosome = i, 
     starts = chrcov$position - windowsize, ends = chrcov$position,
@@ -585,14 +591,14 @@ for (i in names(genomeChr)){
   )
 }
 # Add background
-tracks = tracks + BioCircosBackgroundTrack(
+tracks <- tracks + BioCircosBackgroundTrack(
   "depth_background",
   fillColors = "#f3f3f3",
   borderColors = "#C9C9C9",
   minRadius = inner[1],
   maxRadius = inner[2]
 )
-tracks = tracks + BioCircosBackgroundTrack(
+tracks <- tracks + BioCircosBackgroundTrack(
   "molcov_background",
   fillColors = "#f3f3f3",
   borderColors = "#C9C9C9",

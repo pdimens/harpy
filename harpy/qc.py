@@ -33,7 +33,7 @@ docstring = {
 @click.option('-o', '--output-dir', type = click.Path(exists = False), default = "QC", show_default=True,  help = 'Output directory name')
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(min = 4, max_open = True), help = 'Number of threads to use')
 @click.option('-a', '--trim-adapters', is_flag = True, default = False, help = 'Detect and trim adapters')
-@click.option('--conda',  is_flag = True, default = False, help = 'Use conda/mamba instead of container')
+@click.option('--conda',  is_flag = True, default = False, help = 'Use conda/mamba instead of a container')
 @click.option('--setup-only',  is_flag = True, hidden = True, show_default = True, default = False, help = 'Setup the workflow and exit')
 @click.option('--hpc',  type = click.Path(exists = True, file_okay = False, readable=True), help = 'Directory with HPC submission `config.yaml` file')
 @click.option('--quiet',  is_flag = True, default = False, help = 'Don\'t show output text while running')
@@ -90,8 +90,8 @@ def qc(inputs, output_dir, min_length, max_length, trim_adapters, deduplicate, d
             "density" : d,
             "dropout" : a
         }} if sum(deconvolve) > 0 else {}),
-        "skip_reports" : skip_reports,
         "workflow_call" : command.rstrip(),
+        "reports" : {"skip": skip_reports},
         "inputs" : [i.as_posix() for i in fqlist]
     }
     with open(os.path.join(workflowdir, 'config.yaml'), "w", encoding="utf-8") as config:

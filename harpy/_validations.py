@@ -228,7 +228,7 @@ def validate_popfile(infile):
             _ = [click.echo(f"{i[0]+1}\t{i[1]}", file = sys.stderr) for i in invalids]
             sys.exit(1)
 
-def vcf_samplematch(vcf, bamlist, vcf_samples):
+def vcf_sample_match(vcf, bamlist, vcf_samples):
     """Validate that the input VCF file and the samples in the list of BAM files. The directionality of this check is determined by 'vcf_samples', which prioritizes the sample list in the vcf file, rather than bamlist."""
     bcfquery = subprocess.Popen(["bcftools", "query", "-l", vcf], stdout=subprocess.PIPE)
     vcfsamples = bcfquery.stdout.read().decode().split()
@@ -252,6 +252,23 @@ def vcf_samplematch(vcf, bamlist, vcf_samples):
         sys.exit(1)
     return(query)
 
+def vcf_contig_match(contigs, vcf):
+    vcf_contigs = []
+    vcf_header = subprocess.run(["bcftools", "head", vcf], capture_output = True, text = True)
+    for i in vcf_header.stdout.split("\n"):
+        if i.startswith("##contig="):
+            unformatted_contig = i.split(",")[0]
+            vcf_contigs.append(unformatted_contig.lstrip("##contig=<ID="))
+    bad_names = []
+    for i in contigs:
+        if i not in vcf_contigs:
+            bad_names.append(i)
+    if bad_names:
+        shortname = os.path.basename(vcf)
+        print_error("contigs absent", f"Some of the provided contigs were not found in [blue]{shortname}[/blue]. This will definitely cause plotting errors in the workflow.")
+        print_solution_with_culprits("Check that your contig names are correct, including uppercase and lowercase. It's possible that you listed a contig in the genome that isn't in the variant call file due to filtering.", f"Contigs absent in {shortname}:")
+        click.echo(",".join([i for i in bad_names]), file = sys.stderr)
+        sys.exit(1)
 def validate_popsamples(infiles, popfile, quiet):
     """Validate the presence of samples listed in 'populations' to be in the input files"""
     with open(popfile, "r", encoding="utf-8") as f:
@@ -467,8 +484,31 @@ def check_fasta(genofile, quiet):
         print_solution(solutiontext + "\nSee the FASTA file spec and try again after making the appropriate changes: https://www.ncbi.nlm.nih.gov/genbank/fastaformat/")
         sys.exit(1)
 
+def fasta_contig_match(contigs, fasta):
+    """Checks whether a list of contigs are present in a fasta file"""
+    valid_contigs = []
+    opener = gzip.open if is_gzip(fasta) else open
+    with opener(fasta, "rt") as gen_open:
+        for line in gen_open:
+            if not line.startswith(">"):
+                continue
+            # get just the name, no comments or starting character
+            valid_contigs.append(line.rstrip().lstrip(">").split()[0])
+    bad_names = []
+    for i in contigs:
+        if i not in valid_contigs:
+            bad_names.append(i)
+    if bad_names:
+        shortname = os.path.basename(fasta)
+        print_error("contigs absent", f"Some of the provided contigs were not found in [blue]{shortname}[/blue]. This will definitely cause plotting errors in the workflow.")
+        print_solution_with_culprits("Check that your contig names are correct, including uppercase and lowercase.", f"Contigs absent in {shortname}:")
+        click.echo(",".join([i for i in bad_names]), file = sys.stderr)
+        sys.exit(1)
 
 def validate_fastq_bx(fastq_list, threads, quiet):
+    """
+    Parse a list of fastq files to verify that they have BX/BC tag, and only one of those two types per file
+    """
     def validate(fastq):
         BX = False
         BC = False

@@ -11,7 +11,7 @@ from ._conda import create_conda_recipes
 from ._launch import launch_snakemake
 from ._misc import fetch_rule, fetch_report, fetch_script, snakemake_log
 from ._parsers import parse_alignment_inputs, biallelic_contigs
-from ._validations import validate_input_by_ext, vcf_samplematch, check_impute_params, validate_bam_RG
+from ._validations import validate_input_by_ext, vcf_sample_match, check_impute_params, validate_bam_RG
 
 docstring = {
         "harpy impute": [
@@ -32,7 +32,7 @@ docstring = {
 @click.option('-p', '--parameters', required = True, type=click.Path(exists=True, dir_okay=False), help = 'STITCH parameter file (tab-delimited)')
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(min = 4, max_open = True), help = 'Number of threads to use')
 @click.option('-v', '--vcf', required = True, type=click.Path(exists=True, dir_okay=False, readable=True), help = 'Path to BCF/VCF file')
-@click.option('--conda',  is_flag = True, default = False, help = 'Use conda/mamba instead of container')
+@click.option('--conda',  is_flag = True, default = False, help = 'Use conda/mamba instead of a container')
 @click.option('--setup-only',  is_flag = True, hidden = True, default = False, help = 'Setup the workflow and exit')
 @click.option('--hpc',  type = click.Path(exists = True, file_okay = False, readable=True), help = 'Directory with HPC submission `config.yaml` file')
 @click.option('--quiet',  is_flag = True, show_default = True, default = False, help = 'Don\'t show output text while running')
@@ -72,7 +72,7 @@ def impute(inputs, output_dir, parameters, threads, vcf, vcf_samples, extra_para
     params = check_impute_params(parameters)
     bamlist, n = parse_alignment_inputs(inputs)
     validate_bam_RG(bamlist, threads, quiet)
-    samplenames = vcf_samplematch(vcf, bamlist, vcf_samples)
+    samplenames = vcf_sample_match(vcf, bamlist, vcf_samples)
     biallelic, n_biallelic = biallelic_contigs(vcf, f"{workflowdir}")
 
     fetch_rule(workflowdir, "impute.smk")
@@ -87,8 +87,8 @@ def impute(inputs, output_dir, parameters, threads, vcf, vcf_samples, extra_para
         "output_directory" : output_dir,
         "samples_from_vcf" : vcf_samples,
         **({'stitch_extra': extra_params} if extra_params else {}),
-        "skip_reports" : skip_reports,
         "workflow_call" : command.rstrip(),
+        "reports" : {"skip": skip_reports},
         "stitch_parameters" : params,
         "inputs" : {
             "paramfile" : Path(parameters).resolve().as_posix(),
