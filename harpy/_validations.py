@@ -256,8 +256,6 @@ def vcf_contig_match(contigs, vcf):
     vcf_contigs = []
     vcf_header = subprocess.run(["bcftools", "head", vcf], capture_output = True, text = True)
     for i in vcf_header.stdout.split("\n"):
-        if i.startswith("##ALT="):
-            break
         if i.startswith("##contig="):
             unformatted_contig = i.split(",")[0]
             vcf_contigs.append(unformatted_contig.lstrip("##contig=<ID="))
@@ -271,7 +269,6 @@ def vcf_contig_match(contigs, vcf):
         print_solution_with_culprits("Check that your contig names are correct, including uppercase and lowercase. It's possible that you listed a contig in the genome that isn't in the variant call file due to filtering.", f"Contigs absent in {shortname}:")
         click.echo(",".join([i for i in bad_names]), file = sys.stderr)
         sys.exit(1)
-
 def validate_popsamples(infiles, popfile, quiet):
     """Validate the presence of samples listed in 'populations' to be in the input files"""
     with open(popfile, "r", encoding="utf-8") as f:
