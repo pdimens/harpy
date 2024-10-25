@@ -14,6 +14,7 @@ FQ1 = config["inputs"]["fastq_r1"]
 FQ2 = config["inputs"]["fastq_r2"]
 outdir = config["output_directory"]
 envdir = os.path.join(os.getcwd(), ".harpy_envs")
+busco_organism = config["reports"]["busco_organism"]
 # SPADES
 max_mem      = config["spades"]["max_memory"]
 k_param      = config["spades"]["k"]
@@ -108,6 +109,27 @@ rule scaffolding:
         arcs-make arcs-tigmint -C {params} 2> {log}
         mv {params.workdir}/spades.tigmint*.scaffolds.fa {output}
         """
+
+rule quality_report:
+    input:
+        assembly = f"{outdir}/scaffolds.fasta",
+        fastq = f"{outdir}/scaffold/interleaved.fq.gz"
+    output:
+        f"{outdir}/reports/report.html"
+    log:
+        f"{outdir}/logs/quast.log"
+    params:
+        output_dir = f"{outdir}/reports",
+        busco_db = f"--{busco_organism}",
+        quast_params = "--labels cloudspades --conserved-genes-finding --no-sv" 
+    threads:
+        workflow.cores
+    conda:
+        f"{envdir}/assembly.yaml"
+    shell:
+    """
+    quast.py --threads {threads} --pe12 {input.fastq} {params.quast_params} {params.busco_db} -o {params.output_dir} {input.assembly} 2> {log}
+    """
 
 rule workflow_summary:
     default_target: True
