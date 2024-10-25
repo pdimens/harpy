@@ -490,20 +490,13 @@ def check_fasta(genofile, quiet):
 def fasta_contig_match(contigs, fasta):
     """Checks whether a list of contigs are present in a fasta file"""
     valid_contigs = []
-    if is_gzip(fasta):
-        gen_open = gzip.open(fasta, "rt")
-    else:
-        gen_open = open(fasta, "r")
-
-    while True:
-        line = gen_open.readline()
-        if not line:
-            gen_open.close()
-            break
-        if not line.startswith(">"):
-            continue
-        # get just the name, no comments or starting character
-        valid_contigs.append(line.rstrip().lstrip(">").split()[0])
+    opener = gzip.open if is_gzip(fasta) else open
+    with opener(fasta, "rt") as gen_open:
+        for line in gen_open:
+            if not line.startswith(">"):
+                continue
+            # get just the name, no comments or starting character
+            valid_contigs.append(line.rstrip().lstrip(">").split()[0])
     bad_names = []
     for i in contigs:
         if i not in valid_contigs:
