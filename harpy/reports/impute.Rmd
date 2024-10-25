@@ -38,12 +38,25 @@ using("flexdashboard","dplyr","tidyr","DT","highcharter","scales")
 ```
 
 ```{r load_params}
-modelparams <- paste(snakemake@params[[1]])
-splitparams <- unlist(strsplit(modelparams, "[_/]"))
-#modelparams <- "Filler Text"
+paramsname <- snakemake@params$paramname
+stitch_model <- snakemake@params$model
+stitch_usebx <- snakemake@params$usebx
+stitch_bxlimit <- snakemake@params$bxlimit
+stitch_k <- snakemake@params$k
+stitch_s <- snakemake@params$s
+stitch_ngen <- snakemake@params$ngen
+
+#paramsname <- "test"
+#stitch_model <- "test"
+#stitch_usebx <- "test"
+#stitch_bxlimit <- 10000
+#stitch_k <- 10
+#stitch_s <- 10
+#stitch_ngen <- 10
 ```
+
 ```{r read_input}
-comparefile <- snakemake@input[[1]]
+comparefile <- snakemake@input$comparison
 #comparefile <- "~/impute.compare.stats"
 tryCatch(
   expr = {
@@ -63,7 +76,7 @@ gcts_long <- pivot_longer(gcts, -1, names_to = "Conversion", values_to = "Count"
 ```
 
 ```{r read_info_input}
-infofile <- snakemake@input[[2]]
+infofile <- snakemake@input$infoscore
 #infofile <- "~/impute.infoscore"
 
 tryCatch(
@@ -85,31 +98,36 @@ in the navigation menu above will display imputation results per individual.
 ## Param Information {data-height=100}
 ### param_model
 ```{r}
-valueBox(gsub("model", "", splitparams[1]), caption = "model", color = "#c0c0c0")
+valueBox(paramsname, caption = "Name", color = "#b4dfbd")
+```
+
+### param_model
+```{r}
+valueBox(stitch_model, caption = "model", color = "#c0c0c0")
 ```
 
 ### param_usebx
 ```{r}
-valueBox(gsub("usebx", "", splitparams[2]), caption = "usebX", color = "#c0c0c0")
+valueBox(stitch_usebx, caption = "usebX", color = "#c0c0c0")
 ```
 ### param_bxlimit
 ```{r}
-valueBox(gsub("bxlimit", "", splitparams[6]), caption = "bxlimit", color = "#c0c0c0")
+valueBox(stitch_bxlimit , caption = "bxlimit", color = "#c0c0c0")
 ```
 
 ### param_k
 ```{r}
-valueBox(gsub("k", "", splitparams[3]), caption = "k", color = "#c0c0c0")
+valueBox(stitch_k, caption = "k", color = "#c0c0c0")
 ```
 
 ### param_s
 ```{r}
-valueBox(gsub("s", "", splitparams[4]), caption = "s", color = "#c0c0c0")
+valueBox(stitch_s, caption = "s", color = "#c0c0c0")
 ```
 
 ### param_ngen
 ```{r}
-valueBox(gsub("ngen", "", splitparams[5]), caption = "ngen", color = "#c0c0c0")
+valueBox(stitch_ngen, caption = "ngen", color = "#c0c0c0")
 ```
 
 

@@ -202,14 +202,21 @@ rule compare_stats:
 
 rule impute_reports:
     input: 
-        outdir + "/{paramset}/reports/data/impute.compare.stats",
-        outdir + "/{paramset}/reports/data/impute.infoscore"
+        comparison = outdir + "/{paramset}/reports/data/impute.compare.stats",
+        infoscore = outdir + "/{paramset}/reports/data/impute.infoscore"
     output:
         outdir + "/{paramset}/reports/{paramset}.html"
     log:
         logfile = outdir + "/{paramset}/logs/reports/imputestats.log"
     params:
-        lambda wc: wc.get("paramset")
+        paramname = lambda wc: wc.get("paramset"),
+        model   = lambda wc: stitch_params[wc.paramset]["model"],
+        usebx   = lambda wc: stitch_params[wc.paramset]["usebx"],
+        bxlimit = lambda wc: stitch_params[wc.paramset]["bxlimit"],
+        k       = lambda wc: stitch_params[wc.paramset]["k"],
+        s       = lambda wc: stitch_params[wc.paramset]["s"],
+        ngen    = lambda wc: stitch_params[wc.paramset]["ngen"],
+        extra   = config.get("stitch_extra", "")
     conda:
         f"{envdir}/r.yaml"
     script:
