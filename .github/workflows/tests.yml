@@ -149,7 +149,7 @@ jobs:
           path: .snakemake/singularity
       - name: harpy demultiplex
         shell: micromamba-shell {0}
-        run: harpy demultiplex gen1 --quiet --schema test/demux/samples.schema test/demux/Undetermined_S0_L004_R* test/demux/Undetermined_S0_L004_I*
+        run: harpy demultiplex gen1 --quiet --conda --schema test/demux/samples.schema test/demux/Undetermined_S0_L004_R* test/demux/Undetermined_S0_L004_I*
 
   preflight:
     needs: [changes, pkgbuild]
