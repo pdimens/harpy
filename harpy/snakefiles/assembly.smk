@@ -134,7 +134,8 @@ rule quality_report:
 rule workflow_summary:
     default_target: True
     input:
-        f"{outdir}/scaffolds.fasta"
+        f"{outdir}/scaffolds.fasta",
+        f"{outdir}/reports/report.html"
     params:
         k_param = k_param,
         max_mem = max_mem // 1000,
