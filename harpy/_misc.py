@@ -145,7 +145,6 @@ class ContigList(click.ParamType):
         if os.path.exists(value):
             if not os.path.isfile(value):
                 self.fail(f"{value} is not a file.", param, ctx)
-                return
             with open(value, "r") as cont_in:
                 return [i.strip() for i in cont_in.readlines()]
         else:
