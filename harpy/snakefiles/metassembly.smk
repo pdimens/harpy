@@ -278,7 +278,7 @@ rule BUSCO_analysis:
         """
         ( busco -f -i {input} -c {threads} -m genome {params} > {log} 2>&1 ) || touch {output}
         """
-#TODO CREATE TRY/CATCH THAT WRITES EMPTY BUSCO FILE
+
 rule build_report:
     input:
         f"{outdir}/busco/short_summary.specific.{lineagedb}_odb10.busco.txt",
