@@ -105,7 +105,7 @@ rule spades_assembly:
     shell:
         "metaspades.py -t {threads} -m {params.mem} -k {params.k} {params.extra} -1 {input.fastq_R1C} -2 {input.fastq_R2C} -s {input.fastq_UNC} -o {params.outdir} --only-assembler > {log}"
 
-rule cloudspades_assembly:
+rule cloudspades_metassembly:
     input:
         fastq_R1 = FQ1,
         fastq_R2 = FQ2
@@ -146,7 +146,7 @@ rule bwa_align:
         fastq   = collect(outdir + "/fastq_preproc/input.R{X}.fq.gz", X = [1,2]),
         contigs = f"{spadesdir}/contigs.fasta"
     output:
-        f"{outdir}/reads-to-spades.bam"
+        temp(f"{outdir}/reads-to-spades.bam")
     log:
         bwa = f"{outdir}/logs/align.bwa.log",
         samsort = f"{outdir}/logs/sort.alignments.log"
@@ -161,7 +161,7 @@ rule index_alignment:
     input:
         f"{outdir}/reads-to-spades.bam"
     output:
-       f"{outdir}/reads-to-spades.bam.bai"
+       temp(f"{outdir}/reads-to-spades.bam.bai")
     log:
         f"{outdir}/logs/index.alignments.log"
     container:
@@ -205,7 +205,7 @@ rule athena_config:
         with open(output[0], "w") as conf:  
             json.dump(config_data, conf, indent=4)  
 
-rule athena:
+rule athena_metassembly:
     input:
         multiext(f"{outdir}/reads-to-spades.", "bam", "bam.bai"),
         f"{outdir}/fastq_preproc/interleaved.fq",
@@ -232,20 +232,21 @@ rule athena:
 rule quality_report:
     input:
         assembly = f"{outdir}/athena/athena.asm.fa",
-        fastq = f"{outdir}/fastq_preproc/interleaved.fq"
+        fastq_f = FQ1,
+        fastq_r = FQ2
     output:
         f"{outdir}/reports/report.html"
     log:
         f"{outdir}/logs/quast.log"
     params:
         output_dir = f"-o {outdir}/reports",
-        quast_params = "--labels cloudspades" 
+        quast_params = "--labels cloudspades --gene-finding" 
     threads:
         workflow.cores
     conda:
         f"{envdir}/assembly.yaml"
     shell:
-        "metaquast.py --threads {threads} --pe12 {input.fastq} {params} {input.assembly} 2> {log}"
+        "metaquast.py --threads {threads} --pe1 {input.fastq_f} --pe2 {input.fastq_r} {params} {input.assembly} 2> {log}"
 
 rule workflow_summary:
     default_target: True
