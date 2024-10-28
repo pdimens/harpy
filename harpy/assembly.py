@@ -15,15 +15,15 @@ docstring = {
     "harpy assembly": [
         {
             "name": "Assembly Parameters",
-            "options": ["--bx-tag", "--extra-params", "--kmer-length", "--max-memory"],
+            "options": ["--bx-tag", "--extra-params", "--kmer-length", "--max-memory", "--organism-type"],
         },
         {
-            "name": "Scaffolding Parameters (ignored for metassembly)",
+            "name": "Scaffolding Parameters",
             "options": ["--arcs-extra", "--contig-length", "--links", "--min-aligned", "--min-quality", "--mismatch", "--molecule-distance", "--molecule-length", "--seq-identity", "--span"],            
         },
         {
             "name": "Other Options",
-            "options": ["--conda", "--hpc", "--organism-type", "--output-dir", "--quiet", "--skip-reports", "--snakemake", "--threads", "--help"],
+            "options": ["--conda", "--hpc", "--output-dir", "--quiet", "--skip-reports", "--snakemake", "--threads", "--help"],
         },
     ]
 }
@@ -48,7 +48,7 @@ docstring = {
 # Other Options
 @click.option('-o', '--output-dir', type = click.Path(exists = False), default = "Assembly", show_default=True,  help = 'Output directory name')
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(min = 1, max_open = True), help = 'Number of threads to use')
-@click.option('-u', '--organism-type', type = click.Choice(['prokaryote', 'eukaryote', 'fungus'], case_sensitive=False), default = "eukaryote", show_default=True, help = "Organism type for BUSCO/RNA analysis [`eukaryote`,`prokaryote`,`fungus`]")
+@click.option('-u', '--organism-type', type = click.Choice(['prokaryote', 'eukaryote', 'fungus'], case_sensitive=False), default = "eukaryote", show_default=True, help = "Organism type for assembly report [`eukaryote`,`prokaryote`,`fungus`]")
 @click.option('--conda',  is_flag = True, default = False, help = 'Use conda/mamba instead of a container')
 @click.option('--hpc',  type = click.Path(exists = True, file_okay = False, readable=True), help = 'Directory with HPC submission `config.yaml` file')
 @click.option('--quiet',  is_flag = True, show_default = True, default = False, help = 'Don\'t show output text while running')

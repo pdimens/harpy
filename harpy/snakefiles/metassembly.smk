@@ -22,6 +22,12 @@ extra = config["spades"].get("extra", "")
 spadesdir = f"{outdir}/{'cloudspades' if not ignore_bx else 'spades'}_assembly"
 skip_reports  = config["reports"]["skip"]
 organism = config["reports"]["organism_type"]
+if organism == "eukaryote":
+    lineagedb = "eukaryota"
+elif organism == "fungus":
+    lineagedb = "fungi"
+else:
+    lineagedb = "bacteria"
 
 rule sort_by_barcode:
     input:
@@ -42,7 +48,7 @@ rule sort_by_barcode:
         samtools sort -@ {threads} -O SAM -t {params.barcode_tag} |
         samtools fastq -T "*" -1 {output.fq_f} -2 {output.fq_r}
         """
-        
+
 rule format_barcode:
     input:
         f"{outdir}/fastq_preproc/tmp.R{{FR}}.fq"
@@ -174,7 +180,7 @@ rule interleave_fastq:
     input:
         collect(outdir + "/fastq_preproc/input.R{FR}.fq.gz", FR = [1,2])
     output:
-        f"{outdir}/fastq_preproc/interleaved.fq"
+        temp(f"{outdir}/fastq_preproc/interleaved.fq")
     container:
         None
     shell:
@@ -230,31 +236,66 @@ rule athena_metassembly:
         mv {params.local_asm} {params.final_asm} {params.result_dir}      
         """
 
-rule quality_report:
+rule QUAST_assessment:
     input:
-        assembly = f"{outdir}/athena/athena.asm.fa",
+        contigs = f"{spadesdir}/contigs.fasta",
+        scaffolds = f"{outdir}/athena/athena.asm.fa",
         fastq_f = FQ1,
         fastq_r = FQ2
     output:
-        f"{outdir}/reports/report.html"
+        f"{outdir}/quast/report.tsv"
     log:
-        f"{outdir}/reports/quast.log"
+        f"{outdir}/quast/quast.log"
     params:
-        output_dir = f"-o {outdir}/reports",
+        output_dir = f"-o {outdir}/quast",
         organism = f"--{organism}" if organism != "prokaryote" else "",
-        quast_params = "--labels harpy_cloudspades --glimmer --rna-finding" 
+        quast_params = "--labels contigs,scaffolds --glimmer --rna-finding" 
     threads:
         workflow.cores
     conda:
         f"{envdir}/assembly.yaml"
     shell:
-        "metaquast.py --threads {threads} --pe1 {input.fastq_f} --pe2 {input.fastq_r} {params} {input.assembly} 2> {log}"
+        "metaquast.py --threads {threads} --pe1 {input.fastq_f} --pe2 {input.fastq_r} {params} {input.contigs} {input.scaffolds} 2> {log}"
+
+rule BUSCO_analysis:
+    input:
+        f"{outdir}/athena/athena.asm.fa"
+    output:
+        f"{outdir}/busco/short_summary.specific.{lineagedb}_odb10.busco.txt",
+    log:
+        f"{outdir}/logs/busco.log"
+    params:
+        output_folder = f"--out_path {outdir}",
+        out_prefix = "-o busco",
+        db_location = f"--download_path {outdir}/busco",
+        lineage = f"-l {lineagedb}",
+        metaeuk = "--metaeuk" if organism == "eukaryote" else "" 
+    threads:
+        workflow.cores
+    conda:
+        f"{envdir}/assembly.yaml"
+    shell:
+        "busco -f -i {input} -c {threads} -m genome {params} > {log} 2>&1"
+#TODO CREATE TRY/CATCH THAT WRITES EMPTY BUSCO FILE
+rule build_report:
+    input:
+        f"{outdir}/busco/short_summary.specific.{lineagedb}_odb10.busco.txt",
+        f"{outdir}/quast/report.tsv"
+    output:
+        f"{outdir}/reports/assembly.metrics.html"
+    params:
+        options = "--no-version-check --force --quiet --no-data-dir",
+        title = "--title \"Assembly Metrics\""
+    conda:
+        f"{envdir}/qc.yaml"
+    shell:
+        "multiqc {input} {params} --filename {output}"
 
 rule workflow_summary:
     default_target: True
     input:
         f"{outdir}/athena/athena.asm.fa",
-        f"{outdir}/reports/report.html" if not skip_reports else []
+        f"{outdir}/reports/assembly.metrics.html" if not skip_reports else []
     params:
         bx = BX_TAG,
         extra = extra
