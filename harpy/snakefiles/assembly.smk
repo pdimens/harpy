@@ -15,6 +15,7 @@ FQ2 = config["inputs"]["fastq_r2"]
 outdir = config["output_directory"]
 envdir = os.path.join(os.getcwd(), ".harpy_envs")
 busco_organism = config["reports"]["busco_organism"]
+skip_reports  = config["reports"]["skip"]
 # SPADES
 max_mem      = config["spades"]["max_memory"]
 k_param      = config["spades"]["k"]
@@ -135,7 +136,7 @@ rule workflow_summary:
     default_target: True
     input:
         f"{outdir}/scaffolds.fasta",
-        f"{outdir}/reports/report.html"
+        f"{outdir}/reports/report.html" if not skip_reports else []
     params:
         k_param = k_param,
         max_mem = max_mem // 1000,

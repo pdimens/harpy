@@ -18,6 +18,7 @@ envdir = os.path.join(os.getcwd(), ".harpy_envs")
 max_mem = config["spades"]["max_memory"]
 k_param = config["spades"]["k"]
 ignore_bx = config["spades"]["ignore_barcodes"]
+skip_reports  = config["reports"]["skip"]
 extra = config["spades"].get("extra", "")
 cloudspades = not ignore_bx
 spadesdir = f"{outdir}/{'cloudspades' if not ignore_bx else 'spades'}_assembly"
