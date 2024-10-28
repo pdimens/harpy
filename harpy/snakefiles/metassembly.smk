@@ -261,7 +261,7 @@ rule BUSCO_analysis:
     input:
         f"{outdir}/athena/athena.asm.fa"
     output:
-        f"{outdir}/busco/short_summary.specific.{lineagedb}_odb10.busco.txt",
+        f"{outdir}/busco/short_summary.specific.{lineagedb}_odb10.busco.txt"
     log:
         f"{outdir}/logs/busco.log"
     params:
@@ -275,7 +275,9 @@ rule BUSCO_analysis:
     conda:
         f"{envdir}/assembly.yaml"
     shell:
-        "busco -f -i {input} -c {threads} -m genome {params} > {log} 2>&1"
+        """
+        ( busco -f -i {input} -c {threads} -m genome {params} > {log} 2>&1 ) || touch {output}
+        """
 #TODO CREATE TRY/CATCH THAT WRITES EMPTY BUSCO FILE
 rule build_report:
     input:

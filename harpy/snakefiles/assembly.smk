@@ -141,7 +141,7 @@ rule BUSCO_analysis:
     input:
         f"{outdir}/scaffolds.fasta"
     output:
-        f"{outdir}/busco/short_summary.specific.{lineagedb}_obd10.busco.txt"
+        f"{outdir}/busco/short_summary.specific.{lineagedb}_odb10.busco.txt"
     log:
         f"{outdir}/logs/busco.log"
     params:
@@ -155,12 +155,13 @@ rule BUSCO_analysis:
     conda:
         f"{envdir}/assembly.yaml"
     shell:
-        "busco -f -i {input} -c {threads} -m genome --out_path {params} > {log} 2>&1"
-#TODO CREATE TRY/CATCH THAT WRITES EMPTY BUSCO FILE
+        """
+        ( busco -f -i {input} -c {threads} -m genome --out_path {params} > {log} 2>&1 ) || touch {output}
+        """
 
 rule build_report:
     input:
-        f"{outdir}/busco/short_summary.specific.{lineagedb}_obd10.busco.txt",
+        f"{outdir}/busco/short_summary.specific.{lineagedb}_odb10.busco.txt",
         f"{outdir}/quast/report.tsv"
     output:
         f"{outdir}/reports/assembly.metrics.html"
