@@ -18,10 +18,9 @@ envdir = os.path.join(os.getcwd(), ".harpy_envs")
 max_mem = config["spades"]["max_memory"]
 k_param = config["spades"]["k"]
 ignore_bx = config["spades"]["ignore_barcodes"]
-skip_reports  = config["reports"]["skip"]
 extra = config["spades"].get("extra", "")
-cloudspades = not ignore_bx
 spadesdir = f"{outdir}/{'cloudspades' if not ignore_bx else 'spades'}_assembly"
+skip_reports  = config["reports"]["skip"]
 
 rule sort_by_barcode:
     input:
@@ -114,9 +113,9 @@ rule cloudspades_assembly:
         f"{outdir}/cloudspades_assembly/contigs.fasta",
         f"{outdir}/cloudspades_assembly/scaffolds.fasta"
     params:
-        outdir = spadesdir,
-        k = k_param,
-        mem = max_mem // 1000,
+        outdir = f"-o {spadesdir}",
+        k = f"-k {k_param}",
+        mem = f"-m {max_mem // 1000}",
         extra = extra
     log:
         outdir + "/logs/assembly.log"
@@ -125,9 +124,9 @@ rule cloudspades_assembly:
     threads:
         workflow.cores
     resources:
-        mem_mb=max_mem
+        mem_mb = max_mem
     shell:
-        "spades.py --meta -t {threads} -m {params.mem} -k {params.k} {params.extra} --gemcode1-1 {input.fastq_R1} --gemcode1-2 {input.fastq_R2} -o {params.outdir} > {log}"
+        "spades.py --meta -t {threads} {params} --gemcode1-1 {input.fastq_R1} --gemcode1-2 {input.fastq_R2} > {log}"
 
 rule bwa_index:
     input:
@@ -239,22 +238,20 @@ rule quality_report:
     log:
         f"{outdir}/logs/quast.log"
     params:
-        output_dir = f"{outdir}/reports",
+        output_dir = f"-o {outdir}/reports",
         quast_params = "--labels cloudspades" 
     threads:
         workflow.cores
     conda:
         f"{envdir}/assembly.yaml"
     shell:
-    """
-    metaquast.py --threads {threads} --pe12 {input.fastq} {params.quast_params} {params.busco_db} -o {params.output_dir} {input.assembly} 2> {log}
-    """
+        "metaquast.py --threads {threads} --pe12 {input.fastq} {params} {input.assembly} 2> {log}"
 
 rule workflow_summary:
     default_target: True
     input:
         f"{outdir}/athena/athena.asm.fa",
-        f"{outdir}/reports/report.html" if not skip_reports else[]
+        f"{outdir}/reports/report.html" if not skip_reports else []
     params:
         bx = BX_TAG,
         extra = extra

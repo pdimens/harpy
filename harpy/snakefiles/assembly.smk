@@ -120,17 +120,15 @@ rule quality_report:
     log:
         f"{outdir}/logs/quast.log"
     params:
-        output_dir = f"{outdir}/reports",
-        busco_db = f"--{busco_organism}",
+        output_dir = f"-o {outdir}/reports",
+        busco_db = f"--{busco_organism}" if busco_organism != "prokaryote" else "",
         quast_params = "--labels cloudspades --conserved-genes-finding --no-sv" 
     threads:
         workflow.cores
     conda:
         f"{envdir}/assembly.yaml"
     shell:
-    """
-    quast.py --threads {threads} --pe12 {input.fastq} {params.quast_params} {params.busco_db} -o {params.output_dir} {input.assembly} 2> {log}
-    """
+        "quast.py --threads {threads} --pe12 {input.fastq} {params} {input.assembly} 2> {log}"
 
 rule workflow_summary:
     default_target: True
