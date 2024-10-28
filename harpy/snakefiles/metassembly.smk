@@ -269,10 +269,10 @@ rule workflow_summary:
         bxappend += f"\tsed 's/{params.bx}:Z:[^[:space:]]*/&-1/g' FASTQ | bgzip > FASTQ_OUT"  
         summary.append(bxappend)
         if not ignore_bx:
-            spades = f"Reads were assembled using 'cloudspades':\n"
+            spades = "Reads were assembled using cloudspades:\n"
             spades += f"\tspades.py -t THREADS -m {max_mem} --gemcode1-1 FQ1 --gemcode1-2 FQ2 --meta -k {k_param} {params.extra}"
-        else:f
-            spades = f"Reads were assembled using 'spades':\n"
+        else:
+            spades = "Reads were assembled using spades:\n"
             spades += f"\tmetaspades.py -t THREADS -m {max_mem} -k {k_param} {extra} -1 FQ_1 -2 FQ2 -o {spadesdir}"
         summary.append(spades)
         align = "Original input FASTQ files were aligned to the metagenome using BWA:\n"
