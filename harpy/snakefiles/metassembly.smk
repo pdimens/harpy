@@ -230,10 +230,31 @@ rule athena:
         mv {params.local_asm} {params.final_asm} {params.result_dir}      
         """
 
+rule quality_report:
+    input:
+        assembly = f"{outdir}/athena/athena.asm.fa",
+        fastq = f"{outdir}/fastq_preproc/interleaved.fq"
+    output:
+        f"{outdir}/reports/report.html"
+    log:
+        f"{outdir}/logs/quast.log"
+    params:
+        output_dir = f"{outdir}/reports",
+        quast_params = "--labels cloudspades" 
+    threads:
+        workflow.cores
+    conda:
+        f"{envdir}/assembly.yaml"
+    shell:
+    """
+    metaquast.py --threads {threads} --pe12 {input.fastq} {params.quast_params} {params.busco_db} -o {params.output_dir} {input.assembly} 2> {log}
+    """
+
 rule workflow_summary:
     default_target: True
     input:
-        f"{outdir}/athena/athena.asm.fa"
+        f"{outdir}/athena/athena.asm.fa",
+        f"{outdir}/reports/report.html" if not skip_reports else[]
     params:
         bx = BX_TAG,
         extra = extra
