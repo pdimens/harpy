@@ -285,7 +285,7 @@ rule build_report:
         f"{outdir}/reports/assembly.metrics.html"
     params:
         options = "--no-version-check --force --quiet --no-data-dir",
-        title = "--title \"Assembly Metrics\""
+        title = "--title \"Metassembly Metrics\""
     conda:
         f"{envdir}/qc.yaml"
     shell:

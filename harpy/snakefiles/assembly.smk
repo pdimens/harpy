@@ -148,7 +148,7 @@ rule BUSCO_analysis:
         output_folder = outdir,
         out_prefix = "-o busco",
         lineage = f"-l {lineagedb}",
-        download_path = f"--download_path {outdir}/busco"
+        download_path = f"--download_path {outdir}/busco",
         metaeuk = "--metaeuk" if organism == "eukaryote" else "" 
     threads:
         workflow.cores
@@ -160,7 +160,7 @@ rule BUSCO_analysis:
 
 rule build_report:
     input:
-        f"{outdir}/busco/short_summary.specific.{lineagedb}_odb10.busco.txt",
+        f"{outdir}/busco/short_summary.specific.{lineagedb}_obd10.busco.txt",
         f"{outdir}/quast/report.tsv"
     output:
         f"{outdir}/reports/assembly.metrics.html"
