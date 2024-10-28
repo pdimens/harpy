@@ -23,6 +23,7 @@ def create_conda_recipes():
             "bioconda::cloudspades",
             "bioconda::links",
             "bioconda::quast",
+            "bioconda::busco",
             "bioconda::samtools",
             "bioconda::tigmint"
         ],
