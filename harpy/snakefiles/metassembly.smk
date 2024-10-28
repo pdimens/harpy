@@ -21,6 +21,7 @@ ignore_bx = config["spades"]["ignore_barcodes"]
 extra = config["spades"].get("extra", "")
 spadesdir = f"{outdir}/{'cloudspades' if not ignore_bx else 'spades'}_assembly"
 skip_reports  = config["reports"]["skip"]
+organism = config["reports"]["organism_type"]
 
 rule sort_by_barcode:
     input:
@@ -128,7 +129,7 @@ rule cloudspades_metassembly:
     shell:
         "spades.py --meta -t {threads} {params} --gemcode1-1 {input.fastq_R1} --gemcode1-2 {input.fastq_R2} > {log}"
 
-rule bwa_index:
+rule index_contigs:
     input:
         f"{spadesdir}/contigs.fasta"
     output:
@@ -140,7 +141,7 @@ rule bwa_index:
     shell:
         "bwa index {input}"
 
-rule bwa_align:
+rule align_to_contigs:
     input:
         multiext(f"{spadesdir}/contigs.fasta.", "ann", "bwt", "pac", "sa", "amb"),
         fastq   = collect(outdir + "/fastq_preproc/input.R{X}.fq.gz", X = [1,2]),
@@ -157,7 +158,7 @@ rule bwa_align:
     shell:
         "bwa mem -C -t {threads} {input.contigs} {input.fastq} 2> {log.bwa} | samtools sort -O bam -o {output} - 2> {log.samsort}"
 
-rule index_alignment:
+rule index_alignments:
     input:
         f"{outdir}/reads-to-spades.bam"
     output:
@@ -237,10 +238,11 @@ rule quality_report:
     output:
         f"{outdir}/reports/report.html"
     log:
-        f"{outdir}/logs/quast.log"
+        f"{outdir}/reports/quast.log"
     params:
         output_dir = f"-o {outdir}/reports",
-        quast_params = "--labels cloudspades --gene-finding" 
+        organism = f"--{organism}" if organism != "prokaryote" else "",
+        quast_params = "--labels harpy_cloudspades --glimmer --rna-finding" 
     threads:
         workflow.cores
     conda:
@@ -269,7 +271,7 @@ rule workflow_summary:
         if not ignore_bx:
             spades = f"Reads were assembled using 'cloudspades':\n"
             spades += f"\tspades.py -t THREADS -m {max_mem} --gemcode1-1 FQ1 --gemcode1-2 FQ2 --meta -k {k_param} {params.extra}"
-        else:
+        else:f
             spades = f"Reads were assembled using 'spades':\n"
             spades += f"\tmetaspades.py -t THREADS -m {max_mem} -k {k_param} {extra} -1 FQ_1 -2 FQ2 -o {spadesdir}"
         summary.append(spades)

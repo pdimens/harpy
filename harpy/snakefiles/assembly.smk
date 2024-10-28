@@ -14,7 +14,7 @@ FQ1 = config["inputs"]["fastq_r1"]
 FQ2 = config["inputs"]["fastq_r2"]
 outdir = config["output_directory"]
 envdir = os.path.join(os.getcwd(), ".harpy_envs")
-busco_organism = config["reports"]["busco_organism"]
+organism = config["reports"]["organism_type"]
 skip_reports  = config["reports"]["skip"]
 # SPADES
 max_mem      = config["spades"]["max_memory"]
@@ -118,11 +118,11 @@ rule quality_report:
     output:
         f"{outdir}/reports/report.html"
     log:
-        f"{outdir}/logs/quast.log"
+        f"{outdir}/reports/quast.log"
     params:
         output_dir = f"-o {outdir}/reports",
-        busco_db = f"--{busco_organism}" if busco_organism != "prokaryote" else "",
-        quast_params = "--labels cloudspades --conserved-genes-finding --no-sv" 
+        organism = f"--{organism}" if organism != "prokaryote" else "",
+        quast_params = "--labels harpy_cloudspades --conserved-genes-finding --rna-finding --no-sv" 
     threads:
         workflow.cores
     conda:
