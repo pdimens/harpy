@@ -90,11 +90,12 @@ rule align:
         fastq      = get_fq,
         genome     = f"Genome/{bn}",
         genome_idx = multiext(f"Genome/{bn}", ".ann", ".bwt", ".pac", ".sa", ".amb")
-    output:  
+    output:
         temp(outdir + "/samples/{sample}/{sample}.bwa.sam")
     log:
         outdir + "/logs/bwa/{sample}.bwa.log"
-    params: 
+    params:
+        RG_tag = lambda wc: "\"@RG\\tID:" + wc.get("sample") + "\\tSM:" wc.get("sample") + "\"",
         samps = lambda wc: d[wc.get("sample")],
         quality = config["alignment_quality"],
         unmapped = "" if keep_unmapped else "-F 4",
@@ -107,7 +108,7 @@ rule align:
         f"{envdir}/align.yaml"
     shell:
         """
-        bwa mem -C -v 2 -t {threads} {params.extra} -R \"@RG\\tID:{wildcards.sample}\\tSM:{wildcards.sample}\" {input.genome} {input.fastq} 2> {log} |
+        bwa mem -C -v 2 -t {threads} {params.extra} -R {params.RG_tag} {input.genome} {input.fastq} 2> {log} |
             samtools view -h {params.unmapped} -q {params.quality} > {output} 
         """
 

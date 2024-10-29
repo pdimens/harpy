@@ -6,6 +6,7 @@ import logging
 
 onstart:
     logger.logger.addHandler(logging.FileHandler(config["snakemake_log"]))
+    os.path.makedirs(f"{outdir}/logs/ema_count/", exist_ok = True)
 onsuccess:
     os.remove(logger.logfile)
 onerror:
@@ -34,7 +35,7 @@ samplenames = {re.sub(bn_r, "", os.path.basename(i), flags = re.IGNORECASE) for 
 d = dict(zip(samplenames, samplenames))
 
 def get_fq(wildcards):
-    # returns a list of fastq files for read 1 based on *wildcards.sample* e.g.
+    """returns a list of fastq files for read 1 based on *wildcards.sample* e.g."""
     r = re.compile(fr".*/({re.escape(wildcards.sample)}){bn_r}", flags = re.IGNORECASE)
     return sorted(list(filter(r.match, fqlist))[:2])
 
@@ -96,15 +97,14 @@ rule ema_count:
         logs   = temp(outdir + "/logs/count/{sample}.count")
     params:
         prefix = lambda wc: outdir + "/ema_count/" + wc.get("sample"),
-        beadtech = "-p" if platform == "haplotag" else f"-w {barcode_list}",
-        logdir = f"{outdir}/logs/ema_count/"
+        beadtech = "-p" if platform == "haplotag" else f"-w {barcode_list}"
     conda:
         f"{envdir}/align.yaml"
     shell:
         """
-        mkdir -p {params.prefix} {params.logdir}
+        mkdir -p {params.prefix}
         seqtk mergepe {input} |
-            ema count {params.beadtech} -o {params.prefix} 2> {output.logs}
+        ema count {params.beadtech} -o {params.prefix} 2> {output.logs}
         """
 
 rule ema_preprocess:
@@ -127,8 +127,8 @@ rule ema_preprocess:
     shell:
         """
         seqtk mergepe {input.reads} |
-            ema preproc {params.bxtype} -n {params.bins} -t {threads} -o {params.outdir} {input.emacounts} 2>&1 |
-            cat - > {log}
+        ema preproc {params.bxtype} -n {params.bins} -t {threads} -o {params.outdir} {input.emacounts} 2>&1 |
+        cat - > {log}
         """
 
 rule align_ema:
@@ -145,7 +145,8 @@ rule align_ema:
         sort = outdir + "/logs/align/{sample}.ema.sort.log",
     resources:
         mem_mb = 500
-    params: 
+    params:
+        RG_tag = lambda wc: "\"@RG\\tID:" + wc.get("sample") + "\\tSM:" wc.get("sample") + "\"",
         bxtype = f"-p {platform}",
         tmpdir = lambda wc: outdir + "/." + d[wc.sample],
         quality = config["alignment_quality"],
@@ -157,7 +158,7 @@ rule align_ema:
         f"{envdir}/align.yaml"
     shell:
         """
-        ema align -t {threads} {params.extra} -d {params.bxtype} -r {input.genome} -R \"@RG\\tID:{wildcards.sample}\\tSM:{wildcards.sample}\" -x {input.readbin} 2> {log.ema} |
+        ema align -t {threads} {params.extra} -d {params.bxtype} -r {input.genome} -R {params.RG_tag} -x {input.readbin} 2> {log.ema} |
             samtools view -h {params.unmapped} -q {params.quality} | 
             samtools sort -T {params.tmpdir} --reference {input.genome} -O bam --write-index -m {resources.mem_mb}M -o {output.aln}##idx##{output.idx} - 2> {log.sort}
         rm -rf {params.tmpdir}
