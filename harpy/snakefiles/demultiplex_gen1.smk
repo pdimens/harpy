@@ -105,6 +105,8 @@ rule assess_quality:
         outdir + "/{sample}.R{FR}.fq.gz"
     output: 
         outdir + "/reports/data/{sample}.R{FR}.fastqc"
+    log:
+        outdir + "/logs/{sample}.R{FR}.qc.log"
     params:
         f"{outdir}/reports/data"
     threads:
@@ -113,7 +115,7 @@ rule assess_quality:
         f"{envdir}/qc.yaml"
     shell:
         """
-        ( falco --quiet --threads {threads} -skip-report -skip-summary -data-filename {output} {input} ) > /dev/null 2>&1 ||
+        ( falco --quiet --threads {threads} -skip-report -skip-summary -data-filename {output} {input} ) > {log} 2>&1 ||
 cat <<EOF > {output}
 ##Falco	1.2.4
 >>Basic Statistics	fail
