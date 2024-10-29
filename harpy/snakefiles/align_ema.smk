@@ -6,7 +6,7 @@ import logging
 
 onstart:
     logger.logger.addHandler(logging.FileHandler(config["snakemake_log"]))
-    os.path.makedirs(f"{outdir}/logs/ema_count/", exist_ok = True)
+    os.makedirs(f"{outdir}/logs/ema_count/", exist_ok = True)
 onsuccess:
     os.remove(logger.logfile)
 onerror:
