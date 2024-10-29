@@ -141,24 +141,7 @@ jobs:
           pip install dist/*.whl
           resources/buildforCI.sh
       - name: Clear Space
-        run: |
-          rm -rf /opt/hostedtoolcache && mkdir -p .snakemake/singularity
-          sudo rm -rf \
-            /opt/ghc
-            /opt/google/chrome \
-            /opt/microsoft/msedge \
-            /opt/microsoft/powershell \
-            /opt/pipx \
-            /usr/lib/mono \
-            /usr/local/julia* \
-            /usr/local/lib/android \
-            /usr/local/lib/node_modules \
-            /usr/local/share/chromium \
-            /usr/local/share/powershell \
-            /usr/share/dotnet \
-            /usr/share/swift
-            /usr/share/dotnet
-            /usr/local/share/boost
+        uses: jlumbroso/free-disk-space@main
       - name: Download Singularity Artifact
         uses: actions/download-artifact@v4
         with:
