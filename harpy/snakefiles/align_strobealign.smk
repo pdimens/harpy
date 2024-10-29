@@ -91,8 +91,6 @@ rule align:
         unmapped_strobe = "" if keep_unmapped else "-U",
         unmapped = "" if keep_unmapped else "-F 4",
         extra = extra
-    benchmark:
-        ".Benchmark/Mapping/strobealign/align.{sample}.txt"
     threads:
         max(5, workflow.cores - 1)
     conda:

@@ -146,7 +146,7 @@ rule align_ema:
     resources:
         mem_mb = 500
     params:
-        RG_tag = lambda wc: "\"@RG\\tID:" + wc.get("sample") + "\\tSM:" wc.get("sample") + "\"",
+        RG_tag = lambda wc: "\"@RG\\tID:" + wc.get("sample") + "\\tSM:" + wc.get("sample") + "\"",
         bxtype = f"-p {platform}",
         tmpdir = lambda wc: outdir + "/." + d[wc.sample],
         quality = config["alignment_quality"],
@@ -176,16 +176,15 @@ rule align_bwa:
         outdir + "/logs/align/{sample}.bwa.align.log"
     params:
         quality = config["alignment_quality"],
-        unmapped = "" if keep_unmapped else "-F 4"
-    benchmark:
-        ".Benchmark/Mapping/ema/bwaAlign.{sample}.txt"
+        unmapped = "" if keep_unmapped else "-F 4",
+        RG_tag = lambda wc: "\"@RG\\tID:" + wc.get("sample") + "\\tSM:" + wc.get("sample") + "\""
     threads:
         10
     conda:
         f"{envdir}/align.yaml"
     shell:
         """
-        bwa mem -t {threads} -v2 -C -R \"@RG\\tID:{wildcards.sample}\\tSM:{wildcards.sample}\" {input.genome} {input.reads} 2> {log} |
+        bwa mem -t {threads} -v2 -C -R {params.RG_tag} {input.genome} {input.reads} 2> {log} |
             samtools view -h {params.unmapped} -q {params.quality} > {output}
         """
 

@@ -106,8 +106,6 @@ rule index_barcode:
         bai = outdir + "/workflow/input/{population}.bam.bai"
     output:
         temp(outdir + "/lrez_index/{population}.bci")
-    benchmark:
-        ".Benchmark/leviathan-pop/{population}.lrez"
     threads:
         max(10, workflow.cores)
     conda:
@@ -170,8 +168,6 @@ rule call_variants:
         workflow.cores - 1
     conda:
         f"{envdir}/variants.yaml"
-    benchmark:
-        ".Benchmark/leviathan-pop/{population}.variantcall"
     shell:
         "LEVIATHAN -b {input.bam} -i {input.bc_idx} {params} -g {input.genome} -o {output.vcf} -t {threads} --candidates {output.candidates} 2> {log.runlog}"
 

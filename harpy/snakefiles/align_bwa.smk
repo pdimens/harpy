@@ -95,13 +95,11 @@ rule align:
     log:
         outdir + "/logs/bwa/{sample}.bwa.log"
     params:
-        RG_tag = lambda wc: "\"@RG\\tID:" + wc.get("sample") + "\\tSM:" wc.get("sample") + "\"",
+        RG_tag = lambda wc: "\"@RG\\tID:" + wc.get("sample") + "\\tSM:" + wc.get("sample") + "\"",
         samps = lambda wc: d[wc.get("sample")],
         quality = config["alignment_quality"],
         unmapped = "" if keep_unmapped else "-F 4",
         extra = extra
-    benchmark:
-        ".Benchmark/Mapping/bwa/align.{sample}.txt"
     threads:
         max(5, workflow.cores - 1)
     conda:
