@@ -141,7 +141,24 @@ jobs:
           pip install dist/*.whl
           resources/buildforCI.sh
       - name: Clear Space
-        run: rm -rf /opt/hostedtoolcache && mkdir -p .snakemake/singularity
+        run: |
+          rm -rf /opt/hostedtoolcache && mkdir -p .snakemake/singularity
+          sudo rm -rf \
+            /opt/ghc
+            /opt/google/chrome \
+            /opt/microsoft/msedge \
+            /opt/microsoft/powershell \
+            /opt/pipx \
+            /usr/lib/mono \
+            /usr/local/julia* \
+            /usr/local/lib/android \
+            /usr/local/lib/node_modules \
+            /usr/local/share/chromium \
+            /usr/local/share/powershell \
+            /usr/share/dotnet \
+            /usr/share/swift
+            /usr/share/dotnet
+            /usr/local/share/boost
       - name: Download Singularity Artifact
         uses: actions/download-artifact@v4
         with:
@@ -149,7 +166,7 @@ jobs:
           path: .snakemake/singularity
       - name: harpy demultiplex
         shell: micromamba-shell {0}
-        run: harpy demultiplex gen1 --quiet --conda --schema test/demux/samples.schema test/demux/Undetermined_S0_L004_R* test/demux/Undetermined_S0_L004_I*
+        run: harpy demultiplex gen1 --quiet --schema test/demux/samples.schema test/demux/Undetermined_S0_L004_R* test/demux/Undetermined_S0_L004_I*
 
   preflight:
     needs: [changes, pkgbuild]
@@ -336,7 +353,24 @@ jobs:
           pip install dist/*.whl
           resources/buildforCI.sh
       - name: Clear Space
-        run: rm -rf /opt/hostedtoolcache && mkdir -p .snakemake/singularity
+        run: |
+          rm -rf /opt/hostedtoolcache && mkdir -p .snakemake/singularity
+          sudo rm -rf \
+            /opt/ghc
+            /opt/google/chrome \
+            /opt/microsoft/msedge \
+            /opt/microsoft/powershell \
+            /opt/pipx \
+            /usr/lib/mono \
+            /usr/local/julia* \
+            /usr/local/lib/android \
+            /usr/local/lib/node_modules \
+            /usr/local/share/chromium \
+            /usr/local/share/powershell \
+            /usr/share/dotnet \
+            /usr/share/swift
+            /usr/share/dotnet
+            /usr/local/share/boost
       - name: Download Singularity Artifact
         uses: actions/download-artifact@v4
         with:
