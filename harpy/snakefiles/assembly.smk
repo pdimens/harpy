@@ -16,12 +16,12 @@ outdir = config["output_directory"]
 envdir = os.path.join(os.getcwd(), ".harpy_envs")
 skip_reports  = config["reports"]["skip"]
 organism = config["reports"]["organism_type"]
-if organism == "eukaryote":
-    lineagedb = "eukaryota"
-elif organism == "fungus":
-    lineagedb = "fungi"
-else:
-    lineagedb = "bacteria"
+lineage_map = {
+    "eukaryote": "eukaryota",
+    "fungus": "fungi",
+    "bacteria": "bacteria"
+}
+lineagedb = lineage_map.get(organism, "bacteria")
 # SPADES
 max_mem      = config["spades"]["max_memory"]
 k_param      = config["spades"]["k"]
