@@ -6,7 +6,6 @@ import logging
 
 onstart:
     logger.logger.addHandler(logging.FileHandler(config["snakemake_log"]))
-    os.makedirs(f"{outdir}/logs/ema_count/", exist_ok = True)
 onsuccess:
     os.remove(logger.logfile)
 onerror:
@@ -33,6 +32,7 @@ plot_contigs = config["reports"]["plot_contigs"]
 bn_r = r"([_\.][12]|[_\.][FR]|[_\.]R[12](?:\_00[0-9])*)?\.((fastq|fq)(\.gz)?)$"
 samplenames = {re.sub(bn_r, "", os.path.basename(i), flags = re.IGNORECASE) for i in fqlist}
 d = dict(zip(samplenames, samplenames))
+os.makedirs(f"{outdir}/logs/ema_count/", exist_ok = True)
 
 def get_fq(wildcards):
     """returns a list of fastq files for read 1 based on *wildcards.sample* e.g."""
