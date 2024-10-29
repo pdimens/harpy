@@ -19,8 +19,15 @@ max_mem = config["spades"]["max_memory"]
 k_param = config["spades"]["k"]
 ignore_bx = config["spades"]["ignore_barcodes"]
 extra = config["spades"].get("extra", "")
-cloudspades = not ignore_bx
 spadesdir = f"{outdir}/{'cloudspades' if not ignore_bx else 'spades'}_assembly"
+skip_reports  = config["reports"]["skip"]
+organism = config["reports"]["organism_type"]
+lineage_map = {
+    "eukaryote": "eukaryota",
+    "fungus": "fungi",
+    "bacteria": "bacteria"
+}
+lineagedb = lineage_map.get(organism, "bacteria")
 
 rule sort_by_barcode:
     input:
@@ -41,7 +48,7 @@ rule sort_by_barcode:
         samtools sort -@ {threads} -O SAM -t {params.barcode_tag} |
         samtools fastq -T "*" -1 {output.fq_f} -2 {output.fq_r}
         """
-        
+
 rule format_barcode:
     input:
         f"{outdir}/fastq_preproc/tmp.R{{FR}}.fq"
@@ -105,7 +112,7 @@ rule spades_assembly:
     shell:
         "metaspades.py -t {threads} -m {params.mem} -k {params.k} {params.extra} -1 {input.fastq_R1C} -2 {input.fastq_R2C} -s {input.fastq_UNC} -o {params.outdir} --only-assembler > {log}"
 
-rule cloudspades_assembly:
+rule cloudspades_metassembly:
     input:
         fastq_R1 = FQ1,
         fastq_R2 = FQ2
@@ -113,9 +120,9 @@ rule cloudspades_assembly:
         f"{outdir}/cloudspades_assembly/contigs.fasta",
         f"{outdir}/cloudspades_assembly/scaffolds.fasta"
     params:
-        outdir = spadesdir,
-        k = k_param,
-        mem = max_mem // 1000,
+        outdir = f"-o {spadesdir}",
+        k = f"-k {k_param}",
+        mem = f"-m {max_mem // 1000}",
         extra = extra
     log:
         outdir + "/logs/assembly.log"
@@ -124,11 +131,11 @@ rule cloudspades_assembly:
     threads:
         workflow.cores
     resources:
-        mem_mb=max_mem
+        mem_mb = max_mem
     shell:
-        "spades.py --meta -t {threads} -m {params.mem} -k {params.k} {params.extra} --gemcode1-1 {input.fastq_R1} --gemcode1-2 {input.fastq_R2} -o {params.outdir} > {log}"
+        "spades.py --meta -t {threads} {params} --gemcode1-1 {input.fastq_R1} --gemcode1-2 {input.fastq_R2} > {log}"
 
-rule bwa_index:
+rule index_contigs:
     input:
         f"{spadesdir}/contigs.fasta"
     output:
@@ -140,13 +147,13 @@ rule bwa_index:
     shell:
         "bwa index {input}"
 
-rule bwa_align:
+rule align_to_contigs:
     input:
         multiext(f"{spadesdir}/contigs.fasta.", "ann", "bwt", "pac", "sa", "amb"),
         fastq   = collect(outdir + "/fastq_preproc/input.R{X}.fq.gz", X = [1,2]),
         contigs = f"{spadesdir}/contigs.fasta"
     output:
-        f"{outdir}/reads-to-spades.bam"
+        temp(f"{outdir}/reads-to-spades.bam")
     log:
         bwa = f"{outdir}/logs/align.bwa.log",
         samsort = f"{outdir}/logs/sort.alignments.log"
@@ -157,11 +164,11 @@ rule bwa_align:
     shell:
         "bwa mem -C -t {threads} {input.contigs} {input.fastq} 2> {log.bwa} | samtools sort -O bam -o {output} - 2> {log.samsort}"
 
-rule index_alignment:
+rule index_alignments:
     input:
         f"{outdir}/reads-to-spades.bam"
     output:
-       f"{outdir}/reads-to-spades.bam.bai"
+       temp(f"{outdir}/reads-to-spades.bam.bai")
     log:
         f"{outdir}/logs/index.alignments.log"
     container:
@@ -173,7 +180,7 @@ rule interleave_fastq:
     input:
         collect(outdir + "/fastq_preproc/input.R{FR}.fq.gz", FR = [1,2])
     output:
-        f"{outdir}/fastq_preproc/interleaved.fq"
+        temp(f"{outdir}/fastq_preproc/interleaved.fq")
     container:
         None
     shell:
@@ -205,7 +212,7 @@ rule athena_config:
         with open(output[0], "w") as conf:  
             json.dump(config_data, conf, indent=4)  
 
-rule athena:
+rule athena_metassembly:
     input:
         multiext(f"{outdir}/reads-to-spades.", "bam", "bam.bai"),
         f"{outdir}/fastq_preproc/interleaved.fq",
@@ -229,10 +236,68 @@ rule athena:
         mv {params.local_asm} {params.final_asm} {params.result_dir}      
         """
 
+rule QUAST_assessment:
+    input:
+        contigs = f"{spadesdir}/contigs.fasta",
+        scaffolds = f"{outdir}/athena/athena.asm.fa",
+        fastq_f = FQ1,
+        fastq_r = FQ2
+    output:
+        f"{outdir}/quast/report.tsv"
+    log:
+        f"{outdir}/quast/quast.log"
+    params:
+        output_dir = f"-o {outdir}/quast",
+        organism = f"--{organism}" if organism != "prokaryote" else "",
+        quast_params = "--labels contigs,scaffolds --glimmer --rna-finding" 
+    threads:
+        workflow.cores
+    conda:
+        f"{envdir}/assembly.yaml"
+    shell:
+        "metaquast.py --threads {threads} --pe1 {input.fastq_f} --pe2 {input.fastq_r} {params} {input.contigs} {input.scaffolds} 2> {log}"
+
+rule BUSCO_analysis:
+    input:
+        f"{outdir}/athena/athena.asm.fa"
+    output:
+        f"{outdir}/busco/short_summary.specific.{lineagedb}_odb10.busco.txt"
+    log:
+        f"{outdir}/logs/busco.log"
+    params:
+        output_folder = f"--out_path {outdir}",
+        out_prefix = "-o busco",
+        db_location = f"--download_path {outdir}/busco",
+        lineage = f"-l {lineagedb}",
+        metaeuk = "--metaeuk" if organism == "eukaryote" else "" 
+    threads:
+        workflow.cores
+    conda:
+        f"{envdir}/assembly.yaml"
+    shell:
+        """
+        ( busco -f -i {input} -c {threads} -m genome {params} > {log} 2>&1 ) || touch {output}
+        """
+
+rule build_report:
+    input:
+        f"{outdir}/busco/short_summary.specific.{lineagedb}_odb10.busco.txt",
+        f"{outdir}/quast/report.tsv"
+    output:
+        f"{outdir}/reports/assembly.metrics.html"
+    params:
+        options = "--no-version-check --force --quiet --no-data-dir",
+        title = "--title \"Metassembly Metrics\""
+    conda:
+        f"{envdir}/qc.yaml"
+    shell:
+        "multiqc {input} {params} --filename {output}"
+
 rule workflow_summary:
     default_target: True
     input:
-        f"{outdir}/athena/athena.asm.fa"
+        f"{outdir}/athena/athena.asm.fa",
+        f"{outdir}/reports/assembly.metrics.html" if not skip_reports else []
     params:
         bx = BX_TAG,
         extra = extra
@@ -247,10 +312,10 @@ rule workflow_summary:
         bxappend += f"\tsed 's/{params.bx}:Z:[^[:space:]]*/&-1/g' FASTQ | bgzip > FASTQ_OUT"  
         summary.append(bxappend)
         if not ignore_bx:
-            spades = f"Reads were assembled using 'cloudspades':\n"
+            spades = "Reads were assembled using cloudspades:\n"
             spades += f"\tspades.py -t THREADS -m {max_mem} --gemcode1-1 FQ1 --gemcode1-2 FQ2 --meta -k {k_param} {params.extra}"
         else:
-            spades = f"Reads were assembled using 'spades':\n"
+            spades = "Reads were assembled using spades:\n"
             spades += f"\tmetaspades.py -t THREADS -m {max_mem} -k {k_param} {extra} -1 FQ_1 -2 FQ2 -o {spadesdir}"
         summary.append(spades)
         align = "Original input FASTQ files were aligned to the metagenome using BWA:\n"

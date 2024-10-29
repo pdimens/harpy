@@ -14,6 +14,14 @@ FQ1 = config["inputs"]["fastq_r1"]
 FQ2 = config["inputs"]["fastq_r2"]
 outdir = config["output_directory"]
 envdir = os.path.join(os.getcwd(), ".harpy_envs")
+skip_reports  = config["reports"]["skip"]
+organism = config["reports"]["organism_type"]
+lineage_map = {
+    "eukaryote": "eukaryota",
+    "fungus": "fungi",
+    "bacteria": "bacteria"
+}
+lineagedb = lineage_map.get(organism, "bacteria")
 # SPADES
 max_mem      = config["spades"]["max_memory"]
 k_param      = config["spades"]["k"]
@@ -109,10 +117,67 @@ rule scaffolding:
         mv {params.workdir}/spades.tigmint*.scaffolds.fa {output}
         """
 
+rule QUAST_assessment:
+    input:
+        assembly = f"{outdir}/scaffolds.fasta",
+        fastq = f"{outdir}/scaffold/interleaved.fq.gz"
+    output:
+        f"{outdir}/quast/report.tsv"
+    log:
+        f"{outdir}/quast/quast.log"
+    params:
+        output_dir = f"-o {outdir}/quast",
+        organism = f"--{organism}" if organism != "prokaryote" else "",
+        quast_params = "--labels harpy_cloudspades --rna-finding",
+        skip_things = "--no-sv" 
+    threads:
+        workflow.cores
+    conda:
+        f"{envdir}/assembly.yaml"
+    shell:
+        "quast.py --threads {threads} --pe12 {input.fastq} {params} {input.assembly} 2> {log}"
+
+rule BUSCO_analysis:
+    input:
+        f"{outdir}/scaffolds.fasta"
+    output:
+        f"{outdir}/busco/short_summary.specific.{lineagedb}_odb10.busco.txt"
+    log:
+        f"{outdir}/logs/busco.log"
+    params:
+        output_folder = outdir,
+        out_prefix = "-o busco",
+        lineage = f"-l {lineagedb}",
+        download_path = f"--download_path {outdir}/busco",
+        metaeuk = "--metaeuk" if organism == "eukaryote" else "" 
+    threads:
+        workflow.cores
+    conda:
+        f"{envdir}/assembly.yaml"
+    shell:
+        """
+        ( busco -f -i {input} -c {threads} -m genome --out_path {params} > {log} 2>&1 ) || touch {output}
+        """
+
+rule build_report:
+    input:
+        f"{outdir}/busco/short_summary.specific.{lineagedb}_odb10.busco.txt",
+        f"{outdir}/quast/report.tsv"
+    output:
+        f"{outdir}/reports/assembly.metrics.html"
+    params:
+        options = "--no-version-check --force --quiet --no-data-dir",
+        title = "--title \"Assembly Metrics\""
+    conda:
+        f"{envdir}/qc.yaml"
+    shell:
+        "multiqc {input} {params} --filename {output}"
+
 rule workflow_summary:
     default_target: True
     input:
-        f"{outdir}/scaffolds.fasta"
+        f"{outdir}/scaffolds.fasta",
+        f"{outdir}/reports/assembly.metrics.html" if not skip_reports else [],
     params:
         k_param = k_param,
         max_mem = max_mem // 1000,

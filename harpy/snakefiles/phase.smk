@@ -142,8 +142,6 @@ rule extract_hairs:
         bx = linkarg
     conda:
         f"{envdir}/phase.yaml"
-    benchmark:
-        ".Benchmark/Phase/extracthairs.{sample}.txt"
     shell:
         "extractHAIRS {params} --nf 1 --bam {input.bam} --VCF {input.vcf} --out {output} > {log} 2>&1"
 
@@ -160,8 +158,6 @@ rule link_fragments:
         d = molecule_distance
     conda:
         f"{envdir}/phase.yaml"
-    benchmark:
-        ".Benchmark/Phase/linkfrag.{sample}.txt"
     shell:
         "LinkFragments.py --bam {input.bam} --VCF {input.vcf} --fragments {input.fragments} --out {output} -d {params} > {log} 2>&1"
 
@@ -176,13 +172,12 @@ rule phase:
         outdir + "/logs/hapcut2/{sample}.blocks.phased.log"
     params: 
         prune = f"--threshold {pruning}" if pruning > 0 else "--no_prune 1",
+        fixed_params = "--nf 1 --error_analysis_mode 1 --call_homozygous 1 --outvcf 1",
         extra = extra
     conda:
         f"{envdir}/phase.yaml"
-    benchmark:
-        ".Benchmark/Phase/phase.{sample}.txt"
     shell:
-        "HAPCUT2 --fragments {input.fragments} --vcf {input.vcf} {params} --out {output.blocks} --nf 1 --error_analysis_mode 1 --call_homozygous 1 --outvcf 1 > {log} 2>&1"
+        "HAPCUT2 --fragments {input.fragments} --vcf {input.vcf} --out {output.blocks} {params} > {log} 2>&1"
 
 rule compress_phaseblock:
     input:
@@ -207,14 +202,14 @@ rule merge_het_hom:
     output:
         bcf = outdir + "/phased_samples/{sample}.phased.annot.bcf",
         idx = outdir + "/phased_samples/{sample}.phased.annot.bcf.csi"
+    params:
+        "-Ob --write-index -c CHROM,POS,FMT/GT,FMT/PS,FMT/PQ,FMT/PD -m +HAPCUT"
     threads:
         2
-    benchmark:
-        ".Benchmark/Phase/mergeAnno.{sample}.txt"
     container:
         None
     shell:
-        "bcftools annotate -Ob -o {output.bcf} --write-index -a {input.phase} -c CHROM,POS,FMT/GT,FMT/PS,FMT/PQ,FMT/PD -m +HAPCUT {input.orig}"
+        "bcftools annotate -a {input.phase} -o {output.bcf} {params} {input.orig}"
 
 rule merge_samples:
     input: 

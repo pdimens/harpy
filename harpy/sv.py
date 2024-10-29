@@ -9,7 +9,8 @@ from rich.table import Table
 import rich_click as click
 from ._conda import create_conda_recipes
 from ._launch import launch_snakemake
-from ._misc import fetch_rule, fetch_report, snakemake_log, ContigList
+from ._misc import fetch_rule, fetch_report, snakemake_log
+from ._cli_types import  ContigList
 from ._parsers import parse_alignment_inputs
 from ._validations import check_fasta, check_phase_vcf
 from ._validations import validate_popfile, validate_popsamples, fasta_contig_match

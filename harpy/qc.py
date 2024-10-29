@@ -8,7 +8,8 @@ from rich.table import Table
 import rich_click as click
 from ._conda import create_conda_recipes
 from ._launch import launch_snakemake
-from ._misc import fetch_report, fetch_rule, snakemake_log, IntList
+from ._misc import fetch_report, fetch_rule, snakemake_log
+from ._cli_types import IntList
 from ._parsers import parse_fastq_inputs
 
 docstring = {

@@ -8,7 +8,8 @@ from rich.table import Table
 import rich_click as click
 from ._conda import create_conda_recipes
 from ._launch import launch_snakemake
-from ._misc import fetch_rule, fetch_report, snakemake_log, ContigList
+from ._misc import fetch_rule, fetch_report, snakemake_log
+from ._cli_types import ContigList
 from ._parsers import parse_alignment_inputs
 from ._validations import check_fasta, vcf_sample_match, validate_bam_RG, validate_input_by_ext, vcf_contig_match
 
