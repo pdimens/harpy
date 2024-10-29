@@ -196,7 +196,7 @@ jobs:
           pip install dist/*.whl
           resources/buildforCI.sh
       - name: Clear Space
-        run: rm -rf /opt/hostedtoolcache && mkdir -p .snakemake/singularity
+        uses: jlumbroso/free-disk-space@main
       - name: Download Singularity Artifact
         uses: actions/download-artifact@v4
         with:
@@ -238,7 +238,7 @@ jobs:
           pip install dist/*.whl
           resources/buildforCI.sh
       - name: Clear Space
-        run: rm -rf /opt/hostedtoolcache && mkdir -p .snakemake/singularity
+        uses: jlumbroso/free-disk-space@main
       - name: Download Singularity Artifact
         uses: actions/download-artifact@v4
         with:
@@ -278,7 +278,7 @@ jobs:
           pip install dist/*.whl
           resources/buildforCI.sh
       - name: Clear Space
-        run: rm -rf /opt/hostedtoolcache && mkdir -p .snakemake/singularity
+        uses: jlumbroso/free-disk-space@main
       - name: Download Singularity Artifact
         uses: actions/download-artifact@v4
         with:
@@ -315,7 +315,7 @@ jobs:
           pip install dist/*.whl
           resources/buildforCI.sh
       - name: Clear Space
-        run: rm -rf /opt/hostedtoolcache && mkdir -p .snakemake/singularity
+        uses: jlumbroso/free-disk-space@main
       - name: Download Singularity Artifact
         uses: actions/download-artifact@v4
         with:
@@ -391,7 +391,7 @@ jobs:
           pip install dist/*.whl
           resources/buildforCI.sh
       - name: Clear Space
-        run: rm -rf /opt/hostedtoolcache && mkdir -p .snakemake/singularity
+        uses: jlumbroso/free-disk-space@main
       - name: Download Singularity Artifact
         uses: actions/download-artifact@v4
         with:
@@ -429,7 +429,7 @@ jobs:
           pip install dist/*.whl
           resources/buildforCI.sh
       - name: Clear Space
-        run: rm -rf /opt/hostedtoolcache && mkdir -p .snakemake/singularity
+        uses: jlumbroso/free-disk-space@main
       - name: Download Singularity Artifact
         uses: actions/download-artifact@v4
         with:
@@ -470,7 +470,7 @@ jobs:
           pip install dist/*.whl
           resources/buildforCI.sh
       - name: Clear Space
-        run: rm -rf /opt/hostedtoolcache && mkdir -p .snakemake/singularity
+        uses: jlumbroso/free-disk-space@main
       - name: Download Singularity Artifact
         uses: actions/download-artifact@v4
         with:
@@ -511,7 +511,7 @@ jobs:
           pip install dist/*.whl
           resources/buildforCI.sh
       - name: Clear Space
-        run: rm -rf /opt/hostedtoolcache && mkdir -p .snakemake/singularity
+        uses: jlumbroso/free-disk-space@main
       - name: Download Singularity Artifact
         uses: actions/download-artifact@v4
         with:
@@ -553,7 +553,7 @@ jobs:
           pip install dist/*.whl
           resources/buildforCI.sh
       - name: Clear Space
-        run: rm -rf /opt/hostedtoolcache && mkdir -p .snakemake/singularity
+        uses: jlumbroso/free-disk-space@main
       - name: Download Singularity Artifact
         uses: actions/download-artifact@v4
         with:
@@ -601,7 +601,7 @@ jobs:
           pip install dist/*.whl
           resources/buildforCI.sh
       - name: Clear Space
-        run: rm -rf /opt/hostedtoolcache && mkdir -p .snakemake/singularity
+        uses: jlumbroso/free-disk-space@main
       - name: Download Singularity Artifact
         uses: actions/download-artifact@v4
         with:
@@ -644,7 +644,7 @@ jobs:
           pip install dist/*.whl
           resources/buildforCI.sh
       - name: Clear Space
-        run: rm -rf /opt/hostedtoolcache && mkdir -p .snakemake/singularity
+        uses: jlumbroso/free-disk-space@main
       - name: Download Singularity Artifact
         uses: actions/download-artifact@v4
         with:
@@ -696,7 +696,7 @@ jobs:
           pip install dist/*.whl
           resources/buildforCI.sh
       - name: Clear Space
-        run: rm -rf /opt/hostedtoolcache && mkdir -p .snakemake/singularity
+        uses: jlumbroso/free-disk-space@main
       - name: Download Singularity Artifact
         uses: actions/download-artifact@v4
         with:
@@ -754,7 +754,7 @@ jobs:
           pip install dist/*.whl
           resources/buildforCI.sh
       - name: Clear Space
-        run: rm -rf /opt/hostedtoolcache && mkdir -p .snakemake/singularity
+        uses: jlumbroso/free-disk-space@main
       - name: Download Singularity Artifact
         uses: actions/download-artifact@v4
         with:
@@ -792,7 +792,7 @@ jobs:
           pip install dist/*.whl
           resources/buildforCI.sh
       - name: Clear Space
-        run: rm -rf /opt/hostedtoolcache && mkdir -p .snakemake/singularity
+        uses: jlumbroso/free-disk-space@main
       - name: Download Singularity Artifact
         uses: actions/download-artifact@v4
         with:
@@ -836,7 +836,7 @@ jobs:
           pip install dist/*.whl
           resources/buildforCI.sh
       - name: Clear Space
-        run: rm -rf /opt/hostedtoolcache && mkdir -p .snakemake/singularity
+        uses: jlumbroso/free-disk-space@main
       - name: harpy stitchparams
         shell: micromamba-shell {0}
         run: harpy stitchparams -o params.file
