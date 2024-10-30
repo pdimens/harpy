@@ -146,10 +146,10 @@ def check_impute_params(parameters):
                 badcols.append("name")
             if v["model"] not in ["pseudoHaploid", "diploid","diploid-inbred"]:
                 badcols.append("model")
-            if str(v["usebx"]).lower() not in ["true", "false", "yes", "y", "no", "n"]:
+            if ["usebx"].lower() not in ["true", "false", "yes", "y", "no", "n"]:
                 badcols.append("usebx")
             else:
-                if str(v["usebx"]).lower() in ["true", "yes", "y"]:                
+                if v["usebx"].lower() in ["true", "yes", "y"]:                
                     v["usebx"] = True
                 else:
                     v["usebx"] = False
