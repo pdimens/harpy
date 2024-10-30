@@ -146,10 +146,10 @@ def check_impute_params(parameters):
                 badcols.append("name")
             if v["model"] not in ["pseudoHaploid", "diploid","diploid-inbred"]:
                 badcols.append("model")
-            if f"{v["usebx"]}".lower() not in ["true", "false", "yes", "y", "no", "n"]:
+            if str(v["usebx"]).lower() not in ["true", "false", "yes", "y", "no", "n"]:
                 badcols.append("usebx")
             else:
-                if f"{v["usebx"]}".lower() in ["true", "yes", "y"]:                
+                if str(v["usebx"]).lower() in ["true", "yes", "y"]:                
                     v["usebx"] = True
                 else:
                     v["usebx"] = False
@@ -269,6 +269,7 @@ def vcf_contig_match(contigs, vcf):
         print_solution_with_culprits("Check that your contig names are correct, including uppercase and lowercase. It's possible that you listed a contig in the genome that isn't in the variant call file due to filtering.", f"Contigs absent in {shortname}:")
         click.echo(",".join([i for i in bad_names]), file = sys.stderr)
         sys.exit(1)
+
 def validate_popsamples(infiles, popfile, quiet):
     """Validate the presence of samples listed in 'populations' to be in the input files"""
     with open(popfile, "r", encoding="utf-8") as f:
