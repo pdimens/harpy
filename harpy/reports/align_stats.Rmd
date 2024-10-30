@@ -38,8 +38,8 @@ using("flexdashboard","dplyr","highcharter","DT","BioCircos")
 ```
 
 ```{r import_file, results = F}
-#infile <- "~/file.bxstats.gz"
-# samplename <- "test sample"
+#infile <- "~/test.gz"
+#samplename <- "test sample"
 infile <- snakemake@input$bxstats
 samplename <- snakemake@params$samplename
 bamfile <- paste0(samplename, ".bam")
@@ -52,8 +52,8 @@ tb$valid <- tb$molecule != "invalidBX"
 ```
 
 ```{r bxper, results = F}
-valids <- filter(tb, valid)
-invalids <- filter(tb, !valid)
+valids <- tb[tb$valid, -ncol(tb)]
+invalids <- tb[!(tb$valid), -ncol(tb)]
 valids$molecule <- as.integer(valids$molecule)
 nBX <- group_by(valids, contig) %>% 
   summarize(nBX = length(molecule))
@@ -62,8 +62,11 @@ avgBX <- round(mean(nBX$nBX), digits = 2)
 totuniqBX <- read.table(infile, header = F, sep = "\n", as.is = T, skip = nrow(tb) + 1, comment.char = "+")
 totuniqBX <- gsub("#total unique barcodes: ", "", totuniqBX) |> as.integer()
 
-tot_invalid <- sum(tb[!(tb$valid), "reads"])
-tot_valid <- sum(tb[tb$valid, "reads"])
+tot_valid <- sum(valids$reads)
+tot_invalid <- sum(invalids$reads)
+
+non_singletons <- valids[valids$reads >2, ]
+n_non_singleton_mol <- nrow(non_singletons)
 ```
 
 ```{r nxx, results = F}
@@ -113,6 +116,11 @@ valueBox(scales::comma(tot_valid), caption = "Valid BX Records", color = "succes
 valueBox(scales::comma(tot_invalid), caption = "Invalid BX Records", color = "warning", icon = "fa-x")
 ```
 
+### singletons
+```{r valuebox_singletons}
+valueBox(round(sum(valids$reads <= 2)/nrow(valids), 2), caption = "% Singletons")
+```
+
 ### glob-avg
 ```{r valuebox_mol_per_contig}
 valueBox(scales::comma(avgBX), caption = "Avg molecules per contig", color = "#d4d4d4")
@@ -145,31 +153,39 @@ DT::datatable(
 <h2> Reads per Molecule </h2>
 The chart below shows the distribution of the number of reads per haplotag molecule. That is, how many alignments
 are associated with a unique molecule. This excludes the number of reads associated with invalid
-or absent haplotag barcodes.
+or absent haplotag barcodes. There are two distributions: one with `all` the alignments (purple)
+and another with only `non-singletons` (green). The percent of molecules in the `non-singletons`
+distribution is relative to the total number of non-singleton molecules.
 
 ### bases per desc {.no-title}
 <h2> Total Bases Aligned </h2>
 Below is a frequency distribution showing the number of base pairs aligned
-per unique molecule. These data are shown in 500 bp bins. Pay attention to the Y axis,
-as it likely doesn't start at `0`.
+per unique molecule. These data are shown in 500 bp bins. Be aware that the Y axis
+may not start at `0`. There are two distributions: one with `all` the alignments (purple)
+and another with only `non-singletons` (green). The percent of molecules in the `non-singletons`
+distribution is relative to the total number of non-singleton molecules.
 
 ## the plots
 ### reads per {.no-title}
 
 ```{r readsper, out.width = '100%'}
-hs <- hist(
-  valids$reads,
-  breaks = min(valids$reads):max(valids$reads),
-  plot = F
-)
+hs <- hist(valids$reads, breaks = min(valids$reads):max(valids$reads), plot = F)
+hs_mult <- hist(non_singletons$reads, breaks = hs$breaks, plot = F)
 hs$counts <- round(hs$counts / sum(hs$counts) * 100, 4)
+hs_mult$counts <- round(hs_mult$counts / sum(hs_mult$counts) * 100, 4)
 hs <- data.frame(val = hs$breaks[-1], freq = hs$counts)
+hs_mult <- data.frame(val = hs_mult$breaks[-1], freq = hs_mult$counts)
 
-hchart(hs, "areaspline", hcaes(x = val, y = freq), color = "#8484bd", name = "% of molecules", marker = list(enabled = FALSE)) |>
+highchart() |>
+  hc_chart(type = "area", animation = F) |>
+  hc_add_series(data = hs, type = "areaspline", hcaes(x = val, y = freq), color = "#eeaf61", name = "all", marker = list(enabled = FALSE)) |>
+  hc_add_series(data = hs_mult, type = "areaspline", hcaes(x = val, y = freq), color = "#84bd9e", name = "non-singletons", marker = list(enabled = FALSE)) |>
   hc_title(text = "Reads Per Molecule") |>
   hc_xAxis(title = list(text = "reads per molecule")) |>
-  hc_yAxis(title = list(text = "% molecules")) |>
-  hc_caption(text = paste0("Total unique molecules: ", totuniqBX)) |>
+  hc_yAxis(max = 100, title = list(text = "% molecules")) |>
+  hc_caption(
+    text = paste0("unique molecules: ", totuniqBX, " (", n_non_singleton_mol, " non-singletons)")
+  ) |>
   hc_tooltip(crosshairs = TRUE) |>
   hc_exporting(enabled = T, filename = paste0(samplename, ".readsper"),
     buttons = list(contextButton = list(menuItems = c("downloadPNG", "downloadJPEG", "downloadPDF", "downloadSVG")))
@@ -179,14 +195,22 @@ hchart(hs, "areaspline", hcaes(x = val, y = freq), color = "#8484bd", name = "% 
 ### bases per {.no-title}
 ```{r basesper, out.width="100%"}
 hs <- hist(round(valids$aligned_bp, -2), breaks = 50,  plot = F)
+hs_mult <- hist(round(non_singletons$aligned_bp, -2), breaks = hs$breaks,  plot = F)
 hs$counts <- round(hs$counts / sum(hs$counts)*100,4)
+hs_mult$counts <- round(hs_mult$counts / sum(hs_mult$counts)*100,4)
 hs <- data.frame(val = hs$breaks[-1], freq = hs$counts)
+hs_mult <- data.frame(val = hs_mult$breaks[-1], freq = hs_mult$counts)
 
-hchart(hs, "areaspline", hcaes(x = val, y = freq), color = "#75b89e", name = "% of molecules", marker = list(enabled = FALSE)) |>
+highchart() |>
+  hc_chart(type = "area", animation = F) |>
+  hc_add_series(data = hs, type = "areaspline", hcaes(x = val, y = freq), color = "#eeaf61", name = "all", marker = list(enabled = FALSE)) |>
+  hc_add_series(data = hs_mult, type = "areaspline", hcaes(x = val, y = freq), color = "#84bd9e", name = "non-singletons", marker = list(enabled = FALSE)) |>
   hc_title(text = "Bases Aligned Per Molecule") |>
   hc_xAxis(title = list(text = "aligned bases per molecule")) |>
-  hc_yAxis(title = list(text = "% molecules")) |>
-  hc_caption(text = paste0("Total unique molecules: ", totuniqBX)) |>
+  hc_yAxis(max = 100, title = list(text = "% molecules")) |>
+  hc_caption(
+    text = paste0("unique molecules: ", totuniqBX, " (", n_non_singleton_mol, " non-singletons)")
+  ) |>
   hc_tooltip(crosshairs = TRUE) |>
   hc_exporting(enabled = T, filename = paste0(samplename, ".basesper"),
     buttons = list(contextButton = list(menuItems = c("downloadPNG", "downloadJPEG", "downloadPDF", "downloadSVG")))
@@ -199,25 +223,32 @@ hchart(hs, "areaspline", hcaes(x = val, y = freq), color = "#75b89e", name = "% 
 The chart below shows the frequency distribution of molecule lengths 
 inferred from the first and last alignment positions along a contig for all
 alignments associated with a single haplotag barcode on a given contig. 
-Pay attention to the Y axis, as it may not start at `0`.
+Be aware that the Y axis may not start at `0`. There are two distributions:
+one with `all` the alignments (purple) and another with only `non-singletons`
+(green). The percent of molecules in the `non-singletons` distribution is
+relative to the total number of non-singleton molecules.
 
 ## inferred-plot
 ### inferredplot {.no-title}
 ```{r inferred, out.width = '100%'}
-hs <- hist(
-  round(valids$length_inferred / 1000,0),
-  breaks = 25,
-  plot = F
-)
+hs <- hist(round(valids$length_inferred / 1000,0),breaks = 25,plot = F)
+hs_mult <- hist(round(non_singletons$length_inferred / 1000,0),breaks = hs$breaks,plot = F)
 hs$counts <- round(hs$counts / sum(hs$counts)*100,2)
+hs_mult$counts <- round(hs_mult$counts / sum(hs_mult$counts)*100,2)
 hs <- data.frame(val = hs$breaks[-1], freq = hs$counts)
+hs_mult <- data.frame(val = hs_mult$breaks[-1], freq = hs_mult$counts)
 
-hchart(hs, "areaspline", hcaes(x = val, y = freq), color = "#b3519d", name = "% of molecules", marker = list(enabled = FALSE)) |>
+highchart() |>
+  hc_chart(type = "area", animation = F) |>
+  hc_add_series(data = hs, type = "areaspline", hcaes(x = val, y = freq), color = "#eeaf61", name = "all", marker = list(enabled = FALSE)) |>
+  hc_add_series(data = hs_mult, type = "areaspline", hcaes(x = val, y = freq), color = "#84bd9e", name = "non-singletons", marker = list(enabled = FALSE)) |>
   hc_title(text = "Inferred Molecule Length") |>
   hc_subtitle(text = "lengths reported as kilobases (kbp)") |>
-  hc_xAxis(title = list(text = "Inferred Molecule length (kbp)"), type = "logarithmic") |>
+  hc_xAxis(max = 100, title = list(text = "Inferred Molecule length (kbp)"), type = "logarithmic") |>
   hc_yAxis(title = list(text = "% of molecules")) |>
-  hc_caption(text = paste0("Total unique molecules: ", totuniqBX)) |>
+  hc_caption(
+    text = paste0("unique molecules: ", totuniqBX, " (", n_non_singleton_mol, " non-singletons)")
+  ) |>
   hc_tooltip(crosshairs = TRUE) |>
   hc_exporting(enabled = T, filename = paste0(samplename, ".mollen"),
     buttons = list(contextButton = list(menuItems = c("downloadPNG", "downloadJPEG", "downloadPDF", "downloadSVG")))
@@ -246,19 +277,23 @@ molecule coverage as `300bp ÷ molecule_length`, whereas the plot on the right c
 ## breadthplot
 ### coverage by aligned bp {.no-title}
 ```{r inferred_cov_bp, out.width = '100%'}
-hs <- hist(
-  round(valids$coverage_bp, 0),
-  breaks = seq(0, 1, by = 0.05),
-  plot = F
-)
-hs$counts <- round(hs$counts / sum(hs$counts)*100,4)
+hs <- hist(round(valids$coverage_bp, 0), breaks = seq(0, 1, by = 0.05), plot = F)
+hs_mult <- hist(round(non_singletons$coverage_bp, 0), breaks = hs$breaks, plot = F)
+hs$counts <- round(hs$counts / sum(hs$counts)*100, 4)
+hs_mult$counts <- round(hs_mult$counts / sum(hs_mult$counts)*100, 4)
 hs <- data.frame(val = hs$breaks[-1], freq = hs$counts)
+hs_mult <- data.frame(val = hs_mult$breaks[-1], freq = hs_mult$counts)
 
-hchart(hs, "areaspline", hcaes(x = val, y = freq), color = "#e59765", name = "% of molecules", marker = list(enabled = FALSE)) |>
+highchart() |>
+  hc_chart(type = "area", animation = F) |>
+  hc_add_series(data = hs, type = "areaspline", hcaes(x = val, y = freq), color = "#eeaf61", name = "all", marker = list(enabled = FALSE)) |>
+  hc_add_series(data = hs_mult, type = "areaspline", hcaes(x = val, y = freq), color = "#84bd9e", name = "non-singletons", marker = list(enabled = FALSE)) |>
   hc_title(text = "Percent Molecule Coverage by Aligned Bases") |>
   hc_xAxis(title = list(text = "% molecule covered")) |>
-  hc_yAxis(title = list(text = "% of molecules")) |>
-  hc_caption(text = paste0("Total unique molecules: ", totuniqBX)) |>
+  hc_yAxis(max = 100, title = list(text = "% of molecules")) |>
+  hc_caption(
+    text = paste0("unique molecules: ", totuniqBX, " (", n_non_singleton_mol, " non-singletons)")
+  ) |>
   hc_tooltip(crosshairs = TRUE) |>
   hc_exporting(enabled = T, filename = paste0(samplename, ".molcov"),
     buttons = list(contextButton = list(menuItems = c("downloadPNG", "downloadJPEG", "downloadPDF", "downloadSVG")))
@@ -267,19 +302,23 @@ hchart(hs, "areaspline", hcaes(x = val, y = freq), color = "#e59765", name = "% 
 
 ### coverage by inserts {.no-title}
 ```{r inferred_cov_insert, out.width = '100%'}
-hs <- hist(
-  round(valids$coverage_inserts, 0),
-  breaks = seq(0, 1, by = 0.05),
-  plot = F
-)
+hs <- hist(round(valids$coverage_inserts, 0), breaks = seq(0, 1, by = 0.05), plot = F)
+hs_mult <- hist(round(non_singletons$coverage_inserts, 0), breaks = hs$breaks, plot = F)
 hs$counts <- round(hs$counts / sum(hs$counts)*100,2)
+hs_mult$counts <- round(hs_mult$counts / sum(hs_mult$counts)*100,2)
 hs <- data.frame(val = hs$breaks[-1], freq = hs$counts)
+hs_mult <- data.frame(val = hs_mult$breaks[-1], freq = hs_mult$counts)
 
-hchart(hs, "areaspline", hcaes(x = val, y = freq), color = "#dbe465", name = "% of molecules", marker = list(enabled = FALSE)) |>
+highchart() |>
+  hc_chart(type = "area", animation = F) |>
+  hc_add_series(data = hs, type = "areaspline", hcaes(x = val, y = freq), color = "#eeaf61", name = "all", marker = list(enabled = FALSE)) |>
+  hc_add_series(data = hs_mult, type = "areaspline", hcaes(x = val, y = freq), color = "#84bd9e", name = "non-singletons", marker = list(enabled = FALSE)) |>
   hc_title(text = "Percent Molecule Coverage by Inferred Insert Size") |>
   hc_xAxis(title = list(text = "% molecule covered")) |>
-  hc_yAxis(title = list(text = "% of molecules")) |>
-  hc_caption(text = paste0("Total unique molecules: ", totuniqBX)) |>
+  hc_yAxis(max = 100, title = list(text = "% of molecules")) |>
+  hc_caption(
+    text = paste0("unique molecules: ", totuniqBX, " (", n_non_singleton_mol, " non-singletons)")
+  ) |>
   hc_tooltip(crosshairs = TRUE) |>
   hc_exporting(enabled = T, filename = paste0(samplename, ".molcov"),
     buttons = list(contextButton = list(menuItems = c("downloadPNG", "downloadJPEG", "downloadPDF", "downloadSVG")))
@@ -339,8 +378,10 @@ knitr::kable(
 ```{r reset_env}
 # clear out objects in memory to reduce RAM usage
 rm(hs)
+rm(hs_mult)
 rm(valids)
 rm(invalids)
+rm(non_singletons)
 ```
 ```{r imports}
 covfile <- snakemake@input$coverage
@@ -369,6 +410,8 @@ colnames(tbmol) <- c("contig", "position", "mol_depth")
 tb <- merge(tb, tbmol, by = c("contig", "position"))
 q99 <- quantile(tb$depth, 0.99)
 mol_q99 <- quantile(tb$mol_depth, 0.99)
+names(q99) <- NULL
+names(mol_q99) <- NULL
 windowskb <- round(windowsize/1000, 0)
 rm(tbmol)
 ```
@@ -388,7 +431,6 @@ contig_avg <- group_by(tb, contig) %>%
 contig_avg <- rbind(data.frame(contig = "global", average = global_avg, sdv = global_sd, mol_average = mol_global_avg, mol_sdv = mol_global_sd), contig_avg) %>% 
   mutate(average = round(average, 2), sdv = round(sdv, 2), mol_average = round(mol_average, 2), mol_sdv = round(mol_sdv, 2))
 ```
-
 
 ## covfileheader
 ### hdrcov {.no-title}
@@ -441,22 +483,22 @@ values, which is **`r q99`** for these data.
 ### distplot {.no-title}
 ```{r depth_distribution}
 hs <- hist(tb$depth[tb$depth <= q99], breaks = 30, plot = F)
+hs_mol <- hist(tb$mol_depth[tb$mol_depth <= mol_q99], breaks = 30, plot = F)
 hs$counts <- round(hs$counts / sum(hs$counts) * 100, 2)
+hs_mol$counts <- round(hs_mol$counts / sum(hs_mol$counts) * 100, 2)
 hs <- data.frame(val = hs$breaks[-1], freq = hs$counts)
-mol_hs <- hist(tb$mol_depth[tb$mol_depth <= mol_q99], breaks = 30, plot = F)
-mol_hs$counts <- round(mol_hs$counts / sum(mol_hs$counts) * 100, 2)
-mol_hs <- data.frame(val = mol_hs$breaks[-1], freq = mol_hs$counts)
-
+hs_mol <- data.frame(val = hs_mol$breaks[-1], freq = hs_mol$counts)
 
 highchart() |>
   hc_chart(type = "area", animation = F) |>
-  hc_add_series(data = hs, type = "areaspline", color = "#56486d", name = "by alignments", hcaes(x = val, y = freq),  marker = list(enabled = FALSE)) |>
-  hc_add_series(data = mol_hs, type = "areaspline", hcaes(x = val, y = freq), color = "#88c793", name = "by inferred molecules", marker = list(enabled = FALSE)) |>
+  hc_add_series(data = hs, type = "areaspline", color = "#757575", name = "by alignments", hcaes(x = val, y = freq),  marker = list(enabled = FALSE)) |>
+  hc_add_series(data = hs_mol, type = "areaspline", hcaes(x = val, y = freq), color = "#9c3b94", name = "by inferred molecules", marker = list(enabled = FALSE)) |>
   hc_xAxis(max = mol_q99, title = list(text = "depth")) |>
   hc_yAxis(title = list(text = "% intervals"))  |>
   hc_caption(text = "inferred molecules calculate \"effective\" or \"molecule\" coverage") |>
   hc_title(text = "Distribution of Alignment Depths")  |>
-  hc_exporting(enabled = T, filename = paste0(samplename, ".cov"),
+  hc_exporting(
+    enabled = T, filename = paste0(samplename, ".cov"),
     buttons = list(contextButton = list(menuItems = c("downloadPNG", "downloadJPEG", "downloadPDF", "downloadSVG")))
   )
 ```
@@ -526,8 +568,8 @@ For clarity, this visualization truncates coverage at the 99th percentile (`r q9
 If you are unfamiliar with this kind of visualization, it's a circular version of a linear genome. 
 Each arc (segment) is a different contig, from position 0 to the end of the contig, and is labelled by the contig name.
 The internal (grey) rings are a barplot where each bar represents the alignment depth at a `r windowskb` kilobase
-genomic interval. The ring (purple bars) is the number of reads that had a _proper_ alignment in the `r windowskb` kilobase interval, where
-"proper" refers to a read not marked as a duplicate or flagged with the SAM `UNMAP`, `SECONDARY`,  or `QCFAIL` flags. The outer ring (green bars),
+genomic interval. The inner ring (grey bars) is the number of reads that had a _proper_ alignment in the `r windowskb` kilobase interval, where
+"proper" refers to a read not marked as a duplicate or flagged with the SAM `UNMAP`, `SECONDARY`,  or `QCFAIL` flags. The outer ring (magenta bars),
 is the number of _molecules_ spanning that interval, where molecules are inferred `r dist_text`.
 
 You may hover your cursor over variants to view their positions, pan by clicking and dragging,
@@ -538,6 +580,7 @@ be able to scroll the report instead of zooming on the plot.
 ### Coverage across the genome
 ```{r limit_contigs}
 plot_contigs <- snakemake@params$contigs
+#plot_contigs <- "default"
 # Find the 30 largest contigs
 contigs <- group_by(tb, contig) %>%
   summarize(size = max(position)) %>%
@@ -576,7 +619,7 @@ for (i in names(genomeChr)){
     chromosome = i, 
     starts = chrcov$position - windowsize, ends = chrcov$position,
     values = pmin(chrcov$depth, q99),
-    color = "#56486d",
+    color = "#757575",
     minRadius = inner[1],
     maxRadius = inner[2]
   )
@@ -585,7 +628,7 @@ for (i in names(genomeChr)){
     chromosome = i, 
     starts = chrcov$position - windowsize, ends = chrcov$position,
     values = pmin(chrcov$mol_depth, mol_q99),
-    color = "#699867",
+    color = "#9c3b94",
     minRadius = outer[1],
     maxRadius = outer[2]
   )
