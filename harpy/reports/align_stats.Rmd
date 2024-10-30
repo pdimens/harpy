@@ -62,8 +62,8 @@ avgBX <- round(mean(nBX$nBX), digits = 2)
 totuniqBX <- read.table(infile, header = F, sep = "\n", as.is = T, skip = nrow(tb) + 1, comment.char = "+")
 totuniqBX <- gsub("#total unique barcodes: ", "", totuniqBX) |> as.integer()
 
-tot_invalid <- sum(valids$reads)
-tot_valid <- sum(invalids$reads)
+tot_valid <- sum(valids$reads)
+tot_invalid <- sum(invalids$reads)
 
 non_singletons <- valids[valids$reads >2, ]
 n_non_singleton_mol <- nrow(non_singletons)
