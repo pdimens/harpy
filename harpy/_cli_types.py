@@ -52,3 +52,21 @@ class ContigList(click.ParamType):
         else:
             return [i.strip() for i in value.split(',')]
 
+class HarpyFile(click.ParamType):
+    """A class for a click type that verifies that a file exists and that it has an expected extension"""
+    def __init__(self, extensions):
+        super().__init__()
+        self.extensions = extensions
+
+    def convert(self, value, param, ctx):
+        if not os.path.exists(value):
+            self.fail(f"{value} does not exist. Please check the spelling and try again.", param, ctx)
+        if os.path.isdir(value):
+            self.fail(f"{value} is a directory, but input should be a file.", param, ctx)
+        valid = False
+        lowercase = value.lower()
+        extensions = [extensions] if not isinstance(extensions, list) else extensions
+        for ext in extensions:
+            valid = True if lowercase.endswith(ext) else valid
+        if not valid:
+            self.fail(f"{value} does not end with one of the expected extensions [" + ", ".join(extensions) + "]. Please verify this is the correct file type and rename the extension for compatibility.", param, ctx)
