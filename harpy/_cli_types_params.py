@@ -17,7 +17,7 @@ class FastpParams(click.ParamType):
                 if i not in valid_options:
                     self.fail(f"{i} is not a valid fastp option. See the fastp documentation for a list of available options: https://github.com/OpenGene/fastp.", param, ctx)
         if opts < 1:
-            self.fail("No valid options recognized. All fastp options begin with one or two dashes (e.g. --phred64 or -a). See the fastp documentation for a list of available options: https://github.com/OpenGene/fastp.", param, ctx)
+            self.fail("No valid options recognized. Available fastp options begin with one or two dashes (e.g. --phred64 or -a). See the fastp documentation for a list of available options: https://github.com/OpenGene/fastp.", param, ctx)
         return value
 
 class BwaParams(click.ParamType):
@@ -35,7 +35,7 @@ class BwaParams(click.ParamType):
                 if i not in valid_options:
                     self.fail(f"{i} is not a valid bwa mem option. See the bwa documentation for a list of available options: https://bio-bwa.sourceforge.net/bwa.shtml.", param, ctx)
         if opts < 1:
-            self.fail("No valid options recognized. All bwa options begin with one dash (e.g. -M). See the bwa documentation for a list of available options: https://bio-bwa.sourceforge.net/bwa.shtml.", param, ctx)
+            self.fail("No valid options recognized. Available bwa options begin with one dash (e.g. -M). See the bwa documentation for a list of available options: https://bio-bwa.sourceforge.net/bwa.shtml.", param, ctx)
         return value
 
 class EmaParams(click.ParamType):
@@ -53,7 +53,7 @@ class EmaParams(click.ParamType):
                 if i not in valid_options:
                     self.fail(f"{i} is not a valid ema option. See the fastp documentation for a list of available options: https://github.com/arshajii/ema.", param, ctx)
         if opts < 1:
-            self.fail("No valid options recognized. All ema options begin with one dash (e.g. -i). See the ema documentation for a list of available options: https://github.com/arshajii/ema.", param, ctx)
+            self.fail("No valid options recognized. Available ema options begin with one dash (e.g. -i). See the ema documentation for a list of available options: https://github.com/arshajii/ema.", param, ctx)
         return value
 
 class StrobeAlignParams(click.ParamType):
@@ -71,7 +71,7 @@ class StrobeAlignParams(click.ParamType):
                 if i not in valid_options:
                     self.fail(f"{i} is not a valid strobealign option. See the strobealign documentation for a list of available options: https://github.com/ksahlin/strobealign.", param, ctx)
         if opts < 1:
-            self.fail("No valid options recognized. All strobealign options begin with one or two dashes (e.g. --eqx or -L). See the strobealign documentation for a list of available options: https://github.com/ksahlin/strobealign.", param, ctx)
+            self.fail("No valid options recognized. Available strobealign options begin with one or two dashes (e.g. --eqx or -L). See the strobealign documentation for a list of available options: https://github.com/ksahlin/strobealign.", param, ctx)
         return value
 
 class SpadesParams(click.ParamType):
@@ -91,25 +91,28 @@ class SpadesParams(click.ParamType):
                 if i not in valid_options:
                     self.fail(f"{i} is not a valid spades option. See the spades documentation for a list of available options: http://ablab.github.io/spades/running.html.", param, ctx)
         if opts < 1:
-            self.fail("No valid options recognized. All spades options begin with one or two dashes (e.g. --cov-cutoff). See the spades documentation for a list of available options: http://ablab.github.io/spades/running.html.", param, ctx)
+            self.fail("No valid options recognized. Available spades options begin with two dashes (e.g. --cov-cutoff). See the spades documentation for a list of available options: http://ablab.github.io/spades/running.html.", param, ctx)
         return value
 
-class XXXParams(click.ParamType):
-    """A class for a click type that validates XXX extra-params."""
-    name = "XXX_params"
+class ArcsParams(click.ParamType):
+    """A class for a click type that validates ARCS extra-params."""
+    name = "arcs_params"
     def convert(self, value, param, ctx):
-        harpy_options = "".split() 
-        valid_options = "".split()
+        harpy_options = "draft reads t mapq nm dist minsize span c z s l base_name".split() 
+        valid_options = "G cut longmap window as trim ac u multfile g graph gap tsv barcodecounts m index_multiplicity d max_degree e end_length r error_percent k k_value j j_index B bin_sizeN D dist_est no_dist_est dist_median dist_upper dist_tsv samples_tsv P pair f d k o e a b r p x".split()
         opts = 0
         for i in value.split():
             if i.startswith("-"):
+                self.fail(f"{i} begins with a dash, which would be interpreted as an argument to arcs-make rather than arcs. To avoid unexpected errors, arguments to arcs-make are disallowed. If this was inteded to be an argument to arcs, try using " + i.lstrip("-") + "=VAL instead", param, ctx)
+            if "=" in i:
                 opts += 1
-                if i in harpy_options:
-                    self.fail(f"{i} is already used by Harpy when calling XXX.", param, ctx)
-                if i not in valid_options:
-                    self.fail(f"{i} is not a valid XXX option. See the XXX documentation for a list of available options: XXXX.", param, ctx)
+                arg = i.split("=")[0].strip()
+                if arg in harpy_options:
+                    self.fail(f"{arg} is already used by Harpy when calling arcs.", param, ctx)
+                if arg not in valid_options:
+                    self.fail(f"{arg} is not a valid arcs option. See the documentation for a list of available options.\nTigmint: https://github.com/bcgsc/tigmint\nARCS: https://github.com/bcgsc/arcs\nLINKS: https://github.com/bcgsc/links", param, ctx)
         if opts < 1:
-            self.fail("No valid options recognized. All XXX options begin with one or two dashes (e.g. --eqx or -L). See the XXX documentation for a list of available options: XXXX.", param, ctx)
+            self.fail("No valid options recognized. All arcs options begin with one or two dashes (e.g. --eqx or -L). See the documentation for a list of available options.\nTigmint: https://github.com/bcgsc/tigmint\nARCS: https://github.com/bcgsc/arcs\nLINKS: https://github.com/bcgsc/links", param, ctx)
         return value
 
 class XXXParams(click.ParamType):

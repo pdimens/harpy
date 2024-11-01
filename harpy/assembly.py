@@ -7,7 +7,7 @@ from rich import box
 from rich.table import Table
 import rich_click as click
 from ._cli_types_generic import KParam, HPCProfile, SnakemakeParams
-from ._cli_types_params import SpadesParams
+from ._cli_types_params import SpadesParams, ArcsParams
 from ._conda import create_conda_recipes
 from ._launch import launch_snakemake
 from ._misc import fetch_rule, snakemake_log
@@ -37,7 +37,7 @@ docstring = {
 @click.option('-r', '--max-memory',  type = click.IntRange(min = 1000, max_open = True), show_default = True, default = 10000, help = 'Maximum memory for spades to use, in megabytes')
 @click.option('-x', '--extra-params', type = SpadesParams(), help = 'Additional spades parameters, in quotes')
 # TIGMINT/ARCS/LINKS
-@click.option('-y', '--arcs-extra', type = str, help = 'Additional ARCS parameters, in quotes')
+@click.option('-y', '--arcs-extra', type = ArcsParams(), help = 'Additional ARCS parameters, in quotes (`option=arg` format)')
 @click.option("-c","--contig-length", type = int, default = 500, show_default = True, help = "Minimum contig length")
 @click.option("-n", "--links", type = int, default = 5, show_default = True, help = "Minimum number of links to compute scaffold")
 @click.option("-a", "--min-aligned", type = int, default = 5, show_default = True, help = "Minimum aligned read pairs per barcode")
