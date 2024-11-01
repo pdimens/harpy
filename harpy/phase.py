@@ -9,7 +9,7 @@ import rich_click as click
 from ._conda import create_conda_recipes
 from ._launch import launch_snakemake
 from ._misc import fetch_rule, fetch_report, snakemake_log
-from ._cli_types import ContigList, InputFile
+from ._cli_types import ContigList, InputFile, SnakemakeParams
 from ._parsers import parse_alignment_inputs
 from ._validations import check_fasta, vcf_sample_match, validate_bam_RG, vcf_contig_match
 
@@ -41,7 +41,7 @@ docstring = {
 @click.option('--hpc',  type = click.Path(exists = True, file_okay = False, readable=True), help = 'Directory with HPC submission `config.yaml` file')
 @click.option('--quiet',  is_flag = True, show_default = True, default = False, help = 'Don\'t show output text while running')
 @click.option('--skip-reports',  is_flag = True, show_default = True, default = False, help = 'Don\'t generate HTML reports')
-@click.option('--snakemake',  type = str, help = 'Additional Snakemake parameters, in quotes')
+@click.option('--snakemake', type = SnakemakeParams(), help = 'Additional Snakemake parameters, in quotes')
 @click.option('--vcf-samples',  is_flag = True, show_default = True, default = False, help = 'Use samples present in vcf file for phasing rather than those found the inputs')
 @click.argument('inputs', required=True, type=click.Path(exists=True, readable=True), nargs=-1)
 def phase(inputs, output_dir, vcf, threads, molecule_distance, prune_threshold, vcf_samples, genome, snakemake, extra_params, ignore_bx, skip_reports, quiet, hpc, conda, contigs, setup_only):

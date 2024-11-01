@@ -7,6 +7,7 @@ from pathlib import Path
 from rich import box
 from rich.table import Table
 import rich_click as click
+from ._cli_types import SnakemakeParams
 from ._conda import create_conda_recipes
 from ._launch import launch_snakemake
 from ._misc import fetch_rule, snakemake_log
@@ -46,7 +47,7 @@ docstring = {
 @click.option('--hpc',  type = click.Path(exists = True, file_okay = False, readable=True), help = 'Directory with HPC submission `config.yaml` file')
 @click.option('--quiet',  is_flag = True, show_default = True, default = False, help = 'Don\'t show output text while running')
 @click.option('--skip-reports',  is_flag = True, show_default = True, default = False, help = 'Don\'t generate HTML reports')
-@click.option('--snakemake', type = str, help = 'Additional Snakemake parameters, in quotes')
+@click.option('--snakemake', type = SnakemakeParams(), help = 'Additional Snakemake parameters, in quotes')
 @click.argument('R1_FQ', required=True, type=click.Path(exists=True, dir_okay=False, readable=True))
 @click.argument('R2_FQ', required=True, type=click.Path(exists=True, dir_okay=False, readable=True))
 @click.argument('I1_FQ', required=True, type=click.Path(exists=True, dir_okay=False, readable=True))

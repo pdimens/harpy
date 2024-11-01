@@ -9,7 +9,7 @@ import rich_click as click
 from ._conda import create_conda_recipes
 from ._launch import launch_snakemake
 from ._misc import fetch_rule, snakemake_log
-from ._cli_types import KParam
+from ._cli_types import KParam, SnakemakeParams
 from ._validations import validate_fastq_bx
 
 docstring = {
@@ -41,7 +41,7 @@ docstring = {
 @click.option('--quiet',  is_flag = True, show_default = True, default = False, help = 'Don\'t show output text while running')
 @click.option('--setup-only',  is_flag = True, hidden = True, default = False, help = 'Setup the workflow and exit')
 @click.option('--skip-reports',  is_flag = True, show_default = True, default = False, help = 'Don\'t generate HTML reports')
-@click.option('--snakemake',  type = str, help = 'Additional Snakemake parameters, in quotes')
+@click.option('--snakemake', type = SnakemakeParams(), help = 'Additional Snakemake parameters, in quotes')
 @click.argument('fastq_r1', required=True, type=click.Path(exists=True, readable=True), nargs=1)
 @click.argument('fastq_r2', required=True, type=click.Path(exists=True, readable=True), nargs=1)
 def metassembly(fastq_r1, fastq_r2, bx_tag, kmer_length, max_memory, ignore_bx, output_dir, extra_params, conda, threads, snakemake, quiet, hpc, organism_type, setup_only, skip_reports):

@@ -6,7 +6,7 @@ from pathlib import Path
 from rich import box
 from rich.table import Table
 import rich_click as click
-from ._cli_types import InputFile
+from ._cli_types import InputFile, SnakemakeParams
 from ._conda import create_conda_recipes
 from ._launch import launch_snakemake
 from ._misc import fetch_rule, fetch_script, snakemake_log
@@ -138,7 +138,7 @@ docstring = {
 @click.option('--conda',  is_flag = True, default = False, help = 'Use conda/mamba instead of a container')
 @click.option('--setup-only',  is_flag = True, hidden = True, show_default = True, default = False, help = 'Setup the workflow and exit')
 @click.option('--quiet',  is_flag = True, show_default = True, default = False, help = 'Don\'t show output text while running')
-@click.option('--snakemake', type = str, help = 'Additional Snakemake parameters, in quotes')
+@click.option('--snakemake', type = SnakemakeParams(), help = 'Additional Snakemake parameters, in quotes')
 @click.argument('genome_hap1', required=True, type = InputFile([".fasta", ".fas", ".fa", ".fna", ".ffn", ".faa", ".frn"], gzip_ok = True), nargs=1)
 @click.argument('genome_hap2', required=True, type = InputFile([".fasta", ".fas", ".fa", ".fna", ".ffn", ".faa", ".frn"], gzip_ok = True), nargs=1)
 def linkedreads(genome_hap1, genome_hap2, output_dir, outer_distance, mutation_rate, distance_sd, barcodes, read_pairs, molecule_length, partitions, molecules_per, threads, snakemake, quiet, hpc, conda, setup_only):
@@ -229,7 +229,7 @@ def linkedreads(genome_hap1, genome_hap2, output_dir, outer_distance, mutation_r
 @click.option('--hpc',  type = click.Path(exists = True, file_okay = False, readable=True), help = 'Directory with HPC submission `config.yaml` file')
 @click.option('--quiet',  is_flag = True, show_default = True, default = False, help = 'Don\'t show output text while running')
 @click.option('--randomseed', type = click.IntRange(min = 1), help = "Random seed for simulation")
-@click.option('--snakemake', type = str, help = 'Additional Snakemake parameters, in quotes')
+@click.option('--snakemake', type = SnakemakeParams(), help = 'Additional Snakemake parameters, in quotes')
 @click.argument('genome', required=True, type=InputFile([".fasta", ".fas", ".fa", ".fna", ".ffn", ".faa", ".frn"], gzip_ok = True), nargs=1)
 def snpindel(genome, snp_vcf, indel_vcf, only_vcf, output_dir, prefix, snp_count, indel_count, titv_ratio, indel_ratio, indel_size_alpha, indel_size_constant, centromeres, genes, snp_gene_constraints, heterozygosity, exclude_chr, randomseed, snakemake, quiet, hpc, conda, setup_only):
     """
@@ -354,7 +354,7 @@ def snpindel(genome, snp_vcf, indel_vcf, only_vcf, output_dir, prefix, snp_count
 @click.option('--hpc',  type = click.Path(exists = True, file_okay = False, readable=True), help = 'Directory with HPC submission `config.yaml` file')
 @click.option('--quiet',  is_flag = True, show_default = True, default = False, help = 'Don\'t show output text while running')
 @click.option('--randomseed', type = click.IntRange(min = 1), help = "Random seed for simulation")
-@click.option('--snakemake', type = str, help = 'Additional Snakemake parameters, in quotes')
+@click.option('--snakemake', type = SnakemakeParams(), help = 'Additional Snakemake parameters, in quotes')
 @click.argument('genome', required=True, type=InputFile([".fasta", ".fas", ".fa", ".fna", ".ffn", ".faa", ".frn"], gzip_ok = True), nargs=1)
 def inversion(genome, vcf, only_vcf, prefix, output_dir, count, min_size, max_size, centromeres, genes, heterozygosity, exclude_chr, randomseed, snakemake, quiet, hpc, conda, setup_only):
     """
@@ -463,7 +463,7 @@ def inversion(genome, vcf, only_vcf, prefix, output_dir, count, min_size, max_si
 @click.option('--hpc',  type = click.Path(exists = True, file_okay = False, readable=True), help = 'Directory with HPC submission `config.yaml` file')
 @click.option('--quiet',  is_flag = True, show_default = True, default = False, help = 'Don\'t show output text while running')
 @click.option('--randomseed', type = click.IntRange(min = 1), help = "Random seed for simulation")
-@click.option('--snakemake', type = str, help = 'Additional Snakemake parameters, in quotes')
+@click.option('--snakemake', type = SnakemakeParams(), help = 'Additional Snakemake parameters, in quotes')
 @click.argument('genome', required=True, type=InputFile([".fasta", ".fas", ".fa", ".fna", ".ffn", ".faa", ".frn"], gzip_ok = True), nargs=1)
 def cnv(genome, output_dir, vcf, only_vcf, prefix, count, min_size, max_size, dup_ratio, max_copy, gain_ratio, centromeres, genes, heterozygosity, exclude_chr, randomseed, snakemake, quiet, hpc, conda, setup_only):
     """
@@ -575,7 +575,7 @@ def cnv(genome, output_dir, vcf, only_vcf, prefix, count, min_size, max_size, du
 @click.option('--hpc',  type = click.Path(exists = True, file_okay = False, readable=True), help = 'Directory with HPC submission `config.yaml` file')
 @click.option('--quiet',  is_flag = True, show_default = True, default = False, help = 'Don\'t show output text while running')
 @click.option('--randomseed', type = click.IntRange(min = 1), help = "Random seed for simulation")
-@click.option('--snakemake', type = str, help = 'Additional Snakemake parameters, in quotes')
+@click.option('--snakemake', type = SnakemakeParams(), help = 'Additional Snakemake parameters, in quotes')
 @click.argument('genome', required=True, type=InputFile([".fasta", ".fas", ".fa", ".fna", ".ffn", ".faa", ".frn"], gzip_ok = True), nargs=1)
 def translocation(genome, output_dir, prefix, vcf, only_vcf, count, centromeres, genes, heterozygosity, exclude_chr, randomseed, snakemake, quiet, hpc, conda, setup_only):
     """

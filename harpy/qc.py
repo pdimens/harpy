@@ -9,7 +9,7 @@ import rich_click as click
 from ._conda import create_conda_recipes
 from ._launch import launch_snakemake
 from ._misc import fetch_report, fetch_rule, snakemake_log
-from ._cli_types import IntList
+from ._cli_types import IntList, SnakemakeParams
 from ._parsers import parse_fastq_inputs
 
 docstring = {
@@ -39,7 +39,7 @@ docstring = {
 @click.option('--hpc',  type = click.Path(exists = True, file_okay = False, readable=True), help = 'Directory with HPC submission `config.yaml` file')
 @click.option('--quiet',  is_flag = True, default = False, help = 'Don\'t show output text while running')
 @click.option('--skip-reports',  is_flag = True, default = False, help = 'Don\'t generate HTML reports')
-@click.option('--snakemake', type = str, help = 'Additional Snakemake parameters, in quotes')
+@click.option('--snakemake', type = SnakemakeParams(), help = 'Additional Snakemake parameters, in quotes')
 @click.argument('inputs', required=True, type=click.Path(exists=True, readable=True), nargs=-1)
 def qc(inputs, output_dir, min_length, max_length, trim_adapters, deduplicate, deconvolve, extra_params, threads, snakemake, skip_reports, quiet, hpc, conda, setup_only):
     """
