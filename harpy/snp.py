@@ -49,7 +49,7 @@ docstring = {
 
 @click.command(no_args_is_help = True, context_settings=dict(allow_interspersed_args=False), epilog = "Documentation: https://pdimens.github.io/harpy/workflows/snp")
 @click.option('-x', '--extra-params', type = str, help = 'Additional variant caller parameters, in quotes')
-@click.option('-g', '--genome', type=InputFile([".gz", ".fasta", ".fas", ".fa", ".fna", ".ffn", ".faa", ".frn"], gzip_ok = True), required = True, help = 'Genome assembly for variant calling')
+@click.option('-g', '--genome', type=InputFile([".fasta", ".fas", ".fa", ".fna", ".ffn", ".faa", ".frn"], gzip_ok = True), required = True, help = 'Genome assembly for variant calling')
 @click.option('-o', '--output-dir', type = click.Path(exists = False), default = "SNP/mpileup", show_default=True,  help = 'Output directory name')
 @click.option('-n', '--ploidy', default = 2, show_default = True, type=click.IntRange(min = 1, max = 2), help = 'Ploidy of samples')
 @click.option('-p', '--populations', type=click.Path(exists = True, dir_okay=False, readable=True), help = "Tab-delimited file of sample\<tab\>population")
@@ -154,7 +154,7 @@ def mpileup(inputs, output_dir, regions, genome, threads, populations, ploidy, e
 
 @click.command(no_args_is_help = True, context_settings=dict(allow_interspersed_args=False), epilog = "Documentation: https://pdimens.github.io/harpy/workflows/snp")
 @click.option('-x', '--extra-params', type = str, help = 'Additional variant caller parameters, in quotes')
-@click.option('-g', '--genome', type=InputFile([".gz", ".fasta", ".fas", ".fa", ".fna", ".ffn", ".faa", ".frn"], gzip_ok = True), required = True, help = 'Genome assembly for variant calling')
+@click.option('-g', '--genome', type=InputFile([".fasta", ".fas", ".fa", ".fna", ".ffn", ".faa", ".frn"], gzip_ok = True), required = True, help = 'Genome assembly for variant calling')
 @click.option('-o', '--output-dir', type = click.Path(exists = False), default = "SNP/freebayes", show_default=True,  help = 'Output directory name')
 @click.option('-n', '--ploidy', default = 2, show_default = True, type=click.IntRange(min=1, max_open=True), help = 'Ploidy of samples')
 @click.option('-p', '--populations', type=click.Path(exists = True, dir_okay=False, readable=True), help = "Tab-delimited file of sample\<tab\>population")

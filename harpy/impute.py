@@ -7,11 +7,12 @@ from pathlib import Path
 from rich import box
 from rich.table import Table
 import rich_click as click
+from ._cli_types import InputFile
 from ._conda import create_conda_recipes
 from ._launch import launch_snakemake
 from ._misc import fetch_rule, fetch_report, fetch_script, snakemake_log
 from ._parsers import parse_alignment_inputs, biallelic_contigs
-from ._validations import validate_input_by_ext, vcf_sample_match, check_impute_params, validate_bam_RG
+from ._validations import vcf_sample_match, check_impute_params, validate_bam_RG
 
 docstring = {
         "harpy impute": [
@@ -29,9 +30,9 @@ docstring = {
 @click.command(no_args_is_help = True, context_settings=dict(allow_interspersed_args=False), epilog = "Documentation: https://pdimens.github.io/harpy/workflows/impute/")
 @click.option('-x', '--extra-params', type = str, help = 'Additional STITCH parameters, in quotes')
 @click.option('-o', '--output-dir', type = click.Path(exists = False), default = "Impute", show_default=True,  help = 'Output directory name')
-@click.option('-p', '--parameters', required = True, type=click.Path(exists=True, dir_okay=False), help = 'STITCH parameter file (tab-delimited)')
+@click.option('-p', '--parameters', required = True, type=click.Path(exists=True, dir_okay=False, readable=True), help = 'STITCH parameter file (tab-delimited)')
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(min = 4, max_open = True), help = 'Number of threads to use')
-@click.option('-v', '--vcf', required = True, type=click.Path(exists=True, dir_okay=False, readable=True), help = 'Path to BCF/VCF file')
+@click.option('-v', '--vcf', required = True, type = InputFile(["vcf", "bcf", "vcf.gz"], gzip_ok = False), help = 'Path to BCF/VCF file')
 @click.option('--conda',  is_flag = True, default = False, help = 'Use conda/mamba instead of a container')
 @click.option('--setup-only',  is_flag = True, hidden = True, default = False, help = 'Setup the workflow and exit')
 @click.option('--hpc',  type = click.Path(exists = True, file_okay = False, readable=True), help = 'Directory with HPC submission `config.yaml` file')
@@ -68,7 +69,6 @@ def impute(inputs, output_dir, parameters, threads, vcf, vcf_samples, extra_para
         command += snakemake
 
     os.makedirs(f"{workflowdir}/", exist_ok= True)
-    validate_input_by_ext(vcf, "--vcf", ["vcf", "bcf", "vcf.gz"])
     params = check_impute_params(parameters)
     bamlist, n = parse_alignment_inputs(inputs)
     validate_bam_RG(bamlist, threads, quiet)

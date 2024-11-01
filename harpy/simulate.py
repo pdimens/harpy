@@ -6,11 +6,12 @@ from pathlib import Path
 from rich import box
 from rich.table import Table
 import rich_click as click
+from ._cli_types import InputFile
 from ._conda import create_conda_recipes
 from ._launch import launch_snakemake
 from ._misc import fetch_rule, fetch_script, snakemake_log
 from ._printing import print_error
-from ._validations import validate_input_by_ext, check_fasta
+from ._validations import check_fasta
 
 @click.group(options_metavar='', context_settings={"help_option_names" : ["-h", "--help"]})
 def simulate():
@@ -123,7 +124,7 @@ docstring = {
 }
 
 @click.command(no_args_is_help = True, context_settings=dict(allow_interspersed_args=False), epilog = "Documentation: https://pdimens.github.io/harpy/workflows/simulate/simulate-linkedreads")
-@click.option('-b', '--barcodes', type = click.Path(exists=True, dir_okay=False), help = "File of linked-read barcodes to add to reads")
+@click.option('-b', '--barcodes', type = click.Path(exists=True, dir_okay=False, readable=True), help = "File of linked-read barcodes to add to reads")
 @click.option('-s', '--distance-sd', type = click.IntRange(min = 1), default = 15, show_default=True,  help = "Standard deviation of read-pair distance")
 @click.option('-m', '--molecules-per', type = click.IntRange(min = 1), default = 10, show_default=True,  help = "Average number of molecules per partition")
 @click.option('-l', '--molecule-length', type = click.IntRange(min = 2), default = 100, show_default=True,  help = "Mean molecule length (kbp)")
@@ -138,8 +139,8 @@ docstring = {
 @click.option('--setup-only',  is_flag = True, hidden = True, show_default = True, default = False, help = 'Setup the workflow and exit')
 @click.option('--quiet',  is_flag = True, show_default = True, default = False, help = 'Don\'t show output text while running')
 @click.option('--snakemake', type = str, help = 'Additional Snakemake parameters, in quotes')
-@click.argument('genome_hap1', required=True, type=click.Path(exists=True, dir_okay=False, readable=True), nargs=1)
-@click.argument('genome_hap2', required=True, type=click.Path(exists=True, dir_okay=False, readable=True), nargs=1)
+@click.argument('genome_hap1', required=True, type = InputFile([".fasta", ".fas", ".fa", ".fna", ".ffn", ".faa", ".frn"], gzip_ok = True), nargs=1)
+@click.argument('genome_hap2', required=True, type = InputFile([".fasta", ".fas", ".fa", ".fna", ".ffn", ".faa", ".frn"], gzip_ok = True), nargs=1)
 def linkedreads(genome_hap1, genome_hap2, output_dir, outer_distance, mutation_rate, distance_sd, barcodes, read_pairs, molecule_length, partitions, molecules_per, threads, snakemake, quiet, hpc, conda, setup_only):
     """
     Create linked reads from a genome
@@ -207,17 +208,17 @@ def linkedreads(genome_hap1, genome_hap2, output_dir, outer_distance, mutation_r
     launch_snakemake(command, "simulate_linkedreads", start_text, output_dir, sm_log, quiet, "workflow/simulate.reads.summary")
 
 @click.command(no_args_is_help = True, context_settings=dict(allow_interspersed_args=False), epilog = "This workflow can be quite technical, please read the docs for more information: https://pdimens.github.io/harpy/workflows/simulate/simulate-variants")
-@click.option('-s', '--snp-vcf', type=click.Path(exists=True, dir_okay=False, readable=True), help = 'VCF file of known snps to simulate')
-@click.option('-i', '--indel-vcf', type=click.Path(exists=True, dir_okay=False, readable=True), help = 'VCF file of known indels to simulate')
+@click.option('-s', '--snp-vcf', type=InputFile(["vcf", "bcf", "vcf.gz"], gzip_ok = False), help = 'VCF file of known snps to simulate')
+@click.option('-i', '--indel-vcf', type=InputFile(["vcf", "bcf", "vcf.gz"], gzip_ok = False), help = 'VCF file of known indels to simulate')
 @click.option('-n', '--snp-count', type = click.IntRange(min = 0), default=0, show_default=False, help = "Number of random snps to simluate")
 @click.option('-m', '--indel-count', type = click.IntRange(min = 0), default=0, show_default=False, help = "Number of random indels to simluate")
 @click.option('-r', '--titv-ratio', type = click.FloatRange(min=0), default= 0.5, show_choices=True, show_default=True, help = "Transition/Transversion ratio for snps")
 @click.option('-d', '--indel-ratio', type = click.FloatRange(min=0), default= 1, show_choices=True, show_default=True, help = "Insertion/Deletion ratio for indels")
 @click.option('-a', '--indel-size-alpha', type = click.FloatRange(min=0), hidden = True, default = 2.0, help = "Exponent Alpha for power-law-fitted size distribution")
 @click.option('-l', '--indel-size-constant', type = click.FloatRange(min=0), default = 0.5, hidden = True, help = "Exponent constant for power-law-fitted size distribution")
-@click.option('-c', '--centromeres', type = click.Path(exists=True, dir_okay=False, readable=True), help = "GFF3 file of centromeres to avoid")
+@click.option('-c', '--centromeres', type = InputFile([".gff",".gff3"], gzip_ok = True), help = "GFF3 file of centromeres to avoid")
 @click.option('-y', '--snp-gene-constraints', type = click.Choice(["noncoding", "coding", "2d", "4d"]), help = "How to constrain randomly simulated SNPs {`noncoding`,`coding`,`2d`,`4d`}")
-@click.option('-g', '--genes', type = click.Path(exists=True, readable=True), help = "GFF3 file of genes to use with `--snp-gene-constraints`")
+@click.option('-g', '--genes', type = InputFile([".gff",".gff3"], gzip_ok = True), help = "GFF3 file of genes to avoid when simulating")
 @click.option('-z', '--heterozygosity', type = click.FloatRange(0,1), default = 0, show_default=True, help = 'heterozygosity to simulate diploid variants')
 @click.option('--only-vcf',  is_flag = True, default = False, help = 'If setting heterozygosity, only create the vcf rather than the fasta files')
 @click.option('-e', '--exclude-chr', type = click.Path(exists=True, dir_okay=False, readable=True), help = "Text file of chromosomes to avoid")
@@ -229,7 +230,7 @@ def linkedreads(genome_hap1, genome_hap2, output_dir, outer_distance, mutation_r
 @click.option('--quiet',  is_flag = True, show_default = True, default = False, help = 'Don\'t show output text while running')
 @click.option('--randomseed', type = click.IntRange(min = 1), help = "Random seed for simulation")
 @click.option('--snakemake', type = str, help = 'Additional Snakemake parameters, in quotes')
-@click.argument('genome', required=True, type=click.Path(exists=True, dir_okay=False, readable=True), nargs=1)
+@click.argument('genome', required=True, type=InputFile([".fasta", ".fas", ".fa", ".fna", ".ffn", ".faa", ".frn"], gzip_ok = True), nargs=1)
 def snpindel(genome, snp_vcf, indel_vcf, only_vcf, output_dir, prefix, snp_count, indel_count, titv_ratio, indel_ratio, indel_size_alpha, indel_size_constant, centromeres, genes, snp_gene_constraints, heterozygosity, exclude_chr, randomseed, snakemake, quiet, hpc, conda, setup_only):
     """
     Introduce snps and/or indels into a genome
@@ -274,20 +275,16 @@ def snpindel(genome, snp_vcf, indel_vcf, only_vcf, output_dir, prefix, snp_count
     check_fasta(genome)
     start_text.add_row("Input Genome:", os.path.basename(genome))
     if snp_vcf:
-        validate_input_by_ext(snp_vcf, "--snp-vcf", ["vcf","vcf.gz","bcf"])
         start_text.add_row("SNP File:", os.path.basename(snp_vcf))
     elif snp_count > 0:
         start_text.add_row("Random SNPs:", f"{snp_count}")
     if indel_vcf:
-        validate_input_by_ext(indel_vcf, "--indel-vcf", ["vcf","vcf.gz","bcf"])
         start_text.add_row("Indel File:", os.path.basename(indel_vcf))
     elif indel_count > 0:
         start_text.add_row("Random Indels:", f"{indel_count}")
     if centromeres:
-        validate_input_by_ext(centromeres, "--centromeres", [".gff",".gff3",".gff.gz", ".gff3.gz"])
         start_text.add_row("Centromere GFF:", os.path.basename(centromeres))
     if genes:
-        validate_input_by_ext(genes, "--genes", [".gff",".gff3",".gff.gz", ".gff3.gz"])
         start_text.add_row("Genes GFF:", os.path.basename(genes))
     if exclude_chr:
         start_text.add_row("Excluded Chromosomes:", os.path.basename(exclude_chr))
@@ -345,8 +342,8 @@ def snpindel(genome, snp_vcf, indel_vcf, only_vcf, output_dir, prefix, snp_count
 @click.option('-n', '--count', type = click.IntRange(min = 0), default=0, show_default=False, help = "Number of random inversions to simluate")
 @click.option('-m', '--min-size', type = click.IntRange(min = 1), default = 1000, show_default= True, help = "Minimum inversion size (bp)")
 @click.option('-x', '--max-size', type = click.IntRange(min = 1), default = 100000, show_default= True, help = "Maximum inversion size (bp)")
-@click.option('-c', '--centromeres', type = click.Path(exists=True, dir_okay=False, readable=True), help = "GFF3 file of centromeres to avoid")
-@click.option('-g', '--genes', type = click.Path(exists=True, dir_okay=False, readable=True), help = "GFF3 file of genes to avoid when simulating")
+@click.option('-c', '--centromeres', type = InputFile([".gff",".gff3"], gzip_ok = True), help = "GFF3 file of centromeres to avoid")
+@click.option('-g', '--genes', type = InputFile([".gff",".gff3"], gzip_ok = True), help = "GFF3 file of genes to avoid when simulating")
 @click.option('-z', '--heterozygosity', type = click.FloatRange(0,1), default = 0, show_default=True, help = 'heterozygosity to simulate diploid variants')
 @click.option('-e', '--exclude-chr', type = click.Path(exists=True, dir_okay=False, readable=True), help = "Text file of chromosomes to avoid")
 @click.option('-p', '--prefix', type = str, default= "sim", show_default=True, help = "Naming prefix for output files")
@@ -358,7 +355,7 @@ def snpindel(genome, snp_vcf, indel_vcf, only_vcf, output_dir, prefix, snp_count
 @click.option('--quiet',  is_flag = True, show_default = True, default = False, help = 'Don\'t show output text while running')
 @click.option('--randomseed', type = click.IntRange(min = 1), help = "Random seed for simulation")
 @click.option('--snakemake', type = str, help = 'Additional Snakemake parameters, in quotes')
-@click.argument('genome', required=True, type=click.Path(exists=True, dir_okay=False, readable=True), nargs=1)
+@click.argument('genome', required=True, type=InputFile([".fasta", ".fas", ".fa", ".fna", ".ffn", ".faa", ".frn"], gzip_ok = True), nargs=1)
 def inversion(genome, vcf, only_vcf, prefix, output_dir, count, min_size, max_size, centromeres, genes, heterozygosity, exclude_chr, randomseed, snakemake, quiet, hpc, conda, setup_only):
     """
     Introduce inversions into a genome
@@ -394,15 +391,12 @@ def inversion(genome, vcf, only_vcf, prefix, output_dir, count, min_size, max_si
     start_text.add_row("Input Genome:", os.path.basename(genome))
 
     if vcf:
-        validate_input_by_ext(vcf, "--vcf", ["vcf","vcf.gz","bcf"])
         start_text.add_row("Inversion File:", os.path.basename(vcf))
     else:
         start_text.add_row("Random Inversions:", f"{count}")
     if centromeres:
-        validate_input_by_ext(centromeres, "--centromeres", [".gff",".gff3",".gff.gz", ".gff3.gz"])
         start_text.add_row("Centromere GFF:", os.path.basename(centromeres))
     if genes:
-        validate_input_by_ext(genes, "--genes", [".gff",".gff3",".gff.gz", ".gff3.gz"])
         start_text.add_row("Genes GFF:", os.path.basename(genes))
     if exclude_chr:
         start_text.add_row("Excluded Chromosomes:", os.path.basename(exclude_chr))
@@ -457,8 +451,8 @@ def inversion(genome, vcf, only_vcf, prefix, output_dir, count, min_size, max_si
 @click.option('-d', '--dup-ratio', type = click.FloatRange(min=0), default = 1, show_choices=True, show_default=True, help = "Ratio for the selected variant")
 @click.option('-l', '--gain-ratio', type = click.FloatRange(min=0), default=1, show_default=True, help = " Relative ratio of DNA gain over DNA loss")
 @click.option('-y', '--max-copy', type = click.IntRange(min = 1), default=10, show_default=True, help = "Maximum number of copies")
-@click.option('-c', '--centromeres', type = click.Path(exists=True, dir_okay=False, readable=True), help = "GFF3 file of centromeres to avoid")
-@click.option('-g', '--genes', type = click.Path(exists=True, dir_okay=False, readable=True), help = "GFF3 file of genes to avoid when simulating (requires `--snp-coding-partition` for SNPs)")
+@click.option('-c', '--centromeres', type = InputFile([".gff",".gff3"], gzip_ok = True), help = "GFF3 file of centromeres to avoid")
+@click.option('-g', '--genes', type = InputFile([".gff",".gff3"], gzip_ok = True), help = "GFF3 file of genes to avoid when simulating")
 @click.option('-z', '--heterozygosity', type = click.FloatRange(0,1), default = 0, show_default=True, help = 'heterozygosity to simulate diploid variants')
 @click.option('--only-vcf',  is_flag = True, default = False, help = 'If setting heterozygosity, only create the vcf rather than the fasta files')
 @click.option('-e', '--exclude-chr', type = click.Path(exists=True, dir_okay=False, readable=True), help = "Text file of chromosomes to avoid")
@@ -470,7 +464,7 @@ def inversion(genome, vcf, only_vcf, prefix, output_dir, count, min_size, max_si
 @click.option('--quiet',  is_flag = True, show_default = True, default = False, help = 'Don\'t show output text while running')
 @click.option('--randomseed', type = click.IntRange(min = 1), help = "Random seed for simulation")
 @click.option('--snakemake', type = str, help = 'Additional Snakemake parameters, in quotes')
-@click.argument('genome', required=True, type=click.Path(exists=True, dir_okay=False, readable=True), nargs=1)
+@click.argument('genome', required=True, type=InputFile([".fasta", ".fas", ".fa", ".fna", ".ffn", ".faa", ".frn"], gzip_ok = True), nargs=1)
 def cnv(genome, output_dir, vcf, only_vcf, prefix, count, min_size, max_size, dup_ratio, max_copy, gain_ratio, centromeres, genes, heterozygosity, exclude_chr, randomseed, snakemake, quiet, hpc, conda, setup_only):
     """
     Introduce copy number variants into a genome
@@ -512,15 +506,12 @@ def cnv(genome, output_dir, vcf, only_vcf, prefix, count, min_size, max_size, du
     start_text.add_row("Input Genome:", os.path.basename(genome))
 
     if vcf:
-        validate_input_by_ext(vcf, "--vcf", ["vcf","vcf.gz","bcf"])
         start_text.add_row("CNV File:", os.path.basename(vcf))
     else:
         start_text.add_row("Random CNVs:", f"{count}")
     if centromeres:
-        validate_input_by_ext(centromeres, "--centromeres", [".gff",".gff3",".gff.gz", ".gff3.gz"])
         start_text.add_row("Centromere GFF:", os.path.basename(centromeres))
     if genes:
-        validate_input_by_ext(genes, "--genes", [".gff",".gff3",".gff.gz", ".gff3.gz"])
         start_text.add_row("Genes GFF:", os.path.basename(genes))
     if exclude_chr:
         start_text.add_row("Excluded Chromosomes:", os.path.basename(exclude_chr))
@@ -572,8 +563,8 @@ def cnv(genome, output_dir, vcf, only_vcf, prefix, count, min_size, max_size, du
 @click.command(no_args_is_help = True, context_settings=dict(allow_interspersed_args=False), epilog = "Please Documentation: https://pdimens.github.io/harpy/workflows/simulate/simulate-variants")
 @click.option('-v', '--vcf', type=click.Path(exists=True, dir_okay=False, readable=True), help = 'VCF file of known translocations to simulate')
 @click.option('-n', '--count', type = click.IntRange(min = 0), default=0, show_default=False, help = "Number of random translocations to simluate")
-@click.option('-c', '--centromeres', type = click.Path(exists=True, dir_okay=False, readable=True), help = "GFF3 file of centromeres to avoid")
-@click.option('-g', '--genes', type = click.Path(exists=True, dir_okay=False, readable=True), help = "GFF3 file of genes to avoid when simulating")
+@click.option('-c', '--centromeres', type = InputFile([".gff",".gff3"], gzip_ok = True), help = "GFF3 file of centromeres to avoid")
+@click.option('-g', '--genes', type = InputFile([".gff",".gff3"], gzip_ok = True), help = "GFF3 file of genes to avoid when simulating")
 @click.option('-z', '--heterozygosity', type = click.FloatRange(0,1), default = 0, show_default=True, help = 'heterozygosity to simulate diploid variants')
 @click.option('--only-vcf',  is_flag = True, default = False, help = 'If setting heterozygosity, only create the vcf rather than the fasta files')
 @click.option('-e', '--exclude-chr', type = click.Path(exists=True, dir_okay=False, readable=True), help = "Text file of chromosomes to avoid")
@@ -585,7 +576,7 @@ def cnv(genome, output_dir, vcf, only_vcf, prefix, count, min_size, max_size, du
 @click.option('--quiet',  is_flag = True, show_default = True, default = False, help = 'Don\'t show output text while running')
 @click.option('--randomseed', type = click.IntRange(min = 1), help = "Random seed for simulation")
 @click.option('--snakemake', type = str, help = 'Additional Snakemake parameters, in quotes')
-@click.argument('genome', required=True, type=click.Path(exists=True, dir_okay=False, readable=True), nargs=1)
+@click.argument('genome', required=True, type=InputFile([".fasta", ".fas", ".fa", ".fna", ".ffn", ".faa", ".frn"], gzip_ok = True), nargs=1)
 def translocation(genome, output_dir, prefix, vcf, only_vcf, count, centromeres, genes, heterozygosity, exclude_chr, randomseed, snakemake, quiet, hpc, conda, setup_only):
     """
     Introduce translocations into a genome
@@ -620,15 +611,12 @@ def translocation(genome, output_dir, prefix, vcf, only_vcf, count, centromeres,
     start_text.add_row("Input Genome:", os.path.basename(genome))
     
     if vcf:
-        validate_input_by_ext(vcf, "--vcf", ["vcf","vcf.gz","bcf"])
         start_text.add_row("Translocation File:", os.path.basename(vcf))
     else:
         start_text.add_row("Random Translocations", f"{count} random translocations")
     if centromeres:
-        validate_input_by_ext(centromeres, "--centromeres", [".gff",".gff3",".gff.gz", ".gff3.gz"])
         start_text.add_row("Centromere GFF:", os.path.basename(centromeres))
     if genes:
-        validate_input_by_ext(genes, "--genes", [".gff",".gff3",".gff.gz", ".gff3.gz"])
         start_text.add_row("Genes GFF:", os.path.basename(genes))
     if exclude_chr:
         start_text.add_row("Excluded Chromosomes:", os.path.basename(exclude_chr))

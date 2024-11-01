@@ -58,19 +58,6 @@ def check_envdir(dirpath):
         rprint(errtable, file = sys.stderr)
         sys.exit(1)
 
-def validate_input_by_ext(inputfile, option, ext):
-    """Check that the input file for a given option has read permissions and matches the acceptable extensions """
-    if isinstance(ext, list):
-        test = [not(inputfile.lower().endswith(i.lower())) for i in ext]
-        if all(test):
-            ext_text = " | ".join(ext)
-            print_error("invalid file extension", f"The input file for [bold]{option}[/bold] must end in one of:\n[green bold]{ext_text}[/green bold]")
-            sys.exit(1)
-    else:
-        if not inputfile.lower().endswith(ext.lower()):
-            print_error("invalid file extension", f"The input file for [bold]{option}[/bold] must end in [green bold]{ext}[/green bold]")
-            sys.exit(1)
-
 def check_impute_params(parameters):
     """Validate the STITCH parameter file for column names, order, types, missing values, etc."""
     with open(parameters, "r", encoding="utf-8") as paramfile:
