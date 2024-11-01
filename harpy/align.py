@@ -3,7 +3,6 @@
 import os
 import sys
 import yaml
-from time import sleep
 from pathlib import Path
 from rich import box
 from rich.table import Table
@@ -11,6 +10,7 @@ import rich_click as click
 from ._conda import create_conda_recipes
 from ._misc import fetch_report, fetch_rule, snakemake_log
 from ._cli_types_generic import  ContigList, InputFile, HPCProfile, SnakemakeParams
+from ._cli_types_params import BwaParams, EmaParams, StrobeAlignParams
 from ._launch import launch_snakemake
 from ._parsers import parse_fastq_inputs
 from ._printing import print_error, print_solution, print_notice
@@ -67,7 +67,7 @@ docstring = {
 @click.command(no_args_is_help = True, epilog= "Documentation: https://pdimens.github.io/harpy/workflows/align/bwa/")
 @click.option('-g', '--genome', type=InputFile([".fasta", ".fas", ".fa", ".fna", ".ffn", ".faa", ".frn"], gzip_ok = True), required = True, help = 'Genome assembly for read mapping')
 @click.option('-w', '--depth-window', default = 50000, show_default = True, type = int, help = 'Interval size (in bp) for depth stats')
-@click.option('-x', '--extra-params', type = str, help = 'Additional bwa mem parameters, in quotes')
+@click.option('-x', '--extra-params', type = BwaParams(), help = 'Additional bwa mem parameters, in quotes')
 @click.option('-u', '--keep-unmapped',  is_flag = True, default = False, help = 'Retain unmapped sequences in the output')
 @click.option('-q', '--min-quality', default = 30, show_default = True, type = click.IntRange(min = 0, max = 40), help = 'Minimum mapping quality to pass filtering')
 @click.option('-d', '--molecule-distance', default = 100000, show_default = True, type = int, help = 'Distance cutoff to split molecules (bp)')
@@ -149,7 +149,7 @@ def bwa(inputs, output_dir, genome, depth_window, threads, keep_unmapped, extra_
     launch_snakemake(command, "align_bwa", start_text, output_dir, sm_log, quiet, "workflow/align.bwa.summary")
 
 @click.command(no_args_is_help = True, context_settings=dict(allow_interspersed_args=False), epilog = "Documentation: https://pdimens.github.io/harpy/workflows/align/ema")
-@click.option('-x', '--extra-params', type = str, help = 'Additional ema align parameters, in quotes')
+@click.option('-x', '--extra-params', type = EmaParams(), help = 'Additional ema align parameters, in quotes')
 @click.option('-d', '--fragment-density',  is_flag = True, show_default = True, default = False, help = 'Perform read fragment density optimization')
 @click.option('-w', '--depth-window', default = 50000, show_default = True, type = int, help = 'Interval size (in bp) for depth stats')
 @click.option('-b', '--ema-bins', default = 500, show_default = True, type = click.IntRange(1,1000), help="Number of barcode bins")
@@ -201,9 +201,8 @@ def ema(inputs, output_dir, platform, barcode_list, fragment_density, genome, de
         else:
             print_solution("Running EMA requires TELLseq barcodes provided to [green]--barcode-list[/green]. They can be acquired from the TELL-read software [dim]https://www.illumina.com/products/by-type/informatics-products/basespace-sequence-hub/apps/universal-sequencing-tell-seq-data-analysis-pipeline.html[/dim]")
         sys.exit(1)
-    if platform == "haplotag" and barcode_list:
+    if platform == "haplotag" and barcode_list and not quiet:
         print_notice("Haplotag data does not require a barcode list and the file provided to [green]--barcode-list[/green] will be ignored.")
-        sleep(3)
 
     os.makedirs(f"{workflowdir}/", exist_ok= True)
     fqlist, sample_count = parse_fastq_inputs(inputs)
@@ -258,7 +257,7 @@ def ema(inputs, output_dir, platform, barcode_list, fragment_density, genome, de
 @click.command(no_args_is_help = True, epilog= "Documentation: https://pdimens.github.io/harpy/workflows/align/strobe/")
 @click.option('-g', '--genome', type=InputFile([".fasta", ".fas", ".fa", ".fna", ".ffn", ".faa", ".frn"], gzip_ok = True), required = True, help = 'Genome assembly for read mapping')
 @click.option('-w', '--depth-window', default = 50000, show_default = True, type = int, help = 'Interval size (in bp) for depth stats')
-@click.option('-x', '--extra-params', type = str, help = 'Additional aligner parameters, in quotes')
+@click.option('-x', '--extra-params', type = StrobeAlignParams(), help = 'Additional aligner parameters, in quotes')
 @click.option('-u', '--keep-unmapped',  is_flag = True, default = False, help = 'Retain unmapped sequences in the output')
 @click.option('-q', '--min-quality', default = 30, show_default = True, type = click.IntRange(min = 0, max = 40), help = 'Minimum mapping quality to pass filtering')
 @click.option('-d', '--molecule-distance', default = 100000, show_default = True, type = int, help = 'Distance cutoff to split molecules (bp)')
