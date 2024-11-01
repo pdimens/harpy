@@ -206,9 +206,9 @@ class MpileupParams(click.ParamType):
                 if i in harpy_options:
                     self.fail(f"{i} is already used by Harpy when calling mpileup.", param, ctx)
                 if i not in valid_options:
-                    self.fail(f"{i} is not a valid mpileup option. See the mpileup documentation for a list of available options: XXXX.", param, ctx)
+                    self.fail(f"{i} is not a valid mpileup option. See the mpileup documentation for a list of available options: https://samtools.github.io/bcftools/bcftools.html#mpileup.", param, ctx)
         if opts < 1:
-            self.fail("No valid options recognized. Available mpileup options begin with two dashes (e.g. --eqx or -L). See the mpileup documentation for a list of available options: XXXX.", param, ctx)
+            self.fail("No valid options recognized. Available mpileup options begin with two dashes (e.g. --eqx or -L). See the mpileup documentation for a list of available options: https://samtools.github.io/bcftools/bcftools.html#mpileup.", param, ctx)
         return value
     
 class FreebayesParams(click.ParamType):
@@ -224,9 +224,9 @@ class FreebayesParams(click.ParamType):
                 if i in harpy_options:
                     self.fail(f"{i} is already used by Harpy when calling freebayes.", param, ctx)
                 if i not in valid_options:
-                    self.fail(f"{i} is not a valid freebayes option. See the freebayes documentation for a list of available options: XXXX.", param, ctx)
+                    self.fail(f"{i} is not a valid freebayes option. See the freebayes documentation for a list of available options: https://github.com/freebayes/freebayes.", param, ctx)
         if opts < 1:
-            self.fail("No valid options recognized. Available freebayes options begin with two dashes (e.g. --eqx or -L). See the freebayes documentation for a list of available options: XXXX.", param, ctx)
+            self.fail("No valid options recognized. Available freebayes options begin with two dashes (e.g. --eqx or -L). See the freebayes documentation for a list of available options: https://github.com/freebayes/freebayes.", param, ctx)
         return value
 
 
