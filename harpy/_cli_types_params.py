@@ -71,5 +71,5 @@ class StrobeAlignParams(click.ParamType):
                 if i not in valid_options:
                     self.fail(f"{i} is not a valid strobealign option. See the strobealign documentation for a list of available options: https://github.com/ksahlin/strobealign.", param, ctx)
         if opts < 1:
-            self.fail("No valid options recognized. All strobealign options begin with one or two dashes (e.g. --phred64 or -a). See the strobealign documentation for a list of available options: https://github.com/ksahlin/strobealign.", param, ctx)
+            self.fail("No valid options recognized. All strobealign options begin with one or two dashes (e.g. --eqx or -L). See the strobealign documentation for a list of available options: https://github.com/ksahlin/strobealign.", param, ctx)
         return value
