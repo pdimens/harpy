@@ -10,6 +10,7 @@ from ._conda import create_conda_recipes
 from ._launch import launch_snakemake
 from ._misc import fetch_report, fetch_rule, snakemake_log
 from ._cli_types_generic import HPCProfile, IntList, SnakemakeParams
+from ._cli_types_params import FastpParams
 from ._parsers import parse_fastq_inputs
 
 docstring = {
@@ -28,7 +29,7 @@ docstring = {
 @click.command(no_args_is_help = True, context_settings=dict(allow_interspersed_args=False), epilog = "Documentation: https://pdimens.github.io/harpy/workflows/qc")
 @click.option('-c', '--deconvolve', type = IntList(4), default = "0,0,0,0", help = 'Accepts the QuickDeconvolution parameters for `k`,`w`,`d`,`a` (in that order)')
 @click.option('-d', '--deduplicate', is_flag = True, default = False, help = 'Identify and remove PCR duplicates')
-@click.option('-x', '--extra-params', type = str, help = 'Additional Fastp parameters, in quotes')
+@click.option('-x', '--extra-params', type = FastpParams(), help = 'Additional Fastp parameters, in quotes')
 @click.option('-m', '--max-length', default = 150, show_default = True, type=int, help = 'Maximum length to trim sequences down to')
 @click.option('-n', '--min-length', default = 30, show_default = True, type=int, help = 'Discard reads shorter than this length')
 @click.option('-o', '--output-dir', type = click.Path(exists = False), default = "QC", show_default=True,  help = 'Output directory name')
