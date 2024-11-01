@@ -136,6 +136,24 @@ class StitchParams(click.ParamType):
             self.fail("No valid options recognized. All stitch options begin without dashes and must be in the form ARG=VAL (e.g. downsampleFraction=0.5). See the stitch documentation for a list of available options: https://github.com/rwdavies/STITCH/blob/master/Options.md.", param, ctx)
         return value
 
+class HapCutParams(click.ParamType):
+    """A class for a click type that validates hapcut2 extra-params."""
+    name = "hapcut2_params"
+    def convert(self, value, param, ctx):
+        harpy_options = "--fragments --vcf --out --nf --error_analysis_mode --call_homozygous --outvcf --threshold --no_prune".split() 
+        valid_options = "--skip_prune --sp --discrete_pruning --dp --max_iter --mi --maxcut_iter --mc".split()
+        opts = 0
+        for i in value.split():
+            if i.startswith("-"):
+                opts += 1
+                if i in harpy_options:
+                    self.fail(f"{i} is already used by Harpy when calling hapcut2.", param, ctx)
+                if i not in valid_options:
+                    self.fail(f"{i} is not a valid hapcut2 option. See the hapcut2 documentation for a list of available options: https://github.com/vibansal/HapCUT2.", param, ctx)
+        if opts < 1:
+            self.fail("No valid options recognized. All hapcut2 options begin with two dashes (e.g. --dp). See the hapcut2 documentation for a list of available options: https://github.com/vibansal/HapCUT2.", param, ctx)
+        return value
+    
 class XXXParams(click.ParamType):
     """A class for a click type that validates XXX extra-params."""
     name = "XXX_params"
@@ -154,3 +172,4 @@ class XXXParams(click.ParamType):
             self.fail("No valid options recognized. All XXX options begin with two dashes (e.g. --eqx or -L). See the XXX documentation for a list of available options: XXXX.", param, ctx)
         return value
     
+

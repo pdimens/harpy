@@ -10,6 +10,7 @@ from ._conda import create_conda_recipes
 from ._launch import launch_snakemake
 from ._misc import fetch_rule, fetch_report, snakemake_log
 from ._cli_types_generic import ContigList, HPCProfile, InputFile, SnakemakeParams
+from ._cli_types_params import HapCutParams
 from ._parsers import parse_alignment_inputs
 from ._validations import check_fasta, vcf_sample_match, validate_bam_RG, vcf_contig_match
 
@@ -27,7 +28,7 @@ docstring = {
 }
 
 @click.command(no_args_is_help = True, context_settings=dict(allow_interspersed_args=False), epilog = "Documentation: https://pdimens.github.io/harpy/workflows/phase")
-@click.option('-x', '--extra-params', type = str, help = 'Additional HapCut2 parameters, in quotes')
+@click.option('-x', '--extra-params', type = HapCutParams(), help = 'Additional HapCut2 parameters, in quotes')
 @click.option('-g', '--genome', type=InputFile("fasta", gzip_ok = True), help = 'Path to genome assembly if wanting to also extract reads spanning indels')
 @click.option('-b', '--ignore-bx',  is_flag = True, show_default = True, default = False, help = 'Ignore barcodes when phasing')
 @click.option('-d', '--molecule-distance', default = 100000, show_default = True, type = int, help = 'Distance cutoff to split molecules (bp)')
