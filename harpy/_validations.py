@@ -425,16 +425,8 @@ def validate_regions(regioninput, genome):
             sys.exit(1)
     return "file"
 
-def check_fasta(genofile, quiet):
+def check_fasta(genofile):
     """perform validations on fasta file for extensions and file contents"""
-    ext_options = [".fasta", ".fas", ".fa", ".fna", ".ffn", ".faa", ".mpfa", ".frn"]
-    ext_correct = 0
-    for i in ext_options:
-        if genofile.lower().endswith(i) or genofile.lower().endswith(i + ".gz"):
-            ext_correct += 1
-    if ext_correct == 0 and not quiet:
-        print_notice(f"[blue]{genofile}[/blue] has an unfamiliar FASTA file extension. Common FASTA file extensions are: [green]" + ", ".join(ext_options) + "[/green] and may also be gzipped.")
-
     # validate fasta file contents
     if is_gzip(genofile):
         fasta = gzip.open(genofile, 'rt')

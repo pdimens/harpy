@@ -105,7 +105,7 @@ def bwa(inputs, output_dir, genome, depth_window, threads, keep_unmapped, extra_
 
     os.makedirs(f"{workflowdir}/", exist_ok= True)
     fqlist, sample_count = parse_fastq_inputs(inputs)
-    check_fasta(genome, quiet)
+    check_fasta(genome)
     if contigs:
         fasta_contig_match(contigs, genome)
     fetch_rule(workflowdir, "align_bwa.smk")
@@ -206,7 +206,7 @@ def ema(inputs, output_dir, platform, barcode_list, genome, depth_window, keep_u
 
     os.makedirs(f"{workflowdir}/", exist_ok= True)
     fqlist, sample_count = parse_fastq_inputs(inputs)
-    check_fasta(genome, quiet)
+    check_fasta(genome)
     if contigs:
         fasta_contig_match(contigs, genome)
     fetch_rule(workflowdir, "align_ema.smk")
@@ -298,7 +298,7 @@ def strobe(inputs, output_dir, genome, read_length, keep_unmapped, depth_window,
 
     os.makedirs(f"{workflowdir}/", exist_ok= True)
     fqlist, sample_count = parse_fastq_inputs(inputs)
-    check_fasta(genome, quiet)
+    check_fasta(genome)
     if contigs:
         fasta_contig_match(contigs, genome)
     fetch_rule(workflowdir, "align_strobealign.smk")

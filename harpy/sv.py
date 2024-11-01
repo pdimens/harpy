@@ -93,7 +93,7 @@ def leviathan(inputs, output_dir, genome, min_sv, min_barcodes, iterations, thre
 
     os.makedirs(f"{workflowdir}/", exist_ok= True)
     bamlist, n = parse_alignment_inputs(inputs)
-    check_fasta(genome, quiet)
+    check_fasta(genome)
     if contigs:
         fasta_contig_match(contigs, genome)
     if populations:
@@ -191,7 +191,7 @@ def naibr(inputs, output_dir, genome, vcf, min_sv, min_barcodes, min_quality, th
 
     os.makedirs(f"{workflowdir}/", exist_ok= True)
     bamlist, n = parse_alignment_inputs(inputs)
-    check_fasta(genome, quiet)
+    check_fasta(genome)
     if contigs:
         fasta_contig_match(contigs, genome)
     if populations:

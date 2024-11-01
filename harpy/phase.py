@@ -73,7 +73,7 @@ def phase(inputs, output_dir, vcf, threads, molecule_distance, prune_threshold, 
     validate_input_by_ext(vcf, "--vcf", ["vcf", "bcf", "vcf.gz"])
     validate_bam_RG(bamlist, threads, quiet)
     if genome:
-        check_fasta(genome, quiet)
+        check_fasta(genome)
     if contigs:
         vcf_contig_match(contigs, vcf)
     fetch_rule(workflowdir, "phase.smk")
