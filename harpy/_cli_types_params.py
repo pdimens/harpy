@@ -73,3 +73,61 @@ class StrobeAlignParams(click.ParamType):
         if opts < 1:
             self.fail("No valid options recognized. All strobealign options begin with one or two dashes (e.g. --eqx or -L). See the strobealign documentation for a list of available options: https://github.com/ksahlin/strobealign.", param, ctx)
         return value
+
+class SpadesParams(click.ParamType):
+    """A class for a click type that validates spades extra-params."""
+    name = "spades_params"
+    def convert(self, value, param, ctx):
+        harpy_options = "-t -m -k --gemcode1-1 --gemcode1-2 -o --isolate --pe1-1 --pe1-2".split() 
+        valid_options = "--dataset --pacbio --nanopore --sanger --trusted-contigs --untrusted-contigs --assembly-graph --cov-cutoff --phred-offset --custom-hmms --gfa11".split()
+        valid_options += [f"--mp{x}-{orient}" for x in range(1,10) for orient in ["1","2","12", "fr", "rf", "ff"]]
+        valid_options += [f"--hqmp{x}-{orient}" for x in range(1,10) for orient in ["1","2","12", "s", "fr", "rf", "ff"]]
+        opts = 0
+        for i in value.split():
+            if i.startswith("-"):
+                opts += 1
+                if i in harpy_options:
+                    self.fail(f"{i} is already used by Harpy when calling spades.", param, ctx)
+                if i not in valid_options:
+                    self.fail(f"{i} is not a valid spades option. See the spades documentation for a list of available options: http://ablab.github.io/spades/running.html.", param, ctx)
+        if opts < 1:
+            self.fail("No valid options recognized. All spades options begin with one or two dashes (e.g. --cov-cutoff). See the spades documentation for a list of available options: http://ablab.github.io/spades/running.html.", param, ctx)
+        return value
+
+class XXXParams(click.ParamType):
+    """A class for a click type that validates XXX extra-params."""
+    name = "XXX_params"
+    def convert(self, value, param, ctx):
+        harpy_options = "".split() 
+        valid_options = "".split()
+        opts = 0
+        for i in value.split():
+            if i.startswith("-"):
+                opts += 1
+                if i in harpy_options:
+                    self.fail(f"{i} is already used by Harpy when calling XXX.", param, ctx)
+                if i not in valid_options:
+                    self.fail(f"{i} is not a valid XXX option. See the XXX documentation for a list of available options: XXXX.", param, ctx)
+        if opts < 1:
+            self.fail("No valid options recognized. All XXX options begin with one or two dashes (e.g. --eqx or -L). See the XXX documentation for a list of available options: XXXX.", param, ctx)
+        return value
+
+class XXXParams(click.ParamType):
+    """A class for a click type that validates XXX extra-params."""
+    name = "XXX_params"
+    def convert(self, value, param, ctx):
+        harpy_options = "".split() 
+        valid_options = "".split()
+        opts = 0
+        for i in value.split():
+            if i.startswith("-"):
+                opts += 1
+                if i in harpy_options:
+                    self.fail(f"{i} is already used by Harpy when calling XXX.", param, ctx)
+                if i not in valid_options:
+                    self.fail(f"{i} is not a valid XXX option. See the XXX documentation for a list of available options: XXXX.", param, ctx)
+        if opts < 1:
+            self.fail("No valid options recognized. All XXX options begin with two dashes (e.g. --eqx or -L). See the XXX documentation for a list of available options: XXXX.", param, ctx)
+        return value
+
+

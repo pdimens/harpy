@@ -155,9 +155,7 @@ rule BUSCO_analysis:
     conda:
         f"{envdir}/assembly.yaml"
     shell:
-        """
-        ( busco -f -i {input} -c {threads} -m genome --out_path {params} > {log} 2>&1 ) || touch {output}
-        """
+        "( busco -f -i {input} -c {threads} -m genome --out_path {params} > {log} 2>&1 ) || touch {output}"
 
 rule build_report:
     input:

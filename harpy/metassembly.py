@@ -10,6 +10,7 @@ from ._conda import create_conda_recipes
 from ._launch import launch_snakemake
 from ._misc import fetch_rule, snakemake_log
 from ._cli_types_generic import HPCProfile, KParam, SnakemakeParams
+from ._cli_types_params import SpadesParams
 from ._validations import validate_fastq_bx
 
 docstring = {
@@ -31,7 +32,7 @@ docstring = {
 @click.option('-k', '--kmer-length', type = KParam(), show_default = True, default = "auto", help = 'K values to use for assembly (`odd` and `<128`)')
 @click.option('-r', '--max-memory',  type = click.IntRange(min = 1000, max_open = True), show_default = True, default = 10000, help = 'Maximum memory for spades to use, in megabytes')
 @click.option('--ignore-bx', is_flag = True, show_default = True, default = False, help = 'Ignore linked-read info for initial spades assembly')
-@click.option('-x', '--extra-params', type = str, help = 'Additional spades parameters, in quotes')
+@click.option('-x', '--extra-params', type = SpadesParams(), help = 'Additional spades parameters, in quotes')
 # Common Workflow
 @click.option('-o', '--output-dir', type = click.Path(exists = False), default = "Metassembly", show_default=True,  help = 'Output directory name')
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(min = 1, max_open = True), help = 'Number of threads to use')

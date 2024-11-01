@@ -7,6 +7,7 @@ from rich import box
 from rich.table import Table
 import rich_click as click
 from ._cli_types_generic import KParam, HPCProfile, SnakemakeParams
+from ._cli_types_params import SpadesParams
 from ._conda import create_conda_recipes
 from ._launch import launch_snakemake
 from ._misc import fetch_rule, snakemake_log
@@ -34,7 +35,7 @@ docstring = {
 @click.option('-b', '--bx-tag', type = click.Choice(['BX', 'BC'], case_sensitive=False), default = "BX", show_default=True, help = "The header tag with the barcode [`BX`,`BC`]")
 @click.option('-k', '--kmer-length', type = KParam(), show_default = True, default = "auto", help = 'K values to use for assembly (`odd` and `<128`)')
 @click.option('-r', '--max-memory',  type = click.IntRange(min = 1000, max_open = True), show_default = True, default = 10000, help = 'Maximum memory for spades to use, in megabytes')
-@click.option('-x', '--extra-params', type = str, help = 'Additional spades parameters, in quotes')
+@click.option('-x', '--extra-params', type = SpadesParams(), help = 'Additional spades parameters, in quotes')
 # TIGMINT/ARCS/LINKS
 @click.option('-y', '--arcs-extra', type = str, help = 'Additional ARCS parameters, in quotes')
 @click.option("-c","--contig-length", type = int, default = 500, show_default = True, help = "Minimum contig length")
