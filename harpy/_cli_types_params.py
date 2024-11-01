@@ -112,7 +112,28 @@ class ArcsParams(click.ParamType):
                 if arg not in valid_options:
                     self.fail(f"{arg} is not a valid arcs option. See the documentation for a list of available options.\nTigmint: https://github.com/bcgsc/tigmint\nARCS: https://github.com/bcgsc/arcs\nLINKS: https://github.com/bcgsc/links", param, ctx)
         if opts < 1:
-            self.fail("No valid options recognized. All arcs options begin with one or two dashes (e.g. --eqx or -L). See the documentation for a list of available options.\nTigmint: https://github.com/bcgsc/tigmint\nARCS: https://github.com/bcgsc/arcs\nLINKS: https://github.com/bcgsc/links", param, ctx)
+            self.fail("No valid options recognized. All arcs options begin without dashes and must be in the form ARG=VAL (e.g. k=15). See the documentation for a list of available options.\nTigmint: https://github.com/bcgsc/tigmint\nARCS: https://github.com/bcgsc/arcs\nLINKS: https://github.com/bcgsc/links", param, ctx)
+        return value
+
+class StitchParams(click.ParamType):
+    """A class for a click type that validates stitch extra-params."""
+    name = "stitch_params"
+    def convert(self, value, param, ctx):
+        harpy_options = "method posfile bamlist nCores nGen chr K S use_bx_tag bxTagUpperLimit outputdir output_filename tempdir".split() 
+        valid_options = "nStarts sampleNames_file genfile B_bit_prob outputInputInVCFFormat downsampleToCov downsampleFraction readAware chrStart chrEnd regionStart regionEnd buffer maxDifferenceBetweenReads maxEmissionMatrixDifference alphaMatThreshold emissionThreshold iSizeUpperLimit bqFilter niterations shuffleHaplotypeIterations splitReadIterations expRate maxRate minRate Jmax regenerateInput originalRegionName keepInterimFiles keepTempDir outputHaplotypeProbabilities switchModelIteration generateInputOnly restartIterations refillIterations downsampleSamples downsampleSamplesKeepList subsetSNPsfile useSoftClippedBases outputBlockSize outputSNPBlockSize inputBundleBlockSize genetic_map_file reference_haplotype_file reference_legend_file reference_sample_file reference_populations reference_phred reference_iterations reference_shuffleHaplotypeIterations initial_min_hapProb initial_max_hapProb regenerateInputWithDefaultValues plotHapSumDuringIterations plot_shuffle_haplotype_attempts plotAfterImputation save_sampleReadsInfo gridWindowSize shuffle_bin_nSNPs shuffle_bin_radius keepSampleReadsInRAM useTempdirWhileWriting output_haplotype_dosages".split()
+        opts = 0
+        for i in value.split():
+            if i.startswith("-"):
+                self.fail(f"{i} begins with a dash, which is the wrong format. Try using " + i.lstrip("-") + "=VAL instead", param, ctx)
+            if "=" in i:
+                opts += 1
+                arg = i.split("=")[0].strip()
+                if arg in harpy_options:
+                    self.fail(f"{arg} is already used by Harpy when calling stitch.", param, ctx)
+                if arg not in valid_options:
+                    self.fail(f"{arg} is not a valid stitch option. See the stitch documentation for a list of available options: https://github.com/rwdavies/STITCH/blob/master/Options.md", param, ctx)
+        if opts < 1:
+            self.fail("No valid options recognized. All stitch options begin without dashes and must be in the form ARG=VAL (e.g. downsampleFraction=0.5). See the stitch documentation for a list of available options: https://github.com/rwdavies/STITCH/blob/master/Options.md.", param, ctx)
         return value
 
 class XXXParams(click.ParamType):
@@ -132,5 +153,4 @@ class XXXParams(click.ParamType):
         if opts < 1:
             self.fail("No valid options recognized. All XXX options begin with two dashes (e.g. --eqx or -L). See the XXX documentation for a list of available options: XXXX.", param, ctx)
         return value
-
-
+    
