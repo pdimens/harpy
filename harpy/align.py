@@ -10,7 +10,7 @@ from rich.table import Table
 import rich_click as click
 from ._conda import create_conda_recipes
 from ._misc import fetch_report, fetch_rule, snakemake_log
-from ._cli_types import  ContigList, InputFile, HPCProfile, SnakemakeParams
+from ._cli_types_generic import  ContigList, InputFile, HPCProfile, SnakemakeParams
 from ._launch import launch_snakemake
 from ._parsers import parse_fastq_inputs
 from ._printing import print_error, print_solution, print_notice

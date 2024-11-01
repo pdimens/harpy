@@ -9,7 +9,7 @@ import rich_click as click
 from ._conda import create_conda_recipes
 from ._launch import launch_snakemake
 from ._misc import fetch_rule, snakemake_log
-from ._cli_types import HPCProfile, KParam, SnakemakeParams
+from ._cli_types_generic import HPCProfile, KParam, SnakemakeParams
 from ._validations import validate_fastq_bx
 
 docstring = {

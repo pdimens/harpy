@@ -1,4 +1,4 @@
-"""Module with helper function to set up Harpy workflows"""
+"""Module with python-click types for command-line level validations of inputs"""
 
 import os
 import click
@@ -107,3 +107,5 @@ class HPCProfile(click.ParamType):
         elif not os.access(f"{value}/config.yaml", os.R_OK):
             self.fail(f"{value}/config.yaml does not have read access. Please check the file permissions and try again.", param, ctx)
         return value
+
+### program-specific extra-params types
