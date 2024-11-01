@@ -45,7 +45,7 @@ docstring = {
     "harpy align ema": [
         {
             "name": "Parameters",
-            "options": ["--ema-bins", "--extra-params", "--genome", "--keep-unmapped", "--platform", "--min-quality", "--barcode-list"],
+            "options": ["--ema-bins", "--extra-params", "--fragment-density", "--genome", "--keep-unmapped", "--platform", "--min-quality", "--barcode-list"],
         },
         {
             "name": "Workflow Controls",
@@ -150,6 +150,7 @@ def bwa(inputs, output_dir, genome, depth_window, threads, keep_unmapped, extra_
 
 @click.command(no_args_is_help = True, context_settings=dict(allow_interspersed_args=False), epilog = "Documentation: https://pdimens.github.io/harpy/workflows/align/ema")
 @click.option('-x', '--extra-params', type = str, help = 'Additional ema align parameters, in quotes')
+@click.option('-d', '--fragment-density',  is_flag = True, show_default = True, default = False, help = 'Perform read fragment density optimization')
 @click.option('-w', '--depth-window', default = 50000, show_default = True, type = int, help = 'Interval size (in bp) for depth stats')
 @click.option('-b', '--ema-bins', default = 500, show_default = True, type = click.IntRange(1,1000), help="Number of barcode bins")
 @click.option('-g', '--genome', type=InputFile([".fasta", ".fas", ".fa", ".fna", ".ffn", ".faa", ".frn"], gzip_ok = True), required = True, help = 'Genome assembly for read mapping')
@@ -167,7 +168,7 @@ def bwa(inputs, output_dir, genome, depth_window, threads, keep_unmapped, extra_
 @click.option('--skip-reports',  is_flag = True, show_default = True, default = False, help = 'Don\'t generate HTML reports')
 @click.option('--snakemake', type = SnakemakeParams(), help = 'Additional Snakemake parameters, in quotes')
 @click.argument('inputs', required=True, type=click.Path(exists=True, readable=True), nargs=-1)
-def ema(inputs, output_dir, platform, barcode_list, genome, depth_window, keep_unmapped, threads, ema_bins, skip_reports, extra_params, min_quality, snakemake, quiet, hpc, conda, contigs, setup_only):
+def ema(inputs, output_dir, platform, barcode_list, fragment_density, genome, depth_window, keep_unmapped, threads, ema_bins, skip_reports, extra_params, min_quality, snakemake, quiet, hpc, conda, contigs, setup_only):
     """
     Align sequences to genome using `EMA`
 
@@ -220,6 +221,7 @@ def ema(inputs, output_dir, platform, barcode_list, genome, depth_window, keep_u
         "output_directory" : output_dir,
         "alignment_quality" : min_quality,
         "keep_unmapped" : keep_unmapped,
+        "fragement_density_optimization": fragment_density,
         "depth_windowsize" : depth_window,
         "platform" : platform,
         "EMA_bins" : ema_bins,
