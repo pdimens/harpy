@@ -112,7 +112,7 @@ class ArcsParams(click.ParamType):
                 if arg not in valid_options:
                     self.fail(f"{arg} is not a valid arcs option. See the documentation for a list of available options.\nTigmint: https://github.com/bcgsc/tigmint\nARCS: https://github.com/bcgsc/arcs\nLINKS: https://github.com/bcgsc/links", param, ctx)
         if opts < 1:
-            self.fail("No valid options recognized. All arcs options begin without dashes and must be in the form ARG=VAL (e.g. k=15). See the documentation for a list of available options.\nTigmint: https://github.com/bcgsc/tigmint\nARCS: https://github.com/bcgsc/arcs\nLINKS: https://github.com/bcgsc/links", param, ctx)
+            self.fail("No valid options recognized. Available arcs options begin without dashes and must be in the form ARG=VAL, without spaces (e.g. k=15). See the documentation for a list of available options.\nTigmint: https://github.com/bcgsc/tigmint\nARCS: https://github.com/bcgsc/arcs\nLINKS: https://github.com/bcgsc/links", param, ctx)
         return value
 
 class StitchParams(click.ParamType):
@@ -133,7 +133,7 @@ class StitchParams(click.ParamType):
                 if arg not in valid_options:
                     self.fail(f"{arg} is not a valid stitch option. See the stitch documentation for a list of available options: https://github.com/rwdavies/STITCH/blob/master/Options.md", param, ctx)
         if opts < 1:
-            self.fail("No valid options recognized. All stitch options begin without dashes and must be in the form ARG=VAL (e.g. downsampleFraction=0.5). See the stitch documentation for a list of available options: https://github.com/rwdavies/STITCH/blob/master/Options.md.", param, ctx)
+            self.fail("No valid options recognized. Available stitch options begin without dashes and must be in the form ARG=VAL (e.g. downsampleFraction=0.5). See the stitch documentation for a list of available options: https://github.com/rwdavies/STITCH/blob/master/Options.md.", param, ctx)
         return value
 
 class HapCutParams(click.ParamType):
@@ -151,12 +151,51 @@ class HapCutParams(click.ParamType):
                 if i not in valid_options:
                     self.fail(f"{i} is not a valid hapcut2 option. See the hapcut2 documentation for a list of available options: https://github.com/vibansal/HapCUT2.", param, ctx)
         if opts < 1:
-            self.fail("No valid options recognized. All hapcut2 options begin with two dashes (e.g. --dp). See the hapcut2 documentation for a list of available options: https://github.com/vibansal/HapCUT2.", param, ctx)
+            self.fail("No valid options recognized. Available hapcut2 options begin with two dashes (e.g. --dp). See the hapcut2 documentation for a list of available options: https://github.com/vibansal/HapCUT2.", param, ctx)
+        return value
+
+class LeviathanParams(click.ParamType):
+    """A class for a click type that validates leviathan extra-params."""
+    name = "leviathan_params"
+    def convert(self, value, param, ctx):
+        harpy_options = "-b -i -g -o -v --minVariantSize -c --minBarcodes -B --nbBins -t --threads -C --candidates".split() 
+        valid_options = "-r --regionSize -n --maxLinks -M --mediumSize -L --largeSize -s --smallRate -m --mediumRate -l --largeRate -d --duplicates -s --skipTranslocations -p --poolSize".split()
+        opts = 0
+        for i in value.split():
+            if i.startswith("-"):
+                opts += 1
+                if i in harpy_options:
+                    self.fail(f"{i} is already used by Harpy when calling leviathan.", param, ctx)
+                if i not in valid_options:
+                    self.fail(f"{i} is not a valid leviathan option. See the leviathan documentation for a list of available options: https://github.com/morispi/LEVIATHAN.", param, ctx)
+        if opts < 1:
+            self.fail("No valid options recognized. Available leviathan options begin with one or two dashes (e.g. --mediumRate or -m). See the leviathan documentation for a list of available options: https://github.com/morispi/LEVIATHAN.", param, ctx)
+        return value
+
+class NaibrParams(click.ParamType):
+    """A class for a click type that validates naibr extra-params."""
+    name = "naibr_params"
+    def convert(self, value, param, ctx):
+        harpy_options = "bam_file prefix outdir threads min_mapq d min_sv k".split() 
+        valid_options = "blacklist candidates".split()
+        opts = 0
+        for idx,i in enumerate(value.split()):
+            if i.startswith("-"):
+                self.fail(f"{i} begins with a dash, which is the wrong format. Try using " + i.lstrip("-") + " VAL instead", param, ctx)
+            # if it's an odd index, it's the first (arg) of an arg val pair
+            if idx % 2 != 0:
+                opts += 1
+                if i in harpy_options:
+                    self.fail(f"{i} is already used by Harpy when calling naibr.", param, ctx)
+                if i not in valid_options:
+                    self.fail(f"{i} is not a valid naibr option. See the naibr documentation for a list of available options: https://github.com/pontushojer/NAIBR.", param, ctx)
+        if opts < 1:
+            self.fail("No valid options recognized. Available naibr options begin without dashes in the form of ARG VAL (e.g. blacklist inversions.ignore). See the naibr documentation for a list of available options: https://github.com/pontushojer/NAIBR.", param, ctx)
         return value
     
-class XXXParams(click.ParamType):
-    """A class for a click type that validates XXX extra-params."""
-    name = "XXX_params"
+class MpileupParams(click.ParamType):
+    """A class for a click type that validates mpileup extra-params."""
+    name = "mpileup_params"
     def convert(self, value, param, ctx):
         harpy_options = "".split() 
         valid_options = "".split()
@@ -165,11 +204,31 @@ class XXXParams(click.ParamType):
             if i.startswith("-"):
                 opts += 1
                 if i in harpy_options:
-                    self.fail(f"{i} is already used by Harpy when calling XXX.", param, ctx)
+                    self.fail(f"{i} is already used by Harpy when calling mpileup.", param, ctx)
                 if i not in valid_options:
-                    self.fail(f"{i} is not a valid XXX option. See the XXX documentation for a list of available options: XXXX.", param, ctx)
+                    self.fail(f"{i} is not a valid mpileup option. See the mpileup documentation for a list of available options: XXXX.", param, ctx)
         if opts < 1:
-            self.fail("No valid options recognized. All XXX options begin with two dashes (e.g. --eqx or -L). See the XXX documentation for a list of available options: XXXX.", param, ctx)
+            self.fail("No valid options recognized. Available mpileup options begin with two dashes (e.g. --eqx or -L). See the mpileup documentation for a list of available options: XXXX.", param, ctx)
         return value
     
+class FreebayesParams(click.ParamType):
+    """A class for a click type that validates freebayes extra-params."""
+    name = "freebayes_params"
+    def convert(self, value, param, ctx):
+        harpy_options = "".split() 
+        valid_options = "".split()
+        opts = 0
+        for i in value.split():
+            if i.startswith("-"):
+                opts += 1
+                if i in harpy_options:
+                    self.fail(f"{i} is already used by Harpy when calling freebayes.", param, ctx)
+                if i not in valid_options:
+                    self.fail(f"{i} is not a valid freebayes option. See the freebayes documentation for a list of available options: XXXX.", param, ctx)
+        if opts < 1:
+            self.fail("No valid options recognized. Available freebayes options begin with two dashes (e.g. --eqx or -L). See the freebayes documentation for a list of available options: XXXX.", param, ctx)
+        return value
+
+
+
 

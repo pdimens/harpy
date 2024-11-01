@@ -8,6 +8,7 @@ from rich import box
 from rich.table import Table
 import rich_click as click
 from ._cli_types_generic import HPCProfile, InputFile, SnakemakeParams
+from ._cli_types_params import MpileupParams, FreebayesParams
 from ._conda import create_conda_recipes
 from ._launch import launch_snakemake
 from ._misc import fetch_rule, fetch_report, snakemake_log
