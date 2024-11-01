@@ -37,7 +37,7 @@ def generic():
 Using a scheduler requires installing an additional Snakemake plugin. If you haven't already, install the `generic-cluster` plugin with:
     
 ```bash
-mamba install bioconda::snakemake-executor-plugin-cluster-generic
+conda install bioconda::snakemake-executor-plugin-cluster-generic
 ```
                 """))
     with open(outfile, "w", encoding = "utf-8") as yml:
@@ -79,7 +79,7 @@ def lsf():
 Using a scheduler requires installing an additional Snakemake plugin. If you haven't already, install the `lsf` plugin with:
     
 ```bash
-mamba install bioconda::snakemake-executor-plugin-lsf
+conda install bioconda::snakemake-executor-plugin-lsf
 ```
                 """))
     with open(outfile, "w", encoding = "utf-8") as yml:
@@ -115,7 +115,7 @@ def htcondor():
 Using a scheduler requires installing an additional Snakemake plugin. If you haven't already, install the `htcondor` plugin with:
     
 ```bash
-mamba install bioconda::snakemake-executor-plugin-htcondor
+conda install bioconda::snakemake-executor-plugin-htcondor
 ```
                 """))
     with open(outfile, "w", encoding = "utf-8") as yml:
@@ -150,7 +150,7 @@ def slurm():
 Using a scheduler requires installing an additional Snakemake plugin. If you haven't already, install the `slurm` plugin with:
     
 ```bash
-mamba install bioconda::snakemake-executor-plugin-slurm
+conda install bioconda::snakemake-executor-plugin-slurm
 ```
                 """))
     with open(outfile, "w", encoding = "utf-8") as yml:
@@ -185,7 +185,7 @@ def googlebatch():
 Using a scheduler requires installing an additional Snakemake plugin. If you haven't already, install the `googlebatch` plugin with:
     
 ```bash
-mamba install bioconda::snakemake-executor-plugin-googlebatch
+conda install bioconda::snakemake-executor-plugin-googlebatch
 ```
                 """))
     with open(outfile, "w", encoding = "utf-8") as yml:
