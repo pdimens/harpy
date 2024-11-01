@@ -54,11 +54,16 @@ class ContigList(click.ParamType):
 
 class InputFile(click.ParamType):
     """A class for a click type that verifies that a file exists and that it has an expected extension"""
-    def __init__(self, extensions, gzip_ok):
+    def __init__(self, filetype, gzip_ok):
         super().__init__()
-        self.extensions = extensions
+        self.filetype = filetype
         self.gzip_ok = gzip_ok
     def convert(self, value, param, ctx):
+        filedict = {
+            "fasta": [".fasta", ".fas", ".fa", ".fna", ".ffn", ".faa", ".frn"],
+            "vcf": ["vcf", "bcf", "vcf.gz"],
+            "gff": [".gff",".gff3"]
+        }
         if not os.path.exists(value):
             self.fail(f"{value} does not exist. Please check the spelling and try again.", param, ctx)
         elif not os.access(value, os.R_OK):
@@ -67,15 +72,14 @@ class InputFile(click.ParamType):
             self.fail(f"{value} is a directory, but input should be a file.", param, ctx)
         valid = False
         lowercase = value.lower()
-        extensions = [self.extensions] if not isinstance(self.extensions, list) else self.extensions
-        for ext in extensions:
+        for ext in filedict[self.filetype]:
             valid = True if lowercase.endswith(ext) else valid
             if self.gzip_ok:
                 valid = True if lowercase.endswith(ext + ".gz") else valid
         if not valid and not self.gzip_ok:
-                self.fail(f"{value} does not end with one of the expected extensions [" + ", ".join(extensions) + "]. Please verify this is the correct file type and rename the extension for compatibility.", param, ctx)
+                self.fail(f"{value} does not end with one of the expected extensions [" + ", ".join(filedict[self.filetype]) + "]. Please verify this is the correct file type and rename the extension for compatibility.", param, ctx)
         if not valid and self.gzip_ok:
-            self.fail(f"{value} does not end with one of the expected extensions [" + ", ".join(extensions) + "]. Please verify this is the correct file type and rename the extension for compatibility. Gzip compression (ending in .gz) is allowed.", param, ctx)
+            self.fail(f"{value} does not end with one of the expected extensions [" + ", ".join(filedict[self.filetype]) + "]. Please verify this is the correct file type and rename the extension for compatibility. Gzip compression (ending in .gz) is allowed.", param, ctx)
         return value
 
 class SnakemakeParams(click.ParamType):
