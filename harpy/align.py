@@ -220,7 +220,7 @@ def ema(inputs, output_dir, platform, barcode_list, fragment_density, genome, de
         "output_directory" : output_dir,
         "alignment_quality" : min_quality,
         "keep_unmapped" : keep_unmapped,
-        "fragement_density_optimization": fragment_density,
+        "fragment_density_optimization": fragment_density,
         "depth_windowsize" : depth_window,
         "platform" : platform,
         "EMA_bins" : ema_bins,

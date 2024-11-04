@@ -64,6 +64,8 @@ class InputFile(click.ParamType):
             "vcf": ["vcf", "bcf", "vcf.gz"],
             "gff": [".gff",".gff3"]
         }
+        if self.filetype not in filedict.keys():
+            self.fail(f"Extension validation for {self.filetype} is not yet implemented. This error should only appear during development; if you are a user and seeing this, please post an issue on GitHub: https://github.com/pdimens/harpy/issues/new?assignees=&labels=bug&projects=&template=bug_report.yml")
         if not os.path.exists(value):
             self.fail(f"{value} does not exist. Please check the spelling and try again.", param, ctx)
         elif not os.access(value, os.R_OK):

@@ -229,7 +229,7 @@ jobs:
           path: .snakemake/singularity
       - name: harpy qc
         shell: micromamba-shell {0}
-        run: harpy qc -x "--trim_poly_g" --quiet test/fastq
+        run: harpy qc -x "--low_complexity_filter" --quiet test/fastq
       - name: harpy qc all options
         shell: micromamba-shell {0}
         run: harpy qc -a -d -c 21,40,3,0 --quiet test/fastq
@@ -344,7 +344,7 @@ jobs:
           path: .snakemake/singularity
       - name: test ema
         shell: micromamba-shell {0}
-        run: harpy align ema --quiet --ema-bins 150 -g test/genome/genome.fasta.gz -x "-d" test/fastq
+        run: harpy align ema --quiet --ema-bins 150 -g test/genome/genome.fasta.gz test/fastq
 
   strobe:
     needs: [changes, pkgbuild]

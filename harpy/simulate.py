@@ -164,8 +164,8 @@ def linkedreads(genome_hap1, genome_hap2, output_dir, outer_distance, mutation_r
     if snakemake:
         command += snakemake
 
-    check_fasta(genome_hap1, quiet)
-    check_fasta(genome_hap2, quiet)
+    check_fasta(genome_hap1)
+    check_fasta(genome_hap2)
 
     os.makedirs(f"{workflowdir}/", exist_ok= True)
     fetch_rule(workflowdir, "simulate_linkedreads.smk")
