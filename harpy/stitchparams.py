@@ -27,6 +27,6 @@ def stitchparams(output):
         _ = file.write('k1_ng30\tdiploid\tTRUE\t50000\t5\t1\t30\n')
         _ = file.write('high_ngen\tdiploid\tTRUE\t50000\t15\t1\t100')
     print_notice(
-        f"Created STITCH parameter file: {output}\n" +
-        "Modify the model parameters as needed, but DO NOT add/remove columns."
+        f"Created template STITCH parameter file: [blue]{output}[/blue]\n" +
+        "Modify the model parameters as needed, but [yellow bold]do not add/remove columns."
     )

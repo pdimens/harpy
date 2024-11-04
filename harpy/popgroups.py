@@ -37,10 +37,10 @@ def popgroup(inputdir, output):
        fqlist = [os.path.basename(i) for i in full_fqlist]
        bn_r = r"[\.\_][RF](?:[12])?(?:\_00[1-9])*\.f(?:ast)?q(?:\.gz)?$"
        if len(fqlist) == 0:
-           print_error("no files found", f"No FASTQ or BAM files were detected in [bold]{inputdir}[/bold]")
+           print_error("no files found", f"No [bold]FASTQ[/bold] or [bold]BAM[/bold] files were detected in [blue]{inputdir}[/blue]")
            print_solution(
-               "Check that FASTQ file endings conform to [green].[/green][[green]F[/green][dim]|[/dim][green]R1[/green]][green].[/green][[green]fastq[/green][dim]|[/dim][green]fq[/green]][green].gz[/green]" +
-               "\nCheck that BAM files end in [green].bam[/green]"+
+               "Check that [bold]FASTQ[/bold] file endings conform to [green].[/green][[green]F[/green][dim]|[/dim][green]R1[/green]][green].[/green][[green]fastq[/green][dim]|[/dim][green]fq[/green]][green].gz[/green]" +
+               "\nCheck that [bold]BAM[/bold] files end in [green].bam[/green]"+
                "\nRead the documentation for details: https://pdimens.github.io/harpy/haplotagdata/#naming-conventions"
            )
            sys.exit(1)
