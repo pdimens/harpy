@@ -169,7 +169,7 @@ class LeviathanParams(click.ParamType):
                 if i not in valid_options:
                     self.fail(f"{i} is not a valid leviathan option. See the leviathan documentation for a list of available options: https://github.com/morispi/LEVIATHAN.", param, ctx)
         if opts < 1:
-            self.fail("No valid options recognized. Available leviathan options begin with one or two dashes (e.g. --mediumRate or -m). See the leviathan documentation for a list of available options: https://github.com/morispi/LEVIATHAN.", param, ctx)
+            self.fail("No valid options recognized. Available leviathan options begin with one or two dashes (e.g. -m or -mediumRate). See the leviathan documentation for a list of available options: https://github.com/morispi/LEVIATHAN.", param, ctx)
         return value
 
 class NaibrParams(click.ParamType):
@@ -190,15 +190,15 @@ class NaibrParams(click.ParamType):
                 if i not in valid_options:
                     self.fail(f"{i} is not a valid naibr option. See the naibr documentation for a list of available options: https://github.com/pontushojer/NAIBR.", param, ctx)
         if opts < 1:
-            self.fail("No valid options recognized. Available naibr options begin without dashes in the form of ARG VAL (e.g. blacklist inversions.ignore). See the naibr documentation for a list of available options: https://github.com/pontushojer/NAIBR.", param, ctx)
+            self.fail("No valid options recognized. Available naibr options begin without dashes in the form of ARG<space>VAL (e.g. blacklist inversions.ignore). See the naibr documentation for a list of available options: https://github.com/pontushojer/NAIBR.", param, ctx)
         return value
     
 class MpileupParams(click.ParamType):
     """A class for a click type that validates mpileup extra-params."""
     name = "mpileup_params"
     def convert(self, value, param, ctx):
-        harpy_options = "".split() 
-        valid_options = "".split()
+        harpy_options = "--fasta-ref -f --bam-list -b --annotate -a --output-type -O -r --regions".split() 
+        valid_options = "-6 --illumina1.3+ -A --count-orphans -B --no-BAQ -C --adjust-MQ -D --full-BAQ -d --max-depth -E --redo-BAQ -G --read-groups -q --min-MQ -Q --min-BQ --max-BQ INT --delta-BQ INT --ignore-RG --ls --skip-all-set --ns --skip-any-set --lu --skip-all-unset --nu --skip-any-unset -s --samples -S --samples-file -t --targets -T --targets-file -x --ignore-overlaps -g --gvcf -o -X --config -e --ext-prob -F --gap-frac -h --tandem-qual -I --skip-indels -L --max-idepth -m --min-ireads -M --max-read-len -o --open-prob -p --per-sample-mF -P --platforms --ar --ambig-reads --indel-bias --del-bias --score-vs-ref --indel-size --indels-2.0 --indels-cns --seqq-offset --no-indels-cns --poly-mqual".split()
         opts = 0
         for i in value.split():
             if i.startswith("-"):
@@ -208,15 +208,15 @@ class MpileupParams(click.ParamType):
                 if i not in valid_options:
                     self.fail(f"{i} is not a valid mpileup option. See the mpileup documentation for a list of available options: https://samtools.github.io/bcftools/bcftools.html#mpileup.", param, ctx)
         if opts < 1:
-            self.fail("No valid options recognized. Available mpileup options begin with two dashes (e.g. --eqx or -L). See the mpileup documentation for a list of available options: https://samtools.github.io/bcftools/bcftools.html#mpileup.", param, ctx)
+            self.fail("No valid options recognized. Available mpileup options begin one or with two dashes (e.g. -d or --max-depth). See the mpileup documentation for a list of available options: https://samtools.github.io/bcftools/bcftools.html#mpileup.", param, ctx)
         return value
     
 class FreebayesParams(click.ParamType):
     """A class for a click type that validates freebayes extra-params."""
     name = "freebayes_params"
     def convert(self, value, param, ctx):
-        harpy_options = "".split() 
-        valid_options = "".split()
+        harpy_options = "-r --region -p --ploidy -f --fasta-reference -L --bam-list --populations".split() 
+        valid_options = "-t --targets -s --samples -A --cnv-map -v --vcf --gvcf --gvcf-chunkUM -& --gvcf-dont-use-chunk -@ --variant-input -l --only-use-input-alleles --haplotype-basis-alleles --report-all-haplotype-alleles --report-monomorphic -P --pvar --strict-vcf -T --theta -J --pooled-discrete -K --pooled-continuous -Z --use-reference-allele --reference-quality -n --use-best-n-alleles -E --max-complex-gap --haplotype-length --min-repeat-size --min-repeat-entropy --no-partial-observations -O --dont-left-align-indels -4 --use-duplicate-reads -m --min-mapping-quality -q --min-base-quality -R --min-supporting-allele-qsum -Y --min-supporting-mapping-qsum -Q --mismatch-base-quality-threshold -U --read-mismatch-limit -z --read-max-mismatch-fraction -$ --read-snp-limit -e --read-indel-limit -0 --standard-filters -F --min-alternate-fraction -C --min-alternate-count -3 --min-alternate-qsum -G --min-alternate-total --min-coverage --limit-coverage -g --skip-coverage --trim-complex-tail -k --no-population-priors -w --hwe-priors-off -V --binomial-obs-priors-off -a --allele-balance-priors-off --observation-bias --base-quality-cap --prob-contamination --legacy-gls --contamination-estimates --report-genotype-likelihood-max -B --genotyping-max-iterations --genotyping-max-banddepth -W --posterior-integration-limits,M -N --exclude-unobserved-genotypes -S --genotype-variant-threshold -j --use-mapping-quality -H --harmonic-indel-quality -D --read-dependence-factor -= --genotype-qualities -d --debug".split()
         opts = 0
         for i in value.split():
             if i.startswith("-"):
@@ -226,8 +226,9 @@ class FreebayesParams(click.ParamType):
                 if i not in valid_options:
                     self.fail(f"{i} is not a valid freebayes option. See the freebayes documentation for a list of available options: https://github.com/freebayes/freebayes.", param, ctx)
         if opts < 1:
-            self.fail("No valid options recognized. Available freebayes options begin with two dashes (e.g. --eqx or -L). See the freebayes documentation for a list of available options: https://github.com/freebayes/freebayes.", param, ctx)
+            self.fail("No valid options recognized. Available freebayes options begin with one or two dashes (e.g. -t or --targets). See the freebayes documentation for a list of available options: https://github.com/freebayes/freebayes.", param, ctx)
         return value
+
 
 
 

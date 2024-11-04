@@ -49,7 +49,7 @@ docstring = {
 }
 
 @click.command(no_args_is_help = True, context_settings=dict(allow_interspersed_args=False), epilog = "Documentation: https://pdimens.github.io/harpy/workflows/snp")
-@click.option('-x', '--extra-params', type = str, help = 'Additional variant caller parameters, in quotes')
+@click.option('-x', '--extra-params', type = MpileupParams(), help = 'Additional mpileup parameters, in quotes')
 @click.option('-g', '--genome', type=InputFile("fasta", gzip_ok = True), required = True, help = 'Genome assembly for variant calling')
 @click.option('-o', '--output-dir', type = click.Path(exists = False), default = "SNP/mpileup", show_default=True,  help = 'Output directory name')
 @click.option('-n', '--ploidy', default = 2, show_default = True, type=click.IntRange(min = 1, max = 2), help = 'Ploidy of samples')
@@ -154,7 +154,7 @@ def mpileup(inputs, output_dir, regions, genome, threads, populations, ploidy, e
     launch_snakemake(command, "snp_mpileup", start_text, output_dir, sm_log, quiet, "workflow/snp.mpileup.summary")
 
 @click.command(no_args_is_help = True, context_settings=dict(allow_interspersed_args=False), epilog = "Documentation: https://pdimens.github.io/harpy/workflows/snp")
-@click.option('-x', '--extra-params', type = str, help = 'Additional variant caller parameters, in quotes')
+@click.option('-x', '--extra-params', type = FreebayesParams(), help = 'Additional freebayes parameters, in quotes')
 @click.option('-g', '--genome', type=InputFile("fasta", gzip_ok = True), required = True, help = 'Genome assembly for variant calling')
 @click.option('-o', '--output-dir', type = click.Path(exists = False), default = "SNP/freebayes", show_default=True,  help = 'Output directory name')
 @click.option('-n', '--ploidy', default = 2, show_default = True, type=click.IntRange(min=1, max_open=True), help = 'Ploidy of samples')
