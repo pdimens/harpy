@@ -4,6 +4,7 @@ import os
 import re
 import sys
 import glob
+from rich import print as rprint
 import rich_click as click
 from ._printing import print_error, print_solution, print_notice
 
@@ -46,11 +47,11 @@ def popgroup(inputdir, output):
            sys.exit(1)
        samplenames = set([re.sub(bn_r, "", i, flags = re.IGNORECASE) for i in fqlist])
 
-    click.echo(f"{len(samplenames)} samples detected in {inputdir}", file = sys.stderr)
+    rprint(f"[bold]{len(samplenames)} samples [/bold] detected in [blue]{inputdir}[blue]", file = sys.stderr)
     if os.path.exists(output):
-        write_text = f"The file [green]{output}[/green] was overwritten."
+        write_text = f"The file [blue]{output}[/blue] was overwritten."
     else:
-        write_text = f"Created sample population grouping file [green]{output}[/green]."
+        write_text = f"Created sample population grouping file [blue]{output}[/blue]."
     with open(output, "w", encoding="utf-8") as file:
         for i in samplenames:
             _ = file.write(i + '\tpop1\n')
