@@ -119,7 +119,8 @@ rule scaffolding:
 
 rule QUAST_assessment:
     input:
-        assembly = f"{outdir}/scaffolds.fasta",
+        contigs = f"{outdir}/spades/contigs.fasta",
+        scaffolds = f"{outdir}/scaffolds.fasta",
         fastq = f"{outdir}/scaffold/interleaved.fq.gz"
     output:
         f"{outdir}/quast/report.tsv"
@@ -128,14 +129,14 @@ rule QUAST_assessment:
     params:
         output_dir = f"-o {outdir}/quast",
         organism = f"--{organism}" if organism != "prokaryote" else "",
-        quast_params = "--labels harpy_cloudspades --rna-finding",
-        skip_things = "--no-sv" 
+        quast_params = "--labels spades_contigs,arcs_scaffolds --rna-finding",
+        skip_things = "--no-sv"
     threads:
         workflow.cores
     conda:
         f"{envdir}/assembly.yaml"
     shell:
-        "quast.py --threads {threads} --pe12 {input.fastq} {params} {input.assembly} 2> {log}"
+        "quast.py --threads {threads} --pe12 {input.fastq} {params} {input.contigs} {input.scaffolds} 2> {log}"
 
 rule BUSCO_analysis:
     input:
