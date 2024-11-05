@@ -19,6 +19,7 @@ binrange    = ["%03d" % i for i in range(nbins)]
 fqlist       = config["inputs"]["fastq"]
 genomefile 	= config["inputs"]["genome"]
 platform    = config["platform"]
+frag_opt    = config["fragment_density_optimization"]
 barcode_list   = config["inputs"].get("barcode_list", "") 
 extra 		= config.get("extra", "") 
 bn 			= os.path.basename(genomefile)
@@ -149,6 +150,7 @@ rule align_ema:
         RG_tag = lambda wc: "\"@RG\\tID:" + wc.get("sample") + "\\tSM:" + wc.get("sample") + "\"",
         bxtype = f"-p {platform}",
         tmpdir = lambda wc: outdir + "/." + d[wc.sample],
+        frag_opt = "-d" if frag_opt else "",
         quality = config["alignment_quality"],
         unmapped = "" if keep_unmapped else "-F 4",
         extra = extra
@@ -158,7 +160,7 @@ rule align_ema:
         f"{envdir}/align.yaml"
     shell:
         """
-        ema align -t {threads} {params.extra} -d {params.bxtype} -r {input.genome} -R {params.RG_tag} -x {input.readbin} 2> {log.ema} |
+        ema align -t {threads} {params.extra} {params.frag_opt} {params.bxtype} -r {input.genome} -R {params.RG_tag} -x {input.readbin} 2> {log.ema} |
             samtools view -h {params.unmapped} -q {params.quality} | 
             samtools sort -T {params.tmpdir} --reference {input.genome} -O bam --write-index -m {resources.mem_mb}M -o {output.aln}##idx##{output.idx} - 2> {log.sort}
         rm -rf {params.tmpdir}
@@ -353,7 +355,8 @@ rule workflow_summary:
         bx_report = outdir + "/reports/barcodes.summary.html" if (not skip_reports or len(samplenames) == 1) else []
     params:
         beadtech = "-p" if platform == "haplotag" else f"-w {barcode_list}",
-        unmapped = "" if keep_unmapped else "-F 4"
+        unmapped = "" if keep_unmapped else "-F 4",
+        frag_opt = "-d" if frag_opt else ""
     run:
         summary = ["The harpy align ema workflow ran using these parameters:"]
         summary.append(f"The provided genome: {genomefile}")
@@ -364,7 +367,7 @@ rule workflow_summary:
         bins += f"\tseqtk mergepe forward.fq.gz reverse.fq.gz | ema preproc {params.beadtech} -n {nbins}"
         summary.append(bins)
         ema_align = "Barcoded bins were aligned with ema align using:\n"
-        ema_align += f'\tema align {extra} -d -p {platform} -R "@RG\\tID:SAMPLE\\tSM:SAMPLE" |\n'
+        ema_align += f'\tema align {extra} {params.frag_opt} -p {platform} -R "@RG\\tID:SAMPLE\\tSM:SAMPLE" |\n'
         ema_align += f"\tsamtools view -h {params.unmapped} -q {config["alignment_quality"]} - |\n"
         ema_align += "\tsamtools sort --reference genome"
         summary.append(ema_align)

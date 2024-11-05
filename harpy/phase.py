@@ -9,9 +9,10 @@ import rich_click as click
 from ._conda import create_conda_recipes
 from ._launch import launch_snakemake
 from ._misc import fetch_rule, fetch_report, snakemake_log
-from ._cli_types import ContigList
+from ._cli_types_generic import ContigList, HPCProfile, InputFile, SnakemakeParams
+from ._cli_types_params import HapCutParams
 from ._parsers import parse_alignment_inputs
-from ._validations import check_fasta, vcf_sample_match, validate_bam_RG, validate_input_by_ext, vcf_contig_match
+from ._validations import check_fasta, vcf_sample_match, validate_bam_RG, vcf_contig_match
 
 docstring = {
         "harpy phase": [
@@ -27,21 +28,21 @@ docstring = {
 }
 
 @click.command(no_args_is_help = True, context_settings=dict(allow_interspersed_args=False), epilog = "Documentation: https://pdimens.github.io/harpy/workflows/phase")
-@click.option('-x', '--extra-params', type = str, help = 'Additional HapCut2 parameters, in quotes')
-@click.option('-g', '--genome', type=click.Path(exists=True, dir_okay=False, readable=True), help = 'Path to genome assembly if wanting to also extract reads spanning indels')
+@click.option('-x', '--extra-params', type = HapCutParams(), help = 'Additional HapCut2 parameters, in quotes')
+@click.option('-g', '--genome', type=InputFile("fasta", gzip_ok = True), help = 'Path to genome assembly if wanting to also extract reads spanning indels')
 @click.option('-b', '--ignore-bx',  is_flag = True, show_default = True, default = False, help = 'Ignore barcodes when phasing')
 @click.option('-d', '--molecule-distance', default = 100000, show_default = True, type = int, help = 'Distance cutoff to split molecules (bp)')
 @click.option('-o', '--output-dir', type = click.Path(exists = False), default = "Phase", show_default=True,  help = 'Output directory name')
 @click.option('-p', '--prune-threshold', default = 7, show_default = True, type = click.IntRange(0,100), help = 'PHRED-scale threshold (%) for pruning low-confidence SNPs (larger prunes more.)')
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(min = 2, max_open = True), help = 'Number of threads to use')
-@click.option('-v', '--vcf', required = True, type=click.Path(exists=True, dir_okay=False, readable=True), help = 'Path to BCF/VCF file')
+@click.option('-v', '--vcf', required = True, type = InputFile("vcf", gzip_ok = False), help = 'Path to BCF/VCF file')
 @click.option('--conda',  is_flag = True, default = False, help = 'Use conda/mamba instead of a container')
 @click.option('--contigs',  type = ContigList(), help = 'File or list of contigs to plot')
 @click.option('--setup-only',  is_flag = True, hidden = True, default = False, help = 'Setup the workflow and exit')
-@click.option('--hpc',  type = click.Path(exists = True, file_okay = False, readable=True), help = 'Directory with HPC submission `config.yaml` file')
+@click.option('--hpc',  type = HPCProfile(), help = 'Directory with HPC submission `config.yaml` file')
 @click.option('--quiet',  is_flag = True, show_default = True, default = False, help = 'Don\'t show output text while running')
 @click.option('--skip-reports',  is_flag = True, show_default = True, default = False, help = 'Don\'t generate HTML reports')
-@click.option('--snakemake',  type = str, help = 'Additional Snakemake parameters, in quotes')
+@click.option('--snakemake', type = SnakemakeParams(), help = 'Additional Snakemake parameters, in quotes')
 @click.option('--vcf-samples',  is_flag = True, show_default = True, default = False, help = 'Use samples present in vcf file for phasing rather than those found the inputs')
 @click.argument('inputs', required=True, type=click.Path(exists=True, readable=True), nargs=-1)
 def phase(inputs, output_dir, vcf, threads, molecule_distance, prune_threshold, vcf_samples, genome, snakemake, extra_params, ignore_bx, skip_reports, quiet, hpc, conda, contigs, setup_only):
@@ -70,10 +71,9 @@ def phase(inputs, output_dir, vcf, threads, molecule_distance, prune_threshold, 
     os.makedirs(f"{workflowdir}/input", exist_ok= True)
     bamlist, n = parse_alignment_inputs(inputs)
     samplenames = vcf_sample_match(vcf, bamlist, vcf_samples)
-    validate_input_by_ext(vcf, "--vcf", ["vcf", "bcf", "vcf.gz"])
     validate_bam_RG(bamlist, threads, quiet)
     if genome:
-        check_fasta(genome, quiet)
+        check_fasta(genome)
     if contigs:
         vcf_contig_match(contigs, vcf)
     fetch_rule(workflowdir, "phase.smk")

@@ -1,7 +1,8 @@
 common: &common
   - 'harpy/_launch.py'
   - 'harpy/_misc.py'
-  - 'harpy/_cli_types.py'
+  - 'harpy/_cli_types_generic.py'
+  - 'harpy/_cli_types_params.py'
   - 'harpy/_parsers.py'
   - 'harpy/_printing.py'
   - 'harpy/_validations.py'

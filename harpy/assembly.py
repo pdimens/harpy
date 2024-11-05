@@ -6,10 +6,11 @@ import yaml
 from rich import box
 from rich.table import Table
 import rich_click as click
+from ._cli_types_generic import KParam, HPCProfile, SnakemakeParams
+from ._cli_types_params import SpadesParams, ArcsParams
 from ._conda import create_conda_recipes
 from ._launch import launch_snakemake
 from ._misc import fetch_rule, snakemake_log
-from ._cli_types import KParam
 from ._validations import validate_fastq_bx
 
 docstring = {
@@ -34,9 +35,9 @@ docstring = {
 @click.option('-b', '--bx-tag', type = click.Choice(['BX', 'BC'], case_sensitive=False), default = "BX", show_default=True, help = "The header tag with the barcode [`BX`,`BC`]")
 @click.option('-k', '--kmer-length', type = KParam(), show_default = True, default = "auto", help = 'K values to use for assembly (`odd` and `<128`)')
 @click.option('-r', '--max-memory',  type = click.IntRange(min = 1000, max_open = True), show_default = True, default = 10000, help = 'Maximum memory for spades to use, in megabytes')
-@click.option('-x', '--extra-params', type = str, help = 'Additional spades parameters, in quotes')
+@click.option('-x', '--extra-params', type = SpadesParams(), help = 'Additional spades parameters, in quotes')
 # TIGMINT/ARCS/LINKS
-@click.option('-y', '--arcs-extra', type = str, help = 'Additional ARCS parameters, in quotes')
+@click.option('-y', '--arcs-extra', type = ArcsParams(), help = 'Additional ARCS parameters, in quotes (`option=arg` format)')
 @click.option("-c","--contig-length", type = int, default = 500, show_default = True, help = "Minimum contig length")
 @click.option("-n", "--links", type = int, default = 5, show_default = True, help = "Minimum number of links to compute scaffold")
 @click.option("-a", "--min-aligned", type = int, default = 5, show_default = True, help = "Minimum aligned read pairs per barcode")
@@ -51,11 +52,11 @@ docstring = {
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(min = 1, max_open = True), help = 'Number of threads to use')
 @click.option('-u', '--organism-type', type = click.Choice(['prokaryote', 'eukaryote', 'fungus'], case_sensitive=False), default = "eukaryote", show_default=True, help = "Organism type for assembly report [`eukaryote`,`prokaryote`,`fungus`]")
 @click.option('--conda',  is_flag = True, default = False, help = 'Use conda/mamba instead of a container')
-@click.option('--hpc',  type = click.Path(exists = True, file_okay = False, readable=True), help = 'Directory with HPC submission `config.yaml` file')
+@click.option('--hpc',  type = HPCProfile(), help = 'Directory with HPC submission `config.yaml` file')
 @click.option('--quiet',  is_flag = True, show_default = True, default = False, help = 'Don\'t show output text while running')
 @click.option('--setup-only',  is_flag = True, hidden = True, default = False, help = 'Setup the workflow and exit')
 @click.option('--skip-reports',  is_flag = True, show_default = True, default = False, help = 'Don\'t generate HTML reports')
-@click.option('--snakemake',  type = str, help = 'Additional Snakemake parameters, in quotes')
+@click.option('--snakemake', type = SnakemakeParams(), help = 'Additional Snakemake parameters, in quotes')
 @click.argument('fastq_r1', required=True, type=click.Path(exists=True, readable=True), nargs=1)
 @click.argument('fastq_r2', required=True, type=click.Path(exists=True, readable=True), nargs=1)
 def assembly(fastq_r1, fastq_r2, bx_tag, kmer_length, max_memory, output_dir, extra_params,arcs_extra,contig_length,links,min_quality,min_aligned,mismatch,molecule_distance,molecule_length,seq_identity,span, organism_type, conda, threads, snakemake, quiet, hpc, setup_only, skip_reports):

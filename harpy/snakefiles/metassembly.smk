@@ -249,7 +249,7 @@ rule QUAST_assessment:
     params:
         output_dir = f"-o {outdir}/quast",
         organism = f"--{organism}" if organism != "prokaryote" else "",
-        quast_params = "--labels contigs,scaffolds --glimmer --rna-finding" 
+        quast_params = "--labels spades_contigs,athena_scaffolds --glimmer --rna-finding" 
     threads:
         workflow.cores
     conda:

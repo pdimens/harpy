@@ -3,14 +3,14 @@
 import os
 import sys
 import yaml
-from time import sleep
 from pathlib import Path
 from rich import box
 from rich.table import Table
 import rich_click as click
 from ._conda import create_conda_recipes
 from ._misc import fetch_report, fetch_rule, snakemake_log
-from ._cli_types import  ContigList
+from ._cli_types_generic import  ContigList, InputFile, HPCProfile, SnakemakeParams
+from ._cli_types_params import BwaParams, EmaParams, StrobeAlignParams
 from ._launch import launch_snakemake
 from ._parsers import parse_fastq_inputs
 from ._printing import print_error, print_solution, print_notice
@@ -45,7 +45,7 @@ docstring = {
     "harpy align ema": [
         {
             "name": "Parameters",
-            "options": ["--ema-bins", "--extra-params", "--genome", "--keep-unmapped", "--platform", "--min-quality", "--barcode-list"],
+            "options": ["--ema-bins", "--extra-params", "--fragment-density", "--genome", "--keep-unmapped", "--platform", "--min-quality", "--barcode-list"],
         },
         {
             "name": "Workflow Controls",
@@ -65,9 +65,9 @@ docstring = {
 }
 
 @click.command(no_args_is_help = True, epilog= "Documentation: https://pdimens.github.io/harpy/workflows/align/bwa/")
-@click.option('-g', '--genome', type=click.Path(exists=True, dir_okay=False, readable=True), required = True, help = 'Genome assembly for read mapping')
+@click.option('-g', '--genome', type=InputFile("fasta", gzip_ok = True), required = True, help = 'Genome assembly for read mapping')
 @click.option('-w', '--depth-window', default = 50000, show_default = True, type = int, help = 'Interval size (in bp) for depth stats')
-@click.option('-x', '--extra-params', type = str, help = 'Additional bwa mem parameters, in quotes')
+@click.option('-x', '--extra-params', type = BwaParams(), help = 'Additional bwa mem parameters, in quotes')
 @click.option('-u', '--keep-unmapped',  is_flag = True, default = False, help = 'Retain unmapped sequences in the output')
 @click.option('-q', '--min-quality', default = 30, show_default = True, type = click.IntRange(min = 0, max = 40), help = 'Minimum mapping quality to pass filtering')
 @click.option('-d', '--molecule-distance', default = 100000, show_default = True, type = int, help = 'Distance cutoff to split molecules (bp)')
@@ -76,10 +76,10 @@ docstring = {
 @click.option('--conda',  is_flag = True, default = False, help = 'Use conda/mamba instead of a container')
 @click.option('--contigs',  type = ContigList(), help = 'File or list of contigs to plot')
 @click.option('--setup-only',  is_flag = True, hidden = True, default = False, help = 'Setup the workflow and exit')
-@click.option('--hpc',  type = click.Path(exists = True, file_okay = False, readable=True), help = 'Directory with HPC submission `config.yaml` file')
+@click.option('--hpc',  type = HPCProfile(), help = 'Directory with HPC submission `config.yaml` file')
 @click.option('--quiet',  is_flag = True, show_default = True, default = False, help = 'Don\'t show output text while running')
 @click.option('--skip-reports',  is_flag = True, show_default = True, default = False, help = 'Don\'t generate HTML reports')
-@click.option('--snakemake', type = str, help = 'Additional Snakemake parameters, in quotes')
+@click.option('--snakemake', type = SnakemakeParams(), help = 'Additional Snakemake parameters, in quotes')
 @click.argument('inputs', required=True, type=click.Path(exists=True, readable=True), nargs=-1)
 def bwa(inputs, output_dir, genome, depth_window, threads, keep_unmapped, extra_params, min_quality, molecule_distance, snakemake, skip_reports, quiet, hpc, conda, contigs, setup_only):
     """
@@ -105,7 +105,7 @@ def bwa(inputs, output_dir, genome, depth_window, threads, keep_unmapped, extra_
 
     os.makedirs(f"{workflowdir}/", exist_ok= True)
     fqlist, sample_count = parse_fastq_inputs(inputs)
-    check_fasta(genome, quiet)
+    check_fasta(genome)
     if contigs:
         fasta_contig_match(contigs, genome)
     fetch_rule(workflowdir, "align_bwa.smk")
@@ -149,10 +149,11 @@ def bwa(inputs, output_dir, genome, depth_window, threads, keep_unmapped, extra_
     launch_snakemake(command, "align_bwa", start_text, output_dir, sm_log, quiet, "workflow/align.bwa.summary")
 
 @click.command(no_args_is_help = True, context_settings=dict(allow_interspersed_args=False), epilog = "Documentation: https://pdimens.github.io/harpy/workflows/align/ema")
-@click.option('-x', '--extra-params', type = str, help = 'Additional ema align parameters, in quotes')
+@click.option('-x', '--extra-params', type = EmaParams(), help = 'Additional ema align parameters, in quotes')
+@click.option('-d', '--fragment-density',  is_flag = True, show_default = True, default = False, help = 'Perform read fragment density optimization')
 @click.option('-w', '--depth-window', default = 50000, show_default = True, type = int, help = 'Interval size (in bp) for depth stats')
 @click.option('-b', '--ema-bins', default = 500, show_default = True, type = click.IntRange(1,1000), help="Number of barcode bins")
-@click.option('-g', '--genome', type=click.Path(exists=True, dir_okay=False, readable=True), required = True, help = 'Genome assembly for read mapping')
+@click.option('-g', '--genome', type=InputFile("fasta", gzip_ok = True), required = True, help = 'Genome assembly for read mapping')
 @click.option('-u', '--keep-unmapped',  is_flag = True, default = False, help = 'Retain unmapped sequences in the output')
 @click.option('-q', '--min-quality', default = 30, show_default = True, type = click.IntRange(min = 0, max = 40), help = 'Minimum mapping quality to pass filtering')
 @click.option('-o', '--output-dir', type = click.Path(exists = False), default = "Align/ema", show_default=True,  help = 'Output directory name')
@@ -162,12 +163,12 @@ def bwa(inputs, output_dir, genome, depth_window, threads, keep_unmapped, extra_
 @click.option('--setup-only',  is_flag = True, hidden = True, default = False, help = 'Setup the workflow and exit')
 @click.option('--contigs',  type = ContigList(), help = 'File or list of contigs to plot')
 @click.option('--conda',  is_flag = True, default = False, help = 'Use conda/mamba instead of a container')
-@click.option('--hpc',  type = click.Path(exists = True, file_okay = False, readable=True), help = 'Directory with HPC submission `config.yaml` file')
+@click.option('--hpc',  type = HPCProfile(), help = 'Directory with HPC submission `config.yaml` file')
 @click.option('--quiet',  is_flag = True, show_default = True, default = False, help = 'Don\'t show output text while running')
 @click.option('--skip-reports',  is_flag = True, show_default = True, default = False, help = 'Don\'t generate HTML reports')
-@click.option('--snakemake', type = str, help = 'Additional Snakemake parameters, in quotes')
+@click.option('--snakemake', type = SnakemakeParams(), help = 'Additional Snakemake parameters, in quotes')
 @click.argument('inputs', required=True, type=click.Path(exists=True, readable=True), nargs=-1)
-def ema(inputs, output_dir, platform, barcode_list, genome, depth_window, keep_unmapped, threads, ema_bins, skip_reports, extra_params, min_quality, snakemake, quiet, hpc, conda, contigs, setup_only):
+def ema(inputs, output_dir, platform, barcode_list, fragment_density, genome, depth_window, keep_unmapped, threads, ema_bins, skip_reports, extra_params, min_quality, snakemake, quiet, hpc, conda, contigs, setup_only):
     """
     Align sequences to genome using `EMA`
 
@@ -200,13 +201,12 @@ def ema(inputs, output_dir, platform, barcode_list, genome, depth_window, keep_u
         else:
             print_solution("Running EMA requires TELLseq barcodes provided to [green]--barcode-list[/green]. They can be acquired from the TELL-read software [dim]https://www.illumina.com/products/by-type/informatics-products/basespace-sequence-hub/apps/universal-sequencing-tell-seq-data-analysis-pipeline.html[/dim]")
         sys.exit(1)
-    if platform == "haplotag" and barcode_list:
+    if platform == "haplotag" and barcode_list and not quiet:
         print_notice("Haplotag data does not require a barcode list and the file provided to [green]--barcode-list[/green] will be ignored.")
-        sleep(3)
 
     os.makedirs(f"{workflowdir}/", exist_ok= True)
     fqlist, sample_count = parse_fastq_inputs(inputs)
-    check_fasta(genome, quiet)
+    check_fasta(genome)
     if contigs:
         fasta_contig_match(contigs, genome)
     fetch_rule(workflowdir, "align_ema.smk")
@@ -220,6 +220,7 @@ def ema(inputs, output_dir, platform, barcode_list, genome, depth_window, keep_u
         "output_directory" : output_dir,
         "alignment_quality" : min_quality,
         "keep_unmapped" : keep_unmapped,
+        "fragment_density_optimization": fragment_density,
         "depth_windowsize" : depth_window,
         "platform" : platform,
         "EMA_bins" : ema_bins,
@@ -254,9 +255,9 @@ def ema(inputs, output_dir, platform, barcode_list, genome, depth_window, keep_u
     launch_snakemake(command, "align_ema", start_text, output_dir, sm_log, quiet, "workflow/align.ema.summary")
 
 @click.command(no_args_is_help = True, epilog= "Documentation: https://pdimens.github.io/harpy/workflows/align/strobe/")
-@click.option('-g', '--genome', type=click.Path(exists=True, dir_okay=False, readable=True), required = True, help = 'Genome assembly for read mapping')
+@click.option('-g', '--genome', type=InputFile("fasta", gzip_ok = True), required = True, help = 'Genome assembly for read mapping')
 @click.option('-w', '--depth-window', default = 50000, show_default = True, type = int, help = 'Interval size (in bp) for depth stats')
-@click.option('-x', '--extra-params', type = str, help = 'Additional aligner parameters, in quotes')
+@click.option('-x', '--extra-params', type = StrobeAlignParams(), help = 'Additional aligner parameters, in quotes')
 @click.option('-u', '--keep-unmapped',  is_flag = True, default = False, help = 'Retain unmapped sequences in the output')
 @click.option('-q', '--min-quality', default = 30, show_default = True, type = click.IntRange(min = 0, max = 40), help = 'Minimum mapping quality to pass filtering')
 @click.option('-d', '--molecule-distance', default = 100000, show_default = True, type = int, help = 'Distance cutoff to split molecules (bp)')
@@ -266,10 +267,10 @@ def ema(inputs, output_dir, platform, barcode_list, genome, depth_window, keep_u
 @click.option('--contigs',  type = ContigList(), help = 'File or list of contigs to plot')
 @click.option('--conda',  is_flag = True, default = False, help = 'Use conda/mamba instead of a container')
 @click.option('--setup-only',  is_flag = True, hidden = True, default = False, help = 'Setup the workflow and exit')
-@click.option('--hpc',  type = click.Path(exists = True, file_okay = False, readable=True), help = 'Directory with HPC submission `config.yaml` file')
+@click.option('--hpc',  type = HPCProfile(), help = 'Directory with HPC submission `config.yaml` file')
 @click.option('--quiet',  is_flag = True, show_default = True, default = False, help = 'Don\'t show output text while running')
 @click.option('--skip-reports',  is_flag = True, show_default = True, default = False, help = 'Don\'t generate HTML reports')
-@click.option('--snakemake', type = str, help = 'Additional Snakemake parameters, in quotes')
+@click.option('--snakemake', type = SnakemakeParams(), help = 'Additional Snakemake parameters, in quotes')
 @click.argument('inputs', required=True, type=click.Path(exists=True, readable=True), nargs=-1)
 def strobe(inputs, output_dir, genome, read_length, keep_unmapped, depth_window, threads, extra_params, min_quality, molecule_distance, snakemake, skip_reports, quiet, hpc, conda, contigs, setup_only):
     """
@@ -298,7 +299,7 @@ def strobe(inputs, output_dir, genome, read_length, keep_unmapped, depth_window,
 
     os.makedirs(f"{workflowdir}/", exist_ok= True)
     fqlist, sample_count = parse_fastq_inputs(inputs)
-    check_fasta(genome, quiet)
+    check_fasta(genome)
     if contigs:
         fasta_contig_match(contigs, genome)
     fetch_rule(workflowdir, "align_strobealign.smk")
