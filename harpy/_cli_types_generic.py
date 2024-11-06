@@ -64,7 +64,7 @@ class InputFile(click.ParamType):
             "vcf": ["vcf", "bcf", "vcf.gz"],
             "gff": [".gff",".gff3"]
         }
-        if self.filetype not in filedict.keys():
+        if self.filetype not in filedict:
             self.fail(f"Extension validation for {self.filetype} is not yet implemented. This error should only appear during development; if you are a user and seeing this, please post an issue on GitHub: https://github.com/pdimens/harpy/issues/new?assignees=&labels=bug&projects=&template=bug_report.yml")
         if not os.path.exists(value):
             self.fail(f"{value} does not exist. Please check the spelling and try again.", param, ctx)
@@ -113,5 +113,4 @@ class HPCProfile(click.ParamType):
         elif not os.access(f"{value}/config.yaml", os.R_OK):
             self.fail(f"{value}/config.yaml does not have read access. Please check the file permissions and try again.", param, ctx)
         return value
-
-### program-specific extra-params types
+    
