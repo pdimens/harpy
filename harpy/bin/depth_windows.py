@@ -23,7 +23,9 @@ for line in sys.stdin:
     # the contig has changed, make the END POSITION the last POSITION, print output
     if LAST_CONTIG and contig != LAST_CONTIG:
         WINSIZE = (POSITION + 1) - START
-        print(f"{LAST_CONTIG}\t{POSITION}\t{_SUM / WINSIZE}", file = sys.stdout)
+        if WINSIZE > 0:
+            depth = _SUM / WINSIZE
+            print(f"{LAST_CONTIG}\t{POSITION}\t{depth}", file = sys.stdout)
         # reset the window START/END and sum
         _SUM = 0
         START = 1
@@ -33,7 +35,8 @@ for line in sys.stdin:
     _SUM += int(line[2])
 
     if POSITION == END:
-        print(f"{contig}\t{END}\t{_SUM / args.windowsize}", file = sys.stdout)
+        depth = _SUM / args.windowsize
+        print(f"{contig}\t{END}\t{depth}", file = sys.stdout)
         # reset the window START/END and sum
         _SUM = 0
         START = END + 1
