@@ -126,7 +126,7 @@ for record in alnfile.fetch():
             write_invalidbx(outfile, record)
             LAST_CONTIG = chrm
             continue
-    except:
+    except KeyError:
         # There is no bx tag
         write_missingbx(outfile, record)
         LAST_CONTIG = chrm
