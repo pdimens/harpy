@@ -62,10 +62,9 @@ def write_invalidbx(bam, alnrecord):
     at the end and writes it to the output
     bam file. Keeps existing MI tag if present.
     '''
-    # will keeping an existing MI tag if present
-    # may create incorrect molecule associations by chance
+    # will not keep an existing MI tag if present
     # also remove DI because it's not necessary
-    tags = [j for j in alnrecord.get_tags() if j[0] not in ['DI', 'BX']]
+    tags = [j for j in alnrecord.get_tags() if j[0] not in ['MI', 'DI', 'BX']]
     _bx = alnrecord.get_tag("BX")
     # if hyphen is present, it's been deconvolved and shouldn't have been
     # and rm the hyphen part
