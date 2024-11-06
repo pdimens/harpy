@@ -83,11 +83,7 @@ def write_missingbx(bam, alnrecord):
     at the end and writes it to the output
     bam file. Removes existing MI tag, if exists.
     '''
-    # get all the tags except MI b/c it's being replaced (if exists)
-    # this won't write a new MI, but keeping an existing one
-    # may create incorrect molecule associations by chance
-    # also remove DI because it's not necessary
-    # removes BX... just in case. It's not supposed to be there to begin with
+     # removes MI and DI tags, writes new BX tag
     tags = [j for j in alnrecord.get_tags() if j[0] not in ['MI', 'DI', 'BX']]
     tags.append(("BX", "A00C00B00D00"))
     alnrecord.set_tags(tags)
