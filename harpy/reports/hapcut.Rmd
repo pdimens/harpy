@@ -189,7 +189,7 @@ dropdown_buttons <- function(CONTIGS, CUTOFF = 0){
 
 ```{r plotting_contigs_setup}
 plotting_contigs <- snakemake@params$contigs
-if ((length(plotting_contigs) == 1) && (plotting_contigs[1] == "default")){
+if (all(plotting_contigs == "default")){
   .contigs <- group_by(df, contig) %>%
     summarize(size = max(pos_end)) %>%
     arrange(desc(size))

@@ -586,7 +586,7 @@ contigs <- group_by(tb, contig) %>%
   summarize(size = max(position)) %>%
   arrange(desc(size))
   
-if ((length(plot_contigs) == 1) && (plot_contigs[1] == "default")){
+if (all(plot_contigs == "default")){
   # limit the data to only the 30 largest contigs
   if (nrow(contigs) > 30){
     .contigs <- contigs[1:30, ]
