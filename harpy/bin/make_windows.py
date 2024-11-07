@@ -27,7 +27,7 @@ if args.window < 1:
 testname = args.input.lower()
 
 def is_gzip(file_path):
-    """helper function to determine if a file is gzipped, exits if file isn't found"""
+    """helper function to determine if a file is gzipped"""
     try:
         with gzip.open(file_path, 'rt') as f:
             f.read(10)
