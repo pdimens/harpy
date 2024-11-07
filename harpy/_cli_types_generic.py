@@ -35,7 +35,8 @@ class KParam(click.ParamType):
             for i in parts:
                 if int(i) % 2 == 0 or int(i) > 128:
                     raise ValueError
-            return [int(i) for i in parts]
+            # make it a set as a failsafe against duplicates
+            return list(set(int(i) for i in parts))
         except ValueError:
             self.fail(f"{value} is not 'auto' or odd integers <128 separated by a comma.", param, ctx)
 
@@ -50,7 +51,8 @@ class ContigList(click.ParamType):
             with open(value, "r") as cont_in:
                 return [i.strip() for i in cont_in.readlines()]
         else:
-            return [i.strip() for i in value.split(',')]
+            # make it a set as a failsafe against duplicates
+            return list(set(i.strip() for i in value.split(',')))
 
 class InputFile(click.ParamType):
     """A class for a click type that verifies that a file exists and that it has an expected extension"""
