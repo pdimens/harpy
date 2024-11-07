@@ -25,7 +25,7 @@ parser = argparse.ArgumentParser(
     )
 
 parser.add_argument('-f', '--fai', required = True, type = str, help = "FASTA index (.fai) file of genome used for alignment")
-parser.add_argument('statsfile', required = True, help = "stats file produced by harpy via bx_stats.py")
+parser.add_argument('statsfile', help = "stats file produced by harpy via bx_stats.py")
 
 if len(sys.argv) == 1:
     parser.print_help(sys.stderr)
