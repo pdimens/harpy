@@ -9,9 +9,9 @@ parser = argparse.ArgumentParser(
     description='Create a BED file of fixed intervals from a fasta or fai file (generated with samtools faidx). Nearly identical to bedtools makewindows, except the intervals are nonoverlapping.',
     usage = "make_windows.py -w <window.size> -m <0,1> input.fasta > output.bed",
     )
-parser.add_argument("infile", required = True, type=str, metavar = "<input.fasta|fai>", help="input fasta or fasta.fai file")
-parser.add_argument("-w", dest = "window", type=int, metavar = "<window_size>", default = 10000, help="interval size (default: %(default)s)")
-parser.add_argument("-m", dest = "mode", type=int, metavar = "0 or 1 based", default = 1, help="0 or 1 based intervals (default: %(default)s)")
+parser.add_argument("infile", type=str, help="input fasta or fasta.fai file")
+parser.add_argument("-w", "--window", type=int, default = 10000, help="interval size (default: %(default)s)")
+parser.add_argument("-m", "--mode", type=int, default = 1, help="0 or 1 based intervals (default: %(default)s)")
 if len(sys.argv) == 1:
     parser.print_help(sys.stderr)
     sys.exit(1)
@@ -20,13 +20,16 @@ args = parser.parse_args()
 testname = args.infile.lower()
 
 def is_gzip(file_path):
-    """helper function to determine if a file is gzipped"""
+    """helper function to determine if a file is gzipped, exits if file isn't found"""
     try:
         with gzip.open(file_path, 'rt') as f:
             f.read(10)
         return True
     except gzip.BadGzipFile:
         return False
+    except FileNotFoundError:
+        sys.stderr.write(f"{file_path} was not found on the system\n")
+        sys.exit(1)
 
 def makewindows(_contig, _c_len, windowsize):
     """create a file of the specified windows"""
