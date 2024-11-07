@@ -12,7 +12,7 @@ parser = argparse.ArgumentParser(
     )
 parser.add_argument("input", type=str, help="input fasta or fasta.fai file")
 parser.add_argument("-w", "--window", type=int, default = 10000, help="interval size (default: %(default)s)")
-parser.add_argument("-m", "--mode", type=int, default = 1, help="0 or 1 based intervals (default: %(default)s)")
+parser.add_argument("-m", "--mode", type=int, default = 1, choices = [0,1], help="0 or 1 based intervals (default: %(default)s)")
 if len(sys.argv) == 1:
     parser.print_help(sys.stderr)
     sys.exit(1)
@@ -20,7 +20,10 @@ if len(sys.argv) == 1:
 args = parser.parse_args()
 if not os.path.exists(args.input):
     parser.error(f"{args.input} was not found")
-    
+
+if args.window < 1:
+    parser.error("window size cannot be less than 1")
+
 testname = args.input.lower()
 
 def is_gzip(file_path):
@@ -31,9 +34,6 @@ def is_gzip(file_path):
         return True
     except gzip.BadGzipFile:
         return False
-    except FileNotFoundError:
-        sys.stderr.write(f"{file_path} was not found on the system\n")
-        sys.exit(1)
 
 def makewindows(_contig, _c_len, windowsize):
     """create a file of the specified windows"""
@@ -92,5 +92,4 @@ elif testname.endswith("fasta") or testname.endswith("fa") or testname.endswith(
             makewindows(contig, C_LEN, args.window)
     fopen.close()
 else:
-    sys.stderr.write("Input file not recognized as ending in one of .fai, .fasta[.gz], .fa[.gz] (case insensitive).\n")
-    sys.exit(1)
+    parser.error(f"{args.input} is not recognized as ending in one of .fai, .fasta[.gz], .fa[.gz] (case insensitive).\n")
