@@ -1,5 +1,6 @@
 #! /usr/bin/env python
 """calculate linked-read metrics from barcode information"""
+import os
 import re
 import sys
 import gzip
@@ -29,6 +30,9 @@ if len(sys.argv) == 1:
     sys.exit(1)
 
 args = parser.parse_args()
+if not os.path.exists(args.input):
+    parser.error(f"{args.input} was not found")
+
 alnfile = pysam.AlignmentFile(args.input)
 outfile = gzip.open(args.output, "wb", 6)
 outfile.write(b"contig\tmolecule\treads\tstart\tend\tlength_inferred\taligned_bp\tinsert_len\tcoverage_bp\tcoverage_inserts\n")

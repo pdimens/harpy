@@ -20,7 +20,7 @@ if len(sys.argv) == 1:
 args = parser.parse_args()
 
 if not os.path.exists(args.input):
-    parser.error(f"The file {args.input} does not exist :(")
+    parser.error(f"{args.input} was not found")
 
 outdir = os.path.dirname(args.input)
 

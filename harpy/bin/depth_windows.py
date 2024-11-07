@@ -15,8 +15,7 @@ if len(sys.argv) == 1:
 
 args = parser.parse_args()
 if args.windowsize < 1:
-    sys.stderr.write("Error: window size must be greater than 0\n")
-    sys.exit(1)
+    parser.error("Error: window size must be greater than 0")
 if args.windowsize == 1:
     # just print the input to output
     for line in sys.stdin:

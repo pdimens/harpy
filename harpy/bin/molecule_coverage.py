@@ -1,6 +1,7 @@
 #! /usr/bin/env python
 """Using the ranges of BX molecule start/stop positions, calculates "molecular coverage" across the genome."""
 
+import os
 import sys
 import gzip
 import argparse
@@ -31,6 +32,12 @@ if len(sys.argv) == 1:
     sys.exit(1)
 
 args = parser.parse_args()
+err = []
+for i in [args.statsfile, args.fai]:
+    if not os.path.exists(i):
+        err.append(i)
+if err:
+    parser.error("Input files were not found:\n" + ", ".join(err))
 
 # main program
 contigs = {}

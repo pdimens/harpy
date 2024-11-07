@@ -25,6 +25,8 @@ if len(sys.argv) == 1:
     sys.exit(1)
 
 args = parser.parse_args()
+if not os.path.exists(args.input):
+    parser.error(f"{args.input} was not found")
 
 fq_in = args.input
 

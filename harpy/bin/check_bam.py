@@ -26,6 +26,8 @@ if len(sys.argv) == 1:
     sys.exit(1)
 
 args = parser.parse_args()
+if not os.path.exists(args.input):
+    parser.error(f"{args.input} was not found")
 
 bam_in = args.input
 if bam_in.lower().endswith(".bam"):

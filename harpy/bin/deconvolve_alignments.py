@@ -1,7 +1,7 @@
 #! /usr/bin/env python
 """deconvolve BX-tagged barcodes and assign molecular identifier (MI) tags to alignments based on distance and barcode"""
-import re
 import os
+import re
 import sys
 import argparse
 import pysam
@@ -29,6 +29,8 @@ if len(sys.argv) == 1:
     sys.exit(1)
 
 args = parser.parse_args()
+if not os.path.exists(args.input):
+    parser.error(f"{args.input} was not found")
 
 def write_validbx(bam, alnrecord, bx_tag, mol_id):
     '''

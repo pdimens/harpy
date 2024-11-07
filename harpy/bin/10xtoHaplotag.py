@@ -21,13 +21,12 @@ if len(sys.argv) == 1:
     parser.print_help(sys.stderr)
     sys.exit(1)
 args = parser.parse_args()
-err = False
+err = []
 for i in [args.forward, args.reverse, args.barcodes]:
     if not os.path.exists(i):
-        err = True
-        sys.stderr.write(f"{i} does not exist\n")
+        err.append(i)
 if err:
-    sys.exit(1)
+    parser.error("Some input files were not found on the system:\n" + ", ".join(err))
 
 def process_record(fw_entry, rv_entry):
     """convert the 10X to haplotag"""

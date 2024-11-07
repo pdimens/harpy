@@ -1,5 +1,6 @@
 #! /usr/bin/env python
 """Create a BED file of fixed intervals from a fasta or fai file"""
+import os
 import sys
 import gzip
 import argparse
@@ -9,7 +10,7 @@ parser = argparse.ArgumentParser(
     description='Create a BED file of fixed intervals from a fasta or fai file (generated with samtools faidx). Nearly identical to bedtools makewindows, except the intervals are nonoverlapping.',
     usage = "make_windows.py -w <window.size> -m <0,1> input.fasta > output.bed",
     )
-parser.add_argument("infile", type=str, help="input fasta or fasta.fai file")
+parser.add_argument("input", type=str, help="input fasta or fasta.fai file")
 parser.add_argument("-w", "--window", type=int, default = 10000, help="interval size (default: %(default)s)")
 parser.add_argument("-m", "--mode", type=int, default = 1, help="0 or 1 based intervals (default: %(default)s)")
 if len(sys.argv) == 1:
@@ -17,7 +18,10 @@ if len(sys.argv) == 1:
     sys.exit(1)
 
 args = parser.parse_args()
-testname = args.infile.lower()
+if not os.path.exists(args.input):
+    parser.error(f"{args.input} was not found")
+    
+testname = args.input.lower()
 
 def is_gzip(file_path):
     """helper function to determine if a file is gzipped, exits if file isn't found"""
@@ -47,7 +51,7 @@ def makewindows(_contig, _c_len, windowsize):
         sys.stdout.write(f"{_contig}\t{startpos}\t{endpos}\n")
 
 if testname.endswith("fai"):
-    with open(args.infile, "r", encoding="utf-8") as fai:
+    with open(args.input, "r", encoding="utf-8") as fai:
         while True:
             line = fai.readline()
             if not line:
@@ -59,10 +63,10 @@ if testname.endswith("fai"):
             makewindows(contig, c_len, args.window)
 
 elif testname.endswith("fasta") or testname.endswith("fa") or testname.endswith("fasta.gz") or testname.endswith("fa.gz"):
-    if is_gzip(args.infile):
-        fopen = gzip.open(args.infile, "rt")
+    if is_gzip(args.input):
+        fopen = gzip.open(args.input, "rt")
     else:
-        fopen = open(args.infile, "r", encoding="utf-8")
+        fopen = open(args.input, "r", encoding="utf-8")
     line = fopen.readline()
     while True:
         C_LEN=0

@@ -1,22 +1,27 @@
 #! /usr/bin/env python
 """Parse a phase block file from HapCut2 to pull out summary information"""
-import argparse
+
+import os
 import sys
+import argparse
 
 parser = argparse.ArgumentParser(
     prog='parse_phaseblocks.py',
     description='Parse a phase block file from HapCut2 to pull out summary information',
-    usage = "parse_phaseblocks.py infile > output.txt"
+    usage = "parse_phaseblocks.py input > output.txt"
     )
-parser.add_argument("infile", type=str, help="input HapCut2 phase blocks file")
+parser.add_argument("input", type=str, help="input HapCut2 phase blocks file")
 if len(sys.argv) == 1:
     parser.print_help(sys.stderr)
     sys.exit(1)
 
 args = parser.parse_args()
-samplename = args.infile.replace(".blocks", "")
+if not os.path.exists(args.input):
+    parser.error(f"{args.input} was not found\n")
 
-with open(args.infile, "r", encoding="utf-8") as blocks:
+samplename = args.input.replace(".blocks", "")
+
+with open(args.input, "r", encoding="utf-8") as blocks:
     FIRST_LINE = True
     while True:
         line = blocks.readline()

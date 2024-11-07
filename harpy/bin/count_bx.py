@@ -1,5 +1,6 @@
 #! /usr/bin/env python
 """parse a fastq file to count BX stats"""
+import os
 import re
 import sys
 import argparse
@@ -24,6 +25,8 @@ if len(sys.argv) == 1:
     sys.exit(1)
 
 args = parser.parse_args()
+if not os.path.exists(args.input):
+    parser.error(f"{args.input} was not found")
 
 N_READS = 0
 N_BX = 0

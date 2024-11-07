@@ -43,6 +43,14 @@ else:
     else:
         aln_list = args.alignments
 
+# validate files exist
+err = []
+for i in aln_list:
+    if not os.path.exists(i):
+        err.append(i)
+if err:
+    parser.error("Some input files were not found on the system:\n" + ", ".join(err))
+
 # instantiate output file
 if aln_list[0].lower().endswith(".bam"):
     if not os.path.exists(f"{aln_list[0]}.bai"):
