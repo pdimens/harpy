@@ -98,10 +98,12 @@ if not os.path.exists(bam_input):
     sys.stderr.write(f"Error: {bam_input} not found\n")
     sys.exit(1)
 
-if bam_input.lower().endswith(".bam"):
-    if not os.path.exists(bam_input + ".bai"):
+if bam_input.lower().endswith(".bam") and not os.path.exists(bam_input + ".bai"):
+    try:
         pysam.index(bam_input)
-
+    except (OSError, pysam.SamtoolsError) as e:
+        sys.stderr.write(f"Error indexing BAM file: {e}\n")
+        sys.exit(1)
 # iniitalize input/output files
 alnfile = pysam.AlignmentFile(bam_input)
 outfile = pysam.AlignmentFile(args.output, "wb", template = alnfile)
@@ -198,7 +200,9 @@ for record in alnfile.fetch():
     LAST_CONTIG = chrm
 
 alnfile.close()
-outfile.close()
-
 # index the output file
-pysam.index(args.output)
+try:
+    pysam.index(args.output)
+except (OSError, pysam.SamtoolsError) as e:
+    sys.stderr.write(f"Error indexing output BAM file: {e}\n")
+    sys.exit(1)
