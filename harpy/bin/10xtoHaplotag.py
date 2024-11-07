@@ -1,7 +1,8 @@
 #! /usr/bin/env python
 """Convert 10X style barcodes into Haplotag style ones"""
-import gzip
+import os
 import sys
+import gzip
 import argparse
 from itertools import zip_longest, product
 
@@ -20,6 +21,13 @@ if len(sys.argv) == 1:
     parser.print_help(sys.stderr)
     sys.exit(1)
 args = parser.parse_args()
+err = False
+for i in [args.forward, args.reverse, args.barcodes]:
+    if not os.path.exists(i):
+        err = True
+        sys.stderr.write(f"{i} does not exist\n")
+if err:
+    sys.exit(1)
 
 def process_record(fw_entry, rv_entry):
     """convert the 10X to haplotag"""
