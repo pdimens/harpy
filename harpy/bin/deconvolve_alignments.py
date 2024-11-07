@@ -95,7 +95,7 @@ LAST_CONTIG = False
 MI = 0
 
 if not os.path.exists(bam_input):
-    print(f"Error: {bam_input} not found", file = sys.stderr)
+    sys.stderr.write(f"Error: {bam_input} not found\n")
     sys.exit(1)
 
 if bam_input.lower().endswith(".bam"):

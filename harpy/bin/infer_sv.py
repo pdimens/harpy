@@ -11,7 +11,7 @@ parser = argparse.ArgumentParser(
     )
 
 parser.add_argument("bedfile", help = "Input bedpe file containing the output of NAIBR.")
-parser.add_argument("-f", "--fail", dest = "failfile", required = False, type=str, metavar = "<failed.bedpe>", help="output variants who fail filtering into separate file")
+parser.add_argument("-f", "--fail", dest = "failfile", type=str, metavar = "fail.bedpe", help="output variants who fail filtering into separate file")
 
 if len(sys.argv) == 1:
     parser.print_help(sys.stderr)

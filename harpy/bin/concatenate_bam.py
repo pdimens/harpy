@@ -27,12 +27,10 @@ if len(sys.argv) == 1:
 args = parser.parse_args()
 
 if (args.alignments and args.bamlist):
-    print("Please provide a single file to \'--bamlist\' (-b) featuring all the files you want to concatenate (one per line):", file = sys.stderr)
-    print("[example]: concatenate_bam.py -o c_acronotus.bam -b alignments.txt\n", file = sys.stderr)
-    
-    print("Alternatively, provide the files after \'-o output.bam\':", file = sys.stderr)
-    print("[example]: concatenate_bam.py -o c_acronotus.bam sample1.bam sample2.bam", file = sys.stderr)
-
+    sys.stderr.write("Please provide a single file to \'--bamlist\' (-b) featuring all the files you want to concatenate (one per line):\n")
+    sys.stderr.write("[example]: concatenate_bam.py -o c_acronotus.bam -b alignments.txt\n\n")
+    sys.stderr.write("Alternatively, provide the files after \'-o output.bam\':\n",)
+    sys.stderr.write("[example]: concatenate_bam.py -o c_acronotus.bam sample1.bam sample2.bam\n")
     sys.exit(1)
 
 if args.bamlist:

@@ -19,12 +19,12 @@ parser = argparse.ArgumentParser(
     FASTA fai index (like the kind created using samtools faidx)
     to know the actual sizes of the contigs.
     """,
-    usage = "molecule_coverage.py -f genome.fasta.fai STATSFILE > output.cov",
+    usage = "molecule_coverage.py -f genome.fasta.fai statsfile > output.cov",
     exit_on_error = False
     )
 
-parser.add_argument('-f', '--fai', type = str, help = "FASTA index (.fai) file of genome used for alignment")
-parser.add_argument('statsfile', help = "stats file produced by harpy via bx_stats.py")
+parser.add_argument('-f', '--fai', required = True, type = str, help = "FASTA index (.fai) file of genome used for alignment")
+parser.add_argument('statsfile', required = True, help = "stats file produced by harpy via bx_stats.py")
 
 if len(sys.argv) == 1:
     parser.print_help(sys.stderr)
@@ -69,7 +69,7 @@ with gzip.open(args.statsfile, "rt") as statsfile:
         if val.strip() == "end":
             IDX_END = idx
     if IDX_CONTIG is None or IDX_START is None or IDX_END is None:
-        print("Error: Required columns 'contig', 'start', or 'end' not found in header", file=sys.stderr)
+        sys.stderr.write("Error: Required columns 'contig', 'start', or 'end' not found in header\n")
         sys.exit(1)
     while True:
         line = statsfile.readline()

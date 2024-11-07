@@ -1,28 +1,34 @@
 #! /usr/bin/env python
 """Create a BED file of fixed intervals from a fasta or fai file"""
-import argparse
 import sys
+import gzip
+import argparse
 
 parser = argparse.ArgumentParser(
     prog='make_windows.py',
-    description='Create a BED file of fixed intervals from a fasta or fai file (generated with samtools faidx). Nearly identical to bedtools makewindows, except the intervals are nonoverlapping.'
+    description='Create a BED file of fixed intervals from a fasta or fai file (generated with samtools faidx). Nearly identical to bedtools makewindows, except the intervals are nonoverlapping.',
+    usage = "make_windows.py -w <window.size> -m <0,1> input.fasta > output.bed",
     )
-parser.add_argument("-i", dest = "infile", required = True, type=str, metavar = "<input.fasta|fai>", help="input fasta or fasta.fai file")
-parser.add_argument("-o", dest = "outfile", required = True, type=str, metavar = "<output.bed>", help="output BED file name")
+parser.add_argument("infile", required = True, type=str, metavar = "<input.fasta|fai>", help="input fasta or fasta.fai file")
 parser.add_argument("-w", dest = "window", type=int, metavar = "<window_size>", default = 10000, help="interval size (default: %(default)s)")
 parser.add_argument("-m", dest = "mode", type=int, metavar = "0 or 1 based", default = 1, help="0 or 1 based intervals (default: %(default)s)")
+if len(sys.argv) == 1:
+    parser.print_help(sys.stderr)
+    sys.exit(1)
 
 args = parser.parse_args()
 testname = args.infile.lower()
-outbed = open(args.outfile, "w", encoding="utf-8")
 
-def readinput(infile, filestream):
-    """automatically read as compressed or not"""
-    if infile.endswith("gz"):
-        return filestream.readline().decode()
-    return filestream.readline()
+def is_gzip(file_path):
+    """helper function to determine if a file is gzipped"""
+    try:
+        with gzip.open(file_path, 'rt') as f:
+            f.read(10)
+        return True
+    except gzip.BadGzipFile:
+        return False
 
-def makewindows(_contig, _c_len, windowsize, outfile):
+def makewindows(_contig, _c_len, windowsize):
     """create a file of the specified windows"""
     start = args.mode
     end = min(_c_len, windowsize)
@@ -35,32 +41,26 @@ def makewindows(_contig, _c_len, windowsize, outfile):
         starts.append(start)
     # write to output file
     for (startpos, endpos) in zip (starts,ends):
-        outfile.write(f"{_contig}\t{startpos}\t{endpos}\n")
+        sys.stdout.write(f"{_contig}\t{startpos}\t{endpos}\n")
 
 if testname.endswith("fai"):
     with open(args.infile, "r", encoding="utf-8") as fai:
         while True:
-            # Get next line from file
             line = fai.readline()
-            # if line is empty
-            # end of file is reached
             if not line:
                 break
-            # split the line by tabs
             lsplit = line.split("\t")
             contig = lsplit[0]
             c_len = int(lsplit[1])
             c_len += args.mode
-            makewindows(contig, c_len, args.window, outbed)
-        outbed.close()
+            makewindows(contig, c_len, args.window)
 
-elif testname.endswith("fasta") or testname.endswith("fa") or testname.endswith("gz"):
-    if testname.endswith("gz"):
-        import gzip
-        fopen = gzip.open(args.infile, "r")
+elif testname.endswith("fasta") or testname.endswith("fa") or testname.endswith("fasta.gz") or testname.endswith("fa.gz"):
+    if is_gzip(args.infile):
+        fopen = gzip.open(args.infile, "rt")
     else:
         fopen = open(args.infile, "r", encoding="utf-8")
-    line = readinput(testname, fopen)
+    line = fopen.readline()
     while True:
         C_LEN=0
         if not line:
@@ -71,7 +71,7 @@ elif testname.endswith("fasta") or testname.endswith("fa") or testname.endswith(
             # keep reading until hitting another ">"
             HEADER = False
             while not HEADER:
-                line = readinput(testname, fopen)
+                line = fopen.readline()
                 if not line:
                     break
                 line = line.rstrip("\n")
@@ -82,9 +82,8 @@ elif testname.endswith("fasta") or testname.endswith("fa") or testname.endswith(
                     C_LEN += len(line)-1
                     HEADER = False
             C_LEN += args.mode
-            makewindows(contig, C_LEN, args.window, outbed)
-    outbed.close()
+            makewindows(contig, C_LEN, args.window)
     fopen.close()
 else:
-    print("Input file not recognized as ending in one of .fai, .fasta, .fa, or .gz (case insensitive).", file = sys.stderr)
+    sys.stderr.write("Input file not recognized as ending in one of .fai, .fasta[.gz], .fa[.gz] (case insensitive).\n")
     sys.exit(1)

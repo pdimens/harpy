@@ -71,6 +71,5 @@ for record in alnfile.fetch():
 
 alnfile.close()
 
-
 values = [str(i) for i in [os.path.basename(bam_in), NAME_MISMATCH, N_READS, NO_MI, NO_BX, BAD_BX, BX_NOT_LAST]]
-print("\t".join(values), file = sys.stdout)
+sys.stdout.write("\t".join(values) + "\n")
