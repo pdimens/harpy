@@ -57,6 +57,7 @@ bwa: &bwa
   - 'harpy/bin/count_bx.py'
   - 'harpy/bin/assign_mi.py'
   - 'harpy/bin/make_windows.py'
+  - 'harpy/bin/depth_windows.py'
   - 'test/fastq/**'
 ema: &ema
   - *common
@@ -68,6 +69,7 @@ ema: &ema
   - 'harpy/bin/bx_stats.py'
   - 'harpy/bin/count_bx.py'
   - 'harpy/bin/make_windows.py'
+  - 'harpy/bin/depth_windows.py'
   - 'test/fastq/**'
 strobealign: &strobealign
   - *common
@@ -80,6 +82,7 @@ strobealign: &strobealign
   - 'harpy/bin/bx_stats.py'
   - 'harpy/bin/count_bx.py'
   - 'harpy/bin/make_windows.py'
+  - 'harpy/bin/depth_windows.py'
   - 'test/fastq/**'
 mpileup: &mpileup
   - *common

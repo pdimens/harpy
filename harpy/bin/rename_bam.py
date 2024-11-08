@@ -6,10 +6,11 @@ import argparse
 
 parser = argparse.ArgumentParser(
     prog='rename_bam.py',
-    description='Rename a sam/bam file and modify the @RG tag of the alignment file to reflect the change for both ID and SM. This process creates a new file \'newname.bam\' and you may use -d to delete the original file. Requires samtools.'
+    description='Rename a sam/bam file and modify the @RG tag of the alignment file to reflect the change for both ID and SM. This process creates a new file \'newname.bam\' and you may use -d to delete the original file. Requires samtools.',
+    usage = "rename_bam.py [-d] new_name input.bam"
     )
-parser.add_argument("input", type=str, metavar = "input.bam", help="input bam or sam file")
-parser.add_argument("name", type=str, metavar = "new_name", help="new sample name")
+parser.add_argument("name", type=str, help="new sample name")
+parser.add_argument("input", type=str, help="input bam or sam file")
 parser.add_argument("-d", "--delete", dest = "delete", action='store_true', help="delete the original file")
 
 if len(sys.argv) == 1:
@@ -19,7 +20,7 @@ if len(sys.argv) == 1:
 args = parser.parse_args()
 
 if not os.path.exists(args.input):
-    parser.error(f"The file {args.input} does not exist :(")
+    parser.error(f"{args.input} was not found")
 
 outdir = os.path.dirname(args.input)
 

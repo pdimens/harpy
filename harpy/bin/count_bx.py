@@ -1,5 +1,6 @@
 #! /usr/bin/env python
 """parse a fastq file to count BX stats"""
+import os
 import re
 import sys
 import argparse
@@ -24,15 +25,14 @@ if len(sys.argv) == 1:
     sys.exit(1)
 
 args = parser.parse_args()
+if not os.path.exists(args.input):
+    parser.error(f"{args.input} was not found")
 
 N_READS = 0
 N_BX = 0
 N_VALID = 0
-# haplotag = re.compile("([A-Z]\d{2,}){3,}")
 haplotag = re.compile('A[0-9]{2}C[0-9]{2}B[0-9]{2}D[0-9]{2}')
-# invalid = re.compile('[A-Z]00')
 invalid = re.compile('[AaBbCcDd]00')
-# inv_dict = {}
 inv_dict = {
     "A" : 0,
     "B" : 0,
@@ -58,11 +58,11 @@ with pysam.FastxFile(args.input) as fh:
                     continue
                 N_VALID += 1
 
-print(f"totalReads\t{N_READS}", file = sys.stdout)
-print(f"bxTagCount\t{N_BX}", file = sys.stdout)
-print(f"bxValid\t{N_VALID}", file = sys.stdout)
-print(f"bxInvalid\t{N_BX - N_VALID}", file = sys.stdout)
-print("A00\t",str(inv_dict["A"]), file = sys.stdout)
-print("C00\t",str(inv_dict["C"]), file = sys.stdout)
-print("B00\t",str(inv_dict["B"]), file = sys.stdout)
-print("D00\t",str(inv_dict["D"]), file = sys.stdout)
+sys.stdout.write(f"totalReads\t{N_READS}\n")
+sys.stdout.write(f"bxTagCount\t{N_BX}\n")
+sys.stdout.write(f"bxValid\t{N_VALID}\n")
+sys.stdout.write(f"bxInvalid\t{N_BX - N_VALID}\n")
+sys.stdout.write(f"A00\t{inv_dict['A']}\n")
+sys.stdout.write(f"C00\t{inv_dict['C']}\n")
+sys.stdout.write(f"B00\t{inv_dict['B']}\n")
+sys.stdout.write(f"D00\t{inv_dict['D']}\n")

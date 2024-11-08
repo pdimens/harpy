@@ -25,6 +25,8 @@ if len(sys.argv) == 1:
     sys.exit(1)
 
 args = parser.parse_args()
+if not os.path.exists(args.input):
+    parser.error(f"{args.input} was not found")
 
 fq_in = args.input
 
@@ -61,4 +63,4 @@ with pysam.FastxFile(fq_in, persist=False) as fh:
             NO_BX += 1
 
 values = [str(i) for i in [os.path.basename(fq_in), N_READS, NO_BX, BAD_BX, BAD_SAM_SPEC, BX_NOT_LAST]]
-print("\t".join(values), file = sys.stdout)
+sys.stdout.write("\t".join(values) + "\n")

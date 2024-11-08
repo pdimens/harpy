@@ -35,7 +35,8 @@ class KParam(click.ParamType):
             for i in parts:
                 if int(i) % 2 == 0 or int(i) > 128:
                     raise ValueError
-            return [int(i) for i in parts]
+            # make it a set as a failsafe against duplicates
+            return list(set(int(i) for i in parts))
         except ValueError:
             self.fail(f"{value} is not 'auto' or odd integers <128 separated by a comma.", param, ctx)
 
@@ -50,7 +51,8 @@ class ContigList(click.ParamType):
             with open(value, "r") as cont_in:
                 return [i.strip() for i in cont_in.readlines()]
         else:
-            return [i.strip() for i in value.split(',')]
+            # make it a set as a failsafe against duplicates
+            return list(set(i.strip() for i in value.split(',')))
 
 class InputFile(click.ParamType):
     """A class for a click type that verifies that a file exists and that it has an expected extension"""
@@ -64,7 +66,7 @@ class InputFile(click.ParamType):
             "vcf": ["vcf", "bcf", "vcf.gz"],
             "gff": [".gff",".gff3"]
         }
-        if self.filetype not in filedict.keys():
+        if self.filetype not in filedict:
             self.fail(f"Extension validation for {self.filetype} is not yet implemented. This error should only appear during development; if you are a user and seeing this, please post an issue on GitHub: https://github.com/pdimens/harpy/issues/new?assignees=&labels=bug&projects=&template=bug_report.yml")
         if not os.path.exists(value):
             self.fail(f"{value} does not exist. Please check the spelling and try again.", param, ctx)
@@ -113,5 +115,4 @@ class HPCProfile(click.ParamType):
         elif not os.access(f"{value}/config.yaml", os.R_OK):
             self.fail(f"{value}/config.yaml does not have read access. Please check the file permissions and try again.", param, ctx)
         return value
-
-### program-specific extra-params types
+    

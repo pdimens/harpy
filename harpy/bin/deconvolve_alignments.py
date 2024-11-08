@@ -1,28 +1,28 @@
 #! /usr/bin/env python
-"""assign molecular identifier (MI) tags to alignments based on distance and barcode"""
-import re
+"""deconvolve BX-tagged barcodes and assign molecular identifier (MI) tags to alignments based on distance and barcode"""
 import os
+import re
 import sys
 import argparse
 import pysam
 
 parser = argparse.ArgumentParser(
-    prog = 'assign_mi.py',
+    prog = 'deconvolve_alignments.py',
     description =
     """
-    Assign an MI:i: (Molecular Identifier) tag to each barcoded
-    record based on a molecular distance cutoff. Unmapped records
+    Deconvolve BX-tagged barcodes and assign an MI:i: (Molecular Identifier)
+    tag to each barcoded record based on a molecular distance cutoff. Unmapped records
     are discarded in the output. Records without a BX:Z: tag or
     with an invalid barcode (00 as one of its segments) are presevered
     but are not assigned an MI:i tag. Input file MUST BE COORDINATE SORTED.
     """,
-    usage = "assign_mi.py -c cutoff -o output.bam input.bam",
+    usage = "deconvolve_alignments.py -c cutoff -o output.bam input.bam",
     exit_on_error = False
     )
 
-parser.add_argument('-c','--cutoff', type=int, default = 100000, help = "Distance in base pairs at which alignments with the same barcode should be considered different molecules. (default: 100000)")
-parser.add_argument('-o', '--output', help = "Output bam file. Will also create an index file.")
-parser.add_argument('input', help = "Input coordinate-sorted bam/sam file. If bam, a matching index file should be in the same directory.")
+parser.add_argument('-c','--cutoff', type=int, default = 100000, help = "Distance in base pairs at which alignments with the same barcode should be considered different molecules (default: 100000)")
+parser.add_argument('-o', '--output', help = "Output bam file")
+parser.add_argument('input', help = "Input coordinate-sorted bam/sam file")
 
 if len(sys.argv) == 1:
     parser.print_help(sys.stderr)
@@ -32,7 +32,7 @@ args = parser.parse_args()
 if not os.path.exists(args.input):
     parser.error(f"{args.input} was not found")
 
-def write_validbx(bam, alnrecord, mol_id):
+def write_validbx(bam, alnrecord, bx_tag, mol_id):
     '''
     bam: the output bam
     alnrecord: the pysam alignment record
@@ -46,12 +46,7 @@ def write_validbx(bam, alnrecord, mol_id):
     # also remove DI because it's not necessary
     tags = [j for j in alnrecord.get_tags() if j[0] not in ['MI', 'DI', 'BX']]
     tags.append(("MI", mol_id))
-    _bx = alnrecord.get_tag("BX")
-    if "-" in _bx:
-        # it's been deconvolved, set it to a DX tag
-        tags.append(("DX", _bx))
-    bx_clean = _bx.split("-")[0]
-    tags.append(("BX", bx_clean))
+    tags.append(("BX", bx_tag))
     alnrecord.set_tags(tags)
     # write record to output file
     bam.write(alnrecord)
@@ -85,7 +80,7 @@ def write_missingbx(bam, alnrecord):
     at the end and writes it to the output
     bam file. Removes existing MI tag, if exists.
     '''
-     # removes MI and DI tags, writes new BX tag
+    # removes MI and DI tags, writes new BX tag
     tags = [j for j in alnrecord.get_tags() if j[0] not in ['MI', 'DI', 'BX']]
     tags.append(("BX", "A00C00B00D00"))
     alnrecord.set_tags(tags)
@@ -105,10 +100,12 @@ if not os.path.exists(bam_input):
     sys.stderr.write(f"Error: {bam_input} not found\n")
     sys.exit(1)
 
-if bam_input.lower().endswith(".bam"):
-    if not os.path.exists(bam_input + ".bai"):
+if bam_input.lower().endswith(".bam") and not os.path.exists(bam_input + ".bai"):
+    try:
         pysam.index(bam_input)
-
+    except (OSError, pysam.SamtoolsError) as e:
+        sys.stderr.write(f"Error indexing BAM file: {e}\n")
+        sys.exit(1)
 # iniitalize input/output files
 alnfile = pysam.AlignmentFile(bam_input)
 outfile = pysam.AlignmentFile(args.output, "wb", template = alnfile)
@@ -133,7 +130,7 @@ for record in alnfile.fetch():
             write_invalidbx(outfile, record)
             LAST_CONTIG = chrm
             continue
-    except:
+    except KeyError:
         # There is no bx tag
         write_missingbx(outfile, record)
         LAST_CONTIG = chrm
@@ -161,7 +158,7 @@ for record in alnfile.fetch():
             "mol_id": MI
         }
         # write and move on
-        write_validbx(outfile, record, MI)
+        write_validbx(outfile, record, bx, MI)
         LAST_CONTIG = chrm
         continue
 
@@ -169,7 +166,7 @@ for record in alnfile.fetch():
     orig = bx
     # if there is a suffix, append it to the barcode name
     if d[orig]["current_suffix"] > 0:
-        bx = orig + "." + str(d[orig]["current_suffix"])
+        bx = orig + "-" + str(d[orig]["current_suffix"])
 
     # distance from last alignment = current aln start - previous aln end
     dist = pos_start - d[bx]["lastpos"]
@@ -181,7 +178,7 @@ for record in alnfile.fetch():
         MI += 1
         # increment original barcode's suffix
         d[orig]["current_suffix"] += 1
-        bx = orig + "." + str(d[orig]["current_suffix"])
+        bx = orig + "-" + str(d[orig]["current_suffix"])
         # add new entry for new suffixed barcode with unique MI
         d[bx] = {
             "lastpos" : pos_end,
@@ -189,7 +186,7 @@ for record in alnfile.fetch():
             "mol_id": MI
         }
         # write and move on
-        write_validbx(outfile, record, MI)
+        write_validbx(outfile, record, bx, MI)
         LAST_CONTIG = chrm
         continue
 
@@ -199,13 +196,15 @@ for record in alnfile.fetch():
 
     # if it hasn't moved on by now, it's a record for an
     # existing barcode/molecule. Write the record.
-    write_validbx(outfile, record, d[bx]["mol_id"])
+    write_validbx(outfile, record, bx, d[bx]["mol_id"])
 
     # update the chromosome tracker
     LAST_CONTIG = chrm
 
 alnfile.close()
-outfile.close()
-
 # index the output file
-pysam.index(args.output)
+try:
+    pysam.index(args.output)
+except (OSError, pysam.SamtoolsError) as e:
+    sys.stderr.write(f"Error indexing output BAM file: {e}\n")
+    sys.exit(1)

@@ -26,6 +26,8 @@ if len(sys.argv) == 1:
     sys.exit(1)
 
 args = parser.parse_args()
+if not os.path.exists(args.input):
+    parser.error(f"{args.input} was not found")
 
 bam_in = args.input
 if bam_in.lower().endswith(".bam"):
@@ -71,6 +73,5 @@ for record in alnfile.fetch():
 
 alnfile.close()
 
-
 values = [str(i) for i in [os.path.basename(bam_in), NAME_MISMATCH, N_READS, NO_MI, NO_BX, BAD_BX, BX_NOT_LAST]]
-print("\t".join(values), file = sys.stdout)
+sys.stdout.write("\t".join(values) + "\n")

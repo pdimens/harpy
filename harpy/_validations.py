@@ -167,7 +167,7 @@ def validate_bam_RG(bamlist, threads, quiet):
         samplename = Path(bamfile).stem
         samview = subprocess.run(f"samtools samples {bamfile}".split(), stdout = subprocess.PIPE).stdout.decode('utf-8').split()
         if samplename != samview[0]:
-            return os.path.basename(i), samview[0]
+            return os.path.basename(bamfile), samview[0]
 
     with harpy_progressbar(quiet) as progress:
         task_progress = progress.add_task("[green]Checking RG tags...", total=len(bamlist))

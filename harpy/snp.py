@@ -99,14 +99,13 @@ def mpileup(inputs, output_dir, regions, genome, threads, populations, ploidy, e
 
     # setup regions checks
     regtype = validate_regions(regions, genome)
+    region = Path(f"{workflowdir}/positions.bed").resolve()
     if regtype == "windows":
-        region = Path(f"{workflowdir}/positions.bed").resolve()
-        os.system(f"make_windows.py -m 1 -i {genome} -o {region} -w {regions}")
-    elif regtype == "region":
-        region = regions
-    else:
-        region = Path(f"{workflowdir}/positions.bed").resolve()
+        os.system(f"make_windows.py -m 1 -w {regions} {genome} > {region}")
+    elif regtype == "file":
         os.system(f"cp -f {regions} {region}")
+    else:
+        region = regions
 
     fetch_rule(workflowdir, "snp_mpileup.smk")
     fetch_report(workflowdir, "bcftools_stats.Rmd")
@@ -204,14 +203,13 @@ def freebayes(inputs, output_dir, genome, threads, populations, ploidy, regions,
 
     # setup regions checks
     regtype = validate_regions(regions, genome)
+    region = Path(f"{workflowdir}/positions.bed").resolve().as_posix()
     if regtype == "windows":
-        region = Path(f"{workflowdir}/positions.bed").resolve().as_posix()
-        os.system(f"make_windows.py -m 0 -i {genome} -o {region} -w {regions}")
-    elif regtype == "region":
-        region = regions
-    else:
-        region = Path(f"{workflowdir}/positions.bed").resolve().as_posix()
+        os.system(f"make_windows.py -m 1 -w {regions} {genome} > {region}")
+    elif regtype == "file":
         os.system(f"cp -f {regions} {region}")
+    else:
+        region = regions
 
     fetch_rule(workflowdir, "snp_freebayes.smk")
     fetch_report(workflowdir, "bcftools_stats.Rmd")

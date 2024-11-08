@@ -1,7 +1,8 @@
 #! /usr/bin/env python
 """Create column in NAIBR bedpe output inferring the SV type from the orientation"""
-import argparse
+import os
 import sys
+import argparse
 
 parser = argparse.ArgumentParser(
     prog = 'infer_sv.py',
@@ -11,13 +12,15 @@ parser = argparse.ArgumentParser(
     )
 
 parser.add_argument("bedfile", help = "Input bedpe file containing the output of NAIBR.")
-parser.add_argument("-f", "--fail", dest = "failfile", required = False, type=str, metavar = "<failed.bedpe>", help="output variants who fail filtering into separate file")
+parser.add_argument("-f", "--fail", dest = "failfile", type=str, metavar = "fail.bedpe", help="output variants who fail filtering into separate file")
 
 if len(sys.argv) == 1:
     parser.print_help(sys.stderr)
     sys.exit(1)
 
 args = parser.parse_args()
+if not os.path.exists(args.bedfile):
+    parser.error(f"{args.bedfile} was not found")
 
 conversions = {
     "+-": "deletion",
