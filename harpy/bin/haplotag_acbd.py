@@ -1,8 +1,23 @@
 #! /usr/bin/env python
 """Generates the BC_{ABCD}.txt files necessary to demultiplex Gen I haplotag barcodes"""
+import os
 import sys
+import argparse
 
-outdir = sys.argv[1].rstrip("/")
+parser = argparse.ArgumentParser(
+    prog = 'haplotag_acbd.py',
+    description ="Generates the BC_{ABCD}.txt files necessary to demultiplex Gen I haplotag barcodes",
+    usage = "haplotag_acbd.py output_directory",
+    exit_on_error = False
+    )
+parser.add_argument("output_directory", type = str, help = "Directory to create barcode files")
+if len(sys.argv) == 1:
+    parser.print_help(sys.stderr)
+    sys.exit(1)
+
+args = parser.parse_args()
+outdir = args.output_directory.rstrip("/")
+os.makedirs(outdir, exist_ok = True)
 
 BX = {
     "A": ["ACGGAA", "CCAACA", "AGATCG", "TTCTCC", "TTCCTG", "TTCGGT", "TTGTGG", "TTGCCT", "TTGGTC", "TTACGC", "TTAGCG", "TCTTCG", "TCTCTC", "TCTGGA", "TCCACT", "TCGTAC", "TCGATG", "TCACAG", "TGTTGC", "TGTCCA", "TGTGTG", "TGCTAG", "TGCATC", "TGGAGT", "TGAGAC", "TATCGG", "TATGCC", "TACCAC", "TAGGAG", "CTTCGT", "CTTGCA", "CTCTGA", "CTCAAC", "CTGCTA", "CTGGAT", "CTAAGG", "CCTCAA", "CCTGTT", "CCATTC", "CGTTCT", "CGTAGA", "CGGTAA", "CGACTT", "CATACG", "CACTTG", "CACGAA", "CACAGT", "CAGATC", "CAACGA", "CAAGCT", "GTTCAC", "GTCGTA", "GTGTCA", "GTGAAG", "GTAACC", "GCTTGT", "GCCTAA", "GCACTA", "GCAGAT", "GGTGAA", "GGCAAT", "GGATGA", "GGAATG", "GATCCT", "GATAGC", "GACACA", "GAGCAA", "GAGGTT", "ATTCCG", "ATTGGC", "ATCGAG", "ACTACC", "ACCAGA", "ACGTCT", "ACACGT", "ACAGTG", "AGCTGT", "AGCCTA", "AGGTTC", "AGGCAT", "AGGACA", "AGAAGC", "AACGTC", "AAGCTG", "CGAGTA", "GAATCC", "GAATGG", "AAGTGC", "AAGAGG", "TACAGG", "CTGACT", "CTAGTC", "CCTAAG", "CCATAG", "CGTAAC", "CAATGC"],
