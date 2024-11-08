@@ -81,7 +81,7 @@ rule concat_groups:
     container:
         None
     shell:
-        "concatenate_bam.py -o {output} -b {input.bamlist} 2> {log}"
+        "concatenate_bam.py --bx -o {output} -b {input.bamlist} 2> {log}"
 
 rule sort_groups:
     input:
@@ -276,7 +276,7 @@ rule workflow_summary:
         summary = ["The harpy sv leviathan workflow ran using these parameters:"]
         summary.append(f"The provided genome: {bn}")
         concat = "The alignments were concatenated using:\n"
-        concat += "\tconcatenate_bam.py -o groupname.bam -b samples.list"
+        concat += "\tconcatenate_bam.py --bx -o groupname.bam -b samples.list"
         summary.append(concat)
         bc_idx = "The barcodes were indexed using:\n"
         bc_idx += "LRez index bam -p -b INPUT"
