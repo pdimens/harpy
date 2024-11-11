@@ -148,10 +148,10 @@ def linkedreads(genome_hap1, genome_hap2, output_dir, outer_distance, mutation_r
     Two haplotype genomes (un/compressed fasta) need to be provided as inputs at the end of the command. If
     you don't have a diploid genome, you can simulate one with `harpy simulate` as described [in the documentation](https://pdimens.github.io/harpy/workflows/simulate/simulate-variants/#simulate-diploid-assembly).
 
-    If not providing a text file of `--barcodes`, Harpy will download the `4M-with-alts-february-2016.txt`
+    If not providing a file for `--barcodes`, Harpy will download the `4M-with-alts-february-2016.txt`
     file containing the standard 16-basepair 10X barcodes, which is available from 10X genomics and the
-    LRSIM [GitHub repository](https://github.com/aquaskyline/LRSIM/). Barcodes in the `--barcodes` file
-    are expected to be one 16-basepar barcode per line.
+    LRSIM [GitHub repository](https://github.com/aquaskyline/LRSIM/). The `--barcodes` file is
+    expected to have one 16-basepair barcode per line.
     """
     output_dir = output_dir.rstrip("/")
     workflowdir = os.path.join(output_dir, 'workflow')
