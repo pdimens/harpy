@@ -39,10 +39,7 @@ if regiontype == "region":
 else:
     with open(regioninput, "r") as reg_in:
         intervals = set()
-        while True:
-            line = reg_in.readline()
-            if not line:
-                break
+        for line in reg_in:
             cont,startpos,endpos = line.split()
             intervals.add(f"{cont}:{startpos}-{endpos}")
     regions = dict(zip(intervals, intervals))

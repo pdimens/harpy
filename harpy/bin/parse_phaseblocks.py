@@ -23,10 +23,7 @@ samplename = args.input.replace(".blocks", "")
 
 with open(args.input, "r", encoding="utf-8") as blocks:
     FIRST_LINE = True
-    while True:
-        line = blocks.readline()
-        if not line:
-            break
+    for line in blocks:
         lsplit = line.split()
         if lsplit[0] == "BLOCK:":
             n_snp     = int(lsplit[6])
