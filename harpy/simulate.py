@@ -201,7 +201,7 @@ def linkedreads(genome_hap1, genome_hap2, output_dir, outer_distance, mutation_r
     start_text.add_column(header="value", justify="left")
     start_text.add_row("Genome Haplotype 1:", os.path.basename(genome_hap1))
     start_text.add_row("Genome Haplotype 2:", os.path.basename(genome_hap2))
-    start_text.add_row("Barcodes:", os.path.basename(barcodes) if barcodes else "Barcodes: Happlotagging Default")
+    start_text.add_row("Barcodes:", os.path.basename(barcodes) if barcodes else "Barcodes: Haplotagging Default")
     start_text.add_row("Output Folder:", output_dir + "/")
     start_text.add_row("Workflow Log:", sm_log.replace(f"{output_dir}/", "") + "[dim].gz")
     launch_snakemake(command, "simulate_linkedreads", start_text, output_dir, sm_log, quiet, "workflow/simulate.reads.summary")
