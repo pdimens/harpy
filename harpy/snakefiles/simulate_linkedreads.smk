@@ -148,7 +148,7 @@ rule extract_reads:
     shell:
         "extractReads {input} {params} 2> {log}"
 
-rule convert_to_haplotag:
+rule demultiplex_barcodes:
     input:
         fw = outdir + "/10X/sim_hap{hap}_10x_R1_001.fastq.gz",
         rv = outdir + "/10X/sim_hap{hap}_10x_R2_001.fastq.gz",
@@ -163,7 +163,7 @@ rule convert_to_haplotag:
     container:
         None
     shell:
-        "10xtoHaplotag.py -f {input.fw} -r {input.rv} -b {input.barcodes} -p {params} > {log}"
+        "inline_to_haplotag.py -f {input.fw} -r {input.rv} -b {input.barcodes} -p {params} > {log}"
 
 rule workflow_summary:
     default_target: True
@@ -194,8 +194,8 @@ rule workflow_summary:
         lrsim = "LRSIM was started from step 3 (-u 3) with these parameters:\n"
         lrsim += f"\tLRSIM_harpy.pl -g genome1,genome2 -p {params.lrsproj_dir}/lrsim/sim -b BARCODES -r {params.lrsproj_dir} -i {params.lrsoutdist} -s {params.lrsdist_sd} -x {params.lrsn_pairs} -f {params.lrsmol_len} -t {params.lrsparts} -m {params.lrsmols_per} -z THREADS {params.lrsstatic}"
         summary.append(lrsim)
-        bxconvert = "10X style barcodes were converted in haplotag BX:Z tags using:\n"
-        bxconvert += "\t10xtoHaplotag.py"
+        bxconvert = "Inline barcodes were converted in haplotag BX:Z tags using:\n"
+        bxconvert += "\tinline_to_haplotag.py"
         summary.append(bxconvert)
         sm = "The Snakemake workflow was called via command line:\n"
         sm += f"\t{config['workflow_call']}"

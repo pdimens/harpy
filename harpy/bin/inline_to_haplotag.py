@@ -1,5 +1,5 @@
 #! /usr/bin/env python
-"""Convert 10X style barcodes into Haplotag style ones"""
+"""Convert inline barcodes into haplotag style ones"""
 import os
 import sys
 import gzip
@@ -7,9 +7,9 @@ import argparse
 from itertools import zip_longest, product
 
 parser = argparse.ArgumentParser(
-    prog = '10xtoHaplotag.py',
+    prog = 'inline_to_haplotag.py',
     description = 'Converts 10x linked reads to haplotag linked reads with barcodes in BX:Z: and OX:Z: header tags.',
-    usage = "10xtoHaplotag.py -f <forward.fq.gz> -r <reverse.fq.gz> -b <barcodes.txt> -p <prefix> > barcodes.conversion.txt",
+    usage = "inline_to_haplotag.py -f <forward.fq.gz> -r <reverse.fq.gz> -b <barcodes.txt> -p <prefix> > barcodes.conversion.txt",
     exit_on_error = False
     )
 
@@ -29,7 +29,7 @@ if err:
     parser.error("Some input files were not found on the system:\n" + ", ".join(err))
 
 def process_record(fw_entry, rv_entry):
-    """convert the 10X to haplotag"""
+    """convert the barcode to haplotag"""
     # [0] = header, [1] = seq, [2] = +, [3] = qual
     bc10x = fw_entry[1][:16]
     bchap = bc_dict.get(bc10x, "A00C00B00D00")
