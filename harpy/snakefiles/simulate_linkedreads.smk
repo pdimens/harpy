@@ -17,7 +17,7 @@ gen_hap1 = config["inputs"]["genome_hap1"]
 gen_hap2 = config["inputs"]["genome_hap2"]
 barcodes = config["inputs"].get("barcodes", None)
 envdir   = os.path.join(os.getcwd(), ".harpy_envs")
-barcodefile = barcodes if barcodes else f"{outdir}/workflow/input/4M-with-alts-february-2016.txt"
+barcodefile = barcodes if barcodes else f"{outdir}/workflow/input/haplotag_barcodes.txt"
 
 rule link_1st_geno:
     input:
@@ -50,12 +50,13 @@ rule index_genome:
         "samtools faidx --fai-idx {output} {input}"
 
 if not barcodes:
-    rule download_barcodes:
+    rule create_barcodes:
         output:
             barcodefile
-        run:
-            from urllib.request import urlretrieve
-            _ = urlretrieve("https://raw.githubusercontent.com/aquaskyline/LRSIM/master/4M-with-alts-february-2016.txt", output[0])
+        container:
+            None
+        shell:
+            "haplotag_barcodes.py > {output}"
 
 rule create_reads:
     input:

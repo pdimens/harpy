@@ -126,7 +126,7 @@ docstring = {
 @click.command(no_args_is_help = True, context_settings=dict(allow_interspersed_args=False), epilog = "Documentation: https://pdimens.github.io/harpy/workflows/simulate/simulate-linkedreads")
 @click.option('-b', '--barcodes', type = click.Path(exists=True, dir_okay=False, readable=True), help = "File of linked-read barcodes to add to reads")
 @click.option('-s', '--distance-sd', type = click.IntRange(min = 1), default = 15, show_default=True,  help = "Standard deviation of read-pair distance")
-@click.option('-m', '--molecules-per', type = click.IntRange(min = 1), default = 10, show_default=True,  help = "Average number of molecules per partition")
+@click.option('-m', '--molecules-per', type = click.IntRange(min = 1, max = 4700), default = 10, show_default=True,  help = "Average number of molecules per partition")
 @click.option('-l', '--molecule-length', type = click.IntRange(min = 2), default = 100, show_default=True,  help = "Mean molecule length (kbp)")
 @click.option('-r', '--mutation-rate', type = click.FloatRange(min = 0), default=0.001, show_default=True,  help = "Random mutation rate for simulating reads")
 @click.option('-d', '--outer-distance', type = click.IntRange(min = 100), default = 350, show_default= True, help = "Outer distance between paired-end reads (bp)")
@@ -148,10 +148,9 @@ def linkedreads(genome_hap1, genome_hap2, output_dir, outer_distance, mutation_r
     Two haplotype genomes (un/compressed fasta) need to be provided as inputs at the end of the command. If
     you don't have a diploid genome, you can simulate one with `harpy simulate` as described [in the documentation](https://pdimens.github.io/harpy/workflows/simulate/simulate-variants/#simulate-diploid-assembly).
 
-    If not providing a file for `--barcodes`, Harpy will download the `4M-with-alts-february-2016.txt`
-    file containing the standard 16-basepair 10X barcodes, which is available from 10X genomics and the
-    LRSIM [GitHub repository](https://github.com/aquaskyline/LRSIM/). The `--barcodes` file is
-    expected to have one 16-basepair barcode per line.
+    If not providing a file for `--barcodes`, Harpy will generate a file containing the
+    original 24-basepair haplotagging barcodes. The `--barcodes` file is expected to have one
+    linked-read barcode per line, given as nucleotides.
     """
     output_dir = output_dir.rstrip("/")
     workflowdir = os.path.join(output_dir, 'workflow')
@@ -202,7 +201,7 @@ def linkedreads(genome_hap1, genome_hap2, output_dir, outer_distance, mutation_r
     start_text.add_column(header="value", justify="left")
     start_text.add_row("Genome Haplotype 1:", os.path.basename(genome_hap1))
     start_text.add_row("Genome Haplotype 2:", os.path.basename(genome_hap2))
-    start_text.add_row("Barcodes:", os.path.basename(barcodes) if barcodes else "Barcodes: 10X Default")
+    start_text.add_row("Barcodes:", os.path.basename(barcodes) if barcodes else "Barcodes: Happlotagging Default")
     start_text.add_row("Output Folder:", output_dir + "/")
     start_text.add_row("Workflow Log:", sm_log.replace(f"{output_dir}/", "") + "[dim].gz")
     launch_snakemake(command, "simulate_linkedreads", start_text, output_dir, sm_log, quiet, "workflow/simulate.reads.summary")
