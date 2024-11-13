@@ -146,10 +146,10 @@ def linkedreads(genome_hap1, genome_hap2, output_dir, outer_distance, mutation_r
     Create linked reads from a genome
  
     Two haplotype genomes (un/compressed fasta) need to be provided as inputs at the end of the command. If
-    you don't have a diploid genome, you can simulate one with `harpy simulate` as described [in the documentation](https://pdimens.github.io/harpy/workflows/simulate/simulate-variants/#simulate-diploid-assembly).
+    you don't have a diploid genome, you can simulate one with `harpy simulate` as described [in the documentation](https://pdimens.github.io/harpy/blog/simulate_diploid/).
 
-    If not providing a file for `--barcodes`, Harpy will generate a file containing the
-    original 24-basepair haplotagging barcodes. The `--barcodes` file is expected to have one
+    If not providing a file for `--barcodes`, Harpy will generate a file containing the original
+    (96^4) set of 24-basepair haplotagging barcodes (~2GB disk space). The `--barcodes` file is expected to have one
     linked-read barcode per line, given as nucleotides.
     """
     output_dir = output_dir.rstrip("/")
