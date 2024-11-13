@@ -39,6 +39,7 @@ def iter_fastq_records(file_handle):
         line = line.decode().rstrip("\n")
         record.append(line)
         if len(record) == 4:
+            # format sanity check
             if not (record[0].startswith("@") and record[2] == "+"):
                 raise ValueError("Invalid FASTQ format")
             yield record
@@ -76,10 +77,7 @@ bc_dict = {}
 opener = gzip.open if args.barcodes.lower().endswith('.gz') else open
 mode = 'rt' if args.barcodes.lower().endswith('.gz') else 'r'
 with opener(args.barcodes, mode) as bc_file:
-    while True:
-        line = bc_file.readline()
-        if not line:
-            break
+    for line in bc_file:
         barcode = line.rstrip().split()[0]
         validate_barcode(barcode)
         bc_dict[barcode] = None
