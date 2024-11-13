@@ -65,7 +65,9 @@ def process_record(fw_entry, rv_entry, barcode_dict, haplotag_bc):
     _new_fw += fw_entry[2] + "\n"
     _new_fw += fw_entry[3][16:] + "\n"
     _new_rv  = rv_entry[0].split()[0] + f"\tOX:Z:{bc10x}\tBX:Z:{bchap}\n"
-    _new_rv += "\n".join(rv_entry[1:3])
+    _new_rv += rv_entry[1] + "\n"
+    _new_rv += rv_entry[2] + "\n"
+    _new_rv += rv_entry[3] + "\n"    
     return _new_fw, _new_rv
 
 bc_range = [f"{i}".zfill(2) for i in range(1,97)]
