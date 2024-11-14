@@ -522,3 +522,28 @@ def validate_fastq_bx(fastq_list, threads, quiet):
             futures = [executor.submit(validate, i) for i in fastq_list]
             for future in as_completed(futures):
                 progress.update(task_progress, advance=1)
+
+def validate_barcodefile(infile, return_len = False):
+    """Does validations to make sure it's one length, one per line, and nucleotides"""
+    if is_gzip(infile):
+        print_error("Incorrect format", f"The input file must be in uncompressed format. Please decompress [blue]{infile}[/blue] and try again.")
+        sys.exit(1)
+    lengths = set()
+    nucleotides = {'A','C','G','T'}
+    line_num = 0
+    with open(infile, "r") as bc_file:
+        for line in bc_file:
+            line_num += 1
+            barcode = line.rstrip()
+            if len(barcode.split()) > 1:
+                print_error("Incorrect format", f"There must be one barcode per line, but multiple entries were detected on [bold]line {line_num}[/bold] in [blue]{infile}[/blue]")
+                sys.exit(1)
+            if not set(barcode).issubset(nucleotides) or barcode != barcode.upper():
+                print_error("Incorrect format", f"Invalid barcode format on [bold]line {line_num}[/bold]: [yellow]{barcode}[/yellow].\nBarcodes in [blue]{infile}[/blue] must be captial letters and only contain standard nucleotide characters [green]ATCG[/green].")
+                sys.exit(1)
+            lengths.add(len(barcode))
+    if len(lengths) > 1:
+        print_error("Incorrect format", f"Barcodes in [blue]{infile}[/blue] must all be a single length, but multiple lengths were detected: [yellow]" + ", ".join(lengths))
+        sys.exit(1)
+    if return_len:
+        return lengths.pop()

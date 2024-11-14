@@ -15,9 +15,9 @@ onerror:
 outdir   = config["output_directory"]
 gen_hap1 = config["inputs"]["genome_hap1"]
 gen_hap2 = config["inputs"]["genome_hap2"]
-barcodes = config["inputs"].get("barcodes", None)
+barcode_file = config["barcodes"]["file"]
+barcode_len = config["barcodes"]["length"]
 envdir   = os.path.join(os.getcwd(), ".harpy_envs")
-barcodefile = barcodes if barcodes else f"{outdir}/workflow/input/haplotag_barcodes.txt"
 
 rule link_1st_geno:
     input:
@@ -49,10 +49,10 @@ rule index_genome:
     shell:
         "samtools faidx --fai-idx {output} {input}"
 
-if not barcodes:
+if barcode_file == f"{outdir}/workflow/input/haplotag_barcodes.txt":
     rule create_barcodes:
         output:
-            barcodefile
+            f"{outdir}/workflow/input/haplotag_barcodes.txt"
         container:
             None
         shell:
@@ -94,7 +94,7 @@ rule lrsim:
         hap2 = f"{outdir}/dwgsim_simulated/dwgsim.1.12.fastq",
         fai1 = outdir + "/workflow/input/hap.0.fasta.fai",
         fai2 = outdir + "/workflow/input/hap.1.fasta.fai",
-        barcodes = barcodefile
+        barcodes = barcode_file
     output:
         collect(outdir + "/lrsim/sim.{hap}.{ext}", hap = [0,1], ext = ["fp", "manifest"]),
         temp(f"{outdir}/lrsim/.status")
@@ -102,25 +102,24 @@ rule lrsim:
         f"{outdir}/logs/LRSIM.log"
     params:
         lrsim = f"{outdir}/workflow/scripts/LRSIM_harpy.pl",
-        proj_dir = f"{outdir}",
-        outdist  = config["outer_distance"],
-        dist_sd  = config["distance_sd"],
-        n_pairs  = config["read_pairs"],
-        mol_len  = config["molecule_length"],
-        parts    = config["partitions"],
-        mols_per = config["molecules_per_partition"],
-        static = "-o 1 -d 2 -u 4"
+        infiles = f"-g {outdir}/dwgsim_simulated/dwgsim.0.12.fastq,{outdir}/dwgsim_simulated/dwgsim.1.12.fastq",
+        inbarcodes = f"-b {barcode_file}",
+        proj_dir = f"-p {outdir}/lrsim/sim",
+        prefix = f"-r {outdir}",
+        outdist  = f"-i {config['outer_distance']}",
+        dist_sd  = f"-s {config['distance_sd']}",
+        n_pairs  = f"-x {config['read_pairs']}",
+        mol_len  = f"-f {config['molecule_length']}",
+        parts    = f"-t {config['partitions']}",
+        mols_per = f"-m {config['molecules_per_partition']}",
+        bc_len   = f"-l {barcode_len}",
+        static   = "-o 1 -d 2 -u 4"
     threads:
         workflow.cores
     conda:
         f"{envdir}/simulations.yaml"
     shell: 
-        """
-        perl {params.lrsim} -g {input.hap1},{input.hap2} -p {params.proj_dir}/lrsim/sim \\
-            -b {input.barcodes} -r {params.proj_dir} -i {params.outdist} \\
-            -s {params.dist_sd} -x {params.n_pairs} -f {params.mol_len} \\
-            -t {params.parts} -m {params.mols_per} -z {threads} {params.static} 2> {log}
-        """
+        "perl {params} -z {threads} 2> {log}"
 
 rule sort_manifest:
     input:
@@ -152,18 +151,19 @@ rule demultiplex_barcodes:
     input:
         fw = outdir + "/10X/sim_hap{hap}_10x_R1_001.fastq.gz",
         rv = outdir + "/10X/sim_hap{hap}_10x_R2_001.fastq.gz",
-        barcodes = barcodefile
+        barcodes = barcode_file
     output:
         fw = outdir + "/sim_hap{hap}_haplotag.R1.fq.gz",
         rv = outdir + "/sim_hap{hap}_haplotag.R2.fq.gz"
     log:
-        outdir + "/logs/10XtoHaplotag/hap{hap}"
+        outdir + "/sim_hap/{hap}_haplotag.barcodes"
     params:
-        lambda wc: f"""{outdir}/sim_hap{wc.get("hap")}_haplotag"""
+        outdir = outdir,
+        bc_len = barcode_len
     container:
         None
     shell:
-        "inline_to_haplotag.py -f {input.fw} -r {input.rv} -b {input.barcodes} -p {params} > {log}"
+        "inline_to_haplotag.py -l {params.bc_len} -f {input.fw} -r {input.rv} -b {input.barcodes} -p {params.outdir}/sim_hap{wildcards.hap}_haplotag"
 
 rule workflow_summary:
     default_target: True

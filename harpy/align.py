@@ -14,7 +14,7 @@ from ._cli_types_params import BwaParams, EmaParams, StrobeAlignParams
 from ._launch import launch_snakemake
 from ._parsers import parse_fastq_inputs
 from ._printing import print_error, print_solution, print_notice
-from ._validations import check_fasta, fasta_contig_match
+from ._validations import check_fasta, fasta_contig_match, validate_barcodefile
 
 @click.group(options_metavar='', context_settings={"help_option_names" : ["-h", "--help"]})
 def align():
@@ -209,6 +209,8 @@ def ema(inputs, output_dir, platform, barcode_list, fragment_density, genome, de
     check_fasta(genome)
     if contigs:
         fasta_contig_match(contigs, genome)
+    if barcode_list:
+        validate_barcodefile(barcode_list)
     fetch_rule(workflowdir, "align_ema.smk")
     fetch_report(workflowdir, "align_stats.Rmd")
     fetch_report(workflowdir, "align_bxstats.Rmd")

@@ -11,7 +11,7 @@ from ._conda import create_conda_recipes
 from ._launch import launch_snakemake
 from ._misc import fetch_rule, fetch_script, snakemake_log
 from ._printing import print_error
-from ._validations import check_fasta
+from ._validations import check_fasta, validate_barcodefile
 
 @click.group(options_metavar='', context_settings={"help_option_names" : ["-h", "--help"]})
 def simulate():
@@ -165,7 +165,8 @@ def linkedreads(genome_hap1, genome_hap2, output_dir, outer_distance, mutation_r
 
     check_fasta(genome_hap1)
     check_fasta(genome_hap2)
-
+    if barcodes:
+        bc_len = validate_barcodefile(barcodes, True)
     os.makedirs(f"{workflowdir}/", exist_ok= True)
     fetch_rule(workflowdir, "simulate_linkedreads.smk")
     fetch_script(workflowdir, "LRSIM_harpy.pl")
@@ -183,10 +184,13 @@ def linkedreads(genome_hap1, genome_hap2, output_dir, outer_distance, mutation_r
         "partitions" : partitions,
         "molecules_per_partition" : molecules_per,
         "workflow_call" : command.rstrip(),
+        'barcodes': {
+            "file": Path(barcodes).resolve().as_posix() if barcodes else f"{workflowdir}/input/haplotag_barcodes.txt",
+            "length": bc_len if barcodes else 24
+        },
         "inputs" : {
             "genome_hap1" : Path(genome_hap1).resolve().as_posix(),
             "genome_hap2" : Path(genome_hap2).resolve().as_posix(),
-            **({'barcodes': Path(barcodes).resolve().as_posix()} if barcodes else {}),
         }
     }
     with open(os.path.join(workflowdir, 'config.yaml'), "w", encoding="utf-8") as config:

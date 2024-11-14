@@ -38,6 +38,7 @@ sub main {
         g => undef,
         n => undef,
         d => 2,
+        l => 16,
         r => undef,
         p => undef,
         c => undef,
@@ -64,7 +65,7 @@ sub main {
         0 => 100
     );
     &usage( \%opts ) if ( @ARGV < 1 );
-    getopts( 'hnoc:g:d:r:p:b:u:e:E:i:s:x:f:t:m:z:1:2:3:4:5:6:7:8:9:0:',
+    getopts( 'hnoc:g:d:l:r:p:b:u:e:E:i:s:x:f:t:m:z:1:2:3:4:5:6:7:8:9:0:',
         \%opts );
     &usage( \%opts ) if ( defined $opts{h} );
 
@@ -604,7 +605,7 @@ sub main {
         &Log("Simulate reads start");
 
         #Load barcodes
-        our $barcodeLength              = 16;
+        our $barcodeLength              = $opts{l};
         our @barcodes                   = ();
         our $barcodesMutexLock : shared = 0;
         our $numBarcodes                = 0;
@@ -646,7 +647,7 @@ sub main {
             }
 
             &Log("Load read positions haplotype $i");
-            my @defaultBarcodeQualAry = split //, "AAAFFFKKKKKKKKKK";
+            my @defaultBarcodeQualAry = split //, "AAAFFF" . "K" x (barcodeLength - 6);
             my %faidx                 = ();
             my @boundary              = ();
             my $genomeSize =
@@ -879,6 +880,7 @@ sub usage {
 
     Linked reads parameters:
     -b STRING   Barcodes list
+    -l INT      Barcode Length
     -x INT      # million reads pairs in total to simulated [$$opts{x}]
     -f INT      Mean molecule length in kbp [$$opts{f}]
     -c STRING   Input a list of fragment sizes
