@@ -118,10 +118,7 @@ rule diploid_snps:
     run:
         rng = random.Random(randomseed) if randomseed else random.Random()
         with open(input[0], "r") as in_vcf, open(output[0], "w") as hap1, open(output[1], "w") as hap2:
-            while True:
-                line = in_vcf.readline()
-                if not line:
-                    break
+            for line in in_vcf:
                 if line.startswith("#") or rng.uniform(0, 1) >= params.het:
                     # write header lines and homozygous variants to both files
                     hap1.write(line)

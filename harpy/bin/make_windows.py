@@ -52,10 +52,7 @@ def makewindows(_contig, _c_len, windowsize):
 
 if testname.endswith("fai"):
     with open(args.input, "r", encoding="utf-8") as fai:
-        while True:
-            line = fai.readline()
-            if not line:
-                break
+        for line in fai:
             lsplit = line.split("\t")
             contig = lsplit[0]
             c_len = int(lsplit[1])

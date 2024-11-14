@@ -17,7 +17,7 @@ gen_hap1 = config["inputs"]["genome_hap1"]
 gen_hap2 = config["inputs"]["genome_hap2"]
 barcodes = config["inputs"].get("barcodes", None)
 envdir   = os.path.join(os.getcwd(), ".harpy_envs")
-barcodefile = barcodes if barcodes else f"{outdir}/workflow/input/4M-with-alts-february-2016.txt"
+barcodefile = barcodes if barcodes else f"{outdir}/workflow/input/haplotag_barcodes.txt"
 
 rule link_1st_geno:
     input:
@@ -50,12 +50,13 @@ rule index_genome:
         "samtools faidx --fai-idx {output} {input}"
 
 if not barcodes:
-    rule download_barcodes:
+    rule create_barcodes:
         output:
             barcodefile
-        run:
-            from urllib.request import urlretrieve
-            _ = urlretrieve("https://raw.githubusercontent.com/aquaskyline/LRSIM/master/4M-with-alts-february-2016.txt", output[0])
+        container:
+            None
+        shell:
+            "haplotag_barcodes.py > {output}"
 
 rule create_reads:
     input:
@@ -147,7 +148,7 @@ rule extract_reads:
     shell:
         "extractReads {input} {params} 2> {log}"
 
-rule convert_to_haplotag:
+rule demultiplex_barcodes:
     input:
         fw = outdir + "/10X/sim_hap{hap}_10x_R1_001.fastq.gz",
         rv = outdir + "/10X/sim_hap{hap}_10x_R2_001.fastq.gz",
@@ -162,7 +163,7 @@ rule convert_to_haplotag:
     container:
         None
     shell:
-        "10xtoHaplotag.py -f {input.fw} -r {input.rv} -b {input.barcodes} -p {params} > {log}"
+        "inline_to_haplotag.py -f {input.fw} -r {input.rv} -b {input.barcodes} -p {params} > {log}"
 
 rule workflow_summary:
     default_target: True
@@ -193,8 +194,8 @@ rule workflow_summary:
         lrsim = "LRSIM was started from step 3 (-u 3) with these parameters:\n"
         lrsim += f"\tLRSIM_harpy.pl -g genome1,genome2 -p {params.lrsproj_dir}/lrsim/sim -b BARCODES -r {params.lrsproj_dir} -i {params.lrsoutdist} -s {params.lrsdist_sd} -x {params.lrsn_pairs} -f {params.lrsmol_len} -t {params.lrsparts} -m {params.lrsmols_per} -z THREADS {params.lrsstatic}"
         summary.append(lrsim)
-        bxconvert = "10X style barcodes were converted in haplotag BX:Z tags using:\n"
-        bxconvert += "\t10xtoHaplotag.py"
+        bxconvert = "Inline barcodes were converted in haplotag BX:Z tags using:\n"
+        bxconvert += "\tinline_to_haplotag.py"
         summary.append(bxconvert)
         sm = "The Snakemake workflow was called via command line:\n"
         sm += f"\t{config['workflow_call']}"

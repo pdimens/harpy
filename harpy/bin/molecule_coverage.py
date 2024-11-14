@@ -45,10 +45,7 @@ LASTCONTIG = None
 
 # read the fasta index file as a dict of contig lengths
 with open(args.fai, "r", encoding= "utf-8") as fai:
-    while True:
-        line = fai.readline()
-        if not line:
-            break
+    for line in fai:
         splitline = line.split()
         contig = splitline[0]
         length = splitline[1]
