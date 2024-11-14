@@ -56,26 +56,37 @@ def process_record(fw_entry, rv_entry, barcode_dict, haplotag_bc):
     """convert the barcode to haplotag"""
     # [0] = header, [1] = seq, [2] = +, [3] = qual
     # search for a valid barcode at all possible barcode lengths
-    for length in bc_lengths:
-        bc_len = length
-        bc_inline = fw_entry[1][:length]
-        bc_hap = barcode_dict.get(bc_inline, "A00C00B00D00")
-        # end the loop if the barcode was found in the dict, which would return None or a valid ACBD barcode
-        if bc_hap != "A00C00B00D00":
-            break
-    # the default barcode entry is None, meaning it hasnt been assigned a haplotag equivalent yet
-    if not bc_hap:
-        bchap = "".join(next(haplotag_bc))
-        barcode_dict[bc_inline] = bc_hap
-    _new_fw  = fw_entry[0].split()[0] + f"\tOX:Z:{bc_inline}\tBX:Z:{bc_hap}\n"
-    _new_fw += fw_entry[1][bc_len:] + "\n"
-    _new_fw += fw_entry[2] + "\n"
-    _new_fw += fw_entry[3][bc_len:] + "\n"
-    _new_rv  = rv_entry[0].split()[0] + f"\tOX:Z:{bc_inline}\tBX:Z:{bc_hap}\n"
-    _new_rv += rv_entry[1] + "\n"
-    _new_rv += rv_entry[2] + "\n"
-    _new_rv += rv_entry[3] + "\n"    
-    return _new_fw, _new_rv
+    if fw_entry:
+        for length in bc_lengths:
+            bc_len = length
+            bc_inline = fw_entry[1][:length]
+            bc_hap = barcode_dict.get(bc_inline, "A00C00B00D00")
+            # end the loop if the barcode was found in the dict, which would return None or a valid ACBD barcode
+            if bc_hap != "A00C00B00D00":
+                break
+        # the default barcode entry is None, meaning it hasnt been assigned a haplotag equivalent yet
+        if not bc_hap:
+            bchap = "".join(next(haplotag_bc))
+            barcode_dict[bc_inline] = bc_hap
+        _new_fw  = fw_entry[0].split()[0] + f"\tOX:Z:{bc_inline}\tBX:Z:{bc_hap}\n"
+        _new_fw += fw_entry[1][bc_len:] + "\n"
+        _new_fw += fw_entry[2] + "\n"
+        _new_fw += fw_entry[3][bc_len:] + "\n"
+        if rv_entry:
+            _new_rv  = rv_entry[0].split()[0] + f"\tOX:Z:{bc_inline}\tBX:Z:{bc_hap}\n"
+            _new_rv += rv_entry[1] + "\n"
+            _new_rv += rv_entry[2] + "\n"
+            _new_rv += rv_entry[3] + "\n"
+        else:
+            _new_rv = None
+        return _new_fw, _new_rv
+    else:
+        # no forward read, therefor no barcode to search for
+        _new_rv  = rv_entry[0].split()[0] + f"\tBX:Z:A00C00B00D00\n"
+        _new_rv += rv_entry[1] + "\n"
+        _new_rv += rv_entry[2] + "\n"
+        _new_rv += rv_entry[3] + "\n"
+        return None, _new_rv
 
 bc_range = [f"{i}".zfill(2) for i in range(1,97)]
 bc_generator = product("A", bc_range, "C", bc_range, "B", bc_range, "D", bc_range)
@@ -99,8 +110,10 @@ rv_out = gzip.open(f"{args.prefix}.R2.fq.gz", "wb", 6)
 with gzip.open(args.forward, "r") as fw_i, gzip.open(args.reverse, "r") as rv_i:
     for fw_record, rv_record in zip_longest(iter_fastq_records(fw_i), iter_fastq_records(rv_i)):
         new_fw, new_rv = process_record(fw_record, rv_record, bc_dict, bc_generator)
-        fw_out.write(new_fw.encode("utf-8"))
-        rv_out.write(new_rv.encode("utf-8"))
+        if new_fw:
+            fw_out.write(new_fw.encode("utf-8"))
+        if new_rv:
+            rv_out.write(new_rv.encode("utf-8"))
 
 fw_out.close()
 rv_out.close()
