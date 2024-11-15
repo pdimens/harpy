@@ -289,33 +289,6 @@ def validate_demuxschema(infile):
             _ = [click.echo(f"{i[0]+1}\t{i[1]}", file = sys.stderr) for i in invalids]
             sys.exit(1)
 
-def check_demux_fastq(file):
-    """Check for the presence of corresponding FASTQ files from a single provided FASTQ file based on pipeline expectations."""
-    bn = os.path.basename(file)
-    if not bn.lower().endswith("fq") and not bn.lower().endswith("fastq") and not bn.lower().endswith("fastq.gz") and not bn.lower().endswith("fq.gz"):     
-        print_error("unrecognized extension", f"The file [blue]{bn}[/blue] is not recognized as a FASTQ file by the file extension.")
-        print_solution("Make sure the input file ends with a standard FASTQ extension. These are not case-sensitive.\nAccepted extensions: [green bold].fq .fastq .fq.gz .fastq.gz[/green bold]")
-        sys.exit(1)
-    ext = re.search(r"(?:\_00[0-9])*\.f(.*?)q(?:\.gz)?$", file, re.IGNORECASE).group(0)
-    prefix     = re.sub(r"[\_\.][IR][12]?(?:\_00[0-9])*\.f(?:ast)?q(?:\.gz)?$", "", bn)
-    prefixfull = re.sub(r"[\_\.][IR][12]?(?:\_00[0-9])*\.f(?:ast)?q(?:\.gz)?$", "", file)
-    filelist = []
-    printerr = False
-    for i in ["I1", "I2","R1","R2"]:
-        chkfile = f"{prefixfull}_{i}{ext}"
-        TF = os.path.exists(chkfile)
-        printerr = True if not TF else printerr
-        symbol = " " if TF else "X"
-        filelist.append(f"\033[91m{symbol}\033[0m  {prefix}_{i}{ext}")
-    if printerr:
-        print_error("missing files", f"Not all necessary files with prefix [bold]{prefix}[/bold] present")
-        print_solution_with_culprits(
-            "Demultiplexing requires 4 sequence files: the forward and reverse sequences (R1 and R2), along with the forward and reverse indices (I2 and I2).",
-            "Necessary/expected files:"
-        )
-        _ = [click.echo(i, file = sys.stderr) for i in filelist]
-        sys.exit(1)
-
 def validate_regions(regioninput, genome):
     """validates the --regions input of harpy snp to infer whether it's an integer, region, or file"""
     try:
@@ -350,22 +323,15 @@ def validate_regions(regioninput, genome):
         # check if the region is in the genome
 
         contigs = {}
-        if is_gzip(genome):
-            with gzip.open(genome, "rt") as fopen:
-                for line in fopen:
-                    if line.startswith(">"):
-                        cn = line.rstrip("\n").lstrip(">").split()[0]
-                        contigs[cn] = 0
-                    else:
-                        contigs[cn] += len(line.rstrip("\n")) - 1
-        else:
-            with open(genome, "r", encoding="utf-8") as fout:
-                for line in fopen:
-                    if line.startswith(">"):
-                        cn = line.rstrip("\n").lstrip(">").split()[0]
-                        contigs[cn] = 0
-                    else:
-                        contigs[cn] += len(line.rstrip("\n")) - 1
+        opener = gzip.open if is_gzip(genome) else open
+        mode = "rt" if is_gzip(genome) else "r"
+        with opener(genome, mode) as fopen:
+            for line in fopen:
+                if line.startswith(">"):
+                    cn = line.rstrip("\n").lstrip(">").split()[0]
+                    contigs[cn] = 0
+                else:
+                    contigs[cn] += len(line.rstrip("\n")) - 1
         err = ""
         if reg[0] not in contigs:
             print_error("contig not found", f"The contig ([bold yellow]{reg[0]})[/bold yellow]) of the input region [yellow bold]{regioninput}[/yellow bold] was not found in [blue]{genome}[/blue].")
@@ -386,12 +352,8 @@ def validate_regions(regioninput, genome):
     with open(regioninput, "r", encoding="utf-8") as fin:
         badrows = []
         idx = 0
-        while True:
-            line = fin.readline()
-            if not line:
-                break
-            else:
-                idx += 1
+        for line in fin:
+            idx += 1
             row = line.split()
             if len(row) != 3:
                 badrows.append(idx)
@@ -415,43 +377,38 @@ def validate_regions(regioninput, genome):
 def check_fasta(genofile):
     """perform validations on fasta file for extensions and file contents"""
     # validate fasta file contents
-    if is_gzip(genofile):
-        fasta = gzip.open(genofile, 'rt')
-    elif is_plaintext(genofile):
-        fasta = open(genofile, 'r', encoding="utf-8")
-    else:
-        print_error("unknown file type", f"Unable to determine file encoding for [blue]{genofile}[/blue]. Please check that it is a gzipped or uncompressed FASTA file.")
-        sys.exit(1)
+    opener = gzip.open if is_gzip(genofile) else open
+    mode = "rt" if is_gzip(genofile) else "r"
     line_num = 0
     seq_id = 0
     seq = 0
     last_header = False
-    for line in fasta:
-        line_num += 1
-        if line.startswith(">"):
-            seq_id += 1
-            if last_header:
-                print_error("consecutive contig names", f"All contig names must be followed by at least one line of nucleotide sequences, but two consecutive lines of contig names were detected. This issue was identified at line [bold]{line_num}[/bold] in [blue]{genofile}[/blue], but there may be others further in the file.")
+    with opener(genofile, mode) as fasta:
+        for line in fasta:
+            line_num += 1
+            if line.startswith(">"):
+                seq_id += 1
+                if last_header:
+                    print_error("consecutive contig names", f"All contig names must be followed by at least one line of nucleotide sequences, but two consecutive lines of contig names were detected. This issue was identified at line [bold]{line_num}[/bold] in [blue]{genofile}[/blue], but there may be others further in the file.")
+                    print_solution("See the FASTA file spec and try again after making the appropriate changes: https://www.ncbi.nlm.nih.gov/genbank/fastaformat/")
+                    sys.exit(1)
+                else:
+                    last_header = True
+                if len(line.rstrip()) == 1:
+                    print_error("unnamed contigs", f"All contigs must have an alphanumeric name, but a contig was detected without a name. This issue was identified at line [bold]{line_num}[/bold] in [blue]{genofile}[/blue], but there may be others further in the file.")
+                    print_solution("See the FASTA file spec and try again after making the appropriate changes: https://www.ncbi.nlm.nih.gov/genbank/fastaformat/")
+                    sys.exit(1)
+                if line.startswith("> "):
+                    print_error("invalid contig names", f"All contig names must be named [green bold]>contig_name[/green bold], without a space, but a contig was detected with a space between the [green bold]>[/green bold] and contig_name. This issue was identified at line [bold]{line_num}[/bold] in [blue]{genofile}[/blue], but there may be others further in the file.")
+                    print_solution("See the FASTA file spec and try again after making the appropriate changes: https://www.ncbi.nlm.nih.gov/genbank/fastaformat/")
+                    sys.exit(1)
+            elif line == "\n":
+                print_error("empty lines", f"Empty lines are not permitted in FASTA files, but one was detected at line [bold]{line_num}[/bold] in [blue]{genofile}[/blue]. The scan ended at this error, but there may be others further in the file.")
                 print_solution("See the FASTA file spec and try again after making the appropriate changes: https://www.ncbi.nlm.nih.gov/genbank/fastaformat/")
                 sys.exit(1)
             else:
-                last_header = True
-            if len(line.rstrip()) == 1:
-                print_error("unnamed contigs", f"All contigs must have an alphanumeric name, but a contig was detected without a name. This issue was identified at line [bold]{line_num}[/bold] in [blue]{genofile}[/blue], but there may be others further in the file.")
-                print_solution("See the FASTA file spec and try again after making the appropriate changes: https://www.ncbi.nlm.nih.gov/genbank/fastaformat/")
-                sys.exit(1)
-            if line.startswith("> "):
-                print_error("invalid contig names", f"All contig names must be named [green bold]>contig_name[/green bold], without a space, but a contig was detected with a space between the [green bold]>[/green bold] and contig_name. This issue was identified at line [bold]{line_num}[/bold] in [blue]{genofile}[/blue], but there may be others further in the file.")
-                print_solution("See the FASTA file spec and try again after making the appropriate changes: https://www.ncbi.nlm.nih.gov/genbank/fastaformat/")
-                sys.exit(1)
-        elif line == "\n":
-            print_error("empty lines", f"Empty lines are not permitted in FASTA files, but one was detected at line [bold]{line_num}[/bold] in [blue]{genofile}[/blue]. The scan ended at this error, but there may be others further in the file.")
-            print_solution("See the FASTA file spec and try again after making the appropriate changes: https://www.ncbi.nlm.nih.gov/genbank/fastaformat/")
-            sys.exit(1)
-        else:
-            seq += 1
-            last_header = False
-    fasta.close()
+                seq += 1
+                last_header = False
     solutiontext = "FASTA files must have at least one contig name followed by sequence data on the next line. Example:\n"
     solutiontext += "[green]  >contig_name\n  ATACAGGAGATTAGGCA[/green]\n"
     # make sure there is at least one of each
@@ -497,10 +454,7 @@ def validate_fastq_bx(fastq_list, threads, quiet):
         else:
             fq = open(fastq, "r")
         with fq:
-            while True:
-                line = fq.readline()
-                if not line:
-                    break
+            for line in fq:
                 if not line.startswith("@"):
                     continue
                 BX = True if "BX:Z" in line else BX
@@ -523,7 +477,7 @@ def validate_fastq_bx(fastq_list, threads, quiet):
             for future in as_completed(futures):
                 progress.update(task_progress, advance=1)
 
-def validate_barcodefile(infile, return_len = False):
+def validate_barcodefile(infile, return_len = False, quiet = False):
     """Does validations to make sure it's one length, one per line, and nucleotides"""
     if is_gzip(infile):
         print_error("Incorrect format", f"The input file must be in uncompressed format. Please decompress [blue]{infile}[/blue] and try again.")
@@ -531,7 +485,10 @@ def validate_barcodefile(infile, return_len = False):
     lengths = set()
     nucleotides = {'A','C','G','T'}
     line_num = 0
-    with open(infile, "r") as bc_file:
+    with open(infile, "r") as bc_file, harpy_progressbar(quiet) as progress:
+        out = subprocess.Popen(['wc', '-l', infile], stdout=subprocess.PIPE, stderr=subprocess.STDOUT).communicate()[0]
+        linecount = int(out.partition(b' ')[0])
+        task_progress = progress.add_task("[green]Validating barcodes...", total=linecount)
         for line in bc_file:
             line_num += 1
             barcode = line.rstrip()
@@ -542,6 +499,7 @@ def validate_barcodefile(infile, return_len = False):
                 print_error("Incorrect format", f"Invalid barcode format on [bold]line {line_num}[/bold]: [yellow]{barcode}[/yellow].\nBarcodes in [blue]{infile}[/blue] must be captial letters and only contain standard nucleotide characters [green]ATCG[/green].")
                 sys.exit(1)
             lengths.add(len(barcode))
+            progress.update(task_progress, advance=1)
     if len(lengths) > 1:
         print_error("Incorrect format", f"Barcodes in [blue]{infile}[/blue] must all be a single length, but multiple lengths were detected: [yellow]" + ", ".join(lengths))
         sys.exit(1)
