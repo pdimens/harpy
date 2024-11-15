@@ -131,12 +131,12 @@ rule extract_linked_reads:
         manifest = outdir + "/lrsim/sim.{hap}.sort.manifest",
         dwg_hap = outdir + "/dwgsim_simulated/dwgsim.{hap}.12.fastq"
     output:
-        outdir + "/10X/sim_hap{hap}_10x_R1_001.fastq.gz",
-        outdir + "/10X/sim_hap{hap}_10x_R2_001.fastq.gz"
+        outdir + "/multiplex/sim_hap{hap}_multiplex_R1_001.fastq.gz",
+        outdir + "/multiplex/sim_hap{hap}_multiplex_R2_001.fastq.gz"
     log:
         outdir + "/logs/extract_linkedreads.hap{hap}.log"
     params:
-        lambda wc: f"""{outdir}/10X/sim_hap{wc.get("hap")}_10x"""
+        lambda wc: f"""{outdir}/multiplex/sim_hap{wc.get("hap")}_multiplex"""
     container:
         None
     shell:
@@ -144,21 +144,22 @@ rule extract_linked_reads:
 
 rule demultiplex_barcodes:
     input:
-        fw = outdir + "/10X/sim_hap{hap}_10x_R1_001.fastq.gz",
-        rv = outdir + "/10X/sim_hap{hap}_10x_R2_001.fastq.gz",
+        fw = outdir + "/multiplex/sim_hap{hap}_multiplex_R1_001.fastq.gz",
+        rv = outdir + "/multiplex/sim_hap{hap}_multiplex_R2_001.fastq.gz",
         barcodes = barcode_file
     output:
-        fw = outdir + "/sim_hap{hap}_haplotag.R1.fq.gz",
-        rv = outdir + "/sim_hap{hap}_haplotag.R2.fq.gz"
+        fw = outdir + "/sim_hap{hap}.R1.fq.gz",
+        rv = outdir + "/sim_hap{hap}.R2.fq.gz",
+        record = outdir + "/sim_hap{hap}.barcodes"
     log:
-        outdir + "/sim_hap/{hap}_haplotag.barcodes"
+        outdir + "/logs/sim_hap{hap}.demux"
     params:
         outdir = outdir,
         bc_len = barcode_len
     container:
         None
     shell:
-        "inline_to_haplotag.py -l {params.bc_len} -f {input.fw} -r {input.rv} -b {input.barcodes} -p {params.outdir}/sim_hap{wildcards.hap}_haplotag"
+        "inline_to_haplotag.py -l {params.bc_len} -f {input.fw} -r {input.rv} -b {input.barcodes} -p {params.outdir}/sim_hap{wildcards.hap} 2> {log}"
 
 rule workflow_summary:
     default_target: True
@@ -191,7 +192,7 @@ rule workflow_summary:
         lrsim += f"\tLRSIM_harpy.pl -g genome1,genome2 -l {params.lrbc_len} -p {params.lrsproj_dir}/lrsim/sim -b BARCODES -r {params.lrsproj_dir} -i {params.lrsoutdist} -s {params.lrsdist_sd} -x {params.lrsn_pairs} -f {params.lrsmol_len} -t {params.lrsparts} -m {params.lrsmols_per} -z THREADS {params.lrsstatic}"
         summary.append(lrsim)
         bxconvert = "Inline barcodes were converted in haplotag BX:Z tags using:\n"
-        bxconvert += "\tinline_to_haplotag.py"
+        bxconvert += "\tinline_to_haplotag.py -l {params.lrbc_len}"
         summary.append(bxconvert)
         sm = "The Snakemake workflow was called via command line:\n"
         sm += f"\t{config['workflow_call']}"

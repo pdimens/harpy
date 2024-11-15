@@ -169,17 +169,16 @@ def validate_bam_RG(bamlist, threads, quiet):
         if samplename != samview[0]:
             return os.path.basename(bamfile), samview[0]
 
-    with harpy_progressbar(quiet) as progress:
-        task_progress = progress.add_task("[green]Checking RG tags...", total=len(bamlist))
-        with ThreadPoolExecutor(max_workers=threads) as executor:
-            futures = [executor.submit(check_RG, i) for i in bamlist]
-            for future in as_completed(futures):
-                result = future.result()
-                progress.update(task_progress, advance=1)
-                if result:
-                    culpritfiles.append(result[0])
-                    culpritIDs.append(result[1])
-        
+    with harpy_progressbar(quiet) as progress, ThreadPoolExecutor(max_workers=threads) as executor:
+        task_progress = progress.add_task("[green]Checking RG tags", total=len(bamlist))
+        futures = [executor.submit(check_RG, i) for i in bamlist]
+        for future in as_completed(futures):
+            result = future.result()
+            progress.update(task_progress, advance=1)
+            if result:
+                culpritfiles.append(result[0])
+                culpritIDs.append(result[1])
+    
     if len(culpritfiles) > 0:
         print_error("sample ID mismatch",f"There are [bold]{len(culpritfiles)}[/bold] alignment files whose RG tags do not match their filenames.")
         print_solution_with_culprits(
@@ -470,35 +469,39 @@ def validate_fastq_bx(fastq_list, threads, quiet):
                 sys.exit(1)
 
     # parellelize over the fastq list
-    with harpy_progressbar(quiet) as progress:
-        task_progress = progress.add_task("[green]Validating FASTQ inputs...", total=len(fastq_list))
-        with ThreadPoolExecutor(max_workers=threads) as executor:
-            futures = [executor.submit(validate, i) for i in fastq_list]
-            for future in as_completed(futures):
-                progress.update(task_progress, advance=1)
+    with harpy_progressbar(quiet) as progress, ThreadPoolExecutor(max_workers=threads) as executor:
+        task_progress = progress.add_task("[green]Validating FASTQ inputs", total=len(fastq_list))
+        futures = [executor.submit(validate, i) for i in fastq_list]
+        for future in as_completed(futures):
+            progress.update(task_progress, advance=1)
 
-def validate_barcodefile(infile, return_len = False, quiet = False):
-    """Does validations to make sure it's one length, one per line, and nucleotides"""
+def validate_barcodefile(infile, return_len = False, quiet = False, limit = None):
+    """Does validations to make sure it's one length, within a length limit, one per line, and nucleotides"""
     if is_gzip(infile):
         print_error("Incorrect format", f"The input file must be in uncompressed format. Please decompress [blue]{infile}[/blue] and try again.")
         sys.exit(1)
     lengths = set()
     nucleotides = {'A','C','G','T'}
-    line_num = 0
+    def validate(line_num, bc_line):
+        barcode = bc_line.rstrip()
+        if len(barcode.split()) > 1:
+            print_error("Incorrect format", f"There must be one barcode per line, but multiple entries were detected on [bold]line {line_num}[/bold] in [blue]{infile}[/blue]")
+            sys.exit(1)
+        if not set(barcode).issubset(nucleotides) or barcode != barcode.upper():
+            print_error("Incorrect format", f"Invalid barcode format on [bold]line {line_num }[/bold]: [yellow]{barcode}[/yellow].\nBarcodes in [blue]{infile}[/blue] must be captial letters and only contain standard nucleotide characters [green]ATCG[/green].")
+            sys.exit(1)
+        return len(barcode)
+
     with open(infile, "r") as bc_file, harpy_progressbar(quiet) as progress:
         out = subprocess.Popen(['wc', '-l', infile], stdout=subprocess.PIPE, stderr=subprocess.STDOUT).communicate()[0]
-        linecount = int(out.partition(b' ')[0])
-        task_progress = progress.add_task("[green]Validating barcodes...", total=linecount)
-        for line in bc_file:
-            line_num += 1
-            barcode = line.rstrip()
-            if len(barcode.split()) > 1:
-                print_error("Incorrect format", f"There must be one barcode per line, but multiple entries were detected on [bold]line {line_num}[/bold] in [blue]{infile}[/blue]")
+        linenum = int(out.partition(b' ')[0])
+        task_progress = progress.add_task("[green]Validating barcodes", total=linenum)
+        for line,bc in enumerate(bc_file):
+            length = validate(line + 1, bc)
+            if limit and length > limit:
+                print_error("Barcodes too long", f"Barcodes in [blue]{infile}[/blue] are [yellow]{length}bp[/yellow] and cannot exceed a length of [bold]{limit}bp[/bold]. Please use shorter barcodes (it's a limitation of LRSIM).")
                 sys.exit(1)
-            if not set(barcode).issubset(nucleotides) or barcode != barcode.upper():
-                print_error("Incorrect format", f"Invalid barcode format on [bold]line {line_num}[/bold]: [yellow]{barcode}[/yellow].\nBarcodes in [blue]{infile}[/blue] must be captial letters and only contain standard nucleotide characters [green]ATCG[/green].")
-                sys.exit(1)
-            lengths.add(len(barcode))
+            lengths.add(length)
             progress.update(task_progress, advance=1)
     if len(lengths) > 1:
         print_error("Incorrect format", f"Barcodes in [blue]{infile}[/blue] must all be a single length, but multiple lengths were detected: [yellow]" + ", ".join(lengths))
