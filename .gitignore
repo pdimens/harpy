@@ -26,4 +26,5 @@ harpy.egg-info/
 __pycache__/
 .Benchmark/
 extractReads
+haplotag.bc
 _Inline
