@@ -2,6 +2,7 @@ containerized: "docker://pdimens/harpy:latest"
 
 import os
 import gzip
+import shutil
 import logging
 from pathlib import Path
 
@@ -18,26 +19,20 @@ gen_hap2 = config["inputs"]["genome_hap2"]
 barcode_file = config["barcodes"]["file"]
 barcode_len = config["barcodes"]["length"]
 envdir   = os.path.join(os.getcwd(), ".harpy_envs")
+genodict = {"0": gen_hap1, "1": gen_hap2}
 
-rule link_1st_geno:
+rule link_genome:
     input:
-        gen_hap1
+        lambda wc: genodict[wc.get("hap")]
     output: 
-        f"{outdir}/workflow/input/hap.0.fasta"
+        outdir + "/workflow/input/hap.{hap}.fasta"
     run:
         if input[0].lower().endswith("gz"):
-            with open(input[0], 'rb') as inf, open(output[0], 'w', encoding='utf8') as outf:
-                decom_str = gzip.decompress(inf.read()).decode('utf-8')
-                outf.write(decom_str)
+            with gzip.open(input[0], 'rb') as gzip_file, open(output[0], 'wb') as output_file:
+                shutil.copyfileobj(gzip_file, output_file)
         else:
             if not (Path(output[0]).is_symlink() or Path(output[0]).exists()):
                 Path(output[0]).symlink_to(Path(input[0]).resolve()) 
-
-use rule link_1st_geno as link_2nd_geno with:
-    input:
-        gen_hap2
-    output: 
-        f"{outdir}/workflow/input/hap.1.fasta"
 
 rule index_genome:
     input:
@@ -58,7 +53,7 @@ if barcode_file == f"{outdir}/workflow/input/haplotag_barcodes.txt":
         shell:
             "haplotag_barcodes.py > {output}"
 
-rule create_reads:
+rule simulate_reads:
     input:
         outdir + "/workflow/input/hap.{hap}.fasta"
     output:
@@ -78,7 +73,7 @@ rule create_reads:
         dwgsim -N {params.readpairs} -e 0.0001,0.0016 -E 0.0001,0.0016 -d {params.outerdist} -s {params.distsd} -1 135 -2 151 -H -y 0 -S 0 -c 0 -R 0 -o 1 -r {params.mutationrate} -F 0 -m /dev/null {input} {params.prefix} 2> {log}
         """
 
-rule interleave_dwgsim:
+rule interleave_reads:
     input:
         collect(outdir + "/dwgsim_simulated/dwgsim.{{hap}}.12.bwa.read{rd}.fastq.gz", rd = [1,2]) 
     output:
@@ -88,7 +83,7 @@ rule interleave_dwgsim:
     shell:
         "seqtk mergepe {input} > {output}"
 
-rule lrsim:
+rule make_linked_reads:
     input:
         hap1 = f"{outdir}/dwgsim_simulated/dwgsim.0.12.fastq",
         hap2 = f"{outdir}/dwgsim_simulated/dwgsim.1.12.fastq",
@@ -131,7 +126,7 @@ rule sort_manifest:
     shell:
         "msort -kn1 {input} > {output}"
 
-rule extract_reads:
+rule extract_linked_reads:
     input:
         manifest = outdir + "/lrsim/sim.{hap}.sort.manifest",
         dwg_hap = outdir + "/dwgsim_simulated/dwgsim.{hap}.12.fastq"
@@ -177,6 +172,7 @@ rule workflow_summary:
         lrsmol_len  = config["molecule_length"],
         lrsparts    = config["partitions"],
         lrsmols_per = config["molecules_per_partition"],
+        lrbc_len   = bc_len,
         lrsstatic = "-o 1 -d 2 -u 4",
         dwgreadpairs = int(config["read_pairs"] * 500000),
         dwgouterdist = config["outer_distance"],
@@ -192,7 +188,7 @@ rule workflow_summary:
         dwgsim += f"\tdwgsim -N {params.dwgreadpairs} -e 0.0001,0.0016 -E 0.0001,0.0016 -d {params.dwgouterdist} -s {params.dwgdistsd} -1 135 -2 151 -H -y 0 -S 0 -c 0 -R 0 -r {params.dwgmutationrate} -F 0 -o 1 -m /dev/null GENO PREFIX"
         summary.append(dwgsim)
         lrsim = "LRSIM was started from step 3 (-u 3) with these parameters:\n"
-        lrsim += f"\tLRSIM_harpy.pl -g genome1,genome2 -p {params.lrsproj_dir}/lrsim/sim -b BARCODES -r {params.lrsproj_dir} -i {params.lrsoutdist} -s {params.lrsdist_sd} -x {params.lrsn_pairs} -f {params.lrsmol_len} -t {params.lrsparts} -m {params.lrsmols_per} -z THREADS {params.lrsstatic}"
+        lrsim += f"\tLRSIM_harpy.pl -g genome1,genome2 -l {params.lrbc_len} -p {params.lrsproj_dir}/lrsim/sim -b BARCODES -r {params.lrsproj_dir} -i {params.lrsoutdist} -s {params.lrsdist_sd} -x {params.lrsn_pairs} -f {params.lrsmol_len} -t {params.lrsparts} -m {params.lrsmols_per} -z THREADS {params.lrsstatic}"
         summary.append(lrsim)
         bxconvert = "Inline barcodes were converted in haplotag BX:Z tags using:\n"
         bxconvert += "\tinline_to_haplotag.py"
