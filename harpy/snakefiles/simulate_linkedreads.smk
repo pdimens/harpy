@@ -183,7 +183,7 @@ rule workflow_summary:
         summary = ["The harpy simulate linkedreas workflow ran using these parameters:"]
         summary.append(f"Genome haplotype 1: {gen_hap1}")
         summary.append(f"Genome haplotype 2: {gen_hap2}")
-        summary.append(f"Barcode file: {barcodefile}")
+        summary.append(f"Barcode file: {barcode_file}")
         dwgsim = "Reads were simulated from the provided genomes using:\n"
         dwgsim += f"\tdwgsim -N {params.dwgreadpairs} -e 0.0001,0.0016 -E 0.0001,0.0016 -d {params.dwgouterdist} -s {params.dwgdistsd} -1 135 -2 151 -H -y 0 -S 0 -c 0 -R 0 -r {params.dwgmutationrate} -F 0 -o 1 -m /dev/null GENO PREFIX"
         summary.append(dwgsim)
