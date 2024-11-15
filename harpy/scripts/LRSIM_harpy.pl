@@ -647,7 +647,7 @@ sub main {
             }
 
             &Log("Load read positions haplotype $i");
-            my @defaultBarcodeQualAry = split //, "AAAFFF" . "K" x (barcodeLength - 6);
+            my @defaultBarcodeQualAry = split //, "AAAFFF" . "K" x ($barcodeLength - 6);
             my %faidx                 = ();
             my @boundary              = ();
             my $genomeSize =

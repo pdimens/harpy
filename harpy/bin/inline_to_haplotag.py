@@ -15,7 +15,7 @@ parser = argparse.ArgumentParser(
 
 parser.add_argument("-f", "--forward", required = True, type = str, help = "Forward reads of paired-end FASTQ file pair (gzipped)")
 parser.add_argument("-r", "--reverse", required = True, type = str, help = "Reverse reads of paired-end FASTQ file pair (gzipped)")
-parser.add_argument("-l", "--length", required = True, type = str, help = "Length of the barcodes (all must be one length)")
+parser.add_argument("-l", "--length", required = True, type = int, help = "Length of the barcodes (all must be one length)")
 parser.add_argument("-p", "--prefix", required = True, type = str, help = "Prefix for outfile files (e.g. <prefix>.R1.fq.gz)")
 parser.add_argument("-b", "--barcodes", required = True, type=str, help="File listing the linked-read barcodes to convert to haplotag format, one barcode per line")
 if len(sys.argv) == 1:
@@ -56,7 +56,6 @@ def validate_barcode(barcode):
 def process_record(fw_entry, rv_entry, barcode_dict, haplotag_bc, bc_len):
     """convert the barcode to haplotag"""
     # [0] = header, [1] = seq, [2] = +, [3] = qual
-    # search for a valid barcode at all possible barcode lengths
     if fw_entry:
         bc_inline = fw_entry[1][:bc_len]
         bc_hap = barcode_dict.get(bc_inline, "A00C00B00D00")
