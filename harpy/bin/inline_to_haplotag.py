@@ -63,24 +63,20 @@ def process_record(fw_entry, rv_entry, barcode_dict, haplotag_bc, bc_len):
         if not bc_hap:
             bc_hap = "".join(next(haplotag_bc))
             barcode_dict[bc_inline] = bc_hap
-        _new_fw  = fw_entry[0].split()[0] + f"\tOX:Z:{bc_inline}\tBX:Z:{bc_hap}\n"
-        _new_fw += fw_entry[1][bc_len:] + "\n"
-        _new_fw += fw_entry[2] + "\n"
-        _new_fw += fw_entry[3][bc_len:] + "\n"
+        fw_entry[0] = fw_entry[0].split()[0] + f"\tOX:Z:{bc_inline}\tBX:Z:{bc_hap}"
+        fw_entry[1] = fw_entry[1][bc_len:]
+        fw_entry[3] = fw_entry[3][bc_len:]
+        _new_fw = "\n".join(fw_entry) + "\n"
         if rv_entry:
-            _new_rv  = rv_entry[0].split()[0] + f"\tOX:Z:{bc_inline}\tBX:Z:{bc_hap}\n"
-            _new_rv += rv_entry[1] + "\n"
-            _new_rv += rv_entry[2] + "\n"
-            _new_rv += rv_entry[3] + "\n"
+            rv_entry[0]  = rv_entry[0].split()[0] + f"\tOX:Z:{bc_inline}\tBX:Z:{bc_hap}"
+            _new_rv = "\n".join(rv_entry) + "\n"
         else:
             _new_rv = None
         return _new_fw, _new_rv
     else:
         # no forward read, therefor no barcode to search for
-        _new_rv  = rv_entry[0].split()[0] + f"\tBX:Z:A00C00B00D00\n"
-        _new_rv += rv_entry[1] + "\n"
-        _new_rv += rv_entry[2] + "\n"
-        _new_rv += rv_entry[3] + "\n"
+        rv_entry[0] = rv_entry[0].split()[0] + f"\tBX:Z:A00C00B00D00"
+        _new_rv = "\n".join(rv_entry) + "\n"
         return None, _new_rv
 
 bc_range = [f"{i}".zfill(2) for i in range(1,97)]
