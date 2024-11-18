@@ -5,6 +5,7 @@ import gzip
 import shutil
 import logging
 from pathlib import Path
+from itertools import product
 
 onstart:
     logger.logger.addHandler(logging.FileHandler(config["snakemake_log"]))
@@ -22,6 +23,19 @@ barcode_file = config["barcodes"]["file"]
 barcode_len = config["barcodes"]["length"]
 envdir   = os.path.join(os.getcwd(), ".harpy_envs")
 genodict = {"0": gen_hap1, "1": gen_hap2}
+
+rule map_barcodes:
+    input:
+        barcode_file
+    output:
+        outdir + "/barcodes.key"
+    run:
+        bc_range = [f"{i}".zfill(2) for i in range(1,97)]
+        bc_generator = product("A", bc_range, "C", bc_range, "B", bc_range, "D", bc_range)
+        with open(input[0], "r") as bc_in, open(output[0], "w") as bc_out:
+            for nuc_barcode in bc_in:
+                haptag = "".join(next(bc_generator))
+                bc_out.write(nuc_barcode.rstrip() + "\t" + haptag + "\n")
 
 rule link_genome:
     input:
@@ -145,25 +159,22 @@ rule create_linked_reads:
     shell:
         "extractReads {input} {params} 2> {log}"
 
-#TODO ADD OPTION TO inline_to_haplotag.py to let it start from a given ACBD barcode
 rule demultiplex_barcodes:
     input:
         fw = outdir + "/multiplex/sim_hap{hap}_multiplex_R1_001.fastq.gz",
         rv = outdir + "/multiplex/sim_hap{hap}_multiplex_R2_001.fastq.gz",
-        barcodes = barcode_file
+        barcodes = outdir + "/barcodes.key"
     output:
         fw = outdir + "/sim_hap{hap}.R1.fq.gz",
-        rv = outdir + "/sim_hap{hap}.R2.fq.gz",
-        record = outdir + "/sim_hap{hap}.barcodes"
+        rv = outdir + "/sim_hap{hap}.R2.fq.gz"
     log:
-        outdir + "/logs/sim_hap{hap}.demux"
+        outdir + "/logs/sim_hap{hap}.demultiplex"
     params:
-        outdir = outdir,
-        bc_len = barcode_len
+        lambda wc = f"{outdir}/sim_hap{wc.get('hap')}"
     container:
         None
     shell:
-        "inline_to_haplotag.py -l {params.bc_len} -f {input.fw} -r {input.rv} -b {input.barcodes} -p {params.outdir}/sim_hap{wildcards.hap} 2> {log}"
+        "inline_to_haplotag.py -f {input.fw} -r {input.rv} -b {input.barcodes} -p {params} 2> {log}"
 
 rule workflow_summary:
     default_target: True
@@ -196,7 +207,7 @@ rule workflow_summary:
         lrsim += f"\tLRSIM_harpy.pl -g genome1,genome2 -l {params.lrbc_len} -p {params.lrsproj_dir}/lrsim/sim -b BARCODES -r {params.lrsproj_dir} -i {params.lrsoutdist} -s {params.lrsdist_sd} -x {params.lrsn_pairs} -f {params.lrsmol_len} -t {params.lrsparts} -m {params.lrsmols_per} -z THREADS {params.lrsstatic}"
         summary.append(lrsim)
         bxconvert = "Inline barcodes were converted in haplotag BX:Z tags using:\n"
-        bxconvert += "\tinline_to_haplotag.py -l {params.lrbc_len}"
+        bxconvert += "\tinline_to_haplotag.py -f <forward.fq.gz> -r <reverse.fq.gz> -b <barcodes.txt> -p <prefix>"
         summary.append(bxconvert)
         sm = "The Snakemake workflow was called via command line:\n"
         sm += f"\t{config['workflow_call']}"

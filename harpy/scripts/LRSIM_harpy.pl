@@ -39,7 +39,7 @@ sub main {
         a => undef,
         d => 2,
         l => 16,
-        r => undef,
+        #r => undef,
         p => undef,
         b => undef,
         u => 99,
@@ -64,7 +64,7 @@ sub main {
         0 => 100
     );
     &usage( \%opts ) if ( @ARGV < 1 );
-    getopts( 'hc:g:a:d:l:r:p:b:u:e:E:i:s:x:f:t:m:z:1:2:3:4:5:6:7:8:9:0:',
+    getopts( 'hc:g:a:d:l:p:b:u:e:E:i:s:x:f:t:m:z:1:2:3:4:5:6:7:8:9:0:',
         \%opts );
     &usage( \%opts ) if ( defined $opts{h} );
 
@@ -395,7 +395,7 @@ sub main {
 
                         --$readsCountDown;
                         if ( $readsCountDown % 100000 == 0 ) {
-                            &Log("$readsCountDown reads remaining");
+                            &Log("Reads remaning: $readsCountDown");
                         }
                     }
                 }
@@ -426,7 +426,6 @@ sub usage {
     Usage:   $0 -r\/-g <reference\/haplotypes> -p <output prefix> [options]
 
     Reference genome and variants:
-    -r STRING   Name out output project directory
     -g STRING   Haploid FASTA .FAI files, separated by comma
     -a STRING   DWGSIM sequences, interleaved and separated by comma
 
