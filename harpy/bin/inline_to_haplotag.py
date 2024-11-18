@@ -27,29 +27,18 @@ for i in [args.forward, args.reverse, args.barcodes]:
 if err:
     parser.error("Some input files were not found on the system:\n" + ", ".join(err))
 
-def iter_fastq_records(file_handle):
-    """Iterate over FASTQ records in a file.
-    file_handle: Opened gzip file handle       
-    Yields: FASTQ record [header, seq, '+', qual]
-    Raises ValueError If file is not in FASTQ format
-    """
-    record = []
-    for line in file_handle:
-        line = line.decode().rstrip("\n")
-        record.append(line)
-        if len(record) == 4:
-            # format sanity check
-            if not (record[0].startswith("@") and record[2] == "+"):
-                raise ValueError("Invalid FASTQ format")
-            yield record
-            record = []
-    if record:
-        raise ValueError("Incomplete FASTQ record at end of file")
+def valid_record(fq_rec, FR):
+    """fastq format sanity check"""
+    #print(fq_rec)
+    #sys.exit(0)
+    if not (fq_rec[0].startswith("@") and fq_rec[2] == "+"):
+        raise ValueError(f"Invalid FASTQ format for {FR} reads")
 
 def process_record(fw_entry, rv_entry, barcode_dict, bc_len):
     """convert the barcode to haplotag"""
     # [0] = header, [1] = seq, [2] = +, [3] = qual
     if fw_entry:
+        valid_record(fw_entry, "forward")
         bc_inline = fw_entry[1][:bc_len]
         bc_hap = barcode_dict.get(bc_inline, "A00C00B00D00")
         fw_entry[0] = fw_entry[0].split()[0] + f"\tOX:Z:{bc_inline}\tBX:Z:{bc_hap}"
@@ -57,16 +46,21 @@ def process_record(fw_entry, rv_entry, barcode_dict, bc_len):
         fw_entry[3] = fw_entry[3][bc_len:]
         _new_fw = "\n".join(fw_entry) + "\n"
         if rv_entry:
+            valid_record(rv_entry, "reverse")
             rv_entry[0]  = rv_entry[0].split()[0] + f"\tOX:Z:{bc_inline}\tBX:Z:{bc_hap}"
             _new_rv = "\n".join(rv_entry) + "\n"
         else:
             _new_rv = None
-        return _new_fw, _new_rv
     else:
+        _new_fw = None
         # no forward read, therefor no barcode to search for
-        rv_entry[0] = rv_entry[0].split()[0] + f"\tBX:Z:A00C00B00D00"
-        _new_rv = "\n".join(rv_entry) + "\n"
-        return None, _new_rv
+        if rv_entry:
+            valid_record(rv_entry, "reverse")
+            rv_entry[0] = rv_entry[0].split()[0] + "\tBX:Z:A00C00B00D00"
+            _new_rv = "\n".join(rv_entry) + "\n"
+        else:
+            _new_rv = None
+    return _new_fw, _new_rv
 
 bc_dict = {}
 nucleotides = {'A','C','G','T'}
@@ -95,9 +89,25 @@ with opener(args.barcodes, mode) as bc_file:
 with gzip.open(args.forward, "r") as fw_i, gzip.open(args.reverse, "r") as rv_i,\
     gzip.open(f"{args.prefix}.R1.fq.gz", "wb", 6) as fw_out,\
     gzip.open(f"{args.prefix}.R2.fq.gz", "wb", 6) as rv_out:
-    for fw_record, rv_record in zip_longest(iter_fastq_records(fw_i), iter_fastq_records(rv_i)),:
-        new_fw, new_rv = process_record(fw_record, rv_record, bc_dict, bc_len)
-        if new_fw:
-            fw_out.write(new_fw.encode("utf-8"))
-        if new_rv:
-            rv_out.write(new_rv.encode("utf-8"))
+    #for fw_record, rv_record in zip_longest(iter_fastq_records(fw_i), iter_fastq_records(rv_i)),:
+    record_F = []
+    record_R = []
+    for fw_record, rv_record in zip_longest(fw_i, rv_i):
+        try:
+            record_F.append(fw_record.decode().rstrip("\n"))
+        except AttributeError:
+            # if the file ends before the other one
+            pass
+        try:
+            record_R.append(rv_record.decode().rstrip("\n"))
+        except AttributeError:
+            pass
+        # sanity checks
+        if len(record_F) == 4 or len(record_R) == 4:
+            new_fw, new_rv = process_record(record_F, record_R, bc_dict, bc_len)
+            if new_fw:
+                fw_out.write(new_fw.encode("utf-8"))
+                record_F = []
+            if new_rv:
+                rv_out.write(new_rv.encode("utf-8"))
+                record_R = []
