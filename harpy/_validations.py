@@ -501,11 +501,10 @@ def validate_barcodefile(infile, return_len = False, quiet = False, limit = 140)
         if linenum > 96**4:
             print_error("Too many barcodes", f"The maximum number of barcodes possible with haplotagging is [bold]96^4 (84,934,656)[/bold], but there are [yellow]{linenum}[/yellow] barcodes in [blue]{infile}[/blue]. Please use fewer barcodes.")
             sys.exit(1)
-        task_progress = progress.add_task("[green]Validating barcodes", total=linenum + 1)
+        task_progress = progress.add_task("[green]Validating barcodes", total=linenum)
         # check for duplicates
         sort_out = subprocess.Popen(["sort", infile], stdout=subprocess.PIPE)
         dup_out = subprocess.run(["uniq", "-d"], stdin=sort_out.stdout, capture_output=True, text=True)
-        progress.update(task_progress, advance=1)
         if dup_out.stdout:
             print_error("Duplicate barcodes", f"Duplicate barcodes were detected in {infile}, which will result in misleading simulated data.")
             print_solution_with_culprits("Check that you remove duplicate barcodes from your input file.", "Duplicates identified:")
