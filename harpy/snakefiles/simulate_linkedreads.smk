@@ -101,35 +101,34 @@ rule interleave_reads:
 
 rule make_molecules:
     input:
-        hap_reads = collect(outdir + "/dwgsim/sim_reads.{hap}.12.fastq", hap = [0,1]),
+        hap_reads = collect(outdir + "/dwgsim/sim_reads.{hap}.12.fastq"   , hap = [0,1]),
         fasta_fai = collect(outdir + "/workflow/input/hap.{hap}.fasta.fai", hap = [0,1]),
         barcodes = barcode_file
     output:
-        collect(outdir + "/linked_molecules/lrsim.{hap}.manifest", hap = [0,1]),
-        collect(outdir + "/linked_molecules/lrsim.{hap}.fp", hap = [0,1]),
-        temp(f"{outdir}/linked_molecules/.status")
+        temp(collect(outdir + "/linked_molecules/lrsim.{hap}.fp"      , hap = [0,1])),
+        temp(collect(outdir + "/linked_molecules/lrsim.{hap}.manifest", hap = [0,1])),
+        temp(f"{outdir}/linked_molecules/lrsim.status")
     log:
-        f"{outdir}/logs/haplosim.log"
+        f"{outdir}/logs/linked_molecules.log"
     params:
         haplosim = f"{outdir}/workflow/scripts/HaploSim.pl",
         reads_in = f"-a {outdir}/dwgsim/sim_reads.0.12.fastq,{outdir}/dwgsim/sim_reads.1.12.fastq",
-        fai_in = f"-g {outdir}/workflow/input/hap.0.fasta.fai,{outdir}/workflow/input/hap.1.fasta.fai",
-        inbarcodes = f"-b {barcode_file}",
-        proj_dir = f"-p {outdir}/linked_molecules/sim",
+        fai_in   = f"-g {outdir}/workflow/input/hap.0.fasta.fai,{outdir}/workflow/input/hap.1.fasta.fai",
+        bccodes  = f"-b {barcode_file}",
+        proj_dir = f"-p {outdir}/linked_molecules/lrsim",
         outdist  = f"-i {config['outer_distance']}",
         dist_sd  = f"-s {config['distance_sd']}",
         n_pairs  = f"-x {config['read_pairs']}",
         mol_len  = f"-f {config['molecule_length']}",
         parts    = f"-t {config['partitions']}",
         mols_per = f"-m {config['molecules_per_partition']}",
-        bc_len   = f"-l {barcode_len}",
-        static   = "-o 1 -d 2 -u 4"
+        bc_len   = f"-l {barcode_len}"
     threads:
         workflow.cores
     conda:
         f"{envdir}/simulations.yaml"
     shell: 
-        "perl {params} -z {threads} 2> {log}"
+        "perl {params} -z {threads} -o 1 -d 2 2> {log}"
 
 rule sort_molecules:
     input:
@@ -146,8 +145,7 @@ rule create_linked_reads:
         manifest = outdir + "/linked_molecules/lrsim.{hap}.sort.manifest",
         dwg_hap = outdir + "/dwgsim/sim_reads.{hap}.12.fastq"
     output:
-        outdir + "/multiplex/sim_hap{hap}_multiplex_R1_001.fastq.gz",
-        outdir + "/multiplex/sim_hap{hap}_multiplex_R2_001.fastq.gz"
+        collect(outdir + "/multiplex/sim_hap{{hap}}_multiplex_R{FR}_001.fastq.gz", FR = [1,2])
     log:
         outdir + "/logs/extract_linkedreads.hap{hap}.log"
     params:
@@ -168,7 +166,7 @@ rule demultiplex_barcodes:
     log:
         outdir + "/logs/sim_hap{hap}.demultiplex"
     params:
-        lambda wc = f"{outdir}/sim_hap{wc.get('hap')}"
+        lambda wc: f"{outdir}/sim_hap{wc.get('hap')}"
     container:
         None
     shell:
@@ -187,7 +185,7 @@ rule workflow_summary:
         lrsparts    = config["partitions"],
         lrsmols_per = config["molecules_per_partition"],
         lrbc_len   = barcode_len,
-        lrsstatic = "-o 1 -d 2 -u 4",
+        lrsstatic = "-o 1 -d 2",
         dwgreadpairs = int(config["read_pairs"] * 500000),
         dwgouterdist = config["outer_distance"],
         dwgdistsd = config["distance_sd"],
