@@ -89,7 +89,7 @@ with opener(args.barcodes, mode) as bc_file:
     if len(lengths) > 1:
         sys.stderr.write(f"Can only search sequences for barcodes of a single length, but multiple barcode legnths detected: " + ",".join([str(i) for i in lengths]))
     else:
-        bc_len = lengths.pop() if not args.length else args.length
+        bc_len = lengths.pop()
 
 # simultaneously iterate the forward and reverse fastq files
 with gzip.open(args.forward, "r") as fw_i, gzip.open(args.reverse, "r") as rv_i,\
