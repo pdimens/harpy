@@ -4,18 +4,16 @@ import os
 import sys
 import gzip
 import argparse
-from itertools import zip_longest, product
+from itertools import zip_longest
 
 parser = argparse.ArgumentParser(
     prog = 'inline_to_haplotag.py',
-    description = 'Moves inline linked read barcodes to read headers (OX:Z) and converts them into haplotag ACBD format (BX:Z).',
-    usage = "inline_to_haplotag.py -f <forward.fq.gz> -r <reverse.fq.gz> -b <barcodes.txt> -p <prefix>",
+    description = 'Moves inline linked read barcodes to read headers (OX:Z) and converts them into haplotag ACBD format (BX:Z). Barcodes must all be the same length.',
+    usage = f"inline_to_haplotag.py -f <forward.fq.gz> -r <reverse.fq.gz> -b <barcodes.txt> -p <prefix>",
     exit_on_error = False
     )
-
 parser.add_argument("-f", "--forward", required = True, type = str, help = "Forward reads of paired-end FASTQ file pair (gzipped)")
 parser.add_argument("-r", "--reverse", required = True, type = str, help = "Reverse reads of paired-end FASTQ file pair (gzipped)")
-parser.add_argument("-l", "--length", required = True, type = int, help = "Length of the barcodes (all must be one length)")
 parser.add_argument("-p", "--prefix", required = True, type = str, help = "Prefix for outfile files (e.g. <prefix>.R1.fq.gz)")
 parser.add_argument("-b", "--barcodes", required = True, type=str, help="File listing the linked-read barcodes to convert to haplotag format, one barcode per line")
 if len(sys.argv) == 1:
@@ -48,21 +46,12 @@ def iter_fastq_records(file_handle):
     if record:
         raise ValueError("Incomplete FASTQ record at end of file")
 
-def validate_barcode(barcode):
-    """Validate barcode format (A,C,G,T)."""
-    if not set(barcode).issubset({'A','C','G','T'}):
-        raise ValueError(f"Invalid barcode format: {barcode}. Barcodes must be captial letters and only contain standard nucleotide values ATCG.")
-
-def process_record(fw_entry, rv_entry, barcode_dict, haplotag_bc, bc_len):
+def process_record(fw_entry, rv_entry, barcode_dict, bc_len):
     """convert the barcode to haplotag"""
     # [0] = header, [1] = seq, [2] = +, [3] = qual
     if fw_entry:
         bc_inline = fw_entry[1][:bc_len]
         bc_hap = barcode_dict.get(bc_inline, "A00C00B00D00")
-        # the default barcode entry is None, meaning it hasnt been assigned a haplotag equivalent yet
-        if not bc_hap:
-            bc_hap = "".join(next(haplotag_bc))
-            barcode_dict[bc_inline] = bc_hap
         fw_entry[0] = fw_entry[0].split()[0] + f"\tOX:Z:{bc_inline}\tBX:Z:{bc_hap}"
         fw_entry[1] = fw_entry[1][bc_len:]
         fw_entry[3] = fw_entry[3][bc_len:]
@@ -79,35 +68,36 @@ def process_record(fw_entry, rv_entry, barcode_dict, haplotag_bc, bc_len):
         _new_rv = "\n".join(rv_entry) + "\n"
         return None, _new_rv
 
-bc_range = [f"{i}".zfill(2) for i in range(1,97)]
-bc_generator = product("A", bc_range, "C", bc_range, "B", bc_range, "D", bc_range)
-
 bc_dict = {}
+nucleotides = {'A','C','G','T'}
+lengths = set()
 # read in barcodes
 opener = gzip.open if args.barcodes.lower().endswith('.gz') else open
 mode = 'rt' if args.barcodes.lower().endswith('.gz') else 'r'
 with opener(args.barcodes, mode) as bc_file:
     for line in bc_file:
-        barcode = line.rstrip().split()[0]
-        validate_barcode(barcode)
-        bc_dict[barcode] = None
+        try:
+            ATCG,ACBD = line.rstrip().split()
+        except ValueError:
+            sys.stderr.write(f"Invalid barcode entry: {line.rstrip()}\nExpected two entries: a nucleotide barcode and ACBD format barcode with a space/tab separatng them, e.g. ATATCAGA A01C22B13D93")
+            sys.exit(1)
+        if not set(ATCG).issubset(nucleotides):
+            sys.stderr.write(f"Invalid barcode format: {ATCG}. Barcodes must be captial letters and only contain standard nucleotide values ATCG.\n")
+            sys.exit(1)
+        bc_dict[ATCG] = ACBD
+        lengths.add(len(ATCG))
+    if len(lengths) > 1:
+        sys.stderr.write(f"Can only search sequences for barcodes of a single length, but multiple barcode legnths detected: " + ",".join([str(i) for i in lengths]))
+    else:
+        bc_len = lengths.pop() if not args.length else args.length
 
 # simultaneously iterate the forward and reverse fastq files
-fw_out = gzip.open(f"{args.prefix}.R1.fq.gz", "wb", 6)
-rv_out = gzip.open(f"{args.prefix}.R2.fq.gz", "wb", 6)
-
-with gzip.open(args.forward, "r") as fw_i, gzip.open(args.reverse, "r") as rv_i:
-    for fw_record, rv_record in zip_longest(iter_fastq_records(fw_i), iter_fastq_records(rv_i)):
-        new_fw, new_rv = process_record(fw_record, rv_record, bc_dict, bc_generator, args.length)
+with gzip.open(args.forward, "r") as fw_i, gzip.open(args.reverse, "r") as rv_i,\
+    gzip.open(f"{args.prefix}.R1.fq.gz", "wb", 6) as fw_out,\
+    gzip.open(f"{args.prefix}.R2.fq.gz", "wb", 6) as rv_out:
+    for fw_record, rv_record in zip_longest(iter_fastq_records(fw_i), iter_fastq_records(rv_i)),:
+        new_fw, new_rv = process_record(fw_record, rv_record, bc_dict, bc_len)
         if new_fw:
             fw_out.write(new_fw.encode("utf-8"))
         if new_rv:
             rv_out.write(new_rv.encode("utf-8"))
-
-fw_out.close()
-rv_out.close()
-
-with open(f"{args.prefix}.barcodes", "w") as bx_out:
-    for i,j in bc_dict.items():
-        if j:
-            bx_out.write(f"{i}\t{j}\n")
