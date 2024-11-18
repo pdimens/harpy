@@ -36,6 +36,7 @@ sub main {
         h => undef,
         c => undef,
         g => undef,
+        a => undef,
         d => 2,
         l => 16,
         r => undef,
@@ -63,7 +64,7 @@ sub main {
         0 => 100
     );
     &usage( \%opts ) if ( @ARGV < 1 );
-    getopts( 'hc:g:d:l:r:p:b:u:e:E:i:s:x:f:t:m:z:1:2:3:4:5:6:7:8:9:0:',
+    getopts( 'hc:g:a:d:l:r:p:b:u:e:E:i:s:x:f:t:m:z:1:2:3:4:5:6:7:8:9:0:',
         \%opts );
     &usage( \%opts ) if ( defined $opts{h} );
 
@@ -75,8 +76,9 @@ sub main {
     #Check options end
 
     #Global variables
-    &Log("$opts{r}/lrsim/.status");    #Initialize Log routine
-    our @haplotypes = split /,/, $opts{g};
+    #&Log("$opts{r}/lrsim/.status");    #Initialize Log routine
+    our @haplotypes = split /,/, $opts{a};
+    our @fastafai = split /,/, $opts{g};    
     our %barcodeErrorRateFromMismatchObv1 = (
     0=>{ "A"=>0.00243200183210607, "C"=>0.00265226825720049, "G"=>0.00238252487266703, "T"=>0.00247859241604291},
     1=>{ "A"=>9.84518532280806e-05,"C"=>0.000105418767099898,"G"=>0.00012024540587624, "T"=>0.000149312364560738},
@@ -171,17 +173,16 @@ sub main {
         our @barcodes                   = ();
         our $barcodesMutexLock : shared = 0;
         our $numBarcodes                = 0;
-        &Log("Load barcodes start");
+        &Log("Load barcodes: start");
         open my $fh, "$opts{b}"
           or &LogAndDie("Barcodes file $opts{b} not found");
         @barcodes = <$fh>;
         chomp(@barcodes);
         $numBarcodes = scalar(@barcodes);
         close $fh;
-        &Log("Load barcodes end");
+        &Log("Load barcodes: end");
         #Load barcodes end
 
-        #our $barcodeLength     = $opts{l};
         our @fragmentSizesList = ();
         our $sizesCount        = 0;
         our $readsPerMolecule =
@@ -206,9 +207,9 @@ sub main {
             my %faidx                 = ();
             my @boundary              = ();
             my $genomeSize =
-              &LoadFaidx( \%faidx, \@boundary, "$opts{r}/workflow/input/hap.$i.fasta" );
+              &LoadFaidx( \%faidx, \@boundary, $fastafai[$i] );
             &LogAndDie(
-                "Failed loading genome index $opts{r}/workflow/input/hap.$i.fasta.fai")
+                "Failed loading genome index " . $fastafai[$i])
               if ( $genomeSize == 0 );
             my $readPositionsInFile = mallocAry($genomeSize);
             initAryFF( $readPositionsInFile, $genomeSize );
@@ -220,8 +221,6 @@ sub main {
                 &Log("Imported $opts{p}.$i.fp");
             }
             else {
-                #open my $fh, "$opts{r}/dwgsim_simulated/dwgsim.$i.12.fastq"
-                #  or &LogAndDie("Error opening $opts{r}/dwgsim_simulated/dwgsim.$i.12.fastq");
                 open my $fh, $haplotype
                   or &LogAndDie("Error opening $haplotype");
                 my $l1;
@@ -366,28 +365,28 @@ sub main {
                         my @selectedBarcodeAry = @precreatedSelectedBarcodeAry;
                         my @barcodeQualAry     = @defaultBarcodeQualAry;
                         my $barcodeLength      = $opts{l};
-                        for ( my $k = 0 ; $k < $barcodeLength ; ++$k ) {
-                            my $isErr =
-                              rand() <= $barcodeErrorRateFromMismatchObv1{$k}
-                              { $selectedBarcodeAry[$k] } ? 1 : 0;
-                            if ( $isErr == 1 ) {
-                                my $rnd = rand();
-                                my $idx = 1;
-                                while ( $idx < 4 ) {
-                                    last
-                                      if $rnd <
-                                      $barcodeErrorRateFromMismatchObv2{$k}
-                                      { $selectedBarcodeAry[$k] }
-                                      { $substitute{ $selectedBarcodeAry[$k] }
-                                          [$idx] };
-                                    ++$idx;
-                                }
-                                --$idx;
-                                $selectedBarcodeAry[$k] =
-                                  $substitute{ $selectedBarcodeAry[$k] }[$idx];
-                                $barcodeQualAry[$k] = chr(35);
-                            }
-                        }
+                        #for ( my $k = 0 ; $k < $barcodeLength ; ++$k ) {
+                        #    my $isErr =
+                        #      rand() <= $barcodeErrorRateFromMismatchObv1{$k}
+                        #      { $selectedBarcodeAry[$k] } ? 1 : 0;
+                        #    if ( $isErr == 1 ) {
+                        #        my $rnd = rand();
+                        #        my $idx = 1;
+                        #        while ( $idx < 4 ) {
+                        #            last
+                        #              if $rnd <
+                        #              $barcodeErrorRateFromMismatchObv2{$k}
+                        #              { $selectedBarcodeAry[$k] }
+                        #              { $substitute{ $selectedBarcodeAry[$k] }
+                        #                  [$idx] };
+                        #            ++$idx;
+                        #        }
+                        #        --$idx;
+                        #        $selectedBarcodeAry[$k] =
+                        #          $substitute{ $selectedBarcodeAry[$k] }[$idx];
+                        #        $barcodeQualAry[$k] = chr(35);
+                        #    }
+                        #}
 
                         #Output
                         print $outputfh "$filePosToExtract\t"
@@ -428,7 +427,8 @@ sub usage {
 
     Reference genome and variants:
     -r STRING   Name out output project directory
-    -g STRING   Haploid FASTAs separated by comma.
+    -g STRING   Haploid FASTA .FAI files, separated by comma
+    -a STRING   DWGSIM sequences, interleaved and separated by comma
 
     Illumina reads characteristics:
     -e FLOAT    Per base error rate of the first read [$$opts{e}]
@@ -476,8 +476,8 @@ sub LogAndDie {
 sub LoadFaidx {
     my $faidx    = shift;
     my $boundary = shift;
-    my $fn       = shift;
-    open my $fh, "$fn.fai" or &LogAndDie("Error opening faidx: $fn.fai");
+    my $fai       = shift;
+    open my $fh, "$fai" or &LogAndDie("Error opening faidx: $fai");
     my $accumulation = 0;
     while (<$fh>) {
         chomp;
