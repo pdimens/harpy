@@ -478,8 +478,7 @@ def validate_fastq_bx(fastq_list, threads, quiet):
         for future in as_completed(futures):
             progress.update(task_progress, advance=1)
 
-def validate_barcodefile(infile, return_len = False, quiet = False, limit = None):
-    #TODO DUPLICATE CHECK
+def validate_barcodefile(infile, return_len = False, quiet = False, limit = 140):
     """Does validations to make sure it's one length, within a length limit, one per line, and nucleotides"""
     if is_gzip(infile):
         print_error("Incorrect format", f"The input file must be in uncompressed format. Please decompress [blue]{infile}[/blue] and try again.")
@@ -499,11 +498,23 @@ def validate_barcodefile(infile, return_len = False, quiet = False, limit = None
     with open(infile, "r") as bc_file, harpy_progressbar(quiet) as progress:
         out = subprocess.Popen(['wc', '-l', infile], stdout=subprocess.PIPE, stderr=subprocess.STDOUT).communicate()[0]
         linenum = int(out.partition(b' ')[0])
-        task_progress = progress.add_task("[green]Validating barcodes", total=linenum)
+        if linenum > 96**4:
+            print_error("Too many barcodes", f"The maximum number of barcodes possible with haplotagging is [bold]96^4 (84,934,656)[/bold], but there are [yellow]{linenum}[/yellow] barcodes in [blue]{infile}[/blue]. Please use fewer barcodes.")
+            sys.exit(1)
+        task_progress = progress.add_task("[green]Validating barcodes", total=linenum + 1)
+        # check for duplicates
+        sort_out = subprocess.Popen(["sort", infile], stdout=subprocess.PIPE)
+        dup_out = subprocess.run(["uniq", "-d"], stdin=sort_out.stdout, capture_output=True, text=True)
+        progress.update(task_progress, advance=1)
+        if dup_out.stdout:
+            print_error("Duplicate barcodes", f"Duplicate barcodes were detected in {infile}, which will result in misleading simulated data.")
+            print_solution_with_culprits("Check that you remove duplicate barcodes from your input file.", "Duplicates identified:")
+            click.echo(dup_out.stdout, file = sys.stderr)
+            sys.exit(1)
         for line,bc in enumerate(bc_file):
             length = validate(line + 1, bc)
-            if limit and length > limit:
-                print_error("Barcodes too long", f"Barcodes in [blue]{infile}[/blue] are [yellow]{length}bp[/yellow] and cannot exceed a length of [bold]{limit}bp[/bold]. Please use shorter barcodes (it's a limitation of LRSIM).")
+            if length > limit:
+                print_error("Barcodes too long", f"Barcodes in [blue]{infile}[/blue] are [yellow]{length}bp[/yellow] and cannot exceed a length of [bold]{limit}bp[/bold]. Please use shorter barcodes.")
                 sys.exit(1)
             lengths.add(length)
             progress.update(task_progress, advance=1)
