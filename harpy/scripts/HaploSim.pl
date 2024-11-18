@@ -77,7 +77,7 @@ sub main {
 
     #Global variables
     #Initialize Log routine
-    &Log("$opts{r}/lrsim/.status");    
+    &Log("$opts{p}.status");    
     our @haplotypes = split /,/, $opts{a};
     our @fastafai = split /,/, $opts{g};    
     our %barcodeErrorRateFromMismatchObv1 = (
@@ -399,6 +399,7 @@ sub usage {
     Reference genome and variants:
     -g STRING   Haploid FASTA .FAI files, separated by comma
     -a STRING   DWGSIM sequences, interleaved and separated by comma
+    -p STRING   Output prefix
 
     Illumina reads characteristics:
     -e FLOAT    Per base error rate of the first read [$$opts{e}]
@@ -416,9 +417,6 @@ sub usage {
     -m INT      Average # of molecules per partition [$$opts{m}]
 
     Miscellaneous:
-    -u INT      Continue from a step [auto]
-                  4. Simulate reads
-                  5. Sort reads extraction manifest
     -h          Show this help
 
     /

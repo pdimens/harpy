@@ -105,17 +105,17 @@ rule make_molecules:
         fasta_fai = collect(outdir + "/workflow/input/hap.{hap}.fasta.fai", hap = [0,1]),
         barcodes = barcode_file
     output:
-        collect(outdir + "/lrsim/sim.{hap}.manifest", hap = [0,1]),
-        collect(outdir + "/lrsim/sim.{hap}.fp", hap = [0,1]),
-        temp(f"{outdir}/lrsim/.status")
+        collect(outdir + "/linked_molecules/lrsim.{hap}.manifest", hap = [0,1]),
+        collect(outdir + "/linked_molecules/lrsim.{hap}.fp", hap = [0,1]),
+        temp(f"{outdir}/linked_molecules/.status")
     log:
-        f"{outdir}/logs/lrsim.log"
+        f"{outdir}/logs/haplosim.log"
     params:
-        lrsim = f"{outdir}/workflow/scripts/HaploSim.pl",
+        haplosim = f"{outdir}/workflow/scripts/HaploSim.pl",
         reads_in = f"-a {outdir}/dwgsim/sim_reads.0.12.fastq,{outdir}/dwgsim/sim_reads.1.12.fastq",
         fai_in = f"-g {outdir}/workflow/input/hap.0.fasta.fai,{outdir}/workflow/input/hap.1.fasta.fai",
         inbarcodes = f"-b {barcode_file}",
-        proj_dir = f"-p {outdir}/lrsim/sim",
+        proj_dir = f"-p {outdir}/linked_molecules/sim",
         outdist  = f"-i {config['outer_distance']}",
         dist_sd  = f"-s {config['distance_sd']}",
         n_pairs  = f"-x {config['read_pairs']}",
@@ -133,9 +133,9 @@ rule make_molecules:
 
 rule sort_molecules:
     input:
-        outdir + "/lrsim/sim.{hap}.manifest"
+        outdir + "/linked_molecules/lrsim.{hap}.manifest"
     output:
-        outdir + "/lrsim/sim.{hap}.sort.manifest"
+        outdir + "/linked_molecules/lrsim.{hap}.sort.manifest"
     conda:
         f"{envdir}/simulations.yaml"
     shell:
@@ -143,7 +143,7 @@ rule sort_molecules:
 
 rule create_linked_reads:
     input:
-        manifest = outdir + "/lrsim/sim.{hap}.sort.manifest",
+        manifest = outdir + "/linked_molecules/lrsim.{hap}.sort.manifest",
         dwg_hap = outdir + "/dwgsim/sim_reads.{hap}.12.fastq"
     output:
         outdir + "/multiplex/sim_hap{hap}_multiplex_R1_001.fastq.gz",
@@ -201,9 +201,9 @@ rule workflow_summary:
         dwgsim = "Reads were simulated from the provided genomes using:\n"
         dwgsim += f"\tdwgsim -N {params.dwgreadpairs} -e 0.0001,0.0016 -E 0.0001,0.0016 -d {params.dwgouterdist} -s {params.dwgdistsd} -1 135 -2 151 -H -y 0 -S 0 -c 0 -R 0 -r {params.dwgmutationrate} -F 0 -o 1 -m /dev/null GENO PREFIX"
         summary.append(dwgsim)
-        lrsim = "LRSIM was started from step 3 (-u 3) with these parameters:\n"
-        lrsim += f"\tHaploSim.pl -g genome1,genome2 -a dwgsimreads1,dwgsimreads2 -l {params.lrbc_len} -p {params.lrsproj_dir}/lrsim/sim -b BARCODES -i {params.lrsoutdist} -s {params.lrsdist_sd} -x {params.lrsn_pairs} -f {params.lrsmol_len} -t {params.lrsparts} -m {params.lrsmols_per} -z THREADS {params.lrsstatic}"
-        summary.append(lrsim)
+        haplosim = "HaploSim (Harpy's fork of LRSIM) was used with these parameters:\n"
+        haplosim += f"\tHaploSim.pl -g genome1,genome2 -a dwgsimreads1,dwgsimreads2 -l {params.lrbc_len} -p {params.lrsproj_dir}/linked_molecules/lrsim -b BARCODES -i {params.lrsoutdist} -s {params.lrsdist_sd} -x {params.lrsn_pairs} -f {params.lrsmol_len} -t {params.lrsparts} -m {params.lrsmols_per} -z THREADS {params.lrsstatic}"
+        summary.append(haplosim)
         bxconvert = "Inline barcodes were converted in haplotag BX:Z tags using:\n"
         bxconvert += "\tinline_to_haplotag.py -f <forward.fq.gz> -r <reverse.fq.gz> -b <barcodes.txt> -p <prefix>"
         summary.append(bxconvert)
