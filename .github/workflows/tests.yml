@@ -746,7 +746,7 @@ jobs:
       - name: simulate linked reads
         shell: micromamba-shell {0}
         run: |
-          haplotag_barcodes.py -n 14500000 > test/haplotag.bc
+          haplotag_barcodes.py -n 14000000 > test/haplotag.bc
           harpy simulate linkedreads --quiet -t 4 -n 2 -b test/haplotag.bc -l 100 -p 50 test/genome/genome.fasta.gz test/genome/genome2.fasta.gz
 
   assembly:
