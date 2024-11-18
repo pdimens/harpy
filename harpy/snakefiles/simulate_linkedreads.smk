@@ -24,7 +24,7 @@ barcode_len = config["barcodes"]["length"]
 envdir   = os.path.join(os.getcwd(), ".harpy_envs")
 genodict = {"0": gen_hap1, "1": gen_hap2}
 
-rule map_barcodes:
+rule barcode_keymap:
     input:
         barcode_file
     output:
@@ -113,7 +113,7 @@ rule make_molecules:
     params:
         lrsim = f"{outdir}/workflow/scripts/HaploSim.pl",
         reads_in = f"-a {outdir}/dwgsim/sim_reads.0.12.fastq,{outdir}/dwgsim/sim_reads.1.12.fastq",
-        fai_in = f"-g {outdir}/workflow/input/hap.0.fasta.fai,{outdir}/workflow/input/hap.1.fasta.fai"
+        fai_in = f"-g {outdir}/workflow/input/hap.0.fasta.fai,{outdir}/workflow/input/hap.1.fasta.fai",
         inbarcodes = f"-b {barcode_file}",
         proj_dir = f"-p {outdir}/lrsim/sim",
         outdist  = f"-i {config['outer_distance']}",
