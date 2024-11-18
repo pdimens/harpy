@@ -518,7 +518,7 @@ def validate_barcodefile(infile, return_len = False, quiet = False, limit = 140)
             lengths.add(length)
             progress.update(task_progress, advance=1)
     if len(lengths) > 1:
-        print_error("Incorrect format", f"Barcodes in [blue]{infile}[/blue] must all be a single length, but multiple lengths were detected: [yellow]" + ", ".join(lengths))
+        print_error("Incorrect format", f"Barcodes in [blue]{infile}[/blue] must all be a single length, but multiple lengths were detected: [yellow]" + ", ".join(lengths) + "[/yellow]")
         sys.exit(1)
     if return_len:
         return lengths.pop()

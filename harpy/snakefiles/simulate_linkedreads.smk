@@ -28,14 +28,14 @@ rule barcode_keymap:
     input:
         barcode_file
     output:
-        outdir + "/barcodes.key"
+        outdir + "/barcodes.key.gz"
     run:
         bc_range = [f"{i}".zfill(2) for i in range(1,97)]
         bc_generator = product("A", bc_range, "C", bc_range, "B", bc_range, "D", bc_range)
-        with open(input[0], "r") as bc_in, open(output[0], "w") as bc_out:
+        with open(input[0], "r") as bc_in, gzip.open(output[0], "wb") as bc_out:
             for nuc_barcode in bc_in:
                 haptag = "".join(next(bc_generator))
-                bc_out.write(nuc_barcode.rstrip() + "\t" + haptag + "\n")
+                bc_out.write((nuc_barcode.rstrip() + "\t" + haptag + "\n").encode("utf-8"))
 
 rule link_genome:
     input:
@@ -159,7 +159,7 @@ rule demultiplex_barcodes:
     input:
         fw = outdir + "/multiplex/sim_hap{hap}_multiplex_R1_001.fastq.gz",
         rv = outdir + "/multiplex/sim_hap{hap}_multiplex_R2_001.fastq.gz",
-        barcodes = outdir + "/barcodes.key"
+        barcodes = outdir + "/barcodes.key.gz"
     output:
         fw = outdir + "/sim_hap{hap}.R1.fq.gz",
         rv = outdir + "/sim_hap{hap}.R2.fq.gz"
