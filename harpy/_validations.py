@@ -476,6 +476,7 @@ def validate_fastq_bx(fastq_list, threads, quiet):
             progress.update(task_progress, advance=1)
 
 def validate_barcodefile(infile, return_len = False, quiet = False, limit = None):
+    #TODO DUPLICATE CHECK
     """Does validations to make sure it's one length, within a length limit, one per line, and nucleotides"""
     if is_gzip(infile):
         print_error("Incorrect format", f"The input file must be in uncompressed format. Please decompress [blue]{infile}[/blue] and try again.")
