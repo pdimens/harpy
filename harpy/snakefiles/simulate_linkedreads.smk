@@ -101,10 +101,8 @@ rule interleave_reads:
 
 rule make_molecules:
     input:
-        hap1 = f"{outdir}/dwgsim/sim_reads.0.12.fastq",
-        hap2 = f"{outdir}/dwgsim/sim_reads.1.12.fastq",
-        fai1 = outdir + "/workflow/input/hap.0.fasta.fai",
-        fai2 = outdir + "/workflow/input/hap.1.fasta.fai",
+        hap_reads = collect(outdir + "/dwgsim/sim_reads.{hap}.12.fastq", hap = [0,1]),
+        fasta_fai = collect(outdir + "/workflow/input/hap.{hap}.fasta.fai", hap = [0,1]),
         barcodes = barcode_file
     output:
         collect(outdir + "/lrsim/sim.{hap}.manifest", hap = [0,1]),
@@ -114,10 +112,10 @@ rule make_molecules:
         f"{outdir}/logs/lrsim.log"
     params:
         lrsim = f"{outdir}/workflow/scripts/LRSIM_harpy.pl",
-        infiles = f"-g {outdir}/dwgsim/sim_reads.0.12.fastq,{outdir}/dwgsim/sim_reads.1.12.fastq",
+        reads_in = f"-a {outdir}/dwgsim/sim_reads.0.12.fastq,{outdir}/dwgsim/sim_reads.1.12.fastq",
+        fai_in = f"-g {outdir}/workflow/input/hap.0.fasta.fai,{outdir}/workflow/input/hap.1.fasta.fai"
         inbarcodes = f"-b {barcode_file}",
         proj_dir = f"-p {outdir}/lrsim/sim",
-        prefix = f"-r {outdir}",
         outdist  = f"-i {config['outer_distance']}",
         dist_sd  = f"-s {config['distance_sd']}",
         n_pairs  = f"-x {config['read_pairs']}",
@@ -204,7 +202,7 @@ rule workflow_summary:
         dwgsim += f"\tdwgsim -N {params.dwgreadpairs} -e 0.0001,0.0016 -E 0.0001,0.0016 -d {params.dwgouterdist} -s {params.dwgdistsd} -1 135 -2 151 -H -y 0 -S 0 -c 0 -R 0 -r {params.dwgmutationrate} -F 0 -o 1 -m /dev/null GENO PREFIX"
         summary.append(dwgsim)
         lrsim = "LRSIM was started from step 3 (-u 3) with these parameters:\n"
-        lrsim += f"\tLRSIM_harpy.pl -g genome1,genome2 -l {params.lrbc_len} -p {params.lrsproj_dir}/lrsim/sim -b BARCODES -r {params.lrsproj_dir} -i {params.lrsoutdist} -s {params.lrsdist_sd} -x {params.lrsn_pairs} -f {params.lrsmol_len} -t {params.lrsparts} -m {params.lrsmols_per} -z THREADS {params.lrsstatic}"
+        lrsim += f"\tLRSIM_harpy.pl -g genome1,genome2 -a dwgsimreads1,dwgsimreads2 -l {params.lrbc_len} -p {params.lrsproj_dir}/lrsim/sim -b BARCODES -i {params.lrsoutdist} -s {params.lrsdist_sd} -x {params.lrsn_pairs} -f {params.lrsmol_len} -t {params.lrsparts} -m {params.lrsmols_per} -z THREADS {params.lrsstatic}"
         summary.append(lrsim)
         bxconvert = "Inline barcodes were converted in haplotag BX:Z tags using:\n"
         bxconvert += "\tinline_to_haplotag.py -f <forward.fq.gz> -r <reverse.fq.gz> -b <barcodes.txt> -p <prefix>"
