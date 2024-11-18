@@ -99,7 +99,7 @@ rule interleave_reads:
     shell:
         "seqtk mergepe {input} > {output}"
 
-rule make_molecules:
+rule create_molecules:
     input:
         hap_reads = collect(outdir + "/dwgsim/sim_reads.{hap}.12.fastq"   , hap = [0,1]),
         fasta_fai = collect(outdir + "/workflow/input/hap.{hap}.fasta.fai", hap = [0,1]),
@@ -147,7 +147,7 @@ rule create_linked_reads:
     output:
         collect(outdir + "/multiplex/sim_hap{{hap}}_multiplex_R{FR}_001.fastq.gz", FR = [1,2])
     log:
-        outdir + "/logs/extract_linkedreads.hap{hap}.log"
+        outdir + "/logs/create_linkedreads.hap{hap}.log"
     params:
         lambda wc: f"{outdir}/multiplex/sim_hap{wc.get('hap')}_multiplex"
     container:
