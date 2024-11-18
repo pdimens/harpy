@@ -111,7 +111,7 @@ rule make_molecules:
     log:
         f"{outdir}/logs/lrsim.log"
     params:
-        lrsim = f"{outdir}/workflow/scripts/LRSIM_harpy.pl",
+        lrsim = f"{outdir}/workflow/scripts/HaploSim.pl",
         reads_in = f"-a {outdir}/dwgsim/sim_reads.0.12.fastq,{outdir}/dwgsim/sim_reads.1.12.fastq",
         fai_in = f"-g {outdir}/workflow/input/hap.0.fasta.fai,{outdir}/workflow/input/hap.1.fasta.fai"
         inbarcodes = f"-b {barcode_file}",
@@ -202,7 +202,7 @@ rule workflow_summary:
         dwgsim += f"\tdwgsim -N {params.dwgreadpairs} -e 0.0001,0.0016 -E 0.0001,0.0016 -d {params.dwgouterdist} -s {params.dwgdistsd} -1 135 -2 151 -H -y 0 -S 0 -c 0 -R 0 -r {params.dwgmutationrate} -F 0 -o 1 -m /dev/null GENO PREFIX"
         summary.append(dwgsim)
         lrsim = "LRSIM was started from step 3 (-u 3) with these parameters:\n"
-        lrsim += f"\tLRSIM_harpy.pl -g genome1,genome2 -a dwgsimreads1,dwgsimreads2 -l {params.lrbc_len} -p {params.lrsproj_dir}/lrsim/sim -b BARCODES -i {params.lrsoutdist} -s {params.lrsdist_sd} -x {params.lrsn_pairs} -f {params.lrsmol_len} -t {params.lrsparts} -m {params.lrsmols_per} -z THREADS {params.lrsstatic}"
+        lrsim += f"\tHaploSim.pl -g genome1,genome2 -a dwgsimreads1,dwgsimreads2 -l {params.lrbc_len} -p {params.lrsproj_dir}/lrsim/sim -b BARCODES -i {params.lrsoutdist} -s {params.lrsdist_sd} -x {params.lrsn_pairs} -f {params.lrsmol_len} -t {params.lrsparts} -m {params.lrsmols_per} -z THREADS {params.lrsstatic}"
         summary.append(lrsim)
         bxconvert = "Inline barcodes were converted in haplotag BX:Z tags using:\n"
         bxconvert += "\tinline_to_haplotag.py -f <forward.fq.gz> -r <reverse.fq.gz> -b <barcodes.txt> -p <prefix>"
