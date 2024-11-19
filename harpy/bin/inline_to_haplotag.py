@@ -3,6 +3,7 @@
 import os
 import sys
 import gzip
+import sqlite3
 import argparse
 from itertools import zip_longest
 
@@ -32,13 +33,35 @@ def valid_record(fq_rec, FR):
     if not (fq_rec[0].startswith("@") and fq_rec[2] == "+"):
         raise ValueError(f"Invalid FASTQ format for {FR} reads")
 
-def process_record(fw_entry, rv_entry, barcode_dict, bc_len):
+def insert_key_value(conn, key, value):
+    """insert a key-value pair into sqlite database"""
+    cursor = conn.cursor()
+    cursor.execute('''
+        INSERT OR REPLACE INTO kv_store (key, value) VALUES (?, ?)
+    ''', (key, value))  # Use parameterized queries to avoid SQL injection
+    conn.commit()
+
+def get_value_by_key(conn, key):
+    """retrieve a value by key from sqlite database"""
+    cursor = conn.cursor()
+    cursor.execute('''
+        SELECT value FROM kv_store WHERE key = ?
+    ''', (key,))
+    result = cursor.fetchone()  # Fetch one row
+    if result:
+        # Return the value (first column of the result)
+        return result[0]  
+    else:
+        # Return invalid ACBD haplotag if the key does not exist
+        return "A00C00B00D00"  
+
+def process_record(fw_entry, rv_entry, barcode_database, bc_len):
     """convert the barcode to haplotag"""
     # [0] = header, [1] = seq, [2] = +, [3] = qual
     if fw_entry:
         valid_record(fw_entry, "forward")
         bc_inline = fw_entry[1][:bc_len]
-        bc_hap = barcode_dict.get(bc_inline, "A00C00B00D00")
+        bc_hap = get_value_by_key(barcode_database, bc_inline)
         fw_entry[0] = fw_entry[0].split()[0] + f"\tOX:Z:{bc_inline}\tBX:Z:{bc_hap}"
         fw_entry[1] = fw_entry[1][bc_len:]
         fw_entry[3] = fw_entry[3][bc_len:]
@@ -60,9 +83,19 @@ def process_record(fw_entry, rv_entry, barcode_dict, bc_len):
             _new_rv = None
     return _new_fw, _new_rv
 
+# Connect to an in-memory SQLite database
+bc_db = sqlite3.connect(':memory:')
+# Create the table to store key-value pairs
+bc_db.cursor().execute('''
+    CREATE TABLE kv_store (
+        key TEXT PRIMARY KEY,
+        value TEXT
+    )
+''')
+bc_db.commit()
+
 nucleotides = {'A','C','G','T'}
 lengths = set()
-bc_dict = {}
 
 # read in barcodes
 opener = gzip.open if args.barcodes.lower().endswith('.gz') else open
@@ -77,7 +110,9 @@ with opener(args.barcodes, mode) as bc_file:
         if not set(ATCG).issubset(nucleotides):
             sys.stderr.write(f"Invalid barcode format: {ATCG}. Barcodes must be captial letters and only contain standard nucleotide values ATCG.\n")
             sys.exit(1)
-        bc_dict[ATCG] = ACBD
+        
+        insert_key_value(bc_db, ATCG, ACBD)
+        #bc_dict[ATCG] = ACBD
         lengths.add(len(ATCG))
     if len(lengths) > 1:
         sys.stderr.write("Can only search sequences for barcodes of a single length, but multiple barcode legnths detected: " + ",".join([str(i) for i in lengths]))
@@ -102,10 +137,12 @@ with gzip.open(args.forward, "r") as fw_i, gzip.open(args.reverse, "r") as rv_i,
             pass
         # sanity checks
         if len(record_F) == 4 or len(record_R) == 4:
-            new_fw, new_rv = process_record(record_F, record_R, bc_dict, bc_len)
+            new_fw, new_rv = process_record(record_F, record_R, bc_db, bc_len)
             if new_fw:
                 fw_out.write(new_fw.encode("utf-8"))
                 record_F = []
             if new_rv:
                 rv_out.write(new_rv.encode("utf-8"))
                 record_R = []
+
+bc_db.cursor().close()
