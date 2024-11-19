@@ -332,8 +332,8 @@ def validate_regions(regioninput, genome):
                 else:
                     contigs[cn] += len(line.rstrip("\n"))
         # since it's zero-based, subtract 1 from the final sums
-        for k,v in contigs.items():
-            contigs[k] = v - 1
+        #for k,v in contigs.items():
+        #    contigs[k] = v - 1
         err = ""
         if reg[0] not in contigs:
             print_error("contig not found", f"The contig ([bold yellow]{reg[0]})[/bold yellow]) of the input region [yellow bold]{regioninput}[/yellow bold] was not found in [blue]{genome}[/blue].")
@@ -353,9 +353,7 @@ def validate_regions(regioninput, genome):
         sys.exit(1)
     with open(regioninput, "r", encoding="utf-8") as fin:
         badrows = []
-        idx = 0
-        for line in fin:
-            idx += 1
+        for idx, line in enumerate(fin, 1):
             row = line.split()
             if len(row) != 3:
                 badrows.append(idx)
