@@ -77,7 +77,6 @@ sub main {
 
     #Global variables
     #Initialize Log routine
-    &Log("$opts{p}.status");    
     our @haplotypes = split /,/, $opts{a};
     our @fastafai = split /,/, $opts{g};
     #Global variables end
@@ -301,12 +300,7 @@ sub usage {
 
 # Log routine
 sub Log {
-    state $statusFH;
-    if ( not defined $statusFH ) {
-        open $statusFH, ">>$_[0]" or die "Error opening $_[0].\n";
-    }
     my $time = localtime;
-    print $statusFH "$time: $_[0]\n";
     print STDERR "$time: $_[0]\n";
 }
 
@@ -408,7 +402,7 @@ long mallocAry(long size)
   long ptr = (long)malloc(size * sizeof(size_t) * AMP_ON_SLOTS);
   if(ptr == (long)NULL)
   {
-    fprintf(stderr, "Error allocation, size %l\n", size);
+    fprintf(stderr, "Error allocation, size %zu\n", (size_t)size);
     return 0;
   }
   return ptr;
