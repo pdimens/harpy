@@ -106,8 +106,7 @@ rule create_molecules:
         barcodes = barcode_file
     output:
         temp(collect(outdir + "/linked_molecules/lrsim.{hap}.fp"      , hap = [0,1])),
-        temp(collect(outdir + "/linked_molecules/lrsim.{hap}.manifest", hap = [0,1])),
-        temp(f"{outdir}/linked_molecules/lrsim.status")
+        temp(collect(outdir + "/linked_molecules/lrsim.{hap}.manifest", hap = [0,1]))
     log:
         f"{outdir}/logs/linked_molecules.log"
     params:
