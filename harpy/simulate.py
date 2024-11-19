@@ -166,10 +166,10 @@ def linkedreads(genome_hap1, genome_hap2, output_dir, outer_distance, mutation_r
     check_fasta(genome_hap1)
     check_fasta(genome_hap2)
     if barcodes:
-        bc_len = validate_barcodefile(barcodes, True)
+        bc_len = validate_barcodefile(barcodes, True, quiet)
     os.makedirs(f"{workflowdir}/", exist_ok= True)
     fetch_rule(workflowdir, "simulate_linkedreads.smk")
-    fetch_script(workflowdir, "LRSIM_harpy.pl")
+    fetch_script(workflowdir, "HaploSim.pl")
     os.makedirs(f"{output_dir}/logs/snakemake", exist_ok = True)
     sm_log = snakemake_log(output_dir, "simulate_linkedreads")
     configs = {

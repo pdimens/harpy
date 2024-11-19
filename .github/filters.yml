@@ -155,7 +155,7 @@ simreads: &simreads
   - 'extractReads.cpp'
   - 'harpy/bin/inline_to_haplotag.py'
   - 'harpy/bin/haplotag_barcodes.py'
-  - 'harpy/scripts/LRSIM_harpy.pl'
+  - 'harpy/scripts/HaploSim.pl'
 assembly: &assembly
   - *common
   - *container

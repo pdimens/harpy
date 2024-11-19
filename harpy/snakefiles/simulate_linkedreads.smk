@@ -2,8 +2,10 @@ containerized: "docker://pdimens/harpy:latest"
 
 import os
 import gzip
+import shutil
 import logging
 from pathlib import Path
+from itertools import product
 
 onstart:
     logger.logger.addHandler(logging.FileHandler(config["snakemake_log"]))
@@ -11,6 +13,8 @@ onsuccess:
     os.remove(logger.logfile)
 onerror:
     os.remove(logger.logfile)
+wildcard_constraints:
+    hap = "[01]"
 
 outdir   = config["output_directory"]
 gen_hap1 = config["inputs"]["genome_hap1"]
@@ -18,26 +22,33 @@ gen_hap2 = config["inputs"]["genome_hap2"]
 barcode_file = config["barcodes"]["file"]
 barcode_len = config["barcodes"]["length"]
 envdir   = os.path.join(os.getcwd(), ".harpy_envs")
+genodict = {"0": gen_hap1, "1": gen_hap2}
 
-rule link_1st_geno:
+rule barcode_keymap:
     input:
-        gen_hap1
+        barcode_file
+    output:
+        outdir + "/barcodes.key.gz"
+    run:
+        bc_range = [f"{i}".zfill(2) for i in range(1,97)]
+        bc_generator = product("A", bc_range, "C", bc_range, "B", bc_range, "D", bc_range)
+        with open(input[0], "r") as bc_in, gzip.open(output[0], "wb") as bc_out:
+            for nuc_barcode in bc_in:
+                haptag = "".join(next(bc_generator))
+                bc_out.write((nuc_barcode.rstrip() + "\t" + haptag + "\n").encode("utf-8"))
+
+rule link_genome:
+    input:
+        lambda wc: genodict[wc.get("hap")]
     output: 
-        f"{outdir}/workflow/input/hap.0.fasta"
+        outdir + "/workflow/input/hap.{hap}.fasta"
     run:
         if input[0].lower().endswith("gz"):
-            with open(input[0], 'rb') as inf, open(output[0], 'w', encoding='utf8') as outf:
-                decom_str = gzip.decompress(inf.read()).decode('utf-8')
-                outf.write(decom_str)
+            with gzip.open(input[0], 'rb') as gzip_file, open(output[0], 'wb') as output_file:
+                shutil.copyfileobj(gzip_file, output_file)
         else:
             if not (Path(output[0]).is_symlink() or Path(output[0]).exists()):
                 Path(output[0]).symlink_to(Path(input[0]).resolve()) 
-
-use rule link_1st_geno as link_2nd_geno with:
-    input:
-        gen_hap2
-    output: 
-        f"{outdir}/workflow/input/hap.1.fasta"
 
 rule index_genome:
     input:
@@ -58,11 +69,11 @@ if barcode_file == f"{outdir}/workflow/input/haplotag_barcodes.txt":
         shell:
             "haplotag_barcodes.py > {output}"
 
-rule create_reads:
+rule simulate_reads:
     input:
         outdir + "/workflow/input/hap.{hap}.fasta"
     output:
-        temp(multiext(outdir + "/dwgsim_simulated/dwgsim.{hap}.12", ".bwa.read1.fastq.gz" ,".bwa.read2.fastq.gz", ".mutations.txt", ".mutations.vcf"))
+        temp(multiext(outdir + "/dwgsim/sim_reads.{hap}.12", ".bwa.read1.fastq.gz" ,".bwa.read2.fastq.gz", ".mutations.txt", ".mutations.vcf"))
     log:
         outdir + "/logs/dwgsim.hap.{hap}.log"
     params:
@@ -70,7 +81,7 @@ rule create_reads:
         outerdist = config["outer_distance"],
         distsd = config["distance_sd"],
         mutationrate = config["mutation_rate"],
-        prefix = lambda wc: outdir + "/dwgsim_simulated/dwgsim." + wc.get("hap") + ".12"
+        prefix = lambda wc: outdir + "/dwgsim/sim_reads." + wc.get("hap") + ".12"
     conda:
         f"{envdir}/simulations.yaml"
     shell:
@@ -78,70 +89,66 @@ rule create_reads:
         dwgsim -N {params.readpairs} -e 0.0001,0.0016 -E 0.0001,0.0016 -d {params.outerdist} -s {params.distsd} -1 135 -2 151 -H -y 0 -S 0 -c 0 -R 0 -o 1 -r {params.mutationrate} -F 0 -m /dev/null {input} {params.prefix} 2> {log}
         """
 
-rule interleave_dwgsim:
+rule interleave_reads:
     input:
-        collect(outdir + "/dwgsim_simulated/dwgsim.{{hap}}.12.bwa.read{rd}.fastq.gz", rd = [1,2]) 
+        collect(outdir + "/dwgsim/sim_reads.{{hap}}.12.bwa.read{rd}.fastq.gz", rd = [1,2]) 
     output:
-        outdir + "/dwgsim_simulated/dwgsim.{hap}.12.fastq"
+        outdir + "/dwgsim/sim_reads.{hap}.12.fastq"
     container:
         None
     shell:
         "seqtk mergepe {input} > {output}"
 
-rule lrsim:
+rule create_molecules:
     input:
-        hap1 = f"{outdir}/dwgsim_simulated/dwgsim.0.12.fastq",
-        hap2 = f"{outdir}/dwgsim_simulated/dwgsim.1.12.fastq",
-        fai1 = outdir + "/workflow/input/hap.0.fasta.fai",
-        fai2 = outdir + "/workflow/input/hap.1.fasta.fai",
+        hap_reads = collect(outdir + "/dwgsim/sim_reads.{hap}.12.fastq"   , hap = [0,1]),
+        fasta_fai = collect(outdir + "/workflow/input/hap.{hap}.fasta.fai", hap = [0,1]),
         barcodes = barcode_file
     output:
-        collect(outdir + "/lrsim/sim.{hap}.{ext}", hap = [0,1], ext = ["fp", "manifest"]),
-        temp(f"{outdir}/lrsim/.status")
+        temp(collect(outdir + "/linked_molecules/lrsim.{hap}.fp"      , hap = [0,1])),
+        temp(collect(outdir + "/linked_molecules/lrsim.{hap}.manifest", hap = [0,1]))
     log:
-        f"{outdir}/logs/LRSIM.log"
+        f"{outdir}/logs/linked_molecules.log"
     params:
-        lrsim = f"{outdir}/workflow/scripts/LRSIM_harpy.pl",
-        infiles = f"-g {outdir}/dwgsim_simulated/dwgsim.0.12.fastq,{outdir}/dwgsim_simulated/dwgsim.1.12.fastq",
-        inbarcodes = f"-b {barcode_file}",
-        proj_dir = f"-p {outdir}/lrsim/sim",
-        prefix = f"-r {outdir}",
+        haplosim = f"{outdir}/workflow/scripts/HaploSim.pl",
+        reads_in = f"-a {outdir}/dwgsim/sim_reads.0.12.fastq,{outdir}/dwgsim/sim_reads.1.12.fastq",
+        fai_in   = f"-g {outdir}/workflow/input/hap.0.fasta.fai,{outdir}/workflow/input/hap.1.fasta.fai",
+        bccodes  = f"-b {barcode_file}",
+        proj_dir = f"-p {outdir}/linked_molecules/lrsim",
         outdist  = f"-i {config['outer_distance']}",
         dist_sd  = f"-s {config['distance_sd']}",
         n_pairs  = f"-x {config['read_pairs']}",
         mol_len  = f"-f {config['molecule_length']}",
         parts    = f"-t {config['partitions']}",
         mols_per = f"-m {config['molecules_per_partition']}",
-        bc_len   = f"-l {barcode_len}",
-        static   = "-o 1 -d 2 -u 4"
+        bc_len   = f"-l {barcode_len}"
     threads:
         workflow.cores
     conda:
         f"{envdir}/simulations.yaml"
     shell: 
-        "perl {params} -z {threads} 2> {log}"
+        "perl {params} -z {threads} -o 1 -d 2 2> {log}"
 
-rule sort_manifest:
+rule sort_molecules:
     input:
-        outdir + "/lrsim/sim.{hap}.manifest"
+        outdir + "/linked_molecules/lrsim.{hap}.manifest"
     output:
-        outdir + "/lrsim/sim.{hap}.sort.manifest"
+        outdir + "/linked_molecules/lrsim.{hap}.sort.manifest"
     conda:
         f"{envdir}/simulations.yaml"
     shell:
         "msort -kn1 {input} > {output}"
 
-rule extract_reads:
+rule create_linked_reads:
     input:
-        manifest = outdir + "/lrsim/sim.{hap}.sort.manifest",
-        dwg_hap = outdir + "/dwgsim_simulated/dwgsim.{hap}.12.fastq"
+        manifest = outdir + "/linked_molecules/lrsim.{hap}.sort.manifest",
+        dwg_hap = outdir + "/dwgsim/sim_reads.{hap}.12.fastq"
     output:
-        outdir + "/10X/sim_hap{hap}_10x_R1_001.fastq.gz",
-        outdir + "/10X/sim_hap{hap}_10x_R2_001.fastq.gz"
+        collect(outdir + "/multiplex/sim_hap{{hap}}_multiplex_R{FR}_001.fastq.gz", FR = [1,2])
     log:
-        outdir + "/logs/extract_linkedreads.hap{hap}.log"
+        outdir + "/logs/create_linkedreads.hap{hap}.log"
     params:
-        lambda wc: f"""{outdir}/10X/sim_hap{wc.get("hap")}_10x"""
+        lambda wc: f"{outdir}/multiplex/sim_hap{wc.get('hap')}_multiplex"
     container:
         None
     shell:
@@ -149,26 +156,25 @@ rule extract_reads:
 
 rule demultiplex_barcodes:
     input:
-        fw = outdir + "/10X/sim_hap{hap}_10x_R1_001.fastq.gz",
-        rv = outdir + "/10X/sim_hap{hap}_10x_R2_001.fastq.gz",
-        barcodes = barcode_file
+        fw = outdir + "/multiplex/sim_hap{hap}_multiplex_R1_001.fastq.gz",
+        rv = outdir + "/multiplex/sim_hap{hap}_multiplex_R2_001.fastq.gz",
+        barcodes = outdir + "/barcodes.key.gz"
     output:
-        fw = outdir + "/sim_hap{hap}_haplotag.R1.fq.gz",
-        rv = outdir + "/sim_hap{hap}_haplotag.R2.fq.gz"
+        fw = outdir + "/sim_hap{hap}.R1.fq.gz",
+        rv = outdir + "/sim_hap{hap}.R2.fq.gz"
     log:
-        outdir + "/sim_hap/{hap}_haplotag.barcodes"
+        outdir + "/logs/sim_hap{hap}.demultiplex"
     params:
-        outdir = outdir,
-        bc_len = barcode_len
+        lambda wc: f"{outdir}/sim_hap{wc.get('hap')}"
     container:
         None
     shell:
-        "inline_to_haplotag.py -l {params.bc_len} -f {input.fw} -r {input.rv} -b {input.barcodes} -p {params.outdir}/sim_hap{wildcards.hap}_haplotag"
+        "inline_to_haplotag.py -f {input.fw} -r {input.rv} -b {input.barcodes} -p {params} 2> {log}"
 
 rule workflow_summary:
     default_target: True
     input:
-        collect(outdir + "/sim_hap{hap}_haplotag.R{fw}.fq.gz", hap = [0,1], fw = [1,2])
+        collect(outdir + "/sim_hap{hap}.R{fw}.fq.gz", hap = [0,1], fw = [1,2])
     params:
         lrsproj_dir = f"{outdir}",
         lrsoutdist  = config["outer_distance"],
@@ -177,25 +183,26 @@ rule workflow_summary:
         lrsmol_len  = config["molecule_length"],
         lrsparts    = config["partitions"],
         lrsmols_per = config["molecules_per_partition"],
-        lrsstatic = "-o 1 -d 2 -u 4",
+        lrbc_len   = barcode_len,
+        lrsstatic = "-o 1 -d 2",
         dwgreadpairs = int(config["read_pairs"] * 500000),
         dwgouterdist = config["outer_distance"],
         dwgdistsd = config["distance_sd"],
         dwgmutationrate = config["mutation_rate"],
-        dwgprefix = outdir + "/dwgsim_simulated/dwgsim.hap.12"
+        dwgprefix = outdir + "/dwgsim/sim_reads.hap.12"
     run:
         summary = ["The harpy simulate linkedreas workflow ran using these parameters:"]
         summary.append(f"Genome haplotype 1: {gen_hap1}")
         summary.append(f"Genome haplotype 2: {gen_hap2}")
-        summary.append(f"Barcode file: {barcodefile}")
+        summary.append(f"Barcode file: {barcode_file}")
         dwgsim = "Reads were simulated from the provided genomes using:\n"
         dwgsim += f"\tdwgsim -N {params.dwgreadpairs} -e 0.0001,0.0016 -E 0.0001,0.0016 -d {params.dwgouterdist} -s {params.dwgdistsd} -1 135 -2 151 -H -y 0 -S 0 -c 0 -R 0 -r {params.dwgmutationrate} -F 0 -o 1 -m /dev/null GENO PREFIX"
         summary.append(dwgsim)
-        lrsim = "LRSIM was started from step 3 (-u 3) with these parameters:\n"
-        lrsim += f"\tLRSIM_harpy.pl -g genome1,genome2 -p {params.lrsproj_dir}/lrsim/sim -b BARCODES -r {params.lrsproj_dir} -i {params.lrsoutdist} -s {params.lrsdist_sd} -x {params.lrsn_pairs} -f {params.lrsmol_len} -t {params.lrsparts} -m {params.lrsmols_per} -z THREADS {params.lrsstatic}"
-        summary.append(lrsim)
+        haplosim = "HaploSim (Harpy's fork of LRSIM) was used with these parameters:\n"
+        haplosim += f"\tHaploSim.pl -g genome1,genome2 -a dwgsimreads1,dwgsimreads2 -l {params.lrbc_len} -p {params.lrsproj_dir}/linked_molecules/lrsim -b BARCODES -i {params.lrsoutdist} -s {params.lrsdist_sd} -x {params.lrsn_pairs} -f {params.lrsmol_len} -t {params.lrsparts} -m {params.lrsmols_per} -z THREADS {params.lrsstatic}"
+        summary.append(haplosim)
         bxconvert = "Inline barcodes were converted in haplotag BX:Z tags using:\n"
-        bxconvert += "\tinline_to_haplotag.py"
+        bxconvert += "\tinline_to_haplotag.py -f <forward.fq.gz> -r <reverse.fq.gz> -b <barcodes.txt> -p <prefix>"
         summary.append(bxconvert)
         sm = "The Snakemake workflow was called via command line:\n"
         sm += f"\t{config['workflow_call']}"

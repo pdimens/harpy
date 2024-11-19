@@ -210,7 +210,7 @@ def ema(inputs, output_dir, platform, barcode_list, fragment_density, genome, de
     if contigs:
         fasta_contig_match(contigs, genome)
     if barcode_list:
-        validate_barcodefile(barcode_list)
+        validate_barcodefile(barcode_list, False, quiet)
     fetch_rule(workflowdir, "align_ema.smk")
     fetch_report(workflowdir, "align_stats.Rmd")
     fetch_report(workflowdir, "align_bxstats.Rmd")
