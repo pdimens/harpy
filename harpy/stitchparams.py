@@ -1,4 +1,4 @@
-"""Harpy module to create STITCH parameter template file"""
+"""Harpy module to create template imputation parameter file"""
 
 import os
 import sys
@@ -6,12 +6,12 @@ import rich_click as click
 from ._printing import print_notice
 
 @click.command(no_args_is_help = True, context_settings=dict(allow_interspersed_args=False), epilog = "Documentation: https://pdimens.github.io/harpy/workflows/impute/#parameter-file")
-@click.option('-o', '--output', type=str, required = True, metavar = "Output file name", help = 'Name of output STITCH parameter file')
+@click.option('-o', '--output', type=str, required = True, help = 'Output file name')
 def stitchparams(output):
     """
-    Create a template STITCH parameter file
+    Create a template imputation parameter file
 
-    With this command you can create a template STITCH parameter
+    With this command you can create a template parameter
     file necessary for imputation via `harpy impute`. The resulting
     file will have generic values and should be modified to be appropriate
     for your study system.
@@ -27,6 +27,6 @@ def stitchparams(output):
         _ = file.write('k1_ng30\tdiploid\tTRUE\t50000\t5\t1\t30\n')
         _ = file.write('high_ngen\tdiploid\tTRUE\t50000\t15\t1\t100')
     print_notice(
-        f"Created template STITCH parameter file: [blue]{output}[/blue]\n" +
+        f"Created template imputation parameter file: [blue]{output}[/blue]\n" +
         "Modify the model parameters as needed, but [yellow bold]do not add/remove columns."
     )

@@ -10,7 +10,7 @@ from ._printing import print_error, print_solution, print_notice
 
 
 @click.command(no_args_is_help = True, context_settings=dict(allow_interspersed_args=False), epilog = "Documentation: https://pdimens.github.io/harpy/workflows/snp/#sample-grouping-file")
-@click.option('-o', '--output', type=str, default = "samples.groups", metavar = "Output file name", help = 'Output file name, will overwrite existing')
+@click.option('-o', '--output', type=str, default = "samples.groups", help = "Output file name")
 @click.argument('inputdir', required=True, type=click.Path(exists=True, file_okay=False))
 def popgroup(inputdir, output):
     """
@@ -47,12 +47,13 @@ def popgroup(inputdir, output):
            sys.exit(1)
        samplenames = set([re.sub(bn_r, "", i, flags = re.IGNORECASE) for i in fqlist])
 
-    rprint(f"[bold]{len(samplenames)} samples [/bold] detected in [blue]{inputdir}[blue]", file = sys.stderr)
+    rprint(f"\n[bold]{len(samplenames)}[/bold] samples detected in [blue]{inputdir}[blue]\n", file = sys.stderr)
     if os.path.exists(output):
-        write_text = f"The file [blue]{output}[/blue] was overwritten."
-    else:
-        write_text = f"Created sample population grouping file [blue]{output}[/blue]."
+        overwrite = input(f"File {output} already exists, overwrite (no|yes)?  ").lower()
+        if overwrite not in ["yes", "y"]:
+            click.echo("Please suggest a different name for the output file")
+            sys.exit(0)
     with open(output, "w", encoding="utf-8") as file:
         for i in samplenames:
             _ = file.write(i + '\tpop1\n')
-    print_notice(write_text + " Please review it, as all samples have been grouped into a single population")
+    print_notice(f"Created sample population grouping file [blue]{output}[/blue]. Please review it, as all samples have been grouped into a single population")
