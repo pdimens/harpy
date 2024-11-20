@@ -5,7 +5,7 @@
 [![Anaconda-Server Badge](https://img.shields.io/conda/dn/bioconda/harpy.svg?style=for-the-badge&logo=docusign&logoColor=ffffff)](https://anaconda.org/bioconda/harpy)
 [![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/pdimens/harpy/tests.yml?style=for-the-badge&logo=cachet&logoColor=ffffff)](https://www.youtube.com/watch?v=F1qdBPlK9M4)
 
-[Haplotag](https://doi.org/10.1073/pnas.2015005118) Data Processing Pipeline. Getting you from raw reads to genotypes/phased haplotypes or your money back.
+[Haplotagging](https://doi.org/10.1073/pnas.2015005118) Data Processing Pipeline. Getting you from raw reads to assemblies, genotypes, or phased haplotypes or your 💰 back.
 
 
 ## 📥 Install 
