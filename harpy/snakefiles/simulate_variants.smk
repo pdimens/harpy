@@ -62,12 +62,12 @@ rule simulate_haploid:
         f"{outdir}/logs/{outprefix}.log"
     params:
         prefix = f"{outdir}/{outprefix}",
-        simuG = f"{outdir}/workflow/scripts/simuG.pl",
+        #simuG = f"{outdir}/workflow/scripts/simuG.pl",
         parameters = variant_params
     conda:
         f"{envdir}/simulations.yaml"
     shell:
-        "perl {params.simuG} -refseq {input.geno} -prefix {params.prefix} {params.parameters} > {log}"
+        "simuG -refseq {input.geno} -prefix {params.prefix} {params.parameters} > {log}"
 
 rule diploid_variants:
     input:

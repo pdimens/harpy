@@ -148,13 +148,13 @@ rule simulate_diploid:
         f"{outdir}/logs/{outprefix}.hap{{haplotype}}.log"
     params:
         prefix = f"{outdir}/diploid/{outprefix}.hap{{haplotype}}",
-        simuG = f"{outdir}/workflow/scripts/simuG.pl",
+        #simuG = f"{outdir}/workflow/scripts/simuG.pl",
         snp = f"-snp_vcf {outdir}/diploid/{outprefix}.snp.hap{{haplotype}}.vcf" if snp else "",
         indel = f"-indel_vcf {outdir}/diploid/{outprefix}.indel.hap{{haplotype}}.vcf" if indel else ""
     conda:
         f"{envdir}/simulations.yaml"
     shell:
-        "perl {params.simuG} -refseq {input.geno} -prefix {params.prefix} {params.snp} {params.indel} > {log}"
+        "simuG -refseq {input.geno} -prefix {params.prefix} {params.snp} {params.indel} > {log}"
 
 rule workflow_summary:
     default_target: True
