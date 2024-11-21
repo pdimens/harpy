@@ -7,7 +7,7 @@ from ._printing import print_notice
 
 @click.command(no_args_is_help = True, context_settings=dict(allow_interspersed_args=False), epilog = "Documentation: https://pdimens.github.io/harpy/workflows/impute/#parameter-file")
 @click.option('-o', '--output', type=str, required = True, help = 'Output file name')
-def stitchparams(output):
+def imputeparams(output):
     """
     Create a template imputation parameter file
 

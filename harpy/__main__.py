@@ -17,7 +17,7 @@ from . import simulate
 from . import snp
 from . import sv
 from .popgroups import popgroup
-from .stitchparams import stitchparams
+from .imputeparams import imputeparams
 
 click.rich_click.USE_MARKDOWN = True
 click.rich_click.SHOW_ARGUMENTS = False
@@ -43,7 +43,7 @@ def cli():
 
 # main program
 cli.add_command(popgroup)
-cli.add_command(stitchparams)
+cli.add_command(imputeparams)
 cli.add_command(preflight.preflight)
 cli.add_command(demultiplex.demultiplex)
 cli.add_command(qc.qc)
@@ -66,11 +66,11 @@ click.rich_click.COMMAND_GROUPS = {
         [
             {
                 "name": "workflows",
-                "commands": ["demultiplex","qc", "align","snp","sv","impute","phase", "simulate", "assembly", "metassembly"],
+                "commands": sorted(["demultiplex","qc", "align","snp","sv","impute","phase", "simulate", "assembly", "metassembly"]),
             },
             {
                 "name": "Other Commands",
-                "commands": ["resume", "hpc", "preflight", "deconvolve", "popgroup", "stitchparams"]
+                "commands": sorted(["deconvolve", "hpc", "imputeparams", "popgroup","preflight","resume"])
             }
         ],
  } | simulate.commandstring | hpc.docstring
