@@ -164,7 +164,8 @@ assembly: &assembly
   - 'harpy/snakefiles/assembly.smk'
   - 'harpy/snakefiles/metassembly.smk'
 other: &other
-  - 'harpy/stitchparams.py'
+  - *common
+  - 'harpy/imputeparams.py'
   - 'harpy/popgroup.py'
   - 'harpy/hpc.py'
 modules:
