@@ -822,9 +822,9 @@ jobs:
           resources/buildforCI.sh
       - name: Clear Space
         uses: jlumbroso/free-disk-space@main
-      - name: harpy stitchparams
+      - name: harpy imputeparams
         shell: micromamba-shell {0}
-        run: harpy stitchparams -o params.file
+        run: harpy imputeparams -o params.file
       - name: harpy popgroup
         shell: micromamba-shell {0}
         run: harpy popgroup test/fastq

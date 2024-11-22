@@ -14,15 +14,14 @@ readme = {file = "README.md", content-type = "text/markdown"}
 license = {text = "GPL-3.0"}
 
 [tool.setuptools.packages.find]
-where = ["."]
+include = ["harpy"]
+exclude = ["test"]
 
 [tool.setuptools.package-data]
 "*" = ["*.*"]
 
 [project.scripts]
 harpy = "harpy.__main__:cli"
-
-[tool.setuptools_scm]
 
 [project.urls]
 Homepage = "https://github.com/pdimens/harpy"

@@ -16,8 +16,9 @@ from . import resume
 from . import simulate
 from . import snp
 from . import sv
-from .popgroups import popgroup
+from .popgroup import popgroup
 from .imputeparams import imputeparams
+from . import view
 
 click.rich_click.USE_MARKDOWN = True
 click.rich_click.SHOW_ARGUMENTS = False
@@ -44,6 +45,7 @@ def cli():
 # main program
 cli.add_command(popgroup)
 cli.add_command(imputeparams)
+cli.add_command(view.view)
 cli.add_command(preflight.preflight)
 cli.add_command(demultiplex.demultiplex)
 cli.add_command(qc.qc)
@@ -70,7 +72,7 @@ click.rich_click.COMMAND_GROUPS = {
             },
             {
                 "name": "Other Commands",
-                "commands": sorted(["deconvolve", "hpc", "imputeparams", "popgroup","preflight","resume"])
+                "commands": sorted(["deconvolve", "hpc", "imputeparams", "popgroup","preflight","resume", "view"])
             }
         ],
  } | simulate.commandstring | hpc.docstring
