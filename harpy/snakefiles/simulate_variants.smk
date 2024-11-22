@@ -57,8 +57,9 @@ rule simulate_haploid:
         vcf_correct if vcf else [],
         geno = genome
     output:
+        f"{outdir}/{outprefix}.simseq.genome.fa",
         f"{outdir}/{outprefix}.refseq2simseq.{variant}.vcf",
-        f"{outdir}/{outprefix}.simseq.genome.fa"
+        f"{outdir}/{outprefix}.refseq2simseq.map.txt"
     log:
         f"{outdir}/logs/{outprefix}.log"
     params:
