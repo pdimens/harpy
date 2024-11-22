@@ -23,7 +23,5 @@ exclude = ["test"]
 [project.scripts]
 harpy = "harpy.__main__:cli"
 
-[tool.setuptools_scm]
-
 [project.urls]
 Homepage = "https://github.com/pdimens/harpy"
