@@ -57,12 +57,12 @@ rule simulate_haploid:
         vcf_correct if vcf else [],
         geno = genome
     output:
-        collect(f"{outdir}/{outprefix}" + "{ext}", ext = [".vcf", ".bed", ".fasta"])
+        f"{outdir}/{outprefix}.refseq2simseq.{variant}.vcf",
+        f"{outdir}/{outprefix}.simseq.genome.fa"
     log:
         f"{outdir}/logs/{outprefix}.log"
     params:
         prefix = f"{outdir}/{outprefix}",
-        #simuG = f"{outdir}/workflow/scripts/simuG.pl",
         parameters = variant_params
     conda:
         f"{envdir}/simulations.yaml"
@@ -71,10 +71,10 @@ rule simulate_haploid:
 
 rule diploid_variants:
     input:
-        f"{outdir}/{outprefix}.vcf"
+        f"{outdir}/{outprefix}.refseq2simseq.{variant}.vcf"
     output:
-        f"{outdir}/diploid/{outprefix}.{variant}.hap1.vcf",
-        f"{outdir}/diploid/{outprefix}.{variant}.hap2.vcf"
+        f"{outdir}/diploid/{outprefix}.hap1.{variant}.vcf",
+        f"{outdir}/diploid/{outprefix}.hap2.{variant}.vcf"
     params:
         het = heterozygosity
     run:
@@ -92,28 +92,63 @@ rule diploid_variants:
 
 rule simulate_diploid:
     input:
-        hap = f"{outdir}/diploid/{outprefix}.{variant}.hap{{haplotype}}.vcf",
+        hap = f"{outdir}/diploid/{outprefix}.hap{{haplotype}}.{variant}.vcf",
         geno = genome
     output:
-        f"{outdir}/diploid/{outprefix}.hap{{haplotype}}.fasta",
-        temp(f"{outdir}/diploid/{outprefix}.hap{{haplotype}}.vcf")
+        f"{outdir}/diploid/{outprefix}.hap{{haplotype}}.simseq.genome.fa",
+        f"{outdir}/diploid/{outprefix}.hap{{haplotype}}.refseq2simseq.map.txt",
+        temp(f"{outdir}/diploid/{outprefix}.hap{{haplotype}}.refseq2simseq.{variant}.vcf")
     log:
         f"{outdir}/logs/{outprefix}.hap{{haplotype}}.log"
     params:
         prefix = f"{outdir}/diploid/{outprefix}.hap{{haplotype}}",
-        simuG = f"{outdir}/workflow/scripts/simuG.pl",
         vcf_arg = f"-{variant}_vcf"
     conda:
         f"{envdir}/simulations.yaml"
     shell:
-        "perl {params.simuG} -refseq {input.geno} -prefix {params.prefix} {params.vcf_arg} {input.hap} > {log}"
+        "simuG -refseq {input.geno} -prefix {params.prefix} {params.vcf_arg} {input.hap} > {log}"
+
+rule rename_haploid:
+    input:
+        fasta = f"{outdir}/{outprefix}.simseq.genome.fa",
+        vcf = f"{outdir}/{outprefix}.refseq2simseq.{variant}.vcf",
+        mapfile = f"{outdir}/{outprefix}.refseq2simseq.map.txt"
+    output:
+        fasta = f"{outdir}/{outprefix}.fasta",
+        vcf = f"{outdir}/{outprefix}.{variant}.vcf",
+        mapfile = f"{outdir}/{outprefix}.{variant}.map"
+    container:
+        None
+    shell:
+        """
+        mv {input.fasta} {output.fasta}
+        mv {input.vcf} {output.vcf}
+        mv {input.mapfile} {output.mapfile}
+        """
+
+rule rename_diploid:
+    input:
+        fasta = f"{outdir}/diploid/{outprefix}.hap{{haplotype}}.simseq.genome.fa",
+        mapfile = f"{outdir}/diploid/{outprefix}.hap{{haplotype}}.refseq2simseq.map.txt"
+    output:
+        fasta = f"{outdir}/diploid/{outprefix}.hap{{haplotype}}.fasta",
+        mapfile = f"{outdir}/diploid/{outprefix}.hap{{haplotype}}.{variant}.map"
+    container:
+        None
+    shell:
+        """
+        mv {input.fasta} {output.fasta}
+        mv {input.mapfile} {output.mapfile}
+        """
 
 rule workflow_summary:
     default_target: True
     input:
-        multiext(f"{outdir}/{outprefix}", ".vcf", ".bed", ".fasta"),
+        f"{outdir}/{outprefix}.fasta",
+        f"{outdir}/{outprefix}.{variant}.vcf",
         collect(f"{outdir}/diploid/{outprefix}.hap" + "{n}.fasta", n = [1,2]) if heterozygosity > 0 and not only_vcf else [],
-        collect(f"{outdir}/diploid/{outprefix}.{variant}.hap" + "{n}.vcf", n = [1,2]) if heterozygosity > 0 else []
+        collect(f"{outdir}/diploid/{outprefix}.hap" + "{n}" + f".{variant}.vcf", n = [1,2]) if heterozygosity > 0 else [],
+        collect(f"{outdir}/diploid/{outprefix}.hap" + "{n}" + f".{variant}.map", n = [1,2]) if heterozygosity > 0 else []
     params:
         prefix = f"{outdir}/{outprefix}",
         parameters = variant_params,
