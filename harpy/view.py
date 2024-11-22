@@ -10,39 +10,39 @@ from ._validations import is_gzip
 
 @click.command(no_args_is_help = True, context_settings=dict(allow_interspersed_args=False))
 @click.option('-s', '--snakefile',  is_flag = True, show_default = True, default = False, help = "View the snakefile, not the log file")
-@click.argument('inputdir', required=True, type=click.Path(exists=True, file_okay=False))
-def view(inputdir, snakefile):
+@click.argument('directory', required=True, type=click.Path(exists=True, file_okay=False))
+def view(directory, snakefile):
     """
     View a workflow log file or snakefile
 
     This convenience command lets you view the latest workflow log file
-    of a workflow directory. You can use `--snakefile` to view the workflow
+    of a Harpy output directory. You can use `--snakefile` to view the workflow
     snakefile instead. The output will be printed to your screen via the `less` command,
     so use standard `less` keyboard shortcuts to navigate the output, e.g.:
     
-    | key | function |
-    |:---:|:---|
-    |up/down arrow | scroll up/down |
-    |page up/down | scroll up/down, but faster |
-    |`q` | exit |
+    | key                     | function                   |
+    | :---------------------- | :------------------------- |
+    | `up arrow`/`down arrow` | scroll up/down             |
+    | `Page Up`/`Page Down`   | scroll up/down, but faster |
+    | `q`                     | exit                       |
     """
     # check if there is a workflow or log folder
     # and whether the expected files are in there
     err = 0
     err_text = ""
     if snakefile:
-        files = [i for i in glob.iglob(f"{inputdir}/workflow/*.smk")]
-        if not os.path.exists(f"{inputdir}/workflow"):
+        files = [i for i in glob.iglob(f"{directory}/workflow/*.smk")]
+        if not os.path.exists(f"{directory}/workflow"):
             err = 1
-            err_text += f"{inputdir}/workflow/"
+            err_text += f"{directory}/workflow/"
         elif not files:
             err = 2
             err_text += "snakefiles"
     else:
-        files = [i for i in glob.iglob(f"{inputdir}/logs/snakemake/*.log*")]
-        if not os.path.exists(f"{inputdir}/logs/snakemake"):
+        files = [i for i in glob.iglob(f"{directory}/logs/snakemake/*.log*")]
+        if not os.path.exists(f"{directory}/logs/snakemake"):
             err = 1
-            err_text += f"{inputdir}/logs/snakemake/"
+            err_text += f"{directory}/logs/snakemake/"
         elif not files:
             err = 2
             err_text += "log files"
