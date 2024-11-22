@@ -118,14 +118,9 @@ rule rename_haploid:
         fasta = f"{outdir}/{outprefix}.fasta",
         vcf = f"{outdir}/{outprefix}.{variant}.vcf",
         mapfile = f"{outdir}/{outprefix}.{variant}.map"
-    container:
-        None
-    shell:
-        """
-        mv {input.fasta} {output.fasta}
-        mv {input.vcf} {output.vcf}
-        mv {input.mapfile} {output.mapfile}
-        """
+    run:
+        for i,j in zip(input, output):
+            os.rename(i,j)
 
 rule rename_diploid:
     input:
