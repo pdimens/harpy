@@ -16,7 +16,7 @@ from . import resume
 from . import simulate
 from . import snp
 from . import sv
-from .popgroups import popgroup
+from .popgroup import popgroup
 from .imputeparams import imputeparams
 
 click.rich_click.USE_MARKDOWN = True
