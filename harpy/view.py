@@ -29,37 +29,43 @@ def view(directory, snakefile):
     # check if there is a workflow or log folder
     # and whether the expected files are in there
     err = 0
-    err_text = ""
     if snakefile:
         files = [i for i in glob.iglob(f"{directory}/workflow/*.smk")]
+        err_dir = f"{directory}/workflow/"
+        err_file = "snakefiles"
         if not os.path.exists(f"{directory}/workflow"):
             err = 1
-            err_text += f"{directory}/workflow/"
         elif not files:
             err = 2
-            err_text += "snakefiles"
     else:
         files = [i for i in glob.iglob(f"{directory}/logs/snakemake/*.log*")]
+        err_dir = f"{directory}/logs/snakemake/"
+        err_file = "log files"
         if not os.path.exists(f"{directory}/logs/snakemake"):
             err = 1
-            err_text += f"{directory}/logs/snakemake/"
         elif not files:
             err = 2
-            err_text += "log files"
     if err == 1:
         print_error(
             "Directory not found", 
-            f"The file you are trying to view is expected to be in [blue]{err_text}[/blue], but that directory was not found. Please check that this is the correct folder."
+            f"The file you are trying to view is expected to be in [blue]{err_dir}[/blue], but that directory was not found. Please check that this is the correct folder."
         )
         sys.exit(1)
     elif err == 2:
         print_error(
             "File not found", 
-            f"There are no {err_text} in the directory provided. Please check that this is the correct folder."
+            f"There are no {err_file} in [blue]{err_dir}[/blue]. Please check that this is the correct folder."
         )
         sys.exit(1)
     # sort and pull only the most recent file (based on modification time)
     file = sorted(files, key = os.path.getmtime)[-1]
+    if not os.access(file, os.R_OK):
+        print_error(
+            "Incorrect permissions",
+            f"[blue]{file}[/blue] does not have read access. Please check the file permissions."
+        )
+        sys.exit(1)
+
     cat_cmd = "zcat" if is_gzip(file) else "cat"
     stream = subprocess.Popen([cat_cmd, file], stdout=subprocess.PIPE)
     pygment = subprocess.Popen(["pygmentize", "-l", "yaml"], stdin = stream.stdout, stdout = subprocess.PIPE)
