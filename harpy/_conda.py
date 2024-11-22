@@ -63,7 +63,7 @@ def create_conda_recipes():
             "bioconda::perl-math-random",
             "bioconda::perl-inline-c",
             "bioconda::perl-parse-recdescent",
-            "bioconda::simug",
+            "bioconda::simug>1.0.0",
             "conda-forge::numpy",
             "conda-forge::perl"
         ],
