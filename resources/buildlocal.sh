@@ -12,8 +12,8 @@ mkdir -p ${CONDA_PREFIX}/bin
 g++ harpy/bin/extractReads.cpp -O3 -o ${CONDA_PREFIX}/bin/extractReads
 
 # install harpy proper
-pip install . --no-deps && \
-    rm -r build harpy.egg-info
+pip install --no-deps --disable-pip-version-check -e . && \
+    rm -r build #harpy.egg-info
 
 # associated scripts
 chmod +x harpy/bin/* 
