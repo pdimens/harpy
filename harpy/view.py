@@ -17,8 +17,8 @@ def view(directory, snakefile):
 
     This convenience command lets you view the latest workflow log file
     of a Harpy output directory. You can use `--snakefile` to view the workflow
-    snakefile instead. The output will be printed to your screen via the `less` command,
-    so use standard `less` keyboard shortcuts to navigate the output, e.g.:
+    snakefile instead. Output is printed to the screen via `less` and
+    accepts the typical keyboard shortcuts to navigate the output, e.g.:
     
     | key                     | function                   |
     | :---------------------- | :------------------------- |
