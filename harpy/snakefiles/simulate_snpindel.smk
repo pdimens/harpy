@@ -184,22 +184,6 @@ rule rename_diploid:
         for i,j in zip(input, output):
             os.rename(i,j)
 
-if len(variants) == 2:
-    rule concatenate_variants:
-        input:
-            f"{outdir}/haplotype_{{haplotype}}/{outprefix}.hap{{haplotype}}.indel.vcf",
-            f"{outdir}/haplotype_{{haplotype}}/{outprefix}.hap{{haplotype}}.snp.vcf"
-        output:
-            f"{outdir}/haplotype_{{haplotype}}/{outprefix}.hap{{haplotype}}.snpindel.vcf"
-        run:
-            import shutil
-            shutil.copy(input[0], output[0])
-            with open(output[0], "a") as outvcf, open(input[1], "r") as invcf:
-                for record in invcf:
-                    if record.startswith("#"):
-                        continue
-                    outvcf.write(record)
-
 rule workflow_summary:
     default_target: True
     input:
@@ -207,7 +191,6 @@ rule workflow_summary:
         collect(f"{outdir}/{outprefix}" + ".{var}.vcf", var = variants),
         collect(f"{outdir}/haplotype_" + "{n}/" + outprefix + ".hap{n}.fasta", n = [1,2]) if heterozygosity > 0 and not only_vcf else [],
         collect(f"{outdir}/haplotype_" + "{n}/" + outprefix + ".hap{n}" + ".{var}.vcf", n = [1,2], var = variants) if heterozygosity > 0 else [],
-        collect(f"{outdir}/haplotype_" + "{n}/" + outprefix + ".hap{n}" + ".snpindel.vcf", n = [1,2]) if heterozygosity > 0 and len(variants) == 2 else [],
         collect(f"{outdir}/haplotype_" + "{n}/" + outprefix + ".hap{n}" + ".map", n = [1,2]) if heterozygosity > 0 else []
     params:
         prefix = f"{outdir}/{outprefix}",
