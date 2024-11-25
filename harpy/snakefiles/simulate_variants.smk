@@ -70,15 +70,30 @@ rule simulate_haploid:
     shell:
         "simuG -refseq {input.geno} -prefix {params.prefix} {params.parameters} > {log}"
 
+rule rename_haploid:
+    input:
+        fasta = f"{outdir}/{outprefix}.simseq.genome.fa",
+        vcf = f"{outdir}/{outprefix}.refseq2simseq.{variant}.vcf",
+        mapfile = f"{outdir}/{outprefix}.refseq2simseq.map.txt"
+    output:
+        fasta = f"{outdir}/{outprefix}.fasta",
+        vcf = f"{outdir}/{outprefix}.{variant}.vcf",
+        mapfile = f"{outdir}/{outprefix}.{variant}.map"
+    run:
+        for i,j in zip(input, output):
+            os.rename(i,j)
+
 rule diploid_variants:
     input:
-        f"{outdir}/{outprefix}.refseq2simseq.{variant}.vcf"
+        f"{outdir}/{outprefix}.{variant}.vcf"
     output:
-        f"{outdir}/diploid/{outprefix}.hap1.{variant}.vcf",
-        f"{outdir}/diploid/{outprefix}.hap2.{variant}.vcf"
+        f"{outdir}/haplotype_1/{outprefix}.hap1.{variant}.vcf",
+        f"{outdir}/haplotype_2/{outprefix}.hap2.{variant}.vcf"
     params:
         het = heterozygosity
     run:
+        os.makedirs(f"{outdir}/haplotype_1", exist_ok = True)
+        os.makedirs(f"{outdir}/haplotype_2", exist_ok = True)
         rng = random.Random(randomseed) if randomseed else random.Random()
         with open(input[0], "r") as in_vcf, open(output[0], "w") as hap1, open(output[1], "w") as hap2:
             for line in in_vcf:
@@ -93,58 +108,41 @@ rule diploid_variants:
 
 rule simulate_diploid:
     input:
-        hap = f"{outdir}/diploid/{outprefix}.hap{{haplotype}}.{variant}.vcf",
+        hap = f"{outdir}/haplotype_{{haplotype}}/{outprefix}.hap{{haplotype}}.{variant}.vcf",
         geno = genome
     output:
-        f"{outdir}/diploid/{outprefix}.hap{{haplotype}}.simseq.genome.fa",
-        f"{outdir}/diploid/{outprefix}.hap{{haplotype}}.refseq2simseq.map.txt",
-        temp(f"{outdir}/diploid/{outprefix}.hap{{haplotype}}.refseq2simseq.{variant}.vcf")
+        f"{outdir}/haplotype_{{haplotype}}/{outprefix}.hap{{haplotype}}.simseq.genome.fa",
+        f"{outdir}/haplotype_{{haplotype}}/{outprefix}.hap{{haplotype}}.refseq2simseq.map.txt",
+        temp(f"{outdir}/haplotype_{{haplotype}}/{outprefix}.hap{{haplotype}}.refseq2simseq.{variant}.vcf")
     log:
         f"{outdir}/logs/{outprefix}.hap{{haplotype}}.log"
     params:
-        prefix = f"{outdir}/diploid/{outprefix}.hap{{haplotype}}",
+        prefix = f"{outdir}/haplotype_{{haplotype}}/{outprefix}.hap{{haplotype}}",
         vcf_arg = f"-{variant}_vcf"
     conda:
         f"{envdir}/simulations.yaml"
     shell:
         "simuG -refseq {input.geno} -prefix {params.prefix} {params.vcf_arg} {input.hap} > {log}"
 
-rule rename_haploid:
+rule rename_diploid:
     input:
-        fasta = f"{outdir}/{outprefix}.simseq.genome.fa",
-        vcf = f"{outdir}/{outprefix}.refseq2simseq.{variant}.vcf",
-        mapfile = f"{outdir}/{outprefix}.refseq2simseq.map.txt"
+        fasta = f"{outdir}/haplotype_{{haplotype}}/{outprefix}.hap{{haplotype}}.simseq.genome.fa",
+        mapfile = f"{outdir}/haplotype_{{haplotype}}/{outprefix}.hap{{haplotype}}.refseq2simseq.map.txt"
     output:
-        fasta = f"{outdir}/{outprefix}.fasta",
-        vcf = f"{outdir}/{outprefix}.{variant}.vcf",
-        mapfile = f"{outdir}/{outprefix}.{variant}.map"
+        fasta = f"{outdir}/haplotype_{{haplotype}}/{outprefix}.hap{{haplotype}}.fasta",
+        mapfile = f"{outdir}/haplotype_{{haplotype}}/{outprefix}.hap{{haplotype}}.{variant}.map"
     run:
         for i,j in zip(input, output):
             os.rename(i,j)
-
-rule rename_diploid:
-    input:
-        fasta = f"{outdir}/diploid/{outprefix}.hap{{haplotype}}.simseq.genome.fa",
-        mapfile = f"{outdir}/diploid/{outprefix}.hap{{haplotype}}.refseq2simseq.map.txt"
-    output:
-        fasta = f"{outdir}/diploid/{outprefix}.hap{{haplotype}}.fasta",
-        mapfile = f"{outdir}/diploid/{outprefix}.hap{{haplotype}}.{variant}.map"
-    container:
-        None
-    shell:
-        """
-        mv {input.fasta} {output.fasta}
-        mv {input.mapfile} {output.mapfile}
-        """
 
 rule workflow_summary:
     default_target: True
     input:
         f"{outdir}/{outprefix}.fasta",
         f"{outdir}/{outprefix}.{variant}.vcf",
-        collect(f"{outdir}/diploid/{outprefix}.hap" + "{n}.fasta", n = [1,2]) if heterozygosity > 0 and not only_vcf else [],
-        collect(f"{outdir}/diploid/{outprefix}.hap" + "{n}" + f".{variant}.vcf", n = [1,2]) if heterozygosity > 0 else [],
-        collect(f"{outdir}/diploid/{outprefix}.hap" + "{n}" + f".{variant}.map", n = [1,2]) if heterozygosity > 0 else []
+        collect(f"{outdir}/haplotype_" + "{n}" + f"/{outprefix}.hap" + "{n}.fasta", n = [1,2]) if heterozygosity > 0 and not only_vcf else [],
+        collect(f"{outdir}/haplotype_" + "{n}" + f"/{outprefix}.hap" + "{n}" + f".{variant}.vcf", n = [1,2]) if heterozygosity > 0 else [],
+        collect(f"{outdir}/haplotype_" + "{n}" + f"/{outprefix}.hap" + "{n}" + f".{variant}.map", n = [1,2]) if heterozygosity > 0 else []
     params:
         prefix = f"{outdir}/{outprefix}",
         parameters = variant_params,

@@ -108,15 +108,33 @@ rule simulate_haploid:
     shell:
         "simuG -refseq {input.geno} -prefix {params.prefix} {params.parameters} > {log}"
 
+rule rename_haploid:
+    input:
+        fasta = f"{outdir}/{outprefix}.simseq.genome.fa",
+        snpvcf = f"{outdir}/{outprefix}.refseq2simseq.SNP.vcf" if snp else [],
+        indelvcf = f"{outdir}/{outprefix}.refseq2simseq.INDEL.vcf" if indel else [],
+        mapfile = f"{outdir}/{outprefix}.refseq2simseq.map.txt"
+    output:
+        fasta = f"{outdir}/{outprefix}.fasta",
+        snpvcf = f"{outdir}/{outprefix}.snp.vcf" if snp else [],
+        indelvcf = f"{outdir}/{outprefix}.indel.vcf" if indel else [],
+        mapfile = f"{outdir}/{outprefix}.map"
+    run:
+        for i,j in zip(input, output):
+            if i:
+                os.rename(i,j)
+
 rule diploid_snps:
     input:
-        f"{outdir}/{outprefix}.refseq2simseq.SNP.vcf"
+        f"{outdir}/{outprefix}.snp.vcf"
     output:
         f"{outdir}/haplotype_1/{outprefix}.hap1.snp.vcf",
         f"{outdir}/haplotype_2/{outprefix}.hap2.snp.vcf"
     params:
         het = heterozygosity
     run:
+        os.makedirs(f"{outdir}/haplotype_1", exist_ok = True)
+        os.makedirs(f"{outdir}/haplotype_2", exist_ok = True)
         rng = random.Random(randomseed) if randomseed else random.Random()
         with open(input[0], "r") as in_vcf, open(output[0], "w") as hap1, open(output[1], "w") as hap2:
             for line in in_vcf:
@@ -131,7 +149,7 @@ rule diploid_snps:
 
 use rule diploid_snps as diploid_indels with:
     input:
-        f"{outdir}/{outprefix}.refseq2simseq.INDEL.vcf"
+        f"{outdir}/{outprefix}.indel.vcf"
     output:
         f"{outdir}/haplotype_1/{outprefix}.hap1.indel.vcf",
         f"{outdir}/haplotype_2/{outprefix}.hap2.indel.vcf"
@@ -156,22 +174,6 @@ rule simulate_diploid:
         f"{envdir}/simulations.yaml"
     shell:
         "simuG -refseq {input.geno} -prefix {params.prefix} {params.snp} {params.indel} > {log}"
-
-rule rename_haploid:
-    input:
-        fasta = f"{outdir}/{outprefix}.simseq.genome.fa",
-        snpvcf = f"{outdir}/{outprefix}.refseq2simseq.SNP.vcf" if snp else [],
-        indelvcf = f"{outdir}/{outprefix}.refseq2simseq.INDEL.vcf" if indel else [],
-        mapfile = f"{outdir}/{outprefix}.refseq2simseq.map.txt"
-    output:
-        fasta = f"{outdir}/{outprefix}.fasta",
-        snpvcf = f"{outdir}/{outprefix}.snp.vcf" if snp else [],
-        indelvcf = f"{outdir}/{outprefix}.indel.vcf" if indel else [],
-        mapfile = f"{outdir}/{outprefix}.map"
-    run:
-        for i,j in zip(input, output):
-            if i:
-                os.rename(i,j)
 
 rule rename_diploid:
     input:
