@@ -46,7 +46,7 @@ bamfile <- paste0(samplename, ".bam")
 tb <- read.table(infile, header = T, sep = "\t") %>% select(-start, -end)
 if(nrow(tb) == 0){
   print(paste("Input data file",infile, "is empty"))
-  knittr::knit_exit()
+  knitr::knit_exit()
 }
 tb$valid <- tb$molecule != "invalidBX"
 ```
@@ -395,12 +395,12 @@ samplename <- snakemake@params$samplename
 tb <- read.table(covfile, header = F)
 if(nrow(tb) == 0){
   print(paste("Input data file", covfile, "is empty"))
-  knittr::knit_exit()
+  knitr::knit_exit()
 }
 tbmol <- read.table(molcovfile, header = F)
 if(nrow(tbmol) == 0){
   print(paste("Input data file", molcovfile, "is empty"))
-  knittr::knit_exit()
+  knitr::knit_exit()
 }
 ```
 
