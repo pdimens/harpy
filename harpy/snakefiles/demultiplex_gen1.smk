@@ -10,7 +10,7 @@ I2 = config["inputs"]["I2"]
 samplefile = config["inputs"]["demultiplex_schema"]
 skip_reports = config["reports"]["skip"]
 outdir = config["output_directory"]
-envdir = os.path.join(os.getcwd(), ".harpy_envs")
+envdir = os.path.join(os.getcwd(), outdir, "workflow", "envs")
 
 onstart:
     logger.logger.addHandler(logging.FileHandler(config["snakemake_log"]))

@@ -82,6 +82,7 @@ def impute(inputs, output_dir, parameters, threads, vcf, vcf_samples, extra_para
     fetch_report(workflowdir, "stitch_collate.Rmd")
     os.makedirs(f"{output_dir}/logs/snakemake", exist_ok = True)
     sm_log = snakemake_log(output_dir, "impute")
+    conda_envs = ["r", "stitch"]
     configs = {
         "workflow" : "impute",
         "snakemake_log" : sm_log,
@@ -89,6 +90,7 @@ def impute(inputs, output_dir, parameters, threads, vcf, vcf_samples, extra_para
         "samples_from_vcf" : vcf_samples,
         **({'stitch_extra': extra_params} if extra_params else {}),
         "workflow_call" : command.rstrip(),
+        "conda_environments" : conda_envs,
         "reports" : {"skip": skip_reports},
         "stitch_parameters" : params,
         "inputs" : {
@@ -101,7 +103,7 @@ def impute(inputs, output_dir, parameters, threads, vcf, vcf_samples, extra_para
     with open(os.path.join(workflowdir, 'config.yaml'), "w", encoding="utf-8") as config:
         yaml.dump(configs, config, default_flow_style= False, sort_keys=False, width=float('inf'))
     
-    create_conda_recipes()
+    create_conda_recipes(output_dir, conda_envs)
     if setup_only:
         sys.exit(0)
 

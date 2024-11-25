@@ -76,6 +76,7 @@ def qc(inputs, output_dir, min_length, max_length, trim_adapters, deduplicate, d
     fetch_report(workflowdir, "bx_count.Rmd")
     os.makedirs(f"{output_dir}/logs/snakemake", exist_ok = True)
     sm_log = snakemake_log(output_dir, "qc")
+    conda_envs = ["qc", "r"]
     k,w,d,a = deconvolve
     configs = {
         "workflow" : "qc",
@@ -93,13 +94,14 @@ def qc(inputs, output_dir, min_length, max_length, trim_adapters, deduplicate, d
             "dropout" : a
         }} if sum(deconvolve) > 0 else {}),
         "workflow_call" : command.rstrip(),
+        "conda_environments" : conda_envs,
         "reports" : {"skip": skip_reports},
         "inputs" : [i.as_posix() for i in fqlist]
     }
     with open(os.path.join(workflowdir, 'config.yaml'), "w", encoding="utf-8") as config:
         yaml.dump(configs, config, default_flow_style= False, sort_keys=False, width=float('inf'))
 
-    create_conda_recipes()
+    create_conda_recipes(output_dir, conda_envs)
     if setup_only:
         sys.exit(0)
     start_text = Table(show_header=False,pad_edge=False, show_edge=False, padding = (0,0), box=box.SIMPLE)

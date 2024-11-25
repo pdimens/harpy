@@ -14,7 +14,8 @@ onerror:
 wildcard_constraints:
     sample = "[a-zA-Z0-9._-]+"
 
-envdir      = os.path.join(os.getcwd(), ".harpy_envs")
+outdir      = config["output_directory"]
+envdir      = os.path.join(os.getcwd(), outdir, "workflow", "envs")
 genomefile  = config["inputs"]["genome"]
 bamlist     = config["inputs"]["alignments"]
 bamdict     = dict(zip(bamlist, bamlist))
@@ -24,7 +25,6 @@ mol_dist    = config["molecule_distance"]
 min_sv      = config["min_sv"]
 min_barcodes = config["min_barcodes"]
 min_quality  = config["min_quality"]
-outdir      = config["output_directory"]
 bn          = os.path.basename(genomefile)
 genome_zip  = True if bn.lower().endswith(".gz") else False
 bn_idx      = f"{bn}.gzi" if genome_zip else f"{bn}.fai"

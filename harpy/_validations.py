@@ -32,32 +32,6 @@ def is_plaintext(file_path):
     except UnicodeDecodeError:
         return False
 
-def check_envdir(dirpath):
-    """Check that the provided dir exists and contains the necessary environment definitions"""
-    if not os.path.exists(dirpath):
-        print_error("missing conda files", "This working directory does not contain the expected directory of conda environment definitions ([blue bold].harpy_envs/[/blue bold])\n  - use [green bold]--conda[/green bold] to recreate it")
-        sys.exit(1)
-    envlist = os.listdir(dirpath)
-    envs = ["align", "metassembly", "phase", "qc", "r", "simulations", "stitch", "variants"]
-    errcount = 0
-    errtable = Table(show_footer=True, box=box.SIMPLE)
-    errtable.add_column("File", justify="left", style="blue", no_wrap=True)
-    errtable.add_column("Exists", justify="center")
-    for i in envs:
-        if f"{i}.yaml" in envlist:
-            errtable.add_row(f"{i}.yaml", "[blue]✓")
-        else:
-            errcount += 1
-            errtable.add_row(f"{i}.yaml", "[yellow]🗙")
-    if errcount > 0:
-        print_error("missing conda files", f"The conda environment definition directory ([blue bold]{dirpath}[/blue bold]) is missing [yellow bold]{errcount}[/yellow bold] of the expected definition files. All of the environment files are expected to be present, even if a particular workflow doesn't use it.")
-        print_solution_with_culprits(
-            "Check that the names conform to Harpy's expectations, otheriwse you can recreate this directory using the [green bold]--conda[/green bold] option.",
-            "Expected environment files:"
-            )
-        rprint(errtable, file = sys.stderr)
-        sys.exit(1)
-
 def check_impute_params(parameters):
     """Validate the STITCH parameter file for column names, order, types, missing values, etc."""
     with open(parameters, "r", encoding="utf-8") as paramfile:

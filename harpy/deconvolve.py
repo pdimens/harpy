@@ -64,6 +64,7 @@ def deconvolve(inputs, output_dir, kmer_length, window_size, density, dropout, t
     fetch_rule(workflowdir, "deconvolve.smk")
     os.makedirs(f"{output_dir}/logs/snakemake", exist_ok = True)
     sm_log = snakemake_log(output_dir, "deconvolve")
+    conda_envs = ["qc"]
     configs = {
         "workflow": "deconvolve",
         "snakemake_log" : sm_log,
@@ -73,12 +74,13 @@ def deconvolve(inputs, output_dir, kmer_length, window_size, density, dropout, t
         "density" :  density,
         "dropout" :  dropout,
         "workflow_call" : command.rstrip(),
+        "conda_environments" : conda_envs,
         "inputs": [i.as_posix() for i in fqlist]
         }
     with open(os.path.join(workflowdir, 'config.yaml'), "w", encoding="utf-8") as config:
         yaml.dump(configs, config, default_flow_style= False, sort_keys=False, width=float('inf'))
 
-    create_conda_recipes()
+    create_conda_recipes(output_dir, conda_envs)
     if setup_only:
         sys.exit(0)
 

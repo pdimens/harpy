@@ -13,9 +13,9 @@ onerror:
 wildcard_constraints:
     sample = "[a-zA-Z0-9._-]+"
 
-envdir       = os.path.join(os.getcwd(), ".harpy_envs")
 fqlist       = config["inputs"]
 outdir       = config["output_directory"]
+envdir       = os.path.join(os.getcwd(), outdir, "workflow", "envs")
 min_len 	 = config["min_len"]
 max_len 	 = config["max_len"]
 extra 	     = config.get("extra", "") 

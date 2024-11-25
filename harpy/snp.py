@@ -111,6 +111,7 @@ def mpileup(inputs, output_dir, regions, genome, threads, populations, ploidy, e
     fetch_report(workflowdir, "bcftools_stats.Rmd")
     os.makedirs(f"{output_dir}/logs/snakemake", exist_ok = True)
     sm_log = snakemake_log(output_dir, "snp_mpileup")
+    conda_envs = ["r"]
     if populations:
         validate_popfile(populations)
         # check that samplenames and populations line up
@@ -124,6 +125,7 @@ def mpileup(inputs, output_dir, regions, genome, threads, populations, ploidy, e
         **({'windowsize': int(regions)} if regtype == "windows" else {}),
         **({'extra': extra_params} if extra_params else {}),
         "workflow_call" : command.rstrip(),
+        "conda_environments" : conda_envs,
         "reports" : {
             "skip": skip_reports
         },
@@ -137,7 +139,7 @@ def mpileup(inputs, output_dir, regions, genome, threads, populations, ploidy, e
     with open(os.path.join(workflowdir, 'config.yaml'), "w", encoding="utf-8") as config:
         yaml.dump(configs, config, default_flow_style= False, sort_keys=False, width=float('inf'))
 
-    create_conda_recipes()
+    create_conda_recipes(output_dir, conda_envs)
     if setup_only:
         sys.exit(0)
 
@@ -215,6 +217,7 @@ def freebayes(inputs, output_dir, genome, threads, populations, ploidy, regions,
     fetch_report(workflowdir, "bcftools_stats.Rmd")
     os.makedirs(f"{output_dir}/logs/snakemake", exist_ok = True)
     sm_log = snakemake_log(output_dir, "snp_freebayes")
+    conda_envs = ["r", "variants"]
     if populations:
         # check for delimeter and formatting
         validate_popfile(populations)
@@ -230,6 +233,7 @@ def freebayes(inputs, output_dir, genome, threads, populations, ploidy, regions,
         **({'windowsize': int(regions)} if regtype == "windows" else {}),
         **({'extra': extra_params} if extra_params else {}),
         "workflow_call" : command.rstrip(),
+        "conda_environments" : conda_envs,
         "reports" : {"skip": skip_reports},
         "inputs" : {
             "genome" : Path(genome).resolve().as_posix(),
@@ -241,7 +245,7 @@ def freebayes(inputs, output_dir, genome, threads, populations, ploidy, regions,
     with open(os.path.join(workflowdir, 'config.yaml'), "w", encoding="utf-8") as config:
         yaml.dump(configs, config, default_flow_style= False, sort_keys=False, width=float('inf'))
 
-    create_conda_recipes()
+    create_conda_recipes(output_dir, conda_envs)
     if setup_only:
         sys.exit(0)
 

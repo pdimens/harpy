@@ -19,7 +19,7 @@ variantfile   = config["inputs"]["variantfile"]
 paramfile     = config["inputs"]["paramfile"]
 biallelic     = config["inputs"]["biallelic_contigs"]
 outdir        = config["output_directory"]
-envdir        = os.path.join(os.getcwd(), ".harpy_envs")
+envdir        = os.path.join(os.getcwd(), outdir, "workflow", "envs")
 skip_reports  = config["reports"]["skip"]
 stitch_params = config["stitch_parameters"]
 with open(biallelic, "r") as f:

@@ -15,7 +15,8 @@ wildcard_constraints:
     sample = "[a-zA-Z0-9._-]+",
     population = "[a-zA-Z0-9._-]+"
 
-envdir       = os.path.join(os.getcwd(), ".harpy_envs")
+outdir       = config["output_directory"]
+envdir       = os.path.join(os.getcwd(), outdir, "workflow", "envs")
 genomefile   = config["inputs"]["genome"]
 bn           = os.path.basename(genomefile)
 bamlist      = config["inputs"]["alignments"]
@@ -29,7 +30,6 @@ min_sv       = config["min_sv"]
 min_quality  = config["min_quality"]
 min_barcodes = config["min_barcodes"]
 mol_dist     = config["molecule_distance"]
-outdir       = config["output_directory"]
 skip_reports  = config["reports"]["skip"]
 plot_contigs = config["reports"]["plot_contigs"]    
 if bn.lower().endswith(".gz"):

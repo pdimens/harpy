@@ -14,7 +14,7 @@ wildcard_constraints:
     sample = "[a-zA-Z0-9._-]+"
 
 outdir      = config["output_directory"]
-envdir      = os.path.join(os.getcwd(), ".harpy_envs")
+envdir      = os.path.join(os.getcwd(), outdir, "workflow", "envs")
 genomefile 	= config["inputs"]["genome"]
 fqlist      = config["inputs"]["fastq"]
 extra 		= config.get("extra", "") 

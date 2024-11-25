@@ -12,7 +12,7 @@ onerror:
     os.remove(logger.logfile)
 
 outdir = config["output_directory"]
-envdir = os.path.join(os.getcwd(), ".harpy_envs")
+envdir = os.path.join(os.getcwd(), outdir, "workflow", "envs")
 variant = config["workflow"].split()[1]
 outprefix = config["prefix"]
 genome = config["inputs"]["genome"]

@@ -1,59 +1,53 @@
 import os
 import shutil
 
-onsuccess:
-    shutil.rmtree(f'.harpy_envs', ignore_errors=True)
-
+envdir = os.path.join(os.getcwd(), "container/workflow/envs")
+# spades isn't added b/c it has a post-setup script
 rule all:
     input:
-        collect("{conda}.env", conda = ["align", "assembly", "metassembly", "phase", "qc", "r", "simulations", "snp", "stitch", "sv"])
+        collect("{conda}.env", conda = ["align", "assembly", "metassembly", "phase", "qc", "r", "simulations", "stitch", "variants"])
 
 rule qc:
     output: "qc.env"
-    conda: os.getcwd() + "/.harpy_envs/qc.yaml"
+    conda: f"{envdir}/qc.yaml"
     shell: "touch {output}"
 
 rule align:
     output: "align.env"
-    conda: os.getcwd() + "/.harpy_envs/align.yaml"
+    conda: f"{envdir}/align.yaml"
     shell: "touch {output}"
 
-rule snp:
-    output: "snp.env"
-    conda: os.getcwd() + "/.harpy_envs/variants.yaml"
-    shell: "touch {output}"
-
-rule sv:
-    output: "sv.env"
-    conda: os.getcwd() + "/.harpy_envs/variants.yaml"
+rule variants:
+    output: "variants.env"
+    conda: f"{envdir}/variants.yaml"
     shell: "touch {output}"
 
 rule phase:
     output: "phase.env"
-    conda: os.getcwd() + "/.harpy_envs/phase.yaml"
+    conda: f"{envdir}/phase.yaml"
     shell: "touch {output}"
 
 rule r:
     output: "r.env"
-    conda: os.getcwd() + "/.harpy_envs/r.yaml"
+    conda: f"{envdir}/r.yaml"
     shell: "touch {output}"
 
 rule stitch:
     output: "stitch.env"
-    conda: os.getcwd() + "/.harpy_envs/stitch.yaml"
+    conda: f"{envdir}/stitch.yaml"
     shell: "touch {output}"
 
 rule simulations:
     output: "simulations.env"
-    conda: os.getcwd() + "/.harpy_envs/simulations.yaml"
+    conda: f"{envdir}/simulations.yaml"
     shell: "touch {output}"
 
 rule assembly:
     output: "assembly.env"
-    conda: os.getcwd() + "/.harpy_envs/assembly.yaml"
+    conda: f"{envdir}/assembly.yaml"
     shell: "touch {output}"
 
 rule metassembly:
     output: "metassembly.env"
-    conda: os.getcwd() + "/.harpy_envs/metassembly.yaml"
+    conda: f"{envdir}/metassembly.yaml"
     shell: "touch {output}"

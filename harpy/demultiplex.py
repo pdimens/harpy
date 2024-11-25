@@ -76,11 +76,13 @@ def gen1(r1_fq, r2_fq, i1_fq, i2_fq, output_dir, schema, threads, snakemake, ski
     fetch_rule(workflowdir, "demultiplex_gen1.smk")
     os.makedirs(f"{output_dir}/logs/snakemake", exist_ok = True)
     sm_log = snakemake_log(output_dir, "demultiplex_gen1")
+    conda_envs = ["qc"]
     configs = {
         "workflow" : "demultiplex gen1",
         "snakemake_log" : sm_log,
         "output_directory" : output_dir,
         "workflow_call" : command.rstrip(),
+        "conda_environments" : conda_envs,
         "reports" : {
             "skip": skip_reports
         },
@@ -95,7 +97,7 @@ def gen1(r1_fq, r2_fq, i1_fq, i2_fq, output_dir, schema, threads, snakemake, ski
     with open(os.path.join(workflowdir, 'config.yaml'), "w", encoding= "utf-8") as config:
         yaml.dump(configs, config, default_flow_style= False, sort_keys=False, width=float('inf'))
 
-    create_conda_recipes()
+        create_conda_recipes(output_dir, conda_envs)
     if setup_only:
         sys.exit(0)
     
