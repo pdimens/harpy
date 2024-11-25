@@ -326,7 +326,7 @@ def strobe(inputs, output_dir, genome, read_length, keep_unmapped, depth_window,
         "depth_windowsize" : depth_window,
         **({'extra': extra_params} if extra_params else {}),
         "workflow_call" : command.rstrip(),
-        "conda_environments" : conda_envs,
+        "conda_environments" : f"{conda_envs}",
         "reports" : {
             "skip": skip_reports,
             **({'plot_contigs': contigs} if contigs else {'plot_contigs': "default"}),
