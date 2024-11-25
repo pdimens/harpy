@@ -34,7 +34,7 @@ def resume(directory, conda, threads, quiet):
     """
     directory = directory.rstrip("/")
     if not os.path.exists(f"{directory}/workflow/config.yaml"):
-        print_error("config.yaml missing", f"Target directory [blue bold]{directory}[/blue bold] does not contain [blue bold]workflow/config.yaml[/blue bold]")
+        print_error("Missing config file", f"Target directory [blue]{directory}[/blue] does not contain the file [bold]workflow/config.yaml[/bold]")
         sys.exit(1)
     with open(f"{directory}/workflow/config.yaml", 'r', encoding="utf-8") as f:
         harpy_config = yaml.full_load(f)
