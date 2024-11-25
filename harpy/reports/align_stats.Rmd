@@ -45,7 +45,7 @@ samplename <- snakemake@params$samplename
 bamfile <- paste0(samplename, ".bam")
 tb <- read.table(infile, header = T, sep = "\t") %>% select(-start, -end)
 if(nrow(tb) == 0){
-  print(paste("Input data file",infle, "is empty"))
+  print(paste("Input data file",infile, "is empty"))
   knittr::knit_exit()
 }
 tb$valid <- tb$molecule != "invalidBX"
