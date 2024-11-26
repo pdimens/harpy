@@ -17,11 +17,11 @@ wildcard_constraints:
     hap = "[01]"
 
 outdir   = config["output_directory"]
+envdir   = os.path.join(os.getcwd(), outdir, "workflow", "envs")
 gen_hap1 = config["inputs"]["genome_hap1"]
 gen_hap2 = config["inputs"]["genome_hap2"]
 barcode_file = config["barcodes"]["file"]
 barcode_len = config["barcodes"]["length"]
-envdir   = os.path.join(os.getcwd(), ".harpy_envs")
 genodict = {"0": gen_hap1, "1": gen_hap2}
 
 rule barcode_keymap:

@@ -113,6 +113,7 @@ def bwa(inputs, output_dir, genome, depth_window, threads, keep_unmapped, extra_
     fetch_report(workflowdir, "align_bxstats.Rmd")
     os.makedirs(f"{output_dir}/logs/snakemake", exist_ok = True)
     sm_log = snakemake_log(output_dir, "align_bwa")
+    conda_envs = ["align", "r", "qc"]
     configs = {
         "workflow" : "align bwa",
         "snakemake_log" : sm_log,
@@ -123,6 +124,7 @@ def bwa(inputs, output_dir, genome, depth_window, threads, keep_unmapped, extra_
         "depth_windowsize" : depth_window,
         **({'extra': extra_params} if extra_params else {}),
         "workflow_call" : command.rstrip(),
+        "conda_environments" : conda_envs,
         "reports" : {
             "skip": skip_reports,
             **({'plot_contigs': contigs} if contigs else {'plot_contigs': "default"}),
@@ -135,7 +137,7 @@ def bwa(inputs, output_dir, genome, depth_window, threads, keep_unmapped, extra_
     with open(os.path.join(workflowdir, 'config.yaml'), "w", encoding="utf-8") as config:
         yaml.dump(configs, config, default_flow_style= False, sort_keys=False, width=float('inf'))
 
-    create_conda_recipes()
+    create_conda_recipes(output_dir, conda_envs)
     if setup_only:
         sys.exit(0)
 
@@ -216,6 +218,8 @@ def ema(inputs, output_dir, platform, barcode_list, fragment_density, genome, de
     fetch_report(workflowdir, "align_bxstats.Rmd")
     os.makedirs(f"{output_dir}/logs/snakemake", exist_ok = True)
     sm_log = snakemake_log(output_dir, "align_ema")
+    conda_envs = ["align", "r", "qc"]
+
     configs = {
         "workflow" : "align ema",
         "snakemake_log" : sm_log,
@@ -228,6 +232,7 @@ def ema(inputs, output_dir, platform, barcode_list, fragment_density, genome, de
         "EMA_bins" : ema_bins,
         **({'extra': extra_params} if extra_params else {}),
         "workflow_call" : command.rstrip(),
+        "conda_environments" : conda_envs,
         "reports" : {
             "skip": skip_reports,
             **({'plot_contigs': contigs} if contigs else {'plot_contigs': "default"}),
@@ -242,7 +247,7 @@ def ema(inputs, output_dir, platform, barcode_list, fragment_density, genome, de
     with open(os.path.join(workflowdir, 'config.yaml'), "w", encoding="utf-8") as config:
         yaml.dump(configs, config, default_flow_style= False, sort_keys=False, width=float('inf'))
 
-    create_conda_recipes()
+    create_conda_recipes(output_dir, conda_envs)
     if setup_only:
         sys.exit(0)
 
@@ -309,6 +314,7 @@ def strobe(inputs, output_dir, genome, read_length, keep_unmapped, depth_window,
     fetch_report(workflowdir, "align_bxstats.Rmd")
     os.makedirs(f"{output_dir}/logs/snakemake", exist_ok = True)
     sm_log = snakemake_log(output_dir, "align_strobe")
+    conda_envs = ["align", "r", "qc"]
     configs = {
         "workflow" : "align strobe",
         "snakemake_log" : sm_log,
@@ -320,6 +326,7 @@ def strobe(inputs, output_dir, genome, read_length, keep_unmapped, depth_window,
         "depth_windowsize" : depth_window,
         **({'extra': extra_params} if extra_params else {}),
         "workflow_call" : command.rstrip(),
+        "conda_environments" : conda_envs,
         "reports" : {
             "skip": skip_reports,
             **({'plot_contigs': contigs} if contigs else {'plot_contigs': "default"}),
@@ -332,7 +339,7 @@ def strobe(inputs, output_dir, genome, read_length, keep_unmapped, depth_window,
     with open(os.path.join(workflowdir, 'config.yaml'), "w", encoding="utf-8") as config:
         yaml.dump(configs, config, default_flow_style= False, sort_keys=False, width=float('inf'))
 
-    create_conda_recipes()
+    create_conda_recipes(output_dir, conda_envs)
     if setup_only:
         sys.exit(0)
 

@@ -53,7 +53,7 @@ docstring = {
 @click.option('-g', '--genome', type=InputFile("fasta", gzip_ok = True), required = True, help = 'Genome assembly for variant calling')
 @click.option('-o', '--output-dir', type = click.Path(exists = False), default = "SNP/mpileup", show_default=True,  help = 'Output directory name')
 @click.option('-n', '--ploidy', default = 2, show_default = True, type=click.IntRange(min = 1, max = 2), help = 'Ploidy of samples')
-@click.option('-p', '--populations', type=click.Path(exists = True, dir_okay=False, readable=True), help = "Tab-delimited file of sample\<tab\>population")
+@click.option('-p', '--populations', type=click.Path(exists = True, dir_okay=False, readable=True), help = 'File of `sample`\\<TAB\\>`population`')
 @click.option('-r', '--regions', type=str, default=50000, show_default=True, help = "Regions where to call variants")
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(min = 4, max_open = True), help = 'Number of threads to use')
 @click.option('--hpc',  type = HPCProfile(), help = 'Directory with HPC submission `config.yaml` file')
@@ -111,6 +111,7 @@ def mpileup(inputs, output_dir, regions, genome, threads, populations, ploidy, e
     fetch_report(workflowdir, "bcftools_stats.Rmd")
     os.makedirs(f"{output_dir}/logs/snakemake", exist_ok = True)
     sm_log = snakemake_log(output_dir, "snp_mpileup")
+    conda_envs = ["r"]
     if populations:
         validate_popfile(populations)
         # check that samplenames and populations line up
@@ -124,6 +125,7 @@ def mpileup(inputs, output_dir, regions, genome, threads, populations, ploidy, e
         **({'windowsize': int(regions)} if regtype == "windows" else {}),
         **({'extra': extra_params} if extra_params else {}),
         "workflow_call" : command.rstrip(),
+        "conda_environments" : conda_envs,
         "reports" : {
             "skip": skip_reports
         },
@@ -137,7 +139,7 @@ def mpileup(inputs, output_dir, regions, genome, threads, populations, ploidy, e
     with open(os.path.join(workflowdir, 'config.yaml'), "w", encoding="utf-8") as config:
         yaml.dump(configs, config, default_flow_style= False, sort_keys=False, width=float('inf'))
 
-    create_conda_recipes()
+    create_conda_recipes(output_dir, conda_envs)
     if setup_only:
         sys.exit(0)
 
@@ -157,7 +159,7 @@ def mpileup(inputs, output_dir, regions, genome, threads, populations, ploidy, e
 @click.option('-g', '--genome', type=InputFile("fasta", gzip_ok = True), required = True, help = 'Genome assembly for variant calling')
 @click.option('-o', '--output-dir', type = click.Path(exists = False), default = "SNP/freebayes", show_default=True,  help = 'Output directory name')
 @click.option('-n', '--ploidy', default = 2, show_default = True, type=click.IntRange(min=1, max_open=True), help = 'Ploidy of samples')
-@click.option('-p', '--populations', type=click.Path(exists = True, dir_okay=False, readable=True), help = "Tab-delimited file of sample\<tab\>population")
+@click.option('-p', '--populations', type=click.Path(exists = True, dir_okay=False, readable=True), help = 'File of `sample`\\<TAB\\>`population`')
 @click.option('-r', '--regions', type=str, default=50000, show_default=True, help = "Regions where to call variants")
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(min = 4, max_open = True), help = 'Number of threads to use')
 @click.option('--conda',  is_flag = True, default = False, help = 'Use conda/mamba instead of a container')
@@ -215,6 +217,7 @@ def freebayes(inputs, output_dir, genome, threads, populations, ploidy, regions,
     fetch_report(workflowdir, "bcftools_stats.Rmd")
     os.makedirs(f"{output_dir}/logs/snakemake", exist_ok = True)
     sm_log = snakemake_log(output_dir, "snp_freebayes")
+    conda_envs = ["r", "variants"]
     if populations:
         # check for delimeter and formatting
         validate_popfile(populations)
@@ -230,6 +233,7 @@ def freebayes(inputs, output_dir, genome, threads, populations, ploidy, regions,
         **({'windowsize': int(regions)} if regtype == "windows" else {}),
         **({'extra': extra_params} if extra_params else {}),
         "workflow_call" : command.rstrip(),
+        "conda_environments" : conda_envs,
         "reports" : {"skip": skip_reports},
         "inputs" : {
             "genome" : Path(genome).resolve().as_posix(),
@@ -241,7 +245,7 @@ def freebayes(inputs, output_dir, genome, threads, populations, ploidy, regions,
     with open(os.path.join(workflowdir, 'config.yaml'), "w", encoding="utf-8") as config:
         yaml.dump(configs, config, default_flow_style= False, sort_keys=False, width=float('inf'))
 
-    create_conda_recipes()
+    create_conda_recipes(output_dir, conda_envs)
     if setup_only:
         sys.exit(0)
 

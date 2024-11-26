@@ -25,7 +25,7 @@ def popgroup(inputdir, output):
     """
     try:
         samplenames = set()
-        re_ext = re.compile("\.(bam|sam)$", re.IGNORECASE)
+        re_ext = re.compile(r"\.(bam|sam)$", re.IGNORECASE)
         for i in os.listdir(inputdir):
             if i.lower().endswith(".bam") or i.lower().endswith(".sam"):
                 samplenames.add(re_ext.sub("", os.path.basename(i)))
@@ -33,7 +33,7 @@ def popgroup(inputdir, output):
             raise Exception
     except:
        full_flist = [i for i in glob.iglob(f"{inputdir}/*") if not os.path.isdir(i)]
-       r = re.compile(".*\.f(?:ast)?q(?:\.gz)?$", flags=re.IGNORECASE)
+       r = re.compile(r".*\.f(?:ast)?q(?:\.gz)?$", flags=re.IGNORECASE)
        full_fqlist = list(filter(r.match, full_flist))
        fqlist = [os.path.basename(i) for i in full_fqlist]
        bn_r = r"[\.\_][RF](?:[12])?(?:\_00[1-9])*\.f(?:ast)?q(?:\.gz)?$"

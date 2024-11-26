@@ -69,6 +69,7 @@ def metassembly(fastq_r1, fastq_r2, bx_tag, kmer_length, max_memory, ignore_bx, 
     fetch_rule(workflowdir, f"metassembly.smk")
     os.makedirs(f"{output_dir}/logs/snakemake", exist_ok = True)
     sm_log = snakemake_log(output_dir, "metassembly")
+    conda_envs = ["align", "assembly", "metassembly", "qc", "spades"]
     configs = {
         "workflow" : "metassembly",
         "snakemake_log" : sm_log,
@@ -81,6 +82,7 @@ def metassembly(fastq_r1, fastq_r2, bx_tag, kmer_length, max_memory, ignore_bx, 
             **({'extra' : extra_params} if extra_params else {})
         },
         "workflow_call" : command.rstrip(),
+        "conda_environments" : conda_envs,
         "reports" : {
             "skip": skip_reports,
             "organism_type": organism_type
@@ -93,7 +95,7 @@ def metassembly(fastq_r1, fastq_r2, bx_tag, kmer_length, max_memory, ignore_bx, 
     with open(os.path.join(workflowdir, 'config.yaml'), "w", encoding="utf-8") as config:
         yaml.dump(configs, config, default_flow_style= False, sort_keys=False, width=float('inf'))
     
-    create_conda_recipes()
+    create_conda_recipes(output_dir, conda_envs)
     if setup_only:
         sys.exit(0)
 

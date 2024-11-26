@@ -39,7 +39,7 @@ docstring = {
 }
 
 @click.command(no_args_is_help = True, context_settings=dict(allow_interspersed_args=False), epilog = "Documentation: https://pdimens.github.io/harpy/workflows/demultiplex/")
-@click.option('-s', '--schema', required = True, type=click.Path(exists=True, dir_okay=False, readable=True), help = 'Tab-delimited file of sample\<tab\>barcode')
+@click.option('-s', '--schema', required = True, type=click.Path(exists=True, dir_okay=False, readable=True), help = 'File of `sample`\\<TAB\\>`barcode`')
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(min = 1, max_open = True), help = 'Number of threads to use')
 @click.option('-o', '--output-dir', type = click.Path(exists = False), default = "Demultiplex", show_default=True,  help = 'Output directory name')
 @click.option('--conda',  is_flag = True, default = False, help = 'Use conda/mamba instead of a container')
@@ -57,7 +57,7 @@ def gen1(r1_fq, r2_fq, i1_fq, i2_fq, output_dir, schema, threads, snakemake, ski
     Demultiplex Generation I haplotagged FASTQ files
 
     Use the R1, R2, I2, and I2 FASTQ files provided by the sequencing facility as inputs (in that exact order) provided after the options. 
-    The `--schema` must be **tab** (or space) delimited, have **no header** (i.e. no column names), and be in the format of `sample`\<tab\>`barcode`,
+    The `--schema` must be **tab** (or space) delimited, have **no header** (i.e. no column names), and be in the format of `sample`\\<TAB\\>`barcode`,
     where `barcode` is the C- beadtag assigned to the sample (.e.g. `C01`, `C02`, etc.)
     """
     output_dir = output_dir.rstrip("/")
@@ -76,11 +76,13 @@ def gen1(r1_fq, r2_fq, i1_fq, i2_fq, output_dir, schema, threads, snakemake, ski
     fetch_rule(workflowdir, "demultiplex_gen1.smk")
     os.makedirs(f"{output_dir}/logs/snakemake", exist_ok = True)
     sm_log = snakemake_log(output_dir, "demultiplex_gen1")
+    conda_envs = ["qc"]
     configs = {
         "workflow" : "demultiplex gen1",
         "snakemake_log" : sm_log,
         "output_directory" : output_dir,
         "workflow_call" : command.rstrip(),
+        "conda_environments" : conda_envs,
         "reports" : {
             "skip": skip_reports
         },
@@ -95,7 +97,7 @@ def gen1(r1_fq, r2_fq, i1_fq, i2_fq, output_dir, schema, threads, snakemake, ski
     with open(os.path.join(workflowdir, 'config.yaml'), "w", encoding= "utf-8") as config:
         yaml.dump(configs, config, default_flow_style= False, sort_keys=False, width=float('inf'))
 
-    create_conda_recipes()
+        create_conda_recipes(output_dir, conda_envs)
     if setup_only:
         sys.exit(0)
     

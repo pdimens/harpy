@@ -13,7 +13,7 @@ onerror:
 FQ1 = config["inputs"]["fastq_r1"]
 FQ2 = config["inputs"]["fastq_r2"]
 outdir = config["output_directory"]
-envdir = os.path.join(os.getcwd(), ".harpy_envs")
+envdir = os.path.join(os.getcwd(), outdir, "workflow", "envs")
 skip_reports  = config["reports"]["skip"]
 organism = config["reports"]["organism_type"]
 lineage_map = {

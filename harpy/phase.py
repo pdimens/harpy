@@ -80,6 +80,7 @@ def phase(inputs, output_dir, vcf, threads, molecule_distance, prune_threshold, 
     fetch_report(workflowdir, "hapcut.Rmd")
     os.makedirs(f"{output_dir}/logs/snakemake", exist_ok = True)
     sm_log = snakemake_log(output_dir, "phase")
+    conda_envs = ["phase", "r"]
     configs = {
         "workflow" : "phase",
         "snakemake_log" : sm_log,
@@ -90,6 +91,7 @@ def phase(inputs, output_dir, vcf, threads, molecule_distance, prune_threshold, 
         "samples_from_vcf" : vcf_samples,
         **({'extra': extra_params} if extra_params else {}),
         "workflow_call" : command.rstrip(),
+        "conda_environments" : conda_envs,
         "reports" : {
             "skip": skip_reports,
             **({'plot_contigs': contigs} if contigs else {'plot_contigs': "default"}),
@@ -103,7 +105,7 @@ def phase(inputs, output_dir, vcf, threads, molecule_distance, prune_threshold, 
     with open(os.path.join(workflowdir, 'config.yaml'), "w", encoding="utf-8") as config:
         yaml.dump(configs, config, default_flow_style= False, sort_keys=False, width=float('inf'))
 
-    create_conda_recipes()
+    create_conda_recipes(output_dir, conda_envs)
     if setup_only:
         sys.exit(0)
 

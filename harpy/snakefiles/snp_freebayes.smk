@@ -13,12 +13,12 @@ onerror:
 wildcard_constraints:
     sample = "[a-zA-Z0-9._-]+"
 
-envdir      = os.path.join(os.getcwd(), ".harpy_envs")
+outdir      = config["output_directory"]
+envdir      = os.path.join(os.getcwd(), outdir, "workflow", "envs")
 ploidy 		= config["ploidy"]
 extra 	    = config.get("extra", "") 
 regiontype  = config["region_type"]
 windowsize  = config.get("windowsize", None)
-outdir      = config["output_directory"]
 skip_reports = config["reports"]["skip"]
 bamlist     = config["inputs"]["alignments"]
 bamdict     = dict(zip(bamlist, bamlist))

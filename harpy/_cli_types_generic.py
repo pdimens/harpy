@@ -56,6 +56,7 @@ class ContigList(click.ParamType):
 
 class InputFile(click.ParamType):
     """A class for a click type that verifies that a file exists and that it has an expected extension"""
+    name = "input_file"
     def __init__(self, filetype, gzip_ok):
         super().__init__()
         self.filetype = filetype

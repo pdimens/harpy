@@ -172,6 +172,7 @@ def linkedreads(genome_hap1, genome_hap2, output_dir, outer_distance, mutation_r
     fetch_script(workflowdir, "HaploSim.pl")
     os.makedirs(f"{output_dir}/logs/snakemake", exist_ok = True)
     sm_log = snakemake_log(output_dir, "simulate_linkedreads")
+    conda_envs = ["simulations"]
     configs = {
         "workflow" : "simulate linkedreads",
         "snakemake_log" : sm_log,
@@ -184,6 +185,7 @@ def linkedreads(genome_hap1, genome_hap2, output_dir, outer_distance, mutation_r
         "partitions" : partitions,
         "molecules_per_partition" : molecules_per,
         "workflow_call" : command.rstrip(),
+        "conda_environments" : conda_envs,
         'barcodes': {
             "file": Path(barcodes).resolve().as_posix() if barcodes else f"{workflowdir}/input/haplotag_barcodes.txt",
             "length": bc_len if barcodes else 24
@@ -196,7 +198,7 @@ def linkedreads(genome_hap1, genome_hap2, output_dir, outer_distance, mutation_r
     with open(os.path.join(workflowdir, 'config.yaml'), "w", encoding="utf-8") as config:
         yaml.dump(configs, config, default_flow_style= False, sort_keys=False, width=float('inf'))
 
-    create_conda_recipes()
+    create_conda_recipes(output_dir, conda_envs)
     if setup_only:
         sys.exit(0)
 
@@ -295,9 +297,9 @@ def snpindel(genome, snp_vcf, indel_vcf, only_vcf, output_dir, prefix, snp_count
         start_text.add_row("Heterozygosity:", f"{heterozygosity}")            
 
     fetch_rule(workflowdir, "simulate_snpindel.smk")
-    fetch_script(workflowdir, "simuG.pl")
     os.makedirs(f"{output_dir}/logs/snakemake", exist_ok = True)
     sm_log = snakemake_log(output_dir, "simulate_snpindel")
+    conda_envs = ["simulations"]
     configs = {
         "workflow" : "simulate snpindel",
         "snakemake_log" : sm_log,
@@ -322,6 +324,7 @@ def snpindel(genome, snp_vcf, indel_vcf, only_vcf, output_dir, prefix, snp_count
             **({"size_constant" : indel_size_constant} if indel_size_constant and not indel_vcf else {})
         },
         "workflow_call" : command.rstrip(),
+        "conda_environments" : conda_envs,
         "inputs" : {
             "genome" : Path(genome).resolve().as_posix(),
             **({"centromeres" : Path(centromeres).resolve().as_posix()} if centromeres else {}),
@@ -332,7 +335,7 @@ def snpindel(genome, snp_vcf, indel_vcf, only_vcf, output_dir, prefix, snp_count
     with open(os.path.join(workflowdir, 'config.yaml'), "w", encoding="utf-8") as config:
         yaml.dump(configs, config, default_flow_style= False, sort_keys=False, width=float('inf'))
 
-    create_conda_recipes()
+    create_conda_recipes(output_dir, conda_envs)
     if setup_only:
         sys.exit(0)
 
@@ -407,9 +410,9 @@ def inversion(genome, vcf, only_vcf, prefix, output_dir, count, min_size, max_si
         start_text.add_row("Heterozygosity:", f"{heterozygosity}")            
 
     fetch_rule(workflowdir, "simulate_variants.smk")
-    fetch_script(workflowdir, "simuG.pl")
     os.makedirs(f"{output_dir}/logs/snakemake", exist_ok = True)
     sm_log = snakemake_log(output_dir, "simulate_inversion")
+    conda_envs = ["simulations"]
     configs = {
         "workflow" : "simulate inversion",
         "snakemake_log" : sm_log,
@@ -422,11 +425,12 @@ def inversion(genome, vcf, only_vcf, prefix, output_dir, count, min_size, max_si
         },
         "inversion" : {
             **({"vcf" : Path(vcf).resolve().as_posix()} if vcf else {}),
-            **({'count': count} if count and not vcf else {}),
-            **({"min_size":  min_size} if min_size and not vcf else {}),
-            **({"max_size" : max_size} if max_size and not vcf else {})
+            **({'count': count} if not vcf else {}),
+            **({"min_size":  min_size} if not vcf else {}),
+            **({"max_size" : max_size} if not vcf else {})
         },
         "workflow_call" : command.rstrip(),
+        "conda_environments" : conda_envs,
         "inputs" : {
             "genome" : Path(genome).resolve().as_posix(),
             **({"centromeres" : Path(centromeres).resolve().as_posix()} if centromeres else {}),
@@ -437,7 +441,7 @@ def inversion(genome, vcf, only_vcf, prefix, output_dir, count, min_size, max_si
     with open(os.path.join(workflowdir, 'config.yaml'), "w", encoding="utf-8") as config:
         yaml.dump(configs, config, default_flow_style= False, sort_keys=False, width=float('inf'))
 
-    create_conda_recipes()
+    create_conda_recipes(output_dir, conda_envs)
     if setup_only:
         sys.exit(0)
 
@@ -522,9 +526,9 @@ def cnv(genome, output_dir, vcf, only_vcf, prefix, count, min_size, max_size, du
         start_text.add_row("Heterozygosity:", f"{heterozygosity}")            
 
     fetch_rule(workflowdir, "simulate_variants.smk")
-    fetch_script(workflowdir, "simuG.pl")
     os.makedirs(f"{output_dir}/logs/snakemake", exist_ok = True)
     sm_log = snakemake_log(output_dir, "simulate_cnv")
+    conda_envs = ["simulations"]
     configs = {
         "workflow" : "simulate cnv",
         "snakemake_log" : sm_log,
@@ -537,14 +541,15 @@ def cnv(genome, output_dir, vcf, only_vcf, prefix, count, min_size, max_size, du
         },
         "cnv" : {
             **({"vcf" : Path(vcf).resolve().as_posix()} if vcf else {}),
-            **({'count': count} if count and not vcf else {}),
-            **({"min_size":  min_size} if min_size and not vcf else {}),
-            **({"max_size" : max_size} if max_size and not vcf else {}),
-            **({"duplication_ratio" : dup_ratio} if dup_ratio and not vcf else {}),
-            **({"max_copy" : max_copy} if max_copy and not vcf else {}),
-            **({"gain_ratio" : gain_ratio} if gain_ratio and not vcf else {})
+            **({'count': count} if not vcf else {}),
+            **({"min_size":  min_size} if not vcf else {}),
+            **({"max_size" : max_size} if not vcf else {}),
+            **({"duplication_ratio" : dup_ratio} if not vcf else {}),
+            **({"max_copy" : max_copy} if not vcf else {}),
+            **({"gain_ratio" : gain_ratio} if not vcf else {})
         },
         "workflow_call" : command.rstrip(),
+        "conda_environments" : conda_envs,
         "inputs" : {
             "genome" : Path(genome).resolve().as_posix(),
             **({"centromeres" : Path(centromeres).resolve().as_posix()} if centromeres else {}),
@@ -555,7 +560,7 @@ def cnv(genome, output_dir, vcf, only_vcf, prefix, count, min_size, max_size, du
     with open(os.path.join(workflowdir, 'config.yaml'), "w", encoding="utf-8") as config:
         yaml.dump(configs, config, default_flow_style= False, sort_keys=False, width=float('inf'))
 
-    create_conda_recipes()
+    create_conda_recipes(output_dir, conda_envs)
     if setup_only:
         sys.exit(0)
 
@@ -627,9 +632,9 @@ def translocation(genome, output_dir, prefix, vcf, only_vcf, count, centromeres,
         start_text.add_row("Heterozygosity:", f"{heterozygosity}")            
 
     fetch_rule(workflowdir, "simulate_variants.smk")
-    fetch_script(workflowdir, "simuG.pl")
     os.makedirs(f"{output_dir}/logs/snakemake", exist_ok = True)
     sm_log = snakemake_log(output_dir, "simulate_translocation")
+    conda_envs = ["simulations"]
     configs = {
         "workflow" : "simulate translocation",
         "snakemake_log" : sm_log,
@@ -638,13 +643,14 @@ def translocation(genome, output_dir, prefix, vcf, only_vcf, count, centromeres,
         **({"random_seed" : randomseed} if randomseed else {}),
         "heterozygosity" : {
             "ratio" : heterozygosity,
-            "only_vcf" : only_vcf,
+            "only_vcf" : only_vcf
         },
         "translocation" : {
             **({"vcf" : Path(vcf).resolve().as_posix()} if vcf else {}),
-            **({'count': count} if count and not vcf else {}),
+            **({'count': count} if not vcf else {})
         },
         "workflow_call" : command.rstrip(),
+        "conda_environments" : conda_envs,
         "inputs" : {
             "genome" : Path(genome).resolve().as_posix(),
             **({"centromeres" : Path(centromeres).resolve().as_posix()} if centromeres else {}),
@@ -656,7 +662,7 @@ def translocation(genome, output_dir, prefix, vcf, only_vcf, count, centromeres,
     with open(os.path.join(workflowdir, 'config.yaml'), "w", encoding="utf-8") as config:
         yaml.dump(configs, config, default_flow_style= False, sort_keys=False, width=float('inf'))
 
-    create_conda_recipes()
+    create_conda_recipes(output_dir, conda_envs)
     if setup_only:
         sys.exit(0)
 

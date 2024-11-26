@@ -42,17 +42,29 @@ using("flexdashboard","dplyr","highcharter","DT","BioCircos")
 #samplename <- "test sample"
 infile <- snakemake@input$bxstats
 samplename <- snakemake@params$samplename
+#sm_moldist <- 50000
+sm_moldist <- snakemake@params$mol_dist
 bamfile <- paste0(samplename, ".bam")
 tb <- read.table(infile, header = T, sep = "\t") %>% select(-start, -end)
 if(nrow(tb) == 0){
-  print(paste("Input data file",infle, "is empty"))
-  knittr::knit_exit()
+  print(paste("Input data file",infile, "is empty"))
+  knitr::knit_exit()
 }
 tb$valid <- tb$molecule != "invalidBX"
 ```
 
-```{r bxper, results = F}
+```{r valids, results=F}
 valids <- tb[tb$valid, -ncol(tb)]
+if(nrow(valids) == 0){
+  VALID_PRESENT <- FALSE
+  SKIPTEXT <- TRUE
+} else {
+  VALID_PRESENT <- TRUE
+  SKIPTEXT <- FALSE
+}
+```
+
+```{r bxper, results = F}
 invalids <- tb[!(tb$valid), -ncol(tb)]
 valids$molecule <- as.integer(valids$molecule)
 nBX <- group_by(valids, contig) %>% 
@@ -96,8 +108,8 @@ valueBox(scales::comma(totuniqBX), caption = "Unique barcodes", color = "#8f4f76
 
 ### mol-thresh
 ```{r valuebox_mol_thresh}
-if(snakemake@params$mol_dist > 0){
-  valueBox(scales::comma(snakemake@params$mol_dist), caption = "Molecule threshold", color = "#be96b9")
+if(sm_moldist > 0){
+  valueBox(scales::comma(sm_moldist), caption = "Molecule threshold", color = "#be96b9")
 }
 ```
 
@@ -118,18 +130,28 @@ valueBox(scales::comma(tot_invalid), caption = "Invalid BX Records", color = "wa
 
 ### singletons
 ```{r valuebox_singletons}
-valueBox(round(sum(valids$reads <= 2)/nrow(valids), 2), caption = "% Singletons")
+if (VALID_PRESENT){
+  valueBox(round(sum(valids$reads <= 2)/nrow(valids), 2), caption = "% Singletons")
+} else {
+  valueBox("NA", caption = "% Singletons")
+}
 ```
 
 ### glob-avg
 ```{r valuebox_mol_per_contig}
-valueBox(scales::comma(avgBX), caption = "Avg molecules per contig", color = "#d4d4d4")
+if (VALID_PRESENT){
+  valueBox(scales::comma(avgBX), caption = "Avg molecules per contig", color = "#d4d4d4")
+} else {
+    valueBox("NA", caption = "Avg molecules per contig", color = "#d4d4d4")
+}
 ```
-
 
 ## N50 and N90
 ### Molecule NXX Length Metrics
-```{r NX_stats}
+```{r validtext, eval = SKIPTEXT, results="asis"}
+cat(paste0("**`",infile,"` has no valid haplotagging barcodes, skipping reporting on linked-read metrics.**"))
+```
+```{r NX_stats, eval = VALID_PRESENT}
 summary_table <- valids %>% 
     group_by(contig) %>%
     summarize(valid_records = sum(reads), molecules = length(molecule),n50 = NX(length_inferred, 50), n75 = NX(length_inferred, 75), n90 = NX(length_inferred, 90))
@@ -168,7 +190,7 @@ distribution is relative to the total number of non-singleton molecules.
 ## the plots
 ### reads per {.no-title}
 
-```{r readsper, out.width = '100%'}
+```{r readsper, out.width = '100%', eval = VALID_PRESENT}
 hs <- hist(valids$reads, breaks = min(valids$reads):max(valids$reads), plot = F)
 hs_mult <- hist(non_singletons$reads, breaks = hs$breaks, plot = F)
 hs$counts <- round(hs$counts / sum(hs$counts) * 100, 4)
@@ -193,7 +215,7 @@ highchart() |>
 ```
 
 ### bases per {.no-title}
-```{r basesper, out.width="100%"}
+```{r basesper, out.width="100%", eval = VALID_PRESENT}
 hs <- hist(round(valids$aligned_bp, -2), breaks = 50,  plot = F)
 hs_mult <- hist(round(non_singletons$aligned_bp, -2), breaks = hs$breaks,  plot = F)
 hs$counts <- round(hs$counts / sum(hs$counts)*100,4)
@@ -230,7 +252,7 @@ relative to the total number of non-singleton molecules.
 
 ## inferred-plot
 ### inferredplot {.no-title}
-```{r inferred, out.width = '100%'}
+```{r inferred, out.width = '100%', eval = VALID_PRESENT}
 hs <- hist(round(valids$length_inferred / 1000,0),breaks = 25,plot = F)
 hs_mult <- hist(round(non_singletons$length_inferred / 1000,0),breaks = hs$breaks,plot = F)
 hs$counts <- round(hs$counts / sum(hs$counts)*100,2)
@@ -276,7 +298,7 @@ molecule coverage as `300bp ÷ molecule_length`, whereas the plot on the right c
 
 ## breadthplot
 ### coverage by aligned bp {.no-title}
-```{r inferred_cov_bp, out.width = '100%'}
+```{r inferred_cov_bp, out.width = '100%', eval = VALID_PRESENT}
 hs <- hist(round(valids$coverage_bp, 0), breaks = seq(0, 1, by = 0.05), plot = F)
 hs_mult <- hist(round(non_singletons$coverage_bp, 0), breaks = hs$breaks, plot = F)
 hs$counts <- round(hs$counts / sum(hs$counts)*100, 4)
@@ -301,7 +323,7 @@ highchart() |>
 ```
 
 ### coverage by inserts {.no-title}
-```{r inferred_cov_insert, out.width = '100%'}
+```{r inferred_cov_insert, out.width = '100%', eval = VALID_PRESENT}
 hs <- hist(round(valids$coverage_inserts, 0), breaks = seq(0, 1, by = 0.05), plot = F)
 hs_mult <- hist(round(non_singletons$coverage_inserts, 0), breaks = hs$breaks, plot = F)
 hs$counts <- round(hs$counts / sum(hs$counts)*100,2)
@@ -382,6 +404,7 @@ rm(hs_mult)
 rm(valids)
 rm(invalids)
 rm(non_singletons)
+#knitr::knit_exit()
 ```
 ```{r imports}
 covfile <- snakemake@input$coverage
@@ -395,12 +418,12 @@ samplename <- snakemake@params$samplename
 tb <- read.table(covfile, header = F)
 if(nrow(tb) == 0){
   print(paste("Input data file", covfile, "is empty"))
-  knittr::knit_exit()
+  knitr::knit_exit()
 }
 tbmol <- read.table(molcovfile, header = F)
 if(nrow(tbmol) == 0){
   print(paste("Input data file", molcovfile, "is empty"))
-  knittr::knit_exit()
+  knitr::knit_exit()
 }
 ```
 

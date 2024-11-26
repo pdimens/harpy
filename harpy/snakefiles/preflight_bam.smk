@@ -15,7 +15,7 @@ wildcard_constraints:
     sample = "[a-zA-Z0-9._-]+"
 
 outdir = config["output_directory"]
-envdir  = os.path.join(os.getcwd(), ".harpy_envs")
+envdir  = os.path.join(os.getcwd(), outdir, "workflow", "envs")
 bamlist = config["inputs"]
 bamdict = dict(zip(bamlist, bamlist))
 samplenames = {Path(i).stem for i in bamlist}
