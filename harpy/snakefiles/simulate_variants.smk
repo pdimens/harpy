@@ -14,6 +14,7 @@ onerror:
 outdir = config["output_directory"]
 envdir = os.path.join(os.getcwd(), outdir, "workflow", "envs")
 variant = config["workflow"].split()[1]
+simuG_variant = variant.upper() if variant == "cnv" else variant
 outprefix = config["prefix"]
 genome = config["inputs"]["genome"]
 vcf = config[variant].get("vcf", None)
@@ -58,7 +59,7 @@ rule simulate_haploid:
         geno = genome
     output:
         f"{outdir}/{outprefix}.simseq.genome.fa",
-        f"{outdir}/{outprefix}.refseq2simseq.{variant}.vcf",
+        f"{outdir}/{outprefix}.refseq2simseq.{simuG_variant}.vcf",
         f"{outdir}/{outprefix}.refseq2simseq.map.txt"
     log:
         f"{outdir}/logs/{outprefix}.log"
@@ -73,7 +74,7 @@ rule simulate_haploid:
 rule rename_haploid:
     input:
         fasta = f"{outdir}/{outprefix}.simseq.genome.fa",
-        vcf = f"{outdir}/{outprefix}.refseq2simseq.{variant}.vcf",
+        vcf = f"{outdir}/{outprefix}.refseq2simseq.{simuG_variant}.vcf",
         mapfile = f"{outdir}/{outprefix}.refseq2simseq.map.txt"
     output:
         fasta = f"{outdir}/{outprefix}.fasta",
@@ -113,7 +114,7 @@ rule simulate_diploid:
     output:
         f"{outdir}/haplotype_{{haplotype}}/{outprefix}.hap{{haplotype}}.simseq.genome.fa",
         f"{outdir}/haplotype_{{haplotype}}/{outprefix}.hap{{haplotype}}.refseq2simseq.map.txt",
-        temp(f"{outdir}/haplotype_{{haplotype}}/{outprefix}.hap{{haplotype}}.refseq2simseq.{variant}.vcf")
+        temp(f"{outdir}/haplotype_{{haplotype}}/{outprefix}.hap{{haplotype}}.refseq2simseq.{simuG_variant}.vcf")
     log:
         f"{outdir}/logs/{outprefix}.hap{{haplotype}}.log"
     params:
