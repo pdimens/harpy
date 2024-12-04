@@ -56,7 +56,7 @@ docstring = {
         },
         {
             "name": "Random Variants",
-            "options": ["--centromeres", "--exclude-chr", "--genes", "--indel-count", "--indel-ratio", "--snp-count", "--snp-gene-constraints", "--titv-ratio"],
+            "options": ["--centromeres", "--exclude-chr", "--genes", "--heterozygosity", "--indel-count", "--indel-ratio", "--snp-count", "--snp-gene-constraints", "--titv-ratio"],
         },
         {
             "name": "Diploid Options",
@@ -78,7 +78,7 @@ docstring = {
         },
         {
             "name": "Random Variants",
-            "options": ["--centromeres", "--count", "--exclude-chr", "--genes", "--max-size", "--min-size"],
+            "options": ["--centromeres", "--count", "--exclude-chr", "--genes", "--heterozygosity", "--max-size", "--min-size"],
         },
         {
             "name": "Diploid Options",
@@ -100,7 +100,7 @@ docstring = {
         },
         {
             "name": "Random Variants",
-            "options": ["--centromeres", "--count", "--dup-ratio", "--exclude-chr", "--gain-ratio", "--genes",  "--max-copy", "--max-size", "--min-size"],
+            "options": ["--centromeres", "--count", "--dup-ratio", "--exclude-chr", "--gain-ratio", "--genes", "--heterozygosity",  "--max-copy", "--max-size", "--min-size"],
         },
         {
             "name": "Diploid Options",
@@ -122,7 +122,7 @@ docstring = {
         },
         {
             "name": "Random Variants",
-            "options": ["--centromeres", "--count", "--exclude-chr", "--genes"],
+            "options": ["--centromeres", "--count", "--exclude-chr", "--genes", "--heterozygosity"],
         },
         {
             "name": "Diploid Options",
