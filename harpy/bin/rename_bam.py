@@ -24,10 +24,6 @@ if not os.path.exists(args.input):
 
 outdir = os.path.dirname(args.input)
 
-outdir = os.path.dirname(args.input)
-
-outdir = os.path.dirname(args.input)
-
 JOB_STATUS = os.system(
     f"samtools addreplacerg -r \"ID:{args.name}\\tSM:{args.name}\" -o {outdir}/{args.name}.bam {args.input}"
     )

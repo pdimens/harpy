@@ -63,14 +63,6 @@ docstring = {
             "options": ["--heterozygosity", "--only-vcf"],
         },
         {
-            "name": "Diploid Options",
-            "options": ["--heterozygosity", "--only-vcf"],
-        },
-        {
-            "name": "Diploid Options",
-            "options": ["--heterozygosity", "--only-vcf"],
-        },
-        {
             "name": "Workflow Controls",
             "options": ["--conda", "--hpc", "--output-dir", "--prefix", "--quiet", "--randomseed", "--snakemake", "--help"],
         },
@@ -83,14 +75,6 @@ docstring = {
         {
             "name": "Random Variants",
             "options": ["--centromeres", "--count", "--exclude-chr", "--genes", "--max-size", "--min-size"],
-        },
-        {
-            "name": "Diploid Options",
-            "options": ["--heterozygosity", "--only-vcf"],
-        },
-        {
-            "name": "Diploid Options",
-            "options": ["--heterozygosity", "--only-vcf"],
         },
         {
             "name": "Diploid Options",
@@ -115,14 +99,6 @@ docstring = {
             "options": ["--heterozygosity", "--only-vcf"],
         },
         {
-            "name": "Diploid Options",
-            "options": ["--heterozygosity", "--only-vcf"],
-        },
-        {
-            "name": "Diploid Options",
-            "options": ["--heterozygosity", "--only-vcf"],
-        },
-        {
             "name": "Workflow Controls",
             "options": ["--conda", "--hpc", "--output-dir", "--prefix", "--quiet", "--randomseed", "--snakemake", "--help"],
         },
@@ -135,14 +111,6 @@ docstring = {
         {
             "name": "Random Variants",
             "options": ["--centromeres", "--count", "--exclude-chr", "--genes"],
-        },
-        {
-            "name": "Diploid Options",
-            "options": ["--heterozygosity", "--only-vcf"],
-        },
-        {
-            "name": "Diploid Options",
-            "options": ["--heterozygosity", "--only-vcf"],
         },
         {
             "name": "Diploid Options",

@@ -225,44 +225,6 @@ for (cont in plot_contigs) {
 fig
 ```
 
-### per contig plot {.no-title}
-```{r contig_ridgeplot, warning=FALSE, message=FALSE, echo= FALSE, fig.height=ridgeheight, fig.width=8}
-ggplot(df, aes(x = block_length, y = contig, fill = stat(x))) +
-  geom_density_ridges_gradient() +
-  scale_fill_viridis_c(option = "C", trans = "log10") +
-  theme_minimal() +
-  theme(legend.position = "none") +
-  scale_x_log10(
-     breaks = trans_breaks("log10", function(x) 10^x),
-     labels = trans_format("log10", math_format(10^.x))
-  ) +
-  labs(title = "Distribution of Haplotype Lengths by Contig", fill = "Haplotype Length (bp)") +
-  xlab("Haplotype Length (log scale)") +
-  ylab("")
-```
-
-fig
-```
-
-### per contig plot {.no-title}
-```{r contig_ridgeplot, warning=FALSE, message=FALSE, echo= FALSE, fig.height=ridgeheight, fig.width=8}
-ggplot(df, aes(x = block_length, y = contig, fill = stat(x))) +
-  geom_density_ridges_gradient() +
-  scale_fill_viridis_c(option = "C", trans = "log10") +
-  theme_minimal() +
-  theme(legend.position = "none") +
-  scale_x_log10(
-     breaks = trans_breaks("log10", function(x) 10^x),
-     labels = trans_format("log10", math_format(10^.x))
-  ) +
-  labs(title = "Distribution of Haplotype Lengths by Contig", fill = "Haplotype Length (bp)") +
-  xlab("Haplotype Length (log scale)") +
-  ylab("")
-```
-
-fig
-```
-
 # Per-Sample Stats
 ## per sample desc
 ### stats per sample desc {.no-title}
