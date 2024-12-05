@@ -46,7 +46,8 @@ invalid = re.compile(r'[AaBbCcDd]00')
 # then subsample according to the downsample fraction and write to output
 
 with pysam.AlignmentFile(input_bam, "rb") as infile, pysam.AlignmentFile(output_bam, "wb", template=infile) as outfile:
-    record_store = []
+    record_store_F = []
+    record_store_R = []
     last_barcode = None
     for record in infile:
         try:
@@ -66,6 +67,7 @@ with pysam.AlignmentFile(input_bam, "rb") as infile, pysam.AlignmentFile(output_
                     outfile.write(record)    
             continue
         if not last_barcode or barcode == last_barcode:
+            #TODO F/R logic
             record_store.append(record)
             continue
         else:
@@ -75,4 +77,5 @@ with pysam.AlignmentFile(input_bam, "rb") as infile, pysam.AlignmentFile(output_
             # reset the record store
             record_store = []
 
-# TODO ASSESS THAT FORWARD/REVERSE ARE TREATED PROPERLY
+# TODO ASSESS THAT FORWARD/REVERSE ARE TREATED PROPERLY AS A PAIR
+# that is, that if the forward is kept, the reverse is too
