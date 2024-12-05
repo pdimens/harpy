@@ -5,6 +5,7 @@
 hpc/
 QC/
 Deconvolve/
+Downsample/
 Demultiplex/
 Genome/
 Align/

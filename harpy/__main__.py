@@ -17,6 +17,7 @@ from . import simulate
 from . import snp
 from . import sv
 from .popgroup import popgroup
+from . import downsample
 from .imputeparams import imputeparams
 from . import view
 
@@ -43,6 +44,7 @@ def cli():
     """
 
 # main program
+cli.add_command(downsample.downsample)
 cli.add_command(popgroup)
 cli.add_command(imputeparams)
 cli.add_command(view.view)
@@ -72,10 +74,10 @@ click.rich_click.COMMAND_GROUPS = {
             },
             {
                 "name": "Other Commands",
-                "commands": sorted(["deconvolve", "hpc", "imputeparams", "popgroup","preflight","resume", "view"])
+                "commands": sorted(["deconvolve", "downsample", "hpc", "imputeparams", "popgroup","preflight","resume", "view"])
             }
         ],
  } | simulate.commandstring | hpc.docstring
 
-for i in [align, deconvolve, demultiplex, impute, phase, preflight, qc, simulate, snp, sv, assembly, metassembly]:
+for i in [align, deconvolve, downsample, demultiplex, impute, phase, preflight, qc, simulate, snp, sv, assembly, metassembly]:
     click.rich_click.OPTION_GROUPS |= i.docstring
