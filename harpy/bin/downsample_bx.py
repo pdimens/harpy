@@ -18,7 +18,7 @@ desc = """Downsample a BAM file by values in a record TAG (e.g. BX).
     - e.g. '-d 1000' retains all reads associated with 1000 random barcodes
 
 == Invalid/Missing Barcodes ==
-Use --invalid-strategy to specify how to handle invalid barcodes:
+Use -i to specify how to handle invalid barcodes:
 - 'keep': keep all invalid/missing barcodes
 - 'drop': don't output any invalid/missing barcodes
 - 'downsample': (-d <1 only) also downsample invalid/missing barcodes
@@ -31,7 +31,7 @@ parser = argparse.ArgumentParser(
     formatter_class  =  argparse.RawDescriptionHelpFormatter
     )
 parser.add_argument('-d', dest = "downsample", type=float, required = True, help = "Downsampling amount")
-parser.add_argument('-i', dest = "strategy", type = str, default = "keep", choices = ["keep","drop", "downsample"], help = "Strategy to handle invalid/missing barcodes (default: %(default)s)")
+parser.add_argument('-i', dest = "invalid", type = str, default = "keep", choices = ["keep","drop", "downsample"], help = "Strategy to handle invalid/missing barcodes (default: %(default)s)")
 parser.add_argument('-s', dest = "seed", type = int, help = "Set a random seed (optional)")
 parser.add_argument('-t', dest = "tag", type=str, default = "BX", help = "SAM tag to use for downsampling (default: %(default)s)")
 parser.add_argument('-o', dest = "outfile", help = "Output bam file")
@@ -57,7 +57,7 @@ input_bam = args.input
 output_bam = args.outfile
 tag_key = args.tag.upper()
 downsample_fraction = args.downsample if args.downsample < 1 else int(args.downsample)
-strat = args.strategy
+strat = args.invalid
 rng = random.Random(args.seed) if args.seed else random.Random()
 
 #haplotag = re.compile(r'A[0-9]{2}C[0-9]{2}B[0-9]{2}D[0-9]{2}')
