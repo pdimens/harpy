@@ -25,7 +25,7 @@ docstring = {
     ]
 }
 
-@click.command(no_args_is_help = True, context_settings=dict(allow_interspersed_args=False), epilog = "Documentation: https://pdimens.github.io/harpy/workflows/qc")
+@click.command(no_args_is_help = True, context_settings=dict(allow_interspersed_args=False), epilog = "Documentation: https://pdimens.github.io/harpy/workflows/downsample")
 @click.option('-d', '--downsample', type = click.FloatRange(min = 0.000001), help = 'Downsampling amount')
 @click.option('-i', '--invalid', default = "keep", show_default = True, type=click.Choice( ["keep","drop", "downsample"]), help = "Strategy to handle invalid/missing barcodes")
 @click.option('-b', '--bx-tag', type = str, default = "BX", show_default=True, help = "The header tag with the barcode")
