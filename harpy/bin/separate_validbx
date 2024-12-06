@@ -1,9 +1,9 @@
 #! /usr/bin/env bash
 
 if [[ -z "$1" ]]; then
-    echo -e "\n  Split a BAM file with BX:Z tags into 2 files, one with valid ACBD barcodes (stdout), one with invalid ACBD barcodes (stderr)."
-    echo -e "\n [usage] separate_validbx input.bam > valid.bam 2> invalid.bam"
+    echo -e "\n  Split a BAM file with BX:Z tags into 2 files, one with valid ACBD barcodes (stdout), one with invalid ACBD barcodes."
+    echo -e "\n [usage] separate_validbx invalid.bam input.bam > valid.bam"
     exit
 fi
 
-samtools view -e '[BX]!~"[ABCD]0{2,4}"' --unoutput /dev/stderr $1
+samtools view -e '[BX]!~"[ABCD]0{2,4}"' --unoutput $1 $2
