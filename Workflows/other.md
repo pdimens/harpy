@@ -31,6 +31,10 @@ keep all the reads associated with `d` number of barcodes.
 harpy downsample OPTIONS... INPUT(S)...
 ```
 
+```bash example
+harpy downsample -d 1000 -i drop -b BC -p sample1.sub1000
+```
+
 #### arguments
 {.compact}
 | argument        | short name |    default    | description                                                                                                                       |
