@@ -77,7 +77,7 @@ totuniqBX <- gsub("#total unique barcodes: ", "", totuniqBX) |> as.integer()
 tot_valid <- sum(valids$reads)
 tot_invalid <- sum(invalids$reads)
 
-non_singletons <- valids[valids$reads >2, ]
+non_singletons <- valids[valids$reads >= 2, ]
 n_non_singleton_mol <- nrow(non_singletons)
 ```
 
@@ -131,7 +131,7 @@ valueBox(scales::comma(tot_invalid), caption = "Invalid BX Records", color = "wa
 ### singletons
 ```{r valuebox_singletons}
 if (VALID_PRESENT){
-  valueBox(round(sum(valids$reads <= 2)/nrow(valids), 2), caption = "% Singletons")
+  valueBox(round(sum(valids$reads < 2)/nrow(valids), 2), caption = "% Singletons")
 } else {
   valueBox("NA", caption = "% Singletons")
 }
