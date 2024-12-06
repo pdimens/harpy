@@ -47,9 +47,9 @@ harpy preflight bam --threads 20 Align/bwa
 In addition to the [!badge variant="info" corners="pill" text="common runtime options"](/commonoptions.md), the [!badge corners="pill" text="preflight fastq"] and [!badge corners="pill" text="preflight bam"] modules are configured using only command-line input arguments:
 
 {.compact}
-| argument | short name | default | description                                                                                                                           |
-| :------- | :--------: | :-----: | :------------------------------------------------------------------------------------------------------------------------------------ |
-| `INPUTS` |            |         | [!badge variant="info" text="required"] Files or directories containing [input fastq or bam files](/commonoptions.md#input-arguments) |
+| argument | short name | description                                                                                                                           |
+| :------- | :--------: | :------------------------------------------------------------------------------------------------------------------------------------ |
+| `INPUTS` |            | [!badge variant="info" text="required"] Files or directories containing [input fastq or bam files](/commonoptions.md#input-arguments) |
 
 ## Workflow
 

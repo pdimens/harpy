@@ -33,16 +33,16 @@ harpy downsample OPTIONS... INPUT(S)...
 
 #### arguments
 {.compact}
-| argument        | short name | type            |    default    | description                                                                                                                       |
-| :-------------- | :--------: | :-------------- | :-----------: | :-------------------------------------------------------------------------------------------------------------------------------- |
-| `INPUT(S)`      |            | file(s)         |               | [!badge variant="info" text="required"] One BAM file or both read files from a paired-end FASTQ pair                              |
-| `--downsample`  |    `-d`    | int >= 1        |               | [!badge variant="info" text="required"] Number of barcodes to downsample to                                                       |
-| `--invalid`     |    `-i`    | [`keep`,`drop`] |    `keep`     | Strategy to handle invalid/missing barcodes                                                                                       |
-| `--bx-tag`      |    `-b`    | string          |     `BX`      | The header tag with the barcode [!badge variant="secondary" text="alphanumeric"] [!badge variant="secondary" text="2 characters"] |
-| `--prefix`      |    `-p`    | string          | `downsampled` | Prefix for output files                                                                                                           |
-| `--random-seed` |            | int >= 1        |               | Random seed for sampling [!badge variant="secondary" text="optional"]                                                             |
-| `--threads`     |    `-t`    | int >= 1        |      `4`      | Number of threads to use                                                                                                          |
-| `--quiet`       |            | toggle          |               | Don't show output text while running                                                                                              |
+| argument        | short name |    default    | description                                                                                                                       |
+| :-------------- | :--------: | :-----------: | :-------------------------------------------------------------------------------------------------------------------------------- |
+| `INPUT(S)`      |            |               | [!badge variant="info" text="required"] One BAM file or both read files from a paired-end FASTQ pair                              |
+| `--downsample`  |    `-d`    |               | [!badge variant="info" text="required"] Number of barcodes to downsample to                                                       |
+| `--invalid`     |    `-i`    |    `keep`     | Strategy to handle invalid/missing barcodes [`keep`,`drop`]                                                                       |
+| `--bx-tag`      |    `-b`    |     `BX`      | The header tag with the barcode [!badge variant="secondary" text="alphanumeric"] [!badge variant="secondary" text="2 characters"] |
+| `--prefix`      |    `-p`    | `downsampled` | Prefix for output files                                                                                                           |
+| `--random-seed` |            |               | Random seed for sampling [!badge variant="secondary" text="optional"]                                                             |
+| `--threads`     |    `-t`    |      `4`      | Number of threads to use                                                                                                          |
+| `--quiet`       |            |               | Don't show output text while running                                                                                              |
 
 ---
 
@@ -92,10 +92,10 @@ harpy resume [--conda] DIRECTORY
 
 #### arguments
 {.compact}
-| argument    | short name | type                 | description                                                                            |
-| :---------- | :--------: | :------------------- | :------------------------------------------------------------------------------------- |
-| `DIRECTORY` |            | file/directory paths | [!badge variant="info" text="required"] Output directory of an existing harpy workflow |
-| `--conda`   |            | toggle               | Generate a `/workflow/envs` folder with the necessary conda enviroments                |
+| argument    | short name | description                                                                            |
+| :---------- | :--------: | :------------------------------------------------------------------------------------- |
+| `DIRECTORY` |            | [!badge variant="info" text="required"] Output directory of an existing harpy workflow |
+| `--conda`   |            | Generate a `/workflow/envs` folder with the necessary conda enviroments                |
 
 The `DIRECTORY` is the output directory of a previous harpy-invoked workflow, which **must** have the `workflow/config.yaml` file.
 For example, if you previously ran `harpy align bwa -o align-bwa ...`, then you would use `harpy resume align-bwa`,
@@ -120,10 +120,10 @@ harpy popgroup -o samples.groups data/
 ```
 #### arguments
 {.compact}
-| argument   | short name | type                 | description                                                                                   |
-| :--------- | :--------: | :------------------- | :-------------------------------------------------------------------------------------------- |
-| `INPUTS`   |            | file/directory paths | [!badge variant="info" text="required"] Files or directories containing input FASTQ/BAM files |
-| `--output` |    `-o`    | file path            | [!badge variant="info" text="required"] Name of the output file                               |
+| argument   | short name | description                                                                                   |
+| :--------- | :--------: | :-------------------------------------------------------------------------------------------- |
+| `INPUTS`   |            | [!badge variant="info" text="required"] Files or directories containing input FASTQ/BAM files |
+| `--output` |    `-o`    | [!badge variant="info" text="required"] Name of the output file                               |
 
 This optional file is useful if you want SNP variant calling to happen on a
 per-population level via  [!badge corners="pill" text="harpy snp"](snp.md/#populations) or on samples
