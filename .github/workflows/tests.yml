@@ -831,7 +831,7 @@ jobs:
       - name: harpy downsample bam
         shell: micromamba-shell {0}
         run: harpy downsample -d 1 --random-seed 699 --quiet test/bam/sample1.bam
-      - name: harpy downsample bam
+      - name: harpy downsample fastq
         shell: micromamba-shell {0}
         run: harpy downsample -d 1 --quiet test/fastq/sample1.*
       - name: harpy hpc
