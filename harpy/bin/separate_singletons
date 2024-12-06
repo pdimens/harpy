@@ -25,7 +25,7 @@ if args.threads <1:
     parser.error("Threads supplied to -t ({args.threads}) must be positive (e.g. >1)")
 if not os.path.exists(args.input):
     parser.error(f"{args.input} was not found")
-if len(args.bx_tag) != 2:
+if len(args.bx_tag) != 2 or args.bx_tag.isalnum():
     parser.error(f"The header tag supplied to -b ({args.bx_tag}) must be alphanumeric and exactly two characters long")
 
 invalid_pattern = re.compile(r'[AaBbCcDd]00')
@@ -67,6 +67,14 @@ with (
             read_count += 1
         # update the last barcode with the current one
         last_barcode = barcode
+    # After the for loop ends
+    if record_store:
+        if read_count > 1:
+            for i in record_store:
+                nonsingleton.write(i)
+        else:
+            for i in record_store:
+                singleton.write(i)
 
 # final housekeeping to remove intermediate
 os.remove(sorted_bam)
