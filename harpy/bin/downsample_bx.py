@@ -94,13 +94,21 @@ if mode == "within":
                 if record.is_forward and record.is_paired:
                     record_store_F.append(record)
                 elif record.is_reverse and record.is_paired:
-                    record_store_R.append(record)         
+                    record_store_R.append(record)    
+                elif record.is_forward and not record.is_paired:
+                    record_store_F.append(record)
+                    record_store_R.append(None)
+                elif record.is_reverse and not record.is_paired:
+                    record_store_F.append(None)
+                    record_store_R.append(record)
                 continue
             else:
                 for i,j in zip(record_store_F, record_store_R):
                     if rng.uniform(0, 1) <= downsample_fraction:
-                        outfile.write(i)
-                        outfile.write(j)
+                        if i:
+                            outfile.write(i)
+                        if j:
+                            outfile.write(j)
                 # reset the record stores
                 record_store_F = []
                 record_store_R = []

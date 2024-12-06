@@ -16,7 +16,7 @@ docstring = {
     "harpy downsample": [
         {
             "name": "Parameters",
-            "options": sorted(["--downsample", "--invalid", "--bx-tag", "--randomseed"]),
+            "options": sorted(["--downsample", "--invalid", "--bx-tag", "--random-seed"]),
         },
         {
             "name": "Workflow Controls",
@@ -30,13 +30,13 @@ docstring = {
 @click.option('-i', '--invalid', default = "keep", show_default = True, type=click.Choice( ["keep","drop", "downsample"]), help = "Strategy to handle invalid/missing barcodes")
 @click.option('-b', '--bx-tag', type = str, default = "BX", show_default=True, help = "The header tag with the barcode")
 @click.option('-o', '--output-dir', type = click.Path(exists = False), default = "Downsample", show_default=True,  help = 'Output directory name')
-@click.option('--randomseed', type = click.IntRange(min = 1), help = "Random seed for sampling")
+@click.option('--random-seed', type = click.IntRange(min = 1), help = "Random seed for sampling")
 @click.option('--setup-only',  is_flag = True, hidden = True, show_default = True, default = False, help = 'Setup the workflow and exit')
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(min = 1, max_open = True), help = 'Number of threads to use')
 @click.option('--quiet',  is_flag = True, show_default = True, default = False, help = 'Don\'t show output text while running')
 @click.option('--snakemake', type = SnakemakeParams(), help = 'Additional Snakemake parameters, in quotes')
 @click.argument('input', required=True, type=click.Path(exists=True, readable=True), nargs=-1)
-def downsample(input, output_dir, downsample, invalid, bx_tag, randomseed, threads, snakemake, quiet, setup_only):
+def downsample(input, output_dir, downsample, invalid, bx_tag, random_seed, threads, snakemake, quiet, setup_only):
     """
     Downsample data by barcode
 
@@ -96,7 +96,7 @@ def downsample(input, output_dir, downsample, invalid, bx_tag, randomseed, threa
         "downsample" : downsample if downsample < 1 else int(downsample),       
         "invalid" : invalid,
         "bx_tag" :  bx_tag.upper(),
-        **({"random_seed" : randomseed} if randomseed else {}),
+        **({"random_seed" : random_seed} if random_seed else {}),
         "workflow_call" : command.rstrip(),
         "inputs": [Path(i).as_posix() for i in input]
         }
