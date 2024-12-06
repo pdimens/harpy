@@ -10,8 +10,8 @@ order: 1
 
 ===  :icon-checklist: You will need
 - at least 4 cores/threads available
-- sequence alignments, in BAM format: [!badge variant="success" text=".bam"]
-- genome assembly in FASTA format: [!badge variant="success" text=".fasta"] [!badge variant="success" text=".fa"] [!badge variant="success" text=".fasta.gz"] [!badge variant="success" text=".fa.gz"]
+- sequence alignments: [!badge variant="success" text=".bam"] [!badge variant="secondary" text="coordinate-sorted"]
+- genome assembly in FASTA format: [!badge variant="success" text=".fasta"] [!badge variant="success" text=".fa"] [!badge variant="success" text=".fasta.gz"] [!badge variant="success" text=".fa.gz"] [!badge variant="secondary" text="case insensitive"]
 - [!badge variant="ghost" text="optional"] sample grouping file ([see below](#pooled-sample-variant-calling))
 
 !!!warning EMA-mapped reads
@@ -63,15 +63,16 @@ harpy sv leviathan --threads 20 -g genome.fasta Align/bwa
 In addition to the [!badge variant="info" corners="pill" text="common runtime options"](/commonoptions.md), the [!badge corners="pill" text="sv leviathan"] module is configured using these command-line arguments:
 
 {.compact}
-| argument         | short name | type          | default | required | description                                        |
-|:-----------------|:----------:|:--------------|:-------:|:--------:|:---------------------------------------------------|
-| `INPUTS`         |            | file/directory paths  |         | **yes**  | Files or directories containing [input BAM files](/commonoptions.md#input-arguments)     |
-| `--extra-params` |    `-x`    | string        |         |    no             | Additional naibr arguments, in quotes              |
-| `--genome`       |    `-g`    | file path     |         |    yes | Genome assembly that was used to create alignments    |
-| `--iterations`   |    `-i`    | integer       |   50    |    no             | Number of iterations to perform through index (reduces memory) |
-| `--min-barcodes` |    `-b`    | integer       |    2    |    no             | Minimum number of barcode overlaps supporting candidate SV |
-| `--min-sv`       |    `-m`    | integer       |  1000   |    no             | Minimum size of SV to detect              |
-| `--populations`  |    `-p`    | file path     |         |    no             | Tab-delimited file of sample\<*tab*\>group         |
+| argument         | short name | default | description                                                                                                                  |
+| :--------------- | :--------: | :-----: | :--------------------------------------------------------------------------------------------------------------------------- |
+| `INPUTS`         |            |         | [!badge variant="info" text="required"] Files or directories containing [input BAM files](/commonoptions.md#input-arguments) |
+| `--contigs`      |            |         | [Contigs to plot](/commonoptions.md#--contigs) in the report                                                                 |
+| `--extra-params` |    `-x`    |         | Additional naibr arguments, in quotes                                                                                        |
+| `--genome`       |    `-g`    |         | [!badge variant="info" text="required"] Genome assembly that was used to create alignments                                   |
+| `--iterations`   |    `-i`    |  `50`   | Number of iterations to perform through index (reduces memory)                                                               |
+| `--min-barcodes` |    `-b`    |   `2`   | Minimum number of barcode overlaps supporting candidate SV                                                                   |
+| `--min-sv`       |    `-m`    | `1000`  | Minimum size of SV to detect                                                                                                 |
+| `--populations`  |    `-p`    |         | Tab-delimited file of sample\<*tab*\>group                                                                                   |
 
 ### Single-sample variant calling
 When **not** using a population grouping file via `--populations`, variants will be called per-sample. 
@@ -140,27 +141,24 @@ SV/leviathan
     └── sample2.bcf
 ```
 {.compact}
-| item                   | description                                              |
-|:-----------------------|:---------------------------------------------------------|
-| `breakends.bedpe` | an aggregation of all the breakends identified by LEVIATHAN |
-| `deletions.bedpe` | an aggregation of all the deletions identified by LEVIATHAN |
-| `duplications.bedpe` | an aggregation of all the duplications identified by LEVIATHAN |
-| `inversions.bedpe` | an aggregation of all the inversions identified by LEVIATHAN |
-| `logs/harpy.variants.log` | relevant runtime parameters for the variants module  |
-| `logs/sample.groups`   | if provided, a copy of the file provided to `--populations` with commented lines removed  |
-| `logs/*candidates`     | candidate structural variants LEVIATHAN identified       |
-| `reports/`             | summary reports with interactive plots of detected SV    |
-| `stats/`               | results of `bcftools stats` on the vcf LEVIATHAN creates |
-| `vcf/`                | structural variants identified by LEVIATHAN              |
+| item                      | description                                                                              |
+| :------------------------ | :--------------------------------------------------------------------------------------- |
+| `breakends.bedpe`         | an aggregation of all the breakends identified by LEVIATHAN                              |
+| `deletions.bedpe`         | an aggregation of all the deletions identified by LEVIATHAN                              |
+| `duplications.bedpe`      | an aggregation of all the duplications identified by LEVIATHAN                           |
+| `inversions.bedpe`        | an aggregation of all the inversions identified by LEVIATHAN                             |
+| `logs/harpy.variants.log` | relevant runtime parameters for the variants module                                      |
+| `logs/sample.groups`      | if provided, a copy of the file provided to `--populations` with commented lines removed |
+| `logs/*candidates`        | candidate structural variants LEVIATHAN identified                                       |
+| `reports/`                | summary reports with interactive plots of detected SV                                    |
+| `stats/`                  | results of `bcftools stats` on the vcf LEVIATHAN creates                                 |
+| `vcf/`                    | structural variants identified by LEVIATHAN                                              |
 
 +++ :icon-code-square: leviathan parameters
-By default, Harpy runs `leviathan` with default parameters (shown below), only modifying inputs and outputs at the command line.
-
 Below is a list of all `leviathan` command line options, excluding those Harpy already uses or those made redundant by Harpy's implementation of LEVIATHAN.
 These are taken directly from the [LEVIATHAN documentation](https://github.com/morispi/LEVIATHAN).
 ``` LEVIATHAN arguments
   -r, --regionSize:         Size of the regions on the reference genome to consider (default: 1000)
-  -v, --minVariantSize:     Minimum size of the SVs to detect (default: same as regionSize)
   -n, --maxLinks:           Remove from candidates list all candidates which have a region involved in that much candidates (default: 1000)
   -M, --mediumSize:         Minimum size of medium variants (default: 2000)
   -L, --largeSize:          Minimum size of large variants (default: 10000)
@@ -170,8 +168,6 @@ These are taken directly from the [LEVIATHAN documentation](https://github.com/m
   -d, --duplicates:         Consider SV as duplicates if they have the same type and if their breakpoints are within this distance (default: 10)
   -s, --skipTranslocations: Skip SVs that are translocations (default: false)
   -p, --poolSize:           Size of the thread pool (default: 100000)
-  -B, --nbBins:             Number of iterations to perform through the barcode index (default: 10)
-  -c, --minBarcodes:        Always remove candidates that share less than this number of barcodes (default: 1)
 ```
 +++ :icon-graph: reports
 These are the summary reports Harpy generates for this workflow. You may right-click

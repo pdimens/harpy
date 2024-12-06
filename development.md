@@ -2,6 +2,7 @@
 label: Development
 icon: tools
 order: 1
+hidden: true
 ---
 
 # :icon-tools: Developing Harpy
@@ -15,28 +16,27 @@ Before we get into the technical details, you, dear reader, need to understand
 why Harpy is the way it is. Harpy may be a pipeline for other software, but 
 there is a lot of extra stuff built in to make it user 
 friendly. Not just friendly, but _compassionate_. The guiding ethos for Harpy is
-**"We don't hate the user"**. That means there is a lot
-of code that checks input files, runtime details, etc. to exit before 
+**"Don't hate the user"**. That means there is a lot
+of code that checks input files, runtime details, etc. before 
 Snakemake takes over. This is done to minimize time wasted on minor 
 errors that only show their ugly heads 18 hours into a 96 hour process. With that in mind:
 1. **Code should be written clearly** because someone else will need to read it at 
 some point, and that person could be future-you who hasn't seen or thought 
 about that code for a while. Write nicely. Annotate.
-2. **Error messages should provide all the information a user needs to fix the problem and retry**. It's not enough to exit when an error is identified. Collate
-the things causing the error, explain to the user what and why. Harpy follows a
-style of presenting and explaining the error, then providing a solution and showing exactly what files/rows/columns/etc. caused the error. Be kind to users.
-
-![These are Harpy error messages](/static/errormsg.png)
-
-3. **Documentation is just as important as the code**. No features are undocumented,
+2. **Documentation is just as important as the code**. No user-facing features are undocumented,
 and the documentation should read like something that a new student can
 pick up and understand. Good documentation, written compassionately, will lower
 the barrier of entry to people who just want to process their haplotag data. Harpy
 isn't about ego, it's about accessibility. We invest in this documentation because
-we _want_ to, not because we need to.
+we **_want_** to.
+3. **Error messages should provide all the information a user needs to fix the problem and retry**. It's not enough to exit when an error is identified. Collate
+the things causing the error, explain to the user what and why. Harpy follows a
+style of presenting and explaining the error, then providing a solution and showing exactly what files/rows/columns/etc. caused the error. Be kind to users.
+![These are Harpy error messages](/static/errormsg.png)
+
 ===
 
-## Installing Harpy for development
+## Installing dev version
 The process follows cloning the harpy repository, installing the preconfigured conda environment, and running the `resources/buildlocal.sh`
 script to move all the necessary files to the `/bin/` path within your active conda environment.
 
@@ -85,7 +85,7 @@ this is handled by `resources/buildlocal.sh`. It's a little circuitous, but it's
 we can keep the source code modular, installable, and have the flexibility of 
 using non-python code.
 
-### Bioconda recipe
+### bioconda recipe
 For the ease of installation for end-users, Harpy has a [recipe and build script](https://github.com/bioconda/bioconda-recipes/blob/master/recipes/harpy/meta.yaml) in Bioconda,
 which makes it available for download and installation. A copy of the recipe is also
 stored in `resources/meta.yml`. The yaml file is the metadata of the package, including software 
@@ -95,12 +95,12 @@ requiring any intervention on the development side for the newest Harpy version 
 
 
 ## The Harpy repository
-### structure
-Harpy exists as a Git repository and has 5 standard branches that are used in 
+### repo structure
+Harpy exists as a Git repository and has 3 standard branches that are used in 
 specific ways during development. Git is a popular version control system and 
 discussing its use is out of the scope of this documentation, however there is no 
 shortage of [great resources](https://www.youtube.com/watch?v=8Dd7KRpKeaE) to get 
-you started. The 5 standard branches in the Harpy repository are outlined in the 
+you started. The 3 standard branches in the Harpy repository are outlined in the 
 table below:
 
 {.compact}
@@ -155,18 +155,18 @@ version. So, if the Harpy version is `1.4.12`, then the associated docker image 
 (unless there is a very good reason otherwise) since automatic Docker tagging happens upon releases of new Harpy versions.
 
 ## Automations
-### Testing
+### testing
 CI (**C**ontinuous **I**ntegration) is a term describing automated actions that do
 things to/with your code and are triggered by how you interact with a repository.
 Harpy has a series of GitHub Actions triggered by interactions with the `main` branch (in `.github/workflows`) 
 to test the Harpy modules depending on which files are being changed by the push or
-pull request. It's setup such that, for example, when files associated with 
+pull request. It's set up such that, for example, when files associated with 
 demultiplexing are altered, it will run `harpy demultiplex` on the test data 
 in the cloud and notify the Harpy devs if for some reason `harpy demultiplex`
 could not run successfully to completion. These tests do not test for accuracy,
 but test for breaking behavior. You'd be shocked to find out how many errors
-crop up this way and require more development so Harpy can be resilient to more use cases.
-### Releases
+crop up this way and require more work so Harpy can be resilient to more use cases.
+### releases
 There is [an automation](https://github.com/pdimens/harpy/blob/dev/.github/workflows/createrelease.yml)
 that gets triggered every time Harpy is tagged with the new version. It strips out the unnecessary files and will
 upload a cleaned tarball to the new release (reducing filesize by orders of magnitude). The automation will also

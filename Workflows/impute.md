@@ -1,15 +1,17 @@
 ---
 label: Impute
 description: Impute genotypes for haplotagged data with Harpy
-icon: workflow
+icon: project
 order: 8
 ---
 
-# :icon-workflow: Impute Genotypes using Sequences
+# :icon-project: Impute Genotypes using Sequences
 
 ===  :icon-checklist: You will need
-- a tab-delimited parameter file 
-- sequence alignments in BAM format: [!badge variant="success" text=".bam"]
+- at least 4 cores/threads available
+- a tab-delimited [parameter file](#parameter-file) 
+- sequence alignments: [!badge variant="success" text=".bam"] [!badge variant="secondary" text="coordinate-sorted"]
+    - **sample names**: [!badge variant="success" text="a-z"] [!badge variant="success" text="0-9"] [!badge variant="success" text="."] [!badge variant="success" text="_"] [!badge variant="success" text="-"] [!badge variant="secondary" text="case insensitive"]
 - a variant call format file: [!badge variant="success" text=".vcf"] [!badge variant="success" text=".vcf.gz"] [!badge variant="success" text=".bcf"]
 ==- :icon-codescan: Curation of input VCF file
 To work well with STITCH, Harpy needs the input variant call file to meet specific criteria.
@@ -35,15 +37,15 @@ tasks yourself prior to running the [!badge corners="pill" text="impute"] module
 After variants have been called, you may want to impute missing genotypes to get the
 most from your data. Harpy uses `STITCH` to impute genotypes, a haplotype-based
 method that is linked-read aware. Imputing genotypes requires a variant call file 
-**containing SNPs**, such as that produced by [!badge corners="pill" text="harpy snp"](snp.md) and preferably [filtered in some capacity](/blog/filteringsnps.md).
+**containing SNPs**, such as that produced by [!badge corners="pill" text="harpy snp"](snp.md) and preferably [filtered in some capacity](/blog/filtering_snps.md).
 You can impute genotypes with Harpy using the [!badge corners="pill" text="impute"] module:
 ```bash usage
 harpy impute OPTIONS... INPUTS...
 ```
 
 ```bash example
-# create stitch parameter file 'stitch.params'
-harpy stitchparams -o stitch.params 
+# create the parameter file 'stitch.params'
+harpy imputeparams -o stitch.params 
 
 # run imputation
 harpy impute --threads 20 --vcf Variants/mpileup/variants.raw.bcf --parameters stitch.params Align/ema
@@ -53,13 +55,13 @@ harpy impute --threads 20 --vcf Variants/mpileup/variants.raw.bcf --parameters s
 In addition to the [!badge variant="info" corners="pill" text="common runtime options"](/commonoptions.md), the [!badge corners="pill" text="impute"] module is configured using these command-line arguments:
 
 {.compact}
-| argument       | short name | type        |    default    | required | description                                                                                     |
-|:---------------|:----------:|:------------|:-------------:|:--------:|:------------------------------------------------------------------------------------------------|
-| `INPUTS`       |            | file/directory paths  |         | **yes**  | Files or directories containing [input BAM files](/commonoptions.md)     |
-| `--extra-params` |  `-x`    | folder path |               |  no      | Extra arguments to add to the STITCH R function, provided in quotes and R syntax                |
-| `--parameters` |    `-p`    | file path   |               | **yes**  | STITCH [parameter file](#parameter-file) (tab-delimited)                                                           |
-| `--vcf`        |    `-v`    | file path   |               | **yes**  | Path to VCF/BCF file                                                                            |
-| `--vcf-samples`|            |    toggle   |               | no       | [Use samples present in vcf file](#prioritize-the-vcf-file) for imputation rather than those found the directory    |
+| argument         | short name | default | description                                                                                                                  |
+| :--------------- | :--------: | :-----: | :--------------------------------------------------------------------------------------------------------------------------- |
+| `INPUTS`         |            |         | [!badge variant="info" text="required"] Files or directories containing [input BAM files](/commonoptions.md)                 |
+| `--extra-params` |    `-x`    |         | Extra arguments to add to the STITCH R function, provided in quotes and R syntax                                             |
+| `--parameters`   |    `-p`    |         | [!badge variant="info" text="required"] STITCH [parameter file](#parameter-file) (tab-delimited)                             |
+| `--vcf`          |    `-v`    |         | [!badge variant="info" text="required"] Path to VCF/BCF file                                                                 |
+| `--vcf-samples`  |            |         | Use samples present in vcf file for imputation rather than those found the directory ([see below](#prioritize-the-vcf-file)) |
 
 ### Extra STITCH parameters
 You may add [additional parameters](https://github.com/rwdavies/STITCH/blob/master/Options.md) to STITCH by way of the 
@@ -84,44 +86,46 @@ Typically, one runs STITCH multiple times, exploring how results vary with
 different model parameters (explained in next section). The solution Harpy uses for this is to have the user
 provide a tab-delimited dataframe file where the columns are the 6 STITCH model 
 parameters and the rows are the values for those parameters. The parameter file 
-is required and can be created manually or with [!badge corners="pill" text="harpy stitchparams"](other.md/#stitchparams).
+is required and can be created manually or with [!badge corners="pill" text="harpy imputeparams"](other.md/#imputeparams).
 If created using harpy, the resulting file includes largely meaningless values 
 that you will need to adjust for your study. The parameter must follow a particular format:
 - tab or comma delimited
-- column order doesn't matter, but all 6 column names must be present
+- column order doesn't matter, but all 7 column names must be present
 - header row present with the specific column names below
 
 +++example file
 This file is tab-delimited, note the column names:
 ``` paramaters.txt
-model   usebx   bxlimit   k       s       nGen
-diploid   TRUE    50000    10      5       50
-diploid   TRUE    50000   15      10      100
-pseudoHaploid   TRUE    50000   10      1       50
+name    model   usebx   bxlimit   k       s       nGen
+model1    diploid   TRUE    50000    10      5       50
+model2    diploid   TRUE    50000   15      10      100
+waffles    pseudoHaploid   TRUE    50000   10      1       50
 ```
++++example file (as a table)
+This is the table view of the tab-delimited file, shown here for clarity.
+
+{.compact}
+| name    | model         | useBX | bxlimit | k   | s   | nGen |
+| :------ | :------------ | :---- | :------ | :-- | :-- | :--- |
+| model1  | diploid       | TRUE  | 50000   | 10  | 5   | 50   |
+| model2  | diploid       | TRUE  | 50000   | 15  | 10  | 100  |
+| waffles | pseudoHaploid | TRUE  | 50000   | 10  | 1   | 50   |
+
 +++parameter file columns
 See the section below for detailed information on each parameter. This
 table serves as an overview of the parameters.
 
 {.compact}
-| column name |  value type  |             accepted values             | description                                                           |
-|:------------|:------------:|:---------------------------------------:|:----------------------------------------------------------------------|
-| model       |     text     | pseudoHaploid, diploid, diploid-inbred  | The STITCH model/method to use                                        |
-| usebx       | text/boolean | true, false, yes, no (case insensitive) | Whether to incorporate beadtag information                            |
-| bxlimit     |   integer    |                   ≥ 1                   | Distance between identical BX tags at which to consider them different molecules |
-| k           |   integer    |                   ≥ 1                   | Number of founder haplotypes                                          |
-| s           |   integer    |                   ≥ 1                   | Number of instances of the founder haplotypes to average results over |
-| nGen        |   integer    |                   ≥ 1                   | Estimated number of generations since founding                        |
+| column name |               accepted values                | description                                                                                     |
+| :---------- | :------------------------------------------: | :---------------------------------------------------------------------------------------------- |
+| name        |      alphanumeric (a-z, 0-9) and `-_.`       | Arbitrary name of the parameter set, used to name outputs                                       |
+| model       | `pseudoHaploid`, `diploid`, `diploid-inbred` | The STITCH model/method to use  [!badge variant="secondary" text="case sensitive"]              |
+| usebx       |         `true`, `false`, `yes`, `no`         | Whether to incorporate beadtag information [!badge variant="secondary" text="case insensitive"] |
+| bxlimit     |                     ≥ 1                      | Distance between identical BX tags at which to consider them different molecules                |
+| k           |                     ≥ 1                      | Number of founder haplotypes                                                                    |
+| s           |                     ≥ 1                      | Number of instances of the founder haplotypes to average results over                           |
+| nGen        |                     ≥ 1                      | Estimated number of generations since founding                                                  |
 
-+++example file  (as a table)
-This is the table view of the tab-delimited file, shown here for clarity.
-
-{.compact}
-| model         | useBX | bxlimit  | k  | s  | nGen |
-|:--------------|:------|:---------|:---|:---|:-----|
-| diploid | TRUE  |   50000  | 10 | 5  | 50   |
-| diploid | TRUE  |   50000  | 15 | 10 | 100  |
-| pseudoHaploid | TRUE  |   50000  | 10 | 1  | 50   |
 +++
 
 ## STITCH Parameters
@@ -163,6 +167,10 @@ that each ancestral haplotype gets at least a certain average \_X of coverage, l
 ##### Number of ancestral haplotypes to average over
 The `s` parameter controls the number of sets of ancestral haplotypes used and which final results are averaged over. 
 This may be useful for wild or large populations, like humans. The `s` value should affect RAM and run time in a near-linearly.
+
+!!!
+For the time being, it's probably best to set this value to `1` due to [this inconsistent issue](https://github.com/rwdavies/STITCH/issues/98#issuecomment-2248700697).
+!!!
 
 +++nGen
 ##### Recombination rate between samples
@@ -207,58 +215,37 @@ graph LR
 ```
 +++ :icon-file-directory: impute output
 The default output directory is `Impute` with the folder structure below. `contig1` and `contig2` 
-are generic contig names from an imaginary `genome.fasta` for demonstration purposes. The directory `model1/`
-is a generic name to reflect the corresponding parameter row in the stitch parameter
-file, which would have explicit names in real use (e.g. `modelpseudoHaploid_useBXTrue_k10_s1_nGen50/`).
+are generic contig names from an imaginary `genome.fasta` for demonstration purposes. The directory `modelname`
+is a placeholder for whatever `name` you gave that parameter set in the parameter file's `name` column.
 The resulting folder also includes a `workflow` directory (not shown) with workflow-relevant runtime files and information.
 
 ```
 Impute/
-├── input
-│   ├── contig1.stitch
-│   ├── contig2.stitch
-│   ├── samples.list
-│   ├── samples.names
-│   └── logs
-│       └── harpy.impute.log
-└── model1
-    ├── concat.log
-    ├── variants.imputed.bcf
-    ├── variants.imputed.bcf.csi
-    ├── variants.imputed.html
-    └── contigs
-        ├── contig1
-        │   ├── contig1.log
-        │   ├── contig1.impute.html
-        │   ├── contig1.stats
-        │   ├── contig1.vcf.gz
-        │   └── contig1.vcf.gz.tbi
-        ├── contig2
-        │   ├── contig2.log
-        │   ├── contig2.impute.html
-        │   ├── contig2.stats
-        │   ├── contig2.vcf.gz
-        │   └── contig2.vcf.gz.tbi
-        └── stats
-            └── impute.compare.stats
+└── modelname
+    ├── modelname.bcf
+    ├── modelname.bcf.csi
+    ├── contigs
+    │    ├── contig1.vcf.gz
+    │    ├── contig1.vcf.gz.tbi
+    │    ├── contig2.vcf.gz
+    │    └── contig2.vcf.gz.tbi
+    ├── logs
+    └── reports
+        ├── data
+        ├── contig1.modelname.html
+        ├── contig2.modelname.html
+        └── modelname.html
 
 ```
 {.compact}
-| item                                | description                                                               |
-|:------------------------------------|:--------------------------------------------------------------------------|
-| `logs/harpy.impute.log`             | relevant runtime parameters for the phase module                          |
-| `input/*.stitch`                    | biallelic SNPs used for imputation                                        |
-| `input/samples.list`                | list of [input BAM files](/commonoptions.md)                                                   |
-| `input/samples.names`               | list of sample names                                                      |
-| `model*/concat.log`                 | output from bcftools concat to create final imputed bcf                   |
-| `model*/variants.imputed.bcf`       | final bcf file of imputed genotypes                                       |
-| `model*/variants.imputed.bcf.csi`   | index of `variants.imputed.bcf`                                           |
-| `model*/variants.imputed.html`  | report summarizing the results of imputation                              |
-| `model*/contigs/*/*.impute.html`    | summary of STITCH imputation                                              |
-| `model*/contigs/*/*.log`            | what STITCH writes to `stdout` and `stderr`                               |
-| `model*/contigs/*/*.vcf.gz`         | variants resulting from imputation                                        |
-| `model*/contigs/*/*.vcf.gz.tbi`     | index of variant file                                                     |
-| `model*/contigs/*/impute.compare.stats` | results of `bcftools stats` comparing the original to the imputed vcf |
+| item                                 | description                                  |
+| :----------------------------------- | :------------------------------------------- |
+| `modelname/modelname.bcf`            | final bcf file of imputed genotypes          |
+| `modelname/modelname.bcf.csi`        | index of `modelname.bcf`                     |
+| `modelname/reports/modelname.html`   | report summarizing the results of imputation |
+| `modelname/reports/*.modelname.html` | summary of STITCH imputation (per contig)    |
+| `modelname/contigs/*.vcf.gz`         | variants resulting from imputation           |
+| `modelname/contigs/*.vcf.gz.tbi`     | index of variant file                        |
 
 +++ :icon-code-square: STITCH parameters
 While you are expected to run STITCH using your own set of 

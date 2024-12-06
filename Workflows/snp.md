@@ -9,8 +9,9 @@ order: 2
 
 ===  :icon-checklist: You will need
 - at least 4 cores/threads available
-- sequence alignments, in BAM format: [!badge variant="success" text=".bam"]
-- genome assembly in FASTA format: [!badge variant="success" text=".fasta"] [!badge variant="success" text=".fa"] [!badge variant="success" text=".fasta.gz"] [!badge variant="success" text=".fa.gz"]
+- sequence alignments: [!badge variant="success" text=".bam"] [!badge variant="secondary" text="coordinate-sorted"]
+    - **sample name**: [!badge variant="success" text="a-z"] [!badge variant="success" text="0-9"] [!badge variant="success" text="."] [!badge variant="success" text="_"] [!badge variant="success" text="-"] [!badge variant="secondary" text="case insensitive"]
+- genome assembly in FASTA format: [!badge variant="success" text=".fasta"] [!badge variant="success" text=".fa"] [!badge variant="success" text=".fasta.gz"] [!badge variant="success" text=".fa.gz"] [!badge variant="secondary" text="case insensitive"]
 - [!badge variant="ghost" text="optional"] sample grouping file
 ==- :icon-file: sample grouping file [!badge variant="ghost" text="optional"]
 This file is optional and useful if you want variant calling to happen on a per-population level.
@@ -58,14 +59,19 @@ harpy snp freebayes --threads 20 --genome genome.fasta Align/bwa
 In addition to the [!badge variant="info" corners="pill" text="common runtime options"](../commonoptions.md), the [!badge corners="pill" text="snp"] module is configured using these command-line arguments:
 
 {.compact}
-| argument         | short name | type                            | default | required | description                                         |
-|:-----------------|:----------:|:--------------------------------|:-------:|:--------:|:----------------------------------------------------|
-| `INPUTS`         |            | file/directory paths  |         | **yes**  | Files or directories containing [input BAM files](/commonoptions.md#input-arguments)   |
-| `--extra-params` |    `-x`    | string                          |         |    no    | Additional mpileup/freebayes arguments, in quotes   |
-| `--genome`       |    `-g`    | file path                       |         | **yes**  | Genome assembly for variant calling                 |
-| `--ploidy`       |    `-n`    | integer                         |    2    |    no    | Ploidy of samples                                   |
-| `--populations`  |    `-p`    | file path                       |         |    no    | Tab-delimited file of sample\<*tab*\>group          |
-| `--regions`      |    `-r`    | integer/file path/string        |  50000  |    no    | Regions to call variants on ([see below](#regions))             |
+| argument         | short name | default | description                                                                                                                  |
+| :--------------- | :--------: | :-----: | :--------------------------------------------------------------------------------------------------------------------------- |
+| `INPUTS`         |            |         | [!badge variant="info" text="required"] Files or directories containing [input BAM files](/commonoptions.md#input-arguments) |
+| `--extra-params` |    `-x`    |         | Additional mpileup/freebayes arguments, in quotes                                                                            |
+| `--genome`       |    `-g`    |         | [!badge variant="info" text="required"] Genome assembly for variant calling                                                  |
+| `--ploidy`       |    `-n`    |   `2`   | Ploidy of samples                                                                                                            |
+| `--populations`  |    `-p`    |         | Tab-delimited file of sample\<*tab*\>group                                                                                   |
+| `--regions`      |    `-r`    | `50000` | Regions to call variants on ([see below](#regions))                                                                          |
+
+
+### ploidy
+If you are calling haploid or diploid samples, using either `mpileup` or `freebayes` will be comparable. However, if you need to call SNPs in polyploids (ploidy >2),
+then you will need to use `freebayes`, since `mpileup` does not call variants for ploidy greater than 2.
 
 ### regions
 The `--regions` (`-r`) option lets you specify the genomic regions you want to call variants on. Keep in mind that
@@ -124,40 +130,34 @@ it.
 
 ## :icon-git-pull-request: SNP calling workflow
 +++ :icon-git-merge: details
-The workflow is parallelized over genomic intervals (`--`). All intermediate outputs are removed, leaving 
+The workflow is parallelized over genomic intervals (`--regions`). All intermediate outputs are removed, leaving 
 you only the raw variants file (in `.bcf` format), the index of that file, and some stats about it.
 
-### mpileup
-The `mpileup` and `call` modules from [bcftools](https://samtools.github.io/bcftools/bcftools.html) (formerly samtools) 
-are used to call variants from alignments. 
+### SNP workflows
+The `mpileup` and `call` modules from [bcftools](https://samtools.github.io/bcftools/bcftools.html) (formerly samtools) or [Freebayes](https://github.com/freebayes/freebayes) are used to call variants from alignments. Both
+are very popular variant callers to call SNPs and small indels. 
 
 ```mermaid
 graph LR
     subgraph Inputs
         aln[BAM alignments]:::clean---gen[genome]:::clean
     end
-    Inputs --> B([freebayes]):::clean
-    B-->C([bcftools call]):::clean
+    subgraph mpileup
+        B([mpileup]):::clean-->C([bcftools call]):::clean
+    end
+    subgraph freebayes
+        z([freebayes]):::clean
+    end
+    Inputs --> mpileup
+    Inputs --> freebayes
     C-->D([index BCFs]):::clean
     D-->E([combine BCFs]):::clean
+    z --> D
     C-->E
+    E-->F([realign indels]):::clean
     style Inputs fill:#f0f0f0,stroke:#e8e8e8,stroke-width:2px
-    classDef clean fill:#f5f6f9,stroke:#b7c9ef,stroke-width:2px
-```
-
-### freebayes
-[Freebayes](https://github.com/freebayes/freebayes) is a very popular variant caller that uses local haplotype assemblies to
-call SNPs and small indels. Like mpileup, this method is ubiquitous in bioinformatics and very easy to use. 
-
-```mermaid
-graph LR
-    subgraph Inputs
-        aln[BAM alignments]:::clean---gen[genome]:::clean
-    end
-    Inputs --> B([freebayes]):::clean
-    B-->D([index BCFs]):::clean
-    D-->E([combine BCFs]):::clean
-    style Inputs fill:#f0f0f0,stroke:#e8e8e8,stroke-width:2px
+    style mpileup fill:#b0c1b3,stroke:#9eada1,stroke-width:2px
+    style freebayes fill:#bcb7cd,stroke:#a9a4b8,stroke-width:2px
     classDef clean fill:#f5f6f9,stroke:#b7c9ef,stroke-width:2px
 ```
 
@@ -187,6 +187,7 @@ SNP/method
 | item                      | description                                                                                    |
 |:--------------------------|:-----------------------------------------------------------------------------------------------|
 | `variants.raw.bcf`        | vcf file produced from variant calling, contains all samples and loci                          |
+| `variants.normalized.bcf` | variants, but with indels realigned and duplicates removed                                     |
 | `variants.*.bcf.csi`      | index file for `variants.*.bcf`                                                                |
 | `logs/*.call.log`         | what `bcftools call` writes to `stderr`                                                        |
 | `logs/*.METHOD.log`       | what `bcftools mpileup` or `freebayes` writes to `stderr`                                      |

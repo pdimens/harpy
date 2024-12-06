@@ -9,9 +9,10 @@ order: 4
 ===  :icon-checklist: You will need
 - at least 2 cores/threads available
 - paired-end [fastq](../haplotagdata.md/#naming-conventions) sequence files [!badge variant="secondary" text="gzip recommended"]
+    - **sample names**: [!badge variant="success" text="a-z"] [!badge variant="success" text="0-9"] [!badge variant="success" text="."] [!badge variant="success" text="_"] [!badge variant="success" text="-"] [!badge variant="secondary" text="case insensitive"]
     - **forward**: [!badge variant="success" text="_F"] [!badge variant="success" text=".F"] [!badge variant="success" text=".1"] [!badge variant="success" text="_1"] [!badge variant="success" text="_R1_001"] [!badge variant="success" text=".R1_001"] [!badge variant="success" text="_R1"] [!badge variant="success" text=".R1"] 
     - **reverse**: [!badge variant="success" text="_R"] [!badge variant="success" text=".R"] [!badge variant="success" text=".2"] [!badge variant="success" text="_2"] [!badge variant="success" text="_R2_001"] [!badge variant="success" text=".R2_001"] [!badge variant="success" text="_R2"] [!badge variant="success" text=".R2"] 
-    - **fastq extension**: [!badge variant="success" text=".fq"] [!badge variant="success" text=".fastq"] [!badge variant="success" text=".FQ"] [!badge variant="success" text=".FASTQ"]
+    - **fastq extension**: [!badge variant="success" text=".fq"] [!badge variant="success" text=".fastq"] [!badge variant="secondary" text="case insensitive"]
 ===
 
 Raw sequences are not suitable for downstream analyses. They have sequencing adapters,
@@ -31,16 +32,16 @@ harpy qc --threads 20 Sequences_Raw/
 In addition to the [!badge variant="info" corners="pill" text="common runtime options"](/commonoptions.md), the [!badge corners="pill" text="qc"] module is configured using these command-line arguments:
 
 {.compact}
-| argument         | short name | type        | default | required | description                                                                                      |
-|:-----------------|:----------:|:------------|:-------:|:-------:|:--------------------------------------------------------------------------------------------------|
-| `INPUTS`         |            | file/directory paths  |         | **yes**  | Files or directories containing [input FASTQ files](/commonoptions.md#input-arguments) |
-| `--deconvolve`  | `-c`    | toggle      |         |      | Resolve barcode clashes between reads from different molecules                                           |
-| `--deconvolve-params`  | `-p`    | (int,int,int,int)   | (21,40,3,0) |      | Accepts the [QuickDeconvolution parameters](/Modules/deconvolve.md/#running-options) for `k`,`w`,`d`,`a`, in that order          |
-| `--deduplicate` | `-d`    | toggle      |         |       | Identify and remove PCR duplicates                                                                      |
-| `--extra-params` |    `-x`    | string      |         |       | Additional fastp arguments, in quotes                                                               |
-| `--min-length`   |    `-n`    | integer     |   30    |     | Discard reads shorter than this length                                                                |
-| `--max-length`   |    `-m`    | integer     |   150   |     | Maximum length to trim sequences down to                                                              |
-| `--trim-adapters` | `-a`    | toggle      |         |       | Detect and remove adapter sequences                                                                   |
+| argument              | short name |   default   | description                                                                                                                    |
+| :-------------------- | :--------: | :---------: | :----------------------------------------------------------------------------------------------------------------------------- |
+| `INPUTS`              |            |             | [!badge variant="info" text="required"] Files or directories containing [input FASTQ files](/commonoptions.md#input-arguments) |
+| `--deconvolve`        |    `-c`    |             | Resolve barcode clashes between reads from different molecules                                                                 |
+| `--deconvolve-params` |    `-p`    | `21,40,3,0` | Accepts the [QuickDeconvolution parameters](/Workflows/deconvolve.md/#running-options) for `k`,`w`,`d`,`a`, in that order      |
+| `--deduplicate`       |    `-d`    |             | Identify and remove PCR duplicates [!badge variant="secondary" text="recommended"]                                             |
+| `--extra-params`      |    `-x`    |             | Additional fastp arguments, in quotes                                                                                          |
+| `--min-length`        |    `-n`    |    `30`     | Discard reads shorter than this length                                                                                         |
+| `--max-length`        |    `-m`    |    `150`    | Maximum length to trim sequences down to                                                                                       |
+| `--trim-adapters`     |    `-a`    |             | Detect and remove adapter sequences  [!badge variant="secondary" text="recommended"]                                           |
 
 By default, this workflow will only quality-trim the sequences. You can also opt-in to:
 - [!badge variant="secondary" text="recommended"] find and remove sequencing adapters
@@ -123,7 +124,7 @@ Aggregates the metrics FASTP generates for every sample during QC.
 ![reports/trim.report.html](/static/report_trim_aggregate.png)
 ||| BX validation
 Reports the number of valid/invalid barcodes in the sequences and the segments contributing to invalidation.
-![reports/summary.bx.valid.html](/static/report_align_bxstats.png)
+![reports/summary.bx.valid.html](/static/report_qc_bx.png)
 |||
 
 +++
