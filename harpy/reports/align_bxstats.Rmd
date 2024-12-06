@@ -55,8 +55,8 @@ process_input <- function(infile){
   tb[tb$valid != "invalidBX", "valid"] <- "validBX"
   tb$valid <- gsub("BX", " BX", tb$valid)
   # isolate non-singletons b/c molecules with 1 read pair aren't linked reads
-  multiplex_df <- filter(tb, valid == "valid BX", reads > 2)
-  singletons <- sum(tb$reads <= 2 & tb$valid == "valid BX")
+  multiplex_df <- filter(tb, valid == "valid BX", reads >= 2)
+  singletons <- sum(tb$reads < 2 & tb$valid == "valid BX")
   tot_uniq_bx <- read.table(infile, header = F, sep = "\n", as.is = T, skip = nrow(tb) + 1, comment.char = "+")
   tot_uniq_bx <- gsub("#total unique barcodes: ", "", tot_uniq_bx$V1[1]) |> as.integer()
   tot_mol <- sum(tb$valid == "valid BX")
@@ -116,7 +116,8 @@ if(nrow(aggregate_df) == 0){
 This report aggregates the barcode-specific information from the alignments
 that were created using `harpy align`. Detailed information for any one sample
 can be found in that sample's individual report. The table below is an aggregation
-of data for each sample based on their `*.bxstats.gz` file.
+of data for each sample based on their `*.bxstats.gz` file. Every column after `% valid bx`
+ignores singletons in its calculations. 
 
 - `avg` refers to the average (arithmetic mean)
 - `SEM` refers to the Standard Error of the mean

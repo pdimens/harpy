@@ -141,8 +141,13 @@ for read in alnfile.fetch():
         }
     else:
         # update the basic alignment info of the molecule
+        if read.is_forward:
+            # +1 for a forward read, whether it is paired or not
+            d[mi]["n"]  += 1
+        elif read.is_reverse and not read.is_paired:
+            # +1 for reverse only if it's unpaired, so the paired read doesn't count twice
+            d[mi]["n"]  += 1
         d[mi]["bp"] += bp
-        d[mi]["n"]  += 1
         d[mi]["insert_len"] += isize
         d[mi]["start"] = min(pos_start, d[mi]["start"])
         d[mi]["end"] = max(pos_end, d[mi]["end"])
