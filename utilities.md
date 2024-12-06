@@ -148,6 +148,14 @@ rename_bam.py [-d] new_name input.bam
 Rename a sam/bam file and modify the `@RG` tag of the alignment file to reflect the change for both `ID` and `SM`.
 This process creates a new file `new_name.bam` and you may use `-d` to delete the original file. Requires `samtools`.
 
+### separate_singletons
+```bash
+separate_singletons -t threads -b barcode_tag -s singletons.bam input.bam > output.bam
+```
+Isolate singleton and non-singleton linked-read BAM records into separate files. Singletons
+refers to barcodes that have only one unpaired or paired read, meaning the barcode doesn't
+actually link and reads togeher.
+
 ### separate_validbx
 ```bash
 separate_validbx input.bam > valid.bam 2> invalid.bam
