@@ -168,6 +168,7 @@ other: &other
   - 'harpy/imputeparams.py'
   - 'harpy/popgroup.py'
   - 'harpy/hpc.py'
+  - 'harpy/downsample.py'
 modules:
   - *common
   - *demux

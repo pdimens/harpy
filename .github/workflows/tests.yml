@@ -828,6 +828,12 @@ jobs:
       - name: harpy popgroup
         shell: micromamba-shell {0}
         run: harpy popgroup test/fastq
+      - name: harpy downsample bam
+        shell: micromamba-shell {0}
+        run: harpy downsample -d 1 --random-seed 699 --quiet test/bam/sample1.bam
+      - name: harpy downsample bam
+        shell: micromamba-shell {0}
+        run: harpy downsample -d 1 --quiet test/fastq/sample1.*
       - name: harpy hpc
         shell: micromamba-shell {0}
         run: |
