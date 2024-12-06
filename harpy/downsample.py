@@ -79,7 +79,7 @@ def downsample(input, prefix, downsample, invalid, bx_tag, random_seed, threads,
         else:
             subprocess.run(f"samtools sort -@ {threads} -o bx_sorted.bam -t {bx_tag} {input[0]}".split(), stderr=logfile)
     sorted_bam = Path("bx_sorted.bam").resolve().as_posix()
-    invalid = re.compile(r'[AaBbCcDd]00')
+    invalid_pattern = re.compile(r'[AaBbCcDd]00')
 
     # read input file, get list of valid barcodes, subsample valid barcodes, read input again, output only sampled barcodes
     with (
@@ -93,7 +93,7 @@ def downsample(input, prefix, downsample, invalid, bx_tag, random_seed, threads,
                 barcode = record.get_tag(bx_tag)
                 if isinstance(barcode, int):
                     pass # an int from an MI-tharype tag
-                elif invalid.search(barcode):
+                elif invalid_pattern.search(barcode):
                     continue
             except KeyError:
                 continue
@@ -114,7 +114,7 @@ def downsample(input, prefix, downsample, invalid, bx_tag, random_seed, threads,
                 barcode = record.get_tag(bx_tag)
                 if isinstance(barcode, int):
                     pass # an int from an MI-type tag
-                elif invalid.search(barcode):
+                elif invalid_pattern.search(barcode):
                     if invalid == "keep":
                         outfile.write(record)
                     continue
@@ -151,7 +151,7 @@ def downsample(input, prefix, downsample, invalid, bx_tag, random_seed, threads,
 #                    barcode = record.get_tag(bx_tag)
 #                    if isinstance(barcode, int):
 #                        pass
-#                    elif invalid.search(barcode):
+#                    elif invalid_pattern.search(barcode):
 #                        if invalid == "keep":
 #                            outfile.write(record)
 #                        elif invalid == "downsample":
