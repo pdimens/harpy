@@ -9,9 +9,10 @@ order: 6
 
 ===  :icon-checklist: You will need
 - at least 2 cores/threads available
-- sequence alignments, in BAM format: [!badge variant="success" text=".bam"]
+- sequence alignments: [!badge variant="success" text=".bam"] [!badge variant="secondary" text="coordinate-sorted"]
+    - **sample name**: [!badge variant="success" text="a-z"] [!badge variant="success" text="0-9"] [!badge variant="success" text="."] [!badge variant="success" text="_"] [!badge variant="success" text="-"] [!badge variant="secondary" text="case insensitive"]
 - a variant call format file of genotypes: [!badge variant="success" text=".vcf"] [!badge variant="success" text=".bcf"]
-- [!badge variant="ghost" text="optional"] a reference genome in FASTA format: [!badge variant="success" text=".fasta"] [!badge variant="success" text=".fa"] [!badge variant="success" text=".fasta.gz"] [!badge variant="success" text=".fa.gz"]
+- [!badge variant="ghost" text="optional"] a reference genome in FASTA format: [!badge variant="success" text=".fasta"] [!badge variant="success" text=".fa"] [!badge variant="success" text=".fasta.gz"] [!badge variant="success" text=".fa.gz"] [!badge variant="secondary" text="case insensitive"]
 
 ===
 
@@ -21,7 +22,7 @@ genotypes into haplotypes requires alignment files, such as those produced by [!
 and a variant call file, such as one produced by [!badge corners="pill" text="snp freebayes"](snp.md)
 or [!badge corners="pill" text="impute"](impute.md). **Phasing only works on SNP data**, and will not
 work for structural variants produced by [!badge corners="pill" text="sv leviathan"](SV/leviathan.md)
-or [!badge corners="pill" text="sv naibr"](SV/naibr.md), preferably [filtered in some capacity](/blog/filteringsnps.md). You can phase genotypes into haplotypes with
+or [!badge corners="pill" text="sv naibr"](SV/naibr.md), preferably [filtered in some capacity](/blog/filtering_snps.md). You can phase genotypes into haplotypes with
 Harpy using the [!badge corners="pill" text="phase"] module:
 
 ```bash usage
@@ -35,16 +36,17 @@ harpy phase --threads 20 --vcf Variants/variants.raw.bcf Align/ema
 In addition to the [!badge variant="info" corners="pill" text="common runtime options"](/commonoptions.md), the [!badge corners="pill" text="phase"] module is configured using these command-line arguments:
 
 {.compact}
-| argument              | short name | type            | default | required | description                                                          |
-|:----------------------|:----------:|:----------------|:-------:|:--------:|:---------------------------------------------------------------------|
-| `INPUTS`           |            | file/directory paths  |         | **yes**  | Files or directories containing [input BAM files](/commonoptions.md#input-arguments)     |
-| `--extra-params`      |    `-x`    | string          |         |    no    | Additional Hapcut2 arguments, in quotes                              |
-| `--genome           ` |    `-g`    | file path       |         |    no    | Path to genome if wanting to also use reads spanning indels          |
-| `--ignore-bx`         |    `-b`    | toggle          |         |    no    | Ignore haplotag barcodes for phasing                                 |
-| `--molecule-distance` |    `-d`    | integer         |  100000  |    no    | Base-pair distance threshold to separate molecules                   |
-| `--prune-threshold`   |    `-p`    | integer (0-100) |    7    |    no    | PHRED-scale (%) threshold for pruning low-confidence SNPs            |
-| `--vcf`               |    `-v`    | file path       |         | **yes**  | Path to BCF/VCF file                                                 |
-| `--vcf-samples`       |            |  toggle         |         |    no    | [Use samples present in vcf file](#prioritize-the-vcf-file) for imputation rather than those found the directory    |
+| argument              | short name | default  | description                                                                                                                  |
+| :-------------------- | :--------: | :------: | :--------------------------------------------------------------------------------------------------------------------------- |
+| `INPUTS`              |            |          | [!badge variant="info" text="required"] Files or directories containing [input BAM files](/commonoptions.md#input-arguments) |
+| `--contigs`           |            |          | [Contigs to plot](/commonoptions.md#--contigs) in the report                                                                 |
+| `--extra-params`      |    `-x`    |          | Additional Hapcut2 arguments, in quotes                                                                                      |
+| `--genome           ` |    `-g`    |          | Path to genome if wanting to also use reads spanning indels                                                                  |
+| `--ignore-bx`         |    `-b`    |          | Ignore haplotag barcodes for phasing                                                                                         |
+| `--molecule-distance` |    `-d`    | `100000` | Base-pair distance threshold to separate molecules                                                                           |
+| `--prune-threshold`   |    `-p`    |   `7`    | PHRED-scale (%) threshold for pruning low-confidence SNPs                                                                    |
+| `--vcf`               |    `-v`    |          | [!badge variant="info" text="required"] Path to BCF/VCF file                                                                 |
+| `--vcf-samples`       |            |          | [Use samples present in vcf file](#prioritize-the-vcf-file) for imputation rather than those found the directory             |
 
 ### Prioritize the vcf file
 Sometimes you want to run imputation on all the samples present in the `INPUTS`, but other times you may want
@@ -138,22 +140,22 @@ Phase/
 
 ```
 {.compact}
-| item | description |
-|:---|:---|
-| `variants.phased.bcf*` | final vcf output of HapCut2 with all samples merged into a single file (with .csi index) |
-| `annotations/` | phased vcf annotated with phased blocks |
-| `annotations_merge/` | merged vcf of annotated and original vcf |
-| `extractHairs/` | output from `extractHairs` |
-| `extractHairs/logs/` | everything HapCut2's `extractHairs` prints to `stderr` |
-| `input/head.names` | extra file harpy creates to support new INFO fields in the phased VCF |
-| `input/*.bcf` | vcf of a single sample from the original multi-sample input vcf |
-| `input/*.het.bcf` | vcf of heterozygous loci of a single sample from the original multi-sample input vcf |
-| `linkFragments/` | results from HapCut2's `linkFragments` |
-| `linkFragments/logs` | everything `linkFragments` prints to `stderr` |
-| `reports/blocks.summary.gz` | summary information of all the samples' block files |
-| `reports/phase.html` | report of haplotype phasing results |
-| `phaseBlocks/*.blocks*` | output from HapCut2 |
-| `phaseBlocks/logs` | everything HapCut2 prints to `stderr` |
+| item                        | description                                                                              |
+| :-------------------------- | :--------------------------------------------------------------------------------------- |
+| `variants.phased.bcf*`      | final vcf output of HapCut2 with all samples merged into a single file (with .csi index) |
+| `annotations/`              | phased vcf annotated with phased blocks                                                  |
+| `annotations_merge/`        | merged vcf of annotated and original vcf                                                 |
+| `extractHairs/`             | output from `extractHairs`                                                               |
+| `extractHairs/logs/`        | everything HapCut2's `extractHairs` prints to `stderr`                                   |
+| `input/head.names`          | extra file harpy creates to support new INFO fields in the phased VCF                    |
+| `input/*.bcf`               | vcf of a single sample from the original multi-sample input vcf                          |
+| `input/*.het.bcf`           | vcf of heterozygous loci of a single sample from the original multi-sample input vcf     |
+| `linkFragments/`            | results from HapCut2's `linkFragments`                                                   |
+| `linkFragments/logs`        | everything `linkFragments` prints to `stderr`                                            |
+| `reports/blocks.summary.gz` | summary information of all the samples' block files                                      |
+| `reports/phase.html`        | report of haplotype phasing results                                                      |
+| `phaseBlocks/*.blocks*`     | output from HapCut2                                                                      |
+| `phaseBlocks/logs`          | everything HapCut2 prints to `stderr`                                                    |
 
 +++ :icon-code-square: HapCut2 parameters
 By default, Harpy runs `HAPCUT2` with these parameters (excluding inputs and outputs):
@@ -176,13 +178,9 @@ Advanced Options:
 These are the summary reports Harpy generates for this workflow. You may right-click
 the image and open it in a new tab if you wish to see the example in better detail.
 
-||| Overall Phasing
-Aggregates phasing metrics across all samples.
+||| Phasing Performance
+Aggregates phasing metrics overall and across all samples.
 ![reports/phase.html](/static/report_phase.png)
-||| Per Sample Phasing
-The second tab shows haplotype metrics for every sample
-![reports/phase.html](/static/report_phase2.png)
 |||
-
 
 +++

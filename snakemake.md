@@ -1,15 +1,37 @@
 ---
 label: Snakemake Things
-icon: terminal
+icon: git-merge
 order: 2
 ---
 
-# :icon-terminal: Adding Snakamake parameters
+# :icon-git-merge: Snakamake Things
+## Workflow logs
+Barring a few exceptions, most of Harpy's options are Snakemake workflows.
+This means we are all at the mercy of how Snakemake operates, which includes
+the `.snakemake/` folder in your project directory. That folder contains
+all sorts of things necessary for Snakemake to do its magic. However, as a
+convenience, Harpy workflows will also create a copy of the Snakemake
+workflow log (all those things that print on screen when snakemake is running)
+in a workflow's output directory. These logs are found in `OUTDIR/logs/snakemake`
+and are named `workflow.X.DATE.log`, where `workflow` is the harpy workflow
+(qc, sv_naibr, etc.), `X` is the attempt number (given by `X`, e.g. `4`), and
+`DATE` is given as `MONTH_DAY_YEAR`. As an example, using the default
+settings of `harpy qc`, you will find your workflow's log in
+`QC/logs/snakemake/qc.1.5_13_2024.log.gz`. 
+
+!!!ghost Design choices
+Snakemake prints **a lot** of text during runtime. For some workflows, the resulting log files
+could occupy >1 gigabyte of hard drive space 😱. For this reason, Harpy gzip compresses the log file
+and deletes the original Snakemake logfile that you would expect to find in `.snakemake/logs/`.
+!!!
+
+## Adding Snakemake Parameters
 Harpy relies on Snakemake under the hood to handle file and job dependencies.
-Most of these details have been abstracted away from the end-user, but every
-module of Harpy (except `popgroup`, and `stitchparams`) has an optional flag `--snakemake` 
-that you can use to augment the Snakemake workflow if necessary. Whenever you
-use this flag, your argument must be enclosed in quotation marks, for example:
+Most of these details have been abstracted away from the end-user, but most
+Harpy modules have an optional flag `--snakemake` that you can use to augment
+the Snakemake workflow if necessary. [The full list of Snakemake command line
+options can be found here](https://snakemake.readthedocs.io/en/stable/executing/cli.html).
+Whenever you use this flag, your argument must be enclosed in quotation marks, for example:
 ```bash
 harpy qc --snakemake "--dry-run" rawseq
 ```
@@ -18,35 +40,10 @@ This means you can add several Snakemake arguments at once, as long as the entir
 harpy qc --snakemake "--dry-run --debug --shadow-prefix /scratch" rawseq
 ```
 
-!!!danger reserved/forbidden arguments
-Harpy calls Snakemake with a given set of arguments, meaning you cannot append
-these again to the internal command line call. Well, you can, but Snakemake will
-error and exit. [Everything else](https://snakemake.readthedocs.io/en/stable/executing/cli.html#all-options) 
-is allowed. The reserved (**forbidden**) arguments are:
-- `--directory`
-- `--cores`
-- `--snakefile`
-- `--configfile`
-- `--rerun-incomplete`
-- `--nolock`
-- `--conda-prefix`
-- `--software-deployment-method`
--  `--rerun-triggers`
-!!!
-
 ### Common use cases
 You likely wont need to invoke `--snakemake` very often, if ever. However, 
 here examples of some possible use cases for this parameter.
 
-==- Dry run
-##### `--dry-run`
-This is a directive in which Snakemake will build the DAG and "pretend" to
-run the Harpy workflow. Useful for knowing what you're getting yourself into
-ahead of time. It's also useful for debugging during development. Here is an 
-example of dry-running variant calling:
-```bash
-harpy snp mpileup -g genome.fasta --snakemake "--dry-run" Align/ema
-```
 ==- Specific file target
 Sometimes you want to generate a specific intermediate file (or files) rather than running the entire module to completion. For example,
 you want the beadtag report Harpy makes from the output of `EMA count`. To do this, just list the file/files (relative
@@ -54,7 +51,7 @@ to your working directory) without any flags. Example for the beadtag report:
 ```bash
 harpy align bwa -g genome.fasta -t 4 --snakemake "Align/ema/reports/bxstats.html" QC/
 ```
-This of course necessitates knowing the names of the files ahead of time. See the individual modules for a breakdown of expected outputs. 
+This of course necessitates knowing the names of the files ahead of time. See the individual workflows for a breakdown of expected outputs. 
 
 ==- Set a shadow directory
 ##### `--shadow-prefix <dirname>`

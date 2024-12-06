@@ -28,14 +28,14 @@ harpy demultiplex gen1 --threads 20 --schema demux.schema Plate_1_S001_R*.fastq.
 In addition to the [!badge variant="info" corners="pill" text="common runtime options"](/commonoptions.md), the [!badge corners="pill" text="demultiplex"] module is configured using these command-line arguments:
 
 {.compact}
-| argument          | short name | type       | required | description                                                             |
-|:------------------|:----------:|:-----------|:--------:|:------------------------------------------------------------------------|
-| `METHOD`          |            | choice     | **yes**  | Haplotag technology of the sequences  [`gen1`]                          |
-| `R1_FQ`           |            | file path  | **yes**  | The forward multiplexed FASTQ file                                      |
-| `R2_FQ`           |            | file path  | **yes**  | The reverse multiplexed FASTQ file                                      |
-| `I1_FQ`           |            | file path  | **yes**  | The forward FASTQ index file provided by the sequencing facility        |
-| `I2_FQ`           |            | file path  | **yes**  | The reverse FASTQ index file provided by the sequencing facility        |
-| `--schema`        |    `-s`    | file path  | **yes**  | Tab-delimited file of sample\<tab\>barcode                              |
+| argument   | short name | description                                                      |
+| :--------- | :--------: | :--------------------------------------------------------------- |
+| `METHOD`   |            | [!badge variant="info" text="required"] Haplotag technology of the sequences  [`gen1`]                   |
+| `R1_FQ`    |            | [!badge variant="info" text="required"] The forward multiplexed FASTQ file                               |
+| `R2_FQ`    |            | [!badge variant="info" text="required"] The reverse multiplexed FASTQ file                               |
+| `I1_FQ`    |            | [!badge variant="info" text="required"] The forward FASTQ index file provided by the sequencing facility |
+| `I2_FQ`    |            | [!badge variant="info" text="required"] The reverse FASTQ index file provided by the sequencing facility |
+| `--schema` |    `-s`    | [!badge variant="info" text="required"] Tab-delimited file of sample\<tab\>barcode                       |
 
 ## Haplotag Types
 ==- Generation 1 - `gen1`
@@ -101,11 +101,11 @@ Demultiplex/
     └── demultiplex.QC.html
 ```
 {.compact}
-| item | description |
-|:---|:---|
-| `*.F.fq.gz` | Forward-reads from multiplexed input `--file` belonging to samples from the `samplesheet` |
-| `*.R.fq.gz` | Reverse-reads from multiplexed input `--file` belonging to samples from the `samplesheet` |
-| `reports/demultiplex.QC.html` | phased vcf annotated with phased blocks |
+| item                          | description                                                                               |
+| :---------------------------- | :---------------------------------------------------------------------------------------- |
+| `*.F.fq.gz`                   | Forward-reads from multiplexed input `--file` belonging to samples from the `samplesheet` |
+| `*.R.fq.gz`                   | Reverse-reads from multiplexed input `--file` belonging to samples from the `samplesheet` |
+| `reports/demultiplex.QC.html` | phased vcf annotated with phased blocks                                                   |
 
 +++ :icon-graph: reports
 ||| FASTQC metrics

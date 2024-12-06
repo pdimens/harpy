@@ -10,8 +10,8 @@ order: 1
 
 ===  :icon-checklist: You will need
 - at least 4 cores/threads available
-- sequence alignments, in BAM format: [!badge variant="success" text=".bam"]
-- genome assembly in FASTA format: [!badge variant="success" text=".fasta"] [!badge variant="success" text=".fa"] [!badge variant="success" text=".fasta.gz"] [!badge variant="success" text=".fa.gz"]
+- sequence alignments: [!badge variant="success" text=".bam"] [!badge variant="secondary" text="coordinate-sorted"]
+- genome assembly in FASTA format: [!badge variant="success" text=".fasta"] [!badge variant="success" text=".fa"] [!badge variant="success" text=".fasta.gz"] [!badge variant="success" text=".fa.gz"] [!badge variant="secondary" text="case insensitive"]
 - [!badge variant="ghost" text="optional"] phased VCF file
 - [!badge variant="ghost" text="optional"] sample grouping file ([see below](#pooled-sample-variant-calling))
 ==- :icon-file: sample grouping file [!badge variant="ghost" text="optional"]
@@ -63,17 +63,18 @@ harpy sv naibr --threads 20 --genome genome.fasta --vcf Variants/data.vcf.gz Ali
 In addition to the [!badge variant="info" corners="pill" text="common runtime options"](/commonoptions.md), the [!badge corners="pill" text="sv naibr"] module is configured using these command-line arguments:
 
 {.compact}
-| argument         | short name | type          | default | required | description                                        |
-|:-----------------|:----------:|:--------------|:-------:|:--------:|:---------------------------------------------------|
-| `INPUTS`         |            | file/directory paths  |         | **yes**  | Files or directories containing [input BAM files](/commonoptions.md#input-arguments)     |
-| `--extra-params` |    `-x`    | string        |         |    no             | Additional naibr arguments, in quotes              |
-| `--genome`       |    `-g`    | file path     |         | **yes** | Genome assembly for phasing bam files     |
-| `--min-barcodes` |    `-b`    | integer       |    2    |    no             | Minimum number of barcode overlaps supporting candidate SV |
-| `--min-quality` |    `-q`    | integer (0-40)        |   30    |    no    | Minimum `MQ` (SAM mapping quality) to pass filtering  |
-| `--min-sv`       |    `-n`    | integer       |  1000   |    no             | Minimum size of SV to detect              |
-| `--molecule-distance` |  `-m` | integer       |  100000 |    no             | Base-pair distance threshold to separate molecules |
-| `--populations`  |    `-p`    | file path     |         |    no             | Tab-delimited file of sample\<*tab*\>group         |
-| `--vcf`          |    `-v`    | file path     |         | **conditionally** | Phased vcf file for phasing bam files     |
+| argument              | short name | default  | description                                                                                                                   |
+| :-------------------- | :--------: | :------: | :---------------------------------------------------------------------------------------------------------------------------- |
+| `INPUTS`              |            |          | [!badge variant="info" text="required"] Files or directories containing [input BAM files](/commonoptions.md#input-arguments)  |
+| `--contigs`           |            |          | [Contigs to plot](/commonoptions.md#--contigs) in the report                                                                  |
+| `--extra-params`      |    `-x`    |          | Additional naibr arguments, in quotes                                                                                         |
+| `--genome`            |    `-g`    |          | [!badge variant="info" text="required"] Genome assembly for phasing bam files                                                 |
+| `--min-barcodes`      |    `-b`    |   `2`    | Minimum number of barcode overlaps supporting candidate SV                                                                    |
+| `--min-quality`       |    `-q`    |   `30`   | Minimum `MQ` (SAM mapping quality) to pass filtering                                                                          |
+| `--min-sv`            |    `-n`    |  `1000`  | Minimum size of SV to detect                                                                                                  |
+| `--molecule-distance` |    `-m`    | `100000` | Base-pair distance threshold to separate molecules                                                                            |
+| `--populations`       |    `-p`    |          | Tab-delimited file of sample\<*tab*\>group                                                                                    |
+| `--vcf`               |    `-v`    |          | [!badge variant="info" text="conditionally required"] Phased vcf file for phasing bam files ([see below](#optional-vcf-file)) |
 
 ### Molecule distance
 The `--molecule-distance` option is used to let the program determine how far apart alignments on a contig with the same
@@ -98,10 +99,10 @@ comparing "populations" as usual. Keep in mind that if there are too many sample
 it too well.
 !!!
 
-### optional vcf file
-In order to get the best variant calling performance out of NAIBR, it requires _phased_ bam files as input. 
-The `--vcf` option is optional and not used by NAIBR. However, to use [!badge corners="pill" text="sv naibr"] with
-bam files that are not phased, you will need to include `--vcf`, which Harpy uses with 
+### Optional vcf file
+In order to get the best variant calling performance out of NAIBR, it requires **_phased_** bam files as input. 
+Using `--vcf` is optional and not used by NAIBR directly. However, to use [!badge corners="pill" text="sv naibr"] with
+bam files that are not phased, you will need to include a **phased VCF file** with `--vcf`, which Harpy uses with 
 `whatshap haplotag` to phase your input BAM files prior to variant calling. See the [whatshap documentation](https://whatshap.readthedocs.io/en/latest/guide.html#whatshap-haplotag)
 for more details on that process.
 
@@ -109,7 +110,7 @@ for more details on that process.
 This file can be in vcf/vcf.gz/bcf format and most importantly **it must be phased haplotypes**. There are various
 ways to haplotype SNPs, but you can use [!badge corners="pill" text="harpy phase"](../phase.md) to phase your SNPs
 into haplotypes using the haplotag barcode information. The resulting phased VCF file can then be used as input here.
-Your VCF file should be [filtered in some capacity](/blog/filteringsnps.md) to keep high quality data.
+Your VCF file should be [filtered in some capacity](/blog/filtering_snps.md) to keep high quality data.
 
 ```mermaid
 ---
@@ -197,39 +198,38 @@ SV/naibr
 ```
 
 {.compact}
-| item          | description                                                      |
-|:--------------|:-----------------------------------------------------------------|
+| item                 | description                                                |
+| :------------------- | :--------------------------------------------------------- |
 | `deletions.bedpe`    | an aggregation of all the deletions identified by NAIBR    |
 | `duplications.bedpe` | an aggregation of all the duplications identified by NAIBR |
 | `inversions.bedpe`   | an aggregation of all the inversions identified by NAIBR   |
-| `bedpe/`      | structural variants identified by NAIBR                          |
-| `configs/`    | the configuration files harpy generated for each sample          |
-| `filtered/`   | the variants that failed NAIBR's internal filters                |
-| `IGV/`        | same as the output `.bedpe` files but in IGV format               |
-| `logs/*.log`  | what NAIBR writes to `stderr` during operation                   |
-| `reports/`    | summary reports with interactive plots of detected SV            |
-| `vcf/`        | the resulting variants, but in `.VCF` format                     |
+| `bedpe/`             | structural variants identified by NAIBR                    |
+| `configs/`           | the configuration files harpy generated for each sample    |
+| `filtered/`          | the variants that failed NAIBR's internal filters          |
+| `IGV/`               | same as the output `.bedpe` files but in IGV format        |
+| `logs/*.log`         | what NAIBR writes to `stderr` during operation             |
+| `reports/`           | summary reports with interactive plots of detected SV      |
+| `vcf/`               | the resulting variants, but in `.VCF` format               |
 
 +++ :icon-code-square: naibr parameters
 By default, Harpy runs `naibr` with these parameters (excluding inputs and outputs):
 ```python
 min_mapq = 30
 min_sv   = 100000
-k        = 3
+k        = 2
+d        = 100000
 ```
 
 Below is a list of all `naibr` runtime options, excluding those Harpy already uses or those made redundant by Harpy's implementation of NAIBR.
 These are taken directly from the [NAIBR documentation](https://github.com/pontushojer/NAIBR#running-naibr). If adding these arguments, do so in quotes:
 
 ```
-harpy sv naibr -d somedir -x "min_sv 1000 k 5"
+harpy sv naibr -x "candidates duplications.bedpe" data/alignments/*
 ```
 
 ``` NAIBR arguments
- -blacklist: BED-file with regions to be excluded from analysis
- -candidates: BEDPE-file with novel adjacencies to be scored by NAIBR. This will override automatic detection of candidate novel adjacencies
- -min_sv: Minimum size of a structural variant to be detected (default: lmax, i.e. the 95th percentile of the paired-end read insert size distribution)
- -k: minimum number of barcode overlaps supporting a candidate NA (default = 3)
+-blacklist: BED-file with regions to be excluded from analysis
+-candidates: BEDPE-file with novel adjacencies to be scored by NAIBR. This will override automatic detection of candidate novel adjacencies
 ```
 
 +++ :icon-graph: reports

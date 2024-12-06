@@ -3,6 +3,21 @@ output: .retype
 url: pdimens.github.io/harpy/
 meta:
   title: " | Harpy haplotag"
+footer:
+  copyright: "&copy; Copyright {{ year }}. All rights reserved."
+branding:
+  title: Harpy
+  label: v1.14
+  logo: static/logo_navbar.png
+  logoDark: static/logo_navbar.png
+  logoAlign: left
+favicon: static/favicon.png
+search:
+  mode: partial
+edit:
+  repo: "https://github.com/pdimens/harpy/edit"
+  base: /
+  branch: "docs"
 links:
 - text: Source Code
   link: https://github.com/pdimens/harpy
@@ -19,26 +34,13 @@ links:
 - text: Guides & Tutorials
   link: /blog
   icon: code-of-conduct
-  target: blank
 - text: Submit an Issue
   link: https://github.com/pdimens/harpy/issues/new/choose
   icon: bug
   target: blank
-footer:
-  copyright: "&copy; Copyright {{ year }}. All rights reserved."
-branding:
-  title: Harpy
-  label: v1.2.0
-  logo: static/favicon.png
-  logoDark: static/favicon.png
-  logoAlign: left
-favicon: static/favicon.png
-search:
-  mode: partial
-edit:
-  repo: "https://github.com/pdimens/HARPY/edit"
-  base: /
-  branch: "docs"
+- text: Development
+  link: /development.md
+  icon: tools
 exclude:
   - "src/"
   - "test/"

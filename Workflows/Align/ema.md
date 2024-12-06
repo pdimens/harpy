@@ -8,11 +8,12 @@ order: 5
 # :icon-quote: Map Reads onto a genome with EMA
 ===  :icon-checklist: You will need
 - at least 4 cores/threads available
-- a genome assembly in FASTA format: [!badge variant="success" text=".fasta"] [!badge variant="success" text=".fa"] [!badge variant="success" text=".fasta.gz"] [!badge variant="success" text=".fa.gz"]
-- paired-end fastq sequence file with the [proper naming convention](/haplotagdata/#naming-conventions) [!badge variant="secondary" text="gzipped recommended"]
+- a genome assembly in FASTA format: [!badge variant="success" text=".fasta"] [!badge variant="success" text=".fa"] [!badge variant="success" text=".fasta.gz"] [!badge variant="success" text=".fa.gz"] [!badge variant="secondary" text="case insensitive"]
+- paired-end fastq sequence files [!badge variant="secondary" text="gzipped recommended"]
+    - **sample name**: [!badge variant="success" text="a-z"] [!badge variant="success" text="0-9"] [!badge variant="success" text="."] [!badge variant="success" text="_"] [!badge variant="success" text="-"] [!badge variant="secondary" text="case insensitive"]
     - **forward**: [!badge variant="success" text="_F"] [!badge variant="success" text=".F"] [!badge variant="success" text=".1"] [!badge variant="success" text="_1"] [!badge variant="success" text="_R1_001"] [!badge variant="success" text=".R1_001"] [!badge variant="success" text="_R1"] [!badge variant="success" text=".R1"] 
     - **reverse**: [!badge variant="success" text="_R"] [!badge variant="success" text=".R"] [!badge variant="success" text=".2"] [!badge variant="success" text="_2"] [!badge variant="success" text="_R2_001"] [!badge variant="success" text=".R2_001"] [!badge variant="success" text="_R2"] [!badge variant="success" text=".R2"] 
-    - **fastq extension**: [!badge variant="success" text=".fq"] [!badge variant="success" text=".fastq"] [!badge variant="success" text=".FQ"] [!badge variant="success" text=".FASTQ"]
+    - **fastq extension**: [!badge variant="success" text=".fq"] [!badge variant="success" text=".fastq"] [!badge variant="secondary" text="case insensitive"]
 - patience because EMA is [!badge variant="warning" text="slow"]
 ==- Why EMA?
 The original haplotag manuscript uses BWA to map reads. The authors have since recommended
@@ -40,16 +41,18 @@ harpy align ema --genome genome.fasta Sequences/
 In addition to the [!badge variant="info" corners="pill" text="common runtime options"](/commonoptions.md), the [!badge corners="pill" text="align ema"] module is configured using these command-line arguments:
 
 {.compact}
-| argument           | short name | type                  | default | required | description                                                        |
-|:-------------------|:----------:|:----------------------|:-------:|:--------:|:-------------------------------------------------------------------|
-| `INPUTS`           |            | file/directory paths  |         | **yes**  | Files or directories containing [input FASTQ files](/commonoptions.md#input-arguments)                  |
-| `--ema-bins`       |    `-e`    | integer (1-1000)      |   500   |    no    | Number of barcode bins for EMA                                     |
-| `--extra-params`   |    `-x`    | string                |         |    no    | Additional EMA-align/BWA arguments, in quotes                      |
-| `--genome`         |    `-g`    | file path             |         | **yes**  | Genome assembly for read mapping                                   |
-| `--keep-unmapped` |    `-u`    |          toggle        |   false    |    no    | Output unmapped sequences too  |
-| `--min-quality` |    `-q`    | integer (0-40)        |   30    |    no    | Minimum `MQ` (SAM mapping quality) to pass filtering               |
-| `--platform`       |    `-p`    | string                | haplotag | **yes** | Linked read technology: `haplotag` or `10x`                        |
-| `--whitelist`      |    `-w`    | file path             |         |    no    | Path to barcode whitelist (`--platform 10x` only)                  |
+| argument             | short name | type                 | default  | description                                                                                                                    |
+| :------------------- | :--------: | :------------------- | :------: | :----------------------------------------------------------------------------------------------------------------------------- |
+| `INPUTS`             |            | file/directory paths |          | [!badge variant="info" text="required"] Files or directories containing [input FASTQ files](/commonoptions.md#input-arguments) |
+| `--contigs`          |            | file path or list    |          | [Contigs to plot](/commonoptions.md#--contigs) in the report                                                                   |
+| `--fragment-density` |    `-d`    | toggle               |  false   | Perform read fragment density optimization                                                                                     |
+| `--ema-bins`         |    `-e`    | integer (1-1000)     |   `500`    | Number of barcode bins for EMA                                                                                                 |
+| `--extra-params`     |    `-x`    | string               |          | Additional EMA-align arguments, in quotes                                                                                      |
+| `--genome`           |    `-g`    | file path            |          | [!badge variant="info" text="required"] Genome assembly for read mapping                                                       |
+| `--keep-unmapped`    |    `-u`    | toggle               |  false   | Output unmapped sequences too                                                                                                  |
+| `--min-quality`      |    `-q`    | integer (0-40)       |    `30`    | Minimum `MQ` (SAM mapping quality) to pass filtering                                                                           |
+| `--platform`         |    `-p`    | string               | `haplotag` | [!badge variant="info" text="required"] Linked read technology: `haplotag` or `10x`                                            |
+| `--whitelist`        |    `-w`    | file path            |          | Path to barcode whitelist (`--platform 10x` only)                                                                              |
 
 ### Barcode whitelist
 Some linked-read methods (e.g. 10x, Tellseq) require the inclusion of a barcode "whitelist." This file is a 
@@ -96,7 +99,7 @@ marked as a duplicate. Duplicates get marked but **are not removed**.
 - leverages the BX barcode information to improve mapping
 - sometimes better downstream SV detection
 - slower
-- marks split alignments as secondary alignments [⚠️](/Modules/SV/leviathan.md)
+- marks split alignments as secondary alignments [⚠️](/Workflows/SV/leviathan.md)
 - lots of temporary files
 
 Since [EMA](https://github.com/arshajii/ema) does extra things to account for barcode
