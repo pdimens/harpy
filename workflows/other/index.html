@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="turbo-root" content="/harpy">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="3.6.0.786641302911">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="3.6.0.786837081543">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 3.6.0">
@@ -32,12 +32,12 @@
     <script data-cfasync="false">(function () { var el = document.documentElement, m = localStorage.getItem("doc_theme"), wm = window.matchMedia; if (m === "dark" || (!m && wm && wm("(prefers-color-scheme: dark)").matches)) { el.classList.add("dark") } else { el.classList.remove("dark") } })();</script>
 
     <link href="../../static/favicon.png" rel="icon">
-    <link href="../../resources/css/retype.css?v=3.6.0.786641302911" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=3.6.0.786837081543" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=3.6.0.786641302911" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=3.6.0.786837081543" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=3.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=3.6.0.786641302911" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=3.6.0.786641302911" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=3.6.0.786837081543" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=3.6.0.786837081543" defer></script>
 </head>
 <body>
     <div id="docs-app" class="relative text-base antialiased text-gray-700 bg-white font-body dark:bg-dark-850 dark:text-dark-300">
@@ -58,7 +58,7 @@
                                 <img class="max-h-10 hidden dark:inline-block" src="../../static/logo_navbar.png">
                             </span>
                             <span class="dark:text-white font-semibold line-clamp-1 md:line-clamp-2">Harpy</span>
-                        </a><span class="hidden px-2 py-1 ml-4 text-sm font-semibold leading-none text-root-logo-label-text bg-root-logo-label-bg rounded-sm md:inline-block">v1.13</span>
+                        </a><span class="hidden px-2 py-1 ml-4 text-sm font-semibold leading-none text-root-logo-label-text bg-root-logo-label-bg rounded-sm md:inline-block">v1.14</span>
                     </div>
         
                     <span class="hidden h-8 border-r md:inline-block dark:border-dark-650"></span>
@@ -290,8 +290,8 @@
         <span><svg xmlns="http://www.w3.org/2000/svg" class="docs-icon" viewBox="0 0 24 24" role="presentation"><g fill="currentColor"><g><path d="M12.5 6.75a.75.75 0 0 0-1.5 0V9H8.75a.75.75 0 0 0 0 1.5H11v2.25a.75.75 0 0 0 1.5 0V10.5h2.25a.75.75 0 0 0 0-1.5H12.5V6.75ZM8.75 16a.75.75 0 0 0 0 1.5h6a.75.75 0 0 0 0-1.5h-6Z"/><path d="M5 1h9.982a2 2 0 0 1 1.414.586l4.018 4.018A2 2 0 0 1 21 7.018V21a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2Zm-.5 2v18a.5.5 0 0 0 .5.5h14a.5.5 0 0 0 .5-.5V7.018a.5.5 0 0 0-.146-.354l-4.018-4.018a.5.5 0 0 0-.354-.146H5a.5.5 0 0 0-.5.5Z"/></g></g></svg> Other Harpy modules</span>
     </h1>
 </doc-anchor-target>
-<p>On this page you&#x27;ll find Harpy functions that aren&#x27;t standalone workflows. These may create necessary inputs, continue where you left off,
-or view important workflow files.</p>
+<p>On this page you&#x27;ll find Harpy functions that aren&#x27;t standalone workflows. These may create ancillary inputs, continue where you left off,
+view important workflow files, etc.</p>
 <doc-anchor-target id="other-modules">
     <h2>
         <doc-anchor-trigger class="header-anchor-trigger" to="#other-modules">#</doc-anchor-trigger>
@@ -308,6 +308,10 @@ or view important workflow files.</p>
 </thead>
 <tbody>
 <tr>
+<td style="text-align: left;"><code v-pre>downsample</code></td>
+<td style="text-align: left;">Downsample BAM or FASTQ files by barcode</td>
+</tr>
+<tr>
 <td style="text-align: left;"><code v-pre>imputeparams</code></td>
 <td style="text-align: left;">Create a template imputation parameter file</td>
 </tr>
@@ -322,6 +326,99 @@ or view important workflow files.</p>
 <tr>
 <td style="text-align: left;"><code v-pre>view</code></td>
 <td style="text-align: left;">View a workflow log, config, or snakefile</td>
+</tr>
+</tbody>
+</table>
+</div>
+<hr>
+<doc-anchor-target id="downsample">
+    <h3>
+        <doc-anchor-trigger class="header-anchor-trigger" to="#downsample">#</doc-anchor-trigger>
+        <span>downsample</span>
+    </h3>
+</doc-anchor-target>
+<p>While downsampling (subsampling) FASTQ and BAM files is relatively simple with tools such as <code v-pre>awk</code>, <code v-pre>samtools</code>, <code v-pre>seqtk</code>, <code v-pre>seqkit</code>, etc.,
+Harpy offers the <code v-pre>downsample</code> module, which allows you to downsample a BAM file (or paired-end FASTQ) <em>by barcodes</em>. That means you can
+keep all the reads associated with <code v-pre>d</code> number of barcodes.</p>
+<div class="codeblock-wrapper"><doc-codeblock>
+<div class="codeblock-title">usage</div>
+<pre class="language-bash"><code v-pre class="language-bash"># a BAM file
+harpy downsample OPTIONS... INPUT(S)...</code></pre>
+</doc-codeblock></div>
+<doc-anchor-target id="arguments">
+    <h4>
+        <doc-anchor-trigger class="header-anchor-trigger" to="#arguments">#</doc-anchor-trigger>
+        <span>arguments</span>
+    </h4>
+</doc-anchor-target>
+<div class="table-wrapper scrollbar overflow-hidden">
+<table class="compact">
+<thead>
+<tr>
+<th style="text-align: left;">argument</th>
+<th style="text-align: center;">short name</th>
+<th style="text-align: center;">default</th>
+<th style="text-align: left;">description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code v-pre>INPUT(S)</code></td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;"></td>
+<td style="text-align: left;"><span class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-blue-500 dark:text-blue-400 border border-blue-500 dark:border-blue-400 h-6 px-2 text-xs rounded-md">
+    <span>required</span>
+</span> One BAM file or both read files from a paired-end FASTQ pair</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code v-pre>--downsample</code></td>
+<td style="text-align: center;"><code v-pre>-d</code></td>
+<td style="text-align: center;"></td>
+<td style="text-align: left;"><span class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-blue-500 dark:text-blue-400 border border-blue-500 dark:border-blue-400 h-6 px-2 text-xs rounded-md">
+    <span>required</span>
+</span> Number of barcodes to downsample to</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code v-pre>--invalid</code></td>
+<td style="text-align: center;"><code v-pre>-i</code></td>
+<td style="text-align: center;"><code v-pre>keep</code></td>
+<td style="text-align: left;">Strategy to handle invalid/missing barcodes [<code v-pre>keep</code>,<code v-pre>drop</code>]</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code v-pre>--bx-tag</code></td>
+<td style="text-align: center;"><code v-pre>-b</code></td>
+<td style="text-align: center;"><code v-pre>BX</code></td>
+<td style="text-align: left;">The header tag with the barcode <span class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-gray-600 dark:text-dark-600 bg-gray-200 h-6 px-2 text-xs rounded-md">
+    <span>alphanumeric</span>
+</span> <span class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-gray-600 dark:text-dark-600 bg-gray-200 h-6 px-2 text-xs rounded-md">
+    <span>2 characters</span>
+</span></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code v-pre>--prefix</code></td>
+<td style="text-align: center;"><code v-pre>-p</code></td>
+<td style="text-align: center;"><code v-pre>downsampled</code></td>
+<td style="text-align: left;">Prefix for output files</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code v-pre>--random-seed</code></td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;"></td>
+<td style="text-align: left;">Random seed for sampling <span class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-gray-600 dark:text-dark-600 bg-gray-200 h-6 px-2 text-xs rounded-md">
+    <span>optional</span>
+</span></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code v-pre>--threads</code></td>
+<td style="text-align: center;"><code v-pre>-t</code></td>
+<td style="text-align: center;"><code v-pre>4</code></td>
+<td style="text-align: left;">Number of threads to use</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code v-pre>--quiet</code></td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;"></td>
+<td style="text-align: left;">Don&#x27;t show output text while running</td>
 </tr>
 </tbody>
 </table>
@@ -345,9 +442,9 @@ The file is formatted correctly and serves as a starting point for using paramet
 <div class="codeblock-title">example</div>
 <pre class="language-bash"><code v-pre class="language-bash">harpy imputeparams -o params.stitch</code></pre>
 </doc-codeblock></div>
-<doc-anchor-target id="arguments">
+<doc-anchor-target id="arguments-1">
     <h4>
-        <doc-anchor-trigger class="header-anchor-trigger" to="#arguments">#</doc-anchor-trigger>
+        <doc-anchor-trigger class="header-anchor-trigger" to="#arguments-1">#</doc-anchor-trigger>
         <span>arguments</span>
     </h4>
 </doc-anchor-target>
@@ -406,9 +503,9 @@ you can use <span class="no-link inline-flex align-middle items-center justify-c
 <div class="codeblock-title">usage</div>
 <pre class="language-bash"><code v-pre class="language-bash">harpy resume [--conda] DIRECTORY</code></pre>
 </doc-codeblock></div>
-<doc-anchor-target id="arguments-1">
+<doc-anchor-target id="arguments-2">
     <h4>
-        <doc-anchor-trigger class="header-anchor-trigger" to="#arguments-1">#</doc-anchor-trigger>
+        <doc-anchor-trigger class="header-anchor-trigger" to="#arguments-2">#</doc-anchor-trigger>
         <span>arguments</span>
     </h4>
 </doc-anchor-target>
@@ -418,7 +515,6 @@ you can use <span class="no-link inline-flex align-middle items-center justify-c
 <tr>
 <th style="text-align: left;">argument</th>
 <th style="text-align: center;">short name</th>
-<th style="text-align: left;">type</th>
 <th style="text-align: left;">description</th>
 </tr>
 </thead>
@@ -426,7 +522,6 @@ you can use <span class="no-link inline-flex align-middle items-center justify-c
 <tr>
 <td style="text-align: left;"><code v-pre>DIRECTORY</code></td>
 <td style="text-align: center;"></td>
-<td style="text-align: left;">file/directory paths</td>
 <td style="text-align: left;"><span class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-blue-500 dark:text-blue-400 border border-blue-500 dark:border-blue-400 h-6 px-2 text-xs rounded-md">
     <span>required</span>
 </span> Output directory of an existing harpy workflow</td>
@@ -434,7 +529,6 @@ you can use <span class="no-link inline-flex align-middle items-center justify-c
 <tr>
 <td style="text-align: left;"><code v-pre>--conda</code></td>
 <td style="text-align: center;"></td>
-<td style="text-align: left;">toggle</td>
 <td style="text-align: left;">Generate a <code v-pre>/workflow/envs</code> folder with the necessary conda enviroments</td>
 </tr>
 </tbody>
@@ -467,9 +561,9 @@ main <code v-pre>harpy</code> workflows would create. If one is not present, you
 <div class="codeblock-title">usage example</div>
 <pre class="language-bash"><code v-pre class="language-bash">harpy popgroup -o samples.groups data/</code></pre>
 </doc-codeblock></div>
-<doc-anchor-target id="arguments-2">
+<doc-anchor-target id="arguments-3">
     <h4>
-        <doc-anchor-trigger class="header-anchor-trigger" to="#arguments-2">#</doc-anchor-trigger>
+        <doc-anchor-trigger class="header-anchor-trigger" to="#arguments-3">#</doc-anchor-trigger>
         <span>arguments</span>
     </h4>
 </doc-anchor-target>
@@ -479,7 +573,6 @@ main <code v-pre>harpy</code> workflows would create. If one is not present, you
 <tr>
 <th style="text-align: left;">argument</th>
 <th style="text-align: center;">short name</th>
-<th style="text-align: left;">type</th>
 <th style="text-align: left;">description</th>
 </tr>
 </thead>
@@ -487,7 +580,6 @@ main <code v-pre>harpy</code> workflows would create. If one is not present, you
 <tr>
 <td style="text-align: left;"><code v-pre>INPUTS</code></td>
 <td style="text-align: center;"></td>
-<td style="text-align: left;">file/directory paths</td>
 <td style="text-align: left;"><span class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-blue-500 dark:text-blue-400 border border-blue-500 dark:border-blue-400 h-6 px-2 text-xs rounded-md">
     <span>required</span>
 </span> Files or directories containing input FASTQ/BAM files</td>
@@ -495,7 +587,6 @@ main <code v-pre>harpy</code> workflows would create. If one is not present, you
 <tr>
 <td style="text-align: left;"><code v-pre>--output</code></td>
 <td style="text-align: center;"><code v-pre>-o</code></td>
-<td style="text-align: left;">file path</td>
 <td style="text-align: left;"><span class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-blue-500 dark:text-blue-400 border border-blue-500 dark:border-blue-400 h-6 px-2 text-xs rounded-md">
     <span>required</span>
 </span> Name of the output file</td>
@@ -548,9 +639,9 @@ accepts the typical <a href="https://gist.github.com/glnds/8862214">keyboard sho
 <div class="codeblock-title">example</div>
 <pre class="language-bash"><code v-pre class="language-bash">harpy view Align/bwa</code></pre>
 </doc-codeblock></div>
-<doc-anchor-target id="arguments-3">
+<doc-anchor-target id="arguments-4">
     <h4>
-        <doc-anchor-trigger class="header-anchor-trigger" to="#arguments-3">#</doc-anchor-trigger>
+        <doc-anchor-trigger class="header-anchor-trigger" to="#arguments-4">#</doc-anchor-trigger>
         <span>arguments</span>
     </h4>
 </doc-anchor-target>

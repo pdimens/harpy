@@ -46,8 +46,24 @@
       <category domain="https://pdimens.github.io/harpy/categories/guides/">guides</category>
     </item>
     <item>
+      <title> Choosing a software runtime method</title>
+      <guid isPermaLink="true">https://pdimens.github.io/harpy/blog/softwareenvironments/</guid>
+      <description>Deciding between using Conda or Containers</description>
+      <author>Pavel Dimens</author>
+      <pubDate>Fri, 21 Jun 2024 00:00:00 GMT</pubDate>
+      <category domain="https://pdimens.github.io/harpy/categories/guides/">guides</category>
+    </item>
+    <item>
       <title> Filtering Variants</title>
       <guid isPermaLink="true">https://pdimens.github.io/harpy/blog/filtering_snps/</guid>
+      <description>A gentle introduction to the wild world of filtering SNPs</description>
+      <author>Pavel Dimens</author>
+      <pubDate>Wed, 05 Jun 2024 00:00:00 GMT</pubDate>
+      <category domain="https://pdimens.github.io/harpy/categories/guides/">guides</category>
+    </item>
+    <item>
+      <title> Filtering Variants</title>
+      <guid isPermaLink="true">https://pdimens.github.io/harpy/blog/filteringsnps/</guid>
       <description>A gentle introduction to the wild world of filtering SNPs</description>
       <author>Pavel Dimens</author>
       <pubDate>Wed, 05 Jun 2024 00:00:00 GMT</pubDate>
