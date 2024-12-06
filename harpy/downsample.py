@@ -47,8 +47,8 @@ def downsample(input, prefix, downsample, invalid, bx_tag, random_seed, threads,
     - `drop`: don't output any invalid/missing barcodes
     """
     # validate input files as either 1 bam or 2 fastq
-    if len(bx_tag) != 2:
-        raise click.BadParameter(f'\'{bx_tag}\' is not a valid SAM tag. Tags for --bx-tag must be exactly 2 characters, e.g. "BX"')
+    if len(bx_tag) != 2 or not bx_tag.isalnum():
+        raise click.BadParameter(f'\'{bx_tag}\' is not a valid SAM tag. Tags for --bx-tag must be alphanumeric and exactly 2 characters, e.g. "BX"')
     if len(input) > 2:
         raise click.BadParameter('inputs must be 1 BAM file or 2 FASTQ files.')
     if len(input) == 1:
