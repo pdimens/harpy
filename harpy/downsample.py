@@ -5,6 +5,7 @@ import re
 import sys
 import yaml
 from rich import box
+from pathlib import Path
 from rich.table import Table
 import rich_click as click
 from ._cli_types_generic import SnakemakeParams
@@ -19,7 +20,7 @@ docstring = {
         },
         {
             "name": "Workflow Controls",
-            "options": ["--quiet", "--snakemake", "--threads", "--help"],
+            "options": ["--output-dir", "--quiet", "--snakemake", "--threads", "--help"],
         },
     ]
 }
@@ -28,12 +29,13 @@ docstring = {
 @click.option('-i', '--invalid', default = 1, show_default = True, type=click.FloatRange(min=0,max=1), help = "Proportion of invalid barcodes to sample")
 @click.option('-p', '--prefix', type = click.Path(exists = False), default = "downsampled", show_default = True, help = 'Prefix for output file(s)')
 @click.option('--random-seed', type = click.IntRange(min = 1), help = "Random seed for sampling")
+@click.option('-o', '--output-dir', type = click.Path(exists = False), default = "Downsample", show_default=True,  help = 'Output directory name')
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(min = 1, max_open = True), help = 'Number of threads to use')
 @click.option('--quiet',  is_flag = True, show_default = True, default = False, help = 'Don\'t show output text while running')
 @click.option('--setup-only',  is_flag = True, hidden = True, show_default = True, default = False, help = 'Setup the workflow and exit')
 @click.option('--snakemake', type = SnakemakeParams(), help = 'Additional Snakemake parameters, in quotes')
 @click.argument('input', required=True, type=click.Path(exists=True, readable=True, dir_okay=False), nargs=-1)
-def downsample(input, prefix, downsample, invalid, random_seed, setup_only, snakemake, threads, quiet):
+def downsample(input, invalid, output_dir, prefix, downsample, random_seed, setup_only, snakemake, threads, quiet):
     """
     Downsample data by barcode
 
@@ -42,10 +44,10 @@ def downsample(input, prefix, downsample, invalid, random_seed, setup_only, snak
     - one BAM file
     - two FASTQ files (R1 and R2 of a paired-end read set)
     
-    Use `--invalid` to specify the proportion of invalid barcodes to consider for sampling, where `0` will remove all
-    invalid barcodes from the barcode pool, `1` will add all invalid barcodes to the barcode pool, and a number in between
-    (e.g. `0.25`) will add approximately that proprotion of invalid barcodes into the barcode pool that gets subsampled down
-    to `-d` barcodes.
+    Use `--invalid` to specify the proportion of invalid barcodes to consider for sampling:
+    - `0` removes all invalid barcodes from the barcode pool
+    - `1` adds all invalid barcodes to the barcode pool
+    - 0<`i`<1 (e.g. `0.25`) keeps that proprotion of invalid barcodes in the barcode pool
     """
     # validate input files as either 1 bam or 2 fastq
     if len(input) > 2:
@@ -82,7 +84,7 @@ def downsample(input, prefix, downsample, invalid, random_seed, setup_only, snak
         "invalid_proportion" : invalid,       
         **({"random_seed" : random_seed} if random_seed else {}),
         "workflow_call" : command.rstrip(),
-        "inputs": [i.as_posix() for i in input]
+        "inputs": [Path(i).resolve().as_posix() for i in input]
         }
     with open(os.path.join(workflowdir, 'config.yaml'), "w", encoding="utf-8") as config:
         yaml.dump(configs, config, default_flow_style= False, sort_keys=False, width=float('inf'))

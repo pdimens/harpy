@@ -13,6 +13,7 @@ parser = argparse.ArgumentParser(
     )
 parser.add_argument('-i','--invalid', type= float, default=1, help = "Proportion of invalid barcodes to include in subsampling/output (default: %(default)s)")
 parser.add_argument('-d','--downsample', type= int, help = "Number of barcodes to downsample to")
+parser.add_argument('-r','--random-seed', type= int, help = "Random seed for sampling")
 parser.add_argument('-b','--bx-tag', type= str, default="BX", help = "2-character tag with the barcodes (alphanumeric, default: %(default)s)")
 parser.add_argument('input', type= str, help = "Input BAM file")
 if len(sys.argv) == 1:
@@ -20,7 +21,7 @@ if len(sys.argv) == 1:
     sys.exit(1)
 
 args = parser.parse_args()
-if args.invalid < 0 or args.invalid > 0:
+if args.invalid < 0 or args.invalid > 1:
     parser.error("--invalid must be between 0 and 1")
 
 bx_tag = args.bx_tag.upper()
@@ -28,8 +29,8 @@ inv_prop = args.invalid
 rng  = random.Random(args.random_seed) if args.random_seed else random.Random()
 invalid_pattern = re.compile(r'[AaBbCcDd]00')
 barcodes = set()
-
-with pysam.AlignmentFile(args.input, "rb", check_sq=False) as infile:
+mode = "r" if args.input.lower().endswith("sam") else "rb"
+with pysam.AlignmentFile(args.input, mode, check_sq=False) as infile:
     for record in infile:
         try:
             barcode = record.get_tag(bx_tag)
