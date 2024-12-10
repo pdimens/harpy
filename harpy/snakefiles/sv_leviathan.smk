@@ -61,8 +61,8 @@ rule index_barcode:
         temp(outdir + "/lrezIndexed/{sample}.bci")
     threads:
         max(10, workflow.cores)
-    conda:
-        f"{envdir}/variants.yaml"
+    container:
+        None
     shell:
         "LRez index bam --threads {threads} -p -b {input.bam} -o {output}"
 

@@ -23,7 +23,8 @@ docstring = {
         },
     ]
 }
-
+# TODO SAM TOLERATE
+# TODO NOT GZIPPED TOLERANT
 @click.command(no_args_is_help = True, context_settings=dict(allow_interspersed_args=False), epilog = "Documentation: https://pdimens.github.io/harpy/workflows/downsample")
 @click.option('-d', '--downsample', type = click.IntRange(min = 1), help = 'Downsampling amount')
 @click.option('-i', '--invalid', default = "keep", show_default = True, type=click.Choice( ["keep","drop"]), help = "Strategy to handle invalid/missing barcodes")
@@ -70,7 +71,8 @@ def downsample(input, prefix, downsample, invalid, bx_tag, random_seed, threads,
     rng = random.Random(random_seed).sample if random_seed else random.Random().sample
     logfile = open(f"{prefix}.log", "w")
     sys.stderr.write = logfile.write
-
+    #TODO THIS DOESNT NEED TO HAPPEN ANYMORE
+    # JUST PARSE THE BARCODES FROM THE FASTQ or BAM AND PULL READS ON THE SECOND PASS
     with harpy_pulsebar(quiet, f"sorting by {bx_tag} tags") as progress:
         progress.add_task(f"sorting by {bx_tag} tags", total = None)
         if len(input) == 2:
@@ -131,6 +133,26 @@ def downsample(input, prefix, downsample, invalid, bx_tag, random_seed, threads,
         subprocess.run(f'samtools fastq -T * -c 6 -1 {prefix}.R1.fq.gz -2 {prefix}.R2.fq.gz {output_bam}'.split(), stderr=logfile)
         os.remove(output_bam)
     logfile.close()
+
+
+    barcodes = set()
+if len(input) == 1:
+    infile = pysam.AlignmentFile(input[0], "rb", check_sq=False)
+else:
+    infile = pysam.FastqFile(input[0], mode = 'rb')
+    infile_R = pysam.
+    with harpy_pulsebar(quiet, f"parsing {bx_tag} tags") as progress:
+        progress.add_task(f"parsing {bx_tag} tags", total = None)
+        for record in infile:
+            try:
+                barcode = record.get_tag(bx_tag)
+                if isinstance(barcode, int):
+                    pass # an int from an MI-tharype tag
+                elif invalid_pattern.search(barcode):
+                    continue
+            except KeyError:
+                continue
+            barcodes.add(barcode)
 
 
 
