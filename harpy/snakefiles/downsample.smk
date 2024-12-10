@@ -17,7 +17,8 @@ outdir        = config["output_directory"]
 envdir        = os.path.join(os.getcwd(), outdir, "workflow", "envs")
 inputs        = config["inputs"]
 invalids      = config["invalid_strategy"]
-is_fastq = True if len(inputs) == 2 else False
+infiles       = dict(zip(inputs, inputs))
+is_fastq      = True if len(inputs) == 2 else False
 random_seed = config.get("random_seed", None)
 rng = random.Random(random_seed) if random_seed else random.Random()
 
@@ -75,58 +76,62 @@ rule extract_barcodes:
                 with open(output[0], "w") as bc_out:
                     _= [bc_out.write(f"{i}\n" for i in rng.sample(sorted(barcodes), params.downsample_amt))]
 
-
-rule index_fastq_bx_tag:
+rule index_barcodes:
     input:
-        #TODO FASTQ DICT FOR WILDCARDS
+        lambda wc: infiles[wc.inputfile]
     output:
+        "{inputfile}.bci"
+    threads:
+        workflow.cores
+    run:
+        if is_fastq:
+            gz_arg = "--gzip" if is_gzip else ""
+            shell(f"LRez index fastq -t {threads} -f {input} -o {output} {gz_arg}")
+        else:
+            shell(f"LRez index bam --offsets -t {threads} -b {input} -o {output}")
 
+rule downsample:
+    input:
+        file = infiles[0],
+        bc_index = infiles[0] + ".bci",
+        bc_list = f"{outdir}/sampled_barcodes.txt"
+    output:
+        f"{outdir}/downsample.bam"
+    threads:
+        workflow.cores
+    shell:
+        "LRez query bam -t {threads} -bam {input.file} -i {input.bc_index} -l {input.bc_list} > {output}"
+
+rule downsample_read_1:
+    input:
+        file = inputs[0],
+        bc_index = inputs[0] + ".bci",
+        bc_list = f"{outdir}/sampled_barcodes.txt"
+    output:
+        f"{outdir}/downsample.R1.fq.gz"
     params:
         "--gzip" if is_gzip else ""
     threads:
         workflow.cores
     shell:
-        "LRez index fastq -t {threads} -f {input} -o {output} {params}"
-
-rule downsample_fastq:
+        "LRez query fastq -t {threads} -f {input.file} -i {input.bc_index} -l {input.bc_list} {params} > {output}"
+ 
+rule downsample_read_2:
     input:
-        #TODO FASTQ DICT
-        bc_index = "{fastq}.bci",
+        file = inputs[1],
+        bc_index = inputs[1] + ".bci",
         bc_list = f"{outdir}/sampled_barcodes.txt"
     output:
-        XXXXXXXXXX
+        f"{outdir}/downsample.R2.fq.gz"
     params:
         "--gzip" if is_gzip else ""
     threads:
         workflow.cores
     shell:
-        "LRez query fastq -t {threads} -f {input.fastq} -i {input.bc_index} -l {input.bc_list} {params} > {output}"
+        "LRez query fastq -t {threads} -f {input.file} -i {input.bc_index} -l {input.bc_list} {params} > {output}"
 
-rule index_bam_bx_tag:
-    input:
-        in_bam
-    output:
-        f"{in_bam}.bci"
-    threads:
-        workflow.cores
-    shell:
-        "LRez index bam --offsets -t {threads} -b {input} -o {output} --gzip"
-
-rule downsample_bam:
-    input:
-        bam = in_bam,
-        bc_index = f"{in_bam}.bci",
-        bc_list = f"{outdir}/sampled_barcodes.txt"
-    output:
-        in_bam[:-4] + ".downsample.bam"
-    threads:
-        workflow.cores
-    shell:
-        "LRez query bam -t {threads} -bam {input.bam} -i {input.bc_index} -l {input.bc_list} > {output}"
 
 rule workflow_summary:
     input:
-        in_bam[:-4] + ".downsample.bam" if not is_fastq else [],
-        out_fq if is_fastq else []
-        #TODO THINK OF FASTQ OUTPUT NAMES
-
+        f"{outdir}/downsample.bam" if not is_fastq else [],
+        collect(f"{outdir}/downsample.R" + "{FR}.fq.gz", FR = [1,2]) if is_fastq else []
