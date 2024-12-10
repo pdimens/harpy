@@ -1,6 +1,5 @@
 import os
 import re
-import sys
 import gzip
 import pysam
 import random
@@ -14,15 +13,15 @@ onerror:
     os.remove(logger.logfile)
 
 outdir        = config["output_directory"]
-envdir        = os.path.join(os.getcwd(), outdir, "workflow", "envs")
 inputs        = config["inputs"]
-invalids      = config["invalid_strategy"]
+invalids      = config["invalid_proportion"]
 infiles       = dict(zip(inputs, inputs))
+random_seed   = config.get("random_seed", None)
+downsample    = config["downsample"]
 is_fastq      = True if len(inputs) == 2 else False
-random_seed = config.get("random_seed", None)
-rng = random.Random(random_seed) if random_seed else random.Random()
+rng           = random.Random(random_seed) if random_seed else random.Random()
 
-if filetype == "fq":
+if is_fastq:
     # determine if a file is gzipped
     try:
         with gzip.open(inputs[0], 'rt') as f:
@@ -50,31 +49,16 @@ rule extract_barcodes:
         f"{outdir}/input.bam" if is_fastq else inputs[0]
     output:
         f"{outdir}/sampled_barcodes.txt"
+    log:
+        f"{outdir}/logs/sampled_barcodes.log"
     threads:
         workflow.cores
     params:
-        inv_prop = invalid_proportion,
-        downsample_amt = downsample
-    run:
-        invalid_pattern = re.compile(r'[AaBbCcDd]00')
-        barcodes = set()
-        with pysam.AlignmentFile(sorted_bam, "rb", check_sq=False) as infile"
-            for record in infile:
-                try:
-                    barcode = record.get_tag(bx_tag)
-                    if invalid_pattern.search(barcode):
-                        # invalid barcode retention
-                        if rng.random() > params.inv_prop:
-                            continue
-                except KeyError:
-                    continue
-                barcodes.add(barcode)
-            n_bc = len(barcodes)
-            if n_bc < params.downsample_amt:
-                raise ValueError(f"The input has fewer barcodes ({n_bc}) than the requested downsampling amount ({params.downsample_amt})")
-            else:
-                with open(output[0], "w") as bc_out:
-                    _= [bc_out.write(f"{i}\n" for i in rng.sample(sorted(barcodes), params.downsample_amt))]
+        inv_prop = f"-i {invalid_proportion}",
+        downsample_amt = f"-d {downsample}",
+        bx_tag = "-b BX"
+    shell:
+        "extract_bxtags.py {params} {input} > {output} 2> {log}"
 
 rule index_barcodes:
     input:
@@ -130,8 +114,23 @@ rule downsample_read_2:
     shell:
         "LRez query fastq -t {threads} -f {input.file} -i {input.bc_index} -l {input.bc_list} {params} > {output}"
 
-
 rule workflow_summary:
     input:
         f"{outdir}/downsample.bam" if not is_fastq else [],
         collect(f"{outdir}/downsample.R" + "{FR}.fq.gz", FR = [1,2]) if is_fastq else []
+    run:
+        summary = ["The harpy downsample workflow ran using these parameters:"]
+        summary.append(f"The provided input file(s):\n" + "\n\t".join(inputs))
+        convs = "The FASTQ files were converted into a BAM file with:\n"
+        convs += "\tsamtools import -T * fastq1 fastq2"
+        if is_fastq:
+            summary.append(convs)
+        summary.append("Barcodes were extract and sampled using a custom python script")
+        lrez = "The inputs were indexed and downsampled using LRez:\n"
+        if is_fastq:
+            lrez += "\tLRez query fastq -f fastq -i index.bci -l barcodes.txt"
+        else:
+            lrez += "\tLRez query bam -b bam -i index.bci -l barcodes.txt"
+        summary.append(lrez)
+        with open(outdir + "/workflow/downsample.summary", "w") as f:
+            f.write("\n\n".join(summary))
