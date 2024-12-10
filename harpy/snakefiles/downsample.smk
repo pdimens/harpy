@@ -46,7 +46,7 @@ rule sample_barcodes:
     input:
         f"{outdir}/input.bam" if is_fastq else inputs[0]
     output:
-        f"{outdir}/sampled_barcodes.txt"
+        f"{outdir}/{prefix}.barcodes"
     log:
         f"{outdir}/logs/sampled_barcodes.log"
     threads:
@@ -81,7 +81,7 @@ rule downsample:
         bam = inputs[0],
         bai = inputs[0] + ".bai",
         bc_index = inputs[0] + ".bci",
-        bc_list = f"{outdir}/sampled_barcodes.txt"
+        bc_list = f"{outdir}/{prefix}.barcodes"
     output:
         sam = temp(f"{outdir}/{prefix}.sam"),
         bam = f"{outdir}/{prefix}.bam"
@@ -99,7 +99,7 @@ rule downsample_read_1:
         fastq = inputs[0],
         bc_index = inputs[0] + ".bci",
         fq_index = inputs[0] + "i",
-        bc_list = f"{outdir}/sampled_barcodes.txt"
+        bc_list = f"{outdir}/{prefix}.barcodes"
     output:
         f"{outdir}/{prefix}.R1.fq.gz"
     params:
@@ -114,7 +114,7 @@ rule downsample_read_2:
         file = inputs[-1],
         bc_index = inputs[-1] + ".bci",
         fq_index = inputs[-1] + "i",
-        bc_list = f"{outdir}/sampled_barcodes.txt"
+        bc_list = f"{outdir}/{prefix}.barcodes"
     output:
         f"{outdir}/{prefix}.R2.fq.gz"
     params:
