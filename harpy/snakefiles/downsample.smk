@@ -12,14 +12,15 @@ onsuccess:
 onerror:
     os.remove(logger.logfile)
 
-outdir        = config["output_directory"]
-inputs        = config["inputs"]
-invalids      = config["invalid_proportion"]
-infiles       = dict(zip(inputs, inputs))
-random_seed   = config.get("random_seed", None)
-downsample    = config["downsample"]
-is_fastq      = True if len(inputs) == 2 else False
-rng           = random.Random(random_seed) if random_seed else random.Random()
+outdir      = config["output_directory"]
+inputs      = config["inputs"]
+invalids    = config["invalid_proportion"]
+random_seed = config.get("random_seed", None)
+downsample  = config["downsample"]
+prefix      = config["prefix"]
+infiles     = dict(zip(inputs, inputs))
+is_fastq    = True if len(inputs) == 2 else False
+rng         = random.Random(random_seed) if random_seed else random.Random()
 
 if is_fastq:
     # determine if a file is gzipped
@@ -80,7 +81,7 @@ rule downsample:
         bc_index = infiles[0] + ".bci",
         bc_list = f"{outdir}/sampled_barcodes.txt"
     output:
-        f"{outdir}/downsample.bam"
+        f"{outdir}/{prefix}.bam"
     threads:
         workflow.cores
     shell:
@@ -92,7 +93,7 @@ rule downsample_read_1:
         bc_index = inputs[0] + ".bci",
         bc_list = f"{outdir}/sampled_barcodes.txt"
     output:
-        f"{outdir}/downsample.R1.fq.gz"
+        f"{outdir}/{prefix}.R1.fq.gz"
     params:
         "--gzip" if is_gzip else ""
     threads:
@@ -106,7 +107,7 @@ rule downsample_read_2:
         bc_index = inputs[1] + ".bci",
         bc_list = f"{outdir}/sampled_barcodes.txt"
     output:
-        f"{outdir}/downsample.R2.fq.gz"
+        f"{outdir}/{prefix}.R2.fq.gz"
     params:
         "--gzip" if is_gzip else ""
     threads:
@@ -116,8 +117,8 @@ rule downsample_read_2:
 
 rule workflow_summary:
     input:
-        f"{outdir}/downsample.bam" if not is_fastq else [],
-        collect(f"{outdir}/downsample.R" + "{FR}.fq.gz", FR = [1,2]) if is_fastq else []
+        f"{outdir}/{prefix}.bam" if not is_fastq else [],
+        collect(f"{outdir}/{prefix}.R" + "{FR}.fq.gz", FR = [1,2]) if is_fastq else []
     run:
         summary = ["The harpy downsample workflow ran using these parameters:"]
         summary.append(f"The provided input file(s):\n" + "\n\t".join(inputs))
@@ -125,7 +126,9 @@ rule workflow_summary:
         convs += "\tsamtools import -T * fastq1 fastq2"
         if is_fastq:
             summary.append(convs)
-        summary.append("Barcodes were extract and sampled using a custom python script")
+        extraction = "Barcodes were extracted and sampled using:\n"
+        extraction += f"\textract_bxtags.py -i {invalids} -b BX -d {downsample} input.bam"
+        summary.append(extraction)
         lrez = "The inputs were indexed and downsampled using LRez:\n"
         if is_fastq:
             lrez += "\tLRez query fastq -f fastq -i index.bci -l barcodes.txt"
