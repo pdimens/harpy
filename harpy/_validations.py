@@ -351,7 +351,11 @@ def validate_regions(regioninput, genome):
 def check_fasta(genofile):
     """perform validations on fasta file for extensions and file contents"""
     # validate fasta file contents
-    opener = gzip.open if is_gzip(genofile) else open
+    try:
+        opener = gzip.open if is_gzip(genofile) else open
+    except:
+        print_error("incorrect file format", f"The file must be plain-text or b/gzipped, but failed to be recognized as either. Please check that [blue]{genofile}[/blue] is indeed a fasta file.")
+        sys.exit(1)
     mode = "rt" if is_gzip(genofile) else "r"
     line_num = 0
     seq_id = 0
