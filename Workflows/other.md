@@ -11,51 +11,10 @@ On this page you'll find Harpy functions that do other, ancillary things.
 {.compact}
 | module         | description                                                                      |
 | :------------- | :------------------------------------------------------------------------------- |
-| `downsample`   | Downsample BAM or FASTQ files by barcode                                         |
 | `imputeparams` | Create a template imputation parameter file                                      |
 | `resume`       | Continue a Harpy workflow from an existing output folder                         |
 | `popgroup`     | Create generic sample-group file using existing sample file names (fq.gz or bam) |
 | `view`         | View a workflow log, config, or snakefile                                        |
-
----
-
-### downsample
-While downsampling (subsampling) FASTQ and BAM files is relatively simple with tools such as `awk`, `samtools`, `seqtk`, `seqkit`, etc.,
-Harpy offers the `downsample` module, which allows you to downsample a BAM file (or paired-end FASTQ) _by barcodes_. That means you can
-keep all the reads associated with `d` number of barcodes. First, barcodes are extracted, then subsampled, then the reads associated
-with those barcodes are extracted. The `--invalid` proportion will determine what proportion of invalid barcodes appear in the barcode
-pool that gets subsampled, where `0` is none, `1` is all invalid barcodes, and a number in between is that proportion, e.g. `0.5` is half.
-Bear in mind that the barcode pool still gets subsampled, so the `--invalid` proportion doesn't necessarily reflect how many end up getting
-sampled, rather what proportion will be considered for sampling. 
-
-!!! Barcode tag
-Barcodes must be in the `BX:Z` SAM tag for both BAM and FASTQ inputs. See [Section 1 of the SAM Spec here](https://samtools.github.io/hts-specs/SAMtags.pdf).
-!!!
-
-```bash usage
-harpy downsample OPTIONS... INPUT(S)...
-```
-
-```bash example
-# BAM file
-harpy downsample -d 1000 -i 0.3 -p sample1.sub1000 sample1.bam
-
-# FASTQ file
-harpy downsample -d 1000 -i 0 -p sample1.sub1000 sample1.F.fq.gz sample1.R.fq.gz
-```
-
-#### arguments
-{.compact}
-| argument        | short name |    default    | description                                                                                                                       |
-| :-------------- | :--------: | :-----------: | :-------------------------------------------------------------------------------------------------------------------------------- |
-| `INPUT(S)`      |            |               | [!badge variant="info" text="required"] One BAM file or both read files from a paired-end FASTQ pair                              |
-| `--downsample`  |    `-d`    |               | [!badge variant="info" text="required"] Number of barcodes to downsample to                                                       |
-| `--invalid`     |    `-i`    |       1       | Proportion of barcodes to sample                                                                                                  |
-| `--prefix`      |    `-p`    | `downsampled` | Prefix for output files                                                                                                           |
-| `--random-seed` |            |               | Random seed for sampling [!badge variant="secondary" text="optional"]                                                             |
-| `--snakemake`   |            |               | Additional Snakemake arguments, in quotes                                                                                         |
-| `--threads`     |    `-t`    |      `4`      | Number of threads to use                                                                                                          |
-| `--quiet`       |            |               | Don't show output text while running                                                                                              |
 
 ---
 
