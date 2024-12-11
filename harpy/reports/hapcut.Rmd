@@ -51,6 +51,14 @@ df <- df[df$block_length > 0, c(1,2,3,4,6,5)]
 levels(df$sample) <- basename(levels(df$sample))
 ```
 
+```{r nxx, results = F}
+NX <- function(lengths, X=50){
+  lengths <- as.numeric(sort(lengths, decreasing=TRUE))
+  index <- which(cumsum(lengths) / sum(lengths) >= X/100)[1]
+  return(lengths[index])
+}
+```
+
 # General Stats
 ## fileheader 
 ### details desc {.no-title}
@@ -60,11 +68,9 @@ The data presented here are the results of phasing genotypes into haplotypes usi
 which summarized information across all samples using the `.blocks` files HapCut2
 generates. The VCF files HapCut2 also generates were not used as they lack
 some of the information in the `.blocks` files that were collated in this report.
-This page shows general and per-contig information. You may click the plots to
-expand them in your browser. Clicking them again will exit from the zoomed pop-up
-window. The `Per-Sample Stats` tab in the navigation bar above will show you
-statistics relating to haplotypes on the per-sample level. Haplotype blocks with a size
-of `0` were removed from the data.
+This page shows general and per-contig information. The `Per-Sample Stats` tab in
+the navigation bar above will show you statistics relating to haplotypes on the
+per-sample level. Haplotype blocks with a size of `0` were removed from the data.
 
 ## Haplotyping details {data-height=100}
 ```{r process_stats}
@@ -72,9 +78,10 @@ overall <- df %>% summarise(
     total_snps = sum(n_snp),
     mean_snps = round(mean(n_snp), digits = 0),
     median_snps = median(n_snp),
-    mean_blocksize = round(mean(block_length), digits = 0),
-    median_blocksize = median(block_length),
-    max_blocksize = max(block_length)
+    max_blocksize = max(block_length),
+    N50 = NX(block_length, 50),
+    N75 = NX(block_length, 75),
+    N90 = NX(block_length, 90)
 )
 ```
 
@@ -92,14 +99,19 @@ valueBox(scales::comma(overall$mean_snps[1]), caption = "Avg SNPs/Haplotype", co
 ```{r}
 valueBox(scales::comma(overall$median_snps[1]), caption = "Median SNPs/Haplotype", color = "info")
 ```
-### avg blocksize
+### N50
 ```{r}
-valueBox(scales::comma(overall$mean_blocksize[1]), caption = "Avg Haplotype Length", color = "info")
+valueBox(scales::comma(overall$N50[1]), caption = "N50", color = "info")
 ```
 
-### median blocksize
+### N75
 ```{r}
-valueBox(scales::comma(overall$median_blocksize[1]), caption = "Median Haplotype Length", color = "info")
+valueBox(scales::comma(overall$N75[1]), caption = "N75", color = "info")
+```
+
+### N90
+```{r}
+valueBox(scales::comma(overall$N90[1]), caption = "N90", color = "info")
 ```
 
 ### longest haplotype
@@ -152,7 +164,7 @@ percontig <- df %>% group_by(contig) %>% summarise(
     mean_snps = round(mean(n_snp), digits = 0),
     median_snps = median(n_snp),
     mean_blocksize = round(mean(block_length), digits = 0),
-    median_blocksize = median(block_length),
+    N50 = NX(block_length, 50),
     max_blocksize = max(block_length)
   )
 
@@ -165,7 +177,7 @@ DT::datatable(
     buttons = list(list(extend = "csv",filename = "phasing_per_contig")), 
     scrollX = TRUE
   ),
-  colnames = c("Contig", "Total Haplotypes", "Mean SNPs", "Median SNPs", "Mean Haplotype Length", "Median Haplotype Length", "Largest Haplotype"),
+  colnames = c("Contig", "Total Haplotypes", "Mean SNPs", "Median SNPs", "Mean Haplotype Length", "Haplotype N50", "Largest Haplotype"),
   fillContainer = T
 )
 ```
@@ -248,7 +260,7 @@ persample <- df %>% group_by(sample) %>% summarise(
     mean_snps = round(mean(n_snp), digits = 0),
     median_snps = median(n_snp),
     mean_blocksize = round(mean(block_length), digits = 0),
-    median_blocksize = median(block_length),
+    N50 = NX(block_length, 50),
     max_blocksize = max(block_length)
 )
 
@@ -261,7 +273,7 @@ DT::datatable(
     buttons = list(list(extend = "csv",filename = "phasing_per_sample")), 
     scrollX = TRUE
   ),
-  colnames = c("Sample", "Haplotypes", "Mean SNPs", "Median SNPs", "Mean Haplotype Length", "Median Haplotype Length", "Largest Haplotype"),
+  colnames = c("Sample", "Haplotypes", "Mean SNPs", "Median SNPs", "Mean Haplotype Length", "Haplotype N50", "Largest Haplotype"),
   fillContainer = T
 )
 ```
