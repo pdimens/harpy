@@ -1,23 +1,14 @@
-name: "There's a bug"
+name: "There's an issue"
 description: Something about harpy is not working or behaving in the way you expect
 labels: bug
 body:
   - type: textarea
     id: description
     attributes:
-      label: Describe the bug
-      description: A clear and concise description of what the bug is. Please do note paste in the contents of example files (do that below), but it may be helpful in some cases to see your project directory structure. 
+      label: Describe the issue
+      description: A clear and concise description of what's going wrong. Please do note paste in the contents of example files (do that below), but it may be helpful in some cases to see your project directory structure. 
     validations:
       required: true
-
-  - type: checkboxes
-    id: check-version
-    attributes:
-      label: Is this the latest version of Harpy?
-      options:
-        - label: "yes"
-    validations:
-        required: true
 
   - type: input
     id: version
@@ -26,31 +17,10 @@ body:
       description: If not the latest version, which version are you using?
       placeholder: use `harpy --version` to find the version number
 
-  - type: checkboxes
-    id: checklist
-    attributes:
-      options:
-        - label: this is the latest version of Harpy
-          required: true
-
-  - type: checkboxes
-    id: checklist
-    attributes:
-      options:
-        - label: this is the latest version of Harpy
-          required: true
-
-  - type: checkboxes
-    id: checklist
-    attributes:
-      options:
-        - label: this is the latest version of Harpy
-          required: true
-
   - type: textarea
     id: error-file
     attributes:
-      label: File that triggers the error (if applicable)
+      label: File triggering the error (if applicable)
       description: Please drag and drop (and upload to the GitHub issue) an input file that can be used to replicate the error. You may also copy-and-paste it as a code block. If the file type is not allowed, please compress into a `.zip` or `.gz` file. Alternatively, a snakemake log file would be helpful here too.
       placeholder: |
         [ Copy and paste or drag and drop an example file here to upload ]
