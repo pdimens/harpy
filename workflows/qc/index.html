@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="turbo-root" content="/harpy">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="3.6.0.787257791254">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="3.6.0.787263577368">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 3.6.0">
@@ -34,12 +34,12 @@
     <script data-cfasync="false">(function () { var el = document.documentElement, m = localStorage.getItem("doc_theme"), wm = window.matchMedia; if (m === "dark" || (!m && wm && wm("(prefers-color-scheme: dark)").matches)) { el.classList.add("dark") } else { el.classList.remove("dark") } })();</script>
 
     <link href="../../static/favicon.png" rel="icon">
-    <link href="../../resources/css/retype.css?v=3.6.0.787257791254" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=3.6.0.787263577368" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=3.6.0.787257791254" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=3.6.0.787263577368" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=3.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=3.6.0.787257791254" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=3.6.0.787257791254" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=3.6.0.787263577368" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=3.6.0.787263577368" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=3.6.0" defer></script>
 </head>
 <body>
@@ -371,7 +371,7 @@ remove duplicates, deconvolve, and quality trim sequences using the <span class=
 </doc-codeblock></div>
 <div class="codeblock-wrapper"><doc-codeblock>
 <div class="codeblock-title">example</div>
-<pre class="language-bash"><code v-pre class="language-bash">harpy qc --threads 20 Sequences_Raw/ </code></pre>
+<pre class="language-bash"><code v-pre class="language-bash">harpy qc --threads 20 -a auto Sequences_Raw/ </code></pre>
 </doc-codeblock></div>
 <doc-anchor-target id="running-options">
     <h2>
@@ -419,9 +419,7 @@ remove duplicates, deconvolve, and quality trim sequences using the <span class=
 <td style="text-align: left;"><code v-pre>--deduplicate</code></td>
 <td style="text-align: center;"><code v-pre>-d</code></td>
 <td style="text-align: center;"></td>
-<td style="text-align: left;">Identify and remove PCR duplicates <span class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-gray-600 dark:text-dark-600 bg-gray-200 h-6 px-2 text-xs rounded-md">
-    <span>recommended</span>
-</span></td>
+<td style="text-align: left;">Identify and remove PCR duplicates</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code v-pre>--extra-params</code></td>
@@ -454,15 +452,28 @@ remove duplicates, deconvolve, and quality trim sequences using the <span class=
 </div>
 <p>By default, this workflow will only quality-trim the sequences. You can also opt-in to:</p>
 <ul>
-<li><span class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-gray-600 dark:text-dark-600 bg-gray-200 h-6 px-2 text-xs rounded-md">
-    <span>recommended</span>
-</span> find and remove sequencing adapters</li>
-<li><span class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-gray-600 dark:text-dark-600 bg-gray-200 h-6 px-2 text-xs rounded-md">
-    <span>recommended</span>
-</span> find and remove PCR duplicates</li>
+<li>find and remove optical (PCR) duplicates</li>
 <li>resolve situations where reads from different molecules have the same barcode (see <a href="../deconvolve/" class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-blue-600 bg-blue-100 border border-blue-100 hover:border-blue-300 dark:hover:bg-blue-200 transition-colors duration-200 ease-out h-6 px-2 text-xs rounded-full">
     <span>deconvolve</span>
 </a>)</li>
+<li>find and remove sequencing adapters <span class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-gray-600 dark:text-dark-600 bg-gray-200 h-6 px-2 text-xs rounded-md">
+    <span>recommended</span>
+</span>
+<ul>
+<li>accepts <code v-pre>auto</code> for automatic adapter detection and removal</li>
+<li>accepts a FASTA file of adapter sequences
+<div class="codeblock-wrapper"><doc-codeblock>
+<div class="codeblock-title">example FASTA file of adapters</div>
+<pre class="language-none"><code v-pre class="language-none">&gt;Illumina TruSeq Adapter Read 1
+AGATCGGAAGAGCACACGTCTGAACTCCAGTCA
+&gt;Illumina TruSeq Adapter Read 2
+AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT
+&gt;polyA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA</code></pre>
+</doc-codeblock></div>
+</li>
+</ul>
+</li>
 </ul>
 <hr>
 <doc-anchor-target id="qc-workflow">
