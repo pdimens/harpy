@@ -25,7 +25,7 @@ harpy qc OPTIONS... INPUTS...
 ```
 
 ```bash example
-harpy qc --threads 20 Sequences_Raw/ 
+harpy qc --threads 20 -a auto Sequences_Raw/ 
 ```
 
 ## :icon-terminal: Running Options
@@ -37,16 +37,26 @@ In addition to the [!badge variant="info" corners="pill" text="common runtime op
 | `INPUTS`              |            |             | [!badge variant="info" text="required"] Files or directories containing [input FASTQ files](/commonoptions.md#input-arguments) |
 | `--deconvolve`        |    `-c`    |             | Resolve barcode clashes between reads from different molecules                                                                 |
 | `--deconvolve-params` |    `-p`    | `21,40,3,0` | Accepts the [QuickDeconvolution parameters](/Workflows/deconvolve.md/#running-options) for `k`,`w`,`d`,`a`, in that order      |
-| `--deduplicate`       |    `-d`    |             | Identify and remove PCR duplicates [!badge variant="secondary" text="recommended"]                                             |
+| `--deduplicate`       |    `-d`    |             | Identify and remove PCR duplicates                                             |
 | `--extra-params`      |    `-x`    |             | Additional fastp arguments, in quotes                                                                                          |
 | `--min-length`        |    `-n`    |    `30`     | Discard reads shorter than this length                                                                                         |
 | `--max-length`        |    `-m`    |    `150`    | Maximum length to trim sequences down to                                                                                       |
 | `--trim-adapters`     |    `-a`    |             | Detect and remove adapter sequences  [!badge variant="secondary" text="recommended"]                                           |
 
 By default, this workflow will only quality-trim the sequences. You can also opt-in to:
-- [!badge variant="secondary" text="recommended"] find and remove sequencing adapters
-- [!badge variant="secondary" text="recommended"] find and remove PCR duplicates 
+- find and remove optical (PCR) duplicates
 - resolve situations where reads from different molecules have the same barcode (see [!badge corners="pill" text="deconvolve"](deconvolve.md)) 
+- find and remove sequencing adapters [!badge variant="secondary" text="recommended"]
+  - accepts `auto` for automatic adapter detection and removal
+  - accepts a FASTA file of adapter sequences
+    ``` example FASTA file of adapters
+    >Illumina TruSeq Adapter Read 1
+    AGATCGGAAGAGCACACGTCTGAACTCCAGTCA
+    >Illumina TruSeq Adapter Read 2
+    AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT
+    >polyA
+    AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+    ```
 
 ---
 ## :icon-git-pull-request: QC Workflow
