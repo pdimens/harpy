@@ -232,7 +232,7 @@ jobs:
         run: harpy qc -x "--low_complexity_filter" --quiet test/fastq
       - name: harpy qc all options
         shell: micromamba-shell {0}
-        run: harpy qc -a -d -c 21,40,3,0 --quiet test/fastq
+        run: harpy qc -a auto -d -c 21,40,3,0 --quiet test/fastq
   deconvolve:
     needs: [changes, pkgbuild]
     if: ${{ needs.changes.outputs.deconvolve == 'true' && needs.pkgbuild.result == 'success' }}
