@@ -19,7 +19,7 @@ envdir       = os.path.join(os.getcwd(), outdir, "workflow", "envs")
 min_len 	 = config["min_len"]
 max_len 	 = config["max_len"]
 extra 	     = config.get("extra", "") 
-trimadapters = config["trim_adapters"]
+trim_adapters = config.get("trim_adapters", None)
 dedup        = config["deduplicate"]
 deconvolve   = config.get("deconvolve", False)
 if deconvolve:
@@ -30,6 +30,10 @@ if deconvolve:
 skip_reports  = config["reports"]["skip"]
 bn_r = r"([_\.][12]|[_\.][FR]|[_\.]R[12](?:\_00[0-9])*)?\.((fastq|fq)(\.gz)?)$"
 samplenames = {re.sub(bn_r, "", os.path.basename(i), flags = re.IGNORECASE) for i in fqlist}
+if trim_adapters:
+    trim_arg = "--detect_adapter_for_pe" if trim_adapters == "auto" else f"--adapter_fasta {trim_adapters}"
+else:
+    trim_arg = "--disable_adapter_trimming"
 
 def get_fq1(wildcards):
     # returns a list of fastq files for read 1 based on *wildcards.sample* e.g.
@@ -56,7 +60,7 @@ if not deconvolve:
         params:
             minlen = f"--length_required {min_len}",
             maxlen = f"--max_len1 {max_len}",
-            trim_adapters = "--detect_adapter_for_pe" if trimadapters else "--disable_adapter_trimming" ,
+            trim_adapters = trim_arg,
             dedup = "-D" if dedup else "",
             extra = extra
         threads:
@@ -81,7 +85,7 @@ else:
         params:
             minlen = f"--length_required {min_len}",
             maxlen = f"--max_len1 {max_len}",
-            trim_adapters = "--detect_adapter_for_pe" if trimadapters else "--disable_adapter_trimming" ,
+            trim_adapters = trim_arg,
             dedup = "-D" if dedup else "",
             extra = extra
         threads:
@@ -177,7 +181,7 @@ rule workflow_summary:
     params:
         minlen = f"--length_required {min_len}",
         maxlen = f"--max_len1 {max_len}",
-        trim_adapters = "--detect_adapter_for_pe" if trimadapters else "--disable_adapter_trimming" ,
+        trim_adapters = trim_arg,
         dedup = "-D" if dedup else "",
         extra = extra
     run:

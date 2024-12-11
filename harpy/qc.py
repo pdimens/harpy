@@ -12,6 +12,7 @@ from ._misc import fetch_report, fetch_rule, snakemake_log
 from ._cli_types_generic import HPCProfile, IntList, SnakemakeParams
 from ._cli_types_params import FastpParams
 from ._parsers import parse_fastq_inputs
+from ._validations import check_fasta
 
 docstring = {
     "harpy qc": [
@@ -34,7 +35,7 @@ docstring = {
 @click.option('-n', '--min-length', default = 30, show_default = True, type=int, help = 'Discard reads shorter than this length')
 @click.option('-o', '--output-dir', type = click.Path(exists = False), default = "QC", show_default=True,  help = 'Output directory name')
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(min = 4, max_open = True), help = 'Number of threads to use')
-@click.option('-a', '--trim-adapters', is_flag = True, default = False, help = 'Detect and trim adapters')
+@click.option('-a', '--trim-adapters', type = str, help = 'Detect and trim adapters')
 @click.option('--conda',  is_flag = True, default = False, help = 'Use conda/mamba instead of a container')
 @click.option('--setup-only',  is_flag = True, hidden = True, show_default = True, default = False, help = 'Setup the workflow and exit')
 @click.option('--hpc',  type = HPCProfile(), help = 'Directory with HPC submission `config.yaml` file')
@@ -49,11 +50,13 @@ def qc(inputs, output_dir, min_length, max_length, trim_adapters, deduplicate, d
     Provide the input fastq files and/or directories at the end of the command
     as individual files/folders, using shell wildcards (e.g. `data/acronotus*.fq`), or both.
     
-    The input reads will be quality trimmed using:
+    The input reads can be quality trimmed using:
     - a sliding window from front to tail
     - poly-G tail removal
-    - `-a` automatically detects and remove adapters
-    - `-d` finds and remove PCR duplicates
+    - `-a` remove adapters
+      - accepts `auto` to automatically detect adapters
+      - accepts a FASTA file of adapters to remove
+    - `-d` finds and removes optical PCR duplicates
     - `-c` resolves barcodes clashing between unrelated sequences
       - off by default, activated with [4 integers](https://github.com/RolandFaure/QuickDeconvolution?tab=readme-ov-file#usage), separated by commas
       - use `21,40,3,0` for QuickDeconvolution defaults (or adjust as needed)
@@ -71,6 +74,14 @@ def qc(inputs, output_dir, min_length, max_length, trim_adapters, deduplicate, d
         command += snakemake
 
     fqlist, sample_count = parse_fastq_inputs(inputs)
+    if trim_adapters:
+        if trim_adapters != "auto":
+            if not os.path.exists(trim_adapters):
+                raise click.BadParameter(f"--trim-adapters was given {trim_adapters}, but that file does not exist. Please check the spelling or verify the location of the file.")
+            if not os.access(trim_adapters, os.R_OK):
+                raise click.BadParameter(f"--trim-adapters was given {trim_adapters}, but that file does not have read permissions. Please modify the persmissions of the file to grant read access.")
+            check_fasta(trim_adapters)
+
     os.makedirs(workflowdir, exist_ok=True)
     fetch_rule(workflowdir, "qc.smk")
     fetch_report(workflowdir, "bx_count.Rmd")
