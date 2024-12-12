@@ -40,7 +40,9 @@ def downsample(input, invalid, output_dir, prefix, downsample, random_seed, setu
     Downsample data by barcode
 
     Downsamples FASTQ or BAM file(s) by barcode in the `BX` tag to keep all reads
-    from `-d` barcodes. Input can be:
+    from `-d` barcodes. The `BX:Z` tag must be the **last tag** in either the BAM
+    or FASTQ file(s). If the `BX` tag isn't terminal, use `bx_to_end.py` (provided
+    by Harpy) to move the tag to the end. Input can be:
     - one BAM file
     - two FASTQ files (R1 and R2 of a paired-end read set)
     
