@@ -31,9 +31,9 @@ if not os.path.exists(args.input):
 fq_in = args.input
 
 #bxz = re.compile('BX:Z:')
+#bxlast = re.compile('BX:Z:A[0-9][0-9]C[0-9][0-9]B[0-9][0-9]D[0-9][0-9]$')
 samspec = re.compile('[A-Z][A-Z]:[AifZHB]:')
 haplotag = re.compile('A[0-9][0-9]C[0-9][0-9]B[0-9][0-9]D[0-9][0-9]')
-bxlast = re.compile('BX:Z:A[0-9][0-9]C[0-9][0-9]B[0-9][0-9]D[0-9][0-9]$')
 
 with pysam.FastxFile(fq_in, persist=False) as fh:
     N_READS    = 0
