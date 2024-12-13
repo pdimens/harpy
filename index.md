@@ -45,31 +45,32 @@ You can call `harpy` without any arguments (or with `--help`) to print the docst
                                                                            
  Documentation: https://pdimens.github.io/harpy/                           
                                                                            
-╭─ Options ───────────────────────────────────────────────────────────────╮
-│ --version      Show the version and exit.                               │
-│ --help     -h  Show this message and exit.                              │
-╰─────────────────────────────────────────────────────────────────────────╯
-╭─ workflows ─────────────────────────────────────────────────────────────╮
-│ demultiplex  Demultiplex haplotagged FASTQ files                        │
-│ qc           Remove adapters and quality-control sequences              │
-│ align        Align sample sequences to a reference genome               │
-│ snp          Call SNPs and small indels on alignments                   │
-│ sv           Call large structural variants on alignments               │
-│ impute       Impute genotypes using variants and alignments             │
-│ phase        Phase SNPs into haplotypes                                 │
-│ simulate     Simulate variants or linked-reads from a genome            │
-│ assembly     Create an assembly from linked-reads                       │
-│ metassembly  Create a metassembly from linked-reads                     │
-╰─────────────────────────────────────────────────────────────────────────╯
-╭─ Other Commands ────────────────────────────────────────────────────────╮
-│ deconvolve    Resolve clashing barcodes from different molecules        │
-│ hpc           Profile templates for cluster job submissions             │
-│ imputeparams  Create a template imputation parameter file               │
-│ popgroup      Create a template grouping file for samples               │
-│ preflight     File format checks for haplotag data                      │
-│ resume        Resume a workflow from an existing Harpy directory        │
-│ view          View a workflow log, config, or snakefile                 │
-╰─────────────────────────────────────────────────────────────────────────╯
+╭─ Options ─────────────────────────────────────────────────────────────╮
+│ --version      Show the version and exit.                             │
+│ --help     -h  Show this message and exit.                            │
+╰───────────────────────────────────────────────────────────────────────╯
+╭─ workflows ───────────────────────────────────────────────────────────╮
+│ align        Align sample sequences to a reference genome             │
+│ assembly     Create an assembly from linked-reads                     │
+│ demultiplex  Demultiplex haplotagged FASTQ files                      │
+│ impute       Impute genotypes using variants and alignments           │
+│ metassembly  Create a metassembly from linked-reads                   │
+│ phase        Phase SNPs into haplotypes                               │
+│ qc           Remove adapters and quality-control sequences            │
+│ simulate     Simulate variants or linked-reads from a genome          │
+│ snp          Call SNPs and small indels on alignments                 │
+│ sv           Call large structural variants on alignments             │
+╰───────────────────────────────────────────────────────────────────────╯
+╭─ Other Commands ──────────────────────────────────────────────────────╮
+│ deconvolve    Resolve clashing barcodes from different molecules      │
+│ downsample    Downsample data by barcode                              │
+│ hpc           Profile templates for cluster job submissions           │
+│ imputeparams  Create a template imputation parameter file             │
+│ popgroup      Create a template grouping file for samples             │
+│ preflight     File format checks for haplotag data                    │
+│ resume        Resume a workflow from an existing Harpy directory      │
+│ view          View a workflow log, config, or snakefile               │
+╰───────────────────────────────────────────────────────────────────────╯
 ```
 
 ## Typical Linked-Read Workflows
