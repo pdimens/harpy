@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="turbo-root" content="/harpy">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="3.6.0.787419135354">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="3.6.0.787420693925">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 3.6.0">
@@ -34,11 +34,11 @@
     <script data-cfasync="false">(function () { var el = document.documentElement, m = localStorage.getItem("doc_theme"), wm = window.matchMedia; if (m === "dark" || (!m && wm && wm("(prefers-color-scheme: dark)").matches)) { el.classList.add("dark") } else { el.classList.remove("dark") } })();</script>
 
     <link href="static/favicon.png" rel="icon">
-    <link href="resources/css/retype.css?v=3.6.0.787419135354" rel="stylesheet">
+    <link href="resources/css/retype.css?v=3.6.0.787420693925" rel="stylesheet">
 
-    <script data-cfasync="false" src="resources/js/config.js?v=3.6.0.787419135354" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="resources/js/config.js?v=3.6.0.787420693925" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="resources/js/retype.js?v=3.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="resources/js/lunr.js?v=3.6.0.787419135354" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="resources/js/lunr.js?v=3.6.0.787420693925" data-turbo-eval="false" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="resources/js/mermaid.js?v=3.6.0" defer></script>
 </head>
 <body>
@@ -406,31 +406,32 @@ Great! Only want to call variants? Awesome! All modules are called by <code v-pr
                                                                            
  Documentation: https://pdimens.github.io/harpy/                           
                                                                            
-╭─ Options ───────────────────────────────────────────────────────────────╮
-│ --version      Show the version and exit.                               │
-│ --help     -h  Show this message and exit.                              │
-╰─────────────────────────────────────────────────────────────────────────╯
-╭─ workflows ─────────────────────────────────────────────────────────────╮
-│ demultiplex  Demultiplex haplotagged FASTQ files                        │
-│ qc           Remove adapters and quality-control sequences              │
-│ align        Align sample sequences to a reference genome               │
-│ snp          Call SNPs and small indels on alignments                   │
-│ sv           Call large structural variants on alignments               │
-│ impute       Impute genotypes using variants and alignments             │
-│ phase        Phase SNPs into haplotypes                                 │
-│ simulate     Simulate variants or linked-reads from a genome            │
-│ assembly     Create an assembly from linked-reads                       │
-│ metassembly  Create a metassembly from linked-reads                     │
-╰─────────────────────────────────────────────────────────────────────────╯
-╭─ Other Commands ────────────────────────────────────────────────────────╮
-│ deconvolve    Resolve clashing barcodes from different molecules        │
-│ hpc           Profile templates for cluster job submissions             │
-│ imputeparams  Create a template imputation parameter file               │
-│ popgroup      Create a template grouping file for samples               │
-│ preflight     File format checks for haplotag data                      │
-│ resume        Resume a workflow from an existing Harpy directory        │
-│ view          View a workflow log, config, or snakefile                 │
-╰─────────────────────────────────────────────────────────────────────────╯</code></pre>
+╭─ Options ─────────────────────────────────────────────────────────────╮
+│ --version      Show the version and exit.                             │
+│ --help     -h  Show this message and exit.                            │
+╰───────────────────────────────────────────────────────────────────────╯
+╭─ workflows ───────────────────────────────────────────────────────────╮
+│ align        Align sample sequences to a reference genome             │
+│ assembly     Create an assembly from linked-reads                     │
+│ demultiplex  Demultiplex haplotagged FASTQ files                      │
+│ impute       Impute genotypes using variants and alignments           │
+│ metassembly  Create a metassembly from linked-reads                   │
+│ phase        Phase SNPs into haplotypes                               │
+│ qc           Remove adapters and quality-control sequences            │
+│ simulate     Simulate variants or linked-reads from a genome          │
+│ snp          Call SNPs and small indels on alignments                 │
+│ sv           Call large structural variants on alignments             │
+╰───────────────────────────────────────────────────────────────────────╯
+╭─ Other Commands ──────────────────────────────────────────────────────╮
+│ deconvolve    Resolve clashing barcodes from different molecules      │
+│ downsample    Downsample data by barcode                              │
+│ hpc           Profile templates for cluster job submissions           │
+│ imputeparams  Create a template imputation parameter file             │
+│ popgroup      Create a template grouping file for samples             │
+│ preflight     File format checks for haplotag data                    │
+│ resume        Resume a workflow from an existing Harpy directory      │
+│ view          View a workflow log, config, or snakefile               │
+╰───────────────────────────────────────────────────────────────────────╯</code></pre>
 </doc-codeblock></div>
 <doc-anchor-target id="typical-linked-read-workflows">
     <h2>
