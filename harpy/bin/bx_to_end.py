@@ -10,7 +10,7 @@ import pysam
 parser = argparse.ArgumentParser(
     prog = 'bx_to_end.py',
     description = "Parses a FASTQ or BAM file to move the BX:Z tag to the end of the record.",
-    usage = "bx_to_end.py file.[fq|bam]",
+    usage = "bx_to_end.py file.[fq|bam] > output.[fq.gz|bam]",
     exit_on_error = False
     )
 
