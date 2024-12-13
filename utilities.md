@@ -36,6 +36,15 @@ Metrics include (per molecule):
 - molecule coverage (%) based on aligned bases
 - molecule coverage (%) based on total inferred insert length
 
+### bx_to_end.py
+```bash
+bx_to_end.py input.[fq|bam] > output.[fq.gz|bam]
+```
+Parses the records of a FASTQ or BAM file and moves the `BX:Z` tag, if present, to
+the end of the record, which makes the data play nice with LRez/LEVIATHAN. During 
+alignment, Harpy will automatically move the `BX:Z` tag to the end of the alignment
+record, so that will **not** require manual intervention.
+
 ### check_bam.py
 ```bash
 check_bam.py input.bam > output.txt

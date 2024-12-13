@@ -7,21 +7,19 @@ order: 10
 
 # :icon-fold-down: Downsample data by barcode
 
-===  :icon-checklist: You will need one of either
-- one alignment file [!badge variant="success" text=".bam"] [!badge variant="success" text=".sam"] [!badge variant="secondary" text="case insensitive"]
-- one set of paired-end reads in FASTQ format [!badge variant="success" text=".fq"] [!badge variant="success" text=".fastq"] [!badge variant="secondary" text="gzip recommended"] [!badge variant="secondary" text="case insensitive"]
+===  :icon-checklist: You will need
+- One of either:
+  - one alignment file [!badge variant="success" text=".bam"] [!badge variant="success" text=".sam"] [!badge variant="secondary" text="case insensitive"]
+  - one set of paired-end reads in FASTQ format [!badge variant="success" text=".fq"] [!badge variant="success" text=".fastq"] [!badge variant="secondary" text="gzip recommended"] [!badge variant="secondary" text="case insensitive"]
+- Barcodes in the `BX:Z` SAM tag for both BAM and FASTQ inputs
+  - See [Section 1 of the SAM Spec here](https://samtools.github.io/hts-specs/SAMtags.pdf) for details
+  - `BX:Z` tags **must be the last tag** in the FASTQ/BAM record
+    - use [bx_to_end.py](/utilities.md#bx_to_endpy) to move the BX tags to the ends, if needed
 ===
 
 While downsampling (subsampling) FASTQ and BAM files is relatively simple with tools such as `awk`, `samtools`, `seqtk`, `seqkit`, etc.,
 [!badge corners="pill" text="downsample"] allows you to downsample a BAM file (or paired-end FASTQ) _by barcodes_. That means you can
-keep all the reads associated with `d` number of barcodes. The `--invalid` proportion will determine what proportion of invalid barcodes appear in the barcode
-pool that gets subsampled, where `0` is none, `1` is all invalid barcodes, and a number in between is that proportion, e.g. `0.5` is half.
-Bear in mind that the barcode pool still gets subsampled, so the `--invalid` proportion doesn't necessarily reflect how many end up getting
-sampled, rather what proportion will be considered for sampling. 
-
-!!! Barcode tag
-Barcodes must be in the `BX:Z` SAM tag for both BAM and FASTQ inputs. See [Section 1 of the SAM Spec here](https://samtools.github.io/hts-specs/SAMtags.pdf).
-!!!
+keep all the reads associated with `d` number of barcodes.
 
 ```bash usage
 harpy downsample OPTIONS... INPUT(S)...
@@ -47,6 +45,15 @@ module is configured using the command-line arguments below.
 | `--invalid`     |    `-i`    |      `1`      | Proportion of barcodes to sample                                                                                                  |
 | `--prefix`      |    `-p`    | `downsampled` | Prefix for output files                                                                                                           |
 | `--random-seed` |            |               | Random seed for sampling [!badge variant="secondary" text="optional"]                                                             |
+
+## invalid barcodes
+The `--invalid` options determines what proportion of invalid barcodes appear in the barcode
+pool. Bear in mind that the barcode pool still gets subsampled, so the `--invalid` proportion
+doesn't necessarily reflect how many end up getting sampled, rather what proportion will be
+considered for sampling. The proportions equate to:
+- `0`: invalid barcodes are skipped
+- `1`: all invalid barcodes appear in the barcode pool that gets subsampled
+- `0`<`i`<`1`: that proportion of barcodes appear in the barcode pool that gets subsampled
 
 ----
 ## :icon-git-pull-request: Downsample Workflow
