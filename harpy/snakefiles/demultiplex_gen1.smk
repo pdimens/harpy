@@ -67,7 +67,7 @@ rule barcode_segments:
     container:
         None
     shell:
-        "haplotag_acbd.py {params}"
+        "haplotag_barcodes.py {params}"
 
 rule demultiplex_barcodes:
     input:
