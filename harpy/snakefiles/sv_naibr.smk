@@ -92,9 +92,9 @@ rule call_variants:
         bai   = get_align_index,
         conf  = outdir + "/workflow/input/{sample}.naibr"
     output:
-        bedpe = outdir + "/{sample}/{sample}.bedpe",
-        refmt = outdir + "/{sample}/{sample}.reformat.bedpe",
-        vcf   = outdir + "/{sample}/{sample}.vcf"
+        bedpe = temp(outdir + "/{sample}/{sample}.bedpe"),
+        refmt = temp(outdir + "/{sample}/{sample}.reformat.bedpe"),
+        vcf   = temp(outdir + "/{sample}/{sample}.vcf")
     log:
         outdir + "/logs/naibr/{sample}.naibr.log"
     threads:
@@ -114,16 +114,13 @@ rule infer_variants:
         refmt = outdir + "/IGV/{sample}.reformat.bedpe",
         fail  = outdir + "/bedpe/qc_fail/{sample}.fail.bedpe",
         vcf   = outdir + "/vcf/{sample}.vcf" 
-    params:
-        outdir = lambda wc: outdir + "/" + wc.get("sample")
     container:
         None
     shell:
         """
         infer_sv.py {input.bedpe} -f {output.fail} > {output.bedpe}
-        mv {input.refmt} {output.refmt} &&
-        mv {input.vcf} {output.vcf} &&
-        rm -rf {params.outdir}
+        cp {input.refmt} {output.refmt}
+        cp {input.vcf} {output.vcf}
         """
 
 rule aggregate_variants:

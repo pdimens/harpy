@@ -172,6 +172,7 @@ rule call_variants:
         "LEVIATHAN -b {input.bam} -i {input.bc_idx} {params} -g {input.genome} -o {output.vcf} -t {threads} --candidates {output.candidates} 2> {log.runlog}"
 
 rule sort_variants:
+    priority: 100
     input:
         outdir + "/vcf/{population}.vcf"
     output:
