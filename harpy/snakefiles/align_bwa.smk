@@ -147,6 +147,7 @@ rule index_duplicates:
         "samtools index {input}"
 
 rule assign_molecules:
+    priority: 100
     input:
         bam = outdir + "/samples/{sample}/{sample}.markdup.bam",
         bai = outdir + "/samples/{sample}/{sample}.markdup.bam.bai"

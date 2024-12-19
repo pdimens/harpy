@@ -246,9 +246,9 @@ rule call_variants:
         bai   = outdir + "/workflow/input/{population}.bam.bai",
         conf  = outdir + "/workflow/config/{population}.naibr"
     output:
-        bedpe = outdir + "/{population}/{population}.bedpe",
-        refmt = outdir + "/{population}/{population}.reformat.bedpe",
-        vcf   = outdir + "/{population}/{population}.vcf"
+        bedpe = temp(outdir + "/{population}/{population}.bedpe"),
+        refmt = temp(outdir + "/{population}/{population}.reformat.bedpe"),
+        vcf   = temp(outdir + "/{population}/{population}.vcf")
     log:
         outdir + "/logs/naibr/{population}.naibr.log"
     threads:
@@ -259,6 +259,7 @@ rule call_variants:
         "naibr {input.conf} > {log} 2>&1"
 
 rule infer_variants:
+    priority: 100
     input:
         bedpe = outdir + "/{population}/{population}.bedpe",
         refmt = outdir + "/{population}/{population}.reformat.bedpe",
@@ -268,16 +269,13 @@ rule infer_variants:
         refmt = outdir + "/IGV/{population}.reformat.bedpe",
         fail  = outdir + "/bedpe/qc_fail/{population}.fail.bedpe",
         vcf   = outdir + "/vcf/{population}.vcf" 
-    params:
-        outdir = lambda wc: outdir + "/" + wc.get("population")
     container:
         None
     shell:
         """
         infer_sv.py {input.bedpe} -f {output.fail} > {output.bedpe}
-        mv {input.refmt} {output.refmt} &&
-        mv {input.vcf} {output.vcf} &&
-        rm -rf {params.outdir}
+        cp {input.refmt} {output.refmt}
+        cp {input.vcf} {output.vcf}
         """
 
 rule aggregate_variants:

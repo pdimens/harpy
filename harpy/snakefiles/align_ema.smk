@@ -227,6 +227,7 @@ rule index_duplicates:
         "samtools index {input}"
 
 rule concat_alignments:
+    priority: 100
     input:
         aln_bc   = outdir + "/ema_align/{sample}.bc.bam",
         idx_bc   = outdir + "/ema_align/{sample}.bc.bam.bai",

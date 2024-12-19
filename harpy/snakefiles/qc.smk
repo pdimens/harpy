@@ -47,6 +47,7 @@ def get_fq2(wildcards):
 
 if not deconvolve:
     rule fastp:
+        priority: 100
         input:
             fw   = get_fq1,
             rv   = get_fq2
@@ -73,6 +74,7 @@ if not deconvolve:
             """
 else:
     rule fastp:
+        priority: 100
         input:
             fw   = get_fq1,
             rv   = get_fq2

@@ -196,6 +196,7 @@ use rule compress_phaseblock as compress_vcf with:
         outdir + "/workflow/input/gzvcf/{sample}.hom.vcf.gz"
 
 rule merge_het_hom:
+    priority: 100
     input:
         phase = outdir + "/phase_blocks/{sample}.phased.vcf.gz",
         orig  = outdir + "/workflow/input/gzvcf/{sample}.hom.vcf.gz"

@@ -87,6 +87,7 @@ rule demultiplex_barcodes:
         """
 
 rule demultiplex_samples:
+    priority: 100
     input:
         outdir + "/demux_R{FR}_001.fastq.gz"
     output:
