@@ -38,7 +38,7 @@ demux: &demux
   - 'harpy/demultiplex.py'
   - 'harpy/snakefiles/demultiplex**.smk'
   - '**demuxGen1'
-  - 'haplotag_barcodes.py'
+  - 'haplotag_acbd.py'
   - 'test/data/demux/**'
 qc: &qc
   - *common
