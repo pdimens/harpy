@@ -150,6 +150,7 @@ rule concat_list:
             _ = fout.write("\n".join(input.bcf))
 
 rule merge_vcf:
+    priority: 100
     input:
         files = outdir + "/{paramset}/bcf.files",
         idx   = collect(outdir + "/{{paramset}}/contigs/{contig}.vcf.gz.tbi", contig = contigs)
