@@ -99,7 +99,7 @@ emptyfiles <- character()
 sv <- data.frame(matrix(ncol=12,nrow=0, dimnames=list(NULL, c("Population", "Chr1", "Break1", "Chr2", "Break2", "SplitMolecules", "DiscordantReads", "Orientation", "Haplotype", "Score", "PassFilter", "SV"))))
 for(i in infiles){
   .df <- tryCatch(readvariants(i), error = function(e){return(0)})
-  if(length(.df)==1){
+  if(nrow(.df)==0){
       emptyfiles <- c(emptyfiles, i)
   } else {
     sv <- rbind(sv, .df)

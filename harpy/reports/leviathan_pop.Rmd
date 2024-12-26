@@ -80,8 +80,8 @@ emptyfiles <- character()
 sv <- data.frame(matrix(ncol=8,nrow=0, dimnames=list(NULL, c("population",	"contig",	"position_start",	"position_end",	"length",	"type",	"n_barcodes",	"n_pairs"))))
 for(i in statsfiles){
   .df <- tryCatch(readvariants(i), error = function(e){return(0)})
-  if(length(.df)==1){
-      emptyfiles <- c(emptyfiles, i)
+  if(nrow(.df)==0){
+    emptyfiles <- c(emptyfiles, i)
   } else {
     sv <- rbind(sv, .df)
   }

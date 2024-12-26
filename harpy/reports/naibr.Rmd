@@ -36,17 +36,16 @@ samplename <- gsub(".bedpe", "", basename(infile))
 tryCatch(
   expr = {
     variants <- read.table(infile, header = T) 
+    if (nrow(variants) == 0) {
+      cat(paste0("There are no variants in the file ", "`", infile, "`"))
+      knitr::knit_exit()
+    }
   },
   error = function(e){ 
     cat(paste0("There are no variants in the file ", "`", infile, "`"))
     knitr::knit_exit()
   }
 )
-
-if (nrow(variants) == 0) {
-  cat(paste0("There are no variants in the file ", "`", infile, "`"))
-  knitr::knit_exit()
-}
 ```
 
 ```{r package_imports}
