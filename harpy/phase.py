@@ -7,7 +7,7 @@ from rich import box
 from rich.table import Table
 import rich_click as click
 from ._conda import create_conda_recipes
-from ._launch import launch_snakemake
+from ._launch import launch_snakemake, SNAKEMAKE_CMD
 from ._misc import fetch_rule, fetch_report, snakemake_log
 from ._cli_types_generic import ContigList, HPCProfile, InputFile, SnakemakeParams
 from ._cli_types_params import HapCutParams
@@ -61,12 +61,12 @@ def phase(inputs, output_dir, vcf, threads, molecule_distance, prune_threshold, 
     workflowdir = os.path.join(output_dir, 'workflow')
     sdm = "conda" if conda else "conda apptainer"
     command = f'snakemake --rerun-incomplete --show-failed-logs --rerun-triggers input mtime params --nolock --software-deployment-method {sdm} --conda-prefix ./.snakemake/conda --cores {threads} --directory . '
-    command += f"--snakefile {workflowdir}/phase.smk "
-    command += f"--configfile {workflowdir}/config.yaml "
+    command += f" --snakefile {workflowdir}/phase.smk"
+    command += f" --configfile {workflowdir}/config.yaml"
     if hpc:
-        command += f"--workflow-profile {hpc} "
+        command += f" --workflow-profile {hpc}"
     if snakemake:
-        command += snakemake
+        command += f" {snakemake}"
 
     os.makedirs(f"{workflowdir}/input", exist_ok= True)
     bamlist, n = parse_alignment_inputs(inputs)

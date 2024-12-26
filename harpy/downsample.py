@@ -9,7 +9,7 @@ from pathlib import Path
 from rich.table import Table
 import rich_click as click
 from ._cli_types_generic import SnakemakeParams
-from ._launch import launch_snakemake
+from ._launch import launch_snakemake, SNAKEMAKE_CMD
 from ._misc import fetch_rule, snakemake_log
 
 docstring = {
@@ -68,10 +68,10 @@ def downsample(input, invalid, output_dir, prefix, downsample, random_seed, setu
     output_dir = output_dir.rstrip("/")
     workflowdir = os.path.join(output_dir, 'workflow')
     command = f'snakemake --rerun-incomplete --show-failed-logs --rerun-triggers input mtime params --nolock --cores {threads} --directory . '
-    command += f"--snakefile {workflowdir}/{workflow}.smk "
-    command += f"--configfile {workflowdir}/config.yaml "
+    command += f" --snakefile {workflowdir}/{workflow}.smk"
+    command += f" --configfile {workflowdir}/config.yaml"
     if snakemake:
-        command += snakemake
+        command += f" {snakemake}"
 
     os.makedirs(workflowdir, exist_ok=True)
     os.makedirs(f"{output_dir}/logs/snakemake", exist_ok = True)

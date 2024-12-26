@@ -14,6 +14,7 @@ EXIT_CODE_SUCCESS = 0
 EXIT_CODE_GENERIC_ERROR = 1
 EXIT_CODE_CONDA_ERROR = 2
 EXIT_CODE_RUNTIME_ERROR = 3
+SNAKEMAKE_CMD = "snakemake --rerun-incomplete --show-failed-logs --rerun-triggers input mtime params --nolock --conda-prefix .conda --conda-cleanup-pkgs cache --directory ."
 
 def iserror(text):
     """logical check for erroring trigger words in snakemake output"""
@@ -27,6 +28,7 @@ def purge_empty_logs(target_dir):
     for logfile in glob.glob(f"{target_dir}/logs/**/*", recursive = True):
         if os.path.isdir(logfile) and not os.listdir(logfile):
             os.rmdir(logfile)
+
 
 def launch_snakemake(sm_args, workflow, starttext, outdir, sm_logfile, quiet, summaryfile = None):
     """launch snakemake with the given commands"""

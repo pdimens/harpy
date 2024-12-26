@@ -7,7 +7,7 @@ from rich import box
 from rich.table import Table
 import rich_click as click
 from ._conda import create_conda_recipes
-from ._launch import launch_snakemake
+from ._launch import launch_snakemake, SNAKEMAKE_CMD
 from ._misc import fetch_rule, snakemake_log
 from ._cli_types_generic import HPCProfile, KParam, SnakemakeParams
 from ._cli_types_params import SpadesParams
@@ -57,12 +57,12 @@ def metassembly(fastq_r1, fastq_r2, bx_tag, kmer_length, max_memory, ignore_bx, 
     workflowdir = os.path.join(output_dir, 'workflow')
     sdm = "conda" if conda else "conda apptainer"
     command = f'snakemake --rerun-incomplete --show-failed-logs --rerun-triggers input mtime params --nolock  --software-deployment-method {sdm} --conda-prefix .snakemake/conda --cores {threads} --directory . '
-    command += f"--snakefile {workflowdir}/metassembly.smk "
-    command += f"--configfile {workflowdir}/config.yaml "
+    command += f" --snakefile {workflowdir}/metassembly.smk"
+    command += f" --configfile {workflowdir}/config.yaml"
     if hpc:
-        command += f"--workflow-profile {hpc} "
+        command += f" --workflow-profile {hpc}"
     if snakemake:
-        command += snakemake
+        command += f" {snakemake}"
 
     validate_fastq_bx([fastq_r1, fastq_r2], threads, quiet)
     os.makedirs(workflowdir, exist_ok=True)

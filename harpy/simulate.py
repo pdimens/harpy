@@ -8,7 +8,7 @@ from rich.table import Table
 import rich_click as click
 from ._cli_types_generic import HPCProfile, InputFile, SnakemakeParams
 from ._conda import create_conda_recipes
-from ._launch import launch_snakemake
+from ._launch import launch_snakemake, SNAKEMAKE_CMD
 from ._misc import fetch_rule, fetch_script, snakemake_log
 from ._printing import print_error
 from ._validations import check_fasta, validate_barcodefile
@@ -156,12 +156,12 @@ def linkedreads(genome_hap1, genome_hap2, output_dir, outer_distance, mutation_r
     workflowdir = os.path.join(output_dir, 'workflow')
     sdm = "conda" if conda else "conda apptainer"
     command = f'snakemake --rerun-incomplete --show-failed-logs --rerun-triggers input mtime params --nolock  --software-deployment-method {sdm} --conda-prefix ./.snakemake/conda --cores {threads} --directory . '
-    command += f"--snakefile {workflowdir}/simulate_linkedreads.smk "
-    command += f"--configfile {workflowdir}/config.yaml "
+    command += f" --snakefile {workflowdir}/simulate_linkedreads.smk"
+    command += f" --configfile {workflowdir}/config.yaml"
     if hpc:
-        command += f"--workflow-profile {hpc} "
+        command += f" --workflow-profile {hpc}"
     if snakemake:
-        command += snakemake
+        command += f" {snakemake}"
 
     check_fasta(genome_hap1)
     check_fasta(genome_hap2)
@@ -264,12 +264,12 @@ def snpindel(genome, snp_vcf, indel_vcf, only_vcf, output_dir, prefix, snp_count
     workflowdir = os.path.join(output_dir, 'workflow')
     sdm = "conda" if conda else "conda apptainer"
     command = f'snakemake --rerun-incomplete --show-failed-logs --rerun-triggers input mtime params --nolock --software-deployment-method {sdm} --conda-prefix ./.snakemake/conda --cores 1 --directory . '
-    command += f"--snakefile {workflowdir}/simulate_snpindel.smk "
-    command += f"--configfile {workflowdir}/config.yaml "
+    command += f" --snakefile {workflowdir}/simulate_snpindel.smk"
+    command += f" --configfile {workflowdir}/config.yaml"
     if hpc:
-        command += f"--workflow-profile {hpc} "
+        command += f" --workflow-profile {hpc}"
     if snakemake:
-        command += snakemake
+        command += f" {snakemake}"
     start_text = Table(show_header=False,pad_edge=False, show_edge=False, padding = (0,0), box=box.SIMPLE)
     start_text.add_column("detail", justify="left", style="light_steel_blue", no_wrap=True)
     start_text.add_column(header="value", justify="left")
@@ -380,12 +380,12 @@ def inversion(genome, vcf, only_vcf, prefix, output_dir, count, min_size, max_si
     workflowdir = os.path.join(output_dir, 'workflow')
     sdm = "conda" if conda else "conda apptainer"
     command = f'snakemake --rerun-incomplete --show-failed-logs --rerun-triggers input mtime params --nolock --software-deployment-method {sdm} --conda-prefix ./.snakemake/conda --cores 1 --directory . '
-    command += f"--snakefile {workflowdir}/simulate_variants.smk "
-    command += f"--configfile {workflowdir}/config.yaml "
+    command += f" --snakefile {workflowdir}/simulate_variants.smk"
+    command += f" --configfile {workflowdir}/config.yaml"
     if hpc:
-        command += f"--workflow-profile {hpc} "
+        command += f" --workflow-profile {hpc}"
     if snakemake:
-        command += snakemake
+        command += f" {snakemake}"
 
     # instantiate workflow directory
     # move necessary files to workflow dir
@@ -496,12 +496,12 @@ def cnv(genome, output_dir, vcf, only_vcf, prefix, count, min_size, max_size, du
     workflowdir = os.path.join(output_dir, 'workflow')
     sdm = "conda" if conda else "conda apptainer"
     command = f'snakemake --rerun-incomplete --show-failed-logs --rerun-triggers input mtime params --nolock --software-deployment-method {sdm} --conda-prefix ./.snakemake/conda --cores 1 --directory . '
-    command += f"--snakefile {workflowdir}/simulate_variants.smk "
-    command += f"--configfile {workflowdir}/config.yaml "
+    command += f" --snakefile {workflowdir}/simulate_variants.smk"
+    command += f" --configfile {workflowdir}/config.yaml"
     if hpc:
-        command += f"--workflow-profile {hpc} "
+        command += f" --workflow-profile {hpc}"
     if snakemake:
-        command += snakemake
+        command += f" {snakemake}"
 
     # instantiate workflow directory
     # move necessary files to workflow dir
@@ -602,12 +602,12 @@ def translocation(genome, output_dir, prefix, vcf, only_vcf, count, centromeres,
     workflowdir = os.path.join(output_dir, 'workflow')
     sdm = "conda" if conda else "conda apptainer"
     command = f'snakemake --rerun-incomplete --show-failed-logs --rerun-triggers input mtime params --nolock --software-deployment-method {sdm} --conda-prefix ./.snakemake/conda --cores 1 --directory . '
-    command += f"--snakefile {workflowdir}/simulate_variants.smk "
-    command += f"--configfile {workflowdir}/config.yaml "
+    command += f" --snakefile {workflowdir}/simulate_variants.smk"
+    command += f" --configfile {workflowdir}/config.yaml"
     if hpc:
-        command += f"--workflow-profile {hpc} "
+        command += f" --workflow-profile {hpc}"
     if snakemake:
-        command += snakemake
+        command += f" {snakemake}"
 
     # instantiate workflow directory
     # move necessary files to workflow dir

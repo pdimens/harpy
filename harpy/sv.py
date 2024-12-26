@@ -10,7 +10,7 @@ import rich_click as click
 from ._cli_types_generic import ContigList, HPCProfile, InputFile, SnakemakeParams
 from ._cli_types_params import LeviathanParams, NaibrParams
 from ._conda import create_conda_recipes
-from ._launch import launch_snakemake
+from ._launch import launch_snakemake, SNAKEMAKE_CMD
 from ._misc import fetch_rule, fetch_report, snakemake_log
 from ._parsers import parse_alignment_inputs
 from ._validations import check_fasta, check_phase_vcf
@@ -85,12 +85,12 @@ def leviathan(inputs, output_dir, genome, min_sv, min_barcodes, iterations, thre
     sdm = "conda" if conda else "conda apptainer"
     vcaller = "leviathan" if populations is None else "leviathan_pop"
     command = f'snakemake --rerun-incomplete --show-failed-logs --rerun-triggers input mtime params --nolock --software-deployment-method {sdm} --conda-prefix ./.snakemake/conda --cores {threads} --directory . '
-    command += f"--snakefile {workflowdir}/sv_{vcaller}.smk "
-    command += f"--configfile {workflowdir}/config.yaml "
+    command += f" --snakefile {workflowdir}/sv_{vcaller}.smk"
+    command += f" --configfile {workflowdir}/config.yaml"
     if hpc:
-        command += f"--workflow-profile {hpc} "
+        command += f" --workflow-profile {hpc}"
     if snakemake:
-        command += snakemake
+        command += f" {snakemake}"
 
     os.makedirs(f"{workflowdir}/", exist_ok= True)
     bamlist, n = parse_alignment_inputs(inputs)
@@ -185,12 +185,12 @@ def naibr(inputs, output_dir, genome, vcf, min_sv, min_barcodes, min_quality, th
     vcaller = "naibr" if populations is None else "naibr_pop"
     vcaller += "_phase" if vcf else ""
     command = f'snakemake --rerun-incomplete --show-failed-logs --rerun-triggers input mtime params --nolock --software-deployment-method {sdm} --conda-prefix ./.snakemake/conda --cores {threads} --directory . '
-    command += f"--snakefile {workflowdir}/sv_{vcaller}.smk "
-    command += f"--configfile {workflowdir}/config.yaml "
+    command += f" --snakefile {workflowdir}/sv_{vcaller}.smk"
+    command += f" --configfile {workflowdir}/config.yaml"
     if hpc:
-        command += f"--workflow-profile {hpc} "
+        command += f" --workflow-profile {hpc}"
     if snakemake:
-        command += snakemake
+        command += f" {snakemake}"
 
     os.makedirs(f"{workflowdir}/", exist_ok= True)
     bamlist, n = parse_alignment_inputs(inputs)

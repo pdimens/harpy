@@ -8,7 +8,7 @@ from rich.table import Table
 import rich_click as click
 from ._cli_types_generic import HPCProfile, SnakemakeParams
 from ._conda import create_conda_recipes
-from ._launch import launch_snakemake
+from ._launch import launch_snakemake, SNAKEMAKE_CMD
 from ._misc import fetch_rule, fetch_report, snakemake_log
 from ._parsers import parse_alignment_inputs, parse_fastq_inputs
 
@@ -62,18 +62,18 @@ def fastq(inputs, output_dir, threads, snakemake, quiet, hpc, conda, setup_only)
     output_dir = output_dir.rstrip("/")
     workflowdir = os.path.join(output_dir, 'workflow')
     sdm = "conda" if conda else "conda apptainer"
-    command = f'snakemake --rerun-incomplete --show-failed-logs --rerun-triggers input mtime params --nolock --software-deployment-method {sdm} --conda-prefix ./.snakemake/conda --cores {threads} --directory . '
-    command += f"--snakefile {workflowdir}/preflight_fastq.smk "
-    command += f"--configfile {workflowdir}/config.yaml "
+    command = f'{SNAKEMAKE_CMD} --software-deployment-method {sdm} --cores {threads}'
+    command += f" --snakefile {workflowdir}/preflight_fastq.smk"
+    command += f" --configfile {workflowdir}/config.yaml"
     if hpc:
-        command += f"--workflow-profile {hpc} "
+        command += f" --workflow-profile {hpc}"
     if snakemake:
-        command += snakemake
+        command += f" {snakemake}"
 
     os.makedirs(f"{workflowdir}/", exist_ok= True)
     fqlist, n = parse_fastq_inputs(inputs)
     fetch_rule(workflowdir, "preflight_fastq.smk")
-    fetch_report(workflowdir, "preflight_fastq.Rmd")
+    fetch_report(workflowdir, "preflight_fastq.qmd")
     os.makedirs(f"{output_dir}/logs/snakemake", exist_ok = True)
     sm_log = snakemake_log(output_dir, "preflight_fastq")
     conda_envs = ["r"]
@@ -124,13 +124,13 @@ def bam(inputs, output_dir, threads, snakemake, quiet, hpc, conda, setup_only):
     output_dir = output_dir.rstrip("/")
     workflowdir = os.path.join(output_dir, 'workflow')
     sdm = "conda" if conda else "conda apptainer"
-    command = f'snakemake --rerun-incomplete --show-failed-logs --rerun-triggers input mtime params --nolock --software-deployment-method {sdm} --conda-prefix ./.snakemake/conda --cores {threads} --directory . '
-    command += f"--snakefile {workflowdir}/preflight_bam.smk "
-    command += f"--configfile {workflowdir}/config.yaml "
+    command = f'{SNAKEMAKE_CMD} --software-deployment-method {sdm} --cores {threads}'
+    command += f" --snakefile {workflowdir}/preflight_bam.smk"
+    command += f" --configfile {workflowdir}/config.yaml"
     if hpc:
-        command += f"--workflow-profile {hpc} "
+        command += f" --workflow-profile {hpc}"
     if snakemake:
-        command += snakemake
+        command += f" {snakemake}"
 
     os.makedirs(f"{workflowdir}/", exist_ok= True)
     bamlist, n = parse_alignment_inputs(inputs)

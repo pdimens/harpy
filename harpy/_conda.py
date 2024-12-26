@@ -50,7 +50,7 @@ def create_conda_recipes(outdir: str, envs: list=None) -> None:
             "conda-forge::pandoc",
             "conda-forge::r-dt",
             "conda-forge::r-dplyr",
-            "conda-forge::r-flexdashboard",
+            "conda-forge::r-quarto",
             "conda-forge::r-ggplot2",
             "conda-forge::r-highcharter",
             "conda-forge::r-magrittr",
