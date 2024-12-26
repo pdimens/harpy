@@ -10,11 +10,11 @@ execute:
 embed-resources: true
 format: 
   dashboard:
-    theme: litera
+    theme:
+      light: materia
+      dark: slate
     scrolling: true
     logo: https://raw.githubusercontent.com/pdimens/harpy/docs/static/logo_report.png
-#    toc: true
-#    toc-expand: false
     nav-buttons:
       - icon: book-half
         href: https://pdimens.github.io/harpy
