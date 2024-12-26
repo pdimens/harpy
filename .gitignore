@@ -1,6 +1,7 @@
 .snakemake/
 .vscode/
 .condarc
+.conda
 .cache/
 hpc/
 QC/
