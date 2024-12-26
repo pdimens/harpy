@@ -73,17 +73,15 @@ rule create_report:
         html = f"{outdir}/filecheck.fastq.html",
         qmd = temp(f"{outdir}/filecheck.fastq.qmd")
     log:
-        quarto = f"{outdir}/logs/quarto.log",
-        #r = f"{outdir}/logs/report.log"
+        f"{outdir}/logs/report.log"
     conda:
         f"{envdir}/r.yaml"
     shell:
         """
         cp {input.qmd} {output.qmd}
-        #WD=$(pwd)
         INFILE=$(realpath {input.data})
 
-        quarto render {output.qmd} --log-format json-stream -P infile:$INFILE 2> {log}
+        quarto render {output.qmd} -P infile:$INFILE 2> {log}
         """
 
 rule workflow_summary:
