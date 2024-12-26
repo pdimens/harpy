@@ -67,15 +67,24 @@ rule concat_results:
 
 rule create_report:
     input:
-        outdir + "/filecheck.fastq.tsv"
+        data = f"{outdir}/filecheck.fastq.tsv",
+        qmd = f"{outdir}/workflow/report/preflight_fastq.qmd"
     output:
-        outdir + "/filecheck.fastq.html"
+        html = f"{outdir}/filecheck.fastq.html",
+        qmd = temp(f"{outdir}/filecheck.fastq.qmd")
     log:
-        logfile = outdir + "/logs/report.log"
+        quarto = f"{outdir}/logs/quarto.log",
+        #r = f"{outdir}/logs/report.log"
     conda:
         f"{envdir}/r.yaml"
-    script:
-        "report/preflight_fastq.Rmd"
+    shell:
+        """
+        cp {input.qmd} {output.qmd}
+        #WD=$(pwd)
+        INFILE=$(realpath {input.data})
+
+        quarto render {output.qmd} --log-format json-stream -P infile:$INFILE 2> {log}
+        """
 
 rule workflow_summary:
     default_target: True
