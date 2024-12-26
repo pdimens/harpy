@@ -21,7 +21,7 @@ def containerize():
 
     with open("Dockerfile", "w", encoding = "utf-8") as dockerfile:
         _module = subprocess.run(
-            'snakemake -s containerize.smk --containerize'.split(),
+            'snakemake -s containerize.smk --containerize --conda-prefix .conda --conda-cleanup-pkgs cache'.split(),
             stdout = dockerfile
         )
     os.remove("containerize.smk")
