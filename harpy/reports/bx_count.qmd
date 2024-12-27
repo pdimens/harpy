@@ -1,25 +1,29 @@
 ---
 title: "Haplotag QC Bardcode Summary"
-date: "`r format(Sys.time(), '%d %b, %Y at %H:%M')`"
-output:
-  flexdashboard::flex_dashboard:
-    theme: lumen
-    orientation: rows
-    vertical_layout: scroll
-    mathjax: NULL
-    logo: https://raw.githubusercontent.com/pdimens/harpy/docs/static/logo_report.png
-    favicon: "https://raw.githubusercontent.com/pdimens/harpy/docs/static/favicon_report.png"
-    navbar:
-      - { title : "Docs", icon: "fa-book", href: "https://pdimens.github.io/harpy/", align: right }
-      - { title : "Source", icon: "fa-github", href: "https://www.github.com/pdimens/harpy/", align: right }
+brand:
+  logo: 
+    medium: https://raw.githubusercontent.com/pdimens/harpy/docs/static/logo_navbar.png
+execute:
+    echo: false
+    warning: false
+embed-resources: true
+format: 
+  dashboard:
+    theme: materia
+    scrolling: true
+    expandable: false
+    logo: https://raw.githubusercontent.com/pdimens/harpy/docs/static/logo_navbar.png
+    nav-buttons:
+      - icon: book-half
+        href: https://pdimens.github.io/harpy
+      - icon: bug
+        href: https://github.com/pdimens/harpy/issues/new/choose
+      - icon: code-slash
+        href: https://github.com/pdimens/harpy
+params:
+  countdir: 'logs/bxcount'
 ---
-
-```{r setup}
-knitr::opts_chunk$set(echo = FALSE, warning = FALSE)
-logfile <- file(snakemake@log$logfile, open = "wt")
-sink(logfile)
-sink(logfile, type = "message")
-```
+`r format(Sys.time(), '🗓️ %d %B, %Y 🕔 %H:%M')`
 
 ```{r package_imports}
 using<-function(...) {
@@ -31,30 +35,32 @@ using<-function(...) {
         lapply(need,require,character.only=TRUE)
     }
 }
-using("flexdashboard","dplyr","tidyr","DT","highcharter","scales")
+using("dplyr","tidyr","DT","highcharter","scales")
 ```
+# Overview
+##
+<h2> General Per-Sample Haplotag Barcode Statistics </h2>
 
 This report details the counts of valid and invalid haplotag barcodes in the 
 sample read headers. The correct haplotag format is `BX:Z:AXXCXXBXXDXX`, where 
-there is a whitespace/tab before `BX:Z:` and `XX` are 2-digit numbers between
-`00` and `96`. A valid FASTQ read header would then look like:
+there is a tab before (and possible after) `BX:Z` and `XX` are 2-digit numbers
+between `00` and `96`. A valid FASTQ read header would then look like:
 
 ```         
 @A00814:267:HTMH3DRXX:2:1101:4580:1000 BX:Z:A02C01B11D46        RX:Z:GAAACGACCAACA+CGAACACGTTAGC   QX:Z:F,FFFFFFFFFFF+FF,FFF:FFFFFF
 ```
 
 Notably, only the sequence ID (`@...`) and `BX:Z:` tag are required. 
-In the example above, there are additional tags (`RX:Z:` and `QX:Z:`) 
+In the example above, there are additional tags (`RX:Z` and `QX:Z`) 
 which arent used by Harpy, but they conform to the 
 [SAM comment spec (section 1.5)](https://samtools.github.io/hts-specs/SAMv1.pdf) 
 of `TAG:TYPE:VALUE`. The takeaway is that the `BX:Z` tag can be anywhere\* in the 
 read header after the sequence ID as long as any tags after it conform to the 
 SAM spec `TAG:TYPE:VALUE`. 
 
-| \*The structural variant caller Levaithan requires the BX:Z: tag to be the final tag in an alignment record. Harpy automatically moves the `BX:Z:` tag to the end of the alignment record when using `harpy align`. |
+| \*The Levaithan structural variant caller requires the `BX:Z` tag to be the final tag in an alignment record, which `harpy align` does automatically |
 | :---:|
 
-## genstats {data-height=100}
 ```{r instantiate_df}
 BXstats <- data.frame(
   Sample = character(),
@@ -76,8 +82,10 @@ invalids <- data.frame(
 ```
 
 ```{r fill_df}
-#for (i in list.files("~/Documents/harpy/bananas/logs/bxcount/", ".count.log", full.names = TRUE)) {
-for (i in snakemake@input[["countlog"]]) {
+indir <- params$countdir
+#indir <- "/home/pdimens/Documents/harpy/QC/logs/bxcount"
+
+for (i in list.files(indir, ".count.log", full.names = TRUE)) {
   samplename <- gsub(".count.log", "", basename(i))
   s_df <- read.table(i, header = F)
   total <- s_df$V2[1]
@@ -118,32 +126,62 @@ for (i in snakemake@input[["countlog"]]) {
 }
 ```
 
-
-### filerow {.no-title}
-```{r valuebox_samples}
-valueBox(scales::comma(nrow(BXstats)), caption = "Samples", color = "success")
-```
-### mininv {.no-title}
-```{r valuebox_min_perc_valid}
-valueBox(min(BXstats$ValidPercent), caption = "Minimum % Valid", color = "info")
-```
-### maxinv {.no-title}
-```{r valuebox_max_perc_valid}
-valueBox(max(BXstats$ValidPercent), caption = "Maximum % Valid", color = "info")
+##
+```{r}
+#| content: valuebox
+#| title: "Samples"
+list(
+  icon = "files",
+  color = "light",
+  value = scales::comma(nrow(BXstats))
+)
 ```
 
-### minign {.no-title}
-```{r valuebox_min_absent}
+```{r}
+#| content: valuebox
+#| title: "Min % Valid"
+list(
+  icon = "check2-circle",
+  color = "#dde6d5",
+  value = min(BXstats$ValidPercent)
+)
+```
+
+```{r}
+#| content: valuebox
+#| title: "Max % Valid"
+list(
+  icon = "check2-circle",
+  color = "#dde6d5",
+  value = max(BXstats$ValidPercent)
+)
+```
+
+```{r}
+#| content: valuebox
+#| title: "Min BX Absent"
 absent <- BXstats$TotalReads-BXstats$TotalBarcodes
-valueBox(min(absent), caption = "Minimum Absent Barcodes", color = "info")
+list(
+  icon = "question-circle",
+  color = "#a3b899",
+  value = min(absent)
+)
 ```
-### maxign {.no-title}
-```{r valubox_max_absent}
-valueBox(max(absent), caption = "Maximum Absent Barcodes", color = "info")
+
+```{r}
+#| content: valuebox
+#| title: "Max BX Absent"
+list(
+  icon = "question-circle",
+  color = "#a3b899",
+  value = max(absent)
+)
 ```
+
 
 ## persamp
-### Persamp desc {.no-title}
+###
+::: {.card}
 <h3> General Per-Sample Haplotag Barcode Statistics </h3>
 
 Below is a table listing all the samples Harpy processed and their associated
@@ -151,7 +189,6 @@ haplotag barcode statistics as determined by the reads in the **forward read onl
 If for some reason `TotalBarcodes` equals `0`, then there may be an issue with
 the format of your FASTQ headers.
 
-## persamp viz
 ```{r per_sample_tables}
 plotdata <- BXstats %>%
   select(Sample, ValidBarcodes, InvalidBarcodes) %>% 
@@ -162,7 +199,6 @@ percdata <- BXstats %>%
   rename(Valid= ValidPercent, Invalid = InvalidPercent)
 ```
 
-### Table {.no-title}
 ```{r sample_bx_qual}
 DT::datatable(
   BXstats,
@@ -178,32 +214,17 @@ DT::datatable(
   fillContainer = T
 )
 ```
+:::
 
-
+# General Invalidations
 ## table desc
-### inv desc {.no-title}
-<h3> Percent Beadtag Segment Invalidations </h3>
+<h2> Percent Beadtag Segment Invalidations </h2>
 Below is information describing segment invalidations across all **forward reads**
 within samples. The term "segments" refers to the combinatorial `Axx`, `Bxx`, 
 `Cxx`, `Dxx` segments that make up a complete `AxxCxxBxxDxx` haplotag barcode.
 
-## segment dist desc
-### dist desc {.no-title}
-This plot shows the distribution of percent invalid beadtag segments
-across all samples. This should help you assess whether some segments have a 
-higher incidence of failure than others. The darker horizontal lines within each
-violin plot indicate the 25th, 50th (median), 75th percentiles in ascending order
-from the bottom of the plot. The grey point in each violin plot is the mean and
-the vertical grey lines emerging from it are the standard deviation. 
-
-### dist desc {.no-title}
-The table below details the number of invalid beadtag segments as a 
-percent of total beadtag barcodes within a sample.
-It's likely that percentages will have greater diagnostic value than the total counts
-because the number of reads and barcodes will vary between individual samples.
-These data are visualized in the scatterplot below this section.
-
-## Segment
+##
+###
 ```{r invalid_segment_processing}
 invalids_percent <- data.frame(
   Sample = as.factor(invalids$Sample),
@@ -216,7 +237,14 @@ invalids_long <- pivot_longer(invalids_percent, -1, names_to = "Segment", values
 invalids_long$Segment <- as.factor(paste0("segment " , invalids_long$Segment))
 ```
 
-### segment dist {.no-title}
+::: {.card}
+This plot shows the distribution of percent invalid beadtag segments
+across all samples. This should help you assess whether some segments have a 
+higher incidence of failure than others. The darker horizontal lines within each
+violin plot indicate the 25th, 50th (median), 75th percentiles in ascending order
+from the bottom of the plot. The grey point in each violin plot is the mean and
+the vertical grey lines emerging from it are the standard deviation. 
+
 ```{r invalid_segment_dist}
 inv_hist <- data.frame(Segment = character(), Bin = numeric(), Count = numeric())
 inv_breaks <- hist(invalids_long$Count, plot = F)
@@ -240,7 +268,15 @@ hchart(inv_hist, "areaspline", hcaes(x = Bin, y = Count, group = Segment), stack
 )
 ```
 
-### table per thousand {.no-title}
+:::
+
+###
+::: {.card}
+This table details the number of invalid beadtag segments as a 
+percent of total beadtag barcodes within a sample.
+It's likely that percentages will have greater diagnostic value than the total counts
+because the number of reads and barcodes will vary between individual samples.
+
 ```{r invalid_segment_table}
 DT::datatable(
   invalids_percent,
@@ -256,10 +292,12 @@ DT::datatable(
   fillContainer = T
 )
 ```
+:::
+
+# Per-Sample Invalidations
 ## Segment viz description
-### indiv desc {.no-title}
-<h3> Per-Sample Barcode and Segment Invalidations </h3>
-Below are three visualizations showing the occurrence of invalid haplotag barcodes.
+<h2> Per-Sample Barcode and Segment Invalidations </h2>
+These three visualizations show the occurrence of invalid haplotag barcodes.
 The plot on the left shows this as the count of valid vs. invalid barcodes 
 per individual, whereas the plot in the middle shows this in finer detail as
 the percent invalid beadtag segments per individual. The plot on the right shows
@@ -268,13 +306,10 @@ Together, these three graphs should help you assess if any individuals have an u
 high amount of barcode invalidations and if any particular beadtag segments appear to be more prone to
 failure than others.
 
-```{r}
-figheight <- 0.6 + (0.2 * nrow(invalids))
-```
+## validity plots
 
-## validity plots {data-height=pltheight}
-### count of valid barcodes {.no-title}
-```{r valid_plot, fig.height=figheight, out.width = '100%'}
+### {.flow}
+```{r valid_plot, out.width = '100%'}
 tb<-plotdata %>%
   pivot_longer(-Sample, names_to = "Barcode", values_to = "Count")
 
@@ -289,8 +324,9 @@ hchart(tb, "bar", hcaes(x = Sample, y = Count, group = Barcode), stacking = "nor
     buttons = list(contextButton = list(menuItems = c("downloadPNG", "downloadJPEG", "downloadPDF", "downloadSVG")))
   )
 ```
-### proportional valid barcodes {.no-title}
-```{r valid_proportion_plot, fig.height=figheight, out.width = '100%'}
+
+### {.flow}
+```{r valid_proportion_plot, out.width = '100%'}
 hchart(tb, "bar", hcaes(x = Sample, y = Count, group = Barcode), stacking = "percent") |>
   hc_colors(c("#707070", "#b88ace")) |>
   hc_title(text = "Valid vs Invalid Barcodes") |>
@@ -303,8 +339,8 @@ hchart(tb, "bar", hcaes(x = Sample, y = Count, group = Barcode), stacking = "per
 )
 ```
 
-### which haplotag barcode segments are invalid {.no-title}
-```{r invalid_segment_plot, fig.height=figheight, out.width = '100%'}
+### {.flow}
+```{r invalid_segment_plot, out.width = '100%'}
 highchart() |>
   hc_chart(inverted=TRUE) |>
   hc_add_series(data = invalids_long,  type = "scatter", hcaes(x = Sample, y = Count, group = Segment), marker = list(symbol = "circle")) |>

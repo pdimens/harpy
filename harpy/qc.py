@@ -65,7 +65,7 @@ def qc(inputs, output_dir, min_length, max_length, trim_adapters, deduplicate, d
     output_dir = output_dir.rstrip("/")
     workflowdir = os.path.join(output_dir, 'workflow')
     sdm = "conda" if conda else "conda apptainer"
-    command = f'snakemake --rerun-incomplete --show-failed-logs --rerun-triggers input mtime params --nolock  --software-deployment-method {sdm} --conda-prefix .snakemake/conda --cores {threads} --directory . '
+    command = f'{SNAKEMAKE_CMD} --software-deployment-method {sdm} --cores {threads}'
     command += f" --snakefile {workflowdir}/qc.smk"
     command += f" --configfile {workflowdir}/config.yaml"
     if hpc:
@@ -84,7 +84,7 @@ def qc(inputs, output_dir, min_length, max_length, trim_adapters, deduplicate, d
 
     os.makedirs(workflowdir, exist_ok=True)
     fetch_rule(workflowdir, "qc.smk")
-    fetch_report(workflowdir, "bx_count.Rmd")
+    fetch_report(workflowdir, "bx_count.qmd")
     os.makedirs(f"{output_dir}/logs/snakemake", exist_ok = True)
     sm_log = snakemake_log(output_dir, "qc")
     conda_envs = ["qc", "r"]

@@ -23,6 +23,7 @@ format:
 params:
   infile: 'test.tsv'
 ---
+_`r format(Sys.time(), '🗓️ %d %B, %Y 🕔 %H:%M')`_
 
 ```{r package_imports}
 using<-function(...) {
@@ -48,8 +49,6 @@ bxnotlast <- sum(data$bxNotLast > 0)
 ```
 # File Checks
 <h1> Preflight checks for BAM files </h1>
-
-_`r format(Sys.time(), '🗓️ %d %B, %Y 🕔 %H:%M')`_
 
 This report reflects the BAM files Harpy processed to identify obvious
 [formatting issues](#details) that may require your attention.
@@ -117,6 +116,8 @@ list(
 
 ## file stats
 ```{r resultstable}
+#| title: "File Stats"
+
 datatable(
   data,
   escape = F,

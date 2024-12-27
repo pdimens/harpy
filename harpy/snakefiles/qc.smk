@@ -148,15 +148,23 @@ rule check_barcodes:
 
 rule barcode_report:
     input: 
-        countlog = collect(outdir + "/logs/bxcount/{sample}.count.log", sample = samplenames)
+        data = collect(outdir + "/logs/bxcount/{sample}.count.log", sample = samplenames),
+        qmd = f"{outdir}/workflow/report/bx_count.qmd"
     output:
-        outdir + "/reports/barcode.summary.html"
+        report = f"{outdir}/reports/barcode.summary.html",
+        qmd = temp(f"{outdir}/reports/barcode.summary.qmd")
+    params:
+        f"{outdir}/logs/bxcount/"
     log:
         logfile = outdir + "/logs/barcode.report.log"
     conda:
         f"{envdir}/r.yaml"
-    script:
-        "report/bx_count.Rmd"
+    shell:
+        """
+        cp {input.qmd} {output.qmd}
+        INPATH=$(realpath {params})
+        quarto render {output.qmd} -P countdir:$INPATH 2> {log}
+        """
    
 rule qc_report:
     input: 

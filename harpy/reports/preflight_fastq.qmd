@@ -23,6 +23,7 @@ format:
 params:
   infile: 'test.tsv'
 ---
+`r format(Sys.time(), '🗓️ %d %B, %Y 🕔 %H:%M')`
 
 ```{r}
 using<-function(...) {
@@ -52,8 +53,6 @@ bxnotlast <- sum(data$bxNotLast > 0)
 ```
 # File Stats
 <h1> Preflight checks for FASTQ files </h1>
-
-_`r format(Sys.time(), '🗓️ %d %B, %Y 🕔 %H:%M')`_
 
 This report reflects the FASTQ files Harpy processed to identify obvious
 [formatting issues](#details) that may require your attention.
@@ -100,6 +99,8 @@ list(
 
 ## File Stats
 ```{r resultstable}
+#| title: "File Stats"
+
 datatable(
   data,
   escape = F,
