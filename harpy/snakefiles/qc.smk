@@ -156,14 +156,14 @@ rule barcode_report:
     params:
         f"{outdir}/logs/bxcount/"
     log:
-        logfile = outdir + "/logs/barcode.report.log"
+        outdir + "/logs/barcode.report.log"
     conda:
         f"{envdir}/r.yaml"
     shell:
         """
         cp {input.qmd} {output.qmd}
         INPATH=$(realpath {params})
-        quarto render {output.qmd} -P countdir:$INPATH 2> {log}
+        quarto render {output.qmd} -P indir:$INPATH 2> {log}
         """
    
 rule qc_report:

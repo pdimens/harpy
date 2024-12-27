@@ -101,7 +101,7 @@ rule align:
         unmapped = "" if keep_unmapped else "-F 4",
         extra = extra
     threads:
-        max(5, workflow.cores - 1)
+        4
     conda:
         f"{envdir}/align.yaml"
     shell:
@@ -201,23 +201,31 @@ rule calculate_depth:
         "samtools depth -a {input.bam} | depth_windows.py {params} | gzip > {output}"
 
 rule sample_reports:
-    input:
+    input: 
         bxstats = outdir + "/reports/data/bxstats/{sample}.bxstats.gz",
         coverage = outdir + "/reports/data/coverage/{sample}.cov.gz",
-        molecule_coverage = outdir + "/reports/data/coverage/{sample}.molcov.gz"
-    output:	
-        outdir + "/reports/{sample}.html"
-    log:
-        logfile = outdir + "/logs/reports/{sample}.alignstats.log"
+        molecule_coverage = outdir + "/reports/data/coverage/{sample}.molcov.gz",
+        qmd = f"{outdir}/workflow/report/align_stats.qmd"
+    output:
+        report = outdir + "/reports/{sample}.html",
+        qmd = temp(outdir + "/reports/{sample}.qmd")
     params:
-        mol_dist = molecule_distance,
-        window_size = windowsize,
-        contigs = plot_contigs,
-        samplename = lambda wc: wc.get("sample")
+        mol_dist = f"-P mol_dist:{molecule_distance}",
+        window_size = f"-P windowsize:{windowsize}",
+        contigs = f"-P contigs:{plot_contigs}",
+        samplename = lambda wc: "-P sample:" + wc.get("sample")
+    log:
+        outdir + "/logs/reports/{sample}.alignstats.log"
     conda:
         f"{envdir}/r.yaml"
-    script:
-        "report/align_stats.Rmd"
+    shell:
+        """
+        cp {input.qmd} {output.qmd}
+        BXSTATS=$(realpath {input.bxstats})
+        COVFILE=$(realpath {input.coverage})
+        MOLCOV=$(realpath {input.molecule_coverage})
+        quarto render {output.qmd} -P bxstats:$BXSTATS -P coverage:$COVFILE -P molcov:$MOLCOV {params} 2> {log}
+        """
    
 rule general_stats:
     input:
@@ -250,16 +258,24 @@ rule samtools_report:
         "multiqc {params} --filename {output} 2> /dev/null"
 
 rule barcode_report:
-    input:
-        collect(outdir + "/reports/data/bxstats/{sample}.bxstats.gz", sample = samplenames)
-    output:	
-        outdir + "/reports/barcodes.summary.html"
+    input: 
+        collect(outdir + "/reports/data/bxstats/{sample}.bxstats.gz", sample = samplenames),
+        qmd = f"{outdir}/workflow/report/align_bxstats.qmd"
+    output:
+        report = f"{outdir}/reports/barcode.summary.html",
+        qmd = temp(f"{outdir}/reports/barcode.summary.qmd")
+    params:
+        f"{outdir}/reports/data/bxstats/"
     log:
-        logfile = outdir + "/logs/reports/bxstats.report.log"
+        f"{outdir}/logs/reports/bxstats.report.log"
     conda:
         f"{envdir}/r.yaml"
-    script:
-        "report/align_bxstats.Rmd"
+    shell:
+        """
+        cp {input.qmd} {output.qmd}
+        INPATH=$(realpath {params})
+        quarto render {output.qmd} -P indir:$INPATH 2> {log}
+        """
 
 rule workflow_summary:
     default_target: True
@@ -267,7 +283,7 @@ rule workflow_summary:
         bams = collect(outdir + "/{sample}.{ext}", sample = samplenames, ext = ["bam", "bam.bai"]),
         reports = collect(outdir + "/reports/{sample}.html", sample = samplenames) if not skip_reports else [],
         agg_report = outdir + "/reports/bwa.stats.html" if not skip_reports else [],
-        bx_report = outdir + "/reports/barcodes.summary.html" if (not skip_reports or len(samplenames) == 1) else []
+        bx_report = outdir + "/reports/barcode.summary.html" if (not skip_reports or len(samplenames) == 1) else []
     params:
         quality = config["alignment_quality"],
         unmapped = "" if keep_unmapped else "-F 4",

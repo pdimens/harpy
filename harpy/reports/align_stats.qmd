@@ -1,28 +1,37 @@
 ---
-title: "Harpy Alignment Summary"
-date: "`r format(Sys.time(), '%d %b, %Y at %H:%M')`"
-output:
-  flexdashboard::flex_dashboard:
-    theme: lumen
-    orientation: rows
-    vertical_layout: scroll
-    horizontal_layout: fill
-    mathjax: NULL
-    logo: https://raw.githubusercontent.com/pdimens/harpy/docs/static/logo_report.png
-    favicon: "https://raw.githubusercontent.com/pdimens/harpy/docs/static/favicon_report.png"
-    navbar:
-      - { title : "Docs", icon: "fa-book", href: "https://pdimens.github.io/harpy/", align: right }
-      - { title : "Source", icon: "fa-github", href: "https://www.github.com/pdimens/harpy/", align: right }
+title: "Alignment Summary: `r params$sample`"
+brand:
+  logo: 
+    medium: https://raw.githubusercontent.com/pdimens/harpy/docs/static/logo_navbar.png
+execute:
+    echo: false
+    warning: false
+embed-resources: true
+format: 
+  dashboard:
+    theme: materia
+    scrolling: true
+    expandable: false
+    logo: https://raw.githubusercontent.com/pdimens/harpy/docs/static/logo_navbar.png
+    nav-buttons:
+      - icon: book-half
+        href: https://pdimens.github.io/harpy
+      - icon: bug
+        href: https://github.com/pdimens/harpy/issues/new/choose
+      - icon: code-slash
+        href: https://github.com/pdimens/harpy
+ params:
+  bxstats: 'sample.bxstats.gz'
+  coverage: 'sample.cov.gz'
+  molcov: 'sample.molcov.gz'
+  mol_dist: 75000
+  windowsize: 50000
+  contigs: []
+  sample: "sample"
 ---
+`r format(Sys.time(), '🗓️ %d %B, %Y 🕔 %H:%M')`
 
 # Barcode Stats
-```{r setup}
-knitr::opts_chunk$set(echo = FALSE, warning = FALSE)
-logfile <- file(snakemake@log$logfile, open = "wt")
-sink(logfile)
-sink(logfile, type = "message")
-```
-
 ```{r package_imports, results = F}
 using<-function(...) {
     libs<-unlist(list(...))
@@ -34,16 +43,16 @@ using<-function(...) {
     }
 }
 
-using("flexdashboard","dplyr","highcharter","DT","BioCircos")
+using("dplyr","highcharter","DT","BioCircos")
 ```
 
 ```{r import_file, results = F}
 #infile <- "~/test.gz"
 #samplename <- "test sample"
-infile <- snakemake@input$bxstats
-samplename <- snakemake@params$samplename
 #sm_moldist <- 50000
-sm_moldist <- snakemake@params$mol_dist
+infile <- params$bxstats
+samplename <- params$sample
+sm_moldist <- params$mol_dist
 bamfile <- paste0(samplename, ".bam")
 tb <- read.table(infile, header = T, sep = "\t") %>% select(-start, -end)
 if(nrow(tb) == 0){
@@ -90,64 +99,105 @@ NX <- function(lengths, X=50){
 ```
 
 ## fileheader
-### hdr {.no-title}
 <h1> Linked-Read Barcode Statistics </h1>
 The information presented below were gathered from the alignments within **`r bamfile`**.
 
-
-## General Information {data-height=100}
-### ncontigs
-```{r valuebox_ncontigs}
-valueBox(scales::comma(length(unique(tb$contig))), caption = "Contigs", color = "#ffffff")
+```{r}
+#| content: valuebox
+#| title: "Contigs"
+list(
+  icon = "justify",
+  color = "#ffffff",
+  value = scales::comma(length(unique(tb$contig)))
+)
 ```
 
-### glob-total-bx
-```{r valuebox_n_barcodes}
-valueBox(scales::comma(totuniqBX), caption = "Unique barcodes", color = "#8f4f76")
+```{r}
+#| content: valuebox
+#| title: "Unique Barcodes"
+list(
+  icon = "card-text",
+  color = "#8f4f76",
+  value = scales::comma(totuniqBX)
+)
 ```
 
-### mol-thresh
-```{r valuebox_mol_thresh}
+```{r}
+#| content: valuebox
+#| title: "Molecule Threshold"
 if(sm_moldist > 0){
-  valueBox(scales::comma(sm_moldist), caption = "Molecule threshold", color = "#be96b9")
-}
-```
-
-### glob-total-mol
-```{r valuebox_n_molecules}
-valueBox(scales::comma(length(unique(valids$molecule))), caption = "Unique Molecules")
-```
-
-### validBX
-```{r valuebox_valids}
-valueBox(scales::comma(tot_valid), caption = "Valid BX Records", color = "success", icon = "fa-vial-circle-check")
-```
-
-### invalidBX
-```{r valuebox_invalids}
-valueBox(scales::comma(tot_invalid), caption = "Invalid BX Records", color = "warning", icon = "fa-x")
-```
-
-### singletons
-```{r valuebox_singletons}
-if (VALID_PRESENT){
-  valueBox(round(sum(valids$reads < 2)/nrow(valids), 2), caption = "% Singletons")
+  boxval <- scales::comma(sm_moldist)
 } else {
-  valueBox("NA", caption = "% Singletons")
+  boxval <- "NA"
 }
+list(
+  icon = "files",
+  color = "#be96b9",
+  value = boxval
+)
 ```
 
-### glob-avg
-```{r valuebox_mol_per_contig}
+```{r}
+#| content: valuebox
+#| title: "Unique Molecules"
+list(
+  icon = "list-columns-reverse",
+  color = "success",
+  value = scales::comma(length(unique(valids$molecule)))
+)
+```
+
+```{r}
+#| content: valuebox
+#| title: "Valid BX Records"
+list(
+  icon = "check2-circle",
+  color = "success",
+  value = scales::comma(tot_valid)
+)
+```
+
+```{r}
+#| content: valuebox
+#| title: "Invalid BX Records"
+list(
+  icon = "exclamation-square",
+  color = "warning",
+  value = scales::comma(tot_invalid)
+)
+```
+
+```{r}
+#| content: valuebox
+#| title: "% Singletons"
 if (VALID_PRESENT){
-  valueBox(scales::comma(avgBX), caption = "Avg molecules per contig", color = "#d4d4d4")
+  boxval <- round(sum(valids$reads < 2)/nrow(valids), 2)
 } else {
-    valueBox("NA", caption = "Avg molecules per contig", color = "#d4d4d4")
+  boxval <- "NA"
 }
+list(
+  icon = "1-circle",
+  color = "success",
+  value = boxval
+)
+```
+
+```{r}
+#| content: valuebox
+#| title: "Avg molecules per contig"
+if (VALID_PRESENT){
+  boxval <- scales::comma(avgBX)
+} else {
+  boxval <- "NA"
+}
+list(
+  icon = "body-text",
+  color = "#d4d4d4",
+  value = boxval
+)
 ```
 
 ## N50 and N90
-### Molecule NXX Length Metrics
 ```{r validtext, eval = SKIPTEXT, results="asis"}
 cat(paste0("**`",infile,"` has no valid haplotagging barcodes, skipping reporting on linked-read metrics.**"))
 ```
@@ -170,25 +220,13 @@ DT::datatable(
 )
 ```
 
-## Reads per molecule dec
-### Reads per mol dec {.no-title}
-<h2> Reads per Molecule </h2>
-The chart below shows the distribution of the number of reads per haplotag molecule. That is, how many alignments
+## Reads per molecule 
+::: {.card title="Reads per Molecule"}
+This chart shows the distribution of the number of reads per haplotag molecule. That is, how many alignments
 are associated with a unique molecule. This excludes the number of reads associated with invalid
 or absent haplotag barcodes. There are two distributions: one with `all` the alignments (purple)
 and another with only `non-singletons` (green). The percent of molecules in the `non-singletons`
 distribution is relative to the total number of non-singleton molecules.
-
-### bases per desc {.no-title}
-<h2> Total Bases Aligned </h2>
-Below is a frequency distribution showing the number of base pairs aligned
-per unique molecule. These data are shown in 500 bp bins. Be aware that the Y axis
-may not start at `0`. There are two distributions: one with `all` the alignments (purple)
-and another with only `non-singletons` (green). The percent of molecules in the `non-singletons`
-distribution is relative to the total number of non-singleton molecules.
-
-## the plots
-### reads per {.no-title}
 
 ```{r readsper, out.width = '100%', eval = VALID_PRESENT}
 hs <- hist(valids$reads, breaks = min(valids$reads):max(valids$reads), plot = F)
@@ -213,8 +251,16 @@ highchart() |>
     buttons = list(contextButton = list(menuItems = c("downloadPNG", "downloadJPEG", "downloadPDF", "downloadSVG")))
   )
 ```
+:::
 
-### bases per {.no-title}
+## bases per desc
+::: {.card title="Total Bases Aligned"}
+This is a frequency distribution showing the number of base pairs aligned
+per unique molecule. These data are shown in 500 bp bins. Be aware that the Y axis
+may not start at `0`. There are two distributions: one with `all` the alignments (purple)
+and another with only `non-singletons` (green). The percent of molecules in the `non-singletons`
+distribution is relative to the total number of non-singleton molecules.
+
 ```{r basesper, out.width="100%", eval = VALID_PRESENT}
 hs <- hist(round(valids$aligned_bp, -2), breaks = 50,  plot = F)
 hs_mult <- hist(round(non_singletons$aligned_bp, -2), breaks = hs$breaks,  plot = F)
@@ -239,10 +285,11 @@ highchart() |>
   )
 ```
 
+:::
+
 ## inferred-header
-### inferred desc {.no-title}
-<h2> Inferred Molecule Lengths </h2>
-The chart below shows the frequency distribution of molecule lengths 
+:::{.card title="Inferred Molecule Lengths"}
+Here you can see the frequency distribution of molecule lengths 
 inferred from the first and last alignment positions along a contig for all
 alignments associated with a single haplotag barcode on a given contig. 
 Be aware that the Y axis may not start at `0`. There are two distributions:
@@ -250,8 +297,6 @@ one with `all` the alignments (purple) and another with only `non-singletons`
 (green). The percent of molecules in the `non-singletons` distribution is
 relative to the total number of non-singleton molecules.
 
-## inferred-plot
-### inferredplot {.no-title}
 ```{r inferred, out.width = '100%', eval = VALID_PRESENT}
 hs <- hist(round(valids$length_inferred / 1000,0),breaks = 25,plot = F)
 hs_mult <- hist(round(non_singletons$length_inferred / 1000,0),breaks = hs$breaks,plot = F)
@@ -276,13 +321,13 @@ highchart() |>
     buttons = list(contextButton = list(menuItems = c("downloadPNG", "downloadJPEG", "downloadPDF", "downloadSVG")))
   )
 ```
+:::
 
 ## breadth
-### inferred_cov desc {.no-title}
-<h2> Inferred Molecule Read Coverage </h2>
-The charts below show the frequency distribution of molecule coverage, meaning
+:::{.card title="Inferred Molecule Read Coverage"}
+This charts shows the frequency distribution of molecule coverage, meaning
 the percent of each inferred molecule that has sequences aligned to it. In other
-words, "how much of each unique long molecule is actually sequenced/aligned?"
+words, "_how much of each unique long molecule is actually sequenced/aligned?_"
 Keep in mind there is a disctinction between sequences and alignments, since
 some sequences belonging to a particular molecule may not align well and wouldn't
 appear in the alignment data. The chart on the left shows molecule coverage as computed
@@ -295,9 +340,9 @@ If it helps, imagine a 500bp haplotagged DNA fragment being sequenced as a 150bp
 sequence and all 300bp aligned to your reference genome. The plot on the left calculates the proportion of
 molecule coverage as `300bp ÷ molecule_length`, whereas the plot on the right calculates this proportion as
 `500bp ÷ molecule_length`, which is the 300bp that aligned + the 200bp between the paired-end reads that were not sequenced.
+:::
 
 ## breadthplot
-### coverage by aligned bp {.no-title}
 ```{r inferred_cov_bp, out.width = '100%', eval = VALID_PRESENT}
 hs <- hist(round(valids$coverage_bp, 0), breaks = seq(0, 1, by = 0.05), plot = F)
 hs_mult <- hist(round(non_singletons$coverage_bp, 0), breaks = hs$breaks, plot = F)
@@ -322,7 +367,6 @@ highchart() |>
   )
 ```
 
-### coverage by inserts {.no-title}
 ```{r inferred_cov_insert, out.width = '100%', eval = VALID_PRESENT}
 hs <- hist(round(valids$coverage_inserts, 0), breaks = seq(0, 1, by = 0.05), plot = F)
 hs_mult <- hist(round(non_singletons$coverage_inserts, 0), breaks = hs$breaks, plot = F)
@@ -347,55 +391,6 @@ highchart() |>
   )
 ```
 
-## Interpreting the supporting data {.data-height=50}
-### interp desc {.no-title}
-<h2> Interpreting the Data </h2>
-These descriptions should help you understand the underlying data.
-
-## inttable
-### interpreting {.no-title}
-<h3> Interpreting the Supporting File </h3>
-Listed below are the descriptions of the columns in **`r basename(infile)`**, which was created
-by Harpy using the included `bx_stats.py` script. The term `molecule` refers to the
-`MI:i` tag in the alignments, which is a unique molecule ID given to the original
-fragment alignments sharing a barcode are inferred to have originated from. The inference
-takes into account an [alignment distance threshold](https://pdimens.github.io/harpy/haplotagdata/#barcode-thresholds)
-and that the sequences aligned to the same contig.
-
-```{r cols_explained}
-knitr::kable(
-  data.frame(
-    "Column Name" = c("contig", "molecule", "reads", "start", "end", "length_inferred", "percent_coverage", "aligned_bp"),
-    "Description" = c(
-      "name of the contig the molecule occurs on",
-      "the molecule name as given by the MI:i: tag",
-      "number of alignments associated with this molecule",
-      "the start position of the first alignment for that molecule",
-      "the end position of the last alignment for that molecule",
-      "inferred length of the molecule based on the start/end of the alignments sharing the same barcode",
-      "what percent of the molecule is represented by sequence alignments",
-      "total number of base pairs aligned for that molecule"
-      )
-    )
-)
-```
-
-### Barcode validity {.no-title}
-<h3> Interpreting Barcode Validity </h3>
-BX barcode validity is classified into one of two categories:
-
-```{r bx_explanation}
-knitr::kable(
-  data.frame(
-    "Classification" = c("valid BX", "invalid BX"),
-    "Description" = c(
-      "a complete BX barcode was present in the read (i.e. no 00 for any segments)",
-      "a barcode was present in the read, but it contained 00 in at least one of the barcode segments"
-      )
-    )
-)
-```
-
 # Coverage Stats
 ```{r reset_env}
 # clear out objects in memory to reduce RAM usage
@@ -407,10 +402,10 @@ rm(non_singletons)
 #knitr::knit_exit()
 ```
 ```{r imports}
-covfile <- snakemake@input$coverage
-molcovfile <- snakemake@input$molecule_coverage
-windowsize <- as.integer(snakemake@params$window_size)
-samplename <- snakemake@params$samplename
+covfile <- params$coverage
+molcovfile <- params$molcov
+windowsize <- as.integer(params$windowsize)
+samplename <- params$sample
 #samplename <- "test sample"
 #windowsize <- 50000
 #covfile <- "~/cov.gz"
@@ -578,8 +573,8 @@ DT::datatable(
 ## Circleplot {.no-title data-height=900}
 ### pltdsc {.no-title data-width=150}
 ```{r disttext}
-if(snakemake@params$mol_dist > 0){
-  dist_text <- paste0("from the linked-read information with a distance threshold of ", snakemake@params$mol_dist)
+if(params$mol_dist > 0){
+  dist_text <- paste0("from the linked-read information with a distance threshold of ", params$mol_dist)
 } else {
   dist_text <- "by the internal EMA aligner heuristics"
 }
@@ -602,7 +597,7 @@ be able to scroll the report instead of zooming on the plot.
 
 ### Coverage across the genome
 ```{r limit_contigs}
-plot_contigs <- snakemake@params$contigs
+plot_contigs <- params$contigs
 #plot_contigs <- "default"
 # Find the 30 largest contigs
 contigs <- group_by(tb, contig) %>%
@@ -684,3 +679,50 @@ BioCircos(
   width = "100%"
 )
 ```
+
+
+# Supporting Info
+## inttable
+::: {.card title="Interpreting the Supporting File"}
+Below are the descriptions of the columns in **`r basename(infile)`**, which was created
+by Harpy using the included `bx_stats.py` script. The term `molecule` refers to the
+`MI:i` tag in the alignments, which is a unique molecule ID given to the original
+fragment alignments sharing a barcode are inferred to have originated from. The inference
+takes into account an [alignment distance threshold](https://pdimens.github.io/harpy/haplotagdata/#barcode-thresholds)
+and that the sequences aligned to the same contig.
+
+```{r cols_explained}
+knitr::kable(
+  data.frame(
+    "Column Name" = c("contig", "molecule", "reads", "start", "end", "length_inferred", "percent_coverage", "aligned_bp"),
+    "Description" = c(
+      "name of the contig the molecule occurs on",
+      "the molecule name as given by the MI:i: tag",
+      "number of alignments associated with this molecule",
+      "the start position of the first alignment for that molecule",
+      "the end position of the last alignment for that molecule",
+      "inferred length of the molecule based on the start/end of the alignments sharing the same barcode",
+      "what percent of the molecule is represented by sequence alignments",
+      "total number of base pairs aligned for that molecule"
+      )
+    )
+)
+```
+:::
+
+### Barcode validity {.no-title}
+::: {.card title="Interpreting Barcode Validity"}
+BX barcode validity is classified into one of two categories:
+
+```{r bx_explanation}
+knitr::kable(
+  data.frame(
+    "Classification" = c("valid BX", "invalid BX"),
+    "Description" = c(
+      "a complete BX barcode was present in the read (i.e. no 00 for any segments)",
+      "a barcode was present in the read, but it contained 00 in at least one of the barcode segments"
+      )
+    )
+)
+```
+:::

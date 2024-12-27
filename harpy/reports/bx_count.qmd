@@ -21,7 +21,7 @@ format:
       - icon: code-slash
         href: https://github.com/pdimens/harpy
 params:
-  countdir: 'logs/bxcount'
+  indir: 'logs/bxcount'
 ---
 `r format(Sys.time(), '🗓️ %d %B, %Y 🕔 %H:%M')`
 
@@ -82,7 +82,7 @@ invalids <- data.frame(
 ```
 
 ```{r fill_df}
-indir <- params$countdir
+indir <- params$indir
 #indir <- "/home/pdimens/Documents/harpy/QC/logs/bxcount"
 
 for (i in list.files(indir, ".count.log", full.names = TRUE)) {

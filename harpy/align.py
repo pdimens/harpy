@@ -109,8 +109,8 @@ def bwa(inputs, output_dir, genome, depth_window, threads, keep_unmapped, extra_
     if contigs:
         fasta_contig_match(contigs, genome)
     fetch_rule(workflowdir, "align_bwa.smk")
-    fetch_report(workflowdir, "align_stats.Rmd")
-    fetch_report(workflowdir, "align_bxstats.Rmd")
+    fetch_report(workflowdir, "align_stats.qmd")
+    fetch_report(workflowdir, "align_bxstats.qmd")
     os.makedirs(f"{output_dir}/logs/snakemake", exist_ok = True)
     sm_log = snakemake_log(output_dir, "align_bwa")
     conda_envs = ["align", "r", "qc"]
@@ -214,8 +214,8 @@ def ema(inputs, output_dir, platform, barcode_list, fragment_density, genome, de
     if barcode_list:
         validate_barcodefile(barcode_list, False, quiet)
     fetch_rule(workflowdir, "align_ema.smk")
-    fetch_report(workflowdir, "align_stats.Rmd")
-    fetch_report(workflowdir, "align_bxstats.Rmd")
+    fetch_report(workflowdir, "align_stats.qmd")
+    fetch_report(workflowdir, "align_bxstats.qmd")
     os.makedirs(f"{output_dir}/logs/snakemake", exist_ok = True)
     sm_log = snakemake_log(output_dir, "align_ema")
     conda_envs = ["align", "r", "qc"]
@@ -310,8 +310,8 @@ def strobe(inputs, output_dir, genome, read_length, keep_unmapped, depth_window,
     if contigs:
         fasta_contig_match(contigs, genome)
     fetch_rule(workflowdir, "align_strobealign.smk")
-    fetch_report(workflowdir, "align_stats.Rmd")
-    fetch_report(workflowdir, "align_bxstats.Rmd")
+    fetch_report(workflowdir, "align_stats.qmd")
+    fetch_report(workflowdir, "align_bxstats.qmd")
     os.makedirs(f"{output_dir}/logs/snakemake", exist_ok = True)
     sm_log = snakemake_log(output_dir, "align_strobe")
     conda_envs = ["align", "r", "qc"]

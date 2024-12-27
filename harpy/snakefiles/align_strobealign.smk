@@ -92,7 +92,7 @@ rule align:
         unmapped = "" if keep_unmapped else "-F 4",
         extra = extra
     threads:
-        max(5, workflow.cores - 1)
+        4
     conda:
         f"{envdir}/align.yaml"
     shell:
