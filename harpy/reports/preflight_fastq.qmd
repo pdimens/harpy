@@ -3,7 +3,7 @@ title: "FASTQ Haplotag Format Check"
 date: "`r format(Sys.time(), '%d %b, %Y at %H:%M')`"
 brand:
   logo: 
-    medium: https://raw.githubusercontent.com/pdimens/harpy/docs/static/logo_report.png
+    medium: https://raw.githubusercontent.com/pdimens/harpy/docs/static/logo_navbar.png
 execute:
     echo: false
     warning: false
@@ -12,7 +12,7 @@ format:
   dashboard:
     theme: materia
     scrolling: true
-    logo: https://raw.githubusercontent.com/pdimens/harpy/docs/static/logo_report.png
+    logo: https://raw.githubusercontent.com/pdimens/harpy/docs/static/logo_navbar.png
     nav-buttons:
       - icon: book-half
         href: https://pdimens.github.io/harpy
