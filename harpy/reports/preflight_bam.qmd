@@ -109,7 +109,7 @@ list(
 
 | column           | 🟦 pass condition 🟦                                                               | 🟨 fail condition 🟨                                    |
 | :--------------- | :--------------------------------------------------------------------------------- | :-------------------------------------------------------- |
-| **Name Match**   | the file name matches the `@RG ID:` tag in the header                              | file name does not match `@RG ID:` in the header          |
+| **Name Mismatch**   | the file name matches the `@RG ID:` tag in the header                              | file name does not match `@RG ID:` in the header          |
 | **MI tag**       | **any** alignments with `BX:Z` tag also have `MI`                                  | **all** reads have `BX:Z` tag present but `MI` tag absent |
 | **BX:Z tag**     | **any** `BX:Z` tags present                                                        | **all** alignments lack `BX:Z` tag                        |
 | **BX:Z last**    | **all** reads have `BX:Z` as final tag in alignment records                        | **any** `BX:Z` barcodes have incorrect format             |
@@ -130,7 +130,7 @@ datatable(
     buttons = list(list(extend = "csv",filename = "bam_checks"))
   ),
   fillContainer = T,
-  colnames = c("File", "Reads", "Name Match", "MI tag", "BX:Z tag", "BX:Z last", "AxxCxxBxxDxx")
+  colnames = c("File", "Reads", "Name Mismatch", "MI tag", "BX:Z tag", "BX:Z last", "AxxCxxBxxDxx")
 ) %>%
 formatStyle(
   columns = 3:ncol(data),
