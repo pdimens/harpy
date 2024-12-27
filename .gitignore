@@ -3,9 +3,11 @@
 test/
 src/
 .snakemake/
+.conda/
 .Benchmark/
 .harpy_envs/
 build/
+Preflight/
 Demultiplex/
 QC/
 SNP/
