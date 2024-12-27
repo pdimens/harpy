@@ -3,16 +3,14 @@ title: "FASTQ Haplotag Format Check"
 date: "`r format(Sys.time(), '%d %b, %Y at %H:%M')`"
 brand:
   logo: 
-    medium: logo.png
+    medium: https://raw.githubusercontent.com/pdimens/harpy/docs/static/logo_report.png
 execute:
     echo: false
     warning: false
 embed-resources: true
 format: 
   dashboard:
-    theme:
-      light: materia
-      dark: slate
+    theme: materia
     scrolling: true
     logo: https://raw.githubusercontent.com/pdimens/harpy/docs/static/logo_report.png
     nav-buttons:
@@ -23,7 +21,7 @@ format:
       - icon: code-slash
         href: https://github.com/pdimens/harpy
 params:
-  infile: 'test.txt'
+  infile: 'test.tsv'
 ---
 
 ```{r}
