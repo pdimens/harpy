@@ -57,27 +57,32 @@ rule concat_results:
     input:
         collect(outdir + "/{sample}.log", sample = samplenames)
     output:
-        tmp = temp(outdir + "/filecheck.tmp"),
-        final = outdir + "/filecheck.bam.tsv"
+        outdir + "/filecheck.bam.tsv"
     container:
         None
     shell:
         """
-        cat {input} | sort -k1 > {output.tmp} 
-        echo -e "file\tnameMismatch\talignments\tnoMI\tnoBX\tbadBX\tbxNotLast\n$(cat {output.tmp})" > {output.final}
+        echo -e "file\talignments\tnameMismatch\tnoMI\tnoBX\tbxNotLast\tbadBX" > {output}
+        cat {input} | sort -k1 >> {output}
         """
 
 rule create_report:
     input:
-        outdir + "/filecheck.bam.tsv"
+        data = f"{outdir}/filecheck.bam.tsv",
+        qmd = f"{outdir}/workflow/report/preflight_bam.qmd"
     output:
-        outdir + "/filecheck.bam.html"
+        html = f"{outdir}/filecheck.bam.html",
+        qmd = temp(f"{outdir}/filecheck.bam.qmd")
     log:
-        logfile = outdir + "/logs/report.log"
+        f"{outdir}/logs/report.log"
     conda:
         f"{envdir}/r.yaml"
-    script:
-        "report/preflight_bam.Rmd"
+    shell:
+        """
+        cp {input.qmd} {output.qmd}
+        INFILE=$(realpath {input.data})
+        quarto render {output.qmd} -P infile:$INFILE 2> {log}
+        """
 
 rule workflow_summary:
     default_target: True

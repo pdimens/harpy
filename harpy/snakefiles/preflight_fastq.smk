@@ -55,14 +55,13 @@ rule concat_results:
     input:
         collect(outdir + "/{sample}.{FR}.log", sample = samplenames, FR = ["F","R"])
     output:
-        tmp = temp(outdir + "/filecheck.tmp"),
-        final = outdir + "/filecheck.fastq.tsv"
+        outdir + "/filecheck.fastq.tsv"
     container:
         None
     shell:
         """
-        cat {input} | sort -k1 > {output.tmp}
-        echo -e "file\treads\tnoBX\tbadBX\tbadSamSpec\tbxNotLast\n$(cat {output.tmp})" > {output.final}
+        echo -e "file\treads\tnoBX\tbadBX\tbadSamSpec\tbxNotLast" > {output}
+        cat {input} | sort -k1 >> {output}
         """
 
 rule create_report:
@@ -80,7 +79,6 @@ rule create_report:
         """
         cp {input.qmd} {output.qmd}
         INFILE=$(realpath {input.data})
-
         quarto render {output.qmd} -P infile:$INFILE 2> {log}
         """
 

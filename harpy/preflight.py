@@ -38,6 +38,68 @@ docstring = {
 }
 
 @click.command(no_args_is_help = True, context_settings=dict(allow_interspersed_args=False), epilog = "Documentation: https://pdimens.github.io/harpy/workflows/preflight/")
+@click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(min = 1, max_open = True), help = 'Number of threads to use')
+@click.option('--quiet',  is_flag = True, show_default = True, default = False, help = 'Don\'t show output text while running')
+@click.option('-o', '--output-dir', type = click.Path(exists = False), default = "Preflight/bam", show_default=True,  help = 'Output directory name')
+@click.option('--snakemake', type = SnakemakeParams(), help = 'Additional Snakemake parameters, in quotes')
+@click.option('--hpc',  type = HPCProfile(), help = 'Directory with HPC submission `config.yaml` file')
+@click.option('--conda',  is_flag = True, default = False, help = 'Use conda/mamba instead of a container')
+@click.option('--setup-only',  is_flag = True, hidden = True, default = False, help = 'Setup the workflow and exit')
+@click.argument('inputs', required=True, type=click.Path(exists=True, readable=True), nargs=-1)
+def bam(inputs, output_dir, threads, snakemake, quiet, hpc, conda, setup_only):
+    """
+    Run validity checks on haplotagged BAM files
+
+    Provide the input alignment (`.bam`) files and/or directories at the end of the command as individual
+    files/folders, using shell wildcards (e.g. `data/betula*.bam`), or both.
+    
+    It will check that alignments have BX:Z: tags, that haplotag
+    barcodes are properly formatted (`AxxCxxBxxDxx`) and that the filename matches the `@RG ID` tag.
+    This **will not** fix your data, but it will report the number of records that feature errors  to help
+    you diagnose if file formatting will cause downstream issues. 
+    """
+    output_dir = output_dir.rstrip("/")
+    workflowdir = os.path.join(output_dir, 'workflow')
+    sdm = "conda" if conda else "conda apptainer"
+    command = f'{SNAKEMAKE_CMD} --software-deployment-method {sdm} --cores {threads}'
+    command += f" --snakefile {workflowdir}/preflight_bam.smk"
+    command += f" --configfile {workflowdir}/config.yaml"
+    if hpc:
+        command += f" --workflow-profile {hpc}"
+    if snakemake:
+        command += f" {snakemake}"
+
+    os.makedirs(f"{workflowdir}/", exist_ok= True)
+    bamlist, n = parse_alignment_inputs(inputs)
+    fetch_rule(workflowdir, "preflight_bam.smk")
+    fetch_report(workflowdir, "preflight_bam.qmd")
+    os.makedirs(f"{output_dir}/logs/snakemake", exist_ok = True)
+    sm_log = snakemake_log(output_dir, "preflight_bam")
+    conda_envs = ["r"]
+    configs = {
+        "workflow" : "preflight bam",
+        "snakemake_log" : sm_log,
+        "output_directory" : output_dir,
+        "workflow_call" : command.rstrip(),
+        "conda_environments" : conda_envs,
+        "inputs" : [i.as_posix() for i in bamlist]
+    }
+    with open(os.path.join(workflowdir, 'config.yaml'), "w", encoding="utf-8") as config:
+        yaml.dump(configs, config, default_flow_style= False, sort_keys=False, width=float('inf'))
+
+    create_conda_recipes(output_dir, conda_envs)
+    if setup_only:
+        sys.exit(0)
+
+    start_text = Table(show_header=False,pad_edge=False, show_edge=False, padding = (0,0), box=box.SIMPLE)
+    start_text.add_column("detail", justify="left", style="light_steel_blue", no_wrap=True)
+    start_text.add_column(header="value", justify="left")
+    start_text.add_row("Alignment Files:", f"{n}")
+    start_text.add_row("Output Folder:", output_dir + "/")
+    start_text.add_row("Workflow Log:", sm_log.replace(f"{output_dir}/", "") + "[dim].gz")
+    launch_snakemake(command, "preflight_bam", start_text, output_dir, sm_log, quiet, "workflow/preflight.bam.summary")
+
+@click.command(no_args_is_help = True, context_settings=dict(allow_interspersed_args=False), epilog = "Documentation: https://pdimens.github.io/harpy/workflows/preflight/")
 @click.option('-o', '--output-dir', type = click.Path(exists = False), default = "Preflight/fastq", show_default=True,  help = 'Output directory name')
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(min = 1, max_open = True), help = 'Number of threads to use')
 @click.option('--conda',  is_flag = True, default = False, help = 'Use conda/mamba instead of a container')
@@ -100,67 +162,5 @@ def fastq(inputs, output_dir, threads, snakemake, quiet, hpc, conda, setup_only)
     start_text.add_row("Workflow Log:", sm_log.replace(f"{output_dir}/", "") + "[dim].gz")
     launch_snakemake(command, "preflight_fastq", start_text, output_dir, sm_log, quiet, "workflow/preflight.fastq.summary")
 
-@click.command(no_args_is_help = True, context_settings=dict(allow_interspersed_args=False), epilog = "Documentation: https://pdimens.github.io/harpy/workflows/preflight/")
-@click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(min = 1, max_open = True), help = 'Number of threads to use')
-@click.option('--quiet',  is_flag = True, show_default = True, default = False, help = 'Don\'t show output text while running')
-@click.option('-o', '--output-dir', type = click.Path(exists = False), default = "Preflight/bam", show_default=True,  help = 'Output directory name')
-@click.option('--snakemake', type = SnakemakeParams(), help = 'Additional Snakemake parameters, in quotes')
-@click.option('--hpc',  type = HPCProfile(), help = 'Directory with HPC submission `config.yaml` file')
-@click.option('--conda',  is_flag = True, default = False, help = 'Use conda/mamba instead of a container')
-@click.option('--setup-only',  is_flag = True, hidden = True, default = False, help = 'Setup the workflow and exit')
-@click.argument('inputs', required=True, type=click.Path(exists=True, readable=True), nargs=-1)
-def bam(inputs, output_dir, threads, snakemake, quiet, hpc, conda, setup_only):
-    """
-    Run validity checks on haplotagged BAM files
-
-    Provide the input alignment (`.bam`) files and/or directories at the end of the command as individual
-    files/folders, using shell wildcards (e.g. `data/betula*.bam`), or both.
-    
-    It will check that alignments have BX:Z: tags, that haplotag
-    barcodes are properly formatted (`AxxCxxBxxDxx`) and that the filename matches the `@RG ID` tag.
-    This **will not** fix your data, but it will report the number of records that feature errors  to help
-    you diagnose if file formatting will cause downstream issues. 
-    """
-    output_dir = output_dir.rstrip("/")
-    workflowdir = os.path.join(output_dir, 'workflow')
-    sdm = "conda" if conda else "conda apptainer"
-    command = f'{SNAKEMAKE_CMD} --software-deployment-method {sdm} --cores {threads}'
-    command += f" --snakefile {workflowdir}/preflight_bam.smk"
-    command += f" --configfile {workflowdir}/config.yaml"
-    if hpc:
-        command += f" --workflow-profile {hpc}"
-    if snakemake:
-        command += f" {snakemake}"
-
-    os.makedirs(f"{workflowdir}/", exist_ok= True)
-    bamlist, n = parse_alignment_inputs(inputs)
-    fetch_rule(workflowdir, "preflight_bam.smk")
-    fetch_report(workflowdir, "preflight_bam.Rmd")
-    os.makedirs(f"{output_dir}/logs/snakemake", exist_ok = True)
-    sm_log = snakemake_log(output_dir, "preflight_bam")
-    conda_envs = ["r"]
-    configs = {
-        "workflow" : "preflight bam",
-        "snakemake_log" : sm_log,
-        "output_directory" : output_dir,
-        "workflow_call" : command.rstrip(),
-        "conda_environments" : conda_envs,
-        "inputs" : [i.as_posix() for i in bamlist]
-    }
-    with open(os.path.join(workflowdir, 'config.yaml'), "w", encoding="utf-8") as config:
-        yaml.dump(configs, config, default_flow_style= False, sort_keys=False, width=float('inf'))
-
-    create_conda_recipes(output_dir, conda_envs)
-    if setup_only:
-        sys.exit(0)
-
-    start_text = Table(show_header=False,pad_edge=False, show_edge=False, padding = (0,0), box=box.SIMPLE)
-    start_text.add_column("detail", justify="left", style="light_steel_blue", no_wrap=True)
-    start_text.add_column(header="value", justify="left")
-    start_text.add_row("Alignment Files:", f"{n}")
-    start_text.add_row("Output Folder:", output_dir + "/")
-    start_text.add_row("Workflow Log:", sm_log.replace(f"{output_dir}/", "") + "[dim].gz")
-    launch_snakemake(command, "preflight_bam", start_text, output_dir, sm_log, quiet, "workflow/preflight.bam.summary")
-
-preflight.add_command(fastq)
 preflight.add_command(bam)
+preflight.add_command(fastq)

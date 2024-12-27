@@ -34,7 +34,7 @@ using<-function(...) {
         lapply(need,require,character.only=TRUE)
     }
 }
-using("dplyr","tidyr","DT","highcharter","scales")
+using("dplyr","tidyr","DT","scales")
 ```
 
 ```{r}
@@ -81,7 +81,7 @@ list(
 
 ```{r}
 #| content: valuebox
-#| title: "BX:Z: tag not last"
+#| title: "BX Tag Not Last"
 list(
   icon = ifelse(attention > 0, "exclamation-triangle", "check2-square"),
   color = ifelse(bxnotlast > 0, "warning", "success"),
@@ -99,7 +99,7 @@ list(
 | **BX:Z tag**     | **any** `BX:Z` tags present                                                   | **all** reads lack BX:Z tag                                |
 
 ## File Stats
-```{r dtable2}
+```{r resultstable}
 datatable(
   data,
   escape = F,
@@ -119,7 +119,12 @@ formatStyle(
   columns = 3:ncol(data),
   # Blue for values <= 0, yellow for values > 0
   backgroundColor = styleInterval(0, c('#4faad1', '#feda75')) 
-)   
+) %>%
+formatStyle(
+  columns = 2,
+  # yellow for values == 0, blue for values > 0
+  backgroundColor = styleInterval(0, c('#feda75', '#4faad1')) 
+)     
 ```
 
 
@@ -130,33 +135,33 @@ formatStyle(
 The `harpy preflight fastq ...` command created a `filecheck.fastq.tsv` file in the specified
 output directory that summarizes the results that are included in this report.
 This file contains a tab-delimited table with the columns: `file`,	`reads`, `noBX`,	`badBX`, and	`badSamSpec`.
-These columns are defined below and the severities of their issues will be given as colored emoji:
+These columns are defined below and the severities of their issues are given as colored emoji:
 
 - ⬜ is minor
 - 🔶 is moderate
 - 🛑 is critical
 
 file
-: The name of the FASTQ file
+: The name of the FASTQ file.
 
 reads
-: The total number of reads in the file
+: The total number of reads in the file.
 
 noBX ⬜
 : The number of reads that do not have a `BX:Z` tag in the read header.
-If you expect all of your reads should have `BX:Z` tags, then further investigation is necessary
+If you expect all or some of your reads should have `BX:Z` tags, then further investigation is necessary.
 
 badBX 🛑
-: The haplotag barcode in the `BX:Z` comment does not adhere to the proper `AxxCxxBxxDxx` format
+: The haplotag barcode in the `BX:Z` comment does not adhere to the proper `AxxCxxBxxDxx` format.
 
 badSamSpec 🛑
-: The comments in the read header after the read ID do not conform to the `TAG:TYPE:VALUE` [SAM specification](https://samtools.github.io/hts-specs/SAMv1.pdf)
+: The comments in the read header after the read ID do not conform to the `TAG:TYPE:VALUE` [SAM specification](https://samtools.github.io/hts-specs/SAMv1.pdf).
 
 bxNotLast 🔶
 : The `BX:Z:` tag in the FASTQ header is not the last comment. 
 Only relevant for LEVIATHAN variant calling and can be ignored if not intending to call
 structural variants with LEVIATHAN,otherwise the `BX:Z` tag must be the last comment in a read
-header. `harpy align` will automatically move the `BX:Z` tag to the end of the alignment record
+header. `harpy align` will automatically move the `BX:Z` tag to the end of the alignment record.
 :::
 
 ### col
@@ -180,8 +185,5 @@ must be the last comment in the read header.
 ```
 @A00814:267:HTMH3DRXX:2:1101:4580:1000	BX:Z:A02C01B11D46	RX:Z:GAAACGACCAACA+CGAACACGTTAGC	QX:Z:F,FFFFFFFFFFF+FF,FFF:FFFFFF
 ```
-
-
-
 
 :::
