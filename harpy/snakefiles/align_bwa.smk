@@ -185,7 +185,7 @@ rule molecule_coverage:
     container:
         None
     shell:
-        "molecule_coverage.py -f {input.fai} {input.stats} | depth_windows.py {params} | gzip > {output}"
+        "molecule_coverage.py -f {input.fai} -w {params} {input.stats} | gzip > {output}"
 
 rule calculate_depth:
     input: 

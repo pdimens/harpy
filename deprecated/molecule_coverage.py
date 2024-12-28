@@ -4,8 +4,8 @@
 import os
 import sys
 import gzip
-import sqlite3
 import argparse
+from collections import Counter
 
 parser = argparse.ArgumentParser(
     prog = 'molecule_coverage.py',
@@ -51,31 +51,12 @@ with open(args.fai, "r", encoding= "utf-8") as fai:
         length = splitline[1]
         contigs[contig] = int(length)
 
-#TODO MAKE THIS WORK AND TEST IT
-def calculate_coverage(contigname, ranges):
-    # Create an in-memory SQLite database
-    conn = sqlite3.connect(':memory:')
-    cursor = conn.cursor() 
-    # Create a table to store the numbers
-    cursor.execute('CREATE TABLE number_counts (num INTEGER)')
-    # Insert the numbers from the ranges into the table
-    for start, end in ranges:
-        cursor.executemany('INSERT INTO number_counts (num) VALUES (?)', [(num,) for num in range(start, end + 1)])
-    # Query to count the occurrences of each number
-    cursor.execute('''
-        SELECT num, COUNT(*) as count
-        FROM number_counts
-        GROUP BY num
-        ORDER BY count DESC
-    ''')
-    # Fetch and return the result
-    for row in cursor.fetchall():
-        sys.stdout.write(f"{contigname}\t{row[0]}\t{row[1]}\n")
-    # Close the database connection
-    conn.close()
+def write_coverage(counter_obj, contigname):
+    for position,freq in counter_obj.items():
+        sys.stdout.buffer.write(f"{contigname}\t{position}\t{freq}\n".encode("utf-8"))
+
 
 with gzip.open(args.statsfile, "rt") as statsfile:
-    aln_ranges = []
     # read in the header
     line = statsfile.readline()
     # for safety, find out which columns are the contig, start, and end positions
@@ -92,24 +73,27 @@ with gzip.open(args.statsfile, "rt") as statsfile:
         if val.strip() == "end":
             IDX_END = idx
     if IDX_CONTIG is None or IDX_START is None or IDX_END is None:
-        parser.error("Required columns 'contig', 'start', or 'end' not found in header\n")
+        sys.stderr.write("Error: Required columns 'contig', 'start', or 'end' not found in header\n")
+        sys.exit(1)
     while True:
         line = statsfile.readline()
         if not line:
             if LASTCONTIG:
                 # write the last contig to file
-                calculate_coverage(contig, aln_ranges)
+                write_coverage(coverage, LASTCONTIG)
             break
         if line.startswith("#"):
             continue
         splitline = line.split()
         contig = splitline[IDX_CONTIG]
+        start = int(splitline[IDX_START])
+        end = int(splitline[IDX_END])
         if contig != LASTCONTIG:
             if LASTCONTIG:
                 # write to file when contig changed
-                calculate_coverage(LASTCONTIG, aln_ranges)
-                aln_ranges = []
-        start = int(splitline[IDX_START])
-        end = int(splitline[IDX_END])
-        aln_ranges.append((start,end))
+                write_coverage(coverage, LASTCONTIG)
+            # reset the counter for the new contig
+            coverage = Counter({i: 0 for i in range(1, contigs[contig] + 1)})
+        # update the counter with the current row
+        coverage.update(range(start, end + 1))
         LASTCONTIG = contig
