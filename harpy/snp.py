@@ -84,7 +84,7 @@ def mpileup(inputs, output_dir, regions, genome, threads, populations, ploidy, e
     output_dir = output_dir.rstrip("/")
     workflowdir = os.path.join(output_dir, 'workflow')
     sdm = "conda" if conda else "conda apptainer"
-    command = f'snakemake --rerun-incomplete --show-failed-logs --rerun-triggers input mtime params --nolock --software-deployment-method {sdm} --conda-prefix ./.snakemake/conda --cores {threads} --directory . '
+    command = f'{SNAKEMAKE_CMD} --software-deployment-method {sdm} --cores {threads}'
     command += f" --snakefile {workflowdir}/snp_mpileup.smk"
     command += f" --configfile {workflowdir}/config.yaml"
     if hpc:
@@ -108,7 +108,7 @@ def mpileup(inputs, output_dir, regions, genome, threads, populations, ploidy, e
         region = regions
 
     fetch_rule(workflowdir, "snp_mpileup.smk")
-    fetch_report(workflowdir, "bcftools_stats.Rmd")
+    fetch_report(workflowdir, "bcftools_stats.qmd")
     os.makedirs(f"{output_dir}/logs/snakemake", exist_ok = True)
     sm_log = snakemake_log(output_dir, "snp_mpileup")
     conda_envs = ["r"]
@@ -190,7 +190,7 @@ def freebayes(inputs, output_dir, genome, threads, populations, ploidy, regions,
     output_dir = output_dir.rstrip("/")
     workflowdir = os.path.join(output_dir, 'workflow')
     sdm = "conda" if conda else "conda apptainer"
-    command = f'snakemake --rerun-incomplete --show-failed-logs --rerun-triggers input mtime params --nolock --software-deployment-method {sdm} --conda-prefix ./.snakemake/conda --cores {threads} --directory . '
+    command = f'{SNAKEMAKE_CMD} --software-deployment-method {sdm} --cores {threads}'
     command += f" --snakefile {workflowdir}/snp_freebayes.smk"
     command += f" --configfile {workflowdir}/config.yaml"
     if hpc:
@@ -214,7 +214,7 @@ def freebayes(inputs, output_dir, genome, threads, populations, ploidy, regions,
         region = regions
 
     fetch_rule(workflowdir, "snp_freebayes.smk")
-    fetch_report(workflowdir, "bcftools_stats.Rmd")
+    fetch_report(workflowdir, "bcftools_stats.qmd")
     os.makedirs(f"{output_dir}/logs/snakemake", exist_ok = True)
     sm_log = snakemake_log(output_dir, "snp_freebayes")
     conda_envs = ["r", "variants"]

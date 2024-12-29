@@ -228,16 +228,24 @@ rule general_stats:
         """
 
 rule variant_report:
-    input:
-        outdir + "/reports/data/variants.{type}.stats"
+    input: 
+        data = outdir + "/reports/data/variants.{type}.stats",
+        qmd = f"{outdir}/workflow/report/bcftools_stats.qmd"
     output:
-        outdir + "/reports/variants.{type}.html"
+        report = outdir + "/reports/variants.{type}.html",
+        qmd = temp(outdir + "/reports/variants.{type}.qmd")
+    params:
+        lambda wc: "variants." + wc.get("type")
     log:
-        logfile = outdir + "/logs/variants.{type}.report.log"    
+        outdir + "/logs/variants.{type}.report.log"
     conda:
         f"{envdir}/r.yaml"
-    script:
-        "report/bcftools_stats.Rmd"
+    shell:
+        """
+        cp {input.qmd} {output.qmd}
+        INPATH=$(realpath {input.data})
+        quarto render {output.qmd} -P infile:$INPATH inname:{params} 2> {log}
+        """
 
 rule workflow_summary:
     default_target: True
