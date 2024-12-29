@@ -56,7 +56,7 @@ def metassembly(fastq_r1, fastq_r2, bx_tag, kmer_length, max_memory, ignore_bx, 
     output_dir = output_dir.rstrip("/")
     workflowdir = os.path.join(output_dir, 'workflow')
     sdm = "conda" if conda else "conda apptainer"
-    command = f'snakemake --rerun-incomplete --show-failed-logs --rerun-triggers input mtime params --nolock  --software-deployment-method {sdm} --conda-prefix .snakemake/conda --cores {threads} --directory . '
+    command = f'{SNAKEMAKE_CMD} --software-deployment-method {sdm} --cores {threads}'
     command += f" --snakefile {workflowdir}/metassembly.smk"
     command += f" --configfile {workflowdir}/config.yaml"
     if hpc:

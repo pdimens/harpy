@@ -155,7 +155,7 @@ def linkedreads(genome_hap1, genome_hap2, output_dir, outer_distance, mutation_r
     output_dir = output_dir.rstrip("/")
     workflowdir = os.path.join(output_dir, 'workflow')
     sdm = "conda" if conda else "conda apptainer"
-    command = f'snakemake --rerun-incomplete --show-failed-logs --rerun-triggers input mtime params --nolock  --software-deployment-method {sdm} --conda-prefix ./.snakemake/conda --cores {threads} --directory . '
+    command = f'{SNAKEMAKE_CMD} --software-deployment-method {sdm} --cores {threads}'
     command += f" --snakefile {workflowdir}/simulate_linkedreads.smk"
     command += f" --configfile {workflowdir}/config.yaml"
     if hpc:
@@ -263,7 +263,7 @@ def snpindel(genome, snp_vcf, indel_vcf, only_vcf, output_dir, prefix, snp_count
     output_dir = output_dir.rstrip("/")
     workflowdir = os.path.join(output_dir, 'workflow')
     sdm = "conda" if conda else "conda apptainer"
-    command = f'snakemake --rerun-incomplete --show-failed-logs --rerun-triggers input mtime params --nolock --software-deployment-method {sdm} --conda-prefix ./.snakemake/conda --cores 1 --directory . '
+    command = f'{SNAKEMAKE_CMD} --software-deployment-method {sdm} --cores 2'
     command += f" --snakefile {workflowdir}/simulate_snpindel.smk"
     command += f" --configfile {workflowdir}/config.yaml"
     if hpc:
@@ -379,7 +379,7 @@ def inversion(genome, vcf, only_vcf, prefix, output_dir, count, min_size, max_si
     output_dir = output_dir.rstrip("/")
     workflowdir = os.path.join(output_dir, 'workflow')
     sdm = "conda" if conda else "conda apptainer"
-    command = f'snakemake --rerun-incomplete --show-failed-logs --rerun-triggers input mtime params --nolock --software-deployment-method {sdm} --conda-prefix ./.snakemake/conda --cores 1 --directory . '
+    command = f'{SNAKEMAKE_CMD} --software-deployment-method {sdm} --cores 2'
     command += f" --snakefile {workflowdir}/simulate_variants.smk"
     command += f" --configfile {workflowdir}/config.yaml"
     if hpc:
@@ -495,7 +495,7 @@ def cnv(genome, output_dir, vcf, only_vcf, prefix, count, min_size, max_size, du
     output_dir = output_dir.rstrip("/")
     workflowdir = os.path.join(output_dir, 'workflow')
     sdm = "conda" if conda else "conda apptainer"
-    command = f'snakemake --rerun-incomplete --show-failed-logs --rerun-triggers input mtime params --nolock --software-deployment-method {sdm} --conda-prefix ./.snakemake/conda --cores 1 --directory . '
+    command = f'{SNAKEMAKE_CMD} --software-deployment-method {sdm} --cores 2'
     command += f" --snakefile {workflowdir}/simulate_variants.smk"
     command += f" --configfile {workflowdir}/config.yaml"
     if hpc:
@@ -601,7 +601,7 @@ def translocation(genome, output_dir, prefix, vcf, only_vcf, count, centromeres,
     output_dir = output_dir.rstrip("/")
     workflowdir = os.path.join(output_dir, 'workflow')
     sdm = "conda" if conda else "conda apptainer"
-    command = f'snakemake --rerun-incomplete --show-failed-logs --rerun-triggers input mtime params --nolock --software-deployment-method {sdm} --conda-prefix ./.snakemake/conda --cores 1 --directory . '
+    command = f'{SNAKEMAKE_CMD} --software-deployment-method {sdm} --cores 2'
     command += f" --snakefile {workflowdir}/simulate_variants.smk"
     command += f" --configfile {workflowdir}/config.yaml"
     if hpc:

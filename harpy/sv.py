@@ -84,7 +84,7 @@ def leviathan(inputs, output_dir, genome, min_sv, min_barcodes, iterations, thre
     workflowdir = os.path.join(output_dir, 'workflow')
     sdm = "conda" if conda else "conda apptainer"
     vcaller = "leviathan" if populations is None else "leviathan_pop"
-    command = f'snakemake --rerun-incomplete --show-failed-logs --rerun-triggers input mtime params --nolock --software-deployment-method {sdm} --conda-prefix ./.snakemake/conda --cores {threads} --directory . '
+    command = f'{SNAKEMAKE_CMD} --software-deployment-method {sdm} --cores {threads}'
     command += f" --snakefile {workflowdir}/sv_{vcaller}.smk"
     command += f" --configfile {workflowdir}/config.yaml"
     if hpc:
@@ -184,7 +184,7 @@ def naibr(inputs, output_dir, genome, vcf, min_sv, min_barcodes, min_quality, th
     sdm = "conda" if conda else "conda apptainer"
     vcaller = "naibr" if populations is None else "naibr_pop"
     vcaller += "_phase" if vcf else ""
-    command = f'snakemake --rerun-incomplete --show-failed-logs --rerun-triggers input mtime params --nolock --software-deployment-method {sdm} --conda-prefix ./.snakemake/conda --cores {threads} --directory . '
+    command = f'{SNAKEMAKE_CMD} --software-deployment-method {sdm} --cores {threads}'
     command += f" --snakefile {workflowdir}/sv_{vcaller}.smk"
     command += f" --configfile {workflowdir}/config.yaml"
     if hpc:

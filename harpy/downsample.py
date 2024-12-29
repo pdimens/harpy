@@ -67,7 +67,7 @@ def downsample(input, invalid, output_dir, prefix, downsample, random_seed, setu
     workflow = "downsample"
     output_dir = output_dir.rstrip("/")
     workflowdir = os.path.join(output_dir, 'workflow')
-    command = f'snakemake --rerun-incomplete --show-failed-logs --rerun-triggers input mtime params --nolock --cores {threads} --directory . '
+    command = f'{SNAKEMAKE_CMD} --cores {threads}'
     command += f" --snakefile {workflowdir}/{workflow}.smk"
     command += f" --configfile {workflowdir}/config.yaml"
     if snakemake:
