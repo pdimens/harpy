@@ -20,7 +20,7 @@ format:
         href: https://github.com/pdimens/harpy/issues/new/choose
       - icon: code-slash
         href: https://github.com/pdimens/harpy
- params:
+params:
   indir: 'reports/data/bxstats/'
 ---
 `r format(Sys.time(), '🗓️ %d %B, %Y 🕔 %H:%M')`
@@ -180,7 +180,7 @@ highchart() |>
 ```
 :::
 
-## Distribution of valid bx alignments
+### Distribution of valid bx alignments
 ::: {.card title="Distribution of alignments with valid barcodes"}
 This is a distribution of what percent of total alignments each sample
 had valid haplotag barcodes (`AXXCXXBXXDXX` where `XX` is not `00`).
@@ -203,7 +203,6 @@ hchart(hs, "areaspline", hcaes(x = val, y = freq), color = "#8484bd", name = "Pe
     buttons = list(contextButton = list(menuItems = c("downloadPNG", "downloadJPEG", "downloadPDF", "downloadSVG")))
   )
 ```
-
 :::
 
 # Per-Sample

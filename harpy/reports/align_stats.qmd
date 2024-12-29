@@ -1,5 +1,5 @@
 ---
-title: "Alignment Summary: `r params$sample`"
+title: "Alignment Summary - `r params$sample`"
 brand:
   logo: 
     medium: https://raw.githubusercontent.com/pdimens/harpy/docs/static/logo_navbar.png
@@ -20,13 +20,13 @@ format:
         href: https://github.com/pdimens/harpy/issues/new/choose
       - icon: code-slash
         href: https://github.com/pdimens/harpy
- params:
+params:
   bxstats: 'sample.bxstats.gz'
   coverage: 'sample.cov.gz'
   molcov: 'sample.molcov.gz'
   mol_dist: 75000
   windowsize: 50000
-  contigs: []
+  contigs: "default"
   sample: "sample"
 ---
 `r format(Sys.time(), '🗓️ %d %B, %Y 🕔 %H:%M')`
@@ -98,16 +98,12 @@ NX <- function(lengths, X=50){
 }
 ```
 
-## fileheader
-<h1> Linked-Read Barcode Statistics </h1>
-The information presented below were gathered from the alignments within **`r bamfile`**.
-
+##
 ```{r}
 #| content: valuebox
 #| title: "Contigs"
 list(
-  icon = "justify",
-  color = "#ffffff",
+  color = "d4d4d4",
   value = scales::comma(length(unique(tb$contig)))
 )
 ```
@@ -116,8 +112,7 @@ list(
 #| content: valuebox
 #| title: "Unique Barcodes"
 list(
-  icon = "card-text",
-  color = "#8f4f76",
+  color = "#d4d4d4",
   value = scales::comma(totuniqBX)
 )
 ```
@@ -131,8 +126,7 @@ if(sm_moldist > 0){
   boxval <- "NA"
 }
 list(
-  icon = "files",
-  color = "#be96b9",
+  color = "#d4d4d4",
   value = boxval
 )
 ```
@@ -141,8 +135,7 @@ list(
 #| content: valuebox
 #| title: "Unique Molecules"
 list(
-  icon = "list-columns-reverse",
-  color = "success",
+  color = "d4d4d4",
   value = scales::comma(length(unique(valids$molecule)))
 )
 ```
@@ -151,8 +144,7 @@ list(
 #| content: valuebox
 #| title: "Valid BX Records"
 list(
-  icon = "check2-circle",
-  color = "success",
+  color = "d4d4d4",
   value = scales::comma(tot_valid)
 )
 ```
@@ -161,23 +153,21 @@ list(
 #| content: valuebox
 #| title: "Invalid BX Records"
 list(
-  icon = "exclamation-square",
-  color = "warning",
+  color = "d4d4d4",
   value = scales::comma(tot_invalid)
 )
 ```
 
 ```{r}
 #| content: valuebox
-#| title: "% Singletons"
+#| title: "Singletons (%)"
 if (VALID_PRESENT){
-  boxval <- round(sum(valids$reads < 2)/nrow(valids), 2)
+  boxval <- round(sum(valids$reads < 2)/nrow(valids) * 100, 2)
 } else {
   boxval <- "NA"
 }
 list(
-  icon = "1-circle",
-  color = "success",
+  color = "d4d4d4",
   value = boxval
 )
 ```
@@ -191,37 +181,43 @@ if (VALID_PRESENT){
   boxval <- "NA"
 }
 list(
-  icon = "body-text",
   color = "#d4d4d4",
   value = boxval
 )
 ```
 
-## N50 and N90
-```{r validtext, eval = SKIPTEXT, results="asis"}
-cat(paste0("**`",infile,"` has no valid haplotagging barcodes, skipping reporting on linked-read metrics.**"))
-```
+##
+::: {.card fill="false"}
+
 ```{r NX_stats, eval = VALID_PRESENT}
-summary_table <- valids %>% 
-    group_by(contig) %>%
-    summarize(valid_records = sum(reads), molecules = length(molecule),n50 = NX(length_inferred, 50), n75 = NX(length_inferred, 75), n90 = NX(length_inferred, 90))
-summ_invalid <- invalids %>% group_by(contig) %>% summarize(invalid_records = sum(reads))
-summary_table <- left_join(summary_table, summ_invalid, by = "contig", keep = T) %>% select(1, 2, 8, 3:6)
-summary_table$invalid_records[is.na(summary_table$invalid_records)] <- 0
-DT::datatable(
-  summary_table,
-  rownames = F,
-  options = list(
-    dom = 'Brtip',
-    buttons = list(list(extend = "csv",filename = paste0(samplename ,"_molecule_NX")))
-  ),
-  colnames = c("contig", "valid BX records", "invalid BX records", "molecules", "N50", "N75", "N90"),
-  fillContainer = T
-)
+#| title: "Stats by Contig"
+if(!VALID_PRESENT){
+  cat(paste0("**`",infile,"` has no valid haplotagging barcodes, skipping reporting on linked-read metrics.**"))
+} else {
+  summary_table <- valids %>% 
+      group_by(contig) %>%
+      summarize(valid_records = sum(reads), molecules = length(molecule),n50 = NX(length_inferred, 50), n75 = NX(length_inferred, 75), n90 = NX(length_inferred, 90))
+  summ_invalid <- invalids %>% group_by(contig) %>% summarize(invalid_records = sum(reads))
+  summary_table <- left_join(summary_table, summ_invalid, by = "contig", keep = T) %>% select(1, 2, 8, 3:6)
+  summary_table$invalid_records[is.na(summary_table$invalid_records)] <- 0
+  DT::datatable(
+    summary_table,
+    rownames = F,
+    options = list(
+      dom = 'Brtip',
+      paging = TRUE,
+      buttons = list(list(extend = "csv",filename = paste0(samplename ,"_molecule_NX")))
+    ),
+    colnames = c("contig", "valid BX records", "invalid BX records", "molecules", "N50", "N75", "N90"),
+    fillContainer = T
+  )
+}
 ```
+:::
 
 ## Reads per molecule 
 ::: {.card title="Reads per Molecule"}
+
 This chart shows the distribution of the number of reads per haplotag molecule. That is, how many alignments
 are associated with a unique molecule. This excludes the number of reads associated with invalid
 or absent haplotag barcodes. There are two distributions: one with `all` the alignments (purple)
@@ -253,8 +249,9 @@ highchart() |>
 ```
 :::
 
-## bases per desc
+### bases per desc
 ::: {.card title="Total Bases Aligned"}
+
 This is a frequency distribution showing the number of base pairs aligned
 per unique molecule. These data are shown in 500 bp bins. Be aware that the Y axis
 may not start at `0`. There are two distributions: one with `all` the alignments (purple)
@@ -284,12 +281,11 @@ highchart() |>
     buttons = list(contextButton = list(menuItems = c("downloadPNG", "downloadJPEG", "downloadPDF", "downloadSVG")))
   )
 ```
-
 :::
 
-## inferred-header
+##
 :::{.card title="Inferred Molecule Lengths"}
-Here you can see the frequency distribution of molecule lengths 
+This is the frequency distribution of molecule lengths 
 inferred from the first and last alignment positions along a contig for all
 alignments associated with a single haplotag barcode on a given contig. 
 Be aware that the Y axis may not start at `0`. There are two distributions:
@@ -323,26 +319,15 @@ highchart() |>
 ```
 :::
 
-## breadth
-:::{.card title="Inferred Molecule Read Coverage"}
-This charts shows the frequency distribution of molecule coverage, meaning
-the percent of each inferred molecule that has sequences aligned to it. In other
-words, "_how much of each unique long molecule is actually sequenced/aligned?_"
+##
+:::{.card title="Read Coverage"}
+
+This chart shows molecule coverage as computed by the number of bases aligned
+to that molecule. In other words, "_how much of each unique long molecule is actually sequenced/aligned?_"
 Keep in mind there is a disctinction between sequences and alignments, since
 some sequences belonging to a particular molecule may not align well and wouldn't
-appear in the alignment data. The chart on the left shows molecule coverage as computed
-by the number of bases aligned to that molecule. The chart on the right shows molecule
-coverage as computed by the inferred fragment length from which the aligned sequences originate.
-In other words, this computation considers the length of the original DNA fragment that was put
-on the sequencer, which may be longer than the 150bp (x2) inserts that actually got sequenced.
+appear in the alignment data.  
 
-If it helps, imagine a 500bp haplotagged DNA fragment being sequenced as a 150bp paired-end
-sequence and all 300bp aligned to your reference genome. The plot on the left calculates the proportion of
-molecule coverage as `300bp ÷ molecule_length`, whereas the plot on the right calculates this proportion as
-`500bp ÷ molecule_length`, which is the 300bp that aligned + the 200bp between the paired-end reads that were not sequenced.
-:::
-
-## breadthplot
 ```{r inferred_cov_bp, out.width = '100%', eval = VALID_PRESENT}
 hs <- hist(round(valids$coverage_bp, 0), breaks = seq(0, 1, by = 0.05), plot = F)
 hs_mult <- hist(round(non_singletons$coverage_bp, 0), breaks = hs$breaks, plot = F)
@@ -366,6 +351,12 @@ highchart() |>
     buttons = list(contextButton = list(menuItems = c("downloadPNG", "downloadJPEG", "downloadPDF", "downloadSVG")))
   )
 ```
+:::
+
+::: {.card title="Molecular Coverage"}
+This chart shows *molecule coverage* as computed by the _inferred fragment_ from which the aligned sequences originate.
+Unlike read coverage, this calculation takes into account the total insert size, including unsequenced gaps between
+the forward and reverse reads.
 
 ```{r inferred_cov_insert, out.width = '100%', eval = VALID_PRESENT}
 hs <- hist(round(valids$coverage_inserts, 0), breaks = seq(0, 1, by = 0.05), plot = F)
@@ -390,8 +381,9 @@ highchart() |>
     buttons = list(contextButton = list(menuItems = c("downloadPNG", "downloadJPEG", "downloadPDF", "downloadSVG")))
   )
 ```
+:::
 
-# Coverage Stats
+# Depth Stats
 ```{r reset_env}
 # clear out objects in memory to reduce RAM usage
 rm(hs)
@@ -450,55 +442,66 @@ contig_avg <- rbind(data.frame(contig = "global", average = global_avg, sdv = gl
   mutate(average = round(average, 2), sdv = round(sdv, 2), mol_average = round(mol_average, 2), mol_sdv = round(mol_sdv, 2))
 ```
 
-## covfileheader
-### hdrcov {.no-title}
-<h1> Alignment Coverage Statistics </h1>
-
-This report contains information regarding the sequence alignment coverage
-and depth for the file **`r paste0(samplename, ".bam")`**. The term `<Q99` here and
-elsewhere in this report refers to keeping intervals whose depth is below  the 99th
-depth percentile (`r q99`). The Q99 described is shown for diagnostic purposes, the
-alignments above this depth were not removed from the file.
-
-## General Information {data-height=100}
-### ncontigs
-```{r valuebox_contigs}
-valueBox(scales::comma(length(unique(tb$contig))), caption = "Contigs", color = "success")
+##
+```{r}
+#| content: valuebox
+#| title: "Contigs"
+list(
+  color = "#ffffff",
+  value = scales::comma(length(unique(tb$contig)))
+)
 ```
 
-### general-windowsize
-```{r valuebox_intervals}
-valueBox(paste(windowskb, "kb"), caption = "Intervals", color = "info")
-```
-### glob-avg
-```{r valuebox_glob_avg}
-valueBox(round(global_avg,2), caption = "Average depth", color = "info")
-```
-
-### glob-sd
-```{r valuebox_stdv}
-valueBox(round(global_sd,2), caption = "Stdev depth", color = "info")
+```{r}
+#| content: valuebox
+#| title: "Intervals"
+list(
+  color = "#d4d4d4",
+  value = paste(windowskb, "kb")
+)
 ```
 
-### mol-avg
-```{r valuebox_mol_avg}
-valueBox(round(mol_global_avg,2), caption = 'Mol. Average Depth', color = "info")
+```{r}
+#| content: valuebox
+#| title: "Average Depth"
+list(
+  color = "#d4d4d4",
+  value = round(global_avg,2)
+)
 ```
 
-### mol-sd
-```{r valuebox_mol_stdv}
-valueBox(round(mol_global_sd,2), caption = 'Mol. Stdev depth', color = "info")
+```{r}
+#| content: valuebox
+#| title: "Stdev Depth"
+list(
+  color = "#d4d4d4",
+  value = round(global_sd,2)
+)
+```
+
+```{r}
+#| content: valuebox
+#| title: "Mol. Average Depth"
+list(
+  color = "#d4d4d4",
+  value = round(mol_global_avg,2)
+)
+```
+
+```{r}
+#| content: valuebox
+#| title: "Mol. Stdev Depth"
+list(
+  color = "#d4d4d4",
+  value = round(global_sd,2)
+)
 ```
 
 ## Distdesc header
-### distdesc {.no-title}
-<h2> Alignment Depth Distribution </h2>
-Below are the frequencies of interval coverage across all **`r windowskb` kilobase** intervals for all contigs.
-For visual clarity, the X-axis of this plot is truncated at the 99% quantile of depth
-values, which is **`r q99`** for these data.
+::: {.card title="Alignment Depth Distribution"}
+These are the frequencies of interval coverage across all **`r windowskb` kilobase** intervals for all contigs.
+For visual clarity, the distribution of alignment-depths (not molecule depths) is truncated at the 99% quantile, which is **`r q99`** for the alignment data.
 
-## distributionplot
-### distplot {.no-title}
 ```{r depth_distribution}
 hs <- hist(tb$depth[tb$depth <= q99], breaks = 30, plot = F)
 hs_mol <- hist(tb$mol_depth[tb$mol_depth <= mol_q99], breaks = 30, plot = F)
@@ -521,23 +524,14 @@ highchart() |>
   )
 ```
 
-## Sumheader
-### sumhead {.no-title}
-<h2> Coverage Summary Information </h2>
-These tables will help you understand the sequence coverage of the sample.
+:::
 
-## Tableheaders
-### Sumdesc {.no-title}
-The table below shows the global and per-contig average depth and standard 
+## Sumheader
+::: {.card title="Average Depth"}
+This table shows the global and per-contig average depth and standard 
 deviation per `r windowskb`kbp intervals **including** intervals whose depth is flagged
 an outlier in the data. 
 
-### outlierdesc {.no-title}
-The table below shows the `r windowskb`kbp intervals considered outliers, as determined by 
-having depth greater than the 99th percentile (`r q99`) of aligment depths. 
-
-## Summary information 
-### Averages
 ```{r depth_table}
 DT::datatable(
   contig_avg, 
@@ -546,15 +540,20 @@ DT::datatable(
   options = list(
     dom = 'Brtip',
     scrollX = TRUE,
+    paging = TRUE,
     buttons = list(list(extend = "csv",filename = paste0(samplename ,"_align_depth_avg")))
   ),
   colnames = c('Contig', 'Average Depth', 'Standard Deviation', 'Average Depth (molecules)', 'Standard Deviation (Molecules)'),
-  fillContainer = T,
-  height = "fit-content"
+  fillContainer=T
 )
 ```
+:::
 
-### Outliers
+###
+::: {.card title="Depth Outliers"}
+This table shows the `r windowskb`kbp intervals considered outliers, as determined by 
+having depth greater than the 99th percentile (`r q99`) of aligment depths. 
+
 ```{r depth_plot}
 DT::datatable(
   outliers, 
@@ -563,15 +562,16 @@ DT::datatable(
   options = list(
     dom = 'Brtip',
     scrollX = TRUE,
+    paging = TRUE,
     buttons = list(list(extend = "csv",filename = paste0(samplename ,"_align_depth_outlier_avg")))
   ),
   colnames = c('Contig', 'Position', 'Depth', 'Depth (molecules)'),
-  fillContainer = T
+  fillContainer=T
 )
 ```
+:::
 
-## Circleplot {.no-title data-height=900}
-### pltdsc {.no-title data-width=150}
+# Depth Plot
 ```{r disttext}
 if(params$mol_dist > 0){
   dist_text <- paste0("from the linked-read information with a distance threshold of ", params$mol_dist)
@@ -579,9 +579,9 @@ if(params$mol_dist > 0){
   dist_text <- "by the internal EMA aligner heuristics"
 }
 ```
-
-<h2> Depth and Coverage Across the Genome </h2>
-To the right is a circular plot summarizing the depth information across up to 30 of the largest contigs.
+##
+::: {.card title="Depth and Coverage, Visualized" fill="false"}
+This is a circular vizualization the depth information across up to 30 of the largest contigs (unless specific contigs were provided).
 For clarity, this visualization truncates coverage at the 99th percentile (`r q99` for alignments and `r mol_q99` for molecule coverage).
 If you are unfamiliar with this kind of visualization, it's a circular version of a linear genome. 
 Each arc (segment) is a different contig, from position 0 to the end of the contig, and is labelled by the contig name.
@@ -589,13 +589,18 @@ The internal (grey) rings are a barplot where each bar represents the alignment 
 genomic interval. The inner ring (grey bars) is the number of reads that had a _proper_ alignment in the `r windowskb` kilobase interval, where
 "proper" refers to a read not marked as a duplicate or flagged with the SAM `UNMAP`, `SECONDARY`,  or `QCFAIL` flags. The outer ring (magenta bars),
 is the number of _molecules_ spanning that interval, where molecules are inferred `r dist_text`.
+:::
 
+##
+### {width=20%}
+::: {.card title="Navigating the Plot"}
 You may hover your cursor over variants to view their positions, pan by clicking and dragging,
 and zoom using scroll (mouse or touchpad). In case you become unable to scroll up from the plot due to these interactive 
-features, place your cursor over this left column or the navigation bar of this report and you will
+features, place your cursor over this left column and you will
 be able to scroll the report instead of zooming on the plot.
+:::
 
-### Coverage across the genome
+###
 ```{r limit_contigs}
 plot_contigs <- params$contigs
 #plot_contigs <- "default"
@@ -620,6 +625,8 @@ if (all(plot_contigs == "default")){
 ```
 
 ```{r circleplot, fig.align='center', out.width= "80%", out.height="900px"}
+#| title: Depth and Coverage Across the Genome
+
 genomeChr <- .contigs$size
 names(genomeChr) <- .contigs$contig
 genomeChr <- as.list(genomeChr)
@@ -682,7 +689,7 @@ BioCircos(
 
 
 # Supporting Info
-## inttable
+##
 ::: {.card title="Interpreting the Supporting File"}
 Below are the descriptions of the columns in **`r basename(infile)`**, which was created
 by Harpy using the included `bx_stats.py` script. The term `molecule` refers to the
@@ -691,38 +698,38 @@ fragment alignments sharing a barcode are inferred to have originated from. The 
 takes into account an [alignment distance threshold](https://pdimens.github.io/harpy/haplotagdata/#barcode-thresholds)
 and that the sequences aligned to the same contig.
 
-```{r cols_explained}
-knitr::kable(
-  data.frame(
-    "Column Name" = c("contig", "molecule", "reads", "start", "end", "length_inferred", "percent_coverage", "aligned_bp"),
-    "Description" = c(
-      "name of the contig the molecule occurs on",
-      "the molecule name as given by the MI:i: tag",
-      "number of alignments associated with this molecule",
-      "the start position of the first alignment for that molecule",
-      "the end position of the last alignment for that molecule",
-      "inferred length of the molecule based on the start/end of the alignments sharing the same barcode",
-      "what percent of the molecule is represented by sequence alignments",
-      "total number of base pairs aligned for that molecule"
-      )
-    )
-)
-```
+contig
+: name of the contig the molecule occurs on
+
+molecule
+: the molecule name as given by the MI:i: tag
+
+reads
+: number of alignments associated with this molecule
+
+start
+: the start position of the first alignment for that molecule
+
+end
+: the end position of the last alignment for that molecule
+
+length_inferred
+: inferred length of the molecule based on the start/end of the alignments sharing the same barcode
+
+percent_coverage
+: what percent of the molecule is represented by sequence alignments
+
+aligned_bp
+: total number of base pairs aligned for that molecule
 :::
 
-### Barcode validity {.no-title}
+###
 ::: {.card title="Interpreting Barcode Validity"}
 BX barcode validity is classified into one of two categories:
 
-```{r bx_explanation}
-knitr::kable(
-  data.frame(
-    "Classification" = c("valid BX", "invalid BX"),
-    "Description" = c(
-      "a complete BX barcode was present in the read (i.e. no 00 for any segments)",
-      "a barcode was present in the read, but it contained 00 in at least one of the barcode segments"
-      )
-    )
-)
-```
+valid BX
+: a complete BX barcode was present in the read (i.e. no 00 for any segments)
+
+invalid BX
+: a barcode was present in the read, but it contained 00 in at least one of the barcode segments
 :::
