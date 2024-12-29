@@ -21,6 +21,7 @@ Metassembly/
 samples.populations
 *.fasta
 *.bcf
+*.bai
 genome.fasta
 build/
 harpy.egg-info/
