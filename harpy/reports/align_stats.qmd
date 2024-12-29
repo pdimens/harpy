@@ -103,7 +103,7 @@ NX <- function(lengths, X=50){
 #| content: valuebox
 #| title: "Contigs"
 list(
-  color = "d4d4d4",
+  color = "light",
   value = scales::comma(length(unique(tb$contig)))
 )
 ```
@@ -135,7 +135,7 @@ list(
 #| content: valuebox
 #| title: "Unique Molecules"
 list(
-  color = "d4d4d4",
+  color = "#d4d4d4",
   value = scales::comma(length(unique(valids$molecule)))
 )
 ```
@@ -144,7 +144,7 @@ list(
 #| content: valuebox
 #| title: "Valid BX Records"
 list(
-  color = "d4d4d4",
+  color = "#d4d4d4",
   value = scales::comma(tot_valid)
 )
 ```
@@ -153,7 +153,7 @@ list(
 #| content: valuebox
 #| title: "Invalid BX Records"
 list(
-  color = "d4d4d4",
+  color = "#d4d4d4",
   value = scales::comma(tot_invalid)
 )
 ```
@@ -167,7 +167,7 @@ if (VALID_PRESENT){
   boxval <- "NA"
 }
 list(
-  color = "d4d4d4",
+  color = "#d4d4d4",
   value = boxval
 )
 ```
@@ -324,7 +324,7 @@ highchart() |>
 
 This chart shows molecule coverage as computed by the number of bases aligned
 to that molecule. In other words, "_how much of each unique long molecule is actually sequenced/aligned?_"
-Keep in mind there is a disctinction between sequences and alignments, since
+Keep in mind there is a distinction between sequences and alignments, since
 some sequences belonging to a particular molecule may not align well and wouldn't
 appear in the alignment data.  
 
@@ -565,7 +565,7 @@ DT::datatable(
     paging = TRUE,
     buttons = list(list(extend = "csv",filename = paste0(samplename ,"_align_depth_outlier_avg")))
   ),
-  colnames = c('Contig', 'Position', 'Depth', 'Depth (molecules)'),
+  colnames = c('Contig', 'Interval', 'Depth', 'Depth (molecules)'),
   fillContainer=T
 )
 ```
