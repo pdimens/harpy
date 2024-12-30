@@ -38,7 +38,7 @@ using<-function(...) {
         lapply(need,require,character.only=TRUE)
     }
 }
-using("dplyr","ggplot2","DT","BioCircos", "htmltools")
+using("dplyr","DT","BioCircos", "htmltools")
 ```
 
 # General Stats
@@ -208,33 +208,47 @@ the end of the contig, and is labelled by the contig name. Each internal (grey) 
 of observed structural variants for that contig. The legend shows which colors correspond to which type of variant. To save the plot,
 you will need to take a screenshot. Very small variants may be difficult to see or
 may not appear on the plot. Deletions are shown as points as they tend to be small
-and clump together.
+and clump together. If for some reason the plot isn't appearing, try refreshing
+your browser.
 
 ##
-::: {.card width=20% title="Legend"}
-```{r plot legend}
-color.palette <- c("deletion" = "#5a8c84", "duplication" = "#99278a", "inversion" = "#4a9fea", "breakend" = "#c56e34")
+::: {.card width=15% title="Legend"}
+```{r}
+calculate_luminance <- function(hex) {
+  rgb_values <- col2rgb(hex) / 255
+  luminance <- 0.2126 * rgb_values[1] + 0.7152 * rgb_values[2] + 0.0722 * rgb_values[3]
+  return(luminance)
+}
 
-data.frame(x = 1, y = 1:4, colour = c("breakend","deletion","duplication", "inversion")) %>% 
-ggplot(aes(x, y, fill = colour))+
-  geom_point(alpha=0, shape = 22, color = "white")+ # completely transparent rectangular point 
-  scale_fill_manual(values=color.palette, drop=FALSE) +
-  guides(fill = guide_legend(override.aes = list(alpha=1, size = 28)))+ # showing the point in the legend
-  theme(axis.title = element_blank(),
-        axis.text = element_blank(),
-        axis.ticks = element_blank(),
-        legend.position = "inside",
-        legend.position.inside = c(0.3, 0.5),
-        legend.text = element_text(size = 28),
-        legend.title=element_text(size=28),
-        legend.key = element_rect(fill='NA'),
-        panel.grid = element_blank(),
-        panel.background = element_rect(fill='transparent'), 
-        plot.background = element_rect(fill='transparent', color=NA),
-        legend.background = element_rect(fill='transparent'),
-        legend.box.background = element_rect(fill='transparent', color = "transparent"), 
-  ) +
-  labs(fill="Variant Type")
+# Function to decide text color based on background luminance
+get_text_color <- function(background_color) {
+  luminance <- calculate_luminance(background_color)
+  if (luminance > 0.5) {
+    # Dark background -> Light text (black)
+    return("black") 
+  } else {
+    # Light background -> Dark text (white)
+    return("white") 
+  }
+}
+color.palette <- c("deletion" = "#5a8c84", "duplication" = "#99278a", "inversion" = "#4a9fea", "breakend" = "#c56e34")
+DT::datatable(
+  data.frame(Variant = c("breakend","deletion","duplication", "inversion")),
+  rownames = F,
+  fillContainer = T,
+  colnames = "Variant Type",
+  options = list(
+    dom = 't',
+    scrollX = F,
+    scrollY = F,
+    paging = F
+  )
+) %>% formatStyle(
+  "Variant",
+  backgroundColor = styleEqual(names(color.palette), color.palette),
+  # Adjust text color dynamically
+  color = styleEqual(names(color.palette), sapply(color.palette, get_text_color))
+)
 ```
 :::
 
