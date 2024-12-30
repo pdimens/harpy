@@ -1,5 +1,5 @@
 ---
-title: "Summary - `r params$inname`"
+title: "Summary - `r params$vcf`"
 brand:
   logo: 
     medium: https://raw.githubusercontent.com/pdimens/harpy/docs/static/logo_navbar.png
@@ -21,8 +21,8 @@ format:
       - icon: code-slash
         href: https://github.com/pdimens/harpy
 params:
-  infile: 'sample.bxstats.gz'
-  inname: 'variants.raw'
+  infile: 'variants.raw.stats'
+  vcf: 'variants.raw'
 ---
 `r format(Sys.time(), '🗓️ %d %B, %Y 🕔 %H:%M')`
 
@@ -43,7 +43,7 @@ statsfile <- params$infile
 dataL <- readLines(statsfile)
 bcf <- gsub(".stats$", ".bcf", statsfile)
 ```
-# Quality
+# SNPs
 ##
 ```{r General Stats}
 .snL <- grepl("^SN", dataL)
@@ -58,7 +58,7 @@ sn <- as.data.frame(t(sn[2]))
 #| title: "Sample"
 list(
   color = "light",
-  value = scales::comma(sn[1,1]),
+  value = scales::comma(sn[1,1])
 )
 ```
 ```{r}
@@ -66,7 +66,7 @@ list(
 #| title: "Records"
 list(
   color = "#dfdfdf",
-  value = scales::comma(sn[1,2]),
+  value = scales::comma(sn[1,2])
 )
 ```
 ```{r}
@@ -74,7 +74,7 @@ list(
 #| title: "SNPs"
 list(
   color = "#dfdfdf",
-  value = scales::comma(sn[1,4]),
+  value = scales::comma(sn[1,4])
 )
 ```
 ```{r}
@@ -82,7 +82,7 @@ list(
 #| title: "MNPs"
 list(
   color = "#dfdfdf",
-  value = scales::comma(sn[1,5]),
+  value = scales::comma(sn[1,5])
 )
 ```
 ```{r}
@@ -90,7 +90,7 @@ list(
 #| title: "Indels"
 list(
   color = "#dfdfdf",
-  value = scales::comma(sn[1,6]),
+  value = scales::comma(sn[1,6])
 )
 ```
 ```{r}
@@ -98,7 +98,7 @@ list(
 #| title: "Multiallelic Sites"
 list(
   color = "#dfdfdf",
-  value = scales::comma(sn[1,8]),
+  value = scales::comma(sn[1,8])
 )
 ```
 ```{r}
@@ -106,7 +106,7 @@ list(
 #| title: "Multiallelic SNPs"
 list(
   color = "#dfdfdf",
-  value = scales::comma(sn[1,9]),
+  value = scales::comma(sn[1,9])
 )
 ```
 ```{r}
@@ -114,7 +114,7 @@ list(
 #| title: "No-Alts"
 list(
   color = "#dfdfdf",
-  value = scales::comma(sn[1,3]),
+  value = scales::comma(sn[1,3])
 )
 ```
 ```{r}
@@ -122,7 +122,7 @@ list(
 #| title: "Others"
 list(
   color = "#dfdfdf",
-  value = scales::comma(sn[1,7]),
+  value = scales::comma(sn[1,7])
 )
 ```
 
@@ -189,7 +189,6 @@ greater than or equal to `0` and less than `10`". The histograms are truncated a
 for visual clarity.
 
 ```{r snpqual plot}
-
 if(do_qual){
   rebinned_qual <- mergebins(qual[,-3])
   q99 <- hist_quantile(rebinned_qual, 0.99)
@@ -213,42 +212,6 @@ if(do_qual){
 ```
 :::
 
-### Indel Quality
-::: {.card title="Indel Genotype Quality"}
-These are per-locus SNP quality statistics, which correspond to the Quality (`QUAL`) values of `bcftools stats`. 
-Each quality score is has a semi-open bin width of 10, where `0` would be considered "a QUAL score
-greater than or equal to `0` and less than `10`". The histograms are truncated at the 99th percentile
-for visual clarity.
-```{r indelqual plot}
-if(do_qual){
-  rebinned_qual <- mergebins(qual[,-2])
-  q99 <- hist_quantile(rebinned_qual, 0.99)
-  rebinned_qual <- rebinned_qual[rebinned_qual$QualityScore < q99, ]
-  hchart(rebinned_qual, "areaspline", hcaes(x = QualityScore, y = Indels), name = "count", color = "#9393d2", marker = list(enabled = FALSE)) |>
-    hc_title(text = "Indel Genotype Quality") |>
-    hc_subtitle(text = "Shown in bins of width 10") |>
-    hc_caption(text = paste("99th percentile:", q99)) |>
-    hc_xAxis(title = list(text = "quality score"), type = "logarithmic") |>
-    hc_yAxis(title = list(text = "count")) |>
-    hc_tooltip(crosshairs = TRUE,
-      formatter = JS("function () {return '<b>Quality ' + this.x + '</b><br>Count: <b>' + this.y + '</b>';}") 
-    ) |>
-    hc_exporting(enabled = T, filename = "indel.quality",
-      buttons = list(contextButton = list(menuItems = c("downloadPNG", "downloadJPEG", "downloadPDF", "downloadSVG")))
-    )
-
-} else {
-  cat(paste0("No QUAL section in ", statsfile, " found\n"))
-}
-```
-:::
-
-# Depth
-##
-These are per-locus statistics, which correspond to the Depth (`DP`) calculations of `bcftools stats`
-The table reflects the data visualized in the plot tab.
-
-## Depth Statistics
 ```{r findzero_function}
 # find index when the values are consistently 0 to hopefully remove an uninformative tail from the plot
 find_zero_runs <- function(vec) {
@@ -261,9 +224,13 @@ find_zero_runs <- function(vec) {
   }
 }
 ```
+### {.tabset}
+::: {.card title="Depth per Genotype"}
+These are per-locus statistics, which correspond to the Depth (`DP`) calculations of `bcftools stats`
 
 ```{r depth plot, out.width="100%"}
 #| title: Depth per Genotype
+
 .dpL <- grepl("^DP", dataL)
 if(sum(.dpL) == 0){
   cat(paste0("No DP section in ", statsfile, " found\n"))
@@ -291,10 +258,11 @@ if(sum(.dpL) == 0){
   )
 }
 ```
+:::
 
-### Depth Data {width=30%}
-```{r depth table, paged.print=TRUE, out.width="100%"}
-#| title: "Genotype Depth (table format)"
+```{r depth table, out.width="100%"}
+#| title: Table
+
 if(sum(.dpL) == 0){
   cat(paste0("No DP section in ", statsfile, " found\n"))
 } else {
@@ -312,6 +280,7 @@ if(sum(.dpL) == 0){
   )
 }
 ```
+
 
 # Indels
 ##
@@ -348,9 +317,38 @@ if(sum(.iddL) == 0){
 ```
 :::
 
+### Indel Quality
+::: {.card title="Indel Genotype Quality"}
+These are per-locus indel quality statistics, which correspond to the Quality (`QUAL`) values of `bcftools stats`. 
+Each quality score is has a semi-open bin width of 10, where `0` would be considered "a QUAL score
+greater than or equal to `0` and less than `10`". The histograms are truncated at the 99th percentile
+for visual clarity.
+```{r indelqual plot}
+if(do_qual){
+  rebinned_qual <- mergebins(qual[,-2])
+  q99 <- hist_quantile(rebinned_qual, 0.99)
+  rebinned_qual <- rebinned_qual[rebinned_qual$QualityScore < q99, ]
+  hchart(rebinned_qual, "areaspline", hcaes(x = QualityScore, y = Indels), name = "count", color = "#9393d2", marker = list(enabled = FALSE)) |>
+    hc_title(text = "Indel Genotype Quality") |>
+    hc_subtitle(text = "Shown in bins of width 10") |>
+    hc_caption(text = paste("99th percentile:", q99)) |>
+    hc_xAxis(title = list(text = "quality score"), type = "logarithmic") |>
+    hc_yAxis(title = list(text = "count")) |>
+    hc_tooltip(crosshairs = TRUE,
+      formatter = JS("function () {return '<b>Quality ' + this.x + '</b><br>Count: <b>' + this.y + '</b>';}") 
+    ) |>
+    hc_exporting(enabled = T, filename = "indel.quality",
+      buttons = list(contextButton = list(menuItems = c("downloadPNG", "downloadJPEG", "downloadPDF", "downloadSVG")))
+    )
+
+} else {
+  cat(paste0("No QUAL section in ", statsfile, " found\n"))
+}
+```
+:::
+
 # Per-Sample
-<h2> Individual Statistics </h2>
-<br>These are per-locus statistics, which correspond to the Per-Sample Counts (`PSC`) calculations of `bcftools stats`. The table reflects the data visualized in the plot tab. `HomAlt` and `HomRef` refer to homozygous for the Reference and Alternative alleles, respectively.</br>
+###
 
 ```{r read_persample}
 .pscL <- grepl("^PSC", dataL)
@@ -358,31 +356,16 @@ psc <- read.table(text=dataL[.pscL])[ ,3:14]
 names(psc) <- c("Sample", "HomRef", "HomAtl", "Het", "Transitions", "Transversions", "Indels",	"MeanDepth", "Singletons",	"HapRef", "HapAlt", "Missing")
 tidy_psc <- pivot_longer(psc[,c(1,2,3,4,5,6,7,9,12)], -Sample , names_to = "Metric", values_to = "Count")
 tidy_psc$Sample <- as.factor(basename(tidy_psc$Sample))
-plotheight <- 150 + (15 * nrow(psc))
-figheight <- 1 + (0.2 * nrow(psc))
+figheight <- 1 + (0.8 * nrow(psc))
 ```
 
-## Individual Statistics {.tabset data-height=plotheight}
-### Individual Data
-```{r Individual table}
-DT::datatable(
-  psc, rownames = F,
-  fillContainer = T,
-  filter = "top",
-  extensions = 'Buttons',
-  options = list(
-    dom = 'Brtip',
-    buttons = list(list(extend = "csv",filename = "snp_indiv_stats")),
-    scrollX = TRUE,
-    paging = F
-  )
-)
-```
+::: {.card title="Individual Stats (Plot)"}
+These are per-locus statistics, which correspond to the Per-Sample Counts (`PSC`) calculations of `bcftools stats`. The table reflects the data visualized in the plot tab. `HomAlt` and `HomRef` refer to homozygous for the Reference and Alternative alleles, respectively.
 
-### Individual Statistics
 ```{r Individual plot, fig.height=figheight, out.width="100%"}
+#| title: Individual Stats (plot)
 highchart() |>
-  hc_chart(inverted=TRUE) |>
+  hc_chart(inverted=TRUE, animation = F) |>
   hc_add_series(data = tidy_psc, type = "scatter", hcaes(y = Count, x = Sample, group = Metric)) |>
   hc_colors(c("#41739c", "#eb7e2b", "#aa042e", "#837fbd", "#202020", "#9dc96c", "#E6AB02", "#d39ab7")) |>
   hc_title(text = "Individual Statistics") |>
@@ -395,5 +378,24 @@ highchart() |>
   hc_exporting(enabled = T, filename = "samples.variantstats",
     buttons = list(contextButton = list(menuItems = c("downloadPNG", "downloadJPEG", "downloadPDF", "downloadSVG")))
   )
+```
+
+:::
+
+```{r Individual table}
+#| title: Individual Stats (Table)
+#| expandable: true
+DT::datatable(
+  psc, rownames = F,
+  fillContainer = T,
+  filter = "top",
+  extensions = 'Buttons',
+  options = list(
+    dom = 'Brtip',
+    buttons = list(list(extend = "csv",filename = "snp_indiv_stats")),
+    scrollX = TRUE,
+    paging = F
+  )
+)
 ```
 
