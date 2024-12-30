@@ -311,20 +311,28 @@ rule aggregate_variants:
                         elif record[-1] == "duplication":
                             _ = duplications.write(f"{samplename}\t{line}")
 
-rule group_reports:
-    input:
-        fai   = f"Genome/{bn}.fai",
-        bedpe = outdir + "/bedpe/{population}.bedpe"
+rule sample_reports:
+    input: 
+        faidx = f"Genome/{bn}.fai",
+        bedpe = outdir + "/bedpe/{population}.bedpe",
+        qmd   = f"{outdir}/workflow/report/naibr.qmd"
     output:
-        outdir + "/reports/{population}.naibr.html"
+        report = outdir + "/reports/{population}.naibr.html",
+        qmd = temp(outdir + "/reports/{population}.naibr.qmd")
     log:
-        logfile = outdir + "/logs/reports/{population}.report.log"
+        outdir + "/logs/reports/{population}.report.log"
     params:
-        contigs = plot_contigs
+        sample= lambda wc: "-P sample:" + wc.get('population'),
+        contigs= f"-P contigs:{plot_contigs}"
     conda:
         f"{envdir}/r.yaml"
-    script:
-        "report/naibr.Rmd"
+    shell:
+        """
+        cp {input.qmd} {output.qmd}
+        FAIDX=$(realpath {input.faidx})
+        BEDPE=$(realpath {input.bedpe})
+        quarto render {output.qmd} -P faidx:$FAIDX -P bedpe:$BEDPE {params} 2> {log}
+        """
 
 rule aggregate_report:
     input:
