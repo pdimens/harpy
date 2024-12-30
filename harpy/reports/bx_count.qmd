@@ -206,7 +206,7 @@ DT::datatable(
   filter = "top",
   extensions = "Buttons",
   options = list(
-    dom = "Brtip",
+    dom = "Brtp",
     buttons = c("csv"),
     scrollX = TRUE
   ),
@@ -283,7 +283,7 @@ DT::datatable(
   rownames = FALSE,
   extensions = "Buttons",
   options = list(
-    dom = "Brtip",
+    dom = "Brtp",
     buttons = c("csv"),
     scrollX = TRUE
   ),

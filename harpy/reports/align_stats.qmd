@@ -204,7 +204,7 @@ if(!VALID_PRESENT){
     summary_table,
     rownames = F,
     options = list(
-      dom = 'Brtip',
+      dom = 'Brtp',
       paging = TRUE,
       buttons = list(list(extend = "csv",filename = paste0(samplename ,"_molecule_NX")))
     ),
@@ -538,7 +538,7 @@ DT::datatable(
   rownames = F, 
   extensions = 'Buttons', 
   options = list(
-    dom = 'Brtip',
+    dom = 'Brtp',
     scrollX = TRUE,
     paging = TRUE,
     buttons = list(list(extend = "csv",filename = paste0(samplename ,"_align_depth_avg")))
@@ -560,7 +560,7 @@ DT::datatable(
   rownames = F, 
   extensions = 'Buttons', 
   options = list(
-    dom = 'Brtip',
+    dom = 'Brtp',
     scrollX = TRUE,
     paging = TRUE,
     buttons = list(list(extend = "csv",filename = paste0(samplename ,"_align_depth_outlier_avg")))

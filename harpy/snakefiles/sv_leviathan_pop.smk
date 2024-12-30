@@ -254,19 +254,27 @@ rule group_reports:
         """
 
 rule aggregate_report:
-    input:	
-        faidx      = f"Genome/{bn}.fai",
-        statsfiles = collect(outdir + "/reports/data/{pop}.sv.stats", pop = populations)
+    input: 
+        faidx     = f"Genome/{bn}.fai",
+        statsfiles = collect(outdir + "/reports/data/{pop}.sv.stats", pop = populations),
+        qmd      = f"{outdir}/workflow/report/leviathan_pop.qmd"
     output:
-        outdir + "/reports/leviathan.summary.html"
+        report = outdir + "/reports/leviathan.summary.html",
+        qmd = temp(outdir + "/reports/leviathan.summary.qmd")
     log:
-        logfile = outdir + "/logs/reports/summary.report.log"
+        outdir + "/logs/reports/summary.report.log"
     params:
-        contigs = plot_contigs
+        statsdir = f"{outdir}/reports/data/",
+        contigs = f"-P contigs:{plot_contigs}"
     conda:
         f"{envdir}/r.yaml"
-    script:
-        "report/leviathan_pop.Rmd"
+    shell:
+        """
+        cp {input.qmd} {output.qmd}
+        FAIDX=$(realpath {input.faidx})
+        INPATH=$(realpath {params.statsdir})
+        quarto render {output.qmd} -P faidx:$FAIDX -P statsdir:$INPATH {params.contigs} 2> {log}
+        """
 
 rule workflow_summary:
     default_target: True

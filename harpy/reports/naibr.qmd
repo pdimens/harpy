@@ -164,7 +164,7 @@ DT::datatable(
   rownames = F,
   extensions = 'Buttons',
   options = list(
-    dom = 'Brtip',
+    dom = 'Brtp',
     buttons = list(list(extend = "csv",filename = paste0(samplename , "_sv_naibr_count"))),
     scrollX = T,
     paging = T
@@ -184,7 +184,7 @@ DT::datatable(
   rownames = F,
   extensions = 'Buttons',
   options = list(
-    dom = 'Brtip',
+    dom = 'Brtp',
     buttons = list(list(extend = "csv",filename = paste0(samplename , "_sv_naibr_count_bp"))),
     scrollX = T,
     paging = T
@@ -209,7 +209,7 @@ DT::datatable(
   filter = "top",
   extensions = 'Buttons',
   options = list(
-    dom = 'Brtip',
+    dom = 'Brtp',
     buttons = list(list(extend = "csv",filename = paste0(samplename ,"_sv_naibr"))),
     scrollX = T,
     paging = T
@@ -233,7 +233,7 @@ DT::datatable(
   filter = "top",
   extensions = 'Buttons',
   options = list(
-    dom = 'Brtip',
+    dom = 'Brtp',
     buttons = list(list(extend = "csv",filename = paste0(samplename ,"_sv_naibr_chimeric"))),
     scrollX = TRUE
   ),
@@ -260,7 +260,7 @@ sv <- sv[sv$Chr1 %in% fa.sizes$contig, ]
 sv$Chr1 <- factor(sv$Chr1)
 ```
 ##
-To the right is a circular plot to visualize the distribution of structural variants
+To the right is a circular plot to visualize the distribution of _putative_ structural variants
 across (up to) 30 of the largest contigs, or whichever contigs were provided. If you are unfamiliar with this kind of visualization,
 it's a circular version of a linear genome. Each "wedge" is a different contig, from position 0 to 
 the end of the contig, and is labelled by the contig name. Each internal (grey) ring is a plot
@@ -379,7 +379,7 @@ BioCircos(
   chrPad = 0.03,
   genomeTicksDisplay = F,
   genomeLabelDy = 3,
-  genomeLabelTextSize = 7,
+  genomeLabelTextSize = 20,
   SNPMouseOverCircleSize = 2,
   SNPMouseOverTooltipsHtml03 = "<br/>Length: ",
   width = "100%",

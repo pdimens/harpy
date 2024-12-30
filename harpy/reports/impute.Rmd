@@ -240,7 +240,7 @@ DT::datatable(
   extensions = "Buttons",
   colnames = c("Contigs", "Total Variants", "0.20", "0.25", "0.30", "0.4", "0.5", "0.75", "0.90"),
   options = list(
-    dom = "Brtip",
+    dom = "Brtp",
     buttons = c("csv"),
     scrollX = TRUE
   ),
@@ -271,7 +271,7 @@ DT::datatable(
   extensions = "Buttons",
   colnames = c("Contigs", "Total Variants", '<span style="color:red">0.2</span>','<span style="color:red">0.25</span>','<span style="color:red">0.30</span>','<span style="color:red">0.5</span>','<span style="color:red">0.75</span>','<span style="color:red">0.9</span>'),
   options = list(
-    dom = "Brtip",
+    dom = "Brtp",
     buttons = c("csv"),
     scrollX = TRUE
   ),
@@ -329,7 +329,7 @@ DT::datatable(
   extensions = "Buttons",
   colnames = c("Sample", "Homozygous Ref", "Homozygous Alt", "Heterozygote", "Missing"),
   options = list(
-    dom = "Brtip",
+    dom = "Brtp",
     buttons = c("csv"),
     scrollX = TRUE
   ),

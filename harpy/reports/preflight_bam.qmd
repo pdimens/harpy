@@ -127,7 +127,7 @@ datatable(
   options = list(
     paging = F,
     scrollX = F,
-    dom = 'Brtip',
+    dom = 'Brtp',
     buttons = list(list(extend = "csv",filename = "bam_checks"))
   ),
   fillContainer = T,

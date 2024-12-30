@@ -140,7 +140,7 @@ DT::datatable(
   rownames = F,
   extensions = 'Buttons', 
   options = list(
-    dom = 'Brtip',
+    dom = 'Brtp',
     scrollX = TRUE,
     buttons = list(list(extend = "csv",filename = "per_sample_barcode_alignment"))
   ),

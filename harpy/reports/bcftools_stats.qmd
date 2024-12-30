@@ -272,7 +272,7 @@ if(sum(.dpL) == 0){
     filter = "top",
     extensions = 'Buttons',
     options = list(
-      dom = 'Brtip',
+      dom = 'Brtp',
       buttons = list(list(extend = "csv", filename = "align_depth_bins")),
       paging = T
     ),
@@ -391,7 +391,7 @@ DT::datatable(
   filter = "top",
   extensions = 'Buttons',
   options = list(
-    dom = 'Brtip',
+    dom = 'Brtp',
     buttons = list(list(extend = "csv",filename = "snp_indiv_stats")),
     scrollX = TRUE,
     paging = F

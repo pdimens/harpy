@@ -173,7 +173,7 @@ DT::datatable(
   rownames = F,
   extensions = 'Buttons',
   options = list(
-    dom = 'Brtip',
+    dom = 'Brtp',
     buttons = list(list(extend = "csv",filename = "phasing_per_contig")), 
     scrollX = TRUE
   ),
@@ -269,7 +269,7 @@ DT::datatable(
   rownames = F,
   extensions = 'Buttons',
   options = list(
-    dom = 'Brtip', 
+    dom = 'Brtp', 
     buttons = list(list(extend = "csv",filename = "phasing_per_sample")), 
     scrollX = TRUE
   ),

@@ -108,7 +108,7 @@ DT::datatable(
   filter = "top", 
   extensions = 'Buttons', 
   options = list(
-    dom = 'Brtip',
+    dom = 'Brtp',
     buttons = list(list(extend = "csv",filename = "impute_per_sample")),  
     scrollX = TRUE
   ),
