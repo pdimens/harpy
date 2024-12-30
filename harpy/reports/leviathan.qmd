@@ -1,5 +1,5 @@
 ---
-title: "Leviathan SV - `r params$sample`"
+title: "LEVIATHAN SV - `r params$sample`"
 brand:
   logo: 
     medium: https://raw.githubusercontent.com/pdimens/harpy/docs/static/logo_navbar.png
@@ -201,13 +201,17 @@ sv <- sv[sv$contig %in% fa.sizes$contig, ]
 sv$contig <- factor(sv$contig)
 ```
 ##
-This circular plot visualizes the distribution of structural variants
-across (up to) 30 of the largest contigs, unless specific contigs were provided.
-The legend shows which colors correspond to which type of variant. To save the plot,
-you will need to take a screenshot. Note that it may be difficult to see very small variants.
+To the right is a circular plot to visualize the distribution of structural variants
+across (up to) 30 of the largest contigs, or whichever contigs were provided. If you are unfamiliar with this kind of visualization,
+it's a circular version of a linear genome. Each "wedge" is a different contig, from position 0 to 
+the end of the contig, and is labelled by the contig name. Each internal (grey) ring is a plot
+of observed structural variants for that contig. The legend shows which colors correspond to which type of variant. To save the plot,
+you will need to take a screenshot. Very small variants may be difficult to see or
+may not appear on the plot. Deletions are shown as points as they tend to be small
+and clump together.
 
 ##
-::: {.card width=20%}
+::: {.card width=20% title="Legend"}
 ```{r plot legend}
 color.palette <- c("deletion" = "#5a8c84", "duplication" = "#99278a", "inversion" = "#4a9fea", "breakend" = "#c56e34")
 
@@ -236,6 +240,8 @@ ggplot(aes(x, y, fill = colour))+
 
 ###
 ```{r circos}
+#| title: "Structural Variants (save by taking a screenshot)"
+
 genomeChr <- fa.sizes$size
 names(genomeChr) <- fa.sizes$contig
 genomeChr <- as.list(genomeChr)
