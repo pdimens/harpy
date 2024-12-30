@@ -100,8 +100,8 @@ def leviathan(inputs, output_dir, genome, min_sv, min_barcodes, iterations, thre
     if populations:
         validate_popfile(populations)
         validate_popsamples(bamlist, populations,quiet)
-        fetch_report(workflowdir, "leviathan_pop.Rmd")
-    fetch_report(workflowdir, "leviathan.Rmd")
+        fetch_report(workflowdir, "leviathan_pop.qmd")
+    fetch_report(workflowdir, "leviathan.qmd")
     fetch_rule(workflowdir, f"sv_{vcaller}.smk")
     os.makedirs(f"{output_dir}/logs/snakemake", exist_ok = True)
     sm_log = snakemake_log(output_dir, "sv_leviathan")
@@ -200,8 +200,8 @@ def naibr(inputs, output_dir, genome, vcf, min_sv, min_barcodes, min_quality, th
     if populations:
         validate_popfile(populations)
         validate_popsamples(bamlist, populations, quiet)
-        fetch_report(workflowdir, "naibr_pop.Rmd")
-    fetch_report(workflowdir, "naibr.Rmd")
+        fetch_report(workflowdir, "naibr_pop.qmd")
+    fetch_report(workflowdir, "naibr.qmd")
     if vcf:
         check_phase_vcf(vcf)
     fetch_rule(workflowdir, f"sv_{vcaller}.smk")

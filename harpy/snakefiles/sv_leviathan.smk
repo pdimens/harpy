@@ -159,7 +159,12 @@ rule aggregate_variants:
         outdir + "/duplications.bedpe",
         outdir + "/breakends.bedpe"
     run:
-        with open(output[0], "w") as inversions, open(output[1], "w") as deletions, open(output[2], "w") as duplications, open(output[3], "w") as breakends:
+        with (
+            open(output[0], "w") as inversions,
+            open(output[1], "w") as deletions,
+            open(output[2], "w") as duplications,
+            open(output[3], "w") as breakends
+        ):
             header = ["sample","contig","position_start","position_end","length","type","n_barcodes","n_pairs"]
             _ = inversions.write("\t".join(header) + "\n")
             _ = deletions.write("\t".join(header) + "\n")
@@ -184,19 +189,27 @@ rule aggregate_variants:
                             _ = breakends.write(line)
 
 rule sample_reports:
-    input:	
+    input: 
         faidx     = f"Genome/{bn}.fai",
-        statsfile = outdir + "/reports/data/{sample}.sv.stats"
-    output:	
-        outdir + "/reports/{sample}.SV.html"
+        statsfile = outdir + "/reports/data/{sample}.sv.stats",
+        qmd      = f"{outdir}/workflow/report/leviathan.qmd"
+    output:
+        report = outdir + "/reports/{sample}.SV.html",
+        qmd = temp(outdir + "/reports/{sample}.SV.qmd")
     log:
-        logfile = outdir + "/logs/reports/{sample}.report.log"
+        outdir + "/logs/reports/{sample}.report.log"
     params:
-        contigs = plot_contigs
+        sample= lambda wc: "-P sample:" + wc.get('sample'),
+        contigs= f"-P contigs:{plot_contigs}"
     conda:
         f"{envdir}/r.yaml"
-    script:
-        "report/leviathan.Rmd"
+    shell:
+        """
+        cp {input.qmd} {output.qmd}
+        FAIDX=$(realpath {input.faidx})
+        STATS=$(realpath {input.statsfile})
+        quarto render {output.qmd} -P faidx:$FAIDX -P statsfile:$STATS {params} 2> {log}
+        """
 
 rule workflow_summary:
     default_target: True

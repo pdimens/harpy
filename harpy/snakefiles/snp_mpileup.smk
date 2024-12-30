@@ -235,7 +235,7 @@ rule variant_report:
         report = outdir + "/reports/variants.{type}.html",
         qmd = temp(outdir + "/reports/variants.{type}.qmd")
     params:
-        lambda wc: "variants." + wc.get("type")
+        lambda wc: "-P vcf:variants." + wc.get("type")
     log:
         outdir + "/logs/variants.{type}.report.log"
     conda:
@@ -244,7 +244,7 @@ rule variant_report:
         """
         cp {input.qmd} {output.qmd}
         INPATH=$(realpath {input.data})
-        quarto render {output.qmd} -P infile:$INPATH -P vcf:{params} 2> {log}
+        quarto render {output.qmd} -P infile:$INPATH {params} 2> {log}
         """
 
 rule workflow_summary:
