@@ -2,6 +2,8 @@
 
 import sys
 from rich import print as rprint
+from rich import box
+from rich.table import Table
 from rich.panel import Panel
 
 def print_error(errortitle, errortext):
@@ -90,15 +92,24 @@ def print_onstart(text, title):
         file = sys.stderr
     )
 
-def print_onsuccess(outdir, summary = None):
+def print_onsuccess(outdir, summary = None, time = None):
     """Print a green panel with success text. To be used in place of onsuccess: inside a snakefile"""
-    text = f"The workflow has finished successfully! Find the results in [bold]{outdir}/[/bold]"
+    days = time.days
+    seconds = time.seconds
+    hours = seconds // 3600
+    minutes = (seconds % 3600) // 60
+    seconds = seconds % 60
+    time_text = f"{days} days, {hours} hours, {minutes} minutes, {seconds} seconds"
+    datatable = Table(show_header=False,pad_edge=False, show_edge=False, padding = (0,0), box=box.SIMPLE)
+    datatable.add_column("detail", justify="left", style="green", no_wrap=True)
+    datatable.add_column("value", justify="left")
+    datatable.add_row("Runtime:", time_text)
     if summary:
-        text += f" and an outline of the workflow in [bold]{summary}[/bold]"
+        datatable.add_row("Summary: ", f"{outdir}/{summary}")
     rprint(
         Panel(
-            text,
-            subtitle = "[bold]success!",
+            datatable,
+            subtitle = "[bold]workflow finished successfully!",
             title_align = "left",
             border_style = "green",
             width=75

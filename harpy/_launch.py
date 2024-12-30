@@ -5,6 +5,7 @@ import os
 import sys
 import glob
 import subprocess
+from datetime import datetime
 from rich import print as rprint
 from rich.console import Console
 from ._misc import gzip_file, harpy_progressbar, harpy_pulsebar
@@ -32,6 +33,7 @@ def purge_empty_logs(target_dir):
 
 def launch_snakemake(sm_args, workflow, starttext, outdir, sm_logfile, quiet, summaryfile = None):
     """launch snakemake with the given commands"""
+    start_time = datetime.now()
     if not quiet:
         print_onstart(starttext, workflow.replace("_", " "))
     exitcode = None
@@ -155,7 +157,9 @@ def launch_snakemake(sm_args, workflow, starttext, outdir, sm_logfile, quiet, su
             gzip_file(sm_logfile)
             purge_empty_logs(outdir)
             if not quiet:
-                print_onsuccess(outdir, summaryfile)
+                end_time = datetime.now()
+                elapsed_time = end_time - start_time
+                print_onsuccess(outdir, summaryfile, elapsed_time)
             sys.exit(0)
         else:
             if exitcode in (1,2):
