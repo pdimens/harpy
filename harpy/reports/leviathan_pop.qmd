@@ -1,5 +1,5 @@
 ---
-title: "LEVIATHAN SV - `r params$sample`"
+title: "LEVIATHAN SV - Summary"
 brand:
   logo: 
     medium: https://raw.githubusercontent.com/pdimens/harpy/docs/static/logo_navbar.png
@@ -23,7 +23,6 @@ format:
 params:
   faidx: 'genome.fasta.fai'
   statsdir: 'reports/data/'
-  sample: 'sample'
   contigs: 'default'
 ---
 `r format(Sys.time(), '🗓️ %d %B, %Y 🕔 %H:%M')`
@@ -297,9 +296,11 @@ poplegend <- DT::datatable(
 
 This is a circular plot to visualize the distribution of _putative_ inversions across (up to) 30 of the largest contigs
 (or the ones that were specified) across the groups you specified in your data.
-If you are unfamiliar with this kind of visualization, it's a circular version of a linear genome.
+If you are unfamiliar with this kind of visualization, it's a circular representation of a linear genome.
 Each "wedge" is a different contig, from position 0 to  the end of the contig, and is labelled by the contig name.
-Each internal (grey) ring is detected inversions on that contig for a different population. Very small variants may be difficult to see or will not appear on the plot.
+Each internal (grey) ring is detected inversions on that contig for a different population. Very small variants
+may be difficult to see or will not appear on the plot. If for some reason the plot isn't appearing, try refreshing
+your browser.
 
 ##
 ::: {.card width="15%" title="Legend"}
@@ -363,10 +364,11 @@ BioCircos(
 
 This is a circular plot to visualize the distribution of _putative_ duplications across (up to) 30 of the largest contigs
 (or the ones that were specified) across the groups you specified in your data.
-If you are unfamiliar with this kind of visualization, it's a circular version of a linear genome.
+If you are unfamiliar with this kind of visualization, it's a circular representation of a linear genome.
 Each "wedge" is a different contig, from position 0 to  the end of the contig, and is labelled by the contig name.
 Each internal (grey) ring is the detected duplications on that contig for a different population. Very
-small variants may be difficult to see or will not appear on the plot.
+small variants may be difficult to see or will not appear on the plot. If for some reason the plot isn't appearing, try refreshing
+your browser.
 
 ##
 ::: {.card width="15%" title="Legend"}
@@ -430,11 +432,12 @@ BioCircos(
 
 This is a circular plot to visualize the distribution of _putative_ deletions across (up to) 30 of the largest contigs
 (or the ones that were specified) across the groups you specified in your data.
-If you are unfamiliar with this kind of visualization, it's a circular version of a linear genome.
+If you are unfamiliar with this kind of visualization, it's a circular representation of a linear genome.
 Each "wedge" is a different contig, from position 0 to  the end of the contig, and is labelled by the contig name.
 Each internal (grey) ring is the detected deletions for that contig for a different population. Very small variants
 may be difficult to see or will not appear on the plot. Deletions are displayed as points as they tend to be small
-and clump together.
+and clump together. If for some reason the plot isn't appearing, try refreshing
+your browser.
 
 ##
 ::: {.card width="15%" title="Legend"}

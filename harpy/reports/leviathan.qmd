@@ -203,7 +203,7 @@ sv$contig <- factor(sv$contig)
 ##
 To the right is a circular plot to visualize the distribution of _putative_ structural variants
 across (up to) 30 of the largest contigs, or whichever contigs were provided. If you are unfamiliar with this kind of visualization,
-it's a circular version of a linear genome. Each "wedge" is a different contig, from position 0 to 
+it's a circular representation of a linear genome. Each "wedge" is a different contig, from position 0 to 
 the end of the contig, and is labelled by the contig name. Each internal (grey) ring is a plot
 of observed structural variants for that contig. The legend shows which colors correspond to which type of variant. To save the plot,
 you will need to take a screenshot. Very small variants may be difficult to see or

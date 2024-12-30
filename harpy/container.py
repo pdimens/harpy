@@ -15,7 +15,6 @@ def containerize():
     **INTERNAL USE ONLY**. Used to recreate all the conda environments required
     by the workflows and build a dockerfile from that.
     """
-    #TODO MAKE THIS ALL OF THEM
     create_conda_recipes("container")
     fetch_rule(os.getcwd(), "containerize.smk")
 

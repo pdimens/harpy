@@ -151,7 +151,7 @@ Deletion
 : A type of mutation that involves the loss of one or more nucleotides from a segment of DNA
 
 ## Various Stats Tables
-::: {.card title="Variants by count"}
+::: {.card title="Variants by Count"}
 
 This table details the count of the structural variants NAIBR detected.
 ```{r sv_count_table}
@@ -196,7 +196,7 @@ DT::datatable(
 
 
 ## Variants and Chimeras
-::: {.card title="Non-chimeric variants"}
+::: {.card title="Non-Chimeric Variants"}
 
 This table details the variants detected by NAIBR that appear on a single
 contig/chromosome and passed the programs internal filtering. In other words, the
@@ -262,7 +262,7 @@ sv$Chr1 <- factor(sv$Chr1)
 ##
 To the right is a circular plot to visualize the distribution of _putative_ structural variants
 across (up to) 30 of the largest contigs, or whichever contigs were provided. If you are unfamiliar with this kind of visualization,
-it's a circular version of a linear genome. Each "wedge" is a different contig, from position 0 to 
+it's a circular representation of a linear genome. Each "wedge" is a different contig, from position 0 to 
 the end of the contig, and is labelled by the contig name. Each internal (grey) ring is a plot
 of observed structural variants for that contig. The legend shows which colors correspond to which type of variant. To save the plot,
 you will need to take a screenshot. Very small variants may be difficult to see or

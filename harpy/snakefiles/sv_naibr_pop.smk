@@ -174,7 +174,7 @@ rule infer_variants:
         cp {input.vcf} {output.vcf}
         """
 
-rule aggregate_variants_variants:
+rule aggregate_variants:
     input:
         collect(outdir + "/bedpe/{population}.bedpe", population = populations)
     output:
@@ -229,34 +229,50 @@ rule index_genome:
         "samtools faidx --fai-idx {output} {input} 2> {log}"
 
 rule group_reports:
-    input:
-        fai   = f"Genome/{bn}.fai",
-        bedpe = outdir + "/bedpe/{population}.bedpe"
+    input: 
+        faidx = f"Genome/{bn}.fai",
+        bedpe = outdir + "/bedpe/{population}.bedpe",
+        qmd   = f"{outdir}/workflow/report/naibr.qmd"
     output:
-        outdir + "/reports/{population}.naibr.html"
+        report = outdir + "/reports/{population}.naibr.html",
+        qmd = temp(outdir + "/reports/{population}.naibr.qmd")
     log:
-        logfile = outdir + "/logs/reports/{population}.report.log"
+        outdir + "/logs/reports/{population}.report.log"
     params:
-        contigs = plot_contigs
+        sample= lambda wc: "-P sample:" + wc.get('population'),
+        contigs= f"-P contigs:{plot_contigs}"
     conda:
         f"{envdir}/r.yaml"
-    script:
-        "report/naibr.Rmd"
+    shell:
+        """
+        cp {input.qmd} {output.qmd}
+        FAIDX=$(realpath {input.faidx})
+        BEDPE=$(realpath {input.bedpe})
+        quarto render {output.qmd} -P faidx:$FAIDX -P bedpe:$BEDPE {params} 2> {log}
+        """
 
 rule aggregate_report:
-    input:
-        fai   = f"Genome/{bn}.fai",
-        bedpe = collect(outdir + "/bedpe/{pop}.bedpe", pop = populations)
+    input: 
+        faidx = f"Genome/{bn}.fai",
+        bedpe = collect(outdir + "/bedpe/{pop}.bedpe", pop = populations),
+        qmd   = f"{outdir}/workflow/report/naibr_pop.qmd"
     output:
-        outdir + "/reports/naibr.pop.summary.html"
+        report = outdir + "/reports/naibr.summary.html",
+        qmd = temp(outdir + "/reports/naibr.summary.qmd")
     log:
-        logfile = outdir + "/logs/reports/summary.report.log"
+        outdir + "/logs/reports/summary.report.log"
     params:
-        contigs = plot_contigs
+        bedpedir = f"{outdir}/bedpe",
+        contigs = f"-P contigs:{plot_contigs}"
     conda:
         f"{envdir}/r.yaml"
-    script:
-        "report/naibr_pop.Rmd"
+    shell:
+        """
+        cp {input.qmd} {output.qmd}
+        FAIDX=$(realpath {input.faidx})
+        INPATH=$(realpath {params.bedpedir})
+        quarto render {output.qmd} -P faidx:$FAIDX -P bedpedir:$INPATH {params.contigs} 2> {log}
+        """
 
 rule workflow_summary:
     default_target: True
@@ -264,7 +280,7 @@ rule workflow_summary:
         bedpe = collect(outdir + "/bedpe/{pop}.bedpe", pop = populations),
         bedpe_agg = collect(outdir + "/{sv}.bedpe", sv = ["inversions", "deletions","duplications"]),
         reports = collect(outdir + "/reports/{pop}.naibr.html", pop = populations) if not skip_reports else [],
-        agg_report = outdir + "/reports/naibr.pop.summary.html" if not skip_reports else []
+        agg_report = outdir + "/reports/naibr.summary.html" if not skip_reports else []
     run:
         os.system(f"rm -rf {outdir}/naibrlog")
         summary = ["The harpy sv naibr workflow ran using these parameters:"]

@@ -583,7 +583,7 @@ if(params$mol_dist > 0){
 ::: {.card title="Depth and Coverage, Visualized" fill="false"}
 This is a circular vizualization the depth information across up to 30 of the largest contigs (unless specific contigs were provided).
 For clarity, this visualization truncates coverage at the 99th percentile (`r q99` for alignments and `r mol_q99` for molecule coverage).
-If you are unfamiliar with this kind of visualization, it's a circular version of a linear genome. 
+If you are unfamiliar with this kind of visualization, it's a circular representation of a linear genome. 
 Each arc (segment) is a different contig, from position 0 to the end of the contig, and is labelled by the contig name.
 The internal (grey) rings are a barplot where each bar represents the alignment depth at a `r windowskb` kilobase
 genomic interval. The inner ring (grey bars) is the number of reads that had a _proper_ alignment in the `r windowskb` kilobase interval, where
