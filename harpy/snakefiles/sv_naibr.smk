@@ -94,7 +94,8 @@ rule call_variants:
     output:
         bedpe = temp(outdir + "/{sample}/{sample}.bedpe"),
         refmt = temp(outdir + "/{sample}/{sample}.reformat.bedpe"),
-        vcf   = temp(outdir + "/{sample}/{sample}.vcf")
+        vcf   = temp(outdir + "/{sample}/{sample}.vcf"),
+        log   = temp(outdir + "/{sample}/{sample}.log")
     log:
         outdir + "/logs/naibr/{sample}.naibr.log"
     threads:
@@ -195,19 +196,27 @@ rule index_genome:
         """
 
 rule sample_reports:
-    input:
+    input: 
+        faidx = f"Genome/{bn}.fai",
         bedpe = outdir + "/bedpe/{sample}.bedpe",
-        fai   = f"Genome/{bn}.fai"
+        qmd   = f"{outdir}/workflow/report/naibr.qmd"
     output:
-        outdir + "/reports/{sample}.naibr.html"
+        report = outdir + "/reports/{sample}.naibr.html",
+        qmd = temp(outdir + "/reports/{sample}.naibr.qmd")
     log:
-        logfile = outdir + "/logs/reports/{sample}.report.log"
+        outdir + "/logs/reports/{sample}.report.log"
     params:
-        contigs = plot_contigs
+        sample= lambda wc: "-P sample:" + wc.get('sample'),
+        contigs= f"-P contigs:{plot_contigs}"
     conda:
         f"{envdir}/r.yaml"
-    script:
-        "report/naibr.Rmd"
+    shell:
+        """
+        cp {input.qmd} {output.qmd}
+        FAIDX=$(realpath {input.faidx})
+        BEDPE=$(realpath {input.bedpe})
+        quarto render {output.qmd} -P faidx:$FAIDX -P bedpe:$BEDPE {params} 2> {log}
+        """
 
 rule workflow_summary:
     default_target: True

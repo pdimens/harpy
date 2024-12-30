@@ -194,8 +194,8 @@ rule sample_reports:
         statsfile = outdir + "/reports/data/{sample}.sv.stats",
         qmd      = f"{outdir}/workflow/report/leviathan.qmd"
     output:
-        report = outdir + "/reports/{sample}.SV.html",
-        qmd = temp(outdir + "/reports/{sample}.SV.qmd")
+        report = outdir + "/reports/{sample}.leviathan.html",
+        qmd = temp(outdir + "/reports/{sample}.leviathan.qmd")
     log:
         outdir + "/logs/reports/{sample}.report.log"
     params:
@@ -216,7 +216,7 @@ rule workflow_summary:
     input: 
         vcf = collect(outdir + "/vcf/{sample}.bcf", sample = samplenames),
         bedpe_agg = collect(outdir + "/{sv}.bedpe", sv = ["inversions", "deletions","duplications", "breakends"]),
-        reports = collect(outdir + "/reports/{sample}.SV.html", sample = samplenames) if not skip_reports else []
+        reports = collect(outdir + "/reports/{sample}.leviathan.html", sample = samplenames) if not skip_reports else []
     params:
         min_sv = f"-v {min_sv}",
         min_bc = f"-c {min_bc}",
