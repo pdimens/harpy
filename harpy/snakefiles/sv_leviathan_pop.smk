@@ -231,20 +231,27 @@ rule aggregate_variants:
                             _ = breakends.write(line)
 
 rule group_reports:
-    input:	
+    input: 
+        faidx     = f"Genome/{bn}.fai",
         statsfile = outdir + "/reports/data/{population}.sv.stats",
-        bcf       = outdir + "/vcf/{population}.bcf",
-        faidx     = f"Genome/{bn}.fai"
+        qmd      = f"{outdir}/workflow/report/leviathan.qmd"
     output:
-        outdir + "/reports/{population}.sv.html"
+        report = outdir + "/reports/{population}.leviathan.html",
+        qmd = temp(outdir + "/reports/{population}.leviathan.qmd")
     log:
-        logfile = outdir + "/logs/reports/{population}.report.log"
+        outdir + "/logs/reports/{population}.report.log"
     params:
-        contigs = plot_contigs
+        sample= lambda wc: "-P sample:" + wc.get('population'),
+        contigs= f"-P contigs:{plot_contigs}"
     conda:
         f"{envdir}/r.yaml"
-    script:
-        "report/leviathan.Rmd"
+    shell:
+        """
+        cp {input.qmd} {output.qmd}
+        FAIDX=$(realpath {input.faidx})
+        STATS=$(realpath {input.statsfile})
+        quarto render {output.qmd} -P faidx:$FAIDX -P statsfile:$STATS {params} 2> {log}
+        """
 
 rule aggregate_report:
     input:	
@@ -266,7 +273,7 @@ rule workflow_summary:
     input:
         vcf = collect(outdir + "/vcf/{pop}.bcf", pop = populations),
         bedpe_agg = collect(outdir + "/{sv}.bedpe", sv = ["inversions", "deletions","duplications", "breakends"]),
-        reports = collect(outdir + "/reports/{pop}.sv.html", pop = populations) if not skip_reports else [],
+        reports = collect(outdir + "/reports/{pop}.leviathan.html", pop = populations) if not skip_reports else [],
         agg_report = outdir + "/reports/leviathan.summary.html" if not skip_reports else []
     params:
         min_sv = f"-v {min_sv}",

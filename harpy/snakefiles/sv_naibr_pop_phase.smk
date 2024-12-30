@@ -248,7 +248,8 @@ rule call_variants:
     output:
         bedpe = temp(outdir + "/{population}/{population}.bedpe"),
         refmt = temp(outdir + "/{population}/{population}.reformat.bedpe"),
-        vcf   = temp(outdir + "/{population}/{population}.vcf")
+        vcf   = temp(outdir + "/{population}/{population}.vcf"),
+        log   = temp(outdir + "/{population}/{population}.log")
     log:
         outdir + "/logs/naibr/{population}.naibr.log"
     threads:
