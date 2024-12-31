@@ -280,8 +280,7 @@ This is a circular plot to visualize the distribution of _putative_ inversions a
 If you are unfamiliar with this kind of visualization, it's a circular representation of a linear genome.
 Each "wedge" is a different contig, from position 0 to  the end of the contig, and is labelled by the contig name.
 Each internal (grey) ring is detected inversions on that contig for a different population. Very small variants
-may be difficult to see or will not appear on the plot. If for some reason the plot isn't appearing, try refreshing
-your browser.
+may be difficult to see or will not appear on the plot.
 
 ##
 ::: {.card width="15%" title="Legend"}
@@ -291,7 +290,7 @@ poplegend
 :::
 ###
 ```{r circos_inversions}
-#| title: Putative Inversions
+#| title: "Putative Inversions (refresh browser if not appearing)"
 radius <- 0.9
 tracks <- BioCircosTracklist()
 variant_type <- "INV"
@@ -317,7 +316,7 @@ for( pop in populations ){
     paste0(pop,"_background"),
     minRadius = radius - radius_increments, maxRadius = radius,
     fillColors = "#F9F9F9",
-    borderColors = "white",
+    borderColors = "#C9C9C9",
     borderSize = 1
   )
   radius <- radius - radius_increments
@@ -348,8 +347,7 @@ This is a circular plot to visualize the distribution of _putative_ duplications
 If you are unfamiliar with this kind of visualization, it's a circular representation of a linear genome.
 Each "wedge" is a different contig, from position 0 to  the end of the contig, and is labelled by the contig name.
 Each internal (grey) ring is the detected duplications on that contig for a different population. Very
-small variants may be difficult to see or will not appear on the plot. If for some reason the plot isn't appearing, try refreshing
-your browser.
+small variants may be difficult to see or will not appear on the plot.
 
 ##
 ::: {.card width="15%" title="Legend"}
@@ -360,7 +358,7 @@ poplegend
 
 ###
 ```{r circos_duplications, out.width="100%"}
-#| title: Duplications
+#| title: "Putative Duplications (refresh browser if not appearing)"
 # Add one track for each population
 radius <- 0.9
 tracks <- BioCircosTracklist()
@@ -387,7 +385,7 @@ for( pop in populations ){
     paste0(pop,"_background"),
     minRadius = radius - radius_increments, maxRadius = radius,
     fillColors = "#F9F9F9",
-    borderColors = "white",
+    borderColors = "#C9C9C9",
     borderSize = 1
   )
   radius <- radius - radius_increments
@@ -417,8 +415,7 @@ If you are unfamiliar with this kind of visualization, it's a circular represent
 Each "wedge" is a different contig, from position 0 to  the end of the contig, and is labelled by the contig name.
 Each internal (grey) ring is the detected deletions for that contig for a different population. Very small variants
 may be difficult to see or will not appear on the plot. Deletions are displayed as points as they tend to be small
-and clump together. If for some reason the plot isn't appearing, try refreshing
-your browser.
+and clump together.
 
 ##
 ::: {.card width="15%" title="Legend"}
@@ -428,7 +425,7 @@ poplegend
 :::
 ###
 ```{r circos_deletions, out.width="100%"}
-#| title: Deletions
+#| title: "Putative Deletions (refresh browser if not appearing)"
 # Add one track for each population
 radius <- 0.9
 tracks <- BioCircosTracklist()
@@ -456,7 +453,7 @@ for( pop in populations ){
     paste0(pop,"_background"),
     minRadius = radius - radius_increments, maxRadius = radius,
     fillColors = "#F9F9F9",
-    borderColors = "white",
+    borderColors = "#C9C9C9",
     borderSize = 1
   )
   radius <- radius - radius_increments

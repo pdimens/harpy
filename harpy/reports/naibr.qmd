@@ -361,7 +361,7 @@ for(i in c("inversion", "deletion", "duplication")){
     paste0(i,"_background"),
     minRadius = radius, maxRadius = radius + 0.2,
     fillColors = "#F9F9F9",
-    borderColors = "white",
+    borderColors = "#C9C9C9",
     borderSize = 1
   )
   radius <- radius + 0.2

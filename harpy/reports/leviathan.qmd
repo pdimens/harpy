@@ -188,8 +188,7 @@ the end of the contig, and is labelled by the contig name. Each internal (grey) 
 of observed structural variants for that contig. The legend shows which colors correspond to which type of variant. To save the plot,
 you will need to take a screenshot. Very small variants may be difficult to see or
 may not appear on the plot. Deletions are shown as points as they tend to be small
-and clump together. If for some reason the plot isn't appearing, try refreshing
-your browser.
+and clump together.
 
 ##
 ::: {.card width=15% title="Legend"}
@@ -234,7 +233,7 @@ DT::datatable(
 
 ###
 ```{r circos}
-#| title: "Structural Variants (save by taking a screenshot)"
+#| title: "Putative Structural Variants (refresh browser if not appearing)"
 
 genomeChr <- fa.sizes$size
 names(genomeChr) <- fa.sizes$contig
@@ -320,7 +319,7 @@ for(i in c("inversion", "deletion", "duplication")){
     paste0(i,"_background"),
     minRadius = radius, maxRadius = radius + 0.15,
     fillColors = "#F9F9F9",
-    borderColors = "white",
+    borderColors = "#C9C9C9",
     borderSize = 1
   )
   radius <- radius + 0.15

@@ -7,6 +7,7 @@ params:
 ---
 `r format(Sys.time(), '🗓️ %d %B, %Y 🕔 %H:%M')`
 
+# General Stats
 ```{r package_imports}
 using<-function(...) {
     libs<-unlist(list(...))
@@ -50,16 +51,16 @@ chimeric <- function(x){
   return(y)
 }
 ```
+
 ```{r read_inputs}
-#indir <- params$bedpedir
-indir <- "SV/naibr/bedpe" 
-fai <- "Genome/genome.fai"
-#fai <- params$faidx
+indir <- params$bedpedir
+#indir <- "SV/naibr/bedpe" 
+#fai <- "Genome/genome.fai"
+fai <- params$faidx
 infiles <- list.files(path = indir, pattern = "*bedpe", full.names = T)
 ```
-# General Stats
-##
-```{r process_inputs, results="asis"}
+
+```{r process_inputs}
 emptyfiles <- character()
 sv <- data.frame(matrix(ncol=12,nrow=0, dimnames=list(NULL, c("Population", "Chr1", "Break1", "Chr2", "Break2", "SplitMolecules", "DiscordantReads", "Orientation", "Haplotype", "Score", "PassFilter", "SV"))))
 for(i in infiles){
@@ -72,24 +73,21 @@ for(i in infiles){
 }
 if(length(emptyfiles) == length(infiles)){
   cat("There are no variants detected in any of the populations:\n")
-  cat(paste0("- ", infiles), sep = "\n")
+  cat(paste0("- ", emptyfiles), sep = "\n")
   knitr::knit_exit()
 }
-if(length(emptyfiles > 0)){
-  cat("Some of the populations did not have any variants detected and are omitted from this report:\n")
-  cat(paste0("- ", emptyfiles), sep = "\n")
-}
 ```
-```{r filter_variants}
+
+```{r}
 sv_clean <- cleanbedpe(sv)
-```
-```{r summary_info}
 summinfo <- sv %>%
   group_by(Population, SV) %>%
   summarise(tot = n()) %>%
   group_by(SV) %>%
-  summarise(count = sum(tot), avg = round(mean(tot, na.rm = T),2 ), sd = round(sd(tot, na.rm = T), 2)) #%>% 
+  summarise(count = sum(tot), avg = round(mean(tot, na.rm = T),2 ), sd = round(sd(tot, na.rm = T), 2))
 ```
+
+##
 ```{r}
 #| content: valuebox
 #| title: "Populations"
@@ -98,6 +96,7 @@ list(
   value = scales::comma(length(levels(sv$population)))
 )
 ```
+
 ```{r}
 #| content: valuebox
 #| title: "Deletions (average)"
@@ -105,7 +104,7 @@ variant <- "deletion"
 ndel <- ifelse(variant %in% summinfo$SV, summinfo$avg[which(summinfo$SV == variant)], 0)
 list(
   color = "#dfdfdf",
-  value =scales::comma(ndel, accuracy = 0.1), 
+  value =scales::comma(ndel, accuracy = 0.1)
 )
 ```
 
@@ -131,6 +130,15 @@ list(
 )
 ```
 
+```{r}
+#| content: valuebox
+#| title: "Groups Without Variants"
+list(
+  color = ifelse(length(emptyfiles) == 0, "#dfdfdf", "info"),
+  value = length(emptyfiles)
+)
+```
+
 ##
 This report details the structural variants identified by [NAIBR](https://github.com/pontushojer/NAIBR)
 [(publication)](https://doi.org/10.1093/bioinformatics/btx712). This tab (`General Stats`) shows overview
@@ -147,7 +155,7 @@ Deletion
 : A type of mutation that involves the loss of one or more nucleotides from a segment of DNA
 
 ##
-::: {.card title="Variants bt Count"}
+::: {.card title="Variants by Count" expandable="true"}
 This table details counts each type of structural variant for every contig for every population.
 
 ```{r sv_per_cont_table}
@@ -161,19 +169,20 @@ DT::datatable(
   rownames = F,
   filter = "top",
   extensions = 'Buttons',
+  fillContainer = T,
   options = list(
     dom = 'Brtp',
     buttons = list(list(extend = "csv",filename = "naibr_sv_count_pop")),
     scrollX = TRUE
-  ),
-  fillContainer = T
+  )
 )
 ```
 :::
 
 ### by length 
-::: {.card title="Variants by Length"}
+::: {.card title="Variants by Length" expandable="true"}
 This table details the lengths (in bp) of structural variants for every contig for every population.
+
 ```{r variant_len_table}
 grplens <- sv_clean %>%
   group_by(Population, Chr1, SV) %>%
@@ -185,20 +194,21 @@ DT::datatable(
   rownames = F,
   filter = "top",
   extensions = 'Buttons',
+  fillContainer = T,
   options = list(
     dom = 'Brtp',
     buttons = list(list(extend = "csv",filename = "naibr_sv_count_bp")),
     scrollX = TRUE
-  ),
-  fillContainer = T
+  )
 )
 ```
 :::
 
 
 ##
-::: {.card title="All Non-Chimeric Variants"}
-This table details the variants detected by NAIBR that appear on a single contig/chromosome and passed the programs internal filtering.
+::: {.card title="All Non-Chimeric Variants" expandable="true"}
+This table details the variants detected by NAIBR that appear on a single
+contig/chromosome and passed the programs internal filtering.
 
 ```{r all_sv_table}
 DT::datatable(
@@ -206,17 +216,20 @@ DT::datatable(
   rownames = F,
   filter = "top",
   extensions = 'Buttons', 
+  fillContainer = T,
   options = list(
     dom = 'Brtp',
     buttons = list(list(extend = "csv",filename = "naibr_sv")),
     scrollX = TRUE
-  ),
-  fillContainer = T
+  )
 )
 ```
+:::
+
 ###
-::: {.card title="Chimeric Variants"}
-This table shows any structural variants whose breakpoints span multiple contigs and may require further assessment. These variants omitted from the plots.
+::: {.card title="Chimeric Variants" expandable="true"}
+This table shows any structural variants whose breakpoints span multiple contigs
+and may require further assessment. These variants omitted from the plots.
 
 ```{r chimeric_table}
 DT::datatable(
@@ -224,6 +237,7 @@ DT::datatable(
   rownames = F,
   filter = "top",
   extensions = 'Buttons',
+  fillContainer = T,
   options = list(
     dom = 'Brtp',
     buttons = list(list(extend = "csv",filename = "naibr_sv_chimeric")),
@@ -233,12 +247,13 @@ DT::datatable(
 ```
 :::
 
+
 # Inversions
 
 ```{r plots_setup}
 fa.sizes <- read.table(fai, header = F) %>% arrange(desc(2))
 colnames(fa.sizes) <- c("contig", "size")
-plot_contigs <- snakemake@params$contigs
+plot_contigs <- params$contigs
 if (all(plot_contigs == "default")){
   # make sure that the contigs with SV are the ones being plotted, not the others
   fa.sizes <- fa.sizes[fa.sizes$contig %in% unique(sv$Chr1), 1:2]
@@ -307,7 +322,8 @@ This is a circular plot to visualize the distribution of _putative_ inversions a
 (or the ones that were specified) across the groups you specified in your data.
 If you are unfamiliar with this kind of visualization, it's a circular representation of a linear genome.
 Each "wedge" is a different contig, from position 0 to  the end of the contig, and is labelled by the contig name.
-Each internal (grey) ring is detected inversions on that contig for a different population. Very small variants may be difficult to see or will not appear on the plot.
+Each internal (grey) ring is detected inversions on that contig for a different population.
+Very small variants may be difficult to see or will not appear on the plot.
 
 ##
 ::: {.card width="15%" title="Legend"}
@@ -318,7 +334,7 @@ poplegend
 
 ###
 ```{r circos_inversions}
-#| title: Putative Inversions
+#| title: "Putative Inversions (refresh browser if not appearing)"
 radius <- 0.9
 tracks <- BioCircosTracklist()
 variant_type <- "inversion"
@@ -344,7 +360,7 @@ for( pop in populations ){
     paste0(pop,"_background"),
     minRadius = radius - radius_increments, maxRadius = radius,
     fillColors = "#F9F9F9",
-    borderColors = "white",
+    borderColors = "#C9C9C9",
     borderSize = 1
   )
   radius <- radius - radius_increments
@@ -373,7 +389,8 @@ This is a circular plot to visualize the distribution of _putative_ duplications
 (or the ones that were specified) across the groups you specified in your data.
 If you are unfamiliar with this kind of visualization, it's a circular representation of a linear genome.
 Each "wedge" is a different contig, from position 0 to  the end of the contig, and is labelled by the contig name.
-Each internal (grey) ring is detected inversions on that contig for a different population. Very small variants may be difficult to see or will not appear on the plot.
+Each internal (grey) ring is detected inversions on that contig for a different population.
+Very small variants may be difficult to see or will not appear on the plot.
 
 ##
 ::: {.card width="15%" title="Legend"}
@@ -383,7 +400,7 @@ poplegend
 :::
 ### Duplications
 ```{r circos_duplications}
-#| title: Putative Duplications
+#| title: "Putative Duplications (refresh browser if not appearing)"
 
 # Add one track for each population
 radius <- 0.9
@@ -411,7 +428,7 @@ for( pop in populations ){
     paste0(pop,"_background"),
     minRadius = radius - radius_increments, maxRadius = radius,
     fillColors = "#F9F9F9",
-    borderColors = "white",
+    borderColors = "#C9C9C9",
     borderSize = 1
   )
   radius <- radius - radius_increments
@@ -450,7 +467,7 @@ poplegend
 ```
 :::
 ```{r circos_deletions}
-#| title: Putative Deletions
+#| title: "Putative Deletions (refresh browser if not appearing)"
 
 # Add one track for each population
 radius <- 0.9
@@ -479,7 +496,7 @@ for( pop in populations ){
     paste0(pop,"_background"),
     minRadius = radius - radius_increments, maxRadius = radius,
     fillColors = "#F9F9F9",
-    borderColors = "white",
+    borderColors = "#C9C9C9",
     borderSize = 1
   )
   radius <- radius - radius_increments
