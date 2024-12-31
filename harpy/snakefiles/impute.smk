@@ -119,26 +119,42 @@ rule index_vcf:
         bcftools stats -s "-" {input.vcf} > {output.stats}
         """
 
+rule contig_report_config:
+    input:
+        f"{outdir}/workflow/report/_quarto.yml"
+    output:
+        outdir + "/{paramset}/reports/_quarto.yml"
+    shell:
+        "cp {input} {output}"
+
 rule contig_report:
     input:
         statsfile = outdir + "/{paramset}/reports/data/contigs/{contig}.stats",
-        plotdir = outdir + "/{paramset}/contigs/{contig}/plots"
+        plotdir = outdir + "/{paramset}/contigs/{contig}/plots",
+        qmd = f"{outdir}/workflow/report/stitch_collate.Rmd",
+        yml = outdir + "/{paramset}/reports/_quarto.yml"
     output:
-        outdir + "/{paramset}/reports/{contig}.{paramset}.html"
+        report = outdir + "/{paramset}/reports/{contig}.{paramset}.html",
+        qmd = outdir + "/{paramset}/reports/{contig}.{paramset}.qmd"
     log:
         logfile = outdir + "/{paramset}/logs/reports/{contig}.stitch.log"
     params:
-        model   = lambda wc: stitch_params[wc.paramset]["model"],
-        usebx   = lambda wc: stitch_params[wc.paramset]["usebx"],
-        bxlimit = lambda wc: stitch_params[wc.paramset]["bxlimit"],
-        k       = lambda wc: stitch_params[wc.paramset]["k"],
-        s       = lambda wc: stitch_params[wc.paramset]["s"],
-        ngen    = lambda wc: stitch_params[wc.paramset]["ngen"],
-        extra   = config.get("stitch_extra", "")
+        model   = lambda wc: f"-P model:{stitch_params[wc.paramset]['model']}",
+        usebx   = lambda wc: f"-P usebx:{stitch_params[wc.paramset]['usebx']}",
+        bxlimit = lambda wc: f"-P bxlimit:{stitch_params[wc.paramset]['bxlimit']}",
+        k       = lambda wc: f"-P k:{stitch_params[wc.paramset]['k']}",
+        s       = lambda wc: f"-P s:{stitch_params[wc.paramset]['s']}",
+        ngen    = lambda wc: f"-P ngen:{stitch_params[wc.paramset]['ngen']}",
+        extra   = "-P extra:Provided" if config.get("stitch_extra", None) else "-P extra:None"
     conda:
         f"{envdir}/r.yaml"
     script:
-        "report/stitch_collate.Rmd"
+        """
+        cp {input.qmd} {output.qmd}
+        FAIDX=$(realpath {input.faidx})
+        BEDPE=$(realpath {input.bedpe})
+        quarto render {output.qmd} --log {log} --quiet -P faidx:$FAIDX -P bedpe:$BEDPE {params}
+        """
 
 rule concat_list:
     input:
