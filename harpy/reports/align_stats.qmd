@@ -22,7 +22,6 @@ using<-function(...) {
         lapply(need,require,character.only=TRUE)
     }
 }
-
 using("dplyr","highcharter","DT","BioCircos")
 ```
 

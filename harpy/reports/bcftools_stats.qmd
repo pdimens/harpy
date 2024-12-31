@@ -16,8 +16,10 @@ using<-function(...) {
         lapply(need,require,character.only=TRUE)
     }
 }
-
 using("magrittr","tidyr","DT","highcharter","scales")
+```
+
+```{r}
 statsfile <- params$infile
 #statsfile <- "~/variants.raw.stats"
 dataL <- readLines(statsfile)
