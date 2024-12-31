@@ -163,7 +163,7 @@ rule barcode_report:
         """
         cp {input.qmd} {output.qmd}
         INPATH=$(realpath {params})
-        quarto render {output.qmd} -P indir:$INPATH 2> {log}
+        quarto render {output.qmd} -l {log} --quiet -P indir:$INPATH
         """
    
 rule qc_report:

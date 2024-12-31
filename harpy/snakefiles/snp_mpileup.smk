@@ -244,7 +244,7 @@ rule variant_report:
         """
         cp {input.qmd} {output.qmd}
         INPATH=$(realpath {input.data})
-        quarto render {output.qmd} -P infile:$INPATH {params} 2> {log}
+        quarto render {output.qmd} -l {log} --quiet -P infile:$INPATH {params}
         """
 
 rule workflow_summary:

@@ -248,7 +248,7 @@ rule group_reports:
         cp {input.qmd} {output.qmd}
         FAIDX=$(realpath {input.faidx})
         BEDPE=$(realpath {input.bedpe})
-        quarto render {output.qmd} -P faidx:$FAIDX -P bedpe:$BEDPE {params} 2> {log}
+        quarto render {output.qmd} -l {log} --quiet -P faidx:$FAIDX -P bedpe:$BEDPE {params}
         """
 
 rule aggregate_report:
@@ -271,7 +271,7 @@ rule aggregate_report:
         cp {input.qmd} {output.qmd}
         FAIDX=$(realpath {input.faidx})
         INPATH=$(realpath {params.bedpedir})
-        quarto render {output.qmd} -P faidx:$FAIDX -P bedpedir:$INPATH {params.contigs} 2> {log}
+        quarto render {output.qmd} -l {log} --quiet -P faidx:$FAIDX -P bedpedir:$INPATH {params.contigs}
         """
 
 rule workflow_summary:

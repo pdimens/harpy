@@ -81,7 +81,7 @@ rule create_report:
         """
         cp {input.qmd} {output.qmd}
         INFILE=$(realpath {input.data})
-        quarto render {output.qmd} -P infile:$INFILE 2> {log}
+        quarto render {output.qmd} -l {log} --quiet -P infile:$INFILE
         """
 
 rule workflow_summary:
