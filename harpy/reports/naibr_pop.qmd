@@ -40,13 +40,6 @@ using<-function(...) {
 using("dplyr", "tidyr","DT","BioCircos", "viridisLite", "tools")
 ```
 
-```{r read_inputs}
-infiles <- list.files(path = params$bedpedir, pattern = "*bedpe", full.names = T)
-fai <- params$faidx
-#fai <- "~/testshad.fai"
-#infiles <- params$bedpedir
-```
-
 ```{r readvariants_func}
 readvariants <- function(x){
   y <- read.table(
@@ -54,6 +47,9 @@ readvariants <- function(x){
     header = T,
     colClasses = c("factor", "integer", "factor", "integer", "integer", "integer", "character", "character", "numeric", "factor", "factor")
   )
+  if (nrow(y) == 0){
+    return(y)
+  }
   y$Population <- gsub(".bedpe", "", basename(x))
   y$Population <- as.factor(y$Population)
   y <- y[, c(12,1:11)]
@@ -74,15 +70,22 @@ chimeric <- function(x){
   return(y)
 }
 ```
+```{r read_inputs}
+#indir <- params$bedpedir
+indir <- "SV/naibr/bedpe" 
+fai <- "Genome/genome.fai"
+#fai <- params$faidx
+infiles <- list.files(path = indir, pattern = "*bedpe", full.names = T)
+```
 # General Stats
 ##
-```{r process_inputs}
+```{r process_inputs, results="asis"}
 emptyfiles <- character()
 sv <- data.frame(matrix(ncol=12,nrow=0, dimnames=list(NULL, c("Population", "Chr1", "Break1", "Chr2", "Break2", "SplitMolecules", "DiscordantReads", "Orientation", "Haplotype", "Score", "PassFilter", "SV"))))
 for(i in infiles){
-  .df <- tryCatch(readvariants(i), error = function(e){return(0)})
+  .df <- readvariants(i)
   if(nrow(.df)==0){
-      emptyfiles <- c(emptyfiles, i)
+      emptyfiles <- c(emptyfiles, gsub(".bedpe", "", basename(i)))
   } else {
     sv <- rbind(sv, .df)
   }

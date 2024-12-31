@@ -208,7 +208,7 @@ rule sample_reports:
         cp {input.qmd} {output.qmd}
         FAIDX=$(realpath {input.faidx})
         STATS=$(realpath {input.statsfile})
-        quarto render {output.qmd} -l {log} --quiet -P faidx:$FAIDX -P statsfile:$STATS {params}
+        quarto render {output.qmd} --log {log} --quiet -P faidx:$FAIDX -P statsfile:$STATS {params}
         """
 
 rule workflow_summary:

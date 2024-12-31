@@ -41,9 +41,10 @@ using("dplyr", "tidyr","DT", "viridisLite", "BioCircos", "tools")
 ```
 
 ```{r read_inputs}
-statsfiles <- list.files(path = params$statsdir, pattern = "*sv.stats", full.names = T)
+indir <- params$statsdir
+#indir <- "SV/leviathan/"
+statsfiles <- list.files(path = indir, pattern = "*sv.stats", full.names = T)
 faidx <- params$faidx
-#statsfiles <- list.files(path = "~/test/", pattern = "*.stats", full.names = T)
 #faidx <- "~/testshad.fai"
 ```
 
@@ -64,7 +65,7 @@ sv <- data.frame(matrix(ncol=8,nrow=0, dimnames=list(NULL, c("population",	"cont
 for(i in statsfiles){
   .df <- tryCatch(readvariants(i), error = function(e){return(0)})
   if(nrow(.df)==0){
-    emptyfiles <- c(emptyfiles, i)
+    emptyfiles <- c(emptyfiles, gsub(".bedpe", "", basename(i)))
   } else {
     sv <- rbind(sv, .df)
   }

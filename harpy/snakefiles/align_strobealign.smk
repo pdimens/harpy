@@ -215,7 +215,7 @@ rule sample_reports:
         BXSTATS=$(realpath {input.bxstats})
         COVFILE=$(realpath {input.coverage})
         MOLCOV=$(realpath {input.molecule_coverage})
-        quarto render {output.qmd} -l {log} --quiet -P bxstats:$BXSTATS -P coverage:$COVFILE -P molcov:$MOLCOV {params}
+        quarto render {output.qmd} --log {log} --quiet -P bxstats:$BXSTATS -P coverage:$COVFILE -P molcov:$MOLCOV {params}
         """
 
 rule general_stats:
@@ -265,7 +265,7 @@ rule barcode_report:
         """
         cp {input.qmd} {output.qmd}
         INPATH=$(realpath {params})
-        quarto render {output.qmd} -l {log} --quiet -P indir:$INPATH
+        quarto render {output.qmd} --log {log} --quiet -P indir:$INPATH
         """
 
 rule workflow_summary:

@@ -215,7 +215,7 @@ rule sample_reports:
         cp {input.qmd} {output.qmd}
         FAIDX=$(realpath {input.faidx})
         BEDPE=$(realpath {input.bedpe})
-        quarto render {output.qmd} -l {log} --quiet -P faidx:$FAIDX -P bedpe:$BEDPE {params}
+        quarto render {output.qmd} --log {log} --quiet -P faidx:$FAIDX -P bedpe:$BEDPE {params}
         """
 
 rule workflow_summary:
