@@ -228,11 +228,20 @@ rule index_genome:
     shell:
         "samtools faidx --fai-idx {output} {input} 2> {log}"
 
+rule report_config:
+    input:
+        f"{outdir}/workflow/report/_quarto.yml"
+    output:
+        f"{outdir}/reports/_quarto.yml"
+    shell:
+        "cp {input} {output}"
+
 rule group_reports:
     input: 
         faidx = f"Genome/{bn}.fai",
         bedpe = outdir + "/bedpe/{population}.bedpe",
-        qmd   = f"{outdir}/workflow/report/naibr.qmd"
+        qmd   = f"{outdir}/workflow/report/naibr.qmd",
+        yml   = f"{outdir}/reports/_quarto.yml"
     output:
         report = outdir + "/reports/{population}.naibr.html",
         qmd = temp(outdir + "/reports/{population}.naibr.qmd")
@@ -255,7 +264,8 @@ rule aggregate_report:
     input: 
         faidx = f"Genome/{bn}.fai",
         bedpe = collect(outdir + "/bedpe/{pop}.bedpe", pop = populations),
-        qmd   = f"{outdir}/workflow/report/naibr_pop.qmd"
+        qmd   = f"{outdir}/workflow/report/naibr_pop.qmd",
+        yml   = f"{outdir}/reports/_quarto.yml"
     output:
         report = outdir + "/reports/naibr.summary.html",
         qmd = temp(outdir + "/reports/naibr.summary.qmd")

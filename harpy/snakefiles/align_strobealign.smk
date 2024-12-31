@@ -191,12 +191,21 @@ rule calculate_depth:
     shell:
         "samtools depth -a {input.bam} | depth_windows.py {params} | gzip > {output}"
 
+rule report_config:
+    input:
+        f"{outdir}/workflow/report/_quarto.yml"
+    output:
+        f"{outdir}/reports/_quarto.yml"
+    shell:
+        "cp {input} {output}"
+
 rule sample_reports:
     input: 
         bxstats = outdir + "/reports/data/bxstats/{sample}.bxstats.gz",
         coverage = outdir + "/reports/data/coverage/{sample}.cov.gz",
         molecule_coverage = outdir + "/reports/data/coverage/{sample}.molcov.gz",
-        qmd = f"{outdir}/workflow/report/align_stats.qmd"
+        qmd = f"{outdir}/workflow/report/align_stats.qmd",
+        yml = f"{outdir}/reports/_quarto.yml"
     output:
         report = outdir + "/reports/{sample}.html",
         qmd = temp(outdir + "/reports/{sample}.qmd")
@@ -251,7 +260,8 @@ rule samtools_report:
 rule barcode_report:
     input: 
         collect(outdir + "/reports/data/bxstats/{sample}.bxstats.gz", sample = samplenames),
-        qmd = f"{outdir}/workflow/report/align_bxstats.qmd"
+        qmd = f"{outdir}/workflow/report/align_bxstats.qmd",
+        yml = f"{outdir}/reports/_quarto.yml"
     output:
         report = f"{outdir}/reports/barcode.summary.html",
         qmd = temp(f"{outdir}/reports/barcode.summary.qmd")

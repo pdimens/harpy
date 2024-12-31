@@ -1,25 +1,5 @@
 ---
 title: "LEVIATHAN SV - `r params$sample`"
-brand:
-  logo: 
-    medium: https://raw.githubusercontent.com/pdimens/harpy/docs/static/logo_navbar.png
-execute:
-    echo: false
-    warning: false
-embed-resources: true
-format: 
-  dashboard:
-    theme: materia
-    scrolling: true
-    expandable: false
-    logo: https://raw.githubusercontent.com/pdimens/harpy/docs/static/logo_navbar.png
-    nav-buttons:
-      - icon: book-half
-        href: https://pdimens.github.io/harpy
-      - icon: bug
-        href: https://github.com/pdimens/harpy/issues/new/choose
-      - icon: code-slash
-        href: https://github.com/pdimens/harpy
 params:
   faidx: 'genome.fasta.fai'
   statsfile: 'sample.stats'

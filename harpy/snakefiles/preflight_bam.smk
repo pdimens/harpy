@@ -66,10 +66,19 @@ rule concat_results:
         cat {input} | sort -k1 >> {output}
         """
 
+rule report_config:
+    input:
+        f"{outdir}/workflow/report/_quarto.yml"
+    output:
+        f"{outdir}/_quarto.yml"
+    shell:
+        "cp {input} {output}"
+
 rule create_report:
     input:
         data = f"{outdir}/filecheck.bam.tsv",
-        qmd = f"{outdir}/workflow/report/preflight_bam.qmd"
+        qmd = f"{outdir}/workflow/report/preflight_bam.qmd",
+        yml = f"{outdir}/_quarto.yml"
     output:
         html = f"{outdir}/filecheck.bam.html",
         qmd = temp(f"{outdir}/filecheck.bam.qmd")

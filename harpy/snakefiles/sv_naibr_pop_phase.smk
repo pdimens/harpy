@@ -311,11 +311,20 @@ rule aggregate_variants:
                         elif record[-1] == "duplication":
                             _ = duplications.write(f"{samplename}\t{line}")
 
+rule report_config:
+    input:
+        f"{outdir}/workflow/report/_quarto.yml"
+    output:
+        f"{outdir}/reports/_quarto.yml"
+    shell:
+        "cp {input} {output}"
+
 rule sample_reports:
     input: 
         faidx = f"Genome/{bn}.fai",
         bedpe = outdir + "/bedpe/{population}.bedpe",
-        qmd   = f"{outdir}/workflow/report/naibr.qmd"
+        qmd   = f"{outdir}/workflow/report/naibr.qmd",
+        yml   = f"{outdir}/reports/_quarto.yml"
     output:
         report = outdir + "/reports/{population}.naibr.html",
         qmd = temp(outdir + "/reports/{population}.naibr.qmd")

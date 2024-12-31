@@ -136,7 +136,7 @@ else:
         params:
             "-2"
 
-rule check_barcodes:
+rule barcode_stats:
     input:
         outdir + "/{sample}.R1.fq.gz"
     output: 
@@ -146,10 +146,19 @@ rule check_barcodes:
     shell:
         "count_bx.py {input} > {output}"
 
+rule report_config:
+    input:
+        f"{outdir}/workflow/report/_quarto.yml"
+    output:
+        f"{outdir}/reports/_quarto.yml"
+    shell:
+        "cp {input} {output}"
+
 rule barcode_report:
     input: 
         data = collect(outdir + "/logs/bxcount/{sample}.count.log", sample = samplenames),
-        qmd = f"{outdir}/workflow/report/bx_count.qmd"
+        qmd = f"{outdir}/workflow/report/bx_count.qmd",
+        yml = f"{outdir}/reports/_quarto.yml"
     output:
         report = f"{outdir}/reports/barcode.summary.html",
         qmd = temp(f"{outdir}/reports/barcode.summary.qmd")

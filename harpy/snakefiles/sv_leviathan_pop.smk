@@ -230,11 +230,20 @@ rule aggregate_variants:
                         elif record[5] == "BND":
                             _ = breakends.write(line)
 
+rule report_config:
+    input:
+        f"{outdir}/workflow/report/_quarto.yml"
+    output:
+        f"{outdir}/reports/_quarto.yml"
+    shell:
+        "cp {input} {output}"
+
 rule group_reports:
     input: 
         faidx     = f"Genome/{bn}.fai",
         statsfile = outdir + "/reports/data/{population}.sv.stats",
-        qmd      = f"{outdir}/workflow/report/leviathan.qmd"
+        qmd       = f"{outdir}/workflow/report/leviathan.qmd",
+        yml       = f"{outdir}/reports/_quarto.yml"
     output:
         report = outdir + "/reports/{population}.leviathan.html",
         qmd = temp(outdir + "/reports/{population}.leviathan.qmd")
@@ -255,9 +264,10 @@ rule group_reports:
 
 rule aggregate_report:
     input: 
-        faidx     = f"Genome/{bn}.fai",
+        faidx      = f"Genome/{bn}.fai",
         statsfiles = collect(outdir + "/reports/data/{pop}.sv.stats", pop = populations),
-        qmd      = f"{outdir}/workflow/report/leviathan_pop.qmd"
+        qmd        = f"{outdir}/workflow/report/leviathan_pop.qmd",
+        yml        = f"{outdir}/reports/_quarto.yml"
     output:
         report = outdir + "/reports/leviathan.summary.html",
         qmd = temp(outdir + "/reports/leviathan.summary.qmd")
