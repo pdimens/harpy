@@ -24,8 +24,6 @@ where `env_name` is the name of that environment. After doing so, the `harpy` ex
 <details>
   <summary>⬇️ install as local conda environment </summary>
 
-  ---
-
 Alternatively, you can create the environment locally within a specific project folder, just swap `-n harpy` for
 `-p path/to/workdir/harpy`, which creates the environment in that specific folder (e.g. `potato_blight/harpy`).
 ```
@@ -33,16 +31,11 @@ Alternatively, you can create the environment locally within a specific project 
 conda create -p path/to/workdir/harpy -c bioconda -c conda-forge harpy
 ```
 
----
-
 </details>
-
 
 <details>
   <summary>⬇️ install into existing conda environment </summary>
-
-  ---
-  
+ 
 If you wish to install harpy and its dependencies into an existing environment, activate that environment (`conda activate env_name`) and execute this installation code:
 ```bash
 conda install -c conda-forge bioconda::harpy
@@ -52,14 +45,11 @@ Or provide `-n envname` to install it into an existing environment named `envnam
 conda install -n envname -c conda-forge bioconda::harpy
 ```
 
----
-
 </details>
 
 <details>
   <summary>⬆️ updating harpy </summary>
 
-  ---
 If installed via conda, you can update Harpy by activating the environment
 and running `conda update` like so:
 
@@ -67,7 +57,6 @@ and running `conda update` like so:
 conda update -c conda-forge bioconda::harpy
 ```
 
----
 </details>
 
 ### 🌟 Pixi
@@ -81,13 +70,9 @@ export PATH=~/.pixi/bin:$PATH
 pixi global install -c conda-forge -c bioconda harpy
 ```
 
-
-</details>
-
 <details>
   <summary>⬇️ install as local environment </summary>
 
-  ---
 Likewise, you can do an installation into a local project directory:
 
 ```bash
@@ -102,13 +87,11 @@ Or run `harpy` by prefixing it with `pixi run`:
 ```bash
 pixi run harpy
 ```
----
 </details>
 
 <details>
   <summary>⬆️ updating harpy </summary>
 
-  ---
 If installed via Pixi, you can update Harpy by being in the project directory (where `pixi.toml` lives) and
 running:
 
@@ -120,7 +103,6 @@ pixi global update harpy
 pixi update harpy
 ```
 
----
 </details>
 
 ## ⚡ Usage
