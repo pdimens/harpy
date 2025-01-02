@@ -92,14 +92,14 @@ pixi run harpy
 <details>
   <summary>⬆️ updating harpy </summary>
 
-If installed via Pixi, you can update Harpy by being in the project directory (where `pixi.toml` lives) and
-running:
-
+If installed via Pixi, you can update Harpy with `pixi update`:
 ```bash
 # global install
 pixi global update harpy
 
-#local install
+# local install
+# project dir has the pixi.toml file
+cd path/to/projectdir
 pixi update harpy
 ```
 
