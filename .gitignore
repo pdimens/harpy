@@ -30,3 +30,12 @@ __pycache__/
 extractReads
 haplotag.bc
 _Inline
+# pixi environments
+.pixi
+pixi*
+.gitattributes
+*.egg-info
+
+# pixi environments
+.pixi
+*.egg-info
