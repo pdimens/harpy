@@ -182,13 +182,13 @@ if(!VALID_PRESENT){
   DT::datatable(
     summary_table,
     rownames = F,
+    colnames = c("contig", "valid BX records", "invalid BX records", "molecules", "N50", "N75", "N90"),
+    fillContainer = T,
     options = list(
       dom = 'Brtp',
       paging = TRUE,
       buttons = list(list(extend = "csv",filename = paste0(samplename ,"_molecule_NX")))
-    ),
-    colnames = c("contig", "valid BX records", "invalid BX records", "molecules", "N50", "N75", "N90"),
-    fillContainer = T
+    )
   )
 }
 ```

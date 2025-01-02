@@ -1,26 +1,10 @@
 ---
-title: "Haplotype Phasing Summary"
-date: "`r format(Sys.time(), '%d %b, %Y at %H:%M')`"
-output:
-  flexdashboard::flex_dashboard:
-    theme: lumen
-    orientation: rows
-    vertical_layout: scroll
-    horizontal_layout: fill
-    mathjax: NULL
-    logo: https://raw.githubusercontent.com/pdimens/harpy/docs/static/logo_report.png
-    favicon: "https://raw.githubusercontent.com/pdimens/harpy/docs/static/favicon_report.png"
-    navbar:
-      - { title : "Docs", icon: "fa-book", href: "https://pdimens.github.io/harpy/", align: right }
-      - { title : "Source", icon: "fa-github", href: "https://www.github.com/pdimens/harpy/", align: right }
+title: "Haplotype Phasing"
+params:
+  blockfile: '~/blocks.summary.gz'
+  contigs: 'default'
 ---
-
-```{r setup}
-knitr::opts_chunk$set(echo = FALSE, warning = FALSE)
-logfile <- file(snakemake@log$logfile, open = "wt")
-sink(logfile)
-sink(logfile, type = "message")
-```
+`r format(Sys.time(), '🗓️ %d %B, %Y 🕔 %H:%M')`
 
 ```{r package_imports}
 using<-function(...) {
@@ -32,12 +16,11 @@ using<-function(...) {
         lapply(need,require,character.only=TRUE)
     }
 }
-using("flexdashboard","dplyr","DT","scales", "plotly", "highcharter")
+using("dplyr","DT","scales", "plotly", "highcharter")
 ```
 
 ```{r read_input}
-#file <- "~/blocks.summary.gz"
-file <- snakemake@input$blockfile
+file <- params$blockfile
 df <- read.table(
   file, header = T,
   colClasses = c("factor","factor","integer","integer", "integer")
@@ -61,7 +44,6 @@ NX <- function(lengths, X=50){
 
 # General Stats
 ## fileheader 
-### details desc {.no-title}
 <h1> Haplotype Phasing Results </h1>
 The data presented here are the results of phasing genotypes into haplotypes using
 [HapCut2](https://github.com/vibansal/HapCUT2). The information is derived from `r file`,
@@ -72,7 +54,6 @@ This page shows general and per-contig information. The `Per-Sample Stats` tab i
 the navigation bar above will show you statistics relating to haplotypes on the
 per-sample level. Haplotype blocks with a size of `0` were removed from the data.
 
-## Haplotyping details {data-height=100}
 ```{r process_stats}
 overall <- df %>% summarise(
     total_snps = sum(n_snp),
@@ -85,51 +66,77 @@ overall <- df %>% summarise(
 )
 ```
 
-### total phased
+##
 ```{r}
-valueBox(scales::comma(overall$total_snps[1]), caption = "Phased SNPs", color = "#81ce9b")
+#| content: valuebox
+#| title: "Phased SNPs"
+list(
+  color = "light",
+  value = scales::comma(overall$total_snps[1])
+)
 ```
 
-### avg snps
 ```{r}
-valueBox(scales::comma(overall$mean_snps[1]), caption = "Avg SNPs/Haplotype", color = "info")
+#| content: valuebox
+#| title: "Longest Haplotype"
+list(
+  color = "#dfdfdf",
+  value = paste0(scales::comma(overall$max_blocksize[1]), "bp")
+)
 ```
 
-### median snps
 ```{r}
-valueBox(scales::comma(overall$median_snps[1]), caption = "Median SNPs/Haplotype", color = "info")
-```
-### N50
-```{r}
-valueBox(scales::comma(overall$N50[1]), caption = "N50", color = "info")
-```
-
-### N75
-```{r}
-valueBox(scales::comma(overall$N75[1]), caption = "N75", color = "info")
+#| content: valuebox
+#| title: "Avg SNPs/Haplotype"
+list(
+  color = "#dfdfdf",
+  value = scales::comma(overall$mean_snps[1])
+)
 ```
 
-### N90
 ```{r}
-valueBox(scales::comma(overall$N90[1]), caption = "N90", color = "info")
+#| content: valuebox
+#| title: "Median SNPs/Haplotype"
+list(
+  color = "#dfdfdf",
+  value = scales::comma(overall$median_snps[1])
+)
+```
+```{r}
+#| content: valuebox
+#| title: "N50"
+list(
+  color = "info",
+  value = paste0(scales::comma(overall$N50[1]), "bp")
+)
 ```
 
-### longest haplotype
 ```{r}
-valueBox(scales::comma(overall$max_blocksize[1]), caption = "Longest Haplotype (bp)", color = "info")
+#| content: valuebox
+#| title: "N75"
+list(
+  color = "info",
+  value = paste0(scales::comma(overall$N75[1]), "bp")
+)
+```
+
+```{r}
+#| content: valuebox
+#| title: "N90"
+list(
+  color = "info",
+  value = paste0(scales::comma(overall$N90[1]), "bp")
+)
 ```
 
 ## distribution plots
-### haplotype length {.no-title}
-<h2> Distribution of Haplotype Lengths </h2>
-The plots below show the distribution of haplotype length (in base pairs). 
+::: {.card title="Haplotype Length Distribution" expandable="true"}
+This shows the distribution of haplotype length (in base pairs). 
 Phasing typically has a few very large haplotypes, resulting in extreme 
 right-tails in these distributions, therefore, the X-axis is **log-scaled lengths**
 to collapse the right tail for better readability. 
 
-## dist plot
-### the dist plpt {.no-title}
-```{r block_len_dist_plot, out.width="100%"}
+```{r block_len_dist_plot}
 hs <- hist(
   df$block_length,
   breaks = 500,
@@ -145,20 +152,43 @@ hchart(hs, "areaspline", hcaes(x = val, y = freq), color = "#7eb495", name = "co
     buttons = list(contextButton = list(menuItems = c("downloadPNG", "downloadJPEG", "downloadPDF", "downloadSVG")))
   )
 ```
+:::
 
-## Per contig data desc
-### table per contig {.no-title}
-<h2> Stats Per Contig </h2>
-The plot below shows the distribution of haplotype length (in base pairs) for 
-each contig, up to 300 contigs. The dotted vertical bar represents the mean haplotype length.
+###
+::: {.card title="NX Information" expandable="true"}
 
-Phasing typically has a few very large haplotypes, resulting in extreme 
-right-tails in these distributions, therefore, the haplotype lengths are **log-scaled lengths**
-to collapse the right tail for better readability.
+The **NX** metric (e.g. **N50**) is the length of the shortest molecule in the group of longest molecules that together
+represent at least **X%** of the total molecules by length. For example, `N50` would be the shortest molecule in the 
+group of longest molecules that together represent **50%** of the total molecules by length (sort of like a median).
+These are the distributions of three common NX metrics (N50, N75, N90) across all samples.
 
-## Per contig data
-### stats per contig {.no-title}
-```{r per_contig_table, paged.print=TRUE, out.width="100%"}
+```{r}
+nx_df <- df %>% group_by(sample, contig) %>%
+  summarize(
+    N50 = NX(block_length, 50),
+    N75 = NX(block_length, 75),
+    N90 = NX(block_length, 90)
+  )
+```
+
+```{r nxxplot}
+highchart() |>
+  hc_chart(type = "area", animation = F) |>
+  hc_add_series(data = density(nx_df$N50), name = "N50", type = "areaspline") |>
+  hc_add_series(data = density(nx_df$N75), name = "N75", type = "areaspline") |>
+  hc_add_series(data = density(nx_df$N90), name = "N90", color = "#d3805f", type = "areaspline") |>
+  hc_tooltip(enabled = FALSE) |>
+  hc_title(text = "NX Stats Across Samples and Contigs") |>
+  hc_xAxis(title = list(text = "NX value"), min = 0) |>
+  hc_yAxis(title = list(text = "density")) |>
+  hc_exporting(enabled = T, filename = "NX.stats",
+    buttons = list(contextButton = list(menuItems = c("downloadPNG", "downloadJPEG", "downloadPDF", "downloadSVG")))
+  )
+```
+:::
+
+##
+```{r per_contig_table}
 percontig <- df %>% group_by(contig) %>% summarise(
     n_haplo = round(length(n_snp)),
     mean_snps = round(mean(n_snp), digits = 0),
@@ -167,22 +197,7 @@ percontig <- df %>% group_by(contig) %>% summarise(
     N50 = NX(block_length, 50),
     max_blocksize = max(block_length)
   )
-
-DT::datatable(
-  percontig,
-  rownames = F,
-  extensions = 'Buttons',
-  options = list(
-    dom = 'Brtp',
-    buttons = list(list(extend = "csv",filename = "phasing_per_contig")), 
-    scrollX = TRUE
-  ),
-  colnames = c("Contig", "Total Haplotypes", "Mean SNPs", "Median SNPs", "Mean Haplotype Length", "Haplotype N50", "Largest Haplotype"),
-  fillContainer = T
-)
 ```
-
-### per contig plot {.no-title}
 ```{r dropdown_buttons_func}
 dropdown_buttons <- function(CONTIGS, CUTOFF = 0){
   buttonlist <- list()
@@ -198,9 +213,8 @@ dropdown_buttons <- function(CONTIGS, CUTOFF = 0){
   return( list(list(y = 1, buttons = buttonlist)) )
 }
 ```
-
 ```{r plotting_contigs_setup}
-plotting_contigs <- snakemake@params$contigs
+plotting_contigs <- params$contigs
 if (all(plotting_contigs == "default")){
   .contigs <- group_by(df, contig) %>%
     summarize(size = max(pos_end)) %>%
@@ -211,7 +225,13 @@ if (all(plotting_contigs == "default")){
 }
 ```
 
-```{r contig_ridges, out.width="100%"}
+::: {.card title="Stats Per Contig" expandable="true"}
+The plot below shows the distribution of haplotype length (in base pairs) for 
+each contig, up to 300 contigs. Phasing typically has a few very large haplotypes, resulting in extreme 
+right-tails in these distributions, therefore, the haplotype lengths are **log-scaled lengths**
+to collapse the right tail for better readability. The dotted vertical bar represents the mean haplotype length.
+
+```{r contig_ridges}
 fig <- plot_ly(hoverinfo = "none") %>%
   layout(
     xaxis = list(title = "Log-Scaled Haplotype Length (bp)", fixedrange = TRUE),#, type = "log"),
@@ -236,25 +256,41 @@ for (cont in plot_contigs) {
 
 fig
 ```
+:::
 
-# Per-Sample Stats
-## per sample desc
-### stats per sample desc {.no-title}
-<h1> Per-Sample Stats </h1>
-Haplotype phasing occurs per-sample and the table below provides details on the outcome of haplotype phasing for each sample.
+###
+:::{.card title="Haplotype Stats by Contig" expandable="true"}
+```{r}
+DT::datatable(
+  percontig,
+  rownames = F,
+  extensions = 'Buttons',
+  colnames = c("Contig", "Total Haplotypes", "Mean SNPs", "Median SNPs", "Mean Haplotype Length", "Haplotype N50", "Largest Haplotype"),
+  fillContainer = T,
+  options = list(
+    dom = 'Brtp',
+    buttons = list(list(extend = "csv",filename = "phasing_per_contig")), 
+    scrollX = TRUE
+  )
+)
+```
+:::
 
+
+# Per-Sample
+##
 The plots below shows the distribution of haplotype lengths (in base pairs) for each 
 sample. While no Y-axis for these counts are provided, this plot is intended to be more of
 a visual reference of the relative distributions of haplotype lengths among samples.
-The dotted vertical bar represents the mean haplotype length. 
-
 Phasing typically has a few very large haplotypes, resulting in extreme 
 right-tails in these distributions, therefore, the haplotype lengths are
 **log-scaled lengths** to collapse the right tail for better readability.
+The dotted vertical bar represents the mean haplotype length. 
 
 ## per sample
-### stats per sample {.no-title}
-```{r table_persample, out.width="100%"}
+```{r table_persample}
+#| expandable: true
+#| title: "Haplotype Stats"
 persample <- df %>% group_by(sample) %>% summarise(
     n_haplo = sum(length(n_snp)),
     mean_snps = round(mean(n_snp), digits = 0),
@@ -268,18 +304,20 @@ DT::datatable(
   persample,
   rownames = F,
   extensions = 'Buttons',
+  colnames = c("Sample", "Haplotypes", "Mean SNPs", "Median SNPs", "Mean Haplotype Length", "Haplotype N50", "Largest Haplotype"),
+  fillContainer = T,
   options = list(
     dom = 'Brtp', 
     buttons = list(list(extend = "csv",filename = "phasing_per_sample")), 
     scrollX = TRUE
-  ),
-  colnames = c("Sample", "Haplotypes", "Mean SNPs", "Median SNPs", "Mean Haplotype Length", "Haplotype N50", "Largest Haplotype"),
-  fillContainer = T
+  )
 )
 ```
 
-### the ridgeplot {.no-title}
-```{r sample_ridgeplot, out.width="100%"}
+### the ridgeplot
+```{r sample_ridgeplot}
+#| expandable: true
+#| title: "Haplotype Lengths"
 fig <- plot_ly(hoverinfo = "none") %>%
   layout(
     xaxis = list(title = "Log-Scaled Haplotype Length (bp)", fixedrange = TRUE),#, type = "log"),
