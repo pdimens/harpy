@@ -16,7 +16,7 @@ using<-function(...) {
         lapply(need,require,character.only=TRUE)
     }
 }
-using("dplyr","DT","scales", "plotly", "highcharter")
+using("dplyr","DT","scales","plotly","highcharter")
 ```
 
 ```{r read_input}
@@ -157,10 +157,9 @@ hchart(hs, "areaspline", hcaes(x = val, y = freq), color = "#7eb495", name = "co
 ###
 ::: {.card title="NX Information" expandable="true"}
 
-The **NX** metric (e.g. **N50**) is the length of the shortest molecule in the group of longest molecules that together
+An **NX** metric (e.g. **N50**) is the length of the shortest molecule in the group of longest molecules that together
 represent at least **X%** of the total molecules by length. For example, `N50` would be the shortest molecule in the 
 group of longest molecules that together represent **50%** of the total molecules by length (sort of like a median).
-These are the distributions of three common NX metrics (N50, N75, N90) across all samples.
 
 ```{r}
 nx_df <- df %>% group_by(sample, contig) %>%
@@ -225,8 +224,8 @@ if (all(plotting_contigs == "default")){
 }
 ```
 
-::: {.card title="Stats Per Contig" expandable="true"}
-The plot below shows the distribution of haplotype length (in base pairs) for 
+::: {.card title="Haplotype Lengths Per Contig" expandable="true"}
+This is the distribution of haplotype length (in base pairs) for 
 each contig, up to 300 contigs. Phasing typically has a few very large haplotypes, resulting in extreme 
 right-tails in these distributions, therefore, the haplotype lengths are **log-scaled lengths**
 to collapse the right tail for better readability. The dotted vertical bar represents the mean haplotype length.
@@ -236,7 +235,7 @@ fig <- plot_ly(hoverinfo = "none") %>%
   layout(
     xaxis = list(title = "Log-Scaled Haplotype Length (bp)", fixedrange = TRUE),#, type = "log"),
     yaxis = list(fixedrange = TRUE),
-    title = "Distribution of Haplotype Lengths by Contig",
+    title = "Haplotype Lengths by Contig",
     showlegend = F,
     updatemenus = dropdown_buttons(plot_contigs)
   ) %>% config(displayModeBar = FALSE)
@@ -320,15 +319,15 @@ DT::datatable(
 #| title: "Haplotype Lengths"
 fig <- plot_ly(hoverinfo = "none") %>%
   layout(
-    xaxis = list(title = "Log-Scaled Haplotype Length (bp)", fixedrange = TRUE),#, type = "log"),
+    xaxis = list(title = "Log-Scaled Haplotype Length (bp)", fixedrange = TRUE),
     yaxis = list(fixedrange = TRUE),
-    title = "Distribution of Haplotype Lengths by Sample",
+    title = "Haplotype Lengths by Sample",
     showlegend = F,
-    updatemenus = dropdown_buttons(df$sample, 600)
+    updatemenus = dropdown_buttons(levels(df$sample), 600)
   ) %>% config(displayModeBar = FALSE)
 # Loop over the categories
 .idx <- 0
-for (samp in unique(df$sample)) {
+for (samp in levels(df$sample)) {
   .idx <- .idx + 1
   if(.idx > 600) break
   subset_sample <- df$block_length[df$sample == samp] 
