@@ -132,15 +132,15 @@ rule contig_report:
     input:
         statsfile = outdir + "/{paramset}/reports/data/contigs/{contig}.stats",
         plotdir = outdir + "/{paramset}/contigs/{contig}/plots",
-        qmd = temp(f"{outdir}/workflow/report/stitch_collate.qmd"),
+        qmd = f"{outdir}/workflow/report/stitch_collate.qmd",
         yml = outdir + "/{paramset}/reports/_quarto.yml"
     output:
         report = outdir + "/{paramset}/reports/{contig}.{paramset}.html",
-        qmd = outdir + "/{paramset}/reports/{contig}.{paramset}.qmd"
+        qmd = temp(outdir + "/{paramset}/reports/{contig}.{paramset}.qmd")
     log:
         logfile = outdir + "/{paramset}/logs/reports/{contig}.stitch.log"
     params:
-        params  = lambda wc: f"-P paramset:{wc.paramset}",
+        params  = lambda wc: f"-P id:{wc.paramset}-{wc.contig}",
         model   = lambda wc: f"-P model:{stitch_params[wc.paramset]['model']}",
         usebx   = lambda wc: f"-P usebx:{stitch_params[wc.paramset]['usebx']}",
         bxlimit = lambda wc: f"-P bxlimit:{stitch_params[wc.paramset]['bxlimit']}",
@@ -150,12 +150,12 @@ rule contig_report:
         extra   = f"-P extra:{stitch_extra}"
     conda:
         f"{envdir}/r.yaml"
-    script:
+    shell:
         """
         cp {input.qmd} {output.qmd}
         STATS=$(realpath {input.statsfile})
         PLOTDIR=$(realpath {input.plotdir})
-        quarto render {output.qmd} --log {log} --quiet -P stats:$STATS -P plotdir:$PLOTDIR {params}
+        quarto render {output.qmd} --log {log} --quiet -P statsfile:$STATS -P plotdir:$PLOTDIR {params}
         """
 
 rule concat_list:
@@ -231,7 +231,7 @@ rule impute_reports:
     log:
         outdir + "/{paramset}/logs/reports/imputestats.log"
     params:
-        param   = lambda wc: f"-P paramname:{wc.get('paramset')}",
+        param   = lambda wc: f"-P id:{wc.paramset}",
         model   = lambda wc: f"-P model:{stitch_params[wc.paramset]['model']}",
         usebx   = lambda wc: f"-P usebx:{stitch_params[wc.paramset]['usebx']}",
         bxlimit = lambda wc: f"-P bxlimit:{stitch_params[wc.paramset]['bxlimit']}",
@@ -241,7 +241,7 @@ rule impute_reports:
         extra   = f"-P extra:{stitch_extra}"
     conda:
         f"{envdir}/r.yaml"
-    script:
+    shell:
         """
         cp {input.qmd} {output.qmd}
         COMPARE=$(realpath {input.comparison})

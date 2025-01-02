@@ -37,7 +37,7 @@ sn <- as.data.frame(t(sn[2]))
 ```
 ```{r}
 #| content: valuebox
-#| title: "Sample"
+#| title: "Samples"
 list(
   color = "light",
   value = scales::comma(sn[1,1])
@@ -330,7 +330,7 @@ if(do_qual){
 :::
 
 # Per-Sample
-###
+##
 
 ```{r read_persample}
 .pscL <- grepl("^PSC", dataL)
@@ -338,13 +338,13 @@ psc <- read.table(text=dataL[.pscL])[ ,3:14]
 names(psc) <- c("Sample", "HomRef", "HomAtl", "Het", "Transitions", "Transversions", "Indels",	"MeanDepth", "Singletons",	"HapRef", "HapAlt", "Missing")
 tidy_psc <- pivot_longer(psc[,c(1,2,3,4,5,6,7,9,12)], -Sample , names_to = "Metric", values_to = "Count")
 tidy_psc$Sample <- as.factor(basename(tidy_psc$Sample))
-figheight <- 1 + (0.8 * nrow(psc))
+figheight <- 1 + (0.6 * nrow(psc))
 ```
 
 ::: {.card title="Individual Stats (Plot)"}
 These are per-locus statistics, which correspond to the Per-Sample Counts (`PSC`) calculations of `bcftools stats`. The table reflects the data visualized in the plot tab. `HomAlt` and `HomRef` refer to homozygous for the Reference and Alternative alleles, respectively.
 
-```{r Individual plot, fig.height=figheight, out.width="100%"}
+```{r Individual plot, fig.height=figheight}
 #| title: Individual Stats (plot)
 highchart() |>
   hc_chart(inverted=TRUE, animation = F) |>

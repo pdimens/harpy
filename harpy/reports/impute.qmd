@@ -1,9 +1,10 @@
 ---
-title: "STITCH Imputation - "`r params$paramset`"
+title: "STITCH Impute: `r params$id`"
 params:
-  paramname: "paramset"
+  id: "paramset"
   plotdir: 'plots/'
-  statsfile: "file.stats"
+  compare: "~/impute.compare.stats"
+  info: "~/impute.infoscore"
   model: "haploid"
   usebx: "true"
   bxlimit: 50000
@@ -30,8 +31,7 @@ using("dplyr","tidyr","DT","highcharter","scales")
 ```
 
 ```{r read_input}
-comparefile <- params$comparison
-#comparefile <- "~/impute.compare.stats"
+comparefile <- params$compare
 tryCatch(
   expr = {
     gcts <- read.table(comparefile, header = F)[, c(2, 23, 25, 24, 27)]
@@ -50,8 +50,7 @@ gcts_long <- pivot_longer(gcts, -1, names_to = "Conversion", values_to = "Count"
 ```
 
 ```{r read_info_input}
-infofile <- params$infoscore
-#infofile <- "~/impute.infoscore"
+infofile <- params$info
 
 tryCatch(
   expr = {
@@ -64,19 +63,13 @@ tryCatch(
 )
 ```
 
-##
-This page displays various information and general statistics and clicking the `Individual Statistics` tab 
-in the navigation menu above will display imputation results per individual.
-
-Extra parameters provided: `r params$extra`
-
 ## Param Information
 ```{r}
 #| content: valuebox
 #| title: "Name"
 list(
   color = "light",
-  value = params$paramsname
+  value = params$id
 )
 ```
 
@@ -111,7 +104,7 @@ list(
 #| content: valuebox
 #| title: "k"
 list(
-  color = "#c0c0c0",
+  color = "#dfdfdf",
   value = params$k
 )
 ```
@@ -120,7 +113,7 @@ list(
 #| content: valuebox
 #| title: "s"
 list(
-  color = "#c0c0c0",
+  color = "#dfdfdf",
   value = params$s
 )
 ```
@@ -129,10 +122,13 @@ list(
 #| content: valuebox
 #| title: "ngen"
 list(
-  color = "#c0c0c0",
+  color = "#dfdfdf",
   value = params$ngen
 )
 ```
+
+##
+Extra parameters provided: `r params$extra`
 
 ## General Information
 ```{r}
@@ -242,7 +238,7 @@ bcftools view -Ob -i 'INFO/INFO_SCORE >= 0.2' file.vcf > filtered.file.bcf
 ::: {.card title="SNPs Remaining After Filtering" expandable="true"}
 This is the number of variants sites that may remain
 if filtering at different minimum `INFO/INFO_SCORE` thresholds.
-Each column after `Total Variants` refers to a filtering threshold
+Each column after `Variants` refers to a filtering threshold
 and the numbers within that column are the number of SNPs that would
 be kept if filtering out SNPs with an `INFO/INFO_SCORE` value below 
 it (_i.e._ `0.2` is the number of SNPs with a score `>= 0.2` ).
@@ -266,7 +262,7 @@ DT::datatable(
   filterthresh,
   rownames = FALSE,
   extensions = "Buttons",
-  colnames = c("Contigs", "Total Variants", "0.20", "0.25", "0.30", "0.4", "0.5", "0.75", "0.90"),
+  colnames = c("Contig", "Variants", "0.20", "0.25", "0.30", "0.4", "0.5", "0.75", "0.90"),
   options = list(
     dom = "Brtp",
     buttons = c("csv"),
@@ -282,7 +278,7 @@ DT::datatable(
 ::: {.card title="SNPs Removed by Filtering" expandable="true"}
 This is the number of variants sites that may be **removed**
 if filtering at different minimum `INFO/INFO_SCORE` thresholds.
-Each column after `Total Variants` refers to a filtering threshold
+Each column after `Variants` refers to a filtering threshold
 and the numbers within that column are the number of SNPs that would
 be **removed** if filtering out SNPs with an `INFO/INFO_SCORE` value below 
 it (_i.e._ `0.2` is the number of SNPs with a score `>= 0.2` ).
@@ -303,18 +299,18 @@ filterthresh <- infos %>% group_by(contig) %>%
 tots <- colSums(filterthresh[, -1])
 filterthresh <- rbind(c("all", tots), filterthresh) 
 DT::datatable(
+  fillContainer = T,
+  caption = 'Number of SNPs to be REMOVED by filtering',
+  escape = F,
   filterthresh,
   rownames = FALSE,
   extensions = "Buttons",
-  colnames = c("Contigs", "Total Variants", '<span style="color:red">0.2</span>','<span style="color:red">0.25</span>','<span style="color:red">0.30</span>','<span style="color:red">0.5</span>','<span style="color:red">0.75</span>','<span style="color:red">0.9</span>'),
+  colnames = c("Contig", "Variants", '<span style="color:red">0.2</span>','<span style="color:red">0.25</span>','<span style="color:red">0.30</span>','<span style="color:red">0.40</span>','<span style="color:red">0.5</span>','<span style="color:red">0.75</span>','<span style="color:red">0.9</span>'),
   options = list(
     dom = "Brtp",
     buttons = c("csv"),
     scrollX = TRUE
   ),
-  fillContainer = T,
-  caption = 'Number of SNPs to be REMOVED by filtering',
-  escape = F
 )
 ```
 :::
@@ -340,22 +336,22 @@ underlying data used to create the visualization.
 
 ```{r plot_height}
 n_samples <- length(unique(gcts_long$sample))
-plotheight <- 150 + (15 * n_samples)
-figheight <- 1 + (0.2 * n_samples)
+figheight <- 1 + (0.6 * n_samples)
 ```
+:::
 
 ##
-```{r preprocess fields, out.width = "100%"}
+```{r preprocess fields}
 gcts_long$Conversion <- gsub("AltHom","Homozygous Alt", gcts_long$Conversion)
 gcts_long$Conversion <- gsub("Het","Heterozygote", gcts_long$Conversion)
 gcts_long$Conversion <- gsub("RefHom","Homozygous Ref", gcts_long$Conversion)
 gcts_long$Conversion <- gsub("missing","not imputed", gcts_long$Conversion)
 ```
-```{r per_indiv, fig.height=figheight, out.width = "100%"}
+```{r per_indiv, fig.height=figheight}
 # | expandable: true
 hchart(gcts_long, "bar", hcaes(x = sample, y = Count, group = Conversion), stacking = "normal", animation = F) |>
   hc_colors(c("#7cb3d4", "#b18ad1", "#ffd75f", "#6f6c70")) |>
-  hc_title(text = "Genotype Imputations") |>
+  hc_title(text = "Genotypes") |>
   hc_caption(text = "Values indicate how many genotypes were imputed into which kind of genotype") |>
   hc_xAxis(title = list(text = "")) |>
   hc_yAxis(title = list(text = "count")) |>

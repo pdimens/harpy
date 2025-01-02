@@ -104,6 +104,8 @@ for (i in list.files(indir, ".count.log", full.names = TRUE)) {
     )
   )
 }
+
+figheight <- 1 + (0.6 * nrow(BXstats))
 ```
 
 ##
@@ -262,14 +264,14 @@ DT::datatable(
   invalids_percent,
   rownames = FALSE,
   extensions = "Buttons",
+  fillContainer = T,
+  colnames = c("Sample","A", "C","B","D"),
+  caption = "Invalid segments relative to total barcodes",
   options = list(
     dom = "Brtp",
     buttons = c("csv"),
     scrollX = TRUE
-  ),
-  colnames = c("Sample","A", "C","B","D"),
-  caption = "Invalid segments relative to total barcodes",
-  fillContainer = T
+  )
 )
 ```
 :::
@@ -287,9 +289,8 @@ high amount of barcode invalidations and if any particular beadtag segments appe
 failure than others.
 
 ## validity plots
-
 ### {.flow}
-```{r valid_plot, out.width = '100%'}
+```{r valid_plot, fig.height=figheight}
 tb<-plotdata %>%
   pivot_longer(-Sample, names_to = "Barcode", values_to = "Count")
 
@@ -306,7 +307,7 @@ hchart(tb, "bar", hcaes(x = Sample, y = Count, group = Barcode), stacking = "nor
 ```
 
 ### {.flow}
-```{r valid_proportion_plot, out.width = '100%'}
+```{r valid_proportion_plot, fig.height=figheight}
 hchart(tb, "bar", hcaes(x = Sample, y = Count, group = Barcode), stacking = "percent") |>
   hc_colors(c("#707070", "#b88ace")) |>
   hc_title(text = "Valid vs Invalid Barcodes") |>
@@ -320,7 +321,7 @@ hchart(tb, "bar", hcaes(x = Sample, y = Count, group = Barcode), stacking = "per
 ```
 
 ### {.flow}
-```{r invalid_segment_plot, out.width = '100%'}
+```{r invalid_segment_plot, fig.height=figheight}
 highchart() |>
   hc_chart(inverted=TRUE) |>
   hc_add_series(data = invalids_long,  type = "scatter", hcaes(x = Sample, y = Count, group = Segment), marker = list(symbol = "circle")) |>
