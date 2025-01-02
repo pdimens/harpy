@@ -9,13 +9,37 @@
 
 
 ## 📥 Install 
-To avoid dependency conflicts with an existing environment, it is best to create a new environment for a harpy installation. The code below creates a new conda/mamba environment called `harpy` (via `-n harpy`) and installs harpy into it. You can name this environment whatever you like using the `-n somename` argument. 
+### 🐍 Conda
+It's best to create a new environment for a harpy installation. The code below creates a new conda/mamba environment called `harpy` (via `-n harpy`) and installs harpy into it. You can name this environment whatever you like using the `-n somename` argument. 
 ```bash
 conda create -n harpy -c bioconda -c conda-forge harpy
 ```
 
+Once conda/mamba finishes, activate the harpy conda/mamba environment with:
+```bash
+conda activate env_name
+```
+where `env_name` is the name of that environment. After doing so, the `harpy` executable should be callable from your path.
+
 <details>
-  <summary>⚪️ install into an existing conda environment ⚪️</summary>
+  <summary>⬇️ install as local conda environment </summary>
+
+  ---
+
+Alternatively, you can create the environment locally within a specific project folder, just swap `-n harpy` for
+`-p path/to/workdir/harpy`, which creates the environment in that specific folder (e.g. `potato_blight/harpy`).
+```
+# for local project directory
+conda create -p path/to/workdir/harpy -c bioconda -c conda-forge harpy
+```
+
+---
+
+</details>
+
+
+<details>
+  <summary>⬇️ install into existing conda environment </summary>
 
   ---
   
@@ -32,18 +56,50 @@ conda install -n envname -c conda-forge bioconda::harpy
 
 </details>
 
-## Update
+<details>
+  <summary>⬆️ updating Harpy </summary>
+
+  ---
+If installed via conda, you can update Harpy by activating the environment
+and running `conda update` like so:
+
 ```bash
 conda update -c conda-forge bioconda::harpy
 ```
 
-## 🌟 Activate the harpy environment
-Once conda/mamba finishes, activate the conda/mamba environment you installed harpy into with
-```bash
-conda activate env_name
-```
-where `env_name` is the name of that environment. After doing so, the `harpy` executable should be callable from your path.
+---
+</details>
 
+### 🌟 Pixi
+If you prefer [Pixi](https://pixi.sh/latest/) (it's pretty good, you should try it), the preferred installation
+process is as a local environment in your project directory:
+
+```bash
+pixi init -c bioconda projectname && cd projectname
+pixi add harpy
+```
+After that finishes, you can activate the environment with:
+```bash
+pixi shell
+```
+Or run `harpy` by prefixing it with `pixi run`:
+```bash
+pixi run harpy
+```
+
+<details>
+  <summary>⬆️ updating Harpy </summary>
+
+  ---
+If installed via Pixi, you can update Harpy by being in the project directory (where `pixi.toml` lives) and
+running:
+
+```bash
+pixi update
+```
+
+---
+</details>
 
 ## ⚡ Usage
 Just call `harpy` or `harpy --help` on the command line to get started!
