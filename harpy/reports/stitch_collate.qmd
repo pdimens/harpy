@@ -1,9 +1,9 @@
 ---
-title: "STITCH Imputation - "`r gsub(".stats$", "", params$statsfile)`"
+title: "STITCH Impute: `r params$id`"
 params:
   plotdir: 'plots/'
   statsfile: "~/contig1.stats"
-  paramname: "paramset"
+  id: "paramset"
   model: "haploid"
   usebx: "true"
   bxlimit: 50000
@@ -23,26 +23,23 @@ using<-function(...) {
         lapply(need,require,character.only=TRUE)
     }
 }
-using("tidyr","magrittr","DT")
+using("tidyr","magrittr","DT", "scales")
 ```
 
 ```{r load data}
 infile <- params$statsfile
 dataL <- readLines(infile)
-bcf <- gsub(".stats$", ".bcf", basename(infile))
-chrom <- gsub(".bcf", "", bcf)
+bcf <- gsub(".stats", ".bcf", basename(infile))
 basedir <- dirname(normalizePath(infile))
 plotdir <- paste0(normalizePath(params$plotdir), "/")
 ```
 
-# NAME ME PLZ
+# Samples
 For convenience, this report consolidates the various outputs from `STITCH` and `bcftools` into a single document.
 This reflects the general information stored in the records of `r bcf`. Since STITCH
 requires only bi-allelic SNPs as input, you should not expect to see any other types
-of variants (MNPs, indels, _etc._). The images may appear small and can be clicked on to expand/focus them. 
-Click on the image again to remove focus from the image. For the wider images, you may right-click them and open
-them in a new tab/window to view them at their original
-sizes, which may prove to be more useful in some cases.
+of variants (MNPs, indels, _etc._). For the wider images, you may right-click them and open
+them in a new tab/window to view them at their original sizes, which may prove to be more useful in some cases.
 
 Extra parameters provided: `r params$extra`
 
@@ -60,16 +57,16 @@ rownames(sn) <- NULL
 ## model stats
 ```{r}
 #| content: valuebox
-#| title: "Model"
+#| title: "model"
 list(
-  color = "info",
+  color = "light",
   value = params$model
 )
 ```
 
 ```{r}
 #| content: valuebox
-#| title: "Use BX"
+#| title: "usebx"
 list(
   color = "info",
   value = params$usebx
@@ -78,7 +75,7 @@ list(
 
 ```{r}
 #| content: valuebox
-#| title: "k Param"
+#| title: "k"
 list(
   color = "info",
   value = params$k
@@ -87,7 +84,7 @@ list(
 
 ```{r}
 #| content: valuebox
-#| title: "s Parameter"
+#| title: "s"
 list(
   color = "info",
   value = params$s
@@ -96,7 +93,7 @@ list(
 
 ```{r}
 #| content: valuebox
-#| title: "ngen Parameter"
+#| title: "ngen"
 list(
   color = "info",
   value = params$ngen
@@ -105,19 +102,10 @@ list(
 
 ```{r}
 #| content: valuebox
-#| title: "BX Limit"
+#| title: "bxlimit"
 list(
   color = "info",
-  value = format(params$bxlimit, scientific = F)
-)
-```
-
-```{r}
-#| content: valuebox
-#| title: "Extra Parameters"
-list(
-  color = "info",
-  value = params$extra
+  value = scales::comma(params$bxlimit)
 )
 ```
 
@@ -127,7 +115,7 @@ list(
 #| title: "Samples"
 list(
   color = "light",
-  value = sn$samples[1]
+  value = scales::comma(sn$samples[1])
 )
 ```
 
@@ -136,7 +124,7 @@ list(
 #| title: "Total Records"
 list(
   color = "#dfdfdf",
-  value = sn$records[1]
+  value = scales::comma(sn$records[1])
 )
 ```
 
@@ -145,7 +133,7 @@ list(
 #| title: "no-ALTs"
 list(
   color = "#dfdfdf",
-  value = sn[3,1]
+  value = scales::comma(sn[3,1])
 )
 ```
 
@@ -154,7 +142,7 @@ list(
 #| title: "SNPs"
 list(
   color = "#dfdfdf",
-  value = sn$SNPs[1]
+  value = scales::comma(sn$SNPs[1])
 )
 ```
 
@@ -163,7 +151,7 @@ list(
 #| title: "MNPs"
 list(
   color = "#dfdfdf",
-  value = sn$MNPs[1]
+  value = scales::comma(sn$MNPs[1])
 )
 ```
 
@@ -193,13 +181,16 @@ DT::datatable(
 ```
 :::
 
-# Imputation QC
+# QC
 ##
-**TOP**: Gives -log10 (HWE p-value)
+TOP
+: Gives -log10 (HWE p-value)
 
-**MIDDLE**: Shows `INFO` score, which is a measure of the confidence the imputation has in its performance
+MIDDLE
+: Shows `INFO` score, which is a measure of the confidence the imputation has in its performance
 
-**BOTTOM**: Shows allele frequency, which can be useful to get a 
+BOTTOM
+: Shows allele frequency, which can be useful to get a 
 sense of the LD structure with the distribution of allele frequencies,
 as well as its relationship to imputation performance. Can also be used
 to test how various parameter choices affect imputation. For example,
@@ -213,6 +204,7 @@ _- adapted from the STITCH [documentation](https://github.com/rwdavies/STITCH/bl
 
 ###
 ```{r QC_chromwide, dev = "jpeg", out.width="100%"}
+#| expandable: true
 QC <- list.files(path = plotdir, pattern = "QC", full.names = TRUE)
 knitr::include_graphics(QC[2])
 ```
@@ -231,10 +223,11 @@ _- excerpt from the STITCH [documentation](https://github.com/rwdavies/STITCH/bl
 
 ###
 ```{r QC, dev = "jpeg", out.width="100%"}
+#| expandable: true
 knitr::include_graphics(QC[1])
 ```
 
-# Real vs Est. Allele Frequency
+# Real vs Estimated
 ##
 Scatter plot of real allele frequency as estimated from the pileup of
 sequencing reads (x-axis) and estimated allele frequency from the
@@ -249,12 +242,14 @@ _- excerpt from the STITCH [documentation](https://github.com/rwdavies/STITCH/bl
 
 ###
 ```{r goodonly, dev = "jpeg", out.width="100%"}
+#| expandable: true
 goodonly <- list.files(path = plotdir, pattern = "goodonly", full.names = TRUE)
 knitr::include_graphics(goodonly[1])
 ```
 
 # Expected Haplotypes
 ##
+::: {.card title="Expected Haplotypes" expandable="true"}
 Across the region being imputed (x-axis, physical position), either the
 fraction (normal version) or log10 of the expected number of haplotypes
 each sample carries from each ancestral haplotype. The most important
@@ -268,13 +263,15 @@ this is rare, as STITCH will try to fill them up.
 
 _- excerpt from the STITCH [documentation](https://github.com/rwdavies/STITCH/blob/5a5ba98442a105548587ed8cafbf00aece212c94/plots.md)_.
 
-###
 ```{r hapnorm, dev='jpeg', out.width="100%"}
+#| expandable: true
 hapsum <- list.files(path = plotdir, pattern = "hapSum", full.names = TRUE)
 knitr::include_graphics(hapsum)
 ```
-# Alpha Matrix
+:::
+
 ##
+:::{.card title="Alpha Matrix" expandable="true"}
 Likely not informative for general use. `alphaMat` is the name of the
 internal `STITCH` variable that stores the probability of jumping into
 an ancestral haplotype conditional on a jump. Un-normalized is with
@@ -282,9 +279,9 @@ respect to movement of all samples, while normalized has sum 1.
 
 _- excerpt from the STITCH [documentation](https://github.com/rwdavies/STITCH/blob/5a5ba98442a105548587ed8cafbf00aece212c94/plots.md)_.
 
-###
 ```{r alphamat, dev='jpeg', out.width="100%"}
+#| expandable: true
 alphamat <- list.files(path = plotdir, pattern = "alphaMat", full.names = TRUE)
 knitr::include_graphics(alphamat)
 ```
-
+:::
