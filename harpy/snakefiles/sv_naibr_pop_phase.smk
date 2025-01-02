@@ -344,19 +344,28 @@ rule sample_reports:
         """
 
 rule aggregate_report:
-    input:
-        fai   = f"Genome/{bn}.fai",
-        bedpe = collect(outdir + "/bedpe/{pop}.bedpe", pop = populations)
+    input: 
+        faidx = f"Genome/{bn}.fai",
+        bedpe = collect(outdir + "/bedpe/{pop}.bedpe", pop = populations),
+        qmd   = f"{outdir}/workflow/report/naibr_pop.qmd",
+        yml   = f"{outdir}/reports/_quarto.yml"
     output:
-        outdir + "/reports/naibr.pop.summary.html"
+        report = outdir + "/reports/naibr.summary.html",
+        qmd = temp(outdir + "/reports/naibr.summary.qmd")
     log:
-        logfile = outdir + "/logs/reports/summary.report.log"
+        outdir + "/logs/reports/summary.report.log"
     params:
-        contigs = plot_contigs
+        bedpedir = f"{outdir}/bedpe",
+        contigs = f"-P contigs:{plot_contigs}"
     conda:
         f"{envdir}/r.yaml"
-    script:
-        "report/naibr_pop.qmd"
+    shell:
+        """
+        cp {input.qmd} {output.qmd}
+        FAIDX=$(realpath {input.faidx})
+        INPATH=$(realpath {params.bedpedir})
+        quarto render {output.qmd} --log {log} --quiet -P faidx:$FAIDX -P bedpedir:$INPATH {params.contigs}
+        """
 
 rule workflow_summary:
     default_target: True
@@ -365,7 +374,7 @@ rule workflow_summary:
         bedpe_agg = collect(outdir + "/{sv}.bedpe", sv = ["inversions", "deletions","duplications"]),
         phaselog = outdir + "/logs/whatshap-haplotag.log",
         reports = collect(outdir + "/reports/{pop}.naibr.html", pop = populations) if not skip_reports else [],
-        agg_report = outdir + "/reports/naibr.pop.summary.html" if not skip_reports else []
+        agg_report = outdir + "/reports/naibr.summary.html" if not skip_reports else []
     run:
         os.system(f"rm -rf {outdir}/naibrlog")
         summary = ["The harpy sv naibr workflow ran using these parameters:"]
