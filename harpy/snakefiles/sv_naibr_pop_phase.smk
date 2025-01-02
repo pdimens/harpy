@@ -356,7 +356,7 @@ rule aggregate_report:
     conda:
         f"{envdir}/r.yaml"
     script:
-        "report/naibr_pop.Rmd"
+        "report/naibr_pop.qmd"
 
 rule workflow_summary:
     default_target: True

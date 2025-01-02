@@ -77,7 +77,7 @@ def phase(inputs, output_dir, vcf, threads, molecule_distance, prune_threshold, 
     if contigs:
         vcf_contig_match(contigs, vcf)
     fetch_rule(workflowdir, "phase.smk")
-    fetch_report(workflowdir, "hapcut.Rmd")
+    fetch_report(workflowdir, "hapcut.qmd")
     os.makedirs(f"{output_dir}/logs/snakemake", exist_ok = True)
     sm_log = snakemake_log(output_dir, "phase")
     conda_envs = ["phase", "r"]

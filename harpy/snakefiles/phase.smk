@@ -265,7 +265,7 @@ rule phase_report:
     conda:
         f"{envdir}/r.yaml"
     script:
-        "report/hapcut.Rmd"
+        "report/hapcut.qmd"
 
 rule workflow_summary:
     default_target: True

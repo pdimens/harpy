@@ -22,6 +22,7 @@ outdir        = config["output_directory"]
 envdir        = os.path.join(os.getcwd(), outdir, "workflow", "envs")
 skip_reports  = config["reports"]["skip"]
 stitch_params = config["stitch_parameters"]
+stitch_extra  = config.get("stitch_extra", "None")
 with open(biallelic, "r") as f:
     contigs = [line.rstrip() for line in f]
 
@@ -139,13 +140,14 @@ rule contig_report:
     log:
         logfile = outdir + "/{paramset}/logs/reports/{contig}.stitch.log"
     params:
+        params  = lambda wc: f"-P paramset:{wc.paramset}",
         model   = lambda wc: f"-P model:{stitch_params[wc.paramset]['model']}",
         usebx   = lambda wc: f"-P usebx:{stitch_params[wc.paramset]['usebx']}",
         bxlimit = lambda wc: f"-P bxlimit:{stitch_params[wc.paramset]['bxlimit']}",
         k       = lambda wc: f"-P k:{stitch_params[wc.paramset]['k']}",
         s       = lambda wc: f"-P s:{stitch_params[wc.paramset]['s']}",
         ngen    = lambda wc: f"-P ngen:{stitch_params[wc.paramset]['ngen']}",
-        extra   = "-P extra:Provided" if config.get("stitch_extra", None) else "-P extra:None"
+        extra   = f"-P extra:{stitch_extra}"
     conda:
         f"{envdir}/r.yaml"
     script:
@@ -229,14 +231,14 @@ rule impute_reports:
     log:
         outdir + "/{paramset}/logs/reports/imputestats.log"
     params:
-        param   = lambda wc: f"-P param:{wc.get('paramset')}",
+        param   = lambda wc: f"-P paramname:{wc.get('paramset')}",
         model   = lambda wc: f"-P model:{stitch_params[wc.paramset]['model']}",
         usebx   = lambda wc: f"-P usebx:{stitch_params[wc.paramset]['usebx']}",
         bxlimit = lambda wc: f"-P bxlimit:{stitch_params[wc.paramset]['bxlimit']}",
         k       = lambda wc: f"-P k:{stitch_params[wc.paramset]['k']}",
         s       = lambda wc: f"-P s:{stitch_params[wc.paramset]['s']}",
         ngen    = lambda wc: f"-P ngen:{stitch_params[wc.paramset]['ngen']}",
-        extra   = "-P extra:Provided" if config.get("stitch_extra", None) else "-P extra:None"
+        extra   = f"-P extra:{stitch_extra}"
     conda:
         f"{envdir}/r.yaml"
     script:

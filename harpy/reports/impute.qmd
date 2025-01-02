@@ -1,28 +1,20 @@
 ---
-title: "Imputation Assessment"
-date: "`r format(Sys.time(), '%d %b, %Y at %H:%M')`"
-output:
-  flexdashboard::flex_dashboard:
-    theme: lumen
-    orientation: rows
-    vertical_layout: scroll
-    mathjax: NULL
-    logo: https://raw.githubusercontent.com/pdimens/harpy/docs/static/logo_report.png
-    favicon: "https://raw.githubusercontent.com/pdimens/harpy/docs/static/favicon_report.png"
-    navbar:
-      - { title : "Docs", icon: "fa-book", href: "https://pdimens.github.io/harpy/", align: right }
-      - { title : "Source", icon: "fa-github", href: "https://www.github.com/pdimens/harpy/", align: right }
+title: "STITCH Imputation - "`r params$paramset`"
+params:
+  paramname: "paramset"
+  plotdir: 'plots/'
+  statsfile: "file.stats"
+  model: "haploid"
+  usebx: "true"
+  bxlimit: 50000
+  k: 15
+  s: 20
+  ngen: 5
+  extra: "None"
 ---
+`r format(Sys.time(), '🗓️ %d %B, %Y 🕔 %H:%M')`
 
 # General Stats
-## header row
-
-```{r setup}
-knitr::opts_chunk$set(echo = FALSE, warning = FALSE)
-logfile <- file(snakemake@log$logfile, open = "wt")
-sink(logfile)
-sink(logfile, type = "message")
-```
 
 ```{r package_imports}
 using<-function(...) {
@@ -34,36 +26,18 @@ using<-function(...) {
         lapply(need,require,character.only=TRUE)
     }
 }
-using("flexdashboard","dplyr","tidyr","DT","highcharter","scales")
-```
-
-```{r load_params}
-paramsname <- snakemake@params$paramname
-stitch_model <- snakemake@params$model
-stitch_usebx <- snakemake@params$usebx
-stitch_bxlimit <- snakemake@params$bxlimit
-stitch_k <- snakemake@params$k
-stitch_s <- snakemake@params$s
-stitch_ngen <- snakemake@params$ngen
-
-#paramsname <- "test"
-#stitch_model <- "test"
-#stitch_usebx <- "test"
-#stitch_bxlimit <- 10000
-#stitch_k <- 10
-#stitch_s <- 10
-#stitch_ngen <- 10
+using("dplyr","tidyr","DT","highcharter","scales")
 ```
 
 ```{r read_input}
-comparefile <- snakemake@input$comparison
+comparefile <- params$comparison
 #comparefile <- "~/impute.compare.stats"
 tryCatch(
   expr = {
     gcts <- read.table(comparefile, header = F)[, c(2, 23, 25, 24, 27)]
   },
   error = function(e){ 
-    print("Stats file is empty. Perhaps there were no biallelelic SNPs that bcftools identified.")
+    cat("Stats file is empty. Perhaps there were no biallelelic SNPs that bcftools identified.\n")
     knitr::knit_exit()
   }
 )
@@ -76,7 +50,7 @@ gcts_long <- pivot_longer(gcts, -1, names_to = "Conversion", values_to = "Count"
 ```
 
 ```{r read_info_input}
-infofile <- snakemake@input$infoscore
+infofile <- params$infoscore
 #infofile <- "~/impute.infoscore"
 
 tryCatch(
@@ -84,95 +58,138 @@ tryCatch(
     infos <- read.table(infofile, header = F, col.names = c("contig", "position", "info"))
   },
   error = function(e){ 
-    print("Info score file is empty. Perhaps there were no SNPs that bcftools identified.")
+    cat("Info score file is empty. Perhaps there were no SNPs that bcftools identified.\n")
     knitr::knit_exit()
   }
 )
 ```
 
-### reportheader {.no-title}
-<h2> `r comparefile` </h2>
+##
 This page displays various information and general statistics and clicking the `Individual Statistics` tab 
 in the navigation menu above will display imputation results per individual.
 
-## Param Information {data-height=100}
-### param_model
+Extra parameters provided: `r params$extra`
+
+## Param Information
 ```{r}
-valueBox(paramsname, caption = "Name", color = "#b4dfbd")
+#| content: valuebox
+#| title: "Name"
+list(
+  color = "light",
+  value = params$paramsname
+)
 ```
 
-### param_model
 ```{r}
-valueBox(stitch_model, caption = "model", color = "#c0c0c0")
+#| content: valuebox
+#| title: "model"
+list(
+  color = "#dfdfdf",
+  value = params$model
+)
 ```
 
-### param_usebx
 ```{r}
-valueBox(stitch_usebx, caption = "usebX", color = "#c0c0c0")
-```
-### param_bxlimit
-```{r}
-valueBox(stitch_bxlimit , caption = "bxlimit", color = "#c0c0c0")
-```
-
-### param_k
-```{r}
-valueBox(stitch_k, caption = "k", color = "#c0c0c0")
+#| content: valuebox
+#| title: "usebx"
+list(
+  color = "#dfdfdf",
+  value = params$usebx
+)
 ```
 
-### param_s
 ```{r}
-valueBox(stitch_s, caption = "s", color = "#c0c0c0")
+#| content: valuebox
+#| title: "usebx"
+list(
+  color = "#dfdfdf",
+  value = params$bxlimit
+)
 ```
 
-### param_ngen
 ```{r}
-valueBox(stitch_ngen, caption = "ngen", color = "#c0c0c0")
+#| content: valuebox
+#| title: "k"
+list(
+  color = "#c0c0c0",
+  value = params$k
+)
 ```
 
+```{r}
+#| content: valuebox
+#| title: "s"
+list(
+  color = "#c0c0c0",
+  value = params$s
+)
+```
 
-## General Information {data-height=100}
+```{r}
+#| content: valuebox
+#| title: "ngen"
+list(
+  color = "#c0c0c0",
+  value = params$ngen
+)
+```
+
+## General Information
 ```{r}
 gcts_minmax <- filter(gcts_long, Conversion != "missing") %>% summarise(min = min(Count), max = max(Count))
 ```
 
-### nsamples
 ```{r}
-valueBox(scales::comma(nrow(gcts)), caption = "Samples", color = "success")
+#| content: valuebox
+#| title: "Samples"
+list(
+  color = "light",
+  value = scales::comma(nrow(gcts))
+)
 ```
 
-### min impute
 ```{r}
-valueBox(scales::comma(gcts_minmax$min), caption = "Minimum Imputations", color = "info")
+#| content: valuebox
+#| title: "Minimum Imputations"
+list(
+  color = "info",
+  value = scales::comma(gcts_minmax$min)
+)
 ```
-### maximpute
 ```{r}
-valueBox(scales::comma(gcts_minmax$max), caption = "Maximum Imputations", color = "info")
-```
-
-### mean infoscore
-```{r}
-valueBox(round(mean(infos$info), digits = 2), caption = "Average INFO_SCORE", color = "info")
-```
-
-### sd infoscore
-```{r}
-valueBox(round(sd(infos$info), digits = 2), caption = "StDev INFO_SCORE", color = "info")
+#| content: valuebox
+#| title: "Maximum Imputations"
+list(
+  color = "info",
+  value = scales::comma(gcts_minmax$max)
+)
 ```
 
+```{r}
+#| content: valuebox
+#| title: "Avg INFO_SCORE"
+list(
+  color = "info",
+  value = round(mean(infos$info), digits = 2)
+)
+```
+
+```{r}
+#| content: valuebox
+#| title: "Stdev INFO_SCORE"
+list(
+  color = "info",
+  value = round(sd(infos$info), digits = 2)
+)
+```
 
 ## INFO Scores
-### INFO desc {.no-title}
-<h3> Distribution of INFO_SCORE </h3>
-`STITCH` outputs a novel `INFO/INFO_SCORE` tag in the resulting VCF files that represents the
-"quality" of the imputation. This value ranges from `0` to `1.0`, with `0` being
-very poor, and `1.0` being very good. You will want to filter this file to remove
-genotypes with a low `INFO_SCORE`. Below is the frequency distribution of the global
-and per-contig `INFO_SCORE` values for the variants in the VCF file.  The  per-contig
-plot shows up to 30 of the largest contigs present in the VCF file.
+::: {.card title="Global INFO_SCORE Distribution"}
+This is the global frequency distribution of `INFO_SCORE` values for
+the variants in the VCF file.  This value ranges from `0` to `1.0`, with `0` being
+very poor, and `1.0` being very good. It shows up to 30 of the largest
+contigs present in the VCF file.
 
-## distributions
-### Overall distribution {.no-title}
 ```{r overall_dist}
 h <- hist(infos$info, breaks = 20, plot = F)
 h <- data.frame(info = round(h$breaks[1:length(h$breaks)-1], 2), freq = round(h$counts / sum(h$counts)  * 100, 2))
@@ -187,8 +204,15 @@ hchart(h, "areaspline", hcaes(x = info, y = freq), name = "% sites", marker = li
     buttons = list(contextButton = list(menuItems = c("downloadPNG", "downloadJPEG", "downloadPDF", "downloadSVG")))
 )
 ```
+:::
 
-### Per-contig distribution {.no-title}
+###
+::: {.card title="Per-Contig INFO_SCORE Distribution"}
+This is the per-contig frequency distribution of `INFO_SCORE` values
+for the variants in the VCF file.  This value ranges from `0` to `1.0`, with `0` being
+very poor, and `1.0` being very good. It shows up to 30 of the largest
+contigs present in the VCF file.
+
 ```{r per_contig_dist}
 dat <- data_to_boxplot(infos, info, contig, name = "INFO_SCORE", animation = FALSE)
 
@@ -197,28 +221,32 @@ highchart() |>
   hc_colors("#8487bb") |>
   hc_add_series_list(dat)
 ```
+:::
 
-## filtering
-### Filtering Expectations desc {.no-title}
-<h3> Filtering Expectations </h3>
-You will want to filter the resulting variants
-based on this `INFO/INFO_SCORE` tag, which can be done that simply with `bcftools`.
+# Filtering
+## Filtering Expectations
+<h2> Filtering Expectations </h2>
+`STITCH` outputs a novel `INFO/INFO_SCORE` tag in the resulting VCF files that represents the
+"quality" of the imputation. This value ranges from `0` to `1.0`, with `0` being
+very poor, and `1.0` being very good. You will want to filter this file to remove
+genotypes with a low `INFO_SCORE`, which can be done with `bcftools`.
 Here is an example snippet of keeping loci with an `INFO_SCORE` of at least `0.2`: 
 
 ```bash
-# use -Ob to output to bcf instead of vcf to save on disk space
+# use -Ob for bcf output (smaller file size)
 
 bcftools view -Ob -i 'INFO/INFO_SCORE >= 0.2' file.vcf > filtered.file.bcf
 ```
 
-Below is a table of the number of variants sites that may remain (left) or removed (right)
-if filtering at different minimum `INFO/INFO_SCORE` thresholds. Each column after `Total Variants`
-refers to a filtering threshold and the numbers within that column are the number of 
-SNPs that would be kept (or lost) if filtering out SNPs with an `INFO/INFO_SCORE` value below 
+##
+::: {.card title="SNPs Remaining After Filtering" expandable="true"}
+This is the number of variants sites that may remain
+if filtering at different minimum `INFO/INFO_SCORE` thresholds.
+Each column after `Total Variants` refers to a filtering threshold
+and the numbers within that column are the number of SNPs that would
+be kept if filtering out SNPs with an `INFO/INFO_SCORE` value below 
 it (_i.e._ `0.2` is the number of SNPs with a score `>= 0.2` ).
 
-## filtering table
-### filt table {.no-title}
 ```{r filttable}
 filterthresh <- infos %>% group_by(contig) %>%
   summarise(
@@ -248,8 +276,17 @@ DT::datatable(
   caption = 'Number of SNPs to be KEPT by filtering'
 )
 ```
+:::
 
-### filt loss table {.no-title}
+###
+::: {.card title="SNPs Removed by Filtering" expandable="true"}
+This is the number of variants sites that may be **removed**
+if filtering at different minimum `INFO/INFO_SCORE` thresholds.
+Each column after `Total Variants` refers to a filtering threshold
+and the numbers within that column are the number of SNPs that would
+be **removed** if filtering out SNPs with an `INFO/INFO_SCORE` value below 
+it (_i.e._ `0.2` is the number of SNPs with a score `>= 0.2` ).
+
 ```{r filttable_loss}
 filterthresh <- infos %>% group_by(contig) %>%
   summarise(
@@ -280,17 +317,24 @@ DT::datatable(
   escape = F
 )
 ```
+:::
 
 # Individual Statistics
 ## Ind stats desc
-### plotdesc {.no-title}
-<h3> Imputations Per Sample </h3>
+::: {.card title="Imputations Per Sample"}
 This chart visualizes the count and proportion of `missing` genotypes per sample imputed
-into other genotypes. Following standard VCF convention, `Ref` refers to
-the reference allele (from the reference genome), `Alt` refers to the alternative 
-allele, and `Missing` details how many SNPs remain missing
-(failed to impute) for that individual. As an example, the `Homozygous Ref` is 
-the number of missing genotypes that were imputed into
+into other genotypes. Following standard VCF convention:
+
+Ref
+: The reference allele (from the reference genome)
+
+Alt
+: The alternative allele
+
+Missing
+: How many SNPs remain missing (failed to impute) for that individual
+
+As an example, the `Homozygous Ref` is the number of missing genotypes that were imputed into
 a homozygous genotype for the reference allele. The table on the other tab is the
 underlying data used to create the visualization.
 
@@ -300,8 +344,7 @@ plotheight <- 150 + (15 * n_samples)
 figheight <- 1 + (0.2 * n_samples)
 ```
 
-## ind stats plt {.tabset data-height=plotheight}
-### Individuals Plot {.no-title}
+##
 ```{r preprocess fields, out.width = "100%"}
 gcts_long$Conversion <- gsub("AltHom","Homozygous Alt", gcts_long$Conversion)
 gcts_long$Conversion <- gsub("Het","Heterozygote", gcts_long$Conversion)
@@ -309,6 +352,7 @@ gcts_long$Conversion <- gsub("RefHom","Homozygous Ref", gcts_long$Conversion)
 gcts_long$Conversion <- gsub("missing","not imputed", gcts_long$Conversion)
 ```
 ```{r per_indiv, fig.height=figheight, out.width = "100%"}
+# | expandable: true
 hchart(gcts_long, "bar", hcaes(x = sample, y = Count, group = Conversion), stacking = "normal", animation = F) |>
   hc_colors(c("#7cb3d4", "#b18ad1", "#ffd75f", "#6f6c70")) |>
   hc_title(text = "Genotype Imputations") |>
@@ -321,19 +365,20 @@ hchart(gcts_long, "bar", hcaes(x = sample, y = Count, group = Conversion), stack
   )
 ```
 
-### Imputation Results Table {.no-title}
+###
 ```{r impute_table}
+#| expandable: true
 DT::datatable(
   gcts,
   rownames = FALSE,
   extensions = "Buttons",
   colnames = c("Sample", "Homozygous Ref", "Homozygous Alt", "Heterozygote", "Missing"),
+  autoHideNavigation = T,
+  fillContainer = T,
   options = list(
     dom = "Brtp",
     buttons = c("csv"),
     scrollX = TRUE
-  ),
-  autoHideNavigation = T,
-  fillContainer = T
+  )
 )
 ```

@@ -78,8 +78,8 @@ def impute(inputs, output_dir, parameters, threads, vcf, vcf_samples, extra_para
 
     fetch_rule(workflowdir, "impute.smk")
     fetch_script(workflowdir, "stitch_impute.R")
-    fetch_report(workflowdir, "impute.Rmd")
-    fetch_report(workflowdir, "stitch_collate.Rmd")
+    fetch_report(workflowdir, "impute.qmd")
+    fetch_report(workflowdir, "stitch_collate.qmd")
     os.makedirs(f"{output_dir}/logs/snakemake", exist_ok = True)
     sm_log = snakemake_log(output_dir, "impute")
     conda_envs = ["r", "stitch"]

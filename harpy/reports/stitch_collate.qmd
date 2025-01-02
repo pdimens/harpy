@@ -2,14 +2,15 @@
 title: "STITCH Imputation - "`r gsub(".stats$", "", params$statsfile)`"
 params:
   plotdir: 'plots/'
-  statsfile: "file.stats"
+  statsfile: "~/contig1.stats"
+  paramname: "paramset"
   model: "haploid"
   usebx: "true"
   bxlimit: 50000
   k: 15
   s: 20
   ngen: 5
-  extra: "extraparams"
+  extra: "None"
 ---
 `r format(Sys.time(), '🗓️ %d %B, %Y 🕔 %H:%M')`
 ```{r setup environment}
@@ -27,19 +28,11 @@ using("tidyr","magrittr","DT")
 
 ```{r load data}
 infile <- params$statsfile
-#infile <- "~/contig1.stats"
 dataL <- readLines(infile)
 bcf <- gsub(".stats$", ".bcf", basename(infile))
 chrom <- gsub(".bcf", "", bcf)
 basedir <- dirname(normalizePath(infile))
 plotdir <- paste0(normalizePath(params$plotdir), "/")
-model   <- params$model
-usebx   <- params$usebx
-bxlimit <- params$bxlimit
-k       <- params$k
-s       <- params$s
-ngen    <- params$ngen
-extra   <- params$extra
 ```
 
 # NAME ME PLZ
@@ -51,6 +44,7 @@ Click on the image again to remove focus from the image. For the wider images, y
 them in a new tab/window to view them at their original
 sizes, which may prove to be more useful in some cases.
 
+Extra parameters provided: `r params$extra`
 
 ```{r General Stats}
 .snL <- grepl("^SN", dataL)
@@ -69,7 +63,7 @@ rownames(sn) <- NULL
 #| title: "Model"
 list(
   color = "info",
-  value = model
+  value = params$model
 )
 ```
 
@@ -78,7 +72,7 @@ list(
 #| title: "Use BX"
 list(
   color = "info",
-  value = usebx
+  value = params$usebx
 )
 ```
 
@@ -87,7 +81,7 @@ list(
 #| title: "k Param"
 list(
   color = "info",
-  value = k
+  value = params$k
 )
 ```
 
@@ -96,7 +90,7 @@ list(
 #| title: "s Parameter"
 list(
   color = "info",
-  value = s
+  value = params$s
 )
 ```
 
@@ -105,7 +99,7 @@ list(
 #| title: "ngen Parameter"
 list(
   color = "info",
-  value = ngen
+  value = params$ngen
 )
 ```
 
@@ -114,7 +108,7 @@ list(
 #| title: "BX Limit"
 list(
   color = "info",
-  value = format(bxlimit, scientific = F)
+  value = format(params$bxlimit, scientific = F)
 )
 ```
 
@@ -123,7 +117,7 @@ list(
 #| title: "Extra Parameters"
 list(
   color = "info",
-  value = extra
+  value = params$extra
 )
 ```
 
