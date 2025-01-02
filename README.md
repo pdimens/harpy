@@ -57,7 +57,7 @@ conda install -n envname -c conda-forge bioconda::harpy
 </details>
 
 <details>
-  <summary>⬆️ updating Harpy </summary>
+  <summary>⬆️ updating harpy </summary>
 
   ---
 If installed via conda, you can update Harpy by activating the environment
@@ -71,8 +71,24 @@ conda update -c conda-forge bioconda::harpy
 </details>
 
 ### 🌟 Pixi
-If you prefer [Pixi](https://pixi.sh/latest/) (it's pretty good, you should try it), the preferred installation
-process is as a local environment in your project directory:
+If you prefer [Pixi](https://pixi.sh/latest/) (it's pretty good, you should try it), you can
+install Harpy to be accessible in your PATH-- just make sure `~/.pixi/bin` is in your PATH:
+```
+# ~/.zshrc or ~/.bashrc (or equivalent) 
+export PATH=~/.pixi/bin:$PATH
+```
+```bash
+pixi global install -c conda-forge -c bioconda harpy
+```
+
+
+</details>
+
+<details>
+  <summary>⬇️ install as local environment </summary>
+
+  ---
+Likewise, you can do an installation into a local project directory:
 
 ```bash
 pixi init -c bioconda projectname && cd projectname
@@ -86,16 +102,22 @@ Or run `harpy` by prefixing it with `pixi run`:
 ```bash
 pixi run harpy
 ```
+---
+</details>
 
 <details>
-  <summary>⬆️ updating Harpy </summary>
+  <summary>⬆️ updating harpy </summary>
 
   ---
 If installed via Pixi, you can update Harpy by being in the project directory (where `pixi.toml` lives) and
 running:
 
 ```bash
-pixi update
+# global install
+pixi global update harpy
+
+#local install
+pixi update harpy
 ```
 
 ---
