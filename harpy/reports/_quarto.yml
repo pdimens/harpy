@@ -1,6 +1,6 @@
 brand:
   logo: 
-    medium: https://raw.githubusercontent.com/pdimens/harpy/docs/static/logo_navbar.png
+    medium: https://raw.githubusercontent.com/pdimens/harpy/docs/static/logo_report.png
 execute:
     echo: false
     warning: false
@@ -10,7 +10,7 @@ format:
     theme: materia
     scrolling: true
     expandable: false
-    logo: https://raw.githubusercontent.com/pdimens/harpy/docs/static/logo_navbar.png
+    logo: https://raw.githubusercontent.com/pdimens/harpy/docs/static/logo_report.png
     nav-buttons:
       - icon: book-half
         href: https://pdimens.github.io/harpy
