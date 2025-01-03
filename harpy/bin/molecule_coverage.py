@@ -4,8 +4,8 @@
 import os
 import sys
 import gzip
+import sqlite3
 import argparse
-from collections import Counter
 
 parser = argparse.ArgumentParser(
     prog = 'molecule_coverage.py',
@@ -18,13 +18,14 @@ parser = argparse.ArgumentParser(
     one contiguous alignment, even though the reads that make
     up that molecule don't cover its entire length. Requires a
     FASTA fai index (like the kind created using samtools faidx)
-    to know the actual sizes of the contigs.
+    to know the actual sizes of the contigs. Prints binary
     """,
     usage = "molecule_coverage.py -f genome.fasta.fai statsfile > output.cov",
     exit_on_error = False
     )
 
 parser.add_argument('-f', '--fai', required = True, type = str, help = "FASTA index (.fai) file of genome used for alignment")
+parser.add_argument('-w', '--window', required = True, type = int, help = "Window size (in bp) to sum depths over")
 parser.add_argument('statsfile', help = "stats file produced by harpy via bx_stats.py")
 
 if len(sys.argv) == 1:
@@ -38,6 +39,8 @@ for i in [args.statsfile, args.fai]:
         err.append(i)
 if err:
     parser.error("Input files were not found:\n" + ", ".join(err))
+if args.window == 0:
+    parser.error("--window must be greater than 0")
 
 # main program
 contigs = {}
@@ -51,12 +54,51 @@ with open(args.fai, "r", encoding= "utf-8") as fai:
         length = splitline[1]
         contigs[contig] = int(length)
 
-def write_coverage(counter_obj, contigname):
-    for position,freq in counter_obj.items():
-        sys.stdout.write(f"{contigname}\t{position}\t{freq}\n")
+def initialize_contig(length):
+    """Initialize the database table to feature all positions of the contig"""
+    cursor.executemany(
+        'INSERT INTO number_counts (number, count) VALUES (?, ?)',
+        [(i, 0) for i in range(1, length + 1)]
+    )
 
+def process_alignment(start, end):
+    """Function to insert or update counts for numbers in a given range"""
+    cursor.executemany(
+        'UPDATE number_counts SET count = count + 1 WHERE number = ?',
+        [(num,) for num in range(start, end + 1)]
+    )
+
+def print_windowed_depth(contig, window):
+    """Query all rows in the table to get counts for all position. If window > 1, will sum across intervals"""
+    if args.window == 1:
+        cursor.execute('SELECT number, count FROM number_counts')
+        for position,count in cursor.fetchall():
+            sys.stdout.write(f"{contig}\t{position}\t{count}\n")
+    else:
+        # build the query, creating windows of a specific size and grouping by said windows
+        query = f'''
+            SELECT
+                (ROWID - 1) / {window} AS window,  -- Create a window group
+                SUM(count) AS total_count    -- Sum the counts in each window
+            FROM number_counts
+            GROUP BY window
+            ORDER BY window;
+        '''
+        cursor.execute(query)
+        contig_end = contigs[contig]
+        # Fetch and print the results
+        for win,depth in cursor.fetchall():
+            actual_window = win * window
+            # correction for the last window, which is usually shorter than the full size
+            if (win+1) * window > contig_end:
+                depth /= (contig_end - actual_window)
+            else:
+                depth /= window
+            sys.stdout.write(f"{contig}\t{actual_window}\t{depth}\n")
+    conn.close()
 
 with gzip.open(args.statsfile, "rt") as statsfile:
+    aln_ranges = []
     # read in the header
     line = statsfile.readline()
     # for safety, find out which columns are the contig, start, and end positions
@@ -73,27 +115,33 @@ with gzip.open(args.statsfile, "rt") as statsfile:
         if val.strip() == "end":
             IDX_END = idx
     if IDX_CONTIG is None or IDX_START is None or IDX_END is None:
-        sys.stderr.write("Error: Required columns 'contig', 'start', or 'end' not found in header\n")
-        sys.exit(1)
+        parser.error("Required columns 'contig', 'start', or 'end' not found in header\n")
     while True:
         line = statsfile.readline()
         if not line:
             if LASTCONTIG:
                 # write the last contig to file
-                write_coverage(coverage, LASTCONTIG)
+                print_windowed_depth(LASTCONTIG, args.window)
             break
         if line.startswith("#"):
             continue
         splitline = line.split()
         contig = splitline[IDX_CONTIG]
-        start = int(splitline[IDX_START])
-        end = int(splitline[IDX_END])
         if contig != LASTCONTIG:
             if LASTCONTIG:
-                # write to file when contig changed
-                write_coverage(coverage, LASTCONTIG)
-            # reset the counter for the new contig
-            coverage = Counter({i: 0 for i in range(1, contigs[contig] + 1)})
-        # update the counter with the current row
-        coverage.update(range(start, end + 1))
+                # write to file when contig changes
+                print_windowed_depth(LASTCONTIG, args.window)
+            # create/reset database
+            conn = sqlite3.connect(':memory:')
+            cursor = conn.cursor()
+            cursor.execute('''
+                CREATE TABLE number_counts (
+                    number INTEGER PRIMARY KEY,
+                    count INTEGER
+                )
+            ''')
+            initialize_contig(contigs[contig])
+        aln_start = int(splitline[IDX_START])
+        aln_end = int(splitline[IDX_END])
+        process_alignment(aln_start, aln_end)
         LASTCONTIG = contig

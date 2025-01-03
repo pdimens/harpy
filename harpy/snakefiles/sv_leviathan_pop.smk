@@ -230,43 +230,68 @@ rule aggregate_variants:
                         elif record[5] == "BND":
                             _ = breakends.write(line)
 
-rule group_reports:
-    input:	
-        statsfile = outdir + "/reports/data/{population}.sv.stats",
-        bcf       = outdir + "/vcf/{population}.bcf",
-        faidx     = f"Genome/{bn}.fai"
+rule report_config:
+    input:
+        f"{outdir}/workflow/report/_quarto.yml"
     output:
-        outdir + "/reports/{population}.sv.html"
+        f"{outdir}/reports/_quarto.yml"
+    shell:
+        "cp {input} {output}"
+
+rule group_reports:
+    input: 
+        faidx     = f"Genome/{bn}.fai",
+        statsfile = outdir + "/reports/data/{population}.sv.stats",
+        qmd       = f"{outdir}/workflow/report/leviathan.qmd",
+        yml       = f"{outdir}/reports/_quarto.yml"
+    output:
+        report = outdir + "/reports/{population}.leviathan.html",
+        qmd = temp(outdir + "/reports/{population}.leviathan.qmd")
     log:
-        logfile = outdir + "/logs/reports/{population}.report.log"
+        outdir + "/logs/reports/{population}.report.log"
     params:
-        contigs = plot_contigs
+        sample= lambda wc: "-P sample:" + wc.get('population'),
+        contigs= f"-P contigs:{plot_contigs}"
     conda:
         f"{envdir}/r.yaml"
-    script:
-        "report/leviathan.Rmd"
+    shell:
+        """
+        cp {input.qmd} {output.qmd}
+        FAIDX=$(realpath {input.faidx})
+        STATS=$(realpath {input.statsfile})
+        quarto render {output.qmd} --log {log} --quiet -P faidx:$FAIDX -P statsfile:$STATS {params}
+        """
 
 rule aggregate_report:
-    input:	
+    input: 
         faidx      = f"Genome/{bn}.fai",
-        statsfiles = collect(outdir + "/reports/data/{pop}.sv.stats", pop = populations)
+        statsfiles = collect(outdir + "/reports/data/{pop}.sv.stats", pop = populations),
+        qmd        = f"{outdir}/workflow/report/leviathan_pop.qmd",
+        yml        = f"{outdir}/reports/_quarto.yml"
     output:
-        outdir + "/reports/leviathan.summary.html"
+        report = outdir + "/reports/leviathan.summary.html",
+        qmd = temp(outdir + "/reports/leviathan.summary.qmd")
     log:
-        logfile = outdir + "/logs/reports/summary.report.log"
+        outdir + "/logs/reports/summary.report.log"
     params:
-        contigs = plot_contigs
+        statsdir = f"{outdir}/reports/data/",
+        contigs = f"-P contigs:{plot_contigs}"
     conda:
         f"{envdir}/r.yaml"
-    script:
-        "report/leviathan_pop.Rmd"
+    shell:
+        """
+        cp {input.qmd} {output.qmd}
+        FAIDX=$(realpath {input.faidx})
+        INPATH=$(realpath {params.statsdir})
+        quarto render {output.qmd} --log {log} --quiet -P faidx:$FAIDX -P statsdir:$INPATH {params.contigs}
+        """
 
 rule workflow_summary:
     default_target: True
     input:
         vcf = collect(outdir + "/vcf/{pop}.bcf", pop = populations),
         bedpe_agg = collect(outdir + "/{sv}.bedpe", sv = ["inversions", "deletions","duplications", "breakends"]),
-        reports = collect(outdir + "/reports/{pop}.sv.html", pop = populations) if not skip_reports else [],
+        reports = collect(outdir + "/reports/{pop}.leviathan.html", pop = populations) if not skip_reports else [],
         agg_report = outdir + "/reports/leviathan.summary.html" if not skip_reports else []
     params:
         min_sv = f"-v {min_sv}",

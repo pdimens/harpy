@@ -159,7 +159,12 @@ rule aggregate_variants:
         outdir + "/duplications.bedpe",
         outdir + "/breakends.bedpe"
     run:
-        with open(output[0], "w") as inversions, open(output[1], "w") as deletions, open(output[2], "w") as duplications, open(output[3], "w") as breakends:
+        with (
+            open(output[0], "w") as inversions,
+            open(output[1], "w") as deletions,
+            open(output[2], "w") as duplications,
+            open(output[3], "w") as breakends
+        ):
             header = ["sample","contig","position_start","position_end","length","type","n_barcodes","n_pairs"]
             _ = inversions.write("\t".join(header) + "\n")
             _ = deletions.write("\t".join(header) + "\n")
@@ -183,27 +188,44 @@ rule aggregate_variants:
                         elif record[5] == "BND":
                             _ = breakends.write(line)
 
+rule report_config:
+    input:
+        f"{outdir}/workflow/report/_quarto.yml"
+    output:
+        f"{outdir}/reports/_quarto.yml"
+    shell:
+        "cp {input} {output}"
+
 rule sample_reports:
-    input:	
+    input: 
         faidx     = f"Genome/{bn}.fai",
-        statsfile = outdir + "/reports/data/{sample}.sv.stats"
-    output:	
-        outdir + "/reports/{sample}.SV.html"
+        statsfile = outdir + "/reports/data/{sample}.sv.stats",
+        qmd       = f"{outdir}/workflow/report/leviathan.qmd",
+        yml       = f"{outdir}/reports/_quarto.yml"
+    output:
+        report = outdir + "/reports/{sample}.leviathan.html",
+        qmd = temp(outdir + "/reports/{sample}.leviathan.qmd")
     log:
-        logfile = outdir + "/logs/reports/{sample}.report.log"
+        outdir + "/logs/reports/{sample}.report.log"
     params:
-        contigs = plot_contigs
+        sample= lambda wc: "-P sample:" + wc.get('sample'),
+        contigs= f"-P contigs:{plot_contigs}"
     conda:
         f"{envdir}/r.yaml"
-    script:
-        "report/leviathan.Rmd"
+    shell:
+        """
+        cp {input.qmd} {output.qmd}
+        FAIDX=$(realpath {input.faidx})
+        STATS=$(realpath {input.statsfile})
+        quarto render {output.qmd} --log {log} --quiet -P faidx:$FAIDX -P statsfile:$STATS {params}
+        """
 
 rule workflow_summary:
     default_target: True
     input: 
         vcf = collect(outdir + "/vcf/{sample}.bcf", sample = samplenames),
         bedpe_agg = collect(outdir + "/{sv}.bedpe", sv = ["inversions", "deletions","duplications", "breakends"]),
-        reports = collect(outdir + "/reports/{sample}.SV.html", sample = samplenames) if not skip_reports else []
+        reports = collect(outdir + "/reports/{sample}.leviathan.html", sample = samplenames) if not skip_reports else []
     params:
         min_sv = f"-v {min_sv}",
         min_bc = f"-c {min_bc}",

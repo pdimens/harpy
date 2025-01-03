@@ -136,7 +136,7 @@ else:
         params:
             "-2"
 
-rule check_barcodes:
+rule barcode_stats:
     input:
         outdir + "/{sample}.R1.fq.gz"
     output: 
@@ -146,17 +146,34 @@ rule check_barcodes:
     shell:
         "count_bx.py {input} > {output}"
 
+rule report_config:
+    input:
+        f"{outdir}/workflow/report/_quarto.yml"
+    output:
+        f"{outdir}/reports/_quarto.yml"
+    shell:
+        "cp {input} {output}"
+
 rule barcode_report:
     input: 
-        countlog = collect(outdir + "/logs/bxcount/{sample}.count.log", sample = samplenames)
+        data = collect(outdir + "/logs/bxcount/{sample}.count.log", sample = samplenames),
+        qmd = f"{outdir}/workflow/report/bx_count.qmd",
+        yml = f"{outdir}/reports/_quarto.yml"
     output:
-        outdir + "/reports/barcode.summary.html"
+        report = f"{outdir}/reports/barcode.summary.html",
+        qmd = temp(f"{outdir}/reports/barcode.summary.qmd")
+    params:
+        f"{outdir}/logs/bxcount/"
     log:
-        logfile = outdir + "/logs/barcode.report.log"
+        outdir + "/logs/barcode.report.log"
     conda:
         f"{envdir}/r.yaml"
-    script:
-        "report/bx_count.Rmd"
+    shell:
+        """
+        cp {input.qmd} {output.qmd}
+        INPATH=$(realpath {params})
+        quarto render {output.qmd} --log {log} --quiet -P indir:$INPATH
+        """
    
 rule qc_report:
     input: 

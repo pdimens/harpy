@@ -22,6 +22,7 @@ outdir        = config["output_directory"]
 envdir        = os.path.join(os.getcwd(), outdir, "workflow", "envs")
 skip_reports  = config["reports"]["skip"]
 stitch_params = config["stitch_parameters"]
+stitch_extra  = config.get("stitch_extra", "None")
 with open(biallelic, "r") as f:
     contigs = [line.rstrip() for line in f]
 
@@ -119,26 +120,43 @@ rule index_vcf:
         bcftools stats -s "-" {input.vcf} > {output.stats}
         """
 
+rule contig_report_config:
+    input:
+        f"{outdir}/workflow/report/_quarto.yml"
+    output:
+        outdir + "/{paramset}/reports/_quarto.yml"
+    shell:
+        "cp {input} {output}"
+
 rule contig_report:
     input:
         statsfile = outdir + "/{paramset}/reports/data/contigs/{contig}.stats",
-        plotdir = outdir + "/{paramset}/contigs/{contig}/plots"
+        plotdir = outdir + "/{paramset}/contigs/{contig}/plots",
+        qmd = f"{outdir}/workflow/report/stitch_collate.qmd",
+        yml = outdir + "/{paramset}/reports/_quarto.yml"
     output:
-        outdir + "/{paramset}/reports/{contig}.{paramset}.html"
+        report = outdir + "/{paramset}/reports/{contig}.{paramset}.html",
+        qmd = temp(outdir + "/{paramset}/reports/{contig}.{paramset}.qmd")
     log:
         logfile = outdir + "/{paramset}/logs/reports/{contig}.stitch.log"
     params:
-        model   = lambda wc: stitch_params[wc.paramset]["model"],
-        usebx   = lambda wc: stitch_params[wc.paramset]["usebx"],
-        bxlimit = lambda wc: stitch_params[wc.paramset]["bxlimit"],
-        k       = lambda wc: stitch_params[wc.paramset]["k"],
-        s       = lambda wc: stitch_params[wc.paramset]["s"],
-        ngen    = lambda wc: stitch_params[wc.paramset]["ngen"],
-        extra   = config.get("stitch_extra", "")
+        params  = lambda wc: f"-P id:{wc.paramset}-{wc.contig}",
+        model   = lambda wc: f"-P model:{stitch_params[wc.paramset]['model']}",
+        usebx   = lambda wc: f"-P usebx:{stitch_params[wc.paramset]['usebx']}",
+        bxlimit = lambda wc: f"-P bxlimit:{stitch_params[wc.paramset]['bxlimit']}",
+        k       = lambda wc: f"-P k:{stitch_params[wc.paramset]['k']}",
+        s       = lambda wc: f"-P s:{stitch_params[wc.paramset]['s']}",
+        ngen    = lambda wc: f"-P ngen:{stitch_params[wc.paramset]['ngen']}",
+        extra   = f"-P extra:{stitch_extra}"
     conda:
         f"{envdir}/r.yaml"
-    script:
-        "report/stitch_collate.Rmd"
+    shell:
+        """
+        cp {input.qmd} {output.qmd}
+        STATS=$(realpath {input.statsfile})
+        PLOTDIR=$(realpath {input.plotdir})
+        quarto render {output.qmd} --log {log} --quiet -P statsfile:$STATS -P plotdir:$PLOTDIR {params}
+        """
 
 rule concat_list:
     input:
@@ -202,26 +220,34 @@ rule compare_stats:
         """
 
 rule impute_reports:
-    input: 
+    input:
         comparison = outdir + "/{paramset}/reports/data/impute.compare.stats",
-        infoscore = outdir + "/{paramset}/reports/data/impute.infoscore"
+        infoscore = outdir + "/{paramset}/reports/data/impute.infoscore",
+        qmd = f"{outdir}/workflow/report/impute.qmd",
+        yml = outdir + "/{paramset}/reports/_quarto.yml"
     output:
-        outdir + "/{paramset}/reports/{paramset}.html"
+        report = outdir + "/{paramset}/reports/{paramset}.html",
+        qmd = temp(outdir + "/{paramset}/reports/{paramset}.qmd")
     log:
-        logfile = outdir + "/{paramset}/logs/reports/imputestats.log"
+        outdir + "/{paramset}/logs/reports/imputestats.log"
     params:
-        paramname = lambda wc: wc.get("paramset"),
-        model   = lambda wc: stitch_params[wc.paramset]["model"],
-        usebx   = lambda wc: stitch_params[wc.paramset]["usebx"],
-        bxlimit = lambda wc: stitch_params[wc.paramset]["bxlimit"],
-        k       = lambda wc: stitch_params[wc.paramset]["k"],
-        s       = lambda wc: stitch_params[wc.paramset]["s"],
-        ngen    = lambda wc: stitch_params[wc.paramset]["ngen"],
-        extra   = config.get("stitch_extra", "")
+        param   = lambda wc: f"-P id:{wc.paramset}",
+        model   = lambda wc: f"-P model:{stitch_params[wc.paramset]['model']}",
+        usebx   = lambda wc: f"-P usebx:{stitch_params[wc.paramset]['usebx']}",
+        bxlimit = lambda wc: f"-P bxlimit:{stitch_params[wc.paramset]['bxlimit']}",
+        k       = lambda wc: f"-P k:{stitch_params[wc.paramset]['k']}",
+        s       = lambda wc: f"-P s:{stitch_params[wc.paramset]['s']}",
+        ngen    = lambda wc: f"-P ngen:{stitch_params[wc.paramset]['ngen']}",
+        extra   = f"-P extra:{stitch_extra}"
     conda:
         f"{envdir}/r.yaml"
-    script:
-        "report/impute.Rmd"
+    shell:
+        """
+        cp {input.qmd} {output.qmd}
+        COMPARE=$(realpath {input.comparison})
+        INFOSCORE=$(realpath {input.infoscore})
+        quarto render {output.qmd} --log {log} --quiet -P compare:$COMPARE -P info:$INFOSCORE {params}
+        """
 
 rule workflow_summary:
     default_target: True

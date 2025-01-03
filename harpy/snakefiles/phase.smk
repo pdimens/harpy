@@ -253,19 +253,34 @@ rule summarize_blocks:
         gzip {params}
         """
 
+rule report_config:
+    input:
+        f"{outdir}/workflow/report/_quarto.yml"
+    output:
+        f"{outdir}/_quarto.yml"
+    shell:
+        "cp {input} {output}"
+
 rule phase_report:
     input:
-        blockfile = outdir + "/reports/blocks.summary.gz"
+        data = f"{outdir}/reports/blocks.summary.gz",
+        qmd = f"{outdir}/workflow/report/hapcut.qmd",
+        yml = f"{outdir}/_quarto.yml"
     output:
-        outdir + "/reports/phase.html"
+        html = f"{outdir}/reports/phase.html",
+        qmd = temp(f"{outdir}/reports/phase.qmd")
     log:
-        logfile = outdir + "/logs/report.log"
+        f"{outdir}/logs/report.log"
     params:
-        contigs = plot_contigs
+        f"-P contigs:{plot_contigs}"
     conda:
         f"{envdir}/r.yaml"
-    script:
-        "report/hapcut.Rmd"
+    shell:
+        """
+        cp {input.qmd} {output.qmd}
+        INFILE=$(realpath {input.data})
+        quarto render {output.qmd} --log {log} --quiet -P blockfile:$INFILE
+        """
 
 rule workflow_summary:
     default_target: True

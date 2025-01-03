@@ -9,7 +9,7 @@ from rich.table import Table
 import rich_click as click
 from ._cli_types_generic import HPCProfile, SnakemakeParams
 from ._conda import create_conda_recipes
-from ._launch import launch_snakemake
+from ._launch import launch_snakemake, SNAKEMAKE_CMD
 from ._misc import fetch_rule, snakemake_log
 from ._validations import validate_demuxschema
 
@@ -63,13 +63,13 @@ def gen1(r1_fq, r2_fq, i1_fq, i2_fq, output_dir, schema, threads, snakemake, ski
     output_dir = output_dir.rstrip("/")
     workflowdir = os.path.join(output_dir, 'workflow')
     sdm = "conda" if conda else "conda apptainer"
-    command = f'snakemake --rerun-incomplete --show-failed-logs --rerun-triggers input mtime params --nolock --software-deployment-method {sdm} --conda-prefix ./.snakemake/conda --cores {threads} --directory . '
-    command += f"--snakefile {workflowdir}/demultiplex_gen1.smk "
-    command += f"--configfile {workflowdir}/config.yaml "
+    command = f'{SNAKEMAKE_CMD} --software-deployment-method {sdm} --cores {threads}'
+    command += f" --snakefile {workflowdir}/demultiplex_gen1.smk"
+    command += f" --configfile {workflowdir}/config.yaml"
     if hpc:
-        command += f"--workflow-profile {hpc} "
+        command += f" --workflow-profile {hpc}"
     if snakemake:
-        command += snakemake
+        command += f" {snakemake}"
 
     validate_demuxschema(schema)
     os.makedirs(f"{workflowdir}", exist_ok=True)

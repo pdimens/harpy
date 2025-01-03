@@ -55,27 +55,41 @@ rule concat_results:
     input:
         collect(outdir + "/{sample}.{FR}.log", sample = samplenames, FR = ["F","R"])
     output:
-        tmp = temp(outdir + "/filecheck.tmp"),
-        final = outdir + "/filecheck.fastq.tsv"
+        outdir + "/filecheck.fastq.tsv"
     container:
         None
     shell:
         """
-        cat {input} | sort -k1 > {output.tmp}
-        echo -e "file\treads\tnoBX\tbadBX\tbadSamSpec\tbxNotLast\n$(cat {output.tmp})" > {output.final}
+        echo -e "file\treads\tnoBX\tbadBX\tbadSamSpec\tbxNotLast" > {output}
+        cat {input} | sort -k1 >> {output}
         """
+
+rule report_config:
+    input:
+        f"{outdir}/workflow/report/_quarto.yml"
+    output:
+        f"{outdir}/_quarto.yml"
+    shell:
+        "cp {input} {output}"
 
 rule create_report:
     input:
-        outdir + "/filecheck.fastq.tsv"
+        data = f"{outdir}/filecheck.fastq.tsv",
+        qmd = f"{outdir}/workflow/report/preflight_fastq.qmd",
+        yml = f"{outdir}/_quarto.yml"
     output:
-        outdir + "/filecheck.fastq.html"
+        html = f"{outdir}/filecheck.fastq.html",
+        qmd = temp(f"{outdir}/filecheck.fastq.qmd")
     log:
-        logfile = outdir + "/logs/report.log"
+        f"{outdir}/logs/report.log"
     conda:
         f"{envdir}/r.yaml"
-    script:
-        "report/preflight_fastq.Rmd"
+    shell:
+        """
+        cp {input.qmd} {output.qmd}
+        INFILE=$(realpath {input.data})
+        quarto render {output.qmd} --log {log} --quiet -P infile:$INFILE
+        """
 
 rule workflow_summary:
     default_target: True

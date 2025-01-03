@@ -1,12 +1,12 @@
 #! /usr/bin/env bash
 
-if [ -z "$CONDA_PREFIX" ]; then
-    echo "Error: active conda environment not detected."
-    echo "To use this installation script, you need to already be in an active conda environment."
-    exit 1
-fi
+conda env create --prefix harpy/.conda/harpy $1 --file harpy/resources/harpy.yaml
+
+conda activate harpy/.conda/harpy
 
 mkdir -p ${CONDA_PREFIX}/bin
+
+cd harpy
 
 # compilation
 g++ harpy/bin/extractReads.cpp -O3 -o ${CONDA_PREFIX}/bin/extractReads

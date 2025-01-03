@@ -1,6 +1,7 @@
 .snakemake/
 .vscode/
 .condarc
+.conda
 .cache/
 hpc/
 QC/
@@ -20,6 +21,7 @@ Metassembly/
 samples.populations
 *.fasta
 *.bcf
+*.bai
 genome.fasta
 build/
 harpy.egg-info/
@@ -28,3 +30,12 @@ __pycache__/
 extractReads
 haplotag.bc
 _Inline
+# pixi environments
+.pixi
+pixi*
+.gitattributes
+*.egg-info
+
+# pixi environments
+.pixi
+*.egg-info

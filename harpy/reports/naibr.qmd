@@ -1,0 +1,415 @@
+---
+title: "NAIBR SV - `r params$sample`"
+params:
+  faidx: 'genome.fasta.fai'
+  bedpe: 'sample.bedpe'
+  sample: 'sample'
+  contigs: 'default'
+---
+`r format(Sys.time(), '🗓️ %d %B, %Y 🕔 %H:%M')`
+
+```{r input_files}
+infile <- params$bedpe
+fai <- params$faidx
+samplename <- params$sample
+```
+
+# General Stats
+```{r read_input, results = 'asis'}
+tryCatch(
+  expr = {
+    variants <- read.table(infile, header = T) 
+    if (nrow(variants) == 0) {
+      cat(paste0("There are no variants in the file ", "`", infile, "`"))
+      knitr::knit_exit()
+    }
+  },
+  error = function(e){ 
+    cat(paste0("There are no variants in the file ", "`", infile, "`"))
+    knitr::knit_exit()
+  }
+)
+```
+
+```{r package_imports}
+using<-function(...) {
+    libs<-unlist(list(...))
+    req<-unlist(lapply(libs,require,character.only=TRUE))
+    need<-libs[req==FALSE]
+    if(length(need)>0){ 
+        install.packages(need, repos = "https://cloud.r-project.org/")
+        lapply(need,require,character.only=TRUE)
+    }
+}
+using("dplyr","tidyr","DT", "BioCircos")
+```
+
+```{r process_sv}
+cleanbedpe <- function(x){
+  y <- x[x$Chr1==x$Chr2, c(-3,-10)]
+  y$Score <- round(y$Score, digits = 3)
+  y$Length <- abs(y$Break2 - y$Break1)
+  names(y)[1] <- "Chr1"
+  return(y)
+}
+
+chimeric <- function(x){
+  y <- x[x$Chr1!=x$Chr2, -10]
+  y$Score <- round(y$Score, digits = 3)
+  names(y)[1] <- "Chr1"
+  return(y)
+}
+
+sv <- cleanbedpe(variants)
+```
+
+## 
+```{r summary_stats}
+summstats <- sv %>%
+  group_by(Chr1, SV) %>%
+  summarise(n = n())
+
+sumtable <- summstats %>%
+  group_by(SV) %>%
+  summarise(count = sum(n))
+
+nvar <- sum(sumtable$count)
+```
+
+```{r}
+#| content: valuebox
+#| title: "Variants"
+list(
+  color = ifelse(nvar > 0, "success", "warning"),
+  value = scales::comma(nvar)
+)
+```
+
+```{r}
+#| content: valuebox
+#| title: "Deletions"
+ndel <- ifelse("deletion" %in% sumtable$SV, sumtable$count[which(sumtable$SV == "deletion")], 0)
+list(
+  color = "#dfdfdf",
+  value = scales::comma(ndel)
+)
+```
+
+```{r}
+#| content: valuebox
+#| title: "Duplications"
+ndup <- ifelse("duplication" %in% sumtable$SV, sumtable$count[which(sumtable$SV == "duplication")], 0)
+list(
+  color = "#dfdfdf",
+  value = scales::comma(ndup)
+)
+```
+
+```{r}
+#| content: valuebox
+#| title: "Inversions"
+ninv <- ifelse("inversion" %in% sumtable$SV, sumtable$count[which(sumtable$SV == "inversion")], 0)
+list(
+  color = "#dfdfdf",
+  value = scales::comma(ninv)
+)
+```
+
+##
+This report details the structural variants identified by [NAIBR](https://github.com/pontushojer/NAIBR)
+[(publication)](https://doi.org/10.1093/bioinformatics/btx712). This tab (`General Stats`) shows overview
+information. The `Per-Contig Plot` tab shows you an interactive
+plot detailing all variants identified. The variants are given by:
+
+Inversion
+: A segment that broke off and reattached within the same chromosome, but in reverse orientation
+
+Duplication
+: A type of mutation that involves the production of one or more copies of a gene or region of a chromosome
+
+Deletion
+: A type of mutation that involves the loss of one or more nucleotides from a segment of DNA
+
+## Various Stats Tables
+::: {.card title="Variants by Count"}
+
+This table details the count of the structural variants NAIBR detected.
+```{r sv_count_table}
+grpstats <- sv %>%
+  group_by(Chr1, SV) %>%
+  summarise(count = n(), total_bp  = sum(Length))
+
+DT::datatable(
+  grpstats %>% pivot_wider(id_cols = 1, names_from = SV, values_from = count),
+  rownames = F,
+  extensions = 'Buttons',
+  options = list(
+    dom = 'Brtp',
+    buttons = list(list(extend = "csv",filename = paste0(samplename , "_sv_naibr_count"))),
+    scrollX = T,
+    paging = T
+  ),
+  fillContainer = T
+)
+```
+:::
+
+###
+::: {.card title="Variants by Length"}
+
+This table details the total base pairs associated with the different types of structural variants. 
+```{r sv_by_len_table}
+DT::datatable(
+  grpstats %>% pivot_wider(id_cols = 1, names_from = SV, values_from = total_bp),
+  rownames = F,
+  extensions = 'Buttons',
+  options = list(
+    dom = 'Brtp',
+    buttons = list(list(extend = "csv",filename = paste0(samplename , "_sv_naibr_count_bp"))),
+    scrollX = T,
+    paging = T
+  ),
+  fillContainer = T
+)
+```
+:::
+
+
+## Variants and Chimeras
+::: {.card title="Non-Chimeric Variants"}
+
+This table details the variants detected by NAIBR that appear on a single
+contig/chromosome and passed the programs internal filtering. In other words, the
+detected non-chimeric variants.
+
+```{r all_variants_table}
+DT::datatable(
+  sv[,-10],
+  rownames = F,
+  filter = "top",
+  extensions = 'Buttons',
+  options = list(
+    dom = 'Brtp',
+    buttons = list(list(extend = "csv",filename = paste0(samplename ,"_sv_naibr"))),
+    scrollX = T,
+    paging = T
+  ),
+  fillContainer = T
+)
+```
+:::
+
+
+###
+::: {.card title="Chimeric Variants"}
+
+This table shows any structural variants whose breakpoints span multiple contigs
+("chimeric") and may require further assessment. These variants are omitted from plotting.
+
+```{r chimeric_table}
+DT::datatable(
+  chimeric(variants),
+  rownames = F,
+  filter = "top",
+  extensions = 'Buttons',
+  options = list(
+    dom = 'Brtp',
+    buttons = list(list(extend = "csv",filename = paste0(samplename ,"_sv_naibr_chimeric"))),
+    scrollX = TRUE
+  ),
+  fillContainer = T
+)
+```
+:::
+
+# Per-Contig Plot
+```{r filter_contigs}
+fa.sizes <- read.table(fai, header = F) %>% arrange(desc(2))
+colnames(fa.sizes) <- c("contig", "size")
+plot_contigs <- params$contigs
+if (all(plot_contigs == "default")){
+  # make sure that the contigs with SV are the ones being plotted, not the others
+  fa.sizes <- fa.sizes[fa.sizes$contig %in% unique(sv$Chr1), 1:2]
+  # limit the data to only the 30 of the largest present contigs
+  fa.sizes <- fa.sizes[1:min(nrow(fa.sizes), 30), ]
+} else {
+  fa.sizes <- fa.sizes[fa.sizes$contig %in% plot_contigs, 1:2]
+}
+# filter out variants that aren't on one of these contigs
+sv <- sv[sv$Chr1 %in% fa.sizes$contig, ]
+sv$Chr1 <- factor(sv$Chr1)
+```
+##
+To the right is a circular plot to visualize the distribution of _putative_ structural variants
+across (up to) 30 of the largest contigs, or whichever contigs were provided. If you are unfamiliar with this kind of visualization,
+it's a circular representation of a linear genome. Each "wedge" is a different contig, from position 0 to 
+the end of the contig, and is labelled by the contig name. Each internal (grey) ring is a plot
+of observed structural variants for that contig. The legend shows which colors correspond to which type of variant. To save the plot,
+you will need to take a screenshot. Very small variants may be difficult to see or
+may not appear on the plot. Deletions are shown as points as they tend to be small
+and clump together. If for some reason the plot isn't appearing, try refreshing
+your browser.
+
+
+##
+::: {.card width=15% title="Legend"}
+```{r}
+calculate_luminance <- function(hex) {
+  rgb_values <- col2rgb(hex) / 255
+  luminance <- 0.2126 * rgb_values[1] + 0.7152 * rgb_values[2] + 0.0722 * rgb_values[3]
+  return(luminance)
+}
+
+# Function to decide text color based on background luminance
+get_text_color <- function(background_color) {
+  luminance <- calculate_luminance(background_color)
+  if (luminance > 0.5) {
+    # Dark background -> Light text (black)
+    return("black") 
+  } else {
+    # Light background -> Dark text (white)
+    return("white") 
+  }
+}
+color.palette <- c("deletion" = "#5a8c84", "duplication" = "#99278a", "inversion" = "#4a9fea")
+DT::datatable(
+  data.frame(Variant = c("deletion","duplication", "inversion")),
+  rownames = F,
+  fillContainer = T,
+  colnames = "Variant Type",
+  options = list(
+    dom = 't',
+    scrollX = F,
+    scrollY = F,
+    paging = F
+  )
+) %>% formatStyle(
+  "Variant",
+  backgroundColor = styleEqual(names(color.palette), color.palette),
+  # Adjust text color dynamically
+  color = styleEqual(names(color.palette), sapply(color.palette, get_text_color))
+)
+```
+:::
+
+###
+```{r interactive_circos}
+#| title: "Structural Variants (save by taking a screenshot)"
+
+genomeChr <- fa.sizes$size
+names(genomeChr) <- fa.sizes$contig
+genomeChr <- as.list(genomeChr)
+tracks <- BioCircosTracklist()
+radius <- 0.3
+
+# Add one track for each SV type
+# inversions
+inv <- sv[sv$SV == "inversion",]
+if(nrow(inv) > 0){
+  tracks <- tracks + BioCircosArcTrack(
+    'Inversions',
+    as.character(inv$Chr1),
+    inv$Break1,
+    inv$Break2,
+    opacities = 0.7,
+    values = inv$SplitMolecules,
+    minRadius = 0.73,
+    maxRadius = 0.87,
+    colors = color.palette["inversion"],
+    labels = "Type: Inversion",
+  )
+}
+
+# deletions
+del <- sv[sv$SV == "deletion",]
+if(nrow(del) > 0){
+  tracks <- tracks + BioCircosSNPTrack(
+    'Deletions',
+    as.character(del$Chr1),
+    del$Break1,
+    values = abs(del$Break2 - del$Break1),
+    minRadius = 0.53,
+    maxRadius = 0.67,
+    size = 1,
+    shape = "rect",
+    opacities = 0.7,
+    colors = color.palette["deletion"],
+    labels = "Type: Deletion"
+  )
+}
+
+# duplications
+dup <- sv[sv$SV == "duplication",]
+if(nrow(dup) > 0){
+  tracks <- tracks + BioCircosArcTrack(
+    'Duplications',
+    as.character(dup$Chr1),
+    dup$Break1,
+    dup$Break2,
+    values = dup$SplitMolecules,
+    opacities = 0.7,
+    minRadius = 0.33,
+    maxRadius = 0.47,
+    colors = color.palette["duplication"],
+    labels = "Type: Duplication",
+  )
+}
+
+# loop to create backgrounds
+for(i in c("inversion", "deletion", "duplication")){
+  tracks = tracks + BioCircosBackgroundTrack(
+    paste0(i,"_background"),
+    minRadius = radius, maxRadius = radius + 0.2,
+    fillColors = "#F9F9F9",
+    borderColors = "#C9C9C9",
+    borderSize = 1
+  )
+  radius <- radius + 0.2
+}
+
+BioCircos(
+  tracks,
+  displayGenomeBorder = F,
+  genome = genomeChr,
+  chrPad = 0.03,
+  genomeTicksDisplay = F,
+  genomeLabelDy = 3,
+  genomeLabelTextSize = 20,
+  SNPMouseOverCircleSize = 2,
+  SNPMouseOverTooltipsHtml03 = "<br/>Length: ",
+  width = "100%",
+  height = "1000px",
+  elementId = "circosplot" 
+)
+```
+
+
+# Supporting Info
+##
+::: {.card title="Interpreting NAIBR Output"}
+
+NAIBR outputs a tab-delimited file with named columns (along with a VCF
+and a reformatted bedpe file with extra information). The columns of the
+bedpe file are deciphered as such:
+
+```{r description_table}
+knitr::kable(
+  data.frame(
+    "Column" = names(variants),
+    "Descrption" = c(
+      "Name of the contig where the variant starts",
+      "Base-pair position in `Chr1` of the start of the variant",
+      "Name of the contig where the variant ends",
+      "Base-pair position in `Chr2` of the end of the variant",
+      "Number of split molecules supporting variant",
+      "Number of discordant reads supporting variant",
+      "Orientation of variant relative to reference",
+      "The haplotype of the variant",
+      "log-likelihood score for variant",
+      "`PASS` if passes internal NAIBR filter threshold, otherwise `FAIL`",
+      "The type of variant (inversion, deletion, or duplication)"
+    )
+  ), col.names = c("Column Name", "Description")
+)
+```
+:::

@@ -1,45 +1,18 @@
 ---
-title: "STITCH Imputation Details"
-date: "`r format(Sys.time(), '%d %b, %Y at %H:%M')`"
-output:
-  flexdashboard::flex_dashboard:
-    theme: lumen
-    storyboard: true
-    mathjax: NULL
-    logo: https://raw.githubusercontent.com/pdimens/harpy/docs/static/logo_report.png
-    favicon: "https://raw.githubusercontent.com/pdimens/harpy/docs/static/favicon_report.png"
-    navbar:
-      - { title : "Docs", icon: "fa-book", href: "https://pdimens.github.io/harpy/", align: right }
-      - { title : "Source", icon: "fa-github", href: "https://www.github.com/pdimens/harpy/", align: right }
+title: "STITCH Impute: `r params$id`"
+params:
+  plotdir: 'plots/'
+  statsfile: "~/contig1.stats"
+  id: "paramset"
+  model: "haploid"
+  usebx: "true"
+  bxlimit: 50000
+  k: 15
+  s: 20
+  ngen: 5
+  extra: "None"
 ---
-
-```{r setup}
-knitr::opts_chunk$set(echo = FALSE, warning = FALSE)
-options(knitr.graphics.rel_path = FALSE)
-logfile <- file(snakemake@log$logfile, open = "wt")
-sink(logfile)
-sink(logfile, type = "message")
-```
-
-
-```{css zoom-lib-src}
-script src = "https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"
-```
-
-```{js zoom-jquery}
- $(document).ready(function() {
-    $('body').prepend('<div class=\"zoomDiv\"><img src=\"\" class=\"zoomImg\"></div>');
-    // onClick function for all plots (img's)
-    $('img:not(.zoomImg)').click(function() {
-      $('.zoomImg').attr('src', $(this).attr('src')).css({width: '100%'});
-      $('.zoomDiv').css({opacity: '1', width: 'auto', border: '1px solid white', borderRadius: '5px', position: 'fixed', top: '50%', left: '50%', marginRight: '-50%', transform: 'translate(-50%, -50%)', boxShadow: '0px 0px 50px #888888', zIndex: '50', overflow: 'auto', maxHeight: '100%'});
-    });
-    // onClick function for zoomImg
-    $('img.zoomImg').click(function() {
-      $('.zoomDiv').css({opacity: '0', width: '0%'}); 
-    });
-  });
-```
+`r format(Sys.time(), '🗓️ %d %B, %Y 🕔 %H:%M')`
 ```{r setup environment}
 using<-function(...) {
     libs<-unlist(list(...))
@@ -50,36 +23,25 @@ using<-function(...) {
         lapply(need,require,character.only=TRUE)
     }
 }
-using("flexdashboard","tidyr","magrittr","DT")
+using("tidyr","magrittr","DT", "scales")
 ```
 
 ```{r load data}
-infile <- snakemake@input$statsfile
-#infile <- "~/contig1.stats"
+infile <- params$statsfile
 dataL <- readLines(infile)
-bcf <- gsub(".stats$", ".bcf", basename(infile))
-chrom <- gsub(".bcf", "", bcf)
+bcf <- gsub(".stats", ".bcf", basename(infile))
 basedir <- dirname(normalizePath(infile))
-plotdir <- normalizePath(snakemake@input$plotdir)
-plotdir <- paste0(plotdir, "/")
-model   <- snakemake@params$model
-usebx   <- snakemake@params$usebx
-bxlimit <- snakemake@params$bxlimit
-k       <- snakemake@params$k
-s       <- snakemake@params$s
-ngen    <- snakemake@params$ngen
-extra   <- snakemake@params$extra
+plotdir <- paste0(normalizePath(params$plotdir), "/")
 ```
-## Contig: `r chrom`
 
+# Samples
 For convenience, this report consolidates the various outputs from `STITCH` and `bcftools` into a single document.
 This reflects the general information stored in the records of `r bcf`. Since STITCH
 requires only bi-allelic SNPs as input, you should not expect to see any other types
-of variants (MNPs, indels, _etc._). The images may appear small and can be clicked on to expand/focus them. 
-Click on the image again to remove focus from the image. For the wider images, you may right-click them and open
-them in a new tab/window to view them at their original
-sizes, which may prove to be more useful in some cases.
+of variants (MNPs, indels, _etc._). For the wider images, you may right-click them and open
+them in a new tab/window to view them at their original sizes, which may prove to be more useful in some cases.
 
+Extra parameters provided: `r params$extra`
 
 ```{r General Stats}
 .snL <- grepl("^SN", dataL)
@@ -92,11 +54,113 @@ sn <- as.data.frame(t(sn[2]))
 rownames(sn) <- NULL
 ```
 
-**model**: `r model` | **use barcodes**: `r usebx` | **k**: `r k` | **s**: `r s` | **ngen**: `r ngen` | **bx limit**: `r format(bxlimit, scientific = F)` | **other parameters**: `r extra`
+## model stats
+```{r}
+#| content: valuebox
+#| title: "model"
+list(
+  color = "light",
+  value = params$model
+)
+```
 
-**SAMPLES**: `r sn$samples[1]` | **TOTAL RECORDS**: `r sn$records[1]` | **no-ALTs**: `r sn[3,1]` | **SNPs**: `r sn$SNPs[1]` | **MNPs**: `r sn$MNPs[1]`
+```{r}
+#| content: valuebox
+#| title: "usebx"
+list(
+  color = "info",
+  value = params$usebx
+)
+```
 
-### Per Sample Stats
+```{r}
+#| content: valuebox
+#| title: "k"
+list(
+  color = "info",
+  value = params$k
+)
+```
+
+```{r}
+#| content: valuebox
+#| title: "s"
+list(
+  color = "info",
+  value = params$s
+)
+```
+
+```{r}
+#| content: valuebox
+#| title: "ngen"
+list(
+  color = "info",
+  value = params$ngen
+)
+```
+
+```{r}
+#| content: valuebox
+#| title: "bxlimit"
+list(
+  color = "info",
+  value = scales::comma(params$bxlimit)
+)
+```
+
+## result stats
+```{r}
+#| content: valuebox
+#| title: "Samples"
+list(
+  color = "light",
+  value = scales::comma(sn$samples[1])
+)
+```
+
+```{r}
+#| content: valuebox
+#| title: "Total Records"
+list(
+  color = "#dfdfdf",
+  value = scales::comma(sn$records[1])
+)
+```
+
+```{r}
+#| content: valuebox
+#| title: "no-ALTs"
+list(
+  color = "#dfdfdf",
+  value = scales::comma(sn[3,1])
+)
+```
+
+```{r}
+#| content: valuebox
+#| title: "SNPs"
+list(
+  color = "#dfdfdf",
+  value = scales::comma(sn$SNPs[1])
+)
+```
+
+```{r}
+#| content: valuebox
+#| title: "MNPs"
+list(
+  color = "#dfdfdf",
+  value = scales::comma(sn$MNPs[1])
+)
+```
+
+## Per Sample Stats
+::: {.card title="Per-Sample Statistics" expandable="true"}
+
+This table contains variant statistics per individual, corresponding 
+to the `r sn$samples[1]` samples in `r bcf`. 
+
 ```{r stats table}
 .pscL <- grepl("^PSC", dataL)
 psc <- read.table(text=dataL[.pscL])[ ,3:14]
@@ -107,34 +171,26 @@ DT::datatable(
   rownames = F, 
   filter = "top", 
   extensions = 'Buttons', 
+  fillContainer = T,
   options = list(
-    dom = 'Brtip',
+    dom = 'Brtp',
     buttons = list(list(extend = "csv",filename = "impute_per_sample")),  
     scrollX = TRUE
-  ),
-  autoHideNavigation = T,
-  fillContainer = T
+  )
 )
 ```
+:::
 
-***
+# QC
+##
+TOP
+: Gives -log10 (HWE p-value)
 
-This table contains variant statistics per individual, corresponding 
-to the `r sn$samples[1]` samples in `r bcf`. 
+MIDDLE
+: Shows `INFO` score, which is a measure of the confidence the imputation has in its performance
 
-### Chromosome-wide Imputation QC Plot
-```{r QC_chromwide, dev = "jpeg", out.width="100%"}
-QC <- list.files(path = plotdir, pattern = "QC", full.names = TRUE)
-knitr::include_graphics(QC[2])
-```
-
-***
-
-**TOP**: Gives -log10 (HWE p-value)
-
-**MIDDLE**: Shows `INFO` score, which is a measure of the confidence the imputation has in its performance
-
-**BOTTOM**: Shows allele frequency, which can be useful to get a 
+BOTTOM
+: Shows allele frequency, which can be useful to get a 
 sense of the LD structure with the distribution of allele frequencies,
 as well as its relationship to imputation performance. Can also be used
 to test how various parameter choices affect imputation. For example,
@@ -146,14 +202,14 @@ increased imputation performance.
 
 _- adapted from the STITCH [documentation](https://github.com/rwdavies/STITCH/blob/5a5ba98442a105548587ed8cafbf00aece212c94/plots.md)_.
 
-
-### Imputation QC Plot
-```{r QC, dev = "jpeg", out.width="100%"}
-knitr::include_graphics(QC[1])
+###
+```{r QC_chromwide, dev = "jpeg", out.width="100%"}
+#| expandable: true
+QC <- list.files(path = plotdir, pattern = "QC", full.names = TRUE)
+knitr::include_graphics(QC[2])
 ```
 
-***
-
+## Imputation QC Plot
 Similar to the previous plots, but plotting each of the three against each
 other. Useful for getting an overall sense of the distribution of the
 metrics, particularly `INFO`, which can be useful towards thinking about a
@@ -165,14 +221,14 @@ concentrated in those frequencies for high `INFO`, you can think about an
 
 _- excerpt from the STITCH [documentation](https://github.com/rwdavies/STITCH/blob/5a5ba98442a105548587ed8cafbf00aece212c94/plots.md)_.
 
-### Real vs Est. Allele Frequency
-```{r goodonly, dev = "jpeg", out.width="100%"}
-goodonly <- list.files(path = plotdir, pattern = "goodonly", full.names = TRUE)
-knitr::include_graphics(goodonly[1])
+###
+```{r QC, dev = "jpeg", out.width="100%"}
+#| expandable: true
+knitr::include_graphics(QC[1])
 ```
 
-***
-
+# Real vs Estimated
+##
 Scatter plot of real allele frequency as estimated from the pileup of
 sequencing reads (x-axis) and estimated allele frequency from the
 posterior of the model (y-axis). This is per-SNP, the sum of the average
@@ -184,14 +240,16 @@ later criterion in particular might not be appropriate for all settings).
 
 _- excerpt from the STITCH [documentation](https://github.com/rwdavies/STITCH/blob/5a5ba98442a105548587ed8cafbf00aece212c94/plots.md)_.
 
-### Expected Haplotypes
-```{r hapnorm, dev='jpeg', out.width="100%"}
-hapsum <- list.files(path = plotdir, pattern = "hapSum", full.names = TRUE)
-knitr::include_graphics(hapsum)
+###
+```{r goodonly, dev = "jpeg", out.width="100%"}
+#| expandable: true
+goodonly <- list.files(path = plotdir, pattern = "goodonly", full.names = TRUE)
+knitr::include_graphics(goodonly[1])
 ```
 
-***
-
+# Expected Haplotypes
+##
+::: {.card title="Expected Haplotypes" expandable="true"}
 Across the region being imputed (x-axis, physical position), either the
 fraction (normal version) or log10 of the expected number of haplotypes
 each sample carries from each ancestral haplotype. The most important
@@ -205,14 +263,15 @@ this is rare, as STITCH will try to fill them up.
 
 _- excerpt from the STITCH [documentation](https://github.com/rwdavies/STITCH/blob/5a5ba98442a105548587ed8cafbf00aece212c94/plots.md)_.
 
-### Alpha Matrix
-```{r alphamat, dev='jpeg', out.width="100%"}
-alphamat <- list.files(path = plotdir, pattern = "alphaMat", full.names = TRUE)
-knitr::include_graphics(alphamat)
+```{r hapnorm, dev='jpeg', out.width="100%"}
+#| expandable: true
+hapsum <- list.files(path = plotdir, pattern = "hapSum", full.names = TRUE)
+knitr::include_graphics(hapsum)
 ```
+:::
 
-***
-
+##
+:::{.card title="Alpha Matrix" expandable="true"}
 Likely not informative for general use. `alphaMat` is the name of the
 internal `STITCH` variable that stores the probability of jumping into
 an ancestral haplotype conditional on a jump. Un-normalized is with
@@ -220,3 +279,9 @@ respect to movement of all samples, while normalized has sum 1.
 
 _- excerpt from the STITCH [documentation](https://github.com/rwdavies/STITCH/blob/5a5ba98442a105548587ed8cafbf00aece212c94/plots.md)_.
 
+```{r alphamat, dev='jpeg', out.width="100%"}
+#| expandable: true
+alphamat <- list.files(path = plotdir, pattern = "alphaMat", full.names = TRUE)
+knitr::include_graphics(alphamat)
+```
+:::
