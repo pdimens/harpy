@@ -15,3 +15,5 @@ Impute/
 Phase/
 workflow/
 harpy*/
+.gitattributes
+*pixi*
