@@ -64,7 +64,7 @@ def initialize_contig(length):
 def process_alignment(start, end):
     """Function to insert or update counts for numbers in a given range"""
     cursor.executemany(
-        'UPDATE number_counts SET count = count + 1 WHERE number = ?',
+        'UPDATE number_counts SET count = count + 1 WHERE number BETWEEN ? AND ?',
         [(num,) for num in range(start, end + 1)]
     )
 

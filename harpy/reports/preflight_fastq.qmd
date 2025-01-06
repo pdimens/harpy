@@ -64,7 +64,7 @@ list(
 list(
   icon = ifelse(attention > 0, "exclamation-triangle", "check2-square"),
   color = ifelse(bxnotlast > 0, "warning", "success"),
-  value = scales::comma(attention)
+  value = scales::comma(bxnotlast)
 )
 ```
 

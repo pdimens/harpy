@@ -1,14 +1,24 @@
 #! /usr/bin/env bash
 
-conda env create --prefix harpy/.conda/harpy $1 --file harpy/resources/harpy.yaml
+if ! conda env create --prefix harpy/.conda/harpy $1 --file harpy/resources/harpy.yaml; then
+    echo "Error: Failed to create conda environment"
+    exit 1
+fi
 
-conda activate harpy/.conda/harpy
+if ! conda activate harpy/.conda/harpy; then
+cd harpy || { echo "Error: Failed to change directory to harpy"; exit 1; }
 
+fi
 mkdir -p ${CONDA_PREFIX}/bin
 
-cd harpy
+# install harpy proper
+if ! pip install --no-deps --disable-pip-version-check -e .; then
+    echo "Error: Failed to install harpy package"
+    exit 1
+fi
 
-# compilation
+# Clean up build directory if it exists
+[ -d build ] && rm -rf build
 g++ harpy/bin/extractReads.cpp -O3 -o ${CONDA_PREFIX}/bin/extractReads
 
 # install harpy proper

@@ -472,7 +472,7 @@ list(
 #| title: "Mol. Stdev Depth"
 list(
   color = "#d4d4d4",
-  value = round(global_sd,2)
+  value = round(mol_global_sd,2)
 )
 ```
 
