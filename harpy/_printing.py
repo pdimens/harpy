@@ -74,9 +74,9 @@ def print_setup_error(exitcode):
     else:
         errortext = "There was an issue creating the software environment necessary to run this workflow. If you manually edited the conda dependencies in [blue]/workflows/envs[/blue], see the error below for troubleshooting. If you didn't, it might be a bug or related to how your system is setup for Conda or Singularity environments and you should submit an issue on GitHub: [bold]https://github.com/pdimens/harpy/issues"
         errortype = "Software Environment Error"
-    console.rule(f"[bold]{errortype}", style = "red"),
+    console.rule(f"[bold]{errortype}", style = "red")
     console.print(errortext)
-    console.rule(f"[bold]Error Reported by Snakemake", style = "red")
+    console.rule("[bold]Error Reported by Snakemake", style = "red")
 
 def print_onsuccess(outdir, summary = None, time = None):
     """Print a green panel with success text. To be used in place of onsuccess: inside a snakefile"""
@@ -97,6 +97,6 @@ def print_onsuccess(outdir, summary = None, time = None):
 
 def print_onerror(logfile):
     """Print a red panel with error text. To be used in place of onerror: inside a snakefile. Expects the erroring rule printed after it."""
-    console.rule(f"[bold]Workflow Error", style = "red")
+    console.rule("[bold]Workflow Error", style = "red")
     console.print(f"The workflow terminated from an error. See the full log for more info:\n[bold]{logfile}[/bold]")
-    console.rule(f"[bold]Where Error Occurred", style = "red")
+    console.rule("[bold]Where Error Occurred", style = "red")
