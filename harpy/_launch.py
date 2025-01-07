@@ -165,7 +165,7 @@ def launch_snakemake(sm_args, workflow, starttext, outdir, sm_logfile, quiet, su
                 print_setup_error(exitcode)
             elif exitcode == 3:
                 print_onerror(sm_logfile)
-            while output and not output.endswith("]") and not output.startswith("Shutting down"):
+            while output and not output.endswith("]") and not output.startswith("Shutting down"):                   
                 if "Exception" in output or "Error" in output:
                     rprint("[yellow bold]" + output.rstrip(), file = sys.stderr)
                     output = process.stderr.readline()
@@ -177,6 +177,8 @@ def launch_snakemake(sm_args, workflow, starttext, outdir, sm_logfile, quiet, su
                 if output:
                     if not output.startswith("Complete log"):
                         rprint("[red]" + output.replace("\t","    ").rstrip(), file = sys.stderr)
+                    if output.startswith("Removing output files of failed job"):
+                        break
                 output = process.stderr.readline()
             gzip_file(sm_logfile)
             purge_empty_logs(outdir)
