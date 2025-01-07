@@ -2,9 +2,12 @@
 
 import sys
 from rich import print as rprint
+from rich.console import Console
 from rich import box
 from rich.table import Table
 from rich.panel import Panel
+
+console = Console()
 
 def print_error(errortitle, errortext):
     """Print a yellow panel with error text"""
@@ -81,16 +84,8 @@ def print_notice(noticetext):
 def print_onstart(text, title):
     """Print a panel of info on workflow run"""
     rprint("")
-    rprint(
-        Panel(
-            text,
-            title = f"[bold]harpy {title}",
-            title_align = "center",
-            border_style = "light_steel_blue",
-            width = 75
-            ),
-        file = sys.stderr
-    )
+    console.rule(f"[bold]harpy {title}", style = "light_steel_blue"),
+    console.print(text)
 
 def print_onsuccess(outdir, summary = None, time = None):
     """Print a green panel with success text. To be used in place of onsuccess: inside a snakefile"""
@@ -106,19 +101,11 @@ def print_onsuccess(outdir, summary = None, time = None):
     datatable.add_row("Runtime:", time_text)
     if summary:
         datatable.add_row("Summary: ", f"{outdir}/{summary}")
-    rprint(
-        Panel(
-            datatable,
-            subtitle = "[bold]workflow finished successfully!",
-            title_align = "left",
-            border_style = "green",
-            width=75
-            ),
-        file = sys.stderr
-    )
+    console.rule("[bold]workflow finished!", style="green")
+    console.print(datatable)
 
 def print_onerror(logfile):
-    """Print a red panel with error text. To be used in place of onsuccess: inside a snakefile. Expects the erroring rule printed after it."""
+    """Print a red panel with error text. To be used in place of onerror: inside a snakefile. Expects the erroring rule printed after it."""
     rprint(
         Panel(
             f"The workflow terminated from an error. See the full log for more info:\n[bold]{logfile}[/bold]",

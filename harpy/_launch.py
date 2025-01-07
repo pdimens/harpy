@@ -30,7 +30,6 @@ def purge_empty_logs(target_dir):
         if os.path.isdir(logfile) and not os.listdir(logfile):
             os.rmdir(logfile)
 
-
 def launch_snakemake(sm_args, workflow, starttext, outdir, sm_logfile, quiet, summaryfile = None):
     """launch snakemake with the given commands"""
     start_time = datetime.now()
