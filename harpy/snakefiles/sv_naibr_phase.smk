@@ -76,6 +76,7 @@ rule process_genome:
     shell: 
         "seqtk seq {input} > {output}"
 
+
 rule index_genome:
     input: 
         f"Genome/{validgenome}"
@@ -263,7 +264,7 @@ rule report_config:
 
 rule sample_reports:
     input: 
-        faidx = f"Genome/{bn}.fai",
+        faidx = f"Genome/{validgenome}.fai",
         bedpe = outdir + "/bedpe/{sample}.bedpe",
         qmd   = f"{outdir}/workflow/report/naibr.qmd",
         yml   = f"{outdir}/reports/_quarto.yml"
