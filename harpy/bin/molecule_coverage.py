@@ -63,9 +63,9 @@ def initialize_contig(length):
 
 def process_alignment(start, end):
     """Function to insert or update counts for numbers in a given range"""
-    cursor.executemany(
+    cursor.execute(
         'UPDATE number_counts SET count = count + 1 WHERE number BETWEEN ? AND ?',
-        [(num,) for num in range(start, end + 1)]
+        (start,end)
     )
 
 def print_windowed_depth(contig, window):
