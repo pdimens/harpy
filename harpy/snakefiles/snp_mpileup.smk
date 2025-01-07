@@ -239,7 +239,7 @@ rule variant_report:
     input: 
         data = outdir + "/reports/data/variants.{type}.stats",
         qmd  = f"{outdir}/workflow/report/bcftools_stats.qmd",
-        yml  = f"{outdir}/report/_quarto.yml"
+        yml  = f"{outdir}/reports/_quarto.yml"
     output:
         report = outdir + "/reports/variants.{type}.html",
         qmd = temp(outdir + "/reports/variants.{type}.qmd")
