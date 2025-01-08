@@ -502,7 +502,7 @@ jobs:
           path: .snakemake/singularity
       - name: impute
         shell: micromamba-shell {0}
-        run: harpy impute --quiet --vcf test/vcf/test.bcf -p test/stitch.params  test/bam
+        run: harpy impute --quiet --vcf test/vcf/test.bcf -p test/stitch.params test/bam
       - name: impute from vcf
         shell: micromamba-shell {0}
         if: always()
