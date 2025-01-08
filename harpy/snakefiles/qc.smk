@@ -59,19 +59,19 @@ if not deconvolve:
         log:
             serr = outdir + "/logs/fastp/{sample}.log"
         params:
+            static = "--trim_poly_g --cut_right",
             minlen = f"--length_required {min_len}",
             maxlen = f"--max_len1 {max_len}",
             trim_adapters = trim_arg,
             dedup = "-D" if dedup else "",
+            title = lambda wc: f"-R \"{wc.sample} QC Report\"",
             extra = extra
         threads:
             workflow.cores
         conda:
             f"{envdir}/qc.yaml"
         shell: 
-            """
-            fastp --trim_poly_g --cut_right {params} --thread {threads} -i {input.fw} -I {input.rv} -o {output.fw} -O {output.rv} -h {output.html} -j {output.json} -R "{wildcards.sample} QC Report" 2> {log.serr}
-            """
+            "fastp {params} --thread {threads} -i {input.fw} -I {input.rv} -o {output.fw} -O {output.rv} -h {output.html} -j {output.json} 2> {log.serr}"
 else:
     rule fastp:
         priority: 100
@@ -85,19 +85,19 @@ else:
         log:
             serr = outdir + "/logs/fastp/{sample}.log"
         params:
+            static = "--trim_poly_g --cut_right",
             minlen = f"--length_required {min_len}",
             maxlen = f"--max_len1 {max_len}",
             trim_adapters = trim_arg,
             dedup = "-D" if dedup else "",
+            title = lambda wc: f"-R \"{wc.sample} QC Report\"",
             extra = extra
         threads:
             workflow.cores
         conda:
             f"{envdir}/qc.yaml"
         shell: 
-            """
-            fastp --trim_poly_g --cut_right {params} --thread {threads} -i {input.fw} -I {input.rv} --stdout -h {output.html} -j {output.json} -R "{wildcards.sample} QC Report" 2> {log.serr} > {output.fq}
-            """
+            "fastp {params} --thread {threads} -i {input.fw} -I {input.rv} --stdout -h {output.html} -j {output.json} 2> {log.serr} > {output.fq}"
 
     rule deconvolve:
         input:

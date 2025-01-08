@@ -21,6 +21,24 @@ def iserror(text):
     """logical check for erroring trigger words in snakemake output"""
     return "Exception" in text or "Error" in text or "MissingOutputException" in text
 
+def highlight_params(text):
+    """make important snakemake attributes like 'input:' highlighted in the error output"""
+    if text.startswith("    jobid:"):
+        return text.replace("jobid:", "[bold default]jobid:[/bold default]").rstrip()
+    if text.startswith("    input:"):
+        return text.replace("input:", "[bold default]input:[/bold default]").rstrip()
+    if text.startswith("    output:"):
+        return text.replace("output:", "[bold default]output:[/bold default]").rstrip()
+    if text.startswith("    log:"):
+        return text.replace("log:", "[bold default]log:[/bold default]").rstrip()
+    if text.startswith("    conda-env:"):
+        return text.replace("conda-env:", "[bold default]conda-env:[/bold default]").rstrip()
+    if text.startswith("    container:"):
+        return text.replace("container:", "[bold default]container:[/bold default]").rstrip()
+    if text.startswith("    shell:"): 
+        return text.replace("shell:", "[bold default]shell:[/bold default]").rstrip()
+    return text.rstrip()
+
 def purge_empty_logs(target_dir):
     """scan target_dir and remove empty files, then scan it again and remove empty directories"""
     for logfile in glob.glob(f"{target_dir}/logs/**/*", recursive = True):
@@ -166,17 +184,18 @@ def launch_snakemake(sm_args, workflow, starttext, outdir, sm_logfile, quiet, su
             elif exitcode == 3:
                 print_onerror(sm_logfile)
             while output and not output.endswith("]") and not output.startswith("Shutting down"):                   
+                console = Console(stderr = True, tab_size = 4, highlight=False)
                 if "Exception" in output or "Error" in output:
-                    rprint("[yellow bold]" + output.rstrip(), file = sys.stderr)
+                    console.print("[yellow bold]" + output.rstrip(), overflow = "ignore", crop = False)
                     output = process.stderr.readline()
                     continue
-                if output.startswith("Logfile"):
-                    rprint("[yellow]" + output.rstrip(), file = sys.stderr)
+                if output.startswith("Logfile") or output.startswith("======"):
+                    console.print("[yellow bold]" + output.rstrip(), overflow = "ignore", crop = False)
                     output = process.stderr.readline()
                     continue
                 if output:
                     if not output.startswith("Complete log"):
-                        rprint("[red]" + output.replace("\t","    ").rstrip(), file = sys.stderr)
+                        console.print("[red]" + highlight_params(output), overflow = "ignore", crop = False)
                     if output.startswith("Removing output files of failed job"):
                         break
                 output = process.stderr.readline()

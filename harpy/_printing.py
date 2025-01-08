@@ -7,7 +7,7 @@ from rich import box
 from rich.table import Table
 from rich.panel import Panel
 
-console = Console()
+console = Console(stderr=True)
 
 def print_error(errortitle, errortext):
     """Print a yellow panel with error text"""
@@ -98,5 +98,5 @@ def print_onsuccess(outdir, summary = None, time = None):
 def print_onerror(logfile):
     """Print a red panel with error text. To be used in place of onerror: inside a snakefile. Expects the erroring rule printed after it."""
     console.rule("[bold]Workflow Error", style = "red")
-    console.print(f"The workflow terminated from an error. See the full log for more info:\n[bold]{logfile}[/bold]")
+    console.print(f"The workflow stopped because of an error. Full workflow log:\n[bold]{logfile}[/bold]")
     console.rule("[bold]Where Error Occurred", style = "red")
