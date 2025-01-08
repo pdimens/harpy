@@ -76,6 +76,7 @@ rule process_genome:
     shell: 
         "seqtk seq {input} > {output}"
 
+
 rule index_genome:
     input: 
         f"Genome/{validgenome}"
@@ -190,7 +191,8 @@ rule call_variants:
     output:
         bedpe = temp(outdir + "/{sample}/{sample}.bedpe"),
         refmt = temp(outdir + "/{sample}/{sample}.reformat.bedpe"),
-        vcf   = temp(outdir + "/{sample}/{sample}.vcf")
+        vcf   = temp(outdir + "/{sample}/{sample}.vcf"),
+        log   = temp(outdir + "/{sample}/{sample}.log")
     log:
         outdir + "/logs/naibr/{sample}.naibr.log"
     threads:
@@ -252,20 +254,37 @@ rule aggregate_variants:
                         elif record[-1] == "duplication":
                             _ = duplications.write(f"{samplename}\t{line}")
 
-rule variant_report:
+rule report_config:
     input:
-        bedpe = outdir + "/bedpe/{sample}.bedpe",
-        fai   = f"Genome/{validgenome}.fai"
+        f"{outdir}/workflow/report/_quarto.yml"
     output:
-        outdir + "/reports/{sample}.naibr.html"
+        f"{outdir}/reports/_quarto.yml"
+    shell:
+        "cp {input} {output}"
+
+rule sample_reports:
+    input: 
+        faidx = f"Genome/{validgenome}.fai",
+        bedpe = outdir + "/bedpe/{sample}.bedpe",
+        qmd   = f"{outdir}/workflow/report/naibr.qmd",
+        yml   = f"{outdir}/reports/_quarto.yml"
+    output:
+        report = outdir + "/reports/{sample}.naibr.html",
+        qmd = temp(outdir + "/reports/{sample}.naibr.qmd")
     log:
-        logfile = outdir + "/logs/reports/{sample}.report.log"
+        outdir + "/logs/reports/{sample}.report.log"
     params:
-        contigs = plot_contigs
+        sample= lambda wc: "-P sample:" + wc.get('sample'),
+        contigs= f"-P contigs:{plot_contigs}"
     conda:
         f"{envdir}/r.yaml"
-    script:
-        "report/naibr.Rmd"
+    shell:
+        """
+        cp {input.qmd} {output.qmd}
+        FAIDX=$(realpath {input.faidx})
+        BEDPE=$(realpath {input.bedpe})
+        quarto render {output.qmd} --log {log} --quiet -P faidx:$FAIDX -P bedpe:$BEDPE {params}
+        """
 
 rule workflow_summary:
     default_target: True

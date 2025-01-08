@@ -73,5 +73,5 @@ for record in alnfile.fetch():
 
 alnfile.close()
 
-values = [str(i) for i in [os.path.basename(bam_in), NAME_MISMATCH, N_READS, NO_MI, NO_BX, BAD_BX, BX_NOT_LAST]]
+values = [str(i) for i in [os.path.basename(bam_in), N_READS, NAME_MISMATCH, NO_MI, NO_BX, BX_NOT_LAST, BAD_BX]]
 sys.stdout.write("\t".join(values) + "\n")

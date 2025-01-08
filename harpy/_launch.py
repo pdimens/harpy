@@ -5,6 +5,7 @@ import os
 import sys
 import glob
 import subprocess
+from datetime import datetime
 from rich import print as rprint
 from rich.console import Console
 from ._misc import gzip_file, harpy_progressbar, harpy_pulsebar
@@ -14,6 +15,7 @@ EXIT_CODE_SUCCESS = 0
 EXIT_CODE_GENERIC_ERROR = 1
 EXIT_CODE_CONDA_ERROR = 2
 EXIT_CODE_RUNTIME_ERROR = 3
+SNAKEMAKE_CMD = "snakemake --rerun-incomplete --show-failed-logs --rerun-triggers input mtime params --nolock --conda-prefix .conda --conda-cleanup-pkgs cache --directory ."
 
 def iserror(text):
     """logical check for erroring trigger words in snakemake output"""
@@ -30,6 +32,7 @@ def purge_empty_logs(target_dir):
 
 def launch_snakemake(sm_args, workflow, starttext, outdir, sm_logfile, quiet, summaryfile = None):
     """launch snakemake with the given commands"""
+    start_time = datetime.now()
     if not quiet:
         print_onstart(starttext, workflow.replace("_", " "))
     exitcode = None
@@ -153,14 +156,16 @@ def launch_snakemake(sm_args, workflow, starttext, outdir, sm_logfile, quiet, su
             gzip_file(sm_logfile)
             purge_empty_logs(outdir)
             if not quiet:
-                print_onsuccess(outdir, summaryfile)
+                end_time = datetime.now()
+                elapsed_time = end_time - start_time
+                print_onsuccess(outdir, summaryfile, elapsed_time)
             sys.exit(0)
         else:
             if exitcode in (1,2):
                 print_setup_error(exitcode)
             elif exitcode == 3:
                 print_onerror(sm_logfile)
-            while output and not output.endswith("]") and not output.startswith("Shutting down"):
+            while output and not output.endswith("]") and not output.startswith("Shutting down"):                   
                 if "Exception" in output or "Error" in output:
                     rprint("[yellow bold]" + output.rstrip(), file = sys.stderr)
                     output = process.stderr.readline()
@@ -172,6 +177,8 @@ def launch_snakemake(sm_args, workflow, starttext, outdir, sm_logfile, quiet, su
                 if output:
                     if not output.startswith("Complete log"):
                         rprint("[red]" + output.replace("\t","    ").rstrip(), file = sys.stderr)
+                    if output.startswith("Removing output files of failed job"):
+                        break
                 output = process.stderr.readline()
             gzip_file(sm_logfile)
             purge_empty_logs(outdir)

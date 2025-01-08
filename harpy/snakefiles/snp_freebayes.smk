@@ -184,7 +184,7 @@ rule general_stats:
         bcf     = outdir + "/variants.{type}.bcf",
         idx     = outdir + "/variants.{type}.bcf.csi"
     output:
-        outdir + "/reports/variants.{type}.stats",
+        outdir + "/reports/data/variants.{type}.stats",
     container:
         None
     shell:
@@ -192,17 +192,34 @@ rule general_stats:
         bcftools stats -s "-" --fasta-ref {input.genome} {input.bcf} > {output} 2> /dev/null
         """
 
-rule variant_report:
+rule report_config:
     input:
-        outdir + "/reports/variants.{type}.stats"
+        f"{outdir}/workflow/report/_quarto.yml"
     output:
-        outdir + "/reports/variants.{type}.html"
+        f"{outdir}/reports/_quarto.yml"
+    shell:
+        "cp {input} {output}"
+
+rule variant_report:
+    input: 
+        data = outdir + "/reports/data/variants.{type}.stats",
+        qmd  = f"{outdir}/workflow/report/bcftools_stats.qmd",
+        yml  = f"{outdir}/reports/_quarto.yml"
+    output:
+        report = outdir + "/reports/variants.{type}.html",
+        qmd = temp(outdir + "/reports/variants.{type}.qmd")
+    params:
+        lambda wc: "-P vcf:variants." + wc.get("type")
     log:
-        logfile = outdir + "/logs/variants.{type}.report.log"
+        outdir + "/logs/variants.{type}.report.log"
     conda:
         f"{envdir}/r.yaml"
-    script:
-        "report/bcftools_stats.Rmd"
+    shell:
+        """
+        cp {input.qmd} {output.qmd}
+        INPATH=$(realpath {input.data})
+        quarto render {output.qmd} --log {log} --quiet -P infile:$INPATH {params}
+        """
 
 rule workflow_summary:
     default_target: True

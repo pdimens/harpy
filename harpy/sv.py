@@ -10,7 +10,7 @@ import rich_click as click
 from ._cli_types_generic import ContigList, HPCProfile, InputFile, SnakemakeParams
 from ._cli_types_params import LeviathanParams, NaibrParams
 from ._conda import create_conda_recipes
-from ._launch import launch_snakemake
+from ._launch import launch_snakemake, SNAKEMAKE_CMD
 from ._misc import fetch_rule, fetch_report, snakemake_log
 from ._parsers import parse_alignment_inputs
 from ._validations import check_fasta, check_phase_vcf
@@ -84,13 +84,13 @@ def leviathan(inputs, output_dir, genome, min_sv, min_barcodes, iterations, thre
     workflowdir = os.path.join(output_dir, 'workflow')
     sdm = "conda" if conda else "conda apptainer"
     vcaller = "leviathan" if populations is None else "leviathan_pop"
-    command = f'snakemake --rerun-incomplete --show-failed-logs --rerun-triggers input mtime params --nolock --software-deployment-method {sdm} --conda-prefix ./.snakemake/conda --cores {threads} --directory . '
-    command += f"--snakefile {workflowdir}/sv_{vcaller}.smk "
-    command += f"--configfile {workflowdir}/config.yaml "
+    command = f'{SNAKEMAKE_CMD} --software-deployment-method {sdm} --cores {threads}'
+    command += f" --snakefile {workflowdir}/sv_{vcaller}.smk"
+    command += f" --configfile {workflowdir}/config.yaml"
     if hpc:
-        command += f"--workflow-profile {hpc} "
+        command += f" --workflow-profile {hpc}"
     if snakemake:
-        command += snakemake
+        command += f" {snakemake}"
 
     os.makedirs(f"{workflowdir}/", exist_ok= True)
     bamlist, n = parse_alignment_inputs(inputs)
@@ -100,8 +100,8 @@ def leviathan(inputs, output_dir, genome, min_sv, min_barcodes, iterations, thre
     if populations:
         validate_popfile(populations)
         validate_popsamples(bamlist, populations,quiet)
-        fetch_report(workflowdir, "leviathan_pop.Rmd")
-    fetch_report(workflowdir, "leviathan.Rmd")
+        fetch_report(workflowdir, "leviathan_pop.qmd")
+    fetch_report(workflowdir, "leviathan.qmd")
     fetch_rule(workflowdir, f"sv_{vcaller}.smk")
     os.makedirs(f"{output_dir}/logs/snakemake", exist_ok = True)
     sm_log = snakemake_log(output_dir, "sv_leviathan")
@@ -184,13 +184,13 @@ def naibr(inputs, output_dir, genome, vcf, min_sv, min_barcodes, min_quality, th
     sdm = "conda" if conda else "conda apptainer"
     vcaller = "naibr" if populations is None else "naibr_pop"
     vcaller += "_phase" if vcf else ""
-    command = f'snakemake --rerun-incomplete --show-failed-logs --rerun-triggers input mtime params --nolock --software-deployment-method {sdm} --conda-prefix ./.snakemake/conda --cores {threads} --directory . '
-    command += f"--snakefile {workflowdir}/sv_{vcaller}.smk "
-    command += f"--configfile {workflowdir}/config.yaml "
+    command = f'{SNAKEMAKE_CMD} --software-deployment-method {sdm} --cores {threads}'
+    command += f" --snakefile {workflowdir}/sv_{vcaller}.smk"
+    command += f" --configfile {workflowdir}/config.yaml"
     if hpc:
-        command += f"--workflow-profile {hpc} "
+        command += f" --workflow-profile {hpc}"
     if snakemake:
-        command += snakemake
+        command += f" {snakemake}"
 
     os.makedirs(f"{workflowdir}/", exist_ok= True)
     bamlist, n = parse_alignment_inputs(inputs)
@@ -200,8 +200,8 @@ def naibr(inputs, output_dir, genome, vcf, min_sv, min_barcodes, min_quality, th
     if populations:
         validate_popfile(populations)
         validate_popsamples(bamlist, populations, quiet)
-        fetch_report(workflowdir, "naibr_pop.Rmd")
-    fetch_report(workflowdir, "naibr.Rmd")
+        fetch_report(workflowdir, "naibr_pop.qmd")
+    fetch_report(workflowdir, "naibr.qmd")
     if vcf:
         check_phase_vcf(vcf)
     fetch_rule(workflowdir, f"sv_{vcaller}.smk")

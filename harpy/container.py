@@ -15,13 +15,12 @@ def containerize():
     **INTERNAL USE ONLY**. Used to recreate all the conda environments required
     by the workflows and build a dockerfile from that.
     """
-    #TODO MAKE THIS ALL OF THEM
     create_conda_recipes("container")
     fetch_rule(os.getcwd(), "containerize.smk")
 
     with open("Dockerfile", "w", encoding = "utf-8") as dockerfile:
         _module = subprocess.run(
-            'snakemake -s containerize.smk --containerize'.split(),
+            'snakemake -s containerize.smk --containerize --conda-cleanup-pkgs cache'.split(),
             stdout = dockerfile
         )
     os.remove("containerize.smk")

@@ -9,7 +9,7 @@ import rich_click as click
 from ._cli_types_generic import KParam, HPCProfile, SnakemakeParams
 from ._cli_types_params import SpadesParams, ArcsParams
 from ._conda import create_conda_recipes
-from ._launch import launch_snakemake
+from ._launch import launch_snakemake, SNAKEMAKE_CMD
 from ._misc import fetch_rule, snakemake_log
 from ._validations import validate_fastq_bx
 
@@ -71,13 +71,13 @@ def assembly(fastq_r1, fastq_r2, bx_tag, kmer_length, max_memory, output_dir, ex
     asm = "assembly"
     workflowdir = os.path.join(output_dir, 'workflow')
     sdm = "conda" if conda else "conda apptainer"
-    command = f'snakemake --rerun-incomplete --show-failed-logs --rerun-triggers input mtime params --nolock  --software-deployment-method {sdm} --conda-prefix .snakemake/conda --cores {threads} --directory . '
-    command += f"--snakefile {workflowdir}/{asm}.smk "
-    command += f"--configfile {workflowdir}/config.yaml "
+    command = f'{SNAKEMAKE_CMD} --software-deployment-method {sdm} --cores {threads}'
+    command += f" --snakefile {workflowdir}/{asm}.smk"
+    command += f" --configfile {workflowdir}/config.yaml"
     if hpc:
-        command += f"--workflow-profile {hpc} "
+        command += f" --workflow-profile {hpc}"
     if snakemake:
-        command += snakemake
+        command += f" {snakemake}"
 
     validate_fastq_bx([fastq_r1, fastq_r2], threads, quiet)
     os.makedirs(workflowdir, exist_ok=True)

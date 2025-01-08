@@ -13,7 +13,7 @@ g++ harpy/bin/extractReads.cpp -O3 -o ${CONDA_PREFIX}/bin/extractReads
 
 # install harpy proper
 pip install --no-deps --disable-pip-version-check -e . && \
-    rm -rf build #harpy.egg-info
+    rm -rf build
 
 # associated scripts
 chmod +x harpy/bin/* 

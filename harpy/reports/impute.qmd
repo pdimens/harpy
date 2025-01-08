@@ -1,0 +1,380 @@
+---
+title: "STITCH Impute: `r params$id`"
+params:
+  id: "paramset"
+  plotdir: 'plots/'
+  compare: "~/impute.compare.stats"
+  info: "~/impute.infoscore"
+  model: "haploid"
+  usebx: "true"
+  bxlimit: 50000
+  k: 15
+  s: 20
+  ngen: 5
+  extra: "None"
+---
+`r format(Sys.time(), '🗓️ %d %B, %Y 🕔 %H:%M')`
+
+# General Stats
+
+```{r package_imports}
+using<-function(...) {
+    libs<-unlist(list(...))
+    req<-unlist(lapply(libs,require,character.only=TRUE))
+    need<-libs[req==FALSE]
+    if(length(need)>0){ 
+        install.packages(need, repos = "https://cloud.r-project.org/")
+        lapply(need,require,character.only=TRUE)
+    }
+}
+using("dplyr","tidyr","DT","highcharter","scales")
+```
+
+```{r read_input}
+comparefile <- params$compare
+tryCatch(
+  expr = {
+    gcts <- read.table(comparefile, header = F)[, c(2, 23, 25, 24, 27)]
+  },
+  error = function(e){ 
+    cat("Stats file is empty. Perhaps there were no biallelelic SNPs that bcftools identified.\n")
+    knitr::knit_exit()
+  }
+)
+names(gcts) <- c("sample","RefHom", "Het",	"AltHom", "missing")
+
+conv_height <- 1.4 + (0.12 * nrow(gcts))
+#frameheight <- 1.2 + (0.166 * nrow(invalids))
+
+gcts_long <- pivot_longer(gcts, -1, names_to = "Conversion", values_to = "Count")
+```
+
+```{r read_info_input}
+infofile <- params$info
+
+tryCatch(
+  expr = {
+    infos <- read.table(infofile, header = F, col.names = c("contig", "position", "info"))
+  },
+  error = function(e){ 
+    cat("Info score file is empty. Perhaps there were no SNPs that bcftools identified.\n")
+    knitr::knit_exit()
+  }
+)
+```
+
+## Param Information
+```{r}
+#| content: valuebox
+#| title: "Name"
+list(
+  color = "light",
+  value = params$id
+)
+```
+
+```{r}
+#| content: valuebox
+#| title: "model"
+list(
+  color = "#dfdfdf",
+  value = params$model
+)
+```
+
+```{r}
+#| content: valuebox
+#| title: "usebx"
+list(
+  color = "#dfdfdf",
+  value = params$usebx
+)
+```
+
+```{r}
+#| content: valuebox
+#| title: "usebx"
+list(
+  color = "#dfdfdf",
+  value = params$bxlimit
+)
+```
+
+```{r}
+#| content: valuebox
+#| title: "k"
+list(
+  color = "#dfdfdf",
+  value = params$k
+)
+```
+
+```{r}
+#| content: valuebox
+#| title: "s"
+list(
+  color = "#dfdfdf",
+  value = params$s
+)
+```
+
+```{r}
+#| content: valuebox
+#| title: "ngen"
+list(
+  color = "#dfdfdf",
+  value = params$ngen
+)
+```
+
+##
+Extra parameters provided: `r params$extra`
+
+## General Information
+```{r}
+gcts_minmax <- filter(gcts_long, Conversion != "missing") %>% summarise(min = min(Count), max = max(Count))
+```
+
+```{r}
+#| content: valuebox
+#| title: "Samples"
+list(
+  color = "light",
+  value = scales::comma(nrow(gcts))
+)
+```
+
+```{r}
+#| content: valuebox
+#| title: "Minimum Imputations"
+list(
+  color = "info",
+  value = scales::comma(gcts_minmax$min)
+)
+```
+```{r}
+#| content: valuebox
+#| title: "Maximum Imputations"
+list(
+  color = "info",
+  value = scales::comma(gcts_minmax$max)
+)
+```
+
+```{r}
+#| content: valuebox
+#| title: "Avg INFO_SCORE"
+list(
+  color = "info",
+  value = round(mean(infos$info), digits = 2)
+)
+```
+
+```{r}
+#| content: valuebox
+#| title: "Stdev INFO_SCORE"
+list(
+  color = "info",
+  value = round(sd(infos$info), digits = 2)
+)
+```
+
+## INFO Scores
+::: {.card title="Global INFO_SCORE Distribution"}
+This is the global frequency distribution of `INFO_SCORE` values for
+the variants in the VCF file.  This value ranges from `0` to `1.0`, with `0` being
+very poor, and `1.0` being very good. It shows up to 30 of the largest
+contigs present in the VCF file.
+
+```{r overall_dist}
+h <- hist(infos$info, breaks = 20, plot = F)
+h <- data.frame(info = round(h$breaks[1:length(h$breaks)-1], 2), freq = round(h$counts / sum(h$counts)  * 100, 2))
+hchart(h, "areaspline", hcaes(x = info, y = freq), name = "% sites", marker = list(enabled = FALSE)) |>
+  hc_yAxis(title = list(text = "% of sites")) |>
+  hc_xAxis(title = list(text = "INFO_SCORE")) |>
+  hc_title(text = "Distribution of imputation INFO_SCORE values") |>
+  hc_tooltip(crosshairs = TRUE, animation = FALSE,
+    formatter = JS("function () {return 'INFO_SCORE <b>' + this.x + '</b><br><b>' + this.y + '% of sites</b>';}") 
+  ) |>
+  hc_exporting(enabled = T, filename = "impute.infoscores",
+    buttons = list(contextButton = list(menuItems = c("downloadPNG", "downloadJPEG", "downloadPDF", "downloadSVG")))
+)
+```
+:::
+
+###
+::: {.card title="Per-Contig INFO_SCORE Distribution"}
+This is the per-contig frequency distribution of `INFO_SCORE` values
+for the variants in the VCF file.  This value ranges from `0` to `1.0`, with `0` being
+very poor, and `1.0` being very good. It shows up to 30 of the largest
+contigs present in the VCF file.
+
+```{r per_contig_dist}
+dat <- data_to_boxplot(infos, info, contig, name = "INFO_SCORE", animation = FALSE)
+
+highchart() |>
+  hc_xAxis(type = "category") |>
+  hc_colors("#8487bb") |>
+  hc_add_series_list(dat)
+```
+:::
+
+# Filtering
+## Filtering Expectations
+<h2> Filtering Expectations </h2>
+`STITCH` outputs a novel `INFO/INFO_SCORE` tag in the resulting VCF files that represents the
+"quality" of the imputation. This value ranges from `0` to `1.0`, with `0` being
+very poor, and `1.0` being very good. You will want to filter this file to remove
+genotypes with a low `INFO_SCORE`, which can be done with `bcftools`.
+Here is an example snippet of keeping loci with an `INFO_SCORE` of at least `0.2`: 
+
+```bash
+# use -Ob for bcf output (smaller file size)
+
+bcftools view -Ob -i 'INFO/INFO_SCORE >= 0.2' file.vcf > filtered.file.bcf
+```
+
+##
+::: {.card title="SNPs Remaining After Filtering" expandable="true"}
+This is the number of variants sites that may remain
+if filtering at different minimum `INFO/INFO_SCORE` thresholds.
+Each column after `Variants` refers to a filtering threshold
+and the numbers within that column are the number of SNPs that would
+be kept if filtering out SNPs with an `INFO/INFO_SCORE` value below 
+it (_i.e._ `0.2` is the number of SNPs with a score `>= 0.2` ).
+
+```{r filttable}
+filterthresh <- infos %>% group_by(contig) %>%
+  summarise(
+    totals = length(info),
+    twenty = sum(info >= 0.2),
+    twentyfive = sum(info >= 0.25),
+    thirty = sum(info >= 0.30),
+    forty = sum(info >= 0.40),
+    fifty = sum(info >= 0.50),
+    seventyfive = sum(info >= 0.75),
+    ninety = sum(info >= 0.90),
+    )
+
+tots <- colSums(filterthresh[, -1])
+filterthresh <- rbind(c("all", tots), filterthresh) 
+DT::datatable(
+  filterthresh,
+  rownames = FALSE,
+  extensions = "Buttons",
+  colnames = c("Contig", "Variants", "0.20", "0.25", "0.30", "0.4", "0.5", "0.75", "0.90"),
+  options = list(
+    dom = "Brtp",
+    buttons = c("csv"),
+    scrollX = TRUE
+  ),
+  fillContainer = T,
+  caption = 'Number of SNPs to be KEPT by filtering'
+)
+```
+:::
+
+###
+::: {.card title="SNPs Removed by Filtering" expandable="true"}
+This is the number of variants sites that may be **removed**
+if filtering at different minimum `INFO/INFO_SCORE` thresholds.
+Each column after `Variants` refers to a filtering threshold
+and the numbers within that column are the number of SNPs that would
+be **removed** if filtering out SNPs with an `INFO/INFO_SCORE` value below 
+it (_i.e._ `0.2` is the number of SNPs with a score `>= 0.2` ).
+
+```{r filttable_loss}
+filterthresh <- infos %>% group_by(contig) %>%
+  summarise(
+    totals = length(info),
+    twenty = sum(info < 0.2),
+    twentyfive = sum(info < 0.25),
+    thirty = sum(info < 0.30),
+    forty = sum(info < 0.40),
+    fifty = sum(info < 0.50),
+    seventyfive = sum(info < 0.75),
+    ninety = sum(info < 0.90),
+    )
+
+tots <- colSums(filterthresh[, -1])
+filterthresh <- rbind(c("all", tots), filterthresh) 
+DT::datatable(
+  fillContainer = T,
+  caption = 'Number of SNPs to be REMOVED by filtering',
+  escape = F,
+  filterthresh,
+  rownames = FALSE,
+  extensions = "Buttons",
+  colnames = c("Contig", "Variants", '<span style="color:red">0.2</span>','<span style="color:red">0.25</span>','<span style="color:red">0.30</span>','<span style="color:red">0.40</span>','<span style="color:red">0.5</span>','<span style="color:red">0.75</span>','<span style="color:red">0.9</span>'),
+  options = list(
+    dom = "Brtp",
+    buttons = c("csv"),
+    scrollX = TRUE
+  ),
+)
+```
+:::
+
+# Individual Statistics
+## Ind stats desc
+::: {.card title="Imputations Per Sample"}
+This chart visualizes the count and proportion of `missing` genotypes per sample imputed
+into other genotypes. Following standard VCF convention:
+
+Ref
+: The reference allele (from the reference genome)
+
+Alt
+: The alternative allele
+
+Missing
+: How many SNPs remain missing (failed to impute) for that individual
+
+As an example, the `Homozygous Ref` is the number of missing genotypes that were imputed into
+a homozygous genotype for the reference allele. The table on the other tab is the
+underlying data used to create the visualization.
+
+```{r plot_height}
+n_samples <- length(unique(gcts_long$sample))
+figheight <- 1 + (0.6 * n_samples)
+```
+:::
+
+##
+```{r preprocess fields}
+gcts_long$Conversion <- gsub("AltHom","Homozygous Alt", gcts_long$Conversion)
+gcts_long$Conversion <- gsub("Het","Heterozygote", gcts_long$Conversion)
+gcts_long$Conversion <- gsub("RefHom","Homozygous Ref", gcts_long$Conversion)
+gcts_long$Conversion <- gsub("missing","not imputed", gcts_long$Conversion)
+```
+```{r per_indiv, fig.height=figheight}
+# | expandable: true
+hchart(gcts_long, "bar", hcaes(x = sample, y = Count, group = Conversion), stacking = "normal", animation = F) |>
+  hc_colors(c("#7cb3d4", "#b18ad1", "#ffd75f", "#6f6c70")) |>
+  hc_title(text = "Genotypes") |>
+  hc_caption(text = "Values indicate how many genotypes were imputed into which kind of genotype") |>
+  hc_xAxis(title = list(text = "")) |>
+  hc_yAxis(title = list(text = "count")) |>
+  hc_tooltip(crosshairs = TRUE, animation = F) |>
+  hc_exporting(enabled = T, filename = "impute.samples",
+    buttons = list(contextButton = list(menuItems = c("downloadPNG", "downloadJPEG", "downloadPDF", "downloadSVG")))
+  )
+```
+
+###
+```{r impute_table}
+#| expandable: true
+DT::datatable(
+  gcts,
+  rownames = FALSE,
+  extensions = "Buttons",
+  colnames = c("Sample", "Homozygous Ref", "Homozygous Alt", "Heterozygote", "Missing"),
+  autoHideNavigation = T,
+  fillContainer = T,
+  options = list(
+    dom = "Brtp",
+    buttons = c("csv"),
+    scrollX = TRUE
+  )
+)
+```

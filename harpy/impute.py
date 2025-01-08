@@ -10,7 +10,7 @@ import rich_click as click
 from ._cli_types_generic import HPCProfile, InputFile, SnakemakeParams
 from ._cli_types_params import StitchParams
 from ._conda import create_conda_recipes
-from ._launch import launch_snakemake
+from ._launch import launch_snakemake, SNAKEMAKE_CMD
 from ._misc import fetch_rule, fetch_report, fetch_script, snakemake_log
 from ._parsers import parse_alignment_inputs, biallelic_contigs
 from ._validations import vcf_sample_match, check_impute_params, validate_bam_RG
@@ -61,13 +61,13 @@ def impute(inputs, output_dir, parameters, threads, vcf, vcf_samples, extra_para
     output_dir = output_dir.rstrip("/")
     workflowdir = os.path.join(output_dir, 'workflow')
     sdm = "conda" if conda else "conda apptainer"
-    command = f'snakemake --rerun-incomplete --show-failed-logs --rerun-triggers input mtime params --nolock --software-deployment-method {sdm} --conda-prefix ./.snakemake/conda --cores {threads} --directory . '
-    command += f"--snakefile {workflowdir}/impute.smk "
-    command += f"--configfile {workflowdir}/config.yaml "
+    command = f'{SNAKEMAKE_CMD} --software-deployment-method {sdm} --cores {threads}'
+    command += f" --snakefile {workflowdir}/impute.smk"
+    command += f" --configfile {workflowdir}/config.yaml"
     if hpc:
-        command += f"--workflow-profile {hpc} "
+        command += f" --workflow-profile {hpc}"
     if snakemake:
-        command += snakemake
+        command += f" {snakemake}"
 
     os.makedirs(f"{workflowdir}/", exist_ok= True)
     params = check_impute_params(parameters)
@@ -78,8 +78,8 @@ def impute(inputs, output_dir, parameters, threads, vcf, vcf_samples, extra_para
 
     fetch_rule(workflowdir, "impute.smk")
     fetch_script(workflowdir, "stitch_impute.R")
-    fetch_report(workflowdir, "impute.Rmd")
-    fetch_report(workflowdir, "stitch_collate.Rmd")
+    fetch_report(workflowdir, "impute.qmd")
+    fetch_report(workflowdir, "stitch_collate.qmd")
     os.makedirs(f"{output_dir}/logs/snakemake", exist_ok = True)
     sm_log = snakemake_log(output_dir, "impute")
     conda_envs = ["r", "stitch"]

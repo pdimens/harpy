@@ -11,7 +11,7 @@ from ._conda import create_conda_recipes
 from ._misc import fetch_report, fetch_rule, snakemake_log
 from ._cli_types_generic import  ContigList, InputFile, HPCProfile, SnakemakeParams
 from ._cli_types_params import BwaParams, EmaParams, StrobeAlignParams
-from ._launch import launch_snakemake
+from ._launch import launch_snakemake, SNAKEMAKE_CMD
 from ._parsers import parse_fastq_inputs
 from ._printing import print_error, print_solution, print_notice
 from ._validations import check_fasta, fasta_contig_match, validate_barcodefile
@@ -95,13 +95,13 @@ def bwa(inputs, output_dir, genome, depth_window, threads, keep_unmapped, extra_
     output_dir = output_dir.rstrip("/")
     workflowdir = os.path.join(output_dir, 'workflow')
     sdm = "conda" if conda else "conda apptainer"
-    command = f'snakemake --rerun-incomplete --show-failed-logs --rerun-triggers input mtime params --nolock --software-deployment-method {sdm} --conda-prefix ./.snakemake/conda --cores {threads} --directory . '
-    command += f"--snakefile {workflowdir}/align_bwa.smk "
-    command += f"--configfile {workflowdir}/config.yaml "
+    command = f'{SNAKEMAKE_CMD} --software-deployment-method {sdm} --cores {threads}'
+    command += f" --snakefile {workflowdir}/align_bwa.smk"
+    command += f" --configfile {workflowdir}/config.yaml"
     if hpc:
-        command += f"--workflow-profile {hpc} "
+        command += f" --workflow-profile {hpc}"
     if snakemake:
-        command += snakemake
+        command += f" {snakemake}"
 
     os.makedirs(f"{workflowdir}/", exist_ok= True)
     fqlist, sample_count = parse_fastq_inputs(inputs)
@@ -109,8 +109,8 @@ def bwa(inputs, output_dir, genome, depth_window, threads, keep_unmapped, extra_
     if contigs:
         fasta_contig_match(contigs, genome)
     fetch_rule(workflowdir, "align_bwa.smk")
-    fetch_report(workflowdir, "align_stats.Rmd")
-    fetch_report(workflowdir, "align_bxstats.Rmd")
+    fetch_report(workflowdir, "align_stats.qmd")
+    fetch_report(workflowdir, "align_bxstats.qmd")
     os.makedirs(f"{output_dir}/logs/snakemake", exist_ok = True)
     sm_log = snakemake_log(output_dir, "align_bwa")
     conda_envs = ["align", "r", "qc"]
@@ -186,13 +186,13 @@ def ema(inputs, output_dir, platform, barcode_list, fragment_density, genome, de
     output_dir = output_dir.rstrip("/")
     workflowdir = os.path.join(output_dir, 'workflow')
     sdm = "conda" if conda else "conda apptainer"
-    command = f'snakemake --rerun-incomplete --show-failed-logs --rerun-triggers input mtime params --nolock --software-deployment-method {sdm} --conda-prefix ./.snakemake/conda --cores {threads} --directory . '
-    command += f"--snakefile {workflowdir}/align_ema.smk "
-    command += f"--configfile {workflowdir}/config.yaml "
+    command = f'{SNAKEMAKE_CMD} --software-deployment-method {sdm} --cores {threads}'
+    command += f" --snakefile {workflowdir}/align_ema.smk"
+    command += f" --configfile {workflowdir}/config.yaml"
     if hpc:
-        command += f"--workflow-profile {hpc} "
+        command += f" --workflow-profile {hpc}"
     if snakemake:
-        command += snakemake
+        command += f" {snakemake}"
 
     platform = platform.lower()
     # the tellseq stuff isn't impremented yet, but this is a placeholder for that... wishful thinking
@@ -214,8 +214,8 @@ def ema(inputs, output_dir, platform, barcode_list, fragment_density, genome, de
     if barcode_list:
         validate_barcodefile(barcode_list, False, quiet)
     fetch_rule(workflowdir, "align_ema.smk")
-    fetch_report(workflowdir, "align_stats.Rmd")
-    fetch_report(workflowdir, "align_bxstats.Rmd")
+    fetch_report(workflowdir, "align_stats.qmd")
+    fetch_report(workflowdir, "align_bxstats.qmd")
     os.makedirs(f"{output_dir}/logs/snakemake", exist_ok = True)
     sm_log = snakemake_log(output_dir, "align_ema")
     conda_envs = ["align", "r", "qc"]
@@ -296,13 +296,13 @@ def strobe(inputs, output_dir, genome, read_length, keep_unmapped, depth_window,
     output_dir = output_dir.rstrip("/")
     workflowdir = os.path.join(output_dir, 'workflow')
     sdm = "conda" if conda else "conda apptainer"
-    command = f'snakemake --rerun-incomplete --show-failed-logs --rerun-triggers input mtime params --nolock --software-deployment-method {sdm} --conda-prefix ./.snakemake/conda --cores {threads} --directory . '
-    command += f"--snakefile {workflowdir}/align_strobealign.smk "
-    command += f"--configfile {workflowdir}/config.yaml "
+    command = f'{SNAKEMAKE_CMD} --software-deployment-method {sdm} --cores {threads}'
+    command += f" --snakefile {workflowdir}/align_strobealign.smk"
+    command += f" --configfile {workflowdir}/config.yaml"
     if hpc:
-        command += f"--workflow-profile {hpc} "
+        command += f" --workflow-profile {hpc}"
     if snakemake:
-        command += snakemake
+        command += f" {snakemake}"
 
     os.makedirs(f"{workflowdir}/", exist_ok= True)
     fqlist, sample_count = parse_fastq_inputs(inputs)
@@ -310,8 +310,8 @@ def strobe(inputs, output_dir, genome, read_length, keep_unmapped, depth_window,
     if contigs:
         fasta_contig_match(contigs, genome)
     fetch_rule(workflowdir, "align_strobealign.smk")
-    fetch_report(workflowdir, "align_stats.Rmd")
-    fetch_report(workflowdir, "align_bxstats.Rmd")
+    fetch_report(workflowdir, "align_stats.qmd")
+    fetch_report(workflowdir, "align_bxstats.qmd")
     os.makedirs(f"{output_dir}/logs/snakemake", exist_ok = True)
     sm_log = snakemake_log(output_dir, "align_strobe")
     conda_envs = ["align", "r", "qc"]

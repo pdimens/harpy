@@ -25,8 +25,8 @@ preflight: &preflight
   - 'test/bam/**'
   - 'harpy/bin/check_bam.py'
   - 'harpy/bin/check_fastq.py'
-  - 'harpy/reports/preflight_fastq.Rmd'
-  - 'harpy/reports/preflight_bam.Rmd'
+  - 'harpy/reports/preflight_fastq.qmd'
+  - 'harpy/reports/preflight_bam.qmd'
 deconvolve: &deconvolve
   - *common
   - *container
@@ -51,8 +51,8 @@ bwa: &bwa
   - *container
   - 'harpy/align.py'
   - 'harpy/snakefiles/align_bwa.smk'
-  - 'harpy/reports/align_stats.Rmd'
-  - 'harpy/reports/align_bxstats.Rmd'
+  - 'harpy/reports/align_stats.qmd'
+  - 'harpy/reports/align_bxstats.qmd'
   - 'harpy/bin/bx_stats.py'
   - 'harpy/bin/count_bx.py'
   - 'harpy/bin/assign_mi.py'
@@ -64,8 +64,8 @@ ema: &ema
   - *container
   - 'harpy/align.py'
   - 'harpy/snakefiles/align_ema.smk'
-  - 'harpy/reports/align_stats.Rmd'
-  - 'harpy/reports/align_bxstats.Rmd'
+  - 'harpy/reports/align_stats.qmd'
+  - 'harpy/reports/align_bxstats.qmd'
   - 'harpy/bin/bx_stats.py'
   - 'harpy/bin/count_bx.py'
   - 'harpy/bin/make_windows.py'
@@ -76,8 +76,8 @@ strobealign: &strobealign
   - *container
   - 'harpy/align.py'
   - 'harpy/snakefiles/align_strobealign.smk'
-  - 'harpy/reports/align_stats.Rmd'
-  - 'harpy/reports/align_bxstats.Rmd'
+  - 'harpy/reports/align_stats.qmd'
+  - 'harpy/reports/align_bxstats.qmd'
   - 'harpy/bin/assign_mi.py'
   - 'harpy/bin/bx_stats.py'
   - 'harpy/bin/count_bx.py'
@@ -89,7 +89,7 @@ mpileup: &mpileup
   - *container
   - 'harpy/snp.py'
   - 'harpy/snakefiles/snp_mpileup.smk'
-  - 'harpy/reports/bcftools_stats.Rmd'
+  - 'harpy/reports/bcftools_stats.qmd'
   - 'harpy/bin/make_windows.py'
   - 'test/bam/**'
 freebayes: &freebayes
@@ -97,7 +97,7 @@ freebayes: &freebayes
   - *container
   - 'harpy/snp.py'
   - 'harpy/snakefiles/snp_freebayes.smk'
-  - 'harpy/reports/bcftools_stats.Rmd'
+  - 'harpy/reports/bcftools_stats.qmd'
   - 'harpy/bin/make_windows.py'
   - 'test/bam/**'
 impute: &impute
@@ -107,8 +107,8 @@ impute: &impute
   - 'harpy/snakefiles/impute.smk'
   - 'test/bam/**'
   - 'test/vcf/test.bcf'
-  - 'harpy/reports/impute.Rmd'
-  - 'harpy/reports/stitch_collate.Rmd'
+  - 'harpy/reports/impute.qmd'
+  - 'harpy/reports/stitch_collate.qmd'
   - 'harpy/scripts/stitch_impute.R'
 leviathan: &leviathan
   - *common
@@ -117,7 +117,7 @@ leviathan: &leviathan
   - 'harpy/snakefiles/sv_leviathan**.smk'
   - 'test/bam/**'
   - 'harpy/bin/concatenate_bam.py'
-  - 'harpy/reports/leviathan**.Rmd'
+  - 'harpy/reports/leviathan**.qmd'
 naibr: &naibr
   - *common
   - *container
@@ -127,7 +127,7 @@ naibr: &naibr
   - 'test/bam/**'
   - 'test/bam_phased/**'
   - 'test/vcf/test.phased.bcf'
-  - 'harpy/reports/naibr**.Rmd'
+  - 'harpy/reports/naibr**.qmd'
   - 'harpy/bin/infer_sv.py'
 phase: &phase
   - *common
@@ -136,7 +136,7 @@ phase: &phase
   - 'harpy/snakefiles/phase.smk'
   - 'test/bam/**'
   - 'test/vcf/test.bcf'
-  - 'harpy/reports/hapcut.Rmd'
+  - 'harpy/reports/hapcut.qmd'
   - 'harpy/bin/parse_phaseblocks.py'
 simvars: &simvars
   - *common
