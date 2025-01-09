@@ -33,41 +33,41 @@ we **_want_** to.
 the things causing the error, explain to the user what and why. Harpy follows a
 style of presenting and explaining the error, then providing a solution and showing exactly what files/rows/columns/etc. caused the error. Be kind to users.
 ![These are Harpy error messages](/static/errormsg.png)
-
 ===
 
 ## Installing dev version
-The process follows cloning the harpy repository, installing the preconfigured conda environment, and running the `resources/buildlocal.sh`
-script to move all the necessary files to the `/bin/` path within your active conda environment.
-
-==- Step 1: clone the repository
-
-```bash clone the repository
+As of v1.15, we provide two scripts that automate a development installation
+(we use them ourselves!).
+First, you'll need to clone the Harpy git repository:
+```bash
 git clone https://github.com/pdimens/harpy.git
 ```
 
-==- Step 2: install the conda environment dependencies
-```bash install the dependencies with conda/mamba
-mamba env create --name harpy --file resources/harpy.yaml
+Then you have your choice of conda- or pixi-based installations
++++ conda-based installation
+```bash
+bash resources/dev_install_conda.sh
 ```
-This will create a conda environment named `harpy` with all the bits necessary to successfully run Harpy. You can change the name of this environment by specifying
-`--name something`. 
 
-==- Step 3: activate the environment
-The environment with all the preinstalled dependencies can be activated with:
-```bash activate the conda environment
-# assuming the environment name is harpy from the step above
-mamba activate harpy
+After which, you can activate the conda environment:
+```bash from within the harpy/ folder
+conda activate .conda/harpy
 ```
-==- Step 4: install the Harpy files
 
-Call the `resources/buildlocal.sh` bash script to finish the installation.
-This will build the `harpy` python program, and copy all the additional files Harpy needs to run
-to the `bin/` directory of your active conda environment.
-```bash install harpy and the necessary files
-bash resources/buildlocal.sh
++++ pixi-based installation
+```bash
+bash resources/dev_install_pixi.sh
 ```
-===
+After which, you can activate the pixi environment:
+```bash form within the harpy/ folder
+pixi shell
+```
+
+Alternatively, you can prefix harpy commands with `pixi run`:
+```bash from within the harpy/ folder
+pixi run harpy impute...
+```
++++
 
 ## Harpy's components
 ### source code
