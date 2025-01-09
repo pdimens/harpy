@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="turbo-root" content="/harpy">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="3.6.0.789193566458">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="3.6.0.789759462942">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 3.6.0">
@@ -34,12 +34,12 @@
     <script data-cfasync="false">(function () { var el = document.documentElement, m = localStorage.getItem("doc_theme"), wm = window.matchMedia; if (m === "dark" || (!m && wm && wm("(prefers-color-scheme: dark)").matches)) { el.classList.add("dark") } else { el.classList.remove("dark") } })();</script>
 
     <link href="../static/favicon.png" rel="icon">
-    <link href="../resources/css/retype.css?v=3.6.0.789193566458" rel="stylesheet">
+    <link href="../resources/css/retype.css?v=3.6.0.789759462942" rel="stylesheet">
 
-    <script data-cfasync="false" src="../resources/js/config.js?v=3.6.0.789193566458" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../resources/js/config.js?v=3.6.0.789759462942" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../resources/js/retype.js?v=3.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../resources/js/lunr.js?v=3.6.0.789193566458" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../resources/js/prism.js?v=3.6.0.789193566458" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../resources/js/lunr.js?v=3.6.0.789759462942" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../resources/js/prism.js?v=3.6.0.789759462942" defer></script>
 </head>
 <body>
     <div id="docs-app" class="relative text-base antialiased text-gray-700 bg-white font-body dark:bg-dark-850 dark:text-dark-300">
@@ -60,7 +60,7 @@
                                 <img class="max-h-10 hidden dark:inline-block" src="../static/logo_navbar.png">
                             </span>
                             <span class="dark:text-white font-semibold line-clamp-1 md:line-clamp-2">Harpy</span>
-                        </a><span class="hidden px-2 py-1 ml-4 text-sm font-semibold leading-none text-root-logo-label-text bg-root-logo-label-bg rounded-sm md:inline-block">v1.14</span>
+                        </a><span class="hidden px-2 py-1 ml-4 text-sm font-semibold leading-none text-root-logo-label-text bg-root-logo-label-bg rounded-sm md:inline-block">v1.15</span>
                     </div>
         
                     <span class="hidden h-8 border-r md:inline-block dark:border-dark-650"></span>
@@ -331,45 +331,42 @@ style of presenting and explaining the error, then providing a solution and show
         <span>Installing dev version</span>
     </h2>
 </doc-anchor-target>
-<p>The process follows cloning the harpy repository, installing the preconfigured conda environment, and running the <code v-pre>resources/buildlocal.sh</code>
-script to move all the necessary files to the <code v-pre>/bin/</code> path within your active conda environment.</p>
-<doc-panels>
-   <doc-panel id="step-1-clone-the-repository" collapsed>
-       <template #title>Step 1: clone the repository</template>
+<p>As of v1.15, we provide two scripts that automate a development installation
+(we use them ourselves!).
+First, you&#x27;ll need to clone the Harpy git repository:</p>
 <div class="codeblock-wrapper"><doc-codeblock>
-<div class="codeblock-title">clone the repository</div>
 <pre class="language-bash"><code v-pre class="language-bash">git clone https://github.com/pdimens/harpy.git</code></pre>
 </doc-codeblock></div>
-   </doc-panel>
-   <doc-panel id="step-2-install-the-conda-environment-dependencies" collapsed>
-       <template #title>Step 2: install the conda environment dependencies</template>
+<p>Then you have your choice of conda- or pixi-based installations</p>
+<doc-tabs>
+<doc-tab v-cloak id="conda-based-installation">
+<template #title>conda-based installation</template>
 <div class="codeblock-wrapper"><doc-codeblock>
-<div class="codeblock-title">install the dependencies with conda/mamba</div>
-<pre class="language-bash"><code v-pre class="language-bash">mamba env create --name harpy --file resources/harpy.yaml</code></pre>
+<pre class="language-bash"><code v-pre class="language-bash">bash resources/dev_install_conda.sh</code></pre>
 </doc-codeblock></div>
-<p>This will create a conda environment named <code v-pre>harpy</code> with all the bits necessary to successfully run Harpy. You can change the name of this environment by specifying
-<code v-pre>--name something</code>.</p>
-   </doc-panel>
-   <doc-panel id="step-3-activate-the-environment" collapsed>
-       <template #title>Step 3: activate the environment</template>
-<p>The environment with all the preinstalled dependencies can be activated with:</p>
+<p>After which, you can activate the conda environment:</p>
 <div class="codeblock-wrapper"><doc-codeblock>
-<div class="codeblock-title">activate the conda environment</div>
-<pre class="language-bash"><code v-pre class="language-bash"># assuming the environment name is harpy from the step above
-mamba activate harpy</code></pre>
+<div class="codeblock-title">from within the harpy/ folder</div>
+<pre class="language-bash"><code v-pre class="language-bash">conda activate .conda/harpy</code></pre>
 </doc-codeblock></div>
-   </doc-panel>
-   <doc-panel id="step-4-install-the-harpy-files" collapsed>
-       <template #title>Step 4: install the Harpy files</template>
-<p>Call the <code v-pre>resources/buildlocal.sh</code> bash script to finish the installation.
-This will build the <code v-pre>harpy</code> python program, and copy all the additional files Harpy needs to run
-to the <code v-pre>bin/</code> directory of your active conda environment.</p>
+</doc-tab>
+<doc-tab v-cloak id="pixi-based-installation">
+<template #title>pixi-based installation</template>
 <div class="codeblock-wrapper"><doc-codeblock>
-<div class="codeblock-title">install harpy and the necessary files</div>
-<pre class="language-bash"><code v-pre class="language-bash">bash resources/buildlocal.sh</code></pre>
+<pre class="language-bash"><code v-pre class="language-bash">bash resources/dev_install_pixi.sh</code></pre>
 </doc-codeblock></div>
-   </doc-panel>
-</doc-panels>
+<p>After which, you can activate the pixi environment:</p>
+<div class="codeblock-wrapper"><doc-codeblock>
+<div class="codeblock-title">form within the harpy/ folder</div>
+<pre class="language-bash"><code v-pre class="language-bash">pixi shell</code></pre>
+</doc-codeblock></div>
+<p>Alternatively, you can prefix harpy commands with <code v-pre>pixi run</code>:</p>
+<div class="codeblock-wrapper"><doc-codeblock>
+<div class="codeblock-title">from within the harpy/ folder</div>
+<pre class="language-bash"><code v-pre class="language-bash">pixi run harpy impute...</code></pre>
+</doc-codeblock></div>
+</doc-tab>
+</doc-tabs>
 <doc-anchor-target id="harpys-components">
     <h2>
         <doc-anchor-trigger class="header-anchor-trigger" to="#harpys-components">#</doc-anchor-trigger>
