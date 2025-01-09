@@ -4,46 +4,140 @@ icon: desktop-download
 order: 100
 ---
 
-## :icon-desktop-download: Install Harpy
-=== :icon-checklist: You will need
+# :icon-desktop-download: Install Harpy
+=== :icon-checklist: You will need one of either
 - [conda](https://conda.io/projects/conda/en/latest/user-guide/install/index.html) or [mamba](https://mamba.readthedocs.io/en/latest/installation.html)
-  - we [strongly recommend](troubleshooting#installation-issue) you use conda `23.10` (or later) or mamba 
+  - if using conda, we strongly recommend using version `23.10` or later 
   - if using mamba, replace `conda` with `mamba` in the instructions below
+- [pixi](https://prefix.dev/blog/pixi_a_fast_conda_alternative)
+  - relatively new kid on the block-- think of it as the next-gen of conda
+  - it's a little different, but it's _lightning fast_ and very sensible to use
 ===
 
-Harpy is hosted on [Bioconda](https://anaconda.org/bioconda/harpy)! That means to install it, you just need to have `conda` (or `mamba`) on your Linux-based 
-system and install it with a simple command. You can install Harpy into an existing environment or create a new one for it (recommended).
+Harpy is hosted on [Bioconda](https://anaconda.org/bioconda/harpy), which means you just need to have either  `conda` or `pixi` on your Linux-based 
+system to install it. This page details both the conda and pixi installation approaches.
 
-### install into a new environment 
-##### ✨recommended✨
-The code snippet below creates a new environment called `harpy` (the `-n harpy` part) and installs harpy into it from the bioconda channel (`-c bioconda` part). You can name this
-environment anything (e.g. `haplotagging`, `jeanclaudevandamme`, etc.).
-```bash install harpy
+## 🐍 Conda
+It's best to create a new environment for a harpy installation. The code below creates a new conda/mamba environment called `harpy` (via `-n harpy`) and installs harpy into it. You can name this environment whatever you like using the `-n somename` argument. 
+```bash
 conda create -n harpy -c bioconda -c conda-forge harpy
 ```
-Once conda finishes the install, you can activate the environment (with whatever `-n <env_name>` you gave it) and `harpy` will be callable
-from the command line.
-```bash activate harpy environment
-conda activate <env_name>
+
+Once conda/mamba finishes, activate the harpy conda/mamba environment with:
+```bash
+conda activate env_name
 ```
+where `env_name` is the name of that environment. After doing so, the `harpy` executable should be callable from your path.
 
-### install into an existing evironment
-If you want to install harpy into an existing environment, then with an environment already activated (via `conda activate <env_name>`) simply use the `conda install` command and harpy
-will be callable from the command line.
-
-```bash install harpy
-conda install -c bioconda -c conda-forge harpy
+==- ⬇️ install as local conda environment
+Alternatively, you can create the environment locally within a specific project folder, just swap `-n harpy` for
+`-p path/to/workdir/harpy`, which creates the environment in that specific folder (e.g. `potato_blight/harpy`).
 ```
----
+conda create -p path/to/workdir/harpy -c bioconda -c conda-forge harpy
+```
+==- ⬇️ install into existing conda environment
+ 
+If you wish to install harpy and its dependencies into an existing environment, activate that environment and execute this installation code:
+```bash
+conda activate env_name
+conda install -c conda-forge bioconda::harpy
+```
+Or provide `-n env_name` to install it into an existing environment named `env_name`
+```bash
+conda install -n env_name -c conda-forge bioconda::harpy
+```
+==- ⬆️ updating harpy
 
-## :icon-move-to-top: Update Harpy
-=== :icon-checklist: You will need
-- [conda](https://conda.io/projects/conda/en/latest/user-guide/install/index.html) or [mamba](https://mamba.readthedocs.io/en/latest/installation.html)
-- Harpy installed into an existing conda enviroment
-===
+Activate the environment and run `conda update`:
 
-If you want to update Harpy, the process is quite similar:
-```bash update harpy
-conda activate <env_name>
+```bash
 conda update -c conda-forge bioconda::harpy
 ```
+===
+
+### ⚡ Conda Usage
++++ Installed Globally
+
+Activate the conda environment with Harpy and call `harpy` or `harpy --help` on the command line to get started
+```bash activate the environment
+conda activate harpy_env
+```
+```bash call harpy
+harpy
+```
+
++++ Installed Locally
+Activate the conda environment with Harpy and call `harpy` or `harpy --help` on the command line to get started
+```bash activate the environment
+conda activate path/to/harpy_env
+```
+
+```bash call harpy
+harpy
+```
++++
+
+----
+
+## 🌟 Pixi
+If you prefer [Pixi](https://pixi.sh/latest/) (it's pretty good, you should try it), you can
+install Harpy to be accessible in your PATH, i.e. a "global" installation:
+
+```bash
+pixi global install -c conda-forge -c bioconda harpy
+```
+!!! add pixi to PATH
+Make sure `~/.pixi/bin` is in your PATH:
+```bash ~/.zshrc or ~/.bashrc (or equivalent) 
+export PATH=~/.pixi/bin:$PATH
+```
+!!!
+
+==- ⬇️ install as local environment
+
+Likewise, you can do an installation into a local project directory:
+
+```bash
+pixi init -c bioconda projectname && cd projectname
+pixi add harpy
+```
+
+==- ⬆️ updating harpy
+
+If installed via Pixi, you can update Harpy with `pixi update`:
++++ global install
+```bash
+pixi global update harpy
+```
++++ local install
+```bash
+# project dir has the pixi.toml file
+cd path/to/projectdir
+pixi update harpy
+```
++++
+===
+
+### ⚡ Pixi Usage
++++ Installed Globally
+If installed globally, just call `harpy` or `harpy --help` on the command line:
+```bash
+harpy
+```
++++ Installed Locally
+```bash Navigate to project directory
+cd path/to/workdir
+```
+
+Then:
+
+```bash call harpy from within pixi environment
+pixi shell
+
+harpy --help
+```
+or
+```bash call harpy with pixi prefix
+pixi run harpy
+```
++++

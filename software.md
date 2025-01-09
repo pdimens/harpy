@@ -47,6 +47,7 @@ Issues with specific tools might warrant a discussion with the authors/developer
 |:------------|:-----:   |:-----------|:------------------------------------------------------------------------------------------------------|
 | click       | python   | [github](https://github.com/pallets/click)            |                                                              |
 | pysam       | python   | [github](https://github.com/pysam-developers/pysam)    |                                                            |
+| quarto      | R        | [website](https://quarto.org/) | |
 | r-biocircos |     R    | [github](https://github.com/lvulliard/BioCircos.R)      |                                                           |
 | r-highcharter |   R    | [website (source)](https://www.highcharts.com/) [website (R-package)](https://github.com/jbkunst/highcharter/) |  |
 | r-tidyverse |     R    | [website](https://www.tidyverse.org/) | [publication](https://doi.org/10.21105/joss.01686)                           |

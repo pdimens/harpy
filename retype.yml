@@ -7,7 +7,7 @@ footer:
   copyright: "&copy; Copyright {{ year }}. All rights reserved."
 branding:
   title: Harpy
-  label: v1.14
+  label: v1.15
   logo: static/logo_navbar.png
   logoDark: static/logo_navbar.png
   logoAlign: left

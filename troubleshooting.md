@@ -7,6 +7,17 @@ order: 3
 Lots of stuff can go wrong during an analysis. The intent of this page is to guide you through
 navigating the inevitable errors associated with doing bioinformatics.
 
+## Logging Streams
+In shell programs, output streams are routed through standard out (`stdout`) and standard error (`stderr`)
+streams. When not using `--quiet`, Harpy will output some overview text, have an updating progress bar that disappears
+upon completion, and output some runtime stats at the end. Harpy will also output errors, if they occur. To make logging
+Harpy consistent and pain-free, Harpy outputs the progress bar to `stdout`, while **all other text** goes to `stderr`.
+What that means in practice is that if you run harpy with a `stderr` redirect to a log file, only the progress bar appears
+in your console, keeping the log file clean. We do **not** recommend redirecting `stdout` (the progress bar) to a file. Here's an example:
+```bash
+harpy align bwa data/sample_*.fq.gz 2> bwa.log
+```
+
 ## Troubleshooting Harpy
 Harpy has two steps: first it performs checks and validations, then it runs Snakemake.
 
