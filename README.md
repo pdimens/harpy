@@ -76,7 +76,7 @@ pixi global install -c conda-forge -c bioconda harpy
 Likewise, you can do an installation into a local project directory:
 
 ```bash
-pixi init -c bioconda projectname && cd projectname
+pixi init -c conda-forge -c bioconda projectname && cd projectname
 pixi add harpy
 ```
 After that finishes, you can activate the environment with:
