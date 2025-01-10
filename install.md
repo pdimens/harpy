@@ -98,7 +98,7 @@ export PATH=~/.pixi/bin:$PATH
 Likewise, you can do an installation into a local project directory:
 
 ```bash
-pixi init -c bioconda projectname && cd projectname
+pixi init -c conda-forge -c bioconda projectname && cd projectname
 pixi add harpy
 ```
 
