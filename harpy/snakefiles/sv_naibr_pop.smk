@@ -94,12 +94,10 @@ rule concat_groups:
         temp(outdir + "/workflow/input/{population}.unsort.bam")
     log:
         outdir + "/logs/concat_groups/{population}.concat.log"
-    threads:
-        1
     container:
         None
     shell:
-        "concatenate_bam.py -o {output} -b {input.bamlist} 2> {log}"
+        "concatenate_bam.py -b {input.bamlist} > {output} 2> {log}"
 
 rule sort_groups:
     input:

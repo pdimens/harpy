@@ -16,12 +16,12 @@ parser = argparse.ArgumentParser(
     with an invalid barcode (00 as one of its segments) are presevered
     but are not assigned an MI:i tag. Input file MUST BE COORDINATE SORTED.
     """,
-    usage = "assign_mi.py -c cutoff -o output.bam input.bam",
+    usage = "assign_mi.py -c cutoff input.bam > output.bam",
     exit_on_error = False
     )
 
 parser.add_argument('-c','--cutoff', type=int, default = 100000, help = "Distance in base pairs at which alignments with the same barcode should be considered different molecules. (default: 100000)")
-parser.add_argument('-o', '--output', help = "Output bam file. Will also create an index file.")
+#parser.add_argument('-o', '--output', help = "Output bam file. Will also create an index file.")
 parser.add_argument('input', help = "Input coordinate-sorted bam/sam file. If bam, a matching index file should be in the same directory.")
 
 if len(sys.argv) == 1:
@@ -109,7 +109,7 @@ if bam_input.lower().endswith(".bam"):
 # iniitalize input/output files
 with (
     pysam.AlignmentFile(bam_input) as alnfile,
-    pysam.AlignmentFile(args.output, "wb", template = alnfile) as outfile
+    pysam.AlignmentFile(sys.stdout.buffer, "wb", template = alnfile) as outfile
 ):
     for record in alnfile.fetch():
         chrm = record.reference_name
@@ -201,6 +201,3 @@ with (
 
         # update the chromosome tracker
         LAST_CONTIG = chrm
-
-# index the output file
-pysam.index(args.output)

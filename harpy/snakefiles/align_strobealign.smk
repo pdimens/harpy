@@ -150,7 +150,10 @@ rule assign_molecules:
     container:
         None
     shell:
-        "assign_mi.py -o {output.bam} -c {params} {input.bam}"
+        """
+        assign_mi.py -c {params} {input.bam} > {output.bam}
+        samtools index {output.bam}
+        """
 
 rule barcode_stats:
     input:
