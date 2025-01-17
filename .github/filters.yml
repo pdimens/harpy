@@ -117,6 +117,7 @@ leviathan: &leviathan
   - 'harpy/snakefiles/sv_leviathan**.smk'
   - 'test/bam/**'
   - 'harpy/bin/concatenate_bam.py'
+  - 'harpy/bin/leviathan_bx_shim.py'
   - 'harpy/reports/leviathan**.qmd'
 naibr: &naibr
   - *common
