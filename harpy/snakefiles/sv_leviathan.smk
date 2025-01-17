@@ -43,13 +43,15 @@ rule process_alignments:
     output:
         bam = temp(outdir + "/workflow/input/{sample}.bam"),
         bai = temp(outdir + "/workflow/input/{sample}.bam.bai")
+    log:
+        outdir + "/logs/process_alignments/{sample}.log"
     container:
         None
     shell:
         """
-        samtools index {input}
-        leviathan_bx_shim.py {input} > {output.bam}
-        samtools index {output.bam}
+        samtools index {input} 2> {log}
+        leviathan_bx_shim.py {input} > {output.bam} 2>> {log}
+        samtools index {output.bam} 2>> {log}
         """
 
 rule index_barcodes:
