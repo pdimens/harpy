@@ -18,7 +18,7 @@ outdir      = config["output_directory"]
 envdir      = os.path.join(os.getcwd(), outdir, "workflow", "envs")
 genomefile  = config["inputs"]["genome"]
 bamlist     = config["inputs"]["alignments"]
-bamdict     = dict(zip(bamlist, bamlist))
+bamdict     = dict(zip(bamlist,bamlist))
 samplenames = {Path(i).stem for i in bamlist}
 min_sv      = config["min_sv"]
 min_bc      = config["min_barcodes"]
@@ -37,30 +37,31 @@ def get_alignments(wildcards):
     aln = list(filter(r.match, bamlist))
     return aln[0]
 
-def get_align_index(wildcards):
-    """returns a list with the bai index file for the sample based on wildcards.sample"""
-    r = re.compile(fr"(.*/{wildcards.sample})\.(bam|sam)$", flags = re.IGNORECASE)
-    aln = list(filter(r.match, bamlist))
-    return aln[0] + ".bai"
-
-rule index_alignments:
+rule process_alignments:
     input:
-        lambda wc: bamdict[wc.bam]
+        get_alignments
     output:
-        "{bam}.bai"
+        bam = temp(outdir + "/workflow/input/{sample}.bam"),
+        bai = temp(outdir + "/workflow/input/{sample}.bam.bai")
+    log:
+        outdir + "/logs/process_alignments/{sample}.log"
     container:
         None
     shell:
-        "samtools index {input}"
+        """
+        samtools index {input} 2> {log}
+        leviathan_bx_shim.py {input} > {output.bam} 2>> {log}
+        samtools index {output.bam} 2>> {log}
+        """
 
-rule index_barcode:
+rule index_barcodes:
     input: 
-        bam = get_alignments,
-        bai = get_align_index
+        bam = outdir + "/workflow/input/{sample}.bam",
+        bai = outdir + "/workflow/input/{sample}.bam.bai"
     output:
-        temp(outdir + "/lrezIndexed/{sample}.bci")
+        temp(outdir + "/lrez_index/{sample}.bci")
     threads:
-        max(10, workflow.cores)
+        min(10, workflow.cores)
     container:
         None
     shell:
@@ -102,9 +103,9 @@ rule bwa_index_genome:
 
 rule call_variants:
     input:
-        bam    = get_alignments,
-        bai    = get_align_index,
-        bc_idx = outdir + "/lrezIndexed/{sample}.bci",
+        bam = outdir + "/workflow/input/{sample}.bam",
+        bai = outdir + "/workflow/input/{sample}.bam.bai",
+        bc_idx = outdir + "/lrez_index/{sample}.bci",
         genome = f"Genome/{bn}",
         genidx = multiext(f"Genome/{bn}", ".fai", ".ann", ".bwt", ".pac", ".sa", ".amb")
     output:
@@ -234,6 +235,7 @@ rule workflow_summary:
     run:
         summary = ["The harpy sv leviathan workflow ran using these parameters:"]
         summary.append(f"The provided genome: {bn}")
+        summary.append("The alignments were deconvolved using: leviathan_bx_shim.py")
         bc_idx = "The barcodes were indexed using:\n"
         bc_idx += "LRez index bam -p -b INPUT"
         summary.append(bc_idx)

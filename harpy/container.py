@@ -3,6 +3,7 @@
 import os
 import sys
 import subprocess
+from pathlib import Path
 import rich_click as click
 from ._conda import create_conda_recipes
 from ._misc import fetch_rule
@@ -18,10 +19,35 @@ def containerize():
     create_conda_recipes("container")
     fetch_rule(os.getcwd(), "containerize.smk")
 
-    with open("Dockerfile", "w", encoding = "utf-8") as dockerfile:
+    with open("Dockerfile.raw", "w", encoding = "utf-8") as dockerraw:
         _module = subprocess.run(
-            'snakemake -s containerize.smk --containerize --conda-cleanup-pkgs cache'.split(),
-            stdout = dockerfile
+            'snakemake -s containerize.smk --containerize'.split(),
+            stdout = dockerraw
         )
+
+    with open("Dockerfile.raw", "r") as dockerraw, open("Dockerfile", "w") as dockerfile:
+            # copy over the first three lines
+            dockerfile.write(dockerraw.readline())
+            dockerfile.write(dockerraw.readline())
+            dockerfile.write(dockerraw.readline())
+            #dockerfile.write("\nRUN mkdir -p /conda-envs/\n")
+            dockerfile.write("\nCOPY container/workflow/envs/*.yaml /\n")
+            env_hash = {}
+            for line in dockerraw:
+                if line.startswith("#"):
+                    continue
+                if line.startswith("COPY"):
+                    dockercmd, env, hashname = line.split()
+                    env = Path(env).stem
+                    hashname = hashname.split("/")[-2]
+                    env_hash[env] = hashname
+            runcmds = []
+            for env, _hash in env_hash.items():
+                runcmds.append(f"conda env create --prefix /conda-envs/{_hash} --file /{env}.yaml && \\")
+            runcmds.append("conda clean --all -y")
+            dockerfile.write("\nRUN ")
+            dockerfile.write(
+                "\n\t".join(runcmds)
+            )
+    os.remove("Dockerfile.raw")
     os.remove("containerize.smk")
-    sys.exit(_module.returncode)

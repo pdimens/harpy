@@ -204,7 +204,7 @@ rule concat_groups:
     container:
         None
     shell:
-        "concatenate_bam.py -o {output} -b {input.bamlist} 2> {log}"
+        "concatenate_bam.py -b {input.bamlist} > {output} 2> {log}"
 
 rule sort_groups:
     input:
