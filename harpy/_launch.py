@@ -15,7 +15,7 @@ EXIT_CODE_SUCCESS = 0
 EXIT_CODE_GENERIC_ERROR = 1
 EXIT_CODE_CONDA_ERROR = 2
 EXIT_CODE_RUNTIME_ERROR = 3
-SNAKEMAKE_CMD = "snakemake --rerun-incomplete --show-failed-logs --rerun-triggers input mtime params --nolock --conda-prefix .conda --conda-cleanup-pkgs cache --directory ."
+SNAKEMAKE_CMD = "snakemake --rerun-incomplete --show-failed-logs --rerun-triggers input mtime params --nolock --conda-prefix .environments --conda-cleanup-pkgs cache --apptainer-prefix .environments --directory ."
 
 def iserror(text):
     """logical check for erroring trigger words in snakemake output"""
@@ -81,11 +81,11 @@ def launch_snakemake(sm_args, workflow, starttext, outdir, sm_logfile, quiet, su
                 # print dependency text only once
                 if "Downloading and installing remote packages" in output or "Running post-deploy" in output:
                     deps = True
-                    deploy_text = "[dim]Installing workflow dependencies"
+                    deploy_text = "[dim]Installing workflow software"
                     break
                 if "Pulling singularity image" in output:
                     deps = True
-                    deploy_text = "[dim]Downloading harpy container"
+                    deploy_text = "[dim]Building software container"
                     break
                 if "Nothing to be" in output:
                     exitcode = EXIT_CODE_SUCCESS

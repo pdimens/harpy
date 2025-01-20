@@ -1,7 +1,7 @@
 .snakemake/
 .vscode/
 .condarc
-.conda
+.environments/
 .cache/
 container/
 hpc/
