@@ -107,7 +107,9 @@ jobs:
         id: singularity
         shell: micromamba-shell {0}
         if: ${{ needs.changes.outputs.modules == 'true' }}
-        run: harpy qc --skip-reports --quiet test/fastq/sample1.*.fq.gz
+        run: |
+          export APPTAINER_TMPDIR=$PWD/test/
+          harpy qc --skip-reports --quiet test/fastq/sample1.*.fq.gz
       - name: Create Singularity Artifact
         if: ${{ steps.singularity.outcome == 'success' }}
         uses: actions/upload-artifact@v4
