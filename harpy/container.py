@@ -30,8 +30,8 @@ def containerize():
             dockerfile.write(dockerraw.readline())
             dockerfile.write(dockerraw.readline())
             dockerfile.write(dockerraw.readline())
-            dockerfile.write("\nRUN mkdir -p /conda-envs/\n")
-            dockerfile.write("\nCOPY container/workflow/envs/*.yaml /conda-envs\n")
+            #dockerfile.write("\nRUN mkdir -p /conda-envs/\n")
+            dockerfile.write("\nCOPY container/workflow/envs/*.yaml /\n")
             env_hash = {}
             for line in dockerraw:
                 if line.startswith("#"):
@@ -43,10 +43,11 @@ def containerize():
                     env_hash[env] = hashname
             runcmds = []
             for env, _hash in env_hash.items():
-                runcmds.append(f"conda env create --prefix /conda-envs/{_hash} --file /conda-envs/{env}.yaml && \\")
+                runcmds.append(f"conda env create --prefix /conda-envs/{_hash} --file /{env}.yaml && \\")
             runcmds.append("conda clean --all -y")
             dockerfile.write("\nRUN ")
             dockerfile.write(
                 "\n\t".join(runcmds)
             )
+    os.remove("Dockerfile.raw")
     os.remove("containerize.smk")

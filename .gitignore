@@ -3,6 +3,7 @@
 .condarc
 .conda
 .cache/
+container/
 hpc/
 QC/
 Deconvolve/
