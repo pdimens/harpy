@@ -33,6 +33,14 @@ as `sample1.F.fq` and `sample1_R1.fq.gz`, which would again derive `sample1` as 
 During parsing, Harpy will inform you of naming clashes and terminate to protect you against this behavior. 
 !!!
 
+## Software Dependencies
+Harpy workflows typically require various different pieces of software to run. To
+keep the Harpy installation small, we include only the bare minimum to invoke Harpy.
+Everything else (e.g. `freebayes`, `hapcut2`, etc.) is installed as needed at runtime by Snakemake.
+By default, Harpy has Snakemake to install a workflow's software dependencies as local conda environments
+in the `.environments` folder, however you can use `--container` to instead have Snakemake use a pre-configured
+Harpy container to manage workflow dependencies.
+
 ## Common command-line options
 Every Harpy module has a series of configuration parameters. These are arguments you need to input
 to configure the module to run on your data, such as the directory with the reads/alignments,
@@ -99,7 +107,8 @@ and the contents therein also allow you to rerun the workflow manually. The `wor
 |:-----|:---------|:--------|
 |`*.smk`               | Snakefile with the full recipe of the workflow | understanding the entire workflow |
 | `config.yml`         | Configuration file generated from command-line arguments and consumed by the Snakefile | general bookkeeping, advanced runs | 
-| `report/*.Rmd`       | RMarkdown files used to generate the fancy reports | seeing math behind plots/tables or borrow code from |
+| `envs/`              | Configurations of the software environments required by the workflow | bookkeeping |
+| `report/*.qmd`       | Quarto files used to generate the fancy reports | seeing math behind plots/tables or borrow code from |
 | `*.summary` | Plain-text overview of the important parts of the workflow | bookkeeping and writing Methods in manuscripts |
 
 ---

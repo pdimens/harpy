@@ -10,8 +10,7 @@ Barring a few exceptions, most of Harpy's options are Snakemake workflows.
 This means we are all at the mercy of how Snakemake operates, which includes
 the `.snakemake/` folder in your project directory. That folder contains
 all sorts of things necessary for Snakemake to do its magic. However, as a
-convenience, Harpy workflows will also create a copy of the Snakemake
-workflow log (all those things that print on screen when snakemake is running)
+convenience, Harpy workflows will move the Snakemake workflow log (all those things that print on screen when snakemake is running)
 in a workflow's output directory. These logs are found in `OUTDIR/logs/snakemake`
 and are named `workflow.X.DATE.log`, where `workflow` is the harpy workflow
 (qc, sv_naibr, etc.), `X` is the attempt number (given by `X`, e.g. `4`), and
