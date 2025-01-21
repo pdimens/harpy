@@ -103,20 +103,20 @@ jobs:
           context: .
           push: true
           tags: pdimens/harpy:latest
-      - name: Pull Image Locally
-        id: singularity
-        shell: micromamba-shell {0}
-        if: ${{ needs.changes.outputs.modules == 'true' }}
-        run: |
-          export APPTAINER_TMPDIR=$PWD/test/
-          harpy qc --skip-reports --quiet test/fastq/sample1.*.fq.gz
-      - name: Create Singularity Artifact
-        if: ${{ steps.singularity.outcome == 'success' }}
-        uses: actions/upload-artifact@v4
-        with:
-          name: deps-image
-          path: .snakemake/singularity/*.simg
-          retention-days: 1
+#      - name: Pull Image Locally
+#        id: singularity
+#        shell: micromamba-shell {0}
+#        if: ${{ needs.changes.outputs.modules == 'true' }}
+#        run: |
+#          export APPTAINER_TMPDIR=$PWD/test/
+#          harpy qc --skip-reports --quiet test/fastq/sample1.*.fq.gz
+#      - name: Create Singularity Artifact
+#        if: ${{ steps.singularity.outcome == 'success' }}
+#        uses: actions/upload-artifact@v4
+#        with:
+#          name: deps-image
+#          path: .snakemake/singularity/*.simg
+#          retention-days: 1
 
   dmux_gen1:
     needs: [changes, pkgbuild]
@@ -144,11 +144,11 @@ jobs:
           resources/buildforCI.sh
       - name: Clear Space
         uses: jlumbroso/free-disk-space@main
-      - name: Download Singularity Artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: deps-image
-          path: .snakemake/singularity
+#      - name: Download Singularity Artifact
+#        uses: actions/download-artifact@v4
+#        with:
+#          name: deps-image
+#          path: .snakemake/singularity
       - name: harpy demultiplex
         shell: micromamba-shell {0}
         run: harpy demultiplex gen1 --quiet --schema test/demux/samples.schema test/demux/Undetermined_S0_L004_R* test/demux/Undetermined_S0_L004_I*
@@ -182,11 +182,11 @@ jobs:
           resources/buildforCI.sh
       - name: Clear Space
         uses: jlumbroso/free-disk-space@main
-      - name: Download Singularity Artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: deps-image
-          path: .snakemake/singularity
+#      - name: Download Singularity Artifact
+#        uses: actions/download-artifact@v4
+#        with:
+#          name: deps-image
+#          path: .snakemake/singularity
       - name: test preflight fastq
         shell: micromamba-shell {0}
         run: harpy preflight fastq test/fastq
@@ -224,11 +224,11 @@ jobs:
           resources/buildforCI.sh
       - name: Clear Space
         uses: jlumbroso/free-disk-space@main
-      - name: Download Singularity Artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: deps-image
-          path: .snakemake/singularity
+#      - name: Download Singularity Artifact
+#        uses: actions/download-artifact@v4
+#        with:
+#          name: deps-image
+#          path: .snakemake/singularity
       - name: harpy qc
         shell: micromamba-shell {0}
         run: harpy qc -x "--low_complexity_filter" --quiet test/fastq
@@ -264,11 +264,11 @@ jobs:
           resources/buildforCI.sh
       - name: Clear Space
         uses: jlumbroso/free-disk-space@main
-      - name: Download Singularity Artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: deps-image
-          path: .snakemake/singularity
+#      - name: Download Singularity Artifact
+#        uses: actions/download-artifact@v4
+#        with:
+#          name: deps-image
+#          path: .snakemake/singularity
       - name: harpy deconvolve
         shell: micromamba-shell {0}
         run: harpy deconvolve --quiet test/fastq
@@ -301,11 +301,11 @@ jobs:
           resources/buildforCI.sh
       - name: Clear Space
         uses: jlumbroso/free-disk-space@main
-      - name: Download Singularity Artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: deps-image
-          path: .snakemake/singularity
+#      - name: Download Singularity Artifact
+#        uses: actions/download-artifact@v4
+#        with:
+#          name: deps-image
+#          path: .snakemake/singularity
       - name: test bwa
         shell: micromamba-shell {0}
         run: harpy align bwa --quiet -g test/genome/genome.fasta.gz  -x "-A 2" test/fastq
@@ -339,11 +339,11 @@ jobs:
           resources/buildforCI.sh
       - name: Clear Space
         uses: jlumbroso/free-disk-space@main
-      - name: Download Singularity Artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: deps-image
-          path: .snakemake/singularity
+#      - name: Download Singularity Artifact
+#        uses: actions/download-artifact@v4
+#        with:
+#          name: deps-image
+#          path: .snakemake/singularity
       - name: test ema
         shell: micromamba-shell {0}
         run: harpy align ema --quiet --ema-bins 150 -g test/genome/genome.fasta.gz test/fastq
@@ -377,11 +377,11 @@ jobs:
           resources/buildforCI.sh
       - name: Clear Space
         uses: jlumbroso/free-disk-space@main
-      - name: Download Singularity Artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: deps-image
-          path: .snakemake/singularity
+#      - name: Download Singularity Artifact
+#        uses: actions/download-artifact@v4
+#        with:
+#          name: deps-image
+#          path: .snakemake/singularity
       - name: test strobealign
         shell: micromamba-shell {0}
         run: harpy align strobe --quiet -l 125 -g test/genome/genome.fasta.gz  test/fastq
@@ -415,11 +415,11 @@ jobs:
           resources/buildforCI.sh
       - name: Clear Space
         uses: jlumbroso/free-disk-space@main
-      - name: Download Singularity Artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: deps-image
-          path: .snakemake/singularity
+#      - name: Download Singularity Artifact
+#        uses: actions/download-artifact@v4
+#        with:
+#          name: deps-image
+#          path: .snakemake/singularity
       - name: snp mpileup
         shell: micromamba-shell {0}
         run: harpy snp mpileup --quiet -r test/positions.bed -g test/genome/genome.fasta.gz -x "--ignore-RG" test/bam
@@ -456,11 +456,11 @@ jobs:
           resources/buildforCI.sh
       - name: Clear Space
         uses: jlumbroso/free-disk-space@main
-      - name: Download Singularity Artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: deps-image
-          path: .snakemake/singularity
+#      - name: Download Singularity Artifact
+#        uses: actions/download-artifact@v4
+#        with:
+#          name: deps-image
+#          path: .snakemake/singularity
       - name: snp freebayes
         shell: micromamba-shell {0}
         run: harpy snp freebayes --quiet -r test/positions.bed -g test/genome/genome.fasta.gz -x "-g 200" test/bam
@@ -497,11 +497,11 @@ jobs:
           resources/buildforCI.sh
       - name: Clear Space
         uses: jlumbroso/free-disk-space@main
-      - name: Download Singularity Artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: deps-image
-          path: .snakemake/singularity
+#      - name: Download Singularity Artifact
+#        uses: actions/download-artifact@v4
+#        with:
+#          name: deps-image
+#          path: .snakemake/singularity
       - name: impute
         shell: micromamba-shell {0}
         run: harpy impute --quiet --vcf test/vcf/test.bcf -p test/stitch.params  test/bam
@@ -539,11 +539,11 @@ jobs:
           resources/buildforCI.sh
       - name: Clear Space
         uses: jlumbroso/free-disk-space@main
-      - name: Download Singularity Artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: deps-image
-          path: .snakemake/singularity
+#      - name: Download Singularity Artifact
+#        uses: actions/download-artifact@v4
+#        with:
+#          name: deps-image
+#          path: .snakemake/singularity
       - name: phase
         shell: micromamba-shell {0}
         run: harpy phase --quiet --vcf test/vcf/test.bcf  -x "--max_iter 10001" test/bam
@@ -587,11 +587,11 @@ jobs:
           resources/buildforCI.sh
       - name: Clear Space
         uses: jlumbroso/free-disk-space@main
-      - name: Download Singularity Artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: deps-image
-          path: .snakemake/singularity
+#      - name: Download Singularity Artifact
+#        uses: actions/download-artifact@v4
+#        with:
+#          name: deps-image
+#          path: .snakemake/singularity
       - name: leviathan
         shell: micromamba-shell {0}
         run: harpy sv leviathan --quiet -s 100 -b 1 -g test/genome/genome.fasta.gz  -x "-M 2002" test/bam
@@ -630,11 +630,11 @@ jobs:
           resources/buildforCI.sh
       - name: Clear Space
         uses: jlumbroso/free-disk-space@main
-      - name: Download Singularity Artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: deps-image
-          path: .snakemake/singularity
+#      - name: Download Singularity Artifact
+#        uses: actions/download-artifact@v4
+#        with:
+#          name: deps-image
+#          path: .snakemake/singularity
       - name: naibr
         shell: micromamba-shell {0}
         run: harpy sv naibr --quiet -g test/genome/genome.fasta.gz -o SV/naibr  -x "-min_sv 5000" test/bam_phased && rm -r Genome
@@ -682,11 +682,11 @@ jobs:
           resources/buildforCI.sh
       - name: Clear Space
         uses: jlumbroso/free-disk-space@main
-      - name: Download Singularity Artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: deps-image
-          path: .snakemake/singularity
+#      - name: Download Singularity Artifact
+#        uses: actions/download-artifact@v4
+#        with:
+#          name: deps-image
+#          path: .snakemake/singularity
       - name: simulate random snps/indels
         shell: micromamba-shell {0}
         run: |
@@ -740,11 +740,11 @@ jobs:
           resources/buildforCI.sh
       - name: Clear Space
         uses: jlumbroso/free-disk-space@main
-      - name: Download Singularity Artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: deps-image
-          path: .snakemake/singularity
+#      - name: Download Singularity Artifact
+#        uses: actions/download-artifact@v4
+#        with:
+#          name: deps-image
+#          path: .snakemake/singularity
       - name: simulate linked reads
         shell: micromamba-shell {0}
         run: |
@@ -780,11 +780,11 @@ jobs:
           resources/buildforCI.sh
       - name: Clear Space
         uses: jlumbroso/free-disk-space@main
-      - name: Download Singularity Artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: deps-image
-          path: .snakemake/singularity
+#      - name: Download Singularity Artifact
+#        uses: actions/download-artifact@v4
+#        with:
+#          name: deps-image
+#          path: .snakemake/singularity
       - name: test assembly
         shell: micromamba-shell {0}
         run: harpy assembly --quiet -r 4000 test/fastq/sample1.*

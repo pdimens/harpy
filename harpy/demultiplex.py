@@ -33,7 +33,7 @@ docstring = {
         },
         {
             "name": "Workflow Controls",
-            "options": ["--conda", "--hpc", "--output-dir", "--quiet", "--skip-reports", "--snakemake", "--threads", "--help"],
+            "options": ["--container", "--hpc", "--output-dir", "--quiet", "--skip-reports", "--snakemake", "--threads", "--help"],
         },
     ]
 }
@@ -42,7 +42,7 @@ docstring = {
 @click.option('-s', '--schema', required = True, type=click.Path(exists=True, dir_okay=False, readable=True), help = 'File of `sample`\\<TAB\\>`barcode`')
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(min = 1, max_open = True), help = 'Number of threads to use')
 @click.option('-o', '--output-dir', type = click.Path(exists = False), default = "Demultiplex", show_default=True,  help = 'Output directory name')
-@click.option('--conda',  is_flag = True, default = False, help = 'Use conda/mamba instead of a container')
+@click.option('--container',  is_flag = True, default = False, help = 'Use a container instead of conda')
 @click.option('--setup-only',  is_flag = True, hidden = True, default = False,  help = 'Setup the workflow and exit')
 @click.option('--hpc',  type = HPCProfile(), help = 'Directory with HPC submission `config.yaml` file')
 @click.option('--quiet',  is_flag = True, show_default = True, default = False, help = 'Don\'t show output text while running')
@@ -52,7 +52,7 @@ docstring = {
 @click.argument('R2_FQ', required=True, type=click.Path(exists=True, dir_okay=False, readable=True))
 @click.argument('I1_FQ', required=True, type=click.Path(exists=True, dir_okay=False, readable=True))
 @click.argument('I2_FQ', required=True, type=click.Path(exists=True, dir_okay=False, readable=True))
-def gen1(r1_fq, r2_fq, i1_fq, i2_fq, output_dir, schema, threads, snakemake, skip_reports, quiet, hpc, conda, setup_only):
+def gen1(r1_fq, r2_fq, i1_fq, i2_fq, output_dir, schema, threads, snakemake, skip_reports, quiet, hpc, container, setup_only):
     """
     Demultiplex Generation I haplotagged FASTQ files
 
@@ -62,7 +62,7 @@ def gen1(r1_fq, r2_fq, i1_fq, i2_fq, output_dir, schema, threads, snakemake, ski
     """
     output_dir = output_dir.rstrip("/")
     workflowdir = os.path.join(output_dir, 'workflow')
-    sdm = "conda" if conda else "conda apptainer"
+    sdm = "conda" if not container else "conda apptainer"
     command = f'{SNAKEMAKE_CMD} --software-deployment-method {sdm} --cores {threads}'
     command += f" --snakefile {workflowdir}/demultiplex_gen1.smk"
     command += f" --configfile {workflowdir}/config.yaml"

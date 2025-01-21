@@ -79,8 +79,8 @@ if 'PG' not in header:
 header['PG'].append(new_pg_line)
 
 # update RG lines to match output filename name
-header['RG'][0]['ID'] = Path(args.out).stem
-header['RG'][0]['SM'] = Path(args.out).stem
+header['RG'][0]['ID'] = "concat"
+header['RG'][0]['SM'] = "concat"
 
 # set up a generator for the BX tags if --bx was invoked
 if args.bx_unique:

@@ -26,13 +26,13 @@ docstring = {
     "harpy preflight bam": [
         {
             "name": "Workflow Controls",
-            "options": ["--conda", "--hpc", "--output-dir", "--quiet", "--snakemake", "--threads", "--help"],
+            "options": ["--container", "--hpc", "--output-dir", "--quiet", "--snakemake", "--threads", "--help"],
         },
     ],
     "harpy preflight fastq": [
         {
             "name": "Workflow Controls",
-            "options": ["--conda", "--hpc", "--output-dir", "--quiet", "--snakemake", "--threads", "--help"],
+            "options": ["--container", "--hpc", "--output-dir", "--quiet", "--snakemake", "--threads", "--help"],
         },
     ]
 }
@@ -43,10 +43,10 @@ docstring = {
 @click.option('-o', '--output-dir', type = click.Path(exists = False), default = "Preflight/bam", show_default=True,  help = 'Output directory name')
 @click.option('--snakemake', type = SnakemakeParams(), help = 'Additional Snakemake parameters, in quotes')
 @click.option('--hpc',  type = HPCProfile(), help = 'Directory with HPC submission `config.yaml` file')
-@click.option('--conda',  is_flag = True, default = False, help = 'Use conda/mamba instead of a container')
+@click.option('--container',  is_flag = True, default = False, help = 'Use a container instead of conda')
 @click.option('--setup-only',  is_flag = True, hidden = True, default = False, help = 'Setup the workflow and exit')
 @click.argument('inputs', required=True, type=click.Path(exists=True, readable=True), nargs=-1)
-def bam(inputs, output_dir, threads, snakemake, quiet, hpc, conda, setup_only):
+def bam(inputs, output_dir, threads, snakemake, quiet, hpc, container, setup_only):
     """
     Run validity checks on haplotagged BAM files
 
@@ -60,7 +60,7 @@ def bam(inputs, output_dir, threads, snakemake, quiet, hpc, conda, setup_only):
     """
     output_dir = output_dir.rstrip("/")
     workflowdir = os.path.join(output_dir, 'workflow')
-    sdm = "conda" if conda else "conda apptainer"
+    sdm = "conda" if not container else "conda apptainer"
     command = f'{SNAKEMAKE_CMD} --software-deployment-method {sdm} --cores {threads}'
     command += f" --snakefile {workflowdir}/preflight_bam.smk"
     command += f" --configfile {workflowdir}/config.yaml"
@@ -102,13 +102,13 @@ def bam(inputs, output_dir, threads, snakemake, quiet, hpc, conda, setup_only):
 @click.command(no_args_is_help = True, context_settings=dict(allow_interspersed_args=False), epilog = "Documentation: https://pdimens.github.io/harpy/workflows/preflight/")
 @click.option('-o', '--output-dir', type = click.Path(exists = False), default = "Preflight/fastq", show_default=True,  help = 'Output directory name')
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(min = 1, max_open = True), help = 'Number of threads to use')
-@click.option('--conda',  is_flag = True, default = False, help = 'Use conda/mamba instead of a container')
+@click.option('--container',  is_flag = True, default = False, help = 'Use a container instead of conda')
 @click.option('--setup-only',  is_flag = True, hidden = True, default = False, help = 'Setup the workflow and exit')
 @click.option('--hpc',  type = HPCProfile(), help = 'Directory with HPC submission `config.yaml` file')
 @click.option('--quiet',  is_flag = True, show_default = True, default = False, help = 'Don\'t show output text while running')
 @click.option('--snakemake', type = SnakemakeParams(), help = 'Additional Snakemake parameters, in quotes')
 @click.argument('inputs', required=True, type=click.Path(exists=True), nargs=-1)
-def fastq(inputs, output_dir, threads, snakemake, quiet, hpc, conda, setup_only):
+def fastq(inputs, output_dir, threads, snakemake, quiet, hpc, container, setup_only):
     """
     Run validity checks on haplotagged FASTQ files.
 
@@ -123,7 +123,7 @@ def fastq(inputs, output_dir, threads, snakemake, quiet, hpc, conda, setup_only)
     """
     output_dir = output_dir.rstrip("/")
     workflowdir = os.path.join(output_dir, 'workflow')
-    sdm = "conda" if conda else "conda apptainer"
+    sdm = "conda" if not container else "conda apptainer"
     command = f'{SNAKEMAKE_CMD} --software-deployment-method {sdm} --cores {threads}'
     command += f" --snakefile {workflowdir}/preflight_fastq.smk"
     command += f" --configfile {workflowdir}/config.yaml"
