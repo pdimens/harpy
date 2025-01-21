@@ -175,7 +175,7 @@ rule barcode_stats:
     container:
         None
     shell:
-        "bx_stats.py -o {output} {input.bam}"
+        "bx_stats.py {input.bam} > {output}"
 
 rule molecule_coverage:
     input:
