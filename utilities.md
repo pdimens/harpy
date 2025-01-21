@@ -13,7 +13,7 @@ by calling the program without any arguments.
 
 ### assign_mi.py
 ```bash
-assign_mi.py -c cutoff -o output.bam input.bam
+assign_mi.py -c cutoff input.bam > output.bam
 ```
 Assign an `MI:i` (Molecular Identifier) tag to each barcoded
 record based on a molecular distance cutoff. Input file **must be coordinate sorted**.
@@ -70,9 +70,9 @@ whether BX:Z: is the last tag in the record, and the counts of:
 
 ### concatenate_bam.py
 ```bash
-concatenate_bam.py [--bx] -o output.bam file_1.bam file_2.bam...file_N.bam
+concatenate_bam.py [--bx] file_1.bam file_2.bam...file_N.bam > output.bam
 # or #
-concatenate_bam.py [--bx] -o output.bam -b bam_files.txt
+concatenate_bam.py [--bx] -b bam_files.txt > output.bam
 ```
 Concatenate records from haplotagged SAM/BAM files while making sure `MI` tags  remain unique for every sample.
 This is a means of accomplishing the same as `samtools cat`, except all `MI` tags are updated
@@ -94,7 +94,7 @@ Parses a FASTQ file to count:
 
 ### deconvolve_alignments.py
 ```bash
-deconvolve_alignments.py -c cutoff -o output.bam input.bam
+deconvolve_alignments.py -c cutoff input.bam > output.bam
 ```
 Deconvolve BX-tagged barcodes and assign an `MI` (Molecular Identifier) tag to each barcoded record based on a molecular distance cutoff.
 Input file **must be coordinate sorted**. This is similar to [assign_mi.py](#assign_mipy), except it will also deconvolve the `BX` tag by
@@ -126,6 +126,11 @@ and you can use the optional `-f` (`--fail`) argument to output FAIL variants to
 inline_to_haplotag.py -f <forward.fq.gz> -r <reverse.fq.gz> -b <barcodes.txt> -p <prefix> > barcodes.conversion.txt
 ```
 Converts inline nucleotide barcodes in reads to haplotag linked reads with barcodes in `BX:Z` and `OX:Z` header tags.
+
+### leviathan_bx_shim.py
+```bash
+```
+
 
 ### make_windows.py
 ```bash

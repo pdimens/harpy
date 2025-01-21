@@ -3,7 +3,7 @@
 test/
 src/
 .snakemake/
-.conda/
+.environments/
 .Benchmark/
 .harpy_envs/
 build/

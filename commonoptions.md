@@ -44,7 +44,7 @@ configured using these arguments:
 {.compact}
 | argument        | short name | type    | default | description                                                                       |
 |:--------------- |:----------:|:------- |:-------:|:--------------------------------------------------------------------------------- |
-| `--conda`       |            | toggle  |         | Use local conda environments instead of preconfigured Singularity container       |
+| `--container`   |            | toggle  |         | Use preconfigured Singularity container instead of local conda environments       |
 | `--contigs`     |            | file path or list |   | Contigs to plot in the report(s)                                           |
 | `--help`        |   `-h`     |         |         | Show the module docstring                                                         |
 | `--output-dir`  |   `-o`     | string  | varies  | Name of output directory                                                          |
