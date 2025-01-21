@@ -18,11 +18,10 @@ parser = argparse.ArgumentParser(
     coverage (%) based on total inferred insert length.
     Input file MUST BE COORDINATE SORTED.
     """,
-    usage = "bx_stats.py -o output.gz input.bam",
+    usage = "bx_stats.py input.bam > output.gz",
     exit_on_error = False
     )
 
-parser.add_argument('-o', '--output', help = "Gzipped tab-delimited file of metrics.")
 parser.add_argument('input', help = "Input coordinate-sorted bam/sam file. If bam, a matching index file should be in the same directory.")
 
 if len(sys.argv) == 1:
@@ -32,14 +31,6 @@ if len(sys.argv) == 1:
 args = parser.parse_args()
 if not os.path.exists(args.input):
     parser.error(f"{args.input} was not found")
-
-alnfile = pysam.AlignmentFile(args.input)
-outfile = gzip.open(args.output, "wb", 6)
-outfile.write(b"contig\tmolecule\treads\tstart\tend\tlength_inferred\taligned_bp\tinsert_len\tcoverage_bp\tcoverage_inserts\n")
-
-d = {}
-all_bx = set()
-LAST_CONTIG = None
 
 def writestats(x, writechrom, destination):
     """write to file the bx stats dictionary as a table"""
@@ -56,32 +47,59 @@ def writestats(x, writechrom, destination):
         outtext = f"{writechrom}\t{_mi}\t" + "\t".join([str(x[_mi][i]) for i in ["n", "start","end", "inferred", "bp", "insert_len", "covered_bp", "covered_inserts"]])
         destination.write(outtext.encode() + b"\n")
 
-for read in alnfile.fetch():
-    chrom = read.reference_name
-    # check if the current chromosome is different from the previous one
-    # if so, print the dict to file and empty it (a consideration for RAM usage)
-    if LAST_CONTIG and chrom != LAST_CONTIG:
-        writestats(d, LAST_CONTIG, outfile)
-        d = {}
-    LAST_CONTIG = chrom
-    # skip duplicates, unmapped, and secondary alignments
-    if read.is_duplicate or read.is_unmapped or read.is_secondary:
-        continue
-    # skip chimeric alignments that map to different contigs
-    if read.is_supplementary and read.reference_name != read.next_reference_name:
-        continue
-    if not read.get_blocks():
-        continue
+with(
+    pysam.AlignmentFile(args.input) as alnfile,
+    gzip.open(sys.stdout.buffer, "wb", 6) as outfile
+):
+    outfile.write(b"contig\tmolecule\treads\tstart\tend\tlength_inferred\taligned_bp\tinsert_len\tcoverage_bp\tcoverage_inserts\n")
 
-    # numer of bases aligned
-    bp = read.reference_length
+    d = {}
+    all_bx = set()
+    LAST_CONTIG = None
 
-    try:
-        mi = read.get_tag("MI")
-        bx = read.get_tag("BX")
-        # do a regex search to find X00 pattern in the BX
-        if re.search("[ABCD]0{2,4}", bx):
-            # if found, invalid
+    for read in alnfile.fetch():
+        chrom = read.reference_name
+        # check if the current chromosome is different from the previous one
+        # if so, print the dict to file and empty it (a consideration for RAM usage)
+        if LAST_CONTIG and chrom != LAST_CONTIG:
+            writestats(d, LAST_CONTIG, outfile)
+            d = {}
+        LAST_CONTIG = chrom
+        # skip duplicates, unmapped, and secondary alignments
+        if read.is_duplicate or read.is_unmapped or read.is_secondary:
+            continue
+        # skip chimeric alignments that map to different contigs
+        if read.is_supplementary and read.reference_name != read.next_reference_name:
+            continue
+        if not read.get_blocks():
+            continue
+
+        # numer of bases aligned
+        bp = read.reference_length
+
+        try:
+            mi = read.get_tag("MI")
+            bx = read.get_tag("BX")
+            # do a regex search to find X00 pattern in the BX
+            if re.search("[ABCD]0{2,4}", bx):
+                # if found, invalid
+                if "invalidBX" not in d:
+                    d["invalidBX"] = {
+                        "start":  0,
+                        "end": 0,
+                        "bp":   bp,
+                        "insert_len" : 0,
+                        "n":    1,
+                    }
+                else:
+                    d["invalidBX"]["bp"] += bp
+                    d["invalidBX"]["n"] += 1
+                continue
+            # add valid bx to set of all unique barcodes
+            # remove the deconvolve hyphen, if present
+            all_bx.add(bx.split("-")[0])
+        except KeyError:
+            # There is no bx/MI tag
             if "invalidBX" not in d:
                 d["invalidBX"] = {
                     "start":  0,
@@ -94,67 +112,48 @@ for read in alnfile.fetch():
                 d["invalidBX"]["bp"] += bp
                 d["invalidBX"]["n"] += 1
             continue
-        # add valid bx to set of all unique barcodes
-        # remove the deconvolve hyphen, if present
-        all_bx.add(bx.split("-")[0])
-    except KeyError:
-        # There is no bx/MI tag
-        if "invalidBX" not in d:
-            d["invalidBX"] = {
-                "start":  0,
-                "end": 0,
-                "bp":   bp,
-                "insert_len" : 0,
-                "n":    1,
+
+        # start position of first alignment
+        ref_positions = [read.reference_start, read.reference_end]
+        pos_start = min(ref_positions)
+        # end position of last alignment
+        pos_end   = max(ref_positions)
+        if read.is_paired:
+            # by using max(), will either add 0 or positive TLEN to avoid double-counting
+            isize = max(0, read.template_length)
+            #isize = min(bp, abs(read.template_length))
+            # only count the bp of the first read of paired end reads
+            #bp = bp if read.is_read1 else 0
+            bp = min(abs(read.template_length), read.infer_query_length())
+        elif read.is_supplementary:
+            # if it's a supplementary alignment, just use the alignment length
+            isize = bp
+        else:
+            # if it's unpaired, use the TLEN or query length, whichever is bigger
+            isize = max(abs(read.template_length), read.infer_query_length())
+        # create bx entry if it's not present
+        if mi not in d:
+            d[mi] = {
+                "start": pos_start,
+                "end": pos_end,
+                "bp": bp,
+                "insert_len": isize,
+                "n": 1,
             }
         else:
-            d["invalidBX"]["bp"] += bp
-            d["invalidBX"]["n"] += 1
-        continue
+            # update the basic alignment info of the molecule
+            if read.is_forward:
+                # +1 for a forward read, whether it is paired or not
+                d[mi]["n"]  += 1
+            elif read.is_reverse and not read.is_paired:
+                # +1 for reverse only if it's unpaired, so the paired read doesn't count twice
+                d[mi]["n"]  += 1
+            d[mi]["bp"] += bp
+            d[mi]["insert_len"] += isize
+            d[mi]["start"] = min(pos_start, d[mi]["start"])
+            d[mi]["end"] = max(pos_end, d[mi]["end"])
 
-    # start position of first alignment
-    ref_positions = [read.reference_start, read.reference_end]
-    pos_start = min(ref_positions)
-    # end position of last alignment
-    pos_end   = max(ref_positions)
-    if read.is_paired:
-        # by using max(), will either add 0 or positive TLEN to avoid double-counting
-        isize = max(0, read.template_length)
-        #isize = min(bp, abs(read.template_length))
-        # only count the bp of the first read of paired end reads
-        #bp = bp if read.is_read1 else 0
-        bp = min(abs(read.template_length), read.infer_query_length())
-    elif read.is_supplementary:
-        # if it's a supplementary alignment, just use the alignment length
-        isize = bp
-    else:
-        # if it's unpaired, use the TLEN or query length, whichever is bigger
-        isize = max(abs(read.template_length), read.infer_query_length())
-    # create bx entry if it's not present
-    if mi not in d:
-        d[mi] = {
-            "start": pos_start,
-            "end": pos_end,
-            "bp": bp,
-            "insert_len": isize,
-            "n": 1,
-        }
-    else:
-        # update the basic alignment info of the molecule
-        if read.is_forward:
-            # +1 for a forward read, whether it is paired or not
-            d[mi]["n"]  += 1
-        elif read.is_reverse and not read.is_paired:
-            # +1 for reverse only if it's unpaired, so the paired read doesn't count twice
-            d[mi]["n"]  += 1
-        d[mi]["bp"] += bp
-        d[mi]["insert_len"] += isize
-        d[mi]["start"] = min(pos_start, d[mi]["start"])
-        d[mi]["end"] = max(pos_end, d[mi]["end"])
-
-alnfile.close()
-# print the last entry
-writestats(d, LAST_CONTIG, outfile)
-# write comment on the last line with the total number of unique BX barcodes
-outfile.write(f"#total unique barcodes: {len(all_bx)}\n".encode())
-outfile.close()
+    # print the last entry
+    writestats(d, LAST_CONTIG, outfile)
+    # write comment on the last line with the total number of unique BX barcodes
+    outfile.write(f"#total unique barcodes: {len(all_bx)}\n".encode())
