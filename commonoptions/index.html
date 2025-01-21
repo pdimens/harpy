@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="turbo-root" content="/harpy">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="3.6.0.789853268997">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="3.6.0.790799653300">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 3.6.0">
@@ -32,12 +32,12 @@
     <script data-cfasync="false">(function () { var el = document.documentElement, m = localStorage.getItem("doc_theme"), wm = window.matchMedia; if (m === "dark" || (!m && wm && wm("(prefers-color-scheme: dark)").matches)) { el.classList.add("dark") } else { el.classList.remove("dark") } })();</script>
 
     <link href="../static/favicon.png" rel="icon">
-    <link href="../resources/css/retype.css?v=3.6.0.789853268997" rel="stylesheet">
+    <link href="../resources/css/retype.css?v=3.6.0.790799653300" rel="stylesheet">
 
-    <script data-cfasync="false" src="../resources/js/config.js?v=3.6.0.789853268997" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../resources/js/config.js?v=3.6.0.790799653300" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../resources/js/retype.js?v=3.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../resources/js/lunr.js?v=3.6.0.789853268997" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../resources/js/prism.js?v=3.6.0.789853268997" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../resources/js/lunr.js?v=3.6.0.790799653300" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../resources/js/prism.js?v=3.6.0.790799653300" defer></script>
 </head>
 <body>
     <div id="docs-app" class="relative text-base antialiased text-gray-700 bg-white font-body dark:bg-dark-850 dark:text-dark-300">
@@ -58,7 +58,7 @@
                                 <img class="max-h-10 hidden dark:inline-block" src="../static/logo_navbar.png">
                             </span>
                             <span class="dark:text-white font-semibold line-clamp-1 md:line-clamp-2">Harpy</span>
-                        </a><span class="hidden px-2 py-1 ml-4 text-sm font-semibold leading-none text-root-logo-label-text bg-root-logo-label-bg rounded-sm md:inline-block">v1.15</span>
+                        </a><span class="hidden px-2 py-1 ml-4 text-sm font-semibold leading-none text-root-logo-label-text bg-root-logo-label-bg rounded-sm md:inline-block">v1.16</span>
                     </div>
         
                     <span class="hidden h-8 border-r md:inline-block dark:border-dark-650"></span>
@@ -360,6 +360,18 @@ During parsing, Harpy will inform you of naming clashes and terminate to protect
         </div>
     </div>
 </div>
+<doc-anchor-target id="software-dependencies">
+    <h2>
+        <doc-anchor-trigger class="header-anchor-trigger" to="#software-dependencies">#</doc-anchor-trigger>
+        <span>Software Dependencies</span>
+    </h2>
+</doc-anchor-target>
+<p>Harpy workflows typically require various different pieces of software to run. To
+keep the Harpy installation small, we include only the bare minimum to invoke Harpy.
+Everything else (e.g. <code v-pre>freebayes</code>, <code v-pre>hapcut2</code>, etc.) is installed as needed at runtime by Snakemake.
+By default, Harpy has Snakemake to install a workflow&#x27;s software dependencies as local conda environments
+in the <code v-pre>.environments</code> folder, however you can use <code v-pre>--container</code> to instead have Snakemake use a pre-configured
+Harpy container to manage workflow dependencies.</p>
 <doc-anchor-target id="common-command-line-options">
     <h2>
         <doc-anchor-trigger class="header-anchor-trigger" to="#common-command-line-options">#</doc-anchor-trigger>
@@ -387,11 +399,11 @@ configured using these arguments:</p>
 </thead>
 <tbody>
 <tr>
-<td style="text-align: left;"><code v-pre>--conda</code></td>
+<td style="text-align: left;"><code v-pre>--container</code></td>
 <td style="text-align: center;"></td>
 <td style="text-align: left;">toggle</td>
 <td style="text-align: center;"></td>
-<td style="text-align: left;">Use local conda environments instead of preconfigured Singularity container</td>
+<td style="text-align: left;">Use preconfigured Singularity container instead of local conda environments</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code v-pre>--contigs</code></td>
@@ -536,8 +548,13 @@ and the contents therein also allow you to rerun the workflow manually. The <cod
 <td style="text-align: left;">general bookkeeping, advanced runs</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code v-pre>report/*.Rmd</code></td>
-<td style="text-align: left;">RMarkdown files used to generate the fancy reports</td>
+<td style="text-align: left;"><code v-pre>envs/</code></td>
+<td style="text-align: left;">Configurations of the software environments required by the workflow</td>
+<td style="text-align: left;">bookkeeping</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code v-pre>report/*.qmd</code></td>
+<td style="text-align: left;">Quarto files used to generate the fancy reports</td>
 <td style="text-align: left;">seeing math behind plots/tables or borrow code from</td>
 </tr>
 <tr>

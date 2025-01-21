@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="turbo-root" content="/harpy">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="3.6.0.789853268997">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="3.6.0.790799653300">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 3.6.0">
@@ -32,12 +32,12 @@
     <script data-cfasync="false">(function () { var el = document.documentElement, m = localStorage.getItem("doc_theme"), wm = window.matchMedia; if (m === "dark" || (!m && wm && wm("(prefers-color-scheme: dark)").matches)) { el.classList.add("dark") } else { el.classList.remove("dark") } })();</script>
 
     <link href="../static/favicon.png" rel="icon">
-    <link href="../resources/css/retype.css?v=3.6.0.789853268997" rel="stylesheet">
+    <link href="../resources/css/retype.css?v=3.6.0.790799653300" rel="stylesheet">
 
-    <script data-cfasync="false" src="../resources/js/config.js?v=3.6.0.789853268997" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../resources/js/config.js?v=3.6.0.790799653300" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../resources/js/retype.js?v=3.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../resources/js/lunr.js?v=3.6.0.789853268997" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../resources/js/prism.js?v=3.6.0.789853268997" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../resources/js/lunr.js?v=3.6.0.790799653300" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../resources/js/prism.js?v=3.6.0.790799653300" defer></script>
     <link href="../resources/css/katex.css?v=3.6.0" rel="stylesheet">
     <script id="katex-js" data-cfasync="false" src="../resources/js/katex.js?v=3.6.0" defer></script>
 </head>
@@ -60,7 +60,7 @@
                                 <img class="max-h-10 hidden dark:inline-block" src="../static/logo_navbar.png">
                             </span>
                             <span class="dark:text-white font-semibold line-clamp-1 md:line-clamp-2">Harpy</span>
-                        </a><span class="hidden px-2 py-1 ml-4 text-sm font-semibold leading-none text-root-logo-label-text bg-root-logo-label-bg rounded-sm md:inline-block">v1.15</span>
+                        </a><span class="hidden px-2 py-1 ml-4 text-sm font-semibold leading-none text-root-logo-label-text bg-root-logo-label-bg rounded-sm md:inline-block">v1.16</span>
                     </div>
         
                     <span class="hidden h-8 border-r md:inline-block dark:border-dark-650"></span>
@@ -304,7 +304,7 @@ by calling the program without any arguments.</p>
     </h3>
 </doc-anchor-target>
 <div class="codeblock-wrapper"><doc-codeblock>
-<pre class="language-bash"><code v-pre class="language-bash">assign_mi.py -c cutoff -o output.bam input.bam</code></pre>
+<pre class="language-bash"><code v-pre class="language-bash">assign_mi.py -c cutoff input.bam &gt; output.bam</code></pre>
 </doc-codeblock></div>
 <p>Assign an <code v-pre>MI:i</code> (Molecular Identifier) tag to each barcoded
 record based on a molecular distance cutoff. Input file <strong>must be coordinate sorted</strong>.
@@ -320,7 +320,7 @@ This is similar to <doc-anchor-trigger to="#deconvolve_alignmentspy">deconvolve_
     </h3>
 </doc-anchor-target>
 <div class="codeblock-wrapper"><doc-codeblock>
-<pre class="language-bash"><code v-pre class="language-bash">bx_stats.py -o output.gz input.bam</code></pre>
+<pre class="language-bash"><code v-pre class="language-bash">bx_stats.py input.bam &gt; output.gz</code></pre>
 </doc-codeblock></div>
 <p>Calculates various linked-read molecule metrics from the (coordinate-sorted) input alignment file.
 Metrics include (per molecule):</p>
@@ -392,9 +392,9 @@ whether BX:Z: is the last tag in the record, and the counts of:</p>
     </h3>
 </doc-anchor-target>
 <div class="codeblock-wrapper"><doc-codeblock>
-<pre class="language-bash"><code v-pre class="language-bash">concatenate_bam.py [--bx] -o output.bam file_1.bam file_2.bam...file_N.bam
+<pre class="language-bash"><code v-pre class="language-bash">concatenate_bam.py [--bx] file_1.bam file_2.bam...file_N.bam &gt; output.bam
 # or #
-concatenate_bam.py [--bx] -o output.bam -b bam_files.txt</code></pre>
+concatenate_bam.py [--bx] -b bam_files.txt &gt; output.bam</code></pre>
 </doc-codeblock></div>
 <p>Concatenate records from haplotagged SAM/BAM files while making sure <code v-pre>MI</code> tags  remain unique for every sample.
 This is a means of accomplishing the same as <code v-pre>samtools cat</code>, except all <code v-pre>MI</code> tags are updated
@@ -426,7 +426,7 @@ to also rewrite <code v-pre>BX</code> tags such that they are unique for every i
     </h3>
 </doc-anchor-target>
 <div class="codeblock-wrapper"><doc-codeblock>
-<pre class="language-bash"><code v-pre class="language-bash">deconvolve_alignments.py -c cutoff -o output.bam input.bam</code></pre>
+<pre class="language-bash"><code v-pre class="language-bash">deconvolve_alignments.py -c cutoff input.bam &gt; output.bam</code></pre>
 </doc-codeblock></div>
 <p>Deconvolve BX-tagged barcodes and assign an <code v-pre>MI</code> (Molecular Identifier) tag to each barcoded record based on a molecular distance cutoff.
 Input file <strong>must be coordinate sorted</strong>. This is similar to <doc-anchor-trigger to="#assign_mipy">assign_mi.py</doc-anchor-trigger>, except it will also deconvolve the <code v-pre>BX</code> tag by
@@ -476,6 +476,25 @@ and you can use the optional <code v-pre>-f</code> (<code v-pre>--fail</code>) a
 <pre class="language-bash"><code v-pre class="language-bash">inline_to_haplotag.py -f &lt;forward.fq.gz&gt; -r &lt;reverse.fq.gz&gt; -b &lt;barcodes.txt&gt; -p &lt;prefix&gt; &gt; barcodes.conversion.txt</code></pre>
 </doc-codeblock></div>
 <p>Converts inline nucleotide barcodes in reads to haplotag linked reads with barcodes in <code v-pre>BX:Z</code> and <code v-pre>OX:Z</code> header tags.</p>
+<doc-anchor-target id="leviathan_bx_shimpy">
+    <h3>
+        <doc-anchor-trigger class="header-anchor-trigger" to="#leviathan_bx_shimpy">#</doc-anchor-trigger>
+        <span>leviathan_bx_shim.py</span>
+    </h3>
+</doc-anchor-target>
+<div class="codeblock-wrapper"><doc-codeblock>
+<pre class="language-bash"><code v-pre class="language-bash">leviathan_bx_shim.py input.bam &gt; output.bam</code></pre>
+</doc-codeblock></div>
+<p>Uses the <code v-pre>MI</code> tags in <code v-pre>input.bam</code> as a point of reference to deconvolve the <code v-pre>BX</code> tags by rewriting them as unique,
+non-hyphenated ACBD tags. This &quot;shim&quot; script is necessary to preprocess a BAM file prior to variant calling in
+LEVIATHAN because the software relies exclusively on <code v-pre>BX</code> tags and does not perform any internal deconvolution.</p>
+<ul>
+<li>requires <code v-pre>input.bam</code> to have <code v-pre>MI</code> tags for alignment records
+<ul>
+<li>all <code v-pre>harpy align</code> workflows provide <code v-pre>MI</code> tags, but these may not be present if the BAM file was generated by other means.</li>
+</ul>
+</li>
+</ul>
 <doc-anchor-target id="make_windowspy">
     <h3>
         <doc-anchor-trigger class="header-anchor-trigger" to="#make_windowspy">#</doc-anchor-trigger>
@@ -541,9 +560,13 @@ actually link and reads togeher.</p>
     </h3>
 </doc-anchor-target>
 <div class="codeblock-wrapper"><doc-codeblock>
-<pre class="language-bash"><code v-pre class="language-bash">separate_validbx input.bam &gt; valid.bam 2&gt; invalid.bam</code></pre>
+<pre class="language-bash"><code v-pre class="language-bash">separate_validbx invalid.bam input.bam &gt; valid.bam</code></pre>
 </doc-codeblock></div>
-<p>Split a BAM file with <code v-pre>BX</code> tags into 2 files, one with valid ACBD barcodes (<code v-pre>stdout</code>), one with invalid ACBD barcodes (<code v-pre>stderr</code>).</p>
+<p>Split a BAM file with <code v-pre>BX</code> tags by tag validity</p>
+<ul>
+<li><code v-pre>stdout</code>: alignments with valid ACBD barcodes</li>
+<li><strong>first argument</strong>: alignments invalid ACBD barcodes</li>
+</ul>
 
                                 
                                 <!-- Required only on API pages -->
