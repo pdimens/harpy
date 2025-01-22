@@ -276,7 +276,7 @@ rule workflow_summary:
         mpileup += f"\tbcftools mpileup --fasta-ref GENOME --region REGION --bam-list BAMS --annotate AD --output-type b {mp_extra}"
         summary.append(mpileup)
         bcfcall = "The bcftools call parameters:\n"
-        bcfcall += "\tbcftools call --multiallelic-caller {params} --variants-only --output-type b |\n"
+        bcfcall += f"\tbcftools call --multiallelic-caller {params} --variants-only --output-type b |\n"
         bcfcall += "\tbcftools sort -"
         summary.append(bcfcall)
         merged = "The variants identified in the intervals were merged into the final variant file using:\n"
