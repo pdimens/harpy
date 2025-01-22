@@ -32,7 +32,7 @@ def view(directory, snakefile, config):
     # check if there is a workflow or log folder
     # and whether the expected files are in there
     if snakefile and config:
-        print_error("Invalid options", "Please pick one of [bold]--snakefile[/bold] or [bold]--config[/bold]")
+        print_error("invalid options", "Please pick one of [bold]--snakefile[/bold] or [bold]--config[/bold]")
         sys.exit(1)
     err = 0
     if snakefile:
@@ -61,13 +61,13 @@ def view(directory, snakefile, config):
             err = 2
     if err == 1:
         print_error(
-            "Directory not found", 
+            "directory not found", 
             f"The file you are trying to view is expected to be in [blue]{err_dir}[/blue], but that directory was not found. Please check that this is the correct folder."
         )
         sys.exit(1)
     elif err == 2:
         print_error(
-            "File not found", 
+            "file not found", 
             f"{err_file} in [blue]{err_dir}[/blue]. Please check that this is the correct folder."
         )
         sys.exit(1)
@@ -75,7 +75,7 @@ def view(directory, snakefile, config):
     file = sorted(files, key = os.path.getmtime)[-1]
     if not os.access(file, os.R_OK):
         print_error(
-            "Incorrect permissions",
+            "incorrect permissions",
             f"[blue]{file}[/blue] does not have read access. Please check the file permissions."
         )
         sys.exit(1)

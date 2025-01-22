@@ -305,9 +305,6 @@ def validate_regions(regioninput, genome):
                     contigs[cn] = 0
                 else:
                     contigs[cn] += len(line.rstrip("\n"))
-        # since it's zero-based, subtract 1 from the final sums
-        #for k,v in contigs.items():
-        #    contigs[k] = v - 1
         err = ""
         if reg[0] not in contigs:
             print_error("contig not found", f"The contig ([bold yellow]{reg[0]})[/bold yellow]) of the input region [yellow bold]{regioninput}[/yellow bold] was not found in [blue]{genome}[/blue].")
@@ -457,17 +454,17 @@ def validate_fastq_bx(fastq_list, threads, quiet):
 def validate_barcodefile(infile, return_len = False, quiet = False, limit = 140):
     """Does validations to make sure it's one length, within a length limit, one per line, and nucleotides"""
     if is_gzip(infile):
-        print_error("Incorrect format", f"The input file must be in uncompressed format. Please decompress [blue]{infile}[/blue] and try again.")
+        print_error("incorrect format", f"The input file must be in uncompressed format. Please decompress [blue]{infile}[/blue] and try again.")
         sys.exit(1)
     lengths = set()
     nucleotides = {'A','C','G','T'}
     def validate(line_num, bc_line):
         barcode = bc_line.rstrip()
         if len(barcode.split()) > 1:
-            print_error("Incorrect format", f"There must be one barcode per line, but multiple entries were detected on [bold]line {line_num}[/bold] in [blue]{infile}[/blue]")
+            print_error("incorrect format", f"There must be one barcode per line, but multiple entries were detected on [bold]line {line_num}[/bold] in [blue]{infile}[/blue]")
             sys.exit(1)
         if not set(barcode).issubset(nucleotides) or barcode != barcode.upper():
-            print_error("Incorrect format", f"Invalid barcode format on [bold]line {line_num }[/bold]: [yellow]{barcode}[/yellow].\nBarcodes in [blue]{infile}[/blue] must be captial letters and only contain standard nucleotide characters [green]ATCG[/green].")
+            print_error("incorrect format", f"Invalid barcode format on [bold]line {line_num }[/bold]: [yellow]{barcode}[/yellow].\nBarcodes in [blue]{infile}[/blue] must be captial letters and only contain standard nucleotide characters [green]ATCG[/green].")
             sys.exit(1)
         return len(barcode)
 
@@ -482,19 +479,19 @@ def validate_barcodefile(infile, return_len = False, quiet = False, limit = 140)
         sort_out = subprocess.Popen(["sort", infile], stdout=subprocess.PIPE)
         dup_out = subprocess.run(["uniq", "-d"], stdin=sort_out.stdout, capture_output=True, text=True)
         if dup_out.stdout:
-            print_error("Duplicate barcodes", f"Duplicate barcodes were detected in {infile}, which will result in misleading simulated data.")
+            print_error("duplicate barcodes", f"Duplicate barcodes were detected in {infile}, which will result in misleading simulated data.")
             print_solution_with_culprits("Check that you remove duplicate barcodes from your input file.", "Duplicates identified:")
             click.echo(dup_out.stdout, file = sys.stderr)
             sys.exit(1)
         for line,bc in enumerate(bc_file):
             length = validate(line + 1, bc)
             if length > limit:
-                print_error("Barcodes too long", f"Barcodes in [blue]{infile}[/blue] are [yellow]{length}bp[/yellow] and cannot exceed a length of [bold]{limit}bp[/bold]. Please use shorter barcodes.")
+                print_error("barcodes too long", f"Barcodes in [blue]{infile}[/blue] are [yellow]{length}bp[/yellow] and cannot exceed a length of [bold]{limit}bp[/bold]. Please use shorter barcodes.")
                 sys.exit(1)
             lengths.add(length)
             progress.update(task_progress, advance=1)
     if len(lengths) > 1:
-        print_error("Incorrect format", f"Barcodes in [blue]{infile}[/blue] must all be a single length, but multiple lengths were detected: [yellow]" + ", ".join(lengths) + "[/yellow]")
+        print_error("incorrect format", f"Barcodes in [blue]{infile}[/blue] must all be a single length, but multiple lengths were detected: [yellow]" + ", ".join(lengths) + "[/yellow]")
         sys.exit(1)
     if return_len:
         return lengths.pop()
