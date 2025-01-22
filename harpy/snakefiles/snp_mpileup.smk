@@ -259,7 +259,7 @@ rule variant_report:
 rule workflow_summary:
     default_target: True
     input:
-        vcf = collect(outdir + "/variants.{file}.bcf", file = ["raw"]),
+        vcf = collect(outdir + "/variants.{file}.bcf", file = ["raw", "normalized"]),
         agg_log = outdir + "/logs/mpileup.log",
         reports = collect(outdir + "/reports/variants.{file}.html", file = ["raw", "normalized"]) if not skip_reports else []
     params:
