@@ -16,6 +16,12 @@ EXIT_CODE_GENERIC_ERROR = 1
 EXIT_CODE_CONDA_ERROR = 2
 EXIT_CODE_RUNTIME_ERROR = 3
 SNAKEMAKE_CMD = "snakemake --rerun-incomplete --show-failed-logs --rerun-triggers input mtime params --nolock --conda-prefix .environments --conda-cleanup-pkgs cache --apptainer-prefix .environments --directory ."
+# logic to properly refresh progress bar for jupyter sessions
+try:
+    __IPYTHON__
+    _in_ipython_session = True
+except NameError:
+    _in_ipython_session = False
 
 def iserror(text):
     """logical check for erroring trigger words in snakemake output"""
@@ -163,8 +169,8 @@ def launch_snakemake(sm_args, workflow, starttext, outdir, sm_logfile, quiet, su
                         completed = int(re.search(r"\d+", output).group())
                         for job,details in job_inventory.items():
                             if completed in details[2]:
-                                progress.update(task_ids[job], advance = 1)
-                                progress.update(task_ids["total_progress"], advance=1)
+                                progress.update(task_ids[job], advance = 1, refresh = _in_ipython_session)
+                                progress.update(task_ids["total_progress"], advance=1, refresh = _in_ipython_session)
                                 # remove the job to save memory. wont be seen again
                                 details[2].discard(completed)
                                 break

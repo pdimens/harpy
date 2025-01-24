@@ -14,6 +14,13 @@ from ._printing import print_error, print_notice, print_solution, print_solution
 from ._misc import harpy_progressbar
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
+# logic to properly refresh progress bar for jupyter sessions
+try:
+    __IPYTHON__
+    _in_ipython_session = True
+except NameError:
+    _in_ipython_session = False
+
 def is_gzip(file_path):
     """helper function to determine if a file is gzipped"""
     try:
@@ -148,7 +155,7 @@ def validate_bam_RG(bamlist, threads, quiet):
         futures = [executor.submit(check_RG, i) for i in bamlist]
         for future in as_completed(futures):
             result = future.result()
-            progress.update(task_progress, advance=1)
+            progress.update(task_progress, advance=1, refresh = _in_ipython_session)
             if result:
                 culpritfiles.append(result[0])
                 culpritIDs.append(result[1])
@@ -449,7 +456,7 @@ def validate_fastq_bx(fastq_list, threads, quiet):
         task_progress = progress.add_task("[green]Validating FASTQ inputs", total=len(fastq_list))
         futures = [executor.submit(validate, i) for i in fastq_list]
         for future in as_completed(futures):
-            progress.update(task_progress, advance=1)
+            progress.update(task_progress, advance=1, refresh = _in_ipython_session)
 
 def validate_barcodefile(infile, return_len = False, quiet = False, limit = 140):
     """Does validations to make sure it's one length, within a length limit, one per line, and nucleotides"""
@@ -489,7 +496,7 @@ def validate_barcodefile(infile, return_len = False, quiet = False, limit = 140)
                 print_error("barcodes too long", f"Barcodes in [blue]{infile}[/blue] are [yellow]{length}bp[/yellow] and cannot exceed a length of [bold]{limit}bp[/bold]. Please use shorter barcodes.")
                 sys.exit(1)
             lengths.add(length)
-            progress.update(task_progress, advance=1)
+            progress.update(task_progress, advance=1, refresh = _in_ipython_session)
     if len(lengths) > 1:
         print_error("incorrect format", f"Barcodes in [blue]{infile}[/blue] must all be a single length, but multiple lengths were detected: [yellow]" + ", ".join(lengths) + "[/yellow]")
         sys.exit(1)
