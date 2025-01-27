@@ -94,7 +94,7 @@ rule simulate_haploid:
         in_vcfs,
         geno = genome
     output:
-        f"{outdir}/{outprefix}.simseq.genome.fa",
+        temp(f"{outdir}/{outprefix}.simseq.genome.fa"),
         f"{outdir}/{outprefix}.refseq2simseq.SNP.vcf" if snp else [],
         f"{outdir}/{outprefix}.refseq2simseq.INDEL.vcf" if indel else [],
         f"{outdir}/{outprefix}.refseq2simseq.map.txt"
@@ -115,14 +115,17 @@ rule rename_haploid:
         indelvcf = f"{outdir}/{outprefix}.refseq2simseq.INDEL.vcf" if indel else [],
         mapfile = f"{outdir}/{outprefix}.refseq2simseq.map.txt"
     output:
-        fasta = f"{outdir}/{outprefix}.fasta",
+        fasta = f"{outdir}/{outprefix}.fasta.gz",
         snpvcf = f"{outdir}/{outprefix}.snp.vcf" if snp else [],
         indelvcf = f"{outdir}/{outprefix}.indel.vcf" if indel else [],
         mapfile = f"{outdir}/{outprefix}.map"
     run:
-        for i,j in zip(input, output):
-            if i:
-                os.rename(i,j)
+        shell(f"bgzip -c {input.fasta} > {output.fasta}")
+        os.rename(input.mapfile, output.mapfile)
+        if input.snpvcf:
+            os.rename(input.snpvcf, output.snpvcf)
+        if input.indelvcf:
+            os.rename(input.indelvcf, output.indelvcf)
 
 rule diploid_snps:
     input:
@@ -160,8 +163,8 @@ rule simulate_diploid:
         indel_hap = f"{outdir}/haplotype_{{haplotype}}/{outprefix}.hap{{haplotype}}.indel.vcf" if indel else [],
         geno = genome
     output:
-        f"{outdir}/haplotype_{{haplotype}}/{outprefix}.hap{{haplotype}}.simseq.genome.fa",
-        f"{outdir}/haplotype_{{haplotype}}/{outprefix}.hap{{haplotype}}.refseq2simseq.map.txt",
+        temp(f"{outdir}/haplotype_{{haplotype}}/{outprefix}.hap{{haplotype}}.simseq.genome.fa"),
+        temp(f"{outdir}/haplotype_{{haplotype}}/{outprefix}.hap{{haplotype}}.refseq2simseq.map.txt"),
         temp(f"{outdir}/haplotype_{{haplotype}}/{outprefix}.hap{{haplotype}}.refseq2simseq.INDEL.vcf") if indel else [],
         temp(f"{outdir}/haplotype_{{haplotype}}/{outprefix}.hap{{haplotype}}.refseq2simseq.SNP.vcf") if snp else []
     log:
@@ -180,18 +183,22 @@ rule rename_diploid:
         fasta= f"{outdir}/haplotype_{{haplotype}}/{outprefix}.hap{{haplotype}}.simseq.genome.fa",
         mapfile = f"{outdir}/haplotype_{{haplotype}}/{outprefix}.hap{{haplotype}}.refseq2simseq.map.txt",
     output:
-        fasta = f"{outdir}/haplotype_{{haplotype}}/{outprefix}.hap{{haplotype}}.fasta",
+        fasta = f"{outdir}/haplotype_{{haplotype}}/{outprefix}.hap{{haplotype}}.fasta.gz",
         mapfile = f"{outdir}/haplotype_{{haplotype}}/{outprefix}.hap{{haplotype}}.map"
-    run:
-        for i,j in zip(input, output):
-            os.rename(i,j)
+    container:
+        None
+    shell:
+        """
+        bgzip -c {input.fasta} > {output.fasta}
+        cp {input.mapfile} {output.mapfile}
+        """
 
 rule workflow_summary:
     default_target: True
     input:
-        f"{outdir}/{outprefix}.fasta",
+        f"{outdir}/{outprefix}.fasta.gz",
         collect(f"{outdir}/{outprefix}" + ".{var}.vcf", var = variants),
-        collect(f"{outdir}/haplotype_" + "{n}/" + outprefix + ".hap{n}.fasta", n = [1,2]) if heterozygosity > 0 and not only_vcf else [],
+        collect(f"{outdir}/haplotype_" + "{n}/" + outprefix + ".hap{n}.fasta.gz", n = [1,2]) if heterozygosity > 0 and not only_vcf else [],
         collect(f"{outdir}/haplotype_" + "{n}/" + outprefix + ".hap{n}" + ".{var}.vcf", n = [1,2], var = variants) if heterozygosity > 0 else [],
         collect(f"{outdir}/haplotype_" + "{n}/" + outprefix + ".hap{n}" + ".map", n = [1,2]) if heterozygosity > 0 else []
     params:

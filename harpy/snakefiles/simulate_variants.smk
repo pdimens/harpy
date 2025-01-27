@@ -58,7 +58,7 @@ rule simulate_haploid:
         vcf_correct if vcf else [],
         geno = genome
     output:
-        f"{outdir}/{outprefix}.simseq.genome.fa",
+        temp(f"{outdir}/{outprefix}.simseq.genome.fa"),
         f"{outdir}/{outprefix}.refseq2simseq.{simuG_variant}.vcf",
         f"{outdir}/{outprefix}.refseq2simseq.map.txt"
     log:
@@ -77,12 +77,13 @@ rule rename_haploid:
         vcf = f"{outdir}/{outprefix}.refseq2simseq.{simuG_variant}.vcf",
         mapfile = f"{outdir}/{outprefix}.refseq2simseq.map.txt"
     output:
-        fasta = f"{outdir}/{outprefix}.fasta",
+        fasta = f"{outdir}/{outprefix}.fasta.gz",
         vcf = f"{outdir}/{outprefix}.{variant}.vcf",
         mapfile = f"{outdir}/{outprefix}.{variant}.map"
     run:
-        for i,j in zip(input, output):
-            os.rename(i,j)
+        shell(f"bgzip -c {input.fasta} > {output.fasta}")
+        os.rename(input.mapfile, output.mapfile)
+        os.rename(input.vcf, output.vcf)
 
 rule diploid_variants:
     input:
@@ -112,8 +113,8 @@ rule simulate_diploid:
         hap = f"{outdir}/haplotype_{{haplotype}}/{outprefix}.hap{{haplotype}}.{variant}.vcf",
         geno = genome
     output:
-        f"{outdir}/haplotype_{{haplotype}}/{outprefix}.hap{{haplotype}}.simseq.genome.fa",
-        f"{outdir}/haplotype_{{haplotype}}/{outprefix}.hap{{haplotype}}.refseq2simseq.map.txt",
+        temp(f"{outdir}/haplotype_{{haplotype}}/{outprefix}.hap{{haplotype}}.simseq.genome.fa"),
+        temp(f"{outdir}/haplotype_{{haplotype}}/{outprefix}.hap{{haplotype}}.refseq2simseq.map.txt"),
         temp(f"{outdir}/haplotype_{{haplotype}}/{outprefix}.hap{{haplotype}}.refseq2simseq.{simuG_variant}.vcf")
     log:
         f"{outdir}/logs/{outprefix}.hap{{haplotype}}.log"
@@ -132,16 +133,20 @@ rule rename_diploid:
     output:
         fasta = f"{outdir}/haplotype_{{haplotype}}/{outprefix}.hap{{haplotype}}.fasta",
         mapfile = f"{outdir}/haplotype_{{haplotype}}/{outprefix}.hap{{haplotype}}.{variant}.map"
-    run:
-        for i,j in zip(input, output):
-            os.rename(i,j)
+    container:
+        None
+    shell:
+        """
+        bgzip -c {input.fasta} > {output.fasta}
+        cp {input.mapfile} {output.mapfile}
+        """
 
 rule workflow_summary:
     default_target: True
     input:
-        f"{outdir}/{outprefix}.fasta",
+        f"{outdir}/{outprefix}.fasta.gz",
         f"{outdir}/{outprefix}.{variant}.vcf",
-        collect(f"{outdir}/haplotype_" + "{n}" + f"/{outprefix}.hap" + "{n}.fasta", n = [1,2]) if heterozygosity > 0 and not only_vcf else [],
+        collect(f"{outdir}/haplotype_" + "{n}" + f"/{outprefix}.hap" + "{n}.fasta.gz", n = [1,2]) if heterozygosity > 0 and not only_vcf else [],
         collect(f"{outdir}/haplotype_" + "{n}" + f"/{outprefix}.hap" + "{n}" + f".{variant}.vcf", n = [1,2]) if heterozygosity > 0 else [],
         collect(f"{outdir}/haplotype_" + "{n}" + f"/{outprefix}.hap" + "{n}" + f".{variant}.map", n = [1,2]) if heterozygosity > 0 else []
     params:
