@@ -131,7 +131,7 @@ rule rename_diploid:
         fasta = f"{outdir}/haplotype_{{haplotype}}/{outprefix}.hap{{haplotype}}.simseq.genome.fa",
         mapfile = f"{outdir}/haplotype_{{haplotype}}/{outprefix}.hap{{haplotype}}.refseq2simseq.map.txt"
     output:
-        fasta = f"{outdir}/haplotype_{{haplotype}}/{outprefix}.hap{{haplotype}}.fasta",
+        fasta = f"{outdir}/haplotype_{{haplotype}}/{outprefix}.hap{{haplotype}}.fasta.gz",
         mapfile = f"{outdir}/haplotype_{{haplotype}}/{outprefix}.hap{{haplotype}}.{variant}.map"
     container:
         None
