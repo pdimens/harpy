@@ -10,13 +10,13 @@ from itertools import zip_longest
 parser = argparse.ArgumentParser(
     prog = 'inline_to_haplotag.py',
     description = 'Moves inline linked read barcodes to read headers (OX:Z) and converts them into haplotag ACBD format (BX:Z). Barcodes must all be the same length.',
-    usage = f"inline_to_haplotag.py -f <forward.fq.gz> -r <reverse.fq.gz> -b <barcodes.txt> -p <prefix>",
+    usage = f"inline_to_haplotag.py -b <barcodes.txt> -p <prefix> FORWARD.fq.gz REVERSE.fq.gz",
     exit_on_error = False
     )
-parser.add_argument("-f", "--forward", required = True, type = str, help = "Forward reads of paired-end FASTQ file pair (gzipped)")
-parser.add_argument("-r", "--reverse", required = True, type = str, help = "Reverse reads of paired-end FASTQ file pair (gzipped)")
 parser.add_argument("-p", "--prefix", required = True, type = str, help = "Prefix for outfile files (e.g. <prefix>.R1.fq.gz)")
-parser.add_argument("-b", "--barcodes", required = True, type=str, help="File listing the linked-read barcodes to convert to haplotag format, one barcode per line")
+parser.add_argument("-b", "--barcodes", required = True, type=str, help="Barcode conversion key file with format: ATCG<tab>ACBD")
+parser.add_argument("forward", required = True, type = str, help = "Forward reads of paired-end FASTQ file pair (gzipped)")
+parser.add_argument("reverse", required = True, type = str, help = "Reverse reads of paired-end FASTQ file pair (gzipped)")
 if len(sys.argv) == 1:
     parser.print_help(sys.stderr)
     sys.exit(1)
@@ -112,7 +112,6 @@ with opener(args.barcodes, mode) as bc_file:
             sys.exit(1)
         
         insert_key_value(bc_db, ATCG, ACBD)
-        #bc_dict[ATCG] = ACBD
         lengths.add(len(ATCG))
     if len(lengths) > 1:
         sys.stderr.write("Can only search sequences for barcodes of a single length, but multiple barcode legnths detected: " + ",".join([str(i) for i in lengths]))
