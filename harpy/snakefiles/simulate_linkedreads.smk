@@ -169,7 +169,7 @@ rule demultiplex_barcodes:
     container:
         None
     shell:
-        "inline_to_haplotag.py -f {input.fw} -r {input.rv} -b {input.barcodes} -p {params} 2> {log}"
+        "inline_to_haplotag.py -b {input.barcodes} -p {params} {input.fw} {input.rv} 2> {log}"
 
 rule workflow_summary:
     default_target: True
