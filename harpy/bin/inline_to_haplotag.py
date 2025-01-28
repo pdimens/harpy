@@ -6,6 +6,7 @@ import gzip
 import sqlite3
 import argparse
 from itertools import zip_longest
+import pysam
 
 parser = argparse.ArgumentParser(
     prog = 'inline_to_haplotag.py',
@@ -28,17 +29,13 @@ for i in [args.forward, args.reverse, args.barcodes]:
 if err:
     parser.error("Some input files were not found on the system:\n" + ", ".join(err))
 
-def valid_record(fq_rec, FR):
-    """fastq format sanity check"""
-    if not (fq_rec[0].startswith("@") and fq_rec[2] == "+"):
-        raise ValueError(f"Invalid FASTQ format for {FR} reads")
-
-def insert_key_value(conn, key, value):
+def store_bc_as_sql(conn, bclist):
     """insert a key-value pair into sqlite database"""
     cursor = conn.cursor()
-    cursor.execute('''
-        INSERT OR REPLACE INTO kv_store (key, value) VALUES (?, ?)
-    ''', (key, value))  # Use parameterized queries to avoid SQL injection
+    cursor.executemany('INSERT INTO kv_store (key, value) VALUES (?, ?)', bclist)
+#    cursor.execute('''
+#        INSERT OR REPLACE INTO kv_store (key, value) VALUES (?, ?)
+#    ''', (key, value))  # Use parameterized queries to avoid SQL injection
     conn.commit()
 
 def get_value_by_key(conn, key):
@@ -55,30 +52,26 @@ def get_value_by_key(conn, key):
         # Return invalid ACBD haplotag if the key does not exist
         return "A00C00B00D00"  
 
-def process_record(fw_entry, rv_entry, barcode_database, bc_len):
+def process_record(fw_rec, rv_rec, barcode_database, bc_len):
     """convert the barcode to haplotag"""
-    # [0] = header, [1] = seq, [2] = +, [3] = qual
-    if fw_entry:
-        valid_record(fw_entry, "forward")
-        bc_inline = fw_entry[1][:bc_len]
+    if fw_rec:
+        bc_inline = fw_rec.sequence[:bc_len]
         bc_hap = get_value_by_key(barcode_database, bc_inline)
-        fw_entry[0] = fw_entry[0].split()[0] + f"\tOX:Z:{bc_inline}\tBX:Z:{bc_hap}"
-        fw_entry[1] = fw_entry[1][bc_len:]
-        fw_entry[3] = fw_entry[3][bc_len:]
-        _new_fw = "\n".join(fw_entry) + "\n"
-        if rv_entry:
-            valid_record(rv_entry, "reverse")
-            rv_entry[0]  = rv_entry[0].split()[0] + f"\tOX:Z:{bc_inline}\tBX:Z:{bc_hap}"
-            _new_rv = "\n".join(rv_entry) + "\n"
+        fw_rec.comment = fw_rec.comment.split()[0] + f"\tOX:Z:{bc_inline}\tBX:Z:{bc_hap}"
+        fw_rec.sequence = fw_rec.sequence[bc_len:]
+        fw_rec.quality = fw_rec.quality[bc_len:]
+        _new_fw = str(fw_rec) + "\n"
+        if rv_rec:
+            rv_rec.comment = rv_rec.comment.split()[0] + f"\tOX:Z:{bc_inline}\tBX:Z:{bc_hap}"
+            _new_rv = str(rv_rec) + "\n"
         else:
             _new_rv = None
     else:
         _new_fw = None
-        # no forward read, therefor no barcode to search for
-        if rv_entry:
-            valid_record(rv_entry, "reverse")
-            rv_entry[0] = rv_entry[0].split()[0] + "\tBX:Z:A00C00B00D00"
-            _new_rv = "\n".join(rv_entry) + "\n"
+        # no forward read, therefore no barcode to search for
+        if rv_rec:
+            rv_rec.comment = rv_rec.comment.split()[0] + "\tBX:Z:A00C00B00D00"
+            _new_rv = str(rv_rec) + "\n"
         else:
             _new_rv = None
     return _new_fw, _new_rv
@@ -95,11 +88,12 @@ bc_db.cursor().execute('''
 bc_db.commit()
 
 nucleotides = {'A','C','G','T'}
-lengths = set()
+bc_len = None
 
 # read in barcodes
 opener = gzip.open if args.barcodes.lower().endswith('.gz') else open
 mode = 'rt' if args.barcodes.lower().endswith('.gz') else 'r'
+bc_mem_data = []
 with opener(args.barcodes, mode) as bc_file:
     for line in bc_file:
         try:
@@ -110,38 +104,29 @@ with opener(args.barcodes, mode) as bc_file:
         if not set(ATCG).issubset(nucleotides):
             sys.stderr.write(f"Invalid barcode format: {ATCG}. Barcodes must be captial letters and only contain standard nucleotide values ATCG.\n")
             sys.exit(1)
-        
-        insert_key_value(bc_db, ATCG, ACBD)
-        lengths.add(len(ATCG))
-    if len(lengths) > 1:
-        sys.stderr.write("Can only search sequences for barcodes of a single length, but multiple barcode legnths detected: " + ",".join([str(i) for i in lengths]))
-    else:
-        bc_len = lengths.pop()
+        bc_mem_data.append((ATCG, ACBD))
+        if bc_len and len(ATCG) != bc_len:
+            sys.stderr.write("Can only search sequences for barcodes of a single length, but multiple barcode legnths detected.")
+            sys.exit(1)
+        else:
+            bc_len = len(ATCG)
+
+store_bc_as_sql(bc_db, bc_mem_data)
+# flush this list out of memory b/c it's already stored in the sql table
+del bc_mem_data
 
 # simultaneously iterate the forward and reverse fastq files
-with gzip.open(args.forward, "r") as fw_i, gzip.open(args.reverse, "r") as rv_i,\
-    gzip.open(f"{args.prefix}.R1.fq.gz", "wb", 6) as fw_out,\
-    gzip.open(f"{args.prefix}.R2.fq.gz", "wb", 6) as rv_out:
-    record_F = []
-    record_R = []
-    for fw_record, rv_record in zip_longest(fw_i, rv_i):
-        try:
-            record_F.append(fw_record.decode().rstrip("\n"))
-        except AttributeError:
-            # if the file ends before the other one
-            pass
-        try:
-            record_R.append(rv_record.decode().rstrip("\n"))
-        except AttributeError:
-            pass
-        # sanity checks
-        if len(record_F) == 4 or len(record_R) == 4:
-            new_fw, new_rv = process_record(record_F, record_R, bc_db, bc_len)
-            if new_fw:
-                fw_out.write(new_fw.encode("utf-8"))
-                record_F = []
-            if new_rv:
-                rv_out.write(new_rv.encode("utf-8"))
-                record_R = []
+with (
+    pysam.FastxFile(args.forward) as fw,
+    pysam.FastxFile(args.reverse) as rv,
+    gzip.open(f"{args.prefix}.R1.fq.gz", "wb", 6) as fw_out,
+    gzip.open(f"{args.prefix}.R2.fq.gz", "wb", 6) as rv_out,
+):
+    for fw_record, rv_record in zip_longest(fw, rv):
+        new_fw, new_rv = process_record(fw_record, rv_record, bc_db, bc_len)
+        if new_fw:
+            fw_out.write(new_fw.encode("utf-8"))
+        if new_rv:
+            rv_out.write(new_rv.encode("utf-8"))
 
 bc_db.cursor().close()
