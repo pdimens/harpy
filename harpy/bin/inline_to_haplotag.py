@@ -1,5 +1,5 @@
 #! /usr/bin/env python
-"""Convert inline barcodes into haplotag style ones"""
+"""Convert inline barcodes into haplotag style ones. Assumes reads are properly paired."""
 import os
 import sys
 import gzip
