@@ -169,7 +169,7 @@ rule demultiplex_barcodes:
     container:
         None
     shell:
-        "inline_to_haplotag.py -f {input.fw} -r {input.rv} -b {input.barcodes} -p {params} 2> {log}"
+        "inline_to_haplotag.py -b {input.barcodes} -p {params} {input.fw} {input.rv} 2> {log}"
 
 rule workflow_summary:
     default_target: True
@@ -202,7 +202,7 @@ rule workflow_summary:
         haplosim += f"\tHaploSim.pl -g genome1,genome2 -a dwgsimreads1,dwgsimreads2 -l {params.lrbc_len} -p {params.lrsproj_dir}/linked_molecules/lrsim -b BARCODES -i {params.lrsoutdist} -s {params.lrsdist_sd} -x {params.lrsn_pairs} -f {params.lrsmol_len} -t {params.lrsparts} -m {params.lrsmols_per} -z THREADS {params.lrsstatic}"
         summary.append(haplosim)
         bxconvert = "Inline barcodes were converted in haplotag BX:Z tags using:\n"
-        bxconvert += "\tinline_to_haplotag.py -f <forward.fq.gz> -r <reverse.fq.gz> -b <barcodes.txt> -p <prefix>"
+        bxconvert += "\tinline_to_haplotag.py -b <barcodes.txt> -p <prefix> forward.fq.gz reverse.fq.gz"
         summary.append(bxconvert)
         sm = "The Snakemake workflow was called via command line:\n"
         sm += f"\t{config['workflow_call']}"
