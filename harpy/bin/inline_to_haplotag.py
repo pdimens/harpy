@@ -54,7 +54,7 @@ def get_value_by_key(conn, key):
 
 def process_record(fw_rec, rv_rec, barcode_database, bc_len):
     """convert the barcode to haplotag"""
-    if fw_rec:
+    if fw_rec and fw_rec.sequence > bc_len:
         bc_inline = fw_rec.sequence[:bc_len]
         bc_hap = get_value_by_key(barcode_database, bc_inline)
         fw_rec.comment = fw_rec.comment.split()[0] + f"\tOX:Z:{bc_inline}\tBX:Z:{bc_hap}"
