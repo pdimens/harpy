@@ -15,8 +15,8 @@ parser = argparse.ArgumentParser(
     )
 parser.add_argument("-p", "--prefix", required = True, type = str, help = "Prefix for outfile files (e.g. <prefix>.R1.fq.gz)")
 parser.add_argument("-b", "--barcodes", required = True, type=str, help="Barcode conversion key file with format: ATCG<tab>ACBD")
-parser.add_argument("forward", required = True, type = str, help = "Forward reads of paired-end FASTQ file pair (gzipped)")
-parser.add_argument("reverse", required = True, type = str, help = "Reverse reads of paired-end FASTQ file pair (gzipped)")
+parser.add_argument("forward", type = str, help = "Forward reads of paired-end FASTQ file pair (gzipped)")
+parser.add_argument("reverse", type = str, help = "Reverse reads of paired-end FASTQ file pair (gzipped)")
 if len(sys.argv) == 1:
     parser.print_help(sys.stderr)
     sys.exit(1)
