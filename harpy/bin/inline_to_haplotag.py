@@ -130,3 +130,4 @@ with (
             rv_out.write(new_rv.encode("utf-8"))
 
 bc_db.cursor().close()
+
