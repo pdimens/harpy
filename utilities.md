@@ -123,9 +123,15 @@ and you can use the optional `-f` (`--fail`) argument to output FAIL variants to
 
 ### inline_to_haplotag.py
 ```bash
-inline_to_haplotag.py -f <forward.fq.gz> -r <reverse.fq.gz> -b <barcodes.txt> -p <prefix> > barcodes.conversion.txt
+inline_to_haplotag.py -b <barcodes.txt> -p <prefix> forward.fq.gz reverse.fq.gz
 ```
-Converts inline nucleotide barcodes in reads to haplotag linked reads with barcodes in `BX:Z` and `OX:Z` header tags.
+Converts inline nucleotide barcodes in reads to haplotag linked reads with barcodes in `BX:Z` and `OX:Z` header tags. The `barcodes.txt` file
+can be gzipped and must be in the form of nucleotide-barcode _TAB_ haplotagging-barcode. Example:
+
+``` barcodes.txt
+ATTACACATA    A01C03B57D31
+AGGACACATA    A11C83B77D29
+```
 
 ### leviathan_bx_shim.py
 ```bash
