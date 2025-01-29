@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="turbo-root" content="/harpy">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="3.6.0.791482036286">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="3.6.0.791483117968">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 3.6.0">
@@ -32,12 +32,12 @@
     <script data-cfasync="false">(function () { var el = document.documentElement, m = localStorage.getItem("doc_theme"), wm = window.matchMedia; if (m === "dark" || (!m && wm && wm("(prefers-color-scheme: dark)").matches)) { el.classList.add("dark") } else { el.classList.remove("dark") } })();</script>
 
     <link href="../static/favicon.png" rel="icon">
-    <link href="../resources/css/retype.css?v=3.6.0.791482036286" rel="stylesheet">
+    <link href="../resources/css/retype.css?v=3.6.0.791483117968" rel="stylesheet">
 
-    <script data-cfasync="false" src="../resources/js/config.js?v=3.6.0.791482036286" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../resources/js/config.js?v=3.6.0.791483117968" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../resources/js/retype.js?v=3.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../resources/js/lunr.js?v=3.6.0.791482036286" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../resources/js/prism.js?v=3.6.0.791482036286" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../resources/js/lunr.js?v=3.6.0.791483117968" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../resources/js/prism.js?v=3.6.0.791483117968" defer></script>
     <link href="../resources/css/katex.css?v=3.6.0" rel="stylesheet">
     <script id="katex-js" data-cfasync="false" src="../resources/js/katex.js?v=3.6.0" defer></script>
 </head>
@@ -473,9 +473,15 @@ and you can use the optional <code v-pre>-f</code> (<code v-pre>--fail</code>) a
     </h3>
 </doc-anchor-target>
 <div class="codeblock-wrapper"><doc-codeblock>
-<pre class="language-bash"><code v-pre class="language-bash">inline_to_haplotag.py -f &lt;forward.fq.gz&gt; -r &lt;reverse.fq.gz&gt; -b &lt;barcodes.txt&gt; -p &lt;prefix&gt; &gt; barcodes.conversion.txt</code></pre>
+<pre class="language-bash"><code v-pre class="language-bash">inline_to_haplotag.py -b &lt;barcodes.txt&gt; -p &lt;prefix&gt; forward.fq.gz reverse.fq.gz</code></pre>
 </doc-codeblock></div>
-<p>Converts inline nucleotide barcodes in reads to haplotag linked reads with barcodes in <code v-pre>BX:Z</code> and <code v-pre>OX:Z</code> header tags.</p>
+<p>Converts inline nucleotide barcodes in reads to haplotag linked reads with barcodes in <code v-pre>BX:Z</code> and <code v-pre>OX:Z</code> header tags. The <code v-pre>barcodes.txt</code> file
+can be gzipped and must be in the form of nucleotide-barcode <em>TAB</em> haplotagging-barcode. Example:</p>
+<div class="codeblock-wrapper"><doc-codeblock>
+<div class="codeblock-title">barcodes.txt</div>
+<pre class="language-none"><code v-pre class="language-none">ATTACACATA    A01C03B57D31
+AGGACACATA    A11C83B77D29</code></pre>
+</doc-codeblock></div>
 <doc-anchor-target id="leviathan_bx_shimpy">
     <h3>
         <doc-anchor-trigger class="header-anchor-trigger" to="#leviathan_bx_shimpy">#</doc-anchor-trigger>
