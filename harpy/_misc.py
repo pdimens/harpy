@@ -108,3 +108,12 @@ def gzip_file(infile):
         with open(infile, 'rb') as f_in, gzip.open(infile + '.gz', 'wb', 6) as f_out:
             shutil.copyfileobj(f_in, f_out)
         os.remove(infile)
+
+def safe_read(file_path):
+    """returns the proper file opener for reading if a file_path is gzipped"""
+    try:
+        with gzip.open(file_path, 'rt') as f:
+            f.read(10)
+        return gzip.open(file_path, 'rt')
+    except gzip.BadGzipFile:
+        return open(file_path, 'r')
