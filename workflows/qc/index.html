@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="turbo-root" content="/harpy">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="3.6.0.790799653300">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="3.6.0.791482036286">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 3.6.0">
@@ -34,12 +34,12 @@
     <script data-cfasync="false">(function () { var el = document.documentElement, m = localStorage.getItem("doc_theme"), wm = window.matchMedia; if (m === "dark" || (!m && wm && wm("(prefers-color-scheme: dark)").matches)) { el.classList.add("dark") } else { el.classList.remove("dark") } })();</script>
 
     <link href="../../static/favicon.png" rel="icon">
-    <link href="../../resources/css/retype.css?v=3.6.0.790799653300" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=3.6.0.791482036286" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=3.6.0.790799653300" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=3.6.0.791482036286" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=3.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=3.6.0.790799653300" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=3.6.0.790799653300" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=3.6.0.791482036286" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=3.6.0.791482036286" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=3.6.0" defer></script>
 </head>
 <body>
@@ -475,6 +475,16 @@ AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA</code></pre>
 </ul>
 </li>
 </ul>
+<doc-panel id="trimming-to-different-lengths" collapsed>
+    <template #title>Trimming to different lengths</template>
+<p>In the event you need the forward and reverse reads trimmed down to different read lengths, this can be achieved by
+setting <code v-pre>-m</code> (<code v-pre>--max-length</code>) to the length you want the <strong>forward</strong> reads trimmed down to (e.g. <code v-pre>-m 125</code>), then specify an extra
+<code v-pre>fastp</code> parameter with <code v-pre>-x &quot;--max_len2 VAL&quot;</code> to set the maximum length of the <strong>reverse</strong> reads to <code v-pre>VAL</code>, e.g. <code v-pre>-x &quot;--max_len2 130&quot;</code>.
+In practice that would look like:</p>
+<div class="codeblock-wrapper"><doc-codeblock>
+<pre class="language-bash"><code v-pre class="language-bash">harpy qc -m 150 -x &quot;--max_len2 125&quot; -a data/fastq/</code></pre>
+</doc-codeblock></div>
+</doc-panel>
 <hr>
 <doc-anchor-target id="qc-workflow">
     <h2>
