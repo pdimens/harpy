@@ -11,7 +11,7 @@ from rich import print as rprint
 from rich.table import Table
 import rich_click as click
 from ._printing import print_error, print_notice, print_solution, print_solution_with_culprits
-from ._misc import harpy_progressbar
+from ._misc import harpy_progressbar, safe_read
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 # logic to properly refresh progress bar for jupyter sessions
@@ -303,9 +303,7 @@ def validate_regions(regioninput, genome):
         # check if the region is in the genome
 
         contigs = {}
-        opener = gzip.open if is_gzip(genome) else open
-        mode = "rt" if is_gzip(genome) else "r"
-        with opener(genome, mode) as fopen:
+        with safe_read(genome) as fopen:
             for line in fopen:
                 if line.startswith(">"):
                     cn = line.rstrip("\n").lstrip(">").split()[0]
@@ -355,17 +353,11 @@ def validate_regions(regioninput, genome):
 def check_fasta(genofile):
     """perform validations on fasta file for extensions and file contents"""
     # validate fasta file contents
-    try:
-        opener = gzip.open if is_gzip(genofile) else open
-    except:
-        print_error("incorrect file format", f"The file must be plain-text or b/gzipped, but failed to be recognized as either. Please check that [blue]{genofile}[/blue] is indeed a fasta file.")
-        sys.exit(1)
-    mode = "rt" if is_gzip(genofile) else "r"
     line_num = 0
     seq_id = 0
     seq = 0
     last_header = False
-    with opener(genofile, mode) as fasta:
+    with safe_read(genofile) as fasta:
         for line in fasta:
             line_num += 1
             if line.startswith(">"):
@@ -406,8 +398,7 @@ def check_fasta(genofile):
 def fasta_contig_match(contigs, fasta):
     """Checks whether a list of contigs are present in a fasta file"""
     valid_contigs = []
-    opener = gzip.open if is_gzip(fasta) else open
-    with opener(fasta, "rt") as gen_open:
+    with safe_read(fasta) as gen_open:
         for line in gen_open:
             if not line.startswith(">"):
                 continue
@@ -431,11 +422,7 @@ def validate_fastq_bx(fastq_list, threads, quiet):
     def validate(fastq):
         BX = False
         BC = False
-        if is_gzip(fastq):
-            fq = gzip.open(fastq, "rt")
-        else:
-            fq = open(fastq, "r")
-        with fq:
+        with safe_read(fastq) as fq:
             for line in fq:
                 if not line.startswith("@"):
                     continue
