@@ -57,6 +57,15 @@ By default, this workflow will only quality-trim the sequences. You can also opt
     >polyA
     AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
     ```
+==- Trimming to different lengths
+In the event you need the forward and reverse reads trimmed down to different read lengths, this can be achieved by
+setting `-m` (`--max-length`) to the length you want the **forward** reads trimmed down to (e.g. `-m 125`), then specify an extra
+`fastp` parameter with `-x "--max_len2 VAL"` to set the maximum length of the **reverse** reads to `VAL`, e.g. `-x "--max_len2 130"`.
+In practice that would look like:
+```bash
+harpy qc -m 150 -x "--max_len2 125" -a data/fastq/
+```
+===
 
 ---
 ## :icon-git-pull-request: QC Workflow
