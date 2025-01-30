@@ -98,7 +98,7 @@ rule demultiplex_samples:
         None
     shell:
         """
-        ( zgrep -A3 "A..{params}B..D" {input} | grep -v "^--$" | gzip -q > {output} ) || touch {output}
+        ( zgrep -A3 "BX:Z:A..{params}B..D" {input} | grep -v "^--$" | gzip -q > {output} ) || touch {output}
         """
 
 rule assess_quality:
