@@ -340,7 +340,7 @@ def strobe(inputs, output_dir, genome, read_length, keep_unmapped, depth_window,
         sys.exit(0)
 
     start_text = workflow_info(
-        ("Samples:",sample_count)
+        ("Samples:",sample_count),
         ("Genome:", genome),
         ("Output Folder:", output_dir + "/"),
         ("Workflow Log:", sm_log.replace(f"{output_dir}/", "") + "[dim].gz")
