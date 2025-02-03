@@ -32,6 +32,11 @@ def create_conda_recipes(outdir: str, envs: list=None) -> None:
             "bioconda::samtools",
             "bioconda::tigmint"
         ],
+        "demultiplex": [
+            "bioconda::pheniqs",
+            "bioconda::pysam",
+            "conda-forge::python-levenshtein"
+        ],
         "metassembly": [
             "bioconda::athena_meta=1.2"
         ],

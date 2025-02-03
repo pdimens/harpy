@@ -3,14 +3,10 @@ containerized: "docker://pdimens/harpy:latest"
 import os
 import logging
 
-R1 = config["inputs"]["R1"]
-R2 = config["inputs"]["R2"]
-I1 = config["inputs"]["I1"]
-I2 = config["inputs"]["I2"]
-samplefile = config["inputs"]["demultiplex_schema"]
-skip_reports = config["reports"]["skip"]
 outdir = config["output_directory"]
 envdir = os.path.join(os.getcwd(), outdir, "workflow", "envs")
+samplefile = config["inputs"]["demultiplex_schema"]
+skip_reports = config["reports"]["skip"]
 
 onstart:
     logger.logger.addHandler(logging.FileHandler(config["snakemake_log"]))
@@ -26,80 +22,51 @@ def barcodedict(smpl):
     d = {}
     with open(smpl, "r") as f:
         for i in f.readlines():
-            # a casual way to ignore empty lines or lines with >2 fields
+            # a casual way to ignore empty lines or lines with !=2 fields
             try:
                 smpl, bc = i.split()
                 d[smpl] = bc
-            except:
+            except ValueError:
                 continue
     return d
 
 samples = barcodedict(samplefile)
 samplenames = [i for i in samples.keys()]
 
-rule link_R1:
-    input:
-        R1
-    output:
-        temp(outdir + "/DATA_R1_001.fastq.gz")
-    container:
-        None
-    shell:
-        "ln -sr {input} {output}"
-
-use rule link_R1 as link_R2 with:
-    input: R2
-    output: temp(outdir + "/DATA_R2_001.fastq.gz")
-
-use rule link_R1 as link_I1 with:
-    input: I1
-    output: temp(outdir + "/DATA_I1_001.fastq.gz")
-
-use rule link_R1 as link_I2 with:
-    input: I2
-    output: temp(outdir + "/DATA_I2_001.fastq.gz")
-
 rule barcode_segments:
     output:
-        temp(collect(outdir + "/BC_{letter}.txt", letter = ["A","C","B","D"]))
+        temp(collect(outdir + "/workflow/segment_{letter}.bc", letter = ["A","C","B","D"]))
     params:
-        outdir
+        f"{outdir}/workflow"
     container:
         None
     shell:
         "haplotag_acbd.py {params}"
 
-rule demultiplex_barcodes:
+rule demultiplex:
     input:
-        collect(outdir + "/DATA_{IR}{ext}_001.fastq.gz", IR = ["R","I"], ext = [1,2]),
-        collect(outdir + "/BC_{letter}.txt", letter = ["A","C","B","D"])
+        R1 = config["inputs"]["R1"],
+        R2 = config["inputs"]["R2"],
+        I1 = config["inputs"]["I1"],
+        I2 = config["inputs"]["I2"],
+        schema = config["inputs"]["demultiplex_schema"],
+        segment_a = f"{outdir}/workflow/segment_A.bc",
+        segment_b = f"{outdir}/workflow/segment_B.bc",
+        segment_c = f"{outdir}/workflow/segment_C.bc",
+        segment_d = f"{outdir}/workflow/segment_D.bc",
     output:
-        temp(collect(outdir + "/demux_R{ext}_001.fastq.gz", ext = [1,2]))
+        fw = collect(outdir + "/{sample}.R1.fq.gz", sample = samplenames),
+        rv = collect(outdir + "/{sample}.R2.fq.gz", sample = samplenames),
+        valid = f"{outdir}/logs/valid_barcodes.log",
+        invalid = f"{outdir}/logs/invalid_barcodes.log"
+    log:
+        f"{outdir}/logs/demultiplex.log"
     params:
-        outdir
-    container:
-        None
-    shell:
-        """
-        cd {params}
-        demuxGen1 DATA_ demux
-        mv demux*BC.log logs
-        """
-
-rule demultiplex_samples:
-    priority: 100
-    input:
-        outdir + "/demux_R{FR}_001.fastq.gz"
-    output:
-        outdir + "/{sample}.R{FR}.fq.gz"
-    params:
-        c_barcode = lambda wc: samples[wc.get("sample")]
-    container:
-        None
-    shell:
-        """
-        ( zgrep -A3 "BX:Z:A..{params}B..D" {input} | grep -v "^--$" | gzip -q > {output} ) || touch {output}
-        """
+        outdir = outdir
+    conda:
+        f"{envdir}/demultiplex.yaml"
+    script:
+        "scripts/demultiplex_gen1.py"
 
 rule assess_quality:
     input:
@@ -110,8 +77,6 @@ rule assess_quality:
         outdir + "/logs/{sample}.R{FR}.qc.log"
     params:
         f"{outdir}/reports/data"
-    threads:
-        1
     conda:
         f"{envdir}/qc.yaml"
     shell:
@@ -177,15 +142,20 @@ rule workflow_summary:
     input:
         fq = collect(outdir + "/{sample}.R{FR}.fq.gz", sample = samplenames, FR = [1,2]),
         reports = outdir + "/reports/demultiplex.QA.html" if not skip_reports else []
+    params:
+        R1 = config["inputs"]["R1"],
+        R2 = config["inputs"]["R2"],
+        I1 = config["inputs"]["I1"],
+        I2 = config["inputs"]["I2"]
     run:
         os.makedirs(f"{outdir}/workflow/", exist_ok= True)
         summary = ["The harpy demultiplex workflow ran using these parameters:"]
         summary.append("Haplotag technology: Generation I")
         inputs = "The multiplexed input files:\n"
-        inputs += f"\tread 1: {R1}\n"
-        inputs += f"\tread 2: {R2}\n"
-        inputs += f"\tindex 1: {I1}\n"
-        inputs += f"\tindex 2: {I2}"
+        inputs += f"\tread 1: {params.R1}\n"
+        inputs += f"\tread 2: {params.R2}\n"
+        inputs += f"\tindex 1: {params.I1}\n"
+        inputs += f"\tindex 2: {params.I2}"
         summary.append(inputs)
         demux = "Barcodes were moved into the read headers using the command:\n"
         demux += "\tdemuxGen1 DATA_ demux"
