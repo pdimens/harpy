@@ -101,7 +101,7 @@ def print_onerror(logfile):
     console.print(f"The workflow stopped because of an error. Full workflow log:\n[bold]{logfile}[/bold]")
     console.rule("[bold]Where Error Occurred", style = "red")
 
-def workflow_info(*arg):
+def workflow_info(*arg: tuple[str, str | int | float]) -> Table:
     """
     Accepts an unlimited number of length-2 lists or tuples and returns a rich.Table with the value of the first indices as the row names and the second indices as the values
     Use None instead of a list to ignore that entry (useful for conditionals). The second value will always be converted to a string.

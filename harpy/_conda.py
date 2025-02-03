@@ -34,7 +34,7 @@ def create_conda_recipes(outdir: str, envs: list=None) -> None:
         ],
         "demultiplex": [
             "bioconda::pheniqs",
-            "bioconda::pysam",
+            "bioconda::pysam=0.22",
             "conda-forge::python-levenshtein"
         ],
         "metassembly": [

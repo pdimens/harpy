@@ -257,17 +257,32 @@ def validate_popsamples(infiles, popfile, quiet):
 
 def validate_demuxschema(infile):
     """Validate the file format of the demultiplex schema"""
-    with open(infile, "r", encoding="utf-8") as f:
-        rows = [i for i in f.readlines() if i != "\n" and not i.lstrip().startswith("#")]
-        invalids = [(i,j) for i,j in enumerate(rows) if len(j.split()) < 2]
-        if invalids:
-            print_error(f"invalid format", "There are [bold]{len(invalids)}[/bold] rows in [blue]{infile}[/blue] without a space/tab delimiter or don't have two entries for sample[dim]<tab>[/dim]barcode. Terminating Harpy to avoid downstream errors.")
-            print_solution_with_culprits(
-                f"Make sure every entry in [blue]{infile}[/blue] uses space or tab delimeters and has both a sample name and barcode designation. You may comment out rows with a [green]#[/green] to have Harpy ignore them.",
-                "The rows and values causing this error are:"
-                )
-            _ = [click.echo(f"{i[0]+1}\t{i[1]}", file = sys.stderr) for i in invalids]
-            sys.exit(1)
+    code_letters = set() #codes can be Axx, Bxx, Cxx, Dxx
+    segment_ids = set()
+    with open(infile, 'r') as file:
+        for line in file:
+            try:
+                sample, segment_id = line.rstrip().split()
+                code_letters.add(segment_id[0])
+                if segment_id in segment_ids:
+                    print_error("An ID segment must only be associated with a single sample.")
+                    print_solution_with_culprits(
+                        "A barcode segment can only be associated with a single sample. For example, [green]C05[/green] cannot not be the segment that identifies both [blue]sample_01[/blue] and [blue]sample_2[/blue].",
+                        "The segment triggering this error is:"
+                        )
+                    click.echo(segment_id)
+                    sys.exit(1)
+                else:
+                    segment_id.add(seg_id)
+            except ValueError:
+                # skip rows without two columns
+                continue
+    if not code_letters:
+        print_error("incorrect schema format", f"Schema file {os.path.basename(infile)} has no valid rows. Rows should be sample<tab>segment, e.g. sample_01<tab>C75")
+        sys.exit(1)
+    if len(code_letters) > 1:
+        print("invalid schema", f"Schema file {os.path.basename(file_path)} has sample IDs expected to be indentified across multiple barcode segments. All sample IDs for this technology should be in a single segment, such as [bold green]C[/bold green] or [bold green]D[/bold green].")
+        sys.exit(1)
 
 def validate_regions(regioninput, genome):
     """validates the --regions input of harpy snp to infer whether it's an integer, region, or file"""

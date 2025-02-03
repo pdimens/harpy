@@ -139,7 +139,7 @@ def bwa(inputs, output_dir, genome, depth_window, threads, keep_unmapped, extra_
     if setup_only:
         sys.exit(0)
 
-    start_text = (
+    start_text = workflow_info(
         ("Samples:",sample_count),
         ("Genome:", genome),
         ("Output Folder:", output_dir + "/"),

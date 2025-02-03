@@ -14,7 +14,8 @@ def read_barcodes(file_path, segment):
             try:
                 code, seq = line.rstrip().split()
                 if code[0].upper() != segment:
-                    parser.error(f"Segments in {file_path} are expected to begin with {segment}, but begin with {code[0].upper()}")
+                    sys.stderr.write(f"Segments in {file_path} are expected to begin with {segment}, but begin with {code[0].upper()}\n")
+                    sys.exit(1)
                 data_dict[seq] = code
             except ValueError:
                 # skip rows without two columns
