@@ -3,14 +3,13 @@
 import os
 import sys
 import yaml
-from rich import box
-from rich.table import Table
 import rich_click as click
 from ._cli_types_generic import HPCProfile, SnakemakeParams
 from ._conda import create_conda_recipes
 from ._launch import launch_snakemake, SNAKEMAKE_CMD
 from ._misc import fetch_rule, fetch_report, snakemake_log
 from ._parsers import parse_alignment_inputs, parse_fastq_inputs
+from ._printing import workflow_info
 
 @click.group(options_metavar='', context_settings={"help_option_names" : ["-h", "--help"]})
 def preflight():
@@ -91,12 +90,11 @@ def bam(inputs, output_dir, threads, snakemake, quiet, hpc, container, setup_onl
     if setup_only:
         sys.exit(0)
 
-    start_text = Table(show_header=False,pad_edge=False, show_edge=False, padding = (0,0), box=box.SIMPLE)
-    start_text.add_column("detail", justify="left", style="light_steel_blue", no_wrap=True)
-    start_text.add_column(header="value", justify="left")
-    start_text.add_row("Alignment Files:", f"{n}")
-    start_text.add_row("Output Folder:", output_dir + "/")
-    start_text.add_row("Workflow Log:", sm_log.replace(f"{output_dir}/", "") + "[dim].gz")
+    start_text = workflow_info(
+        ("Alignment Files:", n),
+        ("Output Folder:", output_dir + "/"),
+        ("Workflow Log:", sm_log.replace(f"{output_dir}/", "") + "[dim].gz")
+    )
     launch_snakemake(command, "preflight_bam", start_text, output_dir, sm_log, quiet, "workflow/preflight.bam.summary")
 
 @click.command(no_args_is_help = True, context_settings=dict(allow_interspersed_args=False), epilog = "Documentation: https://pdimens.github.io/harpy/workflows/preflight/")
@@ -154,12 +152,11 @@ def fastq(inputs, output_dir, threads, snakemake, quiet, hpc, container, setup_o
     if setup_only:
         sys.exit(0)
 
-    start_text = Table(show_header=False,pad_edge=False, show_edge=False, padding = (0,0), box=box.SIMPLE)
-    start_text.add_column("detail", justify="left", style="light_steel_blue", no_wrap=True)
-    start_text.add_column("value", justify="left")
-    start_text.add_row("FASTQ Files:", f"{n}")
-    start_text.add_row("Output Folder:", output_dir + "/")
-    start_text.add_row("Workflow Log:", sm_log.replace(f"{output_dir}/", "") + "[dim].gz")
+    start_text = workflow_info(
+        ("FASTQ Files:", n),
+        ("Output Folder:", output_dir + "/"),
+        ("Workflow Log:", sm_log.replace(f"{output_dir}/", "") + "[dim].gz")
+    )
     launch_snakemake(command, "preflight_fastq", start_text, output_dir, sm_log, quiet, "workflow/preflight.fastq.summary")
 
 preflight.add_command(bam)

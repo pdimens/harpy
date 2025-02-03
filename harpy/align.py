@@ -4,8 +4,6 @@ import os
 import sys
 import yaml
 from pathlib import Path
-from rich import box
-from rich.table import Table
 import rich_click as click
 from ._conda import create_conda_recipes
 from ._misc import fetch_report, fetch_rule, snakemake_log
@@ -13,7 +11,7 @@ from ._cli_types_generic import  ContigList, InputFile, HPCProfile, SnakemakePar
 from ._cli_types_params import BwaParams, EmaParams, StrobeAlignParams
 from ._launch import launch_snakemake, SNAKEMAKE_CMD
 from ._parsers import parse_fastq_inputs
-from ._printing import print_error, print_solution, print_notice
+from ._printing import print_error, print_solution, print_notice, workflow_info
 from ._validations import check_fasta, fasta_contig_match, validate_barcodefile
 
 @click.group(options_metavar='', context_settings={"help_option_names" : ["-h", "--help"]})
@@ -141,13 +139,12 @@ def bwa(inputs, output_dir, genome, depth_window, threads, keep_unmapped, extra_
     if setup_only:
         sys.exit(0)
 
-    start_text = Table(show_header=False,pad_edge=False, show_edge=False, padding = (0,0), box=box.SIMPLE)
-    start_text.add_column("detail", justify="left", style="light_steel_blue", no_wrap=True)
-    start_text.add_column("value", justify="left")
-    start_text.add_row("Samples:", f"{sample_count}")
-    start_text.add_row("Genome:", genome)
-    start_text.add_row("Output Folder:", output_dir + "/")
-    start_text.add_row("Workflow Log:", sm_log.replace(f"{output_dir}/", "") + "[dim].gz")
+    start_text = (
+        ("Samples:",sample_count),
+        ("Genome:", genome),
+        ("Output Folder:", output_dir + "/"),
+        ("Workflow Log:", sm_log.replace(f"{output_dir}/", "") + "[dim].gz")
+    )
     launch_snakemake(command, "align_bwa", start_text, output_dir, sm_log, quiet, "workflow/align.bwa.summary")
 
 @click.command(no_args_is_help = True, context_settings=dict(allow_interspersed_args=False), epilog = "Documentation: https://pdimens.github.io/harpy/workflows/align/ema")
@@ -251,14 +248,13 @@ def ema(inputs, output_dir, platform, barcode_list, fragment_density, genome, de
     if setup_only:
         sys.exit(0)
 
-    start_text = Table(show_header=False,pad_edge=False, show_edge=False, padding = (0,0), box=box.SIMPLE)
-    start_text.add_column("detail", justify="left", style="light_steel_blue", no_wrap=True)
-    start_text.add_column("value", justify="left")
-    start_text.add_row("Samples:", f"{sample_count}")
-    start_text.add_row("Genome:", genome)
-    start_text.add_row("Platform:", platform)
-    start_text.add_row("Output Folder:", output_dir + "/")
-    start_text.add_row("Workflow Log:", sm_log.replace(f"{output_dir}/", "") + "[dim].gz")
+    start_text = workflow_info(
+        ("Samples:",sample_count),
+        ("Genome:", genome),
+        ("Platform:", platform),
+        ("Output Folder:", output_dir + "/"),
+        ("Workflow Log:", sm_log.replace(f"{output_dir}/", "") + "[dim].gz")
+    )
     launch_snakemake(command, "align_ema", start_text, output_dir, sm_log, quiet, "workflow/align.ema.summary")
 
 @click.command(no_args_is_help = True, epilog= "Documentation: https://pdimens.github.io/harpy/workflows/align/strobe/")
@@ -343,13 +339,12 @@ def strobe(inputs, output_dir, genome, read_length, keep_unmapped, depth_window,
     if setup_only:
         sys.exit(0)
 
-    start_text = Table(show_header=False,pad_edge=False, show_edge=False, padding = (0,0), box=box.SIMPLE)
-    start_text.add_column("detail", justify="left", style="light_steel_blue", no_wrap=True)
-    start_text.add_column("value", justify="left")
-    start_text.add_row("Samples:", f"{sample_count}")
-    start_text.add_row("Genome:", genome)
-    start_text.add_row("Output Folder:", output_dir + "/")
-    start_text.add_row("Workflow Log:", sm_log.replace(f"{output_dir}/", "") + "[dim].gz")
+    start_text = workflow_info(
+        ("Samples:",sample_count)
+        ("Genome:", genome),
+        ("Output Folder:", output_dir + "/"),
+        ("Workflow Log:", sm_log.replace(f"{output_dir}/", "") + "[dim].gz")
+    )
     launch_snakemake(command, "align_strobe", start_text, output_dir, sm_log, quiet, "workflow/align.strobealign.summary")
 
 align.add_command(bwa)

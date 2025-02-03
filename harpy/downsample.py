@@ -4,13 +4,12 @@ import os
 import re
 import sys
 import yaml
-from rich import box
 from pathlib import Path
-from rich.table import Table
 import rich_click as click
 from ._cli_types_generic import SnakemakeParams
 from ._launch import launch_snakemake, SNAKEMAKE_CMD
 from ._misc import fetch_rule, snakemake_log
+from ._printing import workflow_info
 
 docstring = {
     "harpy downsample": [
@@ -94,11 +93,10 @@ def downsample(input, invalid, output_dir, prefix, downsample, random_seed, setu
     if setup_only:
         sys.exit(0)
 
-    start_text = Table(show_header=False,pad_edge=False, show_edge=False, padding = (0,0), box=box.SIMPLE)
-    start_text.add_column("detail", justify="left", style="light_steel_blue", no_wrap=True)
-    start_text.add_column("value", justify="left")
-    start_text.add_row("Output Folder:", output_dir + "/")
-    start_text.add_row("Downsample to:", f"{downsample} barcodes")
-    start_text.add_row("Invalid Proportion:", f"{invalid}")
-    start_text.add_row("Workflow Log:", sm_log.replace(f"{output_dir}/", "") + "[dim].gz")
+    start_text = workflow_info(
+        ("Output Folder:", output_dir + "/"),
+        ("Downsample to:", f"{downsample} barcodes"),
+        ("Invalid Proportion:", invalid),
+        ("Workflow Log:", sm_log.replace(f"{output_dir}/", "") + "[dim].gz")
+    )
     launch_snakemake(command, workflow, start_text, output_dir, sm_log, quiet, f"workflow/{workflow}.summary")

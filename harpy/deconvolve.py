@@ -3,14 +3,13 @@
 import os
 import sys
 import yaml
-from rich import box
-from rich.table import Table
 import rich_click as click
 from ._cli_types_generic import HPCProfile, SnakemakeParams
 from ._conda import create_conda_recipes
 from ._launch import launch_snakemake, SNAKEMAKE_CMD
 from ._misc import fetch_rule, snakemake_log
 from ._parsers import parse_fastq_inputs
+from ._printing import workflow_info
 
 docstring = {
     "harpy deconvolve": [
@@ -84,10 +83,9 @@ def deconvolve(inputs, output_dir, kmer_length, window_size, density, dropout, t
     if setup_only:
         sys.exit(0)
 
-    start_text = Table(show_header=False,pad_edge=False, show_edge=False, padding = (0,0), box=box.SIMPLE)
-    start_text.add_column("detail", justify="left", style="light_steel_blue", no_wrap=True)
-    start_text.add_column("value", justify="left")
-    start_text.add_row("Samples:", f"{sample_count}")
-    start_text.add_row("Output Folder:", output_dir + "/")
-    start_text.add_row("Workflow Log:", sm_log.replace(f"{output_dir}/", "") + "[dim].gz")
+    start_text = workflow_info(
+        ("Samples:", sample_count),
+        ("Output Folder:", output_dir + "/"),
+        ("Workflow Log:", sm_log.replace(f"{output_dir}/", "") + "[dim].gz")
+    )
     launch_snakemake(command, "deconvolve", start_text, output_dir, sm_log, quiet, "workflow/deconvolve.summary")

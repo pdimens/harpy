@@ -3,8 +3,6 @@
 import os
 import sys
 import yaml
-from rich import box
-from rich.table import Table
 import rich_click as click
 from ._conda import create_conda_recipes
 from ._launch import launch_snakemake, SNAKEMAKE_CMD
@@ -12,6 +10,7 @@ from ._misc import fetch_rule, fetch_report, snakemake_log
 from ._cli_types_generic import ContigList, HPCProfile, InputFile, SnakemakeParams
 from ._cli_types_params import HapCutParams
 from ._parsers import parse_alignment_inputs
+from ._printing import workflow_info
 from ._validations import check_fasta, vcf_sample_match, validate_bam_RG, vcf_contig_match
 
 docstring = {
@@ -109,15 +108,13 @@ def phase(inputs, output_dir, vcf, threads, molecule_distance, prune_threshold, 
     if setup_only:
         sys.exit(0)
 
-    start_text = Table(show_header=False,pad_edge=False, show_edge=False, padding = (0,0), box=box.SIMPLE)
-    start_text.add_column("detail", justify="left", style="light_steel_blue", no_wrap=True)
-    start_text.add_column("value", justify="left")
-    start_text.add_row("Input VCF:", vcf)
-    start_text.add_row("Samples in VCF:", f"{len(samplenames)}")
-    start_text.add_row("Alignment Files:", f"{n}")
-    start_text.add_row("Phase Indels:", "yes" if genome else "no")
-    if genome:
-        start_text.add_row("Genome:", genome)
-    start_text.add_row("Output Folder:", output_dir + "/")
-    start_text.add_row("Workflow Log:", sm_log.replace(f"{output_dir}/", "") + "[dim].gz")
+    start_text = workflow_info(
+        ("Input VCF:", vcf),
+        ("Samples in VCF:", len(samplenames)),
+        ("Alignment Files:", n),
+        ("Phase Indels:", "yes" if genome else "no"),
+        ("Genome:", genome) if genome else None,
+        ("Output Folder:", output_dir + "/"),
+        ("Workflow Log:", sm_log.replace(f"{output_dir}/", "") + "[dim].gz")
+    )
     launch_snakemake(command, "phase", start_text, output_dir, sm_log, quiet, "workflow/phase.summary")

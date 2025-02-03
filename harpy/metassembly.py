@@ -3,14 +3,13 @@
 import os
 import sys
 import yaml
-from rich import box
-from rich.table import Table
 import rich_click as click
 from ._conda import create_conda_recipes
 from ._launch import launch_snakemake, SNAKEMAKE_CMD
 from ._misc import fetch_rule, snakemake_log
 from ._cli_types_generic import HPCProfile, KParam, SnakemakeParams
 from ._cli_types_params import SpadesParams
+from ._printing import workflow_info
 from ._validations import validate_fastq_bx
 
 docstring = {
@@ -99,14 +98,10 @@ def metassembly(fastq_r1, fastq_r2, bx_tag, kmer_length, max_memory, ignore_bx, 
     if setup_only:
         sys.exit(0)
 
-    start_text = Table(show_header=False,pad_edge=False, show_edge=False, padding = (0,0), box=box.SIMPLE)
-    start_text.add_column("detail", justify="left", style="light_steel_blue", no_wrap=True)
-    start_text.add_column("value", justify="left")
-    start_text.add_row("Barcode Tag: ", bx_tag.upper())
-    if kmer_length == "auto":
-        start_text.add_row("Kmer Length: ", "auto")
-    else:
-        start_text.add_row("Kmer Length: ", ",".join(map(str,kmer_length)))
-    start_text.add_row("Output Folder:", f"{output_dir}/")
-    start_text.add_row("Workflow Log:", sm_log.replace(f"{output_dir}/", "") + "[dim].gz")
+    start_text = workflow_info(
+        ("Barcode Tag: ", bx_tag.upper()),
+        ("Kmer Length: ", "auto") if kmer_length == "auto" else ("Kmer Length: ", ",".join(map(str,kmer_length)))
+        ("Output Folder:", f"{output_dir}/"),
+        ("Workflow Log:", sm_log.replace(f"{output_dir}/", "") + "[dim].gz")
+    )
     launch_snakemake(command, "metassembly", start_text, output_dir, sm_log, quiet, f"workflow/metassembly.summary")
