@@ -107,8 +107,8 @@ with open(snakemake.log[0], "w") as f:
     samples = list(set(samples_dict.values()))
     samples.append("unknown_data")
     #create an array of files (one per sample) for writing
-    R1_output = {sample: gzip.open(f"{outdir}/{sample}.R1.fastq.gz", 'wb', compresslevel = 6) for sample in samples}
-    R2_output = {sample: gzip.open(f"{outdir}/{sample}.R2.fastq.gz", 'wb', compresslevel = 6) for sample in samples}
+    R1_output = {sample: gzip.open(f"{outdir}/{sample}.R1.fq.gz", 'wb', compresslevel = 6) for sample in samples}
+    R2_output = {sample: gzip.open(f"{outdir}/{sample}.R2.fq.gz", 'wb', compresslevel = 6) for sample in samples}
 
     segments = {'A':'', 'B':'', 'C':'', 'D':''}
     unclear_read_map={}

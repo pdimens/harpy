@@ -77,6 +77,8 @@ rule assess_quality:
         outdir + "/logs/{sample}.R{FR}.qc.log"
     params:
         f"{outdir}/reports/data"
+    threads:
+        1
     conda:
         f"{envdir}/qc.yaml"
     shell:
@@ -150,19 +152,19 @@ rule workflow_summary:
     run:
         os.makedirs(f"{outdir}/workflow/", exist_ok= True)
         summary = ["The harpy demultiplex workflow ran using these parameters:"]
-        summary.append("Haplotag technology: Generation I")
+        summary.append("Linked Read Barcode Design: Generation I")
         inputs = "The multiplexed input files:\n"
         inputs += f"\tread 1: {params.R1}\n"
         inputs += f"\tread 2: {params.R2}\n"
         inputs += f"\tindex 1: {params.I1}\n"
         inputs += f"\tindex 2: {params.I2}"
+        inputs += f"Sample demultiplexing schema: {samplefile}"
         summary.append(inputs)
-        demux = "Barcodes were moved into the read headers using the command:\n"
-        demux += "\tdemuxGen1 DATA_ demux"
+        demux = "Samples were demultiplexed using:\n"
+        demux += "\tworkflow/scripts/demultiplex_gen1.py"
         summary.append(demux)
-        summary.append(f"The delimited file associating CXX barcodes with samplenames: {samplefile}")
         qc = "QC checks were performed on demultiplexed FASTQ files using:\n"
-        qc += "\tfastp -pQLAG --stdout -i R1.fq -I R2.fq > /dev/null"
+        qc += "\tfalco -skip-report -skip-summary -data-filename output input.fq.gz"
         summary.append(qc)
         sm = "The Snakemake workflow was called via command line:\n"
         sm += f"\t{config['workflow_call']}"
