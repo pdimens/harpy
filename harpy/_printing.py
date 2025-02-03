@@ -110,6 +110,6 @@ def workflow_info(*arg):
     table.add_column("detail", justify="left", style="light_steel_blue", no_wrap=True)
     table.add_column("value", justify="left")
     for i in arg:
-        if arg:
+        if i:
             table.add_row(i[0], str(i[1]))
     return table
