@@ -2,8 +2,8 @@
 
 import os
 import sys
-import gzip
-import zlib
+#import gzip
+#import zlib
 import pysam
 from Levenshtein import distance
 
@@ -105,8 +105,8 @@ with open(snakemake.log[0], "w") as f:
     samples = list(set(samples_dict.values()))
     samples.append("unidentified_data")
     #create an array of files (one per sample) for writing
-    R1_output = {sample: open(f"{outdir}/{sample}.R1.fq.gz", 'wb') for sample in samples}
-    R2_output = {sample: open(f"{outdir}/{sample}.R2.fq.gz", 'wb') for sample in samples}
+    R1_output = {sample: open(f"{outdir}/{sample}.R1.fq", 'w') for sample in samples}
+    R2_output = {sample: open(f"{outdir}/{sample}.R2.fq", 'w') for sample in samples}
 
     segments = {'A':'', 'B':'', 'C':'', 'D':''}
     unclear_read_map={}
@@ -135,8 +135,8 @@ with open(snakemake.log[0], "w") as f:
                 bc_tags = [f"BX:Z:{BX_code}"]
             r1_rec.comment += "\t" + "\t".join(bc_tags)
             r2_rec.comment += "\t" + "\t".join(bc_tags)
-            R1_output[sample_name].write(zlib.compress(f"{r1_rec}\n".encode("utf-8")))
-            R2_output[sample_name].write(zlib.compress(f"{r2_rec}\n".encode("utf-8")))
+            R1_output[sample_name].write(f"{r1_rec}\n")
+            R2_output[sample_name].write(f"{r2_rec}\n")
 
             if (statusR1 == "unclear" or statusR2 == "unclear"):
                 if BX_code in unclear_read_map:

@@ -35,7 +35,7 @@ samplenames = [i for i in samples.keys()]
 
 rule barcode_segments:
     output:
-        temp(collect(outdir + "/workflow/segment_{letter}.bc", letter = ["A","C","B","D"]))
+        collect(outdir + "/workflow/segment_{letter}.bc", letter = ["A","C","B","D"])
     params:
         f"{outdir}/workflow"
     container:
@@ -53,10 +53,10 @@ rule demultiplex:
         segment_a = f"{outdir}/workflow/segment_A.bc",
         segment_b = f"{outdir}/workflow/segment_B.bc",
         segment_c = f"{outdir}/workflow/segment_C.bc",
-        segment_d = f"{outdir}/workflow/segment_D.bc",
+        segment_d = f"{outdir}/workflow/segment_D.bc"
     output:
-        fw = collect(outdir + "/{sample}.R1.fq.gz", sample = samplenames),
-        rv = collect(outdir + "/{sample}.R2.fq.gz", sample = samplenames),
+        fw = temp(collect(outdir + "/{sample}.R1.fq", sample = samplenames)),
+        rv = temp(collect(outdir + "/{sample}.R2.fq", sample = samplenames)),
         valid = f"{outdir}/logs/valid_barcodes.log",
         invalid = f"{outdir}/logs/invalid_barcodes.log"
     log:
@@ -68,6 +68,18 @@ rule demultiplex:
         f"{envdir}/demultiplex.yaml"
     script:
         "scripts/demultiplex_gen1.py"
+
+rule compress_fastq:
+    input:
+        outdir + "/{sample}.R{FR}.fq"
+    output:
+        outdir + "/{sample}.R{FR}.fq.gz"
+    params:
+        barcode = lambda wc: samples[wc.get("sample")]
+    container:
+        None
+    shell:
+        "gzip {input}"
 
 rule assess_quality:
     input:
