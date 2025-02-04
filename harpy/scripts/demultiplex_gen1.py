@@ -2,8 +2,6 @@
 
 import os
 import sys
-#import gzip
-#import zlib
 import pysam
 from Levenshtein import distance
 
@@ -123,18 +121,13 @@ with open(snakemake.log[0], "w") as f:
             segments['A'], segments['C'], statusR1 = get_read_codes(i1_rec.sequence, "C", "A")
             segments['B'], segments['D'], statusR2 = get_read_codes(i2_rec.sequence, "D", "B")
             BX_code = segments['A'] + segments['C'] + segments['B']+ segments['D']
+            bc_tags = f"BX:Z:{BX_code}"
+            if qxrx:
+                bc_tags = f"RX:Z:{i1_rec.sequence}+{i2_rec.sequence}\tQX:Z:{i1_rec.quality}+{i2_rec.quality}\t{bc_tags}"
+            r1_rec.comment += "\t{bc_tags}"
+            r2_rec.comment += "\t{bc_tags}"
             # search sample name
             sample_name = samples_dict.get(segments[id_letter], "unidentified_data")
-            if qxrx:
-                bc_tags = [
-                    f"RX:Z:{i1_rec.sequence}+{i2_rec.sequence}",
-                    f"QX:Z:{i1_rec.quality}+{i2_rec.quality}",
-                    f"BX:Z:{BX_code}"
-                ]
-            else:
-                bc_tags = [f"BX:Z:{BX_code}"]
-            r1_rec.comment += "\t" + "\t".join(bc_tags)
-            r2_rec.comment += "\t" + "\t".join(bc_tags)
             R1_output[sample_name].write(f"{r1_rec}\n")
             R2_output[sample_name].write(f"{r2_rec}\n")
 
