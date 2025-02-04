@@ -281,7 +281,7 @@ def validate_demuxschema(infile):
         print_error("incorrect schema format", f"Schema file {os.path.basename(infile)} has no valid rows. Rows should be sample<tab>segment, e.g. sample_01<tab>C75")
         sys.exit(1)
     if len(code_letters) > 1:
-        print("invalid schema", f"Schema file {os.path.basename(file_path)} has sample IDs expected to be indentified across multiple barcode segments. All sample IDs for this technology should be in a single segment, such as [bold green]C[/bold green] or [bold green]D[/bold green].")
+        print("invalid schema", f"Schema file {os.path.basename(file_path)} has sample IDs expected to be identified across multiple barcode segments. All sample IDs for this technology should be in a single segment, such as [bold green]C[/bold green] or [bold green]D[/bold green].")
         sys.exit(1)
 
 def validate_regions(regioninput, genome):

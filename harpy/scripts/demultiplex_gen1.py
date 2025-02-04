@@ -27,7 +27,8 @@ def read_schema(file_path):
     # one sample can have more than one code
     # {segment : sample}
     data_dict = {}
-    code_letters = set() #codes can be Axx, Bxx, Cxx, Dxx
+    # codes can be Axx, Bxx, Cxx, Dxx
+    code_letters = set()
     with open(file_path, 'r') as file:
         for line in file:
             try:
@@ -37,12 +38,6 @@ def read_schema(file_path):
             except ValueError:
                 # skip rows without two columns
                 continue
-    if not code_letters:
-        print(f"Schema file {os.path.basename(file_path)} has no valid rows for demultiplexing. Rows should be sample<tab>segment, e.g. sample_01<tab>C75")
-        sys.exit(1)
-    if len(code_letters) > 1:
-        print(f"Schema file {os.path.basename(file_path)} has sample IDs in more than one linked-read segment. All sample IDs should be in a single segment, such as C or D")
-        sys.exit(1)
     id_letter = code_letters.pop()
     return id_letter, data_dict
 
