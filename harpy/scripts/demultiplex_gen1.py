@@ -3,6 +3,7 @@
 import os
 import sys
 import gzip
+import zlib
 import pysam
 from Levenshtein import distance
 
@@ -60,7 +61,7 @@ def get_min_dist(needle, code_letter):
     return code_min_dist
 
 def get_read_codes(I, codeL, codeR):
-  left  = I[0:6] # change depending on protocol
+  left  = I[0:6] # protocol-dependant
   right = I[7:]
   status = "found"
   if left in bar_codes[codeL]:
@@ -82,6 +83,7 @@ def get_read_codes(I, codeL, codeR):
 with open(snakemake.log[0], "w") as f:
     sys.stderr = sys.stdout = f
     outdir = snakemake.params.outdir
+    qxrx = snakemake.params.qxrx
     schema = snakemake.input.schema
     r1 = snakemake.input.R1
     r2 = snakemake.input.R2
@@ -101,10 +103,10 @@ with open(snakemake.log[0], "w") as f:
     #read schema
     id_letter, samples_dict = read_schema(schema)
     samples = list(set(samples_dict.values()))
-    samples.append("unknown_data")
+    samples.append("unidentified_data")
     #create an array of files (one per sample) for writing
-    R1_output = {sample: gzip.open(f"{outdir}/{sample}.R1.fq.gz", 'wb', compresslevel = 6) for sample in samples}
-    R2_output = {sample: gzip.open(f"{outdir}/{sample}.R2.fq.gz", 'wb', compresslevel = 6) for sample in samples}
+    R1_output = {sample: open(f"{outdir}/{sample}.R1.fq.gz", 'wb') for sample in samples}
+    R2_output = {sample: open(f"{outdir}/{sample}.R2.fq.gz", 'wb') for sample in samples}
 
     segments = {'A':'', 'B':'', 'C':'', 'D':''}
     unclear_read_map={}
@@ -122,16 +124,19 @@ with open(snakemake.log[0], "w") as f:
             segments['B'], segments['D'], statusR2 = get_read_codes(i2_rec.sequence, "D", "B")
             BX_code = segments['A'] + segments['C'] + segments['B']+ segments['D']
             # search sample name
-            sample_name = samples_dict.get(segments[id_letter], "unknown_data")
-            bc_tags = [
-                f"RX:Z:{i1_rec.sequence}+{i2_rec.sequence}",
-                f"QX:Z:{i1_rec.quality}+{i2_rec.quality}",
-                f"BX:Z:{BX_code}"
-            ]
+            sample_name = samples_dict.get(segments[id_letter], "unidentified_data")
+            if qxrx:
+                bc_tags = [
+                    f"RX:Z:{i1_rec.sequence}+{i2_rec.sequence}",
+                    f"QX:Z:{i1_rec.quality}+{i2_rec.quality}",
+                    f"BX:Z:{BX_code}"
+                ]
+            else:
+                bc_tags = [f"BX:Z:{BX_code}"]
             r1_rec.comment += "\t" + "\t".join(bc_tags)
             r2_rec.comment += "\t" + "\t".join(bc_tags)
-            R1_output[sample_name].write(f"{r1_rec}\n".encode("utf-8"))
-            R2_output[sample_name].write(f"{r2_rec}\n".encode("utf-8"))
+            R1_output[sample_name].write(zlib.compress(f"{r1_rec}\n".encode("utf-8")))
+            R2_output[sample_name].write(zlib.compress(f"{r2_rec}\n".encode("utf-8")))
 
             if (statusR1 == "unclear" or statusR2 == "unclear"):
                 if BX_code in unclear_read_map:

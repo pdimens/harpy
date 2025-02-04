@@ -62,6 +62,7 @@ rule demultiplex:
     log:
         f"{outdir}/logs/demultiplex.log"
     params:
+        qxrx = config["include_qx_rx_tags"],
         outdir = outdir
     conda:
         f"{envdir}/demultiplex.yaml"
