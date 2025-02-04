@@ -265,15 +265,15 @@ def validate_demuxschema(infile):
                 sample, segment_id = line.rstrip().split()
                 code_letters.add(segment_id[0])
                 if segment_id in segment_ids:
-                    print_error("An ID segment must only be associated with a single sample.")
+                    print_error("ambiguous segment ID", "An ID segment must only be associated with a single sample.")
                     print_solution_with_culprits(
-                        "A barcode segment can only be associated with a single sample. For example, [green]C05[/green] cannot not be the segment that identifies both [blue]sample_01[/blue] and [blue]sample_2[/blue].",
+                        "A barcode segment can only be associated with a single sample. For example: [green bold]C05[/green bold] cannot identify both [green]sample_01[/green] and [green]sample_2[/green]. In other words, a segment can only appear once.",
                         "The segment triggering this error is:"
                         )
                     click.echo(segment_id)
                     sys.exit(1)
                 else:
-                    segment_id.add(seg_id)
+                    segment_ids.add(segment_id)
             except ValueError:
                 # skip rows without two columns
                 continue
