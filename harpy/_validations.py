@@ -259,10 +259,15 @@ def validate_demuxschema(infile):
     """Validate the file format of the demultiplex schema"""
     code_letters = set() #codes can be Axx, Bxx, Cxx, Dxx
     segment_ids = set()
+    segment_pattern = re.compile(r'^[A-D]\d+$')
     with open(infile, 'r') as file:
         for line in file:
             try:
                 sample, segment_id = line.rstrip().split()
+                if not segment_pattern.match(segment_id):
+                    print_error("invalid segment format", f"Segment ID '{segment_id}' does not follow the expected format.")
+                    print_solution("This haplotagging design expects segments to follow the format of letter [green bold]A-D[/green bold] followed by [bold]two digits[/bold], e.g. [green bold]C51[/green bold]). Check that your ID segments or formatted correctly and that you are attempting to demultiplex with a workflow appropriate for your data design.")
+                    sys.exit(1)
                 code_letters.add(segment_id[0])
                 if segment_id in segment_ids:
                     print_error("ambiguous segment ID", "An ID segment must only be associated with a single sample.")
@@ -281,7 +286,7 @@ def validate_demuxschema(infile):
         print_error("incorrect schema format", f"Schema file {os.path.basename(infile)} has no valid rows. Rows should be sample<tab>segment, e.g. sample_01<tab>C75")
         sys.exit(1)
     if len(code_letters) > 1:
-        print("invalid schema", f"Schema file {os.path.basename(file_path)} has sample IDs expected to be identified across multiple barcode segments. All sample IDs for this technology should be in a single segment, such as [bold green]C[/bold green] or [bold green]D[/bold green].")
+        print("invalid schema", f"Schema file {os.path.basename(infile)} has sample IDs expected to be identified across multiple barcode segments. All sample IDs for this technology should be in a single segment, such as [bold green]C[/bold green] or [bold green]D[/bold green].")
         sys.exit(1)
 
 def validate_regions(regioninput, genome):
