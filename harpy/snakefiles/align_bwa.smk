@@ -136,22 +136,12 @@ rule mark_duplicates:
         rm -rf {params.tmpdir}
         """
 
-rule index_duplicates:
-    input:
-        outdir + "/samples/{sample}/{sample}.markdup.bam"
-    output:
-        temp(outdir + "/samples/{sample}/{sample}.markdup.bam.bai")
-    container:
-        None
-    shell:
-        "samtools index {input}"
-
 rule assign_molecules:
     priority: 100
     input:
         bam = outdir + "/samples/{sample}/{sample}.markdup.bam",
-        bai = outdir + "/samples/{sample}/{sample}.markdup.bam.bai"
     output:
+        markdupbai = temp(outdir + "/samples/{sample}/{sample}.markdup.bam.bai"),
         bam = outdir + "/{sample}.bam",
         bai = outdir + "/{sample}.bam.bai"
     params:
