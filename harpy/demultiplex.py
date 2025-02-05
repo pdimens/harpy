@@ -4,13 +4,12 @@ import os
 import sys
 import yaml
 from pathlib import Path
-from rich import box
-from rich.table import Table
 import rich_click as click
 from ._cli_types_generic import HPCProfile, SnakemakeParams
 from ._conda import create_conda_recipes
 from ._launch import launch_snakemake, SNAKEMAKE_CMD
-from ._misc import fetch_rule, snakemake_log
+from ._misc import fetch_rule, fetch_script, snakemake_log
+from ._printing import workflow_info
 from ._validations import validate_demuxschema
 
 @click.group(options_metavar='', context_settings={"help_option_names" : ["-h", "--help"]})
@@ -29,7 +28,7 @@ docstring = {
     "harpy demultiplex gen1": [
         {
             "name": "Parameters",
-            "options": ["--schema"],
+            "options": ["--qx-rx","--schema"],
         },
         {
             "name": "Workflow Controls",
@@ -42,6 +41,7 @@ docstring = {
 @click.option('-s', '--schema', required = True, type=click.Path(exists=True, dir_okay=False, readable=True), help = 'File of `sample`\\<TAB\\>`barcode`')
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(min = 1, max_open = True), help = 'Number of threads to use')
 @click.option('-o', '--output-dir', type = click.Path(exists = False), default = "Demultiplex", show_default=True,  help = 'Output directory name')
+@click.option('-q', '--qx-rx', is_flag = True, default = False, help = 'Include the `QX:Z` and `RX:Z` tags in the read header')
 @click.option('--container',  is_flag = True, default = False, help = 'Use a container instead of conda')
 @click.option('--setup-only',  is_flag = True, hidden = True, default = False,  help = 'Setup the workflow and exit')
 @click.option('--hpc',  type = HPCProfile(), help = 'Directory with HPC submission `config.yaml` file')
@@ -52,13 +52,15 @@ docstring = {
 @click.argument('R2_FQ', required=True, type=click.Path(exists=True, dir_okay=False, readable=True))
 @click.argument('I1_FQ', required=True, type=click.Path(exists=True, dir_okay=False, readable=True))
 @click.argument('I2_FQ', required=True, type=click.Path(exists=True, dir_okay=False, readable=True))
-def gen1(r1_fq, r2_fq, i1_fq, i2_fq, output_dir, schema, threads, snakemake, skip_reports, quiet, hpc, container, setup_only):
+def gen1(r1_fq, r2_fq, i1_fq, i2_fq, output_dir, schema, qx_rx, threads, snakemake, skip_reports, quiet, hpc, container, setup_only):
     """
     Demultiplex Generation I haplotagged FASTQ files
 
     Use the R1, R2, I2, and I2 FASTQ files provided by the sequencing facility as inputs (in that exact order) provided after the options. 
     The `--schema` must be **tab** (or space) delimited, have **no header** (i.e. no column names), and be in the format of `sample`\\<TAB\\>`barcode`,
-    where `barcode` is the C- beadtag assigned to the sample (.e.g. `C01`, `C02`, etc.)
+    where `barcode` is the barcode segment associated with the sample ID (.e.g. `C01`, `C02`, etc.). Use `--qx-rx` to add the 
+    `QX:Z` (barcode PHRED scores) and `RX:Z` (nucleotide barcode) tags in the sequence headers. These tags aren't used by any
+    subsequent analyses, but may be useful for your own diagnostics. 
     """
     output_dir = output_dir.rstrip("/")
     workflowdir = os.path.join(output_dir, 'workflow')
@@ -74,9 +76,10 @@ def gen1(r1_fq, r2_fq, i1_fq, i2_fq, output_dir, schema, threads, snakemake, ski
     validate_demuxschema(schema)
     os.makedirs(f"{workflowdir}", exist_ok=True)
     fetch_rule(workflowdir, "demultiplex_gen1.smk")
+    fetch_script(workflowdir, "demultiplex_gen1.py")
     os.makedirs(f"{output_dir}/logs/snakemake", exist_ok = True)
     sm_log = snakemake_log(output_dir, "demultiplex_gen1")
-    conda_envs = ["qc"]
+    conda_envs = ["demultiplex", "qc"]
     configs = {
         "workflow" : "demultiplex gen1",
         "snakemake_log" : sm_log,
@@ -86,6 +89,7 @@ def gen1(r1_fq, r2_fq, i1_fq, i2_fq, output_dir, schema, threads, snakemake, ski
         "reports" : {
             "skip": skip_reports
         },
+        "include_qx_rx_tags" : qx_rx, 
         "inputs" : {
             "demultiplex_schema" : Path(schema).resolve().as_posix(),
             "R1": Path(r1_fq).resolve().as_posix(),
@@ -101,13 +105,14 @@ def gen1(r1_fq, r2_fq, i1_fq, i2_fq, output_dir, schema, threads, snakemake, ski
     if setup_only:
         sys.exit(0)
     
-    start_text = Table(show_header=False,pad_edge=False, show_edge=False, padding = (0,0), box=box.SIMPLE)
-    start_text.add_column("detail", justify="left", style="light_steel_blue", no_wrap=True)
-    start_text.add_column("value", justify="left")
-    start_text.add_row("Haplotag Type:", "Generation I")
-    start_text.add_row("Demultiplex Schema:", schema)
-    start_text.add_row("Output Folder:", output_dir + "/")
-    start_text.add_row("Workflow Log:", sm_log.replace(f"{output_dir}/", "") + "[dim].gz")
+    start_text = workflow_info(
+        ("Barcode Design:", "Generation I"),
+        ("Demultiplex Schema:", schema),
+        ("Include QX/RX tags", "Yes" if qx_rx else "No"),
+        ("Output Folder:", output_dir + "/"),
+        ("Workflow Log:", sm_log.replace(f"{output_dir}/", "") + "[dim].gz")
+    )
     launch_snakemake(command, "demultiplex_gen1", start_text, output_dir, sm_log, quiet, "workflow/demux.gen1.summary")
 
 demultiplex.add_command(gen1)
+

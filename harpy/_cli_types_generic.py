@@ -6,14 +6,14 @@ import click
 class IntList(click.ParamType):
     """A class for a click type which accepts an arbitrary number of integers, separated by a comma."""
     name = "int_list"
-    def __init__(self, max_entries):
+    def __init__(self, entries):
         super().__init__()
-        self.max_entries = max_entries
+        self.entries = entries
 
     def convert(self, value, param, ctx):
         try:
             parts = [i.strip() for i in value.split(',')]
-            if len(parts) != self.max_entries:
+            if len(parts) != self.entries:
                 raise ValueError
             for i in parts:
                 try:
@@ -22,7 +22,7 @@ class IntList(click.ParamType):
                     raise ValueError
             return [int(i) for i in parts]
         except ValueError:
-            self.fail(f"{value} is not a valid list of integers. The value should be {self.max_entries} integers separated by a comma.", param, ctx)
+            self.fail(f"{value} is not a valid list of integers. The value should be {self.entries} integers separated by a comma.", param, ctx)
 
 class KParam(click.ParamType):
     """A class for a click type which accepts any number of odd integers separated by a comma, or the word auto."""

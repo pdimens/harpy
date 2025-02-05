@@ -19,6 +19,7 @@ envdir       = os.path.join(os.getcwd(), outdir, "workflow", "envs")
 min_len 	 = config["min_len"]
 max_len 	 = config["max_len"]
 extra 	     = config.get("extra", "") 
+ignore_bx    = config["ignore_bx"]
 trim_adapters = config.get("trim_adapters", None)
 dedup        = config["deduplicate"]
 deconvolve   = config.get("deconvolve", False)
@@ -195,7 +196,7 @@ rule workflow_summary:
     default_target: True
     input:
         fq = collect(outdir + "/{sample}.{FR}.fq.gz", FR = ["R1", "R2"], sample = samplenames),
-        bx_report = outdir + "/reports/barcode.summary.html" if not skip_reports else [],
+        bx_report = outdir + "/reports/barcode.summary.html" if not skip_reports and not ignore_bx else [],
         agg_report = outdir + "/reports/qc.report.html" if not skip_reports else []    
     params:
         minlen = f"--length_required {min_len}",

@@ -24,7 +24,7 @@ samplenames = {Path(i).stem for i in bamlist}
 extra       = config.get("extra", None) 
 mol_dist    = config["molecule_distance"]
 min_quality  = config["min_quality"]
-min_sv      = config["min_sv"]
+min_size      = config["min_size"]
 min_barcodes = config["min_barcodes"]
 plot_contigs = config["reports"]["plot_contigs"]    
 skip_reports = config["reports"]["skip"]
@@ -42,7 +42,7 @@ def process_args(args):
     argsDict = {
         "min_mapq" : min_quality,
         "d"        : mol_dist,
-        "min_sv"   : min_sv,
+        "min_sv"   : min_size,
         "k"        : min_barcodes
     }
     if args:
@@ -75,7 +75,6 @@ rule process_genome:
         None
     shell: 
         "seqtk seq {input} > {output}"
-
 
 rule index_genome:
     input: 

@@ -20,11 +20,15 @@ genomefile 	= config["inputs"]["genome"]
 bamlist     = config["inputs"]["alignments"]
 groupfile 	= config["inputs"]["groupings"]
 extra 		= config.get("extra", "") 
-min_sv      = config["min_sv"]
+min_size      = config["min_size"]
 min_bc      = config["min_barcodes"]
 iterations  = config["iterations"]
+small_thresh = config["variant_thresholds"]["small"]
+medium_thresh = config["variant_thresholds"]["medium"]
+large_thresh = config["variant_thresholds"]["large"]
+duplcates_thresh = config["variant_thresholds"]["duplicates"]
 skip_reports = config["reports"]["skip"]
-plot_contigs = config["reports"]["plot_contigs"]    
+plot_contigs = config["reports"]["plot_contigs"]
 bn 			= os.path.basename(genomefile)
 if bn.lower().endswith(".gz"):
     bn = bn[:-3]
@@ -160,9 +164,13 @@ rule call_variants:
     log:  
         runlog = outdir + "/logs/leviathan/{population}.leviathan.log",
     params:
-        min_sv = f"-v {min_sv}",
+        min_size = f"-v {min_size}",
         min_bc = f"-c {min_bc}",
         iters  = f"-B {iterations}",
+        small  = f"-s {small_thresh}",
+        medium  = f"-m {medium_thresh}",
+        large  = f"-l {large_thresh}",
+        dupes  = f"-d {duplcates_thresh}",
         extra = extra
     threads:
         workflow.cores - 1
@@ -294,7 +302,7 @@ rule workflow_summary:
         reports = collect(outdir + "/reports/{pop}.leviathan.html", pop = populations) if not skip_reports else [],
         agg_report = outdir + "/reports/leviathan.summary.html" if not skip_reports else []
     params:
-        min_sv = f"-v {min_sv}",
+        min_size = f"-v {min_size}",
         min_bc = f"-c {min_bc}",
         iters  = f"-B {iterations}",
         extra = extra

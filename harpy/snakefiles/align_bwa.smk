@@ -18,6 +18,7 @@ envdir      = os.path.join(os.getcwd(), outdir, "workflow", "envs")
 genomefile 	= config["inputs"]["genome"]
 fqlist       = config["inputs"]["fastq"]
 molecule_distance = config["molecule_distance"]
+ignore_bx = config["ignore_bx"]
 keep_unmapped = config["keep_unmapped"]
 extra 		= config.get("extra", "") 
 bn 			= os.path.basename(genomefile)
@@ -116,11 +117,12 @@ rule mark_duplicates:
         genome = f"Genome/{bn}",
         faidx  = f"Genome/{bn_idx}"
     output:
-        temp(outdir + "/samples/{sample}/{sample}.markdup.bam")
+        temp(outdir + "/samples/{sample}/{sample}.markdup.bam") if not ignore_bx else temp(outdir + "/markdup/{sample}.markdup.bam") 
     log:
         outdir + "/logs/markdup/{sample}.markdup.log"
     params: 
-        tmpdir = lambda wc: outdir + "/." + d[wc.sample]
+        tmpdir = lambda wc: outdir + "/." + d[wc.sample],
+        bx_mode = "--barcode-tag BX" if not ignore_bx else ""
     resources:
         mem_mb = 2000
     container:
@@ -132,25 +134,14 @@ rule mark_duplicates:
         samtools collate -O -u {input.sam} |
             samtools fixmate -m -u - - |
             samtools sort -T {params.tmpdir} -u --reference {input.genome} -l 0 -m {resources.mem_mb}M - |
-            samtools markdup -@ {threads} -S --barcode-tag BX -f {log} - {output}
+            samtools markdup -@ {threads} -S {params.bx_mode} -f {log} - {output}
         rm -rf {params.tmpdir}
         """
-
-rule index_duplicates:
-    input:
-        outdir + "/samples/{sample}/{sample}.markdup.bam"
-    output:
-        temp(outdir + "/samples/{sample}/{sample}.markdup.bam.bai")
-    container:
-        None
-    shell:
-        "samtools index {input}"
 
 rule assign_molecules:
     priority: 100
     input:
         bam = outdir + "/samples/{sample}/{sample}.markdup.bam",
-        bai = outdir + "/samples/{sample}/{sample}.markdup.bam.bai"
     output:
         bam = outdir + "/{sample}.bam",
         bai = outdir + "/{sample}.bam.bai"
@@ -238,11 +229,26 @@ rule sample_reports:
         MOLCOV=$(realpath {input.molecule_coverage})
         quarto render {output.qmd} --log {log} --quiet -P bxstats:$BXSTATS -P coverage:$COVFILE -P molcov:$MOLCOV {params}
         """
-   
+
+if ignore_bx:
+    rule index_bam:
+        input:
+            bam = outdir + "/markdup/{sample}.markdup.bam"
+        output:
+            bam = outdir + "/{sample}.bam",
+            bai = outdir + "/{sample}.bam.bai"
+        container:
+            None
+        shell:
+            """
+            mv {input.bam} {output.bam}
+            samtools index {output.bam}
+            """
+
 rule general_stats:
     input:
-        bam      = outdir + "/{sample}.bam",
-        bai      = outdir + "/{sample}.bam.bai"
+        bam = outdir + "/{sample}.bam",
+        bai = outdir + "/{sample}.bam.bai"
     output: 
         stats    = temp(outdir + "/reports/data/samtools_stats/{sample}.stats"),
         flagstat = temp(outdir + "/reports/data/samtools_flagstat/{sample}.flagstat")
@@ -294,12 +300,13 @@ rule workflow_summary:
     default_target: True
     input:
         bams = collect(outdir + "/{sample}.{ext}", sample = samplenames, ext = ["bam", "bam.bai"]),
-        reports = collect(outdir + "/reports/{sample}.html", sample = samplenames) if not skip_reports else [],
-        agg_report = outdir + "/reports/bwa.stats.html" if not skip_reports else [],
-        bx_report = outdir + "/reports/barcode.summary.html" if (not skip_reports or len(samplenames) == 1) else []
+        samtools = outdir + "/reports/bwa.stats.html" if not skip_reports else [],
+        reports = collect(outdir + "/reports/{sample}.html", sample = samplenames) if not skip_reports and not ignore_bx else [],
+        bx_report = outdir + "/reports/barcode.summary.html" if ((not skip_reports and not ignore_bx) or len(samplenames) == 1) else []
     params:
         quality = config["alignment_quality"],
-        unmapped = "" if keep_unmapped else "-F 4",
+        unmapped = "" if keep_unmapped else "-F 4",\
+        bx_mode = "--barcode-tag BX" if not ignore_bx else "",
         extra   = extra
     run:
         summary = ["The harpy align bwa workflow ran using these parameters:"]
@@ -312,7 +319,7 @@ rule workflow_summary:
         duplicates += "\tsamtools collate |\n"
         duplicates += "\tsamtools fixmate |\n"
         duplicates += f"\tsamtools sort -T SAMPLE --reference {genomefile} -m 2000M |\n"
-        duplicates += "\tsamtools markdup -S --barcode-tag BX"
+        duplicates += f"\tsamtools markdup -S {params.bx_mode}"
         summary.append(duplicates)
         sm = "The Snakemake workflow was called via command line:\n"
         sm += f"\t{config['workflow_call']}"

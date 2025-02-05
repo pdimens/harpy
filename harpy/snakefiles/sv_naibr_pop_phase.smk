@@ -26,7 +26,7 @@ groupfile    = config["inputs"]["groupings"]
 vcffile      = config["inputs"]["vcf"]
 vcfindex     = (vcffile + ".csi") if vcffile.lower().endswith("bcf") else (vcffile + ".tbi")
 extra        = config.get("extra", None) 
-min_sv       = config["min_sv"]
+min_size       = config["min_size"]
 min_quality  = config["min_quality"]
 min_barcodes = config["min_barcodes"]
 mol_dist     = config["molecule_distance"]
@@ -39,7 +39,7 @@ def process_args(args):
     argsDict = {
         "min_mapq" : min_quality,
         "d"        : mol_dist,
-        "min_sv"   : min_sv,
+        "min_sv"   : min_size,
         "k"        : min_barcodes
     }
     if args:

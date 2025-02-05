@@ -22,7 +22,7 @@ bamdict     = dict(zip(bamlist, bamlist))
 samplenames = {Path(i).stem for i in bamlist}
 extra       = config.get("extra", None) 
 mol_dist    = config["molecule_distance"]
-min_sv      = config["min_sv"]
+min_size      = config["min_size"]
 min_barcodes = config["min_barcodes"]
 min_quality  = config["min_quality"]
 bn          = os.path.basename(genomefile)
@@ -35,7 +35,7 @@ def process_args(args):
     argsDict = {
         "min_mapq" : min_quality,
         "d"        : mol_dist,
-        "min_sv"   : min_sv,
+        "min_sv"   : min_size,
         "k"        : min_barcodes
     }
     if args:

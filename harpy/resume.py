@@ -4,11 +4,9 @@ import os
 import re
 import sys
 import yaml
-from rich import box
-from rich.table import Table
 import rich_click as click
 from ._conda import check_environments
-from ._printing import print_error
+from ._printing import print_error, workflow_info
 from ._launch import launch_snakemake
 from ._misc import snakemake_log
 from ._conda import create_conda_recipes
@@ -49,11 +47,10 @@ def resume(directory, conda, threads, quiet):
     command = harpy_config["workflow_call"] + f" --config snakemake_log={sm_log}"
     if threads:
         command = re.sub(r"--threads \d+", f"--threads {threads}", command)
-    start_text = Table(show_header=False,pad_edge=False, show_edge=False, padding = (0,0), box=box.SIMPLE)
-    start_text.add_column("detail", justify="left", style="light_steel_blue", no_wrap=True)
-    start_text.add_column(header="value", justify="left")
-    start_text.add_row("Output Folder:", directory + "/")
-    start_text.add_row("Workflow Log:", sm_log.replace(f"{directory}/", "") + "[dim].gz")
+    start_text = workflow_info(
+        ("Output Folder:", directory + "/"),
+        ("Workflow Log:", sm_log.replace(f"{directory}/", "") + "[dim].gz")
+    )
     launch_snakemake(command, workflow, start_text, directory, sm_log, quiet, f'workflow/{workflow.replace("_", ".")}.summary')
 
 

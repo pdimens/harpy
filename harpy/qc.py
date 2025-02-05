@@ -3,8 +3,6 @@
 import os
 import sys
 import yaml
-from rich import box
-from rich.table import Table
 import rich_click as click
 from ._conda import create_conda_recipes
 from ._launch import launch_snakemake, SNAKEMAKE_CMD
@@ -12,6 +10,7 @@ from ._misc import fetch_report, fetch_rule, snakemake_log
 from ._cli_types_generic import HPCProfile, IntList, SnakemakeParams
 from ._cli_types_params import FastpParams
 from ._parsers import parse_fastq_inputs
+from ._printing import workflow_info
 from ._validations import check_fasta
 
 docstring = {
@@ -22,7 +21,7 @@ docstring = {
         },
         {
             "name": "Workflow Controls",
-            "options": ["--container", "--hpc", "--output-dir", "--quiet", "--skip-reports", "--snakemake", "--threads", "--help"],
+            "options": ["--container", "--hpc", "--ignore-bx", "--output-dir", "--quiet", "--skip-reports", "--snakemake", "--threads", "--help"],
         },
     ]
 }
@@ -39,11 +38,12 @@ docstring = {
 @click.option('--container',  is_flag = True, default = False, help = 'Use a container instead of conda')
 @click.option('--setup-only',  is_flag = True, hidden = True, show_default = True, default = False, help = 'Setup the workflow and exit')
 @click.option('--hpc',  type = HPCProfile(), help = 'Directory with HPC submission `config.yaml` file')
+@click.option('--ignore-bx',  is_flag = True, default = False, help = 'Ignore parts of the workflow specific to linked-read sequences')
 @click.option('--quiet',  is_flag = True, default = False, help = 'Don\'t show output text while running')
 @click.option('--skip-reports',  is_flag = True, default = False, help = 'Don\'t generate HTML reports')
 @click.option('--snakemake', type = SnakemakeParams(), help = 'Additional Snakemake parameters, in quotes')
 @click.argument('inputs', required=True, type=click.Path(exists=True, readable=True), nargs=-1)
-def qc(inputs, output_dir, min_length, max_length, trim_adapters, deduplicate, deconvolve, extra_params, threads, snakemake, skip_reports, quiet, hpc, container, setup_only):
+def qc(inputs, output_dir, min_length, max_length, trim_adapters, deduplicate, deconvolve, extra_params, ignore_bx, threads, snakemake, skip_reports, quiet, hpc, container, setup_only):
     """
     Remove adapters and quality-control sequences
 
@@ -93,6 +93,7 @@ def qc(inputs, output_dir, min_length, max_length, trim_adapters, deduplicate, d
         "workflow" : "qc",
         "snakemake_log" : sm_log,
         "output_directory" : output_dir,
+        "ignore_bx" : ignore_bx,
         "trim_adapters" : trim_adapters,
         "deduplicate" : deduplicate,
         "min_len" : min_length,
@@ -115,13 +116,12 @@ def qc(inputs, output_dir, min_length, max_length, trim_adapters, deduplicate, d
     create_conda_recipes(output_dir, conda_envs)
     if setup_only:
         sys.exit(0)
-    start_text = Table(show_header=False,pad_edge=False, show_edge=False, padding = (0,0), box=box.SIMPLE)
-    start_text.add_column("detail", justify="left", style="light_steel_blue", no_wrap=True)
-    start_text.add_column("value", justify="left")
-    start_text.add_row("Samples:", f"{sample_count}")
-    start_text.add_row("Trim Adapters:", "yes" if trim_adapters else "no")
-    start_text.add_row("Deduplicate:", "yes" if deduplicate else "no")
-    start_text.add_row("Deconvolve:", "yes" if sum(deconvolve) > 0 else "no")
-    start_text.add_row("Output Folder:", f"{output_dir}/")
-    start_text.add_row("Workflow Log:", sm_log.replace(f"{output_dir}/", "") + "[dim].gz")
+    start_text = workflow_info(
+        ("Samples:", sample_count),
+        ("Trim Adapters:", "yes" if trim_adapters else "no"),
+        ("Deduplicate:", "yes" if deduplicate else "no"),
+        ("Deconvolve:", "yes" if sum(deconvolve) > 0 else "no"),
+        ("Output Folder:", f"{output_dir}/"),
+        ("Workflow Log:", sm_log.replace(f"{output_dir}/", "") + "[dim].gz")
+    )
     launch_snakemake(command, "qc", start_text, output_dir, sm_log, quiet, "workflow/qc.summary")
