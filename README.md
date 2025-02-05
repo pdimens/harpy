@@ -61,17 +61,28 @@ conda update -c conda-forge bioconda::harpy
 
 ### 🌟 Pixi
 If you prefer [Pixi](https://pixi.sh/latest/) (it's pretty good, you should try it), you can
-install Harpy to be accessible in your PATH-- just make sure `~/.pixi/bin` is in your PATH:
-```
-# ~/.zshrc or ~/.bashrc (or equivalent) 
+install Harpy to be accessible in your PATH:
+
+<details>
+  <summary>🌟 how to install pixi </summary>
+
+```bash
+# install pixi
+curl -fsSL https://pixi.sh/install.sh | bash
+
+# add this to ~/.zshrc or ~/.bashrc (or equivalent) 
 export PATH=~/.pixi/bin:$PATH
 ```
+
+</details>
+
+
 ```bash
 pixi global install -c conda-forge -c bioconda harpy
 ```
 
 <details>
-  <summary>⬇️ install as local environment </summary>
+  <summary>⬇️ install harpy into local environment </summary>
 
 Likewise, you can do an installation into a local project directory:
 

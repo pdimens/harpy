@@ -8,7 +8,7 @@ class IntList(click.ParamType):
     name = "int_list"
     def __init__(self, entries):
         super().__init__()
-        self.max_entries = max_entries
+        self.entries = entries
 
     def convert(self, value, param, ctx):
         try:
