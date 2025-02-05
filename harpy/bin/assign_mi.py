@@ -20,8 +20,7 @@ parser = argparse.ArgumentParser(
     exit_on_error = False
     )
 
-parser.add_argument('-c','--cutoff', type=int, default = 100000, help = "Distance in base pairs at which alignments with the same barcode should be considered different molecules. (default: 100000)")
-#parser.add_argument('-o', '--output', help = "Output bam file. Will also create an index file.")
+parser.add_argument('-c','--cutoff', type=int, default = 100000, help = "Distance in base pairs at which alignments with the same barcode should be considered different molecules. If 0, then alignment distance is ignored. (default: 100000)")
 parser.add_argument('input', help = "Input coordinate-sorted bam/sam file. If bam, a matching index file should be in the same directory.")
 
 if len(sys.argv) == 1:
@@ -175,7 +174,7 @@ with (
         # if the distance between alignments is > cutoff, it's a different molecule
         # so we'll +1 the suffix of the original barcode and relabel this one as
         # BX + suffix. Since it's a new entry, we initialize it and move on
-        if dist > args.cutoff:
+        if args.cutoff > 0 and dist > args.cutoff:
             # increment MI b/c it's a new molecule
             MI += 1
             # increment original barcode's suffix

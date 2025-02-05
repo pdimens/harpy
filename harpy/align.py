@@ -68,7 +68,7 @@ docstring = {
 @click.option('-x', '--extra-params', type = BwaParams(), help = 'Additional bwa mem parameters, in quotes')
 @click.option('-u', '--keep-unmapped',  is_flag = True, default = False, help = 'Retain unmapped sequences in the output')
 @click.option('-q', '--min-quality', default = 30, show_default = True, type = click.IntRange(min = 0, max = 40), help = 'Minimum mapping quality to pass filtering')
-@click.option('-d', '--molecule-distance', default = 100000, show_default = True, type = int, help = 'Distance cutoff to split molecules (bp)')
+@click.option('-d', '--molecule-distance', default = 100000, show_default = True, type = click.IntRange(min = 0, max_open = True), help = 'Distance cutoff to split molecules (bp)')
 @click.option('-o', '--output-dir', type = click.Path(exists = False), default = "Align/bwa", show_default=True,  help = 'Output directory name')
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(min = 4, max_open = True), help = 'Number of threads to use')
 @click.option('--container',  is_flag = True, default = False, help = 'Use a container instead of conda')
@@ -88,7 +88,8 @@ def bwa(inputs, output_dir, genome, depth_window, threads, keep_unmapped, extra_
     
     BWA is a fast, robust, and reliable aligner that does not use barcodes when mapping.
     Harpy will post-processes the alignments using the specified `--molecule-distance`
-    to assign alignments to unique molecules. 
+    to assign alignments to unique molecules. Use `--molecule-distance 0` to ignore
+    alignment distance during molecule assignment.
     """
     output_dir = output_dir.rstrip("/")
     workflowdir = os.path.join(output_dir, 'workflow')
@@ -263,7 +264,7 @@ def ema(inputs, output_dir, platform, barcode_list, fragment_density, genome, de
 @click.option('-x', '--extra-params', type = StrobeAlignParams(), help = 'Additional aligner parameters, in quotes')
 @click.option('-u', '--keep-unmapped',  is_flag = True, default = False, help = 'Retain unmapped sequences in the output')
 @click.option('-q', '--min-quality', default = 30, show_default = True, type = click.IntRange(min = 0, max = 40), help = 'Minimum mapping quality to pass filtering')
-@click.option('-d', '--molecule-distance', default = 100000, show_default = True, type = int, help = 'Distance cutoff to split molecules (bp)')
+@click.option('-d', '--molecule-distance', default = 100000, show_default = True, type = click.IntRange(min = 0, max_open = True), help = 'Distance cutoff to split molecules (bp)')
 @click.option('-o', '--output-dir', type = click.Path(exists = False), default = "Align/strobealign", show_default=True,  help = 'Output directory name')
 @click.option('-l', '--read-length', default = "auto", show_default = True, type = click.Choice(["auto", "50", "75", "100", "125", "150", "250", "400"]), help = 'Average read length for creating index')
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(min = 4, max_open = True), help = 'Number of threads to use')
@@ -284,8 +285,10 @@ def strobe(inputs, output_dir, genome, read_length, keep_unmapped, depth_window,
     
     strobealign is an ultra-fast aligner comparable to bwa for sequences >100bp and does 
     not use barcodes when mapping, so Harpy will post-processes the alignments using the
-    specified `--molecule-distance` to assign alignments to unique molecules. The `--read-length` is
-    an *approximate* parameter and should be one of [`auto`, `50`, `75`, `100`, `125`, `150`, `250`, `400`].
+    specified `--molecule-distance` to assign alignments to unique molecules. Use 
+    `--molecule-distance 0` to ignore alignment distance during molecule assignment.
+    
+    The `--read-length` is an *approximate* parameter and should be one of [`auto`, `50`, `75`, `100`, `125`, `150`, `250`, `400`].
     The alignment process will be faster and take up less disk/RAM if you specify an `-l` value that isn't
     `auto`. If your input has adapters removed, then you should expect the read lengths to be <150.
     """
