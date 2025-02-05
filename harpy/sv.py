@@ -77,9 +77,10 @@ def leviathan(inputs, output_dir, genome, min_size, min_barcodes, iterations, du
     Provide the input alignment (`.bam`) files and/or directories at the end of the command as 
     individual files/folders, using shell wildcards (e.g. `data/drosophila*.bam`), or both.
 
-    Optionally specify `--populations` for population-pooled variant calling. 
-    Use **harpy popgroup** to create a sample grouping file to 
-    use as input for `--populations`.
+    Optionally specify `--populations` for population-pooled variant calling
+    (**harpy popgroup** can create that file). If you suspect Leviathan is missing certain variants
+    you expect to find, try lowering `--sharing-thresholds`, _e.g._ `95,95,95`. The thresholds don't
+    have to be the same across the different size classes.
     """
     output_dir = output_dir.rstrip("/")
     workflowdir = os.path.join(output_dir, 'workflow')
@@ -181,9 +182,7 @@ def naibr(inputs, output_dir, genome, vcf, min_size, min_barcodes, min_quality, 
      as that created by `harpy phase` and Harpy will use [whatshap haplotag](https://whatshap.readthedocs.io/en/latest/guide.html#whatshap-haplotag)
     to phase your input bam files prior to calling variants with NAIBR.
 
-    Optionally specify `--populations` for population-pooled variant calling. 
-    Use **harpy popgroup** to create a sample grouping file to 
-    use as input for `--populations`.
+    Optionally specify `--populations` for population-pooled variant calling (**harpy popgroup** can create that file).
     """
     output_dir = output_dir.rstrip("/")
     workflowdir = os.path.join(output_dir, 'workflow')

@@ -76,9 +76,7 @@ def mpileup(inputs, output_dir, regions, genome, threads, populations, ploidy, e
     that region will be called. If an integer is provided (default), then Harpy will
     call variants in parallel for intervals of that size across the entire genome.
 
-    Optionally specify `--populations` for population-aware variant calling.
-    Use **harpy popgroup** to create a sample grouping file to 
-    use as input for `--populations`. 
+    Optionally specify `--populations` for population-aware variant calling (**harpy popgroup** can create that file).
     """   
     output_dir = output_dir.rstrip("/")
     workflowdir = os.path.join(output_dir, 'workflow')
@@ -180,9 +178,7 @@ def freebayes(inputs, output_dir, genome, threads, populations, ploidy, regions,
     that region will be called. If an integer is provided (default), then Harpy will
     call variants in parallel for intervals of that size across the entire genome.
 
-    Optionally specify `--populations` for population-aware variant calling.
-    Use **harpy popgroup** to create a sample grouping file to 
-    use as input for `--populations`. 
+    Optionally specify `--populations` for population-aware variant calling (**harpy popgroup** can create that file).
     """
     output_dir = output_dir.rstrip("/")
     workflowdir = os.path.join(output_dir, 'workflow')
