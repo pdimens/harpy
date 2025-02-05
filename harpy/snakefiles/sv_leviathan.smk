@@ -20,9 +20,13 @@ genomefile  = config["inputs"]["genome"]
 bamlist     = config["inputs"]["alignments"]
 bamdict     = dict(zip(bamlist,bamlist))
 samplenames = {Path(i).stem for i in bamlist}
-min_sv      = config["min_sv"]
+min_size      = config["min_size"]
 min_bc      = config["min_barcodes"]
 iterations  = config["iterations"]
+small_thresh = config["variant_thresholds"]["small"]
+medium_thresh = config["variant_thresholds"]["medium"]
+large_thresh = config["variant_thresholds"]["large"]
+duplcates_thresh = config["variant_thresholds"]["duplicates"]
 extra       = config.get("extra", "") 
 skip_reports = config["reports"]["skip"]
 plot_contigs = config["reports"]["plot_contigs"]    
@@ -37,35 +41,39 @@ def get_alignments(wildcards):
     aln = list(filter(r.match, bamlist))
     return aln[0]
 
-rule process_alignments:
-    input:
-        get_alignments
-    output:
-        bam = temp(outdir + "/workflow/input/{sample}.bam"),
-        bai = temp(outdir + "/workflow/input/{sample}.bam.bai")
-    log:
-        outdir + "/logs/process_alignments/{sample}.log"
-    container:
-        None
-    shell:
-        """
-        samtools index {input} 2> {log}
-        leviathan_bx_shim.py {input} > {output.bam} 2>> {log}
-        samtools index {output.bam} 2>> {log}
-        """
+#rule process_alignments:
+#    input:
+#        get_alignments
+#    output:
+#        bam = temp(outdir + "/workflow/input/{sample}.bam"),
+#        bai = temp(outdir + "/workflow/input/{sample}.bam.bai")
+#    log:
+#        outdir + "/logs/process_alignments/{sample}.log"
+#    container:
+#        None
+#    shell:
+#        """
+#        samtools index {input} 2> {log}
+#        leviathan_bx_shim.py {input} > {output.bam} 2>> {log}
+#        samtools index {output.bam} 2>> {log}
+#        """
 
 rule index_barcodes:
     input: 
-        bam = outdir + "/workflow/input/{sample}.bam",
-        bai = outdir + "/workflow/input/{sample}.bam.bai"
+        get_alignments
     output:
         temp(outdir + "/lrez_index/{sample}.bci")
+    log:
+        outdir + "/logs/process_alignments/{sample}.log"
     threads:
         min(10, workflow.cores)
     container:
         None
     shell:
-        "LRez index bam --threads {threads} -p -b {input.bam} -o {output}"
+        """
+        samtools index {input} 2> {log}
+        LRez index bam --threads {threads} -p -b {input} -o {output} 2>> {log}
+        """
 
 rule process_genome:
     input:
@@ -103,8 +111,7 @@ rule bwa_index_genome:
 
 rule call_variants:
     input:
-        bam = outdir + "/workflow/input/{sample}.bam",
-        bai = outdir + "/workflow/input/{sample}.bam.bai",
+        bam = get_alignments,
         bc_idx = outdir + "/lrez_index/{sample}.bci",
         genome = f"Genome/{bn}",
         genidx = multiext(f"Genome/{bn}", ".fai", ".ann", ".bwt", ".pac", ".sa", ".amb")
@@ -114,9 +121,13 @@ rule call_variants:
     log:  
         runlog = outdir + "/logs/leviathan/{sample}.leviathan.log"
     params:
-        min_sv = f"-v {min_sv}",
+        min_size = f"-v {min_size}",
         min_bc = f"-c {min_bc}",
         iters  = f"-B {iterations}",
+        small  = f"-s {small_thresh}",
+        medium  = f"-m {medium_thresh}",
+        large  = f"-l {large_thresh}",
+        dupes  = f"-d {duplcates_thresh}",
         extra = extra
     threads:
         workflow.cores - 1
@@ -228,7 +239,7 @@ rule workflow_summary:
         bedpe_agg = collect(outdir + "/{sv}.bedpe", sv = ["inversions", "deletions","duplications", "breakends"]),
         reports = collect(outdir + "/reports/{sample}.leviathan.html", sample = samplenames) if not skip_reports else []
     params:
-        min_sv = f"-v {min_sv}",
+        min_size = f"-v {min_size}",
         min_bc = f"-c {min_bc}",
         iters  = f"-B {iterations}",
         extra = extra

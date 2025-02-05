@@ -5,7 +5,7 @@ import sys
 import yaml
 from pathlib import Path
 import rich_click as click
-from ._cli_types_generic import ContigList, HPCProfile, InputFile, SnakemakeParams
+from ._cli_types_generic import ContigList, HPCProfile, InputFile, IntList, SnakemakeParams
 from ._cli_types_params import LeviathanParams, NaibrParams
 from ._conda import create_conda_recipes
 from ._launch import launch_snakemake, SNAKEMAKE_CMD
@@ -32,7 +32,7 @@ docstring = {
     "harpy sv leviathan": [
         {
             "name": "Parameters",
-            "options": ["--extra-params", "--genome", "--iterations", "--min-barcodes", "--min-size", "--populations"],
+            "options": ["--duplicates", "--extra-params", "--genome", "--iterations", "--min-barcodes", "--min-size", "--populations", "--sharing-thresholds"],
         },
         {
             "name": "Workflow Controls",
@@ -55,7 +55,9 @@ docstring = {
 @click.option('-x', '--extra-params', type = str, help = 'Additional leviathan parameters, in quotes')
 @click.option('-g', '--genome', type=InputFile("fasta", gzip_ok = True), required = True, help = 'Genome assembly for variant calling')
 @click.option('-i', '--iterations', show_default = True, default=50, type = click.IntRange(min = 10, max_open = True), help = 'Number of iterations to perform through index (reduces memory)')
+@click.option('-d', '--duplicates', show_default = True, default=10, type = click.IntRange(min = 1, max_open = True), help = 'Consider SV of the same type as duplicates if their breakpoints are within this distance')
 @click.option('-s', '--min-size', type = click.IntRange(min = 10, max_open = True), default = 1000, show_default=True, help = 'Minimum size of SV to detect')
+@click.option('-r', '--sharing-thresholds', type = IntList(3), default = "99,99,99", show_default=True, help = 'Percentile thresholds in the distributions of the number of shared barcodes for (small,medium,large) variants, separated by commas')
 @click.option('-b', '--min-barcodes', show_default = True, default=2, type = click.IntRange(min = 1, max_open = True), help = 'Minimum number of barcode overlaps supporting candidate SV')
 @click.option('-o', '--output-dir', type = click.Path(exists = False), default = "SV/leviathan", show_default=True,  help = 'Output directory name')
 @click.option('-p', '--populations', type=click.Path(exists = True, dir_okay=False, readable=True), help = 'File of `sample`\\<TAB\\>`population`')
@@ -68,7 +70,7 @@ docstring = {
 @click.option('--skip-reports',  is_flag = True, show_default = True, default = False, help = 'Don\'t generate HTML reports')
 @click.option('--snakemake', type = SnakemakeParams(), help = 'Additional Snakemake parameters, in quotes')
 @click.argument('inputs', required=True, type=click.Path(exists=True, readable=True), nargs=-1)
-def leviathan(inputs, output_dir, genome, min_sv, min_barcodes, iterations, threads, populations, extra_params, snakemake, skip_reports, quiet, hpc, container, contigs, setup_only):
+def leviathan(inputs, output_dir, genome, min_size, min_barcodes, iterations, duplicates, sharing_thresholds, threads, populations, extra_params, snakemake, skip_reports, quiet, hpc, container, contigs, setup_only):
     """
     Call structural variants using LEVIATHAN
     
@@ -110,8 +112,14 @@ def leviathan(inputs, output_dir, genome, min_sv, min_barcodes, iterations, thre
         "snakemake_log" : sm_log,
         "output_directory" : output_dir,
         "min_barcodes" : min_barcodes,
-        "min_sv" : min_sv,
+        "min_size" : min_size,
         "iterations" : iterations,
+        "variant_thresholds": {
+            "small" : sharing_thresholds[0],
+            "medium" : sharing_thresholds[1],
+            "large" : sharing_thresholds[2],
+            "duplicates": duplicates
+        },
         **({'extra': extra_params} if extra_params else {}),
         "workflow_call" : command.rstrip(),
         "conda_environments" : conda_envs,
@@ -160,7 +168,7 @@ def leviathan(inputs, output_dir, genome, min_sv, min_barcodes, iterations, thre
 @click.option('--skip-reports',  is_flag = True, show_default = True, default = False, help = 'Don\'t generate HTML reports')
 @click.option('--snakemake', type = SnakemakeParams(), help = 'Additional Snakemake parameters, in quotes')
 @click.argument('inputs', required=True, type=click.Path(exists=True, readable=True), nargs=-1)
-def naibr(inputs, output_dir, genome, vcf, min_sv, min_barcodes, min_quality, threads, populations, molecule_distance, extra_params, snakemake, skip_reports, quiet, hpc, container, contigs, setup_only):
+def naibr(inputs, output_dir, genome, vcf, min_size, min_barcodes, min_quality, threads, populations, molecule_distance, extra_params, snakemake, skip_reports, quiet, hpc, container, contigs, setup_only):
     """
     Call structural variants using NAIBR
     
@@ -212,7 +220,7 @@ def naibr(inputs, output_dir, genome, vcf, min_sv, min_barcodes, min_quality, th
         "output_directory" : output_dir,
         "min_barcodes" : min_barcodes,
         "min_quality" : min_quality,
-        "min_sv" : min_sv,
+        "min_size" : min_size,
         "molecule_distance" : molecule_distance,
         **({'extra': extra_params} if extra_params else {}),
         "workflow_call" : command.rstrip(),

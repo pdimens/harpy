@@ -21,7 +21,7 @@ genomefile   = config["inputs"]["genome"]
 bamlist      = config["inputs"]["alignments"]
 groupfile    = config["inputs"]["groupings"]
 extra        = config.get("extra", None) 
-min_sv       = config["min_sv"]
+min_size       = config["min_size"]
 min_barcodes = config["min_barcodes"]
 min_quality  = config["min_quality"]
 mol_dist     = config["molecule_distance"]
@@ -35,7 +35,7 @@ def process_args(args):
     argsDict = {
         "min_mapq" : min_quality,
         "d"        : mol_dist,
-        "min_sv"   : min_sv,
+        "min_sv"   : min_size,
         "k"        : min_barcodes
     }
     if args:
