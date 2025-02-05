@@ -93,11 +93,11 @@ with open(snakemake.log[0], "w") as f:
         open(snakemake.output.bx_info, 'w') as BC_log
     ):
         for r1_rec, r2_rec, i1_rec, i2_rec in zip(R1, R2, I1, I2):
-            segments['A'], segments['C'], statusR1 = get_read_codes(i1_rec.sequence, "C", "A")
-            segments['B'], segments['D'], statusR2 = get_read_codes(i2_rec.sequence, "D", "B")
+            segments['A'], segments['C'], R1_status = get_read_codes(i1_rec.sequence, "C", "A")
+            segments['B'], segments['D'], R2_status = get_read_codes(i2_rec.sequence, "D", "B")
             if segments[id_letter] not in id_segments:
                 continue
-            statuses = [status_R1, statusR2]
+            statuses = [R1_status, R2_status]
             BX_code = segments['A'] + segments['C'] + segments['B']+ segments['D']
             bc_tags = f"BX:Z:{BX_code}"
             if qxrx:
@@ -107,6 +107,7 @@ with open(snakemake.log[0], "w") as f:
             R1_out.write(f"{r1_rec}\n")
             R2_out.write(f"{r2_rec}\n")
 
+            # logging barcode identification
             if "unclear" in statuses:
                 if BX_code in unclear_read_map:
                     unclear_read_map[BX_code] += 1
