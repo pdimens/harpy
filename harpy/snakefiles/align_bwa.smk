@@ -122,7 +122,7 @@ rule mark_duplicates:
         outdir + "/logs/markdup/{sample}.markdup.log"
     params: 
         tmpdir = lambda wc: outdir + "/." + d[wc.sample],
-        bx_mode = "--barcode tag BX" if not ignore_bx else ""
+        bx_mode = "--barcode-tag BX" if not ignore_bx else ""
     resources:
         mem_mb = 2000
     container:
@@ -306,7 +306,7 @@ rule workflow_summary:
     params:
         quality = config["alignment_quality"],
         unmapped = "" if keep_unmapped else "-F 4",\
-        bx_mode = "--barcode tag BX" if not ignore_bx else "",
+        bx_mode = "--barcode-tag BX" if not ignore_bx else "",
         extra   = extra
     run:
         summary = ["The harpy align bwa workflow ran using these parameters:"]
