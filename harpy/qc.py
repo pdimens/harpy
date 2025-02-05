@@ -21,7 +21,7 @@ docstring = {
         },
         {
             "name": "Workflow Controls",
-            "options": ["--container", "--hpc", "--output-dir", "--quiet", "--skip-reports", "--snakemake", "--threads", "--help"],
+            "options": ["--container", "--hpc", "--ignore-bx", "--output-dir", "--quiet", "--skip-reports", "--snakemake", "--threads", "--help"],
         },
     ]
 }
@@ -38,11 +38,12 @@ docstring = {
 @click.option('--container',  is_flag = True, default = False, help = 'Use a container instead of conda')
 @click.option('--setup-only',  is_flag = True, hidden = True, show_default = True, default = False, help = 'Setup the workflow and exit')
 @click.option('--hpc',  type = HPCProfile(), help = 'Directory with HPC submission `config.yaml` file')
+@click.option('--ignore-bx',  is_flag = True, default = False, help = 'Ignore parts of the workflow specific to linked-read sequences')
 @click.option('--quiet',  is_flag = True, default = False, help = 'Don\'t show output text while running')
 @click.option('--skip-reports',  is_flag = True, default = False, help = 'Don\'t generate HTML reports')
 @click.option('--snakemake', type = SnakemakeParams(), help = 'Additional Snakemake parameters, in quotes')
 @click.argument('inputs', required=True, type=click.Path(exists=True, readable=True), nargs=-1)
-def qc(inputs, output_dir, min_length, max_length, trim_adapters, deduplicate, deconvolve, extra_params, threads, snakemake, skip_reports, quiet, hpc, container, setup_only):
+def qc(inputs, output_dir, min_length, max_length, trim_adapters, deduplicate, deconvolve, extra_params, ignore_bx, threads, snakemake, skip_reports, quiet, hpc, container, setup_only):
     """
     Remove adapters and quality-control sequences
 
@@ -92,6 +93,7 @@ def qc(inputs, output_dir, min_length, max_length, trim_adapters, deduplicate, d
         "workflow" : "qc",
         "snakemake_log" : sm_log,
         "output_directory" : output_dir,
+        "ignore_bx" : ignore_bx,
         "trim_adapters" : trim_adapters,
         "deduplicate" : deduplicate,
         "min_len" : min_length,
