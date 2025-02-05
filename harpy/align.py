@@ -33,7 +33,7 @@ docstring = {
     "harpy align bwa": [
         {
             "name": "Parameters",
-            "options": ["--extra-params", "--genome", "--keep-unmapped", "--molecule-distance", "--min-quality"],
+            "options": ["--extra-params", "--genome", "--ignore-bx", "--keep-unmapped", "--molecule-distance", "--min-quality"],
         },
         {
             "name": "Workflow Controls",
@@ -53,7 +53,7 @@ docstring = {
     "harpy align strobe": [
         {
             "name": "Parameters",
-            "options": ["--extra-params", "--genome", "--keep-unmapped", "--molecule-distance", "--min-quality", "--read-length"],
+            "options": ["--extra-params", "--genome", "--ignore-bx", "--keep-unmapped", "--molecule-distance", "--min-quality", "--read-length"],
         },
         {
             "name": "Workflow Controls",
@@ -66,6 +66,7 @@ docstring = {
 @click.option('-g', '--genome', type=InputFile("fasta", gzip_ok = True), required = True, help = 'Genome assembly for read mapping')
 @click.option('-w', '--depth-window', default = 50000, show_default = True, type = int, help = 'Interval size (in bp) for depth stats')
 @click.option('-x', '--extra-params', type = BwaParams(), help = 'Additional bwa mem parameters, in quotes')
+@click.option('-i', '--ignore-bx',  is_flag = True, default = False, help = 'Ignore parts of the workflow specific to linked-read sequences')
 @click.option('-u', '--keep-unmapped',  is_flag = True, default = False, help = 'Retain unmapped sequences in the output')
 @click.option('-q', '--min-quality', default = 30, show_default = True, type = click.IntRange(min = 0, max = 40), help = 'Minimum mapping quality to pass filtering')
 @click.option('-d', '--molecule-distance', default = 100000, show_default = True, type = click.IntRange(min = 0, max_open = True), help = 'Distance cutoff to split molecules (bp)')
@@ -79,7 +80,7 @@ docstring = {
 @click.option('--skip-reports',  is_flag = True, show_default = True, default = False, help = 'Don\'t generate HTML reports')
 @click.option('--snakemake', type = SnakemakeParams(), help = 'Additional Snakemake parameters, in quotes')
 @click.argument('inputs', required=True, type=click.Path(exists=True, readable=True), nargs=-1)
-def bwa(inputs, output_dir, genome, depth_window, threads, keep_unmapped, extra_params, min_quality, molecule_distance, snakemake, skip_reports, quiet, hpc, container, contigs, setup_only):
+def bwa(inputs, output_dir, genome, depth_window, ignore_bx, threads, keep_unmapped, extra_params, min_quality, molecule_distance, snakemake, skip_reports, quiet, hpc, container, contigs, setup_only):
     """
     Align sequences to genome using `BWA MEM`
  
@@ -119,8 +120,9 @@ def bwa(inputs, output_dir, genome, depth_window, threads, keep_unmapped, extra_
         "output_directory" : output_dir,
         "alignment_quality" : min_quality,
         "keep_unmapped" : keep_unmapped,
-        "molecule_distance" : molecule_distance,
         "depth_windowsize" : depth_window,
+        "ignore_bx" : ignore_bx,
+        "molecule_distance" : molecule_distance,
         **({'extra': extra_params} if extra_params else {}),
         "workflow_call" : command.rstrip(),
         "conda_environments" : conda_envs,
@@ -262,6 +264,7 @@ def ema(inputs, output_dir, platform, barcode_list, fragment_density, genome, de
 @click.option('-g', '--genome', type=InputFile("fasta", gzip_ok = True), required = True, help = 'Genome assembly for read mapping')
 @click.option('-w', '--depth-window', default = 50000, show_default = True, type = int, help = 'Interval size (in bp) for depth stats')
 @click.option('-x', '--extra-params', type = StrobeAlignParams(), help = 'Additional aligner parameters, in quotes')
+@click.option('-i', '--ignore-bx',  is_flag = True, default = False, help = 'Ignore parts of the workflow specific to linked-read sequences')
 @click.option('-u', '--keep-unmapped',  is_flag = True, default = False, help = 'Retain unmapped sequences in the output')
 @click.option('-q', '--min-quality', default = 30, show_default = True, type = click.IntRange(min = 0, max = 40), help = 'Minimum mapping quality to pass filtering')
 @click.option('-d', '--molecule-distance', default = 100000, show_default = True, type = click.IntRange(min = 0, max_open = True), help = 'Distance cutoff to split molecules (bp)')
@@ -276,7 +279,7 @@ def ema(inputs, output_dir, platform, barcode_list, fragment_density, genome, de
 @click.option('--skip-reports',  is_flag = True, show_default = True, default = False, help = 'Don\'t generate HTML reports')
 @click.option('--snakemake', type = SnakemakeParams(), help = 'Additional Snakemake parameters, in quotes')
 @click.argument('inputs', required=True, type=click.Path(exists=True, readable=True), nargs=-1)
-def strobe(inputs, output_dir, genome, read_length, keep_unmapped, depth_window, threads, extra_params, min_quality, molecule_distance, snakemake, skip_reports, quiet, hpc, container, contigs, setup_only):
+def strobe(inputs, output_dir, genome, read_length, ignore_bx, keep_unmapped, depth_window, threads, extra_params, min_quality, molecule_distance, snakemake, skip_reports, quiet, hpc, container, contigs, setup_only):
     """
     Align sequences to genome using `strobealign`
  
@@ -320,9 +323,10 @@ def strobe(inputs, output_dir, genome, read_length, keep_unmapped, depth_window,
         "output_directory" : output_dir,
         "alignment_quality" : min_quality,
         "keep_unmapped" : keep_unmapped,
-        "molecule_distance" : molecule_distance,
+        "ignore_bx": ignore_bx,
         "average_read_length": read_length,
         "depth_windowsize" : depth_window,
+        "molecule_distance" : molecule_distance,
         **({'extra': extra_params} if extra_params else {}),
         "workflow_call" : command.rstrip(),
         "conda_environments" : conda_envs,
