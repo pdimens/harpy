@@ -102,16 +102,17 @@ LAST_CONTIG = False
 # MI is the name of the current molecule, starting a 1 (0+1)
 MI = 0
 
-if bam_input.lower().endswith(".bam"):
-    if not os.path.exists(bam_input + ".bai"):
-        pysam.index(bam_input)
+# TODO DEPRECATE
+#if bam_input.lower().endswith(".bam"):
+#    if not os.path.exists(bam_input + ".bai"):
+#        pysam.index(bam_input)
 
 # iniitalize input/output files
 with (
     pysam.AlignmentFile(bam_input) as alnfile,
     pysam.AlignmentFile(sys.stdout.buffer, "wb", template = alnfile) as outfile
 ):
-    for record in alnfile.fetch():
+    for record in alnfile.fetch(until_eof = True):
         chrm = record.reference_name
         bp   = record.query_alignment_length
         # check if the current chromosome is different from the previous one

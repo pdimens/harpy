@@ -141,7 +141,6 @@ rule assign_molecules:
     input:
         bam = outdir + "/samples/{sample}/{sample}.markdup.bam",
     output:
-        markdupbai = temp(outdir + "/samples/{sample}/{sample}.markdup.bam.bai"),
         bam = outdir + "/{sample}.bam",
         bai = outdir + "/{sample}.bam.bai"
     params:
