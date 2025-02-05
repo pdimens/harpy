@@ -259,7 +259,7 @@ def validate_demuxschema(infile):
     """Validate the file format of the demultiplex schema"""
     code_letters = set() #codes can be Axx, Bxx, Cxx, Dxx
     segment_ids = set()
-    segment_pattern = re.compile(r'^[A-D]\d+$')
+    segment_pattern = re.compile(r'^[A-D]\d{2}$')
     with open(infile, 'r') as file:
         for line in file:
             try:

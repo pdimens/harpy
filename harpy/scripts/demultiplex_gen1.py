@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 
-import os
 import sys
 import pysam
 from Levenshtein import distance
@@ -44,7 +43,7 @@ def get_min_dist(needle, code_letter):
     minDist = 999
     nbFound = 0
     minSeq =""
-    for seq in bar_codes[code_letter].keys():
+    for seq in bar_codes[code_letter]:
         d = distance(needle, seq)
         if (d < minDist):
             minDist = d
@@ -58,23 +57,23 @@ def get_min_dist(needle, code_letter):
         code_min_dist =  bar_codes[code_letter][minSeq]   
     return code_min_dist
 
-def get_read_codes(I, codeL, codeR):
-  left  = I[0:6] # protocol-dependant
-  right = I[7:]
+def get_read_codes(index_read, left_segment, right_segment):
+  left  = index_read[0:6] # protocol-dependent
+  right = index_read[7:]
   status = "found"
-  if left in bar_codes[codeL]:
-    lc = bar_codes[codeL][left]
+  if left in bar_codes[left_segment]:
+    lc = bar_codes[left_segment][left]
   else:
-    lc = get_min_dist(left, codeL)
+    lc = get_min_dist(left, left_segment)
     status = "corrected"
 
-  if right in bar_codes[codeR]:
-    rc = bar_codes[codeR][right]
+  if right in bar_codes[right_segment]:
+    rc = bar_codes[right_segment][right]
   else:
-    rc = get_min_dist(right, codeR)
+    rc = get_min_dist(right, right_segment)
     status = "corrected"
 
-  if (lc == f"{codeL}00" or rc == f"{codeR}00"):
+  if (lc == f"{left_segment}00" or rc == f"{right_segment}00"):
     status = "unclear"
   return rc, lc, status
 
