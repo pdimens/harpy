@@ -124,8 +124,8 @@ with open(snakemake.log[0], "w") as f:
             bc_tags = f"BX:Z:{BX_code}"
             if qxrx:
                 bc_tags = f"RX:Z:{i1_rec.sequence}+{i2_rec.sequence}\tQX:Z:{i1_rec.quality}+{i2_rec.quality}\t{bc_tags}"
-            r1_rec.comment += "\t{bc_tags}"
-            r2_rec.comment += "\t{bc_tags}"
+            r1_rec.comment += f"\t{bc_tags}"
+            r2_rec.comment += f"\t{bc_tags}"
             # search sample name
             sample_name = samples_dict.get(segments[id_letter], "unidentified_data")
             R1_output[sample_name].write(f"{r1_rec}\n")
