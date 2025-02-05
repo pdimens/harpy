@@ -63,11 +63,10 @@ rule demultiplex:
     log:
         f"{outdir}/logs/demultiplex.log"
     params:
-        qxrx = config["include_qx_rx_tags"],
         outdir = outdir,
-        #TODO this lambda function is wrong, it needs to return the sample, not the bc
-        sample = lambda wc: samples[wc.sample],
-        id_segments = lambda wc: samples[wc.get("sample")]
+        qxrx = config["include_qx_rx_tags"],
+        sample = lambda wc: wc.get("sample"),
+        id_segments = lambda wc: samples[wc.sample]
     conda:
         f"{envdir}/demultiplex.yaml"
     script:
