@@ -24,14 +24,17 @@ def barcodedict(smpl):
         for i in f.readlines():
             # a casual way to ignore empty lines or lines with !=2 fields
             try:
-                smpl, bc = i.split()
-                d[smpl] = bc
+                sample, bc = i.split()
+                if sample not in d:
+                    d[sample] = [bc]
+                else:
+                    d[sample].append(bc)
             except ValueError:
                 continue
     return d
 
 samples = barcodedict(samplefile)
-samplenames = [i for i in samples.keys()]
+samplenames = [i for i in samples]
 
 rule barcode_segments:
     output:
@@ -49,21 +52,22 @@ rule demultiplex:
         R2 = config["inputs"]["R2"],
         I1 = config["inputs"]["I1"],
         I2 = config["inputs"]["I2"],
-        schema = config["inputs"]["demultiplex_schema"],
         segment_a = f"{outdir}/workflow/segment_A.bc",
         segment_b = f"{outdir}/workflow/segment_B.bc",
         segment_c = f"{outdir}/workflow/segment_C.bc",
         segment_d = f"{outdir}/workflow/segment_D.bc"
     output:
-        fw = temp(collect(outdir + "/{sample}.R1.fq", sample = samplenames)),
-        rv = temp(collect(outdir + "/{sample}.R2.fq", sample = samplenames)),
-        valid = f"{outdir}/logs/valid_barcodes.log",
-        invalid = f"{outdir}/logs/invalid_barcodes.log"
+        fw = pipe(outdir + "/{sample}.R1.fq"),
+        rv = pipe(outdir + "/{sample}.R2.fq"),
+        bx_info = outdir + "/logs/{sample}.barcodes"
     log:
         f"{outdir}/logs/demultiplex.log"
     params:
         qxrx = config["include_qx_rx_tags"],
-        outdir = outdir
+        outdir = outdir,
+        #TODO this lambda function is wrong, it needs to return the sample, not the bc
+        sample = lambda wc: samples[wc.sample],
+        id_segments = lambda wc: samples[wc.get("sample")]
     conda:
         f"{envdir}/demultiplex.yaml"
     script:
@@ -74,8 +78,6 @@ rule compress_fastq:
         outdir + "/{sample}.R{FR}.fq"
     output:
         outdir + "/{sample}.R{FR}.fq.gz"
-    params:
-        barcode = lambda wc: samples[wc.get("sample")]
     container:
         None
     shell:
