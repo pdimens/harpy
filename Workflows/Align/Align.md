@@ -15,9 +15,18 @@ Harpy offers several aligners for this purpose:
 | [EMA](ema.md) | yes ✅ | slow 🐢 |[github](https://github.com/arshajii/ema) | [preprint](https://www.biorxiv.org/content/early/2017/11/16/220236) |
 | [strobealign](strobe.md) | no ❌ | super fast ⚡⚡ | [github](https://github.com/ksahlin/strobealign) | [paper](https://doi.org/10.1186/s13059-022-02831-7) |
 
-!!! Only aligned sequences
-The aligners in this module only output aligned sequences, meaning unmapped reads will not appear in the results. Keep that in mind when you read the alignment summary report and see "100%" aligned reads. That just means there are no unmapped reads in the BAM file, which is the result of aligner output configuration and not biological processes.
-!!!
-
 Despite the fact that EMA is the only barcode-aware aligner offered, when using BWA or strobealign, Harpy retains the barcode information from the sequence headers and will
 assign molecule identifiers (`MI:i` SAM tags) based on these barcodes and the [molecule distance threshold](../../haplotagdata.md/#barcode-thresholds).
+
+## [!badge text="New"] Works with regular WGS data
+Starting with Harpy version `2`, the `--ignore-bx` option lets you skip the workflow
+routines that do things specific to linked reads, meaning you can comfortably use
+[!badge corners="pill" text="harpy align bwa"](bwa.md) and [!badge corners="pill" text="harpy align strobe"](strobe.md) to align your WGS sequence data. 
+
+!!!warning RADseq data
+RADseq data will probably work fine too, however you may need to post-process the
+BAM files to unset the duplicate flag, as marking duplicates in RADseq (without UMIs) [may cause issues](https://www.researchgate.net/post/How_to_exclude_PCR_duplicates_in_ddRAD) with SNP calling:
+```bash
+samtools view -b -h --remove-flags 1024 -o output.bam input.bam
+```
+!!!

@@ -38,9 +38,10 @@ In addition to the [!badge variant="info" corners="pill" text="common runtime op
 | `--contigs`           |            | file path or list    |         | [Contigs to plot](/commonoptions.md#--contigs) in the report                                                                   |
 | `--extra-params`      |    `-x`    | string               |         | Additional EMA-align/BWA arguments, in quotes                                                                                  |
 | `--genome`            |    `-g`    | file path            |         | [!badge variant="info" text="required"] Genome assembly for read mapping                                                       |
+| `--ignore-bx`         |            | toggle               | false   | Ignore parts of the workflow specific to linked-read sequences                                                                 |
 | `--keep-unmapped`     |    `-u`    | toggle               |  false  | Output unmapped sequences too                                                                                                  |
-| `--min-quality`       |    `-d`    | integer (0-40)       |   `30`    | Minimum `MQ` (SAM mapping quality) to pass filtering                                                                           |
-| `--molecule-distance` |    `-m`    | integer              | `100000`  | Base-pair distance threshold to separate molecules                                                                             |
+| `--min-quality`       |    `-d`    | integer (0-40)       |   `30`    | Minimum `MQ` (SAM mapping quality) to pass filtering                                                                         |
+| `--molecule-distance` |    `-m`    | integer              | `100000`  | Base-pair distance threshold to separate molecules, disabled with `0`                                                        |
 | `--read-length`       |    `-l`    | choice               | `auto`  | Average read length for creating index. Options: [auto, 50, 75, 100, 125, 150, 250, 400]                                       |
 
 ### Read Length
@@ -62,7 +63,8 @@ The `--molecule-distance` option is used during the BWA alignment workflow
 to assign alignments a unique Molecular Identifier `MI:i` tag based on their
  haplotag barcode and the distance threshold you specify. See 
 [haplotag data](/haplotagdata/#barcode-thresholds) for more information on
-what this value does. 
+what this value does. Set this value to `0` to skip distance-based deconvolution,
+which may improve detection of very large structural variants.
 
 ## Quality filtering
 The `--min-quality` argument filters out alignments below a given $MQ$ threshold. The default, `30`, keeps alignments

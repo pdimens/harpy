@@ -39,6 +39,7 @@ In addition to the [!badge variant="info" corners="pill" text="common runtime op
 | `--deconvolve-params` |    `-p`    | `21,40,3,0` | Accepts the [QuickDeconvolution parameters](/Workflows/deconvolve.md/#running-options) for `k`,`w`,`d`,`a`, in that order      |
 | `--deduplicate`       |    `-d`    |             | Identify and remove PCR duplicates                                             |
 | `--extra-params`      |    `-x`    |             | Additional fastp arguments, in quotes                                                                                          |
+| `--ignore-bx`         |            |   false     | Ignore parts of the workflow specific to linked-read sequences                                                                 |
 | `--min-length`        |    `-n`    |    `30`     | Discard reads shorter than this length                                                                                         |
 | `--max-length`        |    `-m`    |    `150`    | Maximum length to trim sequences down to                                                                                       |
 | `--trim-adapters`     |    `-a`    |             | Detect and remove adapter sequences  [!badge variant="secondary" text="recommended"]                                           |

@@ -71,7 +71,7 @@ In addition to the [!badge variant="info" corners="pill" text="common runtime op
 | `--genome`            |    `-g`    |          | [!badge variant="info" text="required"] Genome assembly for phasing bam files                                                 |
 | `--min-barcodes`      |    `-b`    |   `2`    | Minimum number of barcode overlaps supporting candidate SV                                                                    |
 | `--min-quality`       |    `-q`    |   `30`   | Minimum `MQ` (SAM mapping quality) to pass filtering                                                                          |
-| `--min-sv`            |    `-n`    |  `1000`  | Minimum size of SV to detect                                                                                                  |
+| `--min-size`            |    `-n`    |  `1000`  | Minimum size of SV to detect                                                                                                  |
 | `--molecule-distance` |    `-m`    | `100000` | Base-pair distance threshold to separate molecules                                                                            |
 | `--populations`       |    `-p`    |          | Tab-delimited file of sample\<*tab*\>group                                                                                    |
 | `--vcf`               |    `-v`    |          | [!badge variant="info" text="conditionally required"] Phased vcf file for phasing bam files ([see below](#optional-vcf-file)) |
@@ -79,7 +79,9 @@ In addition to the [!badge variant="info" corners="pill" text="common runtime op
 ### Molecule distance
 The `--molecule-distance` option is used to let the program determine how far apart alignments on a contig with the same
 barcode can be from each other and still considered as originating from the same DNA molecule. See 
-[haplotag data](/haplotagdata/#barcode-thresholds) for more information on what this value does.
+[haplotag data](/haplotagdata/#barcode-thresholds) for more information on what this value does. If you want
+NAIBR to not split molecules in this manner (e.g. you might be looking for inversions greater than this threshold),
+then set this number to be unreasonably high, such as the length of your largest chromosome.
 
 ### Single-sample variant calling
 When **not** using a population grouping file via `--populations`, variants will be called per-sample. 

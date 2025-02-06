@@ -25,19 +25,28 @@ harpy demultiplex METHOD OPTIONS... R1_FQ R2_FQ I1_FQ I2_FQ
 harpy demultiplex gen1 --threads 20 --schema demux.schema Plate_1_S001_R*.fastq.gz Plate_1_S001_I*.fastq.gz
 ```
 ## :icon-terminal: Running Options
-In addition to the [!badge variant="info" corners="pill" text="common runtime options"](/commonoptions.md), the [!badge corners="pill" text="demultiplex"] module is configured using these command-line arguments:
+In addition to the [!badge variant="info" corners="pill" text="common runtime options"](/commonoptions.md), the [!badge corners="pill" text="demultiplex gen1"] module is configured using these command-line arguments:
 
 {.compact}
 | argument   | short name | description                                                      |
 | :--------- | :--------: | :--------------------------------------------------------------- |
-| `METHOD`   |            | [!badge variant="info" text="required"] Haplotag technology of the sequences  [`gen1`]                   |
 | `R1_FQ`    |            | [!badge variant="info" text="required"] The forward multiplexed FASTQ file                               |
 | `R2_FQ`    |            | [!badge variant="info" text="required"] The reverse multiplexed FASTQ file                               |
 | `I1_FQ`    |            | [!badge variant="info" text="required"] The forward FASTQ index file provided by the sequencing facility |
 | `I2_FQ`    |            | [!badge variant="info" text="required"] The reverse FASTQ index file provided by the sequencing facility |
+| `--keep-unknown`   |     `-u`    | Keep reads that could not be demultiplexed                                                   |
+| `--qxrx`   |     `-q`    | Include the `QX:Z` and `RX:Z` tags in the read header                                                    |
 | `--schema` |    `-s`    | [!badge variant="info" text="required"] Tab-delimited file of sample\<tab\>barcode                       |
 
-## Haplotag Types
+### Keeping Unknown Samples
+It's not uncommon that some sequences cannot be demultiplexed due to sequencing errors at the ID location. Use `--keep-unknown` to
+have Harpy still separate those reads from the original multiplex. Those reads will be labelled `_unknown_sample.R*.fq.gz` 
+
+### Keep QX and RX tags
+Using `--qx-rx`, you can opt-in to retain the `QX:Z` (barcode PHRED scores) and `RX:Z` (nucleotide barcode)
+tags in the sequence headers. These tags aren't used by any subsequent analyses, but may be useful for your own diagnostics. 
+
+## Haplotag Types[!badge variant="secondary" text="gzip recommended"]
 ==- Generation 1 - `gen1`
 - Barcode configuration: `13 + 13`
 - sequencing mask: `151+13+13+151`
@@ -49,11 +58,11 @@ do **not** demultiplex the sequences. Requires the use of [bcl2fastq](https://su
 `--use-bases-mask=Y151,I13,I13,Y151` and `--create-fastq-for-index-reads`. With Generation I beadtags, the `C` barcode is sample-specific,
 meaning a single sample should have the same `C` barcode for all of its sequences.
 
-### demultiplexing schema
-Since Generation I haplotags use a unique `Cxx` barcode per sample, that's the barcode
-that will be used to identify sequences by sample. You will need to provide a simple text
-file to `--schema` (`-s`) with two columns, the first being the sample name, the second being
-the `Cxx` barcode (e.g., `C19`). This file is to be `tab` or `space` delimited and must have **no column names**.
+### Demultiplexing Schema
+Generation I haplotags typically use a unique `Cxx` barcode per sample-- that's the barcode segment
+that will be used to identify sequences by sample. However, any of the 4 segments (`A`,`B`,`C`,`D`) are valid, so long as the schema only features a single segment.
+You will need to provide a simple text file to `--schema` (`-s`) with two columns, the first being the sample name, the second being
+the identifying segment barcode (e.g., `C19`). This file is to be `tab` or `space` delimited and must have **no column names**.
 ``` example sample sheet
 Sample01    C01
 Sample02    C02
@@ -61,7 +70,29 @@ Sample03    C03
 Sample04    C04
 ```
 This will result in splitting the multiplexed reads into individual file pairs `Sample01.F.fq.gz`, `Sample01.R.fq.gz`, `Sample02.F.fq.gz`, etc.
+A sample can have multiple barcodes, but a barcode **cannot** have multiple samples:
 
++++ duplicate samples [!badge variant="success" text="valid"]
+```
+Sample01    D01
+Sample02    D02
+Sample03    D03
+Sample03    D21
+```
+
++++ duplicate barcodes [!badge variant="danger" text="invalid"]
+```
+Sample01    C01
+Sample02    C02
+Sample03    C02
+```
++++  multiple segments [!badge variant="danger" text="invalid"]
+```
+Sample01    C01
+Sample02    D02
+Sample03    C03
+```
++++
 ===
 
 
@@ -77,12 +108,11 @@ graph LR
     subgraph Inputs
         direction TB
         A[multiplexed FASTQ]:::clean---BX
-        BX[Barcode Files]:::clean---SCH
+        BX[index reads FASTQ]:::clean---SCH
         SCH[Sample Schema]:::clean
     end
-    Inputs-->B([barcodes to headers]):::clean
-    B-->C([demultiplex samples]):::clean
-    C-->D([quality metrics]):::clean
+    Inputs-->B([demultiplex samples]):::clean
+    B-->D([quality metrics]):::clean
     style Inputs fill:#f0f0f0,stroke:#e8e8e8,stroke-width:2px
     classDef clean fill:#f5f6f9,stroke:#b7c9ef,stroke-width:2px
 ```

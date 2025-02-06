@@ -106,3 +106,12 @@ larger/smaller values if you have evidence to support them.
 |:-----------------------|:--------------------|
 | less than threshold    |     same molecule   |
 | greater than threshold | different molecules |
+
+!!!warning Potential SV detection obstruction
+This kind of deconvolving method relies on alignment distances, which may worsen
+performance in finding structural variants larger than this threshold. For example,
+two reads originating from the same DNA molecule may have aligned quite far from each other
+due to mapping along the breakpoint of a very large inversion. If the inversion spans 3Mb,
+a barcode threshold of 100kb will likely incorrectly deconvolve the two reads and assume
+they shared a barcode by chance, which would hurt SV detection performance.
+!!!

@@ -67,12 +67,23 @@ In addition to the [!badge variant="info" corners="pill" text="common runtime op
 | :--------------- | :--------: | :-----: | :--------------------------------------------------------------------------------------------------------------------------- |
 | `INPUTS`         |            |         | [!badge variant="info" text="required"] Files or directories containing [input BAM files](/commonoptions.md#input-arguments) |
 | `--contigs`      |            |         | [Contigs to plot](/commonoptions.md#--contigs) in the report                                                                 |
+| `--duplicates`   |    `-d`    |  `10`   | Consider SV of the same type as duplicates if their breakpoints are within this distance                                     |
 | `--extra-params` |    `-x`    |         | Additional naibr arguments, in quotes                                                                                        |
 | `--genome`       |    `-g`    |         | [!badge variant="info" text="required"] Genome assembly that was used to create alignments                                   |
 | `--iterations`   |    `-i`    |  `50`   | Number of iterations to perform through index (reduces memory)                                                               |
 | `--min-barcodes` |    `-b`    |   `2`   | Minimum number of barcode overlaps supporting candidate SV                                                                   |
-| `--min-sv`       |    `-m`    | `1000`  | Minimum size of SV to detect                                                                                                 |
+| `--min-size`     |    `-m`    | `1000`  | Minimum size of SV to detect                                                                                                 |
 | `--populations`  |    `-p`    |         | Tab-delimited file of sample\<*tab*\>group                                                                                   |
+| `--sharing-thresholds`| `-r`  | `99,99,99` | Percentile thresholds in the distributions of the number of shared barcodes for (small,medium,large) variants, separated by commas |
+
+### Duplicates
+If it feels like Leviathan is unneccesarily splitting larger variants into smaller overlapping or adjacent ones,
+this parameter should help limit that from occuring.
+
+### Barcode sharing thresholds
+The default Leviathan setting of `99` for these three parameters can be too strict and omit
+variants you are expecting to find (e.g. certain large inversions). If you suspect the program
+is missing variants, then you may trying relaxing these thresholds (e.g. `99,95,95`).
 
 ### Single-sample variant calling
 When **not** using a population grouping file via `--populations`, variants will be called per-sample. 
@@ -85,7 +96,7 @@ population and call variants on these alignment pools. Preliminary work shows th
 positives. **However**, individual-level information gets lost using this approach, so you will only be able to assess 
 group-level variants, if that's what your primary interest is.
 
-!!! a little lifehack
+!!! lifehack
 If you have a small number of samples (~10 or fewer) that you are interested in comparing the results of structural variant calling for,
 you can provide a sample grouping file via `--populations` where each sample is its own population and Harpy will output a report
 comparing "populations" as usual. Keep in mind that if there are too many samples, the formatting of the reports might not render
