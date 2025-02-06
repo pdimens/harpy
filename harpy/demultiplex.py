@@ -28,7 +28,7 @@ docstring = {
     "harpy demultiplex gen1": [
         {
             "name": "Parameters",
-            "options": ["--qx-rx","--schema"],
+            "options": ["--keep-unknown", "--qx-rx","--schema"],
         },
         {
             "name": "Workflow Controls",
@@ -38,10 +38,11 @@ docstring = {
 }
 
 @click.command(no_args_is_help = True, context_settings=dict(allow_interspersed_args=False), epilog = "Documentation: https://pdimens.github.io/harpy/workflows/demultiplex/")
+@click.option('-u', '--keep-unknown',  is_flag = True, default = False, help = 'Keep reads that could not be demultiplexed')
+@click.option('-q', '--qx-rx', is_flag = True, default = False, help = 'Include the `QX:Z` and `RX:Z` tags in the read header')
 @click.option('-s', '--schema', required = True, type=click.Path(exists=True, dir_okay=False, readable=True), help = 'File of `sample`\\<TAB\\>`barcode`')
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(min = 2, max_open = True), help = 'Number of threads to use')
 @click.option('-o', '--output-dir', type = click.Path(exists = False), default = "Demultiplex", show_default=True,  help = 'Output directory name')
-@click.option('-q', '--qx-rx', is_flag = True, default = False, help = 'Include the `QX:Z` and `RX:Z` tags in the read header')
 @click.option('--container',  is_flag = True, default = False, help = 'Use a container instead of conda')
 @click.option('--setup-only',  is_flag = True, hidden = True, default = False,  help = 'Setup the workflow and exit')
 @click.option('--hpc',  type = HPCProfile(), help = 'Directory with HPC submission `config.yaml` file')
@@ -52,7 +53,7 @@ docstring = {
 @click.argument('R2_FQ', required=True, type=click.Path(exists=True, dir_okay=False, readable=True))
 @click.argument('I1_FQ', required=True, type=click.Path(exists=True, dir_okay=False, readable=True))
 @click.argument('I2_FQ', required=True, type=click.Path(exists=True, dir_okay=False, readable=True))
-def gen1(r1_fq, r2_fq, i1_fq, i2_fq, output_dir, schema, qx_rx, threads, snakemake, skip_reports, quiet, hpc, container, setup_only):
+def gen1(r1_fq, r2_fq, i1_fq, i2_fq, output_dir, keep_unknown, schema, qx_rx, threads, snakemake, skip_reports, quiet, hpc, container, setup_only):
     """
     Demultiplex Generation I haplotagged FASTQ files
 
@@ -84,12 +85,13 @@ def gen1(r1_fq, r2_fq, i1_fq, i2_fq, output_dir, schema, qx_rx, threads, snakema
         "workflow" : "demultiplex gen1",
         "snakemake_log" : sm_log,
         "output_directory" : output_dir,
+        "include_qx_rx_tags" : qx_rx,
+        "keep_unknown" : keep_unknown,
         "workflow_call" : command.rstrip(),
         "conda_environments" : conda_envs,
         "reports" : {
             "skip": skip_reports
         },
-        "include_qx_rx_tags" : qx_rx, 
         "inputs" : {
             "demultiplex_schema" : Path(schema).resolve().as_posix(),
             "R1": Path(r1_fq).resolve().as_posix(),

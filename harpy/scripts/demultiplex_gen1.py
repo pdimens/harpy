@@ -126,7 +126,7 @@ with open(snakemake.log[0], "w") as f:
                         else:
                             clear_read_map[BX_code] = [1,0]
 
-        BC_log.write("Barcode\tTotal Reads\tCorrect Reads\tCorrected Reads\n")
+        BC_log.write("Barcode\tTotal_Reads\tCorrect_Reads\tCorrected_Reads\n")
         for code in clear_read_map:
             BC_log.write(f"{code}\t{sum(clear_read_map[code])}\t{clear_read_map[code][0]}\t{clear_read_map[code][1]}\n")
         for code in unclear_read_map:

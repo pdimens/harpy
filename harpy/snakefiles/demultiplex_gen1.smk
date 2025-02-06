@@ -7,6 +7,7 @@ outdir = config["output_directory"]
 envdir = os.path.join(os.getcwd(), outdir, "workflow", "envs")
 samplefile = config["inputs"]["demultiplex_schema"]
 skip_reports = config["reports"]["skip"]
+keep_unknown = config["keep_unknown"]
 
 onstart:
     logger.logger.addHandler(logging.FileHandler(config["snakemake_log"]))
@@ -18,22 +19,25 @@ onerror:
     os.remove(logger.logfile)
 
 ## the barcode log file ##
-def barcodedict(smpl):
+def parse_schema(smpl, keep_unknown):
     d = {}
     with open(smpl, "r") as f:
         for i in f.readlines():
             # a casual way to ignore empty lines or lines with !=2 fields
             try:
                 sample, bc = i.split()
+                id_segment = bc[0]
                 if sample not in d:
                     d[sample] = [bc]
                 else:
                     d[sample].append(bc)
             except ValueError:
                 continue
+    if keep_unknown:
+        d["_unknown_sample"] = f"{id_segment}00"
     return d
 
-samples = barcodedict(samplefile)
+samples = parse_schema(samplefile, keep_unknown)
 samplenames = [i for i in samples]
 
 rule barcode_segments:
@@ -57,11 +61,11 @@ rule demultiplex:
         segment_c = f"{outdir}/workflow/segment_C.bc",
         segment_d = f"{outdir}/workflow/segment_D.bc"
     output:
-        fw = pipe(outdir + "/{sample}.R1.fq"),
-        rv = pipe(outdir + "/{sample}.R2.fq"),
-        bx_info = outdir + "/logs/{sample}.barcodes"
+        fw = temp(f"{outdir}/{{sample}}.R1.fq"),
+        rv = temp(f"{outdir}/{{sample}}.R2.fq"),
+        bx_info = f"{outdir}/logs/sample_barcodes/{{sample}}.barcodes"
     log:
-        f"{outdir}/logs/demultiplex.log"
+        f"{outdir}/logs/{{sample}}.demultiplex.log"
     params:
         outdir = outdir,
         qxrx = config["include_qx_rx_tags"],
@@ -136,7 +140,7 @@ rule report_config:
         with open(output[0], "w", encoding="utf-8") as yml:
             yaml.dump(configs, yml, default_flow_style= False, sort_keys=False, width=float('inf'))
 
-rule qa_report:
+rule quality_report:
     input:
         fqc = collect(outdir + "/reports/data/{sample}.R{FR}.fastqc", sample = samplenames, FR = [1,2]),
         mqc_yaml = outdir + "/workflow/multiqc.yaml"
