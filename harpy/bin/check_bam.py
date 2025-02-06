@@ -30,9 +30,9 @@ if not os.path.exists(args.input):
     parser.error(f"{args.input} was not found")
 
 bam_in = args.input
-if bam_in.lower().endswith(".bam"):
-    if not os.path.exists(bam_in + ".bai"):
-        pysam.index(bam_in)
+#if bam_in.lower().endswith(".bam"):
+#    if not os.path.exists(bam_in + ".bai"):
+#        pysam.index(bam_in)
 
 # regex for EXACTLY AXXCXXBXXDXX
 haplotag = re.compile('^A[0-9][0-9]C[0-9][0-9]B[0-9][0-9]D[0-9][0-9]')
@@ -52,7 +52,7 @@ BAD_BX     = 0
 BX_NOT_LAST = 0
 NO_MI      = 0
 
-for record in alnfile.fetch():
+for record in alnfile.fetch(until_eof=True):
     N_READS += 1
     tags = [i[0] for i in record.get_tags()]
     # is there a bx tag?

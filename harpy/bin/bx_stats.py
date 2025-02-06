@@ -57,7 +57,7 @@ with(
     all_bx = set()
     LAST_CONTIG = None
 
-    for read in alnfile.fetch():
+    for read in alnfile.fetch(until_eof=True):
         chrom = read.reference_name
         # check if the current chromosome is different from the previous one
         # if so, print the dict to file and empty it (a consideration for RAM usage)

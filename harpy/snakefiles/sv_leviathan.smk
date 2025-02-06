@@ -41,23 +41,6 @@ def get_alignments(wildcards):
     aln = list(filter(r.match, bamlist))
     return aln[0]
 
-#rule process_alignments:
-#    input:
-#        get_alignments
-#    output:
-#        bam = temp(outdir + "/workflow/input/{sample}.bam"),
-#        bai = temp(outdir + "/workflow/input/{sample}.bam.bai")
-#    log:
-#        outdir + "/logs/process_alignments/{sample}.log"
-#    container:
-#        None
-#    shell:
-#        """
-#        samtools index {input} 2> {log}
-#        leviathan_bx_shim.py {input} > {output.bam} 2>> {log}
-#        samtools index {output.bam} 2>> {log}
-#        """
-
 rule index_barcodes:
     input: 
         get_alignments
