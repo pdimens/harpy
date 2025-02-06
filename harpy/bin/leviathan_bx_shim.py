@@ -27,8 +27,8 @@ if len(sys.argv) == 1:
 args = parser.parse_args()
 if not os.path.exists(args.input):
     parser.error(f"{args.input} was not found")
-if not os.path.exists(args.input + ".bai"):
-    parser.error(f"{args.input}.bai was not found")
+#if not os.path.exists(args.input + ".bai"):
+#    parser.error(f"{args.input}.bai was not found")
     
 # set up a generator for the BX tags
 bc_range = [f"{i}".zfill(2) for i in range(1,97)]
@@ -37,7 +37,7 @@ MI_BX = {}
 
 with pysam.AlignmentFile(args.input) as bam_in, pysam.AlignmentFile(sys.stdout.buffer, 'wb', header=bam_in.header) as bam_out:
     # iterate through the bam file
-    for record in bam_in.fetch():
+    for record in bam_in.fetch(until_eof=True):
         try:
             mi = record.get_tag("MI")
             if mi not in MI_BX:

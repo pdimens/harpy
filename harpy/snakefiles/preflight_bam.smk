@@ -26,32 +26,31 @@ def get_alignments(wildcards):
     aln = list(filter(r.match, bamlist))
     return aln[0]
 
-def get_align_index(wildcards):
-    """returns a list with the bai index file for the sample based on wildcards.sample"""
-    r = re.compile(fr"(.*/{wildcards.sample})\.(bam|sam)$", flags = re.IGNORECASE)
-    aln = list(filter(r.match, bamlist))
-    return aln[0] + ".bai"
+#def get_align_index(wildcards):
+#    """returns a list with the bai index file for the sample based on wildcards.sample"""
+#    r = re.compile(fr"(.*/{wildcards.sample})\.(bam|sam)$", flags = re.IGNORECASE)
+#    aln = list(filter(r.match, bamlist))
+#    return aln[0] + ".bai"
 
-rule index_alignments:
-    input:
-        lambda wc: bamdict[wc.bam]
-    output:
-        "{bam}.bai"
-    container:
-        None
-    shell:
-        "samtools index {input}"
+#rule index_alignments:
+#    input:
+#        lambda wc: bamdict[wc.bam]
+#    output:
+#        "{bam}.bai"
+#    container:
+#        None
+#    shell:
+#        "samtools index {input}"
 
 rule check_bam:
     input:
-        bam = get_alignments,
-        bai = get_align_index
+        get_alignments
     output:
         temp(outdir + "/{sample}.log")
     container:
         None
     shell: 
-        "check_bam.py {input.bam} > {output}"
+        "check_bam.py {input} > {output}"
 
 rule concat_results:
     input:
