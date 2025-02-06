@@ -265,7 +265,7 @@ def validate_demuxschema(infile):
             try:
                 sample, segment_id = line.rstrip().split()
                 if not segment_pattern.match(segment_id):
-                    print_error("invalid segment format", f"Segment ID '{segment_id}' does not follow the expected format.")
+                    print_error("invalid segment format", f"Segment ID [green]{segment_id}[/green] does not follow the expected format.")
                     print_solution("This haplotagging design expects segments to follow the format of letter [green bold]A-D[/green bold] followed by [bold]two digits[/bold], e.g. [green bold]C51[/green bold]). Check that your ID segments or formatted correctly and that you are attempting to demultiplex with a workflow appropriate for your data design.")
                     sys.exit(1)
                 code_letters.add(segment_id[0])
@@ -283,10 +283,15 @@ def validate_demuxschema(infile):
                 # skip rows without two columns
                 continue
     if not code_letters:
-        print_error("incorrect schema format", f"Schema file {os.path.basename(infile)} has no valid rows. Rows should be sample<tab>segment, e.g. sample_01<tab>C75")
+        print_error("incorrect schema format", f"Schema file [blue]{os.path.basename(infile)}[/blue] has no valid rows. Rows should be sample<tab>segment, e.g. sample_01<tab>C75")
         sys.exit(1)
     if len(code_letters) > 1:
-        print("invalid schema", f"Schema file {os.path.basename(infile)} has sample IDs expected to be identified across multiple barcode segments. All sample IDs for this technology should be in a single segment, such as [bold green]C[/bold green] or [bold green]D[/bold green].")
+        print_error("invalid schema", f"Schema file [blue]{os.path.basename(infile)}[/blue] has sample IDs occurring  in different barcode segments.")
+        print_solution_with_culprits(
+            "All sample IDs for this barcode design should be in a single segment, such as [bold green]C[/bold green] or [bold green]D[/bold green]. Make sure the schema contains only one segment.",
+            "The segments identified in the schema:"
+        )
+        click.echo(", ".join(code_letters))
         sys.exit(1)
 
 def validate_regions(regioninput, genome):
