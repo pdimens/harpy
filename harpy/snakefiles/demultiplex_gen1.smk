@@ -2,6 +2,7 @@ containerized: "docker://pdimens/harpy:latest"
 
 import os
 import logging
+import subprocess
 
 outdir = config["output_directory"]
 envdir = os.path.join(os.getcwd(), outdir, "workflow", "envs")
@@ -17,6 +18,12 @@ onsuccess:
     os.remove(logger.logfile)
 onerror:
     os.remove(logger.logfile)
+
+# calculate num seqs per 
+def length_longest(r1, r2):
+    r1_lines = subprocess.run(["zgrep", "-xc", "\"+\"", r1], capture_output=True)
+    r2_lines = subprocess.run(["zgrep", "-xc", "\"+\"", r2], capture_output=True)
+    return max(int(r1_lines), int(r2_lines))
 
 ## the barcode log file ##
 def parse_schema(smpl, keep_unknown):
@@ -39,6 +46,8 @@ def parse_schema(smpl, keep_unknown):
 
 samples = parse_schema(samplefile, keep_unknown)
 samplenames = [i for i in samples]
+seqs_total = length_longest(config["inputs"]["R1"], config["inputs"]["R2"])
+seqs_per_chunk = seqs_total // workflow.cores
 
 rule barcode_segments:
     output:
@@ -49,6 +58,22 @@ rule barcode_segments:
         None
     shell:
         "haplotag_acbd.py {params}"
+
+#TODO this is nowhere near done
+rule split_fastq:
+    input:
+        config["inputs"]["R1"]
+    output:
+        demux=temp(collect(outdir + "/fastq_chunks/data.F.{part}.fq.gz", part = range(1, workflow.cores + 1))),
+        demux_dir=temp(directory(outdir+"/fastq_chunks/"))
+    params:
+        lines = seqs_per_chunk,
+        outdir = f"{outdir}/fastq_chunks",
+        prefix = "data.F"
+    container:
+        None
+    shell:
+        "seqkit split2 {input} -s {params.lines} -O {params.outdir} -o {params.prefix}"        
 
 rule demultiplex:
     input:
