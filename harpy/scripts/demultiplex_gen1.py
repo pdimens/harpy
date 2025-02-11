@@ -20,6 +20,25 @@ def read_barcodes(file_path, segment):
                 continue
     return data_dict
 
+def read_schema(file_path):
+    """Read and parse schema file of sample<tab>id_segment"""
+    # one sample can have more than one code
+    # {segment : sample}
+    data_dict = {}
+    # codes can be Axx, Bxx, Cxx, Dxx
+    code_letters = set()
+    with open(file_path, 'r') as file:
+        for line in file:
+            try:
+                sample, segment_id = line.rstrip().split()
+                data_dict[segment_id] = sample
+                code_letters.add(segment_id[0])
+            except ValueError:
+                # skip rows without two columns
+                continue
+    id_letter = code_letters.pop()
+    return id_letter, data_dict
+
 def get_min_dist(needle, code_letter):
     minDist = 999
     nbFound = 0
@@ -62,9 +81,8 @@ with open(snakemake.log[0], "w") as f:
     sys.stderr = sys.stdout = f
     outdir = snakemake.params.outdir
     qxrx = snakemake.params.qxrx
-    sample_name = snakemake.params.sample
-    id_segments = snakemake.params.id_segments
-    id_letter = id_segments[0][0]
+    schema = snakemake.input.schema
+    part = snakemake.params.part
     r1 = snakemake.input.R1
     r2 = snakemake.input.R2
     i1 = snakemake.input.I1
@@ -80,6 +98,13 @@ with open(snakemake.log[0], "w") as f:
         "D" : read_barcodes(bx_d, "D"),
     }
 
+    #read schema
+    id_letter, samples_dict = read_schema(schema)
+    samples = list(set(samples_dict.values()))
+    samples.append("unidentified_data")
+    #create an array of files (one per sample) for writing
+    R1_output = {sample: open(f"{outdir}/{sample}.{part}.R1.fq", 'w') for sample in samples}
+    R2_output = {sample: open(f"{outdir}/{sample}.{part}.R2.fq", 'w') for sample in samples}
     segments = {'A':'', 'B':'', 'C':'', 'D':''}
     unclear_read_map={}
     clear_read_map={}
@@ -88,15 +113,11 @@ with open(snakemake.log[0], "w") as f:
         pysam.FastxFile(r2) as R2,
         pysam.FastxFile(i1, persist = False) as I1,
         pysam.FastxFile(i2, persist = False) as I2,
-        open(f"{outdir}/{sample_name}.R1.fq", 'w') as R1_out,
-        open(f"{outdir}/{sample_name}.R2.fq", 'w') as R2_out,
         open(snakemake.output.bx_info, 'w') as BC_log
     ):
         for r1_rec, r2_rec, i1_rec, i2_rec in zip(R1, R2, I1, I2):
-            segments['A'], segments['C'], R1_status = get_read_codes(i1_rec.sequence, "C", "A")
-            segments['B'], segments['D'], R2_status = get_read_codes(i2_rec.sequence, "D", "B")
-            if segments[id_letter] not in id_segments:
-                continue
+            segments['A'], segments['C'], statusR1 = get_read_codes(i1_rec.sequence, "C", "A")
+            segments['B'], segments['D'], statusR2 = get_read_codes(i2_rec.sequence, "D", "B")
             statuses = [R1_status, R2_status]
             BX_code = segments['A'] + segments['C'] + segments['B']+ segments['D']
             bc_tags = f"BX:Z:{BX_code}"
@@ -104,10 +125,11 @@ with open(snakemake.log[0], "w") as f:
                 bc_tags = f"RX:Z:{i1_rec.sequence}+{i2_rec.sequence}\tQX:Z:{i1_rec.quality}+{i2_rec.quality}\t{bc_tags}"
             r1_rec.comment += f"\t{bc_tags}"
             r2_rec.comment += f"\t{bc_tags}"
-            R1_out.write(f"{r1_rec}\n")
-            R2_out.write(f"{r2_rec}\n")
+            # search sample name
+            sample_name = samples_dict.get(segments[id_letter], "unidentified_data")
+            R1_output[sample_name].write(f"{r1_rec}\n")
+            R2_output[sample_name].write(f"{r2_rec}\n")
 
-            # logging barcode identification
             if "unclear" in statuses:
                 if BX_code in unclear_read_map:
                     unclear_read_map[BX_code] += 1
@@ -124,7 +146,11 @@ with open(snakemake.log[0], "w") as f:
                         if  BX_code in clear_read_map:
                             clear_read_map[BX_code][0] += 1
                         else:
-                            clear_read_map[BX_code] = [1,0]
+                            clear_read_map[BX_code] = [1,0]          
+
+        for sample_name in samples:
+            R1_output[sample_name].close()
+            R2_output[sample_name].close()
 
         BC_log.write("Barcode\tTotal_Reads\tCorrect_Reads\tCorrected_Reads\n")
         for code in clear_read_map:

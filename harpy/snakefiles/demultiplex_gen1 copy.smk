@@ -17,12 +17,8 @@ onsuccess:
     os.remove(logger.logfile)
 onerror:
     os.remove(logger.logfile)
-wildcard_constraints:
-    FR = "[12]",
-    part = "\d+",
-    sample = "[a-zA-Z0-9._-]+"
 
-
+## the barcode log file ##
 def parse_schema(smpl, keep_unknown):
     d = {}
     with open(smpl, "r") as f:
@@ -43,7 +39,6 @@ def parse_schema(smpl, keep_unknown):
 
 samples = parse_schema(samplefile, keep_unknown)
 samplenames = [i for i in samples]
-fastq_parts = [f"{i:03d}" for i in range(1, workflow.cores + 1)]
 
 rule barcode_segments:
     output:
@@ -55,70 +50,31 @@ rule barcode_segments:
     shell:
         "haplotag_acbd.py {params}"
 
-rule partition_reads:
-    input:
-        r1 = config["inputs"]["R1"],
-        r2 = config["inputs"]["R2"]       
-    output:
-        r1 = temp(f"{outdir}/reads.R1.fq.gz"),
-        r2 = temp(f"{outdir}/reads.R2.fq.gz"),
-        parts = temp(collect(outdir + "/fastq_chunks/reads.R{FR}.part_{part}.fq.gz", part = fastq_parts, FR = [1,2]))
-    threads:
-        workflow.cores
-    params:
-        f"{outdir}/fastq_chunks"
-    conda:
-        f"{envdir}/demultiplex.yaml"
-    shell:
-        """
-        ln -sr {input.r1} {output.r1}
-        ln -sr {input.r2} {output.r2}
-        seqkit split2 --quiet -1 {output.r1} -2 {output.r2} -p {threads} -j {threads} -O {params} -e .gz
-        """
-
-use rule partition_reads as partition_index with:
-    input:
-        r1 = config["inputs"]["I1"],
-        r2 = config["inputs"]["I2"]       
-    output:
-        r1 = temp(f"{outdir}/reads.I1.fq.gz"),
-        r2 = temp(f"{outdir}/reads.I2.fq.gz"),
-        parts = temp(collect(outdir + "/fastq_chunks/reads.I{FR}.part_{part}.fq.gz", part = fastq_parts, FR = [1,2]))
-
 rule demultiplex:
     input:
-        R1 = outdir + "/fastq_chunks/reads.R1.part_{part}.fq.gz",
-        R2 = outdir + "/fastq_chunks/reads.R2.part_{part}.fq.gz",
-        I1 = outdir + "/fastq_chunks/reads.I1.part_{part}.fq.gz",
-        I2 = outdir + "/fastq_chunks/reads.I1.part_{part}.fq.gz",
+        R1 = config["inputs"]["R1"],
+        R2 = config["inputs"]["R2"],
+        I1 = config["inputs"]["I1"],
+        I2 = config["inputs"]["I2"],
         segment_a = f"{outdir}/workflow/segment_A.bc",
         segment_b = f"{outdir}/workflow/segment_B.bc",
         segment_c = f"{outdir}/workflow/segment_C.bc",
-        segment_d = f"{outdir}/workflow/segment_D.bc",
-        schema = samplefile
+        segment_d = f"{outdir}/workflow/segment_D.bc"
     output:
-        temp(collect(outdir + "/{sample}.{{part}}.R{FR}.fq", sample = samplenames, FR = [1,2])),
-        bx_info = temp(f"{outdir}/logs/part.{{part}}.barcodes")
+        fw = temp(f"{outdir}/{{sample}}.R1.fq"),
+        rv = temp(f"{outdir}/{{sample}}.R2.fq"),
+        bx_info = f"{outdir}/logs/sample_barcodes/{{sample}}.barcodes"
     log:
-        f"{outdir}/logs/demultiplex.{{part}}.log"
+        f"{outdir}/logs/{{sample}}.demultiplex.log"
     params:
         outdir = outdir,
         qxrx = config["include_qx_rx_tags"],
-        part = lambda wc: wc.get("part")
+        sample = lambda wc: wc.get("sample"),
+        id_segments = lambda wc: samples[wc.sample]
     conda:
         f"{envdir}/demultiplex.yaml"
     script:
         "scripts/demultiplex_gen1.py"
-
-rule merge_partitions:
-    input:
-        collect(outdir + "/{{sample}}.{part}.R{{FR}}.fq", part = fastq_parts)
-    output:
-        outdir + "/{sample}.R{FR}.fq"
-    container:
-        None
-    shell:
-        "cat {input} > {output}"
 
 rule compress_fastq:
     input:
@@ -130,29 +86,6 @@ rule compress_fastq:
     shell:
         "gzip {input}"
 
-rule merge_barcode_logs:
-    input:
-        bc = collect(outdir + "/logs/part.{part}.barcodes", part = fastq_parts)
-    output:
-        f"{outdir}/logs/barcodes.log"
-    run:
-        bc_dict = {}
-        for i in input.bc:
-            with open(i, "r") as bc_log:
-                # skip first row of column names
-                _ = bc_log.readline()
-                for line in bc_log:
-                    barcode,total,correct,corrected = line.split()
-                    bc_stats = [int(total), int(correct), int(corrected)]
-                    if barcode not in bc_dict:
-                        bc_dict[barcode] = bc_stats
-                    else:
-                        bc_dict[barcode] = list(map(lambda x,y: x+y, bc_stats, bc_dict[barcode]))
-        with open(output, "w") as f:
-            f.write("Barcode\tTotal_Reads\tCorrect_Reads\tCorrected_Reads\n")
-            for k,v in bc_dict.items():
-                f.write(k + "\t" + "\t".join(v) + "\n")
-
 rule assess_quality:
     input:
         outdir + "/{sample}.R{FR}.fq.gz"
@@ -160,6 +93,8 @@ rule assess_quality:
         outdir + "/reports/data/{sample}.R{FR}.fastqc"
     log:
         outdir + "/logs/{sample}.R{FR}.qc.log"
+    params:
+        f"{outdir}/reports/data"
     threads:
         1
     conda:
