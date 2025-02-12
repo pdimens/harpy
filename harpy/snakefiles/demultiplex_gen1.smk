@@ -63,14 +63,15 @@ rule partition_reads:
     threads:
         workflow.cores
     params:
-        f"{outdir}/fastq_chunks"
+        chunks = min(workflow.cores, 999),
+        outdir = f"{outdir}/fastq_chunks"
     conda:
         f"{envdir}/demultiplex.yaml"
     shell:
         """
         ln -sr {input.r1} {output.r1}
         ln -sr {input.r2} {output.r2}
-        seqkit split2 --quiet -1 {output.r1} -2 {output.r2} -p {threads} -j {threads} -O {params} -e .gz
+        seqkit split2 --quiet -1 {output.r1} -2 {output.r2} -p {params.chunks} -j {threads} -O {params.outdir} -e .gz
         """
 
 use rule partition_reads as partition_index with:
