@@ -102,7 +102,7 @@ rule demultiplex:
     params:
         outdir = outdir,
         qxrx = config["include_qx_rx_tags"],
-        keep_unknownfile = keep_unknown,
+        keep_unknown = keep_unknown,
         part = lambda wc: wc.get("part")
     conda:
         f"{envdir}/demultiplex.yaml"
