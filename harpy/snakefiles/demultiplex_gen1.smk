@@ -88,7 +88,7 @@ rule demultiplex:
         R1 = outdir + "/fastq_chunks/reads.R1.part_{part}.fq.gz",
         R2 = outdir + "/fastq_chunks/reads.R2.part_{part}.fq.gz",
         I1 = outdir + "/fastq_chunks/reads.I1.part_{part}.fq.gz",
-        I2 = outdir + "/fastq_chunks/reads.I1.part_{part}.fq.gz",
+        I2 = outdir + "/fastq_chunks/reads.I2.part_{part}.fq.gz",
         segment_a = f"{outdir}/workflow/segment_A.bc",
         segment_b = f"{outdir}/workflow/segment_B.bc",
         segment_c = f"{outdir}/workflow/segment_C.bc",
@@ -102,7 +102,7 @@ rule demultiplex:
     params:
         outdir = outdir,
         qxrx = config["include_qx_rx_tags"],
-        keep_unknown = keep_unknown,
+        keep_unknownfile = keep_unknown,
         part = lambda wc: wc.get("part")
     conda:
         f"{envdir}/demultiplex.yaml"
