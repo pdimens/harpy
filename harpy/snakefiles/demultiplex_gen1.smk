@@ -73,7 +73,7 @@ rule partition_reads:
         """
         ln -sr {input.r1} {output.r1}
         ln -sr {input.r2} {output.r2}
-        seqkit split2 --quiet -1 {output.r1} -2 {output.r2} -p {params.chunks} -j {threads} -O {params.outdir} -e .gz 2 > {log}
+        seqkit split2 --quiet -1 {output.r1} -2 {output.r2} -p {params.chunks} -j {threads} -O {params.outdir} -e .gz 2> {log}
         """
 
 use rule partition_reads as partition_index with:
