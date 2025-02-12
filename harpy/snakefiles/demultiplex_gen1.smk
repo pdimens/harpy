@@ -60,6 +60,8 @@ rule partition_reads:
         r1 = temp(f"{outdir}/reads.R1.fq.gz"),
         r2 = temp(f"{outdir}/reads.R2.fq.gz"),
         parts = temp(collect(outdir + "/fastq_chunks/reads.R{FR}.part_{part}.fq.gz", part = fastq_parts, FR = [1,2]))
+    log:
+        outdir + "/logs/partition.reads.log"
     threads:
         workflow.cores
     params:
@@ -71,7 +73,7 @@ rule partition_reads:
         """
         ln -sr {input.r1} {output.r1}
         ln -sr {input.r2} {output.r2}
-        seqkit split2 --quiet -1 {output.r1} -2 {output.r2} -p {params.chunks} -j {threads} -O {params.outdir} -e .gz
+        seqkit split2 --quiet -1 {output.r1} -2 {output.r2} -p {params.chunks} -j {threads} -O {params.outdir} -e .gz 2 > {log}
         """
 
 use rule partition_reads as partition_index with:
@@ -82,6 +84,8 @@ use rule partition_reads as partition_index with:
         r1 = temp(f"{outdir}/reads.I1.fq.gz"),
         r2 = temp(f"{outdir}/reads.I2.fq.gz"),
         parts = temp(collect(outdir + "/fastq_chunks/reads.I{FR}.part_{part}.fq.gz", part = fastq_parts, FR = [1,2]))
+    log:
+        outdir + "/logs/partition.index.log"
 
 rule demultiplex:
     input:
