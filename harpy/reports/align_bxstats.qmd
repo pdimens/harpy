@@ -165,7 +165,7 @@ group of longest molecules that together represent **50%** of the total molecule
 These are the distributions of three common NX metrics (N50, N75, N90) across all samples.
 
 ```{r nxxplot}
-if(nrow(aggregate_df) > 1){
+if(length(unique(aggregate_df$N50)) > 1 && length(unique(aggregate_df$N75)) > 1 && length(unique(aggregate_df$N90)) > 1){
   highchart() |>
     hc_chart(type = "area", animation = F) |>
     hc_add_series(data = density(aggregate_df$N50), name = "N50", type = "areaspline") |>
@@ -174,23 +174,28 @@ if(nrow(aggregate_df) > 1){
     hc_tooltip(enabled = FALSE) |>
     hc_caption(text = "Values derived using non-singleton molecules") |>
     hc_title(text = "NX Stats Across Samples") |>
-    hc_xAxis(title = list(text = "NX value"), min = 0) |>
+    hc_xAxis(title = list(text = "length (bp)"), min = 0) |>
     hc_yAxis(title = list(text = "density")) |>
     hc_exporting(enabled = T, filename = "NX.stats",
       buttons = list(contextButton = list(menuItems = c("downloadPNG", "downloadJPEG", "downloadPDF", "downloadSVG")))
     )
-} else {
+} else if (nrow(aggregate_df) == 1){
   nx_df <- data.frame("NX" = c("N50", "N75", "N90"), "value" = c(aggregate_df$N50, aggregate_df$N75, aggregate_df$N90))
   hchart(nx_df, animation = FALSE, type = "column", hcaes(x = NX, y = value, color = NX), name = "value") |>
     hc_tooltip(enabled = TRUE) |>
     hc_caption(text = "Values derived using non-singleton molecules") |>
     hc_title(text = "NX Stats") |>
     hc_xAxis(title = list(text = "Stat"), categories = nx_df$NX) |>
-    hc_yAxis(title = list(text = "Value")) |>
+    hc_yAxis(title = list(text = "length (bp)")) |>
     hc_exporting(enabled = T, filename = "NX.stats",
       buttons = list(contextButton = list(menuItems = c("downloadPNG", "downloadJPEG", "downloadPDF", "downloadSVG")))
     )
-  }
+} else {
+  cat("One of more of the NXX stats don't have enough unique values (minimum: 2) to plot distributions:\n")
+  cat("  N50:", unique(aggregate_df$N50), "\n")
+  cat("  N75:", unique(aggregate_df$N75), "\n")
+  cat("  N90:", unique(aggregate_df$N90), "\n")
+}
 ```
 :::
 
