@@ -30,52 +30,77 @@ std_error <- function(x){
 }
 
 process_input <- function(infile){
-  bamfile <- gsub(".bxstats.gz", ".bam", infile)
   samplename <- gsub(".bxstats.gz", "", basename(infile))
   tb <- read.table(infile, header = T, sep = "\t") %>% select(-4, -5)
-  tb$valid <- tb$molecule
-  tb[tb$valid != "invalidBX", "valid"] <- "validBX"
-  tb$valid <- gsub("BX", " BX", tb$valid)
-  # isolate non-singletons b/c molecules with 1 read pair aren't linked reads
-  multiplex_df <- filter(tb, valid == "valid BX", reads >= 2)
-  singletons <- sum(tb$reads < 2 & tb$valid == "valid BX")
-  tot_uniq_bx <- read.table(infile, header = F, sep = "\n", as.is = T, skip = nrow(tb) + 1, comment.char = "+")
-  tot_uniq_bx <- gsub("#total unique barcodes: ", "", tot_uniq_bx$V1[1]) |> as.integer()
-  tot_mol <- sum(tb$valid == "valid BX")
-  tot_valid_reads <- sum(tb[tb$valid == "valid BX", "reads"])
-  avg_reads_per_mol <- round(mean(multiplex_df$reads),1)
-  sem_reads_per_mol <- round(std_error(multiplex_df$reads), 2)
-  tot_invalid_reads <- sum(tb[tb$valid == "invalid BX", "reads"])
-  avg_mol_cov <- round(mean(multiplex_df$coverage_inserts), 2)
-  sem_mol_cov <- round(std_error(multiplex_df$coverage_inserts), 4)
-  avg_mol_cov_bp <- round(mean(multiplex_df$coverage_bp), 2)
-  sem_mol_cov_bp<- round(std_error(multiplex_df$coverage_bp), 4)
-  n50 <- NX(multiplex_df$length_inferred, 50)
-  n75 <- NX(multiplex_df$length_inferred, 75)
-  n90 <- NX(multiplex_df$length_inferred, 90)
-
-  outrow <- data.frame(
-    sample = samplename,
-    totalreads = tot_valid_reads + tot_invalid_reads,
-    totaluniquemol = tot_mol,
-    singletons = singletons,
-    nonsingletons = nrow(multiplex_df),
-    totaluniquebx = tot_uniq_bx,
-    molecule2bxratio = round(tot_mol / tot_uniq_bx,2),
-    totalvalidreads = tot_valid_reads,
-    totalinvalidreads = tot_invalid_reads,
-    totalvalidpercent = round(tot_valid_reads/(tot_valid_reads + tot_invalid_reads) * 100,2),
-    averagereadspermol = avg_reads_per_mol,
-    sereadspermol = sem_reads_per_mol,
-    averagemolcov = avg_mol_cov,
-    semolcov = sem_mol_cov,
-    averagemolcovbp = avg_mol_cov_bp,
-    semolcovbp = sem_mol_cov_bp,
-    N50 = n50,
-    N75 = n75,
-    N90 = n90
-  )
-  return(outrow)
+  if(nrow(tb) == 0){
+    return(
+      data.frame(
+        sample = samplename,
+        totalreads = 0,
+        totaluniquemol = 0,
+        singletons = 0,
+        nonsingletons = 0,
+        totaluniquebx = 0,
+        molecule2bxratio = 0,
+        totalvalidreads = 0,
+        totalinvalidreads = 0,
+        totalvalidpercent = 0,
+        averagereadspermol = 0,
+        sereadspermol = 0,
+        averagemolcov = 0,
+        semolcov = 0,
+        averagemolcovbp = 0,
+        semolcovbp = 0,
+        N50 = 0,
+        N75 = 0,
+        N90 = 0
+      )
+    )
+  } else {
+    tb$valid <- tb$molecule
+    tb[tb$valid != "invalidBX", "valid"] <- "validBX"
+    tb$valid <- gsub("BX", " BX", tb$valid)
+    # isolate non-singletons b/c molecules with 1 read pair aren't linked reads
+    multiplex_df <- filter(tb, valid == "valid BX", reads >= 2)
+    singletons <- sum(tb$reads < 2 & tb$valid == "valid BX")
+    tot_uniq_bx <- read.table(infile, header = F, sep = "\n", as.is = T, skip = nrow(tb) + 1, comment.char = "+")
+    tot_uniq_bx <- gsub("#total unique barcodes: ", "", tot_uniq_bx$V1[1]) |> as.integer()
+    tot_mol <- sum(tb$valid == "valid BX")
+    tot_valid_reads <- sum(tb[tb$valid == "valid BX", "reads"])
+    avg_reads_per_mol <- round(mean(multiplex_df$reads),1)
+    sem_reads_per_mol <- round(std_error(multiplex_df$reads), 2)
+    tot_invalid_reads <- sum(tb[tb$valid == "invalid BX", "reads"])
+    avg_mol_cov <- round(mean(multiplex_df$coverage_inserts), 2)
+    sem_mol_cov <- round(std_error(multiplex_df$coverage_inserts), 4)
+    avg_mol_cov_bp <- round(mean(multiplex_df$coverage_bp), 2)
+    sem_mol_cov_bp<- round(std_error(multiplex_df$coverage_bp), 4)
+    n50 <- NX(multiplex_df$length_inferred, 50)
+    n75 <- NX(multiplex_df$length_inferred, 75)
+    n90 <- NX(multiplex_df$length_inferred, 90)
+    return(
+      data.frame(
+        sample = samplename,
+        totalreads = tot_valid_reads + tot_invalid_reads,
+        totaluniquemol = tot_mol,
+        singletons = singletons,
+        nonsingletons = nrow(multiplex_df),
+        totaluniquebx = tot_uniq_bx,
+        molecule2bxratio = round(tot_mol / tot_uniq_bx,2),
+        totalvalidreads = tot_valid_reads,
+        totalinvalidreads = tot_invalid_reads,
+        totalvalidpercent = round(tot_valid_reads/(tot_valid_reads + tot_invalid_reads) * 100,2),
+        averagereadspermol = avg_reads_per_mol,
+        sereadspermol = sem_reads_per_mol,
+        averagemolcov = avg_mol_cov,
+        semolcov = sem_mol_cov,
+        averagemolcovbp = avg_mol_cov_bp,
+        semolcovbp = sem_mol_cov_bp,
+        N50 = n50,
+        N75 = n75,
+        N90 = n90
+      )
+    )
+  }
 }
 ```
 
@@ -99,7 +124,7 @@ of data for each sample based on their `*.bxstats.gz` file. Every column after `
 ignores singletons in its calculations. 
 
 - `avg` the average (arithmetic mean)
-- `SEM` the Standard Error of the mean
+- `SE` the Standard Error of the mean
 - `molecules` the unique DNA molecules as inferred from linked-read barcodes
   - `singletons` molecules composed of one single-end or paired-end sequence, effectively not a linked read
   - `nonsingletons` molecules composed of more than two single-end or paired-end sequences
@@ -122,7 +147,7 @@ DT::datatable(
   ),
   caption = 'Per-Sample Alignment Information Pertaining to Barcodes',
   fillContainer = T,
-  colnames = c("sample", "alignments", "unique molecules", "singletons", "nonsingletons", "unique barcodes", "molecule:bx ratio", "valid bx alignments", "invalid bx alignments", "% valid bx", "avg reads/molecule", "SEM reads/molecule", "avg molecule coverage %","SEM molecule coverage %", "N50", "N75","N90")
+  colnames = c("sample", "alignments", "unique molecules", "singletons", "nonsingletons", "unique barcodes", "molecule:bx ratio", "valid bx alignments", "invalid bx alignments", "% valid bx", "avg reads/molecule", "SE reads/molecule", "avg molecule coverage %","SE molecule coverage %", "avg molecule coverage (bp)", "SE molecule coverage (bp)", "N50", "N75","N90")
 )
 ```
 
@@ -140,19 +165,37 @@ group of longest molecules that together represent **50%** of the total molecule
 These are the distributions of three common NX metrics (N50, N75, N90) across all samples.
 
 ```{r nxxplot}
-highchart() |>
-  hc_chart(type = "area", animation = F) |>
-  hc_add_series(data = density(aggregate_df$N50), name = "N50", type = "areaspline") |>
-  hc_add_series(data = density(aggregate_df$N75), name = "N75", type = "areaspline") |>
-  hc_add_series(data = density(aggregate_df$N90), name = "N90", color = "#d3805f", type = "areaspline") |>
-  hc_tooltip(enabled = FALSE) |>
-  hc_caption(text = "Values derived using non-singleton molecules") |>
-  hc_title(text = "NX Stats Across Samples") |>
-  hc_xAxis(title = list(text = "NX value"), min = 0) |>
-  hc_yAxis(title = list(text = "density")) |>
-  hc_exporting(enabled = T, filename = "NX.stats",
-    buttons = list(contextButton = list(menuItems = c("downloadPNG", "downloadJPEG", "downloadPDF", "downloadSVG")))
-  )
+if(length(unique(aggregate_df$N50)) > 1 && length(unique(aggregate_df$N75)) > 1 && length(unique(aggregate_df$N90)) > 1){
+  highchart() |>
+    hc_chart(type = "area", animation = F) |>
+    hc_add_series(data = density(aggregate_df$N50), name = "N50", type = "areaspline") |>
+    hc_add_series(data = density(aggregate_df$N75), name = "N75", type = "areaspline") |>
+    hc_add_series(data = density(aggregate_df$N90), name = "N90", color = "#d3805f", type = "areaspline") |>
+    hc_tooltip(enabled = FALSE) |>
+    hc_caption(text = "Values derived using non-singleton molecules") |>
+    hc_title(text = "NX Stats Across Samples") |>
+    hc_xAxis(title = list(text = "length (bp)"), min = 0) |>
+    hc_yAxis(title = list(text = "density")) |>
+    hc_exporting(enabled = T, filename = "NX.stats",
+      buttons = list(contextButton = list(menuItems = c("downloadPNG", "downloadJPEG", "downloadPDF", "downloadSVG")))
+    )
+} else if (nrow(aggregate_df) == 1){
+  nx_df <- data.frame("NX" = c("N50", "N75", "N90"), "value" = c(aggregate_df$N50, aggregate_df$N75, aggregate_df$N90))
+  hchart(nx_df, animation = FALSE, type = "column", hcaes(x = NX, y = value, color = NX), name = "value") |>
+    hc_tooltip(enabled = TRUE) |>
+    hc_caption(text = "Values derived using non-singleton molecules") |>
+    hc_title(text = "NX Stats") |>
+    hc_xAxis(title = list(text = "Stat"), categories = nx_df$NX) |>
+    hc_yAxis(title = list(text = "length (bp)")) |>
+    hc_exporting(enabled = T, filename = "NX.stats",
+      buttons = list(contextButton = list(menuItems = c("downloadPNG", "downloadJPEG", "downloadPDF", "downloadSVG")))
+    )
+} else {
+  cat("One of more of the NXX stats don't have enough unique values (minimum: 2) to plot distributions:\n")
+  cat("  N50:", unique(aggregate_df$N50), "\n")
+  cat("  N75:", unique(aggregate_df$N75), "\n")
+  cat("  N90:", unique(aggregate_df$N90), "\n")
+}
 ```
 :::
 

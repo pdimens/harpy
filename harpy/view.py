@@ -3,12 +3,40 @@
 import os
 import sys
 import glob
-import subprocess
+import gzip
+import curses
+from pygments import highlight
+from pygments.lexers import YamlLexer
+from click import echo_via_pager
 import rich_click as click
 from rich.panel import Panel
 from rich import print as rprint
 from ._printing import print_error
 from ._validations import is_gzip
+
+def check_terminal_colors():
+    # Initialize curses
+    stdscr = curses.initscr()
+    # Check if the terminal supports colors
+    if not curses.has_colors():
+        curses.endwin()
+        return 0
+    # Start color mode
+    curses.start_color()
+    # Get the number of colors supported
+    num_colors = curses.COLORS
+    # Determine the color type based on the number of colors
+    if num_colors <= 8:
+        ncol = 8
+    elif num_colors == 256:
+        ncol = 256
+    elif num_colors > 256:  # Truecolor (24-bit)
+        ncol = 999
+    else:
+        ncol = 256
+    curses.endwin()
+    return ncol
+
 
 @click.command(no_args_is_help = True, context_settings=dict(allow_interspersed_args=False))
 @click.option('-s', '--snakefile',  is_flag = True, show_default = True, default = False, help = "View the snakefile instead")
@@ -79,15 +107,30 @@ def view(directory, snakefile, config):
             f"[blue]{file}[/blue] does not have read access. Please check the file permissions."
         )
         sys.exit(1)
+    n_colors = check_terminal_colors()
+    if n_colors <= 8:
+        from pygments.formatters import TerminalFormatter
+        formatter = TerminalFormatter
+    elif n_colors == 256:
+        from pygments.formatters import Terminal256Formatter
+        formatter = Terminal256Formatter
+    else:
+        from pygments.formatters import TerminalTrueColorFormatter
+        formatter = TerminalTrueColorFormatter
 
-    cat_cmd = "zcat" if is_gzip(file) else "cat"
-    stream = subprocess.Popen([cat_cmd, file], stdout=subprocess.PIPE)
-    pygment = subprocess.Popen(["pygmentize", "-l", "yaml"], stdin = stream.stdout, stdout = subprocess.PIPE)
-    subprocess.run(["less", "-R"], stdin = pygment.stdout) 
+    def _read_file(x):
+        compressed = is_gzip(x)
+        opener = gzip.open if compressed else open
+        mode = "rt" if compressed else "r"
+        with opener(x, mode) as f:
+            for line in f:
+                yield highlight(line, YamlLexer(),formatter())
+    os.environ["PAGER"] = "less -R"
+    click.echo_via_pager(_read_file(file), color = n_colors > 0)
     rprint(
         Panel(
             file,
-            title = "[bold] File viewed",
+            title = "[bold blue] File viewed",
             title_align = "left",
             border_style = "dim",
             width = 75
