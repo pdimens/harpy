@@ -122,7 +122,7 @@ def view(directory, snakefile, config):
         compressed = is_gzip(x)
         opener = gzip.open if compressed else open
         mode = "rt" if compressed else "r"
-        with opener(file, mode) as f:
+        with opener(x, mode) as f:
             for line in f:
                 yield highlight(line, YamlLexer(),formatter())
     os.environ["PAGER"] = "less -R"
