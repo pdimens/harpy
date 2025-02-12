@@ -110,15 +110,14 @@ rule demultiplex:
         "scripts/demultiplex_gen1.py"
 
 rule merge_partitions:
-    default_target: True
     input:
         collect(outdir + "/{{sample}}.{part}.R{{FR}}.fq", part = fastq_parts)
     output:
         outdir + "/{sample}.R{FR}.fq"
     container:
         None
-#    shell:
-#        "cat {input} > {output}"
+    shell:
+        "cat {input} > {output}"
 
 rule compress_fastq:
     input:
@@ -223,7 +222,7 @@ rule quality_report:
         "multiqc --filename {output} --config {input.mqc_yaml} {params} 2> {log}"
 
 rule workflow_summary:
-    #default_target: True
+    default_target: True
     input:
         fq = collect(outdir + "/{sample}.R{FR}.fq.gz", sample = samplenames, FR = [1,2]),
         barcode_logs = f"{outdir}/logs/barcodes.log",
