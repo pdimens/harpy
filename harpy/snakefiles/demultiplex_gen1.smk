@@ -118,20 +118,24 @@ rule merge_partitions:
         collect(outdir + "/{{sample}}.{part}.R{{FR}}.fq", part = fastq_parts)
     output:
         outdir + "/{sample}.R{FR}.fq"
+    log:
+        outdir + "/logs/{sample}.{FR}.concat.log"
     container:
         None
     shell:
-        "cat {input} > {output}"
+        "cat {input} > {output} 2> {log}"
 
 rule compress_fastq:
     input:
         outdir + "/{sample}.R{FR}.fq"
     output:
         outdir + "/{sample}.R{FR}.fq.gz"
+    log:
+        outdir + "/logs/{sample}.{FR}.compress.log"
     container:
         None
     shell:
-        "gzip {input}"
+        "gzip {input} 2> {log}"
 
 rule merge_barcode_logs:
     input:
