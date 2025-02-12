@@ -124,7 +124,7 @@ of data for each sample based on their `*.bxstats.gz` file. Every column after `
 ignores singletons in its calculations. 
 
 - `avg` the average (arithmetic mean)
-- `SEM` the Standard Error of the mean
+- `SE` the Standard Error of the mean
 - `molecules` the unique DNA molecules as inferred from linked-read barcodes
   - `singletons` molecules composed of one single-end or paired-end sequence, effectively not a linked read
   - `nonsingletons` molecules composed of more than two single-end or paired-end sequences
@@ -147,7 +147,7 @@ DT::datatable(
   ),
   caption = 'Per-Sample Alignment Information Pertaining to Barcodes',
   fillContainer = T,
-  colnames = c("sample", "alignments", "unique molecules", "singletons", "nonsingletons", "unique barcodes", "molecule:bx ratio", "valid bx alignments", "invalid bx alignments", "% valid bx", "avg reads/molecule", "SEM reads/molecule", "avg molecule coverage %","SEM molecule coverage %", "N50", "N75","N90")
+  colnames = c("sample", "alignments", "unique molecules", "singletons", "nonsingletons", "unique barcodes", "molecule:bx ratio", "valid bx alignments", "invalid bx alignments", "% valid bx", "avg reads/molecule", "SE reads/molecule", "avg molecule coverage %","SE molecule coverage %", "avg molecule coverage (bp)", "SE molecule coverage (bp)", "N50", "N75","N90")
 )
 ```
 
