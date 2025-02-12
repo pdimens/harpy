@@ -40,7 +40,7 @@ def parse_schema(smpl, keep_unknown):
 
 samples = parse_schema(samplefile, keep_unknown)
 samplenames = [i for i in samples]
-fastq_parts = [f"{i:03d}" for i in range(1, workflow.cores + 1)]
+fastq_parts = [f"{i:03d}" for i in range(1, min(workflow.cores, 999) + 1)]
 
 rule barcode_segments:
     output:
