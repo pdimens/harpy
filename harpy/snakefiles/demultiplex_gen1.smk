@@ -59,21 +59,21 @@ rule partition_reads:
     output:
         r1 = temp(f"{outdir}/reads.R1.fq.gz"),
         r2 = temp(f"{outdir}/reads.R2.fq.gz"),
-        parts = temp(collect(outdir + "/fastq_chunks/reads.R{FR}.part_{part}.fq.gz", part = fastq_parts, FR = [1,2]))
+        parts = temp(collect(outdir + "/reads_chunks/reads.R{FR}.part_{part}.fq.gz", part = fastq_parts, FR = [1,2]))
     log:
         outdir + "/logs/partition.reads.log"
     threads:
         workflow.cores
     params:
         chunks = min(workflow.cores, 999),
-        outdir = f"{outdir}/fastq_chunks"
+        outdir = f"{outdir}/reads_chunks"
     conda:
         f"{envdir}/demultiplex.yaml"
     shell:
         """
         ln -sr {input.r1} {output.r1}
         ln -sr {input.r2} {output.r2}
-        seqkit split2 --quiet -1 {output.r1} -2 {output.r2} -p {params.chunks} -j {threads} -O {params.outdir} -e .gz 2> {log}
+        seqkit split2 -f --quiet -1 {output.r1} -2 {output.r2} -p {params.chunks} -j {threads} -O {params.outdir} -e .gz 2> {log}
         """
 
 use rule partition_reads as partition_index with:
@@ -83,16 +83,19 @@ use rule partition_reads as partition_index with:
     output:
         r1 = temp(f"{outdir}/reads.I1.fq.gz"),
         r2 = temp(f"{outdir}/reads.I2.fq.gz"),
-        parts = temp(collect(outdir + "/fastq_chunks/reads.I{FR}.part_{part}.fq.gz", part = fastq_parts, FR = [1,2]))
+        parts = temp(collect(outdir + "/index_chunks/reads.I{FR}.part_{part}.fq.gz", part = fastq_parts, FR = [1,2]))
     log:
         outdir + "/logs/partition.index.log"
+    params:
+        chunks = min(workflow.cores, 999),
+        outdir = f"{outdir}/index_chunks"
 
 rule demultiplex:
     input:
-        R1 = outdir + "/fastq_chunks/reads.R1.part_{part}.fq.gz",
-        R2 = outdir + "/fastq_chunks/reads.R2.part_{part}.fq.gz",
-        I1 = outdir + "/fastq_chunks/reads.I1.part_{part}.fq.gz",
-        I2 = outdir + "/fastq_chunks/reads.I2.part_{part}.fq.gz",
+        R1 = outdir + "/reads_chunks/reads.R1.part_{part}.fq.gz",
+        R2 = outdir + "/reads_chunks/reads.R2.part_{part}.fq.gz",
+        I1 = outdir + "/index_chunks/reads.I1.part_{part}.fq.gz",
+        I2 = outdir + "/index_chunks/reads.I2.part_{part}.fq.gz",
         segment_a = f"{outdir}/workflow/segment_A.bc",
         segment_b = f"{outdir}/workflow/segment_B.bc",
         segment_c = f"{outdir}/workflow/segment_C.bc",
