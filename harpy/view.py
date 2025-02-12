@@ -3,7 +3,11 @@
 import os
 import sys
 import glob
-import subprocess
+import gzip
+from pygments import highlight
+from pygments.lexers import YamlLexer
+from pygments.formatters import Terminal256Formatter
+from click import echo_via_pager
 import rich_click as click
 from rich.panel import Panel
 from rich import print as rprint
@@ -80,10 +84,16 @@ def view(directory, snakefile, config):
         )
         sys.exit(1)
 
-    cat_cmd = "zcat" if is_gzip(file) else "cat"
-    stream = subprocess.Popen([cat_cmd, file], stdout=subprocess.PIPE)
-    pygment = subprocess.Popen(["pygmentize", "-l", "yaml"], stdin = stream.stdout, stdout = subprocess.PIPE)
-    subprocess.run(["less", "-R"], stdin = pygment.stdout) 
+    def _read_file(x):
+        compressed = is_gzip(x)
+        opener = gzip.open if compressed else open
+        mode = "rt" if compressed else "r"
+        with opener(file, mode) as f:
+            for line in f:
+                yield highlight(line, YamlLexer(),Terminal256Formatter())
+    os.environ["PAGER"] = "less -R"
+    click.echo_via_pager(_read_file(file), color = True)
+
     rprint(
         Panel(
             file,
