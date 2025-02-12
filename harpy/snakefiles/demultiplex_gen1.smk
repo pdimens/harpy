@@ -12,16 +12,13 @@ keep_unknown = config["keep_unknown"]
 onstart:
     logger.logger.addHandler(logging.FileHandler(config["snakemake_log"]))
     os.makedirs(f"{outdir}/reports/data", exist_ok = True)
-    os.makedirs(f"{outdir}/logs/demux", exist_ok = True)
 onsuccess:
     os.remove(logger.logfile)
 onerror:
     os.remove(logger.logfile)
 wildcard_constraints:
     FR = "[12]",
-    part = "\d+",
-    sample = "[a-zA-Z0-9._-]+"
-
+    part = "\d+"
 
 def parse_schema(smpl, keep_unknown):
     d = {}
@@ -104,6 +101,7 @@ rule demultiplex:
     params:
         outdir = outdir,
         qxrx = config["include_qx_rx_tags"],
+        keep_unknown = keep_unknown,
         part = lambda wc: wc.get("part")
     conda:
         f"{envdir}/demultiplex.yaml"
@@ -111,14 +109,15 @@ rule demultiplex:
         "scripts/demultiplex_gen1.py"
 
 rule merge_partitions:
+    default_target: True
     input:
         collect(outdir + "/{{sample}}.{part}.R{{FR}}.fq", part = fastq_parts)
     output:
         outdir + "/{sample}.R{FR}.fq"
     container:
         None
-    shell:
-        "cat {input} > {output}"
+#    shell:
+#        "cat {input} > {output}"
 
 rule compress_fastq:
     input:
@@ -134,7 +133,7 @@ rule merge_barcode_logs:
     input:
         bc = collect(outdir + "/logs/part.{part}.barcodes", part = fastq_parts)
     output:
-        f"{outdir}/logs/barcodes.log"
+        log = f"{outdir}/logs/barcodes.log"
     run:
         bc_dict = {}
         for i in input.bc:
@@ -148,10 +147,10 @@ rule merge_barcode_logs:
                         bc_dict[barcode] = bc_stats
                     else:
                         bc_dict[barcode] = list(map(lambda x,y: x+y, bc_stats, bc_dict[barcode]))
-        with open(output, "w") as f:
+        with open(output.log, "w") as f:
             f.write("Barcode\tTotal_Reads\tCorrect_Reads\tCorrected_Reads\n")
             for k,v in bc_dict.items():
-                f.write(k + "\t" + "\t".join(v) + "\n")
+                f.write(k + "\t" + "\t".join([str(i) for i in v]) + "\n")
 
 rule assess_quality:
     input:
@@ -223,9 +222,10 @@ rule quality_report:
         "multiqc --filename {output} --config {input.mqc_yaml} {params} 2> {log}"
 
 rule workflow_summary:
-    default_target: True
+    #default_target: True
     input:
         fq = collect(outdir + "/{sample}.R{FR}.fq.gz", sample = samplenames, FR = [1,2]),
+        barcode_logs = f"{outdir}/logs/barcodes.log",
         reports = outdir + "/reports/demultiplex.QA.html" if not skip_reports else []
     params:
         R1 = config["inputs"]["R1"],
@@ -233,7 +233,6 @@ rule workflow_summary:
         I1 = config["inputs"]["I1"],
         I2 = config["inputs"]["I2"]
     run:
-        os.makedirs(f"{outdir}/workflow/", exist_ok= True)
         summary = ["The harpy demultiplex workflow ran using these parameters:"]
         summary.append("Linked Read Barcode Design: Generation I")
         inputs = "The multiplexed input files:\n"
