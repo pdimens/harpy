@@ -176,6 +176,26 @@ if(!VALID_PRESENT){
   summ_invalid <- invalids %>% group_by(contig) %>% summarize(invalid_records = sum(reads))
   summary_table <- left_join(summary_table, summ_invalid, by = "contig", keep = T) %>% select(1, 2, 8, 3:6)
   summary_table$invalid_records[is.na(summary_table$invalid_records)] <- 0
+
+  column_description <- c(
+    "name of the contig",
+    "number of valid linked-read barcodes",
+    "number of invalid linked-read barcodes, given by a segment with 00",
+    "the unique DNA molecules as inferred from linked-read barcodes",
+    "N50 of inferred molecules",
+    "N75 of inferred molecules",
+    "N90 of inferred molecules"
+    )
+
+  headerCallback <- c(
+    "function(thead, data, start, end, display){",
+    paste0(" var tooltips = ['", paste(column_description, collapse = "','"), "'];"),
+    "  for(var i=0; i<5; i++){",
+    "    $('th:eq('+i+')',thead).attr('title', tooltips[i]);",
+    "  }",
+    "}"
+  )
+
   DT::datatable(
     summary_table,
     rownames = F,
@@ -184,7 +204,8 @@ if(!VALID_PRESENT){
     options = list(
       dom = 'Brtp',
       paging = TRUE,
-      buttons = list(list(extend = "csv",filename = paste0(samplename ,"_molecule_NX")))
+      buttons = list(list(extend = "csv",filename = paste0(samplename ,"_molecule_NX"))),
+      headerCallback = JS(headerCallback)
     )
   )
 }
@@ -506,18 +527,36 @@ deviation per `r windowskb`kbp intervals **including** intervals whose depth is 
 an outlier in the data. 
 
 ```{r depth_table}
+column_description <- c(
+  "name of the contig",
+  "average alignment depth",
+  "standard deviation of alignment depth",
+  "average depth of inferred molecules, which includes gaps between linked-reads",
+  "standard deviation of the inferred molecule alignment depth"
+  )
+
+headerCallback <- c(
+  "function(thead, data, start, end, display){",
+  paste0(" var tooltips = ['", paste(column_description, collapse = "','"), "'];"),
+  "  for(var i=0; i<5; i++){",
+  "    $('th:eq('+i+')',thead).attr('title', tooltips[i]);",
+  "  }",
+  "}"
+)
+
 DT::datatable(
   contig_avg, 
   rownames = F, 
   extensions = 'Buttons', 
+  colnames = c('Contig', 'Average Depth', 'Standard Deviation', 'Average Depth (molecules)', 'Standard Deviation (Molecules)'),
+  fillContainer=T,
   options = list(
     dom = 'Brtp',
     scrollX = TRUE,
     paging = TRUE,
-    buttons = list(list(extend = "csv",filename = paste0(samplename ,"_align_depth_avg")))
-  ),
-  colnames = c('Contig', 'Average Depth', 'Standard Deviation', 'Average Depth (molecules)', 'Standard Deviation (Molecules)'),
-  fillContainer=T
+    buttons = list(list(extend = "csv",filename = paste0(samplename ,"_align_depth_avg"))),
+    headerCallback = JS(headerCallback)
+  )
 )
 ```
 :::
@@ -528,18 +567,35 @@ This table shows the `r windowskb`kbp intervals considered outliers, as determin
 having depth greater than the 99th percentile (`r q99`) of aligment depths. 
 
 ```{r depth_plot}
+column_description <- c(
+  "name of the contig",
+  "the genomic interval on the contig",
+  "number of alignments at the interval",
+  "number of alignments at the interval, including gaps between linked-reads"
+  )
+
+headerCallback <- c(
+  "function(thead, data, start, end, display){",
+  paste0(" var tooltips = ['", paste(column_description, collapse = "','"), "'];"),
+  "  for(var i=0; i<5; i++){",
+  "    $('th:eq('+i+')',thead).attr('title', tooltips[i]);",
+  "  }",
+  "}"
+)
+
 DT::datatable(
   outliers, 
   rownames = F, 
   extensions = 'Buttons', 
+  colnames = c('Contig', 'Interval', 'Depth', 'Depth (molecules)'),
+  fillContainer=T,
   options = list(
     dom = 'Brtp',
     scrollX = TRUE,
     paging = TRUE,
-    buttons = list(list(extend = "csv",filename = paste0(samplename ,"_align_depth_outlier_avg")))
+    buttons = list(list(extend = "csv",filename = paste0(samplename ,"_align_depth_outlier_avg"))),
+    headerCallback = JS(headerCallback)
   ),
-  colnames = c('Contig', 'Interval', 'Depth', 'Depth (molecules)'),
-  fillContainer=T
 )
 ```
 :::

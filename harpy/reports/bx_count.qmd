@@ -182,18 +182,38 @@ percdata <- BXstats %>%
 ```
 
 ```{r sample_bx_qual}
+column_description <- c(
+  "name of the sample",
+  "total number of reads",
+  "total number of barcodes present",
+  "number of valid haplotag barcodes",
+  "percent of haplotag barcodes that are valid".
+  "number of invalid haplotag barcodes, i.e. with a 00 segment",
+  "percent of haplotag barcodes that are invalid"
+  )
+
+headerCallback <- c(
+  "function(thead, data, start, end, display){",
+  paste0(" var tooltips = ['", paste(column_description, collapse = "','"), "'];"),
+  "  for(var i=0; i<5; i++){",
+  "    $('th:eq('+i+')',thead).attr('title', tooltips[i]);",
+  "  }",
+  "}"
+)
+
 DT::datatable(
   BXstats,
   rownames = FALSE,
   filter = "top",
   extensions = "Buttons",
+  caption = "Overall barcode quality per sample",
+  fillContainer = T,
   options = list(
     dom = "Brtp",
     buttons = c("csv"),
-    scrollX = TRUE
-  ),
-  caption = "Overall barcode quality per sample",
-  fillContainer = T
+    scrollX = TRUE,
+    headerCallback = JS(headerCallback)
+  )
 )
 ```
 :::
@@ -260,6 +280,23 @@ It's likely that percentages will have greater diagnostic value than the total c
 because the number of reads and barcodes will vary between individual samples.
 
 ```{r invalid_segment_table}
+column_description <- c(
+  "name of the sample",
+  "number of occurrences of invalid \'A\' barcode segment",
+  "number of occurrences of invalid \'C\' barcode segment",
+  "number of occurrences of invalid \'B\' barcode segment",
+  "number of occurrences of invalid \'D\' barcode segment"
+  )
+
+headerCallback <- c(
+  "function(thead, data, start, end, display){",
+  paste0(" var tooltips = ['", paste(column_description, collapse = "','"), "'];"),
+  "  for(var i=0; i<5; i++){",
+  "    $('th:eq('+i+')',thead).attr('title', tooltips[i]);",
+  "  }",
+  "}"
+)
+
 DT::datatable(
   invalids_percent,
   rownames = FALSE,
@@ -270,7 +307,8 @@ DT::datatable(
   options = list(
     dom = "Brtp",
     buttons = c("csv"),
-    scrollX = TRUE
+    scrollX = TRUE,
+    headerCallback = JS(headerCallback)
   )
 )
 ```

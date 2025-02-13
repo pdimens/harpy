@@ -247,17 +247,35 @@ if(sum(.dpL) == 0){
 if(sum(.dpL) == 0){
   cat(paste0("No DP section in ", statsfile, " found\n"))
 } else {
+  column_description <- c(
+    "depth bin as computed by bcftools",
+    "number of genotypes in the bin",
+    "percent of genotypes in the bin",
+    "number of sites in the bin",
+    "percent of sites in the bin"
+    )
+
+  headerCallback <- c(
+    "function(thead, data, start, end, display){",
+    paste0(" var tooltips = ['", paste(column_description, collapse = "','"), "'];"),
+    "  for(var i=0; i<5; i++){",
+    "    $('th:eq('+i+')',thead).attr('title', tooltips[i]);",
+    "  }",
+    "}"
+  )
+
   DT::datatable(
     dp,
     rownames = F,
     filter = "top",
     extensions = 'Buttons',
+    colnames = c("Depth Bin", "Genotypes", "% Genotypes", "Sites", "% Sites"),
     options = list(
       dom = 'Brtp',
       buttons = list(list(extend = "csv", filename = "align_depth_bins")),
-      paging = T
-    ),
-    colnames = c("Depth Bin", "Genotypes", "% Genotypes", "Sites", "% Sites")
+      paging = T,
+      headerCallback = JS(headerCallback)
+    )
   )
 }
 ```

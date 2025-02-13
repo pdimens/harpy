@@ -260,6 +260,25 @@ fig
 ###
 :::{.card title="Haplotype Stats by Contig" expandable="true"}
 ```{r}
+column_description <- c(
+  "name of the contig",
+  "total haplotypes on the contig",
+  "mean number of SNPs per haplotype",
+  "median number of SNPs per haplotype",
+  "mean length of haplotypes, given in base pairs",
+  "N50 length of the haplotype blocks, given in base pairs",
+  "length of the largest haplotype, given in base pairs"
+  )
+
+headerCallback <- c(
+  "function(thead, data, start, end, display){",
+  paste0(" var tooltips = ['", paste(column_description, collapse = "','"), "'];"),
+  "  for(var i=0; i<5; i++){",
+  "    $('th:eq('+i+')',thead).attr('title', tooltips[i]);",
+  "  }",
+  "}"
+)
+
 DT::datatable(
   percontig,
   rownames = F,
@@ -269,7 +288,8 @@ DT::datatable(
   options = list(
     dom = 'Brtp',
     buttons = list(list(extend = "csv",filename = "phasing_per_contig")), 
-    scrollX = TRUE
+    scrollX = TRUE,
+    headerCallback = JS(headerCallback)
   )
 )
 ```
@@ -299,6 +319,25 @@ persample <- df %>% group_by(sample) %>% summarise(
     max_blocksize = max(block_length)
 )
 
+column_description <- c(
+  "name of the sample",
+  "number of haplotypes",
+  "mean number of SNPs per haplotype",
+  "median number of SNPs per haplotype",
+  "mean length of haplotypes, given in base pairs",
+  "N50 length of the haplotype blocks, given in base pairs",
+  "length of the largest haplotype, given in base pairs"
+)
+
+headerCallback <- c(
+  "function(thead, data, start, end, display){",
+  paste0(" var tooltips = ['", paste(column_description, collapse = "','"), "'];"),
+  "  for(var i=0; i<5; i++){",
+  "    $('th:eq('+i+')',thead).attr('title', tooltips[i]);",
+  "  }",
+  "}"
+)
+
 DT::datatable(
   persample,
   rownames = F,
@@ -308,7 +347,8 @@ DT::datatable(
   options = list(
     dom = 'Brtp', 
     buttons = list(list(extend = "csv",filename = "phasing_per_sample")), 
-    scrollX = TRUE
+    scrollX = TRUE,
+    headerCallback = JS(headerCallback)
   )
 )
 ```

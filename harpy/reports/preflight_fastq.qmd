@@ -86,14 +86,14 @@ datatable(
   rownames = F,
   filter = "top",
   extensions = 'Buttons',
+  fillContainer = T,
+  colnames = c("File", "Reads", "AxxCxxBxxDxx", "SAM Spec", "BX:Z last", "BX:Z tag"),
   options = list(
     paging = F,
     scrollX = F,
     dom = 'Brtp',
     buttons = list(list(extend = "csv",filename = "fastq_checks"))
-  ),
-  fillContainer = T,
-  colnames = c("File", "Reads", "AxxCxxBxxDxx", "SAM Spec", "BX:Z last", "BX:Z tag")
+  )
 ) %>%
 formatStyle(
   columns = 3:ncol(data),
