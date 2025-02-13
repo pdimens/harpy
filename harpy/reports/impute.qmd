@@ -297,7 +297,7 @@ column_description <- c(
   "number of SNPs remaining after filtering at INFO>=0.4",
   "number of SNPs remaining after filtering at INFO>=0.5",
   "number of SNPs remaining after filtering at INFO>=0.75",
-  "number of SNPs remaining after filtering at INFO>=0.90",
+  "number of SNPs remaining after filtering at INFO>=0.90"
 )
 
 headerCallback <- c(
