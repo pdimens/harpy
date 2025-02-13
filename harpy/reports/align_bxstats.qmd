@@ -25,6 +25,15 @@ NX <- function(lengths, X=50){
   return(lengths[index])
 }
 
+avg_percent_of <- function(target, other){
+  # omit zeroes, take the means of target and other, then get a percent
+  x <- target[target != 0]
+  y <- other[other != 0]
+  return(
+    round(mean(x/(x+y)) * 100, 2)
+  )
+}
+
 std_error <- function(x){
   sd(x)/sqrt(length((x)))
 }
@@ -90,39 +99,125 @@ if(nrow(aggregate_df) == 0){
 ```
 
 # General
+##
+```{r}
+#| content: valuebox
+#| title: "Samples"
+list(
+  color = "light",
+  value = nrow(aggregate_df)
+)
+```
+
+```{r}
+#| content: valuebox
+#| title: "Avg % Nonsingletons"
+list(
+  color = "light",
+  value = avg_percent_of(aggregate_df$nonsingletons, aggregate_df$singletons)
+)
+```
+
+```{r}
+#| content: valuebox
+#| title: "Avg Percent Valid Bx"
+list(
+  color = "light",
+  value = round(mean(aggregate_df$totalvalidpercent[aggregate_df$totalvalidpercent != 0]), 2)
+)
+```
+
+```{r}
+#| content: valuebox
+#| title: "Avg Reads/Molecule"
+list(
+  color = "light",
+  value = round(mean(aggregate_df$averagereadspermol[aggregate_df$averagereadspermol != 0]), 2)
+)
+```
+
+```{r}
+#| content: valuebox
+#| title: "N50"
+list(
+  color = "light",
+  value = round(mean(aggregate_df$N50[aggregate_df$N50 != 0]), 0)
+)
+```
+
+```{r}
+#| content: valuebox
+#| title: "N75"
+list(
+  color = "light",
+  value = round(mean(aggregate_df$N75[aggregate_df$N75 != 0]), 0)
+)
+```
+
+```{r}
+#| content: valuebox
+#| title: "N90"
+list(
+  color = "light",
+  value = round(mean(aggregate_df$N90[aggregate_df$N90 != 0]), 0)
+)
+```
+
 ## General Barcode Information from Alignments
 <h2> General Barcode Information from Alignments </h2>
 This report aggregates the barcode-specific information from the alignments
 that were created using `harpy align`. Detailed information for any one sample
 can be found in that sample's individual report. The table below is an aggregation
 of data for each sample based on their `*.bxstats.gz` file. Every column after `% valid bx`
-ignores singletons in its calculations. 
-
-- `avg` the average (arithmetic mean)
-- `SE` the Standard Error of the mean
-- `molecules` the unique DNA molecules as inferred from linked-read barcodes
-  - `singletons` molecules composed of one single-end or paired-end sequence, effectively not a linked read
-  - `nonsingletons` molecules composed of more than two single-end or paired-end sequences
-- `barcodes` are the linked-read barcodes associated with DNA sequences and are synonymous with `bx`
-- `valid` a proper haplotag barcode (e.g. `A01C34B92D51`)
-- `invalid` an invalidated haplotag barcode, where there is a `00` in any of the `ACBD` positions (e.g. `A21C00B32D57`)
-- `NX` the N-statistics (explained in more detail below)
+ignores singletons in its calculations. Hover the column name to display a tooltip with the column's description.
 
 ## Sampletable
 
 ```{r}
+column_description <- c(
+    "name of the sample",
+    "total number of alignments",
+    "the unique DNA molecules as inferred from linked-read barcodes",
+    "molecules composed of one single-end or paired-end sequence, effectively not a linked read",
+    "molecules composed of more than two single-end or paired-end sequences, in other words, molecules with linked-read information",
+    "number of unique barcodes, which may differ from unique molecules after deconvolution",
+    "molecule-to-barcode ratio, which helps diagnose deconvolution performance",
+    "alignments with a valid AXXCXXBXXDXX barcode, where XX is not 00",
+    "alignments with a invalid 00 barcode segment",
+    "percent of valid-to-invalid barcoded alignments",
+    "average number of reads per unique molecule",
+    "standard error of the mean number of reads per unique molecule",
+    "average percent molecule alignment coverage, where coverage includes unsequenced gaps between linked reads",
+    "standard error of the mean percent molecule alignment coverage",
+    "average molecule alignment coverage in base pairs, where coverage includes unsequenced gaps between linked reads",
+    "standard error of the mean molecule alignment base-pair coverage",
+    "N50 of inferred molecules",
+    "N75 of inferred molecules",
+    "N90 of inferred molecules"
+  )
+
+headerCallback <- c(
+  "function(thead, data, start, end, display){",
+  paste0(" var tooltips = ['", paste(column_description, collapse = "','"), "'];"),
+  "  for(var i=0; i<5; i++){",
+  "    $('th:eq('+i+')',thead).attr('title', tooltips[i]);",
+  "  }",
+  "}"
+)
+
 DT::datatable(
   aggregate_df,
   rownames = F,
   extensions = 'Buttons', 
+  caption = 'Per-Sample Alignment Information Pertaining to Barcodes',
+  fillContainer = T,
+  colnames = c("sample", "alignments", "unique molecules", "singletons", "nonsingletons", "unique barcodes", "molecule:bx ratio", "valid bx alignments", "invalid bx alignments", "% valid bx", "avg reads/molecule", "SE reads/molecule", "avg molecule coverage %","SE molecule coverage %", "avg molecule coverage (bp)", "SE molecule coverage (bp)", "N50", "N75","N90"),
   options = list(
     dom = 'Brtp',
     scrollX = TRUE,
-    buttons = list(list(extend = "csv",filename = "per_sample_barcode_alignment"))
-  ),
-  caption = 'Per-Sample Alignment Information Pertaining to Barcodes',
-  fillContainer = T,
-  colnames = c("sample", "alignments", "unique molecules", "singletons", "nonsingletons", "unique barcodes", "molecule:bx ratio", "valid bx alignments", "invalid bx alignments", "% valid bx", "avg reads/molecule", "SE reads/molecule", "avg molecule coverage %","SE molecule coverage %", "avg molecule coverage (bp)", "SE molecule coverage (bp)", "N50", "N75","N90")
+    buttons = list(list(extend = "csv",filename = "per_sample_barcode_alignment")),
+    headerCallback = JS(headerCallback)
+  )
 )
 ```
 
