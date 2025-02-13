@@ -336,7 +336,7 @@ underlying data used to create the visualization.
 
 ```{r plot_height}
 n_samples <- length(unique(gcts_long$sample))
-figheight <- 1 + (0.6 * n_samples)
+figheight <- 3 + (0.6 * n_samples)
 ```
 :::
 

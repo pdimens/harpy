@@ -105,7 +105,7 @@ for (i in list.files(indir, ".count.log", full.names = TRUE)) {
   )
 }
 
-figheight <- 1 + (0.6 * nrow(BXstats))
+figheight <- 3 + (0.6 * nrow(BXstats))
 ```
 
 ##
