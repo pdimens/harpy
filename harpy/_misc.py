@@ -110,7 +110,7 @@ def fetch_report(workdir, target):
             if os.path.isfile(files(harpy.reports).joinpath("_harpy.scss")):
                 yml.write(files(harpy.reports).joinpath("_harpy.scss").read_text())
             else:
-                print_error("report configuration missing", f"The required quarto configuration could not be downloaded from the Harpy repository, nor found in the local file [blue bold]_quarto.yml[/blue bold] that comes with a Harpy installation.")
+                print_error("report configuration missing", f"The required quarto configuration could not be downloaded from the Harpy repository, nor found in the local file [blue bold]_harpy.scss[/blue bold] that comes with a Harpy installation.")
                 print_solution("There may be an issue with your internet connection or Harpy installation, that latter of which would require reinstalling Harpy. Alternatively, there may be in a issue with your conda/mamba environment or configuration.")
                 sys.exit(1)
 

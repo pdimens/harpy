@@ -267,8 +267,8 @@ rule report_config:
 
 rule phase_report:
     input:
-        f"{outdir}/_quarto.yml",
-        f"{outdir}/_harpy.scss",
+        f"{outdir}/reports/_quarto.yml",
+        f"{outdir}/reports/_harpy.scss",
         data = f"{outdir}/reports/blocks.summary.gz",
         qmd = f"{outdir}/workflow/report/hapcut.qmd"
     output:
