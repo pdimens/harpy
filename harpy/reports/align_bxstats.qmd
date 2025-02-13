@@ -84,7 +84,6 @@ process_input <- function(infile){
 infiles <- list.files(params$indir, "bxstats.gz", full.names = TRUE)
 aggregate_df <- Reduce(rbind, Map(process_input, infiles))
 aggregate_df[is.na(aggregate_df)] <- 0
-aggregate_df[is.nan(aggregate_df)] <- 0
 
 if(nrow(aggregate_df) == 0){
   print("All input files were empty")
