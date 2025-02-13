@@ -73,8 +73,6 @@ process_input <- function(infile){
     N75 = n75,
     N90 = n90
   )
-  #datarow[is.na(datarow)] <- 0
-  #datarow[is.nan(datarow)] <- 0
   return(datarow)
 }
 

@@ -22,10 +22,8 @@ using("dplyr", "tidyr","DT", "viridisLite", "BioCircos", "tools")
 
 ```{r read_inputs}
 indir <- params$statsdir
-#indir <- "SV/leviathan/"
 statsfiles <- list.files(path = indir, pattern = "*sv.stats", full.names = T)
 faidx <- params$faidx
-#faidx <- "~/testshad.fai"
 ```
 
 ```{r}

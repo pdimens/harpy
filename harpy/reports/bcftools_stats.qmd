@@ -21,7 +21,6 @@ using("magrittr","tidyr","DT","highcharter","scales")
 
 ```{r}
 statsfile <- params$infile
-#statsfile <- "~/variants.raw.stats"
 dataL <- readLines(statsfile)
 bcf <- gsub(".stats$", ".bcf", statsfile)
 ```

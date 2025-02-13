@@ -374,10 +374,7 @@ covfile <- params$coverage
 molcovfile <- params$molcov
 windowsize <- as.integer(params$windowsize)
 samplename <- params$sample
-#samplename <- "test sample"
-#windowsize <- 50000
-#covfile <- "~/cov.gz"
-#molcovfile <- "~/molcov.gz"
+
 tb <- read.table(covfile, header = F)
 if(nrow(tb) == 0){
   print(paste("Input data file", covfile, "is empty"))

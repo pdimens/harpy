@@ -43,9 +43,6 @@ tryCatch(
 )
 names(gcts) <- c("sample","RefHom", "Het",	"AltHom", "missing")
 
-conv_height <- 1.4 + (0.12 * nrow(gcts))
-#frameheight <- 1.2 + (0.166 * nrow(invalids))
-
 gcts_long <- pivot_longer(gcts, -1, names_to = "Conversion", values_to = "Count")
 ```
 

@@ -19,7 +19,6 @@ using("dplyr","tidyr","DT","scales")
 ```
 
 ```{r}
-#infile <- "~/Documents/harpy/Preflight/fastq/filecheck.fastq.tsv"
 infile <- params$infile
 
 data <- read.table(infile, header = T)
