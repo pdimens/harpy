@@ -198,7 +198,7 @@ column_description <- c(
 headerCallback <- c(
   "function(thead, data, start, end, display){",
   paste0(" var tooltips = ['", paste(column_description, collapse = "','"), "'];"),
-  "  for(var i=0; i<5; i++){",
+  "  for(var i=0; i<tooltips.length; i++){",
   "    $('th:eq('+i+')',thead).attr('title', tooltips[i]);",
   "  }",
   "}"
@@ -273,7 +273,7 @@ if(length(unique(aggregate_df$N50)) > 1 && length(unique(aggregate_df$N75)) > 1 
 This distribution shows the average number of reads per molecule across your samples.
 
 ```{r molper_dist}
-if(length(unique(aggregate_df$averagereadspermol))) > 1{
+if(length(unique(aggregate_df$averagereadspermol)) > 1){
   hchart(density(aggregate_df$averagereadspermol), type = "areaspline", color = "#e1a42b", name = "Reads per Molecule", animation = F, marker = list(enabled = FALSE)) |>
     hc_title(text = "Average Reads Per Molecule") |>
     hc_xAxis(title = list(text = "reads per molecule (average)")) |>

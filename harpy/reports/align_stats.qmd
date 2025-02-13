@@ -190,7 +190,7 @@ if(!VALID_PRESENT){
   headerCallback <- c(
     "function(thead, data, start, end, display){",
     paste0(" var tooltips = ['", paste(column_description, collapse = "','"), "'];"),
-    "  for(var i=0; i<5; i++){",
+    "  for(var i=0; i<tooltips.length; i++){",
     "    $('th:eq('+i+')',thead).attr('title', tooltips[i]);",
     "  }",
     "}"
@@ -538,7 +538,7 @@ column_description <- c(
 headerCallback <- c(
   "function(thead, data, start, end, display){",
   paste0(" var tooltips = ['", paste(column_description, collapse = "','"), "'];"),
-  "  for(var i=0; i<5; i++){",
+  "  for(var i=0; i<tooltips.length; i++){",
   "    $('th:eq('+i+')',thead).attr('title', tooltips[i]);",
   "  }",
   "}"
@@ -577,7 +577,7 @@ column_description <- c(
 headerCallback <- c(
   "function(thead, data, start, end, display){",
   paste0(" var tooltips = ['", paste(column_description, collapse = "','"), "'];"),
-  "  for(var i=0; i<5; i++){",
+  "  for(var i=0; i<tooltips.length; i++){",
   "    $('th:eq('+i+')',thead).attr('title', tooltips[i]);",
   "  }",
   "}"

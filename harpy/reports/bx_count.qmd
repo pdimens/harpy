@@ -187,7 +187,7 @@ column_description <- c(
   "total number of reads",
   "total number of barcodes present",
   "number of valid haplotag barcodes",
-  "percent of haplotag barcodes that are valid".
+  "percent of haplotag barcodes that are valid",
   "number of invalid haplotag barcodes, i.e. with a 00 segment",
   "percent of haplotag barcodes that are invalid"
   )
@@ -195,7 +195,7 @@ column_description <- c(
 headerCallback <- c(
   "function(thead, data, start, end, display){",
   paste0(" var tooltips = ['", paste(column_description, collapse = "','"), "'];"),
-  "  for(var i=0; i<5; i++){",
+  "  for(var i=0; i<tooltips.length; i++){",
   "    $('th:eq('+i+')',thead).attr('title', tooltips[i]);",
   "  }",
   "}"
@@ -291,7 +291,7 @@ column_description <- c(
 headerCallback <- c(
   "function(thead, data, start, end, display){",
   paste0(" var tooltips = ['", paste(column_description, collapse = "','"), "'];"),
-  "  for(var i=0; i<5; i++){",
+  "  for(var i=0; i<tooltips.length; i++){",
   "    $('th:eq('+i+')',thead).attr('title', tooltips[i]);",
   "  }",
   "}"
