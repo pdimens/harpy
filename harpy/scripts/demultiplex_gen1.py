@@ -109,7 +109,6 @@ if keep_unknown:
 R1_output = {sample: open(f"{outdir}/{sample}.{part}.R1.fq", 'w') for sample in samples}
 R2_output = {sample: open(f"{outdir}/{sample}.{part}.R2.fq", 'w') for sample in samples}
 segments = {'A':'', 'B':'', 'C':'', 'D':''}
-unclear_read_map={}
 clear_read_map={}
 with (
     pysam.FastxFile(r1) as R1,
@@ -136,22 +135,18 @@ with (
         R2_output[sample_name].write(f"{r2_rec}\n")
 
         if "unclear" in statuses:
-            if BX_code in unclear_read_map:
-                unclear_read_map[BX_code] += 1
+            continue
+        if "corrected" in statuses:
+            if  BX_code in clear_read_map:
+                clear_read_map[BX_code][1] += 1
             else:
-                unclear_read_map[BX_code] = 1
-        else:        
-            if "corrected" in statuses:
+                clear_read_map[BX_code] = [0,1] 
+        else:
+            if all(status == "found" for status in statuses):
                 if  BX_code in clear_read_map:
-                    clear_read_map[BX_code][1] += 1
+                    clear_read_map[BX_code][0] += 1
                 else:
-                    clear_read_map[BX_code] = [0,1] 
-            else:
-                if all(status == "found" for status in statuses):
-                    if  BX_code in clear_read_map:
-                        clear_read_map[BX_code][0] += 1
-                    else:
-                        clear_read_map[BX_code] = [1,0]          
+                    clear_read_map[BX_code] = [1,0]          
 
     for sample_name in samples:
         R1_output[sample_name].close()
@@ -160,6 +155,4 @@ with (
     BC_log.write("Barcode\tTotal_Reads\tCorrect_Reads\tCorrected_Reads\n")
     for code in clear_read_map:
         BC_log.write(f"{code}\t{sum(clear_read_map[code])}\t{clear_read_map[code][0]}\t{clear_read_map[code][1]}\n")
-    for code in unclear_read_map:
-        BC_log.write(f"{code}\t{unclear_read_map[code]}\t0\t0\n")
 f.close()

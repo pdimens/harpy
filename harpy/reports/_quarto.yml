@@ -1,16 +1,18 @@
 brand:
-  logo: 
-    medium: https://raw.githubusercontent.com/pdimens/harpy/docs/static/logo_report.png
+  logo:
+    medium: https://raw.githubusercontent.com/pdimens/harpy/docs/static/favicon_report.svg
 execute:
     echo: false
     warning: false
 embed-resources: true
-format: 
+format:
   dashboard:
-    theme: materia
+    theme: 
+      - lumen
+      - harpy.scss
     scrolling: true
     expandable: false
-    logo: https://raw.githubusercontent.com/pdimens/harpy/docs/static/logo_report.png
+    logo: https://raw.githubusercontent.com/pdimens/harpy/docs/static/favicon_report.svg
     nav-buttons:
       - icon: book-half
         href: https://pdimens.github.io/harpy
@@ -18,3 +20,7 @@ format:
         href: https://github.com/pdimens/harpy/issues/new/choose
       - icon: code-slash
         href: https://github.com/pdimens/harpy
+    include-in-header:
+      text: |
+        <link rel="shortcut icon" href="https://raw.githubusercontent.com/pdimens/harpy/docs/static/favicon_report.svg" />
+        <link rel="icon" type="image/x-icon" href="https://raw.githubusercontent.com/pdimens/harpy/docs/static/favicon_report.svg">
