@@ -120,20 +120,27 @@ rule index_vcf:
         bcftools stats -s "-" {input.vcf} > {output.stats}
         """
 
-rule contig_report_config:
-    input:
-        f"{outdir}/workflow/report/_quarto.yml"
+rule report_config:
     output:
-        outdir + "/{paramset}/reports/_quarto.yml"
-    shell:
-        "cp {input} {output}"
+        yaml = f"{outdir}/{{paramset}}/reports/_quarto.yml",
+        scss = f"{outdir}/{{paramset}}/reports/_harpy.scss"
+    params:
+        yaml = "https://github.com/pdimens/harpy/raw/refs/heads/main/harpy/reports/_quarto.yml",
+        scss = "https://github.com/pdimens/harpy/raw/refs/heads/main/harpy/reports/_harpy.scss"
+    run:
+        import urllib.request
+        with urllib.request.urlopen(params.yaml) as response, open(output.yaml, 'w') as yaml:
+            yaml.write(response.read().decode("utf-8"))
+        with urllib.request.urlopen(params.scss) as response, open(output.scss, 'w') as scss:
+            scss.write(response.read().decode("utf-8"))
 
 rule contig_report:
     input:
         statsfile = outdir + "/{paramset}/reports/data/contigs/{contig}.stats",
         plotdir = outdir + "/{paramset}/contigs/{contig}/plots",
         qmd = f"{outdir}/workflow/report/stitch_collate.qmd",
-        yml = outdir + "/{paramset}/reports/_quarto.yml"
+        f"{outdir}/{{paramset}}/reports/_quarto.yml",
+        f"{outdir}/{{paramset}}/reports/_harpy.scss"
     output:
         report = outdir + "/{paramset}/reports/{contig}.{paramset}.html",
         qmd = temp(outdir + "/{paramset}/reports/{contig}.{paramset}.qmd")
@@ -224,7 +231,8 @@ rule impute_reports:
         comparison = outdir + "/{paramset}/reports/data/impute.compare.stats",
         infoscore = outdir + "/{paramset}/reports/data/impute.infoscore",
         qmd = f"{outdir}/workflow/report/impute.qmd",
-        yml = outdir + "/{paramset}/reports/_quarto.yml"
+        f"{outdir}/{{paramset}}/reports/_quarto.yml",
+        f"{outdir}/{{paramset}}/reports/_harpy.scss"
     output:
         report = outdir + "/{paramset}/reports/{paramset}.html",
         qmd = temp(outdir + "/{paramset}/reports/{paramset}.qmd")

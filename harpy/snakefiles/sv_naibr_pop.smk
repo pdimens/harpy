@@ -227,19 +227,26 @@ rule index_genome:
         "samtools faidx --fai-idx {output} {input} 2> {log}"
 
 rule report_config:
-    input:
-        f"{outdir}/workflow/report/_quarto.yml"
     output:
-        f"{outdir}/reports/_quarto.yml"
-    shell:
-        "cp {input} {output}"
+        yaml = f"{outdir}/reports/_quarto.yml",
+        scss = f"{outdir}/reports/_harpy.scss"
+    params:
+        yaml = "https://github.com/pdimens/harpy/raw/refs/heads/main/harpy/reports/_quarto.yml",
+        scss = "https://github.com/pdimens/harpy/raw/refs/heads/main/harpy/reports/_harpy.scss"
+    run:
+        import urllib.request
+        with urllib.request.urlopen(params.yaml) as response, open(output.yaml, 'w') as yaml:
+            yaml.write(response.read().decode("utf-8"))
+        with urllib.request.urlopen(params.scss) as response, open(output.scss, 'w') as scss:
+            scss.write(response.read().decode("utf-8"))
 
 rule group_reports:
     input: 
         faidx = f"Genome/{bn}.fai",
         bedpe = outdir + "/bedpe/{population}.bedpe",
         qmd   = f"{outdir}/workflow/report/naibr.qmd",
-        yml   = f"{outdir}/reports/_quarto.yml"
+        f"{outdir}/reports/_quarto.yml",
+        f"{outdir}/reports/_harpy.scss"
     output:
         report = outdir + "/reports/{population}.naibr.html",
         qmd = temp(outdir + "/reports/{population}.naibr.qmd")
@@ -263,7 +270,8 @@ rule aggregate_report:
         faidx = f"Genome/{bn}.fai",
         bedpe = collect(outdir + "/bedpe/{pop}.bedpe", pop = populations),
         qmd   = f"{outdir}/workflow/report/naibr_pop.qmd",
-        yml   = f"{outdir}/reports/_quarto.yml"
+        f"{outdir}/reports/_quarto.yml",
+        f"{outdir}/reports/_harpy.scss"
     output:
         report = outdir + "/reports/naibr.summary.html",
         qmd = temp(outdir + "/reports/naibr.summary.qmd")

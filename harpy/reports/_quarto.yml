@@ -9,7 +9,7 @@ format:
   dashboard:
     theme: 
       - lumen
-      - harpy.scss
+      - _harpy.scss
     scrolling: true
     expandable: false
     logo: https://raw.githubusercontent.com/pdimens/harpy/docs/static/favicon_report.svg

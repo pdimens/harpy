@@ -148,18 +148,25 @@ rule barcode_stats:
         "count_bx.py {input} > {output}"
 
 rule report_config:
-    input:
-        f"{outdir}/workflow/report/_quarto.yml"
     output:
-        f"{outdir}/reports/_quarto.yml"
-    shell:
-        "cp {input} {output}"
+        yaml = f"{outdir}/reports/_quarto.yml",
+        scss = f"{outdir}/reports/_harpy.scss"
+    params:
+        yaml = "https://github.com/pdimens/harpy/raw/refs/heads/main/harpy/reports/_quarto.yml",
+        scss = "https://github.com/pdimens/harpy/raw/refs/heads/main/harpy/reports/_harpy.scss"
+    run:
+        import urllib.request
+        with urllib.request.urlopen(params.yaml) as response, open(output.yaml, 'w') as yaml:
+            yaml.write(response.read().decode("utf-8"))
+        with urllib.request.urlopen(params.scss) as response, open(output.scss, 'w') as scss:
+            scss.write(response.read().decode("utf-8"))
 
 rule barcode_report:
     input: 
         data = collect(outdir + "/logs/bxcount/{sample}.count.log", sample = samplenames),
         qmd = f"{outdir}/workflow/report/bx_count.qmd",
-        yml = f"{outdir}/reports/_quarto.yml"
+        f"{outdir}/reports/_quarto.yml",
+        f"{outdir}/reports/_harpy.scss"
     output:
         report = f"{outdir}/reports/barcode.summary.html",
         qmd = temp(f"{outdir}/reports/barcode.summary.qmd")

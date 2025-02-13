@@ -65,18 +65,25 @@ rule concat_results:
         """
 
 rule report_config:
-    input:
-        f"{outdir}/workflow/report/_quarto.yml"
     output:
-        f"{outdir}/_quarto.yml"
-    shell:
-        "cp {input} {output}"
+        yaml = f"{outdir}/_quarto.yml",
+        scss = f"{outdir}/_harpy.scss"
+    params:
+        yaml = "https://github.com/pdimens/harpy/raw/refs/heads/main/harpy/reports/_quarto.yml",
+        scss = "https://github.com/pdimens/harpy/raw/refs/heads/main/harpy/reports/_harpy.scss"
+    run:
+        import urllib.request
+        with urllib.request.urlopen(params.yaml) as response, open(output.yaml, 'w') as yaml:
+            yaml.write(response.read().decode("utf-8"))
+        with urllib.request.urlopen(params.scss) as response, open(output.scss, 'w') as scss:
+            scss.write(response.read().decode("utf-8"))
 
 rule create_report:
     input:
         data = f"{outdir}/filecheck.fastq.tsv",
         qmd = f"{outdir}/workflow/report/preflight_fastq.qmd",
-        yml = f"{outdir}/_quarto.yml"
+        f"{outdir}/_quarto.yml",
+        f"{outdir}/_harpy.scss"
     output:
         html = f"{outdir}/filecheck.fastq.html",
         qmd = temp(f"{outdir}/filecheck.fastq.qmd")

@@ -287,12 +287,18 @@ rule molecule_coverage:
         "molecule_coverage.py -f {input.fai} -w {params} {input.stats} | gzip > {output}"
 
 rule report_config:
-    input:
-        f"{outdir}/workflow/report/_quarto.yml"
     output:
-        f"{outdir}/reports/_quarto.yml"
-    shell:
-        "cp {input} {output}"
+        yaml = f"{outdir}/reports/_quarto.yml",
+        scss = f"{outdir}/reports/_harpy.scss"
+    params:
+        yaml = "https://github.com/pdimens/harpy/raw/refs/heads/main/harpy/reports/_quarto.yml",
+        scss = "https://github.com/pdimens/harpy/raw/refs/heads/main/harpy/reports/_harpy.scss"
+    run:
+        import urllib.request
+        with urllib.request.urlopen(params.yaml) as response, open(output.yaml, 'w') as yaml:
+            yaml.write(response.read().decode("utf-8"))
+        with urllib.request.urlopen(params.scss) as response, open(output.scss, 'w') as scss:
+            scss.write(response.read().decode("utf-8"))
 
 rule sample_reports:
     input: 
@@ -300,7 +306,8 @@ rule sample_reports:
         coverage = outdir + "/reports/data/coverage/{sample}.cov.gz",
         molecule_coverage = outdir + "/reports/data/coverage/{sample}.molcov.gz",
         qmd = f"{outdir}/workflow/report/align_stats.qmd",
-        yml = f"{outdir}/reports/_quarto.yml"
+        f"{outdir}/reports/_quarto.yml",
+        f"{outdir}/reports/_harpy.scss"
     output:
         report = outdir + "/reports/{sample}.html",
         qmd = temp(outdir + "/reports/{sample}.qmd")
@@ -356,7 +363,8 @@ rule barcode_report:
     input: 
         collect(outdir + "/reports/data/bxstats/{sample}.bxstats.gz", sample = samplenames),
         qmd = f"{outdir}/workflow/report/align_bxstats.qmd",
-        yml = f"{outdir}/reports/_quarto.yml"
+        f"{outdir}/reports/_quarto.yml",
+        f"{outdir}/reports/_harpy.scss"
     output:
         report = f"{outdir}/reports/barcode.summary.html",
         qmd = temp(f"{outdir}/reports/barcode.summary.qmd")

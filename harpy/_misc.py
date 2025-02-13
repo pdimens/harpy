@@ -85,15 +85,6 @@ def fetch_report(workdir, target):
             print_solution("There may be an issue with your Harpy installation, which would require reinstalling Harpy. Alternatively, there may be in a issue with your conda/mamba environment or configuration.")
             sys.exit(1)
 
-    with open(f"{workdir}/report/_quarto.yml", "w", encoding="utf-8") as yml:
-        if os.path.isfile(files(harpy.reports).joinpath("_quarto.yml")):
-            yml.write(files(harpy.reports).joinpath("_quarto.yml").read_text())
-        else:
-            print_error("report configuration missing", f"The required quarto configuration file [blue bold]_quarto.yml[/blue bold] was not found within the Harpy installation.")
-            print_solution("There may be an issue with your Harpy installation, which would require reinstalling Harpy. Alternatively, there may be in a issue with your conda/mamba environment or configuration.")
-            sys.exit(1)
-
-
 def snakemake_log(outdir, workflow):
     """Return a snakemake logfile name. Iterates logfile run number if one exists."""
     attempts = glob.glob(f"{outdir}/logs/snakemake/*.log*")

@@ -26,22 +26,6 @@ def get_alignments(wildcards):
     aln = list(filter(r.match, bamlist))
     return aln[0]
 
-#def get_align_index(wildcards):
-#    """returns a list with the bai index file for the sample based on wildcards.sample"""
-#    r = re.compile(fr"(.*/{wildcards.sample})\.(bam|sam)$", flags = re.IGNORECASE)
-#    aln = list(filter(r.match, bamlist))
-#    return aln[0] + ".bai"
-
-#rule index_alignments:
-#    input:
-#        lambda wc: bamdict[wc.bam]
-#    output:
-#        "{bam}.bai"
-#    container:
-#        None
-#    shell:
-#        "samtools index {input}"
-
 rule check_bam:
     input:
         get_alignments
@@ -66,18 +50,25 @@ rule concat_results:
         """
 
 rule report_config:
-    input:
-        f"{outdir}/workflow/report/_quarto.yml"
     output:
-        f"{outdir}/_quarto.yml"
-    shell:
-        "cp {input} {output}"
+        yaml = f"{outdir}/_quarto.yml",
+        scss = f"{outdir}/_harpy.scss"
+    params:
+        yaml = "https://github.com/pdimens/harpy/raw/refs/heads/main/harpy/reports/_quarto.yml",
+        scss = "https://github.com/pdimens/harpy/raw/refs/heads/main/harpy/reports/_harpy.scss"
+    run:
+        import urllib.request
+        with urllib.request.urlopen(params.yaml) as response, open(output.yaml, 'w') as yaml:
+            yaml.write(response.read().decode("utf-8"))
+        with urllib.request.urlopen(params.scss) as response, open(output.scss, 'w') as scss:
+            scss.write(response.read().decode("utf-8"))
 
 rule create_report:
     input:
         data = f"{outdir}/filecheck.bam.tsv",
         qmd = f"{outdir}/workflow/report/preflight_bam.qmd",
-        yml = f"{outdir}/_quarto.yml"
+        f"{outdir}/_quarto.yml",
+        f"{outdir}/_harpy.scss"
     output:
         html = f"{outdir}/filecheck.bam.html",
         qmd = temp(f"{outdir}/filecheck.bam.qmd")
