@@ -26,9 +26,6 @@ using("dplyr","highcharter","DT","BioCircos")
 ```
 
 ```{r import_file, results = F}
-#infile <- "~/test.gz"
-#samplename <- "test sample"
-#sm_moldist <- 50000
 infile <- params$bxstats
 samplename <- params$sample
 sm_moldist <- params$mol_dist
