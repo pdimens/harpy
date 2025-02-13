@@ -5,6 +5,7 @@ import sys
 import glob
 import gzip
 import shutil
+import urllib.request
 from datetime import datetime
 from pathlib import Path
 from importlib_resources import files
@@ -84,6 +85,34 @@ def fetch_report(workdir, target):
             print_error("report script missing", f"The required report script [blue bold]{target}[/blue bold] was not found within the Harpy installation.")
             print_solution("There may be an issue with your Harpy installation, which would require reinstalling Harpy. Alternatively, there may be in a issue with your conda/mamba environment or configuration.")
             sys.exit(1)
+    # pull yaml config file from github, use local if fails
+    try:
+        yaml = "https://github.com/pdimens/harpy/raw/refs/heads/main/harpy/reports/_quarto.yml"
+        destination = f"{workdir}/report/_quarto.yml"
+        with urllib.request.urlopen(yaml) as response, open(destination, 'w') as yaml_out:
+            yaml_out.write(response.read().decode("utf-8"))
+    except:
+        with open(f"{workdir}/report/_quarto.yml", "w", encoding="utf-8") as yml:
+            if os.path.isfile(files(harpy.reports).joinpath("_quarto.yml")):
+                yml.write(files(harpy.reports).joinpath("_quarto.yml").read_text())
+            else:
+                print_error("report configuration missing", f"The required quarto configuration could not be downloaded from the Harpy repository, nor found in the local file [blue bold]_quarto.yml[/blue bold] that comes with a Harpy installation.")
+                print_solution("There may be an issue with your internet connection or Harpy installation, that latter of which would require reinstalling Harpy. Alternatively, there may be in a issue with your conda/mamba environment or configuration.")
+                sys.exit(1)
+    # same for the scss file
+    try:
+        scss = "https://github.com/pdimens/harpy/raw/refs/heads/main/harpy/reports/_harpy.scss"
+        destination = f"{workdir}/report/_harpy.scss"
+        with urllib.request.urlopen(scss) as response, open(destination, 'w') as scss_out:
+            scss_out.write(response.read().decode("utf-8"))
+    except:
+        with open(f"{workdir}/report/_harpy.scss", "w", encoding="utf-8") as yml:
+            if os.path.isfile(files(harpy.reports).joinpath("_harpy.scss")):
+                yml.write(files(harpy.reports).joinpath("_harpy.scss").read_text())
+            else:
+                print_error("report configuration missing", f"The required quarto configuration could not be downloaded from the Harpy repository, nor found in the local file [blue bold]_quarto.yml[/blue bold] that comes with a Harpy installation.")
+                print_solution("There may be an issue with your internet connection or Harpy installation, that latter of which would require reinstalling Harpy. Alternatively, there may be in a issue with your conda/mamba environment or configuration.")
+                sys.exit(1)
 
 def snakemake_log(outdir, workflow):
     """Return a snakemake logfile name. Iterates logfile run number if one exists."""

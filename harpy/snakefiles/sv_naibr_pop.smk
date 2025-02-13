@@ -227,26 +227,23 @@ rule index_genome:
         "samtools faidx --fai-idx {output} {input} 2> {log}"
 
 rule report_config:
+    input:
+        yaml = f"{outdir}/workflow/report/_quarto.yml",
+        scss = f"{outdir}/workflow/report/_harpy.scss"
     output:
-        yaml = f"{outdir}/reports/_quarto.yml",
-        scss = f"{outdir}/reports/_harpy.scss"
-    params:
-        yaml = "https://github.com/pdimens/harpy/raw/refs/heads/main/harpy/reports/_quarto.yml",
-        scss = "https://github.com/pdimens/harpy/raw/refs/heads/main/harpy/reports/_harpy.scss"
+        yaml = temp(f"{outdir}/reports/_quarto.yml"),
+        scss = temp(f"{outdir}/reports/_harpy.scss")
     run:
-        import urllib.request
-        with urllib.request.urlopen(params.yaml) as response, open(output.yaml, 'w') as yaml:
-            yaml.write(response.read().decode("utf-8"))
-        with urllib.request.urlopen(params.scss) as response, open(output.scss, 'w') as scss:
-            scss.write(response.read().decode("utf-8"))
-
+        import shutil
+        for i,o in zip(input,output):
+            shutil.copy(i,o)
 rule group_reports:
     input: 
+        f"{outdir}/reports/_quarto.yml",
+        f"{outdir}/reports/_harpy.scss",
         faidx = f"Genome/{bn}.fai",
         bedpe = outdir + "/bedpe/{population}.bedpe",
-        qmd   = f"{outdir}/workflow/report/naibr.qmd",
-        f"{outdir}/reports/_quarto.yml",
-        f"{outdir}/reports/_harpy.scss"
+        qmd   = f"{outdir}/workflow/report/naibr.qmd"
     output:
         report = outdir + "/reports/{population}.naibr.html",
         qmd = temp(outdir + "/reports/{population}.naibr.qmd")
@@ -267,11 +264,11 @@ rule group_reports:
 
 rule aggregate_report:
     input: 
+        f"{outdir}/reports/_quarto.yml",
+        f"{outdir}/reports/_harpy.scss",
         faidx = f"Genome/{bn}.fai",
         bedpe = collect(outdir + "/bedpe/{pop}.bedpe", pop = populations),
-        qmd   = f"{outdir}/workflow/report/naibr_pop.qmd",
-        f"{outdir}/reports/_quarto.yml",
-        f"{outdir}/reports/_harpy.scss"
+        qmd   = f"{outdir}/workflow/report/naibr_pop.qmd"
     output:
         report = outdir + "/reports/naibr.summary.html",
         qmd = temp(outdir + "/reports/naibr.summary.qmd")

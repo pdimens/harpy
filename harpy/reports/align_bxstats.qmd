@@ -130,7 +130,7 @@ DT::datatable(
 
 ```{r sampleplot_height}
 n_samples <- nrow(aggregate_df)
-figheight <- 1 + (0.4 * n_samples)
+figheight <- 3 + (0.4 * n_samples)
 ```
 
 ## NX plots desc

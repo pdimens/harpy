@@ -254,25 +254,23 @@ rule summarize_blocks:
         """
 
 rule report_config:
+    input:
+        yaml = f"{outdir}/workflow/report/_quarto.yml",
+        scss = f"{outdir}/workflow/report/_harpy.scss"
     output:
-        yaml = f"{outdir}/reports/_quarto.yml",
-        scss = f"{outdir}/reports/_harpy.scss"
-    params:
-        yaml = "https://github.com/pdimens/harpy/raw/refs/heads/main/harpy/reports/_quarto.yml",
-        scss = "https://github.com/pdimens/harpy/raw/refs/heads/main/harpy/reports/_harpy.scss"
+        yaml = temp(f"{outdir}/reports/_quarto.yml"),
+        scss = temp(f"{outdir}/reports/_harpy.scss")
     run:
-        import urllib.request
-        with urllib.request.urlopen(params.yaml) as response, open(output.yaml, 'w') as yaml:
-            yaml.write(response.read().decode("utf-8"))
-        with urllib.request.urlopen(params.scss) as response, open(output.scss, 'w') as scss:
-            scss.write(response.read().decode("utf-8"))
+        import shutil
+        for i,o in zip(input,output):
+            shutil.copy(i,o)
 
 rule phase_report:
     input:
-        data = f"{outdir}/reports/blocks.summary.gz",
-        qmd = f"{outdir}/workflow/report/hapcut.qmd",
         f"{outdir}/_quarto.yml",
-        f"{outdir}/_harpy.scss"
+        f"{outdir}/_harpy.scss",
+        data = f"{outdir}/reports/blocks.summary.gz",
+        qmd = f"{outdir}/workflow/report/hapcut.qmd"
     output:
         html = f"{outdir}/reports/phase.html",
         qmd = temp(f"{outdir}/reports/phase.qmd")

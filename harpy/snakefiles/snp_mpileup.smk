@@ -228,25 +228,23 @@ rule general_stats:
         """
 
 rule report_config:
+    input:
+        yaml = f"{outdir}/workflow/report/_quarto.yml",
+        scss = f"{outdir}/workflow/report/_harpy.scss"
     output:
-        yaml = f"{outdir}/reports/_quarto.yml",
-        scss = f"{outdir}/reports/_harpy.scss"
-    params:
-        yaml = "https://github.com/pdimens/harpy/raw/refs/heads/main/harpy/reports/_quarto.yml",
-        scss = "https://github.com/pdimens/harpy/raw/refs/heads/main/harpy/reports/_harpy.scss"
+        yaml = temp(f"{outdir}/reports/_quarto.yml"),
+        scss = temp(f"{outdir}/reports/_harpy.scss")
     run:
-        import urllib.request
-        with urllib.request.urlopen(params.yaml) as response, open(output.yaml, 'w') as yaml:
-            yaml.write(response.read().decode("utf-8"))
-        with urllib.request.urlopen(params.scss) as response, open(output.scss, 'w') as scss:
-            scss.write(response.read().decode("utf-8"))
+        import shutil
+        for i,o in zip(input,output):
+            shutil.copy(i,o)
 
 rule variant_report:
     input: 
-        data = outdir + "/reports/data/variants.{type}.stats",
-        qmd  = f"{outdir}/workflow/report/bcftools_stats.qmd",
         f"{outdir}/reports/_quarto.yml",
-        f"{outdir}/reports/_harpy.scss"
+        f"{outdir}/reports/_harpy.scss",
+        data = outdir + "/reports/data/variants.{type}.stats",
+        qmd  = f"{outdir}/workflow/report/bcftools_stats.qmd"
     output:
         report = outdir + "/reports/variants.{type}.html",
         qmd = temp(outdir + "/reports/variants.{type}.qmd")
