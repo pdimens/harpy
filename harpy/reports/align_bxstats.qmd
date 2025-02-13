@@ -107,6 +107,7 @@ can be found in that sample's individual report. The table below is an aggregati
 of data for each sample based on their `*.bxstats.gz` file. Every column after `% valid bx`
 ignores singletons in its calculations. Hover the column name to display a tooltip with the column's description.
 
+##
 ```{r}
 #| content: valuebox
 #| title: "Samples"
@@ -316,17 +317,17 @@ hchart(hs, "areaspline", hcaes(x = val, y = freq), color = "#8484bd", name = "Pe
 ### Linked-read library performance
 ::: {.card title="Linked-read library performance"}
 This scatterplot is a diagnostic that shows the relationship between the proportion of nonsingleton
-reads (reads with linked info) compared to total reads. Each point is a sample and is colored by the
+reads (reads with linked information) compared to total reads. Each point is a sample and is colored by the
 mean number of reads per molecule for that sample.
 
 ```{r lr_ratio}
-hchart(aggregate_df, "scatter", hcaes(x = totalreads, y = round(nonsingletons / (nonsingletons + singletons), 2), color = averagereadspermol, name = sample, molper = averagereadspermol), name = "Linked-Read Performance", animation = F, marker = list(enabled = FALSE)) |>
+hchart(aggregate_df, "scatter", hcaes(x = totalreads, y = round(nonsingletons / (nonsingletons + singletons), 2), color = averagereadspermol, name = sample, molper = averagereadspermol), name = "Linked-Read Performance", animation = F) |>
   hc_title(text = "Linked Reads vs Total Reads") |>
   hc_xAxis(title = list(text = "total reads")) |>
   hc_yAxis(title = list(text = "proportion of reads with linked-read information")) |>
   hc_tooltip(
     crosshairs = FALSE,
-    pointFormat= '<b>{point.name}</b><br>reads: <b>{point.x}</b><br>% linked reads: <b>{point.y}</b><br>reads per molecule: <b>{point.molper}</b></br>'
+    pointFormat= '<b>{point.name}</b><br>reads: <b>{point.x}</b><br>proportion linked reads: <b>{point.y}</b><br>reads per molecule: <b>{point.molper}</b></br>'
     ) |>
   hc_exporting(enabled = T, filename = "linkedread.performance",
     buttons = list(contextButton = list(menuItems = c("downloadPNG", "downloadJPEG", "downloadPDF", "downloadSVG")))
