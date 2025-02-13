@@ -1,6 +1,7 @@
 """Module with python-click types for command-line level validations of program-specific extra-params inputs"""
 
 import click
+import shlex.split as shellsplit
 
 class FastpParams(click.ParamType):
     """A class for a click type that validates fastp extra-params."""
@@ -10,7 +11,7 @@ class FastpParams(click.ParamType):
         valid_options = "--failed_out -6 --phred64 --reads_to_process --fix_mgi_id -a --adapter_sequence --adapter_sequence_r2 --adapter_fasta -f --trim_front1 -t --trim_tail1 -b --max_len1 -F --trim_front2 -T --trim_tail2 -B --max_len2 --dup_calc_accuracy --dont_eval_duplication --poly_g_min_len -x --trim_poly_x --poly_x_min_len -5 --cut_front -3 --cut_tail -W --cut_window_size -M --cut_mean_quality --cut_front_window_size --cut_front_mean_quality --cut_tail_window_size --cut_tail_mean_quality --cut_right_window_size --cut_right_mean_quality -Q --disable_quality_filtering -q --qualified_quality_phred -u --unqualified_percent_limit -n --n_base_limit -e --average_qual -L --disable_length_filtering -l --length_required --length_limit -y --low_complexity_filter -Y --complexity_threshold --filter_by_index1 --filter_by_index2 --filter_by_index_threshold -c --correction --overlap_len_require --overlap_diff_limit --overlap_diff_percent_limit -U --umi --umi_loc --umi_len --umi_prefix --umi_skip -p --overrepresentation_analysis -P --overrepresentation_sampling -s --split -S --split_by_lines -d --split_prefix_digits".split()
         opts = 0
         docs = "https://github.com/OpenGene/fastp?tab=readme-ov-file#all-options"
-        for i in value.split():
+        for i in shellsplit(value):
             if i.startswith("-"):
                 opts += 1
                 if i in harpy_options:
@@ -29,7 +30,7 @@ class BwaParams(click.ParamType):
         valid_options = "-k -w -d -r -c -P -A -B -O -E -L -U -p -T -a -H -M ".split()
         opts = 0
         docs = "https://bio-bwa.sourceforge.net/bwa.shtml"
-        for i in value.split():
+        for i in shellsplit(value):
             if i.startswith("-"):
                 opts += 1
                 if i in harpy_options:
@@ -48,7 +49,7 @@ class EmaParams(click.ParamType):
         valid_options = "-i".split()
         opts = 0
         docs = "https://github.com/arshajii/ema"
-        for i in value.split():
+        for i in shellsplit(value):
             if i.startswith("-"):
                 opts += 1
                 if i in harpy_options:
@@ -67,7 +68,7 @@ class StrobeAlignParams(click.ParamType):
         valid_options = "-x -A -B -O -E -L -f -S -M -R -m -k -l -u -c -s -b --aux-len --aemb --eqx --no-PG --details".split()
         opts = 0
         docs = "https://github.com/ksahlin/strobealign?tab=readme-ov-file#command-line-options"
-        for i in value.split():
+        for i in shellsplit(value):
             if i.startswith("-"):
                 opts += 1
                 if i in harpy_options:
@@ -88,7 +89,7 @@ class SpadesParams(click.ParamType):
         valid_options += [f"--hqmp{x}-{orient}" for x in range(1,10) for orient in ["1","2","12", "s", "fr", "rf", "ff"]]
         opts = 0
         docs = "http://ablab.github.io/spades/running.html"
-        for i in value.split():
+        for i in shellsplit(value):
             if i.startswith("-"):
                 opts += 1
                 if i in harpy_options:
@@ -107,7 +108,7 @@ class ArcsParams(click.ParamType):
         valid_options = "G cut longmap window as trim ac u multfile g graph gap tsv barcodecounts m index_multiplicity d max_degree e end_length r error_percent k k_value j j_index B bin_sizeN D dist_est no_dist_est dist_median dist_upper dist_tsv samples_tsv P pair f d k o e a b r p x".split()
         opts = 0
         docs = "\nTigmint: https://github.com/bcgsc/tigmint\nARCS: https://github.com/bcgsc/arcs\nLINKS: https://github.com/bcgsc/links"
-        for i in value.split():
+        for i in shellsplit(value):
             if i.startswith("-"):
                 self.fail(f"{i} begins with a dash, which would be interpreted as an argument to arcs-make rather than arcs. To avoid unexpected errors, arguments to arcs-make are disallowed. If this was inteded to be an argument to arcs, try using " + i.lstrip("-") + "=VAL instead", param, ctx)
             if "=" in i:
@@ -129,7 +130,7 @@ class StitchParams(click.ParamType):
         valid_options = "nStarts sampleNames_file genfile B_bit_prob outputInputInVCFFormat downsampleToCov downsampleFraction readAware chrStart chrEnd regionStart regionEnd buffer maxDifferenceBetweenReads maxEmissionMatrixDifference alphaMatThreshold emissionThreshold iSizeUpperLimit bqFilter niterations shuffleHaplotypeIterations splitReadIterations expRate maxRate minRate Jmax regenerateInput originalRegionName keepInterimFiles keepTempDir outputHaplotypeProbabilities switchModelIteration generateInputOnly restartIterations refillIterations downsampleSamples downsampleSamplesKeepList subsetSNPsfile useSoftClippedBases outputBlockSize outputSNPBlockSize inputBundleBlockSize genetic_map_file reference_haplotype_file reference_legend_file reference_sample_file reference_populations reference_phred reference_iterations reference_shuffleHaplotypeIterations initial_min_hapProb initial_max_hapProb regenerateInputWithDefaultValues plotHapSumDuringIterations plot_shuffle_haplotype_attempts plotAfterImputation save_sampleReadsInfo gridWindowSize shuffle_bin_nSNPs shuffle_bin_radius keepSampleReadsInRAM useTempdirWhileWriting output_haplotype_dosages".split()
         opts = 0
         docs = "https://github.com/rwdavies/STITCH/blob/master/Options.md"
-        for i in value.split():
+        for i in shellsplit(value):
             if i.startswith("-"):
                 self.fail(f"{i} begins with a dash, which is the wrong format. Try using " + i.lstrip("-") + "=VAL instead", param, ctx)
             if "=" in i:
@@ -151,7 +152,7 @@ class HapCutParams(click.ParamType):
         valid_options = "--skip_prune --sp --discrete_pruning --dp --max_iter --mi --maxcut_iter --mc".split()
         opts = 0
         docs = "https://github.com/vibansal/HapCUT2"
-        for i in value.split():
+        for i in shellsplit(value):
             if i.startswith("-"):
                 opts += 1
                 if i in harpy_options:
@@ -170,7 +171,7 @@ class LeviathanParams(click.ParamType):
         valid_options = "-r --regionSize -n --maxLinks -M --mediumSize -L --largeSize -s --skipTranslocations -p --poolSize".split()
         opts = 0
         docs = "https://github.com/morispi/LEVIATHAN?tab=readme-ov-file#options"
-        for i in value.split():
+        for i in shellsplit(value):
             if i.startswith("-"):
                 opts += 1
                 if i in harpy_options:
@@ -189,7 +190,7 @@ class NaibrParams(click.ParamType):
         valid_options = "blacklist candidates".split()
         opts = 0
         docs = "https://github.com/pontushojer/NAIBR?tab=readme-ov-file#running-naibr"
-        for idx,i in enumerate(value.split()):
+        for idx,i in enumerate(shellsplit(value)):
             if i.startswith("-"):
                 self.fail(f"{i} begins with a dash, which is the wrong format. Try using " + i.lstrip("-") + " VAL instead", param, ctx)
             # if it's an even index, it's the argument name of an arg-val pair
@@ -211,7 +212,7 @@ class MpileupParams(click.ParamType):
         valid_options = "-6 --illumina1.3+ -A --count-orphans -B --no-BAQ -C --adjust-MQ -D --full-BAQ -d --max-depth -E --redo-BAQ -G --read-groups -q --min-MQ -Q --min-BQ --max-BQ INT --delta-BQ INT --ignore-RG --ls --skip-all-set --ns --skip-any-set --lu --skip-all-unset --nu --skip-any-unset -s --samples -S --samples-file -t --targets -T --targets-file -x --ignore-overlaps -g --gvcf -o -X --config -e --ext-prob -F --gap-frac -h --tandem-qual -I --skip-indels -L --max-idepth -m --min-ireads -M --max-read-len -o --open-prob -p --per-sample-mF -P --platforms --ar --ambig-reads --indel-bias --del-bias --score-vs-ref --indel-size --indels-2.0 --indels-cns --seqq-offset --no-indels-cns --poly-mqual".split()
         opts = 0
         docs = "https://samtools.github.io/bcftools/bcftools.html#mpileup"
-        for i in value.split():
+        for i in shellsplit(value):
             if i.startswith("-"):
                 opts += 1
                 if i in harpy_options:
@@ -230,7 +231,7 @@ class FreebayesParams(click.ParamType):
         valid_options = "-t --targets -s --samples -A --cnv-map -v --vcf --gvcf --gvcf-chunkUM -& --gvcf-dont-use-chunk -@ --variant-input -l --only-use-input-alleles --haplotype-basis-alleles --report-all-haplotype-alleles --report-monomorphic -P --pvar --strict-vcf -T --theta -J --pooled-discrete -K --pooled-continuous -Z --use-reference-allele --reference-quality -n --use-best-n-alleles -E --max-complex-gap --haplotype-length --min-repeat-size --min-repeat-entropy --no-partial-observations -O --dont-left-align-indels -4 --use-duplicate-reads -m --min-mapping-quality -q --min-base-quality -R --min-supporting-allele-qsum -Y --min-supporting-mapping-qsum -Q --mismatch-base-quality-threshold -U --read-mismatch-limit -z --read-max-mismatch-fraction -$ --read-snp-limit -e --read-indel-limit -0 --standard-filters -F --min-alternate-fraction -C --min-alternate-count -3 --min-alternate-qsum -G --min-alternate-total --min-coverage --limit-coverage -g --skip-coverage --trim-complex-tail -k --no-population-priors -w --hwe-priors-off -V --binomial-obs-priors-off -a --allele-balance-priors-off --observation-bias --base-quality-cap --prob-contamination --legacy-gls --contamination-estimates --report-genotype-likelihood-max -B --genotyping-max-iterations --genotyping-max-banddepth -W --posterior-integration-limits,M -N --exclude-unobserved-genotypes -S --genotype-variant-threshold -j --use-mapping-quality -H --harmonic-indel-quality -D --read-dependence-factor -= --genotype-qualities -d --debug".split()
         opts = 0
         docs = "https://github.com/freebayes/freebayes"
-        for i in value.split():
+        for i in shellsplit(value):
             if i.startswith("-"):
                 opts += 1
                 if i in harpy_options:
