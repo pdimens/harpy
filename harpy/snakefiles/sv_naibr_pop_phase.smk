@@ -313,18 +313,23 @@ rule aggregate_variants:
 
 rule report_config:
     input:
-        f"{outdir}/workflow/report/_quarto.yml"
+        yaml = f"{outdir}/workflow/report/_quarto.yml",
+        scss = f"{outdir}/workflow/report/_harpy.scss"
     output:
-        f"{outdir}/reports/_quarto.yml"
-    shell:
-        "cp {input} {output}"
+        yaml = temp(f"{outdir}/reports/_quarto.yml"),
+        scss = temp(f"{outdir}/reports/_harpy.scss")
+    run:
+        import shutil
+        for i,o in zip(input,output):
+            shutil.copy(i,o)
 
 rule sample_reports:
     input: 
+        f"{outdir}/reports/_quarto.yml",
+        f"{outdir}/reports/_harpy.scss",
         faidx = f"Genome/{bn}.fai",
         bedpe = outdir + "/bedpe/{population}.bedpe",
-        qmd   = f"{outdir}/workflow/report/naibr.qmd",
-        yml   = f"{outdir}/reports/_quarto.yml"
+        qmd   = f"{outdir}/workflow/report/naibr.qmd"
     output:
         report = outdir + "/reports/{population}.naibr.html",
         qmd = temp(outdir + "/reports/{population}.naibr.qmd")
@@ -345,10 +350,11 @@ rule sample_reports:
 
 rule aggregate_report:
     input: 
+        f"{outdir}/reports/_quarto.yml",
+        f"{outdir}/reports/_harpy.scss",
         faidx = f"Genome/{bn}.fai",
         bedpe = collect(outdir + "/bedpe/{pop}.bedpe", pop = populations),
-        qmd   = f"{outdir}/workflow/report/naibr_pop.qmd",
-        yml   = f"{outdir}/reports/_quarto.yml"
+        qmd   = f"{outdir}/workflow/report/naibr_pop.qmd"
     output:
         report = outdir + "/reports/naibr.summary.html",
         qmd = temp(outdir + "/reports/naibr.summary.qmd")

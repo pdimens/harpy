@@ -22,10 +22,8 @@ using("dplyr", "tidyr","DT", "viridisLite", "BioCircos", "tools")
 
 ```{r read_inputs}
 indir <- params$statsdir
-#indir <- "SV/leviathan/"
 statsfiles <- list.files(path = indir, pattern = "*sv.stats", full.names = T)
 faidx <- params$faidx
-#faidx <- "~/testshad.fai"
 ```
 
 ```{r}
@@ -146,14 +144,14 @@ DT::datatable(
   rownames = F,
   filter = "top",
   extensions = 'Buttons',
+  fillContainer = T,
   options = list(
     dom = 'Brtp',
     buttons = list(list(extend = "csv",filename = "leviathan_sv")),
     scrollX = T,
     paging = T
-  ),
-  fillContainer = T
   )
+)
 ```
 :::
 
@@ -170,14 +168,14 @@ DT::datatable(
   rownames = F,
   filter = "top",
   extensions = 'Buttons',
+  fillContainer = T,
   options = list(
     dom = 'Brtp',
     buttons = list(list(extend = "csv",filename = "leviathan_sv_count_pop")),
     scrollX = T,
     paging = T
-  ),
-  fillContainer = T
   )
+)
 ```
 :::
 
@@ -197,14 +195,14 @@ DT::datatable(
   rownames = F,
   filter = "top",
   extensions = 'Buttons',
+  fillContainer = T,
   options = list(
     dom = 'Brtp',
     buttons = list(list(extend = "csv",filename = "leviathan_sv_bp_pop")),
     scrollX = T,
     paging = T
-  ),
-  fillContainer = T
   )
+)
 ```
 :::
 

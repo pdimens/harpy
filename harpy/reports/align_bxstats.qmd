@@ -25,6 +25,15 @@ NX <- function(lengths, X=50){
   return(lengths[index])
 }
 
+avg_percent_of <- function(target, other){
+  # omit zeroes, take the means of target and other, then get a percent
+  x <- target[target != 0]
+  y <- other[other != 0]
+  return(
+    round(mean(x/(x+y)) * 100, 2)
+  )
+}
+
 std_error <- function(x){
   sd(x)/sqrt(length((x)))
 }
@@ -73,8 +82,6 @@ process_input <- function(infile){
     N75 = n75,
     N90 = n90
   )
-  #datarow[is.na(datarow)] <- 0
-  #datarow[is.nan(datarow)] <- 0
   return(datarow)
 }
 
@@ -98,42 +105,128 @@ This report aggregates the barcode-specific information from the alignments
 that were created using `harpy align`. Detailed information for any one sample
 can be found in that sample's individual report. The table below is an aggregation
 of data for each sample based on their `*.bxstats.gz` file. Every column after `% valid bx`
-ignores singletons in its calculations. 
+ignores singletons in its calculations. Hover the column name to display a tooltip with the column's description.
 
-- `avg` the average (arithmetic mean)
-- `SE` the Standard Error of the mean
-- `molecules` the unique DNA molecules as inferred from linked-read barcodes
-  - `singletons` molecules composed of one single-end or paired-end sequence, effectively not a linked read
-  - `nonsingletons` molecules composed of more than two single-end or paired-end sequences
-- `barcodes` are the linked-read barcodes associated with DNA sequences and are synonymous with `bx`
-- `valid` a proper haplotag barcode (e.g. `A01C34B92D51`)
-- `invalid` an invalidated haplotag barcode, where there is a `00` in any of the `ACBD` positions (e.g. `A21C00B32D57`)
-- `NX` the N-statistics (explained in more detail below)
+##
+```{r}
+#| content: valuebox
+#| title: "Samples"
+list(
+  color = "light",
+  value = nrow(aggregate_df)
+)
+```
+
+```{r}
+#| content: valuebox
+#| title: "Avg % Nonsingletons"
+list(
+  color = "light",
+  value = avg_percent_of(aggregate_df$nonsingletons, aggregate_df$singletons)
+)
+```
+
+```{r}
+#| content: valuebox
+#| title: "Avg Percent Valid Bx"
+list(
+  color = "light",
+  value = round(mean(aggregate_df$totalvalidpercent[aggregate_df$totalvalidpercent != 0]), 2)
+)
+```
+
+```{r}
+#| content: valuebox
+#| title: "Avg Reads/Molecule"
+list(
+  color = "light",
+  value = round(mean(aggregate_df$averagereadspermol[aggregate_df$averagereadspermol != 0]), 2)
+)
+```
+
+```{r}
+#| content: valuebox
+#| title: "N50"
+list(
+  color = "light",
+  value = round(mean(aggregate_df$N50[aggregate_df$N50 != 0]), 0)
+)
+```
+
+```{r}
+#| content: valuebox
+#| title: "N75"
+list(
+  color = "light",
+  value = round(mean(aggregate_df$N75[aggregate_df$N75 != 0]), 0)
+)
+```
+
+```{r}
+#| content: valuebox
+#| title: "N90"
+list(
+  color = "light",
+  value = round(mean(aggregate_df$N90[aggregate_df$N90 != 0]), 0)
+)
+```
 
 ## Sampletable
 
 ```{r}
+column_description <- c(
+  "name of the sample",
+  "total number of alignments",
+  "the unique DNA molecules as inferred from linked-read barcodes",
+  "molecules composed of one single-end or paired-end sequence, effectively not a linked read",
+  "molecules composed of more than two single-end or paired-end sequences, in other words, molecules with linked-read information",
+  "number of unique barcodes, which may differ from unique molecules after deconvolution",
+  "molecule-to-barcode ratio, which helps diagnose deconvolution performance",
+  "alignments with a valid AXXCXXBXXDXX barcode, where XX is not 00",
+  "alignments with a invalid 00 barcode segment",
+  "percent of valid-to-invalid barcoded alignments",
+  "average number of reads per unique molecule",
+  "standard error of the mean number of reads per unique molecule",
+  "average percent molecule alignment coverage, where coverage includes unsequenced gaps between linked reads",
+  "standard error of the mean percent molecule alignment coverage",
+  "average molecule alignment coverage in base pairs, where coverage includes unsequenced gaps between linked reads",
+  "standard error of the mean molecule alignment base-pair coverage",
+  "N50 of inferred molecules",
+  "N75 of inferred molecules",
+  "N90 of inferred molecules"
+  )
+
+headerCallback <- c(
+  "function(thead, data, start, end, display){",
+  paste0(" var tooltips = ['", paste(column_description, collapse = "','"), "'];"),
+  "  for(var i=0; i<tooltips.length; i++){",
+  "    $('th:eq('+i+')',thead).attr('title', tooltips[i]);",
+  "  }",
+  "}"
+)
+
 DT::datatable(
   aggregate_df,
   rownames = F,
   extensions = 'Buttons', 
+  caption = 'Per-Sample Alignment Information Pertaining to Barcodes',
+  fillContainer = T,
+  colnames = c("sample", "alignments", "unique molecules", "singletons", "nonsingletons", "unique barcodes", "molecule:bx ratio", "valid bx alignments", "invalid bx alignments", "% valid bx", "avg reads/molecule", "SE reads/molecule", "avg molecule coverage %","SE molecule coverage %", "avg molecule coverage (bp)", "SE molecule coverage (bp)", "N50", "N75","N90"),
   options = list(
     dom = 'Brtp',
     scrollX = TRUE,
-    buttons = list(list(extend = "csv",filename = "per_sample_barcode_alignment"))
-  ),
-  caption = 'Per-Sample Alignment Information Pertaining to Barcodes',
-  fillContainer = T,
-  colnames = c("sample", "alignments", "unique molecules", "singletons", "nonsingletons", "unique barcodes", "molecule:bx ratio", "valid bx alignments", "invalid bx alignments", "% valid bx", "avg reads/molecule", "SE reads/molecule", "avg molecule coverage %","SE molecule coverage %", "avg molecule coverage (bp)", "SE molecule coverage (bp)", "N50", "N75","N90")
+    buttons = list(list(extend = "csv",filename = "per_sample_barcode_alignment")),
+    headerCallback = JS(headerCallback)
+  )
 )
 ```
 
 ```{r sampleplot_height}
 n_samples <- nrow(aggregate_df)
-figheight <- 1 + (0.4 * n_samples)
+figheight <- 3 + (0.4 * n_samples)
 ```
 
-## NX plots desc
+## NX plot
 ::: {.card title="NX Information"}
 
 The **NX** metric (e.g. **N50**) is the length of the shortest molecule in the group of longest molecules that together
@@ -176,7 +269,27 @@ if(length(unique(aggregate_df$N50)) > 1 && length(unique(aggregate_df$N75)) > 1 
 ```
 :::
 
-### Distribution of valid bx alignments
+### Reads per molecule
+::: {.card title="Reads per molecule"}
+This distribution shows the average number of reads per molecule across your samples.
+
+```{r molper_dist}
+if(length(unique(aggregate_df$averagereadspermol)) > 1){
+  hchart(density(aggregate_df$averagereadspermol), type = "areaspline", color = "#e1a42b", name = "Reads per Molecule", animation = F, marker = list(enabled = FALSE)) |>
+    hc_title(text = "Average Reads Per Molecule") |>
+    hc_xAxis(title = list(text = "reads per molecule (average)")) |>
+    hc_yAxis(title = list(text = "density")) |>
+    hc_tooltip(enabled = FALSE) |>
+    hc_exporting(enabled = T, filename = "reads_per_molecule",
+      buttons = list(contextButton = list(menuItems = c("downloadPNG", "downloadJPEG", "downloadPDF", "downloadSVG")))
+    )
+} else {
+  cat("Not enough unique values for reads per molecule to plot distributions (minimum: 2).\n")
+}
+```
+:::
+
+## Distribution of valid bx alignments
 ::: {.card title="Distribution of alignments with valid barcodes"}
 This is a distribution of what percent of total alignments each sample
 had valid haplotag barcodes (`AXXCXXBXXDXX` where `XX` is not `00`).
@@ -196,6 +309,27 @@ hchart(hs, "areaspline", hcaes(x = val, y = freq), color = "#8484bd", name = "Pe
   hc_yAxis(max = 100, title = list(text = "% samples")) |>
   hc_tooltip(crosshairs = TRUE) |>
   hc_exporting(enabled = T, filename = "percent.valid.dist",
+    buttons = list(contextButton = list(menuItems = c("downloadPNG", "downloadJPEG", "downloadPDF", "downloadSVG")))
+  )
+```
+:::
+
+### Linked-read library performance
+::: {.card title="Linked-read library performance"}
+This scatterplot is a diagnostic that shows the relationship between the proportion of nonsingleton
+reads (reads with linked information) compared to total reads. Each point is a sample and is colored by the
+mean number of reads per molecule for that sample.
+
+```{r lr_ratio}
+hchart(aggregate_df, "scatter", hcaes(x = totalreads, y = round(nonsingletons / (nonsingletons + singletons), 2), color = averagereadspermol, name = sample, molper = averagereadspermol), name = "Linked-Read Performance", animation = F) |>
+  hc_title(text = "Linked Reads vs Total Reads") |>
+  hc_xAxis(title = list(text = "total reads")) |>
+  hc_yAxis(title = list(text = "proportion of reads with linked-read information")) |>
+  hc_tooltip(
+    crosshairs = FALSE,
+    pointFormat= '<b>{point.name}</b><br>reads: <b>{point.x}</b><br>proportion linked reads: <b>{point.y}</b><br>reads per molecule: <b>{point.molper}</b></br>'
+    ) |>
+  hc_exporting(enabled = T, filename = "linkedread.performance",
     buttons = list(contextButton = list(menuItems = c("downloadPNG", "downloadJPEG", "downloadPDF", "downloadSVG")))
   )
 ```

@@ -55,9 +55,9 @@ jobs:
           base: 'main'
           filters: .github/filters.yml
 
-  pkgbuild:
+  containerize:
     needs: changes
-    name: Build/Cache Container
+    name: Rebuild Container
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -119,8 +119,8 @@ jobs:
 #          retention-days: 1
 
   dmux_gen1:
-    needs: [changes, pkgbuild]
-    if: ${{ needs.changes.outputs.demux == 'true' && needs.pkgbuild.result == 'success' }}
+    needs: [changes]
+    if: ${{ needs.changes.outputs.demux == 'true' }}
     name: demux gen1
     runs-on: ubuntu-latest
     steps:
@@ -142,8 +142,8 @@ jobs:
           python3 -m pip install --upgrade build && python3 -m build
           pip install dist/*.whl
           resources/buildforCI.sh
-      - name: Clear Space
-        uses: jlumbroso/free-disk-space@main
+#     - name: Clear Space
+#       uses: jlumbroso/free-disk-space@main
 #      - name: Download Singularity Artifact
 #        uses: actions/download-artifact@v4
 #        with:
@@ -154,8 +154,8 @@ jobs:
         run: harpy demultiplex gen1 --quiet --schema test/demux/samples.schema test/demux/Undetermined_S0_L004_R* test/demux/Undetermined_S0_L004_I*
 
   preflight:
-    needs: [changes, pkgbuild]
-    if: ${{ needs.changes.outputs.preflight == 'true' && needs.pkgbuild.result == 'success' }}
+    needs: [changes]
+    if: ${{ needs.changes.outputs.preflight == 'true' }}
     name: preflight
     runs-on: ubuntu-latest
     steps:
@@ -180,8 +180,8 @@ jobs:
           python3 -m pip install --upgrade build && python3 -m build
           pip install dist/*.whl
           resources/buildforCI.sh
-      - name: Clear Space
-        uses: jlumbroso/free-disk-space@main
+#     - name: Clear Space
+#       uses: jlumbroso/free-disk-space@main
 #      - name: Download Singularity Artifact
 #        uses: actions/download-artifact@v4
 #        with:
@@ -196,8 +196,8 @@ jobs:
         run: harpy preflight bam --quiet test/bam
 
   qc:
-    needs: [changes, pkgbuild]
-    if: ${{ needs.changes.outputs.qc == 'true' && needs.pkgbuild.result == 'success' }}
+    needs: [changes]
+    if: ${{ needs.changes.outputs.qc == 'true' }}
     name: qc
     runs-on: ubuntu-latest
     steps:
@@ -222,8 +222,8 @@ jobs:
           python3 -m pip install --upgrade build && python3 -m build
           pip install dist/*.whl
           resources/buildforCI.sh
-      - name: Clear Space
-        uses: jlumbroso/free-disk-space@main
+#     - name: Clear Space
+#       uses: jlumbroso/free-disk-space@main
 #      - name: Download Singularity Artifact
 #        uses: actions/download-artifact@v4
 #        with:
@@ -236,8 +236,8 @@ jobs:
         shell: micromamba-shell {0}
         run: harpy qc -a auto -d -c 21,40,3,0 --quiet test/fastq
   deconvolve:
-    needs: [changes, pkgbuild]
-    if: ${{ needs.changes.outputs.deconvolve == 'true' && needs.pkgbuild.result == 'success' }}
+    needs: [changes]
+    if: ${{ needs.changes.outputs.deconvolve == 'true' }}
     name: deconvolve
     runs-on: ubuntu-latest
     steps:
@@ -262,8 +262,8 @@ jobs:
           python3 -m pip install --upgrade build && python3 -m build
           pip install dist/*.whl
           resources/buildforCI.sh
-      - name: Clear Space
-        uses: jlumbroso/free-disk-space@main
+#     - name: Clear Space
+#       uses: jlumbroso/free-disk-space@main
 #      - name: Download Singularity Artifact
 #        uses: actions/download-artifact@v4
 #        with:
@@ -273,8 +273,8 @@ jobs:
         shell: micromamba-shell {0}
         run: harpy deconvolve --quiet test/fastq
   bwa:
-    needs: [changes, pkgbuild]
-    if: ${{ needs.changes.outputs.bwa == 'true' && needs.pkgbuild.result == 'success' }}
+    needs: [changes]
+    if: ${{ needs.changes.outputs.bwa == 'true' }}
     name: align BWA
     runs-on: ubuntu-latest
     steps:
@@ -299,8 +299,8 @@ jobs:
           python3 -m pip install --upgrade build && python3 -m build
           pip install dist/*.whl
           resources/buildforCI.sh
-      - name: Clear Space
-        uses: jlumbroso/free-disk-space@main
+#     - name: Clear Space
+#       uses: jlumbroso/free-disk-space@main
 #      - name: Download Singularity Artifact
 #        uses: actions/download-artifact@v4
 #        with:
@@ -311,8 +311,8 @@ jobs:
         run: harpy align bwa --quiet -g test/genome/genome.fasta.gz  -x "-A 2" test/fastq
   
   ema:
-    needs: [changes, pkgbuild]
-    if: ${{ needs.changes.outputs.ema == 'true' && needs.pkgbuild.result == 'success' }}
+    needs: [changes]
+    if: ${{ needs.changes.outputs.ema == 'true' }}
     name: align EMA
     runs-on: ubuntu-latest
     steps:
@@ -337,8 +337,8 @@ jobs:
           python3 -m pip install --upgrade build && python3 -m build
           pip install dist/*.whl
           resources/buildforCI.sh
-      - name: Clear Space
-        uses: jlumbroso/free-disk-space@main
+#     - name: Clear Space
+#       uses: jlumbroso/free-disk-space@main
 #      - name: Download Singularity Artifact
 #        uses: actions/download-artifact@v4
 #        with:
@@ -349,8 +349,8 @@ jobs:
         run: harpy align ema --quiet --ema-bins 150 -g test/genome/genome.fasta.gz test/fastq
 
   strobe:
-    needs: [changes, pkgbuild]
-    if: ${{ needs.changes.outputs.strobealign == 'true' && needs.pkgbuild.result == 'success' }}
+    needs: [changes]
+    if: ${{ needs.changes.outputs.strobealign == 'true' }}
     name: align strobe
     runs-on: ubuntu-latest
     steps:
@@ -375,8 +375,8 @@ jobs:
           python3 -m pip install --upgrade build && python3 -m build
           pip install dist/*.whl
           resources/buildforCI.sh
-      - name: Clear Space
-        uses: jlumbroso/free-disk-space@main
+#     - name: Clear Space
+#       uses: jlumbroso/free-disk-space@main
 #      - name: Download Singularity Artifact
 #        uses: actions/download-artifact@v4
 #        with:
@@ -387,8 +387,8 @@ jobs:
         run: harpy align strobe --quiet -l 125 -g test/genome/genome.fasta.gz  test/fastq
 
   mpileup:
-    needs: [changes, pkgbuild]
-    if: ${{ needs.changes.outputs.mpileup == 'true' && needs.pkgbuild.result == 'success' }}
+    needs: [changes]
+    if: ${{ needs.changes.outputs.mpileup == 'true' }}
     name: mpileup
     runs-on: ubuntu-latest
     steps:
@@ -413,8 +413,8 @@ jobs:
           python3 -m pip install --upgrade build && python3 -m build
           pip install dist/*.whl
           resources/buildforCI.sh
-      - name: Clear Space
-        uses: jlumbroso/free-disk-space@main
+#     - name: Clear Space
+#       uses: jlumbroso/free-disk-space@main
 #      - name: Download Singularity Artifact
 #        uses: actions/download-artifact@v4
 #        with:
@@ -428,8 +428,8 @@ jobs:
         run: harpy snp mpileup --quiet -r test/positions.bed -o SNP/poptest -g test/genome/genome.fasta.gz -p test/samples.groups  test/bam
   
   freebayes:
-    needs: [changes, pkgbuild]
-    if: ${{ needs.changes.outputs.freebayes == 'true' && needs.pkgbuild.result == 'success' }}
+    needs: [changes]
+    if: ${{ needs.changes.outputs.freebayes == 'true' }}
     name: freebayes
     runs-on: ubuntu-latest
     steps:
@@ -454,8 +454,8 @@ jobs:
           python3 -m pip install --upgrade build && python3 -m build
           pip install dist/*.whl
           resources/buildforCI.sh
-      - name: Clear Space
-        uses: jlumbroso/free-disk-space@main
+#     - name: Clear Space
+#       uses: jlumbroso/free-disk-space@main
 #      - name: Download Singularity Artifact
 #        uses: actions/download-artifact@v4
 #        with:
@@ -469,8 +469,8 @@ jobs:
         run: harpy snp freebayes --quiet -r test/positions.bed -o SNP/poptest -g test/genome/genome.fasta.gz -p test/samples.groups  test/bam
 
   impute:
-    needs: [changes, pkgbuild]
-    if: ${{ needs.changes.outputs.impute == 'true' && needs.pkgbuild.result == 'success' }}
+    needs: [changes]
+    if: ${{ needs.changes.outputs.impute == 'true' }}
     name: impute
     runs-on: ubuntu-latest
     steps:
@@ -495,8 +495,8 @@ jobs:
           python3 -m pip install --upgrade build && python3 -m build
           pip install dist/*.whl
           resources/buildforCI.sh
-      - name: Clear Space
-        uses: jlumbroso/free-disk-space@main
+#     - name: Clear Space
+#       uses: jlumbroso/free-disk-space@main
 #      - name: Download Singularity Artifact
 #        uses: actions/download-artifact@v4
 #        with:
@@ -511,8 +511,8 @@ jobs:
         run: harpy impute --quiet --vcf-samples -o vcfImpute --vcf test/vcf/test.bcf -p test/stitch.params  test/bam
 
   phase:
-    needs: [changes, pkgbuild]
-    if: ${{ needs.changes.outputs.phase == 'true' && needs.pkgbuild.result == 'success' }}
+    needs: [changes]
+    if: ${{ needs.changes.outputs.phase == 'true' }}
     name: phase
     runs-on: ubuntu-latest
     steps:
@@ -537,8 +537,8 @@ jobs:
           python3 -m pip install --upgrade build && python3 -m build
           pip install dist/*.whl
           resources/buildforCI.sh
-      - name: Clear Space
-        uses: jlumbroso/free-disk-space@main
+#     - name: Clear Space
+#       uses: jlumbroso/free-disk-space@main
 #      - name: Download Singularity Artifact
 #        uses: actions/download-artifact@v4
 #        with:
@@ -559,8 +559,8 @@ jobs:
           harpy phase --quiet --vcf-samples -o phasevcf --vcf test/vcf/test.bcf  test/bam
 
   leviathan:
-    needs: [changes, pkgbuild]
-    if: ${{ needs.changes.outputs.leviathan == 'true' && needs.pkgbuild.result == 'success' }}
+    needs: [changes]
+    if: ${{ needs.changes.outputs.leviathan == 'true' }}
     name: sv leviathan
     runs-on: ubuntu-latest
     steps:
@@ -585,8 +585,8 @@ jobs:
           python3 -m pip install --upgrade build && python3 -m build
           pip install dist/*.whl
           resources/buildforCI.sh
-      - name: Clear Space
-        uses: jlumbroso/free-disk-space@main
+#     - name: Clear Space
+#       uses: jlumbroso/free-disk-space@main
 #      - name: Download Singularity Artifact
 #        uses: actions/download-artifact@v4
 #        with:
@@ -602,8 +602,8 @@ jobs:
         run: harpy sv leviathan --quiet -s 100 -b 1 -g test/genome/genome.fasta.gz -o SV/leviathanpop -p test/samples.groups  test/bam
 
   naibr:
-    needs: [changes, pkgbuild]
-    if: ${{ needs.changes.outputs.naibr == 'true' && needs.pkgbuild.result == 'success' }}
+    needs: [changes]
+    if: ${{ needs.changes.outputs.naibr == 'true' }}
     name: sv naibr
     runs-on: ubuntu-latest
     steps:
@@ -628,8 +628,8 @@ jobs:
           python3 -m pip install --upgrade build && python3 -m build
           pip install dist/*.whl
           resources/buildforCI.sh
-      - name: Clear Space
-        uses: jlumbroso/free-disk-space@main
+#     - name: Clear Space
+#       uses: jlumbroso/free-disk-space@main
 #      - name: Download Singularity Artifact
 #        uses: actions/download-artifact@v4
 #        with:
@@ -654,8 +654,8 @@ jobs:
 
 
   simulate_variants:
-    needs: [changes, pkgbuild]
-    if: ${{ needs.changes.outputs.simvars == 'true' && needs.pkgbuild.result == 'success' }}
+    needs: [changes]
+    if: ${{ needs.changes.outputs.simvars == 'true' }}
     name: simulate variants
     runs-on: ubuntu-latest
     steps:
@@ -680,8 +680,8 @@ jobs:
           python3 -m pip install --upgrade build && python3 -m build
           pip install dist/*.whl
           resources/buildforCI.sh
-      - name: Clear Space
-        uses: jlumbroso/free-disk-space@main
+#     - name: Clear Space
+#       uses: jlumbroso/free-disk-space@main
 #      - name: Download Singularity Artifact
 #        uses: actions/download-artifact@v4
 #        with:
@@ -712,8 +712,8 @@ jobs:
           harpy simulate translocation --quiet --prefix Simulate/transvcf --vcf Simulate/translocation/haplotype_1/sim.hap1.translocation.vcf  test/genome/genome.fasta.gz
 
   simulate_linkedreads:
-    needs: [changes, pkgbuild]
-    if: ${{ needs.changes.outputs.simreads == 'true' && needs.pkgbuild.result == 'success' }}
+    needs: [changes]
+    if: ${{ needs.changes.outputs.simreads == 'true' }}
     name: simulate linkedreads
     runs-on: ubuntu-latest
     steps:
@@ -738,8 +738,8 @@ jobs:
           python3 -m pip install --upgrade build && python3 -m build
           pip install dist/*.whl
           resources/buildforCI.sh
-      - name: Clear Space
-        uses: jlumbroso/free-disk-space@main
+#     - name: Clear Space
+#       uses: jlumbroso/free-disk-space@main
 #      - name: Download Singularity Artifact
 #        uses: actions/download-artifact@v4
 #        with:
@@ -752,8 +752,8 @@ jobs:
           harpy simulate linkedreads --quiet -t 4 -n 2 -b test/haplotag.bc -l 100 -p 50 test/genome/genome.fasta.gz test/genome/genome2.fasta.gz
 
   assembly:
-    needs: [changes, pkgbuild]
-    if: ${{ needs.changes.outputs.assembly == 'true' && needs.pkgbuild.result == 'success' }}
+    needs: [changes]
+    if: ${{ needs.changes.outputs.assembly == 'true' }}
     name: metassembly
     runs-on: ubuntu-latest
     steps:
@@ -778,8 +778,8 @@ jobs:
           python3 -m pip install --upgrade build && python3 -m build
           pip install dist/*.whl
           resources/buildforCI.sh
-      - name: Clear Space
-        uses: jlumbroso/free-disk-space@main
+#     - name: Clear Space
+#       uses: jlumbroso/free-disk-space@main
 #      - name: Download Singularity Artifact
 #        uses: actions/download-artifact@v4
 #        with:
@@ -796,8 +796,8 @@ jobs:
         run: harpy metassembly --ignore-bx --quiet -r 4000 test/fastq/sample1.*
 
   extras:
-    needs: [changes, pkgbuild]
-    if: ${{ needs.changes.outputs.other == 'true' && needs.pkgbuild.result == 'success' }}
+    needs: [changes]
+    if: ${{ needs.changes.outputs.other == 'true' }}
     name: harpy extras
     runs-on: ubuntu-latest
     steps:
@@ -822,8 +822,8 @@ jobs:
           python3 -m pip install --upgrade build && python3 -m build
           pip install dist/*.whl
           resources/buildforCI.sh
-      - name: Clear Space
-        uses: jlumbroso/free-disk-space@main
+#     - name: Clear Space
+#       uses: jlumbroso/free-disk-space@main
       - name: harpy imputeparams
         shell: micromamba-shell {0}
         run: harpy imputeparams -o params.file

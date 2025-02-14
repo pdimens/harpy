@@ -255,17 +255,22 @@ rule summarize_blocks:
 
 rule report_config:
     input:
-        f"{outdir}/workflow/report/_quarto.yml"
+        yaml = f"{outdir}/workflow/report/_quarto.yml",
+        scss = f"{outdir}/workflow/report/_harpy.scss"
     output:
-        f"{outdir}/_quarto.yml"
-    shell:
-        "cp {input} {output}"
+        yaml = temp(f"{outdir}/reports/_quarto.yml"),
+        scss = temp(f"{outdir}/reports/_harpy.scss")
+    run:
+        import shutil
+        for i,o in zip(input,output):
+            shutil.copy(i,o)
 
 rule phase_report:
     input:
+        f"{outdir}/reports/_quarto.yml",
+        f"{outdir}/reports/_harpy.scss",
         data = f"{outdir}/reports/blocks.summary.gz",
-        qmd = f"{outdir}/workflow/report/hapcut.qmd",
-        yml = f"{outdir}/_quarto.yml"
+        qmd = f"{outdir}/workflow/report/hapcut.qmd"
     output:
         html = f"{outdir}/reports/phase.html",
         qmd = temp(f"{outdir}/reports/phase.qmd")

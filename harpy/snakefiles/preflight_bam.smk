@@ -26,22 +26,6 @@ def get_alignments(wildcards):
     aln = list(filter(r.match, bamlist))
     return aln[0]
 
-#def get_align_index(wildcards):
-#    """returns a list with the bai index file for the sample based on wildcards.sample"""
-#    r = re.compile(fr"(.*/{wildcards.sample})\.(bam|sam)$", flags = re.IGNORECASE)
-#    aln = list(filter(r.match, bamlist))
-#    return aln[0] + ".bai"
-
-#rule index_alignments:
-#    input:
-#        lambda wc: bamdict[wc.bam]
-#    output:
-#        "{bam}.bai"
-#    container:
-#        None
-#    shell:
-#        "samtools index {input}"
-
 rule check_bam:
     input:
         get_alignments
@@ -67,17 +51,22 @@ rule concat_results:
 
 rule report_config:
     input:
-        f"{outdir}/workflow/report/_quarto.yml"
+        yaml = f"{outdir}/workflow/report/_quarto.yml",
+        scss = f"{outdir}/workflow/report/_harpy.scss"
     output:
-        f"{outdir}/_quarto.yml"
-    shell:
-        "cp {input} {output}"
+        yaml = temp(f"{outdir}/_quarto.yml"),
+        scss = temp(f"{outdir}/_harpy.scss")
+    run:
+        import shutil
+        for i,o in zip(input,output):
+            shutil.copy(i,o)
 
 rule create_report:
     input:
+        f"{outdir}/_quarto.yml",
+        f"{outdir}/_harpy.scss",
         data = f"{outdir}/filecheck.bam.tsv",
-        qmd = f"{outdir}/workflow/report/preflight_bam.qmd",
-        yml = f"{outdir}/_quarto.yml"
+        qmd = f"{outdir}/workflow/report/preflight_bam.qmd"
     output:
         html = f"{outdir}/filecheck.bam.html",
         qmd = temp(f"{outdir}/filecheck.bam.qmd")

@@ -43,9 +43,6 @@ tryCatch(
 )
 names(gcts) <- c("sample","RefHom", "Het",	"AltHom", "missing")
 
-conv_height <- 1.4 + (0.12 * nrow(gcts))
-#frameheight <- 1.2 + (0.166 * nrow(invalids))
-
 gcts_long <- pivot_longer(gcts, -1, names_to = "Conversion", values_to = "Count")
 ```
 
@@ -236,9 +233,41 @@ bcftools view -Ob -i 'INFO/INFO_SCORE >= 0.2' file.vcf > filtered.file.bcf
 
 ##
 ::: {.card title="SNPs Remaining After Filtering" expandable="true"}
-This is the number of variants sites that may remain
+This is the number of SNP sites that may remain
 if filtering at different minimum `INFO/INFO_SCORE` thresholds.
-Each column after `Variants` refers to a filtering threshold
+
+```{r filt_curve}
+filt_remaining <- function(x, thresh){
+  sum(x >= thresh)
+}
+thresholds <- seq(0, 1, 0.01) 
+filt_results <- data.frame(
+  "threshold" = thresholds,
+  "remaining" = sapply(thresholds, function(x){filt_remaining(infos$info, x)})
+)
+```
+
+```{r}
+hchart(filt_results, "areaspline", hcaes(x = threshold, y = remaining), color = "#8484bd", name = "SNPs remaining", marker = list(enabled = FALSE), animation = F) |>
+  hc_title(text = "SNPs remaning after INFO filtering") |>
+  hc_xAxis(min = 0, max = 1, title = list(text = "INFO score filtering threshold")) |>
+  hc_yAxis(title = list(text = "SNPs remaning after filtering")) |>
+  hc_tooltip(
+    crosshairs = TRUE,
+    pointFormat= 'filter threshold: <b>{point.x}</b><br>SNPs remaining: <b>{point.y}</b>'
+    ) |>
+  hc_exporting(enabled = T, filename = "snps.INFO.filtering",
+    buttons = list(contextButton = list(menuItems = c("downloadPNG", "downloadJPEG", "downloadPDF", "downloadSVG")))
+  )
+```
+
+:::
+
+###
+::: {.card title="SNPs Remaining Per Contig After Filtering" expandable="true"}
+This is the number of SNP sites that may remain for each contig
+if filtering at various minimum `INFO/INFO_SCORE` thresholds.
+Each column after `SNPs` refers to a filtering threshold
 and the numbers within that column are the number of SNPs that would
 be kept if filtering out SNPs with an `INFO/INFO_SCORE` value below 
 it (_i.e._ `0.2` is the number of SNPs with a score `>= 0.2` ).
@@ -258,59 +287,41 @@ filterthresh <- infos %>% group_by(contig) %>%
 
 tots <- colSums(filterthresh[, -1])
 filterthresh <- rbind(c("all", tots), filterthresh) 
-DT::datatable(
-  filterthresh,
-  rownames = FALSE,
-  extensions = "Buttons",
-  colnames = c("Contig", "Variants", "0.20", "0.25", "0.30", "0.4", "0.5", "0.75", "0.90"),
-  options = list(
-    dom = "Brtp",
-    buttons = c("csv"),
-    scrollX = TRUE
-  ),
-  fillContainer = T,
-  caption = 'Number of SNPs to be KEPT by filtering'
+column_description <- c(
+  "name of the contig",
+  "total number of SNPs on the contig",
+  "mean number of SNPs per haplotype",
+  "number of SNPs remaining after filtering at INFO>=0.2",
+  "number of SNPs remaining after filtering at INFO>=0.25",
+  "number of SNPs remaining after filtering at INFO>=0.3",
+  "number of SNPs remaining after filtering at INFO>=0.4",
+  "number of SNPs remaining after filtering at INFO>=0.5",
+  "number of SNPs remaining after filtering at INFO>=0.75",
+  "number of SNPs remaining after filtering at INFO>=0.90"
 )
-```
-:::
 
-###
-::: {.card title="SNPs Removed by Filtering" expandable="true"}
-This is the number of variants sites that may be **removed**
-if filtering at different minimum `INFO/INFO_SCORE` thresholds.
-Each column after `Variants` refers to a filtering threshold
-and the numbers within that column are the number of SNPs that would
-be **removed** if filtering out SNPs with an `INFO/INFO_SCORE` value below 
-it (_i.e._ `0.2` is the number of SNPs with a score `>= 0.2` ).
+headerCallback <- c(
+  "function(thead, data, start, end, display){",
+  paste0(" var tooltips = ['", paste(column_description, collapse = "','"), "'];"),
+  "  for(var i=0; i<tooltips.length; i++){",
+  "    $('th:eq('+i+')',thead).attr('title', tooltips[i]);",
+  "  }",
+  "}"
+)
 
-```{r filttable_loss}
-filterthresh <- infos %>% group_by(contig) %>%
-  summarise(
-    totals = length(info),
-    twenty = sum(info < 0.2),
-    twentyfive = sum(info < 0.25),
-    thirty = sum(info < 0.30),
-    forty = sum(info < 0.40),
-    fifty = sum(info < 0.50),
-    seventyfive = sum(info < 0.75),
-    ninety = sum(info < 0.90),
-    )
-
-tots <- colSums(filterthresh[, -1])
-filterthresh <- rbind(c("all", tots), filterthresh) 
 DT::datatable(
-  fillContainer = T,
-  caption = 'Number of SNPs to be REMOVED by filtering',
-  escape = F,
   filterthresh,
   rownames = FALSE,
   extensions = "Buttons",
-  colnames = c("Contig", "Variants", '<span style="color:red">0.2</span>','<span style="color:red">0.25</span>','<span style="color:red">0.30</span>','<span style="color:red">0.40</span>','<span style="color:red">0.5</span>','<span style="color:red">0.75</span>','<span style="color:red">0.9</span>'),
+  colnames = c("Contig", "SNPs", "0.20", "0.25", "0.30", "0.4", "0.5", "0.75", "0.90"),
+  fillContainer = T,
+  caption = 'Number of SNPs to be KEPT by filtering',
   options = list(
     dom = "Brtp",
     buttons = c("csv"),
-    scrollX = TRUE
-  ),
+    scrollX = TRUE,
+    headerCallback = JS(headerCallback)
+  )
 )
 ```
 :::
@@ -336,7 +347,7 @@ underlying data used to create the visualization.
 
 ```{r plot_height}
 n_samples <- length(unique(gcts_long$sample))
-figheight <- 1 + (0.6 * n_samples)
+figheight <- 3 + (0.6 * n_samples)
 ```
 :::
 

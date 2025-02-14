@@ -66,17 +66,22 @@ rule concat_results:
 
 rule report_config:
     input:
-        f"{outdir}/workflow/report/_quarto.yml"
+        yaml = f"{outdir}/workflow/report/_quarto.yml",
+        scss = f"{outdir}/workflow/report/_harpy.scss"
     output:
-        f"{outdir}/_quarto.yml"
-    shell:
-        "cp {input} {output}"
+        yaml = temp(f"{outdir}/_quarto.yml"),
+        scss = temp(f"{outdir}/_harpy.scss")
+    run:
+        import shutil
+        for i,o in zip(input,output):
+            shutil.copy(i,o)
 
 rule create_report:
     input:
+        f"{outdir}/_quarto.yml",
+        f"{outdir}/_harpy.scss",
         data = f"{outdir}/filecheck.fastq.tsv",
-        qmd = f"{outdir}/workflow/report/preflight_fastq.qmd",
-        yml = f"{outdir}/_quarto.yml"
+        qmd = f"{outdir}/workflow/report/preflight_fastq.qmd"
     output:
         html = f"{outdir}/filecheck.fastq.html",
         qmd = temp(f"{outdir}/filecheck.fastq.qmd")

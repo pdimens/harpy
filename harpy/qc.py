@@ -57,6 +57,7 @@ def qc(inputs, output_dir, min_length, max_length, trim_adapters, deduplicate, d
       - accepts `auto` to automatically detect adapters
       - accepts a FASTA file of adapters to remove
     - `-d` finds and removes optical PCR duplicates
+      - recommended to skip at this step in favor of barcode-assisted deduplication after alignment
     - `-c` resolves barcodes clashing between unrelated sequences
       - off by default, activated with [4 integers](https://github.com/RolandFaure/QuickDeconvolution?tab=readme-ov-file#usage), separated by commas
       - use `21,40,3,0` for QuickDeconvolution defaults (or adjust as needed)

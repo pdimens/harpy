@@ -64,7 +64,7 @@ if not deconvolve:
             minlen = f"--length_required {min_len}",
             maxlen = f"--max_len1 {max_len}",
             trim_adapters = trim_arg,
-            dedup = "-D" if dedup else "",
+            dedup = "-D" if dedup else "--dont_eval_duplication",
             title = lambda wc: f"-R \"{wc.sample} QC Report\"",
             extra = extra
         threads:
@@ -149,17 +149,22 @@ rule barcode_stats:
 
 rule report_config:
     input:
-        f"{outdir}/workflow/report/_quarto.yml"
+        yaml = f"{outdir}/workflow/report/_quarto.yml",
+        scss = f"{outdir}/workflow/report/_harpy.scss"
     output:
-        f"{outdir}/reports/_quarto.yml"
-    shell:
-        "cp {input} {output}"
+        yaml = temp(f"{outdir}/reports/_quarto.yml"),
+        scss = temp(f"{outdir}/reports/_harpy.scss")
+    run:
+        import shutil
+        for i,o in zip(input,output):
+            shutil.copy(i,o)
 
 rule barcode_report:
     input: 
+        f"{outdir}/reports/_quarto.yml",
+        f"{outdir}/reports/_harpy.scss",
         data = collect(outdir + "/logs/bxcount/{sample}.count.log", sample = samplenames),
-        qmd = f"{outdir}/workflow/report/bx_count.qmd",
-        yml = f"{outdir}/reports/_quarto.yml"
+        qmd = f"{outdir}/workflow/report/bx_count.qmd"
     output:
         report = f"{outdir}/reports/barcode.summary.html",
         qmd = temp(f"{outdir}/reports/barcode.summary.qmd")

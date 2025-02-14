@@ -288,19 +288,24 @@ rule molecule_coverage:
 
 rule report_config:
     input:
-        f"{outdir}/workflow/report/_quarto.yml"
+        yaml = f"{outdir}/workflow/report/_quarto.yml",
+        scss = f"{outdir}/workflow/report/_harpy.scss"
     output:
-        f"{outdir}/reports/_quarto.yml"
-    shell:
-        "cp {input} {output}"
+        yaml = temp(f"{outdir}/reports/_quarto.yml"),
+        scss = temp(f"{outdir}/reports/_harpy.scss")
+    run:
+        import shutil
+        for i,o in zip(input,output):
+            shutil.copy(i,o)
 
 rule sample_reports:
     input: 
+        f"{outdir}/reports/_quarto.yml",
+        f"{outdir}/reports/_harpy.scss",
         bxstats = outdir + "/reports/data/bxstats/{sample}.bxstats.gz",
         coverage = outdir + "/reports/data/coverage/{sample}.cov.gz",
         molecule_coverage = outdir + "/reports/data/coverage/{sample}.molcov.gz",
-        qmd = f"{outdir}/workflow/report/align_stats.qmd",
-        yml = f"{outdir}/reports/_quarto.yml"
+        qmd = f"{outdir}/workflow/report/align_stats.qmd"
     output:
         report = outdir + "/reports/{sample}.html",
         qmd = temp(outdir + "/reports/{sample}.qmd")
@@ -354,9 +359,10 @@ rule samtools_report:
 
 rule barcode_report:
     input: 
+        f"{outdir}/reports/_quarto.yml",
+        f"{outdir}/reports/_harpy.scss",
         collect(outdir + "/reports/data/bxstats/{sample}.bxstats.gz", sample = samplenames),
-        qmd = f"{outdir}/workflow/report/align_bxstats.qmd",
-        yml = f"{outdir}/reports/_quarto.yml"
+        qmd = f"{outdir}/workflow/report/align_bxstats.qmd"
     output:
         report = f"{outdir}/reports/barcode.summary.html",
         qmd = temp(f"{outdir}/reports/barcode.summary.qmd")

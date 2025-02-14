@@ -104,14 +104,14 @@ datatable(
   rownames = F,
   filter = "top",
   extensions = 'Buttons',
+  fillContainer = T,
+  colnames = c("File", "Reads", "Name Mismatch", "MI tag", "BX:Z tag", "BX:Z last", "AxxCxxBxxDxx"),
   options = list(
     paging = F,
     scrollX = F,
     dom = 'Brtp',
     buttons = list(list(extend = "csv",filename = "bam_checks"))
-  ),
-  fillContainer = T,
-  colnames = c("File", "Reads", "Name Mismatch", "MI tag", "BX:Z tag", "BX:Z last", "AxxCxxBxxDxx")
+  )
 ) %>%
 formatStyle(
   columns = 3:ncol(data),

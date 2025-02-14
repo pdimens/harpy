@@ -127,13 +127,13 @@ DT::datatable(
   rownames = F,
   filter = "top",
   extensions = 'Buttons',
+  fillContainer = T,
   options = list(
     dom = 'Brtp',
     buttons = list(list(extend = "csv",filename = paste0(samplename , "_sv_leviathan`"))),  
     scrollX = T,
     paging = T
-  ),
-  fillContainer = T
+  )
 )
 ```
 :::
@@ -150,13 +150,13 @@ DT::datatable(
   rownames = F, 
   filter = "top", 
   extensions = 'Buttons', 
+  fillContainer = T,
   options = list(
     dom = 'Brtp',
     buttons = list(list(extend = "csv",filename = paste0(samplename ,"_sv_leviathan_per_contig"))),
     scrollX = TRUE,
     paging = T
-  ),
-  fillContainer = T
+  )
 )
 ```
 :::

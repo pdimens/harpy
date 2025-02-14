@@ -51,11 +51,7 @@ def impute(inputs, output_dir, parameters, threads, vcf, vcf_samples, extra_para
     Requires a parameter file, use **harpy stitchparams** to generate one and adjust it for your study.
     The `--vcf-samples` option considers only the samples present in your input `--vcf` file rather than all
     the samples identified in `INPUT`. If providing additional STITCH arguments, they must be in quotes and 
-    in R language style. Use single-quotes (string literals) if supplying an argument that requires quotes. For example:
-    
-    ```
-    harpy ... -x 'switchModelIteration = 39, splitReadIterations = NA, reference_populations = c("CEU","GBR")'...
-    ```
+    in the `--option=value` format, without spaces between `--option` and `value` (e.g. `"--switchModelIteration=39"`).
     """
     output_dir = output_dir.rstrip("/")
     workflowdir = os.path.join(output_dir, 'workflow')
@@ -76,7 +72,6 @@ def impute(inputs, output_dir, parameters, threads, vcf, vcf_samples, extra_para
     biallelic, n_biallelic = biallelic_contigs(vcf, f"{workflowdir}")
 
     fetch_rule(workflowdir, "impute.smk")
-    fetch_script(workflowdir, "stitch_impute.R")
     fetch_report(workflowdir, "impute.qmd")
     fetch_report(workflowdir, "stitch_collate.qmd")
     os.makedirs(f"{output_dir}/logs/snakemake", exist_ok = True)
