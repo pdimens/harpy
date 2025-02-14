@@ -2,7 +2,10 @@
 
 import click
 from shlex import split as shellsplit
-from shlex import quote as shellquote
+from shlex import quote as shelljoin
+
+def sanitize_shell(sh):
+    return shelljoin(shellsplit(sh))
 
 class FastpParams(click.ParamType):
     """A class for a click type that validates fastp extra-params."""
@@ -21,7 +24,7 @@ class FastpParams(click.ParamType):
                     self.fail(f"{i} is not a valid fastp option. See the fastp documentation for a list of available options: {docs}.", param, ctx)
         if opts < 1:
             self.fail(f"No valid options recognized. Available fastp options begin with one or two dashes (e.g. --phred64 or -a). See the fastp documentation for a list of available options: {docs}.", param, ctx)
-        return shellquote(value)
+        return sanitize_shell(value)
 
 class BwaParams(click.ParamType):
     """A class for a click type that validates bwa extra-params."""
@@ -40,7 +43,7 @@ class BwaParams(click.ParamType):
                     self.fail(f"{i} is not a valid bwa mem option. See the bwa documentation for a list of available options: {docs}.", param, ctx)
         if opts < 1:
             self.fail(f"No valid options recognized. Available bwa options begin with one dash (e.g. -M). See the bwa documentation for a list of available options: {docs}.", param, ctx)
-        return shellquote(value)
+        return sanitize_shell(value)
 
 class EmaParams(click.ParamType):
     """A class for a click type that validates ema extra-params."""
@@ -59,7 +62,7 @@ class EmaParams(click.ParamType):
                     self.fail(f"{i} is not a valid ema option. See the ema documentation for a list of available options: {docs}.", param, ctx)
         if opts < 1:
             self.fail(f"No valid options recognized. Available ema options begin with one dash (e.g. -i). See the ema documentation for a list of available options: {docs}.", param, ctx)
-        return shellquote(value)
+        return sanitize_shell(value)
 
 class StrobeAlignParams(click.ParamType):
     """A class for a click type that validates strobealign extra-params."""
@@ -78,7 +81,7 @@ class StrobeAlignParams(click.ParamType):
                     self.fail(f"{i} is not a valid strobealign option. See the strobealign documentation for a list of available options: {docs}.", param, ctx)
         if opts < 1:
             self.fail(f"No valid options recognized. Available strobealign options begin with one or two dashes (e.g. --eqx or -L). See the strobealign documentation for a list of available options: {docs}.", param, ctx)
-        return shellquote(value)
+        return sanitize_shell(value)
 
 class SpadesParams(click.ParamType):
     """A class for a click type that validates spades extra-params."""
@@ -99,7 +102,7 @@ class SpadesParams(click.ParamType):
                     self.fail(f"{i} is not a valid spades option. See the spades documentation for a list of available options: {docs}.", param, ctx)
         if opts < 1:
             self.fail(f"No valid options recognized. Available spades options begin with two dashes (e.g. --cov-cutoff). See the spades documentation for a list of available options: {docs}.", param, ctx)
-        return shellquote(value)
+        return sanitize_shell(value)
 
 class ArcsParams(click.ParamType):
     """A class for a click type that validates ARCS extra-params."""
@@ -124,7 +127,7 @@ class ArcsParams(click.ParamType):
                     self.fail(f"{arg} is not a valid arcs option. See the documentation for a list of available options.{docs}", param, ctx)
         if opts < 1:
             self.fail(f"No valid options recognized. Valid arcs options begin without dashes and must be in the form ARG=VAL, without spaces (e.g. k=15). See the documentation for a list of available options.{docs}", param, ctx)
-        return shellquote(value)
+        return sanitize_shell(value)
 
 class StitchParams(click.ParamType):
     """A class for a click type that validates stitch extra-params."""
@@ -151,7 +154,7 @@ class StitchParams(click.ParamType):
                 self.fail(f"{i} is not in the proper format for STITCH. STITCH options begin with a double-dash and must be in the form --ARG=VAL (e.g. --downsampleFraction=0.5). See the stitch documentation for a list of available options: {docs}", param, ctx)
         if opts < 1:
             self.fail(f"No valid options recognized. STITCH options begin with a double-dash and must be in the form --ARG=VAL (e.g. --downsampleFraction=0.5). See the stitch documentation for a list of available options: {docs}.", param, ctx)
-        return shellquote(value)
+        return sanitize_shell(value)
 
 class HapCutParams(click.ParamType):
     """A class for a click type that validates hapcut2 extra-params."""
@@ -170,7 +173,7 @@ class HapCutParams(click.ParamType):
                     self.fail(f"{i} is not a valid hapcut2 option. See the hapcut2 documentation for a list of available options: {docs}.", param, ctx)
         if opts < 1:
             self.fail(f"No valid options recognized. Available hapcut2 options begin with two dashes (e.g. --dp). See the hapcut2 documentation for a list of available options: {docs}.", param, ctx)
-        return shellquote(value)
+        return sanitize_shell(value)
 
 class LeviathanParams(click.ParamType):
     """A class for a click type that validates leviathan extra-params."""
@@ -189,7 +192,7 @@ class LeviathanParams(click.ParamType):
                     self.fail(f"{i} is not a valid leviathan option. See the leviathan documentation for a list of available options: {docs}.", param, ctx)
         if opts < 1:
             self.fail(f"No valid options recognized. Available leviathan options begin with one or two dashes (e.g. -m or -mediumRate). See the leviathan documentation for a list of available options: {docs}.", param, ctx)
-        return shellquote(value)
+        return sanitize_shell(value)
 
 class NaibrParams(click.ParamType):
     """A class for a click type that validates naibr extra-params."""
@@ -211,7 +214,7 @@ class NaibrParams(click.ParamType):
                     self.fail(f"{i} is not a valid naibr option. See the naibr documentation for a list of available options: {docs}.", param, ctx)
         if opts < 1:
             self.fail(f"No valid options recognized. Available naibr options begin without dashes in the form of ARG<space>VAL (e.g. blacklist inversions.ignore). See the naibr documentation for a list of available options: {docs}.", param, ctx)
-        return value
+        return sanitize_shell(value)
     
 class MpileupParams(click.ParamType):
     """A class for a click type that validates mpileup extra-params."""
@@ -230,7 +233,7 @@ class MpileupParams(click.ParamType):
                     self.fail(f"{i} is not a valid mpileup option. See the mpileup documentation for a list of available options: {docs}.", param, ctx)
         if opts < 1:
             self.fail(f"No valid options recognized. Available mpileup options begin one or with two dashes (e.g. -d or --max-depth). See the mpileup documentation for a list of available options: {docs}.", param, ctx)
-        return shellquote(value)
+        return sanitize_shell(value)
     
 class FreebayesParams(click.ParamType):
     """A class for a click type that validates freebayes extra-params."""
@@ -249,7 +252,7 @@ class FreebayesParams(click.ParamType):
                     self.fail(f"{i} is not a valid freebayes option. See the freebayes documentation for a list of available options: {docs}.", param, ctx)
         if opts < 1:
             self.fail(f"No valid options recognized. Available freebayes options begin with one or two dashes (e.g. -t or --targets). See the freebayes documentation for a list of available options: {docs}.", param, ctx)
-        return shellquote(value)
+        return sanitize_shell(value)
 
 
 
