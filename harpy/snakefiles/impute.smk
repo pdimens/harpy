@@ -26,6 +26,18 @@ stitch_extra  = config.get("stitch_extra", "None")
 with open(biallelic, "r") as f:
     contigs = [line.rstrip() for line in f]
 
+# instantiate static STITCH arguments
+extraparams = {
+    "--niterations" : 40,
+    "--switchModelIteration" : 39,
+    "--splitReadIterations" : "NA",
+}
+# update and overwrite with extraparms, if any
+if stitch_extra != "None":
+    for i in stitch_extra.split():
+        arg,val = i.split("=")
+        extraparams[arg] = val
+
 rule sort_bcf:
     input:
         variantfile
@@ -77,32 +89,39 @@ rule stitch_conversion:
 
 rule impute:
     input:
+        bamlist,
+        collect("{bam}.bai", bam = bamlist),
         bamlist = outdir + "/workflow/input/samples.list",
-        infile  = outdir + "/workflow/input/stitch/{contig}.stitch",
-        bam = bamlist,
-        bailist = collect("{bam}.bai", bam = bamlist)
+        infile  = outdir + "/workflow/input/stitch/{contig}.stitch"
     output:
         temp(directory(outdir + "/{paramset}/contigs/{contig}/plots")),
-        temp(directory(outdir + "/{paramset}/contigs/{contig}/tmp")),
         temp(directory(outdir + "/{paramset}/contigs/{contig}/RData")),
         temp(directory(outdir + "/{paramset}/contigs/{contig}/input")),
-        vcf = temp(outdir + "/{paramset}/contigs/{contig}/{contig}.vcf.gz")
+        temp(outdir + "/{paramset}/contigs/{contig}/{contig}.vcf.gz"),
+        tmp = temp(directory(outdir + "/{paramset}/contigs/{contig}/tmp"))
     log:
         logfile = outdir + "/{paramset}/logs/{contig}.stitch.log"
     params:
-        model   = lambda wc: stitch_params[wc.paramset]["model"],
-        usebx   = lambda wc: stitch_params[wc.paramset]["usebx"],
-        bxlimit = lambda wc: stitch_params[wc.paramset]["bxlimit"],
-        k       = lambda wc: stitch_params[wc.paramset]["k"],
-        s       = lambda wc: stitch_params[wc.paramset]["s"],
-        ngen    = lambda wc: stitch_params[wc.paramset]["ngen"],
-        extra   = config.get("stitch_extra", "")
+        chrom   = lambda wc: "--chr=" + wc.contig,
+        model   = lambda wc: "--method=" + stitch_params[wc.paramset]['model'],
+        k       = lambda wc: f"--K={stitch_params[wc.paramset]['k']}",
+        s       = lambda wc: f"--S={stitch_params[wc.paramset]['s']}",
+        ngen    = lambda wc: f"--nGen={stitch_params[wc.paramset]['ngen']}",
+        outdir  = lambda wc: "--outputdir=" + os.path.join(outdir, wc.paramset, "contigs", wc.contig),
+        outfile = lambda wc: "--output_filename=" + f"{wc.contig}.vcf.gz",
+        usebx   = lambda wc: "--use_bx_tag=" + str(stitch_params[wc.paramset]['usebx']).upper(),
+        bxlimit = lambda wc: f"--bxTagUpperLimit={stitch_params[wc.paramset]['bxlimit']}",
+        tmpdir  = lambda wc: "--tempdir=" + os.path.join(outdir, wc.paramset, "contigs", wc.contig, "tmp"),
+        extra   = " ".join([f"{i}={j}" for i,j in extraparams.items()])
     threads:
         workflow.cores - 1
     conda:
         f"{envdir}/stitch.yaml"
-    script:
-        "scripts/stitch_impute.R"
+    shell:
+        """
+        mkdir -p {output.tmp}
+        STITCH.R --nCores={threads} --bamlist={input.bamlist} --posfile={input.infile} {params} 2> {log}
+        """
 
 rule index_vcf:
     input:
@@ -232,8 +251,8 @@ rule impute_reports:
         infoscore = outdir + "/{paramset}/reports/data/impute.infoscore",
         qmd = f"{outdir}/workflow/report/impute.qmd"
     output:
-        report = outdir + "/{paramset}/reports/{paramset}.html",
-        qmd = temp(outdir + "/{paramset}/reports/{paramset}.qmd")
+        report = outdir + "/{paramset}/reports/{paramset}.summary.html",
+        qmd = temp(outdir + "/{paramset}/reports/{paramset}.summary.qmd")
     log:
         outdir + "/{paramset}/logs/reports/imputestats.log"
     params:
@@ -259,7 +278,7 @@ rule workflow_summary:
     default_target: True
     input: 
         vcf = collect(outdir + "/{paramset}/{paramset}.bcf", paramset = list(stitch_params.keys())),
-        agg_report = collect(outdir + "/{paramset}/reports/{paramset}.html", paramset = stitch_params.keys()) if not skip_reports else [],
+        agg_report = collect(outdir + "/{paramset}/reports/{paramset}.summary.html", paramset = stitch_params.keys()) if not skip_reports else [],
         contig_report = collect(outdir + "/{paramset}/reports/{contig}.{paramset}.html", paramset = stitch_params.keys(), contig = contigs) if not skip_reports else [],
     run:
         paramfiletext = "\t".join(open(paramfile, "r").readlines())
