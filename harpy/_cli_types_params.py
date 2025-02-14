@@ -2,7 +2,7 @@
 
 import click
 from shlex import split as shellsplit
-from shlex import quote as shelljoin
+from shlex import join as shelljoin
 
 def sanitize_shell(sh):
     return shelljoin(shellsplit(sh))
