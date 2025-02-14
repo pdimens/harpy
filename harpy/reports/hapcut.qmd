@@ -171,18 +171,22 @@ nx_df <- df %>% group_by(sample, contig) %>%
 ```
 
 ```{r nxxplot}
-highchart() |>
-  hc_chart(type = "area", animation = F) |>
-  hc_add_series(data = density(nx_df$N50), name = "N50", type = "areaspline") |>
-  hc_add_series(data = density(nx_df$N75), name = "N75", type = "areaspline") |>
-  hc_add_series(data = density(nx_df$N90), name = "N90", color = "#d3805f", type = "areaspline") |>
-  hc_tooltip(enabled = FALSE) |>
-  hc_title(text = "NX Stats Across Samples and Contigs") |>
-  hc_xAxis(title = list(text = "NX value"), min = 0) |>
-  hc_yAxis(title = list(text = "density")) |>
-  hc_exporting(enabled = T, filename = "NX.stats",
-    buttons = list(contextButton = list(menuItems = c("downloadPNG", "downloadJPEG", "downloadPDF", "downloadSVG")))
-  )
+if(nrow(nx_df) > 1){
+  highchart() |>
+    hc_chart(type = "area", animation = F) |>
+    hc_add_series(data = density(nx_df$N50), name = "N50", type = "areaspline") |>
+    hc_add_series(data = density(nx_df$N75), name = "N75", type = "areaspline") |>
+    hc_add_series(data = density(nx_df$N90), name = "N90", color = "#d3805f", type = "areaspline") |>
+    hc_tooltip(enabled = FALSE) |>
+    hc_title(text = "NX Stats Across Samples and Contigs") |>
+    hc_xAxis(title = list(text = "NX value"), min = 0) |>
+    hc_yAxis(title = list(text = "density")) |>
+    hc_exporting(enabled = T, filename = "NX.stats",
+      buttons = list(contextButton = list(menuItems = c("downloadPNG", "downloadJPEG", "downloadPDF", "downloadSVG")))
+    )
+ } else {
+  cat("At least two samples are required to plot a distribution\n")
+}
 ```
 :::
 

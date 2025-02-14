@@ -186,7 +186,6 @@ if(do_qual){
     hc_exporting(enabled = T, filename = "snp.quality",
       buttons = list(contextButton = list(menuItems = c("downloadPNG", "downloadJPEG", "downloadPDF", "downloadSVG")))
     )
-
 } else {
   cat(paste0("No QUAL section in ", statsfile, " found\n"))
 }
@@ -297,21 +296,24 @@ if(sum(.iddL) == 0){
   idd$Type <- idd$Length > 0
   idd$Type <-  gsub(TRUE, "Insertion", idd$Type)
   idd$Type <-  gsub(FALSE, "Deletion", idd$Type)
-
-  hchart(idd, "areaspline", hcaes(x = Length, y = Count, group = Type, marker = list(enabled = FALSE))) |>
-    hc_colors(c("#e6a037","#6daace")) |>
-    hc_title(text = "Insertion-Deletion Distribution") |>
-    hc_xAxis(
-      title = list(text = "indel length"),
-      labels = list(formatter = JS("function () {return Math.abs(this.value);}"))
-    ) |>
-    hc_yAxis(title = list(text = "number of sites")) |>
-    hc_tooltip(crosshairs = TRUE,
-      formatter = JS("function () {return '<b>' + this.series.name + '</b><br>Length: <b>' + Math.abs(this.x) + '</b><br/>Count: <b>' + this.y + '</b>';}") 
-) |>
-    hc_exporting(enabled = T, filename = "indel.distribution",
-      buttons = list(contextButton = list(menuItems = c("downloadPNG", "downloadJPEG", "downloadPDF", "downloadSVG")))
-    )
+  if(nrow(idd) > 1){
+    hchart(idd, "areaspline", hcaes(x = Length, y = Count, group = Type, marker = list(enabled = FALSE))) |>
+      hc_colors(c("#e6a037","#6daace")) |>
+      hc_title(text = "Insertion-Deletion Distribution") |>
+      hc_xAxis(
+        title = list(text = "indel length"),
+        labels = list(formatter = JS("function () {return Math.abs(this.value);}"))
+      ) |>
+      hc_yAxis(title = list(text = "number of sites")) |>
+      hc_tooltip(crosshairs = TRUE,
+        formatter = JS("function () {return '<b>' + this.series.name + '</b><br>Length: <b>' + Math.abs(this.x) + '</b><br/>Count: <b>' + this.y + '</b>';}") 
+  ) |>
+      hc_exporting(enabled = T, filename = "indel.distribution",
+        buttons = list(contextButton = list(menuItems = c("downloadPNG", "downloadJPEG", "downloadPDF", "downloadSVG")))
+      )
+  } else {
+    cat("At least two indels are required to plot a distribution\n")
+  }
 }
 ```
 :::
@@ -327,19 +329,22 @@ if(do_qual){
   rebinned_qual <- mergebins(qual[,-2])
   q99 <- hist_quantile(rebinned_qual, 0.99)
   rebinned_qual <- rebinned_qual[rebinned_qual$QualityScore < q99, ]
-  hchart(rebinned_qual, "areaspline", hcaes(x = QualityScore, y = Indels), name = "count", color = "#9393d2", marker = list(enabled = FALSE)) |>
-    hc_title(text = "Indel Genotype Quality") |>
-    hc_subtitle(text = "Shown in bins of width 10") |>
-    hc_caption(text = paste("99th percentile:", q99)) |>
-    hc_xAxis(title = list(text = "quality score"), type = "logarithmic") |>
-    hc_yAxis(title = list(text = "count")) |>
-    hc_tooltip(crosshairs = TRUE,
-      formatter = JS("function () {return '<b>Quality ' + this.x + '</b><br>Count: <b>' + this.y + '</b>';}") 
-    ) |>
-    hc_exporting(enabled = T, filename = "indel.quality",
-      buttons = list(contextButton = list(menuItems = c("downloadPNG", "downloadJPEG", "downloadPDF", "downloadSVG")))
-    )
-
+  if(nrow(rebinned_qual) > 1){
+    hchart(rebinned_qual, "areaspline", hcaes(x = QualityScore, y = Indels), name = "count", color = "#9393d2", marker = list(enabled = FALSE)) |>
+      hc_title(text = "Indel Genotype Quality") |>
+      hc_subtitle(text = "Shown in bins of width 10") |>
+      hc_caption(text = paste("99th percentile:", q99)) |>
+      hc_xAxis(title = list(text = "quality score"), type = "logarithmic") |>
+      hc_yAxis(title = list(text = "count")) |>
+      hc_tooltip(crosshairs = TRUE,
+        formatter = JS("function () {return '<b>Quality ' + this.x + '</b><br>Count: <b>' + this.y + '</b>';}") 
+      ) |>
+      hc_exporting(enabled = T, filename = "indel.quality",
+        buttons = list(contextButton = list(menuItems = c("downloadPNG", "downloadJPEG", "downloadPDF", "downloadSVG")))
+      )
+  } else {
+    cat("At least two quality values are required to plot a distribution\n")
+  }
 } else {
   cat(paste0("No QUAL section in ", statsfile, " found\n"))
 }
