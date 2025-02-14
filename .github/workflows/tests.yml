@@ -78,8 +78,8 @@ jobs:
           python3 -m pip install --upgrade build && python3 -m build
           pip install dist/*.whl
           resources/buildforCI.sh
-#     - name: Clear Space
-#       uses: jlumbroso/free-disk-space@main
+      - name: Clear Space
+        uses: jlumbroso/free-disk-space@main
       - name: Rebuild Dockerfile
         id: rebuild
         if: ${{ needs.changes.outputs.container == 'true' }}
