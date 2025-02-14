@@ -114,35 +114,43 @@ class ArcsParams(click.ParamType):
                 self.fail(f"{i} begins with a dash, which would be interpreted as an argument to arcs-make rather than arcs. To avoid unexpected errors, arguments to arcs-make are disallowed. If this was inteded to be an argument to arcs, try using " + i.lstrip("-") + "=VAL instead", param, ctx)
             if "=" in i:
                 opts += 1
-                arg = i.split("=")[0].strip()
+                argsplit = i.split("=")
+                if len(argsplit) != 2:
+                     self.fail(f"{i} is not a valid arcs option. Valid arcs options begin without dashes and must be in the form ARG=VAL, without spaces (e.g. k=15). See the documentation for a list of available options.{docs}", param, ctx)
+                arg = argsplit[0].strip()
                 if arg in harpy_options:
                     self.fail(f"{arg} is already used by Harpy when calling arcs.", param, ctx)
                 if arg not in valid_options:
                     self.fail(f"{arg} is not a valid arcs option. See the documentation for a list of available options.{docs}", param, ctx)
         if opts < 1:
-            self.fail(f"No valid options recognized. Available arcs options begin without dashes and must be in the form ARG=VAL, without spaces (e.g. k=15). See the documentation for a list of available options.{docs}", param, ctx)
+            self.fail(f"No valid options recognized. Valid arcs options begin without dashes and must be in the form ARG=VAL, without spaces (e.g. k=15). See the documentation for a list of available options.{docs}", param, ctx)
         return shellquote(value)
 
 class StitchParams(click.ParamType):
     """A class for a click type that validates stitch extra-params."""
     name = "stitch_params"
     def convert(self, value, param, ctx):
-        harpy_options = "method posfile bamlist nCores nGen chr K S use_bx_tag bxTagUpperLimit outputdir output_filename tempdir".split() 
-        valid_options = "nStarts sampleNames_file genfile B_bit_prob outputInputInVCFFormat downsampleToCov downsampleFraction readAware chrStart chrEnd regionStart regionEnd buffer maxDifferenceBetweenReads maxEmissionMatrixDifference alphaMatThreshold emissionThreshold iSizeUpperLimit bqFilter niterations shuffleHaplotypeIterations splitReadIterations expRate maxRate minRate Jmax regenerateInput originalRegionName keepInterimFiles keepTempDir outputHaplotypeProbabilities switchModelIteration generateInputOnly restartIterations refillIterations downsampleSamples downsampleSamplesKeepList subsetSNPsfile useSoftClippedBases outputBlockSize outputSNPBlockSize inputBundleBlockSize genetic_map_file reference_haplotype_file reference_legend_file reference_sample_file reference_populations reference_phred reference_iterations reference_shuffleHaplotypeIterations initial_min_hapProb initial_max_hapProb regenerateInputWithDefaultValues plotHapSumDuringIterations plot_shuffle_haplotype_attempts plotAfterImputation save_sampleReadsInfo gridWindowSize shuffle_bin_nSNPs shuffle_bin_radius keepSampleReadsInRAM useTempdirWhileWriting output_haplotype_dosages".split()
+        harpy_options = "--method --posfile --bamlist --nCores --nGen --chr --K --S --use_bx_tag --bxTagUpperLimit --outputdir --output_filename --tempdir".split() 
+        valid_options = "--genfile --B_bit_prob --outputInputInVCFFormat --downsampleToCov --downsampleFraction --readAware --chrStart --chrEnd --regionStart --regionEnd --buffer --maxDifferenceBetweenReads --maxEmissionMatrixDifference --alphaMatThreshold --emissionThreshold --iSizeUpperLimit --bqFilter --niterations --shuffleHaplotypeIterations --splitReadIterations --expRate --maxRate --minRate --Jmax --regenerateInput --originalRegionName --keepInterimFiles --keepTempDir --switchModelIteration --generateInputOnly --restartIterations --refillIterations --downsampleSamples --downsampleSamplesKeepList --subsetSNPsfile --useSoftClippedBases --outputBlockSize --outputSNPBlockSize --inputBundleBlockSize --genetic_map_file --reference_haplotype_file --reference_legend_file --reference_sample_file --reference_populations --reference_phred --reference_iterations --reference_shuffleHaplotypeIterations --initial_min_hapProb --initial_max_hapProb --regenerateInputWithDefaultValues --plot_shuffle_haplotype_attempts --save_sampleReadsInfo --gridWindowSize --shuffle_bin_nSNPs --shuffle_bin_radius --keepSampleReadsInRAM --useTempdirWhileWriting --output_haplotype_dosages".split()
         opts = 0
         docs = "https://github.com/rwdavies/STITCH/blob/master/Options.md"
         for i in shellsplit(value):
-            if i.startswith("-"):
-                self.fail(f"{i} begins with a dash, which is the wrong format. Try using " + i.lstrip("-") + "=VAL instead", param, ctx)
+            if not i.startswith("--"):
+                self.fail(f"{i} is in the wrong format and needs to begin with a double-dash for the command-line version of STITCH. Try using --{i}=VAL instead", param, ctx)
             if "=" in i:
                 opts += 1
-                arg = i.split("=")[0].strip()
+                argsplit = i.split("=")
+                if len(argsplit) != 2:
+                    self.fail(f"{i} is not in the proper format for STITCH. STITCH options begin with a double-dash and must be in the form --ARG=VAL (e.g. --downsampleFraction=0.5). See the stitch documentation for a list of available options: {docs}", param, ctx)
+                arg = argsplit[0].strip()
                 if arg in harpy_options:
-                    self.fail(f"{arg} is already used by Harpy when calling stitch.", param, ctx)
+                    self.fail(f"{arg} is already used by Harpy when calling STITCH.", param, ctx)
                 if arg not in valid_options:
-                    self.fail(f"{arg} is not a valid stitch option. See the stitch documentation for a list of available options: {docs}", param, ctx)
+                    self.fail(f"{arg} is not a valid STITCH option. See the STITCH documentation for a list of available options: {docs}", param, ctx)
+            else:
+                self.fail(f"{i} is not in the proper format for STITCH. STITCH options begin with a double-dash and must be in the form --ARG=VAL (e.g. --downsampleFraction=0.5). See the stitch documentation for a list of available options: {docs}", param, ctx)
         if opts < 1:
-            self.fail(f"No valid options recognized. Available stitch options begin without dashes and must be in the form ARG=VAL (e.g. downsampleFraction=0.5). See the stitch documentation for a list of available options: {docs}.", param, ctx)
+            self.fail(f"No valid options recognized. STITCH options begin with a double-dash and must be in the form --ARG=VAL (e.g. --downsampleFraction=0.5). See the stitch documentation for a list of available options: {docs}.", param, ctx)
         return shellquote(value)
 
 class HapCutParams(click.ParamType):
