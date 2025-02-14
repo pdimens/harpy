@@ -44,21 +44,29 @@ In addition to the [!badge variant="info" corners="pill" text="common runtime op
 | `--max-length`        |    `-m`    |    `150`    | Maximum length to trim sequences down to                                                                                       |
 | `--trim-adapters`     |    `-a`    |             | Detect and remove adapter sequences  [!badge variant="secondary" text="recommended"]                                           |
 
-By default, this workflow will only quality-trim the sequences. You can also opt-in to:
-- find and remove optical (PCR) duplicates
-- resolve situations where reads from different molecules have the same barcode (see [!badge corners="pill" text="deconvolve"](deconvolve.md)) 
-- find and remove sequencing adapters [!badge variant="secondary" text="recommended"]
-  - accepts `auto` for automatic adapter detection and removal
-  - accepts a FASTA file of adapter sequences
-    ``` example FASTA file of adapters
-    >Illumina TruSeq Adapter Read 1
-    AGATCGGAAGAGCACACGTCTGAACTCCAGTCA
-    >Illumina TruSeq Adapter Read 2
-    AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT
-    >polyA
-    AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-    ```
-==- Trimming to different lengths
+By default, this workflow will only quality-trim the sequences.
+#### deduplicate reads [!badge variant="warning" text="not recommended"]
+You can opt-in to have `fastp` deduplicate optical (PCR) duplicates. It's generally not recommended to perform deduplication during quality-checking,
+as the [!badge corners="pill" text="align"](Align/Align.md) workflows use the linked-read barcode to more accurately tag reads as duplicates.
+
+#### deconvolve reads [!badge variant="secondary" text="conditionally recommended"]
+You can opt-in to resolve situations where reads from different molecules have the same barcode (see [!badge corners="pill" text="deconvolve"](deconvolve.md)).
+Performing deconvolution during the quality-checking stage of ones work would be most useful for [!badge corners="pill" text="assembly"](assembly.md)
+and [!badge corners="pill" text="metassembly"](metassembly.md) workflows, but might hinder variant-detection workflows.
+
+#### trimming adapters [!badge variant="secondary" text="recommended"]
+You can opt-in to find and remove adapter content in sequences.
+- accepts `auto` for automatic adapter detection and removal
+- accepts a FASTA file of adapter sequences
+``` example FASTA file of adapters
+>Illumina TruSeq Adapter Read 1
+AGATCGGAAGAGCACACGTCTGAACTCCAGTCA
+>Illumina TruSeq Adapter Read 2
+AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT
+>polyA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+```
+==- Trimming reads to different lengths
 In the event you need the forward and reverse reads trimmed down to different read lengths, this can be achieved by
 setting `-m` (`--max-length`) to the length you want the **forward** reads trimmed down to (e.g. `-m 125`), then specify an extra
 `fastp` parameter with `-x "--max_len2 VAL"` to set the maximum length of the **reverse** reads to `VAL`, e.g. `-x "--max_len2 130"`.

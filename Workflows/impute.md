@@ -58,19 +58,17 @@ In addition to the [!badge variant="info" corners="pill" text="common runtime op
 | argument         | short name | default | description                                                                                                                  |
 | :--------------- | :--------: | :-----: | :--------------------------------------------------------------------------------------------------------------------------- |
 | `INPUTS`         |            |         | [!badge variant="info" text="required"] Files or directories containing [input BAM files](/commonoptions.md)                 |
-| `--extra-params` |    `-x`    |         | Extra arguments to add to the STITCH R function, provided in quotes and R syntax                                             |
+| `--extra-params` |    `-x`    |         | Extra arguments to add to STITCH, provided in quotes                                                                         |
 | `--parameters`   |    `-p`    |         | [!badge variant="info" text="required"] STITCH [parameter file](#parameter-file) (tab-delimited)                             |
 | `--vcf`          |    `-v`    |         | [!badge variant="info" text="required"] Path to VCF/BCF file                                                                 |
 | `--vcf-samples`  |            |         | Use samples present in vcf file for imputation rather than those found the directory ([see below](#prioritize-the-vcf-file)) |
 
 ### Extra STITCH parameters
 You may add [additional parameters](https://github.com/rwdavies/STITCH/blob/master/Options.md) to STITCH by way of the 
-`--extra-params` (or `-x`) option. Since STITCH is a function in the R language, the parameters you add must be in R 
-syntax (e.g. `regionStart=0`, `populations=c("GBA","CUE")`). The argument should be wrapped in quotes (like in other Harpy modules),
-however, if your additional parameters require the use of quotes (like the previous example), then wrap the `-x` argument 
-in **single quotes**. Otherwise, the format should take the form of `"arg1=value, arg2=value2"`. Example:
+`--extra-params` (or `-x`) option. Harpy uses the `STITCH.R` command-line tool, which requires arguments to be in the form `--argument=value`,
+without spaces. Example:
 ```bash
-harpy impute -v file.vcf -p stitch.params -t 15 -x 'regionStart=20, regionEnd=500' Align/ema
+harpy impute -v file.vcf -p stitch.params -t 15 -x "--regionStart=20, --regionEnd=500" Align/ema
 ```
 
 ### Prioritize the vcf file
@@ -234,7 +232,7 @@ Impute/
         ├── data
         ├── contig1.modelname.html
         ├── contig2.modelname.html
-        └── modelname.html
+        └── modelname.summary.html
 
 ```
 {.compact}
@@ -242,7 +240,7 @@ Impute/
 | :----------------------------------- | :------------------------------------------- |
 | `modelname/modelname.bcf`            | final bcf file of imputed genotypes          |
 | `modelname/modelname.bcf.csi`        | index of `modelname.bcf`                     |
-| `modelname/reports/modelname.html`   | report summarizing the results of imputation |
+| `modelname/reports/modelname.summary.html`   | report summarizing the results of imputation across contigs|
 | `modelname/reports/*.modelname.html` | summary of STITCH imputation (per contig)    |
 | `modelname/contigs/*.vcf.gz`         | variants resulting from imputation           |
 | `modelname/contigs/*.vcf.gz.tbi`     | index of variant file                        |
