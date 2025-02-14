@@ -64,7 +64,7 @@ if not deconvolve:
             minlen = f"--length_required {min_len}",
             maxlen = f"--max_len1 {max_len}",
             trim_adapters = trim_arg,
-            dedup = "-D" if dedup else "",
+            dedup = "-D" if dedup else "--dont_eval_duplication",
             title = lambda wc: f"-R \"{wc.sample} QC Report\"",
             extra = extra
         threads:
