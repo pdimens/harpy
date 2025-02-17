@@ -308,7 +308,7 @@ def validate_regions(regioninput: int | str, genome: str) -> str:
             sys.exit(1)
         else:
             return "windows"
-    except:
+    except ValueError:
         region = regioninput
         # is a string
     reg = re.split(r"[\:-]", regioninput)

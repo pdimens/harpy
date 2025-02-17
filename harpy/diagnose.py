@@ -20,23 +20,31 @@ def diagnose(directory):
     with open(f"{directory}/workflow/config.yaml", 'r', encoding="utf-8") as f:
         harpy_config = yaml.full_load(f)
     
-    workflow = harpy_config["workflow"].replace(" ", "_")
     command = harpy_config["workflow_call"] + " --dry-run --debug-dag"
     console = Console(stderr=True)
     console.rule("[bold]Diagnosing Snakemake Job Graph", style = "green")
     try:
-        process = subprocess.Popen(command.split(), stdout=subprocess.PIPE, stderr=subprocess.PIPE, text = True)
+        process = subprocess.Popen(
+            command.split(),
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+            encoding='utf-8'
+        )
         while True:
-            output = process.stdout.readline()  # Read a line from stdout
-            if not output and process.poll():  # Check if process is done
+            output = process.stdout.readline()
+            error = process.stderr.readline()
+            if not output and not error and process.poll() is not None:
                 break
-            if output:  # Print the output if it's not empty
+            if error:
+                rprint(f"[red]{error}", end="", file=sys.stderr)
+            if output:
                 if output.startswith("This was a dry-run"):
                     process.terminate()
                     exit(0)
                 else:
-                    rprint(f"[yellow]{output}", end = "", file= sys.stderr)
-    except KeyboardInterrupt:
+                    rprint(f"[yellow]{output}", end="", file=sys.stderr)
+    except:
         console.print("")
         console.rule("[bold]Terminating Snakemake", style = "yellow")
         process.terminate()
