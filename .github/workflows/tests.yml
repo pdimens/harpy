@@ -754,7 +754,7 @@ jobs:
   assembly:
     needs: [changes]
     if: ${{ needs.changes.outputs.assembly == 'true' }}
-    name: metassembly
+    name: assembly
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
