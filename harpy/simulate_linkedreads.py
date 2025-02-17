@@ -96,6 +96,8 @@ def linkedreads(genome_hap1, genome_hap2, output_dir, outer_distance, mutation_r
             "genome_hap2" : Path(genome_hap2).resolve().as_posix(),
         }
     }
+    with open(os.path.join(workflowdir, 'config.yaml'), "w", encoding="utf-8") as config:
+        yaml.dump(configs, config, default_flow_style= False, sort_keys=False, width=float('inf'))
 
     create_conda_recipes(output_dir, conda_envs)
     if setup_only:
