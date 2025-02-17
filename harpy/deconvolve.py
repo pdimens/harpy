@@ -39,7 +39,7 @@ docstring = {
 @click.argument('inputs', required=True, type=click.Path(exists=True, readable=True), nargs=-1)
 def deconvolve(inputs, output_dir, kmer_length, window_size, density, dropout, threads, snakemake, quiet, hpc, container, setup_only):
     """
-    Resolve clashing barcodes from different molecules
+    Resolve shared barcodes between unrelated molecules
 
     Provide the input fastq files and/or directories at the end of the command
     as individual files/folders, using shell wildcards (e.g. `data/acronotus*.fq`), or both.
