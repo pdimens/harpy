@@ -2,25 +2,22 @@
 
 import rich_click as click
 from . import align
-from . import diagnose
+from . import diagnose, resume, view
 from . import deconvolve
 from . import demultiplex
 from . import container
 from . import hpc
 from . import impute
-from . import assembly
-from . import metassembly
+from . import assembly, metassembly
 from . import qc
 from . import phase
 from . import preflight
-from . import resume
-from . import simulate
+from . import simulate_linkedreads, simulate_variants
 from . import snp
 from . import sv
 from .popgroup import popgroup
 from . import downsample
 from .imputeparams import imputeparams
-from . import view
 
 click.rich_click.USE_MARKDOWN = True
 click.rich_click.SHOW_ARGUMENTS = False
@@ -44,6 +41,38 @@ def cli():
     **Documentation**: [https://pdimens.github.io/harpy/](https://pdimens.github.io/harpy/)
     """
 
+## unify simulate commands
+@click.group(options_metavar='', context_settings={"help_option_names" : ["-h", "--help"]})
+def simulate():
+    """
+    Simulate variants or linked-reads from a genome
+
+    To simulate genomic variants, provide an additional subcommand {`snpindel`,`inversion`,`cnv`,`translocation`} 
+    to get more information about that workflow. The variant simulator (`simuG`) can only simulate
+    one type of variant at a time, so you may need to run it a few times if you want multiple variant types.
+    Use `simulate linkedreads` to simulate haplotag linked-reads from a diploid genome, which you can create by simulating
+    genomic variants.
+    """
+
+simulate_commandstring = {
+    "harpy simulate": [
+        {
+            "name": "Linked Read Sequences",
+            "commands": ["linkedreads"],
+        },
+        {
+            "name": "Genomic Variants",
+            "commands": ["cnv", "inversion", "snpindel", "translocation"],
+        }
+    ]
+}
+
+simulate.add_command(simulate_linkedreads.linkedreads)
+simulate.add_command(simulate_variants.snpindel)
+simulate.add_command(simulate_variants.inversion)
+simulate.add_command(simulate_variants.cnv)
+simulate.add_command(simulate_variants.translocation)
+
 # main program
 cli.add_command(downsample.downsample)
 cli.add_command(popgroup)
@@ -57,7 +86,7 @@ cli.add_command(snp.snp)
 cli.add_command(sv.sv)
 cli.add_command(impute.impute)
 cli.add_command(phase.phase)
-cli.add_command(simulate.simulate)
+cli.add_command(simulate)
 cli.add_command(container.containerize)
 cli.add_command(hpc.hpc)
 cli.add_command(resume.resume)
@@ -82,7 +111,7 @@ click.rich_click.COMMAND_GROUPS = {
                 "commands": sorted(["view", "resume", "diagnose", "preflight"])
             }
         ],
- } | simulate.commandstring | hpc.docstring
+ } | simulate_commandstring | hpc.docstring
 
-for i in [align, deconvolve, downsample, demultiplex, impute, phase, preflight, qc, simulate, snp, sv, assembly, metassembly]:
+for i in [align, deconvolve, downsample, demultiplex, impute, phase, preflight, qc, simulate_linkedreads, simulate_variants, snp, sv, assembly, metassembly]:
     click.rich_click.OPTION_GROUPS |= i.docstring
