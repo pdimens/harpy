@@ -2,6 +2,7 @@
 
 import rich_click as click
 from . import align
+from . import diagnose
 from . import deconvolve
 from . import demultiplex
 from . import container
@@ -63,18 +64,22 @@ cli.add_command(resume.resume)
 cli.add_command(deconvolve.deconvolve)
 cli.add_command(metassembly.metassembly)
 cli.add_command(assembly.assembly)
-
+cli.add_command(diagnose.diagnose)
 ## the workflows ##
 click.rich_click.COMMAND_GROUPS = {
     "harpy":
         [
             {
-                "name": "workflows",
-                "commands": sorted(["demultiplex","qc", "align","snp","sv","impute","phase", "simulate", "assembly", "metassembly"]),
+                "name": "Workflows",
+                "commands": sorted(["demultiplex","qc", "align","snp","sv","impute","phase", "simulate", "assembly", "metassembly"])
             },
             {
                 "name": "Other Commands",
-                "commands": sorted(["deconvolve", "downsample", "hpc", "imputeparams", "popgroup","preflight","resume", "view"])
+                "commands": sorted(["deconvolve", "downsample", "hpc", "imputeparams", "popgroup"])
+            },
+            {
+                "name": "Troubleshoot",
+                "commands": sorted(["view", "resume", "diagnose", "preflight"])
             }
         ],
  } | simulate.commandstring | hpc.docstring
