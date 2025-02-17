@@ -7,7 +7,7 @@ import rich_click as click
 from ._conda import create_conda_recipes
 from ._launch import launch_snakemake, SNAKEMAKE_CMD
 from ._misc import fetch_report, fetch_rule, snakemake_log
-from ._cli_types_generic import HPCProfile, IntList, SnakemakeParams
+from ._cli_types_generic import convert_to_int, HPCProfile, IntList, SnakemakeParams
 from ._cli_types_params import FastpParams
 from ._parsers import parse_fastq_inputs
 from ._printing import workflow_info
@@ -125,4 +125,4 @@ def qc(inputs, output_dir, min_length, max_length, trim_adapters, deduplicate, d
         ("Output Folder:", f"{output_dir}/"),
         ("Workflow Log:", sm_log.replace(f"{output_dir}/", "") + "[dim].gz")
     )
-    launch_snakemake(command, "qc", start_text, output_dir, sm_log, int(quiet), "workflow/qc.summary")
+    launch_snakemake(command, "qc", start_text, output_dir, sm_log, quiet, "workflow/qc.summary")

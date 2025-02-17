@@ -51,7 +51,7 @@ def resume(directory, conda, threads, quiet):
         ("Output Folder:", directory + "/"),
         ("Workflow Log:", sm_log.replace(f"{directory}/", "") + "[dim].gz")
     )
-    launch_snakemake(command, workflow, start_text, directory, sm_log, int(quiet), f'workflow/{workflow.replace("_", ".")}.summary')
+    launch_snakemake(command, workflow, start_text, directory, sm_log, quiet, f'workflow/{workflow.replace("_", ".")}.summary')
 
 
 

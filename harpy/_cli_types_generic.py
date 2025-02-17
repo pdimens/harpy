@@ -3,6 +3,12 @@
 import os
 import click
 
+def convert_to_int(ctx, param, value):
+    # This function converts the string choice to an integer
+    if value is None:
+        return None
+    return int(value)
+
 class IntList(click.ParamType):
     """A class for a click type which accepts an arbitrary number of integers, separated by a comma."""
     name = "int_list"
