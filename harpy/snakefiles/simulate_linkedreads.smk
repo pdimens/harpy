@@ -14,7 +14,7 @@ onsuccess:
 onerror:
     os.remove(logger.logfile)
 wildcard_constraints:
-    hap = "[01]"
+    hap = r"[01]"
 
 outdir   = config["output_directory"]
 envdir   = os.path.join(os.getcwd(), outdir, "workflow", "envs")

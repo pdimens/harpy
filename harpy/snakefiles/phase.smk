@@ -12,7 +12,7 @@ onsuccess:
 onerror:
     os.remove(logger.logfile)
 wildcard_constraints:
-    sample = "[a-zA-Z0-9._-]+"
+    sample = r"[a-zA-Z0-9._-]+"
 
 ##TODO MANUAL PRUNING OF SWITCH ERRORS
 # https://github.com/vibansal/HapCUT2/blob/master/outputformat.md

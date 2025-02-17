@@ -12,8 +12,8 @@ onsuccess:
 onerror:
     os.remove(logger.logfile)
 wildcard_constraints:
-    sample = "[a-zA-Z0-9._-]+",
-    population = "[a-zA-Z0-9._-]+"
+    sample = r"[a-zA-Z0-9._-]+",
+    population = r"[a-zA-Z0-9._-]+"
 
 outdir       = config["output_directory"]
 envdir       = os.path.join(os.getcwd(), outdir, "workflow", "envs")

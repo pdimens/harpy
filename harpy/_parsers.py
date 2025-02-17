@@ -4,12 +4,13 @@ import re
 import os
 import sys
 import subprocess
+from typing import Tuple
 from pathlib import Path
 from rich.markdown import Markdown
 import rich_click as click
 from ._printing import print_error, print_solution_with_culprits
 
-def getnames(directory, ext):
+def getnames(directory: str, ext: str) -> list[str]:
     """Find all files in 'directory' that end with 'ext'"""
     samplenames = set([i.split(ext)[0] for i in os.listdir(directory) if i.endswith(ext)])
     if len(samplenames) < 1:
@@ -17,7 +18,7 @@ def getnames(directory, ext):
         sys.exit(1)
     return samplenames
 
-def parse_fastq_inputs(inputs):
+def parse_fastq_inputs(inputs: list[str]) -> Tuple[list[str], int]:
     """
     Parse the command line input FASTQ arguments to generate a clean list of input files. Returns the number of unique samples,
     i.e. forward and reverse reads for one sample = 1 sample.
@@ -65,7 +66,7 @@ def parse_fastq_inputs(inputs):
     # return the filenames and # of unique samplenames
     return infiles, n
 
-def parse_alignment_inputs(inputs):
+def parse_alignment_inputs(inputs:list[str]) -> Tuple[list[str], int]:
     """
     Parse the command line input sam/bam arguments to generate a clean list of input files
     and return the number of unique samples.
@@ -117,7 +118,7 @@ def parse_alignment_inputs(inputs):
         sys.exit(1)
     return bam_infiles, len(uniqs)
 
-def biallelic_contigs(vcf, workdir):
+def biallelic_contigs(vcf: str, workdir: str) -> Tuple[str,int]:
     """Identify which contigs have at least 2 biallelic SNPs and write them to workdir/vcf.biallelic"""
     vbn = os.path.basename(vcf)
     os.makedirs(f"{workdir}/", exist_ok = True)

@@ -11,7 +11,7 @@ onsuccess:
 onerror:
     os.remove(logger.logfile)
 wildcard_constraints:
-    sample = "[a-zA-Z0-9._-]+"
+    sample = r"[a-zA-Z0-9._-]+"
 
 fqlist = config["inputs"]
 outdir = config["output_directory"]

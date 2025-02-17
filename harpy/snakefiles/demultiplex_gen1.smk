@@ -17,8 +17,9 @@ onsuccess:
 onerror:
     os.remove(logger.logfile)
 wildcard_constraints:
-    FR = "[12]",
-    part = "\d+"
+    sample = r"[a-zA-Z0-9._-]+",
+    FR = r"[12]",
+    part = r"\d{3}"
 
 def parse_schema(smpl, keep_unknown):
     d = {}
@@ -40,6 +41,7 @@ def parse_schema(smpl, keep_unknown):
 
 samples = parse_schema(samplefile, keep_unknown)
 samplenames = [i for i in samples]
+print(samplenames)
 fastq_parts = [f"{i:03d}" for i in range(1, min(workflow.cores, 999) + 1)]
 
 rule barcode_segments:
@@ -120,25 +122,13 @@ rule merge_partitions:
     input:
         collect(outdir + "/{{sample}}.{part}.R{{FR}}.fq", part = fastq_parts)
     output:
-        outdir + "/{sample}.R{FR}.fq"
+        outdir + "/{sample}.R{FR}.fq.gz"
     log:
         outdir + "/logs/{sample}.{FR}.concat.log"
     container:
         None
     shell:
-        "cat {input} > {output} 2> {log}"
-
-rule compress_fastq:
-    input:
-        outdir + "/{sample}.R{FR}.fq"
-    output:
-        outdir + "/{sample}.R{FR}.fq.gz"
-    log:
-        outdir + "/logs/{sample}.{FR}.compress.log"
-    container:
-        None
-    shell:
-        "gzip {input} 2> {log}"
+        "cat {input} | gzip > {output} 2> {log}"
 
 rule merge_barcode_logs:
     input:

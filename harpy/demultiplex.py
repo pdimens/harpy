@@ -5,7 +5,7 @@ import sys
 import yaml
 from pathlib import Path
 import rich_click as click
-from ._cli_types_generic import HPCProfile, SnakemakeParams
+from ._cli_types_generic import convert_to_int, HPCProfile, SnakemakeParams
 from ._conda import create_conda_recipes
 from ._launch import launch_snakemake, SNAKEMAKE_CMD
 from ._misc import fetch_rule, fetch_script, snakemake_log
@@ -41,12 +41,12 @@ docstring = {
 @click.option('-u', '--keep-unknown',  is_flag = True, default = False, help = 'Keep reads that could not be demultiplexed')
 @click.option('-q', '--qx-rx', is_flag = True, default = False, help = 'Include the `QX:Z` and `RX:Z` tags in the read header')
 @click.option('-s', '--schema', required = True, type=click.Path(exists=True, dir_okay=False, readable=True), help = 'File of `sample`\\<TAB\\>`barcode`')
-@click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(min = 2, max_open = True), help = 'Number of threads to use')
+@click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(min = 2, max = 999), help = 'Number of threads to use')
 @click.option('-o', '--output-dir', type = click.Path(exists = False), default = "Demultiplex", show_default=True,  help = 'Output directory name')
 @click.option('--container',  is_flag = True, default = False, help = 'Use a container instead of conda')
 @click.option('--setup-only',  is_flag = True, hidden = True, default = False,  help = 'Setup the workflow and exit')
 @click.option('--hpc',  type = HPCProfile(), help = 'Directory with HPC submission `config.yaml` file')
-@click.option('--quiet',  is_flag = True, show_default = True, default = False, help = 'Don\'t show output text while running')
+@click.option('--quiet', show_default = True, default = "0", type = click.Choice(["0", "1", "2"]), callback = convert_to_int, help = 'Verbosity of output. `0` shows all output, `1` shows single progress bar, `2` suppressess all output')
 @click.option('--skip-reports',  is_flag = True, show_default = True, default = False, help = 'Don\'t generate HTML reports')
 @click.option('--snakemake', type = SnakemakeParams(), help = 'Additional Snakemake parameters, in quotes')
 @click.argument('R1_FQ', required=True, type=click.Path(exists=True, dir_okay=False, readable=True))
@@ -74,7 +74,7 @@ def gen1(r1_fq, r2_fq, i1_fq, i2_fq, output_dir, keep_unknown, schema, qx_rx, th
     if snakemake:
         command += f" {snakemake}"
 
-    validate_demuxschema(schema)
+    validate_demuxschema(schema, return_len = False)
     os.makedirs(f"{workflowdir}", exist_ok=True)
     fetch_rule(workflowdir, "demultiplex_gen1.smk")
     fetch_script(workflowdir, "demultiplex_gen1.py")

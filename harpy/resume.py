@@ -6,6 +6,7 @@ import sys
 import yaml
 import rich_click as click
 from ._conda import check_environments
+from ._cli_types_generic import convert_to_int
 from ._printing import print_error, workflow_info
 from ._launch import launch_snakemake
 from ._misc import snakemake_log
@@ -13,8 +14,8 @@ from ._conda import create_conda_recipes
 
 @click.command(no_args_is_help = True, context_settings=dict(allow_interspersed_args=False), epilog = "Documentation: https://pdimens.github.io/harpy/workflows/other")
 @click.option('-c', '--conda',  is_flag = True, default = False, help = 'Recreate the conda environments')
-@click.option('-t', '--threads', type = click.IntRange(min = 2, max_open = True), help = 'Change the number of threads (>1)')
-@click.option('--quiet',  is_flag = True, default = False, help = 'Don\'t show output text while running')
+@click.option('-t', '--threads', type = click.IntRange(min = 2, max = 999), help = 'Change the number of threads (>1)')
+@click.option('--quiet', show_default = True, default = "0", type = click.Choice(["0", "1", "2"]), callback = convert_to_int, help = 'Verbosity of output. `0` shows all output, `1` shows single progress bar, `2` suppressess all output')
 @click.argument('directory', required=True, type=click.Path(exists=True, file_okay=False, readable=True), nargs=1)
 def resume(directory, conda, threads, quiet):
     """

@@ -9,9 +9,9 @@ onsuccess:
 onerror:
     os.remove(logger.logfile)
 wildcard_constraints:
-    sample = "[a-zA-Z0-9._-]+",
-    paramset = "[^/]+",
-    contig = "[^/]+"
+    sample = r"[a-zA-Z0-9._-]+",
+    paramset = r"[^/]+",
+    contig = r"[^/]+"
 
 bamlist       = config["inputs"]["alignments"]
 bamdict       = dict(zip(bamlist, bamlist))

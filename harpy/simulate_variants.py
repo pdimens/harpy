@@ -4,210 +4,96 @@ import sys
 import yaml
 from pathlib import Path
 import rich_click as click
-from ._cli_types_generic import HPCProfile, InputFile, SnakemakeParams
+from ._cli_types_generic import convert_to_int, HPCProfile, InputFile, SnakemakeParams
 from ._conda import create_conda_recipes
 from ._launch import launch_snakemake, SNAKEMAKE_CMD
-from ._misc import fetch_rule, fetch_script, snakemake_log
+from ._misc import fetch_rule, snakemake_log
 from ._printing import print_error, workflow_info
-from ._validations import check_fasta, validate_barcodefile
-
-@click.group(options_metavar='', context_settings={"help_option_names" : ["-h", "--help"]})
-def simulate():
-    """
-    Simulate variants or linked-reads from a genome
-
-    To simulate genomic variants, provide an additional subcommand {`snpindel`,`inversion`,`cnv`,`translocation`} 
-    to get more information about that workflow. The variant simulator (`simuG`) can only simulate
-    one type of variant at a time, so you may need to run it a few times if you want multiple variant types.
-    Use `simulate linkedreads` to simulate haplotag linked-reads from a diploid genome, which you can create by simulating
-    genomic variants.
-    """
+from ._validations import check_fasta
 
 commandstring = {
     "harpy simulate": [
         {
-            "name": "Linked Read Sequences",
-            "commands": ["linkedreads"],
-        },
-        {
             "name": "Genomic Variants",
-            "commands": ["cnv", "inversion", "snpindel", "translocation"],
+            "commands": ["cnv", "inversion", "snpindel", "translocation"]
         }
     ]
 }
 
 docstring = {
-    "harpy simulate linkedreads": [
-        {
-            "name": "Parameters",
-            "options": ["--barcodes", "--distance-sd", "--outer-distance", "--molecule-length", "--molecules-per", "--mutation-rate", "--partitions", "--read-pairs"],
-        },
-        {
-            "name": "Workflow Controls",
-            "options": ["--container", "--hpc", "--output-dir", "--quiet", "--snakemake", "--threads", "--help"],
-        },     
-    ],
     "harpy simulate snpindel": [
         {
             "name": "Known Variants",
-            "options": ["--indel-vcf", "--snp-vcf"],
+            "options": ["--indel-vcf", "--snp-vcf"]
         },
         {
             "name": "Random Variants",
-            "options": ["--centromeres", "--exclude-chr", "--genes", "--indel-count", "--indel-ratio", "--snp-count", "--snp-gene-constraints", "--titv-ratio"],
+            "options": ["--centromeres", "--exclude-chr", "--genes", "--indel-count", "--indel-ratio", "--snp-count", "--snp-gene-constraints", "--titv-ratio"]
         },
         {
             "name": "Diploid Options",
-            "options": ["--heterozygosity", "--only-vcf"],
+            "options": ["--heterozygosity", "--only-vcf"]
         },
         {
             "name": "Workflow Controls",
-            "options": ["--container", "--hpc", "--output-dir", "--prefix", "--quiet", "--random-seed", "--snakemake", "--help"],
+            "options": ["--container", "--hpc", "--output-dir", "--prefix", "--quiet", "--random-seed", "--snakemake", "--help"]
         },
     ],
     "harpy simulate inversion": [
         {
             "name": "Known Variants",
-            "options": ["--vcf"],
+            "options": ["--vcf"]
         },
         {
             "name": "Random Variants",
-            "options": ["--centromeres", "--count", "--exclude-chr", "--genes", "--max-size", "--min-size"],
+            "options": ["--centromeres", "--count", "--exclude-chr", "--genes", "--max-size", "--min-size"]
         },
         {
             "name": "Diploid Options",
-            "options": ["--heterozygosity", "--only-vcf"],
+            "options": ["--heterozygosity", "--only-vcf"]
         },
         {
             "name": "Workflow Controls",
-            "options": ["--container", "--hpc", "--output-dir", "--prefix", "--quiet", "--random-seed", "--snakemake", "--help"],
+            "options": ["--container", "--hpc", "--output-dir", "--prefix", "--quiet", "--random-seed", "--snakemake", "--help"]
         },
     ],
     "harpy simulate cnv": [
         {
             "name": "Known Variants",
-            "options": ["--vcf"],
+            "options": ["--vcf"]
         },
         {
             "name": "Random Variants",
-            "options": ["--centromeres", "--count", "--dup-ratio", "--exclude-chr", "--gain-ratio", "--genes",  "--max-copy", "--max-size", "--min-size"],
+            "options": ["--centromeres", "--count", "--dup-ratio", "--exclude-chr", "--gain-ratio", "--genes",  "--max-copy", "--max-size", "--min-size"]
         },
         {
             "name": "Diploid Options",
-            "options": ["--heterozygosity", "--only-vcf"],
+            "options": ["--heterozygosity", "--only-vcf"]
         },
         {
             "name": "Workflow Controls",
-            "options": ["--container", "--hpc", "--output-dir", "--prefix", "--quiet", "--random-seed", "--snakemake", "--help"],
+            "options": ["--container", "--hpc", "--output-dir", "--prefix", "--quiet", "--random-seed", "--snakemake", "--help"]
         },
     ],
     "harpy simulate translocation": [
         {
             "name": "Known Variants",
-            "options": ["--vcf"],
+            "options": ["--vcf"]
         },
         {
             "name": "Random Variants",
-            "options": ["--centromeres", "--count", "--exclude-chr", "--genes"],
+            "options": ["--centromeres", "--count", "--exclude-chr", "--genes"]
         },
         {
             "name": "Diploid Options",
-            "options": ["--heterozygosity", "--only-vcf"],
+            "options": ["--heterozygosity", "--only-vcf"]
         },
         {
             "name": "Workflow Controls",
-            "options": ["--container", "--hpc", "--output-dir", "--prefix", "--quiet", "--random-seed", "--snakemake", "--help"],
+            "options": ["--container", "--hpc", "--output-dir", "--prefix", "--quiet", "--random-seed", "--snakemake", "--help"]
         },
     ]
 }
-
-@click.command(no_args_is_help = True, context_settings=dict(allow_interspersed_args=False), epilog = "Documentation: https://pdimens.github.io/harpy/workflows/simulate/simulate-linkedreads")
-@click.option('-b', '--barcodes', type = click.Path(exists=True, dir_okay=False, readable=True), help = "File of linked-read barcodes to add to reads")
-@click.option('-s', '--distance-sd', type = click.IntRange(min = 1), default = 15, show_default=True,  help = "Standard deviation of read-pair distance")
-@click.option('-m', '--molecules-per', type = click.IntRange(min = 1, max = 4700), default = 10, show_default=True,  help = "Average number of molecules per partition")
-@click.option('-l', '--molecule-length', type = click.IntRange(min = 2), default = 100, show_default=True,  help = "Mean molecule length (kbp)")
-@click.option('-r', '--mutation-rate', type = click.FloatRange(min = 0), default=0.001, show_default=True,  help = "Random mutation rate for simulating reads")
-@click.option('-d', '--outer-distance', type = click.IntRange(min = 100), default = 350, show_default= True, help = "Outer distance between paired-end reads (bp)")
-@click.option('-o', '--output-dir', type = click.Path(exists = False), default = "Simulate/linkedreads", help = 'Output directory name')
-@click.option('-p', '--partitions', type = click.IntRange(min = 1), default=1500, show_default=True,  help = "Number (in thousands) of partitions/beads to generate")
-@click.option('-n', '--read-pairs', type = click.FloatRange(min = 0.001), default = 600, show_default=True,  help = "Number (in millions) of read pairs to simulate")
-@click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(min = 1, max_open = True), help = 'Number of threads to use')
-@click.option('--hpc',  type = HPCProfile(), help = 'Directory with HPC submission `config.yaml` file')
-@click.option('--container',  is_flag = True, default = False, help = 'Use a container instead of conda')
-@click.option('--setup-only',  is_flag = True, hidden = True, show_default = True, default = False, help = 'Setup the workflow and exit')
-@click.option('--quiet',  is_flag = True, show_default = True, default = False, help = 'Don\'t show output text while running')
-@click.option('--snakemake', type = SnakemakeParams(), help = 'Additional Snakemake parameters, in quotes')
-@click.argument('genome_hap1', required=True, type = InputFile("fasta", gzip_ok = True), nargs=1)
-@click.argument('genome_hap2', required=True, type = InputFile("fasta", gzip_ok = True), nargs=1)
-def linkedreads(genome_hap1, genome_hap2, output_dir, outer_distance, mutation_rate, distance_sd, barcodes, read_pairs, molecule_length, partitions, molecules_per, threads, snakemake, quiet, hpc, container, setup_only):
-    """
-    Create linked reads from a genome
- 
-    Two haplotype genomes (un/compressed fasta) need to be provided as inputs at the end of the command. If
-    you don't have a diploid genome, you can simulate one with `harpy simulate` as described [in the documentation](https://pdimens.github.io/harpy/blog/simulate_diploid/).
-
-    If not providing a file for `--barcodes`, Harpy will generate a file containing the original
-    (96^4) set of 24-basepair haplotagging barcodes (~2GB disk space). The `--barcodes` file is expected to have one
-    linked-read barcode per line, given as nucleotides.
-    """
-    output_dir = output_dir.rstrip("/")
-    workflowdir = os.path.join(output_dir, 'workflow')
-    sdm = "conda" if not container else "conda apptainer"
-    command = f'{SNAKEMAKE_CMD} --software-deployment-method {sdm} --cores {threads}'
-    command += f" --snakefile {workflowdir}/simulate_linkedreads.smk"
-    command += f" --configfile {workflowdir}/config.yaml"
-    if hpc:
-        command += f" --workflow-profile {hpc}"
-    if snakemake:
-        command += f" {snakemake}"
-
-    check_fasta(genome_hap1)
-    check_fasta(genome_hap2)
-    if barcodes:
-        bc_len = validate_barcodefile(barcodes, True, quiet)
-    os.makedirs(f"{workflowdir}/", exist_ok= True)
-    fetch_rule(workflowdir, "simulate_linkedreads.smk")
-    fetch_script(workflowdir, "HaploSim.pl")
-    os.makedirs(f"{output_dir}/logs/snakemake", exist_ok = True)
-    sm_log = snakemake_log(output_dir, "simulate_linkedreads")
-    conda_envs = ["simulations"]
-    configs = {
-        "workflow" : "simulate linkedreads",
-        "snakemake_log" : sm_log,
-        "output_directory" : output_dir,
-        "outer_distance" : outer_distance,
-        "distance_sd" : distance_sd,
-        "read_pairs" : read_pairs,
-        "mutation_rate" : mutation_rate,
-        "molecule_length" : molecule_length,
-        "partitions" : partitions,
-        "molecules_per_partition" : molecules_per,
-        "workflow_call" : command.rstrip(),
-        "conda_environments" : conda_envs,
-        'barcodes': {
-            "file": Path(barcodes).resolve().as_posix() if barcodes else f"{workflowdir}/input/haplotag_barcodes.txt",
-            "length": bc_len if barcodes else 24
-        },
-        "inputs" : {
-            "genome_hap1" : Path(genome_hap1).resolve().as_posix(),
-            "genome_hap2" : Path(genome_hap2).resolve().as_posix(),
-        }
-    }
-    with open(os.path.join(workflowdir, 'config.yaml'), "w", encoding="utf-8") as config:
-        yaml.dump(configs, config, default_flow_style= False, sort_keys=False, width=float('inf'))
-
-    create_conda_recipes(output_dir, conda_envs)
-    if setup_only:
-        sys.exit(0)
-
-    start_text = workflow_info(
-        ("Genome Haplotype 1:", os.path.basename(genome_hap1)),
-        ("Genome Haplotype 2:", os.path.basename(genome_hap2)),
-        ("Barcodes:", os.path.basename(barcodes) if barcodes else "Haplotagging Default"),
-        ("Output Folder:", output_dir + "/"),
-        ("Workflow Log:", sm_log.replace(f"{output_dir}/", "") + "[dim].gz")
-    )
-    launch_snakemake(command, "simulate_linkedreads", start_text, output_dir, sm_log, quiet, "workflow/simulate.reads.summary")
 
 @click.command(no_args_is_help = True, context_settings=dict(allow_interspersed_args=False), epilog = "This workflow can be quite technical, please read the docs for more information: https://pdimens.github.io/harpy/workflows/simulate/simulate-variants")
 @click.option('-s', '--snp-vcf', type=InputFile("vcf", gzip_ok = False), help = 'VCF file of known snps to simulate')
@@ -229,7 +115,7 @@ def linkedreads(genome_hap1, genome_hap2, output_dir, outer_distance, mutation_r
 @click.option('--container',  is_flag = True, default = False, help = 'Use a container instead of conda')
 @click.option('--setup-only',  is_flag = True, hidden = True, show_default = True, default = False, help = 'Setup the workflow and exit')
 @click.option('--hpc',  type = HPCProfile(), help = 'Directory with HPC submission `config.yaml` file')
-@click.option('--quiet',  is_flag = True, show_default = True, default = False, help = 'Don\'t show output text while running')
+@click.option('--quiet', show_default = True, default = "0", type = click.Choice(["0", "1", "2"]), callback = convert_to_int, help = 'Verbosity of output. `0` shows all output, `1` shows single progress bar, `2` suppressess all output')
 @click.option('--random-seed', type = click.IntRange(min = 1), help = "Random seed for simulation")
 @click.option('--snakemake', type = SnakemakeParams(), help = 'Additional Snakemake parameters, in quotes')
 @click.argument('genome', required=True, type=InputFile("fasta", gzip_ok = True), nargs=1)
@@ -352,7 +238,7 @@ def snpindel(genome, snp_vcf, indel_vcf, only_vcf, output_dir, prefix, snp_count
 @click.option('--container',  is_flag = True, default = False, help = 'Use a container instead of conda')
 @click.option('--setup-only',  is_flag = True, hidden = True, show_default = True, default = False, help = 'Setup the workflow and exit')
 @click.option('--hpc',  type = HPCProfile(), help = 'Directory with HPC submission `config.yaml` file')
-@click.option('--quiet',  is_flag = True, show_default = True, default = False, help = 'Don\'t show output text while running')
+@click.option('--quiet', show_default = True, default = "0", type = click.Choice(["0", "1", "2"]), callback = convert_to_int, help = 'Verbosity of output. `0` shows all output, `1` shows single progress bar, `2` suppressess all output')
 @click.option('--random-seed', type = click.IntRange(min = 1), help = "Random seed for simulation")
 @click.option('--snakemake', type = SnakemakeParams(), help = 'Additional Snakemake parameters, in quotes')
 @click.argument('genome', required=True, type=InputFile("fasta", gzip_ok = True), nargs=1)
@@ -455,7 +341,7 @@ def inversion(genome, vcf, only_vcf, prefix, output_dir, count, min_size, max_si
 @click.option('--container',  is_flag = True, default = False, help = 'Use a container instead of conda')
 @click.option('--setup-only',  is_flag = True, hidden = True, show_default = True, default = False, help = 'Setup the workflow and exit')
 @click.option('--hpc',  type = HPCProfile(), help = 'Directory with HPC submission `config.yaml` file')
-@click.option('--quiet',  is_flag = True, show_default = True, default = False, help = 'Don\'t show output text while running')
+@click.option('--quiet', show_default = True, default = "0", type = click.Choice(["0", "1", "2"]), callback = convert_to_int, help = 'Verbosity of output. `0` shows all output, `1` shows single progress bar, `2` suppressess all output')
 @click.option('--random-seed', type = click.IntRange(min = 1), help = "Random seed for simulation")
 @click.option('--snakemake', type = SnakemakeParams(), help = 'Additional Snakemake parameters, in quotes')
 @click.argument('genome', required=True, type=InputFile("fasta", gzip_ok = True), nargs=1)
@@ -562,7 +448,7 @@ def cnv(genome, output_dir, vcf, only_vcf, prefix, count, min_size, max_size, du
 @click.option('--container',  is_flag = True, default = False, help = 'Use a container instead of conda')
 @click.option('--setup-only',  is_flag = True, hidden = True, show_default = True, default = False, help = 'Setup the workflow and exit')
 @click.option('--hpc',  type = HPCProfile(), help = 'Directory with HPC submission `config.yaml` file')
-@click.option('--quiet',  is_flag = True, show_default = True, default = False, help = 'Don\'t show output text while running')
+@click.option('--quiet', show_default = True, default = "0", type = click.Choice(["0", "1", "2"]), callback = convert_to_int, help = 'Verbosity of output. `0` shows all output, `1` shows single progress bar, `2` suppressess all output')
 @click.option('--random-seed', type = click.IntRange(min = 1), help = "Random seed for simulation")
 @click.option('--snakemake', type = SnakemakeParams(), help = 'Additional Snakemake parameters, in quotes')
 @click.argument('genome', required=True, type=InputFile("fasta", gzip_ok = True), nargs=1)
@@ -644,8 +530,3 @@ def translocation(genome, output_dir, prefix, vcf, only_vcf, count, centromeres,
     )
     launch_snakemake(command, "simulate_translocation", start_text, output_dir, sm_log, quiet, "workflow/simulate.translocation.summary")
 
-simulate.add_command(linkedreads)
-simulate.add_command(snpindel)
-simulate.add_command(inversion)
-simulate.add_command(cnv)
-simulate.add_command(translocation)

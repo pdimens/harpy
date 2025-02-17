@@ -142,7 +142,7 @@ phase: &phase
 simvars: &simvars
   - *common
   - *container
-  - 'harpy/simulate.py'
+  - 'harpy/simulate_variants.py'
   - 'harpy/snakefiles/simulate_snpindel.smk'
   - 'harpy/snakefiles/simulate_variants.smk'
   - 'test/vcf/test.bcf'
@@ -150,7 +150,7 @@ simvars: &simvars
 simreads: &simreads
   - *common
   - *container
-  - 'harpy/simulate.py'
+  - 'harpy/simulate_linkedreads.py'
   - 'harpy/snakefiles/simulate_linkedreads.smk'
   - 'test/genome**gz'
   - 'extractReads.cpp'
